@@ -195,7 +195,7 @@ void gui_uso_func_0000055C(char *a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xE7000000;
     *(int *)(buf + i * 8 + 4) = 0;
 
@@ -203,7 +203,7 @@ void gui_uso_func_0000055C(char *a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xBA001402;
     *(int *)(buf + i * 8 + 4) = 0;
 
@@ -211,7 +211,7 @@ void gui_uso_func_0000055C(char *a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xBA001301;
     *(int *)(buf + i * 8 + 4) = 0;
 
@@ -219,7 +219,7 @@ void gui_uso_func_0000055C(char *a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xB900031D;
     *(int *)(buf + i * 8 + 4) = 0x00404240;
 
@@ -227,7 +227,7 @@ void gui_uso_func_0000055C(char *a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xFC309661;
     *(int *)(buf + i * 8 + 4) = 0xFF2FFFFF;
 
@@ -235,7 +235,7 @@ void gui_uso_func_0000055C(char *a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xBB000001;
     *(int *)(buf + i * 8 + 4) = 0x80008000;
 }
@@ -687,7 +687,7 @@ void gui_uso_func_000016A4(int a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xE7000000;
     *(int *)(buf + i * 8 + 4) = 0;
 
@@ -695,7 +695,7 @@ void gui_uso_func_000016A4(int a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xBA001402;
     *(int *)(buf + i * 8 + 4) = 0;
 
@@ -703,7 +703,7 @@ void gui_uso_func_000016A4(int a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xBA001301;
     *(int *)(buf + i * 8 + 4) = 0;
 
@@ -711,7 +711,7 @@ void gui_uso_func_000016A4(int a0) {
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
-    buf = *(char **)p;
+    buf = *(char **)(*(char **)(b + 0xC));
     *(int *)(buf + i * 8) = 0xB900031D;
     *(int *)(buf + i * 8 + 4) = 0x00404240;
 }
