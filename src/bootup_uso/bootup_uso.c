@@ -2630,22 +2630,264 @@ end:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
 #endif
 
-/* func_000055A0: 598-insn (0x958) heavy compute function — frame -0x180,
- * dozens of f-reg slots at sp+0x154..0x180, global-state read via
- * `func_0000057C + 0x1C` (the splat-fold-into-nearest-func pattern per
- * feedback_splat_folds_unknown_reloc_into_nearest_func_symbol.md — there
- * should be a proper D_<addr> rodata symbol there).
+#ifdef NON_MATCHING
+/* func_000055A0 - STRUCTURAL PASS (big-swing 2026-06-02).
+ * bootup_uso scene/HUD constructor, 0x958 (598 insns), ~52 folded jal-0
+ * placeholder calls + folded D_00000000 data-pool refs.
  *
- * Float constants used: 1.0f (0x3F800000), 0.5f (0x3F000000), and an
- * unusual 0xAA002 stored as int. The 1.0/0.5 weights suggest interpolation
- * or weighted-sum math; combined with the global-state OR-ed with 0x8
- * (`ori t7, t6, 0x8`) and the 0x10|a2 mask, this looks like a per-frame
- * world/camera/object state update with stat machine bit-flips.
+ * Shape:
+ *  - poke control regs at D+0/D+4 (D+4 = 0xAA002), clear root.
+ *  - zero a ~40-float transform-scratch block on the stack; set the
+ *    diagonal/identity entries (1.0f) and the 0.5f bias entries.
+ *  - compute a mode/flag word var_s0_2 from arg1, arg2, and globals at
+ *    D+0x34 / D+0x64 (combinations of bits 0x704/1/2/8; forced 0xFFFF
+ *    when arg1==1); store it at root->0x34.
+ *  - if (flags & 4): build three 0x74-byte actor objects + one 0x6C-byte
+ *    object, each via the inlined get-or-alloc(0x74/0x6C/0x48/0x18/0x10/4)
+ *    helper, init'd from a per-actor Vec (D+0x20/0x24/0x28..) + 1.0f, then
+ *    registered into root (func(root, obj, ...)).
+ *  - always: build 0x48 / 0x58-byte objects and register four transform
+ *    groups (&sp144/&sp114/&spD4/&spC4/&spE4) into root.
  *
- * Too big to decode in one tick (~10 mins). Multi-pass decomp candidate;
- * the next /decompile run can pick up here. Default INCLUDE_ASM keeps
- * ROM correct; this comment is the starting context. */
+ * Placeholder calls are func_00000000 (file convention, K&R int return,
+ * cast to ptr for allocs). intra-/cross-USO split of each jal-0 and the
+ * exact folded data symbols are a next-pass concern (uso-reloc-symbolize).
+ *
+ * NOT matched: folded-pool refs + ~52-call register allocation are a
+ * multi-tick grind (project_1080_cap_analysis_2026-05-28). This body
+ * replaces the prior "too big to decode" bail comment with the full
+ * decoded structure for the next pass. */
+#define DROOT (*(int **)&D_00000000)
+#define DI(o) (*(int *)((char *)&D_00000000 + (o)))
+#define DF(o) (*(float *)((char *)&D_00000000 + (o)))
+#define DP(o) ((void *)((char *)&D_00000000 + (o)))
+#define OI(p, o) (*(int *)((char *)(p) + (o)))
+#define OF(p, o) (*(float *)((char *)(p) + (o)))
+
+void func_000055A0(int arg0, int arg1, int arg2) {
+    float sp154, sp158, sp15C, sp160;
+    float sp144, sp148, sp150;
+    float sp134, sp138, sp140, sp130;
+    float sp114, sp11C, sp120;
+    float sp104, sp10C, sp110;
+    float spF4, spFC, sp100;
+    float spEC, spF0;
+    float spD8, spDC, spE0;
+    float spC8, spCC, spD0;
+    float sp14C, sp124, sp128, sp12C, sp118, spC4;
+    float sp13C, sp108, spE4, spE8, spD4;
+    float spF8;
+    float sp74, sp68, sp6C, sp70;
+    float sp50, sp44, sp48, sp4C;
+    float sp34, sp28, sp2C, sp30;
+    int var_s0, var_s0_2, mode;
+    int cnt;
+    void *obj, *sub, *node, *n2, *n3;
+    void *iter;
+
+    DI(0) = DI(0) | 8;
+    DI(4) = 0xAA002;
+    DI(0) = 0;
+    DI(0) = 0;
+    var_s0 = arg2 | 0x10;
+    sp154 = 0.0f; sp158 = 0.0f; sp15C = 0.0f; sp160 = 0.0f;
+    sp144 = 0.0f; sp148 = 0.0f; sp150 = 0.0f;
+    sp134 = 0.0f; sp138 = 0.0f; sp140 = 0.0f; sp130 = 0.0f;
+    sp114 = 0.0f; sp11C = 0.0f; sp120 = 0.0f;
+    sp104 = 0.0f; sp10C = 0.0f; sp110 = 0.0f;
+    spF4 = 0.0f; spFC = 0.0f; sp100 = 0.0f;
+    spEC = 0.0f; spF0 = 0.0f;
+    spD8 = 0.0f; spDC = 0.0f; spE0 = 0.0f;
+    spC8 = 0.0f; spCC = 0.0f; spD0 = 0.0f;
+    sp14C = 1.0f; sp124 = 1.0f; sp128 = 1.0f; sp12C = 1.0f; sp118 = 1.0f; spC4 = 1.0f;
+    sp13C = 0.5f; sp108 = 0.5f; spE4 = 0.5f; spE8 = 0.5f; spD4 = 0.5f;
+    spF8 = DF(0x1C);
+
+    if (arg1 == 1) {
+        DI(4) = 0x28002;
+        DI(0) = 0;
+        cnt = DI(0);
+        DI(0) = func_00000000(0x3F800000, NULL, NULL, NULL, 0);
+        iter = NULL;
+        if (cnt != 0) {
+            int next = DI(0);
+            do {
+                void *cur = iter;
+                func_00000000(0, next, iter);
+                func_00000000(DI(0), cur);
+                next = OI(iter, 0xC);
+                iter = (char *)iter + 0xC;
+            } while (next != 0);
+        }
+    }
+
+    if (arg1 != 6) {
+        var_s0 = var_s0 | 0x20;
+    }
+    var_s0_2 = var_s0 | 4;
+    if ((arg1 == 6) || (arg1 == 0xB)) {
+        var_s0_2 &= ~0x704;
+    }
+    mode = DI(0x34);
+    if (mode == 5) {
+        var_s0_2 |= 1;
+    }
+    if (mode == 6) {
+        var_s0_2 |= 2;
+    }
+    if ((arg1 == 2) || (arg1 == 3) || (arg1 == 4) || (arg1 == 9) || (DI(0x64) == 7)) {
+        var_s0_2 |= 8;
+    }
+    if (arg1 == 1) {
+        var_s0_2 = 0xFFFF;
+    }
+    OI(DROOT, 0x34) = var_s0_2;
+
+    if (var_s0_2 & 4) {
+        /* actor 0 (0x74) */
+        obj = (void *)func_00000000(0x74);
+        if (obj != 0) {
+            sub = obj;
+            if ((obj != 0) || (sub = (void *)func_00000000(0x48), sub != 0)) {
+                func_00000000(sub, DROOT, NULL);
+                OI(sub, 0x28) = 0;
+            }
+            OI(obj, 0x28) = 0;
+            node = (char *)obj + 0x5C;
+            if ((node != NULL) || (node = (void *)func_00000000(0x18), node != 0)) {
+                func_00000000(node);
+            }
+            OF(obj, 0x4C) = 0.0f; OF(obj, 0x50) = 0.0f; OF(obj, 0x54) = 0.0f; OF(obj, 0x58) = 1.0f;
+            sp74 = 1.0f;
+            sp68 = DF(0x20); sp6C = DF(0x20); sp70 = DF(0x20);
+            func_00000000(0x3F800000, node, &sp68, DP(0x3E1), 0x3E5);
+            OI(obj, 0x38) = 1;
+            OI(obj, 0x48) = 0;
+        }
+        func_00000000(DROOT, obj, DP(4));
+
+        /* actor 1 (0x74) */
+        obj = (void *)func_00000000(0x74);
+        if (obj != 0) {
+            sub = obj;
+            if ((obj != 0) || (sub = (void *)func_00000000(0x48), sub != 0)) {
+                func_00000000(sub, DROOT, NULL);
+                OI(sub, 0x28) = 0;
+            }
+            OI(obj, 0x28) = 0;
+            node = (char *)obj + 0x5C;
+            if ((node != NULL) || (node = (void *)func_00000000(0x18, node), node != NULL)) {
+                func_00000000(node, node);
+            }
+            OF(obj, 0x4C) = 0.0f; OF(obj, 0x50) = 0.0f; OF(obj, 0x54) = 0.0f; OF(obj, 0x58) = 1.0f;
+            sp50 = 1.0f;
+            sp44 = DF(0x24); sp48 = DF(0x24); sp4C = DF(0x24);
+            func_00000000(0x3F800000, node, &sp44, DP(0x3E1), 0x3E5);
+            OI(obj, 0x38) = 1;
+            OI(obj, 0x48) = 0;
+        }
+        func_00000000(DROOT, obj, DP(4));
+
+        /* actor 2 (0x74) */
+        obj = (void *)func_00000000(0x74);
+        if (obj != 0) {
+            sub = obj;
+            if ((obj != 0) || (sub = (void *)func_00000000(0x48), sub != 0)) {
+                func_00000000(sub, DROOT, NULL);
+                OI(sub, 0x28) = 0;
+            }
+            OI(obj, 0x28) = 0;
+            node = (char *)obj + 0x5C;
+            if ((node != NULL) || (node = (void *)func_00000000(0x18, node), node != NULL)) {
+                func_00000000(node, node);
+            }
+            OF(obj, 0x58) = 1.0f; OF(obj, 0x4C) = 0.0f; OF(obj, 0x50) = 0.0f; OF(obj, 0x54) = 0.0f;
+            sp28 = DF(0x28); sp2C = DF(0x2C); sp30 = DF(0x30); sp34 = 1.0f;
+            func_00000000(node, &sp28, DP(0x3E1), DP(0x3E5));
+            OI(obj, 0x38) = 1;
+            OI(obj, 0x48) = 0;
+        }
+        func_00000000(DROOT, obj, DP(4));
+
+        /* list object (0x6C) */
+        DI(4) = 0x28002;
+        DI(0) = 0;
+        node = (void *)func_00000000(0, NULL, NULL, NULL);
+        obj = (void *)func_00000000(0x6C);
+        if (obj != 0) {
+            sub = obj;
+            if ((obj != 0) || (sub = (void *)func_00000000(0x48), sub != 0)) {
+                func_00000000(sub, DROOT, node);
+                OI(sub, 0x28) = 0;
+            }
+            OI(obj, 0x28) = 0;
+            n2 = (char *)obj + 0x48;
+            if ((n2 != NULL) || (n2 = (void *)func_00000000(0x10, n2), n2 != NULL)) {
+                n3 = n2;
+                if ((n2 != NULL) || (n3 = (void *)func_00000000(0x10, n2), n3 != 0)) {
+                    void *n4 = n3;
+                    if ((n3 != NULL) || (n4 = (void *)func_00000000(4, n2), n4 != 0)) {
+                        OI(n4, 0) = 0;
+                    }
+                    OI(n3, 0x4) = (int)obj;
+                    OI(n3, 0x8) = DI(0);
+                    OI(n3, 0xC) = DI(4);
+                }
+                OI(n2, 0) = 0;
+            }
+            DI(0) = 0;
+            OI(obj, 0x5C) = 2;
+            OI(obj, 0x64) = 0;
+            OI(obj, 0x60) = 0;
+            OI(obj, 0x58) = 0;
+            OI(obj, 0x68) = 0;
+        }
+        func_00000000(DROOT, obj, DP(0xFFFF));
+    }
+
+    func_00000000(DROOT, NULL);
+
+    /* trailing 0x48 / 0x58 objects + transform-group registration */
+    node = (void *)func_00000000(0, NULL, NULL, NULL);
+    obj = (void *)func_00000000(0x48);
+    if (obj != 0) {
+        func_00000000(obj, DROOT, node);
+        OI(obj, 0x28) = 0;
+    }
+    func_00000000(DROOT, obj, DP(0xFFFF));
+
+    obj = (void *)func_00000000(0x48);
+    if (obj != 0) {
+        sub = obj;
+        if ((obj != 0) || (sub = (void *)func_00000000(0x48), sub != 0)) {
+            func_00000000(sub, DROOT, DI(0));
+            OI(sub, 0x28) = 0;
+        }
+        OI(obj, 0x28) = 0;
+    }
+    func_00000000(DROOT, obj, DP(0xFFFF));
+
+    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &sp144), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &sp114), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &spD4), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &spC4), DP(0xFFFF));
+
+    obj = (void *)func_00000000(0x58);
+    if (obj != 0) {
+        func_00000000(obj, DROOT, DI(0), &spE4);
+        OI(obj, 0x28) = 0;
+    }
+    func_00000000(DROOT, obj, DP(0xFFFF));
+}
+#undef DROOT
+#undef DI
+#undef DF
+#undef DP
+#undef OI
+#undef OF
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000055A0);
+#endif
 
 void func_00005EF8(int *dst) {
     int buf[2];
