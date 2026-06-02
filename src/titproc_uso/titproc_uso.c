@@ -450,7 +450,63 @@ void titproc_uso_func_0000101C(int *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+/* Partial structural decode 2026-06-01. 4-case state machine (jr-table on
+ * s0->0x40, written as an if-chain) advancing a title-screen sequence: each
+ * state runs a timer, fires a virtual method on a sub-object, and transitions
+ * on expiry. Cases 0/1 decoded; cases 2/3 + tail left for a follow-up.
+ * Cross-USO calls are the gl_func_00000000 import. */
+void titproc_uso_func_0000116C(char *s0) {
+    char *d = (char *)&D_00000000;
+    char *v1, *vt;
+    int state = *(int *)(s0 + 0x40);
+    int n, t, v;
+
+    if ((unsigned int)state >= 4) {
+        return;
+    }
+    if (state == 0) {
+        t = *(int *)(s0 + 0x3C) - 1;
+        *(int *)(s0 + 0x3C) = t;
+        if (t >= 0) {
+            if (gl_func_00000000(d, 0x40300) == 0) {
+                return;
+            }
+        }
+        v1 = *(char **)(s0 + 0x58);
+        vt = *(char **)(v1 + 0x28);
+        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+        gl_func_00000000(*(int *)(s0 + 0x58));
+        n = *(int *)(s0 + 0x70);
+        *(int *)(s0 + 0x40) = state + 1;
+        *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+        *(int *)(s0 + 0x68) = 40;
+        gl_func_00000000(13);
+    } else if (state == 1) {
+        v = *(int *)(s0 + 0x68);
+        if (v != 0) {
+            v = v - 1;
+            *(int *)(s0 + 0x68) = v;
+        }
+        if (v == 0) {
+            v1 = *(char **)(s0 + 0x54);
+            vt = *(char **)(v1 + 0x28);
+            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+        }
+        t = *(int *)(s0 + 0x3C) - 1;
+        *(int *)(s0 + 0x3C) = t;
+        if (t == 0) {
+            char *p = *(char **)(*(char **)(s0 + 0x50) + 0x44);
+            if (*(int *)(p + 0x34) != 0) {
+                *(int *)(d + 0x34) = 1;
+            }
+            gl_func_00000000(s0, v, 0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000116C);
+#endif
 
 /* titproc_uso_func_000015F4 — alloc-or-passthrough constructor. The second
  * null guard is dead after the first successful alloc, but the original source
