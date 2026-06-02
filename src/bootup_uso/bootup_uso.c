@@ -647,9 +647,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000E68);
  * 0x34 (44/48/52) s32 -> converted to f32 draw params; 1.0f
  * const. Caps <80: FP-heavy cvt.s.w/mul.s + global gate + 2x &D
  * + reloc draw + list-append (count bump + 8-byte stride).
- * INCLUDE_ASM remains build path. */
+ * INCLUDE_ASM remains build path.
+ *
+ * 2026-06-02 (13.5->17.2%): the reloc_draw call passes 7 single-floats — routed
+ * through a typed-float proto (func_1a44_emit, 0x0-alias) so they emit swc1 to
+ * the outgoing stack-arg slots instead of K&R cvt.d.s+sdc1 double-promotion.
+ * Remaining ~49 insns (the "entry payload writes" after cmd[0]) are still
+ * undecoded — body is 66/115 insns. Next pass: decode the 8-byte-entry payload
+ * stores + any trailing FP from the target asm. */
 extern void func_00000188();  /* used as data-symbol base */
 #ifdef NON_MATCHING
+/* typed-float proto (0x0-alias of func_00000000) so the 7 float args pass as
+ * single-precision (swc1) instead of K&R double-promote (cvt.d.s+sdc1). */
+extern void func_1a44_emit(void *, float, float, float, float, float, float, float);
 void func_00001A44(char *a0) {
     char *st;
     char *n;
@@ -673,11 +683,11 @@ void func_00001A44(char *a0) {
     sx = *(float*)(v0 + 0xA0) * *(float*)((char*)&D_00000000 + 0x128);
     sy = *(float*)(v0 + 0xA4) * *(float*)((char*)&D_00000000 + 0x12C);
     sz = *(float*)(v0 + 0xA8) * *(float*)((char*)&D_00000000 + 0x130);
-    func_00000000(base + stride6,
-                  (float)*(int*)(a0 + 0x2C),
-                  (float)*(int*)(a0 + 0x30),
-                  (float)*(int*)(a0 + 0x34),
-                  1.0f, sx, sy, sz);
+    func_1a44_emit(base + stride6,
+                   (float)*(int*)(a0 + 0x2C),
+                   (float)*(int*)(a0 + 0x30),
+                   (float)*(int*)(a0 + 0x34),
+                   1.0f, sx, sy, sz);
     l = *(char**)(n + 0xC);
     i = *(int*)(l + 0x4);
     *(int*)(l + 0x4) = i + 1;
