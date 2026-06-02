@@ -302,8 +302,25 @@ void titproc_uso_func_000005DC(char *a0, int a1) {
                 s5 = 0x2100000;
                 *(int *)(d + 0x40) = 10;
                 break;
-            case 0:  *(int *)(d + 0x40) = 100; break;
-            case 2:  *(int *)(d + 0x40) = 101; break;
+            case 0: {
+                int *sub;
+                gl_func_00000000(d, 0, 0, 0);
+                done = 1;
+                *(int *)(d + 0x68) = 0;
+                *(int *)(d + 0x8C) = 0x820000;
+                sub = (int *)gl_func_00000000(d, 2, 9, 1);
+                gl_func_00000000(d + 16);
+                if (*(int *)((char *)sub + 0x14) != 0) {
+                    *(int *)((char *)sub + 0x4) = 1;
+                }
+                gl_func_00000000(0, sub);
+                *(int *)((char *)sub + 0x14) = (int)d;
+                gl_func_00000000(arg, 0);
+                break;
+            }
+            case 2:
+                gl_func_00000000(arg);
+                break;
             case 4:  *(int *)(d + 0x40) = 102; break;
             case 5:  *(int *)(d + 0x40) = 103; break;
             case 7:  *(int *)(d + 0x40) = 104; break;
