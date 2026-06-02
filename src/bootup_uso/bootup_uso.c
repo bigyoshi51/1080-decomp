@@ -1818,9 +1818,9 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003D3C);
  * Caps <80: ~12 reloc + FP stack-arg (with a sub.s 500.0 bias) +
  * a1*0x1C index + list-link beql. INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
-/* typed-float proto (0x0-alias): arg 7 is a single float (target swc1);
- * K&R func_00000000 double-promotes it. */
-extern char *func_3f00_r(char *, int, int, int, char *, int, float, int, int);
+/* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats
+ * (same shape as func_00003734/38C0); K&R func_00000000 double-promotes them. */
+extern char *func_3f00_r(char *, int, int, int, char *, int, float, float, int, int);
 void func_00003F00(char *s1, int a1) {
     char *o1 = (char*)func_00000000(0x80);
     char *o2;
@@ -1838,7 +1838,7 @@ void func_00003F00(char *s1, int a1) {
     cfg = *(char**)(s1 + 0x98);
     r = func_3f00_r(s1, 0, *(int*)(Dg + 0x4C), *(int*)(Dg + 0x54),
                     o1, *(int*)(s1 + 0x80),
-                    *(float*)(cfg + 0xC4) - 500.0f,
+                    *(float*)(cfg + 0xC4) - 500.0f, *(float*)(cfg + 0xCC),
                     *(int*)(Dg + 0x50), 0x15);
     (void)r; (void)a1;
     /* Chain continues per family-shared shape (more build() stages
