@@ -38651,7 +38651,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FA4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FD8);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00068004: float-ratio table lookup. idx = (int)(a0/a1 *
+ * 1024.0f + 0.5f) (round-to-nearest via +0.5 then trunc); returns the u16 at
+ * a u16 table indexed by idx. Table at segment offset 0x2AA60 (emitted as
+ * lui 0x3 + lhu -0x55A0(base)). Standard $f12/$f14 float args.
+ * 81% NM. Logic + opcodes exact, but TWO blockers: (1) BOUNDARY — splat over-
+ * declared 0x44 (17 insns). The 17th word `mtc1 zero,$f0` (0x68044) is the
+ * STOLEN PROLOGUE of the next function gl_func_00068048, which uses f0=0.0 at
+ * its 3rd insn (`c.le.s $f0,$f12`) without setting it. True size of 68004 is
+ * 0x40 (16 insns). Caps any 68004 match until the boundary is fixed: shrink
+ * 68004 to 0x40 and forward-merge that word into 68048 (rename 68048 ->
+ * 68044, +1 word) — see docs/MATCHING_WORKFLOW.md stolen-prologue forward-merge.
+ * (2) FP-temp renumber + $v0/$v1 swap on the table base/return (target loads to
+ * $v1 then `or v0,v1`; IDO returns via the delay-slot lhu) — permuter-class. */
+int game_libs_func_00068004(float a0, float a1) {
+    int idx = (int)(a0 / a1 * 1024.0f + 0.5f);
+    int r = *(unsigned short *)((char *)&D_00000000 + 0x2AA60 + idx * 2);
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068004);
+#endif
 
 /* gl_func_00068048: 107-insn (0x1AC) FPU-heavy float clamp/range chain.
  * Single function (1 jr ra). Stack frame -0x28 with sdc1 f22/f20 (callee-
