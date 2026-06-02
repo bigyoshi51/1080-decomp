@@ -10348,7 +10348,22 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
  * ends at the epilogue jr ra). Tail: N=12..22 float-lit (4,50,25,40,100,120,
  * 80,100,150,100,150 .0f), N=23..26 int 0, N=27..31 int 1, N=32 int 30,
  * N=33 int 100. Remaining ~52% is regalloc/scheduling across the matched
- * structure (each sub-block's register coloring) + main-obj/s1 setup. */
+ * structure (each sub-block's register coloring) + main-obj/s1 setup.
+ *
+ * 2026-06-01 ENTRY-RESIDUAL MAP (next attack, from expected-.o disasm — NOT a
+ * .s scrape, which drops the alloc jal lines): built is +28 insns vs target
+ * and frame is -192 vs target -200; the divergence starts in the entry, not
+ * the sub-init run, so per the cascade-realign rule fix the ENTRY first:
+ *   - target saves `s0 = a1` (2nd arg) at entry (or s0,a1,zero) — this C uses
+ *     a0/p and never models a1 living in s0; the a1->s0 save + its later uses
+ *     must be reproduced.
+ *   - main-obj find-or-create: target `sw a0,200(sp); bne a0,0,skip; sw a2,208;
+ *     a0=1092(0x444); jal; beq v0,0,end; sw v0,200; lw a0,200` — i.e. a0/a2
+ *     spilled to sp+200/208 and reloaded, p kept on the stack not in a reg.
+ *   - s1 find-or-create at +0x48: `lw t9,200(sp); addiu at,-316; bne t9,-316;
+ *     addiu s1,t9,316; a0=776(0x308); jal; beq v0,0,end; or s1,v0; bne s1,0`.
+ * Matching the spill-to-sp+200/208 + s0=a1 entry shape should realign the +28
+ * insns. Regalloc-class but structural enough to attempt. */
 void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     char *p;
     int *s1;
