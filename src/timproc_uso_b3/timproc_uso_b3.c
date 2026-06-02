@@ -1027,9 +1027,33 @@ void timproc_uso_b3_func_00001C20(char *a0) {
  * ramp 0xA8 toward 0x44->0x18 by 0xFA/0x32/0x19/1; state-1 draws (float arg via
  * gl_proto_1c68); 0x94 sub-widget enable + 0x32/5/1 ramp on 0x44->0x20 else
  * disable; state-2 (0x4F8==0) blink 0x8C by (0xAC++ & 8). cb(arg0) tail. Fresh
- * decode 2026-05-29 (m2c-confirmed). 83.7% reg-blind. Residual: float-call mfc1
- * arg setup + spill regalloc. Caps: structs + cb prototypes untyped (USO-reloc).
- * NON_MATCHING. */
+ * decode 2026-05-29 (m2c-confirmed). 84.02%. Caps: structs + cb prototypes
+ * untyped (USO-reloc). NON_MATCHING.
+ *
+ * 2026-06-01 PRECISE GAP MAP (reloc-aware difflib, build 239 insns vs target
+ * 253 = 14 short — but NOT one missing block; logic is all present, the deficit
+ * is BRANCH-FORM, so this is regalloc/scheduling-class, not addable-logic):
+ *   - insn 5+ : `bc=arg0->0xB8` colors to v0 (build) vs a0 (target) — the
+ *     v0-reuse-after-void-call cap (gl_func() return frees v0; target uses a0).
+ *     Cascades through bc->0x4F0/0x4DC reads. See IDO_CODEGEN v0-reuse entry.
+ *   - built[67:94] vs target[66:94] (state-2 sync, the `if (v0 && bc->0x4DC==1)`
+ *     + `arg0->0x48==2` block): target emits `beqz nop beqz nop` (two split
+ *     branches) where the `&&` here folds differently; +1 insn.
+ *   - built[173:189] vs target[176:198] (+6) and built[193:207] vs [202:219]
+ *     (+3): the 0x94 sub-widget ramp (r>=0x32/5/1) — target uses a `bnezl`
+ *     branch-likely and a different li/li/addiu/jal/sw arg-setup schedule per
+ *     ramp stage; the plain if-elseif chain here emits the un-likely form.
+ *   - float-arg setup for the two gl_proto_1c68(...,Nf,Nf) calls differs.
+ * Next attack (targeted, per-region): convert the 0x94 ramp to the branch-likely
+ * shared-tail goto shape (see /decompile branch-likely recipe) — that single
+ * block is ~9 of the 14 missing insns. Branch-form/regalloc residual.
+ * CASCADE ORDER MATTERS: the length divergence begins at the state-2 sync
+ * block (built[67]/target[66]); fixing the LATER 0x94 ramp alone is
+ * byte-neutral on fuzzy (verified 2026-06-01: &p44->0x20 pointer-form for the
+ * +0x32/+5 stages compiled identically, 84.02% unchanged) because everything
+ * after the first divergence stays mis-shifted. Must realign from the FIRST
+ * length diff (state-2 sync `&&`/branch-likely forms) outward, not from the
+ * tail. */
 extern int gl_proto_1c68(void *, int, int, float, float);
 void timproc_uso_b3_func_00001C68(char *arg0) {
     char *bc;
