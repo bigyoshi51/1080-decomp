@@ -701,6 +701,9 @@ int gui_uso_func_00001674(int a0) {
  * gfx builder reached via *(D+0x254)->0x158, caching it at &D for each
  * append. */
 extern char D_gui16a4_cache;
+extern char D_gui16a4_c1;
+extern char D_gui16a4_c2;
+extern char D_gui16a4_c3;
 void gui_uso_func_000016A4(int a0) {
     char *b;
     char *p;
@@ -717,7 +720,7 @@ void gui_uso_func_000016A4(int a0) {
     *(int *)(buf + i * 8) = 0xE7000000;
     *(int *)(buf + i * 8 + 4) = 0;
 
-    b = *(char **)&D_gui16a4_cache;
+    b = *(char **)&D_gui16a4_c1;
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
@@ -725,7 +728,7 @@ void gui_uso_func_000016A4(int a0) {
     *(int *)(buf + i * 8) = 0xBA001402;
     *(int *)(buf + i * 8 + 4) = 0;
 
-    b = *(char **)&D_gui16a4_cache;
+    b = *(char **)&D_gui16a4_c2;
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
@@ -733,7 +736,7 @@ void gui_uso_func_000016A4(int a0) {
     *(int *)(buf + i * 8) = 0xBA001301;
     *(int *)(buf + i * 8 + 4) = 0;
 
-    b = *(char **)&D_gui16a4_cache;
+    b = *(char **)&D_gui16a4_c3;
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
