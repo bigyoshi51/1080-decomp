@@ -390,7 +390,36 @@ void titproc_uso_func_000005DC(char *a0, int a1) {
                 break;
             }
             case 8:  *(int *)(d + 0x40) = 105; break;
-            case 9:  *(int *)(d + 0x40) = 106; break;
+            case 9: {
+                int *r;
+                int v;
+                int flag = s5 & 0x2000000;
+                int s4 = s5 | 0x80A0000;
+                done = 1;
+                gl_func_00000000(arg, 1);
+                *(char *)(d + 0x181) = gl_func_00000000(*(int *)(*(int *)arg + 8));
+                *(char *)(d + 0x182) = gl_func_00000000(*(int *)(*(int *)arg + 8));
+                *(char *)(d + 0x183) = gl_func_00000000(*(int *)(*(int *)arg + 8));
+                if (flag != 0) {
+                    v = gl_func_00000000(*(int *)(*(int *)arg + 8));
+                    gl_func_00000000(d, 10, v, 1);
+                } else {
+                    v = gl_func_00000000(*(int *)(*(int *)arg + 8));
+                    gl_func_00000000(d, 4, v, 0);
+                }
+                *(int *)(d + 0x64) = gl_func_00000000(*(int *)(*(int *)arg + 8));
+                r = (int *)gl_func_00000000(d, *(int *)(d + 0x64), 4, 1);
+                gl_func_00000000(d + 16);
+                if (*(int *)((char *)r + 0x14) != 0) {
+                    *(int *)((char *)r + 0x4) = 1;
+                }
+                gl_func_00000000(d, 1);
+                *(int *)((char *)r + 0x14) = (int)d;
+                gl_func_00000000(0, s4 + *(int *)(*(int *)(*(int *)arg + 8) + 4), r, *(int *)arg);
+                gl_func_00000000(arg, 0);
+                *(int *)(d + 0x40) = 11;
+                break;
+            }
             case 10: *(int *)(d + 0x40) = 107; break;
             case 11: *(int *)(d + 0x40) = 108; break;
             }
