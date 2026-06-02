@@ -1,0 +1,75 @@
+#define NULL ((void*)0)
+typedef unsigned char u8; typedef int s32; typedef float f32;
+typedef struct { int a, b, c, d; } Quad;
+typedef struct { void *f0; int f4; char _a[0x8]; int f10; char _b[0x14]; } Elem; /* 0x28 */
+typedef struct Obj {
+    char _h0[0x30];
+    void *unk30; void *unk34; int unk38;            /* 0x30 0x34 0x38 */
+    Quad g3C;                 /* 0x3C..0x48 */
+    Quad g4C;                 /* 0x4C..0x58 */
+    Quad g5C;                 /* 0x5C..0x68 */
+    int unk6C; f32 unk70, unk74; int unk78, unk7C;  /* 0x6C..0x7C */
+    int unk80;                                      /* 0x80 */
+    Elem elem[1];                                   /* 0x84 + i*0x28 */
+} Obj;
+typedef struct { char _[0x10]; int unk10; } Node;
+typedef int (*F324)();
+extern int func_00010324();
+
+void func_00010540(Obj *arg0) {
+    int i;
+    int pos;
+    Node *node;
+
+    if (arg0->unk34 != NULL) {
+        i = 0;
+        if (arg0->unk78 > 0) {
+            do {
+                if (i != arg0->unk7C) {
+                    pos = (int)((f32)(int)arg0->unk70 + (f32)i * arg0->unk74);
+                    arg0->g3C = arg0->g5C;
+                    if (arg0->elem[i].f4 == 0) {
+                        *(f32*)&arg0->g3C.a = *(f32*)&arg0->g3C.a / 2.0f;
+                        *(f32*)&arg0->g3C.b = *(f32*)&arg0->g3C.b / 2.0f;
+                        *(f32*)&arg0->g3C.c = *(f32*)&arg0->g3C.c / 2.0f;
+                    }
+                    if (arg0->elem[i].f0 != NULL) {
+                        ((F324)func_00010324)(arg0->unk30);
+                        ((F324)func_00010324)(arg0->unk30, arg0->unk34, &arg0->g3C, 0);
+                        node = (Node *)arg0->unk30;
+                        ((F324)func_00010324)(node,
+                            ((F324)func_00010324)(arg0->unk30, arg0->unk6C, arg0->elem[i].f0),
+                            pos - node->unk10 / 2, arg0->elem[i].f0);
+                    } else {
+                        ((F324)func_00010324)(&arg0->elem[i].f10);
+                        ((F324)func_00010324)(&arg0->elem[i].f10, arg0->unk34, &arg0->g3C, 0);
+                        ((F324)func_00010324)(&arg0->elem[i].f10, arg0->unk6C, pos, 3);
+                    }
+                }
+                i++;
+            } while (i < arg0->unk78);
+        }
+        pos = (int)((f32)(int)arg0->unk70 + (f32)arg0->unk7C * arg0->unk74);
+        arg0->g3C = arg0->g4C;
+        if (arg0->elem[i].f4 == 0) {
+            *(f32*)&arg0->g3C.a = *(f32*)&arg0->g3C.a / 2.0f;
+            *(f32*)&arg0->g3C.b = *(f32*)&arg0->g3C.b / 2.0f;
+            *(f32*)&arg0->g3C.c = *(f32*)&arg0->g3C.c / 2.0f;
+        }
+        if (arg0->unk38 & 8) {
+            if (arg0->elem[arg0->unk7C].f0 != NULL) {
+                ((F324)func_00010324)(arg0->unk30);
+                ((F324)func_00010324)(arg0->unk30, arg0->unk34, &arg0->g3C, arg0->unk38);
+                node = (Node *)arg0->unk30;
+                ((F324)func_00010324)(node,
+                    ((F324)func_00010324)(arg0->unk30, arg0->unk6C, arg0->elem[arg0->unk7C].f0),
+                    pos - node->unk10 / 2, arg0->elem[arg0->unk7C].f0);
+            } else {
+                i = arg0->unk7C;
+                ((F324)func_00010324)(&arg0->elem[i].f10);
+                ((F324)func_00010324)(&arg0->elem[i].f10, arg0->unk34, &arg0->g3C, arg0->unk38);
+                ((F324)func_00010324)(&arg0->elem[i].f10, arg0->unk6C, pos, 3);
+            }
+        }
+    }
+}
