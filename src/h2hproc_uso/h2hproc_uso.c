@@ -1370,6 +1370,12 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000015F
  * tag 68/?, sub2 tag 68/?, sub3 5-arg init) gated on bit-16 of
  * a1->[0x4F0] AND a helper-call returning non-zero.
  *
+ * 2026-06-02 (78.5->79.6%): sub3's 5th init arg is a single float (same as
+ * 15F0) — routed through the typed-float proto gl_func_15f0(...,float) to get
+ * the single swc1 instead of K&R cvt.d.s+sdc1 double-promotion. Residual is
+ * the v0/v1 +1-shift temp renumber (t7->t8 etc.) + frame 0x28 vs 0x30 (mine
+ * spills 2 extra) — permuter-class — plus a still-missing mid-body block.
+ *
  * STRUCTURE:
  *   parent = self->[0xB8];
  *   if (((parent->[0x4F0] >> 16) & 1) && parent->[0x4DC] == 1)
@@ -1481,8 +1487,8 @@ void h2hproc_uso_func_000017A0(int *self) {
         v = (int*)*(int*)((char*)self + 0x44);
         gl_func_00000000(*(int*)((char*)self + 0x80), v[0x30/4], v[0x90/4]);
         v = (int*)*(int*)((char*)self + 0x44);
-        gl_func_00000000(*(int*)((char*)self + 0x80), v[0x8/4], v[0xC/4],
-                         v[0x68/4], *(float*)((char*)v + 0x6C));
+        gl_func_15f0((void*)*(int*)((char*)self + 0x80), v[0x8/4], v[0xC/4],
+                     v[0x68/4], *(float*)((char*)v + 0x6C));
     }
 tail:
     gl_func_00000000(self);
