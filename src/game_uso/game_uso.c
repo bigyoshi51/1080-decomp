@@ -9557,7 +9557,35 @@ after2:
                 *(int *)(o24b + 20) = 0;
                 *(float *)(o24b + 16) = 0.0f;
             }
-        after24b:;
+        after24b:
+            {
+                char *o24c;
+                if ((int)o140 != -56) {
+                    o24c = o140 + 56;
+                } else {
+                    o24c = (char *)gl_func_00000000(24);
+                    if (o24c == NULL) goto after24c;
+                }
+                gl_func_00000000(o24c, o140, *(int *)((char *)&D_00000000 + 3428), 1);
+                *(int *)(o24c + 12) = (int)((char *)&D_00000000 + 2144);
+                *(int *)(o24c + 20) = 0;
+                *(float *)(o24c + 16) = 2.0f;
+            }
+        after24c:
+            {
+                char *o24d;
+                if ((int)o140 != -80) {
+                    o24d = o140 + 80;
+                } else {
+                    o24d = (char *)gl_func_00000000(24);
+                    if (o24d == NULL) goto after24d;
+                }
+                gl_func_00000000(o24d, o140, *(int *)((char *)&D_00000000 + 3432), 0);
+                *(int *)(o24d + 12) = (int)((char *)&D_00000000 + 2168);
+                *(int *)(o24d + 20) = 0;
+                *(int *)(o24d + 16) = 0;
+            }
+        after24d:;
         }
     }
     /* Remaining ~150 insns TBD: deeper nested sub-allocs + struct fills */
