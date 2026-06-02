@@ -1904,28 +1904,37 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003F00);
  * table index + cross-symbol refs + FP stack-arg.
  * INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
+/* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats. */
+extern char *func_411c_r(char *, int, int, int, char *, int, float, float, int, int);
 void func_0000411C(char *s1, int a1) {
     char *o1 = (char*)func_00000000(0x80);
-    char *o2;
-    float r;
-    int idx;
-    float g;
-    int *row;
+    char *o2, *cfg, *Dg = &D_00000000;
+    char *r1, *r2, *row1, *row2;
+    float r, rr;
+    int idx1, idx2;
     if (o1 == 0) return;
     func_00000000(o1, 0);
     o2 = (char*)func_00000000(0x80);
     if (o2 == 0) return;
     func_00000000(o2, 0);
-    func_00000000(&D_00000000, o1);
-    func_00000000(&D_00000000, o2);
+    func_00000000(Dg, o1);
+    func_00000000(Dg, o2);
     r = (float)func_00000000();
-    idx = (int)(r * *(float*)((char*)&func_000003F8 + 0x14C));
-    g = r * *(float*)((char*)&func_000003F8 + 0x150);
-    row = (int*)((char*)&func_00000080 + 0x10 + idx * 4);
-    func_00000000(s1, row, o1, g, 0x58005, 0x3);
+    idx1 = (int)(r * *(float*)((char*)&func_000003F8 + 0x14C));
+    rr = (float)func_00000000();
+    idx2 = (int)(rr * *(float*)((char*)&func_000003F8 + 0x150) + (float)idx1 + 1.0f) % 3;
+    cfg = *(char**)(s1 + 0x98);
+    row1 = *(char**)((char*)&func_00000080 + idx1 * 4 + 0x90);
+    r1 = func_411c_r(s1, 0, idx1, (int)row1, o1, *(int*)(s1 + 0x80),
+                     *(float*)(cfg + 0xC4) - 500.0f, *(float*)(cfg + 0xCC), 0x58005, 0x1B);
+    row2 = *(char**)((char*)&func_00000080 + idx2 * 4 + 0x90);
+    r2 = func_411c_r(s1, 1, idx2, (int)row2, o2, *(int*)(s1 + 0x80),
+                     *(float*)(cfg + 0xC4) + 500.0f, *(float*)(cfg + 0xCC), 0x48024, 0x1B);
+    *(char**)(r1 + 0x908) = r2;
+    *(char**)(r2 + 0x908) = r1;
     (void)a1;
-    /* Chain continues per family-shared shape (more build() stages
-     * + list-link); truncated in decode. */
+    /* Tail (b3/b4 builders, conditional o3 alloc, linked-set finalizer,
+     * r1/r2->0x8DC) still undecoded — the most complex family variant. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000411C);
