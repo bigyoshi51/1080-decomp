@@ -9513,8 +9513,26 @@ after2:
             *(int *)(o16 + 12) = *(int *)((char *)&D_00000000 + 2116);
         }
     end16:;
+        {
+            char *o140;
+            char *sub8;
+            if ((int)r != -236) {
+                o140 = r + 236;
+            } else {
+                o140 = (char *)gl_func_00000000(140);
+                if (o140 == NULL) return s0;
+            }
+            sub8 = o140;
+            if (o140 == NULL) {
+                sub8 = (char *)gl_func_00000000(8);
+                if (sub8 == NULL) goto skip8;
+            }
+            *(int *)sub8 = (int)((char *)&D_00000000 + 3412);
+            *(int *)(sub8 + 4) = 0;
+        skip8:;
+        }
     }
-    /* Remaining ~165 insns TBD: deeper nested sub-allocs + struct fills */
+    /* Remaining ~150 insns TBD: deeper nested sub-allocs + struct fills */
     return s0;
 }
 #else
