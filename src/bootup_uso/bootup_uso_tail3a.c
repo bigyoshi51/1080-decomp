@@ -394,7 +394,189 @@ void func_00010C8C(int *arg0, int arg1) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010C8C);
 #endif
 
+#ifdef NON_MATCHING
+/* func_00010FEC - STRUCTURAL PASS (big-swing 2026-06-02, JUMPTABLE).
+ * bootup_uso 9-way switch(arg1) object/handler constructor (0x6DC).
+ * Jump table resolved statically from bootup.uso RoDataReloc via
+ * scripts/extract-uso-jumptable.py (the 9 case targets) -> fed to m2c.
+ * Each case allocs+inits a handler via func_00010324. Mechanically
+ * lifted (X->unkN -> FW). NOT matched (folded-pool + regalloc);
+ * default INCLUDE_ASM path byte-exact. */
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+
+void func_00010FEC(void *arg0, u32 arg1, s32 arg2) {
+    void *sp3C;
+    void *sp28;
+    void *temp_s0;
+    void *temp_s0_2;
+    int temp_s0_3;
+    void *temp_s0_4;
+    void *temp_v0;
+    void *temp_v0_2;
+    void *temp_v0_3;
+    void *temp_v0_4;
+    void *temp_v0_5;
+    void *temp_v0_6;
+    void *temp_v0_7;
+    void *temp_v0_8;
+    void *var_s1;
+    void *var_s2;
+    void *var_s2_2;
+    void *var_s2_3;
+    void *var_s2_4;
+    void *var_s2_5;
+    void *var_s2_6;
+    void *var_s2_7;
+    void *var_s2_8;
+    void *var_s2_9;
+    FW(arg0, 0x10) = 0;
+    temp_s0 = FW(arg0, 0x134);
+    ((F324)func_00010324)((void *)0x10, temp_s0);
+    if (FW(temp_s0, 0x14) != 0) {
+        FW(temp_s0, 0x4) = 1;
+    }
+    FW(temp_s0, 0x14) = 0;
+    ((F324)func_00010324)((void *)0x10, arg0);
+    if (FW(arg0, 0x14) != 0) {
+        FW(arg0, 0x4) = 1;
+    }
+    FW(arg0, 0x14) = 0;
+    temp_s0_2 = FW(arg0, 0x150);
+    ((F324)func_00010324)(((char *)arg0 + 0x10), temp_s0_2);
+    if (FW(temp_s0_2, 0x14) != 0) {
+        FW(temp_s0_2, 0x4) = 1;
+    }
+    FW(temp_s0_2, 0x14) = arg0;
+    ((F324)func_00010324)(arg0);
+    FW(arg0, 0x74) = 0;
+    FW(arg0, 0x78) = 0;
+    temp_s0_3 = (*(int*)&D_00000000);
+    (*(int*)&D_00000000) = (temp_s0_3 + 1);
+    ((F324)func_00010324)((*(int*)&D_00000000), NULL, temp_s0_3, *(int*)((char*)&D_00000000 + arg1 * 4));
+    sp3C = ((F324)func_00010324)((*(int*)&D_00000000));
+    if (sp3C != (void *)1) {
+        ((F324)func_00010324)(NULL);
+    }
+    if (arg1 != FW(arg0, 0x38)) {
+        FW(arg0, 0x34) = arg1;
+        ((F324)func_00010324)(arg0);
+        ((F324)func_00010324)(arg0, *(int*)((char*)&D_00000000 + (*(int*)((char*)&D_00000000 + arg1 * 4)) * 4));
+        sp28 = ((F324)func_00010324)((void *)3);
+        ((F324)func_00010324)(NULL, (void *)1);
+        switch (arg1) {
+        case 0:
+            temp_v0 = ((F324)func_00010324)((void *)8);
+            if (temp_v0 != NULL) {
+                var_s2 = temp_v0;
+                if ((var_s2 != NULL) || (var_s2 = ((F324)func_00010324)((void *)8), (var_s2 != NULL))) {
+                    FW(var_s2, 0x4) = 0;
+                }
+                FW(temp_v0, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = temp_v0;
+            break;
+        case 1:
+            temp_v0_2 = ((F324)func_00010324)((void *)8);
+            if (temp_v0_2 != NULL) {
+                var_s2_2 = temp_v0_2;
+                if ((var_s2_2 != NULL) || (var_s2_2 = ((F324)func_00010324)((void *)8), (var_s2_2 != NULL))) {
+                    FW(var_s2_2, 0x4) = 0;
+                }
+                FW(temp_v0_2, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = temp_v0_2;
+            break;
+        case 3:
+            temp_v0_3 = ((F324)func_00010324)((void *)0xC);
+            if (temp_v0_3 != NULL) {
+                var_s2_3 = temp_v0_3;
+                if ((var_s2_3 != NULL) || (var_s2_3 = ((F324)func_00010324)((void *)8), (var_s2_3 != NULL))) {
+                    FW(var_s2_3, 0x4) = 0;
+                }
+                FW(temp_v0_3, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = temp_v0_3;
+            break;
+        case 2:
+            temp_v0_4 = ((F324)func_00010324)((void *)0xC);
+            if (temp_v0_4 != NULL) {
+                var_s2_4 = temp_v0_4;
+                if ((var_s2_4 != NULL) || (var_s2_4 = ((F324)func_00010324)((void *)8), (var_s2_4 != NULL))) {
+                    FW(var_s2_4, 0x4) = 0;
+                }
+                FW(temp_v0_4, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = temp_v0_4;
+            break;
+        case 4:
+            temp_v0_5 = ((F324)func_00010324)((void *)8);
+            if (temp_v0_5 != NULL) {
+                var_s2_5 = temp_v0_5;
+                if ((var_s2_5 != NULL) || (var_s2_5 = ((F324)func_00010324)((void *)8), (var_s2_5 != NULL))) {
+                    FW(var_s2_5, 0x4) = 0;
+                }
+                FW(temp_v0_5, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = temp_v0_5;
+            break;
+        case 5:
+            temp_v0_6 = ((F324)func_00010324)((void *)0xC);
+            if (temp_v0_6 != NULL) {
+                var_s2_6 = temp_v0_6;
+                if ((var_s2_6 != NULL) || (var_s2_6 = ((F324)func_00010324)((void *)8), (var_s2_6 != NULL))) {
+                    FW(var_s2_6, 0x4) = 0;
+                }
+                FW(temp_v0_6, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = temp_v0_6;
+            break;
+        case 6:
+            temp_v0_7 = ((F324)func_00010324)((void *)8);
+            if (temp_v0_7 != NULL) {
+                var_s2_7 = temp_v0_7;
+                if ((var_s2_7 != NULL) || (var_s2_7 = ((F324)func_00010324)((void *)8), (var_s2_7 != NULL))) {
+                    FW(var_s2_7, 0x4) = 0;
+                }
+                FW(temp_v0_7, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = temp_v0_7;
+            break;
+        case 7:
+            temp_v0_8 = ((F324)func_00010324)((void *)8);
+            if (temp_v0_8 != NULL) {
+                var_s2_8 = temp_v0_8;
+                if ((var_s2_8 != NULL) || (var_s2_8 = ((F324)func_00010324)((void *)8), (var_s2_8 != NULL))) {
+                    FW(var_s2_8, 0x4) = 0;
+                }
+                FW(temp_v0_8, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = temp_v0_8;
+            break;
+        case 8:
+            var_s1 = NULL;
+            if ((0 != 0) || (var_s1 = ((F324)func_00010324)((void *)8), (var_s1 != NULL))) {
+                var_s2_9 = var_s1;
+                if ((var_s2_9 != NULL) || (var_s2_9 = ((F324)func_00010324)((void *)8), (var_s2_9 != NULL))) {
+                    FW(var_s2_9, 0x4) = 0;
+                }
+                FW(var_s1, 0x4) = 0;
+            }
+            FW(arg0, 0x30) = var_s1;
+            break;
+        }
+        ((F324)func_00010324)(NULL, NULL);
+        ((F324)func_00010324)(sp28);
+    }
+    temp_s0_4 = FW(FW(arg0, 0x30), 0x4);
+    (*(void (**)())((char *)temp_s0_4 + 0xC))(FW(temp_s0_4, 0x8) + FW(arg0, 0x30), arg2);
+    FW(arg0, 0x38) = arg1;
+    ((F324)func_00010324)();
+    ((F324)func_00010324)(FW(FW(arg0, 0x134), 0x114), (*(int*)&D_00000000));
+}
+#undef FW
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010FEC);
+#endif
 
 /* func_000116C8 - verified structural decode (0x134, 77 insns,
  * subsystem init/teardown orchestrator).
