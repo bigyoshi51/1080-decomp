@@ -87,7 +87,107 @@ exit:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001034C);
 #endif
 
+#ifdef NON_MATCHING
+/* func_00010540 - STRUCTURAL PASS (big-swing 2026-06-02).
+ * bootup_uso element/sprite render-loop, 0x55C (343 insns). Clean: no
+ * folded-pool refs, single named callee func_00010324 (a draw/transform
+ * primitive called with 1..4 args -> called through a cast to bypass its
+ * narrow 1-arg prototype; still a direct jal).
+ *
+ * MATCH BLOCKER = OPT LEVEL: target is plain -O0 (41 unfilled delay-slot
+ * nops; arg0 spilled to sp+0x48 and RELOADED on every access; loop counter
+ * lives at sp+0x44 -- no register caching). tail3a.c is -O2 -g3, which
+ * caches in $s0/$s4 -> only 17.99% / 220 insns vs target 343. The LOGIC
+ * below is decoded and correct; to MATCH, split this fn into its own
+ * src/bootup_uso/bootup_uso_o0_10540.c with OPT_FLAGS := -O0 (sibling
+ * pattern bootup_uso_o0_*.c) + a linker entry splitting the tail3a
+ * TRUNCATE_TEXT block (0x10310..0x118E4). Focused infra tick -- see
+ * project_1080_o0_split_pending_candidates.
+ *
+ * Shape: for each of arg0->unk78 elements (skipping the "current" index
+ * arg0->unk7C), compute an x-position from unk70 + i*unk74, copy a
+ * color/transform quad (unk5C..unk68 -> unk3C..unk48), optionally halve
+ * the RGB when the element's unk88 flag is 0, then draw via func_00010324
+ * (path A when the element has a unk84 payload, else path B at
+ * element+0x94). After the loop the same is done once for the current
+ * index (unk7C) using unk4C..unk58, gated by arg0->unk38 & 8. */
+#define FI(p, o) (*(int *)((char *)(p) + (o)))
+#define FF(p, o) (*(float *)((char *)(p) + (o)))
+#define FP(p, o) (*(void **)((char *)(p) + (o)))
+#define EL(i) ((char *)arg0 + (i) * 0x28)
+
+typedef int (*F324)();
+
+void func_00010540(void *arg0) {
+    int i;
+    int pos;
+    void *node;
+
+    if (FP(arg0, 0x34) != NULL) {
+        i = 0;
+        if (FI(arg0, 0x78) > 0) {
+            do {
+                if (i != FI(arg0, 0x7C)) {
+                    pos = (int)((float)FI(arg0, 0x70) + (float)i * FF(arg0, 0x74));
+                    FF(arg0, 0x3C) = FF(arg0, 0x5C);
+                    FF(arg0, 0x40) = FF(arg0, 0x60);
+                    FF(arg0, 0x44) = FF(arg0, 0x64);
+                    FI(arg0, 0x48) = FI(arg0, 0x68);
+                    if (FI(EL(i), 0x88) == 0) {
+                        FF(arg0, 0x3C) = FF(arg0, 0x3C) / 2.0f;
+                        FF(arg0, 0x40) = FF(arg0, 0x40) / 2.0f;
+                        FF(arg0, 0x44) = FF(arg0, 0x44) / 2.0f;
+                    }
+                    if (FP(EL(i), 0x84) != NULL) {
+                        ((F324)func_00010324)(FP(arg0, 0x30));
+                        ((F324)func_00010324)(FP(arg0, 0x30), FP(arg0, 0x34), (char *)arg0 + 0x3C, 0);
+                        node = FP(arg0, 0x30);
+                        ((F324)func_00010324)(node,
+                            ((F324)func_00010324)(FP(arg0, 0x30), FI(arg0, 0x6C), FP(EL(i), 0x84)),
+                            pos - FI(node, 0x10) / 2, FP(EL(i), 0x84));
+                    } else {
+                        ((F324)func_00010324)((char *)EL(i) + 0x94);
+                        ((F324)func_00010324)((char *)EL(i) + 0x94, FP(arg0, 0x34), (char *)arg0 + 0x3C, 0);
+                        ((F324)func_00010324)((char *)EL(i) + 0x94, FI(arg0, 0x6C), pos, 3);
+                    }
+                }
+                i++;
+            } while (i < FI(arg0, 0x78));
+        }
+        pos = (int)((float)FI(arg0, 0x70) + (float)FI(arg0, 0x7C) * FF(arg0, 0x74));
+        FF(arg0, 0x3C) = FF(arg0, 0x4C);
+        FF(arg0, 0x40) = FF(arg0, 0x50);
+        FF(arg0, 0x44) = FF(arg0, 0x54);
+        FI(arg0, 0x48) = FI(arg0, 0x58);
+        if (FI(EL(i), 0x88) == 0) {
+            FF(arg0, 0x3C) = FF(arg0, 0x3C) / 2.0f;
+            FF(arg0, 0x40) = FF(arg0, 0x40) / 2.0f;
+            FF(arg0, 0x44) = FF(arg0, 0x44) / 2.0f;
+        }
+        if (FI(arg0, 0x38) & 8) {
+            if (FP(EL(FI(arg0, 0x7C)), 0x84) != NULL) {
+                ((F324)func_00010324)(FP(arg0, 0x30));
+                ((F324)func_00010324)(FP(arg0, 0x30), FP(arg0, 0x34), (char *)arg0 + 0x3C, FI(arg0, 0x38));
+                node = FP(arg0, 0x30);
+                ((F324)func_00010324)(node,
+                    ((F324)func_00010324)(FP(arg0, 0x30), FI(arg0, 0x6C), FP(EL(FI(arg0, 0x7C)), 0x84)),
+                    pos - FI(node, 0x10) / 2, FP(EL(FI(arg0, 0x7C)), 0x84));
+            } else {
+                i = FI(arg0, 0x7C);
+                ((F324)func_00010324)((char *)EL(i) + 0x94);
+                ((F324)func_00010324)((char *)EL(i) + 0x94, FP(arg0, 0x34), (char *)arg0 + 0x3C, FI(arg0, 0x38));
+                ((F324)func_00010324)((char *)EL(i) + 0x94, FI(arg0, 0x6C), pos, 3);
+            }
+        }
+    }
+}
+#undef FI
+#undef FF
+#undef FP
+#undef EL
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010540);
+#endif
 
 void func_00010A9C(int *a0) {
     *(int*)((char*)a0 + 0x78) = 0;
