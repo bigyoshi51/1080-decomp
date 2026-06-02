@@ -1559,37 +1559,23 @@ void mgrproc_uso_func_00002E3C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3C);
 #endif
 
-/* mgrproc_uso_func_00002EF0 (0x20, no prologue/no jr): the 8-insn stolen
- * FPU-const prologue of the successor mgrproc_uso_func_00002F10 — lui/mtc1
- * pairs materializing f2=255.0, f4=192.0, f6=255.0, f10=0.0 then
- * `div.s f0, f4, f2` (= 192/255). 2F10 reads these registers uninitialized.
- * This is the chained-FPU-stolen-prologue fragment flagged in the 2E3C note;
- * leave INCLUDE_ASM (its bytes belong logically to 2F10's prologue).
- *
- * 2026-06-01 source=4 boundary audit: `grep -c 03E00008` = 0 and
- * `scripts/find-misplit-pairs.py mgrproc_uso` does not flag a closed
- * merge group for 2EF0/2F10. This is not a branch-past-end pair the
- * mnemonic merge-fragments tooling can safely repair; it is a raw Yay0
- * USO head-fragment / stolen-FPU-register dependency. No honest standalone
- * C wrapper exists for this symbol, so keep byte-correct INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF0);
-
 #ifdef NON_MATCHING
-/* mgrproc_uso_func_00002F10: ~90-insn object initializer + draw-list builder
- * ending in the linked-set finalizer idiom (see
- * reference_1080_linked_set_finalizer_tail_idiom). Real decoded logic; will
- * NOT byte-match — documented multi-cap:
- *   - caller-set/stolen FPU consts: f0=192/255, f2=f6=255, f10=0 are
- *     materialized by the physically-preceding fragment
- *     mgrproc_uso_func_00002EF0; read here uninitialized, so IDO C re-emits
- *     them and the layout diverges (chained-FPU-stolen-prologue pair).
- *   - Yay0-compressed / -O0 segment (see file-head BLOCKED note).
- *   - branch-likely (bgezl/beqzl) + two distinct &D bases + placeholder calls.
- * Kept INCLUDE_ASM; body documents field layout + the draw call sequence. */
-void mgrproc_uso_func_00002F10(self, a1, a2, a3, arg5)
+/* mgrproc_uso_func_00002EF0: one ~97-insn (0x184) object initializer + draw-list
+ * builder. BOUNDARY MERGED 2026-06-02: splat had split it into 2EF0 (8-insn
+ * FP-const prologue — f2=255, f4=192, f6=255, f10=0, then div.s f0=192/255 —
+ * hoisted above the frame setup; the real entry, jal'd from 0E04) + 2F10 (the
+ * `addiu sp` prologue + body + jr ra, ZERO callers). IDO hoisted the entry's
+ * FP-const setup above the prologue, so splat cut at 2F10. Absorbed 2F10's 89
+ * words into 2EF0 (0x20 -> 0x184) and dropped the 2F10 symbol; the FP consts
+ * are now in-scope (removes the chained-FPU-stolen-prologue cap that blocked
+ * the decode). Remaining caps keep it NM: Yay0/-O0 segment, branch-likely
+ * (bgezl/beqzl), two &D bases, placeholder calls. Body = field layout + draw
+ * sequence; ends in the linked-set finalizer idiom
+ * (reference_1080_linked_set_finalizer_tail_idiom). */
+void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
     int *self; int a1, a2, a3, arg5;
 {
-    float c = 192.0f / 255.0f;   /* f0 from 2EF0: div.s f4(192)/f2(255) */
+    float c = 192.0f / 255.0f;   /* the merged FP prologue: div.s f4(192)/f2(255) */
 
     *(int*)((char*)self + 0xC)  = (int)((char*)&D_00000000 + 0x688);
     *(int*)((char*)self + 0xBC) = a1;
@@ -1632,7 +1618,7 @@ void mgrproc_uso_func_00002F10(self, a1, a2, a3, arg5)
     }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002F10);
+INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF0);
 #endif
 
 #ifdef NON_MATCHING
