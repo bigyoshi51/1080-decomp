@@ -174,7 +174,71 @@ void mgrproc_uso_func_00000D94(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
+#ifdef NON_MATCHING
+/* Partial structural decode 2026-06-01. Constructor: 4-stage find-or-create
+ * cascade (sizes 2032/1704/80/44, collapse to obj since arg!=0), vtable
+ * wiring (->0x28 = &D), then a large field-init block (object handles,
+ * FP seeds) + a final indirect vtable call. Cross-USO calls are the
+ * gl_func_00000000 import. Tail (indirect call + late init) left for a
+ * follow-up. */
+void mgrproc_uso_func_00000E04(char *obj, int a1, int a2, int a3, int arg5) {
+    char *o0, *o1, *o2, *o3;
+    char *d = (char *)&D_00000000;
+    char *w;
+    float f0 = 0.0f;
+    int n;
+
+    o0 = obj;
+    if (obj == 0) {
+        o0 = (char *)gl_func_00000000(2032);
+        if (o0 == 0) return;
+    }
+    o1 = o0;
+    if (o0 == 0) {
+        o1 = (char *)gl_func_00000000(1704);
+        if (o1 == 0) goto Lvt0;
+    }
+    o2 = o1;
+    if (o1 == 0) {
+        o2 = (char *)gl_func_00000000(80);
+        if (o2 == 0) goto Lvt1;
+    }
+    o3 = o2;
+    if (o2 == 0) {
+        o3 = (char *)gl_func_00000000(44);
+        if (o3 == 0) goto Lvt2;
+    }
+    gl_func_00000000(o3, d + 1544);
+    *(int *)(o3 + 0x28) = (int)d;
+Lvt2:
+    *(int *)(o2 + 0x28) = (int)d;
+Lvt1:
+    gl_func_00000000(o1 + 80);
+    *(int *)(o1 + 0x28) = (int)d;
+Lvt0:
+    *(int *)(o0 + 0x28) = (int)d;
+    *(int *)(o0 + 0x568) = 0;
+    gl_func_00000000(o0, a1, d + 1552, a2);
+    *(int *)(o0 + 0x528) = arg5;
+    *(int *)(o0 + 0x7D4) = 0;
+    gl_func_00000000(o0);
+    *(int *)(o0 + 0x6A8) = a3;
+    w = *(char **)(o0 + 0x6A8);
+    *(int *)(o0 + 0x7C4) = 0;
+    *(float *)(o0 + 0x7A0) = f0;
+    *(float *)(o0 + 0x7A4) = f0;
+    *(float *)(o0 + 0x7B8) = f0;
+    n = *(int *)w;
+    *(int *)(o0 + 0x7D8) = 1;
+    *(int *)(o0 + 0x7C8) = n;
+    *(float *)(o0 + 0x7AC) = 211.0f;
+    *(float *)(o0 + 0x7A8) = 192.0f - (float)(n * 2 - 2);
+    gl_func_00000000(d + 1568, 0);
+    gl_func_00000000(0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000E04);
+#endif
 
 /* mgrproc_uso_func_0000119C: 2-insn alternate entry for
  * mgrproc_uso_func_000011A4. SOURCE=4 audit 2026-06-01: 0x119C has
