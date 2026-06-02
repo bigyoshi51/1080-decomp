@@ -2416,3 +2416,4 @@ titproc_uso_func_07BBBC = 0;
 D_arc240_A = 0x00000000;
 D_arc240_B = 0x00000000;
 D_arc240_C = 0x00000000;
+func_df14f = 0x00000000;

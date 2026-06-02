@@ -4552,6 +4552,7 @@ void timproc_uso_b5_func_0000C1A4(int *a0, int a1) {
  * The alt-entry bytes now belong to their own symbol. C body covers main
  * entry only. */
 extern int func_00000000();
+extern int func_df14f(void *, void *, float, float, float);
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C1B4(int *a0) {
     int *p = (int*)a0[0x2B8 / 4];
@@ -5699,6 +5700,14 @@ char *timproc_uso_b5_func_0000DF14(char *a0, int a1, int a2, char *a3) {
     *(int *)(r + 0x2B0) = a2;
     *(float *)(r + 0x2A4) = (float)a1;
     (void)a3;
+    {
+        char *c = (char *)func_00000000(324);
+        if (c == 0) goto end;
+        func_df14f(c, (char *)&D_00000000 + 5868, 0.0f, 0.0f, 0.0f);
+        *(char **)(c + 0x28) = (char *)&D_00000000 + 1300;
+        *(char **)(c + 0xC) = (char *)&D_00000000 + 5876;
+    }
+end:
     return r;
 }
 #else
