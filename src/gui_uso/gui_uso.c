@@ -807,7 +807,42 @@ void gui_uso_func_000017DC(int a0, int a1, float *col, int alpha) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000017DC);
 #endif
 
+#ifdef NON_MATCHING
+/* Full decode 2026-06-01. DL emitter: appends a SETCOMBINE (FC309661/
+ * FF2FFFFF) then a SETPRIMCOLOR (FA) packing the a2 Vec3*255 (RGB) + a1
+ * alpha into word1, to the gfx builder at *(&D). Uses the b->0xC re-read
+ * and (int)(unsigned) float->byte dance. */
+void gui_uso_func_00001A5C(char *a0, int a1, float *a2) {
+    char *b;
+    char *p;
+    char *buf;
+    int i;
+    int r, g, bl;
+    (void)a0;
+
+    b = *(char **)&D_00000000;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)(*(char **)(b + 0xC));
+    *(int *)(buf + i * 8) = 0xFC309661;
+    *(int *)(buf + i * 8 + 4) = 0xFF2FFFFF;
+
+    b = *(char **)&D_00000000;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)(*(char **)(b + 0xC));
+    *(int *)(buf + i * 8) = 0xFA000000;
+    r = (int)(unsigned)(a2[0] * 255.0f);
+    g = (int)(unsigned)(a2[1] * 255.0f);
+    bl = (int)(unsigned)(a2[2] * 255.0f);
+    *(int *)(buf + i * 8 + 4) =
+        (r << 24) | ((g & 0xff) << 16) | ((bl & 0xff) << 8) | (a1 & 0xff);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001A5C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001CA8);
 
