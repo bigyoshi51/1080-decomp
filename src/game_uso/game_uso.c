@@ -9485,12 +9485,14 @@ after2:
     gl_func_00000000(s0);
     {
         float v[3];
+        char *r;
         v[0] = 0.0f;
         v[1] = 0.0f;
         v[2] = 0.0f;
-        gl_func_00000000((char *)s0 + 48, v);
+        r = (char *)gl_func_00000000((char *)s0 + 48, v);
+        *(int *)(r + 0x28) = (int)&D_00000000;
     }
-    /* Remaining ~190 insns TBD: deeper nested sub-allocs + struct fills */
+    /* Remaining ~185 insns TBD: deeper nested sub-allocs + struct fills */
     return s0;
 }
 #else
