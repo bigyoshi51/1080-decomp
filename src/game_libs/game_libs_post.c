@@ -8957,31 +8957,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+extern int gl_func_0003ED2C();
 extern int D_00000000;
 void gl_func_0002A7D8(char *o) {
     unsigned char f;
-    int m;
-    int r;
-    short cur;
-    gl_func_00000000(o, 0xFFFF);
+    int m, r;
+    gl_func_0003ED2C(o, 0xFFFF);
     gl_func_00000000(o + 0x9C);
     f = *(unsigned char *)o;
+    m = *(unsigned char *)(o + 4);
     *(unsigned char *)o = f | 0x40;
-    m = *(unsigned char *)(o + 4) & 0x7F;
-    *(unsigned char *)o = *(unsigned char *)o & ~0x80;
+    *(unsigned char *)o = (f | 0x40) & 0x7F;
     r = gl_func_00000000(m);
-    if (r) {
+    if (r != 0) {
         gl_func_00000000(*(unsigned char *)(o + 4), 3);
     }
-    if (*(unsigned char *)(o + 5) != 0) {
+    if (gl_func_00000000(*(unsigned char *)(o + 5)) != 0) {
         gl_func_00000000(*(unsigned char *)(o + 5), 4);
     }
-    if (*(unsigned char *)(o + 5) != 1) {
-        cur = *(short *)((char *)&D_00000000 + 0x2406);
-    } else {
-        cur = *(short *)((char *)&D_00000000 + 0x23FA);
+    if (*(unsigned char *)(o + 5) == *(short *)((char *)&D_00000000 + 0x23FA)) {
+        *(int *)((char *)&D_00000000 + 0x23DC) = 1;
+    } else if (*(unsigned char *)(o + 5) == *(short *)((char *)&D_00000000 + 0x2406)) {
+        *(int *)((char *)&D_00000000 + 0x23DC) = 0;
     }
-    *(int *)((char *)&D_00000000 + 0x23DC) = cur;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A7D8);
