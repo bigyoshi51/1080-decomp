@@ -10343,8 +10343,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
  *   - float-D[] (N=0,4,9): 0xC=&D+0xF78+N*8, 0x10=float D[0x1EC+N*4]
  *   - int       (N=1,2,3,5,8): 0xC=&D+0xFC0, 0x10=int {20,60,5,20,3}
  *   - float-lit (N=6,7,10,11): 0xC=&D+0xF78, 0x10={3,7,4,50}.0f
- * SUB_F/SUB_I/SUB_L macros below encode the 3 kinds. Next: decode N=12..32's
- * kinds+values (parser hints: 12..22 float, 27..32 int) to extend the run. */
+ * SUB_F/SUB_I/SUB_L macros below encode the 3 kinds.
+ * 2026-06-01 (28.7->48.29%): FULL sub-init run decoded (N=0..33, 34 subs, run
+ * ends at the epilogue jr ra). Tail: N=12..22 float-lit (4,50,25,40,100,120,
+ * 80,100,150,100,150 .0f), N=23..26 int 0, N=27..31 int 1, N=32 int 30,
+ * N=33 int 100. Remaining ~52% is regalloc/scheduling across the matched
+ * structure (each sub-block's register coloring) + main-obj/s1 setup. */
 void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     char *p;
     int *s1;
@@ -10393,6 +10397,12 @@ void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     SUB_F(0)  SUB_I(1, 20)  SUB_I(2, 60)  SUB_I(3, 5)
     SUB_F(4)  SUB_I(5, 20)  SUB_L(6, 3.0f) SUB_L(7, 7.0f)
     SUB_I(8, 3) SUB_F(9)  SUB_L(10, 4.0f) SUB_L(11, 50.0f)
+    SUB_L(12, 4.0f)  SUB_L(13, 50.0f) SUB_L(14, 25.0f) SUB_L(15, 40.0f)
+    SUB_L(16, 100.0f) SUB_L(17, 120.0f) SUB_L(18, 80.0f) SUB_L(19, 100.0f)
+    SUB_L(20, 150.0f) SUB_L(21, 100.0f) SUB_L(22, 150.0f)
+    SUB_I(23, 0) SUB_I(24, 0) SUB_I(25, 0) SUB_I(26, 0)
+    SUB_I(27, 1) SUB_I(28, 1) SUB_I(29, 1) SUB_I(30, 1)
+    SUB_I(31, 1) SUB_I(32, 30) SUB_I(33, 100)
 #undef SUB_HEAD
 #undef SUB_F
 #undef SUB_I
