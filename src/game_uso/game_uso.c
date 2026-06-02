@@ -1911,7 +1911,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000024BC);
 void game_uso_func_00002714(int *a0, int a1, int a2) {
     if (*(int*)((char*)a0 + 0x40) == a1) return;
     *(int*)((char*)a0 + 0x40) = a1;
-    game_uso_func_00000000(a0, a2);
+    game_uso_func_000024BC(a0, (int *)a2);
 }
 
 /* game_uso_func_00002744: 52-insn (0xD0) lazy-init/sub-allocator wrapper.
