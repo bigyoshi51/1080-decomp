@@ -35,10 +35,20 @@ typedef struct { int a, b; } Pair2;
  *   out[2] = D * (-3t^3 + 3t^2 + 3t + 1) ; B2(t)
  *   out[3] = D * t^3                  ; B3(t)
  *
- * 39-insn FPU leaf with constants loaded via lui+mtc1 (1.0f, 3.0f, 4.0f,
- * 6.0f). Many nops in delay slots (CPU-FPU dependency stalls). Exact
- * matching this is a multi-tick FPU register/scheduling grind; logic is
- * documented for next pass. */
+ * 39-insn FPU leaf with constants loaded via lui+mtc1 (1.0f, 3.0f, 4.0f, 6.0f).
+ *
+ * ROOT CAUSE of the 57.85% cap (2026-06-02, was vaguely "FPU scheduling grind"):
+ * the K&R `float t` parameter DOUBLE-PROMOTES. The target receives t as a SINGLE
+ * float in $f12 directly; the K&R def instead assembles a double from the
+ * a2/a3 pair and `cvt.s.d $f0,$f12` (+~9 insns), then all downstream FP regs
+ * shift. The fix is an ANSI single-float proto `(float *out, float t)` — BUT
+ * the symbol name `game_uso_func_00000000` is overloaded: it is ALSO the
+ * generic placeholder for ~45 unresolved jals elsewhere in this file, called
+ * with INT args and varying arg counts. An ANSI float proto would mis-compile
+ * all those placeholder call sites. So this is gated on RESOLVING those ~45
+ * placeholder callees to their real symbols (USO reloc table / Ghidra) to free
+ * the name, then ANSI-typing this def. Until then it stays K&R (double-promote)
+ * and capped. NOT an FPU-scheduling problem. */
 /* K&R-style def: function name is also used as a placeholder for cross-
  * USO/intra-USO unresolved jals elsewhere in the file (with various arg
  * counts). K&R `()` decl from those callers + K&R def here = no sig
