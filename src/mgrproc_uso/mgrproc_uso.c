@@ -181,6 +181,7 @@ void mgrproc_uso_func_00000D94(Vec3 *dst) {
  * FP seeds) + a final indirect vtable call. Cross-USO calls are the
  * gl_func_00000000 import. Tail (indirect call + late init) left for a
  * follow-up. */
+extern int mgrproc_uso_func_055750();
 void mgrproc_uso_func_00000E04(char *obj, int a1, int a2, int a3, int arg5) {
     char *o0, *o1, *o2, *o3;
     char *d = (char *)&D_00000000;
@@ -190,22 +191,22 @@ void mgrproc_uso_func_00000E04(char *obj, int a1, int a2, int a3, int arg5) {
 
     o0 = obj;
     if (obj == 0) {
-        o0 = (char *)gl_func_00000000(2032);
+        o0 = (char *)mgrproc_uso_func_055750(2032);
         if (o0 == 0) return;
     }
     o1 = o0;
     if (o0 == 0) {
-        o1 = (char *)gl_func_00000000(1704);
+        o1 = (char *)mgrproc_uso_func_055750(1704);
         if (o1 == 0) goto Lvt0;
     }
     o2 = o1;
     if (o1 == 0) {
-        o2 = (char *)gl_func_00000000(80);
+        o2 = (char *)mgrproc_uso_func_055750(80);
         if (o2 == 0) goto Lvt1;
     }
     o3 = o2;
     if (o2 == 0) {
-        o3 = (char *)gl_func_00000000(44);
+        o3 = (char *)mgrproc_uso_func_055750(44);
         if (o3 == 0) goto Lvt2;
     }
     gl_func_00000000(o3, d + 1544);
@@ -240,7 +241,7 @@ Lvt0:
         char *o5;
         char *rec;
         char *vt;
-        o5 = (char *)gl_func_00000000(224);
+        o5 = (char *)mgrproc_uso_func_055750(224);
         if (o5 != 0) {
             gl_func_00000000(o5);
             *(int *)(o5 + 0x28) = (int)d;
