@@ -62,9 +62,13 @@ void arcproc_uso_func_00001B88(int *a0) {
  * jumptable is a separate section, like timproc_uso_b5_func_000087F4). Wrote
  * the do-while + switch with cases 0..4 decoded and 5..10 as distinct
  * D[0x40]=N placeholders (to force the dense 11-entry table). Dispatch + cases
- * 0..4 now match. REMAINING: cases 5..10 are placeholders — decode their real
- * bodies (struct-walks, s0-saved multi-calls) for more %. Default build
- * INCLUDE_ASM remains exact. */
+ * 0..4 now match. 2026-06-02 (22.22->30.62%): decoded cases 6 (gl(a0,*a0);
+ * done), 8 (gl(&D,7,0,0); r=gl(0); gl(a0,1,r); done), 9 (gl(a0); D[0x40]=10;
+ * loops), 10 (r=gl(0,1,0); gl(&D+16,r); if(r->0x14)r->4=1; r->0x14=&D; done).
+ * REMAINING: cases 5 and 7 (complex struct-walks: case5 sets D[0x64]=q[q->4+3]
+ * from a0->8, then 5 calls with 0x450000 + multiple DISTINCT D symbols needing
+ * CSE-bust externs; case7 reuses D[0x64] with |0x8000 + dli 0x8000). Multi-tick
+ * tail. Default build INCLUDE_ASM remains exact. */
 void arcproc_uso_func_00000240(int a0, int a1) {
     int done = 0;
     int state;
@@ -99,11 +103,34 @@ void arcproc_uso_func_00000240(int a0, int a1) {
             *(int *)((char *)&D_00000000 + 0x40) = 5;
             break;
         case 5:  *(int *)((char *)&D_00000000 + 0x40) = 6;  break;
-        case 6:  *(int *)((char *)&D_00000000 + 0x40) = 7;  break;
+        case 6:
+            gl_func_00000000(a0, *(int *)a0);
+            done = 1;
+            break;
         case 7:  *(int *)((char *)&D_00000000 + 0x40) = 8;  break;
-        case 8:  *(int *)((char *)&D_00000000 + 0x40) = 9;  break;
-        case 9:  *(int *)((char *)&D_00000000 + 0x40) = 10; break;
-        case 10: *(int *)((char *)&D_00000000 + 0x40) = 11; break;
+        case 8: {
+            int r;
+            gl_func_00000000(&D_00000000, 7, 0, 0);
+            r = gl_func_00000000(0);
+            gl_func_00000000(a0, 1, r);
+            done = 1;
+            break;
+        }
+        case 9:
+            gl_func_00000000(a0);
+            *(int *)((char *)&D_00000000 + 0x40) = 10;
+            break;
+        case 10: {
+            int *r = (int *)gl_func_00000000(0, 1, 0);
+            int *base = (int *)&D_00000000;
+            gl_func_00000000((char *)base + 16, r);
+            if (r[0x14 / 4] != 0) {
+                r[0x4 / 4] = 1;
+            }
+            r[0x14 / 4] = (int)base;
+            done = 1;
+            break;
+        }
         }
         a1 = *(int *)((char *)&D_00000000 + 0x40);
     } while (done == 0);
