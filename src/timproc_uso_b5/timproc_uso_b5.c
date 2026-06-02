@@ -5679,23 +5679,26 @@ char *timproc_uso_b5_func_0000DF14(char *a0, int a1, int a2, char *a3) {
     char *s;
     r = (char *)func_00000000(0x2BC);
     if (r == 0) return 0;
-    s = (char *)func_00000000(0x2B8);
-    if (s != 0) {
-        func_00000000(s, (char *)&D_00000000 + 0x000016D8);
-        *(char **)(s + 0x28) = &D_00000000;
-        func_00000000(s + 0x2C);
-        func_00000000(s + 0x194);
-        *(char **)(s + 0x28) = (char *)&D_00000000 + 0x000016E0 + 0x9A4;
+    s = r;
+    if (s == 0) {
+        s = (char *)func_00000000(0x2B8);
     }
-    func_00000000(a0);
-    if (*(char **)(a0 + 0x14) == 0) {
-        *(int *)(a0 + 0x4) = 1;
-        *(char **)(a0 + 0x14) = a0;
+    func_00000000(s, (char *)&D_00000000 + 0x16D8);
+    *(char **)(s + 0x28) = &D_00000000;
+    func_00000000(s + 0x2C);
+    func_00000000(s + 0x194);
+    *(char **)(s + 0x28) = (char *)&D_00000000 + 0x9A4;
+    *(char **)(s + 0xC) = (char *)&D_00000000 + 0x16E0;
+    func_00000000(r);
+    func_00000000(a0 + 0x10, r);
+    *(int *)(r + 0x2AC) = *(int *)(a0 + 0x6C);
+    if (*(int *)(r + 0x14) != 0) {
+        *(int *)(r + 0x4) = 1;
     }
-    *(int *)(r + 0x2AC) = *(int *)(a3 + 0x6C) + 0x10;
-    *(float *)(r + 0x2A4) = (float)a2;
-    *(char **)(r + 0x2B0) = a3;
-    func_00000000(r, s, a1);
+    *(int *)(r + 0x14) = (int)a0;
+    *(int *)(r + 0x2B0) = a2;
+    *(float *)(r + 0x2A4) = (float)a1;
+    (void)a3;
     return r;
 }
 #else
