@@ -1922,14 +1922,21 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003F00);
  * descriptor selection (same as func_000043D4).
  * Caps <80: ~10 reloc (incl. RNG) + FP mul.s/trunc.w.s + idx*4
  * table index + cross-symbol refs + FP stack-arg.
- * INCLUDE_ASM remains build path. */
+ *
+ * 2026-06-02 FULL CHAIN DECODED 27.0->62.9% (RNG-variant of 43D4 + 3B78 tail):
+ * r1/r2 RNG-builders (idx1/idx2, descriptor rowN, cfg->0xC4 -/+ 500, flags
+ * 0x58005/0x48024, tag 0x1B) + 0x908 cross-link; b3=builder(s1,0,s1->0x80,r1,
+ * o1); b4=builder(s1,1,...); f1=builder(s1,&D+a1*0x1C,b3); conditional o3=alloc
+ * { func(o3,1); big=builder(0,o3,r1,f1,b3,b4); func(s1->0x84+0x10,big);
+ * linked-set finalizer on big; } r1/r2->0x8DC=f1. All field stores byte-match;
+ * residual ~37% = regalloc (RNG/FP-index materialize + &D const-fold). */
 #ifdef NON_MATCHING
 /* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats. */
 extern char *func_411c_r(char *, int, int, int, char *, int, float, float, int, int);
 void func_0000411C(char *s1, int a1) {
     char *o1 = (char*)func_00000000(0x80);
     char *o2, *cfg, *Dg = &D_00000000;
-    char *r1, *r2, *row1, *row2;
+    char *r1, *r2, *row1, *row2, *b3, *b4, *f1, *o3, *row;
     float r, rr;
     int idx1, idx2;
     if (o1 == 0) return;
@@ -1952,9 +1959,21 @@ void func_0000411C(char *s1, int a1) {
                      *(float*)(cfg + 0xC4) + 500.0f, *(float*)(cfg + 0xCC), 0x48024, 0x1B);
     *(char**)(r1 + 0x908) = r2;
     *(char**)(r2 + 0x908) = r1;
-    (void)a1;
-    /* Tail (b3/b4 builders, conditional o3 alloc, linked-set finalizer,
-     * r1/r2->0x8DC) still undecoded — the most complex family variant. */
+    b3 = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), r1, o1);
+    b4 = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), r1, o1);
+    row = (char*)&D_00000000 + a1 * 0x1C;
+    f1 = (char*)func_00000000(s1, row, b3);
+    o3 = (char*)func_00000000(0x80);
+    if (o3 != 0) {
+        char *big;
+        func_00000000(o3, 1);
+        big = (char*)func_00000000(0, o3, r1, f1, b3, b4);
+        func_00000000(*(int*)(s1 + 0x84) + 0x10, big);
+        if (*(int*)(big + 0x14) != 0) *(int*)(big + 0x4) = 1;
+        *(int*)(big + 0x14) = *(int*)(s1 + 0x84);
+    }
+    *(char**)(r1 + 0x8DC) = f1;
+    *(char**)(r2 + 0x8DC) = f1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000411C);
