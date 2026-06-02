@@ -275,7 +275,51 @@ void titproc_uso_func_0000056C(Vec3 *dst) {
  *   c2 @0x124 ambiguous (jal with stale a0 — re-check). c4+/c5+ are the
  *   sub-object + s5/s6 setup cases (multi-call). Decode all 12 for the dense
  *   jr-table, then SUB_*-style per-case bodies. Multi-tick. */
+#ifdef NON_MATCHING
+void titproc_uso_func_000005DC(char *a0, int a1) {
+    char *d = (char *)&D_00000000;
+    char *arg = a0;
+    int done = 0;
+    int s5 = 0;
+    do {
+        if ((unsigned int)a1 < 12) {
+            switch (a1) {
+            case 1:
+                gl_func_00000000(arg, -1);
+                gl_func_00000000(arg, 0x9FFF0, 0x10000, *(int *)arg);
+                *(int *)(d + 0x44) = 2;
+                done = 1;
+                break;
+            case 3: {
+                int a4 = *(int *)(d + 0x44);
+                *(int *)(d + 0x44) = 0;
+                s5 = 0x800000;
+                *(int *)(d + 0x40) = a4;
+                break;
+            }
+            case 6:
+                gl_func_00000000(arg);
+                s5 = 0x2100000;
+                *(int *)(d + 0x40) = 10;
+                break;
+            case 0:  *(int *)(d + 0x40) = 100; break;
+            case 2:  *(int *)(d + 0x40) = 101; break;
+            case 4:  *(int *)(d + 0x40) = 102; break;
+            case 5:  *(int *)(d + 0x40) = 103; break;
+            case 7:  *(int *)(d + 0x40) = 104; break;
+            case 8:  *(int *)(d + 0x40) = 105; break;
+            case 9:  *(int *)(d + 0x40) = 106; break;
+            case 10: *(int *)(d + 0x40) = 107; break;
+            case 11: *(int *)(d + 0x40) = 108; break;
+            }
+        }
+        (void)s5;
+        a1 = *(int *)(d + 0x40);
+    } while (done == 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000005DC);
+#endif
 
 /* titproc_uso_func_00000B6C: 40-insn (0xA0) 3-call alloc-and-link wrapper.
  * 1st cross-USO call allocates context (kept across calls), 2nd registers
