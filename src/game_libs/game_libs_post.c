@@ -7987,7 +7987,15 @@ end:
  *
  * Caps (DEFERRED): direct intra-USO jal 0x3D480 needs sym table
  * resolution. Real-C STRUCTURAL body below per the decode above.
- * Byte-match deferred. Name pre-checked: no extern reuse. */
+ * Byte-match deferred. Name pre-checked: no extern reuse.
+ * 90.47% (2026-06-02, dropped the `saved=a0+0x20` spill-local, inlining
+ * a0+0x20 at both call sites; +0.07pp). Residual = original-a0 preservation
+ * regalloc: a0+0x20 is needed at the first gl_3d480 call AND the later
+ * gl(a0+0x20,s0) call, across the `s0=v0` reassignment, so IDO must keep the
+ * original a0 live across two clobbering calls — it SPILLS it (extra `or a2,a0`
+ * + sw/lw, +8 frame: sp-0x40 vs target sp-0x38) where the target holds it in a
+ * callee-saved reg. No C shape flips spill->$s here (explicit `obj=a0` local
+ * regresses to 88.5%). Permuter-class. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 /* Whole-body decode 2026-06-01 (prior body was heavily oversimplified). Two
@@ -8000,7 +8008,6 @@ extern int gl_func_0003D480();
 extern int gl_func_0003D638();
 int gl_func_000290C8(char *a0, char *a1) {
     char *s0 = a0;
-    char *saved = a0 + 0x20;
     int t2 = 16, t3 = 16;
     int *v1, *v0;
 
@@ -8019,7 +8026,7 @@ int gl_func_000290C8(char *a0, char *a1) {
     if (t2 < t3) {
         gl_func_00000000(s0);
         gl_func_0003D638(s0, a1);
-        gl_func_00000000(saved, s0);
+        gl_func_00000000(a0 + 0x20, s0);
         *(unsigned char *)(s0 + 0x30) = *(unsigned char *)(*(char **)(a1 + 0x50) + 5);
         return (int)s0;
     }
