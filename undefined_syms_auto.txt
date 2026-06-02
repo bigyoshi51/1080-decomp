@@ -2428,3 +2428,4 @@ func_8b44_init = 0x00000000;
 func_477c_reg = 0x00000000;
 func_8bd4_a = 0x00000000;
 func_8bd4_b = 0x00000000;
+func_cce0 = 0x00000000;
