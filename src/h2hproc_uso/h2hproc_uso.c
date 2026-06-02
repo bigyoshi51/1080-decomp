@@ -50,22 +50,22 @@ void h2hproc_uso_func_00000014(int *a0, int a1) {
  * Common cleanup chain: alloc(0,1,0) → r1; alloc(&D+0x10, r1) → r2;
  *   if (r2->0x14) r2->0x4 = 1; r2->0x14 = &D.
  *
- * IDO -O2 emits this switch as .rodata jumptable
- * (feedback_ido_switch_rodata_jumptable.md). 1080 discards .rodata, so
- * target's `lui at, 0; addu at,t6; lw t6, 0(at); jr t6` dispatch is
- * unreproducible from a C `switch` (would emit different bytes plus the
- * jumptable in a discarded section).
+ * IDO -O2 emits this switch as a .rodata jumptable
+ * (sltiu/sll/lui/addu/lw/jr). 2026-06-02 CORRECTION: the earlier note that
+ * this is "unreproducible / 40-60% cap" is WRONG — objdiff scores only .text,
+ * and a single-symbol C `switch` reproduces the dispatch + case bodies (the
+ * generated jumptable lives in the discarded .rodata). This wrap builds to
+ * 71.9% with the full switch structure matching (do-while + jumptable +
+ * all 7 case bodies + cleanup/finalizer correct).
  *
- * Per feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md, for
- * compares-grouped-at-top dispatchers we'd use the goto-chain idiom — but
- * THIS asm uses true jumptable (lui+lw+jr), not chained beq. Goto-chain
- * won't reproduce the jumptable bytes either; expected match cap likely
- * 40-60 % regardless of dispatch form.
- *
- * Body is structural skeleton only — does NOT execute correctly (the
- * switch cases call gl_func_00000000 with various small-int args, but
- * the actual data flow needs more decode work. Keep INCLUDE_ASM as the
- * default-build path; wrap is reference for next pass). */
+ * RESIDUAL ~28% = an $s-REGISTER PERMUTATION cap. Both build and target hoist
+ * the same 9 loop-invariants (two &D bases, self=a0, the loop counter=0, the
+ * constants 5/6/1, 0x145<<16) to s0-s8, but assign them to DIFFERENT pseudos
+ * (target {s1,s7,s8}=bases/0x145, {s4,s5,s6}={5,6,1}, s2=a0, s3=counter; build
+ * shifts the constants one reg lower + a different base/counter split). The
+ * encounter-order lever (reorder C refs / decl order) does NOT move it —
+ * tested flag-decl-first 2026-06-02, byte-identical (IDO's weight allocator
+ * ignores it). Permuter-class. INCLUDE_ASM stays the default build. */
 void h2hproc_uso_func_0000002C(int *a0, int a1) {
     int *s0;
     int flag;
