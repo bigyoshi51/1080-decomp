@@ -543,7 +543,197 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00001818);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001820);
 
+#ifdef NON_MATCHING
+/* gl_func_00001C54 - STRUCTURAL PASS (big-swing 2026-06-02).
+ * game_libs get-or-alloc slot constructor (cross-segment family; same idiom
+ * as game_uso_func_000044F4 / gl_func_00064588). 0x728 / 462 insns, sole
+ * callee gl_func_00000000 (alloc when 1 arg / init when 4 args -- file-wide
+ * K&R placeholder, returns int, cast to ptr for allocs).
+ *
+ * Shape: alloc parent (0x194) if arg0==NULL; head node (8){D+0xCC6C, 0};
+ * 15 simple stride-0x18 slots from a folded int-pool table (D+0xCC74+i*4),
+ * each get-or-alloc(0x18) + init(slot, parent, val, 1) with slot[0xC]=D+
+ * 0xC764, slot[0x14]=0, slot[0x10]=<int param>; one complex slot at +0x158
+ * (alloc 0x24, tag D+0xCA34) holding a Quad (unk10..1C) from stack scratch.
+ *
+ * NOT matched: folded-pool refs + ~18-call register allocation (multi-tick;
+ * project_1080_cap_analysis_2026-05-28). Full structure for the next pass. */
+#define DI(o) (*(int *)((char *)&D_00000000 + (o)))
+#define DP(o) ((void *)((char *)&D_00000000 + (o)))
+#define SI(p, o, v) (*(int *)((char *)(p) + (o)) = (int)(v))
+
+void *gl_func_00001C54(void *arg0) {
+    void *base;
+    void *node;
+    void *slot;
+    int val;
+
+    if (arg0 != NULL ||
+        (arg0 = (void *)gl_func_00000000((void *)0x194)) != NULL) {
+        base = arg0;
+        node = base;
+        if (base != NULL ||
+            (node = (void *)gl_func_00000000((void *)0x8)) != NULL) {
+            SI(node, 0x0, (int)DP(0xCC6C));
+            SI(node, 0x4, 0);
+        }
+        val = DI(0xCC74);
+        slot = (char *)base + 8;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0x1E);
+        }
+        val = DI(0xCC78);
+        slot = (char *)base + 0x20;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0x1E);
+        }
+        val = DI(0xCC7C);
+        slot = (char *)base + 0x38;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0xA);
+        }
+        val = DI(0xCC80);
+        slot = (char *)base + 0x50;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0x73);
+        }
+        val = DI(0xCC84);
+        slot = (char *)base + 0x68;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0);
+        }
+        val = DI(0xCC88);
+        slot = (char *)base + 0x80;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0);
+        }
+        val = DI(0xCC8C);
+        slot = (char *)base + 0x98;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0xB);
+        }
+        val = DI(0xCC90);
+        slot = (char *)base + 0xB0;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0xD);
+        }
+        val = DI(0xCC94);
+        slot = (char *)base + 0xC8;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0);
+        }
+        val = DI(0xCC98);
+        slot = (char *)base + 0xE0;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0);
+        }
+        val = DI(0xCC9C);
+        slot = (char *)base + 0xF8;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0x10C);
+        }
+        val = DI(0xCCA0);
+        slot = (char *)base + 0x110;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0x50);
+        }
+        val = DI(0xCCA4);
+        slot = (char *)base + 0x128;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0xA0);
+        }
+        val = DI(0xCCA8);
+        slot = (char *)base + 0x140;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0xDC);
+        }
+        val = DI(0xCCB0);
+        slot = (char *)base + 0x17C;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xC764));
+            SI(slot, 0x14, 0);
+            SI(slot, 0x10, 0);
+        }
+        /* complex slot (0x24): Quad payload */
+        val = DI(0xCCAC);
+        slot = (char *)base + 0x158;
+        if (slot != NULL ||
+            (slot = (void *)gl_func_00000000((void *)0x24)) != NULL) {
+            gl_func_00000000(slot, base, val, 1);
+            SI(slot, 0xC, (int)DP(0xCA34));
+            SI(slot, 0x20, 0);
+            SI(slot, 0x10, 0);
+            SI(slot, 0x14, 0);
+            SI(slot, 0x18, 0);
+            SI(slot, 0x1C, 0);
+        }
+    }
+    return arg0;
+}
+#undef DI
+#undef DP
+#undef SI
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001C54);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000237C);
 
