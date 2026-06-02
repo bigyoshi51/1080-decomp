@@ -25383,41 +25383,132 @@ void gl_func_00045FF4(int *a0) {
  * pattern (per docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body). */
 void game_libs_func_00046048(int a0) {
 }
+#ifdef NON_MATCHING
+/* gl_func_00046050 - STRUCTURAL PASS (big-swing 2026-06-02).
+ * Textured-font string renderer, 0x738 (462 insns). Walks the arg1 string
+ * and, per glyph, either appends F3DEX2 texrect display-list commands to
+ * the GfxCtx (arg0->unk254->unk158) or measures (arg0->unk28C != 0 ->
+ * gl_func_0001CA10 measure callback). Handles newline (\n=10), tab
+ * (\t=9 -> space), '0'->'O' substitution, and right-margin word-wrap.
+ * Sole callee gl_func_0001CA10 (TLUT/measure helper; file placeholder).
+ *
+ * State (arg0): unk21C = pen x, unk220 = pen y, unk224 = glyph width,
+ * unk228 = line height, unk254 = GfxCtx root, unk28C = measure-only flag.
+ * Margin = DI(0)-0x14 (folded global). DL-append idiom inlined via EMIT.
+ * Gfx cmds confirmed from asm: 0xE7 PipeSync, 0xBA SetOtherMode, 0xB6/0xB9
+ * Set/ClearGeometryMode, 0xF9 SetBlendColor, 0xBB SetTile-ish, 0xFD/0xF5
+ * SetTextureImage/SetTile, 0xE4 TextureRectangle, 0xB4/0xB3 tex coord/size.
+ *
+ * NOT matched (folded-pool + DL-append register allocation; target
+ * schedules the inlined appends differently). Full structure
+ * documented for the next pass. Consider /decompile-f3dex2. */
+#define DI(o) (*(int *)((char *)&D_00000000 + (o)))
+#define FI(p, o) (*(int *)((char *)(p) + (o)))
+#define FP(p, o) (*(void **)((char *)(p) + (o)))
 
-// gl_func_00046050 — STRUCTURAL PASS (0x73C / 464 words, no episode). Raw-.word
-// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
-// at the jr at 0x46780 (~463 words); a tiny trailing stub at 0x46784
-// (jr ra; ...) is a DEFERRED USO RE-SPLIT (empty/no-op, belongs to the next
-// symbol — same shape as gl_func_0004182C's trailing stub).
-//
-// Named fn = large CPU-side RDP/GBI display-list segment builder (single
-// prologue frame 0x40, saves ra + s0..s8):
-//   void gl_func_00046050(void *a0, ...) {
-//     if (a0->p28C != 0) goto skip;                 // bnez early-out
-//     // GfxCtx packet sink: ctx = a0->p254->p158->p0C; emit helper is
-//     //   i = ctx->idx; ctx->idx = i + 1;
-//     //   uint *p = (uint*)ctx->buf + i*2; p[0]=opcodeW; p[1]=argW;
-//     // a long fixed sequence of two-word GBI/RDP packets is appended,
-//     // opcode top-bytes including 0xE7 (G_RDPPIPESYNC), 0xBA
-//     // (G_SETOTHERMODE_H), 0xB7 (G_SETOTHERMODE_L) ... with arg words
-//     // built from a0->0x21C/0x224/0x228/0x254 state and immediates
-//     // (0xBA001402 etc.); the ctx idx/buf double-reload idiom recurs per
-//     // packet.
-//   skip: ;
-//   }
-// Builds a complete RDP/RSP display-list segment by appending dozens of
-// fixed two-word GBI command packets into the GfxCtx command buffer reached
-// via a0->0x254 -> 0x158 -> 0x0C ({buf, idx@+4}, stride 8), gated on the
-// a0->0x28C "already built" flag. Family: CPU-side RDP DL fragment builder
-// (large-segment sibling of gl_func_00045E20 and the gui_uso inline-DL
-// routines; see docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder).
-// Per-packet opcode/arg list not exhaustively decoded (464-word builder) —
-// the a0->0x28C guard, the a0->0x254->0x158->0x0C GfxCtx path, the
-// idx-bump + i*8 two-word stride and the 0xE7/0xBA/0xB7 opcode families are
-// exact; the full packet stream is representative. Trailing stub at 0x46784
-// = deferred re-split. Caps: GfxCtx/state struct + the exact GBI constants
-// untyped. Full body INCLUDE_ASM-preserved.
+extern int gl_func_0001CA10();
+
+/* append an 8-byte Gfx command (w0,w1) to arg0's GfxCtx gfx list, inline */
+#define EMIT(w0, w1) do {                                          \
+    void *_l = FP(FP(FP(arg0, 0x254), 0x158), 0xC);                \
+    int _n = FI(_l, 0x4); void *_e;                                \
+    FI(_l, 0x4) = _n + 1;                                          \
+    _e = (char *)FP(_l, 0x0) + (_n * 8);                           \
+    FI(_e, 0x0) = (w0); FI(_e, 0x4) = (w1);                        \
+} while (0)
+
+s32 gl_func_00046050(void *arg0, u8 *arg1, s32 arg2) {
+    s32 startx = FI(arg0, 0x21C);
+    s32 lineh = FI(arg0, 0x228);
+    s32 charw = FI(arg0, 0x224);
+    u8 *p;
+    u8 ch;
+    u8 cc;
+
+    if (FI(arg0, 0x28C) == 0) {
+        EMIT(0xE7000000, 0);
+        EMIT(0xBA001402, 0);
+        EMIT(0xB6000000, 1);
+        EMIT(0xB900031D, 0x0C087008);
+        EMIT(0xF9000000, 0x80);
+        EMIT(0xBB000001, 0x80008000);
+        EMIT(0xFCFFFFFF, 0xFFFCF279);
+        EMIT(0xBA000C02, 0);
+        { void *_l = FP(FP(FP(arg0, 0x254), 0x158), 0xC); int _n = FI(_l, 0x4); void *_e;
+          FI(_l, 0x4) = _n + 1; _e = (char *)FP(_l, 0x0) + (_n * 8);
+          FI(_e, 0x0) = 0xFD900000; FI(_e, 0x4) = gl_func_0001CA10(arg0); }
+        EMIT(0xBA001301, 0);
+        EMIT(0xF5900000, 0x07000000);
+        EMIT(0xE6000000, 0);
+        EMIT(0xF3000000, 0x077FF100);
+        EMIT(0xE7000000, 0);
+        EMIT(0xF5801000, 0);
+        EMIT(0xF2000000, 0x1FC0FC);
+    }
+
+    ch = *arg1;
+    p = arg1 + 1;
+    if (ch != 0) {
+    loop:
+        cc = ch;
+        switch (ch) {
+        case 10:
+            FI(arg0, 0x21C) = startx;
+            FI(arg0, 0x220) = FI(arg0, 0x220) + lineh;
+            break;
+        case 9:
+            ch = 0x20;
+            cc = 0x20;
+            /* fallthrough */
+        default:
+        block:
+            if ((DI(0) - 0x14) < (FI(arg0, 0x21C) + charw)) {
+                FI(arg0, 0x21C) = startx;
+                FI(arg0, 0x220) = FI(arg0, 0x220) + lineh;
+            }
+            if ((s32) cc < 0x80) {
+                if (FI(arg0, 0x28C) == 0) {
+                    int x = FI(arg0, 0x21C);
+                    int y = FI(arg0, 0x220);
+                    EMIT(((((x + charw) * 4) & 0xFFF) << 0xC) | 0xE4000000 | (((y + lineh) * 4) & 0xFFF),
+                         (((x * 4) & 0xFFF) << 0xC) | ((y * 4) & 0xFFF));
+                    EMIT(0xB4000000,
+                        ((cc & 0xF) << 0x18) | ((((s32) (cc & 0xF0) >> 1) << 5) & 0xFFFF));
+                    EMIT(0xB3000000,
+                        ((0x2000 / charw) << 0x10) | ((0x2000 / lineh) & 0xFFFF));
+                } else {
+                    gl_func_0001CA10(arg0, ch, FI(arg0, 0x21C), FI(arg0, 0x220));
+                }
+            }
+            FI(arg0, 0x21C) = FI(arg0, 0x21C) + charw;
+            break;
+        case 48:
+            ch = 0x4F;
+            cc = 0x4F;
+            goto block;
+        }
+        if (FI(arg0, 0x21C) < arg2) {
+            ch = *p;
+            p += 1;
+            if (ch != 0) {
+                goto loop;
+            }
+        }
+    }
+
+    if (FI(arg0, 0x28C) == 0) {
+        EMIT(0xE7000000, 0);
+        EMIT(0xBB000000, -1);
+        EMIT(0xBA001402, 0x300000);
+    }
+    return 0;
+}
+#undef DI
+#undef FI
+#undef FP
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046050);
+#endif
 
 void game_libs_func_00046788(int *a0, int a1) {
     a0[163] = a1;
