@@ -110,6 +110,17 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001034C);
  *   - unk70 is a FLOAT truncated to int then re-floated: (float)(int)f70.
  *   - RGB halving is div.s by 2.0f (lui 0x4000), per-component, base ptr
  *     recomputed each store.
+ *   - the 4-field copy is a single 16-byte STRUCT assignment (loads base
+ *     once); separate per-field stores reload the base and won't match.
+ * 2026-06-02 LAND ATTEMPT (validated standalone -O0, this body): reaches
+ * 364 insns vs target 343, BUT ~270 lines still differ -- pervasive -O0
+ * operand-eval-order + temp-register divergence, because macro access
+ * `*(int*)((char*)arg0+off)` evaluates the address before the local, while
+ * the target (compiled from TYPED-STRUCT C) loads the local first. Closing
+ * it needs a full typed-struct refactor (define the ~0x28-stride element +
+ * parent struct so accesses are p->field) PLUS residual regalloc grinding.
+ * That's a multi-hour focused task, NOT a loop tick. Standalone harness:
+ * compile this body with `cc ... -O0` and diff via disasm-func.py --obj.
  * NOTE: only commit the -O0 split if it byte-matches EXACTLY -- it makes
  * the compiled C the default build path, so a non-match would corrupt the
  * segment (unlike this NM wrap, whose #else INCLUDE_ASM stays byte-exact).
