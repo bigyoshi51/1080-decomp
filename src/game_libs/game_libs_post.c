@@ -11367,46 +11367,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F578);
-
-// gl_func_0002F584 — STRUCTURAL PASS (0xAC / 43 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A heavily-FP value-quantize / clamp-to-byte helper.
-//
-//   void gl_func_0002F584(O *o) {
-//     float v = ...;                                    // input value
-//     if (v < lo) v = lo;                                // clamp low
-//     v += bias;
-//     if (hi < v) v = hi;                                // clamp high
-//     byte m = o->b_1C;
-//     if (m & 1) v = -v;                                  // sign by flag
-//     int q = (int)(v * o->f_54);                          // trunc.w.s
-//     o->b_33 = (byte)q;
-//     if (q >= 0x80) q = 0x7F;                             // clamp 7-bit
-//     if (q <  0)    q = 0;
-//     ... store q into o->0x1C / o->0x21-selected slot ...
-//   }
-//
-// Struct-typing reference: maps an object float quantity to a 7-bit
-//   byte. The input is clamped between FP bounds (literals such as
-//   15.0f / 0.0f), optionally negated by the low bit of byte o->0x1C,
-//   scaled by the float o->0x54, truncated to int (trunc.w.s) and
-//   saturated to [0, 0x7F]; the result is written to byte slots
-//   o->0x33 / o->0x1C with byte o->0x21 selecting the target. A
-//   parameter-quantize leaf of the game_libs object subsystem (feeds
-//   the byte-domain command/state machinery, e.g. the
-//   gl_func_0002F288 integrator's consumers).
-// Caps (DEFERRED): raw-word USO + FP clamp + trunc.w.s + 7-bit
-//   saturate idiom — byte-match needs USO mnemonic disasm. Real-C
-//   STRUCTURAL body below per the analysis. Byte-match deferred.
-//   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_0002F584(char *o) {
-    float v = *(float *)(o + 0);
+/* game_libs_func_0002F578: one ~46-insn (0xB8) FP value-quantize / clamp-to-byte
+ * helper. BOUNDARY MERGED 2026-06-02: splat had split it into 0002F578 (3-insn
+ * FP-const prologue: `mtc1 a3,$f12` (the input value, ARG-DERIVED) + `mtc1
+ * zero,$f4`=0.0 + `lui 0x42fe`→$f6=127.0 — hoisted above the frame; the real
+ * entry) + gl_func_0002F584 (the prologue+body that reads f12/f4/f6
+ * uninitialized). SINGLE-entry per the dual-vs-single test (f12 is arg-derived
+ * + used in FP OPS `c.lt.s/add.s`, NOT mfc1-back; no callers). Absorbed
+ * 0002F584's 43 words into 0002F578 (0xC -> 0xB8); dropped the 0002F584 symbol.
+ * Merging brings the input value (=a3) and the clamp bounds (0.0/127.0)
+ * in-scope — CORRECTS the prior structural decode that mis-read v as o->0 and
+ * the bound as 15.0. Maps the input float to a 7-bit byte (clamp [0,127]+1,
+ * optional negate by o->0x1C bit0, scale by o->0x54, trunc, saturate [0,0x7F],
+ * store to o->0x33/o->0x1C). Byte-match deferred (raw-word USO + FP clamp). */
+void game_libs_func_0002F578(char *o, int a1, int a2, int a3) {
+    float v = *(float *)&a3;     /* mtc1 a3,$f12 in the merged prologue */
     int q;
-    if (v < 0.0f) v = 0.0f;
+    if (v < 0.0f) v = 0.0f;       /* $f4 = 0.0 low clamp */
     v += 1.0f;
-    if (v > 15.0f) v = 15.0f;
+    if (v > 127.0f) v = 127.0f;   /* $f6 = 0x42fe0000 = 127.0 high clamp */
     if (*(unsigned char *)(o + 0x1C) & 1) v = -v;
     q = (int)(v * *(float *)(o + 0x54));
     *(unsigned char *)(o + 0x33) = (unsigned char)q;
@@ -11415,7 +11395,7 @@ void gl_func_0002F584(char *o) {
     *(unsigned char *)(o + 0x1C) = (unsigned char)q;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F584);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F578);
 #endif
 
 void game_libs_func_0002F630(void) {
