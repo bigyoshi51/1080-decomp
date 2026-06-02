@@ -1296,40 +1296,20 @@ void timproc_uso_b5_func_00003890(int *a0) {
     *p = 0;
 }
 
-/* timproc_uso_b5_func_000038B0: ENTRY FRAGMENT (0x20, 8 insns, NO jr ra, NO
- * prologue) of a single 47-insn function that splat split into 038B0 + 038D0.
- * Called from timproc_uso_b5_func_00005FC0 (jal); 038D0 has ZERO callers and is
- * reached ONLY by fall-through from here. This fragment reads a0 fields and
- * computes the FP temps that 038D0 then consumes:
- *   f18 = a0->0x2A0; f4 = a0->0x164; v0 = a0->0x29C(ptr); f10 = a0->0x168;
- *   f6 = f4*f18; f8 = *(v0+0xDC); f4 = f10*f18;  (at = 1.0f staged)
- * IDO scheduled these arg-loads BEFORE the stack-frame prologue, so the
- * `addiu sp,sp,-32` lands 8 insns in (at 038D0), which is why splat cut here.
+/* timproc_uso_b5_func_000038B0: one 47-insn (0xBC) FP transform. BOUNDARY MERGED
+ * 2026-06-02: splat had split this into 038B0 (entry, 8 insns, no prologue) +
+ * 038D0 (continuation w/ the `addiu sp,-32` prologue 8 insns in). IDO hoisted
+ * the entry's a0-field FP loads above the frame setup, so the prologue landed
+ * mid-function and splat cut there. 038B0 is the real entry (jal'd from
+ * timproc_uso_b5_func_00005FC0); 038D0 had zero callers. Absorbed 038D0's 39
+ * words into 038B0 (0x20 -> 0xBC) and dropped the 038D0 symbol.
  *
- * *** CORRECTS A MISDIAGNOSIS (see 038D0 below): *** the "NON-O32 float-in-$f6/
- * $f8 callee cap" on 038D0 is WRONG — those $f6/$f8 are NOT received from a
- * caller, they are computed HERE in the entry fragment from a0's fields. The
- * merged 47-insn function is an ordinary a0-field-reading FP transform and is
- * matchable once the 038B0+038D0 boundary is merged (multi-tick USO-asm regen:
- * extend 038B0 to 0xBC, drop the 038D0 symbol — nothing references it). Same
- * pattern for the sibling pair 0000396C(entry)+0000398C-F1(cont). */
+ * This RETRACTS the old "NON-O32 float-in-$f6/$f8 callee cap": the $f6/$f8/$f4/v0
+ * that 038D0 used are computed in the entry from a0->{0x164,0x168,0x29C,0x2A0,..}
+ * (f6=f4*f18, f8=*(v0+0xDC), ...), NOT caller-passed. The merged function reads
+ * a0 fields normally and is now decodable. Same pattern for the sibling pair
+ * 0000396C(entry)+0000398C-F1(cont) — still to merge. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038B0);
-
-/* timproc_uso_b5_func_000038D0: CONTINUATION (0x9C, 39 insns) of the function
- * whose entry is timproc_uso_b5_func_000038B0 — NOT a standalone function.
- * Has zero callers; reached only by fall-through from 038B0.
- *
- * *** PRIOR "NON-O32 float-in-$f6/$f8 callee cap" DIAGNOSIS RETRACTED 2026-06-02.
- * *** The $f6/$f8/$f4/v0 it uses are NOT caller-passed floats — they are
- * computed in the 038B0 entry fragment from a0->{0x164,0x168,0x29C,0x2A0,...}
- * (see the 038B0 comment above). splat split one 47-insn function in two
- * because IDO hoisted the entry's FP arg-loads above the `addiu sp,sp,-32`
- * prologue (which is why the prologue appears here, 8 insns in). The merged
- * function reads a0 fields normally and IS matchable — it is gated on a
- * boundary merge (USO-asm regen), not on any float-ABI impossibility.
- *
- * Default INCLUDE_ASM keeps ROM byte-correct until the merge. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038D0);
 
 /* timproc_uso_b5_func_0000396C: ENTRY FRAGMENT (0x20, 8 insns, no jr ra/prologue)
  * of the 47-insn sibling of 038B0+038D0. Reads a0->{0x184,0x188,0x29C,0x2A0}
