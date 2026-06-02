@@ -34145,9 +34145,16 @@ void game_libs_func_0005E8B0(void *arg0, void *arg1) {
     *(float *)((char *)arg0 + 0x28) *= *(float *)((char *)arg1 + 0x8);
 }
 
+/* game_libs_func_0005E944: one 88-insn (0x160) function. BOUNDARY MERGED
+ * 2026-06-02: splat had split it into 0005E944 (3-insn FP-const prologue:
+ * `mtc1 a2,$f12` (input, ARG-DERIVED) + `lui 0x4000`->$f4=2.0 — hoisted above
+ * the frame; the real entry) + gl_func_0005E950 (the prologue+body using f12 in
+ * `div.s $f6,$f12,$f4`). SINGLE-entry per the dual-vs-single test (f12 arg-
+ * derived + FP-op use; the mfc1 is on the RESULT $f6, not f12; no callers).
+ * Absorbed 0005E950's 85 words into 0005E944 (0xC -> 0x160); dropped the
+ * 0005E950 symbol. Brings f12 (=a2) and f4 (=2.0) in-scope, retracting the
+ * implicit caller-set-float cap; the 85-insn body is decodable in a future pass. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005E944);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E950);
 
 /* gl_func_0005EAA4 - verified structural decode (42-insn per-Vec3-axis
  * conditional dispatch; 3x bc1tl FP branch-likely = documented sub-80
