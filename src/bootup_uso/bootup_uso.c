@@ -1581,8 +1581,16 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003638);
  * func_00000000 = the tagged-vararg builder (tags 2/1/0/0x58005/
  * 0x1B). Caps <80: ~12 reloc + FP stack-arg + a1*0x1C index
  * (sll/subu/sll) + beql link-guard + 2 alloc(0x80).
- * INCLUDE_ASM remains build path. */
+ *
+ * 2026-06-02 (68.6->72.5%): the r1 builder call's args 7,8 are single floats
+ * on the stack (cfg->0xC4/0xCC, target swc1 0x18/0x1C) — routed through typed-
+ * float proto func_3734_r1 so they don't K&R double-promote. Residual ~27% =
+ * arg-home-slot + scheduling regalloc (a1 spilled to sp+0x64 vs 0x5C, cascades
+ * the frame). Third double-promote-scan hit (1A44/3638/3734). INCLUDE_ASM. */
 #ifdef NON_MATCHING
+/* typed-float proto (0x0-alias): args 7,8 are single floats on the stack
+ * (target swc1 0x18/0x1C); K&R func_00000000 double-promotes them. */
+extern char *func_3734_r1(void *, int, int, void *, void *, int, float, float, int, int);
 void func_00003734(char *s1, int a1) {
     char *s0;
     char *sub;
@@ -1595,10 +1603,10 @@ void func_00003734(char *s1, int a1) {
     func_00000000(s0, 0);
     func_00000000(&D_00000000, s0);
     cfg = *(char**)(s1 + 0x98);
-    r1 = (char*)func_00000000(s1, 2, 1, (char*)&func_00000080 + 0x14,
-                              s0, *(int*)(s1 + 0x80),
-                              *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
-                              0x58005, 0x1B);
+    r1 = func_3734_r1(s1, 2, 1, (char*)&func_00000080 + 0x14,
+                      s0, *(int*)(s1 + 0x80),
+                      *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
+                      0x58005, 0x1B);
     r2 = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), r1);
     r3 = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), r1);
     (void)r3;
