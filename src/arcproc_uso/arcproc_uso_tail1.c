@@ -56,15 +56,57 @@ void arcproc_uso_func_00001B88(int *a0) {
  * (sp+0x40) is the loop exit condition. func_00001B88 is a K&R-variadic helper
  * called with 1..5 args across cases (declare `extern int func();`).
  *
- * Per feedback_ido_switch_rodata_jumptable.md: IDO -O2 emits a .rodata
- * jumptable for switch w/ >=4 dense cases. Without explicit .rodata
- * preservation in the linker script for arcproc_uso, the jr-via-rodata dispatch
- * can't be reproduced — likely permanent INCLUDE_ASM even after full decode.
- *
- * Multi-tick FOCUSED-SESSION item: cases 5..10 (struct-walks, s0-saved multi-
- * calls) need per-case decode; control skeleton above is ready to fill in.
- * Default build INCLUDE_ASM remains exact. */
-void arcproc_uso_func_00000240(void) {
+ * 2026-06-01 (0.88->22.22%): the "jr-rodata can't reproduce" claim was WRONG
+ * (re-verify principle): a single-symbol switch DOES match — IDO emits the
+ * sltiu/jr-table dispatch in .text and objdiff compares only that (the .rodata
+ * jumptable is a separate section, like timproc_uso_b5_func_000087F4). Wrote
+ * the do-while + switch with cases 0..4 decoded and 5..10 as distinct
+ * D[0x40]=N placeholders (to force the dense 11-entry table). Dispatch + cases
+ * 0..4 now match. REMAINING: cases 5..10 are placeholders — decode their real
+ * bodies (struct-walks, s0-saved multi-calls) for more %. Default build
+ * INCLUDE_ASM remains exact. */
+void arcproc_uso_func_00000240(int a0, int a1) {
+    int done = 0;
+    int state;
+    do {
+        state = a1;
+        if ((unsigned)state >= 11) break;
+        switch (state) {
+        case 0:
+            gl_func_00000000(a0, 1, 3, 1);
+            *(int *)((char *)&D_00000000 + 0x44) = 3;
+            *(int *)((char *)&D_00000000 + 0x48) = 10;
+            done = 1;
+            break;
+        case 1:
+            gl_func_00000000(a0, 1, 3, 1);
+            *(int *)((char *)&D_00000000 + 0x44) = 4;
+            *(int *)((char *)&D_00000000 + 0x48) = 9;
+            done = 1;
+            break;
+        case 2:
+            gl_func_00000000(a0, 1, 3, 2);
+            *(int *)((char *)&D_00000000 + 0x44) = 4;
+            *(int *)((char *)&D_00000000 + 0x48) = 9;
+            done = 1;
+            break;
+        case 3:
+            gl_func_00000000(a0);
+            *(int *)((char *)&D_00000000 + 0x40) = 4;
+            break;
+        case 4:
+            gl_func_00000000(a0);
+            *(int *)((char *)&D_00000000 + 0x40) = 5;
+            break;
+        case 5:  *(int *)((char *)&D_00000000 + 0x40) = 6;  break;
+        case 6:  *(int *)((char *)&D_00000000 + 0x40) = 7;  break;
+        case 7:  *(int *)((char *)&D_00000000 + 0x40) = 8;  break;
+        case 8:  *(int *)((char *)&D_00000000 + 0x40) = 9;  break;
+        case 9:  *(int *)((char *)&D_00000000 + 0x40) = 10; break;
+        case 10: *(int *)((char *)&D_00000000 + 0x40) = 11; break;
+        }
+        a1 = *(int *)((char *)&D_00000000 + 0x40);
+    } while (done == 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000240);
