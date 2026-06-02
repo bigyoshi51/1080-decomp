@@ -1209,7 +1209,43 @@ void mgrproc_uso_func_00002324(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002324);
 #endif
 
+#ifdef NON_MATCHING
+/* Partial structural decode 2026-06-01. FP draw/HUD function: scales
+ * s3->0x7A0 (alpha/intensity) by 255 and issues draw calls; per-frame
+ * counter s3->0x508 gates a blink draw on the s3->0x6A8 sub-object. Front
+ * blocks decoded; the deeper conditional-draw/timer tail (~200 insns) left
+ * for a follow-up. Cross-USO calls are the gl_func_00000000 import. */
+void mgrproc_uso_func_000023FC(char *s3) {
+    char *d = (char *)&D_00000000;
+    float quad[4];
+    int c;
+
+    quad[0] = 1.0f;
+    quad[1] = 1.0f;
+    quad[2] = 1.0f;
+    quad[3] = 1.0f;
+    if (*(int *)(s3 + 0x4F8) != 2) {
+        gl_func_00000000(d);
+        gl_func_00000000(d, (int)(255.0f * *(float *)(s3 + 0x7A0)), quad);
+        gl_func_00000000(d, 160, 140, 3);
+    }
+    gl_func_00000000(d, (int)(255.0f * *(float *)(s3 + 0x7A0)), s3 + 824, s3 + 860);
+    c = *(int *)(s3 + 0x508) + 1;
+    *(int *)(s3 + 0x508) = c;
+    if (*(int *)(s3 + 0x4F8) == 0) {
+        if (gl_func_00000000(*(int *)(s3 + 0x6A8)) != 0) {
+            if (c & 8) {
+                gl_func_00000000(s3 + 1832);
+                gl_func_00000000(s3 + 1832, 160, 120, 3);
+            } else {
+                gl_func_00000000(s3 + 1856, 160, 120, 3);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000023FC);
+#endif
 
 /* mgrproc_uso_func_00002850 - verified structural decode (0xF0,
  * jr-count 2 = main body + 1 bundled tail leaf).
