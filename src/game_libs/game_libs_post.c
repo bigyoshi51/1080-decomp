@@ -38656,15 +38656,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FD8);
  * 1024.0f + 0.5f) (round-to-nearest via +0.5 then trunc); returns the u16 at
  * a u16 table indexed by idx. Table at segment offset 0x2AA60 (emitted as
  * lui 0x3 + lhu -0x55A0(base)). Standard $f12/$f14 float args.
- * 81% NM. Logic + opcodes exact, but TWO blockers: (1) BOUNDARY — splat over-
- * declared 0x44 (17 insns). The 17th word `mtc1 zero,$f0` (0x68044) is the
- * STOLEN PROLOGUE of the next function gl_func_00068048, which uses f0=0.0 at
- * its 3rd insn (`c.le.s $f0,$f12`) without setting it. True size of 68004 is
- * 0x40 (16 insns). Caps any 68004 match until the boundary is fixed: shrink
- * 68004 to 0x40 and forward-merge that word into 68048 (rename 68048 ->
- * 68044, +1 word) — see docs/MATCHING_WORKFLOW.md stolen-prologue forward-merge.
- * (2) FP-temp renumber + $v0/$v1 swap on the table base/return (target loads to
- * $v1 then `or v0,v1`; IDO returns via the delay-slot lhu) — permuter-class. */
+ * 86.25% NM. BOUNDARY FIXED 2026-06-02: the trailing `mtc1 zero,$f0` was the
+ * stolen prologue of the next function (which reads f0=0.0 uninitialized); it
+ * has been forward-merged into gl_func_00068044 (68004 shrunk 0x44->0x40,
+ * +5pp here). Remaining residual is permuter-class: FP-temp renumber (IDO
+ * reserves $f4 for the trunc result; mine starts the chain at $f4) + the
+ * $v0/$v1 return move (target loads the table u16 into $v1 then `or v0,v1`;
+ * IDO returns it via the jr delay-slot lhu, 1 insn shorter). */
 int game_libs_func_00068004(float a0, float a1) {
     int idx = (int)(a0 / a1 * 1024.0f + 0.5f);
     int r = *(unsigned short *)((char *)&D_00000000 + 0x2AA60 + idx * 2);
@@ -38703,7 +38701,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068004);
  * Default INCLUDE_ASM keeps ROM exact. Capturing structural decode here
  * for grep + future pass to refine the breakpoint logic + identify the
  * helper signature. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068048);
+/* gl_func_00068044: entry is 0x68044 (the `mtc1 zero,$f0` that materializes
+ * f0=0.0, used at insn 3 `c.le.s f0,f12`). IDO hoisted that FP-const prologue
+ * above the `addiu sp` frame setup, so splat had mis-assigned it to the
+ * preceding game_libs_func_00068004; forward-merged here 2026-06-02 (68004
+ * shrunk 0x44->0x40, this symbol renamed 68048->68044 +1 word). */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068044);
 
 extern int gl_func_00000000();
 void gl_func_000681F4(int *dst) {
