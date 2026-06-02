@@ -420,8 +420,8 @@ void titproc_uso_func_000005DC(char *a0, int a1) {
                 *(int *)(d + 0x40) = 11;
                 break;
             }
-            case 10: *(int *)(d + 0x40) = 107; break;
-            case 11: *(int *)(d + 0x40) = 108; break;
+            case 10: break;
+            case 11: break;
             }
         }
         (void)s5;
