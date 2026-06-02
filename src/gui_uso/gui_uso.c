@@ -884,7 +884,54 @@ void gui_uso_func_00001CA8(char *a0, int a1, float *a2) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001CA8);
 #endif
 
+#ifdef NON_MATCHING
+/* Full decode 2026-06-01. DL emitter: SETCOMBINE (FC309A61/5536FF7F), then
+ * an FB command packing a3 Vec3*255 + a1 alpha, then an FA (SETPRIMCOLOR)
+ * packing a2 Vec3*255 + a1 alpha, to the builder at *(&D). Same b->0xC
+ * re-read + (int)(unsigned) levers as gui_uso_func_00001A5C. */
+void gui_uso_func_00001EF4(char *a0, int a1, float *a2, float *a3) {
+    char *b;
+    char *p;
+    char *buf;
+    int i;
+    int r, g, bl;
+    (void)a0;
+
+    b = *(char **)&D_00000000;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)(*(char **)(b + 0xC));
+    *(int *)(buf + i * 8) = 0xFC309A61;
+    *(int *)(buf + i * 8 + 4) = 0x5536FF7F;
+
+    b = *(char **)&D_00000000;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)(*(char **)(b + 0xC));
+    *(int *)(buf + i * 8) = 0xFB000000;
+    r = (int)(unsigned)(a3[0] * 255.0f);
+    g = (int)(unsigned)(a3[1] * 255.0f);
+    bl = (int)(unsigned)(a3[2] * 255.0f);
+    *(int *)(buf + i * 8 + 4) =
+        (r << 24) | ((g & 0xff) << 16) | ((bl & 0xff) << 8) | (a1 & 0xff);
+
+    b = *(char **)&D_00000000;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)(*(char **)(b + 0xC));
+    *(int *)(buf + i * 8) = 0xFA000000;
+    r = (int)(unsigned)(a2[0] * 255.0f);
+    g = (int)(unsigned)(a2[1] * 255.0f);
+    bl = (int)(unsigned)(a2[2] * 255.0f);
+    *(int *)(buf + i * 8 + 4) =
+        (r << 24) | ((g & 0xff) << 16) | ((bl & 0xff) << 8) | (a1 & 0xff);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001EF4);
+#endif
 
 /* SOURCE=2 sibling of gui_uso_func_000025B4 / gui_uso_func_000017DC:
  * three display-list command writes. Entry 1 sets the combiner
