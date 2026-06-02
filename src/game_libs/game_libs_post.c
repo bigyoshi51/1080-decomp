@@ -31094,9 +31094,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053294);
  *     if(v1==0) return *(u16*)((char*)a0[0x68/4]+(a1<<3)+(a2<<1)+2);
  *     u16 idx = *(u16*)((char*)a0[0x68/4]+(a1<<3)+(a2<<1)+2);
  *     return *(u16*)(v1 + idx*6); }
- * Logic verified but the beqzl-to-end arm LAYOUT resists C (best 15 diffs) and
- * the permuter floors (≥885) — a branch-likely-layout cap. INCLUDE_ASM stays. */
+ * 59.7% NM (2026-06-02, was a comment-only "15 diffs"/31.7% cap). HOISTING idx
+ * to a single pre-branch computation + arm-swap (`if (v1 != 0) return tbl2;
+ * return idx;`) scores +28pp over the target-faithful DUPLICATED-idx form
+ * (31.7%): objdiff aligns the one idx with the target's first computation. The
+ * target duplicates idx in both arms under the `beql v1,zero` likely-branch
+ * layout (mine is 6 insns shorter); reproducing that duplication regresses to
+ * 31.7%. Residual is the branch-likely-duplication layout — permuter-class. */
+#ifdef NON_MATCHING
+unsigned short game_libs_func_0005330C(int *a0, int a1, int a2) {
+    int v1 = a0[0x70 / 4];
+    unsigned short idx =
+        *(unsigned short *)((char *)a0[0x68 / 4] + (a1 << 3) + (a2 << 1) + 2);
+    if (v1 != 0) {
+        return *(unsigned short *)((char *)v1 + idx * 6);
+    }
+    return idx;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005330C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053368);
 
