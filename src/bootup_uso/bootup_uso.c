@@ -4056,6 +4056,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008B44);
 //   body below. Name pre-checked: no extern reuse. D_00000000 reuses
 //   file-scope extern char.
 #ifdef NON_MATCHING
+/* typed-float protos (0x0-aliases): float args (q*q; amt, 0.1f) pass single,
+ * not K&R double-promote. */
+extern void func_8bd4_a(void *, void *, float *, float);
+extern void func_8bd4_b(char *, float, float *, float);
 void func_00008BD4(char *b, float amt, float *dir, int a3) {
     unsigned short fl = *(unsigned short *)(b + 0x174);
     char *cx;
@@ -4098,8 +4102,8 @@ void func_00008BD4(char *b, float amt, float *dir, int a3) {
         *(float *)(cx + 0x944) += dir[2];
         q = *(float *)(cx + 0x970);
         if (q < 0.0f) q = -q;
-        func_00000000(b + 0x120, b + 0x114, dir, q * q);
-        func_00000000(b, amt, dir, 0.1f);
+        func_8bd4_a(b + 0x120, b + 0x114, dir, q * q);
+        func_8bd4_b(b, amt, dir, 0.1f);
     }
 }
 #else
