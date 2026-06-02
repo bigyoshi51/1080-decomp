@@ -11458,49 +11458,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F638);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F720);
-
-// gl_func_0002F72C — STRUCTURAL PASS (0x174 / 93 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A per-object FP value updater with quantized table apply.
-//
-//   void gl_func_0002F72C(O *o, float in, int idxb) {
-//     float nv  = in * o->f_scale;          // mul.s f12,f12,f4
-//     int   i   = (signed char)idxb;        // sll/sra 24
-//     float dlt = nv - o->f_5C;             // delta vs current
-//     if (i < 0x40) o->f_5C = nv;           // commit when in window
-//     int q = 0x7F - i;                      // clamp around 0x40/0x7F
-//     if (q < -0x40) q = (-0x80 - q);
-//     o->b_60 = (byte)(q + 0x40);            // quantized byte -> 0x60
-//     fixed_call(8,  ...);                    // jal 0x010E09 (FIXED)
-//     o->b_61 = D_0_table[q];                // byte-table lookup
-//     fixed_call(0x10, ...);
-//     float k = D_0_fptable[q];              // FP-table lookup (q*4)
-//     ... further per-object FP stores driven by k / dlt ...
-//   }
-//
-// Struct-typing reference: scales an input float by a per-object
-//   factor, computes a delta against the stored value o->0x5C, and
-//   commits the new value only inside an index window. A signed byte
-//   index is clamped around the 0x40 / 0x7F band and used to (a) write
-//   quantized bytes into o->0x60 / o->0x61 and (b) look up parallel
-//   byte and FP tables based at &D_0 (byte table; FP table at q*4
-//   stride). Two calls go to a FIXED intra-USO routine — encoded
-//   `jal 0x010E09` (0x0C010E09), a real resolved target, NOT a
-//   jal-0 USO-relocated callback — with command codes 8 and 0x10.
-//   A table-driven parameter-apply leaf of the game_libs object
-//   subsystem (sibling of the gl_func_0002F584 quantizer; both feed
-//   the byte-domain command machinery).
-// Caps (DEFERRED): raw-word USO + FP delta/commit + signed-byte
-//   clamp-to-index + parallel byte/FP table lookups — byte-match
-//   needs USO mnemonic disasm. Real-C STRUCTURAL body below per
-//   the analysis. Byte-match deferred. Name pre-checked: no extern
-//   reuse.
 #ifdef NON_MATCHING
+/* game_libs_func_0002F720: one 96-insn (0x180) per-object FP value updater +
+ * quantized table-apply. BOUNDARY MERGED 2026-06-02: splat had split it into
+ * 0002F720 (3-insn FP-const prologue: `mtc1 a1,$f12` (input, ARG-DERIVED) +
+ * `lui 0x4334`->$f4=180.0 — hoisted above the frame; the real entry) +
+ * gl_func_0002F72C (the prologue+body using f12 in `mul.s $f12,$f12,$f4`).
+ * SINGLE-entry per the dual-vs-single test (f12 arg-derived + FP-op use; no
+ * callers). Absorbed 0002F72C's 93 words into 0002F720 (0xC -> 0x180); dropped
+ * the 0002F72C symbol. Brings f12(=a1)/f4(=180.0) in-scope — CORRECTS the prior
+ * structural decode that mis-read `nv = in * o->0` (the multiplier is the entry
+ * const 180.0, not o->0). Sibling of the gl_func_0002F584 quantizer; the 2 calls
+ * go to the FIXED intra-USO routine jal 0x010E09 (codes 8, 0x10). Byte-match
+ * deferred (raw-word USO + FP delta/commit + signed-byte clamp + table lookups). */
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0002F72C(char *o, float in, int idxb) {
-    float nv = in * *(float *)(o + 0);
+void game_libs_func_0002F720(char *o, int a1, int idxb) {
+    float in = *(float *)&a1;   /* mtc1 a1,$f12 in the merged prologue */
+    float nv = in * 180.0f;     /* $f4 = 0x43340000 = 180.0 (entry const) */
     int i = (signed char)idxb;
     float dlt = nv - *(float *)(o + 0x5C);
     int q;
@@ -11516,8 +11491,9 @@ void gl_func_0002F72C(char *o, float in, int idxb) {
     (void)k; (void)dlt;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F72C);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F720);
 #endif
+
 
 // gl_func_0002F8A0 — STRUCTURAL PASS (0x94 / 37 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
