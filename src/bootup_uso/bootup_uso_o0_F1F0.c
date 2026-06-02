@@ -40,17 +40,19 @@ void func_0000F288(Quad4 *a0) {
  * (per per-file Makefile override). Body uses 4 register-typed locals
  * (Vec3* p1/p2/q, float* src) + Tri3i raw + Tri3i tmp on stack.
  *
- * NATURAL CEILING: ~75% NM. Was previously documented as "Exact match via
- * 10-insn INSN_PATCH at 0x24/0x34/0x38/0x3C/0x58/0x5C/0x64/0x6C/0x74/0x78"
- * — INSN_PATCH REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Real diffs:
- *   (a) IDO -O0 picks $s0 for the first reg-local; target picks $s1
- *       (one-slot shift across all 4 reg-locals — regalloc-renumber cap).
- *   (b) Stack layout same size (0x58 frame) but the 3-Tri3i scratch slots
- *       sit at sp+0x34/0x48 in target vs IDO's sp+0x2C/0x40 (8-byte offset
- *       shift across 3 slots).
- * Both diffs are pure encoding renames — function logic identical — but
- * C-only IDO emit can't reach them. Default build is INCLUDE_ASM. */
+ * NATURAL CEILING: 98.93% NM (current body; the "~75%" in the old note is
+ * obsolete/pre-pad_mid). Was once "exact via 10-insn INSN_PATCH" — INSN_PATCH
+ * REMOVED 2026-05-23 as match-faking. The pad_mid[2] already fixes inter-slot
+ * spacing (raw/tmp 0x14 apart, matching target). Two residual diffs remain,
+ * BOTH permuter-class -O0 caps:
+ *   (a) $s-register ROTATION: target's first reg-local is $s1 (s1/s2/s3/s0),
+ *       IDO picks $s0 first (s0/s1/s2/s3). -O0 assigns s-regs by first-use
+ *       order; no C reorder flips it without regressing.
+ *   (b) Whole scratch BLOCK sits 8 bytes higher in target (raw@sp+0x34,
+ *       tmp@sp+0x48) vs IDO (raw@sp+0x2C, tmp@sp+0x40), same 0x58 frame. A
+ *       leading 8-byte local to push it up regresses to 92% (verified
+ *       2026-06-02) — the -O0 allocator re-packs everything. Coupled to (a).
+ * Logic byte-identical; residual is -O0 frame-pack + s-reg renumber. NM. */
 #ifdef NON_MATCHING
 void func_0000F2EC(Vec3 *dst) {
     register Vec3 *p1;
