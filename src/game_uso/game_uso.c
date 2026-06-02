@@ -9491,8 +9491,30 @@ after2:
         v[2] = 0.0f;
         r = (char *)gl_func_00000000((char *)s0 + 48, v);
         *(int *)(r + 0x28) = (int)&D_00000000;
+        {
+            char *o16;
+            char *sub4;
+            if ((int)r != -220) {
+                o16 = r + 220;
+            } else {
+                o16 = (char *)gl_func_00000000(16);
+                if (o16 == NULL) goto end16;
+                *(int *)o16 = (int)((char *)&D_00000000 + 3140);
+            }
+            sub4 = o16;
+            if (o16 == NULL) {
+                sub4 = (char *)gl_func_00000000(4);
+                if (sub4 == NULL) goto fills;
+            }
+            *(int *)sub4 = (int)((char *)&D_00000000 + 2120);
+        fills:
+            *(int *)(o16 + 4) = (int)r;
+            *(int *)(o16 + 8) = *(int *)((char *)&D_00000000 + 2112);
+            *(int *)(o16 + 12) = *(int *)((char *)&D_00000000 + 2116);
+        }
+    end16:;
     }
-    /* Remaining ~185 insns TBD: deeper nested sub-allocs + struct fills */
+    /* Remaining ~165 insns TBD: deeper nested sub-allocs + struct fills */
     return s0;
 }
 #else
