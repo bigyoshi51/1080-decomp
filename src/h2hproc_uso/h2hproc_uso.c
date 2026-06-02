@@ -1266,18 +1266,18 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000136
  *  - Each iter's `tag` call must inline-reload self->[OFF] (lw) instead of
  *    reusing the named sub local (which IDO cached in a saved reg -> extra
  *    move). init() keeps the fresh alloc result (v0); tag/bind reload.
- *  2026-05-29 (cont, ~18 raw diffs): iter3's 5th init arg is an INT-form
- *  reload (*(int*)(src+0x6C)), NOT a float — the old *(float*) double-promoted
- *  through K&R gl_func (cvt.d.s, +1 insn). Cut 40->18.
- *  REMAINING (~18 raw diffs, both local-alloc / K&R, NOT logic):
+ *  2026-06-02 (96.7->99.3%): iter3's 5th init arg IS a single float — the
+ *  earlier "it's an int" conclusion was wrong. The lwc1/swc1 (no double
+ *  promotion) is reachable via a TYPED-FLOAT PROTO: declare a distinct extern
+ *  `gl_func_15f0(void*,int,int,int,float)` (=0x0 in undefined_syms, reloc-blind
+ *  alias of gl_func_00000000) and call it with `*(float*)(src+0x6C)`. K&R
+ *  gl_func double-promotes (cvt.d.s); the float-param proto gives the single
+ *  swc1. Same recipe as func_df14f.
+ *  REMAINING (~10 raw diffs, ALL register coloring, NOT logic):
  *   - src=self->0x44 lands in v1 in iters 1-2 (target t0), cascading a
- *     t1/t2->t0/t1 shift (~12-14 diffs). Fine-grained -O2 local-alloc; separate
- *     per-iter src vars REGRESSED (18->20); fn-ptr cast broke the jal. Permuter
- *     target.
- *   - iter3 5th float arg wants single lwc1/swc1 (2 diffs); K&R gl_func gives
- *     lw/sw. Fix via alias-extern recipe
- *     (docs/MATCHING_WORKFLOW.md#feedback-alias-extern-via-undefined-syms) — but
- *     verify net fuzzy (func_000087A4 net-regressed on the same fix).
+ *     t1/t2->t0/t1 shift. The v0/v1-reuse-after-void-call coloring cap; separate
+ *     per-iter src vars REGRESSED; fn-ptr cast broke the jal. PERMUTER-ready
+ *     (pure coloring search, no logic left).
  *  Multi-tick; not yet byte-exact. Default INCLUDE_ASM exact.
  *
  * Sets up vtable + 4 floats=1.0f, then if (a1->[0x4F0] bit 16 SET)
@@ -1301,6 +1301,7 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000136
  *
  * src = self->[0x44] (parent ptr). Initial pass; partial-arg-shape on
  * the bind/init helpers may need refinement. Default INCLUDE_ASM exact. */
+extern void gl_func_15f0(void *, int, int, int, float);
 void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     char *base = &D_00000000;
     int *self = a0;
@@ -1345,8 +1346,8 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     gl_func_00000000(sub3, *(int*)((char*)src + 0x30), *(int*)((char*)src + 0x90));
     src = (int*)*(int*)((char*)self + 0x44);
     sub3 = (int*)*(int*)((char*)self + 0x80);
-    gl_func_00000000(sub3, *(int*)((char*)src + 0x8), *(int*)((char*)src + 0xC),
-                     *(int*)((char*)src + 0x68), *(int*)((char*)src + 0x6C));
+    gl_func_15f0(sub3, *(int*)((char*)src + 0x8), *(int*)((char*)src + 0xC),
+                 *(int*)((char*)src + 0x68), *(float*)((char*)src + 0x6C));
     sub3 = (int*)*(int*)((char*)self + 0x80);
     gl_func_00000000(sub3, *(int*)((char*)self + 0x38),
                      *(int*)((char*)self + 0x3C), *(int*)((char*)self + 0x40));
