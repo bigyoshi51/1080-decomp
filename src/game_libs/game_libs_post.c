@@ -7823,10 +7823,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E6C);
 
 void game_libs_func_00028E8C(void) {}
 
-// gl_func_00028E94 — STRUCTURAL PASS (0x138 / 78 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). An object attach/init that pairs an object with a
-// descriptor (counterpart to the gl_func_00028604 detach).
+// gl_func_00028E94 — object attach/init (counterpart to gl_func_00028604
+// detach). FULL DECODE 35.1->93.1% (+58pp) 2026-06-02: obj->0x40=-1, obj->0x44=
+// d, obj->0x30 = d->0x50->5, d->0x2C=obj, d[0]|=1 then |=8, d->0x50->0x40=obj,
+// d->0x50->0x44=d, d->0x40=0.0f, call 0x3C36C(obj,d); then v1=obj+0xB0:
+// a2=d->2 (==0xFF -> d->0x50->0x24 short); v1->0x10=d->0x4C; (128<=a2<192 ?
+// v1->1|=4 : v1->1&=~4); if((v1->0<<0xD)<0) call 0x3CF18(obj,d); v0=obj+0x30:
+// v0->3=d->0x50->7, v0->5=(d->0x50->0 bit26), v1->1=(v1->1&~0xE0)|((d->0x50->8
+// &3)<<5). Residual ~7% = scheduling/regalloc (d->0x50 reload reg). Body below.
 //
 //   void gl_func_00028E94(O *obj, D *d) {
 //     obj->w_40 = -1;                                   // init link
@@ -7862,21 +7866,44 @@ void game_libs_func_00028E8C(void) {}
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+extern int gl_func_0003C36C();
+extern int gl_func_0003CF18();
 void gl_func_00028E94(char *obj, char *d) {
-    char *t;
+    char *t, *node, *v1, *v0;
+    int a2;
     *(int *)(obj + 0x40) = -1;
     *(int *)(obj + 0x44) = (int)d;
     t = *(char **)(d + 0x50);
     *(unsigned char *)(obj + 0x30) = *(unsigned char *)(t + 5);
     *(int *)(d + 0x2C) = (int)obj;
-    *(unsigned char *)d = *(unsigned char *)d | 0x09;
+    *(unsigned char *)d = *(unsigned char *)d | 1;
+    *(unsigned char *)d = *(unsigned char *)d | 8;
     *(int *)(t + 0x40) = (int)obj;
-    *(int *)(t + 0x44) = (int)d;
+    *(int *)(*(char **)(d + 0x50) + 0x44) = (int)d;
     *(float *)(d + 0x40) = 0.0f;
-    gl_func_00000000(obj, d);
-    if (*(unsigned char *)(d + 2) != 0xFF) {
-        gl_func_00000000(d, *(unsigned char *)(d + 2));
+    gl_func_0003C36C(obj, d);
+    v1 = obj + 0xB0;
+    a2 = *(unsigned char *)(d + 2);
+    if (a2 == 0xFF) {
+        a2 = *(short *)(*(char **)(d + 0x50) + 0x24);
     }
+    *(int *)(v1 + 0x10) = *(int *)(d + 0x4C);
+    if (a2 >= 128 && a2 < 192) {
+        *(unsigned char *)(v1 + 1) = *(unsigned char *)(v1 + 1) | 4;
+    } else {
+        *(unsigned char *)(v1 + 1) = *(unsigned char *)(v1 + 1) & ~4;
+    }
+    if ((*(int *)v1 << 0xD) < 0) {
+        gl_func_0003CF18(obj, d);
+    }
+    node = *(char **)(d + 0x50);
+    v0 = obj + 0x30;
+    *(unsigned char *)(v0 + 3) = *(unsigned char *)(node + 7);
+    node = *(char **)(d + 0x50);
+    *(unsigned char *)(v0 + 5) = (unsigned int)(*(int *)node << 5) >> 31;
+    node = *(char **)(d + 0x50);
+    *(unsigned char *)(v1 + 1) =
+        (*(unsigned char *)(v1 + 1) & ~0xE0) | ((*(unsigned char *)(node + 8) & 3) << 5);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028E94);
