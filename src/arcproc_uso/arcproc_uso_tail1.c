@@ -2,6 +2,7 @@
 
 extern int gl_func_00000000();
 extern char D_00000000;
+extern int D_arc240_A, D_arc240_B, D_arc240_C;
 typedef struct { int a, b, c, d; } Quad4;
 
 /* Continues arcproc_uso .text at 0x12C (after arcproc_uso_o0_50.c which
@@ -102,12 +103,32 @@ void arcproc_uso_func_00000240(int a0, int a1) {
             gl_func_00000000(a0);
             *(int *)((char *)&D_00000000 + 0x40) = 5;
             break;
-        case 5:  *(int *)((char *)&D_00000000 + 0x40) = 6;  break;
+        case 5: {
+            int *p = (int *)a0;
+            int *q;
+            int v;
+            gl_func_00000000(&D_arc240_A, *(int *)((char *)&D_arc240_B + 4));
+            q = (int *)p[2];
+            *(int *)((char *)&D_00000000 + 0x64) = q[q[1] + 3];
+            gl_func_00000000(&D_arc240_C, 4, *(int *)((char *)&D_00000000 + 0x64), 3);
+            v = gl_func_00000000(p, p[0], 1);
+            gl_func_00000000(0, 0x450000, v, p[2], p[0]);
+            gl_func_00000000(p, 0, v);
+            done = 1;
+            break;
+        }
         case 6:
             gl_func_00000000(a0, *(int *)a0);
             done = 1;
             break;
-        case 7:  *(int *)((char *)&D_00000000 + 0x40) = 8;  break;
+        case 7: {
+            int *p = (int *)a0;
+            int r = gl_func_00000000(*(int *)((char *)&D_00000000 + 0x64));
+            gl_func_00000000(p, (*(int *)((char *)&D_00000000 + 0x64) | 0x8000) | r,
+                             0x8000, p[0]);
+            done = 1;
+            break;
+        }
         case 8: {
             int r;
             gl_func_00000000(&D_00000000, 7, 0, 0);
