@@ -3142,15 +3142,24 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007620);
  * reloc_emit returns nonzero to proceed with the transform+draw.
  * Caps <80: FP mul.s/add.s chains + 3x reloc + cross-symbol data
  * refs (func_0000023C+0x18, func_00000080+0x20) + f32 stack-arg.
- * INCLUDE_ASM remains build path. */
+ *
+ * 2026-06-02 (69.1->75.2%): the reloc_emit call's args 5,7 are single floats
+ * (s0->0x64, s0->0x70*s0->0x80; target swc1 0x10/0x18) — typed-float proto
+ * func_76f4_q avoids K&R double-promote. Residual ~25%: target FOLDS the root
+ * load (lui%hi/lw%lo of func_0000023C+0x18) but the function-symbol arithmetic
+ * here materializes it (extra addiu) + the 0x70/0x80 mul-operand load order.
+ * Double-promote-scan vein. INCLUDE_ASM stays. */
 extern void func_0000023C();  /* used as data-symbol base */
 #ifdef NON_MATCHING
+/* typed-float proto (0x0-alias): args 5,7 are single floats (target swc1
+ * 0x10/0x18); K&R func_00000000 double-promotes them. */
+extern int func_76f4_q(void *, int, int, int, float, int, float);
 void func_000076F4(char *s0) {
     char *root = *(char**)((char*)&func_0000023C + 0x18);
     char *v;
-    if (func_00000000(root, 3, *(int*)(s0 + 0x5C), *(int*)(s0 + 0x60),
-                      *(float*)(s0 + 0x64), 0,
-                      *(float*)(s0 + 0x80) * *(float*)(s0 + 0x70)) != 0) {
+    if (func_76f4_q(root, 3, *(int*)(s0 + 0x5C), *(int*)(s0 + 0x60),
+                    *(float*)(s0 + 0x64), 0,
+                    *(float*)(s0 + 0x80) * *(float*)(s0 + 0x70)) != 0) {
         func_00000000(&D_00000000, s0 + 0x2C);
         v = (char*)&func_00000080 + 0x20;
         *(float*)(v + 0x30) *= *(float*)((char*)&D_00000000 + 0x128);
