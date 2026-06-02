@@ -42653,9 +42653,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F634);
 #endif
 
 
+/* game_libs_func_0006F684: one 108-insn (0x1B0) function. BOUNDARY MERGED
+ * 2026-06-02: splat had split it into 0006F684 (6-insn FP-const prologue:
+ * `lwc1 $f0,D[0x24D0]` + `mtc1 a1,$f12`/`mtc1 a2,$f14`/`mtc1 a3,$f16` (THREE
+ * inputs, ARG-DERIVED — a Vec3-style float triple — hoisted above the frame;
+ * the real entry) + gl_func_0006F69C (the prologue+body using f14 in
+ * `mul.s $f14,$f14,$f0`). SINGLE-entry per the dual-vs-single test (f12/f14/f16
+ * arg-derived + FP-op use; no callers). Absorbed 0006F69C's 102 words into
+ * 0006F684 (0x18 -> 0x1B0); dropped the 0006F69C symbol. Brings f12/f14/f16
+ * (=a1/a2/a3) and f0 (=D[0x24D0]) in-scope, retracting the implicit
+ * caller-set-float cap; the body is decodable in a future pass. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F684);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F69C);
 
 #ifdef NON_MATCHING
 /* gl_func_0006F834: 26-insn 2-call wrapper with float-bits-passthrough.
