@@ -177,7 +177,35 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000124);
  * from gl_func) first via siblings, then attempt a
  * split-with-refresh-expected later.
  */
+#ifdef NON_MATCHING
+/* Partial decode 2026-06-01. Grid/table-allocator constructor: find-or-create
+ * (size 40), stores the dims (cols=a2/rows, rows*cols, a3/cols) and allocates
+ * the cell buffer (rows*cols*20) at obj->0x20. The nested-loop per-cell init
+ * (~180 insns) is a follow-up. */
+void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
+    char *o = a0;
+    int prod;
+
+    if (a0 == 0) {
+        o = (char *)gl_func_00000000(40);
+        if (o == 0) {
+            return 0;
+        }
+    }
+    *(int *)(o + 4) = a1;
+    *(int *)(o + 0xC) = a2 / rows;
+    prod = rows * cols;
+    *(int *)(o + 0) = prod;
+    *(int *)(o + 0x10) = a3 / cols;
+    *(int *)(o + 0x18) = a2;
+    *(int *)(o + 0x1C) = a3;
+    *(int *)(o + 0x14) = a3 / cols;
+    *(int *)(o + 0x20) = gl_func_00000000(prod * 20);
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
+#endif
 
 #ifdef NON_MATCHING
 /* Full decode 2026-06-01. Display-list emitter (sibling of
