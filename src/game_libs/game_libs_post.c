@@ -35125,7 +35125,29 @@ void game_libs_func_0006186C(int a0) {
     *(int *)((char *)&D_00000000 + 0x21E04) = a0;
 }
 
+#ifdef NON_MATCHING
+/* game_libs_func_00061878: sibling of 00061824 — same ((n+2)(n+3))>>2 formula,
+ * but n = (counter@D+0x21E04)*4, writes the >>2 result back to the counter, and
+ * returns (float)(unsigned)(v & 0xFFFF) / D[0x2074]. Stateful (advances the
+ * 0x21E04 seed each call). Same (float)(unsigned int) bgez+add-2^32 idiom.
+ * 99.91% NM: sole diff is IDO's R_MIPS_LO16 placement for the &D+0x21E04
+ * counter — the target materializes the full address (addiu v1,v1,0x1E04;
+ * lw/sw 0(v1)), IDO instead keeps LO16=0 in the addiu and folds 0x1E04 into
+ * the lw/sw displacements. Both are valid `symbol+const` encodings; no C form
+ * (int*p, direct double-access) flips IDO's fold choice, and inventing a
+ * dedicated D_00021E04 symbol to force it would be reloc-faking. Logic exact;
+ * residual is reloc-encoding-only. */
+float game_libs_func_00061878(void) {
+    int *p = (int *)((char *)&D_00000000 + 0x21E04);
+    unsigned int v = (unsigned int)*p * 4 + 2;
+    unsigned int w = v + 1;
+    v = (v * w) >> 2;
+    *p = v;
+    return (float)(v & 0xFFFF) / *(float *)((char *)&D_00000000 + 0x2074);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061878);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_000618D0(char *a0, int a1) {
