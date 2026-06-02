@@ -94,15 +94,26 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001034C);
  * primitive called with 1..4 args -> called through a cast to bypass its
  * narrow 1-arg prototype; still a direct jal).
  *
- * MATCH BLOCKER = OPT LEVEL: target is plain -O0 (41 unfilled delay-slot
- * nops; arg0 spilled to sp+0x48 and RELOADED on every access; loop counter
- * lives at sp+0x44 -- no register caching). tail3a.c is -O2 -g3, which
- * caches in $s0/$s4 -> only 17.99% / 220 insns vs target 343. The LOGIC
- * below is decoded and correct; to MATCH, split this fn into its own
- * src/bootup_uso/bootup_uso_o0_10540.c with OPT_FLAGS := -O0 (sibling
- * pattern bootup_uso_o0_*.c) + a linker entry splitting the tail3a
- * TRUNCATE_TEXT block (0x10310..0x118E4). Focused infra tick -- see
- * project_1080_o0_split_pending_candidates.
+ * MATCH BLOCKER = OPT LEVEL: target is plain -O0. tail3a.c is -O2 -g3,
+ * which register-caches -> only ~18% vs target 343. Logic decoded & now
+ * type-corrected against the -O0 asm (see below).
+ *
+ * -O0 LAND SPEC (do as a focused tick): split into
+ * src/bootup_uso/bootup_uso_o0_10540.c, OPT_FLAGS := -O0, and split the
+ * tail3a linker .o 3-ways (tail3a-top {10324,10344,1034C} | o0_10540 |
+ * tail3a-rest {10A9C..117FC}); recompute each TRUNCATE_TEXT empirically
+ * (current whole-file TRUNCATE = 0x1710; o0_10540 .text = 0x55C). The -O0
+ * stack frame is -0x30: ra@0x1C, a0@0x30 (incoming-arg shadow, reloaded
+ * every access), s0@0x18 (holds the `node` return across the middle call),
+ * loop i@0x2C-ish... pos@0x28. KEY type facts now baked into the body:
+ *   - field copies unk5C..68 -> unk3C..48 (and unk4C..58) are INT (lw/sw).
+ *   - unk70 is a FLOAT truncated to int then re-floated: (float)(int)f70.
+ *   - RGB halving is div.s by 2.0f (lui 0x4000), per-component, base ptr
+ *     recomputed each store.
+ * NOTE: only commit the -O0 split if it byte-matches EXACTLY -- it makes
+ * the compiled C the default build path, so a non-match would corrupt the
+ * segment (unlike this NM wrap, whose #else INCLUDE_ASM stays byte-exact).
+ * See project_1080_o0_split_pending_candidates.
  *
  * Shape: for each of arg0->unk78 elements (skipping the "current" index
  * arg0->unk7C), compute an x-position from unk70 + i*unk74, copy a
@@ -128,10 +139,10 @@ void func_00010540(void *arg0) {
         if (FI(arg0, 0x78) > 0) {
             do {
                 if (i != FI(arg0, 0x7C)) {
-                    pos = (int)((float)FI(arg0, 0x70) + (float)i * FF(arg0, 0x74));
-                    FF(arg0, 0x3C) = FF(arg0, 0x5C);
-                    FF(arg0, 0x40) = FF(arg0, 0x60);
-                    FF(arg0, 0x44) = FF(arg0, 0x64);
+                    pos = (int)((float)(int)FF(arg0, 0x70) + (float)i * FF(arg0, 0x74));
+                    FI(arg0, 0x3C) = FI(arg0, 0x5C);
+                    FI(arg0, 0x40) = FI(arg0, 0x60);
+                    FI(arg0, 0x44) = FI(arg0, 0x64);
                     FI(arg0, 0x48) = FI(arg0, 0x68);
                     if (FI(EL(i), 0x88) == 0) {
                         FF(arg0, 0x3C) = FF(arg0, 0x3C) / 2.0f;
@@ -154,10 +165,10 @@ void func_00010540(void *arg0) {
                 i++;
             } while (i < FI(arg0, 0x78));
         }
-        pos = (int)((float)FI(arg0, 0x70) + (float)FI(arg0, 0x7C) * FF(arg0, 0x74));
-        FF(arg0, 0x3C) = FF(arg0, 0x4C);
-        FF(arg0, 0x40) = FF(arg0, 0x50);
-        FF(arg0, 0x44) = FF(arg0, 0x54);
+        pos = (int)((float)(int)FF(arg0, 0x70) + (float)FI(arg0, 0x7C) * FF(arg0, 0x74));
+        FI(arg0, 0x3C) = FI(arg0, 0x4C);
+        FI(arg0, 0x40) = FI(arg0, 0x50);
+        FI(arg0, 0x44) = FI(arg0, 0x54);
         FI(arg0, 0x48) = FI(arg0, 0x58);
         if (FI(EL(i), 0x88) == 0) {
             FF(arg0, 0x3C) = FF(arg0, 0x3C) / 2.0f;
