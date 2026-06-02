@@ -243,7 +243,32 @@ void gui_uso_func_0000055C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000055C);
 #endif
 
+#ifdef NON_MATCHING
+/* Full decode 2026-06-01. SETPRIMCOLOR-style DL emitter: appends a 0xFA
+ * command packing the a2 Vec3 (each *255, cast to byte) as RGB plus a1 as
+ * alpha into word1, to the gfx builder at a0->0x24. */
+void gui_uso_func_000006B8(char *a0, int a1, float *a2, int a3) {
+    char *b = *(char **)(a0 + 0x24);
+    char *p;
+    char *buf;
+    int i;
+    int r, g, bl;
+    (void)a3;
+
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)(*(char **)(b + 0xC));
+    *(int *)(buf + i * 8) = 0xFA000000;
+    r = (int)(unsigned)(a2[0] * 255.0f);
+    g = (int)(unsigned)(a2[1] * 255.0f);
+    bl = (int)(unsigned)(a2[2] * 255.0f);
+    *(int *)(buf + i * 8 + 4) =
+        (r << 24) | ((g & 0xff) << 16) | ((bl & 0xff) << 8) | (a1 & 0xff);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000006B8);
+#endif
 
 /* gui_uso_func_000008C0 (0x8C0..0x914, 0x58): F3DEX2 DL-builder HEAD. Clean entry
  * `lw v0,0x24(a0)` (state ptr = a0->[0x24]), builds 2 Gfx command pairs
