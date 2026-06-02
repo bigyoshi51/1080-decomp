@@ -35107,6 +35107,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061734);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006179C);
 #endif
 
+/* gl_func_000617A8: NOT a caller-set-register function — it is the CONTINUATION
+ * of entry fragment game_libs_func_0006179C (0xC, 3 insns: `v0=&D; t6=*(int*)v0`,
+ * no jr ra / no prologue). splat split one run-once-init function in two; 617A8
+ * has the `addiu sp,-40` prologue and reads t6/v0 that 6179C set, so in isolation
+ * it LOOKS like a t6/v0 caller-set cap but is not (same split-fragment shape as
+ * timproc_uso_b5_func_000038B0+038D0). Neither symbol is an in-segment jal target
+ * (called via reloc'd jal or as a USO export).
+ *
+ * Merged 34-insn algorithm (run-once static-init guard):
+ *   int *cnt = &D_count;            -- 6179C: v0=&D, t6=*cnt
+ *   if (--*cnt < 0) {               -- 617A8: t7=t6-1; *cnt=t7; bgez t7 -> ret
+ *       int *p = &D_tableA;         -- s0=&D+0, s2=&D+0x100 (64 entries)
+ *       for (; p != &D_tableA+0x40; p++)
+ *           if (*p) func(&D_argTbl, *p);   -- argTbl at &D+0x21ED0, jal in loop
+ *       func2(&D_str);                     -- str at &D+0x21ED8, final jal
+ *   }
+ * Match requires (a) merging the 6179C+617A8 boundary (USO-asm regen) and
+ * (b) resolving the reloc'd table/jal symbols — multi-tick. Decode preserved. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000617A8);
 
 /* game_libs_func_00061824: FP formula. n = 4*a0; x = ((n+2)*(n+3) >> 2) & 0xFFFF
