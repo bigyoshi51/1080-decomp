@@ -10522,24 +10522,23 @@ void game_uso_func_0000D438(char *a0) {
     *(Pair2*)(a0 + 0xC8) = *(Pair2*)(a0 + 0xC0);
 }
 
-/* game_uso_func_0000D458: 5-FUNCTION BUNDLE (0x1E4 total / 121 insns).
- * Splat could not separate. Per
- * feedback_uso_split_fragments_breaks_expected_match.md, splitting
- * USO funcs is risky — keeping bundled.
- *
- * Sub-function layout (boundary = jr $ra + delay slot):
- *   F1 @ 0xD458-0xD5B8: 88 insns. Big function with frame -0x48
- *     (addiu sp,-0x48). Lots of body — likely a per-frame update or
- *     state-transition function.
- *   F2 @ 0xD5BC-0xD5D8: 7 insns. Tiny accessor or wrapper.
- *   F3 @ 0xD5DC-0xD5F4: 6 insns. Tiny accessor.
- *   F4 @ 0xD5F8-0xD630: 15 insns. Small helper.
- *   F5 @ 0xD634-0xD638: 2 insns (jr ra + nop). Empty void.
- *
- * Decoding all 5 sub-bodies as one C function with goto-chains is
- * not feasible from C source. Future split-with-refresh-expected
- * recipe (see feedback_uso_split_fragments_breaks_expected_match.md
- * for the unblock path) needed before any decomp attempt. */
+/* game_uso_func_0000D458: parent F1 (frame -0x48, ~89 insns) + 4 helper
+ * functions it calls (D5BC/D5DC/D5F8/D634). STATUS CORRECTED 2026-06-01: the
+ * old "keep bundled, splitting risky" note is STALE — the helpers ARE already
+ * split at the symbol level (separate tracked .s) and 3 are matched:
+ *   D5BC 100%, D5DC 100%, D634 100% (C defs below), D5F8 89.93% (varargs +1
+ *   insn cap, NM). Only F1 (D458 itself, 0%) remains to decode.
+ * REMAINING BOUNDARY DEFECT: the D458 SYMBOL is still sized 0x1E4 (whole
+ * bundle) so objdiff scores a bogus 484-byte D458 at 0% that OVERLAPS the
+ * matched helpers. Fix = truncate this .s to 0x164 (F1 only, ends at the
+ * 0xD5B8 nop) THEN run scripts/refresh-expected-baseline.py so expected/D458
+ * = F1's 89 insns. Verified the truncation links cleanly + keeps the helpers
+ * matched (2026-06-01), but the expected refresh is a full-tree rebuild —
+ * deferred to a dedicated tick to keep the loop's main green. After the
+ * boundary fix, F1 (a per-frame update calling D5BC ×3) is the decode target.
+ * DO NOT use split-fragments.py here: it DROPS the symbolic `lui %hi` line at
+ * the D5DC boundary (size header says +1 word vs the file's word count),
+ * corrupting the .s — see docs/MATCHING_WORKFLOW. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
 
 /* game_uso_func_0000D5BC: copies the varargs pair (a1,a2 via &a1) to the
