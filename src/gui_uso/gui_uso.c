@@ -608,7 +608,54 @@ int gui_uso_func_00001674(int a0) {
     return 1;
 }
 
+#ifdef NON_MATCHING
+/* Full decode 2026-06-01. Display-list emitter: appends 4 fixed GBI
+ * commands (RDPPIPESYNC, two SETOTHERMODE_H, a B9/SETOTHERMODE_L) to the
+ * gfx builder reached via *(D+0x254)->0x158, caching it at &D for each
+ * append. */
+void gui_uso_func_000016A4(int a0) {
+    char *b;
+    char *p;
+    char *buf;
+    int i;
+    (void)a0;
+
+    b = *(char **)(*(char **)((char *)&D_00000000 + 0x254) + 0x158);
+    *(char **)&D_00000000 = b;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xE7000000;
+    *(int *)(buf + i * 8 + 4) = 0;
+
+    b = *(char **)&D_00000000;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xBA001402;
+    *(int *)(buf + i * 8 + 4) = 0;
+
+    b = *(char **)&D_00000000;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xBA001301;
+    *(int *)(buf + i * 8 + 4) = 0;
+
+    b = *(char **)&D_00000000;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xB900031D;
+    *(int *)(buf + i * 8 + 4) = 0x00404240;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000016A4);
+#endif
 
 /* MATCHED 2026-05-31 via decomp-permuter (the prior "permanent NM constant-
  * materialization scheduling-order cap" was WRONG — it was cracked, not by
