@@ -1527,19 +1527,27 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000034E8);
  * cb(&D_74DC); node = cb(0, arg1, arg2+1, arg3+1, arg4, arg6, arg7, arg8|2, arg9);
  * cb(arg5+0x10, node); if (arg5->0x14) arg5->0x4=1; arg5->0x14 = arg4(0x4C slot);
  * then by (arg8|2)&0xC cb(arg0, node, 0/1); cb(); return node. m2c-assisted.
- * 49.6% NM (from-scratch). Residual: arg home-spill layout — target homes a0-a3
- * at entry but keeps the 6 stack-passed args (a4..a9 incl. the f32 pair at
- * sp+0x50/0x54) in their caller slots; this C re-homes them (frame -64 vs -56)
- * and computes arg8|2 at the top vs the target's deferred ori. Multi-tick: needs
- * the exact stack-arg passthrough form. Logic correct; stays NM. */
+ * 2026-06-02 (49.6->93.7%): two fixes.
+ *   (1) the node call's arg6/arg7 are single floats on the stack (target swc1
+ *       0x14/0x18) — routed through a typed-float proto func_3638_node so they
+ *       don't K&R double-promote (cvt.d.s+sdc1).
+ *   (2) the `arg8 |= 2` must be a real mutation placed AFTER the cb(&D_74DC)
+ *       call (target writes the |2 result to BOTH arg8's home slot AND the
+ *       node-call outgoing slot, deferred past the first jal). Computing it at
+ *       the top (or inline-only `arg8|2`) misaligned the whole schedule.
+ * Residual ~6% = v0/v1-coloring + minor arg-spill scheduling — permuter-class.
+ * Logic correct; stays NM (INCLUDE_ASM build path). */
 extern char D_000074DC;
+/* typed-float proto (0x0-alias): args 6,7 are single floats on the stack
+ * (target swc1 0x14/0x18); K&R func_00000000 double-promotes them. */
+extern void *func_3638_node(int, void *, int, int, int, float, float, int, int);
 void *func_00003638(int *arg0, void *arg1, int arg2, int arg3, int arg4, int arg5,
                     float arg6, float arg7, int arg8, int arg9) {
     void *node;
     int *p;
-    arg8 |= 2;
     func_00000000(&D_000074DC);
-    node = func_00000000(0, arg1, arg2 + 1, arg3 + 1, arg4, arg6, arg7, arg8, arg9);
+    arg8 |= 2;
+    node = func_3638_node(0, arg1, arg2 + 1, arg3 + 1, arg4, arg6, arg7, arg8, arg9);
     func_00000000(arg5 + 0x10, node);
     p = (int *)arg5;
     if (p[0x14 / 4] != 0) {
