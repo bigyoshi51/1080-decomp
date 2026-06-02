@@ -1752,31 +1752,51 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
  * 0x1C-stride descriptor table per the family pattern.
  * Caps <80: ~12 reloc + FP stack-arg passing + packed-flag lui/ori
  * (with global u8 inputs) + a1*0x1C index + list-link beql.
- * INCLUDE_ASM remains build path. */
+ *
+ * 2026-06-02 FULL CHAIN DECODED 37.3->82.8% (+45.5pp): single-alloc variant.
+ * r1=builder(byte args CFG->0x181/0x183, flags=CFG->0x182|0x8001|0x10000|
+ * 0x40000, tag 0x1B); b2=builder(s1,0,s1->0x80,r1,o); b3=builder(s1,1,...);
+ * f1=builder(s1,&D+a1*0x1C,b2); b2->0x14C=85.0f; then a CONDITIONAL o2=alloc:
+ * if(o2){ func(o2,1); big=builder(0,o2,r1,f1,b2,b3); func(s1->0x84+0x10,big);
+ * linked-set finalizer on big (big->0x14/0x4 vs s1->0x84); } r1->0x8DC=f1.
+ * All field stores byte-match; residual ~17% = &D-base const-fold (CFG byte
+ * reads re-lui'd vs shared base) + scheduling. INCLUDE_ASM stays. */
 #ifdef NON_MATCHING
+/* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats. */
+extern char *func_3b78_r(char *, int, int, int, char *, int, float, float, int, int);
 void func_00003B78(char *s1, int a1) {
     char *o = (char*)func_00000000(0x80);
     char *cfg;
     char *CFG = &D_00000000;  /* global byte-config (placeholder) */
-    char *r;
+    char *r1, *b2, *b3, *f1, *o2, *row;
     int flags;
     if (o == 0) return;
     func_00000000(o, 0);
-    func_00000000(&D_00000000, o);
-    func_00000000(&D_00000000, o, 0);
+    func_00000000(CFG, o);
+    func_00000000(CFG, o, 0);
     cfg = *(char**)(s1 + 0x98);
     flags = (*(unsigned char*)(CFG + 0x182) | 0x8001) | 0x10000 | 0x40000;
-    r = (char*)func_00000000(s1, 0,
-                             *(unsigned char*)(CFG + 0x181),
-                             *(unsigned char*)(CFG + 0x183),
-                             o, *(int*)(s1 + 0x80),
-                             *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
-                             flags, 0x1B);
-    func_00000000(s1, 0, *(int*)(s1 + 0x80), r);
-    (void)a1;
-    /* Chain continues per family-shared shape (~7 more build() stages
-     * wiring r, a1*0x1C-indexed descriptor table walks, final list-link
-     * & r->0x8DC = result, as in func_00003734). Truncated in decode. */
+    r1 = func_3b78_r(s1, 0,
+                     *(unsigned char*)(CFG + 0x181),
+                     *(unsigned char*)(CFG + 0x183),
+                     o, *(int*)(s1 + 0x80),
+                     *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
+                     flags, 0x1B);
+    b2 = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), r1, o);
+    b3 = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), r1, o);
+    row = (char*)&D_00000000 + a1 * 0x1C;
+    f1 = (char*)func_00000000(s1, row, b2);
+    *(float*)(b2 + 0x14C) = 85.0f;
+    o2 = (char*)func_00000000(0x80);
+    if (o2 != 0) {
+        char *big;
+        func_00000000(o2, 1);
+        big = (char*)func_00000000(0, o2, r1, f1, b2, b3);
+        func_00000000(*(int*)(s1 + 0x84) + 0x10, big);
+        if (*(int*)(big + 0x14) != 0) *(int*)(big + 0x4) = 1;
+        *(int*)(big + 0x14) = *(int*)(s1 + 0x84);
+    }
+    *(char**)(r1 + 0x8DC) = f1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003B78);
