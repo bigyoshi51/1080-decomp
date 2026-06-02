@@ -26238,37 +26238,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048720);
 
 #ifdef NON_MATCHING
 /* gl_func_0004880C: per-item cb loop over a0->0x594 entries.
- * Decoded from bare stub 2026-05-18; algorithm correct, build 41
- * vs 37 (count diff). Remaining (multi-pass, defer):
- *  - the `if (v1 <= 0) return 1;` early-exit must COLLAPSE into the
- *    shared `v0=1` epilogue: target = `blez v1, END` (single insn)
- *    where END is the lone `addiu v0,zero,1; <restore>; jr ra` tail.
- *    Use goto-END (like gl_func_00041524) so there is ONE v0=1
- *    return, not a separate `b; li v0,1` early path (+~3 insns).
- *  - per-iter flag arg = (i==0) ? 1 : (a0->0x594 == 2), emitted as
- *    `sltiu a1,s0,1; bnez a1,callsetup; <else> xor a1,2,v1;
- *    sltiu a1,a1,1`. The `||` form mis-compiles; needs the explicit
- *    first-iter-skip shape (i==0 reuses the sltiu result =1).
- *  - loop back-edge is `bnel at,zero,TOP` with the TOP `sltiu a1,
- *    s0,1` pre-loaded in the delay-likely slot; early-exit on
- *    cb<0 is `bgezl v0,CONT` with `lw v1,0x594(s2)` delay-likely,
- *    fall-through `b END2; or v0,zero,zero` (return 0).
- * Next pass: goto-label form with the explicit i==0 flag-skip and
- * the two likely branches. Real decoded C preserved. */
+ * 99.19% (2026-06-02, was 88.24%). The +4-insn count gap is FIXED by two
+ * structural levers: (1) wrap the loop in `if (v1 > 0) { ... } return 1;`
+ * (not `if (v1<=0) return 1;` up top) — collapses the early-exit into the
+ * single shared `v0=1` epilogue (the top return forked a separate `b; li v0,1`
+ * path, +3 insns); (2) `i = 0` hoisted ABOVE the guard + a `do { } while
+ * (i < v1)` loop — this gives the target's plain `blez v1, END` entry guard
+ * instead of a `blezl` (branch-likely duplicating v0=1 into the delay). The
+ * (i==0)||(a0->0x594==2) flag short-circuit now matches as-is.
+ * Residual 0.8% = the 3 prologue $s-init moves emit in a different order
+ * (target s2=a0,s0=0,s1=a1; IDO s1=a1,s2=a0,s0=0) — allocno scheduling, not
+ * flipped by decl reorder. Permuter-class. */
 extern int gl_func_00000000();
 int gl_func_0004880C(int a0, int a1) {
-    int i;
     int v1 = *(int *)(a0 + 0x594);
-    if (v1 <= 0) {
-        return 1;
-    }
-    for (i = 0; i < v1; i++) {
-        int flag = (i == 0) || (*(int *)(a0 + 0x594) == 2);
-        if (gl_func_00000000(a0, flag, a1) < 0) {
-            return 0;
-        }
-        v1 = *(int *)(a0 + 0x594);
-        a1 += 0x10;
+    int i = 0;
+    if (v1 > 0) {
+        do {
+            int flag = (i == 0) || (*(int *)(a0 + 0x594) == 2);
+            if (gl_func_00000000(a0, flag, a1) < 0) {
+                return 0;
+            }
+            v1 = *(int *)(a0 + 0x594);
+            a1 += 0x10;
+            i++;
+        } while (i < v1);
     }
     return 1;
 }
