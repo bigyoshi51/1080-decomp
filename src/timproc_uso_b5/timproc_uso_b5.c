@@ -5657,7 +5657,22 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * tail is a run of FP factory calls (alloc 324/364/...; func(child,&D+desc,
  * 0.0f,0.0f via mtc1/mfc1); int+float field stamps; distinct descriptor
  * symbols -> CSE-bust). Sibling D884 shares the exact shape (descriptor base
- * &D+0x1620 vs DF14's &D+0x16D8) — fix one, port to the other. Multi-tick. */
+ * &D+0x1620 vs DF14's &D+0x16D8) — fix one, port to the other. Multi-tick.
+ *
+ * 2026-06-02 WIDGET RECIPE (o32-decoded tail, for a dedicated FP tick). After
+ * the head, s0 is REUSED as "current child". Each widget:
+ *   child = func(SIZE); if(!child) goto far;        // sizes 324, 364, ...
+ *   typed_proto(child, &D+DESC, 0.0f, 0.0f, 0.0f);  // a2/a3 = float via
+ *       // mtc1 zero,f0; mfc1 a2/a3,f0; swc1 f0,16(sp) — NEEDS a typed proto
+ *       // (void*,void*,float,float,float); K&R int/double args won't emit the
+ *       // mtc1/mfc1 detour. func is still the gl placeholder (reloc-blind jal),
+ *       // so declare a distinct typed alias = 0x0 in undefined_syms.
+ *   child->0x28 = &D+DESC2;  child->0xC = &D+DESC3;  // int stamps
+ *   // some widgets also: child->0x120=1; child->0x108/0x10C/0x110 = fpoolconst
+ *   //   (lwc1 f0,OFF(at) from the .rodata float pool); child->0x124 = 1.0f.
+ * Widget 1: SIZE=324, DESC=&D+5868, child->0x28=&D+1300, child->0xC=&D+5876.
+ * Widget 2: SIZE=364, DESC=&D+5888, child->0x120=1, child->0x28=&D, plus
+ *   3x float-pool stamps + 1.0f, and the child is chained into s0->0x108. */
 #ifdef NON_MATCHING
 char *timproc_uso_b5_func_0000DF14(char *a0, int a1, int a2, char *a3) {
     char *r;
