@@ -454,8 +454,21 @@ void titproc_uso_func_0000101C(int *a0) {
 /* Partial structural decode 2026-06-01. 4-case state machine (jr-table on
  * s0->0x40, written as an if-chain) advancing a title-screen sequence: each
  * state runs a timer, fires a virtual method on a sub-object, and transitions
- * on expiry. Cases 0/1 decoded; cases 2/3 + tail left for a follow-up.
- * Cross-USO calls are the gl_func_00000000 import. */
+ * on expiry. Cross-USO calls are the gl_func_00000000 import.
+ *
+ * 2026-06-02 GAP MAP (40.32%, target 290 insns / built 150 = 143 short). The
+ * dispatch IS a jr-table (sltiu state,4; jr table[state]) but converting the
+ * if-chain to `switch` REGRESSES to 37.1% (incomplete case bodies misalign
+ * more than the dispatch helps — keep the if-chain until bodies are complete).
+ * The two missing blocks are case-body TAILS, not new cases:
+ *  - state 1 tail @0x17C (+50): after the t==0 sub-block, `if (cond) {
+ *    vt-call on s0->0x60; s0->0x40=2; gl_func(144); } else { vt-call on
+ *    s0->0x5C; s0->0x40=3; s0->0x3C=(s0->0x74*16-..)*2; gl_func(144); }` then
+ *    more (gl_func(s0->0x60); gl_func(&D,0x40100) gate; gl_func(5); ...).
+ *  - state 2/3 tail @0x29C (+93): counter clamp on (s0->0x64)->0x3C to
+ *    255/256 with +16 step (cap 720/512), vt-call ((*v0->0x64)(v0->0x60+&D)),
+ *    gl_func chain. Branch-heavy (beql/bnel/blez) — decode per-arm.
+ * Next tick: extend state-1 then state-2/3 bodies (each adds ~15-25pp). */
 void titproc_uso_func_0000116C(char *s0) {
     char *d = (char *)&D_00000000;
     char *v1, *vt;
