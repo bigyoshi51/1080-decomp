@@ -1126,7 +1126,14 @@ void arcproc_uso_func_000016F4(char *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F4);
 #endif
 
-/* arcproc_uso_func_0000199C — verified structural decode (~9%, LEN-DIFF
+/* arcproc_uso_func_0000199C — now 59.93%. 2026-06-02: the final region (field
+ * inits 0xD8..0x108 + the gl(s0+0xF0, ((*&D+35)<<16)|(s0->0xD4->0x6B4+7)) call)
+ * is byte-exact vs disasm; the residual ~10-insn gap is the alloc-cascade HEAD
+ * dead-arm scheduling (regalloc cap). TESTED+REVERTED: rewriting the head to
+ * the passthrough goto-merge form (p2=s0; if(!p2)alloc; Lp3/Lp2/Ls0 labels)
+ * REGRESSES to 46.61% — the fresh-alloc nested-if below is correct; the gap is
+ * pure dead-arm regalloc, not the head form. Don't re-grind the head.
+ * verified structural decode (~9%, LEN-DIFF
  * 82/90; alloc-cascade defensive-dead-check + spill/reloc scheduling cap →
  * <80 INCLUDE_ASM build path; constructor struct-typing + alloc-sig ref).
  * int *f(int *a0, int a1, int a2){
