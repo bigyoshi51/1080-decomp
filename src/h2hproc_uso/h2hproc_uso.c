@@ -838,33 +838,45 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000E0
  *   q->field_3C = 0;
  *   q->field_2C..0x38 = 1.0f * 4;                // 4 floats all 1.0f
  *
- * Returns a2 (= the q pointer, NOT the alloc'd p). The relationship between
- * p and q is unclear without seeing the caller — q is set somewhere I
- * haven't decoded yet. Likely q is field-of-p or arg-from-caller.
+ * Returns a2 (= the q pointer). q is NOT a second arg — it is the alloc-
+ * cascade tier: `q = p; if (q==0) q = alloc(0x2C)` (the dead arm). The fn
+ * is single-arg `(int *a0)`.
  *
- * First-pass decode; not byte-matched. Multi-pass expected — register
- * allocation around p/q reuse + 4-float-1.0 store sequence needs
- * register-keyword tweaking. */
-extern int D_3E0;
-int *h2hproc_uso_func_00000EB0(int *a0, int *q) {
-    int *p = a0;
-    if (p == 0) {
-        p = (int*)gl_func_00000000(0x40);
-        if (p == 0) return 0;
+ * 2026-06-02 RECONSTRUCT 62.6->83.2% (+20.6pp): three fixes.
+ *   (1) q is the cascade tier (q starts = a0/p), NOT a separate parameter —
+ *       my old `(int*a0,int*q)` sig added 4 spurious insns.
+ *   (2) shared exit: the alloc-fail path sets the ptr to 0 and falls through
+ *       to a single `end: return q` (target's `beq v0,zero,<epilogue>` with
+ *       `a2=v0` in the delay), not an explicit `return 0`.
+ *   (3) q->0x28 uses a DISTINCT extern (D_h2h_eb0_y) so IDO materializes &D
+ *       a 2nd time (target has separate t6/t7 luis); plain &D CSEs to one
+ *       lui and drops to 77.6%.
+ * RESIDUAL ~17%: q lands in $v1, target uses $a2 (the whole init tail is
+ * structurally identical — same opcodes/offsets, base reg bumped v1<->a2 +
+ * one shadow-copy at entry). Pure regalloc-renumber cap (permuter-class). */
+extern char D_h2h_eb0_y;   /* q->0x28 target — distinct extern to force a 2nd
+                            * &D materialization (target has separate t6/t7 luis). */
+int *h2hproc_uso_func_00000EB0(int *a0) {
+    int *q = a0;                  /* q = cascade ptr ($a2); a0 stays the p reg */
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00000000(0x40);
+        q = a0;
+        if (a0 == 0) goto end;    /* shared exit: q==0 -> returns 0 */
     }
-    if (q == 0) {
+    if (q == 0) {                 /* dead arm (q == a0 != 0) — IDO emits it anyway */
         q = (int*)gl_func_00000000(0x2C);
-        if (q == 0) return 0;
+        if (q == 0) goto end;
     }
-    gl_func_00000000(p, (char*)&D_00000000 + 0x3E0);
-    *(int*)((char*)p + 0x28) = (int)&D_00000000;
-    *(int*)((char*)q + 0x28) = (int)&D_00000000;
+    gl_func_00000000(a0, (char*)&D_00000000 + 0x3E0);
+    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+    *(int*)((char*)q + 0x28) = (int)&D_h2h_eb0_y;
     *(int*)((char*)q + 0xC) = (int)((char*)&D_00000000 + 0x3E8);
     *(int*)((char*)q + 0x3C) = 0;
     *(float*)((char*)q + 0x2C) = 1.0f;
     *(float*)((char*)q + 0x30) = 1.0f;
     *(float*)((char*)q + 0x34) = 1.0f;
     *(float*)((char*)q + 0x38) = 1.0f;
+end:
     return q;
 }
 #else
