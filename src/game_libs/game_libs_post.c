@@ -42429,7 +42429,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000707E8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070850);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00070954: 4x4 identity matrix init. Outer runtime row loop;
+ * inner (unrolled) cols set (row == col) ? 1.0f : 0.0f. 83% NM.
+ * KEY: the single-level form (`m[0]=(row==0)?..; m[1]=(row==1)?..`) lets IDO
+ * fold the ternaries (row known per unrolled iter) and FULLY unroll -> 45%. The
+ * NESTED form below keeps `col` a runtime inner-loop var so `(row==col)` can't
+ * fold, preserving the target's outer row loop + bnel column compares (+37pp).
+ * Residual = constant-register shift (mine a1..a3/t0 for col consts 1/2/3 +
+ * bound 4; target a0..a3) + first-col bne-vs-bnel — regalloc/scheduling. */
+void game_libs_func_00070954(float *m) {
+    int row, col;
+    for (row = 0; row < 4; row++) {
+        for (col = 0; col < 4; col++) {
+            m[col] = (row == col) ? 1.0f : 0.0f;
+        }
+        m += 4;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070954);
+#endif
 
 /* 12-insn 2-call wrapper using a 0x40-byte stack buffer (0x30). LANDED
  * fuzzy=100. The 2 trailing stolen-prologue insns for the successor
