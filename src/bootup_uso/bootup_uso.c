@@ -1637,8 +1637,17 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003734);
  * table indexed by a1. r (= build1 result) ->0x8DC (2268) = slot
  * receiving the final build3 result (r2 + table row).
  * Caps <80: ~8 reloc + FP stack-arg passing + packed-flag lui/ori
- * build + a1*0x1C table index. INCLUDE_ASM remains build path. */
+ * build + a1*0x1C table index.
+ *
+ * 2026-06-02 (70.5->80.1%): the build1 call's args 7,8 are single floats
+ * (cfg->0xC4/0xCC, target swc1 0x18) — typed-float proto func_38c0_r avoids
+ * the K&R double-promote. Residual ~20% = the Dz(&D) base is shared in one
+ * reg (lui+addiu) across the 0x4C/0x50/0x54 loads in target but folded per-use
+ * here + scheduling. Sibling of func_00003734 (double-promote-scan vein). */
 #ifdef NON_MATCHING
+/* typed-float proto (0x0-alias): args 7,8 are single floats on the stack
+ * (target swc1 0x18); K&R func_00000000 double-promotes them. */
+extern char *func_38c0_r(void *, int, int, int, void *, int, float, float, int, int);
 void func_000038C0(char *s1, int a1) {
     char *o = (char*)func_00000000(0x80);
     char *cfg;
@@ -1654,10 +1663,10 @@ void func_000038C0(char *s1, int a1) {
     func_00000000(&D_00000000, o, 0);       /* reg_b — D_y placeholder */
     cfg = *(char**)(s1 + 0x98);
     flags = (*(int*)(Dz + 0x50) | 1) | 0x10000 | 0x40000;
-    r = (char*)func_00000000(s1, 0, *(int*)(Dz + 0x4C), *(int*)(Dz + 0x54),
-                             o, *(int*)(s1 + 0x80),
-                             *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
-                             flags, 0x1B);
+    r = func_38c0_r(s1, 0, *(int*)(Dz + 0x4C), *(int*)(Dz + 0x54),
+                    o, *(int*)(s1 + 0x80),
+                    *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
+                    flags, 0x1B);
     r2 = (char*)func_00000000(s1, 2, *(int*)(s1 + 0x80), o);
     row = (int*)((char*)&D_00000000 + a1 * 0x1C);  /* D_w placeholder */
     res = (char*)func_00000000(s1, row, r2);
