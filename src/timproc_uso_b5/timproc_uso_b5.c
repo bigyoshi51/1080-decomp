@@ -3191,8 +3191,73 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
 
 /* Boundary-merged switch predicate. The internal alabels at 0x8834, 0x8844,
  * 0x8854, 0x886C, 0x887C, and 0x8894 are case labels/tail entries, not
- * standalone C-callable functions. */
+ * standalone C-callable functions — they are the inline bit-priority-encoder
+ * bodies reached through the jr-table on a0->0x3C8 (jumptable D_807FF214 lives
+ * in linker-discarded .rodata). Sibling dispatcher 0x88A0 mirrors this on
+ * D_807FF234. Within its own 0x40, 87F4 = the 10-word dispatcher
+ * (sel-1; sltiu 8; jr table[idx]) + the case-1 head at 0x881C
+ * (v0=a0->0x3C0; if (v0&1) return 1; with andi v0,2 scheduled into the
+ * beq delay). The full per-case priority encoder spills into the sibling
+ * fragment symbols.
+ *
+ * VERIFIED 2026-06-01 (SOURCE=3): the switch below is byte-correct for 87F4's
+ * own 0x40 — in-tree non_matching emits, in order, lw 0x3C8 / addiu -1 /
+ * sltiu 8 / beqz default / sll 2 (delay) / lui / addu / lw table / jr t7 /
+ * nop / [case-1: lw 0x3C0 / andi 1 / beqz / andi 2 (delay) / jr ra / li 1],
+ * every word matching the target except branch-rel offsets and the jumptable
+ * %lo reloc. It still scores 0% in objdiff because the switch inlines all 8
+ * cases (~0x140) while splat declares 87F4 as only 0x40 — the remaining case
+ * bodies are SEPARATE splat symbols (0x8854, 0x88A0, …). This is a boundary
+ * defect, not a codegen one: merging 0x87F4..0x889C into a single symbol
+ * (split-fragments / merge-fragments) makes this switch match as-is. The goto-z
+ * funnel is required — a per-case `return 0` makes IDO hoist `move v0,zero`
+ * between lw and addiu, shifting the whole body. Multi-tick infra. */
+#ifdef NON_MATCHING
+int timproc_uso_b5_func_000087F4(char *a0) {
+    int v0;
+    switch (*(int *)(a0 + 0x3C8)) {
+    case 1:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 1) return 1;
+        if (v0 & 2) return 2;
+        if (v0 & 4) return 4;
+        goto z;
+    case 2:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 2) return 2;
+        if (v0 & 4) return 4;
+        goto z;
+    case 3:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 4) return 4;
+        goto z;
+    case 4:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 8) return 8;
+        goto z;
+    case 5:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 1) return 1;
+        goto z;
+    case 6:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 2) return 2;
+        goto z;
+    case 7:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 4) return 4;
+        goto z;
+    case 8:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 8) return 8;
+        goto z;
+    }
+z:
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087F4);
+#endif
 
 /* timproc_uso_b5_func_00008834: 4-insn `beq t9,zero,+0x10; andi t0,t0,4;
  * jr ra; li v0,2`. The `beq +3*4=+0xC` branches to 0x8844 = function end
