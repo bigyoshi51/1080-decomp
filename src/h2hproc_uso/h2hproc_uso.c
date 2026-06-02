@@ -310,7 +310,16 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
  *
  * 2026-05-14 (46.03% → 50.00%, +3.97pp): char-base hoist, removed
  * redundant in-block externs, added missing q+0x50 helper-call between
- * the 4 *->0x28 stores. */
+ * the 4 *->0x28 stores.
+ *
+ * 2026-06-02 (74.1->76.9%): two missing structural elements added —
+ *   (1) a linked-set finalizer on p->0x48 (mirror of the D[0x190] block),
+ *       after the gl_func(p+0x10, p->0x48) call;
+ *   (2) a 2nd final gl_func(*(D+0x190)) call (target has two trailing calls).
+ *   Tail now structurally complete (177 vs 175 insns). Residual ~23% is
+ *   regalloc: target keeps the finalizer object in $a3 (mine $v1), frame
+ *   0x38 vs 0x48 (mine spills 4 extra temps), + lui &D CSE on the last two
+ *   calls — alloc-cascade spill/renumber cap (multi-tick / permuter). */
 void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
     char *base = &D_00000000;
     void *p, *q, *r, *child;
@@ -384,12 +393,18 @@ void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
         gl_func_00000000((char*)p + 0x10, *(int*)((char*)p + 0x48));
     }
 
+    /* linked-set finalizer on p->0x48 (mirror of the D[0x190] block below). */
+    z = *(int**)((char*)p + 0x48);
+    if (z[0x14/4] != 0) z[1] = 1;
+    z[0x14/4] = (int)p;
+
     /* z = D[0x190]; helper(p+0x10, z); if (z[0x14]) z[1]=1; z[0x14]=p; */
     gl_func_00000000((char*)p + 0x10, *(int*)((char*)&D_00000000 + 0x190));
     z = *(int**)((char*)&D_00000000 + 0x190);
     if (z[0x14/4] != 0) z[1] = 1;
     z[0x14/4] = (int)p;
     gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
+    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190));
 end:
     return p;
 }
