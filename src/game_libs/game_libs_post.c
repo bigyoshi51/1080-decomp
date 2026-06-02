@@ -34202,29 +34202,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F27C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F3E0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F534);
-
-/* gl_func_0005F54C - verified structural decode (40-insn perspective/
- * frustum projection-matrix builder; FP div/mul chain + 2 transcendental
- * calls = documented FP-divergence sub-80 -> INCLUDE_ASM build path;
- * HIGH struct-typing value).
- * Struct-typing (HIGH reuse - projection matrix): a0 is a 4x4-ish float
- * matrix; this writes [0]=0x00, [1][1]=0x14, [2][0]=0x28, [2][3]=0x2C
- * (=-1, the perspective-divide marker), [3][1]=0x38, [3][3]=0x3C (=0).
- * The classic GL frustum form: x-scale q/near @0x00, y-scale q @0x14,
- * (r+l)/(r-l) @0x28, 2rl/(r-l) @0x38, -1 @0x2C, 0 @0x3C. X1/X2 are the
- * fov->scale transcendentals (cos/tan/cot). Caps <80: div.s/mul.s
- * pipeline ordering + 2-call f-reg spill/reload interleave (sp+28/+32) -
- * the documented FP-regalloc divergence; clean C won't reproduce the
- * exact f-reg schedule. INCLUDE_ASM remains build path (no episode). */
 #ifdef NON_MATCHING
-extern float gl_xform_f14, gl_xform_f6;  /* caller-set floats */
+/* game_libs_func_0005F534: one 47-insn (0xBC) GL frustum/perspective projection-
+ * matrix builder. BOUNDARY MERGED 2026-06-02: splat had split it into 0005F534
+ * (6-insn FP-const prologue: `mtc1 a1,$f14` (input, ARG-DERIVED) + `lui 0x4000`
+ * ->$f6=2.0 [+ a D-reloc load] — hoisted above the frame; the real entry) +
+ * gl_func_0005F54C (the prologue+body using f14 in `div.s $f12,$f14,$f6`).
+ * SINGLE-entry per the dual-vs-single test (f14 arg-derived + FP-op use; no
+ * callers). Absorbed 0005F54C's 41 words into 0005F534 (0x18 -> 0xBC); dropped
+ * the 0005F54C symbol. Brings f14(=a1)/f6(=2.0) in-scope, RETRACTING the
+ * "caller-set floats" cap.
+ * Builds the classic GL frustum matrix into a0 (4x4 float): x-scale q/near @0x00,
+ * y-scale q @0x14, (r+l)/(r-l) @0x28, 2rl/(r-l) @0x38, -1 @0x2C, 0 @0x3C; the
+ * 2 transcendental calls map fov->scale (cos/tan/cot). Byte-match deferred
+ * (div.s/mul.s pipeline + 2-call f-reg spill interleave — FP-regalloc). */
 extern float gl_func_00000000_f54c(float);
-void gl_func_0005F54C(float *a0, int unused_a1, float near, float r, float l) {
-    float t = gl_xform_f14 / gl_xform_f6;
-    /* float-returning placeholder (distinct name per the gl_func_00000000_c43c
-     * convention) so the helper takes/returns float — direct jal + swc1/lwc1,
-     * no int cvt the default `int` decl forces. */
+void game_libs_func_0005F534(float *a0, int a1, float near, float r, float l) {
+    float f14 = *(float *)&a1;   /* mtc1 a1,$f14 in the merged prologue */
+    float t = f14 / 2.0f;        /* $f6 = 0x40000000 = 2.0 */
     float c1 = gl_func_00000000_f54c(t);
     float c2 = gl_func_00000000_f54c(c1);
     float q = c2 / c1;
@@ -34238,7 +34233,7 @@ void gl_func_0005F54C(float *a0, int unused_a1, float near, float r, float l) {
     a0[0x38 / 4] = (2.0f * r * l) / d;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F54C);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F534);
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F5F0);
