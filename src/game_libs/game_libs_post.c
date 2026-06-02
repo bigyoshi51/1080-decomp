@@ -31100,35 +31100,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
  * the .s) to localize the 25-insn excess — a deep FP-regalloc /
  * scheduling grind, not a one-tick win. Real C preserved for the
  * focused tightening pass. */
-/* ROOT CAUSE (2026-05-18, via build/non_matching disasm diagnostic):
- * the 76-vs-51 gap is IDO -O2 2x LOOP UNROLLING, not regalloc. IDO
- * computes the static trip count (v1: 0,2,4 → 3 iters) from the
- * constant bound and emits TWO full body copies per loop pass (~50
- * loop insns) vs target's single non-unrolled do-while body (28).
- * for-loop AND do-while both unroll (trip count is statically known
- * either way). The target was compiled NON-unrolled despite `li
- * t0,6` / `li a3,6` constant bounds — so the original source must
- * defeat IDO's trip-count analysis (runtime/opaque bound) or IDO's
- * unroll cost-heuristic declined for that exact body shape. No
- * C-level lever found to suppress IDO's small-known-trip unroll
- * while keeping a `li 6` bound. Classify: IDO-loop-unroll cap (see
- * docs/IDO_CODEGEN.md#feedback-ido-unrolls-known-small-trip-loop).
- * Real C (correct centroid algorithm) preserved; unlock
- * (C-emit+SUFFIX_BYTES of the 6-word $t9/$t1 tail for successor
- * gl_func_00054228) stays gated on defeating the unroll. */
+/* UNROLL DEFEATED 2026-06-02: 16.8% -> 70.57% (+53.8pp). The prior cap
+ * was "IDO -O2 2x-unrolls this known-small-trip loop (76 vs 51 insns),
+ * no C lever to suppress it while keeping a `li 6` bound." LEVER FOUND:
+ * DE-HOIST the loop-invariant base reads (a0->0x68, a0->0x60, a2*8)
+ * back INTO the loop body each iteration (was: `dir`/`recbase` locals
+ * computed before the loop). The fatter per-iteration body pushes IDO's
+ * unroll cost-heuristic past its threshold, so it emits the single
+ * non-unrolled do-while. See
+ * docs/IDO_CODEGEN.md#feedback-ido-unroll-suppress-by-body-inflation.
+ * Residual ~29% = IDO still LICM-hoists the a0->0x68/0x60 reloads that
+ * the target keeps per-iter (the float a1[] stores don't block IDO's
+ * hoist of the int a0[] loads — type-disjoint alias classes), plus the
+ * target's duplicate `li 6` (separate bound vs multiplier reg) and
+ * $t-register renaming. Those are regalloc/alias-class — permuter-tier.
+ * Unlock (C-emit of the 6-word $t9/$t1 tail for successor
+ * gl_func_00054228) is now closer but still gated on the LICM reload. */
 void game_libs_func_00054144(int *a0, float *a1, int a2) {
     int v1;
-    char *dir;
-    char *recbase;
     a1[0] = 0.0f;
     a1[1] = 0.0f;
     a1[2] = 0.0f;
-    dir = (char *)a0[0x1A] + a2 * 8;
-    recbase = (char *)a0[0x18];
     v1 = 0;
     do {
-        unsigned short vi = *(unsigned short *)(dir + v1 + 2);
-        short *rec = (short *)(recbase + vi * 6);
+        /* de-hoisted: re-read both bases inside the loop each iteration to
+         * match the target's per-iter reloads AND inflate body cost above
+         * IDO's small-known-trip unroll threshold (2026-06-02). */
+        unsigned short vi = *(unsigned short *)((char *)a0[0x1A] + a2 * 8 + v1 + 2);
+        short *rec = (short *)((char *)a0[0x18] + vi * 6);
         a1[0] += (float)rec[0];
         a1[1] += (float)rec[1];
         a1[2] += (float)rec[2];
