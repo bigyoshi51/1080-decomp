@@ -517,6 +517,19 @@ void titproc_uso_func_0000116C(char *s0) {
             *(int *)(s0 + 0x40) = 3;
             *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
         }
+    } else if (state == 3) {
+        v1 = *(char **)(s0 + 0x58);
+        vt = *(char **)(v1 + 0x28);
+        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+        gl_func_00000000(*(int *)(s0 + 0x58));
+        v1 = *(char **)(s0 + 0x54);
+        vt = *(char **)(v1 + 0x28);
+        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+        gl_func_00000000(*(int *)(s0 + 0x5C));
+        n = *(int *)(s0 + 0x70);
+        *(int *)(s0 + 0x40) = 1;
+        *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+        gl_func_00000000(2050);
     }
 }
 #else
