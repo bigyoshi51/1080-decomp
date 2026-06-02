@@ -36804,9 +36804,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
 #endif
 
 
+/* game_libs_func_00063F34: one 108-insn (0x1B0) function. BOUNDARY MERGED
+ * 2026-06-02: splat had split it into 00063F34 (3-insn FP-const prologue:
+ * `mtc1 a1,$f12` (input value, ARG-DERIVED) + `lui 0x4120`->$f4=10.0 — hoisted
+ * above the frame; the real entry) + gl_func_00063F40 (the prologue+body using
+ * f12 in `c.lt.s $f12,$f4`). SINGLE-entry per the dual-vs-single test (f12 is
+ * arg-derived + FP-op use, NOT mfc1-back; no callers). Absorbed 00063F40's 105
+ * words into 00063F34 (0xC -> 0x1B0); dropped the 00063F40 symbol. Brings f12
+ * (=a1) and f4 (=10.0) in-scope (retracts the implicit caller-set-float cap);
+ * the 105-insn body is decodable in a future pass. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00063F34);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063F40);
 
 /* gl_func_000640E4: 16-insn dispatcher. EXACT — keys: pass a0 through
  * to both calls (gl_func_00000000(a0)) so IDO does not emit the unused-
