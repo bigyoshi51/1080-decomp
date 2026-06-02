@@ -9588,7 +9588,31 @@ after2:
         after24d:;
         }
     }
-    /* Remaining ~150 insns TBD: deeper nested sub-allocs + struct fills */
+    {
+        char *o36;
+        float v4[4];
+        int x36;
+        v4[0] = 1.0f;
+        v4[1] = 1.0f;
+        v4[2] = 1.0f;
+        v4[3] = 1.0f;
+        x36 = *(int *)((char *)&D_00000000 + 3436);
+        if ((int)s0 != -104) {
+            o36 = (char *)s0 + 104;
+        } else {
+            o36 = (char *)gl_func_00000000(36);
+            if (o36 == NULL) goto after36;
+        }
+        gl_func_00000000(o36, s0, x36, 0);
+        *(int *)(o36 + 12) = (int)((char *)&D_00000000 + 2192);
+        *(int *)(o36 + 32) = 0;
+        *(float *)(o36 + 16) = v4[0];
+        *(float *)(o36 + 20) = v4[1];
+        *(float *)(o36 + 24) = v4[2];
+        *(float *)(o36 + 28) = v4[3];
+    }
+after36:
+    /* Remaining ~130 insns TBD: deeper nested sub-allocs + struct fills */
     return s0;
 }
 #else
