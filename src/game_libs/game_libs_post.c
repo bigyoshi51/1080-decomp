@@ -7327,20 +7327,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). An object detach / relink manager.
 //
-// 2026-06-02 DECODE CORRECTION (current C body below is WRONG — 15% — needs
-// rewrite): the splice operates on `owner = obj->0x2C` (lw v0,0x2C(a0); early
-// return if 0), NOT on the param. The 2nd param `a1` is actually an INT TAG
-// (saved sp+0x36, compared `!= 7` near the end to gate a flag/FP branch), NOT
-// a pointer. After the owner-splice (owner->0x48 / owner->0x44 / owner->0x40
-// relinks with -1 sentinel), there is a LARGE sub-object copy block: v0 =
-// owner+0x4C receives ~10 byte/halfword/word fields lbu/sb-copied from
-// `node = owner->0x50` (and node->0x4C subfields) — node->4/0xC/0xDC/0x20/0xF
-// -> v0->0/1/0x10/6/4 etc.; a node->0x4C->0(<<2 sign) gate sets a1+0xB0 bit5;
-// then a conditional (node->1 ? node->0xE0 : node->1) sb v0->3; tag==6 path
-// sets a1+0x60 bit4 + swc1 (&D+0x2050)=g into a1+0x6C; else a1+0x34 + FP scale
-// (a1->0x70 * (s8)node->0x8D * (1/256, lui 0x3b80) -> a1->0x64); finally if
-// tag!=7: jal 0x3D414(a1->0xC + 16). Real fix = decode owner-splice + this
-// copy block from the raw words (multi-tick). The body below is a placeholder.
+// 2026-06-02 FULL DECODE 15.2->74.9% (+59.7pp): the splice operates on
+// `owner = obj->0x2C` (NOT the param); arg2 `a1` is an INT TAG (saved sp+0x36,
+// compared !=7 / &0xF==6 to gate the flag/FP paths). owner-relink (0x48/0x44/
+// 0x40 with -1 sentinel) + a sub-object copy block (dst=owner+0x4C <- obj &
+// node=obj->0x50 byte/halfword/word fields) + node->0x4C-sign & node->3-bit8
+// gate (owner+0xB0 |= 0x20) + (node->1?node->0xE0:obj->1) sb dst+3 + the
+// tag==6 (flag/FP const &D+0x2050) vs else (FP scale: (s8)node->0x8D *
+// owner->0x70 * 1/256 -> owner->0x64, table &D+0x2CF8[idx*4] -> owner->0x6C)
+// paths + final jal 0x3D414(owner->0xC + 16). Residual ~25% = regalloc + the
+// branch-likely unlink ordering (validation early-returns are approximate).
 //
 //   void gl_func_00028604(O *obj, A *a1) {
 //     if (obj == (O*)-1) return;                         // null sentinel
@@ -7376,24 +7372,76 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_00028604(char *obj, char *a1) {
-    unsigned char fl, st;
-    int nx;
-    float g;
+extern int gl_func_0003D414();
+void gl_func_00028604(char *obj, int tag) {
+    char *owner, *node, *dst;
+    unsigned char fl;
+    int prev;
     if ((int)obj == -1) return;
-    if (*(int *)(obj + 0x2C) == 0) return;
     fl = *(unsigned char *)obj;
+    owner = *(char **)(obj + 0x2C);
     *(unsigned char *)obj = fl & ~0x08;
-    nx = *(int *)(obj + 0x48);
-    if (nx != (int)a1) {
-        gl_func_00000000(obj, a1, nx);
+    if (owner == 0) return;
+    if ((int)obj == *(int *)(owner + 0x48)) {
+        *(int *)(owner + 0x48) = -1;
     }
-    *(int *)(obj + 0x48) = -1;
-    *(int *)(a1 + 0x44) = *(int *)(obj + 0x44);
-    g = *(float *)((char *)&D_00000000 + 0x2050);
-    (void)g;
-    st = *(unsigned char *)(obj + 0x60);
-    *(unsigned char *)(obj + 0x60) = st | 0x10;
+    prev = *(int *)(owner + 0x44);
+    if ((int)obj == prev) {
+        if (-1 != *(int *)(owner + 0x48)) return;
+        if (-1 != *(int *)(owner + 0x48)) return;
+        if ((int)obj != *(int *)(owner + 0x40)) return;
+        if (tag == 6) return;
+        *(unsigned char *)(owner + 0x60) = *(unsigned char *)(owner + 0x60) | 0x10;
+        *(float *)(owner + 0x6C) = *(float *)((char *)&D_00000000 + 0x2050);
+        return;
+    }
+    if ((tag & 0xF) == 6) return;
+    dst = owner + 0x4C;
+    *(float *)(dst + 8) = *(float *)(obj + 0x44);
+    *(float *)(dst + 0xC) = *(float *)(obj + 0x40);
+    *(unsigned char *)(dst + 2) = *(unsigned char *)(obj + 6);
+    node = *(char **)(obj + 0x50);
+    if (node != 0) {
+        *(unsigned char *)(dst + 0) = *(unsigned char *)(node + 4);
+        *(unsigned char *)(dst + 1) = *(unsigned char *)(node + 0xC);
+        *(int *)(dst + 0x10) = *(int *)(node + 0xDC);
+        *(unsigned short *)(dst + 6) = *(unsigned short *)(node + 0x20);
+        *(unsigned char *)(dst + 4) = *(unsigned char *)(node + 0xF);
+        if ((*(int *)(*(char **)(node + 0x4C)) << 2) < 0
+            && (*(unsigned char *)(node + 3) & 8)) {
+            *(unsigned char *)(owner + 0xB0) = *(unsigned char *)(owner + 0xB0) | 0x20;
+        }
+        if (*(unsigned char *)(obj + 1) == 0) {
+            *(unsigned char *)(dst + 3) = *(unsigned char *)(node + 0xE0);
+        } else {
+            *(unsigned char *)(dst + 3) = *(unsigned char *)(obj + 1);
+        }
+        *(unsigned char *)(owner + 0x30) = *(unsigned char *)(node + 6);
+    } else {
+        *(unsigned char *)(dst + 3) = *(unsigned char *)(obj + 1);
+        *(unsigned char *)(owner + 0x30) = 1;
+    }
+    *(int *)(owner + 0x40) = *(int *)(owner + 0x44);
+    *(int *)(owner + 0x44) = -1;
+    if (tag != 7) {
+        if ((tag & 0xF) == 6) {
+            *(unsigned char *)(owner + 0x60) = *(unsigned char *)(owner + 0x60) | 0x10;
+            *(unsigned char *)(owner + 0x34) = 2;
+            *(float *)(owner + 0x6C) = *(float *)((char *)&D_00000000 + 0x2050);
+        } else {
+            *(unsigned char *)(owner + 0x34) = 1;
+            *(unsigned char *)(owner + 0x60) = *(unsigned char *)(owner + 0x60) | 0x20;
+            if (*(unsigned char *)(obj + 0x18) == 0) {
+                node = *(char **)(obj + 0x50);
+                *(float *)(owner + 0x6C) = *(float *)(*(int *)((char *)&D_00000000 + 0x2CF8) + *(unsigned char *)(node + 0x8C) * 4);
+            } else {
+                *(float *)(owner + 0x6C) = *(float *)(*(int *)((char *)&D_00000000 + 0x2CF8) + *(unsigned char *)(obj + 0x18) * 4);
+            }
+            node = *(char **)(obj + 0x50);
+            *(float *)(owner + 0x64) = (float)*(signed char *)(node + 0x8D) * *(float *)(owner + 0x70) * (1.0f / 256.0f);
+        }
+        gl_func_0003D414(*(int *)(owner + 0xC) + 16);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028604);
