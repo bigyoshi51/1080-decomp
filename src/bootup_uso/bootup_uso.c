@@ -2011,18 +2011,17 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000046EC);
  * 4x &D reloc + f32-const-as-(a3/stack)-arg passing.
  * INCLUDE_ASM remains build path. */
 extern char D_000074F4, D_00007500, D_00007508, D_00007510;
-#ifdef NON_MATCHING
+/* MATCHED 2026-06-02: typed-float proto (0x0-alias) makes args 4,5 pass as
+ * single floats (a3 reg + swc1 0x10 stack) instead of K&R double-promote. */
+extern void func_477c_reg(void *, void *, void *, float, float, int);
 void func_0000477C(char *a0) {
     func_00000000(&D_00000000, &D_000074F4, 0);
-    func_00000000(&D_00000000, &D_00007500, a0 + 0x2C, -2000.0f,  2000.0f, 0);
-    func_00000000(&D_00000000, &D_00007508, a0 + 0x34,    0.01f,    1.0f, 0);
-    func_00000000(&D_00000000, &D_00007510, a0 + 0x30,    0.01f,    1.0f, 0);
+    func_477c_reg(&D_00000000, &D_00007500, a0 + 0x2C, -2000.0f,  2000.0f, 0);
+    func_477c_reg(&D_00000000, &D_00007508, a0 + 0x34,    0.01f,    1.0f, 0);
+    func_477c_reg(&D_00000000, &D_00007510, a0 + 0x30,    0.01f,    1.0f, 0);
     func_00000000(&D_00000000);
     func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000477C);
-#endif
 
 /* func_0000485C - verified structural decode (0xB8, 46 insns,
  * FP transform/draw helper).
