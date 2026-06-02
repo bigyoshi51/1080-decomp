@@ -3982,25 +3982,30 @@ void func_00008AEC(Quad4 *dst) {
  * lwc1 sp+0x34 (f_arg) — so the outgoing call args are (p, a1, a3, a4, f_arg).
  * Variable a2 NOT passed to call; only used for (u16)a2 short store.
  *
- * Residual ~42% diff: build emits sdc1 (float→double promotion via K&R
- * variadic) where target emits swc1 (typed-prototype, no promotion). Also
- * $s0 promotion (build saves p in $s0 across call, target reloads from local
- * sp+0x20 slot). Both promotable via alias-extern typed prototype +
- * volatile-stack-alias for p, but multi-pass scope. */
+ * 2026-06-02 (57.9->87.2%): both residuals fixed.
+ *   (1) typed-float proto func_8b44_init makes the 5th arg pass single swc1
+ *       (was K&R double-promote sdc1).
+ *   (2) using the param a0 DIRECTLY (not a separate `p` local) keeps the obj
+ *       in a0 (spilled/reloaded around the call) instead of promoting it to
+ *       $s0 — drops the s0 save/restore pair and realigns (+24pp).
+ * Residual ~13% = `(u16)a2` reads lw+sh here vs target lhu(42(sp))+sh, + one
+ * lui-1.0f scheduling slot. Minor codegen; INCLUDE_ASM stays. */
+/* typed-float proto (0x0-alias): 5th arg f_arg is a single float on the stack
+ * (target swc1 0x10); K&R func_00000000 double-promotes it. */
+extern void func_8b44_init(char *, int, int, int, float);
 char* func_00008B44(char *a0, int a1, int a2, int a3, int a4, float f_arg) {
-    char *p = a0;
-    if (p == 0) {
-        p = (char*)func_00000000(0x178);
-        if (p == 0) goto end;
+    if (a0 == 0) {
+        a0 = (char*)func_00000000(0x178);
+        if (a0 == 0) goto end;
     }
-    func_00000000(p, a1, a3, a4, f_arg);
-    *(int*)(p + 0x28) = (int)&D_00000000;
-    *(int*)(p + 0x170) = a1;
-    *(float*)(p + 0x150) = 1.0f;
-    *(unsigned short*)(p + 0x174) = (unsigned short)a2;
-    *(float*)(p + 0x154) = 10.0f;
+    func_8b44_init(a0, a1, a3, a4, f_arg);
+    *(int*)(a0 + 0x28) = (int)&D_00000000;
+    *(int*)(a0 + 0x170) = a1;
+    *(float*)(a0 + 0x150) = 1.0f;
+    *(unsigned short*)(a0 + 0x174) = (unsigned short)a2;
+    *(float*)(a0 + 0x154) = 10.0f;
 end:
-    return p;
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008B44);
