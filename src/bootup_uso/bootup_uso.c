@@ -1275,7 +1275,69 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002C94);
  * + multi-&D + beql list-link + sltiu bound check. Full body
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+/* func_00002DA4 - STRUCTURAL PASS (JUMPTABLE, 2026-06-02).
+ * bootup_uso 11-case switch(arg1) setup. Jump table resolved via
+ * scripts/extract-uso-jumptable.py (RoData reloc); the 11 case targets
+ * all share jal-delay slots (duplicated for m2c). Folded D_00000000
+ * refs + func_00000000 placeholder. NOT matched; INCLUDE_ASM byte-exact. */
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+
+void func_00002DA4(void *arg0, s32 arg1, void *arg2) {
+    void *sp1C;
+    s32 sp18;
+    s32 temp_v1;
+    void *temp_a1;
+    void *temp_a1_2;
+    func_00000000(NULL, NULL, arg0);
+    func_00000000();
+    (*(int*)&D_00000000) = func_00000000(NULL, NULL);
+    temp_v1 = FW(arg0, 0x84);
+    temp_a1 = (*(int*)&D_00000000);
+    sp18 = temp_v1;
+    sp1C = temp_a1;
+    func_00000000(temp_v1 + 0x10, temp_a1);
+    if (FW(temp_a1, 0x14) != 0) {
+        FW(temp_a1, 0x4) = 1;
+    }
+    FW(temp_a1, 0x14) = temp_v1;
+    func_00000000((*(int*)&D_00000000), temp_a1, arg2, arg0);
+    (*(int*)((char*)&D_00000000+4)) = (s32) ((*(int*)((char*)&D_00000000+4)) | 0x80000 | 0x2000 | 0x20000);
+    if ((u32) (arg1 - 1) < 0xCU) {
+        switch (arg1) {
+        case 1:
+            temp_a1_2 = (*(int*)&D_00000000);
+            FW(temp_a1_2, 0x18) = (s32) (FW(temp_a1_2, 0x18) | 4);
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        case 6:
+            break;
+        case 7:
+            break;
+        case 8:
+            break;
+        case 9:
+            break;
+        case 10:
+            break;
+        case 11:
+            break;
+        }
+    } else {
+        func_00000000(NULL);
+    }
+}
+#undef FW
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002DA4);
+#endif
 
 /* func_00002F90 - verified structural decode (0x228, 138 insns,
  * multi-widget builder + per-child init). Builder+register family
