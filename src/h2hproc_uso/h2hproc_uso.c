@@ -658,6 +658,18 @@ void h2hproc_uso_func_00000BAC(int *a0) {
  * First-pass decode; structure preserved without byte-match attempt this run.
  * Default build still uses INCLUDE_ASM. Multi-pass refinement expected.
  *
+ * 2026-06-02 STRUCTURE RECONSTRUCTED 56.4->78.3% (+21.9pp): three corrections.
+ *   (1) root = *(D+0x134) is RELOADED inline at every use, NOT cached — s0
+ *       holds &D and the intervening field stores/jals kill IDO's CSE, so the
+ *       `lw rX,0x134(s0)` repeats ~9x (was 1 cached load, -8 insns of deficit).
+ *   (2) first flag-set is on root->0xC4+0xA58 (reloads root->0xC4), not slot.
+ *   (3) only gl_func(alloc2,1) is gated on `if(alloc2)`; the 6-arg call + the
+ *       linked-set finalizer (on r2, not q) + gl_func(retbind,a0) run UNCOND.
+ *   Also: 0x108 second mask reloads via a0->0x520; final call is 2-arg.
+ * RESIDUAL ~22%: (a) s1<->s2 renumber (target param=s1/slot=s2; mine swapped),
+ *   (b) the two flag RMWs use addiu-address+0(reg) in target vs offset
+ *   addressing in mine (addiu-form cap, feedback_rmw_pointer_local_folds...).
+ *
  * 2026-05-31 TAIL RECONSTRUCTED 52->56.4% (gap 38->20): the body's tail now matches
  * the verified asm structure below (alloc2 uncond -> root->0x108; if(alloc2) chain +
  * finalizer). RESIDUAL is regalloc (s0/s1/s2 promotion) + the exact 6-arg func2 stack-
@@ -676,73 +688,79 @@ void h2hproc_uso_func_00000BAC(int *a0) {
  * Also: the first flag-set is on root->0xC4->0xA58 (a0->0xC4), and root->0xCC->0xA58;
  * register residual is s2=slot promotion. Complex 6-arg cross-USO calls = focused-RE. */
 void h2hproc_uso_func_00000C18(int *a0) {
-    int *slot;
     int idx;
-    int *root;
+    int *slot;
     int *s518_ret;
     int *bound;
+    int *retbind;
+    int *alloc2;
+    int *r2;
+    int b84;
     int v;
+/* root = *(D+0x134), reloaded inline at every use (s0 = &D held in a callee-
+ * save; the intervening field stores/calls kill IDO's CSE so the load repeats,
+ * matching the target's repeated `lw rX, 0x134(s0)`). */
+#define RT (*(int**)((char*)&D_00000000 + 0x134))
 
     idx = *(int*)((char*)a0 + 0x6B8);
-    root = *(int**)((char*)&D_00000000 + 0x134);
     if (idx == -1) {
-        slot = *(int**)((char*)root + 0xC4);
+        slot = *(int**)((char*)RT + 0xC4);
     } else {
-        slot = *(int**)((char*)((char*)root + idx * 8) + 0xC4);
+        slot = *(int**)((char*)((char*)RT + idx * 8) + 0xC4);
     }
 
-    /* Set 0x8000 flag on slot's 0xA58 region (root->0xC4 + 0xA58). */
-    *(int*)((char*)slot + 0xA58) = *(int*)((char*)slot + 0xA58) | 0x8000;
-    /* Same for root->0xCC's 0xA58 region. */
+    /* First flag-set is on root->0xC4 + 0xA58 (NOT slot — reloads root->0xC4). */
     {
-        int *r2 = *(int**)((char*)root + 0xCC);
-        *(int*)((char*)r2 + 0xA58) = *(int*)((char*)r2 + 0xA58) | 0x8000;
+        int *f = *(int**)((char*)RT + 0xC4);
+        *(int*)((char*)f + 0xA58) = *(int*)((char*)f + 0xA58) | 0x8000;
+    }
+    /* Second flag on root->0xCC + 0xA58. */
+    {
+        int *g = *(int**)((char*)RT + 0xCC);
+        *(int*)((char*)g + 0xA58) = *(int*)((char*)g + 0xA58) | 0x8000;
     }
 
-    /* Two parallel gl_func calls — likely "make per-side data" paired. */
-    s518_ret = (int*)gl_func_00000000(root, 0, *(int*)((char*)root + 0x80), slot, *(int*)((char*)slot + 0x800));
-    bound    = (int*)gl_func_00000000(root, 1, *(int*)((char*)root + 0x80), slot, *(int*)((char*)slot + 0x800));
+    /* Per-side make calls (5-arg, 5th on stack). */
+    s518_ret = (int*)gl_func_00000000(RT, 0, *(int*)((char*)RT + 0x80), slot, *(int*)((char*)slot + 0x800));
+    bound    = (int*)gl_func_00000000(RT, 1, *(int*)((char*)RT + 0x80), slot, *(int*)((char*)slot + 0x800));
 
-    /* Mask off bits 3/2 on the 0x108-pointed struct's 0x18 field. */
+    /* 0x108 struct: clear bit3, then RELOAD via a0->0x520 and clear bit2. */
     {
-        int *p108 = *(int**)((char*)root + 0x108);
-        *(int*)((char*)a0 + 0x520) = (int)p108;
-        *(int*)((char*)p108 + 0x18) = *(int*)((char*)p108 + 0x18) & ~0x8;
-        *(int*)((char*)p108 + 0x18) = *(int*)((char*)p108 + 0x18) & ~0x4;
+        int *p = *(int**)((char*)RT + 0x108);
+        *(int*)((char*)a0 + 0x520) = (int)p;
+        *(int*)((char*)p + 0x18) = *(int*)((char*)p + 0x18) & ~0x8;
+        p = *(int**)((char*)a0 + 0x520);
+        *(int*)((char*)p + 0x18) = *(int*)((char*)p + 0x18) & ~0x4;
     }
-    /* Mask off bits 3/2 on 0x10C-pointed struct's 0x18 field (combined). */
+    /* 0x10C struct: compute (x & ~0x8) once, store, then store (x & ~0x8 & ~0x4). */
     {
-        int *p10C = *(int**)((char*)root + 0x10C);
-        v = *(int*)((char*)p10C + 0x18) & ~0x8;
-        *(int*)((char*)p10C + 0x18) = v;
-        *(int*)((char*)p10C + 0x18) = v & ~0x4;
+        int *p = *(int**)((char*)RT + 0x10C);
+        v = *(int*)((char*)p + 0x18) & ~0x8;
+        *(int*)((char*)p + 0x18) = v;
+        *(int*)((char*)p + 0x18) = v & ~0x4;
     }
 
-    /* Bind retval; alloc2 -> root->0x108 unconditionally; if alloc2, run the
-       per-side setup chain + linked-set finalizer. */
-    {
-        int *retbind = (int*)gl_func_00000000(root, &D_00000000 + 0x1C, s518_ret);
-        int *alloc2;
-        *(int*)((char*)a0 + 0x51C) = (int)retbind;
-        alloc2 = (int*)gl_func_00000000(0x80);
-        *(int*)((char*)root + 0x108) = (int)alloc2;
-        if (alloc2 != 0) {
-            int b84 = *(int*)((char*)root + 0x84);
-            int *r2;
-            int *q;
-            gl_func_00000000(alloc2, 1);
-            r2 = (int*)gl_func_00000000(0, alloc2, slot, retbind, s518_ret, bound);
-            q = (int*)gl_func_00000000(b84 + 0x10, r2);
-            if (*(int*)((char*)q + 0x14) != 0) {
-                *(int*)((char*)q + 0x4) = 1;
-            }
-            *(int*)((char*)q + 0x14) = b84;
-            gl_func_00000000(retbind);
-        }
+    retbind = (int*)gl_func_00000000(RT, &D_00000000 + 0x1C, s518_ret);
+    *(int*)((char*)a0 + 0x51C) = (int)retbind;
+    alloc2 = (int*)gl_func_00000000(0x80);
+    *(int*)((char*)RT + 0x108) = (int)alloc2;
+    if (alloc2 != 0) {
+        gl_func_00000000(alloc2, 1);
     }
+    /* The 6-arg call + finalizer run UNCONDITIONALLY (only func1 is gated). */
+    r2 = (int*)gl_func_00000000(0, alloc2, slot, retbind, s518_ret, bound);
+    b84 = *(int*)((char*)RT + 0x84);
+    gl_func_00000000(b84 + 0x10, r2);
+    /* linked-set finalizer on r2. */
+    if (*(int*)((char*)r2 + 0x14) != 0) {
+        *(int*)((char*)r2 + 0x4) = 1;
+    }
+    *(int*)((char*)r2 + 0x14) = b84;
+    gl_func_00000000(*(int*)((char*)a0 + 0x51C), a0);
 
     /* Final flag clear. */
     *(int*)((char*)a0 + 0x4F0) = *(int*)((char*)a0 + 0x4F0) & 0xFEFFFFFF;
+#undef RT
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C18);
