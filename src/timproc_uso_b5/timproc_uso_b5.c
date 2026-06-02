@@ -1311,29 +1311,17 @@ void timproc_uso_b5_func_00003890(int *a0) {
  * 0000396C(entry)+0000398C-F1(cont) — still to merge. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038B0);
 
-/* timproc_uso_b5_func_0000396C: ENTRY FRAGMENT (0x20, 8 insns, no jr ra/prologue)
- * of the 47-insn sibling of 038B0+038D0. Reads a0->{0x184,0x188,0x29C,0x2A0}
- * and computes the FP temps that 398C-F1 consumes. Same splat-split-by-hoisted-
- * arg-loads shape; the 398C "float-in-$fN cap" is the same misdiagnosis (see
- * below + the 038B0 comment). Matchable once 396C+398C-F1 boundary is merged. */
+/* timproc_uso_b5_func_0000396C: one 47-insn (0xBC) FP transform — the sibling of
+ * 038B0 (template-identical except field offsets 0x184/0x188 vs 0x164/0x168).
+ * BOUNDARY MERGED 2026-06-02: splat had split it into 396C (entry, 8 a0-field FP
+ * loads, no prologue, jal'd from 5FC0) + 398C (the `addiu sp,-32` prologue +
+ * body + jr ra, zero callers); IDO hoisted the entry loads above the frame
+ * setup. Absorbed 398C's 39 words into 396C (0x20->0xBC) and dropped the 398C
+ * symbol. This RETRACTS the old "float-in-$f6/$f8 callee cap": those regs are
+ * computed in the entry from a0->{0x184,0x188,0x29C,0x2A0}, not caller-passed.
+ * (The separate 8-insn 0x3A28 piece is the stolen prologue of 00003A4C — its
+ * own symbol, already handled, not part of this merge.) */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000396C);
-
-/* timproc_uso_b5_func_0000398C: 47-insn bundled symbol, sibling of
- * timproc_uso_b5_func_000038D0. F1 @ 0x398C-0x3A24 (39 insns) is
- * BYTE-IDENTICAL TEMPLATE to 38D0's F1 except for two field-offset
- * differences (0x18C vs 0x16C, a0->[0x29C]/[0x2A0] vs the equivalent
- * in 38D0). *** "float-in-$fN cap" RETRACTED 2026-06-02: *** F1's $f6/$f8/
- * $f10/$f12 are computed by the 0000396C entry fragment from a0 fields, NOT
- * received from a caller. 396C(entry)+398C-F1(cont) is one 47-insn function
- * splat split because IDO hoisted the entry's arg-loads above the prologue.
- * Matchable once the 396C+398C-F1 boundary is merged (USO-asm regen).
- *
- * F2 @ 0x3A28-0x3A48 (8 insns) is the prologue-stolen prefix of next
- * function timproc_uso_b5_func_00003A4C (loads a0->[0xDC/0xE0/0xE4],
- * stores to a1->[0x60/0x64/0x68], integer field at 0x29C).
- *
- * Default INCLUDE_ASM keeps ROM byte-correct. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000398C);
 
 void timproc_uso_b5_func_00003A28(int *a0, int *a1, int a2) {
     float *src = (float *)a0[0x29C / 4];
