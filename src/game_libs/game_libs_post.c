@@ -33644,35 +33644,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D414);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D474);
-
 #ifdef NON_MATCHING
-/* gl_func_0005D480: 30-insn Vec3-scale + 3-call cascade (0x78, frame 0x50).
- *
- * Caller-set float convention ($f14, $f4): USO intra-USO non-O32
- * float-receive — same cap class as gl_func_00010650
- * (docs/IDO_CODEGEN.md#feedback-ido-no-gcc-register-asm). Real C body
- * documents structure; INCLUDE_ASM is the build path.
- *
- * Decoded structure (raw-word disasm):
- *   product = caller_f14 * caller_f4;                // mul.s f12, f14, f4
- *   scalar1 = func1(product);                        // 1st call, returns f0
- *   scalar2 = func2(scalar1);                        // 2nd call, returns f0
- *   buf[0..2] = a1[0..2] * scalar1;                  // Vec3 scale
- *   buf[3] = scalar2;
- *   func3(&buf, a0_saved, a0_saved);                 // 3rd call (a1==a2)
- *
- * The 0x50 frame holds 6 spill slots (a0/a1 saved, f12 spilled across 1st call,
- * f0 results from both calls, 4-float output buffer at sp+0x3C..0x48).
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-void gl_func_0005D480(int a0, float *a1) {
-    extern float gl_float_f14, gl_float_f4;
+/* game_libs_func_0005D474: one 33-insn (0x84) Vec3-scale + 3-call cascade.
+ * BOUNDARY MERGED 2026-06-02: splat had split it into 0005D474 (3-insn FP-const
+ * prologue: `mtc1 a2,$f14` + `lui 0x3f00`→`$f4`=0.5 — hoisted above the frame
+ * setup; the real entry) + gl_func_0005D480 (the `addiu sp` prologue + body
+ * doing `mul.s $f12,$f14,$f4` reading f14/f4 uninitialized). SINGLE-entry per
+ * the dual-vs-single test (docs/MATCHING_WORKFLOW.md): f14 is ARG-DERIVED
+ * (bit-cast of the 3rd arg a2), not a baked default, and gl_func_0005D480 has
+ * no callers. Absorbed 0005D480's 30 words into 0005D474 (0xC -> 0x84); dropped
+ * the 0005D480 symbol. Merging brings f14 (=a2) and f4 (=0.5) in-scope,
+ * RETRACTING the bogus "caller-set float convention" cap. Remaining caps keep
+ * it NM: placeholder calls + the (float)(int) result casts. */
+void game_libs_func_0005D474(int a0, float *a1, int a2) {
+    float f14 = *(float *)&a2;   /* mtc1 a2,$f14 in the merged prologue */
+    float f4 = 0.5f;             /* lui 0x3f00 = 0.5f */
     float buf[4];
     float scalar1, scalar2;
-    float product = gl_float_f14 * gl_float_f4;
+    float product = f14 * f4;
     scalar1 = (float)(int)gl_func_00000000(product);
     scalar2 = (float)(int)gl_func_00000000(scalar1);
     buf[0] = a1[0] * scalar1;
@@ -33682,7 +33671,7 @@ void gl_func_0005D480(int a0, float *a1) {
     gl_func_00000000(&buf, a0, a0);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D480);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D474);
 #endif
 
 // gl_func_0005D4F8 — 4-component normalize (quaternion / 4-float vector).
