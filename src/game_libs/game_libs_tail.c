@@ -2005,13 +2005,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CD74);
  * 2 globals into $f6/$f8. If any threshold is exceeded, dispatch the
  * cross-USO callback.
  *
- * Arguments are received in $f0 and $f4 (NOT the standard $f12/$f14),
- * suggesting this is called from an asm-emitted call-site that explicitly
- * sets up these registers. Standard C signature `(float, float)` won't
- * map cleanly to $f0/$f4 — IDO uses $f12/$f14 for normal float args.
- *
- * Initial structural wrap; bytes likely won't match without an inline-asm
- * shim or an explicit-register declaration. Documented for future passes. */
+ * Args in $f0/$f4 (NOT standard $f12/$f14) — $f0 is the common operand of all
+ * 3 c.lt.s compares. The physically-preceding fragment game_libs_func_0000CD74
+ * (`mtc1 zero,$f0; lwc1 $f4,D[...]`, no jr ra) sets $f0=0.0 and $f4=const and
+ * falls in here. NOT a mergeable stolen-prologue: per the dual-vs-single-entry
+ * test (docs/MATCHING_WORKFLOW.md forward-merge §), the frag sets $f0 to the
+ * CONSTANT 0.0 — baking that makes this a degenerate fixed-threshold gate, and
+ * $f0 is the VARIABLE operand here, so CD74 is an alternate "f0=0.0 default"
+ * entry while this body is also (cross-USO) callable with $f0 as a real arg.
+ * Neither symbol has an in-segment caller (both reloc'd-jal/export reachable),
+ * so single-entry can't be confirmed — treat as a dual-entry cap, do NOT merge.
+ * Bytes won't match from C without an inline-asm shim. */
 extern int gl_func_00000000();
 void gl_func_0000CD80(float a0, float a1) {
     extern char D_CD80_t1;
