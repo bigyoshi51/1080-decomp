@@ -34164,9 +34164,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EAA4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EB4C);
 
+/* game_libs_func_0005ED54: one 107-insn (0x1AC) function. BOUNDARY MERGED
+ * 2026-06-02: splat had split it into 0005ED54 (3-insn FP-const prologue:
+ * `mtc1 a2,$f12` (input, ARG-DERIVED) + `lui 0x4000`->$f10=2.0 — hoisted above
+ * the frame; the real entry) + gl_func_0005ED60 (the prologue+body using f12 in
+ * `div.s $f16,$f12,$f10`). SINGLE-entry per the dual-vs-single test (f12 arg-
+ * derived + FP-op use; no callers). Absorbed 0005ED60's 104 words into 0005ED54
+ * (0xC -> 0x1AC); dropped the 0005ED60 symbol. Brings f12(=a2)/f10(=2.0)
+ * in-scope, retracting the implicit caller-set-float cap; the body is decodable
+ * in a future pass. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005ED54);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005ED60);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EF00);
 
