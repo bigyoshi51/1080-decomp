@@ -1341,15 +1341,18 @@ void gl_func_0000B8E0(int a0, int a1, int a2, int a3) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_0000B958: 69-insn word-array equality predicate. Compares (a3+3)/4
- * words of a1[] vs a2[]; returns 0 on the first mismatch, 1 if all equal.
- * RELOC-FREE and -O2, so landable in principle -- but the target is IDO's 4-way
- * UNROLLED form (Duff's-device andi&3 remainder + the 4-wide body), which a plain
- * early-exit loop does NOT reproduce (my C compiles to a tight 24-insn loop, no
- * unroll). Needs the permuter / a hand-unrolled form to match. NM (reference);
- * verified-correct algorithm. */
+/* gl_func_0000B958: 69-insn word-array equality predicate. Compares a3/4 words
+ * (signed div, trunc-toward-zero — target's `bgez a3; sra a3,2 / addiu a3,3;
+ * sra` idiom, NOT (a3+3)/4) of a1[] vs a2[]; returns 0 on first mismatch, 1 if
+ * all equal. a0 is dead (saved, never read). RELOC-FREE and -O2.
+ * Target is IDO's 4-way Duff's-device UNROLL (andi&3 remainder prologue, v0
+ * counts up; 4-wide main body, v0 += 4; v0==n short-exit only on the rem!=0
+ * path). A hand-unrolled C form was tried 2026-06-02: IDO re-expanded the
+ * nested do-whiles to 173 insns (vs 69) — worse, fuzzy=None. The plain loop
+ * below (corrected divisor) is the faithful reference; exact unroll is
+ * permuter-class. */
 int gl_func_0000B958(int a0, int *a1, int *a2, int a3) {
-    int n = (a3 + 3) / 4;
+    int n = a3 / 4;
     int i;
     for (i = 0; i < n; i++) {
         if (a1[i] != a2[i]) {
