@@ -38054,14 +38054,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066EEC);
  * (cheaper than `mul`). 0x1228 is the offset into the indexed-entry array.
  * 0x13D8/0x13DC are byte fields at the entry's flags-region.
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * 99.41% NM (2026-06-02, was 85.09%). Three structural fixes (+14pp):
+ *  (1) gate-2 compare is `(unsigned char)v1[0x13D8] == a2` (lbu + direct
+ *      compare); the `(char)a2` cast added a spurious `andi`.
+ *  (2) dropped the unused 4th param (`int arg3`) — frees $a3 so IDO reuses it
+ *      to hold original-a0 (target `or a3,a0`) instead of spilling a0 to stack.
+ *  (3) decrement is plain `if (v1[0x13D8] > 0) v1[0x13D8]--;` — the
+ *      `(signed char)`/`(char)` casts forced a redundant sll/sra sign-extend.
+ * Residual ~0.6% = frame 0x28-vs-0x20 + the `addu a0,a0,t8` operand order on
+ * the 104*a1 address adds — regalloc/scheduling, permuter-class.
  */
-void gl_func_00067084(char *a0, int a1, int a2, int arg3) {
+void gl_func_00067084(char *a0, int a1, int a2) {
     char *v1 = a0 + a1;
     char *addr;
     if (v1[0x13DC] == 0) return;
-    if (v1[0x13D8] == (char)a2) return;
+    if ((unsigned char)v1[0x13D8] == a2) return;
     addr = a0 + 104 * a1 + 0x1228;
     if (a2 != 0) {
         if (gl_func_00000000(addr) == 0) {
@@ -38069,8 +38076,8 @@ void gl_func_00067084(char *a0, int a1, int a2, int arg3) {
         }
     } else {
         if (gl_func_00000000(addr) != 0) {
-            if ((signed char)v1[0x13D8] > 0) {
-                v1[0x13D8] = (char)(v1[0x13D8] - 1);
+            if (v1[0x13D8] > 0) {
+                v1[0x13D8]--;
             }
         }
     }
