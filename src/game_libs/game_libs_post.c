@@ -7327,6 +7327,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). An object detach / relink manager.
 //
+// 2026-06-02 DECODE CORRECTION (current C body below is WRONG — 15% — needs
+// rewrite): the splice operates on `owner = obj->0x2C` (lw v0,0x2C(a0); early
+// return if 0), NOT on the param. The 2nd param `a1` is actually an INT TAG
+// (saved sp+0x36, compared `!= 7` near the end to gate a flag/FP branch), NOT
+// a pointer. After the owner-splice (owner->0x48 / owner->0x44 / owner->0x40
+// relinks with -1 sentinel), there is a LARGE sub-object copy block: v0 =
+// owner+0x4C receives ~10 byte/halfword/word fields lbu/sb-copied from
+// `node = owner->0x50` (and node->0x4C subfields) — node->4/0xC/0xDC/0x20/0xF
+// -> v0->0/1/0x10/6/4 etc.; a node->0x4C->0(<<2 sign) gate sets a1+0xB0 bit5;
+// then a conditional (node->1 ? node->0xE0 : node->1) sb v0->3; tag==6 path
+// sets a1+0x60 bit4 + swc1 (&D+0x2050)=g into a1+0x6C; else a1+0x34 + FP scale
+// (a1->0x70 * (s8)node->0x8D * (1/256, lui 0x3b80) -> a1->0x64); finally if
+// tag!=7: jal 0x3D414(a1->0xC + 16). Real fix = decode owner-splice + this
+// copy block from the raw words (multi-tick). The body below is a placeholder.
+//
 //   void gl_func_00028604(O *obj, A *a1) {
 //     if (obj == (O*)-1) return;                         // null sentinel
 //     byte fl = obj->b_0;
