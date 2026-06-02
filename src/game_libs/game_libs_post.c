@@ -35109,7 +35109,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006179C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000617A8);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061824);
+/* game_libs_func_00061824: FP formula. n = 4*a0; x = ((n+2)*(n+3) >> 2) & 0xFFFF
+ * (unsigned mult -> multu, low word kept); returns (float)(unsigned)x / D[0x2070].
+ * The bgez + (add 0x4f800000=2^32) around cvt.s.w is IDO's (float)(unsigned int)
+ * idiom — emitted even though x<0x10000 never sets the MSB. Single reloc: the
+ * float divisor at D+0x2070. */
+float game_libs_func_00061824(int a0) {
+    unsigned int n = a0 * 4;
+    unsigned int x = ((n + 2) * (n + 3) >> 2) & 0xFFFF;
+    return (float)x / *(float *)((char *)&D_00000000 + 0x2070);
+}
 
 // Store arg to global at segment offset 0x21E04 (lui+sw, offset baked in bytes).
 void game_libs_func_0006186C(int a0) {
