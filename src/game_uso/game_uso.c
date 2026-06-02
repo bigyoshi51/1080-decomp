@@ -10335,7 +10335,16 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
  * `s1==-(8+N*24)` (dead, so IDO emits the alloc arms), registered via
  * init_sub(sub,s1,*D[0x122C+N*4],1) with template D[0xF78+N*8], 0x14=0, and
  * FP field D[0x1EC+N*4]. Contiguous prefix of 12 sub-inits decoded; the
- * remaining ~19 are the multi-tick tail. */
+ * remaining ~19 are the multi-tick tail.
+ *
+ * 2026-06-01 (27.43->28.7%): the sub-inits are THREE type-tagged kinds, not a
+ * uniform float-D[] run (the old macro only matched the float-D[] ones). All
+ * share the head init_sub(sub,s1,D[0x122C+N*4],1)+0x14=0; they differ in:
+ *   - float-D[] (N=0,4,9): 0xC=&D+0xF78+N*8, 0x10=float D[0x1EC+N*4]
+ *   - int       (N=1,2,3,5,8): 0xC=&D+0xFC0, 0x10=int {20,60,5,20,3}
+ *   - float-lit (N=6,7,10,11): 0xC=&D+0xF78, 0x10={3,7,4,50}.0f
+ * SUB_F/SUB_I/SUB_L macros below encode the 3 kinds. Next: decode N=12..32's
+ * kinds+values (parser hints: 12..22 float, 27..32 int) to extend the run. */
 void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     char *p;
     int *s1;
@@ -10357,23 +10366,37 @@ void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     s1[0] = (int)((char *)&D_00000000 + 0x1224);
     s1[1] = 0;
 
-#define SUBINIT(N) \
+    /* Sub-object run: 3 type-tagged kinds (decoded 2026-06-01). Common head:
+     * init_sub(sub, s1, D[0x122C+N*4], 1); sub->0x14 = 0. They differ in the
+     * 0xC template ptr and the 0x10 field. */
+#define SUB_HEAD(N) \
     val = *(int *)((char *)&D_00000000 + (0x122C + (N) * 4)); \
-    { \
-        int *sub = (int *)((char *)s1 + (8 + (N) * 24)); \
-        if (s1 == (int *)-(8 + (N) * 24)) { \
-            sub = (int *)gl_func_00000000(0x18); \
-            if (sub == 0) goto end; \
-        } \
-        gl_func_00000000(sub, s1, val, 1); \
-        sub[0xC / 4] = (int)((char *)&D_00000000 + (0xF78 + (N) * 8)); \
-        sub[0x14 / 4] = 0; \
-        *(float *)((char *)sub + 0x10) = *(float *)((char *)&D_00000000 + (0x1EC + (N) * 4)); \
-    }
-    SUBINIT(0)  SUBINIT(1)  SUBINIT(2)  SUBINIT(3)
-    SUBINIT(4)  SUBINIT(5)  SUBINIT(6)  SUBINIT(7)
-    SUBINIT(8)  SUBINIT(9)  SUBINIT(10) SUBINIT(11)
-#undef SUBINIT
+    sub = (int *)((char *)s1 + (8 + (N) * 24)); \
+    if (s1 == (int *)-(8 + (N) * 24)) { \
+        sub = (int *)gl_func_00000000(0x18); \
+        if (sub == 0) goto end; \
+    } \
+    gl_func_00000000(sub, s1, val, 1); \
+    sub[0x14 / 4] = 0;
+    /* float-D[] kind: 0xC = &D+0xF78+N*8, 0x10 = float D[0x1EC+N*4] */
+#define SUB_F(N) { int *sub; SUB_HEAD(N) \
+    sub[0xC / 4] = (int)((char *)&D_00000000 + (0xF78 + (N) * 8)); \
+    *(float *)((char *)sub + 0x10) = *(float *)((char *)&D_00000000 + (0x1EC + (N) * 4)); }
+    /* int kind: 0xC = &D+0xFC0, 0x10 = int constant */
+#define SUB_I(N, IVAL) { int *sub; SUB_HEAD(N) \
+    sub[0xC / 4] = (int)((char *)&D_00000000 + 0xFC0); \
+    sub[0x10 / 4] = (IVAL); }
+    /* float-literal kind: 0xC = &D+0xF78, 0x10 = float literal */
+#define SUB_L(N, FVAL) { int *sub; SUB_HEAD(N) \
+    sub[0xC / 4] = (int)((char *)&D_00000000 + 0xF78); \
+    *(float *)((char *)sub + 0x10) = (FVAL); }
+    SUB_F(0)  SUB_I(1, 20)  SUB_I(2, 60)  SUB_I(3, 5)
+    SUB_F(4)  SUB_I(5, 20)  SUB_L(6, 3.0f) SUB_L(7, 7.0f)
+    SUB_I(8, 3) SUB_F(9)  SUB_L(10, 4.0f) SUB_L(11, 50.0f)
+#undef SUB_HEAD
+#undef SUB_F
+#undef SUB_I
+#undef SUB_L
     (void)a2;
 end:
     return p;
