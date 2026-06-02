@@ -6714,6 +6714,18 @@ void game_libs_func_00027528(unsigned short *a0, unsigned short *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027528);
 #endif
 
+/* game_libs_func_00027534: byte-copy accessor — *(u8*)(a0+0xE0) = *(u8*)(a1+4).
+ * Target: `lbu t0,4(a1); sb t0,0xE0(a0); jr ra; nop` (UNFILLED jr delay).
+ * Decode confirmed 2026-06-01. Two blockers to a real match:
+ *   1. UNFILLED delay slot — the file's default -O2 fills it (`jr ra; sb` in the
+ *      delay). Only -O2 -g / -O2 -g3 reproduce the `sb; jr ra; nop` form
+ *      (verified standalone), so it needs a per-file -g carve-out like
+ *      game_libs_o0_8A40.c.
+ *   2. Even at -O2 -g the temp colors to t6, never the target's t0 (tested
+ *      named-local / int-temp / uchar* args / direct-index — all t6/t7). A
+ *      register-renumber cap, so a carve-out would still cap at the lbu/sb
+ *      register (2 of 4 insns). Not worth the carve-out infra for a 4-insn
+ *      leaf that can't reach 100%. Sibling of 00027528. Stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027534);
 
 /* gl_func_00027548: 17-insn (0x44) F3DEX2-style display-list-word builder.
