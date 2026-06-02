@@ -1945,29 +1945,54 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000411C);
  * builder. Randomized variant of the family.
  * Caps <80: ~10 reloc (incl. RNG) + FP mul.s/trunc.w.s + idx*4
  * table index + cross-symbol refs + FP stack-arg.
- * INCLUDE_ASM remains build path. */
+ *
+ * 2026-06-02 FULL CHAIN DECODED 27.6->55.5% (+27.9pp): two rng() calls give
+ * idx1=(int)(r*F3F8->0x154) and idx2=(int)(rr*F3F8->0x158 + idx1 + 1.0f) % 3;
+ * row1/row2 = *(func_00000080 + idxN*4 + 0x90) (descriptor table); r1/r2 =
+ * builder(s0, 0/1, idxN, rowN, oN, s0->0x80, cfg->0xC4 -/+ 500.0f, cfg->0xCC,
+ * 0x8004/0x8024, 0x15); r1<->r2 0x908 cross-link; b3/b4=builder(s0,2,s0->0x80,
+ * rN,oN); bN->0x14C=55.0f; rowF=&D+a1*0x1C; f1/f2=builder(s0,rowF[+0x1C],bN);
+ * rN->0x8DC=fN. All field stores byte-match; residual ~45% = regalloc. */
 #ifdef NON_MATCHING
-void func_000043D4(char *s1, int a1) {
+/* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats. */
+extern char *func_43d4_r(char *, int, int, int, char *, int, float, float, int, int);
+void func_000043D4(char *s0, int a1) {
     char *o1 = (char*)func_00000000(0x80);
-    char *o2;
-    float r;
-    int idx;
-    float g;
-    int *row;
+    char *o2, *cfg, *Dg = &D_00000000;
+    char *r1, *r2, *b3, *b4, *f1, *row1, *row2;
+    float r, rr;
+    int idx1, idx2;
     if (o1 == 0) return;
     func_00000000(o1, 0);
     o2 = (char*)func_00000000(0x80);
     if (o2 == 0) return;
     func_00000000(o2, 0);
-    func_00000000(&D_00000000, o1);
-    func_00000000(&D_00000000, o2);
+    func_00000000(Dg, o1);
+    func_00000000(Dg, o2);
     r = (float)func_00000000();
-    idx = (int)(r * *(float*)((char*)&func_000003F8 + 0x154));
-    g = r * *(float*)((char*)&func_000003F8 + 0x158);
-    row = (int*)((char*)&func_00000080 + 0x10 + idx * 4);
-    func_00000000(s1, row, o1, g, 0x8004, 0x15);
-    (void)a1;
-    /* Chain continues per family-shared shape; truncated in decode. */
+    idx1 = (int)(r * *(float*)((char*)&func_000003F8 + 0x154));
+    rr = (float)func_00000000();
+    idx2 = (int)(rr * *(float*)((char*)&func_000003F8 + 0x158) + (float)idx1 + 1.0f) % 3;
+    cfg = *(char**)(s0 + 0x98);
+    row1 = *(char**)((char*)&func_00000080 + idx1 * 4 + 0x90);
+    r1 = func_43d4_r(s0, 0, idx1, (int)row1, o1, *(int*)(s0 + 0x80),
+                     *(float*)(cfg + 0xC4) - 500.0f, *(float*)(cfg + 0xCC), 0x8004, 0x15);
+    row2 = *(char**)((char*)&func_00000080 + idx2 * 4 + 0x90);
+    r2 = func_43d4_r(s0, 1, idx2, (int)row2, o2, *(int*)(s0 + 0x80),
+                     *(float*)(cfg + 0xC4) + 500.0f, *(float*)(cfg + 0xCC), 0x8024, 0x15);
+    *(char**)(r1 + 0x908) = r2;
+    *(char**)(r2 + 0x908) = r1;
+    b3 = (char*)func_00000000(s0, 2, *(int*)(s0 + 0x80), r1, o1);
+    b4 = (char*)func_00000000(s0, 2, *(int*)(s0 + 0x80), r2, o2);
+    *(float*)(b3 + 0x14C) = 55.0f;
+    *(float*)(b4 + 0x14C) = 55.0f;
+    row1 = (char*)&D_00000000 + a1 * 0x1C;
+    f1 = (char*)func_00000000(s0, row1, b3);
+    *(char**)(r1 + 0x8DC) = f1;
+    {
+        char *f2 = (char*)func_00000000(s0, row1 + 0x1C, b4);
+        *(char**)(r2 + 0x8DC) = f2;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000043D4);
