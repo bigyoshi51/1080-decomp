@@ -42,7 +42,7 @@ void timproc_uso_b1_func_000000B0(int *a0, int a1) {
     int v, s0v;
     do {
         state = a1;
-        if ((unsigned int)state >= 14) break;
+        if ((unsigned int)state < 14) {
         switch (state) {
         case 0:
             gl_func_00000000(a0, 1, 7, 1);
@@ -124,6 +124,7 @@ void timproc_uso_b1_func_000000B0(int *a0, int a1) {
             }
             done = 1;
             break;
+        }
         }
         a1 = *(int *)(d + 0x40);
     } while (done == 0);
