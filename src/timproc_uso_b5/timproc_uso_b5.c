@@ -3250,7 +3250,16 @@ int timproc_uso_b5_func_0000886C(int t2) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000886C);
 #endif
 
+#ifdef NON_MATCHING
+/* flag-check leaf: return (a0->0x3C0 & 4) ? 4 : 0. The target's beql shares
+ * the next function's epilogue (branches past its declared 0x18 size), so a
+ * standalone wrap can't byte-match the tail; the visible logic is exact. */
+int timproc_uso_b5_func_0000887C(char *a0) {
+    return (*(int *)(a0 + 0x3C0) & 4) ? 4 : 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000887C);
+#endif
 
 /* timproc_uso_b5_func_00008894 moved to the -O2 -g3 carve-out
  * timproc_uso_b5_g3_8894.c. It is the same 0xC unfilled-jr-delay return-zero
