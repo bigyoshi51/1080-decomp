@@ -179,7 +179,69 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000124);
  */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
 
+#ifdef NON_MATCHING
+/* Full decode 2026-06-01. Display-list emitter (sibling of
+ * gui_uso_func_000016A4): appends 6 fixed GBI commands (RDPPIPESYNC, two
+ * SETOTHERMODE_H, SETOTHERMODE_L, SETCOMBINE, B/B-tile) to the gfx builder
+ * reached via *(D+0x254)->0x158, caching it at a0->0x24 between appends. */
+void gui_uso_func_0000055C(char *a0) {
+    char *b;
+    char *p;
+    char *buf;
+    int i;
+
+    b = *(char **)(*(char **)((char *)&D_00000000 + 0x254) + 0x158);
+    *(char **)(a0 + 0x24) = b;
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xE7000000;
+    *(int *)(buf + i * 8 + 4) = 0;
+
+    b = *(char **)(a0 + 0x24);
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xBA001402;
+    *(int *)(buf + i * 8 + 4) = 0;
+
+    b = *(char **)(a0 + 0x24);
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xBA001301;
+    *(int *)(buf + i * 8 + 4) = 0;
+
+    b = *(char **)(a0 + 0x24);
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xB900031D;
+    *(int *)(buf + i * 8 + 4) = 0x00404240;
+
+    b = *(char **)(a0 + 0x24);
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xFC309661;
+    *(int *)(buf + i * 8 + 4) = 0xFF2FFFFF;
+
+    b = *(char **)(a0 + 0x24);
+    p = *(char **)(b + 0xC);
+    i = *(int *)(p + 4);
+    *(int *)(p + 4) = i + 1;
+    buf = *(char **)p;
+    *(int *)(buf + i * 8) = 0xBB000001;
+    *(int *)(buf + i * 8 + 4) = 0x80008000;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000055C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000006B8);
 
