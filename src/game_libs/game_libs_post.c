@@ -38417,7 +38417,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
  * Needs splat boundary correction (focused-session). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B40);
 
+#ifdef NON_MATCHING
+/* game_libs_func_00067B78: naive substring search returning a bool. a0 =
+ * haystack, a1 = needle. Saves the needle start (v0); compares needle char vs
+ * haystack char, advancing both on match and resetting the needle (a1 = start)
+ * on mismatch while the haystack keeps advancing. Returns 1 when the needle is
+ * exhausted (full match) or *needle==0 at exit, else 0. Unsigned-char loads.
+ * 64.8% NM (from 13.8%): the single shared `return *a1==0` epilogue + combined
+ * `if(*a0&&*a1){ do{}while(*a0&&*a1) }` guard collapsed 3 separate returns into
+ * one (+51pp). Residual: the target makes per-iter copies (v1=a0, a2=a1) and
+ * compares through them + re-reads *a0 after the needle reset, and its epilogue
+ * is `sltu;sltiu` (normalize-then-negate) vs my single sltiu — codegen detail,
+ * multi-pass. Correct algorithm preserved. */
+int game_libs_func_00067B78(unsigned char *a0, unsigned char *a1) {
+    unsigned char *v0 = a1;
+    int cn, ch;
+    if (*a0 != 0 && *a1 != 0) {
+        do {
+            cn = *a1;
+            ch = *a0;
+            a1++;
+            a0++;
+            if (cn != ch) {
+                a1 = v0;
+            }
+        } while (*a0 != 0 && *a1 != 0);
+    }
+    return *a1 == 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B78);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00067BDC: strcpy returning dst+len (ptr to the copied NUL).
