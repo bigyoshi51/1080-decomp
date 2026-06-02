@@ -9612,7 +9612,16 @@ after2:
         *(float *)(o36 + 28) = v4[3];
     }
 after36:
-    /* Remaining ~130 insns TBD: deeper nested sub-allocs + struct fills */
+    {
+        int flags = *(int *)((char *)&D_00000000 + 4);
+        flags &= ~0x00080000;
+        flags &= ~2;
+        *(int *)((char *)&D_00000000 + 4) = flags;
+    }
+    *(float *)((char *)s0 + 200) = 1.0f;
+    gl_func_00000000(s0, 2);
+    *(int *)((char *)s0 + 196) = gl_func_00000000(0, &D_00000000);
+    *(float *)((char *)s0 + 204) = 0.0f;
     return s0;
 }
 #else
