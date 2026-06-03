@@ -2141,7 +2141,80 @@ void game_uso_func_000028A8(void *a0) {
 //   structural (entry/state-gate/shape) partial pass only, no byte
 //   body. Multi-run.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+extern float game_uso_func_070238(float);
+extern int game_uso_func_071028();
+extern int game_uso_func_072EE8();
+/* 2CC8/A0E8-family builder. mode=a0->0x40 dispatch; both arms compute a
+ * delta vec, normalize (070238), transform (071028), scale by a0->0x5C,
+ * emit (072EE8 -> out->0x60), then mirror out->0x60.. into out->0xA0.. */
+void game_uso_func_000028C0(char *a0) {
+    char *out = *(char **)(a0 + 0x14);
+    char *s = *(char **)(*(char **)(a0 + 0x3C) + 0x38);
+    int mode = *(int *)(a0 + 0x40);
+    Vec3 *r;
+    Vec3 v1v, v2v, diff, dc1, dc2, scratch;
+    float mag, f;
+    if (mode == 0) return;
+    if (mode == 1) {
+        v1v.x = *(float *)(out + 0xA0);
+        v1v.y = *(float *)(out + 0xA4);
+        v1v.z = *(float *)(out + 0xA8);
+        v2v.x = *(float *)(s + 0xA0);
+        v2v.y = *(float *)(s + 0xA4);
+        v2v.z = *(float *)(s + 0xA8);
+        r = game_uso_func_000023D4(&scratch, *(char **)(a0 + 0x3C));
+        v2v.x = v2v.x + r->x;
+        v2v.y = v2v.y + r->y;
+        v2v.z = v2v.z + r->z;
+        diff.x = v2v.x - v1v.x;
+        diff.y = v2v.y - v1v.y;
+        diff.z = v2v.z - v1v.z;
+    } else {
+        char *ss = *(char **)(a0 + 0x38);
+        Vec3 ssv, dir, dir2, res, refv;
+        float dirv;
+        ssv.x = *(float *)(ss + 0xA0);
+        ssv.y = *(float *)(ss + 0xA4);
+        ssv.z = *(float *)(ss + 0xA8);
+        refv.x = *(float *)(out + 0xA0);
+        refv.y = *(float *)(out + 0xA4);
+        refv.z = *(float *)(out + 0xA8);
+        if (mode == 3) {
+            dirv = -1000.0f;
+        } else {
+            dirv = 1000.0f;
+        }
+        dir.x = 0.0f;
+        dir.y = 0.0f;
+        dir.z = dirv;
+        dir2 = dir;
+        res.x = *(float *)(s + 0x70) * dir2.x + *(float *)(s + 0x80) * dir2.y + *(float *)(s + 0x90) * dir2.z;
+        res.y = *(float *)(s + 0x74) * dir2.x + *(float *)(s + 0x84) * dir2.y + *(float *)(s + 0x94) * dir2.z;
+        res.z = *(float *)(s + 0x78) * dir2.x + *(float *)(s + 0x88) * dir2.y + *(float *)(s + 0x98) * dir2.z;
+        ssv.x = ssv.x + res.x;
+        ssv.y = ssv.y + res.y;
+        ssv.z = ssv.z + res.z;
+        diff.x = ssv.x - refv.x;
+        diff.y = ssv.y - refv.y;
+        diff.z = ssv.z - refv.z;
+    }
+    dc1 = diff;
+    dc2 = dc1;
+    mag = game_uso_func_070238(dc2.x * dc2.x + dc2.y * dc2.y + dc2.z * dc2.z);
+    game_uso_func_071028(&dc2);
+    f = mag * *(float *)(a0 + 0x5C);
+    dc2.x = dc2.x * f;
+    dc2.y = dc2.y * f;
+    dc2.z = dc2.z * f;
+    game_uso_func_072EE8(out + 0x30, &dc2);
+    *(float *)(out + 0xA0) = *(float *)(out + 0x60);
+    *(float *)(out + 0xA4) = *(float *)(out + 0x64);
+    *(float *)(out + 0xA8) = *(float *)(out + 0x68);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000028C0);
+#endif
 
 void game_uso_func_00002CA8(char *a0) {
     game_uso_func_00000000(a0 + 0x44);
