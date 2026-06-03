@@ -18781,7 +18781,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00057194);
  * — target stores `sw zero,4(a1); jr ra; nop` but IDO -O2 FILLS the delay
  * (jr ra; sw zero), 13 vs 14 insns (same unfilled-delay game_libs pattern as
  * 53348); (2) accompanying register renumber. Reloc-free (the only const is the
- * 0xBA001402 literal). */
+ * 0xBA001402 literal). 2026-06-02: const-hoist reorder (`int c=0xBA001402`
+ * early) does NOT fix the renumber — IDO still colors const->t0, index->t6+
+ * vs target const->t8, index->t4+. So this needs an RA-crack AND the -g3
+ * carve for the delay slot (two issues) — deferred vs the clean delay-only
+ * carves (70FBC/62F58/34448, all landed). Permuter-class renumber. */
 void game_libs_func_000571E4(int *a0) {
     int *rec = (int *)((int *)a0)[3];
     int idx = rec[1];
