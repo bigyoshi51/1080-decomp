@@ -1476,7 +1476,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000748A4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074AC0);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00074AC0_pad.s")
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00074C04)();
+void gl_func_00074C04(char *arg0) {
+    u16 temp_s1;
+    char *temp_s0;
+    char *temp_t0;
+    char *temp_t9;
+
+    temp_s0 = ((int(*)())game_libs_func_00070FCC)();
+    temp_s1 = FW(arg0, 0x10);
+    if (temp_s1 != 1) {
+        if (temp_s1 == 8) {
+            FW(arg0, 0x10) = 2U;
+            ((int(*)())game_libs_func_00070FCC)(0, arg0);
+        }
+    } else {
+        temp_t0 = FW(arg0, 0x8);
+        if ((temp_t0 == 0) || (temp_t0 == 0)) {
+            FW(arg0, 0x10) = 2U;
+            ((int(*)())game_libs_func_00070FCC)(0, arg0);
+        } else {
+            FW(arg0, 0x10) = 8U;
+            ((int(*)())game_libs_func_00070FCC)(FW(arg0, 0x8), arg0);
+            ((int(*)())game_libs_func_00070FCC)(0, ((int(*)())game_libs_func_00070FCC)(FW(arg0, 0x8)));
+        }
+    }
+    if (*(int*)0 == 0) {
+        ((int(*)())game_libs_func_00070FCC)();
+    } else {
+        temp_t9 = *(int*)0;
+        if (FW(temp_t9, 0x4) < FW((*(int*)0), 0x4)) {
+            FW(temp_t9, 0x10) = 2;
+            ((int(*)())game_libs_func_00070FCC)(0);
+        }
+    }
+    ((int(*)())game_libs_func_00070FCC)(temp_s0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074C04);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00074D54: 22-insn float-arg + global-state wrapper.
