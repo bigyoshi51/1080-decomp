@@ -2177,27 +2177,75 @@ void game_uso_func_00002CA8(char *a0) {
 //   transform compose skeleton (sibling of game_uso_func_000028C0).
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void game_uso_func_00002CC8(char *obj, int a1) {
+void game_uso_func_00002CC8(char *a0, char *a1) {
+    char *out;
     char *s;
-    float scratch[8];
-    float ax, ay, az;
-    if (*(int *)(obj + 0x40) == 0) return;
-    s = *(char **)(obj + 0x3C);
-    ax = *(float *)(s + 0xA0);
-    ay = *(float *)(s + 0xA4);
-    az = *(float *)(s + 0xA8);
-    if (*(int *)(obj + 0x40) != 1) {
-        func_00000000(s, obj);
+    int mode;
+    Vec3 *r;
+    Vec3 staged, tmp1, divv, cp1, cp2, scratch;
+    float invd;
+
+    out = *(char **)(a0 + 0x14);
+    s = *(char **)(*(char **)(a0 + 0x3C) + 0x38);
+    mode = *(int *)(a0 + 0x40);
+    if (mode == 0) return;
+    if (mode == 1) {
+        staged.x = *(float *)(s + 0xA0);
+        staged.y = *(float *)(s + 0xA4);
+        staged.z = *(float *)(s + 0xA8);
+        r = game_uso_func_000023D4(&scratch, *(char **)(a0 + 0x3C));
+        tmp1 = *r;
+        staged.x = staged.x + tmp1.x;
+        staged.y = staged.y + tmp1.y;
+        staged.z = staged.z + tmp1.z;
+        invd = *(float *)(a0 + 0x5C);
+        divv.x = *(float *)(a1 + 0x0) / invd;
+        divv.y = *(float *)(a1 + 0x4) / invd;
+        divv.z = *(float *)(a1 + 0x8) / invd;
+        cp1 = divv;
+        cp2 = cp1;
+        staged.x = staged.x - cp2.x;
+        staged.y = staged.y - cp2.y;
+        staged.z = staged.z - cp2.z;
+        *(float *)(out + 0x60) = staged.x;
+        *(float *)(out + 0x64) = staged.y;
+        *(float *)(out + 0x68) = staged.z;
+        *(float *)(out + 0xA0) = staged.x;
+        *(float *)(out + 0xA4) = staged.y;
+        *(float *)(out + 0xA8) = staged.z;
         return;
     }
-    scratch[0] = ax;
-    scratch[1] = ay;
-    scratch[2] = az;
-    func_00000000(s, scratch);
-    *(float *)(obj + 0xB4) = scratch[0];
-    *(float *)(obj + 0xB8) = scratch[1];
-    *(float *)(obj + 0xBC) = scratch[2];
-    (void)a1;
+    /* mode >= 2: ssv = (a0->0x38)->{0xA0,0xA4,0xA8}; res = M * {0,0,±1000}
+     * (M is the 3x3 at s+0x70/0x80/0x90); out gets ssv + res. */
+    {
+        char *ss = *(char **)(a0 + 0x38);
+        Vec3 ssv, dir, dir2, res;
+        float dirv;
+        ssv.x = *(float *)(ss + 0xA0);
+        ssv.y = *(float *)(ss + 0xA4);
+        ssv.z = *(float *)(ss + 0xA8);
+        if (mode == 3) {
+            dirv = -1000.0f;
+        } else {
+            dirv = 1000.0f;
+        }
+        dir.x = 0.0f;
+        dir.y = 0.0f;
+        dir.z = dirv;
+        dir2 = dir;
+        res.x = *(float *)(s + 0x70) * dir2.x + *(float *)(s + 0x80) * dir2.y + *(float *)(s + 0x90) * dir2.z;
+        res.y = *(float *)(s + 0x74) * dir2.x + *(float *)(s + 0x84) * dir2.y + *(float *)(s + 0x94) * dir2.z;
+        res.z = *(float *)(s + 0x78) * dir2.x + *(float *)(s + 0x88) * dir2.y + *(float *)(s + 0x98) * dir2.z;
+        ssv.x = ssv.x + res.x;
+        ssv.y = ssv.y + res.y;
+        ssv.z = ssv.z + res.z;
+        *(float *)(out + 0x60) = ssv.x;
+        *(float *)(out + 0x64) = ssv.y;
+        *(float *)(out + 0x68) = ssv.z;
+        *(float *)(out + 0xA0) = ssv.x;
+        *(float *)(out + 0xA4) = ssv.y;
+        *(float *)(out + 0xA8) = ssv.z;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002CC8);
