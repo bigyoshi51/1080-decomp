@@ -2579,7 +2579,91 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000372D4);
 //   proper USO mnemonic disasm + FP-pool symbolization; structural
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00037348)();
+void gl_func_00037348(char *arg0) {
+    char *sp6C;
+    f32 sp60;
+    f32 sp5C;
+    f32 sp58;
+    f32 sp54;
+    f32 sp50;
+    f32 sp4C;
+    f32 sp34;
+    f32 sp30;
+    f32 sp2C;
+    f32 temp_f0;
+    f32 temp_f16;
+    f32 var_f0;
+    f32 var_f0_2;
+    f32 var_f12;
+    f32 var_f14;
+    char *temp_v0;
+
+    temp_f0 = (*(f32*)((char*)&D_00000000 + 0x19F0));
+    sp6C = FW(arg0, 0x14);
+    temp_v0 = FW(arg0, 0x2C);
+    var_f12 = (*(f32*)((char*)temp_v0 + 0x0)) * temp_f0;
+    var_f14 = (*(f32*)((char*)temp_v0 + 0x4)) * temp_f0;
+    if (var_f12 < 0.0f) {
+        var_f0 = -var_f12;
+    } else {
+        var_f0 = var_f12;
+    }
+    temp_f16 = (*(f32*)((char*)&D_00000000 + 0x19F4));
+    if (var_f0 < temp_f16) {
+        var_f12 = 0.0f;
+    }
+    if (var_f14 < 0.0f) {
+        var_f0_2 = -var_f14;
+    } else {
+        var_f0_2 = var_f14;
+    }
+    if (var_f0_2 < temp_f16) {
+        var_f14 = 0.0f;
+    }
+    sp58 = (*(f32*)((char*)sp6C + 0x60));
+    sp5C = (*(f32*)((char*)sp6C + 0x64));
+    sp60 = (*(f32*)((char*)sp6C + 0x68));
+    (*(f32*)((char*)sp6C + 0x60)) = 0.0f;
+    (*(f32*)((char*)sp6C + 0x64)) = 0.0f;
+    (*(f32*)((char*)sp6C + 0x68)) = 0.0f;
+    sp34 = 0.0f;
+    sp30 = var_f12;
+    sp2C = var_f14;
+    ((int(*)())gl_func_00034458)(var_f12, var_f14, sp6C + 0x30, &sp2C, arg0);
+    (*(f32*)((char*)sp6C + 0x60)) = sp58;
+    (*(f32*)((char*)sp6C + 0x64)) = sp5C;
+    (*(f32*)((char*)sp6C + 0x68)) = sp60;
+    sp54 = 0.0f;
+    sp50 = 0.0f;
+    sp4C = 0.0f;
+    if (FW(FW(arg0, 0x2C), 0x10) & 4) {
+        sp50 = 10.0f;
+    }
+    if (FW(FW(arg0, 0x2C), 0x10) & 8) {
+        sp50 = -10.0f;
+    }
+    if (FW(FW(arg0, 0x2C), 0x10) & 1) {
+        sp4C = -10.0f;
+    }
+    if (FW(FW(arg0, 0x2C), 0x10) & 2) {
+        sp4C = 10.0f;
+    }
+    if (FW(FW(arg0, 0x2C), 0x10) & 0x40) {
+        sp54 = 10.0f;
+    }
+    if (FW(FW(arg0, 0x2C), 0x10) & 0x80) {
+        sp54 = -10.0f;
+    }
+    ((int(*)())gl_func_00034458)(sp6C + 0x30, &sp4C, arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
+#endif
 
 // gl_func_00037540 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
