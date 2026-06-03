@@ -18729,7 +18729,86 @@ int gl_func_000503A4(int *self, int cap, int b, int c, int d, int e) {
 // the exact found/append index arithmetic are representative. Caps:
 // Tbl struct and cb1/cb2 prototypes untyped (USO-relocated). Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00050444)();
+u32 gl_func_00050444(u32 arg0, char *arg1, char *arg2, char *arg3, u32 arg4) {
+    s16 sp2C;
+    s16 sp2A;
+    s16 sp28;
+    s16 sp26;
+    s16 sp24;
+    f32 temp_f12;
+    s32 var_v1;
+    s32 var_v1_2;
+    u32 temp_a2;
+    u32 temp_v0_4;
+    u32 var_a0;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *var_a1;
+
+    if (FW(arg1, 0x64) == 0) {
+        ((int(*)())gl_func_00034458)((char*)&D_00000000 + 0x20E3C);
+    }
+    var_a0 = arg0;
+    temp_f12 = (*(f32*)((char*)arg2 + 0x8));
+    sp28 = (s16) (s32) (*(f32*)((char*)arg2 + 0x0));
+    sp2A = (s16) (s32) (*(f32*)((char*)arg2 + 0x4));
+    sp2C = (s16) (s32) temp_f12;
+    sp24 = (s16) (s32) (*(f32*)((char*)arg3 + 0x0));
+    sp26 = (s16) (s32) (*(f32*)((char*)arg3 + 0x4));
+    temp_a2 = FW(arg1, 0x40);
+    if (var_a0 < temp_a2) {
+        var_a1 = FW(arg1, 0x60) + (var_a0 * 6);
+loop_4:
+        var_v1 = sp28 == (*(s16*)((char*)var_a1 + 0x0));
+        if (var_v1 != 0) {
+            var_v1 = sp2A == (*(s16*)((char*)var_a1 + 0x2));
+            if (var_v1 != 0) {
+                var_v1 = sp2C == (*(s16*)((char*)var_a1 + 0x4));
+            }
+        }
+        if (var_v1 != 0) {
+            temp_v0 = FW(arg1, 0x64) + (var_a0 * 4);
+            var_v1_2 = sp24 == (*(s16*)((char*)temp_v0 + 0x0));
+            if (var_v1_2 != 0) {
+                var_v1_2 = sp26 == (*(s16*)((char*)temp_v0 + 0x2));
+            }
+            if (var_v1_2 != 0) {
+                return var_a0;
+            }
+            goto block_12;
+        }
+block_12:
+        var_a0 += 1;
+        var_a1 += 6;
+        if (var_a0 >= temp_a2) {
+            goto block_13;
+        }
+        goto loop_4;
+    }
+block_13:
+    temp_v0_2 = FW(arg1, 0x64) + (temp_a2 * 4);
+    (*(s16*)((char*)temp_v0_2 + 0x0)) = sp24;
+    (*(s16*)((char*)temp_v0_2 + 0x2)) = sp26;
+    temp_v0_3 = FW(arg1, 0x60) + (FW(arg1, 0x40) * 6);
+    (*(s16*)((char*)temp_v0_3 + 0x0)) = sp28;
+    (*(s16*)((char*)temp_v0_3 + 0x2)) = sp2A;
+    (*(s16*)((char*)temp_v0_3 + 0x4)) = sp2C;
+    temp_v0_4 = FW(arg1, 0x40) + 1;
+    FW(arg1, 0x40) = temp_v0_4;
+    if (temp_v0_4 >= arg4) {
+        ((int(*)())gl_func_00034458)(temp_f12, (char*)&D_00000000 + 0x20E4C);
+    }
+    return FW(arg1, 0x40) - 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00050444);
+#endif
 
 // gl_func_0005062C — STRUCTURAL PASS (0xACC / 689 words, no episode).
 // Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Large frame
