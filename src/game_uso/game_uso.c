@@ -8262,7 +8262,20 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  * dispatch), and a state-counter mod-4 sub-pixel-fold loop.
  *
  * Default emit remains INCLUDE_ASM until C-body grind reaches >=80%.
- * Decode doc unblocks future single-tick C-write attempts. */
+ * Decode doc unblocks future single-tick C-write attempts.
+ *
+ * CAP CONFIRMED 2026-06-03 (do not re-attempt the builder-idiom prefix):
+ * the 8 triple-dest "broadcasts" are the dead-alloc Vec3 idiom — target
+ * emits 14 `addiu a0,12; bnel p,zero; jal 055750` dead-alloc sites
+ * (p=&stackbuf, never taken). Clean C `p=&buf; if(p==0) p=alloc(12);`
+ * reproduces 0/14 of them: IDO folds `&local==0` to false here just like
+ * in A7F8 (0/4) — see docs/PATTERNS.md "dead-alloc idiom alloc-emission is
+ * FRAGILE". A prefix decode of insns 0-45 was tried and collapsed to 32
+ * insns (4.2% vs the 3.5% stub, all from the sub.s math, no allocs) —
+ * reverted. The 14 absent allocs alone bound the achievable match far
+ * below 80%, so this stays INCLUDE_ASM; a real attempt needs the actual
+ * inlined vec-init helper source (which we can't synthesize), not the
+ * top-level if(p==0) form. */
 typedef struct { float x, y, z; } Vec3_8CD8;
 void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
     Vec3_8CD8 local_1F8;
