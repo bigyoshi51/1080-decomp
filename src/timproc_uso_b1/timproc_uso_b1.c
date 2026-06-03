@@ -691,7 +691,109 @@ void timproc_uso_b1_func_000011D8(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D8);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00001340)();
+void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
+    f32 sp14C;
+    f32 sp148;
+    f32 sp144;
+    f32 sp140;
+    u8 spC0;
+    s32 sp98;
+    s32 sp94;
+    s32 sp90;
+    u8 *sp68;
+    u8 *sp64;
+    u8 *sp60;
+    f32 *sp58;
+    f32 *temp_a2;
+    s32 temp_a1;
+    s32 temp_s2;
+    s32 temp_s3;
+    s32 temp_s4;
+    s32 temp_s4_2;
+    s32 temp_s6_2;
+    s32 temp_v0;
+    s32 var_s1;
+    s32 var_s2;
+    s32 var_t1;
+    u8 *temp_a0;
+    u8 *temp_s1;
+    u8 *temp_s6;
+    u8 *temp_s7;
+    u8 *var_s0;
+    u8 temp_v0_2;
+    char *temp_t2;
+    char *temp_t3;
+    char *temp_t4;
+
+    sp140 = 1.0f;
+    sp144 = 1.0f;
+    sp148 = 1.0f;
+    sp14C = 1.0f;
+    if (FW(FW(arg0, 0x528), 0x14) & 1) {
+        ((int(*)())timproc_uso_b1_func_000000B0)(0, (s32) (255.0f * FW(arg0, 0x72C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        temp_a0 = (int)arg0 + 0x714;
+        sp68 = temp_a0;
+        ((int(*)())timproc_uso_b1_func_000000B0)(temp_a0);
+        temp_s6 = (int)arg0 + 0x6CC;
+        temp_s3 = (s16) FW(FW(arg0, 0x724), 0x20) / 12;
+        ((int(*)())timproc_uso_b1_func_000000B0)(temp_s6);
+        temp_s7 = (int)arg0 + 0x6B4;
+        ((int(*)())timproc_uso_b1_func_000000B0)(temp_s7);
+        temp_s1 = (int)arg0 + 0x6FC;
+        ((int(*)())timproc_uso_b1_func_000000B0)(temp_s1);
+        ((int(*)())timproc_uso_b1_func_000000B0)(&spC0, 0x3F4, (arg2 / 60000), (char *) ((s32) (arg2 % 60000) / 1000), (s32) ((arg2 % 60000) % 1000) / 10);
+        sp64 = temp_s6;
+        sp60 = temp_s7;
+        temp_v0 = ((int(*)())timproc_uso_b1_func_000000B0)(&spC0);
+        temp_t4 = FW(arg0, 0x70C);
+        temp_t2 = FW(arg0, 0x6DC);
+        temp_t3 = FW(arg0, 0x6C4);
+        temp_a2 = (int)arg1 + 0x32;
+        temp_s2 = 0xA0 - ((s32) (FW(temp_t4, 0x20) + (temp_v0 * 0xD) + FW(temp_t2, 0x20) + FW(temp_t3, 0x20) + 0x10) / 2);
+        temp_s4 = FW(temp_t3, 0x20) + temp_s2 + 4;
+        temp_a1 = FW(temp_t2, 0x20) + temp_s4 + 4;
+        temp_s6_2 = FW(temp_t4, 0x20) + temp_a1 + 8;
+        sp90 = temp_s4;
+        sp94 = temp_s2;
+        sp98 = temp_v0;
+        sp58 = temp_a2;
+        ((int(*)())timproc_uso_b1_func_000000B0)(temp_s1, temp_a1, temp_a2, (char *)2);
+        var_t1 = temp_v0;
+        var_s0 = &spC0;
+        var_s1 = 0;
+        var_s2 = temp_s6_2;
+        if (var_t1 > 0) {
+            temp_s4_2 = var_t1 * 0xD;
+            do {
+                temp_v0_2 = *(int*)var_s0;
+                if (temp_v0_2 == 0x5B) {
+                    *var_s0 = 0xA;
+                } else if (temp_v0_2 == 0x5D) {
+                    *var_s0 = 0xB;
+                } else {
+                    *var_s0 = temp_v0_2 - 0x30;
+                }
+                sp98 = var_t1;
+                ((int(*)())timproc_uso_b1_func_000000B0)(sp68, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x724), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s3), temp_s3);
+                var_s1 += 0xD;
+                var_s0 += 1;
+                var_s2 += 0xD;
+            } while (var_s1 != temp_s4_2);
+        }
+        ((int(*)())timproc_uso_b1_func_000000B0)(sp64, (s32) (255.0f * FW(arg0, 0x72C)), &sp140, (char *)0xFF);
+        ((int(*)())timproc_uso_b1_func_000000B0)(sp64, sp90, sp58, (char *)2);
+        ((int(*)())timproc_uso_b1_func_000000B0)(sp60, (s32) (255.0f * FW(arg0, 0x72C)), &sp140, (char *)0xFF);
+        ((int(*)())timproc_uso_b1_func_000000B0)(sp60, sp94, sp58, (char *)2);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001340);
+#endif
 
 /* timproc_uso_b1_func_000016F8 — verified structural decode; near-clone
  * SIBLING of arcproc_uso_func_0000199C (same 4-level alloc-cascade ctor
