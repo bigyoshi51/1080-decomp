@@ -5519,32 +5519,74 @@ void game_libs_func_00023070(int a0, int a1) {
 //   schedule. Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-int gl_func_000230D0(int *h) {
-    char *g = (char *)&D_00000000;
-    int w = h[0];
-    int typ = (unsigned)w >> 30;
-    int id = w & 0x00FFFFFF;
-    int r = 0;
-    if ((*(unsigned char *)h & 1) != 1) {
-        return 0;
-    }
-    if (typ != 0) {
-        int t = (typ << 24) >> 24;
-        r = gl_func_00000000(id, t);
-        if (r != 0) {
-            return r;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000230D0)();
+void gl_func_000230D0(char *arg0) {
+    s32 sp24;
+    s32 temp_v0;
+    s32 temp_v0_2;
+    s32 temp_v0_3;
+    u32 temp_v1;
+    u32 temp_v1_2;
+
+    if (((FW(arg0, 0x0) & 1) == 1) && (temp_v0 = (s32) FW(arg0, 0x0), temp_v1 = (u32) (temp_v0 * 0x10) >> 0x1E, (temp_v1 != 0))) {
+        temp_v0_2 = gl_func_0001CA10(temp_v0 & 0xFFFFFF, FW(arg0, 0x4), (s8) temp_v1);
+        if (temp_v0_2 == 0) {
+            return;
         }
+        temp_v0_3 = (s32) FW(arg0, 0x0);
+        temp_v1_2 = (u32) (temp_v0_3 * 0x10) >> 0x1E;
+        if (temp_v1_2 == 1) {
+            sp24 = temp_v0_2;
+            gl_func_0001CA10(FW(arg0, 0x4), temp_v0_2, temp_v0_3 & 0xFFFFFF, FW((*(char **)0x2024), 0x2));
+        } else {
+            sp24 = temp_v0_2;
+            gl_func_0001CA10(FW(arg0, 0x4), temp_v0_2, temp_v0_3 & 0xFFFFFF, (s16) temp_v1_2);
+        }
+        FW(arg0, 0x0) = (u8) (FW(arg0, 0x0) & 0xFFF3);
+        FW(arg0, 0x4) = sp24;
     }
-    if (((unsigned)h[0] >> 30) == 1) {
-        int *tbl = *(int **)(g + 0x2024);
-        gl_func_00000000(tbl, h[1], *(short *)((char *)h + 2));
+}
+#else
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000230D0)();
+void gl_func_000230D0(char *arg0) {
+    s32 sp24;
+    s32 temp_v0;
+    s32 temp_v0_2;
+    s32 temp_v0_3;
+    u32 temp_v1;
+    u32 temp_v1_2;
+
+    if (((FW(arg0, 0x0) & 1) == 1) && (temp_v0 = (s32) FW(arg0, 0x0), temp_v1 = (u32) (temp_v0 * 0x10) >> 0x1E, (temp_v1 != 0))) {
+        temp_v0_2 = gl_func_0001CA10(temp_v0 & 0xFFFFFF, FW(arg0, 0x4), (s8) temp_v1);
+        if (temp_v0_2 == 0) {
+            return;
+        }
+        temp_v0_3 = (s32) FW(arg0, 0x0);
+        temp_v1_2 = (u32) (temp_v0_3 * 0x10) >> 0x1E;
+        if (temp_v1_2 == 1) {
+            sp24 = temp_v0_2;
+            gl_func_0001CA10(FW(arg0, 0x4), temp_v0_2, temp_v0_3 & 0xFFFFFF, FW((*(char **)0x2024), 0x2));
+        } else {
+            sp24 = temp_v0_2;
+            gl_func_0001CA10(FW(arg0, 0x4), temp_v0_2, temp_v0_3 & 0xFFFFFF, (s16) temp_v1_2);
+        }
+        FW(arg0, 0x0) = (u8) (FW(arg0, 0x0) & 0xFFF3);
+        FW(arg0, 0x4) = sp24;
     }
-    return r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000230D0);
+#endif
 #endif
 
 // gl_func_000231B4 — STRUCTURAL PASS (0xD0 / 52 words, no episode).
