@@ -4297,7 +4297,7 @@ char *func_000084A0(char *arg0) {
             ((GP_000084A0)func_00000000)(var_a0, var_a1, sp24, 1);
             FW(var_a0, 0xC) = 0;
             FW(var_a0, 0x14) = 0;
-            FW(var_a0, 0x10) = 300.0f;
+            *(f32 *)((char *)var_a0 + 0x10) = 300.0f;
         }
         temp_t3 = *(int*)0;
         var_a0_2 = var_a1 + 0x20;
