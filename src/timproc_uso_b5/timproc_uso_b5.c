@@ -920,53 +920,88 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   disasm limitation prevents byte-match. Real-C STRUCTURAL body
 //   below — alloc-or-reuse 3-child labeled-widget panel. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
+// timproc_uso_b5_func_000018B4 — FULL m2c DECODE (57.12% NM, no episode). Non-jumptable control-flow fn via scripts/lift-uso-controlflow.py.
 #ifdef NON_MATCHING
-char *timproc_uso_b5_func_000018B4(char *self, int a1, char *owner) {
-    char *c1, *c2, *c3;
-    int spec[8];
-    if (self == 0) {
-        self = (char *)func_00000000(0x58);
-        if (self == 0) return 0;
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000018B4)();
+char *timproc_uso_b5_func_000018B4(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *arg5, s32 arg6, s32 arg7) {
+    char *sp4C;
+    char *temp_a0;
+    char *temp_s1;
+    char *temp_s1_2;
+    char *temp_s1_3;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *var_s0;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_000018B4)timproc_uso_b5_func_00000000)((char *)0x58), var_s0 = temp_v0, (temp_v0 != 0))) {
+        ((GP_000018B4)timproc_uso_b5_func_00000000)(var_s0, (char *)0x10D0);
+        FW(var_s0, 0x28) = 0;
+        FW(var_s0, 0xC) = 0x10D8;
+        FW(var_s0, 0x30) = arg2;
+        FW(var_s0, 0x2C) = arg5;
+        if (arg2 == 1) {
+            temp_v0_2 = ((GP_000018B4)timproc_uso_b5_func_00000000)(0, var_s0, arg1, 1, 0, arg3, arg4, arg6, arg5, FW(arg5, 0x4), 0x10E8, 0);
+            FW(var_s0, 0x34) = temp_v0_2;
+            ((GP_000018B4)timproc_uso_b5_func_00000000)(temp_v0_2, (char *)0x68, 0x4C, 0x50, 0x54, 0x64);
+            temp_s1 = FW(var_s0, 0x34);
+            ((GP_000018B4)timproc_uso_b5_func_00000000)(var_s0 + 0x10, temp_s1);
+            if (FW(temp_s1, 0x14) != 0) {
+                FW(temp_s1, 0x4) = 1;
+            }
+            FW(temp_s1, 0x14) = var_s0;
+            FW(FW(FW(arg5, 0x0), 0x5C), 0x38) = (char *) FW(var_s0, 0x34);
+        } else {
+            temp_v0_3 = ((GP_000018B4)timproc_uso_b5_func_00000000)(0, var_s0, arg1, 2, 0, arg3, arg4, arg6, arg5, FW(arg5, 0x4), 0x10F8, 0);
+            FW(var_s0, 0x34) = temp_v0_3;
+            ((GP_000018B4)timproc_uso_b5_func_00000000)(temp_v0_3, (char *)0x68, 0x4C, 0x50, 0x54, 0x64);
+            temp_s1_2 = FW(var_s0, 0x34);
+            temp_a0 = var_s0 + 0x10;
+            sp4C = temp_a0;
+            ((GP_000018B4)timproc_uso_b5_func_00000000)(temp_a0, temp_s1_2);
+            if (FW(temp_s1_2, 0x14) != 0) {
+                FW(temp_s1_2, 0x4) = 1;
+            }
+            FW(temp_s1_2, 0x14) = var_s0;
+            FW(FW(FW(arg5, 0x0), 0x5C), 0x38) = (char *) FW(var_s0, 0x34);
+            temp_v0_4 = ((GP_000018B4)timproc_uso_b5_func_00000000)(0, var_s0, arg1, 2, 1, arg3, arg4, arg7, arg5, FW(arg5, 0x8), 0x110C, 0x80);
+            FW(var_s0, 0x38) = temp_v0_4;
+            ((GP_000018B4)timproc_uso_b5_func_00000000)(temp_v0_4, (char *)0x68, 0x58, 0x5C, 0x60, 0x64);
+            temp_s1_3 = FW(var_s0, 0x38);
+            ((GP_000018B4)timproc_uso_b5_func_00000000)(sp4C, temp_s1_3);
+            if (FW(temp_s1_3, 0x14) != 0) {
+                FW(temp_s1_3, 0x4) = 1;
+            }
+            FW(temp_s1_3, 0x14) = var_s0;
+            FW(FW(FW(arg5, 0x0), 0x5C), 0x3C) = (char *) FW(var_s0, 0x38);
+            if (FW(FW(var_s0, 0x34), 0x3C8) != 4) {
+                FW(var_s0, 0x3C) = 0;
+                FW(var_s0, 0x40) = 0;
+                FW(var_s0, 0x44) = 0x78;
+                FW(var_s0, 0x48) = 0;
+                FW(var_s0, 0x50) = 3;
+                FW(var_s0, 0x4C) = 0;
+                FW(var_s0, 0x54) = 0.0f;
+            } else {
+                FW(var_s0, 0x3C) = 3;
+                FW(var_s0, 0x40) = 3;
+                FW(var_s0, 0x4C) = 0;
+                FW(var_s0, 0x48) = 1;
+                FW(var_s0, 0x44) = 0xF0;
+                FW(var_s0, 0x50) = 1;
+                FW(var_s0, 0x54) = 1.0f;
+                ((GP_000018B4)timproc_uso_b5_func_00000000)(var_s0);
+            }
+        }
     }
-    func_00000000(self, (char *)&D_00000000 + 0x000010D0);
-    *(char **)(self + 0x28) = (char *)&D_00000000;
-    *(char **)(self + 0x0C) = (char *)&D_00000000 + 0x000010D8;
-    *(char **)(self + 0x30) = owner;
-    *(int *)(self + 0x2C) = a1;
-    c1 = (char *)func_00000000(0, (char *)&D_00000000 + 0x000010E8, 1, spec);
-    *(char **)(self + 0x34) = c1;
-    func_00000000(c1 + 0x10, self);
-    if (*(char **)(c1 + 0x14) == 0) {
-        *(int *)(c1 + 0x4) = 1;
-        *(char **)(c1 + 0x14) = self;
-    }
-    c2 = (char *)func_00000000(0, (char *)&D_00000000 + 0x000010F8, 2, spec);
-    *(char **)(self + 0x38) = c2;
-    func_00000000(c2 + 0x10, self);
-    if (*(char **)(c2 + 0x14) == 0) {
-        *(int *)(c2 + 0x4) = 1;
-        *(char **)(c2 + 0x14) = self;
-    }
-    c3 = (char *)func_00000000(0, (char *)&D_00000000 + 0x0000110C, 3, spec);
-    func_00000000(c3 + 0x10, self);
-    if (*(char **)(c3 + 0x14) == 0) {
-        *(int *)(c3 + 0x4) = 1;
-        *(char **)(c3 + 0x14) = self;
-    }
-    *(int *)(self + 0x40) = 0x42F00000;
-    *(int *)(self + 0x44) = 0x43700000;
-    if (*(int *)(*(char **)(self + 0x34) + 0x3C8) == 0) {
-        *(int *)(self + 0x3C) = 0;
-        *(int *)(self + 0x40) = 0;
-        *(int *)(self + 0x48) = 0;
-        *(float *)(self + 0x44) = 1.0f;
-        *(int *)(self + 0x50) = 3;
-        *(int *)(self + 0x4C) = 0;
-    } else {
-        *(float *)(self + 0x3C) = 1.0f;
-        *(float *)(self + 0x40) = 1.0f;
-    }
-    return self;
+    return var_s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000018B4);
