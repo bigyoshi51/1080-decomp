@@ -1,0 +1,28 @@
+{
+  "function_name": "game_libs_func_00062F58",
+  "project": "1080-agent-q",
+  "model": "claude-manual",
+  "start_time": "2026-06-03T02:18:54.180382+00:00",
+  "end_time": "2026-06-03T02:18:54.180406+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-03T02:18:54.180399+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\nvoid game_libs_func_00062F58(int a0) { int *p = &a0; (void)p; }\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_g3_62F58.c"
+  }
+}
