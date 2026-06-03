@@ -93,7 +93,43 @@ void gl_func_00008DAC(int a0, int a1, int a2, int a3) {
     gl_func_00000000(a0, 1, rv);
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00008E48)();
+char *gl_func_00008E48(char **arg0, int arg1, s32 arg2) {
+    char *sp3C;
+    char *sp38;
+    char *sp34;
+    char *temp_t6;
+
+    temp_t6 = *(char **)0x4C;
+    sp38 = temp_t6;
+    sp34 = temp_t6;
+    ((int(*)())gl_func_00008C3C)(0, *(char **)8);
+    if (FW(FW((*(int*)arg0), 0x8), 0x8) != 0) {
+        *(u8 *)0x181 = ((int(*)())gl_func_00008C3C)(FW((*(int*)arg0), 0x8));
+        sp34 = (char *) *(char *)0x181;
+        *(u8 *)0x182 = ((int(*)())gl_func_00008C3C)(FW((*(int*)arg0), 0x8));
+        *(u8 *)0x183 = ((int(*)())gl_func_00008C3C)(FW((*(int*)arg0), 0x8));
+    }
+    ((int(*)())gl_func_00008C3C)(sp38, sp34);
+    if (FW(FW((*(int*)arg0), 0x8), 0x8) != 0) {
+        sp3C = ((int(*)())gl_func_00008C3C)(0, *(char **)0x64, 3, arg2);
+    } else {
+        sp3C = ((int(*)())gl_func_00008C3C)(0, *(char *)0x64, 2, arg2);
+    }
+    ((int(*)())gl_func_00008C3C)((char *)0x10, sp3C);
+    if (FW(sp3C, 0x14) != 0) {
+        FW(sp3C, 0x4) = 1;
+    }
+    FW(sp3C, 0x14) = 0;
+    ((int(*)())gl_func_00008C3C)(0, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
+#endif
 
 /* gl_func_00008FFC: -O0 init sequence (fresh decode 2026-05-28, mnemonic disasm).
  * Five callee calls bracketing a global-state mask + a constructor: configures
