@@ -7877,7 +7877,61 @@ void gl_func_000707E8(int a0, float a1, float a2, float a3, float a4, float a5, 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000707E8);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00070850)();
+void game_libs_func_00070850(char *arg0, char *arg1) {
+    f32 var_f16;
+    f32 var_f18;
+    s32 temp_f12;
+    s32 temp_f12_2;
+    s32 temp_f14;
+    s32 temp_f14_2;
+    s32 var_a0;
+    s32 var_a2;
+    char *var_a3;
+    char *var_t0;
+    char *var_v0;
+    char *var_v1;
+
+    var_v0 = arg1;
+    var_v1 = (int)arg1 + 0x20;
+    var_a2 = 0;
+    var_a3 = arg0;
+    do {
+        var_t0 = var_a3;
+        var_a0 = 1;
+        var_f18 = *(f32*)((char*)var_t0 + 0x0);
+        var_f16 = *(f32*)((char*)var_t0 + 0x4) * 65536.0f;
+        if (1 != 2) {
+            do {
+                var_a0 += 1;
+                var_v0 += 4;
+                var_v1 += 4;
+                var_t0 += 8;
+                temp_f12 = (s32) var_f16;
+                temp_f14 = (s32) (var_f18 * 65536.0f);
+                FW(var_v0, -0x4) = (s32) ((temp_f14 & 0xFFFF0000) | ((temp_f12 >> 0x10) & 0xFFFF));
+                FW(var_v1, -0x4) = (s32) (((temp_f14 << 0x10) & 0xFFFF0000) | (temp_f12 & 0xFFFF));
+                var_f18 = *(f32*)((char*)var_t0 + 0x0);
+                var_f16 = *(f32*)((char*)var_t0 + 0x4) * 65536.0f;
+            } while (var_a0 != 2);
+        }
+        var_v0 += 4;
+        var_v1 += 4;
+        temp_f12_2 = (s32) var_f16;
+        temp_f14_2 = (s32) (var_f18 * 65536.0f);
+        FW(var_v0, -0x4) = (s32) ((temp_f14_2 & 0xFFFF0000) | ((temp_f12_2 >> 0x10) & 0xFFFF));
+        FW(var_v1, -0x4) = (s32) (((temp_f14_2 << 0x10) & 0xFFFF0000) | (temp_f12_2 & 0xFFFF));
+        var_a2 += 1;
+        var_a3 += 0x10;
+    } while (var_a2 != 4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070850);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00070954: 4x4 identity matrix init. Outer runtime row loop;
