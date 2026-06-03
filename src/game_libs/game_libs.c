@@ -555,7 +555,55 @@ int gl_func_00000FA4(char *a0, int arg1) {
     return gl_func_00000000(a0 + 0xB4, &gl_ref_0000CBF8, arg1);
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00000FD0)();
+char *gl_func_00000FD0(char *arg0, s32 arg1) {
+    char *sp34;
+    f32 d255 = 255.0f;
+    char *sp2C;
+    char *sp28;
+    char *temp_a0;
+    char *temp_a3;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *var_a2;
+    char *var_s0;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_00000FD0)gl_func_00000000)((char *)0x13C), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_a2 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = ((GP_00000FD0)gl_func_00000000)((char *)0x10C), var_a2 = temp_v0_2, (temp_v0_2 != 0))) {
+            sp34 = var_a2;
+            ((GP_00000FD0)gl_func_00000000)(var_a2, (char *)0xCBFC, var_a2);
+            *(int*)((char*)var_a2 + 0x28) = (int)&D_00000000;
+            ((GP_00000FD0)gl_func_00000000)(var_a2 + 0x2C);
+        }
+        FW(var_s0, 0xC) = 0xCC04;
+        temp_a0 = var_s0 + 0x10C;
+        sp2C = temp_a0;
+        ((GP_00000FD0)gl_func_00000000)(temp_a0, (char *)0x50002);
+        temp_a3 = var_s0 + 0x124;
+        sp28 = temp_a3;
+        ((GP_00000FD0)gl_func_00000000)(temp_a3, (char *)0x50008);
+        ((GP_00000FD0)gl_func_00000000)(var_s0, sp28, sp2C);
+        FW(var_s0, 0xD4) = 0x80;
+        FW(var_s0, 0xD8) = 0xFF;
+        FW(var_s0, 0xDC) = 0x82;
+        *(f32*)((char*)var_s0 + 0xC4) = 250.0f / d255;
+        *(f32*)((char*)var_s0 + 0xC8) = 235.0f / d255;
+        *(f32*)((char*)var_s0 + 0xCC) = 100.0f / d255;
+        *(f32*)((char*)var_s0 + 0xD0) = 0.0f / d255;
+        FW(var_s0, 0xE0) = arg1;
+        ((GP_00000FD0)gl_func_00000000)(var_s0, (char *)-3, (char *)-1, 0x25, 0);
+    }
+    return var_s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000FD0);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00001114(char *a0) {
