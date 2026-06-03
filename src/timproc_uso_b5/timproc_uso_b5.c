@@ -4028,31 +4028,120 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   disasm limitation prevents byte-match. Real-C STRUCTURAL body
 //   below — draw/update + idle/show skeleton only. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
+// timproc_uso_b5_func_000080F4 — FULL m2c DECODE (68.73% NM, no episode). Non-jumptable control-flow fn via scripts/lift-uso-controlflow.py.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_000080F4(char *scr) {
-    char *a;
-    char *d;
-    void (*fp)(int);
-    int s1;
-    if (*(int *)(scr + 0x3BC) != 2) return;
-    a = (char *)func_00000000(*(char **)(scr + 0x41C), *(int *)(scr + 0x3B8));
-    s1 = *(int *)(a + 0x4C) | *(int *)(scr + 0x4B4);
-    func_00000000(*(char **)(scr + 0x41C), *(int *)(scr + 0x3B8));
-    if (*(float *)(scr + 0x44) < *(float *)(scr + 0x4BC)) {
-        func_00000000(scr);
-        d = *(char **)(scr + 0x28);
-        fp = *(void (**)(int))(d + 0x7C);
-        fp(*(short *)(d + 0x78));
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000080F4)();
+void timproc_uso_b5_func_000080F4(char *arg0) {
+    char *sp3C;
+    s32 sp28;
+    s32 temp_t2;
+    s32 var_s0;
+    s32 var_s0_2;
+    s32 var_s1;
+    s32 var_s1_2;
+    char *temp_a0;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *temp_v0_8;
+    char *temp_v0_9;
+    char *temp_v1;
+    char *temp_v1_2;
+    char *temp_v1_3;
+    char *temp_v1_4;
+    char *temp_v1_5;
+    char *temp_v1_6;
+    char *var_a1;
+
+    var_s0 = 0;
+    if (FW(arg0, 0x3BC) == 2) {
+        temp_a0 = FW(arg0, 0x41C);
+        var_s0 = FW(temp_a0, 0x4C);
+        var_s1 = FW(((GP_000080F4)timproc_uso_b5_func_00000000)(temp_a0, FW(arg0, 0x3B8)), 0x4B4) | FW(arg0, 0x4B4) | var_s0;
+        var_a1 = ((GP_000080F4)timproc_uso_b5_func_00000000)(FW(arg0, 0x41C), FW(arg0, 0x3B8));
+    } else {
+        var_s1 = FW(arg0, 0x4B4);
+        var_a1 = (char *)1;
     }
-    if (s1 != 0) return;
-    if (!func_00000000(&D_00000000, 0x100)) return;
-    d = *(char **)(scr + 0x28);
-    fp = *(void (**)(int))(d + 0x8C);
-    fp(*(short *)(d + 0x88));
-    func_00000000(scr);
-    func_00000000(scr);
-    fp = *(void (**)(int))(d + 0x84);
-    fp(*(short *)(d + 0x80));
+    if (FW(arg0, 0x44) < FW(arg0, 0x4BC)) {
+        sp3C = var_a1;
+        temp_v0 = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, var_a1);
+        temp_v1 = FW(temp_v0, 0x28);
+        ((GP_000080F4)FW(temp_v1, 0x7C))(FW(temp_v1, 0x78) + temp_v0);
+    }
+    temp_t2 = (var_s1 != 0) == 0;
+    sp28 = temp_t2;
+    if ((temp_t2 != 0) && (var_a1 != 0) && (((GP_000080F4)timproc_uso_b5_func_00000000)(0, (char *)0x100) != 0)) {
+        temp_v0_2 = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        temp_v1_2 = FW(temp_v0_2, 0x28);
+        ((GP_000080F4)FW(temp_v1_2, 0x8C))(FW(temp_v1_2, 0x88) + temp_v0_2, 0);
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        temp_v0_3 = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        temp_v1_3 = FW(temp_v0_3, 0x28);
+        ((GP_000080F4)FW(temp_v1_3, 0x84))(FW(temp_v1_3, 0x80) + temp_v0_3, 0);
+        if (((GP_000080F4)timproc_uso_b5_func_00000000)(arg0) == 0) {
+            ((GP_000080F4)timproc_uso_b5_func_00000000)(FW(arg0, 0x41C));
+            return;
+        }
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        temp_v0_4 = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        FW(arg0, 0x3C8) = temp_v0_4;
+        FW(arg0, 0x3C4) = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, temp_v0_4);
+        FW(arg0, 0x3CC) = 8;
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        FW(arg0, 0x484) = 1.0f;
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, 0);
+        return;
+    }
+    if ((var_s0 == 0) && (((GP_000080F4)timproc_uso_b5_func_00000000)(0, (char *)0x14003) != 0)) {
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, (char *)1);
+    }
+    ((GP_000080F4)timproc_uso_b5_func_00000000)(0, FW(arg0, 0x3B8));
+    if ((sp28 != 0) && (((GP_000080F4)timproc_uso_b5_func_00000000)(0, (char *)0x200) != 0)) {
+        if (((GP_000080F4)timproc_uso_b5_func_00000000)(arg0) == 0) {
+            ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+            return;
+        }
+        temp_v0_5 = FW(arg0, 0x3C4);
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(*(int*)((s32) temp_v0_5 * 4), (char *) (FW(arg0, 0x4D4) | FW((arg0 + ((s32) temp_v0_5 * 4)), 0x3D0)));
+        if ((FW(arg0, 0x3BC) == 2) && ((FW(arg0, 0x3B8) + 1) == FW(FW(arg0, 0x41C), 0x48))) {
+            var_s1_2 = 0;
+            var_s0_2 = 0;
+            if (FW(FW(FW(arg0, 0x40C), 0x48), 0x6C) > 0) {
+                do {
+                    temp_v1_4 = FW((FW(FW(arg0, 0x40C), 0x48) + var_s0_2), 0x3C);
+                    temp_v0_6 = FW(temp_v1_4, 0x28);
+                    ((GP_000080F4)FW(temp_v0_6, 0xB4))(FW(temp_v0_6, 0xB0) + temp_v1_4, FW((FW(FW(((GP_000080F4)timproc_uso_b5_func_00000000)(FW(arg0, 0x41C), FW(arg0, 0x3B8)), 0x40C), 0x48) + var_s0_2), 0x3C));
+                    var_s1_2 += 1;
+                    var_s0_2 += 4;
+                } while (var_s1_2 < FW(FW(FW(arg0, 0x40C), 0x48), 0x6C));
+            }
+        } else {
+            temp_v0_7 = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+            temp_v1_5 = FW(temp_v0_7, 0x28);
+            ((GP_000080F4)FW(temp_v1_5, 0xAC))(FW(temp_v1_5, 0xA8) + temp_v0_7);
+            temp_v0_8 = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+            temp_v1_6 = FW(temp_v0_8, 0x28);
+            ((GP_000080F4)FW(temp_v1_6, 0x6C))(FW(temp_v1_6, 0x68) + temp_v0_8);
+        }
+        FW(arg0, 0x3CC) = 6;
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, (char *)1);
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        temp_v0_9 = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        FW(arg0, 0x3C8) = temp_v0_9;
+        FW(arg0, 0x3C4) = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, temp_v0_9);
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
+        ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, 0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000080F4);

@@ -123,8 +123,20 @@ def cast_derefs(s):
             inner=s[i+2:j-1]
             t=inner.lstrip()
             first=re.match(r'[A-Za-z_]\w*', t)
-            is_cast = first and first.group(0) in TYPES and '*' in t[:first.end()+3]
-            if (not is_cast) and not t.startswith('(') and not t.startswith('&') and (t[:1].islower() or t.startswith('FW(')):
+            is_ptr_cast = first and first.group(0) in TYPES and '*' in t[:first.end()+3]
+            wrap=False
+            if not is_ptr_cast and not t.startswith('&'):
+                if t.startswith('('):
+                    d2=0; e=0
+                    for e in range(len(t)):
+                        if t[e]=='(': d2+=1
+                        elif t[e]==')': d2-=1
+                        if d2==0: break
+                    g=t[:e+1]            # leading balanced ( ... ) group
+                    wrap = '*' not in g  # value-cast/group -> wrap; pointer-cast -> skip
+                elif t[:1].islower() or t.startswith('FW('):
+                    wrap=True
+            if wrap:
                 o.append('*(int*)('+inner+')'); i=j; continue
         o.append(s[i]); i+=1
     return "".join(o)
