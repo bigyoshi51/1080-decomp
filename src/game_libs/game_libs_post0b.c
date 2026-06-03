@@ -9465,7 +9465,93 @@ void gl_func_00040018(Quad4 *dst) {
 // sentinel constants are exact; intermediate value flow is representative.
 // Caps: object struct + cb signature + FP-block semantics untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00040070)();
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00040070;
+s32 *gl_func_00040070(s32 *arg0, s32 *arg1, s32 arg2, s32 arg3, s32 arg4) {
+    Q_00040070 sp34;
+    s32 *sp6C;
+    f32 sp5C;
+    f32 sp58;
+    s32 sp54;
+    s32 *temp_v0;
+    s32 *temp_v0_2;
+    s32 *temp_v0_3;
+    s32 *temp_v0_4;
+    s32 *temp_v0_5;
+    s32 *temp_v0_6;
+    s32 *var_a0;
+    s32 *var_a2;
+    s32 *var_a2_2;
+    s32 *var_a2_3;
+    s32 *var_s0;
+    s32 *var_v1;
+    s32 *var_v1_2;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((int(*)())gl_func_00034458)((s32 *)0x108), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_a2 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = ((int(*)())gl_func_00034458)((s32 *)0xB4), var_a2 = temp_v0_2, (temp_v0_2 != 0))) {
+            sp6C = var_a2;
+            ((int(*)())gl_func_00034458)(var_a2, arg1, var_a2);
+            var_a2_2 = var_a2;
+            FW(var_a2_2, 0x28) = 0;
+            var_v1 = var_a2_2 + 0x2C;
+            if (((var_a2_2 != (s32 *)-0x2C) || (sp6C = var_a2_2, temp_v0_3 = ((int(*)())gl_func_00034458)((s32 *)4), var_v1 = temp_v0_3, (temp_v0_3 != 0))) && ((var_a0 = var_v1, (var_v1 != 0)) || (sp6C = var_a2_2, temp_v0_4 = ((int(*)())gl_func_00034458)((s32 *)4), var_a0 = temp_v0_4, (temp_v0_4 != 0)))) {
+                *var_a0 = 0;
+            }
+            sp6C = var_a2_2;
+            ((int(*)())gl_func_00034458)(var_a2_2);
+            sp54 = 0;
+            sp58 = 0.0f;
+            sp5C = 0.0f;
+            ((int(*)())gl_func_00034458)(var_a2_2 + 0x30, &sp54, var_a2_2);
+        }
+        FW(var_s0, 0x28) = 0;
+        var_a2_3 = var_s0 + 0x104;
+        if (((var_s0 != (s32 *)-0x104) || (temp_v0_5 = ((int(*)())gl_func_00034458)((s32 *)4), var_a2_3 = temp_v0_5, (temp_v0_5 != 0))) && ((var_v1_2 = var_a2_3, (var_a2_3 != 0)) || (temp_v0_6 = ((int(*)())gl_func_00034458)((s32 *)4), var_v1_2 = temp_v0_6, (temp_v0_6 != 0)))) {
+            *var_v1_2 = 0;
+        }
+        FW(var_s0, 0xCC) = 0;
+        FW(var_s0, 0x8) = (s32) (FW(var_s0, 0x8) | 0x20000);
+        FW(var_s0, 0xD0) = 0;
+        FW(var_s0, 0xD4) = 0;
+        *(f32*)((char*)var_s0 + 0xD8) = 1.0f;
+        *(f32*)((char*)var_s0 + 0xC0) = 1.0f;
+        *(f32*)((char*)var_s0 + 0xC4) = 1.0f;
+        *(f32*)((char*)var_s0 + 0xC8) = 1.0f;
+        FW(var_s0, 0xB4) = arg2;
+        FW(var_s0, 0xB8) = arg3;
+        FW(var_s0, 0xBC) = arg4;
+        sp34.unk0 = FW(var_s0, 0xB4);
+        sp34.unk4 = (s32) FW(var_s0, 0xB8);
+        sp34.unk8 = (s32) FW(var_s0, 0xBC);
+        *(f32*)((char*)var_s0 + 0xDC) = *(f32*)&sp34.unk0;
+        *(f32*)((char*)var_s0 + 0xE0) = *(f32*)&sp34.unk4;
+        *(f32*)((char*)var_s0 + 0xE4) = *(f32*)&sp34.unk8;
+        sp34.unk0 = FW(var_s0, 0xC0);
+        sp34.unk4 = (s32) FW(var_s0, 0xC4);
+        sp34.unk8 = (s32) FW(var_s0, 0xC8);
+        *(f32*)((char*)var_s0 + 0xE8) = *(f32*)&sp34.unk0;
+        *(f32*)((char*)var_s0 + 0xEC) = *(f32*)&sp34.unk4;
+        *(f32*)((char*)var_s0 + 0xF0) = *(f32*)&sp34.unk8;
+        sp34.unk0 = FW(var_s0, 0xCC);
+        sp34.unk4 = (s32) FW(var_s0, 0xD0);
+        sp34.unk8 = (s32) FW(var_s0, 0xD4);
+        *(f32*)((char*)var_s0 + 0xF4) = *(f32*)&sp34.unk0;
+        *(f32*)((char*)var_s0 + 0xF8) = *(f32*)&sp34.unk4;
+        *(f32*)((char*)var_s0 + 0x100) = *(f32*)((char*)var_s0 + 0xD8);
+        *(f32*)((char*)var_s0 + 0xFC) = *(f32*)&sp34.unk8;
+        ((int(*)())gl_func_00034458)(var_s0 + 0xDC, var_s0 + 0x70);
+    }
+    return var_s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040070);
+#endif
 
 /* gl_func_000402A4: 24-insn Vec3 add-to-fields-and-call.
  *   a0->vec[0..2] += (dx, dy, dz);  // floats at offsets 0xB4/B8/BC
