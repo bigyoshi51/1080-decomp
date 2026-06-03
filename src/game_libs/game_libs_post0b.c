@@ -25518,7 +25518,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CAEC);
  * Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CB5C);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005CB68)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_0005CB68;
+void gl_func_0005CB68(char *arg0, char *arg1, char *arg2, char *arg3) {
+    Q_0005CB68 sp24;
+    Q_0005CB68 sp38;
+    Q_0005CB68 sp4C;
+    f32 sp7C;
+    f32 sp78;
+    f32 sp74;
+    f32 sp70;
+    f32 sp6C;
+    f32 sp68;
+    f32 temp_f18;
+
+    sp74 = (*(f32*)((char*)arg2 + 0x0)) - (*(f32*)((char*)arg1 + 0x0));
+    sp78 = (*(f32*)((char*)arg2 + 0x4)) - (*(f32*)((char*)arg1 + 0x4));
+    sp7C = (*(f32*)((char*)arg2 + 0x8)) - (*(f32*)((char*)arg1 + 0x8));
+    temp_f18 = (*(f32*)((char*)arg3 + 0x0)) - (*(f32*)((char*)arg1 + 0x0));
+    sp68 = temp_f18;
+    sp6C = (*(f32*)((char*)arg3 + 0x4)) - (*(f32*)((char*)arg1 + 0x4));
+    sp70 = (*(f32*)((char*)arg3 + 0x8)) - (*(f32*)((char*)arg1 + 0x8));
+    sp38.unk0 = (sp78 * sp70) - (sp7C * sp6C);
+    sp38.unk4 = (sp7C * temp_f18) - (sp74 * sp70);
+    sp38.unk8 = (sp74 * sp6C) - (sp78 * temp_f18);
+    sp4C.unk0 = (f32) sp38.unk0;
+    sp4C.unk4 = sp38.unk4;
+    sp4C.unk8 = sp38.unk8;
+    sp24.unk0 = sp4C.unk0;
+    sp24.unk4 = sp4C.unk4;
+    sp24.unk8 = sp4C.unk8;
+    (*(f32*)((char*)arg0 + 0x0)) = sp24.unk0;
+    (*(f32*)((char*)arg0 + 0x4)) = sp24.unk4;
+    (*(f32*)((char*)arg0 + 0x8)) = sp24.unk8;
+    ((int(*)())gl_func_00034458)();
+    (*(f32*)((char*)arg0 + 0xC)) = (f32) (((*(f32*)((char*)arg0 + 0x0)) * (*(f32*)((char*)arg1 + 0x0))) + ((*(f32*)((char*)arg0 + 0x4)) * (*(f32*)((char*)arg1 + 0x4))) + ((*(f32*)((char*)arg0 + 0x8)) * (*(f32*)((char*)arg1 + 0x8))));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CB68);
+#endif
 
 void game_libs_func_0005CCC4(float *a0, float *a1) {
     a1[0] = -a0[0];
