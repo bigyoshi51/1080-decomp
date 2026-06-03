@@ -11114,7 +11114,93 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004406C);
 // immediates are exact. Trailing no-frame-leaf stack = deferred re-split.
 // Caps: registrar/config struct, &D_g + &D_0002FDxx table and cb signature
 // untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00044144)();
+void gl_func_00044144(char *arg0) {
+    int sp38;
+    s32 *sp30;
+    s32 *temp_v0;
+    s32 *temp_v0_2;
+    s32 *temp_v0_3;
+    s32 *temp_v0_4;
+    s32 *temp_v0_5;
+    s32 *temp_v0_6;
+    s32 *temp_v0_7;
+    s32 *temp_v0_8;
+    s32 *var_a2;
+    s32 *var_a2_2;
+    s32 *var_a2_3;
+    s32 *var_a2_4;
+    s32 *var_v1;
+    s32 *var_v1_2;
+    s32 *var_v1_3;
+    s32 *var_v1_4;
+    char *temp_v0_9;
+
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD34, 0);
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD40, (s32 *)0x24C, 0, 0x3F800000, 0);
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD50, (s32 *)0x250);
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD58, (s32 *)0x1F970);
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD64, 0, 0x400, 0x19000, 0);
+    ((int(*)())gl_func_00034458)((int *)0x294);
+    temp_v0 = ((int(*)())gl_func_00034458)((int *)8);
+    var_a2 = temp_v0;
+    if (temp_v0 != 0) {
+        var_v1 = temp_v0;
+        if ((temp_v0 != 0) || (sp30 = temp_v0, temp_v0_2 = ((int(*)())gl_func_00034458)((int *)4), var_a2 = sp30, var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            *var_v1 = 0x1F730;
+        }
+        FW(var_a2, 0x0) = 0;
+        FW(var_a2, 0x4) = 0;
+    }
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD6C, var_a2, 1);
+    temp_v0_3 = ((int(*)())gl_func_00034458)((int *)8);
+    var_a2_2 = temp_v0_3;
+    if (temp_v0_3 != 0) {
+        var_v1_2 = temp_v0_3;
+        if ((temp_v0_3 != 0) || (sp30 = temp_v0_3, temp_v0_4 = ((int(*)())gl_func_00034458)((int *)4), var_a2_2 = sp30, var_v1_2 = temp_v0_4, (temp_v0_4 != 0))) {
+            *var_v1_2 = 0x1F730;
+        }
+        FW(var_a2_2, 0x0) = 0;
+        FW(var_a2_2, 0x4) = 0;
+    }
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD78, var_a2_2, 1);
+    temp_v0_5 = ((int(*)())gl_func_00034458)((int *)8);
+    var_a2_3 = temp_v0_5;
+    if (temp_v0_5 != 0) {
+        var_v1_3 = temp_v0_5;
+        if ((temp_v0_5 != 0) || (sp30 = temp_v0_5, temp_v0_6 = ((int(*)())gl_func_00034458)((int *)4), var_a2_3 = sp30, var_v1_3 = temp_v0_6, (temp_v0_6 != 0))) {
+            *var_v1_3 = 0x1F730;
+        }
+        FW(var_a2_3, 0x0) = 0;
+        FW(var_a2_3, 0x4) = 0;
+    }
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD88, var_a2_3, 0);
+    temp_v0_7 = ((int(*)())gl_func_00034458)((int *)8);
+    var_a2_4 = temp_v0_7;
+    if (temp_v0_7 != 0) {
+        var_v1_4 = temp_v0_7;
+        if ((temp_v0_7 != 0) || (sp30 = temp_v0_7, temp_v0_8 = ((int(*)())gl_func_00034458)((int *)4), var_a2_4 = sp30, var_v1_4 = temp_v0_8, (temp_v0_8 != 0))) {
+            *var_v1_4 = 0x1F730;
+        }
+        FW(var_a2_4, 0x0) = 0;
+        FW(var_a2_4, 0x4) = 0;
+    }
+    ((int(*)())gl_func_00034458)(0, (int *)0x1FD94, var_a2_4, 1);
+    temp_v0_9 = *(char **)0x218;
+    ((int(*)())gl_func_00034458)(&sp38, (int *)0x1FDA4, FW(temp_v0_9, 0x3C), FW(temp_v0_9, 0x40), FW(temp_v0_9, 0x24), FW(temp_v0_9, 0x1C), FW(temp_v0_9, 0x20), *(int*)0);
+    ((int(*)())gl_func_00034458)(0, &sp38);
+    ((int(*)())gl_func_00034458)(&sp38, (int *)0x1FDD4, *(int*)0);
+    ((int(*)())gl_func_00034458)(0, &sp38);
+    ((int(*)())gl_func_00034458)(0);
+    ((int(*)())gl_func_00034458)(arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044144);
+#endif
 
 void game_libs_func_00044460(int *a0, int *a1) { *(int*)a0 = (int)a1; *(int*)((char*)a0 + 4) = *(int*)((char*)(*(int*)((char*)a1 + 0xC)) + 4); }
 
