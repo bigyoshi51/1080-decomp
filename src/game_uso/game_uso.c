@@ -11016,29 +11016,37 @@ void game_uso_func_0000D438(char *a0) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000D458)();
+extern int game_uso_func_07F6C0();
+extern int game_uso_func_077574();
+extern int game_uso_func_077C44();
+extern int import_0010D420();
+extern int game_uso_func_049280();
+extern int game_uso_func_048020();
+extern void game_uso_func_0000D5BC(char *, int, int);
+extern char import_800200CC;
+extern char game_uso_D_807FF3A0, game_uso_D_807FF3A8, game_uso_D_807FF3B0;
 void game_uso_func_0000D458(s32 arg0) {
     int sp34;
     s32 sp30;
     s32 var_v0;
 
-    ((GP_0000D458)game_uso_func_00000000)((int)arg0 + 0xBC, (arg0 * 0) + 0x7C);
+    game_uso_func_07F6C0((int)arg0 + 0xBC, (arg0 * 0) + 0x7C);
     FW(arg0, 0x114) = 2;
     FW(arg0, 0xFC) = 0x10000;
     FW(arg0, 0xDC) = 1;
     FW(arg0, 0x104) = -1;
     FW(arg0, 0x10C) = 0;
     *(float *)((char *)arg0 + 0x11C) = 1.0f;
-    ((GP_0000D458)game_uso_func_00000000)(arg0);
-    ((GP_0000D458)game_uso_func_00000000)(arg0, FW(arg0, 0xFC) | 8, 0, 0, 1, 1);
-    ((GP_0000D458)game_uso_func_00000000)(arg0);
-    if (*(s32 *)0x34 == 3) {
-        ((GP_0000D458)game_uso_func_00000000)(arg0, (char *)FW(0xDB0, 0x0), (char *)FW(0xDB0, 0x4));
+    game_uso_func_077574(arg0);
+    game_uso_func_077C44(arg0, FW(arg0, 0xFC) | 8, 0, 0, 1, 1);
+    import_0010D420(arg0);
+    if (*(int *)((char *)&import_800200CC + 0x34) == 3) {
+        game_uso_func_0000D5BC(arg0, FW(&game_uso_D_807FF3A0, 0x0), FW(&game_uso_D_807FF3A0, 0x4));
     } else {
-        ((GP_0000D458)game_uso_func_00000000)(arg0, (char *)FW(0xDB8, 0x0), (char *)FW(0xDB8, 0x4));
+        game_uso_func_0000D5BC(arg0, FW(&game_uso_D_807FF3A8, 0x0), FW(&game_uso_D_807FF3A8, 0x4));
     }
-    ((GP_0000D458)game_uso_func_00000000)();
-    ((GP_0000D458)game_uso_func_00000000)((s32) &sp30, 0xF10, 0x10);
+    game_uso_func_049280();
+    game_uso_func_048020((s32) &sp30, 0xF10, 0x10);
     if (sp30 != 0x04080040) {
         var_v0 = 0;
     } else {
@@ -11048,7 +11056,7 @@ void game_uso_func_0000D458(s32 arg0) {
         }
     }
     if (var_v0 == 0) {
-        ((GP_0000D458)game_uso_func_00000000)(arg0, (char *)FW(0xDC0, 0x0), (char *)FW(0xDC0, 0x4));
+        game_uso_func_0000D5BC(arg0, FW(&game_uso_D_807FF3B0, 0x0), FW(&game_uso_D_807FF3B0, 0x4));
     }
 }
 #else
