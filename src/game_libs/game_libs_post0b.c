@@ -11716,7 +11716,95 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000445AC);
 // the sltu-gated 0x218 field ladder are exact; per-validation cb3 arg detail
 // representative. Caps: self struct + cb signatures untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00044918)();
+void gl_func_00044918(char *arg0) {
+    char *sp34;
+    char *sp24;
+    s32 temp_t3;
+    s32 temp_t5;
+    s32 temp_t7;
+    s32 temp_t9;
+    s32 temp_t9_2;
+    s32 var_v0_2;
+    s32 var_v0_3;
+    s32 var_v1;
+    char *temp_a1;
+    char *temp_v0;
+    char *var_v0;
+    char *var_v1_2;
+
+    temp_a1 = (int)arg0 + 0x2AC;
+    FW(arg0, 0x5D0) = 0;
+    FW(temp_a1, 0x4) = 0;
+    FW(arg0, 0x2AC) = 0;
+    var_v0 = temp_a1 + 8;
+    var_v1 = 2;
+    do {
+        var_v1 += 4;
+        FW(var_v0, 0x0) = 0;
+        FW(var_v0, 0x4) = 0;
+        FW(var_v0, 0x8) = 0;
+        FW(var_v0, 0xC) = 0;
+        var_v0 += 0x10;
+    } while (var_v1 != 0x32);
+    FW(temp_a1, 0xC8) = 0;
+    FW(arg0, 0x210) = 0;
+    ((int(*)())gl_func_00034458)((int)arg0 + 0x294, temp_a1);
+    ((int(*)())gl_func_00034458)(arg0, 0);
+    var_v1_2 = FW(arg0, 0x218);
+    var_v0_2 = FW(var_v1_2, 0x1C) != 0;
+    if (var_v0_2 == 0) {
+        var_v0_2 = FW(var_v1_2, 0x4) != 0;
+        if (var_v0_2 == 0) {
+            var_v0_2 = FW(var_v1_2, 0xC) != 0;
+        }
+    }
+    if (var_v0_2 != 0) {
+        do {
+            sp34 = var_v1_2;
+            ((int(*)())gl_func_00034458)();
+            var_v0_3 = FW(var_v1_2, 0x1C) != 0;
+            if (var_v0_3 == 0) {
+                var_v0_3 = FW(var_v1_2, 0x4) != 0;
+                if (var_v0_3 == 0) {
+                    var_v0_3 = FW(var_v1_2, 0xC) != 0;
+                }
+            }
+        } while (var_v0_3 != 0);
+    }
+    ((int(*)())gl_func_00034458)(arg0);
+    FW(arg0, 0x250) = 0;
+    FW(arg0, 0x230) = 0;
+    FW(arg0, 0x138) = 0;
+    FW(arg0, 0x13C) = 0;
+    temp_v0 = (int)arg0 + 0x138;
+    FW(arg0, 0x24C) = (f32) *(f32 *)0x1B38;
+    FW(temp_v0, 0x4) = (s32) (FW(temp_v0, 0x4) & 0xFFFEFFFF);
+    *(int*)0 = 0;
+    temp_t9 = FW(temp_v0, 0x4) & ~2;
+    FW(temp_v0, 0x4) = temp_t9;
+    FW(temp_v0, 0x4) = (s32) (temp_t9 & ~0x1000);
+    sp24 = temp_v0;
+    ((int(*)())gl_func_00034458)(FW(arg0, 0x214));
+    temp_t3 = FW(temp_v0, 0x4) | 1;
+    temp_t5 = temp_t3 | 0x4000;
+    temp_t7 = temp_t5 | 0x8000;
+    FW(temp_v0, 0x4) = temp_t3;
+    temp_t9_2 = temp_t7 | 0x20000;
+    FW(temp_v0, 0x4) = temp_t5;
+    FW(temp_v0, 0x4) = temp_t7;
+    FW(temp_v0, 0x4) = temp_t9_2;
+    FW(temp_v0, 0x4) = (s32) (temp_t9_2 | 0x80);
+    ((int(*)())gl_func_00034458)((char *)0x1FE70);
+    ((int(*)())gl_func_00034458)(0, FW(FW(arg0, 0x240), 0xFC), *(int*)0 * *(int*)0 * 6);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044918);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00044AEC: 38-insn "wait while any of 3 fields nonzero" loop.
