@@ -11368,7 +11368,44 @@ void gl_func_00029B6C(char *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00029BC8)();
+void game_libs_func_00029BC8(char *arg0) {
+    u16 temp_a1;
+    u16 temp_a1_2;
+    char *temp_t9;
+    char *var_v0;
+
+    *(u8*)((char*)arg0 + 0xA0) = 1;
+    FW(arg0, 0x90) = 0;
+    *(f32*)((char*)arg0 + 0x3C) = 1.0f;
+    FW(arg0, 0x94) = *(s32*)((char*)&D_00000000 + 8);
+    temp_t9 = FW(FW(arg0, 0x44), 0x50);
+    FW(arg0, 0x8C) = temp_t9;
+    temp_a1 = *(u16*)((char*)temp_t9 + 0x1A);
+    *(s16*)((char*)arg0 + 0xA4) = temp_a1;
+    if (temp_a1 == 0) {
+        var_v0 = (int)arg0 + 0x8C;
+        *(f32*)((char*)var_v0 + 0xC) = (f32)(s32)*(u16*)((char*)temp_t9 + 0x16);
+    } else {
+        var_v0 = (int)arg0 + 0x8C;
+        *(f32*)((char*)var_v0 + 0xC) = (f32)(s32)*(u16*)((char*)temp_t9 + 0x12);
+    }
+    temp_a1_2 = *(u16*)((char*)temp_t9 + 0x18);
+    *(s16*)((char*)var_v0 + 0x16) = temp_a1_2;
+    if (temp_a1_2 == 0) {
+        *(f32*)((char*)var_v0 + 0x10) = (f32)(s32)*(u16*)((char*)temp_t9 + 0x14);
+    } else {
+        *(f32*)((char*)var_v0 + 0x10) = (f32)(s32)*(u16*)((char*)temp_t9 + 0x10);
+    }
+    *(s16*)((char*)var_v0 + 0x1A) = *(u16*)((char*)temp_t9 + 0x1C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029BC8);
+#endif
 
 /* 1.0f init + 3-field pointer copy from a0->0x44. The base pointer + loaded
  * values renumber ($v0 vs target $t6, alternating t7/t8 vs t7/t6).
