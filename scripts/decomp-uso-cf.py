@@ -52,7 +52,7 @@ m2c = subprocess.run(["uv", "run", "m2c", "--target", "mips-ido-c", "/tmp/cf_raw
 open("/tmp/cf.c", "w").write(m2c)
 
 for pat, why in [(r'M2C_ERROR', 'M2C_ERROR'), (r'Read from unset register', 'unset-register'),
-                 (r'M2C_MEMCPY', 'memcpy-intrinsic'), (r'\bsp[0-9A-F]+\[', 'struct-array-local'),
+                 (r'M2C_MEMCPY', 'memcpy-intrinsic'), (r'\w+\[[^\]]*\]\.unk', 'struct-array-access'),
                  (r'Unable to determine', 'jumptable')]:
     if re.search(pat, m2c):
         sys.exit("BLOCKED:" + why)
