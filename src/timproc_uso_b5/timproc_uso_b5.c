@@ -4072,7 +4072,7 @@ void timproc_uso_b5_func_00007078(char *arg0) {
         if (temp_t2 < 0) {
             ((GP_00007078)timproc_uso_b5_func_00000000)(*(int*)(FW(arg0, 0x3C4) * 4), FW(arg0, 0x4D4) | (FW(((GP_00007078)timproc_uso_b5_func_00000000)(arg0), 0x2B0) + 1));
             FW(arg0, 0x3CC) = 1;
-            FW(arg0, 0x484) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x484) = 1.0f;
             temp_v0 = ((GP_00007078)timproc_uso_b5_func_00000000)(arg0);
             temp_v1_3 = FW(temp_v0, 0x28);
             ((GP_00007078)FW(temp_v1_3, 0xA4))(FW(temp_v1_3, 0xA0) + temp_v0);
@@ -4083,7 +4083,7 @@ void timproc_uso_b5_func_00007078(char *arg0) {
         ((GP_00007078)timproc_uso_b5_func_00000000)(*(int*)(FW(arg0, 0x3C4) * 4), FW(arg0, 0x4D4) | (FW(((GP_00007078)timproc_uso_b5_func_00000000)(arg0), 0x2B0) + 1));
         FW(arg0, 0x3CC) = 1;
         FW(arg0, 0x400) = 0;
-        FW(arg0, 0x484) = 1.0f;
+        *(f32 *)((char *)arg0 + 0x484) = 1.0f;
         temp_v0_2 = ((GP_00007078)timproc_uso_b5_func_00000000)(arg0);
         temp_v1_4 = FW(temp_v0_2, 0x28);
         ((GP_00007078)FW(temp_v1_4, 0xA4))(FW(temp_v1_4, 0xA0) + temp_v0_2);
@@ -4100,7 +4100,7 @@ void timproc_uso_b5_func_00007078(char *arg0) {
             FW(arg0, 0x3C4) = ((GP_00007078)timproc_uso_b5_func_00000000)(arg0, (s32) temp_v0_3);
             FW(arg0, 0x3CC) = 2;
             ((GP_00007078)timproc_uso_b5_func_00000000)(arg0, 0);
-            FW(arg0, 0x484) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x484) = 1.0f;
         }
     }
     if ((FW(arg0, 0x3F8) != 0) && (FW(arg0, 0x480) == 0.0f)) {
