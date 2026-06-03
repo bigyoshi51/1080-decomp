@@ -3580,7 +3580,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038598);
 //   mnemonic disasm + the node/handler structs typed; structural
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0003863C)();
+void gl_func_0003863C(char *arg0) {
+    char **sp24;
+    char **sp20;
+    s32 temp_a1;
+    char **temp_t7;
+    char **temp_t8;
+    char *temp_v0;
+    char *temp_v1;
+    char *temp_v1_2;
+    char *var_v0;
+    char *var_v0_2;
+
+    sp24 = FW(arg0, 0x10);
+    temp_a1 = FW(arg0, 0xC);
+    ((int(*)())gl_func_00034458)(temp_a1, temp_a1);
+    temp_t7 = sp24;
+    var_v0 = 0;
+    sp20 = temp_t7;
+    if (temp_t7 != 0) {
+        sp24 = FW(temp_t7, 0x4);
+        var_v0 = FW(temp_t7, 0x0);
+    }
+    if (var_v0 != 0) {
+        do {
+            temp_v1 = *(int*)sp20;
+            if (FW(temp_v1, 0x18) & 4) {
+                if (FW(temp_v1, 0x4) != 0) {
+                    FW(temp_v1, 0x14) = arg0;
+                }
+                temp_v1_2 = *(int*)sp20;
+                if (FW(temp_v1_2, 0x20) & ((int(*)())gl_func_00034458)()) {
+                    temp_v0 = FW(temp_v1_2, 0x28);
+                    ((GP_0003863C)FW(temp_v0, 0x1C))(FW(temp_v0, 0x18) + temp_v1_2);
+                }
+            }
+            temp_t8 = sp24;
+            var_v0_2 = 0;
+            sp20 = temp_t8;
+            if (temp_t8 != 0) {
+                sp24 = FW(temp_t8, 0x4);
+                var_v0_2 = FW(temp_t8, 0x0);
+            }
+        } while (var_v0_2 != 0);
+    }
+    ((int(*)())gl_func_00034458)();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003863C);
+#endif
 
 // gl_func_00038728 — STRUCTURAL PASS (0x108 / 66 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
