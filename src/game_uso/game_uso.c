@@ -10269,17 +10269,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 // doubles) — snowboard collision/contact-response solver. Entry/
 // shape partial pass; multi-run target.
 //
-//   void game_uso_func_0000BB8C(Obj *obj) {
+//   void game_uso_func_0000BB8C(Obj *obj) {  // obj -> s3
 //     Sub *s = obj->0x220;
-//     // build a query struct on stack (sp+0x110..0x124): position
-//     //   Vec3 from s->0xA0 / s->0x34 / s->0x38, with -1.0f
-//     //   (0xBF800000) sentinel fields and 0.0 inits;
-//     // s->0x70 = a contact/normal record;
-//     // heavy FP pipeline: matrix*vector transforms, dot products,
-//     //   length/normalize, response projection (44 FP ops),
-//     //   ~6 func_00000000 sub-calls (sqrt / cross / collision
-//     //   query helpers);
-//     // write the resolved contact/velocity back into obj / s.
+//     // --- FULL DECODE MAP (2026-06-03, ready to implement next tick) ---
+//     // q-vec @sp272: {x=0, y=0, z=-1.0(0xBF800000)}; sp284=s->0xA0,
+//     //   sp288=s->0xA4, sp292=s->0xA8  (a2+=0x70 then 0x34/0x38 = s->
+//     //   0xA4/0xA8, NOT 0x34/0x38 — the stub's old offsets were wrong).
+//     //   s1 = *import_80087DA8.
+//     // 070F38(&q@sp272, s1->0x70 + 180);          // transform 1
+//     // scale q by 1000.0(0x447A) -> sp192 vec; s0 = *import_8005C108;
+//     //   071028(...); dot -> f2; neg; if (s3->572 < -dot): lerp
+//     //   t=(-dot - lo)/(1.0 - lo), cvt.d, clamp vs 1.0(D_807FFA88+360),
+//     //   * (s3->544)->200.   SECOND clamp @s3->620 / D_807FFA90.
+//     // 05B750(s0, &{0,0,0}@sp108) -> f0@sp120.
+//     // 05B614(s0, a3=s1->184, v1=s1->188, a1=s1->192, a2=s1->196,
+//     //   sp16=v1, sp20=&out@sp132).
+//     // loop: for (i=0; i < s3->628; i++, child s0 += 36) {
+//     //   if (child->216 < f26) continue;
+//     //   if ((child->212 & 1) && D_807FFA98+376 < (double)f20)
+//     //     0000B750(child+184, s3->180, &sp260, s4, sp16=f20);
+//     //   else 0000B750(child+184, s3->180, &sp260, s4, sp16=f24);
+//     // }   // f20/f24=clamp results, f26=threshold; *_FA88/90/98 dbl consts
 //   }
 //
 // Struct-typing reference:
@@ -10301,8 +10311,8 @@ void game_uso_func_0000BB8C(char *obj) {
     char *n;
     float q[8];
     q[0] = *(float *)(s + 0xA0);
-    q[1] = *(float *)(s + 0x34);
-    q[2] = *(float *)(s + 0x38);
+    q[1] = *(float *)(s + 0xA4);
+    q[2] = *(float *)(s + 0xA8);
     q[3] = -1.0f;
     q[4] = 0.0f;
     q[5] = 0.0f;
