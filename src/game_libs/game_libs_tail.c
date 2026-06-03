@@ -2162,7 +2162,56 @@ void *gl_func_0000C784(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C784);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000C8B8)();
+void gl_func_0000C8B8(char *arg0) {
+    s32 var_v0;
+    char *temp_a0;
+    char *temp_t3;
+    char *temp_v0;
+
+    var_v0 = 0;
+    do {
+        *(f32*)((char*)(FW(arg0, 0x44) + var_v0) + 0x8) = 0.0f;
+        *(f32*)((char*)(FW(arg0, 0x44) + var_v0) + 0xC) = 0.0f;
+        *(f32*)((char*)(FW(arg0, 0x44) + var_v0) + 0x10) = 0.0f;
+        FW((FW(arg0, 0x44) + var_v0), 0x18) = 0;
+        FW((FW(arg0, 0x44) + var_v0), 0x14) = 0;
+        FW((FW(arg0, 0x44) + var_v0), 0x1C) = 0;
+        FW((FW(arg0, 0x44) + var_v0), 0x20) = 0;
+        FW((FW(arg0, 0x44) + var_v0), 0x24) = 0;
+        FW((FW(arg0, 0x44) + var_v0), 0x28) = 0;
+        *(f32*)((char*)(FW(arg0, 0x44) + var_v0) + 0x30) = 0.0f;
+        FW((FW(arg0, 0x44) + var_v0), 0x34) = 0;
+        FW((FW(arg0, 0x44) + var_v0), 0x38) = 3;
+        FW((FW(arg0, 0x44) + var_v0), 0x3C) = 3;
+        temp_t3 = FW(arg0, 0x44) + var_v0;
+        var_v0 += 0x60;
+        FW(temp_t3, 0x40) = 3;
+    } while (var_v0 != 0x300);
+    FW(arg0, 0x30) = 0;
+    FW(arg0, 0x34) = 0x927C0;
+    FW(arg0, 0xB0) = 1;
+    *(f32*)((char*)arg0 + 0x38) = *(f32*)((char*)FW((*(char**)((char*)&D_00000000 + 0x134)), 0x98) + 0xC4);
+    *(f32*)((char*)arg0 + 0x3C) = *(f32*)((char*)FW((*(char**)((char*)&D_00000000 + 0x134)), 0x98) + 0xCC);
+    *(f32*)((char*)arg0 + 0x40) = *(f32*)((char*)FW((*(char**)((char*)&D_00000000 + 0x134)), 0x98) + 0xD8) - *(f32*)((char*)arg0 + 0x3C);
+    ((int(*)())gl_func_0000959C)(arg0, arg0);
+    temp_a0 = FW(arg0, 0x6C);
+    if (temp_a0 != 0) {
+        ((int(*)())gl_func_0000959C)(temp_a0, arg0);
+    }
+    temp_v0 = FW(arg0, 0x98);
+    if (temp_v0 != 0) {
+        FW(temp_v0, 0xC8) = 0x64;
+    }
+    FW(arg0, 0x2C) = 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C8B8);
+#endif
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
