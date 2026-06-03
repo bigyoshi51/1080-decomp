@@ -18461,7 +18461,103 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000521F8);
 // the cb prototype are representative (deferred FULL-DECODE node).
 // Caps: out + cursor structs untyped, trace-string offset not
 // symbolized (USO-relocated). Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005231C)();
+s32 *gl_func_0005231C(char *arg0, s32 arg1, s32 *arg2) {
+    s32 *var_a2;
+    s32 *var_v0;
+    s32 temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+
+    temp_v0 = arg1 & 0xFFFF;
+    switch (temp_v0) {                              /* irregular */
+    case 3:
+        var_a2 = (int)arg2 + 4;
+        FW(arg0, 0xC) = (s32) *arg2;
+        break;
+    case 13:
+        var_a2 = (int)arg2 + 4;
+        if (*(int*)arg2 != 0) {
+            FW(arg0, 0x30) = (s32) (FW(arg0, 0x30) | 2);
+        } else {
+            FW(arg0, 0x30) = (s32) (FW(arg0, 0x30) & ~2);
+        }
+        break;
+    case 14:
+        var_a2 = (int)arg2 + 4;
+        if (*(int*)arg2 != 0) {
+            FW(arg0, 0x30) = (s32) (FW(arg0, 0x30) | 1);
+        } else {
+            FW(arg0, 0x30) = (s32) (FW(arg0, 0x30) & ~1);
+        }
+        break;
+    case 15:
+        var_a2 = (int)arg2 + 4;
+        temp_v0_2 = (int)arg0 + 0x34;
+        if (*(int*)arg2 != 0) {
+            FW(temp_v0_2, 0x4) = (s32) (FW(temp_v0_2, 0x4) | 2);
+        } else {
+            temp_v0_3 = (int)arg0 + 0x34;
+            FW(temp_v0_3, 0x4) = (s32) (FW(temp_v0_3, 0x4) & ~2);
+        }
+        break;
+    case 22:
+        var_a2 = (int)arg2 + 4;
+        temp_v0_4 = (int)arg0 + 0x34;
+        if (*(int*)arg2 != 0) {
+            FW(temp_v0_4, 0x4) = (s32) (FW(temp_v0_4, 0x4) | 1);
+        } else {
+            temp_v0_5 = (int)arg0 + 0x34;
+            FW(temp_v0_5, 0x4) = (s32) (FW(temp_v0_5, 0x4) & ~1);
+        }
+        break;
+    case 23:
+        var_a2 = (int)arg2 + 4;
+        temp_v0_6 = (int)arg0 + 0x34;
+        if (*(int*)arg2 != 0) {
+            FW(temp_v0_6, 0x4) = (s32) (FW(temp_v0_6, 0x4) | 0x20000);
+        } else {
+            temp_v0_7 = (int)arg0 + 0x34;
+            FW(temp_v0_7, 0x4) = (s32) (FW(temp_v0_7, 0x4) & 0xFFFDFFFF);
+        }
+        break;
+    case 17:
+        var_v0 = (int)arg0 + 0x30;
+        if (*(int*)arg2 != 0) {
+            FW(arg0, 0x30) = (s32) (FW(arg0, 0x30) | 4);
+        } else {
+            var_v0 = (int)arg0 + 0x30;
+            FW(arg0, 0x30) = (s32) (FW(arg0, 0x30) & ~4);
+        }
+        var_a2 = (int)arg2 + 4;
+        if (*(int*)arg2 != 0) {
+            *var_v0 |= 2;
+        } else {
+            *var_v0 &= ~2;
+        }
+        break;
+    case 24:
+        var_a2 = (int)arg2 + 4;
+        FW(arg0, 0x38) = (s32) (FW(arg0, 0x38) | *arg2);
+        break;
+    default:
+        ((int(*)())gl_func_00034458)(0x20FA8, arg0);
+        var_a2 = arg2;
+        break;
+    }
+    return var_a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005256C: 33-insn op-code dispatch (set/clear bits) (0x84, frame 0x18).
