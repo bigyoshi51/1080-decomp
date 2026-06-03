@@ -995,7 +995,105 @@ int gl_func_0000AD2C(char *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD2C);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000AD9C)();
+void gl_func_0000AD9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    s32 temp_a1;
+    s32 temp_t5;
+    s32 temp_t9;
+    s32 var_a3;
+    char *var_a0;
+    char *var_a1;
+    char *var_a2;
+    char *var_v0;
+    char *var_v0_2;
+    char *var_v1;
+    char *var_v1_2;
+
+    if (arg1 < 3) {
+        if (arg1 < 2) {
+            var_a3 = 2;
+            if (arg1 < 2) {
+                temp_a1 = -((2 - arg1) & 3);
+                if (temp_a1 != 0) {
+                    var_v1 = (int)arg0 + (2 << 5);
+                    var_v0 = var_v1 - 0x20;
+                    do {
+                        var_a3 -= 1;
+                        var_v1 -= 0x20;
+                        FW(var_v1, 0x20) = (s32) FW(var_v0, 0x0);
+                        temp_t9 = FW(var_v0, 0x4);
+                        var_v0 -= 0x20;
+                        FW(var_v1, 0x24) = temp_t9;
+                        FW(var_v1, 0x28) = (s32) FW(var_v0, 0x28);
+                        FW(var_v1, 0x2C) = (s32) FW(var_v0, 0x2C);
+                        FW(var_v1, 0x30) = (s32) FW(var_v0, 0x30);
+                        FW(var_v1, 0x34) = (s32) FW(var_v0, 0x34);
+                        FW(var_v1, 0x38) = (s32) FW(var_v0, 0x38);
+                        FW(var_v1, 0x3C) = (s32) FW(var_v0, 0x3C);
+                    } while ((temp_a1 + 2) != var_a3);
+                    if (arg1 != var_a3) {
+                        goto block_7;
+                    }
+                } else {
+block_7:
+                    var_v1_2 = (int)arg0 + (var_a3 << 5);
+                    var_v0_2 = var_v1_2 - 0x20;
+                    var_a0 = var_v1_2 - 0x40;
+                    var_a1 = var_v1_2 - 0x60;
+                    var_a2 = var_v1_2 - 0x80;
+                    do {
+                        var_a2 -= 0x80;
+                        var_v1_2 -= 0x80;
+                        FW(var_v1_2, 0x80) = (s32) FW(var_v0_2, 0x0);
+                        temp_t5 = FW(var_v0_2, 0x4);
+                        var_v0_2 -= 0x80;
+                        var_a0 -= 0x80;
+                        FW(var_v1_2, 0x84) = temp_t5;
+                        var_a1 -= 0x80;
+                        FW(var_v1_2, 0x88) = (s32) FW(var_v0_2, 0x88);
+                        FW(var_v1_2, 0x8C) = (s32) FW(var_v0_2, 0x8C);
+                        FW(var_v1_2, 0x90) = (s32) FW(var_v0_2, 0x90);
+                        FW(var_v1_2, 0x94) = (s32) FW(var_v0_2, 0x94);
+                        FW(var_v1_2, 0x98) = (s32) FW(var_v0_2, 0x98);
+                        FW(var_v1_2, 0x9C) = (s32) FW(var_v0_2, 0x9C);
+                        FW(var_v0_2, 0x80) = (s32) FW(var_a0, 0x80);
+                        FW(var_v0_2, 0x84) = (s32) FW(var_a0, 0x84);
+                        FW(var_v0_2, 0x88) = (s32) FW(var_a0, 0x88);
+                        FW(var_v0_2, 0x8C) = (s32) FW(var_a0, 0x8C);
+                        FW(var_v0_2, 0x90) = (s32) FW(var_a0, 0x90);
+                        FW(var_v0_2, 0x94) = (s32) FW(var_a0, 0x94);
+                        FW(var_v0_2, 0x98) = (s32) FW(var_a0, 0x98);
+                        FW(var_v0_2, 0x9C) = (s32) FW(var_a0, 0x9C);
+                        FW(var_a0, 0x80) = (s32) FW(var_a1, 0x80);
+                        FW(var_a0, 0x84) = (s32) FW(var_a1, 0x84);
+                        FW(var_a0, 0x88) = (s32) FW(var_a1, 0x88);
+                        FW(var_a0, 0x8C) = (s32) FW(var_a1, 0x8C);
+                        FW(var_a0, 0x90) = (s32) FW(var_a1, 0x90);
+                        FW(var_a0, 0x94) = (s32) FW(var_a1, 0x94);
+                        FW(var_a0, 0x98) = (s32) FW(var_a1, 0x98);
+                        FW(var_a0, 0x9C) = (s32) FW(var_a1, 0x9C);
+                        FW(var_a1, 0x80) = (s32) FW(var_a2, 0x80);
+                        FW(var_a1, 0x84) = (s32) FW(var_a2, 0x84);
+                        FW(var_a1, 0x88) = (s32) FW(var_a2, 0x88);
+                        FW(var_a1, 0x8C) = (s32) FW(var_a2, 0x8C);
+                        FW(var_a1, 0x90) = (s32) FW(var_a2, 0x90);
+                        FW(var_a1, 0x94) = (s32) FW(var_a2, 0x94);
+                        FW(var_a1, 0x98) = (s32) FW(var_a2, 0x98);
+                        FW(var_a1, 0x9C) = (s32) FW(var_a2, 0x9C);
+                    } while ((((arg1 << 5) + (int)arg0) - 0x80) != (int)var_a2);
+                }
+            }
+        }
+        ((int(*)())gl_func_0000959C)((int)arg0 + (arg1 << 5), arg2, arg3, arg4);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD9C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);
 
