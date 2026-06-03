@@ -12485,7 +12485,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046790);
 // (short)vt->0x60 + obj) and the obj+0x100/0x78/0xDC config offsets are
 // exact. Caps: self/obj/vtable struct + cb signatures untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000469A8)();
+void gl_func_000469A8(char *arg0, s32 arg1) {
+    s32 sp48;
+    s32 temp_a1;
+    s32 temp_a1_2;
+    s32 var_t0;
+    char *temp_a3;
+    char *temp_s0;
+    char *temp_s1;
+    char *temp_t6;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v1;
+    char *temp_v1_2;
+
+    arg1 = ((int(*)())gl_func_00034458)(FW(arg0, 0x218), 0);
+    temp_s1 = FW((FW(arg0, 0x240) + (FW(arg0, 0x204) * 4)), 0x180);
+    ((int(*)())gl_func_00034458)(temp_s1);
+    temp_v1 = FW(arg0, 0x240);
+    temp_v0 = FW(temp_v1, 0x28);
+    temp_v1_2 = FW(arg0, 0x240);
+    temp_a1 = ((GP_000469A8)FW(temp_v0, 0x64))(FW(temp_v0, 0x60) + temp_v1);
+    sp48 = FW(FW(temp_v1_2, 0x148), 0xF0);
+    var_t0 = (FW((temp_v1_2 + 0x100), 0x4) & 2) != 0;
+    if (var_t0 != 0) {
+        var_t0 = (FW(temp_v1_2, 0x78) & 2) != 0;
+    }
+    ((int(*)())gl_func_00034458)(temp_s1, temp_a1, sp48, FW(temp_v1_2, 0x78) & 4, var_t0, temp_v1_2 + 0xDC, FW(temp_v1_2, 0xC0), FW(temp_v1_2, 0xC4), FW(temp_v1_2, 0xB8), FW(temp_v1_2, 0xBC), FW(FW(temp_v1_2, 0x148), 0xB8), FW(temp_v1_2, 0x1B0));
+    temp_t6 = FW(arg0, 0x240);
+    *(char **)0x254 = temp_t6;
+    FW(temp_t6, 0x158) = temp_s1;
+    temp_v0_2 = FW(arg0, 0x290);
+    temp_s0 = FW(temp_v0_2, 0x28);
+    ((GP_000469A8)FW(temp_s0, 0x1C))(FW(temp_s0, 0x18) + temp_v0_2);
+    temp_a3 = FW(temp_s1, 0xC);
+    temp_a1_2 = FW(temp_a3, 0x4);
+    FW(temp_a3, 0x4) = (s32) (temp_a1_2 + 1);
+    temp_v0_3 = FW(FW(temp_s1, 0xC), 0x0) + (temp_a1_2 * 8);
+    FW(temp_v0_3, 0x0) = 0xE9000000;
+    FW(temp_v0_3, 0x4) = 0;
+    ((int(*)())gl_func_00034458)(temp_s1, temp_a1_2);
+    ((int(*)())gl_func_00034458)(FW(arg0, 0x218), arg1, 0, FW(temp_s1, 0x60), FW(FW(temp_s1, 0xC), 0x4), (char *)4);
+    ((int(*)())gl_func_00034458)(FW(arg0, 0x218), arg1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000469A8);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00046B44() {
