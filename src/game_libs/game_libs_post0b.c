@@ -25232,7 +25232,40 @@ void game_libs_func_0005D588(float *a0, float *a1, float *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D588);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005D628)();
+void gl_func_0005D628(char *arg0, char *arg1, char *arg2) {
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f2;
+
+    temp_f0 = (*(f32*)((char*)arg0 + 0x0));
+    temp_f2 = (*(f32*)((char*)arg0 + 0x4));
+    temp_f0_2 = ((f32(*)())gl_func_00034458)((temp_f0 * temp_f0) + (temp_f2 * temp_f2));
+    if (temp_f0_2 == 0.0f) {
+        (*(f32*)((char*)arg1 + 0x0)) = 0.0f;
+        (*(f32*)((char*)arg1 + 0x8)) = 0.0f;
+        (*(f32*)((char*)arg1 + 0x4)) = 1.0f;
+    } else {
+        (*(f32*)((char*)arg1 + 0x8)) = 0.0f;
+        (*(f32*)((char*)arg1 + 0x4)) = (f32) ((*(f32*)((char*)arg0 + 0x0)) / temp_f0_2);
+        (*(f32*)((char*)arg1 + 0x0)) = (f32) (-(*(f32*)((char*)arg0 + 0x4)) / temp_f0_2);
+    }
+    (*(f32*)((char*)arg2 + 0x0)) = (f32) (((*(f32*)((char*)arg0 + 0xC)) * (*(f32*)((char*)arg1 + 0x0))) - ((*(f32*)((char*)arg0 + 0x8)) * (*(f32*)((char*)arg1 + 0x4))));
+    (*(f32*)((char*)arg2 + 0x4)) = (f32) (((*(f32*)((char*)arg0 + 0xC)) * (*(f32*)((char*)arg1 + 0x4))) + ((*(f32*)((char*)arg0 + 0x8)) * (*(f32*)((char*)arg1 + 0x0))));
+    (*(f32*)((char*)arg2 + 0x8)) = (f32) (((*(f32*)((char*)arg0 + 0x0)) * (*(f32*)((char*)arg1 + 0x4))) - ((*(f32*)((char*)arg0 + 0x4)) * (*(f32*)((char*)arg1 + 0x0))));
+    if ((*(f32*)((char*)arg0 + 0xC)) < 0.0f) {
+        (*(f32*)((char*)arg1 + 0x8)) = 0.0f;
+        (*(f32*)((char*)arg1 + 0x0)) = (f32) -(*(f32*)((char*)arg1 + 0x0));
+        (*(f32*)((char*)arg1 + 0x4)) = (f32) -(*(f32*)((char*)arg1 + 0x4));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D628);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D754);
 
