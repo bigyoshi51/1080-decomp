@@ -43111,23 +43111,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
  * INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070314);
 
+/* game_libs_func_00070320: 194-insn (0x308) memmove/memcpy with overlap +
+ * alignment dispatch. BOUNDARY MERGED 2026-06-02: a multi-path/multi-exit
+ * routine (forward-copy, backward-copy, word-aligned, byte paths — several
+ * internal `jr ra` exits) that splat carved into three symbols (70320 head +
+ * 70398 middle + 70508 tail). 70320 branches forward to 0x704BC (in 70398);
+ * 70398/70508 branch backward to 0x70370/0x704D8 (inside this body). Absorbed
+ * 70398+70508 (0x78 -> 0x308); dropped both symbols (no external callers). All
+ * branches verified in-range; ends at 0x70628 (pre-existing 0xC align pad
+ * before gl_func_00070634). Reloc-blind USO; stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070320);
-
-/* game_libs_func_00070398: 92-insn (0x170) middle-fragment with backward
- * branch to 0x70370 (just before .s start 0x70398). Sibling of 00070508
- * (both branches target before-start) — both are sub-fragments of one
- * larger function. Splat boundary error per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * Needs splat boundary correction (focused-session). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070398);
-
-/* game_libs_func_00070508: 72-insn (0x120) middle-fragment with backward
- * branch to 0x704D8 (just before .s start 0x70508). Splat captured the
- * tail of a larger function — predecessor 00070398 is sibling middle-
- * fragment of the same function. Splat boundary error per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * Needs splat boundary correction (focused-session). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070508);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070244_pad.s")
 
 #ifdef NON_MATCHING
