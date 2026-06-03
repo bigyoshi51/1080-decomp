@@ -109,42 +109,112 @@ void gl_func_0000975C(Quad4 *dst) {
  * the word-sum x4 with an (count&3) remainder pre-loop. 47.84% (logic correct,
  * loop-body insn order + spill diverge) — permuter target. */
 #ifdef NON_MATCHING
-void game_libs_func_000097B4(int *out, int *src, int len, int a3) {
-    int count = len / 4;
-    int sum = 0;
-    int i = 0;
-    int rem;
-    int chk;
-    if (count > 0) {
-        rem = count & 3;
-        if (rem != 0) {
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000097B4)();
+void game_libs_func_000097B4(char *arg0, s32 *arg1, s32 arg2, s32 arg3) {
+    s32 *var_a1;
+    s32 temp_a0;
+    s32 temp_t0;
+    s32 temp_t1;
+    s32 temp_t6;
+    s32 temp_v0;
+    s32 temp_v1;
+    s32 var_v0;
+    s32 var_v1;
+    char *temp_a1;
+    char *temp_a1_2;
+
+    var_a1 = arg1;
+    var_v0 = 0;
+    var_v1 = 0;
+    temp_t0 = arg2 / 4;
+    if (temp_t0 > 0) {
+        temp_a0 = temp_t0 & 3;
+        if (temp_a0 != 0) {
             do {
-                sum += *src;
-                i++;
-                src++;
-            } while (rem != i);
-        }
-        if (i != count) {
+                temp_t6 = *(int*)var_a1;
+                var_v1 += 1;
+                var_a1 += 4;
+                var_v0 += temp_t6;
+            } while (temp_a0 != var_v1);
+            if (var_v1 != temp_t0) {
+                goto loop_4;
+            }
+        } else {
             do {
-                int a = src[0];
-                int b = src[1];
-                int c = src[2];
-                int d = src[3];
-                src += 4;
-                sum += a;
-                i += 4;
-                sum += b;
-                sum += c;
-                sum += d;
-            } while (i != count);
+loop_4:
+                temp_a1 = var_a1 + 4;
+                temp_a1_2 = temp_a1 + 4;
+                temp_t1 = FW(temp_a1_2, 0x4);
+                var_v1 += 4;
+                temp_v0 = var_v0 + FW(var_a1, 0x0) + FW(var_a1, 0x4) + FW(temp_a1, 0x4);
+                var_a1 = temp_a1_2 + 4 + 4;
+                var_v0 = temp_v0 + temp_t1;
+            } while (var_v1 != temp_t0);
         }
     }
-    chk = 0xF251F205 - sum;
-    out[0] = chk;
-    out[1] = a3 - (chk - sum);
+    temp_v1 = 0xF251F205 - var_v0;
+    FW(arg0, 0x0) = temp_v1;
+    FW(arg0, 0x4) = (s32) (arg3 - (temp_v1 - var_v0));
+}
+#else
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000097B4)();
+void game_libs_func_000097B4(char *arg0, s32 *arg1, s32 arg2, s32 arg3) {
+    s32 *var_a1;
+    s32 temp_a0;
+    s32 temp_t0;
+    s32 temp_t1;
+    s32 temp_t6;
+    s32 temp_v0;
+    s32 temp_v1;
+    s32 var_v0;
+    s32 var_v1;
+    char *temp_a1;
+    char *temp_a1_2;
+
+    var_a1 = arg1;
+    var_v0 = 0;
+    var_v1 = 0;
+    temp_t0 = arg2 / 4;
+    if (temp_t0 > 0) {
+        temp_a0 = temp_t0 & 3;
+        if (temp_a0 != 0) {
+            do {
+                temp_t6 = *(int*)var_a1;
+                var_v1 += 1;
+                var_a1 += 4;
+                var_v0 += temp_t6;
+            } while (temp_a0 != var_v1);
+            if (var_v1 != temp_t0) {
+                goto loop_4;
+            }
+        } else {
+            do {
+loop_4:
+                temp_a1 = var_a1 + 4;
+                temp_a1_2 = temp_a1 + 4;
+                temp_t1 = FW(temp_a1_2, 0x4);
+                var_v1 += 4;
+                temp_v0 = var_v0 + FW(var_a1, 0x0) + FW(var_a1, 0x4) + FW(temp_a1, 0x4);
+                var_a1 = temp_a1_2 + 4 + 4;
+                var_v0 = temp_v0 + temp_t1;
+            } while (var_v1 != temp_t0);
+        }
+    }
+    temp_v1 = 0xF251F205 - var_v0;
+    FW(arg0, 0x0) = temp_v1;
+    FW(arg0, 0x4) = (s32) (arg3 - (temp_v1 - var_v0));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
+#endif
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
