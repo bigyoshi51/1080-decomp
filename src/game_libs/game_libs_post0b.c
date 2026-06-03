@@ -11870,7 +11870,45 @@ int game_libs_func_00044DD4(int *a0, int a1) {
 // 0x240 + idx*4 + 0x198/0x180 handler-table math and the &D_0002FExx keys
 // are exact. Caps: self struct, &D_g global and cb signatures untyped. Full
 // body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00044DE4)();
+void gl_func_00044DE4(char *arg0) {
+    s32 var_s1;
+    char *temp_v0;
+    char *temp_v1;
+    char *var_s0;
+
+    *(int*)0 = 0x1FEB4;
+    *(int*)0 = (s32) FW(FW(arg0, 0x218), 0x24);
+    FW(arg0, 0x244) = 0;
+    FW(arg0, 0x248) = 0;
+    FW(arg0, 0x258) = 0;
+    ((int(*)())gl_func_00034458)(FW((FW(arg0, 0x240) + (FW(arg0, 0x204) * 4)), 0x198));
+    ((int(*)())gl_func_00034458)(FW((FW(arg0, 0x240) + (FW(arg0, 0x204) * 4)), 0x180));
+    FW(FW(arg0, 0x22C), 0xC) = 0;
+    ((int(*)())gl_func_00034458)(0x1FEBC);
+    ((int(*)())gl_func_00034458)(0x1FEC4);
+    FW(arg0, 0x1C0) = 0;
+    var_s1 = 0;
+    var_s0 = arg0;
+    if (FW(arg0, 0x15C) > 0) {
+        do {
+            temp_v1 = FW(var_s0, 0x148);
+            if (temp_v1 != 0) {
+                temp_v0 = FW(temp_v1, 0x5C);
+                ((GP_00044DE4)FW(temp_v0, 0xC))(FW(temp_v0, 0x8) + temp_v1, 0);
+            }
+            var_s1 += 1;
+            var_s0 += 4;
+        } while (var_s1 < FW(arg0, 0x15C));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
+#endif
 
 // gl_func_00044EDC — STRUCTURAL PASS (0x298 / 167 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
