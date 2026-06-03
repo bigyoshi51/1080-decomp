@@ -974,7 +974,63 @@ void gl_func_000033E4(char *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003430);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef int (*GP_000038F4)();
+void gl_func_000038F4(char *arg0) {
+    int spE4;
+    int sp64;
+    int *temp_a3;
+    int *temp_s2;
+    int *temp_s3;
+    int *temp_s7;
+    s32 var_s0;
+    s32 var_s4;
+    char *temp_s0;
+    char *temp_v0;
+    char *temp_v1;
+    char *var_s2;
+
+    var_s0 = 0;
+    var_s2 = arg0;
+    do {
+        temp_v1 = FW(var_s2, 0x2C);
+        if (FW(temp_v1, 0x94) != 0) {
+            temp_v0 = FW(temp_v1, 0x28);
+            ((GP_000038F4)FW(temp_v0, 0x1C))(FW(temp_v0, 0x18) + temp_v1);
+        }
+        var_s0 += 4;
+        var_s2 += 4;
+    } while (var_s0 != 0x20);
+    ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50));
+    var_s4 = 0;
+    temp_s7 = (int)arg0 + 0xCC;
+    if (FW(arg0, 0x84) > 0) {
+        do {
+            temp_s0 = (int)arg0 + (((FW(arg0, 0x80) + var_s4) & 3) * 4);
+            temp_a3 = FW(temp_s0, 0x6C);
+            if (temp_a3 != (int *)-1) {
+                ((GP_000038F4)gl_func_00000000)(&spE4, (int *)0xCCEC, FW(temp_s0, 0x5C), temp_a3);
+                ((GP_000038F4)gl_func_00000000)(&sp64, (int *)0xCCF8, FW(temp_s0, 0x6C));
+                temp_s2 = ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), FW(temp_s0, 0xAC), &spE4);
+                temp_s3 = ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), FW(temp_s0, 0x5C)) + temp_s2;
+                ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), (int *) (s32) ((f32) FW(temp_s0, 0x9C) * *(int*)0), temp_s7, (int *)0xFF);
+                ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), temp_s2, FW(temp_s0, 0xBC), FW(temp_s0, 0x5C));
+                ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), (int *) (s32) ((f32) FW(temp_s0, 0x9C) * *(int*)0), (int)arg0 + 0xDC, (int *)0xFF);
+                ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), temp_s3, FW(temp_s0, 0xBC), &sp64);
+            } else {
+                ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), (int *) (s32) ((f32) FW(temp_s0, 0x9C) * *(int*)0), temp_s7, (int *)0xFF);
+                ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), ((GP_000038F4)gl_func_00000000)(FW(arg0, 0x50), FW(temp_s0, 0xAC), FW(temp_s0, 0x5C)), FW(temp_s0, 0xBC), FW(temp_s0, 0x5C));
+            }
+            var_s4 += 1;
+        } while (var_s4 < FW(arg0, 0x84));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000038F4);
+#endif
 
 /* gl_func_00003B1C - verified structural decode (0xF0, 60 insns,
  * free-slot allocator + initializer).
