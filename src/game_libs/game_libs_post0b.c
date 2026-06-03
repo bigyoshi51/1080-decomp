@@ -3391,14 +3391,78 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003829C);
 //   body below — representative report-cb sequence; precise per-line
 //   format / field selection deferred to FP-pool symbolization.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
+// gl_func_00038360 — FULL m2c DECODE (70.70% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-extern int D_00000000;
-void gl_func_00038360(char *o) {
-    gl_func_00000000((char *)&D_00000000 + 0x0001EC34);
-    gl_func_00000000((char *)&D_00000000 + 0x0001EC3C, *(int *)(o + 0x1C));
-    gl_func_00000000((char *)&D_00000000 + 0x0001EC40, *(int *)(o + 0x20));
-    gl_func_00000000((char *)&D_00000000 + 0x0001EC44, *(int *)(o + 0x18), 8);
-    gl_func_00000000((char *)&D_00000000 + 0x0001EC50, *(int *)(o + 0x08));
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00038360)();
+void gl_func_00038360(s32 arg0) {
+    s32 *sp28;
+    s32 *sp24;
+    s32 *sp20;
+    s32 *sp18;
+    s32 *temp_a2;
+    s32 *temp_v0;
+    s32 *temp_v0_2;
+    s32 *temp_v0_3;
+    s32 *temp_v0_4;
+    s32 *temp_v0_5;
+    s32 *temp_v0_6;
+    s32 *temp_v0_7;
+    s32 *var_a1;
+    s32 *var_a1_2;
+    s32 *var_a2;
+    s32 *var_a2_2;
+    s32 *var_v1;
+    s32 *var_v1_2;
+    s32 *var_v1_3;
+
+    ((int(*)())gl_func_00034458)(0, (s32 *)0x1EC34, 0);
+    ((int(*)())gl_func_00034458)(0, (s32 *)0x1EC3C, (int)arg0 + 0x1C, 0);
+    ((int(*)())gl_func_00034458)(0, (s32 *)0x1EC40, (int)arg0 + 0x20, 0);
+    temp_a2 = (int)arg0 + 0x18;
+    sp18 = temp_a2;
+    ((int(*)())gl_func_00034458)(0, (s32 *)0x1EC44, temp_a2, 8);
+    ((int(*)())gl_func_00034458)(0, (s32 *)0x1EC50, temp_a2, 4);
+    temp_v0 = ((int(*)())gl_func_00034458)(0x10);
+    var_a2 = temp_v0;
+    if (temp_v0 != 0) {
+        var_v1 = temp_v0;
+        if ((temp_v0 != 0) || (sp28 = temp_v0, temp_v0_2 = ((int(*)())gl_func_00034458)(0x10), var_a2 = sp28, var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            var_a1 = var_v1;
+            if ((var_v1 != 0) || (sp24 = var_v1, sp28 = var_a2, temp_v0_3 = ((int(*)())gl_func_00034458)(4, var_a1, var_a2), var_a1 = temp_v0_3, (temp_v0_3 != 0))) {
+                *var_a1 = 0x1EB10;
+            }
+            FW(var_v1, 0x4) = arg0;
+            FW(var_v1, 0x8) = (s32) (char *)FW(0x1EA38, 0x0);
+            FW(var_v1, 0xC) = (s32) (char *)FW(0x1EA38, 0x4);
+        }
+        *var_a2 = 0x1EB40;
+    }
+    ((int(*)())gl_func_00034458)(0, (s32 *)0x1EC5C, var_a2, 1);
+    temp_v0_4 = ((int(*)())gl_func_00034458)(0x18);
+    var_a2_2 = temp_v0_4;
+    if (temp_v0_4 != 0) {
+        var_v1_2 = temp_v0_4;
+        if (((temp_v0_4 != 0) || (sp28 = temp_v0_4, temp_v0_5 = ((int(*)())gl_func_00034458)(0x10), var_a2_2 = sp28, var_v1_2 = temp_v0_5, (temp_v0_5 != 0))) && ((var_a1_2 = var_v1_2, (var_v1_2 != 0)) || (sp28 = var_a2_2, temp_v0_6 = ((int(*)())gl_func_00034458)(0x10, var_a1_2, var_a2_2), var_a1_2 = temp_v0_6, (temp_v0_6 != 0)))) {
+            var_v1_3 = var_a1_2;
+            if ((var_a1_2 != 0) || (sp20 = var_a1_2, sp28 = var_a2_2, temp_v0_7 = ((int(*)())gl_func_00034458)(4, var_a1_2, var_a2_2), var_v1_3 = temp_v0_7, (temp_v0_7 != 0))) {
+                *var_v1_3 = 0x1EB10;
+            }
+            FW(var_a1_2, 0x4) = arg0;
+            FW(var_a1_2, 0x8) = (s32) (char *)FW(0x1EA40, 0x0);
+            FW(var_a1_2, 0xC) = (s32) (char *)FW(0x1EA40, 0x4);
+        }
+        FW(var_a2_2, 0x0) = 0x1EB58;
+        FW(var_a2_2, 0x10) = 0;
+        FW(var_a2_2, 0x14) = 0;
+    }
+    ((int(*)())gl_func_00034458)(0, (s32 *)0x1EC64, var_a2_2, 1);
+    ((int(*)())gl_func_00034458)(0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038360);
