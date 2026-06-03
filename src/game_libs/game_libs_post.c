@@ -1785,24 +1785,93 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
 //   (need USO reloc infra). Name pre-checked: no extern reuse
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder for the leaf emitters.
+// gl_func_0001F3C8 — FULL m2c DECODE (56.05% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-int *gl_func_0001F3C8(int *dst, int a1, char *a2, int a3, int kind) {
-    if (kind == 1) {
-        a2[3] = a2[5];
-        a2[2] = 0;
-    } else if (kind == 2) {
-        a2[2] = a2[4];
-        a2[3] = 0;
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0001F3C8)();
+char *gl_func_0001F3C8(char *arg0, char *arg1, char *arg2, s32 arg3, s32 arg4, s32 arg5) {
+    s32 temp_t1;
+    s32 temp_v0;
+    s32 var_t0;
+    s32 var_v1_2;
+    u8 var_a1;
+    u8 var_v1;
+    char *temp_a0;
+    char *temp_a0_2;
+    char *temp_a0_3;
+    char *temp_a0_4;
+    char *var_a0;
+    char *var_a0_2;
+
+    switch (arg5) {                                 /* irregular */
+    case 1:
+        var_v1 = FW(arg2, 0x2);
+        var_t0 = 0x940;
+        var_a1 = FW(arg1, 0x3);
+        FW(arg2, 0x3) = 0U;
+        FW(arg2, 0x2) = var_a1;
+block_6:
+        if (arg4 != 1) {
+            if (var_v1 != var_a1) {
+                var_v1_2 = arg3 + var_a1;
+                temp_t1 = var_v1_2 - var_v1;
+                FW(arg0, 0x0) = 0x080005C0;
+                FW(arg0, 0x4) = (s32) ((temp_t1 & 0xFFFF) | 0x03C00000);
+                temp_a0 = arg0 + 8;
+                FW(temp_a0, 0x4) = 0;
+                var_a0_2 = temp_a0 + 8;
+                FW(arg0, 0x8) = (s32) ((((s32) (((s32) (arg3 << 0xF) / 2) - 1) / (s32) ((s32) (temp_t1 - 2) / 2)) & 0xFFFF & 0xFFFF) | 0x06000000);
+            } else {
+                FW(arg0, 0x0) = 0x0A0005C0;
+                FW(arg0, 0x4) = (s32) ((arg3 & 0xFFFF) | 0x03C00000);
+                var_a0_2 = arg0 + 8;
+                var_v1_2 = arg3 + var_a1;
+            }
+            if (var_v1 != 0) {
+                FW(var_a0_2, 0x0) = (s32) (((((s32) ((var_v1 + 0xF) & 0xFFF0) >> 4) & 0xFF) << 0x10) | 0x14000000 | 0x5C0);
+                FW(var_a0_2, 0x4) = (s32) (FW(arg2, 0xC) + 0x80000080);
+                temp_a0_2 = var_a0_2 + 8;
+                FW(var_a0_2, 0x8) = 0x0A0003C0;
+                FW(temp_a0_2, 0x4) = (s32) (((var_v1 + 0x5C0) << 0x10) | ((var_v1_2 - var_v1) & 0xFFFF));
+                var_a0 = temp_a0_2 + 8;
+            } else {
+                FW(var_a0_2, 0x0) = 0x0A0003C0;
+                FW(var_a0_2, 0x4) = (s32) ((var_v1_2 & 0xFFFF) | 0x05C00000);
+                var_a0 = var_a0_2 + 8;
+            }
+        } else {
+            temp_v0 = arg3 & 0xFFFF;
+            temp_a0_3 = arg0 + 8;
+            FW(arg0, 0x4) = (s32) (temp_v0 | 0x03C00000);
+            FW(arg0, 0x0) = 0x0A0005C0;
+            temp_a0_4 = temp_a0_3 + 8;
+            FW(arg0, 0x8) = 0x020005C0;
+            FW(temp_a0_3, 0x4) = (s32) var_a1;
+            FW(temp_a0_4, 0x4) = (s32) (((var_a1 + 0x5C0) << 0x10) | temp_v0);
+            FW(temp_a0_3, 0x8) = 0x0A0003C0;
+            var_a0 = temp_a0_4 + 8;
+        }
+        if (var_a1 != 0) {
+            FW(var_a0, 0x0) = (s32) (((((s32) ((var_a1 + 0xF) & 0xFFF0) >> 4) & 0xFF) << 0x10) | 0x15000000 | ((arg3 + 0x5C0) & 0xFFFF));
+            FW(var_a0, 0x4) = (s32) (FW(arg2, 0xC) + 0x80000080);
+            var_a0 += 8;
+        }
+        FW(var_a0, 0x0) = (s32) (((((s32) ((arg3 + 0x3F) & 0xFFC0) >> 4) & 0xFF) << 0x10) | 0x04000000 | 0x7FFF);
+        FW(var_a0, 0x4) = (s32) ((var_t0 & 0xFFFF) | 0x05C00000);
+        return var_a0 + 8;
+    case 2:
+        var_a1 = FW(arg1, 0x4);
+        var_v1 = FW(arg2, 0x3);
+        var_t0 = 0xAE0;
+        FW(arg2, 0x2) = 0U;
+        FW(arg2, 0x3) = var_a1;
+        goto block_6;
+    default:
+        return arg0;
     }
-    dst[0] = (kind == 2) ? 0x0AE00000 : 0x09400000;
-    dst[1] = 0x05C00000 | (unsigned char)a2[2];
-    dst += 2;
-    dst[0] = 0x03C00000 | (unsigned char)a2[3];
-    dst[1] = a3;
-    dst += 2;
-    gl_func_00000000(dst, a2, kind);
-    return dst;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
