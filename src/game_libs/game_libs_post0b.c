@@ -23330,7 +23330,94 @@ void gl_func_0005AFD4(int *a0, int *a1, int *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005AFD4);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005B070)();
+s8 *gl_func_0005B070(char *arg0, s32 arg1) {
+    s32 temp_v0;
+    s32 temp_v1_2;
+    s32 var_a1;
+    s8 *temp_a3;
+    s8 *var_v0;
+    u32 temp_a3_2;
+    char *temp_t6;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v1;
+    char *var_s1;
+    char *var_v1;
+
+    var_v1 = FW(arg0, 0x4);
+    var_s1 = 0;
+    if (var_v1 != arg0) {
+loop_2:
+        temp_v0 = (FW(var_v1, 0x0) & 0xFFFFFF) - ((u32) ((int)arg1 + 0xF) >> 4);
+        if ((temp_v0 >= 0) && ((u32) temp_v0 < 0x7FFFFFFFU)) {
+            var_s1 = var_v1;
+        } else {
+            var_v1 = FW(var_v1, 0x4);
+            if (var_v1 != arg0) {
+                goto loop_2;
+            }
+        }
+    }
+    if (var_s1 == 0) {
+        return 0;
+    }
+    temp_a3_2 = (u32) ((int)arg1 + 0xF) >> 4;
+    if (temp_a3_2 == (FW(var_s1, 0x0) & 0xFFFFFF)) {
+        FW(FW(var_s1, 0x4), 0x8) = (char *) FW(var_s1, 0x8);
+        FW(FW(var_s1, 0x8), 0x4) = (char *) FW(var_s1, 0x4);
+    } else {
+        temp_t6 = FW(var_s1, 0x4);
+        temp_v0_2 = var_s1 + (temp_a3_2 * 0x10);
+        FW(temp_v0_2, 0x14) = temp_t6;
+        temp_v1 = temp_v0_2 + 0x10;
+        FW(temp_v0_2, 0x18) = (char *) FW(var_s1, 0x8);
+        FW(temp_t6, 0x8) = temp_v1;
+        FW(FW(temp_v0_2, 0x18), 0x4) = temp_v1;
+        FW(temp_v0_2, 0x1C) = 0x87654321;
+        FW(temp_v0_2, 0x10) = (s32) ((FW(var_s1, 0x0) - temp_a3_2) - 1);
+    }
+    ((int(*)())game_libs_func_00062F08)(var_s1, (FW(arg0, 0x20) << 0x18) + temp_a3_2, (int)arg0 + 0x10, temp_a3_2);
+    temp_a3 = var_s1 + 0x10;
+    var_v0 = temp_a3;
+    var_a1 = 0;
+    if (arg1 != 0) {
+        temp_v1_2 = arg1 & 3;
+        if (temp_v1_2 != 0) {
+            do {
+                var_a1 += 1;
+                *var_v0 = 0xFF;
+                var_v0 += 1;
+            } while (temp_v1_2 != var_a1);
+            if (var_a1 != arg1) {
+                goto block_16;
+            }
+        } else {
+block_16:
+            do {
+                FW(var_v0, 0x0) = 0xFF;
+                temp_v0_3 = var_v0 + 1;
+                FW(var_v0, 0x1) = 0xFF;
+                temp_v0_4 = temp_v0_3 + 1;
+                FW(temp_v0_3, 0x1) = 0xFF;
+                var_a1 += 4;
+                FW(temp_v0_4, 0x1) = 0xFF;
+                var_v0 = temp_v0_4 + 1 + 1;
+            } while (var_a1 != arg1);
+        }
+    }
+    FW(arg0, 0x24) = (s32) (FW(arg0, 0x24) + (FW(var_s1, 0x0) & 0xFFFFFF));
+    FW(var_s1, 0xC) = 0x12345678;
+    return temp_a3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B070);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
