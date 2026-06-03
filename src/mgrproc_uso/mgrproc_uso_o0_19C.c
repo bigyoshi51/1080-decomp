@@ -172,58 +172,55 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D
 #endif
 
 #ifdef NON_MATCHING
-/* mgrproc_uso_func_00000700 (-O0): control-config setup. Sets arg0->0x8->{0}=3,
- * {4}=0, then switch(arg1) cases 1/2/3 fill a button/control map (->0x8 through
- * ->0x20 with 2..7), each calling cb(arg0). Case 1 picks ->0x8 = 4 or 3 by an
- * absolute cart check (*(int*)0xA0000284 == 0x240B17D7). Cases 2/3 also set ->0x34
- * = *(int*)(&D+0x4C); case 3 sets ->0x38 = 5/6/7 by *(u16*)(&D+0x154 deref +2).
- * Fresh decode 2026-05-29 (m2c-confirmed, -O0 literal). 98.2% reg-blind (structure
- * near-exact); the low exact-match is pervasive -O0 register renumbering + an early
- * s0=&D materialization the target hoists into case 1. Caps: structs + cb proto
- * untyped (USO-reloc), &D/cart literals not symbolized. NON_MATCHING. */
-extern int gl_func_00000000();
-void mgrproc_uso_func_00000700(char *arg0, int arg1) {
-    *(int *)(*(char **)(arg0 + 8) + 0) = 3;
-    *(int *)(*(char **)(arg0 + 8) + 4) = 0;
-    switch (arg1) {
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00000700)();
+void mgrproc_uso_func_00000700(char *arg0, s32 arg1) {
+    *(int*)(FW(arg0, 0x8)) = 3;
+    FW(FW(arg0, 0x8), 0x4) = 0;
+    switch (arg1) {                                 /* irregular */
     case 1:
-        if (*(int *)0xA0000284 == 0x240B17D7) {
-            *(int *)(*(char **)(arg0 + 8) + 8) = 4;
+        if (*(s32 *)0xA0000284 == 0x240B17D7) {
+            FW(FW(arg0, 0x8), 0x8) = 4;
         } else {
-            *(int *)(*(char **)(arg0 + 8) + 8) = 3;
+            FW(FW(arg0, 0x8), 0x8) = 3;
         }
-        *(int *)(*(char **)(arg0 + 8) + 0xC) = 2;
-        *(int *)(*(char **)(arg0 + 8) + 0x10) = 3;
-        *(int *)(*(char **)(arg0 + 8) + 0x14) = 4;
-        *(int *)(*(char **)(arg0 + 8) + 0x18) = 5;
-        gl_func_00000000(arg0);
+        FW(FW(arg0, 0x8), 0xC) = 2;
+        FW(FW(arg0, 0x8), 0x10) = 3;
+        FW(FW(arg0, 0x8), 0x14) = 4;
+        FW(FW(arg0, 0x8), 0x18) = 5;
+        ((int(*)())mgrproc_uso_func_0000019C)(arg0);
         break;
     case 2:
-        *(int *)(*(char **)(arg0 + 8) + 8) = 5;
-        *(int *)(*(char **)(arg0 + 8) + 0xC) = 2;
-        *(int *)(*(char **)(arg0 + 8) + 0x10) = 3;
-        *(int *)(*(char **)(arg0 + 8) + 0x14) = 4;
-        *(int *)(*(char **)(arg0 + 8) + 0x18) = 5;
-        *(int *)(*(char **)(arg0 + 8) + 0x1C) = 6;
-        gl_func_00000000(arg0);
-        *(int *)(*(char **)(arg0 + 8) + 0x34) = *(int *)((char *)&D_00000000 + 0x4C);
+        FW(FW(arg0, 0x8), 0x8) = 5;
+        FW(FW(arg0, 0x8), 0xC) = 2;
+        FW(FW(arg0, 0x8), 0x10) = 3;
+        FW(FW(arg0, 0x8), 0x14) = 4;
+        FW(FW(arg0, 0x8), 0x18) = 5;
+        FW(FW(arg0, 0x8), 0x1C) = 6;
+        ((int(*)())mgrproc_uso_func_0000019C)(arg0);
+        FW(FW(arg0, 0x8), 0x34) = (s32) *(char *)0x4C;
         break;
     case 3:
-        *(int *)(*(char **)(arg0 + 8) + 8) = 6;
-        *(int *)(*(char **)(arg0 + 8) + 0xC) = 2;
-        *(int *)(*(char **)(arg0 + 8) + 0x10) = 3;
-        *(int *)(*(char **)(arg0 + 8) + 0x14) = 4;
-        *(int *)(*(char **)(arg0 + 8) + 0x18) = 5;
-        *(int *)(*(char **)(arg0 + 8) + 0x1C) = 6;
-        *(int *)(*(char **)(arg0 + 8) + 0x20) = 7;
-        gl_func_00000000(arg0);
-        *(int *)(*(char **)(arg0 + 8) + 0x34) = *(int *)((char *)&D_00000000 + 0x4C);
-        if (*(unsigned short *)(*(char **)((char *)&D_00000000 + 0x154) + 2) == 3) {
-            *(int *)(*(char **)(arg0 + 8) + 0x38) = 5;
-        } else if (*(unsigned short *)(*(char **)((char *)&D_00000000 + 0x154) + 2) == 4) {
-            *(int *)(*(char **)(arg0 + 8) + 0x38) = 6;
+        FW(FW(arg0, 0x8), 0x8) = 6;
+        FW(FW(arg0, 0x8), 0xC) = 2;
+        FW(FW(arg0, 0x8), 0x10) = 3;
+        FW(FW(arg0, 0x8), 0x14) = 4;
+        FW(FW(arg0, 0x8), 0x18) = 5;
+        FW(FW(arg0, 0x8), 0x1C) = 6;
+        FW(FW(arg0, 0x8), 0x20) = 7;
+        ((int(*)())mgrproc_uso_func_0000019C)(arg0);
+        FW(FW(arg0, 0x8), 0x34) = (s32) *(s32 *)0x4C;
+        if (FW((*(char **)0x154), 0x2) == 3) {
+            FW(FW(arg0, 0x8), 0x38) = 5;
+        } else if (FW((*(char *)0x154), 0x2) == 4) {
+            FW(FW(arg0, 0x8), 0x38) = 6;
         } else {
-            *(int *)(*(char **)(arg0 + 8) + 0x38) = 7;
+            FW(FW(arg0, 0x8), 0x38) = 7;
         }
         break;
     }
