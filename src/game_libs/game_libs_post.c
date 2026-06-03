@@ -7632,7 +7632,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025320);
 void game_libs_func_000253B0(int a0, int a1, int a2, int a3) {
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000253C4)();
+void game_libs_func_000253C4(u32 *arg0, s32 arg1, char *arg2) {
+    s32 temp_v0_3;
+    u32 temp_v0;
+    u32 temp_v0_2;
+    u32 temp_v1;
+
+    temp_v0 = *(int*)arg0;
+    if (temp_v0 < 0x80000001U) {
+        temp_v1 = temp_v0 + (int)arg1;
+        *arg0 = temp_v1;
+        if ((FW(temp_v1, 0x0) & 0xFFFFFF) && (((u8) FW(temp_v1, 0x0) & 1) != 1)) {
+            FW(temp_v1, 0x8) = (s32) (FW(temp_v1, 0x8) + (int)arg1);
+            temp_v0_2 = (u32) (FW(temp_v1, 0x0) * 0x10) >> 0x1E;
+            FW(temp_v1, 0xC) = (s32) (FW(temp_v1, 0xC) + (int)arg1);
+            switch (temp_v0_2) {                    /* irregular */
+            case 2:
+            case 3:
+                break;
+            case 0:
+                FW(temp_v1, 0x4) = (s32) (FW(temp_v1, 0x4) + FW(arg2, 0x8));
+                FW(temp_v1, 0x0) = (s8) (((FW(arg2, 0x10) * 4) & 0xC) | ((u8) FW(temp_v1, 0x0) & 0xFFF3));
+                break;
+            case 1:
+                FW(temp_v1, 0x4) = (s32) (FW(temp_v1, 0x4) + FW(arg2, 0xC));
+                FW(temp_v1, 0x0) = (s8) (((FW(arg2, 0x14) * 4) & 0xC) | ((u8) FW(temp_v1, 0x0) & 0xFFF3));
+                break;
+            }
+            FW(temp_v1, 0x0) = (s8) ((u8) FW(temp_v1, 0x0) | 1);
+            temp_v0_3 = FW(temp_v1, 0x0);
+            if ((temp_v0_3 & 0x02000000) && (((u32) (temp_v0_3 * 0x10) >> 0x1E) != 0)) {
+                FW((*(s32 *)0x1030 * 4), 0x430) = temp_v1;
+                *(s32 *)0x1030 += 1;
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253C4);
+#endif
 
 // gl_func_00025504 — STRUCTURAL PASS (0x3C8 / 242 words ≈ 1KB, no
 // episode). Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION
