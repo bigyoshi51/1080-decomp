@@ -1386,10 +1386,10 @@ s32 *timproc_uso_b5_func_0000283C(s32 *arg0, s32 *arg1, s32 arg2, s32 arg3) {
         FW(FW(FW(var_s1, 0xC), 0x70), 0x14C) = (f32) arg3;
         temp_s0_3 = FW(var_s1, 0xC);
         temp_s0_4 = temp_s0_3 + 0xDC;
-        FW(temp_s0_4, 0x8) = 0.0f;
+        *(f32 *)((char *)temp_s0_4 + 0x8) = 0.0f;
         FW(temp_s0_3, 0xDC) = 0.0f;
-        FW(temp_s0_4, 0x4) = 0.0f;
-        FW(temp_s0_4, 0xC) = 0.0f;
+        *(f32 *)((char *)temp_s0_4 + 0x4) = 0.0f;
+        *(f32 *)((char *)temp_s0_4 + 0xC) = 0.0f;
     }
     return var_s1;
 }
