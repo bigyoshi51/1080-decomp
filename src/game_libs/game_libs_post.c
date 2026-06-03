@@ -11866,9 +11866,9 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
         temp_f0_2 = temp_f12 + var_f2;
         FW(arg0, 0x38) = temp_f0_2;
         if (temp_f0_2 < 0.0f) {
-            FW(arg0, 0x38) = 0.0f;
+            *(f32 *)((char *)arg0 + 0x38) = 0.0f;
         } else if (FW(arg0, 0x38) > 1.0f) {
-            FW(arg0, 0x38) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x38) = 1.0f;
         }
     } else {
         *(f32 *)((char *)arg0 + 0x38) = *(f32 *)((char *)arg0 + 0x3C);
