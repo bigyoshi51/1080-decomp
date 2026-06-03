@@ -20230,7 +20230,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000533EC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053560);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00053A2C)();
+void gl_func_00053A2C(char *arg0) {
+    s16 temp_a0;
+    s16 temp_a0_2;
+    s16 temp_a1;
+    s16 temp_a1_2;
+    s16 temp_v1;
+    s16 temp_v1_2;
+    s32 var_s3;
+    s32 var_s4;
+    u32 var_s5;
+    char *temp_s1;
+    char *temp_s2;
+    char *temp_v0;
+
+    var_s4 = 0;
+    var_s5 = 0;
+    if (FW(arg0, 0x44) != 0) {
+        var_s3 = 0;
+        do {
+            temp_s1 = ((int(*)())gl_func_00034458)(arg0, *(u16*)((char*)(FW(arg0, 0x68) + var_s4) + 0x2));
+            temp_s2 = ((int(*)())gl_func_00034458)(arg0, *(u16*)((char*)(FW(arg0, 0x68) + var_s4) + 0x4));
+            temp_v0 = ((int(*)())gl_func_00034458)(arg0, *(u16*)((char*)(FW(arg0, 0x68) + var_s4) + 0x6));
+            temp_v1 = (*(s16*)((char*)temp_s2 + 0x2));
+            temp_a0 = (*(s16*)((char*)temp_s2 + 0x4));
+            *(f32*)((char*)(FW(arg0, 0x54) + var_s3)) = (f32) (((temp_v1 - (*(s16*)((char*)temp_s1 + 0x2))) * ((*(s16*)((char*)temp_v0 + 0x4)) - temp_a0)) - ((temp_a0 - (*(s16*)((char*)temp_s1 + 0x4))) * ((*(s16*)((char*)temp_v0 + 0x2)) - temp_v1)));
+            temp_a1 = (*(s16*)((char*)temp_s2 + 0x0));
+            temp_a0_2 = (*(s16*)((char*)temp_s2 + 0x4));
+            *(f32*)((char*)(FW(arg0, 0x54) + var_s3) + 0x4) = (f32) (((temp_a0_2 - (*(s16*)((char*)temp_s1 + 0x4))) * ((*(s16*)((char*)temp_v0 + 0x0)) - temp_a1)) - ((temp_a1 - (*(s16*)((char*)temp_s1 + 0x0))) * ((*(s16*)((char*)temp_v0 + 0x4)) - temp_a0_2)));
+            temp_v1_2 = (*(s16*)((char*)temp_s2 + 0x2));
+            temp_a1_2 = (*(s16*)((char*)temp_s2 + 0x0));
+            *(f32*)((char*)(FW(arg0, 0x54) + var_s3) + 0x8) = (f32) (((temp_a1_2 - (*(s16*)((char*)temp_s1 + 0x0))) * ((*(s16*)((char*)temp_v0 + 0x2)) - temp_v1_2)) - ((temp_v1_2 - (*(s16*)((char*)temp_s1 + 0x2))) * ((*(s16*)((char*)temp_v0 + 0x0)) - temp_a1_2)));
+            ((int(*)())gl_func_00034458)(FW(arg0, 0x54) + var_s3, (u16) temp_a1_2);
+            var_s5 += 1;
+            var_s4 += 8;
+            var_s3 += 0xC;
+        } while (var_s5 < (u32) FW(arg0, 0x44));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053A2C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
 
