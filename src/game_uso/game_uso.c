@@ -9156,27 +9156,65 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00009B88);
  * the result-object reload - combined FP-regalloc/struct-copy
  * divergence (cf gl_func_00065250). Full body INCLUDE_ASM-preserved.
  * INCLUDE_ASM (no episode; tautology-trap rule). */
+extern float game_uso_func_082880(float);
+extern char game_uso_D_807FEDD0;
 #ifdef NON_MATCHING
-int game_uso_func_0000A0E8(char *a0, char *b, char *a2) {
-    char *v0;
-    char *v1;
-    float dx, dy, dz;
-    float sp108[3];
-    float sp188[3];
-    (void)a0;
+int game_uso_func_0000A0E8(char *a0, char *a1, char *a2) {
+    char *w;
+    Vec3 d1, d1b, d1c;
+    Vec3 d2, d2b, d2c;
+    Vec3 xz1, xz2;
+    Vec3 *p1, *p2;
+    float mag, normv;
+    float a1y, lhs, rhs;
+    int ret;
+
     if (a2 == 0) {
-        gl_func_00000000((char *)&D_00000000 + 0x7D4, (char *)&D_00000000 + 0x7E0, 1586);
+        game_uso_func_047B1C((char *)&game_uso_D_807FEDD0 + 2004,
+                             (char *)&game_uso_D_807FEDD0 + 2016, 1586);
+        a2 = (char *)1586;
     }
-    v0 = a2;
-    dx = *(float *)(v0 + 0x30) - *(float *)(b + 0x30);
-    dy = *(float *)(v0 + 0x38) - *(float *)(b + 0x38);
-    dz = *(float *)(v0 + 0x34) - *(float *)(b + 0x34);
-    sp108[0] = dx; sp108[1] = dy; sp108[2] = dz;
-    sp188[0] = sp108[0]; sp188[1] = sp108[1]; sp188[2] = sp108[2];
-    v1 = (char *)gl_func_00000000(b + 0x30);
-    *(float *)(v1 + 0x0) = sp188[0];
-    *(float *)(v1 + 0x8) = sp188[2];
-    *(float *)(v1 + 0x4) = sp188[1];
+    /* block1: d1 = a2.vec - a1.vec (0x30/0x34/0x38), copied through 2 buffers,
+     * then a dead-alloc XZ Vec3 (y zeroed). */
+    d1.x = *(float *)(a2 + 0x30) - *(float *)(a1 + 0x30);
+    d1.y = *(float *)(a2 + 0x34) - *(float *)(a1 + 0x34);
+    d1.z = *(float *)(a2 + 0x38) - *(float *)(a1 + 0x38);
+    d1b = d1;
+    d1c = d1b;
+    p1 = &xz1;
+    if (p1 == 0) p1 = (Vec3 *)game_uso_func_055750(12);
+    p1->x = d1c.x;
+    p1->z = d1c.z;
+    p1->y = 0.0f;
+    /* block2: w = a0->0x30; d2 = w->{0xB4,0xB8,0xBC} - a1->{0,4,8}; dead-alloc XZ. */
+    w = *(char **)(a0 + 0x30);
+    d2.x = *(float *)(w + 0xB4) - *(float *)(a1 + 0x0);
+    d2.y = *(float *)(w + 0xB8) - *(float *)(a1 + 0x4);
+    d2.z = *(float *)(w + 0xBC) - *(float *)(a1 + 0x8);
+    d2b = d2;
+    d2c = d2b;
+    p2 = &xz2;
+    if (p2 == 0) p2 = (Vec3 *)game_uso_func_055750(12);
+    p2->x = d2c.x;
+    p2->z = d2c.z;
+    p2->y = 0.0f;
+    /* block3: normalize the dot of the two XZ vecs by |xz1|. */
+    mag = game_uso_func_082880(xz1.x * xz1.x + xz1.z * xz1.z);
+    if (0.0f < game_uso_func_082880(xz1.x * xz1.x + xz1.z * xz1.z)) {
+        normv = (xz1.x * xz2.x + xz1.z * xz2.z) /
+                game_uso_func_082880(xz1.x * xz1.x + xz1.z * xz1.z);
+    } else {
+        normv = 0.0f;
+    }
+    /* block4: range predicate. */
+    a1y = *(float *)(a1 + 0x34);
+    lhs = (*(float *)(a2 + 0x34) - a1y) * normv;
+    rhs = mag * (*(float *)(w + 0xB8) - (a1y - 400.0f));
+    ret = 0;
+    if (lhs < rhs) {
+        ret = 1;
+    }
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
