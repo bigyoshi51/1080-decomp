@@ -11086,7 +11086,67 @@ int gl_func_000435FC(int *a0, int a1) {
 // pipeline shape and the a0->0x38 bitfield gates are exact. Caps: object/g
 // struct, &D_0+0x214 global and cb signatures untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00043654)();
+void gl_func_00043654(char *arg0, char *arg1) {
+    char *sp34;
+    s32 temp_v0_3;
+    s32 var_a1;
+    char *temp_a0;
+    char *temp_a0_2;
+    char *temp_a1;
+    char *temp_a2;
+    char *temp_t6;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v1;
+    char *var_a3;
+
+    temp_t6 = *(char **)0x214;
+    FW(arg0, 0x64) = temp_t6;
+    var_a3 = temp_t6;
+    FW(arg0, 0x88) = (s16) FW(FW(temp_t6, 0xC), 0x4);
+    if (FW(arg0, 0x48) == 0) {
+        ((int(*)())gl_func_00034458)(temp_t6, arg1, var_a3);
+        ((int(*)())gl_func_00034458)(FW(arg0, 0x64), arg1);
+        ((int(*)())gl_func_00034458)(FW(arg0, 0x64), arg1);
+        ((int(*)())gl_func_00034458)(FW(arg0, 0x64), arg1);
+        var_a3 = FW(arg0, 0x64);
+    }
+    if (FW(arg0, 0x38) & 0x400000) {
+        ((int(*)())gl_func_00034458)(0, var_a3, arg0, var_a3);
+        var_a1 = 0x1FD1C;
+        if (FW(arg0, 0x38) & 0x100000) {
+            temp_v0 = ((int(*)())gl_func_00034458)(0, (char *)0x1FD1C, (char *)0xA, 0, 5, 0, 0);
+            FW(arg0, 0x68) = temp_v0;
+            ((int(*)())gl_func_00034458)(temp_v0);
+            temp_v1 = FW(arg0, 0x64);
+            sp34 = temp_v1;
+            temp_v0_2 = ((int(*)())gl_func_00034458)(FW(FW(arg0, 0x68), 0x60));
+            temp_a0 = FW(temp_v1, 0xC);
+            var_a1 = FW(temp_a0, 0x4);
+            FW(temp_a0, 0x4) = (s32) (var_a1 + 1);
+            temp_a2 = FW(FW(temp_v1, 0xC), 0x0) + (var_a1 * 8);
+            FW(temp_a2, 0x0) = 0x06000000;
+            FW(temp_a2, 0x4) = temp_v0_2;
+        }
+        ((int(*)())gl_func_00034458)(FW(arg0, 0x64), (char *) var_a1);
+    } else {
+        temp_a0_2 = FW(var_a3, 0xC);
+        temp_v0_3 = FW(temp_a0_2, 0x4);
+        FW(temp_a0_2, 0x4) = (s32) (temp_v0_3 + 1);
+        temp_a1 = FW(FW(var_a3, 0xC), 0x0) + (temp_v0_3 * 8);
+        FW(temp_a1, 0x0) = 0xBB040000;
+        FW(temp_a1, 0x4) = -1;
+    }
+    ((int(*)())gl_func_00034458)(FW(arg0, 0x64));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043654);
+#endif
 
 // gl_func_000437C0 — STRUCTURAL PASS (0x428 / 267 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
