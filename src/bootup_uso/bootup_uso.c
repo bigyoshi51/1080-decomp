@@ -1082,7 +1082,100 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002420);
 // Caps <80: 4 func_00000000 dispatcher calls with stack-slot return + nested vtable
 //   indirections; structural, no C body byte-matches yet.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000024B8)();
+void func_000024B8(char *arg0) {
+    s32 sp4C;
+    char *sp40;
+    s32 sp38;
+    u32 sp2C;
+    s32 temp_a1;
+    s32 temp_s0_3;
+    s32 var_t0;
+    u32 temp_a3;
+    char *temp_s0;
+    char *temp_s0_2;
+    char *temp_s0_4;
+    char *temp_s0_5;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v1;
+    char *var_v1;
+
+    var_t0 = 0;
+    if (*(s32 *)0x20 == 1) {
+        temp_v0 = FW(arg0, 0x38);
+        sp4C = 0;
+        ((GP_000024B8)func_00000000)((FW(temp_v0, 0x10) & 0x400) != 0, (FW(temp_v0, 0x10) & 0x1000) != 0, FW(temp_v0, 0x8), FW(temp_v0, 0x9));
+        var_t0 = sp4C;
+    }
+    if (FW(FW(arg0, 0x38), 0x18) & 0x40) {
+        var_t0 = 1;
+        FW(arg0, 0x4C) = (s32) ((FW(arg0, 0x4C) != 0) == 0);
+    }
+    if (FW(arg0, 0x4C) != 0) {
+        if (var_t0 != 0) {
+            ((GP_000024B8)func_00000000)((s32) arg0, 0);
+            temp_v0_2 = FW(arg0, 0x30);
+            temp_s0 = FW(temp_v0_2, 0x28);
+            ((GP_000024B8)FW(temp_s0, 0x6C))(FW(temp_s0, 0x68) + temp_v0_2, 3, 0);
+            FW(FW(FW(arg0, 0x2C), 0x70), 0x14C) = 85.0f;
+        }
+        if (FW(FW(arg0, 0x38), 0x10) & 8) {
+            temp_v1 = FW(FW(arg0, 0x2C), 0x70);
+            if (FW(temp_v1, 0x14C) < 120.0f) {
+                FW(temp_v1, 0x14C) = (f32) (FW(temp_v1, 0x14C) + 2.0f);
+            }
+        }
+        var_v1 = FW(FW(arg0, 0x2C), 0x70);
+        if ((FW(FW(arg0, 0x38), 0x10) & 4) && (FW(var_v1, 0x14C) > 45.0f)) {
+            FW(var_v1, 0x14C) = (f32) (FW(var_v1, 0x14C) - 2.0f);
+            var_v1 = FW(FW(arg0, 0x2C), 0x70);
+        }
+        FW(var_v1, 0x134) = (f32) (FW(var_v1, 0x134) + (FW(FW(arg0, 0x38), 0x4) * 2.0f));
+        temp_s0_2 = FW(FW(arg0, 0x2C), 0x70);
+        FW(temp_s0_2, 0x138) = (f32) (FW(temp_s0_2, 0x138) + (FW(FW(arg0, 0x38), 0x0) * 2.0f));
+        return;
+    }
+    if (var_t0 != 0) {
+        FW(arg0, 0x48) = 0x2710;
+    }
+    temp_s0_3 = FW(arg0, 0x48);
+    FW(arg0, 0x48) = (s32) (temp_s0_3 + 1);
+    if (temp_s0_3 >= 0x3C) {
+        temp_a1 = *(int*)0;
+        sp38 = temp_a1;
+        temp_v0_3 = ((GP_000024B8)func_00000000)(*(int*)0, temp_a1, FW(arg0, 0x40) + 0xB4, 0);
+        sp40 = temp_v0_3;
+        if ((temp_v0_3 != 0) && ((int)temp_v0_3 != FW(arg0, 0x44))) {
+            temp_a3 = FW(temp_v0_3, 0x3C);
+            if ((temp_a3 >= 3U) && (temp_a3 < 0x13U)) {
+                sp2C = temp_a3;
+                ((GP_000024B8)func_00000000)((s32) arg0, 0);
+                temp_v0_4 = FW(arg0, 0x30);
+                temp_s0_4 = FW(temp_v0_4, 0x28);
+                ((GP_000024B8)FW(temp_s0_4, 0x6C))(FW(temp_s0_4, 0x68) + temp_v0_4, sp2C, sp40);
+            } else {
+                sp2C = temp_a3;
+                ((GP_000024B8)func_00000000)((s32) arg0, 1);
+                temp_v0_5 = FW(arg0, 0x34);
+                temp_s0_5 = FW(temp_v0_5, 0x28);
+                ((GP_000024B8)FW(temp_s0_5, 0x6C))(FW(temp_s0_5, 0x68) + temp_v0_5, sp2C, sp40);
+            }
+            FW(arg0, 0x48) = 0;
+            FW(arg0, 0x44) = sp40;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000024B8);
+#endif
 
 void func_00002774(char *a0, int a1) {
     if (*(int*)(a0 + 0x18) & 8) {
