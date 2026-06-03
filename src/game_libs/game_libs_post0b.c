@@ -17437,7 +17437,132 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
 // inner mark/advance bookkeeping are representative. Caps: self struct
 // and cb1/cb2 prototypes untyped (USO-relocated). Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000500EC)();
+s32 gl_func_000500EC(char *arg0, u32 arg1) {
+    s32 temp_a2;
+    s32 temp_t4;
+    s32 temp_t6;
+    s32 temp_v1_3;
+    s32 temp_v1_4;
+    s32 var_s5;
+    s32 var_t0;
+    s32 var_v0;
+    s32 var_v0_2;
+    s32 var_v0_3;
+    u32 var_s0;
+    u32 var_s3;
+    u32 var_t3;
+    u8 *temp_v0;
+    char *temp_a1;
+    char *temp_a3;
+    char *temp_t2;
+    char *temp_v1;
+    char *temp_v1_2;
+    char *var_t1;
+
+    var_t3 = FW(arg0, 0x44);
+    var_s3 = 0;
+    if (var_t3 != 0) {
+loop_2:
+        if (var_s3 != arg1) {
+            temp_t6 = FW(arg0, 0x68);
+            temp_a2 = FW(arg0, 0x60);
+            temp_t2 = temp_t6 + (var_s3 * 8);
+            var_t0 = 0;
+            var_t1 = temp_t6 + (arg1 * 8);
+            temp_a3 = temp_a2 + (FW(temp_t2, 0x2) * 6);
+loop_4:
+            var_t0 += 2;
+            temp_a1 = temp_a2 + (FW(var_t1, 0x2) * 6);
+            var_v0 = FW(temp_a1, 0x0) == FW(temp_a3, 0x0);
+            if (var_v0 != 0) {
+                var_v0 = FW(temp_a1, 0x2) == FW(temp_a3, 0x2);
+                if (var_v0 != 0) {
+                    var_v0 = FW(temp_a1, 0x4) == FW(temp_a3, 0x4);
+                }
+            }
+            if (var_v0 == 0) {
+                temp_v1 = temp_a2 + (FW(temp_t2, 0x4) * 6);
+                var_v0_2 = FW(temp_a1, 0x0) == FW(temp_v1, 0x0);
+                if (var_v0_2 != 0) {
+                    var_v0_2 = FW(temp_a1, 0x2) == FW(temp_v1, 0x2);
+                    if (var_v0_2 != 0) {
+                        var_v0_2 = FW(temp_a1, 0x4) == FW(temp_v1, 0x4);
+                    }
+                }
+                if (var_v0_2 == 0) {
+                    temp_v1_2 = temp_a2 + (FW(temp_t2, 0x6) * 6);
+                    var_v0_3 = FW(temp_a1, 0x0) == FW(temp_v1_2, 0x0);
+                    if (var_v0_3 != 0) {
+                        var_v0_3 = FW(temp_a1, 0x2) == FW(temp_v1_2, 0x2);
+                        if (var_v0_3 != 0) {
+                            var_v0_3 = FW(temp_a1, 0x4) == FW(temp_v1_2, 0x4);
+                        }
+                    }
+                    if (var_v0_3 != 0) {
+                        goto block_16;
+                    }
+                    var_t1 += 2;
+                    if (var_t0 == 6) {
+                        goto block_29;
+                    }
+                    goto loop_4;
+                }
+                goto block_16;
+            }
+block_16:
+            if (((int(*)())gl_func_00034458)(arg0, var_s3, arg1, temp_a3) != 0) {
+                var_s5 = 1;
+                var_s0 = 0;
+                temp_v0 = FW(arg0, 0x78) + var_s3;
+                if (*(int*)temp_v0 == 0) {
+                    *temp_v0 = (u8) *(int*)0;
+                    temp_t4 = *(int*)0 + 1;
+                    *(int*)0 = temp_t4;
+                    if (temp_t4 >= 0xD) {
+                        *(int*)0 = 1;
+                    }
+                }
+                if (FW(arg0, 0x44) != 0) {
+loop_21:
+                    temp_v1_3 = FW(arg0, 0x78);
+                    if ((*(int*)(temp_v1_3 + var_s3) == *(int*)(temp_v1_3 + var_s0)) && (((int(*)())gl_func_00034458)(arg0, var_s0, var_s3) == 0)) {
+                        var_s5 = 0;
+                    } else {
+                        var_s0 += 1;
+                        if (var_s0 < (u32) FW(arg0, 0x44)) {
+                            goto loop_21;
+                        }
+                    }
+                }
+                if (var_s5 != 0) {
+                    temp_v1_4 = FW(arg0, 0x78);
+                    *(int*)(temp_v1_4 + (int)arg1) = *(int*)(temp_v1_4 + var_s3);
+                    return 1;
+                }
+                goto block_27;
+            }
+block_27:
+            var_t3 = FW(arg0, 0x44);
+            goto block_29;
+        }
+block_29:
+        var_s3 += 1;
+        if (var_s3 >= var_t3) {
+            goto block_30;
+        }
+        goto loop_2;
+    }
+block_30:
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000500EC);
+#endif
 
 /* gl_func_000503A4: record-append (4x u16) with overflow assert.
  * Decoded from bare stub 2026-05-19.
