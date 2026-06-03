@@ -510,33 +510,109 @@ void game_uso_func_000008FC(int *a0) {
     gl_func_00000000(a0);
 }
 
+// game_uso_func_00000940 — FULL m2c DECODE via compressed-module jumptable
+// path (80.12% NM, no episode). FIRST game_uso jumptable landed. THREE
+// contiguous switches in one fn (jr $t7/$t0/$t3 @ 0x970/0x9DC/0xA58; sltiu
+// 7/6/6 = 19 rodata entries at jtbl+4/+0x20/+0x38) extracted from the Yay0-
+// compressed USO emulator dump (/tmp/rdram_gameuso.bin, ram_base 0x807ecaa0).
+// PURE control-flow (0 FP insns) — the blunt int-typed lift recipe excels
+// here (vs FP-vector game_uso fns which it regresses; see docs). Placeholder
+// calls cast via GP. Default build = INCLUDE_ASM byte-exact.
 #ifdef NON_MATCHING
-/* 6.92% NM. 107-insn jump-table dispatcher (size 0x1AC after split-fragments
- * separated 0xAEC). Structure:
- *
- *   t6 = a0->0x150;             // sub-struct
- *   key = t6->0xA54;             // dispatch key (loaded from sub-struct)
- *   if (key >= 7) goto end_no_op (epilogue);
- *   else: jump-table dispatch on key (0..6)
- *
- * Each case (0..6) reads from various offsets of &D_00000000 and writes
- * to offsets of a0 (the input struct). Cases 0/3/6 do similar work, with
- * different field/value combos. Case 4 has a sub-branch on a0->X != 0.
- *
- * BLOCKED: target uses `lui $at; addu $at,$at,sll(key,2); lw t7, 0x4($at);
- * jr t7` — a .rodata jump table at offset 0x4 (relative to D_jt_base).
- * Per feedback_ido_switch_rodata_jumptable.md: 1080's linker discards
- * .rodata, so a C `switch(key) { case 0..6: ...}` with 3+ cases would
- * fail to link. Need if-goto chain to reach high % (target was probably
- * compiled with the jump table active in some other linker config).
- *
- * Multi-tick decomp expected. Stub body so the wrap parses; default
- * build INCLUDE_ASM matches. Decoded structure documented above for
- * future ticks. */
-extern void game_uso_func_00000940_TODO(void);
-void game_uso_func_00000940(int *a0) {
-    (void)a0;
-    game_uso_func_00000940_TODO();
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q;
+typedef char *(*GP)();
+#endif
+void game_uso_func_00000940(char *arg0) {
+    s32 temp_t2;
+    s32 temp_t9;
+    s32 temp_v0;
+    s32 var_a1;
+    u32 temp_t7;
+
+    var_a1 = -1;
+    temp_t7 = FW(FW(arg0, 0x150), 0xA54);
+    switch (temp_t7) {                              /* switch 1 */
+    case 0:                                         /* switch 1 */
+        temp_v0 = *(s32 *)0x34;
+        if ((temp_v0 == 4) || (temp_v0 == 6) || (temp_v0 == 7) || ((temp_v0 == 1) && (*(s32 *)0x40 == 0))) {
+            var_a1 = 1;
+        } else {
+            temp_t9 = *(s32 *)0x64;
+            switch (temp_t9) {                      /* switch 2 */
+            case 2:                                 /* switch 2 */
+                var_a1 = 6;
+                break;
+            case 3:                                 /* switch 2 */
+                var_a1 = 7;
+                break;
+            case 4:                                 /* switch 2 */
+                var_a1 = 8;
+                break;
+            case 5:                                 /* switch 2 */
+                var_a1 = 7;
+                break;
+            case 6:                                 /* switch 2 */
+                var_a1 = 9;
+                break;
+            case 7:                                 /* switch 2 */
+                var_a1 = 0xA;
+                break;
+            default:                                /* switch 2 */
+                var_a1 = 0;
+                break;
+            }
+        }
+        break;
+    case 1:                                         /* switch 1 */
+        if (*(s32 *)0x7C != 0) {
+            var_a1 = 0xB;
+        } else {
+            temp_t2 = *(s32 *)0x64;
+            switch (temp_t2) {                      /* switch 3 */
+            case 2:                                 /* switch 3 */
+                var_a1 = 0xD;
+                break;
+            case 3:                                 /* switch 3 */
+                var_a1 = 2;
+                break;
+            case 4:                                 /* switch 3 */
+                var_a1 = 0xD;
+                break;
+            case 5:                                 /* switch 3 */
+                var_a1 = 2;
+                break;
+            case 6:                                 /* switch 3 */
+                var_a1 = 2;
+                break;
+            case 7:                                 /* switch 3 */
+                var_a1 = 0xE;
+                break;
+            default:                                /* switch 3 */
+                var_a1 = 2;
+                break;
+            }
+        }
+        break;
+    case 2:                                         /* switch 1 */
+        var_a1 = 0xC;
+        break;
+    case 5:                                         /* switch 1 */
+        var_a1 = 3;
+        break;
+    case 6:                                         /* switch 1 */
+        var_a1 = 5;
+        if (*(char *)0x64 != 7) {
+            var_a1 = 4;
+        }
+        break;
+    }
+    if (var_a1 != -1) {
+        ((GP)game_uso_func_00000000)(var_a1);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000940);
