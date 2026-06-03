@@ -15314,19 +15314,19 @@ s32 *gl_func_00032E18(s32 *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
         FW(var_s0, 0xC) = 0x1E18C;
         FW(var_s0, 0x8) = (s32) (FW(var_s0, 0x8) | 0x40);
         FW(var_s0, 0xF4) = arg1;
-        FW(var_s0, 0x104) = 0.0f;
-        FW(var_s0, 0x108) = 0.0f;
-        FW(var_s0, 0xFC) = 0.0f;
-        FW(var_s0, 0x10C) = 1.0f;
+        *(f32 *)((char *)var_s0 + 0x104) = 0.0f;
+        *(f32 *)((char *)var_s0 + 0x108) = 0.0f;
+        *(f32 *)((char *)var_s0 + 0xFC) = 0.0f;
+        *(f32 *)((char *)var_s0 + 0x10C) = 1.0f;
         gl_func_0001CA10(var_s0 + 0xB4);
         FW(var_s0, 0x130) = 0;
-        FW(var_s0, 0x134) = 0.0f;
-        FW(var_s0, 0x138) = 0.0f;
-        FW(var_s0, 0x13C) = 0.0f;
-        FW(var_s0, 0x140) = 0.0f;
-        FW(var_s0, 0x148) = 0.0f;
-        FW(var_s0, 0x144) = 1.0f;
-        FW(var_s0, 0x14C) = 85.0f;
+        *(f32 *)((char *)var_s0 + 0x134) = 0.0f;
+        *(f32 *)((char *)var_s0 + 0x138) = 0.0f;
+        *(f32 *)((char *)var_s0 + 0x13C) = 0.0f;
+        *(f32 *)((char *)var_s0 + 0x140) = 0.0f;
+        *(f32 *)((char *)var_s0 + 0x148) = 0.0f;
+        *(f32 *)((char *)var_s0 + 0x144) = 1.0f;
+        *(f32 *)((char *)var_s0 + 0x14C) = 85.0f;
     }
     return var_s0;
 }
