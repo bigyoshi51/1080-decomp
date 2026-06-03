@@ -24340,7 +24340,90 @@ void gl_func_0005B848(int *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005B90C)();
+void gl_func_0005B90C(char *arg0) {
+    int sp8C;
+    s16 sp8A;
+    s16 sp88;
+    int sp68;
+    s32 sp64;
+    s32 sp60;
+    int *var_s0;
+    int *var_v0;
+    s16 *temp_v0;
+    s16 *var_s0_2;
+    s16 temp_v0_2;
+    s32 *temp_v1;
+    s32 temp_a1;
+    s32 var_s1;
+    s32 var_s5;
+    s32 var_s6;
+    char *temp_t0;
+    char *var_a0;
+    char *var_a0_2;
+
+    var_s5 = 0;
+    var_s6 = 0;
+    var_s0 = &sp8C;
+    sp88 = 0;
+    sp60 = 0;
+    sp8A = 0;
+    sp64 = 0;
+    var_v0 = &sp68;
+    do {
+        var_v0 += 0x10;
+        FW(var_s0, 0x0) = 0;
+        FW(var_v0, -0x10) = 0;
+        FW(var_s0, 0x2) = 0;
+        FW(var_v0, -0xC) = 0;
+        FW(var_s0, 0x4) = 0;
+        FW(var_v0, -0x8) = 0;
+        FW(var_s0, 0x6) = 0;
+        FW(var_v0, -0x4) = 0;
+        var_s0 += 8;
+    } while ((int)var_v0 != (int)&sp88);
+    var_a0 = FW(arg0, 0x4);
+    var_s1 = 0;
+    var_s0_2 = &sp88;
+    if (var_a0 != arg0) {
+        do {
+            var_a0 = FW(var_a0, 0x4);
+            var_s5 += 1;
+        } while (var_a0 != arg0);
+    }
+    var_a0_2 = FW(arg0, 0x14);
+    temp_t0 = (int)arg0 + 0x10;
+    if (var_a0_2 != temp_t0) {
+        do {
+            temp_a1 = ((u32) FW(var_a0_2, 0x0) >> 0x18) & 0xFF;
+            if ((temp_a1 < 0xA) && (temp_a1 >= 0)) {
+                temp_v0 = &(&sp88)[temp_a1];
+                temp_v1 = &(&sp60)[temp_a1];
+                *temp_v0 += 1;
+                *temp_v1 += (FW(var_a0_2, 0x0) & 0xFFFFFF) * 0x10;
+            }
+            var_a0_2 = FW(var_a0_2, 0x4);
+            var_s6 += 1;
+        } while (var_a0_2 != temp_t0);
+    }
+    do {
+        temp_v0_2 = *var_s0_2;
+        if (temp_v0_2 != 0) {
+            ((int(*)())gl_func_00034458)(((char*)&D_00000000 + 0x21A6C), var_s1, (f64)((f32)(&sp60)[var_s1] / 1024.0f), (s32) temp_v0_2);
+        }
+        var_s1 += 1;
+        var_s0_2 += 2;
+    } while (var_s1 != 0xA);
+    ((int(*)())gl_func_00034458)(arg0);
+    ((int(*)())gl_func_00034458)(((char*)&D_00000000 + 0x21A84), var_s5, var_s6);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B90C);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0005B90C_pad.s")
 
 #ifdef NON_MATCHING
