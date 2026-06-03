@@ -20579,7 +20579,58 @@ s32 gl_func_000561A8(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000561A8);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005640C)();
+s32 gl_func_0005640C(char *arg0) {
+    s32 temp_a1;
+    s32 temp_v0;
+
+    temp_a1 = FW(arg0, 0x4);
+    temp_v0 = temp_a1 & 0xFF;
+    switch (temp_v0) {                              /* irregular */
+    case 0x0:
+        return 0x03024000;
+    case 0x3:
+        return 0x112478;
+    case 0x23:
+        return 0x112438;
+    case 0x7:
+        return 0x113078;
+    case 0x6:
+        return 0x113078;
+    case 0x1B:
+    case 0x1F:
+        return 0x20004DD8;
+    case 0xB:
+    case 0xF:
+        return 0x1045D8;
+    case 0x1:
+        return 0x112048;
+    case 0x5:
+        return 0x113048;
+    case 0x2:
+        return 0x112230;
+    case 0xA:
+        return 0x104A50;
+    case 0x4A:
+        return 0x105078;
+    case 0x4:
+        return 0x03027008;
+    case 0x8:
+        return 0x104240;
+    case 0x9:
+        return 0x1041C8;
+    default:
+        ((int(*)())gl_func_00034458)(0x218EC, temp_a1);
+        return 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005640C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056580);
 
