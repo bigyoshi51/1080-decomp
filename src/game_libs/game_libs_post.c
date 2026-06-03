@@ -2573,16 +2573,15 @@ void gl_func_00021498(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 #endif
 
+/* game_libs_func_00021D2C: 22-insn (0x58) table-search loop. BOUNDARY
+ * MERGED 2026-06-02: splat over-split the loop tail as a separate symbol
+ * (00021D70, 5-insn increment/exit whose `bne` branches backward to 0x21D48
+ * inside this body; 21D2C's own `blez`/`bne` branch forward into it).
+ * Absorbed 21D70's 5 words into 21D2C (0x44 -> 0x58, ends exactly at the next
+ * func 0x21D84); dropped the 21D70 symbol. Scans a global 0xC-stride record
+ * table (count at +9524) matching a0==rec.h0(+9536) && a2==rec.h2(+9538),
+ * returns rec+9528 on hit. Reloc-blind USO; stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D2C);
-
-/* game_libs_func_00021D70: 5-insn loop-bottom tail-fragment:
- *   bne at,zero,-0x2C; addiu a1,a1,0xC; move v0,zero; jr ra; nop
- * Caller-set $at (set by an slt/sltu in the predecessor loop body) +
- * backward branch -0x2C targets 0x21D48 (before this .s start 0x21D70).
- * Splat captured a do-while loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * Needs splat boundary correction (focused-session). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D70);
 
 /* gl_func_00021D84: 33-insn slot-register helper.
  *   count = D[0x2534];
