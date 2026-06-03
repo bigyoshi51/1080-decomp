@@ -11012,7 +11012,48 @@ void game_uso_func_0000D438(char *a0) {
  * DO NOT use split-fragments.py here: it DROPS the symbolic `lui %hi` line at
  * the D5DC boundary (size header says +1 word vs the file's word count),
  * corrupting the .s — see docs/MATCHING_WORKFLOW. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000D458)();
+void game_uso_func_0000D458(s32 arg0) {
+    int sp34;
+    s32 sp30;
+    s32 var_v0;
+
+    ((GP_0000D458)game_uso_func_00000000)((int)arg0 + 0xBC, (arg0 * 0) + 0x7C);
+    FW(arg0, 0x114) = 2;
+    FW(arg0, 0xFC) = 0x10000;
+    FW(arg0, 0xDC) = 1;
+    FW(arg0, 0x104) = -1;
+    FW(arg0, 0x10C) = 0;
+    *(float *)((char *)arg0 + 0x11C) = 1.0f;
+    ((GP_0000D458)game_uso_func_00000000)(arg0);
+    ((GP_0000D458)game_uso_func_00000000)(arg0, FW(arg0, 0xFC) | 8, 0, 0, 1, 1);
+    ((GP_0000D458)game_uso_func_00000000)(arg0);
+    if (*(s32 *)0x34 == 3) {
+        ((GP_0000D458)game_uso_func_00000000)(arg0, (char *)FW(0xDB0, 0x0), (char *)FW(0xDB0, 0x4));
+    } else {
+        ((GP_0000D458)game_uso_func_00000000)(arg0, (char *)FW(0xDB8, 0x0), (char *)FW(0xDB8, 0x4));
+    }
+    ((GP_0000D458)game_uso_func_00000000)();
+    ((GP_0000D458)game_uso_func_00000000)((s32) &sp30, 0xF10, 0x10);
+    if (sp30 != 0x04080040) {
+        var_v0 = 0;
+    } else {
+        var_v0 = 1;
+        if (sp34 != 0x02081040) {
+            var_v0 = 0;
+        }
+    }
+    if (var_v0 == 0) {
+        ((GP_0000D458)game_uso_func_00000000)(arg0, (char *)FW(0xDC0, 0x0), (char *)FW(0xDC0, 0x4));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
+#endif
 
 /* game_uso_func_0000D5BC: copies the varargs pair (a1,a2 via &a1) to the
  * adjacent a0->0xC8/0xCC.
