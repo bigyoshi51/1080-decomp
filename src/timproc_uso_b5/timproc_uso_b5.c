@@ -6018,15 +6018,15 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                     FW(temp_v0_7, 0x108) = temp_f0;
                     FW(temp_v0_7, 0x10C) = temp_f0;
                     FW(temp_v0_7, 0x110) = temp_f0;
-                    FW(temp_v0_7, 0x124) = 1.0f;
+                    *(f32 *)((char *)temp_v0_7 + 0x124) = 1.0f;
                 }
                 FW(temp_v0_6, 0x108) = temp_v0_7;
                 ((F0)timproc_uso_b5_func_00000000)(temp_v0_6, temp_v0_7);
                 temp_s0 = FW(temp_v0_6, 0x108);
-                FW(temp_s0, 0xB4) = 0.0f;
-                FW(temp_s0, 0xB8) = 0.0f;
-                FW(temp_s0, 0xBC) = 0.0f;
-                FW(temp_v0_6, 0x124) = 1.0f;
+                *(f32 *)((char *)temp_s0 + 0xB4) = 0.0f;
+                *(f32 *)((char *)temp_s0 + 0xB8) = 0.0f;
+                *(f32 *)((char *)temp_s0 + 0xBC) = 0.0f;
+                *(f32 *)((char *)temp_v0_6 + 0x124) = 1.0f;
                 temp_t7 = *(s32 *)4 & 0x80000;
                 (*(int*)((char*)&D_00000000+4)) = (s32) ((((*(int*)((char*)&D_00000000+4)) & 0xFFF7FFFF & ~1 & 0xFFFDFFFF) | 0x2000) & ~2);
                 spC0 = temp_t7;
@@ -6062,15 +6062,15 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                 }
                 (*(int*)((char*)&D_00000000+4)) = var_v0_2;
                 *(f32 *)((char *)temp_v0_6 + 0xDC) = *(f32 *)0x244;
-                FW(temp_v0_6, 0xE0) = 720.0f;
-                FW(temp_v0_6, 0xE4) = -220.0f;
+                *(f32 *)((char *)temp_v0_6 + 0xE0) = 720.0f;
+                *(f32 *)((char *)temp_v0_6 + 0xE4) = -220.0f;
                 *(f32 *)((char *)temp_v0_6 + 0x10C) = *(f32 *)0x248;
                 *(f32 *)((char *)temp_v0_6 + 0x110) = *(f32 *)0x24C;
                 FW(temp_v0_6, 0x134) = 0;
-                FW(temp_v0_6, 0x11C) = 0.0f;
+                *(f32 *)((char *)temp_v0_6 + 0x11C) = 0.0f;
                 *(f32 *)((char *)temp_v0_6 + 0x114) = *(f32 *)0x250;
                 *(f32 *)((char *)temp_v0_6 + 0x120) = *(f32 *)0x254;
-                FW(temp_v0_6, 0x124) = 1.0f;
+                *(f32 *)((char *)temp_v0_6 + 0x124) = 1.0f;
                 *(f32 *)((char *)temp_v0_6 + 0x12C) = *(f32 *)0x258;
                 *(f32 *)((char *)temp_v0_6 + 0x128) = *(f32 *)0x25C;
             }
@@ -6256,15 +6256,15 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                 FW(temp_v0_21, 0x108) = temp_f0_2;
                 FW(temp_v0_21, 0x10C) = temp_f0_2;
                 FW(temp_v0_21, 0x110) = temp_f0_2;
-                FW(temp_v0_21, 0x124) = 1.0f;
+                *(f32 *)((char *)temp_v0_21 + 0x124) = 1.0f;
             }
             FW(temp_v0_20, 0x108) = temp_v0_21;
             ((F0)timproc_uso_b5_func_00000000)(temp_v0_20, temp_v0_21);
             temp_a1 = FW(temp_v0_20, 0x108);
-            FW(temp_a1, 0xB4) = 0.0f;
-            FW(temp_a1, 0xB8) = 0.0f;
-            FW(temp_a1, 0xBC) = 0.0f;
-            FW(temp_v0_20, 0x124) = 1.0f;
+            *(f32 *)((char *)temp_a1 + 0xB4) = 0.0f;
+            *(f32 *)((char *)temp_a1 + 0xB8) = 0.0f;
+            *(f32 *)((char *)temp_a1 + 0xBC) = 0.0f;
+            *(f32 *)((char *)temp_v0_20 + 0x124) = 1.0f;
             temp_t6_2 = (*(int*)((char*)&D_00000000+4)) & 0x80000;
             (*(int*)((char*)&D_00000000+4)) = (s32) (((*(int*)((char*)&D_00000000+4)) & 0xFFF7FFFF & ~1 & 0xFFFDFFFF) | 0x2000 | 2);
             sp80 = temp_t6_2;
@@ -6292,15 +6292,15 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
             }
             (*(int*)((char*)&D_00000000+4)) = var_v0_4;
             *(f32 *)((char *)temp_v0_20 + 0xDC) = *(f32 *)0x278;
-            FW(temp_v0_20, 0xE0) = 720.0f;
-            FW(temp_v0_20, 0xE4) = -220.0f;
+            *(f32 *)((char *)temp_v0_20 + 0xE0) = 720.0f;
+            *(f32 *)((char *)temp_v0_20 + 0xE4) = -220.0f;
             *(f32 *)((char *)temp_v0_20 + 0x10C) = *(f32 *)0x27C;
             *(f32 *)((char *)temp_v0_20 + 0x110) = *(f32 *)0x280;
             FW(temp_v0_20, 0x134) = 0;
-            FW(temp_v0_20, 0x11C) = 0.0f;
+            *(f32 *)((char *)temp_v0_20 + 0x11C) = 0.0f;
             *(f32 *)((char *)temp_v0_20 + 0x114) = *(f32 *)0x284;
             *(f32 *)((char *)temp_v0_20 + 0x120) = *(f32 *)0x288;
-            FW(temp_v0_20, 0x124) = 1.0f;
+            *(f32 *)((char *)temp_v0_20 + 0x124) = 1.0f;
             *(f32 *)((char *)temp_v0_20 + 0x12C) = *(f32 *)0x28C;
             *(f32 *)((char *)temp_v0_20 + 0x128) = *(f32 *)0x290;
         }
@@ -6380,15 +6380,15 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                 *(f32 *)((char *)temp_v0_27 + 0x10C) = *(f32 *)0x2B4;
                 FW(temp_v0_27, 0x120) = 1;
                 *(f32 *)((char *)temp_v0_27 + 0x110) = *(f32 *)0x2B8;
-                FW(temp_v0_27, 0x124) = 1.0f;
+                *(f32 *)((char *)temp_v0_27 + 0x124) = 1.0f;
             }
             FW(temp_v0_26, 0x108) = temp_v0_27;
             ((F0)timproc_uso_b5_func_00000000)(temp_v0_26, temp_v0_27);
             temp_a1_3 = FW(temp_v0_26, 0x108);
-            FW(temp_a1_3, 0xB4) = 0.0f;
-            FW(temp_a1_3, 0xB8) = 0.0f;
-            FW(temp_a1_3, 0xBC) = 0.0f;
-            FW(temp_v0_26, 0x124) = 1.0f;
+            *(f32 *)((char *)temp_a1_3 + 0xB4) = 0.0f;
+            *(f32 *)((char *)temp_a1_3 + 0xB8) = 0.0f;
+            *(f32 *)((char *)temp_a1_3 + 0xBC) = 0.0f;
+            *(f32 *)((char *)temp_v0_26 + 0x124) = 1.0f;
             temp_t1_3 = (*(int*)((char*)&D_00000000+4)) & 0x80000;
             (*(int*)((char*)&D_00000000+4)) = (s32) (((*(int*)((char*)&D_00000000+4)) & 0xFFF7FFFF & ~1 & 0xFFFDFFFF) | 0x2000 | 2);
             sp68 = temp_t1_3;
@@ -6416,15 +6416,15 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
             }
             (*(int*)((char*)&D_00000000+4)) = var_v0_6;
             *(f32 *)((char *)temp_v0_26 + 0xDC) = *(f32 *)0x2BC;
-            FW(temp_v0_26, 0xE0) = 720.0f;
-            FW(temp_v0_26, 0xE4) = -220.0f;
+            *(f32 *)((char *)temp_v0_26 + 0xE0) = 720.0f;
+            *(f32 *)((char *)temp_v0_26 + 0xE4) = -220.0f;
             *(f32 *)((char *)temp_v0_26 + 0x10C) = *(f32 *)0x2C0;
             *(f32 *)((char *)temp_v0_26 + 0x110) = *(f32 *)0x2C4;
             FW(temp_v0_26, 0x134) = 0;
-            FW(temp_v0_26, 0x11C) = 0.0f;
+            *(f32 *)((char *)temp_v0_26 + 0x11C) = 0.0f;
             *(f32 *)((char *)temp_v0_26 + 0x114) = *(f32 *)0x2C8;
             *(f32 *)((char *)temp_v0_26 + 0x120) = *(f32 *)0x2CC;
-            FW(temp_v0_26, 0x124) = 1.0f;
+            *(f32 *)((char *)temp_v0_26 + 0x124) = 1.0f;
             *(f32 *)((char *)temp_v0_26 + 0x12C) = *(f32 *)0x2D0;
             *(f32 *)((char *)temp_v0_26 + 0x128) = *(f32 *)0x2D4;
         }
@@ -6506,7 +6506,7 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
             temp_v0_30 = (*(int (**)())((char *)temp_s1_18 + 0x5C))(FW(temp_s1_18, 0x58) + sp124, 1, var_a2, 0x43C80000, 210.0f, -280.0f, 0.0f, 0.0f, *(f32 *)0x320);
             *var_v1_6 = temp_v0_30;
             if (!(var_s0_6 & (1 << var_a2))) {
-                FW(temp_v0_30, 0x2A4) = 0.0f;
+                *(f32 *)((char *)temp_v0_30 + 0x2A4) = 0.0f;
             }
             var_a2 += 1;
             var_v1_6 += 4;
@@ -6525,10 +6525,10 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
         case 5:
             break;
         case 1:
-            FW(spF0, 0x2A4) = 0.0f;
+            *(f32 *)((char *)spF0 + 0x2A4) = 0.0f;
             /* fallthrough */
         case 2:
-            FW(temp_s0_6, 0x2A4) = 0.0f;
+            *(f32 *)((char *)temp_s0_6 + 0x2A4) = 0.0f;
             break;
         }
         ((F0)timproc_uso_b5_func_00000000)(var_s2, (void **)1, arg1);
