@@ -2432,7 +2432,56 @@ void game_libs_func_0000D090(int *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000D0D0)();
+void gl_func_0000D0D0(char *arg0) {
+    s32 sp68;
+    s32 sp64;
+    s32 sp60;
+    f32 temp_f0;
+    s32 temp_v1;
+    s32 var_s2;
+    s32 var_s4;
+    char *temp_s1;
+    char *temp_v0;
+    char *temp_v1_2;
+
+    var_s2 = 0;
+    var_s4 = 0;
+    if (FW(arg0, 0x48) > 0) {
+        do {
+            *(f32*)((char*)(FW(arg0, 0x44) + var_s2) + 0xC) = -6553600.0f;
+            sp68 = (*(s32*)((char*)&D_00000000 + 0xD680));
+            FW(FW(arg0, 0x44), 0x4C) = ((int(*)())gl_func_0000959C)(*(int*)&D_00000000, sp68, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
+            sp64 = (*(s32*)((char*)&D_00000000 + 0xD684));
+            temp_s1 = ((int(*)())gl_func_0000959C)(*(int*)&D_00000000, sp64, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
+            sp60 = (*(s32*)((char*)&D_00000000 + 0xD688));
+            temp_v0 = ((int(*)())gl_func_0000959C)(*(int*)&D_00000000, sp60, FW(FW(arg0, 0x44), 0x0) + 0xDC, 0);
+            temp_v1 = temp_v0 != 0;
+            if ((temp_s1 == 0) || (temp_v1 == 0)) {
+                FW((FW(arg0, 0x44) + var_s2), 0x54) = 0;
+            } else {
+                temp_v1_2 = FW(arg0, 0x44);
+                temp_f0 = (*(f32*)((char*)FW(temp_v1_2, 0x0) + 0xE4));
+                if (((*(f32*)((char*)temp_s1 + 0x64)) - temp_f0) < ((*(f32*)((char*)temp_v0 + 0x64)) - temp_f0)) {
+                    FW((temp_v1_2 + var_s2), 0x54) = temp_s1;
+                    FW((FW(arg0, 0x44) + var_s2), 0x58) = temp_v0;
+                } else {
+                    FW((temp_v1_2 + var_s2), 0x54) = temp_v0;
+                    FW((FW(arg0, 0x44) + var_s2), 0x58) = temp_s1;
+                }
+            }
+            var_s4 += 1;
+            var_s2 += 0x60;
+        } while (var_s4 < FW(arg0, 0x48));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D0D0);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000D288: 36-insn unlink-and-dispatch (0x90, frame 0x20).
