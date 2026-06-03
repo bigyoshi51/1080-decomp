@@ -15052,23 +15052,101 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 //   front-end completing the allocator trio with 000334E8 init +
 //   00033BE4 alloc). Byte-match deferred. Name pre-checked: no
 //   extern reuse.
+// gl_func_00033EB8 — FULL m2c DECODE (59.82% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-void gl_func_00033EB8(void *a, unsigned flags) {
-    int hdr;
-    int nv;
-    if (flags & 1) {
-        gl_func_00000000(a, (void *)0x0001E368);
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00033EB8)();
+void gl_func_00033EB8(s32 arg0, u32 arg1) {
+    u32 sp30;
+    s32 temp_v0;
+    s32 temp_v0_2;
+    s32 temp_v1;
+    s32 var_s4;
+    s32 var_v0;
+    u32 temp_v0_3;
+    u32 var_s0;
+    u32 var_s3;
+    u32 var_t0;
+    u8 *var_v1;
+    u8 temp_t7;
+
+    var_s3 = arg1;
+    var_s4 = arg0;
+    if (arg1 & 1) {
+        gl_func_0001CA10(0, 0x1E368);
     }
-    gl_func_00000000(&D_00000000);
-    if (flags == 0) return;
-    hdr = *(int *)((char *)&D_00000000 + 0x28);
-    nv = (int)gl_func_00000000(&D_00000000, hdr);
-    *(int *)((char *)&D_00000000 + 0x08) = nv;
-    if (*(int *)((char *)&D_00000000 + 0x2C)
-        != *(int *)((char *)&D_00000000 + 0x0C)) {
-        (void)0x12340002;
-        (void)0x12340003;
+    gl_func_0001CA10(0);
+    if (arg1 != 0) {
+        do {
+            *(s32 *)8 = gl_func_0001CA10(0, *(s32 *)0x28);
+            if (*(s32 *)0x2C == *(s32 *)0xC) {
+                temp_v0 = gl_func_0001CA10(0, *(char *)0x28 + 8);
+                *(s32 *)0x10 = temp_v0;
+                if (temp_v0 == 0x12340001) {
+                    if (*(char *)0x2C != *(char *)0xC) {
+                        gl_func_0001CA10(0, 0x1E37C);
+                    }
+                    if (*(char *)0x2C != *(char *)8) {
+                        gl_func_0001CA10(0, 0x1E394);
+                    }
+                    gl_func_0001CA10(0, *(char *)0x28 + 8, 0x12340002);
+                    temp_v0_2 = *(s32 *)0x24;
+                    *(char *)0xC = temp_v0_2;
+                    *(char *)8 = temp_v0_2;
+                    if (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340003) {
+                        do {
+                            gl_func_0001CA10(0);
+                        } while (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340003);
+                    }
+                    gl_func_0001CA10(0, *(char *)0x28 + 8, 0x12340002);
+                }
+            }
+            temp_v1 = var_s4 & 7;
+            var_s0 = *(char *)8 - *(char *)0xC;
+            if (var_s3 < var_s0) {
+                var_s0 = var_s3;
+            }
+            if (var_s0 != 0) {
+                if (temp_v1 != 0) {
+                    temp_v0_3 = 8 - temp_v1;
+                    if (temp_v0_3 < var_s0) {
+                        var_s0 = temp_v0_3;
+                    }
+                    sp30 = 0;
+                    gl_func_0001CA10(0, *(char *)0xC, 0, var_s0);
+                    var_t0 = 0;
+                    if (var_s0 != 0) {
+                        var_v1 = 0;
+                        var_v0 = var_s4;
+                        do {
+                            temp_t7 = *(int*)var_v1;
+                            var_t0 += 1;
+                            var_v0 += 1;
+                            var_v1 += 1;
+                            FW(var_v0, -0x1) = temp_t7;
+                        } while (var_t0 < var_s0);
+                    }
+                } else {
+                    gl_func_0001CA10(0, *(char *)0xC, var_s4, var_s0);
+                }
+                *(char *)0xC = (s32) (*(char *)0xC + var_s0);
+            }
+            var_s3 -= var_s0;
+            var_s4 += var_s0;
+            if ((s32) var_s3 < 0) {
+                gl_func_0001CA10(0, 0x1E3AC);
+            }
+            if (var_s3 != 0) {
+                gl_func_0001CA10(0);
+            }
+        } while (var_s3 != 0);
     }
+    gl_func_0001CA10(0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
