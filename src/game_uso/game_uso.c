@@ -11500,406 +11500,249 @@ L_BC:
 }
 
 #ifdef NON_MATCHING
-/* 0.27% NM. game_uso_func_0000D9CC: 0x830 (524 insns), 0x38-byte stack frame.
- * Strategy-memo spine: 2.0 KB, 26 cross-USO calls, "subsystem" subsystem.
- * Single function per grep -c 03E00008 (not a bundle).
- *
- * Partial C body: ~5-10 % match guess. Captures entry setup + 30.0f
- * gate check + the sub-state at 0x1F0 (0x43FA/0x0A10/0x01F0 pattern).
- * Body-proper (insns 30-524) still TODO-stubbed — state-machine over
- * several float thresholds with 26 cross-USO calls.
- *
- * ENTRY DECODE (insns 1-16 @ 0xD9CC-0xDA0C):
- *   *(int*)(a0 + 0x108) = 0;     // clear state flag
- *   // 3 stack-local zeroes spilled at sp+0x28/0x2C and `1` at sp+0x30
- *   local_30 = 1; local_2C = 0; local_28 = 0;
- *   v1 = *(int*)(a0 + 0xB4);      // inner-struct pointer
- *   s0 = a0;                      // saved copy
- *   a3 = 0;                       // arg4 accumulator
- *   if (*(f32*)(v1 + 0x348) > 30.0f) {
- *       // fallthrough into main body @ 0xDA10
- *   } else {
- *       // skip to @ 0xDBDC (far forward) — load 500.0f at delay slot
- *   }
- *
- * Main body is float-heavy with a likely state-machine/dispatch over
- * several threshold checks (30.0f, 500.0f constants suggest physics
- * timers or speed thresholds). Uses `mtc1 zero, $fN` + `c.lt.s` gate
- * pattern repeatedly. 26 cross-USO `jal 0` calls per the spine memo.
- *
- * Stack frame is SMALL (0x38 bytes) — this function keeps almost
- * everything in regs / passes args directly rather than storing locals.
- * Suggests it's tightly-scheduled compute, NOT an orchestrator.
- *
- * NEXT PASS: decode the 30.0f-gate body (0xDA10 onward) — it does
- * another float load, c.lt.s against 500.0f (via lui 0x43FA), and
- * branches to 0xDA60 or 0xDA4C based on result. State-machine-like.
- *
- * EXTENDED CHARACTERIZATION 2026-05-04 (insns 16-60 @ 0xDA10-0xDABC):
- *   30.0f-gate body opens with:
- *     state_bits = inner->0xA10 & 0x1F0  (halfword bitmask test)
- *     if (state_bits == 0) goto far_jump_DBD8
- *     ; otherwise:
- *     v = inner->0xA1C (float)            ; secondary float field
- *     if (v < 0) v = -v                   ; abs.s effectively
- *     ; v stays in $f2 for downstream comparisons
- *
- *     w = a0->0x244 (float)               ; tertiary float field
- *     if (w >= 0) goto skip_block_DAC8    ; bc1f over the next block
- *     ; (else fall through to "negative-w" handler @ 0xDA60)
- *     sp+0x28 = 2                         ; arg stash
- *     sp+0x30 = 0                         ; flag stash (overwrites entry's 1)
- *     gl_func_00000000(...)               ; FIRST cross-USO call (delay slot
- *                                          ; stores t9=2 to sp+0x28)
- *
- *     inner = a0->0xB4 (reload)           ; clobbered by call
- *     vv = inner->0xA1C                   ; reload (may have been written)
- *     if (vv < 0) {
- *         old_state = a0->0xFC            ; old state field
- *         a0->0x108 = old_state | 0x16    ; OR new state bits
- *         sp+0x2C = 1
- *     } else {
- *         old_state = a0->0xFC
- *         a0->0x108 = old_state | 0x17    ; alternative state bits
- *         sp+0x2C = 3
- *     }
- *     goto far_jump_DBD8                  ; both arms converge to far_DBD8
- *
- *   The 0x16 vs 0x17 OR-mask difference and the sp+0x2C 1 vs 3 store
- *   suggest the function tracks a per-frame state value derived from
- *   the sign of inner->0xA1C (a velocity or rate?). The "state_bits
- *   & 0x1F0" gate suggests `state` has a 5-bit subfield at bits 4-8
- *   that selects a sub-mode.
- *
- * Left as INCLUDE_ASM until enough body is decoded to support a
- * compile-testable skeleton. The entry decode is the forward progress
- * for this pass per the skill's multi-run decomp convention.
- *
- * EXTENDED CHARACTERIZATION 2026-05-05 (insns 60-100 @ 0xDABC-0xDB50):
- *   The two arms (sp+0x2C = 1 vs 3, OR-mask 0x16 vs 0x17) converge at
- *   0xDABC via `b +0x46` (unconditional) → 0xDBD8 (far merge point).
- *   Delay slot reloads inner = a0->0xB4 (prepping for downstream).
- *
- *   skip_block_DAC8 (the "w >= 0" path, taken when the bc1f at 0xDAB4
- *   skipped the negative-w block):
- *     a0_arg = s0 (=a0)                ; setup for upcoming jal
- *     a1 = 4                            ; arg count? scaled?
- *     bc1tl + neg.s f0, f0 (delay)      ; if FCC1 set, negate f0
- *     b +2 + neg.s f0, f0 (delay)       ; abs.s pattern (sets f0 = |f0|)
- *     ; then loads a0->[0x22C] (lwc1 f4, 0x22C(s0))
- *     ; cvt.s.d f0, f0 (Single-precision mode)
- *     ; bc1fl over jal: if f4 < some threshold, skip the jal
- *     jal gl_func_00000000              ; SECOND cross-USO call
- *     sw zero, 0x30(sp)                 ; delay - clear flag
- *
- *   Next sub-block 0xDB00-0xDB50: similar pattern with different fields.
- *     reload inner = a0->0xB4
- *     mtc1 zero, f6                     ; f6 = 0.0
- *     a3 = 2                            ; alt arg
- *     lwc1 f2, 0x970(v1)                ; load inner->[0x970] (probably big f-table)
- *     lui at, 0  (reloc start for double-constant load)
- *     c.lt.s f6, f2                     ; 0 < f2 ?
- *     bc1fl + neg.s f0, f0              ; abs-like guard
- *     ldc1 f8, 0x1F8(at)                ; load DOUBLE constant from D+0x1F8
- *     cvt.s.d f5, f0                    ; cast to single
- *     c.lt.d f8, f10                    ; double-precision compare
- *     bc1fl + mtc1 zero, f4 (delay)     ; conditional float reset
- *
- *   Cumulative ~100/524 insns characterized (~19%). The function's
- *   theme is now clearer: per-frame state machine with multiple
- *   FPU thresholds (30.0f gate at entry, 500.0f mentioned earlier,
- *   plus a double-precision threshold from D+0x1F8 here). Each
- *   FPU comparison can flip the per-frame state field at a0->0x108. */
-void game_uso_func_0000D9CC(int *a0) {
-    int local_28 = 0, local_2C = 0, local_30 = 1;
-    int *inner;
-    (void)local_28; (void)local_2C; (void)local_30;
 
-    *(int*)((char*)a0 + 0x108) = 0;
-    inner = (int*)a0[0xB4/4];
 
-    if (*(float*)((char*)inner + 0x348) > 30.0f) {
-        /* MAIN BODY @ 0xDA10-0xDA60 (decoded 2026-05-03):
-         *   t7 = halfword at inner[0xA10]
-         *   t8 = t7 & 0x01F0  (state-bit mask)
-         *   if (t8 == 0) goto skip_block;  // branch to 0xDBD8 (far)
-         *   f2 = inner[0xA1C/4]              // float field
-         *   abs_f2 = f2 < 0 ? -f2 : f2      // abs(f2) via bc1fl + neg.s
-         *   f8 = s0[0x244/4]                 // threshold from outer struct
-         *   if (abs_f2 >= f8) goto skip;    // bc1fl threshold gate
-         *   // taken: inner[0xB4] ptr load, jal helper, ...
-         *
-         * The 500.0f constant in the lui (0x43FA0000) is loaded but only
-         * used in the SKIP path's delay slot (bc1fl). The inner[0xA10]
-         * halfword mask 0x01F0 = 8 contiguous bits at positions 4..11 —
-         * could be 16 sub-state values (5 bits = 32 but masked to 16).
-         *
-         * Pattern (gated-physics-update on abs(field) < threshold) is
-         * recurrent across 1080's per-frame compute layer (similar to
-         * 0x44F4 spine constructor's per-sub-obj gates). Suggests this
-         * IS the per-frame physics-update spine for a specific entity
-         * type. 26 cross-USO calls below this gate run the actual update.
-         *
-         * 2026-05-03 EXTENDED DECODE @ 0xDA60-0xDB70 (~70 insns):
-         * The post-gate flow is a state-bit dispatcher.
-         *   c.lt.s f2, f16            ; abs-test residual
-         *   gl_func_00000000(...)     ; helper call (saves sp+0x28/0x30)
-         *   t0 = inner ptr (reload after jal)
-         *   f18 = inner->0xA1C        ; another float field
-         *   if (0.0 < f18) {
-         *       /* "positive residual" path *\/
-         *       s0->0x108 = s0->0xFC | 0x16;     ; state |= 0x16
-         *       local_2C = 1;                     ; mode-flag = 1
-         *   } else {
-         *       /* "non-positive residual" path *\/
-         *       s0->0x108 = s0->0xFC | 0x17;     ; state |= 0x17
-         *       local_2C = 3;                     ; mode-flag = 3
-         *       goto far_path_at_+0x46;
-         *   }
-         *   /* fall-through: another c.lt.s f0, f6 + bc1fl chain at
-         *    * 0xDAE4-0xDB30, then a 500.0f-bracket compare at 0xDB30+
-         *    * (D420 = lh; halfword load at inner+0x1F8) leading into
-         *    * a third state-update with OR-mask 0xE setting s0->0x108
-         *    * = s0->0xFC | 0x0E. *\/
-         * Pattern: chained c.lt.s residual checks, each setting an
-         * OR-mask on s0->0x108 (state byte) plus a `local_2C` mode
-         * indicator (1, 3, ...). The OR-masks accumulate state bits
-         * — the state byte at 0x108 encodes which physics conditions
-         * were detected this frame. The `local_2C` mode indicator
-         * later drives the gl_func dispatch (probably the actual
-         * physics-state callbacks).
-         * Frame layout firmed up: sp+0x28 = saved t9 (callee return),
-         * sp+0x2C = mode indicator, sp+0x30 = scratch (cleared each
-         * call).
-         *
-         * EXTENDED CHARACTERIZATION 2026-05-06 (insns 100-125 @ 0xDB50-0xDB90):
-         *   /* third c.le.s residual check on f2/f18 *\/
-         *   if (f2 <= f18) {            ; bc1fl skips fall-through if cc=0
-         *       state = s0->0xFC;
-         *       s0->0x108 = state | 0x0E;
-         *       sp+0x2C = 3;
-         *       goto far_merge_DBD4;    ; b 0xDBD4
-         *   } else {                    ; bc1fl-taken, t0 already loaded
-         *       state = t0;             ; (delay-slot reload of s0->0xFC)
-         *       s0->0x108 = state | 0x0F;
-         *       sp+0x2C = 1;
-         *       goto far_merge_DBD4;
-         *   }
-         *
-         * (Note: this is the THIRD chained residual-check writing 0x108.
-         * Earlier chains at 0xDA60+ wrote OR-masks 0x16/0x17 (mode 1/3),
-         * here 0x0E/0x0F (mode 3/1). The 4-bit nibble varies; the state
-         * byte at 0x108 accumulates all condition flags this frame.)
-         *
-         * START OF FOURTH CHAIN @ 0xDB90 (insns ~125-130):
-         *   f4 = 0.0f;
-         *   f6 = v1->[0xA1C] (inner field, same as f18 above);
-         *   if (0.0 < f6) {             ; c.lt.s f4, f6 + bc1fl
-         *       state = s0->0xFC;
-         *       s0->0x108 = state | 0x0C;  ; partial — body continues to 0xDBC4
-         *       /* sp+0x2C = 1; *\/
-         *   } else {
-         *       /* (decoded next pass — branch target 0xDBC4) *\/
-         *   }
-         *
-         * Cumulative ~125/524 insns characterized (~24%). The per-frame
-         * state-machine theme is now confirmed: chained c.lt.s / c.le.s
-         * gates each set a different OR-mask on s0->0x108 (state byte)
-         * plus a mode-indicator local_2C value. These are 4-5 chained
-         * checks, each on a different physics float field, accumulating
-         * the per-frame state that downstream gl_func calls dispatch on.
-         *
-         * EXTENDED 2026-05-07 (insns 125-137 @ 0xDBC0-0xDBEC):
-         *   /* fourth-chain else-arm (when 0 < f6 was false): *\/
-         *   state = s0->0xFC;
-         *   s0->0x108 = state | 0x0D;       ; OR-mask 0x0D (4th alt path)
-         *   sp+0x2C = 3;                     ; mode = 3
-         *
-         *   /* fifth chain entry @ 0xDBD4: *\/
-         *   v1 = s0->0xB4;                   ; reload inner ptr
-         *   f10 = 500.0f;                    ; threshold from lui 0x43FA
-         *   f8 = v1->[0x9D0];                ; load inner field (float)
-         *   f16 = 0.0f;
-         *   if (f8 < 500.0f) {               ; c.lt.s f8, f10 + bc1??
-         *       /* (decoded next pass — 5th chain body) *\/
-         *
-         * The fourth-chain merge here wraps the previous block (0 < f6 ==
-         * true → state | 0x0C, mode = 1; false → state | 0x0D, mode = 3).
-         * Both arms then converge at 0xDBD4 to start the FIFTH residual
-         * check on a NEW field (inner->0x9D0, threshold 500.0f). The
-         * 500.0f appears finally as an actual c.lt.s comparand here,
-         * confirming the early-comment hypothesis that 500.0f was a
-         * speed/timer threshold.
-         *
-         * Cumulative 137/524 insns (~26%). NEXT PASS: 5th chain body at
-         * 0xDBF0+ (the bc1?? + state-update arms for f8 < 500.0f gate).
-         *
-         * EXTENDED 2026-05-13 (insns 137-297 @ 0xDBF0-0xDE6C, ~160 insns):
-         *
-         * Body crystallizes into a CASCADE OF ~10 CHAINED RESIDUAL CHECKS,
-         * each with the same shape:
-         *
-         *   threshold_gate:        ; c.lt.s / c.le.s + bc1fl
-         *   alloc_or_passthrough:  ; helper-call with v1 dest buffer
-         *   accumulator_setup:     ; sw t9, 0x28(sp); sw zero, 0x30(sp)
-         *   cross_USO_call:        ; jal 0 + arg in delay slot
-         *   reload_inner:          ; lw v1, 0xB4(s0) — clobbered by call
-         *   state_dispatch:        ; ori state_bits, OR-mask, sw to s0->0x108
-         *   merge_branch:          ; b +long-offset to common DD-region tail
-         *
-         * 5th-10th chain offsets (insn count, field, OR-mask, branch dist):
-         *   5th @ 0xDBF0  ~25 insns  inner->0x9D0 / 0x09A8  state|=0x2A/2B  short
-         *   6th @ 0xDC4C  ~16 insns  inner->0x103CC          state|=0x2A/2B  ; helper at 0x528
-         *   7th @ 0xDC84  ~22 insns  inner->0xA1C/0xA20/0xA24+0xA58 state|=0x2A/2B/29
-         *                            (3-coord sum check — sum < threshold gate)
-         *   8th @ 0xDCDC  ~15 insns  s0->0x304 vs s0->0x10 (outer field)  state|=0x15
-         *                            b +0xC3 (to far merge ~0xE020)
-         *   9th @ 0xDD18  ~9 insns   s0->0x2EC vs s0->0x10                state|=0x15+offset
-         *                            b +0xB2
-         *  10th @ 0xDD38  ~9 insns   s0->0x2D4 vs s0->0x10                state|=0x2D
-         *                            b +0xA1
-         *  11th @ 0xDD58  ~9 insns   s0->0x2BC vs s0->0x10                state|=0x2C
-         *                            b +0x93
-         *  12th @ 0xDD78  ~9 insns   s0->0x2A4 vs s0->0x10                state|=0x15
-         *                            b +0x83
-         *  13th @ 0xDD9C  ~9 insns   s0->0x28C vs s0->0x10                state|=0x0B/4
-         *                            (different branch shape)
-         *  14th @ 0xDDB4  ~9 insns   s0->0x28C vs s0->0x10                state|=0x2C+something
-         *                            b +0x83
-         *  15th @ 0xDDDC  ~9 insns   s0->0x274 vs s0->0x10                state|=0x0A
-         *                            (different OR-mask)
-         *
-         * Each chain is a c.lt.s/c.le.s gate followed by a state-OR + jal
-         * + b-to-merge. The OR-masks vary (0x29/0x2A/0x2B/0x2C/0x2D/0x0A/
-         * 0x0B/0x15) — the state byte at s0->0x108 accumulates a unique
-         * bit pattern based on which physics conditions tripped this frame.
-         * The merge point at ~0xE020 (still TBD) gathers all paths and
-         * runs the per-frame finalization (~140 insns from there to end).
-         *
-         * Field offsets touched (per-frame physics-state floats on s0):
-         *   0x274, 0x28C, 0x2A4, 0x2BC, 0x2D4, 0x2EC, 0x304  — array of
-         *   7 floats at +0x18 stride; likely an N=7 per-axis residual array.
-         *   (s0+0x10 is the common comparator base — looks like a struct
-         *   ptr s0+0x10 with field offsets 0x10/0x28/... matching the
-         *   +0x18 stride pattern of residual_array[N].)
-         *
-         * Cumulative 297/524 insns characterized (~57%). ~227 insns
-         * remaining — likely the merge-finalization at ~0xE020 + the
-         * else-arm (30.0f-fail path) reset code.
-         *
-         * EXTENDED 2026-05-14 (insns 297-490 @ 0xDE6C-0xE188, ~190 insns):
-         *
-         * 16th-20th chains @ 0xDE6C-0xDFA8 (5 more residual checks):
-         *   field offsets 0x334, 0x31C, 0x25C, 0x114-table, with state-OR
-         *   masks 0x2C/0x2D/0x16/0x14/0x13/0x12 — same dispatch shape as
-         *   prior chains, each falling through to far-merge via `b +long`.
-         *
-         * MAIN MERGE POINT @ 0xDFB0-0xE048 (~38 insns):
-         *   /* Final FPU math after all residual chains converge: *\/
-         *   f6 = inner->0x1098 (loaded as integer cast to float?);
-         *   d10 = some-double-constant 0x3FF0_0000 (1.0 as upper dword) ;
-         *   c.le.s f6, f6_self → bc1fl skip with f8 = inner->0x114-load;
-         *   inner->[0x09CC] table read + cross-USO call gated on 0;
-         *   /* SENTINEL UPDATE at 0xE020-0xE044: *\/
-         *   t9 = inner->[0x114];  ; reload current state-field
-         *   if (t9 != 1) self->[0x108] = 0;  ; force-reset state byte
-         *   ; otherwise keep accumulated state bits
-         *   t3 = self->[0x108];    ; reload
-         *   a1 = t3 | 0;            ; (delay) zero-OR for arg
-         *
-         * INDIRECT CALL DISPATCH @ 0xE04C-0xE070 (~10 insns):
-         *   beql v0, $0, +0x47 ; skip dispatch if v0 == 0
-         *     reload inner = s0->[0xB4]   ; (delay) reload
-         *   jal cross-USO with f18=1.0f spill + arg-reload
-         *   inner->[0x11C] = 1.0f;        ; mark "active"
-         *
-         * FINAL FPU COMMIT @ 0xE074-0xE0A8 (~14 insns):
-         *   inner = s0->[0xB4];
-         *   f18 = 1.0f; f4 = 0.0f; f6 = 0.0f; f8 = 0.0f;
-         *   inner->[0x308] = f10  ; output-Vec4 fold cell 3
-         *   inner->[0x2FC] = f4   ; output-Vec4 cell 0
-         *   inner->[0x300] = f6   ; output-Vec4 cell 1
-         *   inner->[0x304] = f8   ; output-Vec4 cell 2
-         *   a0 = s0; jal gl_func_0(s0, &inner->0x2FC);
-         *
-         * FLAG-DISPATCH @ 0xE0AC-0xE0F4 (~18 insns):
-         *   inner = s0->[0xB4];   ; reload
-         *   inner->[0x3DC] = 0;   ; clear ready-flag
-         *   if (sp[0x30] != 0) goto skip_arming  ; check sp30 sentinel
-         *     a0 = s0; jal gl_func_0(s0, 0, 1, 0, 1, 1)  ; 6-arg arm call
-         *   ; otherwise:
-         *   reload constants from 0xE88/0xE8C in BSS table:
-         *     a0=s0; jal gl_func_0(s0, 0, sp[0xE88], sp[0xE8C], 2)
-         *   b +0xE (skip past the alt-arm)
-         *
-         * ALT-FLAG-DISPATCH @ 0xE124-0xE160 (~14 insns):
-         *   t9 = self->[0x108]; sp[0x14] = t9; sp[0x10] = (some arg)
-         *   load constants from 0xE90/0xE94 BSS:
-         *   a0=s0; jal gl_func_0(s0, sp[0xE90], sp[0xE94], 1, t9, ...)
-         *   another tail-call gl_func_0(s0, 0) before list walk
-         *
-         * LIST-WALK SETUP @ 0xE164-0xE188 (~10 insns):
-         *   inner = s0->[0xB4];
-         *   t7 = inner->[0xA14]   ; list head ptr at +0xA14
-         *   beql + skip (if 0 head, skip past walk to epilogue prep)
-         *   sp[0x24] reload  ; ra pre-stage
-         *   state = self->[0x108]; self->[0x114] = state;  ; commit state
-         *   ; (continues into per-list-elem dispatch in next chunk)
-         *
-         * Cumulative 487/524 insns characterized (~93%). ~37 insns
-         * remaining — list-walk body + epilogue + the 30.0f-fail else-arm.
-         *
-         * FINAL DECODE 2026-05-14 (insns 487-524 @ 0xE184-0xE1F4, ~37 insns):
-         *
-         * STATE PACKING + COMMIT @ 0xE184-0xE18C:
-         *   t8 = state & 0xFFFF;             ; zero-extend halfword
-         *   a1 = t8 | 0x0006_NNNN;           ; combine with high-word const (0x0006 base)
-         *   self->[0x108] = a1;              ; commit packed state
-         *
-         * 3-CALL FINALIZATION TAIL @ 0xE190-0xE1E4:
-         *   /\* call 1: 6-arg variadic dispatch with sp+0x10/0x14 spills *\/
-         *   sp[0x10] = 1; sp[0x14] = 1;
-         *   gl_func_0(s0, /\*from prev a1*\/, 0, 1, 1, 1);   ; 6-arg call
-         *
-         *   /\* call 2: load BSS table at &D_0+0xDC8 (2 words) *\/
-         *   t2 = &D_0 + 0xDC8;
-         *   a1 = t2[0]; a2 = t2[1];           ; load pair from BSS
-         *   sp+0x4 = a1; sp+0x8 = a2;
-         *   gl_func_0(s0, t2[0], t2[1], 1);   ; 4-arg call with table values
-         *
-         *   /\* call 3 + tail: set inner counter, final gl_func_0 *\/
-         *   inner = s0->[0xB4];               ; reload
-         *   inner->[0x960] = 100;             ; set counter (probably "frames left" or "ttl")
-         *   gl_func_0(s0);                    ; final hook call
-         *
-         * EPILOGUE @ 0xE1E8-0xE1F4:
-         *   lw $ra, 0x24(sp); lw $s0, 0x20(sp); addiu sp, +0x38; jr ra; nop
-         *
-         * STRUCTURAL DECODE COMPLETE: 524/524 insns characterized (~100%).
-         *
-         * Final semantic picture: per-frame physics-state machine for an
-         * entity (s0 = entity ptr, inner = s0->[0xB4] sub-struct). Entry
-         * gate at 30.0f on inner->float_348; if passed, runs ~20 chained
-         * residual-checks on s0->float_{274..304} (7-element per-axis
-         * residual array with stride 0x18), each setting a bit-mask on
-         * the accumulated state byte at s0->[0x108]. After the cascade,
-         * a merge point validates state via inner->[0x114] sentinel, runs
-         * a final FPU commit to output Vec4 at inner->{0x2FC,0x300,0x304,
-         * 0x308}, and dispatches via 3 cross-USO finalization calls.
-         * Returns nothing (epilogue restores ra/s0/sp and returns).
-         *
-         * Default emit remains INCLUDE_ASM until C-body grind reaches
-         * >=80%. Decode doc unblocks future single-tick C-write attempts;
-         * the ~20-chain cascade structure is highly repetitive and
-         * suitable for code-generation from a per-chain template. */
-    } else {
-        /* 30.0f-fail path @ 0xDBDC (far forward, ~280 insns from entry).
-         * Decoded skeleton: loads 500.0f into $f0 at delay slot, then
-         * runs alternate FPU/cross-USO sequence. Probably a "reset"
-         * or "default-physics" path when the primary threshold fails. */
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000D9CC)();
+/* Per-frame physics-update spine: chained c.lt.s residual gates, each
+ * OR-ing a state-bit mask into arg0->0x108 and setting a mode indicator.
+ * Prior prose structural analysis (field meanings, 0x01F0 state mask) is in
+ * git history (game_uso_func_0000D9CC "complete 524-insn structural decode").
+ * This m2c lift replaced that comment-only shell with real C. */
+void game_uso_func_0000D9CC(char *arg0) {
+    f32 sp34;
+    s32 sp30;
+    char *sp2C;
+    s32 sp28;
+    f32 temp_f0;
+    f32 temp_f14;
+    f32 temp_f2;
+    f32 temp_f2_2;
+    f32 var_a3;
+    f32 var_f0;
+    f32 var_f0_2;
+    f32 var_f0_3;
+    f32 var_f0_4;
+    f32 var_f12;
+    f32 var_f2;
+    s32 temp_a1;
+    s32 temp_v0_4;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v1;
+    char *var_v1;
+
+    FW(arg0, 0x108) = 0;
+    sp30 = 1;
+    sp2C = 0;
+    sp28 = 0;
+    var_v1 = FW(arg0, 0xB4);
+    var_a3 = 0.0f;
+    if ((FW(var_v1, 0x348) > 30.0f) && (FW(var_v1, 0xA10) & 0x1F0)) {
+        temp_f2 = FW(var_v1, 0xA1C);
+        if (temp_f2 < 0.0f) {
+            var_f0 = -temp_f2;
+        } else {
+            var_f0 = temp_f2;
+        }
+        if (FW(arg0, 0x244) < var_f0) {
+            sp30 = 0;
+            sp28 = 2;
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, 1e-45f, 0);
+            var_a3 = 4e-45f;
+            if (FW(FW(arg0, 0xB4), 0xA1C) > 0.0f) {
+                FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x16);
+                sp2C = (char *)1;
+            } else {
+                FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x17);
+                sp2C = (char *)3;
+            }
+            goto block_24;
+        }
+        if (temp_f2 < 0.0f) {
+            var_f0_2 = -temp_f2;
+        } else {
+            var_f0_2 = temp_f2;
+        }
+        if (FW(arg0, 0x22C) < var_f0_2) {
+            sp30 = 0;
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, 6e-45f, 0);
+            temp_v1 = FW(arg0, 0xB4);
+            var_a3 = 3e-45f;
+            temp_f2_2 = FW(temp_v1, 0x970);
+            if (temp_f2_2 < 0.0f) {
+                var_f0_3 = -temp_f2_2;
+            } else {
+                var_f0_3 = temp_f2_2;
+            }
+            if (*(f64 *)0x1F8 < (f64) var_f0_3) {
+                if (temp_f2_2 <= 0.0f) {
+                    FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xE);
+                    sp2C = (char *)3;
+                } else {
+                    FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xF);
+                    sp2C = (char *)1;
+                }
+            } else if (FW(temp_v1, 0xA1C) > 0.0f) {
+                FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xC);
+                sp2C = (char *)1;
+            } else {
+                FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xD);
+                sp2C = (char *)3;
+            }
+block_24:
+            var_v1 = FW(arg0, 0xB4);
+        }
     }
-    /* TODO: remaining ~470 insns of float scheduling with mtc1 zero,
-     * c.lt.s gates, and cross-USO dispatch. */
+    if (FW(var_v1, 0x9D0) < 500.0f) {
+        temp_v0 = var_v1 + 0xCC;
+        if ((f64) FW(var_v1, 0xA0C) < *(f64 *)0x200) {
+            FW(var_v1, 0xCC) = 0.0f;
+            FW(temp_v0, 0x4) = 0.0f;
+            FW(temp_v0, 0x8) = 0.0f;
+            FW(temp_v0, 0xC) = 1.0f;
+            sp28 = 2;
+            sp34 = 6e-45f;
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, 3e-45f);
+            var_a3 = 6e-45f;
+            if (FW(FW(arg0, 0xB4), 0x3CC) < 0.0f) {
+                FW(arg0, 0x108) = 0x1002A;
+            } else {
+                FW(arg0, 0x108) = 0x1002B;
+            }
+            var_v1 = FW(arg0, 0xB4);
+        }
+    }
+    temp_v0_2 = var_v1 + 0x528;
+    if (!(FW(var_v1, 0x9A8) & 1)) {
+        temp_f14 = FW(arg0, 0x11C);
+        var_f12 = FW(var_v1, 0xA1C) * temp_f14;
+        var_f2 = FW(var_v1, 0xA20) * temp_f14;
+        var_f0_4 = FW(var_v1, 0xA24) * temp_f14;
+        if (!(FW(var_v1, 0xA58) & 0x4000)) {
+            var_f0_4 = 0.0f;
+            var_f2 = 0.0f;
+            var_f12 = 0.0f;
+        }
+        if ((FW(arg0, 0x304) * FW(temp_v0_2, 0x10)) <= var_f2) {
+            sp28 = 3;
+            sp30 = 0;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 3e-45f);
+            var_a3 = 7e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
+        } else if ((FW(arg0, 0x2EC) * FW(temp_v0_2, 0x10)) <= var_f2) {
+            sp28 = 0;
+            sp30 = 0;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 7e-45f);
+            var_a3 = 1e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2D);
+        } else if ((FW(arg0, 0x2D4) * FW(temp_v0_2, 0x10)) <= var_f2) {
+            sp28 = 0;
+            sp30 = 0;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 6e-45f);
+            var_a3 = 1e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2C);
+        } else if (FW(arg0, 0x2BC) <= var_f0_4) {
+            sp28 = 4;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 4e-45f);
+            var_a3 = 7e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
+        } else if (FW(arg0, 0x2A4) <= var_f0_4) {
+            sp28 = 3;
+            sp34 = 6e-45f;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 3e-45f);
+            var_a3 = 6e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xB);
+        } else if (FW(arg0, 0x28C) <= var_f0_4) {
+            sp28 = 2;
+            sp34 = 4e-45f;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 1e-45f);
+            var_a3 = 4e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xA);
+        } else if (FW(arg0, 0x274) <= var_f0_4) {
+            sp28 = 0;
+            sp30 = 0;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 1e-45f);
+            var_a3 = 1e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2C);
+        } else if (var_f0_4 <= -FW(arg0, 0x334)) {
+            sp28 = 2;
+            sp2C = (char *)2;
+            sp34 = 4e-45f;
+            sp30 = 0;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 7e-45f);
+            var_a3 = 4e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x16);
+        } else if (var_f0_4 <= -FW(arg0, 0x31C)) {
+            sp28 = 0;
+            sp2C = (char *)2;
+            sp30 = 0;
+            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 7e-45f);
+            var_a3 = 1e-45f;
+            FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x14);
+        } else {
+            temp_f0 = FW(arg0, 0x25C);
+            if (temp_f0 <= var_f12) {
+                sp28 = 3;
+                sp34 = 3e-45f;
+                ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 3e-45f);
+                var_a3 = 3e-45f;
+                FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x13);
+            } else if (var_f12 <= -temp_f0) {
+                sp28 = 3;
+                sp34 = 3e-45f;
+                ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 3e-45f);
+                var_a3 = 3e-45f;
+                FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x12);
+            } else if ((*(f32 *)0x1098 <= var_f2) && ((f64) temp_f14 == 1.0) && (FW(var_v1, 0x9CC) == 0)) {
+                sp28 = 0;
+                sp30 = 0;
+                FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2F);
+                sp34 = var_a3;
+                ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, FW(var_v1, 0x800), 5.958e-42f, 0xA, var_a3);
+            }
+        }
+    }
+    if ((FW(arg0, 0x114) == 1) && (sp28 == 0)) {
+        FW(arg0, 0x108) = 0;
+    }
+    if (FW(arg0, 0x108) != 0) {
+        ((GP_0000D9CC)game_uso_func_00000000)(arg0, var_a3, sp2C, var_a3);
+        FW(arg0, 0x11C) = 1.0f;
+        ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) sp28, sp2C);
+        temp_v0_3 = FW(arg0, 0xB4);
+        FW(temp_v0_3, 0x308) = 1.0f;
+        FW(temp_v0_3, 0x2FC) = 0.0f;
+        FW(temp_v0_3, 0x300) = 0.0f;
+        FW(temp_v0_3, 0x304) = 0.0f;
+        ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) (sp28 == 0));
+        FW(FW(arg0, 0xB4), 0x3DC) = 0;
+        if (sp30 != 0) {
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) FW(arg0, 0x108), 0, 3e-45f, 1, 1e-45f);
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (char *)FW(0xE88, 0x0), (char *)FW(0xE88, 0x4), 3e-45f);
+        } else {
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) FW(arg0, 0x108), 0, 1e-45f, 1, 1e-45f);
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (char *)FW(0xE90, 0x0), (char *)FW(0xE90, 0x4), 1e-45f);
+        }
+        ((GP_0000D9CC)game_uso_func_00000000)(arg0);
+        FW(arg0, 0x114) = 0;
+    }
+    if (FW(FW(arg0, 0xB4), 0xA14) <= 0) {
+        temp_v0_4 = FW(arg0, 0x108);
+        FW(arg0, 0x114) = 0;
+        if (temp_v0_4 != 0) {
+            temp_a1 = (temp_v0_4 & 0xFFFF) | 0x60000;
+            FW(arg0, 0x108) = temp_a1;
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) temp_a1, 0, 1e-45f, 1, 1e-45f);
+            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (char *)FW(0xDC8, 0x0), (char *)FW(0xDC8, 0x4), 1e-45f);
+        }
+        FW(FW(arg0, 0xB4), 0x960) = 0x64;
+        ((GP_0000D9CC)game_uso_func_00000000)(arg0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
