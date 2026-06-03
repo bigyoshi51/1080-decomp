@@ -3673,7 +3673,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
  * func 0x21D84); dropped the 21D70 symbol. Scans a global 0xC-stride record
  * table (count at +9524) matching a0==rec.h0(+9536) && a2==rec.h2(+9538),
  * returns rec+9528 on hit. Reloc-blind USO; stays INCLUDE_ASM. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00021D2C)();
+s32 game_libs_func_00021D2C(s32 arg0, s32 arg1) {
+    s32 temp_v1;
+    s32 var_v0;
+    char *var_a1;
+
+    temp_v1 = *(s32 *)0x2534;
+    var_v0 = 0;
+    if (temp_v1 > 0) {
+        var_a1 = 0;
+loop_2:
+        var_v0 += 1;
+        if ((arg0 == *(s16 *)((char *)var_a1 + 0x2540)) && (arg1 == *(s16 *)((char *)var_a1 + 0x2542))) {
+            return FW(var_a1, 0x2538);
+        }
+        var_a1 += 0xC;
+        if (var_v0 >= temp_v1) {
+            /* Duplicate return node #6. Try simplifying control flow for better match */
+            return 0;
+        }
+        goto loop_2;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D2C);
+#endif
 
 /* gl_func_00021D84: 33-insn slot-register helper.
  *   count = D[0x2534];
