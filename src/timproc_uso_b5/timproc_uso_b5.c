@@ -5718,8 +5718,8 @@ char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
     }
     func_00000000(*(char **)((char *)&D_8DB4_0134_a + 0x134), 2);
     *(int *)((char *)&D_8DB4_01C4_store + 0x1C4) = *(int *)((char *)&D_8DB4_01C4_load + 0x1C4) & ~8;
-    v = (float *)((char *)&D_8DB4_0294 + 0x00000294);
-    v[0] = 0.0f; v[1] = 0.0f; v[2] = 0.0f; v[3] = 0.0f;
+    v = (float *)&D_8DB4_0294;
+    v[3] = 0.0f; v[2] = 0.0f; v[1] = 0.0f; v[0] = 0.0f;
     *(float *)((char *)&D_8DB4_02A0 + 0x2A0) = 0.0f;
     A = (char *)func_00000000(0, (char *)&D_8DB4_1334 + 0x00001334);
     B = (char *)func_00000000(0, (char *)&D_8DB4_1340 + 0x00001340);
