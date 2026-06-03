@@ -573,7 +573,79 @@ void gl_func_000641DC(S641DC *a0, Vec3 *a1, Vec3 *a2, void *a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000641DC);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00064388)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00064388;
+void gl_func_00064388(char *arg0, f32 arg1, char *arg2, f32 arg3) {
+    Q_00064388 sp30;
+    Q_00064388 sp44;
+    Q_00064388 sp60;
+    Q_00064388 sp6C;
+    Q_00064388 spA4;
+    f32 sp9C;
+    f32 sp98;
+    f32 sp94;
+    f32 sp90;
+    char *sp28;
+    f32 temp_f0;
+    f32 temp_f14;
+    f32 temp_f16;
+    f32 temp_f2;
+    f32 temp_f2_2;
+    char *temp_a1;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v1;
+
+    temp_f2 = (*(f32*)((char*)arg0 + 0x0));
+    if (!((f64) temp_f2 < (*(f64*)((char*)&D_00000000 + 0x20C8)))) {
+        temp_v0 = (int)arg0 + 4;
+        temp_v1 = (int)arg0 + 0x28;
+        (*(f32*)((char*)arg0 + 0x4)) = (f32) ((*(f32*)((char*)arg0 + 0x4)) / temp_f2);
+        (*(f32*)((char*)arg0 + 0x8)) = (f32) ((*(f32*)((char*)arg0 + 0x8)) / temp_f2);
+        (*(f32*)((char*)arg0 + 0xC)) = (f32) ((*(f32*)((char*)arg0 + 0xC)) / temp_f2);
+        sp60.unk8 = (*(f32*)((char*)temp_v0 + 0x8)) - (*(f32*)((char*)temp_v1 + 0x8));
+        sp60.unk4 = (*(f32*)((char*)temp_v0 + 0x4)) - (*(f32*)((char*)temp_v1 + 0x4));
+        sp60.unk0 = (*(f32*)((char*)arg0 + 0x4)) - (*(f32*)((char*)arg0 + 0x28));
+        sp6C.unk0 = (f32) sp60.unk0;
+        sp6C.unk4 = sp60.unk4;
+        sp6C.unk8 = sp60.unk8;
+        sp44.unk0 = sp6C.unk0;
+        sp44.unk4 = sp6C.unk4;
+        sp44.unk8 = sp6C.unk8;
+        sp9C = sp44.unk8;
+        sp98 = sp44.unk4;
+        sp94 = sp44.unk0;
+        temp_f0 = (*(f32*)((char*)arg0 + 0x1C));
+        temp_f2_2 = (*(f32*)((char*)arg0 + 0x20));
+        temp_f14 = (*(f32*)((char*)arg0 + 0x24));
+        temp_a1 = (int)arg0 + 0x1C;
+        temp_f16 = ((f32(*)())gl_func_00062F64)((temp_f0 * temp_f0) + (temp_f2_2 * temp_f2_2) + (temp_f14 * temp_f14), temp_f14) / (*(f32*)((char*)&D_00000000 + 0x20D0));
+        sp28 = temp_a1;
+        sp90 = temp_f16 * arg3;
+        ((int(*)())gl_func_00062F64)(temp_a1, temp_a1);
+        ((int(*)())gl_func_00062F64)(arg1, temp_a1, sp90);
+        temp_v0_2 = (int)arg0 + 0x10;
+        sp30.unk0 = (*(f32*)((char*)arg0 + 0x10)) * 1.0f;
+        sp30.unk4 = (*(f32*)((char*)temp_v0_2 + 0x4)) * 1.0f;
+        sp30.unk8 = (*(f32*)((char*)temp_v0_2 + 0x8)) * 1.0f;
+        sp6C.unk0 = (f32) sp30.unk0;
+        sp6C.unk4 = sp30.unk4;
+        sp6C.unk8 = sp30.unk8;
+        spA4.unk0 = sp6C.unk0;
+        spA4.unk4 = sp6C.unk4;
+        spA4.unk8 = sp6C.unk8;
+        (*(f32*)((char*)arg2 + 0x0)) = (f32) ((*(f32*)((char*)arg2 + 0x0)) + spA4.unk0);
+        (*(f32*)((char*)arg2 + 0x4)) = (f32) ((*(f32*)((char*)arg2 + 0x4)) + spA4.unk4);
+        (*(f32*)((char*)arg2 + 0x8)) = (f32) ((*(f32*)((char*)arg2 + 0x8)) + spA4.unk8);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064388);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00064588 - STRUCTURAL PASS (big-swing 2026-06-02).
