@@ -7091,7 +7091,59 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070194);
  * Net est. <80% fuzzy, so a per-file -O1 carve (which needs a ~90-fn split of
  * post.c) is NOT worth it — it wouldn't clear the NM threshold. Permuter-class
  * spill-layout + truncation cap. Stays INCLUDE_ASM. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00070244)();
+u8 gl_func_00070244(u8 *arg0) {
+    u8 spF;
+    u8 spE;
+    s32 sp8;
+    s32 sp4;
+    s32 temp_t5;
+    s32 temp_t7;
+    s32 var_a1;
+    u8 *var_a0;
+    u8 temp_t1;
+
+    var_a0 = arg0;
+    spF = 0;
+    sp8 = 0;
+    do {
+        sp4 = 7;
+loop_2:
+        if (spF & 0x80) {
+            spE = 0x85;
+        } else {
+            spE = 0;
+        }
+        temp_t1 = spF * 2;
+        spF = temp_t1;
+        if (sp8 == 0x20) {
+            spF = temp_t1 & 0xFF;
+        } else {
+            if (*(int*)var_a0 & (1 << sp4)) {
+                var_a1 = 1;
+            } else {
+                var_a1 = 0;
+            }
+            spF |= var_a1;
+        }
+        temp_t5 = sp4 - 1;
+        sp4 = temp_t5;
+        spF ^= spE;
+        if (temp_t5 >= 0) {
+            goto loop_2;
+        }
+        var_a0 += 1;
+        temp_t7 = sp8 + 1;
+        sp8 = temp_t7;
+    } while (temp_t7 < 0x21);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
+#endif
 
 /* game_libs_func_00070314: 3-insn `mtc0 a0, $11; jr ra; nop` Compare-register
  * write. CP0 access (mtc0) is MIPS3 runtime — IDO C can't emit CP0 ops from
