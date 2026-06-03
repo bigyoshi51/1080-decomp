@@ -406,7 +406,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
  * words into 00063F34 (0xC -> 0x1B0); dropped the 00063F40 symbol. Brings f12
  * (=a1) and f4 (=10.0) in-scope (retracts the implicit caller-set-float cap);
  * the 105-insn body is decodable in a future pass. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00063F34)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00063F34;
+void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
+    Q_00063F34 sp44;
+    f32 sp40;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f0_3;
+    f32 temp_f0_4;
+    f32 temp_f16;
+    f32 temp_f2;
+    f32 temp_f4;
+    f32 temp_f6;
+    f32 var_f0;
+
+    if (arg1 < 10.0f) {
+        sp44.unk0 = (*(f32*)((char*)arg0 + 0x114));
+        sp44.unk4 = (s32) (*(f32*)((char*)arg0 + 0x118));
+        sp44.unk8 = (s32) (*(f32*)((char*)arg0 + 0x11C));
+        temp_f2 = (*(f32*)((char*)arg2 + 0x0));
+        temp_f0 = (sp44.unk0 * temp_f2) + (sp44.unk4 * (*(f32*)((char*)arg2 + 0x4))) + (sp44.unk8 * (*(f32*)((char*)arg2 + 0x8)));
+        temp_f4 = (temp_f0 * temp_f2) - sp44.unk0;
+        sp44.unk0 = temp_f4;
+        temp_f16 = (temp_f0 * (*(f32*)((char*)arg2 + 0x4))) - sp44.unk4;
+        sp44.unk4 = temp_f16;
+        temp_f6 = (temp_f0 * (*(f32*)((char*)arg2 + 0x8))) - sp44.unk8;
+        sp44.unk8 = temp_f6;
+        temp_f0_2 = ((f32(*)())gl_func_00062F64)((temp_f4 * temp_f4) + (temp_f16 * temp_f16) + (temp_f6 * temp_f6));
+        if ((*(f64*)((char*)&D_00000000 + 0x20A0)) < (f64) temp_f0_2) {
+            sp40 = temp_f0_2;
+            ((int(*)())gl_func_00062F64)(&sp44);
+            temp_f0_3 = (f32) ((f64) ((int)arg3 + (FW(arg0, 0x150) * FW(FW(arg0, 0x16C), 0x360))) * (*(f64*)((char*)&D_00000000 + 0x20A8)));
+            var_f0 = temp_f0_3 * temp_f0_3;
+            if ((*(f64*)((char*)&D_00000000 + 0x20B0)) < (f64) var_f0) {
+                var_f0 = (*(f32*)((char*)&D_00000000 + 0x20B8));
+            }
+            if (var_f0 < 0.0f) {
+                var_f0 = 0.0f;
+            }
+            temp_f0_4 = var_f0 * sp40;
+            sp44.unk0 *= temp_f0_4;
+            sp44.unk4 *= temp_f0_4;
+            sp44.unk8 *= temp_f0_4;
+            ((int(*)())gl_func_00062F64)(0.0f, FW(arg0, 0x16C), (int)arg0 + 0x120, &sp44, arg0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00063F34);
+#endif
 
 /* gl_func_000640E4: 16-insn dispatcher. EXACT — keys: pass a0 through
  * to both calls (gl_func_00000000(a0)) so IDO does not emit the unused-
