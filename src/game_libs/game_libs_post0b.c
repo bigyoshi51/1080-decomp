@@ -18008,7 +18008,67 @@ void gl_func_0004F9AC(char *a0) {
 // stride are exact. Caps: a0/record struct, &D_g/&D_g2 globals and cb
 // signature untyped; bundle re-split deferred. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0004F9E4)();
+void gl_func_0004F9E4(char *arg0) {
+    s16 sp24;
+    s16 sp22;
+    s16 sp20;
+    s32 var_t1;
+    u16 *var_v1;
+    u16 var_t0;
+    u32 temp_a2;
+    u32 var_a0;
+    u32 var_v0;
+    char *temp_v0;
+    char *temp_v0_2;
+
+    *(int*)0 = 0;
+    var_v0 = FW(arg0, 0x40);
+    if (var_v0 >= 0x12CU) {
+        ((int(*)())gl_func_00034458)(0x20E0C);
+        var_v0 = FW(arg0, 0x40);
+    }
+    var_t0 = 0;
+    if (var_v0 != 0) {
+        var_t1 = 0;
+        do {
+            temp_a2 = *(int*)0;
+            temp_v0 = FW(arg0, 0x60) + var_t1;
+            var_v1 = 0;
+            var_a0 = 0;
+            sp20 = FW(temp_v0, 0x0);
+            sp22 = FW(temp_v0, 0x2);
+            sp24 = FW(temp_v0, 0x4);
+            if (temp_a2 != 0) {
+loop_6:
+                temp_v0_2 = FW(arg0, 0x60) + (*(int*)var_v1 * 6);
+                if ((sp20 != FW(temp_v0_2, 0x0)) || (sp22 != FW(temp_v0_2, 0x2)) || (sp24 != FW(temp_v0_2, 0x4))) {
+                    var_a0 += 1;
+                    var_v1 += 2;
+                    if (var_a0 < temp_a2) {
+                        goto loop_6;
+                    }
+                }
+            }
+            if (var_a0 < temp_a2) {
+                *(int*)0 = temp_a2 + 1;
+                *(int*)(temp_a2 * 2) = (u16) *(int*)(var_a0 * 2);
+            } else {
+                *(int*)(temp_a2 * 2) = var_t0;
+                *(int*)0 = temp_a2 + 1;
+            }
+            var_t0 += 1;
+            var_t1 += 6;
+        } while (var_t0 < (u32) FW(arg0, 0x40));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F9E4);
+#endif
 
 /* 0x4FBxx leaf-branch-past-end cluster: 3 tiny leaves with forward
  * `beq/bne +small` branches that target at or past function-end (falling
