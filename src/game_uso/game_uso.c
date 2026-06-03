@@ -8524,7 +8524,43 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 //   exact-matchable without proper USO mnemonic disasm; structural
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+extern float game_uso_func_082880(float);
+/* A0E8-family geometric predicate (dead-alloc XZ vecs -> deltas -> normalize
+ * 082880 -> cross/dot projection -> range gates -> return 0/1). Opening +
+ * magnitude gate decoded; cross/dot tail pending (multi-tick). */
+int game_uso_func_000097EC(char *a0) {
+    char *v0 = *(char **)(a0 + 0x30);
+    char *sub;
+    Vec3 vec1, vec2, vec3;
+    Vec3 *p;
+    float mag2;
+    int ret = 0;
+    if (*(int *)(v0 + 0x908) == 0) return 0;
+    p = &vec1;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
+    p->x = *(float *)(v0 + 0x318);
+    p->z = *(float *)(v0 + 0x320);
+    p->y = 0.0f;
+    sub = *(char **)(v0 + 0x908);
+    p = &vec2;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
+    p->x = *(float *)(sub + 0x318);
+    p->z = *(float *)(sub + 0x320);
+    p->y = 0.0f;
+    mag2 = vec1.x * vec1.x + vec1.z * vec1.z;
+    if (!(0.0f < mag2)) return 0;
+    p = &vec3;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
+    p->x = vec1.x - vec2.x;
+    p->y = 0.0f;
+    p->z = vec1.z - vec2.z;
+    (void)ret;
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
+#endif
 
 #ifdef NON_MATCHING
 /* 54.950580% NM (objdiff 2026-05-20; up from 50.38% before this pass).
