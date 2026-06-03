@@ -11281,26 +11281,15 @@ void gl_func_0002E354(char *o, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
 #endif
 
+/* game_libs_func_0002F1B8: 52-insn (0xD0) binary-search over a sorted float
+ * array. BOUNDARY MERGED 2026-06-02: this function has THREE internal `jr ra`
+ * early-returns (at 0x2F21C, 0x2F268, and the final 0x2F280), so splat
+ * over-split it into 2F1B8 + 2F224 + 2F270. Both 2F224 and 2F270 branch
+ * backward to 0x2F1C8 (the loop head inside 2F1B8); neither has external
+ * callers. Absorbed both (0x6C -> 0xD0, ending exactly at the next func
+ * gl_func_0002F288); all branches verified in-range. Reloc-blind USO;
+ * stays INCLUDE_ASM. (Multi-jr-ra over-split, not a loop-tail split.) */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F1B8);
-
-/* game_libs_func_0002F224: 19-insn middle-fragment of a larger function
- * with backward branch to 0x2F1C8 (before .s start 0x2F224). Sibling of
- * game_libs_func_0002F270 (also branches to 0x2F1C8). Splat captured
- * BOTH 0x2F224 AND 0x2F270 as separate symbols when they're actually
- * sub-fragments of one function that starts at/before 0x2F1C8. Splat
- * boundary error per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * Focused-session: merge 0x2F1C8+0x2F224+0x2F270 into one function. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F224);
-
-/* game_libs_func_0002F270: 6-insn tail-fragment of a larger function:
- *   subu v1,v1,a0; addiu a0,a0,1; b -0xAC; sra a0,a0,1; jr ra; or v0,v1,zero
- * Caller-set $v1 + backward branch target 0x2F1C8 (before this .s's start
- * at 0x2F270) — splat boundary error. The actual function spans from
- * earlier (where $v1 is initialized + the backward branch target sits) to
- * here. CAP class — needs splat boundary correction (focused-session).
- * Default INCLUDE_ASM remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F270);
 
 // gl_func_0002F288 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
