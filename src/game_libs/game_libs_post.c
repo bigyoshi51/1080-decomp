@@ -36912,6 +36912,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064174);
  *       a0->f24 += out.z;
  *   }
  *
+ * RESIDUAL (84.75%, 2026-06-02 forensic): the build FAILS to promote a0 to a
+ * saved register. Target keeps `self` in s0 (`or s0,a0,zero` before the first
+ * jal, frame -0x80/-128, saves s0) and spills a1/a2 to their incoming home
+ * slots; my build uses NO callee-saved regs at all (frame -0x48/-72, saves only
+ * ra) and instead re-homes a0 to sp+0x48 and reloads it as a3/a2 around every
+ * jal — IDO chose caller-saved+spill over s0 for the long-lived self pointer.
+ * Lever TESTED NEGATIVE: caching a2->x/y/z into float locals before jal #1 (to
+ * shorten a2/a1 live ranges and leave a0 dominant) did NOT trigger s0-promotion
+ * (still frame -72, no s0, 114 insns — worse). The real lever is forcing a0 into
+ * a saved reg / matching the -128 frame; not yet found from C. Permuter-class.
  * Notable shapes:
  *  - $f12 set in jal delay slot for arg passing (mag-squared computed inline)
  *  - 3 jals total; #1 and #2 likely same fn (sqrtf-ish), #3 unknown 3-arg
