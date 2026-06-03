@@ -4169,7 +4169,81 @@ void func_00008474(char *a0) {
  * symbol (func_00007620) ref. Full body INCLUDE_ASM-preserved
  * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
  * rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000084A0)();
+char *func_000084A0(char *arg0) {
+    char *sp4C;
+    char *sp44;
+    char *sp40;
+    char *sp3C;
+    char *sp2C;
+    char *sp24;
+    char *temp_a1;
+    char *temp_t3;
+    char *temp_t9;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *var_a0;
+    char *var_a0_2;
+    char *var_a1;
+    char *var_v1;
+
+    temp_a1 = *(int*)0;
+    if (FW(temp_a1, 0x40) == 0) {
+        ((GP_000084A0)func_00000000)(temp_a1, temp_a1);
+    }
+    temp_v0 = ((GP_000084A0)func_00000000)((char *)0x74);
+    if ((temp_v0 != 0) && ((((GP_000084A0)func_00000000)(temp_v0), FW(temp_v0, 0x28) = 0, var_a1 = temp_v0 + 0x3C, (temp_v0 != (char *)-0x3C)) || (temp_v0_2 = ((GP_000084A0)func_00000000)((char *)0x38, var_a1), var_a1 = temp_v0_2, (temp_v0_2 != 0)))) {
+        var_v1 = var_a1;
+        if ((var_a1 != 0) || (sp44 = var_a1, temp_v0_3 = ((GP_000084A0)func_00000000)((char *)8, var_a1), var_v1 = temp_v0_3, (temp_v0_3 != 0))) {
+            FW(var_v1, 0x0) = 0;
+            FW(var_v1, 0x4) = 0;
+        }
+        temp_t9 = *(int*)0;
+        var_a0 = var_a1 + 8;
+        sp40 = temp_t9;
+        sp24 = temp_t9;
+        if ((var_a1 != (char *)-8) || (sp44 = var_a1, temp_v0_4 = ((GP_000084A0)func_00000000)((char *)0x18, var_a1), var_a0 = temp_v0_4, (temp_v0_4 != 0))) {
+            sp2C = var_a0;
+            sp44 = var_a1;
+            ((GP_000084A0)func_00000000)(var_a0, var_a1, sp24, 1);
+            FW(var_a0, 0xC) = 0;
+            FW(var_a0, 0x14) = 0;
+            FW(var_a0, 0x10) = 300.0f;
+        }
+        temp_t3 = *(int*)0;
+        var_a0_2 = var_a1 + 0x20;
+        sp3C = temp_t3;
+        sp24 = temp_t3;
+        if ((var_a1 != (char *)-0x20) || (sp44 = var_a1, temp_v0_5 = ((GP_000084A0)func_00000000)((char *)0x18, var_a1), var_a0_2 = temp_v0_5, (temp_v0_5 != 0))) {
+            sp2C = var_a0_2;
+            ((GP_000084A0)func_00000000)(var_a0_2, var_a1, sp24, 0);
+            FW(var_a0_2, 0x10) = 1;
+            FW(var_a0_2, 0xC) = 0x70;
+            FW(var_a0_2, 0x14) = 0;
+        }
+    }
+    temp_v0_6 = FW(arg0, 0x40);
+    if (temp_v0_6 != 0) {
+        sp4C = temp_v0;
+        ((GP_000084A0)func_00000000)(temp_v0 + 0x10, temp_v0_6);
+        if (FW(temp_v0_6, 0x14) != 0) {
+            FW(temp_v0_6, 0x4) = 1;
+        }
+        FW(temp_v0_6, 0x14) = temp_v0;
+    }
+    return temp_v0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000084A0);
+#endif
 
 void func_00008664(char *a0, int *a1) {
     func_00000000(a0);

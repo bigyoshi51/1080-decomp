@@ -16,14 +16,14 @@ import re, sys, subprocess, glob, os
 from elftools.elf.elffile import ELFFile
 
 FN = sys.argv[1]
-# module + placeholder from the name
-if FN.startswith("gl_func_") or FN.startswith("game_libs_func_"):
-    MOD, ASM, PH = "game_libs", "game_libs", "gl_func_00000000"
-else:
-    MOD = FN.rsplit("_func_", 1)[0]; ASM = MOD; PH = MOD + "_func_00000000"
+# placeholder = same naming scheme with the hex suffix zeroed (func_000084A0 ->
+# func_00000000; game_uso_func_X -> game_uso_func_00000000; gl_func_X -> gl_func_00000000)
+PH = re.sub(r'[0-9A-Fa-f]+$', '00000000', FN)
 
 def find_obj():
-    for o in glob.glob("expected/src/%s/*.c.o" % MOD):
+    # GLOBAL search: any expected obj that defines FN (handles bare func_XXXX,
+    # gui_func_, game_libs split files — segment != name-prefix).
+    for o in glob.glob("expected/src/**/*.c.o", recursive=True):
         try:
             st = ELFFile(open(o, "rb")).get_section_by_name(".symtab")
             if st and any(s.name == FN and s["st_size"] for s in st.iter_symbols()):
@@ -33,13 +33,18 @@ def find_obj():
     return None
 
 def find_src():
-    needle = 'INCLUDE_ASM("asm/nonmatchings/%s/%s", %s)' % (MOD, ASM, FN)
-    for f in glob.glob("src/%s/*.c" % MOD):
-        if needle in open(f).read():
-            return f
-    return None
+    # GLOBAL search for the INCLUDE_ASM line of FN (any segment path); return
+    # (srcfile, MOD, ASM) parsed from asm/nonmatchings/<MOD>/<ASM>.
+    # path is either "asm/nonmatchings/<seg>" (bootup form) or ".../<MOD>/<ASM>"
+    pat = re.compile(r'INCLUDE_ASM\("asm/nonmatchings/([^/"]+)(?:/([^"]+))?",\s*%s\)' % re.escape(FN))
+    for f in glob.glob("src/**/*.c", recursive=True):
+        m = pat.search(open(f).read())
+        if m:
+            return f, m.group(1), (m.group(2) or m.group(1))
+    return None, None, None
 
-obj, src = find_obj(), find_src()
+obj = find_obj()
+src, MOD, ASM = find_src()
 if not obj: sys.exit("no expected obj for " + FN)
 if not src: sys.exit("no src for " + FN)
 
