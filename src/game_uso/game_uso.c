@@ -10453,6 +10453,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0000BB8C)();
+extern int import_80087DA8;
+extern char import_8005C108;
+extern char game_uso_D_807FFA88, game_uso_D_807FFA90, game_uso_D_807FFA98;
 typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_0000BB8C;
 void game_uso_func_0000BB8C(char *arg0) {
     Q_0000BB8C sp90;
@@ -10507,8 +10510,8 @@ void game_uso_func_0000BB8C(char *arg0) {
     sp110 = 0.0f;
     sp118 = -1.0f;
     sp124 = FW(temp_a2_2, 0x38);
-    ((GP_0000BB8C)game_uso_func_00000000)(&sp110, FW((*(int*)0), 0x70) + 0xB4, temp_a2_2);
-    temp_v0 = *(int*)0;
+    ((GP_0000BB8C)game_uso_func_00000000)(&sp110, FW(((*(int *)&import_80087DA8)), 0x70) + 0xB4, temp_a2_2);
+    temp_v0 = (*(int *)&import_80087DA8);
     spC0.unk0 = sp110 * 1000.0f;
     spC0.unk4 = sp114 * 1000.0f;
     spC0.unk8 = sp118 * 1000.0f;
@@ -10523,9 +10526,9 @@ void game_uso_func_0000BB8C(char *arg0) {
     sp10C = spA4.unk8;
     sp108 = spA4.unk4;
     sp104 = spA4.unk0;
-    sp104 = spA4.unk0 + (FW(FW(temp_v0, 0x70), 0xA0) * *(f32 *)0x128);
-    sp108 = spA4.unk4 + (FW(FW(temp_v0, 0x70), 0xA4) * *(f32 *)0x12C);
-    temp_f8 = spA4.unk8 + (FW(FW(temp_v0, 0x70), 0xA8) * *(f32 *)0x130);
+    sp104 = spA4.unk0 + (FW(FW(temp_v0, 0x70), 0xA0) * (*(f32 *)((char *)&import_8005C108 + 0x128)));
+    sp108 = spA4.unk4 + (FW(FW(temp_v0, 0x70), 0xA4) * (*(f32 *)((char *)&import_8005C108 + 0x12C)));
+    temp_f8 = spA4.unk8 + (FW(FW(temp_v0, 0x70), 0xA8) * (*(f32 *)((char *)&import_8005C108 + 0x130)));
     sp90.unk0 = sp104 - sp11C;
     sp10C = temp_f8;
     temp_f12 = temp_f8 - sp124;
@@ -10551,7 +10554,7 @@ void game_uso_func_0000BB8C(char *arg0) {
             var_f24 = 1.0f;
         }
         temp_f24 = var_f24 * FW(FW(arg0, 0x220), 0xC8);
-        if (!((f64) temp_f24 < *(f64 *)0x168)) {
+        if (!((f64) temp_f24 < (*(f64 *)((char *)&game_uso_D_807FFA88 + 0x168)))) {
             sp88 = 0x409;
             sp84 = 0;
             temp_f2_2 = FW(arg0, 0x26C);
@@ -10564,17 +10567,17 @@ void game_uso_func_0000BB8C(char *arg0) {
                     var_f20 = 1.0f;
                     var_f0 = (f64) 1.0f;
                 }
-                if (*(f64 *)0x170 < var_f0) {
+                if ((*(f64 *)((char *)&game_uso_D_807FFA90 + 0x170)) < var_f0) {
                     sp74 = 0.0f;
                     sp70 = 0.0f;
                     sp6C = 0.0f;
                     sp78 = var_f20 * FW(arg0, 0x254);
                     ((GP_0000BB8C)game_uso_func_00000000)((f32 *)0x3F800000, 0, 0, &sp6C);
-                    temp_v0_2 = *(int*)0;
+                    temp_v0_2 = (*(int *)&import_80087DA8);
                     ((GP_0000BB8C)game_uso_func_00000000)(0, FW(temp_v0_2, 0xC0), FW(temp_v0_2, 0xC4), FW(temp_v0_2, 0xB8), FW(temp_v0_2, 0xBC), &sp84);
                 }
             }
-            temp_f22 = *(f64 *)0x178;
+            temp_f22 = (*(f64 *)((char *)&game_uso_D_807FFA98 + 0x178));
             var_s1 = 0;
             if (FW(arg0, 0x274) != 0) {
                 var_s0 = arg0;
