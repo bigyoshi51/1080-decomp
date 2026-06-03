@@ -4651,7 +4651,7 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
         ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
         FW(arg0, 0x3CC) = 7;
         ((GP_00007B2C)timproc_uso_b5_func_00000000)(*(int*)(FW(arg0, 0x3C4) * 4), FW(arg0, 0x4D4) | (FW((((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0)), 0x2B0) + 1));
-        FW(arg0, 0x484) = 1.0f;
+        *(f32 *)((char *)arg0 + 0x484) = 1.0f;
         temp_v0_6 = ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
         temp_v1_4 = FW(temp_v0_6, 0x28);
         ((GP_00007B2C)FW(temp_v1_4, 0x74))(FW(temp_v1_4, 0x70) + temp_v0_6);
@@ -4668,7 +4668,7 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
             ((GP_00007B2C)FW(temp_v1_5, 0xAC))(FW(temp_v1_5, 0xA8) + temp_v0_8);
             FW(arg0, 0x3CC) = 0xA;
             ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0, 0);
-            FW(arg0, 0x484) = 0.0f;
+            *(f32 *)((char *)arg0 + 0x484) = 0.0f;
             ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
             temp_v0_9 = ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
             FW(arg0, 0x3C8) = temp_v0_9;
