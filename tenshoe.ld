@@ -1366,6 +1366,8 @@ SECTIONS
         build/assets/game_libs_text2_F3DLX_Rej_imem.bin.o(.data);
         build/assets/game_libs_text2_tail.bin.o(.data);
         build/src/game_libs/game_libs_post.c.o(.text);
+        build/src/game_libs/game_libs_g3_70FBC.c.o(.text);
+        build/src/game_libs/game_libs_post2.c.o(.text);
         game_libs_TEXT_END = .;
         game_libs_TEXT_SIZE = ABSOLUTE(game_libs_TEXT_END - game_libs_TEXT_START);
     }

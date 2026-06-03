@@ -1354,6 +1354,38 @@
       }
     },
     {
+      "name": "src/game_libs/game_libs_g3_70FBC",
+      "target_path": "expected/src/game_libs/game_libs_g3_70FBC.c.o",
+      "base_path": "build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o",
+      "metadata": {
+        "source_path": "src/game_libs/game_libs_g3_70FBC.c",
+        "progress_categories": [
+          "game_libs"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/game_libs/game_libs_post2",
+      "target_path": "expected/src/game_libs/game_libs_post2.c.o",
+      "base_path": "build/non_matching/src/game_libs/game_libs_post2.c.o",
+      "metadata": {
+        "source_path": "src/game_libs/game_libs_post2.c",
+        "progress_categories": [
+          "game_libs"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
       "name": "src/gui_uso/gui_uso",
       "target_path": "expected/src/gui_uso/gui_uso.c.o",
       "base_path": "build/non_matching/src/gui_uso/gui_uso.c.o",

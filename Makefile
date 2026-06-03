@@ -124,7 +124,10 @@ build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
 # with pre-baked jals). Without these, the .o has `jal 0` + R_MIPS_26 relocs;
 # byte-verify fails even though ROM ends up identical post-link.
 build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5664
-build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x588F0
+build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x54594
+build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o: OPT_FLAGS := -O2 -g3
+build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10
+build/src/game_libs/game_libs_post2.c.o: TRUNCATE_TEXT := 0x42E0
 
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
