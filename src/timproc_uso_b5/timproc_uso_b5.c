@@ -3402,7 +3402,7 @@ void timproc_uso_b5_func_00005FC0(char *arg0) {
     if (FW(arg0, 0x4B4) != 0) {
         *(f32 *)((char *)arg0 + 0x4BC) = (*(f32 *)((char *)arg0 + 0x4BC) + *(f32 *)((char *)arg0 + 0xBC));
         if (FW(arg0, 0x4BC) >= 1.0f) {
-            FW(arg0, 0x4BC) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x4BC) = 1.0f;
             FW(arg0, 0x4B4) = 0;
             FW(arg0, 0x4B8) = 0;
         }
