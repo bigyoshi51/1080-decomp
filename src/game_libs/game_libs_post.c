@@ -43296,9 +43296,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FA0);
  * EMITS AS UNFILLED-DELAY: `lui v0,%hi; lw v0,%lo($v0); jr ra; nop` — IDO -O2
  * normally fills the jr's delay slot with the lw (3-insn 0xC form, as in
  * sibling game_libs_func_000420E8 at offset 0x20). This one's expected emit
- * keeps the delay-slot nop. Same C body produces the 3-insn form at -O2;
- * to land 4-insn would require a per-file -O0/-g split (focused-session
- * work, not 60s tick). CAP — keep INCLUDE_ASM. */
+ * keeps the delay-slot nop. VERIFIED 2026-06-02: an isolated `OPT_FLAGS :=
+ * -O2 -g3` carve of THIS body builds BYTE-IDENTICAL to expected
+ * (3c020000/8c420008/03e00008/00000000). This is the BEST first -g3 carve
+ * target — it is the LATEST clean unfilled-jr-delay function in post.c
+ * (offset 0x54580, only 57 functions after it). FOCUSED-SESSION RECIPE:
+ *   - game_libs_g3_70FBC.c = this body; Makefile OPT_FLAGS := -O2 -g3,
+ *     TRUNCATE_TEXT := 0x10
+ *   - post.c keeps funcs up to 70FA0 (TRUNCATE_TEXT := 0x54580)
+ *   - game_libs_post2.c = the 57 funcs after 70FBC (TRUNCATE_TEXT := 0x42E0),
+ *     header needs: common.h + typedefs Quad4/Tri3i/Pair2/Vec3 + extern int
+ *     D_00000000 + the GL_* NM macros its bodies use
+ *   - tenshoe.ld: post.c.o, game_libs_g3_70FBC.c.o, game_libs_post2.c.o in
+ *     sequence; refresh-expected-baseline for all three
+ * Not a codegen cap — purely the mid-file split infra. Stays INCLUDE_ASM
+ * until that session. */
 int game_libs_func_00070FBC(void) {
     return *(int*)((char*)&D_00000000 + 0x8);
 }
