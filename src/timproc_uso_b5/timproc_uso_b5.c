@@ -1307,28 +1307,304 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   disasm limitation prevents byte-match. Real-C STRUCTURAL body
 //   below — large composite constructor + 12-record init loop
 //   skeleton. Byte-match deferred. Name pre-checked: no extern reuse.
+// timproc_uso_b5_func_00002B74 — m2c DECODE (44.13% NM, no episode). non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-char *timproc_uso_b5_func_00002B74(char *self) {
-    char *c;
-    int i;
-    if (self == 0) {
-        self = (char *)func_00000000(0x168);
-        if (self == 0) return 0;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00002B74)();
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00002B74;
+char *timproc_uso_b5_func_00002B74(char *arg0) {
+    Q_00002B74 sp104;
+    Q_00002B74 sp44;
+    Q_00002B74 sp5C;
+    Q_00002B74 sp6C;
+    Q_00002B74 sp7C;
+    Q_00002B74 spC4;
+    Q_00002B74 spD0;
+    Q_00002B74 spDC;
+    Q_00002B74 spEC;
+    Q_00002B74 spF8;
+    char *sp13C;
+    char *sp138;
+    char *sp134;
+    char *sp130;
+    char *sp12C;
+    char *sp128;
+    char *sp124;
+    char *sp120;
+    char *sp11C;
+    char *sp118;
+    char *sp114;
+    char *sp110;
+    char *spE8;
+    char *spC0;
+    char *spB0;
+    char *spAC;
+    char *sp8C;
+    char *sp30;
+    s32 temp_f2;
+    s32 var_f2;
+    char *temp_t1;
+    char *temp_t2;
+    char *temp_t2_2;
+    char *temp_t2_3;
+    char *temp_t2_4;
+    char *temp_t2_5;
+    char *temp_t7;
+    char *temp_t7_2;
+    char *temp_t7_3;
+    char *temp_t7_4;
+    char *temp_t7_5;
+    char *temp_t7_6;
+    char *temp_v0;
+    char *temp_v0_10;
+    char *temp_v0_11;
+    char *temp_v0_12;
+    char *temp_v0_13;
+    char *temp_v0_14;
+    char *temp_v0_15;
+    char *temp_v0_16;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *temp_v0_8;
+    char *temp_v0_9;
+    char *var_a0;
+    char *var_a0_10;
+    char *var_a0_11;
+    char *var_a0_12;
+    char *var_a0_13;
+    char *var_a0_14;
+    char *var_a0_2;
+    char *var_a0_3;
+    char *var_a0_4;
+    char *var_a0_5;
+    char *var_a0_6;
+    char *var_a0_7;
+    char *var_a0_8;
+    char *var_a0_9;
+    char *var_f12;
+    char *var_s0;
+    char *var_v1;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x168), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            FW(var_v1, 0x0) = 0x1130;
+            FW(var_v1, 0x4) = 0;
+        }
+        temp_t7 = *(char **)0x1140;
+        var_a0 = var_s0 + 8;
+        sp13C = temp_t7;
+        spAC = temp_t7;
+        if ((var_s0 != (char *)-8) || (temp_v0_3 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+            spB0 = var_a0;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0, var_s0, spAC, (char *)1);
+            FW(var_a0, 0x10) = 0x52;
+            FW(var_a0, 0xC) = 0x1A0;
+            FW(var_a0, 0x14) = 0;
+        }
+        temp_t2 = *(char **)0x1144;
+        var_a0_2 = var_s0 + 0x20;
+        sp138 = temp_t2;
+        spAC = temp_t2;
+        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
+            spB0 = var_a0_2;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_2, var_s0, spAC, (char *)1);
+            FW(var_a0_2, 0x10) = 0x12;
+            FW(var_a0_2, 0xC) = 0x1A0;
+            FW(var_a0_2, 0x14) = 0;
+        }
+        temp_t7_2 = *(char **)0x1148;
+        var_a0_3 = var_s0 + 0x38;
+        sp134 = temp_t7_2;
+        spAC = temp_t7_2;
+        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
+            spB0 = var_a0_3;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_3, var_s0, spAC, (char *)1);
+            FW(var_a0_3, 0x10) = 0x52;
+            FW(var_a0_3, 0xC) = 0x1A0;
+            FW(var_a0_3, 0x14) = 0;
+        }
+        temp_t2_2 = *(char **)0x114C;
+        var_a0_4 = var_s0 + 0x50;
+        sp130 = temp_t2_2;
+        spAC = temp_t2_2;
+        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
+            spB0 = var_a0_4;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_4, var_s0, spAC, (char *)1);
+            FW(var_a0_4, 0x10) = 0x26;
+            FW(var_a0_4, 0xC) = 0x1A0;
+            FW(var_a0_4, 0x14) = 0;
+        }
+        temp_t7_3 = *(char **)0x1150;
+        var_a0_5 = var_s0 + 0x68;
+        sp12C = temp_t7_3;
+        spAC = temp_t7_3;
+        if ((var_s0 != (char *)-0x68) || (temp_v0_7 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_5 = temp_v0_7, (temp_v0_7 != 0))) {
+            spB0 = var_a0_5;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_5, var_s0, spAC, (char *)1);
+            FW(var_a0_5, 0x10) = 0x52;
+            FW(var_a0_5, 0xC) = 0x1A0;
+            FW(var_a0_5, 0x14) = 0;
+        }
+        temp_t2_3 = *(char **)0x1154;
+        var_a0_6 = var_s0 + 0x80;
+        sp128 = temp_t2_3;
+        spAC = temp_t2_3;
+        if ((var_s0 != (char *)-0x80) || (temp_v0_8 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_6 = temp_v0_8, (temp_v0_8 != 0))) {
+            spB0 = var_a0_6;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_6, var_s0, spAC, (char *)1);
+            FW(var_a0_6, 0x10) = 0x26;
+            FW(var_a0_6, 0xC) = 0x1A0;
+            FW(var_a0_6, 0x14) = 0;
+        }
+        temp_t7_4 = *(char **)0x1158;
+        var_a0_7 = var_s0 + 0x98;
+        sp124 = temp_t7_4;
+        spAC = temp_t7_4;
+        if ((var_s0 != (char *)-0x98) || (temp_v0_9 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_7 = temp_v0_9, (temp_v0_9 != 0))) {
+            spB0 = var_a0_7;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_7, var_s0, spAC, (char *)1);
+            FW(var_a0_7, 0x10) = 0x52;
+            FW(var_a0_7, 0xC) = 0x1A0;
+            FW(var_a0_7, 0x14) = 0;
+        }
+        temp_t2_4 = *(char **)0x115C;
+        var_a0_8 = var_s0 + 0xB0;
+        sp120 = temp_t2_4;
+        spAC = temp_t2_4;
+        if ((var_s0 != (char *)-0xB0) || (temp_v0_10 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_8 = temp_v0_10, (temp_v0_10 != 0))) {
+            spB0 = var_a0_8;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_8, var_s0, spAC, (char *)1);
+            FW(var_a0_8, 0x10) = 0x12;
+            FW(var_a0_8, 0xC) = 0x1A0;
+            FW(var_a0_8, 0x14) = 0;
+        }
+        temp_t7_5 = *(char **)0x1160;
+        var_a0_9 = var_s0 + 0xC8;
+        sp11C = temp_t7_5;
+        spAC = temp_t7_5;
+        if ((var_s0 != (char *)-0xC8) || (temp_v0_11 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_9 = temp_v0_11, (temp_v0_11 != 0))) {
+            spB0 = var_a0_9;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_9, var_s0, spAC, (char *)1);
+            FW(var_a0_9, 0x10) = 0x52;
+            FW(var_a0_9, 0xC) = 0x1A0;
+            FW(var_a0_9, 0x14) = 0;
+        }
+        temp_t2_5 = *(char **)0x1164;
+        var_a0_10 = var_s0 + 0xE0;
+        sp118 = temp_t2_5;
+        spAC = temp_t2_5;
+        if ((var_s0 != (char *)-0xE0) || (temp_v0_12 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_10 = temp_v0_12, (temp_v0_12 != 0))) {
+            spB0 = var_a0_10;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_10, var_s0, spAC, (char *)1);
+            FW(var_a0_10, 0x10) = 0x12;
+            FW(var_a0_10, 0xC) = 0x1A0;
+            FW(var_a0_10, 0x14) = 0;
+        }
+        temp_t7_6 = *(char **)0x1168;
+        var_a0_11 = var_s0 + 0xF8;
+        sp114 = temp_t7_6;
+        spAC = temp_t7_6;
+        if ((var_s0 != (char *)-0xF8) || (temp_v0_13 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_11 = temp_v0_13, (temp_v0_13 != 0))) {
+            spB0 = var_a0_11;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_11, var_s0, spAC, (char *)1);
+            FW(var_a0_11, 0xC) = 0x158;
+            FW(var_a0_11, 0x14) = 0;
+            FW(var_a0_11, 0x10) = -20.0f;
+        }
+        temp_t1 = *(char **)0x116C;
+        var_a0_12 = var_s0 + 0x110;
+        sp110 = temp_t1;
+        spAC = temp_t1;
+        if ((var_s0 != (char *)-0x110) || (temp_v0_14 = ((GP_00002B74)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_12 = temp_v0_14, (temp_v0_14 != 0))) {
+            spB0 = var_a0_12;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_12, var_s0, spAC, (char *)1);
+            FW(var_a0_12, 0xC) = 0x158;
+            FW(var_a0_12, 0x14) = 0;
+            FW(var_a0_12, 0x10) = -20.0f;
+        }
+        temp_f2 = *(s32 *)0x11C;
+        var_f12 = *(char **)0x120;
+        spF8.unk0 = temp_f2;
+        spF8.unk4 = temp_f2;
+        spF8.unk8 = temp_f2;
+        spEC.unk0 = var_f12;
+        spEC.unk4 = var_f12;
+        spEC.unk8 = var_f12;
+        sp104.unk0 = 0;
+        sp104.unk4 = 0.0f;
+        sp104.unk8 = 0.0f;
+        spE8 = *(char **)0x1170;
+        sp7C.unk0 = (s32) sp104.unk0;
+        sp7C.unk4 = (s32) sp104.unk4;
+        sp7C.unk8 = (s32) sp104.unk8;
+        var_a0_13 = var_s0 + 0x128;
+        sp6C.unk0 = (s32) spF8.unk0;
+        sp6C.unk4 = (s32) spF8.unk4;
+        sp6C.unk8 = (s32) spF8.unk8;
+        sp5C.unk0 = (char *) spEC.unk0;
+        sp5C.unk4 = (s32) spEC.unk4;
+        sp5C.unk8 = (s32) spEC.unk8;
+        spAC = spE8;
+        if ((var_s0 != (char *)-0x128) || (temp_v0_15 = ((GP_00002B74)timproc_uso_b5_func_00000000)(var_f12, (char *)0x20), var_f2 = *(s32 *)0x124, var_f12 = *(char **)0x128, var_a0_13 = temp_v0_15, (temp_v0_15 != 0))) {
+            sp8C = var_a0_13;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_f12, var_a0_13, var_s0, spAC, 1);
+            var_f2 = *(s32 *)0x12C;
+            var_f12 = *(char **)0x130;
+            FW(var_a0_13, 0xC) = 0x170;
+            FW(var_a0_13, 0x1C) = 0;
+            sp44.unk0 = sp7C.unk0;
+            sp44.unk4 = (s32) sp7C.unk4;
+            sp44.unk8 = (s32) sp7C.unk8;
+            FW(var_a0_13, 0x10) = sp44.unk0;
+            FW(var_a0_13, 0x14) = sp44.unk4;
+            FW(var_a0_13, 0x18) = sp44.unk8;
+        }
+        spDC.unk0 = 0;
+        spDC.unk4 = 0;
+        spDC.unk8 = 0;
+        spD0.unk0 = var_f2;
+        spD0.unk4 = var_f2;
+        spD0.unk8 = var_f2;
+        spC4.unk0 = var_f12;
+        spC4.unk4 = var_f12;
+        spC4.unk8 = var_f12;
+        spC0 = *(char **)0x1174;
+        sp7C.unk0 = (s32) spDC.unk0;
+        sp7C.unk4 = (s32) spDC.unk4;
+        sp7C.unk8 = (s32) spDC.unk8;
+        var_a0_14 = var_s0 + 0x148;
+        sp6C.unk0 = (s32) spD0.unk0;
+        sp6C.unk4 = (s32) spD0.unk4;
+        sp6C.unk8 = (s32) spD0.unk8;
+        sp5C.unk0 = (char *) spC4.unk0;
+        sp5C.unk4 = (s32) spC4.unk4;
+        sp5C.unk8 = (s32) spC4.unk8;
+        spAC = spC0;
+        if ((var_s0 != (char *)-0x148) || (temp_v0_16 = ((GP_00002B74)timproc_uso_b5_func_00000000)(var_f12, (char *)0x20), var_a0_14 = temp_v0_16, (temp_v0_16 != 0))) {
+            sp30 = var_a0_14;
+            ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_14, var_s0, spAC, (char *)1);
+            FW(var_a0_14, 0xC) = 0x170;
+            FW(var_a0_14, 0x1C) = 0;
+            sp44.unk0 = sp7C.unk0;
+            sp44.unk4 = (s32) sp7C.unk4;
+            sp44.unk8 = (s32) sp7C.unk8;
+            FW(var_a0_14, 0x10) = sp44.unk0;
+            FW(var_a0_14, 0x14) = sp44.unk4;
+            FW(var_a0_14, 0x18) = sp44.unk8;
+        }
     }
-    func_00000000(0x8);
-    *(char **)(self + 0x00) = (char *)&D_00000000 + 0x00001130;
-    *(int *)(self + 0x04) = 0;
-    *(char **)(self + 0x0C) = (char *)&D_00000000 + 0x000001A0;
-    *(int *)(self + 0x10) = 0x52;
-    for (i = 0; i < 12; i++) {
-        c = (char *)func_00000000(0x18);
-        func_00000000(c, (char *)&D_00000000 + 0x00001140);
-        *(char **)(self + 0x20 + i * 4) = c;
-    }
-    func_00000000((char *)&D_00000000 + 0x00001160);
-    func_00000000((char *)&D_00000000 + 0x00001168);
-    *(float *)(self + 0x18) = 0.0f;
-    return self;
+    return var_s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00002B74);

@@ -71,6 +71,10 @@ c = re.sub(r'\?\s*\(\*(\w+)\)\([^)]*\)', r'int (*\1)()', c)  # ? (*fp)(..) -> K&
 c = re.sub(r'([(,]\s*)\?(\s+[A-Za-z_])', r'\1int\2', c)  # (? arg) -> (int arg)
 c = re.sub(r'\?(\s*[,)])', r'int\1', c)              # bare ? type in prototypes -> int
 c = conv_arrows(c)
+c = c.replace('(? *)', '(int *)').replace('(?)', '(int)')
+c = c.replace('(?32)', '(s32)').replace('?32', 's32')
+c = re.sub(r'^(\s*)\?\s+([A-Za-z_]\w*;\s*)$', r'\1int \2', c, flags=re.M)
+c = re.sub(r'^(\s*)\?\s+\*([A-Za-z_]\w*;\s*)$', r'\1int *\2', c, flags=re.M)
 # arr[idx].FW(unkN, off) -> FW(arr[idx].unkN, off)
 c = re.sub(r'([A-Za-z_]\w*\[[^\]]*\])\.FW\((unk[0-9A-F]+), (0x[0-9A-Fa-f]+)\)', r'FW(\1.\2, \3)', c)
 
@@ -88,15 +92,11 @@ for b, off in bases.items():
         sib[nm] = (b, mem)
 out = []
 for l in c.split("\n"):
-    md = re.match(r'^\s*(?:void \*|f32|s32|int|\?32|\?)\s+(sp[0-9A-F]+);\s*(?:/\*.*)?$', l)
+    md = re.match(r'^\s*[A-Za-z_][\w ]*?\*?\s*(sp[0-9A-F]+);\s*(?:/\*.*)?$', l)
     if md and (md.group(1) in bases or md.group(1) in sib): continue
     for nm, (b, mem) in sib.items(): l = re.sub(r'\b'+nm+r'\b', '%s.%s' % (b, mem), l)
     out.append(l)
 c = "\n".join(out)
-c = c.replace('(? *)', '(int *)').replace('(?)', '(int)')
-c = c.replace('(?32)', '(s32)').replace('?32', 's32')
-c = re.sub(r'^(\s*)\?\s+([A-Za-z_]\w*;\s*)$', r'\1int \2', c, flags=re.M)
-c = re.sub(r'^(\s*)\?\s+\*([A-Za-z_]\w*;\s*)$', r'\1int *\2', c, flags=re.M)
 
 ba = '|'.join(sorted(bases, key=len, reverse=True))
 if bases:
