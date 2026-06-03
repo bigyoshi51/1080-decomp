@@ -3762,37 +3762,103 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   Real-C STRUCTURAL body below — PC-driven master state-machine
 //   skeleton + vtable-dispatch chain. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
+// timproc_uso_b5_func_00007B2C — FULL m2c DECODE (67.36% NM, no episode). Non-jumptable control-flow fn via scripts/lift-uso-controlflow.py.
 #ifdef NON_MATCHING
-int timproc_uso_b5_func_00007B2C(char *scr) {
-    char *d;
-    void (*fp)(int);
-    int *F60_tab;
-    int *F18_tab;
-    int idx;
-    if (*(int *)(scr + 0x3C4) != 1) {
-        func_00000000(scr);
-        return 1;
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00007B2C)();
+void timproc_uso_b5_func_00007B2C(char *arg0) {
+    s32 sp24;
+    s32 sp20;
+    s32 temp_t2;
+    s32 temp_v0;
+    s32 temp_v0_2;
+    s32 temp_v0_5;
+    s32 temp_v0_7;
+    s32 temp_v0_9;
+    s32 temp_v1;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_6;
+    char *temp_v0_8;
+    char *temp_v1_2;
+    char *temp_v1_3;
+    char *temp_v1_4;
+    char *temp_v1_5;
+
+    if (FW(arg0, 0x3C4) == 1) {
+        temp_v0 = ((GP_00007B2C)timproc_uso_b5_func_00000000)();
+        if (temp_v0 != 0) {
+            temp_v1 = FW((temp_v0 * 4), 0xF60);
+            sp24 = temp_v0;
+            sp20 = temp_v1;
+            if (((GP_00007B2C)timproc_uso_b5_func_00000000)(0, *(int*)(temp_v1 + (FW(arg0, 0x4AC) * 4))) != 0) {
+                temp_v0_2 = FW(arg0, 0x4AC);
+                FW(arg0, 0x4B0) = (s32) *(s32 *)0xF18;
+                if (*(int*)(temp_v1 + (temp_v0_2 * 4)) != 0x100) {
+                    FW(arg0, 0x4AC) = (s32) (temp_v0_2 + 1);
+                } else {
+                    ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0, 1);
+                    FW(arg0, 0x4A8) = (s32) (sp24 + 1);
+                    ((GP_00007B2C)timproc_uso_b5_func_00000000)((char *)0x27, 0x3E8);
+                }
+            } else {
+                if (((GP_00007B2C)timproc_uso_b5_func_00000000)(0, ~*(int*)(temp_v1 + (FW(arg0, 0x4AC) * 4))) != 0) {
+                    FW(arg0, 0x4B0) = 0;
+                }
+                temp_t2 = FW(arg0, 0x4B0) - 1;
+                FW(arg0, 0x4B0) = temp_t2;
+                if (temp_t2 < 0) {
+                    ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0, 1);
+                }
+            }
+        }
     }
-    if (!func_00000000()) return 1;
-    F60_tab = (int *)((char *)&D_00000000 + 0x00000F60);
-    F18_tab = (int *)((char *)&D_00000000 + 0x00000F18);
-    idx = *(int *)(scr + 0x4AC);
-    /* h = F60_tab[idx]; sub-state from F18_tab[idx] */
-    *(int *)(scr + 0x4B0) = F18_tab[idx];
-    if (*(int *)&D_00000000 == 0x100 && F60_tab[idx] == *(int *)(scr + 0x4B0)) {
-        *(int *)(scr + 0x4AC) += 1;
-    } else {
-        func_00000000(1);
-        *(int *)(scr + 0x4A8) = 0x3E8;
+    if (((GP_00007B2C)timproc_uso_b5_func_00000000)(0, 0x100) != 0) {
+        temp_v0_3 = ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+        temp_v1_2 = FW(temp_v0_3, 0x28);
+        ((GP_00007B2C)FW(temp_v1_2, 0x8C))(FW(temp_v1_2, 0x88) + temp_v0_3, 0);
+        ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+        temp_v0_4 = ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+        temp_v1_3 = FW(temp_v0_4, 0x28);
+        ((GP_00007B2C)FW(temp_v1_3, 0x84))(FW(temp_v1_3, 0x80) + temp_v0_4, 0);
+        temp_v0_5 = FW(arg0, 0x3C4);
+        ((GP_00007B2C)timproc_uso_b5_func_00000000)(*(int*)(temp_v0_5 * 4), FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_5 * 4)), 0x3D0));
+        ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+        FW(arg0, 0x3CC) = 7;
+        ((GP_00007B2C)timproc_uso_b5_func_00000000)(*(int*)(FW(arg0, 0x3C4) * 4), FW(arg0, 0x4D4) | (FW((((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0)), 0x2B0) + 1));
+        FW(arg0, 0x484) = 1.0f;
+        temp_v0_6 = ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+        temp_v1_4 = FW(temp_v0_6, 0x28);
+        ((GP_00007B2C)FW(temp_v1_4, 0x74))(FW(temp_v1_4, 0x70) + temp_v0_6);
+        return;
     }
-    d = *(char **)(scr + 0x28);
-    fp = *(void (**)(int))(d + 0x8C);
-    fp(*(short *)(d + 0x88));
-    fp = *(void (**)(int))(d + 0x84);
-    fp(*(short *)(d + 0x80));
-    *(int *)(scr + 0x3CC) = 7;
-    *(float *)(scr + 0x484) = 1.0f;
-    return 1;
+    if (((GP_00007B2C)timproc_uso_b5_func_00000000)(0, 0x200) != 0) {
+        if (((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0) == 0) {
+            ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+        } else {
+            temp_v0_7 = FW(arg0, 0x3C4);
+            ((GP_00007B2C)timproc_uso_b5_func_00000000)(*(int*)(temp_v0_7 * 4), FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_7 * 4)), 0x3D0));
+            temp_v0_8 = ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+            temp_v1_5 = FW(temp_v0_8, 0x28);
+            ((GP_00007B2C)FW(temp_v1_5, 0xAC))(FW(temp_v1_5, 0xA8) + temp_v0_8);
+            FW(arg0, 0x3CC) = 0xA;
+            ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0, 0);
+            FW(arg0, 0x484) = 0.0f;
+            ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+            temp_v0_9 = ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+            FW(arg0, 0x3C8) = temp_v0_9;
+            FW(arg0, 0x3C4) = ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0, temp_v0_9);
+            ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0);
+            ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0, 1);
+        }
+    }
+    if (((GP_00007B2C)timproc_uso_b5_func_00000000)(0, 0x14003) != 0) {
+        ((GP_00007B2C)timproc_uso_b5_func_00000000)(arg0, 1);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007B2C);

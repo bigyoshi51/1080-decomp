@@ -109,7 +109,26 @@ c = re.sub(r'\(char \*\) \((FW\([^()]*\) \* \*\(f32 \*\)0x[0-9A-Fa-f]+)\)', r'(c
 c = c.replace("void *", "char *")
 c = c.replace("NULL", "0")
 c = re.sub(r'\*0(?!\w)', '*(int*)0', c)
-c = re.sub(r'\*\(([a-z_]\w*(?: [-+*/|&] [^()]+)?)\)', r'*(int*)(\1)', c)
+# deref of a non-pointer expr: *(EXPR) -> *(int*)(EXPR), balanced, skip real casts
+def cast_derefs(s):
+    TYPES = ('int','char','f32','s32','u32','s8','u8','s16','u16','void','unsigned','long','short','f64')
+    o=[]; i=0
+    while i < len(s):
+        if s[i]=='*' and i+1<len(s) and s[i+1]=='(':
+            j=i+2; d=1
+            while j<len(s) and d:
+                if s[j]=='(': d+=1
+                elif s[j]==')': d-=1
+                j+=1
+            inner=s[i+2:j-1]
+            t=inner.lstrip()
+            first=re.match(r'[A-Za-z_]\w*', t)
+            is_cast = first and first.group(0) in TYPES and '*' in t[:first.end()+3]
+            if (not is_cast) and not t.startswith('(') and not t.startswith('&') and (t[:1].islower() or t.startswith('FW(')):
+                o.append('*(int*)('+inner+')'); i=j; continue
+        o.append(s[i]); i+=1
+    return "".join(o)
+c = cast_derefs(c)
 
 inject = ("\n#ifndef FW\n#define FW(p, o) (*(int *)((char *)(p) + (o)))\n#endif\n"
           "typedef char *(*%s)();\n" % GT)
