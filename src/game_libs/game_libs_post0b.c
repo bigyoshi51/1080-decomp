@@ -17777,7 +17777,57 @@ void game_libs_func_0004EB4C(int a0) {}
 // the node->0x28 vtable dispatch (vt->0x64 fn, (short)vt->0x60+node arg)
 // are exact. Caps: self/node/vtable struct + cb signatures untyped. Full
 // body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0004EB54)();
+void gl_func_0004EB54(char *arg0) {
+    f32 temp_f0;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v1;
+
+    FW(arg0, 0x11C) = 0;
+    FW(arg0, 0x120) = 0;
+    if (FW(arg0, 0x78) & 0x20) {
+        ((int(*)())gl_func_00034458)(((char*)&D_00000000 + 0x205D0));
+        ((int(*)())gl_func_00034458)(((char*)&D_00000000 + 0x205D4));
+    }
+    ((int(*)())gl_func_00034458)(FW(arg0, 0x108));
+    *(int*)&D_00000000 = arg0;
+    ((int(*)())gl_func_00034458)(0);
+    temp_v1 = FW(arg0, 0x70);
+    if (temp_v1 != 0) {
+        temp_v0 = FW(temp_v1, 0x28);
+        ((GP_0004EB54)FW(temp_v0, 0x64))(FW(temp_v0, 0x60) + temp_v1);
+        temp_f0 = 85.0f / *(f32*)((char*)FW(arg0, 0x70) + 0x14C);
+        temp_v0_2 = (int)arg0 + (1 * 4);
+        *(f32*)((char*)arg0 + 0x98) = *(f32*)((char*)arg0 + 0x84) * temp_f0;
+        *(f32*)((char*)temp_v0_2 + 0x98) = *(f32*)((char*)temp_v0_2 + 0x84) * temp_f0;
+        *(f32*)((char*)temp_v0_2 + 0x9C) = *(f32*)((char*)temp_v0_2 + 0x88) * temp_f0;
+        *(f32*)((char*)temp_v0_2 + 0xA0) = *(f32*)((char*)temp_v0_2 + 0x8C) * temp_f0;
+        *(f32*)((char*)temp_v0_2 + 0xA4) = *(f32*)((char*)temp_v0_2 + 0x90) * temp_f0;
+    }
+    ((int(*)())gl_func_00034458)(0, 0);
+    ((int(*)())gl_func_00034458)(0);
+    ((int(*)())gl_func_00034458)(arg0);
+    ((int(*)())gl_func_00034458)(0, (int)arg0 + 0x30);
+    ((int(*)())gl_func_00034458)(0, (char *)1);
+    ((int(*)())gl_func_00034458)(0);
+    ((int(*)())gl_func_00034458)(0);
+    ((int(*)())gl_func_00034458)(0);
+    temp_v0_3 = FW(arg0, 0x28);
+    ((GP_0004EB54)FW(temp_v0_3, 0x6C))(FW(temp_v0_3, 0x68) + (int)arg0);
+    if (FW(arg0, 0x78) & 0x20) {
+        ((int(*)())gl_func_00034458)(((char*)&D_00000000 + 0x205E0));
+        ((int(*)())gl_func_00034458)(((char*)&D_00000000 + 0x205E4));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EB54);
+#endif
 
 extern int gl_func_00000000();
 extern char gl_ref_000205F0;
