@@ -44,9 +44,11 @@ def conv_arrows(s):
     while True:
         i = s.find('->unk')
         if i < 0: break
-        j = i+5; k = j
+        j = i+5; sign = ''
+        if j < len(s) and s[j] == '-': sign = '-'; j += 1
+        k = j
         while k < len(s) and s[k] in '0123456789ABCDEFabcdef': k += 1
-        off = s[j:k]; p = i-1
+        off = sign + '0x' + s[j:k]; p = i-1
         while p >= 0 and s[p] == ' ': p -= 1
         if s[p] == ')':
             d = 0; q = p
@@ -62,7 +64,7 @@ def conv_arrows(s):
             r = p
             while r >= 0 and (s[r].isalnum() or s[r] == '_'): r -= 1
             st = r+1
-        s = s[:st] + 'FW(%s, 0x%s)' % (s[st:i].strip(), off) + s[k:]
+        s = s[:st] + 'FW(%s, %s)' % (s[st:i].strip(), off) + s[k:]
     return s
 # m2c '?' param/var type -> int (only after '(' or ',' to avoid ternaries)
 c = re.sub(r'\?\s*\(\*(\w+)\)\([^)]*\)', r'int (*\1)()', c)  # ? (*fp)(..) -> K&R int (*fp)()
@@ -125,6 +127,7 @@ c = c.replace("(f32) (("+GT+")", "(f32) (int) (("+GT+")")
 c = re.sub(r'\(char \*\) \((FW\([^()]*\) \* \*\(f32 \*\)0x[0-9A-Fa-f]+)\)', r'(char *) (int) (\1)', c)
 c = c.replace("void *", "char *")
 c = c.replace("NULL", "0")
+c = re.sub(r'\*\*\(([a-z0-9_]+ \*)\)(\w+)', r'*(int*)(*(\1)\2)', c)  # **(T*)X double-deref
 c = re.sub(r'\*0(?!\w)', '*(int*)0', c)
 # deref of a non-pointer expr: *(EXPR) -> *(int*)(EXPR), balanced, skip real casts
 def cast_derefs(s):
@@ -158,7 +161,7 @@ def cast_derefs(s):
                         if d2==0: break
                     g=t[:e+1]            # leading balanced ( ... ) group
                     wrap = '*' not in g  # value-cast/group -> wrap; pointer-cast -> skip
-                elif t[:1].islower() or t.startswith('FW('):
+                elif t[:1].islower() or t.startswith('FW(') or t.startswith('*'):
                     wrap=True
             if wrap:
                 o.append('*(int*)('+inner+')'); i=j; continue

@@ -64,7 +64,7 @@ body = open("/tmp/cf_body.c").read()
 # already GP-cast by the lifter)
 for m in re.finditer(r'^\s*void\s+([A-Za-z_]\w*)\s*\(void\)\s*\{', open(src).read(), flags=re.M):
     name = m.group(1)
-    if name != PH and (name + "(") in body:
+    if name not in (PH, FN) and (name + "(") in body:
         body = body.replace(name + "(", "((int(*)())" + name + ")(")
 open("/tmp/cf_body.c", "w").write(body)
 
