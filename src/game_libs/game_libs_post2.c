@@ -1344,7 +1344,75 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074EDC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074EFC);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0007507C)();
+void gl_func_0007507C(char *arg0) {
+    char *sp34;
+    char *sp30;
+    u16 *sp2C;
+    s32 sp28;
+    char *sp24;
+    s32 temp_t6;
+    u16 temp_s0;
+    u16 temp_t3;
+    u16 temp_t7;
+    char *temp_t3_2;
+    char *temp_t5;
+    char *temp_t8;
+
+    sp2C = 0;
+    sp28 = 0;
+    sp34 = game_libs_func_00070FCC();
+    temp_t7 = FW(sp34, 0x2);
+    *(u16 *)0x45290 = temp_t7;
+    if (temp_t7 == 0) {
+        *(char *)0x45290 = 1U;
+    }
+    sp30 = arg0;
+loop_3:
+    game_libs_func_00070FCC(FW(sp30, 0xC), &sp2C, 1);
+    temp_s0 = *(int*)sp2C;
+    if (temp_s0 == 0xD) {
+        game_libs_func_00070FCC();
+        temp_t3 = *(char *)0x45290 - 1;
+        *(char *)0x45290 = temp_t3;
+        if (!(temp_t3 & 0xFFFF)) {
+            sp34 = game_libs_func_00070FCC();
+            temp_t6 = FW(sp34, 0x10);
+            if (temp_t6 != 0) {
+                game_libs_func_00070FCC(temp_t6, FW(sp34, 0x14), 0);
+            }
+            *(char *)0x45290 = (u16) FW(sp34, 0x2);
+        }
+        *(int*)0 = (char *) (*(int*)0 + 1);
+        if (sp28 != 0) {
+            sp24 = game_libs_func_00070FCC();
+            *(int*)0 = 0;
+            *(char **)4 = sp24;
+            sp28 = 0;
+        }
+        sp24 = *(int*)0;
+        *(int*)0 = game_libs_func_00070FCC();
+        temp_t3_2 = *(char *)4;
+        temp_t8 = *(int*)0 - (int)sp24;
+        temp_t5 = temp_t8 + (int)temp_t3_2;
+        *(int*)0 = (char *) (((u32) temp_t5 < (u32) temp_t3_2) + *(int*)0);
+        sp24 = temp_t8;
+        *(char *)4 = temp_t5;
+        goto loop_3;
+    }
+    if (temp_s0 != 0xE) {
+        goto loop_3;
+    }
+    game_libs_func_00070FCC();
+    goto loop_3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007507C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00075248);
 
