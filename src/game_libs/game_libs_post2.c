@@ -446,7 +446,79 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071928);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071D40);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00071ED8)();
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00071ED8;
+s32 gl_func_00071ED8(u16 *arg0) {
+    Q_00071ED8 sp20;
+    Q_00071ED8 sp40;
+    s32 sp64;
+    u16 sp62;
+    u16 sp60;
+    s32 sp1C;
+    u16 *sp18;
+    s32 temp_t4;
+
+    if (FW(arg0, 0x65) != 0) {
+        FW(arg0, 0x65) = 0U;
+        sp1C = ((int(*)())game_libs_func_00070FCC)(arg0);
+        if (sp1C != 0) {
+        }
+    }
+    sp1C = ((int(*)())game_libs_func_00070FCC)(FW(arg0, 0x4), FW(arg0, 0x8), (u16 *)1, &sp40);
+    if (sp1C != 0) {
+    }
+    ((int(*)())game_libs_func_00070FCC)(&sp40, &sp62, &sp60);
+    sp18 = &sp40;
+    if (((*(u16*)((char*)&sp40 + 0x1C)) != sp62) || ((*(u16*)((char*)&sp40 + 0x1E)) != sp60)) {
+        sp1C = ((int(*)())game_libs_func_00070FCC)(arg0, sp18);
+        if (sp1C == 0xA) {
+            sp1C = ((int(*)())game_libs_func_00070FCC)(arg0, sp18, &sp20);
+            if (sp1C != 0) {
+            }
+            sp18 = &sp20;
+            goto block_13;
+        }
+        if (sp1C != 0) {
+        }
+        goto block_13;
+    }
+block_13:
+    if (!((*(u16*)((char*)sp18 + 0x18)) & 1)) {
+        sp1C = ((int(*)())game_libs_func_00070FCC)(arg0, sp18, &sp20);
+        if (sp1C != 0) {
+        }
+        sp18 = &sp20;
+        if (!((*(u16*)((char*)&sp20 + 0x18)) & 1)) {
+            return 0xB;
+        }
+        goto block_18;
+    }
+block_18:
+    sp64 = 0;
+    do {
+        *(u8*)((char*)arg0 + sp64 + 0xC) = *(u8*)((char*)sp18 + sp64);
+        temp_t4 = sp64 + 1;
+        sp64 = temp_t4;
+    } while (temp_t4 < 0x20);
+    FW(arg0, 0x4C) = (s32) (*(u8*)((char*)sp18 + 0x1B));
+    (*(u8*)((char*)arg0 + 0x64)) = (u8) (*(u8*)((char*)sp18 + 0x1A));
+    FW(arg0, 0x60) = (s32) (((*(u8*)((char*)arg0 + 0x64)) * 2) + 3);
+    FW(arg0, 0x50) = 0x10;
+    FW(arg0, 0x54) = 8;
+    FW(arg0, 0x58) = (s32) (((*(u8*)((char*)arg0 + 0x64)) * 8) + 8);
+    FW(arg0, 0x5C) = (s32) (FW(arg0, 0x58) + ((*(u8*)((char*)arg0 + 0x64)) * 8));
+    sp1C = ((int(*)())game_libs_func_00070FCC)(FW(arg0, 0x4), FW(arg0, 0x8), (u16 *)7, (int)arg0 + 0x2C);
+    if (sp1C != 0) {
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071ED8);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00072134: 63-insn save-data verification with retry-on-error-2 (size 0xFC, frame 0x40).
