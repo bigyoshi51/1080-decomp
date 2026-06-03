@@ -88,7 +88,63 @@ void gl_func_000005A4(char *a0, char a1, char a2, char a3) {
     gl_func_00000000(a0 + 0xE4, &gl_ref_0001CB30, a1, a2, a3);
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000005EC)();
+char *gl_func_000005EC(char *arg0, s32 arg1) {
+    f32 d255 = 255.0f;
+    char *sp34;
+    char *sp30;
+    char *sp2C;
+    char *sp28;
+    char *temp_a0;
+    char *temp_a3;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *var_a2;
+    char *var_s0;
+    char *var_v1;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_000005EC)gl_func_00000000)((char *)0x13C), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = ((GP_000005EC)gl_func_00000000)((char *)0x10C), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            var_a2 = var_v1;
+            if ((var_v1 != 0) || (sp34 = var_v1, temp_v0_3 = ((GP_000005EC)gl_func_00000000)((char *)0x10C), var_a2 = temp_v0_3, (temp_v0_3 != 0))) {
+                sp34 = var_v1;
+                sp30 = var_a2;
+                ((GP_000005EC)gl_func_00000000)(var_a2, (char *)0xCB40, var_a2);
+                FW(var_a2, 0x28) = 0;
+                ((GP_000005EC)gl_func_00000000)(var_a2 + 0x2C);
+            }
+            FW(var_v1, 0x28) = 0;
+        }
+        FW(var_s0, 0xC) = 0xCB48;
+        temp_a0 = var_s0 + 0x10C;
+        sp2C = temp_a0;
+        ((GP_000005EC)gl_func_00000000)(temp_a0, (char *)0x5001E);
+        temp_a3 = var_s0 + 0x124;
+        sp28 = temp_a3;
+        ((GP_000005EC)gl_func_00000000)(temp_a3, (char *)0x5001D);
+        ((GP_000005EC)gl_func_00000000)(var_s0, sp28, sp2C);
+        FW(var_s0, 0xD4) = 0;
+        FW(var_s0, 0xD8) = 0xFF;
+        FW(var_s0, 0xDC) = 0x82;
+        *(f32*)((char*)var_s0 + 0xC4) = 250.0f / d255;
+        *(f32*)((char*)var_s0 + 0xC8) = 235.0f / d255;
+        *(f32*)((char*)var_s0 + 0xCC) = 100.0f / d255;
+        *(f32*)((char*)var_s0 + 0xD0) = 0.0f / d255;
+        FW(var_s0, 0xE0) = arg1;
+        ((GP_000005EC)gl_func_00000000)(var_s0, (char *)-0x38, (char *)-1, -0x26, 0);
+    }
+    return var_s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000005EC);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00000760(char *a0) {
