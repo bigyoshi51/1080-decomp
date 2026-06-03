@@ -4254,7 +4254,53 @@ int gl_func_0006A304(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A304);
 #endif
 
+#ifdef NON_MATCHING
+extern int game_libs_func_00070FA0();
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0006A420)();
+void gl_func_0006A420(char *arg0) {
+    char *sp1C;
+
+    sp1C = ((int(*)())game_libs_func_00070FA0)(arg0);
+    if (FW(sp1C, 0x4) & 1) {
+        FW(sp1C, 0x18) = (s32) FW(sp1C, 0x38);
+        FW(sp1C, 0x1C) = (s32) FW(sp1C, 0x3C);
+        FW(arg0, 0x4) = (s32) (FW(arg0, 0x4) & ~1);
+        if (FW(sp1C, 0x4) & 4) {
+            FW(sp1C, 0x10) = (s32) *(int*)((FW(arg0, 0x38) + 0xBFC) | 0xA0000000);
+        }
+    }
+    ((int(*)())gl_func_00062F64)(sp1C, 0x40);
+    ((int(*)())gl_func_00062F64)((char *)0x2B00);
+    if (((int(*)())gl_func_00062F64)((char *)0x04001000) == -1) {
+        do {
+
+        } while (((int(*)())gl_func_00062F64)((char *)0x04001000) == -1);
+    }
+    if (((int(*)())gl_func_00062F64)((char *)1, 0x04000FC0, sp1C, 0x40) == -1) {
+        do {
+
+        } while (((int(*)())gl_func_00062F64)((char *)1, 0x04000FC0, sp1C, 0x40) == -1);
+    }
+    if (((int(*)())gl_func_00062F64)() != 0) {
+        do {
+
+        } while (((int(*)())gl_func_00062F64)() != 0);
+    }
+    if (((int(*)())gl_func_00062F64)((char *)1, 0x04001000, FW(sp1C, 0x8), FW(sp1C, 0xC)) == -1) {
+        do {
+
+        } while (((int(*)())gl_func_00062F64)((char *)1, 0x04001000, FW(sp1C, 0x8), FW(sp1C, 0xC)) == -1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A420);
+#endif
 
 /* gl_func_0006A5B0: poll-loop — call an intra-USO helper(a0); if nonzero, spin
  * calling it until it returns 0; then call it with 293 (0x125). BYTE-EXACT.
