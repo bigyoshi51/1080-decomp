@@ -20325,7 +20325,88 @@ int game_libs_func_00056198(void) { return 10; }
 
 void game_libs_func_000561A0(void) {}
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000561A8)();
+s32 gl_func_000561A8(char *arg0) {
+    s32 temp_a1;
+    s32 temp_v0;
+    s32 temp_v1;
+
+    temp_v0 = FW(arg0, 0x4);
+    temp_v1 = temp_v0 & 0x80000;
+    if (temp_v1 != 0) {
+        return 0xC8000000;
+    }
+    if ((temp_v1 != 0) || (temp_v0 & 0x800000)) {
+        return 0x0C080000;
+    }
+    temp_a1 = temp_v0 & 0xFF;
+    if (temp_v0 & 0x40000) {
+        return 0x0C4C3078;
+    }
+    switch (temp_a1) {                              /* irregular */
+    case 0x0:
+        return 0x0C084000;
+    case 0x3:
+        return 0x442478;
+    case 0x22:
+        return 0x442438;
+    case 0x23:
+        return 0x442438;
+    case 0x21:
+        return 0x442008;
+    case 0x7:
+        return 0x443078;
+    case 0x6:
+        return 0x443078;
+    case 0x1B:
+    case 0x1F:
+        return 0x404DD8;
+    case 0x9B:
+    case 0x9F:
+        return 0x40484DD8;
+    case 0x80:
+        return 0x0C084200;
+    case 0x13:
+        return 0x442D58;
+    case 0xD:
+        return 0x4041C8;
+    case 0xB:
+    case 0xF:
+        return 0x4045D8;
+    case 0x8B:
+    case 0x8F:
+        return 0x404845D8;
+    case 0xCB:
+        return 0x404845F8;
+    case 0x1:
+        return 0x442048;
+    case 0x5:
+        return 0x443048;
+    case 0x2:
+        return 0x442230;
+    case 0xA:
+        return 0x404A50;
+    case 0x4A:
+    case 0x4B:
+        return 0x405078;
+    case 0x4:
+        return 0x0C087008;
+    case 0x8:
+        return 0x404240;
+    case 0x9:
+        return 0x4041C8;
+    default:
+        ((int(*)())gl_func_00034458)(0x218D0, temp_a1);
+        return 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000561A8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005640C);
 
