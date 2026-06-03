@@ -684,7 +684,37 @@ int gl_func_0000A4D0(int *a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A540);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000A670)();
+void gl_func_0000A670(s32 arg0) {
+    s32 temp_hi;
+    s32 temp_s5;
+    s32 var_s0;
+    s32 var_s1;
+    s32 var_s2;
+    s32 var_s3;
+
+    var_s3 = 0xD268;
+    var_s2 = 0xD388;
+    var_s0 = arg0;
+    var_s1 = 0;
+    do {
+        temp_hi = var_s1 % 5;
+        temp_s5 = var_s1 % 8;
+        ((int(*)())gl_func_0000959C)(var_s0, temp_hi, temp_s5, var_s3);
+        ((int(*)())gl_func_0000959C)(var_s0, temp_hi, temp_s5, var_s2);
+        var_s2 += 0xC;
+        var_s0 += 0x30;
+        var_s1 += 3;
+        var_s3 += 0x24;
+    } while (var_s2 != 0xD3E8);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A670);
+#endif
 
 extern int gl_func_00000000();
 
