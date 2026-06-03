@@ -1958,7 +1958,7 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
             ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_9, var_s0, spA4, 1);
             FW(var_a0_9, 0xC) = 0x158;
             FW(var_a0_9, 0x14) = 0;
-            FW(var_a0_9, 0x10) = 0.0f;
+            *(f32 *)((char *)var_a0_9 + 0x10) = 0.0f;
         }
         temp_t0 = *(s32 *)0x11AC;
         var_a0_10 = var_s0 + 0xF0;
@@ -1969,7 +1969,7 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
             ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_10, var_s0, spA4, 1);
             FW(var_a0_10, 0xC) = 0x158;
             FW(var_a0_10, 0x14) = 0;
-            FW(var_a0_10, 0x10) = 0.0f;
+            *(f32 *)((char *)var_a0_10 + 0x10) = 0.0f;
         }
     }
     return var_s0;
