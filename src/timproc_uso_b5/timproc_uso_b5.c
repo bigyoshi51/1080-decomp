@@ -8715,7 +8715,7 @@ char *timproc_uso_b5_func_0000DF14(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
     }
     FW(temp_v0, 0x14) = arg0;
     FW(sp5C, 0x2B0) = arg2;
-    FW(sp5C, 0x2A4) = (f32) arg1;
+    *(f32 *)((char *)sp5C + 0x2A4) = (f32) arg1;
     sp54 = arg2 + 0xA;
     temp_v0_3 = ((FP4)timproc_uso_b5_func_00000000)((char *)0x144);
     if (temp_v0_3 != 0) {
@@ -8832,7 +8832,7 @@ char *timproc_uso_b5_func_0000DF14(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
         FW(temp_v0_3, 0x11C) = 0.0f;
         FW(temp_v0_3, 0x114) = arg8;
         FW(temp_v0_3, 0x124) = 0.0f;
-        FW(temp_v0_3, 0x120) = (f32) *(f32 *)0x438;
+        *(f32 *)((char *)temp_v0_3 + 0x120) = *(f32 *)0x438;
     }
     FW(sp5C, 0x2B8) = temp_v0_3;
     FW(sp5C, 0x29C) = temp_v0_3;
