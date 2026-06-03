@@ -21657,7 +21657,138 @@ int gl_func_000546BC(char *a0) {
  * wrap NM. ~30 cross-USO calls + 3 alloc allocations + matrix-style
  * transform record — function is a "spawn-death-trail-effect" or
  * similar constructor. Currently kept as INCLUDE_ASM. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000546E8)();
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_000546E8;
+s32 *gl_func_000546E8(s32 *arg0, s32 *arg1) {
+    Q_000546E8 sp28;
+    Q_000546E8 sp38;
+    Q_000546E8 sp48;
+    Q_000546E8 sp84;
+    Q_000546E8 sp94;
+    Q_000546E8 spA4;
+    f32 spCC;
+    f32 spC8;
+    s32 spC4;
+    s32 sp80;
+    s32 *sp58;
+    s32 sp24;
+    s32 *sp20;
+    s32 *temp_v0;
+    s32 *temp_v0_2;
+    s32 *temp_v0_3;
+    s32 *temp_v0_4;
+    s32 *temp_v0_5;
+    s32 *temp_v0_6;
+    s32 *temp_v0_7;
+    s32 *temp_v0_8;
+    s32 *temp_v0_9;
+    s32 *var_a0;
+    s32 *var_a0_2;
+    s32 *var_s0;
+    s32 *var_s1;
+    s32 *var_s1_2;
+    s32 *var_s1_3;
+    s32 *var_v1;
+    s32 *var_v1_2;
+    s32 *var_v1_3;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((int(*)())gl_func_00034458)((s32 *)0x138), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_s1 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = ((int(*)())gl_func_00034458)((s32 *)0xB4), var_s1 = temp_v0_2, (temp_v0_2 != 0))) {
+            ((int(*)())gl_func_00034458)(var_s1, arg1);
+            FW(var_s1, 0x28) = 0;
+            var_v1 = var_s1 + 0x2C;
+            if (((var_s1 != (s32 *)-0x2C) || (temp_v0_3 = ((int(*)())gl_func_00034458)((s32 *)4), var_v1 = temp_v0_3, (temp_v0_3 != 0))) && ((var_a0 = var_v1, (var_v1 != 0)) || (temp_v0_4 = ((int(*)())gl_func_00034458)((s32 *)4), var_a0 = temp_v0_4, (temp_v0_4 != 0)))) {
+                *var_a0 = 0;
+            }
+            ((int(*)())gl_func_00034458)(var_s1);
+            spC4 = 0;
+            spC8 = 0.0f;
+            spCC = 0.0f;
+            ((int(*)())gl_func_00034458)(var_s1 + 0x30, &spC4);
+        }
+        FW(var_s0, 0x28) = 0;
+        var_s1_2 = var_s0 + 0xC4;
+        sp20 = var_s1_2;
+        if (((var_s0 != (s32 *)-0xC4) || (temp_v0_5 = ((int(*)())gl_func_00034458)((s32 *)4), var_s1_2 = temp_v0_5, (temp_v0_5 != 0))) && ((var_v1_2 = var_s1_2, (var_s1_2 != 0)) || (temp_v0_6 = ((int(*)())gl_func_00034458)((s32 *)4), var_v1_2 = temp_v0_6, (temp_v0_6 != 0)))) {
+            *var_v1_2 = 0;
+        }
+        var_s1_3 = var_s0 + 0x10C;
+        if ((var_s0 != (s32 *)-0x10C) || (temp_v0_7 = ((int(*)())gl_func_00034458)((s32 *)0x2C), var_s1_3 = temp_v0_7, (temp_v0_7 != 0))) {
+            var_v1_3 = var_s1_3;
+            if ((var_s1_3 != 0) || (temp_v0_8 = ((int(*)())gl_func_00034458)((s32 *)8), var_v1_3 = temp_v0_8, (temp_v0_8 != 0))) {
+                FW(var_v1_3, 0x0) = 0x21084;
+                FW(var_v1_3, 0x4) = 0;
+            }
+            sp94.unk0 = 0;
+            sp94.unk4 = 0;
+            sp94.unk8 = 0;
+            sp94.unkC = 0;
+            spA4.unk0 = 0x3F800000;
+            spA4.unk4 = 1.0f;
+            spA4.unk8 = 1.0f;
+            spA4.unkC = 1.0f;
+            sp84.unk0 = 0x3F800000;
+            sp84.unk4 = 1.0f;
+            sp84.unk8 = 1.0f;
+            sp84.unkC = 1.0f;
+            sp80 = *(s32 *)0x2108C;
+            sp48.unk0 = (s32) spA4.unk0;
+            sp48.unk4 = (s32) spA4.unk4;
+            sp48.unk8 = (s32) spA4.unk8;
+            var_a0_2 = var_s1_3 + 8;
+            sp48.unkC = (s32) spA4.unkC;
+            sp38.unk0 = (s32) sp94.unk0;
+            sp38.unk4 = (s32) sp94.unk4;
+            sp38.unk8 = (s32) sp94.unk8;
+            sp38.unkC = (s32) sp94.unkC;
+            sp28.unk0 = (s32) sp84.unk0;
+            sp28.unk4 = (s32) sp84.unk4;
+            sp28.unk8 = (s32) sp84.unk8;
+            sp28.unkC = (s32) sp84.unkC;
+            sp24 = sp80;
+            if ((var_s1_3 != (s32 *)-8) || (temp_v0_9 = ((int(*)())gl_func_00034458)((s32 *)0x24), var_a0_2 = temp_v0_9, (temp_v0_9 != 0))) {
+                sp58 = var_a0_2;
+                ((int(*)())gl_func_00034458)(var_a0_2, var_s1_3, sp24, 1);
+                FW(var_a0_2, 0xC) = 0x20758;
+                FW(var_a0_2, 0x20) = 0;
+                FW(var_a0_2, 0x10) = (s32) sp48.unk0;
+                FW(var_a0_2, 0x14) = (s32) sp48.unk4;
+                FW(var_a0_2, 0x18) = (s32) sp48.unk8;
+                FW(var_a0_2, 0x1C) = (s32) sp48.unkC;
+            }
+        }
+        FW(var_s0, 0x8) = (s32) (FW(var_s0, 0x8) | 0x20);
+        *(f32*)((char*)var_s0 + 0xB8) = 0.0f;
+        *(f32*)((char*)var_s0 + 0xBC) = 0.0f;
+        *(f32*)((char*)var_s0 + 0xC0) = 0.0f;
+        *(f32*)((char*)var_s0 + 0xB4) = 1.0f;
+        *sp20 |= 2;
+        *sp20 |= 8;
+        *(f32*)((char*)var_s0 + 0xC8) = 0.0f;
+        *(f32*)((char*)var_s0 + 0xCC) = 0.0f;
+        FW(var_s0, 0xD0) = 0xFFFF;
+        FW(var_s0, 0xD4) = 0;
+        FW(var_s0, 0xD8) = 0;
+        FW(var_s0, 0xDC) = 0;
+        *(f32*)((char*)var_s0 + 0x108) = 0.0f;
+        *(f32*)((char*)var_s0 + 0x104) = 0.0f;
+        *(f32*)((char*)var_s0 + 0x100) = 0.0f;
+        *(f32*)((char*)var_s0 + 0xFC) = 1.0f;
+        *(f32*)((char*)var_s0 + 0xEC) = 0.0f;
+        *(f32*)((char*)var_s0 + 0xE4) = 0.0f;
+        *(f32*)((char*)var_s0 + 0xE8) = 1.0f;
+    }
+    return var_s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
+#endif
 
 /* gl_func_00054A14: 54-insn (0xD8) settings-registration sequence,
  * sibling of gl_func_00054668 family. Calls gl_func_00000000 seven
