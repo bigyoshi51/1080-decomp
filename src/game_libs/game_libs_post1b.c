@@ -5864,7 +5864,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D964);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D964_pad.s")
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0006DA74)();
+void gl_func_0006DA74(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
+    s32 sp2C;
+    s32 sp28;
+    s32 sp24;
+    s32 temp_v0;
+
+    if (*(int*)0 == 0) {
+        ((int(*)())gl_func_00062F64)(arg1, arg2, arg3);
+        ((int(*)())gl_func_00062F64)(0x43E90, 0x43EA8, 1);
+        if (*(int*)0 == 0) {
+            ((int(*)())gl_func_00062F64)();
+        }
+        ((int(*)())gl_func_00062F64)(8, 0x43E90, 0x22222222);
+        sp28 = -1;
+        sp24 = ((int(*)())gl_func_00062F64)(0);
+        if (sp24 < arg0) {
+            sp28 = sp24;
+            ((int(*)())gl_func_00062F64)(0, arg0);
+        }
+        temp_v0 = ((int(*)())gl_func_00062F64)();
+        *(int*)0 = 1;
+        *(s32 *)4 = 0x42CE0;
+        *(s32 *)0xC = 0x43E90;
+        *(s32 *)8 = arg1;
+        sp2C = temp_v0;
+        *(s32 *)0x10 = 0;
+        *(s32 *)0x14 = 0;
+        *(s32 *)0x18 = 0;
+        ((int(*)())gl_func_00062F64)(0x42CE0, 0, 0, 0, 0x43E90, arg0);
+        ((int(*)())gl_func_00062F64)(0x42CE0);
+        ((int(*)())gl_func_00062F64)(sp2C);
+        if (sp28 != -1) {
+            ((int(*)())gl_func_00062F64)(0, sp28);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DA74);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006DBFC);
 
