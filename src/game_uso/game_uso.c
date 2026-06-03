@@ -6244,7 +6244,8 @@ void game_uso_func_000071E0(int *a0) {
     int counter;
     int flag256;
     float s;
-    float scaled[3], c1[3], c2[3], xf[3], outpos[3], rec[3], pt[3];
+    Vec3 scaled, c1, c2, xf;
+    float outpos[3], rec[3], pt[3];
     char *r1, *r2;
     float yaw, fr;
 
@@ -6269,22 +6270,20 @@ void game_uso_func_000071E0(int *a0) {
     }
 
     flag256 = 0;
-    xf[0] = *(float *)(w + 0xB4);
-    xf[1] = *(float *)(w + 0xB8);
-    xf[2] = *(float *)(w + 0xBC);
+    xf = *(Vec3 *)(w + 0xB4);
     s = *(float *)(obj + 0xA8);
-    scaled[0] = *(float *)(w + 0x318) * s;
-    scaled[1] = *(float *)(w + 0x31C) * s;
-    scaled[2] = *(float *)(w + 0x320) * s;
-    c1[0] = scaled[0]; c1[1] = scaled[1]; c1[2] = scaled[2];
-    c2[0] = c1[0]; c2[1] = c1[1]; c2[2] = c1[2];
-    xf[0] = xf[0] + c2[0];
-    xf[1] = xf[1] + c2[1];
-    xf[2] = xf[2] + c2[2];
+    scaled.x = *(float *)(w + 0x318) * s;
+    scaled.y = *(float *)(w + 0x31C) * s;
+    scaled.z = *(float *)(w + 0x320) * s;
+    c1 = scaled;
+    c2 = c1;
+    xf.x = xf.x + c2.x;
+    xf.y = xf.y + c2.y;
+    xf.z = xf.z + c2.z;
 
-    r1 = (char *)game_uso_func_00007ACC(obj, outpos, xf, 0);
+    r1 = (char *)game_uso_func_00007ACC(obj, outpos, &xf, 0);
     if (r1 != 0) {
-        r2 = (char *)game_uso_func_00007C1C(c1, obj, r1, *(int *)outpos, xf, 0);
+        r2 = (char *)game_uso_func_00007C1C(&c1, obj, r1, *(int *)outpos, &xf, 0);
         pt[0] = *(float *)r2;
         pt[1] = *(float *)(r2 + 4);
         pt[2] = *(float *)(r2 + 8);
