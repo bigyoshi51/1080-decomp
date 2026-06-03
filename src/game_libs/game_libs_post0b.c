@@ -11234,7 +11234,77 @@ void gl_func_00043284(int *a0, int a1) {
 // representative; the &D_0+0x18C root, the 0xC4&0x80 gate, the a2 negate
 // branch and the +0xE4 source / +0xF0 dest lanes are exact. Caps: node
 // struct + the &D_0+0x18C global untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000432BC)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_000432BC;
+void gl_func_000432BC(s32 arg0, char *arg1, s32 arg2) {
+    Q_000432BC sp44;
+    char **sp64;
+    char **sp60;
+    f32 temp_f0;
+    f32 temp_f12;
+    f32 temp_f14;
+    f32 temp_f2;
+    char **temp_t4;
+    char **temp_t6;
+    char *temp_s1;
+    char *var_s0;
+    char *var_v0;
+    char *var_v0_2;
+
+    temp_t6 = (*(char***)((char*)&D_00000000 + 0x18C));
+    sp64 = temp_t6;
+    sp60 = temp_t6;
+    if (temp_t6 != 0) {
+        sp64 = FW(temp_t6, 0x4);
+        var_v0 = FW(temp_t6, 0x0);
+    } else {
+        var_v0 = 0;
+    }
+    var_s0 = var_v0;
+    if (var_v0 != 0) {
+        do {
+            temp_s1 = var_s0 + 0xF0;
+            if (!(FW(var_s0, 0xC4) & 0x80)) {
+                if (arg2 != 0) {
+                    (*(f32*)((char*)var_s0 + 0xF0)) = (f32) -(*(f32*)((char*)var_s0 + 0xE4));
+                    (*(f32*)((char*)var_s0 + 0xF4)) = (f32) -(*(f32*)((char*)var_s0 + 0xE8));
+                    (*(f32*)((char*)var_s0 + 0xF8)) = (f32) -(*(f32*)((char*)var_s0 + 0xEC));
+                } else {
+                    sp44.unk0 = (*(f32*)((char*)var_s0 + 0xE4));
+                    sp44.unk4 = (f32) (*(f32*)((char*)var_s0 + 0xE8));
+                    sp44.unk8 = (f32) (*(f32*)((char*)var_s0 + 0xEC));
+                    (*(f32*)((char*)var_s0 + 0xF0)) = sp44.unk0;
+                    (*(f32*)((char*)var_s0 + 0xF4)) = sp44.unk4;
+                    (*(f32*)((char*)var_s0 + 0xF8)) = sp44.unk8;
+                }
+                ((int(*)())gl_func_00034458)(temp_s1, arg0);
+                temp_f0 = (*(f32*)((char*)var_s0 + 0xF0));
+                temp_f2 = (*(f32*)((char*)var_s0 + 0xF4));
+                temp_f12 = (*(f32*)((char*)var_s0 + 0xF8));
+                temp_f14 = ((*(f32*)((char*)arg1 + 0x0)) * temp_f0) + ((*(f32*)((char*)arg1 + 0x10)) * temp_f2) + ((*(f32*)((char*)arg1 + 0x20)) * temp_f12);
+                (*(f32*)((char*)var_s0 + 0xF4)) = (f32) (((*(f32*)((char*)arg1 + 0x4)) * temp_f0) + ((*(f32*)((char*)arg1 + 0x14)) * temp_f2) + ((*(f32*)((char*)arg1 + 0x24)) * temp_f12));
+                (*(f32*)((char*)var_s0 + 0xF0)) = temp_f14;
+                (*(f32*)((char*)var_s0 + 0xF8)) = (f32) (((*(f32*)((char*)arg1 + 0x8)) * temp_f0) + ((*(f32*)((char*)arg1 + 0x18)) * temp_f2) + ((*(f32*)((char*)arg1 + 0x28)) * temp_f12));
+                ((int(*)())gl_func_00034458)(temp_f12, temp_f14, temp_s1);
+            }
+            temp_t4 = sp64;
+            var_v0_2 = 0;
+            sp60 = temp_t4;
+            if (temp_t4 != 0) {
+                sp64 = FW(temp_t4, 0x4);
+                var_v0_2 = FW(temp_t4, 0x0);
+            }
+            var_s0 = var_v0_2;
+        } while (var_v0_2 != 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000432BC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00043468);
 
