@@ -15862,7 +15862,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031A74);
 
 void game_libs_func_00031CA8(int *a0, int a1, int a2) { *(int*)((char*)a0 + 0) = a1; *(int*)((char*)a0 + 8) = a2; *(int*)((char*)a0 + 0xC) = 0; }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00031CB8)();
+void game_libs_func_00031CB8(char *arg0) {
+    s32 temp_lo;
+    s32 temp_v0;
+    s32 temp_v0_2;
+    s32 temp_v1;
+    s32 var_v0;
+    s32 var_v1;
+
+    temp_v0 = FW(arg0, 0x8);
+    if (temp_v0 != 0) {
+        temp_v1 = FW(arg0, 0x0) - FW(arg0, 0x4);
+        temp_lo = (s32) (temp_v1 << 8) / temp_v0;
+        var_v0 = -temp_lo;
+        if (temp_lo >= 0) {
+            var_v0 = temp_lo;
+        }
+        FW(arg0, 0xC) = (s32) (FW(arg0, 0xC) + var_v0);
+loop_4:
+        temp_v0_2 = FW(arg0, 0xC);
+        var_v1 = -1;
+        if (temp_v0_2 >= 0x100) {
+            if (!(temp_v1 & 0x800000)) {
+                var_v1 = 1;
+            }
+            FW(arg0, 0xC) = (s32) (temp_v0_2 - 0x100);
+            FW(arg0, 0x4) = (s32) (FW(arg0, 0x4) + var_v1);
+            goto loop_4;
+        }
+        FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) - 1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031CB8);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031D70);
 
