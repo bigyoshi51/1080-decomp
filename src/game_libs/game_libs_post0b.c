@@ -11590,7 +11590,104 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044DE4);
 // self->0x280 + (&D_0+0x204)*4 index math, the self->0x258 count loop over
 // self->0x25C and the &D_0002FECC key are exact. Caps: self struct, &D_g
 // global and cb signatures untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00044EDC)();
+void gl_func_00044EDC(char *arg0) {
+    s32 var_s0_2;
+    s32 var_v0;
+    s32 var_v0_2;
+    u32 var_s0;
+    char **temp_v1;
+    char *temp_s0;
+    char *temp_s0_2;
+    char *temp_s0_3;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *var_s1;
+    char *var_s2;
+
+    *(int*)0 = 1.83234e-40f;
+    ((int(*)())gl_func_00034458)(FW(((int)arg0 + (*(s32 *)0x204 * 4)), 0x280));
+    var_s0 = 0;
+    var_s2 = arg0;
+    if (FW(arg0, 0x258) != 0) {
+        do {
+            ((int(*)())gl_func_00034458)(FW(var_s2, 0x25C), (var_s0 + 1) == FW(arg0, 0x258));
+            var_s0 += 1;
+            var_s2 += 4;
+        } while (var_s0 < (u32) FW(arg0, 0x258));
+    }
+    ((int(*)())gl_func_00034458)((char *)0x1FECC);
+    temp_s0 = *(char **)0x218;
+    if ((FW(temp_s0, 0x4) != 0) || (FW(temp_s0, 0xC) != 0)) {
+        do {
+loop_4:
+            ((int(*)())gl_func_00034458)();
+            if (FW(temp_s0, 0x4) != 0) {
+                goto loop_4;
+            }
+        } while (FW(temp_s0, 0xC) != 0);
+    }
+    ((int(*)())gl_func_00034458)((char *)0x1FED0);
+    temp_v0 = FW(arg0, 0x22C);
+    temp_s0_2 = FW(temp_v0, 0x14);
+    ((GP_00044EDC)FW(temp_s0_2, 0xC))(FW(temp_s0_2, 0x8) + temp_v0);
+    ((int(*)())gl_func_00034458)((char *)0x1FEDC);
+    temp_s0_3 = *(char *)0x218;
+    var_v0 = FW(temp_s0_3, 0x1C) != 0;
+    if (var_v0 == 0) {
+        var_v0 = FW(temp_s0_3, 0x4) != 0;
+        if (var_v0 == 0) {
+            var_v0 = FW(temp_s0_3, 0xC) != 0;
+        }
+    }
+    if (var_v0 != 0) {
+        do {
+            ((int(*)())gl_func_00034458)();
+            var_v0_2 = FW(temp_s0_3, 0x1C) != 0;
+            if (var_v0_2 == 0) {
+                var_v0_2 = FW(temp_s0_3, 0x4) != 0;
+                if (var_v0_2 == 0) {
+                    var_v0_2 = FW(temp_s0_3, 0xC) != 0;
+                }
+            }
+        } while (var_v0_2 != 0);
+    }
+    ((int(*)())gl_func_00034458)((char *)0x1FEE8);
+    var_s0_2 = 0;
+    FW(arg0, 0x254) = (s32) FW(arg0, 0x240);
+    if (FW(arg0, 0x1C0) > 0) {
+        var_s1 = arg0;
+        do {
+            temp_v1 = FW(var_s1, 0x198);
+            temp_v0_2 = *(int*)temp_v1;
+            ((GP_00044EDC)FW(temp_v0_2, 0xC))(FW(temp_v0_2, 0x8) + temp_v1);
+            var_s0_2 += 1;
+            var_s1 += 4;
+        } while (var_s0_2 < FW(arg0, 0x1C0));
+    }
+    ((int(*)())gl_func_00034458)((char *)0x1FEF4);
+    ((int(*)())gl_func_00034458)((char *)0x1FF00);
+    *(int*)0 = ((int(*)())gl_func_00034458)((char *)0x1FF08);
+    *(int*)0 = 1.83335e-40f;
+    if (FW(FW(arg0, 0x218), 0x24) == (s32) *(int*)0) {
+        do {
+            ((int(*)())gl_func_00034458)();
+        } while (FW(FW(arg0, 0x218), 0x24) == (s32) *(int*)0);
+    }
+    ((int(*)())gl_func_00034458)(arg0);
+    ((int(*)())gl_func_00034458)((char *)0x1FF18);
+    *(int*)0 = 1.83351e-40f;
+    ((int(*)())gl_func_00034458)((char *)0x1FF28);
+    ((int(*)())gl_func_00034458)(*(char **)0x1C, 0x68, 1);
+    ((int(*)())gl_func_00034458)(arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044EDC);
+#endif
 
 // gl_func_00045178 — STRUCTURAL PASS (0x22C / 140 words, no episode). Raw-.word
 // USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
