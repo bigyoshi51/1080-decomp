@@ -94,6 +94,7 @@ for l in c.split("\n"):
     out.append(l)
 c = "\n".join(out)
 c = c.replace('(?32)', '(s32)').replace('?32', 's32')
+c = re.sub(r'^(\s*)\?\s+([A-Za-z_]\w*;\s*)$', r'\1int \2', c, flags=re.M)
 
 ba = '|'.join(sorted(bases, key=len, reverse=True))
 if bases:
