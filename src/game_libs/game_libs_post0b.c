@@ -29732,7 +29732,115 @@ void *gl_func_000628EC(char *arg0, int arg1, int arg2, int arg3, int arg4) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000628EC);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00062A2C)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00062A2C;
+void gl_func_00062A2C(f32 *arg0, f32 *arg2, f32 arg3, s32 arg4, f32 arg5) {
+    f32 sp8C;
+    f32 sp90;
+    int spD4;
+    Q_00062A2C sp24;
+    Q_00062A2C sp44;
+    Q_00062A2C sp64;
+    Q_00062A2C spB0;
+    Q_00062A2C spBC;
+    Q_00062A2C spC8;
+    f32 spA0;
+    f32 sp88;
+    f32 temp_f0;
+    f32 temp_f2;
+    f32 temp_f2_2;
+    char *temp_v0;
+    char *temp_v1;
+
+    FW(arg0, 0x50) = 0x16;
+    FW(arg0, 0x4C) = 7;
+    ((int(*)())gl_func_00034458)(&spB0);
+    ((int(*)())gl_func_00034458)(arg0, arg2, &sp88);
+    ((int(*)())gl_func_00034458)(&spC8, &spA0, arg3, 0);
+    spB0.unk0 += (sp88 - spB0.unk0) * arg3;
+    spB0.unk4 += (sp8C - spB0.unk4) * arg3;
+    spB0.unk8 += (sp90 - spB0.unk8) * arg3;
+    if (arg4 != 0) {
+        sp64.unk0 = (*(f32*)((char*)arg0 + 0x80));
+        sp64.unk4 = (f32) (*(f32*)((char*)arg0 + 0x84));
+        sp64.unk8 = (f32) (*(f32*)((char*)arg0 + 0x88));
+        (*(f32*)((char*)arg0 + 0xD0)) = sp64.unk0;
+        (*(f32*)((char*)arg0 + 0xD4)) = sp64.unk4;
+        (*(f32*)((char*)arg0 + 0xD8)) = sp64.unk8;
+        sp64.unk0 = (*(f32*)((char*)arg0 + 0x8C));
+        sp64.unk4 = (f32) (*(f32*)((char*)arg0 + 0x90));
+        sp64.unk8 = (f32) (*(f32*)((char*)arg0 + 0x94));
+        (*(f32*)((char*)arg0 + 0xDC)) = sp64.unk0;
+        (*(f32*)((char*)arg0 + 0xE0)) = sp64.unk4;
+        (*(f32*)((char*)arg0 + 0xE4)) = sp64.unk8;
+        sp64.unk0 = (*(f32*)((char*)arg0 + 0x98));
+        sp64.unk4 = (f32) (*(f32*)((char*)arg0 + 0x9C));
+        sp64.unk8 = (f32) (*(f32*)((char*)arg0 + 0xA0));
+        (*(f32*)((char*)arg0 + 0xE8)) = sp64.unk0;
+        (*(f32*)((char*)arg0 + 0xEC)) = sp64.unk4;
+        (*(f32*)((char*)arg0 + 0xF4)) = (f32) (*(f32*)((char*)arg0 + 0xA4));
+        (*(f32*)((char*)arg0 + 0xF0)) = sp64.unk8;
+        ((int(*)())gl_func_00034458)(arg5, (int)arg0 + 0xE8, &spC8, arg5, 0);
+        temp_f0 = (*(f32*)((char*)arg0 + 0xD0));
+        temp_f2 = (*(f32*)((char*)arg0 + 0xD4));
+        (*(f32*)((char*)arg0 + 0xD0)) = (f32) (((spB0.unk0 - temp_f0) * arg5) + temp_f0);
+        temp_f2_2 = (*(f32*)((char*)arg0 + 0xD8));
+        (*(f32*)((char*)arg0 + 0xD4)) = (f32) (((spB0.unk4 - temp_f2) * arg5) + temp_f2);
+        (*(f32*)((char*)arg0 + 0xD8)) = (f32) (((spB0.unk8 - temp_f2_2) * arg5) + temp_f2_2);
+    } else {
+        sp64.unk0 = spB0.unk0;
+        sp64.unk4 = (f32) spB0.unk4;
+        sp64.unk8 = (f32) spB0.unk8;
+        (*(f32*)((char*)arg0 + 0xD0)) = sp64.unk0;
+        (*(f32*)((char*)arg0 + 0xD4)) = sp64.unk4;
+        (*(f32*)((char*)arg0 + 0xD8)) = sp64.unk8;
+        sp44.unk0 = spBC.unk0;
+        sp44.unk4 = spBC.unk4;
+        sp44.unk8 = spBC.unk8;
+        (*(f32*)((char*)arg0 + 0xDC)) = sp44.unk0;
+        (*(f32*)((char*)arg0 + 0xE0)) = sp44.unk4;
+        (*(f32*)((char*)arg0 + 0xE4)) = sp44.unk8;
+        sp44.unk0 = spC8.unk0;
+        sp44.unk4 = spC8.unk4;
+        sp44.unk8 = spC8.unk8;
+        (*(f32*)((char*)arg0 + 0xE8)) = sp44.unk0;
+        (*(f32*)((char*)arg0 + 0xEC)) = sp44.unk4;
+        (*(f32*)((char*)arg0 + 0xF0)) = sp44.unk8;
+        (*(f32*)((char*)arg0 + 0xF4)) = spD4;
+    }
+    if (arg4 < 2) {
+        sp64.unk0 = (*(f32*)((char*)arg0 + 0xD0));
+        sp64.unk4 = (f32) (*(f32*)((char*)arg0 + 0xD4));
+        sp64.unk8 = (f32) (*(f32*)((char*)arg0 + 0xD8));
+        (*(f32*)((char*)arg0 + 0x80)) = sp64.unk0;
+        (*(f32*)((char*)arg0 + 0x84)) = sp64.unk4;
+        (*(f32*)((char*)arg0 + 0x88)) = sp64.unk8;
+        sp44.unk0 = (*(f32*)((char*)arg0 + 0xDC));
+        sp44.unk4 = (f32) (*(f32*)((char*)arg0 + 0xE0));
+        sp44.unk8 = (f32) (*(f32*)((char*)arg0 + 0xE4));
+        (*(f32*)((char*)arg0 + 0x8C)) = sp44.unk0;
+        (*(f32*)((char*)arg0 + 0x90)) = sp44.unk4;
+        (*(f32*)((char*)arg0 + 0x94)) = sp44.unk8;
+        sp24.unk0 = (*(f32*)((char*)arg0 + 0xE8));
+        sp24.unk4 = (f32) (*(f32*)((char*)arg0 + 0xEC));
+        sp24.unk8 = (f32) (*(f32*)((char*)arg0 + 0xF0));
+        (*(f32*)((char*)arg0 + 0x98)) = sp24.unk0;
+        (*(f32*)((char*)arg0 + 0x9C)) = sp24.unk4;
+        (*(f32*)((char*)arg0 + 0xA4)) = (f32) (*(f32*)((char*)arg0 + 0xF4));
+        (*(f32*)((char*)arg0 + 0xA0)) = sp24.unk8;
+    }
+    temp_v1 = FW(arg0, 0x54);
+    (*(f32*)((char*)arg0 + 0xDC)) = 1.0f;
+    temp_v0 = FW(temp_v1, 0x28);
+    ((GP_00062A2C)FW(temp_v0, 0x54))(FW(temp_v0, 0x50) + temp_v1, arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062A2C);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00062D70: convert 7 shorts from a1 to floats in a2 — the first
