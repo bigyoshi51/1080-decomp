@@ -5854,10 +5854,8 @@ void game_uso_func_00006A30(int *a0) {
         int *sub = (int *)a0[0x30 / 4];
         float f0 = *(float *)((char *)a0 + 0xA8);
         V3_6A30 va, scaled, c1, c2;
-        /* va = sub->{0xB4,0xB8,0xBC} (int-bit copy of floats), then va += scaled */
-        *(int *)&va.x = sub[0xB4 / 4];
-        *(int *)&va.y = sub[0xB8 / 4];
-        *(int *)&va.z = sub[0xBC / 4];
+        /* va = sub->{0xB4,0xB8,0xBC} (Vec3 struct copy -> int lw/sw), then va += scaled */
+        va = *(V3_6A30 *)((char *)sub + 0xB4);
         scaled.x = *(float *)((char *)sub + 0x318) * f0;
         scaled.y = *(float *)((char *)sub + 0x31C) * f0;
         scaled.z = *(float *)((char *)sub + 0x320) * f0;
