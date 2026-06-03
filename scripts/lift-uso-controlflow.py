@@ -57,7 +57,9 @@ def conv_arrows(s):
         s = s[:st] + 'FW(%s, 0x%s)' % (s[st:i].strip(), off) + s[k:]
     return s
 # m2c '?' param/var type -> int (only after '(' or ',' to avoid ternaries)
-c = re.sub(r'([(,]\s*)\?(\s+[A-Za-z_])', r'\1int\2', c)
+c = re.sub(r'\?\s*\(\*(\w+)\)\([^)]*\)', r'int (*\1)()', c)  # ? (*fp)(..) -> K&R int (*fp)()
+c = re.sub(r'([(,]\s*)\?(\s+[A-Za-z_])', r'\1int\2', c)  # (? arg) -> (int arg)
+c = re.sub(r'\?(\s*[,)])', r'int\1', c)              # bare ? type in prototypes -> int
 c = conv_arrows(c)
 # arr[idx].FW(unkN, off) -> FW(arr[idx].unkN, off)
 c = re.sub(r'([A-Za-z_]\w*\[[^\]]*\])\.FW\((unk[0-9A-F]+), (0x[0-9A-Fa-f]+)\)', r'FW(\1.\2, \3)', c)
