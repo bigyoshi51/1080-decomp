@@ -23782,7 +23782,57 @@ block_16:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B23C);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005B3E0)();
+void gl_func_0005B3E0(char *arg0, char *arg1) {
+    u32 sp1C;
+    s32 temp_v1;
+    u32 temp_a3;
+    u32 var_v0;
+    char *temp_v0;
+    char *temp_v1_2;
+    char *var_a2;
+
+    temp_a3 = arg1 - 0x10;
+    sp1C = temp_a3;
+    ((int(*)())gl_func_00034458)(temp_a3, temp_a3);
+    var_v0 = FW(arg0, 0x4);
+    FW(arg0, 0x24) = (s32) (FW(arg0, 0x24) - (FW(arg1, -0x10) & 0xFFFFFF));
+    var_a2 = arg0;
+    if (((int)var_v0 != (int)arg0) && ((int)arg0 == (int)arg0)) {
+loop_2:
+        if (temp_a3 < var_v0) {
+            var_a2 = (char *) var_v0;
+        }
+        var_v0 = FW(var_v0, 0x4);
+        if (((int)var_v0 != (int)arg0) && ((int)var_a2 == (int)arg0)) {
+            goto loop_2;
+        }
+    }
+    FW(FW(temp_a3, 0x4), 0x8) = (char *) FW(temp_a3, 0x8);
+    FW(FW(temp_a3, 0x8), 0x4) = (char *) FW(temp_a3, 0x4);
+    sp1C = temp_a3;
+    ((int(*)())game_libs_func_00062F08)(temp_a3, (FW(arg1, -0x10) & 0xFFFFFF) + 0xFF000000, (u32) var_a2, temp_a3);
+    temp_v1 = FW(arg1, -0x10);
+    temp_v0 = FW(temp_a3, 0x4);
+    if ((int)temp_v0 == (int)(temp_a3 + ((temp_v1 & 0xFFFFFF) * 0x10) + 0x10)) {
+        FW(arg1, -0x10) = (s32) (temp_v1 + (FW(temp_v0, 0x0) & 0xFFFFFF) + 1);
+        FW(FW(temp_v0, 0x4), 0x8) = temp_a3;
+        FW(temp_a3, 0x4) = (char *) FW(FW(temp_a3, 0x4), 0x4);
+    }
+    temp_v1_2 = FW(temp_a3, 0x8);
+    if ((int)temp_a3 == (int)(temp_v1_2 + ((FW(temp_v1_2, 0x0) & 0xFFFFFF) * 0x10) + 0x10)) {
+        FW(temp_v1_2, 0x0) = (s32) (FW(temp_v1_2, 0x0) + (FW(arg1, -0x10) & 0xFFFFFF) + 1);
+        FW(FW(temp_a3, 0x4), 0x8) = (char *) FW(temp_a3, 0x8);
+        FW(FW(temp_a3, 0x8), 0x4) = (char *) FW(temp_a3, 0x4);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B3E0);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_0005B53C(int a0, int *a1) {
