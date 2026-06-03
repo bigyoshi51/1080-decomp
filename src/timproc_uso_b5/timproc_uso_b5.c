@@ -3400,7 +3400,7 @@ void timproc_uso_b5_func_00005FC0(char *arg0) {
         break;
     }
     if (FW(arg0, 0x4B4) != 0) {
-        FW(arg0, 0x4BC) = (f32) (FW(arg0, 0x4BC) + FW(arg0, 0xBC));
+        *(f32 *)((char *)arg0 + 0x4BC) = (*(f32 *)((char *)arg0 + 0x4BC) + *(f32 *)((char *)arg0 + 0xBC));
         if (FW(arg0, 0x4BC) >= 1.0f) {
             FW(arg0, 0x4BC) = 1.0f;
             FW(arg0, 0x4B4) = 0;
@@ -3438,12 +3438,12 @@ void timproc_uso_b5_func_00005FC0(char *arg0) {
         sp2C = ((FP4)timproc_uso_b5_func_00000000)(arg0);
         ((FP4)timproc_uso_b5_func_00000000)(sp2C, FW(FW(arg0, 0x414), 0x10), arg0 + 0x4C4, (f32) (int) ((FP4)timproc_uso_b5_func_00000000)((char *) (int) (FW(arg0, 0x4BC) * *(f32 *)0x1BC)), FW(arg0, 0x5C));
         sp2C = ((FP4)timproc_uso_b5_func_00000000)(arg0);
-        FW(arg0, 0x498) = (f32) ((FW(sp2C, 0x14C) * (f32) (int) ((FP4)timproc_uso_b5_func_00000000)((char *) (int) (FW(arg0, 0x480) * *(f32 *)0x1C0))) + FW(arg0, 0x49C));
+        *(f32 *)((char *)arg0 + 0x498) = ((*(f32 *)((char *)sp2C + 0x14C) * (f32) (int) ((FP4)timproc_uso_b5_func_00000000)((char *) (int) (*(f32 *)((char *)arg0 + 0x480) * *(f32 *)0x1C0))) + *(f32 *)((char *)arg0 + 0x49C));
     } else {
         sp2C = ((FP4)timproc_uso_b5_func_00000000)(arg0);
         ((FP4)timproc_uso_b5_func_00000000)(sp2C, FW(FW(arg0, 0x414), 0x10), arg0 + 0x4C4, (f32) (int) ((FP4)timproc_uso_b5_func_00000000)((char *) (int) (FW(arg0, 0x4BC) * *(f32 *)0x1C4)), FW(arg0, 0x5C));
         sp2C = ((FP4)timproc_uso_b5_func_00000000)(arg0);
-        FW(arg0, 0x498) = (f32) ((FW(sp2C, 0x134) * (f32) (int) ((FP4)timproc_uso_b5_func_00000000)((char *) (int) (FW(arg0, 0x480) * *(f32 *)0x1C8))) + FW(arg0, 0x49C));
+        *(f32 *)((char *)arg0 + 0x498) = ((*(f32 *)((char *)sp2C + 0x134) * (f32) (int) ((FP4)timproc_uso_b5_func_00000000)((char *) (int) (*(f32 *)((char *)arg0 + 0x480) * *(f32 *)0x1C8))) + *(f32 *)((char *)arg0 + 0x49C));
     }
     temp_f2 = FW(arg0, 0x4C0);
     FW(FW(FW(FW(arg0, 0x414), 0xC), 0x70), 0x14C) = (f32) (((f32) (int) ((FP4)timproc_uso_b5_func_00000000)((char *) (int) (FW(arg0, 0x4BC) * *(f32 *)0x1CC)) * (FW(arg0, 0x498) - temp_f2)) + temp_f2);
