@@ -1360,7 +1360,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003B1C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003C0C);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00003DB8)();
+char *gl_func_00003DB8(char *arg0, s32 arg1, int arg2, s32 arg3) {
+    char *sp20;
+    s32 var_v0;
+    char *temp_a0;
+    char *temp_v0;
+    char *var_v1;
+
+    var_v0 = 0;
+    var_v1 = arg0;
+loop_1:
+    temp_a0 = FW(var_v1, 0x2C);
+    var_v0 += 4;
+    if (FW(temp_a0, 0x94) == 0) {
+        if (arg3 != 0) {
+            FW(temp_a0, 0x94) = 1;
+            FW(FW(var_v1, 0x2C), 0x9C) = 0x10;
+            FW(FW(var_v1, 0x2C), 0x78) = 0;
+        } else {
+            FW(temp_a0, 0x94) = 1;
+            FW(FW(var_v1, 0x2C), 0x9C) = 0;
+            FW(FW(var_v1, 0x2C), 0x78) = 0xFF;
+        }
+        sp20 = var_v1;
+        ((GP_00003DB8)gl_func_00000000)(FW(var_v1, 0x2C), 0xDC, 0x78, (char *)0x3F800000, 1.0f);
+        FW(FW(var_v1, 0x2C), 0x98) = 0;
+        FW(FW(var_v1, 0x2C), 0xA0) = (char *) ((int)arg0 + 0xF0);
+        *(f32*)((char*)FW(var_v1, 0x2C) + 0xA4) = 0.0f;
+        *(f32*)((char*)FW(var_v1, 0x2C) + 0xA8) = 0.0f;
+        *(f32*)((char*)FW(var_v1, 0x2C) + 0xAC) = 0.0f;
+        FW(FW(var_v1, 0x2C), 0x80) = 0;
+        if (arg1 >= 0xA) {
+            temp_v0 = FW(var_v1, 0x2C);
+            FW(temp_v0, 0x80) = (s32) (FW(temp_v0, 0x80) - 6);
+        }
+        FW(FW(var_v1, 0x2C), 0x84) = 8;
+        FW(FW(var_v1, 0x2C), 0xB0) = (s32) FW(arg0, 0x58);
+        sp20 = var_v1;
+        ((GP_00003DB8)gl_func_00000000)(FW(var_v1, 0x2C) + 0xB4, 0xCD08, arg1, arg0);
+        return FW(var_v1, 0x2C);
+    }
+    var_v1 += 4;
+    if (var_v0 == 0x20) {
+        return 0;
+    }
+    goto loop_1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003DB8);
+#endif
 
 #ifdef NON_MATCHING
 /* Ring-buffer (4-slot, index a0->0x7C) record append + advance. Writes
