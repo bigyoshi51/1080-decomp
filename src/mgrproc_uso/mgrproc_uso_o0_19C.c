@@ -244,26 +244,35 @@ void mgrproc_uso_func_000009A8(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 48-insn -O0 aggregator: total=f(*a0); f(*a0,buf); sum|=f(buf[i]) loop;
- * *a1=buf[0]; return sum. VALUE-RETURN -O0 CAP (see docs/IDO_CODEGEN.md
- * #feedback-ido-o0-value-return-extra-branch): this toolchain emits an extra
- * return-branch the target doesn't have. Got to 50 vs 48 insns — buf[0]'s
- * direct lw 0x30(sp) load via a `union { int buf[8]; int first; }` alias
- * (u.first), but the trailing `b epilogue` is irreducible. Kept INCLUDE_ASM. */
-extern int func_00000000();
-int mgrproc_uso_func_00000A14(int **a0, int *a1) {
-    int buf[8];
-    int total;
-    int sum;
-    int i;
-    sum = 0;
-    total = func_00000000(*a0);
-    func_00000000(*a0, buf);
-    for (i = 0; i < total; i++) {
-        sum |= func_00000000(buf[i]);
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+extern int import_000B574C();
+extern int mgrproc_uso_D_01F97C();
+extern int import_000AE5B0();
+s32 mgrproc_uso_func_00000A14(s32 *arg0, s32 *arg1) {
+    s32 buf[8];
+    s32 count;
+    s32 acc;
+    s32 i;
+    s32 r;
+
+    acc = 0;
+    count = ((int(*)())import_000B574C)(*arg0);
+    ((int(*)())mgrproc_uso_D_01F97C)(*arg0, &buf[0]);
+    i = 0;
+    if (count > 0) {
+        do {
+            r = ((int(*)())import_000AE5B0)(buf[i]);
+            acc |= r;
+            i++;
+        } while (i < count);
     }
-    *a1 = buf[0];
-    return sum;
+    *arg1 = buf[0];
+    return acc;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000A14);
