@@ -43100,12 +43100,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070194);
  *       return r;
  *   }
  * This is an -O1 FUNCTION (all locals stack-resident, reloaded each use). At
- * default -O2 it register-promotes (36 insns, 35%); at -O0 it's 64 insns; at
- * -O1 it's 53 insns vs target 52 with the instruction SEQUENCE matching — the
- * only residual is the spill-slot offsets (target r@sp+15/poly@14/j@8/i@4 vs
- * my 7/6/12/8). MATCHABLE via a per-file `OPT_FLAGS := -O1` split + decl-order
- * tuning (focused-session: carve game_libs_post.c at 0x70244, cf. the existing
- * game_libs_o0_* splits). Stays INCLUDE_ASM until then. */
+ * default -O2 it register-promotes (36 insns, 35%); at -O0 it's 64 insns.
+ * -O1 EMPIRICALLY TESTED 2026-06-02 (isolated carve .o vs expected): the
+ * sequence matches BUT it does NOT cleanly match, for two reasons that
+ * decl-order tuning does NOT fix:
+ *   (1) 53 insns vs target 52 — a redundant truncation `andi`: the j==32 path
+ *       `r = r<<1; r = r & 0xFF;` makes -O1 emit andi BOTH for the r<<1 uchar
+ *       store AND the &0xFF, where target emits only one (its r<<1 store relies
+ *       on `sb` to truncate, no andi). No C shape tested removes the first andi.
+ *   (2) spill-slot offsets diverge (target r@15/poly@14/j@8/i@4 = ints-low/
+ *       chars-high; every decl order tried gives chars-low/ints-high, ~37 byte
+ *       diffs). IDO -O1 won't place the byte locals high from C.
+ * Net est. <80% fuzzy, so a per-file -O1 carve (which needs a ~90-fn split of
+ * post.c) is NOT worth it — it wouldn't clear the NM threshold. Permuter-class
+ * spill-layout + truncation cap. Stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070244);
 
 /* game_libs_func_00070314: 3-insn `mtc0 a0, $11; jr ra; nop` Compare-register
