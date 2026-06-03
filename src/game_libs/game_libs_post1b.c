@@ -3145,7 +3145,54 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068004);
  * above the `addiu sp` frame setup, so splat had mis-assigned it to the
  * preceding game_libs_func_00068004; forward-merged here 2026-06-02 (68004
  * shrunk 0x44->0x40, this symbol renamed 68048->68044 +1 word). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00068044)();
+extern int game_libs_func_00070FA0(f32, f32);
+f32 gl_func_00068044(f32 arg0, f32 arg1) {
+    f32 d32768 = 32768.0f;
+    f32 temp_f20;
+    f32 temp_f20_2;
+    f32 temp_f22;
+    s32 var_v1;
+
+    if (arg0 >= 0.0f) {
+        if (arg1 >= 0.0f) {
+            if (arg0 <= arg1) {
+                var_v1 = game_libs_func_00070FA0(arg0, arg1) << 0x10;
+            } else {
+                var_v1 = (0x4000 - game_libs_func_00070FA0(arg1, arg0)) << 0x10;
+            }
+        } else {
+            temp_f20 = -arg1;
+            if (temp_f20 < arg0) {
+                var_v1 = (game_libs_func_00070FA0(temp_f20, arg0) + 0x4000) << 0x10;
+            } else {
+                var_v1 = (0x8000 - game_libs_func_00070FA0(arg0, temp_f20)) << 0x10;
+            }
+        }
+    } else {
+        temp_f22 = -arg0;
+        if (arg1 < 0.0f) {
+            temp_f20_2 = -arg1;
+            if (temp_f22 <= temp_f20_2) {
+                var_v1 = (game_libs_func_00070FA0(temp_f22, temp_f20_2) + 0x8000) << 0x10;
+            } else {
+                var_v1 = (0xC000 - game_libs_func_00070FA0(temp_f20_2, temp_f22)) << 0x10;
+            }
+        } else if (arg1 < temp_f22) {
+            var_v1 = (game_libs_func_00070FA0(arg1, temp_f22) + 0xC000) << 0x10;
+        } else {
+            var_v1 = (0x10000 - game_libs_func_00070FA0(temp_f22, arg1)) << 0x10;
+        }
+    }
+    return ((f32) (var_v1 >> 0x10) / d32768) * (*(f32*)((char*)&D_00000000 + 0x2210));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068044);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_000681F4(int *dst) {
@@ -4419,7 +4466,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A304);
 #endif
 
 #ifdef NON_MATCHING
-extern int game_libs_func_00070FA0();
+extern int game_libs_func_00070FA0(f32, f32);
 
 
 
