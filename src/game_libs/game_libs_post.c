@@ -9808,7 +9808,40 @@ block_22:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027804);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00027C48)();
+void game_libs_func_00027C48(char *arg0, f32 arg1) {
+    f32 temp_f2;
+    f32 var_f0;
+    char *temp_v0;
+    char *temp_v0_2;
+
+    temp_v0 = (int)arg0 + 0xB0;
+    if (arg1 < 2.0f) {
+        temp_f2 = (*(f32*)((char*)&D_00000000 + 0xFC8));
+        temp_v0_2 = (int)arg0 + 0xB0;
+        (*(u8*)((char*)temp_v0_2 + 0x1)) = (u8) ((*(u8*)((char*)temp_v0_2 + 0x1)) & 0xFFFD);
+        if (temp_f2 < arg1) {
+            var_f0 = temp_f2;
+        } else {
+            var_f0 = arg1;
+        }
+    } else {
+        (*(u8*)((char*)temp_v0 + 0x1)) = (u8) ((*(u8*)((char*)temp_v0 + 0x1)) | 2);
+        if ((*(f32*)((char*)&D_00000000 + 0xFCC)) < arg1) {
+            var_f0 = (*(f32*)((char*)&D_00000000 + 0xFD0));
+        } else {
+            var_f0 = arg1 * 0.5f;
+        }
+    }
+    (*(s16*)((char*)arg0 + 0xBC)) = (s16) (s32) (var_f0 * 32768.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027C48);
+#endif
 
 // gl_func_00027D00 — STRUCTURAL PASS (0x124 / 73 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
