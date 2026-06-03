@@ -15,7 +15,7 @@ typedef struct { float x, y, z; } Vec3;
 
 
 extern int gl_func_00000000();
-void gl_func_00062F64(int a0) {
+void gl_func_00062F64(a0) int a0; {
     gl_func_00000000(a0);
     gl_func_00000000(a0);
 }
@@ -3071,7 +3071,151 @@ int gl_func_00067550(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067550);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000675A4)();
+void gl_func_000675A4(char *arg0) {
+    f32 temp_f0;
+    f32 temp_f2;
+    f32 var_f0;
+    f32 var_f0_2;
+    f64 temp_f14;
+    s16 temp_v0;
+    s32 temp_a0;
+    s32 temp_t0;
+    s32 temp_t4;
+    s32 temp_t6;
+    s32 temp_v0_2;
+    s32 temp_v0_4;
+    s32 temp_v0_5;
+    s32 temp_v0_6;
+    s32 temp_v0_7;
+    s32 temp_v1;
+    s32 temp_v1_2;
+    u32 temp_t3;
+    char *temp_v0_3;
+
+    temp_v1 = FW(arg0, 0x34);
+    if ((temp_v1 != 0) && (FW(arg0, 0x68) == 0)) {
+        temp_t0 = FW(arg0, 0x78);
+        if (temp_t0 != 0) {
+            temp_v0 = (*(s16*)((char*)arg0 + 0x74));
+            (*(s16*)((char*)arg0 + 0x74)) = (s16) (temp_v0 + 1);
+            gl_func_00062F64(0, temp_v1 - 1, *(u8*)(temp_t0 + temp_v0), arg0);
+            if (*(u8*)(FW(arg0, 0x78) + (*(s16*)((char*)arg0 + 0x74))) == 0xFF) {
+                FW(arg0, 0x78) = 0;
+                (*(s16*)((char*)arg0 + 0x76)) = 0;
+            }
+        }
+    }
+    temp_t4 = FW(arg0, 0x10);
+    FW(arg0, 0x10) = 0;
+    FW(arg0, 0x14) = temp_t4;
+    if (FW(arg0, 0x68) == 0) {
+        if (FW(arg0, 0x34) != 0) {
+            gl_func_00062F64(0, arg0);
+        }
+        if (FW(arg0, 0x70) != 0) {
+            (*(s8*)((char*)arg0 + 0x8)) = (s8) -(*(s8*)((char*)arg0 + 0x8));
+        }
+        if (FW(arg0, 0x4C) != 0) {
+            temp_t3 = FW(arg0, 0x50) + 1;
+            FW(arg0, 0x50) = temp_t3;
+            if (temp_t3 >= (u32) FW(arg0, 0x54)) {
+                FW(arg0, 0x4C) = 0;
+            }
+            temp_v0_2 = FW(arg0, 0x4C);
+            if (temp_v0_2 == 2) {
+                *(s8*)(FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4)) = (*(s8*)((char*)arg0 + 0x8));
+                *(s8*)((FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4)) + 0x1) = (*(s8*)((char*)arg0 + 0x9));
+                *(s16*)((FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4)) + 0x2) = FW(arg0, 0x10) & FW(arg0, 0x6C) & 0x1700;
+                *(int*)(FW(arg0, 0x58)) = FW(arg0, 0x50);
+            } else if (temp_v0_2 == 1) {
+                temp_v0_3 = FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4);
+                FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) | *(s16*)((char*)temp_v0_3 + 0x2));
+                (*(s8*)((char*)arg0 + 0x8)) = *(s8*)((char*)temp_v0_3 + 0x0);
+                (*(s8*)((char*)arg0 + 0x9)) = *(s8*)((char*)temp_v0_3 + 0x1);
+            }
+        }
+        temp_f0 = (f32) (*(s8*)((char*)arg0 + 0x8)) / 80.0f;
+        (*(f32*)((char*)arg0 + 0x0)) = temp_f0;
+        (*(f32*)((char*)arg0 + 0x4)) = (f32) ((f32) (*(s8*)((char*)arg0 + 0x9)) / 80.0f);
+        if (temp_f0 < 0.0f) {
+            var_f0 = -(*(f32*)((char*)arg0 + 0x0));
+        } else {
+            var_f0 = (*(f32*)((char*)arg0 + 0x0));
+        }
+        temp_f14 = *(f64*)((char*)&D_00000000 + 0x2200);
+        if ((f64) var_f0 < temp_f14) {
+            (*(f32*)((char*)arg0 + 0x0)) = 0.0f;
+        }
+        temp_f2 = (*(f32*)((char*)arg0 + 0x4));
+        if (temp_f2 < 0.0f) {
+            var_f0_2 = -temp_f2;
+        } else {
+            var_f0_2 = temp_f2;
+        }
+        if ((f64) var_f0_2 < temp_f14) {
+            (*(f32*)((char*)arg0 + 0x4)) = 0.0f;
+        }
+    }
+    if (FW(arg0, 0x3C) != 0) {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) | FW(arg0, 0x40));
+        FW(arg0, 0x3C) = 0;
+        (*(f32*)((char*)arg0 + 0x0)) = (f32) (*(f32*)((char*)arg0 + 0x44));
+        (*(f32*)((char*)arg0 + 0x4)) = (f32) (*(f32*)((char*)arg0 + 0x48));
+    }
+    if ((f64) (*(f32*)((char*)arg0 + 0x0)) > 0.5) {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) | 0x4000);
+    } else {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) & ~0x4000);
+    }
+    if ((f64) (*(f32*)((char*)arg0 + 0x0)) < -0.5) {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) | 0x10000);
+    } else {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) & 0xFFFEFFFF);
+    }
+    if ((f64) (*(f32*)((char*)arg0 + 0x4)) > 0.5) {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) | 0x2000);
+    } else {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) & ~0x2000);
+    }
+    if ((f64) (*(f32*)((char*)arg0 + 0x4)) < -0.5) {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) | 0x8000);
+    } else {
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) & 0xFFFF7FFF);
+    }
+    temp_v0_4 = FW(arg0, 0x10);
+    temp_v1_2 = FW(arg0, 0x14);
+    temp_a0 = FW(arg0, 0x38);
+    temp_t6 = temp_v0_4 & ~temp_v1_2;
+    FW(arg0, 0x18) = temp_t6;
+    FW(arg0, 0x1C) = (s32) (~temp_v0_4 & temp_v1_2);
+    if (temp_a0 != 0) {
+        temp_v0_5 = temp_a0 - 1;
+        FW(arg0, 0x38) = temp_v0_5;
+        if (temp_v0_5 > 0) {
+            temp_v0_6 = FW(arg0, 0x24) & temp_t6;
+            FW(arg0, 0x20) = temp_v0_6;
+            if (temp_v0_6 != 0) {
+                FW(arg0, 0x38) = 0;
+            }
+        }
+    } else {
+        temp_v0_7 = FW(arg0, 0x18);
+        FW(arg0, 0x20) = 0;
+        FW(arg0, 0x24) = temp_v0_7;
+        if (temp_v0_7 != 0) {
+            FW(arg0, 0x38) = 0xA;
+        }
+    }
+    (*(s16*)((char*)arg0 + 0x7C)) = (s16) *(u8*)((char*)&D_00000000 + ((u32)(FW(arg0, 0x10) & 0x1E000) >> 0xD));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000675A4);
+#endif
 
 /* gl_func_000679BC: 21-insn 4-arg field-init helper. Fills 5 fields in
  * a0 (offsets 0x4C, 0x50, 0x54, 0x58, 0x5C) and clears *a3, then calls
@@ -6565,7 +6709,7 @@ void gl_func_0006DA74(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
         sp24 = ((int(*)())gl_func_00062F64)(0);
         if (sp24 < arg0) {
             sp28 = sp24;
-            ((int(*)())gl_func_00062F64)(0, arg0);
+            gl_func_00062F64(0, arg0);
         }
         temp_v0 = ((int(*)())gl_func_00062F64)();
         *(int*)0 = 1;
