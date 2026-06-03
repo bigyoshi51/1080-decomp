@@ -1735,10 +1735,17 @@ void game_uso_func_0000249C(char *a0) {
  *   }
  *   end: return a0;
  *
- * First-pass NM — covers the dispatch + key==3 leaf path. The else-arm is
- * the bulk of the function (ref_v/delta/self vector math + 2 cross-USO
- * calls + final stores to a0->0x60..0x68 and t6's child). Initial decode
- * 2026-05-05; tail writeback decoded 2026-05-08. */
+ * STATUS 2026-06-02 (72.69%, 147/150 insns — the "~120 TBD" note below is
+ * STALE; the else-arm IS decoded). Residual is RA-divergence, not missing
+ * logic: (a) frame is -0xC0/192 vs target -0x98/152 — the build allocates ~40
+ * extra stack bytes (more spill slots); (b) the target keeps the result/self
+ * pointer (a0->0x14, sp+0x94) live in t6 across the body and reuses it for the
+ * 96/100/104(t6) writebacks, where the build spills it to sp+0x2C and reloads
+ * it (as t6/t7/t8) at each store; (c) the scratch-Vec3 stack offsets differ
+ * throughout. Same long-lived-pointer-spill cap class as gl_func_000641DC
+ * (see docs/IDO_CODEGEN.md s0-promotion-failure entry) — permuter-class, no
+ * C lever found. Logic verified correct. Initial decode 2026-05-05; tail
+ * writeback 2026-05-08; RA-divergence characterized 2026-06-02. */
 extern int gl_func_00000000();
 void game_uso_func_000024BC(int *a0, int *a1) {
     int *t6;
