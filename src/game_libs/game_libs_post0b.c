@@ -25668,7 +25668,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EB4C);
  * in a future pass. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005ED54);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005EF00)();
+void gl_func_0005EF00(char *arg0, char *arg1, f32 arg2) {
+    f32 sp28;
+    f32 sp24;
+    f32 sp20;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f12;
+    f32 temp_f2;
+
+    temp_f0 = (*(f32*)((char*)arg1 + 0x0));
+    temp_f2 = (*(f32*)((char*)arg1 + 0x8));
+    sp28 = ((f32(*)())gl_func_00034458)((temp_f0 * temp_f0) + (temp_f2 * temp_f2));
+    temp_f12 = arg2 * (*(f32*)((char*)&D_00000000 + 0x2050));
+    arg2 = temp_f12;
+    sp20 = ((f32(*)())gl_func_00034458)(temp_f12);
+    sp24 = ((f32(*)())gl_func_00034458)(arg2);
+    ((f32(*)())gl_func_00034458)(arg0);
+    if (sp28 != 0.0f) {
+        temp_f0_2 = 1.0f / sp28;
+        (*(f32*)((char*)arg0 + 0x0)) = (f32) ((((*(f32*)((char*)arg1 + 0x8)) * sp24) - (sp20 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x0)))) * temp_f0_2);
+        (*(f32*)((char*)arg0 + 0x10)) = (f32) (((-(*(f32*)((char*)arg1 + 0x8)) * sp20) - (sp24 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x0)))) * temp_f0_2);
+        (*(f32*)((char*)arg0 + 0x30)) = 0.0f;
+        (*(f32*)((char*)arg0 + 0x4)) = (f32) (sp20 * sp28);
+        (*(f32*)((char*)arg0 + 0x20)) = (f32) (*(f32*)((char*)arg1 + 0x0));
+        (*(f32*)((char*)arg0 + 0x14)) = (f32) (sp24 * sp28);
+        (*(f32*)((char*)arg0 + 0x34)) = 0.0f;
+        (*(f32*)((char*)arg0 + 0x24)) = (f32) (*(f32*)((char*)arg1 + 0x4));
+        (*(f32*)((char*)arg0 + 0x8)) = (f32) (((sp24 * -(*(f32*)((char*)arg1 + 0x0))) - (sp20 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x8)))) * temp_f0_2);
+        (*(f32*)((char*)arg0 + 0x18)) = (f32) (((-sp20 * -(*(f32*)((char*)arg1 + 0x0))) - (sp24 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x8)))) * temp_f0_2);
+        (*(f32*)((char*)arg0 + 0x38)) = 0.0f;
+        (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
+        (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
+        (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
+        (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
+        (*(f32*)((char*)arg0 + 0x28)) = (f32) (*(f32*)((char*)arg1 + 0x8));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EF00);
+#endif
 
 /* game_libs_func_0005F0B8: one 113-insn (0x1C4) function. BOUNDARY MERGED
  * 2026-06-02: splat had split it into 0005F0B8 (3-insn FP-const prologue:
