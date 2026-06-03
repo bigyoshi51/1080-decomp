@@ -4021,7 +4021,7 @@ char *func_00008124(char *arg0) {
                 ((GP_00008124)func_00000000)(var_a0, var_a1, sp24, 1);
                 FW(var_a0, 0xC) = 0;
                 FW(var_a0, 0x14) = 0;
-                FW(var_a0, 0x10) = 200.0f;
+                *(f32 *)((char *)var_a0 + 0x10) = 200.0f;
             }
             temp_t2 = *(int*)0;
             var_a0_2 = var_a1 + 0x20;
@@ -4032,7 +4032,7 @@ char *func_00008124(char *arg0) {
                 ((GP_00008124)func_00000000)(var_a0_2, var_a1, sp24, 1);
                 FW(var_a0_2, 0xC) = 0;
                 FW(var_a0_2, 0x14) = 0;
-                FW(var_a0_2, 0x10) = 300.0f;
+                *(f32 *)((char *)var_a0_2 + 0x10) = 300.0f;
             }
         }
         var_a1_2 = temp_v0 + 0x74;
