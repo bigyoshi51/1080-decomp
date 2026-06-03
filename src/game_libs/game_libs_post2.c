@@ -881,7 +881,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000730C4);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000730CC)();
+s32 gl_func_000730CC(char *arg0, s32 arg1, s32 *arg2, s32 arg3) {
+    char *sp4;
+    u8 temp_t0;
+    char *temp_t7;
+
+    if (arg3 & 3) {
+        do {
+
+        } while (*(s32 *)0xA4600010 & 3);
+    }
+    temp_t0 = FW(arg0, 0x9);
+    if (*(int*)(temp_t0 * 4) != (int)arg0) {
+        temp_t7 = *(int*)(temp_t0 * 4);
+        sp4 = temp_t7;
+        if (temp_t0 == 0) {
+            if (FW(temp_t7, 0x5) != FW(arg0, 0x5)) {
+                *(s32 *)0xA4600014 = (s32) FW(arg0, 0x5);
+            }
+            if (FW(sp4, 0x6) != FW(arg0, 0x6)) {
+                *(s32 *)0xA460001C = (s32) FW(arg0, 0x6);
+            }
+            if (FW(sp4, 0x7) != FW(arg0, 0x7)) {
+                *(s32 *)0xA4600020 = (s32) FW(arg0, 0x7);
+            }
+            if (FW(sp4, 0x8) != FW(arg0, 0x8)) {
+                *(s32 *)0xA4600018 = (s32) FW(arg0, 0x8);
+            }
+        } else {
+            if (FW(sp4, 0x5) != FW(arg0, 0x5)) {
+                *(s32 *)0xA4600024 = (s32) FW(arg0, 0x5);
+            }
+            if (FW(sp4, 0x6) != FW(arg0, 0x6)) {
+                *(s32 *)0xA460002C = (s32) FW(arg0, 0x6);
+            }
+            if (FW(sp4, 0x7) != FW(arg0, 0x7)) {
+                *(s32 *)0xA4600030 = (s32) FW(arg0, 0x7);
+            }
+            if (FW(sp4, 0x8) != FW(arg0, 0x8)) {
+                *(s32 *)0xA4600028 = (s32) FW(arg0, 0x8);
+            }
+        }
+        *(int*)(temp_t0 * 4) = arg0;
+    }
+    *arg2 = *(int*)(FW(arg0, 0xC) | arg1 | 0xA0000000);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073258);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000730CC_pad.s")
