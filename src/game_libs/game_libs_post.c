@@ -12817,12 +12817,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F20);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F4C);
 
-/* game_libs_func_00032884: 44-insn middle-fragment with backward branch
- * to 0x31EF4 (well before .s start 0x32884 — a ~0x990 byte gap!). Splat
- * captured a large-function middle/tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * The function genuinely starts around 0x31EF4 (or wherever the gap
- * lives in the .s inventory). Needs splat boundary correction. */
+/* game_libs_func_00032884: HANDWRITTEN system/CP0 routine (NOT a fragment —
+ * the old "middle-fragment, backward branch to 0x31EF4, needs boundary
+ * correction" note was wrong; 2026-06-02 re-decode shows NO before-start
+ * branch). The 0xB0 block is a hand-coded sequence: `jal`/`j` trampolines to
+ * fixed low offsets (0x1A68/0x1AB0/0x1AC0/…), CP0 register moves
+ * (mfc0/mtc0 = 0x40xxxxxx words at 0x50-0xA8), busy-wait `bne` loops, and a
+ * `jr ra`. CP0 access is not expressible in IDO C (cf.
+ * reference_1080_mips3_runtime_helpers) — PERMANENT INCLUDE_ASM, do not
+ * attempt a boundary merge or C decode. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032884);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032934);
