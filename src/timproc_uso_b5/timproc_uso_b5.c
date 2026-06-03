@@ -852,31 +852,80 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — radial-dial HUD panel constructor with 6 cardinal-angle
 //   children. Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_00001658(char *o) {
-    char *P;
-    char *c;
-    int angles[6] = { 0, 0x5A, 0xB4, 0x10E, -0x5A, -0x10E };
-    int offsets[6] = { 0x44, 0x48, 0x4C, 0x50, 0x54, 0x58 };
-    int i;
-    func_00000000((char *)&D_00000000 + 0x000010B8, 0);
-    func_00000000((char *)&D_00000000 + 0x000010C0, 0);
-    P = (char *)func_00000000(0, (char *)&D_00000000 + 0x000010C8, 1, 0x100);
-    func_00000000(o + 0x10, P);
-    if (*(char **)(o + 0x14) == 0) {
-        *(int *)(o + 0x4) = 1;
-        *(char **)(o + 0x14) = o;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00001658)();
+void timproc_uso_b5_func_00001658(char *arg0) {
+    char *sp3C;
+    char *sp28;
+    char *temp_a0;
+    char *temp_s0;
+    char *temp_s0_2;
+    char *temp_s0_3;
+    char *temp_s0_4;
+    char *temp_s0_5;
+    char *temp_s0_6;
+    char *temp_v0;
+
+    ((GP_00001658)timproc_uso_b5_func_00000000)((char *)0x10B8, 0);
+    ((GP_00001658)timproc_uso_b5_func_00000000)((char *)0x10C0, 0);
+    temp_v0 = ((GP_00001658)timproc_uso_b5_func_00000000)(0, (char *)0x10C8, 1, 0x100);
+    sp3C = temp_v0;
+    ((GP_00001658)timproc_uso_b5_func_00000000)((int)arg0 + 0x10, temp_v0);
+    if (FW(temp_v0, 0x14) != 0) {
+        FW(temp_v0, 0x4) = 1;
     }
-    for (i = 0; i < 6; i++) {
-        c = (char *)func_00000000(0, &D_00000000, 0, angles[i], 0);
-        *(char **)(o + offsets[i]) = c;
-        func_00000000(c + 0x10, P);
-        if (*(char **)(c + 0x14) == 0) {
-            *(int *)(c + 0x4) = 1;
-            *(char **)(c + 0x14) = P;
-        }
+    FW(temp_v0, 0x14) = arg0;
+    FW(arg0, 0x44) = ((GP_00001658)timproc_uso_b5_func_00000000)(0, 0, 0, 0, 0);
+    FW(arg0, 0x48) = ((GP_00001658)timproc_uso_b5_func_00000000)(0, 0, 0, 0x5A, 0);
+    FW(arg0, 0x4C) = ((GP_00001658)timproc_uso_b5_func_00000000)(0, 0, 0, 0xB4, 0);
+    FW(arg0, 0x50) = ((GP_00001658)timproc_uso_b5_func_00000000)(0, 0, 0, 0x10E, 0);
+    FW(arg0, 0x54) = ((GP_00001658)timproc_uso_b5_func_00000000)(0, 0, -0x5A, 0, 0);
+    FW(arg0, 0x58) = ((GP_00001658)timproc_uso_b5_func_00000000)(0, 0, -0x10E, 0, 0);
+    temp_s0 = FW(arg0, 0x44);
+    temp_a0 = sp3C + 0x10;
+    sp28 = temp_a0;
+    ((GP_00001658)timproc_uso_b5_func_00000000)(temp_a0, temp_s0);
+    if (FW(temp_s0, 0x14) != 0) {
+        FW(temp_s0, 0x4) = 1;
     }
-    func_00000000(o);
-    func_00000000();
+    FW(temp_s0, 0x14) = sp3C;
+    temp_s0_2 = FW(arg0, 0x48);
+    ((GP_00001658)timproc_uso_b5_func_00000000)(sp28, temp_s0_2);
+    if (FW(temp_s0_2, 0x14) != 0) {
+        FW(temp_s0_2, 0x4) = 1;
+    }
+    FW(temp_s0_2, 0x14) = sp3C;
+    temp_s0_3 = FW(arg0, 0x4C);
+    ((GP_00001658)timproc_uso_b5_func_00000000)(sp28, temp_s0_3);
+    if (FW(temp_s0_3, 0x14) != 0) {
+        FW(temp_s0_3, 0x4) = 1;
+    }
+    FW(temp_s0_3, 0x14) = sp3C;
+    temp_s0_4 = FW(arg0, 0x50);
+    ((GP_00001658)timproc_uso_b5_func_00000000)(sp28, temp_s0_4);
+    if (FW(temp_s0_4, 0x14) != 0) {
+        FW(temp_s0_4, 0x4) = 1;
+    }
+    FW(temp_s0_4, 0x14) = sp3C;
+    temp_s0_5 = FW(arg0, 0x54);
+    ((GP_00001658)timproc_uso_b5_func_00000000)(sp28, temp_s0_5);
+    if (FW(temp_s0_5, 0x14) != 0) {
+        FW(temp_s0_5, 0x4) = 1;
+    }
+    FW(temp_s0_5, 0x14) = sp3C;
+    temp_s0_6 = FW(arg0, 0x58);
+    ((GP_00001658)timproc_uso_b5_func_00000000)(sp28, temp_s0_6);
+    if (FW(temp_s0_6, 0x14) != 0) {
+        FW(temp_s0_6, 0x4) = 1;
+    }
+    FW(temp_s0_6, 0x14) = sp3C;
+    ((GP_00001658)timproc_uso_b5_func_00000000)();
+    ((GP_00001658)timproc_uso_b5_func_00000000)();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001658);
