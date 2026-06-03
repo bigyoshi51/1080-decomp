@@ -15970,7 +15970,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F4C);
  * `jr ra`. CP0 access is not expressible in IDO C (cf.
  * reference_1080_mips3_runtime_helpers) — PERMANENT INCLUDE_ASM, do not
  * attempt a boundary merge or C decode. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00032884)();
+void game_libs_func_00032884(void) {
+    game_libs_func_0003443C();
+    game_libs_func_0003443C();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032884);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032934);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00031DD8_pad.s")
