@@ -3361,19 +3361,140 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   body below — bound guards + query + draw skeleton only.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_00006394(char *scr) {
-    char *n = *(char **)(*(char **)(scr + 0x414) + 0xC);
-    int v;
-    int idxbuf[8];
-    if (*(short *)(n + 0xBC) >= 0x78) return;
-    if (*(int *)(scr + 0x3B0) + *(int *)(n + 0xC4) < 0x15) {
-        v = func_00000000(*(int *)(scr + 0x3C8), 0x15);
-        func_00000000(&D_00000000, *(int *)(scr + 0x398), scr + 0x1E8);
-        func_00000000(idxbuf, 0xA0, v);
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00006394)();
+void timproc_uso_b5_func_00006394(char *arg0) {
+    char *sp44;
+    char *sp40;
+    s32 sp24;
+    s32 temp_v0;
+    s32 temp_v0_12;
+    s32 temp_v0_2;
+    s32 temp_v0_3;
+    s32 temp_v0_7;
+    s32 temp_v1_9;
+    s32 var_a2;
+    s32 var_v0_2;
+    s32 var_v1;
+    char *temp_v0_10;
+    char *temp_v0_11;
+    char *temp_v0_13;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_8;
+    char *temp_v0_9;
+    char *temp_v1;
+    char *temp_v1_10;
+    char *temp_v1_2;
+    char *temp_v1_3;
+    char *temp_v1_4;
+    char *temp_v1_5;
+    char *temp_v1_6;
+    char *temp_v1_7;
+    char *temp_v1_8;
+    char *var_v0;
+
+    var_v0 = FW(arg0, 0x414);
+    temp_v1 = FW(var_v0, 0xC);
+    if (FW(temp_v1, 0xBC) >= 0x78) {
+        var_v0_2 = FW(arg0, 0x3B0) + FW(temp_v1, 0xC4);
+        if (var_v0_2 < 0x15) {
+            var_v0_2 = 0x15;
+        }
+        sp44 = (char *) var_v0_2;
+        sp40 = (*(int*)(((int(*)())timproc_uso_b5_func_00000000)(arg0, FW(arg0, 0x3C8)) * 4) * 0x18) + 0x160;
+        ((GP_00006394)timproc_uso_b5_func_00000000)(0, FW(arg0, 0x398), (int)arg0 + 0x1E8);
+        ((GP_00006394)timproc_uso_b5_func_00000000)(sp40);
+        ((GP_00006394)timproc_uso_b5_func_00000000)(sp40, 0xA0, sp44, 3);
+        if (FW(arg0, 0x4B4) != 1) {
+            temp_v0 = FW(arg0, 0x3CC);
+            if ((temp_v0 != 7) && (temp_v0 != 5) && (temp_v0 != 4)) {
+                temp_v0_2 = FW(arg0, 0x48C);
+                FW(arg0, 0x48C) = (s32) (temp_v0_2 + 1);
+                if (temp_v0_2 & 8) {
+                    if (((GP_00006394)timproc_uso_b5_func_00000000)(arg0) != 0) {
+                        ((GP_00006394)timproc_uso_b5_func_00000000)(0, 0xFF, (int)arg0 + 0x20C);
+                        ((GP_00006394)timproc_uso_b5_func_00000000)((char *)0x130);
+                        ((GP_00006394)timproc_uso_b5_func_00000000)((char *)0x130, (s32) ((((s16) FW(FW(sp40, 0x10), 0x20) / 2) + 0xA0) - (FW(FW(0x130, 0x10), 0x20) * 0.25f)), sp44, 2);
+                    }
+                    if (((GP_00006394)timproc_uso_b5_func_00000000)(arg0) != 0) {
+                        ((GP_00006394)timproc_uso_b5_func_00000000)(0, 0xFF, (int)arg0 + 0x20C);
+                        ((GP_00006394)timproc_uso_b5_func_00000000)((char *)0x148);
+                        ((GP_00006394)timproc_uso_b5_func_00000000)((char *)0x148, (s32) ((0xA0 - ((s16) FW(FW(sp40, 0x10), 0x20) / 2)) - (FW(FW(0x148, 0x10), 0x20) * 0.75f)), sp44, 2);
+                    }
+                }
+            }
+        }
+        var_v0 = FW(arg0, 0x414);
     }
-    if (*(int *)(scr + 0x4B4) == 1) {
-        func_00000000(scr, 0xFF);
+    FW(arg0, 0x490) = (s32) (FW(arg0, 0x490) + 1);
+    var_v1 = FW(FW(var_v0, 0xC), 0xBC);
+    if (var_v1 >= 0x78) {
+        temp_v0_3 = FW(arg0, 0x3CC);
+        if ((temp_v0_3 != 1) && (temp_v0_3 != 0xA) && (FW(arg0, 0x480) == 1.0f) && (FW(arg0, 0x4B4) != 1)) {
+            if ((temp_v0_3 == 5) || (temp_v0_3 == 7)) {
+                if (FW(arg0, 0x490) & 8) {
+                    temp_v0_4 = ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
+                    temp_v1_2 = FW(temp_v0_4, 0x28);
+                    ((GP_00006394)FW(temp_v1_2, 0xC4))(FW(temp_v1_2, 0xC0) + temp_v0_4, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
+                }
+            } else if (temp_v0_3 == 8) {
+                temp_v0_5 = ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
+                temp_v1_3 = FW(temp_v0_5, 0x28);
+                ((GP_00006394)FW(temp_v1_3, 0xC4))(FW(temp_v1_3, 0xC0) + temp_v0_5, arg0, (int)arg0 + 0x29C, (int)arg0 + 0x2C0);
+            } else {
+                temp_v0_6 = ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
+                temp_v1_4 = FW(temp_v0_6, 0x28);
+                ((GP_00006394)FW(temp_v1_4, 0xC4))(FW(temp_v1_4, 0xC0) + temp_v0_6, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
+            }
+            if (*(s32 *)0x34 == 2) {
+                temp_v0_7 = FW(arg0, 0x3CC);
+                if (temp_v0_7 == 4) {
+                    temp_v0_8 = ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
+                    temp_v1_5 = FW(temp_v0_8, 0x28);
+                    ((GP_00006394)FW(temp_v1_5, 0xDC))(FW(temp_v1_5, 0xD8) + temp_v0_8, arg0, FW(arg0, 0x490));
+                } else if (temp_v0_7 == 5) {
+                    temp_v0_9 = ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
+                    temp_v1_6 = FW(temp_v0_9, 0x28);
+                    ((GP_00006394)FW(temp_v1_6, 0xDC))(FW(temp_v1_6, 0xD8) + temp_v0_9, arg0, 8);
+                } else {
+                    temp_v0_10 = ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
+                    temp_v1_7 = FW(temp_v0_10, 0x28);
+                    ((GP_00006394)FW(temp_v1_7, 0xD4))(FW(temp_v1_7, 0xD0) + temp_v0_10, arg0);
+                }
+            } else {
+                temp_v0_11 = ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
+                temp_v1_8 = FW(temp_v0_11, 0x28);
+                ((GP_00006394)FW(temp_v1_8, 0xD4))(FW(temp_v1_8, 0xD0) + temp_v0_11, arg0);
+            }
+            var_v1 = FW(FW(FW(arg0, 0x414), 0xC), 0xBC);
+        }
     }
+    temp_v0_12 = FW(arg0, 0x3CC);
+    if (((var_v1 >= 0x78) && (FW(arg0, 0x4B4) != 1) && (temp_v0_12 == 6)) || (temp_v0_12 == 7)) {
+        temp_v1_9 = FW(arg0, 0x4A4);
+        var_a2 = FW((((GP_00006394)timproc_uso_b5_func_00000000)(arg0)), 0x2B0);
+        if (temp_v1_9 == 1) {
+            var_a2 = 5;
+        }
+        if (temp_v1_9 == 2) {
+            var_a2 = 6;
+        }
+        if (temp_v1_9 == 3) {
+            var_a2 = 7;
+        }
+        sp24 = var_a2;
+        temp_v0_13 = ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
+        temp_v1_10 = FW(temp_v0_13, 0x28);
+        ((GP_00006394)FW(temp_v1_10, 0xCC))(FW(temp_v1_10, 0xC8) + temp_v0_13, arg0, var_a2);
+    }
+    ((GP_00006394)timproc_uso_b5_func_00000000)(arg0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006394);
