@@ -1992,7 +1992,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
 //   USO placeholder for the leaf emitters.
 // gl_func_0001F3C8 — FULL m2c DECODE (56.05% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-<<<<<<< Updated upstream
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -2078,34 +2077,6 @@ block_6:
     default:
         return arg0;
     }
-=======
-extern int gl_func_00000000();
-int *gl_func_0001F3C8(int *dst, char *rec, char *a2, int a3, int kind) {
-    unsigned char prev;
-    int tag;
-    if (kind == 1) {
-        prev = (unsigned char)a2[2];
-        a2[3] = 0;
-        a2[2] = rec[3];
-        tag = 2368;
-    } else if (kind == 2) {
-        prev = (unsigned char)a2[3];
-        a2[2] = 0;
-        a2[3] = rec[4];
-        tag = 2784;
-    } else {
-        return dst;
-    }
-    dst[0] = (kind == 2) ? 0x0AE00000 : 0x09400000;
-    dst[1] = 0x05C00000 | (unsigned char)a2[2];
-    dst += 2;
-    dst[0] = 0x03C00000 | (unsigned char)a2[3];
-    dst[1] = a3;
-    dst += 2;
-    (void)prev; (void)tag;
-    gl_func_00000000(dst, a2, kind);
-    return dst;
->>>>>>> Stashed changes
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F3C8);
