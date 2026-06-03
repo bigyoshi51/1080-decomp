@@ -19568,7 +19568,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005062C);
 // prototype and the exact directory-index arithmetic are
 // representative. Caps: self struct + cb prototype untyped
 // (USO-relocated). Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000510F0)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_000510F0;
+s32 gl_func_000510F0(s32 arg0, s32 arg1, char *arg2, s32 arg3, char *arg4, s32 arg5, s32 arg6) {
+    Q_000510F0 sp90;
+    Q_000510F0 sp9C;
+    Q_000510F0 spA8;
+    Q_000510F0 spB4;
+    Q_000510F0 spC0;
+    Q_000510F0 spCC;
+    s32 temp_v1;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+
+    temp_v1 = arg3 * 8;
+    temp_v0 = FW(arg2, 0x64) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x2) * 4);
+    spA8.unk0 = (f32)*(s16*)((char*)temp_v0 + 0x0);
+    spA8.unk8 = 0.0f;
+    spA8.unk4 = (f32)*(s16*)((char*)temp_v0 + 0x2);
+    temp_v0_2 = FW(arg2, 0x64) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x4) * 4);
+    sp9C.unk0 = (f32)*(s16*)((char*)temp_v0_2 + 0x0);
+    sp9C.unk8 = 0.0f;
+    sp9C.unk4 = (f32)*(s16*)((char*)temp_v0_2 + 0x2);
+    temp_v0_3 = FW(arg2, 0x64) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x6) * 4);
+    sp90.unk0 = (f32)*(s16*)((char*)temp_v0_3 + 0x0);
+    sp90.unk8 = 0.0f;
+    sp90.unk4 = (f32)*(s16*)((char*)temp_v0_3 + 0x2);
+    temp_v0_4 = FW(arg2, 0x60) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x2) * 6);
+    spCC.unk0 = (f32)*(s16*)((char*)temp_v0_4 + 0x0);
+    spCC.unk4 = (f32)*(s16*)((char*)temp_v0_4 + 0x2);
+    spCC.unk8 = (f32)*(s16*)((char*)temp_v0_4 + 0x4);
+    temp_v0_5 = FW(arg2, 0x60) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x4) * 6);
+    spC0.unk0 = (f32)*(s16*)((char*)temp_v0_5 + 0x0);
+    spC0.unk4 = (f32)*(s16*)((char*)temp_v0_5 + 0x2);
+    spC0.unk8 = (f32)*(s16*)((char*)temp_v0_5 + 0x4);
+    temp_v0_6 = FW(arg2, 0x60) + (*(u16*)((char*)(FW(arg2, 0x68) + temp_v1) + 0x6) * 6);
+    spB4.unk0 = (f32)*(s16*)((char*)temp_v0_6 + 0x0);
+    spB4.unk4 = (f32)*(s16*)((char*)temp_v0_6 + 0x2);
+    spB4.unk8 = (f32)*(s16*)((char*)temp_v0_6 + 0x4);
+    ((int(*)())gl_func_00034458)(arg1, FW(arg4, 0x40), arg0, arg4, arg5, arg6, (s32) *(int*)(FW(arg2, 0x68) + temp_v1), spCC.unk0, spCC.unk4, spCC.unk8, spC0.unk0, spC0.unk4, spC0.unk8, spB4.unk0, spB4.unk4, spB4.unk8, spA8.unk0, spA8.unk4, spA8.unk8, sp9C.unk0, sp9C.unk4, sp9C.unk8, sp90.unk0, sp90.unk4, sp90.unk8);
+    return arg0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000510F0);
+#endif
 
 extern int gl_data_513CC_addr;
 
