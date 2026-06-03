@@ -13570,7 +13570,73 @@ void game_libs_func_000478EC(char *a0) {
 // gate and the f20 threshold are exact. Trailing 2 leaves = deferred
 // re-split. Caps: self/node struct + the s6 mask untyped; bundle re-split
 // deferred. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000478FC)();
+void gl_func_000478FC(char *arg0, char *arg1, s32 arg2, f32 arg3, s32 arg4) {
+    char **sp44;
+    char **sp40;
+    s32 temp_v0;
+    char **temp_t5;
+    char **temp_t7;
+    char *var_s0;
+    char *var_v0;
+    char *var_v0_2;
+
+    sp44 = FW(arg0, 0x18C);
+    FW(arg0, 0x244) = 0;
+    FW(arg0, 0x248) = 0;
+    FW(arg0, 0x194) = 0;
+    temp_t7 = sp44;
+    sp40 = temp_t7;
+    if (temp_t7 != 0) {
+        sp44 = FW(temp_t7, 0x4);
+        var_v0 = FW(temp_t7, 0x0);
+    } else {
+        var_v0 = 0;
+    }
+    var_s0 = var_v0;
+    if (var_v0 != 0) {
+        do {
+            if (FW(var_s0, 0xD0) & arg2) {
+                if (FW(var_s0, 0xC4) & 0x80) {
+                    FW(arg0, 0x194) = var_s0;
+                }
+                FW(var_s0, 0xC4) = (s32) (FW(var_s0, 0xC4) | 2);
+                if (!(FW(var_s0, 0xC4) & 0x40)) {
+                    FW(arg0, 0x248) = (s32) (FW(arg0, 0x248) + 1);
+                    (*(f32*)((char*)var_s0 + 0xE4)) = (f32) ((*(f32*)((char*)var_s0 + 0xA0)) - (*(f32*)((char*)arg1 + 0x0)));
+                    (*(f32*)((char*)var_s0 + 0xE8)) = (f32) ((*(f32*)((char*)var_s0 + 0xA4)) - (*(f32*)((char*)arg1 + 0x4)));
+                    (*(f32*)((char*)var_s0 + 0xEC)) = (f32) ((*(f32*)((char*)var_s0 + 0xA8)) - (*(f32*)((char*)arg1 + 0x8)));
+                    ((int(*)())gl_func_00034458)(var_s0 + 0xE4);
+                    FW(var_s0, 0xE0) = 1;
+                }
+                temp_v0 = FW(arg0, 0x244) | FW(var_s0, 0xE0) | arg4;
+                FW(arg0, 0x244) = temp_v0;
+                if (temp_v0 != 0) {
+                    (*(f32*)((char*)var_s0 + 0xFC)) = (f32) ((*(f32*)((char*)var_s0 + 0x124)) * arg3);
+                    (*(f32*)((char*)var_s0 + 0x100)) = (f32) ((*(f32*)((char*)var_s0 + 0x128)) * arg3);
+                    (*(f32*)((char*)var_s0 + 0x104)) = (f32) ((*(f32*)((char*)var_s0 + 0x12C)) * arg3);
+                }
+            } else {
+                FW(var_s0, 0xC4) = (s32) (FW(var_s0, 0xC4) & ~2);
+            }
+            temp_t5 = sp44;
+            var_v0_2 = 0;
+            sp40 = temp_t5;
+            if (temp_t5 != 0) {
+                sp44 = FW(temp_t5, 0x4);
+                var_v0_2 = FW(temp_t5, 0x0);
+            }
+            var_s0 = var_v0_2;
+        } while (var_v0_2 != 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000478FC);
+#endif
 
 void game_libs_func_00047AB4(char *a0, char *a1) {
     a0[0x1F8] = a1[0];
