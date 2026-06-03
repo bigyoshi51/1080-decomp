@@ -23,8 +23,13 @@ QT, GT = "Q_"+suf, "GP_"+suf        # unique struct + cast typedef names
 c = open(INP).read()
 
 # drop m2c '? name(...); /* extern|static */' forward-decls and jtbl stubs (whitespace-tolerant)
+# m2c forward-decls: drop '/* static */' (jtbl stubs); rewrite '/* extern */'
+# callee decls to K&R 'extern int name();' (keeps symbol, accepts any argc,
+# avoids strict-prototype arg-count mismatch and cast-mangling)
+c = re.sub(r'^.*?([A-Za-z_]\w*)\s*\([^;]*\);\s*/\* extern \*/.*$',
+           r'extern int \1();', c, flags=re.M)
+c = re.sub(r'^.*/\* static \*/.*\n', '', c, flags=re.M)
 c = re.sub(r'^\?\s.*\n', '', c, flags=re.M)
-c = re.sub(r'^.*'+PH+r'.*/\* extern \*/.*\n', '', c, flags=re.M)
 
 # arrows X->unkN -> FW(X,0xN), balanced operand
 def conv_arrows(s):
@@ -51,6 +56,8 @@ def conv_arrows(s):
             st = r+1
         s = s[:st] + 'FW(%s, 0x%s)' % (s[st:i].strip(), off) + s[k:]
     return s
+# m2c '?' param/var type -> int (only after '(' or ',' to avoid ternaries)
+c = re.sub(r'([(,]\s*)\?(\s+[A-Za-z_])', r'\1int\2', c)
 c = conv_arrows(c)
 # arr[idx].FW(unkN, off) -> FW(arr[idx].unkN, off)
 c = re.sub(r'([A-Za-z_]\w*\[[^\]]*\])\.FW\((unk[0-9A-F]+), (0x[0-9A-Fa-f]+)\)', r'FW(\1.\2, \3)', c)
@@ -69,7 +76,7 @@ for b, off in bases.items():
         sib[nm] = (b, mem)
 out = []
 for l in c.split("\n"):
-    md = re.match(r'^\s*(?:void \*|f32|s32|int|\?32|\?)\s+(sp[0-9A-F]+);\s*$', l)
+    md = re.match(r'^\s*(?:void \*|f32|s32|int|\?32|\?)\s+(sp[0-9A-F]+);\s*(?:/\*.*)?$', l)
     if md and (md.group(1) in bases or md.group(1) in sib): continue
     for nm, (b, mem) in sib.items(): l = re.sub(r'\b'+nm+r'\b', '%s.%s' % (b, mem), l)
     out.append(l)
@@ -82,7 +89,7 @@ if bases:
     c = re.sub(r'= ('+ba+r');', r'= \1.unk0;', c)
     bl = []
     for l in c.split("\n"):
-        if not re.match(r'^\s*[A-Za-z_][\w *]*?\*?\s*sp[0-9A-F]+;\s*$', l):
+        if not re.match(r'^\s*[A-Za-z_][\w *]*?\*?\s*sp[0-9A-F]+;\s*(?:/\*.*)?$', l):
             l = re.sub(r'(?<![\w.&])('+ba+r')(?!\w)(?!\.)', r'\1.unk0', l)
         bl.append(l)
     c = "\n".join(bl)
@@ -114,6 +121,13 @@ def cast_derefs(s):
     TYPES = ('int','char','f32','s32','u32','s8','u8','s16','u16','void','unsigned','long','short','f64')
     o=[]; i=0
     while i < len(s):
+        if s[i]=='*' and s[i+1:i+4]=='FW(':
+            j=i+4; d=1
+            while j<len(s) and d:
+                if s[j]=='(': d+=1
+                elif s[j]==')': d-=1
+                j+=1
+            o.append('*(int*)('+s[i+1:j]+')'); i=j; continue
         if s[i]=='*' and i+1<len(s) and s[i+1]=='(':
             j=i+2; d=1
             while j<len(s) and d:
@@ -156,7 +170,7 @@ if idx > 0: c = c[:idx+3]
 
 # auto-declare undeclared sp vars (m2c aliased-stack omissions)
 used = set(re.findall(r'\bsp[0-9A-F]+\b', c))
-decl = set(re.findall(r'^\s*[A-Za-z_][\w *]*?\*?\s*(sp[0-9A-F]+);\s*$', c, flags=re.M))
+decl = set(re.findall(r'^\s*[A-Za-z_][\w *]*?\*?\s*(sp[0-9A-F]+);\s*(?:/\*.*)?$', c, flags=re.M))
 miss = sorted(used-decl)
 if miss:
     add = "\n".join("    int %s;" % v for v in miss)
@@ -164,7 +178,7 @@ if miss:
 # dedup decls
 seen = set(); dl = []
 for l in c.split("\n"):
-    m = re.match(r'^\s*[A-Za-z_][\w *]*?\*?\s*(sp[0-9A-F]+);\s*$', l)
+    m = re.match(r'^\s*[A-Za-z_][\w *]*?\*?\s*(sp[0-9A-F]+);\s*(?:/\*.*)?$', l)
     if m:
         if m.group(1) in seen: continue
         seen.add(m.group(1))
