@@ -2164,28 +2164,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C784);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000C8B8);
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000CA30)();
 void game_libs_func_0000CA30(char *arg0, s32 arg1, s32 arg2) {
     *(int*)(FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)) = arg1;
     FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x4) = arg2;
-    FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x10) = 0.0f;
+    *(f32*)((char*)(FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)) + 0x10) = 0.0f;
     FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x18) = 0;
     FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x14) = 0;
     FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x1C) = 0;
     FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x20) = 0;
     FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x24) = -1;
     FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x28) = 0x32;
-    FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x30) = 0.0f;
+    *(f32*)((char*)(FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)) + 0x30) = 0.0f;
     FW((FW(arg0, 0x44) + (FW(arg0, 0x48) * 0x60)), 0x34) = 0;
     FW(arg0, 0x48) = (s32) (FW(arg0, 0x48) + 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CA30);
-#endif
 
 /* Linear search: scan count (a0->0x48) elements (stride 0x60) at a0->0x44 for
  * one whose first field == a1; return that element, else 0. Merged: the loop-
