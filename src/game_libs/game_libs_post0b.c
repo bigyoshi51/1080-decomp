@@ -26083,7 +26083,85 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005EF00);
  * derived + FP-op use; no callers). Absorbed 0005F0C4's 110 words into 0005F0B8
  * (0xC -> 0x1C4); dropped the 0005F0C4 symbol. Brings f14(=a2)/f4(=D const)
  * in-scope, retracting the implicit caller-set-float cap; body decodable later. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005F0B8)();
+void game_libs_func_0005F0B8(char *arg0, char *arg1, f32 arg2) {
+    f32 sp78;
+    f32 sp70;
+    f32 sp6C;
+    f32 sp64;
+    f32 sp60;
+    f32 sp5C;
+    f32 sp3C;
+    f32 sp38;
+    f32 sp34;
+    f32 sp30;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f12;
+    f32 temp_f14;
+    f32 temp_f14_2;
+    f32 temp_f16;
+    f32 temp_f16_2;
+    f32 temp_f16_3;
+    f32 temp_f18;
+    f32 temp_f18_2;
+    f32 temp_f20;
+    f32 temp_f20_2;
+    f32 temp_f2;
+    f32 temp_f2_2;
+    f32 temp_f4;
+    f32 temp_f6;
+
+    temp_f20 = arg2 * (*(f32*)((char*)&D_00000000 + 0x2054));
+    sp78 = ((f32(*)())gl_func_00034458)(temp_f20, arg2);
+    temp_f2 = (*(f32*)((char*)arg1 + 0x0));
+    temp_f14 = (*(f32*)((char*)arg1 + 0x4));
+    temp_f16 = (*(f32*)((char*)arg1 + 0x8));
+    temp_f20_2 = ((f32(*)())gl_func_00034458)(temp_f20);
+    temp_f0 = ((f32(*)())gl_func_00034458)((temp_f2 * temp_f2) + (temp_f14 * temp_f14) + (temp_f16 * temp_f16), temp_f14);
+    temp_f2_2 = (*(f32*)((char*)arg1 + 0x0)) / temp_f0;
+    temp_f12 = (*(f32*)((char*)arg1 + 0x4)) / temp_f0;
+    temp_f4 = temp_f2_2 * temp_f2_2;
+    sp70 = temp_f4;
+    temp_f14_2 = (*(f32*)((char*)arg1 + 0x8)) / temp_f0;
+    temp_f6 = temp_f12 * temp_f12;
+    temp_f0_2 = 1.0f - temp_f20_2;
+    sp6C = temp_f6;
+    sp64 = temp_f2_2 * temp_f12;
+    temp_f16_2 = temp_f12 * temp_f14_2;
+    temp_f18 = temp_f14_2 * temp_f2_2;
+    sp60 = temp_f16_2;
+    sp3C = temp_f16_2;
+    sp5C = temp_f18;
+    sp38 = temp_f18;
+    (*(f32*)((char*)arg0 + 0x0)) = (f32) ((temp_f0_2 * temp_f4) + temp_f20_2);
+    temp_f18_2 = temp_f0_2 * sp64;
+    temp_f16_3 = temp_f14_2 * sp78;
+    (*(f32*)((char*)arg0 + 0x10)) = (f32) (temp_f18_2 - temp_f16_3);
+    sp30 = temp_f12 * sp78;
+    (*(f32*)((char*)arg0 + 0x30)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x4)) = (f32) (temp_f18_2 + temp_f16_3);
+    (*(f32*)((char*)arg0 + 0x20)) = (f32) ((temp_f0_2 * sp5C) + sp30);
+    (*(f32*)((char*)arg0 + 0x14)) = (f32) ((temp_f0_2 * temp_f6) + temp_f20_2);
+    sp34 = temp_f2_2 * sp78;
+    (*(f32*)((char*)arg0 + 0x34)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x24)) = (f32) ((temp_f0_2 * sp60) - sp34);
+    (*(f32*)((char*)arg0 + 0x8)) = (f32) ((temp_f0_2 * sp38) - sp30);
+    (*(f32*)((char*)arg0 + 0x38)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x18)) = (f32) ((temp_f0_2 * sp3C) + sp34);
+    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
+    (*(f32*)((char*)arg0 + 0x28)) = (f32) ((temp_f0_2 * (temp_f14_2 * temp_f14_2)) + temp_f20_2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F0B8);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
