@@ -15,44 +15,33 @@ void func_0001266C(char *a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-/* func_000126EC: 56-insn -O0 vtable dispatcher. 53.57% NM first-pass.
- * Sibling of func_000127CC in this -O0-built file.
- *
- *   *(short*)((char*)*(int**)(a0+0x154) + 4) &= ~5;
- *   if (a1 != 0)
- *     *(short*)((char*)*(int**)(a0+0x154) + 4) |= 4;
- *   D_00000000 = a1;
- *   result = &local[0];                 // sp+0x34, always non-NULL
- *   if (result == NULL) {                // dead branch (sp+N never NULL)
- *     result = func(12);
- *     if (result == NULL) return 0;
- *   }
- *   result[0] = 0x15;
- *   msg = D_00000000->[0x28];
- *   return ((int(*)(...))(msg->[0x34]))((char*)&D_0 + msg->[0x30], result);
- *
- * Structural NM-only first-pass — full match needs typed-struct decl
- * for the vtable msg AND knowing the fn-ptr signature precisely. */
-extern int func_00000000();
-int func_000126EC(int *a0, int a1) {
-    int local[5];
-    int *result;
-    int *msg;
-    *(short*)((char*)*(int**)((char*)a0 + 0x154) + 4) &= ~5;
-    if (a1 != 0) {
-        *(short*)((char*)*(int**)((char*)a0 + 0x154) + 4) |= 4;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000126EC)();
+void func_000126EC(char *arg0, s32 arg1) {
+    s32 sp34;
+    s32 *var_s1;
+    char *temp_s0;
+    char *temp_s0_2;
+    char *temp_s2;
+
+    temp_s0 = FW(arg0, 0x154);
+    FW(temp_s0, 0x4) = (u16) (FW(temp_s0, 0x4) & ~4);
+    if (arg1 != 0) {
+        temp_s0_2 = FW(arg0, 0x154);
+        FW(temp_s0_2, 0x4) = (u16) (FW(temp_s0_2, 0x4) | 4);
     }
-    *(int*)&D_00000000 = a1;
-    result = &local[0];
-    if (result == 0) {
-        result = (int*)func_00000000(12);
-        if (result == 0) return 0;
+    *(int*)0 = arg1;
+    var_s1 = &sp34;
+    if ((var_s1 != 0) || (var_s1 = ((s32 *(*)())func_00000000)(0xC), (var_s1 != 0))) {
+        *var_s1 = 0x15;
     }
-    result[0] = 0x15;
-    msg = *(int**)((char*)&D_00000000 + 0x28);
-    return ((int(*)(char*, int*))msg[0x34/4])(
-        (char*)&D_00000000 + *(short*)((char*)msg + 0x30),
-        result);
+    temp_s2 = *(char **)0x28;
+    ((GP_000126EC)FW(temp_s2, 0x34))(FW(temp_s2, 0x30), var_s1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000126EC);
