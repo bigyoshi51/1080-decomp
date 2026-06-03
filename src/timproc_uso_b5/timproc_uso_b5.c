@@ -4063,9 +4063,9 @@ void timproc_uso_b5_func_00007078(char *arg0) {
 
     if (FW(FW(FW(arg0, 0x414), 0x18), 0x130) != 0) {
         temp_v1 = FW(FW(arg0, 0x414), 0x18);
-        FW(temp_v1, 0x134) = (f32) (FW(temp_v1, 0x134) + (FW(((GP_00007078)timproc_uso_b5_func_00000000)(0, 1), 0x4) * 2.0f));
+        *(f32 *)((char *)temp_v1 + 0x134) = *(f32 *)((char *)temp_v1 + 0x134) + (*(f32 *)((char *)((GP_00007078)timproc_uso_b5_func_00000000)(0, 1) + 0x4) * 2.0f);
         temp_v1_2 = FW(FW(arg0, 0x414), 0x18);
-        FW(temp_v1_2, 0x138) = (f32) (FW(temp_v1_2, 0x138) + (*(int*)((GP_00007078)timproc_uso_b5_func_00000000)(0, 1) * 2.0f));
+        *(f32 *)((char *)temp_v1_2 + 0x138) = *(f32 *)((char *)temp_v1_2 + 0x138) + (*(f32 *)((GP_00007078)timproc_uso_b5_func_00000000)(0, 1) * 2.0f);
     } else {
         temp_t2 = FW(arg0, 0x488) - 1;
         FW(arg0, 0x488) = temp_t2;
