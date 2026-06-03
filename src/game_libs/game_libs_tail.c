@@ -1125,7 +1125,49 @@ block_7:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD9C);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000AFC4)();
+void gl_func_0000AFC4(char *arg0) {
+    s32 sp3C;
+    s32 var_v1;
+    char *temp_v0;
+    char *var_v0;
+
+    FW(arg0, 0x2) = 1;
+    FW(arg0, 0x0) = 0x1F;
+    FW(arg0, 0x4) = 8U;
+    FW(arg0, 0x12) = 8U;
+    FW(arg0, 0x13) = 8U;
+    FW(arg0, 0x14) = 8U;
+    var_v0 = arg0;
+    var_v1 = 0;
+    do {
+        var_v1 += 4;
+        FW(var_v0, 0x6) = 0;
+        FW(var_v0, 0x7) = 0;
+        FW(var_v0, 0x8) = 0;
+        FW(var_v0, 0x9) = 0;
+        var_v0 += 4;
+    } while (var_v1 != 8);
+    FW(arg0, 0xE) = 0;
+    FW(arg0, 0xF) = 0;
+    FW(arg0, 0x10) = 0;
+    FW(arg0, 0x11) = 0;
+    ((int(*)())gl_func_0000959C)(FW(arg0, 0x12), 8);
+    ((int(*)())gl_func_0000959C)(FW(arg0, 0x13));
+    ((int(*)())gl_func_0000959C)(FW(arg0, 0x14));
+    ((int(*)())gl_func_0000959C)(FW(arg0, 0x4) & 3);
+    *(int*)0 = (FW(arg0, 0x4) & 4) == 4;
+    temp_v0 = *(char **)0x28;
+    sp3C = 0x15;
+    ((GP_0000AFC4)FW(temp_v0, 0x34))(FW(temp_v0, 0x30), &sp3C);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000B0A8: constructor. obj = arg0 ?: alloc(0x18); obj->0x10=arg1,
