@@ -20381,7 +20381,138 @@ void gl_func_00056974(char *arg0, char *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056974);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00056D14)();
+void gl_func_00056D14(char *arg0, char *arg1) {
+    s32 temp_a2;
+    s32 temp_v0;
+    s32 temp_v1;
+    s32 temp_v1_10;
+    s32 temp_v1_2;
+    s32 temp_v1_3;
+    s32 temp_v1_4;
+    s32 temp_v1_5;
+    s32 temp_v1_6;
+    s32 temp_v1_7;
+    s32 temp_v1_8;
+    s32 temp_v1_9;
+    char *temp_a1;
+    char *temp_a1_10;
+    char *temp_a1_2;
+    char *temp_a1_3;
+    char *temp_a1_4;
+    char *temp_a1_5;
+    char *temp_a1_6;
+    char *temp_a1_7;
+    char *temp_a1_8;
+    char *temp_a1_9;
+    char *temp_v0_10;
+    char *temp_v0_11;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *temp_v0_8;
+    char *temp_v0_9;
+
+    temp_v0 = FW(arg1, 0x4);
+    temp_a2 = temp_v0 & 0xF00;
+    switch (temp_a2) {                              /* irregular */
+    case 0x0:
+        temp_v0_2 = FW(arg0, 0xC);
+        temp_v1 = FW(temp_v0_2, 0x4);
+        FW(temp_v0_2, 0x4) = (s32) (temp_v1 + 1);
+        temp_a1 = FW(FW(arg0, 0xC), 0x0) + (temp_v1 * 8);
+        FW(temp_a1, 0x0) = 0xFCFFFFFF;
+        FW(temp_a1, 0x4) = 0xFFFE7838;
+        return;
+    case 0x400:
+        temp_v0_3 = FW(arg0, 0xC);
+        temp_v1_2 = FW(temp_v0_3, 0x4);
+        FW(temp_v0_3, 0x4) = (s32) (temp_v1_2 + 1);
+        temp_a1_2 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_2 * 8);
+        FW(temp_a1_2, 0x0) = 0xFCFFFFFF;
+        FW(temp_a1_2, 0x4) = 0xFFFDF638;
+        return;
+    case 0x100:
+        temp_v0_4 = FW(arg0, 0xC);
+        temp_v1_3 = FW(temp_v0_4, 0x4);
+        FW(temp_v0_4, 0x4) = (s32) (temp_v1_3 + 1);
+        temp_a1_3 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_3 * 8);
+        FW(temp_a1_3, 0x0) = 0xFCFFFFFF;
+        FW(temp_a1_3, 0x4) = 0xFFFCF238;
+        return;
+    case 0x200:
+    case 0x600:
+        temp_v0_5 = FW(arg0, 0xC);
+        temp_v1_4 = FW(temp_v0_5, 0x4);
+        FW(temp_v0_5, 0x4) = (s32) (temp_v1_4 + 1);
+        temp_a1_4 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_4 * 8);
+        FW(temp_a1_4, 0x0) = 0xFC30B3FF;
+        FW(temp_a1_4, 0x4) = 0x4FFE4838;
+        return;
+    case 0x500:
+        temp_v0_6 = FW(arg0, 0xC);
+        temp_v1_5 = FW(temp_v0_6, 0x4);
+        FW(temp_v0_6, 0x4) = (s32) (temp_v1_5 + 1);
+        temp_a1_5 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_5 * 8);
+        FW(temp_a1_5, 0x0) = 0xFC30B3FF;
+        FW(temp_a1_5, 0x4) = -0x1C8;
+        return;
+    case 0xA00:
+        temp_v0_7 = FW(arg0, 0xC);
+        temp_v1_6 = FW(temp_v0_7, 0x4);
+        FW(temp_v0_7, 0x4) = (s32) (temp_v1_6 + 1);
+        temp_a1_6 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_6 * 8);
+        FW(temp_a1_6, 0x0) = 0xFC40B3FF;
+        FW(temp_a1_6, 0x4) = 0x3FFDFE38;
+        return;
+    case 0xB00:
+        temp_v0_8 = FW(arg0, 0xC);
+        temp_v1_7 = FW(temp_v0_8, 0x4);
+        FW(temp_v0_8, 0x4) = (s32) (temp_v1_7 + 1);
+        temp_a1_7 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_7 * 8);
+        FW(temp_a1_7, 0x0) = 0xFC40E3FF;
+        FW(temp_a1_7, 0x4) = 0x3FFDCE38;
+        return;
+    case 0x900:
+        temp_v0_9 = FW(arg0, 0xC);
+        temp_v1_8 = FW(temp_v0_9, 0x4);
+        FW(temp_v0_9, 0x4) = (s32) (temp_v1_8 + 1);
+        temp_a1_8 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_8 * 8);
+        FW(temp_a1_8, 0x0) = 0xFC30B3FF;
+        FW(temp_a1_8, 0x4) = 0x5FFEFE38;
+        return;
+    case 0x300:
+        if (temp_v0 & 0x80000) {
+            temp_v0_10 = FW(arg0, 0xC);
+            temp_v1_9 = FW(temp_v0_10, 0x4);
+            FW(temp_v0_10, 0x4) = (s32) (temp_v1_9 + 1);
+            temp_a1_9 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_9 * 8);
+            FW(temp_a1_9, 0x0) = 0xFC127FFF;
+            FW(temp_a1_9, 0x4) = -0xDC8;
+            return;
+        }
+        temp_v0_11 = FW(arg0, 0xC);
+        temp_v1_10 = FW(temp_v0_11, 0x4);
+        FW(temp_v0_11, 0x4) = (s32) (temp_v1_10 + 1);
+        temp_a1_10 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_10 * 8);
+        FW(temp_a1_10, 0x0) = 0xFC257E04;
+        FW(temp_a1_10, 0x4) = 0x1FFCF3F8;
+        return;
+    default:
+        ((int(*)())gl_func_00034458)(0x2199C, temp_a2, temp_a2);
+        return;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056D14);
+#endif
 
 /* gl_func_00056FF4: flag-test dispatch wrapper. v0 = a1->4; call callee A
    if bit19 OR bit23 set (i.e. (v0<<12)<0 || (v0<<8)<0), else callee B.
