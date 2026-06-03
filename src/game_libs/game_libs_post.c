@@ -11830,7 +11830,7 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
             var_a3 = 0x7F;
         }
         temp_f0 = (f32) var_a3;
-        FW(arg0, 0x3C) = (f32) ((temp_f0 * temp_f0) / *(f32 *)0x10AC);
+        *(f32 *)((char *)arg0 + 0x3C) = ((temp_f0 * temp_f0) / *(f32 *)0x10AC);
         arg1 -= temp_a1_2;
     } else {
         switch (temp_a1) {                          /* switch 2; irregular */
@@ -11871,7 +11871,7 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
             FW(arg0, 0x38) = 1.0f;
         }
     } else {
-        FW(arg0, 0x38) = (f32) FW(arg0, 0x3C);
+        *(f32 *)((char *)arg0 + 0x38) = *(f32 *)((char *)arg0 + 0x3C);
     }
     FW(arg0, 0x8) = (s16) (u16) sp3A;
     FW(arg0, 0xA) = (s16) ((s32) (FW(arg0, 0x3) * (u16) sp3A) >> 8);
