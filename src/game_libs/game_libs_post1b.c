@@ -320,7 +320,176 @@ void *gl_func_00063884(void *a0, int a1, int *a2, int *a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063884);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00063964)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00063964;
+void gl_func_00063964(char *arg0, f32 arg1, int arg2, int arg3) {
+    Q_00063964 sp108;
+    Q_00063964 sp1C;
+    Q_00063964 sp28;
+    Q_00063964 sp34;
+    Q_00063964 sp48;
+    Q_00063964 sp54;
+    Q_00063964 sp60;
+    Q_00063964 sp74;
+    Q_00063964 sp90;
+    Q_00063964 sp9C;
+    Q_00063964 spAC;
+    Q_00063964 spB8;
+    Q_00063964 spD0;
+    Q_00063964 spDC;
+    f32 sp144;
+    f32 sp140;
+    f32 sp13C;
+    f32 sp138;
+    f32 sp134;
+    f32 sp130;
+    f32 sp12C;
+    f32 sp128;
+    f32 sp124;
+    f32 sp120;
+    f32 sp11C;
+    f32 sp118;
+    s32 sp114;
+    s32 sp18;
+    f32 temp_f10;
+    f32 temp_f12;
+    f32 temp_f8;
+    f32 var_f16;
+    s32 temp_a0;
+    f32 temp_t0;
+    f32 temp_t0_2;
+    f32 temp_t1;
+    f32 temp_t7;
+    f32 temp_t8;
+    f32 temp_t8_2;
+    f32 temp_t9;
+    f32 temp_t9_2;
+    s32 var_v1;
+
+    temp_a0 = (int)arg0 + 0xF4;
+    sp18 = temp_a0;
+    ((int(*)())gl_func_00062F64)(temp_a0, (int)arg0 + 0x10C, &sp130, arg0);
+    ((int(*)())gl_func_00062F64)(sp18, (int)arg0 + 0x118, &sp124, arg0);
+    temp_f8 = sp130 + (*(f32*)((char*)arg0 + 0xDC));
+    sp130 = temp_f8;
+    sp134 += (*(f32*)((char*)arg0 + 0xE0));
+    sp138 += (*(f32*)((char*)arg0 + 0xE4));
+    temp_f10 = sp124 + (*(f32*)((char*)arg0 + 0xDC));
+    sp124 = temp_f10;
+    sp128 += (*(f32*)((char*)arg0 + 0xE0));
+    sp120 = 0.0f;
+    sp11C = 0.0f;
+    sp118 = 0.0f;
+    sp12C += (*(f32*)((char*)arg0 + 0xE4));
+    temp_f12 = sp138 - sp12C;
+    spD0.unk0 = temp_f8 - temp_f10;
+    spD0.unk8 = temp_f12;
+    spD0.unk4 = sp134 - sp128;
+    spDC.unk0 = (f32) spD0.unk0;
+    temp_t7 = spD0.unk4;
+    spDC.unk4 = temp_t7;
+    temp_t8 = spD0.unk8;
+    sp108.unk4 = temp_t7;
+    sp108.unk0 = spDC.unk0;
+    spDC.unk8 = temp_t8;
+    sp108.unk8 = temp_t8;
+    sp114 = 0;
+    arg1 = 0.0f;
+    ((int(*)())gl_func_00062F64)((s32) temp_f12, &sp108);
+    var_v1 = sp114;
+    var_f16 = arg1;
+    if (sp134 < 0.0f) {
+        spAC.unk0 = sp108.unk0 * sp134;
+        var_v1 = 1;
+        spAC.unk4 = sp108.unk4 * sp134;
+        spAC.unk8 = sp108.unk8 * sp134;
+        spDC.unk0 = (f32) spAC.unk0;
+        spDC.unk4 = spAC.unk4;
+        spDC.unk8 = spAC.unk8;
+        spB8.unk0 = spDC.unk0;
+        spB8.unk4 = spDC.unk4;
+        spB8.unk8 = spDC.unk8;
+        sp90.unk0 = sp130 + spB8.unk0;
+        sp90.unk4 = sp134 + spB8.unk4;
+        sp90.unk8 = sp138 + spB8.unk8;
+        sp9C.unk0 = (f32) sp90.unk0;
+        temp_t8_2 = sp90.unk4;
+        sp9C.unk4 = temp_t8_2;
+        temp_t9 = sp90.unk8;
+        sp74.unk4 = temp_t8_2;
+        sp74.unk0 = sp9C.unk0;
+        sp9C.unk8 = temp_t9;
+        sp74.unk8 = temp_t9;
+        sp118 = sp74.unk0;
+        sp120 = sp74.unk8;
+        sp11C = sp74.unk4;
+        var_f16 = 0.0f + sp134;
+    }
+    if (sp128 < 0.0f) {
+        sp54.unk0 = sp108.unk0 * sp128;
+        var_v1 += 1;
+        sp54.unk4 = sp108.unk4 * sp128;
+        var_f16 += sp128;
+        sp54.unk8 = sp108.unk8 * sp128;
+        spDC.unk0 = (f32) sp54.unk0;
+        spDC.unk4 = sp54.unk4;
+        spDC.unk8 = sp54.unk8;
+        sp60.unk0 = spDC.unk0;
+        sp60.unk4 = spDC.unk4;
+        sp60.unk8 = spDC.unk8;
+        sp48.unk0 = sp124 + sp60.unk0;
+        sp48.unk4 = sp128 + sp60.unk4;
+        sp48.unk8 = sp12C + sp60.unk8;
+        sp9C.unk0 = (f32) sp48.unk0;
+        temp_t9_2 = sp48.unk4;
+        sp9C.unk4 = temp_t9_2;
+        temp_t0 = sp48.unk8;
+        sp74.unk4 = temp_t9_2;
+        sp74.unk0 = sp9C.unk0;
+        sp9C.unk8 = temp_t0;
+        sp74.unk8 = temp_t0;
+        sp120 = sp74.unk8;
+        sp11C = sp74.unk4;
+        sp118 = sp74.unk0;
+    }
+    if (var_v1 == 2) {
+        sp28.unk0 = sp130 + sp124;
+        sp28.unk4 = sp134 + sp128;
+        sp28.unk8 = sp138 + sp12C;
+        spDC.unk0 = (f32) sp28.unk0;
+        spDC.unk4 = sp28.unk4;
+        spDC.unk8 = sp28.unk8;
+        sp34.unk0 = spDC.unk0;
+        sp34.unk4 = spDC.unk4;
+        sp34.unk8 = spDC.unk8;
+        sp1C.unk0 = sp34.unk0 * 0.5f;
+        sp1C.unk4 = sp34.unk4 * 0.5f;
+        sp1C.unk8 = sp34.unk8 * 0.5f;
+        sp9C.unk0 = (f32) sp1C.unk0;
+        temp_t0_2 = sp1C.unk4;
+        sp9C.unk4 = temp_t0_2;
+        temp_t1 = sp1C.unk8;
+        sp74.unk4 = temp_t0_2;
+        sp74.unk0 = sp9C.unk0;
+        sp9C.unk8 = temp_t1;
+        sp74.unk8 = temp_t1;
+        sp118 = sp74.unk0;
+        sp11C = sp74.unk4;
+        sp120 = sp74.unk8;
+        var_f16 = (f32) ((f64) var_f16 * 0.5);
+    }
+    sp13C = 0.0f;
+    sp140 = -var_f16;
+    sp144 = 0.0f;
+    ((int(*)())gl_func_00062F64)((*(f32*)((char*)arg0 + 0x108)), &sp118, &sp13C, arg0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063964);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00063DC4: 48-insn alloc-if-null constructor + Vec3-magnitude.
