@@ -7024,7 +7024,59 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F634);
  * 0006F684 (0x18 -> 0x1B0); dropped the 0006F69C symbol. Brings f12/f14/f16
  * (=a1/a2/a3) and f0 (=D[0x24D0]) in-scope, retracting the implicit
  * caller-set-float cap; the body is decodable in a future pass. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0006F684)();
+void game_libs_func_0006F684(char *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7) {
+    f32 sp40;
+    f32 sp3C;
+    f32 sp34;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f12;
+    f32 temp_f12_2;
+    f32 temp_f12_3;
+    f32 temp_f14;
+    f32 temp_f20;
+    f32 temp_f22;
+
+    temp_f0 = (*(f32*)((char*)&D_00000000 + 0x24D0));
+    temp_f12 = arg1 * temp_f0;
+    temp_f14 = arg2 * temp_f0;
+    arg2 = temp_f14;
+    arg1 = temp_f12;
+    (*(f32*)((char*)&D_00000000 + 0x44030)) = temp_f0;
+    arg3 *= temp_f0;
+    temp_f20 = ((f32(*)())gl_func_00062F64)(temp_f12, temp_f14);
+    temp_f22 = ((f32(*)())gl_func_00062F64)(arg1);
+    sp40 = ((f32(*)())gl_func_00062F64)(arg2);
+    sp34 = ((f32(*)())gl_func_00062F64)(arg2);
+    sp3C = ((f32(*)())gl_func_00062F64)(arg3);
+    temp_f0_2 = ((f32(*)())gl_func_00062F64)(arg3);
+    (*(f32*)((char*)arg0 + 0x0)) = (f32) (sp34 * temp_f0_2 * arg4);
+    (*(f32*)((char*)arg0 + 0x4)) = (f32) (sp34 * sp3C * arg4);
+    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x8)) = (f32) (-sp40 * arg4);
+    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
+    temp_f12_2 = temp_f20 * sp40;
+    (*(f32*)((char*)arg0 + 0x10)) = (f32) (((temp_f12_2 * temp_f0_2) - (temp_f22 * sp3C)) * arg4);
+    (*(f32*)((char*)arg0 + 0x14)) = (f32) (((temp_f12_2 * sp3C) + (temp_f22 * temp_f0_2)) * arg4);
+    (*(f32*)((char*)arg0 + 0x18)) = (f32) (temp_f20 * sp34 * arg4);
+    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
+    temp_f12_3 = temp_f22 * sp40;
+    (*(f32*)((char*)arg0 + 0x20)) = (f32) (((temp_f12_3 * temp_f0_2) + (temp_f20 * sp3C)) * arg4);
+    (*(f32*)((char*)arg0 + 0x24)) = (f32) (((temp_f12_3 * sp3C) - (temp_f20 * temp_f0_2)) * arg4);
+    (*(f32*)((char*)arg0 + 0x28)) = (f32) (temp_f22 * sp34 * arg4);
+    (*(f32*)((char*)arg0 + 0x30)) = arg5;
+    (*(f32*)((char*)arg0 + 0x34)) = arg6;
+    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
+    (*(f32*)((char*)arg0 + 0x38)) = arg7;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F684);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006F834: 26-insn 2-call wrapper with float-bits-passthrough.
