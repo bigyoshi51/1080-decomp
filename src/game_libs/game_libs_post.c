@@ -14905,23 +14905,104 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
 //   typed. Real-C STRUCTURAL body below per the analysis (sibling
 //   of gl_func_000334E8). Byte-match deferred. Name pre-checked:
 //   no extern reuse.
+// gl_func_00033BE4 — FULL m2c DECODE (64.98% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-void gl_func_00033BE4(void *a, unsigned flags) {
-    int used;
-    int mis;
-    if (flags & 1) {
-        gl_func_00000000(a, (void *)0x0001E330);
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00033BE4)();
+void gl_func_00033BE4(s32 arg0, u32 arg1) {
+    s32 temp_a0;
+    s32 temp_a2;
+    s32 temp_a2_2;
+    s32 temp_t4;
+    s32 var_s5;
+    s32 var_v1;
+    u32 temp_v0;
+    u32 temp_v1;
+    u32 var_s2;
+    u32 var_s4;
+    u32 var_v0;
+    u8 temp_t0;
+    char *var_a0;
+
+    var_s4 = arg1;
+    var_s5 = arg0;
+    if (arg1 & 1) {
+        gl_func_0001CA10(0, 0x1E330);
     }
-    gl_func_00000000(&D_00000000);
-    if (flags == 0) return;
-    used = *(int *)((char *)&D_00000000 + 0x2C)
-         - *(int *)((char *)&D_00000000 + 0x08);
-    mis = (int)a & 7;
-    if (used < (int)flags) {
-        (void)used;
+    gl_func_0001CA10(0);
+    if (arg1 != 0) {
+        do {
+            var_s2 = var_s4;
+            temp_a0 = var_s5 & 7;
+            temp_v0 = *(s32 *)0x2C - *(s32 *)8;
+            if (temp_v0 < var_s4) {
+                var_s2 = temp_v0;
+            }
+            if (var_s2 != 0) {
+                if (temp_a0 != 0) {
+                    temp_v1 = 8 - temp_a0;
+                    var_v0 = 0;
+                    if (temp_v1 < var_s2) {
+                        var_s2 = temp_v1;
+                    }
+                    if (var_s2 != 0) {
+                        var_a0 = 0;
+                        var_v1 = var_s5;
+                        do {
+                            temp_t0 = *(int*)var_v1;
+                            var_v0 += 1;
+                            var_v1 += 1;
+                            var_a0 += 1;
+                            FW(var_a0, -0x1) = temp_t0;
+                        } while (var_v0 < var_s2);
+                    }
+                    gl_func_0001CA10(0, *(char *)8, 0, var_s2);
+                } else {
+                    gl_func_0001CA10(0, *(char *)8, var_s5, var_s2);
+                }
+                temp_a2 = *(char *)8 + var_s2;
+                *(char *)8 = temp_a2;
+                gl_func_0001CA10(0, *(s32 *)0x28, temp_a2);
+            }
+            temp_t4 = *(char *)8;
+            if (*(char *)0x2C == temp_t4) {
+                *(s32 *)0x14 = temp_t4;
+                gl_func_0001CA10(0, *(char *)0x28 + 0xC, temp_t4);
+                if (*(char *)0x2C != *(char *)8) {
+                    gl_func_0001CA10(0, 0x1E344);
+                }
+                gl_func_0001CA10(0, *(char *)0x28 + 8, 0x12340001);
+                if (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002) {
+                    do {
+                        gl_func_0001CA10(0);
+                    } while (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002);
+                }
+                temp_a2_2 = *(s32 *)0x24;
+                *(char *)8 = temp_a2_2;
+                gl_func_0001CA10(0, *(char *)0x28, temp_a2_2);
+                gl_func_0001CA10(0, *(char *)0x28 + 8, 0x12340003);
+                if (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002) {
+                    do {
+                        gl_func_0001CA10(0);
+                    } while (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002);
+                }
+            }
+            var_s4 -= var_s2;
+            var_s5 += var_s2;
+            if ((s32) var_s4 < 0) {
+                gl_func_0001CA10(0, 0x1E358);
+            }
+            if (var_s4 != 0) {
+                gl_func_0001CA10(0);
+            }
+        } while (var_s4 != 0);
     }
-    (void)0x12340002;
-    (void)mis;
+    gl_func_0001CA10(0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);

@@ -168,6 +168,8 @@ def cast_derefs(s):
         o.append(s[i]); i+=1
     return "".join(o)
 c = cast_derefs(c)
+# unary deref of a bare var in operator position: = *var / (*var / , *var -> *(int*)var
+c = re.sub(r'([=(,]\s*)\*([a-z_]\w*)(?!\w)(?!\s*\()', r'\1*(int*)\2', c)
 
 inject = ("\n#ifndef FW\n#define FW(p, o) (*(int *)((char *)(p) + (o)))\n#endif\n"
           "typedef char *(*%s)();\n" % GT)
