@@ -371,9 +371,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * in delay slot. Same recipe as game_libs_func_0000E044/E050. */
 void timproc_uso_b5_func_00000770(int a0) { (void)a0; }
 
-// timproc_uso_b5_func_00000778 — STRUCTURAL PASS (0x974 / 605 words,
-// no episode). Raw-.word USO form (splat can't mnemonic-disasm
-// relocatable USO; this is genuine code, NOT data).
+// timproc_uso_b5_func_00000778 — FULL m2c DECODE (68.93% NM, no episode).
+// NON-jumptable control-flow fn: no emulator/dump needed — disasm-func from
+// the expected obj, m2c direct (0 errors), then the blunt control-flow lift
+// (48 X->unkN -> FW(X,0xN), 77 placeholder calls cast via GP, void*->char*,
+// NULL->0, *NULL->*(int*)0). Raw-.word USO form (genuine code, NOT data).
 //
 // Shape: a FLAT bulk-registration routine — 76 back-to-back
 // func_00000000() calls, ZERO control flow (1 jr at end, 1 branch).
@@ -404,14 +406,93 @@ void timproc_uso_b5_func_00000770(int a0) { (void)a0; }
 //   (3 representative entries shown). Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_00000778(char *st) {
-    int v = *(int *)(st + 0x50);
-    int i;
-    static const int offsets[3] = { 0x10, 0x28, 0x130 };
-    for (i = 0; i < 3; i++) {
-        func_00000000((char *)&D_00000000 + offsets[i], (v * 9) | 0x70000);
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+typedef char *(*GP)();
+#endif
+void timproc_uso_b5_func_00000778(char *arg0) {
+    ((GP)timproc_uso_b5_func_00000000)(0x10, (FW(arg0, 0x50) * 9) | 0x70000);
+    ((GP)timproc_uso_b5_func_00000000)(0x28, 0x70000 | ((FW(arg0, 0x50) * 9) + 1));
+    ((GP)timproc_uso_b5_func_00000000)(0x130, 0x70000 | ((FW(arg0, 0x50) * 2) + 3));
+    ((GP)timproc_uso_b5_func_00000000)(0x148, 0x70000 | ((FW(arg0, 0x50) * 2) + 4));
+    ((GP)timproc_uso_b5_func_00000000)(0x160, ((*(int*)0 + 8) << 0x10) | 2);
+    ((GP)timproc_uso_b5_func_00000000)(0x178, ((*(int*)0 + 8) << 0x10) | ((FW(arg0, 0x50) * 3) + 3));
+    ((GP)timproc_uso_b5_func_00000000)(0x190, ((*(int*)0 + 8) << 0x10) | ((FW(arg0, 0x50) * 3) + 4));
+    ((GP)timproc_uso_b5_func_00000000)(0x1A8, ((*(int*)0 + 8) << 0x10) | ((FW(arg0, 0x50) * 3) + 5));
+    ((GP)timproc_uso_b5_func_00000000)(0x40, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10) | 1);
+    ((GP)timproc_uso_b5_func_00000000)(0x58, ((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10);
+    ((GP)timproc_uso_b5_func_00000000)(0x70, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10) | 2);
+    ((GP)timproc_uso_b5_func_00000000)(0x88, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10) | 4);
+    ((GP)timproc_uso_b5_func_00000000)(0xA0, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10) | 3);
+    ((GP)timproc_uso_b5_func_00000000)(0xB8, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10) | 2);
+    ((GP)timproc_uso_b5_func_00000000)(0xD0, ((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10);
+    ((GP)timproc_uso_b5_func_00000000)(0xE8, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10) | 1);
+    ((GP)timproc_uso_b5_func_00000000)(0x100, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10) | 4);
+    ((GP)timproc_uso_b5_func_00000000)(0x118, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10) | 3);
+    ((GP)timproc_uso_b5_func_00000000)(0x1C0, 0xA0000);
+    ((GP)timproc_uso_b5_func_00000000)(0x1D8, 0xA0001);
+    ((GP)timproc_uso_b5_func_00000000)(0x1F0, 0xA0002);
+    ((GP)timproc_uso_b5_func_00000000)(0x208, 0xA0003);
+    ((GP)timproc_uso_b5_func_00000000)(0x220, 0xA0004);
+    ((GP)timproc_uso_b5_func_00000000)(0x238, 0xA0005);
+    ((GP)timproc_uso_b5_func_00000000)(0x250, 0xA0006);
+    ((GP)timproc_uso_b5_func_00000000)(0x268, 0xA0007);
+    if (*(int*)0 != 0) {
+        ((GP)timproc_uso_b5_func_00000000)(0x280, 0xB0000);
+        ((GP)timproc_uso_b5_func_00000000)(0x298, 0xB0001);
+        ((GP)timproc_uso_b5_func_00000000)(0x2B0, 0xB0002);
+        ((GP)timproc_uso_b5_func_00000000)(0x2C8, 0xB0003);
+        ((GP)timproc_uso_b5_func_00000000)(0x2E0, 0xB0004);
+        ((GP)timproc_uso_b5_func_00000000)(0x2F8, 0xB0005);
+        ((GP)timproc_uso_b5_func_00000000)(0x310, 0xB0006);
+        ((GP)timproc_uso_b5_func_00000000)(0x328, 0xB0007);
     }
-    /* 73 more identical entries with offsets 0x148, …, 0x718 omitted. */
+    ((GP)timproc_uso_b5_func_00000000)(0x340, ((FW(arg0, 0x50) * 2) + 0x10) << 0x10);
+    ((GP)timproc_uso_b5_func_00000000)(0x358, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 1);
+    ((GP)timproc_uso_b5_func_00000000)(0x370, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 2);
+    ((GP)timproc_uso_b5_func_00000000)(0x388, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 3);
+    ((GP)timproc_uso_b5_func_00000000)(0x3A0, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 4);
+    ((GP)timproc_uso_b5_func_00000000)(0x3B8, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 5);
+    ((GP)timproc_uso_b5_func_00000000)(0x3D0, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 6);
+    ((GP)timproc_uso_b5_func_00000000)(0x3E8, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 7);
+    if (*(int*)0 != 0) {
+        ((GP)timproc_uso_b5_func_00000000)(0x400, ((FW(arg0, 0x50) * 2) + 0x11) << 0x10);
+        ((GP)timproc_uso_b5_func_00000000)(0x418, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 1);
+        ((GP)timproc_uso_b5_func_00000000)(0x430, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 2);
+        ((GP)timproc_uso_b5_func_00000000)(0x448, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 3);
+        ((GP)timproc_uso_b5_func_00000000)(0x460, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 4);
+        ((GP)timproc_uso_b5_func_00000000)(0x478, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 5);
+        ((GP)timproc_uso_b5_func_00000000)(0x490, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 6);
+        ((GP)timproc_uso_b5_func_00000000)(0x4A8, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 7);
+    }
+    ((GP)timproc_uso_b5_func_00000000)(0x4C0, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | (*(int*)0 * 5));
+    ((GP)timproc_uso_b5_func_00000000)(0x4D8, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | ((*(int*)0 * 5) + 1));
+    ((GP)timproc_uso_b5_func_00000000)(0x4F0, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | ((*(int*)0 * 5) + 2));
+    ((GP)timproc_uso_b5_func_00000000)(0x508, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | ((*(int*)0 * 5) + 3));
+    ((GP)timproc_uso_b5_func_00000000)(0x520, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | ((*(int*)0 * 5) + 4));
+    ((GP)timproc_uso_b5_func_00000000)(0x538, ((FW(arg0, 0x50) * 2) + 0xD) << 0x10);
+    ((GP)timproc_uso_b5_func_00000000)(0x550, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 1);
+    ((GP)timproc_uso_b5_func_00000000)(0x568, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 2);
+    ((GP)timproc_uso_b5_func_00000000)(0x580, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 3);
+    ((GP)timproc_uso_b5_func_00000000)(0x598, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 4);
+    ((GP)timproc_uso_b5_func_00000000)(0x5B0, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 5);
+    ((GP)timproc_uso_b5_func_00000000)(0x5C8, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 6);
+    ((GP)timproc_uso_b5_func_00000000)(0x5E0, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 7);
+    ((GP)timproc_uso_b5_func_00000000)(0x688, (*(int*)0 + 0x23) << 0x10);
+    ((GP)timproc_uso_b5_func_00000000)(0x6A0, ((*(int*)0 + 0x23) << 0x10) | 1);
+    ((GP)timproc_uso_b5_func_00000000)(0x6B8, ((*(int*)0 + 0x23) << 0x10) | 2);
+    ((GP)timproc_uso_b5_func_00000000)(0x640, 0x70008);
+    ((GP)timproc_uso_b5_func_00000000)(0x628, 0x70007);
+    ((GP)timproc_uso_b5_func_00000000)(0x5F8, (*(int*)0 * 0xC) | 0x80000);
+    ((GP)timproc_uso_b5_func_00000000)(0x610, ((*(int*)0 * 0xC) + 1) | 0x80000);
+    ((GP)timproc_uso_b5_func_00000000)(0x658, (FW(arg0, 0x50) * 2) | 0x1C0000);
+    ((GP)timproc_uso_b5_func_00000000)(0x670, ((FW(arg0, 0x50) * 2) + 1) | 0x1C0000);
+    ((GP)timproc_uso_b5_func_00000000)(0x6D0, 0x2F0010);
+    ((GP)timproc_uso_b5_func_00000000)(0x6E8, ((*(int*)0 + 8) << 0x10) | 9);
+    ((GP)timproc_uso_b5_func_00000000)(0x700, ((*(int*)0 + 8) << 0x10) | 0xA);
+    ((GP)timproc_uso_b5_func_00000000)(0x718, ((*(int*)0 + 8) << 0x10) | 0xB);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000778);
