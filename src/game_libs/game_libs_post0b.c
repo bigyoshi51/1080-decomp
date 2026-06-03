@@ -25622,7 +25622,39 @@ void game_libs_func_00060FFC(int *a0, int a1) {
 
 void game_libs_func_00061030(int *a0) { *(int*)((char*)a0 + 0x18) ^= 0x4; }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00061040)();
+char *game_libs_func_00061040(char *arg0, s32 arg1) {
+    s32 var_v0;
+    u8 temp_t4;
+    char *temp_a0;
+    char *temp_a0_2;
+    char *temp_a0_3;
+    char *var_a0;
+
+    var_a0 = arg0;
+    var_v0 = 0x1C;
+    do {
+        FW(var_a0, 0x0) = (u8) *(int*)((arg1 >> var_v0) & 0xF);
+        temp_a0 = var_a0 + 1;
+        FW(var_a0, 0x1) = (u8) *(int*)((arg1 >> (var_v0 + 0x1C)) & 0xF);
+        temp_a0_2 = temp_a0 + 1;
+        FW(temp_a0, 0x1) = (u8) *(int*)((arg1 >> (var_v0 + 0x18)) & 0xF);
+        temp_t4 = *(int*)((arg1 >> (var_v0 + 0x14)) & 0xF);
+        temp_a0_3 = temp_a0_2 + 1;
+        var_v0 -= 0x10;
+        var_a0 = temp_a0_3 + 1;
+        FW(temp_a0_2, 0x1) = temp_t4;
+    } while (var_v0 != -4);
+    FW(temp_a0_3, 0x1) = 0;
+    return var_a0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061040);
+#endif
 
 /* game_libs_func_000610F4: leaf-branch-past-end CAP per
  * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
