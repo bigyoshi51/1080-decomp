@@ -1211,50 +1211,124 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000232
 #endif
 
 #ifdef NON_MATCHING
-/* Partial structural decode 2026-06-01. FP draw/HUD function: scales
- * s3->0x7A0 (alpha/intensity) by 255 and issues draw calls; per-frame
- * counter s3->0x508 gates a blink draw on the s3->0x6A8 sub-object. Front
- * blocks decoded; the deeper conditional-draw/timer tail (~200 insns) left
- * for a follow-up. Cross-USO calls are the gl_func_00000000 import. */
-void mgrproc_uso_func_000023FC(char *s3) {
-    char *d = (char *)&D_00000000;
-    float quad[4];
-    int c;
 
-    quad[0] = 1.0f;
-    quad[1] = 1.0f;
-    quad[2] = 1.0f;
-    quad[3] = 1.0f;
-    if (*(int *)(s3 + 0x4F8) != 2) {
-        gl_func_00000000(d);
-        gl_func_00000000(d, (int)(255.0f * *(float *)(s3 + 0x7A0)), quad);
-        gl_func_00000000(d, 160, 140, 3);
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000023FC)();
+void mgrproc_uso_func_000023FC(char *arg0) {
+    f32 sp11C;
+    f32 sp118;
+    f32 sp114;
+    f32 sp110;
+    u8 sp90;
+    s32 sp60;
+    s32 sp5C;
+    s32 sp54;
+    s32 sp4C;
+    u8 *sp44;
+    s32 sp38;
+    s32 sp30;
+    s16 temp_v1;
+    s32 temp_a1;
+    s32 temp_s0_3;
+    s32 temp_s2;
+    s32 temp_v0;
+    s32 var_s0_2;
+    s32 var_s1;
+    s32 var_t0;
+    s32 var_t1;
+    s32 var_t2;
+    u8 *temp_a0;
+    u8 *temp_s0;
+    u8 *temp_s0_2;
+    u8 *temp_s0_4;
+    u8 *temp_s1;
+    u8 *var_s0;
+    u8 temp_v0_2;
+    char *temp_t5;
+
+    sp110 = 1.0f;
+    sp114 = 1.0f;
+    sp118 = 1.0f;
+    sp11C = 1.0f;
+    if (FW(arg0, 0x4F8) != 2) {
+        ((int(*)())mgrproc_uso_func_00000AE0)(0);
+        ((int(*)())mgrproc_uso_func_00000AE0)(0, (s32) (255.0f * FW(arg0, 0x7A0)), &sp110);
+        ((int(*)())mgrproc_uso_func_00000AE0)(0, 0xA0, (f32 *)0x8C, (char *)3);
     }
-    gl_func_00000000(d, (int)(255.0f * *(float *)(s3 + 0x7A0)), s3 + 824, s3 + 860);
-    c = *(int *)(s3 + 0x508) + 1;
-    *(int *)(s3 + 0x508) = c;
-    if (*(int *)(s3 + 0x4F8) == 0) {
-        if (gl_func_00000000(*(int *)(s3 + 0x6A8)) != 0) {
-            if (c & 8) {
-                gl_func_00000000(s3 + 1832);
-                gl_func_00000000(s3 + 1832, 160, 120, 3);
-            } else {
-                gl_func_00000000(s3 + 1856, 160, 120, 3);
+    ((int(*)())mgrproc_uso_func_00000AE0)(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x338, (int)arg0 + 0x35C);
+    FW(arg0, 0x508) = (s32) (FW(arg0, 0x508) + 1);
+    if (FW(arg0, 0x4F8) == 0) {
+        temp_s0 = (int)arg0 + 0x728;
+        if (((int(*)())mgrproc_uso_func_00000AE0)(FW(arg0, 0x6A8)) != 0) {
+            temp_s0_2 = (int)arg0 + 0x740;
+            if (FW(arg0, 0x508) & 8) {
+                ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0_2);
+                ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0_2, 0xA0, (f32 *)0x78, (char *)3);
             }
+        } else {
+            ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0);
+            ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0, 0xA0, (f32 *)0x78, (char *)3);
         }
     }
-    if ((c & 8) && (*(int *)(*(int *)(s3 + 0x528) + 0x14) & 1)) {
-        char *reg = *(char **)((char *)&D_00000000 + 312);
-        int t = *(int *)(reg + 0x30);
-        int mins = t / 60000;
-        int secs;
-        int cs;
-        t = t - mins * 60000;
-        secs = t / 1000;
-        t = t - secs * 1000;
-        cs = t / 10;
-        gl_func_00000000((int)(255.0f * *(float *)(s3 + 0x7A0)), s3 + 680, s3 + 716, mins);
-        gl_func_00000000(s3 + 1928, secs, cs);
+    if ((FW(arg0, 0x508) & 8) && (FW(FW(arg0, 0x528), 0x14) & 1)) {
+        temp_t5 = *(char **)0x138;
+        sp60 = (s32) FW(temp_t5, 0x30) / 60000;
+        sp5C = (s32) (FW(temp_t5, 0x30) % 60000) / 1000;
+        temp_s0_3 = (s32) ((FW(temp_t5, 0x30) % 60000) % 1000) / 10;
+        ((int(*)())mgrproc_uso_func_00000AE0)(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        temp_a0 = (int)arg0 + 0x788;
+        sp44 = temp_a0;
+        ((int(*)())mgrproc_uso_func_00000AE0)(temp_a0);
+        temp_s1 = (int)arg0 + 0x770;
+        temp_s2 = (s16) FW(FW(arg0, 0x798), 0x20) / 12;
+        ((int(*)())mgrproc_uso_func_00000AE0)(temp_s1);
+        ((int(*)())mgrproc_uso_func_00000AE0)(&sp90, 0x640, (f32 *) sp60, (char *) sp5C, temp_s0_3);
+        temp_v0 = ((int(*)())mgrproc_uso_func_00000AE0)(&sp90);
+        temp_v1 = FW(FW(arg0, 0x780), 0x20);
+        temp_a1 = 0xA0 - ((s32) (temp_v1 + (temp_v0 * 0xD) + 8) / 2);
+        sp4C = temp_v1 + temp_a1 + 8;
+        sp54 = temp_v0;
+        ((int(*)())mgrproc_uso_func_00000AE0)(temp_s1, temp_a1, (f32 *)0xBE, (char *)2);
+        var_t2 = temp_v0;
+        var_s0 = &sp90;
+        var_t0 = 0;
+        var_s1 = sp4C;
+        if (var_t2 > 0) {
+            var_t1 = var_t2 * 0xD;
+            do {
+                temp_v0_2 = *(int*)var_s0;
+                if (temp_v0_2 == 0x5B) {
+                    *var_s0 = 0xA;
+                } else if (temp_v0_2 == 0x5D) {
+                    *var_s0 = 0xB;
+                } else {
+                    *var_s0 = temp_v0_2 - 0x30;
+                }
+                sp54 = var_t2;
+                sp30 = var_t1;
+                sp38 = var_t0;
+                ((int(*)())mgrproc_uso_func_00000AE0)(sp44, var_s1, 0xBE - ((s16) FW(FW(arg0, 0x798), 0x22) / 2), (char *) (*(int*)var_s0 * temp_s2), temp_s2);
+                var_t0 += 0xD;
+                var_s0 += 1;
+                var_s1 += 0xD;
+            } while (var_t0 != var_t1);
+        }
+    }
+    var_s0_2 = 0;
+    if ((FW(FW(arg0, 0x528), 0x14) & 1) && (FW(arg0, 0x4FC) != 0) && (FW(FW((*(char *)0x138), 0x44), 0x38) < 3)) {
+        var_s0_2 = 1;
+    }
+    ((int(*)())mgrproc_uso_func_00000AE0)(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x2F0, (int)arg0 + 0x314);
+    temp_s0_4 = (int)arg0 + 0x758;
+    if (var_s0_2 != 0) {
+        ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0_4);
+        if (FW(arg0, 0x508) & 8) {
+            ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0_4, 0xA0, (f32 *)0xA0, (char *)3);
+        }
     }
 }
 #else
