@@ -1133,7 +1133,59 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000029F8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00002B94);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00003138)();
+char *gl_func_00003138(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
+    f32 d255 = 255.0f;
+    f32 temp_f0;
+    f32 temp_f12;
+    f32 temp_f2;
+    s32 var_s0;
+    char *temp_v0;
+    char *var_s1;
+    char *var_s3;
+
+    var_s3 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_00003138)gl_func_00000000)((char *)0x168), var_s3 = temp_v0, (temp_v0 != 0))) {
+        ((GP_00003138)gl_func_00000000)(var_s3, 0xCCD0);
+        *(int*)((char*)var_s3 + 0x28) = (int)&D_00000000;
+        FW(var_s3, 0xC) = 0xCCD8;
+        FW(var_s3, 0x50) = arg3;
+        FW(var_s3, 0x54) = arg1;
+        FW(var_s3, 0x58) = arg2;
+        ((GP_00003138)gl_func_00000000)(var_s3 + 0xF0, 0x50003);
+        ((GP_00003138)gl_func_00000000)(var_s3 + 0x108, 0x50004);
+        ((GP_00003138)gl_func_00000000)(var_s3 + 0x120, 0x50006);
+        ((GP_00003138)gl_func_00000000)(var_s3 + 0x150, 0x50005);
+        ((GP_00003138)gl_func_00000000)(var_s3 + 0x138, 0x50021);
+        var_s0 = 0;
+        var_s1 = var_s3;
+        do {
+            var_s0 += 1;
+            FW(var_s1, 0x2C) = ((GP_00003138)gl_func_00000000)(0, arg1);
+            var_s1 += 4;
+        } while (var_s0 != 8);
+        ((GP_00003138)gl_func_00000000)(var_s3);
+        temp_f0 = 255.0f / d255;
+        temp_f2 = 102.0f / d255;
+        *(f32*)((char*)var_s3 + 0xCC) = temp_f0;
+        *(f32*)((char*)var_s3 + 0xD8) = temp_f0;
+        *(f32*)((char*)var_s3 + 0xE0) = temp_f0;
+        *(f32*)((char*)var_s3 + 0xE8) = temp_f0;
+        temp_f12 = 80.0f / d255;
+        *(f32*)((char*)var_s3 + 0xD0) = temp_f2;
+        *(f32*)((char*)var_s3 + 0xDC) = temp_f2;
+        *(f32*)((char*)var_s3 + 0xD4) = temp_f12;
+        *(f32*)((char*)var_s3 + 0xE4) = temp_f12;
+    }
+    return var_s3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003138);
+#endif
 
 /* game_libs_func_00003298 (0x18, no prologue/jr): stolen FP-const prologue of
  * the successor gl_func_000032B0 — six lui/mtc1 insns materializing f4=100.0f,
