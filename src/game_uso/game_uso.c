@@ -9335,19 +9335,40 @@ void game_uso_func_0000A7D8(int *a0) {
 #ifdef NON_MATCHING
 void game_uso_func_0000A7F8(char *obj) {
     char *w = *(char **)(obj + 0x30);
-    float vec[3];
-    float scratch[3];
-    float k = *(float *)(w + 0xA8);
-    vec[0] = *(float *)(w + 0x318) * k;
-    vec[1] = *(float *)(w + 0x31C) * k;
-    vec[2] = *(float *)(w + 0x320) * k;
-    scratch[0] = *(float *)(obj + 0xB4);
-    scratch[1] = *(float *)(obj + 0xB8);
-    scratch[2] = *(float *)(obj + 0xBC);
-    func_00000000(obj, vec, scratch);
-    *(float *)(obj + 0xC0) = scratch[0];
-    *(float *)(obj + 0xC4) = scratch[1];
-    *(float *)(obj + 0xC8) = scratch[2];
+    char *r1, *m;
+    float blockA[3], scaled[3];
+    float s, d;
+    int idx;
+    char *node;
+    /* blockA = w transform (0xB4) + scaled world-vec (0x318 * obj scale 0xA8) */
+    blockA[0] = *(float *)(w + 0xB4);
+    blockA[1] = *(float *)(w + 0xB8);
+    blockA[2] = *(float *)(w + 0xBC);
+    s = *(float *)(obj + 0xA8);
+    scaled[0] = *(float *)(w + 0x318) * s;
+    scaled[1] = *(float *)(w + 0x31C) * s;
+    scaled[2] = *(float *)(w + 0x320) * s;
+    blockA[0] += scaled[0];
+    blockA[1] += scaled[1];
+    blockA[2] += scaled[2];
+    /* node = *(*(GLOBAL + obj->0x5C*4 + 0x548)) */
+    idx = *(int *)(obj + 0x5C);
+    node = *(char **)(*(char **)((char *)&D_00000000 + 0x548 + idx * 4));
+    r1 = (char *)func_00000000(obj, node, blockA);
+    if (r1 == 0) return;
+    m = *(char **)(r1 + 0x2C);
+    if (m == 0) return;
+    if (func_00000000(obj, r1, m) == 0) return;
+    /* FP threshold gate: d = blockA.z - r1->0x38; if (d<0) d += 250*r1->0x54;
+     * if (d<0) return. */
+    d = blockA[2] - *(float *)(r1 + 0x38);
+    if (d < 0.0f) d += 250.0f * *(float *)(r1 + 0x54);
+    if (d < 0.0f) return;
+    /* REMAINING (~140 insns, traced 2026-06-02): 4x func_00000000(12) dead-alloc
+     * Vec3 buffers (r1->0x2C vec, blockA, differenced against r2's 0x30/0x38),
+     * then a 2D cross-product magnitude; if it < obj->0x60, set obj->0x60=mag
+     * and obj->0x40=obj->0x5C. Tail: cnt=obj->0x5C+1; if(cnt<10) obj->0x5C=cnt;
+     * obj->0x68 &= ~4. (game_uso_func_055750 = the alloc; A374/A0E8 the calls.) */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A7F8);
