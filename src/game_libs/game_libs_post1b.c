@@ -2218,7 +2218,59 @@ void gl_func_00066C74(char *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066C74);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00066D54)();
+void gl_func_00066D54(char *arg0) {
+    u8 sp53;
+    s32 temp_s0;
+    s32 temp_s4;
+    s32 temp_v0;
+    s32 var_s1;
+    char *temp_s0_2;
+    char *temp_s2;
+
+    temp_s4 = (int)arg0 + 0x11B0;
+    ((int(*)())gl_func_00062F64)(temp_s4, (int)arg0 + 0x13EC, (int)arg0 + 0x1218);
+    var_s1 = 0;
+    do {
+        temp_s0 = 1 << var_s1;
+        if (FW(arg0, 0x13EC) & temp_s0) {
+            temp_s2 = (int)arg0 + (var_s1 * 4);
+            if (!(FW(temp_s2, 0x121B) & 8)) {
+                ((int(*)())gl_func_00062F64)(0x22570, var_s1);
+                sp53 = 0;
+                ((int(*)())gl_func_00062F64)(temp_s4, (s32) &sp53);
+                if (sp53 & temp_s0) {
+                    temp_s0_2 = (int)arg0 + (var_s1 * 0x68) + 0x1228;
+                    temp_v0 = ((int(*)())gl_func_00062F64)(temp_s4, (s32) temp_s0_2, var_s1);
+                    if (temp_v0 == 0xA) {
+                        if (((int(*)())gl_func_00062F64)(temp_s4, (s32) temp_s0_2, var_s1) != 0) {
+                            ((int(*)())gl_func_00062F64)(0x22584);
+                            FW(temp_s2, 0x13C8) = 0;
+                        } else {
+                            ((int(*)())gl_func_00062F64)(0x2258C);
+                            FW(temp_s2, 0x13C8) = 2;
+                            FW(((int)arg0 + var_s1), 0x13DC) = 1;
+                        }
+                    } else if (temp_v0 == 0) {
+                        ((int(*)())gl_func_00062F64)(0x22594);
+                        FW(temp_s2, 0x13C8) = 1;
+                    }
+                } else {
+                    ((int(*)())gl_func_00062F64)(0x22598);
+                }
+                ((int(*)())gl_func_00062F64)(0x225A0);
+            }
+        }
+        var_s1 += 1;
+    } while (var_s1 != 4);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066D54);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
