@@ -10361,7 +10361,7 @@ s32 *game_uso_func_0000B8D4(s32 *arg0, s32 arg1, s32 arg2) {
                 ((GP_0000B8D4)game_uso_func_00000000)(var_s0, var_s1_2, sp34, 1);
                 FW(var_s0, 0xC) = 0x860;
                 FW(var_s0, 0x14) = 0;
-                FW(var_s0, 0x10) = (f32) *(f32 *)0x160;
+                *(f32 *)((char *)var_s0 + 0x10) = *(f32 *)0x160;
             }
             temp_t3 = *(s32 *)0xD90;
             var_s0_2 = var_s1_2 + 0x20;
@@ -10371,7 +10371,7 @@ s32 *game_uso_func_0000B8D4(s32 *arg0, s32 arg1, s32 arg2) {
                 ((GP_0000B8D4)game_uso_func_00000000)(var_s0_2, var_s1_2, sp34, 1);
                 FW(var_s0_2, 0xC) = 0x860;
                 FW(var_s0_2, 0x14) = 0;
-                FW(var_s0_2, 0x10) = (f32) *(f32 *)0x164;
+                *(f32 *)((char *)var_s0_2 + 0x10) = *(f32 *)0x164;
             }
             temp_t7 = *(s32 *)0xD94;
             var_s0_3 = var_s1_2 + 0x38;
