@@ -7858,7 +7858,69 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070634);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070634_pad.s")
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00070694)();
+void gl_func_00070694(char *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7) {
+    f32 temp_f0;
+    f32 temp_f10;
+    f32 temp_f12;
+    f32 temp_f2;
+    f32 temp_f4;
+    f32 temp_f6;
+    f32 var_f12;
+    f32 var_f14;
+    f32 var_f16;
+    f32 var_f18;
+    s32 var_v1;
+    char *temp_v0;
+    char *var_v0;
+
+    ((int(*)())gl_func_00062F64)();
+    temp_f0 = arg2 - arg1;
+    var_v0 = arg0;
+    temp_f12 = arg6 - arg5;
+    (*(f32*)((char*)var_v0 + 0x0)) = (f32) (2.0f / temp_f0);
+    temp_f2 = arg4 - arg3;
+    (*(f32*)((char*)var_v0 + 0x28)) = (f32) (-2.0f / temp_f12);
+    (*(f32*)((char*)var_v0 + 0x14)) = (f32) (2.0f / temp_f2);
+    (*(f32*)((char*)var_v0 + 0x30)) = (f32) (-(arg2 + arg1) / temp_f0);
+    (*(f32*)((char*)var_v0 + 0x34)) = (f32) (-(arg4 + arg3) / temp_f2);
+    (*(f32*)((char*)var_v0 + 0x3C)) = 1.0f;
+    (*(f32*)((char*)var_v0 + 0x38)) = (f32) (-(arg6 + arg5) / temp_f12);
+    var_v1 = 1;
+    var_f18 = (*(f32*)((char*)var_v0 + 0x4));
+    var_f12 = (*(f32*)((char*)var_v0 + 0x0)) * arg7;
+    var_f14 = (*(f32*)((char*)var_v0 + 0x8));
+    var_f16 = (*(f32*)((char*)var_v0 + 0xC));
+    if (1 != 4) {
+        do {
+            temp_f10 = var_f18 * arg7;
+            var_f18 = (*(f32*)((char*)var_v0 + 0x14));
+            temp_f6 = var_f14 * arg7;
+            var_f14 = (*(f32*)((char*)var_v0 + 0x18));
+            var_v1 += 1;
+            temp_f4 = var_f16 * arg7;
+            var_f16 = (*(f32*)((char*)var_v0 + 0x1C));
+            (*(f32*)((char*)var_v0 + 0x0)) = var_f12;
+            var_f12 = (*(f32*)((char*)var_v0 + 0x10)) * arg7;
+            (*(f32*)((char*)var_v0 + 0x4)) = temp_f10;
+            (*(f32*)((char*)var_v0 + 0x8)) = temp_f6;
+            var_v0 += 0x10;
+            (*(f32*)((char*)var_v0 + -0x4)) = temp_f4;
+        } while (var_v1 != 4);
+    }
+    temp_v0 = var_v0 + 0x10;
+    (*(f32*)((char*)temp_v0 + -0x10)) = var_f12;
+    (*(f32*)((char*)temp_v0 + -0xC)) = (f32) (var_f18 * arg7);
+    (*(f32*)((char*)temp_v0 + -0x8)) = (f32) (var_f14 * arg7);
+    (*(f32*)((char*)temp_v0 + -0x4)) = (f32) (var_f16 * arg7);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070694);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000707E8: 26-insn float-forwarding wrapper. Receives 7 floats (a1-a3
