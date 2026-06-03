@@ -3363,20 +3363,13 @@ void timproc_uso_b5_func_0000896C(char *a0) {
 
 /* timproc_uso_b5_func_00008988: 37-insn (0x94) array-scan loop. BOUNDARY
  * MERGED 2026-06-02: splat over-split off the loop bottom as a separate
- * symbol (000089DC, 16-insn tail with a backward branch to 0x89B0 inside
- * this body). Absorbed 89DC's 16 words into 8988 (0x54 -> 0x94); dropped
- * the 89DC symbol. Body walks a0->0x40C[a1] entries counting a predicate
- * match (f0==entry->0x3C->0x2A4 / a2==...->0x2B0), returns the count.
+ * symbols (000089DC 16-insn + 00008A1C 7-insn — TWO loop-bottom tails, each
+ * with a backward branch landing inside this body: 89DC->0x89B0, 8A1C->0x89FC).
+ * Absorbed both (0x54 -> 0xB0, ends right before the fresh accessor at 0x8A38);
+ * dropped the 89DC and 8A1C symbols. Body walks a0->0x40C[a1] entries counting
+ * a predicate match (f0==entry->0x3C->0x2A4 / a2==...->0x2B0), returns the count.
  * Reloc-blind (USO); stays INCLUDE_ASM until the entry struct is typed. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008988);
-
-/* timproc_uso_b5_func_00008A1C: 7-insn loop-bottom tail-fragment:
- *   addiu v1,v1,1; slt at,v1,a3; bne at,zero,-0x2C; addiu a0,a0,4;
- *   move v0,zero; jr ra; nop
- * Caller-set $v1/$a3 + backward branch to 0x89FC (before this .s start
- * 0x8A1C). Splat captured loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008A1C);
 
 /* timproc_uso_b5_func_00008A38/A64/A90: indexed double-deref accessors. The
  * addu operand-order lever (scaled index FIRST, fully inlined — no named
