@@ -25782,7 +25782,75 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB58);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005DDE4)();
+void gl_func_0005DDE4(char *arg0, char *arg1) {
+    f32 sp40;
+    f32 sp3C;
+    f32 sp38;
+    f32 sp34;
+    f32 sp30;
+    f32 sp2C;
+    f32 sp28;
+    f32 sp24;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f0_3;
+    f32 temp_f12;
+    f32 temp_f14;
+    f32 temp_f16;
+    f32 temp_f18;
+    f32 temp_f22;
+    f32 temp_f2;
+    f32 temp_f8;
+    f32 var_f20;
+
+    temp_f2 = (*(f32*)((char*)arg1 + 0x0));
+    temp_f12 = (*(f32*)((char*)arg1 + 0x4));
+    temp_f18 = (*(f32*)((char*)arg1 + 0x8));
+    temp_f14 = (*(f32*)((char*)arg1 + 0xC));
+    temp_f0 = (temp_f2 * temp_f2) + (temp_f12 * temp_f12) + (temp_f18 * temp_f18) + (temp_f14 * temp_f14);
+    if (temp_f0 > 0.0f) {
+        var_f20 = 2.0f / temp_f0;
+    } else {
+        var_f20 = 0.0f;
+    }
+    temp_f16 = temp_f2 * var_f20;
+    temp_f0_2 = temp_f12 * var_f20;
+    temp_f22 = temp_f18 * var_f20;
+    sp40 = temp_f14 * temp_f16;
+    temp_f8 = temp_f2 * temp_f16;
+    sp3C = temp_f14 * temp_f0_2;
+    sp38 = temp_f14 * temp_f22;
+    sp34 = temp_f8;
+    sp30 = temp_f2 * temp_f0_2;
+    sp2C = temp_f2 * temp_f22;
+    temp_f0_3 = temp_f18 * temp_f22;
+    sp28 = temp_f12 * temp_f0_2;
+    sp24 = temp_f12 * temp_f22;
+    (*(f32*)((char*)arg0 + 0x10)) = (f32) (sp30 + sp38);
+    (*(f32*)((char*)arg0 + 0x0)) = (f32) (1.0f - (sp28 + temp_f0_3));
+    (*(f32*)((char*)arg0 + 0x4)) = (f32) (sp30 - sp38);
+    (*(f32*)((char*)arg0 + 0x20)) = (f32) (sp2C - sp3C);
+    (*(f32*)((char*)arg0 + 0x14)) = (f32) (1.0f - (temp_f8 + temp_f0_3));
+    (*(f32*)((char*)arg0 + 0x24)) = (f32) (sp24 + sp40);
+    (*(f32*)((char*)arg0 + 0x8)) = (f32) (sp2C + sp3C);
+    (*(f32*)((char*)arg0 + 0x18)) = (f32) (sp24 - sp40);
+    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x30)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x34)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x38)) = 0.0f;
+    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
+    (*(f32*)((char*)arg0 + 0x28)) = (f32) (1.0f - (sp34 + sp28));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DDE4);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_0005DF64: copy 16 floats a0[] -> a1[] (e.g. a 4x4 matrix).
