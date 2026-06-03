@@ -38988,14 +38988,16 @@ int game_libs_func_00067D80(int a0) {
     return 0;
 }
 
+/* game_libs_func_00067D8C: 51-insn (0xCC) hex-string parser. BOUNDARY MERGED
+ * 2026-06-02: splat over-split the hex-digit accumulation loop tail as a
+ * separate symbol (00067E28, whose `bnel` branches backward to 0x67DCC inside
+ * this body; 67D8C's success paths branch forward into it). Absorbed 67E28's
+ * 12 words into 67D8C (0x9C -> 0xCC, ending exactly at the next func 0x67E58);
+ * dropped the 67E28 symbol (no external callers). Parses a "0x"-prefixed hex
+ * string; on a non-"0x" prefix it tail-BRANCHES (PC-relative, not a call) to
+ * the decimal parser game_libs_func_00067E58 — those inter-function branches
+ * are intentional, not a missing fragment. Reloc-blind USO; stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D8C);
-
-/* game_libs_func_00067E28: 12-insn comparison loop-bottom tail-fragment.
- * Has caller-set $v0/$a1/$a2 + a `bnel a2,zero,-0x80` backward branch to
- * 0x67DCC (before .s start 0x67E28). Splat captured loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * Needs splat boundary correction (focused-session). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E28);
 
 // Merged fragment: splat split this string-to-int parser at the mid-function
 // jr ra (0x67E90) into _00067E58 + _00067E98; the tail's `b` loops back into
