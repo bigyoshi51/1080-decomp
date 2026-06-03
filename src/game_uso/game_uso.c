@@ -5979,34 +5979,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
  * single-scale-load regressed to 69.80% because it grew the frame to 0x90. */
 void game_uso_func_00006CF0(int *a0) {
     int *sub;
-    int base_vec[3];
-    int scaled_vec[3];
-    int tmp_vec[3];
-    int added_vec[3];
-    int pad[12];
+    V3_6A30 base_vec, scaled_vec, tmp_vec, added_vec;
+    int pad[10];
     register int dispatch_arg;
     int timer;
 
     (void)pad;
     sub = *(int**)((char*)a0 + 0x30);
-    base_vec[0] = *(int*)((char*)sub + 0xB4);
-    base_vec[1] = *(int*)((char*)sub + 0xB8);
-    base_vec[2] = *(int*)((char*)sub + 0xBC);
+    /* dead builder vec: base = sub->0xB4 (Vec3 struct copy -> int lw/sw),
+     * += scale(sub->0x318 * a0->0xA8) via two struct-copy intermediates. */
+    base_vec = *(V3_6A30 *)((char*)sub + 0xB4);
 
-    *(float*)&scaled_vec[0] = *(float*)((char*)sub + 0x318) * *(float*)((char*)a0 + 0xA8);
-    *(float*)&scaled_vec[1] = *(float*)((char*)sub + 0x31C) * *(float*)((char*)a0 + 0xA8);
-    *(float*)&scaled_vec[2] = *(float*)((char*)sub + 0x320) * *(float*)((char*)a0 + 0xA8);
+    scaled_vec.x = *(float*)((char*)sub + 0x318) * *(float*)((char*)a0 + 0xA8);
+    scaled_vec.y = *(float*)((char*)sub + 0x31C) * *(float*)((char*)a0 + 0xA8);
+    scaled_vec.z = *(float*)((char*)sub + 0x320) * *(float*)((char*)a0 + 0xA8);
 
-    tmp_vec[0] = scaled_vec[0];
-    tmp_vec[1] = scaled_vec[1];
-    tmp_vec[2] = scaled_vec[2];
-    added_vec[0] = tmp_vec[0];
-    added_vec[1] = tmp_vec[1];
-    added_vec[2] = tmp_vec[2];
+    tmp_vec = scaled_vec;
+    added_vec = tmp_vec;
 
-    *(float*)&base_vec[0] += *(float*)&added_vec[0];
-    *(float*)&base_vec[1] += *(float*)&added_vec[1];
-    *(float*)&base_vec[2] += *(float*)&added_vec[2];
+    base_vec.x = base_vec.x + added_vec.x;
+    base_vec.y = base_vec.y + added_vec.y;
+    base_vec.z = base_vec.z + added_vec.z;
 
     dispatch_arg = 0;
     if (*(int*)((char*)a0 + 0x6C) == 0) {
