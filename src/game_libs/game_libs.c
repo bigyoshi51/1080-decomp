@@ -2784,7 +2784,52 @@ char *gl_func_00004244(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00004244);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00006900)();
+void gl_func_00006900(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
+    char *sp28;
+    char *temp_v0;
+    char *temp_v0_2;
+
+    FW(arg0, 0xC) = arg2;
+    FW(arg0, 0x4C) = arg3;
+    FW(arg0, 0x4F0) = arg1;
+    if (arg1 & 0x10000) {
+        if (FW(arg0, 0x568) == 0) {
+            temp_v0 = ((GP_00006900)gl_func_00000000)(0, 0, 0x48, 0xEE, 3, 0xE);
+            FW(arg0, 0x568) = temp_v0;
+            ((GP_00006900)gl_func_00000000)(temp_v0, (char *)-8);
+        }
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x588, (char *)0x60000);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x5A0, (char *)0x60003);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x5B8, (char *)0x60004);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x5D0, (char *)0x60005);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x5E8, (char *)0x60001);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x600, (char *)0x60002);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x618, (char *)0x60006);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x630, (char *)0x60007);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x660, (char *)0x60008);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x678, (char *)0x60009);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x690, (char *)0x6000A);
+        ((GP_00006900)gl_func_00000000)((int)arg0 + 0x648, (char *)0x6000B);
+    }
+    FW(arg0, 0x4D8) = 0;
+    ((GP_00006900)gl_func_00000000)(arg0, (char *)1, 0xD010);
+    temp_v0_2 = ((GP_00006900)gl_func_00000000)(0, (char *)0xD020);
+    FW(arg0, 0x56C) = temp_v0_2;
+    sp28 = temp_v0_2;
+    ((GP_00006900)gl_func_00000000)((int)arg0 + 0x10, temp_v0_2);
+    if (FW(sp28, 0x14) != 0) {
+        FW(sp28, 0x4) = 1;
+    }
+    FW(sp28, 0x14) = arg0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006900);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00006A8C(char *a0, int a1) {
