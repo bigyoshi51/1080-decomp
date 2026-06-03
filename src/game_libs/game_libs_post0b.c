@@ -25294,7 +25294,100 @@ int gl_func_00061458() {
     return gl_func_00000000();
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00061478)();
+void gl_func_00061478(u8 *arg0, s8 arg1, int arg2, int arg3) {
+    s32 sp38;
+    s32 sp28;
+    s32 *var_s0_2;
+    s32 var_s0;
+    s32 var_v0_2;
+    u8 *temp_t1;
+    u8 *temp_t9;
+    u8 *temp_t9_2;
+    u8 temp_v0;
+    u8 var_v0;
+
+    ((int(*)())gl_func_00034458)(0x21E14);
+    temp_t9 = arg0;
+    var_s0 = (s32) &arg1 & ~3;
+    sp28 = var_s0;
+    arg0 = temp_t9 + 1;
+    var_v0 = *(int*)temp_t9;
+    if (var_v0 != 0) {
+        do {
+            switch (var_v0) {                       /* switch 1; irregular */
+            case 0x25:                              /* switch 1 */
+                temp_t1 = arg0;
+                arg0 = temp_t1 + 1;
+                temp_v0 = *(int*)temp_t1;
+                switch (temp_v0) {                  /* switch 2; irregular */
+                case 0x64:                          /* switch 2 */
+                    var_s0 = (var_s0 + 7) & ~3;
+                    ((int(*)())gl_func_00034458)(0x21E48, (u8) FW(var_s0, -0x4));
+                    break;
+                case 0x66:                          /* switch 2 */
+                    var_s0 = (var_s0 + 0xF) & ~7;
+                    ((int(*)())gl_func_00034458)(0x21E4C, temp_v0, FW(var_s0, -0x8), FW(var_s0, -0x4));
+                    break;
+                case 0x73:                          /* switch 2 */
+                    var_s0 = (var_s0 + 7) & ~3;
+                    ((int(*)())gl_func_00034458)(0x21E50, (u8) FW(var_s0, -0x4));
+                    break;
+                case 0x63:                          /* switch 2 */
+                    var_s0 = (var_s0 + 7) & ~3;
+                    ((int(*)())gl_func_00034458)(0x21E54, FW(var_s0, -0x1));
+                    break;
+                case 0x78:                          /* switch 2 */
+                    var_s0 = (var_s0 + 7) & ~3;
+                    ((int(*)())gl_func_00034458)(0x21E58, (u8) FW(var_s0, -0x4));
+                    break;
+                case 0x72:                          /* switch 2 */
+                    ((int(*)())gl_func_00034458)(FW((*(int*)0 * 4), -0x4), temp_v0);
+                    break;
+                default:                            /* switch 2 */
+                    ((int(*)())gl_func_00034458)(0x21E5C, temp_v0);
+                    break;
+                }
+                break;
+            case 0x5C:                              /* switch 1 */
+                ((int(*)())gl_func_00034458)(0x21E60, var_v0);
+                break;
+            case 0xA:                               /* switch 1 */
+                ((int(*)())gl_func_00034458)(0x21E64, var_v0);
+                break;
+            default:                                /* switch 1 */
+                ((int(*)())gl_func_00034458)(0x21E68, var_v0);
+                break;
+            }
+            temp_t9_2 = arg0;
+            arg0 = temp_t9_2 + 1;
+            var_v0 = *(int*)temp_t9_2;
+        } while (var_v0 != 0);
+    }
+    ((int(*)())gl_func_00034458)(0x21E6C);
+    var_s0_2 = 0;
+    var_v0_2 = 0;
+    if (*(int*)0 > 0) {
+        do {
+            sp38 = var_v0_2;
+            ((int(*)())gl_func_00034458)(0x21E70, (u8) *var_s0_2);
+            var_s0_2 += 4;
+            var_v0_2 += 1;
+        } while (var_v0_2 < *(int*)0);
+    }
+    ((int(*)())gl_func_00034458)(0x21E7C);
+    ((int(*)())gl_func_00034458)(0x21E80);
+loop_26:
+    ((int(*)())gl_func_00034458)();
+    goto loop_26;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061478);
+#endif
 
 extern int D_6170C_idx;
 extern int D_6170C_arr[];
