@@ -4919,7 +4919,7 @@ void timproc_uso_b5_func_000080F4(char *arg0) {
         FW(arg0, 0x3C4) = ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, temp_v0_4);
         FW(arg0, 0x3CC) = 8;
         ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0);
-        FW(arg0, 0x484) = 1.0f;
+        *(f32 *)((char *)arg0 + 0x484) = 1.0f;
         ((GP_000080F4)timproc_uso_b5_func_00000000)(arg0, 0);
         return;
     }
