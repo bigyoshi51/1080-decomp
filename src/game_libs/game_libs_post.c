@@ -13867,7 +13867,17 @@ int game_libs_func_0003443C(void) {
 
 /* game_libs_func_00034448: returns &D_0 + 0x1E3EC. Target has UNFILLED delay
  * slot (3-insn body + nop, 4 total); -O2 C-emit fills delay with the addiu
- * (3 insns total). Same -g-needed cap class as siblings 0003443C/00034430. */
+ * (3 insns total). Same -g-needed cap class as siblings 0003443C/00034430.
+ * VERIFIED 2026-06-02: an isolated `OPT_FLAGS := -O2 -g3` carve of THIS exact
+ * NM body builds BYTE-IDENTICAL to expected (lui 0x2 / addiu -7188 / jr ra /
+ * nop; the HI16/LO16 relocs resolve to the same bytes at link). So this (and
+ * the whole unfilled-jr-delay cohort) IS matchable at -O2 -g3 — NOT a codegen
+ * cap. The ONLY blocker is mechanical: game_libs_post.c is one sequential .o
+ * (tenshoe.ld), so carving a mid-file function needs a 3-way source split
+ * (post.c[before] + g3-carve + post2.c[after]) + per-file TRUNCATE_TEXT +
+ * 3-file expected regen. 34448 sits early in post.c (~600 fns would move to
+ * post2.c) so its carve is expensive; the cheap end-of-post.c slots (74D54,
+ * 747F4) are RA-caps/bundles, not delay caps. Focused-session infra task. */
 #ifdef NON_MATCHING
 int game_libs_func_00034448(void) {
     return (int)((char *)&D_00000000 + 0x1E3EC);
