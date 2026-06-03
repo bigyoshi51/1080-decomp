@@ -759,7 +759,91 @@ void timproc_uso_b3_func_00001240(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001240);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef int (*GP_000013B8)();
+void timproc_uso_b3_func_000013B8(char *arg0, s32 arg1, f32 *arg2) {
+    f32 sp144;
+    f32 sp140;
+    f32 sp13C;
+    f32 sp138;
+    u8 spB8;
+    s32 sp94;
+    s32 sp90;
+    s32 sp88;
+    u8 *sp64;
+    u8 *sp60;
+    f32 *sp58;
+    f32 *temp_a2;
+    s32 temp_a1;
+    s32 temp_s1_2;
+    s32 temp_s2_2;
+    s32 temp_s5;
+    s32 temp_v0;
+    s32 var_s1;
+    s32 var_s2;
+    u8 *temp_s0;
+    u8 *temp_s1;
+    u8 *temp_s2;
+    u8 *temp_s7;
+    u8 *var_s0;
+    char *temp_t1;
+    char *temp_t2;
+    char *temp_t3;
+
+    sp138 = 1.0f;
+    sp13C = 1.0f;
+    sp140 = 1.0f;
+    sp144 = 1.0f;
+    if (FW(FW(arg0, 0x528), 0x14) & 2) {
+        ((int(*)())timproc_uso_b3_func_000000B0)(0, (s32) (255.0f * FW(arg0, 0x72C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        temp_s7 = (int)arg0 + 0x714;
+        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s7);
+        temp_s1 = (int)arg0 + 0x6CC;
+        temp_s5 = (s16) FW(FW(arg0, 0x724), 0x20) / 12;
+        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s1);
+        temp_s2 = (int)arg0 + 0x6B4;
+        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s2);
+        temp_s0 = (int)arg0 + 0x6FC;
+        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s0);
+        ((int(*)())timproc_uso_b3_func_000000B0)(&spB8, 0x3D8, arg2);
+        sp64 = temp_s1;
+        sp60 = temp_s2;
+        temp_v0 = ((int(*)())timproc_uso_b3_func_000000B0)(&spB8);
+        temp_t3 = FW(arg0, 0x70C);
+        temp_t1 = FW(arg0, 0x6DC);
+        temp_t2 = FW(arg0, 0x6C4);
+        temp_a2 = (int)arg1 + 0x32;
+        temp_s1_2 = 0xA0 - ((s32) (FW(temp_t3, 0x20) + (temp_v0 * 0xD) + FW(temp_t1, 0x20) + FW(temp_t2, 0x20) + 0x10) / 2);
+        temp_s2_2 = FW(temp_t2, 0x20) + temp_s1_2 + 4;
+        temp_a1 = FW(temp_t1, 0x20) + temp_s2_2 + 4;
+        sp88 = FW(temp_t3, 0x20) + temp_a1 + 8;
+        sp90 = temp_s2_2;
+        sp94 = temp_s1_2;
+        sp58 = temp_a2;
+        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s0, temp_a1, temp_a2, (char *)2);
+        var_s0 = &spB8;
+        if (temp_v0 > 0) {
+            var_s1 = 0;
+            var_s2 = sp88;
+            do {
+                *var_s0 -= 0x30;
+                ((int(*)())timproc_uso_b3_func_000000B0)(temp_s7, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x724), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s5), temp_s5);
+                var_s1 += 0xD;
+                var_s0 += 1;
+                var_s2 += 0xD;
+            } while (var_s1 != (temp_v0 * 0xD));
+        }
+        ((int(*)())timproc_uso_b3_func_000000B0)(0, (s32) (255.0f * FW(arg0, 0x72C)), &sp138);
+        ((int(*)())timproc_uso_b3_func_000000B0)(sp64, sp90, sp58, (char *)2);
+        ((int(*)())timproc_uso_b3_func_000000B0)(sp60, sp94, sp58, (char *)2);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000013B8);
+#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00001660: 90-insn (0x168) 3-stage chained
