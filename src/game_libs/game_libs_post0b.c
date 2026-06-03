@@ -25967,7 +25967,77 @@ void gl_func_0005CCF4(char *arg0, char *arg1, char *arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CCF4);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005CE68)();
+void gl_func_0005CE68(char *arg0, char *arg1, f32 arg2, s32 arg3) {
+    f32 sp44;
+    f32 sp40;
+    f32 sp3C;
+    f32 sp34;
+    s32 sp30;
+    f32 sp2C;
+    f32 sp24;
+    f32 sp20;
+    f32 sp1C;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f2;
+    f32 temp_f2_2;
+    f32 temp_f8;
+    f32 var_f12;
+    f32 var_f14;
+    f32 var_f16;
+    f32 var_f18;
+    f32 var_f2;
+
+    var_f18 = (*(f32*)((char*)arg1 + 0x0));
+    var_f16 = (*(f32*)((char*)arg0 + 0x0));
+    sp24 = (*(f32*)((char*)arg0 + 0x4));
+    sp20 = (*(f32*)((char*)arg0 + 0x8));
+    temp_f8 = (*(f32*)((char*)arg0 + 0xC));
+    var_f14 = arg2;
+    sp1C = temp_f8;
+    var_f12 = (var_f16 * var_f18) + (sp24 * (*(f32*)((char*)arg1 + 0x4))) + (sp20 * (*(f32*)((char*)arg1 + 0x8))) + (temp_f8 * (*(f32*)((char*)arg1 + 0xC)));
+    if ((f64) var_f12 < 0.0) {
+        var_f12 = -var_f12;
+        sp30 = 1;
+    } else {
+        sp30 = 0;
+    }
+    if ((f64) (1.0f - var_f12) < (*(f64*)((char*)&D_00000000 + 0x2038))) {
+        var_f2 = 1.0f - var_f14;
+    } else {
+        temp_f0 = ((f32(*)())gl_func_00034458)(var_f12, var_f14);
+        sp40 = temp_f0;
+        sp34 = temp_f0 + ((f32) arg3 * (*(f32*)((char*)&D_00000000 + 0x2040)));
+        sp3C = ((f32(*)())gl_func_00034458)(temp_f0);
+        temp_f2 = arg2 * sp34;
+        sp2C = temp_f2;
+        temp_f2_2 = ((f32(*)())gl_func_00034458)(sp40 - temp_f2, arg2) / sp3C;
+        sp44 = temp_f2_2;
+        temp_f0_2 = ((f32(*)())gl_func_00034458)(sp2C);
+        var_f16 = (*(f32*)((char*)arg0 + 0x0));
+        var_f18 = (*(f32*)((char*)arg1 + 0x0));
+        sp24 = (*(f32*)((char*)arg0 + 0x4));
+        var_f2 = temp_f2_2;
+        var_f14 = temp_f0_2 / sp3C;
+        sp20 = (*(f32*)((char*)arg0 + 0x8));
+        sp1C = (*(f32*)((char*)arg0 + 0xC));
+    }
+    if (sp30 != 0) {
+        var_f14 = -var_f14;
+    }
+    (*(f32*)((char*)arg0 + 0x0)) = (f32) ((var_f2 * var_f16) + (var_f14 * var_f18));
+    (*(f32*)((char*)arg0 + 0x4)) = (f32) ((var_f2 * sp24) + (var_f14 * (*(f32*)((char*)arg1 + 0x4))));
+    (*(f32*)((char*)arg0 + 0x8)) = (f32) ((var_f2 * sp20) + (var_f14 * (*(f32*)((char*)arg1 + 0x8))));
+    (*(f32*)((char*)arg0 + 0xC)) = (f32) ((var_f2 * sp1C) + (var_f14 * (*(f32*)((char*)arg1 + 0xC))));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005D054: quaternion (Hamilton) product a2 = a0 * a1 (x,y,z,w at
