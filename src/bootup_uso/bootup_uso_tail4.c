@@ -3,6 +3,7 @@
 extern int func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
+extern int func_00012E00();
 
 
 /* func_00012E00 - verified structural decode (0x24C, 147 insns,
@@ -255,7 +256,122 @@ void func_00013CE8(Quad4 *dst) {
  * guards + &D descriptors + cross-symbol (func_0000CACC) ref.
  * Full body INCLUDE_ASM-preserved (.s = source of truth).
  * INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00013D40)();
+char *func_00013D40(char *arg0) {
+    s32 sp4C;
+    s32 sp48;
+    s32 sp44;
+    s32 sp40;
+    s32 sp3C;
+    s32 sp38;
+    char *sp28;
+    s32 sp24;
+    s32 temp_t2;
+    s32 temp_t2_2;
+    s32 temp_t2_3;
+    s32 temp_t7;
+    s32 temp_t7_2;
+    s32 temp_t7_3;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *temp_v0_8;
+    char *var_a0;
+    char *var_a0_2;
+    char *var_a0_3;
+    char *var_a0_4;
+    char *var_a0_5;
+    char *var_a0_6;
+    char *var_s0;
+    char *var_v1;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((int(*)())func_00012E00)((char *)0x98), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = ((int(*)())func_00012E00)((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            FW(var_v1, 0x0) = 0;
+            FW(var_v1, 0x4) = 0;
+        }
+        temp_t7 = *(int*)0;
+        var_a0 = var_s0 + 8;
+        sp4C = temp_t7;
+        sp24 = temp_t7;
+        if ((var_s0 != (char *)-8) || (temp_v0_3 = ((int(*)())func_00012E00)((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+            sp28 = var_a0;
+            ((int(*)())func_00012E00)(var_a0, var_s0, sp24, 1);
+            FW(var_a0, 0x10) = 0x1E;
+            FW(var_a0, 0xC) = 0;
+            FW(var_a0, 0x14) = 0;
+        }
+        temp_t2 = *(int*)0;
+        var_a0_2 = var_s0 + 0x20;
+        sp48 = temp_t2;
+        sp24 = temp_t2;
+        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = ((int(*)())func_00012E00)((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
+            sp28 = var_a0_2;
+            ((int(*)())func_00012E00)(var_a0_2, var_s0, sp24, 1);
+            FW(var_a0_2, 0x10) = 0x1E;
+            FW(var_a0_2, 0xC) = 0;
+            FW(var_a0_2, 0x14) = 0;
+        }
+        temp_t7_2 = *(int*)0;
+        var_a0_3 = var_s0 + 0x38;
+        sp44 = temp_t7_2;
+        sp24 = temp_t7_2;
+        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = ((int(*)())func_00012E00)((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
+            sp28 = var_a0_3;
+            ((int(*)())func_00012E00)(var_a0_3, var_s0, sp24, 1);
+            FW(var_a0_3, 0x10) = 2;
+            FW(var_a0_3, 0xC) = 0;
+            FW(var_a0_3, 0x14) = 0;
+        }
+        temp_t2_2 = *(int*)0;
+        var_a0_4 = var_s0 + 0x50;
+        sp40 = temp_t2_2;
+        sp24 = temp_t2_2;
+        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = ((int(*)())func_00012E00)((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
+            sp28 = var_a0_4;
+            ((int(*)())func_00012E00)(var_a0_4, var_s0, sp24, 1);
+            FW(var_a0_4, 0x10) = -0xC;
+            FW(var_a0_4, 0xC) = 0;
+            FW(var_a0_4, 0x14) = 0;
+        }
+        temp_t7_3 = *(s32 *)4;
+        var_a0_5 = var_s0 + 0x68;
+        sp3C = temp_t7_3;
+        sp24 = temp_t7_3;
+        if ((var_s0 != (char *)-0x68) || (temp_v0_7 = ((int(*)())func_00012E00)((char *)0x18), var_a0_5 = temp_v0_7, (temp_v0_7 != 0))) {
+            sp28 = var_a0_5;
+            ((int(*)())func_00012E00)(var_a0_5, var_s0, sp24, 1);
+            FW(var_a0_5, 0x10) = 2;
+            FW(var_a0_5, 0xC) = 0;
+            FW(var_a0_5, 0x14) = 0;
+        }
+        temp_t2_3 = *(s32 *)8;
+        var_a0_6 = var_s0 + 0x80;
+        sp38 = temp_t2_3;
+        sp24 = temp_t2_3;
+        if ((var_s0 != (char *)-0x80) || (temp_v0_8 = ((int(*)())func_00012E00)((char *)0x18), var_a0_6 = temp_v0_8, (temp_v0_8 != 0))) {
+            sp28 = var_a0_6;
+            ((int(*)())func_00012E00)(var_a0_6, var_s0, sp24, 1);
+            FW(var_a0_6, 0x10) = -0xC;
+            FW(var_a0_6, 0xC) = 0;
+            FW(var_a0_6, 0x14) = 0;
+        }
+    }
+    return var_s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013D40);
+#endif
 
 void func_00013FE0(char *a0, int a1, int a2) {
     *(int*)(a0 + 0x44) = a1;
