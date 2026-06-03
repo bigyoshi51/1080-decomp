@@ -331,7 +331,60 @@ void game_libs_func_00000B8C(int a0) {}
  * (body: mflo of B94's multu, prologue, sprintf-style calls, epilogue). The
  * multu(B94)/mflo(BAC) LO-register dependency proves they are one function;
  * IDO scheduled the division setup before the addiu sp prologue. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00000B94)();
+void game_libs_func_00000B94(char *arg0, s32 arg1, s32 arg2) {
+    s32 sp24;
+    s32 temp_a2;
+    s32 temp_a3;
+    s32 temp_lo;
+    s32 temp_v0;
+    s32 temp_v1;
+
+    temp_a3 = arg1 % 60000;
+    FW(arg0, 0xC8) = arg2;
+    temp_v1 = (temp_a3 / 1000) + ((arg1 / 60000) * 0x3C);
+    FW(arg0, 0xD0) = temp_v1;
+    if (temp_v1 == 0) {
+        temp_lo = (s32) ((arg1 % 60000) % 1000) / 10;
+        sp24 = temp_lo;
+        if (temp_lo != 0) {
+            goto block_4;
+        }
+        goto block_5;
+    }
+block_4:
+    sp24 = (s32) ((arg1 % 60000) % 1000) / 10;
+    if (FW(arg0, 0xC8) == 0) {
+block_5:
+        FW(arg0, 0xC4) = 8;
+    }
+    temp_a2 = FW(arg0, 0xD0);
+    if (temp_a2 >= 0x64) {
+        gl_func_00000000((int)arg0 + 0xB4, 0xCB9C, temp_a2, temp_a3);
+    } else if (temp_a2 >= 0xA) {
+        gl_func_00000000((int)arg0 + 0xB4, 0xCBA0, temp_a2, temp_a3);
+    } else {
+        if (temp_a2 != FW(arg0, 0xCC)) {
+            gl_func_00000000((char *)0x13, temp_a2, temp_a2, temp_a3);
+        }
+        temp_v0 = FW(arg0, 0xC4);
+        FW(arg0, 0xC4) = (s32) (temp_v0 + 1);
+        if (temp_v0 & 8) {
+            gl_func_00000000((int)arg0 + 0xB4, 0xCBA8, FW(arg0, 0xD0));
+        } else {
+            gl_func_00000000((int)arg0 + 0xB4, 0xCBB0, FW(arg0, 0xD0));
+        }
+        FW(arg0, 0xCC) = (s32) FW(arg0, 0xD0);
+    }
+    gl_func_00000000((int)arg0 + 0xBC, 0xCBB8, sp24);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B94);
+#endif
 
 /* gl_func_00000D5C - verified structural decode (0x118, 70 insns,
  * get-or-create constructor + child wiring).
