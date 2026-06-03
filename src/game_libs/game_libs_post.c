@@ -3927,7 +3927,71 @@ int gl_func_00020ED0(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00020FFC)();
+void game_libs_func_00020FFC(void) {
+    s32 temp_a0;
+    s32 temp_a2;
+    s32 temp_a2_4;
+    s32 temp_a2_5;
+    s32 temp_a2_6;
+    s32 var_a1;
+    s32 var_v0;
+    s32 var_v1;
+    u16 temp_a2_2;
+    u16 temp_a2_3;
+    u16 temp_t2;
+    u16 temp_t4;
+    u16 temp_t6;
+
+    var_v0 = 1;
+    if (*(s16 *)0x2034 == 2) {
+        var_v0 = 2;
+    }
+    var_v1 = 0;
+    if (*(s16 *)1 > 0) {
+        do {
+            var_a1 = 0;
+            if (var_v0 > 0) {
+                temp_a2 = var_v0 & 3;
+                temp_a0 = var_v1 * 0x158;
+                if (temp_a2 != 0) {
+                    do {
+                        temp_a2_2 = FW(temp_a0, 0x24);
+                        var_a1 += 1;
+                        FW(temp_a0, 0x24) = (u16) (temp_a2_2 - ((s32) temp_a2_2 / 4));
+                    } while (temp_a2 != var_a1);
+                    if (var_a1 != var_v0) {
+                        goto loop_8;
+                    }
+                } else {
+                    do {
+loop_8:
+                        temp_a2_3 = FW(temp_a0, 0x24);
+                        var_a1 += 4;
+                        temp_t2 = temp_a2_3 - ((s32) temp_a2_3 / 4);
+                        temp_a2_4 = temp_t2 & 0xFFFF;
+                        FW(temp_a0, 0x24) = temp_t2;
+                        temp_t4 = temp_a2_4 - (temp_a2_4 / 4);
+                        temp_a2_5 = temp_t4 & 0xFFFF;
+                        FW(temp_a0, 0x24) = temp_t4;
+                        temp_t6 = temp_a2_5 - (temp_a2_5 / 4);
+                        temp_a2_6 = temp_t6 & 0xFFFF;
+                        FW(temp_a0, 0x24) = temp_t6;
+                        FW(temp_a0, 0x24) = (u16) (temp_a2_6 - (temp_a2_6 / 4));
+                    } while (var_a1 != var_v0);
+                }
+            }
+            var_v1 += 1;
+        } while (var_v1 < *(char *)1);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
+#endif
 
 /* game_libs_func_00021130: zero a 0xB00-byte short array, base reloaded inline
  * per store (inline-base-reload lever, see gl_func_00060CB8). Logic + STRUCTURE
