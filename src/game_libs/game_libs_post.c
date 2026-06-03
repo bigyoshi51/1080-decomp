@@ -2467,41 +2467,375 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020100);
  * C; deep tail kept as INCLUDE_ASM-equivalent stub return so the body
  * compiles. ~low% expected — multi-run. INCLUDE_ASM is the build path
  * (ROM byte-exact). */
+// gl_func_000201B8 — FULL m2c DECODE (40.41% NM, no episode). game_libs non-jumptable control-flow via scripts/lift-uso-controlflow.py.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int gl_func_00034238();
-int gl_func_000201B8(int mode, int val, int op, int a3, int s4) {
-    char *cfg = 0;
-    char *tbl = 0;
-    int t3 = 0, t4 = 0;
-    char *a2c;
+extern int game_libs_func_0003443C();
+extern int gl_func_0001CA10();
 
-    (void)a3; (void)s4;
-    if (mode == 0) {
-        cfg = (char*)&D_00000000 + 0x21F8;
-        tbl = (char*)&D_00000000 + 0x2C70;
-    } else if (mode == 1) {
-        cfg = (char*)&D_00000000 + 0x2308;
-        tbl = (char*)&D_00000000 + 0x2C40;
-    } else if (mode == 2) {
-        cfg = (char*)&D_00000000 + 0x2418;
-        tbl = (char*)&D_00000000 + 0x2C10;
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000201B8)();
+s32 gl_func_000201B8(s32 arg0, s32 arg1, s32 *arg2, s32 arg3) {
+    s32 *sp4C;
+    u8 sp3B;
+    u8 sp3A;
+    s32 sp30;
+    s32 *sp28;
+    char *sp24;
+    s16 temp_a0;
+    s16 temp_a0_2;
+    s16 temp_a0_3;
+    s16 temp_a0_5;
+    s16 temp_a0_6;
+    s16 temp_v1_2;
+    s32 *var_a2;
+    s32 *var_a2_2;
+    s32 *var_a3;
+    s32 temp_a0_4;
+    s32 temp_a1;
+    s32 temp_a1_2;
+    s32 temp_a1_3;
+    s32 temp_a1_4;
+    s32 temp_v0_3;
+    s32 temp_v1;
+    s32 var_t2;
+    s32 var_v0_3;
+    s32 var_v1;
+    s32 var_v1_2;
+    s32 var_v1_3;
+    s32 var_v1_4;
+    s32 var_v1_5;
+    s32 var_v1_6;
+    s32 var_v1_7;
+    u32 temp_t6;
+    u32 temp_t9;
+    u8 var_t3;
+    u8 var_t4;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *var_v0;
+    char *var_v0_2;
+    char *var_v0_4;
+    char *var_v0_5;
+    char *var_v0_6;
+    char *var_v0_7;
+
+    var_a2 = arg2;
+    var_a3 = sp4C;
+    var_t2 = sp30;
+loop_1:
+    switch (arg0) {                                 /* switch 1; irregular */
+    case 0:                                         /* switch 1 */
+        var_a3 = (s32 *)0x21F8;
+        var_t2 = 0x2C70;
+        break;
+    case 1:                                         /* switch 1 */
+        var_a3 = (s32 *)0x2308;
+        var_t2 = 0x2C40;
+        break;
+    case 2:                                         /* switch 1 */
+        var_a3 = (s32 *)0x2418;
+        var_t2 = 0x2C10;
+        break;
     }
-    if (op != 0 || cfg == 0) {
-        /* re-entry/update + unset paths — TODO multi-run (see header) */
+    if (var_a2 == 0) {
+        var_t3 = 0;
+        var_a2_2 = var_a3 + 0xD4;
+        if (FW(var_a3, 0xF2) == -1) {
+            var_a2_2 = var_a3 + 0xD4;
+        } else {
+            var_t3 = *(int*)(FW(var_a2_2, 0x1E) + var_t2);
+        }
+        temp_a0 = FW(var_a2_2, 0x2A);
+        if (temp_a0 == -1) {
+            var_t4 = 0;
+        } else {
+            var_t4 = *(int*)(temp_a0 + var_t2);
+        }
+        if (arg0 == 1) {
+            if (var_t3 == 4) {
+                temp_a1 = *(s32 *)0x2070;
+                var_v1_2 = 0;
+                if (temp_a1 > 0) {
+                    var_v0 = *(char **)0x2CFC;
+loop_19:
+                    if ((FW(var_v0, 0x33) != FW(var_a2_2, 0x1E)) || (((u32) FW(var_v0, 0xB0) >> 0x1F) == 0)) {
+                        var_v1_2 += 1;
+                        var_v0 += 0xD0;
+                        if (var_v1_2 < temp_a1) {
+                            goto loop_19;
+                        }
+                    }
+                }
+                if (var_v1_2 == temp_a1) {
+                    sp3A = var_t4;
+                    sp30 = var_t2;
+                    sp4C = var_a3;
+                    sp28 = var_a2_2;
+                    gl_func_0001CA10(FW(var_a2_2, 0x1E), 3, var_a2_2, var_a3);
+                    var_t3 = 3;
+                }
+            }
+            if (var_t4 == 4) {
+                temp_a1_2 = *(char *)0x2070;
+                var_v1_3 = 0;
+                if (temp_a1_2 > 0) {
+                    var_v0_2 = *(char *)0x2CFC;
+loop_27:
+                    if ((FW(var_v0_2, 0x33) != FW(var_a2_2, 0x2A)) || (((u32) FW(var_v0_2, 0xB0) >> 0x1F) == 0)) {
+                        var_v1_3 += 1;
+                        var_v0_2 += 0xD0;
+                        if (var_v1_3 < temp_a1_2) {
+                            goto loop_27;
+                        }
+                    }
+                }
+                if (var_v1_3 == temp_a1_2) {
+                    sp3B = var_t3;
+                    sp30 = var_t2;
+                    sp4C = var_a3;
+                    sp28 = var_a2_2;
+                    gl_func_0001CA10(FW(var_a2_2, 0x2A), 3, var_a2_2, var_a3);
+                    var_t4 = 3;
+                }
+            }
+        }
+        if (var_t3 == 0) {
+            FW(var_a2_2, 0x0) = 0;
+            var_v0_3 = 0;
+            goto block_83;
+        }
+        if (var_t4 == 0) {
+            var_v0_3 = 1;
+            FW(var_a2_2, 0x0) = 1;
+            goto block_83;
+        }
+        if ((var_t3 == 3) && (var_t4 == 3)) {
+            var_v0_3 = FW(var_a2_2, 0x0);
+            goto block_83;
+        }
+        if (var_t3 == 3) {
+            FW(var_a2_2, 0x0) = 0;
+            var_v0_3 = 0;
+            goto block_83;
+        }
+        var_v0_3 = 1;
+        if (var_t4 == 3) {
+            FW(var_a2_2, 0x0) = 1;
+            goto block_83;
+        }
+        if (arg0 == 0) {
+            if (var_t3 == 2) {
+                temp_a0_2 = *(s16 *)0x2048;
+                var_v0_4 = 0;
+                var_v1_4 = 0;
+                if (temp_a0_2 > 0) {
+loop_46:
+                    if ((((u32) FW(var_v0_4, 0x2D00) >> 0x1F) == 0) || (FW(var_v0_4, 0x2D04) != FW(var_a2_2, 0x1E))) {
+                        var_v1_4 += 1;
+                        var_v0_4 += 0x160;
+                        if (var_v1_4 < temp_a0_2) {
+                            goto loop_46;
+                        }
+                    }
+                }
+                var_v0_3 = 0;
+                if (var_v1_4 == temp_a0_2) {
+                    FW(var_a2_2, 0x0) = 0;
+                    goto block_83;
+                }
+                goto block_51;
+            }
+block_51:
+            if (var_t4 == 2) {
+                temp_a0_3 = *(char *)0x2048;
+                var_v0_5 = 0;
+                var_v1_5 = 0;
+                if (temp_a0_3 > 0) {
+loop_53:
+                    if ((((u32) FW(var_v0_5, 0x2D00) >> 0x1F) == 0) || (FW(var_v0_5, 0x2D04) != FW(var_a2_2, 0x2A))) {
+                        var_v1_5 += 1;
+                        var_v0_5 += 0x160;
+                        if (var_v1_5 < temp_a0_3) {
+                            goto loop_53;
+                        }
+                    }
+                }
+                var_v0_3 = 1;
+                if (var_v1_5 == temp_a0_3) {
+                    FW(var_a2_2, 0x0) = 1;
+                    goto block_83;
+                }
+                goto block_75;
+            }
+            goto block_75;
+        }
+        if (arg0 == 1) {
+            if (var_t3 == 2) {
+                temp_a1_3 = *(char *)0x2070;
+                var_v1_6 = 0;
+                if (temp_a1_3 > 0) {
+                    var_v0_6 = *(char *)0x2CFC;
+loop_62:
+                    if ((FW(var_v0_6, 0x33) != FW(var_a2_2, 0x1E)) || (((u32) FW(var_v0_6, 0xB0) >> 0x1F) == 0)) {
+                        var_v1_6 += 1;
+                        var_v0_6 += 0xD0;
+                        if (var_v1_6 < temp_a1_3) {
+                            goto loop_62;
+                        }
+                    }
+                }
+                var_v0_3 = 0;
+                if (var_v1_6 == temp_a1_3) {
+                    FW(var_a2_2, 0x0) = 0;
+                    goto block_83;
+                }
+                goto block_67;
+            }
+block_67:
+            if (var_t4 == 2) {
+                temp_a1_4 = *(char *)0x2070;
+                var_v1_7 = 0;
+                if (temp_a1_4 > 0) {
+                    var_v0_7 = *(char *)0x2CFC;
+loop_70:
+                    if ((FW(var_v0_7, 0x33) != FW(var_a2_2, 0x2A)) || (((u32) FW(var_v0_7, 0xB0) >> 0x1F) == 0)) {
+                        var_v1_7 += 1;
+                        var_v0_7 += 0xD0;
+                        if (var_v1_7 < temp_a1_4) {
+                            goto loop_70;
+                        }
+                    }
+                }
+                var_v0_3 = 1;
+                if (var_v1_7 == temp_a1_4) {
+                    FW(var_a2_2, 0x0) = 1;
+                    goto block_83;
+                }
+                goto block_75;
+            }
+            goto block_75;
+        }
+block_75:
+        var_v0_3 = FW(var_a2_2, 0x0);
+        if (var_v0_3 == 0) {
+            if (var_t3 == 1) {
+                var_v0_3 = 1;
+                if (var_t4 != 1) {
+                    FW(var_a2_2, 0x0) = 1;
+                    goto block_83;
+                }
+                goto block_82;
+            }
+            goto block_83;
+        }
+        if (var_t4 == 1) {
+            var_v0_3 = 0;
+            if (var_t3 != 1) {
+                FW(var_a2_2, 0x0) = 0;
+                goto block_83;
+            }
+block_82:
+            return 0;
+        }
+block_83:
+        temp_v1_2 = FW((var_a2_2 + (var_v0_3 * 0xC)), 0x1E);
+        if (temp_v1_2 != -1) {
+            *(int*)(var_t2 + temp_v1_2) = 0;
+            if (arg0 == 1) {
+                sp30 = var_t2;
+                sp4C = var_a3;
+                sp28 = var_a2_2;
+                gl_func_0001CA10(FW((var_a2_2 + (FW(var_a2_2, 0x0) * 0xC)), 0x1E));
+            }
+        }
+        temp_a0_4 = FW(var_a2_2, 0x0);
+        temp_v0 = var_a3 + 0xD8;
+        if (temp_a0_4 != 0) {
+            temp_v0_2 = var_a3 + 0xD8;
+            if (temp_a0_4 != 1) {
+                return 0;
+            }
+            temp_t9 = ((FW(var_a3, 0xD8) + FW(temp_v0_2, 0x8)) - arg1) & ~0xF;
+            FW(var_a2_2, 0x20) = temp_t9;
+            temp_a0_5 = FW(var_a2_2, 0x1E);
+            FW(var_a2_2, 0x2A) = (s16) arg3;
+            FW(var_a2_2, 0x24) = arg1;
+            if ((temp_a0_5 != -1) && (temp_t9 < (u32) FW(temp_v0_2, 0x4))) {
+                *(int*)(var_t2 + temp_a0_5) = 0;
+                switch (arg0) {                     /* switch 3; irregular */
+                case 0:                             /* switch 3 */
+                    sp28 = var_a2_2;
+                    sp24 = temp_v0_2;
+                    game_libs_func_0003443C(FW(var_a2_2, 0x1E));
+block_107:
+                    var_a2_2 = sp28;
+                    break;
+                case 1:                             /* switch 3 */
+                    sp28 = var_a2_2;
+                    sp24 = temp_v0_2;
+                    gl_func_0001CA10(FW(var_a2_2, 0x1E));
+                    goto block_107;
+                }
+                FW(var_a2_2, 0x1E) = -1;
+                FW(temp_v0_2, 0x4) = (u32) FW(var_a3, 0xD8);
+            }
+            var_v1 = FW(var_a2_2, 0x20);
+            goto block_99;
+        }
+        FW(var_a2_2, 0x14) = (u32) FW(var_a3, 0xD8);
+        FW(var_a2_2, 0x1E) = (s16) arg3;
+        FW(var_a2_2, 0x18) = arg1;
+        temp_t6 = FW(var_a3, 0xD8) + arg1;
+        FW(temp_v0, 0x4) = temp_t6;
+        temp_a0_6 = FW(var_a2_2, 0x2A);
+        if ((temp_a0_6 != -1) && ((u32) FW(var_a2_2, 0x20) < temp_t6)) {
+            *(int*)(var_t2 + temp_a0_6) = 0;
+            switch (arg0) {                         /* switch 2; irregular */
+            case 0:                                 /* switch 2 */
+                sp28 = var_a2_2;
+                sp24 = temp_v0;
+                game_libs_func_0003443C(FW(var_a2_2, 0x2A));
+block_96:
+                var_a2_2 = sp28;
+                break;
+            case 1:                                 /* switch 2 */
+                sp28 = var_a2_2;
+                sp24 = temp_v0;
+                gl_func_0001CA10(FW(var_a2_2, 0x2A));
+                goto block_96;
+            }
+            FW(var_a2_2, 0x2A) = -1;
+            FW(var_a2_2, 0x20) = (s32) (FW(var_a3, 0xD8) + FW(temp_v0, 0x8));
+        }
+        var_v1 = FW(var_a2_2, 0x14);
+block_99:
+        *var_a2_2 ^= 1;
+        return var_v1;
+    }
+    arg2 = var_a2;
+    sp4C = var_a3;
+    sp30 = var_t2;
+    temp_v0_3 = gl_func_0001CA10((s16) (var_a3 + 4), arg1, var_a2, var_a3);
+    FW((var_a3 + (FW(var_a3, 0x0) * 0xC)), 0x14) = temp_v0_3;
+    if (temp_v0_3 == 0) {
+        if ((arg2 != 0) && (arg2 != (s32 *)1)) {
+            if (arg2 == (s32 *)2) {
+                var_a2 = 0;
+                goto loop_1;
+            }
+            goto block_117;
+        }
         return 0;
     }
-    a2c = cfg + 212;
-    if (*(short*)(cfg + 242) == -1) {
-        short i0 = *(short*)(a2c + 30);
-        if (i0 != -1) t3 = *(unsigned char*)(tbl + i0);
-        i0 = *(short*)(a2c + 42);
-        if (i0 != -1) t4 = *(unsigned char*)(tbl + i0);
-    }
-    (void)t3; (void)t4; (void)val;
-    /* large t3/t4/t5+mode dispatch with record-scan loops + fixups —
-     * TODO multi-run (algorithm mapped in header comment). */
-    return 0;
+block_117:
+    FW((var_a3 + (FW(var_a3, 0x0) * 0xC)), 0x1E) = (s16) arg3;
+    FW((var_a3 + (FW(var_a3, 0x0) * 0xC)), 0x18) = arg1;
+    temp_v1 = FW(var_a3, 0x0);
+    FW(var_a3, 0x0) = temp_v1 + 1;
+    return FW((var_a3 + (temp_v1 * 0xC)), 0x14);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000201B8);
