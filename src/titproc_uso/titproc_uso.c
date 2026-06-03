@@ -781,7 +781,42 @@ end:
     return a0;
 }
 #else
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000015F4)();
+char *titproc_uso_func_000015F4(char *arg0) {
+    char *sp1C;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *var_a0;
+    char *var_a2;
+
+    var_a2 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_000015F4)titproc_uso_func_00000000)((char *)0x3C, var_a2), var_a2 = temp_v0, (temp_v0 != 0))) {
+        var_a0 = var_a2;
+        if ((var_a2 != 0) || (arg0 = var_a2, temp_v0_2 = ((GP_000015F4)titproc_uso_func_00000000)((char *)0x2C), var_a2 = arg0, var_a0 = temp_v0_2, (temp_v0_2 != 0))) {
+            sp1C = var_a0;
+            arg0 = var_a2;
+            ((GP_000015F4)titproc_uso_func_00000000)(var_a0, (char *)0x4C4, var_a2);
+            FW(var_a0, 0x28) = 0;
+        }
+        FW(arg0, 0x28) = 0;
+        FW(arg0, 0xC) = 0x4CC;
+        FW(arg0, 0x2C) = 0;
+        FW(arg0, 0x30) = 0;
+        FW(arg0, 0x34) = 160.0f;
+        FW(arg0, 0x38) = 210.0f;
+        arg0 = arg0;
+        ((GP_000015F4)titproc_uso_func_00000000)(arg0);
+        var_a2 = arg0;
+    }
+    return var_a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000015F4);
+#endif
 #endif
 /* (end verified decode)
  * Struct-typing value: object has int @0x28 (&D base), ptr @0xC (&D+0x4CC),
