@@ -18842,7 +18842,48 @@ void game_libs_func_000517E4(int *a0) {
 // representative. Caps: self struct + all 9 USO cb prototypes untyped
 // (USO-relocated); string-table offsets not symbolized. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005185C)();
+void gl_func_0005185C(char *arg0) {
+    s32 *sp20;
+    s32 *sp1C;
+    s32 *temp_v0;
+    s32 *temp_v0_2;
+    s32 *temp_v0_3;
+    s32 *var_a0;
+    s32 *var_a2;
+    s32 *var_v1;
+
+    ((int(*)())gl_func_00034458)(0, 0x20EC8, 0);
+    ((int(*)())gl_func_00034458)(arg0, 0);
+    if (FW(arg0, 0x38) & 0x400000) {
+        temp_v0 = ((int(*)())gl_func_00034458)((char *)0x10);
+        var_a2 = temp_v0;
+        if (temp_v0 != 0) {
+            var_v1 = temp_v0;
+            if ((temp_v0 != 0) || (sp20 = temp_v0, temp_v0_2 = ((int(*)())gl_func_00034458)((char *)0x10), var_a2 = sp20, var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+                var_a0 = var_v1;
+                if ((var_v1 != 0) || (sp1C = var_v1, sp20 = var_a2, temp_v0_3 = ((int(*)())gl_func_00034458)((char *)4), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+                    *var_a0 = 0x20740;
+                }
+                FW(var_v1, 0x4) = arg0;
+                FW(var_v1, 0x8) = (s32) (char *)FW(0x20638, 0x0);
+                FW(var_v1, 0xC) = (s32) (char *)FW(0x20638, 0x4);
+            }
+            *var_a2 = 0x20D88;
+        }
+        ((int(*)())gl_func_00034458)(0, 0x20ED0, var_a2, 1);
+    }
+    ((int(*)())gl_func_00034458)(0, 0x20ED8, (int)arg0 + 0x50, 0);
+    ((int(*)())gl_func_00034458)(0, 0x20EE0, (int)arg0 + 0x54, 0);
+    ((int(*)())gl_func_00034458)(0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000519A4: name-formatting constructor + cb-registration driver
