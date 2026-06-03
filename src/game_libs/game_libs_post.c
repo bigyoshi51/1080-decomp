@@ -14395,7 +14395,63 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
  * callers. Absorbed both (0x6C -> 0xD0, ending exactly at the next func
  * gl_func_0002F288); all branches verified in-range. Reloc-blind USO;
  * stays INCLUDE_ASM. (Multi-jr-ra over-split, not a loop-tail split.) */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0002F1B8)();
+s32 game_libs_func_0002F1B8(f32 arg0, s32 arg1, s32 arg2) {
+    f32 temp_f0;
+    f32 temp_f2;
+    f32 temp_f2_2;
+    s32 temp_a0;
+    s32 temp_a3;
+    s32 var_a0;
+    s32 var_v1;
+    char *temp_v0;
+
+    var_v1 = arg2 >> 1;
+    var_a0 = var_v1 + 1;
+loop_1:
+    temp_a0 = var_a0 >> 1;
+    temp_v0 = (int)arg1 + (var_v1 * 4);
+    temp_a3 = var_v1 + 1;
+    temp_f0 = arg0 - (*(f32*)((char*)temp_v0 + 0x0));
+    if (temp_f0 > 0.0f) {
+        if (arg2 != temp_a3) {
+            temp_f2 = (*(f32*)((char*)temp_v0 + 0x4)) - arg0;
+            if (temp_f2 > 0.0f) {
+                if (temp_f2 < temp_f0) {
+                    return temp_a3;
+                }
+                /* Duplicate return node #12. Try simplifying control flow for better match */
+                return var_v1;
+            }
+            var_v1 += temp_a0;
+            var_a0 = temp_a0 + 1;
+            goto loop_1;
+        }
+        /* Duplicate return node #12. Try simplifying control flow for better match */
+        return var_v1;
+    }
+    if (var_v1 != 0) {
+        temp_f2_2 = arg0 - (*(f32*)((char*)temp_v0 - 0x4));
+        if (temp_f2_2 > 0.0f) {
+            if (temp_f2_2 < -temp_f0) {
+                return var_v1 - 1;
+            }
+            /* Duplicate return node #12. Try simplifying control flow for better match */
+            return var_v1;
+        }
+        var_v1 -= temp_a0;
+        var_a0 = temp_a0 + 1;
+        goto loop_1;
+    }
+    return var_v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F1B8);
+#endif
 
 // gl_func_0002F288 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
