@@ -496,7 +496,122 @@ void game_libs_func_00001354(int *a0, int a1) {
     a0[0x10C/4] = a1;
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000135C)();
+char *gl_func_0000135C(char *arg0) {
+    s32 sp4C;
+    s32 sp48;
+    s32 sp44;
+    s32 sp40;
+    s32 sp3C;
+    s32 sp38;
+    char *sp28;
+    s32 sp24;
+    s32 temp_t2;
+    s32 temp_t2_2;
+    s32 temp_t2_3;
+    s32 temp_t7;
+    s32 temp_t7_2;
+    s32 temp_t7_3;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *temp_v0_8;
+    char *var_a0;
+    char *var_a0_2;
+    char *var_a0_3;
+    char *var_a0_4;
+    char *var_a0_5;
+    char *var_a0_6;
+    char *var_s0;
+    char *var_v1;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_0000135C)gl_func_00000000)((char *)0x98), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = ((GP_0000135C)gl_func_00000000)((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            FW(var_v1, 0x0) = 0xCC38;
+            FW(var_v1, 0x4) = 0;
+        }
+        temp_t7 = *(s32 *)0xCC40;
+        var_a0 = var_s0 + 8;
+        sp4C = temp_t7;
+        sp24 = temp_t7;
+        if ((var_s0 != (char *)-8) || (temp_v0_3 = ((GP_0000135C)gl_func_00000000)((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+            sp28 = var_a0;
+            ((GP_0000135C)gl_func_00000000)(var_a0, var_s0, sp24, 1);
+            FW(var_a0, 0x10) = 0x1E;
+            FW(var_a0, 0xC) = 0xC764;
+            FW(var_a0, 0x14) = 0;
+        }
+        temp_t2 = *(s32 *)0xCC44;
+        var_a0_2 = var_s0 + 0x20;
+        sp48 = temp_t2;
+        sp24 = temp_t2;
+        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = ((GP_0000135C)gl_func_00000000)((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
+            sp28 = var_a0_2;
+            ((GP_0000135C)gl_func_00000000)(var_a0_2, var_s0, sp24, 1);
+            FW(var_a0_2, 0x10) = 0x1E;
+            FW(var_a0_2, 0xC) = 0xC764;
+            FW(var_a0_2, 0x14) = 0;
+        }
+        temp_t7_2 = *(s32 *)0xCC48;
+        var_a0_3 = var_s0 + 0x38;
+        sp44 = temp_t7_2;
+        sp24 = temp_t7_2;
+        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = ((GP_0000135C)gl_func_00000000)((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
+            sp28 = var_a0_3;
+            ((GP_0000135C)gl_func_00000000)(var_a0_3, var_s0, sp24, 1);
+            FW(var_a0_3, 0x10) = 2;
+            FW(var_a0_3, 0xC) = 0xC764;
+            FW(var_a0_3, 0x14) = 0;
+        }
+        temp_t2_2 = *(s32 *)0xCC4C;
+        var_a0_4 = var_s0 + 0x50;
+        sp40 = temp_t2_2;
+        sp24 = temp_t2_2;
+        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = ((GP_0000135C)gl_func_00000000)((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
+            sp28 = var_a0_4;
+            ((GP_0000135C)gl_func_00000000)(var_a0_4, var_s0, sp24, 1);
+            FW(var_a0_4, 0x10) = -0xC;
+            FW(var_a0_4, 0xC) = 0xC764;
+            FW(var_a0_4, 0x14) = 0;
+        }
+        temp_t7_3 = *(s32 *)0xCC50;
+        var_a0_5 = var_s0 + 0x68;
+        sp3C = temp_t7_3;
+        sp24 = temp_t7_3;
+        if ((var_s0 != (char *)-0x68) || (temp_v0_7 = ((GP_0000135C)gl_func_00000000)((char *)0x18), var_a0_5 = temp_v0_7, (temp_v0_7 != 0))) {
+            sp28 = var_a0_5;
+            ((GP_0000135C)gl_func_00000000)(var_a0_5, var_s0, sp24, 1);
+            FW(var_a0_5, 0x10) = 2;
+            FW(var_a0_5, 0xC) = 0xC764;
+            FW(var_a0_5, 0x14) = 0;
+        }
+        temp_t2_3 = *(s32 *)0xCC54;
+        var_a0_6 = var_s0 + 0x80;
+        sp38 = temp_t2_3;
+        sp24 = temp_t2_3;
+        if ((var_s0 != (char *)-0x80) || (temp_v0_8 = ((GP_0000135C)gl_func_00000000)((char *)0x18), var_a0_6 = temp_v0_8, (temp_v0_8 != 0))) {
+            sp28 = var_a0_6;
+            ((GP_0000135C)gl_func_00000000)(var_a0_6, var_s0, sp24, 1);
+            FW(var_a0_6, 0x10) = -0xC;
+            FW(var_a0_6, 0xC) = 0xC764;
+            FW(var_a0_6, 0x14) = 0;
+        }
+    }
+    return var_s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000135C);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000015FC);
 
