@@ -11703,7 +11703,7 @@ block_24:
                 sp30 = 0;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2F);
                 sp34 = var_a3;
-                ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, FW(var_v1, 0x800), 5.958e-42f, 0xA, var_a3);
+                ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, FW(var_v1, 0x800), (char *)&D_00000000 + 4252, 0xA, var_a3);
             }
         }
     }
