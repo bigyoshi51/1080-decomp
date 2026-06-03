@@ -26,7 +26,16 @@ def main():
     ap.add_argument('--dur', type=float, default=400)
     ap.add_argument('--interval', type=float, default=20)
     ap.add_argument('--out', default='/tmp/race_rdram.bin')
+    ap.add_argument('--target-asm', default=None, help='raw .s; stop+save the snapshot when this fn is resident')
     a=ap.parse_args()
+    import re as _re,struct as _st
+    tpat=None
+    if a.target_asm:
+        w=[]
+        for l in open(a.target_asm):
+            m=_re.search(r'/\* [0-9A-Fa-f]+ [0-9A-Fa-f]+ ([0-9A-Fa-f]{8}) \*/',l)
+            if m: w.append(int(m.group(1),16))
+        tpat=b''.join(_st.pack('>I',x) for x in w[:6])
     rom=open(a.rom,'rb').read()
     core=C.CDLL(glob.glob(a.bundle+'/libmupen64plus.so.2*')[0], mode=C.RTLD_GLOBAL)
     core.DebugMemGetPointer.restype=C.c_void_p
@@ -51,8 +60,11 @@ def main():
         ptr=core.DebugMemGetPointer(1)
         if not ptr: continue
         raw=bytes((C.c_ubyte*0x800000).from_address(ptr))
-        a2=array.array('I',raw); a2.byteswap(); open(a.out,'wb').write(a2.tobytes())
-        print(f't+{int(time.time()-start)}s: snapshot -> {a.out}',flush=True)
+        a2=array.array('I',raw); a2.byteswap(); be=a2.tobytes(); open(a.out,'wb').write(be)
+        hit = (tpat is not None and be.find(tpat)>=0)
+        print(f't+{int(time.time()-start)}s: snapshot -> {a.out}'+(' TARGET RESIDENT!' if hit else ''),flush=True)
+        if hit:
+            open(a.out+'.hit','wb').write(be); print('saved '+a.out+'.hit; stopping',flush=True); break
     core.CoreDoCommand(6,0,None); print('race run done',flush=True)
 
 if __name__=='__main__':
