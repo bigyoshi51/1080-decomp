@@ -1107,20 +1107,89 @@ void arcproc_uso_func_00001604(int *s0) {
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
 #ifdef NON_MATCHING
-void arcproc_uso_func_000016F4(char *a0, int a1, int a2) {
-    int n;
-    int m;
-    float buf[4];
-    (void)a1; (void)a2;
-    buf[0] = 1.0f; buf[1] = 1.0f; buf[2] = 1.0f; buf[3] = 1.0f;
-    if ((*(int *)(*(char **)(a0 + 0x528) + 0x14) & 0x4) == 0) return;
-    n = (int)(255.0f * *(float *)(a0 + 0x77C));
-    gl_func_00000000(&D_00000000, n, a0 + 0x2A8, a0 + 0x2CC);
-    gl_func_00000000(a0 + 0x74C);
-    m = *(int *)(*(char **)(a0 + 0x75C) + 0x20) / 12;
-    gl_func_00000000(a0 + 0x704);
-    gl_func_00000000(a0 + 0x71C);
-    (void)m;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000016F4)();
+void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
+    f32 sp144;
+    f32 sp140;
+    f32 sp13C;
+    f32 sp138;
+    u8 spB8;
+    s32 sp94;
+    s32 sp90;
+    s32 sp88;
+    u8 *sp64;
+    u8 *sp60;
+    f32 *sp58;
+    f32 *temp_a2;
+    s32 temp_a1;
+    s32 temp_s1_2;
+    s32 temp_s2_2;
+    s32 temp_s5;
+    s32 temp_v0;
+    s32 var_s1;
+    s32 var_s2;
+    u8 *temp_s0;
+    u8 *temp_s1;
+    u8 *temp_s2;
+    u8 *temp_s7;
+    u8 *var_s0;
+    char *temp_t1;
+    char *temp_t2;
+    char *temp_t3;
+
+    sp138 = 1.0f;
+    sp13C = 1.0f;
+    sp140 = 1.0f;
+    sp144 = 1.0f;
+    if (FW(FW(arg0, 0x528), 0x14) & 4) {
+        ((int(*)())arcproc_uso_func_00001B88)(0, (s32) (255.0f * FW(arg0, 0x77C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        temp_s7 = (int)arg0 + 0x74C;
+        ((int(*)())arcproc_uso_func_00001B88)(temp_s7);
+        temp_s1 = (int)arg0 + 0x704;
+        temp_s5 = (s16) FW(FW(arg0, 0x75C), 0x20) / 12;
+        ((int(*)())arcproc_uso_func_00001B88)(temp_s1);
+        temp_s2 = (int)arg0 + 0x71C;
+        ((int(*)())arcproc_uso_func_00001B88)(temp_s2);
+        temp_s0 = (int)arg0 + 0x734;
+        ((int(*)())arcproc_uso_func_00001B88)(temp_s0);
+        ((int(*)())arcproc_uso_func_00001B88)(&spB8, 0x3D8, arg2);
+        sp64 = temp_s1;
+        sp60 = temp_s2;
+        temp_v0 = ((int(*)())arcproc_uso_func_00001B88)(&spB8);
+        temp_t3 = FW(arg0, 0x744);
+        temp_t1 = FW(arg0, 0x714);
+        temp_t2 = FW(arg0, 0x72C);
+        temp_a2 = (int)arg1 + 0x32;
+        temp_s1_2 = 0xA0 - ((s32) (FW(temp_t3, 0x20) + (temp_v0 * 0xD) + FW(temp_t1, 0x20) + FW(temp_t2, 0x20) + 0x10) / 2);
+        temp_s2_2 = FW(temp_t2, 0x20) + temp_s1_2 + 4;
+        temp_a1 = FW(temp_t1, 0x20) + temp_s2_2 + 4;
+        sp88 = FW(temp_t3, 0x20) + temp_a1 + 8;
+        sp90 = temp_s2_2;
+        sp94 = temp_s1_2;
+        sp58 = temp_a2;
+        ((int(*)())arcproc_uso_func_00001B88)(temp_s0, temp_a1, temp_a2, (char *)2);
+        var_s0 = &spB8;
+        if (temp_v0 > 0) {
+            var_s1 = 0;
+            var_s2 = sp88;
+            do {
+                *var_s0 -= 0x30;
+                ((int(*)())arcproc_uso_func_00001B88)(temp_s7, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x75C), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s5), temp_s5);
+                var_s1 += 0xD;
+                var_s0 += 1;
+                var_s2 += 0xD;
+            } while (var_s1 != (temp_v0 * 0xD));
+        }
+        ((int(*)())arcproc_uso_func_00001B88)(0, (s32) (255.0f * FW(arg0, 0x77C)), &sp138);
+        ((int(*)())arcproc_uso_func_00001B88)(sp64, sp90, sp58, (char *)2);
+        ((int(*)())arcproc_uso_func_00001B88)(sp60, sp94, sp58, (char *)2);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F4);
