@@ -113,6 +113,9 @@ build/src/game_libs/game_libs.c.o: TRUNCATE_TEXT := 0x8944
 build/src/game_libs/game_libs_o0_8944.c.o build/non_matching/src/game_libs/game_libs_o0_8944.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_8944.c.o: TRUNCATE_TEXT := 0xFC
 build/src/game_libs/game_libs_o0_8A40.c.o build/non_matching/src/game_libs/game_libs_o0_8A40.c.o: OPT_FLAGS := -O0
+build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
+build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
+build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0xE07C
 build/src/game_libs/game_libs_o0_8A40.c.o: TRUNCATE_TEXT := 0xA4
 build/src/game_libs/game_libs_o0_8AE4.c.o build/non_matching/src/game_libs/game_libs_o0_8AE4.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_o0_8AE4.c.o: TRUNCATE_TEXT := 0x158
@@ -124,7 +127,7 @@ build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
 # with pre-baked jals). Without these, the .o has `jal 0` + R_MIPS_26 relocs;
 # byte-verify fails even though ROM ends up identical post-link.
 build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5664
-build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x54594
+build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x4650C
 build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10
 build/src/game_libs/game_libs_post2.c.o: TRUNCATE_TEXT := 0x42E0
