@@ -13,6 +13,11 @@ Reuses the Kyoto-USO section/reloc format (see uso-reloc-symbolize.py):
   dir at module+0xC, 12-byte entries [flag, type, size]; reloc entry
   [flag, (symIdx<<4)|kind, section_offset]; target = symval(symIdx)+addend
   where addend = the placeholder word in the data section at that offset.
+GAME_LIBS lives inside bootup.uso at shim +0x1466C: pass --shim 0x1466C with
+the game_libs-local --vaddr (validated: gl_func_0006E224 52-case table extracted,
+all targets landed in range). The decoded m2c may need extra cleanup for
+register-carrying switches (unset-reg reads) + pointer post-incr (->unk-N).
+
 NOTE the Text section has a leading marker word, so disasm-func.py offsets are
 text-data-relative (= vaddr - module_text_base_in_proj); map accordingly.
 """
@@ -67,8 +72,9 @@ if __name__=='__main__':
     ap.add_argument('func'); ap.add_argument('--rom',default='baserom.z64')
     ap.add_argument('--module',required=True); ap.add_argument('--vaddr',required=True)
     ap.add_argument('--size',required=True)
+    ap.add_argument('--shim',default='0',help='add to --vaddr; game_libs-in-bootup = 0x1466C')
     ap.add_argument('--symnames',default='scripts/emu-symdump/bootup_uso.symnames.json')
     a=ap.parse_args()
-    ts=extract(a.rom,int(a.module,0),int(a.vaddr,0),int(a.size,0),a.symnames)
+    ts=extract(a.rom,int(a.module,0),int(a.vaddr,0)+int(a.shim,0),int(a.size,0),a.symnames)
     out={'func':a.func,'vaddr':int(a.vaddr,0),'tables':ts}
     print(json.dumps(out,indent=2,default=lambda x:hex(x) if isinstance(x,int) else x))
