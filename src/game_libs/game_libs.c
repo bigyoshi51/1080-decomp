@@ -2949,8 +2949,8 @@ void gl_func_00007FF4(char *arg0) {
                 if (temp_lo < 4) {
                     temp_f0 = *(f32 *)0xE50;
                     FW(arg0, 0x540) = (s32) (FW(arg0, 0x540) - 4);
-                    FW(arg0, 0x534) = (f32) (FW(arg0, 0x534) + temp_f0);
-                    FW(arg0, 0x538) = (f32) (FW(arg0, 0x538) + temp_f0);
+                    *(f32 *)((char *)arg0 + 0x534) = (*(f32 *)((char *)arg0 + 0x534) + temp_f0);
+                    *(f32 *)((char *)arg0 + 0x538) = (*(f32 *)((char *)arg0 + 0x538) + temp_f0);
                     if (temp_lo != -1) {
                         sp8C = (int)arg0 + (temp_lo * 0x18) + 0x588;
                     } else {
