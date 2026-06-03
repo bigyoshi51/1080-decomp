@@ -3909,7 +3909,64 @@ void gl_func_00068D18(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068D18);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00068DD4)();
+void gl_func_00068DD4(char *arg0) {
+    s32 sp30;
+    char *sp2C;
+    char *sp24;
+    s32 **temp_v0;
+    s32 **temp_v1_2;
+    s32 *temp_t1;
+    s32 *temp_v0_2;
+    s32 temp_a2;
+    s32 temp_v1;
+    char *temp_t0;
+    char *temp_t0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+
+    ((int(*)())gl_func_00062F64)();
+    FW(FW(FW(arg0, 0x3C), 0xC), 0xB0) = 8;
+    temp_v0 = FW(arg0, 0x0);
+    temp_t1 = *(int*)temp_v0;
+    *temp_v0 = temp_t1 + 4;
+    temp_v1 = *(int*)temp_t1;
+    FW(arg0, 0x4) = temp_v1;
+    sp30 = *(int*)(temp_v1 * 4);
+    temp_v1_2 = FW(arg0, 0x0);
+    temp_v0_2 = *(int*)temp_v1_2;
+    *temp_v1_2 = temp_v0_2 + 4;
+    temp_a2 = *(int*)temp_v0_2;
+    FW(arg0, 0x4) = temp_a2;
+    temp_v0_3 = ((int(*)())gl_func_00062F64)(0, (char *)0x2C568, temp_a2, 0);
+    sp2C = temp_v0_3;
+    ((int(*)())gl_func_00062F64)(FW(temp_v0_3, 0x44) * 8);
+    temp_v0_4 = ((int(*)())gl_func_00062F64)(0, (char *)0x2C574, 0, sp2C);
+    FW(arg0, 0x28) = temp_v0_4;
+    FW(arg0, 0x10) = temp_v0_4;
+    FW(temp_v0_4, 0x30) = (s32) (FW(temp_v0_4, 0x30) & ~0x400);
+    temp_t0 = FW(arg0, 0x28);
+    FW(temp_t0, 0x30) = (s32) (FW(temp_t0, 0x30) & ~0x800);
+    if (sp30 == 0) {
+        ((int(*)())gl_func_00062F64)(0x2C580);
+    }
+    temp_v0_5 = FW(FW(FW(arg0, 0x3C), 0x3C), 0xC);
+    temp_t0_2 = FW(temp_v0_5, 0x28);
+    ((GP_00068DD4)FW(temp_t0_2, 0x14))(FW(temp_t0_2, 0x10) + temp_v0_5);
+    temp_v0_6 = ((int(*)())gl_func_00062F64)(sp30, FW(FW(arg0, 0x3C), 0xC), (s32) FW(arg0, 0x28));
+    sp24 = temp_v0_6;
+    ((int(*)())gl_func_00062F64)((s32) FW(FW(arg0, 0x3C), 0xC), temp_v0_6);
+    ((int(*)())gl_func_00062F64)((s32) sp24);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068DD4);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00068F28(int *dst) {
