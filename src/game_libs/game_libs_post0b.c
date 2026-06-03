@@ -9775,7 +9775,75 @@ void gl_func_00040DE8(char *a0) {
 // the +0xB4 source / +0xC0 coeff / +0xDC dest offsets are exact. Caps:
 // node/self struct + the s3 mask constant untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00040E90)();
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00040E90;
+void gl_func_00040E90(char *arg0) {
+    Q_00040E90 sp3C;
+    char **sp64;
+    char **sp60;
+    char **temp_t1;
+    char **temp_t6;
+    char *temp_v0;
+    char *var_s0;
+    char *var_v0;
+    char *var_v0_2;
+
+    temp_t6 = FW(arg0, 0x10);
+    var_v0 = 0;
+    sp64 = temp_t6;
+    sp60 = temp_t6;
+    if (temp_t6 != 0) {
+        sp64 = FW(temp_t6, 0x4);
+        var_v0 = FW(temp_t6, 0x0);
+    }
+    var_s0 = var_v0;
+    if (var_v0 != 0) {
+        do {
+            if (FW(var_s0, 0x8) & 0x20000) {
+                if (FW(arg0, 0x2C) & 2) {
+                    sp3C.unk0 = FW(var_s0, 0xB4);
+                    sp3C.unk4 = (s32) FW(var_s0, 0xB8);
+                    sp3C.unk8 = (s32) FW(var_s0, 0xBC);
+                    *(f32*)((char*)var_s0 + 0xDC) = *(f32*)&sp3C.unk0;
+                    *(f32*)((char*)var_s0 + 0xE0) = *(f32*)&sp3C.unk4;
+                    *(f32*)((char*)var_s0 + 0xE4) = *(f32*)&sp3C.unk8;
+                    sp3C.unk0 = FW(var_s0, 0xC0);
+                    sp3C.unk4 = (s32) FW(var_s0, 0xC4);
+                    sp3C.unk8 = (s32) FW(var_s0, 0xC8);
+                    *(f32*)((char*)var_s0 + 0xE8) = *(f32*)&sp3C.unk0;
+                    *(f32*)((char*)var_s0 + 0xEC) = *(f32*)&sp3C.unk4;
+                    *(f32*)((char*)var_s0 + 0xF0) = *(f32*)&sp3C.unk8;
+                    sp3C.unk0 = FW(var_s0, 0xCC);
+                    sp3C.unk4 = (s32) FW(var_s0, 0xD0);
+                    sp3C.unk8 = (s32) FW(var_s0, 0xD4);
+                    *(f32*)((char*)var_s0 + 0xF4) = *(f32*)&sp3C.unk0;
+                    *(f32*)((char*)var_s0 + 0xF8) = *(f32*)&sp3C.unk4;
+                    *(f32*)((char*)var_s0 + 0x100) = *(f32*)((char*)var_s0 + 0xD8);
+                    *(f32*)((char*)var_s0 + 0xFC) = *(f32*)&sp3C.unk8;
+                } else {
+                    ((int(*)())gl_func_00034458)((int)arg0 + 0xDC, var_s0 + 0xB4, var_s0 + 0xDC);
+                }
+            }
+            temp_v0 = FW(var_s0, 0x28);
+            ((GP_00040E90)FW(temp_v0, 0x14))(FW(temp_v0, 0x10) + var_s0);
+            temp_t1 = sp64;
+            var_v0_2 = 0;
+            sp60 = temp_t1;
+            if (temp_t1 != 0) {
+                sp64 = FW(temp_t1, 0x4);
+                var_v0_2 = FW(temp_t1, 0x0);
+            }
+            var_s0 = var_v0_2;
+        } while (var_v0_2 != 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040E90);
+#endif
 
 // gl_func_00041008 — STRUCTURAL PASS (0xA0 / 41 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0, NO calls (leaf) → ONE clean function. Single
