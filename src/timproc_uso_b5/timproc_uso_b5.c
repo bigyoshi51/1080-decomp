@@ -1037,7 +1037,7 @@ char *timproc_uso_b5_func_000018B4(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 FW(var_s0, 0x48) = 0;
                 FW(var_s0, 0x50) = 3;
                 FW(var_s0, 0x4C) = 0;
-                FW(var_s0, 0x54) = 0.0f;
+                *(f32 *)((char *)var_s0 + 0x54) = 0.0f;
             } else {
                 FW(var_s0, 0x3C) = 3;
                 FW(var_s0, 0x40) = 3;
@@ -1045,7 +1045,7 @@ char *timproc_uso_b5_func_000018B4(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 FW(var_s0, 0x48) = 1;
                 FW(var_s0, 0x44) = 0xF0;
                 FW(var_s0, 0x50) = 1;
-                FW(var_s0, 0x54) = 1.0f;
+                *(f32 *)((char *)var_s0 + 0x54) = 1.0f;
                 ((GP_000018B4)timproc_uso_b5_func_00000000)(var_s0);
             }
         }
