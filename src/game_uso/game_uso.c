@@ -6111,13 +6111,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
  * via the asm. Skeleton kept for grep discoverability of struct field
  * offsets and the per-frame compute call-graph. */
 typedef struct { float x, y, z; } V3_6FA8;
-void game_uso_func_00006FA8(int *a0) {
+int game_uso_func_00006FA8(int *a0) {
     /* Structural decode (2026-05-31, 1.1%->53%): float gate (`<0` -> c.lt.s/bc1fl)
      * -> 2 staged calls -> two Vec3 diffs (r1->0x30 / r2->0x30 minus s0->0x30+0xB4)
      * each copied through a 2-deep struct-copy chain (d->c_a->c_b; IDO -O2 keeps
      * the redundant 3-lw/3-sw copies) -> compare squared magnitudes ->
-     * result(local) = (dot2<dot1)?11:10. REMAINING (~34 insns, frame -144 vs -192):
-     * more stack temps/copies + FP scheduling + the no-reloc D+0x570/574 globals. */
+     * result = (dot2<dot1)?10:11 (was inverted). 2026-06-02: made the fn RETURN
+     * int (result is stack-resident sp+188, loaded to v0 and returned via all exit
+     * paths) + fixed the ternary direction -> 53%%->69.7%%. REMAINING: frame -144 vs
+     * -192 (more Vec3 stack temps in the 2-deep copy chains) + FP scheduling. */
     int *s0 = a0;
     int result = 0;
     int *r1, *r2;
@@ -6141,10 +6143,10 @@ void game_uso_func_00006FA8(int *a0) {
             c2a = d2; c2b = c2a;
             dot1 = c1b.x * c1b.x + c1b.y * c1b.y + c1b.z * c1b.z;
             dot2 = c2b.x * c2b.x + c2b.y * c2b.y + c2b.z * c2b.z;
-            result = (dot2 < dot1) ? 11 : 10;
+            result = (dot2 < dot1) ? 10 : 11;
         }
     }
-    (void)result;
+    return result;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006FA8);
