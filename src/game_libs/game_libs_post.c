@@ -1769,26 +1769,102 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
 //   guarded-sdiv + multi-iteration emit, placeholder jals need USO
 //   reloc infra. Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
+// gl_func_0001EF20 — FULL m2c DECODE (58.18% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-int gl_func_0001EF20(int *dst, char *src, short *a2, int a3) {
-    int x0 = (*(short *)(src + 8) << 4) & 0xFFFF;
-    int x1 = (*(short *)(src + 0xA) << 4) & 0xFFFF;
-    int g = a2[0x10 / 2];
-    int step, acc, i, cnt;
-    if (g == x0) {
-        return (int)dst;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0001EF20)();
+char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s32 arg5) {
+    s16 sp56;
+    s16 sp54;
+    s16 sp52;
+    s16 sp50;
+    s32 sp34;
+    s32 sp30;
+    s32 sp28;
+    s16 var_a3;
+    s16 var_t0;
+    s32 temp_t0;
+    s32 temp_v1;
+    s32 temp_v1_2;
+    s32 var_a1;
+    s32 var_t1;
+    s32 var_v0;
+    u16 temp_ra;
+    u16 temp_t5;
+    u8 temp_t2;
+    u8 temp_t4;
+    char *temp_s0;
+    char *temp_s0_2;
+    char *temp_s0_3;
+    char *var_s0;
+
+    temp_t5 = FW(arg2, 0x10);
+    temp_t0 = (FW(arg1, 0x8) * 0x10) & 0xFFFF;
+    temp_t2 = FW(arg1, 0x5);
+    temp_ra = FW(arg2, 0x12);
+    temp_v1 = (FW(arg1, 0xA) * 0x10) & 0xFFFF;
+    if (temp_t5 != temp_t0) {
+        var_v0 = arg3 >> 3;
+        var_a3 = (s16) ((s32) (temp_t0 - temp_t5) / var_v0);
+    } else {
+        var_a3 = 0;
+        var_v0 = arg3 >> 3;
     }
-    cnt = a3 >> 3;
-    step = (cnt != 0) ? (x0 - x1) / cnt : 0;
-    acc = x0;
-    for (i = 0; i < cnt; i++) {
-        dst[0] = 0x08000000 | (acc & 0xFFFF);
-        dst[1] = a2[0x12 / 2];
-        dst += 2;
-        acc -= step;
+    if (temp_ra != temp_v1) {
+        var_t0 = (s16) ((s32) (temp_v1 - temp_ra) / var_v0);
+    } else {
+        var_t0 = 0;
     }
-    return (int)dst;
+    temp_t4 = FW(arg2, 0x4);
+    sp30 = (s32) temp_t5;
+    var_t1 = temp_t4 & 0x7F;
+    if (temp_t4 != temp_t2) {
+        var_t1 = temp_t4 & 0x7F;
+        sp52 = (s16) ((s32) (((temp_t2 & 0x7F) - var_t1) << 9) / var_v0);
+        FW(arg2, 0x4) = temp_t2;
+    } else {
+        sp52 = 0;
+    }
+    FW(arg2, 0x10) = (u16) (sp30 + (var_a3 * var_v0));
+    FW(arg2, 0x12) = (u16) (temp_ra + (var_t0 * var_v0));
+    if (FW(arg1, 0x0) & 1) {
+        temp_s0 = arg0 + 8;
+        sp56 = var_a3;
+        sp54 = var_t0;
+        sp34 = var_t1;
+        sp28 = (s32) temp_ra;
+        sp50 = (s16) temp_t4;
+        game_libs_func_0003443C(arg0, 0x5C0, 0x1A0, var_a3);
+        temp_s0_2 = temp_s0 + 8;
+        game_libs_func_0003443C(temp_s0, var_t1 * 2, sp52, var_a3, (s32) var_t0);
+        var_s0 = temp_s0_2 + 8;
+        game_libs_func_0003443C(temp_s0_2, sp30, (s16) sp28);
+        switch (arg5) {                             /* irregular */
+        case 1:
+            var_a1 = *(s32 *)0x1A2D4;
+            break;
+        case 2:
+            var_a1 = *(s32 *)0x1A2D8;
+            break;
+        }
+    } else {
+        temp_s0_3 = arg0 + 8;
+        FW(arg0, 0x0) = (s32) ((((var_t1 * 2) & 0xFF) << 0x10) | 0x12000000 | (sp52 & 0xFFFF));
+        FW(arg0, 0x4) = (s32) ((var_a3 << 0x10) | (var_t0 & 0xFFFF));
+        FW(arg0, 0x8) = 0x16000000;
+        FW(temp_s0_3, 0x4) = (s32) ((temp_t5 << 0x10) | (temp_ra & 0xFFFF));
+        var_s0 = temp_s0_3 + 8;
+        var_a1 = *(s32 *)0x1A2DC;
+    }
+    temp_v1_2 = (s32) FW(arg1, 0x0);
+    FW(var_s0, 0x4) = var_a1;
+    FW(var_s0, 0x0) = (s32) (((((s32) arg4 >> 4) & 0xFF) << 0x10) | *(s32 *)0x1A2D0 | ((arg3 & 0xFF) << 8) | ((((s32) (temp_t4 & 0x80) >> 7) & 1) * 0x10) | ((((u32) (temp_v1_2 << 6) >> 0x1F) & 1) * 8) | (((u8) FW(arg1, 0x0) & 1) * 4) | ((((u32) (temp_v1_2 * 0x10) >> 0x1F) & 1) * 2) | (((u32) (temp_v1_2 << 5) >> 0x1F) & 1));
+    return var_s0 + 8;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
