@@ -18,16 +18,24 @@ Validated: timproc_uso_b5_func_00000778 (4.5->68.9%), func_00007E34 (11->64.8%).
 import re, sys
 # usage: liftcf.py <FN> <PH> <in.c> <out.c>
 FN, PH, INP, OUT = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+SRCDECL = sys.argv[5] if len(sys.argv) > 5 else None
 suf = FN.split("_")[-1]              # unique tag per function
 QT, GT = "Q_"+suf, "GP_"+suf        # unique struct + cast typedef names
 c = open(INP).read()
 
 # drop m2c '? name(...); /* extern|static */' forward-decls and jtbl stubs (whitespace-tolerant)
-# m2c forward-decls: drop '/* static */' (jtbl stubs); rewrite '/* extern */'
-# callee decls to K&R 'extern int name();' (keeps symbol, accepts any argc,
-# avoids strict-prototype arg-count mismatch and cast-mangling)
-c = re.sub(r'^.*?([A-Za-z_]\w*)\s*\([^;]*\);\s*/\* extern \*/.*$',
-           r'extern int \1();', c, flags=re.M)
+# names already declared/defined in the target .c (so we don't re-declare them)
+_declared = set()
+if SRCDECL:
+    _src = open(SRCDECL).read()
+    _declared = set(re.findall(r'\b([A-Za-z_]\w*)\s*\(', _src))
+# m2c forward-decls: drop '/* static */' (jtbl stubs); for '/* extern */' callee
+# decls, DROP if the .c already declares the symbol, else rewrite to K&R
+# 'extern int name();' (accepts any argc, avoids strict-prototype mismatch)
+def _fwd(m):
+    name = m.group(1)
+    return '' if name in _declared else 'extern int %s();' % name
+c = re.sub(r'^.*?([A-Za-z_]\w*)\s*\([^;]*\);\s*/\* extern \*/.*$', _fwd, c, flags=re.M)
 c = re.sub(r'^.*/\* static \*/.*\n', '', c, flags=re.M)
 c = re.sub(r'^\?\s.*\n', '', c, flags=re.M)
 
