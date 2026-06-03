@@ -14759,7 +14759,93 @@ void gl_func_0004C288(int *self, int a1) {
 // =-1, 0x1B8/0x1A4/0x144=0), the &D_0002F128 key, the 0x78 flag bits
 // (0x200/0x400/0x800) and the 0xB8*0xBC product are exact. Caps: self
 // struct + cb signature untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0004C300)();
+void gl_func_0004C300(char *arg0) {
+    s32 sp54;
+    s32 temp_a0;
+    s32 temp_lo;
+    s32 temp_v0;
+    s32 var_a2;
+    s32 var_s1;
+    s32 var_v1;
+    s32 var_v1_2;
+    char *temp_a1;
+    char *var_s0;
+
+    FW(arg0, 0x1B8) = 0;
+    FW(arg0, 0x1B0) = 1;
+    FW(arg0, 0x1A4) = 0;
+    FW(arg0, 0x1A8) = -1;
+    FW(arg0, 0x1AC) = -1;
+    FW(arg0, 0x144) = 0;
+    ((int(*)())gl_func_00034458)(0x20128, 0);
+    temp_a0 = FW(arg0, 0x78);
+    var_v1 = 0;
+    temp_lo = FW(arg0, 0xB8) * FW(arg0, 0xBC);
+    var_a2 = temp_a0 & 0x800;
+    if (var_a2 != 0) {
+        var_v1 = temp_lo;
+        if (temp_a0 & 0x400) {
+            var_v1 *= 2;
+        }
+    }
+    if (temp_a0 & 0x200) {
+        var_v1 += temp_lo;
+    }
+    if (var_v1 != 0) {
+        temp_v0 = ((int(*)())gl_func_00034458)(var_v1 * 2, 0x40, var_a2);
+        FW(arg0, 0xFC) = temp_v0;
+        sp54 = temp_v0;
+        var_a2 = FW(arg0, 0x78) & 0x800;
+    }
+    var_v1_2 = sp54;
+    if (var_a2 != 0) {
+        FW(arg0, 0xF4) = var_v1_2;
+        if (FW(arg0, 0x78) & 0x400) {
+            var_v1_2 += temp_lo * 2;
+            FW(arg0, 0xF8) = var_v1_2;
+        } else {
+            FW(arg0, 0xF8) = (s32) FW(arg0, 0xF4);
+        }
+        FW(arg0, 0x148) = arg0;
+    } else {
+        FW(arg0, 0x148) = (char *) *(char **)0x240;
+    }
+    if (FW(arg0, 0x78) & 0x200) {
+        FW(arg0, 0xF0) = (s32) (var_v1_2 + (temp_lo * 2));
+    } else {
+        if (*(char *)0x240 == 0) {
+            ((int(*)())gl_func_00034458)(0x20138);
+        }
+        FW(arg0, 0xF0) = (s32) FW((*(char *)0x240), 0xF0);
+    }
+    ((int(*)())gl_func_00034458)();
+    ((int(*)())gl_func_00034458)(0x20154, 0);
+    var_s1 = 0;
+    var_s0 = arg0;
+    do {
+        FW(var_s0, 0x14C) = ((int(*)())gl_func_00034458)(0, 0x20158, 0x28, 0, 0, 0, 1);
+        if (FW(arg0, 0x78) & 0x1000) {
+            FW(var_s0, 0x198) = ((int(*)())gl_func_00034458)(0, 0x20164, *(int*)0, *(int*)0, *(int*)0, *(int*)0, *(int*)0);
+            FW(var_s0, 0x180) = ((int(*)())gl_func_00034458)(0, 0x20170, *(int*)0, *(int*)0, *(int*)0, *(int*)0, *(int*)0);
+        } else {
+            FW(var_s0, 0x180) = ((int(*)())gl_func_00034458)(0, 0x20178, FW((*(char *)0x240 + var_s1), 0x180));
+            FW(var_s0, 0x198) = (s32) FW((*(char *)0x240 + var_s1), 0x198);
+        }
+        var_s1 += 4;
+        var_s0 += 4;
+    } while (var_s1 != 8);
+    ((int(*)())gl_func_00034458)();
+    temp_a1 = FW(arg0, 0x28);
+    ((GP_0004C300)FW(temp_a1, 0x5C))(FW(temp_a1, 0x58) + (int)arg0, temp_a1);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C300);
+#endif
 
 // gl_func_0004C5E4 — STRUCTURAL PASS (0x340 / 209 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0xD0
