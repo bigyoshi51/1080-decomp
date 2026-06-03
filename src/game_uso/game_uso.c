@@ -9123,7 +9123,10 @@ int game_uso_func_0000A374(int a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
 #endif
 
-/* game_uso_func_0000A3C4 - verified structural decode (~144-insn
+/* game_uso_func_0000A3C4 - verified structural decode (~144-insn; 54->58.6% 2026-06-02
+ * via the dead-alloc/stack-buffer Vec3 idiom: vref/v1c/v2c are built into stack buffers
+ * (`p=&buf; if(!p) p=alloc(12); p->x/z/y=...`) before the dist compare, matching the
+ * target's 3 game_uso_func_055750(12) dead-alloc sites. Residual: materialization/RA.
  * table-driven dispatch/registration; &D+0x548 entry-table + beql
  * branch-likely + sp-spilled a3 + ~7 calls = documented sub-80 ceiling
  * -> INCLUDE_ASM build path; struct-typing reference).
@@ -9180,11 +9183,17 @@ void game_uso_func_0000A3C4(char *a0) {
     if (*(int *)(slot2 + 0x84) & 0x10) slot2 = *(char **)(slot2 + 0x2C);
     /* {x,0,z} vecs: reference + both slots */
     ref = (float *)(*(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
-    vref.x = ref[0]; vref.y = 0.0f; vref.z = ref[2];
-    v1c.y = 0.0f; v1c.z = *(float *)(slot1 + 0x38); v1c.x = *(float *)(slot1 + 0x30);
-    v2c.y = 0.0f; v2c.z = *(float *)(slot2 + 0x38); v2c.x = *(float *)(slot2 + 0x30);
-    d1x = vref.x - v2c.x; d1z = vref.z - v2c.z;
-    d2x = vref.x - v1c.x; d2z = vref.z - v1c.z;
+    {
+        V3_A3C4 *pref = &vref, *pv1 = &v1c, *pv2 = &v2c;
+        if (pref == 0) pref = (V3_A3C4 *)func_00000000(12);
+        pref->x = ref[0]; pref->z = ref[2]; pref->y = 0.0f;
+        if (pv1 == 0) pv1 = (V3_A3C4 *)func_00000000(12);
+        pv1->x = *(float *)(slot1 + 0x30); pv1->z = *(float *)(slot1 + 0x38); pv1->y = 0.0f;
+        if (pv2 == 0) pv2 = (V3_A3C4 *)func_00000000(12);
+        pv2->x = *(float *)(slot2 + 0x30); pv2->z = *(float *)(slot2 + 0x38); pv2->y = 0.0f;
+        d1x = pref->x - pv2->x; d1z = pref->z - pv2->z;
+        d2x = pref->x - pv1->x; d2z = pref->z - pv1->z;
+    }
     dist2 = d1x * d1x + d1z * d1z;
     dist1 = d2x * d2x + d2z * d2z;
     if (dist2 < dist1) {
