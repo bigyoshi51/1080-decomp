@@ -2507,7 +2507,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 ((FP4)timproc_uso_b5_func_00000000)(var_a0_2, var_s0_2, spA4, 1);
                 FW(var_a0_2, 0xC) = 0x158;
                 FW(var_a0_2, 0x14) = 0;
-                FW(var_a0_2, 0x10) = 0.0f;
+                *(f32 *)((char *)var_a0_2 + 0x10) = 0.0f;
             }
             sp398 = *(char **)0x1284;
             var_a0_3 = var_s0_2 + 0x38;
@@ -3183,25 +3183,25 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
         case 0:
             ((FP4)timproc_uso_b5_func_00000000)(arg0, NULL, arg0);
             FW(arg0, 0x3CC) = 0;
-            FW(arg0, 0x480) = 0.0f;
-            FW(arg0, 0x484) = 0.0f;
+            *(f32 *)((char *)arg0 + 0x480) = 0.0f;
+            *(f32 *)((char *)arg0 + 0x484) = 0.0f;
             FW((FW(arg0, 0x3B8) * 4), 0xB8) = 1;
             break;
         case 1:
             ((FP4)timproc_uso_b5_func_00000000)(arg0, (char *)1, arg0);
             FW(arg0, 0x3CC) = 6;
-            FW(arg0, 0x480) = 1.0f;
-            FW(arg0, 0x484) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x480) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x484) = 1.0f;
             break;
         case 3:
             FW(arg0, 0x3CC) = 8;
-            FW(arg0, 0x480) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x480) = 1.0f;
 block_112:
-            FW(arg0, 0x484) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x484) = 1.0f;
             break;
         case 7:
             FW(arg0, 0x3CC) = 9;
-            FW(arg0, 0x480) = 1.0f;
+            *(f32 *)((char *)arg0 + 0x480) = 1.0f;
             goto block_112;
         }
         FW(arg0, 0x414) = arg9;
