@@ -2497,7 +2497,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 ((FP4)timproc_uso_b5_func_00000000)(var_a0, var_s0_2, spA4, 1);
                 FW(var_a0, 0xC) = 0x158;
                 FW(var_a0, 0x14) = 0;
-                FW(var_a0, 0x10) = (f32) *(f32 *)0x14C;
+                *(f32 *)((char *)var_a0 + 0x10) = *(f32 *)0x14C;
             }
             sp39C = *(char **)0x1280;
             var_a0_2 = var_s0_2 + 0x20;
@@ -2547,7 +2547,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 ((FP4)timproc_uso_b5_func_00000000)(var_a0_6, var_s0_2, spA4, 1);
                 FW(var_a0_6, 0xC) = 0x158;
                 FW(var_a0_6, 0x14) = 0;
-                FW(var_a0_6, 0x10) = (f32) *(f32 *)0x150;
+                *(f32 *)((char *)var_a0_6 + 0x10) = *(f32 *)0x150;
             }
             sp388 = *(char **)0x1294;
             var_a0_7 = var_s0_2 + 0x98;
@@ -2557,7 +2557,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 ((FP4)timproc_uso_b5_func_00000000)(var_a0_7, var_s0_2, spA4, 1);
                 FW(var_a0_7, 0xC) = 0x158;
                 FW(var_a0_7, 0x14) = 0;
-                FW(var_a0_7, 0x10) = (f32) *(f32 *)0x154;
+                *(f32 *)((char *)var_a0_7 + 0x10) = *(f32 *)0x154;
             }
             sp384 = *(char **)0x1298;
             var_a0_8 = var_s0_2 + 0xB0;
@@ -2567,7 +2567,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 ((FP4)timproc_uso_b5_func_00000000)(var_a0_8, var_s0_2, spA4, 1);
                 FW(var_a0_8, 0xC) = 0x158;
                 FW(var_a0_8, 0x14) = 0;
-                FW(var_a0_8, 0x10) = (f32) *(f32 *)0x158;
+                *(f32 *)((char *)var_a0_8 + 0x10) = *(f32 *)0x158;
             }
             sp380 = *(char **)0x129C;
             var_a0_9 = var_s0_2 + 0xC8;
