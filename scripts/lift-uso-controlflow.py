@@ -93,6 +93,7 @@ for l in c.split("\n"):
     for nm, (b, mem) in sib.items(): l = re.sub(r'\b'+nm+r'\b', '%s.%s' % (b, mem), l)
     out.append(l)
 c = "\n".join(out)
+c = c.replace('(? *)', '(int *)').replace('(?)', '(int)')
 c = c.replace('(?32)', '(s32)').replace('?32', 's32')
 c = re.sub(r'^(\s*)\?\s+([A-Za-z_]\w*;\s*)$', r'\1int \2', c, flags=re.M)
 
