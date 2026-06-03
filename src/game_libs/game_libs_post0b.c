@@ -7535,7 +7535,74 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
 // registration idiom as the diagnostic/registration serializers in this
 // segment. Caps: Ctx/entry/vtable struct + string-table symbolization
 // untyped; bundle re-split deferred. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0003E39C)();
+void gl_func_0003E39C(char *arg0) {
+    int *sp50;
+    int *sp4C;
+    s32 sp48;
+    int *sp3C;
+    s32 sp34;
+    int *var_a1;
+    s32 *var_v1;
+    s32 temp_t2;
+    char *temp_v0;
+    char *var_s0;
+    char *var_v0;
+
+    ((int(*)())gl_func_00034458)();
+    ((int(*)())gl_func_00034458)((char *)0x1F2EC);
+loop_1:
+    ((int(*)())gl_func_00034458)(0, &sp50, 4);
+    if (sp50 != 0) {
+        ((int(*)())game_libs_func_00062F08)(&sp48);
+        sp3C = sp50;
+        sp4C = sp3C;
+        var_v0 = ((int(*)())gl_func_00034458)(arg0, sp4C);
+        var_s0 = var_v0;
+        if (var_v0 == 0) {
+            var_a1 = FW(arg0, 0x30);
+            if (var_a1 != 0) {
+                var_v1 = *(int*)var_a1;
+                if (var_v1 != 0) {
+loop_5:
+                    temp_t2 = *(int*)var_v1;
+                    sp34 = temp_t2;
+                    if ((int)sp50 == temp_t2) {
+                        if (FW(var_a1, 0x8) & FW(arg0, 0x34)) {
+                            var_v0 = ((int(*)())gl_func_00034458)(arg0, var_a1);
+                            var_s0 = var_v0;
+                        }
+                    } else {
+                        var_v1 = FW(var_a1, 0xC);
+                        var_a1 += 0xC;
+                        if (var_v1 != 0) {
+                            goto loop_5;
+                        }
+                    }
+                }
+            }
+        }
+        if (var_v0 == 0) {
+            ((int(*)())gl_func_00034458)((char *)0x1F2FC, &sp50);
+        }
+        if ((var_s0 != 0) && (FW(arg0, 0x34) & FW(var_s0, 0x44))) {
+            temp_v0 = FW(var_s0, 0x28);
+            ((GP_0003E39C)FW(temp_v0, 0x4C))(FW(temp_v0, 0x48) + var_s0);
+        } else {
+            ((int(*)())gl_func_00034458)(0, (int *)1, sp48);
+        }
+        goto loop_1;
+    }
+    ((int(*)())gl_func_00034458)(arg0);
+    ((int(*)())gl_func_00034458)();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E39C);
+#endif
 
 void game_libs_func_0003E524(int **a0) {
     int *p = (int *)a0[0xB];
