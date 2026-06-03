@@ -21376,7 +21376,93 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054228);
  * Multi-tick decode pending. ~214 insns of dense FPU math; NM grind for
  * register allocation likely needed once structure is mapped. Default
  * INCLUDE_ASM keeps ROM byte-correct. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00054264)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00054264;
+void gl_func_00054264(char *arg0, char *arg1, char *arg2, s32 arg3) {
+    Q_00054264 sp24;
+    f32 sp74;
+    f32 sp60;
+    f32 sp5C;
+    f32 sp58;
+    f32 sp54;
+    f32 sp50;
+    f32 sp4C;
+    f32 sp48;
+    f32 sp44;
+    f32 sp40;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f16;
+    f32 temp_f8;
+    f32 var_f12;
+    f32 var_f2;
+    s32 temp_v1;
+    char *temp_t0;
+    char *temp_t2;
+    char *temp_t9;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+
+    sp74 = ((f32(*)())gl_func_00034458)();
+    temp_f0 = ((f32(*)())gl_func_00034458)();
+    var_f2 = sp74;
+    var_f12 = temp_f0;
+    if ((var_f2 + temp_f0) > 1.0f) {
+        var_f2 = 1.0f - var_f2;
+        var_f12 = 1.0f - temp_f0;
+    }
+    temp_v1 = arg3 * 8;
+    temp_v0 = FW(arg0, 0x60) + (*(u16*)((char*)(FW(arg0, 0x68) + temp_v1) + 0x2) * 6);
+    temp_f8 = (f32)*(s16*)((char*)temp_v0 + 0x0);
+    sp58 = temp_f8;
+    sp5C = (f32)*(s16*)((char*)temp_v0 + 0x2);
+    sp60 = (f32)*(s16*)((char*)temp_v0 + 0x4);
+    temp_v0_2 = FW(arg0, 0x60) + (*(u16*)((char*)(FW(arg0, 0x68) + temp_v1) + 0x4) * 6);
+    sp4C = (f32)*(s16*)((char*)temp_v0_2 + 0x0);
+    sp50 = (f32)*(s16*)((char*)temp_v0_2 + 0x2);
+    sp54 = (f32)*(s16*)((char*)temp_v0_2 + 0x4);
+    temp_v0_3 = FW(arg0, 0x60) + (*(u16*)((char*)(FW(arg0, 0x68) + temp_v1) + 0x6) * 6);
+    sp40 = (f32)*(s16*)((char*)temp_v0_3 + 0x0);
+    temp_f0_2 = (1.0f - var_f2) - var_f12;
+    temp_f16 = (f32)*(s16*)((char*)temp_v0_3 + 0x2);
+    sp44 = temp_f16;
+    sp48 = (f32)*(s16*)((char*)temp_v0_3 + 0x4);
+    (*(f32*)((char*)arg1 + 0x0)) = (f32) ((temp_f8 * temp_f0_2) + (sp4C * var_f2) + (sp40 * var_f12));
+    (*(f32*)((char*)arg1 + 0x4)) = (f32) ((sp5C * temp_f0_2) + (sp50 * var_f2) + (temp_f16 * var_f12));
+    (*(f32*)((char*)arg1 + 0x8)) = (f32) ((sp60 * temp_f0_2) + (sp54 * var_f2) + (sp48 * var_f12));
+    temp_t2 = FW(arg0, 0x58) + (*(u16*)((char*)(FW(arg0, 0x68) + temp_v1) + 0x2) * 0xC);
+    sp24.unk0 = (*(f32*)((char*)temp_t2 + 0x0));
+    sp24.unk4 = (s32) (*(f32*)((char*)temp_t2 + 0x4));
+    sp24.unk8 = (s32) (*(f32*)((char*)temp_t2 + 0x8));
+    sp60 = sp24.unk8;
+    sp5C = sp24.unk4;
+    sp58 = sp24.unk0;
+    temp_t0 = FW(arg0, 0x58) + (*(u16*)((char*)(FW(arg0, 0x68) + temp_v1) + 0x4) * 0xC);
+    sp24.unk0 = (*(f32*)((char*)temp_t0 + 0x0));
+    sp24.unk4 = (s32) (*(f32*)((char*)temp_t0 + 0x4));
+    sp24.unk8 = (s32) (*(f32*)((char*)temp_t0 + 0x8));
+    sp54 = sp24.unk8;
+    sp50 = sp24.unk4;
+    sp4C = sp24.unk0;
+    temp_t9 = FW(arg0, 0x58) + (*(u16*)((char*)(FW(arg0, 0x68) + temp_v1) + 0x6) * 0xC);
+    sp24.unk0 = (*(f32*)((char*)temp_t9 + 0x0));
+    sp24.unk4 = (s32) (*(f32*)((char*)temp_t9 + 0x4));
+    sp24.unk8 = (s32) (*(f32*)((char*)temp_t9 + 0x8));
+    sp44 = sp24.unk4;
+    sp40 = sp24.unk0;
+    sp48 = sp24.unk8;
+    (*(f32*)((char*)arg2 + 0x0)) = (f32) ((sp58 * temp_f0_2) + (sp4C * var_f2) + (sp24.unk0 * var_f12));
+    (*(f32*)((char*)arg2 + 0x4)) = (f32) ((sp5C * temp_f0_2) + (sp50 * var_f2) + (sp44 * var_f12));
+    (*(f32*)((char*)arg2 + 0x8)) = (f32) ((sp60 * temp_f0_2) + (sp24.unk8 * var_f2) + (sp48 * var_f12));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054264);
+#endif
 
 /* gl_func_000545BC: 43-insn alloc-init + conditional sub-alloc + 4-float-copy.
  * Matched 2026-05-14 via goto-end unified-epilogue + symbol-ref-for-magic-const
