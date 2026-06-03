@@ -1692,7 +1692,54 @@ void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
     }
 }
 #else
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00002EF0)();
+void mgrproc_uso_func_00002EF0(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 *arg4) {
+    char *sp2C;
+    char *sp24;
+    f32 temp_f0;
+    char *temp_a1;
+    char *temp_v0;
+
+    temp_f0 = 192.0f / 255.0f;
+    FW(arg0, 0xC) = 0x688;
+    FW(arg0, 0xBC) = arg1;
+    FW(arg0, 0xB8) = arg3;
+    FW(arg0, 0x54) = arg2;
+    FW(arg0, 0xD4) = 0xFF;
+    FW(arg0, 0xD8) = 0;
+    FW(arg0, 0xDC) = 0;
+    FW(arg0, 0x30) = 0;
+    FW(arg0, 0x4C) = arg4;
+    FW(arg0, 0xCC) = temp_f0;
+    FW(arg0, 0xC4) = temp_f0;
+    FW(arg0, 0xC8) = (f32) (255.0f / 255.0f);
+    FW(arg0, 0xD0) = (f32) (0.0f / 255.0f);
+    if (FW(arg1, 0x4F0) & 0x10000) {
+        ((int(*)())mgrproc_uso_func_00000AE0)((char *)0xE8, (char *)0x13, FW(arg0, 0x44) + 0x10);
+        ((int(*)())mgrproc_uso_func_00000AE0)(arg0, (char *)0x123, 0xE1U, (char *)0xD);
+        ((int(*)())mgrproc_uso_func_00000AE0)(arg0, (char *)0x47, 0x13U, (int)arg0 + 0x30);
+        ((int(*)())mgrproc_uso_func_00000AE0)(arg0, (char *)0x44, 0x26U, FW(arg0, 0x44) + 0x28);
+        sp24 = ((int(*)())mgrproc_uso_func_00000AE0)(*(int*)(FW(arg0, 0x4C)) + (*(s32 *)0x64 * 0x30), 0);
+        temp_v0 = ((int(*)())mgrproc_uso_func_00000AE0)(0, FW(arg0, 0x60));
+        FW(arg0, 0xC0) = temp_v0;
+        ((int(*)())mgrproc_uso_func_00000AE0)(temp_v0, (char *) FW(sp24, 0x5), FW(sp24, 0x6), (char *) FW(sp24, 0x7));
+        ((int(*)())mgrproc_uso_func_00000AE0)(FW(arg0, 0xC0), (char *)0x4B, 0xD6U);
+        temp_a1 = FW(arg0, 0xC0);
+        sp2C = temp_a1;
+        ((int(*)())mgrproc_uso_func_00000AE0)((int)arg0 + 0x10, temp_a1);
+        if (FW(temp_a1, 0x14) != 0) {
+            FW(temp_a1, 0x4) = 1;
+        }
+        FW(temp_a1, 0x14) = arg0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF0);
+#endif
 #endif
 
 #ifdef NON_MATCHING
