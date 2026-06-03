@@ -11390,7 +11390,63 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000437C0);
 // guard, the *0x4C7C4 head patch, the self->0x70 handle store and the
 // count-bump + base+n*8 slot math are exact. Caps: self/Tbl struct, the
 // 0x4C7C4 global and cb signature untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00043BEC)();
+void gl_func_00043BEC(char *arg0, char *arg1) {
+    s32 temp_a0;
+    s32 temp_a0_2;
+    s32 temp_a2;
+    s32 temp_a2_2;
+    s32 temp_v0_2;
+    s32 temp_v0_3;
+    s32 temp_v0_4;
+    char *temp_a1;
+    char *temp_a1_2;
+    char *temp_a1_3;
+    char *temp_a3;
+    char *temp_v0;
+    char *temp_v1;
+    char *temp_v1_2;
+
+    if (FW(arg0, 0x6C) != 0) {
+        temp_a0 = FW(arg0, 0x48);
+        if ((temp_a0 != 0) && (*(s32 *)0x3C7C4 != temp_a0)) {
+            ((int(*)())gl_func_00034458)(temp_a0);
+            *(char *)0x3C7C4 = (s32) FW(arg0, 0x48);
+        }
+        temp_v0 = FW(arg0, 0x60);
+        FW(arg0, 0x70) = (s32) FW(FW(arg1, 0xC), 0x4);
+        if (temp_v0 != 0) {
+            temp_v0_2 = ((int(*)())gl_func_00034458)(FW(temp_v0, 0x60));
+            temp_v1 = FW(arg1, 0xC);
+            temp_a0_2 = FW(temp_v1, 0x4);
+            FW(temp_v1, 0x4) = (s32) (temp_a0_2 + 1);
+            temp_a1 = FW(FW(arg1, 0xC), 0x0) + (temp_a0_2 * 8);
+            FW(temp_a1, 0x0) = 0x06000000;
+            FW(temp_a1, 0x4) = temp_v0_2;
+        }
+        temp_v0_3 = ((int(*)())gl_func_00034458)(*(int*)(FW(FW(arg0, 0x64), 0xC)) + (FW(arg0, 0x88) * 8));
+        temp_a1_2 = FW(arg1, 0xC);
+        temp_a2 = FW(temp_a1_2, 0x4);
+        FW(temp_a1_2, 0x4) = (s32) (temp_a2 + 1);
+        temp_a3 = FW(FW(arg1, 0xC), 0x0) + (temp_a2 * 8);
+        FW(temp_a3, 0x0) = 0x06000000;
+        FW(temp_a3, 0x4) = temp_v0_3;
+        temp_v0_4 = ((int(*)())gl_func_00034458)(*(int*)(FW(FW(arg0, 0x6C), 0xC)) + (FW(arg0, 0x8A) * 8), temp_a1_2, temp_a2, temp_a3);
+        temp_a1_3 = FW(arg1, 0xC);
+        temp_a2_2 = FW(temp_a1_3, 0x4);
+        FW(temp_a1_3, 0x4) = (s32) (temp_a2_2 + 1);
+        temp_v1_2 = FW(FW(arg1, 0xC), 0x0) + (temp_a2_2 * 8);
+        FW(temp_v1_2, 0x0) = 0x06000000;
+        FW(temp_v1_2, 0x4) = temp_v0_4;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043BEC);
+#endif
 
 void game_libs_func_00043D2C(int *a0, int *a1) { *(int*)((char*)a0 + 0x64) = *(int*)((char*)a1 + 0x64); }
 
