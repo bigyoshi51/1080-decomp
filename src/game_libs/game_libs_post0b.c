@@ -12783,7 +12783,75 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000454C4);
 // bump, the 255.0 scale, the trunc-to-byte conversion and the stride-4
 // interleaved layout are exact. Caps: Batch/Elem/Out struct + the bias
 // constants untyped. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00045CB0)();
+void gl_func_00045CB0(s32 arg0, char *arg1, char *arg2) {
+    char *sp3C;
+    char *sp20;
+    char *sp1C;
+    s32 temp_f18;
+    s32 temp_f8;
+    s32 temp_f8_2;
+    s32 temp_t0;
+    s32 temp_t0_2;
+    s32 temp_t0_3;
+    s32 temp_t0_4;
+    char *temp_a2;
+    char *temp_a3;
+    char *temp_t1;
+    char *temp_v0;
+    char *temp_v1;
+    char *temp_v1_2;
+    char *temp_v1_3;
+    char *temp_v1_4;
+
+    temp_v1 = FW(arg1, 0x2C);
+    temp_t0 = FW(temp_v1, 0x4);
+    FW(temp_v1, 0x4) = (s32) (temp_t0 + 1);
+    temp_a3 = FW(FW(arg1, 0x2C), 0x0) + (temp_t0 * 0x48);
+    temp_f8 = (s32) ((*(f32*)((char*)arg2 + 0x0)) * 255.0f);
+    temp_f18 = (s32) ((*(f32*)((char*)arg2 + 0x4)) * 255.0f);
+    (*(s8*)((char*)temp_a3 + 0x0)) = (s8) temp_f8;
+    (*(s8*)((char*)temp_a3 + 0x4)) = (s8) temp_f8;
+    temp_f8_2 = (s32) ((*(f32*)((char*)arg2 + 0x8)) * 255.0f);
+    (*(s8*)((char*)temp_a3 + 0x8)) = (s8) temp_f8;
+    (*(s8*)((char*)temp_a3 + 0xC)) = (s8) temp_f8;
+    (*(s8*)((char*)temp_a3 + 0x1)) = (s8) temp_f18;
+    (*(s8*)((char*)temp_a3 + 0x5)) = (s8) temp_f18;
+    (*(s8*)((char*)temp_a3 + 0x9)) = (s8) temp_f18;
+    (*(s8*)((char*)temp_a3 + 0xD)) = (s8) temp_f18;
+    (*(s8*)((char*)temp_a3 + 0x2)) = (s8) temp_f8_2;
+    (*(s8*)((char*)temp_a3 + 0x6)) = (s8) temp_f8_2;
+    (*(s8*)((char*)temp_a3 + 0xA)) = (s8) temp_f8_2;
+    (*(s8*)((char*)temp_a3 + 0xE)) = (s8) temp_f8_2;
+    temp_v1_2 = FW(arg1, 0xC);
+    temp_t0_2 = FW(temp_v1_2, 0x4);
+    FW(temp_v1_2, 0x4) = (s32) (temp_t0_2 + 1);
+    temp_v0 = FW(FW(arg1, 0xC), 0x0) + (temp_t0_2 * 8);
+    FW(temp_v0, 0x0) = 0xBC000002;
+    FW(temp_v0, 0x4) = 0x80000040;
+    temp_v1_3 = FW(arg1, 0xC);
+    temp_t0_3 = FW(temp_v1_3, 0x4);
+    FW(temp_v1_3, 0x4) = (s32) (temp_t0_3 + 1);
+    temp_a2 = FW(FW(arg1, 0xC), 0x0) + (temp_t0_3 * 8);
+    FW(temp_a2, 0x0) = 0x03880010;
+    sp3C = temp_a3;
+    sp20 = temp_a2;
+    FW(temp_a2, 0x4) = ((int(*)())gl_func_00034458)(temp_a3 + 8, temp_a2, temp_a3);
+    temp_v1_4 = FW(arg1, 0xC);
+    temp_t0_4 = FW(temp_v1_4, 0x4);
+    FW(temp_v1_4, 0x4) = (s32) (temp_t0_4 + 1);
+    temp_t1 = FW(FW(arg1, 0xC), 0x0) + (temp_t0_4 * 8);
+    FW(temp_t1, 0x0) = 0x03860010;
+    sp1C = temp_t1;
+    FW(temp_t1, 0x4) = ((int(*)())gl_func_00034458)(sp3C, arg1, temp_a2);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
+#endif
 
 // gl_func_00045E20 — STRUCTURAL PASS (0x1D0 / 117 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x28
