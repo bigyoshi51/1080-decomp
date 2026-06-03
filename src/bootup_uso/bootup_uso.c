@@ -168,7 +168,58 @@ void func_000003D8(void) {
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
 // Caps: f64 reciprocal + folded-literal divisor; structural, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef f32 (*GP_000003F8)();
+typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_000003F8;
+void func_000003F8(char *arg0, f32 *arg1, s32 *arg2, char *arg3) {
+    Q_000003F8 sp3C;
+    f32 sp38;
+    f32 sp34;
+    f32 sp30;
+    f32 temp_f0;
+    f32 temp_f10;
+    f32 temp_f10_2;
+    f32 temp_f16;
+    f32 temp_f18;
+    f32 temp_f2;
+    f32 temp_f4;
+    f32 temp_f8;
+    f32 temp_f8_2;
+
+    sp3C.unk0 = *(f32 *)((char *)arg0 + 0x0);
+    sp3C.unk4 = (s32) *(f32 *)((char *)arg0 + 0x4);
+    sp3C.unk8 = (s32) *(f32 *)((char *)arg0 + 0x8);
+    temp_f8 = sp3C.unk0 - *(f32 *)((char *)FW(arg3, 0x70) + 0xA0);
+    sp3C.unk0 = temp_f8;
+    temp_f18 = sp3C.unk4 - *(f32 *)((char *)FW(arg3, 0x70) + 0xA4);
+    sp3C.unk4 = temp_f18;
+    temp_f10 = sp3C.unk8 - *(f32 *)((char *)FW(arg3, 0x70) + 0xA8);
+    sp3C.unk8 = temp_f10;
+    temp_f0 = ((GP_000003F8)func_00000000)((temp_f8 * temp_f8) + (temp_f18 * temp_f18) + (temp_f10 * temp_f10));
+    *arg1 = temp_f0;
+    temp_f2 = (f32) (1.0 / (f64) temp_f0);
+    temp_f10_2 = sp3C.unk0 * temp_f2;
+    temp_f8_2 = sp3C.unk4 * temp_f2;
+    temp_f16 = sp3C.unk8 * temp_f2;
+    sp3C.unk0 = temp_f10_2;
+    sp3C.unk4 = temp_f8_2;
+    sp3C.unk8 = temp_f16;
+    temp_f4 = *(f32 *)((char *)FW(arg3, 0x70) + 0xB4);
+    sp30 = temp_f4;
+    sp34 = *(f32 *)((char *)FW(arg3, 0x70) + 0xC4);
+    sp38 = *(f32 *)((char *)FW(arg3, 0x70) + 0xD4);
+    *arg2 = (s32) (((temp_f10_2 * temp_f4) + (temp_f8_2 * sp34) + (temp_f16 * sp38)) * 63.0f);
+    *arg1 /= *(f32 *)0xC;
+    if ((f64) *arg1 > 1.0) {
+        *arg1 = 1.0f;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000003F8);
+#endif
 
 /* func_0000057C: alloc obj = func(0x64) into arg0->0x0; switch(arg1) selects
  * 0/1/2; init obj->0x22=(s8)arg2, obj->0x10=0.0f, arg0->0x8=0; then call obj's
