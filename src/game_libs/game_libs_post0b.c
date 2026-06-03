@@ -9722,7 +9722,94 @@ void game_libs_func_000412E0(void) {}
 // alloc sizes are exact; later-slot specifics representative. Caps: root
 // struct, &D_reloc/&D_g globals and cb signature untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000412E8)();
+void gl_func_000412E8(void) {
+    s32 *temp_v0;
+    s32 *temp_v0_10;
+    s32 *temp_v0_11;
+    s32 *temp_v0_12;
+    s32 *temp_v0_13;
+    s32 *temp_v0_14;
+    s32 *temp_v0_15;
+    s32 *temp_v0_2;
+    s32 *temp_v0_3;
+    s32 *temp_v0_4;
+    s32 *temp_v0_5;
+    s32 *temp_v0_6;
+    s32 *temp_v0_7;
+    s32 *temp_v0_8;
+    s32 *temp_v0_9;
+    s32 *var_a0;
+    s32 *var_a0_2;
+    s32 *var_s0;
+    s32 *var_s0_2;
+    s32 *var_s0_3;
+    s32 *var_s0_4;
+    s32 *var_s0_5;
+    s32 *var_s0_6;
+    s32 *var_v1;
+    s32 *var_v1_2;
+    s32 *var_v1_3;
+    s32 *var_v1_4;
+    s32 *var_v1_5;
+    s32 *var_v1_6;
+    s32 *var_v1_7;
+
+    var_s0 = 0;
+    if ((0 != 0) || (temp_v0 = ((int(*)())gl_func_00034458)((s32 *)0x1E0), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0 + 0x138;
+        if ((var_s0 != (s32 *)-0x138) || (temp_v0_2 = ((int(*)())gl_func_00034458)((s32 *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            FW(var_v1, 0x4) = 0;
+            FW(var_v1, 0x0) = 0;
+        }
+        var_v1_2 = var_s0 + 0x140;
+        if ((var_s0 != (s32 *)-0x140) || (temp_v0_3 = ((int(*)())gl_func_00034458)((s32 *)8), var_v1_2 = temp_v0_3, (temp_v0_3 != 0))) {
+            FW(var_v1_2, 0x4) = 0;
+            FW(var_v1_2, 0x0) = 0;
+        }
+        var_v1_3 = var_s0 + 0x18C;
+        if ((var_s0 != (s32 *)-0x18C) || (temp_v0_4 = ((int(*)())gl_func_00034458)((s32 *)4), var_v1_3 = temp_v0_4, (temp_v0_4 != 0))) {
+            *var_v1_3 = 0;
+        }
+        var_v1_4 = var_s0 + 0x1C4;
+        if (((var_s0 != (s32 *)-0x1C4) || (temp_v0_5 = ((int(*)())gl_func_00034458)((s32 *)4), var_v1_4 = temp_v0_5, (temp_v0_5 != 0))) && ((var_a0 = var_v1_4, (var_v1_4 != 0)) || (temp_v0_6 = ((int(*)())gl_func_00034458)((s32 *)4), var_a0 = temp_v0_6, (temp_v0_6 != 0)))) {
+            *var_a0 = 0;
+        }
+    }
+    var_s0_2 = (s32 *)0x234;
+    if (((0 != -0x234) || (temp_v0_7 = ((int(*)())gl_func_00034458)((s32 *)0xC), var_s0_2 = temp_v0_7, (temp_v0_7 != 0))) && ((var_v1_5 = var_s0_2, (var_s0_2 != 0)) || (temp_v0_8 = ((int(*)())gl_func_00034458)((s32 *)8), var_v1_5 = temp_v0_8, (temp_v0_8 != 0)))) {
+        FW(var_v1_5, 0x4) = 0;
+        FW(var_v1_5, 0x0) = 0;
+    }
+    var_s0_3 = (s32 *)0x294;
+    if ((0 != -0x294) || (temp_v0_9 = ((int(*)())gl_func_00034458)((s32 *)0x18), var_s0_3 = temp_v0_9, (temp_v0_9 != 0))) {
+        ((int(*)())gl_func_00034458)(var_s0_3);
+    }
+    var_s0_4 = (s32 *)0x378;
+    if ((0 != -0x378) || (temp_v0_10 = ((int(*)())gl_func_00034458)((s32 *)0x25C), var_s0_4 = temp_v0_10, (temp_v0_10 != 0))) {
+        ((int(*)())gl_func_00034458)(var_s0_4, 0x32, 0xC, 0);
+    }
+    var_s0_5 = 0;
+    if ((0 != 0) || (temp_v0_11 = ((int(*)())gl_func_00034458)((s32 *)0x1C), var_s0_5 = temp_v0_11, (temp_v0_11 != 0))) {
+        var_v1_6 = var_s0_5;
+        if (((var_s0_5 != 0) || (temp_v0_12 = ((int(*)())gl_func_00034458)((s32 *)4), var_v1_6 = temp_v0_12, (temp_v0_12 != 0))) && ((var_a0_2 = var_v1_6, (var_v1_6 != 0)) || (temp_v0_13 = ((int(*)())gl_func_00034458)((s32 *)4), var_a0_2 = temp_v0_13, (temp_v0_13 != 0)))) {
+            *var_a0_2 = 0;
+        }
+        FW(var_s0_5, 0x18) = 0;
+    }
+    var_s0_6 = 0;
+    *(s32 *)0x18 = 0;
+    if (((0 != 0) || (temp_v0_14 = ((int(*)())gl_func_00034458)((s32 *)4), var_s0_6 = temp_v0_14, (temp_v0_14 != 0))) && ((var_v1_7 = var_s0_6, (var_s0_6 != 0)) || (temp_v0_15 = ((int(*)())gl_func_00034458)((s32 *)4), var_v1_7 = temp_v0_15, (temp_v0_15 != 0)))) {
+        *var_v1_7 = 0;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000412E8);
+#endif
 
 /* gl_func_00041524: alloc-or-given constructor + init + vtable
  * install + sub-alloc. Ternary-alloc form (obj reuses a0/a2, single
