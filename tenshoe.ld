@@ -1366,6 +1366,8 @@ SECTIONS
         build/assets/game_libs_text2_F3DLX_Rej_imem.bin.o(.data);
         build/assets/game_libs_text2_tail.bin.o(.data);
         build/src/game_libs/game_libs_post.c.o(.text);
+        build/src/game_libs/game_libs_g3_34448.c.o(.text);
+        build/src/game_libs/game_libs_post0b.c.o(.text);
         build/src/game_libs/game_libs_g3_62F58.c.o(.text);
         build/src/game_libs/game_libs_post1b.c.o(.text);
         build/src/game_libs/game_libs_g3_70FBC.c.o(.text);
