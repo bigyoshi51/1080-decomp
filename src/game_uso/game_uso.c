@@ -9334,54 +9334,56 @@ void game_uso_func_0000A7D8(int *a0) {
 void game_uso_func_0000A7F8(char *obj) {
     char *w = *(char **)(obj + 0x30);
     char *r1, *m;
-    float blockA[3], scaled[3];
-    float b1[3], b2[3], b3[3], b4[3], b5[3], b6[3];
-    float *p1, *p2, *p4, *p5;
+    Vec3 blockA, scaled, c1, c2;
+    Vec3 b1, b2, b3, b4, b5, b6;
+    Vec3 *p1, *p2, *p4, *p5;
     float s, d, magsq, cross, result;
     int idx, cnt;
     char *node;
-    /* blockA = w transform (0xB4) + scaled world-vec (0x318 * obj scale 0xA8) */
-    blockA[0] = *(float *)(w + 0xB4);
-    blockA[1] = *(float *)(w + 0xB8);
-    blockA[2] = *(float *)(w + 0xBC);
+    /* blockA = w transform (0xB4) + scaled world-vec (0x318 * obj scale 0xA8).
+     * Vec3 struct-copies emit int lw/sw (see docs/IDO_CODEGEN.md float-Vec3),
+     * scale/add stay element float-ops. Two dead intermediate copies c1/c2. */
+    blockA = *(Vec3 *)(w + 0xB4);
     s = *(float *)(obj + 0xA8);
-    scaled[0] = *(float *)(w + 0x318) * s;
-    scaled[1] = *(float *)(w + 0x31C) * s;
-    scaled[2] = *(float *)(w + 0x320) * s;
-    blockA[0] += scaled[0];
-    blockA[1] += scaled[1];
-    blockA[2] += scaled[2];
+    scaled.x = *(float *)(w + 0x318) * s;
+    scaled.y = *(float *)(w + 0x31C) * s;
+    scaled.z = *(float *)(w + 0x320) * s;
+    c1 = scaled;
+    c2 = c1;
+    blockA.x = blockA.x + c2.x;
+    blockA.y = blockA.y + c2.y;
+    blockA.z = blockA.z + c2.z;
     /* node = *(*(GLOBAL + obj->0x5C*4 + 0x548)) */
     idx = *(int *)(obj + 0x5C);
     node = *(char **)(*(char **)((char *)&D_00000000 + 0x548 + idx * 4));
-    r1 = (char *)func_00000000(obj, node, blockA);
+    r1 = (char *)func_00000000(obj, node, &blockA);
     if (r1 != 0) {
     m = *(char **)(r1 + 0x2C);
     if (m != 0) {
     if (func_00000000(obj, r1, m) != 0) {
     /* FP threshold gate: d = blockA.z - r1->0x38; if (d<0) d += 250*r1->0x54;
      * if (d<0) return. */
-    d = blockA[2] - *(float *)(r1 + 0x38);
+    d = blockA.z - *(float *)(r1 + 0x38);
     if (d < 0.0f) d += 250.0f * *(float *)(r1 + 0x54);
     if (d >= 0.0f) {
         /* b1 = m's XZ vec; b2 = b1 - r1's XZ vec; b3 = b2 (each via dead-alloc) */
-        p1 = b1; if (p1 == 0) p1 = (float *)func_00000000(12);
-        p1[0] = *(float *)(m + 0x30); p1[2] = *(float *)(m + 0x38); p1[1] = 0.0f;
-        p2 = b2; if (p2 == 0) p2 = (float *)func_00000000(12);
-        p2[2] = p1[2] - *(float *)(r1 + 0x38); p2[0] = p1[0] - *(float *)(r1 + 0x30); p2[1] = 0.0f;
-        b3[0] = b2[0]; b3[1] = b2[1]; b3[2] = b2[2];
+        p1 = &b1; if (p1 == 0) p1 = (Vec3 *)func_00000000(12);
+        p1->x = *(float *)(m + 0x30); p1->z = *(float *)(m + 0x38); p1->y = 0.0f;
+        p2 = &b2; if (p2 == 0) p2 = (Vec3 *)func_00000000(12);
+        p2->z = p1->z - *(float *)(r1 + 0x38); p2->x = p1->x - *(float *)(r1 + 0x30); p2->y = 0.0f;
+        b3 = b2;
         /* b4 = blockA XZ; b5 = b4 - r1's XZ vec; b6 = b5 */
-        p4 = b4; if (p4 == 0) p4 = (float *)func_00000000(12);
-        p4[0] = blockA[0]; p4[2] = blockA[2]; p4[1] = 0.0f;
-        p5 = b5; if (p5 == 0) p5 = (float *)func_00000000(12);
-        p5[2] = p4[2] - *(float *)(r1 + 0x38); p5[0] = p4[0] - *(float *)(r1 + 0x30); p5[1] = 0.0f;
-        b6[0] = b5[0]; b6[1] = b5[1]; b6[2] = b5[2];
+        p4 = &b4; if (p4 == 0) p4 = (Vec3 *)func_00000000(12);
+        p4->x = blockA.x; p4->z = blockA.z; p4->y = 0.0f;
+        p5 = &b5; if (p5 == 0) p5 = (Vec3 *)func_00000000(12);
+        p5->z = p4->z - *(float *)(r1 + 0x38); p5->x = p4->x - *(float *)(r1 + 0x30); p5->y = 0.0f;
+        b6 = b5;
         /* result = cross(b3,b6)^2 / |b3|^2 in the XZ plane */
-        magsq = b3[0] * b3[0] + b3[2] * b3[2];
+        magsq = b3.x * b3.x + b3.z * b3.z;
         if (magsq == 0.0f) {
             result = 0.0f;
         } else {
-            cross = b3[2] * b6[0] - b3[0] * b6[2];
+            cross = b3.z * b6.x - b3.x * b6.z;
             result = cross * cross / magsq;
         }
         if (result < *(float *)(obj + 0x60)) {
