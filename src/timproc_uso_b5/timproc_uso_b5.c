@@ -5466,7 +5466,57 @@ void timproc_uso_b5_func_0000896C(char *a0) {
  * dropped the 89DC and 8A1C symbols. Body walks a0->0x40C[a1] entries counting
  * a predicate match (f0==entry->0x3C->0x2A4 / a2==...->0x2B0), returns the count.
  * Reloc-blind (USO); stays INCLUDE_ASM until the entry struct is typed. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00008988)();
+s32 timproc_uso_b5_func_00008988(char *arg0, s32 arg1, s32 arg2) {
+    s32 temp_a3;
+    s32 var_v1;
+    char *temp_a1;
+    char *temp_v0;
+    char *var_a0;
+    char *var_a0_2;
+
+    var_v1 = 0;
+    temp_v0 = FW((FW(arg0, 0x40C) + (arg1 * 4)), 0x40);
+    temp_a3 = FW(temp_v0, 0x6C);
+    if (temp_a3 > 0) {
+        var_a0 = temp_v0;
+loop_2:
+        temp_a1 = FW(var_a0, 0x3C);
+        if ((*(f32 *)((char *)temp_a1 + 0x2A4) != 0.0f) && (arg2 == FW(temp_a1, 0x2B0))) {
+            return var_v1;
+        }
+        var_v1 += 1;
+        var_a0 += 4;
+        if (var_v1 >= temp_a3) {
+            var_v1 = 0;
+            goto block_7;
+        }
+        goto loop_2;
+    }
+block_7:
+    var_a0_2 = temp_v0;
+    if (temp_a3 > 0) {
+loop_8:
+        if (*(f32 *)((char *)FW(var_a0_2, 0x3C) + 0x2A4) != 0.0f) {
+            return var_v1;
+        }
+        var_v1 += 1;
+        var_a0_2 += 4;
+        if (var_v1 >= temp_a3) {
+            /* Duplicate return node #11. Try simplifying control flow for better match */
+            return 0;
+        }
+        goto loop_8;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008988);
+#endif
 
 /* timproc_uso_b5_func_00008A38/A64/A90: indexed double-deref accessors. The
  * addu operand-order lever (scaled index FIRST, fully inlined — no named
