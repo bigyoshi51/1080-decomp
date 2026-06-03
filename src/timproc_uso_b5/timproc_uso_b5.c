@@ -3534,15 +3534,14 @@ int timproc_uso_b5_func_00008C44(char *r) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C44);
 #endif
 
+/* timproc_uso_b5_func_00008D38: 22-insn (0x58) frameless bit-scan leaf.
+ * BOUNDARY MERGED 2026-06-02: splat over-split the loop bottom as a separate
+ * symbol (00008D78, 6-insn tail whose `bnel` branches backward to 0x8D54
+ * inside this body). Absorbed 8D78's 6 words into 8D38 (0x40 -> 0x58); dropped
+ * the 8D78 symbol. Scans the a0->0x154 bitmap (byte+6 of import_800201EC[i>>3]
+ * indexed table) for a set bit, returns the index/3 or sentinel. Reloc-blind
+ * USO (lui %hi(import_800201EC)); stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D38);
-
-/* timproc_uso_b5_func_00008D78: 6-insn loop-bottom tail-fragment:
- *   slt at,v1,v0; bnel at,zero,-0x2C; sra t6,v1,3; li v0,3; jr ra; nop
- * Caller-set $v0/$v1 + backward branch to 0x8D50 (before this .s start
- * 0x8D78). Splat captured loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * Needs splat boundary correction (focused-session). */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D78);
 
 void timproc_uso_b5_func_00008D90(int *a0, int a1) {
     if (a1 == 0) {
