@@ -1334,63 +1334,245 @@ char *timproc_uso_b5_func_00002B74(char *self) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00002B74);
 #endif
 
+// timproc_uso_b5_func_000032C8 — m2c DECODE (38.26% NM, no episode). non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-/* timproc_uso_b5_func_000032C8: bundled symbol (0x608, 386 insns total).
- * Splat couldn't separate sub-functions in this Yay0-compressed segment.
- * Structure (per asm boundary scan: 2x jr-ra inside declared size):
- *
- *   F1 @ 0x32C8-0x388C: ~370 insns / 0x5C4. 0x128-byte stack frame, saves
- *     s0/ra. Constructor-style alloc-cascade similar to spine
- *     game_uso_func_000044F4:
- *       - if (a0 == 0) self = gl_func(0x108) else self = a0; null-check
- *       - sub_obj_8 = (s0 != 0) ? s0 : gl_func(8); init head=&D[0x1178], next=0
- *       - 0x1188 D-global cached at sp+0xA4 / sp+0x124 (work pointer)
- *       - many gl_func init calls + sub-object linking
- *       - tail: sw zero/swc1 zero stores to a0->[0x2B4/0x164/0x168/0x16C]
- *       - returns a0 (move v0, s0 at 0x3880)
- *
- *   F2 @ 0x3890-0x38AC: 7 insns. Pure leaf clear:
- *       a0->[0x2B4] = 0; a0->[0x164] = 0.0; a0->[0x168] = 0.0;
- *       a0->[0x16C] = 0.0; a0->[0x2A0] = 0.0; return.
- *
- *   F3 @ 0x38B0-0x38CC+: ~10+ insns, FPU-heavy. Reads/writes a0->[0x2A0],
- *     [0x164], [0x29C], [0x168], [0xDC]. 1.0f constant load (3C013F80).
- *     Likely a per-frame update of accumulator state. Trailing instructions
- *     extend beyond visible end — full decode pending.
- *
- * Multi-tick decomp: F1 is the bulk, similar shape to other documented
- * spine constructors. F2 + F3 are trivial leaves bundled in by splat (per
- * feedback_uso_split_fragments_breaks_expected_match.md, splitting risks
- * expected/.o desync, so kept bundled).
- *
- * Sibling of recently-matched timproc_uso_b5_func_00003F5C (per source 2
- * pick rule). Initial structural decode — body TBD. */
-/* 2026-05-08: entry-stage decode (F1 ~30 insns / 0x32C8-0x3340 + tail).
- * Replaces empty stub with the alloc-cascade entry + tail clearers
- * per the documented body structure above. */
-void *timproc_uso_b5_func_000032C8(int *a0) {
-    int *self;
-    int *sub_obj_8;
-    if (a0 == 0) {
-        self = (int*)gl_func_00000000(0x108);
-        if (self == 0) return 0;
-    } else {
-        self = a0;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000032C8)();
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_000032C8;
+char *timproc_uso_b5_func_000032C8(char *arg0) {
+    Q_000032C8 sp104;
+    Q_000032C8 sp3C;
+    Q_000032C8 sp54;
+    Q_000032C8 sp64;
+    Q_000032C8 sp74;
+    Q_000032C8 spC4;
+    Q_000032C8 spD0;
+    Q_000032C8 spDC;
+    Q_000032C8 spEC;
+    Q_000032C8 spF8;
+    s32 sp124;
+    s32 sp120;
+    s32 sp11C;
+    s32 sp118;
+    s32 sp114;
+    s32 sp110;
+    s32 spE8;
+    s32 spC0;
+    s32 spBC;
+    s32 spB8;
+    char *spA8;
+    s32 spA4;
+    char *sp84;
+    char *sp50;
+    s32 temp_f0;
+    s32 temp_f0_2;
+    s32 temp_f2;
+    s32 temp_f2_2;
+    s32 temp_t0;
+    s32 temp_t1;
+    s32 temp_t1_2;
+    s32 temp_t1_3;
+    s32 temp_t6;
+    s32 temp_t6_2;
+    s32 temp_t6_3;
+    s32 temp_t7;
+    char *temp_v0;
+    char *temp_v0_10;
+    char *temp_v0_11;
+    char *temp_v0_12;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *temp_v0_8;
+    char *temp_v0_9;
+    char *var_a0;
+    char *var_a0_10;
+    char *var_a0_2;
+    char *var_a0_3;
+    char *var_a0_4;
+    char *var_a0_5;
+    char *var_a0_6;
+    char *var_a0_7;
+    char *var_a0_8;
+    char *var_a0_9;
+    char *var_s0;
+    char *var_v1;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x108), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            FW(var_v1, 0x0) = 0x1178;
+            FW(var_v1, 0x4) = 0;
+        }
+        temp_t7 = *(s32 *)0x1188;
+        var_a0 = var_s0 + 8;
+        sp124 = temp_t7;
+        spA4 = temp_t7;
+        if ((var_s0 != (char *)-8) || (temp_v0_3 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+            spA8 = var_a0;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0, var_s0, spA4, 1);
+            FW(var_a0, 0xC) = 0x1A0;
+            FW(var_a0, 0x14) = 0;
+            FW(var_a0, 0x10) = 0;
+        }
+        temp_t1 = *(s32 *)0x118C;
+        var_a0_2 = var_s0 + 0x20;
+        sp120 = temp_t1;
+        spA4 = temp_t1;
+        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
+            spA8 = var_a0_2;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_2, var_s0, spA4, 1);
+            FW(var_a0_2, 0x10) = 2;
+            FW(var_a0_2, 0xC) = 0x1A0;
+            FW(var_a0_2, 0x14) = 0;
+        }
+        temp_t6 = *(s32 *)0x1190;
+        var_a0_3 = var_s0 + 0x38;
+        sp11C = temp_t6;
+        spA4 = temp_t6;
+        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
+            spA8 = var_a0_3;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_3, var_s0, spA4, 1);
+            FW(var_a0_3, 0x10) = 2;
+            FW(var_a0_3, 0xC) = 0x1A0;
+            FW(var_a0_3, 0x14) = 0;
+        }
+        temp_t1_2 = *(s32 *)0x1194;
+        var_a0_4 = var_s0 + 0x50;
+        sp118 = temp_t1_2;
+        spA4 = temp_t1_2;
+        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
+            spA8 = var_a0_4;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_4, var_s0, spA4, 1);
+            FW(var_a0_4, 0x10) = 2;
+            FW(var_a0_4, 0xC) = 0x1A0;
+            FW(var_a0_4, 0x14) = 0;
+        }
+        temp_t6_2 = *(s32 *)0x1198;
+        var_a0_5 = var_s0 + 0x68;
+        sp114 = temp_t6_2;
+        spA4 = temp_t6_2;
+        if ((var_s0 != (char *)-0x68) || (temp_v0_7 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_5 = temp_v0_7, (temp_v0_7 != 0))) {
+            spA8 = var_a0_5;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_5, var_s0, spA4, 1);
+            FW(var_a0_5, 0x10) = 2;
+            FW(var_a0_5, 0xC) = 0x1A0;
+            FW(var_a0_5, 0x14) = 0;
+        }
+        temp_t1_3 = *(s32 *)0x119C;
+        var_a0_6 = var_s0 + 0x80;
+        sp110 = temp_t1_3;
+        spA4 = temp_t1_3;
+        if ((var_s0 != (char *)-0x80) || (temp_v0_8 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_6 = temp_v0_8, (temp_v0_8 != 0))) {
+            spA8 = var_a0_6;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_6, var_s0, spA4, 1);
+            FW(var_a0_6, 0x10) = 2;
+            FW(var_a0_6, 0xC) = 0x1A0;
+            FW(var_a0_6, 0x14) = 0;
+        }
+        temp_f2 = *(s32 *)0x134;
+        spF8.unk0 = temp_f2;
+        spF8.unk8 = temp_f2;
+        temp_f2_2 = *(s32 *)0x13C;
+        spF8.unk4 = *(f32 *)0x138;
+        spEC.unk0 = temp_f2_2;
+        spEC.unk8 = temp_f2_2;
+        sp104.unk0 = 0;
+        sp104.unk4 = 0.0f;
+        sp104.unk8 = 0.0f;
+        spE8 = *(s32 *)0x11A0;
+        spEC.unk4 = *(f32 *)0x140;
+        sp74.unk0 = (s32) sp104.unk0;
+        sp74.unk4 = (s32) sp104.unk4;
+        sp74.unk8 = (s32) sp104.unk8;
+        var_a0_7 = var_s0 + 0x98;
+        sp64.unk0 = (s32) spF8.unk0;
+        sp64.unk4 = (s32) spF8.unk4;
+        sp64.unk8 = (s32) spF8.unk8;
+        sp54.unk0 = (s32) spEC.unk0;
+        sp54.unk4 = (s32) spEC.unk4;
+        sp54.unk8 = (s32) spEC.unk8;
+        spA4 = spE8;
+        if ((var_s0 != (char *)-0x98) || (temp_v0_9 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x20), var_a0_7 = temp_v0_9, (temp_v0_9 != 0))) {
+            sp84 = var_a0_7;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_7, var_s0, spA4, 1);
+            FW(var_a0_7, 0xC) = 0x170;
+            FW(var_a0_7, 0x1C) = 0;
+            sp3C.unk0 = sp74.unk0;
+            sp3C.unk4 = (s32) sp74.unk4;
+            sp3C.unk8 = (s32) sp74.unk8;
+            FW(var_a0_7, 0x10) = sp3C.unk0;
+            FW(var_a0_7, 0x14) = sp3C.unk4;
+            FW(var_a0_7, 0x18) = sp3C.unk8;
+        }
+        spDC.unk0 = 0;
+        spDC.unk4 = 0;
+        spDC.unk8 = 0;
+        temp_f0 = *(s32 *)0x144;
+        spD0.unk0 = temp_f0;
+        spD0.unk4 = temp_f0;
+        spD0.unk8 = temp_f0;
+        temp_f0_2 = *(s32 *)0x148;
+        spC4.unk0 = temp_f0_2;
+        spC4.unk4 = temp_f0_2;
+        spC4.unk8 = temp_f0_2;
+        spC0 = *(s32 *)0x11A4;
+        sp74.unk0 = (s32) spDC.unk0;
+        sp74.unk4 = (s32) spDC.unk4;
+        sp74.unk8 = (s32) spDC.unk8;
+        var_a0_8 = var_s0 + 0xB8;
+        sp64.unk0 = (s32) spD0.unk0;
+        sp64.unk4 = (s32) spD0.unk4;
+        sp64.unk8 = (s32) spD0.unk8;
+        sp54.unk0 = (s32) spC4.unk0;
+        sp54.unk4 = (s32) spC4.unk4;
+        sp54.unk8 = (s32) spC4.unk8;
+        spA4 = spC0;
+        if ((var_s0 != (char *)-0xB8) || (temp_v0_10 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x20), var_a0_8 = temp_v0_10, (temp_v0_10 != 0))) {
+            sp50 = var_a0_8;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_8, var_s0, spA4, 1);
+            FW(var_a0_8, 0xC) = 0x170;
+            FW(var_a0_8, 0x1C) = 0;
+            sp3C.unk0 = sp74.unk0;
+            sp3C.unk4 = (s32) sp74.unk4;
+            sp3C.unk8 = (s32) sp74.unk8;
+            FW(var_a0_8, 0x10) = sp3C.unk0;
+            FW(var_a0_8, 0x14) = sp3C.unk4;
+            FW(var_a0_8, 0x18) = sp3C.unk8;
+        }
+        temp_t6_3 = *(s32 *)0x11A8;
+        var_a0_9 = var_s0 + 0xD8;
+        spBC = temp_t6_3;
+        spA4 = temp_t6_3;
+        if ((var_s0 != (char *)-0xD8) || (temp_v0_11 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_9 = temp_v0_11, (temp_v0_11 != 0))) {
+            spA8 = var_a0_9;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_9, var_s0, spA4, 1);
+            FW(var_a0_9, 0xC) = 0x158;
+            FW(var_a0_9, 0x14) = 0;
+            FW(var_a0_9, 0x10) = 0.0f;
+        }
+        temp_t0 = *(s32 *)0x11AC;
+        var_a0_10 = var_s0 + 0xF0;
+        spB8 = temp_t0;
+        spA4 = temp_t0;
+        if ((var_s0 != (char *)-0xF0) || (temp_v0_12 = ((GP_000032C8)timproc_uso_b5_func_00000000)((char *)0x18), var_a0_10 = temp_v0_12, (temp_v0_12 != 0))) {
+            spA8 = var_a0_10;
+            ((GP_000032C8)timproc_uso_b5_func_00000000)(var_a0_10, var_s0, spA4, 1);
+            FW(var_a0_10, 0xC) = 0x158;
+            FW(var_a0_10, 0x14) = 0;
+            FW(var_a0_10, 0x10) = 0.0f;
+        }
     }
-    sub_obj_8 = (int*)gl_func_00000000(8);
-    if (sub_obj_8 != 0) {
-        sub_obj_8[0] = (int)((char*)&D_00000000 + 0x1178);  /* head */
-        sub_obj_8[1] = 0;                                    /* next */
-    }
-    /* TODO: ~340 more insns of init + sub-object linking (F1 body).
-     * Tail clears at a0->[0x2B4/0x164/0x168/0x16C] confirmed.
-     * F2 + F3 are bundled trailers per splat boundary — emitted as
-     * raw bytes in the assembled output via the parent symbol. */
-    *(int*)((char*)self + 0x2B4) = 0;
-    *(float*)((char*)self + 0x164) = 0.0f;
-    *(float*)((char*)self + 0x168) = 0.0f;
-    *(float*)((char*)self + 0x16C) = 0.0f;
-    return self;
+    return var_s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
