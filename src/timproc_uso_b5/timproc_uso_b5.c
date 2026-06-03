@@ -1273,50 +1273,125 @@ void timproc_uso_b5_func_000027B0(int *self) {
 //   below — 2-child composite widget constructor. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-char *timproc_uso_b5_func_0000283C(char *self, char *a1, int a2, int a3) {
-    char *g;
-    char *A;
-    char *B;
-    char *childObj;
-    float z[3] = { 0.0f, 0.0f, 0.0f };
-    float z2[3] = { 0.0f, 0.0f, 0.0f };
-    if (self == 0) {
-        self = (char *)func_00000000(0x20);
-        if (self == 0) return 0;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000283C)();
+s32 *timproc_uso_b5_func_0000283C(s32 *arg0, s32 *arg1, s32 arg2, s32 arg3) {
+    s32 sp6C;
+    f32 sp60;
+    f32 sp5C;
+    s32 sp58;
+    f32 sp44;
+    f32 sp40;
+    s32 sp3C;
+    f32 sp30;
+    f32 sp2C;
+    s32 sp28;
+    s32 *temp_s0;
+    s32 *temp_s0_2;
+    s32 *temp_s0_3;
+    s32 *temp_s0_4;
+    s32 *temp_v0;
+    s32 *temp_v0_2;
+    s32 *temp_v0_3;
+    s32 *temp_v0_4;
+    s32 *temp_v0_5;
+    s32 *temp_v0_6;
+    s32 *temp_v0_7;
+    s32 *temp_v0_8;
+    s32 *temp_v0_9;
+    s32 *var_a0;
+    s32 *var_a0_2;
+    s32 *var_s1;
+    s32 *var_v0;
+    s32 *var_v1;
+    s32 *var_v1_2;
+    s32 temp_v1;
+    s32 temp_v1_2;
+
+    var_s1 = arg0;
+    if ((arg0 != 0) || (temp_v0 = ((GP_0000283C)timproc_uso_b5_func_00000000)((s32 *)0x20), var_s1 = temp_v0, (temp_v0 != 0))) {
+        FW(var_s1, 0x0) = FW((*(s32 **)0x134), 0x84);
+        FW(var_s1, 0x4) = (s32) FW((*(s32 **)0x134), 0x80);
+        FW(var_s1, 0x8) = (s32) FW((*(s32 **)0x134), 0x8C);
+        temp_v0_2 = ((GP_0000283C)timproc_uso_b5_func_00000000)((s32 *)0x80);
+        if (temp_v0_2 != 0) {
+            ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v0_2, arg1);
+        }
+        ((GP_0000283C)timproc_uso_b5_func_00000000)(0, temp_v0_2);
+        temp_v0_3 = ((GP_0000283C)timproc_uso_b5_func_00000000)((s32 *)0xB4);
+        if (temp_v0_3 != 0) {
+            ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v0_3, (s32 *)0x1120);
+            FW(temp_v0_3, 0x28) = 0;
+            var_v1 = temp_v0_3 + 0x2C;
+            if (((temp_v0_3 != (s32 *)-0x2C) || (temp_v0_4 = ((GP_0000283C)timproc_uso_b5_func_00000000)((s32 *)4), var_v1 = temp_v0_4, (temp_v0_4 != 0))) && ((var_a0 = var_v1, (var_v1 != 0)) || (temp_v0_5 = ((GP_0000283C)timproc_uso_b5_func_00000000)((s32 *)4), var_a0 = temp_v0_5, (temp_v0_5 != 0)))) {
+                *var_a0 = 0;
+            }
+            ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v0_3);
+            sp58 = 0;
+            sp5C = 0.0f;
+            sp60 = 0.0f;
+            ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v0_3 + 0x30, &sp58);
+        }
+        FW(var_s1, 0x14) = temp_v0_3;
+        temp_v0_6 = ((GP_0000283C)timproc_uso_b5_func_00000000)((s32 *)0xB4);
+        if (temp_v0_6 != 0) {
+            ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v0_6, (s32 *)0x1128);
+            FW(temp_v0_6, 0x28) = 0;
+            var_v1_2 = temp_v0_6 + 0x2C;
+            if (((temp_v0_6 != (s32 *)-0x2C) || (temp_v0_7 = ((GP_0000283C)timproc_uso_b5_func_00000000)((s32 *)4), var_v1_2 = temp_v0_7, (temp_v0_7 != 0))) && ((var_a0_2 = var_v1_2, (var_v1_2 != 0)) || (temp_v0_8 = ((GP_0000283C)timproc_uso_b5_func_00000000)((s32 *)4), var_a0_2 = temp_v0_8, (temp_v0_8 != 0)))) {
+                *var_a0_2 = 0;
+            }
+            ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v0_6);
+            sp3C = 0;
+            sp40 = 0.0f;
+            sp44 = 0.0f;
+            ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v0_6 + 0x30, &sp3C);
+        }
+        FW(var_s1, 0x10) = temp_v0_6;
+        temp_v0_9 = ((GP_0000283C)timproc_uso_b5_func_00000000)(0, temp_v0_6, 0, 0, 0.0f);
+        temp_v1 = FW(var_s1, 0x0);
+        FW(var_s1, 0x18) = temp_v0_9;
+        sp6C = temp_v1;
+        ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v1 + 0x10, temp_v0_9);
+        if (FW(temp_v0_9, 0x14) != 0) {
+            FW(temp_v0_9, 0x4) = 1;
+        }
+        FW(temp_v0_9, 0x14) = temp_v1;
+        temp_v1_2 = FW(var_s1, 0x0);
+        temp_s0 = FW(var_s1, 0x10);
+        sp6C = temp_v1_2;
+        ((GP_0000283C)timproc_uso_b5_func_00000000)(temp_v1_2 + 0x10, temp_s0);
+        if (FW(temp_s0, 0x14) != 0) {
+            FW(temp_s0, 0x4) = 1;
+        }
+        FW(temp_s0, 0x14) = temp_v1_2;
+        sp2C = 0.0f;
+        sp28 = 0;
+        sp30 = -400.0f;
+        ((GP_0000283C)timproc_uso_b5_func_00000000)(FW(var_s1, 0x10) + 0x30, &sp28);
+        if (arg1 == (s32 *)1) {
+            var_v0 = ((GP_0000283C)timproc_uso_b5_func_00000000)(*(char *)0x134, (s32 *) (arg2 * 0x1C), FW(var_s1, 0x18));
+        } else {
+            var_v0 = ((GP_0000283C)timproc_uso_b5_func_00000000)(*(char *)0x134, (s32 *) (arg2 * 0x1C), FW(var_s1, 0x18));
+        }
+        FW(var_s1, 0xC) = var_v0;
+        FW(FW(var_s1, 0xC), 0x108) = 0x201;
+        temp_s0_2 = FW(var_s1, 0xC);
+        FW(temp_s0_2, 0x78) = (s32) (FW(temp_s0_2, 0x78) | 6);
+        FW(FW(FW(var_s1, 0xC), 0x70), 0x14C) = (f32) arg3;
+        temp_s0_3 = FW(var_s1, 0xC);
+        temp_s0_4 = temp_s0_3 + 0xDC;
+        FW(temp_s0_4, 0x8) = 0.0f;
+        FW(temp_s0_3, 0xDC) = 0.0f;
+        FW(temp_s0_4, 0x4) = 0.0f;
+        FW(temp_s0_4, 0xC) = 0.0f;
     }
-    g = *(char **)&D_00000000;
-    *(int *)(self + 0x00) = a3;
-    *(int *)(self + 0x04) = a2;
-    *(int *)(self + 0x08) = *(int *)(*(char **)(g + 0x134) + 0x8C);
-    func_00000000(0x80);
-    func_00000000(a1, self);
-    func_00000000(self, &D_00000000);
-    A = (char *)func_00000000(0xB4);
-    if (A != 0) {
-        func_00000000(A, (char *)&D_00000000 + 0x00001120);
-        *(char **)(A + 0x28) = (char *)&D_00000000;
-        func_00000000(*(char **)(A + 0x2C));
-        func_00000000(A + 0x30, z);
-        *(char **)(self + 0x14) = A;
-    }
-    B = (char *)func_00000000(0xB4);
-    if (B != 0) {
-        func_00000000(B, (char *)&D_00000000 + 0x00001128);
-        *(char **)(B + 0x28) = (char *)&D_00000000;
-        func_00000000(B + 0x30, z2);
-        *(char **)(self + 0x14) = B;
-    }
-    childObj = B ? B : A;
-    *(char **)(self + 0x10) = childObj;
-    func_00000000(self, 0.0f, 0.0f, 0.0f);
-    *(int *)(childObj + 0x108) = 0x201;
-    *(int *)(childObj + 0xC4) |= 6;
-    *(float *)(childObj + 0x14C) = -400.0f;
-    *(float *)(childObj + 0xDC) = 0.0f;
-    *(float *)(childObj + 0xE0) = 0.0f;
-    *(float *)(childObj + 0xE4) = 0.0f;
-    *(float *)(childObj + 0xE8) = 0.0f;
-    return self;
+    return var_s1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000283C);
