@@ -38821,13 +38821,14 @@ void gl_func_00067AC8(float a) {
 void gl_func_00067AE8(int a0, ...) {
 }
 
+/* game_libs_func_00067B04: 29-insn (0x74) string-compare/prefix-match loop.
+ * BOUNDARY MERGED 2026-06-02: splat over-split the loop tail as a separate
+ * symbol (00067B40, 14-insn whose `bnel` branches backward to 0x67B1C inside
+ * this body; 67B04's own beql/beq branch forward into it at 0x40/0x54/0x58).
+ * Absorbed 67B40's 14 words into 67B04 (0x3C -> 0x74, ending exactly at the
+ * next func 0x67B78); dropped the 67B40 symbol. Branch-verified complete.
+ * Reloc-blind USO body stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
-
-/* game_libs_func_00067B40: 14-insn loop-bottom tail-fragment with backward
- * branch -0x24 to 0x67B1C (before .s start 0x67B40). Splat captured loop
- * tail per feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- * Needs splat boundary correction (focused-session). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B40);
 
 #ifdef NON_MATCHING
 /* game_libs_func_00067B78: naive substring search returning a bool. a0 =
