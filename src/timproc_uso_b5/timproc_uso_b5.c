@@ -1644,7 +1644,7 @@ char *timproc_uso_b5_func_00002B74(char *arg0) {
             ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_11, var_s0, spAC, (char *)1);
             FW(var_a0_11, 0xC) = 0x158;
             FW(var_a0_11, 0x14) = 0;
-            FW(var_a0_11, 0x10) = -20.0f;
+            *(f32 *)((char *)var_a0_11 + 0x10) = -20.0f;
         }
         temp_t1 = *(char **)0x116C;
         var_a0_12 = var_s0 + 0x110;
@@ -1655,7 +1655,7 @@ char *timproc_uso_b5_func_00002B74(char *arg0) {
             ((GP_00002B74)timproc_uso_b5_func_00000000)(var_a0_12, var_s0, spAC, (char *)1);
             FW(var_a0_12, 0xC) = 0x158;
             FW(var_a0_12, 0x14) = 0;
-            FW(var_a0_12, 0x10) = -20.0f;
+            *(f32 *)((char *)var_a0_12 + 0x10) = -20.0f;
         }
         temp_f2 = *(s32 *)0x11C;
         var_f12 = *(char **)0x120;
