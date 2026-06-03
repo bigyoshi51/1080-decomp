@@ -12547,14 +12547,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000317F0);
 
 void game_libs_func_00031834(void) {}
 
+/* game_libs_func_0003183C: 23-insn (0x5C) circular-buffer push with a do-while
+ * scan. BOUNDARY MERGED 2026-06-02: splat over-split the loop tail as a separate
+ * symbol (00031880, whose `bnel v0,t5,-0x34` branches backward to 0x31860 inside
+ * this body). Absorbed 31880's 6 words into 3183C (0x44 -> 0x5C); dropped the
+ * 31880 symbol (no external callers). Branch-verified complete (ends at 0x31898
+ * with a clean jr ra; the region after is a separate unsplit run). Reloc-blind
+ * USO body stays INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003183C);
-
-/* game_libs_func_00031880: 6-insn tail-fragment of a do-while loop:
- *   lw v0,0x44(a0); lw t5,0x40(a0); bnel v0,t5,-0x34; sll t7,v0,2; jr ra; nop
- * Backward branch -0x34 targets before this .s start (0x31880) — splat
- * boundary error, the actual function spans from earlier (where the
- * loop top sits). CAP class — needs splat boundary correction. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031880);
 
 extern int gl_ref_00045DF0();
 extern int gl_ref_00045E5C();
