@@ -5968,7 +5968,94 @@ end:
 //   mnemonic disasm + the list/handler structs typed; structural
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0003C86C)();
+void gl_func_0003C86C(char *arg0) {
+    char *spA8;
+    f32 sp88;
+    f32 sp84;
+    f32 sp80;
+    char *sp68;
+    f32 sp48;
+    f32 sp44;
+    f32 sp40;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *var_s0;
+    char *var_s0_2;
+    char *var_s1;
+
+    var_s1 = FW(arg0, 0x30);
+    if (var_s1 != 0) {
+        do {
+            temp_v0 = FW(var_s1, 0x4);
+            var_s0 = temp_v0;
+            if (temp_v0 != 0) {
+                do {
+                    if (var_s0 != var_s1) {
+                        temp_v0_2 = FW(var_s1, 0x30);
+                        if (((GP_0003C86C)FW(temp_v0_2, 0xC))(FW(temp_v0_2, 0x8) + var_s1, var_s0, &sp80) != 0) {
+                            if ((*(s16*)((char*)var_s1 + 0x14)) & (*(s16*)((char*)var_s0 + 0x16))) {
+                                spA8 = var_s0;
+                                temp_v0_3 = FW(var_s1, 0x30);
+                                ((GP_0003C86C)FW(temp_v0_3, 0x14))(FW(temp_v0_3, 0x10) + var_s1, &sp80);
+                            }
+                            if ((*(s16*)((char*)var_s0 + 0x14)) & (*(s16*)((char*)var_s1 + 0x16))) {
+                                spA8 = var_s1;
+                                sp80 *= -1.0f;
+                                sp84 *= -1.0f;
+                                sp88 *= -1.0f;
+                                temp_v0_4 = FW(var_s0, 0x30);
+                                ((GP_0003C86C)FW(temp_v0_4, 0x14))(FW(temp_v0_4, 0x10) + var_s0, &sp80);
+                            }
+                        }
+                    }
+                    var_s0 = FW(var_s0, 0x4);
+                } while (var_s0 != 0);
+            }
+            var_s1 = FW(var_s1, 0x4);
+        } while (FW(var_s1, 0x4) != 0);
+        var_s1 = FW(arg0, 0x30);
+    }
+    if (var_s1 != 0) {
+        do {
+            var_s0_2 = FW(arg0, 0x2C);
+            if (var_s0_2 != 0) {
+                do {
+                    temp_v0_5 = FW(var_s1, 0x30);
+                    if (((GP_0003C86C)FW(temp_v0_5, 0xC))(FW(temp_v0_5, 0x8) + var_s1, var_s0_2, &sp40) != 0) {
+                        if ((*(s16*)((char*)var_s1 + 0x14)) & (*(s16*)((char*)var_s0_2 + 0x16))) {
+                            sp68 = var_s0_2;
+                            temp_v0_6 = FW(var_s1, 0x30);
+                            ((GP_0003C86C)FW(temp_v0_6, 0x14))(FW(temp_v0_6, 0x10) + var_s1, &sp40);
+                        }
+                        if ((*(s16*)((char*)var_s0_2 + 0x14)) & (*(s16*)((char*)var_s1 + 0x16))) {
+                            sp68 = var_s1;
+                            sp40 *= -1.0f;
+                            sp44 *= -1.0f;
+                            sp48 *= -1.0f;
+                            temp_v0_7 = FW(var_s0_2, 0x30);
+                            ((GP_0003C86C)FW(temp_v0_7, 0x14))(FW(temp_v0_7, 0x10) + var_s0_2, &sp40);
+                        }
+                    }
+                    var_s0_2 = FW(var_s0_2, 0x4);
+                } while (var_s0_2 != 0);
+            }
+            var_s1 = FW(var_s1, 0x4);
+        } while (var_s1 != 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003C86C);
+#endif
 
 void game_libs_func_0003CA80(int *a0, int *a1) { *(int*)((char*)a1 + 4) = *(int*)((char*)a0 + 0x2C); *(int*)((char*)a0 + 0x2C) = (int)a1; }
 
