@@ -24681,7 +24681,64 @@ void game_libs_func_0005C4F0(float *a0, float *a1, float a2, float a3, float a4)
     for (i = 1; i < 4; i++) a0[i] = 0.0f;
 }
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005C548)();
+void game_libs_func_0005C548(f32 *arg0, char *arg1, f32 arg2, s32 arg3, s32 arg4) {
+    f32 temp_f0;
+    f32 temp_f14;
+    f32 temp_f16;
+    f32 temp_f18;
+    f32 temp_f2;
+    s32 temp_t0;
+    s32 temp_t1;
+    s32 temp_v0;
+    s32 var_a0;
+    s32 var_v1;
+    char *temp_t2;
+    char *temp_t2_2;
+    char *temp_v0_2;
+    char *temp_v1;
+
+    (*(f32*)((char*)arg1 + 0x0)) = (f32) (*(f32*)((char*)arg1 + 0x0));
+    (*(f32*)((char*)arg1 + 0x4)) = (f32) (*(f32*)((char*)arg1 + 0x4));
+    (*(f32*)((char*)arg1 + 0x8)) = (f32) (*(f32*)((char*)arg1 + 0x8));
+    var_v1 = (int)arg3 + 1;
+    if (arg4 < 0) {
+        temp_t2 = (int)arg1 + (arg3 * 4);
+        (*(f32*)((char*)temp_t2 + -0x4)) = (f32) ((*(f32*)((char*)temp_t2 + -0x4)) - arg2);
+    } else {
+        temp_v0 = arg3 * 4;
+        if (var_v1 >= 4) {
+            var_v1 = 1;
+        }
+        var_a0 = var_v1 + 1;
+        if (var_a0 >= 4) {
+            var_a0 = 1;
+        }
+        temp_f16 = *(f32*)((char*)arg0 + temp_v0);
+        temp_f14 = *arg0;
+        temp_t0 = var_v1 * 4;
+        temp_f0 = *(f32*)((char*)arg0 + temp_t0);
+        temp_t1 = var_a0 * 4;
+        temp_f2 = *(f32*)((char*)arg0 + temp_t1);
+        temp_t2_2 = (int)arg1 + temp_v0;
+        temp_v0_2 = (int)arg1 + temp_t0;
+        temp_v1 = (int)arg1 + temp_t1;
+        temp_f18 = 2.0f * arg2;
+        (*(f32*)((char*)temp_t2_2 + -0x4)) = (f32) ((*(f32*)((char*)temp_t2_2 + -0x4)) + (arg2 * ((((temp_f16 * temp_f16) + (temp_f14 * temp_f14)) - (temp_f0 * temp_f0)) - (temp_f2 * temp_f2))));
+        (*(f32*)((char*)temp_v0_2 + -0x4)) = (f32) ((*(f32*)((char*)temp_v0_2 + -0x4)) + (temp_f18 * ((temp_f16 * temp_f0) + (temp_f14 * temp_f2))));
+        (*(f32*)((char*)temp_v1 + -0x4)) = (f32) ((*(f32*)((char*)temp_v1 + -0x4)) + (temp_f18 * ((temp_f16 * temp_f2) + (temp_f14 * temp_f0))));
+    }
+    (*(f32*)((char*)arg1 + 0x0)) = (f32) (*(f32*)((char*)arg1 + 0x0));
+    (*(f32*)((char*)arg1 + 0x4)) = (f32) (*(f32*)((char*)arg1 + 0x4));
+    (*(f32*)((char*)arg1 + 0x8)) = (f32) (*(f32*)((char*)arg1 + 0x8));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C548);
+#endif
 
 /* gl_func_0005C66C: 22-insn 2-call helper. First gl_func(a0, vec),
  * then printf-style gl_func(&D_0 + 0x21AFC, vec, double(vec[0]),
