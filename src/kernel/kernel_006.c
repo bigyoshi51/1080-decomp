@@ -51,7 +51,39 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80005520);
 
 
 
+#ifdef NON_MATCHING
+extern void func_800051E0(s32, s32 *, s32);
+extern void func_80004FE0(s32 *, s32, s32);
+extern void func_80005C50(void);
+extern void func_80005C94(void);
+extern s32 func_800066F0(s32 *, s32, s32);
+extern s32 D_8001B5D0, D_8001B5E8, D_8001B5F0, D_8001B608;
+/* Kernel event-pump thread loop: registers two message queues
+ * (D_8001B5D0/D_8001B5F0) + their event handlers (events 0x12/0x13), then loops
+ * forever — block on queue A, run handler func_80005C50, poll func_800066F0
+ * until it returns non-zero, block on queue B, run handler func_80005C94. */
+void func_800056F0(s32 arg0) {
+    s32 sp2C;
+    s32 sp28;
+
+    func_800053D0(&D_8001B5D0, &D_8001B5E8, 1);
+    func_800053D0(&D_8001B5F0, &D_8001B608, 1);
+    func_800051E0(0x12, &D_8001B5D0, 0);
+    func_800051E0(0x13, &D_8001B5F0, 0);
+loop_1:
+    func_80004FE0(&D_8001B5D0, 0, 1);
+    func_80005C50();
+    sp2C = 0;
+    do {
+        sp2C += func_800066F0(&sp28, 1, 9);
+    } while (sp2C == 0);
+    func_80004FE0(&D_8001B5F0, 0, 1);
+    func_80005C94();
+    goto loop_1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800056F0);
+#endif
 
 /* __osSiCreateAccessQueue */
 void func_80005800(void) {
