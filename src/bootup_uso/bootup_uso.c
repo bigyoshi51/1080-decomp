@@ -272,7 +272,82 @@ void func_0000057C(int *arg0, int arg1, int arg2) {
  * bc1fl branch-likely + func_00000000 reloc. Full body
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00000610)();
+void func_00000610(f32 arg1, char **arg0, f32 arg2, f32 arg3, f32 arg4, f32 arg5, s32 arg6, s32 arg7, s32 arg8) {
+    int sp27;
+    f32 sp28;
+    int sp24;
+    f32 temp_f2;
+    f32 var_f0;
+    f32 var_f0_2;
+    f32 var_f14;
+    char *temp_v0;
+
+    var_f14 = arg1;
+    temp_v0 = *(int*)arg0;
+    if (temp_v0 != 0) {
+        temp_f2 = (f32) ((f64) arg5 / *(f64*)((char*)&D_00000000 + 0x14));
+        if (temp_f2 < 0.0f) {
+            var_f0 = 0.0f;
+        } else {
+            var_f14 = 1.0f;
+            if (temp_f2 > 1.0f) {
+                var_f0 = 1.0f;
+            } else {
+                var_f0 = temp_f2;
+            }
+        }
+        (*(f32*)((char*)temp_v0 + 0xC)) = var_f0;
+        if (arg4 < 0.0f) {
+            var_f0_2 = -arg4;
+        } else {
+            var_f0_2 = arg4;
+        }
+        (*(f32*)((char*)(*(int*)arg0) + 0x4)) = (f32) ((f64) var_f0_2 + *(f64*)((char*)&D_00000000 + 0x1C));
+        (*(s8*)((char*)(*(int*)arg0) + 0x18)) = (s8) (s32) (arg4 * 63.0f);
+        (*(s8*)((char*)(*(int*)arg0) + 0x1E)) = (s8) ((arg8 & 0x80) != 0);
+        switch (arg6) {                             /* irregular */
+        case 0x0:
+            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 1;
+            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 0;
+            break;
+        case 0x61:
+            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 1;
+            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 1;
+            break;
+        case 0x62:
+            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 3;
+            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 1;
+            break;
+        case 0x63:
+            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 2;
+            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 1;
+            break;
+        case 0x64:
+            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 2;
+            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 2;
+            break;
+        }
+        (*(f32*)((char*)(*(int*)arg0) + 0x0)) = (f32) (arg2 / 4.0f);
+        (*(f32*)((char*)(*(int*)arg0) + 0x8)) = (f32) (arg3 / 4.0f);
+        (*(s8*)((char*)(*(int*)arg0) + 0x20)) = 1;
+        (*(u8*)((char*)(*(int*)arg0) + 0x1C)) = (u8) ((arg8 & 0x8000) != 0);
+        if ((*(u8*)((char*)(*(int*)arg0) + 0x1C)) != 0) {
+            ((GP_00000610)func_00000000)(0, var_f14, arg1, &sp28, &sp24, arg7);
+            ((GP_00000610)func_00000000)(*(int*)arg0, sp28, (f32) sp27);
+        }
+        ((GP_00000610)func_00000000)(0);
+        ((GP_00000610)func_00000000)(*(int*)arg0, 0.0f);
+        ((GP_00000610)func_00000000)();
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000610);
+#endif
 
 void func_0000085C(int *a0) {
     int a1 = *a0;
