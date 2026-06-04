@@ -32,7 +32,7 @@ extern char D_8C3C_root_desc;
  * -O0 temp-allocator artifact, NOT C-steerable — same class as the
  * gl_func_0005D054 spill-slot swap. Honest cap at 99.79%; stays INCLUDE_ASM. */
 extern char D_0000D138, D_0000D148, D_8C3C_v0;
-void gl_func_00008C3C(int *a0, int a1) {
+gl_func_00008C3C(a0, a1) int * a0; int a1; {
     register int *root;
     register int *mid;
     register int *child;
@@ -107,25 +107,25 @@ char *gl_func_00008E48(char **arg0, int arg1, s32 arg2) {
     temp_t6 = *(char **)0x4C;
     sp38 = temp_t6;
     sp34 = temp_t6;
-    ((int(*)())gl_func_00008C3C)(0, *(char **)8);
+    gl_func_00008C3C(0, *(char **)8);
     if (FW(FW((*(int*)arg0), 0x8), 0x8) != 0) {
-        *(u8 *)0x181 = ((int(*)())gl_func_00008C3C)(FW((*(int*)arg0), 0x8));
+        *(u8 *)0x181 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
         sp34 = (char *) *(char *)0x181;
-        *(u8 *)0x182 = ((int(*)())gl_func_00008C3C)(FW((*(int*)arg0), 0x8));
-        *(u8 *)0x183 = ((int(*)())gl_func_00008C3C)(FW((*(int*)arg0), 0x8));
+        *(u8 *)0x182 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
+        *(u8 *)0x183 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
     }
-    ((int(*)())gl_func_00008C3C)(sp38, sp34);
+    gl_func_00008C3C(sp38, sp34);
     if (FW(FW((*(int*)arg0), 0x8), 0x8) != 0) {
-        sp3C = ((int(*)())gl_func_00008C3C)(0, *(char **)0x64, 3, arg2);
+        sp3C = gl_func_00008C3C(0, *(char **)0x64, 3, arg2);
     } else {
-        sp3C = ((int(*)())gl_func_00008C3C)(0, *(char *)0x64, 2, arg2);
+        sp3C = gl_func_00008C3C(0, *(char *)0x64, 2, arg2);
     }
-    ((int(*)())gl_func_00008C3C)((char *)0x10, sp3C);
+    gl_func_00008C3C((char *)0x10, sp3C);
     if (FW(sp3C, 0x14) != 0) {
         FW(sp3C, 0x4) = 1;
     }
     FW(sp3C, 0x14) = 0;
-    ((int(*)())gl_func_00008C3C)(0, 0);
+    gl_func_00008C3C(0, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
