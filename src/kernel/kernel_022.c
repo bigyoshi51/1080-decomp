@@ -461,7 +461,7 @@ s32 func_80009314(char *s0) {
     int hdr[4];
     int buf[40];  /* 32-entry register window + 8 fixed regs */
     int i;
-    if (((int (*)(void))func_80008430)() == 0) return -4;
+    if (func_80008430((s32)s0) == 0) return -4;
     hdr[0] = *(int*)(s0 + 0xC);
     *(unsigned char*)((char*)hdr + 0xA) = *(unsigned char*)(s0 + 0x4);
     *(unsigned short*)((char*)hdr + 0x6) = 0;
