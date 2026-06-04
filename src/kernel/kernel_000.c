@@ -2359,14 +2359,20 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
  * the do-while/call-in-body tries — or a ugen patch (out of scope). Applies to the whole
  * func_80004808..49B8 tail + other -O2 branch-likely near-misses (e.g. gl_func_0006AF0C). */
 #ifdef NON_MATCHING
+/* 2026-06-04 (72.68->73.03%): structural cleanup. sp4 is the 4-byte packet
+ * word at sp+0x4 (declare `u8 sp4[4]` BEFORE `u32 sp0` so IDO lays sp0 at
+ * 0x0, sp4 at 0x4 — frame -0x8 matches target, final read folds to lw 0x4).
+ * Second header write reads sp4[0] back (not a temp) so the intermediate
+ * store stays live. RESIDUAL: target keeps a 2nd `sb` of the header (RMW
+ * memory round-trip + andi 0xFF reload-truncate); IDO register-caches
+ * sp4[0] across the two assigns and emits one store (volatile sp4 forces
+ * the round-trip but over-corrects the loop -> 67.6%). */
 void func_80004808(u8* arg0, u32 arg1) {
-    u8 sp4;
+    u8 sp4[4];
     u32 sp0;
-    u8 temp_t8;
 
-    temp_t8 = (sp4 & 0xFF03) | 0x30;
-    sp4 = temp_t8;
-    sp4 = (arg1 & 3) | (temp_t8 & 0xFFFC);
+    sp4[0] = (sp4[0] & 0xFF03) | 0x30;
+    sp4[0] = (arg1 & 3) | (sp4[0] & 0xFFFC);
     sp0 = 0;
     if (arg1 != 0) {
         do {
@@ -2374,7 +2380,7 @@ void func_80004808(u8* arg0, u32 arg1) {
             sp0++;
         } while (sp0 < arg1);
     }
-    *(volatile u32*)0xC0000000 = *(u32*)&sp4;
+    *(volatile u32*)0xC0000000 = *(u32*)sp4;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80004808);
