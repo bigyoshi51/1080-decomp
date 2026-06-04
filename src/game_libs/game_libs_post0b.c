@@ -30285,22 +30285,22 @@ void game_libs_func_00060F44(int *a0, int *a1) {
     }
 }
 
-#ifdef NON_MATCHING
 /* game_libs_func_00060F90: doubly-linked-list unlink of node a1, with head/tail
  * (a0->0x30 / a0->0x2C) fixups. next=a1->0x3C, prev=a1->0x38; if next!=prev,
  * prev->0x3C=next; (a1->0x3C)->0x38 = a1->0x38; if a1==a0->0x30, a0->0x30=prev;
  * a0->0x2C=prev. Empty-list edge (next==prev && a1==prev): a0->0x30=a0->0x2C=0.
- * Logic exact; near-miss — target uses bnel (branch-likely) + a `b` with merges
- * that the structured C if/else doesn't reproduce (branch-likely-reorg cap).
- * Reloc-free. */
+ * MATCHED 2026-06-04 via decomp-permuter: in the empty-list edge, storing
+ * a0[12]=0 BEFORE cur=0 (not after) flips the base/cur register roles to match
+ * (mine had an extra `or a2,a0,zero` move). The prior "branch-likely-reorg cap"
+ * comment was a misdiagnosis — it was a 2-statement-order regalloc lever. */
 void game_libs_func_00060F90(int *a0, int *a1) {
     int *next = (int *)a1[15];
     int *prev = (int *)a1[14];
     int cur;
     if (next == prev) {
         if (a1 == prev) {
-            cur = 0;
             a0[12] = 0;
+            cur = 0;
             goto end;
         }
     }
@@ -30314,9 +30314,6 @@ void game_libs_func_00060F90(int *a0, int *a1) {
 end:
     a0[11] = cur;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F90);
-#endif
 
 void game_libs_func_00060FDC(int *a0) { *(int*)((char*)a0 + 0x2C) = *(int*)((char*)(*(int*)((char*)a0 + 0x2C)) + 0x38); }
 
