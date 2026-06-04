@@ -523,8 +523,8 @@ void gl_func_00063964(char *arg0, f32 arg1, int arg2, int arg3) {
 
     temp_a0 = (int)arg0 + 0xF4;
     sp18 = temp_a0;
-    ((int(*)())gl_func_00062F64)(temp_a0, (int)arg0 + 0x10C, &sp130, arg0);
-    ((int(*)())gl_func_00062F64)(sp18, (int)arg0 + 0x118, &sp124, arg0);
+    gl_func_00062F64(temp_a0, (int)arg0 + 0x10C, &sp130, arg0);
+    gl_func_00062F64(sp18, (int)arg0 + 0x118, &sp124, arg0);
     temp_f8 = sp130 + (*(f32*)((char*)arg0 + 0xDC));
     sp130 = temp_f8;
     sp134 += (*(f32*)((char*)arg0 + 0xE0));
@@ -550,7 +550,7 @@ void gl_func_00063964(char *arg0, f32 arg1, int arg2, int arg3) {
     sp108.unk8 = temp_t8;
     sp114 = 0;
     arg1 = 0.0f;
-    ((int(*)())gl_func_00062F64)((s32) temp_f12, &sp108);
+    gl_func_00062F64((s32) temp_f12, &sp108);
     var_v1 = sp114;
     var_f16 = arg1;
     if (sp134 < 0.0f) {
@@ -636,7 +636,7 @@ void gl_func_00063964(char *arg0, f32 arg1, int arg2, int arg3) {
     sp13C = 0.0f;
     sp140 = -var_f16;
     sp144 = 0.0f;
-    ((int(*)())gl_func_00062F64)((*(f32*)((char*)arg0 + 0x108)), &sp118, &sp13C, arg0);
+    gl_func_00062F64((*(f32*)((char*)arg0 + 0x108)), &sp118, &sp13C, arg0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063964);
@@ -760,7 +760,7 @@ void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
         temp_f0_2 = ((f32(*)())gl_func_00062F64)((temp_f4 * temp_f4) + (temp_f16 * temp_f16) + (temp_f6 * temp_f6));
         if ((*(f64*)((char*)&D_00000000 + 0x20A0)) < (f64) temp_f0_2) {
             sp40 = temp_f0_2;
-            ((int(*)())gl_func_00062F64)(&sp44);
+            gl_func_00062F64(&sp44);
             temp_f0_3 = (f32) ((f64) ((int)arg3 + (FW(arg0, 0x150) * FW(FW(arg0, 0x16C), 0x360))) * (*(f64*)((char*)&D_00000000 + 0x20A8)));
             var_f0 = temp_f0_3 * temp_f0_3;
             if ((*(f64*)((char*)&D_00000000 + 0x20B0)) < (f64) var_f0) {
@@ -773,7 +773,7 @@ void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
             sp44.unk0 *= temp_f0_4;
             sp44.unk4 *= temp_f0_4;
             sp44.unk8 *= temp_f0_4;
-            ((int(*)())gl_func_00062F64)(0.0f, FW(arg0, 0x16C), (int)arg0 + 0x120, &sp44, arg0);
+            gl_func_00062F64(0.0f, FW(arg0, 0x16C), (int)arg0 + 0x120, &sp44, arg0);
         }
     }
 }
@@ -999,8 +999,8 @@ void gl_func_00064388(char *arg0, f32 arg1, char *arg2, f32 arg3) {
         temp_f16 = ((f32(*)())gl_func_00062F64)((temp_f0 * temp_f0) + (temp_f2_2 * temp_f2_2) + (temp_f14 * temp_f14), temp_f14) / (*(f32*)((char*)&D_00000000 + 0x20D0));
         sp28 = temp_a1;
         sp90 = temp_f16 * arg3;
-        ((int(*)())gl_func_00062F64)(temp_a1, temp_a1);
-        ((int(*)())gl_func_00062F64)(arg1, temp_a1, sp90);
+        gl_func_00062F64(temp_a1, temp_a1);
+        gl_func_00062F64(arg1, temp_a1, sp90);
         temp_v0_2 = (int)arg0 + 0x10;
         sp30.unk0 = (*(f32*)((char*)arg0 + 0x10)) * 1.0f;
         sp30.unk4 = (*(f32*)((char*)temp_v0_2 + 0x4)) * 1.0f;
@@ -1249,10 +1249,10 @@ void gl_func_00064DEC(char *arg0) {
 
     temp_a0 = (int)arg0 + 0x2FC;
     sp28 = temp_a0;
-    ((int(*)())gl_func_00062F64)(temp_a0);
+    gl_func_00062F64(temp_a0);
     temp_a1 = (int)arg0 + 0xCC;
     sp24 = temp_a1;
-    ((int(*)())gl_func_00062F64)(temp_a0, temp_a1, temp_a1);
+    gl_func_00062F64(temp_a0, temp_a1, temp_a1);
     (*(f32*)((char*)arg0 + 0x31C)) = (f32) ((*(f32*)((char*)arg0 + 0x31C)) + (*(f32*)((char*)arg0 + 0x180)));
     (*(f32*)((char*)arg0 + 0xB4)) = (f32) ((*(f32*)((char*)arg0 + 0xB4)) + (*(f32*)((char*)arg0 + 0x318)));
     temp_v1 = (int)arg0 + 0x318;
@@ -1298,7 +1298,7 @@ void gl_func_00064DEC(char *arg0) {
     (*(f32*)((char*)arg0 + 0xF8)) = sp34.unk4;
     (*(f32*)((char*)arg0 + 0x100)) = (f32) (*(f32*)((char*)arg0 + 0xD8));
     (*(f32*)((char*)arg0 + 0xFC)) = sp34.unk8;
-    ((int(*)())gl_func_00062F64)(arg0, sp24);
+    gl_func_00062F64(arg0, sp24);
     temp_f2 = (*(f32*)((char*)arg0 + 0x318));
     temp_f12_2 = (*(f32*)((char*)arg0 + 0x320));
     temp_f0 = (*(f32*)((char*)arg0 + 0x31C));
@@ -2492,31 +2492,31 @@ void gl_func_00066850(s32 arg0) {
     u32 temp_a1_2;
     char *temp_v0;
 
-    ((int(*)())gl_func_00062F64)(0xFE);
-    ((int(*)())gl_func_00062F64)(0x96, 0x41688U, 0x415C0, 0x32);
-    ((int(*)())gl_func_00062F64)();
-    ((int(*)())gl_func_00062F64)(0xA0);
-    ((int(*)())gl_func_00062F64)(0x42);
-    ((int(*)())gl_func_00062F64)(1);
+    gl_func_00062F64(0xFE);
+    gl_func_00062F64(0x96, 0x41688U, 0x415C0, 0x32);
+    gl_func_00062F64();
+    gl_func_00062F64(0xA0);
+    gl_func_00062F64(0x42);
+    gl_func_00062F64(1);
     temp_v0 = *(int*)0;
     temp_a1 = FW(temp_v0, 0xC);
     if (temp_a1 != 0) {
-        ((int(*)())gl_func_00062F64)(0x2114, temp_a1, FW(temp_v0, 0x14), FW(temp_v0, 0x1C));
+        gl_func_00062F64(0x2114, temp_a1, FW(temp_v0, 0x14), FW(temp_v0, 0x1C));
     }
     temp_a1_2 = FW((*(int*)0), 0x8);
     if (temp_a1_2 != 0) {
-        ((int(*)())gl_func_00062F64)(0x2138, temp_a1_2, FW((*(int*)0), 0x10));
+        gl_func_00062F64(0x2138, temp_a1_2, FW((*(int*)0), 0x10));
     }
-    ((int(*)())gl_func_00062F64)(FW((*(int*)0), 0x0), FW((*(int*)0), 0x4));
-    ((int(*)())gl_func_00062F64)(0x2154, (u32) (FW((*(int*)0), 0x0) + 0x80000000) >> 0xA);
+    gl_func_00062F64(FW((*(int*)0), 0x0), FW((*(int*)0), 0x4));
+    gl_func_00062F64(0x2154, (u32) (FW((*(int*)0), 0x0) + 0x80000000) >> 0xA);
     FW((*(int*)0), 0x80) = 0;
     FW((*(int*)0), 0x34) = 0;
     FW((*(int*)0), 0x84) = 0;
     FW((*(int*)0), 0x98) = 0;
     FW((*(int*)0), 0x9C) = 0;
     FW((*(int*)0), 0x94) = 0;
-    ((int(*)())gl_func_00062F64)(0x216C);
-    ((int(*)())gl_func_00062F64)();
+    gl_func_00062F64(0x216C);
+    gl_func_00062F64();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066850);
@@ -2822,36 +2822,36 @@ void gl_func_00066D54(char *arg0) {
     char *temp_s2;
 
     temp_s4 = (int)arg0 + 0x11B0;
-    ((int(*)())gl_func_00062F64)(temp_s4, (int)arg0 + 0x13EC, (int)arg0 + 0x1218);
+    gl_func_00062F64(temp_s4, (int)arg0 + 0x13EC, (int)arg0 + 0x1218);
     var_s1 = 0;
     do {
         temp_s0 = 1 << var_s1;
         if (FW(arg0, 0x13EC) & temp_s0) {
             temp_s2 = (int)arg0 + (var_s1 * 4);
             if (!(FW(temp_s2, 0x121B) & 8)) {
-                ((int(*)())gl_func_00062F64)(0x22570, var_s1);
+                gl_func_00062F64(0x22570, var_s1);
                 sp53 = 0;
-                ((int(*)())gl_func_00062F64)(temp_s4, (s32) &sp53);
+                gl_func_00062F64(temp_s4, (s32) &sp53);
                 if (sp53 & temp_s0) {
                     temp_s0_2 = (int)arg0 + (var_s1 * 0x68) + 0x1228;
-                    temp_v0 = ((int(*)())gl_func_00062F64)(temp_s4, (s32) temp_s0_2, var_s1);
+                    temp_v0 = gl_func_00062F64(temp_s4, (s32) temp_s0_2, var_s1);
                     if (temp_v0 == 0xA) {
-                        if (((int(*)())gl_func_00062F64)(temp_s4, (s32) temp_s0_2, var_s1) != 0) {
-                            ((int(*)())gl_func_00062F64)(0x22584);
+                        if (gl_func_00062F64(temp_s4, (s32) temp_s0_2, var_s1) != 0) {
+                            gl_func_00062F64(0x22584);
                             FW(temp_s2, 0x13C8) = 0;
                         } else {
-                            ((int(*)())gl_func_00062F64)(0x2258C);
+                            gl_func_00062F64(0x2258C);
                             FW(temp_s2, 0x13C8) = 2;
                             FW(((int)arg0 + var_s1), 0x13DC) = 1;
                         }
                     } else if (temp_v0 == 0) {
-                        ((int(*)())gl_func_00062F64)(0x22594);
+                        gl_func_00062F64(0x22594);
                         FW(temp_s2, 0x13C8) = 1;
                     }
                 } else {
-                    ((int(*)())gl_func_00062F64)(0x22598);
+                    gl_func_00062F64(0x22598);
                 }
-                ((int(*)())gl_func_00062F64)(0x225A0);
+                gl_func_00062F64(0x225A0);
             }
         }
         var_s1 += 1;
@@ -2880,20 +2880,20 @@ void gl_func_00066EEC(s32 **arg0) {
     var_s6 = 0;
     temp_s4 = (int)arg0 + 0x11B0;
 loop_1:
-    ((int(*)())gl_func_00062F64)(temp_s4, &sp54, 1);
+    gl_func_00062F64(temp_s4, &sp54, 1);
     temp_v1 = *(int*)sp54;
     if (temp_v1 == 0) {
         goto loop_1;
     }
     if (temp_v1 == 5) {
         sp4F = 0;
-        ((int(*)())gl_func_00062F64)(temp_s4, (s32 **) &sp4F);
+        gl_func_00062F64(temp_s4, (s32 **) &sp4F);
         var_s0 = 0;
         do {
             if (sp4F & (1 << var_s0)) {
                 temp_s1 = (int)arg0 + (var_s0 * 0x68) + 0x1228;
-                if (((int(*)())gl_func_00062F64)(temp_s4, temp_s1, var_s0) == 0) {
-                    ((int(*)())gl_func_00062F64)(temp_s1);
+                if (gl_func_00062F64(temp_s4, temp_s1, var_s0) == 0) {
+                    gl_func_00062F64(temp_s1);
                 }
             }
             var_s0 += 1;
@@ -2909,12 +2909,12 @@ loop_1:
         if (var_s6 == 0) {
             var_s1 = arg0;
             do {
-                ((int(*)())gl_func_00062F64)(arg0, var_s0_2, FW(var_s1, 0x13E0));
+                gl_func_00062F64(arg0, var_s0_2, FW(var_s1, 0x13E0));
                 var_s0_2 += 1;
                 var_s1 += 2;
             } while (var_s0_2 != (s32 **)4);
         }
-        ((int(*)())gl_func_00062F64)(temp_s4);
+        gl_func_00062F64(temp_s4);
         FW(arg0, 0x13E8) = 0;
         goto loop_1;
     }
@@ -2924,9 +2924,9 @@ loop_1:
     if (temp_v1 != 2) {
         goto loop_1;
     }
-    ((int(*)())gl_func_00062F64)((int)arg0 + 0x1200);
+    gl_func_00062F64((int)arg0 + 0x1200);
     if (var_s6 == 0) {
-        ((int(*)())gl_func_00062F64)(arg0);
+        gl_func_00062F64(arg0);
     }
     FW(arg0, 0x13E8) = 1;
     goto loop_1;
@@ -4673,7 +4673,7 @@ void gl_func_00068DD4(char *arg0) {
     char *temp_v0_5;
     char *temp_v0_6;
 
-    ((int(*)())gl_func_00062F64)();
+    gl_func_00062F64();
     FW(FW(FW(arg0, 0x3C), 0xC), 0xB0) = 8;
     temp_v0 = FW(arg0, 0x0);
     temp_t1 = *(int*)temp_v0;
@@ -4686,25 +4686,25 @@ void gl_func_00068DD4(char *arg0) {
     *temp_v1_2 = temp_v0_2 + 4;
     temp_a2 = *(int*)temp_v0_2;
     FW(arg0, 0x4) = temp_a2;
-    temp_v0_3 = ((int(*)())gl_func_00062F64)(0, (char *)0x2C568, temp_a2, 0);
+    temp_v0_3 = gl_func_00062F64(0, (char *)0x2C568, temp_a2, 0);
     sp2C = temp_v0_3;
-    ((int(*)())gl_func_00062F64)(FW(temp_v0_3, 0x44) * 8);
-    temp_v0_4 = ((int(*)())gl_func_00062F64)(0, (char *)0x2C574, 0, sp2C);
+    gl_func_00062F64(FW(temp_v0_3, 0x44) * 8);
+    temp_v0_4 = gl_func_00062F64(0, (char *)0x2C574, 0, sp2C);
     FW(arg0, 0x28) = temp_v0_4;
     FW(arg0, 0x10) = temp_v0_4;
     FW(temp_v0_4, 0x30) = (s32) (FW(temp_v0_4, 0x30) & ~0x400);
     temp_t0 = FW(arg0, 0x28);
     FW(temp_t0, 0x30) = (s32) (FW(temp_t0, 0x30) & ~0x800);
     if (sp30 == 0) {
-        ((int(*)())gl_func_00062F64)(0x2C580);
+        gl_func_00062F64(0x2C580);
     }
     temp_v0_5 = FW(FW(FW(arg0, 0x3C), 0x3C), 0xC);
     temp_t0_2 = FW(temp_v0_5, 0x28);
     ((GP_00068DD4)FW(temp_t0_2, 0x14))(FW(temp_t0_2, 0x10) + temp_v0_5);
-    temp_v0_6 = ((int(*)())gl_func_00062F64)(sp30, FW(FW(arg0, 0x3C), 0xC), (s32) FW(arg0, 0x28));
+    temp_v0_6 = gl_func_00062F64(sp30, FW(FW(arg0, 0x3C), 0xC), (s32) FW(arg0, 0x28));
     sp24 = temp_v0_6;
-    ((int(*)())gl_func_00062F64)((s32) FW(FW(arg0, 0x3C), 0xC), temp_v0_6);
-    ((int(*)())gl_func_00062F64)((s32) sp24);
+    gl_func_00062F64((s32) FW(FW(arg0, 0x3C), 0xC), temp_v0_6);
+    gl_func_00062F64((s32) sp24);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068DD4);
@@ -5221,27 +5221,27 @@ typedef char *(*GP_00069E04)();
 s32 gl_func_00069E04(char *arg0, s32 arg1, s32 arg2) {
     char *temp_s0;
 
-    temp_s0 = ((int(*)())gl_func_00062F64)();
+    temp_s0 = gl_func_00062F64();
     if (FW(arg0, 0x8) >= FW(arg0, 0x10)) {
 loop_1:
         if (arg2 == 1) {
             FW((*(int*)0), 0x10) = 8;
-            ((int(*)())gl_func_00062F64)((int)arg0 + 4);
+            gl_func_00062F64((int)arg0 + 4);
             if (FW(arg0, 0x8) < FW(arg0, 0x10)) {
                 goto block_5;
             }
             goto loop_1;
         }
-        ((int(*)())gl_func_00062F64)(temp_s0);
+        gl_func_00062F64(temp_s0);
         return -1;
     }
 block_5:
     *(int*)(FW(arg0, 0x14) + (((s32) (FW(arg0, 0xC) + FW(arg0, 0x8)) % (s32) FW(arg0, 0x10)) * 4)) = arg1;
     FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) + 1);
     if (*(int*)(FW(arg0, 0x0)) != 0) {
-        ((int(*)())gl_func_00062F64)(((int(*)())gl_func_00062F64)(arg0));
+        gl_func_00062F64(gl_func_00062F64(arg0));
     }
-    ((int(*)())gl_func_00062F64)(temp_s0);
+    gl_func_00062F64(temp_s0);
     return 0;
 }
 #else
@@ -5259,15 +5259,15 @@ typedef char *(*GP_00069F64)();
 s32 gl_func_00069F64(char *arg0, s32 *arg1, s32 arg2) {
     char *temp_s0;
 
-    temp_s0 = ((int(*)())gl_func_00062F64)();
+    temp_s0 = gl_func_00062F64();
     if (FW(arg0, 0x8) == 0) {
 loop_1:
         if (arg2 == 0) {
-            ((int(*)())gl_func_00062F64)(temp_s0);
+            gl_func_00062F64(temp_s0);
             return -1;
         }
         FW((*(int*)0), 0x10) = 8;
-        ((int(*)())gl_func_00062F64)(arg0);
+        gl_func_00062F64(arg0);
         if (FW(arg0, 0x8) != 0) {
             goto block_4;
         }
@@ -5280,9 +5280,9 @@ block_4:
     FW(arg0, 0xC) = (s32) ((s32) (FW(arg0, 0xC) + 1) % (s32) FW(arg0, 0x10));
     FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) - 1);
     if (*(int*)(FW(arg0, 0x4)) != 0) {
-        ((int(*)())gl_func_00062F64)(((int(*)())gl_func_00062F64)((int)arg0 + 4));
+        gl_func_00062F64(gl_func_00062F64((int)arg0 + 4));
     }
-    ((int(*)())gl_func_00062F64)(temp_s0);
+    gl_func_00062F64(temp_s0);
     return 0;
 }
 #else
@@ -5398,27 +5398,27 @@ void gl_func_0006A420(char *arg0) {
             FW(sp1C, 0x10) = (s32) *(int*)((FW(arg0, 0x38) + 0xBFC) | 0xA0000000);
         }
     }
-    ((int(*)())gl_func_00062F64)(sp1C, 0x40);
-    ((int(*)())gl_func_00062F64)((char *)0x2B00);
-    if (((int(*)())gl_func_00062F64)((char *)0x04001000) == -1) {
+    gl_func_00062F64(sp1C, 0x40);
+    gl_func_00062F64((char *)0x2B00);
+    if (gl_func_00062F64((char *)0x04001000) == -1) {
         do {
 
-        } while (((int(*)())gl_func_00062F64)((char *)0x04001000) == -1);
+        } while (gl_func_00062F64((char *)0x04001000) == -1);
     }
-    if (((int(*)())gl_func_00062F64)((char *)1, 0x04000FC0, sp1C, 0x40) == -1) {
+    if (gl_func_00062F64((char *)1, 0x04000FC0, sp1C, 0x40) == -1) {
         do {
 
-        } while (((int(*)())gl_func_00062F64)((char *)1, 0x04000FC0, sp1C, 0x40) == -1);
+        } while (gl_func_00062F64((char *)1, 0x04000FC0, sp1C, 0x40) == -1);
     }
-    if (((int(*)())gl_func_00062F64)() != 0) {
+    if (gl_func_00062F64() != 0) {
         do {
 
-        } while (((int(*)())gl_func_00062F64)() != 0);
+        } while (gl_func_00062F64() != 0);
     }
-    if (((int(*)())gl_func_00062F64)((char *)1, 0x04001000, FW(sp1C, 0x8), FW(sp1C, 0xC)) == -1) {
+    if (gl_func_00062F64((char *)1, 0x04001000, FW(sp1C, 0x8), FW(sp1C, 0xC)) == -1) {
         do {
 
-        } while (((int(*)())gl_func_00062F64)((char *)1, 0x04001000, FW(sp1C, 0x8), FW(sp1C, 0xC)) == -1);
+        } while (gl_func_00062F64((char *)1, 0x04001000, FW(sp1C, 0x8), FW(sp1C, 0xC)) == -1);
     }
 }
 #else
@@ -6459,17 +6459,17 @@ void gl_func_0006C484(void) {
 
     sp30 = 0;
     *(int*)0 = 1;
-    ((int(*)())gl_func_00062F64)(((int(*)())gl_func_00062F64)() | 0x20000000);
-    ((int(*)())gl_func_00062F64)(0x01000800U);
-    if (((int(*)())gl_func_00062F64)(0x1FC007FCU, &sp34) != 0) {
+    gl_func_00062F64(gl_func_00062F64() | 0x20000000);
+    gl_func_00062F64(0x01000800U);
+    if (gl_func_00062F64(0x1FC007FCU, &sp34) != 0) {
         do {
 
-        } while (((int(*)())gl_func_00062F64)(0x1FC007FCU, &sp34) != 0);
+        } while (gl_func_00062F64(0x1FC007FCU, &sp34) != 0);
     }
-    if (((int(*)())gl_func_00062F64)(0x1FC007FCU, (u32 *) (sp34 | 8)) != 0) {
+    if (gl_func_00062F64(0x1FC007FCU, (u32 *) (sp34 | 8)) != 0) {
         do {
 
-        } while (((int(*)())gl_func_00062F64)(0x1FC007FCU, (u32 *) (sp34 | 8)) != 0);
+        } while (gl_func_00062F64(0x1FC007FCU, (u32 *) (sp34 | 8)) != 0);
     }
     *(u32 *)0x80000000 = *(int*)0;
     *(u32 *)0x80000004 = *(u32 *)4;
@@ -6487,25 +6487,25 @@ void gl_func_0006C484(void) {
     (char *)FW(0x80000180, 0x4) = (u32) *(char *)4;
     (char *)FW(0x80000180, 0x8) = (u32) *(char *)8;
     (char *)FW(0x80000180, 0xC) = (u32) *(char *)0xC;
-    ((int(*)())gl_func_00062F64)(0x80000000U, (u32 *)0x190);
-    ((int(*)())gl_func_00062F64)(0x80000000U, (u32 *)0x190);
-    ((int(*)())gl_func_00062F64)();
-    ((int(*)())gl_func_00062F64)(4U, &sp30);
+    gl_func_00062F64(0x80000000U, (u32 *)0x190);
+    gl_func_00062F64(0x80000000U, (u32 *)0x190);
+    gl_func_00062F64();
+    gl_func_00062F64(4U, &sp30);
     temp_t9 = sp30 & ~0xF;
     sp30 = temp_t9;
     if (temp_t9 != 0) {
         *(int*)0 = 0U;
         *(char *)4 = temp_t9;
     }
-    temp_ret = ((int(*)())gl_func_00062F64)(*(int*)0, (u32 *) *(char *)4, 0, 3);
+    temp_ret = gl_func_00062F64(*(int*)0, (u32 *) *(char *)4, 0, 3);
     sp20 = temp_ret;
     sp24 = (u32) (u64) temp_ret;
-    temp_ret_2 = ((int(*)())gl_func_00062F64)(sp20, (u32 *) sp24, 0, 4);
+    temp_ret_2 = gl_func_00062F64(sp20, (u32 *) sp24, 0, 4);
     temp_t1 = *(int*)0;
     *(int*)0 = temp_ret_2;
     *(char *)4 = (u32) (u64) temp_ret_2;
     if (temp_t1 == 0) {
-        ((int(*)())gl_func_00062F64)(0U, (u32 *)0x40);
+        gl_func_00062F64(0U, (u32 *)0x40);
     }
     if (*(int*)0 == 0) {
         *(int*)0 = 0x02F5B2D2U;
@@ -7813,18 +7813,18 @@ s32 gl_func_0006F3E4(char *arg0, s32 arg1, s32 arg2) {
     s32 temp_t7;
     char *temp_s0;
 
-    temp_s0 = ((int(*)())gl_func_00062F64)();
+    temp_s0 = gl_func_00062F64();
     if (FW(arg0, 0x8) >= FW(arg0, 0x10)) {
 loop_1:
         if (arg2 == 1) {
             FW((*(int*)0), 0x10) = 8;
-            ((int(*)())gl_func_00062F64)((int)arg0 + 4);
+            gl_func_00062F64((int)arg0 + 4);
             if (FW(arg0, 0x8) < FW(arg0, 0x10)) {
                 goto block_5;
             }
             goto loop_1;
         }
-        ((int(*)())gl_func_00062F64)(temp_s0);
+        gl_func_00062F64(temp_s0);
         return -1;
     }
 block_5:
@@ -7833,9 +7833,9 @@ block_5:
     *(int*)(FW(arg0, 0x14) + (FW(arg0, 0xC) * 4)) = arg1;
     FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) + 1);
     if (*(int*)(FW(arg0, 0x0)) != 0) {
-        ((int(*)())gl_func_00062F64)(((int(*)())gl_func_00062F64)(arg0));
+        gl_func_00062F64(gl_func_00062F64(arg0));
     }
-    ((int(*)())gl_func_00062F64)(temp_s0);
+    gl_func_00062F64(temp_s0);
     return 0;
 }
 #else
@@ -8885,7 +8885,7 @@ void gl_func_00070694(char *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 ar
     char *temp_v0;
     char *var_v0;
 
-    ((int(*)())gl_func_00062F64)();
+    gl_func_00062F64();
     temp_f0 = arg2 - arg1;
     var_v0 = arg0;
     temp_f12 = arg6 - arg5;
