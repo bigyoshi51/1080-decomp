@@ -575,7 +575,62 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014228);
  * const + defensive-dead guards. Full body INCLUDE_ASM-preserved
  * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
  * rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0001438C)();
+char *func_0001438C(char *arg0) {
+    s32 sp3C;
+    s32 sp38;
+    char *sp28;
+    s32 sp24;
+    s32 temp_t1;
+    s32 temp_t7;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *var_a0;
+    char *var_a0_2;
+    char *var_s0;
+    char *var_v1;
+
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = func_00012E00(0x38), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = func_00012E00(8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            FW(var_v1, 0x0) = 0xC;
+            FW(var_v1, 0x4) = 0;
+        }
+        temp_t7 = (*(s32*)((char*)&D_00000000 + 4));
+        var_a0 = var_s0 + 8;
+        sp3C = temp_t7;
+        sp24 = temp_t7;
+        if ((var_s0 != (char *)-8) || (temp_v0_3 = func_00012E00(0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+            sp28 = var_a0;
+            func_00012E00(var_a0, var_s0, sp24, 1);
+            FW(var_a0, 0xC) = 0;
+            FW(var_a0, 0x14) = 0;
+            *(f32*)((char*)var_a0 + 0x10) = 30.0f;
+        }
+        temp_t1 = (*(s32*)((char*)&D_00000000 + 8));
+        var_a0_2 = var_s0 + 0x20;
+        sp38 = temp_t1;
+        sp24 = temp_t1;
+        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = func_00012E00(0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
+            sp28 = var_a0_2;
+            func_00012E00(var_a0_2, var_s0, sp24, 1);
+            FW(var_a0_2, 0xC) = 0;
+            FW(var_a0_2, 0x14) = 0;
+            *(f32*)((char*)var_a0_2 + 0x10) = 30.0f;
+        }
+    }
+    return var_s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001438C);
+#endif
 
 void func_000144B4(int *a0, int a1, int a2, float a3, float arg5) {
     *(float*)((char*)a0 + 0x44) = (float)a1;
