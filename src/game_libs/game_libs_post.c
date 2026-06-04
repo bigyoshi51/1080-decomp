@@ -430,28 +430,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D17C);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-int gl_func_0001D200(int code, int spec) {
-    short idx = (short)code;
-    char *rec = (char *)&D_00000000 + idx * 0x158;
-    unsigned char attr = *(unsigned char *)(rec + 0x1B);
-    char *e = rec + (int)attr * 0x158 + 0x50;
-    int packed = *(int *)(e + 0x5C);
-    short flags = *(short *)(e + 0x60);
-    int lo = packed & 7;
-    int hi = (packed >> 4) & 0xFFF;
-    int *dl;
-    int r = gl_func_00000000(0x3E0, lo, 0x1A0, hi, (short)spec, idx);
-    if (flags != 0) {
-        r = gl_func_00000000(r, 0x3E0, hi, 0, idx);
+extern int gl_func_00031FB0();
+/* 2026-06-04 RECONSTRUCT via Ghidra 20.8% -> 52.5%: was a wrong-signature stub
+ * (2-arg, wrong packing). Real fn is (a0 dl-ptr, a1 spec, a2 idx, a3 sub):
+ * locate record &D[a2*0x158]+attr*100+a3*0x14, call gl_func_00031FB0 to reserve
+ * DL space (twice if rec->0x62), then emit 8 packed GBI words (2 quads at
+ * sV2+0x3E0 / +0x580) and return p+8. Residual ~47% is $t-reg renumber +
+ * save-spill scheduling (same 139 insns, same frame). */
+    short s1, s2;
+    unsigned int *p;
+    unsigned int u4;
+    int rec, e, t;
+    rec = (int)&D_00000000 + a2 * 0x158;
+    e = rec + (unsigned int)*(unsigned char *)(rec + 0x1B) * 100 + a3 * 0x14;
+    s1 = *(short *)(e + 0x60);
+    t = (*(unsigned int *)(e + 0x5C) & 7) << 0x11;
+    s2 = (short)((unsigned int)t >> 0x10);
+    p = (unsigned int *)gl_func_00031FB0(a0, 0x3E0,
+            *(unsigned int *)(e + 0x5C) - (t >> 0x11) & 0xFFFF, 0x1A0, (int)a2);
+    t = (int)(short)(s2 + s1 + 0xF & 0xFFF0);
+    if (*(short *)(e + 0x62) != 0) {
+        p = (unsigned int *)gl_func_00031FB0(p, t + 0x3E0 & 0xFFFF, 0, 0x1A0 - t, (int)a2);
     }
-    dl = *(int **)((char *)&D_00000000 + 0x40);
-    dl[0] = 0x08000000;
-    dl[1] = 0;
-    dl[2] = 0x0C800000;
-    dl[3] = 0x05000000;
-    dl[4] = 0x0E200000;
-    dl[5] = (int)0x80000000;
-    return r;
+    p[0] = (int)s2 + 0x3E0 | 0x8000000;
+    u4 = (a1 & 0x7FFF) << 1;
+    p[1] = u4 | 0xC800000;
+    p[2] = *(unsigned short *)(rec + 0x26) | 0x5000000 | (unsigned int)*(unsigned char *)(rec + 0x18) << 0x10;
+    p[3] = *(int *)(rec + 0x40) + 0x80000000;
+    p[4] = (int)s2 + 0x580 | 0x8000000;
+    p[5] = u4 | 0xE200000;
+    p[6] = *(unsigned short *)(rec + 0x26) | 0x5000000 | (unsigned int)*(unsigned char *)(rec + 0x18) << 0x10;
+    p[7] = *(int *)(rec + 0x44) + 0x80000000;
+    return p + 8;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D200);
