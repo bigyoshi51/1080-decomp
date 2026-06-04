@@ -191,6 +191,7 @@ build/src/kernel/kernel_051.c.o build/non_matching/src/kernel/kernel_051.c.o: OP
 build/src/kernel/kernel_052.c.o build/non_matching/src/kernel/kernel_052.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_053.c.o build/non_matching/src/kernel/kernel_053.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_054.c.o build/non_matching/src/kernel/kernel_054.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_006.c.o build/non_matching/src/kernel/kernel_006.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_000_o1.c.o build/non_matching/src/kernel/kernel_000_o1.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_055.c.o build/non_matching/src/kernel/kernel_055.c.o: OPT_FLAGS := -O1
 # kernel_056: 64-bit libgcc-style helpers; -mips3 so IDO inlines d-arithmetic.

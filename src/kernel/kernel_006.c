@@ -123,7 +123,11 @@ extern s32 D_8001B5D0, D_8001B5E8, D_8001B5F0, D_8001B608;
 /* Kernel event-pump thread loop: registers two message queues
  * (D_8001B5D0/D_8001B5F0) + their event handlers (events 0x12/0x13), then loops
  * forever — block on queue A, run handler func_80005C50, poll func_800066F0
- * until it returns non-zero, block on queue B, run handler func_80005C94. */
+ * until it returns non-zero, block on queue B, run handler func_80005C94.
+ * 2026-06-04: kernel_006 flipped to -O1 (whole-file, all funcs prefer or are
+ * opt-indifferent to -O1): func_800056F0 47->91.3%, func_80005520 68->77%,
+ * func_80005800 stays 100%. Residual ~9%: -O1 loop-accumulator spill detail +
+ * infinite-loop dead-epilogue padding nops. */
 void func_800056F0(s32 arg0) {
     s32 sp2C;
     s32 sp28;
