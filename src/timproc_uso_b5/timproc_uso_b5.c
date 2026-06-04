@@ -2051,7 +2051,39 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * computed in the entry from a0->{0x184,0x188,0x29C,0x2A0}, not caller-passed.
  * (The separate 8-insn 0x3A28 piece is the stolen prologue of 00003A4C — its
  * own symbol, already handled, not part of this merge.) */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000396C)();
+void timproc_uso_b5_func_0000396C(char *arg0, s32 arg1, char *arg2, f32 arg3, f32 arg4) {
+    f32 sp18;
+    f32 sp0;
+    f32 temp_f10;
+    f32 temp_f18;
+    f32 temp_f18_2;
+    f32 temp_f6;
+    f32 temp_f8;
+    char *temp_v0;
+    char *temp_v0_2;
+
+    temp_f18 = (*(f32*)((char*)arg0 + 0x2A0));
+    temp_v0 = FW(arg0, 0x29C);
+    temp_f10 = ((*(f32*)((char*)arg0 + 0x188)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xE0)) + (arg4 * (1.0f - temp_f18));
+    sp18 = temp_f10;
+    temp_v0_2 = (int)arg1 + 0x30;
+    sp0 = (*(f32*)((char*)arg2 + 0x0));
+    temp_f8 = sp0;
+    temp_f6 = ((((*(f32*)((char*)arg0 + 0x184)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xDC))) - temp_f8) * arg3;
+    sp0 = (*(f32*)((char*)arg2 + 0x4));
+    temp_f18_2 = (*(f32*)((char*)arg2 + 0x8));
+    (*(f32*)((char*)temp_v0_2 + 0x30)) = (f32) (temp_f8 + temp_f6);
+    (*(f32*)((char*)temp_v0_2 + 0x34)) = (f32) (sp0 + ((temp_f10 - sp0) * arg3));
+    (*(f32*)((char*)temp_v0_2 + 0x38)) = (f32) (temp_f18_2 + (((((*(f32*)((char*)arg0 + 0x18C)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xE4))) - temp_f18_2) * arg3));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000396C);
+#endif
 
 void timproc_uso_b5_func_00003A28(int *a0, int *a1, int a2) {
     float *src = (float *)a0[0x29C / 4];
