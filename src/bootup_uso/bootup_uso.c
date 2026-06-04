@@ -1616,29 +1616,73 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002DA4);
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
 #ifdef NON_MATCHING
+/* 2026-06-04 COMPLETE via Ghidra 29.4% -> 67.0% (+37.6pp): was a 2-of-4-object
+ * stub with a wrong source addr (&D+0x12C should be &D+0x524) and a spurious
+ * |0x80 on the 0x94 object. Fixed those + added objects 3 (&D+0x7444, sp24 vec)
+ * and 4 (alloc 0x16C, &D+0x7454, 0xffff/uRam52c fields), the 3 dispatch calls,
+ * both 0x84-parent linkages, and the tail call. Residual ~33%: $t-reg renumber +
+ * the k-load spill scheduling + 0x8 frame delta. */
 void func_00002F90(char *s1) {
     char *c;
-    float k;
+    char *o;
+    int sp24, sp20, sp1c;
+    float k = *(float *)((char *)&D_00000000 + 0x524);
     func_00000000((char *)&D_00000000 + 0x741C, 0);
     c = (char *)func_00000000(0, (char *)&D_00000000 + 0x7424);
     *(char **)(s1 + 0x90) = c;
-    k = *(float *)((char *)&D_00000000 + 0x12C);
-    *(float *)(c + 0x124) = k;
-    *(float *)(c + 0x128) = k;
     *(float *)(c + 0x12C) = k;
+    *(float *)(c + 0x128) = k;
+    *(float *)(c + 0x124) = k;
     *(float *)(c + 0x130) = 1.0f;
-    *(int *)(c + 0xD0) = 1;
-    *(int *)(c + 0xC4) |= 0x40;
-    *(int *)(c + 0xC4) |= 0x80;
+    *(int *)(*(char **)(s1 + 0x90) + 0xD0) = 1;
+    *(int *)(*(char **)(s1 + 0x90) + 0xC4) |= 0x40;
+    *(int *)(*(char **)(s1 + 0x90) + 0xC4) |= 0x80;
     c = (char *)func_00000000(0, (char *)&D_00000000 + 0x7434);
     *(char **)(s1 + 0x94) = c;
-    *(float *)(c + 0x124) = 1.0f;
-    *(float *)(c + 0x128) = 1.0f;
-    *(float *)(c + 0x12C) = 1.0f;
     *(float *)(c + 0x130) = 1.0f;
-    *(int *)(c + 0xD0) = 2;
-    *(int *)(c + 0xC4) |= 0x40;
-    *(int *)(c + 0xC4) |= 0x80;
+    *(float *)(c + 0x12C) = 1.0f;
+    *(float *)(c + 0x128) = 1.0f;
+    *(float *)(c + 0x124) = 1.0f;
+    *(int *)(*(char **)(s1 + 0x94) + 0xD0) = 2;
+    *(int *)(*(char **)(s1 + 0x94) + 0xC4) |= 0x40;
+    o = (char *)func_00000000(0, (char *)&D_00000000 + 0x7444);
+    sp24 = 0;
+    sp1c = 0;
+    sp20 = *(int *)((char *)&D_00000000 + 0x528);
+    func_00000000(o + 0x70, &sp24);
+    *(int *)(o + 0xC4) |= 0x40;
+    func_00000000(0, *(int *)(s1 + 0x94));
+    func_00000000(0, *(int *)(s1 + 0x90));
+    func_00000000(0, *(int *)(s1 + 0x94));
+    {
+        int p90 = *(int *)(s1 + 0x90);
+        int n = *(int *)(s1 + 0x84);
+        func_00000000(n + 0x10);
+        if (*(int *)(p90 + 0x14) != 0) {
+            *(int *)(p90 + 4) = 1;
+        }
+        *(int *)(p90 + 0x14) = n;
+    }
+    {
+        char *m = (char *)func_00000000(0x16C);
+        int n2;
+        if (m != 0) {
+            func_00000000(m, (char *)&D_00000000 + 0x7454, 0, 0, 0);
+            *(int *)(m + 0x120) = 0xFFFF;
+            *(int *)(m + 0x28) = 0;
+            *(int *)(m + 0x108) = *(int *)((char *)&D_00000000 + 0x52C);
+            *(int *)(m + 0x10C) = *(int *)((char *)&D_00000000 + 0x52C);
+            *(int *)(m + 0x110) = *(int *)((char *)&D_00000000 + 0x52C);
+            *(float *)(m + 0x124) = 1.0f;
+        }
+        n2 = *(int *)(s1 + 0x84);
+        func_00000000(n2 + 0x10, m);
+        if (*(int *)(m + 0x14) != 0) {
+            *(int *)(m + 4) = 1;
+        }
+        *(int *)(m + 0x14) = n2;
+    }
+    func_00000000();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002F90);
