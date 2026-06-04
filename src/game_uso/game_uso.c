@@ -10879,7 +10879,7 @@ void game_uso_func_0000C3F8(int *a0) {
         do {
             game_uso_func_0000C12C((char*)*(int**)&D_00000000 + i * 0x40);
             i++;
-        } while (i < *(int*)&D_00000000);
+        } while ((u32)i < *(u32*)&D_00000000);
     }
 }
 #else
