@@ -5752,7 +5752,28 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * the 8D78 symbol. Scans the a0->0x154 bitmap (byte+6 of import_800201EC[i>>3]
  * indexed table) for a set bit, returns the index/3 or sentinel. Reloc-blind
  * USO (lui %hi(import_800201EC)); stays INCLUDE_ASM. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00008D38)();
+s32 timproc_uso_b5_func_00008D38(s32 arg0) {
+    s32 var_v1;
+
+    var_v1 = 0;
+loop_1:
+    var_v1 += 1;
+    if (!(*(u8*)((char*)((*(s32*)((char*)&D_00000000 + 0x154)) + (var_v1 >> 3)) + 0x6) & (1 << (var_v1 & 7)))) {
+        return 0;
+    }
+    if (var_v1 >= 0x18) {
+        return 3;
+    }
+    goto loop_1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D38);
+#endif
 
 void timproc_uso_b5_func_00008D90(int *a0, int a1) {
     if (a1 == 0) {
