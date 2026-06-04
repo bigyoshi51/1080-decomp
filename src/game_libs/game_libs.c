@@ -3780,7 +3780,7 @@ void gl_func_00007FF4(char *arg0) {
         switch (temp_v0) {                          /* irregular */
         case 0:
             temp_v0_2 = FW(arg0, 0x28);
-            ((GP_00007FF4)FW(temp_v0_2, 0xF4))(FW(temp_v0_2, 0xF0) + (int)arg0);
+            ((GP_00007FF4)FW(temp_v0_2, 0xF4))(*(s16*)((char*)temp_v0_2 + 0xF0) + (int)arg0);
             break;
         case 1:
             temp_v0_3 = FW(arg0, 0x4F0);
