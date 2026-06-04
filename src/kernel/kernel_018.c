@@ -203,7 +203,90 @@ s32 func_80006790(void *arg0) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80006790);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+/* rmon memory-write command handler (write sibling of func_80006790). Validate
+ * the RDRAM address (func_80004B30) / length (<=0x400). For an SP-window address
+ * (0x04000000..0x05000000): unaligned single-byte/halfword -> read-modify-write
+ * via func_80006A98/func_80006A50; aligned -> word-loop via func_80006A50. Else
+ * (general RAM) bulk-write via func_80006AEC. Then send the 0x10 reply header. */
+s32 func_8000698C(void *arg0) {
+    extern void func_800073F8();
+    extern void func_80006A50();
+    extern void func_80006AEC();
+    struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 id; } sp34;
+    s32 sp30;
+    s32 sp2C;
+    u32 sp28;
+    s32 *sp24;
+    s32 temp_a1;
+    s32 temp_t4;
+    s32 var_s1;
+    s32 var_t2;
+
+    if ((*(u8 *)((char *) arg0 + 9) == 0) && (func_80004B30(FW(arg0, 0x10)) == -1)) {
+        return -5;
+    }
+    if ((u32) FW(arg0, 0x14) >= 0x401U) {
+        return -8;
+    }
+    if (((u32) FW(arg0, 0x10) < 0x04000000U) || ((u32) (FW(arg0, 0x10) + FW(arg0, 0x14)) >= 0x05000000U)) {
+        var_s1 = 0;
+    } else {
+        var_s1 = 1;
+    }
+    if (var_s1 != 0) {
+        temp_t4 = FW(arg0, 0x10) & 3;
+        sp30 = temp_t4;
+        if (temp_t4 != 0) {
+            if (FW(arg0, 0x14) != 1) {
+                return -5;
+            }
+            sp2C = func_80006A98(FW(arg0, 0x10) & ~3);
+            if (sp30 == 1) {
+                var_t2 = (FW(arg0, 0x18) << 0x10) | (sp2C & 0xFF00FFFF);
+                goto block_18;
+            }
+            if (sp30 == 2) {
+                sp2C = (FW(arg0, 0x18) << 8) | (sp2C & 0xFFFF00FF);
+            } else {
+                var_t2 = FW(arg0, 0x18) | (sp2C & ~0xFF);
+block_18:
+                sp2C = var_t2;
+            }
+            func_80006A50(FW(arg0, 0x10) & ~3, sp2C);
+            goto block_26;
+        }
+        sp24 = (s32 *)((char *) arg0 + 0x18);
+        sp28 = (u32) FW(arg0, 0x14) >> 2;
+        if (FW(arg0, 0x14) & 3) {
+            return -5;
+        }
+        sp28 -= 1;
+        if (sp28 != 0) {
+            do {
+                temp_a1 = *sp24;
+                sp24 += 1;
+                func_80006A50(FW(arg0, 0x10), temp_a1);
+                FW(arg0, 0x10) = FW(arg0, 0x10) + 4;
+                sp28 -= 1;
+            } while (sp28 != 0);
+        }
+        goto block_26;
+    }
+    func_80006AEC(FW(arg0, 0x10), (char *) arg0 + 0x18, FW(arg0, 0x14));
+block_26:
+    sp34.zero = 0;
+    sp34.tag = *(u8 *)((char *) arg0 + 4);
+    sp34.id = FW(arg0, 0xC);
+    func_800073F8(&sp34, 0x10, 1);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000698C);
+#endif
 
 
 
