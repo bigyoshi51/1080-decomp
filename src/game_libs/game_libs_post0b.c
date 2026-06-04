@@ -29211,19 +29211,23 @@ void game_libs_func_00060F44(int *a0, int *a1) {
 void game_libs_func_00060F90(int *a0, int *a1) {
     int *next = (int *)a1[15];
     int *prev = (int *)a1[14];
-    if (next == prev && a1 == prev) {
-        a0[12] = 0;
-        a0[11] = 0;
-        return;
+    int cur;
+    if (next == prev) {
+        if (a1 == prev) {
+            cur = 0;
+            a0[12] = 0;
+            goto end;
+        }
     }
-    if (next != prev) {
-        prev[15] = (int)next;
-    }
+    prev[15] = (int)next;
     ((int *)a1[15])[14] = a1[14];
+    cur = a0[12];
     if (a1 == (int *)a0[12]) {
+        cur = a1[14];
         a0[12] = a1[14];
     }
-    a0[11] = a1[14];
+end:
+    a0[11] = cur;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060F90);
