@@ -5119,23 +5119,21 @@ void gl_func_000697C4(char *arg0) {
             }
             FW(arg0, 0x94) = 0;
         }
-        temp_t6 = FW(arg0, 0x48);
+        sp2C = FW(arg0, 0x48);
         var_v0_2 = 0;
-        sp2C = temp_t6;
-        sp28 = temp_t6;
-        if (temp_t6 != 0) {
-            sp2C = FW(temp_t6, 0x4);
-            var_v0_2 = FW(temp_t6, 0x0);
+        sp28 = sp2C;
+        if (sp2C != 0) {
+            var_v0_2 = FW(sp2C, 0x0);
+            sp2C = FW(sp2C, 0x4);
         }
         if (var_v0_2 != 0) {
             do {
                 gl_func_00062F64(*(int*)sp28, arg0, FW(arg0, 0x40));
-                temp_t9 = sp2C;
                 var_v0_3 = 0;
-                sp28 = temp_t9;
-                if (temp_t9 != 0) {
-                    sp2C = FW(temp_t9, 0x4);
-                    var_v0_3 = FW(temp_t9, 0x0);
+                sp28 = sp2C;
+                if (sp2C != 0) {
+                    var_v0_3 = FW(sp2C, 0x0);
+                    sp2C = FW(sp2C, 0x4);
                 }
             } while (var_v0_3 != 0);
         }
