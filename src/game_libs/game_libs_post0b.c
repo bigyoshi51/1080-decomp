@@ -1,5 +1,5 @@
 #include "common.h"
-void game_libs_func_00062F08(int *a0);
+extern int game_libs_func_00062F08();
 typedef struct { int a, b, c, d; } Quad4;
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { int a, b; } Pair2;
@@ -23603,8 +23603,8 @@ void gl_func_00055C34(char *arg0) {
     ((int(*)())gl_func_00034458)(0x215EC, FW(arg0, 0x14));
     temp_s0 = (int)arg0 + 0x20;
     ((int(*)())gl_func_00034458)(0x21604, FW(temp_s0, 0xFC));
-    ((int(*)())game_libs_func_00062F08)(FW(temp_s0, 0x100), 0x21614, 0x211E0);
-    ((int(*)())game_libs_func_00062F08)(FW(temp_s0, 0xF8), 0x2161C, 0x21330);
+    game_libs_func_00062F08(FW(temp_s0, 0x100), 0x21614, 0x211E0);
+    game_libs_func_00062F08(FW(temp_s0, 0xF8), 0x2161C, 0x21330);
     ((int(*)())gl_func_00034458)(0x21620, FW(temp_s0, 0x104));
     ((int(*)())gl_func_00034458)(0x21634, FW(temp_s0, 0x8), FW(temp_s0, 0xC), FW(temp_s0, 0x10), FW(temp_s0, 0x14));
     ((int(*)())gl_func_00034458)(0x2165C, FW(temp_s0, 0x20), FW(temp_s0, 0x24), FW(temp_s0, 0x28), FW(temp_s0, 0x2C));
@@ -23616,7 +23616,7 @@ void gl_func_00055C34(char *arg0) {
     ((int(*)())gl_func_00034458)(0x2174C, FW(temp_s0, 0xB0), FW(temp_s0, 0xB4), FW(temp_s0, 0xB8), FW(temp_s0, 0xBC));
     ((int(*)())gl_func_00034458)(0x21774, FW(temp_s0, 0xC8), FW(temp_s0, 0xCC), FW(temp_s0, 0xD0), FW(temp_s0, 0xD4));
     ((int(*)())gl_func_00034458)(0x2179C, FW(temp_s0, 0xE0), FW(temp_s0, 0xE4));
-    ((int(*)())game_libs_func_00062F08)(FW(temp_s0, 0x10C), 0x217B8, 0x214A4);
+    game_libs_func_00062F08(FW(temp_s0, 0x10C), 0x217B8, 0x214A4);
     ((int(*)())gl_func_00034458)(0x217C0, (s32) FW(temp_s0, 0x118));
     ((int(*)())gl_func_00034458)(0x217D8, (s32) FW(temp_s0, 0x128));
     ((int(*)())gl_func_00034458)(0x217F0, (s32) FW(temp_s0, 0x138));
@@ -25056,8 +25056,8 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
     char *temp_v1_99;
     char *temp_v1_9;
 
-    sp1EC = ((int(*)())game_libs_func_00062F08)(FW(arg1, 0x20), arg0);
-    sp1E8 = ((int(*)())game_libs_func_00062F08)(FW(arg1, 0x22));
+    sp1EC = game_libs_func_00062F08(FW(arg1, 0x20), arg0);
+    sp1E8 = game_libs_func_00062F08(FW(arg1, 0x22));
     sp1E0 = 0;
     sp1E4 = 0;
     temp_v1 = FW(arg0, 0xC);
@@ -26509,7 +26509,7 @@ loop_2:
         FW(temp_v0_2, 0x1C) = 0x87654321;
         FW(temp_v0_2, 0x10) = (s32) ((FW(var_s1, 0x0) - temp_a3_2) - 1);
     }
-    ((int(*)())game_libs_func_00062F08)(var_s1, (FW(arg0, 0x20) << 0x18) + temp_a3_2, (int)arg0 + 0x10, temp_a3_2);
+    game_libs_func_00062F08(var_s1, (FW(arg0, 0x20) << 0x18) + temp_a3_2, (int)arg0 + 0x10, temp_a3_2);
     temp_a3 = var_s1 + 0x10;
     var_v0 = temp_a3;
     var_a1 = 0;
@@ -26594,7 +26594,7 @@ loop_2:
         FW(var_a2, 0x0) = temp_t6;
         sp24 = var_a2 + ((temp_t6 & 0xFFFFFF) * 0x10) + 0x10;
     }
-    ((int(*)())game_libs_func_00062F08)(sp24, (FW(arg0, 0x20) << 0x18) + temp_a3_2, (int)arg0 + 0x10, temp_a3_2);
+    game_libs_func_00062F08(sp24, (FW(arg0, 0x20) << 0x18) + temp_a3_2, (int)arg0 + 0x10, temp_a3_2);
     temp_a3 = sp24 + 0x10;
     var_v0 = temp_a3;
     var_a1 = 0;
@@ -26664,7 +26664,7 @@ loop_2:
     FW(FW(temp_a3, 0x4), 0x8) = (char *) FW(temp_a3, 0x8);
     FW(FW(temp_a3, 0x8), 0x4) = (char *) FW(temp_a3, 0x4);
     sp1C = temp_a3;
-    ((int(*)())game_libs_func_00062F08)(temp_a3, (FW(arg1, -0x10) & 0xFFFFFF) + 0xFF000000, (u32) var_a2, temp_a3);
+    game_libs_func_00062F08(temp_a3, (FW(arg1, -0x10) & 0xFFFFFF) + 0xFF000000, (u32) var_a2, temp_a3);
     temp_v1 = FW(arg1, -0x10);
     temp_v0 = FW(temp_a3, 0x4);
     if ((int)temp_v0 == (int)(temp_a3 + ((temp_v1 & 0xFFFFFF) * 0x10) + 0x10)) {
@@ -31791,7 +31791,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E80);
 /* game_libs_func_00062F08: 20-insn no-frame multi-field init.
  * Bulk-initializes 15 fields of struct a0 with constants -1, -1000, 0, 1
  * + one float 0.0f. */
-void game_libs_func_00062F08(int *a0) {
+game_libs_func_00062F08(a0) int * a0; {
     a0[0x50/4] = -1;
     a0[0x4C/4] = -1;
     a0[0x64/4] = -1000;
