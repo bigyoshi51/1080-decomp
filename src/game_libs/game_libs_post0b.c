@@ -21725,11 +21725,11 @@ void gl_func_00052AE8(int *self) {
         *(int *)((char *)self + 0x78) =
             gl_func_00000000(*(int *)((char *)self + 0x44));
     }
-    for (i = 0; i < *(int *)((char *)self + 0x44); i++) {
+    for (i = 0; (u32)i < *(u32 *)((char *)self + 0x44); i++) {
         ((char *)*(int *)((char *)self + 0x78))[i] = 0;
     }
     *(int *)&D_00000000 = 1;
-    for (i = 0; i < *(int *)((char *)self + 0x44); i++) {
+    for (i = 0; (u32)i < *(u32 *)((char *)self + 0x44); i++) {
         if (((char *)*(int *)((char *)self + 0x78))[i] == 0) {
             gl_func_00000000(self, i);
         }
