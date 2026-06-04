@@ -789,6 +789,11 @@ extern void func_00000188();  /* used as data-symbol base */
 /* typed-float proto (0x0-alias of func_00000000) so the 7 float args pass as
  * single-precision (swc1) instead of K&R double-promote (cvt.d.s+sdc1). */
 extern void func_1a44_emit(void *, float, float, float, float, float, float, float);
+extern int func_1a44_emit2(void *);
+/* 2026-06-04 COMPLETE via Ghidra 17.2% -> 31.5%: was entry+first-emit stub;
+ * added the 2nd reserve call (cmd[1]) + 3 more DL-word emits (0x6000000 payload
+ * a0->0x38, 0xE7000000, 0xBA000E02). Residual: target holds &D in a base reg
+ * (t0) indexing root/scale/0x254; mine re-materializes (known base-hold cap). */
 void func_00001A44(char *a0) {
     char *st;
     char *n;
@@ -822,7 +827,23 @@ void func_00001A44(char *a0) {
     *(int*)(l + 0x4) = i + 1;
     cmd = (int*)(*(char**)(l + 0x0) + i * 8);
     cmd[0] = 0x01020040;
-    /* entry payload writes follow (truncated in decode comment) */
+    cmd[1] = func_1a44_emit2(base + stride6);
+    *(int*)(e + 4) += 1;
+    i = *(int*)(l + 4);
+    *(int*)(l + 4) = i + 1;
+    cmd = (int*)(*(char**)(l + 0x0) + i * 8);
+    cmd[0] = 0x06000000;
+    cmd[1] = *(int*)(a0 + 0x38);
+    i = *(int*)(l + 4);
+    *(int*)(l + 4) = i + 1;
+    cmd = (int*)(*(char**)(l + 0x0) + i * 8);
+    cmd[0] = (int)0xE7000000;
+    cmd[1] = 0;
+    i = *(int*)(l + 4);
+    *(int*)(l + 4) = i + 1;
+    cmd = (int*)(*(char**)(l + 0x0) + i * 8);
+    cmd[0] = (int)0xBA000E02;
+    cmd[1] = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001A44);
