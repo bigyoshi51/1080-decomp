@@ -13225,18 +13225,21 @@ void gl_func_00045178(char *arg0) {
     char *temp_v0_3;
     char *temp_v1_3;
 
-    temp_f12 = (*(f32*)((char*)&D_00000000 + 0x1B60));
+    {
+    char *cD = (char *)&D_00000000;
+    temp_f12 = (*(f32*)(cD + 0x1B60));
     temp_f0 = (*(f32*)((char*)arg0 + 0x90));
     if (temp_f0 < temp_f12) {
-        var_f14 = (*(f32*)((char*)&D_00000000 + 0x1B64));
+        var_f14 = (*(f32*)(cD + 0x1B64));
         var_f2 = temp_f12;
     } else {
-        var_f14 = (*(f32*)((char*)&D_00000000 + 0x1B68));
+        var_f14 = (*(f32*)(cD + 0x1B68));
         if (var_f14 < temp_f0) {
             var_f2 = var_f14;
         } else {
             var_f2 = temp_f0;
         }
+    }
     }
     temp_f0_2 = (*(f32*)((char*)arg0 + 0x94));
     (*(f32*)((char*)arg0 + 0x90)) = var_f2;
