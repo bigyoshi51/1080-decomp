@@ -1668,7 +1668,91 @@ void func_800018B0(void* arg0) {
  *   id), +0x4 / +0x8 link words. Caps <80: beql/bnel branch-likely
  *   x3 + multu/mflo index + cross-block b-to-shared-tail. Full body
  *   INCLUDE_ASM-preserved. INCLUDE_ASM (no episode; tautology-trap). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+/* USO relocation/fixup applier: walk arg2's 0xC-byte fixup records (count arg3,
+ * processed two-per-iteration after an odd-count peel). For each record whose
+ * flag (unk0/unkC) bit3 is set and whose target table slot (arg0->unk3C indexed
+ * by flag>>4) is live (low-3==1), matches the module arg4 (slot>>4) and is
+ * loaded (bit3), apply the patch (*(arg1 + rec->unk4) = rec->unk8) and clear the
+ * flag. (func_80001994 is the loop-body alt-entry via undefined_syms.) */
+s32 func_800018F0(void *arg0, s32 arg1, void *arg2, s32 arg3, s32 arg4) {
+    void *temp_v0;
+    s16 *temp_t4;
+    s16 temp_t0;
+    s32 temp_t2;
+    s32 var_t0;
+    s32 var_t3;
+    void *var_t1;
+
+    temp_v0 = (void *) FW(arg0, 0x3C);
+    if ((arg1 == 0) || (arg2 == NULL)) {
+        return 0;
+    }
+    var_t0 = 0;
+    if (arg3 > 0) {
+        if (arg3 & 1) {
+            temp_t2 = FW(arg2, 0);
+            if (temp_t2 & 8) {
+                var_t3 = 0;
+                temp_t4 = (s16 *)((char *) temp_v0 + ((temp_t2 >> 4) * 0xC));
+                if ((*temp_t4 & 7) == 1) {
+                    temp_t0 = *temp_t4;
+                    if ((arg4 == (temp_t0 >> 4)) && (temp_t0 & 8)) {
+                        var_t3 = 1;
+                    }
+                }
+                if (var_t3 != 0) {
+                    *(s32 *)(arg1 + FW(arg2, 4)) = FW(arg2, 8);
+                    FW(arg2, 0) = FW(arg2, 0) & ~8;
+                }
+            }
+            var_t0 = 1;
+            if (arg3 != 1) {
+                goto block_15;
+            }
+        } else {
+block_15:
+            var_t1 = (char *) arg2 + (var_t0 * 0xC);
+            do {
+                temp_t2 = FW(var_t1, 0);
+                if (temp_t2 & 8) {
+                    var_t3 = 0;
+                    temp_t4 = (s16 *)((char *) temp_v0 + ((temp_t2 >> 4) * 0xC));
+                    if ((*temp_t4 & 7) == 1) {
+                        temp_t0 = *temp_t4;
+                        if ((arg4 == (temp_t0 >> 4)) && (temp_t0 & 8)) {
+                            var_t3 = 1;
+                        }
+                    }
+                    if (var_t3 != 0) {
+                        *(s32 *)(arg1 + FW(var_t1, 4)) = FW(var_t1, 8);
+                        FW(var_t1, 0) = FW(var_t1, 0) & ~8;
+                    }
+                }
+                temp_t2 = FW(var_t1, 0xC);
+                if (temp_t2 & 8) {
+                    var_t3 = 0;
+                    temp_t4 = (s16 *)((char *) temp_v0 + ((temp_t2 >> 4) * 0xC));
+                    if (((*temp_t4 & 7) == 1) && (arg4 == (*temp_t4 >> 4)) && (*temp_t4 & 8)) {
+                        var_t3 = 1;
+                    }
+                    if (var_t3 != 0) {
+                        *(s32 *)(arg1 + FW(var_t1, 0x10)) = FW(var_t1, 0x14);
+                        FW(var_t1, 0xC) = FW(var_t1, 0xC) & ~8;
+                    }
+                }
+                var_t1 = (char *) var_t1 + 0x18;
+            } while (var_t1 != (char *)((arg3 * 0xC) + (s32) arg2));
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800018F0);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001ADC);
 
