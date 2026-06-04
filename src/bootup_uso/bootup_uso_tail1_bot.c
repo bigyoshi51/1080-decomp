@@ -207,16 +207,21 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEA0);
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
 #ifdef NON_MATCHING
+/* 2026-06-04 EXTEND via Ghidra 24.5% -> 27.8%: added the 2nd color quad
+ * (0x5c-0x68 = 0xC0/0xC2/0xE5/1.0 over 255), 0x80=0, the dead-arm 2nd alloc
+ * cascade, and the tail init call. (Ghidra mis-shows the /255 colors as folded
+ * word constants 0x3eeeeeef — the asm computes them via mtc1+cvt.s.w+div.s.)
+ * Residual: get-or-create cascade keeps the object in $a2 (regalloc). */
 void *func_0000FEE8(char *a0) {
     char *o;
-    char *s;
+    char *q;
     float *c;
     o = a0 ? a0 : (char *)func_00000000(0x304);
     if (!o) return 0;
-    s = (char *)func_00000000(0x2C);
-    if (s) {
-        func_00000000(s, (char *)&D_00000000 + 0xC5BC);
-        *(char **)(s + 0x28) = &D_00000000;
+    q = o;
+    if (o != 0 || (q = (char *)func_00000000(0x2C)) != 0) {
+        func_00000000(q, (char *)&D_00000000 + 0xC5BC);
+        *(char **)(q + 0x28) = &D_00000000;
     }
     *(char **)(o + 0x28) = &D_00000000;
     *(char **)(o + 0xC) = (char *)&D_00000000 + 0xC5C4;
@@ -225,6 +230,12 @@ void *func_0000FEE8(char *a0) {
     c[1] = (float)0x75 / 255.0f;
     c[2] = (float)0xE5 / 255.0f;
     c[3] = 1.0f;
+    c[4] = (float)0xC0 / 255.0f;
+    c[5] = (float)0xC2 / 255.0f;
+    c[6] = (float)0xE5 / 255.0f;
+    c[7] = 1.0f;
+    *(int *)(o + 0x80) = 0;
+    func_00000000(o);
     return o;
 }
 #else
