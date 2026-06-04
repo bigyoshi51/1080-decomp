@@ -172,8 +172,8 @@ void func_80008AA0(void) {
  *       s32 y = (a1 << 27) >> 27;                 // sign-ext 5-bit
  *       cmd[0] = (cmd[0] & 0x03) | ((x << 2) & 0xFC);
  *       cmd[1] = (cmd[1] & 0xE0) | (y & 0x1F);
- *       func_80006A50(0x40010000, *(int*)cmd);    // submit word
- *       func_80006A50(0x40800000, 0);             // kick/commit
+ *       func_80006A50(0x04001000, *(int*)cmd);    // submit word
+ *       func_80006A50(0x04080000, 0);             // kick/commit
  *   }
  *   // bundled sibling: same shape but packs a 3rd 6-bit field into
  *   // cmd[2] (mask 0x07, sets bit 0x20) before the same submit.
@@ -181,12 +181,19 @@ void func_80008AA0(void) {
  * x from a0, 5-bit y from a1) packed into a stack command struct
  * (byte 0: bits 2-7 = x<<2, byte 1: bits 0-4 = y; sibling adds byte
  * 2: bits 0-2 = z|0x20). func_80006A50(addr, val) = an MMIO/command
- * submit helper; 0x40010000 / 0x40800000 are the command + kick
- * register addresses (RSP/RDP-style command emit). Caps <80:
- * 2-function bundle (boundary) + bitfield sll/sra/andi/or pack +
- * func_80006A50 calls. Full body INCLUDE_ASM-preserved (.s =
- * source of truth). INCLUDE_ASM (no episode; tautology-trap rule +
- * unresolved bundle boundary). */
+ * submit helper; 0x04001000 / 0x04080000 are the command + kick
+ * register addresses (RSP/RDP-style command emit).
+ * 2026-06-04: BOUNDARY SPLIT DONE — splat had bundled func_80008C30 +
+ * func_80008CB4 under one 0x118 symbol; now two .s (0x84 + 0x94) and
+ * func_80008CB4 is a separate INCLUDE_ASM symbol (was in undefined_syms,
+ * removed). + constant fix (0x40010000 -> 0x04001000, 0x40800000 ->
+ * 0x04080000 — they were nibble-shifted): 24.93% -> 49.18%. REMAINING
+ * (multi-tick): the target does the byte RMW via `lb`+`andi 0xFF03`/
+ * `andi 0xFFE0` (IDO signed-short-bitfield codegen) where my u8[4] zeros
+ * the whole struct so IDO drops the read-back; needs a real bitfield
+ * struct (2-bit lo, 6-bit x at byte0; 5-bit y, 3-bit hi at byte1). Also
+ * the target spills+reloads a0/a1 per use (frame -0x20, args at 0x20/0x24)
+ * — the structure-driven reload pattern. */
 #ifdef NON_MATCHING
 void func_80008C30(int a0, int a1) {
     unsigned char cmd[4];
@@ -195,13 +202,19 @@ void func_80008C30(int a0, int a1) {
     cmd[0] = 0; cmd[1] = 0; cmd[2] = 0; cmd[3] = 0;
     cmd[0] = (cmd[0] & 0x03) | ((x << 2) & 0xFC);
     cmd[1] = (cmd[1] & 0xE0) | (y & 0x1F);
-    func_80006A50(0x40010000, *(int *)cmd);
-    func_80006A50(0x40800000, 0);
+    func_80006A50(0x04001000, *(int *)cmd);
+    func_80006A50(0x04080000, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
 #endif
 
+/* func_80008CB4: 0x80008CB4-0x80008D44 (size 0x94). The split-off sibling of
+ * func_80008C30 (splat had bundled both under one 0x118 symbol). Same RSP/RDP
+ * command-emit shape but packs a 3rd 6-bit field into cmd[2] (mask 0x07, sets
+ * bit 0x20) before the func_80006A50(0x4001000, *cmd) submit. INCLUDE_ASM for
+ * now (boundary split 2026-06-04; C body is a follow-up). */
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80008CB4);
 
 
 
