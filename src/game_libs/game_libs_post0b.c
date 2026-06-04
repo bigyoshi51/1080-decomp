@@ -19159,7 +19159,80 @@ void game_libs_func_0004EE18(int *a0, int a1) {
 // &D_0002 0604 key and the self->0xB0 FP / sp+0x10 staging are exact. Caps:
 // self struct + cb signatures untyped; bundle re-split deferred. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0004EE44)();
+void gl_func_0004EE44(char *arg0) {
+    int sp9C;
+    f32 sp5C;
+    f32 *temp_s1;
+    f32 *temp_v0;
+    f32 *temp_v1;
+    f32 *var_a3;
+    f32 *var_v0;
+    f32 *var_v1;
+    f32 temp_f12;
+    f32 temp_f14;
+    f32 var_f16;
+    f32 var_f18;
+    s32 temp_v0_2;
+    s32 temp_v1_2;
+    s32 var_a1;
+    char *var_a0;
+
+    temp_s1 = (int)arg0 + 0x30;
+    gl_func_00034458(temp_s1);
+    if (FW(arg0, 0x7C) == 1) {
+        if (FW(arg0, 0x70) == 0) {
+            gl_func_00034458((char *)((char *)&D_00000000 + 0x20604), FW(arg0, 0xC));
+        }
+        gl_func_00034458(temp_s1, FW(FW(arg0, 0x70), 0x14C), FW(arg0, 0xB4), FW(arg0, 0xAC), (*(f32*)((char*)arg0 + 0xB0)));
+        var_a3 = &sp5C;
+        var_a0 = FW(arg0, 0x70) + 0xB4;
+        do {
+            var_v0 = var_a3;
+            var_v1 = temp_s1;
+            *var_v0 = 0.0f;
+            var_a1 = 4;
+            var_f16 = *var_v0;
+            var_f18 = (*(f32*)((char*)var_a0 + 0x0)) * (*(f32*)((char*)arg0 + 0x30));
+            if (4 != 0x10) {
+                do {
+                    var_a1 += 4;
+                    var_v0 += 4;
+                    var_v1 += 4;
+                    var_v0[-1] = (f32) (var_f16 + var_f18);
+                    var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0x4)) * (*(f32*)((char*)var_v1 + 0xC))));
+                    var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0x8)) * (*(f32*)((char*)var_v1 + 0x1C))));
+                    var_v0[0] = 0.0f;
+                    var_f16 = var_v0[0];
+                    var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0xC)) * (*(f32*)((char*)var_v1 + 0x2C))));
+                    var_f18 = (*(f32*)((char*)var_a0 + 0x0)) * (*(f32*)((char*)var_v1 + 0x0));
+                } while (var_a1 != 0x10);
+            }
+            temp_v0 = var_v0 + 4;
+            temp_v1 = var_v1 + 4;
+            temp_v0[-1] = (f32) (var_f16 + var_f18);
+            temp_v0[-1] = (f32) (temp_v0[-1] + ((*(f32*)((char*)var_a0 + 0x4)) * (*(f32*)((char*)temp_v1 + 0xC))));
+            temp_v0[-1] = (f32) (temp_v0[-1] + ((*(f32*)((char*)var_a0 + 0x8)) * (*(f32*)((char*)temp_v1 + 0x1C))));
+            temp_f12 = temp_v0[-1];
+            temp_f14 = temp_f12 + ((*(f32*)((char*)var_a0 + 0xC)) * (*(f32*)((char*)temp_v1 + 0x2C)));
+            temp_v0[-1] = temp_f14;
+            var_a3 += 0x10;
+            var_a0 += 0x10;
+        } while ((int)var_a3 != (int)&sp9C);
+        gl_func_00034458(temp_f12, temp_f14, &sp5C, temp_s1, 0x10, var_a3);
+        return;
+    }
+    temp_v0_2 = FW(arg0, 0xB8);
+    temp_v1_2 = FW(arg0, 0xBC);
+    gl_func_00034458(temp_s1, (f32) ((s32) -temp_v0_2 / 2), (f32) (temp_v0_2 / 2), (f32) ((s32) -temp_v1_2 / 2), (f32) (temp_v1_2 / 2), FW(arg0, 0xAC), (*(f32*)((char*)arg0 + 0xB0)), 1.0f);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
+#endif
 
 /* Empty 4-arg stub (sibling of _00023F84). */
 void game_libs_func_0004F0AC(int a0, int a1, int a2, int a3) {
