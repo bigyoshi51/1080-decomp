@@ -1841,13 +1841,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065B5C);
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int a65C54(char*, float, float, float);
 void gl_func_00065C54(char *a0, int *a1) {
     if (a1[0] == 6) {
         int *src = (int*)a1[1];
         float x = *(float*)((char*)src + 0xEC);
         float y = *(float*)((char*)src + 0xF0);
         float z = *(float*)((char*)src + 0xF4);
-        gl_func_00000000(a0, x, y, z);
+        a65C54(a0, x, y, z);
         *(float*)(a0 + 0x2FC) = 0.0f;
         *(float*)(a0 + 0x300) = 0.0f;
         *(float*)(a0 + 0x304) = 0.0f;
