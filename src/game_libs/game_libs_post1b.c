@@ -1339,16 +1339,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064DEC);
  *   *(int*)(D_global + 0x14) = self->[0x31C];
  *   *(int*)(D_global + 0x18) = self->[0x320];
  *
- *   // 1st dispatch — copies float fields from sp to self+0x33C..0x344:
- *   func1(self);
- *   self->[0x33C..0x344] = sp values (after func1);
- *
- *   // 2nd dispatch — loads Vec3 globals to self+0x288..0x290:
- *   func2(...);
- *   self->[0x288] = *(float*)(D + 0x120);
- *   self->[0x28C] = *(float*)(D + 0x138);
- *   self->[0x290] = *(float*)(D + 0x1B0);
- *   *(float*)(self + 0x348) = ...;
+ *   // before 1st dispatch — type-pun copy self[0x318..0x320] -> self[0x33C..0x344]
+ *   // (int load, float store via stack bounce sp1C):
+ *   self->[0x33C..0x344] = self->[0x318..0x320];
+ *   gl_func_00062F64(self);            // 1st dispatch
+ *   // 2nd dispatch — copies self float fields 0x120/0x138/0x1B0 -> 0x288..0x290:
+ *   *(float*)(self + 0x348) = 0.0f;
+ *   self->[0x288] = *(float*)(self + 0x120);
+ *   self->[0x28C] = *(float*)(self + 0x138);
+ *   self->[0x290] = *(float*)(self + 0x1B0);
+ *   gl_func_00062F64(self);            // 2nd dispatch
  *
  * Full transform-reset: quat (0,0,0,1), translation/rotation/scale = 0/0/1.
  * Sibling of gl_func_00065C54 (op-6 transform-reset) — same identity layout
@@ -1357,26 +1357,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064DEC);
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
-void gl_func_00065060(char *self) {
-    extern int D_global_sym;
-    extern float D_pos_x, D_pos_y, D_pos_z;
-    int i;
-    *(short*)(self + 0x38C) = (short)0xFFFF;
-    for (i = 0x2FC; i <= 0x320; i += 4) *(float*)(self + i) = 0.0f;
-    for (i = 0x330; i <= 0x338; i += 4) *(float*)(self + i) = 0.0f;
-    for (i = 0x34C; i <= 0x354; i += 4) *(float*)(self + i) = 0.0f;
-    *(float*)(self + 0x308) = 1.0f;
-    for (i = 0x390; i <= 0x398; i += 4) *(float*)(self + i) = 1.0f;
-    /* Copy self->[0x318..0x320] to global */
-    *(int*)((char*)&D_global_sym + 0x10) = *(int*)(self + 0x318);
-    *(int*)((char*)&D_global_sym + 0x14) = *(int*)(self + 0x31C);
-    *(int*)((char*)&D_global_sym + 0x18) = *(int*)(self + 0x320);
-    gl_func_00000000(self);
-    *(float*)(self + 0x348) = 1.0f;
-    *(float*)(self + 0x288) = D_pos_x;
-    *(float*)(self + 0x28C) = D_pos_y;
-    *(float*)(self + 0x290) = D_pos_z;
-    gl_func_00000000();
+void gl_func_00065060(char *arg0) {
+    int sp1C0, sp1C4, sp1C8;
+    *(s32 *)(arg0 + 0x38C) = 0xFFFF;
+    *(f32 *)(arg0 + 0x34C) = 0.0f;
+    *(f32 *)(arg0 + 0x350) = 0.0f;
+    *(f32 *)(arg0 + 0x354) = 0.0f;
+    *(f32 *)(arg0 + 0x318) = 0.0f;
+    *(f32 *)(arg0 + 0x31C) = 0.0f;
+    *(f32 *)(arg0 + 0x320) = 0.0f;
+    *(f32 *)(arg0 + 0x2FC) = 0.0f;
+    *(f32 *)(arg0 + 0x300) = 0.0f;
+    *(f32 *)(arg0 + 0x304) = 0.0f;
+    *(f32 *)(arg0 + 0x330) = 0.0f;
+    *(f32 *)(arg0 + 0x334) = 0.0f;
+    *(f32 *)(arg0 + 0x338) = 0.0f;
+    *(f32 *)(arg0 + 0x390) = 1.0f;
+    *(f32 *)(arg0 + 0x394) = 1.0f;
+    *(f32 *)(arg0 + 0x398) = 1.0f;
+    *(f32 *)(arg0 + 0x308) = 1.0f;
+    *(s32 *)(arg0 + 0x18) |= 0x10;
+    sp1C0 = *(s32 *)(arg0 + 0x318);
+    sp1C4 = *(s32 *)(arg0 + 0x31C);
+    sp1C8 = *(s32 *)(arg0 + 0x320);
+    *(f32 *)(arg0 + 0x33C) = *(f32 *)&sp1C0;
+    *(f32 *)(arg0 + 0x340) = *(f32 *)&sp1C4;
+    *(f32 *)(arg0 + 0x344) = *(f32 *)&sp1C8;
+    gl_func_00062F64(arg0);
+    *(f32 *)(arg0 + 0x348) = 0.0f;
+    *(f32 *)(arg0 + 0x288) = *(f32 *)(arg0 + 0x120);
+    *(f32 *)(arg0 + 0x28C) = *(f32 *)(arg0 + 0x138);
+    *(f32 *)(arg0 + 0x290) = *(f32 *)(arg0 + 0x1B0);
+    gl_func_00062F64(arg0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065060);
