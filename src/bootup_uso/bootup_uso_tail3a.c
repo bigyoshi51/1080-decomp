@@ -58,30 +58,44 @@ void func_00010344(void) {
  * Multi-pass: this iteration captures entry-block semantics. Next pass
  * decodes the post-exit body (slot-fill, return path) and considers the
  * file-split for byte-match. */
+/* 2026-06-04 RECONSTRUCT via Ghidra 29.7% -> 41.5%: fixed the slot stride
+ * (0x68 -> 0x28 = (idx*5)<<3) and added the missing 2nd button block (0x8008,
+ * forward-scan increment loop) mirroring the 1st (0x2004, backward decrement).
+ * Both loops scan a0->0x78 slots at a0+0x88 (stride 0x28) for the next active
+ * one, wrapping a0->0x7c. Residual ~58%: target holds a0 in $a2 where mine
+ * spills it to its stack home (-g3 regalloc) + 0x8 frame delta. */
 void func_0001034C(int *a0) {
     int counter;
-    char *slot;
     if (*(int*)((char*)a0 + 0x34) < 0xFF) {
         *(int*)((char*)a0 + 0x34) += 1;
     }
     *(int*)((char*)a0 + 0x38) += 1;
-    if (*(int*)((char*)a0 + 0x80) != 0) goto exit;
-    if (!func_00000000(&D_00000000, 0x2004)) goto exit;
-    func_00000000(1);
-    counter = 0;
-    if (*(int*)((char*)a0 + 0x78) <= 0) goto exit;
-    do {
-        *(int*)((char*)a0 + 0x7C) -= 1;
-        if (*(int*)((char*)a0 + 0x7C) < 0) {
-            *(int*)((char*)a0 + 0x7C) = *(int*)((char*)a0 + 0x78) - 1;
+    if (*(int*)((char*)a0 + 0x80) == 0 && func_00000000(&D_00000000, 0x2004) != 0) {
+        func_00000000(1);
+        counter = 0;
+        if (*(int*)((char*)a0 + 0x78) > 0) {
+            do {
+                *(int*)((char*)a0 + 0x7C) -= 1;
+                if (*(int*)((char*)a0 + 0x7C) < 0) {
+                    *(int*)((char*)a0 + 0x7C) = *(int*)((char*)a0 + 0x78) - 1;
+                }
+            } while (*(int*)((char*)a0 + *(int*)((char*)a0 + 0x7C) * 0x28 + 0x88) == 0
+                     && (counter++, counter < *(int*)((char*)a0 + 0x78)));
         }
-        slot = (char*)a0 + 0x88 + *(int*)((char*)a0 + 0x7C) * 0x68;
-        if (*(int*)slot != 0) goto exit;
-        counter++;
-    } while (counter < *(int*)((char*)a0 + 0x78));
-exit:
-    /* TODO: ~75 more insns at 0x1045C+ — slot-fill, dispatch, epilogue. */
-    return;
+    }
+    if (*(int*)((char*)a0 + 0x80) == 0 && func_00000000(&D_00000000, 0x8008) != 0) {
+        func_00000000(1);
+        counter = 0;
+        if (*(int*)((char*)a0 + 0x78) > 0) {
+            do {
+                *(int*)((char*)a0 + 0x7C) += 1;
+                if (*(int*)((char*)a0 + 0x78) <= *(int*)((char*)a0 + 0x7C)) {
+                    *(int*)((char*)a0 + 0x7C) = 0;
+                }
+            } while (*(int*)((char*)a0 + *(int*)((char*)a0 + 0x7C) * 0x28 + 0x88) == 0
+                     && (counter++, counter < *(int*)((char*)a0 + 0x78)));
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0001034C);
