@@ -514,12 +514,12 @@ extern void func_800073F8();   /* fn-ptr-cast at call site below */
 extern void func_800074A0();   /* fn-ptr-cast at call site below */
 s32 func_80009584(char *s0) {
     int hdr[4];
-    int buf[512];  /* sp+0x244 */
+    int buf[128];  /* sp+0x244 */
     int *bufptr;
     int cnt = 0;
     int n;
     int i;
-    if (((int (*)(void))func_80008430)() == 0) return -4;
+    if (func_80008430((s32)s0) == 0) return -4;
     hdr[0] = *(int*)(s0 + 0xC);
     hdr[1] = 0x210;
     *(unsigned short*)((char*)hdr + 0x6) = 0;
