@@ -517,7 +517,20 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000745C);
  * __rmonSendHeader(buf, len = count*4 + 0x14, flag = 1). Caps <80:
  * rmon utility-buffer build + thread-chain walk + branch-likely +
  * __rmonSendHeader. INCLUDE_ASM remains build path (no episode;
- * tautology-trap rule). */
+ * tautology-trap rule).
+ * 2026-06-04 (22.9 -> 37.99%): control-flow fix. The old C `goto send`
+ * from the msg->0xC==-1 and msg->9==1 arms SKIPPED the `ub->4=msg->4;
+ * ub->6=0` stores, but in the asm those live in the common end block
+ * (.L8000764C) that EVERY path reaches — so the -1 arm must fall through
+ * to the msg->9 check and the two end-stores must be unconditional after
+ * the if/else, not behind the early-exit label. Now structured as plain
+ * nested if/else with one tail. RESIDUAL (regalloc tail, multi-tick): the
+ * target spills &__rmonUtilityBuffer to 0x28(sp) at entry and RELOADS it
+ * per use (9x) + spills/reloads the arg (sw a0,0x30(sp); lw s0,0x30(sp)),
+ * frame -0x30; my C keeps ub register-resident (frame -0x18). Sibling
+ * func_80006790 hits this reload-per-use shape at plain -O2 (68%), so it
+ * is structure-driven not opt-driven — kernel_018 -O2 -g3 only nudges 7564
+ * +0.8pp and REGRESSES 6790/71C0/745C, so NOT an opt split. */
 #ifdef NON_MATCHING
 extern char __rmonUtilityBuffer;
 extern char *func_80009C30(void);
@@ -528,27 +541,27 @@ s32 func_80007564(char *msg) {
     char *t;
     if (*(int*)(msg + 0xC) == -1) {
         *(int*)(ub + 0xC) = 0x3EA;
-        goto send;
+    } else {
+        *(int*)(ub + 0xC) = *(int*)(msg + 0xC);
     }
-    *(int*)(ub + 0xC) = *(int*)(msg + 0xC);
     if (*(unsigned char*)(msg + 0x9) == 1) {
         *(unsigned short*)(ub + 0x10) = 1;
         *(int*)(ub + 0x14) = 0x3E8;
-        goto send;
-    }
-    t = func_80009C30();
-    *(unsigned short*)(ub + 0x10) = 0;
-    if (*(int*)(t + 0x4) == -1) goto send;
-    if (*(int*)(t + 0x14) != 0) {
-        do {
-            ((int*)(ub + 0x14))[*(unsigned short*)(ub + 0x10)] = *(int*)(t + 0x14);
-            *(unsigned short*)(ub + 0x10) += 1;
-            t = *(char**)(t + 0xC);
-        } while (*(int*)(t + 0x4) != -1);
+    } else {
+        t = func_80009C30();
+        *(unsigned short*)(ub + 0x10) = 0;
+        if (*(int*)(t + 0x4) != -1) {
+            do {
+                if (*(int*)(t + 0x14) != 0) {
+                    ((int*)(ub + 0x14))[*(unsigned short*)(ub + 0x10)] = *(int*)(t + 0x14);
+                    *(unsigned short*)(ub + 0x10) += 1;
+                }
+                t = *(char**)(t + 0xC);
+            } while (*(int*)(t + 0x4) != -1);
+        }
     }
     *(unsigned char*)(ub + 0x4) = *(unsigned char*)(msg + 0x4);
     *(unsigned short*)(ub + 0x6) = 0;
-send:
     ((void (*)(void*, int, int))func_800073F8)(ub, *(unsigned short*)(ub + 0x10) * 4 + 0x14, 1);
     return 0;
 }
