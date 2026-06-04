@@ -3701,7 +3701,7 @@ void gl_func_0003863C(char *arg0) {
                 temp_v1_2 = *(int*)sp20;
                 if (FW(temp_v1_2, 0x20) & gl_func_00034458()) {
                     temp_v0 = FW(temp_v1_2, 0x28);
-                    ((GP_0003863C)FW(temp_v0, 0x1C))(FW(temp_v0, 0x18) + temp_v1_2);
+                    ((GP_0003863C)FW(temp_v0, 0x1C))(*(s16*)((char*)temp_v0 + 0x18) + temp_v1_2);
                 }
             }
             temp_t8 = sp24;
