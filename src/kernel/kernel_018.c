@@ -451,57 +451,6 @@ void func_800073F8(void) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800073F8);
 #endif
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
-#endif
-extern void func_800081D0();
-extern char *func_80009C30(void);
-/* Thread/request-chain walker (rmon). func_80009C30 = chain head; nodes link
- * via ->unkC, carry a request-id at ->unk4 (-1 = end sentinel) and a key at
- * ->unk14. arg0!=0: find the node whose unk14==arg0 and, if it holds a live
- * request (0 < id < 0x80), service it via func_800081D0 (returns arg0).
- * arg0==0: service every live node, returns -1. */
-s32 func_8000745C(s32 arg0) {
-    s32 var_s0;
-    void *var_s1;
-
-    var_s0 = 0;
-    var_s1 = (void *) func_80009C30();
-    if (arg0 != 0) {
-        if (FW(var_s1, 4) != -1) {
-loop_2:
-            if (FW(var_s1, 0x14) != arg0) {
-                var_s1 = (void *) FW(var_s1, 0xC);
-                if (FW(var_s1, 4) != -1) {
-                    goto loop_2;
-                }
-            }
-        }
-        if (FW(var_s1, 4) == -1) {
-            return 0;
-        }
-        if ((FW(var_s1, 4) > 0) && (FW(var_s1, 4) < 0x80)) {
-            func_800081D0(var_s1);
-            var_s0 = arg0;
-        }
-        goto block_14;
-    }
-    if (FW(var_s1, 4) != -1) {
-        do {
-            if ((FW(var_s1, 4) > 0) && (FW(var_s1, 4) < 0x80)) {
-                func_800081D0(var_s1);
-                var_s0 = -1;
-            }
-            var_s1 = (void *) FW(var_s1, 0xC);
-        } while (FW(var_s1, 4) != -1);
-    }
-block_14:
-    return var_s0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000745C);
-#endif
 
 /* func_80007564 - verified structural decode (kernel, 0x134, rmon
  * thread-list command handler). rmon family (cf. func_8000798C /
