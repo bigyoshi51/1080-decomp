@@ -1967,7 +1967,14 @@ extern s32 D_8000A3A0;
  * the slot is empty, mark arg0->unk99 and bump the miss counter (D_80012BC0+0x18);
  * if the target isn't loaded yet (unk3C==0), fire the callback
  * (D_80012BC0->field_84) and bail -2; else link the entry's unk4 to the target's
- * resolved address. */
+ * resolved address.
+ * 90.13% NM; residual = a 1-insn $s0/$a3 candidate-order swap (the loop counter
+ * wins $s0, arg0 lands $a3; target is reversed). REGALLOC-DUMP CONFIRMED
+ * (cc -Wo,-zdbug:6 -> uoptlist: candidate 16->$s0=counter, 73->$a3=arg0). All
+ * three documented levers FAIL here - do not re-try: decl-order swap (no-op),
+ * count-cache (82%), `register void *self=arg0` alias to force the early
+ * candidate (87%). A genuine candidate-creation-order cap for a param-vs-
+ * loop-counter contest. */
 s32 func_80002250(void *arg0) {
     UsoCallbacks84 *state = (UsoCallbacks84 *)&D_80012BC0;
     s16 temp_v0_2;
