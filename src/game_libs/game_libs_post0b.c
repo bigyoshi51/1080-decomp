@@ -27414,7 +27414,84 @@ void gl_func_0005DB58(int a0, int a1, float *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB58);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0005DBB0)();
+void gl_func_0005DBB0(char *arg0, char *arg1) {
+    char *sp44;
+    s32 *sp40;
+    s32 sp3C;
+    char *sp28;
+    char *sp24;
+    s32 sp20;
+    f32 temp_f12;
+    f32 temp_f12_2;
+    f32 temp_f12_3;
+    f32 temp_f14;
+    f32 temp_f16;
+    f32 var_f0;
+    f64 temp_f0;
+    f64 temp_f2;
+    f64 temp_f2_2;
+    s32 temp_a1;
+    s32 temp_a2;
+    s32 temp_a3;
+    s32 temp_t0;
+    s32 var_a1;
+    s32 var_v0;
+    char *temp_t1;
+    char *temp_t2;
+    char *var_v1;
+
+    temp_f14 = (*(f32*)((char*)arg0 + 0x14));
+    temp_f12 = (*(f32*)((char*)arg0 + 0x0));
+    temp_f16 = (*(f32*)((char*)arg0 + 0x28));
+    temp_f0 = (f64) (temp_f12 + temp_f14 + temp_f16);
+    if (temp_f0 > 0.0) {
+        temp_f2 = (f64) gl_func_00034458((f32) (temp_f0 + 1.0), temp_f14);
+        (*(f32*)((char*)arg1 + 0xC)) = (f32) (temp_f2 * 0.5);
+        temp_f12_2 = (f32) (0.5 / temp_f2);
+        (*(f32*)((char*)arg1 + 0x0)) = (f32) (((*(f32*)((char*)arg0 + 0x18)) - (*(f32*)((char*)arg0 + 0x24))) * temp_f12_2);
+        (*(f32*)((char*)arg1 + 0x4)) = (f32) (((*(f32*)((char*)arg0 + 0x20)) - (*(f32*)((char*)arg0 + 0x8))) * temp_f12_2);
+        (*(f32*)((char*)arg1 + 0x8)) = (f32) (((*(f32*)((char*)arg0 + 0x4)) - (*(f32*)((char*)arg0 + 0x10))) * temp_f12_2);
+        return;
+    }
+    var_a1 = 0;
+    if (temp_f12 < temp_f14) {
+        var_a1 = 1;
+    }
+    var_v1 = (int)arg0 + (var_a1 * 0x10);
+    var_v0 = var_a1 * 4;
+    var_f0 = *(f32*)(var_v1 + var_v0);
+    if (var_f0 < temp_f16) {
+        var_v1 = (int)arg0 + 0x20;
+        var_f0 = (*(f32*)((char*)var_v1 + 0x8));
+        var_v0 = 8;
+    }
+    temp_a1 = *(int*)((char*)&D_00000000 + var_v0);
+    temp_a3 = temp_a1 * 4;
+    temp_a2 = *(int*)((char*)&D_00000000 + (temp_a1 * 4));
+    temp_t1 = (int)arg0 + (temp_a1 * 0x10);
+    temp_t2 = (int)arg0 + (temp_a2 * 0x10);
+    temp_t0 = temp_a2 * 4;
+    sp24 = temp_t2;
+    sp28 = temp_t1;
+    sp20 = temp_t0;
+    sp3C = temp_a3;
+    sp44 = var_v1;
+    sp40 = (s32 *) var_v0;
+    temp_f2_2 = (f64) gl_func_00034458((f32) ((f64) (var_f0 - (*(f32*)(temp_t1 + temp_a3) + *(f32*)(temp_t2 + temp_t0))) + 1.0), temp_f14, temp_a1, temp_a2, temp_a3);
+    *(f32*)((int)arg1 + var_v0) = (f32) (temp_f2_2 * 0.5);
+    temp_f12_3 = (f32) (0.5 / temp_f2_2);
+    (*(f32*)((char*)arg1 + 0xC)) = (f32) ((*(f32*)(temp_t1 + temp_t0) - *(f32*)(temp_t2 + temp_a3)) * temp_f12_3);
+    *(f32*)((int)arg1 + temp_a3) = (*(f32*)(var_v1 + temp_a3) + *(f32*)(temp_t1 + var_v0)) * temp_f12_3;
+    *(f32*)((int)arg1 + temp_t0) = (*(f32*)(var_v1 + temp_t0) + *(f32*)(temp_t2 + var_v0)) * temp_f12_3;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
