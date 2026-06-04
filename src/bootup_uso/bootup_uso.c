@@ -277,6 +277,9 @@ void func_0000057C(int *arg0, int arg1, int arg2) {
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00000610)();
+extern int a610_a(int, float, float, void*, void*, int);
+extern int a610_b(int, float, float);
+extern int a610_c(int, float);
 void func_00000610(f32 arg1, char **arg0, f32 arg2, f32 arg3, f32 arg4, f32 arg5, s32 arg6, s32 arg7, s32 arg8) {
     int sp27;
     f32 sp28;
@@ -337,11 +340,11 @@ void func_00000610(f32 arg1, char **arg0, f32 arg2, f32 arg3, f32 arg4, f32 arg5
         (*(s8*)((char*)(*(int*)arg0) + 0x20)) = 1;
         (*(u8*)((char*)(*(int*)arg0) + 0x1C)) = (u8) ((arg8 & 0x8000) != 0);
         if ((*(u8*)((char*)(*(int*)arg0) + 0x1C)) != 0) {
-            (char*)func_00000000(0, var_f14, arg1, &sp28, &sp24, arg7);
-            (char*)func_00000000(*(int*)arg0, sp28, (f32) sp27);
+            (char*)a610_a(0, var_f14, arg1, &sp28, &sp24, arg7);
+            (char*)a610_b(*(int*)arg0, sp28, (f32) sp27);
         }
         (char*)func_00000000(0);
-        (char*)func_00000000(*(int*)arg0, 0.0f);
+        (char*)a610_c(*(int*)arg0, 0.0f);
         (char*)func_00000000();
     }
 }
