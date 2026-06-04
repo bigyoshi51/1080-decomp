@@ -1951,7 +1951,129 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000235C);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800023E0);
 
+#ifdef NON_MATCHING
+extern s32 func_800031E0(void);
+extern void func_80009C40(s32);
+extern s32 func_80004EC0(s32, s32 *);
+extern s32 func_8000A040(s32, s32);
+extern void func_80009DF0(void);
+extern void func_80002DB0(s32, u32 *);
+extern s32 func_80002F78(s32, s32, s32, s32);
+extern u32 func_80002E78(s32, u32, s32, s32);
+extern void func_800030D0(void *, s32);
+extern struct { s32 w0, w1, w2, w3; } D_80003270;
+extern u32 D_8000A3D0;
+extern s32 D_8000A3D4;
+extern s32 D_8000A3D8;
+extern s32 D_8000030C;
+extern s32 D_80000300;
+extern s32 D_8000031C;
+extern s32 __kmc_pt_mode;
+extern s32 D_BFF00000;
+/* Kernel boot / exception-vector + KMC-debugger init. Set SR, configure caches
+ * (func_80009C40), poll the PIF (0x1FC007FC), install the exception-handler stub
+ * (D_80003270, 4 words) at the TLB/XTLB/general vectors (0x80000080/100/180) +
+ * flush, size RDRAM (func_80002DB0) and set up the heap/TLB, pick the cart ID
+ * word by D_80000300, then if running under KMC (D_BFF00000 == 'KMC\0') relocate
+ * its handler + ROM image and jump to its entry. */
+void func_80002530(void) {
+    extern void func_800031D0();
+    extern s32 func_800031F0();
+    u32 sp58;
+    s32 sp5C;
+    void (*sp54)();
+    s32 *sp38;
+    s32 *sp34;
+    s32 *sp30;
+    void *sp3C;
+    s32 sp40;
+    s32 sp2C;
+    s32 sp20;
+    u32 sp24;
+    s32 *dst;
+    s32 *src;
+
+    sp58 = 0;
+    func_800031D0(func_800031E0() | 0x20000000);
+    func_80009C40(0x01000800);
+    while (func_80004EC0(0x1FC007FC, &sp5C) != 0) {
+    }
+    while (func_8000A040(0x1FC007FC, sp5C | 8) != 0) {
+    }
+    *(s32 *)0x80000080 = D_80003270.w0;
+    *(s32 *)0x80000084 = D_80003270.w1;
+    *(s32 *)0x80000088 = D_80003270.w2;
+    *(s32 *)0x8000008C = D_80003270.w3;
+    *(s32 *)0x80000100 = D_80003270.w0;
+    *(s32 *)0x80000104 = D_80003270.w1;
+    *(s32 *)0x80000108 = D_80003270.w2;
+    *(s32 *)0x8000010C = D_80003270.w3;
+    *(s32 *)0x80000180 = D_80003270.w0;
+    *(s32 *)0x80000184 = D_80003270.w1;
+    *(s32 *)0x80000188 = D_80003270.w2;
+    *(s32 *)0x8000018C = D_80003270.w3;
+    func_800031F0(0x80000000, 0x190);
+    func_80005350(0x80000000, 0x190);
+    func_80009DF0();
+    func_80002DB0(4, &sp58);
+    sp58 = sp58 & ~0xF;
+    if (sp58 != 0) {
+        D_8000A3D0 = 0;
+        D_8000A3D0 = sp58;
+    }
+    sp20 = func_80002F78(D_8000A3D0, D_8000A3D4, 0, 3);
+    sp24 = sp20;
+    D_8000A3D0 = func_80002E78(sp20, sp24, 0, 4);
+    if (D_8000030C == 0) {
+        func_800030D0(&D_8000031C, 0x40);
+    }
+    if (D_80000300 == 0) {
+        D_8000A3D8 = 0x02F5B2D2;
+    } else if (D_80000300 == 2) {
+        D_8000A3D8 = 0x02E6025C;
+    } else {
+        D_8000A3D8 = 0x02E6D354;
+    }
+    if (__kmc_pt_mode == 0) {
+        sp38 = (s32 *)0xBFF08004;
+        sp3C = (void *)0xBFF00000;
+        if (D_BFF00000 == 0x4B4D4300) {
+            dst = (s32 *)0x80000180;
+            src = (s32 *)0x80003280;
+            dst[0] = src[0];
+            dst[1] = src[1];
+            dst[2] = src[2];
+            dst[3] = src[3];
+            dst[4] = src[4];
+            dst[5] = src[5];
+            dst[6] = src[6];
+            dst[7] = src[7];
+            dst[8] = src[8];
+            func_800031F0(0x80000180, 0x24);
+            func_80005350(0x80000180, 0x24);
+            __kmc_pt_mode = 1;
+            if (!(*sp38 & 0x10)) {
+                sp40 = *(s32 *)((char *) sp3C + 4);
+                if (sp40 != 0xBFF00000) {
+                    sp30 = (s32 *)(sp40 | 0x20000000);
+                    sp2C = 0x800;
+                    sp34 = (s32 *)0xBFF00000;
+                    do {
+                        *sp30 = *sp34;
+                        sp2C -= 1;
+                        sp30 += 1;
+                        sp34 += 1;
+                    } while (sp2C != 0);
+                }
+                sp54 = (void (*)())(sp40 + 8);
+                sp54(0x4B4D4300, 0);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002530);
+#endif
 
 
 
