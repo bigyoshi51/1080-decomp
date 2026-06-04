@@ -6373,7 +6373,76 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E270);
  * dot-products, two reflections, two |.|^2) + func_00000000 reloc
  * + spilled f-temps. Full body INCLUDE_ASM-preserved (.s = source
  * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000E2D0)();
+void func_0000E2D0(char *arg0, s32 arg1, char *arg2, char *arg3, f32 arg4) {
+    f32 sp6C;
+    f32 sp68;
+    f32 sp64;
+    f32 sp60;
+    f32 sp5C;
+    f32 sp58;
+    f32 sp44;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f0_3;
+    f32 temp_f10;
+    f32 temp_f10_2;
+    f32 temp_f12;
+    f32 temp_f18;
+    f32 temp_f2;
+    f32 temp_f2_2;
+    f32 temp_f2_3;
+    f32 temp_f4;
+    f32 temp_f8;
+    f32 var_f0;
+
+    temp_f4 = (*(f32*)((char*)arg2 + 0x0));
+    sp64 = temp_f4;
+    sp68 = (*(f32*)((char*)arg2 + 0x4));
+    sp6C = (*(f32*)((char*)arg2 + 0x8));
+    temp_f2 = (*(f32*)((char*)arg3 + 0x0));
+    temp_f0 = (temp_f4 * temp_f2) + (sp68 * (*(f32*)((char*)arg3 + 0x4))) + (sp6C * (*(f32*)((char*)arg3 + 0x8)));
+    sp64 = (temp_f0 * temp_f2) - temp_f4;
+    sp68 = (temp_f0 * (*(f32*)((char*)arg3 + 0x4))) - sp68;
+    sp6C = (temp_f0 * (*(f32*)((char*)arg3 + 0x8))) - sp6C;
+    temp_f10 = (*(f32*)((char*)arg0 + 0x3BC));
+    sp58 = temp_f10;
+    sp5C = (*(f32*)((char*)arg0 + 0x3C0));
+    sp60 = (*(f32*)((char*)arg0 + 0x3C4));
+    temp_f2_2 = (*(f32*)((char*)arg3 + 0x0));
+    temp_f0_2 = (temp_f10 * temp_f2_2) + (sp5C * (*(f32*)((char*)arg3 + 0x4))) + (sp60 * (*(f32*)((char*)arg3 + 0x8)));
+    temp_f8 = (temp_f0_2 * temp_f2_2) - temp_f10;
+    sp58 = temp_f8;
+    temp_f10_2 = (temp_f0_2 * (*(f32*)((char*)arg3 + 0x4))) - sp5C;
+    sp5C = temp_f10_2;
+    temp_f18 = (temp_f0_2 * (*(f32*)((char*)arg3 + 0x8))) - sp60;
+    sp60 = temp_f18;
+    if ((*(f64*)((char*)&D_00000000 + 0x14)) < (f64) ((f32(*)())func_00000000)((temp_f8 * temp_f8) + (temp_f10_2 * temp_f10_2) + (temp_f18 * temp_f18))) {
+        sp44 = (sp64 * sp58) + (sp68 * temp_f10_2) + (sp6C * sp60);
+        ((GP_0000E2D0)func_00000000)(&sp58);
+        temp_f2_3 = (*(f32*)((char*)arg0 + 0x9FC));
+        var_f0 = sp44 * (*(f32*)((char*)arg0 + 0x9F8));
+        temp_f12 = -temp_f2_3;
+        if (var_f0 < temp_f12) {
+            var_f0 = temp_f12;
+        }
+        if (temp_f2_3 < var_f0) {
+            var_f0 = temp_f2_3;
+        }
+        temp_f0_3 = var_f0 * (1.0f + (int)arg4);
+        sp58 *= temp_f0_3;
+        sp5C *= temp_f0_3;
+        sp60 *= temp_f0_3;
+        ((GP_0000E2D0)func_00000000)(temp_f12, arg0, arg1, &sp58);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E2D0);
+#endif
 
 /* func_0000E4DC - verified structural decode (0xAC, 43 insns).
  * Per-frame update/teardown over a composite object a0 (= s2). Uses
