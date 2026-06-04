@@ -80,6 +80,7 @@ SECTIONS
         build/src/kernel/kernel_031b.c.o(.text);
         build/src/kernel/kernel_021.c.o(.text);
         build/src/kernel/kernel_022.c.o(.text);
+        build/src/kernel/kernel_022_o1.c.o(.text);
         build/src/kernel/kernel_054.c.o(.text);
         build/src/kernel/kernel_055.c.o(.text);
         build/src/kernel/kernel_056.c.o(.text);
