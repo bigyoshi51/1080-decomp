@@ -3684,12 +3684,11 @@ void gl_func_0003863C(char *arg0) {
     sp24 = FW(arg0, 0x10);
     temp_a1 = FW(arg0, 0xC);
     gl_func_00034458(temp_a1, temp_a1);
-    temp_t7 = sp24;
     var_v0 = 0;
-    sp20 = temp_t7;
-    if (temp_t7 != 0) {
-        sp24 = FW(temp_t7, 0x4);
-        var_v0 = FW(temp_t7, 0x0);
+    sp20 = sp24;
+    if (sp24 != 0) {
+        var_v0 = FW(sp24, 0x0);
+        sp24 = FW(sp24, 0x4);
     }
     if (var_v0 != 0) {
         do {
@@ -3704,12 +3703,11 @@ void gl_func_0003863C(char *arg0) {
                     ((GP_0003863C)FW(temp_v0, 0x1C))(*(s16*)((char*)temp_v0 + 0x18) + temp_v1_2);
                 }
             }
-            temp_t8 = sp24;
             var_v0_2 = 0;
-            sp20 = temp_t8;
-            if (temp_t8 != 0) {
-                sp24 = FW(temp_t8, 0x4);
-                var_v0_2 = FW(temp_t8, 0x0);
+            sp20 = sp24;
+            if (sp24 != 0) {
+                var_v0_2 = FW(sp24, 0x0);
+                sp24 = FW(sp24, 0x4);
             }
         } while (var_v0_2 != 0);
     }
