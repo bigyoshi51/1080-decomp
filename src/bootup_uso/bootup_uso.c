@@ -5342,7 +5342,7 @@ void func_0000B520(char *arg0) {
         (*(f32*)((char*)arg0 + 0xA78)) = (f32) (*(f32*)((char*)arg0 + 0x768));
     }
     if ((*(f32*)((char*)arg0 + 0xA78)) < (*(f32*)((char*)arg0 + 0x348))) {
-        ((GP_0000B520)func_00000000)(var_f12, temp_f14, (int)arg0 + 0x318, arg0);
+        (char*)func_00000000(var_f12, temp_f14, (int)arg0 + 0x318, arg0);
         temp_f0_3 = (*(f32*)((char*)arg0 + 0xA78));
         (*(f32*)((char*)arg0 + 0x318)) = (f32) ((*(f32*)((char*)arg0 + 0x318)) * temp_f0_3);
         (*(f32*)((char*)arg0 + 0x31C)) = (f32) ((*(f32*)((char*)arg0 + 0x31C)) * temp_f0_3);
