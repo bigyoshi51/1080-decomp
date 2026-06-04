@@ -24,7 +24,7 @@ extern char D_a_4_x;
 extern int D_b_4_x[];
 extern char D_c_4_x;
 extern char D_8_x;
-void mgrproc_uso_func_0000019C(char *a0, int a1) {
+mgrproc_uso_func_0000019C(a0, a1) char * a0; int a1; {
     volatile char *arg0 = a0;
     volatile int state = a1;
     volatile int loop_continue;
@@ -193,7 +193,7 @@ void mgrproc_uso_func_00000700(char *arg0, s32 arg1) {
         FW(FW(arg0, 0x8), 0x10) = 3;
         FW(FW(arg0, 0x8), 0x14) = 4;
         FW(FW(arg0, 0x8), 0x18) = 5;
-        ((int(*)())mgrproc_uso_func_0000019C)(arg0);
+        mgrproc_uso_func_0000019C(arg0);
         break;
     case 2:
         FW(FW(arg0, 0x8), 0x8) = 5;
@@ -202,7 +202,7 @@ void mgrproc_uso_func_00000700(char *arg0, s32 arg1) {
         FW(FW(arg0, 0x8), 0x14) = 4;
         FW(FW(arg0, 0x8), 0x18) = 5;
         FW(FW(arg0, 0x8), 0x1C) = 6;
-        ((int(*)())mgrproc_uso_func_0000019C)(arg0);
+        mgrproc_uso_func_0000019C(arg0);
         FW(FW(arg0, 0x8), 0x34) = (s32) *(char *)0x4C;
         break;
     case 3:
@@ -213,7 +213,7 @@ void mgrproc_uso_func_00000700(char *arg0, s32 arg1) {
         FW(FW(arg0, 0x8), 0x18) = 5;
         FW(FW(arg0, 0x8), 0x1C) = 6;
         FW(FW(arg0, 0x8), 0x20) = 7;
-        ((int(*)())mgrproc_uso_func_0000019C)(arg0);
+        mgrproc_uso_func_0000019C(arg0);
         FW(FW(arg0, 0x8), 0x34) = (s32) *(s32 *)0x4C;
         if (FW((*(char **)0x154), 0x2) == 3) {
             FW(FW(arg0, 0x8), 0x38) = 5;
