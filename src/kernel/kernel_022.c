@@ -187,22 +187,35 @@ void func_80008AA0(void) {
  * func_80008CB4 under one 0x118 symbol; now two .s (0x84 + 0x94) and
  * func_80008CB4 is a separate INCLUDE_ASM symbol (was in undefined_syms,
  * removed). + constant fix (0x40010000 -> 0x04001000, 0x40800000 ->
- * 0x04080000 — they were nibble-shifted): 24.93% -> 49.18%. REMAINING
- * (multi-tick): the target does the byte RMW via `lb`+`andi 0xFF03`/
- * `andi 0xFFE0` (IDO signed-short-bitfield codegen) where my u8[4] zeros
- * the whole struct so IDO drops the read-back; needs a real bitfield
- * struct (2-bit lo, 6-bit x at byte0; 5-bit y, 3-bit hi at byte1). Also
- * the target spills+reloads a0/a1 per use (frame -0x20, args at 0x20/0x24)
- * — the structure-driven reload pattern. */
+ * 0x04080000): 24.93% -> 49.18%.
+ * + BITFIELD STRUCT (49.18 -> 67.90%): the byte RMW (andi 0xFF03 / andi
+ * 0xFFE0) is IDO char-bitfield codegen — a plain u8[4] zeroes the whole
+ * struct so IDO drops the read-back, but `char x:6; char :2;` (BE =
+ * MSB-first, so x lands at byte bits 2-7) reproduces the exact masks.
+ * The 0xFF03 (not 0x03) is IDO promoting the complement mask to int and
+ * taking the low-16 andi imm. REMAINING (~32%, structure-driven cap):
+ * target spills+reloads a0/a1 to home slots (frame -0x20, args 0x20/0x24)
+ * and keeps the sll/sra sign-ext of x; mine keeps a0/a1 in regs (frame
+ * -0x28) and collapses the sign-ext. NOT opt-driven (-O1/-g3/-g all
+ * WORSE than -O2's 67.90). Same residual on the func_80008CB4 sibling. */
 #ifdef NON_MATCHING
+typedef struct {
+    char x : 6;
+    char f0lo : 2;
+    char f1hi : 3;
+    char y : 5;
+    char b2;
+    char b3;
+} CmdBits8C30;
+
 void func_80008C30(int a0, int a1) {
-    unsigned char cmd[4];
+    CmdBits8C30 cmd;
     int x = (a0 << 26) >> 26;
     int y = (a1 << 27) >> 27;
-    cmd[0] = 0; cmd[1] = 0; cmd[2] = 0; cmd[3] = 0;
-    cmd[0] = (cmd[0] & 0x03) | ((x << 2) & 0xFC);
-    cmd[1] = (cmd[1] & 0xE0) | (y & 0x1F);
-    func_80006A50(0x04001000, *(int *)cmd);
+    *(int *)&cmd = 0;
+    cmd.x = x;
+    cmd.y = y;
+    func_80006A50(0x04001000, *(int *)&cmd);
     func_80006A50(0x04080000, 0);
 }
 #else
@@ -213,19 +226,30 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
  * func_80008C30 (splat had bundled both under one 0x118 symbol). Same RSP/RDP
  * command-emit shape but packs a 3rd 6-bit field into cmd[2] (mask 0x07, sets
  * bit 0x20) before the func_80006A50(0x4001000, *cmd) submit. INCLUDE_ASM for
- * now (boundary split 2026-06-04). C body added (mirrors func_80008C30 with a
- * 3rd packed byte) 2026-06-04: 0 -> ~49% (same bitfield-RMW residual as the
- * sibling — needs the real bitfield struct + arg-reload to finish). */
+ * now (boundary split 2026-06-04). C body 0 -> 47.6% (mirror of func_80008C30),
+ * then BITFIELD STRUCT -> 68.16%: the 3rd field is `char z:5; char :3;` at
+ * byte2 (z at bits 3-7), set to 4 so (4<<3)=0x20 -> andi 0xFF07 + ori 0x20
+ * matches. Same ~32% structure-driven arg-reload residual as the sibling. */
 #ifdef NON_MATCHING
+typedef struct {
+    char x : 6;
+    char f0lo : 2;
+    char f1hi : 3;
+    char y : 5;
+    char z : 5;
+    char b2lo : 3;
+    char b3;
+} CmdBitsCB4;
+
 void func_80008CB4(int a0, int a1) {
-    unsigned char cmd[4];
+    CmdBitsCB4 cmd;
     int x = (a0 << 26) >> 26;
     int y = (a1 << 27) >> 27;
-    cmd[0] = 0; cmd[1] = 0; cmd[2] = 0; cmd[3] = 0;
-    cmd[0] = (cmd[0] & 0x03) | ((x << 2) & 0xFC);
-    cmd[1] = (cmd[1] & 0xE0) | (y & 0x1F);
-    cmd[2] = (cmd[2] & 0x07) | 0x20;
-    func_80006A50(0x04001000, *(int *)cmd);
+    *(int *)&cmd = 0;
+    cmd.x = x;
+    cmd.y = y;
+    cmd.z = 4;
+    func_80006A50(0x04001000, *(int *)&cmd);
     func_80006A50(0x04080000, 0);
 }
 #else
