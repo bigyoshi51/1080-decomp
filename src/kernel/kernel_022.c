@@ -213,8 +213,24 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
  * func_80008C30 (splat had bundled both under one 0x118 symbol). Same RSP/RDP
  * command-emit shape but packs a 3rd 6-bit field into cmd[2] (mask 0x07, sets
  * bit 0x20) before the func_80006A50(0x4001000, *cmd) submit. INCLUDE_ASM for
- * now (boundary split 2026-06-04; C body is a follow-up). */
+ * now (boundary split 2026-06-04). C body added (mirrors func_80008C30 with a
+ * 3rd packed byte) 2026-06-04: 0 -> ~49% (same bitfield-RMW residual as the
+ * sibling — needs the real bitfield struct + arg-reload to finish). */
+#ifdef NON_MATCHING
+void func_80008CB4(int a0, int a1) {
+    unsigned char cmd[4];
+    int x = (a0 << 26) >> 26;
+    int y = (a1 << 27) >> 27;
+    cmd[0] = 0; cmd[1] = 0; cmd[2] = 0; cmd[3] = 0;
+    cmd[0] = (cmd[0] & 0x03) | ((x << 2) & 0xFC);
+    cmd[1] = (cmd[1] & 0xE0) | (y & 0x1F);
+    cmd[2] = (cmd[2] & 0x07) | 0x20;
+    func_80006A50(0x04001000, *(int *)cmd);
+    func_80006A50(0x04080000, 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008CB4);
+#endif
 
 
 
