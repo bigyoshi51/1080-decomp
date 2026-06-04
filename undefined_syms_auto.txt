@@ -2437,3 +2437,4 @@ gl_func_0003D414 = 0x0003D414;
 gl_func_0003C36C = 0x0003C36C;
 gl_func_0003ED2C = 0x0003ED2C;
 timproc_uso_b5_alias = 0x00000000;
+game_uso_alias = 0x00000000;

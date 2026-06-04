@@ -1,4 +1,5 @@
 #include "common.h"
+extern char *game_uso_alias();
 
 /* File-top canonical decls (hoisted out of NM-wrap blocks
  * so DNM build doesn't see redecls — see
@@ -10329,27 +10330,27 @@ s32 *game_uso_func_0000B8D4(s32 *arg0, s32 arg1, s32 arg2) {
     u32 var_v1_3;
 
     var_s2 = arg0;
-    if ((arg0 != 0) || (temp_v0 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)0x278), var_s2 = temp_v0, (temp_v0 != 0))) {
+    if ((arg0 != 0) || (temp_v0 = game_uso_alias((s32 *)0x278), var_s2 = temp_v0, (temp_v0 != 0))) {
         var_s1 = var_s2;
-        if ((var_s2 != 0) || (temp_v0_2 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)0xB4), var_s1 = temp_v0_2, (temp_v0_2 != 0))) {
-            ((GP_0000B8D4)game_uso_func_00000000)(var_s1, (s32 *)0xD70);
+        if ((var_s2 != 0) || (temp_v0_2 = game_uso_alias((s32 *)0xB4), var_s1 = temp_v0_2, (temp_v0_2 != 0))) {
+            game_uso_alias(var_s1, (s32 *)0xD70);
             FW(var_s1, 0x28) = 0;
             var_v1 = var_s1 + 0x2C;
-            if (((var_s1 != (s32 *)-0x2C) || (temp_v0_3 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)4), var_v1 = temp_v0_3, (temp_v0_3 != 0))) && ((var_a0 = var_v1, (var_v1 != 0)) || (temp_v0_4 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)4), var_a0 = temp_v0_4, (temp_v0_4 != 0)))) {
+            if (((var_s1 != (s32 *)-0x2C) || (temp_v0_3 = game_uso_alias((s32 *)4), var_v1 = temp_v0_3, (temp_v0_3 != 0))) && ((var_a0 = var_v1, (var_v1 != 0)) || (temp_v0_4 = game_uso_alias((s32 *)4), var_a0 = temp_v0_4, (temp_v0_4 != 0)))) {
                 *var_a0 = 0;
             }
-            ((GP_0000B8D4)game_uso_func_00000000)(var_s1);
+            game_uso_alias(var_s1);
             sp60 = 0;
             sp64 = 0.0f;
             sp68 = 0.0f;
-            ((GP_0000B8D4)game_uso_func_00000000)(var_s1 + 0x30, &sp60);
+            game_uso_alias(var_s1 + 0x30, &sp60);
         }
         FW(var_s2, 0x28) = 0;
         FW(var_s2, 0x220) = arg2;
         var_s1_2 = var_s2 + 0x224;
-        if ((var_s2 != (s32 *)-0x224) || (temp_v0_5 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)0x50), var_s1_2 = temp_v0_5, (temp_v0_5 != 0))) {
+        if ((var_s2 != (s32 *)-0x224) || (temp_v0_5 = game_uso_alias((s32 *)0x50), var_s1_2 = temp_v0_5, (temp_v0_5 != 0))) {
             var_v1_2 = var_s1_2;
-            if ((var_s1_2 != 0) || (temp_v0_6 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)8), var_v1_2 = temp_v0_6, (temp_v0_6 != 0))) {
+            if ((var_s1_2 != 0) || (temp_v0_6 = game_uso_alias((s32 *)8), var_v1_2 = temp_v0_6, (temp_v0_6 != 0))) {
                 FW(var_v1_2, 0x0) = 0xD78;
                 FW(var_v1_2, 0x4) = 0;
             }
@@ -10357,8 +10358,8 @@ s32 *game_uso_func_0000B8D4(s32 *arg0, s32 arg1, s32 arg2) {
             var_s0 = var_s1_2 + 8;
             sp4C = temp_t9;
             sp34 = temp_t9;
-            if ((var_s1_2 != (s32 *)-8) || (temp_v0_7 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)0x18), var_s0 = temp_v0_7, (temp_v0_7 != 0))) {
-                ((GP_0000B8D4)game_uso_func_00000000)(var_s0, var_s1_2, sp34, 1);
+            if ((var_s1_2 != (s32 *)-8) || (temp_v0_7 = game_uso_alias((s32 *)0x18), var_s0 = temp_v0_7, (temp_v0_7 != 0))) {
+                game_uso_alias(var_s0, var_s1_2, sp34, 1);
                 FW(var_s0, 0xC) = 0x860;
                 FW(var_s0, 0x14) = 0;
                 *(f32 *)((char *)var_s0 + 0x10) = *(f32 *)0x160;
@@ -10367,8 +10368,8 @@ s32 *game_uso_func_0000B8D4(s32 *arg0, s32 arg1, s32 arg2) {
             var_s0_2 = var_s1_2 + 0x20;
             sp48 = temp_t3;
             sp34 = temp_t3;
-            if ((var_s1_2 != (s32 *)-0x20) || (temp_v0_8 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)0x18), var_s0_2 = temp_v0_8, (temp_v0_8 != 0))) {
-                ((GP_0000B8D4)game_uso_func_00000000)(var_s0_2, var_s1_2, sp34, 1);
+            if ((var_s1_2 != (s32 *)-0x20) || (temp_v0_8 = game_uso_alias((s32 *)0x18), var_s0_2 = temp_v0_8, (temp_v0_8 != 0))) {
+                game_uso_alias(var_s0_2, var_s1_2, sp34, 1);
                 FW(var_s0_2, 0xC) = 0x860;
                 FW(var_s0_2, 0x14) = 0;
                 *(f32 *)((char *)var_s0_2 + 0x10) = *(f32 *)0x164;
@@ -10377,25 +10378,25 @@ s32 *game_uso_func_0000B8D4(s32 *arg0, s32 arg1, s32 arg2) {
             var_s0_3 = var_s1_2 + 0x38;
             sp44 = temp_t7;
             sp34 = temp_t7;
-            if ((var_s1_2 != (s32 *)-0x38) || (temp_v0_9 = ((GP_0000B8D4)game_uso_func_00000000)((s32 *)0x18), var_s0_3 = temp_v0_9, (temp_v0_9 != 0))) {
-                ((GP_0000B8D4)game_uso_func_00000000)(var_s0_3, var_s1_2, sp34, 1);
+            if ((var_s1_2 != (s32 *)-0x38) || (temp_v0_9 = game_uso_alias((s32 *)0x18), var_s0_3 = temp_v0_9, (temp_v0_9 != 0))) {
+                game_uso_alias(var_s0_3, var_s1_2, sp34, 1);
                 FW(var_s0_3, 0xC) = 0x860;
                 FW(var_s0_3, 0x14) = 0;
                 FW(var_s0_3, 0x10) = 0.0f;
             }
         }
         FW(var_s2, 0xC) = 0xD98;
-        FW(var_s2, 0xB4) = ((GP_0000B8D4)game_uso_func_00000000)(0, 0);
+        FW(var_s2, 0xB4) = game_uso_alias(0, 0);
         FW(var_s2, 0x274) = 0xAU;
         var_v1_3 = 0;
         var_s0_4 = var_s2 + 0xB8;
         do {
             sp7C = var_v1_3;
-            ((GP_0000B8D4)game_uso_func_00000000)(var_s0_4);
+            game_uso_alias(var_s0_4);
             var_s0_4 += 0x24;
             var_v1_3 += 1;
         } while (var_v1_3 < (u32) FW(var_s2, 0x274));
-        ((GP_0000B8D4)game_uso_func_00000000)(var_s2, (s32 *)1, arg1);
+        game_uso_alias(var_s2, (s32 *)1, arg1);
     }
     return var_s2;
 }
@@ -11552,7 +11553,7 @@ void game_uso_func_0000D9CC(char *arg0) {
         if (FW(arg0, 0x244) < var_f0) {
             sp30 = 0;
             sp28 = 2;
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, 1, 0);
+            game_uso_alias(arg0, 1, 0);
             var_a3 = 3;
             if (FW(FW(arg0, 0xB4), 0xA1C) > 0.0f) {
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x16);
@@ -11570,7 +11571,7 @@ void game_uso_func_0000D9CC(char *arg0) {
         }
         if (FW(arg0, 0x22C) < var_f0_2) {
             sp30 = 0;
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, 4, 0);
+            game_uso_alias(arg0, 4, 0);
             temp_v1 = FW(arg0, 0xB4);
             var_a3 = 2;
             temp_f2_2 = FW(temp_v1, 0x970);
@@ -11607,7 +11608,7 @@ block_24:
             FW(temp_v0, 0xC) = 1.0f;
             sp28 = 2;
             sp34 = 4;
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, 2);
+            game_uso_alias(arg0, 2);
             var_a3 = 4;
             if (FW(FW(arg0, 0xB4), 0x3CC) < 0.0f) {
                 FW(arg0, 0x108) = 0x1002A;
@@ -11631,42 +11632,42 @@ block_24:
         if ((FW(arg0, 0x304) * FW(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 3;
             sp30 = 0;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 2);
+            game_uso_alias(var_f12, temp_f14, arg0, 2);
             var_a3 = 5;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
         } else if ((FW(arg0, 0x2EC) * FW(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 0;
             sp30 = 0;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 5);
+            game_uso_alias(var_f12, temp_f14, arg0, 5);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2D);
         } else if ((FW(arg0, 0x2D4) * FW(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 0;
             sp30 = 0;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 4);
+            game_uso_alias(var_f12, temp_f14, arg0, 4);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2C);
         } else if (FW(arg0, 0x2BC) <= var_f0_4) {
             sp28 = 4;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 3);
+            game_uso_alias(var_f12, temp_f14, arg0, 3);
             var_a3 = 5;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
         } else if (FW(arg0, 0x2A4) <= var_f0_4) {
             sp28 = 3;
             sp34 = 4;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 2);
+            game_uso_alias(var_f12, temp_f14, arg0, 2);
             var_a3 = 4;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xB);
         } else if (FW(arg0, 0x28C) <= var_f0_4) {
             sp28 = 2;
             sp34 = 3;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 1);
+            game_uso_alias(var_f12, temp_f14, arg0, 1);
             var_a3 = 3;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xA);
         } else if (FW(arg0, 0x274) <= var_f0_4) {
             sp28 = 0;
             sp30 = 0;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 1);
+            game_uso_alias(var_f12, temp_f14, arg0, 1);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2C);
         } else if (var_f0_4 <= -FW(arg0, 0x334)) {
@@ -11674,14 +11675,14 @@ block_24:
             sp2C = (char *)2;
             sp34 = 3;
             sp30 = 0;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 5);
+            game_uso_alias(var_f12, temp_f14, arg0, 5);
             var_a3 = 3;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x16);
         } else if (var_f0_4 <= -FW(arg0, 0x31C)) {
             sp28 = 0;
             sp2C = (char *)2;
             sp30 = 0;
-            ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 5);
+            game_uso_alias(var_f12, temp_f14, arg0, 5);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x14);
         } else {
@@ -11689,13 +11690,13 @@ block_24:
             if (temp_f0 <= var_f12) {
                 sp28 = 3;
                 sp34 = 2;
-                ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 2);
+                game_uso_alias(var_f12, temp_f14, arg0, 2);
                 var_a3 = 2;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x13);
             } else if (var_f12 <= -temp_f0) {
                 sp28 = 3;
                 sp34 = 2;
-                ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, arg0, 2);
+                game_uso_alias(var_f12, temp_f14, arg0, 2);
                 var_a3 = 2;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x12);
             } else if ((*(f32 *)0x1098 <= var_f2) && ((f64) temp_f14 == 1.0) && (FW(var_v1, 0x9CC) == 0)) {
@@ -11703,7 +11704,7 @@ block_24:
                 sp30 = 0;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2F);
                 sp34 = var_a3;
-                ((GP_0000D9CC)game_uso_func_00000000)(var_f12, temp_f14, FW(var_v1, 0x800), (char *)&D_00000000 + 4252, 0xA, var_a3);
+                game_uso_alias(var_f12, temp_f14, FW(var_v1, 0x800), (char *)&D_00000000 + 4252, 0xA, var_a3);
             }
         }
     }
@@ -11711,24 +11712,24 @@ block_24:
         FW(arg0, 0x108) = 0;
     }
     if (FW(arg0, 0x108) != 0) {
-        ((GP_0000D9CC)game_uso_func_00000000)(arg0, var_a3, sp2C, var_a3);
+        game_uso_alias(arg0, var_a3, sp2C, var_a3);
         FW(arg0, 0x11C) = 1.0f;
-        ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) sp28, sp2C);
+        game_uso_alias(arg0, (f32) sp28, sp2C);
         temp_v0_3 = FW(arg0, 0xB4);
         FW(temp_v0_3, 0x308) = 1.0f;
         FW(temp_v0_3, 0x2FC) = 0.0f;
         FW(temp_v0_3, 0x300) = 0.0f;
         FW(temp_v0_3, 0x304) = 0.0f;
-        ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) (sp28 == 0));
+        game_uso_alias(arg0, (f32) (sp28 == 0));
         FW(FW(arg0, 0xB4), 0x3DC) = 0;
         if (sp30 != 0) {
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) FW(arg0, 0x108), 0, 2, 1, 1);
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (char *)FW(0xE88, 0x0), (char *)FW(0xE88, 0x4), 2);
+            game_uso_alias(arg0, (f32) FW(arg0, 0x108), 0, 2, 1, 1);
+            game_uso_alias(arg0, (char *)FW(0xE88, 0x0), (char *)FW(0xE88, 0x4), 2);
         } else {
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) FW(arg0, 0x108), 0, 1, 1, 1);
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (char *)FW(0xE90, 0x0), (char *)FW(0xE90, 0x4), 1);
+            game_uso_alias(arg0, (f32) FW(arg0, 0x108), 0, 1, 1, 1);
+            game_uso_alias(arg0, (char *)FW(0xE90, 0x0), (char *)FW(0xE90, 0x4), 1);
         }
-        ((GP_0000D9CC)game_uso_func_00000000)(arg0);
+        game_uso_alias(arg0);
         FW(arg0, 0x114) = 0;
     }
     if (FW(FW(arg0, 0xB4), 0xA14) <= 0) {
@@ -11737,11 +11738,11 @@ block_24:
         if (temp_v0_4 != 0) {
             temp_a1 = (temp_v0_4 & 0xFFFF) | 0x60000;
             FW(arg0, 0x108) = temp_a1;
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (f32) temp_a1, 0, 1, 1, 1);
-            ((GP_0000D9CC)game_uso_func_00000000)(arg0, (char *)FW(0xDC8, 0x0), (char *)FW(0xDC8, 0x4), 1);
+            game_uso_alias(arg0, (f32) temp_a1, 0, 1, 1, 1);
+            game_uso_alias(arg0, (char *)FW(0xDC8, 0x0), (char *)FW(0xDC8, 0x4), 1);
         }
         FW(FW(arg0, 0xB4), 0x960) = 0x64;
-        ((GP_0000D9CC)game_uso_func_00000000)(arg0);
+        game_uso_alias(arg0);
     }
 }
 #else
