@@ -34,7 +34,7 @@ void func_800048E8(char *arg0, s32 arg1) {
 
     if (arg1 != 0) {
         do {
-            chunkSize = (arg1 < 3) ? arg1 : 3;
+            chunkSize = ((u32)arg1 < 3) ? arg1 : 3;
             func_80004C08(arg0 + offset, chunkSize);
             arg1 -= chunkSize;
             offset += chunkSize;
