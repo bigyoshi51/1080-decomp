@@ -1535,7 +1535,43 @@ float func_8000149C(void) {
     return 0.0f;
 }
 
+#ifdef NON_MATCHING
+/* USO loader main loop: walk the pending-request list (D_8000A2E0, 0x14-byte
+ * entries); for each, iterate its USO records (func_80000880 fills a record
+ * buffer, func_80000A98 advances + yields the next), and for each valid slot
+ * index (sp44 >= 0) read the USO body into D_800130A0[idx] (0x9C-stride slot)
+ * via func_800005DC and stamp slot->unk94 from the record. */
+void func_800014A8(void) {
+    extern s32 func_800005DC();
+    u8 sp70[0x28];
+    u8 sp4C[0x24];
+    u8 sp40[0xC];
+    s32 *var_s6;
+    s32 temp_t9;
+    UsoSlot *temp_s0;
+
+    var_s6 = (s32 *) D_8000A2E0;
+    if (*var_s6 != 0) {
+        do {
+            func_80000880(sp70, var_s6);
+            if (func_80000A98(sp70, sp40) != 0) {
+                do {
+                    if (*(s32 *)(sp40 + 4) >= 0) {
+                        temp_s0 = &D_800130A0 + *(s32 *)(sp40 + 4);
+                        func_800005DC((char *) temp_s0 + 0x72, sp4C);
+                        *(s32 *)((char *) temp_s0 + 0x94) = *(s32 *)(sp70 + 4);
+                    }
+                    func_80000B34(sp70);
+                } while (func_80000A98(sp70, sp40) != 0);
+            }
+            temp_t9 = *(s32 *)((char *) var_s6 + 0x14);
+            var_s6 = (s32 *)((char *) var_s6 + 0x14);
+        } while (temp_t9 != 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800014A8);
+#endif
 
 
 
