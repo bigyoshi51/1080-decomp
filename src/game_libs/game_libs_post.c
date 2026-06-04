@@ -6715,7 +6715,7 @@ int gl_func_00023E60(int a0, int a1, int sz, int a3) {
     int s2 = a0;
     int s1 = a1;
     gl_func_00000000(a1, s0);
-    while (s0 >= 0x400) {
+    while ((u32)s0 >= 0x400) {
         gl_func_00038604(s6, 1, 0, s2, s1, 0x400, s3, a3, s4);
         gl_func_00000000(s3, 0, 1);
         s0 -= 0x400;
@@ -7577,7 +7577,7 @@ void *gl_func_00024F30(int a0, int a1, int a2, int a3, int arg5, int arg6, int a
     } else {
         int v = ((a2 / a0) + 255) & ~0xFF;
         *(int *)(s + 0x14) = v;
-        if (v < 256) {
+        if ((u32)v < 256U) {
             *(int *)(s + 0x14) = 256;
         }
     }
