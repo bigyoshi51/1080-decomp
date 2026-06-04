@@ -522,7 +522,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80007564);
 #ifndef FW
 #define FW(p, o) (*(s32 *)((char *)(p) + (o)))
 #endif
-#define HW(p, o) (*(s16 *)((char *)(p) + (o)))
+#define HW(p, o) (*(u16 *)((char *)(p) + (o)))
 extern u8 __rmonRcpAtBreak;
 /* rmon thread/RCP register-query setup. Populate the reply context arg2 for
  * thread arg1: mode arg0==1 = RCP (SP IMEM window 0x04001000, read the RCP
@@ -534,7 +534,6 @@ s32 func_80007698(s32 arg0, s32 arg1, void *arg2) {
     extern s32 func_80008430();
     s32 sp1C;
     void *sp18;
-    s32 temp_t9;
     u16 temp_t0;
 
     FW(arg2, 0x14) = arg1;
@@ -543,7 +542,7 @@ s32 func_80007698(s32 arg0, s32 arg1, void *arg2) {
     } else {
         FW(arg2, 0x18) = 0x3EA;
     }
-    FW(arg2, 0x10) = 1;
+    HW(arg2, 0x10) = 1;
     HW(arg2, 0x12) = 0;
     HW(arg2, 0x24) = 0;
     HW(arg2, 0x26) = 0;
@@ -563,7 +562,7 @@ s32 func_80007698(s32 arg0, s32 arg1, void *arg2) {
                 sp1C = 0xD;
             }
             if (__rmonRcpAtBreak != 0) {
-                FW(arg2, 0x10) = 2;
+                HW(arg2, 0x10) = 2;
                 HW(arg2, 0x24) = 2;
                 HW(arg2, 0x26) = 4;
             }
@@ -592,19 +591,18 @@ loop_12:
         FW(arg2, 0xC) = 1;
     }
     FW(arg2, 0x20) = FW(sp18, 0x11C);
-    temp_t9 = *(s32 *) FW(sp18, 0x11C);
-    sp1C = temp_t9;
-    if ((temp_t9 & 0xFC00003F) == 0xD) {
+    sp1C = *(s32 *) FW(sp18, 0x11C);
+    if ((sp1C & 0xFC00003F) == 0xD) {
         sp1C = 0xD;
     }
     FW(arg2, 0x1C) = sp1C;
     FW(arg2, 0x2C) = (s32) sp18;
     if (HW(sp18, 0x12) & 1) {
-        FW(arg2, 0x10) = 2;
+        HW(arg2, 0x10) = 2;
         HW(arg2, 0x24) = 2;
         HW(arg2, 0x26) = 4;
     } else if (HW(sp18, 0x12) & 2) {
-        FW(arg2, 0x10) = 2;
+        HW(arg2, 0x10) = 2;
         HW(arg2, 0x24) = 1;
         HW(arg2, 0x26) = 2;
     }
