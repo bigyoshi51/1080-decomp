@@ -1,5 +1,5 @@
 
-nonmatching func_80001ADC, 0x214
+nonmatching func_80001ADC, 0x218
 
 glabel func_80001ADC
     /* 2ADC 80001ADC 27BDFFB0 */  addiu      $sp, $sp, -0x50
@@ -146,4 +146,5 @@ glabel func_80001ADC
     /* 2CE4 80001CE4 8FB2001C */  lw         $s2, 0x1C($sp)
     /* 2CE8 80001CE8 8FB30020 */  lw         $s3, 0x20($sp)
     /* 2CEC 80001CEC 03E00008 */  jr         $ra
+    /* 2CF0 80001CF0 27BD0050 */  addiu      $sp, $sp, 0x50
 endlabel func_80001ADC

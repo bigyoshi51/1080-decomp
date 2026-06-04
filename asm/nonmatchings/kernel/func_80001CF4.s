@@ -1,8 +1,7 @@
 
-nonmatching func_80001CF4, 0xE0
+nonmatching func_80001CF4, 0xDC
 
 glabel func_80001CF4
-    /* 2CF0 80001CF0 27BD0050 */  addiu      $sp, $sp, 0x50
     /* 2CF4 80001CF4 27BDFFE0 */  addiu      $sp, $sp, -0x20
     /* 2CF8 80001CF8 AFBF001C */  sw         $ra, 0x1C($sp)
     /* 2CFC 80001CFC AFB10018 */  sw         $s1, 0x18($sp)

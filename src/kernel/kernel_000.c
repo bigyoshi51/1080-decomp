@@ -1715,7 +1715,44 @@ s32 func_80001CF4(char *s) {
     return 0;
 }
 #else
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+/* Three-stage sub-object finalize/validate: for each non-NULL sub-object
+ * (unk54/unk50/unk4C) run func_80001EDC(self, sub, paramA, paramB) + the
+ * func_80000518(sub, paramC) cleanup; bail with -0xE/-0xF/-0x10 if the stage
+ * fails. (Unblocked by the func_80001ADC/CF4 splat-boundary delay-slot fix.) */
+s32 func_80001CF4(void *arg0) {
+    extern s32 func_80001EDC();
+    s32 temp_s1;
+
+    if (FW(arg0, 0x54) != 0) {
+        temp_s1 = func_80001EDC(arg0, FW(arg0, 0x54), FW(arg0, 0x48), FW(arg0, 0x10));
+        func_80000518(FW(arg0, 0x54), FW(arg0, 0x1C));
+        if (temp_s1 != 0) {
+            return -0xE;
+        }
+    }
+    if (FW(arg0, 0x50) != 0) {
+        temp_s1 = func_80001EDC(arg0, FW(arg0, 0x50), FW(arg0, 0x44), FW(arg0, 0xC));
+        func_80000518(FW(arg0, 0x50), FW(arg0, 0x18));
+        if (temp_s1 != 0) {
+            return -0xF;
+        }
+    }
+    if (FW(arg0, 0x4C) != 0) {
+        temp_s1 = func_80001EDC(arg0, FW(arg0, 0x4C), FW(arg0, 0x40), FW(arg0, 0x8));
+        func_80000518(FW(arg0, 0x4C), FW(arg0, 0x14));
+        if (temp_s1 != 0) {
+            return -0x10;
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001CF4);
+#endif
 #endif
 
 /* func_80001DD0 - verified structural decode (kernel, 0xF8, 62
