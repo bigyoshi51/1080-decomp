@@ -244,9 +244,9 @@ char *gl_func_000007BC(char *arg0) {
     char *var_v1;
 
     var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = ((GP_000007BC)gl_func_00000000)((char *)0x68), var_s0 = temp_v0, (temp_v0 != 0))) {
+    if ((arg0 != 0) || (temp_v0 = (char*)func_00000000((char *)0x68), var_s0 = temp_v0, (temp_v0 != 0))) {
         var_v1 = var_s0;
-        if ((var_s0 != 0) || (temp_v0_2 = ((GP_000007BC)gl_func_00000000)((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+        if ((var_s0 != 0) || (temp_v0_2 = (char*)func_00000000((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
             FW(var_v1, 0x0) = 0xCB60;
             FW(var_v1, 0x4) = 0;
         }
@@ -254,9 +254,9 @@ char *gl_func_000007BC(char *arg0) {
         var_a0 = var_s0 + 8;
         sp44 = temp_t7;
         sp24 = temp_t7;
-        if ((var_s0 != (char *)-8) || (temp_v0_3 = ((GP_000007BC)gl_func_00000000)((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+        if ((var_s0 != (char *)-8) || (temp_v0_3 = (char*)func_00000000((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
             sp28 = var_a0;
-            ((GP_000007BC)gl_func_00000000)(var_a0, var_s0, sp24, 1);
+            (char*)func_00000000(var_a0, var_s0, sp24, 1);
             FW(var_a0, 0x10) = 0x1E;
             FW(var_a0, 0xC) = 0xC764;
             FW(var_a0, 0x14) = 0;
@@ -265,9 +265,9 @@ char *gl_func_000007BC(char *arg0) {
         var_a0_2 = var_s0 + 0x20;
         sp40 = temp_t2;
         sp24 = temp_t2;
-        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = ((GP_000007BC)gl_func_00000000)((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
+        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = (char*)func_00000000((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
             sp28 = var_a0_2;
-            ((GP_000007BC)gl_func_00000000)(var_a0_2, var_s0, sp24, 1);
+            (char*)func_00000000(var_a0_2, var_s0, sp24, 1);
             FW(var_a0_2, 0x10) = 0x1E;
             FW(var_a0_2, 0xC) = 0xC764;
             FW(var_a0_2, 0x14) = 0;
@@ -276,9 +276,9 @@ char *gl_func_000007BC(char *arg0) {
         var_a0_3 = var_s0 + 0x38;
         sp3C = temp_t7_2;
         sp24 = temp_t7_2;
-        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = ((GP_000007BC)gl_func_00000000)((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
+        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = (char*)func_00000000((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
             sp28 = var_a0_3;
-            ((GP_000007BC)gl_func_00000000)(var_a0_3, var_s0, sp24, 1);
+            (char*)func_00000000(var_a0_3, var_s0, sp24, 1);
             FW(var_a0_3, 0x10) = 4;
             FW(var_a0_3, 0xC) = 0xC764;
             FW(var_a0_3, 0x14) = 0;
@@ -287,9 +287,9 @@ char *gl_func_000007BC(char *arg0) {
         var_a0_4 = var_s0 + 0x50;
         sp38 = temp_t2_2;
         sp24 = temp_t2_2;
-        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = ((GP_000007BC)gl_func_00000000)((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
+        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = (char*)func_00000000((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
             sp28 = var_a0_4;
-            ((GP_000007BC)gl_func_00000000)(var_a0_4, var_s0, sp24, 1);
+            (char*)func_00000000(var_a0_4, var_s0, sp24, 1);
             FW(var_a0_4, 0x10) = -2;
             FW(var_a0_4, 0xC) = 0xC764;
             FW(var_a0_4, 0x14) = 0;
