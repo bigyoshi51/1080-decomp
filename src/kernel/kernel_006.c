@@ -46,7 +46,69 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80005350);
  * init + interrupt bracket + ~8 callees + many &D global stores.
  * Full body INCLUDE_ASM-preserved (.s = source of truth).
  * INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+extern void func_800051E0(s32, s32 *, s32);
+extern void func_800053D0(s32 *, s32 *, s32);
+extern void func_80005C00(void);
+extern s32 func_800064F0(s32);
+extern void func_80006510(s32, s32);
+extern s32 func_800066B0(void);
+extern void func_800066D0(s32);
+extern void func_80005F10(void *, s32, void *, void *, void *, s32);
+extern void func_8000A110(void *);
+extern s32 D_8000A450, D_8000A454, D_8000A458, D_8000A45C, D_8000A460, D_8000A464, D_8000A468;
+extern s32 D_80006060, D_80005AEC;
+extern void func_80004A50();
+extern void func_800056F0();
+extern s32 pimgr_bss_0000, pimgr_bss_01B0, pimgr_bss_11B0, pimgr_bss_1360, pimgr_bss_17A0, pimgr_bss_17B8;
+/* PI manager init (one-shot, gated on D_8000A450). Register the two DMA message
+ * queues (func_800053D0), enable access if needed (func_80005C00), create the PI
+ * thread (func_800051E0, stack-filled 0x22222222), tune priority
+ * (func_800064F0/func_80006510), then populate the manager state block
+ * (D_8000A450 flag + the queue/handler pointers at +4..+0x18) and spin up the two
+ * device workers (func_80005F10 + func_8000A110). func_80005584 is a mid-block
+ * alt-entry (the PI word-streamer), reached via undefined_syms. */
+void func_80005520(s32 arg0, s32 *arg1, s32 *arg2, s32 arg3) {
+    s32 sp2C;
+    s32 sp28;
+    s32 sp24;
+    s32 temp_v0;
+
+    if (D_8000A450 == 0) {
+        func_800053D0(arg1, arg2, arg3);
+        func_800053D0(&pimgr_bss_17A0, &pimgr_bss_17B8, 1);
+        if (D_8000A480 == 0) {
+            func_80005C00();
+        }
+        func_800051E0(8, &pimgr_bss_17A0, 0x22222222);
+        sp28 = -1;
+        sp24 = func_800064F0(0);
+        if (sp24 < arg0) {
+            sp28 = sp24;
+            func_80006510(0, arg0);
+        }
+        temp_v0 = func_800066B0();
+        D_8000A450 = 1;
+        D_8000A454 = (s32) &pimgr_bss_0000;
+        D_8000A45C = (s32) &pimgr_bss_17A0;
+        D_8000A458 = (s32) arg1;
+        sp2C = temp_v0;
+        D_8000A460 = (s32) &__osPiAccessQueue;
+        D_8000A464 = (s32) &func_80004A50;
+        D_8000A468 = (s32) &func_800056F0;
+        func_80005F10(&pimgr_bss_0000, 0, &D_80006060, &D_8000A450, (char *) &pimgr_bss_01B0 + 0x1000, arg0);
+        func_8000A110(&pimgr_bss_0000);
+        func_80005F10(&pimgr_bss_11B0, 0, &D_80005AEC, NULL, (char *) &pimgr_bss_1360 + 0x400, arg0 - 1);
+        func_8000A110(&pimgr_bss_11B0);
+        func_800066D0(sp2C);
+        if (sp28 != -1) {
+            func_80006510(0, sp28);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005520);
+#endif
 
 
 
