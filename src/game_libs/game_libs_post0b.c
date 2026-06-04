@@ -14644,13 +14644,12 @@ void gl_func_00047F9C(char *arg0) {
     char *var_v0;
     char *var_v0_2;
 
-    temp_t6 = FW(arg0, 0x18C);
+    sp6C = FW(arg0, 0x18C);
     var_v0 = 0;
-    sp6C = temp_t6;
-    sp68 = temp_t6;
-    if (temp_t6 != 0) {
-        sp6C = FW(temp_t6, 0x4);
-        var_v0 = FW(temp_t6, 0x0);
+    sp68 = sp6C;
+    if (sp6C != 0) {
+        var_v0 = FW(sp6C, 0x0);
+        sp6C = FW(sp6C, 0x4);
     }
     var_s0 = var_v0;
     if (var_v0 != 0) {
@@ -14674,11 +14673,10 @@ void gl_func_00047F9C(char *arg0) {
             (*(f32*)((char*)var_s0 + 0xEC)) = sp3C.unk8;
             FW(var_s0, 0x104) = (s32) FW(var_s0, 0x12C);
             FW(var_s0, 0x108) = (s32) FW(var_s0, 0x130);
-            temp_t5 = sp6C;
-            sp68 = temp_t5;
-            if (temp_t5 != 0) {
-                sp6C = FW(temp_t5, 0x4);
-                var_v0_2 = FW(temp_t5, 0x0);
+            sp68 = sp6C;
+            if (sp6C != 0) {
+                var_v0_2 = FW(sp6C, 0x0);
+                sp6C = FW(sp6C, 0x4);
             }
             var_s0 = var_v0_2;
         } while (var_v0_2 != 0);
