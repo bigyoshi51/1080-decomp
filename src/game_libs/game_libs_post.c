@@ -16556,7 +16556,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
 //     int *sp = (int*)c->cur_4;
 //     c->cur_4 = (int)(sp + 1);               // advance cursor +4
 //     int idx = *sp;                          // stream param
-//     if (idx < 0x28) {                        // range guard (<40)
+//     if ((u32)idx < 0x28) {                        // range guard (<40)
 //       callback((void*)0x0001E194, idx);     // jal 0 (USO cb)
 //       o->p_F4 = D_0_table[idx];              // &D_0 + idx*4
 //     } else {
@@ -16593,7 +16593,7 @@ void gl_func_000332B4(char *o, char *c) {
     sp = *(int **)(c + 4);
     *(int **)(c + 4) = sp + 1;
     idx = *sp;
-    if (idx < 0x28) {
+    if ((u32)idx < 0x28) {
         gl_func_00000000((void *)0x0001E194, idx);
         *(int *)(o + 0xF4) = *(int *)((char *)&D_00000000 + idx * 4);
     } else {
