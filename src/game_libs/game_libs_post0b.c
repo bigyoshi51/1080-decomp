@@ -5408,27 +5408,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003AC5C);
  *   a0->[0x84] = a1;                            // store input arg2
  *   a0->[0x2C] = gl_func_00000000(a1->[0x44] * 12);  // alloc count*12 array
  *
- * LOOP BODY (insns 22-65 @ 0x3AED4-0x3AF80): iterates a1->[0x44] times.
- * Per iter: FPU mul/sub patterns at 0x3AF1C-0x3AF6C (three lh + cvt.s.w +
- * mul.s + swc1 unrolled lanes — short->float scaling for a vec3?),
- * reading from a0->[0x68] sub-array indexed by [0x60]+i. Per-iter
- * gl_func call with (a0->[0x84], a0->[0x2C]+i*0xC).
- *
- * EXIT: trailing gl_func_00000000() call (no args), then standard
- * epilogue. Returns s3 (constructed/passed ptr). */
+ * 2026-06-04 FULL RECONSTRUCT via Ghidra 11% -> 81.9% (+71pp): loop body
+ * reads a1->0x44 entries, each indexed via the optional a1->0x4c table
+ * (if !=0) into a1->0x68, reads a short index at ent+2, uses it to fetch a
+ * Vec3 of shorts from a1->0x60 (stride 6), converts to float (fx/fy/fz),
+ * and emits per-iter gl_func(a0->0x2c+off, &fx, (a0->0x84)->0x54+off, i).
+ * Tail no-arg gl_func call. Residual ~18%: frame -0x70 vs -0x50 (extra
+ * spill) + loop $t-reg renumbering — regalloc-tier. */
 extern int gl_func_00000000();
 extern char gl_data_0001EE5C, gl_data_0001EE70;
 int *gl_func_0003AE58(int *a0, int *a1) {
-    if (a0 == 0) {
-        a0 = (int*)gl_func_00000000(0x90);
-        if (a0 == 0) return 0;
+    unsigned int i;
+    int off;
+    int tbl;
+    int ent;
+    short *v;
+    float fx, fy, fz;
+    if (a0 != 0 || (a0 = (int*)gl_func_00000000(0x90), a0 != 0)) {
+        gl_func_00000000(a0, &gl_data_0001EE5C);
+        gl_func_00000000(&gl_data_0001EE70, 0);
+        *(int*)((char*)a0 + 0x84) = (int)a1;
+        *(int*)((char*)a0 + 0x2C) = gl_func_00000000(*(int*)((char*)a1 + 0x44) * 0xC);
+        i = 0;
+        off = 0;
+        if (*(int*)((char*)a1 + 0x44) != 0) {
+            tbl = *(int*)((char*)a1 + 0x4C);
+            while (1) {
+                if (tbl != 0) {
+                    ent = *(int*)((char*)a1 + 0x68) + *(short*)(tbl + i * 2) * 8;
+                } else {
+                    ent = *(int*)((char*)a1 + 0x68) + i * 8;
+                }
+                v = (short*)(*(int*)((char*)a1 + 0x60) + (unsigned int)*(unsigned short*)(ent + 2) * 6);
+                fx = (float)(int)v[0];
+                fy = (float)(int)v[1];
+                fz = (float)(int)v[2];
+                gl_func_00000000(*(int*)((char*)a0 + 0x2C) + off, &fx,
+                                 *(int*)(*(int*)((char*)a0 + 0x84) + 0x54) + off, i);
+                i = i + 1;
+                off = off + 0xC;
+                if (*(unsigned int*)((char*)a1 + 0x44) <= i) break;
+                tbl = *(int*)((char*)a1 + 0x4C);
+            }
+        }
+        gl_func_00000000();
     }
-    gl_func_00000000(a0, &gl_data_0001EE5C);
-    gl_func_00000000(&gl_data_0001EE70, 0);
-    *(int*)((char*)a0 + 0x84) = (int)a1;
-    *(int*)((char*)a0 + 0x2C) = gl_func_00000000(*(int*)((char*)a1 + 0x44) * 12);
-    /* loop body (43 insns @ 0x3AED4-0x3AF80) + tail (30 insns) TBD —
-     * inner FPU lane unroll + per-iter gl_func calls */
     return a0;
 }
 #else
