@@ -8048,11 +8048,11 @@ block_21:
                     if (temp_v1_3 == 1) {
                         gl_func_0001CA10(FW(temp_s0, 0x4), var_s2, temp_v0_3 & 0xFFFFFF, (s8) FW((*(s32 *)0x2024), 0x2));
                         FW(temp_s0, 0x4) = var_s2;
-                        FW(temp_s0, 0x0) = (s8) ((u8) FW(temp_s0, 0x0) & 0xFFF3);
+                        *(u8*)((char*)temp_s0 + 0x0) = (s8) ((u8) *(u8*)((char*)temp_s0 + 0x0) & 0xFFF3);
                     } else {
                         gl_func_0001CA10(FW(temp_s0, 0x4), var_s2, temp_v0_3 & 0xFFFFFF, (s8) temp_v1_3);
                         FW(temp_s0, 0x4) = var_s2;
-                        FW(temp_s0, 0x0) = (s8) ((u8) FW(temp_s0, 0x0) & 0xFFF3);
+                        *(u8*)((char*)temp_s0 + 0x0) = (s8) ((u8) *(u8*)((char*)temp_s0 + 0x0) & 0xFFF3);
                     }
                     break;
                 case 1:                             /* switch 2 */
@@ -11154,7 +11154,7 @@ char *gl_func_000291C0(char *arg0, char *arg2) {
         return var_a2;
     }
 block_33:
-    FW(arg0, 0x0) = (u8) (FW(arg0, 0x0) | 8);
+    *(u8*)((char*)arg0 + 0x0) = (u8) (*(u8*)((char*)arg0 + 0x0) | 8);
     return 0;
 }
 #else
