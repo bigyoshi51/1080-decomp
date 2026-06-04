@@ -333,16 +333,18 @@ extern void func_80006AEC(void *dst, void *src, int n);
 extern void func_80005584(int word);
 extern void func_80008FB0(void *src, void *dst);
 extern void func_80005534(void);
+/* rmon word-streamer: write len bytes (word at a time) via func_80005584,
+ * routing SP-range addresses through func_80008FB0. 2026-06-04 (49.6->84.0%,
+ * -O1): two structural fixes — (1) the aligned path must be the if-BODY
+ * (`if (!(addr&3))`) so IDO inlines it and emits `bnez addr&3 -> unaligned`
+ * matching the target's arm order (+24pp); (2) the SP-range test needs BOTH
+ * bounds `0x04000000 <= addr < 0x05000000` (the upper `lui 0x500; sltu` is
+ * real). Residual ~16% is the -O1 frame-size (8 bytes smaller than target =
+ * a spill the target keeps) + loop-counter RA. */
 void func_800070A0(char *addr, int len) {
     unsigned int n = ((unsigned int)len + 3) >> 2;
     int tmp;
-    if ((unsigned int)addr & 3) {
-        while (n--) {
-            func_80006AEC(&tmp, addr, 4);
-            func_80005584(tmp);
-            addr += 4;
-        }
-    } else {
+    if (!((unsigned int)addr & 3)) {
         while (n--) {
             if ((unsigned int)addr >= 0x04000000U && (unsigned int)addr < 0x05000000U) {
                 func_80008FB0(addr, &tmp);
@@ -350,6 +352,12 @@ void func_800070A0(char *addr, int len) {
             } else {
                 func_80005584(*(int*)addr);
             }
+            addr += 4;
+        }
+    } else {
+        while (n--) {
+            func_80006AEC(&tmp, addr, 4);
+            func_80005584(tmp);
             addr += 4;
         }
     }
