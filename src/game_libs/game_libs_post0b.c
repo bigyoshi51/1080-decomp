@@ -14506,7 +14506,68 @@ int gl_func_00047DD8(int *a0, int a1) {
 // 0x10 (4-float) stride, the mul.s/add.s MAC structure and the sp+0x40
 // result scratch are exact. Caps: source/weight layout + a0 struct untyped.
 // Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00047E00)();
+void gl_func_00047E00(char *arg0, char *arg1) {
+    f32 *sp80;
+    f32 sp40;
+    f32 *temp_t2;
+    f32 *temp_v0;
+    f32 *temp_v1;
+    f32 *var_t0;
+    f32 *var_v0;
+    f32 *var_v1;
+    f32 temp_f12;
+    f32 temp_f14;
+    f32 var_f16;
+    f32 var_f18;
+    s32 var_a0;
+    char *var_a2;
+
+    temp_t2 = FW(arg0, 0xE0);
+    var_t0 = &sp40;
+    var_a2 = arg1;
+    sp80 = temp_t2;
+    do {
+        var_v0 = var_t0;
+        var_v1 = temp_t2;
+        *var_v0 = 0.0f;
+        var_a0 = 4;
+        var_f16 = *var_v0;
+        var_f18 = (*(f32*)((char*)var_a2 + 0x0)) * *var_v1;
+        if (4 != 0x10) {
+            do {
+                var_a0 += 4;
+                var_v0 += 4;
+                var_v1 += 4;
+                var_v0[-1] = (f32) (var_f16 + var_f18);
+                var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a2 + 0x4)) * (*(f32*)((char*)var_v1 + 0xC))));
+                var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a2 + 0x8)) * (*(f32*)((char*)var_v1 + 0x1C))));
+                var_v0[0] = 0.0f;
+                var_f16 = var_v0[0];
+                var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a2 + 0xC)) * (*(f32*)((char*)var_v1 + 0x2C))));
+                var_f18 = (*(f32*)((char*)var_a2 + 0x0)) * (*(f32*)((char*)var_v1 + 0x0));
+            } while (var_a0 != 0x10);
+        }
+        temp_v0 = var_v0 + 4;
+        temp_v1 = var_v1 + 4;
+        temp_v0[-1] = (f32) (var_f16 + var_f18);
+        temp_v0[-1] = (f32) (temp_v0[-1] + ((*(f32*)((char*)var_a2 + 0x4)) * (*(f32*)((char*)temp_v1 + 0xC))));
+        temp_v0[-1] = (f32) (temp_v0[-1] + ((*(f32*)((char*)var_a2 + 0x8)) * (*(f32*)((char*)temp_v1 + 0x1C))));
+        temp_f12 = temp_v0[-1];
+        temp_f14 = temp_f12 + ((*(f32*)((char*)var_a2 + 0xC)) * (*(f32*)((char*)temp_v1 + 0x2C)));
+        temp_v0[-1] = temp_f14;
+        var_t0 += 0x10;
+        var_a2 += 0x10;
+    } while ((int)var_t0 != (int)&sp80);
+    gl_func_00034458(temp_f12, temp_f14, &sp40, sp80, var_a2, 0x10);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00047E00);
+#endif
 
 /* gl_func_00047F48: 8-insn tail-call wrapper.
  *   Loads *(int*)(a0 + 0xE0) and tail-calls a cross-segment function with
