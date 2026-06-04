@@ -6709,16 +6709,12 @@ int timproc_uso_b5_func_0000A95C(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A95C);
 #endif
 
-#ifdef NON_MATCHING
-/* 72.21 -> 98.75 (2026-05-31). 23-insn loop. Template family with A9EC/D06C/D0DC
- * (same shape, different fn-table offsets). KEY DECODE FIX: the per-iteration read
- * is through the incrementing CURSOR `p` (`*(int**)(p + 0x40)`), NOT a fixed
- * `a0 + 0x40` — the cursor `p += 4` is NOT dead (the old comment's "unused $s1
- * pointer" was wrong); it's the read base, so each iter reads a different slot.
- * Reading via `p` makes the cursor live (gets a saved reg, frame -40 w/ s2) and
- * the loop matches. Also init `i=0; p=a0;` (i before p) to assign i->s0/p->s1.
- * Residual: the v0/v1 caller-save swap (target preloads the cursor-read into v1
- * via the branch-likely delay slot; IDO-emit uses v0) — a register-renumber cap. */
+/* timproc_uso_b5_func_0000A97C: 23-insn loop calling slot->0x28->0x4C(short@0x48)
+ * per element via the incrementing cursor `p`. MATCHED 2026-06-04 via
+ * decomp-permuter (base 35 -> 0): wrapping the inner block in `if (1) { }` adds
+ * a basic-block boundary that flips the v0/v1 caller-save allocation to the
+ * target's (the cursor-read lands in v1, not v0). The prior "register-renumber
+ * cap / branch-likely not reachable from C" comment was a misdiagnosis. */
 void timproc_uso_b5_func_0000A97C(char *a0) {
     int i;
     char *p;
@@ -6730,23 +6726,19 @@ void timproc_uso_b5_func_0000A97C(char *a0) {
     p = a0;
     do {
         v1 = *(int**)(p + 0x40);
-        v0 = *(int**)((char*)v1 + 0x28);
-        (*(int(**)())((char*)v0 + 0x4C))(*(short*)((char*)v0 + 0x48) + (int)v1);
-        i++;
+        if (1) {
+            v0 = *(int**)((char*)v1 + 0x28);
+            (*(int(**)())((char*)v0 + 0x4C))(*(short*)((char*)v0 + 0x48) + (int)v1);
+            i++;
+        }
         p += 4;
     } while (i < *(int*)(a0 + 0x3C));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A97C);
-#endif
 
-#ifdef NON_MATCHING
-/* 72.21% NM. Sibling of timproc_uso_b5_func_0000A97C — same 23-insn loop with branch-
- * likely preload of v1 in bnezl delay slot. Different offsets:
- *   A97C: fn_ptr at slot->0x28->0x4C, short_arg at slot->0x28->0x48
- *   A9EC: fn_ptr at slot->0x28->0x64, short_arg at slot->0x28->0x60
- * Same structural cap — branch-likely w/ off-loop-body delay slot preload
- * not reachable from std do-while C. */
+/* timproc_uso_b5_func_0000A9EC: sibling of A97C, offsets 0x64/0x60 instead of
+ * 0x4C/0x48. MATCHED 2026-06-04 via the same `if (1) { }` block-boundary lever
+ * (flips the v0/v1 allocation). The "structural cap — branch-likely not
+ * reachable from std do-while C" comment was a misdiagnosis. */
 void timproc_uso_b5_func_0000A9EC(char *a0) {
     int i;
     char *p;
@@ -6758,15 +6750,14 @@ void timproc_uso_b5_func_0000A9EC(char *a0) {
     p = a0;
     do {
         v1 = *(int**)(p + 0x40);
-        v0 = *(int**)((char*)v1 + 0x28);
-        (*(int(**)())((char*)v0 + 0x64))(*(short*)((char*)v0 + 0x60) + (int)v1);
-        i++;
+        if (1) {
+            v0 = *(int**)((char*)v1 + 0x28);
+            (*(int(**)())((char*)v0 + 0x64))(*(short*)((char*)v0 + 0x60) + (int)v1);
+            i++;
+        }
         p += 4;
     } while (i < *(int*)(a0 + 0x3C));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A9EC);
-#endif
 
 void timproc_uso_b5_func_0000AA5C(char *a0) {
     int tmp;
@@ -8279,9 +8270,11 @@ void timproc_uso_b5_func_0000D06C(char *a0) {
     p = a0;
     do {
         v1 = *(int**)(p + 0x3C);
-        v0 = *(int**)((char*)v1 + 0x28);
-        (*(int(**)())((char*)v0 + 0x4C))(*(short*)((char*)v0 + 0x48) + (int)v1);
-        i++;
+        if (1) {
+            v0 = *(int**)((char*)v1 + 0x28);
+            (*(int(**)())((char*)v0 + 0x4C))(*(short*)((char*)v0 + 0x48) + (int)v1);
+            i++;
+        }
         p += 4;
     } while (i < *(int*)(a0 + 0x6C));
 }
@@ -8305,9 +8298,11 @@ void timproc_uso_b5_func_0000D0DC(char *a0) {
     p = a0;
     do {
         v1 = *(int**)(p + 0x3C);
-        v0 = *(int**)((char*)v1 + 0x28);
-        (*(int(**)())((char*)v0 + 0xE4))(*(short*)((char*)v0 + 0xE0) + (int)v1);
-        i++;
+        if (1) {
+            v0 = *(int**)((char*)v1 + 0x28);
+            (*(int(**)())((char*)v0 + 0xE4))(*(short*)((char*)v0 + 0xE0) + (int)v1);
+            i++;
+        }
         p += 4;
     } while (i < *(int*)(a0 + 0x6C));
 }
