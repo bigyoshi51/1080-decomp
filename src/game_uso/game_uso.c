@@ -253,9 +253,12 @@ void game_uso_func_0000039C(Quad4 *dst) {
  * deeper stack double-copy scheduling, not the high-level field map. Default
  * build still uses INCLUDE_ASM. */
 void game_uso_func_000003F8(void *a0) {
-    /* Each Vec3 store routes through a common temp v0 (target's sp+12): each
-     * source built at a distinct stack slot, copied (int lw/sw) to v0, then
-     * copied (float lwc1/swc1) to a0+off. Interleaved build+store order. */
+    /* 2026-06-04 42.4%->61.6%: the v0->a0 store is INTEGER lw/sw, not float
+     * lwc1/swc1 (the prior comment was wrong) — `*(Vec3*)a0 = v0` emitted a
+     * float copy; `((int*)a0)[i] = ((int*)&v0)[i]` matches the target's int
+     * copy. Each Vec3 built at a distinct stack slot (single reused slot
+     * REGRESSED to 31%), copied (int) to common temp v0, then int-copied to
+     * a0+off. Residual: 0x20 frame delta + a few $t-reg/slot renumbers. */
     Vec3 zero, fwd, up, zero2;
     Vec3 v0;
 
@@ -263,24 +266,32 @@ void game_uso_func_000003F8(void *a0) {
     zero.y = 0.0f;
     zero.z = 0.0f;
     v0 = zero;
-    *(Vec3 *)((char *)a0 + 0x00) = v0;
+    ((int *)((char *)a0 + 0x00))[0] = ((int *)&v0)[0];
+    ((int *)((char *)a0 + 0x00))[1] = ((int *)&v0)[1];
+    ((int *)((char *)a0 + 0x00))[2] = ((int *)&v0)[2];
     fwd.x = 0.0f;
     fwd.y = 0.0f;
     fwd.z = -1000.0f;
     v0 = fwd;
-    *(Vec3 *)((char *)a0 + 0x0C) = v0;
+    ((int *)((char *)a0 + 0x0C))[0] = ((int *)&v0)[0];
+    ((int *)((char *)a0 + 0x0C))[1] = ((int *)&v0)[1];
+    ((int *)((char *)a0 + 0x0C))[2] = ((int *)&v0)[2];
     up.x = 0.0f;
     up.y = 1.0f;
     up.z = 0.0f;
     v0 = up;
-    *(Vec3 *)((char *)a0 + 0x18) = v0;
+    ((int *)((char *)a0 + 0x18))[0] = ((int *)&v0)[0];
+    ((int *)((char *)a0 + 0x18))[1] = ((int *)&v0)[1];
+    ((int *)((char *)a0 + 0x18))[2] = ((int *)&v0)[2];
     *(float *)((char *)a0 + 0x24) = 85.0f;
     *(int *)((char *)a0 + 0x28) = 15;
     zero2.x = 0.0f;
     zero2.y = 0.0f;
     zero2.z = 0.0f;
     v0 = zero2;
-    *(Vec3 *)((char *)a0 + 0x2C) = v0;
+    ((int *)((char *)a0 + 0x2C))[0] = ((int *)&v0)[0];
+    ((int *)((char *)a0 + 0x2C))[1] = ((int *)&v0)[1];
+    ((int *)((char *)a0 + 0x2C))[2] = ((int *)&v0)[2];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
