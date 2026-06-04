@@ -3631,36 +3631,36 @@ void timproc_uso_b5_func_00006394(char *arg0) {
                 if (FW(arg0, 0x490) & 8) {
                     temp_v0_4 = timproc_uso_b5_alias(arg0);
                     temp_v1_2 = FW(temp_v0_4, 0x28);
-                    ((GP_00006394)FW(temp_v1_2, 0xC4))(FW(temp_v1_2, 0xC0) + temp_v0_4, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
+                    ((GP_00006394)FW(temp_v1_2, 0xC4))(*(s16*)((char*)temp_v1_2 + 0xC0) + temp_v0_4, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
                 }
             } else if (temp_v0_3 == 8) {
                 temp_v0_5 = timproc_uso_b5_alias(arg0);
                 temp_v1_3 = FW(temp_v0_5, 0x28);
-                ((GP_00006394)FW(temp_v1_3, 0xC4))(FW(temp_v1_3, 0xC0) + temp_v0_5, arg0, (int)arg0 + 0x29C, (int)arg0 + 0x2C0);
+                ((GP_00006394)FW(temp_v1_3, 0xC4))(*(s16*)((char*)temp_v1_3 + 0xC0) + temp_v0_5, arg0, (int)arg0 + 0x29C, (int)arg0 + 0x2C0);
             } else {
                 temp_v0_6 = timproc_uso_b5_alias(arg0);
                 temp_v1_4 = FW(temp_v0_6, 0x28);
-                ((GP_00006394)FW(temp_v1_4, 0xC4))(FW(temp_v1_4, 0xC0) + temp_v0_6, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
+                ((GP_00006394)FW(temp_v1_4, 0xC4))(*(s16*)((char*)temp_v1_4 + 0xC0) + temp_v0_6, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
             }
             if (*(s32 *)0x34 == 2) {
                 temp_v0_7 = FW(arg0, 0x3CC);
                 if (temp_v0_7 == 4) {
                     temp_v0_8 = timproc_uso_b5_alias(arg0);
                     temp_v1_5 = FW(temp_v0_8, 0x28);
-                    ((GP_00006394)FW(temp_v1_5, 0xDC))(FW(temp_v1_5, 0xD8) + temp_v0_8, arg0, FW(arg0, 0x490));
+                    ((GP_00006394)FW(temp_v1_5, 0xDC))(*(s16*)((char*)temp_v1_5 + 0xD8) + temp_v0_8, arg0, FW(arg0, 0x490));
                 } else if (temp_v0_7 == 5) {
                     temp_v0_9 = timproc_uso_b5_alias(arg0);
                     temp_v1_6 = FW(temp_v0_9, 0x28);
-                    ((GP_00006394)FW(temp_v1_6, 0xDC))(FW(temp_v1_6, 0xD8) + temp_v0_9, arg0, 8);
+                    ((GP_00006394)FW(temp_v1_6, 0xDC))(*(s16*)((char*)temp_v1_6 + 0xD8) + temp_v0_9, arg0, 8);
                 } else {
                     temp_v0_10 = timproc_uso_b5_alias(arg0);
                     temp_v1_7 = FW(temp_v0_10, 0x28);
-                    ((GP_00006394)FW(temp_v1_7, 0xD4))(FW(temp_v1_7, 0xD0) + temp_v0_10, arg0);
+                    ((GP_00006394)FW(temp_v1_7, 0xD4))(*(s16*)((char*)temp_v1_7 + 0xD0) + temp_v0_10, arg0);
                 }
             } else {
                 temp_v0_11 = timproc_uso_b5_alias(arg0);
                 temp_v1_8 = FW(temp_v0_11, 0x28);
-                ((GP_00006394)FW(temp_v1_8, 0xD4))(FW(temp_v1_8, 0xD0) + temp_v0_11, arg0);
+                ((GP_00006394)FW(temp_v1_8, 0xD4))(*(s16*)((char*)temp_v1_8 + 0xD0) + temp_v0_11, arg0);
             }
             var_v1 = FW(FW(FW(arg0, 0x414), 0xC), 0xBC);
         }
@@ -3681,7 +3681,7 @@ void timproc_uso_b5_func_00006394(char *arg0) {
         sp24 = var_a2;
         temp_v0_13 = timproc_uso_b5_alias(arg0);
         temp_v1_10 = FW(temp_v0_13, 0x28);
-        ((GP_00006394)FW(temp_v1_10, 0xCC))(FW(temp_v1_10, 0xC8) + temp_v0_13, arg0, var_a2);
+        ((GP_00006394)FW(temp_v1_10, 0xCC))(*(s16*)((char*)temp_v1_10 + 0xC8) + temp_v0_13, arg0, var_a2);
     }
     timproc_uso_b5_alias(arg0);
 }
