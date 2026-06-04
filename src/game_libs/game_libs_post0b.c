@@ -93,7 +93,7 @@ extern void gl_func_0003D074();
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
 // prologue). A collection processor with per-element vtable dispatch.
 //
-//   void gl_func_00034458(void) {
+//   int gl_func_00034458() {
 //     R *r = *(R**)&D_0;                       // global record
 //     callback((void*)0x0001E3F4);             // jal 0 (USO cb)
 //     N *n = r->head_4;
@@ -136,7 +136,7 @@ extern void gl_func_0003D074();
 //   Name pre-checked: no extern reuse.
 extern char D_0001E3F4, D_0001E400;
 #ifdef NON_MATCHING
-void gl_func_00034458(void) {
+int gl_func_00034458() {
     char *n = *(char **)((char *)&D_00000000 + 0);
     char *r;
     int (*f)(int, int *, int *);
@@ -29022,7 +29022,63 @@ int game_libs_func_000611E4(int a0, int a1) {
     return a0;
 }
 
+#ifdef NON_MATCHING
+/* printf-style mini-formatter: walks fmt (5th arg), emitting into the buffer
+ * (arg0) via the external char-emit helper gl_func_00034458. arg2 holds the
+ * value (homed in a2, used as both float and raw int-bits). %d/%x set the
+ * mode flag at &D_00000000; %f emits integer + '.' + fractional parts;
+ * digits set precision/width; any other char emits a fixed glyph (&D+0x21E08)
+ * and advances 10. Returns the final buffer cursor. */
+char *gl_func_0006126C(char *arg0, int arg1, f32 arg2, int arg3, u8 *fmt) {
+    int *flag = &D_00000000;
+    char *out = arg0;
+    u8 *p = fmt;
+    int width = 6;
+    int prec = 6;
+    int c = *p;
+    p += 1;
+    if (c != 0) {
+        do {
+            if (c == 0x64) {
+                *flag = 0;
+                out = gl_func_00034458(out, *(int *)&arg2, 0x3B9ACA00);
+            } else if (c == 0x78) {
+                *flag = 1;
+                out = gl_func_00034458(out, *(int *)&arg2);
+            } else if (c == 0x66) {
+                int ipart = (int) arg2;
+                int r1 = gl_func_00034458(0xA, width);
+                int fracval;
+                int r2;
+                char *dot;
+                *flag = 0;
+                fracval = (int) ((f32) r1 * (arg2 - (f32) ipart));
+                r2 = gl_func_00034458(0xA, prec);
+                dot = gl_func_00034458(out, ipart, r2);
+                *dot = 0x2E;
+                out = dot + 1;
+                *flag = 1;
+                out = gl_func_00034458(out, fracval, gl_func_00034458(0xA, width - 1));
+            } else if ((c >= 0x30) && (c < 0x3A)) {
+                prec = (c - 0x30) & 0xFF;
+                if (*p != 0) {
+                    p += 1;
+                    width = *p - 0x30;
+                    p += 1;
+                }
+            } else {
+                gl_func_00034458(out, (char *)((char *)&D_00000000 + 0x21E08));
+                out += 0xA;
+            }
+            c = *p;
+            p += 1;
+        } while (c != 0);
+    }
+    return out;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006126C);
+#endif
 
 extern int gl_func_00000000();
 int gl_func_00061458() {
