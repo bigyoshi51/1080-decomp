@@ -29392,7 +29392,6 @@ int game_libs_func_0006170C(void) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061728);
 
-#ifdef NON_MATCHING
 /* gl_func_00061734: 26-insn append-to-table-with-overflow-log (size 0x74 declared,
  * actual function body 0x68; declared size bundles 3-insn trailing fragment).
  *
@@ -29424,7 +29423,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061728);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
-#else
 #ifdef NON_MATCHING
 /* gl_func_00061734: 26-insn bounds-checked array append. If a3 >= 0x3F, call the
  * (collapsed) assert with a fixed message address; read the element count from a
@@ -29434,12 +29432,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061728);
  * here, and the assert msg is a fixed RO address 0x21EB4.) NM (reference decode):
  * collapsed-placeholder assert call + collapsed D refs (raw-.word game_libs reloc
  * depression). */
-extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00061734(int a0, int a1, int a2, int a3) {
     int count;
     if (a3 >= 0x3F) {
-        gl_func_00000000(0x21EB4);
+        gl_func_00034458((char *)((char *)&D_00000000 + 0x21EB4));
     }
     count = *(int *)&D_00000000;
     *(int *)((char *)&D_00000000 + a3 * 4) = a0;
@@ -29451,7 +29448,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061734);
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006179C);
-#endif
 
 /* gl_func_000617A8: NOT a caller-set-register function — it is the CONTINUATION
  * of entry fragment game_libs_func_0006179C (0xC, 3 insns: `v0=&D; t6=*(int*)v0`,
