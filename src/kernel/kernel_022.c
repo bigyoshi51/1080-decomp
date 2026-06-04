@@ -250,7 +250,71 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008C30);
  * + func_80008ED0 + func_80008FB0 -> single 0x15C (87-insn) function.
  * func_80008EA0 is preserved as `alabel` inside the merged .s, keeping the
  * alt-entry callable from func_800071C0. ED0 and FB0 .s files deleted. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+extern void *func_800077DC(s32);
+extern void func_800073F8();
+/* rmon register-FETCH (inverse of func_80008FF4): read the live debug context's
+ * 64-bit GPRs (lo word) into a 0xA4 header's 32-bit register array, copy the 3
+ * special regs, send it (func_800073F8, len 0xA4). Returns -2 on bad sub-id /
+ * missing context. Multi-entry symbol (alabels EA0/ED0/FB0 kept by #else). */
+s32 func_80008E98(void *arg0) {
+    void *ctx;
+    s32 *src;
+    s32 i;
+    struct {
+        s32 w0;
+        u8 tag;     /* +4 */
+        u8 p5;
+        s16 zero;   /* +6 */
+        s32 w8;
+        s32 id;     /* +C */
+        s32 reg[0x22]; /* +0x10 .. +0x98 */
+        s32 sp98;
+        s32 sp9C;
+        s32 spA0;
+    } hdr;
+
+    hdr.id = FW(arg0, 0xC);
+    hdr.zero = 0;
+    hdr.tag = *(u8 *)((char *)arg0 + 4);
+    if ((*(u8 *)((char *)arg0 + 9)) == 0) {
+        ctx = func_800077DC(FW(arg0, 0xC));
+        if (ctx == NULL) {
+            return -2;
+        }
+        i = 1;
+        src = (s32 *)((char *)ctx + 0x20);
+        if (i < 0x1A) {
+            do {
+                hdr.reg[i] = src[1];
+                i += 1;
+                src += 2;
+            } while (i < 0x1A);
+        }
+        i = 0x1C;
+        src = (s32 *)((char *)ctx + 0xE8);
+        if (i < 0x22) {
+            do {
+                hdr.reg[i] = src[1];
+                i += 1;
+                src += 2;
+            } while (i < 0x22);
+        }
+        hdr.sp98 = FW(ctx, 0x120);
+        hdr.sp9C = FW(ctx, 0x11C);
+        hdr.spA0 = FW(ctx, 0x118);
+        hdr.reg[0] = 0;
+        func_800073F8(&hdr, 0xA4, 1);
+        return 0;
+    }
+    return -2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008E98);
+#endif
 
 /* func_80008FF4 absorbed the former func_80009000 + func_80009030
  * (splat mis-split: 8FF4 was prologue-only, 9000 and 9030 shared the
