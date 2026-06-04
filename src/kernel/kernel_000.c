@@ -2339,7 +2339,13 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
  * splat mis-split at 0x800047E4. Symbol kept as alt-entry via
  * undefined_syms_auto.txt for direct callers (jal func_800047E4). */
 
-/* ===== tail func_80004808..func_800049B8: branch-LIKELY-emission cap (NOT -O0) =====
+/* ===== func_80004808 / func_8000487C: branch-LIKELY-emission cap (NOT -O0) =====
+ * SCOPE CORRECTION 2026-06-04: this branch-likely cap applies ONLY to func_80004808
+ * (73%) and func_8000487C (91%), which stay HERE at -O2 (they score higher at -O2).
+ * The OTHER two tail functions func_800048E8 / func_800049B8 were a DIFFERENT class —
+ * genuinely -O1 (spill-every-local), 34/39% at -O2 vs 72/78% at -O1 — and have been
+ * moved to kernel_000_o1.c (-O1 split). The 2026-05-30 "whole tail is -O2" claim below
+ * was an over-generalization; it is correct only for 4808/487C.
  * CORRECTION 2026-05-30: an -O0 split was tried and REVERTED — it does NOT match.
  * The target is -O2-COMPACT (e.g. func_8000487C = 27 insns) but with REGULAR
  * bnez/beqz (no branch-likely). Measured (exact flags -mips2 -32 -G0 -non_shared
@@ -2356,8 +2362,8 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
  * command-line option (checked the cc binary strings). So this stays NM; the only
  * theoretical fixes are a C shape that makes the branch-target's first insn
  * non-delay-slot-fillable (so ugen falls back to regular bnez+nop) — not found despite
- * the do-while/call-in-body tries — or a ugen patch (out of scope). Applies to the whole
- * func_80004808..49B8 tail + other -O2 branch-likely near-misses (e.g. gl_func_0006AF0C). */
+ * the do-while/call-in-body tries — or a ugen patch (out of scope). Applies to func_80004808
+ * / func_8000487C + other -O2 branch-likely near-misses (e.g. gl_func_0006AF0C). */
 #ifdef NON_MATCHING
 /* 2026-06-04 (72.68->73.03%): structural cleanup. sp4 is the 4-byte packet
  * word at sp+0x4 (declare `u8 sp4[4]` BEFORE `u32 sp0` so IDO lays sp0 at
@@ -2408,103 +2414,4 @@ void func_8000487C(void) {
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000487C);
-#endif
-
-#ifdef NON_MATCHING
-/* func_800048E8: 52-insn chunked-write driver. Borrows hardware (init via
- * func_80004C7C if D_8000A490 was clear), processes arg1 bytes from arg0
- * in chunks of <=3 via func_80004C08, then conditionally re-invokes
- * func_80004C7C if D_8000A490 was already set on entry.
- *
- * Cap: target asm has -O0 hallmarks (every local in stack spill slots
- * sp+0x1C..0x2C, no $s register caching across jals). My -O2 emit
- * promotes offset/wasInit/chunkSize/arg0 to $s0-$s3 — 42 insns vs
- * target 52, ~30-40% fuzzy. Promotion path: split into a new -O0
- * sub-file (kernel_NNN.c) per the per-file OPT_FLAGS recipe (see
- * project_o1o2_split.md) — the surrounding functions func_80004808 and
- * func_8000487C also have -O0/-O2-mismatch caps in this file, so the
- * split would benefit all three.
- *
- * Logic confirmed against asm; no struct types needed (uses plain
- * char/int args + 1 D_ global). */
-extern s32 D_8000A490;
-extern void func_80004C7C(void);
-extern void func_80004C08(char *p, s32 n);
-void func_800048E8(char *arg0, s32 arg1) {
-    s32 wasInit;
-    s32 chunkSize;
-    s32 offset;
-
-    offset = 0;
-    if (D_8000A490 != 0) {
-        wasInit = 1;
-    } else {
-        func_80004C7C();
-        wasInit = 0;
-    }
-
-    if (arg1 != 0) {
-        do {
-            chunkSize = (arg1 < 3) ? arg1 : 3;
-            func_80004C08(arg0 + offset, chunkSize);
-            arg1 -= chunkSize;
-            offset += chunkSize;
-        } while (arg1 != 0);
-    }
-
-    if (wasInit != 0) {
-        func_80004C7C();
-    }
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800048E8);
-#endif
-
-#ifdef NON_MATCHING
-/* func_800049B8: 64-insn rmon/kdebugserver packet parser. Receives 24
- * bits per call (high 3 bytes of arg0); appends them to packet buffer
- * kdebugserver_bss_01B0[] at write-position D_8000A430. After append:
- *   - if buf[0] == 2: send a fixed-size packet (0x190 bytes from
- *     D_8000A420+0x20 via func_80004CE8); reset position
- *   - else if pos < 9: return (need more data)
- *   - else if buf[0] == 1: parse two u32s (BE) at buf[1] and buf[5]
- *     via func_80004BB0; pass to func_80004CE8; reset position
- *   - else: return (other tag — discard)
- *
- * Cap: -O0 hallmarks (load D_8000A430 / kdebugserver_bss_01B0 base /
- * sp+0x24 i-counter TWICE per loop iter, no register caching). My -O2
- * emit caches addresses in $a-regs and runs in 54 insns vs target 64.
- * Same -O2/-O0 mismatch class as sibling func_800048E8. Promotion:
- * file split into a -O0 sub-file. */
-extern u32 D_8000A430;
-extern u8 kdebugserver_bss_01B0[];
-extern void func_80004CE8(u32 a, u32 b);
-extern u32 func_80004BB0(u8 *p);
-void func_800049B8(u32 arg0) {
-    s32 i;
-    u32 pos;
-    u32 X, Y;
-
-    i = 0;
-    do {
-        pos = D_8000A430;
-        kdebugserver_bss_01B0[pos] = ((u8*)&arg0)[1 + i];
-        D_8000A430 = pos + 1;
-        i++;
-    } while ((u32)i < 3);
-
-    if (kdebugserver_bss_01B0[0] == 2) {
-        func_80004CE8((u32)((u8*)D_8000A420 + 0x20), 0x190);
-        D_8000A430 = 0;
-    } else if (D_8000A430 >= 9) {
-        if (kdebugserver_bss_01B0[0] == 1) {
-            X = func_80004BB0(&kdebugserver_bss_01B0[1]);
-            Y = func_80004BB0(&kdebugserver_bss_01B0[5]);
-            func_80004CE8(X, Y);
-            D_8000A430 = 0;
-        }
-    }
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800049B8);
 #endif
