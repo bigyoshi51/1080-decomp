@@ -612,7 +612,7 @@ void game_uso_func_00000940(char *arg0) {
         break;
     }
     if (var_a1 != -1) {
-        ((GP)game_uso_func_00000000)(var_a1);
+        game_uso_alias(var_a1);
     }
 }
 #else
