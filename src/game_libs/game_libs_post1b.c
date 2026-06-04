@@ -1580,6 +1580,9 @@ void gl_func_00065448(char *a0) {
 #endif
 typedef char *(*GP_00065494)();
 typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00065494;
+#ifndef FF
+#define FF(p, o) (*(f32 *)((char *)(p) + (o)))
+#endif
 void gl_func_00065494(f32 *arg0) {
     int sp104;
     int sp108;
@@ -1660,16 +1663,16 @@ void gl_func_00065494(f32 *arg0) {
             sp138 = 1.0f;
             sp13C = 0.0f;
             temp_v0 = var_s0 + 0xDC;
-            spEC.unk0 = FW(var_s0, 0xDC);
-            spEC.unk4 = (f32) FW(temp_v0, 0x4);
-            spEC.unk8 = (f32) FW(temp_v0, 0x8);
-            FW(var_s0, 0x120) = spEC.unk0;
-            FW(var_s0, 0x124) = spEC.unk4;
-            FW(var_s0, 0x128) = spEC.unk8;
-            temp_f12 = FW(temp_v0, 0x8) - FW(temp_s4, 0x8);
-            spDC.unk0 = FW(var_s0, 0xDC) - FW(arg0, 0xDC);
+            spEC.unk0 = FF(var_s0, 0xDC);
+            spEC.unk4 = FF(temp_v0, 0x4);
+            spEC.unk8 = FF(temp_v0, 0x8);
+            FF(var_s0, 0x120) = spEC.unk0;
+            FF(var_s0, 0x124) = spEC.unk4;
+            FF(var_s0, 0x128) = spEC.unk8;
+            temp_f12 = FF(temp_v0, 0x8) - FF(temp_s4, 0x8);
+            spDC.unk0 = FF(var_s0, 0xDC) - FF(arg0, 0xDC);
             spDC.unk8 = temp_f12;
-            spDC.unk4 = FW(temp_v0, 0x4) - FW(temp_s4, 0x4);
+            spDC.unk4 = FF(temp_v0, 0x4) - FF(temp_s4, 0x4);
             spEC.unk0 = spDC.unk0;
             spEC.unk4 = (f32) spDC.unk4;
             spEC.unk8 = (f32) spDC.unk8;
@@ -1681,14 +1684,14 @@ void gl_func_00065494(f32 *arg0) {
             sp128 = spBC.unk0;
             ((int(*)())gl_func_00062F64)(temp_f12, sp6C, &sp128, var_s0 + 0x114);
             temp_s1 = var_s0 + 0x120;
-            FW(var_s0, 0x114) = (f32) (FW(var_s0, 0x114) - sp128);
-            FW(var_s0, 0x118) = (f32) (FW(var_s0, 0x118) - sp12C);
-            FW(var_s0, 0x11C) = (f32) (FW(var_s0, 0x11C) - sp130);
-            FW(var_s0, 0x114) = (f32) (FW(var_s0, 0x114) + FW(arg0, 0x318));
-            FW(var_s0, 0x118) = (f32) (FW(var_s0, 0x118) + FW(arg0, 0x31C));
-            FW(var_s0, 0x11C) = (f32) (FW(var_s0, 0x11C) + FW(arg0, 0x320));
+            FF(var_s0, 0x114) = (f32) (FF(var_s0, 0x114) - sp128);
+            FF(var_s0, 0x118) = (f32) (FF(var_s0, 0x118) - sp12C);
+            FF(var_s0, 0x11C) = (f32) (FF(var_s0, 0x11C) - sp130);
+            FF(var_s0, 0x114) = (f32) (FF(var_s0, 0x114) + FF(arg0, 0x318));
+            FF(var_s0, 0x118) = (f32) (FF(var_s0, 0x118) + FF(arg0, 0x31C));
+            FF(var_s0, 0x11C) = (f32) (FF(var_s0, 0x11C) + FF(arg0, 0x320));
             if (((int(*)())gl_func_00062F64)(*(int*)0, temp_s1, (f32 *)0x43C80000, &spF8) != 0) {
-                FW(var_s0, 0x14C) = (s32) sp108;
+                FF(var_s0, 0x14C) = (s32) sp108;
                 spEC.unk0 = spF8.unk0;
                 spEC.unk4 = (f32) spF8.unk4;
                 spEC.unk8 = (f32) spF8.unk8;
@@ -1697,14 +1700,14 @@ void gl_func_00065494(f32 *arg0) {
                 sp138 = spEC.unk4;
                 sp134 = spEC.unk0;
             } else {
-                var_f20 = FW(var_s0, 0x124);
+                var_f20 = FF(var_s0, 0x124);
                 sp13C = 0.0f;
                 sp138 = 1.0f;
                 sp134 = 0.0f;
             }
             temp_v0_2 = FW(var_s0, 0x28);
-            temp_f20 = var_f20 - FW(arg0, 0x218);
-            FW(var_s0, 0x144) = temp_f20;
+            temp_f20 = var_f20 - FF(arg0, 0x218);
+            FF(var_s0, 0x144) = temp_f20;
             ((GP_00065494)FW(temp_v0_2, 0x64))(FW(temp_v0_2, 0x60) + var_s0, temp_f20, &sp134, 0x3F800000);
             if (temp_f20 < 0.0f) {
                 if (temp_f20 < var_f30) {
@@ -1716,9 +1719,9 @@ void gl_func_00065494(f32 *arg0) {
                 temp_f16 = -temp_f20;
                 sp170 += sp13C;
                 var_f28 += temp_f16;
-                sp8C.unk0 = FW(var_s0, 0x120) * temp_f16;
-                sp8C.unk4 = FW(temp_s1, 0x4) * temp_f16;
-                sp8C.unk8 = FW(temp_s1, 0x8) * temp_f16;
+                sp8C.unk0 = FF(var_s0, 0x120) * temp_f16;
+                sp8C.unk4 = FF(temp_s1, 0x4) * temp_f16;
+                sp8C.unk8 = FF(temp_s1, 0x8) * temp_f16;
                 spEC.unk0 = sp8C.unk0;
                 spEC.unk4 = (f32) sp8C.unk4;
                 spEC.unk8 = (f32) sp8C.unk8;
@@ -1728,11 +1731,11 @@ void gl_func_00065494(f32 *arg0) {
                 sp174 += spA8.unk0;
                 sp178 += spA8.unk4;
                 sp17C += spA8.unk8;
-                var_f0 = (FW(var_s0, 0x114) * sp134) + (FW(var_s0, 0x118) * sp138) + (FW(var_s0, 0x11C) * sp13C);
+                var_f0 = (FF(var_s0, 0x114) * sp134) + (FF(var_s0, 0x118) * sp138) + (FF(var_s0, 0x11C) * sp13C);
                 if (var_f0 > 0.0f) {
                     var_f0 = 0.0f;
                 }
-                temp_f14 = (temp_f16 * FW(arg0, 0x290)) + (FW(arg0, 0x28C) * -var_f0);
+                temp_f14 = (temp_f16 * FF(arg0, 0x290)) + (FF(arg0, 0x28C) * -var_f0);
                 temp_f12_2 = sp13C * temp_f14;
                 sp78.unk0 = sp134 * temp_f14;
                 sp78.unk4 = sp138 * temp_f14;
@@ -1768,7 +1771,7 @@ void gl_func_00065494(f32 *arg0) {
         sp174 /= var_f28;
         sp178 /= var_f28;
         sp17C /= var_f28;
-        temp_f0 = -var_f30 * FW(arg0, 0x288);
+        temp_f0 = -var_f30 * FF(arg0, 0x288);
         sp168 = temp_f4 * temp_f0;
         sp16C = temp_f6 * temp_f0;
         sp170 = temp_f18 * temp_f0;
