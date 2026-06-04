@@ -15,7 +15,7 @@ typedef struct { int a, b, c, d; } Quad4;
  * (base-first) instead of the arithmetic form's `addu v0, t7, a0`
  * (idx-first). Verified byte-equal at .o level (all 8 instructions). */
 typedef struct { char d[0x28]; } Row10324;
-char *func_00010324(char *a0) {
+char *func_00010324(a0) char *a0; {
     return ((Row10324*)(a0 + 0x84))[*(int*)(a0 + 0x7C)].d;
 }
 
@@ -617,7 +617,39 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010FEC);
  * multi-&D + cross-symbol-ref + the stitch. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000116C8)();
+void func_000116C8(void) {
+    s32 sp24;
+    s32 *var_s0;
+    char *temp_s0;
+    char *temp_s0_2;
+
+    func_00010324(0);
+    func_00010324(0);
+    *(int*)&D_00000000 = 0;
+    func_00010324(1);
+    func_00010324(0);
+    func_00010324(0);
+    func_00010324();
+    func_00010324(0);
+    func_00010324(0, (*(s32*)((char*)&D_00000000 + 0x2C)), (*(s32*)((char*)&D_00000000 + 0x38)));
+    temp_s0 = (*(char**)((char*)&D_00000000 + 0x28));
+    ((GP_000116C8)FW(temp_s0, 0x14))(FW(temp_s0, 0x10));
+    var_s0 = &sp24;
+    if ((var_s0 != 0) || (var_s0 = func_00010324(0xC), (var_s0 != 0))) {
+        *var_s0 = 8;
+    }
+    temp_s0_2 = (*(char**)((char*)&D_00000000 + 0x28));
+    ((GP_000116C8)FW(temp_s0_2, 0x34))(FW(temp_s0_2, 0x30), &sp24);
+    func_00010324(0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000116C8);
+#endif
 
 /* func_000117FC - verified structural decode (0xE8, 58 insns,
  * handle replace-with-validation + re-init).
