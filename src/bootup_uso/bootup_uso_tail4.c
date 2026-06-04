@@ -201,7 +201,40 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000139B0);
  * unrolled nested loop + beql branch-likely. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00013B20)();
+void func_00013B20(char *arg0) {
+    s32 sp24;
+    s32 var_i;
+    char *temp_v0;
+    char *temp_v1;
+    char *temp_v0_2;
+    s32 *palette;
+
+    temp_v1 = (*(char**)((char*)&D_00000000 + 4));
+    temp_v0 = FW(temp_v1, 0x28);
+    palette = (s32 *)((GP_00013B20)FW(temp_v0, 0x64))((*(s16*)((char*)temp_v0 + 0x60)) + temp_v1, arg0);
+    (void)sp24; (void)temp_v0_2;
+    if (FW(arg0, 0x68) != 0) {
+        var_i = 0;
+        do {
+            *(u16*)(FW(arg0, 0x4C) + (var_i >> 1)) = *(u16*)((char*)palette + (*(s32*)((char*)FW(arg0, 0x54) + var_i) * 2));
+            var_i += 4;
+        } while (var_i != 0x1000);
+        return;
+    }
+    var_i = 0;
+    do {
+        *(u16*)(FW(arg0, 0x4C) + var_i) = 1;
+        var_i += 2;
+    } while (var_i != 0x800);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00013B20);
+#endif
 
 void func_00013C70(int *dst) {
     int buf[2];
