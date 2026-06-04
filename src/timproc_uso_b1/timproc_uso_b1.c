@@ -35,7 +35,7 @@ typedef struct { int a, b, c, d; } Quad4;
  * body — the switch dispatch needs the FULL case-chain decoded together to
  * have any chance of matching the if-else rewrite. Default INCLUDE_ASM
  * matches via original asm. Multi-tick decompile expected. */
-void timproc_uso_b1_func_000000B0(int *a0, int a1) {
+timproc_uso_b1_func_000000B0(a0, a1) int * a0; int a1; {
     char *d = (char *)&D_00000000;
     int done = 0;
     int state;
@@ -735,21 +735,21 @@ void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
     sp148 = 1.0f;
     sp14C = 1.0f;
     if (FW(FW(arg0, 0x528), 0x14) & 1) {
-        ((int(*)())timproc_uso_b1_func_000000B0)(0, (s32) (255.0f * FW(arg0, 0x72C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        timproc_uso_b1_func_000000B0(0, (s32) (255.0f * FW(arg0, 0x72C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
         temp_a0 = (int)arg0 + 0x714;
         sp68 = temp_a0;
-        ((int(*)())timproc_uso_b1_func_000000B0)(temp_a0);
+        timproc_uso_b1_func_000000B0(temp_a0);
         temp_s6 = (int)arg0 + 0x6CC;
         temp_s3 = (s16) FW(FW(arg0, 0x724), 0x20) / 12;
-        ((int(*)())timproc_uso_b1_func_000000B0)(temp_s6);
+        timproc_uso_b1_func_000000B0(temp_s6);
         temp_s7 = (int)arg0 + 0x6B4;
-        ((int(*)())timproc_uso_b1_func_000000B0)(temp_s7);
+        timproc_uso_b1_func_000000B0(temp_s7);
         temp_s1 = (int)arg0 + 0x6FC;
-        ((int(*)())timproc_uso_b1_func_000000B0)(temp_s1);
-        ((int(*)())timproc_uso_b1_func_000000B0)(&spC0, 0x3F4, (arg2 / 60000), (char *) ((s32) (arg2 % 60000) / 1000), (s32) ((arg2 % 60000) % 1000) / 10);
+        timproc_uso_b1_func_000000B0(temp_s1);
+        timproc_uso_b1_func_000000B0(&spC0, 0x3F4, (arg2 / 60000), (char *) ((s32) (arg2 % 60000) / 1000), (s32) ((arg2 % 60000) % 1000) / 10);
         sp64 = temp_s6;
         sp60 = temp_s7;
-        temp_v0 = ((int(*)())timproc_uso_b1_func_000000B0)(&spC0);
+        temp_v0 = timproc_uso_b1_func_000000B0(&spC0);
         temp_t4 = FW(arg0, 0x70C);
         temp_t2 = FW(arg0, 0x6DC);
         temp_t3 = FW(arg0, 0x6C4);
@@ -762,7 +762,7 @@ void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
         sp94 = temp_s2;
         sp98 = temp_v0;
         sp58 = temp_a2;
-        ((int(*)())timproc_uso_b1_func_000000B0)(temp_s1, temp_a1, temp_a2, (char *)2);
+        timproc_uso_b1_func_000000B0(temp_s1, temp_a1, temp_a2, (char *)2);
         var_t1 = temp_v0;
         var_s0 = &spC0;
         var_s1 = 0;
@@ -779,16 +779,16 @@ void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
                     *var_s0 = temp_v0_2 - 0x30;
                 }
                 sp98 = var_t1;
-                ((int(*)())timproc_uso_b1_func_000000B0)(sp68, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x724), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s3), temp_s3);
+                timproc_uso_b1_func_000000B0(sp68, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x724), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s3), temp_s3);
                 var_s1 += 0xD;
                 var_s0 += 1;
                 var_s2 += 0xD;
             } while (var_s1 != temp_s4_2);
         }
-        ((int(*)())timproc_uso_b1_func_000000B0)(sp64, (s32) (255.0f * FW(arg0, 0x72C)), &sp140, (char *)0xFF);
-        ((int(*)())timproc_uso_b1_func_000000B0)(sp64, sp90, sp58, (char *)2);
-        ((int(*)())timproc_uso_b1_func_000000B0)(sp60, (s32) (255.0f * FW(arg0, 0x72C)), &sp140, (char *)0xFF);
-        ((int(*)())timproc_uso_b1_func_000000B0)(sp60, sp94, sp58, (char *)2);
+        timproc_uso_b1_func_000000B0(sp64, (s32) (255.0f * FW(arg0, 0x72C)), &sp140, (char *)0xFF);
+        timproc_uso_b1_func_000000B0(sp64, sp90, sp58, (char *)2);
+        timproc_uso_b1_func_000000B0(sp60, (s32) (255.0f * FW(arg0, 0x72C)), &sp140, (char *)0xFF);
+        timproc_uso_b1_func_000000B0(sp60, sp94, sp58, (char *)2);
     }
 }
 #else
