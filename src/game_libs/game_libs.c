@@ -1516,7 +1516,7 @@ void gl_func_000038F4(char *arg0) {
         temp_v1 = FW(var_s2, 0x2C);
         if (FW(temp_v1, 0x94) != 0) {
             temp_v0 = FW(temp_v1, 0x28);
-            ((GP_000038F4)FW(temp_v0, 0x1C))(FW(temp_v0, 0x18) + temp_v1);
+            ((GP_000038F4)FW(temp_v0, 0x1C))(*(s16*)((char*)temp_v0 + 0x18) + temp_v1);
         }
         var_s0 += 4;
         var_s2 += 4;
