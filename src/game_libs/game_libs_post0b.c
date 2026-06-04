@@ -19451,6 +19451,9 @@ void game_libs_func_0004EE18(int *a0, int a1) {
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0004EE44)();
+extern int aEE44_a(char*, int, int, int, float);
+extern int aEE44_b(float, float, void*, void*, int, void*);
+extern int aEE44_c(char*, float, float, float, float, int, float, float);
 void gl_func_0004EE44(char *arg0) {
     int sp9C;
     f32 sp5C;
@@ -19475,7 +19478,7 @@ void gl_func_0004EE44(char *arg0) {
         if (FW(arg0, 0x70) == 0) {
             gl_func_00034458((char *)((char *)&D_00000000 + 0x20604), FW(arg0, 0xC));
         }
-        gl_func_00034458(temp_s1, FW(FW(arg0, 0x70), 0x14C), FW(arg0, 0xB4), FW(arg0, 0xAC), (*(f32*)((char*)arg0 + 0xB0)));
+        aEE44_a(temp_s1, FW(FW(arg0, 0x70), 0x14C), FW(arg0, 0xB4), FW(arg0, 0xAC), (*(f32*)((char*)arg0 + 0xB0)));
         var_a3 = &sp5C;
         var_a0 = FW(arg0, 0x70) + 0xB4;
         do {
@@ -19510,12 +19513,12 @@ void gl_func_0004EE44(char *arg0) {
             var_a3 += 0x10;
             var_a0 += 0x10;
         } while ((int)var_a3 != (int)&sp9C);
-        gl_func_00034458(temp_f12, temp_f14, &sp5C, temp_s1, 0x10, var_a3);
+        aEE44_b(temp_f12, temp_f14, &sp5C, temp_s1, 0x10, var_a3);
         return;
     }
     temp_v0_2 = FW(arg0, 0xB8);
     temp_v1_2 = FW(arg0, 0xBC);
-    gl_func_00034458(temp_s1, (f32) ((s32) -temp_v0_2 / 2), (f32) (temp_v0_2 / 2), (f32) ((s32) -temp_v1_2 / 2), (f32) (temp_v1_2 / 2), FW(arg0, 0xAC), (*(f32*)((char*)arg0 + 0xB0)), 1.0f);
+    aEE44_c(temp_s1, (f32) ((s32) -temp_v0_2 / 2), (f32) (temp_v0_2 / 2), (f32) ((s32) -temp_v1_2 / 2), (f32) (temp_v1_2 / 2), FW(arg0, 0xAC), (*(f32*)((char*)arg0 + 0xB0)), 1.0f);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
