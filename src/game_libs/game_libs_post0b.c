@@ -835,7 +835,7 @@ void gl_func_00034EB4(char *arg0, char *arg1) {
 loop_3:
     FW(arg0, 0x0) = (s32) (FW(arg0, 0x0) & ~1);
     temp_v0 = FW(arg1, 0x28);
-    ((GP_00034EB4)FW(temp_v0, 0x24))(FW(temp_v0, 0x20) + (int)arg1);
+    ((GP_00034EB4)FW(temp_v0, 0x24))(*(s16*)((char*)temp_v0 + 0x20) + (int)arg1);
     gl_func_00034458();
     do {
         var_s0 = FW(arg0, 0xC);
@@ -847,7 +847,7 @@ loop_3:
         }
         if (FW((*(char **)0x218), 0x48) != 0) {
             temp_v0_2 = FW(arg1, 0x28);
-            ((GP_00034EB4)FW(temp_v0_2, 0x7C))(FW(temp_v0_2, 0x78) + (int)arg1);
+            ((GP_00034EB4)FW(temp_v0_2, 0x7C))(*(s16*)((char*)temp_v0_2 + 0x78) + (int)arg1);
         }
         if (FW(arg0, 0x0) & 4) {
             do {
