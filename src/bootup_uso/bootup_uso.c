@@ -1216,6 +1216,9 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002420);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000024B8)();
+#ifndef FF
+#define FF(p, o) (*(f32 *)((char *)(p) + (o)))
+#endif
 void func_000024B8(char *arg0) {
     s32 sp4C;
     char *sp40;
@@ -1258,18 +1261,18 @@ void func_000024B8(char *arg0) {
         }
         if (FW(FW(arg0, 0x38), 0x10) & 8) {
             temp_v1 = FW(FW(arg0, 0x2C), 0x70);
-            if (FW(temp_v1, 0x14C) < 120.0f) {
-                FW(temp_v1, 0x14C) = (f32) (FW(temp_v1, 0x14C) + 2.0f);
+            if (FF(temp_v1, 0x14C) < 120.0f) {
+                FF(temp_v1, 0x14C) = (f32) (FF(temp_v1, 0x14C) + 2.0f);
             }
         }
         var_v1 = FW(FW(arg0, 0x2C), 0x70);
-        if ((FW(FW(arg0, 0x38), 0x10) & 4) && (FW(var_v1, 0x14C) > 45.0f)) {
-            FW(var_v1, 0x14C) = (f32) (FW(var_v1, 0x14C) - 2.0f);
+        if ((FW(FW(arg0, 0x38), 0x10) & 4) && (FF(var_v1, 0x14C) > 45.0f)) {
+            FF(var_v1, 0x14C) = (f32) (FF(var_v1, 0x14C) - 2.0f);
             var_v1 = FW(FW(arg0, 0x2C), 0x70);
         }
-        FW(var_v1, 0x134) = (f32) (FW(var_v1, 0x134) + (FW(FW(arg0, 0x38), 0x4) * 2.0f));
+        FF(var_v1, 0x134) = (f32) (FF(var_v1, 0x134) + (FF(FW(arg0, 0x38), 0x4) * 2.0f));
         temp_s0_2 = FW(FW(arg0, 0x2C), 0x70);
-        FW(temp_s0_2, 0x138) = (f32) (FW(temp_s0_2, 0x138) + (FW(FW(arg0, 0x38), 0x0) * 2.0f));
+        FF(temp_s0_2, 0x138) = (f32) (FF(temp_s0_2, 0x138) + (FF(FW(arg0, 0x38), 0x0) * 2.0f));
         return;
     }
     if (var_t0 != 0) {
