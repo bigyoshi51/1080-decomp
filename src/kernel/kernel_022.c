@@ -255,7 +255,66 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008E98);
 /* func_80008FF4 absorbed the former func_80009000 + func_80009030
  * (splat mis-split: 8FF4 was prologue-only, 9000 and 9030 shared the
  * same frame with 8FF4). Now one 0x150 function. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+extern void *func_800077DC(s32);
+extern void func_800073F8();
+/* rmon GPR-save: copy the message's general regs into the live debug context
+ * (func_800077DC) as sign-extended 64-bit pairs, stamp the special regs, send a
+ * 0x10 ack header (func_800073F8 = __rmonSendHeader). Returns -2 if the message
+ * targets a non-zero sub-id or the context is missing. Merged symbol (0x150);
+ * func_80009000/9030 are link-time alt-entry labels resolved via undefined_syms,
+ * preserved by the #else INCLUDE_ASM path. */
+s32 func_80008FF4(void *arg0) {
+    void *ctx;
+    s32 *p;
+    s32 temp;
+    s32 i;
+    struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 id; } hdr;
+
+    if ((*(u8 *)((char *)arg0 + 9)) == 0) {
+        ctx = func_800077DC(FW(arg0, 0xC));
+        if (ctx == NULL) {
+            return -2;
+        }
+        i = 1;
+        p = (s32 *)((char *)ctx + 0x20);
+        if (i < 0x1A) {
+            do {
+                temp = FW(arg0, i * 4 + 0x10);
+                i += 1;
+                p[0] = temp >> 0x1F;
+                p[1] = temp;
+                p += 2;
+            } while (i < 0x1A);
+        }
+        i = 0x1C;
+        p = (s32 *)((char *)ctx + 0xE8);
+        if (i < 0x22) {
+            do {
+                temp = FW(arg0, i * 4 + 0x10);
+                i += 1;
+                p[0] = temp >> 0x1F;
+                p[1] = temp;
+                p += 2;
+            } while (i < 0x22);
+        }
+        FW(ctx, 0x120) = FW(arg0, 0x98);
+        FW(ctx, 0x11C) = FW(arg0, 0x9C);
+        FW(ctx, 0x118) = FW(arg0, 0xA0);
+        hdr.id = FW(arg0, 0xC);
+        hdr.zero = 0;
+        hdr.tag = *(u8 *)((char *)arg0 + 4);
+        func_800073F8(&hdr, 0x10, 1);
+        return 0;
+    }
+    return -2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008FF4);
+#endif
 
 /* func_80009148 split out to kernel_054.c (-O1, absorbed func_800091F0 fragment) */
 
