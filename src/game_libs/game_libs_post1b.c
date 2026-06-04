@@ -9128,7 +9128,75 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070B04);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070B04_pad.s")
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+/* __osViSwapContext (1080 game_libs port). vc = __osViNext, vm = vc->modep.
+ * Programs the VI register block (0xA4400000..34) from the active mode + the
+ * VI_CURRENT field parity, applying the per-state scale/origin/black/repeat/fade
+ * fixups, then swaps next<->curr and copies the 0x30-byte context. The
+ * __osViNext / __osViCurr globals are DISTINCT but reloc-collapse to
+ * &D_00000000 here (caps the swap tail). Ref: libreultra viswapcontext.c. */
+typedef struct { int w[12]; } ViCtx30;
+void gl_func_00070C44(void) {
+    void *vc;
+    void *vm;
+    void *fld;
+    s32 field;
+    s32 origin;
+    s32 hStart;
+    u32 nomValue;
+
+    vc = (void *)*(int *)&D_00000000;       /* __osViNext */
+    vm = (void *)FW(vc, 0x8);               /* vc->modep  */
+    field = *(s32 *)0xA4400010 & 1;         /* VI_CURRENT & 1 */
+    fld = (char *)vm + field * 0x14;        /* &vm->fldRegs[field] */
+    origin = FW(fld, 0x28) + gl_func_00062F64(FW(vc, 0x4));
+    if (FW(vc, 0x0) & 2) {
+        FW(vc, 0x20) = FW(vc, 0x20) | (FW(vm, 0x20) & ~0xFFF);
+    } else {
+        FW(vc, 0x20) = FW(vm, 0x20);
+    }
+    if (FW(vc, 0x0) & 4) {
+        nomValue = FW(fld, 0x2C) & 0xFFF;
+        FW(vc, 0x2C) = (u32)((*(f32 *)((char *)vc + 0x24)) * (f32) nomValue);
+        FW(vc, 0x2C) = FW(vc, 0x2C) | (FW(fld, 0x2C) & ~0xFFF);
+    } else {
+        FW(vc, 0x2C) = FW(fld, 0x2C);
+    }
+    hStart = FW(vm, 0x1C);
+    if (FW(vc, 0x0) & 0x20) {
+        hStart = 0;
+    }
+    if (FW(vc, 0x0) & 0x40) {
+        FW(vc, 0x2C) = 0;
+        origin = gl_func_00062F64(FW(vc, 0x4));
+    }
+    if (FW(vc, 0x0) & 0x80) {
+        FW(vc, 0x2C) = (FW(vc, 0x28) << 0x10) & 0x03FF0000;
+        origin = gl_func_00062F64(FW(vc, 0x4));
+    }
+    *(s32 *)0xA4400004 = origin;
+    *(s32 *)0xA4400008 = FW(vm, 0x8);
+    *(s32 *)0xA4400014 = FW(vm, 0xC);
+    *(s32 *)0xA4400018 = FW(vm, 0x10);
+    *(s32 *)0xA440001C = FW(vm, 0x14);
+    *(s32 *)0xA4400020 = FW(vm, 0x18);
+    *(s32 *)0xA4400024 = hStart;
+    *(s32 *)0xA4400028 = FW(fld, 0x30);
+    *(s32 *)0xA440002C = FW(fld, 0x34);
+    *(s32 *)0xA440000C = FW(fld, 0x38);
+    *(s32 *)0xA4400030 = FW(vc, 0x20);
+    *(s32 *)0xA4400034 = FW(vc, 0x2C);
+    *(s32 *)0xA4400000 = FW(vc, 0xC);
+    *(int *)&D_00000000 = *(int *)&D_00000000;    /* __osViNext = __osViCurr */
+    *(int *)&D_00000000 = (int) vc;               /* __osViCurr = vc */
+    *(ViCtx30 *)(*(int *)&D_00000000) = *(ViCtx30 *)(*(int *)&D_00000000);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070C44);
+#endif
 
 /* game_libs_func_00070FA0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FA0);
