@@ -6455,7 +6455,7 @@ void gl_func_0003D3C4(char *o) {
         fp4C = *(void (**)(int))(h + 0x4C);
         fp4C(*(short *)(h + 0x48) + (int)s0);
         s2++;
-    } while (s2 < count);
+    } while ((u32)s2 < (u32)count);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D3C4);
