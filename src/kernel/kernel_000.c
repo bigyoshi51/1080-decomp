@@ -1735,7 +1735,65 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800021A4);
  * artifact since 0x800021D0 has no prologue and uses registers set up
  * by the 0x800021A4 prologue). */
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+extern s32 D_8000A3A0;
+/* USO request-list scan: walk arg0's 0xC-byte request entries (head arg0->unk3C,
+ * count arg0->unk4). For each entry with flags (unk0) bit3 clear and low-3 == 1,
+ * resolve the target USO via the D_80012D60 pointer table (index = flags>>4). If
+ * the slot is empty, mark arg0->unk99 and bump the miss counter (D_80012BC0+0x18);
+ * if the target isn't loaded yet (unk3C==0), fire the callback
+ * (D_80012BC0->field_84) and bail -2; else link the entry's unk4 to the target's
+ * resolved address. */
+s32 func_80002250(void *arg0) {
+    UsoCallbacks84 *state = (UsoCallbacks84 *)&D_80012BC0;
+    s16 temp_v0_2;
+    s32 temp_a2;
+    s32 var_a3;
+    void *temp_a1;
+    void *temp_v0;
+    void *var_v1;
+
+    temp_v0 = (void *) FW(arg0, 0x3C);
+    *(u8 *)((char *)arg0 + 0x99) = 0;
+    if (temp_v0 == NULL) {
+        return 0;
+    }
+    var_a3 = 0;
+    var_v1 = temp_v0;
+    if (FW(arg0, 4) > 0) {
+loop_4:
+        temp_v0_2 = *(s16 *)var_v1;
+        var_a3 += 1;
+        if (!(temp_v0_2 & 8) && ((temp_v0_2 & 7) == 1)) {
+            temp_a1 = ((void **)&D_80012D60)[temp_v0_2 >> 4];
+            if (temp_a1 == NULL) {
+                *(u8 *)((char *)arg0 + 0x99) = 1;
+                FW(&D_80012BC0, 0x18) = FW(&D_80012BC0, 0x18) + 1;
+                goto block_12;
+            }
+            temp_a2 = FW(temp_a1, 0x3C);
+            if (temp_a2 == 0) {
+                state->field_84(&D_8000A3A0, temp_a1, temp_a2, var_a3);
+                return -2;
+            }
+            *(s16 *)var_v1 = temp_v0_2 | 8;
+            *(s32 *)((char *)var_v1 + 4) = *(s32 *)((char *)temp_a2 + (*(s16 *)((char *)var_v1 + 8)) * 0xC + 4);
+        }
+block_12:
+        var_v1 = (char *)var_v1 + 0xC;
+        if (var_a3 >= FW(arg0, 4)) {
+            return 0;
+        }
+        goto loop_4;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
+#endif
 
 /* func_8000235C: 33-insn entry-list clear-by-type helper.
  *   if no entry list at a0+0x3C, return 0.
