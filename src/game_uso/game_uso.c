@@ -3073,12 +3073,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
  * for `scale * coord` after a fresh coord load is coord-as-fs), and for
  * neg_scale it also lands the target's $f8. The tmp vars (ns/os/nsd/neg) are
  * write-only operand-ordering levers. Found via decomp-permuter, then minimized. */
-extern float func_00000000_03FAC(float, float);
+extern float game_uso_func_082880(float);
 void game_uso_func_00003FAC(float *a0, float *a1, float *a2, float a3, float arg4) {
     float orig_scale = arg4 / a3;
     float ns, os, nsd, neg;
     float ratio = orig_scale * orig_scale;
-    float new_scale = func_00000000_03FAC(1.0f - ratio, a3);
+    float new_scale = game_uso_func_082880(1.0f - ratio);
     (void)ratio;
     a0[0] = (orig_scale * a2[2]) + (a2[0] * (ns = new_scale));
     a0[1] = 0.0f;
