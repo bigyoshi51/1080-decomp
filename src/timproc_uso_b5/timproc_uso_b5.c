@@ -4026,51 +4026,51 @@ void timproc_uso_b5_func_00006E08(char *arg0, s32 arg1) {
     char *temp_v0_3;
     char *temp_v1_2;
 
-    if ((((GP_00006E08)timproc_uso_b5_func_00000000)(0, 0x10001) != 0) && (((GP_00006E08)timproc_uso_b5_func_00000000)(arg0) != 0)) {
+    if (((int)timproc_uso_b5_alias(0, 0x10001) != 0) && ((int)timproc_uso_b5_alias(arg0) != 0)) {
         sp34 = FW(((int)arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0);
-        ((GP_00006E08)timproc_uso_b5_func_00000000)(arg0);
+        (int)timproc_uso_b5_alias(arg0);
         var_s1 = 0;
-        if (((GP_00006E08)timproc_uso_b5_func_00000000)(arg0) > 0) {
+        if ((int)timproc_uso_b5_alias(arg0) > 0) {
 loop_4:
             temp_v0 = (int)arg0 + (FW(arg0, 0x3C4) * 4);
             FW(temp_v0, 0x3D0) = (s32) (FW(temp_v0, 0x3D0) - 1);
             if (FW(((int)arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0) < 0) {
-                FW(((int)arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0) = (s32) (((GP_00006E08)timproc_uso_b5_func_00000000)(arg0) - 1);
+                FW(((int)arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0) = (s32) ((int)timproc_uso_b5_alias(arg0) - 1);
             }
             var_s1 += 1;
-            if ((FW((((GP_00006E08)timproc_uso_b5_func_00000000)(arg0)), 0x2A4) == 0.0f) && (var_s1 < ((GP_00006E08)timproc_uso_b5_func_00000000)(arg0))) {
+            if ((FW(((int)timproc_uso_b5_alias(arg0)), 0x2A4) == 0.0f) && (var_s1 < (int)timproc_uso_b5_alias(arg0))) {
                 goto loop_4;
             }
         }
         temp_v0_2 = FW(arg0, 0x3C4);
         temp_v1 = FW(((int)arg0 + (temp_v0_2 * 4)), 0x3D0);
         if (sp34 != temp_v1) {
-            ((GP_00006E08)timproc_uso_b5_func_00000000)(*(int*)(temp_v0_2 * 4), FW(arg0, 0x4D4) | temp_v1);
-            ((GP_00006E08)timproc_uso_b5_func_00000000)(arg0, arg1);
+            (int)timproc_uso_b5_alias(*(int*)(temp_v0_2 * 4), FW(arg0, 0x4D4) | temp_v1);
+            (int)timproc_uso_b5_alias(arg0, arg1);
         }
     }
-    if ((((GP_00006E08)timproc_uso_b5_func_00000000)(0, 0x4002) != 0) && (((GP_00006E08)timproc_uso_b5_func_00000000)(arg0) != 0)) {
+    if (((int)timproc_uso_b5_alias(0, 0x4002) != 0) && ((int)timproc_uso_b5_alias(arg0) != 0)) {
         sp28 = FW(((int)arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0);
-        ((GP_00006E08)timproc_uso_b5_func_00000000)(arg0);
+        (int)timproc_uso_b5_alias(arg0);
         var_s1_2 = 0;
-        if (((GP_00006E08)timproc_uso_b5_func_00000000)(arg0) > 0) {
+        if ((int)timproc_uso_b5_alias(arg0) > 0) {
 loop_13:
             temp_v0_3 = (int)arg0 + (FW(arg0, 0x3C4) * 4);
             FW(temp_v0_3, 0x3D0) = (s32) (FW(temp_v0_3, 0x3D0) + 1);
             temp_v1_2 = (int)arg0 + (FW(arg0, 0x3C4) * 4);
-            if (FW(temp_v1_2, 0x3D0) >= ((GP_00006E08)timproc_uso_b5_func_00000000)(arg0)) {
+            if (FW(temp_v1_2, 0x3D0) >= (int)timproc_uso_b5_alias(arg0)) {
                 FW(temp_v1_2, 0x3D0) = 0;
             }
             var_s1_2 += 1;
-            if ((FW((((GP_00006E08)timproc_uso_b5_func_00000000)(arg0)), 0x2A4) == 0.0f) && (var_s1_2 < ((GP_00006E08)timproc_uso_b5_func_00000000)(arg0))) {
+            if ((FW(((int)timproc_uso_b5_alias(arg0)), 0x2A4) == 0.0f) && (var_s1_2 < (int)timproc_uso_b5_alias(arg0))) {
                 goto loop_13;
             }
         }
         temp_v0_4 = FW(arg0, 0x3C4);
         temp_v1_3 = FW(((int)arg0 + (temp_v0_4 * 4)), 0x3D0);
         if (sp28 != temp_v1_3) {
-            ((GP_00006E08)timproc_uso_b5_func_00000000)(*(int*)(temp_v0_4 * 4), FW(arg0, 0x4D4) | temp_v1_3);
-            ((GP_00006E08)timproc_uso_b5_func_00000000)(arg0, arg1);
+            (int)timproc_uso_b5_alias(*(int*)(temp_v0_4 * 4), FW(arg0, 0x4D4) | temp_v1_3);
+            (int)timproc_uso_b5_alias(arg0, arg1);
         }
     }
 }
