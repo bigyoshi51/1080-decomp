@@ -7731,12 +7731,12 @@ void gl_func_000250C8(char *arg0, s32 arg1) {
         return;
     }
     if (temp_v0 == 1) {
-        FW(arg0, 0x1) = 0;
+        *(u8*)((char*)arg0 + 0x1) = 0;
         goto block_7;
     }
     if (arg1 != 0) {
         gl_func_0001CA10((int)arg0 + 0x20, 0U, 1, 1);
-        FW(arg0, 0x0) = 0;
+        *(u8*)((char*)arg0 + 0x0) = 0;
         return;
     }
     sp5C = temp_v1;
@@ -7779,7 +7779,7 @@ block_7:
                 game_libs_func_0003443C((u8) sp24, FW(arg0, 0x4), (u8) &sp2C, 1);
                 break;
             }
-            FW(arg0, 0x0) = 0;
+            *(u8*)((char*)arg0 + 0x0) = 0;
             gl_func_0001CA10(FW(arg0, 0x1C), FW(arg0, 0x18), 0);
             return;
         }
