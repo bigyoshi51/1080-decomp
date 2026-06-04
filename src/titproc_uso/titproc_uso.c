@@ -3,6 +3,7 @@
 extern int gl_func_00000000();
 extern char D_00000000;
 extern char D_titproc_15F4_tmp;
+extern char titproc_uso_D_00048C, titproc_uso_D_000194, import_00073B18;
 typedef struct { int a, b, c, d; } Quad4;
 
 /* K&R-style def: function name doubles as placeholder for unresolved
@@ -767,11 +768,11 @@ int *a0;
         tmp = (int *)gl_func_00000000(44);
         if (tmp == 0) goto common;
     }
-    gl_func_00000000(tmp, (char *)&D_00000000 + 0x4C4);
-    *(int *)((char *)tmp + 0x28) = (int)&D_titproc_15F4_tmp;
+    gl_func_00000000(tmp, (char *)&titproc_uso_D_00048C + 0x4C4);
+    *(int *)((char *)tmp + 0x28) = (int)&import_00073B18;
 common:
-    *(int *)((char *)a0 + 0x28) = (int)&D_00000000;
-    *(int **)((char *)a0 + 0xC) = (int *)((char *)&D_00000000 + 0x4CC);
+    *(int *)((char *)a0 + 0x28) = (int)&titproc_uso_D_000194;
+    *(int **)((char *)a0 + 0xC) = (int *)((char *)&titproc_uso_D_00048C + 0x4CC);
     *(int *)((char *)a0 + 0x2C) = 0;
     *(int *)((char *)a0 + 0x30) = 0;
     *(float *)((char *)a0 + 0x34) = 160.0f;
