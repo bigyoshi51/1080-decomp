@@ -608,7 +608,35 @@ void func_80000598(u8* src, u8* dst, s32 count) {
     } while (rem != 0);
 }
 #else
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_80000598)();
+void func_80000598(u8 *arg0, u8 *arg1, s32 arg2) {
+    s32 var_a2;
+    u8 *temp_a3;
+    u8 *var_v0;
+    u8 *var_v1;
+    u8 temp_t6;
+
+    var_v0 = arg0;
+    var_v1 = arg1;
+    var_a2 = arg2 - 1;
+    if (arg2 != 0) {
+        do {
+            temp_t6 = *var_v0;
+            temp_a3 = var_v1;
+            var_v1 += 1;
+            var_v0 += 1;
+            *temp_a3 = temp_t6;
+            var_a2 -= 1;
+        } while (var_a2 != 0);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000598);
+#endif
 #endif
 
 /* func_800005DC: 44-insn (0xB0) DMA-aligned bounded read helper.
