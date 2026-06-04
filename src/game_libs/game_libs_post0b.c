@@ -28433,168 +28433,160 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E190);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0005E288)();
+/* gl_func_0005E288: 362-insn 4x4-matrix-multiply chain (frame -0x298).
+ * 2026-06-04 RECONSTRUCT 28.8% -> 65.2% (+36.4pp): the m2c decode had the
+ * matrix locals as adjacent scalars (sp258/sp218/...) which collapsed the
+ * frame to -0x148 and degenerated the inner multiply loops to 1 iteration.
+ * Ghidra (scripts/ghidra-decompile-func.sh) revealed the true 4x4 layout —
+ * arrays m22c[19]/m1e0[20]/m190[16]/s150[4]/m140[20]/.../a40[16], each loop
+ * bound being the NEXT array's address. Rewrote as the three matrix-multiply
+ * sections Ghidra shows (arg0 x c0 -> m190; the param2-loop c0 x m140 -> m1e0;
+ * m140 x arg0 -> m22c). gl_func_00034458 is the Mat4 op. Remaining ~35% is
+ * register-allocation grind inside the MAC loops (the v10..v14 temps and
+ * p1..p7 walkers color differently than IDO). See MATCHING_WORKFLOW.md
+ * "Next-target lead: gl_func_0005E288" for the layout. */
 void gl_func_0005E288(f32 *arg0, s32 arg1) {
-    f32 sp258;
-    int sp228;
-    f32 sp218;
-    f32 sp1D8;
-    int sp1A8;
-    f32 sp198;
-    f32 sp158;
-    int sp148;
-    f32 sp108;
-    f32 spB8;
-    f32 sp6C;
-    s32 sp4C;
-    f32 *temp_v0;
-    f32 *temp_v0_2;
-    f32 *temp_v1;
-    f32 *var_a0;
-    f32 *var_a0_2;
-    f32 *var_a0_3;
-    f32 *var_a1;
-    f32 *var_a2;
-    f32 *var_a3;
-    char *var_s3;
-    f32 *var_v0;
-    f32 *var_v0_2;
-    f32 *var_v0_3;
-    f32 *var_v1;
-    f32 *var_v1_2;
-    f32 *var_v1_3;
-    f32 temp_f10;
-    f32 temp_f10_2;
-    f32 temp_f12;
-    f32 temp_f12_2;
-    f32 temp_f12_3;
-    f32 temp_f14;
-    f32 temp_f14_2;
-    f32 temp_f14_3;
-    f32 temp_f16;
-    f32 temp_f4;
-    f32 temp_f6;
-    f32 temp_f6_2;
-    f32 temp_f6_3;
-    f32 temp_f8;
-    f32 var_f16;
-    f32 var_f16_2;
-    f32 var_f18;
-    f32 var_f18_2;
-    s32 var_a1_2;
+    f32 m22c[19];
+    f32 m1e0[20];
+    f32 m190[16];
+    f32 s150[4];
+    f32 m140[20];
+    f32 f0a[4];
+    f32 e0a[4];
+    f32 d0a[4];
+    f32 c0[20];
+    f32 m70[4];
+    f32 m60[4];
+    f32 m50[4];
+    f32 a40[16];
+    f32 *p1, *p2, *p3, *p4, *p5, *p6, *p7;
+    int *p9;
+    int i;
+    f32 v10, v11, v12, v13, v14;
 
-    gl_func_00034458(&sp218);
-    var_a2 = &sp108;
-    var_a0 = arg0;
+    p3 = c0 + 0x10;
+    gl_func_00034458(arg0, p3);
+    p6 = m190;
+    p7 = arg0;
     do {
-        var_v0 = var_a2;
-        *var_v0 = 0.0f;
-        var_v1 = &sp218 + 4;
-        var_f16 = *var_v0;
-        var_f18 = (*(f32*)((char*)var_a0 + 0x0)) * sp218;
-        if ((int)var_v1 != (int)&sp228) {
-            do {
-                temp_f10 = (*(f32*)((char*)var_v1 + 0x1C));
-                temp_f8 = (*(f32*)((char*)var_v1 + 0x2C));
-                *var_v0 = var_f16 + var_f18;
-                temp_f6 = *var_v0;
-                temp_f4 = (*(f32*)((char*)var_v1 + 0x0));
-                temp_f12 = (*(f32*)((char*)var_a0 + 0x4)) * (*(f32*)((char*)var_v1 + 0xC));
-                var_v1 += 4;
-                var_v0 += 4;
-                var_v0[-1] = (f32) (temp_f6 + temp_f12);
-                var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0x8)) * temp_f10));
-                var_v0[0] = 0.0f;
-                var_f16 = var_v0[0];
-                var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0xC)) * temp_f8));
-                var_f18 = (*(f32*)((char*)var_a0 + 0x0)) * temp_f4;
-            } while ((int)var_v1 != (int)&sp228);
+        *p6 = 0.0f;
+        p5 = c0 + 0x11;
+        if (p5 == m70) {
+            v14 = *p6 + *p7 * c0[0x10];
+            p1 = p6;
+        } else {
+            v14 = *p6 + *p7 * c0[0x10];
+            p2 = p6;
+            for (;;) {
+                v13 = p5[3];
+                v12 = p5[7];
+                v10 = p5[0xb];
+                *p2 = v14;
+                v14 = *p5;
+                p5 = p5 + 1;
+                p1 = p2 + 1;
+                *p2 = *p2 + p7[1] * v13;
+                *p2 = *p2 + p7[2] * v12;
+                v12 = p7[3];
+                *p1 = 0.0f;
+                *p2 = *p2 + v12 * v10;
+                if (p5 == m70) break;
+                v14 = *p1 + *p7 * v14;
+                p2 = p1;
+            }
+            v14 = *p1 + *p7 * v14;
         }
-        *var_v0 = var_f16 + var_f18;
-        temp_f14 = (*(f32*)((char*)var_a0 + 0x4));
-        temp_v0 = var_v0 + 4;
-        temp_v0[-1] = (f32) (*var_v0 + (temp_f14 * (*(f32*)((char*)var_v1 + 0xC))));
-        temp_f12_2 = (*(f32*)((char*)var_a0 + 0x8));
-        temp_v0[-1] = (f32) (temp_v0[-1] + (temp_f12_2 * (*(f32*)((char*)var_v1 + 0x1C))));
-        temp_v0[-1] = (f32) (temp_v0[-1] + ((*(f32*)((char*)var_a0 + 0xC)) * (*(f32*)((char*)var_v1 + 0x2C))));
-        var_a2 += 0x10;
-        var_a0 += 0x10;
-    } while ((int)var_a2 != (int)&sp148);
-    gl_func_00034458(temp_f12_2, temp_f14, &sp108, &sp218, var_a2);
-    gl_func_00034458(&sp258);
-    gl_func_00034458(arg0, &sp258, &sp1D8);
-    gl_func_00034458(&sp198);
-    gl_func_00034458(&sp158);
+        v13 = p5[3];
+        v12 = p5[7];
+        v10 = p5[0xb];
+        *p1 = v14;
+        *p1 = *p1 + p7[1] * v13;
+        *p1 = *p1 + p7[2] * v12;
+        *p1 = *p1 + p7[3] * v10;
+        p6 = p6 + 4;
+        p7 = p7 + 4;
+    } while (p6 != s150);
+    gl_func_00034458(m190, p3);
+    gl_func_00034458(a40);
+    gl_func_00034458(arg0, a40, c0);
+    p7 = m140 + 0x10;
+    gl_func_00034458(p7);
+    gl_func_00034458(m140);
+    v14 = 0.0f;
     if (arg1 >= 2) {
-        sp4C = (arg1 * 4) + (int)((char *)&D_00000000 + 0x21AC8);
-        var_s3 = (char *)((char *)&D_00000000 + 0x21ACC);
+        p9 = (int *)((char *)&D_00000000 + 0x21ACC);
         do {
-            var_a1 = &spB8;
-            var_a0_2 = &sp1D8;
-loop_7:
-            var_v0_2 = var_a1;
-            var_v1_2 = &sp198;
-loop_8:
-            *var_v0_2 = 0.0f;
-            temp_f10_2 = *var_v0_2;
-            temp_f16 = (*(f32*)((char*)var_a0_2 + 0x0)) * (*(f32*)((char*)var_v1_2 + 0x0));
-            temp_f6_2 = (*(f32*)((char*)var_v1_2 + 0x10));
-            var_v1_2 += 4;
-            var_v0_2 += 4;
-            var_v0_2[-1] = (f32) (temp_f10_2 + temp_f16);
-            var_v0_2[-1] = (f32) (var_v0_2[-1] + ((*(f32*)((char*)var_a0_2 + 0x4)) * temp_f6_2));
-            var_v0_2[-1] = (f32) (var_v0_2[-1] + ((*(f32*)((char*)var_a0_2 + 0x8)) * (*(f32*)((char*)var_v1_2 + 0x1C))));
-            var_v0_2[-1] = (f32) (var_v0_2[-1] + ((*(f32*)((char*)var_a0_2 + 0xC)) * (*(f32*)((char*)var_v1_2 + 0x2C))));
-            if ((int)var_v1_2 != (int)&sp1A8) {
-                goto loop_8;
-            }
-            var_a0_2 += 0x10;
-            var_a1 += 0x10;
-            if ((int)var_a0_2 != (int)&sp218) {
-                goto loop_7;
-            }
-            gl_func_00034458(&spB8, &sp198);
-            gl_func_00034458(&sp198, *(int*)var_s3, &sp218);
-            gl_func_00034458(&sp158, &sp218, &sp158);
-            var_s3 += 4;
-        } while ((int)var_s3 != sp4C);
-    }
-    var_a3 = &sp6C;
-    var_a0_3 = &sp158;
-    do {
-        var_v0_3 = var_a3;
-        var_v1_3 = arg0;
-        *var_v0_3 = 0.0f;
-        var_a1_2 = 4;
-        var_f18_2 = *var_v0_3;
-        var_f16_2 = (*(f32*)((char*)var_a0_3 + 0x0)) * *var_v1_3;
-        if (4 != 0x10) {
+            p5 = m1e0;
+            p6 = c0;
             do {
-                *var_v0_3 = var_f18_2 + var_f16_2;
-                temp_f6_3 = *var_v0_3;
-                temp_f14_2 = (*(f32*)((char*)var_a0_3 + 0x4)) * (*(f32*)((char*)var_v1_3 + 0x10));
-                var_a1_2 += 4;
-                var_v0_3 += 4;
-                var_v1_3 += 4;
-                var_v0_3[-1] = (f32) (temp_f6_3 + temp_f14_2);
-                var_v0_3[-1] = (f32) (var_v0_3[-1] + ((*(f32*)((char*)var_a0_3 + 0x8)) * (*(f32*)((char*)var_v1_3 + 0x1C))));
-                var_v0_3[0] = 0.0f;
-                var_f18_2 = var_v0_3[0];
-                var_v0_3[-1] = (f32) (var_v0_3[-1] + ((*(f32*)((char*)var_a0_3 + 0xC)) * (*(f32*)((char*)var_v1_3 + 0x2C))));
-                var_f16_2 = (*(f32*)((char*)var_a0_3 + 0x0)) * (*(f32*)((char*)var_v1_3 + 0x0));
-            } while (var_a1_2 != 0x10);
+                p2 = p5;
+                p1 = m140 + 0x10;
+                do {
+                    v12 = *p6;
+                    v11 = *p1;
+                    *p2 = 0.0f;
+                    v13 = p1[4];
+                    v14 = p6[1];
+                    p4 = p1 + 1;
+                    v10 = p1[8];
+                    *p2 = *p2 + v12 * v11;
+                    v12 = p6[2];
+                    v11 = p1[0xc];
+                    *p2 = *p2 + v14 * v13;
+                    v14 = p6[3];
+                    *p2 = *p2 + v12 * v10;
+                    *p2 = *p2 + v14 * v11;
+                    p2 = p2 + 1;
+                    p1 = p4;
+                } while (p4 != f0a);
+                p6 = p6 + 4;
+                p5 = p5 + 4;
+            } while (p6 != c0 + 0x10);
+            gl_func_00034458(m1e0, p7);
+            gl_func_00034458(p7, *p9, p3);
+            gl_func_00034458(m140, p3, m140);
+            v14 = 0.0f;
+            p9 = p9 + 1;
+        } while (p9 != (int *)((char *)&D_00000000 + 0x21AC8 + arg1 * 4));
+    }
+    p6 = m22c;
+    p7 = m140;
+    do {
+        *p6 = v14;
+        i = 4;
+        v10 = *p6 + *p7 * *arg0;
+        p3 = p6;
+        p5 = arg0;
+        for (;;) {
+            v11 = p7[1];
+            v13 = p7[2];
+            v12 = p7[3];
+            *p3 = v10;
+            v10 = *p7;
+            i = i + 4;
+            p2 = p3 + 1;
+            *p3 = *p3 + v11 * p5[4];
+            *p3 = *p3 + v13 * p5[8];
+            v13 = p5[0xc];
+            *p2 = v14;
+            *p3 = *p3 + v12 * v13;
+            v10 = v10 * p5[1];
+            if (i == 0x10) break;
+            v10 = *p2 + v10;
+            p3 = p2;
+            p5 = p5 + 1;
         }
-        temp_f12_3 = (*(f32*)((char*)var_a0_3 + 0x4));
-        *var_v0_3 = var_f18_2 + var_f16_2;
-        temp_v0_2 = var_v0_3 + 4;
-        temp_v1 = var_v1_3 + 4;
-        temp_v0_2[-1] = (f32) (*var_v0_3 + (temp_f12_3 * (*(f32*)((char*)var_v1_3 + 0x10))));
-        temp_v0_2[-1] = (f32) (temp_v0_2[-1] + ((*(f32*)((char*)var_a0_3 + 0x8)) * (*(f32*)((char*)temp_v1 + 0x1C))));
-        temp_f14_3 = temp_v0_2[-1] + ((*(f32*)((char*)var_a0_3 + 0xC)) * (*(f32*)((char*)temp_v1 + 0x2C)));
-        temp_v0_2[-1] = temp_f14_3;
-        var_a0_3 += 0x10;
-        var_a3 += 0x10;
-    } while ((int)var_a0_3 != (int)&sp198);
-    gl_func_00034458(temp_f12_3, temp_f14_3, &sp6C, arg0, 0x10, var_a3);
+        v11 = p7[1];
+        v13 = p7[2];
+        v12 = p7[3];
+        *p2 = *p2 + v10;
+        *p2 = *p2 + v11 * p5[5];
+        *p2 = *p2 + v13 * p5[9];
+        *p2 = *p2 + v12 * p5[0xd];
+        p7 = p7 + 4;
+        p6 = p6 + 4;
+    } while (p7 != m140 + 0x10);
+    gl_func_00034458(m22c, arg0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E288);
