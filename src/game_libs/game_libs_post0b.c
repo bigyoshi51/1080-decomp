@@ -16060,7 +16060,60 @@ void gl_func_0004A84C(char *a0) {
 // the -1 seed and the pts+0xD4/0xD6 bound fields are exact. Trailing leaf
 // at 0x4A9EC = deferred re-split. Caps: point/pts struct untyped; bundle
 // re-split deferred. Full body INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+extern int D_00000000;
+s16 *gl_func_0004A890(char *arg0, s32 arg1, s16 *arg2) {
+    s16 list[300];
+    s16 cnt;
+    s16 *result;
+    s16 *p;
+    s16 *end;
+    s32 n;
+    s32 idx;
+    s32 off;
+    s32 sz;
+    s16 t0;
+    p = arg2;
+    t0 = 0;
+    if (arg1 > 0) {
+        end = arg2 + arg1;
+        do {
+            list[t0] = *p;
+            t0 = t0 + 1;
+            n = *(s16 *)(arg0 + 0xD6) - *(s16 *)(arg0 + 0xD4);
+            if (n > 0) {
+                idx = 0;
+                off = 0;
+                do {
+                    if (*p == *(s16 *)(*(int *)(arg0 + 0xD0) + off)) {
+                        list[t0] = idx;
+                        t0 = t0 + 1;
+                        n = *(s16 *)(arg0 + 0xD6) - *(s16 *)(arg0 + 0xD4);
+                    }
+                    idx += 1;
+                    off += 2;
+                } while (idx < n);
+            }
+            p += 1;
+            list[t0] = -1;
+            t0 = t0 + 1;
+        } while (p != end);
+    }
+    list[t0] = -1;
+    t0 = t0 + 1;
+    if (t0 >= 299) {
+        cnt = t0;
+        gl_func_00034458((char *)((char *)&D_00000000 + 0x20058));
+        t0 = cnt;
+    }
+    sz = t0 * 2;
+    result = (s16 *)gl_func_00034458(sz);
+    gl_func_00034458(result, list, sz);
+    return result;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A890);
+#endif
 
 /* game_libs_func_0004A9F0: 40-insn nested-loop stream→grid byte copier (fresh
  * decode 2026-05-28, mnemonic disasm). Reads a -1-terminated halfword stream
