@@ -437,6 +437,7 @@ extern int gl_func_00031FB0();
  * DL space (twice if rec->0x62), then emit 8 packed GBI words (2 quads at
  * sV2+0x3E0 / +0x580) and return p+8. Residual ~47% is $t-reg renumber +
  * save-spill scheduling (same 139 insns, same frame). */
+unsigned int *gl_func_0001D200(int a0, unsigned int a1, short a2, short a3) {
     short s1, s2;
     unsigned int *p;
     unsigned int u4;
