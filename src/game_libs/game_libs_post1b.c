@@ -6363,7 +6363,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C2AC);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C2AC_pad.s")
 
-#ifdef NON_MATCHING
 /* gl_func_0006C384: too-big-N-function-bundle (declared 0xF4, 61 words) — 2 libultra cache helpers.
  *
  * SUB-FUNCTION 1 (0x6C384..0x6C400, 31 insns) — __osVirtualToPhysical / osVirtualToPhysical:
@@ -6422,14 +6421,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C2AC);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
-#else
 #ifdef NON_MATCHING
 /* gl_func_0006C384: 31-insn KSEG->physical address translator. For a0 in KSEG0
  * (0x80000000..0x9FFFFFFF) or KSEG1 (0xA0000000..0xBFFFFFFF), return
  * a0 & 0x1FFFFFFF; otherwise fall back to the (collapsed) callback on a0.
  * NM (reference decode): collapsed-placeholder fallback call (raw-.word game_libs
  * reloc depression). */
-extern int gl_func_00000000();
 int gl_func_0006C384(unsigned int a0) {
     if (a0 >= 0x80000000U && a0 < 0xA0000000U) {
         return a0 & 0x1FFFFFFF;
@@ -6437,7 +6434,7 @@ int gl_func_0006C384(unsigned int a0) {
     if (a0 >= 0xA0000000U && a0 < 0xC0000000U) {
         return a0 & 0x1FFFFFFF;
     }
-    return gl_func_00000000(a0);
+    return gl_func_00062F64(a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C384);
@@ -6446,7 +6443,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C384);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C400);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C454);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C384_pad.s")
 
 #ifdef NON_MATCHING
