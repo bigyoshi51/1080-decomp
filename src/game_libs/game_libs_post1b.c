@@ -662,19 +662,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063964);
  * gl_func_0000BBF0) — only jal#4 is the blocker, making the whole
  * function NM. INCLUDE_ASM is the build path (ROM byte-exact). */
 extern int gl_func_00000000();
+extern int aD63DC4_5(void*, void*, float, float, float);
+extern int aD63DC4_4(void*, float, float, int);
+extern float aD63DC4_1(float);
 void *gl_func_00063DC4(void *a0, int a1, float a2, float a3) {
     void *s0 = a0;
     if (s0 == 0) {
         s0 = (void*)gl_func_00000000(368);
         if (s0 == 0) return s0;
     }
-    gl_func_00000000(s0, (char*)&D_00000000 + 0x22390, 0.0f, 0.0f, 0.0f);
+    aD63DC4_5(s0, (char*)&D_00000000 + 0x22390, 0.0f, 0.0f, 0.0f);
     *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
     *(int*)((char*)s0 + 0x16C) = a1;
-    gl_func_00000000(s0, a2, a3, 0);
+    aD63DC4_4(s0, a2, a3, 0);
     gl_func_00000000(s0);
     *(float*)((char*)s0 + 0x164) =
-        gl_func_00000000(a2 * a2 + a3 * a3 + 0.0f);
+        aD63DC4_1(a2 * a2 + a3 * a3 + 0.0f);
     return s0;
 }
 #else

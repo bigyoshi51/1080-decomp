@@ -2440,3 +2440,6 @@ timproc_uso_b5_alias = 0x00000000;
 game_uso_alias = 0x00000000;
 gl_func_DB00_f = 0x00000000;
 gl_func_DB00_a = 0x00000000;
+aD63DC4_5 = 0x00000000;
+aD63DC4_4 = 0x00000000;
+aD63DC4_1 = 0x00000000;
