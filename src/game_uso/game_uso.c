@@ -11513,6 +11513,9 @@ typedef char *(*GP_0000D9CC)();
  * Prior prose structural analysis (field meanings, 0x01F0 state mask) is in
  * git history (game_uso_func_0000D9CC "complete 524-insn structural decode").
  * This m2c lift replaced that comment-only shell with real C. */
+#ifndef FF
+#define FF(p, o) (*(f32 *)((char *)(p) + (o)))
+#endif
 void game_uso_func_0000D9CC(char *arg0) {
     f32 sp34;
     s32 sp30;
@@ -11537,20 +11540,20 @@ void game_uso_func_0000D9CC(char *arg0) {
     char *temp_v1;
     char *var_v1;
 
-    FW(arg0, 0x108) = 0;
+    FF(arg0, 0x108) = 0;
     sp30 = 1;
     sp2C = 0;
     sp28 = 0;
     var_v1 = FW(arg0, 0xB4);
     var_a3 = 0.0f;
     if ((FW(var_v1, 0x348) > 30.0f) && (FW(var_v1, 0xA10) & 0x1F0)) {
-        temp_f2 = FW(var_v1, 0xA1C);
+        temp_f2 = FF(var_v1, 0xA1C);
         if (temp_f2 < 0.0f) {
             var_f0 = -temp_f2;
         } else {
             var_f0 = temp_f2;
         }
-        if (FW(arg0, 0x244) < var_f0) {
+        if (FF(arg0, 0x244) < var_f0) {
             sp30 = 0;
             sp28 = 2;
             game_uso_alias(arg0, 1, 0);
@@ -11569,12 +11572,12 @@ void game_uso_func_0000D9CC(char *arg0) {
         } else {
             var_f0_2 = temp_f2;
         }
-        if (FW(arg0, 0x22C) < var_f0_2) {
+        if (FF(arg0, 0x22C) < var_f0_2) {
             sp30 = 0;
             game_uso_alias(arg0, 4, 0);
             temp_v1 = FW(arg0, 0xB4);
             var_a3 = 2;
-            temp_f2_2 = FW(temp_v1, 0x970);
+            temp_f2_2 = FF(temp_v1, 0x970);
             if (temp_f2_2 < 0.0f) {
                 var_f0_3 = -temp_f2_2;
             } else {
@@ -11588,7 +11591,7 @@ void game_uso_func_0000D9CC(char *arg0) {
                     FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xF);
                     sp2C = (char *)1;
                 }
-            } else if (FW(temp_v1, 0xA1C) > 0.0f) {
+            } else if (FF(temp_v1, 0xA1C) > 0.0f) {
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xC);
                 sp2C = (char *)1;
             } else {
@@ -11599,78 +11602,78 @@ block_24:
             var_v1 = FW(arg0, 0xB4);
         }
     }
-    if (FW(var_v1, 0x9D0) < 500.0f) {
+    if (FF(var_v1, 0x9D0) < 500.0f) {
         temp_v0 = var_v1 + 0xCC;
-        if ((f64) FW(var_v1, 0xA0C) < *(f64 *)0x200) {
-            FW(var_v1, 0xCC) = 0.0f;
-            FW(temp_v0, 0x4) = 0.0f;
-            FW(temp_v0, 0x8) = 0.0f;
-            FW(temp_v0, 0xC) = 1.0f;
+        if ((f64) FF(var_v1, 0xA0C) < *(f64 *)0x200) {
+            FF(var_v1, 0xCC) = 0.0f;
+            FF(temp_v0, 0x4) = 0.0f;
+            FF(temp_v0, 0x8) = 0.0f;
+            FF(temp_v0, 0xC) = 1.0f;
             sp28 = 2;
             sp34 = 4;
             game_uso_alias(arg0, 2);
             var_a3 = 4;
             if (FW(FW(arg0, 0xB4), 0x3CC) < 0.0f) {
-                FW(arg0, 0x108) = 0x1002A;
+                FF(arg0, 0x108) = 0x1002A;
             } else {
-                FW(arg0, 0x108) = 0x1002B;
+                FF(arg0, 0x108) = 0x1002B;
             }
             var_v1 = FW(arg0, 0xB4);
         }
     }
     temp_v0_2 = var_v1 + 0x528;
     if (!(FW(var_v1, 0x9A8) & 1)) {
-        temp_f14 = FW(arg0, 0x11C);
-        var_f12 = FW(var_v1, 0xA1C) * temp_f14;
-        var_f2 = FW(var_v1, 0xA20) * temp_f14;
-        var_f0_4 = FW(var_v1, 0xA24) * temp_f14;
+        temp_f14 = FF(arg0, 0x11C);
+        var_f12 = FF(var_v1, 0xA1C) * temp_f14;
+        var_f2 = FF(var_v1, 0xA20) * temp_f14;
+        var_f0_4 = FF(var_v1, 0xA24) * temp_f14;
         if (!(FW(var_v1, 0xA58) & 0x4000)) {
             var_f0_4 = 0.0f;
             var_f2 = 0.0f;
             var_f12 = 0.0f;
         }
-        if ((FW(arg0, 0x304) * FW(temp_v0_2, 0x10)) <= var_f2) {
+        if ((FF(arg0, 0x304) * FF(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 3;
             sp30 = 0;
             game_uso_alias(var_f12, temp_f14, arg0, 2);
             var_a3 = 5;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
-        } else if ((FW(arg0, 0x2EC) * FW(temp_v0_2, 0x10)) <= var_f2) {
+        } else if ((FF(arg0, 0x2EC) * FF(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 0;
             sp30 = 0;
             game_uso_alias(var_f12, temp_f14, arg0, 5);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2D);
-        } else if ((FW(arg0, 0x2D4) * FW(temp_v0_2, 0x10)) <= var_f2) {
+        } else if ((FF(arg0, 0x2D4) * FF(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 0;
             sp30 = 0;
             game_uso_alias(var_f12, temp_f14, arg0, 4);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2C);
-        } else if (FW(arg0, 0x2BC) <= var_f0_4) {
+        } else if (FF(arg0, 0x2BC) <= var_f0_4) {
             sp28 = 4;
             game_uso_alias(var_f12, temp_f14, arg0, 3);
             var_a3 = 5;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
-        } else if (FW(arg0, 0x2A4) <= var_f0_4) {
+        } else if (FF(arg0, 0x2A4) <= var_f0_4) {
             sp28 = 3;
             sp34 = 4;
             game_uso_alias(var_f12, temp_f14, arg0, 2);
             var_a3 = 4;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xB);
-        } else if (FW(arg0, 0x28C) <= var_f0_4) {
+        } else if (FF(arg0, 0x28C) <= var_f0_4) {
             sp28 = 2;
             sp34 = 3;
             game_uso_alias(var_f12, temp_f14, arg0, 1);
             var_a3 = 3;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xA);
-        } else if (FW(arg0, 0x274) <= var_f0_4) {
+        } else if (FF(arg0, 0x274) <= var_f0_4) {
             sp28 = 0;
             sp30 = 0;
             game_uso_alias(var_f12, temp_f14, arg0, 1);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2C);
-        } else if (var_f0_4 <= -FW(arg0, 0x334)) {
+        } else if (var_f0_4 <= -FF(arg0, 0x334)) {
             sp28 = 2;
             sp2C = (char *)2;
             sp34 = 3;
@@ -11678,7 +11681,7 @@ block_24:
             game_uso_alias(var_f12, temp_f14, arg0, 5);
             var_a3 = 3;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x16);
-        } else if (var_f0_4 <= -FW(arg0, 0x31C)) {
+        } else if (var_f0_4 <= -FF(arg0, 0x31C)) {
             sp28 = 0;
             sp2C = (char *)2;
             sp30 = 0;
@@ -11686,7 +11689,7 @@ block_24:
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x14);
         } else {
-            temp_f0 = FW(arg0, 0x25C);
+            temp_f0 = FF(arg0, 0x25C);
             if (temp_f0 <= var_f12) {
                 sp28 = 3;
                 sp34 = 2;
@@ -11699,45 +11702,45 @@ block_24:
                 game_uso_alias(var_f12, temp_f14, arg0, 2);
                 var_a3 = 2;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x12);
-            } else if ((*(f32 *)0x1098 <= var_f2) && ((f64) temp_f14 == 1.0) && (FW(var_v1, 0x9CC) == 0)) {
+            } else if ((*(f32 *)0x1098 <= var_f2) && ((f64) temp_f14 == 1.0) && (FF(var_v1, 0x9CC) == 0)) {
                 sp28 = 0;
                 sp30 = 0;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2F);
                 sp34 = var_a3;
-                game_uso_alias(var_f12, temp_f14, FW(var_v1, 0x800), (char *)&D_00000000 + 4252, 0xA, var_a3);
+                game_uso_alias(var_f12, temp_f14, FF(var_v1, 0x800), (char *)&D_00000000 + 4252, 0xA, var_a3);
             }
         }
     }
-    if ((FW(arg0, 0x114) == 1) && (sp28 == 0)) {
-        FW(arg0, 0x108) = 0;
+    if ((FF(arg0, 0x114) == 1) && (sp28 == 0)) {
+        FF(arg0, 0x108) = 0;
     }
-    if (FW(arg0, 0x108) != 0) {
+    if (FF(arg0, 0x108) != 0) {
         game_uso_alias(arg0, var_a3, sp2C, var_a3);
-        FW(arg0, 0x11C) = 1.0f;
+        FF(arg0, 0x11C) = 1.0f;
         game_uso_alias(arg0, (f32) sp28, sp2C);
         temp_v0_3 = FW(arg0, 0xB4);
-        FW(temp_v0_3, 0x308) = 1.0f;
-        FW(temp_v0_3, 0x2FC) = 0.0f;
-        FW(temp_v0_3, 0x300) = 0.0f;
-        FW(temp_v0_3, 0x304) = 0.0f;
+        FF(temp_v0_3, 0x308) = 1.0f;
+        FF(temp_v0_3, 0x2FC) = 0.0f;
+        FF(temp_v0_3, 0x300) = 0.0f;
+        FF(temp_v0_3, 0x304) = 0.0f;
         game_uso_alias(arg0, (f32) (sp28 == 0));
         FW(FW(arg0, 0xB4), 0x3DC) = 0;
         if (sp30 != 0) {
-            game_uso_alias(arg0, (f32) FW(arg0, 0x108), 0, 2, 1, 1);
+            game_uso_alias(arg0, FF(arg0, 0x108), 0, 2, 1, 1);
             game_uso_alias(arg0, (char *)FW(0xE88, 0x0), (char *)FW(0xE88, 0x4), 2);
         } else {
-            game_uso_alias(arg0, (f32) FW(arg0, 0x108), 0, 1, 1, 1);
+            game_uso_alias(arg0, FF(arg0, 0x108), 0, 1, 1, 1);
             game_uso_alias(arg0, (char *)FW(0xE90, 0x0), (char *)FW(0xE90, 0x4), 1);
         }
         game_uso_alias(arg0);
-        FW(arg0, 0x114) = 0;
+        FF(arg0, 0x114) = 0;
     }
     if (FW(FW(arg0, 0xB4), 0xA14) <= 0) {
-        temp_v0_4 = FW(arg0, 0x108);
-        FW(arg0, 0x114) = 0;
+        temp_v0_4 = FF(arg0, 0x108);
+        FF(arg0, 0x114) = 0;
         if (temp_v0_4 != 0) {
             temp_a1 = (temp_v0_4 & 0xFFFF) | 0x60000;
-            FW(arg0, 0x108) = temp_a1;
+            FF(arg0, 0x108) = temp_a1;
             game_uso_alias(arg0, (f32) temp_a1, 0, 1, 1, 1);
             game_uso_alias(arg0, (char *)FW(0xDC8, 0x0), (char *)FW(0xDC8, 0x4), 1);
         }
