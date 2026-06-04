@@ -11698,12 +11698,11 @@ void gl_func_000432BC(s32 arg0, char *arg1, s32 arg2) {
     char *var_v0;
     char *var_v0_2;
 
-    temp_t6 = (*(char***)((char*)&D_00000000 + 0x18C));
-    sp64 = temp_t6;
-    sp60 = temp_t6;
-    if (temp_t6 != 0) {
-        sp64 = FW(temp_t6, 0x4);
-        var_v0 = FW(temp_t6, 0x0);
+    sp64 = (*(char***)((char*)&D_00000000 + 0x18C));
+    sp60 = sp64;
+    if (sp64 != 0) {
+        var_v0 = FW(sp64, 0x0);
+        sp64 = FW(sp64, 0x4);
     } else {
         var_v0 = 0;
     }
@@ -11734,12 +11733,11 @@ void gl_func_000432BC(s32 arg0, char *arg1, s32 arg2) {
                 (*(f32*)((char*)var_s0 + 0xF8)) = (f32) (((*(f32*)((char*)arg1 + 0x8)) * temp_f0) + ((*(f32*)((char*)arg1 + 0x18)) * temp_f2) + ((*(f32*)((char*)arg1 + 0x28)) * temp_f12));
                 gl_func_00034458(temp_f12, temp_f14, temp_s1);
             }
-            temp_t4 = sp64;
             var_v0_2 = 0;
-            sp60 = temp_t4;
-            if (temp_t4 != 0) {
-                sp64 = FW(temp_t4, 0x4);
-                var_v0_2 = FW(temp_t4, 0x0);
+            sp60 = sp64;
+            if (sp64 != 0) {
+                var_v0_2 = FW(sp64, 0x0);
+                sp64 = FW(sp64, 0x4);
             }
             var_s0 = var_v0_2;
         } while (var_v0_2 != 0);
