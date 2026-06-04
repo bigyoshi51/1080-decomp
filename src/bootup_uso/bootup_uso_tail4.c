@@ -3,7 +3,6 @@
 extern int func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
-extern int func_00012E00();
 
 
 /* func_00012E00 - verified structural decode (0x24C, 147 insns,
@@ -39,7 +38,88 @@ extern int func_00012E00();
  * + alloc-cascade (~8 func_00000000 buffer reloc) + &D descriptors
  * + FP-1.0 const. Full body INCLUDE_ASM-preserved (.s = source of
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+extern char D_0000C730;
+extern char D_0000C738;
+void *func_00012E00(arg0, arg1) void *arg0; s32 arg1; {
+    void *o;
+    void *sub;
+    void *sp3C;
+    s32 row;
+    s32 col;
+    s32 yval;
+    s32 a0v;
+    s32 a0v2;
+    s32 v1;
+    s32 v1_2;
+    s32 off;
+    s32 off2;
+    f32 base;
+
+    o = arg0;
+    if ((arg0 != NULL) || (o = func_00000000((void *)0x78), (o != NULL))) {
+        sub = o;
+        if ((o != NULL) || (sub = func_00000000((void *)0x2C), (sub != NULL))) {
+            func_00000000(sub, &D_0000C730);
+            FW(sub, 0x28) = 0;
+        }
+        FW(o, 0x28) = 0;
+        FW(o, 0xC) = (int) &D_0000C738;
+        FW(o, 0x5C) = 0x20;
+        FW(o, 0x60) = 0x20;
+        FW(o, 0x64) = 0x400;
+        FW(o, 0x2C) = arg1;
+        *(f32 *)((char *)o + 0x48) = 1.0f;
+        sp3C = func_00000000(NULL);
+        FW(o, 0x4C) = (int) func_00000000((void *)0x800, (void *)0x10);
+        FW(o, 0x50) = (int) func_00000000((void *)0x400, (void *)0x10);
+        FW(o, 0x58) = (int) func_00000000((void *)0x1000);
+        FW(o, 0x54) = (int) func_00000000((void *)0x1000);
+        func_00000000(sp3C);
+        *(f32 *)((char *)o + 0x3C) = 1.0f;
+        *(f32 *)((char *)o + 0x38) = 1.0f;
+        *(f32 *)((char *)o + 0x34) = 1.0f;
+        *(f32 *)((char *)o + 0x30) = 1.0f;
+        row = 0;
+        off = 0;
+        base = 10.0f / 2.0f;
+        do {
+            yval = (s32) (((f32) row * 7.5f) + (7.5f / 2.0f));
+            col = 0;
+            row += 1;
+            do {
+                a0v = yval;
+                v1 = (s32) (((f32) col * 10.0f) + base);
+                if (v1 >= 0x140) {
+                    v1 = 0x13F;
+                }
+                if (yval >= 0xF0) {
+                    a0v = 0xEF;
+                }
+                a0v2 = yval;
+                off2 = off + 4;
+                v1_2 = (s32) (((f32) (col + 1) * 10.0f) + base);
+                *(s32 *)((char *)FW(o, 0x54) + off) = (a0v * 0x140) + v1;
+                if (v1_2 >= 0x140) {
+                    v1_2 = 0x13F;
+                }
+                if (yval >= 0xF0) {
+                    a0v2 = 0xEF;
+                }
+                col += 2;
+                *(s32 *)((char *)FW(o, 0x54) + off2) = (a0v2 * 0x140) + v1_2;
+                off = off2 + 4;
+            } while (col != 0x20);
+        } while (row != 0x20);
+    }
+    return o;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
+#endif
 
 // func_0001304C — STRUCTURAL PASS (0x8D8 / 566 insns, no episode).
 // Per-frame physics/animation integrator on a state struct, gated by an
