@@ -9762,6 +9762,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000277E0);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00027804)();
+#ifndef FF
+#define FF(p, o) (*(f32 *)((char *)(p) + (o)))
+#endif
 void gl_func_00027804(char *arg0, char *arg1) {
     u8 sp2F;
     u8 sp2E;
@@ -9792,7 +9795,7 @@ void gl_func_00027804(char *arg0, char *arg1) {
     temp_v0 = FW(arg0, 0x35);
     sp24 = (s32) temp_v0;
     game_libs_func_0003443C(FW(arg1, 0x4), arg1);
-    var_f2 = FW(arg1, 0x8);
+    var_f2 = FF(arg1, 0x8);
     sp2F = FW(arg1, 0x2);
     sp2E = FW(arg1, 0x0);
     sp2C = (u8) FW(arg1, 0x3);
@@ -9826,7 +9829,7 @@ void gl_func_00027804(char *arg0, char *arg1) {
         FW(var_v0, 0x1) = (u8) (FW(var_v0, 0x1) & 0xFFFE);
         var_a1_2 = 0;
         var_f12 = *(int*)(sp2F * 4);
-        var_f14 = FW((sp2F * -4), 0x1FC);
+        var_f14 = FF((sp2F * -4), 0x1FC);
         var_a2 = 0;
         if ((s32) sp2F < 0x20) {
             var_a2 = 1;
@@ -9871,7 +9874,7 @@ void gl_func_00027804(char *arg0, char *arg1) {
         var_f12 = *(int*)(sp2F * 4);
         var_at = sp2F * -4;
 block_22:
-        var_f14 = FW(var_at, 0x1FC);
+        var_f14 = FF(var_at, 0x1FC);
     }
     if (var_f2 < 0.0f) {
         var_f2 = 0.0f;
