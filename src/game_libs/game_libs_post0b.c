@@ -28020,8 +28020,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D9EC);
  * with real arg-homes a0/a1 — NOT the dual-entry pattern of 2DDEC). Absorbed
  * 0005DB0C's 19 words into 0005DB00 (0xC -> 0x58); dropped the 0005DB0C symbol.
  * Merging brings f14 (=bit-cast a2) and f4 (=D[0x2048]) in-scope, removing the
- * NON-STANDARD-INHERITED-FPU-REGS cap. Remaining caps keep it NM: 3 placeholder
- * jals + the non-standard f14/f0 bit-cast plumbing.
+ * NON-STANDARD-INHERITED-FPU-REGS cap.
+ *
+ * 2026-06-04: 20.4% -> 48.9%. Two K&R FLOAT-PROMOTION fixes: (1) pass jal1_res
+ * as int-bits `*(int*)&jal1_res` (was promoting float->double via cvt.d.s);
+ * (2) typed float-param/return aliases (gl_func_DB00_a/_f) so `quot` passes as
+ * single float and the callees return float in fv0 (not int via cvt.s.w).
+ * Remaining caps keep it NM: the `mtc1 a2,fa1` bit-cast (`*(float*)&a2`) and the
+ * `mfc1 a3,fv0` bit-cast (`*(int*)&jal2_res`) both emit stack round-trips from
+ * IDO C (documented mtc1/mfc1-from-C cap).
  *
  * Body (a2 is bit-reinterpreted as the f14 dividend):
  *   $f12 = f14 / D[0x2048]; sp[0x28]=a0; sp[0x2C]=a1; jal_1(); $f12=sp[0x1C];
@@ -28029,13 +28036,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D9EC);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern float D_5DB0C_divisor; /* D + 0x2048 (the inherited divisor) */
+extern float gl_func_DB00_a(void);
+extern float gl_func_DB00_f(float);
 void game_libs_func_0005DB00(int a0, int a1, int a2) {
     float f14_arg = *(float *)&a2;       /* mtc1 a2,$f14 in the merged prologue */
     float quot = f14_arg / D_5DB0C_divisor;
     float jal1_res, jal2_res;
-    jal1_res = gl_func_00000000();
-    jal2_res = gl_func_00000000(quot);
-    gl_func_00000000(a0, a1, jal1_res, *(int*)&jal2_res);
+    jal1_res = gl_func_DB00_a();
+    jal2_res = gl_func_DB00_f(quot);
+    gl_func_00000000(a0, a1, *(int*)&jal1_res, *(int*)&jal2_res);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DB00);
