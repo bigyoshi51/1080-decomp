@@ -201,7 +201,63 @@ void func_800070A0(char *addr, int len) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800070A0);
 #endif
 
+#ifdef NON_MATCHING
+extern void func_800082EC(void);
+extern void func_80008E08(void);
+extern void func_80008E38(void);
+extern void func_80008EA0(void);
+extern volatile s32 D_8001B7D0;
+extern s32 D_8000A580;
+extern s8 rmonmain_bss_0468;
+extern s8 rmonmain_bss_0469;
+extern s32 rmonmain_bss_046C;
+extern void *rmonmain_bss_0470;
+extern s32 rmonmain_bss_0008;
+extern s32 __rmonMQ;
+/* rmon main dispatch loop (__rmonIOhandler-class). Init state, then loop
+ * forever: recv a flag word from __rmonMQ, OR it into D_8001B7D0, and dispatch
+ * each set bit (2 -> func_80008E08, 4 -> func_80008E38, 8 -> func_80008EA0,
+ * 0x10 -> just clear), clearing the bit as it goes; bit 0x20 is a one-shot
+ * (clear and continue), otherwise re-loop. */
+void func_800071C0(void) {
+    s32 sp20;
+
+    D_8001B7D0 = 0;
+    rmonmain_bss_0469 = 0;
+    rmonmain_bss_0468 = 0;
+    func_800082EC();
+    D_8000A580 = 1;
+    rmonmain_bss_046C = 0;
+    rmonmain_bss_0470 = &rmonmain_bss_0008;
+loop_1:
+    func_80004FE0(&__rmonMQ, &sp20, 1);
+    D_8001B7D0 |= sp20;
+    if (D_8001B7D0 & 2) {
+        D_8001B7D0 &= ~2;
+        func_80008E08();
+    }
+    if (D_8001B7D0 & 4) {
+        D_8001B7D0 &= ~4;
+        func_80008E38();
+    }
+    if (D_8001B7D0 & 8) {
+        D_8001B7D0 &= ~8;
+        func_80008EA0();
+    }
+    if (D_8001B7D0 & 0x10) {
+        D_8001B7D0;
+        D_8001B7D0 &= 0xEF;
+    }
+    if (!(D_8001B7D0 & 0x20)) {
+        goto loop_1;
+    }
+    D_8001B7D0;
+    D_8001B7D0 &= 0xDF;
+    goto loop_1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800071C0);
+#endif
 
 
 
