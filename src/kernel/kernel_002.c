@@ -81,7 +81,7 @@ s32 func_80004BE0(int *mq, int *msg, s32 flag) {
             func_800066D0(s);
             return -1;
         }
-        *(int*)((char*)D_8000A420 + 0x10) = 8;
+        *(s16*)((char*)D_8000A420 + 0x10) = 8;
         func_80003D0C(mq);
     }
     if (msg != 0) {
