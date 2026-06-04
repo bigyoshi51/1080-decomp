@@ -10590,7 +10590,69 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041A9C);
 // the bounds guard are exact; copied-field offsets representative. Caps:
 // Reg/node struct, &D_reloc and cb signatures untyped. Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00041D40)();
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00041D40;
+void gl_func_00041D40(s32 arg0) {
+    Q_00041D40 sp60;
+    Q_00041D40 sp6C;
+    Q_00041D40 sp7C;
+    int *temp_v0;
+    int *var_v1;
+    s32 temp_a1;
+    s32 temp_v0_2;
+    s32 temp_v0_3;
+    s32 var_a0;
+    s32 var_v1_2;
+    char *temp_s0;
+    char *temp_s1;
+
+    gl_func_00034458((char*)((char*)&D_00000000 + 0x1F6B4));
+    FW((*(int*)&D_00000000), 0xC) = 0;
+    gl_func_00034458(arg0);
+    var_v1 = &sp60;
+    temp_s1 = *(int*)&D_00000000;
+    if ((&sp60 != 0) || (temp_v0 = gl_func_00034458(0xC), var_v1 = temp_v0, (temp_v0 != 0))) {
+        FW(var_v1, 0x4) = -1;
+        FW(var_v1, 0x0) = temp_s1;
+        FW(var_v1, 0x8) = (s32) (FW(temp_s1, 0xC) - 1);
+    }
+    sp6C.unk0 = (s32 *) sp60.unk0;
+    sp6C.unk4 = (s32) sp60.unk4;
+    sp6C.unk8 = (s32) sp60.unk8;
+    sp7C.unk0 = sp6C.unk0;
+    sp7C.unk4 = (s32) sp6C.unk4;
+    var_v1_2 = 0;
+    sp7C.unk8 = (s32) sp6C.unk8;
+    if (sp7C.unk4 < sp7C.unk8) {
+        temp_a1 = sp7C.unk4 + 1;
+        sp7C.unk4 = temp_a1;
+        var_v1_2 = *(int*)sp7C.unk0 + (temp_a1 * 4);
+    }
+    if (var_v1_2 != 0) {
+        do {
+            gl_func_00034458((char*)((char*)&D_00000000 + 0x1F6C0), FW((*(int*)(*(int*)sp7C.unk0 + (sp7C.unk4 * 4))), 0xC));
+            temp_s0 = *(int*)(*(int*)sp7C.unk0 + (sp7C.unk4 * 4));
+            temp_v0_2 = FW(temp_s0, 0x14);
+            if (temp_v0_2 != 0) {
+                gl_func_00034458(temp_v0_2 + 0x10, temp_s0);
+            }
+            var_a0 = 0;
+            if (sp7C.unk4 < sp7C.unk8) {
+                temp_v0_3 = sp7C.unk4 + 1;
+                sp7C.unk4 = temp_v0_3;
+                var_a0 = *(int*)sp7C.unk0 + (temp_v0_3 * 4);
+            }
+        } while (var_a0 != 0);
+    }
+    gl_func_00034458();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041D40);
+#endif
 
 // gl_func_00041EDC — NM WRAP 80.2% (2026-05-28, was documented-only). cb-scoped
 // list-iterate-and-dispatch over an intrusive {cur,next} cursor pair.
