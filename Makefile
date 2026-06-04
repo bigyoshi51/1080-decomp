@@ -135,6 +135,7 @@ build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game
 build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10
 build/src/game_libs/game_libs_post2.c.o: TRUNCATE_TEXT := 0x42E0
 
+build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_005.c.o build/non_matching/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1
