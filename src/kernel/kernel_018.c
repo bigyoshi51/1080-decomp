@@ -126,7 +126,82 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800066EC);
  * sltu validation + osVirtualToPhysical/PI-read + branch-likely +
  * 4 callees. Full body INCLUDE_ASM-preserved (.s = source of
  * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+extern void __rmonSendHeader(void *, s32, s32);
+extern s32 func_80004B30(u32);
+extern s32 func_800066F0(void *, s32, s32);
+extern void func_800074A0(u32, u32);
+extern char __rmonUtilityBuffer;
+/* rmon read-memory request handler. Stamp the reply header (__rmonUtilityBuffer:
+ * tag=req->unk4, unkC=req->unkC, unk6=0). Reject a -1 address (-5) or a length
+ * over 0x400 (-8). For an instruction-space read (req->unk9==1) require the range
+ * to lie wholly within SP IMEM (0x04001000..0x04002000) or SP DMEM
+ * (0x04000000..0x04001000) else -5; otherwise validate the RDRAM address via
+ * func_80004B30. Then set the reply length (len+0x10), poll 4 bytes of the read
+ * token (func_800066F0), send the header, and kick the transfer
+ * (func_800074A0(addr, len)). */
+s32 func_80006790(void *arg0) {
+    char *volatile sp2C = &__rmonUtilityBuffer;
+    void *volatile sp30 = arg0;
+    s32 sp34;
+    s32 sp38;
+    s32 var_s0;
+    s32 var_s1;
+    u32 temp_t0;
+    u32 temp_t4;
+    u32 addr;
+    char *p;
+
+    *(u8 *)(sp2C + 4) = *(u8 *)((char *)arg0 + 4);
+    FW(sp2C, 0xC) = FW(sp30, 0xC);
+    *(s16 *)(sp2C + 6) = 0;
+    if ((u32) FW(sp30, 0x10) == 0xFFFFFFFFU) {
+        return -5;
+    }
+    if ((u32) FW(sp30, 0x14) >= 0x401U) {
+        return -8;
+    }
+    if (*(u8 *)((char *)arg0 + 9) == 1) {
+        temp_t0 = FW(sp30, 0x10);
+        if ((temp_t0 < 0x04001000U) || ((u32) (temp_t0 + FW(sp30, 0x14)) >= 0x04002000U)) {
+            var_s0 = 0;
+        } else {
+            var_s0 = 1;
+        }
+        if (var_s0 == 0) {
+            temp_t4 = FW(sp30, 0x10);
+            if ((temp_t4 < 0x04000000U) || ((u32) (temp_t4 + FW(sp30, 0x14)) >= 0x04001000U)) {
+                var_s1 = 0;
+            } else {
+                var_s1 = 1;
+            }
+            if (var_s1 == 0) {
+                return -5;
+            }
+        }
+    } else {
+        if (func_80004B30(FW(sp30, 0x10)) == -1) {
+            return -5;
+        }
+    }
+    addr = FW(sp30, 0x10);
+    FW(sp2C, 0) = FW(sp30, 0x14) + 0x10;
+    p = (char *) &sp34;
+    sp38 = 0;
+    sp34 = FW(sp30, 0x14) + 0x10;
+    do {
+        sp38 += func_800066F0(p + sp38, 4 - sp38, 8);
+    } while (sp38 < 4);
+    __rmonSendHeader(sp2C, 0x10, 1);
+    func_800074A0(addr, FW(sp30, 0x14));
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80006790);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000698C);
 
