@@ -6995,19 +6995,19 @@ void gl_func_0006DA74(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     s32 temp_v0;
 
     if (*(int*)0 == 0) {
-        ((int(*)())gl_func_00062F64)(arg1, arg2, arg3);
-        ((int(*)())gl_func_00062F64)(0x43E90, 0x43EA8, 1);
+        gl_func_00062F64(arg1, arg2, arg3);
+        gl_func_00062F64(0x43E90, 0x43EA8, 1);
         if (*(int*)0 == 0) {
-            ((int(*)())gl_func_00062F64)();
+            gl_func_00062F64();
         }
-        ((int(*)())gl_func_00062F64)(8, 0x43E90, 0x22222222);
+        gl_func_00062F64(8, 0x43E90, 0x22222222);
         sp28 = -1;
-        sp24 = ((int(*)())gl_func_00062F64)(0);
+        sp24 = gl_func_00062F64(0);
         if (sp24 < arg0) {
             sp28 = sp24;
             gl_func_00062F64(0, arg0);
         }
-        temp_v0 = ((int(*)())gl_func_00062F64)();
+        temp_v0 = gl_func_00062F64();
         *(int*)0 = 1;
         *(s32 *)4 = 0x42CE0;
         *(s32 *)0xC = 0x43E90;
@@ -7016,11 +7016,11 @@ void gl_func_0006DA74(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
         *(s32 *)0x10 = 0;
         *(s32 *)0x14 = 0;
         *(s32 *)0x18 = 0;
-        ((int(*)())gl_func_00062F64)(0x42CE0, 0, 0, 0, 0x43E90, arg0);
-        ((int(*)())gl_func_00062F64)(0x42CE0);
-        ((int(*)())gl_func_00062F64)(sp2C);
+        gl_func_00062F64(0x42CE0, 0, 0, 0, 0x43E90, arg0);
+        gl_func_00062F64(0x42CE0);
+        gl_func_00062F64(sp2C);
         if (sp28 != -1) {
-            ((int(*)())gl_func_00062F64)(0, sp28);
+            gl_func_00062F64(0, sp28);
         }
     }
 }
