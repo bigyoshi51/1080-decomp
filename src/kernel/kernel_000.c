@@ -1194,7 +1194,35 @@ void func_80000E58(void) {
     D_80012C44(&D_8000A32C, &D_8000A340);
 }
 
+#ifdef NON_MATCHING
+extern s32 D_8000A344;
+/* Address -> loaded-USO resolver: scan the USO slot-pointer table
+ * (&D_80012D60 .. &D_80012F7C); for the first loaded slot whose
+ * [field_4C, field_4C+field_14) range contains arg0, return its code base
+ * (slot+0x72) and the in-USO offset (arg0 - field_4C). Not found -> &D_8000A344
+ * / 0. IDO -O2 unrolls the simple slot loop x4 with a 3-iteration prologue. */
+void func_80000E8C(u32 arg0, void **arg1, s32 *arg2) {
+    UsoEntry74 **p = (UsoEntry74 **) &D_80012D60;
+    UsoEntry74 **end = (UsoEntry74 **) &D_80012F7C;
+
+    do {
+        UsoEntry74 *e = *p;
+        if (e != NULL) {
+            u32 base = e->field_4C;
+            if ((arg0 >= base) && (arg0 < (u32) (base + e->field_14))) {
+                *arg1 = (char *) e + 0x72;
+                *arg2 = arg0 - e->field_4C;
+                return;
+            }
+        }
+        p++;
+    } while (p != end);
+    *arg1 = &D_8000A344;
+    *arg2 = 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000E8C);
+#endif
 
 /* uso_get_vtable — returns pointer to USO vtable */
 extern s32 D_80012BC0;
