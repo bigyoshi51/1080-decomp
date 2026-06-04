@@ -473,7 +473,102 @@ send:
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007564);
 #endif
 
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+#define HW(p, o) (*(s16 *)((char *)(p) + (o)))
+extern u8 __rmonRcpAtBreak;
+/* rmon thread/RCP register-query setup. Populate the reply context arg2 for
+ * thread arg1: mode arg0==1 = RCP (SP IMEM window 0x04001000, read the RCP
+ * break-word via func_80006A98, flag a pending RCP break), else find the CPU
+ * thread in the chain (func_80009C30) by id and copy its saved PC/break state.
+ * The 0x8000785C alt-entry (external callers via undefined_syms) is the shared
+ * unk12-flag tail. (Unblocked by adding an alabel for m2c parsing.) */
+s32 func_80007698(s32 arg0, s32 arg1, void *arg2) {
+    extern s32 func_80008430();
+    s32 sp1C;
+    void *sp18;
+    s32 temp_t9;
+    u16 temp_t0;
+
+    FW(arg2, 0x14) = arg1;
+    if (arg0 == 1) {
+        FW(arg2, 0x18) = 0x3E9;
+    } else {
+        FW(arg2, 0x18) = 0x3EA;
+    }
+    FW(arg2, 0x10) = 1;
+    HW(arg2, 0x12) = 0;
+    HW(arg2, 0x24) = 0;
+    HW(arg2, 0x26) = 0;
+    FW(arg2, 0x30) = 0;
+    if (arg0 == 1) {
+        FW(arg2, 0x2C) = 0x04001000;
+        FW(arg2, 0x28) = 0x2A;
+        if (func_80008430() != 0) {
+            FW(arg2, 0xC) = 4;
+            FW(arg2, 0x20) = 0;
+            FW(arg2, 0x1C) = 0;
+        } else {
+            FW(arg2, 0xC) = 1;
+            FW(arg2, 0x20) = func_80006A98(0x04080000) + 0x04001000;
+            sp1C = func_80006A98(FW(arg2, 0x20));
+            if ((sp1C & 0xFC00003F) == 0xD) {
+                sp1C = 0xD;
+            }
+            if (__rmonRcpAtBreak != 0) {
+                FW(arg2, 0x10) = 2;
+                HW(arg2, 0x24) = 2;
+                HW(arg2, 0x26) = 4;
+            }
+            FW(arg2, 0x1C) = sp1C;
+        }
+        goto block_25;
+    }
+    sp18 = (void *) func_80009C30();
+    if (FW(sp18, 4) != -1) {
+loop_12:
+        if (FW(sp18, 0x14) != arg1) {
+            sp18 = (void *) FW(sp18, 0xC);
+            if (FW(sp18, 4) != -1) {
+                goto loop_12;
+            }
+        }
+    }
+    if (FW(sp18, 4) == -1) {
+        return -2;
+    }
+    FW(arg2, 0x28) = FW(sp18, 4);
+    temp_t0 = HW(sp18, 0x10);
+    if (temp_t0 != 0) {
+        FW(arg2, 0xC) = temp_t0;
+    } else {
+        FW(arg2, 0xC) = 1;
+    }
+    FW(arg2, 0x20) = FW(sp18, 0x11C);
+    temp_t9 = *(s32 *) FW(sp18, 0x11C);
+    sp1C = temp_t9;
+    if ((temp_t9 & 0xFC00003F) == 0xD) {
+        sp1C = 0xD;
+    }
+    FW(arg2, 0x1C) = sp1C;
+    FW(arg2, 0x2C) = (s32) sp18;
+    if (HW(sp18, 0x12) & 1) {
+        FW(arg2, 0x10) = 2;
+        HW(arg2, 0x24) = 2;
+        HW(arg2, 0x26) = 4;
+    } else if (HW(sp18, 0x12) & 2) {
+        FW(arg2, 0x10) = 2;
+        HW(arg2, 0x24) = 1;
+        HW(arg2, 0x26) = 2;
+    }
+block_25:
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007698);
+#endif
 
 
 
