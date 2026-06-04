@@ -2007,7 +2007,39 @@ void timproc_uso_b5_func_00003890(int *a0) {
  * (f6=f4*f18, f8=*(v0+0xDC), ...), NOT caller-passed. The merged function reads
  * a0 fields normally and is now decodable. Same pattern for the sibling pair
  * 0000396C(entry)+0000398C-F1(cont) — still to merge. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_000038B0)();
+void timproc_uso_b5_func_000038B0(char *arg0, s32 arg1, char *arg2, f32 arg3, f32 arg4) {
+    f32 sp18;
+    f32 sp0;
+    f32 temp_f10;
+    f32 temp_f18;
+    f32 temp_f18_2;
+    f32 temp_f6;
+    f32 temp_f8;
+    char *temp_v0;
+    char *temp_v0_2;
+
+    temp_f18 = (*(f32*)((char*)arg0 + 0x2A0));
+    temp_v0 = FW(arg0, 0x29C);
+    temp_f10 = ((*(f32*)((char*)arg0 + 0x168)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xE0)) + (arg4 * (1.0f - temp_f18));
+    sp18 = temp_f10;
+    temp_v0_2 = (int)arg1 + 0x30;
+    sp0 = (*(f32*)((char*)arg2 + 0x0));
+    temp_f8 = sp0;
+    temp_f6 = ((((*(f32*)((char*)arg0 + 0x164)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xDC))) - temp_f8) * arg3;
+    sp0 = (*(f32*)((char*)arg2 + 0x4));
+    temp_f18_2 = (*(f32*)((char*)arg2 + 0x8));
+    (*(f32*)((char*)temp_v0_2 + 0x30)) = (f32) (temp_f8 + temp_f6);
+    (*(f32*)((char*)temp_v0_2 + 0x34)) = (f32) (sp0 + ((temp_f10 - sp0) * arg3));
+    (*(f32*)((char*)temp_v0_2 + 0x38)) = (f32) (temp_f18_2 + (((((*(f32*)((char*)arg0 + 0x16C)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xE4))) - temp_f18_2) * arg3));
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038B0);
+#endif
 
 /* timproc_uso_b5_func_0000396C: one 47-insn (0xBC) FP transform — the sibling of
  * 038B0 (template-identical except field offsets 0x184/0x188 vs 0x164/0x168).
