@@ -579,10 +579,9 @@ s32 func_80007B3C(void *arg0) {
     extern void func_800073F8();
     struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 id; } sp84;
     u8 sp38[0x4C];
-    void *sp94;
+    void *volatile sp94 = arg0;
     void *var_s0;
 
-    sp94 = arg0;
     switch (*(u8 *)((char *) arg0 + 9)) {
     case 0:
         var_s0 = (void *) func_80009C30();
