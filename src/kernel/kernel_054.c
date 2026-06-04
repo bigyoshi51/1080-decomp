@@ -245,11 +245,15 @@ extern void func_80009030(s32, s32);
  * register hint didn't prevent the move into a1 directly. Net negative.
  * Reverted.
  *
- * Promotion path remains: needs a C shape that splits the andi off the
- * call arg WITHOUT introducing scheduler perturbations elsewhere, OR
- * permuter discovery. (INSN_PATCH was the previous size-matched bridge
- * but REMOVED 2026-05-23 as match-faking per
- * feedback_no_instruction_forcing_matches_policy.) Deferred. */
+ * 2026-06-04 (94.97 -> 97.57%): the promotion path landed — split the
+ * masked arg into a plain `s32 masked = p[0x27] & 0xFFF;` block-local
+ * computed BEFORE the call (NOT register-hinted — `register` re-perturbs
+ * to 96.1%). IDO now emits `andi t8, a1, 0xfff; jal; or a1, t8, zero`
+ * matching the target instead of the andi-in-delay-slot form. RESIDUAL
+ * (~2.4%): the frame is 8 bytes too big (the ghost-spill-slot cap shared
+ * with func_80000D2C/func_80007698) + the func_8000969C-class prologue
+ * schedule (lw s0 vs lw a0, sw s1 position) + t-reg renumber. All
+ * remaining are RA/scheduling caps. */
 #ifdef NON_MATCHING
 s32 func_80009474(s32* msg) {
     register s32* p;
@@ -268,7 +272,10 @@ s32 func_80009474(s32* msg) {
     func_800091F0(0);
     func_80006A50(0x04040004, ((u32*)p)[0x24]);
     func_80006A50(0x04040000, ((u32*)p)[0x25]);
-    func_80006A50(0x04080000, ((u32*)p)[0x27] & 0xFFF);
+    {
+        s32 masked = ((u32*)p)[0x27] & 0xFFF;
+        func_80006A50(0x04080000, masked);
+    }
     func_80006A50(0x0404000C, ((u32*)p)[0x28]);
     func_80006A50(0x04040010, ((u32*)p)[0x29]);
     hdr.field_0C = p[3];
