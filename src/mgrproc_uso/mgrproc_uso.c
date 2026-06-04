@@ -34,7 +34,7 @@ typedef struct { int a, b, c, d; } Quad4;
  * into the Yay0 block before compression. See the block1 yay0 rule. func_000009A8
  * is byte-matched at -O0 there. */
 
-void mgrproc_uso_func_00000AE0(void) {
+mgrproc_uso_func_00000AE0() {
     gl_func_00000000(*(int*)(&D_00000000 + 0x30));
     gl_func_00000000(*(int*)((char*)*(int**)(&D_00000000 + 0x30) + 0x6AC));
     gl_func_00000000(&D_00000000);
@@ -1255,23 +1255,23 @@ void mgrproc_uso_func_000023FC(char *arg0) {
     sp118 = 1.0f;
     sp11C = 1.0f;
     if (FW(arg0, 0x4F8) != 2) {
-        ((int(*)())mgrproc_uso_func_00000AE0)(0);
-        ((int(*)())mgrproc_uso_func_00000AE0)(0, (s32) (255.0f * FW(arg0, 0x7A0)), &sp110);
-        ((int(*)())mgrproc_uso_func_00000AE0)(0, 0xA0, (f32 *)0x8C, (char *)3);
+        mgrproc_uso_func_00000AE0(0);
+        mgrproc_uso_func_00000AE0(0, (s32) (255.0f * FW(arg0, 0x7A0)), &sp110);
+        mgrproc_uso_func_00000AE0(0, 0xA0, (f32 *)0x8C, (char *)3);
     }
-    ((int(*)())mgrproc_uso_func_00000AE0)(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x338, (int)arg0 + 0x35C);
+    mgrproc_uso_func_00000AE0(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x338, (int)arg0 + 0x35C);
     FW(arg0, 0x508) = (s32) (FW(arg0, 0x508) + 1);
     if (FW(arg0, 0x4F8) == 0) {
         temp_s0 = (int)arg0 + 0x728;
-        if (((int(*)())mgrproc_uso_func_00000AE0)(FW(arg0, 0x6A8)) != 0) {
+        if (mgrproc_uso_func_00000AE0(FW(arg0, 0x6A8)) != 0) {
             temp_s0_2 = (int)arg0 + 0x740;
             if (FW(arg0, 0x508) & 8) {
-                ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0_2);
-                ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0_2, 0xA0, (f32 *)0x78, (char *)3);
+                mgrproc_uso_func_00000AE0(temp_s0_2);
+                mgrproc_uso_func_00000AE0(temp_s0_2, 0xA0, (f32 *)0x78, (char *)3);
             }
         } else {
-            ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0);
-            ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0, 0xA0, (f32 *)0x78, (char *)3);
+            mgrproc_uso_func_00000AE0(temp_s0);
+            mgrproc_uso_func_00000AE0(temp_s0, 0xA0, (f32 *)0x78, (char *)3);
         }
     }
     if ((FW(arg0, 0x508) & 8) && (FW(FW(arg0, 0x528), 0x14) & 1)) {
@@ -1279,20 +1279,20 @@ void mgrproc_uso_func_000023FC(char *arg0) {
         sp60 = (s32) FW(temp_t5, 0x30) / 60000;
         sp5C = (s32) (FW(temp_t5, 0x30) % 60000) / 1000;
         temp_s0_3 = (s32) ((FW(temp_t5, 0x30) % 60000) % 1000) / 10;
-        ((int(*)())mgrproc_uso_func_00000AE0)(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        mgrproc_uso_func_00000AE0(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
         temp_a0 = (int)arg0 + 0x788;
         sp44 = temp_a0;
-        ((int(*)())mgrproc_uso_func_00000AE0)(temp_a0);
+        mgrproc_uso_func_00000AE0(temp_a0);
         temp_s1 = (int)arg0 + 0x770;
         temp_s2 = (s16) FW(FW(arg0, 0x798), 0x20) / 12;
-        ((int(*)())mgrproc_uso_func_00000AE0)(temp_s1);
-        ((int(*)())mgrproc_uso_func_00000AE0)(&sp90, 0x640, (f32 *) sp60, (char *) sp5C, temp_s0_3);
-        temp_v0 = ((int(*)())mgrproc_uso_func_00000AE0)(&sp90);
+        mgrproc_uso_func_00000AE0(temp_s1);
+        mgrproc_uso_func_00000AE0(&sp90, 0x640, (f32 *) sp60, (char *) sp5C, temp_s0_3);
+        temp_v0 = mgrproc_uso_func_00000AE0(&sp90);
         temp_v1 = FW(FW(arg0, 0x780), 0x20);
         temp_a1 = 0xA0 - ((s32) (temp_v1 + (temp_v0 * 0xD) + 8) / 2);
         sp4C = temp_v1 + temp_a1 + 8;
         sp54 = temp_v0;
-        ((int(*)())mgrproc_uso_func_00000AE0)(temp_s1, temp_a1, (f32 *)0xBE, (char *)2);
+        mgrproc_uso_func_00000AE0(temp_s1, temp_a1, (f32 *)0xBE, (char *)2);
         var_t2 = temp_v0;
         var_s0 = &sp90;
         var_t0 = 0;
@@ -1311,7 +1311,7 @@ void mgrproc_uso_func_000023FC(char *arg0) {
                 sp54 = var_t2;
                 sp30 = var_t1;
                 sp38 = var_t0;
-                ((int(*)())mgrproc_uso_func_00000AE0)(sp44, var_s1, 0xBE - ((s16) FW(FW(arg0, 0x798), 0x22) / 2), (char *) (*(int*)var_s0 * temp_s2), temp_s2);
+                mgrproc_uso_func_00000AE0(sp44, var_s1, 0xBE - ((s16) FW(FW(arg0, 0x798), 0x22) / 2), (char *) (*(int*)var_s0 * temp_s2), temp_s2);
                 var_t0 += 0xD;
                 var_s0 += 1;
                 var_s1 += 0xD;
@@ -1322,12 +1322,12 @@ void mgrproc_uso_func_000023FC(char *arg0) {
     if ((FW(FW(arg0, 0x528), 0x14) & 1) && (FW(arg0, 0x4FC) != 0) && (FW(FW((*(char *)0x138), 0x44), 0x38) < 3)) {
         var_s0_2 = 1;
     }
-    ((int(*)())mgrproc_uso_func_00000AE0)(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x2F0, (int)arg0 + 0x314);
+    mgrproc_uso_func_00000AE0(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x2F0, (int)arg0 + 0x314);
     temp_s0_4 = (int)arg0 + 0x758;
     if (var_s0_2 != 0) {
-        ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0_4);
+        mgrproc_uso_func_00000AE0(temp_s0_4);
         if (FW(arg0, 0x508) & 8) {
-            ((int(*)())mgrproc_uso_func_00000AE0)(temp_s0_4, 0xA0, (f32 *)0xA0, (char *)3);
+            mgrproc_uso_func_00000AE0(temp_s0_4, 0xA0, (f32 *)0xA0, (char *)3);
         }
     }
 }
@@ -1719,18 +1719,18 @@ void mgrproc_uso_func_00002EF0(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 *
     FW(arg0, 0xC8) = (f32) (255.0f / 255.0f);
     FW(arg0, 0xD0) = (f32) (0.0f / 255.0f);
     if (FW(arg1, 0x4F0) & 0x10000) {
-        ((int(*)())mgrproc_uso_func_00000AE0)((char *)0xE8, (char *)0x13, FW(arg0, 0x44) + 0x10);
-        ((int(*)())mgrproc_uso_func_00000AE0)(arg0, (char *)0x123, 0xE1U, (char *)0xD);
-        ((int(*)())mgrproc_uso_func_00000AE0)(arg0, (char *)0x47, 0x13U, (int)arg0 + 0x30);
-        ((int(*)())mgrproc_uso_func_00000AE0)(arg0, (char *)0x44, 0x26U, FW(arg0, 0x44) + 0x28);
-        sp24 = ((int(*)())mgrproc_uso_func_00000AE0)(*(int*)(FW(arg0, 0x4C)) + (*(s32 *)0x64 * 0x30), 0);
-        temp_v0 = ((int(*)())mgrproc_uso_func_00000AE0)(0, FW(arg0, 0x60));
+        mgrproc_uso_func_00000AE0((char *)0xE8, (char *)0x13, FW(arg0, 0x44) + 0x10);
+        mgrproc_uso_func_00000AE0(arg0, (char *)0x123, 0xE1U, (char *)0xD);
+        mgrproc_uso_func_00000AE0(arg0, (char *)0x47, 0x13U, (int)arg0 + 0x30);
+        mgrproc_uso_func_00000AE0(arg0, (char *)0x44, 0x26U, FW(arg0, 0x44) + 0x28);
+        sp24 = mgrproc_uso_func_00000AE0(*(int*)(FW(arg0, 0x4C)) + (*(s32 *)0x64 * 0x30), 0);
+        temp_v0 = mgrproc_uso_func_00000AE0(0, FW(arg0, 0x60));
         FW(arg0, 0xC0) = temp_v0;
-        ((int(*)())mgrproc_uso_func_00000AE0)(temp_v0, (char *) FW(sp24, 0x5), FW(sp24, 0x6), (char *) FW(sp24, 0x7));
-        ((int(*)())mgrproc_uso_func_00000AE0)(FW(arg0, 0xC0), (char *)0x4B, 0xD6U);
+        mgrproc_uso_func_00000AE0(temp_v0, (char *) FW(sp24, 0x5), FW(sp24, 0x6), (char *) FW(sp24, 0x7));
+        mgrproc_uso_func_00000AE0(FW(arg0, 0xC0), (char *)0x4B, 0xD6U);
         temp_a1 = FW(arg0, 0xC0);
         sp2C = temp_a1;
-        ((int(*)())mgrproc_uso_func_00000AE0)((int)arg0 + 0x10, temp_a1);
+        mgrproc_uso_func_00000AE0((int)arg0 + 0x10, temp_a1);
         if (FW(temp_a1, 0x14) != 0) {
             FW(temp_a1, 0x4) = 1;
         }
