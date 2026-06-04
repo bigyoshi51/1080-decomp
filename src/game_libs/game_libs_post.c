@@ -17462,7 +17462,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034180);
 //     int (*f)() = h->fp_1C;
 //     int v = f(h->h_18 + (int)h);             // jalr h->0x1C
 //     callback0(); callback0();                // jal 0 x2
-//     while (v < 0x1E0) {                       // poll (< 480)
+//     while ((u32)v < 0x1E0) {                       // poll (< 480)
 //       callback0();
 //       v = ...;                                // re-read status
 //     }
@@ -17509,7 +17509,7 @@ void gl_func_00034188(void) {
     v = f(h + *(int *)(h + 0x18));
     gl_func_00000000();
     gl_func_00000000();
-    while (v < 0x1E0) {
+    while ((u32)v < 0x1E0) {
         gl_func_00000000();
     }
     g = *(char **)((char *)&D_00000000 + 0x240);
