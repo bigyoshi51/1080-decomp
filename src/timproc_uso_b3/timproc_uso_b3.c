@@ -32,7 +32,7 @@ typedef struct { int a, b, c, d; } Quad4;
  * state 4/6/8/9 loop by writing D[0x40]; all other decoded arms set done.
  * Current score: 36.09% (up from 3.36%). Tried volatile stack locals
  * (regressed to 32.28%) and a forced -O0 probe (blocked by pad sidecars). */
-void timproc_uso_b3_func_000000B0(int *a0, int a1) {
+timproc_uso_b3_func_000000B0(a0, a1) int * a0; int a1; {
     int done;
     int tmp;
     int *node;
@@ -798,20 +798,20 @@ void timproc_uso_b3_func_000013B8(char *arg0, s32 arg1, f32 *arg2) {
     sp140 = 1.0f;
     sp144 = 1.0f;
     if (FW(FW(arg0, 0x528), 0x14) & 2) {
-        ((int(*)())timproc_uso_b3_func_000000B0)(0, (s32) (255.0f * FW(arg0, 0x72C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        timproc_uso_b3_func_000000B0(0, (s32) (255.0f * FW(arg0, 0x72C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
         temp_s7 = (int)arg0 + 0x714;
-        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s7);
+        timproc_uso_b3_func_000000B0(temp_s7);
         temp_s1 = (int)arg0 + 0x6CC;
         temp_s5 = (s16) FW(FW(arg0, 0x724), 0x20) / 12;
-        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s1);
+        timproc_uso_b3_func_000000B0(temp_s1);
         temp_s2 = (int)arg0 + 0x6B4;
-        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s2);
+        timproc_uso_b3_func_000000B0(temp_s2);
         temp_s0 = (int)arg0 + 0x6FC;
-        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s0);
-        ((int(*)())timproc_uso_b3_func_000000B0)(&spB8, 0x3D8, arg2);
+        timproc_uso_b3_func_000000B0(temp_s0);
+        timproc_uso_b3_func_000000B0(&spB8, 0x3D8, arg2);
         sp64 = temp_s1;
         sp60 = temp_s2;
-        temp_v0 = ((int(*)())timproc_uso_b3_func_000000B0)(&spB8);
+        temp_v0 = timproc_uso_b3_func_000000B0(&spB8);
         temp_t3 = FW(arg0, 0x70C);
         temp_t1 = FW(arg0, 0x6DC);
         temp_t2 = FW(arg0, 0x6C4);
@@ -823,22 +823,22 @@ void timproc_uso_b3_func_000013B8(char *arg0, s32 arg1, f32 *arg2) {
         sp90 = temp_s2_2;
         sp94 = temp_s1_2;
         sp58 = temp_a2;
-        ((int(*)())timproc_uso_b3_func_000000B0)(temp_s0, temp_a1, temp_a2, (char *)2);
+        timproc_uso_b3_func_000000B0(temp_s0, temp_a1, temp_a2, (char *)2);
         var_s0 = &spB8;
         if (temp_v0 > 0) {
             var_s1 = 0;
             var_s2 = sp88;
             do {
                 *var_s0 -= 0x30;
-                ((int(*)())timproc_uso_b3_func_000000B0)(temp_s7, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x724), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s5), temp_s5);
+                timproc_uso_b3_func_000000B0(temp_s7, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x724), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s5), temp_s5);
                 var_s1 += 0xD;
                 var_s0 += 1;
                 var_s2 += 0xD;
             } while (var_s1 != (temp_v0 * 0xD));
         }
-        ((int(*)())timproc_uso_b3_func_000000B0)(0, (s32) (255.0f * FW(arg0, 0x72C)), &sp138);
-        ((int(*)())timproc_uso_b3_func_000000B0)(sp64, sp90, sp58, (char *)2);
-        ((int(*)())timproc_uso_b3_func_000000B0)(sp60, sp94, sp58, (char *)2);
+        timproc_uso_b3_func_000000B0(0, (s32) (255.0f * FW(arg0, 0x72C)), &sp138);
+        timproc_uso_b3_func_000000B0(sp64, sp90, sp58, (char *)2);
+        timproc_uso_b3_func_000000B0(sp60, sp94, sp58, (char *)2);
     }
 }
 #else
