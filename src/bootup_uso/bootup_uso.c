@@ -5277,7 +5277,86 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B49C);
  * deref chain + Vec3 stack-copy shuffles. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0000B520)();
+typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_0000B520;
+void func_0000B520(char *arg0) {
+    Q_0000B520 sp50;
+    Q_0000B520 sp5C;
+    Q_0000B520 sp74;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f0_3;
+    f32 temp_f0_4;
+    f32 temp_f14;
+    f32 var_f12;
+    f32 var_f2;
+    f32 var_f2_2;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+
+    var_f2 = 0.0f;
+    if (FW(arg0, 0xA58) & 0x100) {
+        temp_v0 = FW(arg0, 0x800);
+        if (FW(temp_v0, 0x10) & 4) {
+            var_f2 = 0.0f + 10.0f;
+        }
+        if (FW(temp_v0, 0x10) & 8) {
+            var_f2 -= 10.0f;
+        }
+    }
+    temp_v0_2 = (int)arg0 + 0x3C8;
+    var_f12 = (*(f32*)((char*)temp_v0_2 + 0x4)) * var_f2;
+    temp_f14 = (*(f32*)((char*)temp_v0_2 + 0x8)) * var_f2;
+    sp50.unk0 = (*(f32*)((char*)arg0 + 0x3C8)) * var_f2;
+    sp50.unk4 = var_f12;
+    sp50.unk8 = temp_f14;
+    sp5C.unk0 = (f32) sp50.unk0;
+    sp5C.unk4 = (s32) sp50.unk4;
+    sp5C.unk8 = (s32) sp50.unk8;
+    sp74.unk0 = sp5C.unk0;
+    sp74.unk4 = (s32) sp5C.unk4;
+    sp74.unk8 = (s32) sp5C.unk8;
+    (*(f32*)((char*)arg0 + 0x318)) = (f32) ((*(f32*)((char*)arg0 + 0x318)) + sp74.unk0);
+    (*(f32*)((char*)arg0 + 0x31C)) = (f32) ((*(f32*)((char*)arg0 + 0x31C)) + sp74.unk4);
+    (*(f32*)((char*)arg0 + 0x320)) = (f32) ((*(f32*)((char*)arg0 + 0x320)) + sp74.unk8);
+    if (FW(arg0, 0xA58) & 0x20000) {
+        temp_v0_3 = FW(arg0, 0x908);
+        var_f2_2 = (*(f32*)((char*)arg0 + 0x768));
+        if (temp_v0_3 != 0) {
+            var_f12 = (*(f32*)((char*)&D_00000000 + 0x48));
+            temp_f0 = (*(f32*)((char*)temp_v0_3 + 0xBC)) - (*(f32*)((char*)arg0 + 0xBC));
+            if (var_f12 < temp_f0) {
+                var_f2_2 += (*(f32*)((char*)&D_00000000 + 0x44));
+            } else if (temp_f0 < -var_f12) {
+                var_f2_2 -= (*(f32*)((char*)&D_00000000 + 0x44));
+            }
+        }
+        temp_f0_2 = (*(f32*)((char*)arg0 + 0xA78));
+        (*(f32*)((char*)arg0 + 0xA78)) = (f32) ((f64) temp_f0_2 + ((f64) (var_f2_2 - temp_f0_2) * (*(f64*)((char*)&D_00000000 + 0xC))));
+    } else {
+        (*(f32*)((char*)arg0 + 0xA78)) = (f32) (*(f32*)((char*)arg0 + 0x768));
+    }
+    if ((*(f32*)((char*)arg0 + 0xA78)) < (*(f32*)((char*)arg0 + 0x348))) {
+        ((GP_0000B520)func_00000000)(var_f12, temp_f14, (int)arg0 + 0x318, arg0);
+        temp_f0_3 = (*(f32*)((char*)arg0 + 0xA78));
+        (*(f32*)((char*)arg0 + 0x318)) = (f32) ((*(f32*)((char*)arg0 + 0x318)) * temp_f0_3);
+        (*(f32*)((char*)arg0 + 0x31C)) = (f32) ((*(f32*)((char*)arg0 + 0x31C)) * temp_f0_3);
+        (*(f32*)((char*)arg0 + 0x320)) = (f32) ((*(f32*)((char*)arg0 + 0x320)) * temp_f0_3);
+    }
+    if (FW(arg0, 0x938) == 0) {
+        temp_f0_4 = 1.0f - (*(f32*)((char*)arg0 + 0x6C0));
+        (*(f32*)((char*)arg0 + 0x318)) = (f32) ((*(f32*)((char*)arg0 + 0x318)) * temp_f0_4);
+        (*(f32*)((char*)arg0 + 0x320)) = (f32) ((*(f32*)((char*)arg0 + 0x320)) * temp_f0_4);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
+#endif
 
 // func_0000B75C — STRUCTURAL PASS (0x830 / 524 insns, no episode).
 // Per-frame camera/transform interpolation update over a large scene-
