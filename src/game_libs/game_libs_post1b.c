@@ -3121,7 +3121,7 @@ void gl_func_00067264(int *self) {
     int i;
     int counter = self[0x13F0 / 4];
     self[0x13F0 / 4] = counter + 1;
-    if (counter < 31) return;                  // (sltiu < 31 → branch when not yet 31+)
+    if ((u32)counter < 31U) return;                  // (sltiu < 31 → branch when not yet 31+)
     self[0x13F0 / 4] = 0;
     slot_mask = 0;
     gl_func_00000000((char*)self + 0x11B0, &slot_mask);
