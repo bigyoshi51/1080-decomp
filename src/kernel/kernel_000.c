@@ -715,7 +715,43 @@ s32 func_800005DC(void *buf, u32 count, u32 chunkSize, FileStateRdr *file) {
  * Branches that previously crossed fragment boundaries (b .L80000678 from
  * 5DC and 60C, beqz .L8000066C from 60C) now land in the single merged
  * file's .L labels. */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+/* Bounded read/transfer: require arg0 (handle/addr) 8-aligned (else errno
+ * D_80013004 = -0x1C). Compute requested size arg1*arg2, clamp to the stream's
+ * remaining (limit unk1C - position unk4); if nothing left return 0. Otherwise
+ * DMA via the D_80012C40 ReadFunc (handle, buf=unkC+pos, size), advance the
+ * position (unk4 += size), and return the bytes transferred. */
+s32 func_800005DC(s32 arg0, s32 arg1, s32 arg2, void *arg3) {
+    s32 var_a2;
+    s32 var_v1;
+    u32 temp_a0;
+
+    if (arg0 & 7) {
+        D_80013004 = -0x1C;
+        return -0x1C;
+    }
+    var_v1 = FW(arg3, 4);
+    temp_a0 = *(u32 *)((char *)arg3 + 0x1C);
+    var_a2 = arg1 * arg2;
+    if (temp_a0 < (u32) (var_a2 + var_v1)) {
+        var_a2 = temp_a0 - var_v1;
+    }
+    if (var_a2 < 0) {
+        return 0;
+    }
+    if (var_a2 != 0) {
+        D_80012C40((void *) arg0, (u32) (FW(arg3, 0xC) + var_v1), (void *) var_a2);
+        var_v1 = FW(arg3, 4);
+    }
+    FW(arg3, 4) = var_v1 + var_a2;
+    return var_a2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800005DC);
+#endif
 #endif
 
 /* uso_advance_position */
