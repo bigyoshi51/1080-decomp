@@ -15901,21 +15901,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031784);
 int game_libs_func_000317F0(int *a0) {
     int counter;
     unsigned short *p;
-    unsigned short cmd;
-    unsigned short arg;
+    int cmd = 0;
+    int ret = 0;
     counter = *(int*)((char*)a0 + 0x48) - 1;
     *(int*)((char*)a0 + 0x48) = counter;
-    if (counter != 0) return 0;
+    if (counter != 0) goto end;
     p = *(unsigned short**)((char*)a0 + 0x50);
-    cmd = *p++;
-    *(unsigned short**)((char*)a0 + 0x50) = p;
-    if (cmd != 0) {
-        arg = *p++;
-        *(unsigned short**)((char*)a0 + 0x50) = p;
-        *(int*)((char*)a0 + 0x48) = arg;
-    }
+    cmd = *p;
+    *(unsigned short**)((char*)a0 + 0x50) = p + 1;
+    ret = 1;
+    if (cmd == 0) goto end;
+    *(int*)((char*)a0 + 0x48) = p[1];
+    *(unsigned short**)((char*)a0 + 0x50) = p + 2;
+end:
     *(unsigned short*)((char*)a0 + 0x60) = cmd;
-    return 1;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000317F0);
