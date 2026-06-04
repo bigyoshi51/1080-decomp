@@ -6167,21 +6167,55 @@ void gl_func_0003CB6C(char *a0, int a1, int a2, float a3, float a4) {
 //   per-axis abs-delta proximity test only. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-int gl_func_0003CBB4(char *a, char *b, int c) {
+/* 2026-06-04 RECONSTRUCT via Ghidra: collision/overlap test with response.
+ * a=param_1, b=param_2 (objects), out=param_3 (Vec4 contact). Gate b->0x8==1
+ * else virtual-dispatch via b->0x30 vtable. Open: dir[] (sp+0x78/7C/80) source. */
+int gl_func_0003CBB4(char *a, char *b, float *out) {
+    float adx, ady, adz;
     float dx, dy, dz;
-    float BOUND = 1000.0f;
-    if (*(int *)(b + 0x08) != 1) return 0;
-    dx = *(float *)(a + 0x20) - *(float *)(b + 0x20);
-    if (dx < 0.0f) dx = -dx;
-    if (dx >= BOUND) return 0;
-    dy = *(float *)(a + 0x24) - *(float *)(b + 0x24);
-    if (dy < 0.0f) dy = -dy;
-    if (dy >= BOUND) return 0;
-    dz = *(float *)(a + 0x28) - *(float *)(b + 0x28);
-    if (dz < 0.0f) dz = -dz;
-    if (dz >= BOUND) return 0;
-    (void)c;
-    return 1;
+    float dir0, dir1, dir2;
+    int hit;
+    int r = 0;
+    if (*(int *)(b + 0x08) == 1) {
+        adx = *(float *)(a + 0x20) - *(float *)(b + 0x20);
+        if (adx < 0.0f) adx = -adx;
+        if (adx < 1000.0f) {
+            ady = *(float *)(a + 0x18) - *(float *)(b + 0x18);
+            if (ady < 0.0f) ady = -ady;
+            if (ady < 1000.0f) {
+                adz = *(float *)(a + 0x1c) - *(float *)(b + 0x1c);
+                if (adz < 0.0f) adz = -adz;
+                if (adz < *(float *)(a + 0x38) + *(float *)(b + 0x38)) {
+                    dx = *(float *)(a + 0x24) - *(float *)(b + 0x24);
+                    dy = *(float *)(a + 0x28) - *(float *)(b + 0x28);
+                    dz = *(float *)(a + 0x2c) - *(float *)(b + 0x2c);
+                    r = 0;
+                    hit = gl_func_00000000();
+                    if (hit == 0) {
+                        if ((*(unsigned int *)(b + 0x10) & 1) != 0) {
+                            out[0] = 0.0f; out[1] = 0.0f;
+                            out[2] = 0.0f; out[3] = 0.0f;
+                            r = 1;
+                        }
+                    } else {
+                        gl_func_00000000(dx * dx + dy * dy + dz * dz);
+                        out[3] = -(dx * dir0 + dy * dir1 + dz * dir2);
+                        if (0.0f < out[3]) {
+                            gl_func_00000000(&ady);
+                            r = 1;
+                            out[0] = dir0;
+                            out[1] = dir1;
+                            out[2] = dir2;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        r = (*(int (**)())(*(int *)(b + 0x30) + 0xc))(
+                *(short *)(*(int *)(b + 0x30) + 8) + b, a, out);
+    }
+    return r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CBB4);
