@@ -1323,7 +1323,7 @@ s32 *gl_func_0001E134(s32 arg0, u8 *arg1, u8 *arg2, int arg3, u32 arg4, s32 *arg
     var_t1 = 0;
     temp_a3 = (arg0 * 0xD0) + *(s32 *)0x2CFC;
     if (((u32) (temp_v1 * 2) >> 0x1F) == 1) {
-        FW(arg2, 0x0) = 0;
+        *(u8*)((char*)arg2 + 0x0) = 0;
         FW(arg2, 0x8) = 0;
         FW(arg2, 0x6) = 0U;
         FW(arg2, 0x10) = 0;
@@ -1487,7 +1487,7 @@ block_41:
                         var_s3_2 += 8;
                         FW(temp_v0_8, 0x4) = (s32) (FW(sp150, 0x8) + 0x80000010);
                         sp138 = 2;
-                        FW(arg2, 0x0) = 0;
+                        *(u8*)((char*)arg2 + 0x0) = 0;
                     }
                     temp_v0_9 = (u32) FW(sp150, 0x0) >> 0x1C;
                     if (var_t3_2 == 0) {
