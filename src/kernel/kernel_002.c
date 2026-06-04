@@ -13,7 +13,11 @@
  * and if ct != 0, loops osRecvMesg until accumulated recv > 0.
  * Final osSendMesg releases the queue.
  *
- * Initial structural decode - no register tuning yet. */
+ * Initial structural decode - no register tuning yet.
+ * 2026-06-04: kernel_002 flipped to -O1 (mis-flagged -O2). func_80004B10
+ * 73->96.2%, func_80004BE0 62->82.3% (both spill every local); the other
+ * two funcs are INCLUDE_ASM. Residual ~4% here is the -O1 loop-accumulator
+ * spill detail (sp+0x28 reload + bnez-on-accumulator). */
 extern int func_800053D0(void*, void*, int);
 extern int func_800051E0(int, void*, int);
 extern int func_800066F0(void*, int, int);

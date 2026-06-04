@@ -191,6 +191,7 @@ build/src/kernel/kernel_051.c.o build/non_matching/src/kernel/kernel_051.c.o: OP
 build/src/kernel/kernel_052.c.o build/non_matching/src/kernel/kernel_052.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_053.c.o build/non_matching/src/kernel/kernel_053.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_054.c.o build/non_matching/src/kernel/kernel_054.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_002.c.o build/non_matching/src/kernel/kernel_002.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_018.c.o build/non_matching/src/kernel/kernel_018.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_018_o2.c.o build/non_matching/src/kernel/kernel_018_o2.c.o: OPT_FLAGS := -O2
 build/src/kernel/kernel_006.c.o build/non_matching/src/kernel/kernel_006.c.o: OPT_FLAGS := -O1
