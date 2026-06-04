@@ -551,6 +551,64 @@ INCLUDE_ASM("asm/nonmatchings/kernel", __osSetFpcCsr);
  * + per-field beq compares + busy-wait loop. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+extern void *D_8000A470;
+/* PI raw cartridge read with BSD domain register setup. Wait for PI not-busy
+ * (PI_STATUS 0xA4600010 & 3), then if this handle isn't the cached one for its
+ * domain (arg0->unk9, the D_8000A470[domain] slot), reprogram the domain's BSD
+ * timing registers that changed (latency unk5, pagesize unk6, release unk7,
+ * pulse unk8 -> dom0 0xA4600014/1C/20/18 or dom1 0xA4600024/2C/30/28) and cache
+ * the handle. Finally read the cartridge word at (base | offset | 0xA0000000). */
+s32 func_80009850(void *arg0, s32 arg1, s32 *arg2) {
+    void *sp4;
+    u8 temp_t0;
+    void *temp_t7;
+
+    if (*(volatile u32 *) 0xA4600010 & 3) {
+        do {
+        } while (*(volatile u32 *) 0xA4600010 & 3);
+    }
+    temp_t0 = *(u8 *)((char *) arg0 + 9);
+    if (((void **) &D_8000A470)[temp_t0] != arg0) {
+        temp_t7 = ((void **) &D_8000A470)[temp_t0];
+        sp4 = temp_t7;
+        if (temp_t0 == 0) {
+            if (*(u8 *)((char *) temp_t7 + 5) != *(u8 *)((char *) arg0 + 5)) {
+                *(volatile s32 *) 0xA4600014 = *(u8 *)((char *) arg0 + 5);
+            }
+            if (*(u8 *)((char *) sp4 + 6) != *(u8 *)((char *) arg0 + 6)) {
+                *(volatile s32 *) 0xA460001C = *(u8 *)((char *) arg0 + 6);
+            }
+            if (*(u8 *)((char *) sp4 + 7) != *(u8 *)((char *) arg0 + 7)) {
+                *(volatile s32 *) 0xA4600020 = *(u8 *)((char *) arg0 + 7);
+            }
+            if (*(u8 *)((char *) sp4 + 8) != *(u8 *)((char *) arg0 + 8)) {
+                *(volatile s32 *) 0xA4600018 = *(u8 *)((char *) arg0 + 8);
+            }
+        } else {
+            if (*(u8 *)((char *) sp4 + 5) != *(u8 *)((char *) arg0 + 5)) {
+                *(volatile s32 *) 0xA4600024 = *(u8 *)((char *) arg0 + 5);
+            }
+            if (*(u8 *)((char *) sp4 + 6) != *(u8 *)((char *) arg0 + 6)) {
+                *(volatile s32 *) 0xA460002C = *(u8 *)((char *) arg0 + 6);
+            }
+            if (*(u8 *)((char *) sp4 + 7) != *(u8 *)((char *) arg0 + 7)) {
+                *(volatile s32 *) 0xA4600030 = *(u8 *)((char *) arg0 + 7);
+            }
+            if (*(u8 *)((char *) sp4 + 8) != *(u8 *)((char *) arg0 + 8)) {
+                *(volatile s32 *) 0xA4600028 = *(u8 *)((char *) arg0 + 8);
+            }
+        }
+        ((void **) &D_8000A470)[temp_t0] = arg0;
+    }
+    *arg2 = *(s32 *)(FW(arg0, 0xC) | arg1 | 0xA0000000);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009850);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800099F0);
