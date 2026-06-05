@@ -7032,8 +7032,8 @@ extern int D_00000000;
 // 0xFE terminator. Residual is the IDO stack-cursor spill cap.
 void gl_func_0006D6F4(int a0) {
     unsigned char tmpl[8];
-    unsigned char *dst;
-    int i;
+    unsigned char *volatile dst;
+    volatile int i;
     a0 = a0 & 0xFF;
     i = *(unsigned char *)&D_00000000;
     *(char *)&D_00000000 = a0;
