@@ -8252,13 +8252,12 @@ void timproc_uso_b5_func_0000D058(int *a0, float a1) {
     *(float*)((char*)*(int**)((char*)a0 + 0x2B8) + 0x11C) = a1;
 }
 
-#ifdef NON_MATCHING
-/* 72.21% NM. Sibling of A97C/A9EC family — same 23-insn loop with branch-likely
- * preload structural cap. Different outer offsets (this variant):
- *   count: a0->0x6C (was a0->0x3C in A97C)
- *   slot ptr: a0->0x3C (was a0->0x40 in A97C)
- *   fn ptr at slot->0x28->0x4C, short arg at slot->0x28->0x48 (same as A97C)
- * Same do-while + branch-likely-preload cap. */
+/* MATCHED (byte-exact, 28/28). Sibling of the A97C/A9EC family — the prior
+ * "72.21% branch-likely-preload cap" was cracked by the `if (1) {}` BB-boundary
+ * lever (flips the cursor-read $v0/$v1 allocation; see
+ * docs/IDO_CODEGEN.md#if-1-around-an-inner-block...). Outer offsets (this
+ * variant): count a0->0x6C, slot ptr a0->0x3C; inner fn ptr slot->0x28->0x4C,
+ * short arg slot->0x28->0x48. */
 void timproc_uso_b5_func_0000D06C(char *a0) {
     int i;
     char *p;
@@ -8278,15 +8277,11 @@ void timproc_uso_b5_func_0000D06C(char *a0) {
         p += 4;
     } while (i < *(int*)(a0 + 0x6C));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D06C);
-#endif
 
-#ifdef NON_MATCHING
-/* 72.21% NM. Sibling of A97C/A9EC/D06C — same 23-insn loop with branch-likely
- * preload cap. Outer offsets same as D06C (count=a0->0x6C, slot=a0->0x3C);
- * inner offsets fn ptr=slot->0x28->0xE4, short arg=slot->0x28->0xE0
- * (vs D06C's 0x4C/0x48). */
+/* MATCHED (byte-exact, 28/28). Sibling of A97C/A9EC/D06C — same loop cracked
+ * by the `if (1) {}` BB-boundary lever (was "72.21% branch-likely-preload cap").
+ * Outer offsets same as D06C (count=a0->0x6C, slot=a0->0x3C); inner fn ptr
+ * slot->0x28->0xE4, short arg slot->0x28->0xE0 (vs D06C's 0x4C/0x48). */
 void timproc_uso_b5_func_0000D0DC(char *a0) {
     int i;
     char *p;
@@ -8306,9 +8301,6 @@ void timproc_uso_b5_func_0000D0DC(char *a0) {
         p += 4;
     } while (i < *(int*)(a0 + 0x6C));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D0DC);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000D14C: 257-insn / 0x404 constructor.
