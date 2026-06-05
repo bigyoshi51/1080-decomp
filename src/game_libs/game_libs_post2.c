@@ -162,6 +162,7 @@ s32 gl_func_00071384(u16 *arg0, u16 *arg1, u16 *arg2) {
     sp60 = game_libs_func_00070FCC(arg0, arg2);
     game_libs_func_00070FCC();
     if (sp60 != 0) {
+        return sp60;
     }
     FW(arg1, 0x4) = arg0;
     FW(arg1, 0x8) = arg2;
@@ -169,32 +170,33 @@ s32 gl_func_00071384(u16 *arg0, u16 *arg1, u16 *arg2) {
     FW(arg1, 0x65) = 0;
     sp60 = game_libs_func_00070FCC(arg1);
     if (sp60 != 0) {
+        return sp60;
     }
     sp60 = game_libs_func_00070FCC(FW(arg1, 0x4), FW(arg1, 0x8), (u16 *)1, &sp3C);
     if (sp60 != 0) {
+        return sp60;
     }
     game_libs_func_00070FCC(&sp3C, &sp5E, &sp5C);
     sp38 = &sp3C;
     if (((*(u16*)((char*)&sp3C + 0x1C)) != sp5E) || ((*(u16*)((char*)&sp3C + 0x1E)) != sp5C)) {
         sp60 = game_libs_func_00070FCC(arg1, sp38);
         if (sp60 != 0) {
+            return sp60;
         }
         if (sp60 != 0) {
+            return sp60;
         }
-        goto block_12;
     }
-block_12:
     if (!(FW(sp38, 0x18) & 1)) {
         sp60 = game_libs_func_00070FCC(arg1, sp38, &sp18);
         if (sp60 != 0) {
+            return sp60;
         }
         sp38 = &sp18;
         if (!((*(u32*)((char*)&sp18 + 0x18)) & 1)) {
             return 0xB;
         }
-        goto block_17;
     }
-block_17:
     sp64 = 0;
     do {
         FW(((int)arg1 + sp64), 0xC) = (u8) *(int*)(sp38 + sp64);
@@ -210,6 +212,7 @@ block_17:
     FW(arg1, 0x5C) = (s32) (FW(arg1, 0x58) + (FW(arg1, 0x64) * 8));
     sp60 = game_libs_func_00070FCC(FW(arg1, 0x4), FW(arg1, 0x8), (u16 *)7, (int)arg1 + 0x2C);
     if (sp60 != 0) {
+        return sp60;
     }
     temp_v0 = game_libs_func_00070FCC(arg1);
     sp60 = temp_v0;
