@@ -6788,26 +6788,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F98);
 //   pre-checked: no extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int D_00000000;
-int gl_func_00023FA4(int id, int a1, int mode, int size) {
+// Per-slot resource binder. id is the caller-set bounds key (approximated by
+// the slot ptr `s` so only the range-check reg differs); >= 0x11 returns -1.
+// mode selects the buffer base (*(g+0x1644) for 2, *(g+0x1648) for 3, else
+// return 0). size (arg6) is rounded up to 16; the slot's fields are wired
+// (+2=tag byte, +4=arg7, +8=arg5, +0xC=a3, +0x10=aligned size), the bound
+// buffer's +0x14 set to 2, then a global fn-ptr at *(g) is invoked as (buf, s).
+int gl_func_00023FA4(char *s, int tag, int a2, int a3, int arg5, int size, int arg7, int mode) {
     char *g = (char *)&D_00000000;
-    char *s = (char *)id;
-    void *buf;
-    if ((unsigned)id >= 0x11) {
+    char *buf;
+    if ((unsigned int)s >= 0x11) {
         return -1;
     }
     if (mode == 2) {
-        buf = *(void **)(g + 0x1644);
+        buf = *(char **)(g + 0x1644);
     } else if (mode == 3) {
-        buf = *(void **)(g + 0x1648);
+        buf = *(char **)(g + 0x1648);
     } else {
-        buf = 0;
+        return 0;
     }
     if (size & 0xF) {
         size = (size + 0xF) & ~0xF;
     }
-    *(char *)(s + 2) = (char)a1;
-    *(void **)(s + 8) = buf;
-    *(int *)(s + 0xC) = size;
+    *(char *)(s + 2) = (char)tag;
+    *(int *)(s + 4) = arg7;
+    *(int *)(s + 0xC) = a3;
+    *(int *)(s + 0x10) = size;
+    *(int *)(s + 8) = arg5;
+    *(int *)(buf + 0x14) = 2;
+    (*(void (**)(char *, char *))g)(buf, s);
     return 0;
 }
 #else
