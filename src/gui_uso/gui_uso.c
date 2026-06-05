@@ -1726,12 +1726,18 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00004354);
  * Default INCLUDE_ASM keeps ROM exact. Wrap captures entry signature
  * and TEXRECT shape for the next pass. */
 extern int gl_func_00000000();
-/* Whole-body decode 2026-06-01 (was 1.35% stub). 7-arg TEXRECT DL builder.
+/* Whole-body decode 2026-06-01 (was 1.35% stub); alt path faithfully
+ * reconstructed 2026-06-05 (39.8% -> 54.2%). 7-arg TEXRECT DL builder.
  * Main path (a1>=0 && a2>=0): emit 3 RDP cmds — 0xE4 (G_TEXRECT) with
- * 10.2 fixed-point coords ((a1+a3)<<2 etc, mask 0xfff), 0xB4, 0xB3. Alt path
- * (a1<0 || a2<0): same cmds but each coord 16-bit-sign-extended then clamped
- * to >0, plus a multiply-scale on the 0xB4 (approximate). Cmd-emit idiom:
- * st=ctx->0xc; slot=(ctx->0xc->0)+idx*8; bump st->4. Multi-tick tail. */
+ * 10.2 fixed-point coords ((a1+a3)<<2 etc, mask 0xfff), 0xB4 (zero), 0xB3
+ * (a5:a6 pack). Alt path (a1<0 || a2<0): each coord 16-bit-sign-extended +
+ * clamp-to->0; the 0xB4 carries a multiply-SCALE — for each raw coord < 0,
+ * p = ((u32)coord * (u32)(short)scale) >> 7 with a sign clamp whose direction
+ * flips on sign(scale) ((short)a5 for x via lh sp+0x1e, (short)a6 for y via
+ * lh sp+0x22), then slot[1] = (-sx << 16) | (-sy & 0xffff). Cmd-emit idiom:
+ * st=ctx->0xc; slot=(ctx->0xc->0)+idx*8; bump st->4. RESIDUAL ~46%: target
+ * keeps a1/a2/a3 register-resident (frame -8); this C homes them (arg spill) —
+ * regalloc/scheduling, multi-pass. Default INCLUDE_ASM keeps ROM exact. */
 void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) {
     int *s0 = a0;
     int *st, *slot, idx;
@@ -1758,25 +1764,36 @@ void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) 
         slot[0] = 0xB3000000;
         slot[1] = (a5 << 16) | (a6 & 0xFFFF);
     } else {
-        int x1, y1, x0, y0;
-        x1 = (short)((a1 + a3) << 2); if (x1 <= 0) x1 = 0;
-        y1 = (short)((a2 + a4) << 2); if (y1 <= 0) y1 = 0;
-        x0 = (short)(a1 << 2);        if (x0 <= 0) x0 = 0;
-        y0 = (short)(a2 << 2);        if (y0 <= 0) y0 = 0;
+        int x0r = (short)(a1 << 2);          /* raw, reused by the 0xB4 scale */
+        int y0r = (short)(a2 << 2);
+        int sx = 0, sy = 0;
 
         st = (int *)s0[0xC / 4];
         idx = st[1];
         st[1] = idx + 1;
         slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
-        slot[0] = 0xE4000000 | ((x1 & 0xFFF) << 12) | (y1 & 0xFFF);
-        slot[1] = ((x0 & 0xFFF) << 12) | (y0 & 0xFFF);
+        slot[0] = 0xE4000000 |
+                  (((((short)((a1 + a3) << 2)) > 0 ? (short)((a1 + a3) << 2) : 0) & 0xFFF) << 12) |
+                  ((((short)((a2 + a4) << 2)) > 0 ? (short)((a2 + a4) << 2) : 0) & 0xFFF);
+        slot[1] = (((x0r > 0 ? x0r : 0) & 0xFFF) << 12) | ((y0r > 0 ? y0r : 0) & 0xFFF);
+
+        if (x0r < 0) {
+            short m = (short)a5;
+            int p = (int)((u32)x0r * (u32)m) >> 7;
+            sx = (m < 0) ? (p > 0 ? p : 0) : (p < 0 ? p : 0);
+        }
+        if (y0r < 0) {
+            short m = (short)a6;
+            int p = (int)((u32)y0r * (u32)m) >> 7;
+            sy = (m < 0) ? (p > 0 ? p : 0) : (p < 0 ? p : 0);
+        }
 
         st = (int *)s0[0xC / 4];
         idx = st[1];
         st[1] = idx + 1;
         slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
         slot[0] = 0xB4000000;
-        slot[1] = 0;
+        slot[1] = ((-sx) << 16) | ((-sy) & 0xFFFF);
 
         st = (int *)s0[0xC / 4];
         idx = st[1];
