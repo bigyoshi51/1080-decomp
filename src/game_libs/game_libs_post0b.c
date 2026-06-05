@@ -1414,26 +1414,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035648);
 //   variant). Byte-match deferred. Name pre-checked: no extern
 //   reuse.
 #ifdef NON_MATCHING
-void gl_func_000356FC(char *o, int a1, int a2) {
-    int cfg;
-    (void)a1; (void)a2;
-    switch (*(int *)(o + 4)) {
-        case 0:
-            gl_func_00000000((char *)0x0001E608);
-            break;
-        case 1:
-            gl_func_00000000((char *)0x0001E61C, o);
-            cfg = *(int *)0x0004B8E8;
-            if (cfg & 7) {
+extern int D_00000000;
+// Dispatch on o->0x4: kind==1 emits one diagnostic cb(0x1E608) and returns 0;
+// kind==0 tail-returns cb(str,a1,a2); kind==2 is the work arm — reads the
+// device-config word *0x4B8E8, emits cb(0x1E61C,a1,a2,config), and (when a2!=0)
+// runs a cb chain: an (a1&7)-gated cb(0x1E638), cb(&l28,&l24,1), builds a
+// stack frame {+2:0, +4:&l28, +8:a1, +c:config, +10:a2} passed to
+// cb(*0x4B8EC,&frame,1) after a bare flush cb(), then cb(&l28,0,1), cb(a1,a2).
+// Tail (always, kind==2): *0x4B8E8 += a2; return a2. Absolute data addrs
+// (0x4B8E8/0x4B8EC, 0x1E6xx strings) are deferred USO-symbolization sites.
+int gl_func_000356FC(char *o, int a1, int a2) {
+    int kind = *(int *)(o + 4);
+    int local28;
+    int local24;
+    int config;
+    char frame[0x14];
+    if (kind == 1) {
+        gl_func_00000000((char *)0x0001E608);
+        return 0;
+    }
+    if (kind == 0) {
+        return gl_func_00000000((char *)&D_00000000, a1, a2);
+    }
+    if (kind == 2) {
+        config = *(int *)0x0004B8E8;
+        gl_func_00000000((char *)0x0001E61C, a1, a2, config);
+        if (a2 != 0) {
+            if (a1 & 7) {
                 gl_func_00000000((char *)0x0001E638);
             }
-            break;
-        case 2:
-            gl_func_00000000(o);
-            break;
-        default:
-            break;
+            gl_func_00000000(&local28, &local24, 1);
+            *(int *)(frame + 0x4) = (int)&local28;
+            *(char *)(frame + 0x2) = 0;
+            *(int *)(frame + 0x10) = a2;
+            *(int *)(frame + 0xC) = *(int *)0x0004B8E8;
+            *(int *)(frame + 0x8) = a1;
+            gl_func_00000000();
+            gl_func_00000000(*(int *)0x0004B8EC, frame, 1);
+            gl_func_00000000(&local28, 0, 1);
+            gl_func_00000000(a1, a2);
+        }
+        *(int *)0x0004B8E8 += a2;
+        return a2;
     }
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000356FC);
