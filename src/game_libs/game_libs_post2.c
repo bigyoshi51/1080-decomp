@@ -877,6 +877,7 @@ s32 gl_func_00072230(char *arg0, char *arg1, u8 arg2, u8 arg3) {
         FW(arg0, 0x65) = 0U;
         sp2C = game_libs_func_00070FCC(arg0);
         if (sp2C != 0) {
+            return sp2C;
         }
     }
     if ((s32) arg3 > 0) {
@@ -899,6 +900,7 @@ loop_9:
     }
     sp2C = var_v0;
     if (sp2C != 0) {
+        return sp2C;
     }
     temp_t5 = sp30 + 1;
     sp30 = temp_t5;
