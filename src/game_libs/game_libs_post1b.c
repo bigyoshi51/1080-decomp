@@ -2697,6 +2697,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066AE4);
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path
  *    (caller-set $at can't be expressed in IDO C).
  */
+extern int D_00000000;
+// Canary/sentinel verifier. Checks a caller-set value + two fixed slots against
+// the magic 0x12345678, asserting (cb with an error string) on mismatch:
+// if (x != magic || *0x3F314 != magic) report(&D+0x21BC);
+// if (*0x414C0 != magic || *0x414C4 != magic) report(&D+0x21D8);
+// The magic's high half (lui 0x1234) is set by a predecessor for the first
+// compare (caller-set), so that compare won't byte-match; the rest matches.
+void gl_func_00066AF0(int x) {
+    if (x != 0x12345678 || *(int *)0x0003F314 != 0x12345678) {
+        gl_func_00000000((char *)&D_00000000 + 0x21BC);
+    }
+    if (*(int *)0x000414C0 != 0x12345678 || *(int *)0x000414C4 != 0x12345678) {
+        gl_func_00000000((char *)&D_00000000 + 0x21D8);
+    }
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066AF0);
 #endif
