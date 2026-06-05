@@ -9303,7 +9303,6 @@ extern int gl_func_00000000();
 int gl_func_0003F7A8(void *a0, int a1, int a2, int a3, int a4) {
     int tag;
     char buf[0x90];
-    int st;
     tag = 0x23;
     gl_func_00000000(&buf[0], a4);
     gl_func_00000000(&tag);
@@ -9311,11 +9310,10 @@ int gl_func_0003F7A8(void *a0, int a1, int a2, int a3, int a4) {
     gl_func_00000000(&tag);
     gl_func_00000000(a0);
     gl_func_00000000(&tag);
-    st = *(int *)&buf[0x48];
-    if (st != 0) {
+    if (*(int *)&buf[0x48] != 0) {
         gl_func_00000000(a3, &buf[0]);
     }
-    return st;
+    return *(int *)&buf[0x48];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F7A8);
