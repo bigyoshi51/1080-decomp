@@ -20104,7 +20104,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
 //   extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
-char *gl_func_0004F85C(char *a0, int a1, char *a2, char *a3) {
+char *gl_func_0004F85C(char *a0, char *a1, char *a2, char *a3) {
     char *o0 = a0;
     char *o1 = a2;
     char *o2 = a3;
@@ -20123,6 +20123,10 @@ char *gl_func_0004F85C(char *a0, int a1, char *a2, char *a3) {
     *(char **)(o1 + 0x5C) = (char *)&D_00000000;
     *(char **)(o1 + 0x34) = o2;
     *(char **)(o0 + 0x34) = o1;
+    *(int *)(o0 + 0x24) = 0x110;
+    *(int *)(o0 + 0x1C) = *(int *)(a1 + 0xF4);
+    *(short *)(o0 + 0x20) = *(short *)(a1 + 0xB8);
+    *(short *)(o0 + 0x22) = *(short *)(a1 + 0xBC);
     return o0;
 }
 #else
