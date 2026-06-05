@@ -12710,12 +12710,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
 //   reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
-void gl_func_000445AC(void) {
+void gl_func_000445AC(char *a0) {
+    char *s0 = a0;
+    char *g = (char *)&D_00000000;
     gl_func_00000000(0x140, 0xF0);
     gl_func_00000000(0x140, 0xF0);
-    gl_func_00000000((char *)&D_00000000 + 0x0002FDE4, 0);
-    gl_func_00000000(0, 0x64, 0x6D, (char *)&D_00000000 + 0x0002FDEC,
-                     2, 0x6E, 0x6F, 0x70, 0x1E00, 0x71, 2);
+    gl_func_00000000(g + 0x2FDE4, 0);
+    *(int *)(s0 + 0x240) = gl_func_00000000(
+        0, 0x64, g + 0x2FDEC, 0x6D,
+        2, 0x6E, 0, 0, 0x6F, *(int *)g, *(int *)g, 0x70, 0x1E00, 0x71, 2, 0);
+    *(int *)(s0 + 0x280) = gl_func_00000000(0, g + 0x2FDFC, 40, 0, 0, 0, 0);
+    *(int *)(s0 + 0x284) = gl_func_00000000(0, g + 0x2FE04, 40, 0, 0, 0, 0);
+    *(int *)g = gl_func_00000000(0, g + 0x2FE0C, 20, 0, 0, 0, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000445AC);
