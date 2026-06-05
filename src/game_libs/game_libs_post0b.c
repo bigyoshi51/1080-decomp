@@ -17335,25 +17335,258 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B620);
 //   body below — snapshot + init + null-guard + FP scale skeleton
 //   only. Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
-void gl_func_0004BAF4(void *a0) {
-    float *g = (float *)((char *)&D_00000000 + 0xA0);
-    float scrA[3];
-    float scrB[4];
-    char *st;
-    scrA[0] = g[12];
-    scrA[1] = g[13];
-    scrA[2] = g[14];
-    gl_func_00000000(scrB, scrA, 1);
-    st = *(char **)((char *)&D_00000000 + 0x10);
-    if (st == 0) return;
-    {
-        float s = 1.0f / 16384.0f;
-        scrB[0] *= s;
-        scrB[1] *= s;
-        scrB[2] *= s;
+extern int gl_func_00034458();
+void gl_func_0004BAF4(char *arg0) {
+    char *g = (char *)&D_00000000;
+    f32 spEC;
+    f32 spE8;
+    f32 spE4;
+    f32 spA0;
+    s32 sp9C;
+    f32 sp98;
+    f32 sp94;
+    char *sp90;
+    f32 *sp8C;
+    s32 sp80;
+    s32 sp7C;
+    s32 sp78;
+    s32 sp74;
+    f32 temp_a2;
+    f32 *temp_a2_4;
+    f32 *temp_a3;
+    f32 *temp_a3_2;
+    f32 *temp_a3_3;
+    f32 *temp_a3_4;
+    f32 *temp_a3_5;
+    f32 *temp_a3_6;
+    f32 *temp_a3_7;
+    f32 temp_f0;
+    f32 temp_f16_2;
+    f32 temp_f18;
+    f32 temp_f4;
+    f32 temp_f6;
+    f32 var_f12;
+    f32 var_f2;
+    s16 temp_a0_3;
+    s16 temp_t1_2;
+    s16 temp_v0_4;
+    s16 temp_v1_4;
+    s16 var_a3;
+    s16 var_a3_2;
+    s16 var_t1;
+    s16 var_t2;
+    s16 var_v0;
+    s16 var_v0_2;
+    s32 temp_a2_2;
+    s32 temp_a2_3;
+    s32 temp_a2_5;
+    s32 temp_f10;
+    s32 temp_f16;
+    s32 temp_f6_2;
+    s32 temp_t0;
+    s32 temp_v0;
+    s32 temp_v0_3;
+    s32 temp_v0_5;
+    s32 temp_v0_6;
+    s32 temp_v0_7;
+    s32 temp_v0_8;
+    s32 temp_v0_9;
+    s32 temp_v1;
+    s32 temp_v1_3;
+    s32 temp_v1_5;
+    s32 temp_v1_6;
+    s32 var_a1;
+    s32 var_a2;
+    s32 var_a3_3;
+    s32 var_t0;
+    char *temp_a0;
+    char *temp_a0_2;
+    char *temp_a0_4;
+    char *temp_a1;
+    char *temp_a1_2;
+    char *temp_a1_3;
+    char *temp_a1_4;
+    char *temp_t0_2;
+    char *temp_t0_3;
+    char *temp_t1;
+    char *temp_t2;
+    char *temp_t5;
+    char *temp_v0_2;
+    char *temp_v1_2;
+    char *temp_v1_7;
+
+    spE4 = *(f32 *)(g + 0xA0 + 0x30);
+    spE8 = *(f32 *)(g + 0xA0 + 0x34);
+    spEC = *(f32 *)(g + 0xA0 + 0x38);
+    if (gl_func_00034458(*(void **)(g + 0x254), &spE4, 1, &spA0) != 0) {
+        temp_f16 = (s32) (((spEC + 1.0f) * 16384.0f) + (*(s32 *)(arg0 + 0xC8)));
+        if ((*(s32 *)(arg0 + 0xC4)) != 0) {
+            temp_f0 = (f32) ((f64) (f32) (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xBC)) * 0.5 * (f64) spA0);
+            var_f2 = (*(s32 *)(arg0 + 0xB0)) * temp_f0;
+            var_f12 = (*(s32 *)(arg0 + 0xB4)) * temp_f0;
+        } else {
+            var_f2 = (*(s32 *)(arg0 + 0xB0));
+            var_f12 = (*(s32 *)(arg0 + 0xB4));
+        }
+        temp_t2 = *(s32 *)((*(s32 *)(arg0 + 0x84)) + ((*(s32 *)(arg0 + 0xC0)) * 4));
+        temp_f6 = spE4 - ((f32) ((s16) (*(s32 *)(temp_t2 + 0x20)) >> 1) * var_f2);
+        spE4 = temp_f6;
+        temp_f4 = spE8 - ((f32) ((s16) (*(s32 *)(temp_t2 + 0x22)) >> 1) * var_f12);
+        spE8 = temp_f4;
+        temp_f18 = temp_f6 + (*(s32 *)(arg0 + 0xB8));
+        spE4 = temp_f18;
+        temp_f6_2 = (s32) temp_f18;
+        temp_f16_2 = temp_f4 + (*(s32 *)(arg0 + 0xBC));
+        temp_f10 = (s32) temp_f16_2;
+        spE8 = temp_f16_2;
+        sp80 = temp_f6_2;
+        sp7C = temp_f10;
+        sp78 = (s32) (*(s32 *)(temp_t2 + 0x20));
+        sp74 = (s32) (*(s32 *)(temp_t2 + 0x22));
+        temp_a2 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xC0));
+        if ((temp_a2 + (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xB8))) >= temp_f6_2) {
+            temp_t0 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xC4));
+            if (((temp_t0 + (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xBC))) >= temp_f10) && (temp_f6_2 >= (temp_a2 - (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xB8)))) && (temp_f10 >= (temp_t0 - (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xBC))))) {
+                temp_a3 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0x158));
+                sp94 = var_f12;
+                sp98 = var_f2;
+                sp9C = temp_f16;
+                sp90 = temp_t2;
+                sp8C = temp_a3;
+                temp_v0 = gl_func_00034458((*(s32 *)&var_f12), (*(s32 *)((char *)(*(s32 *)(arg0 + 0xCC)) + 0x60)), temp_f10, temp_a2, temp_a3);
+                temp_a0 = (*(s32 *)(temp_a3 + 0xC));
+                temp_a2_2 = (*(s32 *)(temp_a0 + 0x4));
+                (*(s32 *)(temp_a0 + 0x4)) = (s32) (temp_a2_2 + 1);
+                temp_t0_2 = (*(s32 *)((char *)(*(s32 *)(temp_a3 + 0xC)) + 0x0)) + (temp_a2_2 * 8);
+                (*(s32 *)(temp_t0_2 + 0x0)) = 0x06000000;
+                (*(s32 *)(temp_t0_2 + 0x4)) = temp_v0;
+                temp_a3_2 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0x158));
+                temp_a1 = (*(s32 *)(temp_a3_2 + 0xC));
+                temp_v1 = (*(s32 *)(temp_a1 + 0x4));
+                (*(s32 *)(temp_a1 + 0x4)) = (s32) (temp_v1 + 1);
+                temp_t1 = (*(s32 *)((char *)(*(s32 *)(temp_a3_2 + 0xC)) + 0x0)) + (temp_v1 * 8);
+                (*(s32 *)(temp_t1 + 0x0)) = 0xEE000000;
+                (*(s32 *)(temp_t1 + 0x4)) = (s32) ((temp_f16 & 0x7FFF) << 0x10);
+                if (*(s32 *)(g + 0x1C4) & 2) {
+                    if ((*(s32 *)(arg0 + 0x30)) & 8) {
+                        temp_v0_2 = (*(s32 *)(arg0 + 0x14));
+                        if (temp_v0_2 != NULL) {
+                            sp94 = var_f12;
+                            sp98 = var_f2;
+                            gl_func_00034458((*(s32 *)&var_f12), (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0x158)), (s32) (temp_t2 + 0x34), (*(f32 *)(temp_v0_2 + 0x1E)), temp_a3_2);
+                        }
+                    }
+                } else {
+                    temp_a3_3 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0x158));
+                    sp94 = var_f12;
+                    sp98 = var_f2;
+                    sp8C = temp_a3_3;
+                    temp_v0_3 = gl_func_00034458((*(s32 *)&var_f12), (*(s32 *)((char *)(*(s32 *)(temp_t2 + 0x64)) + 0x60)), (s32) temp_a1, (f32 *) temp_a2_2, temp_a3_3);
+                    temp_a0_2 = (*(s32 *)(temp_a3_3 + 0xC));
+                    temp_a2_3 = (*(s32 *)(temp_a0_2 + 0x4));
+                    (*(s32 *)(temp_a0_2 + 0x4)) = (s32) (temp_a2_3 + 1);
+                    temp_v1_2 = (*(s32 *)((char *)(*(s32 *)(temp_a3_3 + 0xC)) + 0x0)) + (temp_a2_3 * 8);
+                    (*(s32 *)(temp_v1_2 + 0x0)) = 0x06000000;
+                    (*(s32 *)(temp_v1_2 + 0x4)) = temp_v0_3;
+                }
+                temp_a3_4 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0x158));
+                temp_a1_2 = (*(s32 *)(temp_a3_4 + 0xC));
+                temp_a0_3 = sp80 * 4;
+                temp_v1_3 = (*(s32 *)(temp_a1_2 + 0x4));
+                (*(s32 *)(temp_a1_2 + 0x4)) = (s32) (temp_v1_3 + 1);
+                var_a3 = 0;
+                temp_t0_3 = (*(s32 *)((char *)(*(s32 *)(temp_a3_4 + 0xC)) + 0x0)) + (temp_v1_3 * 8);
+                temp_v0_4 = (sp80 + (s32) ((f32) sp78 * var_f2)) * 4;
+                if (temp_v0_4 > 0) {
+                    var_a3 = temp_v0_4;
+                }
+                temp_v1_4 = ((sp7C + (s32) ((f32) sp74 * var_f12)) - 1) * 4;
+                if (temp_v1_4 > 0) {
+                    var_v0 = temp_v1_4;
+                } else {
+                    var_v0 = 0;
+                }
+                (*(s32 *)(temp_t0_3 + 0x0)) = (s32) (((var_a3 & 0xFFF) << 0xC) | 0xE4000000 | (var_v0 & 0xFFF));
+                if (temp_a0_3 > 0) {
+                    var_a3_2 = temp_a0_3;
+                } else {
+                    var_a3_2 = 0;
+                }
+                temp_t1_2 = sp7C * 4;
+                if (temp_t1_2 > 0) {
+                    var_v0_2 = temp_t1_2;
+                } else {
+                    var_v0_2 = 0;
+                }
+                (*(s32 *)(temp_t0_3 + 0x4)) = (s32) (((var_a3_2 & 0xFFF) << 0xC) | (var_v0_2 & 0xFFF));
+                temp_a3_5 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0x158));
+                temp_a1_3 = (*(s32 *)(temp_a3_5 + 0xC));
+                temp_v1_5 = (*(s32 *)(temp_a1_3 + 0x4));
+                (*(s32 *)(temp_a1_3 + 0x4)) = (s32) (temp_v1_5 + 1);
+                temp_t5 = (*(s32 *)((char *)(*(s32 *)(temp_a3_5 + 0xC)) + 0x0)) + (temp_v1_5 * 8);
+                (*(s32 *)(temp_t5 + 0x0)) = 0xB4000000;
+                if (temp_a0_3 < 0) {
+                    var_t2 = (s32) (1024.0f / var_f2) & 0xFFFF;
+                    if (var_t2 < 0) {
+                        temp_v0_5 = (s32) (temp_a0_3 * var_t2) >> 7;
+                        if (temp_v0_5 > 0) {
+                            var_a3_3 = temp_v0_5;
+                        } else {
+                            var_a3_3 = 0;
+                        }
+                    } else {
+                        var_a1 = 0;
+                        temp_v0_6 = (s32) (temp_a0_3 * var_t2) >> 7;
+                        if (temp_v0_6 < 0) {
+                            var_a1 = temp_v0_6;
+                        }
+                        var_a3_3 = var_a1;
+                    }
+                } else {
+                    var_a3_3 = 0;
+                    var_t2 = (s32) (1024.0f / var_f2) & 0xFFFF;
+                }
+                if (sp7C & 0x20000000) {
+                    var_t1 = (s32) (1024.0f / var_f12) & 0xFFFF;
+                    if (var_t1 < 0) {
+                        temp_v0_7 = (s32) (temp_t1_2 * var_t1) >> 7;
+                        if (temp_v0_7 > 0) {
+                            var_t0 = temp_v0_7;
+                        } else {
+                            var_t0 = 0;
+                        }
+                    } else {
+                        var_a2 = 0;
+                        temp_v0_8 = (s32) (temp_t1_2 * var_t1) >> 7;
+                        if (temp_v0_8 < 0) {
+                            var_a2 = temp_v0_8;
+                        }
+                        var_t0 = var_a2;
+                    }
+                } else {
+                    var_t0 = 0;
+                    var_t1 = (s32) (1024.0f / var_f12) & 0xFFFF;
+                }
+                (*(s32 *)(temp_t5 + 0x4)) = (s32) ((var_a3_3 * -0x10000) | (-var_t0 & 0xFFFF));
+                temp_a3_6 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0x158));
+                temp_a1_4 = (*(s32 *)(temp_a3_6 + 0xC));
+                temp_v1_6 = (*(s32 *)(temp_a1_4 + 0x4));
+                (*(s32 *)(temp_a1_4 + 0x4)) = (s32) (temp_v1_6 + 1);
+                temp_a2_4 = (*(s32 *)((char *)(*(s32 *)(temp_a3_6 + 0xC)) + 0x0)) + (temp_v1_6 * 8);
+                (*(s32 *)(temp_a2_4 + 0x0)) = -2.9802322e-8f;
+                (*(s32 *)(temp_a2_4 + 0x4)) = (s32) ((var_t2 << 0x10) | (var_t1 & 0xFFFF));
+                temp_a3_7 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0x158));
+                sp8C = temp_a3_7;
+                temp_v0_9 = gl_func_00034458((*(s32 *)&var_f12), (*(s32 *)((char *)(*(s32 *)(arg0 + 0xD0)) + 0x60)), (s32) temp_a1_4, temp_a2_4, temp_a3_7);
+                temp_a0_4 = (*(s32 *)(temp_a3_7 + 0xC));
+                temp_a2_5 = (*(s32 *)(temp_a0_4 + 0x4));
+                (*(s32 *)(temp_a0_4 + 0x4)) = (s32) (temp_a2_5 + 1);
+                temp_v1_7 = (*(s32 *)((char *)(*(s32 *)(temp_a3_7 + 0xC)) + 0x0)) + (temp_a2_5 * 8);
+                (*(s32 *)(temp_v1_7 + 0x0)) = 0x06000000;
+                (*(s32 *)(temp_v1_7 + 0x4)) = temp_v0_9;
+            }
+        }
     }
-    gl_func_00000000(a0, scrB, st);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004BAF4);
