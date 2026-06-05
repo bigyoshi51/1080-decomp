@@ -1556,7 +1556,58 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003B80);
  *      from its first non-nop insn could work. Untested.
  *
  * Stays INCLUDE_ASM until a recipe is verified. */
-void gui_uso_func_00003F18(int a0, int a1, int a2, int a3);
+// GBI texture-load display list (sibling of gui_uso_func_00004354; constants
+// 0xFD18/0xF518/0x07020080/0x20080 + a *2 in the SetTile size calc). 7 command
+// packets via the cursor idiom. NOTE: the function .s has 3 leading nops
+// (0x3F18..0x3F20) that C cannot emit, so the body aligns but the head won't.
+void gui_uso_func_00003F18(char *a0, int a1, int a2, int a3, int arg5,
+                           int arg6, int arg7, int arg8, int arg9) {
+    char *buf;
+    int i;
+    int *p;
+    int t0, a3v, a1v, t1, t3;
+
+    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
+    p = (int *)(*(int *)buf + i * 8);
+    p[0] = 0xFD180000 | ((a2 - 1) & 0xFFF);
+    p[1] = a1;
+
+    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
+    p = (int *)(*(int *)buf + i * 8);
+    a3v = arg5 + arg7;
+    t0 = a3v - arg5;
+    t1 = ((((t0 * 2 + 7) >> 3) & 0x1FF) << 9) | 0xF5180000 | ((arg9 << 8) & 0x1FF);
+    p[0] = t1;
+    p[1] = 0x07020080;
+
+    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
+    p = (int *)(*(int *)buf + i * 8);
+    a2 = arg6;
+    p[0] = 0xE6000000;
+    p[1] = 0;
+
+    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
+    p = (int *)(*(int *)buf + i * 8);
+    p[0] = 0xF4000000 | ((((arg5 << 2) & 0xFFF) << 0xC)) | ((a2 << 2) & 0xFFF);
+    a1v = a2 + arg8;
+    p[1] = 0x07000000 | ((((a3v - 1) << 2) & 0xFFF) << 0xC) | (((a1v - 1) << 2) & 0xFFF);
+
+    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
+    p = (int *)(*(int *)buf + i * 8);
+    p[0] = 0xE7000000;
+    p[1] = 0;
+
+    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
+    p = (int *)(*(int *)buf + i * 8);
+    p[0] = t1;
+    t3 = (arg9 & 7) << 0x18;
+    p[1] = t3 | 0x00020000 | 0x80;
+
+    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
+    p = (int *)(*(int *)buf + i * 8);
+    p[0] = 0xF2000000;
+    p[1] = t3 | ((((t0 - 1) << 2) & 0xFFF) << 0xC) | ((((a1v - a2) - 1) << 2) & 0xFFF);
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
 #endif
