@@ -1660,9 +1660,9 @@ char *timproc_uso_b5_func_00002B74(char *arg0) {
         }
         temp_f2 = *(s32 *)0x11C;
         var_f12 = *(char **)0x120;
-        spF8.unk0 = temp_f2;
-        spF8.unk4 = temp_f2;
-        spF8.unk8 = temp_f2;
+        *(float *)&spF8.unk0 = temp_f2;
+        *(float *)&spF8.unk4 = temp_f2;
+        *(float *)&spF8.unk8 = temp_f2;
         spEC.unk0 = var_f12;
         spEC.unk4 = var_f12;
         spEC.unk8 = var_f12;
@@ -3007,9 +3007,9 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             *(float *)&sp178.unk4 = 1.0f;
             *(float *)&sp178.unk8 = 1.0f;
             *(float *)&sp178.unkC = 1.0f;
-            sp198.unk0 = temp_f2;
-            sp198.unk4 = temp_f2;
-            sp198.unk8 = temp_f2;
+            *(float *)&sp198.unk0 = temp_f2;
+            *(float *)&sp198.unk4 = temp_f2;
+            *(float *)&sp198.unk8 = temp_f2;
             sp174 = *(char **)0x12C8;
             sp60.unk0 = (s32) sp198.unk0;
             sp60.unk4 = (s32) sp198.unk4;
