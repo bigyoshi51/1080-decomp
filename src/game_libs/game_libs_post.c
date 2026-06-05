@@ -14063,7 +14063,16 @@ void gl_func_0002D8D8(void) {
  *
  * Initial pass — entry dispatch + structural TODO only. Default emit
  * remains INCLUDE_ASM. */
-extern int D_2C1BC, D_2C1C0, D_2C1C4, D_2C1C8, D_2C1CC, D_2C1D0, D_2C1D4;
+/* Reloc-blind absolute globals: the target bakes `lui 0x2; lw -159xx` (e.g.
+ * 0x1C1BC), so use absolute-address literals (each emits its own lui+lw with
+ * the offset baked) rather than named externs (which emit reloc lw 0(base)). */
+#define D_2C1BC (*(int *)0x1C1BC)
+#define D_2C1C0 (*(int *)0x1C1C0)
+#define D_2C1C4 (*(int *)0x1C1C4)
+#define D_2C1C8 (*(int *)0x1C1C8)
+#define D_2C1CC (*(int *)0x1C1CC)
+#define D_2C1D0 (*(int *)0x1C1D0)
+#define D_2C1D4 (*(int *)0x1C1D4)
 
 void gl_func_0002D910(int a0, int a1, int a2, int a3) {
     int mode = *(int*)&D_00000000;
