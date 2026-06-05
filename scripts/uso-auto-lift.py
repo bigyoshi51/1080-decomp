@@ -26,7 +26,8 @@ open('/tmp/_al.s','w').write(s)
 m2c=subprocess.run(["uv","run","m2c","--target","mips-ido-c","/tmp/_al.s"],capture_output=True,text=True).stdout
 if 'failure' in m2c[:200] or 'Unable' in m2c[:200]:
     sys.stderr.write("m2c failed (jumptable?)\n"); sys.exit(1)
-i=m2c.index(f'void {fn}') if f'void {fn}' in m2c else m2c.index(fn+'(')
+m2c=re.sub(r'\b\w+_func_00000000\(', 'gl_func_00000000(', m2c)  # jal-0 misresolve -> placeholder
+    i=m2c.index(f'void {fn}') if f'void {fn}' in m2c else m2c.index(fn+'(')
 # back up to return type line
 i=m2c.rfind('\n',0,i)+1
 body=m2c[i:]

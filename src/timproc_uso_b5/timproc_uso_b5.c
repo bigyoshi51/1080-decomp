@@ -7606,20 +7606,115 @@ void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
 //   FP loop skeleton only. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_0000C310(char *obj, char *a1) {
-    int slot;
-    if (*(int *)(obj + 0x2BC) < 0xA) {
-        if (--*(int *)(obj + 0x2C0) < 0) *(int *)(obj + 0x2C0) = 9;
-        *(int *)(obj + 0x2BC) += 2;
+void timproc_uso_b5_func_0000C310(char *arg0, char *arg1) {
+    char *g = (char *)&D_00000000;
+    s32 spC0;
+    s32 spBC;
+    s32 spB8;
+    s32 spB4;
+    s32 spB0;
+    s32 spAC;
+    s32 spA8;
+    s32 spA4;
+    s32 spA0;
+    s32 sp9C;
+    f32 sp94;
+    f32 sp90;
+    f32 sp8C;
+    f32 sp88;
+    f32 sp60;
+    f32 *var_s3;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    s32 *var_s4;
+    s32 *var_s5;
+    s32 temp_a0;
+    s32 temp_s6;
+    s32 temp_t4;
+    s32 temp_t8;
+    s32 temp_v0;
+    s32 var_s1;
+    s32 var_v1;
+    char *temp_v0_2;
+    char *var_s1_2;
+
+    if ((*(s32 *)(arg0 + 0x2BC)) < 0xA) {
+        temp_t8 = (*(s32 *)(arg0 + 0x2C0)) - 1;
+        (*(s32 *)(arg0 + 0x2C0)) = temp_t8;
+        if (temp_t8 < 0) {
+            (*(s32 *)(arg0 + 0x2C0)) = 1;
+            (*(s32 *)(arg0 + 0x2BC)) = (s32) ((*(s32 *)(arg0 + 0x2BC)) + 2);
+        }
     }
-    slot = *(int *)(obj + 0x2C0);
-    *(float *)(obj + 0x134 + slot * 4) = *(float *)a1;
-    *(float *)(obj + 0x158 + slot * 4) = *(float *)(a1 + 0x4);
-    *(float *)(obj + 0x17C + slot * 4) = *(float *)(a1 + 0x8);
-    *(float *)(obj + 0x1A0 + slot * 4) = *(float *)(a1 + 0xC);
-    *(float *)(obj + 0x1C4 + slot * 4) = *(float *)((char *)&D_00000000 + 0xB8);
-    func_00000000(obj, slot);
-    func_00000000(obj, a1);
+    spB0 = (*(s32 *)(arg0 + 0x1C4));
+    spB4 = (*(s32 *)(arg0 + 0x1DC));
+    var_s3 = (f32 *)0xB8;
+    spB8 = (*(s32 *)(arg0 + 0x1F4));
+    var_s1 = 0;
+    var_s5 = &spB0;
+    spBC = (*(s32 *)(arg0 + 0x20C));
+    sp9C = arg1 + 0x134;
+    spA0 = arg1 + 0x158;
+    spA4 = arg1 + 0x17C;
+    spA8 = arg1 + 0x1A0;
+    spAC = arg1 + 0x1C4;
+    temp_s6 = arg1 + 0x230;
+    var_s4 = &sp9C;
+    spC0 = (*(s32 *)(arg0 + 0x224));
+    do {
+        temp_v0 = (*(s32 *)(arg0 + 0x2BC));
+        temp_a0 = *var_s5;
+        var_v1 = temp_a0;
+        if (temp_v0 < temp_a0) {
+            var_v1 = temp_v0;
+        }
+        if ((*(s32 *)(arg1 + 0x3BC)) == 1) {
+            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xA4)), (*(s32 *)(arg0 + 0xBC)) + (var_s1 * (*(s32 *)(arg1 + 0x74))), var_s3, (void *) var_v1, *var_s4, temp_s6, arg1);
+        } else {
+            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xA4)), (*(s32 *)(arg0 + 0xBC)) + (var_s1 * (*(s32 *)(arg1 + 0x74))), var_s3, (void *) var_v1, *var_s4, temp_s6, arg1);
+        }
+        var_s1 += 1;
+        var_s5 += 4;
+        var_s3 += 0x18;
+        var_s4 += 4;
+    } while (var_s1 != 5);
+    temp_v0_2 = (*(s32 *)(arg0 + 0x2B8));
+    if (((*(s32 *)(temp_v0_2 + 0x130)) == 0) && ((*(s32 *)(temp_v0_2 + 0x10C)) == 0.0f)) {
+        if (!((*(s32 *)(arg0 + 0x2B4)) & 0x20)) {
+            temp_f0 = 255.0f / 255.0f;
+            sp8C = temp_f0;
+            sp94 = temp_f0;
+            sp88 = 105.0f / 255.0f;
+            sp90 = 155.0f / 255.0f;
+            sp60 = temp_f0;
+            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), &sp88, (void *)0x658, 0xFF);
+            var_s1_2 = g + 0x5F8;
+        } else {
+            temp_f0_2 = 255.0f / 255.0f;
+            sp88 = 105.0f / 255.0f;
+            sp90 = temp_f0_2;
+            sp94 = temp_f0_2;
+            sp8C = 155.0f / 255.0f;
+            sp60 = temp_f0_2;
+            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), &sp88, (void *)0x670, 0xFF);
+            var_s1_2 = g + 0x610;
+        }
+        sp60 = sp60;
+        gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), &sp88, var_s1_2, 0xFF);
+        temp_t4 = (*(s32 *)(arg0 + 0x2C4)) + 1;
+        (*(s32 *)(arg0 + 0x2C4)) = temp_t4;
+        if (temp_t4 & 8) {
+            sp94 = sp60;
+            sp88 = 233.0f / 255.0f;
+            sp8C = 247.0f / 255.0f;
+            sp90 = 0.0f / 255.0f;
+            if (!((*(s32 *)(arg0 + 0x2B4)) & 0x20)) {
+                gl_func_00000000(arg0, ((*(s32 *)(arg0 + 0xD4)) - ((s16) (*(s32 *)((char *)(*(s32 *)(var_s1_2 + 0x10)) + 0x20)) / 2)) - 2, (*(s32 *)(arg0 + 0xEC)), &sp88, (void *)0x628, 0xFF);
+                return;
+            }
+            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xD4)) + ((s16) (*(s32 *)((char *)(*(s32 *)(var_s1_2 + 0x10)) + 0x20)) / 2) + 2, (*(s32 *)(arg0 + 0xEC)), &sp88, (void *)0x640, 0xFF);
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C310);
