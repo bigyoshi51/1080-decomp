@@ -6092,6 +6092,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BC4C);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int D_00000000;
+// Record-stream emitter (swl/swr 8-byte-template family). Zero-clears a 15-word
+// array at &D, sets &D+0x3C=1, inits the dst cursor to &D, builds the template
+// {0xFF,1,3,a0&0xFF,0xFF,0xFF,0xFF,0xFF}, emits it count (=*&D) times via two
+// unaligned 4-byte stores, then a 0xFE terminator. Residual is the IDO
+// stack-cursor spill cap.
+void gl_func_0006BD14(int a0) {
+    unsigned char tmpl[8];
+    unsigned char *dst;
+    int i;
+    a0 = a0 & 0xFF;
+    for (i = 0; i < 15; i++) {
+        *(int *)((char *)&D_00000000 + i * 4) = 0;
+    }
+    i = *(unsigned char *)&D_00000000;
+    *(int *)((char *)&D_00000000 + 0x3C) = 1;
+    dst = (unsigned char *)&D_00000000;
+    tmpl[0] = 0xFF;
+    tmpl[1] = 1;
+    tmpl[2] = 3;
+    tmpl[3] = a0;
+    tmpl[4] = 0xFF;
+    tmpl[5] = 0xFF;
+    tmpl[6] = 0xFF;
+    tmpl[7] = 0xFF;
+    if (i > 0) {
+        i = 0;
+        do {
+            *(int *)dst = *(int *)tmpl;
+            *(int *)(dst + 4) = *(int *)(tmpl + 4);
+            i++;
+            dst += 8;
+        } while (i < *(unsigned char *)&D_00000000);
+    }
+    *dst = 0xFE;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BD14);
 #endif
