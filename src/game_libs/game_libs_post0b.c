@@ -14916,19 +14916,39 @@ void game_libs_func_000483A0(int *a0) {
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_000483BC(char *a0) {
-    char *t;
-    int n;
-    unsigned int v;
+    char *s0 = a0;
+    char *gb;
+    int n, v, t0, base;
     unsigned int *slot;
-    if (*(int *)(a0 + 0x04) == 0) return;
-    t = *(char **)a0;
-    n = *(int *)(t + 0x4);
-    *(int *)(t + 0x4) = n + 1;
-    v = *(unsigned int *)(a0 + 0x08);
-    slot = (unsigned int *)(*(char **)t + n * 8);
-    slot[0] = 0x04000000 | (v << 0xA) | (((v << 4) - 1) & 0xFFFF);
-    gl_func_00000000(a0, slot);
-    slot[1] = v;
+    char *p;
+    if (*(int *)(a0 + 4) == 0) return;
+    gb = *(char **)(*(char **)a0 + 0xC);
+    n = *(int *)(gb + 4);
+    *(int *)(gb + 4) = n + 1;
+    v = *(int *)(a0 + 4);
+    slot = (unsigned int *)(*(char **)gb + n * 8);
+    slot[0] = 0x04000000 | ((unsigned)v << 0xA) | ((((unsigned)v << 4) - 1) & 0xFFFF);
+    slot[1] = (unsigned int)gl_func_00000000(
+        *(int *)(*(int *)((*(char **)a0) + 0x1C)) + (*(int *)(a0 + 0xC) << 4));
+    *(int *)(s0 + 0x58C) += *(int *)(s0 + 4);
+    t0 = 0;
+    p = s0;
+    if (*(int *)(s0 + 8) > 0) {
+        do {
+            t0++;
+            p += 6;
+            gb = *(char **)(*(char **)s0 + 0xC);
+            n = *(int *)(gb + 4);
+            *(int *)(gb + 4) = n + 1;
+            slot = (unsigned int *)(*(char **)gb + n * 8);
+            slot[0] = 0xBF000000;
+            base = *(int *)(s0 + 0xC);
+            slot[1] = ((((*(short *)(p + 0xE) - base) * 2) & 0xFF) << 0x10)
+                    | ((((*(short *)(p + 0x10) - base) * 2) & 0xFF) << 8)
+                    | (((*(short *)(p + 0x12) - base) * 2) & 0xFF);
+        } while (t0 < *(int *)(s0 + 8));
+    }
+    gl_func_00000000(s0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000483BC);
