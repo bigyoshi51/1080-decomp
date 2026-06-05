@@ -15792,20 +15792,75 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
 //   Real-C STRUCTURAL skeleton below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+extern int D_00000000;
+extern int D_31_x;   // gate read in the a==5 arm
+extern int D_31_y;   // secondary gate in the a==5 arm
+extern int D_31_z;   // mode word read in the v0==13/14 arm
+extern int gl_func_00044F18();   // baked fixed-address callee (jal 0x44f18)
+// Stepped state-machine driver. Spills args (stack-homed), runs reset cbs,
+// marks the &D flag, then dispatches on a global step index (jr-table at
+// &D_0+0x1900, ~15 arms). Each arm tests the spilled arg `a` and emits cbs
+// carrying 0x83010000-bank command words with params (0x50/2000/320/400) or
+// the fixed jal 0x44f18, then falls into a second jr-table dispatch on a
+// (&D_0+0x193c, ~11 arms) whose sole effect sets *(&D+0xC)=256. Reloc-blind
+// jr-tables + jal-0 cbs (deferred); the 0x8301 words / immediates are baked.
 void gl_func_00031334(int a, int b, int c) {
     int i;
-    *(int *)((char *)&D_00000000 + 0x28) = a;
-    *(int *)((char *)&D_00000000 + 0x2C) = b;
-    *(int *)((char *)&D_00000000 + 0x30) = c;
+    (void)b;
+    (void)c;
     gl_func_00000000(0);
     gl_func_00000000(1);
-    *(int *)((char *)&D_00000000 + 0x34) = 1;
+    *(int *)&D_00000000 = 1;
     gl_func_00000000(0xFF, 0);
-    i = *(int *)((char *)&D_00000000 + 0x38) + 1;
-    *(int *)((char *)&D_00000000 + 0x38) = i;
-    if (i >= 0xF) return;
-    if (a == 4) {
-        gl_func_00000000(0x83010000 | (i << 8), 0x50);
+    i = *(int *)&D_00000000 + 1;
+    if (i < 0xF) {
+        switch (i) {
+            case 0:
+                if (a != 4 && a != 0) {
+                    gl_func_00000000(0x83010000, 0x50);
+                }
+                break;
+            case 1:
+                gl_func_00000000(0x83010000, 0x50);
+                break;
+            case 2:
+                if (a == 5) {
+                    if (*(int *)&D_31_x == 0) {
+                        gl_func_00000000(0x83010000, 2000);
+                    } else if (*(int *)&D_31_y != 1) {
+                        gl_func_00000000(0x83010000, 0x50);
+                    }
+                } else if (a == 6) {
+                    gl_func_00000000(0x83010000, 2000);
+                } else {
+                    gl_func_00000000(0x83010000, 320);
+                    gl_func_00044F18(0);
+                    gl_func_00000000(0xFF, 0);
+                }
+                break;
+            case 3:
+                if (*(int *)&D_31_z != 13 && *(int *)&D_31_z != 14) {
+                    gl_func_00000000();
+                }
+                break;
+            case 4:
+                if (a != 7) {
+                    gl_func_00000000(0x83010000, 0x50);
+                }
+                break;
+            case 5:
+                gl_func_00000000(0x83010000, 400);
+                break;
+            default:
+                break;
+        }
+    }
+    switch (a + 1) {
+        case 5:
+            *(int *)((char *)&D_00000000 + 0xC) = 256;
+            break;
+        default:
+            break;
     }
 }
 #else
