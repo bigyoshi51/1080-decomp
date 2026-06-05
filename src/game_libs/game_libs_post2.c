@@ -697,10 +697,12 @@ s32 gl_func_00071ED8(u16 *arg0) {
         FW(arg0, 0x65) = 0U;
         sp1C = game_libs_func_00070FCC(arg0);
         if (sp1C != 0) {
+            return sp1C;
         }
     }
     sp1C = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), (u16 *)1, &sp40);
     if (sp1C != 0) {
+        return sp1C;
     }
     game_libs_func_00070FCC(&sp40, &sp62, &sp60);
     sp18 = &sp40;
@@ -709,26 +711,26 @@ s32 gl_func_00071ED8(u16 *arg0) {
         if (sp1C == 0xA) {
             sp1C = game_libs_func_00070FCC(arg0, sp18, &sp20);
             if (sp1C != 0) {
+                return sp1C;
             }
             sp18 = &sp20;
             goto block_13;
         }
         if (sp1C != 0) {
+            return sp1C;
         }
-        goto block_13;
     }
 block_13:
     if (!((*(u16*)((char*)sp18 + 0x18)) & 1)) {
         sp1C = game_libs_func_00070FCC(arg0, sp18, &sp20);
         if (sp1C != 0) {
+            return sp1C;
         }
         sp18 = &sp20;
         if (!((*(u16*)((char*)&sp20 + 0x18)) & 1)) {
             return 0xB;
         }
-        goto block_18;
     }
-block_18:
     sp64 = 0;
     do {
         *(u8*)((char*)arg0 + sp64 + 0xC) = *(u8*)((char*)sp18 + sp64);
@@ -744,6 +746,7 @@ block_18:
     FW(arg0, 0x5C) = (s32) (FW(arg0, 0x58) + ((*(u8*)((char*)arg0 + 0x64)) * 8));
     sp1C = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), (u16 *)7, (int)arg0 + 0x2C);
     if (sp1C != 0) {
+        return sp1C;
     }
     return 0;
 }
