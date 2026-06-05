@@ -8144,6 +8144,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000258C0);
 //   = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+extern int gl_func_0003959C();
 extern int D_00000000;
 int gl_func_000258CC(int a0, int a1) {
     char *g = (char *)&D_00000000;
@@ -8161,8 +8162,44 @@ int gl_func_000258CC(int a0, int a1) {
         return 0;
     }
     hb = (unsigned)spv >> 24;
-    cfg = g + 0x640 + ((hb * 5) << 2);
-    gl_func_00000000(cfg, spv, a0, a1);
+    {
+        int *v0 = (int *)(g + hb * 0x14);
+        int *v1;
+        int a0v, key;
+        spv = hb;
+        if (*(int *)((char *)v0 + 0x640) == 0) {
+            v1 = *(int **)((char *)v0 + 0x634);
+            a0v = v1[0];
+            key = v1[1] + (a0v & 0x00FFFFFF) + ((unsigned)(a0v << 4) >> 0x1E);
+            if (key == *(int *)((char *)v0 + 0x630)) {
+                *(unsigned char *)v1 = *(unsigned char *)v1 & 0xF3;
+                v1[1] = *(int *)((char *)v0 + 0x638);
+                v0 = (int *)(g + spv * 0x14);
+            }
+            *(int *)((char *)v0 + 0x640) = 1;
+        }
+        while (*(int *)(g + 0x1034) > 0) {
+            int cnt = *(int *)(g + 0x1034);
+            v0 = (int *)(g + cnt * 0x14);
+            if (*(int *)((char *)v0 + 0x62C) != 1) {
+                *(int *)(g + 0x1034) = cnt - 1;
+                continue;
+            }
+            v1 = *(int **)((char *)v0 + 0x620);
+            a0v = v1[0];
+            key = v1[1] + (a0v & 0x00FFFFFF) + ((unsigned)(a0v << 4) >> 0x1E);
+            if (key != *(int *)((char *)v0 + 0x61C)) {
+                *(int *)((char *)v0 + 0x62C) = 1;
+                *(int *)(g + 0x1034) = *(int *)(g + 0x1034) - 1;
+                continue;
+            }
+            gl_func_0003959C(v1[1], *(int *)((char *)v0 + 0x624),
+                             ((unsigned)(a0v & 0x00FFFFFF) >> 0xC) + 1,
+                             (unsigned)(a0v << 4) >> 0x1E, g + 0x1684,
+                             *(int *)((char *)v0 + 0x628));
+            break;
+        }
+    }
     return 1;
 }
 #else
