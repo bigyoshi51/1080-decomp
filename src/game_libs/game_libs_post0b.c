@@ -1734,19 +1734,38 @@ void gl_func_00035AE0(int *dst) {
 //   NAMED leading function only — bundled tail stubs untouched.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-char *gl_func_00035B1C(char *o, int a1, int a2, int a3) {
-    int *sub;
-    (void)a1; (void)a2;
-    if (o == 0) {
-        o = (char *)gl_func_00000000(0x10);
-        if (o == 0) goto out;
+char *gl_func_00035B1C(char *o, char *a1, int a2, int a3) {
+    char *s4 = o;
+    char *g = (char *)&D_00000000;
+    int *v1;
+    char *s0, *last;
+    if (s4 == 0) {
+        s4 = (char *)gl_func_00000000(0x10);
+        if (s4 == 0) return 0;
     }
-    *(int *)(o + 0x0C) = (int)&D_00000000;
-    sub = (int *)gl_func_00000000(0x04);
-    if (sub != 0) *sub = 0;
-    *(int *)(o + 0x08) = a3;
-out:
-    return o;
+    *(int *)(s4 + 0xC) = (int)g;
+    v1 = (int *)(s4 + 4);
+    if ((s4 != (char *)-4) || (v1 = (int *)gl_func_00000000(4), v1 != 0)) {
+        *v1 = 0;
+    }
+    *(int *)(s4 + 8) = a3;
+    for (s0 = *(char **)(a1 + 4); s0 != 0; s0 = *(char **)s0) {
+        if (*(int *)(s0 + 4) == a2) {
+            gl_func_00000000(g + 0x2E6B0, &a2);
+        }
+    }
+    last = 0;
+    for (s0 = *(char **)(a1 + 4); s0 != 0; s0 = *(char **)s0) {
+        last = s0;
+    }
+    if (last != 0) {
+        *(char **)last = s4;
+    } else {
+        *(char **)(a1 + 4) = s4;
+    }
+    *(char **)s4 = 0;
+    *v1 = a2;
+    return s4;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035B1C);
