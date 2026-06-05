@@ -2914,8 +2914,7 @@ int *gl_func_000378D0(int *a0, int a1, float a2) {
 void gl_func_00037938(char *o) {
     char *s = *(char **)(o + 0x14);
     char *t = *(char **)(o + 0x2C);
-    float scalar = *(float *)(o + 0x30);
-    float a[3], b[3], diff[3], scaled[3];
+    float a[3], b[3], diff[3], dcopy[3], scaled[3], scopy[3], arg[3];
 
     a[0] = *(float *)(s + 0xA0);
     a[1] = *(float *)(s + 0xA4);
@@ -2926,10 +2925,20 @@ void gl_func_00037938(char *o) {
     diff[0] = b[0] - a[0];
     diff[1] = b[1] - a[1];
     diff[2] = b[2] - a[2];
-    scaled[0] = diff[0] * scalar;
-    scaled[1] = diff[1] * scalar;
-    scaled[2] = diff[2] * scalar;
-    gl_func_00000000(s + 0x30, scaled);
+    /* diff is copied (int/lw-sw) through two slots before scaling. */
+    *(int *)&dcopy[0] = *(int *)&diff[0];
+    *(int *)&dcopy[1] = *(int *)&diff[1];
+    *(int *)&dcopy[2] = *(int *)&diff[2];
+    scaled[0] = dcopy[0] * *(float *)(o + 0x30);
+    scaled[1] = dcopy[1] * *(float *)(o + 0x30);
+    scaled[2] = dcopy[2] * *(float *)(o + 0x30);
+    *(int *)&scopy[0] = *(int *)&scaled[0];
+    *(int *)&scopy[1] = *(int *)&scaled[1];
+    *(int *)&scopy[2] = *(int *)&scaled[2];
+    *(int *)&arg[0] = *(int *)&scopy[0];
+    *(int *)&arg[1] = *(int *)&scopy[1];
+    *(int *)&arg[2] = *(int *)&scopy[2];
+    gl_func_00000000(s + 0x30, arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
