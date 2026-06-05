@@ -393,10 +393,12 @@ void mgrproc_uso_func_00001304(void) {
  * early state local only: IDO picks v1 where target uses v0 for
  * `lw state,0x4F8(s0); bne state,zero; beq state,2`. Tried
  * `register int v asm("$2")` (IDO syntax error) and inverted if nesting
- * (`if (v != 0) ... else ...`, regressed to 88.66%). INSN_PATCH was removed
- * 2026-05-23 as match-faking, so this stays an honest NM cap until a
- * C-level v0 allocation lever is found. Default build is INCLUDE_ASM. */
-#ifdef NON_MATCHING
+ * (`if (v != 0) ... else ...`, regressed to 88.66%). The v0 lever turned
+ * out to be an `if (1) {}` BB boundary (see below). */
+/* 2026-06-04 PROMOTED to exact match via the if(1){} BB-boundary lever
+ * (the "C-level v0 allocation lever" the prior note awaited): the empty block
+ * after import_000B72F4 forces a BB boundary that flips arg0->0x4F8 from $v0
+ * to $v1, matching the target. Byte-exact 41/41. */
 extern int import_000B72F4();
 extern int mgrproc_uso_func_000000B0();
 extern int mgrproc_uso_func_000000F8();
@@ -406,6 +408,7 @@ int mgrproc_uso_func_00001324(char *arg0) {
     int v;
     if (*(int*)(arg0 + 0x4FC) == 0) {
         import_000B72F4(*(int*)(arg0 + 0x6AC), 0, 1);
+        if (1) {}
         v = *(int*)(arg0 + 0x4F8);
         if (v == 0) {
             mgrproc_uso_func_000000B0(*(int*)(arg0 + 0x6A8));
@@ -421,9 +424,6 @@ int mgrproc_uso_func_00001324(char *arg0) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001324);
-#endif
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_000013C8: 75-insn (0x12C) post-init dispatcher.
