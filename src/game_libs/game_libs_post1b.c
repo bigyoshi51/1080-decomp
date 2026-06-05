@@ -8437,6 +8437,77 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FDE8);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int gl_func_00000000();
+extern int D_00000000;
+// 64-bit free-list walk-and-insert. obj->0x10:0x14 is a 64-bit key. Walk the
+// list at *&D from *head, subtracting each block's 0x10:0x14 from the key
+// (the IDO-emitted subtract uses a borrow taken from the HI-word compare) until
+// the key fits, then write the reduced key back, shrink the chosen block, and
+// rewire links (obj->0=cur, obj->4=cur->4, *(cur->4)=obj, cur->4=obj). Bracketed
+// by entry/finalize cbs; returns the key pair v0:v1. Reloc-blind cbs/&D.
+long long gl_func_0006FE5C(char *obj) {
+    int saved;
+    char *cur;
+    char *d;
+    int key_lo, key_hi, cur_lo, cur_hi, b;
+
+    saved = gl_func_00000000(obj);
+    d = *(char **)&D_00000000;
+    cur = *(char **)d;
+    key_lo = *(int *)(obj + 0x10);
+    key_hi = *(int *)(obj + 0x14);
+    if (cur == d) {
+        goto insert;
+    }
+    cur_lo = *(int *)(cur + 0x10);
+    cur_hi = *(int *)(cur + 0x14);
+    if ((unsigned int)key_lo < (unsigned int)cur_lo) {
+        goto insert;
+    }
+    if ((unsigned int)cur_lo < (unsigned int)key_lo) {
+        goto sub;
+    }
+    if ((unsigned int)cur_hi >= (unsigned int)key_hi) {
+        goto insert;
+    }
+sub:
+    cur_lo = *(int *)(cur + 0x10);
+    cur_hi = *(int *)(cur + 0x14);
+    b = (unsigned int)key_hi < (unsigned int)cur_hi;
+    key_lo = (key_lo - cur_lo) - b;
+    key_hi = key_hi - cur_hi;
+    cur = *(char **)cur;
+    if (cur == *(char **)&D_00000000) {
+        goto insert;
+    }
+    cur_lo = *(int *)(cur + 0x10);
+    cur_hi = *(int *)(cur + 0x14);
+    if ((unsigned int)cur_lo < (unsigned int)key_lo) {
+        goto sub;
+    }
+    if ((unsigned int)key_lo < (unsigned int)cur_lo) {
+        goto insert;
+    }
+    if ((unsigned int)cur_hi < (unsigned int)key_hi) {
+        goto sub;
+    }
+insert:
+    *(int *)(obj + 0x10) = key_lo;
+    *(int *)(obj + 0x14) = key_hi;
+    if (cur != *(char **)&D_00000000) {
+        cur_lo = *(int *)(cur + 0x10);
+        cur_hi = *(int *)(cur + 0x14);
+        b = (unsigned int)cur_hi < (unsigned int)key_hi;
+        *(int *)(cur + 0x10) = (cur_lo - key_lo) - b;
+        *(int *)(cur + 0x14) = cur_hi - key_hi;
+    }
+    *(char **)(obj + 0x0) = cur;
+    *(int *)(obj + 0x4) = *(int *)(cur + 0x4);
+    *(char **)(*(int *)(cur + 0x4)) = obj;
+    *(int *)(cur + 0x4) = (int)obj;
+    gl_func_00000000(saved);
+    return ((long long)key_lo << 32) | (unsigned int)key_hi;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FE5C);
 #endif
