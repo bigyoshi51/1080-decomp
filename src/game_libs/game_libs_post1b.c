@@ -5833,6 +5833,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B7A0);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int gl_func_00000000();
+extern int D_00000000;
+// Ring-buffer append (singleton at &D+0x40, value at &D+0x44). Drop if head
+// null or count>=cap; else slot = (head->0xC + count) % cap (signed-div with
+// IDO break-guards), head->slots[slot] = *(&D+0x44), count++. Then if the
+// notify list has a successor (head->first->next != 0) fire cb(head) and
+// cb(&D, result). Reloc-blind cbs/&D.
+void gl_func_0006B880(void) {
+    char *head;
+    int count;
+    int slot;
+    char *first;
+    int s0;
+    head = *(char **)((char *)&D_00000000 + 0x40);
+    if (head == 0) {
+        return;
+    }
+    count = *(int *)(head + 0x8);
+    if (count >= *(int *)(head + 0x10)) {
+        return;
+    }
+    slot = (*(int *)(head + 0xC) + count) % *(int *)(head + 0x10);
+    *(int *)(*(char **)(head + 0x14) + slot * 4) = *(int *)((char *)&D_00000000 + 0x44);
+    *(int *)(head + 0x8) = *(int *)(head + 0x8) + 1;
+    first = *(char **)head;
+    if (*(char **)first == 0) {
+        return;
+    }
+    s0 = gl_func_00000000(head);
+    gl_func_00000000((char *)&D_00000000, s0);
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B880);
 #endif
