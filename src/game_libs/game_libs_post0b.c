@@ -93,6 +93,13 @@ extern void gl_func_0003D074();
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
 // prologue). A collection processor with per-element vtable dispatch.
 //
+/* NOTE 2026-06-04: gl_func_00034458 is K&R (variadic char-emit). Its 35
+ * `((int(*)())gl_func_00034458)` casts are NOT worth the K&R cast-removal sweep
+ * (docs/MATCHING_WORKFLOW.md#... gl_func_00062F64). Measured: file-wide removal
+ * is NET NEGATIVE (+2.6pp across 2 / -6.8pp across 4) — gl_func_00034458 is
+ * LOW call-density per function (1-2 calls), so no jalr-address-caching to undo;
+ * the only high-density caller (gl_func_00055C34, 21 calls) gains +0.9pp but its
+ * jalr->jal SHRINK shifts the downstream gl_func_00061478 -1.8pp. Keep the casts. */
 //   int gl_func_00034458() {
 //     R *r = *(R**)&D_0;                       // global record
 //     callback((void*)0x0001E3F4);             // jal 0 (USO cb)
