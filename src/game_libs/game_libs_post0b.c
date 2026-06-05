@@ -3308,23 +3308,53 @@ L_end:
 //   structs untyped. Real-C STRUCTURAL body below. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-char *gl_func_0003800C(char *o, int unused) {
-    char *a;
-    char *b;
-    int *c;
+extern int D_00000000;
+// Constructor. o = a0 (or alloc(0x2C) if null). The three sub-blocks use the
+// sentinel-guard idiom (alloc only if the base is the impossible sentinel) so
+// for a valid o everything collapses onto o: o->0=-1, o->8=0x8000, o->4=0,
+// *(o+0x10)=0, o->0x14=0, o->0xC=a1. Then o->0x28=&D_0; cb(o+0x18); cb(o,0);
+// a global counter at &D_0 is post-incremented into o->0x1C; o->0x20=cb(o,n).
+// Returns o. Reloc-blind allocator/cb placeholders -> byte-match deferred.
+char *gl_func_0003800C(char *o, int a1) {
+    char *p;
+    char *q;
+    char *r;
+    int n;
     if (o == 0) {
         o = (char *)gl_func_00000000(0x2C);
-        if (o == 0) return 0;
+        if (o == 0) return o;
     }
-    a = (char *)gl_func_00000000(0x18);
-    if (!a) return 0;
-    b = (char *)gl_func_00000000(0x10);
-    if (!b) return 0;
-    *(int *)b = -1;
-    *(int *)(b + 0x08) = 0x8000;
-    *(int *)(b + 0x04) = 0;
-    c = (int *)gl_func_00000000(0x04);
-    if (c) *c = 0;
+    p = o;
+    if (o == 0) {
+        p = (char *)gl_func_00000000(0x18);
+        if (p == 0) goto link;
+    }
+    q = p;
+    if (p == 0) {
+        q = (char *)gl_func_00000000(0x10);
+        if (q == 0) goto subc;
+    }
+    *(int *)(q + 0x0) = -1;
+    *(int *)(q + 0x8) = 0x8000;
+    *(int *)(q + 0x4) = 0;
+subc:
+    r = p + 0x10;
+    if (p == (char *)-0x10) {
+        r = (char *)gl_func_00000000(0x4);
+        if (r == 0) goto fields;
+    }
+    *(int *)r = 0;
+fields:
+    *(int *)(p + 0x14) = 0;
+    *(int *)(p + 0xC) = a1;
+link:
+    *(char **)(o + 0x28) = (char *)&D_00000000;
+    gl_func_00000000(o + 0x18);
+    gl_func_00000000(o, 0);
+    n = *(int *)&D_00000000;
+    *(int *)&D_00000000 = n + 1;
+    *(int *)(o + 0x1C) = n;
+    *(int *)(o + 0x20) = gl_func_00000000(o, n);
     return o;
 }
 #else
