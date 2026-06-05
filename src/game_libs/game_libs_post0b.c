@@ -2994,25 +2994,53 @@ void gl_func_00037A9C(int count) {
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
+// Object constructor. cb(a0); o = alloc(0xB4). When o!=0: init(o, template@
+// 0x1EBE4); o->0x28 = &D_0; sentinel-guard-zero *(o+0x2C) (doubled fallback
+// alloc, both dead for a valid o); cb(o); zero a local Vec3 and cb(o+0x30,vec).
+// Tail (always, even on alloc-fail): p=a0; p->0xC = p->0x10 = o; if (p->0x38)
+// { r = cb(p->0x3C->0x10 + 16, o); if (o->0x14==0) o->0x14=r; else { o->4=1;
+// o->0x14=r; } }. Returns o. 0x1EBE4 is a deferred data-template symbol site.
 char *gl_func_00037AF0(int a0) {
     char *o;
     int *s1;
-    int *s2;
     float zero[3];
+    char *p;
+    int r;
     gl_func_00000000(a0);
     o = (char *)gl_func_00000000(0xB4);
-    if (o == 0) goto out;
-    gl_func_00000000(o, (char *)&D_00000000 + 0x0001EBE4);
-    *(char **)(o + 0x28) = (char *)&D_00000000;
-    s1 = (int *)gl_func_00000000(0x04);
-    if (s1) *s1 = 0;
-    s2 = (int *)gl_func_00000000(0x04);
-    if (s2) *s2 = 0;
-    zero[0] = 0.0f;
-    zero[1] = 0.0f;
-    zero[2] = 0.0f;
-    gl_func_00000000(o, zero);
-out:
+    if (o != 0) {
+        gl_func_00000000(o, (char *)&D_00000000 + 0x0001EBE4);
+        *(char **)(o + 0x28) = (char *)&D_00000000;
+        s1 = (int *)(o + 0x2C);
+        if (o == (char *)-0x2C) {
+            s1 = (int *)gl_func_00000000(0x04);
+            if (s1 == 0) goto vecinit;
+        }
+        if (s1 == 0) {
+            s1 = (int *)gl_func_00000000(0x04);
+            if (s1 == 0) goto vecinit;
+        }
+        *s1 = 0;
+    vecinit:
+        gl_func_00000000(o);
+        zero[0] = 0.0f;
+        zero[1] = 0.0f;
+        zero[2] = 0.0f;
+        gl_func_00000000(o + 0x30, zero);
+    }
+    p = (char *)a0;
+    *(char **)(p + 0xC) = o;
+    *(char **)(p + 0x10) = o;
+    if (*(int *)(p + 0x38) != 0) {
+        char *q = *(char **)(p + 0x3C);
+        r = gl_func_00000000(*(int *)(q + 0x10) + 0x10, o);
+        if (*(int *)(o + 0x14) == 0) {
+            *(int *)(o + 0x14) = r;
+        } else {
+            *(int *)(o + 0x4) = 1;
+            *(int *)(o + 0x14) = r;
+        }
+    }
     return o;
 }
 #else
