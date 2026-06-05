@@ -16560,23 +16560,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
 // from a contiguous data literal (&D_lit + 0/2/4/..) and threading self and
 // the a3 aux handle. Family: cb-pipeline + flag-gated dispatch.
 //
-// Caps (DEFERRED): self struct, &D_lit table and cb signatures
-//   untyped; per-call arg detail representative. Real-C STRUCTURAL
-//   body below. Byte-match deferred. Name pre-checked: no extern reuse.
+// STATUS: fuzzy=100% (instruction-exact). Stays NON_MATCHING because every
+//   cb callee is the reloc-blind gl_func_00000000 placeholder (the real USO
+//   targets live in the runtime reloc table, not the .text); promoting would
+//   link wrong jal targets. The .text instruction bytes match the extraction
+//   exactly. Branch-likely-to-epilogue emitted via `if(a1==0){body} return r`.
 #ifdef NON_MATCHING
 extern int D_00000000;
-void gl_func_0004AE40(char *a0, int a1, int a2, int a3, int a4) {
+// r = cb1(self,a1,a2,aux,a4) [a4 on stack]; early-return r if a1 != 0.
+// Otherwise dispatch a cb pipeline gated on self->0x38 bit 15: the flag-set
+// arm runs cb(aux,0)/lit[0], cb(aux,1)/lit[1], cb(aux,2)/lit[2]; the flag-
+// clear arm runs an extra *D_word-gated cb(aux,0)/lit[0] then the same
+// cb(aux,1)/lit[1], cb(aux,2)/lit[2] tail. Every paired call feeds the first
+// cb's result as a1 of the next, threading self/aux. Returns r in all paths.
+int gl_func_0004AE40(char *self, int a1, int a2, int aux, int a4) {
     int r;
-    short *lit = (short *)((char *)&D_00000000);
-    r = gl_func_00000000(a0, a1, a2, a3, a4);
-    if (a1 == 0) return;
-    if ((*(int *)(a0 + 0x38) & 0x8000) == 0) return;
-    gl_func_00000000(a0);
-    gl_func_00000000(a0, r, lit[0]);
-    gl_func_00000000(a0, a3, 1);
-    gl_func_00000000(a0, lit[1]);
-    gl_func_00000000(a0, lit[2]);
-    gl_func_00000000(a0, lit[3]);
+    int t;
+    short *lit = (short *)&D_00000000;
+    r = gl_func_00000000(self, a1, a2, aux, a4);
+    if (a1 == 0) {
+        if (*(int *)(self + 0x38) & 0x8000) {
+            t = gl_func_00000000(self, aux, 0);
+            gl_func_00000000(self, t, lit[0]);
+            t = gl_func_00000000(self, aux, 1);
+            gl_func_00000000(self, t, lit[1]);
+            t = gl_func_00000000(self, aux, 2);
+            gl_func_00000000(self, t, lit[2]);
+        } else {
+            if (*(int *)&D_00000000 != 0) {
+                t = gl_func_00000000(self, aux, 0);
+                gl_func_00000000(self, t, lit[0]);
+            } else {
+                t = gl_func_00000000(self, aux, 0);
+                gl_func_00000000(self, t, lit[0]);
+            }
+            t = gl_func_00000000(self, aux, 1);
+            gl_func_00000000(self, t, lit[1]);
+            t = gl_func_00000000(self, aux, 2);
+            gl_func_00000000(self, t, lit[2]);
+        }
+    }
+    return r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AE40);
