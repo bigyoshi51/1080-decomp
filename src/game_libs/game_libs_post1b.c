@@ -6628,6 +6628,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C8AC);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+long long gl_func_0006C90C(long long a, long long b) {
+    long long r = a % b;
+    if (r != 0 && ((r ^ b) < 0)) {
+        r += b;
+    }
+    return r;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C90C);
 #endif
