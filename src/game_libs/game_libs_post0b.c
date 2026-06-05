@@ -14257,24 +14257,33 @@ void gl_func_00046F80(int a0, int a1, int a2) {
 //   untyped. Real-C STRUCTURAL body below. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_00046FA8(char *a0, int a1, int a2, int a3) {
+void gl_func_00046FA8(char *a0, int a1, int a2, int a3, int a4, int a5) {
     char *ctx;
     char *gb;
     int i;
     unsigned int *p;
-    int argW;
-    if (*(int *)(a0 + 0x28C) != 0) return;
+    if (*(int *)(a0 + 0x28C) != 0) {
+        gl_func_00000000(a1, a2, a3, a4);
+        return;
+    }
+    if (a5 != 0) {
+        gl_func_00000000(*(char **)(*(char **)(a0 + 0x254) + 0x158), a5);
+        gl_func_00000000(*(char **)(*(char **)(a0 + 0x254) + 0x158), a5);
+        gl_func_00000000(*(char **)(*(char **)(a0 + 0x254) + 0x158), a5);
+    }
     ctx = *(char **)(*(char **)(a0 + 0x254) + 0x158);
-    if (a3 != 0) gl_func_00000000(ctx, a1);
-    gl_func_00000000(ctx, a2);
-    gl_func_00000000(ctx, a3);
     gb = *(char **)(ctx + 0x0C);
     i = *(int *)(gb + 0x4);
     *(int *)(gb + 0x4) = i + 1;
     p = (unsigned int *)(*(char **)gb + i * 8);
-    p[0] = 0xF6000000;
-    argW = gl_func_00000000(a1);
-    p[1] = (unsigned int)argW;
+    p[0] = 0xF6000000 | (((a1 + a3 - 1) & 0x3FF) << 14) | (((a2 + a4 - 1) & 0x3FF) << 2);
+    p[1] = ((a1 & 0x3FF) << 14) | ((a2 & 0x3FF) << 2);
+    gb = *(char **)(ctx + 0x0C);
+    i = *(int *)(gb + 0x4);
+    *(int *)(gb + 0x4) = i + 1;
+    p = (unsigned int *)(*(char **)gb + i * 8);
+    p[0] = 0xE7000000;
+    p[1] = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046FA8);
