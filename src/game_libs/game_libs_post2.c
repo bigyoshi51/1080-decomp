@@ -774,6 +774,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071ED8);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int gl_func_00000000();
+// Controller-pak verify. If flag +0x65 set: clear it and re-init via cb(obj);
+// propagate any nonzero. Read via cb(obj->4, obj->8, 1, &buf) — on error 2,
+// retry once; propagate other nonzero. Then compare the 32-byte expected hash
+// at obj+0xC against the read buffer; return 2 on first mismatch, else 0.
+// Reloc-blind cbs.
+int gl_func_00072134(char *obj) {
+    int r;
+    unsigned char buf[32];
+    int i;
+    if (*(unsigned char *)(obj + 0x65) != 0) {
+        *(unsigned char *)(obj + 0x65) = 0;
+        r = gl_func_00000000(obj);
+        if (r != 0) {
+            goto done;
+        }
+    }
+    r = gl_func_00000000(*(int *)(obj + 0x4), *(int *)(obj + 0x8), 1, buf);
+    if (r == 0) {
+        goto loop;
+    }
+    if (r != 2) {
+        goto done;
+    }
+    r = gl_func_00000000(*(int *)(obj + 0x4), *(int *)(obj + 0x8), 1, buf);
+    if (r != 0) {
+        goto done;
+    }
+loop:
+    i = 0;
+    do {
+        if (buf[i] != *(unsigned char *)(obj + i + 0xC)) {
+            r = 2;
+            goto done;
+        }
+        i++;
+    } while (i < 32);
+    r = 0;
+done:
+    return r;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072134);
 #endif
