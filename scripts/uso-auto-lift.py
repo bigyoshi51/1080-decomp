@@ -7,6 +7,7 @@ Emits a cleaned C body (splice over the stub). Hand-fix residuals:
 """
 import subprocess,re,sys,os
 obj,fn=sys.argv[1],sys.argv[2]
+sfile=sys.argv[3] if len(sys.argv)>3 and sys.argv[3].endswith('.s') else None  # pre-made .s (e.g. jumptable)
 # 1. width map from asm (s6/base-reg-relative loads/stores)
 out=subprocess.run(["mips-linux-gnu-objdump","-d",obj],capture_output=True,text=True).stdout
 cap=False; wmap={}
@@ -21,7 +22,7 @@ for ln in out.split('\n'):
             if t and off>=0: wmap.setdefault(off,t)
 # 2. m2c decode
 here=os.path.dirname(os.path.abspath(__file__))
-s=subprocess.run(["python3",f"{here}/uso-objdump-to-m2c.py",obj,fn],capture_output=True,text=True).stdout
+s=open(sfile).read() if sfile else subprocess.run(["python3",f"{here}/uso-objdump-to-m2c.py",obj,fn],capture_output=True,text=True).stdout
 open('/tmp/_al.s','w').write(s)
 m2c=subprocess.run(["uv","run","m2c","--target","mips-ido-c","/tmp/_al.s"],capture_output=True,text=True).stdout
 if 'failure' in m2c[:200] or 'Unable' in m2c[:200]:
