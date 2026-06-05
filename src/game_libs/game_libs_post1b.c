@@ -6983,6 +6983,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006D94C);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int gl_func_00000000();
+extern int gl_func_0006D964_b();   /* distinct field-0 placeholder for the a1!=1 arm */
+extern int D_00000000;
+// Early-out -1 if *(&D)==0. Fill a 20-byte record at obj: halfword type 0xC if
+// a2!=0 else 0xB; byte +2 = a1; +4=arg7, +8=arg5, +0xC=a3, +0x10=arg6, +0x14=0.
+// Then a kind-gated builder pair (a1==1 vs not call different builders), each
+// `s1 = build(); s0 = send(s1, obj, 0)`; return s0. Reloc-blind cbs + &D.
+int gl_func_0006D964(char *obj, int a1, int a2, int a3, int arg5, int arg6, int arg7) {
+    int s0, s1;
+    if (*(int *)&D_00000000 == 0) {
+        return -1;
+    }
+    if (a2 != 0) {
+        *(short *)(obj + 0x0) = 12;
+    } else {
+        *(short *)(obj + 0x0) = 11;
+    }
+    *(char *)(obj + 0x2) = (char)a1;
+    *(int *)(obj + 0x4) = arg7;
+    *(int *)(obj + 0x8) = arg5;
+    *(int *)(obj + 0xC) = a3;
+    *(int *)(obj + 0x10) = arg6;
+    *(int *)(obj + 0x14) = 0;
+    if (a1 == 1) {
+        s1 = gl_func_00000000();
+        s0 = gl_func_00000000(s1, obj, 0);
+    } else {
+        s1 = gl_func_0006D964_b();
+        s0 = gl_func_0006D964_b(s1, obj, 0);
+    }
+    return s0;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D964);
 #endif
