@@ -443,6 +443,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071708);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+// Record decoder. Advances the (caller-set) src cursor by a0 records, reads a
+// 6-byte record (lwl/lwr + 2 bytes) into a local, then decodes: out->3 =
+// (rec[1] & 0xC0) >> 4; if that is 0, out->0 = (rec[4]<<8)|rec[3] (halfword)
+// and out->2 = rec[5]. The cursor base is caller-set ($t6) — modeled as a
+// param, so only the dispatch reg differs.
+void gl_func_000717CC(int a0, char *out, char *cursor) {
+    unsigned char rec[8];
+    int i;
+    if (a0 > 0) {
+        i = 0;
+        do {
+            cursor += 1;
+            i++;
+        } while (i < a0);
+    }
+    *(int *)rec = *(int *)cursor;
+    rec[4] = cursor[4];
+    rec[5] = cursor[5];
+    *(char *)(out + 3) = (rec[1] & 0xC0) >> 4;
+    if (*(unsigned char *)(out + 3) == 0) {
+        *(short *)(out + 0) = (rec[4] << 8) | rec[3];
+        *(char *)(out + 2) = rec[5];
+    }
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000717CC);
 #endif
