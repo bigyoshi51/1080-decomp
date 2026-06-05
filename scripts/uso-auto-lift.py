@@ -111,6 +111,7 @@ body='\n'.join(o)
 # 9. m2c `?`-typed stack structs -> s32[4] (size guess; hand-fix if frame mismatches)
 body=re.sub(r'^(\s*)\? (sp\w+);', r'\1s32 \2[4];', body, flags=re.M)
 body=re.sub(r'^(\s*)\? (\w+);', r'\1s32 \2;', body, flags=re.M)  # other ?-typed vars -> s32
+body=re.sub(r'\? (\w+)([,)])', r's32 \1\2', body)  # ?-typed params -> s32
 # 10. float var = (void *)(*(s32 *)(X)) -> = *(f32 *)(X)  (Vec3 float inits)
 fvars=set(re.findall(r'\bf32 (\w+);', body))
 def _fi(m):
