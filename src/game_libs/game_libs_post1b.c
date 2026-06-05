@@ -7092,6 +7092,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006DBFC);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int gl_func_00000000();
+extern int D_00000000;
+// t6 (caller-set, = current *(D+0xC)) gated on the 0xB0000000 PI-bus DOM2
+// address: if already mapped, return the default pointer; else clear the
+// flag byte (D+4), store 0xB0000000 to D+0xC, read a 32-bit save-header word
+// (cb(0,&v)) and unpack it into the byte fields D+5/8/6/7 (date/time stamp),
+// zero D+9/D+0x10, cb(D+0x14, 96), an alloc/create cb, the self-copy +
+// pointer-restore globals, and the finalize cb. Reloc-blind &D + caller-set t6.
+void *gl_func_0006DC0C(void *t6) {
+    char *g = (char *)&D_00000000;
+    int v;
+    void *saved;
+    if (t6 == (void *)0xB0000000) {
+        return (void *)&D_00000000;
+    }
+    *(char *)(g + 0x4) = 0;
+    *(int *)(g + 0xC) = (int)0xB0000000;
+    gl_func_00000000(0, &v);
+    *(char *)(g + 0x5) = v & 0xFF;
+    *(char *)(g + 0x8) = (v >> 0x8) & 0xFF;
+    *(char *)(g + 0x6) = (v >> 0x10) & 0xF;
+    *(char *)(g + 0x7) = (v >> 0x14) & 0xF;
+    *(char *)(g + 0x9) = 0;
+    *(int *)(g + 0x10) = 0;
+    gl_func_00000000(g + 0x14, 96);
+    saved = (void *)gl_func_00000000();
+    *(int *)g = *(int *)g;
+    *(int *)g = (int)&D_00000000;
+    gl_func_00000000(saved);
+    return (void *)&D_00000000;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DC0C);
 #endif
