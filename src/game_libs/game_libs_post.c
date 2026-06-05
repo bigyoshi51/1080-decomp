@@ -8599,24 +8599,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025C54);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
+// Registry resolve sweep. s3 = init(2) [jal 0x38204]; walk the index table
+// at &D_0+0x2540 (count &D_0+0x2534, stride 0xC) and for each active entry
+// (e->0==1): j = poll(1, e->2) [0x38174]; rec = (*&D_0+0x2030) + j*0x14;
+// stash rec->2/rec->3 into a stack frame {b0,b4,b10,b14}; each non-0xFF byte
+// drives a second poll(2,b) [0x38174] whose result indexes s3 + r*0x10 + 0x18
+// (a byte) back into the frame; finally dispatch(j, 0, &frame) [0x3a2c0].
+// The three jals are baked fixed-address targets (cap: field stays 0 vs the
+// extraction's resolved 0x0C00E0xx) — body byte-matches, jals don't.
 void gl_func_000260B4(void) {
     char *g = (char *)&D_00000000;
-    int n = *(int *)(g + 0x2534);
+    char *s3;
     char *e;
     int i;
-    gl_func_00000000(2);
+    int n;
+    struct { int b0; int b4; int pad8; int padc; int b10; int b14; } frame;
+
+    s3 = (char *)gl_func_00000000(2);
+    n = *(int *)(g + 0x2534);
+    i = 0;
     if (n <= 0) {
         return;
     }
     e = g + 0x2540;
-    for (i = 0; i < n; i++) {
+    for (; i < n; i++) {
         if (*(short *)(e + 0) == 1) {
-            int j = gl_func_00000000(1);
-            short k = *(short *)(e + 2);
+            int j = gl_func_00000000(1, *(short *)(e + 2));
             char *rec = *(char **)(g + 0x2030) + j * 0x14;
-            gl_func_00000000(2, k, rec);
+            frame.b0 = *(unsigned char *)(rec + 2);
+            frame.b4 = *(unsigned char *)(rec + 3);
+            if (*(unsigned char *)(rec + 2) != 0xFF) {
+                int r = gl_func_00000000(2, *(unsigned char *)(rec + 2));
+                frame.b0 = r;
+                frame.b10 = *(char *)(s3 + r * 0x10 + 0x18);
+            }
+            if (frame.b4 != 0xFF) {
+                int r = gl_func_00000000(2, frame.b4);
+                frame.b4 = r;
+                frame.b14 = *(char *)(s3 + r * 0x10 + 0x18);
+            }
+            gl_func_00000000(j, 0, &frame);
         }
-        e += 0x14;
+        e += 0xC;
     }
 }
 #else
