@@ -1387,6 +1387,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007369C);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int gl_func_00000000();
+extern long long gl_chain_cb_00073824();   /* 64-bit-return placeholder (field-0 jal) */
+extern int D_00000000;
+// Zero obj->0/4, store arg5/arg6 to obj->8/0xC, then select the obj->0x10/0x14
+// pair: a2/a3 unless both zero (then arg5/arg6). obj->0x18/0x1C = arg7/arg8.
+// Register the node via a 64-bit-return chain cb (v0:v1), and if **&D == obj
+// (this node is the active head) re-fire the chain handler with that pair.
+int gl_func_00073824(char *obj, int a1, int a2, int a3, int arg5, int arg6, int arg7, int arg8) {
+    long long rr;
+    char *head;
+    *(int *)(obj + 0x0) = 0;
+    *(int *)(obj + 0x4) = 0;
+    *(int *)(obj + 0xC) = arg6;
+    *(int *)(obj + 0x8) = arg5;
+    if (a2 != 0 || a3 != 0) {
+        *(int *)(obj + 0x10) = a2;
+        *(int *)(obj + 0x14) = a3;
+    } else {
+        *(int *)(obj + 0x10) = arg5;
+        *(int *)(obj + 0x14) = arg6;
+    }
+    *(int *)(obj + 0x18) = arg7;
+    *(int *)(obj + 0x1C) = arg8;
+    rr = gl_chain_cb_00073824(obj);
+    head = *(char **)(*(char **)&D_00000000);
+    if (head == obj) {
+        gl_chain_cb_00073824(rr);
+    }
+    return 0;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073824);
 #endif
