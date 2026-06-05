@@ -1798,18 +1798,39 @@ void game_libs_func_00035C60(int a0, int a1) {
 //   STRUCTURAL body below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+extern int gl_func_0004A110();
+extern int gl_func_0004A14C();
 int gl_func_00035C6C(char *l) {
-    char *n = *(char **)(l + 0x04);
-    char acc[0x1C];
-    if (n == 0) return 0;
-    *(float *)(acc + 0x18) = 0.0f;
-    *(int *)(acc + 0x1C - 4) = -1;
-    gl_func_00000000(&acc);
-    while (n != 0) {
-        gl_func_00000000(n, &acc);
-        n = *(char **)(n + 0x04);
-    }
-    return *(int *)(acc + 0x18);
+    char *s4 = l;
+    char *s3 = *(char **)(l + 4);
+    char *s0;
+    char *g = (char *)&D_00000000;
+    int it[8]; /* iterator/accumulator state */
+    if (s3 == 0) return 0;
+    do {
+        it[6] = 0;
+        gl_func_0004A110(&it[6]);
+        it[7] = -1;
+        it[2] = it[7];
+        if (it[2] == it[6]) break;
+        s0 = *(char **)(s4 + 4);
+        while (s0 != 0) {
+            it[2] = it[6];
+            if (it[2] == *(int *)(s0 + 4)) {
+                char *v = *(char **)(s0 + 0xC);
+                (*(int (**)())(v + 0xC))(*(short *)(v + 8) + (int)s0);
+            }
+            s0 = *(char **)s0;
+        }
+        gl_func_00000000(g + 0x2E6C0, &it[6]);
+        gl_func_0004A14C(&it[1]);
+        if (it[1] != 0) {
+            do {
+                gl_func_0004A14C(&it[0]);
+            } while (--it[1] != 0);
+        }
+    } while (s3 != 0);
+    return it[1];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035C6C);
