@@ -1373,37 +1373,165 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
 #endif
 
 #ifdef NON_MATCHING
-/* gui_func_0000329C: 286-insn / 0x478 RDP DL builder.
- *
- * 2026-05-08 first-pass structural decode: byte-identical entry shape
- * to gui_func_00002DE0 / gui_func_00002BB0 family — *(int**)&D_GUI_CTX
- * deref, cursor bump on ctx[0xC]->[1], RDP 0xBB000001 + 0x80008000
- * segment marker emit at slot 0. 0x408 (1032) literal at insn 0x4C
- * is the same viewport-scale constant as 2DE0.
- *
- * Frame -0x58 (88 bytes — smaller than 2DE0's -0x68 since this fn
- * has fewer body locals). Saves s0 + ra, defensive-spills a1/a2/a3
- * at sp+0x5C/0x60/0x64.
- *
- * 4-arg signature with same shape as 2DE0/2BB0 family.
- *
- * ~270 insns of body deferred — likely scissor/viewport/DL setup
- * sequence using 0x408 viewport scale + a0 widget args. Multi-pass
- * NM remains. Default INCLUDE_ASM keeps ROM exact. */
-void gui_func_0000329C(int *a0, int a1, int a2, int a3) {
-    int *ctx;
-    int *p;
-    int slot, idx;
-    (void)a1; (void)a2; (void)a3;
-    ctx = *(int**)((char*)&D_00000000);
-    idx = ctx[0xC / 4];
-    slot = ((int*)idx)[1];
-    ((int*)idx)[1] = slot + 1;
-    p = (int*)((*(int**)idx)[0]) + (slot << 1);
-    p[0] = 0xBB000001;
-    p[1] = (int)0x80008000;
-    /* TODO: ~270 more insns of body. Multi-pass NM. */
-    (void)a0; (void)ctx;
+void gui_func_0000329C(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    char *g = (char *)&D_00000000;
+    s32 sp3C;
+    s32 sp38;
+    f32 temp_f0;
+    f32 temp_f2;
+    s16 temp_a0;
+    s16 temp_a1;
+    s16 temp_a2;
+    s16 temp_v0_3;
+    s16 var_s0;
+    s16 var_s0_2;
+    s16 var_t2;
+    s16 var_t2_2;
+    s32 temp_a0_2;
+    s32 temp_a0_3;
+    s32 temp_f6;
+    s32 temp_f8;
+    s32 temp_s0_2;
+    s32 temp_v0_5;
+    s32 temp_v0_6;
+    s32 temp_v1;
+    s32 temp_v1_2;
+    s32 temp_v1_3;
+    s32 temp_v1_4;
+    s32 var_a1;
+    s32 var_a2;
+    s32 var_s0_3;
+    s32 var_t0;
+    s32 var_v0;
+    s32 var_v1;
+    void **var_t3;
+    char *temp_a0_4;
+    char *temp_s0;
+    char *temp_s0_3;
+    char *temp_s0_4;
+    char *temp_s0_5;
+    char *temp_t0;
+    char *temp_t0_2;
+    char *temp_t1;
+    char *temp_t2;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_4;
+    char *temp_v0_7;
+
+    var_t3 = g;
+    temp_s0 = (*(s32 *)g);
+    temp_v0 = (*(s32 *)(temp_s0 + 0xC));
+    temp_v1 = (*(s32 *)(temp_v0 + 0x4));
+    (*(s32 *)(temp_v0 + 0x4)) = (s32) (temp_v1 + 1);
+    temp_t0 = (*(s32 *)((char *)(*(s32 *)(temp_s0 + 0xC)) + 0x0)) + (temp_v1 * 8);
+    (*(s32 *)(temp_t0 + 0x0)) = 0xBB000001;
+    (*(s32 *)(temp_t0 + 0x4)) = 0x80008000;
+    temp_t2 = (*(s32 *)(arg0 + 0x10));
+    sp3C = (s32) (*(s32 *)(temp_t2 + 0x20));
+    sp38 = (s32) (*(s32 *)(temp_t2 + 0x22));
+    temp_s0_2 = (*(s32 *)(temp_t2 + 0x24));
+    switch (temp_s0_2) {                            /* irregular */
+    case 0x408:
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+block_7:
+        var_t3 = g;
+        break;
+    case 0x120:
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        goto block_7;
+    case 0x110:
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        goto block_7;
+    }
+    temp_s0_3 = *var_t3;
+    var_t2 = 0;
+    temp_v0_2 = (*(s32 *)(temp_s0_3 + 0xC));
+    temp_v1_2 = (*(s32 *)(temp_v0_2 + 0x4));
+    (*(s32 *)(temp_v0_2 + 0x4)) = (s32) (temp_v1_2 + 1);
+    temp_t0_2 = (*(s32 *)((char *)(*(s32 *)(temp_s0_3 + 0xC)) + 0x0)) + (temp_v1_2 * 8);
+    temp_f0 = (f32) (arg3 - arg1);
+    var_s0 = 0;
+    temp_f8 = (s32) (f32) arg1;
+    temp_f2 = (f32) (arg4 - arg2);
+    temp_a0 = (temp_f8 + (s32) temp_f0) * 4;
+    temp_a1 = temp_f8 * 4;
+    if (temp_a0 > 0) {
+        var_s0 = temp_a0;
+    }
+    temp_f6 = (s32) (f32) arg2;
+    var_s0_2 = 0;
+    temp_v0_3 = (temp_f6 + (s32) temp_f2) * 4;
+    temp_a2 = temp_f6 * 4;
+    if (temp_v0_3 > 0) {
+        var_t2 = temp_v0_3;
+    }
+    (*(s32 *)(temp_t0_2 + 0x0)) = (s32) (((var_s0 & 0xFFF) << 0xC) | 0xE4000000 | (var_t2 & 0xFFF));
+    if (temp_a1 > 0) {
+        var_s0_2 = temp_a1;
+    }
+    if (temp_a2 > 0) {
+        var_t2_2 = temp_a2;
+    } else {
+        var_t2_2 = 0;
+    }
+    (*(s32 *)(temp_t0_2 + 0x4)) = (s32) (((var_s0_2 & 0xFFF) << 0xC) | (var_t2_2 & 0xFFF));
+    temp_s0_4 = *var_t3;
+    temp_v0_4 = (*(s32 *)(temp_s0_4 + 0xC));
+    temp_v1_3 = (*(s32 *)(temp_v0_4 + 0x4));
+    (*(s32 *)(temp_v0_4 + 0x4)) = (s32) (temp_v1_3 + 1);
+    temp_t1 = (*(s32 *)((char *)(*(s32 *)(temp_s0_4 + 0xC)) + 0x0)) + (temp_v1_3 * 8);
+    (*(s32 *)(temp_t1 + 0x0)) = 0xB4000000;
+    if (temp_a1 < 0) {
+        var_t0 = (s32) (((f32) (sp3C - 1) * 1024.0f) / temp_f0);
+        if ((s16) var_t0 < 0) {
+            temp_a0_2 = (s32) (temp_a1 * (s16) var_t0) >> 7;
+            if (temp_a0_2 > 0) {
+                var_s0_3 = temp_a0_2;
+            } else {
+                var_s0_3 = 0;
+            }
+        } else {
+            var_v0 = 0;
+            temp_a0_3 = (s32) (temp_a1 * (s16) var_t0) >> 7;
+            if (temp_a0_3 < 0) {
+                var_v0 = temp_a0_3;
+            }
+            var_s0_3 = var_v0;
+        }
+    } else {
+        var_s0_3 = 0;
+        var_t0 = (s32) (((f32) (sp3C - 1) * 1024.0f) / temp_f0);
+    }
+    if (temp_f6 & 0x20000000) {
+        var_a2 = (s32) (((f32) (sp38 - 1) * 1024.0f) / temp_f2);
+        if ((s16) var_a2 < 0) {
+            temp_v0_5 = (s32) (temp_a2 * (s16) var_a2) >> 7;
+            if (temp_v0_5 > 0) {
+                var_a1 = temp_v0_5;
+            } else {
+                var_a1 = 0;
+            }
+        } else {
+            var_v1 = 0;
+            temp_v0_6 = (s32) (temp_a2 * (s16) var_a2) >> 7;
+            if (temp_v0_6 < 0) {
+                var_v1 = temp_v0_6;
+            }
+            var_a1 = var_v1;
+        }
+    } else {
+        var_a1 = 0;
+        var_a2 = (s32) (((f32) (sp38 - 1) * 1024.0f) / temp_f2);
+    }
+    (*(s32 *)(temp_t1 + 0x4)) = (s32) ((var_s0_3 * -0x10000) | (-var_a1 & 0xFFFF));
+    temp_s0_5 = (*(s32 *)g);
+    temp_v0_7 = (*(s32 *)(temp_s0_5 + 0xC));
+    temp_v1_4 = (*(s32 *)(temp_v0_7 + 0x4));
+    (*(s32 *)(temp_v0_7 + 0x4)) = (s32) (temp_v1_4 + 1);
+    temp_a0_4 = (*(s32 *)((char *)(*(s32 *)(temp_s0_5 + 0xC)) + 0x0)) + (temp_v1_4 * 8);
+    (*(s32 *)(temp_a0_4 + 0x4)) = (s32) ((var_t0 << 0x10) | (var_a2 & 0xFFFF));
+    (*(s32 *)(temp_a0_4 + 0x0)) = 0xB3000000;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
