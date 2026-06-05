@@ -53,7 +53,7 @@ body=re.sub(r'\*\(void \*\)(0x[0-9A-Fa-f]+|\d+)', r'*(s32 *)(g + \1)', body)
 body=re.sub(r'\*\(([su]\d+|void) \*\*\)(0x[0-9A-Fa-f]+)', r'*(\1 **)(g + \2)', body)
 body=re.sub(r'\*\(([su]\d+|f32) \*\)\((0x[0-9A-Fa-f]+) \+', r'*(\1 *)(g + \2 +', body)
 # m2c (bitwise void *) on a float -> reinterpret bits
-body=re.sub(r'\(bitwise void \*\) (\w+)', r'(*(s32 *)&\1)', body)
+body=re.sub(r'\(bitwise [\w ]+\*?\) (\w+)', r'(*(s32 *)&\1)', body)
 # (void *)-1 sentinel -> -1 (int handle fields); double-deref pointer chain
 body=body.replace('(void *)-1','-1')
 body=re.sub(r'\*\(\*\((s32) \*\)', r'*(\1 *)(*(\1 *)', body)
