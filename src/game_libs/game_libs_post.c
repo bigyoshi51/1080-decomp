@@ -7497,22 +7497,54 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00024E28);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
+// Bounds-checked record creator. idx >= *(u16)(&D_0+0x202C) -> *a2=0, ret -1.
+// Else: j = poll(0,idx) [0x38174]; base = init(0) [0x38204]; n = *(&D_0+0x1578);
+// the block is &D_0 + n*0x64 (control at +0x1590, record rec at +0x157C). A
+// source record src = base + j*0x10 feeds several fields. Stores: (control==3)
+// rec->0x14=0; rec->0x24=0; rec->0x1C=a2; rec->0x14=1; rec->0xC/0x10=a1;
+// rec->0x18=(src->0x14 + 15)&~0xF; rec->0x8=src->0x10; rec->1=(byte)j;
+// rec->0=src->0x18; if that byte==1, rec->4=*(short)(base+2). Tail toggles
+// *(&D_0+0x1578) ^= 1 and returns 0. CROSS-FRAGMENT: t6 (the 0x202C limit) is
+// preloaded by head fragment game_libs_func_00024E28 (splat missplit) — the
+// bounds load is inlined here, so it won't byte-match until the fragment merge.
 int gl_func_00024E34(int idx, int a1, char *a2) {
     char *g = (char *)&D_00000000;
-    int j, r;
+    int j;
+    char *base;
+    char *src;
+    char *block;
     char *rec;
+    int n;
+    int t6;
     if (idx >= *(unsigned short *)(g + 0x202C)) {
         *a2 = 0;
         return -1;
     }
     j = gl_func_00000000(0, idx);
-    r = gl_func_00000000(0, j);
-    rec = g + 0x157C + r * 0x14;
-    if (*(int *)(g + 0x1590) != 3) {
+    base = (char *)gl_func_00000000(0);
+    n = *(int *)(g + 0x1578);
+    block = g + n * 0x64;
+    rec = block + 0x157C;
+    src = base + j * 0x10;
+    if (*(int *)(block + 0x1590) == 3) {
         *(int *)(rec + 0x14) = 0;
     }
     *(int *)(rec + 0x24) = 0;
-    return r;
+    *(int *)(rec + 0x1C) = (int)a2;
+    *(int *)(rec + 0x14) = 1;
+    *(int *)(rec + 0xC) = a1;
+    *(int *)(rec + 0x18) = (*(int *)(src + 0x14) + 0xF) & ~0xF;
+    *(int *)(rec + 0x10) = a1;
+    *(int *)(rec + 0x8) = *(int *)(src + 0x10);
+    *(char *)(rec + 1) = (char)j;
+    t6 = *(signed char *)(src + 0x18);
+    *(char *)(rec + 0) = t6;
+    if ((t6 & 0xFF) == 1) {
+        *(int *)(rec + 4) = *(short *)(base + 2);
+    }
+    n = *(int *)(g + 0x1578);
+    *(int *)(g + 0x1578) = n ^ 1;
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024E34);
