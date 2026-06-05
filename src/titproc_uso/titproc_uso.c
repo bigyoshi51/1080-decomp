@@ -41,7 +41,10 @@ extern int titproc_uso_func_01EEE4();
  * names as expected. Residual is temp-register coloring around the initial
  * load/increments and final table-base load. Negative probes: splitting the
  * initial `D+0x6C` load into `raw` moved it to `$v1` instead of target `$t6`;
- * naming the final constant `four` compiled identically. Still NM. */
+ * naming the final constant `four` compiled identically; a single
+ * `char *s = &import_00020098` base pointer REGRESSES (+7 insns — `s` must
+ * survive the two calls so it spills, rather than the target's per-access
+ * reload). Keep the inline-macro form. Still NM. */
 int titproc_uso_func_000000C0(counter)
     int counter;
 {
