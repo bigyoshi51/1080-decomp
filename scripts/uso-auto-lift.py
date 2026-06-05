@@ -115,6 +115,7 @@ def _fi(m):
 body=re.sub(r'^(\s*)(\w+) = \(void \*\)\(\*\(s32 \*\)(\(.*?\))\);', _fi, body, flags=re.M)
 # 11. bare deref of a parenthesized expr: VAR = *((...)) -> VAR = *(s32 *)((...))
 body=re.sub(r'= \*\(\(', r'= *(s32 *)((', body)
+body=re.sub(r'^(\s*)\*\(\(', r'\1*(s32 *)((', body, flags=re.M)
 print('extern char D_00000000;')
 # emit extern decls for called funcs
 for c in sorted(set(re.findall(r'\b(gl_func_[0-9A-Fa-f]+|game_\w+_func_[0-9A-Fa-f]+|func_[0-9a-f]+)\s*\(', body))):
