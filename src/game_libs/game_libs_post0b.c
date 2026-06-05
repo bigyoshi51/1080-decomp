@@ -23564,11 +23564,11 @@ s32 *gl_func_000546E8(s32 *arg0, s32 *arg1) {
             sp94.unk4 = 0;
             sp94.unk8 = 0;
             sp94.unkC = 0;
-            spA4.unk0 = 0x3F800000;
+            *(float *)&spA4.unk0 = 1.0f;
             *(float *)&spA4.unk4 = 1.0f;
             *(float *)&spA4.unk8 = 1.0f;
             *(float *)&spA4.unkC = 1.0f;
-            sp84.unk0 = 0x3F800000;
+            *(float *)&sp84.unk0 = 1.0f;
             *(float *)&sp84.unk4 = 1.0f;
             *(float *)&sp84.unk8 = 1.0f;
             *(float *)&sp84.unkC = 1.0f;
