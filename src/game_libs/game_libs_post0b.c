@@ -20070,25 +20070,63 @@ void game_libs_func_0004FB9C(void) {}
 //   extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
-char *gl_func_0004FBA4(char *a0, int a1, char *a2) {
-    char *o0;
-    char *o1 = a2;
-    char *n;
-    o0 = (char *)gl_func_00000000(0x90);
-    if (o0 == 0) return 0;
-    if (o1 == 0) {
-        o1 = (char *)gl_func_00000000(0x60);
-        if (o1 == 0) return 0;
+// a1 is a cursor-ptr-ptr: *a1 walks a halfword-keyed entry array; on return
+// *a1 points past the zero-terminator. a2 (3rd arg) is unused. The object o is
+// allocated (0x90, 0x60 fallback), its 0x34 (8-byte) and 0x58 (4-byte) sub-
+// fields sentinel-guard-zeroed, initialised via gl_func_00000000(o), then
+// arg0->0x34/0x38 copied in, then the vtable dispatch loop drives each entry.
+char *gl_func_0004FBA4(char *a0, int **a1, char *a2) {
+    char *o;
+    int *p3;
+    int *p4;
+    int *p;
+    int *cursor;
+    int local;
+
+    o = (char *)gl_func_00000000(0x90);
+    if (o == 0) {
+        o = (char *)gl_func_00000000(0x60);
+        if (o == 0) {
+            *(char **)(o + 0x5C) = (char *)&D_00000000;
+            goto body;
+        }
     }
-    *(char **)(o1 + 0x5C) = (char *)&D_00000000;
-    *(char **)(o0 + 0x34) = o1;
-    n = (char *)gl_func_00000000(0x8);
-    if (n != 0) {
-        *(int *)n = 0;
-        *(int *)(n + 0x4) = 0;
+    *(char **)(o + 0x5C) = (char *)&D_00000000;
+
+    p3 = (int *)(o + 0x34);
+    if (o == (char *)-0x34) {
+        p3 = (int *)gl_func_00000000(8);
+        if (p3 == 0) goto skip3;
     }
-    *(char **)(o1 + 0x34) = n;
-    return o0;
+    p3[1] = 0;
+    p3[0] = 0;
+skip3:
+    p4 = (int *)(o + 0x58);
+    if (o == (char *)-0x58) {
+        p4 = (int *)gl_func_00000000(4);
+        if (p4 == 0) goto skip4;
+    }
+    p4[0] = 0;
+skip4:
+    gl_func_00000000(o);
+    *(char **)(o + 0x5C) = (char *)&D_00000000;
+
+body:
+    *(int *)(o + 0x34) = *(int *)(a0 + 0x34);
+    *(int *)(o + 0x38) = *(int *)(a0 + 0x38);
+    p = *a1;
+    cursor = p + 1;
+    local = *p & 0xFFFF;
+    if (local != 0) {
+        do {
+            char *vt = *(char **)(o + 0x5C);
+            (*(void (**)(char *, int *))(vt + 0x24))(o + *(short *)(vt + 0x20), &local);
+            p = cursor++;
+            local = *p & 0xFFFF;
+        } while (local != 0);
+    }
+    *a1 = cursor;
+    return o;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FBA4);
