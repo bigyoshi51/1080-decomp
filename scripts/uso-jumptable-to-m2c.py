@@ -49,8 +49,9 @@ for x,ins in insns:
         tgt=mj.group(3) if (mj.group(2)=='0' and not mj.group(4)) else f'func_{mj.group(2)}'
         s=re.sub(r'\b(jal|j)\s+[0-9a-f]+\s+<[\w+x0-9a-f]+>', f'{mj.group(1)} {tgt}', s)
     s=re.sub(r'\s+<[\w+x0-9a-f]+>','',s); s=re.sub(r'\bs8\b','fp',s); s=re.sub(GPR, r'$\1', s)
-    s=re.sub(r'lw\t\$t9,\d+\(\$at\)', f'lw\t$t9,%lo(jtbl_{fn})($at)', s)
+    s=re.sub(r'lw\t(\$\w+),\d{2,}\(\$at\)', rf'lw\t\1,%lo(jtbl_{fn})($at)', s)  # jumptable load (any reg)
     asm.append('/* */ '+s)
-txt='\n'.join(asm).replace(f'lui\t$at,0x0\n/* */ addu\t$at,$at,$t9', f'lui\t$at,%hi(jtbl_{fn})\n/* */ addu\t$at,$at,$t9')
+txt='\n'.join(asm)
+txt=re.sub(r'lui\t\$at,0x0\n/\* \*/ addu\t\$at,\$at,(\$\w+)', rf'lui\t$at,%hi(jtbl_{fn})\n/* */ addu\t$at,$at,\1', txt)  # %hi (any index reg)
 txt+=f'\n\n.section .rodata\nglabel jtbl_{fn}\n'+''.join(f'.word .L{a:x}\n' for a in labaddrs)
 print(txt)
