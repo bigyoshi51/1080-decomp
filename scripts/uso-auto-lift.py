@@ -57,6 +57,33 @@ body=re.sub(r'\(bitwise void \*\) (\w+)', r'(*(s32 *)&\1)', body)
 # (void *)-1 sentinel -> -1 (int handle fields); double-deref pointer chain
 body=body.replace('(void *)-1','-1')
 body=re.sub(r'\*\(\*\((s32) \*\)', r'*(\1 *)(*(\1 *)', body)
+# *NULL = deref of addr 0 = &D base
+body=re.sub(r'\*NULL', r'(*(s32 *)g)', body)
+# **(s32 *)(EXPR) pointer-chain
+body=re.sub(r'\*\*\((s32) \*\)(\([^;\n]*?\))', r'*(\1 *)(*(\1 *)\2)', body)
+# parenthesized-base struct fields: (EXPR)->unkN  (backward-scan)
+def _pf(s):
+    while True:
+        m=re.search(r'->unk(-?[0-9A-Fa-f]+)', s)
+        if not m: break
+        off=m.group(1); end=m.start()
+        if s[end-1]==')':
+            d=0; i=end-1
+            while i>=0:
+                if s[i]==')': d+=1
+                elif s[i]=='(':
+                    d-=1
+                    if d==0: break
+                i-=1
+            base=s[i:end]
+        else:
+            j=end
+            while j>0 and (s[j-1].isalnum() or s[j-1]=='_'): j-=1
+            base=s[j:end]; i=j
+        sign='-' if off.startswith('-') else '+'; o=off.lstrip('-')
+        s=s[:i]+f'(*(s32 *)((char *){base} {sign} 0x{o}))'+s[m.end():]
+    return s
+body=_pf(body)
 # 7. base-0 ptr inits & bounds
 body=re.sub(r'= NULL;', '= g;', body)
 body=re.sub(r'= \(void \*\)(0x[0-9A-Fa-f]+|\d+);', r'= g + \1;', body)
