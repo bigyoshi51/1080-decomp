@@ -1310,63 +1310,172 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
 #endif
 
 #ifdef NON_MATCHING
-/* gui_func_00002DE0: 303-insn / 0x4BC RDP/RSP display-list builder.
- * Same family as gui_func_00002BB0 (just NM-wrapped sibling) - both
- * load ctx from `&D_GUI_CTX`, bump the display-list write counter, and
- * emit a G_SETSCISSOR (0xBB00_0001) command at ctx[12][0] + count*8.
- *
- * ENTRY DECODE (0x2DE0-0x2E40, ~24 insns):
- *   ctx = *(int**)&D_GUI_CTX;        // s0 = ctx (global ptr deref)
- *   ctx[12]->[4] += 1;               // bump display-list counter
- *   v1_old = pre-bump value
- *   at = 0x408                        // some constant (1032 = 0x408 lookup)
- *   t4 = 0xBB00_0001                  // RDP G_SETSCISSOR opcode
- *   t5 = 0x80008000                   // RDRAM segment-0 base marker
- *   a3 = ctx[12][0] + (v1_old << 3)  // dl_ptr at base + index*8
- *   *a3 = t4                          // RDP cmd word 1
- *   *(a3+4) = t5                      // RDP cmd word 2
- *   t0 = a0[4]                        // (continues - likely viewport/scissor
- *                                       params from arg0 widget struct)
- *
- * 4 args saved to caller-arg-spill at sp+0x6C..0x74 (a1, a2, a3 stack).
- * 1 saved reg (s0) + ra. 0x68-byte frame (smaller than 0x2BB0's 0x70).
- * 280+ insns of body deferred - multi-pass NM-decomp. The 0x408
- * literal (1032) is suspicious - possibly a viewport/scissor scale
- * factor (240*4 = 960; 1024+8 = 1032). Default build INCLUDE_ASM. */
-/* 2026-05-08: entry-stage decode (insns 0-24 / 0x00-0x60). Replaces
- * empty stub with the documented 4-arg signature + first DL command
- * emit (RDP 0xBB000001 opcode at slot 0, sibling shape of gui_func_00002BB0).
- *
- * Frame -0x68 (saves s0 + ra). 4 arg signature with a1/a2/a3 spilled to
- * caller-arg-save slots at sp+0x6C/0x70/0x74 (defensive). The 0x408
- * (=1032) literal materialized at insn 0x4C is likely a viewport scale
- * factor used in the per-vertex-emit loop (~280 insns deferred). */
-void gui_func_00002DE0(int *a0, int a1, int a2, int a3) {
-    int *ctx = *(int **)&D_00000000;
-    /* first DL emit: G_SETSCISSOR */
-    {
-        int *v0 = (int *)ctx[0xC / 4];
-        int idx = v0[1];
-        v0[1] = idx + 1;
-        {
-            int *slot = (int *)(((int *)ctx[0xC / 4])[0]) + idx * 2;
-            slot[0] = 0xBB000001;
-            slot[1] = (int)0x80008000;
-        }
+void gui_func_00002DE0(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
+    char *g = (char *)&D_00000000;
+    s32 sp3C;
+    s32 sp38;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f12;
+    f32 temp_f14;
+    s16 temp_a0;
+    s16 temp_a1;
+    s16 temp_a2;
+    s16 temp_v0_3;
+    s16 var_s0;
+    s16 var_s0_2;
+    s16 var_t0;
+    s16 var_t0_2;
+    s32 temp_a0_2;
+    s32 temp_a0_3;
+    s32 temp_f10;
+    s32 temp_f4;
+    s32 temp_s0_2;
+    s32 temp_v0_5;
+    s32 temp_v0_6;
+    s32 temp_v1;
+    s32 temp_v1_2;
+    s32 temp_v1_3;
+    s32 temp_v1_4;
+    s32 var_a1;
+    s32 var_a2;
+    s32 var_s0_3;
+    s32 var_t1;
+    s32 var_v0;
+    s32 var_v1;
+    void **var_t3;
+    char *temp_a0_4;
+    char *temp_a3;
+    char *temp_s0;
+    char *temp_s0_3;
+    char *temp_s0_4;
+    char *temp_s0_5;
+    char *temp_t0;
+    char *temp_t1;
+    char *temp_t2;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_4;
+    char *temp_v0_7;
+
+    var_t3 = g;
+    temp_s0 = (*(s32 *)g);
+    temp_v0 = (*(s32 *)(temp_s0 + 0xC));
+    temp_v1 = (*(s32 *)(temp_v0 + 0x4));
+    (*(s32 *)(temp_v0 + 0x4)) = (s32) (temp_v1 + 1);
+    temp_a3 = (*(s32 *)((char *)(*(s32 *)(temp_s0 + 0xC)) + 0x0)) + (temp_v1 * 8);
+    (*(s32 *)(temp_a3 + 0x0)) = 0xBB000001;
+    (*(s32 *)(temp_a3 + 0x4)) = 0x80008000;
+    temp_t0 = (*(s32 *)(arg0 + 0x10));
+    sp3C = (s32) (*(s32 *)(temp_t0 + 0x20));
+    sp38 = (s32) (*(s32 *)(temp_t0 + 0x22));
+    temp_s0_2 = (*(s32 *)(temp_t0 + 0x24));
+    switch (temp_s0_2) {                            /* irregular */
+    case 0x408:
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+block_7:
+        var_t3 = g;
+        break;
+    case 0x120:
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        goto block_7;
+    case 0x110:
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        goto block_7;
     }
-    {
-        int *t0 = (int *)a0[0x10 / 4];
-        int w = *(short *)((char *)t0 + 0x20);
-        int h = *(short *)((char *)t0 + 0x22);
-        int mode = t0[0x24 / 4];
-        if (mode == 1032 || mode == 288 || mode == 272) {
-            gl_func_00000000(ctx[0], t0[8 / 4], w, h, 0, 0, w, h, 0);
-        }
-        (void)a1; (void)a2; (void)a3;
+    temp_s0_3 = *var_t3;
+    temp_v0_2 = (*(s32 *)(temp_s0_3 + 0xC));
+    var_t0 = 0;
+    temp_v1_2 = (*(s32 *)(temp_v0_2 + 0x4));
+    (*(s32 *)(temp_v0_2 + 0x4)) = (s32) (temp_v1_2 + 1);
+    temp_f0 = (f32) sp3C;
+    var_s0 = 0;
+    temp_t1 = (*(s32 *)((char *)(*(s32 *)(temp_s0_3 + 0xC)) + 0x0)) + (temp_v1_2 * 8);
+    temp_f12 = temp_f0 * arg3;
+    temp_f4 = (s32) ((f32) arg1 + (-(temp_f0 / 2.0f) * arg3));
+    temp_f0_2 = (f32) sp38;
+    temp_a0 = (temp_f4 + (s32) temp_f12) * 4;
+    if (temp_a0 > 0) {
+        var_s0 = temp_a0;
     }
-    /* TODO: the shared FP TEXRECT perspective-coordinate render path
-     * (insns 76-303) — intricate cvt.s.w/div.s/trunc + RDP coord bit-packing;
-     * a dedicated multi-tick FP decode (harder than the integer DL builders). */
+    temp_f14 = temp_f0_2 * arg4;
+    var_s0_2 = 0;
+    temp_a1 = temp_f4 * 4;
+    temp_f10 = (s32) ((f32) arg2 + (-(temp_f0_2 / 2.0f) * arg4));
+    temp_v0_3 = (temp_f10 + (s32) temp_f14) * 4;
+    temp_a2 = temp_f10 * 4;
+    if (temp_v0_3 > 0) {
+        var_t0 = temp_v0_3;
+    }
+    (*(s32 *)(temp_t1 + 0x0)) = (s32) (((var_s0 & 0xFFF) << 0xC) | 0xE4000000 | (var_t0 & 0xFFF));
+    if (temp_a1 > 0) {
+        var_s0_2 = temp_a1;
+    }
+    if (temp_a2 > 0) {
+        var_t0_2 = temp_a2;
+    } else {
+        var_t0_2 = 0;
+    }
+    (*(s32 *)(temp_t1 + 0x4)) = (s32) (((var_s0_2 & 0xFFF) << 0xC) | (var_t0_2 & 0xFFF));
+    temp_s0_4 = *var_t3;
+    temp_v0_4 = (*(s32 *)(temp_s0_4 + 0xC));
+    temp_v1_3 = (*(s32 *)(temp_v0_4 + 0x4));
+    (*(s32 *)(temp_v0_4 + 0x4)) = (s32) (temp_v1_3 + 1);
+    temp_t2 = (*(s32 *)((char *)(*(s32 *)(temp_s0_4 + 0xC)) + 0x0)) + (temp_v1_3 * 8);
+    (*(s32 *)(temp_t2 + 0x0)) = 0xB4000000;
+    if (temp_a1 < 0) {
+        var_t1 = (s32) (((f32) (sp3C - 1) * 1024.0f) / temp_f12);
+        if ((s16) var_t1 < 0) {
+            temp_a0_2 = (s32) (temp_a1 * (s16) var_t1) >> 7;
+            if (temp_a0_2 > 0) {
+                var_s0_3 = temp_a0_2;
+            } else {
+                var_s0_3 = 0;
+            }
+        } else {
+            var_v0 = 0;
+            temp_a0_3 = (s32) (temp_a1 * (s16) var_t1) >> 7;
+            if (temp_a0_3 < 0) {
+                var_v0 = temp_a0_3;
+            }
+            var_s0_3 = var_v0;
+        }
+    } else {
+        var_s0_3 = 0;
+        var_t1 = (s32) (((f32) (sp3C - 1) * 1024.0f) / temp_f12);
+    }
+    if (temp_f10 & 0x20000000) {
+        var_t3 = g;
+        var_a2 = (s32) (((f32) (sp38 - 1) * 1024.0f) / temp_f14);
+        if ((s16) var_a2 < 0) {
+            var_a1 = 0;
+            temp_v0_5 = (s32) (temp_a2 * (s16) var_a2) >> 7;
+            if (temp_v0_5 > 0) {
+                var_t3 = g;
+                var_a1 = temp_v0_5;
+            } else {
+                var_t3 = g;
+            }
+        } else {
+            var_v1 = 0;
+            temp_v0_6 = (s32) (temp_a2 * (s16) var_a2) >> 7;
+            if (temp_v0_6 < 0) {
+                var_v1 = temp_v0_6;
+            }
+            var_a1 = var_v1;
+        }
+    } else {
+        var_a1 = 0;
+        var_a2 = (s32) (((f32) (sp38 - 1) * 1024.0f) / temp_f14);
+    }
+    (*(s32 *)(temp_t2 + 0x4)) = (s32) ((var_s0_3 * -0x10000) | (-var_a1 & 0xFFFF));
+    temp_s0_5 = *var_t3;
+    temp_v0_7 = (*(s32 *)(temp_s0_5 + 0xC));
+    temp_v1_4 = (*(s32 *)(temp_v0_7 + 0x4));
+    (*(s32 *)(temp_v0_7 + 0x4)) = (s32) (temp_v1_4 + 1);
+    temp_a0_4 = (*(s32 *)((char *)(*(s32 *)(temp_s0_5 + 0xC)) + 0x0)) + (temp_v1_4 * 8);
+    (*(s32 *)(temp_a0_4 + 0x4)) = (s32) ((var_t1 << 0x10) | (var_a2 & 0xFFFF));
+    (*(s32 *)(temp_a0_4 + 0x0)) = 0xB3000000;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
