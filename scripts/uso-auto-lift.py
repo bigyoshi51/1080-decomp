@@ -86,7 +86,33 @@ def _pf(s):
         s=s[:i]+f'(*(s32 *)((char *){base} {sign} 0x{o}))'+s[m.end():]
     return s
 body=_pf(body)
+# 6b. Vec3 stack-struct: m2c types a stack float-triple as a struct accessed via
+# `.unk0/.unk4/.unk8` (dot, not arrow — distinct from #5 which is pointer fields).
+# Declare each as s32[3] (mixed pointer/float words), convert fields to indices,
+# strip spurious element casts, remap interior-offset aliases (sp<base+4>->[1],
+# sp<base+8>->[2]), and lift bare-base scalar uses to [0]. Validated on
+# func_000090CC / game_uso_func_00007C1C lifts (2026-06-05).
+_v3=set(re.findall(r'\b(\w+)\.unk[048]\b', body))
+for _v in _v3:
+    body=re.sub(rf'^(\s*)f32 \*?{re.escape(_v)};', rf'\1s32 {_v}[3];', body, flags=re.M)
+    body=re.sub(rf'^(\s*)s32 {re.escape(_v)};', rf'\1s32 {_v}[3];', body, flags=re.M)
+body=re.sub(r'\.unk0\b','[0]',body); body=re.sub(r'\.unk4\b','[1]',body); body=re.sub(r'\.unk8\b','[2]',body)
+body=re.sub(r'= \((?:s32|f32)\) (\w+\[\d\])', r'= \1', body)
+for _v in list(_v3):
+    _m=re.match(r'sp([0-9A-Fa-f]+)$', _v)
+    if not _m: continue
+    _base=int(_m.group(1),16)
+    for _off,_idx in ((4,1),(8,2)):
+        _nm='sp%X'%(_base+_off)
+        if re.search(rf'\b{_nm}\b', body):
+            body=re.sub(rf'^\s*(?:f32|s32) \*?{_nm};\n', '', body, flags=re.M)
+            body=re.sub(rf'&{_nm}\b', f'&{_v}[{_idx}]', body)
+            body=re.sub(rf'\b{_nm}\b', f'{_v}[{_idx}]', body)
+for _v in _v3:
+    body=re.sub(rf'\b{_v}\b(?!\s*\[)', f'{_v}[0]', body)
+body=re.sub(r'(\b\w+\[3\])\[0\]', r'\1', body)  # undo decl over-conversion
 # 7. base-0 ptr inits & bounds
+body=re.sub(r'(!=|==) NULL\b', r'\1 0', body)  # cfe rejects int-deref vs NULL; 0 is type-agnostic
 body=re.sub(r'= NULL;', '= g;', body)
 body=re.sub(r'= \(void \*\)(0x[0-9A-Fa-f]+|\d+);', r'= g + \1;', body)
 body=re.sub(r'!= \(void \*\)(0x[0-9A-Fa-f]+|\d+)\)', r'!= (g + \1))', body)
