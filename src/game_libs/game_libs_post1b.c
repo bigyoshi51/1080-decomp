@@ -1434,6 +1434,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065060);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+// Per-node world-transform. Runs two cbs (obj+0x294/obj+0x2C8, both with
+// obj+0xDC), copies the local Vec3 at obj->0x1F8..0x200 into obj->0x324..0x32C,
+// then transforms it by the cached 3x3 matrix (rows at obj->0x70/0x74/0x78,
+// stride 0x10) + translation obj->0xA0/0xA4/0xA8, storing back to obj->0x324..
+// All FP is aligned lwc1/swc1/mul.s/add.s; reloc-blind cbs.
+void gl_func_00065148(char *obj) {
+    int tmp[3];
+    float x, y, z;
+    gl_func_00000000(obj + 0x294, obj + 0xDC);
+    gl_func_00000000(obj + 0x2C8, obj + 0xDC);
+    tmp[0] = *(int *)(obj + 0x1F8);
+    tmp[1] = *(int *)(obj + 0x1FC);
+    tmp[2] = *(int *)(obj + 0x200);
+    *(float *)(obj + 0x324) = *(float *)&tmp[0];
+    *(float *)(obj + 0x328) = *(float *)&tmp[1];
+    *(float *)(obj + 0x32C) = *(float *)&tmp[2];
+    x = *(float *)(obj + 0x324);
+    y = *(float *)(obj + 0x328);
+    z = *(float *)(obj + 0x32C);
+    *(float *)(obj + 0x324) = *(float *)(obj + 0x70) * x + *(float *)(obj + 0x80) * y + *(float *)(obj + 0x90) * z + *(float *)(obj + 0xA0);
+    *(float *)(obj + 0x328) = *(float *)(obj + 0x74) * x + *(float *)(obj + 0x84) * y + *(float *)(obj + 0x94) * z + *(float *)(obj + 0xA4);
+    *(float *)(obj + 0x32C) = *(float *)(obj + 0x78) * x + *(float *)(obj + 0x88) * y + *(float *)(obj + 0x98) * z + *(float *)(obj + 0xA8);
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065148);
 #endif
