@@ -17676,17 +17676,73 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034188);
 //   NAMED leading function only — bundled tail leaves untouched.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+extern int D_00000000;
+// Subsystem run loop. G = *&D_0. Marks G->0x38=1, builds a local descriptor d
+// (cb(&d,-1)), saves G->0x34. Polls a config table at absolute 0x1E21C: each
+// round cb(&D)/cb(&d) refreshes d, and the d[0x18] state walks the table
+// (advance on match, reset on miss) until the entry is 0. Then a vtable
+// dispatch G->0x28->0x1C(G + (short)G->0x28->0x18) and two cbs. Main loop:
+// G->0x34=&d; if d[0x10] cb(); exit when d[0x1C]&0x40000; when d[0x18]&0x100
+// run two cbs; cb(&D)/cb(&d); repeat. Tail: cb(0x202); G->0x38=0; restore
+// G->0x34. Reloc-blind cbs/&D (field-0 matchable); 0x1E21C is a baked absolute.
 void gl_func_00034240(int a2) {
-    char *r = *(char **)((char *)&D_00000000 + 0);
     char d[0x40];
+    char *cfg;
+    char *s0;
+    char *s3;
+    char *g;
+    int saved34;
     (void)a2;
-    gl_func_00000000(&d, -1);
-    *(int *)(r + 0x38) = 1;
-    gl_func_00000000(&D_00000000, *(int *)(r + 0x34), 1);
-    if (*(int *)0x0001E21C != 0) {
-        gl_func_00000000(&D_00000000);
-        gl_func_00000000(&d);
+
+    *(int *)(*(char **)&D_00000000 + 0x38) = 1;
+    gl_func_00000000(d, -1);
+    saved34 = *(int *)(*(char **)&D_00000000 + 0x34);
+    gl_func_00000000((char *)&D_00000000, 1);
+
+    cfg = (char *)0x0001E21C;
+    s3 = (char *)&D_00000000;
+    s0 = cfg;
+    if (*(int *)cfg != 0) {
+        do {
+            gl_func_00000000(s3);
+            gl_func_00000000(d);
+            if (*(int *)(d + 0x18) != 0) {
+                if (*(int *)(d + 0x18) == *(int *)s0) {
+                    s0 += 4;
+                } else {
+                    s0 = cfg;
+                }
+            }
+        } while (*(int *)s0 != 0);
     }
+
+    s3 = (char *)&D_00000000;
+    gl_func_00000000(0);
+    gl_func_00000000((char *)&D_00000000, 0);
+
+    g = *(char **)(*(char **)&D_00000000 + 0x28);
+    (*(void (**)(char *))(g + 0x1C))(*(char **)&D_00000000 + *(short *)(g + 0x18));
+    gl_func_00000000();
+    gl_func_00000000();
+
+    for (;;) {
+        *(int *)(*(char **)&D_00000000 + 0x34) = (int)d;
+        if (*(int *)(d + 0x10) != 0) {
+            gl_func_00000000();
+        }
+        if (*(int *)(d + 0x1C) & 0x40000) {
+            break;
+        }
+        if (*(int *)(d + 0x18) & 0x100) {
+            gl_func_00000000();
+            gl_func_00000000();
+        }
+        gl_func_00000000(s3);
+        gl_func_00000000(d);
+    }
+    gl_func_00000000(0x202);
+    *(int *)(*(char **)&D_00000000 + 0x38) = 0;
+    *(int *)(*(char **)&D_00000000 + 0x34) = saved34;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034240);
