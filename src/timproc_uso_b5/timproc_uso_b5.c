@@ -6222,8 +6222,8 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
             }
             FW(FW(var_s2, 0x5C), 0x2B8) = temp_v0_6;
             spD0.unk0 = 0x42DC0000;
-            spD0.unk4 = -96.0f;
-            spD0.unk8 = -510.0f;
+            *(float *)&spD0.unk4 = -96.0f;
+            *(float *)&spD0.unk8 = -510.0f;
             temp_v1 = FW(var_s2, 0x5C);
             sp94.unk0 = (int) spD0.unk0;
             temp_t6 = spD0.unk4;
@@ -6237,8 +6237,8 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
             temp_v1_2 = temp_v1 + 0x22C;
             FW(temp_v1_2, 0x14) = sp84.unk4;
             FW(temp_v1_2, 0x18) = sp84.unk8;
-            spC4.unk8 = 0.0f;
-            spC4.unk4 = 0.0f;
+            *(float *)&spC4.unk8 = 0.0f;
+            *(float *)&spC4.unk4 = 0.0f;
             spC4.unk0 = *(int *)0x260;
             sp94.unk0 = (int) spC4.unk0;
             temp_t1 = spC4.unk4;
@@ -6452,8 +6452,8 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
         }
         FW(FW(var_s2, 0x54), 0x2B8) = temp_v0_20;
         sp154.unk0 = *(int *)0x294;
-        sp154.unk4 = 528.0f;
-        sp154.unk8 = 180.0f;
+        *(float *)&sp154.unk4 = 528.0f;
+        *(float *)&sp154.unk8 = 180.0f;
         temp_v1_8 = FW(var_s2, 0x54);
         sp94.unk0 = (int) sp154.unk0;
         temp_t5 = sp154.unk4;
@@ -6576,8 +6576,8 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
         }
         FW(FW(var_s2, 0x58), 0x2B8) = temp_v0_26;
         sp13C.unk0 = *(int *)0x2D8;
-        sp13C.unk4 = 528.0f;
-        sp13C.unk8 = -480.0f;
+        *(float *)&sp13C.unk4 = 528.0f;
+        *(float *)&sp13C.unk8 = -480.0f;
         sp94.unk0 = (int) sp13C.unk0;
         sp94.unk4 = (s32) sp13C.unk4;
         sp94.unk8 = (s32) sp13C.unk8;
