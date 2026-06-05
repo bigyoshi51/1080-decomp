@@ -17720,22 +17720,32 @@ int game_libs_func_0004CDA4(int a0) {
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
-void gl_func_0004CDB8(void *a0, int idx) {
-    char *entry = ((char **)&D_00000000)[idx];
-    char *obj = *(char **)(entry + 0x280);
+void gl_func_0004CDB8(char *a0, int a1) {
+    char *obj = *(char **)((char *)&D_00000000 + 0x640);
     char *g;
-    int i;
+    int i, r4, r5, r6;
     unsigned int *p;
-    int arg;
-    gl_func_00000000(obj, obj + 0x174);
-    gl_func_00000000(obj, obj + 0x15C);
-    g = *(char **)(obj + 0x0C);
-    i = *(int *)(g + 0x4);
-    *(int *)(g + 0x4) = i + 1;
+    char *ret;
+    gl_func_00000000(a0 + 0x174, obj);
+    gl_func_00000000(gl_func_00000000(a0 + 0x15C));
+    g = *(char **)(obj + 0xC); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
     p = (unsigned int *)(*(char **)g + i * 8);
-    p[0] = 0x06000000;
-    arg = gl_func_00000000((char *)a0 + 0x168);
-    p[1] = (unsigned int)arg;
+    p[0] = 0x06000000; r4 = gl_func_00000000(a0 + 0x168); p[1] = (unsigned int)r4;
+    r5 = gl_func_00000000(r4);
+    g = *(char **)(obj + 0xC); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
+    p = (unsigned int *)(*(char **)g + i * 8);
+    p[0] = 0x06000000; p[1] = (unsigned int)r5;
+    r6 = gl_func_00000000(*(char **)(*(char **)(a0 + 0x1C0) + 0x60));
+    g = *(char **)(obj + 0xC); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
+    p = (unsigned int *)(*(char **)g + i * 8);
+    p[0] = 0x06000000; p[1] = (unsigned int)r6;
+    if (a1 != 0) {
+        g = *(char **)(obj + 0xC); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
+        p = (unsigned int *)(*(char **)g + i * 8);
+        p[0] = 0xE9000000; p[1] = 0;
+    }
+    ret = (char *)gl_func_00000000(a0);
+    *(int *)(ret + 0x70) = *(int *)(a0 + 0x1B4);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
