@@ -11775,20 +11775,82 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-int gl_func_0002A080(unsigned int op, char *a1, int a2, int a3) {
-    int r = 0;
-    if (op >= 0xE) return 0;
-    switch (op) {
-        case 0:  *(unsigned char *)(a1 + 0x18) = (unsigned char)a3;
-                 *(int *)a1 = *(int *)(a1 + 4); break;
-        case 1:  gl_func_00000000(a1); break;
-        case 2:  case 3:  case 4:  case 5:
-        case 6:  case 7:  case 8:  case 9:
-        case 10: case 11: case 12: case 13:
-                 gl_func_00000000(a1, a2, a3); break;
+// Command-buffer VM step. The opcode is a caller-set $t6 (cap, approximated by
+// switching on a0 so the arm bodies' $a0/$a1/$a2/$a3 usage matches and only the
+// dispatch reg differs). a1 is the buffer: byte +0x18 is the stack cursor,
+// words +(idx*4+4) the value stack, +0x0 the live value, bytes +0x13/+0x14/+0x19
+// counters/flags. Arms: pop, handler-call, push (a0->0x18 + a3), tagged push,
+// repeat-decrement, cursor-dec, and a2-keyed conditional adds (250/249/245 and
+// 243/242 gated on the sign of a1->0x19). Reloc-blind table + jal (deferred).
+int gl_func_0002A080(char *a0, char *a1, int a2, int a3) {
+    if ((unsigned int)a0 >= 0xE) {
+        return 0;
     }
-    (void)&D_00000000;
-    return r;
+    switch ((unsigned int)a0) {
+        case 0: {
+            int n = *(unsigned char *)(a1 + 0x18);
+            if (n == 0) {
+                return -1;
+            }
+            n = (n - 1) & 0xFF;
+            *(unsigned char *)(a1 + 0x18) = n;
+            *(int *)a1 = *(int *)(a1 + n * 4 + 4);
+            return 0;
+        }
+        case 1:
+            return gl_func_00000000(a1);
+        case 2:
+            return 1;
+        case 3: {
+            int n = *(unsigned char *)(a1 + 0x18);
+            *(int *)(a1 + n * 4 + 4) = *(int *)a1;
+            *(unsigned char *)(a1 + 0x18) = *(unsigned char *)(a1 + 0x18) + 1;
+            *(int *)a1 = *(int *)(a0 + 0x18) + (a3 & 0xFFFF);
+            return 0;
+        }
+        case 4: {
+            int n = *(unsigned char *)(a1 + 0x18);
+            *(char *)(a1 + n + 0x14) = (char)a3;
+            *(int *)(a1 + *(unsigned char *)(a1 + 0x18) * 4 + 4) = *(int *)a1;
+            *(unsigned char *)(a1 + 0x18) = *(unsigned char *)(a1 + 0x18) + 1;
+            return 0;
+        }
+        case 5: {
+            int n = *(unsigned char *)(a1 + 0x18);
+            *(char *)(a1 + n + 0x13) = *(char *)(a1 + n + 0x13) - 1;
+            n = *(unsigned char *)(a1 + 0x18);
+            if (*(unsigned char *)(a1 + n + 0x13) != 0) {
+                *(int *)a1 = *(int *)(a1 + n * 4);
+            } else {
+                *(unsigned char *)(a1 + 0x18) = n - 1;
+            }
+            return 0;
+        }
+        case 6:
+            *(unsigned char *)(a1 + 0x18) = *(unsigned char *)(a1 + 0x18) - 1;
+            return 0;
+        case 7:
+            if (a2 == 250) {
+                if (*(signed char *)(a1 + 0x19) != 0) return 0;
+            } else if (a2 == 249) {
+                if (*(signed char *)(a1 + 0x19) >= 0) return 0;
+            } else if (a2 == 245) {
+                if (*(signed char *)(a1 + 0x19) < 0) return 0;
+            }
+            *(int *)a1 = *(int *)(a0 + 0x18) + (a3 & 0xFFFF);
+            return 0;
+        case 8:
+            if (a2 == 243) {
+                if (*(signed char *)(a1 + 0x19) != 0) return 0;
+            } else if (a2 == 242) {
+                if (*(signed char *)(a1 + 0x19) >= 0) return 0;
+            }
+            *(int *)a1 = *(int *)a1 + (signed char)a3;
+            return 0;
+        default:
+            break;
+    }
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
