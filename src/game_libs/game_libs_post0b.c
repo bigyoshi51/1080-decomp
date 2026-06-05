@@ -6460,15 +6460,32 @@ void gl_func_0003D288(char *a0, int a1) {
 //   untyped. Real-C STRUCTURAL body below. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+extern int gl_func_0005166C();
 void gl_func_0003D2C8(char *o) {
-    int n = 0;
-    char *p;
-    char *r;
-    char *q;
-    for (p = *(char **)(o + 0x10); p != 0; p = *(char **)(p + 0x04)) n++;
-    r = (char *)gl_func_00000000(n);
-    for (q = *(char **)(r + 0x10); q != 0; q = *(char **)(q + 0x04)) {
-        gl_func_00000000(q);
+    char *a1 = o;
+    struct { int count; char *prev; char *cur; } it;
+    char *prev2, *cur2, *v, *t, *payload, *h;
+    it.count = 0;
+    it.cur = *(char **)(o + 0x10);
+    t = it.cur;
+    if (t != 0) { it.prev = t; it.cur = *(char **)(t + 4); v = *(char **)t; } else v = 0;
+    if (v != 0) {
+        do {
+            it.count++;
+            t = it.cur;
+            if (t != 0) { it.prev = t; it.cur = *(char **)(t + 4); v = *(char **)t; } else v = 0;
+        } while (v != 0);
+    }
+    gl_func_0005166C(&it);
+    cur2 = *(char **)(a1 + 0x10);
+    t = cur2;
+    if (t != 0) { prev2 = t; cur2 = *(char **)(t + 4); v = *(char **)t; } else v = 0;
+    while (v != 0) {
+        payload = *(char **)prev2;
+        h = *(char **)(payload + 0x28);
+        (*(int (**)())(*(char **)(h + 0x44)))(*(short *)(h + 0x40) + (int)payload);
+        t = cur2;
+        if (t != 0) { prev2 = t; cur2 = *(char **)(t + 4); v = *(char **)t; } else v = 0;
     }
 }
 #else
