@@ -11307,15 +11307,36 @@ void gl_func_00029494(void) {
     int n = GL_COUNT_2070;
     int i;
     char *src;
+    char *desc;
+    float zero;
     if (n <= 0) return;
-    src = (char *)&D_00000000 + 0x2198;
+    src = (char *)&D_00000000;             // 8-word source block (s5)
+    desc = (char *)&D_00000000 + 0x2198;   // per-record descriptor (s6)
+    zero = 0.0f;
     for (i = 0; i < n; i++) {
         char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + i * 0xD0;
         *(int *)(rec + 0xB0) = *(int *)(src + 0x0);
         *(int *)(rec + 0xB4) = *(int *)(src + 0x4);
         *(int *)(rec + 0xB8) = *(int *)(src + 0x8);
         *(int *)(rec + 0xBC) = *(int *)(src + 0xC);
-        gl_func_00000000(rec, src, 0x1C0);
+        *(int *)(rec + 0xC0) = *(int *)(src + 0x10);
+        *(int *)(rec + 0xC4) = *(int *)(src + 0x14);
+        *(int *)(rec + 0xC8) = *(int *)(src + 0x18);
+        *(char *)(rec + 0x30) = 0;
+        *(char *)(rec + 0x34) = 0;
+        *(int *)(rec + 0x44) = -1;
+        *(int *)(rec + 0x48) = -1;
+        *(int *)(rec + 0x40) = -1;
+        *(char *)(rec + 0x31) = 0;
+        *(float *)(rec + 0x58) = zero;
+        *(short *)(rec + 0x36) = 0;
+        *(char *)(rec + 0x60) = 0;
+        *(char *)(rec + 0xA0) = 0;
+        *(short *)(rec + 0x82) = 0;
+        *(short *)(rec + 0x84) = 0;
+        *(char *)(rec + 0x35) = 0;
+        *(int *)(rec + 0x1C) = gl_func_00000000(desc, 0x1C0);
+        *(int *)(rec + 0xCC) = *(int *)(src + 0x1C);
     }
 }
 #else
