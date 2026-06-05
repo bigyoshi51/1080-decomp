@@ -108,6 +108,13 @@ while i<len(bl):
 body='\n'.join(o)
 # 9. m2c `?`-typed stack structs -> s32[4] (size guess; hand-fix if frame mismatches)
 body=re.sub(r'^(\s*)\? (sp\w+);', r'\1s32 \2[4];', body, flags=re.M)
+# 10. float var = (void *)(*(s32 *)(X)) -> = *(f32 *)(X)  (Vec3 float inits)
+fvars=set(re.findall(r'\bf32 (\w+);', body))
+def _fi(m):
+    return f'{m.group(1)}{m.group(2)} = *(f32 *)({m.group(3)[1:-1]});' if m.group(2) in fvars else m.group(0)
+body=re.sub(r'^(\s*)(\w+) = \(void \*\)\(\*\(s32 \*\)(\(.*?\))\);', _fi, body, flags=re.M)
+# 11. bare deref of a parenthesized expr: VAR = *((...)) -> VAR = *(s32 *)((...))
+body=re.sub(r'= \*\(\(', r'= *(s32 *)((', body)
 print('extern char D_00000000;')
 # emit extern decls for called funcs
 for c in sorted(set(re.findall(r'\b(gl_func_[0-9A-Fa-f]+|game_\w+_func_[0-9A-Fa-f]+|func_[0-9a-f]+)\s*\(', body))):
