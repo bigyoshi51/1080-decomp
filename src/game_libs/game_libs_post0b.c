@@ -21453,7 +21453,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
  * spills through the stack into a2/a3) — unlike the E6E8/EAAC family this one
  * caches at self->0x2C with a lazy-init, so re-reading forces extra spills. Keep
  * the cached-`obj` form; the $v0/$v1 renumber is the genuine residual. Don't
- * retry the re-read. */
+ * retry the re-read.
+ *
+ * 2026-06-04: the if(1){} BB-boundary lever does NOT apply here either (tried 4
+ * placements + obj-decl-split, all unchanged at 3 diffs). The residual is a
+ * SPILL-RELOAD renumber — obj is spilled to 0x1C(sp) across the process call and
+ * reloaded `lw $v1,0x1C(sp)` (target `lw $v0`); the allocator picks the reload
+ * reg at the reload site, which a BB boundary doesn't move. See spill-reload
+ * scope caveat #2 under the if(1){} entry in docs/IDO_CODEGEN.md. Permuter-class. */
 void gl_func_000525F0(int *self, int *target) {
     extern int D_00000000;
     int *obj = (int*)self[0x2C / 4];
