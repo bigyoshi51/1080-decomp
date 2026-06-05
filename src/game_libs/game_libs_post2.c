@@ -269,6 +269,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071384);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int gl_func_00000000();
+extern int D_00000000;
+// pak/save-data status query. Runs hook chain (notify a1; status=cb(1,&D);
+// cb(a0,&buf20,1); status=cb(0,&D); cb(a0,&buf20,1); cb(a1,&buf1C)), then
+// decodes the flag bytes at buf1C[2] (flags_1E) / buf1C[3] (flags_1F):
+// (1&2)->2, flags_1F!=0 or !(flags_1E&1)->1, flags_1E&4->4, else the saved
+// hook status. Reloc-blind cbs + &D.
+int gl_func_00071624(char *a0, char *a1) {
+    int status;
+    int buf20;
+    int buf1C;
+    unsigned char flags;
+    status = 0;
+    gl_func_00000000(a1);
+    status = gl_func_00000000(1, (char *)&D_00000000);
+    gl_func_00000000(a0, &buf20, 1);
+    status = gl_func_00000000(0, (char *)&D_00000000);
+    gl_func_00000000(a0, &buf20, 1);
+    gl_func_00000000(a1, &buf1C);
+    flags = ((unsigned char *)&buf1C)[2];
+    if ((flags & 1) && (flags & 2)) {
+        return 2;
+    }
+    if (((unsigned char *)&buf1C)[3] != 0) {
+        return 1;
+    }
+    if ((flags & 1) == 0) {
+        return 1;
+    }
+    if (flags & 4) {
+        return 4;
+    }
+    return status;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071624);
 #endif
