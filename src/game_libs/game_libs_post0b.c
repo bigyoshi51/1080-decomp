@@ -16160,25 +16160,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00049B3C);
 //   skeleton only. Byte-match deferred. Name pre-checked: no extern
 //   reuse.
 #ifdef NON_MATCHING
-int gl_func_00049DBC(char *a0, int a1, int a2, int a3) {
-    unsigned char *rec = (unsigned char *)*(char **)(a0 + 0x68) + a3 * 8;
-    int r0 = gl_func_00000000(rec);
-    unsigned short f0 = *(unsigned short *)(rec + 2);
-    int r1 = gl_func_00000000(a0, f0);
-    unsigned short f1 = *(unsigned short *)(rec + 4);
-    int r2 = gl_func_00000000(a0, f1);
-    unsigned short f2 = *(unsigned short *)(rec + 6);
-    int scratch[4];
-    scratch[0] = r0;
-    scratch[1] = r1;
-    scratch[2] = r2;
-    scratch[3] = f2;
-    if ((int)(f0 << 16) >= 0) {
-        gl_func_00000000(a0, scratch);
+int gl_func_00049DBC(char *a0, int a1, int a2, int a3, char *arg5) {
+    char *self = a0;
+    unsigned char *rec;
+    int r0, r1, r2;
+    int h0, h1, h2;
+    int flags;
+    /* Each decode re-reads rec = self->0x68 + a3*8 and calls cb(self, rec->N)
+     * (N = 2/4/6 halfwords), matching the lw-104/addu/jal/lhu pattern. */
+    rec = (unsigned char *)*(char **)(self + 0x68) + a3 * 8;
+    r0 = gl_func_00000000(self, *(unsigned short *)(rec + 2));
+    rec = (unsigned char *)*(char **)(self + 0x68) + a3 * 8;
+    r1 = gl_func_00000000(self, *(unsigned short *)(rec + 4));
+    rec = (unsigned char *)*(char **)(self + 0x68) + a3 * 8;
+    r2 = gl_func_00000000(self, *(unsigned short *)(rec + 6));
+    /* sign-bit ladder on the arg5->0x38 flags: run the second decode group
+     * only when bit22 set (flags<<9 < 0) AND bit20 clear (flags<<11 >= 0). */
+    flags = *(int *)(arg5 + 0x38);
+    if ((int)(flags << 9) < 0 && (int)(flags << 11) >= 0) {
+        rec = (unsigned char *)*(char **)(self + 0x68) + a3 * 8;
+        h0 = gl_func_00000000(self, *(unsigned short *)(rec + 2));
+        rec = (unsigned char *)*(char **)(self + 0x68) + a3 * 8;
+        h1 = gl_func_00000000(self, *(unsigned short *)(rec + 4));
+        rec = (unsigned char *)*(char **)(self + 0x68) + a3 * 8;
+        h2 = gl_func_00000000(self, *(unsigned short *)(rec + 6));
     } else {
-        gl_func_00000000(a0, rec, scratch);
+        h0 = 0;
+        h1 = 0;
+        h2 = 0;
     }
     (void)a1; (void)a2;
+    (void)r1; (void)r2; (void)h0; (void)h1; (void)h2;
     return r0;
 }
 #else
