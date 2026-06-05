@@ -6725,15 +6725,18 @@ void func_0000E9A4(Quad4 *dst) {
     *dst = buf;
 }
 
-/* func_0000E9FC: 12-insn 1-call wrapper. Matched via two compiler-side levers:
+/* func_0000E9FC: 12-insn 1-call wrapper. 2-diff NM cap (NOT matched — the top
+ * comment previously claimed "matched via two levers", but the second was an
+ * INSN_PATCH, REMOVED 2026-05-23 as match-faking). One genuine lever DOES apply:
  *  - `extern char D_func_00000008_data;` (DATA-decl alias of func_00000008)
  *    enables splat-fold on `lui at, %hi(func_00000008); sw t6, 0x20(at)`.
  *    Function-decl alias would force a separate %hi+%lo pair (14 insns).
  *    Recipe: docs/IDO_CODEGEN.md feedback-ido-extern-char-vs-extern-fn-folds-lo-offset.
- *  - INSN_PATCH at offsets 0x4/0x8 swaps `sw ra, 0x14(sp)` ↔ `lui a0, %hi(D)`
- *    in the prologue. IDO -O2 emits sw-then-lui; target has lui-then-sw.
- *    Pure scheduling-order cap; same fix already applied to sibling
- *    func_00006204 in the same .o. */
+ * Residual 2 diffs are the prologue `sw ra,0x14(sp)` ↔ `lui a0,%hi(D)`
+ * scheduling swap: IDO -O2 emits sw-then-lui, target has lui-then-sw. Pure
+ * instruction-scheduling cap, unreachable from C (the INSN_PATCH that used to
+ * bridge it is banned). Identical cap on sibling func_00006204 in the same .o
+ * (77.78%); both honest NM, default INCLUDE_ASM exact. */
 extern char D_func_0000E9FC_arg1;
 extern char D_func_0000E9FC_arg2;
 extern char D_func_00000008_data;
