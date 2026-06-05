@@ -4113,24 +4113,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038964);
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
+// Computed-jump-table interpreter step over opcodes 0x64..0x6C (table at
+// &D_0+0x1A1C, reloc-blind). Each arm reads/advances the c->4 cursor by one
+// word. Inline arms: store *cursor to o->0x20; store *cursor to o->0xC; a
+// template-0xEC6C arm that (key>=40 -> cb) looks up *(&D_0 + key*4), calls
+// cb(rec+0x10, o) and writes o->0x14 (+ o->4=1 when o->0x14 was nonzero); a
+// template-0xEC84 arm that stores o into *(&D_0 + key*4). Out-of-range opcodes
+// fall to cb(0xEC9C, o->0xC). Byte-match deferred (jump table + jal-0 cbs
+// unsymbolized); arm bodies are the structural reconstruction.
 void gl_func_00038A28(char *o, char *c) {
     int code = *(int *)c;
     unsigned int i = (unsigned int)(code - 0x64);
     int *p;
-    if (i >= 9) return;
-    p = *(int **)(c + 0x4);
-    switch (code) {
-        case 0x64: *(int *)(o + 0x20) = *p++; break;
-        case 0x65: *(int *)(o + 0x0C) = *p++; break;
-        case 0x66:
-            gl_func_00000000((char *)&D_00000000 + 0x0001EC6C, o, *p++);
-            break;
-        case 0x67: case 0x68: case 0x69: case 0x6A: case 0x6B: case 0x6C:
-            gl_func_00000000(o, *p++);
-            break;
-        default: break;
+    int key;
+    int r;
+    if (i >= 9) {
+        gl_func_00000000((char *)&D_00000000 + 0x0001EC9C, *(int *)(o + 0xC));
+        return;
     }
-    *(int **)(c + 0x4) = p;
+    switch (code) {
+        case 0x64:
+            p = *(int **)(c + 0x4);
+            *(int **)(c + 0x4) = p + 1;
+            *(int *)(o + 0x20) = *p;
+            break;
+        case 0x65:
+            p = *(int **)(c + 0x4);
+            *(int **)(c + 0x4) = p + 1;
+            *(int *)(o + 0x0C) = *p;
+            break;
+        case 0x66:
+            p = *(int **)(c + 0x4);
+            *(int **)(c + 0x4) = p + 1;
+            key = *p;
+            if (key >= 40) {
+                gl_func_00000000((char *)&D_00000000 + 0x0001EC6C, key);
+            }
+            r = gl_func_00000000(*(char **)((char *)&D_00000000 + key * 4) + 0x10, o);
+            if (*(int *)(o + 0x14) != 0) {
+                *(int *)(o + 0x4) = 1;
+            }
+            *(int *)(o + 0x14) = r;
+            break;
+        case 0x67:
+            p = *(int **)(c + 0x4);
+            *(int **)(c + 0x4) = p + 1;
+            key = *p;
+            if (key >= 40) {
+                gl_func_00000000((char *)&D_00000000 + 0x0001EC84, key);
+            }
+            *(char **)((char *)&D_00000000 + key * 4) = o;
+            break;
+        default:
+            break;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038A28);
