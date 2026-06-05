@@ -491,7 +491,7 @@ int game_libs_func_00009D00(int *a0, int a1) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-void game_libs_func_00009D24(char *arg0, s32 arg1, s32 arg2, s8 arg3) {
+void game_libs_func_00009D24(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
     s32 i;
 
     FW(arg0, 0x1C) = arg1;
