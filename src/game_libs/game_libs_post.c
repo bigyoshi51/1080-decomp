@@ -6483,8 +6483,11 @@ int gl_func_00023B44(int a0, int a1) {
     if (r != 0) {
         return r;
     }
-    gl_func_00000000(a0, 2, a1);
-    return 0;
+    r = gl_func_00000000(a0, 2, a1);
+    if (r == 0) {
+        return 0;
+    }
+    return r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023B44);
