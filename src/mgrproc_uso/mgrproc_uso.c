@@ -490,7 +490,18 @@ int mgrproc_uso_func_00001324(char *arg0) {
  * 0xAC290000 likely an opcode pattern check (controller-pak / EEPROM
  * probe). Multi-tick: structure captured, but byte match needs unique
  * externs (D[0x40], D[0x44], D[0x68]), the SI-register pattern, and
- * IDO's specific branch shape. Default INCLUDE_ASM remains exact. */
+ * IDO's specific branch shape. Default INCLUDE_ASM remains exact.
+ *
+ * 2026-06-04 corrected the terminal store: target is
+ *   D[0x504] = (spill_var == 0) ? 4 : 0;   // li t0,4; beqzl spill_var
+ * (store 4 when zero, else 0). The prior C `(spill_var == 4) ? spill_var : 0`
+ * was a DEAD branch — spill_var is only ever 0/1, so it always wrote 0.
+ * Logic now matches the asm. Still 58 real diffs @ len 69 vs target 62
+ * (7 extra insns): NEGATIVE result — `volatile int spill_var` REGRESSES
+ * (+3 diffs, over-spills every access). The 7 extra insns are NOT the global
+ * base (MGR_STATE_CODE/MGR_D_44/D+0x68 all share &D_00000000; IDO reloads
+ * `lui at,%hi` per store like the target); they're in the branch-likely
+ * dispatch shape + regalloc. Multi-tick. */
 extern int gl_func_00000000();
 void mgrproc_uso_func_000013C8(int *a0) {
     int spill_var = 0;
@@ -522,11 +533,7 @@ void mgrproc_uso_func_000013C8(int *a0) {
             a0[0x7D8 / 4] = 1;
         }
     }
-    if (spill_var == 4) {
-        a0[0x504 / 4] = spill_var;
-    } else {
-        a0[0x504 / 4] = 0;
-    }
+    a0[0x504 / 4] = (spill_var == 0) ? 4 : 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C8);
@@ -1840,14 +1847,13 @@ end:
  * the implicit byte-stream cursor) then a typed read into dst+0x10.
  *
  * All 4 are byte-correct C — the C body produces the same instructions and
- * register choices as expected/, BUT the .o-level jal encoding differs:
- * built emits `jal 0 + R_MIPS_26 reloc` while expected pre-bakes
- * `jal 0x<target>`. ROM is identical after link. Wrapped NM so default
- * build uses INCLUDE_ASM (raw expected bytes), restoring 100% .o match.
+ * register choices as expected/. The only ".o diff" is the unrelocated jal
+ * placeholder (`jal 0` + R_MIPS_26 reloc to mgrproc_uso_func_00000CC4);
+ * objdiff is reloc-symbol-aware and scores them 100%.
  *
- * Per docs/MATCHING_WORKFLOW.md
- * #reloc-encoding-pinning-structurally-identical-c-body-still-scores-65 —
- * no episode (fuzzy<100 cap), but ROM is exact. */
+ * 2026-06-04: now PROMOTED (plain C build path, episodes logged) — the old
+ * reloc-encoding cap (#reloc-encoding-pinning... in docs/MATCHING_WORKFLOW.md,
+ * which claimed these score 65%) no longer applies; the report shows 100%. */
 void mgrproc_uso_func_000032C8(char *dst) {
     int tmp;
     mgrproc_uso_func_00000CC4(&tmp);
