@@ -88,7 +88,26 @@ body=_pf(body)
 body=re.sub(r'= NULL;', '= g;', body)
 body=re.sub(r'= \(void \*\)(0x[0-9A-Fa-f]+|\d+);', r'= g + \1;', body)
 body=re.sub(r'!= \(void \*\)(0x[0-9A-Fa-f]+|\d+)\)', r'!= (g + \1))', body)
-# 8. cfc1 blocks left for hand-fix (flagged by M2C_ERROR in output)
+# 8. cfc1 float-to-int blocks -> (s32) cast (scan & replace through matching brace)
+bl=body.split('\n'); o=[]; i=0
+while i<len(bl):
+    if 'M2C_ERROR(/* cfc1 */) & 0x78) {' in bl[i] and bl[i].strip().startswith('if'):
+        ind=bl[i][:len(bl[i])-len(bl[i].lstrip())]
+        var=None
+        for j in range(i,min(i+12,len(bl))):
+            m=re.search(r'(\w+) = \(s32\) (\w+);', bl[j])
+            if m: var=(m.group(1),m.group(2)); break
+        d=0; k=i
+        while k<len(bl):
+            d+=bl[k].count('{')-bl[k].count('}')
+            if d==0 and k>i: break
+            k+=1
+        if var: o.append(f'{ind}{var[0]} = (s32) {var[1]};')
+        i=k+1; continue
+    o.append(bl[i]); i+=1
+body='\n'.join(o)
+# 9. m2c `?`-typed stack structs -> s32[4] (size guess; hand-fix if frame mismatches)
+body=re.sub(r'^(\s*)\? (sp\w+);', r'\1s32 \2[4];', body, flags=re.M)
 print('extern char D_00000000;')
 # emit extern decls for called funcs
 for c in sorted(set(re.findall(r'\b(gl_func_[0-9A-Fa-f]+|game_\w+_func_[0-9A-Fa-f]+|func_[0-9a-f]+)\s*\(', body))):
