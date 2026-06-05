@@ -321,6 +321,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071624);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int D_00000000;
+// Record-stream emitter (swl/swr template family). Clears a flag byte at &D,
+// sets &D+0x3C=1, inits the dst cursor to &D. Builds a 6-byte template
+// {1,3,0,0xFF,0xFF,0xFF} on the stack; clears a0 leading bytes via the cursor,
+// then writes the template (unaligned 4-byte swl/swr + 2 bytes), advances 6,
+// and lays a 0xFE terminator. Reloc-blind &D globals.
+void gl_func_00071708(int a0) {
+    unsigned char tmpl[8];
+    unsigned char *dst;
+    int i;
+    *(char *)&D_00000000 = 0;
+    *(int *)((char *)&D_00000000 + 0x3C) = 1;
+    dst = (unsigned char *)&D_00000000;
+    tmpl[0] = 1;
+    tmpl[1] = 3;
+    tmpl[2] = 0;
+    tmpl[3] = 0xFF;
+    tmpl[4] = 0xFF;
+    tmpl[5] = 0xFF;
+    for (i = 0; i < a0; i++) {
+        *dst = 0;
+        dst++;
+    }
+    *(int *)dst = *(int *)tmpl;
+    dst[4] = tmpl[4];
+    dst[5] = tmpl[5];
+    dst += 6;
+    *dst = 0xFE;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071708);
 #endif
