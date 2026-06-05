@@ -1188,7 +1188,6 @@ void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
         }
     }
     {
-        int *gctx = *(int **)&D_00000000;
         int *a3v = (int *)a0[0x10 / 4];
         int mode = a3v[0x24 / 4];
         int (*render_fn)();
@@ -1200,26 +1199,29 @@ void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
         w = *(short *)((char *)a3v + 0x20);
         h = *(short *)((char *)a3v + 0x22);
         if (v1 >= w * h) {
-            render_fn((*gctx), a3v[8 / 4], w, h, 0, 0, w, h, 0);
-            gl_func_00000000((*gctx), a1, a2, w, h, (w << 10) / w, (h << 10) / h);
+            render_fn(*(int **)&D_00000000, a3v[8 / 4], w, h, 0, 0, w, h, 0);
+            gl_func_00000000(*(int **)&D_00000000, a1, a2, w, h, (w << 10) / w, (h << 10) / h);
         } else {
             int cols = v1 / h;
-            int s1 = gl_func_00000000();
-            int s0 = w;
+            int acc = 0;
+            int tile = gl_func_00000000(cols);
+            int rem = w;
             int s4 = (h << 10) / h;
             if (w != 0) {
-                while (s1 < s0) {
-                    int s3 = (s1 << 10) / s1;
-                    render_fn((*gctx), a1, a2, s1, h, s1, 0, 0);
-                    gl_func_00000000((*gctx), a1, a2, s1, h, s3, s4);
-                    a1 += s1;
-                    s0 -= s1;
-                    s1 = cols;
-                }
-                if (s0 != 0) {
-                    int t8 = (s0 << 10) / s0;
-                    render_fn((*gctx), a1, a2, s0, h, s0, 0, 0);
-                    gl_func_00000000((*gctx), a1, a2, s0, h, t8, s4);
+                while (rem != 0) {
+                    if (tile < rem) {
+                        int s3 = (tile << 10) / tile;
+                        render_fn(*(int **)&D_00000000, ((int *)a0[0x10 / 4])[8 / 4], w, h, acc, 0, tile, h, 0);
+                        gl_func_00000000(*(int **)&D_00000000, a1, a2, tile, h, s3, s4);
+                        a1 += tile;
+                        acc += tile;
+                        rem -= tile;
+                    } else {
+                        int t0 = (rem << 10) / rem;
+                        render_fn(*(int **)&D_00000000, ((int *)a0[0x10 / 4])[8 / 4], w, h, acc, 0, rem, h, 0);
+                        gl_func_00000000(*(int **)&D_00000000, a1, a2, rem, h, t0, s4);
+                        rem = 0;
+                    }
                 }
             }
         }
