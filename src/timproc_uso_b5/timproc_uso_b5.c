@@ -2187,11 +2187,21 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_00003C8C(int a0, char *a1, char *a2, int a3) {
-    char T1[0x2C];
-    char T2[0x2C];
+    struct R3 { int a, b, c; };
+    int T1[11];
+    int T2[11];
+    struct R3 *s, *d;
     int i;
-    for (i = 0; i < 0x24; i++) T1[i] = *((char *)&D_00000000 + 0x00001208 + i);
-    for (i = 0; i < 0x24; i++) T2[i] = *((char *)&D_00000000 + 0x00001234 + i);
+    /* 11-word (0x2C) template copies as 3x0xC-record unrolled loops + 2-word
+     * tail (target emits lw/sw word copies, not a byte loop). */
+    s = (struct R3 *)((char *)&D_00000000 + 0x1208); d = (struct R3 *)T1;
+    for (i = 0; i < 3; i++) d[i] = s[i];
+    T1[9]  = *(int *)((char *)&D_00000000 + 0x1208 + 0x24);
+    T1[10] = *(int *)((char *)&D_00000000 + 0x1208 + 0x28);
+    s = (struct R3 *)((char *)&D_00000000 + 0x1234); d = (struct R3 *)T2;
+    for (i = 0; i < 3; i++) d[i] = s[i];
+    T2[9]  = *(int *)((char *)&D_00000000 + 0x1234 + 0x24);
+    T2[10] = *(int *)((char *)&D_00000000 + 0x1234 + 0x28);
     func_00000000(T1, T2, a0, a1, a2, a3);
     func_00000000(T1, a1);
     func_00000000(T2, a2);
