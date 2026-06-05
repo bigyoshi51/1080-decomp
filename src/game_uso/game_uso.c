@@ -10558,7 +10558,7 @@ void game_uso_func_0000BB8C(char *arg0) {
     spFC = spA4.unk4;
     spF8 = spA4.unk0;
     ((GP_0000BB8C)game_uso_func_00000000)(temp_f12, 0x447A0000, &spF8, &spA4);
-    temp_f0 = FW(arg0, 0x23C);
+    temp_f0 = *(f32 *)((char *)arg0 + 0x23C);
     temp_f2 = -((sp110 * spF8) + (sp114 * spFC) + (sp118 * sp100));
     if (temp_f0 < temp_f2) {
         var_f24 = (temp_f2 - temp_f0) / (1.0f - temp_f0);
@@ -10569,7 +10569,7 @@ void game_uso_func_0000BB8C(char *arg0) {
         if (!((f64) temp_f24 < (*(f64 *)((char *)&game_uso_D_807FFA88 + 0x168)))) {
             sp88 = 0x409;
             sp84 = 0;
-            temp_f2_2 = FW(arg0, 0x26C);
+            temp_f2_2 = *(f32 *)((char *)arg0 + 0x26C);
             var_f20 = 0.0f;
             if (temp_f2_2 < temp_f24) {
                 temp_f20 = (temp_f24 - temp_f2_2) / (1.0f - temp_f2_2);
@@ -10594,7 +10594,7 @@ void game_uso_func_0000BB8C(char *arg0) {
             if (FW(arg0, 0x274) != 0) {
                 var_s0 = arg0;
                 do {
-                    if (FW(var_s0, 0xD8) < temp_f2) {
+                    if (*(f32 *)((char *)var_s0 + 0xD8) < temp_f2) {
                         if (FW(var_s0, 0xD4) & 1) {
                             if (temp_f22 < (f64) var_f20) {
                                 ((GP_0000BB8C)game_uso_func_00000000)(var_s0 + 0xB8, FW(arg0, 0xB4), &sp104, &spF8, var_f20);
