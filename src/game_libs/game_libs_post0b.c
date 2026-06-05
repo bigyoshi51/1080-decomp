@@ -19664,7 +19664,7 @@ void gl_func_0004EB54(char *arg0) {
     }
     gl_func_00034458(FW(arg0, 0x108));
     *(int*)&D_00000000 = arg0;
-    gl_func_00034458(0);
+    gl_func_00034458((char*)&D_00000000);
     temp_v1 = FW(arg0, 0x70);
     if (temp_v1 != 0) {
         temp_v0 = FW(temp_v1, 0x28);
