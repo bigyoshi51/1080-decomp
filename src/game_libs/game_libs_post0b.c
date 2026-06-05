@@ -207,16 +207,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034458);
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_00034548(void *a0) {
-    int localC;
-    int v;
+    char *g = (char *)&D_00000000;
+    char *item;
+    char *s0;
+    int sp50, sp54, sp5C;
+    int r5;
     (void)a0;
-    gl_func_00000000(0xC, (void *)0x0003BB18, 0x10);
-    *(int *)0x0003BB38 = 0;
-    do {
-        gl_func_00000000((void *)0x0003BB18, &localC);
-        v = gl_func_00000000((void *)0x0001E424, 1);
-    } while (v == 0);
-    *(int *)0x0003BB34 = v;
+    gl_func_00000000(0xC, g + 0x3BB18, 0x10);
+    *(int *)(g + 0x3BB38) = 0;
+    for (;;) {
+        do {
+            gl_func_00000000(g + 0x3BB18, &sp5C, 1);
+            item = (char *)gl_func_00000000();
+        } while (item == 0);
+        *(int *)(g + 0x3BB34) = (int)item;
+        s0 = item + 0x20;
+        (*(int (**)())(*(char **)(*(char **)g + 0x70)))(*(int *)(s0 + 0xFC), &sp50, &sp54);
+        gl_func_00000000(g + 0x1E424);
+        gl_func_00000000(item);
+        r5 = gl_func_00000000(*(int *)(item + 0x14));
+        gl_func_00000000(g + 0x1E438, sp50, sp54, *(int *)(s0 + 0xFC), r5, *(int *)(item + 0x14));
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034548);
