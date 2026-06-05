@@ -1773,41 +1773,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074AC0);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00074C04)();
+extern int D_00000000;   // D_a: fixed data arg threaded to the cb (lui+addiu)
+extern int D_74C_b;      // D_b: address compared against arg0->0x8
+extern int *D_74C_c;     // *&D_c: gate pointer + record (->4)
+extern int *D_74C_d;     // *&D_d: peer record stored into (->0x10)
+// State-machine step keyed on the u16 arg0->0x10. st==1: if the handle
+// arg0->0x8 is null or the sentinel &D_b, demote to 2 and notify(&D_a,arg0);
+// else promote to 8, notify(handle,arg0) and notify(&D_a, notify(handle)).
+// st==8: demote to 2 + notify(&D_a,arg0). Then a global-record pass: if *&D_c
+// is null, notify(); else if (*&D_d)->4 < (*&D_c)->4 demote (*&D_d)->0x10 to 2
+// + notify(&D_a). Finally notify(s0) with the saved first-call result. The cb
+// (game_libs_func_00070FCC) and &D globals are reloc-blind (field-0 matchable).
+// CAP: the target spill-reloads arg0 from its stack home (lw tX, 40(sp)) before
+// every field access instead of holding it in a saved reg — that regalloc
+// choice (~16 reload insns) can't be forced from C here, so fuzzy stays ~43%
+// despite the now-correct structure (halfword fields, &D globals, sentinel ||).
 void gl_func_00074C04(char *arg0) {
-    u16 temp_s1;
-    char *temp_s0;
-    char *temp_t0;
-    char *temp_t9;
+    char *s0;
+    unsigned short st;
+    int r;
 
-    temp_s0 = game_libs_func_00070FCC();
-    temp_s1 = FW(arg0, 0x10);
-    if (temp_s1 != 1) {
-        if (temp_s1 == 8) {
-            FW(arg0, 0x10) = 2U;
-            game_libs_func_00070FCC(0, arg0);
-        }
-    } else {
-        temp_t0 = FW(arg0, 0x8);
-        if ((temp_t0 == 0) || (temp_t0 == 0)) {
-            FW(arg0, 0x10) = 2U;
-            game_libs_func_00070FCC(0, arg0);
+    s0 = (char *)game_libs_func_00070FCC();
+    st = *(unsigned short *)(arg0 + 0x10);
+    if (st == 1) {
+        char *h = *(char **)(arg0 + 0x8);
+        if ((h == 0) || (h == (char *)&D_74C_b)) {
+            *(unsigned short *)(arg0 + 0x10) = 2;
+            game_libs_func_00070FCC((char *)&D_00000000, arg0);
         } else {
-            FW(arg0, 0x10) = 8U;
-            game_libs_func_00070FCC(FW(arg0, 0x8), arg0);
-            game_libs_func_00070FCC(0, game_libs_func_00070FCC(FW(arg0, 0x8)));
+            *(unsigned short *)(arg0 + 0x10) = 8;
+            game_libs_func_00070FCC(*(char **)(arg0 + 0x8), arg0);
+            r = game_libs_func_00070FCC(*(char **)(arg0 + 0x8));
+            game_libs_func_00070FCC((char *)&D_00000000, r);
         }
+    } else if (st == 8) {
+        *(unsigned short *)(arg0 + 0x10) = 2;
+        game_libs_func_00070FCC((char *)&D_00000000, arg0);
     }
-    if (*(int*)0 == 0) {
+    if (D_74C_c == 0) {
         game_libs_func_00070FCC();
     } else {
-        temp_t9 = *(int*)0;
-        if (FW(temp_t9, 0x4) < FW((*(int*)0), 0x4)) {
-            FW(temp_t9, 0x10) = 2;
-            game_libs_func_00070FCC(0);
+        if (D_74C_d[1] < D_74C_c[1]) {
+            *(unsigned short *)((char *)D_74C_d + 0x10) = 2;
+            game_libs_func_00070FCC((char *)&D_00000000);
         }
     }
-    game_libs_func_00070FCC(temp_s0);
+    game_libs_func_00070FCC(s0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074C04);
