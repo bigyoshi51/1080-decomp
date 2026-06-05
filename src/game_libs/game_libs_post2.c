@@ -1206,9 +1206,9 @@ loop_1:
             if (sp23 != FW(arg2, 0x100)) {
                 sp18 = game_libs_func_00070FCC(arg0, arg2, 0, sp23);
                 if ((sp18 != 0) && (sp18 != 3)) {
+                    return sp18;
                 }
                 FW(arg2, 0x100) = sp23;
-                goto block_11;
             }
 block_11:
             sp2C = sp1C;
@@ -1226,7 +1226,6 @@ loop_13:
             if (sp24 >= 2) {
                 return 2;
             }
-            goto block_19;
         }
 block_19:
         temp_t0 = sp23 + 1;
@@ -1237,6 +1236,7 @@ block_19:
         goto loop_1;
     }
 block_20: ;
+    return sp24;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072E3C);
