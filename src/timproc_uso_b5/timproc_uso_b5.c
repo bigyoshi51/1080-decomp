@@ -7219,6 +7219,15 @@ void timproc_uso_b5_func_0000BB78(int *a0, int unused) {
 /* 16-insn float-quad copy: v0 = a0->_2B8; copies 4 floats from
  * a0->{_25C,_260,_264,_294} into v0->{_114,_118,_110,_11C}, then calls
  * gl_func_00000000. Bundled-leaf trailer split off as 0000BBC8. */
+/* timproc_uso_b5_func_0000BB88/C1B4/CC74/CE6C: 4 sibling 4-float copy + tail-call
+ * functions. Callee resolved 2026-06-04 to timproc_uso_b5_func_00003F58 (every
+ * sibling's .s jal target; was a generic func_/gl_func_00000000 placeholder).
+ * RESIDUAL CAP: FP register renumber. Target emits the 0x294 load FIRST into $f14
+ * (descending $f14/$f12/$f2/$f0); IDO's first-encountered-pseudo->$f0 rule gives
+ * ascending. Tried forward-decl (a=$f0, right order/wrong regs), reverse-decl
+ * (right regs/reversed emit order), and call-before-last-store (d spills across
+ * the call, frame grows). a-load-first-with-$f14 needs the scheduler to hoist a's
+ * load while a is the last pseudo - not reachable from C. Stays NM (~97.5%). */
 #ifdef NON_MATCHING
 /* 2026-05-31: BYTE-IDENTICAL to the 98% timproc_uso_b5_func_0000C1B4; applied its body
  * (pre-load all 4 floats into locals THEN store, + func_00000000 placeholder). */
@@ -7232,7 +7241,7 @@ void timproc_uso_b5_func_0000BB88(int *a0) {
     *(float*)((char*)p + 0x110) = b;
     *(float*)((char*)p + 0x118) = c;
     *(float*)((char*)p + 0x114) = d;
-    func_00000000();
+    timproc_uso_b5_func_00003F58();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BB88);
@@ -7518,7 +7527,7 @@ void timproc_uso_b5_func_0000C1B4(int *a0) {
     *(float*)((char*)p + 0x110) = b;
     *(float*)((char*)p + 0x118) = c;
     *(float*)((char*)p + 0x114) = d;
-    func_00000000();
+    timproc_uso_b5_func_00003F58();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1B4);
@@ -8025,7 +8034,7 @@ void timproc_uso_b5_func_0000CC74(int *a0) {
     *(float*)((char*)p + 0x10C) = b;
     *(float*)((char*)p + 0x114) = c;
     *(float*)((char*)p + 0x110) = d;
-    func_00000000();
+    timproc_uso_b5_func_00003F58();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CC74);
@@ -8206,7 +8215,7 @@ void timproc_uso_b5_func_0000CE6C(char *a0) {
     *(float*)(v + 0x10C) = b;
     *(float*)(v + 0x114) = c;
     *(float*)(v + 0x110) = d;
-    gl_func_00000000();
+    timproc_uso_b5_func_00003F58();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE6C);
