@@ -6304,6 +6304,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C110);
  *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
  *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
+extern int D_00000000;
+// Record decoder loop (lwl/lwr). For each of `count` records (caller-set $t7),
+// read an 8-byte record from the (caller-set $t6) cursor, decode out->4 =
+// (rec[2]&0xC0)>>4; if 0, out->0 = *(u16)(rec+4), out->2 = rec[6], out->3 =
+// rec[7]; advance out += 6, cursor += 8; loop while i < *&D. The counter is
+// volatile (forces the stack-resident reload the target uses); the cursor base +
+// count are modeled as params (volatile cursor over-reloads, so plain).
+void gl_func_0006C11C(char *out, char *cursor, int count) {
+    unsigned char rec[8];
+    volatile int i;
+    if (count > 0) {
+        i = 0;
+        do {
+            *(int *)rec = *(int *)cursor;
+            *(int *)(rec + 4) = *(int *)(cursor + 4);
+            *(char *)(out + 4) = (rec[2] & 0xC0) >> 4;
+            if (*(unsigned char *)(out + 4) == 0) {
+                *(short *)(out + 0) = *(unsigned short *)(rec + 4);
+                *(char *)(out + 2) = rec[6];
+                *(char *)(out + 3) = rec[7];
+            }
+            out += 6;
+            cursor += 8;
+            i++;
+        } while (i < *(unsigned char *)&D_00000000);
+    }
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C11C);
 #endif
