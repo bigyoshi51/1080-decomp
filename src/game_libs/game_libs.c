@@ -3646,59 +3646,65 @@ void game_libs_func_000070F4(int a0) {}
  * Multi-pass: this iteration decoded ~10% of body; current fuzzy 31% NM
  * via INCLUDE_ASM path. */
 extern int gl_func_00000000();
+/* Full decode 2026-06-05 (was ~10% stub; second/third dispatch trees + epilogue
+ * were TODO). Control flow: a0->0x510 guard; then IF (next=a0->0x528) != 0 AND
+ * setup-call(next) != 0, run the FIRST setup+dispatch and jump straight to the
+ * epilogue. OTHERWISE (next==0 || call==0) fall into the SECOND dispatch
+ * (D[0x34] in {6,5} -> D[0x138] sub-tree), then the THIRD dispatch on a0->0x4F8,
+ * then epilogue (a0->0x510 = 1). Calls are USO placeholders (gl_func_00000000);
+ * several leave $a0 register-leftover so exact arg recovery is partial. */
 void gl_func_000070FC(int *a0) {
     int *next;
-    int v;
-    int mode;
-    int sub_state;
+    int m;
+    int *obj;
     if (*(int*)((char*)a0 + 0x510) != 0) return;
     next = *(int**)((char*)a0 + 0x528);
-    if (next == 0) return;
-    v = gl_func_00000000(next);
-    if (v == 0) return;
-    /* @ 0x712C-0x7148 (decoded 2026-05-07):
-     * 3 cross-USO setup calls before the main switch:
-     *   call(D[0x138], 0)  // setup 1, a1=0
-     *   call(5, 0)         // setup 2, a0=5 a1=0
-     *   call(0, 0)         // setup 3, a0=0 a1=0 (or zeroed via or a2,0,0)
-     */
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
-    gl_func_00000000(5, 0);
-    gl_func_00000000(0, 0);
-
-    /* @ 0x714C-0x71B8 (decoded 2026-05-07): MODE-SWITCH on D[0x34].
-     *   if (D[0x34] == 5) goto case_5;
-     *   if (D[0x34] == 4) goto case_4;
-     *   if (D[0x34] != 6) goto default_branch;
-     *   case_6: a1 = 5; t8 = D[0x7C];
-     *           if (t8 != 1) {
-     *               a1 = 5; a2 = 1;          // not-1: pass (5, 1, 1)
-     *               call(5, 1, 1);
-     *           } else {
-     *               a1 = 5; a2 = 2;          // is-1: pass (5, 1, 2)
-     *               call(5, 1, 2);
-     *           }
-     *           goto common_after; (b +0x5C, target ~0x7320)
-     *
-     * The 4/5 cases (TODO @ 0x71B0+) follow a similar shape: load D[0x34]/etc,
-     * dispatch a parameterized call(a1, a2, a3), then b common_after. */
-    mode = *(int*)((char*)&D_00000000 + 0x34);
-    if (mode == 5 || mode == 4 || mode == 6) {
-        sub_state = *(int*)((char*)&D_00000000 + 0x7C);
-        if (sub_state != 1) {
-            gl_func_00000000(5, 1, 1);
+    if (next != 0 && gl_func_00000000(next) != 0) {
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0);
+        gl_func_00000000(5, 0, 0);
+        m = *(int*)((char*)&D_00000000 + 0x34);
+        if (m == 5 || m == 4 || m == 6) {
+            if (*(int*)((char*)&D_00000000 + 0x7C) == 1) {
+                gl_func_00000000(5, 2, 0);
+            } else {
+                gl_func_00000000(5, 1, 0);
+            }
         } else {
-            gl_func_00000000(5, 1, 2);
+            gl_func_00000000(5, 1, 0);
         }
-        goto common_after;
-    } else {
-        gl_func_00000000(1, 1);
+        goto epilogue;
     }
-    /* TODO @ 0x71C4-0x7320 (~80 insns): the second D[0x34] dispatch
-     * (mode==6/5 -> obj 0x138 sub-call tree) + common_after merge + epilogue. */
-common_after:
-    /* TODO common merge block + epilogue */
-    return;
+    /* second dispatch (reached when next==0 || setup-call==0) @ 0x71C8 */
+    m = *(int*)((char*)&D_00000000 + 0x34);
+    if (m == 6 || m == 5) {
+        obj = *(int**)((char*)&D_00000000 + 0x138);
+        if (*(int*)((char*)*(int**)((char*)obj + 0x44) + 0x14) != 0) {
+            gl_func_00000000(obj, 0);
+        } else {
+            gl_func_00000000(obj, 0);
+        }
+    }
+    /* third dispatch on a0->0x4F8 @ 0x7228 */
+    if (*(int*)((char*)a0 + 0x4F8) == 5) {
+        gl_func_00000000(6, 0);
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x0), 6, 0, 0);
+    } else {
+        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x0), 0);
+        m = *(int*)((char*)&D_00000000 + 0x34);
+        if (m == 5) {
+            if (*(int*)((char*)&D_00000000 + 0x64) == 4) {
+                gl_func_00000000(5, 1, 0);
+            } else {
+                gl_func_00000000(5, 0, 0);
+            }
+        } else if (m == 4 || m == 6) {
+            gl_func_00000000(5, 0, 0);
+        } else {
+            gl_func_00000000(5, 1, 0);
+        }
+    }
+epilogue:
+    *(int*)((char*)a0 + 0x510) = 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000070FC);
