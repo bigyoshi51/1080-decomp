@@ -5787,9 +5787,9 @@ void func_0000CAE8(char *st) {
     func_00000000(st + 0x3EC, 1, *(int *)((char *)&D_00000000 + j * 4));
     if (*(int *)(st + 0xA58) & 0x80) func_00000000(st, 0);
     func_00000000(st + 0x90C, 0x17C);
-    *(float *)(st + 0x9D0) = 0.0f;
-    *(int *)(st + 0xA78) = *(int *)(st + 0x768);
-    mode = *(int *)(0 + 0x2C);
+    *(float *)(st + 0x9D0) = *(float *)((char *)&func_00000940 + 0x18);
+    *(float *)(st + 0xA78) = *(float *)(st + 0x768);
+    mode = *(int *)((char *)&func_00000008 + 0x2C);
     if (mode == 2) {
         *(int *)(st + 0xA14) = 0x5A;
     } else if (mode == 3 || mode == 4) {
