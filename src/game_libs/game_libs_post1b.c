@@ -5760,12 +5760,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
  *    function exported into the game_libs USO at compile time.
  *  - Splat boundary issue: candidate for split-fragments.py.
  *
- * 2026-05-28 CLASSIFICATION: this is the libc `bzero`, which is HAND-WRITTEN
- * ASSEMBLY in every reference (libreultra/oot/papermario all ship src/.../bzero.s,
- * NOT a .c) — the swl unaligned-head + 8×sw unrolled block are hand-coded, not
- * compiler output. Per the /decompile skill's handwritten-libc rule, it is NOT
- * C-decompilable and stays INCLUDE_ASM permanently (the .s is the source of
- * truth). Do NOT attempt a C body. */
+ * CLASSIFICATION (corrected 2026-06-06): the body LOOKS like canonical IDO
+ * libc bzero (slti/negu/andi head + do/while loops), not obviously hand-coded
+ * (the 2026-05-28 "handwritten, do NOT attempt" reason was imprecise). BUT
+ * three things block a C match, confirmed empirically this date:
+ *   (1) the expected symbol has 3 LEADING NOPS at 0x6B048 (real body at
+ *       0x6B054) — a splat boundary misattribution; C cannot emit leading nops.
+ *   (2) the leading partial-word zero is a LONE `swl zero,0(a0)`; `*(int*)p=0`
+ *       emits plain `sw` (and at the unaligned head would fault) — no standard
+ *       C idiom yields a lone swl.
+ *   (3) the BSD-bzero C body compiled at this file's -O2 EXPANDS to ~104 insns
+ *       (vs the 42-insn target) — IDO does not reproduce the tight unrolled
+ *       form here (measured fuzzy=None). So it is not C-matchable as-is.
+ * Stays INCLUDE_ASM. Re-attempt only after a splat boundary split (drops the
+ * 3 nops) AND finding what produces the tight 39-insn form + the lone swl. */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B048);
 #endif
