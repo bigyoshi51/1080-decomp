@@ -201,6 +201,45 @@ void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
     *(int *)(o + 0x1C) = a3;
     *(int *)(o + 0x14) = a3 / cols;
     *(int *)(o + 0x20) = gl_func_00000000(prod * 20);
+    {
+        int gw = a2 / rows;
+        int gh = a3 / cols;
+        int s5 = 0, s6 = 0;
+        int v1, ra, t2, v0, gi;
+        for (v1 = 0; v1 < cols; v1++) {
+            gi = v1 * rows;
+            for (ra = 0; ra < rows; ra++) {
+                int minx = gw, maxx = 0;
+                for (t2 = 0; t2 < gh; t2++) {
+                    char *px = (char *)*(int *)(o + 4) + (v1 * gh) * a2 + ra * gw + t2 * a2;
+                    for (v0 = 0; v0 < gw; v0++) {
+                        if (px[v0] != 0) {
+                            if (v0 < minx) minx = v0;
+                            if (maxx < v0) maxx = v0;
+                        }
+                    }
+                }
+                {
+                    int *g = (int *)(*(int *)(o + 0x20) + gi * 0x14);
+                    g[0] = ra * gw + minx;
+                    g[1] = v1 * gh;
+                    g[2] = (maxx + 1) - minx;
+                    g[4] = minx;
+                    if (s6 < maxx + 1) s6 = maxx + 1;
+                    s5 += maxx + 1;
+                }
+                gi++;
+            }
+        }
+        *(int *)(o + 0xC) = s6;
+        *(int *)(o + 8) = (int)(((float)s5 * 0.5f) / *(int *)(o + 0));
+        {
+            int i;
+            for (i = 0; i < *(int *)(o + 0); i++) {
+                *(int *)(*(int *)(o + 0x20) + i * 0x14 + 0xC) = *(int *)(o + 0xC);
+            }
+        }
+    }
     return o;
 }
 #else
