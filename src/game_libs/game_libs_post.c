@@ -61,86 +61,53 @@ typedef struct { float x, y, z; } Vec3;
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 
 #ifdef NON_MATCHING
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0001CC98)();
+/* Record-copy loop over *(0x2070) entries. Addresses 0x2070/0x2CFC/0x14 are
+ * &D-relative globals the target HOISTS into regs (addiu t1,zero,0x2070 ...)
+ * once before the loop and reloads the *values* inside — so model them as
+ * pointer locals, not inline *(s32*)0xNN derefs (which re-materialize each
+ * use). Byte fields at 0xB3 / 0x3 are lbu loads (not (u8) of a word). */
 void game_libs_func_0001CC98(s32 arg0) {
-    s32 var_a1;
-    s32 var_v0;
-    char *temp_a0;
-    char *temp_a0_2;
-    char *temp_a2;
+    s32 *pCount = (s32 *)0x2070;
+    s32 *pSrcBase = (s32 *)0x2CFC;
+    s32 *pDstBase = (s32 *)0x14;
+    s32 i;
+    s32 off;
+    char *rec;
+    char *src;
+    char *dst;
 
-    var_v0 = 0;
-    var_a1 = 0;
-    if (*(s32 *)0x2070 > 0) {
+    i = 0;
+    off = 0;
+    if (*pCount > 0) {
         do {
-            temp_a0 = var_a1 + *(s32 *)0x2CFC;
-            temp_a0_2 = temp_a0 + 0xB0;
-            temp_a2 = (((*(s32 *)0x2070 * arg0) + var_v0) << 5) + *(s32 *)0x14;
-            if (((u32) FW(temp_a0, 0xB0) >> 0x1F) != 0) {
-                FW(temp_a2, 0x0) = (u32) FW(temp_a0, 0xB0);
-                FW(temp_a2, 0x4) = (s32) FW(temp_a0_2, 0x4);
-                FW(temp_a2, 0x8) = (s32) FW(temp_a0_2, 0x8);
-                FW(temp_a2, 0xC) = (s32) FW(temp_a0_2, 0xC);
-                FW(temp_a2, 0x10) = (s32) FW(temp_a0_2, 0x10);
-                FW(temp_a2, 0x14) = (s32) FW(temp_a0_2, 0x14);
-                FW(temp_a2, 0x18) = (s32) FW(temp_a0_2, 0x18);
-                FW(temp_a2, 0x1C) = (s32) FW(temp_a0_2, 0x1C);
-                FW(temp_a0, 0xB0) = (s8) ((u8) FW(temp_a0, 0xB0) & 0xFFBF);
+            rec = (char *)(*pSrcBase + off);
+            src = rec + 0xB0;
+            dst = (char *)(*pDstBase + (((*pCount * arg0) + i) << 5));
+            if (((u32) FW(rec, 0xB0) >> 0x1F) != 0) {
+                FW(dst, 0x0) = (u32) FW(rec, 0xB0);
+                FW(dst, 0x4) = (s32) FW(src, 0x4);
+                FW(dst, 0x8) = (s32) FW(src, 0x8);
+                FW(dst, 0xC) = (s32) FW(src, 0xC);
+                FW(dst, 0x10) = (s32) FW(src, 0x10);
+                FW(dst, 0x14) = (s32) FW(src, 0x14);
+                FW(dst, 0x18) = (s32) FW(src, 0x18);
+                FW(dst, 0x1C) = (s32) FW(src, 0x1C);
+                FW(rec, 0xB0) = (s8) (*(u8 *)(rec + 0xB3) & 0xFFBF);
             } else {
-                FW(temp_a2, 0x0) = (s8) ((u8) FW(temp_a2, 0x0) & 0xFF7F);
+                src = rec + 0xB0;
+                FW(dst, 0x0) = (s8) (*(u8 *)(dst + 0x3) & 0xFF7F);
             }
-            FW(temp_a0_2, 0x6) = 0;
-            var_v0 += 1;
-            var_a1 += 0xD0;
-        } while (var_v0 < *(s32 *)0x2070);
-    }
-}
-#else
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0001CC98)();
-void game_libs_func_0001CC98(s32 arg0) {
-    s32 var_a1;
-    s32 var_v0;
-    char *temp_a0;
-    char *temp_a0_2;
-    char *temp_a2;
-
-    var_v0 = 0;
-    var_a1 = 0;
-    if (*(s32 *)0x2070 > 0) {
-        do {
-            temp_a0 = var_a1 + *(s32 *)0x2CFC;
-            temp_a0_2 = temp_a0 + 0xB0;
-            temp_a2 = (((*(s32 *)0x2070 * arg0) + var_v0) << 5) + *(s32 *)0x14;
-            if (((u32) FW(temp_a0, 0xB0) >> 0x1F) != 0) {
-                FW(temp_a2, 0x0) = (u32) FW(temp_a0, 0xB0);
-                FW(temp_a2, 0x4) = (s32) FW(temp_a0_2, 0x4);
-                FW(temp_a2, 0x8) = (s32) FW(temp_a0_2, 0x8);
-                FW(temp_a2, 0xC) = (s32) FW(temp_a0_2, 0xC);
-                FW(temp_a2, 0x10) = (s32) FW(temp_a0_2, 0x10);
-                FW(temp_a2, 0x14) = (s32) FW(temp_a0_2, 0x14);
-                FW(temp_a2, 0x18) = (s32) FW(temp_a0_2, 0x18);
-                FW(temp_a2, 0x1C) = (s32) FW(temp_a0_2, 0x1C);
-                FW(temp_a0, 0xB0) = (s8) ((u8) FW(temp_a0, 0xB0) & 0xFFBF);
-            } else {
-                FW(temp_a2, 0x0) = (s8) ((u8) FW(temp_a2, 0x0) & 0xFF7F);
-            }
-            FW(temp_a0_2, 0x6) = 0;
-            var_v0 += 1;
-            var_a1 += 0xD0;
-        } while (var_v0 < *(s32 *)0x2070);
+            FW(src, 0x6) = 0;
+            i += 1;
+            off += 0xD0;
+        } while (i < *pCount);
     }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CC98);
-#endif
 #endif
 
 // gl_func_0001CD64 — STRUCTURAL PASS (0x278 / 158 words, no episode).
