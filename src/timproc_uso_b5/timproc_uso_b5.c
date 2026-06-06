@@ -8000,23 +8000,35 @@ void timproc_uso_b5_func_0000C978(int *a0, float a1) {
 //   skeleton only. Byte-match deferred. Name pre-checked: no extern
 //   reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_0000C98C(char *obj, int a1, int a2, int a3) {
+void timproc_uso_b5_func_0000C98C(char *arg0, char *arg1, int arg2, int arg3) {
+    char *g = (char *)&D_00000000;
+    float c0 = 1.0f, c1 = 1.0f, c2 = 1.0f, c3 = 1.0f;
     char *d;
-    char *vt;
-    char *src;
-    char *entry;
-    int args[14];
-    args[0] = a3;
-    args[10] = a2;
-    args[11] = 0;
-    args[12] = 0;
-    args[13] = 0;
-    args[2] = 0xFF;
-    d = *(char **)(*(char **)(obj + 0x414) + 0xC);
-    vt = *(char **)(d + 0x5C);
-    src = *(char **)(obj + 0x44);
-    entry = (char *)&D_00000000 + 0x000001C0 + *(int *)(obj + 0x1AC) * 0x68;
-    func_00000000(d, vt, src, entry, args, a1);
+    int a2v, sp30, r0, v1;
+    d = *(char **)(*(char **)(arg1 + 0x414) + 0xC);
+    a2v = (*(int *)(d + 0xC4) + *(int *)(d + 0xBC)) - *(int *)(arg0 + 0x5C);
+    func_00000000(*(int *)(arg0 + 0x44), a2v, arg2, arg3,
+                                 *(int *)(arg0 + 0x1AC) * 0x18 + 0x1C0, 0xFF);
+    if (*(int *)g != 0) {
+        func_00000000(arg0, *(int *)(arg0 + 0x44) + *(int *)(arg0 + 0x74),
+                                     a2v + *(int *)(arg0 + 0x8C),
+                                     *(int *)(arg0 + 0x1AC) * 0x18 + 0x280, 0xFF);
+    }
+    sp30 = 0;
+    r0 = func_00000000(*(int *)(g + 0x148) + 4, 0);
+    v1 = *(int *)(g + 0x34);
+    if (v1 == 6) {
+        if (r0 == 2 && func_00000000(*(int *)(g + 0x148) + 4, 0) == *(int *)(arg0 + 0x2B0)) {
+            sp30 = 1;
+        }
+    } else if (v1 == 4 && r0 == 1 &&
+               func_00000000(*(int *)(g + 0x148) + 4, 0) == *(int *)(arg0 + 0x2B0)) {
+        sp30 = 1;
+    }
+    if (sp30 != 0) {
+        func_00000000(arg0, *(int *)(arg0 + 0x44) + 0x54, a2v - 0x78, 0x6D0, 0xFF);
+    }
+    (void)c0; (void)c1; (void)c2; (void)c3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C98C);
