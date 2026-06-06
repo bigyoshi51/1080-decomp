@@ -2752,14 +2752,18 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
  * dead-store survive only under -g and are not recreated here. */
 extern char D_00007DB4;
 #ifdef NON_MATCHING
-void *func_00005124(void *arg) {
+void *func_00005124(int arg) {
     char *obj;
     func_00000000(&D_00007DB4);
     obj = (char*)func_00000000(0x4C);
-    if (obj == 0) return 0;
-    *(void**)(obj + 0x28) = &D_00000000;
-    *(void**)(obj + 0x48) = &D_00000000;
-    (void)arg;
+    if (obj == 0) {
+        obj = (char*)func_00000000(0x48);
+        if (obj == 0) return obj;
+    }
+    func_00000000(obj, arg, 0);
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x48) = (int)&D_00000000;
     return obj;
 }
 #else
@@ -2778,14 +2782,18 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
  * recreated (same convention as func_00005124). */
 extern char D_00007DC4;
 #ifdef NON_MATCHING
-void *func_000051D4(void *arg) {
+void *func_000051D4(int arg) {
     char *obj;
     func_00000000(&D_00007DC4);
     obj = (char*)func_00000000(0x4C);
-    if (obj == 0) return 0;
-    *(void**)(obj + 0x28) = &D_00000000;
-    *(void**)(obj + 0x48) = &D_00000000;
-    (void)arg;
+    if (obj == 0) {
+        obj = (char*)func_00000000(0x48);
+        if (obj == 0) return obj;
+    }
+    func_00000000(obj, arg, 0);
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x48) = (int)&D_00000000;
     return obj;
 }
 #else
@@ -2805,14 +2813,18 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000051D4);
  * recreated. */
 extern char D_00007DD4;
 #ifdef NON_MATCHING
-void *func_00005284(void *arg) {
+void *func_00005284(int arg) {
     char *obj;
     func_00000000(&D_00007DD4);
     obj = (char*)func_00000000(0x4C);
-    if (obj == 0) return 0;
-    *(void**)(obj + 0x28) = &D_00000000;
-    *(void**)(obj + 0x48) = &D_00000000;
-    (void)arg;
+    if (obj == 0) {
+        obj = (char*)func_00000000(0x48);
+        if (obj == 0) return obj;
+    }
+    func_00000000(obj, arg, 0);
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x48) = (int)&D_00000000;
     return obj;
 }
 #else
