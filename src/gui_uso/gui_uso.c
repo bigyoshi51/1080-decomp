@@ -566,7 +566,19 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
  * All callees are the gl_func_00000000 cross-USO placeholder (raw objdump
  * lost the real reloc symbols + the exact arg signature / f12-f14 float-arg
  * order), and the s0-s7/f20-f30 regalloc + glyph-struct typing are not yet
- * pinned, so this is reference C, not a byte match. */
+ * pinned, so this is reference C, not a byte match.
+ *
+ * 2026-06-05 RESIDUAL MEASURED (full target<->build disasm diff): the LOGIC/
+ * control-flow is confirmed correct (per-char loop, 4 DL appends, the FP
+ * scale + clamp chains, both var_f22 advance arms all line up). The gap is
+ * (1) FRAME 0x108 target vs 0x130 build (+0x28): this first-pass C keeps a
+ * larger simultaneous live-set in the inner block (f0/f2/f10/f10b/s1/s4 +
+ * ca0/ca1 + glyph/s0 all live at the peak) → ~10 extra spill words; the
+ * target interleaves compute-and-consume so fewer are live at once.
+ * (2) regalloc renumber cascading from (1): target ctx=$s2 / s6=ctx->0x14 in
+ * $s6; build ctx=$s3 / in $s8. Closing it needs restructuring the inner
+ * block to shrink the peak live-set to match -O2's scheduling (multi-tick,
+ * permuter-class once frame matches) — NOT a logic fix. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, unsigned char *arg5) {
