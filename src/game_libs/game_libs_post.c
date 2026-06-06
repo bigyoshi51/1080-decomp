@@ -9264,13 +9264,19 @@ extern int func_3b164(), func_3b110();
 int gl_func_00026790(unsigned char *cmd) {
     char *g = (char *)&D_00000000;
     int op = cmd[0];
-    int i;
-    if (!((op >= 0x81 && op <= 0x90) || (op >= 0xF0 && op <= 0xFB))) return 0;
-    switch (op) {
-    case 0x81: case 0xF0:                       /* idx0 */
+    int idx, i;
+    if (op >= 0x91) {
+        if ((unsigned)(op - 0xF0) >= 0xC) return 0;
+        idx = op - 0xF0;
+    } else {
+        if ((unsigned)(op - 0x81) >= 0x10) return 0;
+        idx = op - 0x81;
+    }
+    switch (idx) {
+    case 0:
         *(char *)(g + 0x2076) = *(int *)(cmd + 4);
         break;
-    case 0x82: case 0xF1: {                     /* idx1: set bit 0x20 on all entries */
+    case 1: {                                   /* set bit 0x20 on all entries */
         char *p = g;
         for (i = 0; i < *(short *)(g + 0x2048); i++) {
             int t = *(int *)(p + 0x2D00);
@@ -9279,7 +9285,7 @@ int gl_func_00026790(unsigned char *cmd) {
             *(char *)(p + 0x2BA0) = (t | 0x20) | 4;
         }
         break; }
-    case 0x83: case 0xF2: {                     /* idx2: clear bit 0x20 on all entries */
+    case 2: {                                   /* clear bit 0x20 on all entries */
         char *p = g;
         for (i = 0; i < *(short *)(g + 0x2048); i++) {
             int t = *(int *)(p + 0x2D00);
@@ -9288,28 +9294,28 @@ int gl_func_00026790(unsigned char *cmd) {
             *(char *)(p + 0x2BA0) = (t & 0xFFDF) | 4;
         }
         break; }
-    case 0x84: case 0xF3:                       /* idx3 */
+    case 3:
         gl_func_0001CA10(cmd[1], cmd[2], cmd[3]);
         break;
-    case 0x85: case 0xF4:                       /* idx4 */
-    case 0x86: case 0xF5:                       /* idx5 */
+    case 4:
+    case 5:
         gl_func_0001CA10(cmd[1], cmd[2], cmd[3], g + 0x164C);
         break;
-    case 0x87: case 0xF6:                       /* idx6 */
+    case 6:
         gl_func_0001CA10(cmd[2]);
         break;
-    case 0x8A: case 0xF9:                       /* idx9 */
+    case 9:
         *(char *)(g + 0x2CF0) = 5;
         *(char *)(g + 0x2CF1) = cmd[4];
         break;
-    case 0x8C: case 0xFB:                       /* idx11 */
+    case 11:
         *(int *)g = *(int *)(cmd + 4);
         break;
-    case 0x8E:                                  /* idx13 */
+    case 13:
         gl_func_0001CA10(cmd[1], cmd[2], cmd[3]);
         func_3b164(cmd[1], *(int *)(cmd + 4));
         break;
-    case 0x8F: {                                /* idx14 */
+    case 14: {
         char *e = g + op * 0x160;
         if ((unsigned)*(int *)(e + 0x2D00) >> 0x1F) {
             int a = *(int *)(cmd + 4);
