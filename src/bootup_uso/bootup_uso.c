@@ -5991,13 +5991,19 @@ void func_0000CFA0(char *st) {
                 *(float *)(st + 0x9F0) = (float)(*(unsigned char *)(st + 0xA32) >> 1) / 255.0f;
                 *(float *)(st + 0x9F4) = 112.0f / 255.0f;
                 func_00000000(st + 0x9E8);
-                if (*(int *)(st + 0x8B8) & 2) func_00000000(2);
+                if (*(int *)(st + 0x8B8) & 2) {
+                    char *o, *vt;
+                    func_00000000(2);
+                    o = *(char **)(st + 0x814); vt = *(char **)(o + 0x28);
+                    (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
+                    o = *(char **)(st + 0x820); vt = *(char **)(o + 0x28);
+                    (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
+                }
                 if ((*(int *)(st + 0x8B8) & 8) && *(int *)(st + 0x938) == 0) {
-                    sub = *(char **)(st + 0x824);
-                    if (sub) {
-                        void (*fn)(void *) = *(void (**)(void *))(sub + 0x1C);
-                        if (fn) fn(sub);
-                    }
+                    char *o, *vt;
+                    func_00000000(8);
+                    o = *(char **)(st + 0x824); vt = *(char **)(o + 0x28);
+                    (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
                 }
             }
             *(int *)((char *)&D_00000000 + 0x64) = 0;
