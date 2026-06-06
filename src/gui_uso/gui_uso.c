@@ -593,8 +593,16 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
  *     materializes 2.0 AFTER the call, in $f0, dead before the loop). Net diffs
  *     still improved. Next: get `two`/2.0 to materialize post-call (splitting
  *     the call to an explicit `rw` temp REGRESSED earlier — needs care).
- *   - REMAINING: build spills arg5 (a1) to its own slot after the first call
- *     instead of reloading from the stack-arg home like the target. */
+ *   - 2026-06-05 (pass 4): moved idx/s7 init AFTER the first call to match
+ *     target order (523->501 diffs cumulative). Tried `rw` temp to push 2.0
+ *     materialization post-call: REGRESSED to 519 — don't retry.
+ *   - REGALLOC CAP (the last frame word): build caches arg5 in an in-frame
+ *     slot (sp+0x118, written twice) instead of reloading from the stack-arg
+ *     HOME slot each time like the target (frame 0x130 vs 0x108 = this 1 slot
+ *     + the s2/s3 ctx renumber it cascades). IDO chooses to cache the
+ *     stack-passed arg5 rather than re-`lw` from its home; no C lever found to
+ *     force home-reload. Structure + FP (div.s 5/5) + arg/init order all now
+ *     match; the residual is this IDO spill-vs-reload choice (permuter-class). */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, unsigned char *arg5) {
@@ -618,8 +626,6 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
     cmd = (int*)(*(char**)dl + cnt * 8);
     cmd[0] = 0xBB000001;
     cmd[1] = 0x80008000;
-    idx = 0;
-    s7 = arg5;
     {
         /* named-local divisor forces div.s (not mul*0.5); target shares this
          * one 2.0 across both divisions AND the -2.0 sub (IDO_CODEGEN
@@ -628,6 +634,8 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
         var_f22 = -((float)gl_func_00000000(arg0, arg5) / two) - two;
         spD4 = -((float)*(int*)((char*)arg0 + 0x10) / two);
     }
+    idx = 0;
+    s7 = arg5;
     if (gl_func_00000000(arg5) != 0) {
         do {
             unsigned char ch = *s7;
