@@ -22863,7 +22863,64 @@ int game_libs_func_000533B8(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000533B8);
 #endif
 
+#ifdef NON_MATCHING
+/* Triangle vertex-color averager. arg0=mesh ctx, arg1=triangle index,
+ * arg2=out RGB. Looks up the triangle (via optional index table at 0x4C,
+ * else direct) in the 8-byte tri array at 0x68, sums the 3 vertices'
+ * colors from the color table at 0x50 (entry stride 4, bytes r/g/b),
+ * writes the /3 average. The target divides by a register (t1=3, the
+ * same value as the loop bound) -> `div` + overflow traps.
+ * CAP (unroll divergence, 2026-06-06): the target keeps the 3-iteration
+ * loop ROLLED, but IDO -O2 unrolls any constant-trip counted loop here
+ * (verified in-tree AND standalone -O2: 160 insns vs 93). No C
+ * formulation found that yields BOTH a register divisor (needs n=3 var)
+ * and a rolled loop (the var makes the trip count foldable -> unroll).
+ * Logic is faithful; body is unroll-expanded. ~13% until the rolled-loop
+ * shape is cracked (likely needs a non-foldable trip source). */
+void gl_func_000533EC(void *arg0, int arg1, void *arg2) {
+    short r;   /* a1 */
+    short g;   /* a2 */
+    short b;   /* a3 */
+    int i;     /* v1 */
+    int n;     /* t1 = 3 */
+    unsigned char *colorTab;   /* t2 = arg0->0x50 */
+    unsigned short *idxTab;    /* arg0->0x4C */
+    unsigned short *tri;       /* a0 */
+    unsigned char *entry;      /* v0 */
+    unsigned short vidx;
+
+    colorTab = *(unsigned char **)((char *)arg0 + 0x50);
+    if (colorTab == 0) {
+        gl_func_00034458((char *)0x21024, arg1);
+        colorTab = *(unsigned char **)((char *)arg0 + 0x50);
+    }
+    idxTab = *(unsigned short **)((char *)arg0 + 0x4C);
+    g = 0;
+    i = 0;
+    if (idxTab != 0) {
+        tri = (unsigned short *)(*(char **)((char *)arg0 + 0x68) + idxTab[arg1] * 8);
+    } else {
+        tri = (unsigned short *)(*(char **)((char *)arg0 + 0x68) + arg1 * 8);
+    }
+    r = 0;
+    b = 0;
+    n = 3;
+    do {
+        vidx = *(unsigned short *)((char *)tri + 2);
+        i += 1;
+        tri = (unsigned short *)((char *)tri + 2);
+        entry = colorTab + vidx * 4;
+        r += entry[0];
+        g += entry[1];
+        b += entry[2];
+    } while (i != n);
+    *((char *)arg2 + 0) = r / n;
+    *((char *)arg2 + 1) = g / n;
+    *((char *)arg2 + 2) = b / n;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000533EC);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
