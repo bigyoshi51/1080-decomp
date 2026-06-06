@@ -5944,8 +5944,8 @@ void func_0000CFA0(char *st) {
     int sp30;
     ctx = *(char **)((char *)&D_00000000 + 0x18);
     if ((*(int *)(st + 0xA58) & 0x2000) && ctx == *(char **)(st + 0x8DC)) return;
-    r = (char *)func_00000000(ctx, *(int *)(st + 0xB4), *(int *)(st + 0xB8),
-                              *(int *)(st + 0xBC), 0, &out_at_sp84);
+    r = (char *)func_00000000(ctx, 2, *(int *)(st + 0xB4), *(int *)(st + 0xB8),
+                              *(float *)(st + 0xBC), &out_at_sp84, 0.0f);
     if (!r) return;
     *(char **)(st + 0xA40) = r;
     changed = ((float)*(int *)(ctx + 0x98) < out_at_sp84) ? 1
