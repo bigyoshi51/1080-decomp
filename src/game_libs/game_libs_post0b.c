@@ -6793,11 +6793,54 @@ int game_libs_func_0003D538(int a0, int a1, int a2) {
     return 0;
 }
 
-/* game_libs_func_0003D54C: splat mis-split the leading `lw t6,0x10(a0)` of
- * gl_func_0003D550 into its own 0x4 symbol; gl_func_0003D550 read t6
- * uninitialized. Merged into one 0x70 function at the true entry 0x3D54C
- * (predecessor 0003D538 is a complete 5-insn arg-home stub). */
+/* game_libs_func_0003D54C: linked-list walk — advance arg0->unk10's chain
+ * via ->unk4 (next), reading ->unk0 (value), counting up to arg1 nodes;
+ * returns the last ->unk0 read (0 when the chain runs out). sp0 holds the
+ * current node (spilled), sp4 the next. (splat had mis-split the leading
+ * `lw t6,0x10(a0)` into a 0x4 symbol; this is the merged 0x70 fn at 0x3D54C.)
+ *
+ * 56.4% NM (2026-06-06, bare->56%): logic verified from m2c. Residual is a
+ * SPILL cap — the target keeps `next` on the stack (sp4) and reloads it
+ * each loop iteration (lw t0,4(sp)) plus a dead store of the current node
+ * to sp0, giving a -8 frame (28 insns); IDO keeps both in registers here
+ * (24 insns, no frame). Forcing the exact spill needs higher pressure /
+ * permuter; the decode itself is correct. */
+#ifdef NON_MATCHING
+int game_libs_func_0003D54C(int *arg0, int arg1) {
+    int *sp0, *sp4, *t0, *t6;
+    int v0 = 0, a0, v1;
+    t6 = (int *)arg0[0x10 / 4];
+    sp4 = t6;
+    sp0 = t6;
+    if (t6 != 0) {
+        sp4 = (int *)t6[0x4 / 4];
+        a0 = t6[0];
+    } else {
+        a0 = 0;
+    }
+    v1 = a0;
+    if (a0 != 0) {
+    loop:
+        t0 = sp4;
+        if (v0 != arg1) {
+            v0 += 1;
+            sp0 = t0;
+            if (t0 != 0) {
+                sp4 = (int *)t0[0x4 / 4];
+                a0 = t0[0];
+            } else {
+                a0 = 0;
+            }
+            v1 = a0;
+            if (a0 != 0) goto loop;
+        }
+    }
+    (void)sp0;
+    return v1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D54C);
+#endif
 
 /* 25-insn alloc-if-null + init + zero-Vec3. Promoted 81.6%→100% via:
  * (1) `||` short-circuit alloc form (per gl_func_000378D0 recipe);
