@@ -1397,9 +1397,7 @@ void func_000027C0(char *a0, int *a1) {
 //   no extern reuse. D_00000000 reuses file-scope extern char.
 #ifdef NON_MATCHING
 void *func_000027E8(char *scene, int a1, int a2, int a3) {
-    char *h4C, *h3C, *h48, *h44, *h40, *g;
-    int aa, bb, cc;
-    float ratio;
+    char *r80, *r8C, *r90, *r94, *r98, *g, *p;
     func_00000000(&D_00000000);
     *(int *)(scene + 0x3C) = a2;
     func_00000000((char *)&D_00000000 + 0x7328, 0);
@@ -1410,30 +1408,48 @@ void *func_000027E8(char *scene, int a1, int a2, int a3) {
     func_00000000(&D_00000000, (char *)&D_00000000 + 0x7360);
     func_00000000();
     func_00000000((char *)&D_00000000 + 0x7374, 0);
-    h4C = (char *)func_00000000(0, (char *)&D_00000000 + 0x7380);
-    h3C = (char *)func_00000000(0, (char *)&D_00000000 + 0x738C);
-    h48 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7390);
-    h44 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7394);
-    h40 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7398);
+    r80 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7380);
+    r8C = (char *)func_00000000(0, (char *)&D_00000000 + 0x738C);
+    r90 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7390);
+    r94 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7394);
+    r98 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7398);
     g = (char *)func_00000000(0);
     *(char **)&D_00000000 = g;
-    func_00000000(h4C + 0x10, g);
+    func_00000000(r8C + 0x10, g);
     if (*(int *)(g + 0x14)) *(int *)(g + 0x4) = 1;
-    *(char **)(g + 0x14) = h4C;
-    aa = (int)func_00000000(*(int *)(scene + 0x134), (char *)&D_00000000 + 0x739C);
-    bb = (int)func_00000000(*(int *)(scene + 0x134), (char *)&D_00000000 + 0x73B4);
-    cc = (int)func_00000000(*(int *)(scene + 0x134), (char *)&D_00000000 + 0x73CC);
-    ratio = (float)(bb - cc) / (float)aa;
-    func_00000000(scene, ratio);
-    if (*(int *)(h44 + 0x14)) *(int *)(h44 + 0x4) = 1;
-    *(char **)(h44 + 0x14) = h4C;
-    if (*(int *)(h40 + 0x14)) *(int *)(h40 + 0x4) = 1;
-    *(char **)(h40 + 0x14) = h4C;
-    if (*(int *)(h48 + 0x14)) *(int *)(h48 + 0x4) = 1;
-    *(char **)(h48 + 0x14) = h4C;
-    if (*(int *)(h3C + 0x14)) *(int *)(h3C + 0x4) = 1;
-    *(char **)(h3C + 0x14) = h4C;
-    return *(void **)(scene + 0x3C);
+    *(char **)(g + 0x14) = r8C;
+    func_00000000();
+    func_00000000(*(int *)(scene + 0x134), r90, r8C, r80, r94, r98);
+    func_00000000(*(int *)(scene + 0x134));
+    func_00000000(*(int *)(scene + 0x134));
+    func_00000000(*(int *)(scene + 0x134));
+    func_00000000(0);
+    func_00000000((char *)&D_00000000 + 0x739C);
+    func_00000000(0);
+    *(int *)(*(int *)(scene + 0x134) + 0x98) =
+        (int)func_00000000(*(int *)(scene + 0x134), func_00000000(*(int *)(scene + 0x134), a1), a2);
+    func_00000000(0);
+    func_00000000((char *)&D_00000000 + 0x73B4);
+    func_00000000(0);
+    func_00000000(*(int *)(scene + 0x134), a2, a3);
+    func_00000000(0);
+    func_00000000((char *)&D_00000000 + 0x73CC);
+    p = r90 + 0x10;
+    func_00000000(p, r94);
+    if (*(int *)(r94 + 0x14)) *(int *)(r94 + 0x4) = 1;
+    *(char **)(r94 + 0x14) = r90;
+    func_00000000(p, r98);
+    if (*(int *)(r98 + 0x14)) *(int *)(r98 + 0x4) = 1;
+    *(char **)(r98 + 0x14) = r90;
+    func_00000000();
+    p = r80 + 0x10;
+    func_00000000(p, r8C);
+    if (*(int *)(r8C + 0x14)) *(int *)(r8C + 0x4) = 1;
+    *(char **)(r8C + 0x14) = r80;
+    func_00000000(p, r90);
+    if (*(int *)(r90 + 0x14)) *(int *)(r90 + 0x4) = 1;
+    *(char **)(r90 + 0x14) = r80;
+    return r80;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000027E8);
