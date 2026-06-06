@@ -13244,31 +13244,114 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
 //   jal-0 USO-reloc handlers — byte-match needs USO mnemonic disasm
 //   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+/* Decoded via jumptable extraction (uso-jumptable-to-m2c.py). Per-opcode
+ * script-VM executor; var_v1 (opcode) selects load-next / load-loop / default
+ * (positioned read with a nested transform switch on o->0x20). f32(u32)
+ * conversions via the +4294967296 idiom. Globals &D+0x205C/0x2074/0x2040;
+ * the *(sp18*4) frame-time table + the (v1*0x158) object base are USO-relative
+ * (&D + folded). gl_func_0001CA10 = real callee. Residual: those table/object
+ * relocs + regalloc. */
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-int gl_func_0002B09C(char *o, int a1) {
-    char *buf = *(char **)(o + 0x50);
-    int cur = *(int *)(o + 0x4C);
-    int t;
-    short sub;
-    int pos;
-    (void)cur;
-    if (*(unsigned char *)(o + 2) != 0xFF) {
-        t = *(int *)o;
-        if ((t << 4) < 0) {
-            (void)*(short *)(o + 0x24);
-            return -1;
+int gl_func_0002B09C(char *arg0, int arg1) {
+    char *buf = *(char **)(arg0 + 0x50);
+    char *sp38 = *(char **)(buf + 0x4C);
+    int t0 = *(unsigned char *)(arg0 + 2);
+    int v1 = t0;
+    int t3 = 1;
+    void **r;
+    short c;
+    if (t0 == 0xFF) {
+        if (!(*(int *)(buf + 0) & 0x08000000)) return -1;
+        v1 = *(unsigned char *)(buf + 0x24);
+    }
+    switch (v1) {
+    case 0:
+        r = (void **)gl_func_0001CA10(*(unsigned char *)(buf + 7),
+            (arg1 + *(unsigned char *)(buf + 0x26) + *(unsigned char *)(arg0 + 0x10)) & 0xFF, arg0, arg1);
+        if (r == 0) { *(unsigned char *)(arg0 + 0) |= 0x20; *(short *)(arg0 + 0xC) = *(short *)(arg0 + 8); return -1; }
+        *(int *)(arg0 + 0x1C) = *(int *)((char *)r + 0xC);
+        *(unsigned char *)(arg0 + 0x18) = *(unsigned char *)((char *)r + 0);
+        if (!(*(int *)(arg0 + 0) & 0x04000000)) *(unsigned char *)(arg0 + 5) = *(unsigned char *)((char *)r + 1);
+        *(int *)(arg0 + 0x4C) = (int)((char *)r + 4);
+        *(float *)(arg0 + 0x30) = *(float *)((char *)r + 8);
+        goto block_46;
+    case 1:
+        r = (void **)gl_func_0001CA10(*(unsigned char *)(buf + 7),
+            ((*(unsigned char *)(arg0 + 0x10) << 6) + (arg1 & 0xFF)) & 0xFFFF, arg0, arg1);
+        if (r == 0) { *(unsigned char *)(arg0 + 0) |= 0x20; *(short *)(arg0 + 0xC) = *(short *)(arg0 + 8) + 1; return -1; }
+        *(int *)(arg0 + 0x4C) = (int)r;
+        *(float *)(arg0 + 0x30) = *(float *)((char *)r + 4);
+        goto block_46;
+    default: {
+        int pos = (arg1 + *(short *)(sp38 + 0xE) + *(unsigned char *)(buf + 0x26) + *(unsigned char *)(arg0 + 0x10)) & 0xFF;
+        int va0, va1;
+        float f02, f2, f03;
+        char *e20 = arg0 + 0x20;
+        int t9, v0;
+        if (pos >= 0x80) { *(unsigned char *)(arg0 + 0) |= 0x20; return -1; }
+        va0 = (t0 == 0xFF) ? *(unsigned char *)(buf + 0x48) : *(unsigned char *)(arg0 + 0x48);
+        if (*(int *)(arg0 + 0x20) != 0) {
+            va1 = *(unsigned char *)(arg0 + 4);
+            if (va1 < pos) va1 = pos;
+            if (va0 != 0) {
+                void **t8 = *(void ***)(arg0 + 0x4C);
+                r = (void **)gl_func_0001CA10(va0, va1, arg0, arg1);
+                *(int *)(arg0 + 0x4C) = (int)r;
+                f02 = *(float *)((char *)r + 4);
+                t3 = (r == t8);
+            } else {
+                f02 = 1.0f;
+                *(int *)(arg0 + 0x4C) = 0;
+                if (v1 >= 0xC0) *(int *)(arg0 + 0x4C) = (v1 * 0x158) + ((int)&D_00000000 - 0x100D8);
+            }
+            f2 = *(float *)((char *)&D_00000000 + pos * 4) * f02;
+            t9 = *(int *)(arg0 + 0x20) & ~0x80;
+            if ((unsigned)(t9 - 1) < 5) {
+                switch (t9) {
+                case 1: case 3: f03 = *(float *)((char *)&D_00000000 + *(unsigned char *)(arg0 + 4) * 4) * f02; break;
+                default: f03 = f2; break;
+                }
+            } else {
+                f03 = f2;
+            }
+            *(float *)(e20 + 8) = (f03 / f2) - 1.0f;
+            if (*(int *)(arg0 + 0x20) & 0x80) {
+                v0 = (((*(short *)(sp38 + 8) << 0xF) / *(short *)((char *)&D_00000000 + 0x2074)) << 8) / (*(short *)(arg0 + 8) * *(short *)(arg0 + 0xE));
+            } else {
+                v0 = 0x20000 / (*(short *)(arg0 + 0xE) * *(short *)((char *)&D_00000000 + 0x2040));
+            }
+            if (v0 >= 0x7FFF) v0 = 0x7FFF; else if (v0 <= 0) v0 = 1;
+            *(short *)(e20 + 4) = (short)v0;
+            *(short *)(e20 + 2) = 0;
+            *(float *)(arg0 + 0x30) = f2;
+            if ((*(int *)(arg0 + 0x20) & ~0x80) == 5) *(unsigned char *)(arg0 + 4) = (unsigned char)pos;
+        } else if (va0 != 0) {
+            void **t7 = *(void ***)(arg0 + 0x4C);
+            r = (void **)gl_func_0001CA10(va0, pos, arg0, arg1);
+            *(int *)(arg0 + 0x4C) = (int)r;
+            t3 = (r == t7);
+            *(float *)(arg0 + 0x30) = *(float *)((char *)&D_00000000 + pos * 4) * *(float *)((char *)r + 4);
+        } else {
+            *(int *)(arg0 + 0x4C) = 0;
+            *(float *)(arg0 + 0x30) = *(float *)((char *)&D_00000000 + pos * 4);
+            if (v1 >= 0xC0) *(int *)(arg0 + 0x4C) = (v1 * 0x158) + ((int)&D_00000000 - 0x100D8);
         }
+        goto block_46;
     }
-    sub = *(short *)(o + 0x24);
-    switch (sub) {
-        case 0: case 1: break;
-        default:
-            pos = a1 + *(short *)(o + 0x26) + *(short *)(buf + 0x10);
-            gl_func_00000000(pos, *(unsigned char *)(buf + 7));
-            break;
     }
-    return 0;
+block_46:
+    c = *(short *)(arg0 + 8);
+    *(short *)(arg0 + 0xC) = c;
+    *(float *)(arg0 + 0x30) = *(float *)(arg0 + 0x30) * *(float *)(arg0 + 0x34);
+    if (c == 0) {
+        int t4 = *(int *)(*(char **)((*(char ***)(arg0 + 0x4C))[2]) + 4);
+        float f0 = (float)(unsigned)t4;
+        unsigned short t6 = *(unsigned short *)(sp38 + 8);
+        float f18 = (float)(unsigned)t6;
+        *(short *)(arg0 + 0xA) = 0;
+        *(short *)(arg0 + 8) = (short)((int)((f0 * f18 * *(float *)((char *)&D_00000000 + 0x205C)) / *(float *)(arg0 + 0x30)) + 1);
+    }
+    return t3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
