@@ -205,22 +205,28 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000005C
  * adjustments. Multi-tick infrastructure scope. */
 void arcproc_uso_func_00000688(int *a0) {
     int i;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x00) = 1;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x04) = 0;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x08) = 5;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x0C) = 2;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x10) = 0;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x14) = 3;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x18) = 1;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x1C) = 4;
-    *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x34) = 0;
+    /* The target reloads a0->0x8 before EVERY store (no CSE — IDO can't
+     * prove the through-pointer stores don't alias a0+8). A plain repeated
+     * deref gets CSE'd to one load; a volatile pointer-fetch forces the
+     * per-store reload the target emits. */
+#define P (*(int *volatile *)((char *)a0 + 8))
+    P[0] = 1;
+    P[1] = 0;
+    P[2] = 5;
+    P[3] = 2;
+    P[4] = 0;
+    P[5] = 3;
+    P[6] = 1;
+    P[7] = 4;
+    P[13] = 0;
     i = 0;
-    if (i < *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x8)) {
+    if (i < P[2]) {
         do {
-            *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x20 + i*4) = 0;
+            P[8 + i] = 0;
             i++;
-        } while (i < *(int*)((char*)*(int**)((char*)a0 + 0x8) + 0x8));
+        } while (i < P[2]);
     }
+#undef P
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000688);
