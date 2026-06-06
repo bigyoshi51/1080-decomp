@@ -1763,53 +1763,55 @@ void titproc_uso_func_00002950(char *dst) {
 }
 
 #ifdef NON_MATCHING
-/* titproc_uso_func_00002980: 43-insn (0xAC) alloc-and-link node helper
- * with dead-code suffix. Sibling of mgrproc_uso_func_00003358 (39-insn
- * version, currently NM 89.22% with documented frame/regalloc cap).
+/* titproc_uso_func_00002980: 36-insn (0x90) alloc-and-link node helper.
+ * Sibling of mgrproc_uso_func_00003358 (same frame/regalloc cap class).
  *
- * Structure (decoded from asm 0x2980-0x2A14):
- *   p = alloc(0x40)
- *   if (p == 0) return 0
- *   gl_func_00000000(p)                    ; init call (1 arg)
- *   p[0x28] = &D_00000000
- *   p[0x3C] = 0
- *   q = a0->[0x40]                          ; original-a0 reloaded from
- *                                             caller slot (sp+0x28)
- *   if (q == 0) goto end
- *   gl_func_00000000(p + 0x10, q)          ; link call (2 args)
- *   if (q->[0x14] == 0) {
- *       q->[0x14] = p
- *   } else {
- *       q->[0x4] = 1
+ * Structure (decoded from asm 0x2980-0x2A0C). The three jals are DISTINCT
+ * intra-USO (runtime-relocated, =0 in undefined_syms_auto.txt) targets, not
+ * the gl_func_00000000 placeholder; the prior decode collapsed all three
+ * into gl_func_00000000 and wrote &D_00000000 where the asm actually loads
+ * &import_0006ED80 — both fixed here so the relocs/symbols match the target:
+ *   p = func_055750(0x40)
+ *   if (p != 0) {
+ *       func_051C28(p)                     ; init call (1 arg)
+ *       p[0x28] = &import_0006ED80
+ *       p[0x3C] = 0
+ *   }
+ *   q = a0->[0x40]                          ; original-a0 reloaded from home
+ *   if (q != 0) {
+ *       func_07ACE0(p + 0x10, q)           ; link call (2 args)
+ *       if (q->[0x14] != 0) q->[0x4] = 1
  *       q->[0x14] = p
  *   }
- *   end: return p
+ *   return p
  *
- * Trailing dead-code at 0x2A10/14: `jr ra; sw a0, 0(sp)` (a phantom
- * 2-insn alt-entry stub that's never branched to in this function but
- * lives inside its symbol). Plus a 4-insn data block at 0x2A18-0x2A28
- * (jump-table or constants — outside the 0xAC declared size?).
- *
- * Cap class likely matches mgrproc 33358's: frame-of-0x28 + extra
- * spills around the second jal won't reproduce from natural C; needs
- * INSN_PATCH or further refinement.
- *
- * Initial structural decode for grep + multi-tick refinement. */
-extern int gl_func_00000000();
+ * NM cap (frame 0x20 vs target 0x28; 11/36 insns match): pure IDO spill-slot
+ * allocation. Target reloads `p` into $a0 after call 1, then reuses $a0 for
+ * `p+0x10` (clobber) which forces an `or $v1,$a0` survivor copy at the merge
+ * — splitting `p` into two spill webs (0x1C around call 1, 0x24 around call
+ * 2 → frame 0x28). IDO instead keeps our `p` in $a2 across both regions (one
+ * slot 0x1C reused, frame 0x20) and sets $a2 eagerly in the beq delay slot
+ * for the p==0 path. A 2-variable split (r = p) coalesces and does not split
+ * the web; no natural-C lever observed to force the $a0-reuse/$v1-survivor
+ * shape. Same cap class as mgrproc 33358. INSN_PATCH removed 2026-05-23. */
+extern int titproc_uso_func_055750();
+extern int titproc_uso_func_051C28();
+extern int titproc_uso_func_07ACE0();
+extern char import_0006ED80;
 int *titproc_uso_func_00002980(int *a0) {
-    int *p = (int*)gl_func_00000000(0x40);
+    int *p = (int*)titproc_uso_func_055750(0x40);
     int *q;
-    if (p == 0) goto end;
-    gl_func_00000000(p);
-    p[0x28/4] = (int)&D_00000000;
-    p[0x3C/4] = 0;
+    if (p != 0) {
+        titproc_uso_func_051C28(p);
+        p[0x28/4] = (int)&import_0006ED80;
+        p[0x3C/4] = 0;
+    }
     q = (int*)a0[0x40/4];
     if (q != 0) {
-        gl_func_00000000((char*)p + 0x10, q);
+        titproc_uso_func_07ACE0((char*)p + 0x10, q);
         if (q[0x14/4] != 0) q[0x4/4] = 1;
         q[0x14/4] = (int)p;
     }
-end:
     return p;
 }
 #else
