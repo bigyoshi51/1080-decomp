@@ -5947,7 +5947,7 @@ void func_0000CFA0(char *st) {
                               *(float *)(st + 0xBC), &out_at_sp84, 0.0f);
     if (!r) return;
     *(char **)(st + 0xA40) = r;
-    changed = ((float)*(int *)(ctx + 0x98) < out_at_sp84) ? 1
+    changed = (*(float *)(ctx + 0x98) < out_at_sp84) ? 1
               : (((int)ctx ^ *(int *)(st + 0x8DC)) != 0);
     if ((*(int *)(st + 0xA58) & 0x10000) && *(short *)(st + 0x9A0) == 0x61 &&
         *(short *)(st + 0x904) != 9 && *(int *)(st + 0x938) != 0) {
@@ -6019,7 +6019,7 @@ void func_0000CFA0(char *st) {
     sp30 = 0;
     func_00000000(0, &sp30);
     func_00000000(st);
-    func_00000000(*(int *)(*(char **)((char *)&D_00000000 + 0x18) + 0x108));
+    func_00000000(*(int *)(*(char **)((char *)&D_00000000 + 0x254) + 0x108));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
