@@ -970,15 +970,20 @@ void gui_uso_func_00001794(int a0) {
  * cfc1/ctc1/andi-0x78/sub.s-2^31 overflow-correction dance (the target form),
  * whereas (int) emits a single trunc.w.s. See docs/IDO_CODEGEN.md. Residual is
  * the register-allocation cascade: target dead-homes a0 at 0(sp) and keeps the
- * alpha arg live in $7; our allocator instead spills $7 to 12(sp) (+2 insns),
- * renumbering all temps. INCLUDE_ASM stays the build path. */
+ * alpha arg live in $7.
+ * 2026-06-05: FIXED the +2 alpha-spill by inlining the 3 color conversions
+ * into ONE accumulating OR expression (col0<<24 | col1<<16 | col2<<8 | alpha)
+ * instead of 3 simultaneously-live r0/r1/r2 locals — that dropped peak
+ * register pressure so $7(alpha) no longer spills. insns 162->160 (now ==
+ * target), 198->182 diffs. Applied to the sibling color-emit fn too. REMAINING
+ * 12 opcode diffs are the per-channel cvt/andi/sll SCHEDULING order in the
+ * combine; the rest is register-renumber. INCLUDE_ASM stays the build path. */
 #ifdef NON_MATCHING
 void gui_uso_func_000017DC(int a0, int a1, float *col, int alpha) {
     int *rec = *(int **)&D_00000000;
     int *sub;
     int count;
     int *arr;
-    int r0, r1, r2;
 
     sub = (int *)rec[3];
     count = sub[1];
@@ -999,10 +1004,10 @@ void gui_uso_func_000017DC(int a0, int a1, float *col, int alpha) {
     sub[1] = count + 1;
     arr = (int *)(((int *)rec[3])[0] + count * 8);
     arr[0] = 0xFA000000;
-    r0 = (int)(unsigned)(col[0] * 255.0f);
-    r1 = (int)(unsigned)(col[1] * 255.0f);
-    r2 = (int)(unsigned)(col[2] * 255.0f);
-    arr[1] = (alpha & 0xFF) | (r0 << 24) | ((r1 & 0xFF) << 16) | ((r2 & 0xFF) << 8);
+    arr[1] = ((int)(unsigned)(col[0] * 255.0f) << 24)
+           | (((int)(unsigned)(col[1] * 255.0f) & 0xFF) << 16)
+           | (((int)(unsigned)(col[2] * 255.0f) & 0xFF) << 8)
+           | (alpha & 0xFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000017DC);
@@ -1174,10 +1179,10 @@ void gui_uso_func_00002334(a0, a1, col, alpha)
     sub[1] = count + 1;
     arr = (int *)(((int *)rec[3])[0] + count * 8);
     arr[0] = 0xFA000000;
-    r0 = (int)(unsigned)(col[0] * 255.0f);
-    r1 = (int)(unsigned)(col[1] * 255.0f);
-    r2 = (int)(unsigned)(col[2] * 255.0f);
-    arr[1] = (alpha & 0xFF) | (r0 << 24) | ((r1 & 0xFF) << 16) | ((r2 & 0xFF) << 8);
+    arr[1] = ((int)(unsigned)(col[0] * 255.0f) << 24)
+           | (((int)(unsigned)(col[1] * 255.0f) & 0xFF) << 16)
+           | (((int)(unsigned)(col[2] * 255.0f) & 0xFF) << 8)
+           | (alpha & 0xFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00002334);
