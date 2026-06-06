@@ -4949,34 +4949,36 @@ void func_00008BD4(char *b, float amt, float *dir, int a3) {
     char *cx;
     int code;
     float s;
-    float n0, n1, n2;
+    float n[3], n2[3];
     float q;
     if (fl & 0x1F0) {
-        if (amt < 0.0f) return;
-        code = (int)func_00000000(*(int *)((*(char ***)&D_00000000)[0] + 0x84), *(int *)(b + 0x14C));
-        if (code == 0x61 || code == 0x62 || code == 0x63) return;
-        cx = *(char **)(b + 0x170);
-        *(int *)(cx + 0x938) = *(int *)(cx + 0x938) + 1;
-        if (amt < -30.0f) amt = -30.0f;
-        *(short *)(cx + 0x9A4) = (short)code;
-        *(unsigned short *)(cx + 0xA10) |= fl;
-        s = (float)(-(double)amt * 0.5);
-        *(float *)(cx + 0xB4) += dir[0] * s;
-        *(float *)(cx + 0xB8) += dir[1] * s;
-        *(float *)(cx + 0xBC) += dir[2] * s;
-        *(float *)(cx + 0x93C) += dir[0];
-        *(float *)(cx + 0x940) += dir[1];
-        *(float *)(cx + 0x944) += dir[2];
-        *(float *)(cx + 0x968) += amt;
-        n0 = dir[0] * -amt;
-        n1 = dir[1] * -amt;
-        n2 = dir[2] * -amt;
-        (void)n0; (void)n1; (void)n2;
-        func_00000000(cx, b + 0x120, dir);
+        if (amt < 0.0f) {
+            code = (int)func_00000000(*(int *)((*(char ***)&D_00000000)[0] + 0x84), *(int *)(b + 0x14C));
+            if (code != 0x61 && code != 0x62 && code != 0x63) {
+                cx = *(char **)(b + 0x170);
+                *(int *)(cx + 0x938) = *(int *)(cx + 0x938) + 1;
+                *(short *)(cx + 0x9A4) = (short)code;
+                if (amt < -30.0f) amt = -30.0f;
+                *(unsigned short *)(cx + 0xA10) |= fl;
+                s = (float)(-(double)amt * 0.5);
+                *(float *)(cx + 0xB4) += dir[0] * s;
+                *(float *)(cx + 0xB8) += dir[1] * s;
+                *(float *)(cx + 0xBC) += dir[2] * s;
+                *(float *)(cx + 0x93C) += dir[0];
+                *(float *)(cx + 0x940) += dir[1];
+                *(float *)(cx + 0x944) += dir[2];
+                *(float *)(cx + 0x968) += amt;
+                n[0] = dir[0] * -amt;
+                n[1] = dir[1] * -amt;
+                n[2] = dir[2] * -amt;
+                n2[0] = n[0]; n2[1] = n[1]; n2[2] = n[2];
+                func_00000000(n[1], n[2], cx, b + 0x120, n2, n);
+            }
+        }
         return;
     }
     if (fl & 0xF) {
-        if (amt < 50.0f) return;
+        if (amt < 50.0f) {
         cx = *(char **)(b + 0x170);
         *(int *)(cx + 0x938) = *(int *)(cx + 0x938) + 1;
         *(unsigned short *)(cx + 0xA10) |= fl;
@@ -4988,6 +4990,7 @@ void func_00008BD4(char *b, float amt, float *dir, int a3) {
         if (q < 0.0f) q = -q;
         func_8bd4_a(b + 0x120, b + 0x114, dir, q * q);
         func_8bd4_b(b, amt, dir, 0.1f);
+        }
     }
 }
 #else
