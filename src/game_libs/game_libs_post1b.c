@@ -3536,7 +3536,36 @@ void gl_func_00067AE8(int a0, ...) {
  * Absorbed 67B40's 14 words into 67B04 (0x3C -> 0x74, ending exactly at the
  * next func 0x67B78); dropped the 67B40 symbol. Branch-verified complete.
  * Reloc-blind USO body stays INCLUDE_ASM. */
+#ifdef NON_MATCHING
+/* String-difference predicate. Walks both strings while bytes match;
+ * returns 1 the moment a byte differs. If one string ends first, returns
+ * whether the OTHER still has chars (i.e. differing lengths -> nonzero).
+ * Equal strings -> 0. Leaf, byte (lbu) compares. */
+s32 game_libs_func_00067B04(unsigned char *arg0, unsigned char *arg1) {
+    int c0 = *arg0;
+    int r;
+
+    if ((c0 != 0) && (*arg1 != 0)) {
+        do {
+            int x1 = *arg1;
+            int x0 = *arg0;
+            arg1++;
+            arg0++;
+            if (x1 != x0) {
+                return 1;
+            }
+            c0 = *arg0;
+        } while (!((c0 == 0) || (*arg1 == 0)));
+    }
+    r = c0 != 0;
+    if (r == 0) {
+        r = *arg1 != 0;
+    }
+    return r;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00067B78: naive substring search returning a bool. a0 =
