@@ -13319,7 +13319,7 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
     temp_t0 = FW(arg0, 0x50);
     sp2C = FW(temp_t0, 0x4C);
     if (arg1 == 0xC0) {
-        FW(arg0, 0x8) = game_libs_func_0003443C((int)arg0 + 0x54, arg0);
+        (*(s16 *)((char *)arg0 + 0x8)) = game_libs_func_0003443C((int)arg0 + 0x54, arg0);
         temp_t2 = FW(arg0, 0x0) | 0x20;
         FW(arg0, 0x0) = temp_t2;
         FW(arg0, 0x0) = (u8) (temp_t2 & 0xFD);
@@ -13345,7 +13345,7 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
             FW(arg0, 0x54) = (char *) (temp_v1 + 1);
             FW(arg0, 0x3) = (u8) FW(temp_v1, 0x1);
             FW(arg0, 0x54) = (char *) (FW(arg0, 0x54) + 1);
-            FW(arg0, 0x14) = temp_v0;
+            (*(s16 *)((char *)arg0 + 0x14)) = temp_v0;
             break;
         case 0x40:                                  /* switch 1 */
             temp_a0_2 = (int)arg0 + 0x54;
@@ -13358,10 +13358,10 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
             var_a3 = (s32) FW(temp_v1_2, 0x0);
             FW(arg0, 0x54) = (char *) (temp_v1_2 + 1);
             FW(arg0, 0x3) = 0U;
-            FW(arg0, 0x14) = temp_v0_2;
+            (*(s16 *)((char *)arg0 + 0x14)) = temp_v0_2;
             break;
         case 0x80:                                  /* switch 1 */
-            sp3A = FW(arg0, 0x14);
+            sp3A = (*(s16 *)((char *)arg0 + 0x14));
             temp_v1_3 = FW(arg0, 0x54);
             var_a3 = (s32) FW(temp_v1_3, 0x0);
             FW(arg0, 0x54) = (char *) (temp_v1_3 + 1);
@@ -13382,13 +13382,13 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
             sp30 = temp_t0;
             temp_v0_3 = game_libs_func_0003443C((int)arg0 + 0x54, (char *) temp_a1, arg0);
             sp3A = temp_v0_3;
-            FW(arg0, 0x14) = temp_v0_3;
+            (*(s16 *)((char *)arg0 + 0x14)) = temp_v0_3;
             break;
         case 0x40:                                  /* switch 2 */
-            sp3A = FW(arg0, 0x12);
+            sp3A = (*(s16 *)((char *)arg0 + 0x12));
             break;
         case 0x80:                                  /* switch 2 */
-            sp3A = FW(arg0, 0x14);
+            sp3A = (*(s16 *)((char *)arg0 + 0x14));
             break;
         }
         arg1 -= temp_a1;
@@ -13416,23 +13416,23 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
     } else {
         *(f32 *)((char *)arg0 + 0x38) = *(f32 *)((char *)arg0 + 0x3C);
     }
-    FW(arg0, 0x8) = (s16) (u16) sp3A;
-    FW(arg0, 0xA) = (s16) ((s32) (FW(arg0, 0x3) * (u16) sp3A) >> 8);
+    (*(s16 *)((char *)arg0 + 0x8)) = (s16) (u16) sp3A;
+    (*(s16 *)((char *)arg0 + 0xA)) = (s16) ((s32) (FW(arg0, 0x3) * (u16) sp3A) >> 8);
     if (FW(temp_t0, 0xE) != 0) {
         temp_v0_5 = *(char *)0x2154;
-        temp_v1_5 = FW(arg0, 0xA);
+        temp_v1_5 = (*(s16 *)((char *)arg0 + 0xA));
         var_a0 = (u32) (temp_v1_5 * (temp_v0_5 % (u8) FW(temp_t0, 0xD))) / 100U;
         if (temp_v0_5 & 0x4000) {
             var_a0 = (u32) -(s32) var_a0;
         }
-        FW(arg0, 0xA) = (s16) (temp_v1_5 + var_a0);
-        temp_v1_6 = FW(arg0, 0xA);
+        (*(s16 *)((char *)arg0 + 0xA)) = (s16) (temp_v1_5 + var_a0);
+        temp_v1_6 = (*(s16 *)((char *)arg0 + 0xA));
         if (temp_v1_6 < 0) {
-            FW(arg0, 0xA) = 0;
+            (*(s16 *)((char *)arg0 + 0xA)) = 0;
         } else {
-            temp_v0_6 = FW(arg0, 0x8);
+            temp_v0_6 = (*(s16 *)((char *)arg0 + 0x8));
             if (temp_v0_6 < temp_v1_6) {
-                FW(arg0, 0xA) = temp_v0_6;
+                (*(s16 *)((char *)arg0 + 0xA)) = temp_v0_6;
             }
         }
     }
