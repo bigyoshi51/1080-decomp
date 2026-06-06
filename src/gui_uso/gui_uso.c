@@ -568,17 +568,20 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
  * order), and the s0-s7/f20-f30 regalloc + glyph-struct typing are not yet
  * pinned, so this is reference C, not a byte match.
  *
- * 2026-06-05 RESIDUAL MEASURED (full target<->build disasm diff): the LOGIC/
- * control-flow is confirmed correct (per-char loop, 4 DL appends, the FP
- * scale + clamp chains, both var_f22 advance arms all line up). The gap is
- * (1) FRAME 0x108 target vs 0x130 build (+0x28): this first-pass C keeps a
- * larger simultaneous live-set in the inner block (f0/f2/f10/f10b/s1/s4 +
- * ca0/ca1 + glyph/s0 all live at the peak) → ~10 extra spill words; the
- * target interleaves compute-and-consume so fewer are live at once.
- * (2) regalloc renumber cascading from (1): target ctx=$s2 / s6=ctx->0x14 in
- * $s6; build ctx=$s3 / in $s8. Closing it needs restructuring the inner
- * block to shrink the peak live-set to match -O2's scheduling (multi-tick,
- * permuter-class once frame matches) — NOT a logic fix. */
+ * 2026-06-05 RESIDUAL (full target<->build disasm diff): LOGIC confirmed
+ * correct (per-char loop, 4 DL appends, FP scale+clamp chains, both var_f22
+ * arms line up). Gap is FRAME size + cascading regalloc renumber.
+ *   - FIXED this pass: the m2c artifact `if (f10 & 0x20000000)` was really
+ *     `if (s4 < 0)` (target gate is `bgez s4`); `f10=(int)f2` was held across
+ *     the big glyph-draw call ONLY for that test, so correcting the gate let
+ *     `f10` be inlined into `s4` → dropped one cross-call spill, frame
+ *     0x130->0x128, 323->318 insns.
+ *   - REMAINING: frame 0x128 vs target 0x108 (4 more spill words). Target
+ *     fits its 9 cross-call-live values in $s0-$s8 (s2=ctx, s6=ctx->0x14,
+ *     s7=cursor, s8=idx, s4=(int)f2*4, s3=(short)s4, s1=clamp, s5=f10b,
+ *     s0=glyph-width) + spills only sp7C/spD3; build's expr structure makes
+ *     IDO spill 4 extra. Cascading: build ctx=$s3 vs target $s2. Next pass:
+ *     shrink remaining peak live-set / nudge $s-priority to fit all 9. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, unsigned char *arg5) {
@@ -612,8 +615,7 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
             if (ch != 0x20) {
                 float f0 = (float)s6 * arg4;
                 float f2 = (float)arg2 + (spD4 * arg4);
-                int f10 = (int)f2;
-                short s4 = f10 * 4;
+                short s4 = (int)f2 * 4;
                 short s1 = ((int)f2 + (int)f0) * 4;
                 int f10b = (int)(((float)(s6 - 1) * 1024.0f) / f0);
                 int *glyph;
@@ -671,7 +673,7 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
                     a3v = 0;
                     a2v = (int)(((float)(s0 - 1) * 1024.0f) / f0b);
                 }
-                if (f10 & 0x20000000) {
+                if (s4 < 0) {
                     int t = (int)(s4 * (short)f10b) >> 7;
                     if ((short)f10b < 0) {
                         if (t > 0) a1v = t; else a1v = 0;
