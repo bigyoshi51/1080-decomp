@@ -1834,10 +1834,69 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
  *
  * 4-arg signature, frame to be characterized in next pass. Multi-pass
  * NM remains. Default INCLUDE_ASM keeps ROM exact. */
-void gui_func_00003714(int *a0, int a1, int a2, int a3) {
-    /* TODO: full body decode. Stub captures arg signature and
-     * RDP-builder family identity. Body has ~256 insns. */
-    (void)a0; (void)a1; (void)a2; (void)a3;
+void gui_func_00003714(int *a0, int a1, int a2, int a3, int a4, float a5, float a6) {
+    char *g = (char *)&D_00000000;
+    int *q, *slot, n;
+    int *t1;
+    int sp30;
+    float fw, fh;
+    int left, top, a1v, a0v, a2v, a3v, a1v2, a0v2;
+    int sS, sT, tS, tT;
+
+    /* segment marker */
+    q = *(int **)(g + 0xC); n = q[1]; q[1] = n + 1;
+    slot = (int *)(q[0] + n * 8); slot[0] = 0xBB000001; slot[1] = 0x80008000;
+
+    t1 = (int *)a0[0x10 / 4];
+    sp30 = (short)*(short *)((char *)t1 + 0x22);
+    gui_func_00000000(*(int *)g, t1[8 / 4], *(short *)((char *)t1 + 0x20), (short)sp30,
+                      a3, 0, a4, sp30, 0);
+
+    fw = (float)a4;
+    q = *(int **)(g + 0xC); n = q[1]; q[1] = n + 1;
+    slot = (int *)(q[0] + n * 8);
+    fw = fw * a5;
+    left = (int)((float)a1 + (-((float)a4 / 2.0f) * a5));
+    a1v = ((short)((left + (int)fw) * 4) > 0) ? (short)((left + (int)fw) * 4) : 0;
+    fh = (float)sp30 * a6;
+    a2v = (short)(left * 4);
+    top = (int)((float)a2 + (-((float)sp30 / 2.0f) * a6));
+    a0v = ((short)((top + (int)fh) * 4) > 0) ? (short)((top + (int)fh) * 4) : 0;
+    a3v = (short)(top * 4);
+    slot[0] = ((a1v & 0xFFF) << 0xC) | 0xE4000000 | (a0v & 0xFFF);
+    a1v2 = (a2v > 0) ? a2v : 0;
+    a0v2 = (a3v > 0) ? a3v : 0;
+    slot[1] = ((a1v2 & 0xFFF) << 0xC) | (a0v2 & 0xFFF);
+
+    q = *(int **)(g + 0xC); n = q[1]; q[1] = n + 1;
+    slot = (int *)(q[0] + n * 8); slot[0] = 0xB4000000;
+    if (a2v < 0) {
+        sS = (int)(((float)(a4 - 1) * 1024.0f) / fw);
+        if ((short)sS < 0) {
+            tS = (a2v * (short)sS) >> 7; sT = (tS > 0) ? tS : 0;
+        } else {
+            tS = (a2v * (short)sS) >> 7; sT = (tS < 0) ? tS : 0;
+        }
+    } else {
+        sT = 0;
+        sS = (int)(((float)(a4 - 1) * 1024.0f) / fw);
+    }
+    if (a3v < 0) {
+        tS = (int)(((float)(sp30 - 1) * 1024.0f) / fh);
+        if ((short)tS < 0) {
+            tT = (a3v * (short)tS) >> 7; a3v = (tT > 0) ? tT : 0;
+        } else {
+            tT = (a3v * (short)tS) >> 7; a3v = (tT < 0) ? tT : 0;
+        }
+    } else {
+        a3v = 0;
+        tS = (int)(((float)(sp30 - 1) * 1024.0f) / fh);
+    }
+    slot[1] = (sT * -0x10000) | (-a3v & 0xFFFF);
+
+    q = *(int **)(g + 0xC); n = q[1]; q[1] = n + 1;
+    slot = (int *)(q[0] + n * 8); slot[0] = 0xB3000000;
+    slot[1] = (sS << 0x10) | (tS & 0xFFFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
