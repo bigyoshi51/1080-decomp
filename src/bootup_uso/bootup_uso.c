@@ -6146,48 +6146,122 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
 //   skeleton. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void func_0000D440(char *st) {
-    char *sub;
-    char *d;
-    int fl;
+    char *sub, *vt, *m, *a0_2;
+    int fl, v0, t5;
     int sp58;
-    func_00000000((char *)&D_00000000 + 0x54);
+    float f0, f2;
+    int a84;
+    func_00000000((char *)&func_00008A7C + 0x54);
     fl = *(int *)(st + 0xA58);
-    if (fl & 0x100) {
-        sub = *(char **)(st + 0x800);
-        if (*(int *)(sub + 0x18) & 0x20) *(int *)(st + 0xA28) ^= 1;
-        if (*(int *)(st + 0xA28) && (*(int *)(sub + 0x18) & 0x10)) return;
-        if (*(int *)(sub + 0x18) & 0x10) {
-            *(int *)(st + 0xA58) ^= 4;
-            fl = *(int *)(st + 0xA58);
+    v0 = fl & 0x100;
+    if (v0 != 0) {
+        if (*(int *)(*(char **)(st + 0x800) + 0x18) & 0x20) {
+            *(int *)(st + 0xA28) ^= 1;
         }
-    }
-    if (fl & 0x100) {
-        d = *(char **)(st + 0x800);
-        if ((*(int *)(d + 0x10) & 0x40) && (*(int *)(d + 0x10) & 0x80)) {
-            sp58 = 9;
-            (void)sp58;
-            {
-                void (*fn)(char *) = *(void (**)(char *))(st + 0x2C);
-                if (fn) fn(st + (short)*(short *)(st + 0x28));
+        if (*(int *)(st + 0xA28) != 0) {
+            if (*(int *)(*(char **)(st + 0x800) + 0x18) & 0x10) {
+                fl = *(int *)(st + 0xA58);
+                goto block_8;
             }
+        } else {
+            fl = *(int *)(st + 0xA58);
+            t5 = fl ^ 4;
+            if (*(int *)(*(char **)(st + 0x800) + 0x18) & 0x10) {
+                *(int *)(st + 0xA58) = t5;
+                fl = t5;
+            }
+        block_8:
+            v0 = fl & 0x100;
+            goto block_9;
+        }
+    } else {
+    block_9:
+        if (v0 != 0) {
+            sub = *(char **)(st + 0x800);
+            if (*(int *)(sub + 0x10) & 0x40 & (*(int *)(sub + 0x10) & 0x80)) {
+                sp58 = 9;
+                vt = *(char **)(st + 0x28);
+                (*(void (**)(char *, int *))(vt + 0x2C))((char *)(*(int *)(vt + 0x28) + (int)st), &sp58);
+                fl = *(int *)(st + 0xA58);
+            }
+        }
+        if (fl & 4) {
+            *(int *)(*(char **)(st + 0x800) + 0x3C) = 1;
+            func_00000000((char *)&func_00008A7C + 0x5C);
+            sub = *(char **)(st + 0x804);
+            vt = *(char **)(sub + 0x28);
+            (*(void (**)(char *))(vt + 0x24))((char *)(sub + (short)*(short *)(vt + 0x20)));
+            func_00000000((char *)&func_00008A7C + 0x64);
             fl = *(int *)(st + 0xA58);
         }
-    }
-    if (fl & 0x4) {
-        *(int *)(*(char **)(st + 0x800) + 0x3C) = 1;
-        func_00000000((char *)&D_00000000 + 0x5C);
-        {
-            char *sub2 = *(char **)(st + 0x804);
-            void (*fn)(char *) = *(void (**)(char *))(sub2 + 0x24);
-            if (fn) fn(sub2 + (short)*(short *)(sub2 + 0x20));
+        a0_2 = st + 0x808;
+        if (fl & 0x80) {
+            *(float *)(st + 0xA1C) = -*(float *)(st + 0xA1C);
         }
-        func_00000000((char *)&D_00000000 + 0x64);
-        fl = *(int *)(st + 0xA58);
+        func_00000000(a0_2, *(int *)(st + 0x9A4));
+        m = *(char **)(st + 0x840);
+        *(int *)(st + 0x9A4) = 0;
+        vt = *(char **)(m + 0x28);
+        (*(void (**)(char *))(vt + 0x24))((char *)(m + (short)*(short *)(vt + 0x20)));
+        *(int *)(st + 0xA10) = 0;
+        *(float *)(st + 0xA1C) = 0.0f;
+        *(float *)(st + 0xA20) = 0.0f;
+        *(float *)(st + 0xA24) = 0.0f;
+        if (*(int *)(st + 0xA58) & 0x800) {
+            func_00000000((char *)&func_00008A7C + 0x6C);
+            func_00000000(st);
+            func_00000000((char *)&func_00008AEC + 8);
+            if (*(int *)(st + 0xA58) & 0x40000) {
+                f0 = *(float *)(st + 0x31C);
+                f2 = (f0 < 0.0f) ? -f0 : f0;
+                a84 = (int)((f2 - 100.0f) / 4.0f);
+                *(int *)(st + 0xA84) = a84;
+                if (a84 < 0) {
+                    *(int *)(st + 0xA84) = 0;
+                }
+                func_00000000(a0_2, (short)*(int *)(st + 0xA84));
+                if (*(int *)(st + 0x8B8) & 1) {
+                    *(int *)(*(char **)(st + 0x81C) + 0x94) = *(int *)(st + 0xA84);
+                }
+                if (*(int *)(st + 0x8B8) & 4) {
+                    *(int *)(*(char **)(st + 0x818) + 0x94) = *(int *)(st + 0xA84);
+                }
+            }
+        }
+        func_00000000((char *)&func_00008AEC + 0x14);
+        *(float *)(st + 0xA38) = *(float *)(st + 0x3C8) * *(float *)(st + 0x318)
+                               + *(float *)(st + 0x3CC) * *(float *)(st + 0x31C)
+                               + *(float *)(st + 0x3D0) * *(float *)(st + 0x320);
+        func_00000000(*(char **)(st + 0x840));
+        if (*(int *)(st + 0xA5C) != 0) {
+            char *p4 = *(char **)(st + 0x824);
+            double rnd = (double)func_00000000((void *)((((*(int *)(st + 0xDC) ^ *(int *)(st + 0xE4)) >> 5) ^ 0x12345678)));
+            float tf2 = (float)((rnd - 0.5) * 30.0 * (double)((float)*(int *)(st + 0xA5C) / 100.0f));
+            double tf12;
+            *(float *)(p4 + 0x64) += tf2;
+            tf12 = (double)tf2 * 0.5;
+            *(float *)(*(char **)(st + 0x828) + 0x64) += tf2;
+            *(float *)(*(char **)(st + 0x830) + 0x64) += tf2;
+            *(float *)(*(char **)(st + 0x834) + 0x64) = (float)((double)*(float *)(*(char **)(st + 0x834) + 0x64) + tf12);
+            *(float *)(*(char **)(st + 0x82C) + 0x64) = (float)((double)*(float *)(*(char **)(st + 0x82C) + 0x64) + tf12);
+            *(float *)(*(char **)(st + 0x838) + 0x64) = (float)((double)*(float *)(*(char **)(st + 0x838) + 0x64) - tf12);
+        }
+        func_00000000((char *)&func_00008AEC + 0x20);
+        func_00000000((char *)&func_00008AEC + 0x2C);
+        func_00000000(st);
+        func_00000000((char *)&func_00008AEC + 0x38);
+        func_00000000(*(int *)((char *)&func_000000F0 + 0x48), (short)(int)st, *(float *)(st + 0x348) / 2.0f);
+        func_00000000(*(int *)((char *)&func_000000F0 + 0x48), (short)(int)st, *(int *)(st + 0xDC), *(int *)(st + 0xE4));
+        func_00000000(*(int *)((char *)&func_000000F0 + 0x48), (short)(int)st, *(int *)(st + 0xA14));
+        t5 = *(int *)(st + 0x8DC);
+        if (t5 != 0) {
+            func_00000000(a0_2, (short)(int)(st + 0xDC), *(float *)(st + 0x348),
+                          -*(float *)(st + 0x968), *(float *)(st + 0x970),
+                          *(float *)(st + 0x9D0) + *(float *)((char *)&D_00000000 + 0x980),
+                          (int)*(short *)(st + 0x9A2), t5, *(int *)(st + 0xA58));
+        }
+        func_00000000((char *)&func_00008AEC + 0x44);
     }
-    if (fl & 0x80) {
-        func_00000000(st + 0x808);
-    }
-    func_00000000((char *)&D_00000000 + 0x44);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D440);
