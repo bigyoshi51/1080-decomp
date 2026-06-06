@@ -808,9 +808,15 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C1
  *       s0=&D), NOT from root (D->0x134) — old C read root->0xNNN.
  *   (2) gl_func(r1)/gl_func(r2) are 2-arg: gl_func(r1, 0) (the `a1=0` setup).
  *   (3) root reloaded per side-block (matches target's 2x lw 0x134(s0)).
- * RESIDUAL 1.4%: v0<->v1 coloring on the root/slot loads (root=v1/slot=v0 in
- * target, swapped in build) + r1 spill slot 0x28 vs 0x24. Pure regalloc/stack
- * renumber — the v0-reuse-after-void-call cap (permuter-only). INCLUDE_ASM. */
+ * RESIDUAL 1.4% (12/43 insns): v0<->v1 coloring on the root/slot loads
+ * (root=v1/slot=v0 in target, swapped in build) + r1 spill slot 0x28 vs 0x24.
+ * Pure regalloc/stack renumber — the v0-reuse-after-void-call cap.
+ * 2026-06-05 permuter NEGATIVE: 200s random-mode -j4 found no match. Three
+ * manual levers also held at the 12-diff cap: (a) moving the 0x8DC store after
+ * the r1 load; (b) caching root->0x108 into a `bind` temp before the slot load
+ * (regressed to 16 diffs); (c) the 2-var split. The v0/v1 swap does not flip
+ * from C-level statement order — IDO colors the slot pseudo to v0 because it
+ * reuses v0 after the two void calls. Don't re-run the permuter. INCLUDE_ASM. */
 void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     int *slotC4, *slotCC;
     int *r1, *r2;
