@@ -584,12 +584,17 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
  *   - FIXED 2026-06-05 (pass 2): first call is gl_func(arg0,arg5) — target
  *     leaves a0=ctx from entry and loads a1=arg5 in the delay slot; m2c had
  *     gl_func(arg5,a3) (wrong). 523->519 diffs.
- *   - REMAINING spill drivers (frame 0x128): (a) `x/2.0f` strength-reduces to
- *     `mul *0.5` but target shares one materialized 2.0 and uses `div.s` x2
- *     (interleaving the two source-floats to force shared-2.0 REGRESSED to
- *     528 — don't retry that shape); (b) build spills arg5 (a1) to its own
- *     slot after the first call instead of reloading from the stack-arg home
- *     like the target. Both are IDO codegen picks, not logic. */
+ *   - FIXED 2026-06-05 (pass 3): named-local `float two=2.0f` divisor forces
+ *     `div.s` (not `mul *0.5`) and the target shares that one 2.0 across both
+ *     divisions AND the `-2.0` sub — div.s now 5/5, 519->503 diffs, 316 insns.
+ *     (IDO_CODEGEN#feedback-ido-div-2-mul-fold-and-mtc1-load-delay-nops.)
+ *     COST: frame 0x128->0x130 — `two` is declared/used with the gl_func call
+ *     INSIDE the divide expr, so 2.0 is live ACROSS that call (target
+ *     materializes 2.0 AFTER the call, in $f0, dead before the loop). Net diffs
+ *     still improved. Next: get `two`/2.0 to materialize post-call (splitting
+ *     the call to an explicit `rw` temp REGRESSED earlier — needs care).
+ *   - REMAINING: build spills arg5 (a1) to its own slot after the first call
+ *     instead of reloading from the stack-arg home like the target. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, unsigned char *arg5) {
@@ -615,8 +620,14 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
     cmd[1] = 0x80008000;
     idx = 0;
     s7 = arg5;
-    var_f22 = -((float)gl_func_00000000(arg0, arg5) / 2.0f) - 2.0f;
-    spD4 = -((float)*(int*)((char*)arg0 + 0x10) / 2.0f);
+    {
+        /* named-local divisor forces div.s (not mul*0.5); target shares this
+         * one 2.0 across both divisions AND the -2.0 sub (IDO_CODEGEN
+         * #feedback-ido-div-2-mul-fold-and-mtc1-load-delay-nops). */
+        float two = 2.0f;
+        var_f22 = -((float)gl_func_00000000(arg0, arg5) / two) - two;
+        spD4 = -((float)*(int*)((char*)arg0 + 0x10) / two);
+    }
     if (gl_func_00000000(arg5) != 0) {
         do {
             unsigned char ch = *s7;
