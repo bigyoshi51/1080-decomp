@@ -2186,25 +2186,35 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — template-instantiate skeleton (template copy + cb chain).
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_00003C8C(int a0, char *a1, char *a2, int a3) {
-    struct R3 { int a, b, c; };
-    int T1[11];
-    int T2[11];
-    struct R3 *s, *d;
-    int i;
-    /* 11-word (0x2C) template copies as 3x0xC-record unrolled loops + 2-word
-     * tail (target emits lw/sw word copies, not a byte loop). */
-    s = (struct R3 *)((char *)&D_00000000 + 0x1208); d = (struct R3 *)T1;
-    for (i = 0; i < 3; i++) d[i] = s[i];
-    T1[9]  = *(int *)((char *)&D_00000000 + 0x1208 + 0x24);
-    T1[10] = *(int *)((char *)&D_00000000 + 0x1208 + 0x28);
-    s = (struct R3 *)((char *)&D_00000000 + 0x1234); d = (struct R3 *)T2;
-    for (i = 0; i < 3; i++) d[i] = s[i];
-    T2[9]  = *(int *)((char *)&D_00000000 + 0x1234 + 0x24);
-    T2[10] = *(int *)((char *)&D_00000000 + 0x1234 + 0x28);
-    func_00000000(T1, T2, a0, a1, a2, a3);
-    func_00000000(T1, a1);
-    func_00000000(T2, a2);
+void timproc_uso_b5_func_00003C8C(int arg0, int arg1, int arg2, void *arg3, int arg4, int arg5, int arg6, void *arg7) {
+    struct T9 { int w[9]; };
+    char *g = (char *)&D_00000000;
+    char *a7 = (char *)arg7;
+    int T1[11], T2[11];
+    (void)arg0;
+    *(struct T9 *)T1 = *(struct T9 *)(g + 0x1208);
+    T1[9] = *(int *)(g + 0x122C);
+    T1[10] = *(int *)(g + 0x1230);
+    *(struct T9 *)T2 = *(struct T9 *)(g + 0x1234);
+    T2[9] = *(int *)(g + 0x1258);
+    T2[10] = *(int *)(g + 0x125C);
+    if (arg4 != 0) {
+        func_00000000(0, *(int *)(a7 + 0x368), arg5);
+        func_00000000(g + 0x10);
+        func_00000000(g + 0x10, arg1 + *(int *)(a7 + 0x338), arg2 + *(int *)(a7 + 0x350), 0, T2[arg4]);
+        func_00000000(g + 0x10, arg1 + *(int *)(a7 + 0x338) + T2[arg4], arg2 + *(int *)(a7 + 0x350),
+                      *(int *)(*(int *)(g + 0x20) + 0x20) - 0x10, 0x10);
+    }
+    func_00000000(0, 0xFF, arg6);
+    func_00000000(arg3);
+    func_00000000(arg3, (arg1 - *(int *)(a7 + 0x308)) - *(int *)(*(int *)((char *)arg3 + 0x10) + 0x20),
+                  arg2 - *(int *)(a7 + 0x320), 0);
+    func_00000000(0, 0xFF, arg5);
+    func_00000000(g + 0x28);
+    func_00000000(g + 0x28, arg1, arg2, 0, T1[arg4]);
+    func_00000000(0, *(int *)(a7 + 0x380), arg5);
+    func_00000000(g + 0x28, arg1 + T1[arg4], arg2, T1[arg4],
+                  *(int *)(*(int *)(g + 0x38) + 0x20) - T1[arg4]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003C8C);
