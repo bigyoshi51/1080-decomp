@@ -5782,9 +5782,9 @@ void func_0000CACC(char *a0) {
 void func_0000CAE8(char *st) {
     int j;
     int mode;
-    func_00000000(0, 1, *(int *)((char *)st + 0x8C4));
-    j = (int)*(short *)((char *)st + (*(int *)(st + 0x904) * 2) + 0x8C6);
-    func_00000000(st + 0x3EC, 1, j);
+    func_00000000(0, 1, *(int *)((char *)&D_00000000 + *(int *)(st + 0x8C4) * 4));
+    j = (int)*(short *)((char *)st + (*(short *)(st + 0x904) * 2) + 0x8C6);
+    func_00000000(st + 0x3EC, 1, *(int *)((char *)&D_00000000 + j * 4));
     if (*(int *)(st + 0xA58) & 0x80) func_00000000(st, 0);
     func_00000000(st + 0x90C, 0x17C);
     *(float *)(st + 0x9D0) = 0.0f;
