@@ -977,7 +977,10 @@ void gui_uso_func_00001794(int a0) {
  * register pressure so $7(alpha) no longer spills. insns 162->160 (now ==
  * target), 198->182 diffs. Applied to the sibling color-emit fn too. REMAINING
  * 12 opcode diffs are the per-channel cvt/andi/sll SCHEDULING order in the
- * combine; the rest is register-renumber. INCLUDE_ASM stays the build path. */
+ * combine; the rest is $t-renumber across the 3 DL-appends. Permuter -j4 220s/
+ * 44k iters best score ~1800 (NOT 0) — did NOT crack it; the score is high
+ * because the $t-renumber + combine-scheduling compound across the 3 record-
+ * appends. Don't re-run the permuter. INCLUDE_ASM stays the build path. */
 #ifdef NON_MATCHING
 void gui_uso_func_000017DC(int a0, int a1, float *col, int alpha) {
     int *rec = *(int **)&D_00000000;
