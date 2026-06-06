@@ -1189,7 +1189,14 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000120
  *   gl_func(stored_self+0x68, (short)self->[0x78]->[0x20] + 228, 64, 3);
  *   gl_func(self);                                  ; final
  *
- * Initial structural pass. Default INCLUDE_ASM keeps ROM exact. */
+ * Initial structural pass. Default INCLUDE_ASM keeps ROM exact.
+ * 2026-06-05: rewrote both `gate` selects as ternaries
+ * (gate = (cond) ? ... : ...) so IDO emits the target's `bnel`+delay-slot
+ * branch-likely form instead of a beqz+conditional-store; first gate needed
+ * the (X==0)?Y:0x10 arm order for the bnel polarity. 79.98 -> 86.93% fuzzy
+ * (opcode diffs 40->26). Remaining: inner (X==1)?0:115 ternaries use a
+ * different branch shape + per-call jal/lw/addiu scheduling + register
+ * renumber. INCLUDE_ASM stays the build path. */
 void h2hproc_uso_func_00001360(int *self) {
     int *vtable;
     int *v_call;
@@ -1206,10 +1213,8 @@ void h2hproc_uso_func_00001360(int *self) {
     gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
     gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
 
-    gate = 0x10;
-    if (*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6B8) == 0) {
-        gate = *(int*)((char*)self + 0x98);
-    }
+    gate = (*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6B8) == 0)
+         ? *(int*)((char*)self + 0x98) : 0x10;
     if (gate & 0x10) {
         gl_func_00000000(scratch, &D_00000000 + 0x3FC);
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 80, scratch);
@@ -1220,10 +1225,8 @@ void h2hproc_uso_func_00001360(int *self) {
         gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
     }
 
-    gate = 0x10;
-    if (*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6B8) == 1) {
-        gate = *(int*)((char*)self + 0x98);
-    }
+    gate = (*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6B8) == 1)
+         ? *(int*)((char*)self + 0x98) : 0x10;
     if (gate & 0x10) {
         gl_func_00000000(scratch, &D_00000000 + 0x40C);
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 240, scratch);
