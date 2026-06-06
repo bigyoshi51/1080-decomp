@@ -22738,18 +22738,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052CD4);
 /* Nested 6-byte-stride table lookup. v1=a0->0x70; if v1!=0: idx=*(u16*)(v1 +
  * a1*6); return a0->0x60 + idx*6; else return a0->0x60 + a1*6. Merged: the
  * v1==0 branch was splat-split off as game_libs_func_00053174 (UNSHARED);
- * merged back (0x38 -> 0x50). NOT byte-exact: the three *6 reuses make IDO -O2
- * share `li 6`+multu (a3), whereas target inlines sll/subu/sll shift sequences
- * per use (multi-use *6 strength-reduction cap; single-use *6 DOES reduce, cf
- * matched sibling game_libs_func_0005318C). INCLUDE_ASM is the build path. */
+ * merged back (0x38 -> 0x50). 2026-06-06: writing each *6 as EXPLICIT shifts
+ * `((x<<2)-x)<<1` (not `x*6`) forces IDO to emit the target's per-use
+ * sll/subu/sll instead of the shared li-6+multu -> 35.8% to 78.3%. Residual
+ * (1 insn + regalloc): IDO clobbers a1 for `idx` and inserts `move a2,a1` to
+ * preserve a1 for the v1==0 path, where the target keeps idx in a temp (t9)
+ * and a1 live. INCLUDE_ASM is the build path. */
 #ifdef NON_MATCHING
 int game_libs_func_0005313C(int *a0, int a1) {
     char *v1 = (char*)a0[0x70 / 4];
     if (v1 != 0) {
-        int idx = *(unsigned short*)(v1 + a1 * 6);
-        return a0[0x60 / 4] + idx * 6;
+        int idx = *(unsigned short*)(v1 + (((a1 << 2) - a1) << 1));
+        return a0[0x60 / 4] + (((idx << 2) - idx) << 1);
     }
-    return a0[0x60 / 4] + a1 * 6;
+    return a0[0x60 / 4] + (((a1 << 2) - a1) << 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005313C);
