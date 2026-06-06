@@ -106,8 +106,11 @@ void gl_func_0000975C(Quad4 *dst) {
 
 /* game_libs_func_000097B4: checksum-pair writer. out spilled to sp+0; sum the
  * len/4 words at src; out[0]=0xF251F205-sum; out[1]=a3-(out[0]-sum). IDO unrolls
- * the word-sum x4 with an (count&3) remainder pre-loop. 47.84% (logic correct,
- * loop-body insn order + spill diverge) — permuter target. */
+ * the word-sum x4 with an (count&3) remainder pre-loop. 2026-06-06: rewrote as
+ * a simple `do{sum+=*src;src++;i++}while(i!=n)` (IDO auto-unrolls it) + collapsed
+ * a garbled double-#ifdef -> 49.8% to 58.9%. Residual: target SPILLS arg0 to
+ * sp+0 (frame) and uses the redundant `or a0,a1` per-load pointer-copy
+ * (branch-likely quirk); the clean C is frameless + tight -- permuter target. */
 #ifdef NON_MATCHING
 
 #ifndef FW
@@ -115,106 +118,25 @@ void gl_func_0000975C(Quad4 *dst) {
 #endif
 typedef char *(*GP_000097B4)();
 void game_libs_func_000097B4(char *arg0, s32 *arg1, s32 arg2, s32 arg3) {
-    s32 *var_a1;
-    s32 temp_a0;
-    s32 temp_t0;
-    s32 temp_t1;
-    s32 temp_t6;
-    s32 temp_v0;
-    s32 temp_v1;
-    s32 var_v0;
-    s32 var_v1;
-    char *temp_a1;
-    char *temp_a1_2;
+    s32 *src = arg1;
+    s32 sum = 0;
+    s32 i = 0;
+    s32 n = arg2 / 4;
+    s32 chk;
 
-    var_a1 = arg1;
-    var_v0 = 0;
-    var_v1 = 0;
-    temp_t0 = arg2 / 4;
-    if (temp_t0 > 0) {
-        temp_a0 = temp_t0 & 3;
-        if (temp_a0 != 0) {
-            do {
-                temp_t6 = *(int*)var_a1;
-                var_v1 += 1;
-                var_a1 += 4;
-                var_v0 += temp_t6;
-            } while (temp_a0 != var_v1);
-            if (var_v1 != temp_t0) {
-                goto loop_4;
-            }
-        } else {
-            do {
-loop_4:
-                temp_a1 = var_a1 + 4;
-                temp_a1_2 = temp_a1 + 4;
-                temp_t1 = FW(temp_a1_2, 0x4);
-                var_v1 += 4;
-                temp_v0 = var_v0 + FW(var_a1, 0x0) + FW(var_a1, 0x4) + FW(temp_a1, 0x4);
-                var_a1 = temp_a1_2 + 4 + 4;
-                var_v0 = temp_v0 + temp_t1;
-            } while (var_v1 != temp_t0);
-        }
+    if (n > 0) {
+        do {
+            sum += *src;
+            src++;
+            i++;
+        } while (i != n);
     }
-    temp_v1 = 0xF251F205 - var_v0;
-    FW(arg0, 0x0) = temp_v1;
-    FW(arg0, 0x4) = (s32) (arg3 - (temp_v1 - var_v0));
-}
-#else
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000097B4)();
-void game_libs_func_000097B4(char *arg0, s32 *arg1, s32 arg2, s32 arg3) {
-    s32 *var_a1;
-    s32 temp_a0;
-    s32 temp_t0;
-    s32 temp_t1;
-    s32 temp_t6;
-    s32 temp_v0;
-    s32 temp_v1;
-    s32 var_v0;
-    s32 var_v1;
-    char *temp_a1;
-    char *temp_a1_2;
-
-    var_a1 = arg1;
-    var_v0 = 0;
-    var_v1 = 0;
-    temp_t0 = arg2 / 4;
-    if (temp_t0 > 0) {
-        temp_a0 = temp_t0 & 3;
-        if (temp_a0 != 0) {
-            do {
-                temp_t6 = *(int*)var_a1;
-                var_v1 += 1;
-                var_a1 += 4;
-                var_v0 += temp_t6;
-            } while (temp_a0 != var_v1);
-            if (var_v1 != temp_t0) {
-                goto loop_4;
-            }
-        } else {
-            do {
-loop_4:
-                temp_a1 = var_a1 + 4;
-                temp_a1_2 = temp_a1 + 4;
-                temp_t1 = FW(temp_a1_2, 0x4);
-                var_v1 += 4;
-                temp_v0 = var_v0 + FW(var_a1, 0x0) + FW(var_a1, 0x4) + FW(temp_a1, 0x4);
-                var_a1 = temp_a1_2 + 4 + 4;
-                var_v0 = temp_v0 + temp_t1;
-            } while (var_v1 != temp_t0);
-        }
-    }
-    temp_v1 = 0xF251F205 - var_v0;
-    FW(arg0, 0x0) = temp_v1;
-    FW(arg0, 0x4) = (s32) (arg3 - (temp_v1 - var_v0));
+    chk = 0xF251F205 - sum;
+    *(s32 *)arg0 = chk;
+    *(s32 *)(arg0 + 4) = arg3 - (chk - sum);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
-#endif
 #endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
