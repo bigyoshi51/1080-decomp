@@ -5939,7 +5939,6 @@ void func_0000CFA0(char *st) {
     char *r;
     float out_at_sp84;
     int changed;
-    char *sub;
     float dp[3];
     int sp30;
     ctx = *(char **)((char *)&D_00000000 + 0x18);
@@ -5950,20 +5949,27 @@ void func_0000CFA0(char *st) {
     *(char **)(st + 0xA40) = r;
     changed = ((float)*(int *)(ctx + 0x98) < out_at_sp84) ? 1
               : (((int)ctx ^ *(int *)(st + 0x8DC)) != 0);
-    if ((*(int *)(st + 0xA58) & 0x8000) && *(int *)(st + 0x9A0) == 0x61 &&
-        *(int *)(st + 0x904) != 9 && *(int *)(st + 0x938) != 0) {
-        func_00000000(st, 0xD);
-        *(int *)(st + 0x8FC) = *(int *)r;
-        *(int *)(st + 0x900) = *(int *)(r + 4);
-        *(int *)(st + 0x904) = *(int *)(r + 8);
-        func_00000000(st);
+    if ((*(int *)(st + 0xA58) & 0x10000) && *(short *)(st + 0x9A0) == 0x61 &&
+        *(short *)(st + 0x904) != 9 && *(int *)(st + 0x938) != 0) {
+        char *p, *dst, *o, *vt;
+        float c[4];
+        p = (char *)func_00000000(0, 0xD);
+        dst = *(char **)(st + 0x8FC);
+        *(int *)(dst + 0) = *(int *)(p + 0);
+        *(int *)(dst + 4) = *(int *)(p + 4);
+        *(int *)(dst + 8) = *(int *)(p + 8);
         func_00000000(0x10);
-        sub = *(char **)(st + 0x824);
-        if (sub) {
-            void (*fn)(void *, int) = *(void (**)(void *, int))(sub + 0x1C);
-            if (fn) fn(sub, *(short *)(sub + 0x18));
-        }
-        func_00000000(st, 6);
+        c[0] = 1.0f; c[1] = 1.0f; c[2] = 1.0f;
+        c[3] = *(float *)((char *)&func_00000940 + 0x30);
+        func_00000000(0, c);
+        func_00000000(0x10);
+        o = *(char **)(st + 0x824); vt = *(char **)(o + 0x28);
+        (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
+        p = (char *)func_00000000(0, 6);
+        dst = *(char **)(st + 0x8FC);
+        *(int *)(dst + 0) = *(int *)(p + 0);
+        *(int *)(dst + 4) = *(int *)(p + 4);
+        *(int *)(dst + 8) = *(int *)(p + 8);
     }
     if (changed && (*(int *)(st + 0x8B8) & 4)) {
         func_00000000(st);
