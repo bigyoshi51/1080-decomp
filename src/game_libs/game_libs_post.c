@@ -9254,13 +9254,72 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026214);
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+extern int func_3b164(), func_3b110();
+/* Decoded via jumptable extraction + delay-slot patch (fix-jumptable-delay-slot.py).
+ * KEY: m2c's "arg3"/unset-reg reads are NOT caller-set — each case reloads
+ * a3=&D_00000000 (lui a3,0; placeholder reloc) and reads operands from cmd[N];
+ * so all globals resolve to &D+offset. Dual-range opcode dispatch (0x81-0x90 and
+ * 0xF0-0xFB share one jumptable by index op-0x81 / op-0xF0). Residual: the
+ * complex 0x83/0x91 cases + the &D-relative object globals + regalloc. */
 int gl_func_00026790(unsigned char *cmd) {
+    char *g = (char *)&D_00000000;
     int op = cmd[0];
-    if (op >= 0xF0 && op < 0xFC) {
-        return gl_func_00000000(op, cmd[1], cmd[2], cmd[3]);
-    }
-    if (op >= 0x81 && op < 0x91) {
-        return gl_func_00000000(op, cmd[1], cmd[2], cmd[3]);
+    int i;
+    if (!((op >= 0x81 && op <= 0x90) || (op >= 0xF0 && op <= 0xFB))) return 0;
+    switch (op) {
+    case 0x81: case 0xF0:                       /* idx0 */
+        *(char *)(g + 0x2076) = *(int *)(cmd + 4);
+        break;
+    case 0x82: case 0xF1: {                     /* idx1: set bit 0x20 on all entries */
+        char *p = g;
+        for (i = 0; i < *(short *)(g + 0x2048); i++) {
+            int t = *(int *)(p + 0x2D00);
+            p += 0x160;
+            *(char *)(p + 0x2BA0) = t | 0x20;
+            *(char *)(p + 0x2BA0) = (t | 0x20) | 4;
+        }
+        break; }
+    case 0x83: case 0xF2: {                     /* idx2: clear bit 0x20 on all entries */
+        char *p = g;
+        for (i = 0; i < *(short *)(g + 0x2048); i++) {
+            int t = *(int *)(p + 0x2D00);
+            p += 0x160;
+            *(char *)(p + 0x2BA0) = t & 0xFFDF;
+            *(char *)(p + 0x2BA0) = (t & 0xFFDF) | 4;
+        }
+        break; }
+    case 0x84: case 0xF3:                       /* idx3 */
+        gl_func_0001CA10(cmd[1], cmd[2], cmd[3]);
+        break;
+    case 0x85: case 0xF4:                       /* idx4 */
+    case 0x86: case 0xF5:                       /* idx5 */
+        gl_func_0001CA10(cmd[1], cmd[2], cmd[3], g + 0x164C);
+        break;
+    case 0x87: case 0xF6:                       /* idx6 */
+        gl_func_0001CA10(cmd[2]);
+        break;
+    case 0x8A: case 0xF9:                       /* idx9 */
+        *(char *)(g + 0x2CF0) = 5;
+        *(char *)(g + 0x2CF1) = cmd[4];
+        break;
+    case 0x8C: case 0xFB:                       /* idx11 */
+        *(int *)g = *(int *)(cmd + 4);
+        break;
+    case 0x8E:                                  /* idx13 */
+        gl_func_0001CA10(cmd[1], cmd[2], cmd[3]);
+        func_3b164(cmd[1], *(int *)(cmd + 4));
+        break;
+    case 0x8F: {                                /* idx14 */
+        char *e = g + op * 0x160;
+        if ((unsigned)*(int *)(e + 0x2D00) >> 0x1F) {
+            int a = *(int *)(cmd + 4);
+            if (a == 0) {
+                gl_func_0001CA10(e + 0x2D00, a, g);
+            } else {
+                func_3b110(op, a, g);
+            }
+        }
+        break; }
     }
     return 0;
 }
