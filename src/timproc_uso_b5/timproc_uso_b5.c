@@ -7097,37 +7097,43 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body */
 void timproc_uso_b5_func_0000B61C(int a0) {}
 
-// timproc_uso_b5_func_0000B624 — STRUCTURAL PASS (0x304 / 193 words,
-// no episode). Raw-.word USO form. BOUNDARY NOTE: 4-jr USO bundle
-// (named FP transform fn + 3 tiny trailing helpers; last is a
-// flag-toggle setter `obj->0x2B4 ^= 0x20000`) — deferred USO
-// re-split.
+// timproc_uso_b5_func_0000B624 — FULLY DECODED (single fn, 0x22C / 139
+// insns; the old "0x304/4-jr-bundle" note was WRONG — it is one
+// function ending jr ra at B81C). Disassembled from the matching .o via
+// scripts/disasm-func.py (the raw-.word .s defeats m2c directly).
 //
-// FP transform/basis builder on the obj+0xDC transform sub-struct —
-// same family as func_0000AC20 / func_0000B368.
-//
-//   void timproc_uso_b5_func_0000B624(Obj *obj, …) {     // obj -> s0
-//     T *t = (T*)((char*)obj + 0xDC);
-//     // load Vec3s from t (+0x0/+0x4/+0x8), compute product/cross/
-//     //   difference chains (mul.s/add.s/sub.s) building basis
-//     //   vectors into sp scratch (sp+0x68/0x6C/0x70/0x7C/0x8C);
-//     // copy 3-word matrix-row blocks between t and sp;
-//     // ~8 func_00000000 sub-calls (normalize / compose transform);
-//     // write the assembled matrix/Vec back into obj / t fields.
+// VERIFIED structure (proximity-gated transform setter on obj+0xDC):
+//   t = (f32*)(obj+0xDC);  ref = &D_807FFBB0 (Vec3 const)
+//   delta = {t[0]-ref[0], t[1]-ref[1], t[2]-ref[2]};   // sp68
+//   c7C = delta; c8C = delta;                          // dup to sp7C/sp8C
+//   func_071028(&c8C);                                 // 1-arg
+//   dot = ref[0]*c8C.x + ref[1]*c8C.y + ref[2]*c8C.z;
+//   if ((double)dot >= *(double*)(&D_807FF370 + 848)) { obj[0x134]=0; return; }
+//   obj[0xF4]=obj[0xF8]=obj[0xFC]=0; obj[0x100]=1.0;
+//   func_071AE0(1.0f, &obj[0xF4], {1,0,0}@sp48, obj[0x114]);  // X axis
+//   func_071AE0(1.0f, &obj[0xF4], {0,0,1}@sp38, obj[0x110]);  // Z axis
+//   func_071AE0(1.0f, &obj[0xF4], {0,1,0}@sp2C, obj[0x118]);  // Y axis
+//   func_06970C(obj[0x108], obj[0x130]);
+//   if (obj[0x144] || obj[0x138]) {
+//     func_054FE0(obj);  (*(int*)&D_807FFBBC)++;   // global counter
+//     n = obj[0x144]; if (n) obj[0x144] = --n;
+//     if (n == 0) { p = obj[0x10C];
+//       if (p[0xB0]) { func_077C44(p, obj[0x140], 0, 2, 2, 1); obj[0x10C]->0xB0 = 0; } }
 //   }
-//   // trailing helper: obj->0x2B4 ^= 0x20000;  (flag toggle)
+//   func_054CAC(obj);  obj[0x134] = 1;
 //
-// Struct-typing reference:
-//   obj+0xDC = transform record (Vec3 rows at +0x0/+0x4/+0x8);
-//   sp+0x68..0x8C = basis-vector scratch; obj->0x2B4 = a flag word
-//   (bit 0x20000 toggled by the trailing setter). func_00000000 =
-//   USO placeholder dispatcher (length/normalize + matrix helpers).
-// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
-//   USO mnemonic disasm limitation prevents byte-match. Real-C
-//   STRUCTURAL body below — basis-build + normalize + writeback
-//   skeleton only; trailing 3 helpers (incl. obj[0x2B4]^=0x20000
-//   flag-toggle) remain INCLUDE_ASM. Byte-match deferred. Name
-//   pre-checked: no extern reuse.
+// CAP — FP SCHEDULING (verified 2026-06-06): reconstructing the above
+// literally builds clean (148 insns) but objdiff scores fuzzy=None /
+// match 0% (94 insert / 85 delete in the alignment) — IDO's FP
+// instruction scheduler reorders the mul.s/add.s/sub.s + lwc1/swc1
+// stream so thoroughly that the C-emitted order shares ~no exact
+// anchors with the target (the prologue frame size also differs, so
+// there is not even a prologue anchor → None). This is the
+// FP-schedule cap class; needs the permuter on the verified logic
+// above, not a structural rewrite. Placeholder STRUCTURAL body kept
+// below (scores ~20.7%) to avoid a fuzzy=None regression; swap in the
+// verified body once an FP-schedule match is found. Name pre-checked:
+// no extern reuse.
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000B624(char *obj, int unused) {
     char *t = obj + 0xDC;
