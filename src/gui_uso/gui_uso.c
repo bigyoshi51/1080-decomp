@@ -546,34 +546,151 @@ void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
 #endif
 
-/* gui_func_00000F04: 314-insn / 0x4E4 FPU-heavy coordinate transform.
- * Big stack frame (-0x108), saves s0-s7+fp+ra, lots of saved FP regs
- * (f20/f22/f24/f26/f28/f30 spilled to sp+0x30..0x48 - 6 doubles spilled).
+/* gui_func_00000F04: 313-insn / 0x4E4 F3DEX2 glyph-STRING renderer.
+ * 2026-06-05 FULL DECODE (was INCLUDE_ASM-only + prose). Disassembled the
+ * raw .word USO body to mnemonics, fed m2c, then translated to compilable C.
  *
- * Function entry pattern (first 30 insns):
- *   - prologue: alloc 0x108, save 14 saved-regs (s0-s7+s7+fp+ra) + 6 dbl
- *     FP regs (f20..f30) - total of 20 callee-saves
- *   - lwc1/swc1 of $f12 to sp+offset (FP ARG passed in!) - caller passes
- *     1 float arg in $f12 + 2 int args in a0/a1
- *   - 16-bit constants: 0xBB00 (loaded with lui), 0x80008000 (lui+ori for
- *     bit-rotate or sign-extend mask)
- *   - dispatch table read: a0->0x14 (= struct ptr s6),
- *     a0->0x14->0xC (= ptr a3, table of glyph entries)
- *   - update count at a0->0x14->0x4: ++a0->0x14->0x4 - append new entry
- *   - allocates one entry of (a0->0x14->0xC[N]) - N is shifted by 12
- *     (0x0003C8C0 = sll v1, v1, 3 - index by stride 8?)
- *   - jal cross-USO callee with a1 = sp+0x11C (caller-arg slot)
+ * Iterates the string arg5 char-by-char (skip 0x20 space), and for each glyph
+ * appends F3DEX2 commands to the DL buffer at ctx->0x24 (->0xC = {base=0x0,
+ * count=0x4}; each cmd = 8 bytes at base + count*8, count post-incremented):
+ *   - one G_RDPHALF-ish header pair (0xBB000001 / 0x80008000) before the loop
+ *   - per glyph: a callee (gl_func placeholder) draws the glyph quad, then
+ *     TEXRECT (0xE4......), G_RDPHALF_1 (0xB4......) with scaled S/T deltas,
+ *     and TEXRECT_FLIP/half (0xB3......) with the DSDX/DTDY frac (sp7C).
+ *   - var_f22 (pen X advance) accumulates each glyph's width (glyph->0xC),
+ *     scaled by arg3; arg4 scales the Y/row, spD4 = -ctx->0x10/2 centers it.
+ *   glyph table: ctx->0x20 base, entry = base + glyphIdx*0x14
+ *   (glyphIdx = gl_func(ch)); entry->0x0/0x4 = tex coords, ->0x8 = width.
  *
- * Structure inferred: this is likely a glyph-emit / draw-call recorder
- * function. Takes (a0=context, a1=str-or-glyph-ptr, $f12=float, ...) and
- * appends an entry to a draw-call buffer at a0->0x14, with FPU
- * coordinate transformation to derive the entry's data.
- *
- * Multi-tick decomp target. Strategy: type the draw-call buffer struct
- * first (the +0x4 count, +0xC ptr, +0x10 cap fields are visible across
- * 5+ gui_uso functions). Initial INCLUDE_ASM-only commit; structural
- * decode comment added for next pass. */
+ * NON_MATCHING: first-pass structural decode (313 FPU insns, multi-run).
+ * All callees are the gl_func_00000000 cross-USO placeholder (raw objdump
+ * lost the real reloc symbols + the exact arg signature / f12-f14 float-arg
+ * order), and the s0-s7/f20-f30 regalloc + glyph-struct typing are not yet
+ * pinned, so this is reference C, not a byte match. */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, unsigned char *arg5) {
+    float spD4;
+    unsigned char spD3;
+    int sp7C;
+    float var_f22;
+    int s6;
+    unsigned char *s7;
+    unsigned int idx;
+    int *a3;
+    int *dl;
+    int cnt;
+    int *cmd;
+
+    a3 = *(int**)((char*)arg0 + 0x24);
+    s6 = *(int*)((char*)arg0 + 0x14);
+    dl = *(int**)((char*)a3 + 0xC);
+    cnt = dl[1];
+    dl[1] = cnt + 1;
+    cmd = (int*)(*(char**)dl + cnt * 8);
+    cmd[0] = 0xBB000001;
+    cmd[1] = 0x80008000;
+    idx = 0;
+    s7 = arg5;
+    var_f22 = -((float)gl_func_00000000(arg5, a3) / 2.0f) - 2.0f;
+    spD4 = -((float)*(int*)((char*)arg0 + 0x10) / 2.0f);
+    if (gl_func_00000000(arg5) != 0) {
+        do {
+            unsigned char ch = *s7;
+            if (ch != 0x20) {
+                float f0 = (float)s6 * arg4;
+                float f2 = (float)arg2 + (spD4 * arg4);
+                int f10 = (int)f2;
+                short s4 = f10 * 4;
+                short s1 = ((int)f2 + (int)f0) * 4;
+                int f10b = (int)(((float)(s6 - 1) * 1024.0f) / f0);
+                int *glyph;
+                int s0;
+                float f0b;
+                int f8;
+                short ca0, ca1;
+                short xa3, xa0b;
+                int wa3, wa0;
+                int cnt2, cnt3, cnt4;
+                int *cmd2, *cmd3, *cmd4;
+                int a2v, a1v, a3v;
+
+                sp7C = f10b & 0xFFFF;
+                spD3 = (unsigned char)gl_func_00000000(ch);
+                glyph = (int*)(*(int*)((char*)arg0 + 0x20) + (int)spD3 * 0x14);
+                s0 = glyph[2];
+                gl_func_00000000(*(int*)((char*)arg0 + 0x24), *(int*)((char*)arg0 + 0x4),
+                                 *(int*)((char*)arg0 + 0x18), *(int*)((char*)arg0 + 0x1C),
+                                 glyph[0], glyph[1], s0, s6, 0);
+                a3 = *(int**)((char*)arg0 + 0x24);
+                dl = *(int**)((char*)a3 + 0xC);
+                cnt2 = dl[1];
+                f0b = (float)s0 * arg3;
+                dl[1] = cnt2 + 1;
+                wa3 = 0;
+                f8 = (int)((float)arg1 + (var_f22 * arg3));
+                cmd2 = (int*)(*(char**)dl + cnt2 * 8);
+                ca0 = (f8 + (int)f0b) * 4;
+                ca1 = f8 * 4;
+                if (ca0 > 0) wa3 = ca0;
+                if (s1 > 0) wa0 = s1; else wa0 = 0;
+                cmd2[0] = ((wa3 & 0xFFF) << 0xC) | 0xE4000000 | (wa0 & 0xFFF);
+                if (ca1 > 0) xa3 = ca1; else xa3 = 0;
+                if (s4 > 0) xa0b = s4; else xa0b = 0;
+                cmd2[1] = ((xa3 & 0xFFF) << 0xC) | (xa0b & 0xFFF);
+                a3 = *(int**)((char*)arg0 + 0x24);
+                dl = *(int**)((char*)a3 + 0xC);
+                cnt3 = dl[1];
+                dl[1] = cnt3 + 1;
+                cmd3 = (int*)(*(char**)dl + cnt3 * 8);
+                cmd3[0] = 0xB4000000;
+                if (ca1 < 0) {
+                    a2v = (int)(((float)(s0 - 1) * 1024.0f) / f0b);
+                    if ((short)a2v < 0) {
+                        int t = (int)(ca1 * (short)a2v) >> 7;
+                        if (t > 0) a3v = t; else a3v = 0;
+                    } else {
+                        int v = 0;
+                        int t = (int)(ca1 * (short)a2v) >> 7;
+                        if (t < 0) v = t;
+                        a3v = v;
+                    }
+                } else {
+                    a3v = 0;
+                    a2v = (int)(((float)(s0 - 1) * 1024.0f) / f0b);
+                }
+                if (f10 & 0x20000000) {
+                    int t = (int)(s4 * (short)f10b) >> 7;
+                    if ((short)f10b < 0) {
+                        if (t > 0) a1v = t; else a1v = 0;
+                    } else {
+                        int v = 0;
+                        if (t < 0) v = t;
+                        a1v = v;
+                    }
+                } else {
+                    a1v = 0;
+                }
+                cmd3[1] = (a3v * -0x10000) | (-a1v & 0xFFFF);
+                a3 = *(int**)((char*)arg0 + 0x24);
+                dl = *(int**)((char*)a3 + 0xC);
+                cnt4 = dl[1];
+                dl[1] = cnt4 + 1;
+                cmd4 = (int*)(*(char**)dl + cnt4 * 8);
+                cmd4[0] = 0xB3000000;
+                cmd4[1] = (a2v << 0x10) | sp7C;
+                var_f22 += (float)*(int*)((char*)(*(int*)((char*)arg0 + 0x20) + (int)spD3 * 0x14) + 0xC);
+            } else {
+                var_f22 += (float)*(int*)((char*)*(int**)((char*)arg0 + 0x20) + 0xC);
+            }
+            s7 += 1;
+            idx += 1;
+        } while (idx < (unsigned int)gl_func_00000000(arg5));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000F04);
+#endif
 
 /* Text-width accumulator with glyph-table lookup.
  *   a0 = font-info struct: +0x08 = space-width, +0x20 = glyph-table ptr
