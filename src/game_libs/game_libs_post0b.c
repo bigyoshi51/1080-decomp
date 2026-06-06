@@ -22847,7 +22847,24 @@ unsigned short game_libs_func_0005330C(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005330C);
 #endif
 
+#ifdef NON_MATCHING
+/* Nested-table lookup. a0->0x70 = index table B; if null, the v1==0 path
+ * tail-BRANCHES into the middle of game_libs_func_000533B8 (+4) — a shared
+ * tail, not C-expressible (modeled as return 0). Main path: idx1 = u16 at
+ * (a0->0x68 + a1*8 + a2*2 + 2); idx2 = u16 at (B + idx1*6); returns
+ * a0->0x58 + idx2*12. Element strides 6 and 12 -> sll/subu/sll. */
+s32 game_libs_func_00053368(void *a0, int a1, int a2) {
+    char *tabB = *(char **)((char *)a0 + 0x70);
+    if (tabB == 0) {
+        return 0; /* shared-tail inter-function branch cap */
+    }
+    return *(int *)((char *)a0 + 0x58) +
+           *(unsigned short *)(tabB +
+               *(unsigned short *)(*(char **)((char *)a0 + 0x68) + a1 * 8 + a2 * 2 + 2) * 6) * 12;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053368);
+#endif
 
 #ifdef NON_MATCHING
 /* 2D-table element-address lookup: v = *(u16*)(a0->0x68 + a1*8 + a2*2 + 2);
