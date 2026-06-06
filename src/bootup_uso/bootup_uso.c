@@ -2830,14 +2830,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005284);
  * captures live behavior only — dead-arm artifacts not recreated. */
 extern char D_00007DE8;
 #ifdef NON_MATCHING
-void *func_00005334(void *arg) {
+void *func_00005334(int arg) {
     char *obj;
     func_00000000(&D_00007DE8);
     obj = (char*)func_00000000(0x50);
-    if (obj == 0) return 0;
-    *(void**)(obj + 0x28) = &D_00000000;
-    *(void**)(obj + 0x48) = &D_00000000;
-    (void)arg;
+    if (obj == 0) {
+        obj = (char*)func_00000000(0x48);
+        if (obj == 0) return obj;
+    }
+    func_00000000(obj, arg, 0);
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x4C) = (int)&D_00000000;
+    *(int*)(obj + 0x48) = 0;
     return obj;
 }
 #else
@@ -2857,14 +2862,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
  * live behavior only — dead-arm artifacts not recreated. */
 extern char D_00007DFC;
 #ifdef NON_MATCHING
-void *func_000053E8(void *arg) {
+void *func_000053E8(int arg) {
     char *obj;
     func_00000000(&D_00007DFC);
     obj = (char*)func_00000000(0x50);
-    if (obj == 0) return 0;
-    *(void**)(obj + 0x28) = &D_00000000;
-    *(void**)(obj + 0x48) = &D_00000000;
-    (void)arg;
+    if (obj == 0) {
+        obj = (char*)func_00000000(0x48);
+        if (obj == 0) return obj;
+    }
+    func_00000000(obj, arg, 0);
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x48) = 1;
+    *(int*)(obj + 0x28) = (int)&D_00000000;
+    *(int*)(obj + 0x4C) = (int)&D_00000000;
     return obj;
 }
 #else
