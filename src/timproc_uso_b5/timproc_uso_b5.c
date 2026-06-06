@@ -785,34 +785,54 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   STRUCTURAL body below — two-widget HUD constructor. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_00001460(char *o) {
-    char *A;
-    char *B;
-    A = (char *)func_00000000(0, (char *)&D_00000000 + 0x0000108C);
-    *(char **)(o + 0x38) = A;
-    *(float *)(A + 0x124) = 1.0f;
-    *(float *)(A + 0x128) = 1.0f;
-    *(float *)(A + 0x12C) = 1.0f;
-    *(float *)(A + 0x130) = 1.0f;
-    *(int *)(A + 0xC4) |= 0x40;
-    *(int *)(A + 0xC4) |= 0x80;
-    *(int *)(A + 0xD0) = 1;
-    func_00000000(o, A);
-    func_00000000(o + 0x10, A);
-    if (*(char **)(o + 0x14) == 0) {
-        *(int *)(o + 0x4) = 1;
-        func_00000000(0, (char *)&D_00000000 + 0x0000109C);
-        *(char **)(o + 0x14) = o;
-    }
-    B = (char *)func_00000000(0, (char *)&D_00000000 + 0x0000108C);
-    *(char **)(o + 0x3C) = B;
-    *(float *)(B + 0x124) = 1.0f;
-    *(float *)(B + 0x128) = 1.0f;
-    *(float *)(B + 0x12C) = 1.0f;
-    *(float *)(B + 0x130) = 1.0f;
-    *(int *)(B + 0xD0) = 2;
-    func_00000000(o, B);
-    func_00000000(o + 0x10, B);
+void timproc_uso_b5_func_00001460(char *arg0) {
+    char *g = (char *)&D_00000000;
+    char *o, *reg;
+    float one = 255.0f / 255.0f;
+    reg = arg0 + 0x10;
+    /* widget A (id 1) */
+    o = (char *)func_00000000(0, g + 0x108C);
+    *(char **)(arg0 + 0x38) = o;
+    *(float *)(o + 0x124) = one;
+    *(float *)(o + 0x128) = one;
+    *(float *)(o + 0x12C) = one;
+    *(float *)(o + 0x130) = one;
+    *(int *)(*(char **)(arg0 + 0x38) + 0xC4) |= 0x40;
+    *(int *)(*(char **)(arg0 + 0x38) + 0xC4) |= 0x80;
+    *(int *)(*(char **)(arg0 + 0x38) + 0xD0) = 1;
+    func_00000000(0, *(char **)(arg0 + 0x38));
+    o = *(char **)(arg0 + 0x38);
+    func_00000000(reg, o);
+    if (*(char **)(o + 0x14) != 0) *(int *)(o + 0x4) = 1;
+    *(char **)(o + 0x14) = arg0;
+    /* widget B (id 2) */
+    o = (char *)func_00000000(0, g + 0x109C);
+    *(char **)(arg0 + 0x3C) = o;
+    *(float *)(o + 0x124) = 1.0f;
+    *(float *)(o + 0x128) = 1.0f;
+    *(float *)(o + 0x12C) = 1.0f;
+    *(float *)(o + 0x130) = 1.0f;
+    *(int *)(*(char **)(arg0 + 0x3C) + 0xD0) = 2;
+    func_00000000(0, *(char **)(arg0 + 0x3C));
+    o = *(char **)(arg0 + 0x3C);
+    func_00000000(reg, o);
+    if (*(char **)(o + 0x14) != 0) *(int *)(o + 0x4) = 1;
+    *(char **)(o + 0x14) = arg0;
+    /* widget C (id 4) */
+    o = (char *)func_00000000(0, g + 0x10A8);
+    *(char **)(arg0 + 0x40) = o;
+    *(float *)(o + 0x124) = 174.0f / 255.0f;
+    *(float *)(o + 0x128) = 113.0f / 255.0f;
+    *(float *)(o + 0x12C) = 61.0f / 255.0f;
+    *(float *)(o + 0x130) = one;
+    *(int *)(*(char **)(arg0 + 0x40) + 0xC4) |= 0x40;
+    *(int *)(*(char **)(arg0 + 0x40) + 0xC4) |= 0x80;
+    *(int *)(*(char **)(arg0 + 0x40) + 0xD0) = 4;
+    func_00000000(0, *(char **)(arg0 + 0x40));
+    o = *(char **)(arg0 + 0x40);
+    func_00000000(reg, o);
+    if (*(char **)(o + 0x14) != 0) *(int *)(o + 0x4) = 1;
+    *(char **)(o + 0x14) = arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001460);
