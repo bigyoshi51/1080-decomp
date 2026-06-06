@@ -842,27 +842,31 @@ int gui_func_000015F4(int a0, int a1, int a2) {
  * accumulate loop. 2026-06-05: rewrote the store as a POINTER WALK (read
  * v1->0xC, then `v1 += 0xC; *v1 = t + add`) matching the target — now
  * 21/21 insns, byte-EXACT STRUCTURE (every opcode/immediate/branch-offset/
- * order matches). Residual is a pure $a/$v REGISTER-RENUMBER: target uses
- * a1=byte-offset-IV (param a1 saved to a2), v0=counter, v1=walk-pointer;
- * IDO assigns the same roles to different regs and no decl/order/param-reuse
- * lever pins them (3 permutations tried: off-local, a1-reuse, i-in-if — all
- * 30-reg-diff, none aligned). Permuter -j4 150s did NOT crack it ($a-class
- * arg-reg picks are deterministic/permuter-resistant per
- * TOOLING_DECOMP#feedback-permuter-1000-plus-structural). Stays NM. */
+ * order matches). Residual is a pure $a/$v REGISTER-RENUMBER. 2026-06-05 pass
+ * 2: body now reuses the a1 param as the byte-offset IV (param saved to `add`)
+ * and declares `i` FIRST (born first -> wins $v0, counter-first principle),
+ * pinning i=$v0, offset=$a1, count=$t6 to the target (30->28 reg diffs).
+ * REMAINING: `add` and the walk-pointer are swapped (build add=$v1/ptr=$a2 vs
+ * target add=$a2/ptr=$v1) + read-temp $a3 vs $t8 — IDO ranks the loop-invariant
+ * `add` by birth-order (2nd) over the higher-ref per-iter pointer, so add takes
+ * $v1 before the pointer. Permuter -j4 200s/64k iters best score 200 (NOT 0);
+ * store operand-swap no-op. $a-class deterministic, permuter-resistant
+ * (TOOLING_DECOMP#feedback-permuter-1000-plus-structural). Stays NM. */
 void gui_func_0000161C(int *a0, int a1) {
     int i = 0;
-    int off = 0;
+    int add = a1;
+    a1 = 0;
     if (*a0 > 0) {
         do {
-            int *v1 = (int *)((char *)a0[0x20 / 4] + off);
+            int *v1 = (int *)((char *)a0[0x20 / 4] + a1);
             int t = *(int *)((char *)v1 + 0xC);
             v1 = (int *)((char *)v1 + 0xC);
-            off += 0x14;
+            a1 += 0x14;
             i++;
-            *v1 = t + a1;
+            *v1 = t + add;
         } while (i < *a0);
     }
-    a0[0xC / 4] = a0[0xC / 4] + a1;
+    a0[0xC / 4] = a0[0xC / 4] + add;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000161C);
