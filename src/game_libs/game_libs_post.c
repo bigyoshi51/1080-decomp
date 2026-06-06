@@ -2716,9 +2716,12 @@ void game_libs_func_0001FA20(void) {
             p[0x2C10] = 0;
         }
     }
-    for (p = (char *)&D_00000000, e = p + 128; p < e; p++) {
-        if (((unsigned char *)p)[0x2C70] != 5) {
-            p[0x2C70] = 0;
+    {
+        int i;
+        for (i = 0; i < 128; i++) {
+            if (((unsigned char *)&D_00000000)[0x2C70 + i] != 5) {
+                ((char *)&D_00000000)[0x2C70 + i] = 0;
+            }
         }
     }
 }
