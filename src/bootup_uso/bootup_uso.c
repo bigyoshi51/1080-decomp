@@ -2169,22 +2169,28 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003B78);
  * a1*0x1C index + list-link beql. INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
 void func_00003D3C(char *s1, int a1) {
-    char *o1 = (char*)func_00000000(0x80);
-    char *o2;
-    if (o1 == 0) return;
-    func_00000000(o1, 1);
+    char *o1, *o2, *o3, *o4, *r, *cfg;
+    o1 = (char*)func_00000000(0x80);
+    if (o1 != 0) func_00000000(o1, 1);
     o2 = (char*)func_00000000(0x80);
-    if (o2 == 0) return;
-    func_00000000(o2, 0);
+    if (o2 != 0) func_00000000(o2, 0);
     func_00000000(&D_00000000, o1);
-    func_00000000(&D_00000000, o1, o2);
-    (void)a1;
-    (void)s1;
-    /* Chain continues per family-shared shape (tagged build() stages
-     * wiring o1/o2, cfg = s1->0x98 (f32 0xC4/0xCC), packed flags,
-     * a1*0x1C descriptor-table index, final list-link & r->0x8DC =
-     * result; identical chain shape to func_00003734). Truncated
-     * in decode. */
+    func_00000000(&D_00000000, o2);
+    func_00000000(&D_00000000, o1, 0);
+    cfg = *(char**)(s1 + 0x98);
+    r = (char*)func_00000000(s1, 0, *(int*)((char*)&D_00000000 + 0x4C), *(int*)((char*)&D_00000000 + 0x54),
+                             o1, *(int*)(s1 + 0x80), *(float*)(cfg + 0xC4) - 500.0f, *(float*)(cfg + 0xCC),
+                             *(int*)((char*)&D_00000000 + 0x50) | 1 | 0x10000 | 0x40000, 0x1B);
+    cfg = *(char**)(s1 + 0x98);
+    o3 = (char*)func_00000000(s1, 2, *(unsigned char*)((char*)&D_00000000 + 0x17D),
+                              *(unsigned char*)((char*)&D_00000000 + 0x17F), o2, *(int*)(s1 + 0x80),
+                              *(float*)(cfg + 0xC4) + 500.0f, *(float*)(cfg + 0xCC), 0x8004, 0x1D);
+    *(int*)(o3 + 0xA14) = 0x989680;
+    *(char**)(r + 0x908) = o3;
+    *(char**)(o3 + 0x908) = r;
+    o4 = (char*)func_00000000(s1, a1 * 0x1C, func_00000000(s1, 2, *(int*)(s1 + 0x80), r, o1));
+    *(char**)(r + 0x8DC) = o4;
+    *(char**)(o3 + 0x8DC) = o4;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003D3C);
