@@ -580,8 +580,16 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
  *     fits its 9 cross-call-live values in $s0-$s8 (s2=ctx, s6=ctx->0x14,
  *     s7=cursor, s8=idx, s4=(int)f2*4, s3=(short)s4, s1=clamp, s5=f10b,
  *     s0=glyph-width) + spills only sp7C/spD3; build's expr structure makes
- *     IDO spill 4 extra. Cascading: build ctx=$s3 vs target $s2. Next pass:
- *     shrink remaining peak live-set / nudge $s-priority to fit all 9. */
+ *     IDO spill 4 extra. Cascading: build ctx=$s3 vs target $s2.
+ *   - FIXED 2026-06-05 (pass 2): first call is gl_func(arg0,arg5) — target
+ *     leaves a0=ctx from entry and loads a1=arg5 in the delay slot; m2c had
+ *     gl_func(arg5,a3) (wrong). 523->519 diffs.
+ *   - REMAINING spill drivers (frame 0x128): (a) `x/2.0f` strength-reduces to
+ *     `mul *0.5` but target shares one materialized 2.0 and uses `div.s` x2
+ *     (interleaving the two source-floats to force shared-2.0 REGRESSED to
+ *     528 — don't retry that shape); (b) build spills arg5 (a1) to its own
+ *     slot after the first call instead of reloading from the stack-arg home
+ *     like the target. Both are IDO codegen picks, not logic. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, unsigned char *arg5) {
@@ -607,7 +615,7 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
     cmd[1] = 0x80008000;
     idx = 0;
     s7 = arg5;
-    var_f22 = -((float)gl_func_00000000(arg5, a3) / 2.0f) - 2.0f;
+    var_f22 = -((float)gl_func_00000000(arg0, arg5) / 2.0f) - 2.0f;
     spD4 = -((float)*(int*)((char*)arg0 + 0x10) / 2.0f);
     if (gl_func_00000000(arg5) != 0) {
         do {
