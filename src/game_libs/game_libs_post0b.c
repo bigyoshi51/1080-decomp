@@ -5559,7 +5559,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AC50);
  * Multi-tick — full token-dispatch decode requires the jump table at
  * D[0x1A90]+token*4 (D=0x2 + 0x1A90 = relocated, runtime-resolved). */
 extern int gl_func_00000000();
-extern char gl_data_0001EE18, gl_data_0001EE24;
+extern char gl_data_0001EE18, gl_data_0001EE24, gl_data_0001EE3C, gl_data_0001EE48;
 int *gl_func_0003AC5C(int *a0, int *a1) {
     if (a0 == 0) {
         a0 = (int*)gl_func_00000000(0x90);
@@ -5569,8 +5569,50 @@ int *gl_func_0003AC5C(int *a0, int *a1) {
     *(int*)((char*)a0 + 0x34) = (int)a1;
     gl_func_00000000(&gl_data_0001EE24, 0);
     *(int*)((char*)a0 + 0x30) = 0;
-    /* loop body (92 insns) + tail (10 insns) TBD —
-     * 6-token jump-table dispatcher at D[0x1A90] terminating on token 6. */
+    /* 6-token jump-table dispatcher (decoded via uso-jumptable-to-m2c.py),
+     * terminates on token 6. */
+    {
+        int *p;
+        int cmd = *a1;
+        p = a1 + 1;
+        while (cmd != 6) {
+            if ((unsigned)cmd < 5) {
+                switch (cmd) {
+                case 0:
+                    *(float*)((char*)a0 + 0x3C) = *(float*)&p[0];
+                    *(float*)((char*)a0 + 0x40) = *(float*)&p[1];
+                    *(float*)((char*)a0 + 0x44) = *(float*)&p[2];
+                    *(float*)((char*)a0 + 0x48) = *(float*)&p[3];
+                    *(float*)((char*)a0 + 0x4C) = *(float*)&p[4];
+                    *(float*)((char*)a0 + 0x50) = *(float*)&p[5];
+                    p += 6;
+                    break;
+                case 1:
+                    *(float*)((char*)a0 + 0x38) = *(float*)&p[0];
+                    p += 1;
+                    break;
+                case 2:
+                    *(int*)((char*)a0 + 0x30) = p[0];
+                    p += 1;
+                    break;
+                case 3:
+                    p += 1;
+                    *(int*)((char*)a0 + 0x84) = gl_func_00000000(0, &gl_data_0001EE3C);
+                    break;
+                }
+            } else {
+                gl_func_00000000(&gl_data_0001EE48);
+            }
+            cmd = *p;
+            p += 1;
+        }
+    }
+    *(int*)((char*)a0 + 0x88) = 0;
+    *(int*)((char*)a0 + 0x8C) = 0;
+    *(float*)((char*)a0 + 0x54) = 0.0f;
+    *(float*)((char*)a0 + 0x58) = 0.0f;
+    *(float*)((char*)a0 + 0x5C) = 0.0f;
+    gl_func_00000000();
     return a0;
 }
 #else
