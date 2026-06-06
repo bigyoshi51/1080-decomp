@@ -5266,19 +5266,19 @@ s32 gl_func_00022760(s32 arg0, s32 arg1, s32 arg2, u8 *arg3, s32 arg4) {
 loop_4:
             temp_t0 = var_v1;
             temp_v0 = arg0 - FW(var_v1, 0x4);
-            if ((temp_v0 >= 0) && ((u32) (FW(temp_t0, 0xA) - arg1) >= (u32) temp_v0)) {
-                if (FW(temp_t0, 0xE) == 0) {
+            if ((temp_v0 >= 0) && ((u32) ((*(u16 *)((char *)temp_t0 + 0xA)) - arg1) >= (u32) temp_v0)) {
+                if ((*(u8 *)((char *)temp_t0 + 0xE)) == 0) {
                     temp_v0_2 = *(u32 *)0x2019;
                     if (*(u32 *)0x201B != temp_v0_2) {
-                        temp_v1 = FW(temp_t0, 0xD);
+                        temp_v1 = (*(u8 *)((char *)temp_t0 + 0xD));
                         if (temp_v0_2 != temp_v1) {
-                            FW(temp_v1, 0x1F18) = (u8) FW(temp_v0_2, 0x1F18);
-                            FW((*(u32 *)0x1E08 + (FW((*(u32 *)0x2019), 0x1F18) * 0x10)), 0xD) = (u8) FW(temp_t0, 0xD);
+                            (*(u8 *)((char *)temp_v1 + 0x1F18)) = (u8) (*(u8 *)((char *)temp_v0_2 + 0x1F18));
+                            FW((*(u32 *)0x1E08 + (FW((*(u32 *)0x2019), 0x1F18) * 0x10)), 0xD) = (u8) (*(u8 *)((char *)temp_t0 + 0xD));
                         }
                         *(u32 *)0x2019 = (u8) (*(u32 *)0x2019 + 1);
                     }
                 }
-                FW(temp_t0, 0xE) = 0x20U;
+                (*(u8 *)((char *)temp_t0 + 0xE)) = 0x20U;
                 *arg3 = (u8) var_a0;
                 return (FW(temp_t0, 0x0) + (int)arg0) - FW(temp_t0, 0x4);
             }
