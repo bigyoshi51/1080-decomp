@@ -1194,15 +1194,19 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000120
  * (gate = (cond) ? ... : ...) so IDO emits the target's `bnel`+delay-slot
  * branch-likely form instead of a beqz+conditional-store; first gate needed
  * the (X==0)?Y:0x10 arm order for the bnel polarity. 79.98 -> 86.93% fuzzy
- * (opcode diffs 40->26). Remaining: inner (X==1)?0:115 ternaries use a
- * different branch shape + per-call jal/lw/addiu scheduling + register
- * renumber. INCLUDE_ASM stays the build path. */
+ * (opcode diffs 40->26). 2026-06-05 pass 2: the inner `?0:115` selects ALSO
+ * needed the default-then-override form `color=0; if(X!=1) color=115;` (NOT a
+ * ternary) — target computes 0 before a plain `beq X,1` with 115 in the
+ * not-equal fall-through; the ternary emitted bne+115-first. 86.93 -> 90.04%
+ * (opcode diffs 26->22). Remaining ~10%: per-call jal/lw/addiu scheduling +
+ * register renumber. INCLUDE_ASM stays the build path. */
 void h2hproc_uso_func_00001360(int *self) {
     int *vtable;
     int *v_call;
     char scratch[80];
     int retval;
     int gate;
+    int color;
     int *sub;
 
     *(int*)((char*)self + 0x98) += 1;
@@ -1219,8 +1223,9 @@ void h2hproc_uso_func_00001360(int *self) {
         gl_func_00000000(scratch, &D_00000000 + 0x3FC);
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 80, scratch);
         gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 30, scratch);
-        gl_func_00000000(scratch, &D_00000000 + 0x400,
-                         (*(int*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) == 1) ? 0 : 115);
+        color = 0;
+        if (*(int*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) != 1) color = 115;
+        gl_func_00000000(scratch, &D_00000000 + 0x400, color);
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 80, scratch);
         gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
     }
@@ -1231,8 +1236,9 @@ void h2hproc_uso_func_00001360(int *self) {
         gl_func_00000000(scratch, &D_00000000 + 0x40C);
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 240, scratch);
         gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 30, scratch);
-        gl_func_00000000(scratch, &D_00000000 + 0x410,
-                         (*(int*)((char*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) + 4) == 1) ? 0 : 115);
+        color = 0;
+        if (*(int*)((char*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) + 4) != 1) color = 115;
+        gl_func_00000000(scratch, &D_00000000 + 0x410, color);
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 240, scratch);
         gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
     }
