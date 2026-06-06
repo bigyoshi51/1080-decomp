@@ -7111,23 +7111,58 @@ int gl_func_00024080(int a0, int a1) {
 //   finishing needs the jumptable, not a structural rewrite.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+extern int gl_func_0001CA10();
+extern int gl_func_0003959C();
 extern int D_00000000;
-int gl_func_000240A0(int cls, int idx, int a2, int a3) {
+/* Decoded via jumptable extraction (scripts/uso-jumptable-to-m2c.py) — the
+ * type-tag (e->0x19) computed jump at &D+0xEA0 is now a switch. The two
+ * fixed-addr USO thunks (jal 0x381B0 / 0x38204) stay gl_func_00000000
+ * placeholders (no symbol); gl_func_0003959C / gl_func_0001CA10 are real. */
+int gl_func_000240A0(int cls, int idx, int a2, int a3, void *a4) {
     char *g = (char *)&D_00000000;
-    unsigned char st;
+    int h, sp34, sp44, size16, b18, typ, payload;
+    char *e;
+
     if (cls == 0) {
-        st = *(unsigned char *)(g + 0x2C70 + idx);
+        if (*(unsigned char *)(g + 0x2C70 + idx) == 1) return 0;
     } else if (cls == 1) {
-        st = *(unsigned char *)(g + 0x2C40 + idx);
+        if (*(unsigned char *)(g + 0x2C40 + idx) == 1) return 0;
     } else if (cls == 2) {
-        st = *(unsigned char *)(g + 0x2C10 + idx);
-    } else {
-        return 0;
+        if (*(unsigned char *)(g + 0x2C10 + idx) == 1) return 0;
     }
-    if (st != 1) {
-        return 0;
+    h = gl_func_00000000(cls);            /* jal 0x381B0 */
+    sp44 = h;
+    if (h != 0) {
+        sp34 = 2;
+        gl_func_0001CA10(a4, a3 << 0x18, 0);
+        goto block_30;
     }
-    return gl_func_00000000(cls, idx, a2, a3);
+    e = (char *)(gl_func_00000000(cls) + idx * 0x10);   /* jal 0x38204 */
+    size16 = (*(int *)(e + 0x14) + 0xF) & ~0xF;
+    b18 = *(unsigned char *)(e + 0x18);
+    typ = *(unsigned char *)(e + 0x19);
+    sp34 = 2;
+    payload = *(int *)(e + 0x10);
+    if ((unsigned)typ < 5) {
+        switch (typ) {
+        case 0: h = gl_func_0001CA10(typ); if (h == 0) return h; sp34 = 5; sp44 = h; break;
+        case 1: h = gl_func_0001CA10(typ); sp44 = h; if (h == 0) return h; break;
+        case 2: h = gl_func_0001CA10(typ); sp44 = h; if (h == 0) return h; break;
+        case 3: h = gl_func_0001CA10(typ); if (h == 0) return h; sp44 = h; break;
+        }
+    }
+    gl_func_0003959C(payload, sp44, size16, b18, a2, a4,
+                     (a3 << 0x18) | (cls << 0x10) | (idx << 8) | sp34);
+    sp34 = 1;
+block_30:
+    if (cls == 0) {
+        gl_func_0001CA10(idx, sp34);
+    } else if (cls == 1) {
+        gl_func_0001CA10(idx, sp34);
+    } else if (cls == 2) {
+        gl_func_0001CA10(idx, sp34);
+    }
+    return sp44;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000240A0);
