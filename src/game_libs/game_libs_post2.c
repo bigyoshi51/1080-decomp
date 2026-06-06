@@ -1202,7 +1202,7 @@ loop_1:
         } else {
             sp1C = FW(arg0, 0x60);
         }
-        if ((sp23 == arg1) || (FW(((int)arg2 + sp28), 0x101) & (1 << ((s32) sp23 % 8)))) {
+        if ((sp23 == arg1) || (*(u8 *)((char *)arg2 + sp28 + 0x101) & (1 << ((s32) sp23 % 8)))) {
             if (sp23 != FW(arg2, 0x100)) {
                 sp18 = game_libs_func_00070FCC(arg0, arg2, 0, sp23);
                 if ((sp18 != 0) && (sp18 != 3)) {
@@ -1214,7 +1214,7 @@ block_11:
             sp2C = sp1C;
             if ((sp24 < 2) && (sp1C < 0x80)) {
 loop_13:
-                if (*(int*)((int)arg2 + (sp2C * 2)) == (u16) arg1) {
+                if (*(u16 *)((char *)arg2 + (sp2C * 2)) == (u16) arg1) {
                     sp24 += 1;
                 }
                 temp_t4 = sp2C + 1;
