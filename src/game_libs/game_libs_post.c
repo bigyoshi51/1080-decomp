@@ -7102,6 +7102,13 @@ int gl_func_00024080(int a0, int a1) {
 //   Byte-match deferred — class-switch / typed-state-array schedule.
 //   Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
+//
+// 2026-06-06: the `cls` switch is a REAL computed jump (jr) — m2c aborts
+//   ("Unable to determine jump table"). To decode the per-class action
+//   bodies, the jumptable must be extracted (scripts/extract-uso-jumptable.py
+//   style: feed m2c .L case labels + a jtbl_ symbol). The placeholder
+//   `return gl_func_00000000(...)` below stands in for the dispatched action;
+//   finishing needs the jumptable, not a structural rewrite.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
