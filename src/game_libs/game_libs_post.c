@@ -16773,7 +16773,34 @@ void game_libs_func_00031834(void) {}
  * 31880 symbol (no external callers). Branch-verified complete (ends at 0x31898
  * with a clean jr ra; the region after is a separate unsplit run). Reloc-blind
  * USO body stays INCLUDE_ASM. */
+#ifdef NON_MATCHING
+/* Circular-buffer scan/dequeue (16-entry inline ring at arg0+0, read idx
+ * 0x44, write idx 0x40). Clears 0x4C, then advances read (wrap &0xF)
+ * storing each entry to 0x50 until a non-zero entry (sets 0x48=1, returns)
+ * or the ring drains. read is loaded once then reloaded each loop tail. */
+void game_libs_func_0003183C(void *arg0) {
+    int rd = *(int *)((char *)arg0 + 0x44);
+    int v;
+    if (rd != *(int *)((char *)arg0 + 0x40)) {
+        *(int *)((char *)arg0 + 0x4C) = 0;
+        do {
+            v = *(int *)((char *)arg0 + rd * 4);
+            /* target keeps both stores (idx=rd+1 then idx=(rd+1)&0xF); IDO
+             * -O2 here DSEs the first -> 1 store. The lone redundant store
+             * + register numbering is the ~7% residual (DSE/regalloc cap). */
+            *(int *)((char *)arg0 + 0x44) = (rd + 1) & 0xF;
+            *(int *)((char *)arg0 + 0x50) = v;
+            if (v != 0) {
+                *(int *)((char *)arg0 + 0x48) = 1;
+                return;
+            }
+            rd = *(int *)((char *)arg0 + 0x44);
+        } while (rd != *(int *)((char *)arg0 + 0x40));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003183C);
+#endif
 
 extern int gl_ref_00045DF0();
 extern int gl_ref_00045E5C();
