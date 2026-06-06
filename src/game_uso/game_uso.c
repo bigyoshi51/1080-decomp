@@ -11060,7 +11060,8 @@ void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
 #undef SUB_F
 #undef SUB_I
 #undef SUB_L
-    (void)a2;
+    *(int *)(p + 0xB4) = a2;
+    gl_func_00000000(p);
 end:
     return p;
 }
