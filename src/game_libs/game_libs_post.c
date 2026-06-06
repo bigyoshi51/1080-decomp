@@ -14474,56 +14474,80 @@ void gl_func_0002D8D8(void) {
 #define D_2C1D4 (*(int *)0x1C1D4)
 
 void gl_func_0002D910(int a0, int a1, int a2, int a3) {
-    int mode = *(int*)&D_00000000;
-    int subsys;
-    if (mode != 10) {
-        /* TODO: alt-path 0x2DB84-0x2DC60 (~58 insns) */
+    int v0;
+    if (*(int *)&D_00000000 != 10) {
         return;
     }
-    subsys = *(int*)((char*)&D_00000000 + 4);
-    if (subsys != 1) {
+    if (*(int *)((char *)&D_00000000 + 4) != 1) {
         return;
     }
     if (D_2C1BC != a0) {
         if (D_2C1CC == 0 && a0 == 0) {
-            gl_func_00000000(0x06010F00, 2);
+            gl_func_0001CA10(0x06010F00, 2);
             D_2C1CC = -1;
         } else if (a0 == 1) {
-            gl_func_00000000(0x06010F00, 0);
+            gl_func_0001CA10(0x06010F00, 0);
             D_2C1CC = 0;
         }
-    }
-    if (D_2C1C0 != a1) {
+    } else if (D_2C1C0 != a1) {
         if (D_2C1CC == 1 && a1 == 0) {
-            gl_func_00000000(0x06010F00, 2);
+            gl_func_0001CA10(0x06010F00, 2);
             D_2C1CC = -1;
         } else if (a1 == 1) {
-            gl_func_00000000(0x06010F00, 1);
+            gl_func_0001CA10(0x06010F00, 1);
             D_2C1CC = 1;
         }
     }
     D_2C1BC = a0;
     D_2C1C0 = a1;
-    {
-        int v0 = (D_2C1C4 + a2) / 2;
-        int t4 = (D_2C1C8 + a3) / 2;
-        if (D_2C1D4 == 0) {
-            D_2C1C8 = t4;
-            D_2C1CC = -1;
-            if (v0 < -8) {
-                D_2C1D4 = -1;
-                D_2C1D0 = v0;
+    v0 = (D_2C1C4 + a2) / 2;
+    D_2C1C8 = (D_2C1C8 + a3) / 2;
+    if (D_2C1D4 == 0) {
+        D_2C1CC = -1;
+        if (v0 < -8) {
+            D_2C1D4 = -1;
+            D_2C1D0 = v0;
+        }
+        D_2C1C4 = v0;
+        if (v0 >= 9) {
+            D_2C1D4 = 1;
+            D_2C1D0 = v0;
+            D_2C1C4 = v0;
+        }
+        gl_func_0001CA10(0x06010F02, (char)D_2C1C8);
+        v0 = D_2C1C4;
+    }
+    if (D_2C1D4 == 1) {
+        if (v0 < D_2C1D0) {
+            if (D_2C1CC == -1) {
                 D_2C1C4 = v0;
+                gl_func_0001CA10(0x06010F00, 1);
+                gl_func_0001CA10(0x06010F02, (char)((D_2C1D0 * 4) - 0x40));
+                D_2C1CC = 1;
+                v0 = D_2C1C4;
             }
-            if (v0 >= 9) {
-                D_2C1D4 = 1;
-                D_2C1D0 = v0;
-                D_2C1C4 = v0;
+            if (v0 < 0x10) {
+                D_2C1D4 = 0;
             }
-            gl_func_00000000(0x06010F02, (char)D_2C1C8);
-            /* TODO: post-play_sound continuation (insns 127+) */
         } else {
-            /* TODO: alt step-counter arm (D_2C1D4 != 0, insns 0x204+) */
+            D_2C1D0 = v0;
+        }
+    }
+    D_2C1C4 = v0;
+    if (D_2C1D4 == -1) {
+        if (D_2C1D0 < v0) {
+            D_2C1C4 = v0;
+            if (D_2C1CC == -1) {
+                gl_func_0001CA10(0x06010F00, 0);
+                gl_func_0001CA10(0x06010F02, (char)((D_2C1D0 * -4) - 0x40));
+                D_2C1CC = 0;
+            }
+            if (D_2C1C4 >= -0xF) {
+                D_2C1D4 = 0;
+            }
+        } else {
+            D_2C1D0 = v0;
+            D_2C1C4 = v0;
         }
     }
 }
