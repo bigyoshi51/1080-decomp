@@ -4182,27 +4182,47 @@ void func_00007E70(char *a0) {
  * copy. INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
 void func_00007EC8(char *s0) {
-    char *g;
-    float scale, limit, p, end;
-    int hit = 0;
-    if (*(int*)((char*)&func_00000008 + 0x2C) == 8) return;
-    g = *(char**)&D_00000000;  /* D_g (placeholder) */
-    scale = *(float*)(g + 0x130);
-    limit = *(float*)(*(char**)(*(char**)(g + 0x254) + 0x70) + 0xA8) * scale;
-    p = *(float*)(s0 + 0x38) * scale;
-    end = *(float*)(s0 + 0x54) + p;
-    if (p < limit && end >= limit) {
-        /* fwd_frac = (limit - p) / s0->0x54; */
-        hit = 1;
-    } else if (end < limit && p >= limit) {
-        hit = 1;
-    }
-    if (hit == *(int*)(s0 + 0x8C)) {
-        /* same state — no transition */
+    float scale, limit, p, end, frac;
+    int hit;
+    char *src;
+    if (*(int *)((char *)&func_00000008 + 0x2C) != 8) {
+        scale = *(float *)((char *)&D_00000000 + 0x130);
+        frac = 0.0f;
+        src = (char *)&func_0000027C + 0x18;
+        limit = *(float *)(*(char **)(*(char **)((char *)&D_00000000 + 0x254) + 0x70) + 0xA8) * scale;
+        hit = 0;
+        p = *(float *)(s0 + 0x38) * scale;
+        end = *(float *)(s0 + 0x54) + p;
+        if (p < limit && limit < end) {
+            hit = 1;
+            frac = (limit - p) / *(float *)(s0 + 0x54);
+        } else if (end < limit && limit < *(float *)(s0 + 0x6C) + p) {
+            frac = 1.0f;
+            hit = 1;
+        }
+        if (hit != *(int *)(s0 + 0x8C)) {
+            *(int *)((char *)&D_00000000 + 0x0)  = *(int *)(src + 0x0);
+            *(int *)((char *)&D_00000000 + 0x4)  = *(int *)(src + 0x4);
+            *(int *)((char *)&D_00000000 + 0x8)  = *(int *)(src + 0x8);
+            *(int *)((char *)&D_00000000 + 0xC)  = *(int *)(src + 0xC);
+            *(int *)((char *)&D_00000000 + 0x10) = *(int *)(src + 0x10);
+            *(int *)((char *)&D_00000000 + 0x14) = *(int *)(src + 0x14);
+            *(int *)(s0 + 0x8C) = hit;
+        }
+        if (hit != 0) {
+            *(int *)(src + 0x0)  = *(int *)((char *)&D_00000000 + 0x0);
+            *(int *)(src + 0x4)  = *(int *)((char *)&D_00000000 + 0x4);
+            *(int *)(src + 0x8)  = *(int *)((char *)&D_00000000 + 0x8);
+            *(int *)(src + 0xC)  = *(int *)((char *)&D_00000000 + 0xC);
+            *(int *)(src + 0x10) = *(int *)((char *)&D_00000000 + 0x10);
+            *(int *)(src + 0x14) = *(int *)((char *)&D_00000000 + 0x14);
+            func_00000000(p, end, src, s0 + 0x74, frac);
+        }
     } else {
-        /* state change: copy a transform/quad block from
-         * (char*)&func_0000027C + 0x18 into a global */
-        *(int*)(s0 + 0x8C) = hit;
+        if (func_00000000(*(int *)((char *)&D_00000000 + 0x254), 3, *(int *)(s0 + 0x30),
+                          *(int *)(s0 + 0x34), *(float *)(s0 + 0x38), 0, 0.0f) != 0) {
+            func_00000000(s0);
+        }
     }
 }
 #else
