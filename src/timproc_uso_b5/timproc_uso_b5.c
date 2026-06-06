@@ -3368,26 +3368,106 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — param stash + table-lookup + vertex-bake skeleton only.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_00005BF0(char *scr, int a1, int a2, int a3) {
-    *(int *)(scr + 0x4DC) = a1;
-    *(int *)(scr + 0x4E0) = a3;
-    *(int *)(scr + 0x4E4) = a3;
-    *(int *)(scr + 0x4E8) = 1;
-    *(int *)(scr + 0x4EC) = a2;
-    *(int *)(scr + 0x4A4) = ((int *)((char *)&D_00000000 + 0x00000E74))[a1];
-    *(int *)(scr + 0x3E0) = ((int *)((char *)&D_00000000 + 0x00000E54))[a1];
-    *(int *)(scr + 0x4A8) = ((int *)((char *)&D_00000000 + 0x00000E94))[a1];
-    *(int *)(scr + 0x3E4) = func_00000000(scr);
-    *(float *)(scr + 0x420) = 255.0f;
-    *(float *)(scr + 0x424) = 255.0f;
-    *(float *)(scr + 0x428) = 255.0f;
-    *(float *)(scr + 0x42C) = 255.0f;
-    *(float *)(scr + 0x430) = 90.0f;
-    *(float *)(scr + 0x434) = 145.0f;
-    *(float *)(scr + 0x438) = 232.0f;
-    *(int *)(scr + 0x404) = 0x40;
-    *(int *)(scr + 0x488) = func_00000000(scr);
-    *(float *)(scr + 0x4BC) = 0.0f;
+void timproc_uso_b5_func_00005BF0(char *arg0, int *arg1, int *arg2, int *arg3, int *arg4, int *arg5) {
+    char *g = (char *)&D_00000000;
+    char *L, *e, *vt, *h;
+    int i, idx, va3 = 0;
+    float one = 255.0f / 255.0f, f12, f14, f16;
+
+    *(int **)(arg0 + 0x4DC) = arg1;
+    *(int **)(arg0 + 0x4E4) = arg3;
+    *(int **)(arg0 + 0x4E0) = arg2;
+    *(int **)(arg0 + 0x4E8) = arg4;
+    *(int **)(arg0 + 0x4EC) = arg5;
+    *(int *)(arg0 + 0x4A4) = *(int *)(g + *arg2 * 4 + 0xE74);
+    *(int *)(arg0 + 0x3E0) = *(int *)(g + *arg2 * 4 + 0xE54);
+    *(int *)(arg0 + 0x4A8) = *(int *)(g + *arg4 * 4 + 0xE94);
+    *(int *)(arg0 + 0x3E4) = func_00000000(1, *arg4);
+    L = *(char **)(*(char **)(arg0 + 0x40C) + 0x40);
+    if (*(int *)(L + 0x6C) > 0) {
+        va3 = 0xB8;
+        i = 0;
+        do {
+            int v;
+            if (*(int *)(arg0 + 0x3BC) == 2) {
+                if (*(int *)(g + *(int *)(arg0 + 0x3B8) * 4 + 0xB8) != 0) {
+                    v = 0x20000;
+                } else {
+                    v = 0;
+                }
+            } else {
+                v = 0;
+            }
+            *(int *)(*(int *)(L + i * 4 + 0x3C) + 0x2B4) = v;
+            i++;
+            L = *(char **)(*(char **)(arg0 + 0x40C) + 0x40);
+        } while (i < *(int *)(L + 0x6C));
+    }
+    L = *(char **)(*(char **)(arg0 + 0x40C) + 0x44);
+    if (*(int *)(L + 0x6C) > 0) {
+        i = 0;
+        do {
+            e = *(char **)(L + i * 4 + 0x3C);
+            i++;
+            *(int *)(e + 0x2B4) = **(int **)(arg0 + 0x4E4) & 0x20;
+            L = *(char **)(*(char **)(arg0 + 0x40C) + 0x44);
+        } while (i < *(int *)(L + 0x6C));
+    }
+    *(int *)(arg0 + 0x3E8) = func_00000000(arg0, 2, **(int **)(arg0 + 0x4EC), va3);
+    idx = func_00000000(arg0, 3, **(int **)(arg0 + 0x4DC));
+    *(int *)(arg0 + 0x3EC) = idx;
+    *(int *)(arg0 + 0x3DC) = idx;
+    *(int *)(arg0 + 0x3D0) = *(int *)(arg0 + 0x3E0);
+    *(int *)(arg0 + 0x3D4) = *(int *)(arg0 + 0x3E4);
+    *(int *)(arg0 + 0x3D8) = *(int *)(arg0 + 0x3E8);
+    e = *(char **)(*(char **)(*(char **)(arg0 + 0x40C) + 0x40) + *(int *)(arg0 + 0x3D0) * 4 + 0x3C);
+    vt = *(char **)(e + 0x28);
+    (*(void (**)())(vt + 0x84))(*(int *)(vt + 0x80) + (int)e, 0, *(int *)(arg0 + 0x3D0), e);
+    e = *(char **)(*(char **)(*(char **)(arg0 + 0x40C) + 0x44) + *(int *)(arg0 + 0x3E4) * 4 + 0x3C);
+    vt = *(char **)(e + 0x28);
+    (*(void (**)())(vt + 0x84))(*(int *)(vt + 0x80) + (int)e, 0);
+    e = *(char **)(*(char **)(*(char **)(arg0 + 0x40C) + 0x48) + *(int *)(arg0 + 0x3E8) * 4 + 0x3C);
+    vt = *(char **)(e + 0x28);
+    (*(void (**)())(vt + 0x84))(*(int *)(vt + 0x80) + (int)e, 0);
+    *(float *)(arg0 + 0x434) = 145.0f / 255.0f;
+    *(float *)(arg0 + 0x42C) = one;
+    *(float *)(arg0 + 0x430) = one;
+    *(float *)(arg0 + 0x43C) = one;
+    *(float *)(arg0 + 0x440) = one;
+    *(float *)(arg0 + 0x444) = one;
+    *(float *)(arg0 + 0x448) = one;
+    *(float *)(arg0 + 0x44C) = one;
+    *(float *)(arg0 + 0x45C) = one;
+    *(float *)(arg0 + 0x46C) = one;
+    *(float *)(arg0 + 0x47C) = one;
+    f12 = 90.0f / 255.0f;
+    *(float *)(arg0 + 0x460) = 161.0f / 255.0f;
+    *(float *)(arg0 + 0x420) = f12;
+    *(float *)(arg0 + 0x424) = f12;
+    *(float *)(arg0 + 0x428) = f12;
+    f14 = 13.0f / 255.0f;
+    *(float *)(arg0 + 0x438) = 58.0f / 255.0f;
+    f16 = 70.0f / 255.0f;
+    *(float *)(arg0 + 0x450) = f14;
+    *(float *)(arg0 + 0x454) = f14;
+    *(float *)(arg0 + 0x458) = f14;
+    *(float *)(arg0 + 0x470) = f16;
+    *(float *)(arg0 + 0x474) = f16;
+    *(float *)(arg0 + 0x478) = f16;
+    *(float *)(arg0 + 0x464) = 91.0f / 255.0f;
+    *(float *)(arg0 + 0x468) = 35.0f / 255.0f;
+    *(int *)(arg0 + 0x4D0) = func_00000000(*(int *)&f12, *(int *)&f14, 0, 0, 0x48, 0xDD, 3, 0xD);
+    h = (char *)func_00000000(arg0);
+    vt = *(char **)(h + 0x28);
+    (*(void (**)())(vt + 0x64))(*(int *)(vt + 0x60) + (int)h);
+    {
+        char *p414 = *(char **)(arg0 + 0x414);
+        func_00000000(func_00000000(arg0), *(int *)(p414 + 0x10), *(int *)(p414 + 0x14));
+    }
+    func_00000000(arg0, 0);
+    *(int *)(arg0 + 0x404) = 0x40;
+    *(int *)(arg0 + 0x488) = *(int *)(arg0 + 0x104);
+    *(float *)(arg0 + 0x4BC) = 1.0f;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00005BF0);
