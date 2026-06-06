@@ -5875,7 +5875,7 @@ int timproc_uso_b5_func_00008C38(char *scr) {
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_00008C44(char *r) {
     char *c = *(char **)((char *)&D_00000000 + 0x154);
-    int m = *(short *)(r + 0x2) - 4;
+    int m = *(short *)(c + 0x2) - 4;
     char *e;
     if (m < 0 || m >= 2) return 0;
     if (*(unsigned char *)(c + 0xE) == 0xFC &&
