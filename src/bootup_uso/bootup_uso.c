@@ -5940,7 +5940,7 @@ void func_0000CFA0(char *st) {
     float out_at_sp84;
     int changed;
     char *sub;
-    float d0, d1, d2, m;
+    float dp[3];
     int sp30;
     ctx = *(char **)((char *)&D_00000000 + 0x18);
     if ((*(int *)(st + 0xA58) & 0x2000) && ctx == *(char **)(st + 0x8DC)) return;
@@ -5983,26 +5983,25 @@ void func_0000CFA0(char *st) {
     } else {
         if ((*(int *)(st + 0x8B8) & 0xA) && *(int *)(st + 0xA4C) &&
             !(*(int *)(st + 0x9A8) & 0x400)) {
-            d0 = *(float *)(st + 0x9D8);
-            d1 = *(float *)(st + 0x9DC);
-            d2 = *(float *)(st + 0x9E0);
-            m = d0 * d0 + d1 * d1 + d2 * d2;
-            (void)m;
-            *(float *)(st + 0x9E8) = (float)(*(unsigned char *)(st + 0xA30) >> 1) / 255.0f;
-            *(float *)(st + 0x9EC) = (float)(*(unsigned char *)(st + 0xA31) >> 1) / 255.0f;
-            *(float *)(st + 0x9F0) = (float)(*(unsigned char *)(st + 0xA32) >> 1) / 255.0f;
-            *(float *)(st + 0x9F4) = 112.0f / 255.0f;
-            func_00000000(st + 0x9E8);
-            if (*(int *)(st + 0x8B8) & 2) func_00000000(2);
-            if ((*(int *)(st + 0x8B8) & 8) && *(int *)(st + 0x938) == 0) {
-                sub = *(char **)(st + 0x824);
-                if (sub) {
-                    void (*fn)(void *) = *(void (**)(void *))(sub + 0x1C);
-                    if (fn) fn(sub);
+            func_00000000(*(int *)(st + 0x850), st + 0x9D8, dp);
+            if ((double)(dp[0] * *(float *)(st + 0x9D8) + dp[1] * *(float *)(st + 0x9DC) +
+                         dp[2] * *(float *)(st + 0x9E0)) < *(double *)((char *)&func_00000940 + 0x38)) {
+                *(float *)(st + 0x9E8) = (float)(*(unsigned char *)(st + 0xA30) >> 1) / 255.0f;
+                *(float *)(st + 0x9EC) = (float)(*(unsigned char *)(st + 0xA31) >> 1) / 255.0f;
+                *(float *)(st + 0x9F0) = (float)(*(unsigned char *)(st + 0xA32) >> 1) / 255.0f;
+                *(float *)(st + 0x9F4) = 112.0f / 255.0f;
+                func_00000000(st + 0x9E8);
+                if (*(int *)(st + 0x8B8) & 2) func_00000000(2);
+                if ((*(int *)(st + 0x8B8) & 8) && *(int *)(st + 0x938) == 0) {
+                    sub = *(char **)(st + 0x824);
+                    if (sub) {
+                        void (*fn)(void *) = *(void (**)(void *))(sub + 0x1C);
+                        if (fn) fn(sub);
+                    }
                 }
             }
+            *(int *)((char *)&D_00000000 + 0x64) = 0;
         }
-        *(int *)((char *)&D_00000000 + 0x64) = 0;
     }
     func_00000000((*(int *)(st + 0x8B8) & 1) ? 0x11 : 0x14);
     sp30 = 0;
