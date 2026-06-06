@@ -21814,7 +21814,67 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051ED8);
 // FULL-DECODE node). Caps: self struct + 5 cb prototypes untyped,
 // message offsets not symbolized (USO-relocated). Full body
 // INCLUDE_ASM-preserved.
+#ifdef NON_MATCHING
+/* Token-stream interpreter. arg0=context, arg1=int command cursor.
+ * Stores context to a &D global, then walks the cursor (advance-by-4)
+ * dispatching: 0x64 = parse+append element into the grow-array at
+ * arg0->0x84 ({base@0, count@0xC}); 0x65 = back-link prev; 0 = stop;
+ * default = error. gl_func_00034458 is the in-file K&R error/parse cb.
+ * Message args 0x20F38/4C/68/78 are absolute rodata addrs. */
+void gl_func_00051F5C(void *arg0, int *arg1) {
+    void *node;   /* s3 */
+    void *prev;   /* s5 */
+    int idx;      /* s4 */
+    int done;     /* s6 */
+    int cmd;
+    int *vec;     /* s0 = arg0 + 0x84 */
+    int k;
+    int *base;
+
+    node = (void *)0;
+    prev = (void *)0;
+    *(void **)&D_00000000 = arg0;
+    idx = 0;
+    done = 0;
+    do {
+        cmd = *arg1;
+        arg1++;
+        switch (cmd) {
+        case 100:
+            prev = node;
+            vec = (int *)((char *)arg0 + 0x84);
+            if (idx >= *(int *)((char *)arg0 + 0x8C)) {
+                gl_func_00034458((char *)0x20F38, cmd);
+            }
+            node = (void *)gl_func_00034458(arg0, &arg1);
+            if (*(int *)((char *)arg0 + 0x90) >= *(int *)((char *)arg0 + 0x8C)) {
+                gl_func_00034458((char *)0x20F4C);
+            }
+            k = vec[3];
+            base = (int *)vec[0];
+            vec[3] = k + 1;
+            base[k] = (int)node;
+            *(int *)((char *)node + 0x18) = idx;
+            idx++;
+            break;
+        case 101:
+            if (prev == (void *)0) {
+                gl_func_00034458((char *)0x20F68, cmd);
+            }
+            *(int *)((char *)prev + 0x40) = (int)node;
+            break;
+        case 0:
+            done = 1;
+            break;
+        default:
+            gl_func_00034458((char *)0x20F78, cmd);
+            break;
+        }
+    } while (done == 0);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051F5C);
+#endif
 
 /* gl_func_000520B8: 19-insn float-mul wrapper. Sibling of gl_func_00052104
  * (also NM cap). Multiplies scale by (a0->[0x20] * a0->[0x22]) — two
