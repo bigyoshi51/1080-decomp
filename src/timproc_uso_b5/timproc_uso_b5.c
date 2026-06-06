@@ -3860,23 +3860,48 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_000069E8(char *scr, int a1) {
+    char *g = (char *)&D_00000000;
+    char *C, *elem;
+    int a4;
     func_00000000(scr, a1);
     func_00000000(*(char **)(scr + 0x418), -1, 0);
-    if (*(int *)(scr + 0x4A4) == 0) {
-        func_00000000((char *)&D_00000000 + 0x00001304);
+    *(int *)(g + 0x40) = *(int *)(g + 0x44);
+    C = *(char **)(scr + 0x40C);
+    elem = *(char **)(C + 0x40) + *(int *)(scr + 0x3D0) * 4;
+    *(int *)*(char **)(scr + 0x4E0) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
+    a4 = *(int *)(scr + 0x4A4);
+    if (a4 != 0 && a4 < 4) {
+        func_00000000((char *)&D_00000000 + 0x1304, a4);
+        *(int *)*(char **)(scr + 0x4E0) = *(int *)((char *)&D_00000000 + *(int *)(scr + 0x4A4) * 4 + 0xF24) - 1;
+    }
+    if (*(int *)g == 0x17D7) {
+        elem = *(char **)(*(char **)(scr + 0x40C) + 0x4C) + *(int *)(scr + 0x3DC) * 4;
+        *(int *)*(char **)(scr + 0x4DC) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
     } else {
-        int idx = *(int *)(scr + 0x4E0 + (*(int *)(scr + 0x4A4) - 1) * 4);
-        char *base = *(char **)(*(char **)(scr + 0x40C) + 0x3D0);
-        char *e = base + idx;
-        if (*(int *)&D_00000000 == 0x17D7) {
-            *(int *)((char *)&D_00000000 + 0xA4) = idx;
-        }
-        if (*(int *)(scr + 0x4A8) != 0 && *(int *)(scr + 0x34) == 1) {
-            *(int *)(*(char **)(e + 0x3C) + 0x2B0) |= 1;
-            *(int *)(*(char **)(e + 0x3C) + 0x2B4) |= 1;
-        }
-        *(int *)&D_00000000 -= 1;
-        *(int *)((char *)&D_00000000 + 0xB8) = idx;
+        *(int *)*(char **)(scr + 0x4DC) = 1;
+    }
+    elem = *(char **)(*(char **)(scr + 0x40C) + 0x44) + *(int *)(scr + 0x3D4) * 4;
+    *(int *)*(char **)(scr + 0x4E8) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
+    if (*(int *)(scr + 0x4A8) == 4) {
+        *(int *)*(char **)(scr + 0x4E8) = 8;
+    }
+    C = *(char **)(scr + 0x40C);
+    {
+        char *e44 = *(char **)(C + 0x44) + *(int *)(scr + 0x3D4) * 4;
+        char *e40 = *(char **)(C + 0x40) + *(int *)(scr + 0x3D0) * 4;
+        *(int *)*(char **)(scr + 0x4E4) =
+            *(int *)(*(char **)(e44 + 0x3C) + 0x2B4) | *(int *)(*(char **)(e40 + 0x3C) + 0x2B4);
+    }
+    if (a1 != 0) {
+        elem = *(char **)(*(char **)(scr + 0x40C) + 0x48) + *(int *)(scr + 0x3D8) * 4;
+        *(int *)*(char **)(scr + 0x4EC) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
+    }
+    if (*(int *)(g + 0x34) != 2) {
+        *(int *)((char *)&D_00000000 + *(int *)(scr + 0x3D0) * 4 + 0xA4) = *(int *)*(char **)(scr + 0x4E8);
+    } else {
+        char *e40b = *(char **)(*(char **)(scr + 0x40C) + 0x40) + *(int *)(scr + 0x3D0) * 4;
+        *(int *)((char *)&D_00000000 + *(int *)(scr + 0x3B8) * 4 + 0xB8) =
+            (*(int *)(*(char **)(e40b + 0x3C) + 0x2B4) & 0x20000) != 0;
     }
     return 1;
 }
