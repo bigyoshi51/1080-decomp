@@ -1650,27 +1650,13 @@ void timproc_uso_b3_func_00002A44(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002A44);
 #endif
 
-#ifdef NON_MATCHING
-/* Full structural decode 2026-06-01. 4-stage state dispatcher on obj->0x58:
- * each stage queries gl_func(&D, flag); on hit, conditionally toggles
- * obj->0x58 or fires a virtual method ((*vt->0x5C)((short)obj->0x58 +
- * obj->0x48)) on the obj->0x48 sub-object. All cross-USO calls are the
- * gl_func_00000000 import.
- *
- * 98.26% — RESIDUAL IS A v0/v1 ALLOCATOR CAP (15 word-diffs, 3 identical
- * call sites, verified 2026-06-01). The vtable-call tail
- *   o48 = obj->0x48; vt = o48->0x28;
- *   (*(vt->0x5C))(*(short*)(vt->0x58) + (int)o48)
- * compiles to the EXACT target instruction sequence but shifted up one GPR:
- * target keeps o48 in v0 (reusing the dead v0 from the preceding void
- * gl_func(...) test) and vt in v1; build puts o48 in v1, vt in a1, with
- * t9/t1 rebased on a1. Every one of the 15 diffs is this single coloring
- * decision cascading through `lw o48 / lw vt / lw 0x5C / lh 0x58 / addu`,
- * ×3 sites. Tried & rejected (all in-tree, no improvement): move obj->0x50=0
- * after vt (18), before o48 (15); `register` on o48/vt (15, no-op as on the
- * sibling 00000014); o48 as `int` with single-load 0xD8 (19). Same class as
- * n64proc_uso_func_00000100's q/r register cap — unreachable from C-source.
- * Next attempt: permuter (the v0<->v1 swap is a pure-coloring target). */
+/* 4-stage state dispatcher on obj->0x58: each stage queries gl_func(&D, flag);
+ * on hit, conditionally toggles obj->0x58 or fires a virtual method
+ * ((*vt->0x5C)((short)vt->0x58 + o48)) on the obj->0x48 sub-object. The empty
+ * `if (1) {}` before each o48 load is load-bearing: it forces an IDO
+ * basic-block boundary that colors o48 into the dead $v0 (vt into $v1),
+ * matching the target (was a 98.26% v0/v1 near-miss). Same lever as
+ * mgrproc_uso_func_00001324 / the timproc_uso_b5 dispatch family. */
 void timproc_uso_b3_func_00002C98(char *obj) {
     char *o48;
     char *vt;
@@ -1688,12 +1674,14 @@ void timproc_uso_b3_func_00002C98(char *obj) {
             gl_func_00000000(5);
             gl_func_00000000((char *)&D_00000000, 2);
             *(int *)(*(char **)(obj + 0x48) + 0xD8) = 0;
+            if (1) {}
             o48 = *(char **)(obj + 0x48);
             *(int *)(obj + 0x50) = 0;
             vt = *(char **)(o48 + 0x28);
             ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)o48);
         } else {
             gl_func_00000000(0x802);
+            if (1) {}
             o48 = *(char **)(obj + 0x48);
             *(int *)(obj + 0x50) = 0;
             vt = *(char **)(o48 + 0x28);
@@ -1702,15 +1690,13 @@ void timproc_uso_b3_func_00002C98(char *obj) {
     }
     if (gl_func_00000000((char *)&D_00000000, 0x200) != 0) {
         gl_func_00000000(0x802);
+        if (1) {}
         o48 = *(char **)(obj + 0x48);
         *(int *)(obj + 0x50) = 0;
         vt = *(char **)(o48 + 0x28);
         ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)o48);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002C98);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00002DF0: 64-insn (0x100) grid-render setup.
