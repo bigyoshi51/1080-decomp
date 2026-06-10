@@ -156,7 +156,13 @@ build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17A00
 build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10
 build/src/game_libs/game_libs_post2.c.o: TRUNCATE_TEXT := 0x898
-build/src/game_libs/game_libs_post2b.c.o: TRUNCATE_TEXT := 0x2CE8
+build/src/game_libs/game_libs_post2b.c.o: TRUNCATE_TEXT := 0x6C4
+build/src/game_libs/game_libs_ido53_72C88.c.o build/non_matching/src/game_libs/game_libs_ido53_72C88.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_72C88.c.o build/non_matching/src/game_libs/game_libs_ido53_72C88.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_72C88.c.o: CC_ONLY_FLAGS := -Olimit 1
+build/non_matching/src/game_libs/game_libs_ido53_72C88.c.o: CC_ONLY_FLAGS := -Olimit 1
+build/src/game_libs/game_libs_ido53_72C88.c.o: TRUNCATE_TEXT := 0x1B4
+build/src/game_libs/game_libs_post2b_c.c.o: TRUNCATE_TEXT := 0x2470
 
 build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
@@ -357,7 +363,7 @@ else
 build/src/%.c.o: src/%.c
 	@mkdir -p $(dir $@) build/$(<D)
 	$(ASM_PROC) $(OPT_FLAGS) $< > build/$<
-	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(MIPSISET) $(CPPFLAGS) -o $@ build/$<
+	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(CC_ONLY_FLAGS) $(MIPSISET) $(CPPFLAGS) -o $@ build/$<
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
 	@if [ -n "$(REPLACE_FUNC_BODY)" ]; then for spec in $(REPLACE_FUNC_BODY); do 		fn=$$(echo $$spec | cut -d= -f1); 		donor=$$(echo $$spec | cut -d= -f2); 		$(MAKE) $$donor; 		python3 scripts/replace-function-body.py $@ $$fn $$donor; 	done; fi
@@ -385,7 +391,7 @@ ifndef PERMUTER
 build/non_matching/src/%.c.o: src/%.c
 	@mkdir -p $(dir $@) build/non_matching/$(<D)
 	$(ASM_PROC) $(OPT_FLAGS) $< > build/non_matching/$<
-	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(MIPSISET) $(CPPFLAGS) -DNON_MATCHING -o $@ build/non_matching/$<
+	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(CC_ONLY_FLAGS) $(MIPSISET) $(CPPFLAGS) -DNON_MATCHING -o $@ build/non_matching/$<
 	$(ASM_PROC) $(OPT_FLAGS) $< --post-process $@ 		--assembler "$(AS) $(ASFLAGS)" --asm-prelude $(ASM_PRELUDE)
 	$(POST_COMPILE)
 	@if [ -n "$(REPLACE_FUNC_BODY)" ]; then for spec in $(REPLACE_FUNC_BODY); do 		fn=$$(echo $$spec | cut -d= -f1); 		donor=$$(echo $$spec | cut -d= -f2); 		$(MAKE) $$donor; 		python3 scripts/replace-function-body.py $@ $$fn $$donor; 	done; fi

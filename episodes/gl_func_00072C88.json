@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00072C88",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T03:07:16.156395+00:00",
+  "end_time": "2026-06-10T03:07:16.156423+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T03:07:16.156415+00:00",
+      "assistant_text": "gl_func_00072C88: FIRST -Olimit-fallback match. 1080-custom osPfsChecker-family cross-bank inode link-matrix builder (was fuzzy=None two ticks ago). The function is -O0-shaped with filled delay slots -- produced by IDO 5.3 -O1 -Olimit 1 (uopt skipped, scheduler on). Match-critical shapes: reverse-declaration-order locals; &&-combined skip conditions (keeps unit.bank/bank live into the marking block); |= for single address computation; (map+idx)[0x101] for addu operand order; ++bank inside the while condition (u8 truncation andi, no reload). Required new CC_ONLY_FLAGS Makefile plumbing (-Olimit must not reach asm-processor) and the both-paths var gotcha (NM .o needs CC/OPT_FLAGS too).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 109,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs ido53 carve unit: gl_func_00072C88, the first -Olimit-fallback\n * match (IDO 5.3, -O1 -Olimit 1 -- uopt skipped so the emit is -O0-shaped\n * with homed args and per-use reloads, but the -O1 pipeline still fills\n * delay slots). 1080-custom osPfsChecker-family helper: builds a 256-byte\n * cross-bank inode link matrix. Match-critical shapes: reverse-declaration-\n * order locals (i lowest at 0x12C ... ret highest? no: i declared FIRST ->\n * 0x12C), &&-combined skip conditions (keeps unit.bank/bank live into the\n * marking block), |= (single address computation), (map + idx)[0x101]\n * (addu operand order), and ++bank inside the while condition (u8\n * truncation andi without a reload). See docs/IDO_CODEGEN -Olimit entry. */\ntypedef unsigned char u8;\ntypedef unsigned short u16;\ntypedef int s32;\n\ntypedef struct {\n    int status; void *queue; int channel;\n    u8 id[32]; u8 label[32];\n    int version; int dir_size; int inode_table; int minode_table;\n    int dir_table; int inode_start_page; u8 banks; u8 activebank;\n} OSPfs;\n\ntypedef union {\n    struct { u8 bank; u8 page; } inode_t;\n    u16 ipage;\n} __OSInodeUnit;\n\ntypedef struct {\n    __OSInodeUnit inode_page[128];\n} __OSInode;\n\nextern int gl_func_00000000();\n\ns32 gl_func_00072C88(OSPfs *pfs, u8 *map) {\n    s32 i;\n    s32 idx;\n    s32 startpage;\n    u8 bank;\n    __OSInodeUnit unit;\n    __OSInode inode;\n    s32 ret;\n\n    for (i = 0; i < 256; i++) {\n        map[i + 0x101] = 0;\n    }\n    map[0x100] = 0xFF;\n    bank = 0;\n    if (pfs->banks > 0) {\n        do {\n            if (bank > 0) {\n                startpage = 1;\n            } else {\n                startpage = pfs->inode_start_page;\n            }\n            ret = gl_func_00000000(pfs, &inode, 0, bank);\n            if (ret != 0) {\n                if (ret != 3) {\n                    return ret;\n                }\n            }\n            for (i = startpage; i < 128; i++) {\n                unit = inode.inode_page[i];\n                if (unit.ipage >= pfs->inode_start_page && unit.inode_t.bank != bank) {\n                    idx = unit.inode_t.page / 4 + (unit.inode_t.bank % 8) * 32;\n                    (map + idx)[0x101] |= 1 << (bank % 8);\n                }\n            }\n        } while (++bank < pfs->banks);\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_72C88.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00072C88.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -Olimit 1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 109/109 words vs target asm AND vs baserom raw ROM bytes in-tree (incl. placeholder jal); report.json fuzzy=100.0; post2b/post2b_c split heads byte-verified."
+  }
+}
