@@ -5963,8 +5963,14 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * a0 home (20/21, 20 diffs); -O1 homes everything (+frame, 26-28
  * insns); &a0 address-taken at -O2 produces the home store at insn 0
  * but restructures the body loads. The home+register-24 combination is
- * between our -O1 and -O2 shapes -- possibly 5.3 or an -Olimit form;
- * next pass should matrix 5.3 x {O1,O2,Olimit}. */
+ * between our -O1 and -O2 shapes.
+ * 2026-06-10 pass 2 NEGATIVE MATRIX: {7.1, 5.3} x {-O1, -O2, -O1
+ * -Olimit 1, -O2 -Olimit 1} x {goto-ret form, simple form, K&R def,
+ * &a0 address-taken} -- 18 cells, none reproduce home-store + register
+ * 24 + -O2 body simultaneously. &a0 gets the home but restructures
+ * loads; everything else either folds the 24 (O2) or over-homes (O1).
+ * Treat as a shape cap pending a genuinely new lever; do NOT re-run
+ * this matrix. */
 #ifdef NON_MATCHING
 s32 timproc_uso_b5_func_00008D38(char *a0) {
     s32 ret;
