@@ -5542,6 +5542,12 @@ void gl_func_0006A5B0(int a0) {
     gl_func_00000000(293);
 }
 
+/* game_libs_func_0006A5F0 CLASSIFIED 2026-06-10: HANDWRITTEN exception-
+ * handler code (the __osException family fingerprint): k0-register
+ * trampolines (lui k0/addiu k0/jr k0) at the head, sd/ld 64-bit register
+ * saves, 11 CP0 words (mfc0/mtc0), and dispatch tables 3 insns in.
+ * Inexpressible in IDO C (reference_1080_mips3_runtime_helpers class):
+ * PERMANENT INCLUDE_ASM -- do not graft or decode. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A5F0);
 
 /* game_libs_func_0006AD68 = libultra __osPopThread (os/exceptasm.s) --
