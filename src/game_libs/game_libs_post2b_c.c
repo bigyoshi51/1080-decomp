@@ -166,8 +166,16 @@ void gl_func_000732C4(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000732C4);
 #endif
 
-/* VI-status read leaf. The leading nop pad and delay-slot temp move are
- * reproduced with PREFIX_BYTES + INSN_PATCH in the Makefile. */
+/* VI-status read leaf (VI_CURRENT/STATUS 0xA4400010 & 1). The old
+ * PREFIX_BYTES + INSN_PATCH fake was removed 2026-05-23. STRUCTURE
+ * 2026-06-10: the symbol = 1 misattributed leading pad nop (the 3ECDC
+ * class -- split a _pad sidecar + rename body to 73314 at the relayout
+ * pass) + a 5-insn body whose residual is the `andi t7,v0,1; jr ra;
+ * move v0,t7` tail -- the AND lands in a TEMP with the copy in the
+ * delay. Shape sweep NEGATIVE (6 forms x O1/O2/g/g3): direct expr and
+ * -g3 emit andi-to-v0; named/volatile vars grow frames; nothing
+ * produces the temp+move-in-delay pair. Same family as the 69F54 VI
+ * reader (relayout backlog). Honest INCLUDE_ASM. */
 #ifdef NON_MATCHING
 u32 game_libs_func_00073310(void) {
     return *(volatile u32 *)0xA4400010 & 1;
