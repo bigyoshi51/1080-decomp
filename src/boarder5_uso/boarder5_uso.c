@@ -20,10 +20,16 @@ void boarder5_uso_func_00000040(Quad4 *dst) {
     *dst = buf;
 }
 
+/* Original jals target fn-4 (the leading-nop true entries) — base ROM never
+ * calls the splat-named entries; undefined_syms absolutes per the h2h_4DC
+ * precedent. */
+extern int boarder5_uso_func_b5_3C();
+extern int boarder5_uso_func_b5_D0();
+extern int boarder5_uso_func_b5_10C();
 void boarder5_uso_func_00000098(char *dst) {
     int tmp;
     gl_func_00000000(&tmp);
-    boarder5_uso_func_00000040((Quad4*)(dst + 0x10));
+    boarder5_uso_func_b5_3C((Quad4*)(dst + 0x10));
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/boarder5_uso/boarder5_uso/boarder5_uso_func_00000098_pad.s")
 
@@ -41,6 +47,6 @@ void boarder5_uso_func_00000110(Quad4 *dst) {
 
 void boarder5_uso_func_00000168(char *dst) {
     int tmp;
-    boarder5_uso_func_000000D4(&tmp);
-    boarder5_uso_func_00000110((Quad4*)(dst + 0x10));
+    boarder5_uso_func_b5_D0(&tmp);
+    boarder5_uso_func_b5_10C((Quad4*)(dst + 0x10));
 }

@@ -1527,22 +1527,26 @@ tail:
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000017A0);
 #endif
 
+/* Original jals target fn-4 (leading-nop true entries) — h2h_4DC precedent. */
+extern int h2hproc_uso_func_h2h_4DC();
+extern int h2hproc_uso_func_h2h_518();
+extern int h2hproc_uso_func_h2h_554();
 void h2hproc_uso_func_000019DC(char *dst) {
     int tmp;
-    h2hproc_uso_func_000004E0(&tmp);
-    h2hproc_uso_func_000004E0((int*)(dst + 0x10));
+    h2hproc_uso_func_h2h_4DC(&tmp);
+    h2hproc_uso_func_h2h_4DC((int*)(dst + 0x10));
 }
 
 void h2hproc_uso_func_00001A0C(char *dst) {
     int tmp;
-    h2hproc_uso_func_000004E0(&tmp);
-    h2hproc_uso_func_0000051C((float*)(dst + 0x10));
+    h2hproc_uso_func_h2h_4DC(&tmp);
+    h2hproc_uso_func_h2h_518((float*)(dst + 0x10));
 }
 
 void h2hproc_uso_func_00001A3C(char *dst) {
     int tmp;
-    h2hproc_uso_func_000004E0(&tmp);
-    h2hproc_uso_func_00000558((Quad4*)(dst + 0x10));
+    h2hproc_uso_func_h2h_4DC(&tmp);
+    h2hproc_uso_func_h2h_554((Quad4*)(dst + 0x10));
 }
 
 /* h2hproc_uso_func_00001A6C: 36-insn (0x90) constructor — BYTE-IDENTICAL

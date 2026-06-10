@@ -215,13 +215,13 @@ void eddproc_uso_func_0000032C(char *dst) {
 void eddproc_uso_func_0000035C(char *dst) {
     int tmp;
     gl_func_00000000(&tmp);
-    eddproc_uso_func_00000040((float*)(dst + 0x10));
+    eddproc_uso_func_edd_3C((float*)(dst + 0x10));
 }
 
 void eddproc_uso_func_0000038C(char *dst) {
     int tmp;
     gl_func_00000000(&tmp);
-    eddproc_uso_func_0000007C((Quad4*)(dst + 0x10));
+    eddproc_uso_func_edd_78((Quad4*)(dst + 0x10));
 }
 
 /* 36-insn / 0x90 constructor: alloc 0x40, init via gl_func, conditional
@@ -264,7 +264,7 @@ void *eddproc_uso_func_000003BC(int *arg0) {
 void eddproc_uso_func_0000044C(char *dst) {
     int tmp;
     gl_func_00000000(&tmp);
-    eddproc_uso_func_000000D4((Vec3*)(dst + 0x10));
+    eddproc_uso_func_edd_D0((Vec3*)(dst + 0x10));
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso/eddproc_uso_func_0000044C_pad.s")
 

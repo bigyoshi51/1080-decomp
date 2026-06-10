@@ -640,9 +640,13 @@ verify-blocks: build/assets/mgrproc_uso_block1_yay0.bin build/assets/game_uso_bl
 		build/assets/timproc_uso_block5_yay0.bin build/assets/map4_data_uso_block2_yay0.bin
 	python3 scripts/verify-yay0-blocks.py
 
-# Verify ROM matches
+# Verify ROM matches — HARD-FAILS on any regression (rom-exact reached
+# 2026-06-10: tenshoe.z64 is byte-identical to baserom, splat sha1
+# 79cd1166c365e5809dec9b62e6d40d6032d5db3a). Do not soften this gate.
 verify: $(ROM)
-	@md5sum -c checksum.md5 && echo "ROM OK" || echo "ROM MISMATCH"
+	@md5sum -c checksum.md5 || { echo "ROM MISMATCH — build regressed from byte-exact"; exit 1; }
+	@cmp $(ROM) baserom.z64 || { echo "ROM MISMATCH (cmp) — build regressed from byte-exact"; exit 1; }
+	@echo "ROM OK (byte-identical to baserom)"
 
 # Snapshot expected objects for objdiff baseline
 expected:

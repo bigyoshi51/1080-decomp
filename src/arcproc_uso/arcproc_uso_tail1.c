@@ -1603,22 +1603,28 @@ void arcproc_uso_func_00001F54(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001F54);
 #endif
 
+/* Original jals target fn-4 (leading-nop true entries; base never calls the
+ * splat-named entries) — undefined_syms absolutes per the h2h_4DC precedent. */
+extern int arcproc_uso_func_arc_8F8();
+extern int arcproc_uso_func_arc_934();
+extern int arcproc_uso_func_arc_970();
+extern int arcproc_uso_func_arc_9C8();
 void arcproc_uso_func_000022A4(char *dst) {
     int tmp;
-    arcproc_uso_func_000008FC(&tmp);
-    arcproc_uso_func_000008FC((int*)(dst + 0x10));
+    arcproc_uso_func_arc_8F8(&tmp);
+    arcproc_uso_func_arc_8F8((int*)(dst + 0x10));
 }
 
 void arcproc_uso_func_000022D4(char *dst) {
     int tmp;
-    arcproc_uso_func_000008FC(&tmp);
-    arcproc_uso_func_00000938((float*)(dst + 0x10));
+    arcproc_uso_func_arc_8F8(&tmp);
+    arcproc_uso_func_arc_934((float*)(dst + 0x10));
 }
 
 void arcproc_uso_func_00002304(char *dst) {
     int tmp;
-    arcproc_uso_func_000008FC(&tmp);
-    arcproc_uso_func_00000974((Quad4*)(dst + 0x10));
+    arcproc_uso_func_arc_8F8(&tmp);
+    arcproc_uso_func_arc_970((Quad4*)(dst + 0x10));
 }
 
 /* arcproc_uso_func_00002334: 36-insn (0x90) constructor — BYTE-IDENTICAL
@@ -1669,8 +1675,8 @@ void *arcproc_uso_func_00002334(int *arg0) {
 
 void arcproc_uso_func_000023C4(char *dst) {
     int tmp;
-    arcproc_uso_func_000008FC(&tmp);
-    arcproc_uso_func_000009CC((Vec3*)(dst + 0x10));
+    arcproc_uso_func_arc_8F8(&tmp);
+    arcproc_uso_func_arc_9C8((Vec3*)(dst + 0x10));
 }
 
 extern int gl_ref_00000040;
