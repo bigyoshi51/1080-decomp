@@ -778,15 +778,21 @@ fire:
                 ((void (*)(int))(*(int *)(vt + 0x64)))(*(short *)(vt + 0x60) + (int)v1);
             }
         } else {
-            c = (int *)(*(char **)(s0 + 0x64) + 0x3C);
-            if (*c > 0) {
+            int av;
+            v1 = *(char **)(s0 + 0x64);
+            av = *(int *)(v1 + 0x3C);
+            c = (int *)(v1 + 0x3C);
+            if (av > 0) {
                 *c = *c - 16;
-                if (*(int *)(*(char **)(s0 + 0x64) + 0x3C) < 0) {
-                    *(int *)(*(char **)(s0 + 0x64) + 0x3C) = 0;
+                v1 = *(char **)(s0 + 0x64);
+                av = *(int *)(v1 + 0x3C);
+                if (av < 0) {
+                    *(int *)(v1 + 0x3C) = 0;
+                    av = *(int *)(*(char **)(s0 + 0x64) + 0x3C);
                 }
             }
-            if (*(int *)(*(char **)(s0 + 0x64) + 0x3C) == 0) {
-                if (gl_func_00000000((char *)&D_00000000) != 0) {
+            if (av == 0) {
+                if (gl_func_00000000((char *)&D_00000000, 512) != 0) {
                     v1 = *(char **)(s0 + 0x58);
                     vt = *(char **)(v1 + 0x28);
                     ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
