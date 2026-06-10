@@ -1809,12 +1809,19 @@ void gl_func_000040BC(char *a0) {
  * — leading-nop injection on a non-USO-header function is instruction-
  * appending match-faking. Function stays NM-wrapped (INCLUDE_ASM build
  * path covers the 2 leading nops + body bytes); honest unmatched. */
+/* game_libs_func_000040EC BOUNDARY-CORRECTED 2026-06-10 (the 3ECDC
+ * class): the 0x18 symbol was TWO misattributed inter-fn pad nops + a
+ * true 4-insn fn. Split into the _pad sidecar and
+ * game_libs_func_000040F4 = `return 1 << (a0 + 4);` -- BYTE-EXACT
+ * standalone (4/4, 0 diffs) but mid-file land-blocked (catch-all unit);
+ * relayout queue (10 ready bodies). */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_func_000040EC_pad.s")
 #ifdef NON_MATCHING
-int game_libs_func_000040EC(int a0) {
+int game_libs_func_000040F4(int a0) {
     return 1 << (a0 + 4);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000040EC);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000040F4);
 #endif
 
 extern int gl_func_00000000();
