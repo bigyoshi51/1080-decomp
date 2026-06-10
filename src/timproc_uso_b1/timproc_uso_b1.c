@@ -1243,28 +1243,29 @@ void timproc_uso_b1_func_00001FE4(void) {
     gl_func_00000000(*(int*)((char*)&D_b1_1FE4_c + 0x20C), -1, 0);
 }
 
-/* Dual-branch state setter (sibling of timproc_uso_b3_func_00002240,
- * byte-identical). Pure register-allocator cap from C; INSN_PATCH'd
- * post-cc per feedback_insn_patch_for_ido_codegen_caps.md. */
-extern int D_state_b1_2030;
+/* Dual-branch state setter (twin of timproc_uso_b3_func_00002240).
+ * MATCHED 2026-06-10 (31/31): the old "register-allocator cap" had two
+ * decode errors -- the first call's arg is the PARAMETER + 4 (not a
+ * global), and both arms call through the SAME +0x208 target. Load-
+ * bearing shapes: volatile pointer-fetch global for the per-store
+ * reload of cur (+0x20C), and the if(1){} BB-split inside each arm
+ * AFTER the jal (the documented v0/v1 lever, 4-for-4) which flips the
+ * address temp into $v0 / the li-1 into $v1. */
 extern int D_call_b1_2030_a;
-extern int D_call_b1_2030_b;
 extern int * volatile D_cur_b1_2030;
-#ifdef NON_MATCHING
-void timproc_uso_b1_func_00002030(void) {
-    if (gl_func_00000000(((char*)D_state_b1_2030) + 4) != 0) {
+void timproc_uso_b1_func_00002030(char *a0) {
+    if (gl_func_00000000(a0 + 4) != 0) {
         gl_func_00000000(D_call_b1_2030_a);
+        if (1) {}
         D_cur_b1_2030[0x14] = 2;
         D_cur_b1_2030[0x16] = 1;
     } else {
-        gl_func_00000000(D_call_b1_2030_b);
+        gl_func_00000000(D_call_b1_2030_a);
+        if (1) {}
         D_cur_b1_2030[0x14] = 1;
         D_cur_b1_2030[0x16] = 1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002030);
-#endif
 
 void timproc_uso_b1_func_000020AC(void) {
     gl_func_00000000(gl_ref_00000208);

@@ -1320,62 +1320,26 @@ void timproc_uso_b3_func_000021B0(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
-/* EXACT 2026-05-03. Recipe: 3 unique externs (D_b3_21F4_a/b/c) all mapped
- * to 0x0 in undefined_syms_auto.txt + offset cast in C — produces target's
- * 3-separate-lui shape (vs CSE'd shared-base form). Plus SUFFIX_BYTES=8 for
- * the trailing stolen-prologue tail (lui a0; lw a0, 0x148(a0)) for the
- * successor func_00002240. */
-extern char D_b3_21F4_a;
-extern char D_b3_21F4_b;
-extern char D_b3_21F4_c;
-void timproc_uso_b3_func_000021F4(void) {
-    gl_func_00000000(*(int*)((char*)&D_b3_21F4_a + 0x208));
-    *(int*)((char*)&D_b3_21F4_b + 0x40) = 6;
-    gl_func_00000000(*(int*)((char*)&D_b3_21F4_c + 0x20C), -1, 0);
-}
-
-#ifdef NON_MATCHING
-/* 97.58 % cap (2026-05-02). Prologue-stolen successor: predecessor
- * func_000021F4 ends with lui+lw setting a0 = *(D+0x148). Body is a
- * dual-branch state setter (logic correct, tried with int*+volatile +
- * unique externs at 0x208/0x20C + PROLOGUE_STEALS=8). Remaining diffs
- * are register choice only:
- *   - target uses $v0 for the cur-pointer base setup (lui+addiu+lw)
- *   - mine uses $v1 (because $v0 is dead after gl_func and IDO picks $v1)
- *   - target then uses $v1 for the constant `1` (since $v0 is taken for cur)
- *   - mine uses $a0 for that constant
- * Tried: removing the local capture of gl_func return value -- no change.
- * Tried (2026-05-02): adding explicit `int rc = gl_func(...); if (rc != 0)`
- * — REGRESSED to 0% because prologue-stolen splice mismatched (the explicit
- * capture changed IDO's prologue emit so PROLOGUE_STEALS=8 cut the wrong
- * 8 bytes). Confirms the inline-test-in-if form is load-bearing for the
- * prologue-stolen recipe; capture must happen INSIDE the if-test parens.
- * Sibling: byte-identical to timproc_uso_b1_func_00002030.
- *
- * (2026-05-03 re-measure) baseline drifted from 97.58% to 90.39% over
- * unrelated parallel-agent commits. TRIED `int *cur = (int*)D_cur_*;
- * cur[N] = ...` local-capture inside both branches to force $v0 alloc
- * — REGRESSED to 76.48%. The local-capture introduces an extra `or` move
- * after the lui+lw setup, displacing the target's tight inline-store form.
- * Cap stands at 90.39%; the v0/v1 register-pick is structural per IDO. */
-extern int D_state_b3_2240;            /* 0x148 */
-extern int D_call_b3_2240_a;           /* 0x208 */
-extern int D_call_b3_2240_b;           /* 0x208 (separate symbol, breaks CSE) */
-extern int * volatile D_cur_b3_2240;   /* 0x20C */
-void timproc_uso_b3_func_00002240(void) {
-    if (gl_func_00000000(((char*)D_state_b3_2240) + 4) != 0) {
+/* Dual-branch state setter, twin of timproc_uso_b1_func_00002030.
+ * MATCHED 2026-06-10 (31/31) -- see the b1 twin for the full story:
+ * first call arg = PARAM+4 (old decode error), one shared +0x208 call
+ * target, volatile pointer-fetch cur (+0x20C), and the if(1){} BB-split
+ * in each arm (v0/v1 lever). */
+extern int D_call_b3_2240_a;
+extern int * volatile D_cur_b3_2240;
+void timproc_uso_b3_func_00002240(char *a0) {
+    if (gl_func_00000000(a0 + 4) != 0) {
         gl_func_00000000(D_call_b3_2240_a);
+        if (1) {}
         D_cur_b3_2240[0x14] = 2;
         D_cur_b3_2240[0x16] = 1;
     } else {
-        gl_func_00000000(D_call_b3_2240_b);
+        gl_func_00000000(D_call_b3_2240_a);
+        if (1) {}
         D_cur_b3_2240[0x14] = 1;
         D_cur_b3_2240[0x16] = 1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002240);
-#endif
 
 void timproc_uso_b3_func_000022BC(void) {
     gl_func_00000000(gl_ref_00000208);
