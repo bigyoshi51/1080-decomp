@@ -15086,6 +15086,15 @@ void gl_func_0002DED0(void) {
     gl_func_00000000((void*)0x82000000, 0);
 }
 
+/* game_libs_func_0002DEF4: the 3-word dead-code alt-entry fragment
+ * (sll t6,a0,3; addu a0,t6,a1; addiu a0,a0,0x1A) between gl_func_0002DED0
+ * and gl_func_0002DF00. Historically absorbed via a gl_func_0002DED0
+ * SUFFIX_BYTES recipe; that mechanism was removed 2026-05-23 as
+ * match-faking and the bytes were dropped from the build (relayout-walker
+ * -0xC event at 0x2DF00). Restored 2026-06-10 as an honest standalone
+ * INCLUDE_ASM fragment. */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DEF4);
+
 /* 10-insn body single-call wrapper, sibling of gl_func_0002DF68 (same
  * 0xTTTT0000 | ((a0 & 0xFF) << 8) bit-packing pattern but without the
  * mfc1 issue — args are pure int). Tag = 0x82020000. LANDED fuzzy=100.
