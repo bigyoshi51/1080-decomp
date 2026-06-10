@@ -1373,6 +1373,8 @@ SECTIONS
         build/src/game_libs/game_libs_post0b.c.o(.text);
         build/src/game_libs/game_libs_g3_62F58.c.o(.text);
         build/src/game_libs/game_libs_post1b.c.o(.text);
+        build/src/game_libs/game_libs_ido53_6BC44.c.o(.text);
+        build/src/game_libs/game_libs_post1b2.c.o(.text);
         build/src/game_libs/game_libs_ido53_70194.c.o(.text);
         build/src/game_libs/game_libs_post1c.c.o(.text);
         build/src/game_libs/game_libs_g3_70FBC.c.o(.text);

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006BC44",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T01:58:55.536566+00:00",
+  "end_time": "2026-06-10T01:58:55.536603+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T01:58:55.536591+00:00",
+      "assistant_text": "gl_func_0006BC44 = 1080-customized osContGetReadData (controller PIF read decode). Two-stage crack: (1) BOUNDARY FIX -- splat had carved the leading MAX_CONTROLLERS lui+lbu pair into a phantom 8-byte symbol (game_libs_func_0006BC44); merged it as the head, true span [0x6BC44..0x6BD14). (2) ido53-carve: IDO 5.3 -O1 with verbatim-libultra-style source. 1080 customizations vs libreultra: args (bitmask-out, 4-byte pad records), button stored byte-swapped via direct u8 fields (button_lo<<8)|button_hi (cast-based access emits pointer+offset instead of direct lbu N(sp)), ALL format fields u8 (stick load is lbu not lb), bound and PIF buffer as two distinct runtime-patched data placeholders (single shared placeholder makes IDO CSE the la). mask |= 1<<i per good controller.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 52,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\nextern char D_00000000;\nextern u8 gl_data_00000000;\n\n/* gl_func_0006BC44 = 1080-customized osContGetReadData (libultra\n * contreaddata.c ancestry; statically-linked libultra, ido53-carve vein).\n * Boundary-fixed 2026-06-09: splat had split the leading MAX_CONTROLLERS\n * load (lui+lbu) into a phantom 8-byte symbol \"game_libs_func_0006BC44\";\n * the true function spans [0x6BC44..0x6BD14). vs stock libultra: two args\n * (a0 = connected-controller bitmask out, a1 = 4-byte pad records), button\n * stored byte-swapped ((lo<<8)|hi), stick_y dropped, mask |= 1<<i per good\n * controller; all format fields u8 (stick loads are lbu). Bound and PIF\n * buffer are two distinct runtime-patched data placeholders. Byte-exact at\n * IDO 5.3 -O1 (52/52 incl. the pre-prologue lui/lbu pair). */\ntypedef struct {\n    u8 dummy; u8 txsize; u8 rxsize; u8 cmd;\n    u8 button_hi; u8 button_lo; u8 stick_x; u8 stick_y;\n} GlContReadFormat;\n\nvoid gl_func_0006BC44(u8 *maskOut, u8 *pads) {\n    u8 *ptr;\n    GlContReadFormat fmt;\n    int i;\n    u8 mask;\n\n    mask = 0;\n    ptr = (u8 *)&D_00000000;\n    for (i = 0; i < gl_data_00000000; i++, ptr += 8, pads += 4) {\n        fmt = *(GlContReadFormat *)ptr;\n        pads[3] = (fmt.rxsize & 0xC0) >> 4;\n        if (pads[3] == 0) {\n            *(u16 *)pads = (fmt.button_lo << 8) | fmt.button_hi;\n            pads[2] = fmt.stick_x;\n            mask |= 1 << i;\n        }\n    }\n    *maskOut = mask;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_6BC44.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_0006BC44.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 52/52 words vs merged target asm AND vs baserom ROM bytes at USO 0x6BC44; report.json fuzzy=100.0; downstream unit boundaries (0x6BD14, 0x70194) byte-exact after split."
+  }
+}

@@ -128,7 +128,15 @@ build/src/game_libs/game_libs_g3_34448.c.o: TRUNCATE_TEXT := 0x10
 build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2EAFC
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
-build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0xD254
+build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8D04
+# all-zero pad: post1b's pre-existing internal drift leaves the head 0x20 short
+# of its exact span [0x62F40..0x6BC44); zero-pad so the ido53_6BC44 carve and
+# post1b2 land at their true offsets (drift/diff set unchanged vs pre-split)
+build/src/game_libs/game_libs_post1b.c.o: SUFFIX_BYTES_FORCE := gl_func_0006BAD4=0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000
+build/src/game_libs/game_libs_ido53_6BC44.c.o build/non_matching/src/game_libs/game_libs_ido53_6BC44.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_6BC44.c.o build/non_matching/src/game_libs/game_libs_ido53_6BC44.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_6BC44.c.o: TRUNCATE_TEXT := 0xD0
+build/src/game_libs/game_libs_post1b2.c.o: TRUNCATE_TEXT := 0x4480
 build/src/game_libs/game_libs_ido53_70194.c.o build/non_matching/src/game_libs/game_libs_ido53_70194.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_70194.c.o build/non_matching/src/game_libs/game_libs_ido53_70194.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_70194.c.o: TRUNCATE_TEXT := 0x180
