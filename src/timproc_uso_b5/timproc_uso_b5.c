@@ -8146,48 +8146,6 @@ void timproc_uso_b5_func_0000C98C(char *arg0, char *arg1, int arg2, int arg3) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C98C);
 #endif
 
-#ifdef NON_MATCHING
-/* timproc_uso_b5_func_0000CB40: 49-insn (0xC4) approach-target-with-decay
- * routine. Was previously split by splat into CB40 (0x90) + CBD0 (0x34);
- * merged because CB40 had forward branches (CB90 bc1fl +16, CBC0 bc1f +14)
- * into CBD0's range. CBD0's leading lwc1 $f4,0($v1) duplicated CB94's
- * delay-slot insn — classic branch-likely + delay-slot-replicates-target
- * idiom (see docs/IDO_CODEGEN.md "branch-likely").
- *
- * Structure: target := (a0->2A4 != 0) ? a1 : 0; if (a0->2B8->134) target = 1.0
- * then approach v0->124 toward `target` from below by D[0x37C] (clamping
- * at target) or from above by D[0x380] (clamping at target). Sister-shape
- * to C978 (instantaneous setter for the same field family).
- *
- * NM body covers control flow; FP register allocation, branch-likely emit,
- * and lui-pair constants need permuter to tighten. */
-extern int gl_func_00000000();
-extern char D_00000000;
-void timproc_uso_b5_func_0000CB40(int *a0, float a1) {
-    int *v0;
-    float target;
-    if (*(float*)((char*)a0 + 0x2A4) != 0.0f) {
-        target = a1;
-    } else {
-        target = 0.0f;
-    }
-    v0 = *(int**)((char*)a0 + 0x2B8);
-    if (*(int*)((char*)v0 + 0x134) != 0) {
-        target = 1.0f;
-    }
-    if (*(float*)((char*)v0 + 0x124) < target) {
-        *(float*)((char*)v0 + 0x124) += *(float*)((char*)&D_00000000 + 0x37C);
-        if (target < *(float*)((char*)v0 + 0x124)) {
-            *(float*)((char*)v0 + 0x124) = target;
-        }
-    } else {
-        *(float*)((char*)v0 + 0x124) -= *(float*)((char*)&D_00000000 + 0x380);
-        if (*(float*)((char*)v0 + 0x124) < target) {
-            *(float*)((char*)v0 + 0x124) = target;
-        }
-    }
-}
-#else
 /* timproc_uso_b5_func_0000CB40 - verified structural decode (0xC4,
  * 49 insns, FP slew-limiter / value-approach).
  *   void timproc_uso_b5_func_0000CB40(void *a0, f32 a1) {
@@ -8248,15 +8206,7 @@ void timproc_uso_b5_func_0000CB40(char *a0, float a1) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CB40);
 #endif
 
-/* timproc_uso_b5_func_0000CBD0: TAIL-FRAGMENT of CB40 via forward
- * bc1f-past-declared-end. CB40 (0xC4, 49 insns) ends at 0xCBD0; the
- * bytes here are CB40's branch-target tail (FP delta-write +
- * conditional-clamp epilogue replicated by branch-likely). Same idiom
- * as B850→B8E0 / C710→C7B4 / C044→C0D4 / CD24→CDC8. No standalone
- * semantics — logic belongs to CB40's slew-limiter. Build keeps
- * INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CBD0);
-#endif
+/* timproc_uso_b5_func_0000CBD0 MERGED into CB40 2026-06-10 (bc1f tail fragment, fourth of the fade-helper family; the .s merge that the earlier nested-wrap decode described but never executed). */
 
 void timproc_uso_b5_func_0000CC04(int a0) {}
 
