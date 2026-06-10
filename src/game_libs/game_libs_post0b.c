@@ -29492,6 +29492,12 @@ void game_libs_func_0005BDC0(float *src, float *dst) {
     }
 }
 
+/* gl_func_0005BE20 GRAFT-CLASSIFIED 2026-06-10: bitwise-FP class (19
+ * COP1 moves + 12 f64 ops in 281 insns). The graft emitted +0xC4
+ * oversize (lw+mtc1 pairs where the target uses lwc1, plus f64
+ * pairing) -- objdiff reports fuzzy=None (unalignable size gap), and
+ * FP retyping inverted into cvt bloat. Stays bare INCLUDE until a
+ * typed hand decode; see TOOLING_DECOMP bitwise-FP class. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BE20);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C284);
