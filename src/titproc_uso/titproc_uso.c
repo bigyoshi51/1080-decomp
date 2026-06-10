@@ -647,6 +647,13 @@ void titproc_uso_func_0000101C(int *a0) {
  *    p->0x34-gated counter-clamp pair (+16 cap 255->720 / -16 floor 0
  *    with the gate-confirmed vt-call chain inside). Remaining: the
  *    shared 0x474 tail, jal identities, per-arm fine shapes.
+ *  - PASS-8 NOTE 2026-06-10: the head's 4-entry jumptable (sltiu 4 +
+ *    lui/addu/lw/jr) is NOT reproducible from a 4-case switch -- both
+ *    IDO 7.1 and 5.3 at -O2 emit compare chains for 4 cases (tested
+ *    minimal + big-body). Open: the original may have used more case
+ *    labels mapping into 4 targets, or a hand-rolled dispatch.
+ *    Remaining small gaps: lui/addiu materializes at 0x22C/0x28C and
+ *    a nop/lw/li triplet at 0x2DC (per-arm reload items).
  *  - PASS-4 RECON 2026-06-10: the NM emit is 0x414 vs target 0x488 =
  *    29 insns SHORT; the gap is distributed (position diff useless at
  *    this delta -- next pass needs a mnemonic-level side-by-side to
