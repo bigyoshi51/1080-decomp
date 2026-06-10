@@ -978,7 +978,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
 #ifdef NON_MATCHING
 
 
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -1180,8 +1179,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
 //   placeholder for the leaf glyph/sprite draws.
 // gl_func_0001E134 — FULL m2c DECODE (56.24% NM, no episode). Largest non-jumptable lift yet (849w); game_libs control-flow via scripts/lift-uso-controlflow.py.
 #ifdef NON_MATCHING
-
-
 
 
 #ifndef FW
@@ -2301,7 +2298,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 // gl_func_0001EF20 — FULL m2c DECODE (58.18% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-
 
 
 #ifndef FW
@@ -5219,7 +5215,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
 #ifdef NON_MATCHING
 
 
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -5398,7 +5393,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
 //   = canonical never-defined USO placeholder for the allocator.
 // gl_func_00022A9C — m2c DECODE (37.41% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-
 
 
 #ifndef FW
@@ -5884,7 +5878,6 @@ void game_libs_func_00023070(int a0, int a1) {
 //   schedule. Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
-
 
 
 #ifndef FW
@@ -6793,8 +6786,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023B98);
 #ifdef NON_MATCHING
 
 
-
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -7224,8 +7215,6 @@ void game_libs_func_0002436C(int a0) { D_2436C_a = a0; }
 //   reuse (collision-safe).
 // gl_func_00024378 — m2c DECODE (12.37% NM, no episode). game_libs non-jumptable (folded-ref heavy) via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-
-
 
 
 #ifndef FW
@@ -8018,8 +8007,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
 #ifdef NON_MATCHING
 
 
-
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -8277,8 +8264,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253C4);
 //   USO placeholder.
 // gl_func_00025504 — FULL m2c DECODE (61.55% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-
-
 
 
 #ifndef FW
@@ -8698,8 +8683,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025BFC);
 //   USO placeholder.
 // gl_func_00025C54 — FULL m2c DECODE (46.25% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py (one-command driver).
 #ifdef NON_MATCHING
-
-
 
 
 #ifndef FW
@@ -9866,14 +9849,91 @@ void game_libs_func_000273AC(void) {
     *(int *)((char *)&D_00000000 + 0x2178) = 0;
 }
 
+/* game_libs_func_000273B8 [0x273B8..0x27544): ONE 14-case jumptable
+ * message-handler switch on msg[0] that splat shattered into 13
+ * symbols (the 27534-hub "family" was its case bodies; the "shared
+ * tail" was the default/epilogue). MERGED 2026-06-10 (13 -> 1, 0x18C).
+ * Cases: 1/2/4 float setters (+40/+44/+56) with change-flags |=0x40/
+ * 0x40/0x80 on b1; 3 s8 setter b10 flag 0x20; 5 s8 setter b4 no flag;
+ * 6 indexed byte b[212+idx] idx<8; 7 bit4 insert into b0; 8 b3; 9/10
+ * sh pairs (+26/+22 <<3, +24/+20 <<5); 11 b15; 12 sh32; 13/14 b224.
+ * C below is STRUCTURALLY COMPLETE (99/99 insns after the idx-reuse
+ * fix; jumptable emitted; case order correct). Residual 44 word-diffs
+ * = a periodic temp-numbering pattern (target skips t8/t1/t5 at case
+ * starts and inverts the first body's pair) -- an IDO temp-counter
+ * behavior not yet steered; uoptlist/forensics queue. */
+#ifdef NON_MATCHING
+void game_libs_func_000273B8(unsigned char *a0, unsigned char *a1) {
+    switch (a1[0]) {
+    case 1:
+        if (*(float *)(a1 + 4) != *(float *)(a0 + 40)) {
+            *(float *)(a0 + 40) = *(float *)(a1 + 4);
+            a0[1] |= 0x40;
+        }
+        return;
+    case 2:
+        if (*(float *)(a1 + 4) != *(float *)(a0 + 44)) {
+            *(float *)(a0 + 44) = *(float *)(a1 + 4);
+            a0[1] |= 0x40;
+        }
+        return;
+    case 3:
+        if (*(signed char *)(a1 + 4) != a0[10]) {
+            a0[10] = *(signed char *)(a1 + 4);
+            a0[1] |= 0x20;
+        }
+        return;
+    case 4:
+        if (*(float *)(a1 + 4) != *(float *)(a0 + 56)) {
+            *(float *)(a0 + 56) = *(float *)(a1 + 4);
+            a0[1] |= 0x80;
+        }
+        return;
+    case 5:
+        if (*(signed char *)(a1 + 4) != a0[4]) {
+            a0[4] = *(signed char *)(a1 + 4);
+        }
+        return;
+    case 6: {
+        int idx = a1[3];
+        if (idx < 8) {
+            a0[idx + 212] = *(signed char *)(a1 + 4);
+        }
+        return;
+    }
+    case 7:
+        a0[0] = (a0[0] & ~0x10) | ((*(signed char *)(a1 + 4) << 4) & 0x10);
+        return;
+    case 8:
+        a0[3] = *(signed char *)(a1 + 4);
+        return;
+    case 9:
+        *(short *)(a0 + 26) = 1;
+        *(short *)(a0 + 22) = a1[4] << 3;
+        return;
+    case 10:
+        *(short *)(a0 + 24) = 1;
+        *(short *)(a0 + 20) = a1[4] << 5;
+        return;
+    case 11:
+        a0[15] = a1[4];
+        return;
+    case 12:
+        *(short *)(a0 + 32) = *(unsigned short *)(a1 + 4);
+        return;
+    case 13:
+    case 14:
+        a0[224] = a1[4];
+        return;
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000273B8);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002740C);
 
 /* game_libs_func_00027438: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027438);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002745C);
 
 /* game_libs_func_00027488: 6-insn `lb v0,4(a1); lbu t1,4(a0);
  * beq v0,t1,+0x2A; nop; jr ra; sb v0,4(a0)` byte-compare-then-copy.
@@ -9881,9 +9941,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002745C);
  * successor — cross-function shared-epilogue tail-merge per
  * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offset,
  * unmatchable standalone. CAP class. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027488);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274A0);
 
 /* game_libs_func_000274C0: 8-insn bit-copy. Copies bit 0 of (signed)a1[4]
  * into bit 4 of a0[0]:  *a0 = ((a1[4] << 4) & 0x10) | (*a0 & ~0x10);
@@ -9897,13 +9955,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274A0);
  * expression is fully inlined and $v-class when split into locals. Neither
  * matches target's low-$t selection. INSN_PATCH would rewrite ~the whole
  * function (banned); permuter only. */
-#ifdef NON_MATCHING
-void game_libs_func_000274C0(unsigned char *a0, signed char *a1) {
-    *a0 = ((a1[4] << 4) & 0x10) | (*a0 & ~0x10);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274C0);
-#endif
 
 
 /* Single signed-byte copy a1[4] -> a0[3]. Reloc-free; IDO allocs the temp as
@@ -9926,7 +9977,7 @@ void game_libs_func_000274E0(char *a0, signed char *a1) {
     a0[3] = a1[4];
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274E0);
+
 #endif
 
 /* game_libs_func_000274EC: CAP (register-renumber, 2026-05-24). Correct C is
@@ -9947,15 +9998,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274E0);
  * 27xxx hub region this is fragment/context evidence (the 274E0-trio
  * class), NOT a permuter-class regalloc diff. Parent identification
  * goes to the region decode; do not grind registers. */
-#ifdef NON_MATCHING
-void game_libs_func_000274EC(int *a0, unsigned char *a1) {
-    unsigned int v = a1[4];
-    *(short*)((char*)a0 + 0x1A) = 1;
-    *(short*)((char*)a0 + 0x16) = v << 3;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274EC);
-#endif
+
 
 /* Stores 1 to field 0x18 and (a1[4] << 5) to field 0x14. Faithful decode but
  * a 5/6 cap: the target hoists the a1[4] load to the top (interleaving it
@@ -9966,38 +10009,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274EC);
  * 27xxx hub region this is fragment/context evidence (the 274E0-trio
  * class), NOT a permuter-class regalloc diff. Parent identification
  * goes to the region decode; do not grind registers. */
-#ifdef NON_MATCHING
-void game_libs_func_00027504(char *a0, unsigned char *a1) {
-    int t = a1[4];
-    *(short *)(a0 + 0x18) = 1;
-    *(short *)(a0 + 0x14) = t << 5;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027504);
-#endif
 
 
 /* Single unsigned-byte copy a1[4] -> a0[0xF]. Reloc-free; temp $t6 (IDO) vs
  * $t7 (target) register-renumber. CAP: stays NM (INSN_PATCH REMOVED
  * 2026-05-23 per feedback_no_instruction_forcing_matches_policy). */
-#ifdef NON_MATCHING
-void game_libs_func_0002751C(unsigned char *a0, unsigned char *a1) {
-    a0[0xF] = a1[4];
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002751C);
-#endif
+
 
 /* Single halfword copy a1[2] -> a0[0x10]. Reloc-free; temp $t6 (IDO) vs $t9
  * (target) register-renumber. CAP: stays NM (INSN_PATCH REMOVED 2026-05-23
  * per feedback_no_instruction_forcing_matches_policy). */
-#ifdef NON_MATCHING
-void game_libs_func_00027528(unsigned short *a0, unsigned short *a1) {
-    a0[0x10] = a1[2];
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027528);
-#endif
+
 
 /* game_libs_func_00027534: byte-copy accessor — *(u8*)(a0+0xE0) = *(u8*)(a1+4).
  * Target: `lbu t0,4(a1); sb t0,0xE0(a0); jr ra; nop` (UNFILLED jr delay).
@@ -10011,7 +10033,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027528);
  *      register-renumber cap, so a carve-out would still cap at the lbu/sb
  *      register (2 of 4 insns). Not worth the carve-out infra for a 4-insn
  *      leaf that can't reach 100%. Sibling of 00027528. Stays INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027534);
+
 
 /* gl_func_00027548: 17-insn (0x44) F3DEX2-style display-list-word builder.
  * Computes a packed 32-bit dlist word:
@@ -10229,7 +10251,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000277E0);
 //   Name pre-checked: no extern reuse (collision-safe).
 // gl_func_00027804 — m2c DECODE (32.53% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-
 
 
 #ifndef FW
@@ -11713,8 +11734,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
 //   Name pre-checked: no extern reuse.
 // gl_func_000291C0 — FULL m2c DECODE (83.50% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py (one ptr==int compare cast manually).
 #ifdef NON_MATCHING
-
-
 
 
 #ifndef FW
@@ -13485,7 +13504,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002B09C);
 //   extern reuse.
 // gl_func_0002B5F4 — FULL m2c DECODE (52.75% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-
 
 
 #ifndef FW
@@ -17237,7 +17255,6 @@ void gl_func_00032DC0(Quad4 *dst) {
 #ifdef NON_MATCHING
 
 
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -17713,7 +17730,6 @@ void gl_func_000334B0(int a0, int a1, int a2) {
 #ifdef NON_MATCHING
 
 
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -18127,7 +18143,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
 #ifdef NON_MATCHING
 
 
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -18272,7 +18287,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 //   extern reuse.
 // gl_func_00033EB8 — FULL m2c DECODE (59.82% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-
 
 
 #ifndef FW
