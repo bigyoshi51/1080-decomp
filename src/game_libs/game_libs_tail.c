@@ -3752,7 +3752,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E910);
  * 2026-05-29 via the gl_func_0000E84C pattern + inv-divisor runtime div.s.
  * 99.20%, 59==59. RESIDUAL (7 diffs): the color-base pointer (obj+0xC4) lands in
  * $v1 here vs target $a1 — a reg-renumber; everything else (lazy-init, factory,
- * FP color divides, finalizer) byte-exact. */
+ * FP color divides, finalizer) byte-exact.
+ * 2026-06-10: arg-reg-coloring boundary confirmed -- the target RELOADS
+ * self->0x8C directly into $a1 (the dead second arg's register) by
+ * ALLOCATOR choice; the C-level dead-arg overwrite (a1 = base) regresses
+ * to 48 diffs (a1 web goes live-across, s-reg churn). Same class as
+ * 1130/$a0 and 3ED4/$f12: not reachable from C. uoptlist queue. */
 extern int gl_func_00000000();
 void gl_func_0000E9C0(int *self, int a1, int a2, int a3) {
     int *q;
