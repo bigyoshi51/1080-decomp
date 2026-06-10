@@ -142,3 +142,45 @@ s32 gl_func_00071928(OSPfs *pfs, __OSPackId *badid, __OSPackId *newid)
     return 0;
 }
 
+/* gl_func_00071D40 = libultra __osCheckPackId (io/contpfs.c) -- fourth
+ * contpfs recovery via the ido53 carve (5.3 -O1). Verbatim libreultra
+ * source; all callees are runtime-patched placeholders (gl_func_00000000):
+ * __osPfsSelectBank, __osContRamRead, __osContRamWrite, __osIdCheckSum.
+ * 102/102 raw words incl. jal fields. Moved here from game_libs_post2b
+ * (whose TRUNCATE shrinks 0x356C->0x33D4; this unit grows 0x480->0x618). */
+s32 gl_func_00071D40(OSPfs *pfs, __OSPackId *temp)
+{
+    u16 index[4];
+    s32 ret;
+    u16 sum;
+    u16 isum;
+    int i;
+    int j;
+
+    ret = 0;
+    if (pfs->activebank != 0) {
+        pfs->activebank = 0;
+        ERRCK(gl_func_00000000(pfs))
+    }
+    index[0] = 1;
+    index[1] = 3;
+    index[2] = 4;
+    index[3] = 6;
+    for (i = 1; i < 4; i++)
+    {
+        ERRCK(gl_func_00000000(pfs->queue, pfs->channel, index[i], (u8*)temp));
+        gl_func_00000000((u16 *)temp, &sum, &isum);
+        if (temp->checksum == sum && temp->inverted_checksum == isum)
+            break;
+    }
+    if (i == 4)
+        return 10;
+    for (j = 0; j < 4; j++)
+    {
+        if (j != i)
+        {
+            ERRCK(gl_func_00000000(pfs->queue, pfs->channel, index[j], (u8*)temp, 1));
+        }
+    }
+    return 0;
+}

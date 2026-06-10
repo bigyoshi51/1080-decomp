@@ -8,62 +8,6 @@ typedef struct { float x, y, z; } Vec3;
 #define GL_COUNT_2070 (*(int*)((char*)&D_00000000 + 0x2070))
 #endif
 
-#ifdef NON_MATCHING
-/* Retry-loop dispatcher. Optionally runs a one-shot init (arg0->0x65 flag),
- * then walks a 4-entry attempt table {1,3,4,6}: for each, calls the worker
- * (arg0->4, arg0->8, tbl[i], arg1) and reads back coords; stops when the
- * coords settle (arg1->0x1C/0x1E) or the table is exhausted (returns 0xA on
- * exhaustion). On settle, runs a cleanup pass over the other entries.
- * Calls are reloc-blind raw-word USO -> gl_func_00000000 K&R placeholder. */
-s32 gl_func_00071D40(void *arg0, void *arg1) {
-    u16 tbl[4];
-    s32 status;
-    u16 cx;
-    u16 cy;
-    s32 i;
-    s32 j;
-
-    status = 0;
-    if (*(u8 *)((char *)arg0 + 0x65) != 0) {
-        *(u8 *)((char *)arg0 + 0x65) = 0;
-        status = gl_func_00000000(arg0);
-        if (status != 0) {
-            return status;
-        }
-    }
-    tbl[0] = 1;
-    tbl[1] = 3;
-    tbl[2] = 4;
-    tbl[3] = 6;
-    i = 1;
-loop_4:
-    status = gl_func_00000000(*(void **)((char *)arg0 + 4), *(s32 *)((char *)arg0 + 8), tbl[i], arg1);
-    if (status != 0) {
-        return status;
-    }
-    gl_func_00000000(arg1, &cx, &cy);
-    if (((*(u16 *)((char *)arg1 + 0x1C) == cx) && (*(u16 *)((char *)arg1 + 0x1E) == cy)) || (++i, i >= 4)) {
-        if (i == 4) {
-            return 0xA;
-        }
-        j = 0;
-loop_12:
-        if (j != i) {
-            status = gl_func_00000000(*(void **)((char *)arg0 + 4), *(s32 *)((char *)arg0 + 8), tbl[j], arg1, 1);
-            if (status != 0) {
-                return status;
-            }
-        }
-        if (++j >= 4) {
-            return 0;
-        }
-        goto loop_12;
-    }
-    goto loop_4;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071D40);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
