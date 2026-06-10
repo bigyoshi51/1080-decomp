@@ -270,3 +270,89 @@ s32 gl_func_00072134(OSPfs *pfs)
     }
     return 0;
 }
+
+/* gl_func_00072230 = libultra __osPfsRWInode (io/contpfs.c continues) --
+ * seventh recovery via the ido53 carve. Verbatim libreultra source at
+ * IDO 5.3 -O1, first try, 200/200. Literals: PFS_WRITE=1, PFS_READ=0,
+ * PFS_ERR_INCONSISTENT=3, PFS_ONE_PAGE=8 (confirmed vs 2.0I os.h). All
+ * callees are gl_func_00000000 runtime-patch placeholders. */
+typedef union {
+    struct { u8 bank; u8 page; } inode_t;
+    u16 ipage;
+} __OSInodeUnit;
+
+typedef struct {
+    __OSInodeUnit inode_page[128];
+} __OSInode;
+
+extern int gl_func_00000000();
+
+#define ERRCK(fn) \
+    ret = fn;     \
+    if (ret != 0) \
+        return ret;
+
+s32 gl_func_00072230(OSPfs *pfs, __OSInode *inode, u8 flag, u8 bank)
+{
+    u8 sum;
+    int j;
+    s32 ret;
+    int offset;
+    u8 *addr;
+
+    if (pfs->activebank != 0) {
+        pfs->activebank = 0;
+        ERRCK(gl_func_00000000(pfs))
+    }
+    if (bank > 0)
+        offset = 1;
+    else
+        offset = pfs->inode_start_page;
+
+    if (flag == 1)
+        inode->inode_page[0].inode_t.page = gl_func_00000000((u8*)&inode->inode_page[offset], (-offset) * 2 + 256);
+
+    for (j = 0; j < 8; j++)
+    {
+        addr = ((u8 *)inode->inode_page + j * 32);
+        if (flag == 1)
+        {
+            ret = gl_func_00000000(pfs->queue, pfs->channel, pfs->inode_table + bank * 8 + j, addr, 0);
+            ret = gl_func_00000000(pfs->queue, pfs->channel, pfs->minode_table + bank * 8 + j, addr, 0);
+        }
+        else
+        {
+            ret = gl_func_00000000(pfs->queue, pfs->channel, pfs->inode_table + bank * 8 + j, addr);
+        }
+        if (ret != 0)
+            return ret;
+    }
+    if (flag == 0)
+    {
+        sum = gl_func_00000000((u8*)&inode->inode_page[offset], (-offset) * 2 + 256);
+        if (sum != inode->inode_page[0].inode_t.page)
+        {
+            for (j = 0; j < 8; j++)
+            {
+                addr = ((u8 *)inode->inode_page + j * 32);
+                ret = gl_func_00000000(pfs->queue, pfs->channel, pfs->minode_table + bank * 8 + j, addr);
+            }
+            if (sum != inode->inode_page[0].inode_t.page)
+                return 3;
+            for (j = 0; j < 8; j++)
+            {
+                addr = ((u8 *)inode->inode_page + j * 32);
+                ret = gl_func_00000000(pfs->queue, pfs->channel, pfs->inode_table + bank * 8 + j, addr, 0);
+            }
+        }
+        else
+        {
+            for (j = 0; j < 8; j++)
+            {
+                addr = ((u8 *)inode->inode_page + j * 32);
+                ret = gl_func_00000000(pfs->queue, pfs->channel, pfs->minode_table + bank * 8 + j, addr, 0);
+            }
+        }
+    }
+    return 0;
+}
