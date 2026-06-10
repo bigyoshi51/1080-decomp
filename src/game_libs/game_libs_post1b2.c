@@ -1221,7 +1221,114 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DC0C);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006DC0C_pad.s")
 
+#ifdef NON_MATCHING
+/* PASS-1 2026-06-10 (big-swing): FULL m2c graft; one table synthesized.
+ * Hardened insert (item 22). */
+void gl_func_0006DD14(char *arg0) {
+    char *sp44;
+    s32 sp40;
+    s32 sp3C;
+    s32 sp38;
+    char *sp34;
+    s32 sp30;
+    char *sp2C;
+    char *sp28;
+    s32 sp24;
+    s32 temp_t1;
+    u16 temp_t9_2;
+    char *temp_t3;
+    char *temp_t4;
+    char *temp_t4_2;
+    char *temp_t9;
+
+    sp30 = 0;
+    sp44 = 0;
+    sp38 = 0;
+    sp34 = arg0;
+loop_1:
+    func_00000000(*(s32 *)((char *)(sp34) + 0x8), &sp44, 1);
+    temp_t9 = *(s32 *)((char *)(sp44) + 0x14);
+    if ((temp_t9 != 0) && (*(s32 *)((char *)(temp_t9) + 0x4) == 2) && ((temp_t1 = *(s32 *)((char *)(temp_t9) + 0x14), (temp_t1 == 0)) || (temp_t1 == 1))) {
+        temp_t4 = *(s32 *)((char *)(sp44) + 0x14) + 0x14;
+        sp28 = temp_t4;
+        sp2C = temp_t4 + (*(s32 *)((char *)(temp_t4) + 0x6) * 0x24) + 0x18;
+        *(s32 *)((char *)(temp_t4) + 0x8) = -1;
+        if (*(s32 *)((char *)(sp28) + 0x4) != 3) {
+            *(s32 *)((char *)(sp2C) + 0x4) = (s32) (*(s32 *)((char *)(sp2C) + 0x4) - *(s32 *)((char *)(sp2C) + 0xC));
+        }
+        if ((*(s32 *)((char *)(sp28) + 0x4) == 2) && (*(s32 *)((char *)(*(s32 *)((char *)(sp44) + 0x14)) + 0x14) == 0)) {
+            sp30 = 1;
+        } else {
+            sp30 = 0;
+        }
+        func_00000000(*(s32 *)((char *)(sp34) + 0x10), &sp3C, 1);
+        func_00000000(0x100401);
+        func_00000000(*(s32 *)((char *)(sp44) + 0x14), 0x05000510, *(s32 *)((char *)(sp28) + 0x10) | 0x80000000);
+loop_12:
+        func_00000000(*(s32 *)((char *)(sp34) + 0xC), &sp40, 1);
+        temp_t4_2 = *(s32 *)((char *)(sp44) + 0x14) + 0x14;
+        sp28 = temp_t4_2;
+        temp_t3 = temp_t4_2 + (*(s32 *)((char *)(temp_t4_2) + 0x6) * 0x24);
+        sp2C = temp_t3 + 0x18;
+        if (*(s32 *)((char *)(temp_t3) + 0x18) == 0x1D) {
+            func_00000000(*(s32 *)((char *)(sp44) + 0x14), 0x05000510, *(s32 *)((char *)(temp_t4_2) + 0x10) | 0x10000000);
+            func_00000000(*(s32 *)((char *)(sp44) + 0x14), 0x05000510, *(s32 *)((char *)(sp28) + 0x10));
+            func_00000000(*(s32 *)((char *)(sp44) + 0x14), 0x05000508, &sp24);
+            if (sp24 & 0x02000000) {
+                func_00000000(*(s32 *)((char *)(sp44) + 0x14), 0x05000510, *(s32 *)((char *)(sp28) + 0x10) | 0x01000000);
+            }
+            *(s32 *)((char *)(sp2C) + 0x0) = 4;
+            *(s32 *)((char *)&D_00000000 + 0xA4600010) = 2;
+            func_00000000(0x100C01);
+        }
+        func_00000000(*(s32 *)((char *)(sp44) + 0x4), sp44, 0);
+        if ((sp30 == 1) && (*(s32 *)((char *)(*(s32 *)((char *)(sp44) + 0x14)) + 0x2C) == 0)) {
+            sp30 = 0;
+            goto loop_12;
+        }
+        func_00000000(*(s32 *)((char *)(sp34) + 0x10), 0, 0);
+        if (*(s32 *)((char *)(*(s32 *)((char *)(sp44) + 0x14)) + 0x1A) == 1) {
+            func_00000000();
+        }
+        goto loop_1;
+    }
+    temp_t9_2 = *(s32 *)((char *)(sp44) + 0x0);
+    switch (temp_t9_2) {
+    case 10:
+        func_00000000(*(s32 *)((char *)(sp34) + 0x10), &sp3C, 1);
+        sp38 = ((int (*)())*(s32 *)((char *)(sp34) + 0x14))(0, *(s32 *)((char *)(sp44) + 0xC), *(s32 *)((char *)(sp44) + 0x8), *(s32 *)((char *)(sp44) + 0x10));
+        break;
+    case 11:
+        func_00000000(*(s32 *)((char *)(sp34) + 0x10), &sp3C, 1);
+        sp38 = ((int (*)())*(s32 *)((char *)(sp34) + 0x14))(1, *(s32 *)((char *)(sp44) + 0xC), *(s32 *)((char *)(sp44) + 0x8), *(s32 *)((char *)(sp44) + 0x10));
+        break;
+    case 12:
+        func_00000000(*(s32 *)((char *)(sp34) + 0x10), &sp3C, 1);
+        sp38 = ((int (*)())*(s32 *)((char *)(sp34) + 0x18))(*(s32 *)((char *)(sp44) + 0x14), 0, *(s32 *)((char *)(sp44) + 0xC), *(s32 *)((char *)(sp44) + 0x8), *(s32 *)((char *)(sp44) + 0x10));
+        break;
+    case 13:
+        func_00000000(*(s32 *)((char *)(sp34) + 0x10), &sp3C, 1);
+        sp38 = ((int (*)())*(s32 *)((char *)(sp34) + 0x18))(*(s32 *)((char *)(sp44) + 0x14), 1, *(s32 *)((char *)(sp44) + 0xC), *(s32 *)((char *)(sp44) + 0x8), *(s32 *)((char *)(sp44) + 0x10));
+        break;
+    case 14:
+        func_00000000(*(s32 *)((char *)(sp44) + 0x4), sp44, 0);
+        sp38 = -1;
+        break;
+    default:
+        sp38 = -1;
+        break;
+    }
+    if (sp38 != 0) {
+        goto loop_1;
+    }
+    func_00000000(*(s32 *)((char *)(sp34) + 0xC), &sp40, 1);
+    func_00000000(*(s32 *)((char *)(sp44) + 0x4), sp44, 0);
+    func_00000000(*(s32 *)((char *)(sp34) + 0x10), 0, 0);
+    goto loop_1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DD14);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006E1A4: 30-insn table-write + call-and-call dispatcher.

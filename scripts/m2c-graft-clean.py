@@ -89,6 +89,7 @@ def clean(b, fn, self_recursive=False):
     # vtable calls with deref-expression bases (item 7, expression form)
     b = re.sub(r'(\*\(s32 \*\)\(\(char \*\)\([^()]*(?:\([^()]*\))?[^()]*\) \+ 0x[0-9A-Fa-f]+\))\(',
                r'((void (*)())\1)(', b)
+    b = re.sub(r'((?:sp\w+|var_\w+|temp_\w+) = )\(\(void \(\*\)\(\)\)', r'\1((int (*)())', b)
     callees = sorted(set(int(x,16) for x in re.findall(r'gl_func_([0-9A-F]{8})\(', b)) - {0})
     if self_recursive and fn.startswith('gl_func_'):
         callees = [c for c in callees if f'gl_func_{c:08X}' != fn]
