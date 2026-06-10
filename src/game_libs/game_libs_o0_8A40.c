@@ -85,6 +85,13 @@ typedef struct { float x, y, z; } Vec3;
  *  expressible via local decl/type/order. A bottom pad fixes offsets but grows
  *  the frame (already documented). Genuine -O0 frame-packing cap.
  *
+ * 2026-06-09 COMPILER-AXIS SWEEP (all CONFIRMED FAIL standalone; do not
+ * re-try): 7.1 -O0 with -g/-g2/-g3/-g0 (identical 2 diffs -- -g does NOT
+ * change IDO -O0 frame layout); 5.3 -O0 (8 diffs, worse); 7.1/5.3
+ * -O1 -Olimit 1 fallback (37 insns vs 41 -- target is TRUE -O0, the
+ * fallback schedules too much). The cap is C-source-level frame packing
+ * at 7.1 -O0 specifically; every flag axis is now exhausted.
+ *
  * NOTE (metric): objdiff scores the placeholder `jal func_00000000` reloc-aware
  * (=100% on that insn), VERIFIED 2026-05-31 (100%-fuzzy fns in report.json DO
  * contain placeholder R_MIPS_26 relocs). So cracking this to 100% fuzzy WOULD
