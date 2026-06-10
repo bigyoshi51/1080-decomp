@@ -27,8 +27,3 @@ s32 func_80009760(s32 arg0, s32 arg1, s32 arg2) {
     }
     return func_800096B0(arg2);
 }
-
-/* __osGetActiveQueue */
-s32 func_80009830(void) {
-    return D_8000A41C;
-}

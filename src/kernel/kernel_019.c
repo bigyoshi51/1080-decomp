@@ -85,3 +85,5 @@ void func_80007DD0(Thread* t) {
     }
     func_800066D0(saveMask);
 }
+
+#pragma GLOBAL_ASM("asm/nonmatchings/kernel/kernel_019_pad_7E90.s")

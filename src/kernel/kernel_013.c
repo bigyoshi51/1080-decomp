@@ -69,6 +69,3 @@ void func_80006250(s32 mask) {
     D_8000A3E0 &= ~(mask & ~0x401);
     func_800066D0(sr);
 }
-
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800062B0);

@@ -8,7 +8,10 @@ extern void func_800066D0(s32);
 /* osCreateThread */
 void func_80005B10(s32* t, s32 id, void* entry, s32 arg, void* sp, s32 p) {
     register s32 saveMask;
-    s32 mask;
+    /* u32: ROM emits srl (not sra) for (mask & 0x3F0000) >> 16 — the old
+     * s32 decl was ONE WORD off ROM (sra), caught in the 2026-06-10 kernel
+     * relayout audit. */
+    u32 mask;
     t[5] = id;
     t[1] = p;
     t[0] = 0;

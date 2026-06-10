@@ -59,7 +59,11 @@ extern void func_8000A110(void *);
 extern s32 D_8000A450, D_8000A454, D_8000A458, D_8000A45C, D_8000A460, D_8000A464, D_8000A468;
 extern s32 D_80006060, D_80005AEC;
 extern void func_80004A50();
-extern void func_800056F0();
+/* 2026-06-10 kernel-relayout: this is ROM 0x800056EC (addiu included).
+ * ALL ROM callers jal 0x800056F0 (post-addiu alt entry, the old "stolen
+ * prologue" idiom); that name is now a link-time absolute in
+ * undefined_syms_auto.txt so caller relocs hit ROM truth. */
+extern void func_800056F0(); /* post-addiu alt entry (undefined_syms absolute 0x800056F0) */
 extern s32 pimgr_bss_0000, pimgr_bss_01B0, pimgr_bss_11B0, pimgr_bss_1360, pimgr_bss_17A0, pimgr_bss_17B8;
 /* PI manager init (one-shot, gated on D_8000A450). Register the two DMA message
  * queues (func_800053D0), enable access if needed (func_80005C00), create the PI
@@ -95,7 +99,7 @@ void func_80005520(s32 arg0, s32 *arg1, s32 *arg2, s32 arg3) {
         sp2C = temp_v0;
         D_8000A460 = (s32) &__osPiAccessQueue;
         D_8000A464 = (s32) &func_80004A50;
-        D_8000A468 = (s32) &func_800056F0;
+        D_8000A468 = (s32) &func_800056F0; /* ROM stores the post-addiu entry */
         func_80005F10(&pimgr_bss_0000, 0, &D_80006060, &D_8000A450, (char *) &pimgr_bss_01B0 + 0x1000, arg0);
         func_8000A110(&pimgr_bss_0000);
         func_80005F10(&pimgr_bss_11B0, 0, &D_80005AEC, NULL, (char *) &pimgr_bss_1360 + 0x400, arg0 - 1);
@@ -125,10 +129,10 @@ extern s32 D_8001B5D0, D_8001B5E8, D_8001B5F0, D_8001B608;
  * forever — block on queue A, run handler func_80005C50, poll func_800066F0
  * until it returns non-zero, block on queue B, run handler func_80005C94.
  * 2026-06-04: kernel_006 flipped to -O1 (whole-file, all funcs prefer or are
- * opt-indifferent to -O1): func_800056F0 47->91.3%, func_80005520 68->77%,
+ * opt-indifferent to -O1): func_800056EC 47->91.3%, func_80005520 68->77%,
  * func_80005800 stays 100%. Residual ~9%: -O1 loop-accumulator spill detail +
  * infinite-loop dead-epilogue padding nops. */
-void func_800056F0(s32 arg0) {
+void func_800056EC(s32 arg0) {
     s32 sp2C;
     s32 sp28;
 
@@ -148,7 +152,7 @@ loop_1:
     goto loop_1;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800056F0);
+INCLUDE_ASM("asm/nonmatchings/kernel", func_800056EC);
 #endif
 
 /* __osSiCreateAccessQueue */

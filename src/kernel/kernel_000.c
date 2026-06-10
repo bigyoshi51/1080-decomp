@@ -399,22 +399,19 @@ typedef struct {
 typedef struct {
     s32 unk0;
     s32 unk4;
-    s32 unk8;
-    s32 unkC;
-    s32 unk10;
-    s32 unk14;
-    s32 unk18;
+    Struct00480Src blk; /* 0x8..0x1C: copied wholesale from src */
     s32 unk1C;
 } Struct00480Dst;
 
+/* 2026-06-10 kernel-relayout: previous body (field-by-field copy with
+ * unk18/unk1C swapped) was a FALSE match - it emitted 13 insns with
+ * CSE'd forwarding vs ROM's 14 (verified pre-relayout against a shifted
+ * baseline). ROM truth is a 5-word struct assignment (t7/t6-alternating
+ * block-copy idiom) + reload of dst->blk.unk8 + zero of unk4. */
 void func_80000480(Struct00480Dst* dst, Struct00480Src* src) {
-    dst->unk8 = src->unk0;
-    dst->unkC = src->unk4;
-    dst->unk10 = src->unk8;
-    dst->unk14 = src->unkC;
+    dst->blk = *src;
+    dst->unk1C = dst->blk.unk8;
     dst->unk4 = 0;
-    dst->unk1C = dst->unk10;
-    dst->unk18 = src->unk10;
 }
 
 #ifdef NON_MATCHING
@@ -1107,7 +1104,13 @@ s32 func_80000C88(void) {
     }
 
     {
-        UsoFunc fn = (UsoFunc)*(s32*)(funcTable + funcIndex * 12 + 4);
+        /* (t = funcTable) assignment-expr pins funcTable as the addu rs
+         * (ROM: addu t8,a2,t7) - docs/IDO_CODEGEN integer commutative
+         * operand-order lever; plain source-order swap does not flip it.
+         * (2026-06-10 kernel relayout audit; was the last kernel_000
+         * non-reloc word diff.) */
+        s32 t;
+        UsoFunc fn = (UsoFunc)*(s32*)((t = funcTable) + funcIndex * 12 + 4);
         D_80012BE4 = fn(&D_80012BC0);
     }
     return 0;
@@ -1636,16 +1639,18 @@ void func_800018B0(void* arg0) {
     *(u8*)((char*)arg0 + 0x99) = 1;
     *(s32*)((char*)arg0 + 0x38) = 0;
     *(s32*)((char*)arg0 + 0x3C) = 0;
-    ptr = (char*)arg0 + 8;
-    i = 2;
-    do {
+    /* 2026-06-10 kernel-relayout: previous do-while form was a FALSE match
+     * (v0/v1 swapped + bound/counter pre-header order; verified against a
+     * shifted baseline). for-comma-init pins ptr->$v1, bound-before-counter
+     * (docs/IDO_CODEGEN.md for-loop comma-init lever). Now byte-exact. */
+    for (i = 2, ptr = (char*)arg0 + 8; i != 0xE; ) {
         i += 4;
         *(s32*)(ptr + 0x38) = 0;
         *(s32*)(ptr + 0x3C) = 0;
         *(s32*)(ptr + 0x40) = 0;
         *(s32*)(ptr + 0x44) = 0;
         ptr += 0x10;
-    } while (i != 0xE);
+    }
 }
 
 /* func_800018F0 - splat over-split repaired: merged former
@@ -2211,207 +2216,3 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002530);
 void func_800029A0(void) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/kernel/func_800029A0_pad.s")
-
-/* func_800029B0 + func_80002A10 split out to kernel_045.c (-O1) */
-
-/* func_80002A3C split out to kernel_056.c (-O2 -mips3) */
-
-/* func_80002A78 split out to kernel_056.c (-O2 -mips3) */
-
-/* func_80002AB4 split out to kernel_056.c (-O2 -mips3) */
-
-/* func_80002AE0 split out to kernel_056.c (-O2 -mips3) */
-
-/* func_80002B1C split out to kernel_056.c (-O2 -mips3) */
-
-/* func_80002B78 split out to kernel_056.c (-O2 -mips3) */
-
-/* func_80002BA8 split out to kernel_056.c (-O1 -mips3, d-arithmetic helper) */
-
-/* func_80002C08 split out to kernel_056.c (-O2 -mips3) */
-
-/* func_80002CA4 split out to kernel_056.c (-O2 -mips3) */
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002CD0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002DB0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002DE0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002DF0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002E70);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002E78);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002F78);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800030D0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800031D0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800031E0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800031F0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003C24);
-
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003D40);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E0C);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E54);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E64);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003FF0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80004030);
-
-/* func_800044CC - verified structural decode (kernel, 0xEC, libultra
- * PI-event callback: inlined osSendMesg + thread wake).
- * Reference: libreultra src/os/seteventmesg.c / osSendMesg.c /
- * exceptasm.s (__osEventStateTab, __OSEventState).
- *   void func_800044CC(void) {
- *       __OSEventState *es = &__osEventStateTab[OS_EVENT_PI]; // +0x40
- *       OSMesgQueue *mq = es->queue;          // es->0x0 (at +0x40)
- *       if (mq == NULL) return;
- *       if (mq->validCount < mq->msgCount) {  // 0x8 < 0x10
- *           // inlined osSendMesg body:
- *           idx = (mq->first + mq->validCount) % mq->msgCount;
- *           mq->msg[idx] = es->message;       // es->0x4 -> mq->0x14[]
- *           mq->validCount++;                 // mq->0x8++
- *           if (mq->mtqueue->next != NULL) {  // mq->0x0 -> ->0x0
- *               t = func_80003E54(mq);        // __osPopThread
- *               func_80003E0C(&D_8000A418, t);// __osEnqueueThread
- *           }                                 //   (D_8000A418 =
- *       }                                     //    __osRunQueue)
- *   }
- * Struct-typing reference: __osEventStateTab = libultra event table,
- * __OSEventState = { OSMesgQueue *queue; OSMesg message; } (8 bytes);
- * entry +0x40 = index 8 = OS_EVENT_PI. OSMesgQueue fields used:
- * 0x0 mtqueue (blocked-thread list head), 0x8 validCount, 0xC first,
- * 0x10 msgCount, 0x14 msg[] (OSMesg array). func_80003E54 =
- * __osPopThread(&queue), func_80003E0C = __osEnqueueThread, global
- * D_8000A418 = __osRunQueue. The `div $zero,t4,t5; mfhi` + `break 7`
- * / `break 6` are IDO's signed `%` divide-by-zero (msgCount==0) and
- * INT_MIN/-1 overflow guards on the ring-index modulo. CAP REASON
- * (corrected 2026-05-23): the guards themselves DO match a C `%`; the real
- * blocker is their PLACEMENT — the target emits the break guards AFTER the
- * mq->msg[idx] store, whereas C `%` emits them right after the div (before
- * the store). Plus the event-table base resolves to 0x8001F510 here, not
- * symbol_addrs' __osEventStateTab=0x80019510 (a 0x6000 discrepancy to
- * reconcile before a match). Stays INCLUDE_ASM (no episode). */
-#ifdef NON_MATCHING
-extern char __osEventStateTab_real[]; /* @0x8001F510 (note: != symbol_addrs) */
-extern int D_8000A418;                 /* __osRunQueue */
-extern void *func_80003E54(void *);    /* __osPopThread */
-extern void func_80003E0C(void *, void *); /* __osEnqueueThread */
-void func_800044CC(void) {
-    char *es = __osEventStateTab_real + 0x40; /* &table[OS_EVENT_PI] */
-    char *mq = *(char **)es;                  /* es->queue */
-    if (mq == 0) {
-        return;
-    }
-    if (*(int *)(mq + 0x8) < *(int *)(mq + 0x10)) {   /* validCount < msgCount */
-        int idx = (*(int *)(mq + 0xC) + *(int *)(mq + 0x8)) % *(int *)(mq + 0x10);
-        *(int *)(mq + 0x14 + idx * 4) = *(int *)(es + 0x4); /* msg[idx] = es->message */
-        *(int *)(mq + 0x8) += 1;                       /* validCount++ */
-        if (*(char **)(*(char **)mq) != 0) {           /* mtqueue->next */
-            void *t = func_80003E54(mq);
-            func_80003E0C(&D_8000A418, t);
-        }
-    }
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
-#endif
-
-
-
-
-
-
-/* func_800047E4 merged into func_800047B0 — see kernel_027.c. The
- * 9-insn body that USED $t2/$t5 from "predecessor" was actually the
- * tail of a single 22-insn unaligned-big-endian-load function that
- * splat mis-split at 0x800047E4. Symbol kept as alt-entry via
- * undefined_syms_auto.txt for direct callers (jal func_800047E4). */
-
-/* ===== func_80004808 / func_8000487C: branch-LIKELY-emission cap (NOT -O0) =====
- * SCOPE CORRECTION 2026-06-04: this branch-likely cap applies ONLY to func_80004808
- * (73%) and func_8000487C (91%), which stay HERE at -O2 (they score higher at -O2).
- * The OTHER two tail functions func_800048E8 / func_800049B8 were a DIFFERENT class —
- * genuinely -O1 (spill-every-local), 34/39% at -O2 vs 72/78% at -O1 — and have been
- * moved to kernel_000_o1.c (-O1 split). The 2026-05-30 "whole tail is -O2" claim below
- * was an over-generalization; it is correct only for 4808/487C.
- * CORRECTION 2026-05-30: an -O0 split was tried and REVERTED — it does NOT match.
- * The target is -O2-COMPACT (e.g. func_8000487C = 27 insns) but with REGULAR
- * bnez/beqz (no branch-likely). Measured (exact flags -mips2 -32 -G0 -non_shared
- * -Xcpluscomm -Wab,-r4300_mul): -O2 = 28 insns + 2 bnezl (branch-LIKELY); -O1 = 36
- * insns regular; -O0 = 38 insns regular. So -O0/-O1 are BLOATED (worse), and -O2 is
- * compact-but-branch-likely. The target = -O2-size WITHOUT branch-likely — i.e. an
- * -O2 branch-likely-EMISSION cap, not an opt-level mismatch. The func-call-in-body
- * do-while form (this code) still emits bnezl; the C-structure lever doesn't suppress
- * it here. Genuine branch-likely cap. [Earlier "confirmed -O0" was an error: I matched
- * branch-TYPE but ignored instruction COUNT — -O0 regular branches come WITH +10 insns
- * of spills.]
- * VERIFIED 2026-05-31: NO branch-likely-disable flag exists in IDO 7.1 cc — the bnezl
- * emission is internal to ugen (`f_emit_branch_rrll`), not exposed via any -Wo/-W
- * command-line option (checked the cc binary strings). So this stays NM; the only
- * theoretical fixes are a C shape that makes the branch-target's first insn
- * non-delay-slot-fillable (so ugen falls back to regular bnez+nop) — not found despite
- * the do-while/call-in-body tries — or a ugen patch (out of scope). Applies to func_80004808
- * / func_8000487C + other -O2 branch-likely near-misses (e.g. gl_func_0006AF0C). */
-#ifdef NON_MATCHING
-/* 2026-06-04 (72.68->73.03%): structural cleanup. sp4 is the 4-byte packet
- * word at sp+0x4 (declare `u8 sp4[4]` BEFORE `u32 sp0` so IDO lays sp0 at
- * 0x0, sp4 at 0x4 — frame -0x8 matches target, final read folds to lw 0x4).
- * Second header write reads sp4[0] back (not a temp) so the intermediate
- * store stays live. RESIDUAL: target keeps a 2nd `sb` of the header (RMW
- * memory round-trip + andi 0xFF reload-truncate); IDO register-caches
- * sp4[0] across the two assigns and emits one store (volatile sp4 forces
- * the round-trip but over-corrects the loop -> 67.6%). */
-void func_80004808(u8* arg0, u32 arg1) {
-    u8 sp4[4];
-    u32 sp0;
-
-    sp4[0] = (sp4[0] & 0xFF03) | 0x30;
-    sp4[0] = (arg1 & 3) | (sp4[0] & 0xFFFC);
-    sp0 = 0;
-    if (arg1 != 0) {
-        do {
-            *((u8*)&sp0 + sp0 + 5) = arg0[sp0];
-            sp0++;
-        } while (sp0 < arg1);
-    }
-    *(volatile u32*)0xC0000000 = *(u32*)sp4;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80004808);
-#endif
-
-/* RSP status-bit poller. Two loops wait for SP_STATUS bit 0x2000 to be
- * SET then CLEAR around a write to 0xC000000C. The do-while form with the
- * func call in the BODY (not the while-condition) gets IDO to emit plain
- * bnez/beqz instead of branch-likely (which the empty-body form caused). */
-#ifdef NON_MATCHING
-void func_8000487C(void) {
-    s32 r = func_80009EA0();
-    if ((r & 0x2000) == 0) {
-        do {
-            r = func_80009EA0();
-        } while ((r & 0x2000) == 0);
-    }
-    *(volatile u32*)0xC000000C = 0;
-    r = func_80009EA0();
-    if (r & 0x2000) {
-        do {
-            r = func_80009EA0();
-        } while (r & 0x2000);
-    }
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000487C);
-#endif

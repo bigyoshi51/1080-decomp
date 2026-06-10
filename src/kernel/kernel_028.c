@@ -3,7 +3,8 @@
 extern s32 func_80009000(void);
 
 /* osSpRawReadIo */
-s32 func_80008BB4(s32 devAddr, s32* data) {
+/* 2026-06-10 kernel-relayout: ROM fn starts at func_80008BB0 (addiu included); ROM callers jal func_80008BB4 (alt entry) - that name is a link-time absolute in undefined_syms_auto.txt. */
+s32 func_80008BB0(s32 devAddr, s32* data) {
     if (func_80009000() != 0) {
         return -1;
     }

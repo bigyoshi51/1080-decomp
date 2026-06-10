@@ -72,6 +72,3 @@ s32 func_80009C90(s32 devAddr, s32 val) {
     *(volatile s32*)(0xA0000000 | devAddr) = val;
     return 0;
 }
-
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009CE0);

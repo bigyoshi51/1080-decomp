@@ -1,0 +1,242 @@
+#include "common.h"
+
+/* Forward declarations */
+extern s32 __osPiAccessQueue;
+extern s32 D_8000A480;
+extern s32 D_80013004;
+extern void func_80005DC0(s32*, s32, s32);
+extern void func_80005C00(void);
+extern void func_80004FE0(s32*, s32*, s32);
+extern void func_800053D0(s32*, s32*, s32);
+extern s32 D_8000A3E0;
+extern s32 func_800066B0(void);
+extern void func_800066D0(s32);
+extern void func_80003D0C(s32*);
+extern void* D_8000A420;
+extern s32 D_8000A418;
+extern s32 siacs_bss_0000;
+extern s32 func_800009D8(void*, s32, s32, void*);
+extern void func_80003FF0(s32, void*);
+extern void* func_80003E54(void*);
+extern void func_8000A110(void*);
+extern void func_8000857C(void);
+extern void func_8000785C(s32);
+extern void func_80008ED0(void);
+extern void func_80007760(void);
+typedef void (*FuncPtr2)(void*, void*);
+extern FuncPtr2 D_80012C44;
+extern s32 D_8000A32C;
+extern s32 D_8000A340;
+extern s32 D_80012BC0;
+extern s32 D_8000A2E0;
+extern s32 D_8000A41C;
+extern s32 func_80002890(s32);
+extern void func_8000A0E0(void);
+extern void func_80005350(s32, s32);
+extern void func_80005400(s32, s32);
+extern s32 func_80008430(s32);
+extern void func_80009148(s32);
+extern void func_80009030(s32, s32);
+extern void func_80008498(void);
+extern s32 func_80006A98(s32);
+extern void func_800091F0(s32);
+typedef struct { s32 pad[3]; s32 position; } FileState;
+
+typedef struct {
+    void* mtqueue;
+    void* fullqueue;
+    s32 validCount;
+    s32 first;
+    s32 msgCount;
+    s32** msg;
+} OSMesgQueue;
+
+typedef struct Thread {
+    s32 field0;
+    s32 pri;
+    s32 queue;
+    s32 pad0C;
+    u16 state;
+} Thread;
+
+typedef struct { s32 queue; s32 msg; } OSEventState;
+extern OSEventState __osEventStateTab[];
+
+
+
+/* func_800066B0+func_800066D0 INCLUDE_ASM moved to kernel_017.c on
+ * 2026-05-05 to enable the 3-way merge with the parent fragment
+ * func_80006698. Per
+ * feedback_cross_file_fragment_unblock_via_move_then_merge.md: moving
+ * just the INCLUDE_ASM (no C body change) is layout-neutral when both
+ * .o files reside in adjacent linker-script slots and the destination
+ * .o gets exactly the bytes the source loses. Adjacent .ld slots
+ * verified: kernel_017.c.o then kernel_018.c.o.
+ * 800066D0 caller-entry symbol preserved via undefined_syms_auto.txt
+ * (still resolves at 0x800066D0 inside the merged 800066B0 body). */
+
+/* split from kernel_018.c - 2026-06-10 kernel ROM-order relayout */
+
+
+
+/* func_80007564 - verified structural decode (kernel, 0x134, rmon
+ * thread-list command handler). rmon family (cf. func_8000798C /
+ * func_80009584 / func_80007A98; libreultra rmon).
+ * Struct-typing reference: __rmonUtilityBuffer (UB) - UB->0x4 (4)
+ * u8 domain, UB->0x6 (6) u16 cleared, UB->0xC (12) s32 status/echo
+ * (0x3EA = error code when msg->0xC==-1), UB->0x10 (16) u16 entry
+ * count, UB->0x14 (20) s32[] entry-id array. RmonMsg msg: msg->0x4
+ * (4) domain, msg->0x9 (9) u8 mode (1 = single), msg->0xC (12) s32
+ * request id (-1 = invalid). Thread chain node (from func_80009C30
+ * = __osThreadList/queue head): node->0x4 (4) sentinel (-1 = end),
+ * node->0xC (12) next, node->0x14 (20) thread id. func_800073F8 =
+ * __rmonSendHeader(buf, len = count*4 + 0x14, flag = 1). Caps <80:
+ * rmon utility-buffer build + thread-chain walk + branch-likely +
+ * __rmonSendHeader. INCLUDE_ASM remains build path (no episode;
+ * tautology-trap rule).
+ * 2026-06-04 (22.9 -> 37.99%): control-flow fix. The old C `goto send`
+ * from the msg->0xC==-1 and msg->9==1 arms SKIPPED the `ub->4=msg->4;
+ * ub->6=0` stores, but in the asm those live in the common end block
+ * (.L8000764C) that EVERY path reaches — so the -1 arm must fall through
+ * to the msg->9 check and the two end-stores must be unconditional after
+ * the if/else, not behind the early-exit label. Now structured as plain
+ * nested if/else with one tail. RESIDUAL (regalloc tail, multi-tick): the
+ * target spills &__rmonUtilityBuffer to 0x28(sp) at entry and RELOADS it
+ * per use (9x) + spills/reloads the arg (sw a0,0x30(sp); lw s0,0x30(sp)),
+ * frame -0x30; my C keeps ub register-resident (frame -0x18). Sibling
+ * func_80006790 hits this reload-per-use shape at plain -O2 (68%), so it
+ * is structure-driven not opt-driven — kernel_018 -O2 -g3 only nudges 7564
+ * +0.8pp and REGRESSES 6790/71C0/745C, so NOT an opt split. */
+extern void func_800073F8(); /* needed by NM body; split piece lost the chunk-local extern */
+#ifdef NON_MATCHING
+extern char __rmonUtilityBuffer;
+extern char *func_80009C30(void);
+/* func_800073F8 is forward-declared 0-arg above (fragment stub); cast at
+ * call site to its real 3-arg __rmonSendHeader signature. */
+s32 func_80007564(char *msg) {
+    char *ub = &__rmonUtilityBuffer;
+    char *t;
+    if (*(int*)(msg + 0xC) == -1) {
+        *(int*)(ub + 0xC) = 0x3EA;
+    } else {
+        *(int*)(ub + 0xC) = *(int*)(msg + 0xC);
+    }
+    if (*(unsigned char*)(msg + 0x9) == 1) {
+        *(unsigned short*)(ub + 0x10) = 1;
+        *(int*)(ub + 0x14) = 0x3E8;
+    } else {
+        t = func_80009C30();
+        *(unsigned short*)(ub + 0x10) = 0;
+        if (*(int*)(t + 0x4) != -1) {
+            do {
+                if (*(int*)(t + 0x14) != 0) {
+                    ((int*)(ub + 0x14))[*(unsigned short*)(ub + 0x10)] = *(int*)(t + 0x14);
+                    *(unsigned short*)(ub + 0x10) += 1;
+                }
+                t = *(char**)(t + 0xC);
+            } while (*(int*)(t + 0x4) != -1);
+        }
+    }
+    *(unsigned char*)(ub + 0x4) = *(unsigned char*)(msg + 0x4);
+    *(unsigned short*)(ub + 0x6) = 0;
+    ((void (*)(void*, int, int))func_800073F8)(ub, *(unsigned short*)(ub + 0x10) * 4 + 0x14, 1);
+    return 0;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80007564);
+#endif
+
+#ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
+#endif
+#define HW(p, o) (*(u16 *)((char *)(p) + (o)))
+extern u8 __rmonRcpAtBreak;
+/* rmon thread/RCP register-query setup. Populate the reply context arg2 for
+ * thread arg1: mode arg0==1 = RCP (SP IMEM window 0x04001000, read the RCP
+ * break-word via func_80006A98, flag a pending RCP break), else find the CPU
+ * thread in the chain (func_80009C30) by id and copy its saved PC/break state.
+ * The 0x8000785C alt-entry (external callers via undefined_syms) is the shared
+ * unk12-flag tail. (Unblocked by adding an alabel for m2c parsing.) */
+s32 func_80007698(s32 arg0, s32 arg1, void *arg2) {
+    extern s32 func_80008430();
+    s32 sp1C;
+    void *sp18;
+    u16 temp_t0;
+
+    FW(arg2, 0x14) = arg1;
+    if (arg0 == 1) {
+        FW(arg2, 0x18) = 0x3E9;
+    } else {
+        FW(arg2, 0x18) = 0x3EA;
+    }
+    HW(arg2, 0x10) = 1;
+    HW(arg2, 0x12) = 0;
+    HW(arg2, 0x24) = 0;
+    HW(arg2, 0x26) = 0;
+    FW(arg2, 0x30) = 0;
+    if (arg0 == 1) {
+        FW(arg2, 0x2C) = 0x04001000;
+        FW(arg2, 0x28) = 0x2A;
+        if (func_80008430() != 0) {
+            FW(arg2, 0xC) = 4;
+            FW(arg2, 0x20) = 0;
+            FW(arg2, 0x1C) = 0;
+        } else {
+            FW(arg2, 0xC) = 1;
+            FW(arg2, 0x20) = func_80006A98(0x04080000) + 0x04001000;
+            sp1C = func_80006A98(FW(arg2, 0x20));
+            if ((sp1C & 0xFC00003F) == 0xD) {
+                sp1C = 0xD;
+            }
+            if (__rmonRcpAtBreak != 0) {
+                HW(arg2, 0x10) = 2;
+                HW(arg2, 0x24) = 2;
+                HW(arg2, 0x26) = 4;
+            }
+            FW(arg2, 0x1C) = sp1C;
+        }
+        goto block_25;
+    }
+    sp18 = (void *) func_80009C30();
+    if (FW(sp18, 4) != -1) {
+loop_12:
+        if (FW(sp18, 0x14) != arg1) {
+            sp18 = (void *) FW(sp18, 0xC);
+            if (FW(sp18, 4) != -1) {
+                goto loop_12;
+            }
+        }
+    }
+    if (FW(sp18, 4) == -1) {
+        return -2;
+    }
+    FW(arg2, 0x28) = FW(sp18, 4);
+    temp_t0 = HW(sp18, 0x10);
+    if (temp_t0 != 0) {
+        FW(arg2, 0xC) = temp_t0;
+    } else {
+        FW(arg2, 0xC) = 1;
+    }
+    FW(arg2, 0x20) = FW(sp18, 0x11C);
+    sp1C = *(s32 *) FW(sp18, 0x11C);
+    if ((sp1C & 0xFC00003F) == 0xD) {
+        sp1C = 0xD;
+    }
+    FW(arg2, 0x1C) = sp1C;
+    FW(arg2, 0x2C) = (s32) sp18;
+    if (HW(sp18, 0x12) & 1) {
+        HW(arg2, 0x10) = 2;
+        HW(arg2, 0x24) = 2;
+        HW(arg2, 0x26) = 4;
+    } else if (HW(sp18, 0x12) & 2) {
+        HW(arg2, 0x10) = 2;
+        HW(arg2, 0x24) = 1;
+        HW(arg2, 0x26) = 2;
+    }
+block_25:
+    return 0;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80007698);
+#endif

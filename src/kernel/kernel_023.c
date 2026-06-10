@@ -69,6 +69,3 @@ void func_80009A50(void) {
     func_80003D0C(&D_8000A418);
     func_800066D0(sr);
 }
-
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009AA0);

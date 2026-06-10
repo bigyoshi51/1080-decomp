@@ -1,0 +1,125 @@
+#include "common.h"
+
+/* Forward declarations */
+extern s32 __osPiAccessQueue;
+extern s32 D_8000A480;
+extern s32 D_80013004;
+extern void func_80005DC0(s32*, s32, s32);
+extern void func_80005C00(void);
+extern void func_80004FE0(s32*, s32*, s32);
+extern void func_800053D0(s32*, s32*, s32);
+extern s32 D_8000A3E0;
+extern s32 func_800066B0(void);
+extern void func_800066D0(s32);
+extern void func_80003D0C(s32*);
+extern void* D_8000A420;
+extern s32 D_8000A418;
+extern s32 siacs_bss_0000;
+extern s32 func_800009D8(void*, s32, s32, void*);
+extern void func_80003FF0(s32, void*);
+extern void* func_80003E54(void*);
+extern void func_8000A110(void*);
+extern void func_8000857C(void);
+extern void func_8000785C(s32);
+extern void func_80008ED0(void);
+extern void func_80007760(void);
+typedef void (*FuncPtr2)(void*, void*);
+extern FuncPtr2 D_80012C44;
+extern s32 D_8000A32C;
+extern s32 D_8000A340;
+extern s32 D_80012BC0;
+extern s32 D_8000A2E0;
+extern s32 D_8000A41C;
+extern s32 func_80002890(s32);
+extern void func_8000A0E0(void);
+extern void func_80005350(s32, s32);
+extern void func_80005400(s32, s32);
+extern s32 func_80008430(s32);
+extern void func_80009148(s32);
+extern void func_80009030(s32, s32);
+extern void func_80008498(void);
+extern s32 func_80006A98(s32);
+extern void func_800091F0(s32);
+typedef struct { s32 pad[3]; s32 position; } FileState;
+
+typedef struct {
+    void* mtqueue;
+    void* fullqueue;
+    s32 validCount;
+    s32 first;
+    s32 msgCount;
+    s32** msg;
+} OSMesgQueue;
+
+typedef struct Thread {
+    s32 field0;
+    s32 pri;
+    s32 queue;
+    s32 pad0C;
+    u16 state;
+} Thread;
+
+typedef struct { s32 queue; s32 msg; } OSEventState;
+extern OSEventState __osEventStateTab[];
+
+
+/* split from kernel_003.c - 2026-06-10 kernel ROM-order relayout */
+
+
+
+#ifdef NON_MATCHING
+/* PI DOM2 timing + system init. Tried both per-byte externs and struct-based
+ * addressing; IDO -O1 still emits a fresh `lui $at` per store regardless of
+ * struct typing, while target shares `$at` across adjacent %lo pairs. The
+ * coalescing appears to be a specific compiler mood we can't trigger from C.
+ * NON_MATCHING body is structurally correct; permuter or closer analysis needed. */
+extern u8 D_800195D4;
+extern u8 D_800195D5;
+extern u8 D_800195D6;
+extern u8 D_800195D7;
+extern u8 D_800195D8;
+extern u8 D_800195D9;
+extern s32 D_800195D0;
+extern s32 D_800195DC;
+extern s32 D_800195E0;
+extern s32 D_80019644;
+extern void* D_8000A46C;
+extern s32 func_800030D0(s32*, s32);
+
+#define IO_WRITE(addr, val) (*(volatile s32*)(addr) = (val))
+
+/* func_80004E50: 94.8% NM (global-init + PI-BSD-DOM HW-reg writes). The
+ * expected/.o carries D_A4600024/28/2C/30 relocs (splat symbolized the PI
+ * regs) while this C bakes the 0xA46000xx literals — but DO NOT "fix" that:
+ * objdiff is reloc-aware and ALREADY counts the baked literal == the symbol
+ * reloc (both resolve to 0xA46000xx), so the IO_WRITE form is NOT a diff.
+ * Verified 2026-05-31: converting the 4 IO_WRITEs to `extern volatile s32
+ * D_A46000xx; D_A46000xx = v;` REGRESSES 94.8%->68.7% (the volatile-lvalue
+ * assignment re-allocates/re-schedules the whole function). The real 5.2%
+ * residual is store-scheduling (the D_800195Dx constant-load/store order +
+ * frame-setup placement differs from the target), an IDO -O1 scheduling cap. */
+void* func_80004E50(void) {
+    s32 sr;
+    D_800195D4 = 2;
+    D_800195DC = 0xA5000000;
+    D_800195D5 = 3;
+    D_800195D8 = 6;
+    D_800195D6 = 6;
+    D_800195D7 = 2;
+    D_800195D9 = 1;
+    IO_WRITE(0xA4600024, 3);
+    IO_WRITE(0xA4600028, D_800195D8);
+    IO_WRITE(0xA460002C, D_800195D6);
+    IO_WRITE(0xA4600030, D_800195D7);
+    D_800195E0 = 0;
+    func_800030D0(&D_800195E0 + 1, 0x60);
+    sr = func_800066B0();
+    D_800195D0 = (s32)D_8000A46C;
+    D_8000A46C = &D_800195D0;
+    D_80019644 = (s32)&D_800195D0;
+    func_800066D0(sr);
+    return &D_800195D0;
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80004E50);
+#endif

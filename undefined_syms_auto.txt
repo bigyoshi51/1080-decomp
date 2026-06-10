@@ -2480,3 +2480,7 @@ D_b3_294C_g20C = 0x0000020C;
 D_21D2C_count = 0x00002534;
 D_21D2C_tbl = 0x00002538;
 D_gl_00041310 = 0x41310; /* address constant returned by game_libs_func_000666FC (code label inside game_libs) */
+/* 2026-06-10 kernel relayout: post-prologue alt-entry jal targets (callers skip the addiu word) */
+func_800056F0 = 0x800056F0;
+func_80008BB4 = 0x80008BB4;
+func_80008D4C = 0x80008D4C;

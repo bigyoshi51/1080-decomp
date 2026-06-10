@@ -1,7 +1,7 @@
 
-nonmatching func_800056F0, 0x108
+nonmatching func_800056EC, 0x108
 
-glabel func_800056F0
+glabel func_800056EC
     /* 66EC 800056EC 27BDFFD0 */  addiu      $sp, $sp, -0x30
     /* 66F0 800056F0 AFA40030 */  sw         $a0, 0x30($sp)
     /* 66F4 800056F4 AFBF001C */  sw         $ra, 0x1C($sp)
@@ -70,7 +70,7 @@ glabel func_800056F0
     /* 67E8 800057E8 27BD0030 */  addiu      $sp, $sp, 0x30
     /* 67EC 800057EC 03E00008 */  jr         $ra
     /* 67F0 800057F0 00000000 */   nop
-endlabel func_800056F0
+endlabel func_800056EC
     /* 67F4 800057F4 00000000 */  nop
     /* 67F8 800057F8 00000000 */  nop
     /* 67FC 800057FC 00000000 */  nop

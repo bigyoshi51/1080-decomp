@@ -226,8 +226,7 @@ build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OP
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_003.c.o build/non_matching/src/kernel/kernel_003.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_005.c.o build/non_matching/src/kernel/kernel_005.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_005.c.o: TEXT_CLIP_KEEP_ALIGN := 0x90 func_800052F0=0x60
-build/non_matching/src/kernel/kernel_005.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x90 func_800052F0=0x60
+build/src/kernel/kernel_005_b.c.o build/non_matching/src/kernel/kernel_005_b.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_007.c.o build/non_matching/src/kernel/kernel_007.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_009.c.o build/non_matching/src/kernel/kernel_009.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_011.c.o build/non_matching/src/kernel/kernel_011.c.o: OPT_FLAGS := -O1
@@ -243,20 +242,20 @@ build/src/kernel/kernel_028.c.o build/non_matching/src/kernel/kernel_028.c.o: OP
 build/src/kernel/kernel_029.c.o build/non_matching/src/kernel/kernel_029.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_030.c.o build/non_matching/src/kernel/kernel_030.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_031.c.o build/non_matching/src/kernel/kernel_031.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_031.c.o: TRUNCATE_TEXT := 0x44
+build/src/kernel/kernel_031.c.o: TRUNCATE_TEXT := 0x48  # 0x44 content + ROM pad word at 0x802C (2026-06-10 relayout)
 # kernel_031b: file-split holding func_80008030 (compiled at -O2). Per
 # feedback_insn_patch_on_reloc_instructions_breaks_byte_verify.md: skip
 # patching offsets 0x0/0x4 (R_MIPS_HI16/LO16 for D_A4040010); only patch
 # non-reloc offsets 0xC/0x10/0x18/0x20.
 build/src/kernel/kernel_031b.c.o build/non_matching/src/kernel/kernel_031b.c.o: OPT_FLAGS := -O2
-build/src/kernel/kernel_031b.c.o: TRUNCATE_TEXT := 0x2C
+build/src/kernel/kernel_031b.c.o: TRUNCATE_TEXT := 0x24  # ROM slot [0x8030..0x8054) is flush (2026-06-10 relayout)
 build/src/kernel/kernel_032.c.o build/non_matching/src/kernel/kernel_032.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_033.c.o build/non_matching/src/kernel/kernel_033.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_034.c.o build/non_matching/src/kernel/kernel_034.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_035.c.o build/non_matching/src/kernel/kernel_035.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_036.c.o build/non_matching/src/kernel/kernel_036.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_036.c.o: TEXT_CLIP_KEEP_ALIGN := 0xA0 func_800073DC=0x1C func_800073DC.NON_MATCHING=0x1C
-build/non_matching/src/kernel/kernel_036.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0xA0 func_800073DC=0x1C func_800073DC.NON_MATCHING=0x1C
+build/src/kernel/kernel_036.c.o: TEXT_CLIP_KEEP_ALIGN := 0x98 func_800073DC=0x1C func_800073DC.NON_MATCHING=0x1C  # 0x98: ROM falls through to func_800073F8 at 0x73F8 (2026-06-10 relayout)
+build/non_matching/src/kernel/kernel_036.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x98 func_800073DC=0x1C func_800073DC.NON_MATCHING=0x1C
 build/src/kernel/kernel_037.c.o build/non_matching/src/kernel/kernel_037.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_038.c.o build/non_matching/src/kernel/kernel_038.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_039.c.o build/non_matching/src/kernel/kernel_039.c.o: OPT_FLAGS := -O1
@@ -274,8 +273,6 @@ build/src/kernel/kernel_047.c.o build/non_matching/src/kernel/kernel_047.c.o: OP
 build/src/kernel/kernel_048.c.o build/non_matching/src/kernel/kernel_048.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_049.c.o build/non_matching/src/kernel/kernel_049.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_050.c.o build/non_matching/src/kernel/kernel_050.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_051.c.o build/non_matching/src/kernel/kernel_051.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_052.c.o build/non_matching/src/kernel/kernel_052.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_053.c.o build/non_matching/src/kernel/kernel_053.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_054.c.o build/non_matching/src/kernel/kernel_054.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_022_o1.c.o build/non_matching/src/kernel/kernel_022_o1.c.o: OPT_FLAGS := -O1
@@ -284,7 +281,76 @@ build/src/kernel/kernel_018.c.o build/non_matching/src/kernel/kernel_018.c.o: OP
 build/src/kernel/kernel_018_o2.c.o build/non_matching/src/kernel/kernel_018_o2.c.o: OPT_FLAGS := -O2
 build/src/kernel/kernel_006.c.o build/non_matching/src/kernel/kernel_006.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_000_o1.c.o build/non_matching/src/kernel/kernel_000_o1.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_055.c.o build/non_matching/src/kernel/kernel_055.c.o: OPT_FLAGS := -O1
+# 2026-06-10 kernel ROM-order relayout: split-piece opt flags (inherit parent unit -O1)
+build/src/kernel/kernel_042_b.c.o build/non_matching/src/kernel/kernel_042_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_027_b.c.o build/non_matching/src/kernel/kernel_027_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_003_b.c.o build/non_matching/src/kernel/kernel_003_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_004_b.c.o build/non_matching/src/kernel/kernel_004_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_011_b.c.o build/non_matching/src/kernel/kernel_011_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_011_c.c.o build/non_matching/src/kernel/kernel_011_c.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_013_b.c.o build/non_matching/src/kernel/kernel_013_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_018_b.c.o build/non_matching/src/kernel/kernel_018_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_018_c.c.o build/non_matching/src/kernel/kernel_018_c.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_018_d.c.o build/non_matching/src/kernel/kernel_018_d.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_018_e.c.o build/non_matching/src/kernel/kernel_018_e.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_018_f.c.o build/non_matching/src/kernel/kernel_018_f.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_018_g.c.o build/non_matching/src/kernel/kernel_018_g.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_020_b.c.o build/non_matching/src/kernel/kernel_020_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_020_c.c.o build/non_matching/src/kernel/kernel_020_c.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_b.c.o build/non_matching/src/kernel/kernel_022_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_c.c.o build/non_matching/src/kernel/kernel_022_c.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_d.c.o build/non_matching/src/kernel/kernel_022_d.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_e.c.o build/non_matching/src/kernel/kernel_022_e.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_f.c.o build/non_matching/src/kernel/kernel_022_f.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_g.c.o build/non_matching/src/kernel/kernel_022_g.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_h.c.o build/non_matching/src/kernel/kernel_022_h.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_i.c.o build/non_matching/src/kernel/kernel_022_i.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_022_o1_b.c.o build/non_matching/src/kernel/kernel_022_o1_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_035_b.c.o build/non_matching/src/kernel/kernel_035_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_054_b.c.o build/non_matching/src/kernel/kernel_054_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_054_c.c.o build/non_matching/src/kernel/kernel_054_c.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_054_d.c.o build/non_matching/src/kernel/kernel_054_d.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_023_b.c.o build/non_matching/src/kernel/kernel_023_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_025_b.c.o build/non_matching/src/kernel/kernel_025_b.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_039_b.c.o build/non_matching/src/kernel/kernel_039_b.c.o: OPT_FLAGS := -O1
+# (TRUNCATE_TEXT entries for relayout pieces are below, computed from ROM-truth spans)
+build/src/kernel/kernel_027_b.c.o build/non_matching/src/kernel/kernel_027_b.c.o: TRUNCATE_TEXT := 0x58
+build/src/kernel/kernel_000_c.c.o build/non_matching/src/kernel/kernel_000_c.c.o: TRUNCATE_TEXT := 0xE0
+build/src/kernel/kernel_000_o1.c.o build/non_matching/src/kernel/kernel_000_o1.c.o: TRUNCATE_TEXT := 0x1D8
+build/src/kernel/kernel_038.c.o build/non_matching/src/kernel/kernel_038.c.o: TRUNCATE_TEXT := 0x140
+build/src/kernel/kernel_017.c.o build/non_matching/src/kernel/kernel_017.c.o: TRUNCATE_TEXT := 0x9C
+build/src/kernel/kernel_018.c.o build/non_matching/src/kernel/kernel_018.c.o: TRUNCATE_TEXT := 0x4
+build/src/kernel/kernel_049.c.o build/non_matching/src/kernel/kernel_049.c.o: TRUNCATE_TEXT := 0x34
+build/src/kernel/kernel_047.c.o build/non_matching/src/kernel/kernel_047.c.o: TRUNCATE_TEXT := 0x3C
+build/src/kernel/kernel_018_b.c.o build/non_matching/src/kernel/kernel_018_b.c.o: TRUNCATE_TEXT := 0x448
+build/src/kernel/kernel_032.c.o build/non_matching/src/kernel/kernel_032.c.o: TRUNCATE_TEXT := 0x80
+build/src/kernel/kernel_018_c.c.o build/non_matching/src/kernel/kernel_018_c.c.o: TRUNCATE_TEXT := 0xC
+build/src/kernel/kernel_033.c.o build/non_matching/src/kernel/kernel_033.c.o: TRUNCATE_TEXT := 0xA8
+build/src/kernel/kernel_018_e.c.o build/non_matching/src/kernel/kernel_018_e.c.o: TRUNCATE_TEXT := 0x64
+build/src/kernel/kernel_018_o2.c.o build/non_matching/src/kernel/kernel_018_o2.c.o: TRUNCATE_TEXT := 0x108
+build/src/kernel/kernel_018_f.c.o build/non_matching/src/kernel/kernel_018_f.c.o: TRUNCATE_TEXT := 0x428
+build/src/kernel/kernel_034.c.o build/non_matching/src/kernel/kernel_034.c.o: TRUNCATE_TEXT := 0x10C
+build/src/kernel/kernel_018_g.c.o build/non_matching/src/kernel/kernel_018_g.c.o: TRUNCATE_TEXT := 0x338
+build/src/kernel/kernel_030.c.o build/non_matching/src/kernel/kernel_030.c.o: TRUNCATE_TEXT := 0x128
+build/src/kernel/kernel_020.c.o build/non_matching/src/kernel/kernel_020.c.o: TRUNCATE_TEXT := 0x20
+build/src/kernel/kernel_020_b.c.o build/non_matching/src/kernel/kernel_020_b.c.o: TRUNCATE_TEXT := 0x7C
+build/src/kernel/kernel_020_c.c.o build/non_matching/src/kernel/kernel_020_c.c.o: TRUNCATE_TEXT := 0x254
+build/src/kernel/kernel_021.c.o build/non_matching/src/kernel/kernel_021.c.o: TRUNCATE_TEXT := 0x30
+build/src/kernel/kernel_022.c.o build/non_matching/src/kernel/kernel_022.c.o: TRUNCATE_TEXT := 0x360
+build/src/kernel/kernel_022_o1.c.o build/non_matching/src/kernel/kernel_022_o1.c.o: TRUNCATE_TEXT := 0x94
+build/src/kernel/kernel_041.c.o build/non_matching/src/kernel/kernel_041.c.o: TRUNCATE_TEXT := 0x104
+build/src/kernel/kernel_054.c.o build/non_matching/src/kernel/kernel_054.c.o: TRUNCATE_TEXT := 0xBC
+build/src/kernel/kernel_022_b.c.o build/non_matching/src/kernel/kernel_022_b.c.o: TRUNCATE_TEXT := 0x30
+build/src/kernel/kernel_035.c.o build/non_matching/src/kernel/kernel_035.c.o: TRUNCATE_TEXT := 0x68
+build/src/kernel/kernel_022_d.c.o build/non_matching/src/kernel/kernel_022_d.c.o: TRUNCATE_TEXT := 0x118
+build/src/kernel/kernel_044.c.o build/non_matching/src/kernel/kernel_044.c.o: TRUNCATE_TEXT := 0x150
+build/src/kernel/kernel_022_e.c.o build/non_matching/src/kernel/kernel_022_e.c.o: TRUNCATE_TEXT := 0x2AC
+build/src/kernel/kernel_054_b.c.o build/non_matching/src/kernel/kernel_054_b.c.o: TRUNCATE_TEXT := 0x16C
+build/src/kernel/kernel_022_f.c.o build/non_matching/src/kernel/kernel_022_f.c.o: TRUNCATE_TEXT := 0x1C4
+build/src/kernel/kernel_054_c.c.o build/non_matching/src/kernel/kernel_054_c.c.o: TRUNCATE_TEXT := 0x110
+build/src/kernel/kernel_022_g.c.o build/non_matching/src/kernel/kernel_022_g.c.o: TRUNCATE_TEXT := 0x118
+build/src/kernel/kernel_054_d.c.o build/non_matching/src/kernel/kernel_054_d.c.o: TRUNCATE_TEXT := 0xC4
+build/src/kernel/kernel_029.c.o build/non_matching/src/kernel/kernel_029.c.o: TRUNCATE_TEXT := 0x250  # no trim; lowers sh_addralign so it links at 0x80006D0C
 # kernel_056: 64-bit libgcc-style helpers; -mips3 so IDO inlines d-arithmetic.
 # Post-compile, rewrite e_flags from mips3 (0x20000000) to mips2+noreorder
 # (0x10000001) so the linker will merge it with the rest of the kernel (mips2).
