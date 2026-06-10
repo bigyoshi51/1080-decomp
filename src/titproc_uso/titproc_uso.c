@@ -642,9 +642,11 @@ void titproc_uso_func_0000101C(int *a0) {
  *  - ~~state 1 tail @0x17C~~ DECODED 2026-06-10 (40.32 -> 47.10): the
  *    two vt-call arms are in the C below (the old d->0x34=1 line was a
  *    misread of `sw t0,64(s0)`).
- *  - state 2/3 tail @0x29C (+93): counter clamp on (s0->0x64)->0x3C to
- *    255/256 with +16 step (cap 720/512), vt-call ((*v0->0x64)(v0->0x60+&D)),
- *    gl_func chain. Branch-heavy (beql/bnel/blez) — decode per-arm.
+ *  - ~~state 2/3 tail @0x29C~~ DECODED 2026-06-10 (47.10 -> 57.43):
+ *    state 3's real spine = t==0 init (D->0x34=1 + gl(s0,v,0)) then the
+ *    p->0x34-gated counter-clamp pair (+16 cap 255->720 / -16 floor 0
+ *    with the gate-confirmed vt-call chain inside). Remaining: the
+ *    shared 0x474 tail, jal identities, per-arm fine shapes.
  * Next tick: extend state-1 then state-2/3 bodies (each adds ~15-25pp).
  * 2026-06-10 dispatcher-scan audit: the full 290-word [0x116C..0x15F4)
  * region is SELF-CONTAINED (zero out-branches; jumptable at word 11)
@@ -727,18 +729,53 @@ void titproc_uso_func_0000116C(char *s0) {
             *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
         }
     } else if (state == 3) {
-        v1 = *(char **)(s0 + 0x58);
-        vt = *(char **)(v1 + 0x28);
-        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
-        gl_func_00000000(*(int *)(s0 + 0x58));
-        v1 = *(char **)(s0 + 0x54);
-        vt = *(char **)(v1 + 0x28);
-        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
-        gl_func_00000000(*(int *)(s0 + 0x5C));
-        n = *(int *)(s0 + 0x70);
-        *(int *)(s0 + 0x40) = 1;
-        *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
-        gl_func_00000000(2050);
+        /* 2026-06-10 restructure from @0x288: the old body's vt-call
+         * chain actually lives INSIDE the gate-confirmed sub-branch;
+         * the real spine is t==0-init then the counter clamp pair. */
+        int *c;
+        t = *(int *)(s0 + 0x3C);
+        if (t == 0) {
+            v = gl_func_00000000();
+            *(int *)(d + 0x34) = 1;
+            gl_func_00000000(s0, v, 0);
+        }
+        if (*(int *)(*(char **)(*(char **)(s0 + 0x50) + 0x44) + 0x34) != 0) {
+            c = (int *)(*(char **)(s0 + 0x64) + 0x3C);
+            if (*c < 255) {
+                *c = *c + 16;
+                if (*(int *)(*(char **)(s0 + 0x64) + 0x3C) >= 256) {
+                    *(int *)(*(char **)(s0 + 0x64) + 0x3C) = 720;
+                }
+            } else {
+                v1 = (char *)&D_00000000;
+                vt = *(char **)(v1 + 0x28);
+                ((void (*)(int))(*(int *)(vt + 0x64)))(*(short *)(vt + 0x60) + (int)v1);
+            }
+        } else {
+            c = (int *)(*(char **)(s0 + 0x64) + 0x3C);
+            if (*c > 0) {
+                *c = *c - 16;
+                if (*(int *)(*(char **)(s0 + 0x64) + 0x3C) < 0) {
+                    *(int *)(*(char **)(s0 + 0x64) + 0x3C) = 0;
+                }
+            }
+            if (*(int *)(*(char **)(s0 + 0x64) + 0x3C) == 0) {
+                if (gl_func_00000000((char *)&D_00000000) != 0) {
+                    v1 = *(char **)(s0 + 0x58);
+                    vt = *(char **)(v1 + 0x28);
+                    ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+                    gl_func_00000000(*(int *)(s0 + 0x58));
+                    v1 = *(char **)(s0 + 0x54);
+                    vt = *(char **)(v1 + 0x28);
+                    ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+                    gl_func_00000000(*(int *)(s0 + 0x5C));
+                    n = *(int *)(s0 + 0x70);
+                    *(int *)(s0 + 0x40) = 1;
+                    *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+                    gl_func_00000000(2050);
+                }
+            }
+        }
     }
 }
 #else
