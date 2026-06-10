@@ -1658,6 +1658,22 @@
       }
     },
     {
+      "name": "src/game_libs/game_libs_ido53_74D54",
+      "target_path": "expected/src/game_libs/game_libs_ido53_74D54.c.o",
+      "base_path": "build/non_matching/src/game_libs/game_libs_ido53_74D54.c.o",
+      "metadata": {
+        "source_path": "src/game_libs/game_libs_ido53_74D54.c"
+      }
+    },
+    {
+      "name": "src/game_libs/game_libs_post2b_f",
+      "target_path": "expected/src/game_libs/game_libs_post2b_f.c.o",
+      "base_path": "build/non_matching/src/game_libs/game_libs_post2b_f.c.o",
+      "metadata": {
+        "source_path": "src/game_libs/game_libs_post2b_f.c"
+      }
+    },
+    {
       "name": "src/gui_uso/gui_uso",
       "target_path": "expected/src/gui_uso/gui_uso.c.o",
       "base_path": "build/non_matching/src/gui_uso/gui_uso.c.o",

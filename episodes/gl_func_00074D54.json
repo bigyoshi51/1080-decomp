@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00074D54",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T05:17:54.698997+00:00",
+  "end_time": "2026-06-10T05:17:54.699023+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T05:17:54.699015+00:00",
+      "assistant_text": "gl_func_00074D54: 1080 interrupt-bracket float setter, first try at IDO 5.3 -O1. Shape: register int sr = disable-int call; P1->f_24 = arg (float homed + reloaded per -O1 residency); *P2 |= 4 (lhu/ori/sh halfword RMW); restore(sr). Reloc'd pointer globals as zero-alias placeholders (D_74D54_p1/p2). The 8-byte pad sidecar replaced by a genuine all-zero SUFFIX. Sibling 74DB4 = bigger bracket fn with FCSR float->u32 conversion tail, queued.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs ido53 carve: gl_func_00074D54 -- 1080 interrupt-bracket float\n * setter, verbatim shape at IDO 5.3 -O1, 22/22 first try with ALL words\n * (incl. reloc fields) matching: sr = __osDisableInt-class call;\n * P1->f_24 = arg; *P2 |= 4; restore(sr). Globals are reloc'd POINTER\n * variables (lui+lw, %lo=0) -- zero-alias placeholders. The 8-byte pad\n * sidecar is reproduced by an all-zero SUFFIX. */\nextern int gl_func_00000000();\nextern char *D_74D54_p1;\nextern unsigned short *D_74D54_p2;\n\nvoid gl_func_00074D54(float f) {\n    register int sr;\n    sr = gl_func_00000000();\n    *(float *)(D_74D54_p1 + 0x24) = f;\n    *D_74D54_p2 |= 4;\n    gl_func_00000000(sr);\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_74D54.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00074D54.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 22/22 words (incl. reloc fields) standalone AND in-tree vs baserom; report.json fuzzy=100.0; carve boundaries + TEXT_END byte-verified."
+  }
+}
