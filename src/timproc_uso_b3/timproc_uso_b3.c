@@ -1752,48 +1752,26 @@ void timproc_uso_b3_func_00002DF0(int a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002DF0);
 #endif
 
-/* timproc_uso_b3_func_00002EF0: 22-insn (0x58) prologue-stolen successor.
- *
- * Predecessor func_00002DF0 has a TRAILING `sll t6, a1, 2` (0x00057080) at
- * offset 0xFC of its declared 0x100 size — AFTER its epilogue (jr ra at
- * 0x002EE4, addiu sp at 0x002EE8). That trailing sll sets t6 = a1*4 BEFORE
- * fall-through to 2EF0, which then does `subu t6, t6, a1` (= a1*3) and
- * `sll t6, t6, 3` (= a1*24). Final t6 is the byte-offset for indexing into
- * a +0x70 table from &D_00000000.
- *
- * Decoded as 3-call wrapper indexed by a1:
- *   T *entry = (T*)((char*)&D + 0x70 + a1*24);
- *   gl_func(entry);
- *   gl_func(entry);
- *   gl_func(entry, 0xA0, a2, 3);
- *
- * MATCHED 2026-05-30 via reverse-merge. The real entry is 0x2EEC: predecessor
- * func_00002DF0's tail held `sll t6,a1,2` (t6 = a1*4), splat mis-attributed to
- * it. Moved that word into this function (renamed 0x2EF0 -> 0x2EEC, predecessor
- * shrunk 0x100 -> 0xFC). The index is thus ((a1<<2)-a1)<<3 = a1*24, written in
- * that exact shift form so IDO HOISTS the first `sll a1,2` above the prologue
- * (the stolen-prologue bytes, from pure C) — a reverse-merge twin of the
- * forward orphan-merge recipe. STRUCTURE EXACT (23/23 opcodes/order). Residual
- * = a caller-saved-temp regalloc renumber on the index chain: target reuses ONE
- * reg ($t6: a1*4 -> -a1 -> <<3) across the hoist; mine uses $t6/$t7/$t8 (the
- * hoist splits the reuse). named-idx mutate variants regressed (15/23). Stays
- * NM. Unique extern D_b3_2EF0_table bakes the +0x70 table reloc; the 2nd pointer
- * local keeps the 0x28 frame + sp+0x1C spill. */
+/* 3-call wrapper over the +0x70 records table, indexed by a1*24.
+ * MATCHED 2026-06-10 (23/23): the old wrap's hand-spelled shift form
+ * ((a1<<2)-a1)<<3 SPLIT the index chain across t6/t7/t8; plain a1*24
+ * lets IDO emit its own x24 decomposition -- (a1<<2 - a1)<<3 with
+ * single-reg t6 reuse and the first sll hoisted above the prologue --
+ * exactly the target. Lesson: write the arithmetic PLAINLY and let the
+ * compiler pick the decomposition (inverse of the explicit-shift CSE-
+ * bust lever; both directions now documented). Boundary: reverse-merge
+ * from 2DF0's tail, done 2026-05-30. */
 extern char D_b3_2EF0_table;
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_00002EEC(int a0, int a1, int a2) {
     char *entry, *spillee;
     (void)a0;
     (void)spillee;
-    entry = (char*)&D_b3_2EF0_table + (((a1 << 2) - a1) << 3);
+    entry = (char*)&D_b3_2EF0_table + a1 * 24;
     spillee = entry;
     gl_func_00000000(entry);
     gl_func_00000000(entry);
     gl_func_00000000(entry, 0xA0, a2, 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002EEC);
-#endif
 
 /* timproc_uso_b3_func_00002F48: 66-insn (0x108) two-pass render-helper.
  * Sibling of recently-NM-wrapped func_00002EF0.
