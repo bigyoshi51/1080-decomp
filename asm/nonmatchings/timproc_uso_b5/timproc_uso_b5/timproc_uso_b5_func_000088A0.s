@@ -1,4 +1,4 @@
-nonmatching timproc_uso_b5_func_000088A0, 0xAC
+nonmatching timproc_uso_b5_func_000088A0, 0xa0
 
 glabel timproc_uso_b5_func_000088A0
     /* 0088A0 000088A0 8C8E03C8 */  .word 0x8C8E03C8
@@ -6,7 +6,7 @@ glabel timproc_uso_b5_func_000088A0
     /* 0088A8 000088A8 2DE10008 */  .word 0x2DE10008
     /* 0088AC 000088AC 10200024 */  .word 0x10200024
     /* 0088B0 000088B0 000F7880 */  .word 0x000F7880
-    lui $at, %hi(timproc_uso_b5_D_807FF234)   /* 0088B4 3C010000 -> timproc_uso_b5_D_807FF234 */
+    /* 0088B4 000088B4 3C010000 */  .word 0x3C010000
     /* 0088B8 000088B8 002F0821 */  .word 0x002F0821
     /* 0088BC 000088BC 8C2F0214 */  .word 0x8C2F0214
     /* 0088C0 000088C0 01E00008 */  .word 0x01E00008
@@ -41,7 +41,4 @@ glabel timproc_uso_b5_func_000088A0
     /* 008934 00008934 00001025 */  .word 0x00001025
     /* 008938 00008938 03E00008 */  .word 0x03E00008
     /* 00893C 0000893C 24020008 */  .word 0x24020008
-    /* 008940 00008940 00001025 */  .word 0x00001025
-    /* 008944 00008944 03E00008 */  .word 0x03E00008
-    /* 008948 00008948 00000000 */  .word 0x00000000
 endlabel timproc_uso_b5_func_000088A0

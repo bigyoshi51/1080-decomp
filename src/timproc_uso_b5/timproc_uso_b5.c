@@ -5618,15 +5618,17 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * (split-fragments / merge-fragments) makes this switch match as-is. The goto-z
  * funnel is required — a per-case `return 0` makes IDO hoist `move v0,zero`
  * between lw and addiu, shifting the whole body. Multi-tick infra. */
-/* timproc_uso_b5_func_000087F4: bit-priority encoder dispatched on
- * a0->0x3C8 (8-entry jumptable). MATCHED 2026-06-10 (43/43 byte-exact):
- * the merged region has only THREE case bodies -- cases 1/2/3 check
- * descending bit chains (1,2,4 / 2,4 / 4), and table entries 4..8 all
- * point at the shared goto-z funnel (return 0). The old 8-distinct-case
- * decode emitted ~0x140; body-sharing via case-label stacking + the
- * documented goto-z funnel (per-case return-0 hoists move v0,zero)
- * hits the exact 0xAC. Case 3 inlines its load (no v0 var) per the
- * target's t3 temp. Sibling dispatcher 88A0 mirrors on D_807FF234. */
+/* timproc_uso_b5_func_000087F4 [0x87F4..0x8894), 0xA0: bit-priority
+ * encoder, 8-entry jumptable, THREE case bodies. FALSE MATCH RETRACTED
+ * 2026-06-10: the prior "43/43 exact" matched a CORRUPTED merged .s
+ * that had wrongly absorbed the adjacent 8894 return-0 leaf; ROM truth
+ * (assets/timproc_uso_block_5.bin) shows the fn ends at 0x8894 and its
+ * return-0 paths BRANCH INTO the adjacent leaf (beqzl -> 0x8898) --
+ * the branch-into-adjacent-leaf cap class (mgrproc 140/170). The C
+ * below is structurally faithful but emits an INTERNAL funnel where
+ * the target borrows the neighbor's; not standalone-matchable.
+ * Episode deleted; expected/ was circularly poisoned and is re-baselined. */
+#ifdef NON_MATCHING
 int timproc_uso_b5_func_000087F4(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
@@ -5654,18 +5656,14 @@ int timproc_uso_b5_func_000087F4(char *a0) {
 z:
     return 0;
 }
-
-/* timproc_uso_b5_func_000088A0: 87F4's mirror dispatcher. BYTE-EXACT C
- * FOUND 2026-06-10 (43/43, zero diffs over [0x88A0..0x894C)): same
- * recipe as the just-landed 87F4 -- THREE case bodies (8 / 1,8 /
- * 2,1,8 priority chains), cases 4..8 stacked onto the goto-z funnel,
- * case 1's load inlined. KEY FINDING: the "matched leaf" 8940 in the
- * g3 carve IS this function's return-0 funnel (move/jr/nop = identical
- * bytes from `int f(){return 0;}` at -g3 -- a false attribution; the
- * funnel's nop is -O2 alignment pad here, not an unfilled delay).
- * LANDED 2026-06-10: the g3_8940 carve dissolved (concat recipe back
- * to 3 blobs), the symbol extended to 0xAC, the false episode removed.
- * ACTIVE byte-exact body below. */
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087F4);
+#endif
+/* timproc_uso_b5_func_000088A0 [0x88A0..0x8940), 0xA0: 87F4's mirror.
+ * FALSE MATCH RETRACTED 2026-06-10 (same corrupted-merge mechanism;
+ * the "absorbed funnel" was the REAL leaf 8940, whose g3 carve is
+ * restored). Branch-into-adjacent cap; structurally-faithful NM below. */
+#ifdef NON_MATCHING
 int timproc_uso_b5_func_000088A0(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
@@ -5693,10 +5691,12 @@ int timproc_uso_b5_func_000088A0(char *a0) {
 z:
     return 0;
 }
-
-/* timproc_uso_b5_func_00008940 DISSOLVED 2026-06-10: it was 88A0's
- * goto-z funnel, falsely attributed as a standalone -g3 return-0 leaf
- * (see 88A0's header). Symbol merged into 88A0 (0xA0 -> 0xAC). */
+#else
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088A0);
+#endif
+/* timproc_uso_b5_func_00008940: REAL standalone -g3 return-0 leaf in
+ * timproc_uso_b5_g3_8940.c (the 2026-06-10 "dissolution" was wrong and
+ * is reverted; 88A0 branches INTO this leaf -- see its header). */
 
 void timproc_uso_b5_func_0000894C(void) {
     func_00000000();
