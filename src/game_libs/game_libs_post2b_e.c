@@ -29,30 +29,36 @@ extern int *D_74C_d;     // *&D_d: peer record stored into (->0x10)
 // target reloads p from its stack home INSIDE the st==8 arm while 5.3
 // CSEs the earlier load (basic-block-boundary reload not yet forced --
 // typed struct members did NOT change this, unlike the -O0 case); (b)
-// frame 0x28 vs 0x30 (+8, likely the h temp slot). Next pass: shapes
-// that force a fresh p reload in the st==8 arm (volatile-pointer-fetch
-// lever from docs/IDO_CODEGEN?), then carve at 5.3 -O1.
+// frame 0x28 vs 0x30 (+8, likely the h temp slot). 2026-06-10 pass:
+// FRAME CRACKED -- removing the named `h` local (inline the handle
+// expression twice; 5.3 CSEs to one load, no slot) hits the exact
+// 0x28 frame (the remove-local-recompute lever). 51 -> 48 diffs.
+// Remaining residual (a) sharpened: the target reloads arg0 from its
+// HOME (lw 40(sp)) inside the store arms only; `char * volatile arg0`
+// over-reloads (+2 insns, 37 diffs) -- selective home-reload not yet
+// C-reachable. Body below = the 5.3-form with the h fix; carve at 5.3
+// -O1 when the reload cracks (or accept ~44/84 byte level).
 void gl_func_00074C04(char *arg0) {
-    char *s0;
-    unsigned short st;
-    int r;
+    register char *s0;
+    register int x;
 
     s0 = (char *)game_libs_func_00070FCC();
-    st = *(unsigned short *)(arg0 + 0x10);
-    if (st == 1) {
-        char *h = *(char **)(arg0 + 0x8);
-        if ((h == 0) || (h == (char *)&D_74C_b)) {
+    x = *(unsigned short *)(arg0 + 0x10);
+    if (x != 1) {
+        if (x == 8) {
+            *(unsigned short *)(arg0 + 0x10) = 2;
+            game_libs_func_00070FCC((char *)&D_00000000, arg0);
+        }
+    } else {
+        if ((*(char **)(arg0 + 0x8) == 0) || (*(char **)(arg0 + 0x8) == (char *)&D_74C_b)) {
             *(unsigned short *)(arg0 + 0x10) = 2;
             game_libs_func_00070FCC((char *)&D_00000000, arg0);
         } else {
             *(unsigned short *)(arg0 + 0x10) = 8;
             game_libs_func_00070FCC(*(char **)(arg0 + 0x8), arg0);
-            r = game_libs_func_00070FCC(*(char **)(arg0 + 0x8));
-            game_libs_func_00070FCC((char *)&D_00000000, r);
+            x = game_libs_func_00070FCC(*(char **)(arg0 + 0x8));
+            game_libs_func_00070FCC((char *)&D_00000000, x);
         }
-    } else if (st == 8) {
-        *(unsigned short *)(arg0 + 0x10) = 2;
-        game_libs_func_00070FCC((char *)&D_00000000, arg0);
     }
     if (D_74C_c == 0) {
         game_libs_func_00070FCC();
