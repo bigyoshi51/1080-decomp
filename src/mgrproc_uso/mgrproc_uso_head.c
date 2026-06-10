@@ -20,7 +20,12 @@ extern int gl_func_00000000();
  * merging `if(eq)return 1;return 0;` -> preset-default (move v0,0;bne;li v0,1,
  * 9 insns); `goto ret0` -> branch-LIKELY (bnel+ret0 in delay, 9 insns). Both
  * collapse the two blocks. INCLUDE_ASM is the faithful path. Verified
- * 2026-05-30; see docs/IDO_CODEGEN.md#branch-into-adjacent-return-leaf-cap. */
+ * 2026-05-30; see docs/IDO_CODEGEN.md#branch-into-adjacent-return-leaf-cap.
+ * 2026-06-10: the 75264 boundary-dissolves-cap precedent does NOT apply
+ * here -- tested the MERGED [0x140..0x168) function (if/return, goto,
+ * if/else, named temps) at 7.1 -O1/-O2 x -g3: IDO always collapses to
+ * 9 insns (preset-default or bnel), never the 10-insn two-block form.
+ * The cap stands; the pair really is two source functions. */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00000140(int *a0) {
     if (a0[1] == a0[2]) {
