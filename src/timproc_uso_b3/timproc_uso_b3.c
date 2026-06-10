@@ -1905,6 +1905,13 @@ void timproc_uso_b3_func_00003050(int *a0, int a1) {
  * neutral. Removed alongside the .s deletion (per docs/MATCHING_WORKFLOW.md
  * orphan-attached-recipes blocker note). */
 
-/* C-emit-absorbed orphans:
- *   _00002238 ← _000021F4 (decl 0x44, .o 0x4C)
- *   _00001920 ← _00001870 (decl 0xB0, .o 0xB8) */
+/* C-emit-absorbed orphans -- STALE COMMENT, corrected 2026-06-10:
+ *   _00001920: NOT absorbed -- it exists as its own 8-byte NM symbol
+ *   right after 1870's 0xB0 emit (works correctly).
+ *   _000021F4/_00002238: NEITHER exists as a symbol in src or the .o
+ *   (the absorber was apparently deleted/renamed at some point); the
+ *   block's bytes at [0x21F4..0x2240) come from sequential emission
+ *   running -8 SHORT vs ROM -- the second component of the block3
+ *   damage (the first, the 217C pad placeholder, is fixed). Repair
+ *   needs the unit's full symbol-vs-USO reconciliation (the .o runs
+ *   ~0xFC behind USO names by 0x21C0) -- relayout-session class. */
