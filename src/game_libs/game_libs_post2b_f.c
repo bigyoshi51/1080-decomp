@@ -202,6 +202,11 @@ loop_3:
  * saved reg -- an -Olimit allocator quirk we cannot reproduce with any
  * tested shape; possibly needs the uoptlist regalloc dump
  * (project_1080_regalloc_dump_unlocked memo) to settle.
+ * 2026-06-10 frame-lever triage: NEITHER new lever applies -- the
+ * delta is BUILD bigger than target (volatile-pad adds, wrong
+ * direction) and the slot belongs to the switch's UNNAMED internal
+ * temp (remove-local-recompute needs a named local). Definitive
+ * uoptlist-class; removed from the lever candidate queue.
  * Carve recipe when matched: gl_dref_00045290 = 0x00045290 +
  * D_7507C_cnt/acc/prev placeholders (already in undefined_syms). */
 #ifdef NON_MATCHING
