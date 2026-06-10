@@ -11,7 +11,10 @@ glabel mgrproc_uso_func_00003358
     jal mgrproc_uso_func_051C28   /* 003374 0C000000 -> mgrproc_uso_func_051C28 */
     /* 003378 00003378 AFA2001C */  .word 0xAFA2001C
     /* 00337C 0000337C 8FA4001C */  .word 0x8FA4001C
-    lui $t6, %hi(import_8006ED80)   /* 003380 3C0E0000 -> import_8006ED80 */
+    /* raw .word (not %hi-symbolized): the partner addiu below is a raw word, */
+    /* so a named lui emits a lone trailing R_MIPS_HI16 that bake-data-relocs */
+    /* rejects. Byte-identical; -> import_8006ED80 (USO load-time reloc). */
+    /* 003380 00003380 3C0E0000 */  .word 0x3C0E0000
     /* 003384 00003384 25CE0000 */  .word 0x25CE0000
     /* 003388 00003388 AC8E0028 */  .word 0xAC8E0028
     /* 00338C 0000338C AC80003C */  .word 0xAC80003C

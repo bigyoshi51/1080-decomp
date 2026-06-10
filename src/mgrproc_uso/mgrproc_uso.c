@@ -891,6 +891,11 @@ void mgrproc_uso_func_00001B58(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
 #endif
 
+/* vram 0x1BD4: 4-word stolen-prologue donation to func_00001BE4 (the old
+ * SUFFIX_BYTES absorption was removed 2026-05-23, silently dropping these
+ * bytes from the Yay0 block). Standalone GLOBAL_ASM block emits exactly. */
+#pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_orphan_00001BD4.s")
+
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00001BE4: 43-insn (0xAC) state-init + 6-call orchestrator.
  *
@@ -1581,9 +1586,11 @@ void mgrproc_uso_func_00002B7C(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7C);
 #endif
 
-/* mgrproc_uso_func_00002E34: orphan absorbed by C-emit of _00002B7C
- * (decl 0x2B8, .o 0x2C0 — +2 insns absorb the 8-byte orphan at vram
- * 0x2E34). C-emit-absorbed variant per docs/MATCHING_WORKFLOW.md. */
+/* vram 0x2E34: 2-word FPU-const stolen prologue (lui $at,0x3F80; mtc1
+ * $at,$f0). The old "C-emit-absorbed by _00002B7C" note was stale: 2B7C's
+ * INCLUDE_ASM emits exactly its 0x2B8 decl, so the orphan had vanished from
+ * the block (-8). Restored 2026-06-10 as a standalone 2-word GLOBAL_ASM. */
+#pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_orphan_00002E34.s")
 
 /* mgrproc_uso_func_00002E3C: 45-insn (real 0xB0; declared 0xD4 incl. a
  * trailing FPU-const block) — DEFERRED, documented-cap class:

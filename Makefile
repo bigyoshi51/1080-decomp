@@ -325,8 +325,12 @@ build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_8940.c.o: NON_MATCHING_T
 # Final Yay0 block .text size (fixed per block; the concat is zero-padded up to
 # it before compression). NOT a 16-align rule — block sizes vary (e.g. b1 is
 # 4-aligned via its donor-splice). These equal the pre-split single-.o .text.
-build/assets/mgrproc_uso_block1_yay0.bin: YAY0_TEXT_SIZE := 0x3410
-build/assets/timproc_uso_block1_yay0.bin: YAY0_TEXT_SIZE := 0x2ED4
+# 0x3420 = exact len of assets/mgrproc_uso_block_1.bin (was 0x3410, stale
+# from when the block emitted short; fixed 2026-06-10)
+build/assets/mgrproc_uso_block1_yay0.bin: YAY0_TEXT_SIZE := 0x3420
+# 0x2EE0 = exact len of assets/timproc_uso_block_1.bin (was 0x2ED4, a stale
+# value baked in while the block was emitting -0x10 short; fixed 2026-06-10)
+build/assets/timproc_uso_block1_yay0.bin: YAY0_TEXT_SIZE := 0x2EE0
 build/assets/timproc_uso_block3_yay0.bin: YAY0_TEXT_SIZE := 0x30E0
 build/assets/timproc_uso_block5_yay0.bin: YAY0_TEXT_SIZE := 0xE620
 
@@ -460,13 +464,22 @@ build/assets/mgrproc_uso_block1_yay0.bin: build/src/mgrproc_uso/mgrproc_uso_o0_0
 	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) $(@:.bin=.text2.bin) > $(@:.bin=.pre.bin)
 	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.pre.bin) 0xAE0
 	cat $(@:.bin=.pre.bin) $(@:.bin=.text3.bin) > $(@:.bin=.text.bin)
-	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
+	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 # game_uso block 1: text 0x11B30 bytes uncompressed, 200 functions
+# The drop at 0xC0F0: func_0000C0BC's 1-word zero alignment pad (truth offset
+# 0xC0EC) sits between two MATCHED C fns, so it must stay a 1-word GLOBAL_ASM
+# sidecar -- and asm-processor's minimum C placeholder for a .text block is
+# 8 bytes (empty fn = jr ra; nop), leaving one extra ZERO word at 0xC0F0.
+# Dropping that asserted-zero word is a pure data/alignment op (no
+# instruction bytes are created or modified); remove it if asm-processor
+# ever learns to emit 4-byte blocks. See docs/MATCHING_WORKFLOW.md
+# (asm-processor 1-word-pad defect).
 build/assets/game_uso_block1_yay0.bin: build/src/game_uso/game_uso.c.o
 	@mkdir -p $(dir $@)
 	$(OBJCOPY) -O binary --only-section=.text $< $(@:.bin=.text.bin)
+	python3 -c "import sys; f=sys.argv[1]; n=0x11B30; d=open(f,'rb').read(); off=0xC0F0; assert d[off:off+4]==b'\x00'*4, ('placeholder leftover not zero', d[off:off+4].hex()); d=d[:off]+d[off+4:]; assert len(d)>=n and d[n:]==b'\x00'*(len(d)-n), ('len/tail', hex(len(d)), d[n:].hex()); open(f,'wb').write(d[:n])" $(@:.bin=.text.bin)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 # timproc_uso code blocks (1: 55 fn, 3: 55 fn, 5: 99 fn). Blocks 1 and 3 each
@@ -477,7 +490,7 @@ build/assets/timproc_uso_block1_yay0.bin: build/src/timproc_uso_b1/timproc_uso_b
 	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
 	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
 	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
-	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
+	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o build/src/timproc_uso_b3/timproc_uso_b3.c.o
@@ -485,7 +498,7 @@ build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b
 	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.text0.bin)
 	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.text1.bin)
 	cat $(@:.bin=.text0.bin) $(@:.bin=.text1.bin) > $(@:.bin=.text.bin)
-	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert len(d)<=n,(hex(len(d)),hex(n)); open(f,'ab').write(b'\x00'*(n-len(d)))" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
+	python3 -c "import sys; f=sys.argv[1]; n=int(sys.argv[2],0); d=open(f,'rb').read(); assert d[n:]==b'\x00'*len(d[n:]), ('nonzero discarded tail', hex(len(d)), d[n:].hex()); d=d[:n]+b'\x00'*(n-len(d)); open(f,'wb').write(d)" $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 # block5: tiny unfilled-jr-delay functions are carved into -O2 -g3 sub-units
@@ -511,6 +524,14 @@ build/assets/%.bin.o: build/assets/%.bin
 	@mkdir -p $(dir $@)
 	$(OBJCOPY) -I binary -O elf32-tradbigmips $< $@
 
+# Verify every built Yay0 code block against its ROM-extracted ground truth
+# (exact length + only reloc-field word diffs). Catches the asm-processor
+# pad/orphan emission damage class -- see docs/MATCHING_WORKFLOW.md.
+verify-blocks: build/assets/mgrproc_uso_block1_yay0.bin build/assets/game_uso_block1_yay0.bin \
+		build/assets/timproc_uso_block1_yay0.bin build/assets/timproc_uso_block3_yay0.bin \
+		build/assets/timproc_uso_block5_yay0.bin build/assets/map4_data_uso_block2_yay0.bin
+	python3 scripts/verify-yay0-blocks.py
+
 # Verify ROM matches
 verify: $(ROM)
 	@md5sum -c checksum.md5 && echo "ROM OK" || echo "ROM MISMATCH"
@@ -532,4 +553,4 @@ clean:
 setup: $(BASEROM)
 	python3 -m splat split tenshoe.yaml
 
-.PHONY: all clean verify expected setup objects
+.PHONY: all clean verify verify-blocks expected setup objects

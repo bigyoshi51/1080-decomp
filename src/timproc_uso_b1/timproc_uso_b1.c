@@ -914,6 +914,10 @@ void timproc_uso_b1_func_00001908(int *self) {
         gl_func_00000000(self);
     }
 }
+/* vram 0x19B8: 2-word stolen-prologue orphan (lui $at,0x3F80; mtc1 $at,$f0
+ * = the 1.0f that func_000019C0 stores from $f0). Standalone 2-word
+ * GLOBAL_ASM emits exactly; see the .s header. */
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_orphan_000019B8.s")
 
 
 #ifdef NON_MATCHING
@@ -1202,13 +1206,12 @@ void timproc_uso_b1_func_00001F64(char *dst) {
     timproc_uso_b1_func_0000083C(&tmp);
     timproc_uso_b1_func_0000090C((Vec3*)(dst + 0x10));
 }
-/* P0 NOTE 2026-06-10 (block1 LEN -0xC triage): the built block runs
- * -4 BEFORE this fn (ROM has a pad word at 0x1F60 that nothing emits)
- * and a further -8 across this trailing-pad region (the 3-word sidecar
- * emits 4 zeros ending early). Same sidecar-emission anomaly family as
- * b3's 217C (+4); the 1F64 fn itself emits correct 12 insns -- its
- * match stands. Fix = the queued asm-processor emission-tracing
- * session (handles b1/b3 together). */
+/* 3-word trailing pad sidecar (emits exactly; >=2-word blocks are safe).
+ * The old P0 "LEN -0xC" triage blamed this region incorrectly: the real
+ * causes were the two dropped stolen-prologue orphans at 0x19B8/0x2028
+ * (restored 2026-06-10 as standalone 2-word GLOBAL_ASM blocks) plus a
+ * stale YAY0_TEXT_SIZE (0x2ED4 -> 0x2EE0). Block byte-verified vs
+ * assets/timproc_uso_block_1.bin. */
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00001F64_pad.s")
 
 void timproc_uso_b1_func_00001FA0(void) {
@@ -1219,7 +1222,9 @@ void timproc_uso_b1_func_00001FA0(void) {
 
 /* EXACT 2026-05-03. Mirror of timproc_uso_b3_func_000021F4. Same recipe:
  * 3 unique externs (D_b1_1FE4_a/b/c) all mapped to 0x0 + offset cast in C.
- * Plus SUFFIX_BYTES=8 for trailing stolen-prologue tail (same lui+lw form).
+ * (Its trailing stolen-prologue orphan at 0x2028 is now the standalone
+ * 2-word GLOBAL_ASM block below -- the old SUFFIX_BYTES=8 absorption was
+ * removed with the instruction-forcing purge 2026-05-23.)
  * Per feedback_unique_extern_with_offset_cast_breaks_cse.md. */
 extern char D_b1_1FE4_a;
 extern char D_b1_1FE4_b;
@@ -1229,6 +1234,12 @@ void timproc_uso_b1_func_00001FE4(void) {
     *(int*)((char*)&D_b1_1FE4_b + 0x40) = 6;
     gl_func_00000000(*(int*)((char*)&D_b1_1FE4_c + 0x20C), -1, 0);
 }
+
+/* vram 0x2028: 2-word stolen-prologue orphan (lui $a0,%hi; lw $a0,0x148($a0)
+ * ahead of func_00002030's prologue). Standalone 2-word GLOBAL_ASM emits
+ * exactly; replaces the banned SUFFIX_BYTES absorption (removed 2026-05-23)
+ * noted in the comment above. Both neighbors stay matched C. */
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_orphan_00002028.s")
 
 /* Dual-branch state setter (twin of timproc_uso_b3_func_00002240).
  * MATCHED 2026-06-10 (31/31): the old "register-allocator cap" had two
@@ -1840,7 +1851,8 @@ void timproc_uso_b1_func_00002E50(int *a0, int a1) {
  * Pre-prune symbols were at .o offsets 0x2EE0/0x2EE8 (tail, past natural
  * function layout end at 0x21D4); no-truncate variant of the orphan-prune. */
 
-/* C-emit-absorbed orphans (all variants per docs/MATCHING_WORKFLOW.md):
- *   _00002028 ← _00001FE4 (decl 0x44, .o 0x4C, +8 bytes covers orphan vram 0x2028)
- *   _000019B8 ← _00001908 (decl 0xB0, .o 0xB8)
- *   _000011D0 ← _00001130 (decl 0xA0, .o 0xA8) */
+/* Orphan status (2026-06-10): _00002028 and _000019B8 are standalone
+ * 2-word GLOBAL_ASM blocks at their vram positions (the old SUFFIX_BYTES /
+ * C-emit absorptions silently vanished with the 2026-05-23 purge, leaving
+ * the block -16). _000011D0 ← _00001130 (decl 0xA0, .o 0xA8) still
+ * C-emit-absorbed and verified present. */

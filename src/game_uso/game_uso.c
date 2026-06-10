@@ -1,14 +1,16 @@
 #include "common.h"
 
-/* P0 AUDIT 2026-06-10: the built game_uso_block1 runs +0x90 LONG vs
- * ROM (assets/game_uso_block_1.bin), from MULTIPLE +4..+0xC insertion
- * sites (first at 0x3F8: an extra pad after a float-zero leaf; also
- * ~0xC0F0/0xF48C/0xFFA0/0x10004/0x10E60 and more) -- the same
- * asm-processor pad/alignment emission anomaly family as timproc
- * b1/b3 (docs/MATCHING_WORKFLOW P0 table). Individual fn matches are
- * not implicated (insertions sit BETWEEN fns); fix = the queued
- * emission-tracing session. Do not ROM-byte-verify downstream symbols
- * until then. */
+/* P0 RESOLVED 2026-06-10: game_uso_block1 byte-verified vs
+ * assets/game_uso_block_1.bin (exact length, only reloc-class lui/jal
+ * field diffs). The +0x90 damage was: +4 at 0x3F4 (1-word pad sidecar,
+ * now folded into func_000003F8.s head), +4 at 0xC0EC (1-word zero pad
+ * between two matched C fns -- kept as sidecar, the Makefile recipe
+ * drops the asserted-zero placeholder leftover at 0xC0F0), +0x80 at
+ * 0xD5BC (func_0000D458.s over-extended into duplicated copies of
+ * D5BC/D5DC/D5F8/D634 -- trimmed), an out-of-order func_00000B14
+ * definition (moved), and +8 derivative tail alignment. Gate it with
+ * `make verify-blocks` after any change to this unit. See
+ * docs/MATCHING_WORKFLOW.md, asm-processor 1-word-pad defect. */
 extern char *game_uso_alias();
 
 /* File-top canonical decls (hoisted out of NM-wrap blocks
@@ -227,7 +229,9 @@ void game_uso_func_0000039C(Quad4 *dst) {
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000039C_pad.s")
+/* 0x3F4 stray mtc1 orphan: folded into the head of func_000003F8.s (a 1-word
+ * GLOBAL_ASM sidecar cannot emit exactly; the C placeholder minimum is 8
+ * bytes -- docs/MATCHING_WORKFLOW.md asm-processor 1-word-pad defect). */
 
 #ifdef NON_MATCHING
 /* 21.32% NM. Camera/view init function. Initializes a 0x38-byte struct at $a0:
@@ -647,6 +651,15 @@ void game_uso_func_00000AEC(int *a0, int a1) {
     *(int*)((char*)a0 + 0x254) = 0;
     *(int*)((char*)a0 + 0x25C) = 1;
     *(int*)((char*)a0 + 0x260) = 0;
+}
+
+/* Moved 2026-06-10 to its address-ordered position (was stranded after
+ * func_00002FF8, emitting at block offset ~0x2FF4 instead of 0xB14 --
+ * Yay0 block layout is definition-order). */
+extern void game_uso_func_00000000();
+void game_uso_func_00000B14(void *a0) {
+    game_uso_func_00000000(a0);
+    game_uso_func_00000000(a0);
 }
 
 #ifdef NON_MATCHING
@@ -2354,11 +2367,6 @@ void game_uso_func_00002FC8(int *a0, int a1, int a2) {
 
 void game_uso_func_00002FF8(void) {
     game_uso_func_00000000();
-}
-
-void game_uso_func_00000B14(void *a0) {
-    game_uso_func_00000000(a0);
-    game_uso_func_00000000(a0);
 }
 
 #ifdef NON_MATCHING
@@ -10763,6 +10771,10 @@ void game_uso_func_0000C0BC(char *dst) {
     game_uso_func_0000AD4C(&tmp);
     game_uso_func_0000AD88((Quad4*)(dst + 0x10));
 }
+/* 1-word zero alignment pad (truth 0xC0EC) between two MATCHED C fns: the
+ * GLOBAL_ASM placeholder minimum is 8 bytes, so this emits one extra zero
+ * word; the game_uso_block1 Makefile recipe drops the asserted-zero leftover
+ * at 0xC0F0 (docs/MATCHING_WORKFLOW.md, asm-processor 1-word-pad defect). */
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000C0BC_pad.s")
 
 void game_uso_func_0000C0F0(int *dst) {

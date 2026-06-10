@@ -1354,6 +1354,16 @@ void timproc_uso_b3_func_000021B0(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
+/* func_000021F4 (0x44): restored 2026-06-10 -- the unit had NO emission for
+ * it (its .s existed but no INCLUDE_ASM line), leaving the block -0x4C and
+ * every later fn early. Twin of timproc_uso_b1_func_00001FE4. */
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021F4);
+
+/* vram 0x2238: 2-word stolen-prologue orphan (lui $a0,%hi; lw $a0,0x148($a0)
+ * ahead of func_00002240's prologue; twin of b1's 0x2028 orphan).
+ * Standalone 2-word GLOBAL_ASM emits exactly. */
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_orphan_00002238.s")
+
 /* Dual-branch state setter, twin of timproc_uso_b1_func_00002030.
  * MATCHED 2026-06-10 (31/31) -- see the b1 twin for the full story:
  * first call arg = PARAM+4 (old decode error), one shared +0x208 call
@@ -1905,13 +1915,10 @@ void timproc_uso_b3_func_00003050(int *a0, int a1) {
  * neutral. Removed alongside the .s deletion (per docs/MATCHING_WORKFLOW.md
  * orphan-attached-recipes blocker note). */
 
-/* C-emit-absorbed orphans -- STALE COMMENT, corrected 2026-06-10:
- *   _00001920: NOT absorbed -- it exists as its own 8-byte NM symbol
- *   right after 1870's 0xB0 emit (works correctly).
- *   _000021F4/_00002238: NEITHER exists as a symbol in src or the .o
- *   (the absorber was apparently deleted/renamed at some point); the
- *   block's bytes at [0x21F4..0x2240) come from sequential emission
- *   running -8 SHORT vs ROM -- the second component of the block3
- *   damage (the first, the 217C pad placeholder, is fixed). Repair
- *   needs the unit's full symbol-vs-USO reconciliation (the .o runs
- *   ~0xFC behind USO names by 0x21C0) -- relayout-session class. */
+/* Orphan/gap status (resolved 2026-06-10):
+ *   _00001920: exists as its own 8-byte NM symbol after 1870 (correct).
+ *   _000021F4: was missing entirely (no INCLUDE_ASM line; -0x4C damage) --
+ *   restored at its address-ordered position after 21B0.
+ *   _00002238: 2-word stolen-prologue orphan, now a standalone GLOBAL_ASM
+ *   block after 21F4. Block byte-verified vs assets/timproc_uso_block_3.bin
+ *   (only reloc-class lui/jal field diffs remain). */
