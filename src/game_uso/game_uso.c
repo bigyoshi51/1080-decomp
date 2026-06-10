@@ -10849,6 +10849,11 @@ int game_uso_func_0000C3CC(int a0, int a1) {
  * barrier -> full stack frame (breaks leaf); `volatile int*` load -> 5-insn la+lw
  * pointer form (lui+addiu+lw, wrong); `v+a0-a0` -> addu/subu kept (wrong). Prior
  * tries (volatile *p=&a0, self-store, reorder) also negative. Genuine NM cap. */
+/* 2026-06-10 census note: this fn re-surfaced in the cross-USO tiny-leaf
+ * byte-signature scan; re-confirmed as the documented cap (no new lever
+ * applies -- the sw-a0-home-in-jr-delay leaf shape remains C-unreachable).
+ * The tiny-leaf scan vein is now exhausted project-wide; see
+ * docs/MATCHING_WORKFLOW "template scans filter by cdef presence". */
 #ifdef NON_MATCHING
 int game_uso_func_0000C3E8(int a0) {
     return *(int*)&D_00000000;
