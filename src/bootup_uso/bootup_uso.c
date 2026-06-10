@@ -3076,6 +3076,11 @@ void func_00004914(char *a0, int a1, char *a2) {
 //   + sqrt dispatcher — byte-match blocked by deferred pool
 //   symbolization. Real-C STRUCTURAL body below — camera/object
 //   transition tick skeleton. Name pre-checked: no extern reuse.
+/* func_00004948 graft attempt 2026-06-10: full m2c graft scored 14.60
+ * vs this body's 14.79 -- REVERTED (monotonic rule). The existing
+ * partial body already captures the aligned structure; this fn is in
+ * hand-refinement territory despite the low %, suggesting its tail/
+ * shape divergence is structural (m2c saw the same skeleton). */
 #ifdef NON_MATCHING
 void func_00004948(char *obj) {
     int st = *(int *)(obj + 0x158);
