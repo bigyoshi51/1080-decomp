@@ -1202,6 +1202,13 @@ void timproc_uso_b1_func_00001F64(char *dst) {
     timproc_uso_b1_func_0000083C(&tmp);
     timproc_uso_b1_func_0000090C((Vec3*)(dst + 0x10));
 }
+/* P0 NOTE 2026-06-10 (block1 LEN -0xC triage): the built block runs
+ * -4 BEFORE this fn (ROM has a pad word at 0x1F60 that nothing emits)
+ * and a further -8 across this trailing-pad region (the 3-word sidecar
+ * emits 4 zeros ending early). Same sidecar-emission anomaly family as
+ * b3's 217C (+4); the 1F64 fn itself emits correct 12 insns -- its
+ * match stands. Fix = the queued asm-processor emission-tracing
+ * session (handles b1/b3 together). */
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00001F64_pad.s")
 
 void timproc_uso_b1_func_00001FA0(void) {
