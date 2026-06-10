@@ -7585,14 +7585,43 @@ void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BDEC);
 #endif
 
+/* timproc_uso_b5_func_0000C044 [0xC044..0xC108), 0xC4: BOUNDARY MERGE
+ * 2026-06-10 of the C0D4 tail fragment (bc1f crossed the declared size).
+ * Second member of the B850 float fade-toward-target family -- identical
+ * shape, fields s->f_124 / s->i_12C, step constants at reloc base +0x360/
+ * +0x364. See B850's wrap for the decode template. Remaining family:
+ * C7B4 (pred C710?), CBD0, CDC8. */
+#ifdef NON_MATCHING
+#define C044_STEP_UP   (*(float *)((char *)&D_00000000 + 0x360))
+#define C044_STEP_DOWN (*(float *)((char *)&D_00000000 + 0x364))
+void timproc_uso_b5_func_0000C044(char *a0, float target) {
+    char *s;
+    float *v;
+    if (*(float *)(a0 + 0x2A4) == 0.0f) {
+        target = 0.0f;
+    }
+    s = *(char **)(a0 + 0x2B8);
+    if (*(int *)(s + 0x12C) != 0) {
+        target = 1.0f;
+    }
+    v = (float *)(s + 0x124);
+    if (*v < target) {
+        *v += C044_STEP_UP;
+        s = *(char **)(a0 + 0x2B8);
+        if (target < *(float *)(s + 0x124)) {
+            *(float *)(s + 0x124) = target;
+        }
+    } else {
+        *v -= C044_STEP_DOWN;
+        s = *(char **)(a0 + 0x2B8);
+        if (*(float *)(s + 0x124) < target) {
+            *(float *)(s + 0x124) = target;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C044);
-
-/* timproc_uso_b5_func_0000C0D4: TAIL-FRAGMENT of C044 via forward
- * bc1f-past-declared-end (same idiom as B850→B8E0 / C710→C7B4 /
- * CB40→CBD0 / CD24→CDC8). C044 (0x90, 36 insns) ends at 0xC0D4; the
- * bytes here are C044's branch-target tail. No standalone semantics.
- * Build keeps INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C0D4);
+#endif
 
 void timproc_uso_b5_func_0000C108(int a0) {
 }
