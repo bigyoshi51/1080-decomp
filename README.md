@@ -8,27 +8,26 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 
 `Matched` is the share of code bytes whose C body compiles to baserom byte-for-byte. `Fuzzy` is bytes-weighted partial credit: NM-wrapped C bodies that aren't byte-perfect contribute their per-instruction similarity (e.g., a 1 KB function at 80 % match adds ~800 bytes of fuzzy credit). Both metrics use a separate `build/non_matching/` tree compiled with `-DNON_MATCHING` so partial decomp work shows up in the report.
 
-| Segment                | Functions         | Code matched           | Matched    | Fuzzy      | Notes                                          |
+| Segment | Functions | Code matched | Matched | Fuzzy | Notes |
 |------------------------|-------------------|------------------------|------------|------------|------------------------------------------------|
-| `kernel`               | 101 / 213         | 9.8 KB / 39.4 KB       | 24.94 %    | 34.02 %    | libultra + USO loader + audio (`0x80000000`)   |
-| `bootup_uso`           | 219 / 359         | 13.7 KB / 81.6 KB      | 16.84 %    | 29.88 %    | Giles Goddard's libgdl engine                  |
-| `game_libs`            | 834 / 2119        | 41.8 KB / 412.2 KB     | 10.14 %    | 25.14 %    | Support libraries                              |
-| `gui_uso`              | 10 / 48           | 0.8 KB / 17.8 KB       | 4.70 %     | 10.31 %    | GUI/menu helpers                               |
-| `titproc_uso`          | 27 / 45           | 2.6 KB / 10.5 KB       | 24.48 %    | 53.34 %    | Title-screen process                           |
-| `arcproc_uso`          | 27 / 51           | 2.0 KB / 10.1 KB       | 19.95 %    | 41.34 %    | Arcade-mode process                            |
-| `h2hproc_uso`          | 24 / 41           | 1.5 KB / 6.8 KB        | 22.76 %    | 80.25 %    | Head-to-head process                           |
-| `eddproc_uso`          | 12 / 15           | 0.7 KB / 1.1 KB        | 64.46 %    | 91.53 %    | Edit-mode process                              |
-| `n64proc_uso`          | 2 / 7             | 0.1 KB / 1.0 KB        | 6.02 %     | 88.33 %    | N64-specific process                           |
-| `boarder1_uso`         | 6 / 6             | 0.4 KB / 0.4 KB        | 100.00 %   | 100.00 %   | Per-character snowboarder USO                  |
-| `boarder2_uso`         | 6 / 6             | 0.4 KB / 0.4 KB        | 100.00 %   | 100.00 %   | Per-character snowboarder USO                  |
-| `boarder3_uso`         | 6 / 6             | 0.4 KB / 0.4 KB        | 100.00 %   | 100.00 %   | Per-character snowboarder USO                  |
-| `boarder4_uso`         | 6 / 6             | 0.4 KB / 0.4 KB        | 100.00 %   | 100.00 %   | Per-character snowboarder USO                  |
-| `boarder5_uso`         | 5 / 6             | 0.3 KB / 0.4 KB        | 83.84 %    | 98.99 %    | Last snowboarder USO — 1 function left         |
-| `mgrproc_uso`          | 18 / 60           | 1.2 KB / 13.0 KB       | 8.92 %     | 34.61 %    | Manager process (Yay0-decompressed)            |
-| `game_uso`             | 100 / 243         | 5.7 KB / 70.9 KB       | 8.10 %     | 42.84 %    | Main game loop (Yay0-decompressed)             |
-| `timproc_uso`          | 178 / 336         | 10.2 KB / 81.1 KB      | 12.55 %    | 33.78 %    | Timer process (Yay0; variants b1/b3/b5)        |
-| `map4_data_uso`        | 3 / 3             | 0.2 KB / 0.2 KB        | 100.00 %   | 100.00 %   | Map-4 data block                               |
-| **Total**              | **1,584 / 3,570** | **92.2 KB / 747.6 KB** | **12.33 %** | **29.87 %** |                                                |
+| `kernel` | 101 / 214 | 9.8 KB / 39.4 KB | 24.94 % | 55.44 % | libultra + USO loader + audio (`0x80000000`) |
+| `bootup_uso` | 227 / 359 | 14.7 KB / 81.6 KB | 18.02 % | 49.70 % | Giles Goddard's libgdl engine |
+| `game_libs` | 919 / 2081 | 52.3 KB / 412.4 KB | 12.68 % | 52.61 % | Support libraries (incl. statically-linked libultra) |
+| `gui_uso` | 15 / 40 | 1.3 KB / 18.1 KB | 7.37 % | 68.17 % | GUI/menu helpers |
+| `titproc_uso` | 30 / 46 | 2.7 KB / 10.5 KB | 26.02 % | 77.82 % | Title-screen process |
+| `arcproc_uso` | 39 / 60 | 2.8 KB / 10.4 KB | 27.01 % | 78.69 % | Arcade-mode process |
+| `h2hproc_uso` | 28 / 41 | 1.9 KB / 6.8 KB | 27.56 % | 89.67 % | Head-to-head process |
+| `eddproc_uso` | 14 / 15 | 0.9 KB / 1.1 KB | 82.58 % | 99.30 % | Edit-mode process |
+| `n64proc_uso` | 5 / 7 | 0.5 KB / 1.0 KB | 49.25 % | 93.03 % | N64-specific process |
+| `boarder1_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `boarder2_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `boarder3_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `boarder4_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `boarder5_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Last snowboarder USO -- 1 function left |
+| `mgrproc_uso` | 32 / 62 | 2.3 KB / 13.0 KB | 17.35 % | 86.01 % | Manager process (Yay0-decompressed) |
+| `game_uso` | 148 / 241 | 12.1 KB / 70.9 KB | 17.05 % | 61.16 % | Main game loop (Yay0-decompressed) |
+| `timproc_uso` | 213 / 344 | 13.5 KB / 81.4 KB | 16.58 % | 64.86 % | Timer process (Yay0; variants b1/b3/b5) |
+| **Total** | **1,801 / 3,540** | **116.8 KB / 748.5 KB** | **15.60 %** | **56.84 %** |  |
 
 Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
 
