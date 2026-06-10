@@ -6907,7 +6907,13 @@ void timproc_uso_b5_func_0000A928(int *a0) {
  * this body schedules them in the target order (false match) — the full-TU
  * schedule differs (per MATCHING_WORKFLOW standalone-vs-in-tree caveat), so this
  * is verified NON_MATCHING in-tree. No C reorder flips it (store-first/array-first
- * both regress); permuter-class scheduling lever needed. */
+ * both regress); permuter-class scheduling lever needed.
+ * 2026-06-10: re-measured -- the floor is the SAME pure 2-insn
+ * position swap as bootup 2088 (addu t8 vs sw count, operands all
+ * correct; the early move v0,a1 matches naturally). The sw-before-addu
+ * scheduler cap, exactly one scheduling decision wide; family now has
+ * two members at the identical floor (2088, A95C). Early-pseudo on the
+ * return is neutral. */
 int timproc_uso_b5_func_0000A95C(int *a0, int a1) {
     int v1 = a0[0x3C / 4];
     a0[0x3C / 4] = v1 + 1;
