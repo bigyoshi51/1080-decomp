@@ -666,10 +666,8 @@ void titproc_uso_func_0000116C(char *s0) {
     int state = *(int *)(s0 + 0x40);
     int n, t, v;
 
-    if ((unsigned int)state >= 4) {
-        return;
-    }
-    if (state == 0) {
+    switch (state) {
+    case 0: {
         t = *(int *)(s0 + 0x3C) - 1;
         *(int *)(s0 + 0x3C) = t;
         if (t >= 0) {
@@ -686,7 +684,9 @@ void titproc_uso_func_0000116C(char *s0) {
         *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
         *(int *)(s0 + 0x68) = 40;
         gl_func_00000000(13);
-    } else if (state == 1) {
+        break;
+    }
+    case 1: {
         /* 2026-06-10 pass 5 FULL REWRITE from the 27-insn missing block:
          * the prior arms were misplaced (they sit AFTER a gate chain,
          * gated on an SI-status bit, not p->0x34) and a convergent
@@ -735,7 +735,9 @@ fire:
             *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
             gl_func_00000000(144);
         }
-    } else if (state == 2) {
+        break;
+    }
+    case 2: {
         gl_func_00000000(*(int *)(s0 + 0x60));
         if (gl_func_00000000(d, 0x40100) != 0) {
             char *reg;
@@ -750,7 +752,9 @@ fire:
             *(int *)(s0 + 0x40) = 3;
             *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
         }
-    } else if (state == 3) {
+        break;
+    }
+    case 3: {
         /* 2026-06-10 restructure from @0x288: the old body's vt-call
          * chain actually lives INSIDE the gate-confirmed sub-branch;
          * the real spine is t==0-init then the counter clamp pair. */
@@ -813,6 +817,8 @@ fire:
                 }
             }
         }
+        break;
+    }
     }
 }
 #else
