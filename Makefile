@@ -98,6 +98,7 @@ build/src/bootup_uso/bootup_uso_o0_11C70.c.o build/non_matching/src/bootup_uso/b
 build/src/bootup_uso/bootup_uso_o0_11C70.c.o: TRUNCATE_TEXT := 0xD0
 build/src/bootup_uso/bootup_uso_o0_11D40.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11D40.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_11D40.c.o: TRUNCATE_TEXT := 0x30
+build/non_matching/src/bootup_uso/bootup_uso_o0_11D40.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x30
 build/src/bootup_uso/bootup_uso_tail3a_bot.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a_bot.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_tail3a_bot.c.o: TRUNCATE_TEXT := 0x338
 build/src/bootup_uso/bootup_uso_o0_120A8.c.o: TRUNCATE_TEXT := 0x21C
