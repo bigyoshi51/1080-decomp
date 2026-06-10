@@ -27348,8 +27348,13 @@ void gl_func_0005AF64(int *a0, char *a1) {
  * alias a0[2], blocking CSE). The pad-split + rename to 5AFB4 was
  * ATTEMPTED and REVERTED: post0b's drift shifts the section even on
  * INCLUDE-space splits (8129 diff words from 0x5AF98; the same class
- * that blocked the net-zero fix). Promote belongs to the relayout
- * session (13th ready body). */
+ * that blocked the net-zero fix). FINAL DISPOSITION 2026-06-10: 12 of
+ * the 13 bodies landed via the size-neutral in-place swap; THIS one
+ * cannot -- its 1-word leading pad has no legal emission host (1-word
+ * GLOBAL_ASM blocks emit +4; both neighbors are matched C, so neither
+ * the standalone-orphan recipe nor a fold applies). The INCLUDE
+ * [pad+body] is ROM-TRUE as is; the proven C waits here until a
+ * 1-word-orphan-between-matches mechanism exists. */
 #ifdef NON_MATCHING
 void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
     a0[1] = (int)a2;
