@@ -512,7 +512,13 @@ void game_uso_func_000008FC(int *a0) {
 }
 
 // game_uso_func_00000940 — FULL m2c DECODE via compressed-module jumptable
-// path (80.12% NM, no episode). FIRST game_uso jumptable landed. THREE
+// path (88.66% in-tree 2026-06-10, no episode). NOTE for standalone
+// testing: the FW absolute-address reads (*(s32*)0x34 etc.) are USO
+// D_-symbol references; a standalone harness that keeps them as bare
+// absolute addresses emits a DIFFERENT shape (IDO folds small-address
+// loads; one OR-arm vanished in the test emit) — rebuild the harness
+// with extern char D_base + offsets before trusting any standalone
+// diff on this fn. FIRST game_uso jumptable landed. THREE
 // contiguous switches in one fn (jr $t7/$t0/$t3 @ 0x970/0x9DC/0xA58; sltiu
 // 7/6/6 = 19 rodata entries at jtbl+4/+0x20/+0x38) extracted from the Yay0-
 // compressed USO emulator dump (/tmp/rdram_gameuso.bin, ram_base 0x807ecaa0).
