@@ -5726,7 +5726,16 @@ void timproc_uso_b5_func_0000896C(char *a0) {
  * Absorbed both (0x54 -> 0xB0, ends right before the fresh accessor at 0x8A38);
  * dropped the 89DC and 8A1C symbols. Body walks a0->0x40C[a1] entries counting
  * a predicate match (f0==entry->0x3C->0x2A4 / a2==...->0x2B0), returns the count.
- * Reloc-blind (USO); stays INCLUDE_ASM until the entry struct is typed. */
+ * 2026-06-10 corrections: NOT reloc-blind (all addressing is a0-relative,
+ * no symbol relocs) -- stale claim dropped. True structure = TWO loops
+ * over the same v0 cursor: loop 1 strict (f_2A4 != 0 AND i_2B0 == a2),
+ * loop 2 relaxed (f_2A4 != 0 only), each returning the running index;
+ * the cursor is the REUSED a0 ARG (dead-arg overwrite) and the entry
+ * ptr reuses a1. Negative: a clean two-do-while rewrite with arg-reuse
+ * explodes to 145 insns (IDO -O2 loop restructuring duplicates the
+ * blocks); the m2c goto-form body below (48 insns, 20 diffs) remains
+ * the best compilable approximation. Residual class: loop-shape, not
+ * regalloc. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
