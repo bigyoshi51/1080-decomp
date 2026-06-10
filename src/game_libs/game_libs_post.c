@@ -13888,8 +13888,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BB58);
 #ifdef NON_MATCHING
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft; THREE dense jumptables
  * (bounds 66/41/97 -- interpreter/dispatch shape) synthesized by block-
- * walk with heavily-shared case heads; case ORDER approximate (true
- * extraction from USO reloc records = the refinement). Checklist 1-15. */
+ * walk with heavily-shared case heads; case ORDER approximate. TABLE
+ * EXTRACTION BLOCKED 2026-06-10: the lw lo16 offsets exceed post.bin
+ * and match no asset under any base convention -- the hi16 resolves
+ * via the boot-time loader only; RE the kernel game_libs loader to
+ * unlock (docs/TOOLING_DECOMP). Checklist 1-15. */
 extern int gl_func_0003E6E8();
 extern int gl_func_0003F010();
 extern int gl_func_0003F024();
