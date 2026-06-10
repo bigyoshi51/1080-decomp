@@ -5320,6 +5320,12 @@ block_5:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069E04);
 #endif
 
+/* game_libs_func_00069F50 = 1 zero pad word + a VI_CURRENT_REG
+ * (0xA4400010) reader at 0x69F54 (template-scan find 2026-06-10). The
+ * 3-insn C body is trivial but an in-place swap shifts all downstream
+ * unit content (mid-file C-for-INCLUDE replacement never reproduces the
+ * block layout -- see docs/MATCHING_WORKFLOW "in-place C matches ONLY
+ * safe at unit-END"). Land via a carve split or a unit relayout pass. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00069F50);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00069E04_pad.s")
 
