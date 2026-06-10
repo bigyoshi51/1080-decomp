@@ -7366,7 +7366,16 @@ float game_uso_func_00007A98(int *a0) {
     return ret;
 }
 #else
-/* game_uso_func_00007A98: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
+/* game_uso_func_00007A98: leaf-branch-past-end CAP -- RESOLVED PAIR
+ * 2026-06-10: the beqzl targets 0x7AC0 = game_uso_func_00007ABC+4!
+ * 7ABC is NOT a standalone fn: it is THIS fn's shared else-tail
+ * (v1==0 path: f2=0 via the delay mtc1, then 7ABC's nop/jr/cvt.s.w
+ * returns (float)int(f2)), with 7ABC's own first insn (mtc1 zero,f2)
+ * being a 1-insn alt-entry prefix for direct jal callers wanting
+ * return-0.0f. This EXPLAINS 7ABC's 18-combo-negative unfolded cvt:
+ * the zero arrives at RUNTIME from either entry, so the conversion
+ * cannot constant-fold. Two-entry shared-tail class; both symbols
+ * permanently INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
 #endif
 
