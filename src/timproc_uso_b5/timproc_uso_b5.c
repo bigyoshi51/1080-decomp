@@ -7903,32 +7903,43 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * (nonzero -> target = 1.0, else the global default const at &D+
  * 0x872). Step magnitudes = global f32 consts &D+0x876 (up) /
  * +0x880 (down). Per call moves one step toward target then clamps.
- * Caps <80: FP c.eq.s/c.lt.s/add.s/sub.s + bc1fl/bc1f branch-likely
- * + 3x &D global const reloc + dual jr-ra + C7B4 tail-fragment. Stays
- * INCLUDE_ASM (no episode). */
+ * 2026-06-10 post-merge progress (boundary fixed; now one 0xD8 symbol):
+ * distinct float externs (D_C710_dflt/up/dn) FOLD into lwc1 %lo (the
+ * &D+offset cast-arith form materializes la instead); their
+ * undefined_syms values are set to the in-USO offsets 0x368/36C/370 so
+ * the LINKED %lo fields match (the .o shows 0+reloc -- compare linked
+ * bytes or wildcard reloc positions). Best shape = v fixed pre-if:
+ * 28/54 non-reloc diffs. Residual: the target materializes v1
+ * (addiu v0+0x124) INSIDE each arm between the const lui and the loads,
+ * with the compare deref'ing st directly AND an interleaved dflt load
+ * (scheduling); f-reg numbering shifts with it. Stays INCLUDE_ASM. */
 #ifdef NON_MATCHING
-extern char D_00000000;
+extern float D_C710_dflt;
+extern float D_C710_up;
+extern float D_C710_dn;
 void timproc_uso_b5_func_0000C710(char *a0, float a1u) {
     float target;
-    float *st;
+    char *st;
+    float *v;
     if (*(float *)(a0 + 0x2A4) == 0.0f) {
         target = 0.0f;
     } else {
-        st = *(float **)(a0 + 0x2B8);
-        target = (*(int *)((char *)st + 0x130) != 0) ? 1.0f : *(float *)(&D_00000000 + 0x872);
+        st = *(char **)(a0 + 0x2B8);
+        target = (*(int *)(st + 0x130) != 0) ? 1.0f : D_C710_dflt;
     }
-    st = *(float **)(a0 + 0x2B8);
-    if (*(float *)((char *)st + 0x124) < target) {
-        *(float *)((char *)st + 0x124) += *(float *)(&D_00000000 + 0x876);
-        st = *(float **)(a0 + 0x2B8);
-        if (target < *(float *)((char *)st + 0x124)) {
-            *(float *)((char *)st + 0x124) = target;
+    st = *(char **)(a0 + 0x2B8);
+    v = (float *)(st + 0x124);
+    if (*v < target) {
+        *v += D_C710_up;
+        st = *(char **)(a0 + 0x2B8);
+        if (target < *(float *)(st + 0x124)) {
+            *(float *)(st + 0x124) = target;
         }
     } else {
-        *(float *)((char *)st + 0x124) -= *(float *)(&D_00000000 + 0x880);
-        st = *(float **)(a0 + 0x2B8);
-        if (*(float *)((char *)st + 0x124) < target) {
-            *(float *)((char *)st + 0x124) = target;
+        *v -= D_C710_dn;
+        st = *(char **)(a0 + 0x2B8);
+        if (*(float *)(st + 0x124) < target) {
+            *(float *)(st + 0x124) = target;
         }
     }
 }
