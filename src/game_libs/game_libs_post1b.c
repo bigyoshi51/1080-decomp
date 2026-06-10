@@ -5746,85 +5746,176 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
 #endif
 
 #ifdef NON_MATCHING
-/* game_libs_func_0006B048: libc-style bzero / memset-zero (declared size 0xB4, 45 words).
- *
- * Splat declares the symbol at offset 0, but the real function body starts at
- * offset 0xC (the first 3 words are leading nops — either splat misalignment
- * or compiler-emitted padding). The body is a standard IDO libc bzero.
- *
- * Decoded structure (real body 0xB054..0xB0F0):
- *     void bzero(void *dst, size_t n) {
- *         if (n < 0xC) goto byte_tail;          // small case, skip optimizations
- *         // Align dst to 4-byte boundary via swl (store-word-left)
- *         size_t pre = (-(intptr_t)dst) & 3;
- *         if (pre) {
- *             *(unsigned*)dst = 0;              // emit swl $zero, 0(dst)
- *             dst += pre;
- *             n -= pre;
- *         }
- *         // 32-byte unrolled chunks
- *         size_t big = n & ~0x1F;
- *         if (big) {
- *             void *end = (char*)dst + big;
- *             n -= big;
- *             do {
- *                 dst += 0x20;
- *                 ((int*)dst)[-8] = 0;
- *                 ((int*)dst)[-7] = 0;
- *                 ((int*)dst)[-6] = 0;
- *                 ((int*)dst)[-5] = 0;
- *                 ((int*)dst)[-4] = 0;
- *                 ((int*)dst)[-3] = 0;
- *                 ((int*)dst)[-2] = 0;
- *                 ((int*)dst)[-1] = 0;          // delay slot of bne
- *             } while (dst != end);
- *         }
- *         // 4-byte chunks
- *         size_t med = n & ~3;
- *         if (med) {
- *             void *end = (char*)dst + med;
- *             n -= med;
- *             do {
- *                 dst += 4;
- *                 ((int*)dst)[-1] = 0;
- *             } while (dst != end);
- *         }
- *     byte_tail:
- *         // 1-byte tail
- *         if ((ssize_t)n <= 0) return;
- *         void *end = (char*)dst + n;
- *         do {
- *             dst += 1;
- *             ((char*)dst)[-1] = 0;
- *         } while (dst != end);
- *     }
- *
- * TRAILING FRAGMENT (0x6B0F0..0x6B0FC, 3 insns): nop; lui $t6, 0x0; lw $t6, 0($t6).
- *   Incomplete fragment (no prologue, no jr) — likely start of a hardcoded-
- *   address libc thunk that the linker fills in. Variant of
- *   feedback_splat_too_big_incomplete_fragment_tail.md.
- *
- * Notes:
- *  - This is the IDO-canonical bzero emission (4-align prefix, 32-byte unroll
- *    of 8 sw $zero, 4-byte cleanup, 1-byte tail). Standard libc pattern.
- *  - Symbol prefix `game_libs_func_` (not `gl_func_`) suggests this was a libc
- *    function exported into the game_libs USO at compile time.
- *  - Splat boundary issue: candidate for split-fragments.py.
- *
- * CLASSIFICATION (corrected 2026-06-06): the body LOOKS like canonical IDO
- * libc bzero (slti/negu/andi head + do/while loops), not obviously hand-coded
- * (the 2026-05-28 "handwritten, do NOT attempt" reason was imprecise). BUT
- * three things block a C match, confirmed empirically this date:
- *   (1) the expected symbol has 3 LEADING NOPS at 0x6B048 (real body at
- *       0x6B054) — a splat boundary misattribution; C cannot emit leading nops.
- *   (2) the leading partial-word zero is a LONE `swl zero,0(a0)`; `*(int*)p=0`
- *       emits plain `sw` (and at the unaligned head would fault) — no standard
- *       C idiom yields a lone swl.
- *   (3) the BSD-bzero C body compiled at this file's -O2 EXPANDS to ~104 insns
- *       (vs the 42-insn target) — IDO does not reproduce the tight unrolled
- *       form here (measured fuzzy=None). So it is not C-matchable as-is.
- * Stays INCLUDE_ASM. Re-attempt only after a splat boundary split (drops the
- * 3 nops) AND finding what produces the tight 39-insn form + the lone swl. */
+/* PASS-1 2026-06-10 (big-swing): FULL m2c graft (423 insns; pristine
+ * profile -- no tables, no CP0/f64/COP1 moves). */
+s32 gl_func_0006B0FC(void) {
+    s32 sp3C;
+    s32 sp38;
+    s32 sp34;
+    char *sp30;
+    char *sp2C;
+    u32 sp28;
+    s32 *sp24;
+    u32 temp_t9;
+    char *temp_t0;
+    char *temp_t3;
+    char *temp_t7;
+
+    temp_t7 = 0 /* M2C unset $t6 */ + 0x14;
+    sp3C = 0;
+    sp30 = temp_t7;
+    temp_t0 = temp_t7 + (*(s32 *)((char *)&D_00000000 + 0x1A) /* M2C unset $t6 */ * 0x24);
+    sp2C = temp_t0 + 0x18;
+    sp38 = *(s32 *)((char *)&D_00000000 + 0xA4600010);
+    if (sp38 & 1) {
+        *(s32 *)((char *)&D_00000000 + 0) = (s32) (*(s32 *)((char *)&D_00000000 + 0) & ~0x800);
+        *(s32 *)((char *)(temp_t0) + 0x18) = 0x1D;
+        gl_func_0007FEEC();
+        goto block_59;
+    }
+    sp38 = *(s32 *)((char *)&D_00000000 + 0xA4600010);
+    if (sp38 & 3) {
+        do {
+            sp38 = *(s32 *)((char *)&D_00000000 + 0xA4600010);
+        } while (sp38 & 3);
+    }
+    sp3C = *(s32 *)((char *)&D_00000000 + 0xA5000508);
+    if (sp3C & 0x02000000) {
+        sp38 = *(s32 *)((char *)&D_00000000 + 0xA4600010);
+        if (sp38 & 3) {
+            do {
+                sp38 = *(s32 *)((char *)&D_00000000 + 0xA4600010);
+            } while (sp38 & 3);
+        }
+        *(s32 *)((char *)&D_00000000 + 0xA5000510) = *(s32 *)((char *)(sp30) + 0x10) | 0x01000000;
+        *(s32 *)((char *)(sp2C) + 0x0) = 0;
+        return 0;
+    }
+    if (*(s32 *)((char *)(sp30) + 0x0) == 2) {
+        goto block_59;
+    }
+    if (sp3C & 0x08000000) {
+        sp38 = *(s32 *)((char *)&D_00000000 + 0xA4600010);
+        if (sp38 & 3) {
+            do {
+                sp38 = *(s32 *)((char *)&D_00000000 + 0xA4600010);
+            } while (sp38 & 3);
+        }
+        sp3C = *(s32 *)((char *)&D_00000000 + 0xA5000508);
+        *(s32 *)((char *)(sp2C) + 0x0) = 0x16;
+        gl_func_0007FEEC();
+        *(s32 *)((char *)&D_00000000 + 0xA4600010) = 2;
+        *(s32 *)((char *)&D_00000000 + 0) = (s32) (*(s32 *)((char *)&D_00000000 + 0) | 0x100401);
+        goto block_59;
+    }
+    if (*(s32 *)((char *)(sp30) + 0x0) == 1) {
+        if (!(sp3C & 0x40000000)) {
+            if ((*(s32 *)((char *)(sp30) + 0x8) + 1) != (*(s32 *)((char *)(sp30) + 0x4) * 0x55)) {
+                *(s32 *)((char *)(sp2C) + 0x0) = 0x18;
+                gl_func_0007FE04();
+            } else {
+                *(s32 *)((char *)&D_00000000 + 0xA4600010) = 2;
+                *(s32 *)((char *)&D_00000000 + 0) = (s32) (*(s32 *)((char *)&D_00000000 + 0) | 0x100401);
+                *(s32 *)((char *)(sp2C) + 0x0) = 0;
+                gl_func_0007FEEC();
+            }
+        } else {
+            *(s32 *)((char *)(sp2C) + 0x4) = (s32) (*(s32 *)((char *)(sp2C) + 0x4) + *(s32 *)((char *)(sp2C) + 0xC));
+            *(s32 *)((char *)(sp30) + 0x8) = (s32) (*(s32 *)((char *)(sp30) + 0x8) + 1);
+            func_00000000(*(s32 *)((char *)&D_00000000 + 0), 1, 0x05000400, *(s32 *)((char *)(sp2C) + 0x4), *(s32 *)((char *)(sp2C) + 0xC));
+        }
+        goto block_59;
+    }
+    if (*(s32 *)((char *)(sp30) + 0x0) == 0) {
+        if (*(s32 *)((char *)(sp30) + 0x4) == 3) {
+            if ((*(s32 *)((char *)(sp2C) + 0x10) + 0x11) < *(s32 *)((char *)(sp30) + 0x8)) {
+                *(s32 *)((char *)(sp2C) + 0x0) = 0;
+                gl_func_0007FE04();
+                goto block_59;
+            }
+            if (!(sp3C & 0x40000000)) {
+                *(s32 *)((char *)(sp2C) + 0x0) = 0x17;
+                gl_func_0007FE04();
+                goto block_59;
+            }
+            goto block_27;
+        }
+        *(s32 *)((char *)(sp2C) + 0x4) = (s32) (*(s32 *)((char *)(sp2C) + 0x4) + *(s32 *)((char *)(sp2C) + 0xC));
+block_27:
+        sp34 = *(s32 *)((char *)&D_00000000 + 0xA5000510);
+        if (((sp34 & 0x200000) && (sp34 & 0x400000)) || (sp34 & 0x02000000)) {
+            if ((u32) *(s32 *)((char *)(sp2C) + 0x10) >= 4U) {
+                if ((*(s32 *)((char *)(sp30) + 0x4) != 3) || (*(s32 *)((char *)(sp30) + 0x8) >= 0x53)) {
+                    *(s32 *)((char *)(sp2C) + 0x0) = 0x17;
+                    gl_func_0007FE04();
+                    goto block_59;
+                }
+                goto block_35;
+            }
+            temp_t9 = *(s32 *)((char *)(sp2C) + 0x10);
+            sp28 = temp_t9;
+            *(s32 *)((char *)((sp2C + (temp_t9 * 4))) + 0x14) = (s32) (*(s32 *)((char *)(sp30) + 0x8) + 1);
+block_35:
+            *(s32 *)((char *)(sp2C) + 0x10) = (u32) (*(s32 *)((char *)(sp2C) + 0x10) + 1);
+            goto block_36;
+        }
+block_36:
+        if (sp3C & 0x10000000) {
+            if (*(s32 *)((char *)(sp30) + 0x8) != 0x57) {
+                *(s32 *)((char *)(sp2C) + 0x0) = 0x18;
+                gl_func_0007FE04();
+            }
+            if ((*(s32 *)((char *)(sp30) + 0x4) == 2) && (*(s32 *)((char *)(sp30) + 0x6) == 0)) {
+                *(s32 *)((char *)(sp30) + 0x6) = 1U;
+                *(s32 *)((char *)(sp30) + 0x8) = -1;
+                *(s32 *)((char *)(sp30) + 0x40) = (s32) (*(s32 *)((char *)(sp30) + 0x40) - *(s32 *)((char *)(sp30) + 0x48));
+                *(s32 *)((char *)(sp2C) + 0x0) = 0x16;
+            } else {
+                *(s32 *)((char *)&D_00000000 + 0xA4600010) = 2;
+                *(s32 *)((char *)&D_00000000 + 0) = (s32) (*(s32 *)((char *)&D_00000000 + 0) | 0x100401);
+                *(s32 *)((char *)(sp30) + 0x0) = 2;
+                *(s32 *)((char *)(sp2C) + 0x0) = 0;
+            }
+            func_00000000(*(s32 *)((char *)&D_00000000 + 0), 0, 0x05000000, *(s32 *)((char *)(sp2C) + 0x8), *(s32 *)((char *)(sp2C) + 0xC) * 4);
+            goto block_59;
+        }
+        if ((*(s32 *)((char *)(sp30) + 0x8) == -1) && (*(s32 *)((char *)(sp30) + 0x4) == 2) && (*(s32 *)((char *)(sp30) + 0x6) == 1)) {
+            sp24 = sp30 + 0x18;
+            if (*(s32 *)((char *)(sp30) + 0x28) == 0) {
+                temp_t3 = *(s32 *)((char *)(sp30) + 0x20);
+                if ((*(s32 *)((char *)(temp_t3) + 0xC) | (*(s32 *)((char *)(temp_t3) + 0x0) | *(s32 *)((char *)(temp_t3) + 0x4) | *(s32 *)((char *)(temp_t3) + 0x8))) != 0) {
+                    *(s32 *)((char *)(sp30) + 0x18) = 0x18;
+                    gl_func_0007FE04();
+                    goto block_59;
+                }
+            }
+            *sp24 = 0;
+            gl_func_0007FEEC();
+            goto block_51;
+        }
+block_51:
+        *(s32 *)((char *)(sp30) + 0x8) = (s32) (*(s32 *)((char *)(sp30) + 0x8) + 1);
+        if (sp3C & 0x40000000) {
+            if (*(s32 *)((char *)(sp30) + 0x8) >= 0x55) {
+                *(s32 *)((char *)(sp2C) + 0x0) = 0x18;
+                gl_func_0007FE04();
+                goto block_59;
+            }
+            func_00000000(*(s32 *)((char *)&D_00000000 + 0), 0, 0x05000400, *(s32 *)((char *)(sp2C) + 0x4), *(s32 *)((char *)(sp2C) + 0xC));
+            *(s32 *)((char *)(sp2C) + 0x0) = 0;
+            return 1;
+        }
+        if (*(s32 *)((char *)(sp30) + 0x8) < 0x55) {
+            *(s32 *)((char *)(sp2C) + 0x0) = 0x18;
+            gl_func_0007FE04();
+        }
+        goto block_59;
+    }
+    *(s32 *)((char *)(sp2C) + 0x0) = 4;
+    gl_func_0007FE04();
+block_59:
+    return 1;
+}
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B048);
 #endif
