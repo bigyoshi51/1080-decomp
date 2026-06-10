@@ -8774,19 +8774,16 @@ int gl_func_0003EC5C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
 #endif
 
-/* 4-insn function: `nop; nop; jr ra; nop`. Body is structurally empty
- * but has 2 leading nops not reachable from std C (`void f(void){}`
- * emits just `jr ra; nop` = 2 insns). Previously matched via PREFIX_BYTES
- * (2 leading-nop injection); PREFIX_BYTES REMOVED 2026-05-27 (was
- * missed by 2026-05-23 sweep) per feedback_no_instruction_forcing_matches_policy
- * — leading-nop injection was instruction-appending match-faking.
- * Stays NM. */
-#ifdef NON_MATCHING
-void game_libs_func_0003ECDC(void) {
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003ECDC);
-#endif
+/* game_libs_func_0003ECDC BOUNDARY-CORRECTED 2026-06-10: the old 0x10
+ * symbol was TWO stray alignment nops (the predecessor's inter-fn pad,
+ * misattributed by splat) + a true 2-insn empty function. Split into
+ * the _pad sidecar (2 nops) and game_libs_func_0003ECE4 (jr ra; nop =
+ * `void f(void) {}`). The empty fn is trivially matchable C but sits
+ * mid-file in game_libs (in-place promote layout-blocked); both stay
+ * INCLUDE until the relayout session. The old "leading-nop injection"
+ * cap note is obsolete -- the nops were never part of the function. */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_func_0003ECDC_pad.s")
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003ECE4);
 
 extern int gl_func_00000000();
 int gl_func_0003ECEC(int a0) {
