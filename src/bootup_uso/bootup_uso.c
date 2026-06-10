@@ -1005,9 +1005,19 @@ void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
  * func_000020AC (81.8%, 8-byte-pair variant). */
 #ifdef NON_MATCHING
 void func_00002088(char *a0, int a1) {
-    int idx = *(int*)(a0 + 0x104);
-    *(int*)(a0 + 0x104) = idx + 1;
-    *(int*)(a0 + idx * 4 + 0x108) = a1;
+    /* 2026-06-10 address-first restructure: compute the record pointer
+     * BEFORE the count store -- improves the old structural state to a
+     * clean 2-insn ADJACENT SWAP (target: addu t8,a0,t7; sw count --
+     * mine: sw count; addu t8,t7,a0; note BOTH position and operand
+     * order differ). Barrier/array/operand-order variants all hold at
+     * the swap; the documented sw-before-addu scheduler cap stands,
+     * but the wrap is now 1 scheduling decision from exact. */
+    int idx;
+    int *p;
+    idx = *(int *)(a0 + 0x104);
+    p = (int *)(a0 + idx * 4 + 0x108);
+    *(int *)(a0 + 0x104) = idx + 1;
+    *p = a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
