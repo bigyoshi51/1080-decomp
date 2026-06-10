@@ -26,6 +26,9 @@ def clean(b, fn, self_recursive=False):
     b = re.sub(r'(?<![\w.])(?:NULL|0)\(', 'func_00000000(', b)            # 1
     b = b.replace('NULL','0')                                              # 14: before *0
     b = b.replace('?32','s32')
+    b = re.sub(r'(\w+) = &jtbl_\d \+ [^;]+;', r'\1 = 0; /* jtbl addr read collapsed */', b)
+    b = b.replace('(bitwise f32)','*(f32 *)&')
+    b = b.replace('(bitwise s32)','*(s32 *)&')
     b = b.replace('(? *)','(char *)')
     b = re.sub(r'\(\? \)','(s32)', b)
     b = re.sub(r'^(\s+)\? \*', r'\1char *', b, flags=re.M)
