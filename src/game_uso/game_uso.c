@@ -522,7 +522,11 @@ void game_uso_func_000008FC(int *a0) {
 }
 
 // game_uso_func_00000940 — FULL m2c DECODE via compressed-module jumptable
-// path (89.74% in-tree 2026-06-10 after inlining switches 2+3's
+// path (97.24% in-tree 2026-06-10: ALL raw absolute D-reads converted
+// to the &D_00000000+off extern form -- the m2c lift had left 8 sites
+// as *(s32*)0xNN bare absolutes which compile to folded small-address
+// loads (wrong shape AND wrong relocs); worth +7.5pp. Earlier same
+// day: inlining switches 2+3's
 // dispatch expressions -- a named temp colors v0 where the target's
 // inline load takes t9/t2; the ECEC-class named-vs-inline rule).
 // Remaining: target re-materializes the &D base inside one case
@@ -557,11 +561,11 @@ void game_uso_func_00000940(char *arg0) {
     temp_t7 = FW(FW(arg0, 0x150), 0xA54);
     switch (temp_t7) {                              /* switch 1 */
     case 0:                                         /* switch 1 */
-        temp_v0 = *(s32 *)0x34;
-        if ((temp_v0 == 4) || (temp_v0 == 6) || (temp_v0 == 7) || ((temp_v0 == 1) && (*(s32 *)0x40 == 0))) {
+        temp_v0 = *(int *)((char *)&D_00000000 + 0x34);
+        if ((temp_v0 == 4) || (temp_v0 == 6) || (temp_v0 == 7) || ((temp_v0 == 1) && (*(int *)((char *)&D_00000000 + 0x40) == 0))) {
             var_a1 = 1;
         } else {
-            switch (*(s32 *)0x64) {                      /* switch 2 */
+            switch (*(int *)((char *)&D_00000000 + 0x64)) {                      /* switch 2 */
             case 2:                                 /* switch 2 */
                 var_a1 = 6;
                 break;
@@ -587,10 +591,10 @@ void game_uso_func_00000940(char *arg0) {
         }
         break;
     case 1:                                         /* switch 1 */
-        if (*(s32 *)0x7C != 0) {
+        if (*(int *)((char *)&D_00000000 + 0x7C) != 0) {
             var_a1 = 0xB;
         } else {
-            switch (*(s32 *)0x64) {                      /* switch 3 */
+            switch (*(int *)((char *)&D_00000000 + 0x64)) {                      /* switch 3 */
             case 2:                                 /* switch 3 */
                 var_a1 = 0xD;
                 break;
@@ -623,7 +627,7 @@ void game_uso_func_00000940(char *arg0) {
         break;
     case 6:                                         /* switch 1 */
         var_a1 = 5;
-        if (*(char *)0x64 != 7) {
+        if (*(int *)((char *)&D_00000000 + 0x64) != 7) {
             var_a1 = 4;
         }
         break;
