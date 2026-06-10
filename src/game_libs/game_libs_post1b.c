@@ -473,6 +473,11 @@ void *gl_func_00063884(void *a0, int a1, int *a2, int *a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063884);
 #endif
 
+/* gl_func_00063964 graft attempt 2026-06-10: a fresh m2c graft scored
+ * fuzzy=None (unalignable) despite only +0x10 oversize and none of the
+ * documented None artifacts (no empty ifs / no-op gotos) -- an
+ * uncharacterized None trigger. This 22.62 body stays (measurable
+ * beats None). Hand-refinement territory. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
