@@ -27339,6 +27339,14 @@ void gl_func_0005AF64(int *a0, char *a1) {
  * sweep) per feedback_no_instruction_forcing_matches_policy — leading-
  * nop injection was instruction-appending match-faking. Body stays NM-
  * wrapped (INCLUDE_ASM build path); honest 88.89%. */
+/* 2026-06-10: TRUE BODY IS BYTE-EXACT (8/8 standalone, 0 diffs) as the
+ * 3ECDC class -- 1 misattributed leading pad nop + the doubly-linked-
+ * list insert below (the fwd reload is natural: the a2[2]=a0 store may
+ * alias a0[2], blocking CSE). The pad-split + rename to 5AFB4 was
+ * ATTEMPTED and REVERTED: post0b's drift shifts the section even on
+ * INCLUDE-space splits (8129 diff words from 0x5AF98; the same class
+ * that blocked the net-zero fix). Promote belongs to the relayout
+ * session (13th ready body). */
 #ifdef NON_MATCHING
 void game_libs_func_0005AFB0(int *a0, int a1, int *a2) {
     a0[1] = (int)a2;
