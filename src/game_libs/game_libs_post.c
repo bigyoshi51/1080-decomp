@@ -17788,15 +17788,200 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
 //   summarised in the in-comment analysis above). Name pre-checked:
 //   no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_00030AF4(void) {
-    if (*(int *)((char *)&D_00000000 + 0) == 1) {
-        gl_func_00000000();
-        return;
+/* PASS-2 2026-06-10 (big-swing): FULL m2c graft; THREE jumptables
+ * (14-bound/6-head dense-ish, 12/13 + 8/9 sparse; order approximate). */
+void gl_func_00030AF4(u32 arg0, u32 arg1, s32 arg2) {
+    s32 sp34;
+    u32 sp2C;
+    u32 sp1C;
+    s32 *var_at;
+    u32 temp_v1;
+    u32 temp_v1_2;
+    u32 var_v0;
+
+    sp34 = 0;
+    if (*(s32 *)((char *)&D_00000000 + 0) == 1) {
+        gl_func_00041D0C();
     }
-    *(int *)((char *)&D_00000000 + 0x24) = (int)gl_func_00000000(0x45010);
-    gl_func_00000000(0x5F78);
-    gl_func_00000000(0x000A);
-    gl_func_00000000();
+    func_00000000(0xFB000000, 0x45010);
+    sp2C = *(s32 *)((char *)&D_00000000 + 0);
+    *(s32 *)((char *)&D_00000000 + 0) = arg0;
+    func_00000000(0);
+    func_00000000(1);
+    *(s32 *)((char *)&D_00000000 + 0) = 0U;
+    *(s32 *)((char *)&D_00000000 + 0) = 0U;
+    *(s32 *)((char *)&D_00000000 + 0) = 0U;
+    *(s32 *)((char *)&D_00000000 + 0) = 0U;
+    *(s32 *)4 = 0;
+    *(s32 *)8 = 0;
+    *(s32 *)((char *)&D_00000000 + 0x14) = 0;
+    *(s32 *)((char *)&D_00000000 + 0) = 0;
+    *(u32 *)0x18 = 0;
+    func_00000000();
+    gl_func_000460D0();
+    sp1C = arg0;
+    if (arg0 < 0xEU) {
+        var_at = 0; /* jtbl read collapsed */
+        switch (arg0) {                             /* switch 1 */
+        case 0:                                     /* switch 1 */
+            gl_func_00042364(1);
+            sp34 = 1;
+            break;
+        case 1:                                     /* switch 1 */
+            *(s32 *)((char *)&D_00000000 + 0) = 0U;
+            gl_func_00042364(0);
+            func_00000000(2);
+            sp34 = 1;
+            break;
+        case 2:                                     /* switch 1 */
+            gl_func_00042364(2);
+            *(s32 *)((char *)&D_00000000 + 0) = 0x10U;
+            func_00000000(*(u8 *)3);
+            sp34 = 1;
+            break;
+        case 3:                                     /* switch 1 */
+            if (sp2C != 0) {
+                gl_func_00042364(5);
+                sp34 = 1;
+            }
+            func_00000000(3);
+            break;
+        case 4:                                     /* switch 1 */
+            var_at = (s32 *)3;
+            if (sp2C == 0) {
+                *(s32 *)((char *)&D_00000000 + 0) = 0xCU;
+            } else {
+            case 5:                                 /* switch 1 */
+            case 6:                                 /* switch 1 */
+            case 7:                                 /* switch 1 */
+            case 8:                                 /* switch 1 */
+            case 9:                                 /* switch 1 */
+            case 10:                                /* switch 1 */
+            case 11:                                /* switch 1 */
+            case 12:                                /* switch 1 */
+            case 13:                                /* switch 1 */
+                if (0 /* M2C unset $t8 */ == var_at) {
+loop_13:
+                    if (func_00000000(2, 0xE, 0) >= 0x64) {
+                        func_00000000();
+                        goto loop_13;
+                    }
+                }
+                *(s32 *)((char *)&D_00000000 + 0) = arg1;
+                *(s32 *)((char *)&D_00000000 + 0) = (u32) (arg1 + 4);
+                temp_v1 = *(s32 *)((char *)&D_00000000 + 0);
+                if ((temp_v1 != 0) && (arg1 == 6)) {
+                    *(s32 *)((char *)&D_00000000 + 0) = 7U;
+                }
+                if (temp_v1 == 4) {
+                    gl_func_00042364(4);
+                    *(s32 *)((char *)&D_00000000 + 0) = (u32) (*(s32 *)((char *)&D_00000000 + 0) + 0x12);
+                } else if (arg1 == 0) {
+                    gl_func_00042364(6);
+                } else {
+                    gl_func_00042364(3);
+                }
+                sp34 = 1;
+                *(s32 *)((char *)&D_00000000 + 0) = 0xEU;
+            }
+            break;
+        }
+    }
+    if (sp34 == 1) {
+        gl_func_00041ED4();
+        func_00000000();
+        gl_func_00041F0C();
+        gl_func_00041F44();
+        if (sp1C != 4) {
+            func_00000000(0, 0);
+        }
+    }
+    if (*(s32 *)((char *)&D_00000000 + 0) != 5) {
+        var_v0 = gl_func_00044F18(0);
+    } else {
+        *(s32 *)((char *)&D_00000000 + 0x14) = (u32) *(u32 *)0x18AC;
+        var_v0 = func_00000000(0, 0x64, *(s32 *)((char *)&D_00000000 + 4));
+        *(s32 *)((char *)&D_00000000 + 0) = 4U;
+    }
+    switch (sp1C) {                                 /* switch 2 */
+    case 0:                                         /* switch 2 */
+        if (sp2C != 0) {
+            var_v0 = *(s32 *)((char *)&D_00000000 + 0);
+            if (var_v0 == 1) {
+                gl_func_00044F18(1);
+                goto block_79;
+            }
+        case 1:                                     /* switch 2 */
+            if (var_v0 == 0) {
+                gl_func_00044F18(2);
+block_79:
+                var_v0 = *(s32 *)((char *)&D_00000000 + 0);
+            }
+            temp_v1_2 = *(s32 *)((char *)&D_00000000 + 0);
+            if ((temp_v1_2 == 1) || (temp_v1_2 == 3)) {
+                switch (var_v0) {                   /* switch 3 */
+                case 0:                             /* switch 3 */
+                    func_00000000(0x1F);
+block_92:
+                    var_v0 = *(s32 *)((char *)&D_00000000 + 0);
+                    break;
+                case 2:                             /* switch 2 */
+                case 1:                             /* switch 3 */
+                    func_00000000(0x1B);
+                    goto block_92;
+                case 3:                             /* switch 2 */
+                /* case 2 (flattened) */
+                    func_00000000(0x1D);
+                    goto block_92;
+                case 4:                             /* switch 2 */
+                /* case 3 (flattened) */
+                    func_00000000(0x19);
+                    goto block_92;
+                case 5:                             /* switch 2 */
+                /* case 4 (flattened) */
+                    func_00000000(0x1E);
+                    goto block_92;
+                case 6:                             /* switch 2 */
+                /* case 5 (flattened) */
+                    func_00000000(0x1C);
+                    goto block_92;
+                case 7:                             /* switch 2 */
+                /* case 6 (flattened) */
+                    func_00000000(0x1A);
+                    goto block_92;
+                case 8:                             /* switch 2 */
+                /* case 7 (flattened) */
+                    func_00000000(0x18);
+                    goto block_92;
+                }
+            }
+            if (var_v0 == 8) {
+                func_00000000(0xBC);
+            }
+        }
+        break;
+    case 9:                                         /* switch 2 */
+        func_00000000(0xF8000000, 0);
+        func_00000000(0xA3);
+        break;
+    case 10:                                        /* switch 2 */
+        func_00000000(0xF8000000, 0);
+        func_00000000(0, 0x3E99999A, 0);
+        break;
+    case 11:                                        /* switch 2 */
+        switch (arg1) {                             /* switch 4; irregular */
+        case 0:                                     /* switch 4 */
+            func_00000000(0xE);
+            break;
+        case 1:                                     /* switch 4 */
+            func_00000000(0xF);
+            break;
+        }
+        break;
+    }
+    func_00000000(0xFB000000, 0);
+    func_00000000(0);
+    func_00000000(0xFB000000, 0x45F78);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
