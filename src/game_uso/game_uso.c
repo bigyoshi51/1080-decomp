@@ -7365,7 +7365,15 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
  * SOURCE=3 audit 2026-06-01: this is still the first discover-by-size result.
  * report.json shows 58.75% for the isolated NM body, and no jal/reloc/symname
  * caller has appeared. This is not a small unstarted function; it is the known
- * cross-tail-share standalone cap. */
+ * cross-tail-share standalone cap.
+ * 2026-06-10 conversion-shape sweep (NEGATIVE, 6 shapes x O2/O1/O0):
+ * the target keeps `mtc1 zero,$f2; cvt.s.w $f0,$f2` (unfolded int->
+ * float of a known-zero), but every C zero-source (literal, local,
+ * dead-arg overwrite, x-x, volatile, barrier'd) either folds to a
+ * direct `mtc1 zero,$f0` (-O2) or grows a frame (-O1/-O0). The $f2
+ * intermediate (a float TEMP, not the return reg) is further context
+ * evidence: the cvt's operand web belonged to a larger expression in
+ * the original parent. Verdict unchanged; do not re-sweep. */
 #ifdef NON_MATCHING
 float game_uso_func_00007ABC(void) { return 0.0f; }
 #else
