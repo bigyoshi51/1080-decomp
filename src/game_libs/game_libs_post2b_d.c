@@ -358,7 +358,164 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073904);
 
 void game_libs_func_00073E6C(void) {}
 
+/* gl_func_00073E74 = the printf float-converter _Ldtob (Plauger libc),
+ * sibling of _Genld (73904, see its wrap): IEEE-754 double decompose
+ * (exponent (u16&0x7FF0)>>4; 0x7FF => "Inf"/"NaN" strings at data
+ * 0x2588/0x258C via the strcpy-helper 73694; mantissa renormalized to
+ * 0x3FF0), base-10 exponent estimate via *0x7597/100000 (= log10(2)),
+ * scaling by the powers-of-10 table at data 0x2540 in /8-digit chunks,
+ * digit generation through a divmod helper (m2c labels it 73694 but
+ * that is a placeholder-jal collision -- the real callee differs; the
+ * wrap approximates with explicit / and %), leading-zero strip, round-at-'5' with
+ * '9'-carry propagation, then the final call to game_libs_func_0007488C
+ * -- which is almost certainly the S-REG MARSHALLING THUNK into _Genld
+ * (73904 takes its args in $s0-$s4; 7488C is 0x14 = 5 insns, exactly a
+ * load-regs-and-jump shim). NORMAL (a0,a1) args -- decompilable, unlike
+ * _Genld. Pass 1 (2026-06-10): m2c-derived reference body below; the
+ * three bc1f/bc1tl float-compare regions and the negative-index byte
+ * scans are hand-patched approximations -- NOT yet shape-tuned. The
+ * f64 pow-table chunking loops are faithful. Multi-pass target. */
+#ifdef NON_MATCHING
+typedef struct Ldt74 {
+    short f_0;          /* 0x00 top u16 of the double (exp+mantissa hi) */
+    short f_2;
+    short f_4;
+    short f_6;
+    char *f_8;          /* 0x08 out buffer */
+    char _padC[8];
+    int f_14;           /* 0x14 n0 */
+    char _pad18[12];
+    int f_24;           /* 0x24 precision */
+} Ldt74;
+extern double D_73E74_pow10[];   /* data 0x2540: 1e8^(2^k) chunk table */
+extern int game_libs_func_0007488C();
+
+void gl_func_00073E74(Ldt74 *px, unsigned char code) {
+    char buf[0x60];
+    char *s;
+    double ld;
+    short xexp;
+    int nsig;
+    int n;
+    int i;
+    int v;
+
+    if (px->f_24 < 0) {
+        px->f_24 = 6;
+    } else if (px->f_24 == 0 && (code == 'g' || code == 'G')) {
+        px->f_24 = 1;
+    }
+    v = ((unsigned short)px->f_0 & 0x7FF0) >> 4;
+    if (v == 0x7FF) {
+        xexp = 0;
+        if ((px->f_0 & 0xF) || px->f_2 || px->f_4 || px->f_6) {
+            n = 2;     /* NaN */
+        } else {
+            n = 1;     /* Inf */
+        }
+    } else if (v > 0) {
+        px->f_0 = (px->f_0 & 0x800F) | 0x3FF0;
+        xexp = v - 0x3FE;
+        n = -1;
+    } else if (v < 0) {
+        n = 2;
+    } else {
+        n = 0;
+        xexp = 0;
+    }
+    if (n > 0) {
+        px->f_14 = 3;
+        game_libs_func_00073694(px->f_8, n == 2 ? 0x2588 : 0x258C, 3);
+        return;
+    }
+    if (n == 0) {
+        xexp = 0;
+    } else {
+        ld = *(double *)&px->f_0;
+        if (ld < 0.0) {
+            ld = -ld;
+        }
+        xexp = (short)((xexp * 0x7597) / 100000) - 4;
+        if (xexp < 0) {
+            short e = (short)((3 - xexp) & ~3);
+            xexp = -e;
+            for (i = 0; e > 0; i++, e >>= 1) {
+                if (e & 1) {
+                    ld *= D_73E74_pow10[i];
+                }
+            }
+        } else if (xexp > 0) {
+            double factor = 1.0;
+            short e = xexp & 0xFFFC;
+            xexp = e;
+            for (i = 0; e > 0; i++, e >>= 1) {
+                if (e & 1) {
+                    factor *= D_73E74_pow10[i];
+                }
+            }
+            ld /= factor;
+        }
+        nsig = (code == 'f' ? xexp + 10 : 6) + px->f_24;
+        if (nsig >= 0x14) {
+            nsig = 0x13;
+        }
+        buf[0] = '0';
+        s = buf + 1;
+        if (nsig > 0) {
+            /* 8-digit chunks: take (int)ld, emit digits backward */
+            int rem = nsig;
+            while (rem > 0 && ld != 0.0) {
+                int chunk;
+                char *w;
+                v = (int)ld;
+                ld = (ld - v) * 100000000.0;
+                w = s + 8;
+                for (chunk = 8; chunk > 0 && v > 0; chunk--) {
+                    int q;
+                    game_libs_func_00073694((char *)&q, (char *)v, 10);
+                    q = v % 10; v = v / 10;
+                    *--w = (char)('0' + q);
+                }
+                while (chunk-- > 0) {
+                    *--w = '0';
+                }
+                s += 8;
+                rem -= 8;
+            }
+        }
+        /* strip leading zeros */
+        n = (int)(s - buf) - 1;
+        xexp += 7;
+        s = buf + 1;
+        while (*s == '0') {
+            s++;
+            n--;
+            xexp--;
+        }
+        /* rounding at nsig digits */
+        nsig = (code == 'f' ? xexp + 1 : (code == 'e' || code == 'E')) + px->f_24;
+        if (n < nsig) {
+            nsig = n;
+        }
+        if (nsig > 0) {
+            char fill = (nsig < n && s[nsig] >= '5') ? '9' : '0';
+            i = nsig - 1;
+            while (i >= 0 && s[i] == fill) {
+                i--;
+            }
+            if (fill == '9') {
+                s[i] += 1;
+            }
+            if (i < 0) {
+                xexp += 1;
+            }
+        }
+    }
+    game_libs_func_0007488C();
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00073E74_pad.s")
 
 #ifdef NON_MATCHING
