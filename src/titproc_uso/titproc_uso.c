@@ -687,6 +687,11 @@ void titproc_uso_func_0000116C(char *s0) {
         *(int *)(s0 + 0x68) = 40;
         gl_func_00000000(13);
     } else if (state == 1) {
+        /* 2026-06-10 pass 5 FULL REWRITE from the 27-insn missing block:
+         * the prior arms were misplaced (they sit AFTER a gate chain,
+         * gated on an SI-status bit, not p->0x34) and a convergent
+         * "fire" block (D->0x34=1 + gl(s0,gl(),0)) serves both the
+         * t==0 path and the p-chain-nonzero path. */
         v = *(int *)(s0 + 0x68);
         if (v != 0) {
             v = v - 1;
@@ -699,25 +704,36 @@ void titproc_uso_func_0000116C(char *s0) {
         }
         t = *(int *)(s0 + 0x3C) - 1;
         *(int *)(s0 + 0x3C) = t;
-        if (t == 0) {
-            /* 2026-06-10 state-1 tail decoded (was the d->0x34=1 misread):
-             * two vt-call arms selecting the next state. */
-            char *p = *(char **)(*(char **)(s0 + 0x50) + 0x44);
-            if (*(int *)(p + 0x34) != 0) {
-                v1 = *(char **)(s0 + 0x60);
-                vt = *(char **)(v1 + 0x28);
-                ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
-                *(int *)(s0 + 0x40) = 2;
-                gl_func_00000000(144);
-            } else {
-                v1 = *(char **)(s0 + 0x5C);
-                vt = *(char **)(v1 + 0x28);
-                ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
-                n = *(int *)(s0 + 0x74);
-                *(int *)(s0 + 0x40) = 3;
-                *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
-                gl_func_00000000(144);
-            }
+        if (t == 0) goto fire;
+        if (*(int *)(*(char **)(*(char **)(s0 + 0x50) + 0x44) + 0x34) != 0) {
+fire:
+            *(int *)(d + 0x34) = 1;
+            v = gl_func_00000000();
+            gl_func_00000000(s0, v, 0);
+            return;
+        }
+        if (*(int *)(s0 + 0x68) != 0) {
+            return;
+        }
+        if (gl_func_00000000(d, 0x40300) == 0) {
+            return;
+        }
+        gl_func_00000000(*(int *)(s0 + 0x58));
+        gl_func_00000000(*(int *)(s0 + 0x54));
+        if (*(unsigned short *)(*(char **)(d + 0x154) + 4) & 8) {
+            v1 = *(char **)(s0 + 0x60);
+            vt = *(char **)(v1 + 0x28);
+            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+            *(int *)(s0 + 0x40) = 2;
+            gl_func_00000000(144);
+        } else {
+            v1 = *(char **)(s0 + 0x5C);
+            vt = *(char **)(v1 + 0x28);
+            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+            n = *(int *)(s0 + 0x74);
+            *(int *)(s0 + 0x40) = 3;
+            *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+            gl_func_00000000(144);
         }
     } else if (state == 2) {
         gl_func_00000000(*(int *)(s0 + 0x60));
