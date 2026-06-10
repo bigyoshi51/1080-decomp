@@ -22522,14 +22522,19 @@ short game_libs_func_00052A64(char *a0, int a1) {
     return *(short *)(*(int *)(*(int *)(a0 + 0x84) + a1 * 4) + 0x30);
 }
 
+/* game_libs_func_00052A7C: symmetric flag pair on *(int*)(a0+0x38) --
+ * bit 29 set/cleared by a1, bit 17 set/cleared by a2. BYTE-EXACT C
+ * FOUND 2026-06-10 (27/27, 0 diffs): the old "beqzl reorg cap" was a
+ * BOUNDARY artifact -- splat split the second if's ELSE arm into a
+ * separate symbol (52ACC, which read v0 uninitialized), and the beqzl
+ * "past the end" was just the else-branch. Merged (0x50+0x1C -> 0x6C);
+ * the role-#6 barrier materializes the p base. LAND BLOCKED mid-file;
+ * relayout session (9 ready bodies). */
 #ifdef NON_MATCHING
-/* Flag set/clear on *(int*)(a0+0x38): bit 29 (0x20000000) set if a1 else
- * cleared; bit 17 (0x20000) set if a2. Faithful decode but 21/20 cap: the
- * `if(a2)` block needs beqzl (branch-likely with the field reload folded into
- * the delay slot) which IDO won't emit from this shape — my beqz+nop is 1 insn
- * over (verified in-tree, not just standalone). Reorg heuristic, not forceable. */
 void game_libs_func_00052A7C(int *a0, int a1, int a2) {
-    int *p = (int *)((char *)a0 + 0x34);
+    int *p;
+    p = (int *)((char *)a0 + 0x34);
+    if (1) {}
     if (a1) {
         p[1] |= 0x20000000;
     } else {
@@ -22537,6 +22542,8 @@ void game_libs_func_00052A7C(int *a0, int a1, int a2) {
     }
     if (a2) {
         p[1] |= 0x20000;
+    } else {
+        p[1] &= ~0x20000;
     }
 }
 #else
@@ -22548,7 +22555,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A7C);
  * jr-delay (store before jr ra, nop in slot); -O2 C emits t6/t7 + store-in-delay
  * (verified 2026-05-24). Needs an opt-flag file split, not a tick fix.
  * See project_1080_g3_unfilled_delay_split_2026-05-23. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052ACC);
+/* game_libs_func_00052ACC MERGED into 52A7C 2026-06-10 (was the second if's else arm). */
 
 #ifdef NON_MATCHING
 /* gl_func_00052AE8: lazy-alloc + memset + per-zero-byte callback
