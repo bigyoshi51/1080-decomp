@@ -734,9 +734,10 @@ void gui_func_0000161C(int *a0, int a1, int a2) {
 
 /* 0x1670 is a single alignment nop between gui_func_0000161C and the real
  * function at 0x1674 — splat mis-placed the gui_uso_func_00001670 symbol on the
- * pad (and over-split the loop tail into 0000168C). Declared as a local pad; the
- * true function is gui_uso_func_00001674 below. */
-#pragma GLOBAL_ASM("asm/nonmatchings/gui_uso/gui_uso/gui_func_0000161C_pad.s")
+ * pad (and over-split the loop tail into 0000168C). The nop is emitted via
+ * all-zero SUFFIX_BYTES_FORCE on gui_func_0000161C in the Makefile — a 1-word
+ * GLOBAL_ASM pad block emits 2 words (+4 segment length drift, the documented
+ * trap). The true function is gui_uso_func_00001674 below. */
 
 /* gui_uso_func_00001674: highest-set-bit / mask-down scan. Returns the largest
  * power-of-two <= a0 (walking 0x8000 down), or 1 if a0 < 1. Merged from the

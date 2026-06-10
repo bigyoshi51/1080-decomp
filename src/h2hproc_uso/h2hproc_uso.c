@@ -147,7 +147,9 @@ void h2hproc_uso_func_00000274(int *a0) {
     gl_func_00000000((int*)a0[2]);
     a0[2] = 0;
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00000274_pad.s")
+/* Trailing alignment nop at 0x2A0 emitted via all-zero SUFFIX_BYTES_FORCE on
+ * h2hproc_uso_func_00000274 (Makefile) — a 1-word GLOBAL_ASM pad block emits
+ * 2 words (+4 segment length drift, the documented trap). */
 
 extern char *D_h2h_2A4_a;       /* call 1 base, *(D+4) */
 extern char *D_h2h_2A4_b;       /* call 2 a0 + store +0x40 */
@@ -1622,4 +1624,5 @@ void h2hproc_uso_func_00001AFC(char *a0) {
     h2hproc_uso_func_h2h_4DC(&tmp);
     h2hproc_uso_func_h2h_5AC(a0 + 0x10);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00001AFC_pad.s")
+/* Trailing alignment nop at 0x1B2C emitted via all-zero SUFFIX_BYTES_FORCE on
+ * h2hproc_uso_func_00001AFC (Makefile) — same 1-word-pad-block trap as 0x2A0. */
