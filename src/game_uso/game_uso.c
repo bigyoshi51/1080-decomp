@@ -8109,452 +8109,436 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
 #endif
 
 #ifdef NON_MATCHING
-/* game_uso_func_00008CD8: 0xB14 (709 insns), 0x210-byte stack frame.
- * Strategy-memo spine: 2.8 KB, 16 cross-USO calls, "subsystem" (1080 snow
- * physics — XZ-projection / ground-plane mapping).
- *
- * Per feedback_partial_decode_with_stub_body.md: NM-wrap with placeholder
- * stub so the decode comment is a tracked NM wrap rather than a floating
- * block-comment. Default build still uses INCLUDE_ASM.
- *
- * ENTRY DECODE (insns 1-26 @ 0x8CD8-0x8D3C):
- *   void f(a0, a1, a2, a3, arg4)  // 5-arg (arg4 from caller's shadow +0x220)
- *   // Shadow-save a0/a1/a2/a3 to sp+0x210..0x21C (frame size 0x210).
- *   if (arg4 == 0) goto far_exit (@ 0x919C, ~0x40C bytes forward)
- *   Vec3 local_1F8 = {...};   // sp+0x1F8 stack Vec3 buffer
- *   gl_func_00000000(&local_1F8, a1, 12);  // 1st cross-call, Vec3 reader-like
- *   retval = saved to sp+0x214
- *   if (retval == 0) goto skip_to_0x8D70 (+9 insns)
- *   // Copy 3 floats from (arg3+0x30, +0x34=0.0f, +0x38) into retval+0/4/8
- *   //   i.e. retval->x = arg3->[0x30]; retval->y = 0.0f; retval->z = arg3->[0x38]
- *
- * REMAINING ~683 insns: 16 cross-USO calls, alternating float math with
- * the XZ-projected position. Multi-tick decomp expected.
- *
- * 2026-05-03 RE-MEASURE: 3.5% NM (up from prior baseline ~2.5%, parallel
- * agent commits drifted upward per feedback_nm_wrap_doc_pct_drifts.md).
- *
- * EXTENDED DECODE @ 0x8D90-0x8DD8 (insns 27-50, decoded but NOT added to C
- * per feedback_partial_alloc_block_add_irreversible.md):
- *   // After the 1st cross-call's Vec3 fill block:
- *   // SECOND Vec3 stage: copy a3->0x30..0x38 region into THREE local buffers
- *   //   (sp+0x174, sp+0x204, and the saved retval block — all at +0/+4/+8)
- *   //   This matches the 1080 per-frame Vec3-stage template documented in
- *   //   feedback_game_uso_per_frame_vec3_stage_template.md, but here it
- *   //   triple-copies (3 destinations from 1 source) using interleaved
- *   //   lw+sw chains for IDO load-batching.
- *   //
- *   // THIRD cross-call: gl_func_X(retval2, sp+0x174) at 0x8DD4
- *   //   retval2 spilled to sp+0x214 (overwriting prior retval slot)
- *
- *   // Then check at 0x8DE0: a3+0x30 != 0xB4? branch on relative offset
- *   //   (lw a3,0x30(a1); bnez +0xA, addiu v1,v1,+0xB4 in delay)
- *   //   This is "if (a1->0x30 == 0) skip alternate path"
- *
- * The Vec3-triple-copy pattern strongly confirms 0x8CD8 is per-frame
- * physics setup that broadcasts a Vec3 to multiple downstream consumers
- * (XZ-projected ground position passed to 3+ submodules).
- *
- * 2026-05-03 EXTENDED DECODE @ 0x8DE0-0x8E2C (insns 50-72): SECOND
- * Vec3-XZ-projection block. Same XZ-strip pattern as the first block
- * but at offset a1->0x30+0xB4 (sub-struct field, Vec3 stride 0xB4):
- *   /* compute (a1->0x30 + 0xB4) — sub-struct's per-frame Vec3 *\/
- *   v1 = a1->0x30 + 0xB4
- *   gl_func_X(v1, sp+0x174, 12)             ; second cross-call (Vec3 reader)
- *   v0 = result
- *   if (v0 != 0) {
- *       v0->x = (a1->0x30+0xB4)->x          ; copy X
- *       v0->z = (a1->0x30+0xB4)->z          ; copy Z
- *       v0->y = 0.0f                        ; zero Y (XZ-projection)
- *   }
- * The XZ-projection (Y=0.0f) confirms ground-plane mapping interpretation
- * — the snowboard's "world-grounded" position is computed from the
- * sub-struct's transform Vec3 with Y stripped.
- *
- * Pattern repeats THREE times across the function: first at 0x8D90-D8DD
- * (input Vec3 stage), second at 0x8DE0-0x8E2C (sub-struct Vec3, this
- * block), third at 0x8E60+ (likely a third source). All write to
- * different stack slots (sp+0x174, sp+0x14C, sp+0x1E0...) for downstream
- * consumers. NM remains 3.5% (doc-only).
- *
- * 2026-05-04 EXTENDED DECODE @ 0x8E30-0x8F98 (insns 73-152, ~80 more):
- * THREE more functional blocks confirming the per-frame Vec3-broadcast
- * interpretation:
- *
- *   (A) 0x8E30-0x8E58: THIRD cross-USO call with local_14C/local_174 as
- *       both src and dst buffers. Same `gl_func(retval, &local_174,
- *       &local_14C, 12)` Vec3-reader shape. The `bnez a3, +9` insn at
- *       0x8E34 is IDO's defensive `if (buf != 0)` codegen for the
- *       stack-local pointer (always non-NULL) — the IF-body (0x8E3C-58
- *       cross-call) is therefore dead in practice, but emitted because
- *       IDO -O2 doesn't constant-fold sp-relative addresses to non-zero.
- *
- *   (B) 0x8E5C-0x8E88: Vec3 XZ-DIFFERENCE compute (NOT a copy):
- *         v0 = sp[0x218]                         // saved arg pointer
- *         v1 = retval                            // result buffer
- *         f12 = sp[0x1E0] - v0->[0x30]           // X delta
- *         f0  = sp[0x1E8] - v0->[0x38]           // Z delta
- *         v1->[0x0] = X-delta                    // store to result.x
- *         v1->[0x4] = 0.0                        // Y zeroed
- *         v1->[0x8] = Z-delta                    // store to result.z
- *       This is "computed XZ vector from current to v0->offset30" —
- *       likely the snowboard's velocity-direction-from-ground-target.
- *
- *   (C) 0x8E8C-0x8EC4: TRIPLE-DEST Vec3 copy. Reads 12 bytes from a3
- *       (= &local_14C) and stores SIMULTANEOUSLY to a2 (= &local_174)
- *       AND t5 (= &local_1EC). 8-insn interleaved lw/sw chain (IDO
- *       load-batched). Same broadcast pattern as the prior block but
- *       fanout +1 (3 destinations vs 2).
- *
- *   (D) 0x8EC8-0x8EE4: FPU magnitude check via `bc1f`:
- *         f8 = sp[0x1EC] * sp[0x1B0]
- *         f6 = sp[0x1B8] * sp[0x1F4]
- *         c.le.s f8, f6                          // f8 <= f6 ?
- *         bc1f +0xB (=0x8EE8)                    // skip ELSE-arm
- *         add.s $f16, f6 (delay)                 // f16 = f6 (when taken)
- *       This is "if (proj_a > proj_b) use f6 else use sum" — distance
- *       comparison probably picking nearest collision target.
- *
- *   (E) 0x8EE8-0x8F2C: FOURTH cross-USO call. Same Vec3-reader shape
- *       (a0=12, a2=&sp+0x174, then deref retval and write XZ-projection):
- *         retval->[0x0] = sp[0x218]+0x30  ->[0x0]
- *         retval->[0x4] = 0.0
- *         retval->[0x8] = sp[0x218]+0x30  ->[0x8]
- *       Stores spilled f16 (the if-result from block D) to sp[0x1AC]
- *       around the call.
- *
- *   (F) 0x8F30-0x8F4C: SECOND triple-dest Vec3 copy: v1 (= &local_1D4)
- *       fanout to v2 (= &local_11C). Same 8-insn pattern as block C
- *       but with a 0x40000000 lui (constant 2.0f load) interleaved —
- *       likely 0x8F50+ multiplies by 2.0.
- *
- *   (G) 0x8F50-0x8F98: a1->[0x90..0x98] WRITE-BACK Vec3 commit:
- *         a1->[0x90] = sp[0x174]                 // X from main XZ buffer
- *         a1->[0x94] = sp[0x178]                 // Y
- *         a1->[0x98] = sp[0x17C]                 // Z
- *         (sp+0x108)->[0..8] = a1->[0x90..0x98]  // cache to local stack
- *         a1->[0x84] = sp[0x11C]                 // additional float at 0x84
- *       This is the FIRST WRITE-BACK to the a1 (subsystem) struct —
- *       confirms a1->[0x90..0x98] is the per-frame "world-grounded
- *       position" Vec3 field. The cache-back to sp+0x108 retains the
- *       pre-write value for further-downstream comparisons.
- *
- * INTERPRETATION (now stronger): 0x8CD8 is the "compute and broadcast
- * world-grounded XZ-projected position" per-frame routine for a
- * snowboard physics object. It computes the XZ position from the
- * sub-struct's transform Vec3 (a1->0x30), runs distance-checks via
- * cross-USO Vec3 readers, picks nearest, then commits the result to
- * a1->[0x90..0x98] AND replicates to multiple downstream stack buffers
- * (sp+0x174 main, sp+0x14C, sp+0x1EC, sp+0x1D4, sp+0x11C, sp+0x108).
- *
- * Decoded so far: insns 1-152 of 709 (~21%). Remaining ~557 insns
- * (16 more cross-calls expected) likely repeat the (cross-call, Vec3-
- * compute, write-back) micro-pattern for additional sub-systems
- * (collision, terrain follow, AI state). Multi-tick continuation.
- *
- * 2026-05-04 EXTENDED DECODE @ 0x8F98-0x9088 (insns 153-217, ~64 more):
- * SECOND iteration of the per-frame Vec3 broadcast cycle, this time
- * with FPU cvt.d.s / cvt.s.d casts intermixed (single→double→single
- * conversion pattern, characteristic of MIPS double-precision math
- * needed for sub-pixel position accumulation):
- *
- *   (H) 0x8F98-0x8FAC: a1->[0x84..0x8C] write-back No.1.
- *         a1->[0x84] = $f10 (carryover from prior block)
- *         a1->[0x88] = sp[0x120]
- *         a1->[0x8C] = sp[0x124]
- *       Continues "snowboard physics writes its current XZ output to
- *       the subsystem struct" theme. Reads sp[0x120/0x124] (newly-
- *       computed deltas?) and stores to a1->[0x88/0x8C].
- *
- *   (I) 0x8FB0-0x8FE8: FPU DOUBLE-PROMOTION block. Loads f6 from
- *       (t2+0x348) — t2 is `sp[0x218]` (the saved arg3 base):
- *         f6 = arg3->[0x348]                        // single
- *         f4 = double(f6)
- *         f8 = double(f4)                           // chained?
- *         f0 = double($f16) and f14 = double(f0)    // f16 from blk D
- *         f12 = single(f0)                          // re-collapse
- *         sp[0x108..0x110] = f14, f2, f12           // store DOUBLE-
- *                                                      precision triple
- *       This double-promote-then-collapse is IDO's idiom for "compute
- *       expression in double precision then cast back to float"
- *       (typical for fused-multiply-add or magnitude-square forms
- *       where intermediate precision matters).
- *
- *   (J) 0x8FEC-0x901C: POINTER-CHAIN COPY. t3 = a1->0x30 (sub-struct
- *       transform Vec3); copy 12 bytes from *t3 to a2 (= sp+0x174)
- *       AND to t4 (= sp+0x1BC). Same triple-dest pattern as block C
- *       but with one dest being an indirect pointer (t3->[0..8]):
- *         t4 = sp + 0x1BC
- *         *t4 = a2[0..8] = *t3                       // 12-byte copy
- *
- *   (K) 0x9020-0x9054: a1->[0x84..0x8C] write-back No.2 (overwrites
- *       block H's writes — meaning blocks I/J computed REVISED values):
- *         a1->[0x84] = sp[0x1C8] * a1->[0x84]_prev   // mul.s
- *         a1->[0x88] = sp[0x1CC] * a1->[0x8C]_prev   // mul.s
- *         a1->[0x8C] = sp[0x1D0] * a1->[0xDC]        // mul.s
- *       Three FPU multiplies that scale the previously-stored Vec3 by
- *       sp[0x1C8..0x1D0] — a per-frame scaling factor (likely
- *       delta-time or velocity coefficient).
- *
- *   (L) 0x9058-0x9088: SECOND double-promotion FPU sub-block. Loads
- *       f6 from (t9+0x348) — t9 is some pointer derived from a1+0x30
- *       likely. Same double-up/collapse-down pattern as (I) but with a
- *       different operand source. Writes results to sp[0x0FC..0x110]
- *       (different stack slots — these are the "double-precision
- *       intermediate" cache for the next FPU pass).
- *
- * Decoded so far: insns 1-217 of 709 (~31%). Confirms the function is
- * a per-frame XZ-position broadcast + double-precision sub-pixel-
- * accumulator with TWO scaling stages (raw → multiplied → final).
- *
- * Remaining ~492 insns expected to continue: third FPU stage, more
- * cross-USO calls (~14 of the 16 total still ahead), and the closing
- * write-back to multiple a1->[N] fields (the snowboard's final
- * per-frame state). NM-doc only (3.5%).
- *
- * Struct fields identified for the snowboard physics struct (a1):
- *   a1->[0x30]   — sub-struct transform Vec3 base ptr
- *   a1->[0x84]   — per-frame scalar (multiplied each iter, possibly speed)
- *   a1->[0x88..0x8C] — per-frame Vec3 component cache (revised twice)
- *   a1->[0x90..0x98] — world-grounded XZ-projected position (FINAL output)
- *   a1->[0xDC]   — multiplier source for a1->[0x8C] update
- *
- * And for arg3:
- *   arg3->[0x30..0x38] — primary Vec3 (XZ-projection source)
- *   arg3->[0x348] — single-precision float promoted to double (sub-pixel
- *                   accumulator base)
- *
- * EXTENDED 2026-05-14 (insns 217-410 @ 0x908C-0x93A8, ~193 insns):
- *
- *   (M) 0x908C-0x90F8: a1->[0x90..0x9C] WRITE-BACK No.2 with FPU mul.s
- *       chain. Reads sp[0x1BC..0x1C4] (revised Vec3 from prior block),
- *       multiplies by sp[0x100..0x108] doubles (the precision-promoted
- *       intermediate), stores to a1->[0x90..0x9C]. Closes with `b +0x191`
- *       (long forward jump to ~0x9700) — the EARLY-EXIT path when FPU
- *       distance check passed.
- *
- *   (N) 0x90FC-0x9120: FIFTH cross-USO Vec3-reader. dst=sp+0xE4, src=
- *       a3->[0x30..0x38] zero-Y XZ-projected. Same shape as blocks A/B/C.
- *
- *   (O) 0x9124-0x913C: FPU dispatch — store sp+0xA8 zero-Vec3 (mtc1 zero
- *       to f6, store to sp+0xA8/0xAC/0xB0). Stage for next call.
- *
- *   (P) 0x9140-0x9164: SIXTH cross-USO call: gl_func(sp+0xA8, ?, 12).
- *       Same Vec3-reader shape; dst sp+0xA8 (the zero-Vec3 we just staged).
- *       Then bnez retval check + writeback to retval Vec3.
- *
- *   (Q) 0x9168-0x91A4: FPU XZ-DELTA compute (block-B-pattern reprise):
- *         f10 = sp[0xE4] - arg3->[0x30]            ; X delta
- *         f6  = sp[0xEC] - arg3->[0x38]            ; Z delta
- *         retval->[0x0] = f10; retval->[0x4] = 0; retval->[0x8] = f6
- *         + sp[0x1A0] update (cache delta-magnitude squared)
- *
- *   (R) 0x91A8-0x91D0: TRIPLE-DEST Vec3 copy (block-C reprise) —
- *       sp+0x174 and sp+0xCC both fanout from arg3->[0x30..0x38].
- *
- *   (S) 0x91D4-0x91FC: SEVENTH cross-USO call. Vec3-reader sp+0x9C dst,
- *       sp+0xA8 src. Saves retval at sp+0x214 (the recurring callee-rv slot).
- *
- *   (T) 0x9200-0x923C: ANOTHER FPU XZ-DELTA + magnitude-square check:
- *         f8 = sp[0xCC] * sp[0xCC]
- *         f10 = (sp[0xCC] + sp[0xD4]) * 0.5f       ; midpoint
- *         retval->[0x0] = midpoint; retval->[0x8] = (computed Z); etc.
- *
- *   (U) 0x9240-0x9274: ANOTHER triple-dest Vec3 copy — sp+0xD8, sp+0xC0
- *       both fanout from same source. Different stack slots, same shape.
- *
- *   (V) 0x9278-0x9298: EIGHTH cross-USO call. Vec3-reader, dst=arg-derived
- *       (sp+0x1A0 stored as alt scratch).
- *
- *   (W) 0x929C-0x92E4: NINTH cross-USO call (`gl_func(sp+0xC0, sp+0x174, 12)`)
- *       with retval check — same shape as block S.
- *
- *   (X) 0x92E8-0x9314: 0.5f midpoint compute (block-T reprise) for the new
- *       Vec3 pair sp+0xD8/sp+0xE0 → sp+0x90 dst.
- *
- *   (Y) 0x9318-0x9358: TWO triple-dest Vec3 broadcast iterations
- *       (sp+0xCC+0xD4 fanout to sp+0xB4 and sp+0xA8 — yet another
- *       per-frame stage replication).
- *
- *   (Z) 0x935C-0x9398: FINAL FPU magnitude-square via cvt.d.s + c.lt.d
- *       chain. Compares sp[0xC0] vs sp[0xC8] doubles, and sp[0xB4] vs
- *       sp[0xBC] doubles. bc1f-skip on result. This is the MAIN
- *       distance-compare gate (snowboard collision/proximity detection).
- *       `beql v0, $0, +0xE9` long-skip (~232 insns forward) marks the
- *       "no-collision-found" early exit.
- *
- *   (AA) 0x939C-0x93A8: TENTH cross-USO call setup — load a3->[0x84..0x88]
- *       (caller's nested Vec3-2), prepare for "collision-detected" path
- *       processing.
- *
- * Cumulative ~410/709 insns characterized (~58%). Pattern stable: the
- * function performs ~3 iterations of the (cross-USO Vec3-reader, FPU
- * XZ-delta/midpoint, triple-dest broadcast, magnitude-square check)
- * cycle, with a master distance-compare gate at 0x935C deciding whether
- * to enter the "collision-found" subroutine vs the "no-collision" early
- * exit at +0xE9 forward.
- *
- * NEXT PASS: continue from 0x93AC (collision-found subroutine, ~232
- * insns until far-merge + ~70 insns of epilogue/cleanup).
- *
- * EXTENDED 2026-05-14 (insns 410-610 @ 0x93AC-0x96C4, ~200 insns):
- *
- * COLLISION-FOUND SUBROUTINE @ 0x93AC-0x9408:
- *   /\* "use a3->[0x84..0x8C]" path: copy a3 collision-Vec3 to retval *\/
- *   retval->[0x4..0x8] = a3->[0x88..0x8C];
- *   retval->[0x90..0x98] = sp[0x174..0x17C];   ; commit to subsystem
- *   /\* 11th cross-USO call: gl_func(retval, sp+0x54, ...) *\/
- *   gl_func_0(retval, sp+0x54, ...);
- *
- * MIDPOINT VEC3 @ 0x940C-0x9430:
- *   sp+0x60..0x68 = midpoint(sp+0xCC, sp+0xD4);   ; XZ-midpoint average
- *   sp+0x60..0x68 + zero-Y           ; XZ-projected midpoint
- *
- * SHADOW BROADCAST @ 0x9434-0x9468 (~14 insns):
- *   /\* triple-dest copy from src to sp+0x60 dst + retval->[0..0x8] +
- *    *  sp+0x84 dst (3 destinations) *\/
- *
- * 12th CROSS-USO @ 0x946C-0x94A8: Vec3-reader, dst=sp+0x84, src=sp+0x174
- *   followed by retval-XZ-projection write-back (zero-Y),
- *   13th call setup
- *
- * 13th CROSS-USO @ 0x94AC-0x94EC: Vec3-reader, dst=sp+0x48, src=sp+0x174
- *   then a1->[0x84..0x8C] = sp[0x174..0x17C] write-back
- *
- * MIDPOINT-2 + 14th CROSS-USO @ 0x94F0-0x9558:
- *   /\* second midpoint compute: sp+0x90 = midpoint(arg3->[0x30], arg3->[0x38]) *\/
- *   /\* triple-dest copy of midpoint to sp+0x6C/sp+0x3C/sp+0x11C (3 dsts) *\/
- *   gl_func_0(sp+0x84, ...);                  ; 14th cross-USO
- *
- * MAIN COLLISION-COMPUTE BLOCK @ 0x955C-0x95C8 (~30 insns):
- *   /\* 250.0f speed-clamp gate (lui $at, 0x437A — 250.0f constant)
- *    *  + double-precision FPU compute on collision Vec3 + arg3->[0x348]
- *    *  (the sub-pixel accumulator base): *\/
- *   f4 = sp[0xCC]; f8 = sp[0x6C]; f6 = sp[0xD4]; f10 = sp[0x74];
- *   f4 = f4 * f8;
- *   f12 = sp[0xCC]; f16 = sp[0xD4];   ; reload (different reg pool)
- *   f4 = f12 * f16;                     ; squared X-distance
- *   f4 = (DOUBLE)f4 + (sub-pixel base from arg3+0x348);
- *   f0 = ABS(...);                      ; signed magnitude → unsigned
- *   ; result spilled to sp[0x3C]/[0x40]/[0x44]
- *
- * 4-WAY VEC3 BROADCAST @ 0x95CC-0x9608 (~16 insns):
- *   /\* same triple-dest pattern as before but 4 dsts now:
- *    *   sp+0x3C, sp+0x40, sp+0x44 (the just-computed magnitude)
- *    *   AND a separate Vec3 src to t8/t9 chain → 3 more sp slots *\/
- *
- * FINAL FPU MUL CHAIN @ 0x960C-0x9670 (~25 insns):
- *   /\* mul.s f10 = f6 * f4 ; etc — 4-instruction FPU chain that produces
- *    *  the final Vec3 components written to a1->[0x84..0x8C] (revised
- *    *  again — third write-back to the subsystem struct) *\/
- *   a1->[0x84..0x8C] = (revised computation);
- *   sp[0x60..0x68] = (intermediate cache);
- *
- * STATE-COUNTER + RODATA JUMP-TABLE @ 0x9674-0x96A4 (~13 insns):
- *   /\* increment a0->[0x9C] state counter, mask to 2 bits, switch on it *\/
- *   counter = a0->[0x9C];
- *   counter = (counter + 1) & 0x3;
- *   a0->[0x9C] = counter & 0x3;
- *   if (counter >= 4) goto skip_dispatch;     ; bound check
- *   t9 = jump_table[counter];                  ; rodata table lookup
- *   jr $t9;                                    ; ANOTHER rodata jr-jt!
- *   nop (delay)
- *   /\* Same rodata-jump-table caveat as 0x000DB8 in B3C — needs if-else
- *    *  chain rewrite for C-only emit (per
- *    *  feedback_ido_switch_rodata_jumptable.md) *\/
- *
- * POST-DISPATCH @ 0x96A8-0x96C4 (~8 insns):
- *   /\* Default arm: load sp+0x60 + sp+0x64 floats, FPU mul.s,
- *    *  more 4-arm broadcast prep *\/
- *
- * Cumulative ~610/709 insns characterized (~86%). NEXT PASS: continue
- * from 0x96C8 — remaining ~99 insns: jump-table arms (likely 4 cases) +
- * final accumulator commit + epilogue.
- *
- * FINAL DECODE 2026-05-14 (insns 610-709 @ 0x96C8-0x97E4, ~99 insns):
- *
- * RODATA JUMP-TABLE ARMS @ 0x96C8-0x9708 (~16 insns, 3 cases):
- *   case 0 (state-counter == 0): store sp[0x60-0x68] + add.s f4 = f4 + f6;
- *                                 b +0xC to converge at 0x970C
- *   case 1 (state-counter == 1): load -1.0f (lui at, 0xBF80), FPU sub
- *                                 sp[0x60] -= sp[0x64]; sp[0x64] -= 1.0f;
- *   case 2 (state-counter == 2): simple FPU add (mul.s f6, f6, f8)
- *   case 3 (state-counter == 3): default-arm fall-through
- *
- * a1->[0x84..0x8C] WRITE-BACK No.4 @ 0x970C-0x9738:
- *   a1->[0x84] += sp[0x60]; a1->[0x88] += sp[0x64]; a1->[0x8C] += sp[0x68];
- *   ; (4th sub-pixel fold — accumulates state-counter result into output Vec3)
- *
- * 15th CROSS-USO CALL @ 0x973C-0x9760 (~10 insns):
- *   gl_func_0(sp+0x24, sp+0x174, ...);  ; final processing call
- *   ; saves retval at sp+0x214 (recurring slot), reload arg
- *
- * FPU MAGNITUDE CHECK + 16th CROSS-USO CALL @ 0x9764-0x97A0 (~16 insns):
- *   /\* compute magnitude_sq = X*X + Z*Z (XZ-projected)
- *    *  call gl_func_0(retval, sp+0x174, sp+0x84-deref Vec3) *\/
- *   retval->[0x0] = sp[0x84-derived].x;
- *   retval->[0x4] = sp[0x84-derived].y;
- *   retval->[0x8] = sp[0x84-derived].z;
- *
- * FINAL VEC3 COMMIT @ 0x97A4-0x97D4:
- *   /\* copy 12 bytes sp[0x174..0x17C] -> a1->[0x90..0x9C]
- *    *  AND -> sp+0x210 (caller-spill ptr load) *\/
- *   t8 = sp[0x210]; t8->[0x0..0x8] = sp[0x174..0x17C];
- *
- * EPILOGUE @ 0x97D8-0x97E4:
- *   lw $ra, 0x14(sp); lw $v0, 0x210(sp);  ; return v0 = caller's a4
- *   addiu sp, +0x210; jr ra; nop
- *
- * STRUCTURAL DECODE COMPLETE: 709/709 insns characterized (~100%).
- *
- * Final semantic picture: per-frame XZ-projected snowboard physics
- * compute. Inputs: a0 (caller scratch), a1 (subsystem struct), a2,
- * a3 (Vec3 sources), arg4 (terminator). Outputs:
- *   - a1->[0x84..0x8C] (per-frame Vec3, accumulated 4 times via state-
- *     counter dispatch — sub-pixel-precision output)
- *   - a1->[0x90..0x9C] (final committed XZ-projected position)
- *   - sp[0x210]->[0x0..0x8] (caller-supplied output Vec3)
- * Returns sp[0x210] (caller's arg4 reload).
- *
- * Function performs: 16 cross-USO calls (Vec3 readers + transform helpers
- * + finalization), 8 triple-dest Vec3 broadcasts, 3 magnitude-square
- * compares (collision-detection gates), 2 rodata jump-tables (state-arm
- * dispatch), and a state-counter mod-4 sub-pixel-fold loop.
- *
- * Default emit remains INCLUDE_ASM until C-body grind reaches >=80%.
- * Decode doc unblocks future single-tick C-write attempts.
- *
- * CAP CONFIRMED 2026-06-03 (do not re-attempt the builder-idiom prefix):
- * the 8 triple-dest "broadcasts" are the dead-alloc Vec3 idiom — target
- * emits 14 `addiu a0,12; bnel p,zero; jal 055750` dead-alloc sites
- * (p=&stackbuf, never taken). Clean C `p=&buf; if(p==0) p=alloc(12);`
- * reproduces 0/14 of them: IDO folds `&local==0` to false here just like
- * in A7F8 (0/4) — see docs/PATTERNS.md "dead-alloc idiom alloc-emission is
- * FRAGILE". A prefix decode of insns 0-45 was tried and collapsed to 32
- * insns (4.2% vs the 3.5% stub, all from the sub.s math, no allocs) —
- * reverted. The 14 absent allocs alone bound the achievable match far
- * below 80%, so this stays INCLUDE_ASM; a real attempt needs the actual
- * inlined vec-init helper source (which we can't synthesize), not the
- * top-level if(p==0) form. */
-typedef struct { float x, y, z; } Vec3_8CD8;
-void game_uso_func_00008CD8(int a0, int *a1, int a2, int *a3, int arg4) {
-    Vec3_8CD8 local_1F8;
-    int *retval;
-    if (arg4 == 0) goto far_exit;
-    gl_func_00000000(&local_1F8, a1, 12);
-    retval = (int*)gl_func_00000000();  /* placeholder for the saved retval */
-    if (retval == 0) goto body_continues;
-    *(float*)((char*)retval + 0x0) = *(float*)((char*)a3 + 0x30);
-    *(float*)((char*)retval + 0x4) = 0.0f;
-    *(float*)((char*)retval + 0x8) = *(float*)((char*)a3 + 0x38);
-body_continues:
-    /* TODO: ~680 insns of float math + 15 more cross-USO calls. Decode in
-     * subsequent passes. */
-    (void)gl_func_00000000();
-    (void)a0;
-    (void)a2;
-far_exit:
-    return;
+/* PASS-2 2026-06-10 (big-swing): FULL m2c graft via the pipeline +
+ * scripts/m2c-graft-clean.py. One 4-case jumptable synthesized (2
+ * distinct heads, order approximate). NOTE: this fn's HEAD is also the
+ * 7C1C over-extension target (7C1C's true body runs to 0x8CD8 -- this
+ * symbol starts exactly there; boundary consistent). */
+void *game_uso_func_00008CD8(char *arg0, char *arg1, f32 *arg2, char *arg3, s32 arg4) {
+    f32 sp120; f32 sp124; f32 sp178; f32 sp17C; f32 sp1B4; f32 sp1B8; f32 sp1C0; f32 sp1C4; f32 sp1CC; f32 sp1D0; f32 sp1E8; f32 sp1F4; f32 sp200; f32 sp74; f32 sp7C; f32 sp80; f32 spBC; f32 spC8; f32 spD0; f32 spD4; f32 spE0; f32 spE4; f32 spEC;
+    f32 sp204;
+    f32 sp1F8;
+    f32 sp1EC;
+    f32 sp1E0;
+    f32 sp1D4;
+    f32 sp1C8;
+    f32 sp1BC;
+    f32 sp1B0;
+    f32 sp1AC;
+    f32 *sp1A4;
+    f32 *sp1A0;
+    f32 sp174;
+    s32 sp164;
+    f32 sp14C;
+    f32 sp11C;
+    f32 sp110;
+    f32 sp10C;
+    f32 sp108;
+    f32 sp104;
+    f32 sp100;
+    f32 spFC;
+    f32 spF0;
+    f32 spD8;
+    f32 spCC;
+    f32 spC0;
+    f32 spB4;
+    s32 spA8;
+    f32 sp9C;
+    f32 sp90;
+    f32 sp84;
+    f32 sp78;
+    f32 sp6C;
+    f32 sp68;
+    f32 sp64;
+    f32 sp60;
+    f32 sp54;
+    f32 sp48;
+    f32 sp44;
+    f32 sp40;
+    f32 sp3C;
+    f32 sp24;
+    char *var_v1;
+    char *var_v1_4;
+    f32 *temp_v1;
+    f32 *var_a0;
+    f32 *var_a0_2;
+    f32 *var_a0_3;
+    f32 *var_a0_4;
+    f32 *var_a0_5;
+    f32 *var_a0_6;
+    f32 *var_a0_7;
+    f32 *var_a0_8;
+    f32 *var_a0_9;
+    f32 *var_v0;
+    f32 *var_v0_2;
+    f32 *var_v1_2;
+    f32 *var_v1_3;
+    f32 *var_v1_5;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f0_3;
+    f32 temp_f16;
+    f32 temp_f2;
+    f32 temp_f4;
+    f32 temp_f8;
+    f32 var_f10;
+    s32 temp_at;
+    s32 temp_t6;
+    s32 temp_t7;
+    s32 temp_t7_2;
+    s32 temp_t8;
+    u32 temp_t6_2;
+    u32 temp_t8_2;
+    char *temp_a0;
+
+    if (arg4 != 0) {
+        var_a0 = &sp1F8;
+        if (var_a0 != 0) {
+            goto block_6;
+        }
+        var_a0 = 0 /* M2C unset $v0 */;
+        if (0 /* M2C unset $v0 */ != 0) {
+block_6:
+            *(f32 *)((char *)(var_a0) + 0x4) = (f32) 0 /* M2C unset $f4 */;
+            *(f32 *)((char *)(var_a0) + 0x8) = (f32) *(s32 *)((char *)((arg3 + 0x30)) + 0x8);
+            *(s32 *)((char *)(var_a0) + 0x0) = *(s32 *)((char *)(arg3) + 0x30);
+        }
+        var_v1 = &sp164;
+        if (&sp164 == 0) {
+            var_v1 = 0 /* M2C unset $v0 */;
+            if (0 /* M2C unset $v0 */ != 0) {
+                goto block_10;
+            }
+        } else {
+block_10:
+            *(f32 *)((char *)(var_v1) + 0x0) = (f32) (sp1F8 - *(s32 *)((char *)&D_00000000 + 0x30) /* M2C unset $v0 */);
+            *(s32 *)((char *)(var_v1) + 0x4) = 0.0f;
+            *(f32 *)((char *)(var_v1) + 0x8) = (f32) (sp200 - *(s32 *)((char *)&D_00000000 + 0x38) /* M2C unset $v0 */);
+        }
+        temp_t7 = *((s32 *)&sp164 + 1);
+        *((s32 *)&sp174 + 0) = *((s32 *)&sp164 + 0);
+        temp_t8 = *((s32 *)&sp164 + 2);
+        var_v0 = &sp204;
+        *(s32 *)((char *)(var_v0) + 0x0) = *((s32 *)&sp174 + 0);
+        *((s32 *)&sp1B0 + 1) = temp_t7;
+        *(s32 *)((char *)(var_v0) + 0x4) = temp_t7;
+        *((s32 *)&sp174 + 1) = temp_t7;
+        *((s32 *)&sp1B0 + 2) = temp_t8;
+        *(s32 *)((char *)(var_v0) + 0x8) = temp_t8;
+        *((s32 *)&sp174 + 2) = temp_t8;
+        *((s32 *)&sp1B0 + 0) = *(s32 *)((char *)(var_v0) + 0x0);
+        var_a0_2 = &sp1E0;
+        temp_v1 = *(s32 *)((char *)(arg1) + 0x30) + 0xB4;
+        if (var_a0_2 == 0) {
+            sp1A0 = temp_v1;
+            var_a0_2 = var_v0;
+            if (var_v0 != 0) {
+                goto block_14;
+            }
+        } else {
+block_14:
+            *(s32 *)((char *)(var_a0_2) + 0x0) = 0 /* M2C unset $f0 */;
+            *(f32 *)((char *)(var_a0_2) + 0x8) = (f32) *(s32 *)((char *)(temp_v1) + 0x8);
+            *(s32 *)((char *)(var_a0_2) + 0x4) = 0.0f;
+        }
+        var_v1_2 = &sp14C;
+        if (&sp14C == 0) {
+            var_v1_2 = var_v0;
+            if (var_v0 != 0) {
+                var_v0 = arg2;
+                goto block_18;
+            }
+        } else {
+block_18:
+            temp_f4 = *(s32 *)((char *)(var_v0) + 0x30);
+            temp_f8 = *(s32 *)((char *)(var_v0) + 0x38);
+            var_v0 += 0x30;
+            *(s32 *)((char *)(var_v1_2) + 0x0) = sp1E0 - temp_f4;
+            *(s32 *)((char *)(var_v1_2) + 0x4) = 0.0f;
+            *(f32 *)((char *)(var_v1_2) + 0x8) = (f32) (sp1E8 - temp_f8);
+        }
+        *((s32 *)&sp174 + 0) = *((s32 *)&sp14C + 0);
+        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp14C + 1);
+        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp14C + 2);
+        *((s32 *)&sp1EC + 0) = *((s32 *)&sp174 + 0);
+        var_v1_3 = &sp1D4;
+        var_a0_3 = var_v1_3;
+        *((s32 *)&sp1EC + 1) = (s32) *((s32 *)&sp174 + 1);
+        *((s32 *)&sp1EC + 2) = (s32) *((s32 *)&sp174 + 2);
+        temp_f16 = (sp1B0 * sp1EC) + (sp1B8 * sp1F4);
+        if (var_v1_3 == 0) {
+            sp1AC = temp_f16;
+            var_v1_3 = &sp1D4;
+            var_a0_3 = var_v0;
+            if (var_v0 != 0) {
+                var_v0 = arg2;
+                goto block_22;
+            }
+        } else {
+block_22:
+            *(s32 *)((char *)(var_a0_3) + 0x4) = 0.0f;
+            *(f32 *)((char *)(var_a0_3) + 0x8) = (f32) *(s32 *)((char *)((var_v0 + 0x30)) + 0x8);
+            *(s32 *)((char *)(var_a0_3) + 0x0) = *(s32 *)((char *)(var_v0) + 0x30);
+        }
+        var_v0_2 = &sp11C;
+        *((s32 *)&sp174 + 0) = *(s32 *)((char *)(var_v1_3) + 0x0);
+        *((s32 *)&sp174 + 1) = (s32) *(s32 *)((char *)(var_v1_3) + 0x4);
+        *((s32 *)&sp174 + 2) = (s32) *(s32 *)((char *)(var_v1_3) + 0x8);
+        *(s32 *)((char *)(arg1) + 0x90) = sp174;
+        *(s32 *)((char *)(arg1) + 0x94) = sp178;
+        *(s32 *)((char *)(arg1) + 0x98) = sp17C;
+        *(s32 *)((char *)(var_v0_2) + 0x0) = *(s32 *)((char *)(arg1) + 0x90);
+        *(f32 *)((char *)(var_v0_2) + 0x4) = (f32) *(s32 *)((char *)(arg1) + 0x94);
+        *(f32 *)((char *)(var_v0_2) + 0x8) = (f32) *(s32 *)((char *)(arg1) + 0x98);
+        *(s32 *)((char *)(arg1) + 0x84) = sp11C;
+        *(s32 *)((char *)(arg1) + 0x88) = sp120;
+        *(s32 *)((char *)(arg1) + 0x8C) = sp124;
+        temp_f0 = temp_f16 + ((*(s32 *)((char *)(*(s32 *)((char *)(arg1) + 0x30)) + 0x348) * *(s32 *)((char *)(arg1) + 0xDC)) / 2.0f);
+        sp108 = sp1B0 * temp_f0;
+        sp10C = sp1B4 * temp_f0;
+        sp110 = sp1B8 * temp_f0;
+        *((s32 *)&sp174 + 0) = *((s32 *)&sp108 + 0);
+        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp108 + 1);
+        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp108 + 2);
+        *((s32 *)&sp1C8 + 0) = *((s32 *)&sp174 + 0);
+        *((s32 *)&sp1C8 + 1) = (s32) *((s32 *)&sp174 + 1);
+        *((s32 *)&sp1C8 + 2) = (s32) *((s32 *)&sp174 + 2);
+        *(f32 *)((char *)(arg1) + 0x84) = (f32) (*(s32 *)((char *)(arg1) + 0x84) + sp1C8);
+        *(f32 *)((char *)(arg1) + 0x88) = (f32) (*(s32 *)((char *)(arg1) + 0x88) + sp1CC);
+        *(f32 *)((char *)(arg1) + 0x8C) = (f32) (*(s32 *)((char *)(arg1) + 0x8C) + sp1D0);
+        temp_f0_2 = temp_f16 - ((*(s32 *)((char *)(*(s32 *)((char *)(arg1) + 0x30)) + 0x348) * *(s32 *)((char *)(arg1) + 0xDC)) / 2.0f);
+        spFC = sp1B0 * temp_f0_2;
+        sp100 = sp1B4 * temp_f0_2;
+        sp104 = sp1B8 * temp_f0_2;
+        *((s32 *)&sp174 + 0) = *((s32 *)&spFC + 0);
+        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&spFC + 1);
+        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&spFC + 2);
+        *((s32 *)&sp1BC + 0) = *((s32 *)&sp174 + 0);
+        *((s32 *)&sp1BC + 1) = (s32) *((s32 *)&sp174 + 1);
+        *((s32 *)&sp1BC + 2) = (s32) *((s32 *)&sp174 + 2);
+        *(f32 *)((char *)(arg1) + 0x90) = (f32) (*(s32 *)((char *)(arg1) + 0x90) + sp1BC);
+        *(f32 *)((char *)(arg1) + 0x94) = (f32) (*(s32 *)((char *)(arg1) + 0x94) + sp1C0);
+        *(s32 *)((char *)(arg1) + 0x9C) = 0U;
+        *(f32 *)((char *)(arg1) + 0x98) = (f32) (*(s32 *)((char *)(arg1) + 0x98) + sp1C4);
+        goto block_67;
+    }
+    temp_a0 = 0 /* M2C unset $v0 */;
+    if (0 /* M2C unset $v0 */ != 0) {
+        *(s32 *)((char *)(temp_a0) + 0x4) = 0.0f;
+        *(f32 *)((char *)(temp_a0) + 0x8) = (f32) *(s32 *)((char *)((arg3 + 0x30)) + 0x8);
+        *(f32 *)((char *)(temp_a0) + 0x0) = (f32) *(s32 *)((char *)(arg3) + 0x30);
+    }
+    var_v1_4 = &spA8;
+    if (&spA8 == 0) {
+        var_v1_4 = 0 /* M2C unset $v0 */;
+        if (0 /* M2C unset $v0 */ != 0) {
+            goto block_34;
+        }
+    } else {
+block_34:
+        *(f32 *)((char *)(var_v1_4) + 0x0) = (f32) (spE4 - *(s32 *)((char *)&D_00000000 + 0x30) /* M2C unset $v0 */);
+        *(s32 *)((char *)(var_v1_4) + 0x4) = 0.0f;
+        *(f32 *)((char *)(var_v1_4) + 0x8) = (f32) (spEC - *(s32 *)((char *)&D_00000000 + 0x38) /* M2C unset $v0 */);
+    }
+    temp_t6 = *((s32 *)&spA8 + 1);
+    *((s32 *)&sp174 + 0) = *((s32 *)&spA8 + 0);
+    temp_t7_2 = *((s32 *)&spA8 + 2);
+    var_v0_2 = &spF0;
+    *(s32 *)((char *)(var_v0_2) + 0x0) = *((s32 *)&sp174 + 0);
+    *(s32 *)((char *)(var_v0_2) + 0x4) = temp_t6;
+    *((s32 *)&sp174 + 1) = temp_t6;
+    *(s32 *)((char *)(var_v0_2) + 0x8) = temp_t7_2;
+    *((s32 *)&sp174 + 2) = temp_t7_2;
+    *((s32 *)&spCC + 0) = *(s32 *)((char *)(var_v0_2) + 0x0);
+    var_a0_4 = &sp9C;
+    *((s32 *)&spCC + 1) = (s32) *(s32 *)((char *)(var_v0_2) + 0x4);
+    *((s32 *)&spCC + 2) = (s32) *(s32 *)((char *)(var_v0_2) + 0x8);
+    if (&sp9C == 0) {
+        var_a0_4 = var_v0_2;
+        if (var_v0_2 != 0) {
+            var_v0_2 = arg1 + 0x84;
+            goto block_38;
+        }
+    } else {
+block_38:
+        *(s32 *)((char *)(var_a0_4) + 0x0) = *(s32 *)((char *)(var_v0_2) + 0x0) - *(s32 *)((char *)(arg1) + 0x90);
+        *(s32 *)((char *)(var_a0_4) + 0x4) = 0.0f;
+        *(f32 *)((char *)(var_a0_4) + 0x8) = (f32) (*(s32 *)((char *)(var_v0_2) + 0x8) - *(s32 *)((char *)((arg1 + 0x90)) + 0x8));
+    }
+    *((s32 *)&sp174 + 0) = *((s32 *)&sp9C + 0);
+    *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp9C + 1);
+    *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp9C + 2);
+    *((s32 *)&spC0 + 0) = *((s32 *)&sp174 + 0);
+    var_a0_5 = &spD8;
+    *((s32 *)&spC0 + 1) = (s32) *((s32 *)&sp174 + 1);
+    *((s32 *)&spC0 + 2) = (s32) *((s32 *)&sp174 + 2);
+    var_v1_3 = *(s32 *)((char *)(arg1) + 0x30) + 0xB4;
+    if (var_a0_5 == 0) {
+        sp1A0 = var_v1_3;
+        var_a0_5 = var_v0_2;
+        if (var_v0_2 != 0) {
+            goto block_42;
+        }
+    } else {
+block_42:
+        *(s32 *)((char *)(var_a0_5) + 0x0) = 0 /* M2C unset $f0 */;
+        *(f32 *)((char *)(var_a0_5) + 0x8) = (f32) *(s32 *)((char *)(var_v1_3) + 0x8);
+        *(s32 *)((char *)(var_a0_5) + 0x4) = 0.0f;
+    }
+    var_a0_6 = &sp90;
+    if (&sp90 == 0) {
+        var_a0_6 = var_v0_2;
+        if (var_v0_2 != 0) {
+            var_v1_3 = arg1 + 0x90;
+            goto block_46;
+        }
+    } else {
+block_46:
+        *(s32 *)((char *)(var_a0_6) + 0x0) = spD8 - *(s32 *)((char *)(var_v1_3) + 0x0);
+        *(s32 *)((char *)(var_a0_6) + 0x4) = 0.0f;
+        *(f32 *)((char *)(var_a0_6) + 0x8) = (f32) (spE0 - *(s32 *)((char *)(var_v1_3) + 0x8));
+    }
+    *((s32 *)&sp174 + 0) = *((s32 *)&sp90 + 0);
+    *((s32 *)&sp174 + 2) = (f32) *((s32 *)&sp90 + 2);
+    *((s32 *)&sp174 + 1) = (f32) *((s32 *)&sp90 + 1);
+    *((s32 *)&spB4 + 0) = *((s32 *)&sp174 + 0);
+    *((s32 *)&spB4 + 1) = (f32) *((s32 *)&sp174 + 1);
+    *((s32 *)&spB4 + 2) = (f32) *((s32 *)&sp174 + 2);
+    if ((((spCC * spC0) + (spD4 * spC8)) * 0.5f) < ((spCC * spB4) + (spD4 * spBC))) {
+        *((s32 *)&sp174 + 0) = *(s32 *)((char *)(arg1) + 0x84);
+        *((s32 *)&sp174 + 1) = (f32) *(s32 *)((char *)(arg1) + 0x88);
+        *((s32 *)&sp174 + 2) = (f32) *(s32 *)((char *)(arg1) + 0x8C);
+        *(s32 *)((char *)(arg1) + 0x90) = sp174;
+        *(s32 *)((char *)(arg1) + 0x94) = sp178;
+        *(s32 *)((char *)(arg1) + 0x98) = sp17C;
+        var_v1_5 = &sp54;
+        if (&sp54 == 0) {
+            var_v1_5 = var_v0_2;
+            if (var_v0_2 != 0) {
+                goto block_51;
+            }
+        } else {
+block_51:
+            *(s32 *)((char *)(var_v1_5) + 0x0) = spD4;
+            *(f32 *)((char *)(var_v1_5) + 0x8) = (f32) -0 /* M2C unset $f2 */;
+            *(s32 *)((char *)(var_v1_5) + 0x4) = 0.0f;
+        }
+        *((s32 *)&sp174 + 0) = *((s32 *)&sp54 + 0);
+        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp54 + 1);
+        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp54 + 2);
+        *((s32 *)&sp60 + 0) = *((s32 *)&sp174 + 0);
+        var_a0_7 = &sp84;
+        *((s32 *)&sp60 + 1) = (s32) *((s32 *)&sp174 + 1);
+        *((s32 *)&sp60 + 2) = (s32) *((s32 *)&sp174 + 2);
+        if (&sp84 == 0) {
+            var_a0_7 = var_v0_2;
+            if (var_v0_2 != 0) {
+                var_v0_2 = arg2;
+                goto block_55;
+            }
+        } else {
+block_55:
+            var_v0_2 += 0x30;
+            *(s32 *)((char *)(var_a0_7) + 0x4) = 0.0f;
+            *(f32 *)((char *)(var_a0_7) + 0x8) = (f32) *(s32 *)((char *)(var_v0_2) + 0x8);
+            *(s32 *)((char *)(var_a0_7) + 0x0) = *(s32 *)((char *)(var_v0_2) + 0x0);
+        }
+        *((s32 *)&sp174 + 0) = *((s32 *)&sp84 + 0);
+        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp84 + 1);
+        var_a0_8 = &sp48;
+        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp84 + 2);
+        *(s32 *)((char *)(arg1) + 0x84) = sp174;
+        *(s32 *)((char *)(arg1) + 0x88) = sp178;
+        *(s32 *)((char *)(arg1) + 0x8C) = sp17C;
+        if (&sp48 == 0) {
+            var_a0_8 = var_v0_2;
+            if (var_v0_2 != 0) {
+                var_v0_2 = arg2;
+                goto block_59;
+            }
+        } else {
+block_59:
+            *(s32 *)((char *)(var_a0_8) + 0x0) = *(s32 *)((char *)(arg1) + 0x90) - *(s32 *)((char *)(var_v0_2) + 0x30);
+            *(s32 *)((char *)(var_a0_8) + 0x4) = 0.0f;
+            *(f32 *)((char *)(var_a0_8) + 0x8) = (f32) (*(s32 *)((char *)((arg1 + 0x90)) + 0x8) - *(s32 *)((char *)(var_v0_2) + 0x38));
+        }
+        *((s32 *)&sp174 + 0) = *((s32 *)&sp48 + 0);
+        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp48 + 1);
+        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp48 + 2);
+        *((s32 *)&sp6C + 0) = *((s32 *)&sp174 + 0);
+        var_v0_2 = &sp11C;
+        *((s32 *)&sp6C + 1) = (s32) *((s32 *)&sp174 + 1);
+        *((s32 *)&sp6C + 2) = (s32) *((s32 *)&sp174 + 2);
+        temp_f2 = (spCC * sp6C) + (spD4 * sp74) + (*(s32 *)((char *)(*(s32 *)((char *)(arg1) + 0x30)) + 0x348) * *(s32 *)((char *)(arg1) + 0xDC));
+        sp3C = spCC * temp_f2;
+        sp40 = spD0 * temp_f2;
+        sp44 = spD4 * temp_f2;
+        *(s32 *)((char *)(var_v0_2) + 0x0) = *((s32 *)&sp3C + 0);
+        *(f32 *)((char *)(var_v0_2) + 0x4) = (f32) *((s32 *)&sp3C + 1);
+        *(f32 *)((char *)(var_v0_2) + 0x8) = (f32) *((s32 *)&sp3C + 2);
+        *((s32 *)&sp78 + 0) = *(s32 *)((char *)(var_v0_2) + 0x0);
+        *((s32 *)&sp78 + 1) = (f32) *(s32 *)((char *)(var_v0_2) + 0x4);
+        *((s32 *)&sp78 + 2) = (f32) *(s32 *)((char *)(var_v0_2) + 0x8);
+        *(f32 *)((char *)(arg1) + 0x84) = (f32) (*(s32 *)((char *)(arg1) + 0x84) + sp78);
+        *(f32 *)((char *)(arg1) + 0x88) = (f32) (*(s32 *)((char *)(arg1) + 0x88) + sp7C);
+        *(f32 *)((char *)(arg1) + 0x8C) = (f32) (*(s32 *)((char *)(arg1) + 0x8C) + sp80);
+        temp_f0_3 = 250.0f * *(s32 *)((char *)(arg3) + 0x54) * *(s32 *)((char *)(arg1) + 0xE0);
+        sp60 *= temp_f0_3;
+        var_f10 = sp68 * temp_f0_3;
+        sp64 *= temp_f0_3;
+        sp68 = var_f10;
+        temp_t6_2 = *(s32 *)((char *)(arg1) + 0x9C) + 1;
+        temp_t8_2 = temp_t6_2 & 3;
+        *(s32 *)((char *)(arg1) + 0x9C) = temp_t6_2;
+        temp_at = temp_t8_2 < 4U;
+        *(s32 *)((char *)(arg1) + 0x9C) = temp_t8_2;
+        if (temp_at != 0) {
+            /* 2nd dispatch site sharing jtbl_0 (m2c could not bind it);
+             * structured as if-dispatch on the same index. */
+            switch (temp_t8_2) {
+            case 0:
+                sp60 *= 0.0f;
+                sp64 *= 0.0f;
+                sp68 *= 0.0f;
+                break;
+            case 1:
+            case 2:
+            case 3:
+                sp60 *= -1.0f;
+                sp64 *= -1.0f;
+                sp68 *= -1.0f;
+                break;
+            }
+            var_f10 = *(s32 *)((char *)(arg1) + 0x84);
+        }
+        *(f32 *)((char *)(arg1) + 0x84) = (f32) (var_f10 + sp60);
+        *(f32 *)((char *)(arg1) + 0x88) = (f32) (*(s32 *)((char *)(arg1) + 0x88) + sp64);
+        *(f32 *)((char *)(arg1) + 0x8C) = (f32) (*(s32 *)((char *)(arg1) + 0x8C) + sp68);
+        var_a0_9 = &sp24;
+        var_v1_3 = *(s32 *)((char *)(arg1) + 0x30) + 0xB4;
+        if (&sp24 == 0) {
+            goto block_66;
+        }
+        goto block_69;
+    }
+block_66:
+    sp1A4 = var_v1_3;
+block_67:
+    var_a0_9 = var_v0_2;
+    if (var_v0_2 != 0) {
+        var_v0_2 = arg1 + 0x84;
+block_69:
+        *(s32 *)((char *)(var_a0_9) + 0x0) = *(s32 *)((char *)(var_v0_2) + 0x0) - *(s32 *)((char *)(var_v1_3) + 0x0);
+        *(s32 *)((char *)(var_a0_9) + 0x4) = 0.0f;
+        *(f32 *)((char *)(var_a0_9) + 0x8) = (f32) (*(s32 *)((char *)(var_v0_2) + 0x8) - *(s32 *)((char *)(var_v1_3) + 0x8));
+    }
+    *((s32 *)&sp174 + 0) = sp24;
+    *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp24 + 1);
+    *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp24 + 2);
+    *(f32 *)((char *)(arg0) + 0x0) = (f32) *((s32 *)&sp174 + 0);
+    *(s32 *)((char *)(arg0) + 0x4) = (s32) *((s32 *)&sp174 + 1);
+    *(s32 *)((char *)(arg0) + 0x8) = (s32) *((s32 *)&sp174 + 2);
+    return arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);

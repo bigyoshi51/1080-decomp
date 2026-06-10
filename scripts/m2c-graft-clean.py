@@ -49,11 +49,18 @@ def clean(b, fn, self_recursive=False):
                lambda m: f'*(s32 *)((char *)&D_00000000 + {m.group(1)})', b)
     b = re.sub(r'^(\s+)void \*', r'\1char *', b, flags=re.M)               # 4
     b = re.sub(r'\*\(s32 \*\)\(([^;]+)\) = \(f32\)', r'*(f32 *)(\1) = (f32)', b)  # 5
+    b = re.sub(r'M2C_ERROR\*\(s32 \*\)\(\(char \*\)\(\(/\* Read from unset register \$(\w+) \*/\)\) \+ (0x[0-9A-Fa-f]+)\)',
+               lambda m: f'*(s32 *)((char *)&D_00000000 + {m.group(2)}) /* M2C unset ${m.group(1)} */', b)
     b = re.sub(r'\*M2C_ERROR\(/\* Read from unset register \$(\w+) \*/\)', # 15
                lambda m: f'*(s32 *)((char *)&D_00000000 + 0) /* M2C unset ${m.group(1)} */', b)
     b = re.sub(r'M2C_ERROR\(/\* Read from unset register \$(\w+) \*/\)',
                lambda m: f'0 /* M2C unset ${m.group(1)} */', b)
     b = re.sub(rf'((?:void|s32|int) \*?){fn}\(void \*arg0', rf'\g<1>{fn}(char *arg0', b, count=1)
+    # all remaining void* args in the signature -> char* (IDO: no void* arith)
+    msig = re.search(rf'{fn}\(([^)]*)\)\s*{{', b)
+    if msig:
+        fixed = msig.group(1).replace('void *', 'char *')
+        b = b[:msig.start(1)] + fixed + b[msig.end(1):]
     # missing sp decls + arrays (6/3)
     decl = set(re.findall(r'^\s+(?:[suf]32|u8|u16|char) \*?\*?(sp[0-9A-Fa-f]+)', b, re.M))
     used = set(re.findall(r'\b(sp[0-9A-Fa-f]+)\b', b))
