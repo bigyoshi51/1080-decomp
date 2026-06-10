@@ -7214,6 +7214,10 @@ void game_libs_func_0002436C(int a0) { D_2436C_a = a0; }
 //   region clear/seed loop schedule. Name pre-checked: no extern
 //   reuse (collision-safe).
 // gl_func_00024378 — m2c DECODE (12.37% NM, no episode). game_libs non-jumptable (folded-ref heavy) via scripts/decomp-uso-cf.py.
+/* gl_func_00024378 graft attempt 2026-06-10: fresh m2c graft scored
+ * 10.98 vs this body's 12.37 -- REVERTED (monotonic rule; the
+ * graft~=existing tell, item 17 refined: this body is m2c-equivalent,
+ * divergence is structural). Hand-refinement territory. */
 #ifdef NON_MATCHING
 
 
