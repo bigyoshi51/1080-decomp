@@ -12391,7 +12391,14 @@ void game_uso_func_0000ECEC(char *obj, int idx) {
      * IDO coalesces idx's web into v0 naturally, no caller-set cap).
      * Residual: the v/base pair colors v0/v1 swapped vs target's
      * v1/v0; negative sweep: early-pseudo base, un-CSE'd base-first,
-     * separate thr read (20 diffs, worse). uoptlist queue. */
+     * separate thr read (20 diffs, worse). UOPTLIST RUN 2026-06-10
+     * (the -zdbug:6 dump works; ecvt patch live): v's pseudo is
+     * created at table index 25, base's at 29 -- creation order
+     * matches my emit (v=v0 first), yet the TARGET colors v=v1/
+     * base=v0, INVERTING the early-pseudo rule. The v0/v1 rule is
+     * therefore context-dependent (likely tied to which web crosses
+     * the branchy tail); next step is diffing the dump's coloring
+     * section at higher verbosity. */
     v = *(int **)(obj + 0xB4);
     base = (int *)((char *)v + 0x960);
     if ((ab[1] < *base) && (*(int *)((char *)v + 0x938) != 0)) {
