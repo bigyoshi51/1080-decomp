@@ -421,6 +421,15 @@ void timproc_uso_b1_func_00000DA0(char *a0) {
  * See feedback_splice_import_donor_relocs_recipe for the working sibling
  * (5A4/65C) cases, and project_1080_other_diff_nearmiss_vein for the
  * regalloc-renumber cap class. CAP — keep INCLUDE_ASM. */
+/* 2026-06-10 re-test with the new session levers, ALL negative (still
+ * the same 5 reload-reg diffs, ours a3-reuse vs target t7/t9/t8 fresh):
+ * volatile-qualified PARAM (over-homes: 24 insns), post-call copy var
+ * p=a0 (coalesced away, x2 placements), return-inside-if (epilogue
+ * dup), arg4 as a0+0 / &a0[0] / int-typed a0 (all folded). The target's
+ * temp numbering (t7 reload1, t8 li-1, t9 reload2) = pure expression-
+ * temp pool, i.e. the post-call a0 web is MEMORY-RESIDENT in the
+ * original; no tested C shape stops IDO from coalescing the web with
+ * the a3 arg copy. Residual lever: uoptlist regalloc dump session. */
 int timproc_uso_b1_func_00000DEC(char *a0) {
     if (*(int*)(a0 + 0x4FC) == 0) {
         gl_func_00000000(*(int*)(a0 + 0x6A8), 0, 1, a0);
