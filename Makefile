@@ -50,6 +50,21 @@ build/src/n64proc_uso/n64proc_uso.c.o: PREFIX_BYTES := n64proc_uso_func_00000000
 build/non_matching/src/n64proc_uso/n64proc_uso.c.o: NON_MATCHING_PREFIX_BYTES := n64proc_uso_func_00000000=0x10006F00
 build/src/h2hproc_uso/h2hproc_uso.c.o: PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
 build/non_matching/src/h2hproc_uso/h2hproc_uso.c.o: NON_MATCHING_PREFIX_BYTES := h2hproc_uso_func_00000000=0x10006F00
+# 2026-06-10 ROM-length convergence: each direct-link USO c segment must emit
+# .text at EXACTLY the original segment length (post_bin_start - seg_start).
+# IDO/asm-processor leave trailing zero padding after the last function
+# (and GAS keeps sh_addralign=16), which used to shift every downstream
+# segment and inflate the ROM. TRUNCATE_TEXT clips the all-zero tail to the
+# original length (boarder1/3 were already exact because explicit >=2-word
+# _pad.s blocks happened to land them on their exact lengths).
+build/src/boarder2_uso/boarder2_uso.c.o: TRUNCATE_TEXT := 0x194
+build/src/boarder4_uso/boarder4_uso.c.o: TRUNCATE_TEXT := 0x198
+build/src/boarder5_uso/boarder5_uso.c.o: TRUNCATE_TEXT := 0x1A0
+build/src/n64proc_uso/n64proc_uso.c.o: TRUNCATE_TEXT := 0x430
+build/src/titproc_uso/titproc_uso.c.o: TRUNCATE_TEXT := 0x2A30
+# eddproc orig text ends on a dead jr-ra word (delay-slot nop lives in the post
+# bin); the 1-word _pad.s emits jr-ra + an extra nop — truncate clips that nop.
+build/src/eddproc_uso/eddproc_uso.c.o: TRUNCATE_TEXT := 0x480
 # 2026-05-27: removed instruction-appending PREFIX_BYTES for game_libs_func_0003ECDC,
 # game_libs_func_0005AFB0, kernel func_80007FC8 — all were leading-nop / self-branch
 # instruction-faking that violated the 2026-05-23 no-instruction-forcing-matches policy
