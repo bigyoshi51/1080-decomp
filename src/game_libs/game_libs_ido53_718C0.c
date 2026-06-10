@@ -356,3 +356,22 @@ s32 gl_func_00072230(OSPfs *pfs, __OSInode *inode, u8 flag, u8 bank)
     }
     return 0;
 }
+
+/* gl_func_00072550 = libultra __osPfsSelectBank (io/contpfs.c) -- eighth
+ * ido53 recovery, first try, 27/27. Fills a 32-byte block with activebank
+ * and RamWrites it to page 1024. Callee = gl_func_00000000 placeholder.
+ * The 8-byte trailing pad sidecar rides along below. */
+s32 gl_func_00072550(OSPfs *pfs)
+{
+    u8 temp[32];
+    int i;
+    s32 ret;
+    ret = 0;
+    for (i = 0; i < 32; i++)
+    {
+        temp[i] = pfs->activebank;
+    }
+    ret = gl_func_00000000(pfs->queue, pfs->channel, 0x400, temp, 0);
+    return ret;
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00072550_pad.s")

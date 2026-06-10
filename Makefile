@@ -36,7 +36,7 @@ build/src/game_libs/game_libs_ido53_71864.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_71864.c.o: TRUNCATE_TEXT := 0x5C
 build/src/game_libs/game_libs_ido53_718C0.c.o build/non_matching/src/game_libs/game_libs_ido53_718C0.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_718C0.c.o build/non_matching/src/game_libs/game_libs_ido53_718C0.c.o: OPT_FLAGS := -O1
-build/src/game_libs/game_libs_ido53_718C0.c.o: TRUNCATE_TEXT := 0xC90
+build/src/game_libs/game_libs_ido53_718C0.c.o: TRUNCATE_TEXT := 0xD04
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_50.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso.c.o build/non_matching/src/arcproc_uso/arcproc_uso.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
@@ -156,7 +156,7 @@ build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17A00
 build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10
 build/src/game_libs/game_libs_post2.c.o: TRUNCATE_TEXT := 0x898
-build/src/game_libs/game_libs_post2b.c.o: TRUNCATE_TEXT := 0x2D5C
+build/src/game_libs/game_libs_post2b.c.o: TRUNCATE_TEXT := 0x2CE8
 
 build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1

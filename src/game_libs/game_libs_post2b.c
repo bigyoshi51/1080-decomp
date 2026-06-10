@@ -11,37 +11,6 @@ typedef struct { float x, y, z; } Vec3;
 
 
 
-#ifdef NON_MATCHING
-/* gl_func_00072550: fills a 32-byte stack buffer with a0[0x65] (same byte 32
- * times -- the lbu is INSIDE the loop, not hoisted), then calls
- *   gl_func_00000000(a0[1], a0[2], 0x400, buf, 0)   (5 args, 5th on stack)
- * and returns its value. The redundant sw v0 / lw v0 round-trip just before
- * `jr ra` is IDO -O2's spill-then-reload-return pattern for v0.
- *
- * Progression: naive for/i<32 → 28% (IDO unrolls 4x).
- *               volatile i → 50% (loop preserved, $s0 still used for a0).
- *               volatile i + volatile ret → 60% (frame layout closer).
- *               int* volatile a0 = arg, volatile i, volatile ret → 75%
- *                 (a0 reloaded from home slot each access, no $s0 promote).
- * Remaining cap: target computes `addu t9, sp, i` inside loop each iter;
- * mine precomputes `a3 = sp+0x28` outside (buf base). Mine: 80-byte frame;
- * target: 72-byte. Address-computation pattern difference. */
-int gl_func_00072550(int* arg) {
-    char buf[32];
-    int* volatile a0 = arg;
-    volatile int ret = 0;
-    volatile int i = 0;
-    do {
-        buf[i] = ((char*)a0)[0x65];
-        i++;
-    } while (i < 32);
-    ret = gl_func_00000000(a0[1], a0[2], 0x400, buf, 0);
-    return ret;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072550);
-#endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00072550_pad.s")
 
 #ifdef NON_MATCHING
 /* gl_func_000725C4 - STRUCTURAL PASS (big-swing 2026-06-02).
