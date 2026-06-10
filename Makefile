@@ -163,8 +163,8 @@ build/src/game_libs/game_libs_ido53_72C88.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_72C88.c.o build/non_matching/src/game_libs/game_libs_ido53_72C88.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_72C88.c.o: CC_ONLY_FLAGS := -Olimit 1
 build/non_matching/src/game_libs/game_libs_ido53_72C88.c.o: CC_ONLY_FLAGS := -Olimit 1
-build/src/game_libs/game_libs_ido53_72C88.c.o: TRUNCATE_TEXT := 0x1B4
-build/src/game_libs/game_libs_post2b_c.c.o: TRUNCATE_TEXT := 0x2470
+build/src/game_libs/game_libs_ido53_72C88.c.o: TRUNCATE_TEXT := 0x3AC
+build/src/game_libs/game_libs_post2b_c.c.o: TRUNCATE_TEXT := 0x2278
 
 build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1

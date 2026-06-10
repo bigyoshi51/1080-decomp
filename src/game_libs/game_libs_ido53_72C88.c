@@ -68,3 +68,63 @@ s32 gl_func_00072C88(OSPfs *pfs, u8 *map) {
     }
     return 0;
 }
+
+/* gl_func_00072E3C = `corrupted` (io/pfschecker.c static helper) -- the
+ * pfschecker.c trio is COMPLETE: osPfsChecker (725C4, -O1) /
+ * corrupted_init (72C88, above) / corrupted (here). Verbatim libreultra
+ * source, 122/122 first try; byte-identical under BOTH -O1 and the
+ * -Olimit fallback, so it lives happily in this -Olimit unit. Literals:
+ * PFS_ERR_INCONSISTENT=3, PFS_ERR_NEW_PACK=2 (this build). Its 4-byte
+ * trailing pad sidecar stays at the head of post2b_c. */
+typedef struct {
+    __OSInode inode; u8 bank; u8 map[256];
+} __OSInodeCache;
+
+s32 gl_func_00072E3C(OSPfs *pfs, __OSInodeUnit fpage, __OSInodeCache *cache)
+{
+    int j;
+    int n;
+    int hit;
+    u8 bank;
+    int offset;
+    s32 ret;
+
+    hit = 0;
+    ret = 0;
+    n = (fpage.inode_t.page / 4) + (fpage.inode_t.bank % 8) * 32;
+    for (bank = 0; bank < pfs->banks; bank++)
+    {
+        if (bank > 0)
+            offset = 1;
+        else
+            offset = pfs->inode_start_page;
+        if (bank == fpage.inode_t.bank || cache->map[n] & (1 << (bank % 8)))
+        {
+            if (bank != cache->bank)
+            {
+                ret = gl_func_00000000(pfs, &cache->inode, 0, bank);
+                if (ret != 0 && ret != 3)
+                    return ret;
+                cache->bank = bank;
+            }
+
+            for (j = offset; hit < 2 && (j < 128); j++)
+            {
+                if (cache->inode.inode_page[j].ipage == fpage.ipage)
+                    hit++;
+            }
+            if (1 < hit)
+                return 2;
+        }
+    }
+    return hit;
+}
+
+/* game_libs_func_00073024: AI_LEN_REG-class volatile reader (0xA4500004),
+ * 3 insns + the trailing pad nop that places gl_func_00073034 at 0x73034.
+ * Moved here from post2b_c so the pad comes from cc's natural function
+ * padding (the GLOBAL_ASM pad sidecar 16-aligns and breaks placement when
+ * the fn is unit-first). */
+int game_libs_func_00073024(void) {
+    return *(volatile int *)0xA4500004;
+}

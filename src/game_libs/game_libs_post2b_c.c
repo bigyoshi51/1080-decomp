@@ -5,76 +5,8 @@ typedef struct { int a, b, c; } Vec3i;
 typedef struct { float x, y, z; } Vec3;
 
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00072E3C)();
-s32 gl_func_00072E3C(char *arg0, u8 arg1, char *arg2) {
-    s32 sp2C;
-    s32 sp28;
-    s32 sp24;
-    u8 sp23;
-    s32 sp1C;
-    s32 sp18;
-    s32 temp_t4;
-    u8 temp_t0;
 
-    sp24 = 0;
-    sp18 = 0;
-    sp28 = ((s32) arg1 / 4) + (((s32) arg1 % 8) << 5);
-    sp23 = 0;
-    if ((s32) FW(arg0, 0x64) > 0) {
-loop_1:
-        if ((s32) sp23 > 0) {
-            sp1C = 1;
-        } else {
-            sp1C = FW(arg0, 0x60);
-        }
-        if ((sp23 == arg1) || (*(u8 *)((char *)arg2 + sp28 + 0x101) & (1 << ((s32) sp23 % 8)))) {
-            if (sp23 != FW(arg2, 0x100)) {
-                sp18 = game_libs_func_00070FCC(arg0, arg2, 0, sp23);
-                if ((sp18 != 0) && (sp18 != 3)) {
-                    return sp18;
-                }
-                FW(arg2, 0x100) = sp23;
-            }
-block_11:
-            sp2C = sp1C;
-            if ((sp24 < 2) && (sp1C < 0x80)) {
-loop_13:
-                if (*(u16 *)((char *)arg2 + (sp2C * 2)) == (u16) arg1) {
-                    sp24 += 1;
-                }
-                temp_t4 = sp2C + 1;
-                sp2C = temp_t4;
-                if ((sp24 < 2) && (temp_t4 < 0x80)) {
-                    goto loop_13;
-                }
-            }
-            if (sp24 >= 2) {
-                return 2;
-            }
-        }
-block_19:
-        temp_t0 = sp23 + 1;
-        sp23 = temp_t0;
-        if ((temp_t0 & 0xFF) >= (s32) FW(arg0, 0x64)) {
-            goto block_20;
-        }
-        goto loop_1;
-    }
-block_20: ;
-    return sp24;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072E3C);
-#endif
 
-int game_libs_func_00073024(void) {
-    return *(volatile int *)0xA4500004;
-}
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00072E3C_pad.s")
 
 #ifdef NON_MATCHING
 /* gl_func_00073034: 16-insn (0x40) double-call wrapper, returns 2nd call's

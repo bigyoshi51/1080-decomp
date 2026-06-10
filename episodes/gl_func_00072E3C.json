@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00072E3C",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T03:51:49.489849+00:00",
+  "end_time": "2026-06-10T03:51:49.489876+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T03:51:49.489867+00:00",
+      "assistant_text": "gl_func_00072E3C = 'corrupted' (io/pfschecker.c static helper) -- the pfschecker.c trio is COMPLETE (osPfsChecker/corrupted_init/corrupted). Verbatim libreultra source, 122/122 first try, byte-identical under BOTH 5.3 -O1 and -O1 -Olimit 1 (lives in the -Olimit carve unit). Wiring lesson: the 4-byte pad at 0x73030 must come from cc's natural function padding after game_libs_func_00073024 (also moved into the carve, exact at 5.3 -O1) -- the GLOBAL_ASM pad sidecar 16-aligns and shifts placement when the C fn is unit-first.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 122,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs ido53 carve unit: gl_func_00072C88, the first -Olimit-fallback\n * match (IDO 5.3, -O1 -Olimit 1 -- uopt skipped so the emit is -O0-shaped\n * with homed args and per-use reloads, but the -O1 pipeline still fills\n * delay slots). 1080-custom osPfsChecker-family helper: builds a 256-byte\n * cross-bank inode link matrix. Match-critical shapes: reverse-declaration-\n * order locals (i lowest at 0x12C ... ret highest? no: i declared FIRST ->\n * 0x12C), &&-combined skip conditions (keeps unit.bank/bank live into the\n * marking block), |= (single address computation), (map + idx)[0x101]\n * (addu operand order), and ++bank inside the while condition (u8\n * truncation andi without a reload). See docs/IDO_CODEGEN -Olimit entry. */\ntypedef unsigned char u8;\ntypedef unsigned short u16;\ntypedef int s32;\n\ntypedef struct {\n    int status; void *queue; int channel;\n    u8 id[32]; u8 label[32];\n    int version; int dir_size; int inode_table; int minode_table;\n    int dir_table; int inode_start_page; u8 banks; u8 activebank;\n} OSPfs;\n\ntypedef union {\n    struct { u8 bank; u8 page; } inode_t;\n    u16 ipage;\n} __OSInodeUnit;\n\ntypedef struct {\n    __OSInodeUnit inode_page[128];\n} __OSInode;\n\nextern int gl_func_00000000();\n\ns32 gl_func_00072C88(OSPfs *pfs, u8 *map) {\n    s32 i;\n    s32 idx;\n    s32 startpage;\n    u8 bank;\n    __OSInodeUnit unit;\n    __OSInode inode;\n    s32 ret;\n\n    for (i = 0; i < 256; i++) {\n        map[i + 0x101] = 0;\n    }\n    map[0x100] = 0xFF;\n    bank = 0;\n    if (pfs->banks > 0) {\n        do {\n            if (bank > 0) {\n                startpage = 1;\n            } else {\n                startpage = pfs->inode_start_page;\n            }\n            ret = gl_func_00000000(pfs, &inode, 0, bank);\n            if (ret != 0) {\n                if (ret != 3) {\n                    return ret;\n                }\n            }\n            for (i = startpage; i < 128; i++) {\n                unit = inode.inode_page[i];\n                if (unit.ipage >= pfs->inode_start_page && unit.inode_t.bank != bank) {\n                    idx = unit.inode_t.page / 4 + (unit.inode_t.bank % 8) * 32;\n                    (map + idx)[0x101] |= 1 << (bank % 8);\n                }\n            }\n        } while (++bank < pfs->banks);\n    }\n    return 0;\n}\n\n/* gl_func_00072E3C = `corrupted` (io/pfschecker.c static helper) -- the\n * pfschecker.c trio is COMPLETE: osPfsChecker (725C4, -O1) /\n * corrupted_init (72C88, above) / corrupted (here). Verbatim libreultra\n * source, 122/122 first try; byte-identical under BOTH -O1 and the\n * -Olimit fallback, so it lives happily in this -Olimit unit. Literals:\n * PFS_ERR_INCONSISTENT=3, PFS_ERR_NEW_PACK=2 (this build). Its 4-byte\n * trailing pad sidecar stays at the head of post2b_c. */\ntypedef struct {\n    __OSInode inode; u8 bank; u8 map[256];\n} __OSInodeCache;\n\ns32 gl_func_00072E3C(OSPfs *pfs, __OSInodeUnit fpage, __OSInodeCache *cache)\n{\n    int j;\n    int n;\n    int hit;\n    u8 bank;\n    int offset;\n    s32 ret;\n\n    hit = 0;\n    ret = 0;\n    n = (fpage.inode_t.page / 4) + (fpage.inode_t.bank % 8) * 32;\n    for (bank = 0; bank < pfs->banks; bank++)\n    {\n        if (bank > 0)\n            offset = 1;\n        else\n            offset = pfs->inode_start_page;\n        if (bank == fpage.inode_t.bank || cache->map[n] & (1 << (bank % 8)))\n        {\n            if (bank != cache->bank)\n            {\n                ret = gl_func_00000000(pfs, &cache->inode, 0, bank);\n                if (ret != 0 && ret != 3)\n                    return ret;\n                cache->bank = bank;\n            }\n\n            for (j = offset; hit < 2 && (j < 128); j++)\n            {\n                if (cache->inode.inode_page[j].ipage == fpage.ipage)\n                    hit++;\n            }\n            if (1 < hit)\n                return 2;\n        }\n    }\n    return hit;\n}\n\n/* game_libs_func_00073024: AI_LEN_REG-class volatile reader (0xA4500004),\n * 3 insns + the trailing pad nop that places gl_func_00073034 at 0x73034.\n * Moved here from post2b_c so the pad comes from cc's natural function\n * padding (the GLOBAL_ASM pad sidecar 16-aligns and breaks placement when\n * the fn is unit-first). */\nint game_libs_func_00073024(void) {\n    return *(volatile int *)0xA4500004;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_72C88.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00072E3C.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -Olimit 1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 122/122 words vs target asm AND vs baserom in-tree; report.json fuzzy=100.0; neighbors (73024+pad, 73034 window, TEXT_END) byte-verified."
+  }
+}
