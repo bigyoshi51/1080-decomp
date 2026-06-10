@@ -10006,6 +10006,13 @@ void gl_func_000275C8(void) {
     gl_func_00000000(*(void **)(g + 0x53C8), 0, 1);
 }
 
+/* game_libs_func_000275F4 (0xC4 after merging 2765C/27684/27694): a
+ * region-wide out-branch census (2026-06-10) showed the four symbols'
+ * cross-branches all land at +0/+4 of the next -- one shattered
+ * function. Its remaining external branches enter the ADJACENT MATCHED
+ * leaves 276B8(+4)/276D0(+0)/276D8(+4) = the branch-into-adjacent-leaf
+ * shared-tail cap family (INCLUDE_ASM faithful). Same census found the
+ * OTHER hub: 27534+8 is the shared tail of 273B8/27438/27488/274A0. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000275F4);
 
 /* 0x276xx leaf-branch-past-end cluster: 3 tiny leaves with forward
@@ -10013,11 +10020,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000275F4);
  * into successor's first insn). Cross-fn shared-epilogue tail-merges per
  * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Covers
  * game_libs_func_0002765C, _00027684, _00027694. CAP class. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002765C);
+/* game_libs_func_0002765C MERGED into 275F4 2026-06-10 (shattered-fn census). */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027684);
+/* game_libs_func_00027684 MERGED into 275F4 2026-06-10 (shattered-fn census). */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027694);
+/* game_libs_func_00027694 MERGED into 275F4 2026-06-10 (shattered-fn census). */
 
 #ifdef NON_MATCHING
 /* game_libs_func_000276B8: pointer-chain subtract — returns
