@@ -11316,7 +11316,10 @@ int gl_func_0004211C(int a0) {
  * (build) — the unused-4th-arg-save spill (sw v0,0x1C(sp)) assigns the in-place
  * shift to a1 vs a3. The 4-arg form (r2 spilled) is required for the spill;
  * dropping to 3 args regresses to 88.89%, swapping arg order to 99.72%. The
- * a1/a3 pick is a register-renumber cap, not C-controllable. */
+ * a1/a3 pick is a register-renumber cap, not C-controllable.
+ * 2026-06-10: classified -- the CALL-ARG-MARSHAL-REUSE class (46C4C):
+ * the target computes the >>10 IN the marshal register (srl a1,a1)
+ * where ours uses a temp; allocator-level, uoptlist-ceiling. */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00042144(void) {
