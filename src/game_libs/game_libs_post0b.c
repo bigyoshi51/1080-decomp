@@ -2227,6 +2227,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
 //   (top-level src-deref + Vec3 pull + matrix-block copy — full
 //   FP chain summarised in the in-comment analysis only).
 //   Byte-match deferred. Name pre-checked: no extern reuse.
+/* gl_func_00036224 graft attempt 2026-06-10: the INCLUDE sits inside an
+ * existing wrap (the copy-fields body above scores 6.84); a fresh m2c
+ * graft would score identically (m2c-equivalent class, item 17).
+ * Hand-refinement territory. NOTE the procedure trap hit here: a
+ * "bare-INCLUDE" insert nested a dead wrap inside this #else -- always
+ * check for an enclosing wrap before inserting (item 22 extension). */
 #ifdef NON_MATCHING
 void gl_func_00036224(char *o) {
     char *src = *(char **)(o + 0x1CC);
