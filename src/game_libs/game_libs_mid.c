@@ -30,7 +30,14 @@ extern char D_8C3C_root_desc;
  * indirection regresses to 96.4% (it's load-bearing); declaring call_root at
  * function scope vs inner-block is score-neutral (still 0x28). The slot is an
  * -O0 temp-allocator artifact, NOT C-steerable — same class as the
- * gl_func_0005D054 spill-slot swap. Honest cap at 99.79%; stays INCLUDE_ASM. */
+ * gl_func_0005D054 spill-slot swap. Honest cap at 99.79%; stays INCLUDE_ASM.
+ * 2026-06-10: the decl-order slot lever that cracked 5D054 does NOT
+ * transfer here -- adding pad locals grows the -O0 frame (every named
+ * local gets a slot AND frame space; 5D054 was -O2 where pads only
+ * permute existing SPILL slots). The 0x28..0x34 region neighbors are
+ * COMPILER-INTERNAL temps (unnamed), so there is no decl list to
+ * permute; call_root's pseudo number vs the internal temps' is fixed by
+ * statement order already tested. Cap stands for -O0 units. */
 extern char D_0000D138, D_0000D148, D_8C3C_v0;
 gl_func_00008C3C(a0, a1) int * a0; int a1; {
     register int *root;
