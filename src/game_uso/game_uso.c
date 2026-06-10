@@ -3001,7 +3001,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
  * project_1080_cap_analysis). Next tool: permuter, or rebuild scripts/regalloc-dump
  * (ecvt patch to tools/ido-static-recomp, gitignored) for the FP candidate ordering.
  * INSN_PATCH that previously "fixed" this was removed 2026-05-23 as match-faking.
- * Honest NM. */
+ * Honest NM. 2026-06-10: the pseudo-order lever family swept -- FP
+ * early-pseudo (dead-init r) neutral in-tree (99.44 unchanged); the
+ * arg-then-result single-web form regresses scheduling (+3 insns,
+ * add.s leaves the jal delay). Confirms the arg-reg-coloring boundary
+ * extends to FP arg registers ($f12 here, $a0 in the 1130 case): the
+ * family controls v0/v1/temp-pool only. uoptlist queue. */
 extern float gl_func_00000000_f();
 extern float gl_func_00000000_ff(float);  /* float-prototyped alias of _f (=0x0): avoids K&R float->double arg promotion */
 #ifdef NON_MATCHING
