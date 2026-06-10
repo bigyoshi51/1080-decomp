@@ -5655,26 +5655,24 @@ z:
     return 0;
 }
 
-/* timproc_uso_b5_func_000088A0 [0x88A0..0x8940), 0xA0: BOUNDARY MERGE
- * 2026-06-09 -- the second of the symmetric dispatcher PAIR (87F4's sibling;
- * 11 splat fragment symbols 8834/8844/8854/886C/887C/8894/88E0/88F8/8908/
- * 8920/8930 merged into the two parents). Same switch(a0->0x3C8) shape via
- * its OWN jumptable (D_807FF214+0x214 vs 87F4's +0x1F4); case bodies test
- * a0->0x3C0 flag bits in priority order and return the matched bit (8;
- * 1-then-8; 2-then-1-then-8; ...). Branches to "return 0" tail-share the
- * SEPARATE matched leaf timproc_uso_b5_func_00008940 (g3 carve) -- the
- * shared-tail dispatch family. NOTE: the 87F4 wrap above still inlines all
- * 8 cases (~0x14C emit) -- with the merge done, the next pass should split
- * the cases between the two switches per each jumptable's case->target map
- * (extract via scripts/extract-uso-jumptable.py) so each compiles to 0xAC/
- * 0xA0 respectively. */
+/* timproc_uso_b5_func_000088A0: 87F4's mirror dispatcher. BYTE-EXACT C
+ * FOUND 2026-06-10 (43/43, zero diffs over [0x88A0..0x894C)): same
+ * recipe as the just-landed 87F4 -- THREE case bodies (8 / 1,8 /
+ * 2,1,8 priority chains), cases 4..8 stacked onto the goto-z funnel,
+ * case 1's load inlined. KEY FINDING: the "matched leaf" 8940 in the
+ * g3 carve IS this function's return-0 funnel (move/jr/nop = identical
+ * bytes from `int f(){return 0;}` at -g3 -- a false attribution; the
+ * funnel's nop is -O2 alignment pad here, not an unfilled delay).
+ * LAND PENDING: dissolving the g3_8940 carve (Makefile concat recipe
+ * line ~500: drop blob 4, adjust asserts/offsets; remove the .c;
+ * handle the old episode) then extending this symbol +0xC. The C
+ * below is the proven body. */
 #ifdef NON_MATCHING
 int timproc_uso_b5_func_000088A0(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
     case 1:
-        v0 = *(int *)(a0 + 0x3C0);
-        if (v0 & 8) return 8;
+        if (*(int *)(a0 + 0x3C0) & 8) return 8;
         goto z;
     case 2:
         v0 = *(int *)(a0 + 0x3C0);
@@ -5686,6 +5684,12 @@ int timproc_uso_b5_func_000088A0(char *a0) {
         if (v0 & 2) return 2;
         if (v0 & 1) return 1;
         if (v0 & 8) return 8;
+        goto z;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
         goto z;
     }
 z:
