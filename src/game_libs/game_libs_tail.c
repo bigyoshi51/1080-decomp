@@ -3350,6 +3350,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
  * form. The target is -O2-SIZE (no frame) with pointer-in-v0 (addiu v0,a0,0x18;
  * 0(v0) RMW); NO opt level produces that. Genuine cap — do NOT attempt the
  * OPT_FLAGS split. */
+/* CARVE ATTEMPT 2026-06-10 (the E410 sextet as its own landable unit):
+ * REVERTED. The unit C compiles 38/38 byte-exact with correct 4-byte
+ * fn packing (IDO packs consecutive fns at align-4 -- verified), BUT
+ * the tail split is NOT layout-safe: game_libs_tail.c.o carries a
+ * trailing align pad (+0xC) and the unit exhibits the post1b-class
+ * pre-existing internal drift (symbols land -0x10 from their USO
+ * names), so the naive three-way split shifted 103k words. The sextet
+ * promote therefore belongs to the RELAYOUT SESSION with the other
+ * ready bodies; the verified unit source is preserved in this comment
+ * block's history (commit) and each wrap below. */
 /* game_libs_func_0000E410: set flags 4|8 on a0->i_18, returns the
  * field pointer. BYTE-EXACT C FOUND 2026-06-10 (0 diffs standalone):
  * the same role-#6 barrier as the E450 quartet -- `int *p; p = ...;
