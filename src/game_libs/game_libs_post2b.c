@@ -206,7 +206,79 @@ s32 gl_func_000725C4(void *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000725C4);
 #endif
 
+/* gl_func_00072C88: 1080-custom cross-bank inode reference-map builder
+ * (osPfsChecker-family; uses the same OSPfs/__OSInode types as the matched
+ * contpfs run above). FULL DECODE 2026-06-09 (was fuzzy=None, no C):
+ * clears map[0x101..0x200], map[0x100]=0xFF, then for each bank reads the
+ * inode table (RWInode placeholder call, tolerating PFS_ERR_INCONSISTENT=3)
+ * and for every page-link whose ipage >= inode_start_page AND whose bank
+ * differs from the current bank, sets bit (bank%8) in
+ * map[page/4 + (unit.bank%8)*32 + 0x101] -- a cross-bank link matrix.
+ *
+ * Compiler class: -O0 (homed args, per-use reloads) BUT with SOME filled
+ * branch-delay slots (the loop-tail sw sits in the bne delay) -- standalone
+ * cc -O0 (7.1 and 5.3) leaves those slots as nops and emits 129 vs 109
+ * insns. Next pass: determine the -O0 fill mechanism (in-tree pipeline
+ * difference? IDO -O0 + external GNU as?) before carving; declaration
+ * order below already reproduces the exact stack layout (IDO -O0 allocates
+ * locals in REVERSE declaration order: i@0x12C ... ret@0x1C). */
+#ifdef NON_MATCHING
+typedef union {
+    struct { u8 bank; u8 page; } inode_t;
+    u16 ipage;
+} GlInodeUnit;
+typedef struct {
+    GlInodeUnit inode_page[128];
+} GlInode;
+s32 gl_func_00072C88(void *pfs_v, u8 *map) {
+    /* OSPfs layout: inode_start_page @0x60, banks @0x64 */
+    #define PFS_ISP(p) (*(int *)((char *)(p) + 0x60))
+    #define PFS_BANKS(p) (*(u8 *)((char *)(p) + 0x64))
+    s32 i;
+    s32 idx;
+    s32 startpage;
+    u8 bank;
+    GlInodeUnit unit;
+    GlInode inode;
+    s32 ret;
+
+    for (i = 0; i < 256; i++) {
+        map[i + 0x101] = 0;
+    }
+    map[0x100] = 0xFF;
+    bank = 0;
+    if (PFS_BANKS(pfs_v) > 0) {
+        do {
+            if (bank > 0) {
+                startpage = 1;
+            } else {
+                startpage = PFS_ISP(pfs_v);
+            }
+            ret = gl_func_00000000(pfs_v, &inode, 0, bank);
+            if (ret != 0) {
+                if (ret != 3) {
+                    return ret;
+                }
+            }
+            for (i = startpage; i < 128; i++) {
+                unit = inode.inode_page[i];
+                if (unit.ipage < PFS_ISP(pfs_v)) {
+                    continue;
+                }
+                if (unit.inode_t.bank == bank) {
+                    continue;
+                }
+                idx = unit.inode_t.page / 4 + (unit.inode_t.bank % 8) * 32;
+                map[idx + 0x101] = map[idx + 0x101] | (1 << (bank % 8));
+            }
+            bank = bank + 1;
+        } while (bank < PFS_BANKS(pfs_v));
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00072C88);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
