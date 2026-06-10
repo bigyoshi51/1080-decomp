@@ -34,6 +34,8 @@ def clean(b, fn, self_recursive=False):
                lambda m: f'{fn.rsplit("_",1)[0]}_{int(m.group(3),16):08X}('
                if False else f'gl_func_{int(m.group(3),16):08X}(', b)
     # exclude 'unkXX' as a base ident: chains A->unkC->unk0 must convert left-first
+    b = re.sub(r'\(void \*\)0x([0-9A-Fa-f]+)->unk([0-9A-Fa-f]+)',
+               lambda m: f'*(s32 *)((char *)&D_00000000 + 0x{m.group(1)} + 0x{m.group(2)})', b)
     b = re.sub(r'(?!unk[0-9A-Fa-f])([A-Za-z_][A-Za-z0-9_]*)->unk-([0-9A-Fa-f]+)',  # 2 neg
                lambda m: f'*(s32 *)((char *)({m.group(1)}) - 0x{int(m.group(2),16):X})', b)
     b = re.sub(r'(?!unk[0-9A-Fa-f])(?<![\w])((?!unk)[A-Za-z_][A-Za-z0-9_]*)->unk([0-9A-Fa-f]+)',  # 2
