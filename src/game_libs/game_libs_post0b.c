@@ -18418,13 +18418,17 @@ void gl_func_0004CFD4(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CFD4);
 #endif
 
-/* 6-insn indexed read leaf. NATURAL CEILING: 95.83% NM (register-rename
- * cap). C-emit picks $v1/$a1/$t1/$t9 for the chain where target uses
- * $t7/$t6/$t8/$t9. The 4-insn INSN_PATCH at 0x00..0x0C that overrode the
- * register-name diff was REMOVED 2026-05-23 as match-faking. */
+/* 6-insn indexed read leaf. BYTE-EXACT C FOUND 2026-06-10 (6/6, 0
+ * diffs): the "register-rename cap" falls to the ARRAY-INDEX form --
+ * fold the 0xF4 into the pointer FIRST, then index:
+ * ((int *)(base + 0xF4))[idx]. That shape creates base's pseudo first
+ * (t6) and idx's second (t7) with the scheduler emitting idx's load
+ * first (longer dep chain) = the target's inverted t7/t6 pair. The
+ * flat-sum form pins idx-first creation; named locals take a/v regs.
+ * LAND BLOCKED mid-file (post0b drift); relayout queue (11 bodies). */
 #ifdef NON_MATCHING
-int game_libs_func_0004D014(int *a0) {
-    return *(int*)((char*)((int*)a0[0x148/4]) + (a0[0x144/4]) * 4 + 0xF4);
+int game_libs_func_0004D014(char *a0) {
+    return ((int *)(*(int *)(a0 + 0x148) + 0xF4))[*(int *)(a0 + 0x144)];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D014);
