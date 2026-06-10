@@ -3,6 +3,8 @@ extern int D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 typedef struct { float x, y, z; } Vec3;
 
+/* game_libs_func_00073694: same 2-word PI_STATUS_REG load stub as
+ * 73074/730C4 (no jr, falls through into the successor's wait loop). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073694);
 
 #ifdef NON_MATCHING

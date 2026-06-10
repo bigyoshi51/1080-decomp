@@ -37,6 +37,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073034);
 #endif
 
 
+/* game_libs_func_00073074: 2-word no-jr PI_STATUS_REG (0xA4600010) load
+ * stub falling through into the successor -- the stolen leading guard
+ * of the following PI-wait loop (same two-entry class as 6F038). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073074);
 
 #ifdef NON_MATCHING
@@ -71,6 +74,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
 #endif
 
 
+/* game_libs_func_000730C4: same 2-word PI_STATUS_REG load stub as 73074. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000730C4);
 
 #ifdef NON_MATCHING
@@ -128,6 +132,10 @@ s32 gl_func_000730CC(char *arg0, s32 arg1, s32 *arg2, s32 arg3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
 #endif
 
+/* game_libs_func_00073258 = libultra osMapTLBRdb (os/maptlbrdb.s) --
+ * HANDWRITTEN assembly in libreultra (LEAF macro, mfc0/mtc0/tlbwi: maps
+ * TLB entry 31 -> 0xC0000000 rdb area). IDO C cannot emit CP0/TLB ops;
+ * permanent INCLUDE_ASM, same class as the MIPS3-runtime helpers. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073258);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000730CC_pad.s")
 
