@@ -164,7 +164,12 @@ build/src/game_libs/game_libs_ido53_72C88.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_72C88.c.o: CC_ONLY_FLAGS := -Olimit 1
 build/non_matching/src/game_libs/game_libs_ido53_72C88.c.o: CC_ONLY_FLAGS := -Olimit 1
 build/src/game_libs/game_libs_ido53_72C88.c.o: TRUNCATE_TEXT := 0x3AC
-build/src/game_libs/game_libs_post2b_c.c.o: TRUNCATE_TEXT := 0x2278
+build/src/game_libs/game_libs_post2b_c.c.o: TRUNCATE_TEXT := 0x300
+build/src/game_libs/game_libs_ido53_73334.c.o build/non_matching/src/game_libs/game_libs_ido53_73334.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_73334.c.o build/non_matching/src/game_libs/game_libs_ido53_73334.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_73334.c.o: SUFFIX_BYTES := gl_func_00073538=0x00000000,0x00000000,0x00000000
+build/src/game_libs/game_libs_ido53_73334.c.o: TRUNCATE_TEXT := 0x360
+build/src/game_libs/game_libs_post2b_d.c.o: TRUNCATE_TEXT := 0x1C18
 
 build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1

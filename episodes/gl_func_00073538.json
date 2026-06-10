@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00073538",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T04:31:34.265351+00:00",
+  "end_time": "2026-06-10T04:31:34.265379+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T04:31:34.265371+00:00",
+      "assistant_text": "gl_func_00073538 = __osPackRamWriteData (io/contramwrite.c static helper), verbatim at IDO 5.3 -O1, first try. Builds the 0x28-byte write-mempack PIF command (tx=35, rx=1, cmd=3, addr<<5|crc via placeholder __osContAddressCrc call, CONT_CMD_END=254 terminator) into __osPfsPifRam with channel skew. Its runtime address (USO 0x73538 + 0x1466C = 0x87BA4) is the target of RamWrite's hardcoded jal \u2014 identification cross-confirmed. contramwrite.c COMPLETE.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 84,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs ido53 carve: contramwrite.c pair, verbatim at IDO 5.3 -O1.\n * gl_func_00073334 = __osContRamWrite (129/129) and gl_func_00073538 =\n * __osPackRamWriteData (84/84), both first try. PARITY NOTE: this carve\n * span is [0x73334..0x73694) = 0x360 (0 mod 8) -- PackRamWriteData gets a\n * 12-byte all-zero SUFFIX (the genuine padding mechanism) so the tail\n * unit's include-block alignment parity is preserved (see\n * docs/MATCHING_WORKFLOW mid-file-carve parity pre-check). RamWrite calls\n * __osPackRamWriteData via the BUILD-TIME-PATCHED hardcoded jal\n * gl_ref_00087BA4 (= USO 0x73538 + game_libs reloc base 0x1466C); other\n * callees are runtime-patch placeholders. Data placeholders:\n * D_73334_pifram = __osPfsPifRam, D_73334_lastcmd = __osContLastCmd.\n * Literals: CONT_CMD_WRITE_MEMPACK=3, WRITE_MEMPACK_TX=35, RX=1,\n * CONT_CMD_NOP=255, CONT_CMD_END=254, CONT_CMD_EXE=1, CONTRFAIL=4,\n * NOPACK=1. */\ntypedef unsigned char u8;\ntypedef unsigned short u16;\ntypedef int s32;\n\ntypedef struct {\n    int ramarray[15];\n    int pifstatus;\n} GlPifRam;\n\ntypedef struct {\n    u8 dummy; u8 txsize; u8 rxsize; u8 cmd;\n    u16 address;\n    u8 data[32];\n    u8 datacrc;\n} __OSContRamReadFormat;\n\nextern int gl_func_00000000();\nextern int gl_ref_00087BA4();\nextern GlPifRam D_73334_pifram;\nextern u8 D_73334_lastcmd;\n\ns32 gl_func_00073334(void *mq, int channel, u16 address, u8 *buffer, int force)\n{\n    s32 ret;\n    int i;\n    u8 *ptr;\n    __OSContRamReadFormat ramreadformat;\n    int retry;\n\n    ret = 0;\n    ptr = (u8 *)&D_73334_pifram;\n    retry = 2;\n    if (force != 1 && address < 7 && address != 0)\n        return 0;\n    gl_func_00000000();\n    D_73334_lastcmd = 3;\n    gl_ref_00087BA4(channel, address, buffer);\n    ret = gl_func_00000000(1, &D_73334_pifram);\n    gl_func_00000000(mq, 0, 1);\n    do\n    {\n        ret = gl_func_00000000(0, &D_73334_pifram);\n        gl_func_00000000(mq, 0, 1);\n        ptr = (u8 *)&D_73334_pifram;\n        if (channel != 0)\n            for (i = 0; i < channel; i++)\n                ptr++;\n\n        ramreadformat = *(__OSContRamReadFormat *)ptr;\n\n        ret = ((ramreadformat.rxsize & 0xC0) >> 4);\n        if (ret == 0)\n        {\n            if (gl_func_00000000(buffer) != ramreadformat.datacrc)\n            {\n                ret = gl_func_00000000(mq, channel);\n                if (ret != 0)\n                {\n                    gl_func_00000000();\n                    return ret;\n                }\n                ret = 4;\n            }\n        }\n        else\n        {\n            ret = 1;\n        }\n        if (ret != 4)\n            break;\n    } while ((retry-- >= 0));\n    gl_func_00000000();\n    return ret;\n}\n\nvoid gl_func_00073538(int channel, u16 address, u8 *buffer)\n{\n    u8 *ptr;\n    __OSContRamReadFormat ramreadformat;\n    int i;\n\n    ptr = (u8 *)D_73334_pifram.ramarray;\n    D_73334_pifram.pifstatus = 1;\n    ramreadformat.dummy = 255;\n    ramreadformat.txsize = 35;\n    ramreadformat.rxsize = 1;\n    ramreadformat.cmd = 3;\n    ramreadformat.address = (address << 0x5) | gl_func_00000000(address);\n    ramreadformat.datacrc = 255;\n    for (i = 0; i < 32; i++)\n    {\n        ramreadformat.data[i] = *buffer++;\n    }\n    if (channel != 0)\n    {\n        for (i = 0; i < channel; ptr++, i++)\n        {\n            *ptr = 0;\n        }\n    }\n    *(__OSContRamReadFormat *)ptr = ramreadformat;\n    ptr += sizeof(__OSContRamReadFormat);\n    ptr[0] = 254;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_73334.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00073538.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 84/84 words vs target asm AND vs baserom in-tree incl. the 12-byte all-zero suffix pad; report.json fuzzy=100.0."
+  }
+}
