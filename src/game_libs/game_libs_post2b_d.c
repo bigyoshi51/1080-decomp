@@ -388,7 +388,7 @@ typedef struct Ldt74 {
     int f_24;           /* 0x24 precision */
 } Ldt74;
 extern double D_73E74_pow10[];   /* data 0x2540: 1e8^(2^k) chunk table */
-extern int game_libs_func_0007488C();
+extern int game_libs_func_00074894();
 
 void gl_func_00073E74(Ldt74 *px, unsigned char code) {
     char buf[0x60];
@@ -511,7 +511,7 @@ void gl_func_00073E74(Ldt74 *px, unsigned char code) {
             }
         }
     }
-    game_libs_func_0007488C();
+    game_libs_func_00074894();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
@@ -880,13 +880,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074850);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074860);
 
-/* game_libs_func_0007488C = 2 zero pad words + the standard int-reader
- * template at 0x74894 (found 2026-06-10 via byte-signature scan). An
- * in-place C match was attempted and REVERTED -- not because the C is
- * wrong, but because this address sits inside the pre-existing drift
- * region [0x743C4..0x748A0] (4-byte content shift vs ROM; see
- * docs/MATCHING_WORKFLOW "drift region mapped") where ROM byte-verify
- * cannot validate any change. Re-do the match AFTER the 743C4 boundary
- * correction realigns the region. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0007488C);
+/* 7488C decomposed 2026-06-10 (drift region realigned by the relayout,
+ * unblocking the deferred match): 2 inter-fn pad words (orphan block)
+ * + the standard collapsed int-reader at 0x74894 (lui/jr/lw with hi/lo
+ * relocs; ROM stores the unrelocated zeros, D_00000000 at VRAM 0
+ * resolves identically). */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/_pad_pre_74894.s")
+int game_libs_func_00074894(void) {
+    return D_00000000;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000747F4_pad.s")
