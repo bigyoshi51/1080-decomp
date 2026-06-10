@@ -16,30 +16,28 @@ extern struct { float f0, f1, f2; } func_00000C10;
  * Pattern: -O0 frame -0x28 with K&R-style arg-save (a0/a1 -> sp+0x28/0x2C)
  * and per-statement sp+0x1C reload of intermediate results. */
 
-/* func_000100F0: 31-insn init+dispatch wrapper. Sets two struct fields,
- * calls a cross-USO helper, dispatches through a struct vtable, then
- * writes a float constant.
+/* func_000100F0: 31-insn init+dispatch wrapper (-O0). Sets two struct fields,
+ * calls a cross-USO helper, dispatches through a struct vtable, then writes
+ * a float constant (17.0f).
  *
- *   a0->[0x2C] = a1;
- *   a0->[0x7C] = 0;
- *   func_00000000(a0);
- *   p = a0->[0x28];
- *   (*p->[0x64])(a0 + (short)p->[0x60]);
- *   *(float*)(a0->[0x74]) = 17.0f;
- *
- * Wait: the asm shows `*(float*)((char*)a0 + 0x74) = 17.0f`, not
- * `*(a0->[0x74]) = 17.0f`. Direct field write, not indirect. */
+ * MATCH KEYS (re-matched 2026-06-10; the 2026-05-14 body was a FALSE MATCH
+ * that landed during the land-script byte_verify regression — it emitted
+ * 0x94 bytes vs the target 0x7C and shifted the whole segment +0x18):
+ *  (1) `register int *p` — the vtable base lives in $s0 (only callee-saved
+ *      reg in the frame: ra@0x1C, s0@0x18, frame 0x28);
+ *  (2) the p-assignment is EMBEDDED in the call's argument expression —
+ *      -O0 reloads a0 from its home slot per statement, but the target
+ *      reuses one $t9 a0-load for both the p-load and the `addu a0,t0,t9`
+ *      arg add, which only happens within a single expression tree;
+ *  (3) arg order `*(short*)(p+0x60) + (int)a0` puts the lh result in the
+ *      first addu operand. */
 void func_000100F0(int *a0, int a1) {
-    int *p;
-    short adj;
-    void (*fn)(int);
+    register int *p;
     *(int*)((char*)a0 + 0x2C) = a1;
     *(int*)((char*)a0 + 0x7C) = 0;
     func_00000000(a0);
-    p = (int*)*(int*)((char*)a0 + 0x28);
-    adj = *(short*)((char*)p + 0x60);
-    fn = (void(*)(int))*(int*)((char*)p + 0x64);
-    fn((int)a0 + adj);
+    (**(void (**)())((char*)p + 0x64))(
+        *(short*)((char*)(p = (int*)*(int*)((char*)a0 + 0x28)) + 0x60) + (int)a0);
     *(float*)((char*)a0 + 0x74) = 17.0f;
 }
 

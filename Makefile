@@ -92,6 +92,8 @@ build/src/bootup_uso/bootup_uso_o0_120A8.c.o build/non_matching/src/bootup_uso/b
 build/src/bootup_uso/bootup_uso_o0_123F0.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_123F0.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_12B7C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_12B7C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_12DA4.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_12DA4.c.o: OPT_FLAGS := -O0
+# (o0_12DA4 / tail4 TRUNCATE_TEXT sizes are set further down with the rest of
+# the bootup split chain — see the 0x1F0 / 0x184C entries.)
 # Trim .text sizes + reduce sh_addralign to 4 so split .o files link at the
 # exact non-16-aligned offsets in bootup_uso. See feedback_non_aligned_o_split.md.
 build/src/bootup_uso/bootup_uso.c.o: TRUNCATE_TEXT := 0xF1F0
@@ -110,7 +112,14 @@ build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
 build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x1710
 build/src/bootup_uso/bootup_uso_tail3a.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_100F0.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_100F0.c.o: OPT_FLAGS := -O0
+# 0x15C = exact len of the 0x100F0..0x1024C region (func_000100F0 0x7C +
+# func_0001016C 0xE0); clips IDO's trailing pad and drops sh_addralign to 4.
+build/src/bootup_uso/bootup_uso_o0_100F0.c.o: TRUNCATE_TEXT := 0x15C
 build/src/bootup_uso/bootup_uso_o0_118E4.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_118E4.c.o: OPT_FLAGS := -O0
+# 0x150 = exact region len (0x118E4..0x11A34); content already 0x150 — the
+# truncate is for the sh_addralign->4 side effect (kills the 16-align link gap
+# in front of this .o; 0x118E4 is only 4-aligned).
+build/src/bootup_uso/bootup_uso_o0_118E4.c.o: TRUNCATE_TEXT := 0x150
 build/src/bootup_uso/bootup_uso_o0_11A34.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11A34.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_11A34.c.o: TRUNCATE_TEXT := 0x80
 build/src/bootup_uso/bootup_uso_o0_11AB4.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11AB4.c.o: OPT_FLAGS := -O0
@@ -133,8 +142,13 @@ build/src/bootup_uso/bootup_uso_tail3b_bot_t.c.o: TRUNCATE_TEXT := 0x1AC
 build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: TRUNCATE_TEXT := 0x3E0
 build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: TRUNCATE_TEXT := 0x18
 build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: OPT_FLAGS := -O2 -g3
-build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: TRUNCATE_TEXT := 0x1E8
-build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x1850
+# 0x1F0 = 0x12DA4..0x12E00 + the 8 zero bytes of 16-align padding at
+# 0x12DF8..0x12E00 that the original ROM keeps before tail4's first fn
+# (was 0x1E8, which cut them and left the segment -0x8 short; IDO already
+# emits the zeros, the truncate just stops clipping them).
+build/src/bootup_uso/bootup_uso_o0_12DA4.c.o: TRUNCATE_TEXT := 0x1F0
+# 0x184C = exact len of the tail4 region (0x12E00..0x1464C); was 0x1850 (+4).
+build/src/bootup_uso/bootup_uso_tail4.c.o: TRUNCATE_TEXT := 0x184C
 # game_libs split around the 56 KB RSP microcode blob at 0xEBF8..0x1CA10.
 # Reduce sh_addralign to 4 so the three objects link back-to-back without
 # 16-byte padding between them. Size targets match the natural compiled
