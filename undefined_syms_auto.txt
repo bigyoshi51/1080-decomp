@@ -2479,3 +2479,4 @@ D_b3_294C_g208 = 0x00000208;
 D_b3_294C_g20C = 0x0000020C;
 D_21D2C_count = 0x00002534;
 D_21D2C_tbl = 0x00002538;
+D_gl_00041310 = 0x41310; /* address constant returned by game_libs_func_000666FC (code label inside game_libs) */

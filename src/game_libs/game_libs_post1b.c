@@ -2401,20 +2401,17 @@ void gl_func_00066674(int **head, int data) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066674);
 #endif
 
-#ifdef NON_MATCHING
-/* Returns the address constant 0x41310 (target: `lui v0,0x4; jr ra; addiu v0,
- * v0,0x1310` — ADDRESS-style lui+addiu). `return 0x41310` emits lui+ORI instead;
- * the addiu form requires referencing a symbol defined at 0x41310 (an address
- * inside game_libs between 412E0 and 41820 — a code/data label with no clean
- * symbol). Matching needs a gl_ref/undefined_syms entry → reloc-resolved %-mover;
- * deferred (disproportionate setup for a 3-insn fn). See IDO_CODEGEN
+/* Returns the address constant 0x41310 (a code label inside game_libs).
+ * MATCHED 2026-06-10 via the deferred undefined_syms route: D_gl_00041310
+ * = 0x41310 in undefined_syms_auto.txt makes &-of-symbol emit the
+ * ADDRESS-style lui+addiu (lui v0,4; jr ra; addiu v0,v0,0x1310) --
+ * `return 0x41310` as a literal emits lui+ORI instead. See IDO_CODEGEN
  * #feedback-return-const-lui-addiu-vs-lui-ori. */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/_pad_pre_666FC.s")
+extern char D_gl_00041310;
 int game_libs_func_000666FC(void) {
-    return 0x41310;
+    return (int)&D_gl_00041310;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000666FC);
-#endif
 
 /* game_libs_func_000666E4: setter for the segment-base int global (*D = a0).
  * Byte-exact plain C — the single &D_00000000 ref is offset-0, so objdiff's
