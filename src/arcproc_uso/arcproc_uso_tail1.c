@@ -10,12 +10,11 @@ typedef struct { int a, b, c, d; } Quad4;
  * Original single-file body split into arcproc_uso.c (0x0..0x50 func_00000000),
  * arcproc_uso_o0_50.c (-O0), and this tail. */
 
-arcproc_uso_func_00001B88(a0) int * a0; {
-    int *t;
-    arcproc_uso_func_00000000(a0);
-    t = *(int**)((char*)a0 + 0xD4);
-    arcproc_uso_func_00000000(t, 0x8C, *(int*)((char*)t + 0x6B0));
-}
+/* arcproc_uso_func_00001B88 moved to its in-offset-order slot (before
+ * func_00001BBC). It was defined at the top of the file, which made IDO emit
+ * it FIRST in .text — an extra 0x34-byte copy at segment offset 0x240 and a
+ * 0x34-byte hole at 0x1B88, i.e. +0x34/-0x34 layout drift inside the segment
+ * (function order in the TU == .text order). */
 
 /* arcproc_uso_func_0000012C and func_0000019C moved to arcproc_uso_o0_12C.c (-O0 file). */
 
@@ -1313,6 +1312,16 @@ void arcproc_uso_func_00001B04(int *arg) {
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001B04);
 #endif
+
+/* K&R variadic-style helper at 0x1B88 (named directly as placeholder callee in
+ * several NM bodies below). MATCHED. Must sit here in file order: IDO emits
+ * .text in definition order. */
+arcproc_uso_func_00001B88(a0) int * a0; {
+    int *t;
+    arcproc_uso_func_00000000(a0);
+    t = *(int**)((char*)a0 + 0xD4);
+    arcproc_uso_func_00000000(t, 0x8C, *(int*)((char*)t + 0x6B0));
+}
 
 #ifdef NON_MATCHING
 /* arcproc_uso_func_00001BBC: float-gated decay updater. cb(arg0); reads

@@ -315,6 +315,9 @@ build/src/timproc_uso_b3/timproc_uso_b3_o0_65C.c.o build/non_matching/src/timpro
 # downstream funcs). Avoids a 3-way file split of tail1 around a mid-file fn.
 ARCPROC_748_DONOR := build/src/arcproc_uso/arcproc_uso_o0_748.c.o
 build/src/arcproc_uso/arcproc_uso_tail1.c.o build/non_matching/src/arcproc_uso/arcproc_uso_tail1.c.o: REPLACE_FUNC_BODY := arcproc_uso_func_00000748=$(ARCPROC_748_DONOR)
+# 0x2740 = exact len of the tail1 region (0x240..0x2980); clips IDO's
+# trailing pad word so arcproc_uso emits at its original segment length.
+build/src/arcproc_uso/arcproc_uso_tail1.c.o: TRUNCATE_TEXT := 0x2740
 build/src/arcproc_uso/arcproc_uso_o0_748.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_748.c.o: OPT_FLAGS := -O0
 
 # mgrproc_uso (Yay0-compressed): a contiguous -O0 run at the block start
