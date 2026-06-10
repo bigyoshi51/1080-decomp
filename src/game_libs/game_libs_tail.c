@@ -3597,6 +3597,7 @@ void gl_func_0000E66C(int *self) {
  */
 void gl_func_0000E6E8(int *self, int a1, int a2, float *a3_float) {
     int *q;
+    volatile int pad;  /* phantom-slot lever (E910 recipe 2026-06-10) */
     self[0x74 / 4] = (int)a3_float;
     if (self[0x60 / 4] == 0) {
         gl_func_00000000();
@@ -3647,6 +3648,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E6E8);
  */
 void gl_func_0000E79C(int *self, int a1, int a2, int *a3_int_ptr) {
     int *q;
+    volatile int pad;  /* phantom-slot lever (E910 recipe 2026-06-10) */
     self[0x88 / 4] = (int)a3_int_ptr;
     if (self[0x64 / 4] == 0) {
         gl_func_00000000();
