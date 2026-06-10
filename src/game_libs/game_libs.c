@@ -1816,13 +1816,9 @@ void gl_func_000040BC(char *a0) {
  * standalone (4/4, 0 diffs) but mid-file land-blocked (catch-all unit);
  * relayout queue (10 ready bodies). */
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_func_000040EC_pad.s")
-#ifdef NON_MATCHING
 int game_libs_func_000040F4(int a0) {
     return 1 << (a0 + 4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000040F4);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_00004104(int *dst) {

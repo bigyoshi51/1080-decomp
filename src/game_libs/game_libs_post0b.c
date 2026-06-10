@@ -8783,7 +8783,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
  * INCLUDE until the relayout session. The old "leading-nop injection"
  * cap note is obsolete -- the nops were never part of the function. */
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_func_0003ECDC_pad.s")
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003ECE4);
+void game_libs_func_0003ECE4(void) {
+}
 
 extern int gl_func_00000000();
 int gl_func_0003ECEC(int a0) {
@@ -18436,13 +18437,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CFD4);
  * first (longer dep chain) = the target's inverted t7/t6 pair. The
  * flat-sum form pins idx-first creation; named locals take a/v regs.
  * LAND BLOCKED mid-file (post0b drift); relayout queue (11 bodies). */
-#ifdef NON_MATCHING
 int game_libs_func_0004D014(char *a0) {
     return ((int *)(*(int *)(a0 + 0x148) + 0xF4))[*(int *)(a0 + 0x144)];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004D014);
-#endif
 
 extern int gl_ref_00056CB4();
 extern int gl_ref_00056C5C();
@@ -22548,7 +22545,6 @@ short game_libs_func_00052A64(char *a0, int a1) {
  * "past the end" was just the else-branch. Merged (0x50+0x1C -> 0x6C);
  * the role-#6 barrier materializes the p base. LAND BLOCKED mid-file;
  * relayout session (9 ready bodies). */
-#ifdef NON_MATCHING
 void game_libs_func_00052A7C(int *a0, int a1, int a2) {
     int *p;
     p = (int *)((char *)a0 + 0x34);
@@ -22564,9 +22560,6 @@ void game_libs_func_00052A7C(int *a0, int a1, int a2) {
         p[1] &= ~0x20000;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052A7C);
-#endif
 
 /* game_libs_func_00052ACC: `*(int*)(a0+4) &= ~0x20000;` (lw t2,4(a0); and
  * ~0x20000; sw t3,4(a0)). CAP: -g/-O1 codegen — target uses t2/t3 + UNFILLED
@@ -28607,7 +28600,6 @@ void gl_func_0005CE68(char *arg0, char *arg1, f32 arg2, s32 arg3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0005D054: quaternion (Hamilton) product a2 = a0 * a1.
  * BYTE-EXACT C FOUND 2026-06-10 (56/56 standalone, zero diffs): the
  * "honest cap" (x<->z spill-slot pair) fell to SPLITTING declarations
@@ -28629,9 +28621,6 @@ void gl_func_0005D054(float *a0, float *a1, float *a2) {
     a2[2] = z;
     a2[3] = w;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D054);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW

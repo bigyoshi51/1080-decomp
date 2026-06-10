@@ -3376,7 +3376,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
  * (without it the first load folds to 24(a0) and the stores split).
  * Fifth member of the flag-helper family, all five now byte-exact.
  * LAND BLOCKED on the mid-file constraint; relayout session. */
-#ifdef NON_MATCHING
 int *game_libs_func_0000E410(char *a0) {
     int *p;
     p = (int *)(a0 + 0x18);
@@ -3385,16 +3384,12 @@ int *game_libs_func_0000E410(char *a0) {
     *p |= 8;
     return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E410);
-#endif
 
 /* game_libs_func_0000E42C: clear flags 4+8 on a0->i_18, returns the
  * field pointer. BYTE-EXACT 2026-06-10 (0 diffs standalone) via the
  * role-#6 barrier; SIXTH member of the flag-helper family (E410/E42C/
  * E450/E464/E47C/E490 -- set/clear x {4, 8, both}, all solved). LAND
  * BLOCKED mid-file; relayout session. */
-#ifdef NON_MATCHING
 int *game_libs_func_0000E42C(char *a0) {
     int *p;
     p = (int *)(a0 + 0x18);
@@ -3403,9 +3398,6 @@ int *game_libs_func_0000E42C(char *a0) {
     *p &= ~8;
     return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E42C);
-#endif
 
 /* game_libs_func_0000E450: set flag 8 on a0->i_18. BYTE-EXACT C FOUND
  * 2026-06-10 (0 diffs standalone): the explicit-pointer addiu form
@@ -3413,16 +3405,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E42C);
  * lever's 6th role: it blocks IDO's offset-folding across the block
  * boundary so the addiu v0,a0,24 materializes. LAND BLOCKED on the
  * mid-file in-place constraint; promote via the relayout session. */
-#ifdef NON_MATCHING
 void game_libs_func_0000E450(char *a0) {
     int *p;
     p = (int *)(a0 + 0x18);
     if (1) {}
     *p = *p | 8;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E450);
-#endif
 
 /* game_libs_func_0000E464: clear flag 8 on a0->i_18. BYTE-EXACT C FOUND
  * 2026-06-10 (0 diffs standalone): the explicit-pointer addiu form
@@ -3430,16 +3418,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E450);
  * lever's 6th role: it blocks IDO's offset-folding across the block
  * boundary so the addiu v0,a0,24 materializes. LAND BLOCKED on the
  * mid-file in-place constraint; promote via the relayout session. */
-#ifdef NON_MATCHING
 void game_libs_func_0000E464(char *a0) {
     int *p;
     p = (int *)(a0 + 0x18);
     if (1) {}
     *p = *p & ~8;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E464);
-#endif
 
 /* game_libs_func_0000E47C: set flag 4 on a0->i_18. BYTE-EXACT C FOUND
  * 2026-06-10 (0 diffs standalone): the explicit-pointer addiu form
@@ -3447,16 +3431,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E464);
  * lever's 6th role: it blocks IDO's offset-folding across the block
  * boundary so the addiu v0,a0,24 materializes. LAND BLOCKED on the
  * mid-file in-place constraint; promote via the relayout session. */
-#ifdef NON_MATCHING
 void game_libs_func_0000E47C(char *a0) {
     int *p;
     p = (int *)(a0 + 0x18);
     if (1) {}
     *p = *p | 4;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E47C);
-#endif
 
 /* game_libs_func_0000E490: clear flag 4 on a0->i_18. BYTE-EXACT C FOUND
  * 2026-06-10 (0 diffs standalone): the explicit-pointer addiu form
@@ -3464,16 +3444,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E47C);
  * lever's 6th role: it blocks IDO's offset-folding across the block
  * boundary so the addiu v0,a0,24 materializes. LAND BLOCKED on the
  * mid-file in-place constraint; promote via the relayout session. */
-#ifdef NON_MATCHING
 void game_libs_func_0000E490(char *a0) {
     int *p;
     p = (int *)(a0 + 0x18);
     if (1) {}
     *p = *p & ~4;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E490);
-#endif
 
 void gl_func_0000E4A8(int *a0) {
     int r;
