@@ -650,8 +650,14 @@ void titproc_uso_func_0000101C(int *a0) {
  *  - PASS-8 NOTE 2026-06-10: the head's 4-entry jumptable (sltiu 4 +
  *    lui/addu/lw/jr) is NOT reproducible from a 4-case switch -- both
  *    IDO 7.1 and 5.3 at -O2 emit compare chains for 4 cases (tested
- *    minimal + big-body). Open: the original may have used more case
- *    labels mapping into 4 targets, or a hand-rolled dispatch.
+ *    minimal + big-body). EXHAUSTIVE 2026-06-10: 9 forms swept --
+ *    5 labels gives sltiu 5 (table at the 5-label threshold, both
+ *    compilers); guard+switch, shared labels (5 over range 0-3),
+ *    4+default, double-switch, -O1, -O2 -g3 ALL emit compare chains
+ *    or the wrong sltiu. NO tested C/flag combination produces a
+ *    4-entry table. The head is a genuine compiler-config or
+ *    hand-dispatch artifact; the compare-chain C stays as the
+ *    closest form. Do not re-sweep switch shapes for this head.
  *    Remaining small gaps: lui/addiu materializes at 0x22C/0x28C and
  *    a nop/lw/li triplet at 0x2DC (per-arm reload items).
  *  - PASS-4 RECON 2026-06-10: the NM emit is 0x414 vs target 0x488 =
