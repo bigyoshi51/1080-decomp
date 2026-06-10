@@ -30354,6 +30354,15 @@ void gl_func_0005FD20(float *a0) {
         (double)a0[2], (double)a0[5]);
 }
 
+/* game_libs_func_0005FDC0: the 3-word stolen-prologue fragment
+ * (nop; lui a2; lw a2 = successor gl_func_0005FDCC's $a2 base setup)
+ * between gl_func_0005FD20 and gl_func_0005FDCC. Historically absorbed
+ * via a gl_func_0005FD20 SUFFIX_BYTES recipe; that mechanism was removed
+ * 2026-05-23 as match-faking and the bytes were dropped from the build
+ * (relayout-walker -0xC event at 0x5FDCC). Restored 2026-06-10 as an
+ * honest standalone INCLUDE_ASM fragment. */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FDC0);
+
 /* 18-insn 2-call wrapper with early-return guard (0x48). LANDED fuzzy=100.
  * The historical SUFFIX_BYTES recipe (2 trailing stolen-prologue insns
  * for the successor's $v1 base) was REMOVED 2026-05-23 as match-faking;
