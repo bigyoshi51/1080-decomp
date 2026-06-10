@@ -32,12 +32,79 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074EDC);
  * Matching needs: the stolen flag-load boundary fix (splat boundary
  * correction) + fixed-address data symbols (gl_dref_00045230 family) --
  * multi-step infra; INCLUDE_ASM is build path. */
+/* 2026-06-10 MATCH PUSH (5.3 -O1, reloc-aware standalone): 105/98 insns,
+ * 30 non-reloc diffs. CONFIRMED: head (pre-prologue flag load) emits
+ * naturally from if(!flag) at 5.3 -O1; gl_dref extern symbols produce
+ * the addiu %lo forms (literals emit ori -- wrong); decl order v,saved,
+ * cur fixes the stack homes; gl_ref_000896E8 (= USO 0x7507C + 0x1466C,
+ * the thread entry = the NEXT function!) passes as a code pointer with
+ * the correct lui 9/addiu -26904 shape. Residual: +7 insns from the
+ * event-record constant stores (target uses lui-at + %lo-folded sh/sb/sw
+ * with at reuse; build materializes per-field temps) and downstream
+ * scheduling. Needed for in-tree: gl_dref_* + D_74EFC_* values in
+ * undefined_syms (0x45230/45248/45260/45278/44230/44080; gl_ref_000896E8
+ * = 0x000896E8) and a 5.3 -O1 carve. */
 #ifdef NON_MATCHING
+typedef struct {
+    u16 type; u8 b; u8 pad; s32 w;
+} GlEvRec;
+
+extern int gl_func_00000000();
+extern int gl_ref_000896E8();
+extern s32 D_74EFC_flag;
+extern char *D_74EFC_t1;
+extern char *D_74EFC_t2a;
+extern char *D_74EFC_t2b;
+extern s32 D_74EFC_z0;
+extern s32 D_74EFC_z1;
+extern s32 D_74EFC_z2;
+extern int D_74EFC_arg;
+extern char gl_dref_00045230;
+extern char gl_dref_00045248;
+extern GlEvRec gl_dref_00045260;
+extern GlEvRec gl_dref_00045278;
+extern char gl_dref_00044230;
+extern char gl_dref_00044080;
+
 void gl_func_00074EFC(int pri) {
-    /* structural skeleton only -- see decode above; the hardcoded
-     * bootup-region addresses and the stolen flag-load make a compiling
-     * faithful body dependent on the boundary fix + dref symbols. */
-    (void)pri;
+    s32 v;
+    s32 saved;
+    s32 cur;
+
+    if (D_74EFC_flag == 0) {
+        gl_func_00000000();
+        gl_func_00000000(&gl_dref_00045230, &gl_dref_00045248, 5);
+        gl_dref_00045260.type = 13;
+        gl_dref_00045260.b = 0;
+        gl_dref_00045260.w = 0;
+        gl_dref_00045278.type = 14;
+        gl_dref_00045278.b = 0;
+        gl_dref_00045278.w = 0;
+        gl_func_00000000(7, &gl_dref_00045230, &gl_dref_00045260);
+        gl_func_00000000(3, &gl_dref_00045230, &gl_dref_00045278);
+        saved = -1;
+        cur = gl_func_00000000(0);
+        if (cur < pri) {
+            saved = cur;
+            gl_func_00000000(0, pri);
+        }
+        v = gl_func_00000000();
+        D_74EFC_flag = 1;
+        D_74EFC_t1 = &gl_dref_00044230;
+        D_74EFC_t2a = &gl_dref_00044080;
+        D_74EFC_t2b = &gl_dref_00044080;
+        D_74EFC_z0 = 0;
+        D_74EFC_z1 = 0;
+        D_74EFC_z2 = 0;
+        gl_func_00000000(&gl_dref_00044230, 0, gl_ref_000896E8, &D_74EFC_arg,
+                         &gl_dref_00044230 + 0x1000, pri);
+        gl_func_00000000();
+        gl_func_00000000(&gl_dref_00044080);
+        gl_func_00000000(v);
+        if (saved != -1) {
+            gl_func_00000000(0, saved);
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074EFC);
