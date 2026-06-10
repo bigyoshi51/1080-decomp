@@ -3350,15 +3350,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E368);
  * form. The target is -O2-SIZE (no frame) with pointer-in-v0 (addiu v0,a0,0x18;
  * 0(v0) RMW); NO opt level produces that. Genuine cap — do NOT attempt the
  * OPT_FLAGS split. */
-/* game_libs_func_0000E410: 7-insn `set-bit-2-then-set-bit-3` (|=4 then |=8)
- * with target keeping the intermediate store. Family head — see comment above.
- *   int *p = a0 + 0x18; *p |= 4; *p |= 8; return p;
- *
- * IDO -O2 folds both ors into a single `| 0xC` and DSE's the first store.
- * Same base-reg-choice + redundant-write family cap. */
+/* game_libs_func_0000E410: set flags 4|8 on a0->i_18, returns the
+ * field pointer. BYTE-EXACT C FOUND 2026-06-10 (0 diffs standalone):
+ * the same role-#6 barrier as the E450 quartet -- `int *p; p = ...;
+ * if (1) {}` materializes the addiu base so ALL accesses go via 0(v0)
+ * (without it the first load folds to 24(a0) and the stores split).
+ * Fifth member of the flag-helper family, all five now byte-exact.
+ * LAND BLOCKED on the mid-file constraint; relayout session. */
 #ifdef NON_MATCHING
-int *game_libs_func_0000E410(int *a0) {
-    int *p = (int*)((char*)a0 + 0x18);
+int *game_libs_func_0000E410(char *a0) {
+    int *p;
+    p = (int *)(a0 + 0x18);
+    if (1) {}
     *p |= 4;
     *p |= 8;
     return p;
