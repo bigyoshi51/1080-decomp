@@ -16,12 +16,18 @@ jobs:
       - name: Install cross-assembler/linker
         run: sudo apt-get update && sudo apt-get install -y binutils-mips-linux-gnu
 
-      - name: Download prebuilt IDO 7.1
+      - name: Download prebuilt IDO 7.1 and 5.3
         run: |
           mkdir -p tools/ido-static-recomp/build/7.1/out
           curl -sL https://github.com/decompals/ido-static-recomp/releases/download/v1.2/ido-7.1-recomp-linux.tar.gz \
             | tar xz -C tools/ido-static-recomp/build/7.1/out
           chmod +x tools/ido-static-recomp/build/7.1/out/*
+          # IDO 5.3 is needed for the game_libs_ido53_* units (statically-linked
+          # libultra originally built with IDO 5.3 -O1; see docs ido53-carve recipe)
+          mkdir -p tools/ido-static-recomp/build/5.3/out
+          curl -sL https://github.com/decompals/ido-static-recomp/releases/download/v1.2/ido-5.3-recomp-linux.tar.gz \
+            | tar xz -C tools/ido-static-recomp/build/5.3/out
+          chmod +x tools/ido-static-recomp/build/5.3/out/*
 
       - name: Build C objects (no baserom required)
         run: make RUN_CC_CHECK=0 -j$(nproc) objects
