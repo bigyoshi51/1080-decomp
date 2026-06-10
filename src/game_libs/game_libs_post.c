@@ -10132,9 +10132,15 @@ int game_libs_func_000276B8(int **a0, int *a1, int a2) {
      * (the SECOND arg), not a3[6] -- structure now 6/6 with both
      * dead-arg overwrites (a2 = value, a1 = chain result). Remaining
      * 4 word diffs: target's chain temps are t0/t1 (5th/6th temps)
-     * vs standalone t6/t7 -- 4-temp shift = context/fragment evidence
-     * (forensics taxonomy); see also 275F4 = a 4-jr-ra bundle just
-     * above, this micro-region is another shattered cluster. */
+     * vs standalone t6/t7. RESOLVED 2026-06-10: 275F4's census already
+     * shows its branches enter THIS leaf at +4 -- 276B8 is an INTERIOR
+     * ENTRY of 275F4's parent function (the 6F038 two-entry class):
+     * the original TU had no standalone 276B8, callers jal into the
+     * parent's tail block, so its temps continue the parent's counter
+     * (t6..t9 consumed by the parent's head, visible in 275F4's
+     * disasm). 95.83 is therefore the standalone-C ceiling; the parent
+     * region [0x275F4..0x276E4) is INCLUDE_ASM-faithful as documented.
+     * NOT the shattered-switch class (no jr-tN dispatcher). */
     a2 = a1[6];
     a1 = (int *)*(int *)(*(int *)((char *)*a0 + 8) + 4);
     return (int)a1 - a2;
