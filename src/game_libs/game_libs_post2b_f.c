@@ -160,6 +160,35 @@ int gl_func_0007526C(unsigned int pc, int flag) {
     return 0;
 }
 #else
+/* gl_func_0007526C (last fn in game_libs, 11 insns): conditional
+ * SP_PC_REG writer -- if (a1 & 1) { *(vu32 *)0xA4080000 = a0; return 0; }
+ * return -1. CAP (2026-06-10 exhaustive standalone sweep): the target has
+ * an EMPTY 8-byte frame on a no-local leaf, single shared exit, UNFILLED
+ * bnez delay (nop), v0 set directly in both arms, and temps starting at
+ * t7 (t6 skipped). No tested combination reproduces all four:
+ *   - 5.3/7.1 x -O1/-O2 plain if/return: 9-10 insns, no frame, dual exits.
+ *   - -O0 (both): 16 insns (homed args, too long).
+ *   - -O1 -Olimit 1 (both): 10 insns, no frame, dual jr-ra.
+ *   - int ret single-exit at -O1: frame + single exit BUT ret spills to
+ *     4(sp) (3 extra stack ops, 12 insns).
+ *   - register int ret at -O1/-Olimit: ret in a2 + move v0,a2 (12 insns).
+ *   - unused (volatile) int local at -O1/-O2: dropped entirely, no frame.
+ * Closest = the int-ret -O1 shape (frame + structure right, spill wrong).
+ * The t7-start temp numbering also suggests something consumed t6 --
+ * possibly a different source construct entirely. */
+#ifdef NON_MATCHING
+int gl_func_0007526C(int a0, unsigned a1) {
+    int ret;
+    if (!(a1 & 1)) {
+        ret = -1;
+    } else {
+        *(volatile int *)0xA4080000 = a0;
+        ret = 0;
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007526C);
+#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0007526C_pad.s")
 #endif
