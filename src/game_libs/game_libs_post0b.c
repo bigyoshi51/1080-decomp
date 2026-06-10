@@ -9492,13 +9492,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F8E8);
  * NM wrap is for grep discoverability + multi-tick decomp seed. Partial
  * body documents the alloc/init/call structure. */
 extern int gl_func_00000000();
-extern char D_03F96C_extern;
 int gl_func_0003F96C(int a0, int a1, int a2) {
     char buf[0xA0];
     *(int*)&buf[0] = 31;
     *(int*)&buf[0x4C] = a2;
     gl_func_00000000(&buf);
-    gl_func_00000000(&D_03F96C_extern, a1, a2);
+    gl_func_00000000(&D_00000000, a1, a2);
     return a2;
 }
 
@@ -10341,10 +10340,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040CAC);
 extern int D_00000000;
 void gl_func_00040DE8(char *a0) {
     char *g = (char *)&D_00000000;
-    gl_func_00000000(g, (char *)&D_00000000 + 0x0002F494, 0);
-    gl_func_00000000(g, (char *)&D_00000000 + 0x0002F49C, a0 + 0xB4, 0x3C);
-    gl_func_00000000(g, (char *)&D_00000000 + 0x0002F4A0, a0 + 0xDC, 0x3C);
-    gl_func_00000000(g, (char *)&D_00000000 + 0x0002F4A8, a0 + 0xB0, 0);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0001F494, 0);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0001F49C, a0 + 0xB4, 0x3C);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0001F4A0, a0 + 0xDC, 0x3C);
+    gl_func_00000000(g, (char *)&D_00000000 + 0x0001F4A8, a0 + 0xB0, 0);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0);
 }
@@ -11375,11 +11374,11 @@ void gl_func_000421D4(void) {
     char scr[0x40];
     int h;
     int v;
-    gl_func_00000000(&scr[0], (char *)&D_00000000 + 0x0002F718);
-    if (gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0002F71C, &scr[0]) == 0) return;
+    gl_func_00000000(&scr[0], (char *)&D_00000000 + 0x0001F718);
+    if (gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0001F71C, &scr[0]) == 0) return;
     h = gl_func_00000000(&scr[0]);
-    gl_func_00000000(&scr[0], (char *)&D_00000000 + 0x0002F724);
-    if (gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0002F728, &scr[0]) == 0) return;
+    gl_func_00000000(&scr[0], (char *)&D_00000000 + 0x0001F724);
+    if (gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0001F728, &scr[0]) == 0) return;
     v = gl_func_00000000(&scr[0]);
     if (h != 0) {
         gl_func_00000000(&D_00000000, h, v);

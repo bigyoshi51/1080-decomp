@@ -138,10 +138,10 @@ int gl_func_00000574(char *a0) {
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_0001CB30;
+extern char gl_ref_0000CB30;
 
 void gl_func_000005A4(char *a0, char a1, char a2, char a3) {
-    gl_func_00000000(a0 + 0xE4, &gl_ref_0001CB30, a1, a2, a3);
+    gl_func_00000000(a0 + 0xE4, &gl_ref_0000CB30, a1, a2, a3);
 }
 
 #ifdef NON_MATCHING
