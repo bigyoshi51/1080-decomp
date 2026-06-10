@@ -184,3 +184,89 @@ s32 gl_func_00071D40(OSPfs *pfs, __OSPackId *temp)
     }
     return 0;
 }
+
+/* gl_func_00071ED8 = libultra __osGetId, gl_func_00072134 = __osCheckId
+ * (io/contpfs.c) -- fifth and sixth contpfs recoveries via the ido53
+ * carve. Verbatim libreultra source at IDO 5.3 -O1; all callees are
+ * gl_func_00000000 runtime-patch placeholders; literals: PFS_ERR_ID_FATAL
+ * =10, PFS_ERR_DEVICE=11, PFS_ONE_PAGE=8, and __osCheckId's mismatch
+ * return is 2 in this libultra build (not the modern PFS_ERR_NEW_PACK
+ * value). The entire contpfs.c is now matched: Sumcalc, IdCheckSum,
+ * RepairPackId, CheckPackId, GetId, CheckId. */
+s32 gl_func_00071ED8(OSPfs *pfs)
+{
+    int k;
+    u16 sum;
+    u16 isum;
+    u8 temp[32];
+    __OSPackId newid;
+    s32 ret;
+    __OSPackId *id;
+
+    if (pfs->activebank != 0) {
+        pfs->activebank = 0;
+        ERRCK(gl_func_00000000(pfs))
+    }
+    ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 1, (u8*)temp));
+    gl_func_00000000((u16*)temp, &sum, &isum);
+    id = (__OSPackId*)temp;
+    if (id->checksum != sum || id->inverted_checksum != isum)
+    {
+        ret = gl_func_00000000(pfs, id);
+        if (ret == 10)
+        {
+            ERRCK(gl_func_00000000(pfs, id, &newid));
+            id = &newid;
+        }
+        else if (ret != 0)
+        {
+            return ret;
+        }
+    }
+    if ((id->deviceid & 1) == 0)
+    {
+        ERRCK(gl_func_00000000(pfs, id, &newid));
+        id = &newid;
+        if ((id->deviceid & 1) == 0)
+            return 11;
+    }
+    for (k = 0; k < 32; k++)
+    {
+        pfs->id[k] = ((u8 *)id)[k];
+    }
+    pfs->version = id->version;
+    pfs->banks = id->banks;
+    pfs->inode_start_page = pfs->banks * 2 + 3;
+    pfs->dir_size = 16;
+    pfs->inode_table = 8;
+    pfs->minode_table = pfs->banks * 8 + 8;
+    pfs->dir_table = pfs->minode_table + pfs->banks * 8;
+    ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 7, pfs->label));
+    return 0;
+}
+
+s32 gl_func_00072134(OSPfs *pfs)
+{
+    int k;
+    u8 temp[32];
+    s32 ret;
+
+    if (pfs->activebank != 0) {
+        pfs->activebank = 0;
+        ERRCK(gl_func_00000000(pfs))
+    }
+    ret = gl_func_00000000(pfs->queue, pfs->channel, 1, (u8*)temp);
+    if (ret != 0)
+    {
+        if (ret != 2)
+            return ret;
+        else
+            ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 1, (u8*)temp));
+    }
+    for (k = 0; k < 32; k++)
+    {
+        if (pfs->id[k] != temp[k])
+            return 2;
+    }
+    return 0;
+}
