@@ -390,10 +390,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000636BC);
 
 void game_libs_func_00063704(int a0) {}
 
+extern int gl_ref_00076488();
+extern int gl_ref_00076584();
 void gl_func_0006370C(char *a0) {
     int local;
-    gl_func_00000000(&local);
-    gl_func_00000000(a0 + 0x10);
+    gl_ref_00076488(&local);
+    gl_ref_00076584(a0 + 0x10);
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006370C_pad.s")
 
@@ -4055,11 +4057,12 @@ void game_libs_func_00068348(int a0) {}
  * stub (sw a1, 0xC(a0); sw $0, 8(a0); sw $0, 4(a0); jr ra). */
 extern int gl_func_00000000();
 
+extern int gl_ref_0007C89C();
 void gl_func_00068350(int *self) {
     int *vtable = (int *)self[7];                         /* self->[0x1C] */
     /* inline function-ptr call → jalr $t9 per feedback-ido-indirect-call-t9 */
     (*(int(**)(int *))((char *)vtable + 0xC))((int *)(((short *)vtable)[4] + (char *)self));
-    gl_func_00000000(self + 4);
+    gl_ref_0007C89C(self + 4);
     if (*(int *)((char *)&D_00000000 + 4) == 0) {
         self[0] |= 1;
     } else {
@@ -5282,10 +5285,12 @@ int gl_func_00069C38(char *a0) {
     return gl_func_00000000(a0 + 0x48);
 }
 
+extern int gl_ref_0007D594();
+extern int gl_ref_0007D5D0();
 void gl_func_00069C58(char *a0) {
     int local;
-    gl_func_00000000(&local);
-    gl_func_00000000(a0 + 0x10);
+    gl_ref_0007D594(&local);
+    gl_ref_0007D5D0(a0 + 0x10);
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00069C58_pad.s")
 

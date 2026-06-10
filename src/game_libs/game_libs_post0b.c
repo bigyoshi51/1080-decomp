@@ -12692,10 +12692,12 @@ void gl_func_00043FFC(char *a0) {
 //   the named fn (3-call register wrapper) only. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 extern int gl_func_00000000();
+extern int gl_ref_00056C5C();
+extern int gl_ref_00056CB4();
 void gl_func_00044034(void *a0) {
-    gl_func_00000000(a0);
-    gl_func_00000000((char *)a0 + 0x10);
-    gl_func_00000000((char *)a0 + 0x14);
+    gl_ref_00056C5C(a0);
+    gl_ref_00056CB4((char *)a0 + 0x10);
+    gl_ref_00056CB4((char *)a0 + 0x14);
 }
 
 #ifdef NON_MATCHING
@@ -20510,10 +20512,12 @@ char *gl_func_0004F85C(char *a0, char *a1, char *a2, char *a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F85C);
 #endif
 
+extern int gl_ref_00062B54();
+extern int gl_ref_00062B90();
 void gl_func_0004F9AC(char *a0) {
     int local;
-    gl_func_00000000(&local);
-    gl_func_00000000(a0 + 0x10);
+    gl_ref_00062B54(&local);
+    gl_ref_00062B90(a0 + 0x10);
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0004F9AC_pad.s")
 
@@ -24503,10 +24507,12 @@ void gl_func_00055AB8(Quad4 *dst) {
     *dst = scratch;
 }
 
+extern int gl_ref_0006A0E8();
+extern int gl_ref_0006A124();
 void gl_func_00055B10(char *a0) {
     int local;
-    gl_func_00000000(&local);
-    gl_func_00000000(a0 + 0x10);
+    gl_ref_0006A0E8(&local);
+    gl_ref_0006A124(a0 + 0x10);
 }
 
 /* gl_func_00055B44: 60-insn nested-loop "row x 16-col grid emit" function

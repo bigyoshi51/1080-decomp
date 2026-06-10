@@ -6032,17 +6032,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000231B4);
  *   if (v == 0) call3(a3, 0, 0);
  *
  * Target has RESOLVED jal targets baked in (0x0C00E05D -> 0x38174,
- * 0x0C00E1C3 -> 0x3870C) pointing inside other game_libs functions, but the
- * C calls gl_func_00000000 (placeholder, addr 0) for all three. objdiff
- * reloc-blindness reports 100% (FALSE positive) — the linked ROM bytes would
- * be jal-0, not the resolved targets. Honest fix: declare gl_ref_00038174 /
- * gl_ref_0003870C aliases (undefined_syms_auto.txt) and call THOSE for the
- * first two; keep gl_func_00000000 for the 3rd (genuine placeholder). Until
- * then keep NON_MATCHING — do NOT unwrap (would regress the ROM). */
+ * 0x0C00E1C3 -> 0x3870C) pointing inside other game_libs functions, and the C
+ * now calls gl_ref_00038174 / gl_ref_0003870C (undefined_syms absolutes,
+ * RESOLVED 2026-06-10 full-ROM word-diff drive) for the first two; the 3rd
+ * stays gl_func_00000000 (genuine runtime-reloc placeholder, base word is
+ * 0C000000 there too). ROM bytes now exact at links 232A0/232BC. */
+extern int gl_ref_00038174();
+extern int gl_ref_0003870C();
 void gl_func_00023284(int a0, int a1, int a2, int a3) {
     int v;
-    v = gl_func_00000000(2, a0);
-    v = gl_func_00000000(2, v, a1, a2, a3);
+    v = gl_ref_00038174(2, a0);
+    v = gl_ref_0003870C(2, v, a1, a2, a3);
     if (v == 0) {
         gl_func_00000000(a3, 0, 0);
     }
@@ -11153,9 +11153,9 @@ int gl_func_0002886C(int a0) {
 //   FP helper now lives elsewhere). Real-C STRUCTURAL body below per
 //   the analysis: tail-call thunk forwarding (a0, 7). Byte-match
 //   deferred. Name pre-checked: no extern reuse.
-extern int gl_func_00000000();
+extern int gl_ref_0003CC70();
 void gl_func_0002888C(int a0) {
-    gl_func_00000000(a0, 7);
+    gl_ref_0003CC70(a0, 7);
 }
 
 /* game_libs_func_000288AC: 65-insn FP threshold-classifier (fresh decode 2026-05-28,
@@ -14075,6 +14075,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D014);
  * reordering to match target's emit sequence (0,16,1,18,20,10,8,12,14,2). */
 extern char D_2D064_148;
 extern char D_2D064_152;
+extern int gl_ref_0003E8C4();
 void gl_func_0002D064(char *a0) {
     char *p;
     int i;
@@ -14099,7 +14100,7 @@ void gl_func_0002D064(char *a0) {
     *(float*)(a0 + 40) = 0.5f;
     p = a0;
     for (; i < 64; i += 4) {
-        gl_func_00000000(*(int*)(p + 56));
+        gl_ref_0003E8C4(*(int*)(p + 56));
         p += 4;
     }
 }
@@ -16824,9 +16825,11 @@ void gl_func_000316CC(int a0) {
 //   grep -c 03E00008 = 1 (.s now single fn). Real-C STRUCTURAL body
 //   below per the analysis. Byte-match deferred. Name pre-checked:
 //   no extern reuse.
+extern int gl_ref_00045DC0();
+extern int gl_ref_00045DF0();
 void gl_func_00031710(int arg) {
-    gl_func_00000000((char *)&D_00000000 + 0x430, 0, arg + 0x17F, 0x7F);
-    gl_func_00000000((char *)&D_00000000 + 0x430);
+    gl_ref_00045DC0((char *)&D_00000000 + 0x430, 0, arg + 0x17F, 0x7F);
+    gl_ref_00045DF0((char *)&D_00000000 + 0x430);
 }
 
 // Read u16 v = D[a2] from the segment-base table, store args to a0->0x54/0x58,
