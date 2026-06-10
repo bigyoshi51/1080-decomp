@@ -5618,7 +5618,15 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * (split-fragments / merge-fragments) makes this switch match as-is. The goto-z
  * funnel is required — a per-case `return 0` makes IDO hoist `move v0,zero`
  * between lw and addiu, shifting the whole body. Multi-tick infra. */
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_000087F4: bit-priority encoder dispatched on
+ * a0->0x3C8 (8-entry jumptable). MATCHED 2026-06-10 (43/43 byte-exact):
+ * the merged region has only THREE case bodies -- cases 1/2/3 check
+ * descending bit chains (1,2,4 / 2,4 / 4), and table entries 4..8 all
+ * point at the shared goto-z funnel (return 0). The old 8-distinct-case
+ * decode emitted ~0x140; body-sharing via case-label stacking + the
+ * documented goto-z funnel (per-case return-0 hoists move v0,zero)
+ * hits the exact 0xAC. Case 3 inlines its load (no v0 var) per the
+ * target's t3 temp. Sibling dispatcher 88A0 mirrors on D_807FF234. */
 int timproc_uso_b5_func_000087F4(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
@@ -5634,36 +5642,18 @@ int timproc_uso_b5_func_000087F4(char *a0) {
         if (v0 & 4) return 4;
         goto z;
     case 3:
-        v0 = *(int *)(a0 + 0x3C0);
-        if (v0 & 4) return 4;
+        if (*(int *)(a0 + 0x3C0) & 4) return 4;
         goto z;
     case 4:
-        v0 = *(int *)(a0 + 0x3C0);
-        if (v0 & 8) return 8;
-        goto z;
     case 5:
-        v0 = *(int *)(a0 + 0x3C0);
-        if (v0 & 1) return 1;
-        goto z;
     case 6:
-        v0 = *(int *)(a0 + 0x3C0);
-        if (v0 & 2) return 2;
-        goto z;
     case 7:
-        v0 = *(int *)(a0 + 0x3C0);
-        if (v0 & 4) return 4;
-        goto z;
     case 8:
-        v0 = *(int *)(a0 + 0x3C0);
-        if (v0 & 8) return 8;
         goto z;
     }
 z:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087F4);
-#endif
 
 /* timproc_uso_b5_func_000088A0 [0x88A0..0x8940), 0xA0: BOUNDARY MERGE
  * 2026-06-09 -- the second of the symmetric dispatcher PAIR (87F4's sibling;
