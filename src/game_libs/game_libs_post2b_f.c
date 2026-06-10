@@ -4,7 +4,6 @@ typedef struct { int a, b, c, d; } Quad4;
 typedef struct { float x, y, z; } Vec3;
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074DB4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074EDC);
 

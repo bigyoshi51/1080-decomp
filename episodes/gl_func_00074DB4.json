@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00074DB4",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T05:33:31.135439+00:00",
+  "end_time": "2026-06-10T05:33:31.135465+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T05:33:31.135457+00:00",
+      "assistant_text": "gl_func_00074DB4: bigger sibling of the 74D54 interrupt-bracket setter. sr bracket (s1); P1->f_18 = arg; *P2 |= 2; v = P1->p_8->w_20 & 0xFFF (s0); P1->w_20 = (u32)(P1->f_18 * (float)(u32)v) & 0xFFF. The 30-insn FCSR save/set/cvt.w.s/check/retry/restore block is IDO's INLINE (u32)float cast emit -- one C cast, zero hand-waving; the lui 0x4F800000 add is the (float)(u32) correction. Register declaration order (v before sr) sets the s0/s1 assignment. Same-BB CSE shares one global load across the two statements.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 74,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs ido53 carve: gl_func_00074DB4 -- bigger sibling of the 74D54\n * interrupt-bracket setter, verbatim shape at IDO 5.3 -O1, 74/74 first\n * try (+ one register-declaration-order swap for the s0/s1 assignment:\n * v declared before sr puts v in s0, sr in s1). Shape: sr bracket;\n * P1->f_18 = arg; *P2 |= 2; v = P1->p_8->w_20 & 0xFFF;\n * P1->w_20 = (u32)(P1->f_18 * (float)(u32)v) & 0xFFF. The entire FCSR\n * save/set/convert/check/restore block is IDO's inline (u32)float cast;\n * the 0x4F800000 add is the standard (float)(u32) correction. The two\n * statements share one global load via same-BB CSE. */\ntypedef unsigned int u32;\nextern int gl_func_00000000();\nextern char *D_74DB4_p1;\nextern unsigned short *D_74DB4_p2;\n\nvoid gl_func_00074DB4(float f) {\n    register int v;\n    register int sr;\n    sr = gl_func_00000000();\n    *(float *)(D_74DB4_p1 + 0x18) = f;\n    *D_74DB4_p2 |= 2;\n    v = *(int *)(*(char **)(D_74DB4_p1 + 0x8) + 0x20) & 0xFFF;\n    *(int *)(D_74DB4_p1 + 0x20) = (u32)(*(float *)(D_74DB4_p1 + 0x18) * (float)(u32)v) & 0xFFF;\n    gl_func_00000000(sr);\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_74DB4.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00074DB4.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 74/74 words standalone AND in-tree vs baserom; report.json fuzzy=100.0; carve boundaries + TEXT_END byte-verified."
+  }
+}

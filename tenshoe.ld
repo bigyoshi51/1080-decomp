@@ -1389,6 +1389,7 @@ SECTIONS
         build/src/game_libs/game_libs_ido53_748A4.c.o(.text);
         build/src/game_libs/game_libs_post2b_e.c.o(.text);
         build/src/game_libs/game_libs_ido53_74D54.c.o(.text);
+        build/src/game_libs/game_libs_ido53_74DB4.c.o(.text);
         build/src/game_libs/game_libs_post2b_f.c.o(.text);
         game_libs_TEXT_END = .;
         game_libs_TEXT_SIZE = ABSOLUTE(game_libs_TEXT_END - game_libs_TEXT_START);

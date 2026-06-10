@@ -1666,6 +1666,14 @@
       }
     },
     {
+      "name": "src/game_libs/game_libs_ido53_74DB4",
+      "target_path": "expected/src/game_libs/game_libs_ido53_74DB4.c.o",
+      "base_path": "build/non_matching/src/game_libs/game_libs_ido53_74DB4.c.o",
+      "metadata": {
+        "source_path": "src/game_libs/game_libs_ido53_74DB4.c"
+      }
+    },
+    {
       "name": "src/game_libs/game_libs_post2b_f",
       "target_path": "expected/src/game_libs/game_libs_post2b_f.c.o",
       "base_path": "build/non_matching/src/game_libs/game_libs_post2b_f.c.o",
