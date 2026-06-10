@@ -1152,9 +1152,56 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 void timproc_uso_b5_func_00001D14(void) {}
 
+/* timproc_uso_b5_func_00001D1C (0x88 after merging the 1D60 fragment --
+ * 1D60 read v1/at/a3/v0/a2 uninitialized at entry = pure continuation).
+ * Pair-state comparator: with a0->i_30 == 2, compares the 0x3C8 counters
+ * of the a1-indexed and (a1^1)-indexed pair members (a0 + idx*4 + 0x34),
+ * then a 1/2/4 dispatch on the counter with 0x3CC == 5 checks deciding
+ * 0 vs 1. CAP: every return-1 path branches INTO the adjacent return-1
+ * leaf timproc_uso_b5_func_00001DA4 (offsets 0x88/0x8C = its li v0,1 and
+ * jr ra) -- the documented branch-into-adjacent-return-leaf cap
+ * (docs/IDO_CODEGEN#branch-into-adjacent-return-leaf-cap, same as
+ * mgrproc 140/170): C collapses the shared tail (preset-default or
+ * branch-likely forms), never the cross-fn branch. INCLUDE_ASM is the
+ * faithful path; the wrap preserves the decoded logic. */
+#ifdef NON_MATCHING
+int timproc_uso_b5_func_00001D1C(char *a0, int a1) {
+    char *p1;
+    char *p2;
+    int c1;
+    int c2;
+    if (*(int *)(a0 + 0x30) != 2) {
+        return 1;
+    }
+    p1 = *(char **)(a0 + a1 * 4 + 0x34);
+    p2 = *(char **)(a0 + (a1 ^ 1) * 4 + 0x34);
+    c1 = *(int *)(p1 + 0x3C8);
+    c2 = *(int *)(p2 + 0x3C8);
+    if (c1 != c2) {
+        return 0;
+    }
+    if (c1 == 2) {
+        return 1;
+    }
+    if (c1 != 1 && c1 == 4) {
+        return 1;
+    }
+    if (c1 == 1) {
+        if (*(int *)(p1 + 0x3CC) == 5) {
+            return 0;
+        }
+        if (*(int *)(p2 + 0x3CC) != 5) {
+            return 1;
+        }
+        return 0;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001D1C);
+#endif
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001D60);
+/* timproc_uso_b5_func_00001D60 MERGED into 1D1C 2026-06-10 (uninitialized-reg continuation fragment). */
 
 /* timproc_uso_b5_func_00001DA4 (`return 1`, unfilled jr-delay) is carved into
  * its own -O2 -g3 sub-unit src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c and
