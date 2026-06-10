@@ -31691,7 +31691,11 @@ void game_libs_func_0006186C(int a0) {
  * the lw/sw displacements. Both are valid `symbol+const` encodings; no C form
  * (int*p, direct double-access) flips IDO's fold choice, and inventing a
  * dedicated D_00021E04 symbol to force it would be reloc-faking. Logic exact;
- * residual is reloc-encoding-only. */
+ * residual is reloc-encoding-only. 2026-06-10: the role-#6 barrier
+ * tested (it cracks register-addressing folds like E450) -- OUT OF
+ * DOMAIN here: the LO16 placement is reloc-ENCODING-level, and the
+ * barrier instead perturbs the FP-constant scheduling (2 -> 11 diffs).
+ * The two fold classes are distinct mechanisms; cap confirmed. */
 float game_libs_func_00061878(void) {
     int *p = (int *)((char *)&D_00000000 + 0x21E04);
     unsigned int v = (unsigned int)*p * 4 + 2;
