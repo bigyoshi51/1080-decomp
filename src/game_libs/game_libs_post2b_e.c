@@ -19,10 +19,19 @@ extern int *D_74C_d;     // *&D_d: peer record stored into (->0x10)
 // is null, notify(); else if (*&D_d)->4 < (*&D_c)->4 demote (*&D_d)->0x10 to 2
 // + notify(&D_a). Finally notify(s0) with the saved first-call result. The cb
 // (game_libs_func_00070FCC) and &D globals are reloc-blind (field-0 matchable).
-// CAP: the target spill-reloads arg0 from its stack home (lw tX, 40(sp)) before
-// every field access instead of holding it in a saved reg — that regalloc
-// choice (~16 reload insns) can't be forced from C here, so fuzzy stays ~43%
-// despite the now-correct structure (halfword fields, &D globals, sentinel ||).
+// 2026-06-10 SUPERSEDED CAP ANALYSIS: at IDO 5.3 -O1 (the ido53-carve
+// compiler) with `register char *s0; register int x;` (x holds st AND the
+// later call result -- one variable, the s1 reuse), the build reproduces
+// the s0/s1 saves, the v0->s0 capture, and 84/84 instruction count with
+// correct branch polarity when the st arms are written as
+// `if (x != 1) { if (x == 8) {...} } else {...}`. Residual (~5 real
+// shapes cascading into ~73 word diffs via offset/regnum shift): (a) the
+// target reloads p from its stack home INSIDE the st==8 arm while 5.3
+// CSEs the earlier load (basic-block-boundary reload not yet forced --
+// typed struct members did NOT change this, unlike the -O0 case); (b)
+// frame 0x28 vs 0x30 (+8, likely the h temp slot). Next pass: shapes
+// that force a fresh p reload in the st==8 arm (volatile-pointer-fetch
+// lever from docs/IDO_CODEGEN?), then carve at 5.3 -O1.
 void gl_func_00074C04(char *arg0) {
     char *s0;
     unsigned short st;
