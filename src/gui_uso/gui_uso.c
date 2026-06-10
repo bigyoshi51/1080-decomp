@@ -233,77 +233,41 @@ void gui_uso_func_000006B8(char *a0, int a1, float *a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000006B8);
 #endif
 
-/* gui_uso_func_000008C0 (0x8C0..0x914, 0x58): F3DEX2 DL-builder HEAD. Clean entry
- * `lw v0,0x24(a0)` (state ptr = a0->[0x24]), builds 2 Gfx command pairs
- * (G_SETOTHERMODE 0xB900031D / 0x00404240, G_SETCOMBINE 0xFC309661...), loads 1.0f
- * (lui 0x3F80; mtc1). It has NO prologue and NO `jr ra`: it RUNS OFF THE END into
- * gui_func_00000918 (0x918), whose first insn is a prologue `addiu sp,-0x10` and
- * which then does `lw v1,0xC(v0)` -- reading the SAME v0 this head set.
- *
- * RESOLVES the open question in gui_func_00000918's note ("implicit v0-input
- * convention -- investigate the caller"): v0 is NOT a caller convention; it is set
- * HERE at 0x8C0 (`lw v0,0x24(a0)`) and the body at 0x918 is the fall-through
- * continuation. 000008C0 + 00000918 are one logical routine that splat split at the
- * mid-function prologue (a dual-entry / fall-through-into-prologue shape).
- * MERGE-SAFETY (2026-05-30): no static C or asm reference to gui_func_00000918 /
- * 0x918 exists, so a boundary merge into a single 0x298-byte unit is byte-safe AND
- * would let the body be decoded with `a0` as the real arg.
- *
- * SOURCE=4 AUDIT (2026-06-01): kept split. 0x8C0 has 0 `jr ra` insns, and
- * `scripts/find-misplit-pairs.py gui_uso --max-insn 220` still reports 0 closed
- * groups. A fresh static search found no current source/asm callers of 0x918
- * beyond this note and the preserved INCLUDE_ASM, but report/episode snapshots
- * are not runtime dispatch proof. Do not merge until the USO symbol/export table
- * proves 0x918 is not also an independent runtime entry. */
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000008C0);
-
+/* gui_uso_func_000008C0 [0x8C0..0xB58): GUI primitive-color DL builder --
+ * FULL-CLUSTER MERGE 2026-06-09 of the former 22-insn fall-through head +
+ * gui_func_00000918 (144-insn body; splat split at a mid-function
+ * scheduling artifact). Merge-safety proven via the gui.uso module tables:
+ * 0x8C0 appears as a referenced entry, 0x918 appears NOWHERE (not an
+ * independent runtime entry; the old "implicit $v0-input convention" was
+ * just the fall-through from this head). Structure: emits
+ * G_SETOTHERMODE(0xB900031D, 0x00404240-ish) + G_SETCOMBINE(0xFC309661...)
+ * pairs into the DL ring at ctx->dl (ctx = a0->0x24, cursor at
+ * ctx->0xC->4, 8-byte slots), then two G_SETPRIMCOLOR-class commands whose
+ * color word is packed from three floats (R/G/B x 1.0f scale) via the
+ * cvt.w.s + FCSR-overflow-clamp idiom (cfc1/ctc1, andi 0x78), each channel
+ * clamped to 0..0xFF and OR'd into byte lanes 16/8/0. Multi-tick: float
+ * scheduling + the clamp ladder need the f3dex2 treatment; INCLUDE_ASM is
+ * the build path. */
 #ifdef NON_MATCHING
-/* gui_func_00000918: 144-insn display-list builder for GUI primitives.
- *
- * 2026-05-07 first-pass decode: this function takes its primary state
- * pointer in $v0 (NOT $a0) — the entry insns 0x04, 0x18 read
- * `lw v1, 0xC(v0)` and `lw t3, 0xC(v0)` BEFORE any code that sets v0.
- * Insn 0x44 `lw v0, 0x24(a0)` finally sets v0 from a0->[0x24], but the
- * prior 17 insns assumed v0 was pre-set. This is a non-standard
- * calling convention — the caller (likely gui_func_00000148 or similar)
- * leaves a state pointer in v0 (or v0 holds a0->[0x24] pre-call via
- * caller's setup). Documented so future passes know to investigate.
- *
- * Body shape: emits 2 G_SETPRIMCOLOR-ish DL commands, each:
- *   ctx->cursor++ (at a0->[0xC]->[0x4])
- *   dl_buf = ctx->dl_buf->[0]
- *   slot = (old_cursor << 3)
- *   *(u32*)(dl_buf + slot)     = 0xFA000000
- *   *(u32*)(dl_buf + slot + 4) = color_word
- * After the 2 DL writes, performs 3-channel R/G/B float→int conversion
- * with FCSR-overflow clamping (the cfc1/ctc1 pattern, andi 0x78 mask
- * checks the V|Z|U|I exception flags). Each channel:
- *   1. Load color_float from sp scratch
- *   2. Multiply by 0x4F000000 (= 2^31, max-int-as-float)
- *   3. cvt.w.s, then check FCSR for overflow
- *   4. If overflow: clamp to 0 (negative) or 0xFF (positive)
- *   5. Mask result to 0xFF
- *   6. Shift to byte position (0/8/16) and OR into accumulator
- * Final OR'd 24-bit color is stored to dl_buf+slot+4 of the second
- * DL command.
- *
- * Won't byte-match in one tick (144 insns of float scheduling +
- * implicit v0-input convention). Wrap captures structure for the next
- * pass. Default INCLUDE_ASM keeps ROM correct. */
 extern int gl_func_00000000();
-void gui_func_00000918(int *a0) {
-    /* Stub: structural decode of 144-insn float-color converter. The v0
-     * implicit-input convention prevents a clean standalone C body — the
-     * function would need to reach in via a global state register or
-     * factor through a wrapper that takes v0's role explicitly. Future
-     * passes: (a) identify the caller and inline-merge to hide the v0
-     * convention, OR (b) write the body assuming a hypothetical
-     * `state *s = (state*)v0_input_via_register` and accept the prologue
-     * shape mismatch. */
-    (void)a0;
+void gui_uso_func_000008C0(int *a0) {
+    int *ctx = (int *)a0[0x24 / 4];
+    int *dls = (int *)ctx[0xC / 4];
+    int cur;
+    unsigned int *slot;
+
+    /* G_SETOTHERMODE + constant pair */
+    cur = dls[1];
+    dls[1] = cur + 1;
+    slot = (unsigned int *)(*(char **)dls + (cur << 3));
+    slot[0] = 0xB900031D;
+    slot[1] = 0x00404240;
+    /* G_SETCOMBINE pair, then two G_SETPRIMCOLOR commands with the
+     * 3-channel float->u8 FCSR-clamped color pack (see comment). */
+    /* ... full body pending the f3dex2 pass ... */
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000918);
+INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000008C0);
 #endif
 
 extern int gl_func_00000000();
