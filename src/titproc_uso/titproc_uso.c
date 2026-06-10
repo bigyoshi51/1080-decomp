@@ -646,7 +646,13 @@ void titproc_uso_func_0000101C(int *a0) {
  *  - state 2/3 tail @0x29C (+93): counter clamp on (s0->0x64)->0x3C to
  *    255/256 with +16 step (cap 720/512), vt-call ((*v0->0x64)(v0->0x60+&D)),
  *    gl_func chain. Branch-heavy (beql/bnel/blez) — decode per-arm.
- * Next tick: extend state-1 then state-2/3 bodies (each adds ~15-25pp). */
+ * Next tick: extend state-1 then state-2/3 bodies (each adds ~15-25pp).
+ * 2026-06-10 dispatcher-scan audit: the full 290-word [0x116C..0x15F4)
+ * region is SELF-CONTAINED (zero out-branches; jumptable at word 11)
+ * -- no boundary defect; the existing work-plan stands. This was the
+ * 5th and last cross-USO jr-tN scan candidate (scorecard: 2 exact
+ * matches landed, 1 control-flow fix, 1 harness gotcha, 1 double-cap,
+ * 1 already-planned big decode = this). */
 void titproc_uso_func_0000116C(char *s0) {
     char *d = (char *)&D_00000000;
     char *v1, *vt;
