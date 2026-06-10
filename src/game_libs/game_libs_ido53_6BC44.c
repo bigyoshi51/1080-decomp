@@ -36,3 +36,44 @@ void gl_func_0006BC44(u8 *maskOut, u8 *pads) {
     }
     *maskOut = mask;
 }
+
+/* gl_func_0006BD14 = 1080-customized __osPackReadData (contreaddata.c
+ * sibling of gl_func_0006BC44 above): clears the 15-word PIF command
+ * buffer, sets pifstatus = CONT_CMD_EXE, builds the 8-byte read-command
+ * record (dummy=0xFF, tx=1, rx=3 -- 4-byte responses -- cmd byte passed as
+ * the ARG, 4x 0xFF payload), then stamps it per controller (swl/swr
+ * unaligned struct copies) and terminates with 0xFE (CONT_CMD_END).
+ * Byte-exact at IDO 5.3 -O1 (61/61). Load-bearing shapes: pifstatus store
+ * via a DISTINCT struct-typed placeholder global (direct member access
+ * emits the 2-insn lui+sw with the 0x3C offset folded; char*-cast arith
+ * emits a 3-insn la+sw, and sharing D_00000000 CSEs the la with ptr);
+ * pifstatus store BEFORE ptr init; ptr += 8 at body end (not in the
+ * comma-update) so the ptr store fills the loop's bne delay slot. */
+typedef struct { int ramarray[15]; int pifstatus; } GlPifRam;
+extern GlPifRam D_6BD14_pifram;
+
+void gl_func_0006BD14(u8 cmd) {
+    u8 *ptr;
+    GlContReadFormat fmt;
+    int i;
+
+    for (i = 0; i < 15; i++) {
+        *(int *)((char *)&D_00000000 + i * 4) = 0;
+    }
+    D_6BD14_pifram.pifstatus = 1;
+    ptr = (u8 *)&D_00000000;
+    fmt.dummy = 0xFF;
+    fmt.txsize = 1;
+    fmt.rxsize = 3;
+    fmt.cmd = cmd;
+    fmt.button_hi = 0xFF;
+    fmt.button_lo = 0xFF;
+    fmt.stick_x = 0xFF;
+    fmt.stick_y = 0xFF;
+    for (i = 0; i < gl_data_00000000; i++) {
+        *(GlContReadFormat *)ptr = fmt;
+        ptr += 8;
+    }
+    *ptr = 0xFE;
+}
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BD14_pad.s")

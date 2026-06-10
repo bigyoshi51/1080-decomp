@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006BD14",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T02:09:50.330829+00:00",
+  "end_time": "2026-06-10T02:09:50.330871+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T02:09:50.330857+00:00",
+      "assistant_text": "gl_func_0006BD14 = 1080-customized __osPackReadData, the build-side sibling of gl_func_0006BC44 (osContGetReadData): clears the 15-word PIF buffer, pifstatus = CONT_CMD_EXE, builds an 8-byte read command (tx=1 rx=3, command byte passed as the u8 ARG, 4x 0xFF payload), stamps per-controller via swl/swr struct copies, terminates with 0xFE. IDO 5.3 -O1. Load-bearing: (1) pifstatus store via a DISTINCT struct-typed placeholder global (direct member access = 2-insn lui+sw with folded 0x3C; char*-cast arith = 3-insn la+sw; sharing D_00000000 CSEs the la with ptr -- third zero-symbol D_6BD14_pifram added per the D_*_store/load convention); (2) pifstatus store BEFORE ptr init; (3) ptr += 8 at loop-body end (not comma-update) so the ptr store fills the bne delay slot; i++/ptr temp numbering follows statement order.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 61,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\nextern char D_00000000;\nextern u8 gl_data_00000000;\n\n/* gl_func_0006BC44 = 1080-customized osContGetReadData (libultra\n * contreaddata.c ancestry; statically-linked libultra, ido53-carve vein).\n * Boundary-fixed 2026-06-09: splat had split the leading MAX_CONTROLLERS\n * load (lui+lbu) into a phantom 8-byte symbol \"game_libs_func_0006BC44\";\n * the true function spans [0x6BC44..0x6BD14). vs stock libultra: two args\n * (a0 = connected-controller bitmask out, a1 = 4-byte pad records), button\n * stored byte-swapped ((lo<<8)|hi), stick_y dropped, mask |= 1<<i per good\n * controller; all format fields u8 (stick loads are lbu). Bound and PIF\n * buffer are two distinct runtime-patched data placeholders. Byte-exact at\n * IDO 5.3 -O1 (52/52 incl. the pre-prologue lui/lbu pair). */\ntypedef struct {\n    u8 dummy; u8 txsize; u8 rxsize; u8 cmd;\n    u8 button_hi; u8 button_lo; u8 stick_x; u8 stick_y;\n} GlContReadFormat;\n\nvoid gl_func_0006BC44(u8 *maskOut, u8 *pads) {\n    u8 *ptr;\n    GlContReadFormat fmt;\n    int i;\n    u8 mask;\n\n    mask = 0;\n    ptr = (u8 *)&D_00000000;\n    for (i = 0; i < gl_data_00000000; i++, ptr += 8, pads += 4) {\n        fmt = *(GlContReadFormat *)ptr;\n        pads[3] = (fmt.rxsize & 0xC0) >> 4;\n        if (pads[3] == 0) {\n            *(u16 *)pads = (fmt.button_lo << 8) | fmt.button_hi;\n            pads[2] = fmt.stick_x;\n            mask |= 1 << i;\n        }\n    }\n    *maskOut = mask;\n}\n\n/* gl_func_0006BD14 = 1080-customized __osPackReadData (contreaddata.c\n * sibling of gl_func_0006BC44 above): clears the 15-word PIF command\n * buffer, sets pifstatus = CONT_CMD_EXE, builds the 8-byte read-command\n * record (dummy=0xFF, tx=1, rx=3 -- 4-byte responses -- cmd byte passed as\n * the ARG, 4x 0xFF payload), then stamps it per controller (swl/swr\n * unaligned struct copies) and terminates with 0xFE (CONT_CMD_END).\n * Byte-exact at IDO 5.3 -O1 (61/61). Load-bearing shapes: pifstatus store\n * via a DISTINCT struct-typed placeholder global (direct member access\n * emits the 2-insn lui+sw with the 0x3C offset folded; char*-cast arith\n * emits a 3-insn la+sw, and sharing D_00000000 CSEs the la with ptr);\n * pifstatus store BEFORE ptr init; ptr += 8 at body end (not in the\n * comma-update) so the ptr store fills the loop's bne delay slot. */\ntypedef struct { int ramarray[15]; int pifstatus; } GlPifRam;\nextern GlPifRam D_6BD14_pifram;\n\nvoid gl_func_0006BD14(u8 cmd) {\n    u8 *ptr;\n    GlContReadFormat fmt;\n    int i;\n\n    for (i = 0; i < 15; i++) {\n        *(int *)((char *)&D_00000000 + i * 4) = 0;\n    }\n    D_6BD14_pifram.pifstatus = 1;\n    ptr = (u8 *)&D_00000000;\n    fmt.dummy = 0xFF;\n    fmt.txsize = 1;\n    fmt.rxsize = 3;\n    fmt.cmd = cmd;\n    fmt.button_hi = 0xFF;\n    fmt.button_lo = 0xFF;\n    fmt.stick_x = 0xFF;\n    fmt.stick_y = 0xFF;\n    for (i = 0; i < gl_data_00000000; i++) {\n        *(GlContReadFormat *)ptr = fmt;\n        ptr += 8;\n    }\n    *ptr = 0xFE;\n}\n#pragma GLOBAL_ASM(\"asm/nonmatchings/game_libs/game_libs/gl_func_0006BD14_pad.s\")\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_6BC44.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_0006BD14.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 61/61 words vs target asm AND vs baserom (linked .game_libs section, pad sidecar included); report.json fuzzy=100.0 for both functions in the extended carve unit."
+  }
+}
