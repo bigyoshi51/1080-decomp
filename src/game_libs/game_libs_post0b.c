@@ -27670,7 +27670,15 @@ void gl_func_0005B568(int *a0, int a1) {
  * banned). Stays NM. Reloc-free; permuter-class. */
 #ifdef NON_MATCHING
 void game_libs_func_0005B5D8(int a0, int *a1, int a2) {
-    int *p = (int *)((char *)a1 - 0x10);
+    /* 2026-06-10: (void)&a0 recovers the target's `sw a0,0(sp)` arg
+     * home (the 75264 trick; the unused first arg IS address-taken in
+     * the original). Remaining 5 word diffs: pure temp-number cascade
+     * (target skips t6 and creates the sll's pseudo before the load's;
+     * 5 shapes swept -- named/two-step/inline/reversed all hold).
+     * Skipped-temp uoptlist class (C28C family). */
+    int *p;
+    (void)&a0;
+    p = (int *)((char *)a1 - 0x10);
     *p = (a2 << 24) + (*p & 0xFFFFFF);
 }
 #else
