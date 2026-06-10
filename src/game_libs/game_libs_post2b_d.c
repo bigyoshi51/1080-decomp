@@ -516,7 +516,10 @@ void gl_func_00073E74(Ldt74 *px, unsigned char code) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
 #endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00073E74_pad.s")
+/* 743C0 pad word merged into gl_func_00073E74.s tail (1-word GLOBAL_ASM
+ * blocks emit 2 words — asm-processor 8-byte placeholder minimum — which
+ * shifted links 743C4..748A0 +4; the trailing 747F4_pad then got clipped
+ * by TRUNCATE_TEXT 0x1210). */
 
 #ifdef NON_MATCHING
 /* gl_func_000743C4: 66-insn 64-bit-arithmetic timestamp/range helper (size 0x108, frame 0x30).

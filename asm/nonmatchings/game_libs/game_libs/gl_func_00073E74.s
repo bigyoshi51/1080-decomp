@@ -340,4 +340,5 @@ glabel gl_func_00073E74
     /* E5948C 000743B4 8FB50038 */  .word 0x8FB50038
     /* E59490 000743B8 03E00008 */  .word 0x03E00008
     /* E59494 000743BC 27BD00D0 */  .word 0x27BD00D0
+    /* E59498 000743C0 00000000 */  .word 0x00000000 /* trailing pad, merged from gl_func_00073E74_pad.s (1-word GLOBAL_ASM blocks emit 2 words: asm-processor 8-byte placeholder minimum; that shifted links 743C4..748A0 +4) */
 endlabel gl_func_00073E74
