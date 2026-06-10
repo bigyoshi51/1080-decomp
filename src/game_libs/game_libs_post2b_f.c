@@ -189,13 +189,15 @@ loop_3:
  * countdown; then event counter ++, optional u64-accumulator rebase, and
  * ACC += (now - prev) via the compiler's 32->64 addu/sltu pair); 14 =
  * single call. 2026-06-10 standalone at 5.3 -O1 -Olimit 1: 109/115
- * insns (target includes 6 zero pad words before the dead epilogue) and
- * 61 non-reloc diffs that are ALL frame-offset cascade -- build frame
- * 0x40 vs target 0x38 (one extra 8-byte unit, possibly the register
- * `type` home slot under -Olimit). Everything else (s0 type var,
- * decl-order homes, u64 math, branch layout) lines up. Next pass: shave
- * the frame unit, then carve (needs gl_dref_00045290 = 0x00045290 +
- * D_7507C_cnt/acc/prev placeholders). */
+ * insns (target includes 6 zero pad words before the dead epilogue).
+ * 2026-06-10 pass 2: SWITCH dispatch (not if/else-if) drops diffs 61->50
+ * (case-13-first layout right). Residual = the persistent +8 frame
+ * (0x40 vs 0x38): the dispatch value's reserved slot -- register var,
+ * plain local, switch expr, 5.3/7.1, -O1 and -Olimit ALL reserve it;
+ * the target keeps the value in s0 with NO slot. Last untested axes:
+ * fewer named locals (fold t into an expression) or a two-fn shape.
+ * Carve recipe when matched: gl_dref_00045290 = 0x00045290 +
+ * D_7507C_cnt/acc/prev placeholders (already in undefined_syms). */
 #ifdef NON_MATCHING
 typedef unsigned long long u64;
 extern int gl_func_00000000();
@@ -210,7 +212,6 @@ void gl_func_0007507C(char *arg) {
     int msg;
     int flag;
     unsigned int t;
-    register int type;
 
     msg = 0;
     flag = 0;
@@ -221,8 +222,8 @@ void gl_func_0007507C(char *arg) {
     q = arg;
     for (;;) {
         gl_func_00000000(*(int *)(q + 0xC), &msg, 1);
-        type = *(unsigned short *)msg;
-        if (type == 13) {
+        switch (*(unsigned short *)msg) {
+        case 13: {
             gl_func_00000000();
             gl_dref_00045290 = gl_dref_00045290 - 1;
             if (gl_dref_00045290 == 0) {
@@ -242,8 +243,11 @@ void gl_func_0007507C(char *arg) {
             t = D_7507C_prev;
             D_7507C_prev = gl_func_00000000();
             D_7507C_acc += (unsigned int)(D_7507C_prev - t);
-        } else if (type == 14) {
+            break;
+        }
+        case 14:
             gl_func_00000000();
+            break;
         }
     }
 }
