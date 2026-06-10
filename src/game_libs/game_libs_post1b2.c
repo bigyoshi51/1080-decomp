@@ -1908,12 +1908,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F38C);
  * emits lui + lw + jr ra + nop = 4 insns with jr ra, not the 3-insn
  * fall-through shape. IDO doesn't accept GCC's `register asm("$a0")`
  * (per docs/IDO_CODEGEN.md feedback_ido_no_gcc_register_asm). The
- * matching path requires either:
- *  - Inline asm at the call site that triggers this preamble
- *  - TRUNCATE_TEXT shrinking the C-emit + INSN_PATCH writing the 3
- *    insn words manually
- *  - merge-fragments back into gl_func_0006F3BC (would break that
- *    function's standalone matching at the new offset)
+ * matching path (2026-06-10 refresh; the INSN_PATCH option below was
+ * banned 2026-05-23): merge back into gl_func_0006F3BC as a two-entry
+ * body -- the 6F038/73074/75260 fall-through class (N64_FORENSICS) --
+ * which would break 6F3BC's standalone offset, so it queues with the
+ * relayout/carve session like the rest of mid-file game_libs
  *
  * Default INCLUDE_ASM build path produces correct bytes via the asm
  * file; this NM wrap exists only to document the cap. */
