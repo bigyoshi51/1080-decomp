@@ -159,7 +159,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
 //   extern reuse. D_NNNNNNNN named consts via offset cast.
 #ifdef NON_MATCHING
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft (566 insns, no
- * jumptables, 0 M2C_ERRORs); FP-heavy. */
+ * jumptables, 0 M2C_ERRORs); FP-heavy.
+ * PASS-3 GAP MAP (77.44; LCS 2026-06-10) -- the refinement roadmap:
+ *  1. PROLOGUE: target saves f20/f22/f24 via sdc1 (+ldc1 epilogue at
+ *     +0x8C0) = float locals LIVE ACROSS CALLS; the graft's temps got
+ *     caller-saved+spill. Name the cross-call float locals.
+ *  2. +0x268/+0x28C/+0x2C0: target does INLINE float->int with FCSR
+ *     rounding dance (cfc1/ctc1/cvt.w.s/mfc1) where the graft emits
+ *     jal (library-call casts). Find the C construct for the inline
+ *     rounding-mode conversion (NOT plain (s32) cast = trunc.w.s).
+ *  3. +0x300..0x338: slti/bnel/bnezl clamp chain shape vs the graft's
+ *     bne/slti reorder (branch-likely steering, docs/IDO_CODEGEN).
+ *  4. +0xC0..+0x108: lui/beqz/nop pattern (collapsed-pointer guard
+ *     pairs) vs graft's beqzl forms -- the per-test reload recipe. */
 void func_0001304C(char *arg0) {
     f32 sp44;
     f32 *temp_a0_2;
