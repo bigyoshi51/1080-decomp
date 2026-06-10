@@ -4442,5 +4442,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004E57C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003FB64);
 
+/* game_libs_func_0002DF64 = ONE word (mtc1 a1,$f12): the stolen leading
+ * insn of gl_func_0002DF68 (the o32-ABI-capped int+float wrapper in
+ * post.c). Proper fix = prepend the word to gl_func_0002DF68.s (the
+ * 74EFC-style leading-insn boundary correction) and drop this orphan
+ * INCLUDE -- but 0x2DF64 sits in the early-game_libs layout-drift
+ * region (the build does not byte-match ROM there at all; see
+ * docs/MATCHING_WORKFLOW "-0x24 mapping only valid in the libultra
+ * tail"), so the move cannot be verified until the relayout session.
+ * Also note: this INCLUDE emits from game_libs.c.o (link [0..0x8944))
+ * while 0x2DF64 belongs inside post.c.o's range -- evidence the orphan
+ * INCLUDEs in this catch-all file are part of the layout drift itself.
+ * Queued with the relayout. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DF64);
 
