@@ -2523,6 +2523,13 @@ void timproc_uso_b5_func_000040BC(int a0, int a1, int a2, int a3, int arg5, int 
 //   sub-record fan-out skeleton only; future passes can expand the
 //   sub-record build loops further. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
+/* 2026-06-10 graft attempt: a full m2c graft scored 48.08 vs this hand
+ * body's 49.20 -- REVERTED (monotonic rule). Keep: the .s is UNDERSIZED
+ * (branches to +0x18A8/+0x1AB8 past the declared 0x187C end; the true
+ * body runs 1718 insns to block5 offset 0x5BF0, verified from the
+ * asset). One 8-case jumptable at +0x197C (4 distinct heads). The hand
+ * body wins because m2c's mixed ./-> chains needed 4 placeholder
+ * patches here -- refine the HAND body with the tail content instead. */
 #ifdef NON_MATCHING
 
 
