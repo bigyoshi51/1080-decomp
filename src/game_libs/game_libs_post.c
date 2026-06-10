@@ -9861,7 +9861,14 @@ void game_libs_func_000273AC(void) {
  * fix; jumptable emitted; case order correct). Residual 44 word-diffs
  * = a periodic temp-numbering pattern (target skips t8/t1/t5 at case
  * starts and inverts the first body's pair) -- an IDO temp-counter
- * behavior not yet steered; uoptlist/forensics queue. */
+ * behavior not yet steered; uoptlist/forensics queue.
+ * 2026-06-10 uoptlist candidate-table read: the skips correlate with
+ * the FLOAT-COMPARE cases (b1/b2/b4 skip an int temp right where
+ * their lwc1 pseudos are created; the int cases b3/b5 are dense) --
+ * hypothesis: in the TARGET's compile the float-load pseudos consumed
+ * int-temp numbers, in ours they don't. The dump shows creation order
+ * but not final numbering, so this is confirmed uoptlist-ceiling
+ * class (coloring/numbering choice, not C-steerable). */
 #ifdef NON_MATCHING
 void game_libs_func_000273B8(unsigned char *a0, unsigned char *a1) {
     switch (a1[0]) {
