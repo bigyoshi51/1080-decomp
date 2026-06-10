@@ -14263,6 +14263,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
 //   USO mnemonic disasm + reloc-pad jal infra. Real-C STRUCTURAL
 //   body below per the analysis (top-level early-out + first-phase
 //   sketch). Byte-match deferred. Name pre-checked: no extern reuse.
+/* gl_func_0002C7A4 GRAFT-CLASSIFIED 2026-06-10: EXTREME dense-
+ * dispatcher -- two jumptables with bounds 45 and 113 and NO block-walk-
+ * discoverable case heads (1 each; the case bodies are fully shared/
+ * interleaved). The worst shape in the graft predictor (docs/
+ * TOOLING_DECOMP item 16): loader-RE-gated. Do not graft until the
+ * kernel game_libs loader RE yields true table extraction. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
