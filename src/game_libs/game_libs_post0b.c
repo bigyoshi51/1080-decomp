@@ -24895,15 +24895,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056580);
 #endif
 
 #ifdef NON_MATCHING
-/* Reset/reinit: clear bit0 of field 0x78, zero fields 0x04/0x14/0x24/0x34/
- * 0x44/0x54, then set 0x60 = p->0 + p->1*8 and 0x64 = p->1 where p = a0->0xC.
- * Faithful decode but 19/20: the field-0x78 RMW folds to lw/sw 0x78(a0), while
- * the target materializes `addiu v0,a0,0x78` + 0(v0) — the addiu-form single-
- * RMW cap (feedback_rmw_pointer_local_folds_to_offset_addressing), not
- * C-forceable. Stays INCLUDE_ASM. */
+/* Reset/reinit: clear bit0 of field 0x78, zero six fields, then set
+ * 0x60/0x64 from p = a0->0xC. 2026-06-10: the "addiu-form single-RMW
+ * cap" CRACKED by the role-#6 barrier (int *q; q = ...0x78; if (1) {};
+ * *q &= ~1;) -- 19-wrong-structure -> 20/20. Remaining 6 diffs: the
+ * p web colors v1 vs target v0 (target reuses dead q's register) plus
+ * the dependent t8/t9 load-pair order. Negative sweep: block-scoped p,
+ * one-variable reuse (flips q to v1), early-pseudo p (flips p/q the
+ * INVERSE way), one-var+dead-init -- the pair ordering resists all
+ * pseudo-order levers (the q web spans the barrier = live-across-BB,
+ * coloring interplay). uoptlist queue for the pair. */
 void game_libs_func_00056814(int *a0) {
+    int *q;
     int *p;
-    *(int *)((char *)a0 + 0x78) &= ~1;
+    q = (int *)((char *)a0 + 0x78);
+    if (1) {}
+    *q &= ~1;
     p = (int *)a0[3];
     a0[1] = 0;
     a0[5] = 0;
