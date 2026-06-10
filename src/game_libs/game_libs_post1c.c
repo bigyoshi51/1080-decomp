@@ -4,8 +4,14 @@
  * [0x70314..0x70C44) -- gl_func_00070A14 sits -8 and gl_func_00070B04
  * -4 relative to neighbors, re-aligning by gl_func_00070C44. Candidate
  * for the dropped-former-SUFFIX class (see the confirmed B5AC case +
- * docs/MATCHING_WORKFLOW suffix-fallout audit). Gap-content check and
- * fix belong to the relayout balanced pass. */
+ * docs/MATCHING_WORKFLOW suffix-fallout audit). GAP CONTENTS verified
+ * 2026-06-10: [0x70A0C..0x70A14) = lui at,0x3780; mtc1 at,$f2 (REAL
+ * dropped code -- 709DC's former FP-constant suffix, prepend target =
+ * gl_func_00070A14.s); the other two gaps are surplus pad words. A
+ * net-zero local fix (+8 prepend, -4 -4 pad deletions) was ATTEMPTED
+ * and REVERTED: the emission accounting has another contributor (the
+ * section grew and diffs ran to the end) -- precise emission tracing
+ * needed; relayout session. */
 extern int D_00000000;
 extern int gl_data_00000000;
 extern int gl_data_67470_addr;
