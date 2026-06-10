@@ -3387,73 +3387,69 @@ int *game_libs_func_0000E42C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E42C);
 #endif
 
-/* game_libs_func_0000E450: 5-insn `or-flag setter`.
- *   int *p = a0 + 0x18; *p |= 8; return p;
- *
- * Target uses v0 (= p) as both load AND store base; mine uses direct
- * a0+0x18 for both (IDO CSE folds *p back to a0-relative). Base-reg
- * choice cap; structure correct, register-cascade differs. */
+/* game_libs_func_0000E450: set flag 8 on a0->i_18. BYTE-EXACT C FOUND
+ * 2026-06-10 (0 diffs standalone): the explicit-pointer addiu form
+ * needs `int *p; p = (int *)(a0 + 0x18); if (1) {}` -- the BB-split
+ * lever's 6th role: it blocks IDO's offset-folding across the block
+ * boundary so the addiu v0,a0,24 materializes. LAND BLOCKED on the
+ * mid-file in-place constraint; promote via the relayout session. */
 #ifdef NON_MATCHING
-int *game_libs_func_0000E450(int *a0) {
-    int *p = (int*)((char*)a0 + 0x18);
-    *p |= 8;
-    return p;
+void game_libs_func_0000E450(char *a0) {
+    int *p;
+    p = (int *)(a0 + 0x18);
+    if (1) {}
+    *p = *p | 8;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E450);
 #endif
 
-/* game_libs_func_0000E464: 5-insn `clear-bit-3` sibling of E450 (|=8 → &=~8).
- *   int *p = a0 + 0x18; *p &= ~8; return p;
- * Same base-reg-choice cap as E450/E490. See E410 family header. */
+/* game_libs_func_0000E464: clear flag 8 on a0->i_18. BYTE-EXACT C FOUND
+ * 2026-06-10 (0 diffs standalone): the explicit-pointer addiu form
+ * needs `int *p; p = (int *)(a0 + 0x18); if (1) {}` -- the BB-split
+ * lever's 6th role: it blocks IDO's offset-folding across the block
+ * boundary so the addiu v0,a0,24 materializes. LAND BLOCKED on the
+ * mid-file in-place constraint; promote via the relayout session. */
 #ifdef NON_MATCHING
-/* 4-diff residual (2026-05-31): the &-field RMW + return-pointer. Target
- * materializes v0=a0+0x18 FIRST and does the RMW through 0(v0) (lw/sw 0(v0)),
- * then returns v0; IDO with our C loads/stores DIRECT (24(a0)) and only
- * materializes v0 LATE for the return — it won't compute the pointer before a
- * foldable offset access. `*p &= ~8` and `volatile int *p; *p=*p&~8` both
- * give the direct form. Pointer-form-vs-index-form resist (cf game_libs tiny
- * leaves). Same shape across the E4xx sibling family (E410/E450/E464/E47C/E490
- * — |=/&= bit variants). Not C-controllable here. */
-int *game_libs_func_0000E464(int *a0) {
-    int *p = (int*)((char*)a0 + 0x18);
-    *p &= ~8;
-    return p;
+void game_libs_func_0000E464(char *a0) {
+    int *p;
+    p = (int *)(a0 + 0x18);
+    if (1) {}
+    *p = *p & ~8;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E464);
 #endif
 
-/* game_libs_func_0000E47C: 5-insn `set-bit-2` sibling of E450 (|=8 → |=4).
- *   int *p = a0 + 0x18; *p |= 4; return p;
- * Same base-reg-choice cap. The 0x35CF0004 is `ori t7,t6,4` (1-cycle
- * faster than li+and; bit-set fits andi/ori immediate). See E410 family
- * header for the OPT_FLAGS-split path. */
+/* game_libs_func_0000E47C: set flag 4 on a0->i_18. BYTE-EXACT C FOUND
+ * 2026-06-10 (0 diffs standalone): the explicit-pointer addiu form
+ * needs `int *p; p = (int *)(a0 + 0x18); if (1) {}` -- the BB-split
+ * lever's 6th role: it blocks IDO's offset-folding across the block
+ * boundary so the addiu v0,a0,24 materializes. LAND BLOCKED on the
+ * mid-file in-place constraint; promote via the relayout session. */
 #ifdef NON_MATCHING
-int *game_libs_func_0000E47C(int *a0) {
-    int *p = (int*)((char*)a0 + 0x18);
-    *p |= 4;
-    return p;
+void game_libs_func_0000E47C(char *a0) {
+    int *p;
+    p = (int *)(a0 + 0x18);
+    if (1) {}
+    *p = *p | 4;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E47C);
 #endif
 
-/* game_libs_func_0000E490: 5-insn `clear-bit-2` sibling of E450 (|=8 → &=~4).
- *   int *p = a0 + 0x18; *p &= ~4; return p;
- *
- * Same family cap as E450 (base-reg-choice). Target: addiu v0,a0,0x18 →
- * 0(v0) RMW. Mine: addiu v0,a0,0x18 emitted (return ptr) BUT the lw/sw
- * fold back to 0x18(a0) since the single bitop at offset 0 doesn't
- * prevent IDO -O2 from CSE'ing the pointer alias back to the base+imm
- * form. 3-of-5 insns byte-equal; structure correct. Whole 0xE410-E490
- * run wants a per-file -O1/-g OPT_FLAGS split (see family header at
- * E410). */
+/* game_libs_func_0000E490: clear flag 4 on a0->i_18. BYTE-EXACT C FOUND
+ * 2026-06-10 (0 diffs standalone): the explicit-pointer addiu form
+ * needs `int *p; p = (int *)(a0 + 0x18); if (1) {}` -- the BB-split
+ * lever's 6th role: it blocks IDO's offset-folding across the block
+ * boundary so the addiu v0,a0,24 materializes. LAND BLOCKED on the
+ * mid-file in-place constraint; promote via the relayout session. */
 #ifdef NON_MATCHING
-int *game_libs_func_0000E490(int *a0) {
-    int *p = (int*)((char*)a0 + 0x18);
-    *p &= ~4;
-    return p;
+void game_libs_func_0000E490(char *a0) {
+    int *p;
+    p = (int *)(a0 + 0x18);
+    if (1) {}
+    *p = *p & ~4;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E490);
