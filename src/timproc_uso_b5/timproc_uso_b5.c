@@ -8296,48 +8296,6 @@ void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, &D_timb5_1C0 + a0[0x1AC/4] * 24, 0xFF);
 }
 
-#ifdef NON_MATCHING
-/* timproc_uso_b5_func_0000CD24: 54-insn (0xD8) approach-target-with-decay
- * routine. Was previously split by splat into CD24 (0xA4) + CDC8 (0x34);
- * merged because CD24 had forward branches (CD88 bc1fl +0x10 → CDCC,
- * CDB8 bc1f +0xE → CDF4) into CDC8's range, with CD8C duplicating CDC8's
- * leading lwc1 $f4,0($v1) — same branch-likely target-replication idiom
- * as CB40+CBD0 (per docs/MATCHING_WORKFLOW.md
- * #feedback-splat-fragment-via-register-flow USO `.word` variant).
- *
- * Same algorithm shape as CB40 but with target field offsets shifted:
- * D[0x384]/D[0x388] decay rates and D[0x38C] secondary, presumably for
- * a different parameter slot in the same struct family.
- *
- * NM body covers control flow; FP register allocation, branch-likely emit,
- * and lui-pair constants need permuter to tighten. */
-extern int gl_func_00000000();
-extern char D_00000000;
-void timproc_uso_b5_func_0000CD24(int *a0, float a1) {
-    int *v0;
-    float target;
-    if (*(float*)((char*)a0 + 0x2A4) != 0.0f) {
-        target = a1;
-    } else {
-        target = 0.0f;
-    }
-    v0 = *(int**)((char*)a0 + 0x2B8);
-    if (*(int*)((char*)v0 + 0x130) != 0) {
-        target = 1.0f;
-    }
-    if (*(float*)((char*)v0 + 0x124) < target) {
-        *(float*)((char*)v0 + 0x124) += *(float*)((char*)&D_00000000 + 0x388);
-        if (target < *(float*)((char*)v0 + 0x124)) {
-            *(float*)((char*)v0 + 0x124) = target;
-        }
-    } else {
-        *(float*)((char*)v0 + 0x124) -= *(float*)((char*)&D_00000000 + 0x38C);
-        if (*(float*)((char*)v0 + 0x124) < target) {
-            *(float*)((char*)v0 + 0x124) = target;
-        }
-    }
-}
-#else
 /* timproc_uso_b5_func_0000CD24 - verified structural decode (0xD8,
  * 54 insns). INSTRUCTION-IDENTICAL SIBLING of
  * timproc_uso_b5_func_0000C710 (same FP slew-limiter; the ONLY
@@ -8382,13 +8340,7 @@ void timproc_uso_b5_func_0000CD24(char *a0, float a1u) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CD24);
 #endif
 
-/* timproc_uso_b5_func_0000CDC8: TAIL-FRAGMENT of CD24 via forward
- * bc1f-past-declared-end ($f0-variant: compare/store use $f0 instead
- * of $f12). Same idiom as B850→B8E0 / C044→C0D4 / C710→C7B4 /
- * CB40→CBD0 — see reference_1080_timproc_b5_fp_clamp_family.md for
- * the full family. No standalone semantics. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CDC8);
-#endif
+/* timproc_uso_b5_func_0000CDC8 MERGED into CD24 2026-06-10 (bc1f tail fragment, fifth and FINAL fade-helper family member; nested double-wrap flattened same as CB40). */
 
 void timproc_uso_b5_func_0000CDFC(int a0) {}
 
