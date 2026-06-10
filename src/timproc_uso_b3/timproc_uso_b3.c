@@ -605,34 +605,44 @@ void timproc_uso_b3_func_000010B4(int a0) {
     gl_func_00000000(a0, -1, 0);
 }
 
-/* timproc_uso_b3_func_000010E4: 40-insn (0xA0) gate + indirect-call helper.
- * b3 mirror of timproc_uso_b1_func_00001130 (just promoted this session
- * — see that wrap doc). Same recipe: \`gl_func(5)\` inner call + INSN_PATCH
- * for register-allocator deltas + SUFFIX_BYTES for stolen fall-through. */
+/* Vtable-entry dispatcher (twin of timproc_uso_b1_func_00001130). Pass 2 2026-06-10:
+ * re-decode fixed the OLD body's structure -- the *40 is a real multu
+ * with the stride in a register (variable stride; old body's shift
+ * decomposition was wrong), the gl(5) arg loads EARLY into a0 before
+ * the beqzl, and the if(1){} BB-split after the call is load-bearing
+ * (the 4-for-4 v0/v1 lever). 29/40 -> 11 word-diffs remaining: stride
+ * colors a2 vs target a0 (the 5-then-40 single-web trick did not take;
+ * k still splits), and the fn-temp renumber downstream of it. Next:
+ * uoptlist dump or further web-merge shapes. */
 #ifdef NON_MATCHING
+extern int D_arg_b3_10E4;
+extern int D_cur_b3_10E4;
 void timproc_uso_b3_func_000010E4(int *self) {
-    char *base = &D_00000000;
     int *v0;
     int v1;
-    int *entry;
+    int stride;
     void (*fn)(void);
-    if (gl_func_00000000(*(int*)(base + 0x190)) == 0) return;
-    v0 = (int*)self[0x48/4];
-    v1 = v0[0x7C/4];
+
+    if (gl_func_00000000(D_arg_b3_10E4) == 0) {
+        return;
+    }
+    v0 = (int *)self[0x48 / 4];
+    v1 = v0[0x7C / 4];
     if (v1 != 0) {
         gl_func_00000000(5);
-        v0 = (int*)self[0x48/4];
-        v1 = v0[0x7C/4];
+        if (1) {}
+        v0 = (int *)self[0x48 / 4];
+        v1 = v0[0x7C / 4];
     }
-    entry = (int*)((char*)v0 + v1 * 40);
-    fn = (void(*)(void))entry[0x90/4];
-    if (fn == 0) return;
-    *(int*)base = (int)self;
-    v0 = (int*)self[0x48/4];
-    v1 = v0[0x7C/4];
-    entry = (int*)((char*)v0 + v1 * 40);
-    fn = (void(*)(void))entry[0x90/4];
-    fn();
+    stride = 40;
+    fn = (void (*)(void))*(int *)((char *)v0 + v1 * stride + 0x90);
+    if (fn != 0) {
+        D_cur_b3_10E4 = (int)self;
+        if (1) {}
+        v0 = (int *)self[0x48 / 4];
+        fn = (void (*)(void))*(int *)((char *)v0 + v0[0x7C / 4] * stride + 0x90);
+        fn();
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000010E4);
