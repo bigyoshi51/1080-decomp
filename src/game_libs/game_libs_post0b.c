@@ -14377,7 +14377,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046BC4);
 // 2026-05-28: 99.61% (fresh decode this tick, 0 → 99.61%). Levers: multiply
 // operand-load order swapped to match (obj[0x10]*[0xC]; short 0x22*0x20),
 // inlined scale/type locals (removed an extra spill slot → frame 0x38→0x30
-// matches). RESIDUAL CAP (3 insns): (a) `addiu s0,a1,0x1C` vs target's
+// matches). 2026-06-10 RE-MEASURE: the residual is ONE insn, not 3 --
+// the two mul.s diffs (b)(c) no longer appear (resolved by an earlier
+// body change or reloc-aware scoring); only (a) remains: 1 word,
+// 24B0001C vs 2490001C (the addiu source reg). Negative sweep today:
+// dead-arg overwrite a0=a1 (copy-prop kills it), post-call s0
+// derivation (regresses frame +2 insns). The a0:=a1 copy exists only
+// as the call's arg-marshal -- allocator-level reuse, uoptlist class.
+// ORIGINAL NOTE: RESIDUAL CAP (3 insns): (a) `addiu s0,a1,0x1C` vs target's
 // `addiu s0,a0,0x1C` — target reuses the a0:=a1 copy made for the call arg
 // (IDO scheduling, 1 reg-source insn); (b)(c) the two `mul.s` put the cvt'd
 // product as fs where the target uses the call-return scale (f0) as fs — the
