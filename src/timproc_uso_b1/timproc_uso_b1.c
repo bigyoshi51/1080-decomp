@@ -877,59 +877,39 @@ void timproc_uso_b1_func_000018D4(char *a0) {
     gl_func_00000000(p, 0x8C, *(int*)(p + 0x6AC));
 }
 
-/* timproc_uso_b1_func_00001908: 46-insn (0xB8) decrement-and-fire helper.
- * Was promoted 2026-05-17 via scalar `val` shape: target's first bc1fl delay
- * slot is the final `val <= 0.0f` compare, so the threshold fire check must
- * be outside the decrement block. SUFFIX_BYTES appended the fall-through
- * `1.0f` setup, and INSN_PATCH closed the remaining fixed-register diffs.
- * Both instruction-appending SUFFIX_BYTES and INSN_PATCH REMOVED 2026-05-23
- * as match-faking per feedback_no_instruction_forcing_matches_policy —
- * fn rolled back to NM-wrap; NATURAL CEILING (fixed-register diffs stay NM).
- *
- *   gl_func(self);                           ; pre-call
- *   sub = self->[0xD4];
- *   if (sub->[0x72C] > 0.0f) {
- *       sub->[0x72C] -= D[0x48];              ; decrement by constant
- *       sub = self->[0xD4];                    ; reload (clobbered)
- *       if (sub->[0x72C] < 0.0f) sub->[0x72C] = 0.0f;  ; clamp to 0
- *       gl_func(self, 140, sub->[0x6AC]);     ; mid-call
- *       sub = self->[0xD4];
- *   }
- *   if (sub->[0x72C] <= 0.0f) gl_func(self);  ; threshold-crossed call
- */
-#ifdef NON_MATCHING
+/* Decay-tick handler: decrement sub->f_72C by the global rate (D+0x48),
+ * clamp at 0, fire the 140-event mid-call, and on reaching <= 0 fire
+ * the threshold call. MATCHED 2026-06-10 (44/44): the old wrap had a
+ * DECODE ERROR (the mid-call's arg0 is SUB, not self) and a misplaced
+ * sub-reload (only the clamp-taken path reloads); the final read goes
+ * through the inlined full chain (fresh temp t6) rather than the sub
+ * variable (whose web would color a0). bc1fl delay structure falls out
+ * naturally from the val-carried if/if shape. */
 void timproc_uso_b1_func_00001908(int *self) {
     char *base = &D_00000000;
-    int *saved;
     int *sub;
     float *fp;
     float val;
+
     gl_func_00000000(self);
-    saved = self;
-    sub = (int*)saved[0xD4/4];
-    fp = (float*)((char*)sub + 0x72C);
+    sub = (int *)self[0xD4 / 4];
+    fp = (float *)((char *)sub + 0x72C);
     val = *fp;
     if (val > 0.0f) {
-        *fp -= *(float*)(base + 0x48);
-        sub = (int*)saved[0xD4/4];
-        fp = (float*)((char*)sub + 0x72C);
-        val = *fp;
-        if (val < 0.0f) {
-            *fp = 0.0f;
+        *fp -= *(float *)(base + 0x48);
+        sub = (int *)self[0xD4 / 4];
+        if (*(float *)((char *)sub + 0x72C) < 0.0f) {
+            *(float *)((char *)sub + 0x72C) = 0.0f;
+            sub = (int *)self[0xD4 / 4];
         }
-        sub = (int*)saved[0xD4/4];
-        gl_func_00000000(saved, 140, *(int*)((char*)sub + 0x6AC));
-        sub = (int*)saved[0xD4/4];
-        fp = (float*)((char*)sub + 0x72C);
-        val = *fp;
+        gl_func_00000000(sub, 140, *(int *)((char *)sub + 0x6AC));
+        val = *(float *)((char *)(int *)self[0xD4 / 4] + 0x72C);
     }
     if (val <= 0.0f) {
-        gl_func_00000000(saved);
+        gl_func_00000000(self);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001908);
-#endif
+
 
 #ifdef NON_MATCHING
 /* timproc_uso_b1_func_000019C0: byte-identical mirror of
