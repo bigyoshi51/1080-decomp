@@ -579,8 +579,13 @@ void timproc_uso_b1_func_00001100(int a0) {
  * the beqzl, and the if(1){} BB-split after the call is load-bearing
  * (the 4-for-4 v0/v1 lever). 29/40 -> 11 word-diffs remaining: stride
  * colors a2 vs target a0 (the 5-then-40 single-web trick did not take;
- * k still splits), and the fn-temp renumber downstream of it. Next:
- * uoptlist dump or further web-merge shapes. */
+ * k still splits), and the fn-temp renumber downstream of it.
+ * 2026-06-10 pseudo-order family sweep NEGATIVE: early-pseudo (stride
+ * dead-initialized / pre-declared first) and decl reorders all leave
+ * stride in a2. The residual is ARG-REGISTER coloring of a non-arg
+ * value (a0 freed after the jal consumed the 5); none of the three
+ * pseudo-order levers (BB-split / web-inversion / early-pseudo)
+ * address arg-reg targeting. Remaining lever: uoptlist dump. */
 #ifdef NON_MATCHING
 extern int D_arg_b1_1130;
 extern int D_cur_b1_1130;
