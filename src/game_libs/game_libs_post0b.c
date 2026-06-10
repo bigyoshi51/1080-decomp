@@ -27784,6 +27784,208 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000578B4);
 #endif
 
 #ifdef NON_MATCHING
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_00059E80)();
+void gl_func_00059E80(char *arg0, char *arg1) {
+    s32 temp_a2;
+    s32 temp_a2_10;
+    s32 temp_a2_11;
+    s32 temp_a2_12;
+    s32 temp_a2_13;
+    s32 temp_a2_14;
+    s32 temp_a2_15;
+    s32 temp_a2_16;
+    s32 temp_a2_17;
+    s32 temp_a2_2;
+    s32 temp_a2_3;
+    s32 temp_a2_4;
+    s32 temp_a2_5;
+    s32 temp_a2_6;
+    s32 temp_a2_7;
+    s32 temp_a2_8;
+    s32 temp_a2_9;
+    s32 temp_a3;
+    s32 temp_a3_2;
+    s32 temp_v0_2;
+    s32 temp_v0_3;
+    s32 temp_v1_11;
+    char *temp_a0;
+    char *temp_a0_2;
+    char *temp_a0_3;
+    char *temp_a0_4;
+    char *temp_a0_5;
+    char *temp_a0_6;
+    char *temp_a1;
+    char *temp_a1_2;
+    char *temp_a1_3;
+    char *temp_a1_4;
+    char *temp_a1_5;
+    char *temp_a3_3;
+    char *temp_a3_4;
+    char *temp_t0;
+    char *temp_t1;
+    char *temp_v0;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *temp_v0_8;
+    char *temp_v0_9;
+    char *temp_v1;
+    char *temp_v1_10;
+    char *temp_v1_12;
+    char *temp_v1_13;
+    char *temp_v1_14;
+    char *temp_v1_15;
+    char *temp_v1_16;
+    char *temp_v1_17;
+    char *temp_v1_18;
+    char *temp_v1_19;
+    char *temp_v1_2;
+    char *temp_v1_3;
+    char *temp_v1_4;
+    char *temp_v1_5;
+    char *temp_v1_6;
+    char *temp_v1_7;
+    char *temp_v1_8;
+    char *temp_v1_9;
+
+    temp_v1 = FW(arg0, 0xC);
+    temp_a2 = FW(temp_v1, 0x4);
+    FW(temp_v1, 0x4) = (s32) (temp_a2 + 1);
+    temp_v0 = FW(FW(arg0, 0xC), 0x0) + (temp_a2 * 8);
+    FW(temp_v0, 0x0) = 0xBC000006;
+    FW(temp_v0, 0x4) = 0;
+    temp_v0_2 = gl_func_00034458(0, temp_a2);
+    temp_a1 = FW(arg0, 0xC);
+    temp_a3 = FW(temp_a1, 0x4);
+    FW(temp_a1, 0x4) = (s32) (temp_a3 + 1);
+    temp_v1_2 = FW(FW(arg0, 0xC), 0x0) + (temp_a3 * 8);
+    FW(temp_v1_2, 0x0) = 0x06000000;
+    FW(temp_v1_2, 0x4) = temp_v0_2;
+    temp_v0_3 = gl_func_00034458(0, (s32) temp_a1);
+    temp_a1_2 = FW(arg0, 0xC);
+    temp_a3_2 = FW(temp_a1_2, 0x4);
+    FW(temp_a1_2, 0x4) = (s32) (temp_a3_2 + 1);
+    temp_a0 = FW(FW(arg0, 0xC), 0x0) + (temp_a3_2 * 8);
+    FW(temp_a0, 0x0) = 0x06000000;
+    FW(temp_a0, 0x4) = temp_v0_3;
+    temp_v1_3 = FW(arg0, 0xC);
+    temp_a2_2 = FW(temp_v1_3, 0x4);
+    FW(temp_v1_3, 0x4) = (s32) (temp_a2_2 + 1);
+    temp_t0 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_2 * 8);
+    FW(temp_t0, 0x0) = 0xBA001001;
+    FW(temp_t0, 0x4) = 0;
+    temp_v1_4 = FW(arg0, 0xC);
+    temp_a2_3 = FW(temp_v1_4, 0x4);
+    FW(temp_v1_4, 0x4) = (s32) (temp_a2_3 + 1);
+    temp_t1 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_3 * 8);
+    FW(temp_t1, 0x0) = 0xBA000402;
+    FW(temp_t1, 0x4) = 0;
+    temp_v1_5 = FW(arg0, 0xC);
+    temp_a2_4 = FW(temp_v1_5, 0x4);
+    FW(temp_v1_5, 0x4) = (s32) (temp_a2_4 + 1);
+    temp_v0_4 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_4 * 8);
+    FW(temp_v0_4, 0x0) = 0xBA000602;
+    FW(temp_v0_4, 0x4) = 0;
+    temp_v1_6 = FW(arg0, 0xC);
+    temp_a2_5 = FW(temp_v1_6, 0x4);
+    FW(temp_v1_6, 0x4) = (s32) (temp_a2_5 + 1);
+    temp_a0_2 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_5 * 8);
+    FW(temp_a0_2, 0x0) = 0xBA000C02;
+    FW(temp_a0_2, 0x4) = 0x2000;
+    temp_v1_7 = FW(arg0, 0xC);
+    temp_a2_6 = FW(temp_v1_7, 0x4);
+    FW(temp_v1_7, 0x4) = (s32) (temp_a2_6 + 1);
+    temp_v0_5 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_6 * 8);
+    FW(temp_v0_5, 0x0) = 0xBA001301;
+    FW(temp_v0_5, 0x4) = 0x80000;
+    temp_v1_8 = FW(arg0, 0xC);
+    temp_a2_7 = FW(temp_v1_8, 0x4);
+    FW(temp_v1_8, 0x4) = (s32) (temp_a2_7 + 1);
+    temp_a0_3 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_7 * 8);
+    FW(temp_a0_3, 0x0) = 0xFCFFFFFF;
+    FW(temp_a0_3, 0x4) = 0xFFFE793C;
+    temp_v1_9 = FW(arg0, 0xC);
+    temp_a2_8 = FW(temp_v1_9, 0x4);
+    FW(temp_v1_9, 0x4) = (s32) (temp_a2_8 + 1);
+    temp_a1_3 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_8 * 8);
+    FW(temp_a1_3, 0x0) = 0xB6000000;
+    FW(temp_a1_3, 0x4) = -1;
+    temp_v1_10 = FW(arg0, 0xC);
+    temp_a2_9 = FW(temp_v1_10, 0x4);
+    FW(temp_v1_10, 0x4) = (s32) (temp_a2_9 + 1);
+    temp_a0_4 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_9 * 8);
+    FW(temp_a0_4, 0x0) = 0xB7000000;
+    FW(temp_a0_4, 0x4) = 0x22204;
+    temp_v0_6 = FW(arg0, 0xC);
+    temp_v1_11 = FW(temp_v0_6, 0x4);
+    FW(temp_v0_6, 0x4) = (s32) (temp_v1_11 + 1);
+    temp_a1_4 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_11 * 8);
+    FW(temp_a1_4, 0x0) = 0xBA001402;
+    FW(temp_a1_4, 0x4) = 0;
+    temp_v1_12 = FW(arg0, 0xC);
+    temp_a2_10 = FW(temp_v1_12, 0x4);
+    FW(temp_v1_12, 0x4) = (s32) (temp_a2_10 + 1);
+    temp_a3_3 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_10 * 8);
+    FW(temp_a3_3, 0x0) = 0xB9000002;
+    FW(temp_a3_3, 0x4) = 0;
+    temp_v1_13 = FW(arg0, 0xC);
+    temp_a2_11 = FW(temp_v1_13, 0x4);
+    FW(temp_v1_13, 0x4) = (s32) (temp_a2_11 + 1);
+    temp_v0_7 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_11 * 8);
+    FW(temp_v0_7, 0x0) = 0xF9000000;
+    FW(temp_v0_7, 0x4) = 0xFF00FA;
+    temp_v1_14 = FW(arg0, 0xC);
+    temp_a2_12 = FW(temp_v1_14, 0x4);
+    FW(temp_v1_14, 0x4) = (s32) (temp_a2_12 + 1);
+    temp_a0_5 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_12 * 8);
+    FW(temp_a0_5, 0x0) = 0xFA000000;
+    FW(temp_a0_5, 0x4) = 0xFFFF;
+    temp_v1_15 = FW(arg0, 0xC);
+    temp_a2_13 = FW(temp_v1_15, 0x4);
+    FW(temp_v1_15, 0x4) = (s32) (temp_a2_13 + 1);
+    temp_a1_5 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_13 * 8);
+    FW(temp_a1_5, 0x0) = 0xBC000404;
+    FW(temp_a1_5, 0x4) = 3;
+    temp_v1_16 = FW(arg0, 0xC);
+    temp_a2_14 = FW(temp_v1_16, 0x4);
+    FW(temp_v1_16, 0x4) = (s32) (temp_a2_14 + 1);
+    temp_v0_8 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_14 * 8);
+    FW(temp_v0_8, 0x0) = 0xBC000C04;
+    FW(temp_v0_8, 0x4) = 3;
+    temp_v1_17 = FW(arg0, 0xC);
+    temp_a2_15 = FW(temp_v1_17, 0x4);
+    FW(temp_v1_17, 0x4) = (s32) (temp_a2_15 + 1);
+    temp_a0_6 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_15 * 8);
+    FW(temp_a0_6, 0x0) = 0xBC001404;
+    FW(temp_a0_6, 0x4) = 0xFFFD;
+    temp_v1_18 = FW(arg0, 0xC);
+    temp_a2_16 = FW(temp_v1_18, 0x4);
+    FW(temp_v1_18, 0x4) = (s32) (temp_a2_16 + 1);
+    temp_a3_4 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_16 * 8);
+    FW(temp_a3_4, 0x0) = 0xBC001C04;
+    FW(temp_a3_4, 0x4) = 0xFFFD;
+    if (FW(arg1, 0x104) & 2) {
+        gl_func_00034458(arg0, FW(FW(arg1, 0x148), 0xF0), temp_a2_16, temp_a3_4);
+        temp_v1_19 = FW(arg0, 0xC);
+        temp_a2_17 = FW(temp_v1_19, 0x4);
+        FW(temp_v1_19, 0x4) = (s32) (temp_a2_17 + 1);
+        temp_v0_9 = FW(FW(arg0, 0xC), 0x0) + (temp_a2_17 * 8);
+        FW(temp_v0_9, 0x0) = 0xB7000000;
+        FW(temp_v0_9, 0x4) = 1;
+    }
+    gl_func_00034458(arg0);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00059E80);
+#endif
+
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005A2C4);
+
+#ifdef NON_MATCHING
 /* PASS-1 2026-06-10 (big-swing): FULL m2c graft (449 insns, table-free;
  * 50 COP1 moves = borderline bitwise-FP density, tempered). */
 void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *arg5, s32 arg6, s32 arg7, s32 arg8, s32 arg9, s32 arg10, s32 arg11) {
@@ -28016,12 +28218,8 @@ block_22:
     }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00059E80);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005A2C4);
-
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005A2CC);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
