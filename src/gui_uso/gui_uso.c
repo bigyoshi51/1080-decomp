@@ -10,141 +10,37 @@ extern char D_00000000;
  * jr ra. Proper recovery is a deliberate full-cluster merge, not per-fragment
  * C bodies. */
 
-/* USO entry-0 trampoline leaf. The previous NM body described the old bundled
- * 0x148-byte glyph dispatch; after splitting, this symbol is just the first
- * 0x24 bytes. PREFIX_BYTES supplies the loader branch and arg-save delay slot. */
+/* gui_func_00000000 [0x00..0x148): full-cluster MERGE (2026-06-09) of the
+ * previously over-split char->glyph-index mapper (12 splat fragments, each a
+ * 6-insn early-return chain link; see audit note above). Layout:
+ *   0x00: 2-insn loader trampoline `b 0x1CDC0; sw a0,0(sp)` (USO entry-0;
+ *         NOT emittable from this function's C -- needs the USO-header
+ *         PREFIX_BYTES mechanism or a boundary fix to land byte-exact)
+ *   0x08: mapper body (bnel chain + 3 range folds), faithful C below.
+ * Maps punctuation to glyph indices 0x24-0x29, a-z/A-Z to 0x0A.., digits to
+ * 0x0..0x9; default returns the input char. */
 #ifdef NON_MATCHING
 int gui_func_00000000(c)
 int c;
 {
     c &= 0xFF;
-    if (c == 0x21) {
-        c = 0x27;
-    }
+    if (c == 0x21) { c = 0x27; goto ret; }   /* '!' */
+    if (c == 0x2C) { c = 0x28; goto ret; }   /* ',' */
+    if (c == 0x2F) { c = 0x29; goto ret; }   /* '/' */
+    if (c == 0x5B) { c = 0x26; goto ret; }   /* '[' */
+    if (c == 0x5D) { c = 0x27; goto ret; }   /* ']' */
+    if (c == 0x2B) { c = 0x24; goto ret; }   /* '+' */
+    if (c == 0x5F) { c = 0x25; goto ret; }   /* '_' */
+    if (c == 0x2E) { c = 0x25; goto ret; }   /* '.' */
+    if (c == 0x2D) { c = 0x25; goto ret; }   /* '-' */
+    if (c >= 0x61 && c < 0x7B) { c -= 0x57; goto ret; }          /* a-z */
+    if (c >= 0x41 && c < 0x5B) { c -= 0x37; goto ret; }          /* A-Z */
+    if (c >= 0x30 && c < 0x3A) { c = (c - 0x30) & 0xFF; }        /* 0-9 */
+ret:
     return c & 0xFF;
 }
 #else
-/* gui_func_00000000: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
-#endif
-
-/* Branch-chain fragment: the predecessor leaves the character in $v0, and the
- * taken path jumps into gui_uso_func_0000003C after using this fragment's
- * delay slot to seed $at. IDO cannot name inherited $v0 from C. Was
- * previously documented as "Makefile post-cc recipe" promotion — those
- * recipes (INSN_PATCH/instruction-appending SUFFIX_BYTES) were REMOVED
- * 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default INCLUDE_ASM
- * remains byte-exact. */
-#ifdef NON_MATCHING
-int gui_uso_func_00000024(void) {
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000024);
-#endif
-
-/* Branch-chain sibling of gui_uso_func_00000024. This fragment inherits the
- * character in $v0 and cannot express the compare in C. Was previously
- * documented as Makefile INSN_PATCH/SUFFIX_BYTES — both REMOVED 2026-05-23
- * as match-faking (per feedback_no_instruction_forcing_matches_policy).
- * Default INCLUDE_ASM remains byte-exact. */
-#ifdef NON_MATCHING
-int gui_uso_func_0000003C(void) {
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000003C);
-#endif
-
-// gui_uso_func_00000054 — STRUCTURAL PASS (0x18 / 6 words, no episode).
-// Raw-.word USO chained char-mapper entry (one of 10 contiguous entries
-// at 0x54..0x124, each 0x18). Pattern: `bnel v0,$at,past-end` with the
-// next-test addiu in the delay slot — falls THROUGH into the next entry
-// if v0 != tested char.
-//   if (v0 == 0x5B) { a0 = 0x26; return a0 & 0xFF; }   // ']' → '&'
-//   else fall through to gui_uso_func_0000006C (next chained entry)
-// Caps (DEFERRED): fall-through-on-mismatch can't be expressed in C
-// without function-merge; keep INCLUDE_ASM as build path. The NM body
-// below documents the MATCH branch only.
-#ifdef NON_MATCHING
-int gui_uso_func_00000054(int v0) {
-    if (v0 == 0x5B) {
-        int a0 = 0x26;
-        return a0 & 0xFF;
-    }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000054);
-#endif
-
-// Chained char-mapper entries (continuation of gui_uso_func_00000054).
-// Each falls THROUGH to the next on mismatch — see
-// reference_1080_chained_char_mapper_fallthrough memo. NM-wrap match
-// branch only; INCLUDE_ASM is the build path.
-#ifdef NON_MATCHING
-int gui_uso_func_0000006C(int v0) { if (v0 == 0x5D) { int a0 = 0x27; return a0 & 0xFF; } return 0; }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000006C);
-#endif
-
-#ifdef NON_MATCHING
-int gui_uso_func_00000084(int v0) { if (v0 == 0x2B) { int a0 = 0x24; return a0 & 0xFF; } return 0; }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000084);
-#endif
-
-#ifdef NON_MATCHING
-int gui_uso_func_0000009C(int v0) { if (v0 == 0x5F) { int a0 = 0x25; return a0 & 0xFF; } return 0; }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000009C);
-#endif
-
-#ifdef NON_MATCHING
-int gui_uso_func_000000B4(int v0) { if (v0 == 0x2E) { int a0 = 0x25; return a0 & 0xFF; } return 0; }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000B4);
-#endif
-
-#ifdef NON_MATCHING
-int gui_uso_func_000000CC(int v0) { if (v0 == 0x2D) { int a0 = 0x25; return a0 & 0xFF; } return 0; }
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000CC);
-#endif
-
-// Range entries: hex/digit decoders (lowercase 'a'-'z', uppercase 'A'-'Z',
-// digit '0'-'9'); same fall-through-to-next-entry pattern on mismatch.
-#ifdef NON_MATCHING
-int gui_uso_func_000000E4(int v0) {
-    if (v0 >= 0x61 && v0 < 0x7B) { int a0 = v0 - 0x57; return a0 & 0xFF; }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000000E4);
-#endif
-
-#ifdef NON_MATCHING
-int gui_uso_func_00000104(int v0) {
-    if (v0 >= 0x41 && v0 < 0x5B) { int a0 = v0 - 0x37; return a0 & 0xFF; }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000104);
-#endif
-
-/* CALLER-SET-$v0 CAP (digit '0'-'9' -> value, else passthrough). Target reads
- * the arg from $v0 (`slti $1,$2,48`), NOT $a0 — caller-set-register convention
- * (cf. caller_set_int_reg_cap), so a C `(int v0)` arg lands in $a0 and diverges.
- * Also the out-of-range path SHARES the return (`jr ra; andi $2,$4,0xff`)
- * returning the incoming $4&0xff (a 2nd caller-set/preserved reg), so there's
- * no explicit `return 0`; my C's `return 0` adds a `move $2,$0` + 2nd jr ra
- * (the +2 OVER in find-size-mismatch). Not C-reachable — INCLUDE_ASM stays. */
-#ifdef NON_MATCHING
-int gui_uso_func_00000124(int v0) {
-    if (v0 >= 0x30 && v0 < 0x3A) { int a0 = (v0 - 0x30) & 0xFF; return a0 & 0xFF; }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00000124);
 #endif
 
 /* gui_func_00000148: BUNDLED splat symbol (0x7D0 total / 500 insns).
