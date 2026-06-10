@@ -647,6 +647,13 @@ void titproc_uso_func_0000101C(int *a0) {
  *    p->0x34-gated counter-clamp pair (+16 cap 255->720 / -16 floor 0
  *    with the gate-confirmed vt-call chain inside). Remaining: the
  *    shared 0x474 tail, jal identities, per-arm fine shapes.
+ *  - PASS-9 2026-06-10: removed the d local (inline &D remat per use,
+ *    matching the target's lui/addiu pattern) -- score-neutral, frame
+ *    unchanged at 0x30 vs target 0x20. The frame driver is cross-call
+ *    temp liveness (an afa60020 spill at slot 0x20), uoptlist class.
+ *    Remaining structural gap = the jumptable head (capped, below) +
+ *    the frame; the 277 positional diffs are head-cascade, fuzzy 84.87
+ *    reflects aligned content.
  *  - PASS-8 NOTE 2026-06-10: the head's 4-entry jumptable (sltiu 4 +
  *    lui/addu/lw/jr) is NOT reproducible from a 4-case switch -- both
  *    IDO 7.1 and 5.3 at -O2 emit compare chains for 4 cases (tested
@@ -674,7 +681,6 @@ void titproc_uso_func_0000101C(int *a0) {
  * matches landed, 1 control-flow fix, 1 harness gotcha, 1 double-cap,
  * 1 already-planned big decode = this). */
 void titproc_uso_func_0000116C(char *s0) {
-    char *d = (char *)&D_00000000;
     char *v1, *vt;
     int state = *(int *)(s0 + 0x40);
     int n, t, v;
@@ -684,7 +690,7 @@ void titproc_uso_func_0000116C(char *s0) {
         t = *(int *)(s0 + 0x3C) - 1;
         *(int *)(s0 + 0x3C) = t;
         if (t >= 0) {
-            if (gl_func_00000000(d, 0x40300) == 0) {
+            if (gl_func_00000000((char *)&D_00000000, 0x40300) == 0) {
                 return;
             }
         }
@@ -720,7 +726,7 @@ void titproc_uso_func_0000116C(char *s0) {
         if (t == 0) goto fire;
         if (*(int *)(*(char **)(*(char **)(s0 + 0x50) + 0x44) + 0x34) != 0) {
 fire:
-            *(int *)(d + 0x34) = 1;
+            *(int *)((char *)&D_00000000 + 0x34) = 1;
             v = gl_func_00000000();
             gl_func_00000000(s0, v, 0);
             return;
@@ -728,12 +734,12 @@ fire:
         if (*(int *)(s0 + 0x68) != 0) {
             return;
         }
-        if (gl_func_00000000(d, 0x40300) == 0) {
+        if (gl_func_00000000((char *)&D_00000000, 0x40300) == 0) {
             return;
         }
         gl_func_00000000(*(int *)(s0 + 0x58));
         gl_func_00000000(*(int *)(s0 + 0x54));
-        if (*(unsigned short *)(*(char **)(d + 0x154) + 4) & 8) {
+        if (*(unsigned short *)(*(char **)((char *)&D_00000000 + 0x154) + 4) & 8) {
             v1 = *(char **)(s0 + 0x60);
             vt = *(char **)(v1 + 0x28);
             ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
@@ -752,10 +758,10 @@ fire:
     }
     case 2: {
         gl_func_00000000(*(int *)(s0 + 0x60));
-        if (gl_func_00000000(d, 0x40100) != 0) {
+        if (gl_func_00000000((char *)&D_00000000, 0x40100) != 0) {
             char *reg;
             gl_func_00000000(5);
-            reg = *(char **)(d + 0x154);
+            reg = *(char **)((char *)&D_00000000 + 0x154);
             *(unsigned short *)(reg + 4) = *(unsigned short *)(reg + 4) & 0xFFF7;
             gl_func_00000000(*(int *)(s0 + 0x60));
             v1 = *(char **)(s0 + 0x5C);
@@ -775,7 +781,7 @@ fire:
         t = *(int *)(s0 + 0x3C);
         if (t == 0) {
             v = gl_func_00000000();
-            *(int *)(d + 0x34) = 1;
+            *(int *)((char *)&D_00000000 + 0x34) = 1;
             gl_func_00000000(s0, v, 0);
         }
         if (*(int *)(*(char **)(*(char **)(s0 + 0x50) + 0x44) + 0x34) != 0) {
@@ -827,8 +833,8 @@ fire:
                         v1 = *(char **)(s0 + 0x5C);
                         n = *(int *)(v1 + 0x7C);
                         if (*(int *)(v1 + n * 40 + 0x90) != 0) {
-                            *(char **)(d + 0xA8) = s0;
-                            *(int *)(d + 0x84) = *(int *)(v1 + 0x7C);
+                            *(char **)((char *)&D_00000000 + 0xA8) = s0;
+                            *(int *)((char *)&D_00000000 + 0x84) = *(int *)(v1 + 0x7C);
                             v1 = *(char **)(s0 + 0x5C);
                             ((void (*)(void))(*(int *)(v1 + *(int *)(v1 + 0x7C) * 40 + 0x90)))();
                         }
