@@ -4,6 +4,8 @@ In progress 1080 Snowboarding decompilation, mostly driven by Claude. Uses https
 
 ## Status
 
+**The build is ROM-exact (2026-06-10): `make` produces a `tenshoe.z64` byte-identical to the original ROM** (md5 `fa27089c425dbab99f19245c5c997613`), and `make verify` (part of the default target) hard-fails on any regression.
+
 Twenty segments are being decompiled. USO overlays ship as a custom relocatable format (some Yay0-compressed); we match pre-relocation bytes by splatting at `VRAM=0` with per-segment symbol prefixes (`gl_func_`, `gui_func_`, etc.).
 
 `Matched` is the share of code bytes whose C body compiles to baserom byte-for-byte. `Fuzzy` is bytes-weighted partial credit: NM-wrapped C bodies that aren't byte-perfect contribute their per-instruction similarity (e.g., a 1 KB function at 80 % match adds ~800 bytes of fuzzy credit). Both metrics use a separate `build/non_matching/` tree compiled with `-DNON_MATCHING` so partial decomp work shows up in the report.
