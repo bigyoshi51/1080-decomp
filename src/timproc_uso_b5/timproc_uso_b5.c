@@ -1216,7 +1216,53 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * The merged tail block copies a0->i_44 into nested p_38->p_3F4[?]->
  * fields 0xC4/0xD4 and stores (v1 - a0->i_44) deltas to 0xBC/0xCC --
  * sibling family of the 1C08 State machine. Full decode pending. */
+/* 2026-06-10 pass 1 (post-merge): m2c decodes the 0x164 fn cleanly -- a
+ * two-channel crossfade updater: ch1 = a0->p_34 gets level a0->i_44,
+ * ch2 = a0->p_38 gets (0xF0 - level); each writes the nested
+ * ch->p_414->p_C record (C4/D4 cleared or set, BC/CC = level) plus, on
+ * the ch1 active path, f_B4 = dbl_C0 + dbl_B8*(1.0f - a0->f_54) (f64
+ * math, reloc'd double constants at +0xB8/+0xC0 -- offset-valued syms
+ * staged) and ch1->f_49C = 41.0f + 5.0f*a0->f_54. Standalone at 7.1
+ * -O2: 89/87 insns, diffs are a count shift from the FP-constant
+ * scheduling (target interleaves the lui 0x3F80/mtc1 of 1.0f into the
+ * first else statement's slack; our f64 chain emits +2). Store order
+ * and the cached-then-reload pointer pattern (m2c temp_v0) confirmed
+ * right. Residual = the f64 expression shape. */
+#ifdef NON_MATCHING
+extern f64 D_1DB0_dbl_B8;
+extern f64 D_1DB0_dbl_C0;
+
+void timproc_uso_b5_func_00001DB0(char *a0) {
+    char *t;
+    char *u;
+
+    *(s32 *)(*(char **)(a0 + 0x34) + 0x4D8) = *(s32 *)(a0 + 0x44);
+    t = *(char **)(a0 + 0x34);
+    if (*(s32 *)(t + 0x4D8) == 0) {
+        *(s32 *)(*(char **)(*(char **)(t + 0x414) + 0xC) + 0xBC) = 0;
+    } else {
+        *(s32 *)(*(char **)(*(char **)(t + 0x414) + 0xC) + 0xC4) = 0;
+        *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xD4) = 0;
+        *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xBC) = *(s32 *)(a0 + 0x44);
+        *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xCC) = *(s32 *)(a0 + 0x44);
+        *(f32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xB4) =
+            D_1DB0_dbl_C0 + D_1DB0_dbl_B8 * (f64)(1.0f - *(f32 *)(a0 + 0x54));
+        *(f32 *)(*(char **)(a0 + 0x34) + 0x49C) = 41.0f + 5.0f * *(f32 *)(a0 + 0x54);
+    }
+    *(s32 *)(*(char **)(a0 + 0x38) + 0x4D8) = 0xF0 - *(s32 *)(a0 + 0x44);
+    u = *(char **)(a0 + 0x38);
+    if (*(s32 *)(u + 0x4D8) == 0) {
+        *(s32 *)(*(char **)(*(char **)(u + 0x414) + 0xC) + 0xBC) = 0;
+        return;
+    }
+    *(s32 *)(*(char **)(*(char **)(u + 0x414) + 0xC) + 0xC4) = *(s32 *)(a0 + 0x44);
+    *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x38) + 0x414) + 0xC) + 0xD4) = *(s32 *)(a0 + 0x44);
+    *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x38) + 0x414) + 0xC) + 0xBC) = 0xF0 - *(s32 *)(a0 + 0x44);
+    *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x38) + 0x414) + 0xC) + 0xCC) = 0xF0 - *(s32 *)(a0 + 0x44);
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001DB0);
+#endif
 
 /* timproc_uso_b5_func_00001EB8 MERGED into 1DB0 2026-06-10 (bnezl tail fragment). */
 
