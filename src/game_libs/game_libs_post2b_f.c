@@ -177,7 +177,79 @@ loop_3:
     goto loop_3;
 }
 #else
+/* gl_func_0007507C = the PI-manager THREAD MAIN (identified via 74EFC's
+ * hardcoded entry 0x896E8 = USO 0x7507C + reloc base). -Olimit-fallback
+ * shape (scheduled -O0: homed locals, per-use reloads, filled bnez
+ * delays, unfilled jal delays). Decoded structure: one-time init copies
+ * g->u16_2 into the hardcoded countdown halfword 0x45290 (assignment-in-
+ * condition -- a named temp would get homed, the target's t7 reuse only
+ * comes from `if ((GH = expr) == 0)`); then an infinite osRecvMesg
+ * dispatch on msg->u16 type: 13 = tick (countdown u16 RMW, on zero
+ * re-fetch state and fire callback g->p_10(g->p_14, 0) + reload
+ * countdown; then event counter ++, optional u64-accumulator rebase, and
+ * ACC += (now - prev) via the compiler's 32->64 addu/sltu pair); 14 =
+ * single call. 2026-06-10 standalone at 5.3 -O1 -Olimit 1: 109/115
+ * insns (target includes 6 zero pad words before the dead epilogue) and
+ * 61 non-reloc diffs that are ALL frame-offset cascade -- build frame
+ * 0x40 vs target 0x38 (one extra 8-byte unit, possibly the register
+ * `type` home slot under -Olimit). Everything else (s0 type var,
+ * decl-order homes, u64 math, branch layout) lines up. Next pass: shave
+ * the frame unit, then carve (needs gl_dref_00045290 = 0x00045290 +
+ * D_7507C_cnt/acc/prev placeholders). */
+#ifdef NON_MATCHING
+typedef unsigned long long u64;
+extern int gl_func_00000000();
+extern unsigned short gl_dref_00045290;
+extern unsigned int D_7507C_cnt;
+extern u64 D_7507C_acc;
+extern unsigned int D_7507C_prev;
+
+void gl_func_0007507C(char *arg) {
+    char *g;
+    char *q;
+    int msg;
+    int flag;
+    unsigned int t;
+    register int type;
+
+    msg = 0;
+    flag = 0;
+    g = (char *)gl_func_00000000();
+    if ((gl_dref_00045290 = *(unsigned short *)(g + 2)) == 0) {
+        gl_dref_00045290 = 1;
+    }
+    q = arg;
+    for (;;) {
+        gl_func_00000000(*(int *)(q + 0xC), &msg, 1);
+        type = *(unsigned short *)msg;
+        if (type == 13) {
+            gl_func_00000000();
+            gl_dref_00045290 = gl_dref_00045290 - 1;
+            if (gl_dref_00045290 == 0) {
+                gl_func_00000000();
+                g = (char *)gl_func_00000000();
+                if (*(int *)(g + 0x10) != 0) {
+                    gl_func_00000000(*(int *)(g + 0x10), *(int *)(g + 0x14), 0);
+                }
+                gl_dref_00045290 = *(unsigned short *)(g + 2);
+            }
+            D_7507C_cnt += 1;
+            if (flag != 0) {
+                t = gl_func_00000000();
+                D_7507C_acc = t;
+                flag = 0;
+            }
+            t = D_7507C_prev;
+            D_7507C_prev = gl_func_00000000();
+            D_7507C_acc += (unsigned int)(D_7507C_prev - t);
+        } else if (type == 14) {
+            gl_func_00000000();
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007507C);
+#endif
 #endif
 
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_func_00075248_pad.s")
