@@ -13830,7 +13830,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BAAC);
  * `/ 127.0f`. C-only emit drops to 32 bytes vs target 36; missing
  * `sw a1, 0x4(sp)` at +0x0 (arg-save sentinel that IDO doesn't emit
  * for non-spilling andi of a1). Same class as feedback-ido-arg-shadow-
- * spill-not-emitted (e.g. game_libs_func_0002DD38). */
+ * spill-not-emitted (e.g. game_libs_func_0002DD38).
+ * 2026-06-10 lever-asymmetry sweep (4 forms): the pointer-var arg-home
+ * lever that emits `sw a0,0(sp)` for an a0 arg (2DD38, 0 diffs
+ * standalone) does NOT emit `sw a1,4(sp)` for this a1 arg -- plain
+ * &-form, (void)p form, and both store-through forms either skip the
+ * home or grow to 10 insns with real memory traffic. The arg-home
+ * lever appears a0-specific (or blocked by the float-convert liveness
+ * here). Honest 76.67 floor. */
 #ifdef NON_MATCHING
 void game_libs_func_0002BB58(int *a0, int a1) {
     int *p = &a1;
