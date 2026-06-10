@@ -520,5 +520,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074850);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074860);
 
+/* game_libs_func_0007488C = 2 zero pad words + the standard int-reader
+ * template at 0x74894 (found 2026-06-10 via byte-signature scan). An
+ * in-place C match was attempted and REVERTED -- not because the C is
+ * wrong, but because this address sits inside the pre-existing drift
+ * region [0x743C4..0x748A0] (4-byte content shift vs ROM; see
+ * docs/MATCHING_WORKFLOW "drift region mapped") where ROM byte-verify
+ * cannot validate any change. Re-do the match AFTER the 743C4 boundary
+ * correction realigns the region. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0007488C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000747F4_pad.s")
