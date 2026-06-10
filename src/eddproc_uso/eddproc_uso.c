@@ -160,7 +160,11 @@ void eddproc_uso_func_000001E8(char *a0) {
  * IDO's scheduler hoists the two cross-jal reloads (lw v1, lw a2) into the
  * lui->addiu gap; target keeps the materialize adjacent. No C-level lever found
  * for this single 3-window reorder (the reloads are mandatory — v1/a2 are
- * caller-saved and live across the final jal). Final-mile scheduler cap. */
+ * caller-saved and live across the final jal). Final-mile scheduler cap.
+ * 2026-06-10: the if(1){} BB-split (role #6, address materialization)
+ * tested at 3 placements + a block-scoped vt local -- all neutral (2
+ * word diffs). The hoist happens WITHIN the final block's scheduling
+ * window, which a preceding BB edge cannot reach. Cap confirmed. */
 extern char D_edd_vt0;
 extern char D_edd_vt1;
 extern char D_edd_vt2;
