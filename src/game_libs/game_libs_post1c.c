@@ -1,4 +1,11 @@
 #include "common.h"
+
+/* DRIFT AUDIT 2026-06-10: this unit has ~2 internal byte-drop points in
+ * [0x70314..0x70C44) -- gl_func_00070A14 sits -8 and gl_func_00070B04
+ * -4 relative to neighbors, re-aligning by gl_func_00070C44. Candidate
+ * for the dropped-former-SUFFIX class (see the confirmed B5AC case +
+ * docs/MATCHING_WORKFLOW suffix-fallout audit). Gap-content check and
+ * fix belong to the relayout balanced pass. */
 extern int D_00000000;
 extern int gl_data_00000000;
 extern int gl_data_67470_addr;
