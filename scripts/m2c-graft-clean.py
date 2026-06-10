@@ -31,9 +31,10 @@ def clean(b, fn, self_recursive=False):
     b = re.sub(r'\(([\w? ]+)\(\*\)\(([^)]*)\)\)0x([0-9A-Fa-f]+)\(',        # 13
                lambda m: f'{fn.rsplit("_",1)[0]}_{int(m.group(3),16):08X}('
                if False else f'gl_func_{int(m.group(3),16):08X}(', b)
-    b = re.sub(r'([A-Za-z_][A-Za-z0-9_]*)->unk-([0-9A-Fa-f]+)',            # 2 neg
+    # exclude 'unkXX' as a base ident: chains A->unkC->unk0 must convert left-first
+    b = re.sub(r'(?!unk[0-9A-Fa-f])([A-Za-z_][A-Za-z0-9_]*)->unk-([0-9A-Fa-f]+)',  # 2 neg
                lambda m: f'*(s32 *)((char *)({m.group(1)}) - 0x{int(m.group(2),16):X})', b)
-    b = re.sub(r'([A-Za-z_][A-Za-z0-9_]*)->unk([0-9A-Fa-f]+)',             # 2
+    b = re.sub(r'(?!unk[0-9A-Fa-f])(?<![\w])((?!unk)[A-Za-z_][A-Za-z0-9_]*)->unk([0-9A-Fa-f]+)',  # 2
                lambda m: f'*(s32 *)((char *)({m.group(1)}) + 0x{int(m.group(2),16):X})', b)
     ch = True
     while ch: b, ch = fix_chain(b)                                          # 9
