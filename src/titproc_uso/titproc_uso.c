@@ -773,6 +773,21 @@ void titproc_uso_func_0000116C(char *s0) {
                     *(int *)(s0 + 0x40) = 1;
                     *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
                     gl_func_00000000(2050);
+                    /* 2026-06-10 pass 3: the 0x40100 gate + 40-byte-record
+                     * fn-ptr table call (entry field 0x90 = callback;
+                     * D->0xA8 = self, D->0x84 = index published first). */
+                    if (gl_func_00000000((char *)&D_00000000, 0x40100) != 0) {
+                        gl_func_00000000(*(int *)(s0 + 0x5C));
+                        gl_func_00000000(5);
+                        v1 = *(char **)(s0 + 0x5C);
+                        n = *(int *)(v1 + 0x7C);
+                        if (*(int *)(v1 + n * 40 + 0x90) != 0) {
+                            *(char **)(d + 0xA8) = s0;
+                            *(int *)(d + 0x84) = *(int *)(v1 + 0x7C);
+                            v1 = *(char **)(s0 + 0x5C);
+                            ((void (*)(void))(*(int *)(v1 + *(int *)(v1 + 0x7C) * 40 + 0x90)))();
+                        }
+                    }
                 }
             }
         }
