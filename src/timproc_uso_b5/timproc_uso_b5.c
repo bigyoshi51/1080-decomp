@@ -1223,14 +1223,18 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * the ch1 active path, f_B4 = dbl_C0 + dbl_B8*(1.0f - a0->f_54) (f64
  * math, reloc'd double constants at +0xB8/+0xC0 -- offset-valued syms
  * staged) and ch1->f_49C = 41.0f + 5.0f*a0->f_54. Standalone at 7.1
- * -O2: 89/87 insns, diffs are a count shift from the FP-constant
- * scheduling (target interleaves the lui 0x3F80/mtc1 of 1.0f into the
- * first else statement's slack; our f64 chain emits +2). Store order
- * and the cached-then-reload pointer pattern (m2c temp_v0) confirmed
- * right. Residual = the f64 expression shape. */
+ * -O2: 89/87. Pass 2: the two doubles share ONE %hi base in the target
+ * (one lui at + ldc1 184/192(at)) -- array-form extern D_1DB0_dbls[23]/
+ * [24] reproduces the shared base (distinct externs emit two luis).
+ * Remaining +2 = the 41.0f (0x4224) / 5.0f (0x40A0) float-constant lui
+ * scheduling (build hoists 0x40A0 early). Cast variants ((f64) explicit,
+ * implicit promotion, double-constant subtract) all neutral or worse.
+ * Residual = pure FP-constant scheduling. */
 #ifdef NON_MATCHING
-extern f64 D_1DB0_dbl_B8;
-extern f64 D_1DB0_dbl_C0;
+extern f64 D_1DB0_dbls[];  /* doubles at +0xB8/+0xC0 share ONE %hi base
+                              (target: one lui at + ldc1 184(at)/192(at));
+                              distinct externs emit two luis -- array form
+                              [23]/[24] shares the base. */
 
 void timproc_uso_b5_func_00001DB0(char *a0) {
     char *t;
@@ -1246,7 +1250,7 @@ void timproc_uso_b5_func_00001DB0(char *a0) {
         *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xBC) = *(s32 *)(a0 + 0x44);
         *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xCC) = *(s32 *)(a0 + 0x44);
         *(f32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xB4) =
-            D_1DB0_dbl_C0 + D_1DB0_dbl_B8 * (f64)(1.0f - *(f32 *)(a0 + 0x54));
+            D_1DB0_dbls[24] + D_1DB0_dbls[23] * (f64)(1.0f - *(f32 *)(a0 + 0x54));
         *(f32 *)(*(char **)(a0 + 0x34) + 0x49C) = 41.0f + 5.0f * *(f32 *)(a0 + 0x54);
     }
     *(s32 *)(*(char **)(a0 + 0x38) + 0x4D8) = 0xF0 - *(s32 *)(a0 + 0x44);
