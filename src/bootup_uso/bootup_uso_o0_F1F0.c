@@ -55,13 +55,21 @@ void func_0000F288(Quad4 *a0) {
  * Logic byte-identical; residual is -O0 frame-pack + s-reg renumber. NM. */
 #ifdef NON_MATCHING
 void func_0000F2EC(Vec3 *dst) {
+    /* 2026-06-09: q-first register order matches the target's s-reg map
+     * (q=s0, p1=s1, p2=s2, src=s3) -- fixed the or/lw register diffs.
+     * Remaining 4 diffs: the locals block sits 12 bytes low (tmp@0x28 vs
+     * 0x34); target has a 12-byte hole at [0x28..0x34) between the saves
+     * and the locals that no C local reproduces without growing the 0x58
+     * frame (a trailing Tri3i pad allocates there but recomputes frame to
+     * 0x68). Same frame-packing family as gl_func_00008A40 (whose flag
+     * axes are all exhausted -- see that wrap). */
+    register Vec3 *q;
     register Vec3 *p1;
     register Vec3 *p2;
-    register Vec3 *q;
+    register float *src;
     Tri3i raw;
     int pad_mid[2];
     Tri3i tmp;
-    register float *src;
     func_00000000(&D_00000000, &raw, 12);
     p1 = dst;
     tmp = raw;
