@@ -1,5 +1,13 @@
 #include "common.h"
 
+/* P0 AUDIT WARNING 2026-06-10: the decompressed block3 build differs
+ * from ROM (assets/timproc_uso_block_3.bin) by 963 words in
+ * [0x690..0x30D0]. After the 87F4/88A0 circular-false-positive
+ * retraction (docs/MATCHING_WORKFLOW post-mortem), every b3 match/
+ * episode in that range is SUSPECT until per-symbol-verified against
+ * the block bin ground truth. Do not refresh expected/ for this unit
+ * until resolved. */
+
 extern int gl_func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
