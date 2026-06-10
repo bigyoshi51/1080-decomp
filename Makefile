@@ -182,7 +182,9 @@ build/src/game_libs/game_libs_ido53_74D54.c.o: TRUNCATE_TEXT := 0x60
 build/src/game_libs/game_libs_ido53_74DB4.c.o build/non_matching/src/game_libs/game_libs_ido53_74DB4.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_74DB4.c.o build/non_matching/src/game_libs/game_libs_ido53_74DB4.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_74DB4.c.o: TRUNCATE_TEXT := 0x128
-build/src/game_libs/game_libs_post2b_f.c.o: TRUNCATE_TEXT := 0x3D0
+build/src/game_libs/game_libs_post2b_f.c.o: TRUNCATE_TEXT := 0x388
+build/src/game_libs/game_libs_ido_75264.c.o build/non_matching/src/game_libs/game_libs_ido_75264.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido_75264.c.o build/non_matching/src/game_libs/game_libs_ido_75264.c.o: TRUNCATE_TEXT := 0x48
 
 build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1

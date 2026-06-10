@@ -275,69 +275,8 @@ int game_libs_func_00075254(void) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00075260);
 
-#ifdef NON_MATCHING
-/* SP_PC_REG (uncached, 0xA4080000) conditional writer.
- *   if ((flag & 1) != 0) { *(volatile u32*)0xA4080000 = pc; return 0; }
- *   else { return -1; }
- *
- * 11-insn target with `addiu sp, -8` + matching `addiu sp, sp, 8` at the
- * very end — fake stack frame even though no body uses it. Per
- * feedback_ido_sp_frame_without_stack_use.md: IDO -O2 won't allocate a
- * frame from standard C unless something actually touches the stack.
- *   - With body alone: 9 insns, no frame (mismatch).
- *   - With `volatile int x = 0;` to force a slot: 11 insns + frame BUT also
- *     emits `sw zero, 4(sp)` in the delay slot AND shifts $tN registers up
- *     by 1 (target uses t7/t8; mine t6/t7). Mismatch.
- *
- * Cap: ~85 % via the volatile-int form. Real fix needs a way to allocate
- * frame without stack use — which IDO doesn't expose.
- *
- * 2026-05-30 — DUAL-ENTRY context: the predecessor orphan game_libs_func_00075260
- * (`nop; lui t6,0xA404; lw a1,0x10(t6)`, no jr ra) loads this body's `flag` (a1)
- * from the RSP register 0xA4040010 (SP_STATUS read), then falls through. So the fn
- * is an RSP-poll: entered via 0x75260, flag = SP_STATUS; entered directly here,
- * flag = caller's. NOT an orphan-merge candidate — (a) dual-entry (body callable
- * with caller flag), and (b) the merged single-entry C reads SP_STATUS into $v0 and
- * emits a different leaf shape (no frame), so it can't reproduce the body's frame.
- * The hw write target 0xA4080000 = SP_PC_REG (RSP program counter). Both INCLUDE_ASM. */
-int gl_func_0007526C(unsigned int pc, int flag) {
-    volatile int x = 0;
-    if ((flag & 1) == 0) {
-        return -1;
-    }
-    *(volatile unsigned int*)0xA4080000 = pc;
-    return 0;
-}
-#else
-/* gl_func_0007526C (last fn in game_libs, 11 insns): conditional
- * SP_PC_REG writer -- if (a1 & 1) { *(vu32 *)0xA4080000 = a0; return 0; }
- * return -1. CAP (2026-06-10 exhaustive standalone sweep): the target has
- * an EMPTY 8-byte frame on a no-local leaf, single shared exit, UNFILLED
- * bnez delay (nop), v0 set directly in both arms, and temps starting at
- * t7 (t6 skipped). No tested combination reproduces all four:
- *   - 5.3/7.1 x -O1/-O2 plain if/return: 9-10 insns, no frame, dual exits.
- *   - -O0 (both): 16 insns (homed args, too long).
- *   - -O1 -Olimit 1 (both): 10 insns, no frame, dual jr-ra.
- *   - int ret single-exit at -O1: frame + single exit BUT ret spills to
- *     4(sp) (3 extra stack ops, 12 insns).
- *   - register int ret at -O1/-Olimit: ret in a2 + move v0,a2 (12 insns).
- *   - unused (volatile) int local at -O1/-O2: dropped entirely, no frame.
- * Closest = the int-ret -O1 shape (frame + structure right, spill wrong).
- * The t7-start temp numbering also suggests something consumed t6 --
- * possibly a different source construct entirely. */
-#ifdef NON_MATCHING
-int gl_func_0007526C(int a0, unsigned a1) {
-    int ret;
-    if (!(a1 & 1)) {
-        ret = -1;
-    } else {
-        *(volatile int *)0xA4080000 = a0;
-        ret = 0;
-    }
-    return ret;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007526C);
-#endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0007526C_pad.s")
-#endif
+/* gl_func_0007526C MATCHED 2026-06-10 as game_libs_func_00075264 (own
+ * -O1 carve unit game_libs_ido_75264.c): the "dual-entry" theory was
+ * wrong -- 75260's lui/lw was the fn's own first statement (boundary
+ * mis-split) and the leading nop is 75254's trailing pad (kept below as
+ * the 1-word 75260 pad INCLUDE). */

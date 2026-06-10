@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00075264",
+  "project": "1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T07:44:20.523571+00:00",
+  "end_time": "2026-06-10T07:44:20.523608+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T07:44:20.523596+00:00",
+      "assistant_text": "RSP kick (SP_STATUS poll + conditional SP_PC_REG write). The 75260/7526C 'dual-entry cap' dissolved once the true boundary was found: the fn starts at 0x75264 with the SP_STATUS load. Keys: the load OVERWRITES the dead second arg (lands in a1), an unused local allocates the empty 8-byte frame at -O1, temps then start at t7. Carved as last -O1 unit; leading nop = 75254's trailing pad; 5-word zero pad sidecar preserves section size.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 13,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* game_libs_func_00075264 = the TRUE function behind the 75260/7526C\n * \"dual-entry\" pair: an RSP kick -- read SP_STATUS (0xA4040010), and if\n * the halt bit (bit 0) is set, write the new RSP program counter to\n * SP_PC_REG (0xA4080000). The old gl_func_0007526C cap analysis\n * (\"empty 8-byte frame, temps start at t7, v0 set directly\") all fell\n * out of the REAL boundary: the fn starts at 0x75264 with the SP_STATUS\n * load (t6 consumed there; result OVERWRITES the dead arg `flag`, which\n * is why it lands in $a1), and the unused local allocates the empty\n * frame (IDO -O1 allocates unused-local slots; -O2 drops them).\n * 13/13 at IDO 7.1 -O1 (also exact at 5.3 -O1). The leading nop at\n * 0x75260 is 75254's trailing pad, kept in post2b_f as a pad word. */\nint game_libs_func_00075264(unsigned int pc, unsigned int flag) {\n    int unused;\n    flag = *(volatile unsigned int *)0xA4040010;\n    if (!(flag & 1)) {\n        return -1;\n    }\n    *(volatile unsigned int *)0xA4080000 = pc;\n    return 0;\n}\n#pragma GLOBAL_ASM(\"asm/nonmatchings/game_libs/game_libs/game_libs_func_00075264_pad.s\")\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido_75264.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_00075264.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "ROM byte-exact [0x75264..0x75298) via +0xDE50D8 mapping; report.json 100.0; section byte-identical to pre-change snapshot."
+  }
+}
