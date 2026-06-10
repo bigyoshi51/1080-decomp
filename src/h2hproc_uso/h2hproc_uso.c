@@ -816,7 +816,17 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C1
  * the r1 load; (b) caching root->0x108 into a `bind` temp before the slot load
  * (regressed to 16 diffs); (c) the 2-var split. The v0/v1 swap does not flip
  * from C-level statement order — IDO colors the slot pseudo to v0 because it
- * reuses v0 after the two void calls. Don't re-run the permuter. INCLUDE_ASM. */
+ * reuses v0 after the two void calls. Don't re-run the permuter. INCLUDE_ASM.
+ * 2026-06-10 WEB-ORDER INVERSION cracks the v0/v1 half (12 -> 2 diffs):
+ * drop the named `root` and INLINE the full chain into the slot
+ * assignment, then re-derive root inline for the 0x8DC store -- CSE
+ * merges the two 0x134 loads back to one, but the merged web's COLOR
+ * follows the FIRST pseudo (slot's chain -> v0, root -> v1, matching).
+ * Extends the 1908 inlined-chain lever to v0/v1 ORDER control.
+ * Remaining 2 diffs: the r1-arg caller-save spill slot 0x28 vs 0x24
+ * (decl permutations/pads/block-scoping all neutral or worse -- spill
+ * allocator slot, not decl-order; possibly the 8C3C internal-temp
+ * class). */
 void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     int *slotC4, *slotCC;
     int *r1, *r2;
@@ -824,18 +834,16 @@ void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     gl_func_00000000(a0, a1);
 
     {
-        int *root = *(int**)((char*)&D_00000000 + 0x134);
-        slotC4 = *(int**)((char*)root + 0xC4);
-        *(int*)((char*)slotC4 + 0x8DC) = *(int*)((char*)root + 0x108);
+        slotC4 = *(int**)((char*)*(int**)((char*)&D_00000000 + 0x134) + 0xC4);
+        *(int*)((char*)slotC4 + 0x8DC) = *(int*)((char*)*(int**)((char*)&D_00000000 + 0x134) + 0x108);
         r1 = *(int**)((char*)slotC4 + 0x800);
         gl_func_00000000(r1, 0);
         gl_func_00000000(r1, *(int*)((char*)&D_00000000 + 0x168), *(int*)((char*)&D_00000000 + 0x170));
     }
 
     {
-        int *root = *(int**)((char*)&D_00000000 + 0x134);
-        slotCC = *(int**)((char*)root + 0xCC);
-        *(int*)((char*)slotCC + 0x8DC) = *(int*)((char*)root + 0x108);
+        slotCC = *(int**)((char*)*(int**)((char*)&D_00000000 + 0x134) + 0xCC);
+        *(int*)((char*)slotCC + 0x8DC) = *(int*)((char*)*(int**)((char*)&D_00000000 + 0x134) + 0x108);
         r2 = *(int**)((char*)slotCC + 0x800);
         gl_func_00000000(r2, 0);
         gl_func_00000000(r2, *(int*)((char*)&D_00000000 + 0x16C), *(int*)((char*)&D_00000000 + 0x174));
