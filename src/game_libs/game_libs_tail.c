@@ -1850,7 +1850,13 @@ extern int gl_func_00000000();
  * use-buf10.a (regresses, +frame), store-first/store-after-c0 (7-23 half-diffs),
  * tmp-a local (19 half-diffs) — none flip t8->t9, all the others only worsen the
  * surrounding allocation. Genuine register-renumber cap (same class as the
- * 274E0/8000969C t-reg caps); stays NM. */
+ * 274E0/8000969C t-reg caps); stays NM.
+ * 2026-06-10 temp-number forensics: the target NEVER USES t8 -- its
+ * temp sequence runs t6/t7 (copy ping-pong) then JUMPS to t9. A skipped
+ * temp means the original had an expression that consumed t8 and was
+ * optimized away AFTER temp numbering (uoptlist-visible, not
+ * C-steerable: dead-load probes allocate a frame slot, +8, without
+ * occupying the temp). Definitive uoptlist-class; do not re-grind. */
 struct gl_func_0000C28C_Four { int a, b, c, d; };
 void gl_func_0000C28C(void *arg0, struct gl_func_0000C28C_Four *arg1) {
     struct gl_func_0000C28C_Four buf10;
