@@ -4188,7 +4188,12 @@ void gl_func_00068524(int *a0, int a1) {
  * /a2@0x20. Both frames 0x30. The reserved 0x18 needs IDO to allocate a
  * 4th (phantom, never-stored) spill slot at the bottom — no C structure
  * induces it: adding a real spilled local regresses to 13 diffs; pad/
- * explicit-local insertions grow the frame to 0x38. Stays NM. */
+ * explicit-local insertions grow the frame to 0x38. Stays NM.
+ * 2026-06-10: the 5D054 split-decl slot lever swept (all 6 decl
+ * permutations of key_l/key_h/row) -- all neutral at 6 diffs. The
+ * spilled values here are UNNAMED caller-save temps of the assertion
+ * calls, not named vars, so the decl-order lever has nothing to grip
+ * (same boundary as 8C3C's internal temps). Phantom-slot cap stands. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void gl_func_000685C0(int *a0, unsigned int a1) {
