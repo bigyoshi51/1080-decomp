@@ -23615,7 +23615,242 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
 // Caps: out/stream structs + 14 cb prototypes untyped, jump table +
 // msg offsets not symbolized (USO-relocated); bundle awaits re-split.
 // Full body INCLUDE_ASM-preserved (all 5 fns).
+#ifdef NON_MATCHING
+/* PASS-1 2026-06-10 (big-swing): FULL m2c graft; one sparse table.
+ * Hardened insert (item 22). */
+s32 *gl_func_00052CD4(char *arg0, s32 *arg1) {
+    s32 sp34;
+    s32 sp30;
+    s32 sp28;
+    s32 *var_s0;
+    s32 temp_a0;
+    s32 temp_a0_2;
+    s32 temp_a0_3;
+    s32 temp_a1;
+    s32 temp_a1_2;
+    s32 temp_a3;
+    s32 temp_f4;
+    s32 temp_t0;
+    s32 temp_t1;
+    s32 temp_t1_2;
+    s32 temp_t3;
+    s32 temp_t4;
+    s32 temp_t4_2;
+    s32 temp_t5;
+    s32 temp_t6;
+    s32 temp_t6_2;
+    s32 temp_t7;
+    s32 temp_t7_2;
+    s32 temp_t8;
+    s32 temp_t9;
+    s32 temp_t9_2;
+    s32 temp_t9_3;
+    u32 var_a3;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+
+    sp28 = 0;
+    sp30 = 0;
+    sp34 = 0;
+    var_a3 = *arg1 & 0xFFFF;
+    var_s0 = arg1 + 4;
+    if (var_a3 != 2) {
+loop_1:
+        switch (var_a3) {
+        case 0:
+            temp_t7 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            *(s32 *)((char *)(arg0) + 0xA0) = temp_t7;
+block_34:
+            temp_a3 = *var_s0;
+            var_s0 += 4;
+            var_a3 = temp_a3 & 0xFFFF;
+            if (var_a3 == 2) {
+                goto block_35;
+            }
+            goto loop_1;
+        case 1:
+            temp_a1 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            func_00000000(arg0, temp_a1);
+            goto block_34;
+        case 2:
+            *(s32 *)((char *)(arg0) + 0x40) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
+            temp_t9 = *(s32 *)((char *)(var_s0) + 0x4);
+            var_s0 = var_s0 + 4 + 4;
+            *(s32 *)((char *)(arg0) + 0x60) = temp_t9;
+            goto block_34;
+        case 3:
+            *(s32 *)((char *)(arg0) + 0x44) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
+            temp_t1 = *(s32 *)((char *)(var_s0) + 0x4);
+            var_s0 = var_s0 + 4 + 4;
+            *(s32 *)((char *)(arg0) + 0x68) = temp_t1;
+            sp30 = 1;
+            goto block_34;
+        case 4:
+            func_00000000(0x20FD4, 0);
+            temp_a1_2 = *(s32 *)((char *)(var_s0) + 0x0);
+            temp_t3 = *(s32 *)((char *)(var_s0) + 0x4);
+            var_s0 = var_s0 + 4 + 4;
+            *(s32 *)((char *)(arg0) + 0x90) = 0;
+            *(s32 *)((char *)(arg0) + 0x8C) = temp_a1_2;
+            *(s32 *)((char *)(arg0) + 0x80) = temp_t3;
+            if (temp_a1_2 != 0) {
+                *(s32 *)((char *)(arg0) + 0x84) = func_00000000(temp_a1_2 * 4, temp_a1_2);
+            }
+            func_00000000(arg0, *(s32 *)((char *)(arg0) + 0x80));
+            func_00000000();
+            goto block_34;
+        case 5:
+            func_00000000(0x20FDC);
+            goto block_34;
+        case 6:
+            temp_t4 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            *(s32 *)((char *)(arg0) + 0x64) = temp_t4;
+            goto block_34;
+        case 7:
+            temp_t5 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            *(s32 *)((char *)(arg0) + 0x78) = temp_t5;
+            goto block_34;
+        case 8:
+            temp_t6 = *(s32 *)((char *)(var_s0) + 0x0);
+            temp_v0 = arg0 + 0x34;
+            var_s0 += 4;
+            *(s32 *)((char *)(arg0) + 0x7C) = temp_t6;
+            *(s32 *)((char *)(temp_v0) + 0x4) = (s32) (*(s32 *)((char *)(temp_v0) + 0x4) | 8);
+            goto block_34;
+        case 9:
+            temp_t9_2 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            *(s32 *)((char *)(arg0) + 0x50) = temp_t9_2;
+            goto block_34;
+        case 10:
+            *(s32 *)((char *)(arg0) + 0x44) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
+            temp_t1_2 = *(s32 *)((char *)(var_s0) + 0x4);
+            var_s0 = var_s0 + 4 + 4;
+            *(s32 *)((char *)(arg0) + 0x4C) = temp_t1_2;
+            goto block_34;
+        case 11:
+            sp34 = 1;
+            goto block_34;
+        case 12:
+            temp_a0 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            temp_v0_2 = arg0 + 0x34;
+            if (temp_a0 != 0) {
+                *(s32 *)((char *)(temp_v0_2) + 0x4) = (s32) (*(s32 *)((char *)(temp_v0_2) + 0x4) | 0x2000);
+            } else {
+            case 13:
+                *(s32 *)((char *)&D_00000000 + 0x4) /* M2C unset $v0 */ = (s32) (*(s32 *)((char *)&D_00000000 + 0x4) /* M2C unset $v0 */ & ~0x2000);
+            }
+            goto block_34;
+        case 14:
+            var_s0 += 0xC;
+            func_00000000(0x20FF4);
+            goto block_34;
+        case 15:
+            temp_t7_2 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            *(s32 *)((char *)(arg0) + 0x98) = temp_t7_2;
+            goto block_34;
+        case 16:
+            temp_f4 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            *(f32 *)((char *)(arg0) + 0x9C) = (f32) ((f32) temp_f4 / *(f32 *)((char *)&D_00000000 + 0x1C78));
+            goto block_34;
+        case 17:
+            var_s0 += 4;
+            goto block_34;
+        case 18:
+            temp_t9_3 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            sp28 = temp_t9_3;
+            goto block_34;
+        case 19:
+            temp_a0_2 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            temp_v0_3 = arg0 + 0x34;
+            if (temp_a0_2 != 0) {
+                *(s32 *)((char *)(temp_v0_3) + 0x4) = (s32) (*(s32 *)((char *)(temp_v0_3) + 0x4) | 0x4000);
+            } else {
+            case 20:
+                *(s32 *)((char *)&D_00000000 + 0x4) /* M2C unset $v0 */ = (s32) (*(s32 *)((char *)&D_00000000 + 0x4) /* M2C unset $v0 */ & ~0x4000);
+            }
+            goto block_34;
+        case 21:
+            var_s0 += 4;
+            goto block_34;
+        case 22:
+            temp_t4_2 = *(s32 *)((char *)(var_s0) + 0x0);
+            var_s0 += 4;
+            *(s32 *)((char *)(arg0) + 0x5C) = temp_t4_2;
+            goto block_34;
+        case 23:
+            *(s32 *)((char *)(arg0) + 0x48) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
+            temp_t6_2 = *(s32 *)((char *)(var_s0) + 0x4);
+            var_s0 = var_s0 + 4 + 4;
+            *(s32 *)((char *)(arg0) + 0x6C) = temp_t6_2;
+            goto block_34;
+        case 24:
+            *(s32 *)((char *)(arg0) + 0x58) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
+            temp_t8 = *(s32 *)((char *)(var_s0) + 0x4);
+            var_s0 = var_s0 + 4 + 4;
+            *(s32 *)((char *)(arg0) + 0x54) = temp_t8;
+            goto block_34;
+        case 25:
+            *(s32 *)((char *)(arg0) + 0x74) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
+            temp_t0 = *(s32 *)((char *)(var_s0) + 0x4);
+            var_s0 = var_s0 + 4 + 4;
+            *(s32 *)((char *)(arg0) + 0x70) = temp_t0;
+            goto block_34;
+        default:
+            var_s0 = func_00000000(arg0, var_a3, var_s0, var_a3);
+            goto block_34;
+        }
+    } else {
+block_35:
+        if (sp30 != 0) {
+            if ((*(s32 *)((char *)(arg0) + 0x5C) == 0) && (*(s32 *)((char *)(arg0) + 0x58) == 0)) {
+                *(s32 *)((char *)(arg0) + 0x58) = func_00000000(*(s32 *)((char *)(arg0) + 0x40) * 0xC);
+            }
+            if (*(s32 *)((char *)(arg0) + 0x54) == 0) {
+                *(s32 *)((char *)(arg0) + 0x54) = func_00000000(*(s32 *)((char *)(arg0) + 0x44) * 0xC);
+            }
+            if (*(s32 *)((char *)(arg0) + 0x5C) != 0) {
+                func_00000000(arg0, sp34);
+            } else {
+            /* case 27 (flattened) */
+            /* case 28 (flattened) */
+            /* case 29 (flattened) */
+            /* case 30 (flattened) */
+            /* case 31 (flattened) */
+            /* case 32 (flattened) */
+            /* case 33 (flattened) */
+            /* case 34 (flattened) */
+            /* case 35 (flattened) */
+            /* case 36 (flattened) */
+                func_00000000();
+            }
+        }
+    }
+    if (sp28 != 0) {
+        func_00000000(arg0);
+    }
+    if (!(*(s32 *)((char *)&D_00000000 + 0) & 0x100)) {
+        temp_a0_3 = *(s32 *)((char *)(arg0) + 0x54);
+        if (temp_a0_3 != 0) {
+            func_00000000(temp_a0_3);
+            *(s32 *)((char *)(arg0) + 0x54) = 0;
+        }
+    }
+    return var_s0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052CD4);
+#endif
 
 /* Nested 6-byte-stride table lookup. v1=a0->0x70; if v1!=0: idx=*(u16*)(v1 +
  * a1*6); return a0->0x60 + idx*6; else return a0->0x60 + a1*6. Merged: the
