@@ -5528,31 +5528,20 @@ void gl_func_0006A5B0(int a0) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A5F0);
 
-#ifdef NON_MATCHING
-/* game_libs_func_0006AD68: v0 = *a0; *a0 = *(int*)v0 (double-deref); return v0.
- * Corrected from the prior *a0=*a0 mis-decode (asm derefs the loaded value:
- * lw v0,0(a0); lw,0(v0); sw,0(a0)). Residual: the intermediate lands in $t6
- * vs the target's $t9 -- a single-temp register-renumber cap.
- *
- * 2026-05-26 (re-screened): exhaustive variant grind confirms C-unreachable.
- * Tried 6 forms — all emit $t6 (or $t7 with comma-expr extra-temp):
- *   - int t = *(int*)v0; *a0 = t;             → $a1 (worse)
- *   - unsigned int*  a0;                       → $t6
- *   - *(volatile int *)a0 / *(volatile int *)v0 → $t6
- *   - (*a0 = *(int*)(*a0)), *(int*)*a0         → $t7
- *   - int **a0; (int*)*v0                      → $t6
- *   - register int t asm("$t9")                → IDO syntax error
- * Target's $t9 is from a different IDO state (likely surrounding-function
- * allocator-context spill), unreachable from a standalone C body. */
-int game_libs_func_0006AD68(int *a0) {
-    int v0 = *a0;
-    *a0 = *(int *)v0;
-    return v0;
-}
-#else
+/* game_libs_func_0006AD68 = libultra __osPopThread (os/exceptasm.s) --
+ * HANDWRITTEN assembly (LEAF in the exception-handler file; verified
+ * against libreultra: lw v0,0(a0); lw t9,0(v0); jr ra; sw t9,0(a0)).
+ * IDENTIFIED 2026-06-10: the old wrap ground 5 C variants chasing the
+ * $t9 "allocator state" -- the t9 is simply the hand-written register
+ * choice. The neighbor game_libs_func_0006AD78 is the exception
+ * context-switch block from the same file (k-regs, ld/ldc1 GPR+FPR
+ * restore, eret -- also handwritten). Permanent INCLUDE_ASM, always-
+ * skip class. Reference-search-first would have caught this. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD68);
-#endif
 
+/* game_libs_func_0006AD78 = the exception-handler context block from
+ * os/exceptasm.s (HANDWRITTEN: mtc0/k-regs, full ld GPR + ldc1 FPR
+ * restore, eret, PIF-watchdog tail). Permanent INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD78);
 
 /* 14-insn linked-list traversal. Searches for `a1` in a list rooted at `a3`
