@@ -343,33 +343,22 @@ void game_uso_func_00000634(int *a0) {
     a0[13] = 0;
 }
 
-/* 93.86% NM. 93.86 % match. State-check function: returns 1 if any of:
- *   (a0[0]==2 || a0[0]==3) && a0[1]==1
- *   (a0[4]==2 || a0[4]==3) && a0[5]==1
- *   a0[8]==1, a0[10]==2, a0[12]==2
- *
- * IDO emits each `==` test as `xor; sltiu` (boolean compute) rather than
- * direct branch — natural for single-expression boolean return chain.
- * Variants tested:
- *   - `if (cond) return 1;` chain — regressed to 20% (multi-epilogue)
- *   - 2026-05-02: named-locals `int x0=a0[0]; int x4=a0[4]; ...` —
- *     REGRESSED to 82.6% (locals shift expression-tree walker order)
- *
- * Cap: $v0 vs $v1 register flip. Mine loads a0[0] into $v1, computes
- * boolean in $v0. Target loads into $v0, computes in $v1. Same arith,
- * swapped naming. Not C-flippable; IDO's v0/v1 choice for load-target
- * vs result-target is fixed by expression-tree walker. */
-#ifdef NON_MATCHING
+/* State-check: returns 1 if any of the three sub-states is active.
+ * MATCHED 2026-06-10 (44/44): the "$v0/$v1 not C-flippable" cap fell to
+ * the EARLY-PSEUDO trick -- `int r = 0; r = <expr>; return r;`. The
+ * dead initializer creates r's pseudo FIRST, so the result colors $v0
+ * and the loads take $v1 (the target's order); the bare return-expr
+ * form creates the load pseudo first (30 diffs). Same family as the
+ * web-order inversion (h2hproc E04). */
 int game_uso_func_00000674(int *a0) {
-    return ((a0[0] == 2 || a0[0] == 3) && a0[1] == 1)
+    int r = 0;
+    r = ((a0[0] == 2 || a0[0] == 3) && a0[1] == 1)
         || ((a0[4] == 2 || a0[4] == 3) && a0[5] == 1)
         || a0[8] == 1
         || a0[10] == 2
         || a0[12] == 2;
+    return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000674);
-#endif
 
 /* 89.96% NM. Prior commit 764b62d landed this as "100%" but that was
  * expected-baseline contamination — subsequent refresh-expected-baseline
