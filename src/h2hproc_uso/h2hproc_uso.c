@@ -823,10 +823,15 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C1
  * merges the two 0x134 loads back to one, but the merged web's COLOR
  * follows the FIRST pseudo (slot's chain -> v0, root -> v1, matching).
  * Extends the 1908 inlined-chain lever to v0/v1 ORDER control.
- * Remaining 2 diffs: the r1-arg caller-save spill slot 0x28 vs 0x24
+ * Remaining 2 diffs: the a0 caller-save spill slot 0x28 vs 0x24
  * (decl permutations/pads/block-scoping all neutral or worse -- spill
  * allocator slot, not decl-order; possibly the 8C3C internal-temp
- * class). */
+ * class). 2026-06-10 second sweep with the new levers, ALL NEUTRAL:
+ * volatile-pad before pointers (regresses frame), volatile-pad before
+ * r1/r2 (neutral), self-copy pseudo-timing shape (neutral). The frame
+ * is IDENTICAL; only the in-frame slot choice differs -- confirmed
+ * spill-allocator-internal. uoptlist queue (the dump's spill-temp
+ * numbering should show the 0x24 occupant). */
 void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     int *slotC4, *slotCC;
     int *r1, *r2;
