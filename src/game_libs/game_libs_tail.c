@@ -1360,6 +1360,15 @@ void gl_func_0000B4A4(int *a0, int a1, char a2, char a3) {
  * SUFFIX_BYTES tail (`sll/subu/addiu/div` computing (a1*3)/5, supplying
  * stolen-prologue setup for successor gl_func_0000B5AC) was REMOVED
  * 2026-05-23 as match-faking; those bytes now belong to B5AC's own symbol.
+ * 2026-06-10 DRIFT AUDIT CORRECTION: the prepend never happened --
+ * B5AC's .s still starts at 0xB5AC, so the 4 insns [0xB59C..0xB5AC)
+ * are emitted by NOBODY (the build is missing 16 bytes of ROM code
+ * here; this is one of tail's three drift points). The proper fix =
+ * prepend the 4 words to gl_func_0000B5AC.s -- but that grows tail by
+ * +0x10 and shifts every later unit (including the ROM-exact validated
+ * region), so it belongs to the relayout session's balanced pass. Tail
+ * gap map: +0x4 pad missing before 9674, +0x10 code missing before
+ * B5AC (this), -0x4 extra pad after C5B0.
  * Successor B5AC is at fuzzy=NULL (still needs predecessor-fall-through
  * decode) — see its header just below. */
 extern int gl_func_00000000();
