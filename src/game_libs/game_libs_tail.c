@@ -3370,18 +3370,16 @@ int *game_libs_func_0000E410(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000E410);
 #endif
 
-/* game_libs_func_0000E42C: 8-insn `clear-bit-2-then-clear-bit-3` (mask -5 then -9)
- * with TARGET keeping the intermediate store (does NOT DCE the first sw).
- *   int *p = a0 + 0x18; *p &= ~4; *p &= ~8; return p;
- *
- * Target: addiu v0,a0,0x18; lw 0(v0); li at,-5; and t7,t6,at; li at,-9;
- *   sw t7,0(v0); and t9,t7,at; jr ra; sw t9,0(v0) (delay).
- * IDO -O2 dead-store-eliminates the first `*p &= ~4` (folds the two masks
- * into a single `& ~0xC`) and folds 0x18 back to base+imm. Whole family
- * (E410-E490) wants -O1/-g per-file split. See E410 header. */
+/* game_libs_func_0000E42C: clear flags 4+8 on a0->i_18, returns the
+ * field pointer. BYTE-EXACT 2026-06-10 (0 diffs standalone) via the
+ * role-#6 barrier; SIXTH member of the flag-helper family (E410/E42C/
+ * E450/E464/E47C/E490 -- set/clear x {4, 8, both}, all solved). LAND
+ * BLOCKED mid-file; relayout session. */
 #ifdef NON_MATCHING
-int *game_libs_func_0000E42C(int *a0) {
-    int *p = (int*)((char*)a0 + 0x18);
+int *game_libs_func_0000E42C(char *a0) {
+    int *p;
+    p = (int *)(a0 + 0x18);
+    if (1) {}
     *p &= ~4;
     *p &= ~8;
     return p;
