@@ -1,6 +1,7 @@
-nonmatching gl_func_0002DF68, 0x30
+nonmatching gl_func_0002DF68, 0x34
 
 glabel gl_func_0002DF68
+    /* 02DF68 0002DF68 27BDFFE8 */  .word 0x27BDFFE8
     /* E13040 0002DF68 27BDFFE8 */  .word 0x27BDFFE8
     /* E13044 0002DF6C 308400FF */  .word 0x308400FF
     /* E13048 0002DF70 AFBF0014 */  .word 0xAFBF0014

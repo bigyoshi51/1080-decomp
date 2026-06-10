@@ -1,4 +1,4 @@
-nonmatching gl_func_00037938, 0x158
+nonmatching gl_func_00037938, 0x154
 
 glabel gl_func_00037938
     /* E1CA10 00037938 27BDFF28 */  .word 0x27BDFF28
@@ -86,5 +86,4 @@ glabel gl_func_00037938
     /* E1CB58 00037A80 8FBF0014 */  .word 0x8FBF0014
     /* E1CB5C 00037A84 27BD00D8 */  .word 0x27BD00D8
     /* E1CB60 00037A88 03E00008 */  .word 0x03E00008
-    /* E1CB64 00037A8C 00000000 */  .word 0x00000000
 endlabel gl_func_00037938

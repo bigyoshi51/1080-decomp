@@ -1080,7 +1080,6 @@ int gl_func_0006D964(char *obj, int a1, int a2, int a3, int arg5, int arg6, int 
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D964);
 #endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D964_pad.s")
 
 #ifdef NON_MATCHING
 #ifndef FW
@@ -1961,7 +1960,6 @@ int gl_func_0006F3BC(int a0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3BC);
 #endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F3BC_pad.s")
 
 #ifdef NON_MATCHING
 #ifndef FW

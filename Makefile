@@ -126,18 +126,16 @@ build/src/game_libs/game_libs_o0_8944.c.o: TRUNCATE_TEXT := 0xFC
 build/src/game_libs/game_libs_o0_8A40.c.o build/non_matching/src/game_libs/game_libs_o0_8A40.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_g3_34448.c.o build/non_matching/src/game_libs/game_libs_g3_34448.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_34448.c.o: TRUNCATE_TEXT := 0x10
-build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2EAFC
+build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb04
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
-build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8D04
-# all-zero pad: post1b's pre-existing internal drift leaves the head 0x20 short
-# of its exact span [0x62F40..0x6BC44); zero-pad so the ido53_6BC44 carve and
-# post1b2 land at their true offsets (drift/diff set unchanged vs pre-split)
-build/src/game_libs/game_libs_post1b.c.o: SUFFIX_BYTES_FORCE := gl_func_0006BAD4=0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000
+build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce4
+# (2026-06-10 relayout: the post1b head-shortfall compensation SUFFIX was
+# removed -- the missing prologues upstream are restored for real.)
 build/src/game_libs/game_libs_ido53_6BC44.c.o build/non_matching/src/game_libs/game_libs_ido53_6BC44.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_6BC44.c.o build/non_matching/src/game_libs/game_libs_ido53_6BC44.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_6BC44.c.o: TRUNCATE_TEXT := 0x1D0
-build/src/game_libs/game_libs_post1b2.c.o: TRUNCATE_TEXT := 0x4380
+build/src/game_libs/game_libs_post1b2.c.o: TRUNCATE_TEXT := 0x4368
 build/src/game_libs/game_libs_ido53_70194.c.o build/non_matching/src/game_libs/game_libs_ido53_70194.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_70194.c.o build/non_matching/src/game_libs/game_libs_ido53_70194.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_70194.c.o: TRUNCATE_TEXT := 0x180
@@ -152,8 +150,8 @@ build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
 # Bake resolved jal targets to match expected/.o (which is INCLUDE_ASM-derived
 # with pre-baked jals). Without these, the .o has `jal 0` + R_MIPS_26 relocs;
 # byte-verify fails even though ROM ends up identical post-link.
-build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5664
-build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17A00
+build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5670
+build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a2c
 build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10
 build/src/game_libs/game_libs_post2.c.o: TRUNCATE_TEXT := 0x898

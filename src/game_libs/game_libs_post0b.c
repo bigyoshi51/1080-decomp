@@ -9729,7 +9729,6 @@ void gl_func_0003FC2C(int *a0) {
 // are representative. Caps: object/vtable struct + D_flags global + per-arm
 // detail untyped. Full body INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0003FC58_pad.s")
 
 // gl_func_0003FF44 — STRUCTURAL PASS (0x94 / 38 words, no episode). Raw-.word
 // USO. realjr=1, single prologue frame 0x30 (saves ra, s0) → ONE clean
@@ -24612,7 +24611,6 @@ void gl_func_00055FB4(int *self, int a1, int *ctx) {
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055FB4);
 #endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055FB4_pad.s")
 
 /* gl_func_00056084: 5-call sequence on a stack buffer (sp+0x18). Calls a
  * placeholder (gl_func_00000000) with (buf, a0), (buf, &str1), (buf, a1),

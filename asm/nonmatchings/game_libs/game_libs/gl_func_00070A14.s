@@ -1,6 +1,8 @@
-nonmatching gl_func_00070A14, 0xAC
+nonmatching gl_func_00070A14, 0xb4
 
 glabel gl_func_00070A14
+    /* 070A14 00070A14 27BDFFF0 */  .word 0x27BDFFF0
+    /* 070A18 00070A18 00A01025 */  .word 0x00A01025
     /* E55AEC 00070A14 27BDFFF0 */  .word 0x27BDFFF0
     /* E55AF0 00070A18 00A01025 */  .word 0x00A01025
     /* E55AF4 00070A1C 24A30020 */  .word 0x24A30020

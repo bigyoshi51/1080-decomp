@@ -1,4 +1,4 @@
-nonmatching gl_func_0000EBC8, 0x30
+nonmatching gl_func_0000EBC8, 0x2c
 
 glabel gl_func_0000EBC8
     /* DF3CA0 0000EBC8 27BDFFE0 */  .word 0x27BDFFE0
@@ -12,5 +12,4 @@ glabel gl_func_0000EBC8
     /* DF3CC0 0000EBE8 8FBF0014 */  .word 0x8FBF0014
     /* DF3CC4 0000EBEC 27BD0020 */  .word 0x27BD0020
     /* DF3CC8 0000EBF0 03E00008 */  .word 0x03E00008
-    /* DF3CCC 0000EBF4 00000000 */  .word 0x00000000
 endlabel gl_func_0000EBC8

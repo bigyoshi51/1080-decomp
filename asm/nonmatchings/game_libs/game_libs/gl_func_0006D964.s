@@ -1,4 +1,4 @@
-nonmatching gl_func_0006D964, 0x10C
+nonmatching gl_func_0006D964, 0x110
 
 glabel gl_func_0006D964
     /* E52A3C 0006D964 27BDFFD8 */  .word 0x27BDFFD8
@@ -68,4 +68,5 @@ glabel gl_func_0006D964
     /* E52B3C 0006DA64 8FB10018 */  .word 0x8FB10018
     /* E52B40 0006DA68 03E00008 */  .word 0x03E00008
     /* E52B44 0006DA6C 27BD0028 */  .word 0x27BD0028
+    /* PAD ABSORBED */  .word 0x00000000
 endlabel gl_func_0006D964
