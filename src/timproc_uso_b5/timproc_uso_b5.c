@@ -5561,98 +5561,45 @@ z:
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087F4);
 #endif
 
-/* timproc_uso_b5_func_00008834: 4-insn `beq t9,zero,+0x10; andi t0,t0,4;
- * jr ra; li v0,2`. The `beq +3*4=+0xC` branches to 0x8844 = function end
- * (falls through into successor's first insn). Cross-fn shared-epilogue
- * tail-merge per feedback_leaf_branch_past_end_is_cross_fn_epilogue.
- * Linker-set offset, unmatchable standalone. CAP class. */
-/* Caller-set-register fragment: real input is $t9, and the false path falls
- * through into the next symbol after seeding $t0 = $v0 & 4 in the delay slot.
- * A standalone C function can only document the true arm. */
+/* timproc_uso_b5_func_000088A0 [0x88A0..0x8940), 0xA0: BOUNDARY MERGE
+ * 2026-06-09 -- the second of the symmetric dispatcher PAIR (87F4's sibling;
+ * 11 splat fragment symbols 8834/8844/8854/886C/887C/8894/88E0/88F8/8908/
+ * 8920/8930 merged into the two parents). Same switch(a0->0x3C8) shape via
+ * its OWN jumptable (D_807FF214+0x214 vs 87F4's +0x1F4); case bodies test
+ * a0->0x3C0 flag bits in priority order and return the matched bit (8;
+ * 1-then-8; 2-then-1-then-8; ...). Branches to "return 0" tail-share the
+ * SEPARATE matched leaf timproc_uso_b5_func_00008940 (g3 carve) -- the
+ * shared-tail dispatch family. NOTE: the 87F4 wrap above still inlines all
+ * 8 cases (~0x14C emit) -- with the merge done, the next pass should split
+ * the cases between the two switches per each jumptable's case->target map
+ * (extract via scripts/extract-uso-jumptable.py) so each compiles to 0xAC/
+ * 0xA0 respectively. */
 #ifdef NON_MATCHING
-int timproc_uso_b5_func_00008834(int t9) {
-    if (t9 != 0) {
-        return 2;
+int timproc_uso_b5_func_000088A0(char *a0) {
+    int v0;
+    switch (*(int *)(a0 + 0x3C8)) {
+    case 1:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 8) return 8;
+        goto z;
+    case 2:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 1) return 1;
+        if (v0 & 8) return 8;
+        goto z;
+    case 3:
+        v0 = *(int *)(a0 + 0x3C0);
+        if (v0 & 2) return 2;
+        if (v0 & 1) return 1;
+        if (v0 & 8) return 8;
+        goto z;
     }
+z:
     return 0;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008834);
-#endif
-
-/* 0x88xx cluster: 11 tiny leaves with forward `beq/bne +small` branches
- * that target at or past function-end (falling into successor). All are
- * cross-fn shared-epilogue tail-merges per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offsets,
- * unmatchable standalone. CAP class. Covers 8844/8854/886C/887C/8894/
- * 88A0/88E0/88F8/8908/8920/8930. */
-#ifdef NON_MATCHING
-int timproc_uso_b5_func_00008844(int t0) {
-    if (t0 != 0) {
-        return 4;
-    }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008844);
-#endif
-
-/* timproc_uso_b5_func_00008854 (+ 8908/8920/8930/8988 cluster): chained
- * fall-through flag dispatch that splat mis-split into separate symbols. Each
- * leaf does `v0 = a0->0x3C0; if (v0 & BIT) return 2; else <falls into the next
- * symbol>` — the beq/beql targets land in the SUCCESSOR function's body (e.g.
- * 8854's `beq t1,zero,886C`). CROSS-FN SHARED-EPILOGUE CAP class (same as the
- * game_libs 0x99xx leaf-branch-past-end cluster): unmatchable standalone since
- * the branch destination is a linker-set offset into the next function. Skip. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008854);
-
-#ifdef NON_MATCHING
-int timproc_uso_b5_func_0000886C(int t2) {
-    if (t2 != 0) {
-        return 4;
-    }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000886C);
-#endif
-
-#ifdef NON_MATCHING
-/* flag-check leaf: return (a0->0x3C0 & 4) ? 4 : 0. The target's beql shares
- * the next function's epilogue (branches past its declared 0x18 size), so a
- * standalone wrap can't byte-match the tail; the visible logic is exact. */
-int timproc_uso_b5_func_0000887C(char *a0) {
-    return (*(int *)(a0 + 0x3C0) & 4) ? 4 : 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000887C);
-#endif
-
-/* timproc_uso_b5_func_00008894 moved to the -O2 -g3 carve-out
- * timproc_uso_b5_g3_8894.c. It is the same 0xC unfilled-jr-delay return-zero
- * leaf as timproc_uso_b5_func_000087E8; keeping it in the main TU makes plain
- * -O2 fill the delay slot (`jr ra; move v0,zero`). */
-
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088A0);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088E0);
-
-#ifdef NON_MATCHING
-int timproc_uso_b5_func_000088F8(int t1) {
-    if (t1 != 0) {
-        return 8;
-    }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088F8);
 #endif
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008908);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008920);
-
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008930);
 
 /* timproc_uso_b5_func_00008940 moved to the -O2 -g3 carve-out
  * timproc_uso_b5_g3_8940.c. It is another 0xC unfilled-jr-delay
