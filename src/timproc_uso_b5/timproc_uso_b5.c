@@ -7936,14 +7936,7 @@ void timproc_uso_b5_func_0000C710(char *a0, float a1u) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C710);
 #endif
 
-/* timproc_uso_b5_func_0000C7B4: TAIL-FRAGMENT of C710 via forward
- * bc1f-past-declared-end (parent comment above details the absorb).
- * Same idiom as B850→B8E0 / C044→C0D4 / CB40→CBD0 / CD24→CDC8 — see
- * docs/MATCHING_WORKFLOW.md#feedback-splat-fragment-via-register-flow
- * (raw-.word USO variant, 2026-05-22 family extension) for the full
- * family.
- * No standalone semantics. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C7B4);
+/* timproc_uso_b5_func_0000C7B4 MERGED into C710 2026-06-10 (bc1f tail fragment, third of the fade-helper family). */
 
 void timproc_uso_b5_func_0000C7E8(char *a0, char *a1) {
     *(float*)(*(int*)(a1 + 0x2B8) + 0x128) = *(float*)(*(int*)(a0 + 0x2B8) + 0x128);
