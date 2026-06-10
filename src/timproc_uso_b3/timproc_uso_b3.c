@@ -986,6 +986,10 @@ void timproc_uso_b3_func_00001870(int *self) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001870);
 #endif
 
+/* 2026-06-10 (via the b1 twin 19C0 re-test): the incoming-$f0 quad-
+ * store cap STANDS -- uninit `float g; buf[i]=g` and `register float g`
+ * both emit lwc1-from-home first; the store-only $f0 x4 form is
+ * C-unreachable. See docs/IDO_CODEGEN uninit-register-float addendum. */
 /* timproc_uso_b3_func_00001920: 2-insn alt-entry (set f0=1.0f, falls into
  * 00001928). RECOVERED 2026-05-28 from the Yay0 block_3 gap. SOURCE=4 audit
  * 2026-06-01: not an accessor-template miss; this mirrors
@@ -1508,50 +1512,44 @@ void timproc_uso_b3_func_00002700(int a0) {
     (void)a0;
 }
 
-/* timproc_uso_b3_func_0000294C - verified structural decode (0xF8,
- * 62 insns, state dispatcher + record-vtable dispatch).
- * Struct-typing reference: a2->0x50 (80) s32 state selector (0 =
- * active/record path, 1|2 = simple forward, else no-op); a2->0x48
- * (72) ptr to a record container; container->0x7C (124) s32 current
- * record index; record = container + idx*0x28 (the recurring
- * 0x28-stride record array, cf. func_00010AB0); record->0x88 (136)
- * s32 = ready/arm gate, record->0x90 (144) = handler fn ptr (vtable
- * dispatch when armed). Globals &D+0x208/&D+0x20C published as
- * {ctx = a2->0x48, owner = a2} before the dispatch.
- * gl_func_00000000(&D,0x40100) = a gated precondition;
- * gl_func_00000000(165) / (5) / (a2) = reloc callbacks. Caps <80:
- * switch (beq chain) + record-vtable jalr + 4x gl_func_00000000
- * reloc + &D-global publishes. INCLUDE_ASM remains build path
- * (no episode; tautology-trap rule). */
+/* Twin of timproc_uso_b1_func_00002740 (byte-identical) -- body ported
+ * 2026-06-10 from the b1 improvement: if(1){} BB lever after gl(5)
+ * cuts the renumber to 3 addu-operand-order diffs + 2 reloc-blind
+ * stores (the documented true ceiling for the pair; see the b1 wrap
+ * and docs/IDO_CODEGEN addu-operand-order entry). */
+extern int D_b3_294C_g208;
+extern int D_b3_294C_g20C;
 #ifdef NON_MATCHING
-void timproc_uso_b3_func_0000294C(char *a2) {
-    char *q;
-    char *rec;
-    switch (*(int*)(a2 + 0x50)) {
+void timproc_uso_b3_func_0000294C(int *a0) {
+    switch (a0[0x50 / 4]) {
     case 0:
-        if (gl_func_00000000(&D_00000000, 0x40100) == 0) return;
-        q = *(char**)(a2 + 0x48);
-        rec = q + *(int*)(q + 0x7C) * 0x28;
-        if (*(int*)(rec + 0x90) == 0) return;
-        if (*(int*)(rec + 0x88) != 0) {
-            gl_func_00000000(5);
-            *(void**)((char*)&D_00000000 + 0x208) = *(void**)(a2 + 0x48);
-            *(void**)((char*)&D_00000000 + 0x20C) = a2;
-            q = *(char**)(a2 + 0x48);
-            rec = q + *(int*)(q + 0x7C) * 0x28;
-            (*(void (**)(void))(rec + 0x90))();
-        } else {
-            gl_func_00000000(165);
+        if (gl_func_00000000(&D_00000000, 0x40100) != 0) {
+            int *base = (int *)a0[0x48 / 4];
+            int *slot = (int *)(base + base[0x7C / 4] * 0xA);
+            if (slot[0x90 / 4] != 0) {
+                if (slot[0x88 / 4] != 0) {
+                    int *base2;
+                    int *slot2;
+                    gl_func_00000000(5);
+                    if (1) {}  /* BB lever: cuts the slot2 recompute renumber (5->3 diffs) */
+                    D_b3_294C_g208 = a0[0x48 / 4];
+                    D_b3_294C_g20C = (int)a0;
+                    base2 = (int *)a0[0x48 / 4];
+                    slot2 = (int *)(base2 + base2[0x7C / 4] * 0xA);
+                    ((void (*)(void))slot2[0x90 / 4])();
+                } else {
+                    gl_func_00000000(165);
+                }
+            }
         }
-        return;
+        break;
     case 1:
     case 2:
-        gl_func_00000000(a2);
-        return;
-    default:
-        return;
+        gl_func_00000000(a0);
+        break;
     }
 }
+
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000294C);
 #endif
