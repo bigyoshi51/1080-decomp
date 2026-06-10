@@ -1331,20 +1331,22 @@ void *timproc_uso_b3_func_000020EC(int *arg0) {
     return p2;
 }
 
+/* timproc_uso_b3_func_0000217C: 2-call wrapper. UN-MATCHED 2026-06-10
+ * to FIX BLOCK3 (the 1-word-pad placeholder mechanism, solved in
+ * MATCHING_WORKFLOW): a 1-word pad sidecar cannot emit correctly (the
+ * minimum C placeholder is 8 bytes, +4 shifting the whole block since
+ * April). The fn+pad now emit as ONE 13-word GLOBAL_ASM (exact); the
+ * proven matching C is preserved below for the day a tools-side
+ * placeholder-shrink patch lands. */
+#ifdef NON_MATCHING
 void timproc_uso_b3_func_0000217C(char *dst) {
     int tmp;
     timproc_uso_b3_func_00000854(&tmp);
     timproc_uso_b3_func_00000924((Vec3*)(dst + 0x10));
 }
-/* P0 NOTE 2026-06-10: this 1-word sidecar yields TWO pad words in the
- * built block (fn lands 0x21B4 vs ROM 0x21B0 -- everything downstream
- * +4, the bulk of the block3 963-diff). Removing it yields ZERO pads
- * (-4); an empty block is dropped by asm-processor. The +4 mechanism
- * (block align-8 before the sidecar) needs asm-processor emission
- * tracing in a focused pass. Latent since the 2026-04-20 217C match;
- * NOT from the 2026-06-09 twins (their regions show only reloc-class
- * diffs -- exonerated). */
-#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_0000217C_pad.s")
+#else
+#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_0000217C.s")
+#endif
 
 void timproc_uso_b3_func_000021B0(void) {
     gl_func_00000000(gl_ref_00000208);
