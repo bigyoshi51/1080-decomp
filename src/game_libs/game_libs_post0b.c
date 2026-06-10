@@ -29350,11 +29350,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
    (a) frame 0x20 vs target 0x28 (8-byte spill-slot delta for `s` across
        the warning call; a `char _pad[8]` doesn't take — allocator-driven,
        not paddable), cascading the a1 home 0x24->0x2C;
-   (b) the 16-float divide loop gets IDO's by-4 ELEMENT counter (li 16 /
-       addiu v1,4) vs the target's by-1 TRIP counter (li 4 / addiu v1,1) —
-       the identical induction-variable cap as gl_func_0005BDC0 (4 loop
-       forms confirmed, IDO won't emit the trip counter on an x4-unrolled
-       loop). Stays NM at 99.87%. */
+   (b) PARTIALLY CRACKED 2026-06-10: the flat-for suppressed IDO's
+       unroller; a DO-WHILE form (i=0; do { m[i]=m[i]/s; i++; } while
+       (i<16);) triggers the x4 UNROLL+SOFTWARE-PIPELINE the target has
+       (peeled final iteration, next-element preload in body) -- the
+       loop structure now matches insn-for-insn. Remaining 8 word
+       diffs: the induction counter is still by-4-element (li 16 /
+       step 4) vs the target's by-1-trip (li 4 / step 1) -- explicit
+       i*16 trip form explodes (86 insns), unsigned/compound forms
+       neutral -- plus the frame 0x28-vs-0x20 pair and the m-home
+       cascade. The 5BDC0-class IV cap is thus NARROWED to counter
+       form only. Body below uses the do-while. */
 extern int gl_func_00000000();
 extern float gl_func_0005E190_scale();
 extern int D_00000000;
@@ -29368,9 +29374,11 @@ void gl_func_0005E190(int a0, float *m) {
     if (as < *(float *)((char *)&D_00000000 + 0x204C)) {
         gl_func_00000000((char *)&D_00000000 + 0x21B28);
     }
-    for (i = 0; i < 16; i++) {
+    i = 0;
+    do {
         m[i] = m[i] / s;
-    }
+        i++;
+    } while (i < 16);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E190);
