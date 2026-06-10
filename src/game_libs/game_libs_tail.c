@@ -3719,10 +3719,18 @@ void gl_func_0000E84C(int *s0, int a1, int a2, int a3) {
  * a3 live across func1() so IDO homes it at entry (sw a3) + reloads — exactly the
  * "2 insns mine lacks" the old comment misattributed to a regalloc cap. Also
  * applied the gl_func_0000E84C pattern (factory result straight to self->0x78,
- * re-read inline per call, dedicated `q`). RESIDUAL = the SAME 8-byte
- * frame-alignment gap as E6E8/E79C (target -48 vs -40); family spill-slot cap. */
+ * re-read inline per call, dedicated `q`). 2026-06-10 FRAME CRACKED:
+ * `volatile int pad;` (unused, declared after q) reserves the missing
+ * 8-byte slot WITHOUT emitting any access -- the -O2 phantom-slot
+ * maker (plain unused locals are dropped; volatile ones keep their
+ * slot). 10 -> 3 diffs. Remaining 3: the a3 home spills at 0x24 (mine)
+ * vs 0x20 (target) -- the volatile local always takes the BOTTOM slot
+ * and the spill goes above; the target has them swapped, and local-vs-
+ * spill slot ordering is not C-controllable (3 placements tested).
+ * TRY THE SAME PAD ON E6E8/E79C (same family gap). */
 void gl_func_0000E910(int *self, int a1, int a2, int *a3_int_ptr) {
     int *q;
+    volatile int pad;
     if (self[0x60 / 4] == 0) {
         gl_func_00000000();
     }
