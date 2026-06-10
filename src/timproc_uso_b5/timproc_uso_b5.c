@@ -7240,19 +7240,47 @@ void timproc_uso_b5_func_0000B624(char *obj, int unused) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B624);
 #endif
 
+/* timproc_uso_b5_func_0000B850 [0xB850..0xB914), 0xC4: BOUNDARY MERGE
+ * 2026-06-10 of the B8E0 tail fragment (B850's bc1f branched into it).
+ * Float fade-toward-target helper:
+ *   target = a1 (f12); if (a0->f_2A4 == 0) target = 0;
+ *   s = a0->p_2B8; if (s->i_138 != 0) target = 1.0f;
+ *   if (s->f_130 < target) { s->f_130 += STEP_UP; if (target < s->f_130) s->f_130 = target; }
+ *   else { s->f_130 -= STEP_DOWN; if (s->f_130 < target) s->f_130 = target; }
+ * STEP_UP/STEP_DOWN are reloc'd USO globals (lwc1 +0x358/+0x35C off a
+ * lui-at base). Same shape as the C0D4/C7B4/CBD0/CDC8 tail-fragment
+ * family (predecessor merges pending, one per tick). NM body is
+ * structural; float scheduling unverified -- INCLUDE_ASM is build path. */
+#ifdef NON_MATCHING
+extern float D_00000000;
+void timproc_uso_b5_func_0000B850(char *a0, float target) {
+    char *s;
+    float *v;
+    if (*(float *)(a0 + 0x2A4) == 0.0f) {
+        target = 0.0f;
+    }
+    s = *(char **)(a0 + 0x2B8);
+    if (*(int *)(s + 0x138) != 0) {
+        target = 1.0f;
+    }
+    v = (float *)(s + 0x130);
+    if (*v < target) {
+        *v += D_00000000;
+        s = *(char **)(a0 + 0x2B8);
+        if (target < *(float *)(s + 0x130)) {
+            *(float *)(s + 0x130) = target;
+        }
+    } else {
+        *v -= D_00000000;
+        s = *(char **)(a0 + 0x2B8);
+        if (*(float *)(s + 0x130) < target) {
+            *(float *)(s + 0x130) = target;
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B850);
-
-/* timproc_uso_b5_func_0000B8E0: TAIL-FRAGMENT of B850 via forward
- * bc1f-past-declared-end. B850 (0x90, 36 insns) ends at 0xB8E0 with
- * bc1f $f12<$f18 → 0xB90C (the jr ra inside this "B8E0" range) and a
- * jr ra/delay-slot store at 0xB8D8. The bytes at 0xB8E0..0xB910 are
- * the branch-target-replicated tail of B850's slew-limiter epilogue
- * (FP delta-write + conditional-clamp), splat-named separately because
- * the branch crossed B850's declared symbol size. Same pattern as
- * documented C710+C7B4 / CD24+CDC8 merges. Logic belongs to B850; this
- * "function" has no standalone semantics. Build keeps INCLUDE_ASM
- * (.s is source of truth). */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B8E0);
+#endif
 
 void timproc_uso_b5_func_0000B914(int *a0) {
     *(int*)((char*)a0 + 0x2B4) ^= 0x20000;
