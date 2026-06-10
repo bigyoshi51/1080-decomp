@@ -22483,8 +22483,12 @@ void game_libs_func_00052918(void *arg0) {
 // case-1 polarity (cases 1/12 are sparse so switch emits beq compares, no jumptable).
 // See docs/IDO_CODEGEN.md#switch-vs-if-goto-dispatch-polarity. Residual (~13%): the
 // addiu+0(reg) base-pointer RMW form on *(self+0x18) (mine folds to direct 0x18(a0),
-// target re-derives addiu v0,a0,0x18 + 0(v0) per branch — the missing 3 insns,
-// not C-forceable, see rmw_pointer_local_folds_to_offset_addressing) + switch tests
+// target re-derives addiu v0,a0,0x18 + 0(v0) per branch — the missing 3 insns;
+// 2026-06-10: role-#6 barriers in the arms DO materialize the addius standalone
+// but REGRESS the in-tree fuzzy 86.93->81.37 (the extra BBs perturb the
+// dispatch layout); the if-chain-12-first variant word-diffs better (29 vs 38)
+// but loses the case-1 beql polarity. The three constraints (addiu form,
+// 12-first order, beql polarity) are mutually exclusive from C) + switch tests
 // case 1 before 12 (IDO sorts ascending) where target tests 12 first + obj-ptr regalloc.
 #ifdef NON_MATCHING
 void gl_func_00052994(int *a0, int *a1) {
