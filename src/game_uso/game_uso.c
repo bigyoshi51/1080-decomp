@@ -1,4 +1,14 @@
 #include "common.h"
+
+/* P0 AUDIT 2026-06-10: the built game_uso_block1 runs +0x90 LONG vs
+ * ROM (assets/game_uso_block_1.bin), from MULTIPLE +4..+0xC insertion
+ * sites (first at 0x3F8: an extra pad after a float-zero leaf; also
+ * ~0xC0F0/0xF48C/0xFFA0/0x10004/0x10E60 and more) -- the same
+ * asm-processor pad/alignment emission anomaly family as timproc
+ * b1/b3 (docs/MATCHING_WORKFLOW P0 table). Individual fn matches are
+ * not implicated (insertions sit BETWEEN fns); fix = the queued
+ * emission-tracing session. Do not ROM-byte-verify downstream symbols
+ * until then. */
 extern char *game_uso_alias();
 
 /* File-top canonical decls (hoisted out of NM-wrap blocks
