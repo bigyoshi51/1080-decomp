@@ -1453,7 +1453,13 @@ void timproc_uso_b1_func_000024F4(int a0) {
  * NOT C-bakeable per MATCHING_WORKFLOW#addend-only-folds-in-addiu) PLUS 5
  * register-renumber/operand-order ($2/$3, addu $2+$15 vs $15+$2). So the
  * USO-reloc migration would only DROP the 2 reloc diffs (98.9%->~99.x), NOT
- * land it — the register caps remain. General finding: near-100 USO fns are
+ * land it — the register caps remain. 2026-06-10: the if(1){} BB lever
+ * after gl(5) cuts 5 register diffs to 3; the remaining 3 are the addu
+ * OPERAND-ORDER canonical (target addu v1,v0,t7 base-first; every C
+ * form tested — ptr+int, int+ptr, char* arith, &arr[idx], struct-idx,
+ * 0xA*idx — emits scaled-first) + its dependent lw. Same cosmetic class
+ * as the documented beq operand order. True ceiling = 2 reloc-blind +
+ * 3 operand-order. General finding: near-100 USO fns are
  * typically mixed reloc-blind + regalloc, so the migration helps only fns
  * whose SOLE residual is reloc-blind; it does not credit the mixed near-100
  * band. C here is already CORRECT (right symbols); nothing to fix in C. */
@@ -1471,6 +1477,7 @@ void timproc_uso_b1_func_00002740(int *a0) {
                     int *base2;
                     int *slot2;
                     gl_func_00000000(5);
+                    if (1) {}  /* BB lever: cuts the slot2 recompute renumber (5->3 diffs) */
                     D_b1_2740_g208 = a0[0x48 / 4];
                     D_b1_2740_g20C = (int)a0;
                     base2 = (int *)a0[0x48 / 4];
