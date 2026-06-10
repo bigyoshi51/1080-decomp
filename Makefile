@@ -126,10 +126,10 @@ build/src/game_libs/game_libs_o0_8944.c.o: TRUNCATE_TEXT := 0xFC
 build/src/game_libs/game_libs_o0_8A40.c.o build/non_matching/src/game_libs/game_libs_o0_8A40.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_g3_34448.c.o build/non_matching/src/game_libs/game_libs_g3_34448.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_34448.c.o: TRUNCATE_TEXT := 0x10
-build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb10
+build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
-build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8cec
+build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
 # (2026-06-10 relayout: the post1b head-shortfall compensation SUFFIX was
 # removed -- the missing prologues upstream are restored for real.)
 build/src/game_libs/game_libs_ido53_6BC44.c.o build/non_matching/src/game_libs/game_libs_ido53_6BC44.c.o: CC := $(IDO53_DIR)/cc
@@ -150,7 +150,7 @@ build/src/game_libs/game_libs_o0_949C.c.o: TRUNCATE_TEXT := 0x100
 # Bake resolved jal targets to match expected/.o (which is INCLUDE_ASM-derived
 # with pre-baked jals). Without these, the .o has `jal 0` + R_MIPS_26 relocs;
 # byte-verify fails even though ROM ends up identical post-link.
-build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5670
+build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a38
 build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10

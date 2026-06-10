@@ -1,5 +1,9 @@
-nonmatching gl_func_00060584, 0x278
+nonmatching gl_func_00060584, 0x27c
 
+glabel _pad_pre_60584, local
+    /* 1-word ROM pad folded in-block (1-word GLOBAL_ASM blocks emit +4; docs/MATCHING_WORKFLOW) */
+    .word 0x00000000
+endlabel _pad_pre_60584
 glabel gl_func_00060584
     /* E4565C 00060584 27BDFFD0 */  .word 0x27BDFFD0
     /* E45660 00060588 AFB10018 */  .word 0xAFB10018

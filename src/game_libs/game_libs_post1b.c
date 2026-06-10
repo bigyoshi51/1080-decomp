@@ -3189,10 +3189,17 @@ int game_libs_func_00067368(char *a0) {
     return *(unsigned char *)(a0 + 0x13EC);
 }
 
+/* gl_func_00067370 + the 1-word ROM pad after it: pad sat between two
+ * matched C fns (no emission host; 1-word blocks emit +4). Converted to
+ * one combined [fn+pad] INCLUDE block (route b, 2026-06-10); the proven
+ * matching C is preserved below. */
+#ifdef NON_MATCHING
 void gl_func_00067370(void) {
     gl_func_00000000();
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00067370_pad.s")
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067370);
+#endif
 
 /* gl_func_00067394: 26-insn rv-store + sign-flip-or-assert + call.
  *   rv = func(a0, a1); a0->[0x64] = rv;
@@ -4559,7 +4566,6 @@ void game_libs_func_00068BF4(int *a0) {
         a0[2] = 0;
     }
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00068BAC_pad.s")
 
 #ifdef NON_MATCHING
 /* gl_func_00068C14: 65-insn ext-pre-init + 3-call cascade + linked-set finalizer (0x104, frame 0x38).
@@ -5332,7 +5338,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069E04);
  * block layout -- see docs/MATCHING_WORKFLOW "in-place C matches ONLY
  * safe at unit-END"). Land via a carve split or a unit relayout pass. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00069F50);
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00069E04_pad.s")
 
 #ifdef NON_MATCHING
 #ifndef FW

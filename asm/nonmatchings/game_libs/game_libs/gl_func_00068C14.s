@@ -1,5 +1,9 @@
-nonmatching gl_func_00068C14, 0x104
+nonmatching gl_func_00068C14, 0x108
 
+glabel _pad_pre_68C14, local
+    /* 1-word ROM pad folded in-block (1-word GLOBAL_ASM blocks emit +4; docs/MATCHING_WORKFLOW) */
+    .word 0x00000000
+endlabel _pad_pre_68C14
 glabel gl_func_00068C14
     /* E4DCEC 00068C14 27BDFFC8 */  .word 0x27BDFFC8
     /* E4DCF0 00068C18 AFBF001C */  .word 0xAFBF001C

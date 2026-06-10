@@ -1,5 +1,9 @@
-nonmatching gl_func_0003B1AC, 0x140
+nonmatching gl_func_0003B1AC, 0x144
 
+glabel game_libs_func_0003B1A8
+    /* 1-insn alt-entry prologue folded in-block (was a standalone 1-word block, emitted +4) */
+    .word 0x8C83008C
+endlabel game_libs_func_0003B1A8
 glabel gl_func_0003B1AC
     /* E20284 0003B1AC 27BDFFB8 */  .word 0x27BDFFB8
     /* E20288 0003B1B0 00A03025 */  .word 0x00A03025

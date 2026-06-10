@@ -5784,7 +5784,9 @@ float game_libs_func_0003B198(int a0, int a1) {
  * v1 pre-set). Cannot be expressed in C as a standalone function (no jr ra,
  * no frame, arg-reg-only side effect) — INCLUDE_ASM permanent. See split
  * boundary correction note on 3B198. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003B1A8);
+/* game_libs_func_0003B1A8 folded into gl_func_0003B1AC.s 2026-06-10 (its
+ * glabel lives at the head of that block): a standalone 1-word block
+ * emitted +4 via the placeholder bug. */
 
 // gl_func_0003B1AC — STRUCTURAL PASS (0x140 / 80 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
@@ -18476,14 +18478,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D05C);
 void gl_func_0004D084(int *a0) {
     (*(int(**)())((char*)a0 + 0x4))(*(int*)((char*)a0 + 0x8), a0);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0004D084_pad.s")
-
+/* gl_func_0004D0B4 + its 1-word leading pad: the pad sat between two
+ * matched C fns (no emission host; a standalone 1-word block emits +4),
+ * so the fn was converted to an INCLUDE of one combined [pad+fn] block
+ * (route b, 2026-06-10). The proven matching C is preserved below. */
+#ifdef NON_MATCHING
 int gl_func_0004D0B4(int a0) {
     if (a0 == 0) {
         a0 = gl_func_00000000(0x78, 0x10);
     }
     return a0;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D0B4);
+#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_0004D0E4: 27-insn struct initializer (3-arg, leaf).
@@ -24500,7 +24508,6 @@ void gl_func_00055B10(char *a0) {
     gl_func_00000000(&local);
     gl_func_00000000(a0 + 0x10);
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00055B10_pad.s")
 
 /* gl_func_00055B44: 60-insn nested-loop "row x 16-col grid emit" function
  * (likely a memory hex-dump or per-row table renderer). NATURAL CEILING:
@@ -30896,7 +30903,6 @@ void game_libs_func_00060574(int *a0) {
     *(int*)((char*)a0 + 0x40) = 0;
     *(int*)((char*)a0 + 0x44) = 0;
 }
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006052C_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060584);
 
