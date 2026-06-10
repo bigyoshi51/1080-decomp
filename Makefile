@@ -220,7 +220,11 @@ build/src/game_libs/game_libs_ido53_74DB4.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_74DB4.c.o: TRUNCATE_TEXT := 0x128
 build/src/game_libs/game_libs_post2b_f.c.o: TRUNCATE_TEXT := 0x388
 build/src/game_libs/game_libs_ido_75264.c.o build/non_matching/src/game_libs/game_libs_ido_75264.c.o: OPT_FLAGS := -O1
-build/src/game_libs/game_libs_ido_75264.c.o build/non_matching/src/game_libs/game_libs_ido_75264.c.o: TRUNCATE_TEXT := 0x48
+# 2026-06-10: pad sidecar trimmed 5->2 words (0x48->0x3C). The segment truly ends at
+# VRAM 0x752A0 (ROM 0xE5A378 = game_libs_post bin start); the extra 3 zero words were
+# the +0xC full-ROM length defect (base's 00000001/00007D58 words there are the bin's
+# own first records, not "pre-existing drift").
+build/src/game_libs/game_libs_ido_75264.c.o build/non_matching/src/game_libs/game_libs_ido_75264.c.o: TRUNCATE_TEXT := 0x3C
 
 build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
