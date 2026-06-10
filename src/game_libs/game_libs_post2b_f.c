@@ -194,8 +194,14 @@ loop_3:
  * (case-13-first layout right). Residual = the persistent +8 frame
  * (0x40 vs 0x38): the dispatch value's reserved slot -- register var,
  * plain local, switch expr, 5.3/7.1, -O1 and -Olimit ALL reserve it;
- * the target keeps the value in s0 with NO slot. Last untested axes:
- * fewer named locals (fold t into an expression) or a two-fn shape.
+ * the target keeps the value in s0 with NO slot. Pass 3 negatives
+ * (2026-06-10): reusing the existing t local as the switch value keeps
+ * frame 0x40 AND worsens diffs to 64 -- the slot belongs to the
+ * switch's INTERNAL temp, not the named variable. Note the target s0
+ * live range (one lhu, two compares) crosses NO call, yet sits in a
+ * saved reg -- an -Olimit allocator quirk we cannot reproduce with any
+ * tested shape; possibly needs the uoptlist regalloc dump
+ * (project_1080_regalloc_dump_unlocked memo) to settle.
  * Carve recipe when matched: gl_dref_00045290 = 0x00045290 +
  * D_7507C_cnt/acc/prev placeholders (already in undefined_syms). */
 #ifdef NON_MATCHING
