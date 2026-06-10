@@ -8,26 +8,28 @@ typedef struct { float x, y, z; } Vec3;
 
 
 
+/* gl_func_00073034: DECODE CORRECTED 2026-06-09 -- THREE placeholder jals,
+ * not two, and there is NO stolen-prologue donation (the fn is a clean
+ * 16-insn unit ending jr+delay at 0x40). Structure:
+ *   call1(a0, a1?)          -- jal with `sw s0` scheduled into its delay
+ *   v = call2(a0, a1)       -- a0 reloaded before, a1 in the jal delay
+ *   call3()                 -- `move s0,v0` (capture call2's v0) in delay
+ *   return v                -- v0 = s0 round-trip across the epilogue
+ * v lives in s0 because it crosses call3 (register-class residency).
+ * 5.3 -O1 with `register int v` reproduces frame 0x28 + s0 save + the
+ * round-trip exactly; residual 11/16 word diffs are pure scheduling: the
+ * register keyword makes cc reload a1 (and dup-reload a0) before call1
+ * instead of using live args + delay-slot sw s0. Plain int spills v to
+ * stack instead (17 insns). Permuter-range residual; both 5.3 and 7.1
+ * emit identically. */
 #ifdef NON_MATCHING
-/* gl_func_00073034: 16-insn (0x40) double-call wrapper, returns 2nd call's
- * value. Calls gl_func_0(a0, a1) twice; returns v0 of the second call.
- *
- * Trailing 2 insns (0x3C-0x40) are stolen-prologue donation to successor
- * gl_func_00073078: `lui t6, 0xA460; lw a2, 0x10(t6)` reads PI_STATUS_REG
- * (0xA4600010) into $a2 for the next function.
- *
- * Cap: target uses 0x28 frame + saves $s0 + does `s0 = v0; ...; v0 = s0`
- * round-trip in the epilogue. Standalone IDO -O2 emits 12 insns / 0x18
- * frame without the s0 save (~75% structural shape). The s0-via-v0
- * round-trip pattern isn't reachable from natural C — IDO chose it
- * because of some heuristic (maybe live-range across the lw ra in the
- * epilogue, even though lw doesn't clobber v0). Multi-tick. */
 extern int gl_func_00000000();
 
 int gl_func_00073034(int a0, int a1) {
-    int v;
+    register int v;
     gl_func_00000000(a0, a1);
     v = gl_func_00000000(a0, a1);
+    gl_func_00000000();
     return v;
 }
 #else
