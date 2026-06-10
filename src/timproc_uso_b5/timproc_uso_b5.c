@@ -1209,9 +1209,16 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * rule. -g3 unfills the delay slot (li/jr/nop) without -O0 bloat; can't apply
  * file-wide here (150+ filled-delay matches would regress). */
 
+/* timproc_uso_b5_func_00001DB0 (0x164 after absorbing the 1EB8 fragment):
+ * the bnezl at +0xF0 branches to 0x1EBC, past the declared end into the
+ * old 1EB8 range, and 1EB8 read v0/v1 uninitialized at entry -- the same
+ * branch-past-declared-end family as the fade-helpers and 1D1C/1D60.
+ * The merged tail block copies a0->i_44 into nested p_38->p_3F4[?]->
+ * fields 0xC4/0xD4 and stores (v1 - a0->i_44) deltas to 0xBC/0xCC --
+ * sibling family of the 1C08 State machine. Full decode pending. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001DB0);
 
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001EB8);
+/* timproc_uso_b5_func_00001EB8 MERGED into 1DB0 2026-06-10 (bnezl tail fragment). */
 
 // timproc_uso_b5_func_00001F14 — STRUCTURAL PASS (0x89C / 551 words,
 // no episode). Raw-.word USO form (genuine code, single function).
