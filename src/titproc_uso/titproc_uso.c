@@ -647,6 +647,12 @@ void titproc_uso_func_0000101C(int *a0) {
  *    p->0x34-gated counter-clamp pair (+16 cap 255->720 / -16 floor 0
  *    with the gate-confirmed vt-call chain inside). Remaining: the
  *    shared 0x474 tail, jal identities, per-arm fine shapes.
+ *  - PASS-4 RECON 2026-06-10: the NM emit is 0x414 vs target 0x488 =
+ *    29 insns SHORT; the gap is distributed (position diff useless at
+ *    this delta -- next pass needs a mnemonic-level side-by-side to
+ *    find the missing chunks; likely candidates: the 0x474 tail's
+ *    sw-zero epilogue variants and un-decoded delay-slot content in
+ *    the branch-heavy arms).
  * Next tick: extend state-1 then state-2/3 bodies (each adds ~15-25pp).
  * 2026-06-10 dispatcher-scan audit: the full 290-word [0x116C..0x15F4)
  * region is SELF-CONTAINED (zero out-branches; jumptable at word 11)
