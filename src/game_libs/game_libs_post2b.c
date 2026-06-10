@@ -215,13 +215,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000725C4);
  * differs from the current bank, sets bit (bank%8) in
  * map[page/4 + (unit.bank%8)*32 + 0x101] -- a cross-bank link matrix.
  *
- * Compiler class: -O0 (homed args, per-use reloads) BUT with SOME filled
- * branch-delay slots (the loop-tail sw sits in the bne delay) -- standalone
- * cc -O0 (7.1 and 5.3) leaves those slots as nops and emits 129 vs 109
- * insns. Next pass: determine the -O0 fill mechanism (in-tree pipeline
- * difference? IDO -O0 + external GNU as?) before carving; declaration
- * order below already reproduces the exact stack layout (IDO -O0 allocates
- * locals in REVERSE declaration order: i@0x12C ... ret@0x1C). */
+ * Compiler class RESOLVED 2026-06-09: IDO -Olimit FALLBACK (-O1 with uopt
+ * skipped: -O0-style homed args + per-use reloads + reverse-decl-order
+ * layout, but the -O1 pipeline still fills delay slots). cc -O1 -Olimit 1
+ * gives 112 insns vs 109 target (plain -O0 = 129); residual ~49 word diffs
+ * are value-reuse shapes -- the fallback keeps condition operands (unit.bank
+ * / bank) live into the marking block where this C reloads them. Next pass:
+ * combine the two continue-conditions and the marking into chained
+ * expressions (&&) so the operands flow in registers, then carve with a
+ * per-file -O1 -Olimit override (5.3: 49 diffs, 7.1: 51 -- try 5.3 first).
+ * Stack layout already exact (reverse declaration order). */
 #ifdef NON_MATCHING
 typedef union {
     struct { u8 bank; u8 page; } inode_t;
