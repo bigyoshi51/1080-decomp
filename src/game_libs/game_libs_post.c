@@ -18037,6 +18037,14 @@ void gl_func_00031DD8(void) {
     gl_func_00000000();
 }
 
+/* [0x31DF8..0x32884) = the HANDWRITTEN CP0/system block, one family with
+ * 32884 below (2026-06-10 graft-attempt finding): 31DF8 leads with zero
+ * pad words; 31F20 + 31F4C are mfc0/mtc0 routines (0x40xxxxxx CP0 words
+ * that disassemble as bogus far branches), busy-wait bne loops, fixed
+ * trampolines, and 31F4C's "backwards branches" land inside 31DF8 --
+ * hand-coded flow, not splat fragments. CP0 is inexpressible in IDO C
+ * (reference_1080_mips3_runtime_helpers): PERMANENT INCLUDE_ASM, do not
+ * graft, merge, or decode. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031DF8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F20);
