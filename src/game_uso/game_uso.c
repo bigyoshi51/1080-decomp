@@ -12383,18 +12383,23 @@ void game_uso_func_0000ECEC(char *obj, int idx) {
         case 3: ab[1] = *(int *)(obj + 0x424); ab[0] = *(int *)(obj + 0x3F4); break;
         case 4: ab[1] = *(int *)(obj + 0x424); ab[0] = *(int *)(obj + 0x40C); break;
     }
+    /* 2026-06-10 CONTROL-FLOW CORRECTION: the accumulate arm runs when
+     * (a >= thr) OR the gate is clear -- a single && condition with
+     * beqzl short-circuits (the old nested form wrongly skipped the
+     * accumulate when a >= thr). 87.04 -> 9 word diffs standalone
+     * (56/56 structure; head matches INCLUDING the v0 dispatch --
+     * IDO coalesces idx's web into v0 naturally, no caller-set cap).
+     * Residual: the v/base pair colors v0/v1 swapped vs target's
+     * v1/v0; negative sweep: early-pseudo base, un-CSE'd base-first,
+     * separate thr read (20 diffs, worse). uoptlist queue. */
     v = *(int **)(obj + 0xB4);
     base = (int *)((char *)v + 0x960);
-    if (ab[1] < *(int *)((char *)v + 0x960)) {
-        /* threshold-exceeded path: gated by v->0x938 */
-        if (v[0x938 / 4] != 0) {
-            *(int *)(obj + 0x10C) = 0;
-            *(int *)(obj + 0x110) = 1;
-        } else {
-            /* accumulate b into v->0x960 */
-            *base = *base + ab[0];
-            *(int *)(obj + 0x110) = 0;
-        }
+    if ((ab[1] < *base) && (*(int *)((char *)v + 0x938) != 0)) {
+        *(int *)(obj + 0x10C) = 0;
+        *(int *)(obj + 0x110) = 1;
+    } else {
+        *base = *base + ab[0];
+        *(int *)(obj + 0x110) = 0;
     }
 }
 #else
