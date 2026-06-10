@@ -5951,31 +5951,40 @@ int timproc_uso_b5_func_00008C44(char *r) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008C44);
 #endif
 
-/* timproc_uso_b5_func_00008D38: 22-insn (0x58) frameless bit-scan leaf.
- * BOUNDARY MERGED 2026-06-02: splat over-split the loop bottom as a separate
- * symbol (00008D78, 6-insn tail whose `bnel` branches backward to 0x8D54
- * inside this body). Absorbed 8D78's 6 words into 8D38 (0x40 -> 0x58); dropped
- * the 8D78 symbol. Scans the a0->0x154 bitmap (byte+6 of import_800201EC[i>>3]
- * indexed table) for a set bit, returns the index/3 or sentinel. Reloc-blind
- * USO (lui %hi(import_800201EC)); stays INCLUDE_ASM. */
+/* timproc_uso_b5_func_00008D38: 21-insn frameless bit-scan leaf
+ * (boundary-merged 2026-06-02 from the 8D78 tail).
+ * DECODE CORRECTED 2026-06-10: the bitmap base is the ARG (a0->0x154,
+ * dead-arg overwritten as the cursor base) -- the old body read a
+ * GLOBAL D+0x154 (wrong logic). Scans bits 0..23 of the byte+6 table:
+ * first CLEAR bit -> return 0; all 24 set -> return 3. The 24 lives in
+ * $v0 (the return-variable web, slt v1,v0 register compare) and a0 is
+ * homed at 0(sp) at entry.
+ * Shape matrix (2026-06-10): -O2 folds the 24 into slti and drops the
+ * a0 home (20/21, 20 diffs); -O1 homes everything (+frame, 26-28
+ * insns); &a0 address-taken at -O2 produces the home store at insn 0
+ * but restructures the body loads. The home+register-24 combination is
+ * between our -O1 and -O2 shapes -- possibly 5.3 or an -Olimit form;
+ * next pass should matrix 5.3 x {O1,O2,Olimit}. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00008D38)();
-s32 timproc_uso_b5_func_00008D38(s32 arg0) {
-    s32 var_v1;
+s32 timproc_uso_b5_func_00008D38(char *a0) {
+    s32 ret;
+    s32 v1;
 
-    var_v1 = 0;
-loop_1:
-    var_v1 += 1;
-    if (!(*(u8*)((char*)((*(s32*)((char*)&D_00000000 + 0x154)) + (var_v1 >> 3)) + 0x6) & (1 << (var_v1 & 7)))) {
-        return 0;
+    ret = 24;
+    a0 = *(char **)(a0 + 0x154);
+    v1 = 0;
+loop:
+    if (!(*(unsigned char *)(a0 + (v1 >> 3) + 6) & (1 << (v1 & 7)))) {
+        ret = 0;
+        goto out;
     }
-    if (var_v1 >= 0x18) {
-        return 3;
+    v1 += 1;
+    if (v1 < ret) {
+        goto loop;
     }
-    goto loop_1;
+    ret = 3;
+out:
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D38);
