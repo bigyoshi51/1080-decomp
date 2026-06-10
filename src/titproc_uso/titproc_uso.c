@@ -639,10 +639,9 @@ void titproc_uso_func_0000101C(int *a0) {
  * if-chain to `switch` REGRESSES to 37.1% (incomplete case bodies misalign
  * more than the dispatch helps — keep the if-chain until bodies are complete).
  * The two missing blocks are case-body TAILS, not new cases:
- *  - state 1 tail @0x17C (+50): after the t==0 sub-block, `if (cond) {
- *    vt-call on s0->0x60; s0->0x40=2; gl_func(144); } else { vt-call on
- *    s0->0x5C; s0->0x40=3; s0->0x3C=(s0->0x74*16-..)*2; gl_func(144); }` then
- *    more (gl_func(s0->0x60); gl_func(&D,0x40100) gate; gl_func(5); ...).
+ *  - ~~state 1 tail @0x17C~~ DECODED 2026-06-10 (40.32 -> 47.10): the
+ *    two vt-call arms are in the C below (the old d->0x34=1 line was a
+ *    misread of `sw t0,64(s0)`).
  *  - state 2/3 tail @0x29C (+93): counter clamp on (s0->0x64)->0x3C to
  *    255/256 with +16 step (cap 720/512), vt-call ((*v0->0x64)(v0->0x60+&D)),
  *    gl_func chain. Branch-heavy (beql/bnel/blez) — decode per-arm.
@@ -693,11 +692,24 @@ void titproc_uso_func_0000116C(char *s0) {
         t = *(int *)(s0 + 0x3C) - 1;
         *(int *)(s0 + 0x3C) = t;
         if (t == 0) {
+            /* 2026-06-10 state-1 tail decoded (was the d->0x34=1 misread):
+             * two vt-call arms selecting the next state. */
             char *p = *(char **)(*(char **)(s0 + 0x50) + 0x44);
             if (*(int *)(p + 0x34) != 0) {
-                *(int *)(d + 0x34) = 1;
+                v1 = *(char **)(s0 + 0x60);
+                vt = *(char **)(v1 + 0x28);
+                ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+                *(int *)(s0 + 0x40) = 2;
+                gl_func_00000000(144);
+            } else {
+                v1 = *(char **)(s0 + 0x5C);
+                vt = *(char **)(v1 + 0x28);
+                ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+                n = *(int *)(s0 + 0x74);
+                *(int *)(s0 + 0x40) = 3;
+                *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+                gl_func_00000000(144);
             }
-            gl_func_00000000(s0, v, 0);
         }
     } else if (state == 2) {
         gl_func_00000000(*(int *)(s0 + 0x60));
