@@ -10127,10 +10127,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000275F4);
  * doesn't apply). Reassigning the param kills a2's home but not a1's = +1 insn.
  * Reloc-free (episode-worthy if the home were avoidable). Unused-middle-arg-
  * home-without-jal cap. */
-int game_libs_func_000276B8(int *a0, int a1, int a2, int *a3) {
-    a2 = a3[6];
-    a1 = *(int *)(*(int *)(*a0 + 8) + 4);
-    return a1 - a2;
+int game_libs_func_000276B8(int **a0, int *a1, int a2) {
+    /* 2026-06-10 decode correction: the subtrahend loads from 0x18(a1)
+     * (the SECOND arg), not a3[6] -- structure now 6/6 with both
+     * dead-arg overwrites (a2 = value, a1 = chain result). Remaining
+     * 4 word diffs: target's chain temps are t0/t1 (5th/6th temps)
+     * vs standalone t6/t7 -- 4-temp shift = context/fragment evidence
+     * (forensics taxonomy); see also 275F4 = a 4-jr-ra bundle just
+     * above, this micro-region is another shattered cluster. */
+    a2 = a1[6];
+    a1 = (int *)*(int *)(*(int *)((char *)*a0 + 8) + 4);
+    return (int)a1 - a2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276B8);
