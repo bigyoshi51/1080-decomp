@@ -19,6 +19,12 @@ extern int D_A0000200;
  * No same-size C produces fresh-dest-with-folded-%lo, so this is also
  * permuter-immune (can't flip the reg without adding an instruction).
  * (Was an INSN_PATCH target; INSN_PATCH removed 2026-05-23 as match-faking.)
+ * 2026-06-09 EXTENDED NEGATIVE (do not re-try): volatile D_A0000200 at 7.1
+ * AND 5.3 (reuse persists); IDO 5.3 -O0 plain (identical 2 diffs -- the
+ * value-load reuse is version-invariant); chaining the unused-assignment
+ * into the condition via && (+3 insns, worse) or comma operator (same 2
+ * diffs -- the -O0 temp counter resets per value, not per statement).
+ * Every compiler-version/qualifier/expression-chaining axis now exhausted.
  * Genuine -O0 codegen cap. */
 #ifdef NON_MATCHING
 void func_00012818(char *a0, char *a1) {
