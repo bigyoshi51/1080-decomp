@@ -7252,7 +7252,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * family (predecessor merges pending, one per tick). NM body is
  * structural; float scheduling unverified -- INCLUDE_ASM is build path. */
 #ifdef NON_MATCHING
-extern float D_00000000;
+/* step constants are reloc'd USO float globals; reference through the
+ * file's existing int placeholder to avoid the extern-type-mismatch
+ * redeclaration break (docs/MATCHING_WORKFLOW). */
+#define B850_STEP_UP   (*(float *)((char *)&D_00000000 + 0x358))
+#define B850_STEP_DOWN (*(float *)((char *)&D_00000000 + 0x35C))
 void timproc_uso_b5_func_0000B850(char *a0, float target) {
     char *s;
     float *v;
@@ -7265,13 +7269,13 @@ void timproc_uso_b5_func_0000B850(char *a0, float target) {
     }
     v = (float *)(s + 0x130);
     if (*v < target) {
-        *v += D_00000000;
+        *v += B850_STEP_UP;
         s = *(char **)(a0 + 0x2B8);
         if (target < *(float *)(s + 0x130)) {
             *(float *)(s + 0x130) = target;
         }
     } else {
-        *v -= D_00000000;
+        *v -= B850_STEP_DOWN;
         s = *(char **)(a0 + 0x2B8);
         if (*(float *)(s + 0x130) < target) {
             *(float *)(s + 0x130) = target;
