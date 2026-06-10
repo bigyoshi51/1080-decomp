@@ -151,6 +151,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073824);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00073824_pad.s")
 
+/* DRIFT ROOT CAUSE (2026-06-10): ROM has a bare jr-ra/nop stub at
+ * [0x73E6C..0x73E74) that splat's 0x568 size for THIS symbol drops --
+ * the source of the whole [0x743C4..0x748A0] -4 content drift. The
+ * naive fix (append 2 words, size 0x570) overshoots (+8 downstream) due
+ * to hidden inter-block alignment in the unit; needs an alignment-aware
+ * relayout of [0x73904..0x748A4) in one focused pass. See
+ * docs/MATCHING_WORKFLOW "drift-region root cause FOUND". */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073904);
 
 void game_libs_func_00073E6C(void) {}
