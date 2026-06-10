@@ -52,6 +52,7 @@ def clean(b, fn, self_recursive=False):
                lambda m: f'*(s32 *)((char *)&D_00000000 + {m.group(1)})', b)
     b = re.sub(r'^(\s+)void \*', r'\1char *', b, flags=re.M)               # 4
     b = re.sub(r'\*\(s32 \*\)\(([^;]+)\) = \(f32\)', r'*(f32 *)(\1) = (f32)', b)  # 5
+    b = b.replace('second half of f64', '0 /* f64 2nd half */')
     b = re.sub(r'M2C_ERROR\*\(s32 \*\)\(\(char \*\)\(\(/\* Read from unset register \$(\w+) \*/\)\) \+ (0x[0-9A-Fa-f]+)\)',
                lambda m: f'*(s32 *)((char *)&D_00000000 + {m.group(2)}) /* M2C unset ${m.group(1)} */', b)
     b = re.sub(r'\*M2C_ERROR\(/\* Read from unset register \$(\w+) \*/\)', # 15
