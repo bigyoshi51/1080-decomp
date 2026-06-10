@@ -858,38 +858,6 @@
       }
     },
     {
-      "name": "src/kernel/kernel_051",
-      "target_path": "expected/src/kernel/kernel_051.c.o",
-      "base_path": "build/non_matching/src/kernel/kernel_051.c.o",
-      "metadata": {
-        "source_path": "src/kernel/kernel_051.c",
-        "progress_categories": [
-          "kernel"
-        ]
-      },
-      "scratch": {
-        "platform": "n64",
-        "compiler": "ido7.1",
-        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
-      }
-    },
-    {
-      "name": "src/kernel/kernel_052",
-      "target_path": "expected/src/kernel/kernel_052.c.o",
-      "base_path": "build/non_matching/src/kernel/kernel_052.c.o",
-      "metadata": {
-        "source_path": "src/kernel/kernel_052.c",
-        "progress_categories": [
-          "kernel"
-        ]
-      },
-      "scratch": {
-        "platform": "n64",
-        "compiler": "ido7.1",
-        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
-      }
-    },
-    {
       "name": "src/kernel/kernel_053",
       "target_path": "expected/src/kernel/kernel_053.c.o",
       "base_path": "build/non_matching/src/kernel/kernel_053.c.o",
@@ -911,22 +879,6 @@
       "base_path": "build/non_matching/src/kernel/kernel_054.c.o",
       "metadata": {
         "source_path": "src/kernel/kernel_054.c",
-        "progress_categories": [
-          "kernel"
-        ]
-      },
-      "scratch": {
-        "platform": "n64",
-        "compiler": "ido7.1",
-        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
-      }
-    },
-    {
-      "name": "src/kernel/kernel_055",
-      "target_path": "expected/src/kernel/kernel_055.c.o",
-      "base_path": "build/non_matching/src/kernel/kernel_055.c.o",
-      "metadata": {
-        "source_path": "src/kernel/kernel_055.c",
         "progress_categories": [
           "kernel"
         ]
@@ -2275,6 +2227,550 @@
         "platform": "n64",
         "compiler": "ido7.1",
         "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_000_b",
+      "target_path": "expected/src/kernel/kernel_000_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_000_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_000_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_000_c",
+      "target_path": "expected/src/kernel/kernel_000_c.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_000_c.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_000_c.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_003_b",
+      "target_path": "expected/src/kernel/kernel_003_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_003_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_003_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_004_b",
+      "target_path": "expected/src/kernel/kernel_004_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_004_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_004_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_005_b",
+      "target_path": "expected/src/kernel/kernel_005_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_005_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_005_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_011_b",
+      "target_path": "expected/src/kernel/kernel_011_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_011_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_011_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_011_c",
+      "target_path": "expected/src/kernel/kernel_011_c.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_011_c.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_011_c.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_013_b",
+      "target_path": "expected/src/kernel/kernel_013_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_013_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_013_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_018_b",
+      "target_path": "expected/src/kernel/kernel_018_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_018_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_018_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_018_c",
+      "target_path": "expected/src/kernel/kernel_018_c.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_018_c.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_018_c.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_018_d",
+      "target_path": "expected/src/kernel/kernel_018_d.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_018_d.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_018_d.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_018_e",
+      "target_path": "expected/src/kernel/kernel_018_e.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_018_e.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_018_e.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_018_f",
+      "target_path": "expected/src/kernel/kernel_018_f.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_018_f.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_018_f.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_018_g",
+      "target_path": "expected/src/kernel/kernel_018_g.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_018_g.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_018_g.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_020_b",
+      "target_path": "expected/src/kernel/kernel_020_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_020_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_020_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_020_c",
+      "target_path": "expected/src/kernel/kernel_020_c.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_020_c.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_020_c.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_b",
+      "target_path": "expected/src/kernel/kernel_022_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_c",
+      "target_path": "expected/src/kernel/kernel_022_c.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_c.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_c.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_d",
+      "target_path": "expected/src/kernel/kernel_022_d.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_d.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_d.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_e",
+      "target_path": "expected/src/kernel/kernel_022_e.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_e.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_e.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_f",
+      "target_path": "expected/src/kernel/kernel_022_f.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_f.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_f.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_g",
+      "target_path": "expected/src/kernel/kernel_022_g.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_g.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_g.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_h",
+      "target_path": "expected/src/kernel/kernel_022_h.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_h.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_h.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_i",
+      "target_path": "expected/src/kernel/kernel_022_i.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_i.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_i.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_022_o1_b",
+      "target_path": "expected/src/kernel/kernel_022_o1_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_022_o1_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_022_o1_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_023_b",
+      "target_path": "expected/src/kernel/kernel_023_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_023_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_023_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_025_b",
+      "target_path": "expected/src/kernel/kernel_025_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_025_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_025_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_027_b",
+      "target_path": "expected/src/kernel/kernel_027_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_027_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_027_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_035_b",
+      "target_path": "expected/src/kernel/kernel_035_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_035_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_035_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_039_b",
+      "target_path": "expected/src/kernel/kernel_039_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_039_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_039_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_042_b",
+      "target_path": "expected/src/kernel/kernel_042_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_042_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_042_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_054_b",
+      "target_path": "expected/src/kernel/kernel_054_b.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_054_b.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_054_b.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_054_c",
+      "target_path": "expected/src/kernel/kernel_054_c.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_054_c.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_054_c.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+      }
+    },
+    {
+      "name": "src/kernel/kernel_054_d",
+      "target_path": "expected/src/kernel/kernel_054_d.c.o",
+      "base_path": "build/non_matching/src/kernel/kernel_054_d.c.o",
+      "metadata": {
+        "source_path": "src/kernel/kernel_054_d.c",
+        "progress_categories": [
+          "kernel"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
       }
     }
   ],
