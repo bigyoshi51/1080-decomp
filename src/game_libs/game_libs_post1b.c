@@ -6070,54 +6070,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BAD4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006BC44);
 
 #ifdef NON_MATCHING
-/* gl_func_0006BC4C: 50-insn unaligned-load + byte-format-translate loop (0xC8, frame 0x18).
+/* gl_func_0006BC4C = 1080-customized osContGetReadData (libultra
+ * contreaddata.c ancestry; statically-linked libultra cluster, ido53-vein
+ * class). FULL DECODE 2026-06-09 (supersedes the old "approximate
+ * structural decode"):
+ *   gl_func_0006BC4C(u8 *maskOut, u8 *pads):
+ *     mask = 0;                                  // sp+7
+ *     ptr = &PIFRAM;                             // runtime-patched &D, sp+0x14
+ *     for (i = 0; i < MAX_CONTROLLERS; i++) {    // lbu of a second &D global
+ *         fmt = *(__OSContReadFormat *)ptr;      // lwl/lwr 8-byte struct copy
+ *         pads[3] = (fmt.rxsize & 0xC0) >> 4;    // CHNL_ERR
+ *         if (pads[3] == 0) {                    // reloaded from pads[3]!
+ *             *(u16*)pads = fmt.button BYTE-SWAPPED ((lo<<8)|hi);
+ *             pads[2] = fmt.stick_x;             // stick_y dropped (4-byte recs)
+ *             mask |= 1 << i;                    // connected-controller bitmask
+ *         }
+ *         ptr += 8; pads += 4;
+ *     }
+ *     *maskOut = mask;
  *
- * Decoded structure (raw-word disasm):
- *   if (count <= 0) return;
- *   for (i = 0; i < count; i++) {
- *       // Unaligned word load via lwl/lwr (LE pair):
- *       int word_lo = lwl/lwr from src+0..3;
- *       int word_hi = lwl/lwr from src+4..7;
- *       *(int*)tmp_buf = word_lo;
- *       *(int*)(tmp_buf+4) = word_hi;
- *
- *       // Byte mask + shift + merge for nibble-pair processing:
- *       byte t = src->[0xE] & 0xC0;
- *       byte t_shifted = t >> 6 << 2 | t_other;       // pack into result halfword
- *       *(short*)dst = packed;
- *
- *       // Carry / adjust + dst-byte writes from tmp_buf
- *       advance pointers (src += stride, dst += stride);
- *   }
- *
- * Multi-byte format translation using lwl/lwr unaligned loads followed by
- * bit-field extract and short-store. Likely a packed-data-decoder
- * (palette indexes, 4-bit nibble unpacking, or similar bit-packed format).
- * Complex bit-twiddling — exact bit-layout depends on caller's data format.
- *
- * The `count <= 0` guard at top exits early on empty input. Loop body
- * advances by ~8 bytes/iter (matches lwl/lwr alignment + stride of byte
- * writes at sp+0x7, +0xE, +0x10).
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path
- * (lwl/lwr unaligned-load idiom is hard to reproduce from standard C
- * without intrinsics; bit-field shape needs source-data knowledge).
- */
-void gl_func_0006BC4C(int count, void *src, void *dst, int unused) {
-    /* Approximate structural decode. Real body uses lwl/lwr for unaligned
-     * source reads + byte-level format translation. INCLUDE_ASM is the
-     * authoritative build path. */
+ * BLOCKERS for exact match (in order):
+ *   1. SPLAT BOUNDARY: the entry `blez t7` reads t7 set by `lui t7,0;
+ *      lbu t7,0(t7)` (first MAX_CONTROLLERS load) attributed to the
+ *      PREDECESSOR symbol -- true start is 0x6BC44 (-8 bytes). Same
+ *      misattribution family as the 3 leading nops on the bzero at 0x6B048.
+ *      Fix the boundary first.
+ *   2. Compiler class: -O1 stack-resident IVs (i@sp+8, ptr@sp+0x14 stored
+ *      per-iteration) = ido53-carve class (IDO 5.3 -O1); needs a carve unit
+ *      once the boundary is fixed.
+ * NM body below is the faithful algorithm. */
+typedef struct {
+    u8 dummy; u8 txsize; u8 rxsize; u8 cmd;
+    u16 button; s8 stick_x; s8 stick_y;
+} GlContReadFormat;
+
+void gl_func_0006BC4C(u8 *maskOut, u8 *pads) {
+    u8 *ptr;
+    GlContReadFormat fmt;
     int i;
-    char *s = (char*)src;
-    char *d = (char*)dst;
-    if (count <= 0) return;
-    for (i = 0; i < count; i++) {
-        unsigned int t = (unsigned char)s[0xE] & 0xC0;
-        *(short*)d = (short)((t >> 6) << 2);  /* approximate packing */
-        d += 8;
-        s += 8;
+    u8 mask;
+
+    mask = 0;
+    ptr = (u8 *)&D_00000000;
+    for (i = 0; i < *(u8 *)&D_00000000; i++, ptr += 8, pads += 4) {
+        fmt = *(GlContReadFormat *)ptr;
+        pads[3] = (fmt.rxsize & 0xC0) >> 4;
+        if (pads[3] == 0) {
+            *(u16 *)pads = (((u8 *)&fmt.button)[1] << 8) | ((u8 *)&fmt.button)[0];
+            pads[2] = fmt.stick_x;
+            mask |= 1 << i;
+        }
     }
+    *maskOut = mask;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BC4C);
