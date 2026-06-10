@@ -4587,7 +4587,59 @@ loop_2:
     return 0;
 }
 #else
+/* game_libs_func_00021D2C: pair-key table search. n = D+0x2534 records
+ * of 12 bytes at D+0x2538 (layout: int val; pad; short key_a; short
+ * key_b); returns val of the first record matching (a0,a1), else 0.
+ * Pass 1 2026-06-10, 22/22 insns at 15 register-level diffs (~72%
+ * words). Load-bearing NEGATIVE findings on the way to 22/22:
+ *  - short params -> sign-extension homing explosion (69 insns);
+ *  - do-while form -> IDO -O2 UNROLLS the counted loop x4 with an
+ *    alignment-versioning prologue (64 insns) EVEN with an aligned
+ *    struct type -- only the goto-label form compiles compact (extends
+ *    the 8988 sequential-loop lesson to single counted loops);
+ *  - i<n exit collapses the rotation (20 insns); the i==n form keeps
+ *    22 but emits bne-vs-slt (target has slt HOISTED between the key
+ *    compares + bnez at bottom -- a rotated for(;;i<n) the goto form
+ *    does not reproduce exactly).
+ * Residual: count colors v1 (mine v0-adjacent), cursor in a1 (the
+ * moved-arg register), slt placement. Regalloc/rotation hybrid. */
+#ifdef NON_MATCHING
+typedef struct Rec21D2C {
+    int val;
+    int _pad;
+    short key_a;
+    short key_b;
+} Rec21D2C;
+extern int D_21D2C_count;
+extern Rec21D2C D_21D2C_tbl[];
+
+int game_libs_func_00021D2C(int a0, int a1) {
+    int n;
+    int i;
+    int a2;
+    Rec21D2C *p;
+
+    n = D_21D2C_count;
+    a2 = a1;
+    p = D_21D2C_tbl;
+    i = 0;
+    if (n > 0) {
+loop:
+        i += 1;
+        if (a0 == p->key_a && a2 == p->key_b) {
+            return p->val;
+        }
+        p += 1;
+        if (i == n) {
+            return 0;
+        }
+        goto loop;
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D2C);
+#endif
 #endif
 
 /* gl_func_00021D84: 33-insn slot-register helper.
