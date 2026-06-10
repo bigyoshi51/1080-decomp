@@ -100,7 +100,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074DB4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074EDC);
 
+/* gl_func_00074EFC: 1080 osCreatePiManager-family singleton init (96 insns,
+ * 12 jals) -- NOT osPfsIsPlug (tested verbatim 2026-06-10, wrong shape).
+ * Guarded by an initialized-flag whose LOAD (lui at/lw t6) is stolen into
+ * the predecessor symbol (bnez t6 at +0x8 uses t6 set before the prologue
+ * boundary -- the leading-insn misattribution family; the flag store at
+ * the end is reloc'd). Body, with hardcoded RUNTIME data addresses (the
+ * data analog of the gl_ref jal thunks; bootup-region block at 0x45230):
+ *   osCreateMesgQueue(Q_45230, MSGS_45248, 5);
+ *   REC_45260 = {type 13, 0, 0}; REC_45278 = {type 14, 0, 0};
+ *   osSetEventMesg(7, Q_45230, &REC_45260);
+ *   osSetEventMesg(3, Q_45230, &REC_45278);
+ *   saved = -1; cur = osGetThreadPri(0);
+ *   if (cur < pri) { saved = cur; osSetThreadPri(0, pri); }
+ *   v = call();  -- saved at sp+0x2C
+ *   CTL = {1, &THREAD_45230+?, base, base};  -- reloc'd control block
+ *   CTL+0x10..0x18 = 0;
+ *   osCreateThread(&THREAD_44080?, 0, entry_0x8xxxx-ish, reloc_arg,
+ *                  STACK_45230+0x1000, pri_from_arg);
+ *   call(); osStartThread-like(&T_44080); call(v);
+ *   if (saved != -1) osSetThreadPri(0, saved);
+ * Matching needs: the stolen flag-load boundary fix (splat boundary
+ * correction) + fixed-address data symbols (gl_dref_00045230 family) --
+ * multi-step infra; INCLUDE_ASM is build path. */
+#ifdef NON_MATCHING
+void gl_func_00074EFC(int pri) {
+    /* structural skeleton only -- see decode above; the hardcoded
+     * bootup-region addresses and the stolen flag-load make a compiling
+     * faithful body dependent on the boundary fix + dref symbols. */
+    (void)pri;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074EFC);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
