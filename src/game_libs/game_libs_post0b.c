@@ -28563,32 +28563,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CE68);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0005D054: quaternion (Hamilton) product a2 = a0 * a1 (x,y,z,w at
- * offsets 0,4,8,12). RELOC-FREE -O2. This C is BYTE-EXACT except for ONE
- * logical diff: GCC assigns x's stack spill-slot to 40(sp) and z's to 32(sp),
- * where the target has them reversed (x->32, z->40). All 16 mul.s (incl. the
- * a1[c]*a0[c] operand-order of each last-subtracted term), every add.s/sub.s,
- * the store order (a2[0],a2[1],a2[2],a2[3]) and the schedule match exactly.
- *
- * The lone x<->z spill-slot pair (swc1 0x74/0xb0 + lwc1 0xc0: 32<->40) does
- * NOT flip under any C structure tried (store-order/decl-order permutations,
- * inlined stores, ptr-postinc, temp copies, extra refs) -- it's a frame-slot
- * allocation artifact (slots assigned in pseudo-regno order). The permuter
- * reports "score 0" here but the BYTES STILL DIFFER: its scorer normalizes
- * sp-relative offsets, so a pure spill-slot swap is a false positive -- do NOT
- * log an episode off a permuter zero without a raw byte-compare. Honest cap.
- *
- * 2026-05-27 retest: preload-all-components form (lift all a0[0..3]+a1[0..3]
- * into top-of-function locals before any multiply) compiles to a 48-insn body
- * WITH ZERO spills — fundamentally shorter than target's 53-insn body. Drops
- * to 99.94% (worse). Confirms target's shape REQUIRES the 3 spills; the cap
- * is intrinsic to the form that produces 53 insns. No-spill variant isn't a
- * lever. */
+/* gl_func_0005D054: quaternion (Hamilton) product a2 = a0 * a1.
+ * BYTE-EXACT C FOUND 2026-06-10 (56/56 standalone, zero diffs): the
+ * "honest cap" (x<->z spill-slot pair) fell to SPLITTING declarations
+ * from assignments -- IDO assigns float spill slots in DECLARATION
+ * order, independent of computation order. Declare w,z,y,x; compute
+ * w,x,y,z; store x,y,z,w. (All earlier attempts permuted decl+compute
+ * together, which perturbs the schedule; the split changes ONLY the
+ * slots.) LAND BLOCKED on the mid-file in-place constraint (post0b
+ * unit layout) -- promote via the relayout/carve session; the body
+ * below is the verified matching C. */
 void gl_func_0005D054(float *a0, float *a1, float *a2) {
-    float w = (((a0[3] * a1[3]) - (a0[0] * a1[0])) - (a0[1] * a1[1])) - (a1[2] * a0[2]);
-    float x = (((a0[3] * a1[0]) + (a0[0] * a1[3])) + (a0[1] * a1[2])) - (a1[1] * a0[2]);
-    float y = (((a0[3] * a1[1]) + (a0[1] * a1[3])) + (a0[2] * a1[0])) - (a1[2] * a0[0]);
-    float z = (((a0[3] * a1[2]) + (a0[2] * a1[3])) + (a0[0] * a1[1])) - (a1[0] * a0[1]);
+    float w; float z; float y; float x;
+    w = (((a0[3] * a1[3]) - (a0[0] * a1[0])) - (a0[1] * a1[1])) - (a1[2] * a0[2]);
+    x = (((a0[3] * a1[0]) + (a0[0] * a1[3])) + (a0[1] * a1[2])) - (a1[1] * a0[2]);
+    y = (((a0[3] * a1[1]) + (a0[1] * a1[3])) + (a0[2] * a1[0])) - (a1[2] * a0[0]);
+    z = (((a0[3] * a1[2]) + (a0[2] * a1[3])) + (a0[0] * a1[1])) - (a1[0] * a0[1]);
     a2[0] = x;
     a2[1] = y;
     a2[2] = z;
