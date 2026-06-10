@@ -14896,8 +14896,23 @@ void game_libs_func_0002DD38(int a0) {
  * Documented arg-shadow-spill cap (full-TU strips the `int *p = &a0;
  * (void)p;` lever that worked standalone — in-tree IDO inlines the
  * andi to t6 and drops the home spill). Sibling of 2DDBC but the
- * lever doesn't transfer in-tree. */
+ * lever doesn't transfer in-tree. 2026-06-10: re-verified -- still 0
+ * diffs standalone / 85.0 in-tree (strip unchanged); the bare INCLUDE
+ * upgraded to a proper NM wrap with the proven body per the >=80
+ * convention. The plain (void)&a0 form (5B5D8 lever) does NOT emit
+ * the home when the arg is USED -- the pointer-var form is required
+ * for used args (lever taxonomy note). */
+#ifdef NON_MATCHING
+void game_libs_func_0002DD38(int a0) {
+    int *p = &a0;
+    (void)p;
+    a0 = a0 & 0xFF;
+    *(int *)&D_00000000 = a0;
+    *(int *)&D_00000000 = 0xD2;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DD38);
+#endif
 #endif
 
 #ifdef NON_MATCHING
