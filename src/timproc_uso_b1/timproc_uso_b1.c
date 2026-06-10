@@ -939,7 +939,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * Per scripts/find-byte-identical-clones.py — see arcproc_uso_func_00001C74's
  * wrap doc for full structural decode. Mirrored source=4 2026-06-01; expected
  * to inherit the same O2 residual as the canonical arcproc body (target 0x58
- * frame + incoming-$f0 stores vs C's explicit-zero smaller frame). */
+ * frame + incoming-$f0 stores vs C's explicit-zero smaller frame).
+ * 2026-06-10 negatives: an uninitialized `float g; buf[i]=g;` and the
+ * `register float g` variant BOTH emit lwc1-from-home first (IDO homes
+ * even uninit register floats) -- the target's store-only swc1 $f0 x4
+ * with NO prior load/set of $f0 remains C-unreachable; the value is
+ * literally the incoming garbage register. Cap stands. */
 void timproc_uso_b1_func_000019C0(int *a0) {
     float buf[4];
 
