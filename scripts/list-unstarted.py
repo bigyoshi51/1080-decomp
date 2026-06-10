@@ -26,9 +26,25 @@ for root, dirs, files in os.walk('src'):
         if not fn.endswith('.c'):
             continue
         txt = open(os.path.join(root, fn)).read()
-        for m in re.finditer(r'#ifdef NON_MATCHING(.*?)#endif', txt, re.S):
-            for f in re.findall(r'\b((?:\w+_)?(?:gl_)?func_\w{8})\s*\(', m.group(1)):
-                wrapped.add(f)
+        # nested-#if-aware NM block extraction (inner #ifndef FW blocks
+        # otherwise truncate the non-greedy match and hide later names)
+        pos = 0
+        while True:
+            st = txt.find('#ifdef NON_MATCHING', pos)
+            if st < 0:
+                break
+            depth = 1
+            j = st + len('#ifdef NON_MATCHING')
+            while depth > 0:
+                m2 = re.search(r'#(ifdef|ifndef|if |endif)', txt[j:])
+                if not m2:
+                    j = len(txt)
+                    break
+                j += m2.end()
+                depth += -1 if m2.group(1) == 'endif' else 1
+            for f in re.findall(r'\b([A-Za-z_]\w+)\s*\(', txt[st:j]):
+                wrapped.add(f)  # over-captures call sites; harmless (intersected with unmatched fn names)
+            pos = j
 
 rows = []
 r = json.load(open('report.json'))
