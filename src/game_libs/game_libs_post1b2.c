@@ -449,8 +449,18 @@ int gl_func_0006C384(unsigned int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C384);
 #endif
 
+/* game_libs_func_0006C400 = libultra osWritebackDCache (os/
+ * writebackdcache.s) -- HANDWRITTEN (cache 0x19 HIT_WRITEBACK_D loop,
+ * 16-byte lines, with the size>=0x2000 guard branching into the ALL
+ * variant below, leaving li t3,0x2000 live across the boundary).
+ * IDO C cannot emit the cache op; permanent INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C400);
 
+/* game_libs_func_0006C454 = libultra osWritebackDCacheAll (os/
+ * writebackdcacheall.s) -- HANDWRITTEN (cache 0x1 INDEX_WRITEBACK_
+ * INVALIDATE_D over the whole dcache; reads t3=0x2000 set by the
+ * PREDECESSOR osWritebackDCache's guard -- cross-fn register flow,
+ * normal for the handwritten pair). Permanent INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C454);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C384_pad.s")
 
@@ -543,6 +553,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C7B8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C7E4);
 
+/* game_libs_func_0006C820: 64-bit signed divide runtime helper (homes
+ * all four arg regs, ld pairs + ddiv) -- the libgcc/MIPS3 runtime
+ * class (see reference: ld/sd/ddiv = not emittable from IDO C with
+ * -mips2). Permanent INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C820);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C87C);
