@@ -1601,8 +1601,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * Masks: 0x10001 (clear 0x58), 0x4002 (set 0x58=1), 0x40100 (branch:
  * s0->0x58==0 -> gl(5)+gl(&D,1)+obj->0xD8=0+vtail, else gl(2050)+vtail),
  * 0x200 (gl(2050)+vtail). IDO's allocator emits the vtail through v1/a1;
- * the target uses v0/v1, so Makefile INSN_PATCH performs the final same-op
- * register rename. */
+ * the target uses v0/v1 (obj reuses $v0 freed by the preceding void
+ * call). INSN_PATCH removed 2026-05-23. 2026-06-10: the E04 web-order
+ * inversion (inline the full vt chain, let CSE merge) is NEUTRAL here
+ * -- 15 diffs either way; the lever flips v0/v1 pairs in single-block
+ * chains (E04) but not in this multi-arm shape where each arm's vtail
+ * re-derives the web after different call sequences. v0-reuse-after-
+ * void-call coloring; uoptlist class. */
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_00002A8C(int *a0) {
     int *s0 = a0;
