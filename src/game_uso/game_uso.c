@@ -663,390 +663,430 @@ void game_uso_func_00000B14(void *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 3.37% NM. game_uso_func_00000B3C: 0xB08 (706 insns, 2.8 KB) — spine candidate #6.
- * 22 cross-USO calls, 0x150-byte frame. Contains a jump-table switch at
- * 0xDB8 (`jr $t1` after `lw $t1, 0x50($at)`) — per
- * feedback_ido_switch_rodata_jumptable.md that .rodata path is discarded
- * by 1080's linker; match requires if-else or if-goto chain rewrite.
- *
- * Partial C below captures decoded entry (~first 30 insns): id-change
- * detect + 3-level LUT navigation. Remaining ~670 insns TODO.
- *
- * 2026-05-03 EXTENDED DECODE 0xBB0-0xC30 (~85 insns): post-LUT dispatch:
- *   - Loads target->0x38 (a function-ptr or sub-obj?), saved at sp+0x128
- *   - Compares t0 vs v0, branches +0x138 (far skip — likely the "no-change"
- *     fast path)
- *   - If a0->0x260 != 0 AND a0->0x268 != 0: enter the Vec3-zero-init block:
- *     stores 0.0f to sp+0xD8/DC/E0, copies through sp+0xB4..0xBC, writes
- *     to a0->0x134/0x138/0x13C (= a0->vec_134 zeroed via scratch round-trip).
- *     This is the IDO-emit of a zero-Vec3 assignment with the scratch chain
- *     forcing two store-loads — likely matching `Vec3f tmp = {0,0,0};
- *     a0->vec_134 = tmp;` rather than direct field zeroing.
- *   - Branch `b +5` skips the `lw $t9, 0x30(...)` reload, indicating the
- *     0xC30+ path is the alternate (cached) reload path.
- * Same Vec3-stage template fingerprint as 0x591C/0x6A30/0x7C1C (per
- * feedback_game_uso_per_frame_vec3_stage_template.md), but with a third
- * field offset 0x134 instead of 0xB4/0xB8/0xBC. So a0+0x134 is a NEW
- * Vec3 stage in this constructor's struct layout — adds Vec3 fields at
- * 0x134/0x138/0x13C to the inferred GameState struct.
- *
- * Struct fields identified:
- *   a0[0xF4]  — per-frame scratch (cached at sp+0x134)
- *   a0[0x130] — t0 writeback (state-dispatch result)
- *   a0[0x134..0x13C] — secondary Vec3 stage (zeroed via scratch round-trip)
- *   a0[0x150] — dispatch-list ptr
- *   a0[0x158 + N*4] — primary LUT of sub-obj ptrs
- *   a0[0x1D4 + N*4] — tertiary LUT of target ptrs
- *   a0[0x250] — primary index
- *   a0[0x254] — secondary index
- *   a0[0x258] — derived-id writeback
- *   a0[0x25C] — tertiary index
- *   a0[0x260] — bool flag (gates Vec3-zero vs alt-path)
- *   a0[0x264] — cached-id (change detector)
- *   a0[0x268] — bool flag (gates a3->0x30 alt-arm in zero block)
- *   (dispatch_list + 0xA54) — current id
- *
- * 2026-05-05 ASM RE-CHECK 0xC38-0xD00 (~50 insns post-Vec3-zero block):
- *   - 0xC38-0xC44: post-zero merge — load t0 = a0->0x134 reload, save to sp+0x118
- *   - 0xC48: addiu t1, t0, 0x100 (probably a flag-mask offset)
- *   - 0xC4C-0xC5C: 4-arg gl_func dispatch (gl_func(s2,...,...,...)
- *     — prepares scratch buffer at sp+0x118 for callee fill, target's
- *     internal "advance state" cross-USO call.
- *   - 0xC60-0xCA0: post-call ack loop — repeatedly checks v0 return,
- *     conditional store-back to a0->0x150 dispatch list. Looks like
- *     "wait for sub-system ready" polling pattern.
- *   - 0xCA4-0xD00: float-comp for a different field, jal cross-USO with
- *     5+ args (heavy outgoing-arg-slot stores at sp+0x10..0x20).
- *
- * NEXT PASS: decode 0xCA4-0xDB8 — the rodata jump-table dispatch starts
- * around 0xDB8 (`jr $t1`). Per
- * feedback_ido_switch_rodata_jumptable.md, the jump-table itself can't
- * be matched (rodata gets discarded by linker); need if-else chain
- * rewrite. Decode the jump-table arms first to know the cases.
- *
- * EXTENDED 2026-05-14 (insns 165-305 @ 0xCA4-0xF30, ~140 insns):
- *
- * POST-DISPATCH @ 0xCA4-0xCB4: a3-arm gl_func dispatch
- *   gl_func_0(a3, a3->[0xB4], ..., a3->[0x318]+spilled_arg);
- *   ; spill at sp+0x12C; arg 5 = 1; merge `b +7` to 0xCD0 below
- *
- * POST-DISPATCH ALT @ 0xCB8-0xCCC: alternate-arm (when bne path taken)
- *   ; same gl_func_0 dispatch shape but with v0 sourced from different
- *   ; reload (post-Vec3-zero path's intermediate buffer)
- *
- * STATE BIT-FLAG RESET @ 0xCD0-0xCF0:
- *   list = a0->[0x150];        ; dispatch list reload
- *   a0->[0x270] = 0; a0->[0x26C] = 0;
- *   cur_id = list->[0xA58];    ; current id
- *   $at = 0xDFFF;              ; mask: ~0x2000
- *   $t0 = 1;
- *   list->[0xA58] = cur_id & 0xDFFF;  ; clear 0x2000 bit
- *   ptr = list + 0xA58;         ; preserve ptr for later writes
- *
- * STATE-DECODE LOOP @ 0xCF0-0xDB4 (~50 insns):
- *   /\* Iterates a0->[0x260] / a0->[0x268] / a0->[0x26C] / a0->[0x270]
- *    *   tracking up to 4 "dispatch sub-arms" identified by bit-tests
- *    *   on dispatch_list elem 0x10/0x18/...  *\/
- *   v1 = list->[0x10]; if (v1 & 0x80) goto skip_arm1;
- *   /\* arm1: a0->[0x270] = list->[0x10]; goto far_join *\/
- *   ; check arm2: v1 = list->[0x18]; if (v1 & 0x80) goto skip_arm2;
- *   /\* arm2: ... similar shape *\/
- *   ; etc — 4 arms total culminating in `a0->[0x26C]` final write
- *
- * JUMP-TABLE BLOCK @ 0xDA0-0xDBC (~7 insns):
- *   /\* jr $t1 dispatch via .rodata jump-table at sp+0x50 *\/
- *   if (a0->[0x26C] >= 4) goto default_case;
- *   t9 = a0->[0x26C] << 7;             ; *128 (per-elem size?)
- *   t1 = at[*t1] from rodata 0xN+0x50;  ; load jump target
- *   jr t1; nop;
- *
- * JUMP-TABLE ARMS @ 0xDC0-0xEEC (4 cases, each ~24 insns):
- *   case 0 @ 0xDC0: list_id = ... & 0xDFFF + 0x1;    ; clear+set bit 0
- *                    gl_func_0(list_owner, sp[0x12C], 1, ..., a0->[0xB4]);
- *                    list->[0xA58] &= 0xDFFF;          ; (write masked id)
- *                    b +0x3A → 0xEF4
- *   case 1 @ 0xE10: gl_func_0 with arg5=2; list->[0xA58] |= 0x2000;
- *                    b +0x26 → 0xEF4
- *   case 2 @ 0xE60: gl_func_0 with arg5=3; list->[0xA58] |= 0x2000_0001;
- *                    b +0x13 → 0xEF4
- *   case 3 @ 0xEAC: gl_func_0 with arg5=3 (alt arm-path);
- *                    list->[0xA58] |= 0x2000;          ; same mask as case 1
- *
- * MERGE @ 0xEF4-0xF30:
- *   /\* All cases converge here for final FPU work *\/
- *   t5 = a0->[0x260]; t6 = sp[0x128]; lui at, 0x3F80;
- *   mtc1 t5, f16; mtc1 at, f17; lw t7, 0x28(t6);
- *   mtc1 at, f10; mtc1 t7, f6;
- *   cvt.s.w f8, f16; cvt.s.w f4, f6;
- *   mul.s f12, f10, f8;                ; f12 = 1.0f * f8
- *   abs.s f12, f12;
- *   mfc1 a1, f16;
- *   gl_func_0(s2, ...);                ; cross-USO call (a0 = sp+0xF4)
- *
- * Cumulative ~305/706 insns characterized (~43%). NEXT PASS: continue
- * from 0xF34 — post-FPU dispatch + remaining ~400 insns.
- *
- * EXTENDED 2026-05-14 (insns 305-480 @ 0xF34-0x11F8, ~175 insns):
- *
- * SWITCH #1 @ 0xF34-0xF7C (~18 insns): switch on a3->[0x10]
- *   case 1 (==1): jal target +0x7        ; gl_func dispatch
- *   case 2 (==2): jal target +0xC        ; alt arm
- *   case 3 (==3): jal target +0xB        ; another arm
- *   default: load Vec3 from a3->[0xA0..0xA8], store to sp+0x110/0x114/0x118
- *
- * VEC3-VIA-SUB @ 0xF7C-0xFC0 (~17 insns): a3->[0x14] != 0 alt path
- *   sub_obj = a3->[0xC];
- *   sp+0xB4 = sub_obj->[0x0];
- *   sp+0xB8 = sub_obj->[0x4];     ; (load chain through t9 reg)
- *   sp+0xBC = sub_obj->[0x8];
- *   /\* read back as floats and store to sp+0x110/0x114/0x118 *\/
- *
- * SUB-LUT INDEXING @ 0xFC4-0x1038 (~30 insns):
- *   /\* a0->[0x25C] is used as a 3-element index into 3 parallel tables *\/
- *   t6 = (a0->[0x25C]+1)*0x80;     ; (signal "next slot")
- *   t8 = a3->[0x25C]+t6;            ; ptr
- *   sp+0x98 = t8->[0x34];           ; per-axis offset 1
- *   sp+0x9C = (t8+0xC)->[0x38];     ; per-axis offset 2
- *   sp+0xA0 = (t8+0xC)->[0x3C];     ; per-axis offset 3
- *   sp+0xA4 = (t8+0xC)->[0x40];     ; (jal cross-USO call here?)
- *
- * SWITCH #2 @ 0x1038-0x1088 (~16 insns): another switch on a3->[0x4]
- *   case 1: a0_addr = a0->[0xF4]+0x70; sp+0x11C/0x120/0x124 ← a3->[0x34..0x3C]
- *           (FPU adds with f10/f6/f12 chains)
- *   case 2/3: similar shape with different offsets
- *
- * VEC3-VIA-T9 @ 0x108C-0x10D4 (~17 insns):
- *   sp+0xB4/0xB8/0xBC ← t9->[0x0]/[0x4]/[0x8]     ; (chain through caller's t9)
- *   /\* re-read as floats, store to sp+0x11C/0x120/0x124 (Vec3 secondary stage) *\/
- *
- * SUB-LUT #2 @ 0x10D4-0x1138 (~25 insns):
- *   /\* (same LUT shape as #1 but for a different sp dest region) *\/
- *   t10 = a0->[0x25C]<<7; t11 = a3->[0x25C]+t10;
- *   sp+0x88 = t11->[0x34];
- *   sp+0x8C = (t11+0xC)->[0x38];
- *   sp+0x90 = (t11+0xC)->[0x3C];
- *   sp+0x94 = (t11+0xC)->[0x40];   ; (jal here too)
- *
- * SWITCH #3 @ 0x1138-0x11A8 (~28 insns): switch on a3->[0x0]
- *   case 1 (==1): mtc1 1.0f → f18; mtc1 0 → f10/f6;
- *                  sp+0x7C/0x80/0x84 = (1.0, 0.0, 0.0);
- *                  sub_obj = a3->[0x0]; sp+0xB4 = sub_obj->[0x0]; etc.
- *                  re-read as floats → sp+0x104/0x108/0x10C (Vec3 tertiary stage)
- *
- * VEC3-VIA-A3-FIELD @ 0x11B0-0x11F4 (~17 insns):
- *   /\* a3->[0x20] != 0 path *\/
- *   sub2 = a3->[0x18];     ; or [0x1C]/[0x20] depending on arm
- *   sp+0xB4/0xB8/0xBC ← sub2->[0x0]/[0x4]/[0x8];
- *   re-read as floats → sp+0x104/0x108/0x10C
- *
- * Cumulative ~480/706 insns characterized (~68%). Pattern: SAME
- * 3-arm-switch + Vec3-stage shape repeated 3+ times for different
- * a3->[0x0]/[0x4]/[0x10] dispatch fields. Each switch handles 4 cases
- * (default + 3 arms), each arm staging a Vec3 to a different sp slot.
- *
- * NEXT PASS: continue from 0x11F8 — likely 1-2 more switch+stage
- * iterations + final convergence + epilogue (~226 insns to end).
- *
- * EXTENDED 2026-05-14 (insns 480-680 @ 0x11F8-0x1514, ~200 insns):
- *
- * SUB-LUT WITH +0x18 STRIDE @ 0x11F8-0x1268 (~28 insns):
- *   /\* Same shape as prior sub-LUTs but reads at +0x18 stride from t8 base *\/
- *   sp+0x68 = t8->[0x34];
- *   sp+0x6C = (t8+0x18)->[0x34];   ; second element with offset
- *   sp+0x70 = (t8+0x18)->[0x3C];
- *   sp+0x74 = (t8+0x18)->[0x40];   ; (jal cross-USO before next block)
- *
- * SWITCH #4 @ 0x126C-0x12B0 (~17 insns): switch on a3->[0x28]
- *   case 1: f4 = a3->[0x24] (float); sp+0x14C = f4; b far_merge
- *   case 2: 32-arm dispatch with LUT lookup
- *   default: sp+0x58 = a3->[0x24] (float field stored)
- *
- * SUB-LUT @ 0x12B0-0x1310 (~25 insns):
- *   /\* 4 parallel reads from sub-LUT base + stride for fields 0x34/0x38/
- *    *  0x3C/0x40 (per-axis components) at indices 0/1/2/3 *\/
- *   sp+0x58/0x5C/0x60/0x64 = lwc1 chains from sub-LUT
- *   sp+0x14C = 0  ; clear flag
- *
- * SWITCH #5 @ 0x1314-0x1370 (~25 insns): switch on a3->[0x30]
- *   case 1: Vec3 load from a3->[0x2C/0x30/0x34] into sp+0xB4-0xBC,
- *           re-read as floats → sp+0x134/0x138/0x13C
- *   case 2: alternate LUT indexing — sub-LUT base + stride
- *
- * BIG SUB-LUT @ 0x1374-0x13E8 (~30 insns):
- *   /\* 4-element parallel load from t8 base + sub-LUT[0x34..0x40]
- *    *  to sp+0x48/0x4C/0x50/0x54 *\/
- *   /\* trailing jal cross-USO call (4-arg + spill at sp+0x54) *\/
- *
- * VEC3 SAVE @ 0x13F0-0x1418 (~10 insns):
- *   sub3 = a0->[0x154];  ; saved-Vec3 base
- *   sp+0xB4 = sub3->[0x0]; sp+0xB8 = sub3->[0x4]; sp+0xBC = sub3->[0x8];
- *   ; pre-stage for final Vec3 commit pass
- *
- * FPU MATRIX ROW @ 0x141C-0x1468 (~22 insns):
- *   /\* Loads 3 Vec3 buffers (sp+0x110/0x11C/0x138) into FPU regs,
- *    *  cross-products them, writes to sp+0x144 (matrix-row dst) *\/
- *   f8 = sp[0x140] * sp[0xBC];   ; etc — dot product
- *   sp+0x144 = ...                 ; result
- *
- * VEC3 TRANSITIVE COPY @ 0x146C-0x14A4 (~14 insns):
- *   /\* sub-obj at a0->[0x150] -> nested t8/t9 -> sp+0x10 spill +
- *    *  Vec3 broadcast through three intermediate buffers *\/
- *
- * LIST-WALK LOOP @ 0x14A8-0x14EC (~12 insns):
- *   /\* iterate list rooted at sp+0x11C/0x120 (loaded earlier);
- *    *  each iteration writes nodes to sp+0x60/0x64/0x68 -
- *    *  small loop with 8-elem stride (0x14EC: 154BFFF8 = bnel back -8) *\/
- *
- * MORE FPU @ 0x14F0-0x1514 (~10 insns):
- *   /\* Continued list walk: load addr fields, write to sp+0x64/0x68/0x6C
- *    *  with addiu-based ptr-arith *\/
- *
- * Cumulative ~680/706 insns characterized (~96%). ~26 insns remaining —
- * final list-walk closure + epilogue.
- *
- * NEXT PASS: 0x1518-end (~26 insns) — list-walk completion + epilogue.
- *
- * FINAL DECODE 2026-05-14 (insns 680-770 @ 0x1518-0x1640, ~74 insns):
- *
- * LIST-WALK LOOP BODY @ 0x1518-0x1568 (~21 insns):
- *   /\* iterate while (node != head_terminator):
- *    *   node->[0x64] = list_idx_field_0;
- *    *   node->[0x68] = list_idx_field_1;
- *    *   node->[0x6C] = list_idx_field_2;
- *    *   node->[0x70] = list_idx_field_3;
- *    *   node = node->[0x4]; ; via t8/t9/t11 chain
- *    *   ; loop-back at 0x1560 (170AFFF8 = bne t8, t2, -8 with sw in delay) *\/
- *
- * POST-LOOP VEC3 BROADCAST @ 0x1570-0x158C (~7 insns):
- *   /\* broadcast staged Vec3 from t9 chain to sp+0xB4..0xBC:
- *    *   sp+0xB4 = t9->[0];
- *    *   sp+0xB8 = t9->[4];
- *    *   sp+0xBC = t9->[8];
- *    * stages for final FPU work *\/
- *
- * FINAL FPU + COMMIT @ 0x1590-0x15B4 (~9 insns):
- *   /\* load 3 doubles from sp+0xB4/0xB8/0xBC,
- *    *   store to a3->[0x140]/[0x144]/[0x148] (Vec3 commit to entity) *\/
- *
- * GUARD CHECKS + COMMITS @ 0x15B8-0x1638 (~32 insns):
- *   /\* if (a0->[0x130] < a3->[0x28]) {
- *    *     if (D_BSS_FLAG == 1) { D_BSS_RES = gl_func_0(D_BSS_FLAG,...); }
- *    *     ; conditional 0-or-1 increment on D_BSS_RES
- *    * }
- *    * if (a0->[0x130] < t6->[0x24]) goto skip_commits;
- *    *   a0->[0x260] = a0->[0x254] + 1;
- *    *   a0->[0x254] = a3-something;
- *    *   a0->[0x25C] = stored_idx;
- *    *
- *    * The two ABS_LT comparisons gate the final state-counter updates. *\/
- *
- * EPILOGUE @ 0x1630-0x163C (~4 insns):
- *   lw $ra, 0x24(sp); lw $s0, 0x20(sp); addiu sp, +0x150; jr ra; nop
- *
- * STRUCTURAL DECODE COMPLETE: 770/706 nominal (actually function is
- * 0x1640-0xB3C = 0xB04 bytes = 705 insns total, my "706" estimate was
- * close). All ~770 lines of asm processed.
- *
- * Final semantic picture: spine-#6 per-frame entity update.
- * - Input: a0 = entity ptr (game-state struct).
- * - Entry: id-change detect via a0->[0x150]->[0xA54], 3-level LUT
- *   navigation (primary at a0->[0x158+N*4], tertiary at a0->[0x1D4+N*4]).
- * - Body: ~7 nested switch+Vec3-stage iterations dispatching on
- *   a3->[0x0/0x4/0x10/0x28/0x30] fields, each staging a Vec3 to a
- *   different sp slot for downstream cross-USO calls. Plus the rodata
- *   jump-table at 0xDB8 (4 cases) for state-mask updates to
- *   list->[0xA58].
- * - Tail: list-walk loop writes 4 fields per node, post-loop Vec3
- *   broadcast + commit to a3->[0x140..0x148], then 2 ABS_LT gates
- *   that conditionally update state-counter triple at a0->[0x254/
- *   0x25C/0x260].
- * - Returns nothing.
- *
- * Default emit remains INCLUDE_ASM until C-body grind reaches >=80%.
- * Decode doc unblocks future single-tick C-write attempts; the ~7
- * switch+stage iterations are highly repetitive and suitable for
- * code-generation from a per-iteration template. */
-void game_uso_func_00000B3C(int *a0) {
-    int *sub;
-    int derived_id;
-    int *target;
-    int cur_id;
-    int *list;
+/* PASS-2 2026-06-10 (big-swing): FULL m2c graft. One 4-case jumptable
+ * synthesized; THREE branch-into-delay-slot sites worked around by
+ * label-retarget + duplicated-delay tail blocks (the iterative fixer;
+ * an IDO branch-likely idiom this fn uses heavily). */
+void game_uso_func_00000B3C(char *arg0) {
+    f32 sp13C; f32 sp140; f32 spB8; f32 spBC;
+    s32 sp144;
+    f32 sp138;
+    s32 *sp134;
+    s32 sp130;
+    char **sp12C;
+    s32 *sp128;
+    f32 sp124;
+    f32 sp120;
+    s32 sp11C;
+    f32 sp118;
+    f32 sp114;
+    s32 sp110;
+    f32 sp10C;
+    f32 sp108;
+    s32 sp104;
+    s32 spF4;
+    s32 spF0;
+    s32 spEC;
+    s32 spE8;
+    f32 spE0;
+    f32 spDC;
+    s32 spD8;
+    s32 spB4;
+    s32 spA4;
+    s32 spA0;
+    s32 sp9C;
+    s32 sp98;
+    s32 sp94;
+    s32 sp90;
+    s32 sp8C;
+    s32 sp88;
+    f32 sp84;
+    f32 sp80;
+    s32 sp7C;
+    s32 *sp74;
+    s32 sp70;
+    s32 sp6C;
+    s32 sp68;
+    f32 sp64;
+    f32 sp60;
+    f32 sp5C;
+    f32 sp58;
+    s32 sp54;
+    s32 sp50;
+    s32 sp4C;
+    s32 sp48;
+    s32 sp3C;
+    f32 sp38;
+    f32 sp34;
+    f32 sp30;
+    char **var_a3;
+    char **var_a3_2;
+    char *temp_s0;
+    char *temp_t1;
+    char *temp_v0_2;
+    char *var_a0;
+    char *var_t3;
+    s32 *var_t2;
+    s32 temp_at;
+    s32 temp_t2;
+    s32 temp_t3;
+    s32 temp_t5;
+    s32 temp_v0;
+    s32 temp_v0_4;
+    s32 temp_v1_2;
+    s32 temp_v1_3;
+    s32 temp_v1_4;
+    s32 temp_v1_5;
+    s32 temp_v1_6;
+    s32 temp_v1_7;
+    s32 var_a1;
+    s32 var_a2;
+    s32 var_at;
+    s32 var_at_2;
+    s32 var_v0;
+    s32 var_v1;
+    s32 var_v1_2;
+    char *temp_a2;
+    char *temp_t4;
+    char *temp_v0_3;
+    char *temp_v1;
+    char *temp_v1_8;
+    char *temp_v1_9;
+    char *var_t1;
 
-    list = (int*)a0[0x150 / 4];
-    cur_id = list[0xA54 / 4];
-    if (cur_id != a0[0x264 / 4]) {
-        gl_func_00000000(a0);
-        a0[0x264 / 4] = cur_id;
+    var_a0 = arg0;
+    temp_s0 = var_a0;
+    sp134 = *(s32 *)((char *)(var_a0) + 0xF4);
+    temp_v0 = *(s32 *)((char *)(*(s32 *)((char *)(var_a0) + 0x150)) + 0xA54);
+    if (temp_v0 == *(s32 *)((char *)(var_a0) + 0x264)) {
+
+    } else {
+        *(s32 *)((char *)(var_a0) + 0x264) = temp_v0;
     }
+    temp_t2 = *(s32 *)((char *)((temp_s0 + (*(s32 *)((char *)(temp_s0) + 0x250) * 4))) + 0x158);
+    sp130 = temp_t2;
+    var_v0 = *(s32 *)((char *)(temp_s0) + 0x25C);
+    var_v1 = *(s32 *)((char *)((temp_t2 + (*(s32 *)((char *)(temp_s0) + 0x254) * 4))) + 0x4);
+    *(s32 *)((char *)(temp_s0) + 0x258) = var_v1;
+    var_a3 = *(s32 *)((char *)((temp_s0 + (var_v1 * 4))) + 0x1D4);
+    var_t1 = var_a3 + (var_v0 * 4);
+    var_t2 = *(s32 *)((char *)(var_t1) + 0x38);
+    sp128 = var_t2;
+    if (0 /* M2C unset $t0 */ == var_v0) {
+        if (*(s32 *)((char *)(temp_s0) + 0x260) != 0) {
+            goto block_28;
+        }
+        var_t3 = *(s32 *)((char *)(temp_s0) + 0x268);
+        if ((s32)var_t3 != 0) {
+            *(s32 *)((char *)(temp_s0) + 0x130) = (s32) 0 /* M2C unset $t0 */;
+            spE0 = 0.0f;
+            spDC = 0.0f;
+            spD8 = 0;
+            *((s32 *)&spB4 + 0) = *((s32 *)&spD8 + 0);
+            *((s32 *)&spB4 + 1) = (s32 *) *((s32 *)&spD8 + 1);
+            *((s32 *)&spB4 + 2) = (s32) *((s32 *)&spD8 + 2);
+            *(s32 *)((char *)(temp_s0) + 0x134) = spB4;
+            *(s32 *)((char *)(temp_s0) + 0x138) = spB8;
+            *(s32 *)((char *)(temp_s0) + 0x13C) = spBC;
+        } else {
+            var_t2 = (s32 *) ((*(s32 *)((char *)(var_a3) + 0x30) == 0) == 0);
+            *(s32 *)((char *)(temp_s0) + 0x130) = var_t2;
+        }
+        if (0 /* M2C unset $t0 */ != *(s32 *)((char *)(var_a3) + 0x10)) {
+            sp12C = var_a3;
+            var_t3 = *(s32 *)((char *)(var_a3) + 0x0);
+        } else {
+            sp12C = var_a3;
+        }
+        if ((s32)var_t3 == 1) {
+            temp_a2 = *(s32 *)((char *)(temp_s0) + 0x150);
+            var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
+            sp12C = var_a3;
+        } else {
+            var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
+            sp12C = var_a3;
+            var_v1 = *(s32 *)((char *)(temp_s0) + 0x150);
+        }
+        *(s32 *)((char *)(temp_s0) + 0x270) = 0;
+        *(s32 *)((char *)(temp_s0) + 0x26C) = 0;
+        *(s32 *)((char *)(var_v1) + 0xA58) = (s32) (*(s32 *)((char *)(var_v1) + 0xA58) & ~0x2000);
+        if (*(s32 *)((char *)(var_a3) + 0x0) != 1) {
 
-    sub = (int*)*(int*)((char*)a0 + 0x158 + a0[0x250 / 4] * 4);
-    derived_id = sub[1 + a0[0x254 / 4]];
-    a0[0x258 / 4] = derived_id;
-    target = (int*)*(int*)((char*)a0 + 0x1D4 + derived_id * 4);
+        } else {
+            var_t1 = *(s32 *)((char *)(var_a3) + 0x10);
+            goto block_25;
+        }
+    } else {
+block_25:
+        if (0 /* M2C unset $t0 */ != var_t1) {
 
-    (void)target;  /* silence unused — body TODO */
-    /* Extended characterization 2026-05-04 (0xBB0-0xC38, ~30 insns):
-     * Post-LUT, the function reads a fourth-level field via combined
-     * indices, then enters a state-dispatch on a0->0x260 and a0->0x268:
-     *   t1 = &(a0->0x158_LUT) + (idx*4 << shift)   (combined index)
-     *   t2 = t1->[0x38]      ; sp+0x128 cached
-     *   if (t0 != v0) goto far_skip (~0xCF8 epilogue branch)
-     *   if (a0->0x260 != 0) goto +0x4C (delay-likely sub-block)
-     *   if (a0->0x268 == 0) {
-     *       // Vec3-zero staging path:
-     *       a0->0x130 = t0
-     *       Vec3 zero_buf at sp+0xD8 = {0, 0, 0}
-     *       memcpy sp+0xD8 -> sp+0xB4 (3-word copy via t6/t5)
-     *       float-store sp+0xB4..0xBC into s2->0x134..0x13C   (Vec3 write)
-     *   } else {
-     *       // a3->0x30 path: load t9 = a3->0x30, slt against 1
-     *       a0->0x130 = (a3->0x30 < 1) ? 1 : 0
-     *   }
-     *
-     * The Vec3-zero staging via two stack buffers (sp+0xD8 → sp+0xB4 → s2)
-     * matches the same triple-buffer dance seen in other game_uso spine
-     * functions (8CD8, 591C). Likely a Vec3 reinitializer for a per-frame
-     * scratch slot in s2 (= some 0x140-byte sub-object).
-     *
-     * Cumulative ~60/706 insns characterized.
-     *
-     * 2026-05-05 EXTENDED DECODE 0xCA4-0xD68 (~50 more insns, ~110/706 total):
-     *   0xCA4-0xCAC: spill a3 to sp+0x12C, jal cross-USO with a2+=0x318
-     *     (callee adjusts a flag-mask base address by 0x318)
-     *   0xCB0-0xCC8: post-call merge — `b +7; lw a3, 0x12C(sp)` skips
-     *     the re-call path. Else branch reloads `a2 = a0->0x150` (dispatch
-     *     list), `a0 = t6->0xB4`, spills a3 again, makes another jal with
-     *     same a2+=0x318. Two-arm jal pattern (probably "init mask vs
-     *     update mask").
-     *   0xCCC-0xCD8: post-merge cleanup. `a0->0x270 = 0; a0->0x26C = 0`
-     *     (clear two flag/state fields).
-     *   0xCDC-0xCEC: dispatch-list flag clear:
-     *     `list[0xA58] &= ~0x2000` (clears bit 13 of a 32-bit flag word).
-     *   0xCF0-0xCF8: `v1 = &list[0xA58]; t9 = *v1; bnel t8, t9, +0x7F`
-     *     — re-read post-mask check; if mask bit re-set by another thread,
-     *     skip far forward (this is a race-detection guard).
-     *   0xCFC-0xD18: state-test chain on a0->0x260 (sp+0xCFC reload).
-     *     `if (a0->0x260 != 0)` evaluates the same flag tested earlier —
-     *     this is a different branch arm of the gate.
-     *   0xD1C-0xD2C: load `a0->0x274` field, mask with 0x80, branch on bit.
-     *     Likely tests "is bit 7 of flag word set?".
-     *   0xD30-0xD40: pseudo-COW: `a0->0x26C = a0->0x270` (was 0 from earlier),
-     *     branches `b +0x15` to merge point (skips alt-set path).
-     *   0xD44-0xD68: alt-set path — checks `a0->0x274 with 0x80` again,
-     *     and if 3-state match, sets `a0->0x270 = 4 (or similar);
-     *     a0->0x26C = 3 (= constant)`. Both paths converge at +0xB merge.
-     *
-     * Pattern recognition: this is a state-machine update where two flag
-     * fields (0x270/0x26C) are reset to (0,0) on entry, then conditionally
-     * re-set based on (0x274 & 0x80) state. Looks like an "active state ID
-     * cache" being cleared and either re-validated or marked-dirty.
-     *
-     * TODO(next pass): decode 0xD68-0xDB8 (the entry to the rodata
-     * jump-table dispatch). Then 0xDB8 jr $t1 + 0x80-byte rodata
-     * jumptable in baserom. Per
-     * feedback_ido_switch_rodata_jumptable.md the rodata path is
-     * discarded by 1080's linker; if-else chain rewrite needed. */
+        } else {
+block_28:
+            var_a0 = *(s32 *)((char *)(temp_s0) + 0x26C);
+            var_v0 = 0;
+            if ((s32)var_a0 == 3) {
+                var_t2 = *(s32 *)((char *)(*(s32 *)((char *)(temp_s0) + 0x274)) + 0x10);
+                if (!((s32) var_t2 & 0x80)) {
+                    var_v0 = 0 /* M2C unset $t0 */;
+                    *(s32 *)((char *)(temp_s0) + 0x26C) = (char *) *(s32 *)((char *)(temp_s0) + 0x270);
+                }
+            } else {
+                temp_v1 = *(s32 *)((char *)(temp_s0) + 0x274);
+                if ((s32) *(s32 *)((char *)(temp_v1) + 0x10) & 0x80) {
+                    *(s32 *)((char *)(temp_s0) + 0x270) = var_a0;
+                    *(s32 *)((char *)(temp_s0) + 0x26C) = 3;
+                    goto block_36;
+                }
+                if (*(s32 *)((char *)(temp_v1) + 0x18) & 0x40) {
+                    temp_v0_2 = var_a0 + 1;
+                    *(s32 *)((char *)(temp_s0) + 0x26C) = temp_v0_2;
+                    if ((s32) temp_v0_2 >= 3) {
+                        *(s32 *)((char *)(temp_s0) + 0x26C) = 0;
+                    }
+block_36:
+                    var_v0 = 0 /* M2C unset $t0 */;
+                }
+            }
+            if (var_v0 == 0) {
+
+            } else {
+                temp_t1 = *(s32 *)((char *)(temp_s0) + 0x26C);
+                temp_at = (u32) temp_t1 < 4U;
+                if (temp_at != 0) {
+                    switch ((s32) temp_t1) { /* 2nd table site, if-dispatch on the index */
+                    case 0:
+                        sp12C = var_a3;
+                        var_t2 = sp134;
+                        temp_v1_2 = *(s32 *)((char *)(temp_s0) + 0x150);
+                        *(s32 *)((char *)(temp_v1_2) + 0xA58) = (s32) (*(s32 *)((char *)(temp_v1_2) + 0xA58) & ~0x2000);
+                        break;
+                    case 1:
+                        sp12C = var_a3;
+                        temp_v1_3 = *(s32 *)((char *)(temp_s0) + 0x150);
+                        *(s32 *)((char *)(temp_v1_3) + 0xA58) = (s32) (*(s32 *)((char *)(temp_v1_3) + 0xA58) & ~0x2000);
+                        break;
+                    case 2:
+                        sp12C = var_a3;
+                        temp_v1_4 = *(s32 *)((char *)(temp_s0) + 0x150);
+                        *(s32 *)((char *)(temp_v1_4) + 0xA58) = (s32) (*(s32 *)((char *)(temp_v1_4) + 0xA58) | 0x2000);
+                        break;
+                    case 3:
+                        sp12C = var_a3;
+                        var_t2 = sp134;
+                        temp_v1_5 = *(s32 *)((char *)(temp_s0) + 0x150);
+                        *(s32 *)((char *)(temp_v1_5) + 0xA58) = (s32) (*(s32 *)((char *)(temp_v1_5) + 0xA58) | 0x2000);
+                        break;
+                    }
+                    sp12C = var_a3;
+                }
+                var_a0 = &spF4;
+            }
+        }
+    }
+    var_a3_2 = sp12C;
+    temp_v1_6 = *(s32 *)((char *)(var_a3_2) + 0x10);
+    if (temp_v1_6 != 1) {
+        var_at = 3;
+        if ((temp_v1_6 != 2) && (temp_v1_6 != 3)) {
+            var_a0 = *(s32 *)((char *)(var_a3_2) + 0x0);
+        } else {
+            if (*(s32 *)((char *)(var_a3_2) + 0x14) == 0) {
+                *((s32 *)&spB4 + 0) = *(s32 *)((char *)(sp128) + 0xC);
+                var_t2 = *(s32 *)((char *)(sp128) + 0x10);
+                *((s32 *)&spB4 + 1) = var_t2;
+                *((s32 *)&spB4 + 2) = (s32) *(s32 *)((char *)(sp128) + 0x14);
+                sp118 = spBC;
+                sp114 = spB8;
+                sp110 = spB4;
+            } else {
+                sp98 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34) + 0xC;
+                sp9C = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38) + 0xC;
+                spA0 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C) + 0xC;
+                var_t2 = (s32 *) (*(s32 *)((char *)(temp_s0) + 0x25C) * 4);
+                spA4 = *(s32 *)((char *)(((s32)var_a3_2 + (s32)var_t2)) + 0x40) + 0xC;
+                var_a0 = *(s32 *)((char *)(var_a3_2) + 0x0);
+            }
+            goto block_58;
+        }
+    } else {
+        sp110 = *(s32 *)((char *)(temp_s0) + 0xA0);
+        sp114 = *(s32 *)((char *)(temp_s0) + 0xA4);
+        sp118 = *(s32 *)((char *)(temp_s0) + 0xA8);
+block_58:
+        var_at = 1;
+    }
+    var_at_2 = 2;
+    if ((s32)var_a0 != (s32)var_at) {
+        if (((s32)var_a0 != 2) && ((s32)var_a0 != 3)) {
+            goto block_69;
+        }
+        if (*(s32 *)((char *)(var_a3_2) + 0x4) == 0) {
+            *((s32 *)&spB4 + 0) = *(s32 *)((char *)(sp128) + 0x0);
+            *((s32 *)&spB4 + 1) = (s32 *) *(s32 *)((char *)(sp128) + 0x4);
+            *((s32 *)&spB4 + 2) = (s32) *(s32 *)((char *)(sp128) + 0x8);
+            sp124 = spBC;
+            sp120 = spB8;
+            sp11C = spB4;
+        } else {
+            sp88 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34);
+            sp8C = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38);
+            var_t2 = (s32 *) (*(s32 *)((char *)(temp_s0) + 0x25C) * 4);
+            sp90 = *(s32 *)((char *)(((s32)var_a3_2 + (s32)var_t2)) + 0x3C);
+            sp12C = var_a3_2;
+            sp94 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40);
+            var_a0 = *(s32 *)((char *)(var_a3_2) + 0x0);
+        }
+        var_at_2 = 1;
+        goto block_68;
+    }
+    temp_v0_3 = *(s32 *)((char *)(temp_s0) + 0xF4);
+    var_v0 = (s32) (temp_v0_3 + 0x70);
+    sp11C = *(s32 *)((char *)(temp_v0_3) + 0xA0);
+    sp120 = *(s32 *)((char *)(var_v0) + 0x34);
+    sp124 = *(s32 *)((char *)(var_v0) + 0x38);
+    var_a0 = *(s32 *)((char *)(var_a3_2) + 0x0);
+block_68:
+    if ((s32)var_a0 == (s32)var_at_2) {
+block_69:
+        var_t2 = &sp7C;
+        if (*(s32 *)((char *)(var_a3_2) + 0x10) == 1) {
+            sp80 = 1.0f;
+            sp7C = 0;
+            sp84 = 0.0f;
+            *((s32 *)&spB4 + 0) = *(s32 *)((char *)(var_t2) + 0x0);
+            *((s32 *)&spB4 + 1) = (s32 *) *(s32 *)((char *)(var_t2) + 0x4);
+            *((s32 *)&spB4 + 2) = (s32) *(s32 *)((char *)(var_t2) + 0x8);
+            sp10C = spBC;
+            sp108 = spB8;
+            sp104 = spB4;
+        } else {
+            goto block_71;
+        }
+    } else {
+block_71:
+        if (*(s32 *)((char *)(var_a3_2) + 0x20) == 0) {
+            *((s32 *)&spB4 + 0) = *(s32 *)((char *)(sp128) + 0x18);
+            *((s32 *)&spB4 + 1) = (s32 *) *(s32 *)((char *)(sp128) + 0x1C);
+            *((s32 *)&spB4 + 2) = (s32) *(s32 *)((char *)(sp128) + 0x20);
+            sp10C = spBC;
+            sp108 = spB8;
+            sp104 = spB4;
+        } else {
+            sp68 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34) + 0x18;
+            sp6C = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38) + 0x18;
+            sp70 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C) + 0x18;
+            sp12C = var_a3_2;
+            var_t2 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40) + 0x18;
+            sp74 = var_t2;
+            var_v0 = *(s32 *)((char *)(var_a3_2) + 0x28);
+        }
+    }
+    if (var_v0 == 1) {
+        *(f32 *)((char *)(temp_s0) + 0x14C) = (f32) *(s32 *)((char *)(sp128) + 0x24);
+        goto block_80;
+    }
+    if (var_v0 != 2) {
+        goto block_83;
+    }
+    sp58 = *(s32 *)((char *)(*(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34)) + 0x24);
+    sp5C = *(s32 *)((char *)(*(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38)) + 0x24);
+    sp60 = *(s32 *)((char *)(*(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C)) + 0x24);
+    sp12C = var_a3_2;
+    sp64 = *(s32 *)((char *)(*(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40)) + 0x24);
+    *(f32 *)((char *)(temp_s0) + 0x14C) = (f32) 0 /* M2C unset $f0 */;
+    var_t2 = *(s32 *)((char *)(temp_s0) + 0x268);
+block_80:
+    if (var_t2 != 0) {
+
+    } else {
+block_83:
+        var_v0 = *(s32 *)((char *)(var_a3_2) + 0x30);
+        if (var_v0 == 1) {
+            *((s32 *)&spB4 + 0) = *(s32 *)((char *)(sp128) + 0x2C);
+            *((s32 *)&spB4 + 1) = (s32 *) *(s32 *)((char *)(sp128) + 0x30);
+            *((s32 *)&spB4 + 2) = (s32) *(s32 *)((char *)(sp128) + 0x34);
+            *(s32 *)((char *)(temp_s0) + 0x134) = spB4;
+            *(s32 *)((char *)(temp_s0) + 0x138) = spB8;
+            *(s32 *)((char *)(temp_s0) + 0x13C) = spBC;
+            goto block_89;
+        }
+        if (var_v0 != 2) {
+
+        } else {
+            sp48 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34) + 0x2C;
+            sp4C = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38) + 0x2C;
+            sp50 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C) + 0x2C;
+            sp12C = var_a3_2;
+            sp54 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40) + 0x2C;
+block_89:
+            sp12C = var_a3_2;
+        }
+    }
+    *((s32 *)&sp138 + 0) = *(s32 *)((char *)(var_v0) + 0x0);
+    *((s32 *)&sp138 + 1) = (s32) *(s32 *)((char *)(var_v0) + 0x4);
+    *((s32 *)&sp138 + 2) = (s32) *(s32 *)((char *)(var_v0) + 0x8);
+    temp_v1_7 = *(s32 *)((char *)(temp_s0) + 0x150);
+    sp38 = *(s32 *)((char *)(temp_v1_7) + 0xBC) + sp140;
+    sp34 = *(s32 *)((char *)(temp_v1_7) + 0xB8) + sp13C;
+    sp30 = *(s32 *)((char *)(temp_v1_7) + 0xB4) + sp138;
+    *((s32 *)&sp3C + 0) = (f32) *((s32 *)&sp30 + 0);
+    temp_t3 = *((s32 *)&sp30 + 1);
+    *((s32 *)&sp3C + 1) = temp_t3;
+    temp_t5 = *((s32 *)&sp30 + 2);
+    *((s32 *)&sp144 + 1) = temp_t3;
+    *((s32 *)&sp144 + 0) = (f32) *((s32 *)&sp3C + 0);
+    *((s32 *)&sp3C + 2) = temp_t5;
+    *((s32 *)&sp144 + 2) = temp_t5;
+    if (*(s32 *)((char *)(sp12C) + 0x0) != 1) {
+        temp_v1_8 = *(s32 *)((char *)(temp_s0) + 0xF4);
+        *(s32 *)((char *)(temp_v1_8) + 0x60) = sp11C;
+        temp_v1_9 = temp_v1_8 + 0x30;
+        *(s32 *)((char *)(temp_v1_9) + 0x34) = sp120;
+        *(s32 *)((char *)(temp_v1_9) + 0x38) = sp124;
+        temp_t4 = *(s32 *)((char *)(temp_s0) + 0xF4);
+        M2C_MEMCPY_ALIGNED(temp_t4 + 0x70, temp_t4 + 0x30, 0x3C);
+        *(s32 *)((char *)(((s32)temp_t4 + (s32)0x3C)) + 0x70) = (s32) *(s32 *)((char *)(((s32)temp_t4 + (s32)0x3C)) + 0x30);
+    }
+    if (*(s32 *)((char *)(sp12C) + 0x10) != 1) {
+        *(s32 *)((char *)(temp_s0) + 0x60) = sp110;
+        *(s32 *)((char *)(temp_s0) + 0x64) = sp114;
+        *(s32 *)((char *)(temp_s0) + 0x68) = sp118;
+        M2C_MEMCPY_ALIGNED(temp_s0 + 0x70, temp_s0 + 0x30, 0x3C);
+        *(s32 *)((char *)(((s32)temp_s0 + (s32)0x3C)) + 0x70) = (s32) *(s32 *)((char *)(((s32)temp_s0 + (s32)0x3C)) + 0x30);
+    }
+    *((s32 *)&spB4 + 0) = *((s32 *)&sp104 + 0);
+    *((s32 *)&spB4 + 1) = (s32 *) *((s32 *)&sp104 + 1);
+    *((s32 *)&spB4 + 2) = (s32) *((s32 *)&sp104 + 2);
+    var_v1_2 = *(s32 *)((char *)(temp_s0) + 0x25C);
+    *(s32 *)((char *)(temp_s0) + 0x140) = spB4;
+    var_a1 = *(s32 *)((char *)(temp_s0) + 0x260) + 1;
+    var_a2 = *(s32 *)((char *)(temp_s0) + 0x254);
+    *(s32 *)((char *)(temp_s0) + 0x144) = spB8;
+    *(s32 *)((char *)(temp_s0) + 0x148) = spBC;
+    if (var_a1 < *(s32 *)((char *)(sp128) + 0x28)) {
+
+    } else {
+        temp_v0_4 = *(s32 *)((char *)(sp12C) + 0x34);
+        var_v1_2 += 1;
+        var_a1 = 0;
+        if (temp_v0_4 < var_v1_2) {
+            var_v1_2 = 1;
+        } else if (var_v1_2 == temp_v0_4) {
+            spEC = var_v1_2;
+            spF0 = 0;
+            spE8 = var_a2;
+            var_a1 = spF0;
+            if (temp_v0_4 != 0) {
+                var_v1_2 = 1;
+                var_a2 += 1;
+            }
+        }
+    }
+    if (var_a2 < 0 /* M2C unset $t6 */) {
+        *(s32 *)((char *)(temp_s0) + 0x260) = var_a1;
+        *(s32 *)((char *)(temp_s0) + 0x254) = var_a2;
+        *(s32 *)((char *)(temp_s0) + 0x25C) = var_v1_2;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000B3C);

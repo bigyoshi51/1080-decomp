@@ -26,6 +26,8 @@ def clean(b, fn, self_recursive=False):
     b = re.sub(r'(?<![\w.])(?:NULL|0)\(', 'func_00000000(', b)            # 1
     b = b.replace('NULL','0')                                              # 14: before *0
     b = b.replace('?32','s32')
+    b = b.replace('(? *)','(char *)')
+    b = re.sub(r'\(\? \)','(s32)', b)
     b = re.sub(r'^(\s+)\? \*', r'\1char *', b, flags=re.M)
     b = re.sub(r'^(\s+)\? ', r'\1s32 ', b, flags=re.M)
     b = re.sub(r'\(([\w? ]+)\(\*\)\(([^)]*)\)\)0x([0-9A-Fa-f]+)\(',        # 13
@@ -57,6 +59,11 @@ def clean(b, fn, self_recursive=False):
     b = re.sub(r'M2C_ERROR\(/\* Read from unset register \$(\w+) \*/\)',
                lambda m: f'0 /* M2C unset ${m.group(1)} */', b)
     b = re.sub(rf'((?:void|s32|int) \*?){fn}\(void \*arg0', rf'\g<1>{fn}(char *arg0', b, count=1)
+    # '? *' / '?' args in the signature -> char* / s32
+    msig0 = re.search(rf'{fn}\(([^)]*)\)\s*{{', b)
+    if msig0:
+        fixed0 = msig0.group(1).replace('? *', 'char *').replace('? ', 's32 ')
+        b = b[:msig0.start(1)] + fixed0 + b[msig0.end(1):]
     # all remaining void* args in the signature -> char* (IDO: no void* arith)
     msig = re.search(rf'{fn}\(([^)]*)\)\s*{{', b)
     if msig:
