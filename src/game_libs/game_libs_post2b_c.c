@@ -169,7 +169,95 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073310);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000732C4_pad.s")
 
+/* gl_func_00073334 = libultra __osContRamWrite (io/contramwrite.c) --
+ * VERIFIED 129/129 BYTE-EXACT standalone at IDO 5.3 -O1 (2026-06-10),
+ * verbatim vanilla source incl. the 5-arg signature and force/low-page
+ * guard. NOT YET CARVED: a mid-file ido53 split here breaks downstream
+ * include-block alignment parity (the carve span 0x204 is 4 mod 8, which
+ * shifts gl_func_000743C4's block +4 and drops the unit tail 4 bytes --
+ * caught via game_libs_TEXT_END). Carve recipe when picked up: split
+ * post2b_c at [0x73334..0x73538) with CC=$(IDO53_DIR)/cc OPT_FLAGS=-O1
+ * both paths + TRUNCATE 0x204, AND restore the tail unit's parity
+ * (either absorb neighbors until the carve span is 0 mod 8, or fix the
+ * 743C4 block alignment). Wiring needs undefined_syms entries:
+ * gl_ref_00087BA4 = 0x00087BA4 (build-time-patched hardcoded jal to
+ * __osPackRamWriteData -- the reference_1080_hardcoded_jal mechanism),
+ * D_73334_pifram = 0 (__osPfsPifRam), D_73334_lastcmd = 0
+ * (__osContLastCmd). Literals: CONT_CMD_WRITE_MEMPACK=3, CONTRFAIL=4,
+ * NOPACK=1. The NM body below IS the matched C. */
+#ifdef NON_MATCHING
+typedef struct {
+    int ramarray[15];
+    int pifstatus;
+} GlPifRam73334;
+
+typedef struct {
+    u8 dummy; u8 txsize; u8 rxsize; u8 cmd;
+    u16 address;
+    u8 data[32];
+    u8 datacrc;
+} GlContRamFmt73334;
+
+extern int gl_ref_00087BA4();
+extern GlPifRam73334 D_73334_pifram;
+extern u8 D_73334_lastcmd;
+
+s32 gl_func_00073334(void *mq, int channel, u16 address, u8 *buffer, int force)
+{
+    s32 ret;
+    int i;
+    u8 *ptr;
+    GlContRamFmt73334 ramreadformat;
+    int retry;
+
+    ret = 0;
+    ptr = (u8 *)&D_73334_pifram;
+    retry = 2;
+    if (force != 1 && address < 7 && address != 0)
+        return 0;
+    gl_func_00000000();
+    D_73334_lastcmd = 3;
+    gl_ref_00087BA4(channel, address, buffer);
+    ret = gl_func_00000000(1, &D_73334_pifram);
+    gl_func_00000000(mq, 0, 1);
+    do
+    {
+        ret = gl_func_00000000(0, &D_73334_pifram);
+        gl_func_00000000(mq, 0, 1);
+        ptr = (u8 *)&D_73334_pifram;
+        if (channel != 0)
+            for (i = 0; i < channel; i++)
+                ptr++;
+
+        ramreadformat = *(GlContRamFmt73334 *)ptr;
+
+        ret = ((ramreadformat.rxsize & 0xC0) >> 4);
+        if (ret == 0)
+        {
+            if (gl_func_00000000(buffer) != ramreadformat.datacrc)
+            {
+                ret = gl_func_00000000(mq, channel);
+                if (ret != 0)
+                {
+                    gl_func_00000000();
+                    return ret;
+                }
+                ret = 4;
+            }
+        }
+        else
+        {
+            ret = 1;
+        }
+        if (ret != 4)
+            break;
+    } while ((retry-- >= 0));
+    gl_func_00000000();
+    return ret;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073334);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073538);
 
