@@ -23,145 +23,122 @@ s32 gl_func_000718C0(u16 *ptr, u16 *csum, u16 *icsum)
     return 0;
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00071928)();
-s32 gl_func_00071928(u8 *arg0, char *arg1, u8 *arg2) {
-    s16 sp20[4];
-    s32 sp74;
-    u8 sp54[0x20];
-    u8 sp34[0x20];
-    u8 sp33;
-    s32 sp2C;
-    s32 sp28;
-    s32 temp_t3;
-    s32 temp_t4;
-    s32 temp_t5;
-    s32 temp_t5_2;
-    u8 *temp_t0;
+/* gl_func_00071928 = libultra __osRepairPackId (io/contpfs.c), statically
+ * linked into game_libs -- third contpfs function recovered via the ido53
+ * carve (5.3 -O1, this unit's per-file override). Verbatim libreultra
+ * source; the only edit vs libreultra is PFS_ERR_ID_FATAL = 10 spelled as a
+ * literal. All 12 calls are runtime-patched USO relocations (target jal
+ * words are 0x0C000000), so every callee is the gl_func_00000000 placeholder
+ * (real identities: __osPfsSelectBank, __osContRamRead, __osContRamWrite,
+ * osGetCount, __osIdCheckSum=gl_func_000718C0 above). 262/262 words. */
+typedef struct {
+    int status;
+    void *queue;
+    int channel;
+    u8 id[32];
+    u8 label[32];
+    int version;
+    int dir_size;
+    int inode_table;
+    int minode_table;
+    int dir_table;
+    int inode_start_page;
+    u8 banks;
+    u8 activebank;
+} OSPfs;
 
-    sp74 = 0;
-    sp33 = 0;
-    if (FW(arg0, 0x65) != 0) {
-        FW(arg0, 0x65) = 0U;
-        sp74 = game_libs_func_00070FCC(arg0);
-        if (sp74 != 0) {
-        return sp74;
+typedef struct {
+    u32 repaired;
+    u32 random;
+    u64 serial_mid;
+    u64 serial_low;
+    u16 deviceid;
+    u8 banks;
+    u8 version;
+    u16 checksum;
+    u16 inverted_checksum;
+} __OSPackId;
+
+extern int gl_func_00000000();
+
+#define ERRCK(fn) \
+    ret = fn;     \
+    if (ret != 0) \
+        return ret;
+
+s32 gl_func_00071928(OSPfs *pfs, __OSPackId *badid, __OSPackId *newid)
+{
+    s32 ret;
+    u8 temp[32];
+    u8 comp[32];
+    u8 mask;
+    int i;
+    int j;
+    u16 index[4];
+
+    ret = 0;
+    mask = 0;
+    if (pfs->activebank != 0) {
+        pfs->activebank = 0;
+        ERRCK(gl_func_00000000(pfs))
     }
-    }
-    FW(arg2, 0x0) = -1;
-    FW(arg2, 0x4) = game_libs_func_00070FCC();
-    FW(arg2, 0x8) = (s32) FW(arg1, 0x8);
-    FW(arg2, 0xC) = (s32) FW(arg1, 0xC);
-    FW(arg2, 0x10) = (s32) FW(arg1, 0x10);
-    FW(arg2, 0x14) = (s32) FW(arg1, 0x14);
-    sp28 = 0;
-loop_4:
-    FW(arg0, 0x65) = (u8) sp28;
-    sp74 = game_libs_func_00070FCC(arg0);
-    if (sp74 != 0) {
-        return sp74;
-    }
-    sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), 0, sp54);
-    if (sp74 != 0) {
-        return sp74;
-    }
-    sp54[0] = sp28 | 0x80;
-    sp2C = 1;
-    do {
-        temp_t0 = &sp54[sp2C];
-        *temp_t0 = ~*temp_t0;
-        temp_t5 = sp2C + 1;
-        sp2C = temp_t5;
-    } while (temp_t5 < 0x20);
-    sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), 0, sp54, 0);
-    if (sp74 != 0) {
-        return sp74;
-    }
-    sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), 0, sp34);
-    if (sp74 != 0) {
-        return sp74;
-    }
-    sp2C = 0;
-loop_15:
-    if (sp54[sp2C] == sp34[sp2C]) {
-        temp_t4 = sp2C + 1;
-        sp2C = temp_t4;
-        if (temp_t4 < 0x20) {
-            goto loop_15;
+    newid->repaired = -1;
+    newid->random = gl_func_00000000();
+    newid->serial_mid = badid->serial_mid;
+    newid->serial_low = badid->serial_low;
+    for (j = 0; j < 62;)
+    {
+        pfs->activebank = j;
+        ERRCK(gl_func_00000000(pfs))
+        ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 0, (u8*)&temp));
+        temp[0] = j | 0x80;
+        for (i = 1; i < 32; i++)
+        {
+            temp[i] = ~temp[i];
         }
-    }
-    if (sp2C == 0x20) {
-        if (sp28 > 0) {
-            FW(arg0, 0x65) = 0U;
-            sp74 = game_libs_func_00070FCC(arg0);
-            if (sp74 != 0) {
-        return sp74;
-    }
-            sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), 0, sp54);
-            if (sp74 != 0) {
-        return sp74;
-    }
-            if (sp54[0] == 0x80) {
-                goto block_24;
-            }
-            goto block_25;
+        ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 0, (u8*)temp, 0));
+        ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 0, (u8*)&comp));
+        for (i = 0; i < 32; i++)
+        {
+            if (comp[i] != temp[i])
+                break;
         }
-block_24:
-        sp28 += 1;
-        if (sp28 >= 0x3E) {
-            goto block_25;
+        if (i != 32)
+            break;
+        if (j > 0)
+        {
+            pfs->activebank = 0;
+            ERRCK(gl_func_00000000(pfs));
+            ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 0, (u8*)temp));
+            if (temp[0] != 128)
+                break;
         }
-        goto loop_4;
+        j++;
     }
-block_25:
-    FW(arg0, 0x65) = 0U;
-    sp74 = game_libs_func_00070FCC(arg0);
-    if (sp74 != 0) {
-        return sp74;
+    pfs->activebank = 0;
+    ERRCK(gl_func_00000000(pfs));
+    if (j > 0)
+        mask = 1;
+    else
+        mask = 0;
+    newid->deviceid = (badid->deviceid & (u16)~1) | mask;
+    newid->banks = j;
+    newid->version = badid->version;
+    gl_func_00000000((u16*)newid, &newid->checksum, &newid->inverted_checksum);
+    index[0] = 1;
+    index[1] = 3;
+    index[2] = 4;
+    index[3] = 6;
+    for (i = 0; i < 4; i++)
+    {
+        ERRCK(gl_func_00000000(pfs->queue, pfs->channel, index[i], (u8*)newid, 1));
     }
-    if (sp28 > 0) {
-        sp33 = 1;
-    } else {
-        sp33 = 0;
+    ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 1, (u8*)temp));
+    for (i = 0; i < 32; i++)
+    {
+        if (temp[i] != ((u8 *)newid)[i])
+            return 10;
     }
-    FW(arg2, 0x18) = (s16) ((FW(arg1, 0x18) & 0xFFFE) | sp33);
-    FW(arg2, 0x1A) = (s8) sp28;
-    FW(arg2, 0x1B) = (u8) FW(arg1, 0x1B);
-    game_libs_func_00070FCC(arg2, (int)arg2 + 0x1C, (int)arg2 + 0x1E);
-    sp20[0] = 1;
-    sp20[1] = 3;
-    sp20[2] = 4;
-    sp20[3] = 6;
-    sp2C = 0;
-loop_31:
-    sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), (char *) sp20[sp2C], arg2, 1);
-    if (sp74 != 0) {
-        return sp74;
-    }
-    temp_t3 = sp2C + 1;
-    sp2C = temp_t3;
-    if (temp_t3 >= 4) {
-        sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), (char *)1, sp54);
-        if (sp74 != 0) {
-        return sp74;
-    }
-        sp2C = 0;
-loop_37:
-        if (arg2[sp2C] != sp54[sp2C]) {
-            return 0xA;
-        }
-        temp_t5_2 = sp2C + 1;
-        sp2C = temp_t5_2;
-        if (temp_t5_2 >= 0x20) {
-            return 0;
-        }
-        goto loop_37;
-    }
-    goto loop_31;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071928);
-#endif
+
