@@ -23,40 +23,50 @@ void func_0000F404(int a0) {
     func_00000000(a0);
 }
 
-/* Two-block bit set/clear — set=1, masks 4 then 8. */
+/* Two-block bit set/clear — set=1, masks 4 then 8.
+ * MATCH KEY (re-matched 2026-06-10; previous body was a silent false match —
+ * same length, registers renumbered): FIVE register vars in declaration order
+ * p1->$a1, p2->$a2, set->$a3, t->$t0, u->$t1; the final clear-branch uses the
+ * DISTINCT var `u` (target allocates $t1 there, while `t` stays $t0 in the
+ * other three branches; a single shared `t` renumbers everything). */
 void func_0000F434(int *a0) {
     register int *p1, *p2;
     register int set;
     register int *t;
+    register int *u;
     p1 = (int*)((char*)a0 + 0x18);
     p2 = p1;
     set = 1;
     if (set) { t = p2; *t = *t | 4; }
     else     { t = p2; *t = *t & ~4; }
-
     p1 = (int*)((char*)a0 + 0x18);
     p2 = p1;
     set = 1;
     if (set) { t = p2; *t = *t | 8; }
-    else     { t = p2; *t = *t & ~8; }
+    else     { u = p2; *u = *u & ~8; }
 }
 
-/* Two-block bit set/clear — set=0, masks 4 then 8. */
+/* Two-block bit set/clear — set=0, masks 4 then 8.
+ * MATCH KEY (re-matched 2026-06-10; previous body was a silent false match —
+ * same length, registers renumbered): FIVE register vars in declaration order
+ * p1->$a1, p2->$a2, set->$a3, t->$t0, u->$t1; the final clear-branch uses the
+ * DISTINCT var `u` (target allocates $t1 there, while `t` stays $t0 in the
+ * other three branches; a single shared `t` renumbers everything). */
 void func_0000F4CC(int *a0) {
     register int *p1, *p2;
     register int set;
     register int *t;
+    register int *u;
     p1 = (int*)((char*)a0 + 0x18);
     p2 = p1;
     set = 0;
     if (set) { t = p2; *t = *t | 4; }
     else     { t = p2; *t = *t & ~4; }
-
     p1 = (int*)((char*)a0 + 0x18);
     p2 = p1;
     set = 0;
     if (set) { t = p2; *t = *t | 8; }
-    else     { t = p2; *t = *t & ~8; }
+    else     { u = p2; *u = *u & ~8; }
 }
 
 /* Single-block bit set/clear — set=0, mask=8. */
