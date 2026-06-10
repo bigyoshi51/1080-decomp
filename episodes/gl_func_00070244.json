@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00070244",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T00:13:16.347397+00:00",
+  "end_time": "2026-06-10T00:13:16.347441+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T00:13:16.347427+00:00",
+      "assistant_text": "gl_func_00070244 = libultra __osContDataCrc (io/crc.c) statically linked into game_libs: bit-serial CRC-8 (poly 0x85) over 32 data bytes plus flush byte. Verbatim libreultra source, byte-exact ONLY at IDO 5.3 -O1 (per-file CC override carve unit). Second application of the ido53-carve vein (docs/MATCHING_WORKFLOW.md); the old 'stack-residency+filled-slots un-reproducible cap' verdict was a compiler-version gap.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 52,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* gl_func_00070194 = libultra __osContAddressCrc and gl_func_00070244 =\n * __osContDataCrc (io/crc.c), statically linked into game_libs. Both\n * byte-exact ONLY with IDO 5.3 -O1 (per-file CC/OPT_FLAGS override) from\n * VERBATIM libreultra source \u2014 same compiler-version story as the contpfs\n * pair at 0x71864/0x718C0 (see docs/MATCHING_WORKFLOW.md ido53-carve\n * recipe). TRUNCATE_TEXT 0x180 normalizes section align so the unit sits\n * flush at USO 0x70194. */\nu8 gl_func_00070194(u16 addr)\n{\n    u8 temp;\n    u8 temp2;\n    int i;\n    temp = 0;\n    for (i = 0; i < 16; i++)\n    {\n        if (temp & 0x10)\n            temp2 = 21;\n        else\n            temp2 = 0;\n\n        temp <<= 1;\n        temp |= (u8)((addr & 0x400) ? 1 : 0);\n        addr <<= 1;\n        temp ^= temp2;\n    }\n    return temp & 0x1f;\n}\n\nu8 gl_func_00070244(u8 *data)\n{\n    u8 temp;\n    u8 temp2;\n    int i;\n    int j;\n    temp = 0;\n    for (i = 0; i <= 32; i++, data++)\n    {\n        for (j = 7; j >= 0; j--)\n        {\n            if (temp & 0x80)\n                temp2 = 133;\n            else\n                temp2 = 0;\n            temp <<= 1;\n            if (i == 32)\n                temp &= -1;\n            else\n                temp |= ((*data & (1 << j)) ? 1 : 0);\n            temp ^= temp2;\n        }\n    }\n    return temp;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_70194.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00070244.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 52/52 words vs baserom via linked .game_libs ELF section compare; report.json fuzzy=100.0; zero regressions across the split span."
+  }
+}
