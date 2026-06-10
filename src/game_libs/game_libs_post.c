@@ -12332,7 +12332,19 @@ int gl_func_0002A014(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
 #endif
 
-// gl_func_0002A080 — STRUCTURAL PASS (0x1E0 / 120 words, no episode).
+// gl_func_0002A080 — STRUCTURAL PASS (46.97% in-tree; dispatcher-scan
+// candidate 5/5, audited 2026-06-10). TWO verified caps gate this fn:
+// (1) CALLER-SET $t6 dispatch: the head does `sltiu at,t6,14` with t6
+// never set in-symbol while a0 stays live in the case bodies (reads
+// a0+0x18) -- so t6 cannot be a coalesced arg web; the normal-arg C
+// form emits sltiu at,a0 (tested per the ECEC diagnostic). The
+// bytecode-VM family's callers pass the opcode in $t6.
+// (2) HARDCODED `jal 0x3f05c` in case 1 (no R_MIPS_26 reloc; the
+// reference_1080_hardcoded_jal class) -- C emits a reloc'd jal or a
+// fn-ptr jalr, neither matches.
+// The per-case C below is otherwise faithful (9 of 14 bodies decoded
+// incl. the 250/249/245 and 243/242 conditional-branch opcodes).
+// Permanent INCLUDE_ASM absent a VM-caller-context mechanism.
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A command-opcode dispatcher (single jump table) in the
 // gl_func_00026790 bytecode-interpreter family.
