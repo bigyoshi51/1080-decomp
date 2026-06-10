@@ -9942,6 +9942,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274E0);
  *
  * 6-insn match structurally; reg-rename cap (target uses $t2/$t4/$t3;
  * mine v0/t6/t7). Permuter-class register-allocation diff. */
+/* 2026-06-10 TEMP-FORENSICS RECLASS: the temps here are MID-SEQUENCE
+ * (standalone leaves always start at t6) -- in the known-shattered
+ * 27xxx hub region this is fragment/context evidence (the 274E0-trio
+ * class), NOT a permuter-class regalloc diff. Parent identification
+ * goes to the region decode; do not grind registers. */
 #ifdef NON_MATCHING
 void game_libs_func_000274EC(int *a0, unsigned char *a1) {
     unsigned int v = a1[4];
@@ -9956,6 +9961,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274EC);
  * a 5/6 cap: the target hoists the a1[4] load to the top (interleaving it
  * before the =1 store) and renumbers the temps; standalone AND in-tree both
  * reorder 3 insns + renumber 2, which is >half so no episode/INSN_PATCH. */
+/* 2026-06-10 TEMP-FORENSICS RECLASS: the temps here are MID-SEQUENCE
+ * (standalone leaves always start at t6) -- in the known-shattered
+ * 27xxx hub region this is fragment/context evidence (the 274E0-trio
+ * class), NOT a permuter-class regalloc diff. Parent identification
+ * goes to the region decode; do not grind registers. */
 #ifdef NON_MATCHING
 void game_libs_func_00027504(char *a0, unsigned char *a1) {
     int t = a1[4];
