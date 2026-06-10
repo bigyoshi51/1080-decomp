@@ -9,10 +9,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074EDC);
 
 /* gl_func_00074EFC: 1080 osCreatePiManager-family singleton init (96 insns,
  * 12 jals) -- NOT osPfsIsPlug (tested verbatim 2026-06-10, wrong shape).
- * Guarded by an initialized-flag whose LOAD (lui at/lw t6) is stolen into
- * the predecessor symbol (bnez t6 at +0x8 uses t6 set before the prologue
- * boundary -- the leading-insn misattribution family; the flag store at
- * the end is reloc'd). Body, with hardcoded RUNTIME data addresses (the
+ * BOUNDARY FIXED 2026-06-10: the initialized-flag LOAD (lui t6/lw t6) was
+ * misattributed to the predecessor pad symbol (74EDC); the two words now
+ * live at the head of this .s (size 0x180 -> 0x188, fn truly starts at
+ * USO 0x74EF4). With the guard load in-symbol, an `if (!D_flag)` C body
+ * emits the lui/lw/bnez head naturally -- the remaining blocker is only
+ * the gl_dref fixed-address data symbols. Body, with hardcoded RUNTIME data addresses (the
  * data analog of the gl_ref jal thunks; bootup-region block at 0x45230):
  *   osCreateMesgQueue(Q_45230, MSGS_45248, 5);
  *   REC_45260 = {type 13, 0, 0}; REC_45278 = {type 14, 0, 0};
