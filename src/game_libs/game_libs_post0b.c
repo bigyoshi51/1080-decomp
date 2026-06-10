@@ -7114,62 +7114,27 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
 #endif
 
-/* gl_func_0003D914: 38-insn — vtable-dispatched call then linked-list walk
- * with a per-node vtable call.
- *   save = a0->0x10;
- *   v=a0->0x28; s0 = (*(v->0x84))((char*)a0 + (s16)v->0x80, 0);
- *   if (!s0) return 0;
- *   a0->0x34 = s0;
- *   do { v=a0->0x28; (*(v->0x84))((char*)a0+(s16)v->0x80, s0)->stored@s0->0x2C;
- *        node=save; nv=0;
- *        if (node) { last=node; save=node->4; nv=node->0; }
- *        s0=nv; } while (nv);
- *   return s0;
- * USO convention: vtable call is a real fn-ptr (not func_00000000).
- *
- * ASM-VERIFIED ALGORITHM (decode is correct; the C-codegen SHAPE is the
- * open problem — resume here, do NOT re-read asm):
- *   The per-node dispatch is: v0=a0->0x28; t9=v0->0x84; off=(s16)v0->0x80;
- *   t9((char*)a0+off, arg). Called twice — pre-loop arg=0 (result->s0,
- *   if 0 return), then a0->0x34=s0; loop: per node arg=s0, result stored
- *   at s0->0x2C; advance: cursor=a0->0x10 (a STACK int @0x24sp, NOT a
- *   reg-var); node=cursor; if(node){cursor=node->4; v1=node->0;} s0=v1;
- *   while(v1).
- *
- * CODEGEN SHAPE (the hard part): target uses EXACTLY 2 saved regs —
- * s1=a0 (object, whole-fn), s0=result/list-value (survives both calls) —
- * and keeps the list cursor in a STACK slot (0x24sp), reloaded each
- * iter. Everything else is t-regs (t6..t1,v1).
- *
- * NEGATIVE FINDINGS (verified ineffective 2026-05-16, do NOT re-try):
- *   - pointer-typed locals for v/save/node + fn-ptr cast
- *     `(*(int(**)(void*,int))((char*)v+0x84))` → 5 s-regs promoted
- *     (s0..s4), frame 0x30 vs 0x28, 43 insns, 3.26%.
- *   - `int cursor` + `(*(int(**)())(v0[0x84/4]))` → 47 insns, 0% (the
- *     int-cast-to-ptr + bare fn-ptr cast bloats address calc further).
- * The blocker is forcing exactly-2-s-regs + stack-cursor allocation;
- * heavy casts over-promote. NEXT: try minimal-cast struct typing (a real
- * vtable struct: `obj->vt->fn`, `obj->vt->off`) so the dispatch compiles
- * tight, and keep only `a0` + one result var live across calls; or
- * permuter the closest variant. */
 #ifdef NON_MATCHING
 /* gl_func_0003D914: 38-insn vtable-dispatch list walk. Dispatches a0->0x28's
- * method (ptr at +0x84, signed-halfword bias at +0x80) with (bias + a0, prev),
- * storing the result into a0->0x34 then a0->0x2C, while walking the list at
- * a0->0x10 (node->4 = next, node->0 = key); continues while the key is non-zero,
- * feeding each call the previous result. RELOC-FREE (indirect jalr calls, no
- * collapsed placeholders).
- * 2026-05-28: now typed with minimal-cast structs (D914Vt/D914Node/D914Obj) —
- * this is the documented "NEXT: minimal-cast struct typing" lever, and it
- * CRACKS THE SIZE BARRIER: emits exactly 38 insns / 0x98 (target size; prior
- * cast variants were 43/47). BUT fuzzy% is UNCHANGED at 16.37% — so the entire
- * residual is pure register allocation: target keeps the list cursor in a STACK
- * slot (0x24sp, reloaded each iter) with exactly 2 s-regs (s1=a0, s0=result),
- * whereas the cc promotes the cursor to an s-reg. Typing/casts do NOT move this.
- * This is the SAME stack-residency cap class as gl_func_000718C0 / 00070194 (see
- * docs/IDO_CODEGEN.md "stack-residency + filled-delay-slots") — NOT a clean -O0
- * candidate. Struct-typing lever now TESTED-NEGATIVE; genuine regalloc cap. Kept
- * the typed body as the better reference (named vtable/node/object layout). */
+ * method (ptr +0x84, signed-halfword bias +0x80) with (bias + a0, prev): the
+ * first result is stored to a0->0x34; each loop result is stored into the
+ * PREVIOUS result at s0->0x2C (s0 doubles as int/ptr, K&R-sloppy original).
+ * The list cursor lives in a 2-slot local array p[] (p[1]=cursor@0x24sp,
+ * p[0]=cur@0x20sp) -- array locals are what keep it stack-resident; no
+ * "residency cap" (that verdict superseded 2026-06-09, but this fn is NOT
+ * ido5.3 libultra either -- 5.3 -O1/-O2 tested, wrong shape). No return stmt
+ * (falls off; caller sees last call result in v0).
+ *
+ * 2026-06-09: rebuilt via decode-correction (store base is s0 NOT a0;
+ * if/else with else{v1=0}; p[0]=p[1] hoisted above the if = the filled
+ * beq delay) + permuter (base 120 -> 10). NOW 36/38 words exact (was
+ * 16.37%). Residual = 2 words: `new_var` (p[1]->next temp) colored $v0
+ * where target uses $t1 (lw/sw pair, insns 27-28). Tried: direct
+ * p[1]=p[1]->next (flips v1's web into $v0 instead, 4 diffs); if(1){}
+ * v0-parking after the store (+1 or v0,t0 copy, 39 insns) and after
+ * p[0]=p[1] (double cursor reload); register v1; decl-order swaps;
+ * 5-min permuter from base 10 (no improvement). Next: uoptlist regalloc
+ * dump (-Wo,-zdbug:6) to see why the tiny next-temp web prefers $v0. */
 typedef struct D914Vt { char _p[0x80]; short off; int (*fn)(int, int); } D914Vt;
 typedef struct D914Node { int key; struct D914Node *next; } D914Node;
 typedef struct D914Obj {
@@ -7182,24 +7147,35 @@ typedef struct D914Obj {
     int field_34;       /* 0x34 */
 } D914Obj;
 
-int gl_func_0003D914(D914Obj *a0) {
-    D914Node *iter = a0->list;
-    int s0 = a0->vt->fn((int)((char *)a0 + a0->vt->off), 0);
-    if (s0 == 0) {
-        return 0;
+int gl_func_0003D914(D914Obj *a0)
+{
+  D914Node *p[2];
+  int s0;
+  struct D914Node *new_var;
+  int v1;
+  p[1] = a0->list;
+  s0 = a0->vt->fn(a0->vt->off + ((int) a0), 0);
+  a0->field_34 = s0;
+  if (s0 != 0)
+  {
+    do
+    {
+      *((int *) (s0 + 0x2C)) = a0->vt->fn(a0->vt->off + ((int) a0), s0);
+      p[0] = p[1];
+      if (p[1] != 0)
+      {
+        new_var = p[1]->next;
+        p[1] = new_var;
+        v1 = p[0]->key;
+      }
+      else
+      {
+        v1 = 0;
+      }
+      s0 = v1;
     }
-    a0->field_34 = s0;
-    do {
-        int v1 = 0;
-        a0->field_2C = a0->vt->fn((int)((char *)a0 + a0->vt->off), s0);
-        if (iter != 0) {
-            D914Node *cur = iter;
-            iter = cur->next;
-            v1 = cur->key;
-        }
-        s0 = v1;
-    } while (s0 != 0);
-    return s0;
+    while (v1 != 0);
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D914);
