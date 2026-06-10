@@ -9912,9 +9912,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000274C0);
  * per feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_libs_func_000274E0(char *a0, signed char *a1) {
-    /* a1 is signed char -> `lb` (was `char`=unsigned -> `lbu`). Residual: the
-     * load/store temp lands in $t6 vs target $t1 (allocator register-rename;
-     * the 3 sibling stubs 2751C/27528 use t7/t9 too — TU-context-internal). */
+    /* a1 is signed char -> `lb` (was `char`=unsigned -> `lbu`).
+     * 2026-06-10 FORENSIC RECLASS: the temp is $t1 in the target = IDO's
+     * SIXTH temp (order t6,t7,t8,t9,t0,t1...). A standalone 3-insn leaf
+     * always gets t6 (verified across 7.1/5.3 x O0-O3, and TU position
+     * does NOT advance the counter -- tested). A mid-sequence temp number
+     * means this symbol is the TAIL FRAGMENT of a larger original whose
+     * body consumed five temps before this load -- consistent with the
+     * 27xxx shattered-region census (this is a hub-region symbol). The
+     * sibling stubs' t7/t9 say the same. Un-matchable as standalone fns;
+     * boundary identification (which parent?) goes to the region decode.
+     * INCLUDE_ASM stays. */
     a0[3] = a1[4];
 }
 #else
