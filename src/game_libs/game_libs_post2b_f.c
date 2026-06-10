@@ -113,7 +113,16 @@ loop_3:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007507C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00075248);
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_func_00075248_pad.s")
+/* game_libs_func_00075254: the standard cross-USO int-reader template
+ * (return D_global), matched in-place at the unit's default 7.1 -O2.
+ * The symbol was mis-split as 75248 (3 leading zero pad words now in the
+ * _pad sidecar); cc's natural function padding supplies the trailing
+ * alignment to 0x7526C. */
+extern int D_75254_v;
+int game_libs_func_00075254(void) {
+    return D_75254_v;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00075260);
 
