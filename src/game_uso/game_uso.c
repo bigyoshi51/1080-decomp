@@ -522,7 +522,12 @@ void game_uso_func_000008FC(int *a0) {
 }
 
 // game_uso_func_00000940 — FULL m2c DECODE via compressed-module jumptable
-// path (88.66% in-tree 2026-06-10, no episode). NOTE for standalone
+// path (89.74% in-tree 2026-06-10 after inlining switches 2+3's
+// dispatch expressions -- a named temp colors v0 where the target's
+// inline load takes t9/t2; the ECEC-class named-vs-inline rule).
+// Remaining: target re-materializes the &D base inside one case
+// (~0x164, 3 insns -- the extern-alias recipe needs per-CASE placement,
+// head-of-switch alias regressed) + branch-offset cascade. NOTE for standalone
 // testing: the FW absolute-address reads (*(s32*)0x34 etc.) are USO
 // D_-symbol references; a standalone harness that keeps them as bare
 // absolute addresses emits a DIFFERENT shape (IDO folds small-address
@@ -544,8 +549,6 @@ typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q;
 typedef char *(*GP)();
 #endif
 void game_uso_func_00000940(char *arg0) {
-    s32 temp_t2;
-    s32 temp_t9;
     s32 temp_v0;
     s32 var_a1;
     u32 temp_t7;
@@ -558,8 +561,7 @@ void game_uso_func_00000940(char *arg0) {
         if ((temp_v0 == 4) || (temp_v0 == 6) || (temp_v0 == 7) || ((temp_v0 == 1) && (*(s32 *)0x40 == 0))) {
             var_a1 = 1;
         } else {
-            temp_t9 = *(s32 *)0x64;
-            switch (temp_t9) {                      /* switch 2 */
+            switch (*(s32 *)0x64) {                      /* switch 2 */
             case 2:                                 /* switch 2 */
                 var_a1 = 6;
                 break;
@@ -588,8 +590,7 @@ void game_uso_func_00000940(char *arg0) {
         if (*(s32 *)0x7C != 0) {
             var_a1 = 0xB;
         } else {
-            temp_t2 = *(s32 *)0x64;
-            switch (temp_t2) {                      /* switch 3 */
+            switch (*(s32 *)0x64) {                      /* switch 3 */
             case 2:                                 /* switch 3 */
                 var_a1 = 0xD;
                 break;
