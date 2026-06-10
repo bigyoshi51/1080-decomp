@@ -160,7 +160,201 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073824);
  * to hidden inter-block alignment in the unit; needs an alignment-aware
  * relayout of [0x73904..0x748A4) in one focused pass. See
  * docs/MATCHING_WORKFLOW "drift-region root cause FOUND". */
+/* gl_func_00073904 = the printf float-formatter _Genld (Plauger libc):
+ * lays out the converted mantissa digits + '.' + exponent ('e'/'g'
+ * handling, sign, /1000-/100-/10 exponent digits) into the _Pft state
+ * (f_8=buffer, f_14=n0, f_18=nz0, f_1C=n1, f_20=nz1, f_24=precision,
+ * f_28=width, f_30=flags: 8=ALT, 0x10=left-just) and computes the
+ * trailing-pad split. Identified from the full m2c decode (0x30/'0',
+ * 0x2E/'.', 0x2B/'+', 0x2D/'-', 0x65/'e' literals + the flag tests).
+ * CAP: the original receives its FIVE args in $s0-$s4 (the prologue
+ * stores the CALLER's s2/s3/s4 above its own frame, then masks them as
+ * s16/s16/u8 values) -- the caller-set s-reg argument class
+ * (docs/PATTERNS caller-set regs; same family as the v0/v1/t6 cases).
+ * IDO C cannot receive args in s-regs; INCLUDE_ASM is the faithful
+ * path. The wrap below is the m2c-derived reference body with the
+ * s-regs spelled as normal parameters. Boundary note: this fn ends at
+ * 0x73E6C; the ROM's bare jr-ra/nop stub at [0x73E6C..0x73E74) is the
+ * dropped symbol behind the drift region (see MATCHING_WORKFLOW). */
+typedef struct Pft73904 {
+    char _pad0[8];
+    char *f_8;          /* 0x08 buffer */
+    int f_C;            /* 0x0C prefix len */
+    int f_10;           /* 0x10 trailing pad */
+    int f_14;           /* 0x14 n0 */
+    int f_18;           /* 0x18 nz0 */
+    int f_1C;           /* 0x1C n1 */
+    int f_20;           /* 0x20 nz1 */
+    int f_24;           /* 0x24 precision */
+    int f_28;           /* 0x28 width */
+    char _pad2C[4];
+    int f_30;           /* 0x30 flags */
+} Pft73904;
+
+extern void game_libs_func_00073694(char *, char *, int);
+
+#ifdef NON_MATCHING
+void gl_func_00073904(Pft73904 *px, char *p, short xexp, short nsig, unsigned char code) {
+    s16 xexp_;
+    s16 xexp__2;
+    s16 nsig_;
+    s16 nsig__2;
+    s16 nsig__3;
+    s16 var_v1;
+    s32 temp_t7;
+    s32 temp_t8;
+    s32 temp_t8_2;
+    s32 temp_v0;
+    s32 temp_v1_2;
+    s32 var_v0;
+    s32 var_v0_2;
+    char *p__2;
+    s8 temp_t8_3;
+    s8 temp_t8_4;
+    s8 temp_v1;
+    s8 code_;
+    u8 *p_;
+    char *temp_s1;
+    char *temp_s1_2;
+
+    
+    
+    
+    
+    if (nsig_ <= 0) {
+        p_ = (u8 *)0x2590;
+        nsig_ = 1;
+    }
+    temp_v1 = code_;
+    if ((code_ == 0x66) || (((temp_v1 == 0x67) || (temp_v1 == 0x47)) && (xexp_ >= -4) && (xexp_ < px->f_24))) {
+        xexp__2 = xexp_ + 1;
+        if (temp_v1 != 0x66) {
+            var_v0 = px->f_24;
+            if (!(px->f_30 & 8) && (nsig_ < var_v0)) {
+                px->f_24 = (s32) nsig_;
+                var_v0 = (s32) nsig_;
+            }
+            temp_t8 = var_v0 - xexp__2;
+            px->f_24 = temp_t8;
+            if (temp_t8 < 0) {
+                px->f_24 = 0;
+            }
+        }
+        if (xexp__2 <= 0) {
+            var_v1 = -xexp__2;
+            *(px->f_8 + px->f_14) = 0x30;
+            px->f_14 = (s32) (px->f_14 + 1);
+            if ((px->f_24 > 0) || (px->f_30 & 8)) {
+                *(px->f_8 + px->f_14) = 0x2E;
+                px->f_14 = (s32) (px->f_14 + 1);
+            }
+            if (px->f_24 < var_v1) {
+                xexp__2 = px->f_24 * -1;
+                var_v1 = -xexp__2;
+            }
+            temp_t8_2 = px->f_24 + xexp__2;
+            px->f_18 = (s32) var_v1;
+            px->f_24 = temp_t8_2;
+            if (temp_t8_2 < nsig_) {
+                nsig_ = (s16) temp_t8_2;
+            }
+            px->f_1C = (s32) nsig_;
+            game_libs_func_00073694(px->f_8 + px->f_14, p_, (s32) nsig_);
+            px->f_20 = (s32) (px->f_24 - nsig_);
+        } else if (nsig_ < xexp__2) {
+            game_libs_func_00073694(px->f_8 + px->f_14, p_, (s32) nsig_);
+            px->f_14 = (s32) (px->f_14 + nsig_);
+            px->f_18 = (s32) (xexp__2 - nsig_);
+            if ((px->f_24 > 0) || (px->f_30 & 8)) {
+                *(px->f_8 + px->f_14) = 0x2E;
+                px->f_1C = (s32) (px->f_1C + 1);
+            }
+            px->f_20 = px->f_24;
+        } else {
+            game_libs_func_00073694(px->f_8 + px->f_14, p_, (s32) xexp__2);
+            px->f_14 = (s32) (px->f_14 + xexp__2);
+            nsig__2 = nsig_ - xexp__2;
+            if ((px->f_24 > 0) || (px->f_30 & 8)) {
+                *(px->f_8 + px->f_14) = 0x2E;
+                px->f_14 = (s32) (px->f_14 + 1);
+            }
+            if ((s16) px->f_24 < nsig__2) {
+                nsig__2 = (s16) px->f_24;
+            }
+            game_libs_func_00073694(px->f_8 + px->f_14, &p_[xexp__2], (s32) nsig__2);
+            px->f_14 = (s32) (px->f_14 + nsig__2);
+            px->f_18 = (s32) (px->f_24 - nsig__2);
+        }
+    } else {
+        if ((temp_v1 == 0x67) || (temp_v1 == 0x47)) {
+            var_v0_2 = px->f_24;
+            code_ = 0x45;
+            if (nsig_ < var_v0_2) {
+                px->f_24 = (s32) nsig_;
+                var_v0_2 = (s32) nsig_;
+            }
+            temp_t7 = var_v0_2 - 1;
+            px->f_24 = temp_t7;
+            if (temp_t7 < 0) {
+                px->f_24 = 0;
+            }
+            if (temp_v1 == 0x67) {
+                code_ = 0x65;
+            }
+        }
+        *(px->f_8 + px->f_14) = *p_;
+        px->f_14 = (s32) (px->f_14 + 1);
+        if ((px->f_24 > 0) || (px->f_30 & 8)) {
+            *(px->f_8 + px->f_14) = 0x2E;
+            px->f_14 = (s32) (px->f_14 + 1);
+        }
+        if ((s16) px->f_24 > 0) {
+            nsig__3 = nsig_ - 1;
+            if ((s16) px->f_24 < nsig__3) {
+                nsig__3 = (s16) px->f_24;
+            }
+            game_libs_func_00073694(px->f_8 + px->f_14, p_ + 1, (s32) nsig__3);
+            px->f_14 = (s32) (px->f_14 + nsig__3);
+            px->f_18 = (s32) (px->f_24 - nsig__3);
+        }
+        temp_s1 = px->f_8 + px->f_14;
+        temp_s1_2 = temp_s1 + 1;
+        temp_s1_2[-1] = code_;
+        if (xexp_ >= 0) {
+            temp_s1[1] = 0x2B;
+            p__2 = temp_s1_2 + 1;
+        } else {
+            temp_s1[1] = 0x2D;
+            p__2 = temp_s1_2 + 1;
+            xexp_ *= -1;
+        }
+        if (xexp_ >= 0x64) {
+            if (xexp_ >= 0x3E8) {
+                temp_t8_3 = (xexp_ / 1000) + 0x30;
+                xexp_ = (s16) (xexp_ % 1000);
+                *p__2 = temp_t8_3;
+                p__2 += 1;
+            }
+            temp_t8_4 = (xexp_ / 100) + 0x30;
+            xexp_ = (s16) (xexp_ % 100);
+            *p__2 = temp_t8_4;
+            p__2 += 1;
+        }
+        p__2[0] = (xexp_ / 10) + 0x30;
+        p__2[1] = (s8) ((s16) (xexp_ % 10) + 0x30);
+        px->f_1C = (s32) (((p__2 + 2) - px->f_8) - px->f_14);
+    }
+    if ((px->f_30 & 0x14) == 0x10) {
+        temp_v1_2 = px->f_28;
+        temp_v0 = px->f_C + px->f_14 + px->f_18 + px->f_1C + px->f_20;
+        if (temp_v0 < temp_v1_2) {
+            px->f_10 = (s32) (temp_v1_2 - temp_v0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073904);
+#endif
 
 void game_libs_func_00073E6C(void) {}
 
