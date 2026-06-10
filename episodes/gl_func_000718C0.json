@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000718C0",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T00:00:37.019688+00:00",
+  "end_time": "2026-06-10T00:00:37.019725+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T00:00:37.019712+00:00",
+      "assistant_text": "gl_func_000718C0 = libultra __osIdCheckSum (io/contpfs.c) statically linked into game_libs. Verbatim libreultra source (data=0; *icsum=0; *csum=*icsum; u16 loads via (u8*)ptr+j cast). Matches ONLY at IDO 5.3 -O1 \u2014 the prior cap verdict (stack-residency+filled-slots un-reproducible) was a compiler-version gap, not a real cap. Unit carve starts 16-aligned at 0x718C0 and carries gl_func_00071928 INCLUDE_ASM so the next unit starts 16-aligned at 0x71D40.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 26,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\nextern int D_00000000;\n\n/* gl_func_000718C0 = libultra __osIdCheckSum (io/contpfs.c), statically\n * linked into game_libs. Byte-exact ONLY with IDO 5.3 -O1 (per-file\n * CC/OPT_FLAGS override) from the verbatim libreultra source \u2014 same story\n * as gl_func_00071864 in the sibling unit. This unit starts 16-aligned\n * (0x718C0) and also carries gl_func_00071928's INCLUDE_ASM so the\n * following unit can start at the 16-aligned 0x71D40. */\ns32 gl_func_000718C0(u16 *ptr, u16 *csum, u16 *icsum)\n{\n    u16 data;\n    u32 j;\n    data = 0;\n    *icsum = 0;\n    *csum = *icsum;\n    for (j = 0; j < 28; j += 2)\n    {\n        data = *(u16 *)((u8 *)ptr + j);\n        *csum += data;\n        *icsum += ~data;\n    }\n    return 0;\n}\n\n#ifdef NON_MATCHING\n#ifndef FW\n#define FW(p, o) (*(int *)((char *)(p) + (o)))\n#endif\ntypedef char *(*GP_00071928)();\ns32 gl_func_00071928(u8 *arg0, char *arg1, u8 *arg2) {\n    s16 sp20[4];\n    s32 sp74;\n    u8 sp54[0x20];\n    u8 sp34[0x20];\n    u8 sp33;\n    s32 sp2C;\n    s32 sp28;\n    s32 temp_t3;\n    s32 temp_t4;\n    s32 temp_t5;\n    s32 temp_t5_2;\n    u8 *temp_t0;\n\n    sp74 = 0;\n    sp33 = 0;\n    if (FW(arg0, 0x65) != 0) {\n        FW(arg0, 0x65) = 0U;\n        sp74 = game_libs_func_00070FCC(arg0);\n        if (sp74 != 0) {\n        return sp74;\n    }\n    }\n    FW(arg2, 0x0) = -1;\n    FW(arg2, 0x4) = game_libs_func_00070FCC();\n    FW(arg2, 0x8) = (s32) FW(arg1, 0x8);\n    FW(arg2, 0xC) = (s32) FW(arg1, 0xC);\n    FW(arg2, 0x10) = (s32) FW(arg1, 0x10);\n    FW(arg2, 0x14) = (s32) FW(arg1, 0x14);\n    sp28 = 0;\nloop_4:\n    FW(arg0, 0x65) = (u8) sp28;\n    sp74 = game_libs_func_00070FCC(arg0);\n    if (sp74 != 0) {\n        return sp74;\n    }\n    sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), 0, sp54);\n    if (sp74 != 0) {\n        return sp74;\n    }\n    sp54[0] = sp28 | 0x80;\n    sp2C = 1;\n    do {\n        temp_t0 = &sp54[sp2C];\n        *temp_t0 = ~*temp_t0;\n        temp_t5 = sp2C + 1;\n        sp2C = temp_t5;\n    } while (temp_t5 < 0x20);\n    sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), 0, sp54, 0);\n    if (sp74 != 0) {\n        return sp74;\n    }\n    sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), 0, sp34);\n    if (sp74 != 0) {\n        return sp74;\n    }\n    sp2C = 0;\nloop_15:\n    if (sp54[sp2C] == sp34[sp2C]) {\n        temp_t4 = sp2C + 1;\n        sp2C = temp_t4;\n        if (temp_t4 < 0x20) {\n            goto loop_15;\n        }\n    }\n    if (sp2C == 0x20) {\n        if (sp28 > 0) {\n            FW(arg0, 0x65) = 0U;\n            sp74 = game_libs_func_00070FCC(arg0);\n            if (sp74 != 0) {\n        return sp74;\n    }\n            sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), 0, sp54);\n            if (sp74 != 0) {\n        return sp74;\n    }\n            if (sp54[0] == 0x80) {\n                goto block_24;\n            }\n            goto block_25;\n        }\nblock_24:\n        sp28 += 1;\n        if (sp28 >= 0x3E) {\n            goto block_25;\n        }\n        goto loop_4;\n    }\nblock_25:\n    FW(arg0, 0x65) = 0U;\n    sp74 = game_libs_func_00070FCC(arg0);\n    if (sp74 != 0) {\n        return sp74;\n    }\n    if (sp28 > 0) {\n        sp33 = 1;\n    } else {\n        sp33 = 0;\n    }\n    FW(arg2, 0x18) = (s16) ((FW(arg1, 0x18) & 0xFFFE) | sp33);\n    FW(arg2, 0x1A) = (s8) sp28;\n    FW(arg2, 0x1B) = (u8) FW(arg1, 0x1B);\n    game_libs_func_00070FCC(arg2, (int)arg2 + 0x1C, (int)arg2 + 0x1E);\n    sp20[0] = 1;\n    sp20[1] = 3;\n    sp20[2] = 4;\n    sp20[3] = 6;\n    sp2C = 0;\nloop_31:\n    sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), (char *) sp20[sp2C], arg2, 1);\n    if (sp74 != 0) {\n        return sp74;\n    }\n    temp_t3 = sp2C + 1;\n    sp2C = temp_t3;\n    if (temp_t3 >= 4) {\n        sp74 = game_libs_func_00070FCC(FW(arg0, 0x4), FW(arg0, 0x8), (char *)1, sp54);\n        if (sp74 != 0) {\n        return sp74;\n    }\n        sp2C = 0;\nloop_37:\n        if (arg2[sp2C] != sp54[sp2C]) {\n            return 0xA;\n        }\n        temp_t5_2 = sp2C + 1;\n        sp2C = temp_t5_2;\n        if (temp_t5_2 >= 0x20) {\n            return 0;\n        }\n        goto loop_37;\n    }\n    goto loop_31;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_00071928);\n#endif\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_718C0.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_000718C0.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 26/26 words vs baserom at USO 0x718C0 (linked ELF .game_libs section compare); report.json fuzzy=100.0."
+  }
+}

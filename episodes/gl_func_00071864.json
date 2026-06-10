@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00071864",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-10T00:00:36.634112+00:00",
+  "end_time": "2026-06-10T00:00:36.634152+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-10T00:00:36.634139+00:00",
+      "assistant_text": "gl_func_00071864 = libultra __osSumcalc (io/contpfs.c) statically linked into game_libs. Verbatim libreultra source. Key insight: the documented 'stack-residency + filled delay slots = un-reproducible cap' only tested IDO 7.1; the original object came from libultra built with IDO 5.3 -O1, which reproduces it exactly. Per-file CC override to 5.3 + TRUNCATE_TEXT 0x5C (section pad nop).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 23,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* gl_func_00071864 = libultra __osSumcalc (io/contpfs.c), statically linked\n * into game_libs. Byte-exact ONLY with IDO 5.3 -O1 (this unit's per-file\n * CC/OPT_FLAGS override) from the verbatim libreultra source. The prior\n * \"stack-residency + filled delay slots = un-reproducible cap\" verdict\n * (docs/IDO_CODEGEN.md#feedback-ido-stack-residency-plus-filled-slots-is-o1-not-o0)\n * only tested the 7.1 project cc; the original object came from libultra\n * built with IDO 5.3. TRUNCATE_TEXT 0x5C trims the section pad nop so the\n * next unit lands at 0x718C0. */\nu16 gl_func_00071864(u8 *ptr, int length)\n{\n    int i;\n    u32 sum;\n    u8 *tmp;\n\n    sum = 0;\n    tmp = ptr;\n    for (i = 0; i < length; i++)\n    {\n        sum += *tmp++;\n        sum &= 0xffff;\n    }\n    return sum;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-a/src/game_libs/game_libs_ido53_71864.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00071864.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact 23/23 words vs baserom at USO 0x71864 (linked ELF .game_libs section compare); report.json fuzzy=100.0."
+  }
+}

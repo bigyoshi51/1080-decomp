@@ -1375,6 +1375,9 @@ SECTIONS
         build/src/game_libs/game_libs_post1b.c.o(.text);
         build/src/game_libs/game_libs_g3_70FBC.c.o(.text);
         build/src/game_libs/game_libs_post2.c.o(.text);
+        build/src/game_libs/game_libs_ido53_71864.c.o(.text);
+        build/src/game_libs/game_libs_ido53_718C0.c.o(.text);
+        build/src/game_libs/game_libs_post2b.c.o(.text);
         game_libs_TEXT_END = .;
         game_libs_TEXT_SIZE = ABSOLUTE(game_libs_TEXT_END - game_libs_TEXT_START);
     }

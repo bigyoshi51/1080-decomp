@@ -8,6 +8,7 @@ BASEROM   := baserom.z64
 # Paths
 TOOLS       := tools
 IDO_DIR     := $(TOOLS)/ido-static-recomp/build/7.1/out
+IDO53_DIR   := $(TOOLS)/ido-static-recomp/build/5.3/out
 ASM_PROC    := python3 $(TOOLS)/asm-processor/asm_processor.py
 ASM_PRELUDE := $(TOOLS)/asm-processor/prelude.inc
 
@@ -27,6 +28,15 @@ CPPFLAGS := -I include -I src
 LDFLAGS  := -T $(LD_SCRIPT) -T undefined_syms_auto.txt -Map build/$(TARGET).map --no-check-sections
 
 # Per-file optimization overrides (O1 libultra functions, O0 empty stubs)
+# game_libs statically-linked libultra contpfs functions: original objects were
+# built with IDO 5.3 -O1 (7.1 cannot reproduce the stack-residency+filled-slot
+# combo; see docs/IDO_CODEGEN.md#feedback-ido-stack-residency-plus-filled-slots-is-o1-not-o0)
+build/src/game_libs/game_libs_ido53_71864.c.o build/non_matching/src/game_libs/game_libs_ido53_71864.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_71864.c.o build/non_matching/src/game_libs/game_libs_ido53_71864.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_71864.c.o: TRUNCATE_TEXT := 0x5C
+build/src/game_libs/game_libs_ido53_718C0.c.o build/non_matching/src/game_libs/game_libs_ido53_718C0.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_718C0.c.o build/non_matching/src/game_libs/game_libs_ido53_718C0.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_718C0.c.o: TRUNCATE_TEXT := 0x480
 build/src/arcproc_uso/arcproc_uso_o0_50.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_50.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso.c.o build/non_matching/src/arcproc_uso/arcproc_uso.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
@@ -133,7 +143,8 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x5664
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17A00
 build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10
-build/src/game_libs/game_libs_post2.c.o: TRUNCATE_TEXT := 0x42E0
+build/src/game_libs/game_libs_post2.c.o: TRUNCATE_TEXT := 0x898
+build/src/game_libs/game_libs_post2b.c.o: TRUNCATE_TEXT := 0x356C
 
 build/src/kernel/kernel_014.c.o build/non_matching/src/kernel/kernel_014.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_001.c.o build/non_matching/src/kernel/kernel_001.c.o: OPT_FLAGS := -O1
