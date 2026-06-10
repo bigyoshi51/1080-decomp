@@ -7114,27 +7114,19 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D8A8);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0003D914: 38-insn vtable-dispatch list walk. Dispatches a0->0x28's
- * method (ptr +0x84, signed-halfword bias +0x80) with (bias + a0, prev): the
- * first result is stored to a0->0x34; each loop result is stored into the
- * PREVIOUS result at s0->0x2C (s0 doubles as int/ptr, K&R-sloppy original).
- * The list cursor lives in a 2-slot local array p[] (p[1]=cursor@0x24sp,
- * p[0]=cur@0x20sp) -- array locals are what keep it stack-resident; no
- * "residency cap" (that verdict superseded 2026-06-09, but this fn is NOT
- * ido5.3 libultra either -- 5.3 -O1/-O2 tested, wrong shape). No return stmt
- * (falls off; caller sees last call result in v0).
- *
- * 2026-06-09: rebuilt via decode-correction (store base is s0 NOT a0;
- * if/else with else{v1=0}; p[0]=p[1] hoisted above the if = the filled
- * beq delay) + permuter (base 120 -> 10). NOW 36/38 words exact (was
- * 16.37%). Residual = 2 words: `new_var` (p[1]->next temp) colored $v0
- * where target uses $t1 (lw/sw pair, insns 27-28). Tried: direct
- * p[1]=p[1]->next (flips v1's web into $v0 instead, 4 diffs); if(1){}
- * v0-parking after the store (+1 or v0,t0 copy, 39 insns) and after
- * p[0]=p[1] (double cursor reload); register v1; decl-order swaps;
- * 5-min permuter from base 10 (no improvement). Next: uoptlist regalloc
- * dump (-Wo,-zdbug:6) to see why the tiny next-temp web prefers $v0. */
+/* gl_func_0003D914: vtable-dispatch list walk. First result -> a0->0x34;
+ * each loop result is stored into the PREVIOUS result (s0->0x2C, s0 doubles
+ * as int/ptr); cursor walks the list at a0->0x10 in a 2-slot local array
+ * (stack-resident). MATCHED 2026-06-09. Load-bearing shapes: (1) the store
+ * written as an assignment-expression naming the result
+ * (r = (*(int*)(s0+0x2C) = call)) keeps the sw at its early position while
+ * giving the value a name; (2) the trailing EMPTY `if (r) {}` extends r's
+ * live range through the loop tail at ZERO codegen cost -- r stays parked in
+ * $v0, which forces the cursor-advance load into the $t1 expression-temp
+ * pool and v1 into $v1 (without it they grab $v0); (3) direct
+ * p[1] = p[1]->next (no named temp -> temp pool); (4) p[0]=p[1] hoisted
+ * above the if (fills the beq delay slot); (5) if/else with else{v1=0}
+ * (the b-to-next layout); (6) no return statement. */
 typedef struct D914Vt { char _p[0x80]; short off; int (*fn)(int, int); } D914Vt;
 typedef struct D914Node { int key; struct D914Node *next; } D914Node;
 typedef struct D914Obj {
@@ -7147,39 +7139,30 @@ typedef struct D914Obj {
     int field_34;       /* 0x34 */
 } D914Obj;
 
-int gl_func_0003D914(D914Obj *a0)
-{
-  D914Node *p[2];
-  int s0;
-  struct D914Node *new_var;
-  int v1;
-  p[1] = a0->list;
-  s0 = a0->vt->fn(a0->vt->off + ((int) a0), 0);
-  a0->field_34 = s0;
-  if (s0 != 0)
-  {
-    do
-    {
-      *((int *) (s0 + 0x2C)) = a0->vt->fn(a0->vt->off + ((int) a0), s0);
-      p[0] = p[1];
-      if (p[1] != 0)
-      {
-        new_var = p[1]->next;
-        p[1] = new_var;
-        v1 = p[0]->key;
-      }
-      else
-      {
-        v1 = 0;
-      }
-      s0 = v1;
+int gl_func_0003D914(D914Obj *a0) {
+    D914Node *p[2];
+    int s0;
+    int v1;
+
+    p[1] = a0->list;
+    s0 = a0->vt->fn(a0->vt->off + (int)a0, 0);
+    a0->field_34 = s0;
+    if (s0 != 0) {
+        do {
+            int r;
+            r = (*(int *)(s0 + 0x2C) = a0->vt->fn(a0->vt->off + (int)a0, s0));
+            p[0] = p[1];
+            if (p[1] != 0) {
+                p[1] = p[1]->next;
+                v1 = p[0]->key;
+            } else {
+                v1 = 0;
+            }
+            s0 = v1;
+            if (r) {}
+        } while (v1 != 0);
     }
-    while (v1 != 0);
-  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D914);
-#endif
 
 void gl_func_0003D9AC(int *arg0) {
     gl_func_00000000(&D_00000000, (char*)arg0 + 0x48);
