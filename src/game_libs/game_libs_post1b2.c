@@ -1674,7 +1674,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF64);
 #endif
 
 
+/* game_libs_func_0006F038 (0x50, 20 insns, NO jr ra): the DOM2 device-
+ * descriptor INITIALIZER that FALLS THROUGH into gl_func_0006F088 (the
+ * PI DOM2 register-writer below) -- one logical init with two entry
+ * points (callers can jal 0x6F088 to re-apply without re-defaulting).
+ * Fills the reloc'd descriptor that 6F088 reads:
+ *   D->b_4 = 2;            -- latency
+ *   D->b_5 = 3;
+ *   D->b_6 = 6;            -- page size (6F088 -> PI_BSD_DOM2_PGS)
+ *   D->b_7 = 2;            -- release  (-> PI_BSD_DOM2_RLS)
+ *   D->b_8 = 6;            -- pulse    (-> PI_BSD_DOM2_PWD)
+ *   D->w_C = 0xA5000000;   -- device base = KSEG1 0x05000000 = the
+ *                             N64DD (Leo) domain-2 address space!
+ * i.e. an OSPiHandle-style 64DD/flash device block (osDriveRomInit
+ * family). CAP: C cannot express fall-through into the next function's
+ * entry; expressing the stores + a call would change the layout. The
+ * pair stays INCLUDE_ASM; a future merge could make 6F088 an alt-entry
+ * label inside one symbol. */
+#ifdef NON_MATCHING
+extern char D_6F038_desc;
+void game_libs_func_0006F038(void) {
+    (&D_6F038_desc)[4] = 2;
+    *(int *)((char *)&D_6F038_desc + 0xC) = 0xA5000000;
+    (&D_6F038_desc)[5] = 3;
+    (&D_6F038_desc)[8] = 6;
+    (&D_6F038_desc)[6] = 6;
+    (&D_6F038_desc)[7] = 2;
+    /* falls through into gl_func_0006F088 in the target */
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F038);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006F088: 47-insn N64 PI DOM2 setup + buffer-init dispatch (0xBC, frame 0x20).
