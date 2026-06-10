@@ -129,7 +129,7 @@ build/src/game_libs/game_libs_g3_34448.c.o: TRUNCATE_TEXT := 0x10
 build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb10
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
-build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce4
+build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8cec
 # (2026-06-10 relayout: the post1b head-shortfall compensation SUFFIX was
 # removed -- the missing prologues upstream are restored for real.)
 build/src/game_libs/game_libs_ido53_6BC44.c.o build/non_matching/src/game_libs/game_libs_ido53_6BC44.c.o: CC := $(IDO53_DIR)/cc
