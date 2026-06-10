@@ -5663,11 +5663,9 @@ z:
  * g3 carve IS this function's return-0 funnel (move/jr/nop = identical
  * bytes from `int f(){return 0;}` at -g3 -- a false attribution; the
  * funnel's nop is -O2 alignment pad here, not an unfilled delay).
- * LAND PENDING: dissolving the g3_8940 carve (Makefile concat recipe
- * line ~500: drop blob 4, adjust asserts/offsets; remove the .c;
- * handle the old episode) then extending this symbol +0xC. The C
- * below is the proven body. */
-#ifdef NON_MATCHING
+ * LANDED 2026-06-10: the g3_8940 carve dissolved (concat recipe back
+ * to 3 blobs), the symbol extended to 0xAC, the false episode removed.
+ * ACTIVE byte-exact body below. */
 int timproc_uso_b5_func_000088A0(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
@@ -5695,13 +5693,10 @@ int timproc_uso_b5_func_000088A0(char *a0) {
 z:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088A0);
-#endif
 
-/* timproc_uso_b5_func_00008940 moved to the -O2 -g3 carve-out
- * timproc_uso_b5_g3_8940.c. It is another 0xC unfilled-jr-delay
- * return-zero leaf in the 87E8/8894 family. */
+/* timproc_uso_b5_func_00008940 DISSOLVED 2026-06-10: it was 88A0's
+ * goto-z funnel, falsely attributed as a standalone -g3 return-0 leaf
+ * (see 88A0's header). Symbol merged into 88A0 (0xA0 -> 0xAC). */
 
 void timproc_uso_b5_func_0000894C(void) {
     func_00000000();
