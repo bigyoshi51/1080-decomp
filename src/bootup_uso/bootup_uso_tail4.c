@@ -161,15 +161,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft (566 insns, no
  * jumptables, 0 M2C_ERRORs); FP-heavy.
  * PASS-3 GAP MAP (77.44; LCS 2026-06-10) -- the refinement roadmap:
- *  1. PROLOGUE: target saves f20/f22/f24 via sdc1 (+ldc1 epilogue at
- *     +0x8C0) = float locals LIVE ACROSS CALLS; the graft's temps got
- *     caller-saved+spill. Name the cross-call float locals.
+ *  1. PROLOGUE (UPDATED pass 5): the sdc1 frame now EMITS (the pool-
+ *     symbol fix moved the FP allocation) -- residual: ONE extra int
+ *     callee-saved pair (7 sw vs target 6) = one variable over-promoted
+ *     to an s-reg; remove-local-recompute or var-merge lever. Size
+ *     +0x14.
  *  2. +0x268/+0x28C/+0x2C0: target does INLINE float->int with FCSR
  *     rounding dance (cfc1/ctc1/cvt.w.s/mfc1) where the graft emits
  *     jal (library-call casts). Find the C construct for the inline
  *     rounding-mode conversion (NOT plain (s32) cast = trunc.w.s).
- *  3. +0x300..0x338: slti/bnel/bnezl clamp chain shape vs the graft's
- *     bne/slti reorder (branch-likely steering, docs/IDO_CODEGEN).
+ *  3. (pass 5) +0x33C region: target schedules `swc1 f20,0x48(s0)`
+ *     between the s0->0x40 load and its compare (plain bne) -- C shape:
+ *     store-then-test with hoisted load; ours emits sw/bnel reorder.
+ *     Plus +0x130 move/move-vs-li ordering. Both small.
  *  4. +0xC0..+0x108: lui/beqz/nop pattern (collapsed-pointer guard
  *     pairs) vs graft's beqzl forms -- the per-test reload recipe. */
 extern f32 D_00000C50, D_00000C54, D_00000C58, D_00000C5C, D_00000C60;
