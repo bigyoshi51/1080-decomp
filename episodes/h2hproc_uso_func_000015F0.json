@@ -1,0 +1,32 @@
+{
+  "function_name": "h2hproc_uso_func_000015F0",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T02:49:07.333429+00:00",
+  "end_time": "2026-06-11T02:49:07.333459+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T02:49:07.333450+00:00",
+      "assistant_text": "First uoptlist-guided match: the dump identified the src temp (lr 90) as a CONSTRAINED v1 pick; the shared src variable created one live range spanning all blocks across calls. Inlining the deref at each use made three short lrs coloring t0/t3 = target. 16 -> 0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 108,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nextern char D_00000000;\nvoid h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {\n    char *base = &D_00000000;\n    int *self = a0;\n    int *src;\n    int *sub1, *sub2, *sub3;\n    char *self_p10;\n    *(int*)((char*)self + 0xC) = (int)(base + 0x41C);\n    *(int*)((char*)self + 0xB8) = (int)a1;\n    *(int*)((char*)self + 0xD4) = 0;\n    *(int*)((char*)self + 0x54) = a2;\n    *(int*)((char*)self + 0xCC) = 0xFF;\n    *(int*)((char*)self + 0xD0) = 0;\n    *(float*)((char*)self + 0xC8) = 1.0f;\n    *(float*)((char*)self + 0xC4) = 1.0f;\n    *(float*)((char*)self + 0xC0) = 1.0f;\n    *(float*)((char*)self + 0xBC) = 1.0f;\n    if ((int)(a1[0x4F0 / 4] << 15) >= 0) return;  /* bit 16 clear: skip */\n    self_p10 = (char*)self + 0x10;\n    sub1 = (int*)gl_func_00000000(0, 90);\n    *(int*)((char*)self + 0xE8) = (int)sub1;\n    gl_func_00000000(sub1, *(int*)((char*)*(int*)((char*)self + 0x44) + 0x28));\n    gl_func_00000000(*(int*)((char*)self + 0xE8), 68, 21);\n    sub1 = (int*)*(int*)((char*)self + 0xE8);\n    gl_func_00000000(self_p10, sub1);\n    if (*(int*)((char*)sub1 + 0x14) != 0) *(int*)((char*)sub1 + 0x4) = 1;\n    *(int*)((char*)sub1 + 0x14) = (int)self;\n\n    sub2 = (int*)gl_func_00000000(0, 90);\n    *(int*)((char*)self + 0xEC) = (int)sub2;\n    gl_func_00000000(sub2, *(int*)((char*)*(int*)((char*)self + 0x44) + 0x88));\n    gl_func_00000000(*(int*)((char*)self + 0xEC), 68, 130);\n    sub2 = (int*)*(int*)((char*)self + 0xEC);\n    gl_func_00000000(self_p10, sub2);\n    if (*(int*)((char*)sub2 + 0x14) != 0) *(int*)((char*)sub2 + 0x4) = 1;\n    *(int*)((char*)sub2 + 0x14) = (int)self;\n\n    sub3 = (int*)gl_func_00000000(0, 35);\n    src = (int*)*(int*)((char*)self + 0x44);\n    *(int*)((char*)self + 0x80) = (int)sub3;\n    gl_func_00000000(sub3, *(int*)((char*)src + 0x30), *(int*)((char*)src + 0x90));\n    src = (int*)*(int*)((char*)self + 0x44);\n    sub3 = (int*)*(int*)((char*)self + 0x80);\n    gl_func_15f0(sub3, *(int*)((char*)src + 0x8), *(int*)((char*)src + 0xC),\n                 *(int*)((char*)src + 0x68), *(float*)((char*)src + 0x6C));\n    sub3 = (int*)*(int*)((char*)self + 0x80);\n    gl_func_00000000(sub3, *(int*)((char*)self + 0x38),\n                     *(int*)((char*)self + 0x3C), *(int*)((char*)self + 0x40));\n    sub3 = (int*)*(int*)((char*)self + 0x80);\n    gl_func_00000000(sub3, 285, 179);\n    sub3 = (int*)*(int*)((char*)self + 0x80);\n    gl_func_00000000(self_p10, sub3);\n    if (*(int*)((char*)sub3 + 0x14) != 0) *(int*)((char*)sub3 + 0x4) = 1;\n    *(int*)((char*)sub3 + 0x14) = (int)self;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/15f0_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_000015F0.s",
+    "segment": "h2hproc_uso",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make ROM byte-identical (cmp clean)"
+  }
+}
