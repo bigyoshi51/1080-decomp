@@ -199,7 +199,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *  -> 92.50 imported+verified), then ~97k iterations FLAT -- the
  *  residual 4570-weight (3 spill slots + deep loop-body renumber,
  *  multi-diff unlike the twins' single addu) is beyond the permuter's
- *  mutation reach. FINAL LADDER: 2.8 (pre-graft) -> 77.4 (m2c graft)
+ *  mutation reach. 2026-06-11 RULES PASS: the dead-local rule (7 dead
+ *  ints, from the uopt-source derivation) fixes the FRAME exactly
+ *  (-72 -> -96 = target); score holds 92.5 (the remaining loop-body
+ *  group renumber dominates; a t4/t5 first-occurrence swap was flat
+ *  -- identifying the actual renumbered LR pair needs the
+ *  -Wo,-zdbug:6 coloring trace, now fully documented).
+ *  FINAL LADDER: 2.8 (pre-graft) -> 77.4 (m2c graft)
  *  -> 84.1 ((u32)float) -> 86.3 (pool syms) -> 87.8 (for-loop
  *  re-derivation) -> 88.8 (decode fixes) -> 92.5 (permuter). The
  *  fn rests at 92.50; remaining instruments: uopt internals.
@@ -223,7 +229,8 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
 extern f32 D_00000C50, D_00000C54, D_00000C58, D_00000C5C, D_00000C60;
 void func_0001304C(char *arg0)
 {
-  f32 sp44;
+
+    int dead0, dead1, dead2, dead3, dead4, dead5, dead6;  f32 sp44;
   f32 *temp_a0_2;
   f32 *temp_v0_2;
   f32 temp_f10;
