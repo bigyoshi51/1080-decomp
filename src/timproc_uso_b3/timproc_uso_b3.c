@@ -1542,23 +1542,15 @@ void timproc_uso_b3_func_00002700(int a0) {
     (void)a0;
 }
 
-/* Twin of timproc_uso_b1_func_00002740 (byte-identical) -- body ported
- * 2026-06-10 from the b1 improvement: if(1){} BB lever after gl(5)
- * cuts the renumber to 3 addu-operand-order diffs + 2 reloc-blind
- * stores (the documented true ceiling for the pair; see the b1 wrap
- * and docs/IDO_CODEGEN addu-operand-order entry).
- * 2026-06-10: the 67084 addend-GROUPING lever does NOT transfer --
- * it needs a CONSTANT term to bind to the base ((base+const)+scaled);
- * this 2-operand sum (base + scaled, no const) is canonicalized
- * identically from int-ptr, char-cast, and array forms (3 probes
- * neutral). The addu order stays allocator-chosen for pure 2-op sums.
- * 2026-06-11: the 27BC permuter shapes (index-through-variable +
- * mult-first inline) do NOT transfer here either (int-ptr x0xA scaling
- * vs 27BC's byte x0x28 context; score unchanged). A dedicated
- * import.py permuter run on this fn is the remaining instrument. */
+/* Twin of timproc_uso_b1_func_00002740 (byte-identical). MATCHED 2026-06-11
+ * via the array-IXA lever derived from the uopt source (references/ido):
+ * a 2D-array row index (Row294C *base; base[idx]) keeps the IXA ucode form,
+ * which ugen lowers as addu rd, base, scaled (base FIRST); flat ptr-arith
+ * (base + idx*0xA) goes through cfe's ADD path which evaluates the deeper
+ * mpy operand first -> addu rd, scaled, base. See docs/IDO_CODEGEN.md
+ * "addu operand order" uopt-source entry. */
 extern int D_b3_294C_g208;
 extern int D_b3_294C_g20C;
-#ifdef NON_MATCHING
 void timproc_uso_b3_func_0000294C(int *a0)
 {
   int new_var;
@@ -1567,8 +1559,9 @@ void timproc_uso_b3_func_0000294C(int *a0)
     case 0:
       if (gl_func_00000000(&D_00000000, 0x40100) != 0)
     {
-      int *base = (int *) a0[0x48 / 4];
-      int *slot = (int *) (base + (base[0x7C / 4] * 0xA));
+      typedef int Row294C[10];
+      Row294C *base = (Row294C *) a0[0x48 / 4];
+      int *slot = base[((int *) base)[0x7C / 4]];
       if (slot[0x90 / 4] != 0)
       {
         if (slot[0x88 / 4] != 0)
@@ -1603,10 +1596,6 @@ void timproc_uso_b3_func_0000294C(int *a0)
   }
 
 }
-
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_0000294C);
-#endif
 
 #ifdef NON_MATCHING
 /* timproc_uso_b3_func_00002A44: HUD draw dispatcher (near-exact clone of

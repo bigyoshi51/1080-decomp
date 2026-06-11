@@ -1475,7 +1475,6 @@ extern int D_b1_2740_g20C;
  * randomized search symmetrically -- consistent with a genuinely
  * allocator-internal choice. 99.84 is the twins' C+permuter ceiling;
  * uopt-internals research is the only remaining instrument. */
-#ifdef NON_MATCHING
 void timproc_uso_b1_func_00002740(int *a0)
 {
   int new_var;
@@ -1484,8 +1483,9 @@ void timproc_uso_b1_func_00002740(int *a0)
     case 0:
       if (gl_func_00000000(&D_00000000, 0x40100) != 0)
     {
-      int *base = (int *) a0[0x48 / 4];
-      int *slot = (int *) (base + (base[0x7C / 4] * 0xA));
+      typedef int Row2740[10];
+      Row2740 *base = (Row2740 *) a0[0x48 / 4];
+      int *slot = base[((int *) base)[0x7C / 4]];
       if (slot[0x90 / 4] != 0)
       {
         if (slot[0x88 / 4] != 0)
@@ -1496,12 +1496,12 @@ void timproc_uso_b1_func_00002740(int *a0)
           if (1)
           {
           }
-          D_b1_2740_g208 = a0[0x48 / 4];
+          slot = a0;
+          D_b1_2740_g208 = slot[0x48 / 4];
           D_b1_2740_g20C = (int) a0;
-          base2 = (int *) a0[0x48 / 4];
+          base2 = (int *) slot[0x48 / 4];
           ;
-          new_var = 0x7C;
-          ((void (*)(void)) ((int *) (base2 + (base2[new_var / 4] * 0xA)))[((0, 0x90)) / 4])();
+          ((void (*)(void)) ((int *) (base2 + (base2[0x7C / 4] * 0xA)))[(0x90 ^ 0) / (new_var = 4)])();
         }
         else
         {
@@ -1520,9 +1520,6 @@ void timproc_uso_b1_func_00002740(int *a0)
   }
 
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002740);
-#endif
 
 
 /* timproc_uso_b1_func_00002838 - verified structural decode (~150-insn
