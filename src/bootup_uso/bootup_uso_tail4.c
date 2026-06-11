@@ -224,7 +224,6 @@ void func_0001304C(char *arg0)
   f32 temp_f10;
   f32 var_f0;
   f32 var_f12;
-  int new_var;
   f32 var_f14;
   f32 var_f16;
   f32 var_f24;
@@ -283,7 +282,6 @@ void func_0001304C(char *arg0)
   char *temp_a1_4;
   char *temp_a1_5;
   char *temp_a1_6;
-  char *new_var2;
   char *temp_a1_7;
   char *temp_a1_8;
   char *temp_a1_9;
@@ -355,8 +353,8 @@ void func_0001304C(char *arg0)
           return;
         }
       }
-      goto block_7;
     }
+    goto block_7;
     block_7:
     func_00000000(arg0);
 
@@ -483,8 +481,7 @@ void func_0001304C(char *arg0)
     *((s32 *) (((char *) temp_a1) + 0x4)) = 0;
     temp_v0_5 = *((s32 *) (((char *) temp_a0_3) + 0xC));
     temp_v1_2 = *((s32 *) (((char *) temp_v0_5) + 0x4));
-    *((s32 *) (((char *) temp_v0_5) + 0x4)) = (s32) (temp_v1_2 + 1);
-    temp_a2 = (*((s32 *) (((char *) (*((s32 *) (((char *) temp_a0_3) + 0xC)))) + 0x0))) + (temp_v1_2 * 8);
+ *((s32 *) (((char *) temp_v0_5) + 0x4)) = (s32) (temp_v1_2 + 1); temp_a2 = (*((s32 *) (((char *) (*((s32 *) (((char *) temp_a0_3) + 0xC)))) + 0x0))) + (temp_v1_2 * 8);
     *((s32 *) (((char *) temp_a2) + 0x0)) = 0xBA001402;
     *((s32 *) (((char *) temp_a2) + 0x4)) = 0x100000;
     temp_v0_6 = *((s32 *) (((char *) temp_a0_3) + 0xC));
@@ -520,8 +517,7 @@ void func_0001304C(char *arg0)
       *((s32 *) (((char *) temp_a1_3) + 0x0)) = 0xBA000602;
       *((s32 *) (((char *) temp_a1_3) + 0x4)) = 0xC0;
     }
-    new_var2 = temp_a0_3;
-    temp_v0_11 = *((s32 *) (((char *) new_var2) + 0xC));
+    temp_v0_11 = *((s32 *) (((char *) temp_a0_3) + 0xC));
     temp_v1_8 = *((s32 *) (((char *) temp_v0_11) + 0x4));
     *((s32 *) (((char *) temp_v0_11) + 0x4)) = (s32) (temp_v1_8 + 1);
     temp_a1_4 = (*((s32 *) (((char *) (*((s32 *) (((char *) temp_a0_3) + 0xC)))) + 0x0))) + (temp_v1_8 * 8);
@@ -536,8 +532,7 @@ void func_0001304C(char *arg0)
     temp_v0_13 = *((s32 *) (((char *) temp_a0_3) + 0xC));
     temp_v1_10 = *((s32 *) (((char *) temp_v0_13) + 0x4));
     *((s32 *) (((char *) temp_v0_13) + 0x4)) = (s32) (temp_v1_10 + 1);
-    new_var = (*((s32 *) (((char *) (*((s32 *) (((char *) temp_a0_3) + 0xC)))) + 0x0))) + (temp_v1_10 * 8);
-    temp_a3_2 = new_var;
+    temp_a3_2 = (*((s32 *) (((char *) (*((s32 *) (((char *) temp_a0_3) + 0xC)))) + 0x0))) + (temp_v1_10 * 8);
     *((s32 *) (((char *) temp_a3_2) + 0x0)) = 0xF5100000;
     *((s32 *) (((char *) temp_a3_2) + 0x4)) = 0x07014050;
     temp_v0_14 = *((s32 *) (((char *) temp_a0_3) + 0xC));
