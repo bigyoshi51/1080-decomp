@@ -31404,7 +31404,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
        i*16 trip form explodes (86 insns), unsigned/compound forms
        neutral -- plus the frame 0x28-vs-0x20 pair and the m-home
        cascade. The 5BDC0-class IV cap is thus NARROWED to counter
-       form only. Body below uses the do-while. */
+       form only. Body below uses the do-while.
+       2026-06-10 TARGET SHAPE DECODED (full diff read): the loop is
+       SOFTWARE-PIPELINED 2 rows/trip -- bound 4 in a REGISTER (li
+       a0,4; beq v1,a0 vs-reg compare), v1 += 1 TWICE per trip, v0
+       advances 16/half with negative-offset stores (swc1 -16..-4(v0))
+       and a peeled epilogue half. Probes: nested 4x4 do-while TIES
+       the baseline (99.87); row-unrolled form explodes (IDO unrolls
+       trip-4, 38.8). Matching needs the register bound (s-reg-const
+       class, resists plain forcers) + a 2-row body so IDO emits the
+       rotated schedule. Focused-session item. */
 extern int gl_func_00000000();
 extern float gl_func_0005E190_scale();
 extern int D_00000000;
