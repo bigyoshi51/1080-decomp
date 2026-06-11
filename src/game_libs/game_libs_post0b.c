@@ -30629,10 +30629,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
  * `sum+(t=p3)`, named-local, AND permuter (160s, no zero). Confirms the
  * standing FP-reduction cap (#feedback-ido-fpu-reduction-operand-order). */
 void game_libs_func_0005D588(float *a0, float *a1, float *a2) {
+    /* 2026-06-11 rules-sweep CRACK: right-nested dot grouping (last term
+     * first) flips the final add.s to target order — cfe ufad ichain is
+     * ucode shape (rule-1 cousin). Found via full perm x swap x grouping
+     * enumeration; prior "FP-reduction cap" was left-assoc-family-only. */
     a0[0] = a1[1]*a2[2] - a2[1]*a1[2];
     a0[1] = a1[2]*a2[0] - a2[2]*a1[0];
     a0[2] = a1[0]*a2[1] - a2[0]*a1[1];
-    a0[3] = a1[0]*a2[0] + a1[1]*a2[1] + a2[2]*a1[2];
+    a0[3] = a1[2]*a2[2] + (a1[1]*a2[1] + a2[0]*a1[0]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D588);
