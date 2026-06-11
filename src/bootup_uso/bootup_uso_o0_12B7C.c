@@ -28,7 +28,10 @@ extern int D_A0000200;
  * Genuine -O0 codegen cap. */
 /* 2026-06-11 permuter CONCLUDED: base 20 (1 true diff) flat through
  * 551k iterations -- allocator-internal (-O0 temp allocator class).
- * 99.73 stands. */
+ * 99.73 stands.
+ * 2026-06-11 wave-2: two more axes dead — `D_A0000000[0x80]` zero-lo array
+ * base gives fresh $t6 + folded 0x200 offset but -O0 keeps the `addiu
+ * base,base,0` (+1 insn); switch-form adds a dispatch beq block. */
 #ifdef NON_MATCHING
 void func_00012818(char *a0, char *a1) {
     int i;
