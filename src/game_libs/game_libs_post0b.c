@@ -941,13 +941,14 @@ int gl_func_00035164(int a0) {
  * target uses $t6/$t7. Permuter improved 75->55, never 0 (register pool choice for
  * a short-lived global-into-vtable-base is not C-controllable here). */
 void gl_func_00035188(int a0, int a1) {
-    int *g;
     int rv;
     int *p = &a0;
-    g = *(int**)&D_00000000;
-    ((void(*)(int, int))g[0x74/4])(a0, a1);
-    g = *(int**)&D_00000000;
-    rv = ((int(*)(int))g[0x40/4])(a1);
+    /* 2026-06-11 rules-sweep CRACK (rule 2 / inline-don't-name): naming g
+     * made it a colored LR -> $v0 for both vtable-base loads; inlining the
+     * *(int**)&D deref into each call expression keeps the base in the ugen
+     * temp pool -> fresh $t6/$t7 per statement, matching. */
+    ((void(*)(int, int))(*(int**)&D_00000000)[0x74/4])(a0, a1);
+    rv = ((int(*)(int))(*(int**)&D_00000000)[0x40/4])(a1);
     if (rv < 0) {
         gl_func_00000000((char*)&D_00000000 + 0x1E510, a1, rv);
     }
