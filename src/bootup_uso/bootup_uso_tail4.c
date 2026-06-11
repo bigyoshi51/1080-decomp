@@ -180,6 +180,17 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *     rounding dance (cfc1/ctc1/cvt.w.s/mfc1) where the graft emits
  *     jal (library-call casts). Find the C construct for the inline
  *     rounding-mode conversion (NOT plain (s32) cast = trunc.w.s).
+ *  PASS 12 CORRECTION: the in-tree build has had the s-reg consts
+ *  (li s3,2/li s2,3 + register compares) since pass 8 -- passes 10/11
+ *  probed a ghost (the wrap notes below are superseded). The TRUE
+ *  remaining gaps (full re-LCS at 88.83) are DECODE ERRORS + renumber:
+ *  fixed this pass: int-store of 1.0f at +0x48 (mtc1/swc1 f20 shape)
+ *  and the func(0,0) arg that should be (char*)&D+0. STILL OPEN:
+ *  ori 0x1402 vs 0x1001 (a flags-constant decode error ~+0x3A8); a
+ *  MISSING DUPLICATED record-block (target repeats the lw 12(a0)/
+ *  lw 4/addiu/sw counter-bump block once more at +0x85C); frame -96
+ *  vs -72 (3 spill slots); and the loop-body v1/a0 temp renumber.
+ *  All C-addressable except possibly the renumber.
  *  3c. (pass 10 negative-flat) the target loads mode-consts 2/3 into
  *     s3/s2 BEFORE the jal (register compares: bne s3,v0 / bne s2,v0).
  *     Plain pre-call locals (const_two=2; const_three=3) got folded
@@ -322,11 +333,11 @@ void func_0001304C(char *arg0) {
                 var_v0 = temp_t6;
             }
             if (var_v0 == 0) {
-                func_00000000(0, 0);
+                func_00000000((char *)&D_00000000 + 0, 0);
                 *(s32 *)((char *)(arg0) + 0x6C) = 0;
                 if (*(s32 *)((char *)(arg0) + 0x40) == 2) {
                     *(s32 *)((char *)(arg0) + 0x40) = 0;
-                    *(s32 *)((char *)(arg0) + 0x48) = 1.0f;
+                    *(f32 *)((char *)(arg0) + 0x48) = 1.0f;
                     return;
                 }
             }
@@ -405,10 +416,10 @@ for (var_t5 = 0; var_t5 != 0x20; var_t5++) {
             }
         }
         if ((*(s32 *)((char *)(arg0) + 0x40) == 3) && (var_t4 >= 0x401)) {
-            *(s32 *)((char *)(arg0) + 0x48) = 1.0f;
+            *(f32 *)((char *)(arg0) + 0x48) = 1.0f;
         }
         if (var_t4 == 0x400) {
-            *(s32 *)((char *)(arg0) + 0x48) = 1.0f;
+            *(f32 *)((char *)(arg0) + 0x48) = 1.0f;
             if (*(s32 *)((char *)(arg0) + 0x40) == 1) {
                 *(s32 *)((char *)(arg0) + 0x40) = 0;
             }
