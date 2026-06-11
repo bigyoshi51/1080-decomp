@@ -1469,8 +1469,12 @@ void timproc_uso_b1_func_000024F4(int a0) {
 extern int D_b1_2740_g208;
 extern int D_b1_2740_g20C;
 /* 2026-06-11: scoped permuter run IN FLIGHT (base 80, log
- * /tmp/perm2740.log) -- third of three parallel runs; the 27BC recipe.
- * Import bests; if the b3 twin reaches 0 first, port its shape here. */
+ * /tmp/perm2740.log) -- CONCLUDED 2026-06-11 ~02:50: both twins
+ * terminally plateau at permuter-score 60 (= one diff, objdiff 99.84;
+ * b3 at 573k iters, b1 at 289k). The class's LAST addu order resists
+ * randomized search symmetrically -- consistent with a genuinely
+ * allocator-internal choice. 99.84 is the twins' C+permuter ceiling;
+ * uopt-internals research is the only remaining instrument. */
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_00002740(int *a0)
 {
