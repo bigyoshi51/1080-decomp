@@ -33690,7 +33690,6 @@ void game_libs_func_0006186C(int a0) {
     *(int *)((char *)&D_00000000 + 0x21E04) = a0;
 }
 
-#ifdef NON_MATCHING
 /* game_libs_func_00061878: sibling of 00061824 — same ((n+2)(n+3))>>2 formula,
  * but n = (counter@D+0x21E04)*4, writes the >>2 result back to the counter, and
  * returns (float)(unsigned)(v & 0xFFFF) / D[0x2074]. Stateful (advances the
@@ -33706,17 +33705,15 @@ void game_libs_func_0006186C(int a0) {
  * DOMAIN here: the LO16 placement is reloc-ENCODING-level, and the
  * barrier instead perturbs the FP-constant scheduling (2 -> 11 diffs).
  * The two fold classes are distinct mechanisms; cap confirmed. */
+extern int gl_ref_00021E04;
 float game_libs_func_00061878(void) {
-    int *p = (int *)((char *)&D_00000000 + 0x21E04);
+    int *p = &gl_ref_00021E04;
     unsigned int v = (unsigned int)*p * 4 + 2;
     unsigned int w = v + 1;
     v = (v * w) >> 2;
     *p = v;
     return (float)(v & 0xFFFF) / *(float *)((char *)&D_00000000 + 0x2074);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061878);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_000618D0(char *a0, int a1) {
