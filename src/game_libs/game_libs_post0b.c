@@ -27440,13 +27440,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * REWRITE PLAN: one arm per tick, hand-written compact C against the
  * .s span, SSA body for structure + reg-vars emit for allocation;
  * arms are near-identical modulo constants, so arm 1 (case 0x120)
- * sets the template and the rest follow fast. Score-gate each arm. */
+ * sets the template and the rest follow fast. Score-gate each arm.
+ * PASS 6 RESULT: arm-1 rewritten with 5 reused locals (g/n/p/w/v vs
+ * ~21 SSA temps) -- score FLAT (75.07): IDO already coalesces the
+ * within-arm temps; the rewrite is codegen-equivalent (kept as
+ * cleaner C). PREMISE REVISED: the +190-word frame bloat does NOT
+ * come from per-arm temp pressure. Finding its true source needs the
+ * uoptlist occupant trace (-Wo,-zdbug:6 on this TU, map frame slots
+ * to C variables) -- the focused-session instrument. Per-arm
+ * rewriting is still useful for readability but won't close the gap
+ * alone. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000578B4)();
 void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
+    s32 g;
+    s32 n;
+    s32 p;
+    s32 w;
+    s32 v;
     s32 sp1EC;
     s32 sp1E8;
     s32 sp1E4;
@@ -27919,59 +27933,59 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
         temp_t1 = FW(arg1, 0x24);
         temp_a2 = FW(arg1, 0x1C);
         switch (temp_t1) {                          /* switch 1; irregular */
-        case 0x120:                                 /* switch 1 */
-            temp_v1_2 = FW(arg0, 0xC);
-            temp_a1_2 = FW(temp_v1_2, 0x4);
-            FW(temp_v1_2, 0x4) = (s32) (temp_a1_2 + 1);
-            temp_t1_2 = FW(FW(arg0, 0xC), 0x0) + (temp_a1_2 * 8);
-            FW(temp_t1_2, 0x0) = (s32) (((FW(temp_a2, 0xC) - 1) & 0xFFF) | 0xFD180000);
-            sp1C4 = temp_t1_2;
-            sp1DC = temp_a2;
-            FW(temp_t1_2, 0x4) = gl_func_00034458(FW(temp_a2, 0x0), temp_a1_2, temp_a2, arg0);
-            temp_v1_3 = FW(arg0, 0xC);
-            temp_a1_3 = FW(temp_v1_3, 0x4);
-            FW(temp_v1_3, 0x4) = (s32) (temp_a1_3 + 1);
-            temp_a0_2 = FW(temp_a2, 0x4);
-            temp_t0 = FW(FW(arg0, 0xC), 0x0) + (temp_a1_3 * 8);
-            FW(temp_t0, 0x0) = (s32) (((((s32) ((((temp_a0_2 + (*(s16 *)((char *)arg1 + 0x20))) - temp_a0_2) * 2) + 7) >> 3) & 0x1FF) << 9) | 0xF5180000);
+        case 0x120:
+            g = FW(arg0, 0xC);
+            n = FW(g, 0x4);
+            FW(g, 0x4) = n + 1;
+            p = FW(FW(arg0, 0xC), 0x0) + (n * 8);
+            FW(p, 0x0) = ((FW(temp_a2, 0xC) - 1) & 0xFFF) | 0xFD180000;
+            sp1C4 = (char *) p;
+            sp1DC = (int *) temp_a2;
+            FW(p, 0x4) = gl_func_00034458(FW(temp_a2, 0x0), n, temp_a2, arg0);
+            g = FW(arg0, 0xC);
+            n = FW(g, 0x4);
+            FW(g, 0x4) = n + 1;
+            w = FW(temp_a2, 0x4);
+            p = FW(FW(arg0, 0xC), 0x0) + (n * 8);
+            FW(p, 0x0) = (((s32) ((((w + (*(s16 *)((char *)arg1 + 0x20))) - w) * 2) + 7) >> 3) & 0x1FF) << 9 | 0xF5180000;
             temp_t2 = (sp1E0 & 3) << 0x12;
             temp_t3 = (sp1E8 & 0xF) << 0xE;
             temp_t4 = (sp1E4 & 3) << 8;
             temp_t5 = (sp1EC & 0xF) * 0x10;
-            FW(temp_t0, 0x4) = (s32) (0x07000000 | temp_t2 | temp_t3 | temp_t4 | temp_t5);
-            temp_v1_4 = FW(arg0, 0xC);
-            temp_a1_4 = FW(temp_v1_4, 0x4);
-            FW(temp_v1_4, 0x4) = (s32) (temp_a1_4 + 1);
-            temp_v0 = FW(FW(arg0, 0xC), 0x0) + (temp_a1_4 * 8);
-            FW(temp_v0, 0x0) = 0xE6000000;
-            FW(temp_v0, 0x4) = 0;
-            temp_v1_5 = FW(arg0, 0xC);
-            temp_a1_5 = FW(temp_v1_5, 0x4);
-            FW(temp_v1_5, 0x4) = (s32) (temp_a1_5 + 1);
-            temp_a0_3 = FW(FW(arg0, 0xC), 0x0) + (temp_a1_5 * 8);
-            FW(temp_a0_3, 0x0) = (s32) ((((FW(temp_a2, 0x4) * 4) & 0xFFF) << 0xC) | 0xF4000000 | ((FW(temp_a2, 0x8) * 4) & 0xFFF));
-            FW(temp_a0_3, 0x4) = (s32) (0x07000000 | (((((FW(temp_a2, 0x4) + (*(s16 *)((char *)arg1 + 0x20))) - 1) * 4) & 0xFFF) << 0xC) | ((((FW(temp_a2, 0x8) + (*(s16 *)((char *)arg1 + 0x22))) - 1) * 4) & 0xFFF));
-            temp_v1_6 = FW(arg0, 0xC);
-            temp_a1_6 = FW(temp_v1_6, 0x4);
-            FW(temp_v1_6, 0x4) = (s32) (temp_a1_6 + 1);
-            temp_v0_2 = FW(FW(arg0, 0xC), 0x0) + (temp_a1_6 * 8);
-            FW(temp_v0_2, 0x0) = 0xE7000000;
-            FW(temp_v0_2, 0x4) = 0;
-            temp_v1_7 = FW(arg0, 0xC);
-            temp_a1_7 = FW(temp_v1_7, 0x4);
-            FW(temp_v1_7, 0x4) = (s32) (temp_a1_7 + 1);
-            temp_a0_4 = FW(temp_a2, 0x4);
-            temp_t0_2 = FW(FW(arg0, 0xC), 0x0) + (temp_a1_7 * 8);
-            FW(temp_t0_2, 0x4) = (s32) (temp_t2 | temp_t3 | temp_t4 | temp_t5);
-            FW(temp_t0_2, 0x0) = (s32) (((((s32) ((((temp_a0_4 + (*(s16 *)((char *)arg1 + 0x20))) - temp_a0_4) * 2) + 7) >> 3) & 0x1FF) << 9) | 0xF5180000);
-            temp_v1_8 = FW(arg0, 0xC);
-            temp_a1_8 = FW(temp_v1_8, 0x4);
-            FW(temp_v1_8, 0x4) = (s32) (temp_a1_8 + 1);
-            temp_t0_3 = FW(FW(arg0, 0xC), 0x0) + (temp_a1_8 * 8);
-            FW(temp_t0_3, 0x0) = 0xF2000000;
-            temp_a0_5 = FW(temp_a2, 0x4);
-            temp_v0_3 = FW(temp_a2, 0x8);
-            FW(temp_t0_3, 0x4) = (s32) (((((((temp_a0_5 + (*(s16 *)((char *)arg1 + 0x20))) - temp_a0_5) - 1) * 4) & 0xFFF) << 0xC) | (((((temp_v0_3 + (*(s16 *)((char *)arg1 + 0x22))) - temp_v0_3) - 1) * 4) & 0xFFF));
+            FW(p, 0x4) = 0x07000000 | temp_t2 | temp_t3 | temp_t4 | temp_t5;
+            g = FW(arg0, 0xC);
+            n = FW(g, 0x4);
+            FW(g, 0x4) = n + 1;
+            p = FW(FW(arg0, 0xC), 0x0) + (n * 8);
+            FW(p, 0x0) = 0xE6000000;
+            FW(p, 0x4) = 0;
+            g = FW(arg0, 0xC);
+            n = FW(g, 0x4);
+            FW(g, 0x4) = n + 1;
+            p = FW(FW(arg0, 0xC), 0x0) + (n * 8);
+            FW(p, 0x0) = (((FW(temp_a2, 0x4) * 4) & 0xFFF) << 0xC) | 0xF4000000 | ((FW(temp_a2, 0x8) * 4) & 0xFFF);
+            FW(p, 0x4) = 0x07000000 | (((((FW(temp_a2, 0x4) + (*(s16 *)((char *)arg1 + 0x20))) - 1) * 4) & 0xFFF) << 0xC) | ((((FW(temp_a2, 0x8) + (*(s16 *)((char *)arg1 + 0x22))) - 1) * 4) & 0xFFF);
+            g = FW(arg0, 0xC);
+            n = FW(g, 0x4);
+            FW(g, 0x4) = n + 1;
+            p = FW(FW(arg0, 0xC), 0x0) + (n * 8);
+            FW(p, 0x0) = 0xE7000000;
+            FW(p, 0x4) = 0;
+            g = FW(arg0, 0xC);
+            n = FW(g, 0x4);
+            FW(g, 0x4) = n + 1;
+            w = FW(temp_a2, 0x4);
+            p = FW(FW(arg0, 0xC), 0x0) + (n * 8);
+            FW(p, 0x4) = temp_t2 | temp_t3 | temp_t4 | temp_t5;
+            FW(p, 0x0) = (((s32) ((((w + (*(s16 *)((char *)arg1 + 0x20))) - w) * 2) + 7) >> 3) & 0x1FF) << 9 | 0xF5180000;
+            g = FW(arg0, 0xC);
+            n = FW(g, 0x4);
+            FW(g, 0x4) = n + 1;
+            p = FW(FW(arg0, 0xC), 0x0) + (n * 8);
+            FW(p, 0x0) = 0xF2000000;
+            w = FW(temp_a2, 0x4);
+            v = FW(temp_a2, 0x8);
+            FW(p, 0x4) = ((((((w + (*(s16 *)((char *)arg1 + 0x20))) - w) - 1) * 4) & 0xFFF) << 0xC) | (((((v + (*(s16 *)((char *)arg1 + 0x22))) - v) - 1) * 4) & 0xFFF);
             return;
         case 0x110:                                 /* switch 1 */
             temp_v1_9 = FW(arg0, 0xC);
