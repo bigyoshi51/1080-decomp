@@ -1474,6 +1474,7 @@ extern int D_b1_2740_g20C;
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_00002740(int *a0)
 {
+  int new_var;
   switch (a0[0x50 / 4])
   {
     case 0:
@@ -1495,7 +1496,8 @@ void timproc_uso_b1_func_00002740(int *a0)
           D_b1_2740_g20C = (int) a0;
           base2 = (int *) a0[0x48 / 4];
           ;
-          ((void (*)(void)) ((int *) (base2 + (base2[0x7C / 4] * 0xA)))[0x90 / 4])();
+          new_var = 0x7C;
+          ((void (*)(void)) ((int *) (base2 + (base2[new_var / 4] * 0xA)))[((0, 0x90)) / 4])();
         }
         else
         {
