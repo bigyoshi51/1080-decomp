@@ -142,6 +142,13 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E0C);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E54);
 
+/* HANDWRITTEN REGION 2026-06-10: func_80003C24..func_80004030 (through
+ * 0x44CC) is one handwritten boot/PI-DMA chain, not compiler output:
+ * no prologue at any symbol (3E64: or t2,t1,at first insn; 3FF0: addu
+ * t3,t9,t2; 4030: bnez t9 reading the predecessor's t5/t9 loads),
+ * t-reg-only dataflow, PI registers (0xA4600010, 0x510(t3)) -- the
+ * continuation of the func_800031F0 handwritten handler neighborhood.
+ * Permanent INCLUDE_ASM (same class as 31F0). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E64);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80003FF0);
