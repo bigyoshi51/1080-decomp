@@ -189,10 +189,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *  [RETRACTED pass 13: the ori-constant "error" was an LCS
  *  misalignment artifact in the renumbered midsection -- both
  *  constants are correctly placed; a swap probe was score-neutral]; a
- *  MISSING DUPLICATED record-block (target repeats the lw 12(a0)/
- *  lw 4/addiu/sw counter-bump block once more at +0x85C); frame -96
- *  vs -72 (3 spill slots); and the loop-body v1/a0 temp renumber.
- *  All C-addressable except possibly the renumber.
+ *  [RETRACTED pass 14: the "+0x85C missing block" was ALSO LCS noise
+ *  -- both builds contain exactly 27 record-bump blocks]; frame -96
+ *  vs -72 (3 extra spill slots + their store/load insns = the 0xC
+ *  size delta); and the loop-body v1/a0 temp renumber. FINAL STATE:
+ *  decode-verified at 88.83; the entire residual is allocator-class
+ *  (spill count + temp coloring). Cadence work rests here; uoptlist
+ *  occupant trace is the remaining instrument.
  *  3c. (pass 10 negative-flat) the target loads mode-consts 2/3 into
  *     s3/s2 BEFORE the jal (register compares: bne s3,v0 / bne s2,v0).
  *     Plain pre-call locals (const_two=2; const_three=3) got folded
