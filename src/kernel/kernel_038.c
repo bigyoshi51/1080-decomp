@@ -32,13 +32,11 @@ void func_80005B10(s32* t, s32 id, void* entry, s32 arg, void* sp, s32 p) {
     D_8000A41C = (s32)t;
     func_800066D0(saveMask);
 }
-/* func_80005B10 NEAR-EXACT 2026-06-10 (reloc-aware diff): ALL insn
- * diffs are reloc-false (lui/addiu/jal/lw resolve correctly: D_8000A41C,
- * func_800066B0/66D0, the 0x80003FE0 handler addr); the SOLE real diff
- * is ONE TRAILING NOP -- the build emits 0x144 vs the .s's declared
- * 0x140 (an alignment nop after the jr-ra delay, inside the symbol
- * size). One padding insn from exact; promotion blocked until the nop
- * source is found (kernel ROM is byte-exact -- a +4 symbol would shift
- * the section). Candidate causes: cc .align inside size attribution vs
- * splat's boundary; see MATCHING_WORKFLOW size-attribution entries. */
+/* func_80005B10 (osCreateThread): ALREADY MATCHED -- this C is the
+ * real build path (no wrap) and the kernel ROM is byte-exact with it.
+ * The report's 98.75 was an ARTIFACT: the NM-path .o goes through
+ * asm-processor, which 16-aligns .text (0x150) and attributes a pad
+ * nop to the symbol (0x144 vs true 0x140). Fixed via
+ * NON_MATCHING_TRUNCATE_TEXT := 0x140 in the Makefile. All other insn
+ * "diffs" were reloc-false. */
 
