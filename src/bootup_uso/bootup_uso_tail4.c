@@ -378,20 +378,10 @@ loop_19:
             } else {
                 var_f2_2 = 1.0f - var_f0;
             }
-            temp_f10 = var_f2_2 * 255.0f;
-            if (M2C_ERROR(/* cfc1 */) & 0x78) {
-                if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-                    var_t9 = (s32) (temp_f10 - 2.1474836e9f) | 0x80000000;
-                } else {
-                    goto block_40;
-                }
-            } else {
-                var_t9 = (s32) temp_f10;
-                if (var_t9 < 0) {
-block_40:
-                    var_t9 = -1;
-                }
-            }
+            /* pass-3 class-2 fix: m2c decomposed IDO's inline (u32)float
+             * expansion (the 2^31-subtract branch + FCSR checks) -- the
+             * source construct is a single unsigned cast. */
+            var_t9 = (u32) (var_f2_2 * 255.0f);
             var_v0_2 = var_a1;
             *(s8 *)(*(s32 *)((char *)(arg0) + 0x50) + temp_t1) = (s8) var_t9;
             if (var_a1 != 0x20) {
