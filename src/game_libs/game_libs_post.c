@@ -11322,46 +11322,58 @@ extern char D_tbl_288ac;
  * shift) -- both worse than the 99.92 baseline. The original blocked
  * propagation by an unknown structure; single-operand copy-prop gate.
  */
-#ifdef NON_MATCHING
-int game_libs_func_000288AC(char *a0, char *a1, int a2) {
-    float f0, f2, f4;
-    int v1 = 0;
-
-    if (a2 < 128) {
-        a2 = 128;
+int game_libs_func_000288AC(char *a0, char *a1, int a2)
+{
+  float f0;
+  float f2;
+  float f4;
+  int v1 = 0;
+  if (a2 < 128)
+  {
+    a2 = 128;
+  }
+  f0 = *((float *) (a1 + 0x30));
+  f2 = f0;
+  if ((*((unsigned char *) (a1 + 0x20))) != 0)
+  {
+    float f12 = *((float *) (a1 + 0x28));
+    if (f12 > 0.0f)
+    {
+      float s = f12 + 1.0f;
+      f0 = *((float *) (a1 + 0x30));
+      f2 = f2 * s;
     }
-    f0 = *(float*)(a1 + 0x30);
-    f2 = f0;
-    if (*(unsigned char*)(a1 + 0x20) != 0) {
-        float f12 = *(float*)(a1 + 0x28);
-        if (f12 > 0.0f) {
-            float s = f12 + 1.0f;
-            f2 = f2 * s;
-        }
-    }
-    if (f2 < D_00000FD4) {
-        v1 = 0;
-        f2 = D_00000FD8;
-    } else if (f2 < D_00000FDC) {
-        v1 = 1;
-        f2 = D_00000FE0;
-    } else if (f2 < D_00000FE4) {
-        v1 = 2;
-        f2 = D_00000FE8;
-    } else {
-        v1 = 3;
-        f2 = D_00000FEC;
-    }
-    f4 = f0 * f2;
-    *(float*)(a1 + 0x30) = f4;
-    a0[0x31] = (char)a2;
-    a0[0x32] = (char)v1;
-    *(int*)(a0 + 0xC0) = *(int*)((char*)&D_tbl_288ac + a2 * 4 - 0x200) + (v1 << 7);
-    return v1;
+  }
+  if (f2 < D_00000FD4)
+  {
+    v1 = 0;
+    f2 = D_00000FD8;
+  }
+  else
+    if (f2 < D_00000FDC)
+  {
+    v1 = 1;
+    f2 = D_00000FE0;
+  }
+  else
+    if (f2 < D_00000FE4)
+  {
+    v1 = 2;
+    f2 = D_00000FE8;
+  }
+  else
+  {
+    v1 = 3;
+    f2 = D_00000FEC;
+  }
+  f4 = f0 * f2;
+  *((float *) (a1 + 0x30)) = f4;
+  a0[0x31] = (char) a2;
+  a0[0x32] = (char) v1;
+  *((int *) (a0 + 0xC0)) = (*((int *) ((((char *) (&D_tbl_288ac)) + (a2 * 4)) - (0x200 & 0xFFFF)))) + (v1 << 7);
+  return v1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000288AC);
-#endif
+
 
 /* gl_func_000289B0: 22-insn. sel = a1->u8[2]; if (sel==255) sel =
  * (s16)(*(int**)(a1+0x50))->[0x24]; v1 = a0->u8[0x32];

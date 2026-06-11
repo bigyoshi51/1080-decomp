@@ -15379,34 +15379,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046BC4);
 // documented mul.s fs/ft operand-canonicalization cap (cf. gl_func_000520B8 /
 // 00052104), not C-flippable. Stays NM. The float-return `cb` is modeled via
 // gl_retf_46C4C (float-returning view of the jal-0 placeholder); h via gl_fn_578F0.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern float gl_retf_46C4C();      /* float-returning view of the jal-0 placeholder (cb) */
 extern void gl_fn_578F0();         /* concrete jal target 0x578F0 (h) */
-void gl_func_00046C4C(int *a0, int *a1) {
-    int *s0;
-    int scaled;
-
-    s0 = (int*)((char*)a1 + 0x1C);
-    if (a1[0x28 / 4] & 0x10) {
-        int *obj = (int*)a1[0x1C / 4];
-        s0 = obj;
-        scaled = (int)((float)(obj[0xC / 4] * obj[0x10 / 4]) * gl_retf_46C4C(a1));
-    } else {
-        scaled = (int)((float)(*(short*)((char*)a1 + 0x20) *
-                               *(short*)((char*)a1 + 0x22)) * gl_retf_46C4C(a1));
-    }
-    if (a1[0x24 / 4] == 0x508 || a1[0x24 / 4] == 0x608) {
-        gl_fn_578F0(*(int*)s0 + 8, scaled);
-        gl_fn_578F0(*(int*)s0 + 0xC, 0x200);
-    } else {
-        gl_fn_578F0(s0, scaled);
-    }
-    (void)a0;
+void gl_func_00046C4C(int *a0, int *a1)
+{
+  int *s0;
+  int scaled;
+  if (a1[0x28 / 4] & 0x10)
+  {
+    int *obj = (int *) a1[0x1C / 4];
+    s0 = obj;
+    scaled = (int) (((float) (obj[0xC / 4] * obj[0x10 / 4])) * gl_retf_46C4C(a1));
+  }
+  else
+  {
+    s0 = (int *) (((char *) a1) + 0x1C);
+    scaled = (int) (((float) ((*((short *) (((char *) a1) + 0x20))) * (*((short *) (((char *) a1) + 0x22))))) * gl_retf_46C4C(a1));
+  }
+  if ((a1[0x24 / 4] == 0x508) || (a1[0x24 / 4] == 0x608))
+  {
+    gl_fn_578F0((*((int *) s0)) + 8, scaled);
+    gl_fn_578F0((*((int *) s0)) + 0xC, 0x200);
+  }
+  else
+  {
+    gl_fn_578F0(s0, scaled);
+  }
+  (void) a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00046C4C);
-#endif
+
 
 // Convert Vec3 a2[0..2] to 3 signed bytes at a1[0..2], scaled by 127.0f.
 // Sibling of 0x47AD8 (dest a1 / src a2, first arg unused+homed). (int) cast

@@ -2508,3 +2508,6 @@ h2hproc_uso_func_h2h_518 = 0x00000518;
 h2hproc_uso_func_h2h_554 = 0x00000554;
 gl_ref_00021E04 = 0x00021E04;
 gl_func_00000000_void = 0x00000000;
+D_arc_27BC_str = 0x00000000;
+gl_retf_46C4C = 0x00000000;
+gl_fn_578F0 = 0x000578F0;
