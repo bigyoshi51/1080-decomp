@@ -21227,6 +21227,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F2DC);
 //   builder). Real-C STRUCTURAL body below — transform-build +
 //   cb-emit + dest-copy skeleton only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
+/* gl_func_0004F2F4 graft attempt 2026-06-10: fresh m2c graft emitted
+ * 0x810 vs target 0x410 (DOUBLE size -- m2c duplicated-tail/unroll
+ * explosion) -> fuzzy=None. This 12.56 body stays. The 2x emission
+ * suggests m2c re-rendered shared tails per-path; hand re-derivation
+ * with explicit shared blocks needed. */
 #ifdef NON_MATCHING
 extern int D_00000000;
 void gl_func_0004F2F4(int a0, char *a1, int a2, float a3) {
