@@ -1864,7 +1864,14 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251
  *  expected-TU target.o) RUNS but scores TU-wide (~247k metric,
  *  meaningless for a 2-insn gate) -- the target.o must contain ONLY
  *  the fn. Use tools/decomp-permuter/import.py with PERMUTER=1 make
- *  mode (see reference_permuter_asmproc memo) for a real run. */
+ *  mode (see reference_permuter_asmproc memo) for a real run.
+ *  2026-06-11 SCOPED RUN (import.py): base score 60 -> best 50 within
+ *  minutes via TWO new shapes: (a) the array index 0x48/4 held in a
+ *  VARIABLE (new_var) -- the index-through-variable trick; (b) the
+ *  condition deref spelled multiply-FIRST with p0 fully inlined.
+ *  Long background run in flight (nonmatchings/arcproc_uso_func_
+ *  000027BC/, log /tmp/perm27bc.log); import the best output when it
+ *  plateaus or hits 0. */
 extern int gl_func_00000000();
 extern void gl_func_00000000_void(int);  /* void-prototyped alias (=0x0): dead-return-reuse lever */
 extern char D_arc_27BC_str;
