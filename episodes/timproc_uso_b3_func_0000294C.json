@@ -1,0 +1,32 @@
+{
+  "function_name": "timproc_uso_b3_func_0000294C",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T15:10:57.068065+00:00",
+  "end_time": "2026-06-11T15:10:57.068105+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T15:10:57.068092+00:00",
+      "assistant_text": "Cracked via the array-IXA lever derived from reading uopt source (n64decomp/ido): the addu operand order is ucode SHAPE, not allocator choice -- typedef'd array-row indexing keeps IXA form (base-first addu) where flat pointer arithmetic emits scaled-first. 862k combined permuter iterations had failed; the rule worked first try.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 78,
+  "initial_m2c_source": null,
+  "final_source": "extern int D_b3_294C_g20C;\nvoid timproc_uso_b3_func_0000294C(int *a0)\n{\n  int new_var;\n  switch (a0[0x50 / 4])\n  {\n    case 0:\n      if (gl_func_00000000(&D_00000000, 0x40100) != 0)\n    {\n      typedef int Row294C[10];\n      Row294C *base = (Row294C *) a0[0x48 / 4];\n      int *slot = base[((int *) base)[0x7C / 4]];\n      if (slot[0x90 / 4] != 0)\n      {\n        if (slot[0x88 / 4] != 0)\n        {\n          int *base2;\n          int *slot2;\n          gl_func_00000000(5);\n          if (1)\n          {\n          }\n          slot = a0;\n          D_b3_294C_g208 = slot[0x48 / 4];\n          D_b3_294C_g20C = (int) a0;\n          base2 = (int *) slot[0x48 / 4];\n          ;\n          ((void (*)(void)) ((int *) (base2 + (base2[0x7C / 4] * 0xA)))[(0x90 ^ 0) / (new_var = 4)])();\n        }\n        else\n        {\n          gl_func_00000000(165);\n        }\n      }\n    }\n      break;\n\n    case 1:\n\n    case 2:\n      gl_func_00000000(a0);\n      break;\n\n  }\n\n}\n",
+  "metadata": {
+    "source_path": "/tmp/timproc_uso_b3_func_0000294C_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_0000294C.s",
+    "segment": "timproc_uso_b3",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}

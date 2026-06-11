@@ -1,0 +1,32 @@
+{
+  "function_name": "timproc_uso_b1_func_00002740",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T15:10:57.588278+00:00",
+  "end_time": "2026-06-11T15:10:57.588321+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T15:10:57.588308+00:00",
+      "assistant_text": "Byte-identical twin of b3 294C; same array-IXA lever (uopt-source-derived rule: commutative addu operand order is determined by ucode shape -- array-row indexing vs flat pointer arithmetic).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 72,
+  "initial_m2c_source": null,
+  "final_source": "extern int D_b1_2740_g20C;\n/* 2026-06-11: scoped permuter run IN FLIGHT (base 80, log\n * /tmp/perm2740.log) -- CONCLUDED 2026-06-11 ~02:50: both twins\n * terminally plateau at permuter-score 60 (= one diff, objdiff 99.84;\n * b3 at 573k iters, b1 at 289k). The class's LAST addu order resists\n * randomized search symmetrically -- consistent with a genuinely\n * allocator-internal choice. 99.84 is the twins' C+permuter ceiling;\n * uopt-internals research is the only remaining instrument. */\nvoid timproc_uso_b1_func_00002740(int *a0)\n{\n  int new_var;\n  switch (a0[0x50 / 4])\n  {\n    case 0:\n      if (gl_func_00000000(&D_00000000, 0x40100) != 0)\n    {\n      typedef int Row2740[10];\n      Row2740 *base = (Row2740 *) a0[0x48 / 4];\n      int *slot = base[((int *) base)[0x7C / 4]];\n      if (slot[0x90 / 4] != 0)\n      {\n        if (slot[0x88 / 4] != 0)\n        {\n          int *base2;\n          int *slot2;\n          gl_func_00000000(5);\n          if (1)\n          {\n          }\n          slot = a0;\n          D_b1_2740_g208 = slot[0x48 / 4];\n          D_b1_2740_g20C = (int) a0;\n          base2 = (int *) slot[0x48 / 4];\n          ;\n          ((void (*)(void)) ((int *) (base2 + (base2[0x7C / 4] * 0xA)))[(0x90 ^ 0) / (new_var = 4)])();\n        }\n        else\n        {\n          gl_func_00000000(165);\n        }\n      }\n    }\n      break;\n\n    case 1:\n\n    case 2:\n      gl_func_00000000(a0);\n      break;\n\n  }\n\n}\n",
+  "metadata": {
+    "source_path": "/tmp/timproc_uso_b1_func_00002740_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00002740.s",
+    "segment": "timproc_uso_b1",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}
