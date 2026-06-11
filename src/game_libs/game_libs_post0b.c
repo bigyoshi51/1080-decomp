@@ -6856,55 +6856,131 @@ void gl_func_0003CB6C(char *a0, int a1, int a2, float a3, float a4) {
 //   per-axis abs-delta proximity test only. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* 2026-06-04 RECONSTRUCT via Ghidra: collision/overlap test with response.
- * a=param_1, b=param_2 (objects), out=param_3 (Vec4 contact). Gate b->0x8==1
- * else virtual-dispatch via b->0x30 vtable. Open: dir[] (sp+0x78/7C/80) source. */
-int gl_func_0003CBB4(char *a, char *b, float *out) {
-    float adx, ady, adz;
-    float dx, dy, dz;
-    float dir0, dir1, dir2;
-    int hit;
-    int r = 0;
-    if (*(int *)(b + 0x08) == 1) {
-        adx = *(float *)(a + 0x20) - *(float *)(b + 0x20);
-        if (adx < 0.0f) adx = -adx;
-        if (adx < 1000.0f) {
-            ady = *(float *)(a + 0x18) - *(float *)(b + 0x18);
-            if (ady < 0.0f) ady = -ady;
-            if (ady < 1000.0f) {
-                adz = *(float *)(a + 0x1c) - *(float *)(b + 0x1c);
-                if (adz < 0.0f) adz = -adz;
-                if (adz < *(float *)(a + 0x38) + *(float *)(b + 0x38)) {
-                    dx = *(float *)(a + 0x24) - *(float *)(b + 0x24);
-                    dy = *(float *)(a + 0x28) - *(float *)(b + 0x28);
-                    dz = *(float *)(a + 0x2c) - *(float *)(b + 0x2c);
-                    r = 0;
-                    hit = gl_func_00000000();
-                    if (hit == 0) {
-                        if ((*(unsigned int *)(b + 0x10) & 1) != 0) {
-                            out[0] = 0.0f; out[1] = 0.0f;
-                            out[2] = 0.0f; out[3] = 0.0f;
-                            r = 1;
+/* PASS-2 2026-06-10 (big-swing): FULL m2c graft (248 insns, 2% COP1,
+ * table-free; prior 17.27 body replaced -- preserved in git). */
+s32 gl_func_0003CBB4(char *arg0, char *arg1, char *arg2) {
+    f32 sp70; f32 sp74; f32 sp7C; f32 sp80; f32 spA4; f32 spAC; f32 spB0;
+    s32 spCC;
+    f32 spC0;
+    f32 spBC;
+    f32 spB8;
+    f32 spA8;
+    f32 spA0;
+    f32 sp9C;
+    f32 sp94;
+    s32 sp90;
+    f32 sp88;
+    s32 sp84;
+    f32 sp78;
+    f32 sp6C;
+    f32 sp64;
+    f32 sp60;
+    f32 sp5C;
+    f32 sp48;
+    f32 sp44;
+    f32 sp40;
+    f32 temp_f12;
+    f32 var_f0;
+    f32 var_f0_2;
+    f32 var_f0_3;
+    s32 temp_t6;
+    s32 temp_t7;
+    s32 var_t0;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v1;
+
+    var_t0 = 0;
+    if (*(s32 *)((char *)(arg1) + 0x8) == 1) {
+        spC0 = *(s32 *)((char *)(arg0) + 0x20) - *(s32 *)((char *)(arg1) + 0x20);
+        if (spC0 < 0.0f) {
+            spC0 = *(s32 *)((char *)(arg0) + 0x20) - *(s32 *)((char *)(arg1) + 0x20);
+            var_f0 = -spC0;
+        } else {
+            spC0 = *(s32 *)((char *)(arg0) + 0x20) - *(s32 *)((char *)(arg1) + 0x20);
+            var_f0 = spC0;
+        }
+        if (var_f0 < 1000.0f) {
+            spB8 = *(s32 *)((char *)(arg0) + 0x18) - *(s32 *)((char *)(arg1) + 0x18);
+            if (spB8 < 0.0f) {
+                spB8 = *(s32 *)((char *)(arg0) + 0x18) - *(s32 *)((char *)(arg1) + 0x18);
+                var_f0_2 = -spB8;
+            } else {
+                spB8 = *(s32 *)((char *)(arg0) + 0x18) - *(s32 *)((char *)(arg1) + 0x18);
+                var_f0_2 = spB8;
+            }
+            if (var_f0_2 < 1000.0f) {
+                temp_v0 = arg0 + 0x24;
+                temp_v1 = arg1 + 0x24;
+                spBC = *(s32 *)((char *)(arg0) + 0x1C) - *(s32 *)((char *)(arg1) + 0x1C);
+                if (spBC < 0.0f) {
+                    spBC = *(s32 *)((char *)(arg0) + 0x1C) - *(s32 *)((char *)(arg1) + 0x1C);
+                    var_f0_3 = -spBC;
+                } else {
+                    spBC = *(s32 *)((char *)(arg0) + 0x1C) - *(s32 *)((char *)(arg1) + 0x1C);
+                    var_f0_3 = spBC;
+                }
+                if (var_f0_3 < (*(s32 *)((char *)(arg0) + 0x38) + *(s32 *)((char *)(arg1) + 0x38))) {
+                    sp5C = *(s32 *)((char *)(arg0) + 0x24) - *(s32 *)((char *)(arg1) + 0x24);
+                    sp60 = *(s32 *)((char *)(temp_v0) + 0x4) - *(s32 *)((char *)(temp_v1) + 0x4);
+                    sp64 = *(s32 *)((char *)(temp_v0) + 0x8) - *(s32 *)((char *)(temp_v1) + 0x8);
+                    *((s32 *)&sp6C + 0) = *((s32 *)&sp5C + 0);
+                    *((s32 *)&sp6C + 1) = (s32) *((s32 *)&sp5C + 1);
+                    *((s32 *)&sp6C + 2) = (s32) *((s32 *)&sp5C + 2);
+                    *((s32 *)&spA8 + 0) = *((s32 *)&sp6C + 0);
+                    *((s32 *)&spA8 + 1) = (s32) *((s32 *)&sp6C + 1);
+                    *((s32 *)&spA8 + 2) = (s32) *((s32 *)&sp6C + 2);
+                    *((s32 *)&sp9C + 0) = *(s32 *)((char *)(arg0) + 0x18);
+                    *((s32 *)&sp9C + 1) = (f32) *(s32 *)((char *)(arg0) + 0x1C);
+                    *((s32 *)&sp9C + 2) = (f32) *(s32 *)((char *)(arg0) + 0x20);
+                    temp_f12 = spA4 + spB0;
+                    sp48 = temp_f12;
+                    sp44 = spA0 + spAC;
+                    sp40 = sp9C + spA8;
+                    *((s32 *)&sp6C + 0) = *((s32 *)&sp40 + 0);
+                    temp_t6 = *((s32 *)&sp40 + 1);
+                    *((s32 *)&sp6C + 1) = temp_t6;
+                    temp_t7 = *((s32 *)&sp40 + 2);
+                    *((s32 *)&sp90 + 1) = temp_t6;
+                    *((s32 *)&sp90 + 0) = (f32) *((s32 *)&sp6C + 0);
+                    *((s32 *)&sp6C + 2) = temp_t7;
+                    *((s32 *)&sp90 + 2) = temp_t7;
+                    *((s32 *)&sp84 + 0) = (f32) *(s32 *)((char *)(arg1) + 0x18);
+                    *((s32 *)&sp84 + 1) = (f32) *(s32 *)((char *)(arg1) + 0x1C);
+                    *((s32 *)&sp84 + 2) = (f32) *(s32 *)((char *)(arg1) + 0x20);
+                    sp94 = 0.0f;
+                    spA0 = 0.0f;
+                    sp88 = 0.0f;
+                    spCC = 0;
+                    var_t0 = spCC;
+                    if (func_00000000(temp_f12, 0, &sp9C, &sp90, &sp84, *(s32 *)((char *)(arg0) + 0x34) + *(s32 *)((char *)(arg1) + 0x34), &sp78) != 0) {
+                        func_00000000((spA8 * spA8) + (spAC * spAC) + (spB0 * spB0), 0);
+                        *(f32 *)((char *)(arg2) + 0xC) = (f32) -((spA8 * sp78) + (spAC * sp7C) + (spB0 * sp80));
+                        if (*(s32 *)((char *)(arg2) + 0xC) > 0.0f) {
+                            func_00000000(&spB8);
+                            var_t0 = 1;
+                            *((s32 *)&sp6C + 0) = *((s32 *)&sp78 + 0);
+                            *((s32 *)&sp6C + 1) = (s32) *((s32 *)&sp78 + 1);
+                            *((s32 *)&sp6C + 2) = (s32) *((s32 *)&sp78 + 2);
+                            *(s32 *)((char *)(arg2) + 0x0) = sp6C;
+                            *(s32 *)((char *)(arg2) + 0x4) = sp70;
+                            *(s32 *)((char *)(arg2) + 0x8) = sp74;
                         }
-                    } else {
-                        gl_func_00000000(dx * dx + dy * dy + dz * dz);
-                        out[3] = -(dx * dir0 + dy * dir1 + dz * dir2);
-                        if (0.0f < out[3]) {
-                            gl_func_00000000(&ady);
-                            r = 1;
-                            out[0] = dir0;
-                            out[1] = dir1;
-                            out[2] = dir2;
-                        }
+                    } else if (*(s32 *)((char *)(arg1) + 0x10) & 1) {
+                        *(s32 *)((char *)(arg2) + 0x0) = 0.0f;
+                        *(s32 *)((char *)(arg2) + 0x4) = 0.0f;
+                        *(s32 *)((char *)(arg2) + 0x8) = 0.0f;
+                        *(s32 *)((char *)(arg2) + 0xC) = 0.0f;
+                        var_t0 = 1;
                     }
                 }
             }
         }
     } else {
-        r = (*(int (**)())(*(int *)(b + 0x30) + 0xc))(
-                *(short *)(*(int *)(b + 0x30) + 8) + b, a, out);
+        temp_v0_2 = *(s32 *)((char *)(arg1) + 0x30);
+        var_t0 = ((int (*)())*(s32 *)((char *)(temp_v0_2) + 0xC))(*(s32 *)((char *)(temp_v0_2) + 0x8) + arg1, arg0, arg2);
     }
-    return r;
+    return var_t0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CBB4);
