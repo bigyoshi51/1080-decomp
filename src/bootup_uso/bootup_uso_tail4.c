@@ -161,11 +161,14 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft (566 insns, no
  * jumptables, 0 M2C_ERRORs); FP-heavy.
  * PASS-3 GAP MAP (77.44; LCS 2026-06-10) -- the refinement roadmap:
- *  1. PROLOGUE (UPDATED pass 5): the sdc1 frame now EMITS (the pool-
- *     symbol fix moved the FP allocation) -- residual: ONE extra int
- *     callee-saved pair (7 sw vs target 6) = one variable over-promoted
- *     to an s-reg; remove-local-recompute or var-merge lever. Size
- *     +0x14.
+ *  1. PROLOGUE (pass 6 analysis): target saves s0-s3 ONLY with a
+ *     LARGER frame (-0x60 vs our -0x50) = 2 values stack-resident in
+ *     the original; our graft promotes 2 long-range vars to s4/s5
+ *     (not call-window crossing -- long-distance ranges, m2c names
+ *     var_t2/var_t5/var_v0_2 class). Next lever: uoptlist regalloc
+ *     dump (-Wo,-zdbug:6, see memory project_1080_regalloc_dump) to
+ *     identify the 2 candidates, then force them stack-resident
+ *     (volatile-pad sandwich or address-taken).
  *  2. +0x268/+0x28C/+0x2C0: target does INLINE float->int with FCSR
  *     rounding dance (cfc1/ctc1/cvt.w.s/mfc1) where the graft emits
  *     jal (library-call casts). Find the C construct for the inline
