@@ -1492,7 +1492,18 @@ extern int D_00000000;
  * the v1-vs-a2 is ugen's binding for r's PRE-call piece (`or X,v0`), which then
  * sticks for the reload (same temploc-rebinding class as 525F0). a2-reuse retried
  * precisely: still v1 + loses the 0x1C slot (param homes to arg slot). Two-return
- * + ret-funnel shapes regress structure. ugen-internal; stays NM. */
+ * + ret-funnel shapes regress structure. ugen-internal; stays NM.
+ * 2026-06-11 ugen-crack session: spill-SOURCE forensics sharpen the verdict.
+ * Target spills FROM v0 (sw v0,0x1C in the jal delay) with carrier a2; ours
+ * spills FROM the carrier (sw v1,0x1C). Target's no-call-path piece of r's
+ * split web is COLORED (a2 = the only caller-saved reg not redefined in the
+ * range: v1 free but unpicked, a0/a1 marshal-redefined); ours is REJECTED
+ * (-ve save) so ugen binds it at translate (v1 = first available v-reg).
+ * The gap is the split piece's adjsave sign inside uopt needsplit/split —
+ * not steerable: K&R fn-ptr cast (v0:v1-protection theory) NEUTRAL,
+ * a0-param-reuse flips to spill-from-v0 but collapses the frame (arg-slot
+ * home), `return r|0` and `register` NEUTRAL. Mechanism fully located
+ * (uopt split + ugen translate binding interplay); no C handle. */
 int gl_func_00035834(int a0, int a1, int a2) {
     int r = ((int(*)(int,int))(*(int**)&D_00000000)[0x48/4])(a1, a2);
     if (r < 0) {
@@ -23867,7 +23878,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
  * (same temploc rebinds the same reg). Web-split probes all undone by
  * copy-prop (fin=obj, |0/^0/+0/~~ identities, if(1) wraps, fin[1]
  * array funnel, address-taken fin), 9 variants neutral or regressed.
- * v0-reuse-after-void-call multi-arm class; uoptlist-territory. */
+ * v0-reuse-after-void-call multi-arm class; uoptlist-territory.
+ * 2026-06-11 ugen-crack session (-Wc,-d trace, see docs/IDO_CODEGEN
+ * "UGEN OPENED"): the ugen emission trace confirms obj is bound to v1
+ * at EVERY site in our build (zmove xr3 xr2 / zsw xr3 28(sp) / reload
+ * zlw xr3 28(sp)) — the reload reg choice is made INSIDE ugen translate
+ * (not as1, not uopt coloring; v0/v1 are not in the t6..t5 scratch
+ * queue either). ugen rebinds the temploc 0x1C to its recorded last
+ * register (v1); the original got a FRESH v0 at the same reload — i.e.
+ * its temploc record was stale/absent at that point (mechanism not
+ * reachable: probably slot-sharing or a cfe CUP-time call-result temp
+ * that bound v0 first in the original ucode). New probes this session:
+ * void-prototyped alias on the 2nd call (the docs dead-return-v0 lever)
+ * NEUTRAL — v0-protection is not the gate; decl-split, register decl,
+ * named-discarded-result t: all byte-neutral. 12+ spellings total
+ * cannot reach ugen's temploc record from C. Cap stands at 99.55. */
 void gl_func_000525F0(int *self, int *target) {
     extern int D_00000000;
     int *obj = (int*)self[0x2C / 4];
