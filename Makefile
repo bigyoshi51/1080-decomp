@@ -41,6 +41,7 @@ build/src/arcproc_uso/arcproc_uso_o0_50.c.o build/non_matching/src/arcproc_uso/a
 build/src/arcproc_uso/arcproc_uso.c.o build/non_matching/src/arcproc_uso/arcproc_uso.c.o: OPT_FLAGS := -O0
 build/src/arcproc_uso/arcproc_uso.c.o: TRUNCATE_TEXT := 0x50
 build/non_matching/src/kernel/kernel_038.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x140
+build/non_matching/src/kernel/kernel_017.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x9C
 build/src/arcproc_uso/arcproc_uso.c.o: PREFIX_BYTES := arcproc_uso_func_00000000=0x10006F00
 build/non_matching/src/arcproc_uso/arcproc_uso.c.o: NON_MATCHING_PREFIX_BYTES := arcproc_uso_func_00000000=0x10006F00
 build/src/boarder5_uso/boarder5_uso.c.o: PREFIX_BYTES := boarder5_uso_func_00000000=0x1000736F
