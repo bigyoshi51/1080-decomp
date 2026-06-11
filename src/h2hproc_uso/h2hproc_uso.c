@@ -1359,7 +1359,17 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000136
  * CONSTRAINT EDGE (copy to/from a precolored node), not a free pick --
  * which is why all pseudo-order levers fail. Next: trace which isop
  * line references {90|x} to find the constraining copy, restructure
- * that expression. Reading guide in docs/TOOLING_DECOMP. */
+ * that expression. Reading guide in docs/TOOLING_DECOMP.
+ * TRACE DEPTH 2 (same day): live-range IDs are SPARSE (the coloring
+ * section's 14 ids {5,10,14,31,36,51,64,90,109-116} ~ finalnumlr=16);
+ * lr 90 = the src temp. "(constrained) 3" = a constrained-pool pick
+ * where v1 precedes t0 in the allocator's preference order for
+ * non-call-spanning temps; the TARGET's t0 implies its lr had a
+ * different constraint set (likely spanned a constrained point mine
+ * doesn't). Next depth needs uopt allocator internals (preference
+ * order + what constitutes a constrained point) -- beyond the dump
+ * alone; check ido-static-recomp/uopt RE notes or community uopt
+ * source. */
 extern void gl_func_15f0(void *, int, int, int, float);
 void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     char *base = &D_00000000;
