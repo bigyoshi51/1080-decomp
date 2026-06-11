@@ -797,19 +797,27 @@ s32 uso_file_open(FileState* file, u32* arg1) {
  *   2026-05-28: permuter also floors (base 20 -> best 10, no zero) — beq
  *   operand-order is a structural cap class, not scheduling. Don't re-run. */
 #ifdef NON_MATCHING
-s32 uso_skip_to_end(FileState* file) {
-    s32 pad;
-    u32 header[3];
-    s32 pad2;
-    do {
-        if (func_800009D8(header, 12, 1, file) < 0) {
-            return D_80013004;
-        }
-        if (8 != header[0]) {
-            ((s32*)file)[1] += header[1];
-        }
-    } while (11 != header[0]);
-    return 0;
+s32 uso_skip_to_end(FileState *file)
+{
+  s32 pad;
+  u32 header[3];
+  s32 new_var;
+  s32 pad2;
+  do
+  {
+    new_var = func_800009D8(header, 12, 1, file);
+    pad = header[0];
+    if (new_var < 0)
+    {
+      return D_80013004;
+    }
+    if (8 != pad)
+    {
+      ((s32 *) file)[1] += header[1];
+    }
+  }
+  while (11 != header[0]);
+  return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_skip_to_end);
