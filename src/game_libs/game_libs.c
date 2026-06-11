@@ -2324,11 +2324,18 @@ void gl_func_000041D4(Vec3 *dst) {
 
 // gl_func_00004244 — m2c DECODE (28.62% NM, no episode). LARGEST non-jumptable lift (2479w); game_libs control-flow via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
-/* PASS-N 2026-06-10 (big-swing): FULL m2c graft replacing the prior
- * hand body (39.82; preserved in git history). 2479 insns, no
- * jumptables, zero M2C_ERRORs. The prior body compressed the repeated
- * 33-insn inline pattern and lacked the final third (211+388-insn
- * tail blocks). Checklist 1-16 applied. */
+/* PASS-O 2026-06-11 (578B4-ladder from 53.60 -> 99.76, insns 2479 exact,
+ * 96.5% words byte-exact): 32 light-record units rewritten as per-unit
+ * V4/F1 structs w/ aggregate copies (beats const-forwarding/DSE);
+ * &D_00000000 depooled into per-offset aliases (kills HI16-pool s-reg);
+ * per-unit cd58 aliases break the 31-use constant LR (s-reg cascade
+ * snaps: var_s0->s0, &sp78->s1@120, &sp54->s2@84); ptr-name pairing
+ * (14 names) + decl layout + 2 pads = frame 1864 exact.
+ * RESIDUE (~87 words): units 2-32 spill slots 144-196 vs target's
+ * shared 56 (one-variable-home shape: 1 shared name colors callee-
+ * saved, 31 names fragment templocs — uoptreg2 spilltemps region
+ * sharing unreproduced) + its lui-phase shadow + 2 scheduler swaps
+ * (prologue or/sdc1, at/-8 vs s2 ILDA). */
 extern int D_00000000_cd58_u1;
 extern int D_00000000_cd58_u2;
 extern int D_00000000_cd58_u3;
@@ -2579,7 +2586,6 @@ void *gl_func_00004244(char *arg0) {
     GlV4_4244 u32_c;
     GlF1_4244 u32_f;
     volatile s32 pad_4244_a;
-    volatile s32 pad_4244_b;
     char *var_a0_4;
     char *var_a0_6;
     char *var_a0_8;
@@ -2594,6 +2600,7 @@ void *gl_func_00004244(char *arg0) {
     char *var_a0_26;
     char *var_a0_30;
     char *var_a0;
+    volatile s32 pad_4244_b;
     GlV4_4244 sp78;
     GlV4_4244 sp68;
     GlV4_4244 sp58;
