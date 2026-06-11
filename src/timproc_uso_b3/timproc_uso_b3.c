@@ -1546,7 +1546,12 @@ void timproc_uso_b3_func_00002700(int a0) {
  * 2026-06-10 from the b1 improvement: if(1){} BB lever after gl(5)
  * cuts the renumber to 3 addu-operand-order diffs + 2 reloc-blind
  * stores (the documented true ceiling for the pair; see the b1 wrap
- * and docs/IDO_CODEGEN addu-operand-order entry). */
+ * and docs/IDO_CODEGEN addu-operand-order entry).
+ * 2026-06-10: the 67084 addend-GROUPING lever does NOT transfer --
+ * it needs a CONSTANT term to bind to the base ((base+const)+scaled);
+ * this 2-operand sum (base + scaled, no const) is canonicalized
+ * identically from int-ptr, char-cast, and array forms (3 probes
+ * neutral). The addu order stays allocator-chosen for pure 2-op sums. */
 extern int D_b3_294C_g208;
 extern int D_b3_294C_g20C;
 #ifdef NON_MATCHING
