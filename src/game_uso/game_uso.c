@@ -126,7 +126,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * a permanent cap — but the simple levers are genuinely exhausted here. */
 /* 2026-06-11 permuter CONCLUDED: base 10 (1 true diff) flat through
  * 665k iterations -- allocator-internal. 99.38 stands. */
-#ifdef NON_MATCHING
 /* 1-diff FP-REDUCTION operand-order cap (final add: target `f0=sum3+p3` with
  * sum3 as fs; ours swaps to p3 as fs). RE-CONFIRMED 2026-05-31: the
  * assignment-expr lever `... + (t = b[3]*a[3])` REGRESSES to 15 diffs — pinning
@@ -141,9 +140,7 @@ float game_uso_func_000000A0(float *a, float *b) {
      * before. */
     return a[3]*b[3] + (a[2]*b[2] + (a[1]*b[1] + b[0]*a[0]));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000A0);
-#endif
+
 
 #ifdef NON_MATCHING
 /* Cubic B-spline weighted point evaluator (61 insns, FPU-only). 96.95% NM.

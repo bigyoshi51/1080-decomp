@@ -929,7 +929,6 @@ int gl_func_00035164(int a0) {
     return (int)r;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00035188: 25-insn 2-vtable-call + conditional assert.
  *   g = *(int**)&D_0; g->[0x74](a0, a1);
  *   g = *(int**)&D_0; rv = g->[0x40](a1);
@@ -953,9 +952,7 @@ void gl_func_00035188(int a0, int a1) {
         gl_func_00000000((char*)&D_00000000 + 0x1E510, a1, rv);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035188);
-#endif
+
 
 /* gl_func_000351EC: 20-insn vtable dispatch + error helper. Loads
  * function pointer from (*(int**)&D_0)[0x11], calls it with arg1, and
@@ -25691,7 +25688,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
  * target's single-$s allocation). RESIDUAL (2 diffs): calls 2/3 emit a3=0 as
  * `move a3,zero` vs target `li a3,0` (addiu) — a body-vs-delay-slot 0-arg
  * instruction-selection cap. */
-#ifdef NON_MATCHING
 /* 2-diff residual (2026-05-31): both diffs are the 4th-arg `0` on the two
  * PROTOTYPED `_54a(...,float,...)` calls — IDO emits `move a3,zero` (or) where
  * the target has `li a3,0` (addiu). The K&R-call zeros (gl_func_00000000) match
@@ -25716,9 +25712,7 @@ void gl_func_00054A14(int *s0) {
     gl_func_00000000((int)&D_54a_o4);
     gl_func_00000000(s0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054A14);
-#endif
+
 
 #ifdef NON_MATCHING
 /* gl_func_00054AEC: command-token decoder (clean single fn).
@@ -30623,7 +30617,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
  * load order. NM at 99.97% (was 98.70%). */
 /* 2026-06-11 permuter CONCLUDED: base 10 (1 true diff) flat through
  * 439k iterations -- allocator-internal. 99.75 stands. */
-#ifdef NON_MATCHING
 /* 99.75% — single diff is the final dot-product add.s operand ORDER:
  * target `add.s $f4,$f8,$f6` (fs=running-sum) vs ours `$f4,$f6,$f8`
  * (fs=last-product). Same registers, pure fs/ft encoding swap. The
@@ -30643,9 +30636,7 @@ void game_libs_func_0005D588(float *a0, float *a1, float *a2) {
     a0[2] = a1[0]*a2[1] - a2[0]*a1[1];
     a0[3] = a1[2]*a2[2] + (a1[1]*a2[1] + a2[0]*a1[0]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D588);
-#endif
+
 
 #ifdef NON_MATCHING
 #ifndef FW
