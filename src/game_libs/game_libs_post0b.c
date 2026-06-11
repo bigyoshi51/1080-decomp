@@ -15682,6 +15682,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00047B28);
 //   STRUCTURAL body below — third member of the 000470FC / 000473AC /
 //   00047B40 duplicate family. Byte-match deferred. Name pre-checked:
 //   no extern reuse.
+/* gl_func_00047B40 CLASSIFIED 2026-06-10: CALLER-SET $t6 + $f4 (m2c
+ * `M2C unset` markers at the head -- the caller leaves a state ptr in
+ * $t6 and a float in $f4; the documented game_libs caller-set-reg cap
+ * class). 24% COP1 density is the u32-dance from the $f4 conversion,
+ * not bitwise-FP. Permanent structural cap; do not graft (item 25). */
 #ifdef NON_MATCHING
 void gl_func_00047B40(char *a0, char *a1) {
     float x = *(float *)(a1 + 0x04);
