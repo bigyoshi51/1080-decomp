@@ -1352,7 +1352,14 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000136
  * BB lever after both allocs, early-pseudo dead-init on src, and the
  * store-before-read statement reorder. Temp-pool renumber class --
  * allocator-internal (same family as the 2026-05-28 cap analysis).
- * 99.26 ceiling pending a new lever. */
+ * 99.26 ceiling pending a new lever.
+ * 2026-06-10 UOPTLIST TRACE (standalone repro reproduces the v1 pick):
+ * the src temp = candidate 90, "assigned (constrained) 3" ($v1) with
+ * live-range splits 90->113->116 (spilled tails). v1 is forced by a
+ * CONSTRAINT EDGE (copy to/from a precolored node), not a free pick --
+ * which is why all pseudo-order levers fail. Next: trace which isop
+ * line references {90|x} to find the constraining copy, restructure
+ * that expression. Reading guide in docs/TOOLING_DECOMP. */
 extern void gl_func_15f0(void *, int, int, int, float);
 void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     char *base = &D_00000000;
