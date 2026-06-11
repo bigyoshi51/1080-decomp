@@ -83,7 +83,11 @@ void game_uso_func_00000000(out, t)
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
 #endif
 
-/* 4-element dot product. C body NATURAL CAP 99.375% (1 insn diff).
+/* 4-element dot product. CRACKED 2026-06-11 to 100.0 via fully right-nested
+ * grouping `a[3]*b[3] + (a[2]*b[2] + (a[1]*b[1] + b[0]*a[0]))` (exhaustive
+ * 1920-variant enumeration; the "cap" below was a left-assoc-family-only
+ * conclusion). Historical analysis kept for the record:
+ * 4-element dot product. C body NATURAL CAP 99.375% (1 insn diff).
  * The SINGLE diff is the FINAL add.s (insn 15): IDO emits `add.s f0,f10,f8`
  * (p3 + sum) where target wants `add.s f0,f8,f10` (sum + p3); f8=sum of the
  * first three products, f10=the 4th product. The earlier "second-to-last add"
@@ -130,7 +134,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * pinned operand). Same class as game_libs_func_0005D588. Genuine cap; do not
  * re-grind with the assignment-expr lever. */
 float game_uso_func_000000A0(float *a, float *b) {
-    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + b[3]*a[3];
+    /* 2026-06-11 rules-sweep CRACK: right-nested grouping flips the final
+     * add.s to target order (cfe ufad ichain = ucode shape, rule-1 cousin);
+     * found via exhaustive 1920-variant enumeration (perm x mul-swap x
+     * parenthesization). The left-assoc default was the only family probed
+     * before. */
+    return a[3]*b[3] + (a[2]*b[2] + (a[1]*b[1] + b[0]*a[0]));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000A0);
