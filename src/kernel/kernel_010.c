@@ -31,8 +31,14 @@
  * true table the 44-entry run at VRAM 0x8000A690 / ROM 0xB690 (ends
  * 0xA740, adjacent to the strings) -- but ITS targets [0x89FC..0x8B10]
  * belong to a dispatcher near 0x8A00, not 5C50. Also located: a
- * 54-entry table at ROM 0xB0A0 (targets 0x6FD8..0x7F3C). The 5C50
- * dispatch's true table is still unidentified; trace t1's derivation
- * in the .s (the sltiu bias) in the merge session. */
+ * 54-entry table at ROM 0xB0A0 (targets 0x6FD8..0x7F3C).
+ * FINAL RESOLUTION 2026-06-10: the t1 derivation is addiu t1,t9,-0xA;
+ * sltiu 7 = cases 10..16, table exactly AT 0x8000A770 -- which, in
+ * the data blob (assets/kernel.data.bin +0x7A0), holds the ASCII
+ * strings at LOAD TIME. The handler pointers are RUNTIME-WRITTEN
+ * (debugger handler registration), and a jumptable in .data (not
+ * .rodata) is NOT IDO-emitted -- this dispatcher is handwritten-class
+ * debugger code. Permanent INCLUDE_ASM (same disposition as the
+ * 31F0/3C24 handwritten neighborhood). The 5C50 vein is CLOSED. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005C50);
 
