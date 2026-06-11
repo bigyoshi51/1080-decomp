@@ -1852,9 +1852,14 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251
  *  RESIDUAL 3 real diffs: one 2-op addu operand order (base+scaled,
  *  the 294C-class allocator choice) and block-2's base load v1-vs-v0
  *  (the dead-gl(5)-return reuse the target makes and mine avoids;
- *  inverse of the if(1){} lever, no known C form). Plus 2 reloc-false
- *  store displacements. */
+ *  inverse of the if(1){} lever -- CRACKED same day: a VOID-PROTOTYPED
+ *  call alias (gl_func_00000000_void = 0x0) makes the return provably
+ *  dead, so IDO reuses $v0 for the next load = the target shape.
+ *  91.19 -> 99.52. FINAL residual: the two 2-op addu operand orders
+ *  (294C class, all spellings probed: grouped, mult-side, array) + 2
+ *  reloc-false stores. One allocator choice from exact. */
 extern int gl_func_00000000();
+extern void gl_func_00000000_void(int);  /* void-prototyped alias (=0x0): dead-return-reuse lever */
 extern char D_arc_27BC_str;
 extern int D_arc_27BC_g70;
 extern int D_arc_27BC_g74;
@@ -1863,7 +1868,7 @@ void arcproc_uso_func_000027BC(int *a0) {
         int *p0 = 0;
         p0 = (int*)a0[0x48/4];
         if (*(int*)((char*)p0 + p0[0x7C/4] * 0x28 + 0x90) != 0) {
-            gl_func_00000000(5);
+            gl_func_00000000_void(5);
             D_arc_27BC_g70 = a0[0x48/4];
             D_arc_27BC_g74 = (int)a0;
             {

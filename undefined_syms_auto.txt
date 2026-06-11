@@ -2507,3 +2507,4 @@ arcproc_uso_func_arc_9C8 = 0x000009C8;
 h2hproc_uso_func_h2h_518 = 0x00000518;
 h2hproc_uso_func_h2h_554 = 0x00000554;
 gl_ref_00021E04 = 0x00021E04;
+gl_func_00000000_void = 0x00000000;
