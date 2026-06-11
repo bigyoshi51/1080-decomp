@@ -11939,6 +11939,9 @@ int gl_func_0004211C(int a0) {
  * f(fmt, r2>>10, r3>>10) does NOT fix it: it moves the spill schedule and
  * REGRESSES 99.86->88.9%. Register-renumber cap (a1 vs a3); also placeholder
  * jal => never byte-exact anyway. Don't re-try the arg-reshape. */
+/* 2026-06-11 permuter run CONCLUDED: score 115 flat through 319k
+ * iterations (past the ~250k single-diff budget) -- allocator-
+ * internal, same disposition as the timproc twins. 99.86 stands. */
 #ifdef NON_MATCHING
 /* gl_func_00042144: 36-insn diagnostic dump. Runs a sequence of (collapsed)
  * calls including two printf-like calls with fixed format-string addresses
