@@ -30935,6 +30935,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
  * has fs=running-sum=$f8, ours has fs=last=$f6) is the docs/IDO_CODEGEN.md
  * "final reduction operand order" doc'd cap — can't flip without changing
  * load order. NM at 99.97% (was 98.70%). */
+/* 2026-06-11 permuter CONCLUDED: base 10 (1 true diff) flat through
+ * 439k iterations -- allocator-internal. 99.75 stands. */
 #ifdef NON_MATCHING
 /* 99.75% — single diff is the final dot-product add.s operand ORDER:
  * target `add.s $f4,$f8,$f6` (fs=running-sum) vs ours `$f4,$f6,$f8`

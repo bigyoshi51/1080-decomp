@@ -26,6 +26,9 @@ extern int D_A0000200;
  * diffs -- the -O0 temp counter resets per value, not per statement).
  * Every compiler-version/qualifier/expression-chaining axis now exhausted.
  * Genuine -O0 codegen cap. */
+/* 2026-06-11 permuter CONCLUDED: base 20 (1 true diff) flat through
+ * 551k iterations -- allocator-internal (-O0 temp allocator class).
+ * 99.73 stands. */
 #ifdef NON_MATCHING
 void func_00012818(char *a0, char *a1) {
     int i;
