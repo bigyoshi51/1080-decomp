@@ -172,6 +172,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *     bne/slti reorder (branch-likely steering, docs/IDO_CODEGEN).
  *  4. +0xC0..+0x108: lui/beqz/nop pattern (collapsed-pointer guard
  *     pairs) vs graft's beqzl forms -- the per-test reload recipe. */
+extern f32 D_00000C50, D_00000C54, D_00000C58, D_00000C5C, D_00000C60;
 void func_0001304C(char *arg0) {
     f32 sp44;
     f32 *temp_a0_2;
@@ -312,22 +313,22 @@ block_7:
         var_t4 = 0;
         var_t5 = 0;
         if (temp_v0 == 2) {
-            sp44 = *(f32 *)((char *)&D_00000000 + 0xC50);
+            sp44 = D_00000C50;
         }
         var_f24 = sp44;
         if (temp_v0 == 3) {
             if (*(s32 *)((char *)(arg0) + 0x68) != 0) {
-                var_f24 = *(f32 *)((char *)&D_00000000 + 0xC54);
+                var_f24 = D_00000C54;
             } else {
-                var_f24 = *(f32 *)((char *)&D_00000000 + 0xC58);
+                var_f24 = D_00000C58;
             }
         }
         var_t2 = 0;
         if (temp_v0 == 1) {
             if (*(s32 *)((char *)(arg0) + 0x68) != 0) {
-                var_f24 = *(f32 *)((char *)&D_00000000 + 0xC5C);
+                var_f24 = D_00000C5C;
             } else {
-                var_f24 = *(f32 *)((char *)&D_00000000 + 0xC60);
+                var_f24 = D_00000C60;
             }
         }
         do {
