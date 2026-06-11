@@ -839,7 +839,16 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C1
  * offsets, e.g. 'M 3 -4vreg' / 'M 3 -12vreg' = the in-frame slot
  * coloring). Next session: dump build C vs a slot-permuted variant,
  * identify the 0x24-slot occupant candidate, and reorder its pseudo
- * creation. The ecvt patch is currently applied (cc works). */
+ * creation. The ecvt patch is currently applied (cc works).
+ * 2026-06-10 16-VARIANT STANDALONE GRIND (decl orders, leading/
+ * trailing/interleaved dummies, volatile, arrays, double, register):
+ * the a0-spill slot lands at temp-area top (28 std) or DOWN 4 (24);
+ * no shape pushes it UP without growing the frame (x0[2]/double grow
+ * to -48, wrong). The target has the spill ABOVE an unoccupied slot
+ * at the same frame size = the E6E8-class INVERTED slot ordering
+ * (unused-low, spill-high) -- confirmed same irreducible class. C-side
+ * forcers exhausted; only an allocator-internal account (uoptlist
+ * occupant trace) could name the residual mechanism. */
 void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     int *slotC4, *slotCC;
     int *r1, *r2;
