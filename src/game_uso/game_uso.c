@@ -120,6 +120,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000000);
  * when the pinned operand is a SINGLE load/value; a multi-op reduction operand
  * can't be pinned without rescheduling. Still a permuter/PERM_-macro target, not
  * a permanent cap — but the simple levers are genuinely exhausted here. */
+/* 2026-06-11 permuter CONCLUDED: base 10 (1 true diff) flat through
+ * 665k iterations -- allocator-internal. 99.38 stands. */
 #ifdef NON_MATCHING
 /* 1-diff FP-REDUCTION operand-order cap (final add: target `f0=sum3+p3` with
  * sum3 as fs; ours swaps to p3 as fs). RE-CONFIRMED 2026-05-31: the
