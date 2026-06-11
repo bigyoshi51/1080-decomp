@@ -1845,27 +1845,32 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251
  *  (1) inner gl_func arg is 5 (not 0-arg); (2) two distinct externs
  *  D_arc_27BC_g70 / g74 to defeat IDO CSE on the two &D+0x70 / &D+0x74
  *  stores so each gets its own lui (matches target's two-lui shape).
- *  Remaining: register-name $t0/$v0/$t9 vs mine $t8/$v1/$a1 — reg-alloc. */
+ *  Remaining: register-name $t0/$v0/$t9 vs mine $t8/$v1/$a1 — reg-alloc.
+ *  2026-06-10 (15F0-recipe pass): 91.19 -> 99.29. The shared p/idx/fn
+ *  variables (one lr spanning the gl(5) call) split via per-block
+ *  fresh locals + dead-init (p0/p1) -- the t-pool renumber fixed.
+ *  RESIDUAL 3 real diffs: one 2-op addu operand order (base+scaled,
+ *  the 294C-class allocator choice) and block-2's base load v1-vs-v0
+ *  (the dead-gl(5)-return reuse the target makes and mine avoids;
+ *  inverse of the if(1){} lever, no known C form). Plus 2 reloc-false
+ *  store displacements. */
 extern int gl_func_00000000();
 extern char D_arc_27BC_str;
 extern int D_arc_27BC_g70;
 extern int D_arc_27BC_g74;
 void arcproc_uso_func_000027BC(int *a0) {
-    int *p;
-    int idx;
-    void (*fn)(void);
     if (gl_func_00000000(&D_arc_27BC_str, 0x40100, a0) != 0) {
-        p = (int*)a0[0x48/4];
-        idx = p[0x7C/4];
-        fn = (void(*)(void))*(int*)((char*)p + idx * 0x28 + 0x90);
-        if (fn != 0) {
+        int *p0 = 0;
+        p0 = (int*)a0[0x48/4];
+        if (*(int*)((char*)p0 + p0[0x7C/4] * 0x28 + 0x90) != 0) {
             gl_func_00000000(5);
             D_arc_27BC_g70 = a0[0x48/4];
             D_arc_27BC_g74 = (int)a0;
-            p = (int*)a0[0x48/4];
-            idx = p[0x7C/4];
-            fn = (void(*)(void))*(int*)((char*)p + idx * 0x28 + 0x90);
-            fn();
+            {
+                int *p1 = 0;
+                p1 = (int*)a0[0x48/4];
+                ((void(*)(void))*(int*)((char*)p1 + p1[0x7C/4] * 0x28 + 0x90))();
+            }
         }
     }
 }
