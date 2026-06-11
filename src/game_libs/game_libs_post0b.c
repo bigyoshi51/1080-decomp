@@ -27535,13 +27535,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * ascending, ~20-word diff). if-else chains inline arm 1 (bnel) -- no.
  * Exact-word LCS 467 -> 875/2419 (jal relocs always differ in .o);
  * fuzzy 81.22 -> 81.52 (fuzzy underweights sp-offset fixes ~25:1).
- * REMAINING to 100: (a) ~250 scratch-rotation/coloring diffs in
- * switch-1 arms 2-5 (t6-t9/t0-t1 phase, ugen rotation; permuter-immune
- * scale), (b) 4 colored-vs-spilled webs (target SPLIT-spills spF0/spB8/
- * sp9C/sp80 mid-arm at 240/184/156/128; ours stay colored - needs a
- * pressure lever), (c) var_a2 tail web saves at its decl home vs
- * target reusing sp1DC@476 web, (d) dispatch comparison order,
- * (e) prologue sw ra/sw s0 + lh/move order swaps. */
+ * REMAINING-to-100 (pre-pass-9 list, superseded below): (a) rotation
+ * (b) split-spills (c) var_a2 tail (d) dispatch order (e) prologue.
+ * PASS 9 (2026-06-11/12, or-chain shapes): the "~250 rotation diffs"
+ * were mostly STATEMENT-SHAPE diffs, not phase. uopt or-chain rule
+ * (docs/IDO_CODEGEN "UOPT OR-CHAIN ROTATION" + "pull-last-complex"):
+ * flat |-chains evaluate the LAST COMPLEX operand first; all-complex
+ * chains are fully steerable (write target's first-evaluated operand
+ * LAST). Applied: F4 stmts ACB->CBA; s07 stmts ->c|B|A + (x-1)<<2
+ * shape (blocks distribute-to-x*4-4) + lh-first in A; F2 tails ->B|A
+ * +shift; switch-2 G7 chains ->[t2,t3,E,t4,t5,C,G]; F2G tails
+ * ->[A,B,G]+shift; f518/pack store-pair order swapped (arm1 + arms2-5
+ * + 0x508); switch-2 packs E<->C (l-to-r 7-chain order with simple
+ * head is PULL-UNREACHABLE - best or-correct local form); arm-1
+ * shared dl-ptr 'p' split back into per-statement webs (t0/v0/a0,
+ * supersedes pass-6 "coalescing equivalent"). LCS 875 -> 1673/2419,
+ * fuzzy 81.52 -> 93.82.
+ * REMAINING to 100 (verified classes):
+ * (a) const-web at/ra swap: target colors 0x0700_0000->ra and remats
+ * 0xF5180000 via at per-use; build unifies f518->ra, remats 0700.
+ * Probed const-position/named-var-hoist/zdbug - no C handle yet
+ * (~25-30 words across arms). (b) switch-2 pack 7-chains: target
+ * order [t2,c,t3,E,t4,t5,C] unreachable (pull rule); mixed +/| spine
+ * gives exact order but addu-vs-or bytes. (c) var_t0-class selects
+ * coalesce into freed a2; target picks t0 forcing the spF0/spB8/sp9C/
+ * sp80 ptr split-spills - allocator-internal, select-shape probes
+ * negative. (d) BOTH dispatches are SOURCE-ORDER beq chains in
+ * target; cfe Uxjp case tables are value-sorted (case-block reorder
+ * proves it) and goto-ladders fix the chain but extend webs across
+ * labels -> s-reg allocation, global collapse (goto2/goto3 ~1010).
+ * (e) addu rs/rt for (var+lh): ucode-canonical, source-order-blind.
+ * (f) residual per-arm scratch-queue PERMUTATIONS (constant within a
+ * region, e.g. word-2139 arm's 4-cycle) - upstream free-order; fix
+ * arms left-to-right as shapes close. Probe harness: /tmp/tmpl578b.py
+ * (per-anchor-region exact/blind scoring, ~0.3s/build standalone). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
