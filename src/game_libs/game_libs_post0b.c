@@ -27490,7 +27490,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * space from optimized-out original locals) + structural drift.
  * Next instruments: per-slot home-order RE (uopt home assignment is
  * NOT pure decl order; sp50 lands 244 vs target 80), or per-arm
- * register-shape rewrites against the .s. */
+ * register-shape rewrites against the .s.
+ * PASS 8 (2026-06-11, slot-map): home-order RE SOLVED from uopt source
+ * (docs/IDO_CODEGEN "FRAME-SLOT HOME ASSIGNMENT RULE"): named M-class
+ * homes = framesize + decl-order addr; full decl relayout puts EVERY
+ * memory-resident web at its target offset (homes 32-492 exact, frame
+ * 496). Per-arm web splits: switch-2 dl-ptr temps renamed to the arm's
+ * spXXX var (spFC/spE0/spC4/spA8/sp8C + spF0/spD4/spB8/sp9C/sp80 +
+ * sp50/sp44), switch-1 hdr web = sp1DC (saves at 476 in every arm),
+ * arm-1 first p web = sp1C4, temp_ra(0x508)=sp118. Selector-CSE break:
+ * sp34 (volatile) assigned in default block kills the dispatch->default
+ * spill temploc (frame 504->496); volatile sp20 keeps the target dead
+ * store at 32. Call-1 takes ONE arg (m2c's extra arg0 emitted a phantom
+ * move a1,a3). NEGATIVES: per-arm renames of the switch-1 t1-pointer
+ * (temp_t1_3->sp1A8/18C/170/154) cascade-regress arm-body scratch
+ * rotation (-300 LCS words) -- keep temp_t1_3 SHARED, decl pinned at
+ * sp1A8's slot (-72). Goto-label dispatch (target's unsorted beq chain)
+ * collapses LCS 875->307 -- keep plain switch (build sorts comparisons
+ * ascending, ~20-word diff). if-else chains inline arm 1 (bnel) -- no.
+ * Exact-word LCS 467 -> 875/2419 (jal relocs always differ in .o);
+ * fuzzy 81.22 -> 81.52 (fuzzy underweights sp-offset fixes ~25:1).
+ * REMAINING to 100: (a) ~250 scratch-rotation/coloring diffs in
+ * switch-1 arms 2-5 (t6-t9/t0-t1 phase, ugen rotation; permuter-immune
+ * scale), (b) 4 colored-vs-spilled webs (target SPLIT-spills spF0/spB8/
+ * sp9C/sp80 mid-arm at 240/184/156/128; ours stay colored - needs a
+ * pressure lever), (c) var_a2 tail web saves at its decl home vs
+ * target reusing sp1DC@476 web, (d) dispatch comparison order,
+ * (e) prologue sw ra/sw s0 + lh/move order swaps. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -27614,7 +27640,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
     volatile s32 hybrid_pad_3;
     volatile s32 sp20;
 
-    sp1EC = game_libs_func_00062F08((*(s16 *)((char *)arg1 + 0x20)), arg0);
+    sp1EC = game_libs_func_00062F08((*(s16 *)((char *)arg1 + 0x20)));
     sp1E8 = game_libs_func_00062F08((*(s16 *)((char *)arg1 + 0x22)));
     sp1E0 = 0;
     sp1E4 = 0;
