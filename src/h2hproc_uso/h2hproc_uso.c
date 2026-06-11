@@ -1345,7 +1345,14 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000136
  *                        bind(self+0x10, sub3); ...
  *
  * src = self->[0x44] (parent ptr). Initial pass; partial-arg-shape on
- * the bind/init helpers may need refinement. Default INCLUDE_ASM exact. */
+ * the bind/init helpers may need refinement. Default INCLUDE_ASM exact.
+ * 2026-06-10 CAP ANALYSIS (16 true diffs, all ONE mechanism): the src
+ * temp colors $v1 (build) vs $t0 (target) after the first alloc call;
+ * every later t-reg renumbers by the cascade. Probed NEUTRAL: if(1){}
+ * BB lever after both allocs, early-pseudo dead-init on src, and the
+ * store-before-read statement reorder. Temp-pool renumber class --
+ * allocator-internal (same family as the 2026-05-28 cap analysis).
+ * 99.26 ceiling pending a new lever. */
 extern void gl_func_15f0(void *, int, int, int, float);
 void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     char *base = &D_00000000;
