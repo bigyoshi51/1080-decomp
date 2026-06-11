@@ -17934,7 +17934,12 @@ void game_libs_func_0004ACCC(int a0) {
  * store (`lw tN,0xD0(a2); addu; sh -1`); count*10 via sll/addu/sll;
  * the cb_alloc(&D, count*2) arg and self->0xD0 spill/reload around
  * the call. Documented-hard unrolled-fill shape — focused-pass.
- * Real decoded C preserved; INCLUDE_ASM build path. */
+ * CRACKED 2026-06-11 (wave 2, 100.0): final global-deref chain needed
+ * the first deref NAMED (colors v0 per the named-vs-inline rule; inline
+ * chain took t6/t7/t8) AND declared in an INNER SCOPE `{ int *g = ...; }`
+ * so cfe overlays the dead i/count slots (function-scope g grew the
+ * frame 0x20->0x28). New lever: inner-scope decl = named-var coloring
+ * without the frame cost. */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0004ACD4(int *self) {
@@ -17944,8 +17949,11 @@ void gl_func_0004ACD4(int *self) {
     for (i = 0; i < count; i++) {
         ((short *)self[0xD0 / 4])[i] = -1;
     }
-    *(short *)((char *)self + 0xD4) =
-        *(int *)((char *)(*(int *)((char *)(*(int *)((char *)&D_00000000 + 0x214)) + 0x1C)) + 4);
+    {
+        int *g = *(int **)((char *)&D_00000000 + 0x214);
+        *(short *)((char *)self + 0xD4) =
+            *(int *)((char *)(*(int *)((char *)g + 0x1C)) + 4);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ACD4);
