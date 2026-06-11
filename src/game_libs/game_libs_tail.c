@@ -3589,6 +3589,10 @@ void gl_func_0000E66C(int *self) {
  * inverted ordering (unused-low, spill-high) is NOT producible from a named C local
  * — confirmed via volatile double/int/int[2], all leave the spill at 0x24. Genuine
  * irreducible 2-insn spill-position cap; pad omitted (no exact gain, keeps C clean).
+ * 2026-06-10: the EARLY-PSEUDO trick (dead-init, cracked 674's v0/v1 cap) probed
+ * here in 4 decl-order x init permutations -- spill position UNMOVED (99.93 best,
+ * pad-first forms regress to 99.89). The slot-ordering cap survives pseudo-order
+ * forcers too; it is allocator-internal (uoptlist territory).
  */
 void gl_func_0000E6E8(int *self, int a1, int a2, float *a3_float) {
     int *q;
