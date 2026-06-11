@@ -194,8 +194,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *  vs -72 (3 extra spill slots + their store/load insns = the 0xC
  *  size delta); and the loop-body v1/a0 temp renumber. FINAL STATE:
  *  decode-verified at 88.83; the entire residual is allocator-class
- *  (spill count + temp coloring). Cadence work rests here; uoptlist
- *  occupant trace is the remaining instrument.
+ *  (spill count + temp coloring). 2026-06-11: scoped permuter run IN
+ *  FLIGHT (import.py scratch nonmatchings/func_0001304C, base score
+ *  7060, log /tmp/perm1304c.log) -- the instrument that completed
+ *  27BC; import bests as they land.
  *  3c. (pass 10 negative-flat) the target loads mode-consts 2/3 into
  *     s3/s2 BEFORE the jal (register compares: bne s3,v0 / bne s2,v0).
  *     Plain pre-call locals (const_two=2; const_three=3) got folded
