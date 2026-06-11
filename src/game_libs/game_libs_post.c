@@ -11313,6 +11313,15 @@ void gl_func_0002888C(int a0) {
  * f0. Live-range-bound FP value-numbering, irreducible from C. */
 extern float D_00000FD4, D_00000FD8, D_00000FDC, D_00000FE0, D_00000FE4, D_00000FE8, D_00000FEC;
 extern char D_tbl_288ac;
+/* 288AC TRUE GATE (2026-06-10 byte-diff with reloc awareness): the
+ * lwc1-displacement "diffs" are unresolved-reloc artifacts (the
+ * individual D_00000FDx externs resolve correctly at link); the SOLE
+ * real diff is mul.s $f2,$f2,$f8 (target) vs $f2,$f0,$f8 (build) --
+ * IDO copy-propagates f0 into the scale-mul (f2==f0 at that point).
+ * Probed: fresh-load (98.77, dup lwc1), copy-inversion (99.15, web
+ * shift) -- both worse than the 99.92 baseline. The original blocked
+ * propagation by an unknown structure; single-operand copy-prop gate.
+ */
 #ifdef NON_MATCHING
 int game_libs_func_000288AC(char *a0, char *a1, int a2) {
     float f0, f2, f4;
