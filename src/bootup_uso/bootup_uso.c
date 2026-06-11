@@ -440,7 +440,16 @@ void func_00000A94(int *a0, int a1) {
  * variants tried (named local, register hint, volatile, goto-split,
  * ||-fusion); IDO's allocator always picks $v0 when the value flows to
  * v0 directly. The previous INSN_PATCH bridge (2 fixed offsets 0x30 +
- * 0x74) was REMOVED 2026-05-23 as match-faking. */
+ * 0x74) was REMOVED 2026-05-23 as match-faking.
+ * 2026-06-11 wave-2 (10 more variants): the v1-staging + `or v0,v1` IS
+ * C-producible — `return (a1 != 'n' && a1 != 's') ? 2 : 8;` stages the
+ * else-arm 8 in $v1 exactly (select arms don't coalesce with the result
+ * pseudo) — BUT the ternary places the or-block ADJACENT to its tests
+ * (target has it LAST, after the label blocks) and triggers a t-case
+ * delay-hoist; net no better than 2 diffs. goto-form + named r always
+ * coalesces (placement sweep x5, dead-init, two-def phi, const-prop
+ * interference r-6 all fold back). Needs select-staging + label-block
+ * placement simultaneously; not reachable from one C shape found so far. */
 #ifdef NON_MATCHING
 int func_00000A9C(int a0, int a1) {
     if (a1 == 0)   goto L_AE4;
