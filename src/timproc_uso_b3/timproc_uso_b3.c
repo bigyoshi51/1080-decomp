@@ -1559,34 +1559,49 @@ void timproc_uso_b3_func_00002700(int a0) {
 extern int D_b3_294C_g208;
 extern int D_b3_294C_g20C;
 #ifdef NON_MATCHING
-void timproc_uso_b3_func_0000294C(int *a0) {
-    switch (a0[0x50 / 4]) {
+void timproc_uso_b3_func_0000294C(int *a0)
+{
+  int new_var;
+  switch (a0[0x50 / 4])
+  {
     case 0:
-        if (gl_func_00000000(&D_00000000, 0x40100) != 0) {
-            int *base = (int *)a0[0x48 / 4];
-            int *slot = (int *)(base + base[0x7C / 4] * 0xA);
-            if (slot[0x90 / 4] != 0) {
-                if (slot[0x88 / 4] != 0) {
-                    int *base2;
-                    int *slot2;
-                    gl_func_00000000(5);
-                    if (1) {}  /* BB lever: cuts the slot2 recompute renumber (5->3 diffs) */
-                    D_b3_294C_g208 = a0[0x48 / 4];
-                    D_b3_294C_g20C = (int)a0;
-                    base2 = (int *)a0[0x48 / 4];
-                    slot2 = (int *)(base2 + base2[0x7C / 4] * 0xA);
-                    ((void (*)(void))slot2[0x90 / 4])();
-                } else {
-                    gl_func_00000000(165);
-                }
-            }
+      if (gl_func_00000000(&D_00000000, 0x40100) != 0)
+    {
+      int *base = (int *) a0[0x48 / 4];
+      int *slot = (int *) (base + (base[0x7C / 4] * 0xA));
+      if (slot[0x90 / 4] != 0)
+      {
+        if (slot[0x88 / 4] != 0)
+        {
+          int *base2;
+          int *slot2;
+          gl_func_00000000(5);
+          if (1)
+          {
+          }
+          slot = a0;
+          D_b3_294C_g208 = slot[0x48 / 4];
+          D_b3_294C_g20C = (int) a0;
+          base2 = (int *) slot[0x48 / 4];
+          ;
+          ((void (*)(void)) ((int *) (base2 + (base2[0x7C / 4] * 0xA)))[(0x90 ^ 0) / (new_var = 4)])();
         }
-        break;
-    case 1:
-    case 2:
-        gl_func_00000000(a0);
-        break;
+        else
+        {
+          gl_func_00000000(165);
+        }
+      }
     }
+      break;
+
+    case 1:
+
+    case 2:
+      gl_func_00000000(a0);
+      break;
+
+  }
+
 }
 
 #else
