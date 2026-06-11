@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_00067084",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T02:18:03.565866+00:00",
+  "end_time": "2026-06-11T02:18:03.565909+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T02:18:03.565894+00:00",
+      "assistant_text": "Inline-recompute (remove the addr local, recompute the address expression in both call arms) fixed frame -40->-32 + spill slot; addend order (a0 + 0x1228) + 104 * a1 flipped both commutative addu operand orders. 8 diffs -> 0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 44,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_00067084(char *a0, int a1, int a2) {\n    char *v1 = a0 + a1;\n    if (v1[0x13DC] == 0) return;\n    if ((unsigned char)v1[0x13D8] == a2) return;\n    if (a2 != 0) {\n        if (gl_func_00000000((a0 + 0x1228) + 104 * a1) == 0) {\n            v1[0x13D8] = 3;\n        }\n    } else {\n        if (gl_func_00000000((a0 + 0x1228) + 104 * a1) != 0) {\n            if (v1[0x13D8] > 0) {\n                v1[0x13D8]--;\n            }\n        }\n    }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/67084_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00067084.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make ROM byte-identical (cmp clean)"
+  }
+}
