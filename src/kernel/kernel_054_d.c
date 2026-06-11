@@ -115,7 +115,14 @@ extern void func_800091F0(s32);
  * unreachable post-return `p = msg;`) — IDO emits extra `or s0, a0, zero`
  * insn, shifting the entire body by 1 insn → 2/49. The unreachable
  * `p = msg;` is the documented form that doesn't introduce extra emit.
- * Permuter only. */
+ * Permuter only.
+ * 2026-06-11 wave-2 (v15-v19): p=msg after the guard → DOUBLE load (msg
+ * reloads a0 + p loads s0, +1 insn); named ret → -O1 spills it to memory;
+ * msg-direct / register-param → per-use a0 reloads, only one s-reg (i),
+ * 37 diffs; both-arms p=msg → no hoist-merge (45). The target needs msg's
+ * post-call web reloaded ONCE into s0 with the pre-call arg read from a0 —
+ * a web split -O1 doesn't perform from any of these spellings. Confirmed
+ * permuter/uoptlist class. */
 #ifdef NON_MATCHING
 s32 func_8000969C(s32* msg) {
     register s32* p;
