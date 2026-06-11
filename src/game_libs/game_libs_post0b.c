@@ -27399,7 +27399,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * (c) hand-rewrite per major block (the fn is ~6 switch arms of
  * RDP-command emission -- rewrite one arm per tick against the .s).
  * Target frame 496; m2c spXXX names = target frame offsets (sp1EC=
- * 0x1EC), so the REAL stack locals are known exactly. */
+ * 0x1EC), so the REAL stack locals are known exactly.
+ * PASS 3 NEGATIVE: block-scoping ALL 395 temps into their innermost
+ * common blocks = score flat, frame 1256 -> 1504 (WORSE). IDO does
+ * NOT overlap block-scoped locals' stack slots -- C scope does not
+ * inform uopt's frame allocation. Instruments (a) and the mass-
+ * transform family are EXHAUSTED; the ladder continues via (c)
+ * per-arm hand rewrite against the .s (~6 RDP-emission arms, one per
+ * tick) or (b) m2c re-emit with different expression-folding flags. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
