@@ -27375,6 +27375,19 @@ void gl_func_00057700(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
 #endif
 
+/* gl_func_000578B4 LADDER PASS 1 (2026-06-11, size-weighted strategy):
+ * 9676B at 75.0 -- the project's #2 largest near-miss; worth +1.26pp
+ * alone. GAP MAP: build +152B (+38 insns) over target; 279 mnemonic
+ * regions, but the sll/or/andi churn (58/38/37 both sides) is
+ * position-shift noise from ONE underlying cause: the build spills
+ * ~20 more temps (sw/lw pairs) than the target in the bitfield-pack
+ * loops (RDP command builder). Tell at entry: build does
+ * sw a3,1256(sp) (spills the a0-copy) where target keeps it live --
+ * the frame is also bigger. ATTACK PLAN: (a) find the C local behind
+ * the 1256(sp) slot, apply inline-recompute/live-range-split levers
+ * to kill the hot spills first (each killed spill removes 2+ insns
+ * AND shifts the noise back into alignment); (b) re-LCS after each
+ * kill; (c) permuter last-mile only when <=3 true diffs remain. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
