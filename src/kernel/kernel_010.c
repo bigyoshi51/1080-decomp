@@ -45,6 +45,11 @@
  * fn-ptr array, compilable) has NO direct lo16 reference in kernel
  * text -- reached via a base pointer or from data. Its targets
  * [0x89FC..0x8B10] are real handler fns; finding the indirect user
- * could open a decodable dispatcher family. Focused-session item. */
+ * could open a decodable dispatcher family. EXHAUSTED at cadence
+ * cost (2026-06-10): NO pointer to 0x8000A690 in the first 64KB and
+ * NO per-slot lo16 references in kernel text -- the user is outside
+ * kernel text (a USO overlay reading kernel globals, or dead debugger
+ * data). The handler fns at [0x89FC..0x8B10] remain decodable on
+ * their own merits regardless. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005C50);
 
