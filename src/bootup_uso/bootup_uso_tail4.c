@@ -165,10 +165,13 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *     LARGER frame (-0x60 vs our -0x50) = 2 values stack-resident in
  *     the original; our graft promotes 2 long-range vars to s4/s5
  *     (not call-window crossing -- long-distance ranges, m2c names
- *     var_t2/var_t5/var_v0_2 class). Next lever: uoptlist regalloc
- *     dump (-Wo,-zdbug:6, see memory project_1080_regalloc_dump) to
- *     identify the 2 candidates, then force them stack-resident
- *     (volatile-pad sandwich or address-taken).
+ *     var_t2/var_t5/var_v0_2 class). IDENTIFIED (pass 7): s5 holds
+ *     var_t2 (the += 0x20 outer-loop offset accumulator); s4 holds a
+ *     SNAPSHOT of var_t2 taken before the inner loop (move s4,t2;
+ *     bne s4,t5 loop-back) -- m2c's goto-loop_19 rendering created an
+ *     extra live snapshot the target doesn't have. Fix = re-derive
+ *     the nested loop as clean for-loops so the snapshot disappears
+ *     (careful session; loop-structure edits are score-volatile).
  *  2. +0x268/+0x28C/+0x2C0: target does INLINE float->int with FCSR
  *     rounding dance (cfc1/ctc1/cvt.w.s/mfc1) where the graft emits
  *     jal (library-call casts). Find the C construct for the inline
