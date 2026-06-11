@@ -2578,16 +2578,8 @@ void *gl_func_00004244(char *arg0) {
     GlV4_4244 u32_b;
     GlV4_4244 u32_c;
     GlF1_4244 u32_f;
-    GlV4_4244 sp78;
-    GlV4_4244 sp68;
-    GlV4_4244 sp58;
-    GlF1_4244 sp54;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *var_a0;
-    char *var_a0_2;
+    volatile s32 pad_4244_a;
+    volatile s32 pad_4244_b;
     char *var_a0_4;
     char *var_a0_6;
     char *var_a0_8;
@@ -2601,8 +2593,18 @@ void *gl_func_00004244(char *arg0) {
     char *var_a0_24;
     char *var_a0_26;
     char *var_a0_30;
+    char *var_a0;
+    GlV4_4244 sp78;
+    GlV4_4244 sp68;
+    GlV4_4244 sp58;
+    GlF1_4244 sp54;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    char *temp_v0;
+    char *temp_v0_2;
     char *var_s0;
     char *var_v1;
+    char *var_a0_2;
 
     var_s0 = arg0;
     if ((arg0 != 0) || (temp_v0 = func_00000000(0x488), var_s0 = temp_v0, (temp_v0 != 0))) {
