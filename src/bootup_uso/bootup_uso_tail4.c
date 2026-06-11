@@ -186,7 +186,9 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *  remaining gaps (full re-LCS at 88.83) are DECODE ERRORS + renumber:
  *  fixed this pass: int-store of 1.0f at +0x48 (mtc1/swc1 f20 shape)
  *  and the func(0,0) arg that should be (char*)&D+0. STILL OPEN:
- *  ori 0x1402 vs 0x1001 (a flags-constant decode error ~+0x3A8); a
+ *  [RETRACTED pass 13: the ori-constant "error" was an LCS
+ *  misalignment artifact in the renumbered midsection -- both
+ *  constants are correctly placed; a swap probe was score-neutral]; a
  *  MISSING DUPLICATED record-block (target repeats the lw 12(a0)/
  *  lw 4/addiu/sw counter-bump block once more at +0x85C); frame -96
  *  vs -72 (3 spill slots); and the loop-body v1/a0 temp renumber.
