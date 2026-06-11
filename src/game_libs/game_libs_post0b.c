@@ -23837,7 +23837,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
  * SPILL-RELOAD renumber — obj is spilled to 0x1C(sp) across the process call and
  * reloaded `lw $v1,0x1C(sp)` (target `lw $v0`); the allocator picks the reload
  * reg at the reload site, which a BB boundary doesn't move. See spill-reload
- * scope caveat #2 under the if(1){} entry in docs/IDO_CODEGEN.md. Permuter-class. */
+ * scope caveat #2 under the if(1){} entry in docs/IDO_CODEGEN.md. Permuter-class.
+ * 2026-06-10: early-pseudo (dead-init obj) NEUTRAL (99.55 unchanged) -- the
+ * trick flips RESULT-pseudo coloring, not reload-site choice; third
+ * confirmed boundary of the pseudo-order family (caveat #2 upheld). */
 void gl_func_000525F0(int *self, int *target) {
     extern int D_00000000;
     int *obj = (int*)self[0x2C / 4];
