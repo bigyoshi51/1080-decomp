@@ -3342,7 +3342,6 @@ void game_uso_func_000044C8(char *a0) {
     game_uso_func_00000000(a0 + 0x3C);
 }
 
-#ifdef NON_MATCHING
 /* game_uso_func_000044F4: 0x1234 (1165 insns, 4.6 KB) — spine candidate #1
  * "main GameState constructor" per project_1080_game_uso_map.md.
  *
@@ -4389,9 +4388,7 @@ finalize:;
 epi:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000044F4);
-#endif
+
 
 void game_uso_func_00005728(void *a0) {
     *(s32*)((char*)a0 + 0x34) = 0;
