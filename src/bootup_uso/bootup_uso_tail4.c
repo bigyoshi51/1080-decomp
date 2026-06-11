@@ -180,6 +180,11 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *     rounding dance (cfc1/ctc1/cvt.w.s/mfc1) where the graft emits
  *     jal (library-call casts). Find the C construct for the inline
  *     rounding-mode conversion (NOT plain (s32) cast = trunc.w.s).
+ *  3b. (pass 9 negative) hoisting the sp44 default assignment out of
+ *     the ==2 arm (target stores D_C50 to 68(sp) unconditionally per
+ *     the disasm) scored 87.55 < 87.76 -- REVERTED. The m2c mode-arm
+ *     mapping vs the target's bne chain disagree; the selector needs
+ *     a precise mode-map re-read before the next probe.
  *  3. (pass 5) +0x33C region: target schedules `swc1 f20,0x48(s0)`
  *     between the s0->0x40 load and its compare (plain bne) -- C shape:
  *     store-then-test with hoisted load; ours emits sw/bnel reorder.
