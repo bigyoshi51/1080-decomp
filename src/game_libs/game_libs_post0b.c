@@ -5406,6 +5406,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A504);
 
 void game_libs_func_0003A584(void) {}
 
+/* gl_func_0003A58C graft attempt 2026-06-10: fresh m2c graft scored
+ * 7.46 vs this body's 11.72 -- REVERTED (item 17; the body is closer
+ * than regeneration despite the low %). Hand-refinement territory. */
 #ifdef NON_MATCHING
 /* gl_func_0003A58C: 264-insn FPU-heavy vec3 transform + multi-copy.
  *
