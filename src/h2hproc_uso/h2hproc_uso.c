@@ -1299,77 +1299,6 @@ void h2hproc_uso_func_00001360(int *self) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001360);
 #endif
 
-#ifdef NON_MATCHING
-/* h2hproc_uso_func_000015F0: 108-insn (0x1B0) constructor with 3 sub-alloc
- * "alloc + init + tag + bind to parent" iterations.
- *
- * 2026-05-29 PROGRESS (94.3% -> ~40 raw diffs, two bugs fixed):
- *  - BIT SENSE was BACKWARDS: body runs when a1->[0x4F0] bit 16 is SET, not
- *    clear. Target: `sll t9,x,15; bgezl t9,end` (return when bit16 clear).
- *    Fixed to `if ((int)(a1[0x4F0/4] << 15) >= 0) return;` (matches bgezl;
- *    the old `(unsigned)>>31` added a stray srl + wrong branch).
- *  - Each iter's `tag` call must inline-reload self->[OFF] (lw) instead of
- *    reusing the named sub local (which IDO cached in a saved reg -> extra
- *    move). init() keeps the fresh alloc result (v0); tag/bind reload.
- *  2026-06-02 (96.7->99.3%): iter3's 5th init arg IS a single float — the
- *  earlier "it's an int" conclusion was wrong. The lwc1/swc1 (no double
- *  promotion) is reachable via a TYPED-FLOAT PROTO: declare a distinct extern
- *  `gl_func_15f0(void*,int,int,int,float)` (=0x0 in undefined_syms, reloc-blind
- *  alias of gl_func_00000000) and call it with `*(float*)(src+0x6C)`. K&R
- *  gl_func double-promotes (cvt.d.s); the float-param proto gives the single
- *  swc1. Same recipe as func_df14f.
- *  REMAINING (~10 raw diffs, ALL register coloring, NOT logic):
- *   - src=self->0x44 lands in v1 in iters 1-2 (target t0), cascading a
- *     t1/t2->t0/t1 shift. The v0/v1-reuse-after-void-call coloring cap; separate
- *     per-iter src vars REGRESSED; fn-ptr cast broke the jal. PERMUTER-ready
- *     (pure coloring search, no logic left).
- *  Multi-tick; not yet byte-exact. Default INCLUDE_ASM exact.
- *
- * Sets up vtable + 4 floats=1.0f, then if (a1->[0x4F0] bit 16 SET)
- * runs 3 sub-init iterations, each:
- *   sub = alloc(0, size);
- *   self->[OFFSET] = sub;
- *   init(sub, src->[FIELD]);
- *   tag(sub, TAG_ID, ...);
- *   bind(self+0x10, sub);
- *   if (sub->[0x14] != 0) sub->[0x4] = 1;
- *   sub->[0x14] = self;
- *
- * 3 iterations:
- *   sub1 @ self->[0xE8]: alloc(0,90); init(sub1, src->[0x28]); tag(sub1, 68, 21)
- *   sub2 @ self->[0xEC]: alloc(0,90); init(sub2, src->[0x88]); tag(sub2, 68, 130)
- *   sub3 @ self->[0x80]: alloc(0,35); bind(sub3, src->[0x30], src->[0x90]);
- *                        init2(sub3, src->[0x8], src->[0xC], src->[0x68], src->[0x6C]);
- *                        bind4(sub3, self->[0x38..0x40]);
- *                        config(sub3, 285, 179);
- *                        bind(self+0x10, sub3); ...
- *
- * src = self->[0x44] (parent ptr). Initial pass; partial-arg-shape on
- * the bind/init helpers may need refinement. Default INCLUDE_ASM exact.
- * 2026-06-10 CAP ANALYSIS (16 true diffs, all ONE mechanism): the src
- * temp colors $v1 (build) vs $t0 (target) after the first alloc call;
- * every later t-reg renumbers by the cascade. Probed NEUTRAL: if(1){}
- * BB lever after both allocs, early-pseudo dead-init on src, and the
- * store-before-read statement reorder. Temp-pool renumber class --
- * allocator-internal (same family as the 2026-05-28 cap analysis).
- * 99.26 ceiling pending a new lever.
- * 2026-06-10 UOPTLIST TRACE (standalone repro reproduces the v1 pick):
- * the src temp = candidate 90, "assigned (constrained) 3" ($v1) with
- * live-range splits 90->113->116 (spilled tails). v1 is forced by a
- * CONSTRAINT EDGE (copy to/from a precolored node), not a free pick --
- * which is why all pseudo-order levers fail. Next: trace which isop
- * line references {90|x} to find the constraining copy, restructure
- * that expression. Reading guide in docs/TOOLING_DECOMP.
- * TRACE DEPTH 2 (same day): live-range IDs are SPARSE (the coloring
- * section's 14 ids {5,10,14,31,36,51,64,90,109-116} ~ finalnumlr=16);
- * lr 90 = the src temp. "(constrained) 3" = a constrained-pool pick
- * where v1 precedes t0 in the allocator's preference order for
- * non-call-spanning temps; the TARGET's t0 implies its lr had a
- * different constraint set (likely spanned a constrained point mine
- * doesn't). Next depth needs uopt allocator internals (preference
- * order + what constitutes a constrained point) -- beyond the dump
- * alone; check ido-static-recomp/uopt RE notes or community uopt
- * source. */
 extern void gl_func_15f0(void *, int, int, int, float);
 void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     char *base = &D_00000000;
@@ -1390,9 +1319,8 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     if ((int)(a1[0x4F0 / 4] << 15) >= 0) return;  /* bit 16 clear: skip */
     self_p10 = (char*)self + 0x10;
     sub1 = (int*)gl_func_00000000(0, 90);
-    src = (int*)*(int*)((char*)self + 0x44);
     *(int*)((char*)self + 0xE8) = (int)sub1;
-    gl_func_00000000(sub1, *(int*)((char*)src + 0x28));
+    gl_func_00000000(sub1, *(int*)((char*)*(int*)((char*)self + 0x44) + 0x28));
     gl_func_00000000(*(int*)((char*)self + 0xE8), 68, 21);
     sub1 = (int*)*(int*)((char*)self + 0xE8);
     gl_func_00000000(self_p10, sub1);
@@ -1400,9 +1328,8 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     *(int*)((char*)sub1 + 0x14) = (int)self;
 
     sub2 = (int*)gl_func_00000000(0, 90);
-    src = (int*)*(int*)((char*)self + 0x44);
     *(int*)((char*)self + 0xEC) = (int)sub2;
-    gl_func_00000000(sub2, *(int*)((char*)src + 0x88));
+    gl_func_00000000(sub2, *(int*)((char*)*(int*)((char*)self + 0x44) + 0x88));
     gl_func_00000000(*(int*)((char*)self + 0xEC), 68, 130);
     sub2 = (int*)*(int*)((char*)self + 0xEC);
     gl_func_00000000(self_p10, sub2);
@@ -1427,9 +1354,6 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
     if (*(int*)((char*)sub3 + 0x14) != 0) *(int*)((char*)sub3 + 0x4) = 1;
     *(int*)((char*)sub3 + 0x14) = (int)self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000015F0);
-#endif
 
 #ifdef NON_MATCHING
 /* h2hproc_uso_func_000017A0: 143-insn (0x23C) per-frame state-machine.
