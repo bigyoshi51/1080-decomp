@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_00046C4C",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T11:42:54.971660+00:00",
+  "end_time": "2026-06-11T11:42:54.971703+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T11:42:54.971689+00:00",
+      "assistant_text": "Permuter-completed from base score 30 (the smallest gate in the few-diff queue). Float cb/h placeholder externs defined in undefined_syms_auto for the full link.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 120,
+  "initial_m2c_source": null,
+  "final_source": "extern void gl_fn_578F0();         /* concrete jal target 0x578F0 (h) */\nvoid gl_func_00046C4C(int *a0, int *a1)\n{\n  int *s0;\n  int scaled;\n  if (a1[0x28 / 4] & 0x10)\n  {\n    int *obj = (int *) a1[0x1C / 4];\n    s0 = obj;\n    scaled = (int) (((float) (obj[0xC / 4] * obj[0x10 / 4])) * gl_retf_46C4C(a1));\n  }\n  else\n  {\n    s0 = (int *) (((char *) a1) + 0x1C);\n    scaled = (int) (((float) ((*((short *) (((char *) a1) + 0x20))) * (*((short *) (((char *) a1) + 0x22))))) * gl_retf_46C4C(a1));\n  }\n  if ((a1[0x24 / 4] == 0x508) || (a1[0x24 / 4] == 0x608))\n  {\n    gl_fn_578F0((*((int *) s0)) + 8, scaled);\n    gl_fn_578F0((*((int *) s0)) + 0xC, 0x200);\n  }\n  else\n  {\n    gl_fn_578F0(s0, scaled);\n  }\n  (void) a0;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/gl_func_00046C4C_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00046C4C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}
