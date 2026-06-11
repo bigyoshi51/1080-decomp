@@ -16346,7 +16346,6 @@ int gl_func_00048720(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048720);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0004880C: per-item cb loop over a0->0x594 entries.
  * 99.19% (2026-06-02, was 88.24%). The +4-insn count gap is FIXED by two
  * structural levers: (1) wrap the loop in `if (v1 > 0) { ... } return 1;`
@@ -16381,9 +16380,7 @@ int gl_func_0004880C(int a0, int a1) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004880C);
-#endif
+
 
 // gl_func_000488A0 — STRUCTURAL PASS + BOUNDARY NOTE (0x1D0 / 117 words, no
 // episode). Raw-.word USO. realjr=2, regjr=0 → 2-function BUNDLE: named fn
@@ -17923,7 +17920,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ABD8);
 void game_libs_func_0004ACCC(int a0) {
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0004ACD4: alloc + memset16(-1). Decoded from bare stub
  * 2026-05-19. void f(int *self):
  *   count = self->0x40 * 10;            // sll<<2; addu; sll<<1
@@ -17960,9 +17956,7 @@ void gl_func_0004ACD4(int *self) {
             *(int *)((char *)(*(int *)((char *)g + 0x1C)) + 4);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ACD4);
-#endif
+
 
 #ifdef NON_MATCHING
 /* gl_func_0004ADB4: 35-insn bounds-checked short[] index-store (0x8C, frame 0x18).

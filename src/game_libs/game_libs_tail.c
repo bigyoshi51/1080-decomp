@@ -2789,14 +2789,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D8E0);
  * unlike unused named params) -> p colors a3. Recognition: a mid-arg-reg
  * temp ($a3) in a tiny wrapper = hidden pass-through arity. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void gl_func_0000D9B8(int *a0, int a1, int a2) {
     int *p = (int*)a0[0x1B];
     if (p != 0) gl_func_00000000(p, a1, a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D9B8);
-#endif
+
 
 #ifdef NON_MATCHING
 /* gl_func_0000D9E4: 0x150 (84 insns), 0x30-byte stack frame.
