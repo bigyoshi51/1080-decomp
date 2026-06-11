@@ -1,0 +1,32 @@
+{
+  "function_name": "game_libs_func_00061878",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T01:46:56.934177+00:00",
+  "end_time": "2026-06-11T01:46:56.934204+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T01:46:56.934195+00:00",
+      "assistant_text": "LO16-placement 'cap' cracked via the established gl_ref_ undefined-syms absolute: extern int gl_ref_00021E04 (+undefined_syms entry) materializes the full address (lui hi; addiu lo; lw/sw 0(v1)) matching the target where &D+0x21E04 folded the offset into displacements. 3 IMM diffs -> 0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_ref_00021E04;\n/* game_libs_func_00061878: sibling of 00061824 \u2014 same ((n+2)(n+3))>>2 formula,\n * but n = (counter@D+0x21E04)*4, writes the >>2 result back to the counter, and\n * returns (float)(unsigned)(v & 0xFFFF) / D[0x2074]. Stateful (advances the\n * 0x21E04 seed each call). Same (float)(unsigned int) bgez+add-2^32 idiom.\n * 99.91% NM: sole diff is IDO's R_MIPS_LO16 placement for the &D+0x21E04\n * counter \u2014 the target materializes the full address (addiu v1,v1,0x1E04;\n * lw/sw 0(v1)), IDO instead keeps LO16=0 in the addiu and folds 0x1E04 into\n * the lw/sw displacements. Both are valid `symbol+const` encodings; no C form\n * (int*p, direct double-access) flips IDO's fold choice, and inventing a\n * dedicated D_00021E04 symbol to force it would be reloc-faking. Logic exact;\n * residual is reloc-encoding-only. 2026-06-10: the role-#6 barrier\n * tested (it cracks register-addressing folds like E450) -- OUT OF\n * DOMAIN here: the LO16 placement is reloc-ENCODING-level, and the\n * barrier instead perturbs the FP-constant scheduling (2 -> 11 diffs).\n * The two fold classes are distinct mechanisms; cap confirmed. */\nextern int gl_ref_00021E04;\nfloat game_libs_func_00061878(void) {\n    int *p = &gl_ref_00021E04;\n    unsigned int v = (unsigned int)*p * 4 + 2;\n    unsigned int w = v + 1;\n    v = (v * w) >> 2;\n    *p = v;\n    return (float)(v & 0xFFFF) / *(float *)((char *)&D_00000000 + 0x2074);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/61878_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/game_libs_func_00061878.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make ROM byte-identical (cmp clean)"
+  }
+}
