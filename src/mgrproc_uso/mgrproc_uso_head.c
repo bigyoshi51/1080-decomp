@@ -25,7 +25,13 @@ extern int gl_func_00000000();
  * here -- tested the MERGED [0x140..0x168) function (if/return, goto,
  * if/else, named temps) at 7.1 -O1/-O2 x -g3: IDO always collapses to
  * 9 insns (preset-default or bnel), never the 10-insn two-block form.
- * The cap stands; the pair really is two source functions. */
+ * The cap stands; the pair really is two source functions.
+ * 2026-06-11: the scoped permuter scores this 0 (its symbolic branch
+ * diff hides the cross-symbol branch) -- do NOT trust permuter-0 on
+ * branch-into-neighbor fns; and the .s-extension idea re-derived
+ * today was aborted on re-reading this note (0x15C is a separately
+ * MATCHED fn; extending 140 would steal its bytes). Cap CONFIRMED
+ * standing. */
 #ifdef NON_MATCHING
 int mgrproc_uso_func_00000140(int *a0) {
     if (a0[1] == a0[2]) {
