@@ -23,7 +23,16 @@
  * formula's ROM offset it reads ASCII command names (SetFRegisters /
  * GetSRegisters / SetSRegisters / GetV...). The true handler table
  * needs the DATA-segment ROM mapping (kernel .data has its own
- * offset; check tenshoe.map). Merge plan: fold 60F0 into 5C50, then
- * m2c-direct with the real table once the data mapping is read. */
+ * offset; check tenshoe.map). RESOLVED LAYOUT (map read): kernel VRAM
+ * is CONTIGUOUS (text<0x9E60, rodata 0x9E60-0x9FD0, data blob
+ * 0x9FD0-0xABC0), one ROM formula throughout -- so jtbl_8000A770
+ * genuinely points at the ASCII block. HYPOTHESIS: the dispatch index
+ * is BIASED (lw at 0xA770+t1 with t1 starting negative), making the
+ * true table the 44-entry run at VRAM 0x8000A690 / ROM 0xB690 (ends
+ * 0xA740, adjacent to the strings) -- but ITS targets [0x89FC..0x8B10]
+ * belong to a dispatcher near 0x8A00, not 5C50. Also located: a
+ * 54-entry table at ROM 0xB0A0 (targets 0x6FD8..0x7F3C). The 5C50
+ * dispatch's true table is still unidentified; trace t1's derivation
+ * in the .s (the sltiu bias) in the merge session. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005C50);
 
