@@ -341,66 +341,54 @@ block_7:
                 var_f24 = D_00000C60;
             }
         }
-        do {
-            var_v0_2 = 0;
-            var_a3 = var_t2;
+for (var_t5 = 0; var_t5 != 0x20; var_t5++) {
             temp_t0 = var_t5 - 1;
             temp_ra = var_t5 + 1;
-            var_a2 = var_t2 * 4;
-loop_19:
-            temp_t1 = var_a3;
-            if (temp_t0 < 0) {
-                var_f16 = 0.0f;
-            } else {
-                var_f16 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + ((temp_t0 & 0x1F) << 7) + (var_v0_2 * 4));
+            for (var_v0_2 = 0; var_v0_2 != 0x20; var_v0_2 = var_a1) {
+                temp_t1 = (var_t5 << 5) + var_v0_2;
+                var_a2 = ((var_t5 << 5) + var_v0_2) * 4;
+                if (temp_t0 < 0) {
+                    var_f16 = 0.0f;
+                } else {
+                    var_f16 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + ((temp_t0 & 0x1F) << 7) + (var_v0_2 * 4));
+                }
+                temp_a0 = var_v0_2 - 1;
+                if (var_t5 == 0x1F) {
+                    var_f12 = 0.0f;
+                } else {
+                    var_f12 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + ((temp_ra & 0x1F) << 7) + (var_v0_2 * 4));
+                }
+                if (temp_a0 < 0) {
+                    var_f14 = 0.0f;
+                } else {
+                    var_f14 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + ((var_t5 << 5) * 4) + ((temp_a0 & 0x1F) * 4));
+                }
+                if (var_v0_2 == 0x1F) {
+                    var_f2 = 0.0f;
+                    var_a1 = var_v0_2 + 1;
+                } else {
+                    var_a1 = var_v0_2 + 1;
+                    var_f2 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + ((var_t5 << 5) * 4) + ((var_a1 & 0x1F) * 4));
+                }
+                temp_v0_2 = *(s32 *)((char *)(arg0) + 0x58) + var_a2;
+                *temp_v0_2 += (var_f16 + var_f12 + var_f14 + var_f2) * var_f24;
+                temp_a0_2 = *(s32 *)((char *)(arg0) + 0x58) + var_a2;
+                var_f0 = *temp_a0_2;
+                if (var_f0 > 1.0f) {
+                    *temp_a0_2 = 1.0f;
+                    var_t4 += 1;
+                    var_f0 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + var_a2);
+                }
+                temp_v0_3 = *(s32 *)((char *)(arg0) + 0x40);
+                if ((temp_v0_3 == 2) || (temp_v0_3 == 3)) {
+                    var_f2_2 = var_f0;
+                } else {
+                    var_f2_2 = 1.0f - var_f0;
+                }
+                var_t9 = (u32) (var_f2_2 * 255.0f);
+                *(s8 *)(*(s32 *)((char *)(arg0) + 0x50) + temp_t1) = (s8) var_t9;
             }
-            temp_a0 = var_v0_2 - 1;
-            if (var_t5 == 0x1F) {
-                var_f12 = 0.0f;
-            } else {
-                var_f12 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + ((temp_ra & 0x1F) << 7) + (var_v0_2 * 4));
-            }
-            if (temp_a0 < 0) {
-                var_f14 = 0.0f;
-            } else {
-                var_f14 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + (var_t2 * 4) + ((temp_a0 & 0x1F) * 4));
-            }
-            if (var_v0_2 == 0x1F) {
-                var_f2 = 0.0f;
-                var_a1 = var_v0_2 + 1;
-            } else {
-                var_a1 = var_v0_2 + 1;
-                var_f2 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + (var_t2 * 4) + ((var_a1 & 0x1F) * 4));
-            }
-            temp_v0_2 = *(s32 *)((char *)(arg0) + 0x58) + var_a2;
-            var_a3 += 1;
-            *temp_v0_2 += (var_f16 + var_f12 + var_f14 + var_f2) * var_f24;
-            temp_a0_2 = *(s32 *)((char *)(arg0) + 0x58) + var_a2;
-            var_f0 = *temp_a0_2;
-            if (var_f0 > 1.0f) {
-                *temp_a0_2 = 1.0f;
-                var_t4 += 1;
-                var_f0 = *(f32 *)(*(s32 *)((char *)(arg0) + 0x58) + var_a2);
-            }
-            temp_v0_3 = *(s32 *)((char *)(arg0) + 0x40);
-            var_a2 += 4;
-            if ((temp_v0_3 == 2) || (temp_v0_3 == 3)) {
-                var_f2_2 = var_f0;
-            } else {
-                var_f2_2 = 1.0f - var_f0;
-            }
-            /* pass-3 class-2 fix: m2c decomposed IDO's inline (u32)float
-             * expansion (the 2^31-subtract branch + FCSR checks) -- the
-             * source construct is a single unsigned cast. */
-            var_t9 = (u32) (var_f2_2 * 255.0f);
-            var_v0_2 = var_a1;
-            *(s8 *)(*(s32 *)((char *)(arg0) + 0x50) + temp_t1) = (s8) var_t9;
-            if (var_a1 != 0x20) {
-                goto loop_19;
-            }
-            var_t5 = temp_ra;
-            var_t2 += 0x20;
-        } while (temp_ra != 0x20);
+        }
         if ((*(s32 *)((char *)(arg0) + 0x40) == 3) && (var_t4 >= 0x401)) {
             *(s32 *)((char *)(arg0) + 0x48) = 1.0f;
         }
