@@ -1877,21 +1877,26 @@ extern void gl_func_00000000_void(int);  /* void-prototyped alias (=0x0): dead-r
 extern char D_arc_27BC_str;
 extern int D_arc_27BC_g70;
 extern int D_arc_27BC_g74;
-void arcproc_uso_func_000027BC(int *a0) {
-    if (gl_func_00000000(&D_arc_27BC_str, 0x40100, a0) != 0) {
-        int *p0 = 0;
-        p0 = (int*)a0[0x48/4];
-        if (*(int*)((char*)p0 + p0[0x7C/4] * 0x28 + 0x90) != 0) {
-            gl_func_00000000_void(5);
-            D_arc_27BC_g70 = a0[0x48/4];
-            D_arc_27BC_g74 = (int)a0;
-            {
-                int *p1 = 0;
-                p1 = (int*)a0[0x48/4];
-                ((void(*)(void))*(int*)((char*)p1 + p1[0x7C/4] * 0x28 + 0x90))();
-            }
-        }
+void arcproc_uso_func_000027BC(int *a0)
+{
+  int new_var;
+  if (gl_func_00000000(&D_arc_27BC_str, 0x40100, a0) != 0)
+  {
+    int *p0 = 0;
+    ;
+    new_var = 0x48 / 4;
+    if ((*((int *) (((((int *) a0[0x48 / 4])[0x7C / 4] * 0x28) + ((char *) ((int *) a0[0x48 / 4]))) + 0x90))) != 0)
+    {
+      int *p1 = 0;
+      gl_func_00000000_void(5);
+      D_arc_27BC_g70 = a0[new_var];
+      D_arc_27BC_g74 = (int) a0;
+      {
+        p1 = (int *) a0[0x48 / 4];
+        ((void (*)(void)) (*((int *) ((((char *) p1) + (p1[0x7C / 4] * 0x28)) + 0x90))))();
+      }
     }
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000027BC);
