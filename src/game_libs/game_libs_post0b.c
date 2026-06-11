@@ -1487,7 +1487,12 @@ extern int D_00000000;
  * func_00000000(&D+0x1E64C, a1); return r. 99.38% — residual is a register-renumber:
  * `r` (the return, spilled across the 2nd call + reloaded) lands in $v1, target uses
  * $a2. PERMUTER FLOORS at 25 (no crack, 840s total 2026-05-24) — this register-
- * renumber is permuter-immune (unlike the arg-home class). Genuine near-100 cap. */
+ * renumber is permuter-immune (unlike the arg-home class). Genuine near-100 cap.
+ * 2026-06-11 wave-2: zdbug:6 shows r SPLIT with both pieces -ve-save (uncolored);
+ * the v1-vs-a2 is ugen's binding for r's PRE-call piece (`or X,v0`), which then
+ * sticks for the reload (same temploc-rebinding class as 525F0). a2-reuse retried
+ * precisely: still v1 + loses the 0x1C slot (param homes to arg slot). Two-return
+ * + ret-funnel shapes regress structure. ugen-internal; stays NM. */
 int gl_func_00035834(int a0, int a1, int a2) {
     int r = ((int(*)(int,int))(*(int**)&D_00000000)[0x48/4])(a1, a2);
     if (r < 0) {
