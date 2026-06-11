@@ -1551,7 +1551,11 @@ void timproc_uso_b3_func_00002700(int a0) {
  * it needs a CONSTANT term to bind to the base ((base+const)+scaled);
  * this 2-operand sum (base + scaled, no const) is canonicalized
  * identically from int-ptr, char-cast, and array forms (3 probes
- * neutral). The addu order stays allocator-chosen for pure 2-op sums. */
+ * neutral). The addu order stays allocator-chosen for pure 2-op sums.
+ * 2026-06-11: the 27BC permuter shapes (index-through-variable +
+ * mult-first inline) do NOT transfer here either (int-ptr x0xA scaling
+ * vs 27BC's byte x0x28 context; score unchanged). A dedicated
+ * import.py permuter run on this fn is the remaining instrument. */
 extern int D_b3_294C_g208;
 extern int D_b3_294C_g20C;
 #ifdef NON_MATCHING
