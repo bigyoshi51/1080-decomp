@@ -1019,193 +1019,307 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00001818);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001820);
 
 #ifdef NON_MATCHING
-/* gl_func_00001C54 - STRUCTURAL PASS (big-swing 2026-06-02).
- * game_libs get-or-alloc slot constructor (cross-segment family; same idiom
- * as game_uso_func_000044F4 / gl_func_00064588). 0x728 / 462 insns, sole
- * callee gl_func_00000000 (alloc when 1 arg / init when 4 args -- file-wide
- * K&R placeholder, returns int, cast to ptr for allocs).
- *
- * Shape: alloc parent (0x194) if arg0==NULL; head node (8){D+0xCC6C, 0};
- * 15 simple stride-0x18 slots from a folded int-pool table (D+0xCC74+i*4),
- * each get-or-alloc(0x18) + init(slot, parent, val, 1) with slot[0xC]=D+
- * 0xC764, slot[0x14]=0, slot[0x10]=<int param>; one complex slot at +0x158
- * (alloc 0x24, tag D+0xCA34) holding a Quad (unk10..1C) from stack scratch.
- *
- * NOT matched: folded-pool refs + ~18-call register allocation (multi-tick;
- * project_1080_cap_analysis_2026-05-28). Full structure for the next pass. */
-#define DI(o) (*(int *)((char *)&D_00000000 + (o)))
-#define DP(o) ((void *)((char *)&D_00000000 + (o)))
-#define SI(p, o, v) (*(int *)((char *)(p) + (o)) = (int)(v))
+/* PASS-2 2026-06-10 (big-swing): FULL m2c graft (458 insns, pristine
+ * profile; both pre-filters green). */
+void *gl_func_00001C54(char *arg0) {
+    s32 sp104;
+    s32 sp100;
+    s32 spFC;
+    s32 spF8;
+    s32 spF4;
+    s32 spF0;
+    s32 spEC;
+    s32 spE8;
+    s32 spE4;
+    s32 spE0;
+    s32 spDC;
+    s32 spD8;
+    s32 spD4;
+    s32 spD0;
+    f32 spCC;
+    f32 spC8;
+    f32 spC4;
+    s32 spC0;
+    f32 spBC;
+    f32 spB8;
+    f32 spB4;
+    s32 spB0;
+    f32 spAC;
+    f32 spA8;
+    f32 spA4;
+    s32 spA0;
+    s32 sp9C;
+    s32 sp98;
+    char *sp88;
+    s32 sp84;
+    char *sp54;
+    s32 sp40;
+    s32 sp30;
+    s32 sp20;
+    s32 temp_t0;
+    s32 temp_t1;
+    s32 temp_t2;
+    s32 temp_t2_2;
+    s32 temp_t2_3;
+    s32 temp_t3;
+    s32 temp_t3_2;
+    s32 temp_t5;
+    s32 temp_t5_2;
+    s32 temp_t7;
+    s32 temp_t7_2;
+    s32 temp_t7_3;
+    s32 temp_t8;
+    s32 temp_t8_2;
+    s32 temp_t9;
+    char *temp_v0;
+    char *temp_v0_10;
+    char *temp_v0_11;
+    char *temp_v0_12;
+    char *temp_v0_13;
+    char *temp_v0_14;
+    char *temp_v0_15;
+    char *temp_v0_16;
+    char *temp_v0_17;
+    char *temp_v0_18;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_4;
+    char *temp_v0_5;
+    char *temp_v0_6;
+    char *temp_v0_7;
+    char *temp_v0_8;
+    char *temp_v0_9;
+    char *var_a0;
+    char *var_a0_10;
+    char *var_a0_11;
+    char *var_a0_12;
+    char *var_a0_13;
+    char *var_a0_14;
+    char *var_a0_15;
+    char *var_a0_16;
+    char *var_a0_2;
+    char *var_a0_3;
+    char *var_a0_4;
+    char *var_a0_5;
+    char *var_a0_6;
+    char *var_a0_7;
+    char *var_a0_8;
+    char *var_a0_9;
+    char *var_s0;
+    char *var_v1;
 
-void *gl_func_00001C54(void *arg0) {
-    void *base;
-    void *node;
-    void *slot;
-    int val;
-
-    if (arg0 != NULL ||
-        (arg0 = (void *)gl_func_00000000((void *)0x194)) != NULL) {
-        base = arg0;
-        node = base;
-        if (base != NULL ||
-            (node = (void *)gl_func_00000000((void *)0x8)) != NULL) {
-            SI(node, 0x0, (int)DP(0xCC6C));
-            SI(node, 0x4, 0);
+    var_s0 = arg0;
+    if ((arg0 != 0) || (temp_v0 = func_00000000(0x194), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if ((var_s0 != 0) || (temp_v0_2 = func_00000000(8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            *(s32 *)((char *)(var_v1) + 0x0) = 0xCC6C;
+            *(s32 *)((char *)(var_v1) + 0x4) = 0;
         }
-        val = DI(0xCC74);
-        slot = (char *)base + 8;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0x1E);
+        temp_t7 = *(s32 *)((char *)&D_00000000 + 0xCC74);
+        var_a0 = var_s0 + 8;
+        sp104 = temp_t7;
+        sp84 = temp_t7;
+        if ((var_s0 != (void *)-8) || (temp_v0_3 = func_00000000(0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+            sp88 = var_a0;
+            func_00000000(var_a0, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0) + 0x10) = 0x1E;
+            *(s32 *)((char *)(var_a0) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0) + 0x14) = 0;
         }
-        val = DI(0xCC78);
-        slot = (char *)base + 0x20;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0x1E);
+        temp_t2 = *(s32 *)((char *)&D_00000000 + 0xCC78);
+        var_a0_2 = var_s0 + 0x20;
+        sp100 = temp_t2;
+        sp84 = temp_t2;
+        if ((var_s0 != (void *)-0x20) || (temp_v0_4 = func_00000000(0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
+            sp88 = var_a0_2;
+            func_00000000(var_a0_2, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_2) + 0x10) = 0x1E;
+            *(s32 *)((char *)(var_a0_2) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_2) + 0x14) = 0;
         }
-        val = DI(0xCC7C);
-        slot = (char *)base + 0x38;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0xA);
+        temp_t7_2 = *(s32 *)((char *)&D_00000000 + 0xCC7C);
+        var_a0_3 = var_s0 + 0x38;
+        spFC = temp_t7_2;
+        sp84 = temp_t7_2;
+        if ((var_s0 != (void *)-0x38) || (temp_v0_5 = func_00000000(0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
+            sp88 = var_a0_3;
+            func_00000000(var_a0_3, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_3) + 0x10) = 0xA;
+            *(s32 *)((char *)(var_a0_3) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_3) + 0x14) = 0;
         }
-        val = DI(0xCC80);
-        slot = (char *)base + 0x50;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0x73);
+        temp_t2_2 = *(s32 *)((char *)&D_00000000 + 0xCC80);
+        var_a0_4 = var_s0 + 0x50;
+        spF8 = temp_t2_2;
+        sp84 = temp_t2_2;
+        if ((var_s0 != (void *)-0x50) || (temp_v0_6 = func_00000000(0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
+            sp88 = var_a0_4;
+            func_00000000(var_a0_4, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_4) + 0x10) = 0x73;
+            *(s32 *)((char *)(var_a0_4) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_4) + 0x14) = 0;
         }
-        val = DI(0xCC84);
-        slot = (char *)base + 0x68;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0);
+        temp_t7_3 = *(s32 *)((char *)&D_00000000 + 0xCC84);
+        var_a0_5 = var_s0 + 0x68;
+        spF4 = temp_t7_3;
+        sp84 = temp_t7_3;
+        if ((var_s0 != (void *)-0x68) || (temp_v0_7 = func_00000000(0x18), var_a0_5 = temp_v0_7, (temp_v0_7 != 0))) {
+            sp88 = var_a0_5;
+            func_00000000(var_a0_5, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_5) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_5) + 0x14) = 0;
+            *(s32 *)((char *)(var_a0_5) + 0x10) = 0;
         }
-        val = DI(0xCC88);
-        slot = (char *)base + 0x80;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0);
+        temp_t1 = *(s32 *)((char *)&D_00000000 + 0xCC88);
+        var_a0_6 = var_s0 + 0x80;
+        spF0 = temp_t1;
+        sp84 = temp_t1;
+        if ((var_s0 != (void *)-0x80) || (temp_v0_8 = func_00000000(0x18), var_a0_6 = temp_v0_8, (temp_v0_8 != 0))) {
+            sp88 = var_a0_6;
+            func_00000000(var_a0_6, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_6) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_6) + 0x14) = 0;
+            *(s32 *)((char *)(var_a0_6) + 0x10) = 0;
         }
-        val = DI(0xCC8C);
-        slot = (char *)base + 0x98;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0xB);
+        temp_t5 = *(s32 *)((char *)&D_00000000 + 0xCC8C);
+        var_a0_7 = var_s0 + 0x98;
+        spEC = temp_t5;
+        sp84 = temp_t5;
+        if ((var_s0 != (void *)-0x98) || (temp_v0_9 = func_00000000(0x18), var_a0_7 = temp_v0_9, (temp_v0_9 != 0))) {
+            sp88 = var_a0_7;
+            func_00000000(var_a0_7, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_7) + 0x10) = 0xB;
+            *(s32 *)((char *)(var_a0_7) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_7) + 0x14) = 0;
         }
-        val = DI(0xCC90);
-        slot = (char *)base + 0xB0;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0xD);
+        temp_t0 = *(s32 *)((char *)&D_00000000 + 0xCC90);
+        var_a0_8 = var_s0 + 0xB0;
+        spE8 = temp_t0;
+        sp84 = temp_t0;
+        if ((var_s0 != (void *)-0xB0) || (temp_v0_10 = func_00000000(0x18), var_a0_8 = temp_v0_10, (temp_v0_10 != 0))) {
+            sp88 = var_a0_8;
+            func_00000000(var_a0_8, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_8) + 0x10) = 0xD;
+            *(s32 *)((char *)(var_a0_8) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_8) + 0x14) = 0;
         }
-        val = DI(0xCC94);
-        slot = (char *)base + 0xC8;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0);
+        temp_t5_2 = *(s32 *)((char *)&D_00000000 + 0xCC94);
+        var_a0_9 = var_s0 + 0xC8;
+        spE4 = temp_t5_2;
+        sp84 = temp_t5_2;
+        if ((var_s0 != (void *)-0xC8) || (temp_v0_11 = func_00000000(0x18), var_a0_9 = temp_v0_11, (temp_v0_11 != 0))) {
+            sp88 = var_a0_9;
+            func_00000000(var_a0_9, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_9) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_9) + 0x14) = 0;
+            *(s32 *)((char *)(var_a0_9) + 0x10) = 0;
         }
-        val = DI(0xCC98);
-        slot = (char *)base + 0xE0;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0);
+        temp_t9 = *(s32 *)((char *)&D_00000000 + 0xCC98);
+        var_a0_10 = var_s0 + 0xE0;
+        spE0 = temp_t9;
+        sp84 = temp_t9;
+        if ((var_s0 != (void *)-0xE0) || (temp_v0_12 = func_00000000(0x18), var_a0_10 = temp_v0_12, (temp_v0_12 != 0))) {
+            sp88 = var_a0_10;
+            func_00000000(var_a0_10, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_10) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_10) + 0x14) = 0;
+            *(s32 *)((char *)(var_a0_10) + 0x10) = 0;
         }
-        val = DI(0xCC9C);
-        slot = (char *)base + 0xF8;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0x10C);
+        temp_t3 = *(s32 *)((char *)&D_00000000 + 0xCC9C);
+        var_a0_11 = var_s0 + 0xF8;
+        spDC = temp_t3;
+        sp84 = temp_t3;
+        if ((var_s0 != (void *)-0xF8) || (temp_v0_13 = func_00000000(0x18), var_a0_11 = temp_v0_13, (temp_v0_13 != 0))) {
+            sp88 = var_a0_11;
+            func_00000000(var_a0_11, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_11) + 0x10) = 0x10C;
+            *(s32 *)((char *)(var_a0_11) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_11) + 0x14) = 0;
         }
-        val = DI(0xCCA0);
-        slot = (char *)base + 0x110;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0x50);
+        temp_t8 = *(s32 *)((char *)&D_00000000 + 0xCCA0);
+        var_a0_12 = var_s0 + 0x110;
+        spD8 = temp_t8;
+        sp84 = temp_t8;
+        if ((var_s0 != (void *)-0x110) || (temp_v0_14 = func_00000000(0x18), var_a0_12 = temp_v0_14, (temp_v0_14 != 0))) {
+            sp88 = var_a0_12;
+            func_00000000(var_a0_12, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_12) + 0x10) = 0x50;
+            *(s32 *)((char *)(var_a0_12) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_12) + 0x14) = 0;
         }
-        val = DI(0xCCA4);
-        slot = (char *)base + 0x128;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0xA0);
+        temp_t3_2 = *(s32 *)((char *)&D_00000000 + 0xCCA4);
+        var_a0_13 = var_s0 + 0x128;
+        spD4 = temp_t3_2;
+        sp84 = temp_t3_2;
+        if ((var_s0 != (void *)-0x128) || (temp_v0_15 = func_00000000(0x18), var_a0_13 = temp_v0_15, (temp_v0_15 != 0))) {
+            sp88 = var_a0_13;
+            func_00000000(var_a0_13, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_13) + 0x10) = 0xA0;
+            *(s32 *)((char *)(var_a0_13) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_13) + 0x14) = 0;
         }
-        val = DI(0xCCA8);
-        slot = (char *)base + 0x140;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0xDC);
+        temp_t8_2 = *(s32 *)((char *)&D_00000000 + 0xCCA8);
+        var_a0_14 = var_s0 + 0x140;
+        spD0 = temp_t8_2;
+        sp84 = temp_t8_2;
+        if ((var_s0 != (void *)-0x140) || (temp_v0_16 = func_00000000(0x18), var_a0_14 = temp_v0_16, (temp_v0_16 != 0))) {
+            sp88 = var_a0_14;
+            func_00000000(var_a0_14, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_14) + 0x10) = 0xDC;
+            *(s32 *)((char *)(var_a0_14) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_14) + 0x14) = 0;
         }
-        val = DI(0xCCB0);
-        slot = (char *)base + 0x17C;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x18)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xC764));
-            SI(slot, 0x14, 0);
-            SI(slot, 0x10, 0);
+        spC4 = 1.0f;
+        spCC = 1.0f;
+        spA0 = 0x3F800000;
+        spA4 = 1.0f;
+        spA8 = 1.0f;
+        spAC = 1.0f;
+        spC0 = 0;
+        spB0 = 0;
+        spB4 = 0.0f;
+        spB8 = 0.0f;
+        spBC = 0.0f;
+        sp9C = *(s32 *)((char *)&D_00000000 + 0xCCAC);
+        spC8 = *(f32 *)((char *)&D_00000000 + 0xC98);
+        *((s32 *)&sp40 + 0) = (s32) *((s32 *)&spC0 + 0);
+        *((s32 *)&sp40 + 1) = (s32) *((s32 *)&spC0 + 1);
+        *((s32 *)&sp40 + 2) = (s32) *((s32 *)&spC0 + 2);
+        var_a0_15 = var_s0 + 0x158;
+        *((s32 *)&sp40 + 3) = (s32) *((s32 *)&spC0 + 3);
+        *((s32 *)&sp30 + 0) = (s32) *((s32 *)&spB0 + 0);
+        *((s32 *)&sp30 + 1) = (s32) *((s32 *)&spB0 + 1);
+        *((s32 *)&sp30 + 2) = (s32) *((s32 *)&spB0 + 2);
+        *((s32 *)&sp30 + 3) = (s32) *((s32 *)&spB0 + 3);
+        *((s32 *)&sp20 + 0) = (s32) *((s32 *)&spA0 + 0);
+        *((s32 *)&sp20 + 1) = (s32) *((s32 *)&spA0 + 1);
+        *((s32 *)&sp20 + 2) = (s32) *((s32 *)&spA0 + 2);
+        *((s32 *)&sp20 + 3) = (s32) *((s32 *)&spA0 + 3);
+        sp84 = sp9C;
+        if ((var_s0 != (void *)-0x158) || (temp_v0_17 = func_00000000(0x24), var_a0_15 = temp_v0_17, (temp_v0_17 != 0))) {
+            sp54 = var_a0_15;
+            func_00000000(var_a0_15, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_15) + 0xC) = 0xCA34;
+            *(s32 *)((char *)(var_a0_15) + 0x20) = 0;
+            *(s32 *)((char *)(var_a0_15) + 0x10) = (s32) *((s32 *)&sp40 + 0);
+            *(s32 *)((char *)(var_a0_15) + 0x14) = (s32) *((s32 *)&sp40 + 1);
+            *(s32 *)((char *)(var_a0_15) + 0x18) = (s32) *((s32 *)&sp40 + 2);
+            *(s32 *)((char *)(var_a0_15) + 0x1C) = (s32) *((s32 *)&sp40 + 3);
         }
-        /* complex slot (0x24): Quad payload */
-        val = DI(0xCCAC);
-        slot = (char *)base + 0x158;
-        if (slot != NULL ||
-            (slot = (void *)gl_func_00000000((void *)0x24)) != NULL) {
-            gl_func_00000000(slot, base, val, 1);
-            SI(slot, 0xC, (int)DP(0xCA34));
-            SI(slot, 0x20, 0);
-            SI(slot, 0x10, 0);
-            SI(slot, 0x14, 0);
-            SI(slot, 0x18, 0);
-            SI(slot, 0x1C, 0);
+        temp_t2_3 = *(s32 *)((char *)&D_00000000 + 0xCCB0);
+        var_a0_16 = var_s0 + 0x17C;
+        sp98 = temp_t2_3;
+        sp84 = temp_t2_3;
+        if ((var_s0 != (void *)-0x17C) || (temp_v0_18 = func_00000000(0x18), var_a0_16 = temp_v0_18, (temp_v0_18 != 0))) {
+            sp88 = var_a0_16;
+            func_00000000(var_a0_16, var_s0, sp84, 1);
+            *(s32 *)((char *)(var_a0_16) + 0xC) = 0xC764;
+            *(s32 *)((char *)(var_a0_16) + 0x14) = 0;
+            *(s32 *)((char *)(var_a0_16) + 0x10) = 0;
         }
     }
-    return arg0;
+    return var_s0;
 }
-#undef DI
-#undef DP
-#undef SI
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001C54);
 #endif
