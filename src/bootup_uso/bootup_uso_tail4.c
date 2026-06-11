@@ -180,6 +180,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *     rounding dance (cfc1/ctc1/cvt.w.s/mfc1) where the graft emits
  *     jal (library-call casts). Find the C construct for the inline
  *     rounding-mode conversion (NOT plain (s32) cast = trunc.w.s).
+ *  3c. (pass 10 negative-flat) the target loads mode-consts 2/3 into
+ *     s3/s2 BEFORE the jal (register compares: bne s3,v0 / bne s2,v0).
+ *     Plain pre-call locals (const_two=2; const_three=3) got folded
+ *     back to immediates by IDO (score exactly flat) -- single-use
+ *     consts don't win s-regs. Needs a stronger liveness forcer
+ *     (multi-use or volatile-read) -- or this is a -g-level artifact.
  *  3b. (pass 9 negative) hoisting the sp44 default assignment out of
  *     the ==2 arm (target stores D_C50 to 68(sp) unconditionally per
  *     the disasm) scored 87.55 < 87.76 -- REVERTED. The m2c mode-arm
