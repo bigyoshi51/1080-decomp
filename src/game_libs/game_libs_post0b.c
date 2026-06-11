@@ -27497,6 +27497,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
 #endif
 typedef char *(*GP_000578B4)();
 void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
+    s32 sp1EC;
+    s32 sp1E8;
+    s32 sp1E4;
+    s32 sp1E0;
+    int *sp1DC;
     volatile s32 hybrid_pad_0;
     volatile s32 hybrid_pad_1;
     s32 g;
@@ -27504,11 +27509,6 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
     s32 p;
     s32 w;
     s32 v;
-    s32 sp1EC;
-    s32 sp1E8;
-    s32 sp1E4;
-    s32 sp1E0;
-    int *sp1DC;
     char *sp1C4;
     char *sp1A8;
     char *sp18C;
