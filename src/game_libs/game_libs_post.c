@@ -3887,6 +3887,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020A20);
 //   Byte-match deferred — dense FP schedule + FPCSR cfc1/ctc1 pair
 //   (IDO emits these only from inline-asm, unreproducible from C).
 //   Name pre-checked: no extern reuse (collision-safe).
+/* gl_func_00020A28 CLASSIFIED 2026-06-10: CALLER-SET $f0 (m2c emits
+ * `M2C unset $f0` at 4 multiply sites -- the caller leaves a value in
+ * $f0 that this fn reads; IDO C cannot express it). Permanent
+ * structural cap (caller-set-reg class, float variant). A fresh graft
+ * with *0 placeholders folds the muls and goes fuzzy=None; this 7.64
+ * body stays. Otherwise the fn is a clean dual-loop f32->s16 pack
+ * transform with 6 (u32)float casts. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_00020A28(int a0, int a1, float *a2) {
