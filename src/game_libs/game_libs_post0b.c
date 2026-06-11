@@ -27406,7 +27406,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * inform uopt's frame allocation. Instruments (a) and the mass-
  * transform family are EXHAUSTED; the ladder continues via (c)
  * per-arm hand rewrite against the .s (~6 RDP-emission arms, one per
- * tick) or (b) m2c re-emit with different expression-folding flags. */
+ * tick) or (b) m2c re-emit with different expression-folding flags.
+ * PASS 4 (2026-06-11): instrument (b) FOUND -- m2c --reg-vars all
+ * collapses 398 temps to 36 (+55 var_ decls) and the emit pipeline
+ * works: disasm-func.py --obj expected/... (TARGET .o, not build!)
+ * -> m2c --reg-vars all -> m2c-graft-clean.py <file> <fn>. BUT the
+ * blanket s32-retyping of var_ decls (to fix 30 cfe type conflicts)
+ * broke m2c's pointer-arithmetic typing -> score 56.8 (vs 75.0
+ * graft), reverted. NEXT: redo with TYPE-PRESERVING conflict fixes
+ * (keep m2c's per-var types; fix only the ~30 conflict sites
+ * individually -- switch casts, deref casts, s16->s32 widenings).
+ * Focused-session scale; the emit is saved at /tmp/578_rv.c. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
