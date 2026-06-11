@@ -789,7 +789,6 @@ s32 uso_file_open(FileState* file, u32* arg1) {
  * as a direct var ref (isvar) -> no swap -> var-first (bnel t0,s3).
  * So the original buffer is a 3-word STRUCT, not u32[3]. Same emitted
  * bytes everywhere else (escaped local -> conservative temp reloads). */
-#ifdef NON_MATCHING
 s32 uso_skip_to_end(FileState *file)
 {
   s32 pad;
@@ -811,9 +810,7 @@ s32 uso_skip_to_end(FileState *file)
   while (header.type != 11);
   return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", uso_skip_to_end);
-#endif
+
 
 /* uso_file_check — always returns 1 (success) */
 s32 func_800007C4(s32 a0, s32 a1) {

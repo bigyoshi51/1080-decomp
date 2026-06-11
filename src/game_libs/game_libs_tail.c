@@ -3550,7 +3550,6 @@ void gl_func_0000E66C(int *self) {
     obj[0x14 / 4] = (int)self;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000E6E8: 45-insn lazy-init + 4-call chain + linked-set finalizer (0xB4, frame 0x30).
  *
  * Decoded structure (raw-word disasm):
@@ -3615,11 +3614,8 @@ void gl_func_0000E6E8(int *self, int a1, int a2, float *a3_float) {
     }
     q[0x14 / 4] = (int)self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E6E8);
-#endif
 
-#ifdef NON_MATCHING
+
 /* gl_func_0000E79C: 44-insn lazy-init + 4-call chain + linked-set finalizer (0xB0, frame 0x30).
  *
  * Sibling of gl_func_0000E6E8 with different field offsets and one extra
@@ -3666,9 +3662,7 @@ void gl_func_0000E79C(int *self, int a1, int a2, int *a3_int_ptr) {
     }
     q[0x14 / 4] = (int)self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E79C);
-#endif
+
 
 /* gl_func_0000E84C: constructor. obj = cb(0, a3); s0->0x80 = obj. Then marshals
  * obj with: cb(obj, 0.0f, 0.0f); cb(obj, f38, f3C, f38, f3C) [floats as raw bits
@@ -3700,7 +3694,6 @@ void gl_func_0000E84C(int *s0, int a1, int a2, int a3) {
     q[0x14 / 4] = (int)s0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0000E910: 44-insn lazy-init + 4-call chain + linked-set finalizer (0xB0, frame 0x30).
  *
  * 6th sibling of the E66C/EAAC/525F0/E6E8/E79C linked-set finalizer family
@@ -3750,9 +3743,7 @@ void gl_func_0000E910(int *self, int a1, int a2, int *a3_int_ptr) {
     }
     q[0x14 / 4] = (int)self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E910);
-#endif
+
 
 #ifdef NON_MATCHING
 /* gl_func_0000E9C0: linked-set-finalizer family member with FP color init.
