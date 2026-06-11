@@ -3593,10 +3593,14 @@ void gl_func_0000E66C(int *self) {
  * here in 4 decl-order x init permutations -- spill position UNMOVED (99.93 best,
  * pad-first forms regress to 99.89). The slot-ordering cap survives pseudo-order
  * forcers too; it is allocator-internal (uoptlist territory).
+ * CRACKED 2026-06-11 (wave 2, 100.0): `volatile int pad[2]` (8-byte phantom,
+ * not 4) occupies 0x24-0x2B so the self[0x60] CSE spill home drops to 0x20 =
+ * target layout (rule 4 dead-local sizing: the gap was 8 bytes, the pad must
+ * match it). Same lever cracked E79C + E910 same day.
  */
 void gl_func_0000E6E8(int *self, int a1, int a2, float *a3_float) {
     int *q;
-    volatile int pad;  /* phantom-slot lever (E910 recipe 2026-06-10) */
+    volatile int pad[2];  /* phantom-slot lever, 8-byte form (wave-2 2026-06-11) */
     self[0x74 / 4] = (int)a3_float;
     if (self[0x60 / 4] == 0) {
         gl_func_00000000();
@@ -3647,7 +3651,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E6E8);
  */
 void gl_func_0000E79C(int *self, int a1, int a2, int *a3_int_ptr) {
     int *q;
-    volatile int pad;  /* phantom-slot lever (E910 recipe 2026-06-10) */
+    volatile int pad[2];  /* phantom-slot lever, 8-byte form (wave-2 2026-06-11) */
     self[0x88 / 4] = (int)a3_int_ptr;
     if (self[0x64 / 4] == 0) {
         gl_func_00000000();
@@ -3731,7 +3735,7 @@ void gl_func_0000E84C(int *s0, int a1, int a2, int a3) {
  * TRY THE SAME PAD ON E6E8/E79C (same family gap). */
 void gl_func_0000E910(int *self, int a1, int a2, int *a3_int_ptr) {
     int *q;
-    volatile int pad;
+    volatile int pad[2];
     if (self[0x60 / 4] == 0) {
         gl_func_00000000();
     }
