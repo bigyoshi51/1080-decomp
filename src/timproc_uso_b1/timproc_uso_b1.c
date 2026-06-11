@@ -1472,34 +1472,47 @@ extern int D_b1_2740_g20C;
  * /tmp/perm2740.log) -- third of three parallel runs; the 27BC recipe.
  * Import bests; if the b3 twin reaches 0 first, port its shape here. */
 #ifdef NON_MATCHING
-void timproc_uso_b1_func_00002740(int *a0) {
-    switch (a0[0x50 / 4]) {
+void timproc_uso_b1_func_00002740(int *a0)
+{
+  switch (a0[0x50 / 4])
+  {
     case 0:
-        if (gl_func_00000000(&D_00000000, 0x40100) != 0) {
-            int *base = (int *)a0[0x48 / 4];
-            int *slot = (int *)(base + base[0x7C / 4] * 0xA);
-            if (slot[0x90 / 4] != 0) {
-                if (slot[0x88 / 4] != 0) {
-                    int *base2;
-                    int *slot2;
-                    gl_func_00000000(5);
-                    if (1) {}  /* BB lever: cuts the slot2 recompute renumber (5->3 diffs) */
-                    D_b1_2740_g208 = a0[0x48 / 4];
-                    D_b1_2740_g20C = (int)a0;
-                    base2 = (int *)a0[0x48 / 4];
-                    slot2 = (int *)(base2 + base2[0x7C / 4] * 0xA);
-                    ((void (*)(void))slot2[0x90 / 4])();
-                } else {
-                    gl_func_00000000(165);
-                }
-            }
+      if (gl_func_00000000(&D_00000000, 0x40100) != 0)
+    {
+      int *base = (int *) a0[0x48 / 4];
+      int *slot = (int *) (base + (base[0x7C / 4] * 0xA));
+      if (slot[0x90 / 4] != 0)
+      {
+        if (slot[0x88 / 4] != 0)
+        {
+          int *base2;
+          int *slot2;
+          gl_func_00000000(5);
+          if (1)
+          {
+          }
+          D_b1_2740_g208 = a0[0x48 / 4];
+          D_b1_2740_g20C = (int) a0;
+          base2 = (int *) a0[0x48 / 4];
+          ;
+          ((void (*)(void)) ((int *) (base2 + (base2[0x7C / 4] * 0xA)))[0x90 / 4])();
         }
-        break;
-    case 1:
-    case 2:
-        gl_func_00000000(a0);
-        break;
+        else
+        {
+          gl_func_00000000(165);
+        }
+      }
     }
+      break;
+
+    case 1:
+
+    case 2:
+      gl_func_00000000(a0);
+      break;
+
+  }
+
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002740);
