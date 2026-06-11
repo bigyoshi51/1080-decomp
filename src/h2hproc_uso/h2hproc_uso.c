@@ -833,7 +833,13 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C1
  * r1/r2 (neutral), self-copy pseudo-timing shape (neutral). The frame
  * is IDENTICAL; only the in-frame slot choice differs -- confirmed
  * spill-allocator-internal. uoptlist queue (the dump's spill-temp
- * numbering should show the 0x24 occupant). */
+ * numbering should show the 0x24 occupant).
+ * 2026-06-10 TOOL VERIFIED: -Wo,-zdbug:6 on a standalone repro emits
+ * ./uoptlist with the candidate table (isvar entries carry vreg frame
+ * offsets, e.g. 'M 3 -4vreg' / 'M 3 -12vreg' = the in-frame slot
+ * coloring). Next session: dump build C vs a slot-permuted variant,
+ * identify the 0x24-slot occupant candidate, and reorder its pseudo
+ * creation. The ecvt patch is currently applied (cc works). */
 void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     int *slotC4, *slotCC;
     int *r1, *r2;
