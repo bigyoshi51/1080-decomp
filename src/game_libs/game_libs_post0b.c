@@ -16356,21 +16356,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048720);
  * (i < v1)` loop — this gives the target's plain `blez v1, END` entry guard
  * instead of a `blezl` (branch-likely duplicating v0=1 into the delay). The
  * (i==0)||(a0->0x594==2) flag short-circuit now matches as-is.
- * Residual 0.8% = the 3 prologue $s-init moves emit in a different order
- * (target s2=a0,s0=0,s1=a1; IDO s1=a1,s2=a0,s0=0) — allocno scheduling, not
- * flipped by decl reorder. Permuter-class. */
+ * Residual 0.8% was the 3 prologue $s-init moves order (target
+ * s2=a0,s0=0,s1=a1-in-delay; build s1=a1,s2=a0,s0=0). CRACKED 2026-06-11
+ * (wave 2, 100.0): copy a1 into a fresh local INSIDE the guard (`p = a1;`
+ * before the do) — the s1 entry-copy then belongs to the loop region and
+ * the scheduler fills the blez delay slot with it, while i=0 stays above.
+ * Entry-copy ORDER is region placement, not allocno scheduling. */
 extern int gl_func_00000000();
 int gl_func_0004880C(int a0, int a1) {
     int v1 = *(int *)(a0 + 0x594);
     int i = 0;
+    int p;
     if (v1 > 0) {
+        p = a1;
         do {
             int flag = (i == 0) || (*(int *)(a0 + 0x594) == 2);
-            if (gl_func_00000000(a0, flag, a1) < 0) {
+            if (gl_func_00000000(a0, flag, p) < 0) {
                 return 0;
             }
             v1 = *(int *)(a0 + 0x594);
-            a1 += 0x10;
+            p += 0x10;
             i++;
         } while (i < v1);
     }
