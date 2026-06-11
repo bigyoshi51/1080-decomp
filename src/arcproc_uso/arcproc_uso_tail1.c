@@ -1859,7 +1859,12 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251
  *  (294C class; ALL spellings probed including grouped-with-void-alias
  *  2026-06-11 -- the lever sequencing left that combo untried, now
  *  also flat) + 2 reloc-false stores. One allocator choice from
- *  exact; permuter or uopt-internals territory. */
+ *  exact; permuter or uopt-internals territory.
+ *  2026-06-11 permuter attempt: hand-rolled scratch (base.c +
+ *  expected-TU target.o) RUNS but scores TU-wide (~247k metric,
+ *  meaningless for a 2-insn gate) -- the target.o must contain ONLY
+ *  the fn. Use tools/decomp-permuter/import.py with PERMUTER=1 make
+ *  mode (see reference_permuter_asmproc memo) for a real run. */
 extern int gl_func_00000000();
 extern void gl_func_00000000_void(int);  /* void-prototyped alias (=0x0): dead-return-reuse lever */
 extern char D_arc_27BC_str;
