@@ -27428,7 +27428,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * emit (53.1, frame-light) err in OPPOSITE directions; neither is a
  * drop-in. The 100% path is the per-arm hand rewrite using BOTH as
  * reference (SSA for structure, reg-vars for allocation shape).
- * Verbatim-graft-with-fixes kept at /tmp (578_rv_KEEP.c). */
+ * Verbatim-graft-with-fixes kept at /tmp (578_rv_KEEP.c).
+ * ARM MAP (pass 6 prep): TWO sibling switches over the same 6
+ * texture-format-like codes (0x120/0x110/0x408/0x308/0x304/0x508 --
+ * (size<<4)|fmt shape, an RDP tile/load builder). Switch 1 arms ~54
+ * lines each (body lines +473..+840); switch 2 arms ~68 lines
+ * (+847..+1301); plus prologue (+0..+472) and tail (+1301..end).
+ * REWRITE PLAN: one arm per tick, hand-written compact C against the
+ * .s span, SSA body for structure + reg-vars emit for allocation;
+ * arms are near-identical modulo constants, so arm 1 (case 0x120)
+ * sets the template and the rest follow fast. Score-gate each arm. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
