@@ -11959,7 +11959,17 @@ int gl_func_0004211C(int a0) {
  * a1/a3 pick is a register-renumber cap, not C-controllable.
  * 2026-06-10: classified -- the CALL-ARG-MARSHAL-REUSE class (46C4C):
  * the target computes the >>10 IN the marshal register (srl a1,a1)
- * where ours uses a temp; allocator-level, uoptlist-ceiling. */
+ * where ours uses a temp; allocator-level, uoptlist-ceiling.
+ * 2026-06-11 wave-2 (see CALL-RESULT SPILL ANATOMY in docs/IDO_CODEGEN):
+ * the TRUE shape is the fully-nested 3-arg printf -- it reproduces all 36
+ * insns incl. srl a1,a1 and the CUP-time sw-in-delay, sole residue = the
+ * spill slot 0x18-vs-0x1C (cfe right-to-left temps put arg3's DEAD temp
+ * at -4). Wave-2 closes the remaining spellings: named r2 / hybrid
+ * named+nested -> statement-time sw (2-word schedule swap, no better);
+ * embedded (r2 = call())>>10 inside the arg -> CUP sw but cfe STILL temps
+ * the call separately and the named slot bloats the frame to 0x28. cfe
+ * temp order is grammar-invariant; the 2-word residue is unreachable.
+ * Keeping the 4-arg 99.86 body (monotonic best). */
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00042144(void) {
