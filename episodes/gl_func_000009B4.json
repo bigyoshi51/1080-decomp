@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_000009B4",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T02:28:44.280677+00:00",
+  "end_time": "2026-06-11T02:28:44.280706+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T02:28:44.280697+00:00",
+      "assistant_text": "Three levers: addend swaps on the fieldsum pairs fixed lw pair order; mul operand swap (scale * value) fixed the FP temp rotation; volatile int pad[7] reproduced the 0x20 unused target stack (628EC-class). 14 -> 0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nvoid gl_func_000009B4(char *arg0) {\n    char *a2;\n    volatile int pad[7];  /* phantom-slot lever: the target's 0x20 unused stack (cf. 628EC) */\n\n    gl_func_00000000(*(int *)(arg0 + 0xAC));\n    a2 = arg0 + 0x94;\n    gl_func_00000000(*(int *)(arg0 + 0xAC),\n                     (int)(*(float *)&D_00000000 * (float)*(int *)(arg0 + 0xA8)),\n                     a2, *(int *)(arg0 + 0xA4));\n    gl_func_00000000(*(int *)(arg0 + 0xAC), *(int *)(arg0 + 0x44),\n                     *(int *)(arg0 + 0x5C), arg0 + 0xB4);\n    gl_func_00000000(*(int *)(arg0 + 0xB0));\n    gl_func_00000000(*(int *)(arg0 + 0xB0),\n                     (int)(*(float *)&D_00000000 * (float)*(int *)(arg0 + 0xA8)),\n                     a2, *(int *)(arg0 + 0xA4));\n    gl_func_00000000(*(int *)(arg0 + 0xB0),\n                     *(int *)(arg0 + 0x74) + *(int *)(arg0 + 0x44),\n                     *(int *)(arg0 + 0x8C) + *(int *)(arg0 + 0x5C),\n                     arg0 + 0xBC);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/9b4_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_000009B4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make ROM byte-identical (cmp clean)"
+  }
+}
