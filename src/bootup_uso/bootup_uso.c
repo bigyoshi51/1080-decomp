@@ -449,7 +449,24 @@ void func_00000A94(int *a0, int a1) {
  * delay-hoist; net no better than 2 diffs. goto-form + named r always
  * coalesces (placement sweep x5, dead-init, two-def phi, const-prop
  * interference r-6 all fold back). Needs select-staging + label-block
- * placement simultaneously; not reachable from one C shape found so far. */
+ * placement simultaneously; not reachable from one C shape found so far.
+ * 2026-06-11 ugen-crack session: NEW LEVER got within 1 as1 decision.
+ * `r = 8; if (n) goto L_B0C; if (s) goto L_B0C; ... L_B0C: return r | 0;`
+ * — `| 0` SURVIVES cfe+uopt (`+ 0` folds) and emits the exact
+ * `or v0,v1,zero` word, with li v1,8 landing in the n-beq delay = target
+ * words at both diff sites. Remaining single blocker: as1's branch-delay
+ * filler. Its priority (derived empirically, see docs/IDO_CODEGEN as1
+ * entry): (1) fill from-before; (2) STEAL first insn of an EXCLUSIVE
+ * target block (plain beq, vZ9 probe); (3) for a SHARED target block,
+ * COPY first insn into a LIKELY slot (beq->beql) and retarget past it;
+ * (4) nop. Our s-beq hits rule 3 (B0C shared by n+s, first insn = the
+ * or) -> beql + 31 insns. The original's as1 left beq+nop, which only
+ * happens when the shared block's first insn is non-hoistable (jr) —
+ * i.e. its B0C reached as1 already as [jr][or-in-delay]. No C shape
+ * reaches that (the or must carry B0C's label, so as1's own jr-fill
+ * can't move it; duplicate-block forms leave a ghost twin, 32 insns).
+ * = the documented "branch-likely vs regular branch" as1 cap class
+ * (docs/IDO_CODEGEN branch-likely entry). Stays NM at 2 diffs. */
 #ifdef NON_MATCHING
 int func_00000A9C(int a0, int a1) {
     if (a1 == 0)   goto L_AE4;
