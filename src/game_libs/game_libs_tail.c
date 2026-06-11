@@ -3317,6 +3317,12 @@ void gl_func_0000E2A4(int *o) {
  * but reassigning the *base* pointer does force addiu+sw-0.
  * RESIDUAL (~1.5%, register-renumber): the read temp lands in $v1 (mine) vs $t2
  * (target), cascading t3/t4/t5 renames — permuter-resistant regalloc cap. NM.
+ * 2026-06-10: checked against the 15F0 inline-deref crack -- NOT the same
+ * class: the contested t-read does not cross a call (both arms are
+ * call-free), so there is no shared call-spanning lr to split; the v
+ * reassignment is load-bearing (advance-then-store shape). The v1 pick
+ * here is the plain constrained-pool preference on a short lr;
+ * uoptlist confirms no splittable constraint. Stays capped.
  * Uses the file-scope extern int D_00000000 / gl_func_00000000. */
 void gl_func_0000E368(int a0) {
     if ((*(int *)(*(int *)((char *)a0 + 0x50) + 0x4F0) & 0x10000) == 0) {
