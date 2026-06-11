@@ -781,42 +781,34 @@ s32 uso_file_open(FileState* file, u32* arg1) {
 
 /* uso_skip_to_end: reads USO section headers until End (type 11).
  *
- * NATURAL CEILING: 99.44% NM (beq/bnel operand-order cap). IDO's `beq`
- * operand order normalization picks $s-register-first; target has $t-first.
- * Cosmetic-only register-order diff at offsets 0x50 (beq) and 0x68 (bnel)
- * — both are semantically identical (beq/bnel symmetric). See
- * docs/IDO_CODEGEN.md `beq` operand order entry / feedback_ido_register.md.
- * The 2-word INSN_PATCH bridge was REMOVED 2026-05-23 as match-faking.
- *
- * 2026-05-27 retest: tried `header[0] != 8` (vs original `8 != header[0]`)
- *   — emits identical bytes (IDO normalizes the `!=` comparand-order
- *   regardless of source order, and then picks $s-first for the resulting
- *   `beq`). The cap is in IDO's emit normalization, not in C-expression
- *   order. Confirmed non-fixable from C without forcing a non-`beq`
- *   instruction sequence (which would change the function's structure).
- *   2026-05-28: permuter also floors (base 20 -> best 10, no zero) — beq
- *   operand-order is a structural cap class, not scheduling. Don't re-run. */
+ * CRACKED 2026-06-11 (rules sweep wave 2, 100.0): the bnel operand-order
+ * "cap" was ucode shape, not emit normalization. uoptinput.c swaps ==/!=
+ * operands when the LEFT operand is not an isvar at READ time. A local
+ * ARRAY element (header[0]) reads as lda+ilod (isop) -> always swapped
+ * to const-first (bnel s3,t0). A local STRUCT FIELD (header.type) reads
+ * as a direct var ref (isvar) -> no swap -> var-first (bnel t0,s3).
+ * So the original buffer is a 3-word STRUCT, not u32[3]. Same emitted
+ * bytes everywhere else (escaped local -> conservative temp reloads). */
 #ifdef NON_MATCHING
 s32 uso_skip_to_end(FileState *file)
 {
   s32 pad;
-  u32 header[3];
+  struct { u32 type; u32 size; u32 x; } header;
   s32 new_var;
-  s32 pad2;
   do
   {
-    new_var = func_800009D8(header, 12, 1, file);
-    pad = header[0];
+    new_var = func_800009D8(&header, 12, 1, file);
+    pad = header.type;
     if (new_var < 0)
     {
       return D_80013004;
     }
     if (8 != pad)
     {
-      ((s32 *) file)[1] += header[1];
+      ((s32 *) file)[1] += header.size;
     }
   }
-  while (11 != header[0]);
+  while (header.type != 11);
   return 0;
 }
 #else
