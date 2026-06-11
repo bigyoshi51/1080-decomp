@@ -39,6 +39,12 @@
  * (debugger handler registration), and a jumptable in .data (not
  * .rodata) is NOT IDO-emitted -- this dispatcher is handwritten-class
  * debugger code. Permanent INCLUDE_ASM (same disposition as the
- * 31F0/3C24 handwritten neighborhood). The 5C50 vein is CLOSED. */
+ * 31F0/3C24 handwritten neighborhood). The 5C50 vein is CLOSED.
+ * SIBLING LEAD (open): the 44-entry INITIALIZED handler table at VRAM
+ * 0x8000A690 (.data, full of valid fn ptrs at load = a C
+ * fn-ptr array, compilable) has NO direct lo16 reference in kernel
+ * text -- reached via a base pointer or from data. Its targets
+ * [0x89FC..0x8B10] are real handler fns; finding the indirect user
+ * could open a decodable dispatcher family. Focused-session item. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005C50);
 
