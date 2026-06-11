@@ -23846,7 +23846,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005256C);
  * scope caveat #2 under the if(1){} entry in docs/IDO_CODEGEN.md. Permuter-class.
  * 2026-06-10: early-pseudo (dead-init obj) NEUTRAL (99.55 unchanged) -- the
  * trick flips RESULT-pseudo coloring, not reload-site choice; third
- * confirmed boundary of the pseudo-order family (caveat #2 upheld). */
+ * confirmed boundary of the pseudo-order family (caveat #2 upheld).
+ * 2026-06-11 wave-2: zdbug:6 shows obj is NOT a colored LR (-ve save,
+ * home 0x1C) -- the v1-vs-v0 reload is ugen's cross-BB binding reuse
+ * (same temploc rebinds the same reg). Web-split probes all undone by
+ * copy-prop (fin=obj, |0/^0/+0/~~ identities, if(1) wraps, fin[1]
+ * array funnel, address-taken fin), 9 variants neutral or regressed.
+ * v0-reuse-after-void-call multi-arm class; uoptlist-territory. */
 void gl_func_000525F0(int *self, int *target) {
     extern int D_00000000;
     int *obj = (int*)self[0x2C / 4];
