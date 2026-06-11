@@ -27387,7 +27387,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * the 1256(sp) slot, apply inline-recompute/live-range-split levers
  * to kill the hot spills first (each killed spill removes 2+ insns
  * AND shifts the noise back into alignment); (b) re-LCS after each
- * kill; (c) permuter last-mile only when <=3 true diffs remain. */
+ * kill; (c) permuter last-mile only when <=3 true diffs remain.
+ * PASS 2 NEGATIVE (2026-06-11): conservative single-use temp inlining
+ * (59 of 398 temps; call-free RHS, no temp-chains) scored +0.1 noise
+ * but grew the frame -1256 -> -1576 (recompute duplication adds
+ * pseudos). The temp mass is CHAINED SSA (363 temps with 4
+ * occurrences, RHS referencing other temps) -- single-hop inlining
+ * can't reach it. Next instruments: (a) BLOCK-SCOPING the decls
+ * (shortens live ranges without duplicating computes -- needs brace
+ * analysis); (b) re-emit via m2c with aggressive expression folding;
+ * (c) hand-rewrite per major block (the fn is ~6 switch arms of
+ * RDP-command emission -- rewrite one arm per tick against the .s).
+ * Target frame 496; m2c spXXX names = target frame offsets (sp1EC=
+ * 0x1EC), so the REAL stack locals are known exactly. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
