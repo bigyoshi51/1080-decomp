@@ -27416,7 +27416,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * graft), reverted. NEXT: redo with TYPE-PRESERVING conflict fixes
  * (keep m2c's per-var types; fix only the ~30 conflict sites
  * individually -- switch casts, deref casts, s16->s32 widenings).
- * Focused-session scale; the emit is saved at /tmp/578_rv.c. */
+ * Focused-session scale; the emit is saved at /tmp/578_rv.c.
+ * PASS 5: type-preserving integration DONE (iterative error-driven
+ * cast fixer, 3 iterations, m2c types kept) -- compiles clean, frame
+ * collapses to 296 (vs target 496: now UNDER), but score 53.1 and
+ * size 0x2928: --reg-vars trades frame for STRUCTURE drift (register-
+ * transfer statements emit extra moves; control-flow placement
+ * differs). CONCLUSION: SSA graft (75.0, frame-heavy) and reg-vars
+ * emit (53.1, frame-light) err in OPPOSITE directions; neither is a
+ * drop-in. The 100% path is the per-arm hand rewrite using BOTH as
+ * reference (SSA for structure, reg-vars for allocation shape).
+ * Verbatim-graft-with-fixes kept at /tmp (578_rv_KEEP.c). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
