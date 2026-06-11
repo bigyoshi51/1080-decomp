@@ -25701,12 +25701,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
  * int BITS via K&R regressed 38/diff — target genuinely uses swc1). Stuck on
  * the prototype<->li/move coupling. */
 extern int gl_func_00000000();
-extern void gl_func_00000000_54a(int, int, int, int, float, int);
+/* 2026-06-11 rules-sweep CRACK: the 4th param is a FLOAT (slider MIN, paired
+ * with the float max) — `0.0f` through a float-typed prototype marshals as
+ * `li a3,0` (integer materialization of +0.0 bits), where an int-typed 0
+ * emits `move a3,zero`. The "mode_flag int 0" reading was wrong. */
+extern void gl_func_00000000_54a(int, int, int, float, float, int);
 extern int D_00000000, D_54a_o0, D_54a_o1, D_54a_o2, D_54a_o3, D_54a_o4;
 void gl_func_00054A14(int *s0) {
     gl_func_00000000((int)&D_54a_o0, (int)((char *)&D_00000000 + 0x21090), 0);
-    gl_func_00000000_54a((int)&D_54a_o1, (int)((char *)&D_00000000 + 0x2109C), (int)((char *)s0 + 0xC8), 0, 8000.0f, 1);
-    gl_func_00000000_54a((int)&D_54a_o2, (int)((char *)&D_00000000 + 0x210A4), (int)((char *)s0 + 0xCC), 0, 1000.0f, 1);
+    gl_func_00000000_54a((int)&D_54a_o1, (int)((char *)&D_00000000 + 0x2109C), (int)((char *)s0 + 0xC8), 0.0f, 8000.0f, 1);
+    gl_func_00000000_54a((int)&D_54a_o2, (int)((char *)&D_00000000 + 0x210A4), (int)((char *)s0 + 0xCC), 0.0f, 1000.0f, 1);
     gl_func_00000000((int)&D_54a_o3, (int)((char *)&D_00000000 + 0x210AC), (int)((char *)s0 + 0xD0), 0);
     gl_func_00000000((int)((char *)s0 + 0x10C), 0);
     gl_func_00000000((int)&D_54a_o4);
