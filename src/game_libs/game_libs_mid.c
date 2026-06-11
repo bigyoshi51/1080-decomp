@@ -37,7 +37,14 @@ extern char D_8C3C_root_desc;
  * permute existing SPILL slots). The 0x28..0x34 region neighbors are
  * COMPILER-INTERNAL temps (unnamed), so there is no decl list to
  * permute; call_root's pseudo number vs the internal temps' is fixed by
- * statement order already tested. Cap stands for -O0 units. */
+ * statement order already tested. Cap stands for -O0 units.
+ * 2026-06-10 branch-nesting probe: the target's bnez/beqz pattern reads
+ * as nested fail-checks (if(!p){p=alloc; if(!p) goto ...}) but the
+ * nested-goto form REGRESSES to 91.5 at -O0 (gotos emit extra b/label
+ * traffic); the flat double-check form (this body) is correct for -O0.
+ * The 3 branch-offset diffs + slot diffs are facets of the same -O0
+ * temp-allocator cap. The 4 lui/addiu "diffs" at +0x24/+0xDC are FALSE
+ * (relocs against D_0000D138/D148 resolve to target bytes). */
 extern char D_0000D138, D_0000D148, D_8C3C_v0;
 gl_func_00008C3C(a0, a1) int * a0; int a1; {
     register int *root;
