@@ -1822,7 +1822,6 @@ char *arcproc_uso_func_0000251C(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251C);
 #endif
 
-#ifdef NON_MATCHING
 /* arcproc_uso_func_000027BC: 42-insn string-match + vtable-dispatch.
  *
  *   if (gl_func(&D_str, 0x40100, a0) != 0) {
