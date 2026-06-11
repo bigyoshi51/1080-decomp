@@ -3748,172 +3748,176 @@ extern char D_44F4_iterFF_p, D_44F4_iterFF_f, D_44F4_iterGG_t, D_44F4_iterGG_p, 
 extern char D_44F4_iterJJ_t, D_44F4_iterJJ_p, D_44F4_iterKK_t, D_44F4_iterKK_p, D_44F4_iterLL_t, D_44F4_iterLL_p, D_44F4_iterMM_t, D_44F4_iterMM_p;
 extern char D_44F4_iterNN_t, D_44F4_iterNN_p;
 void *game_uso_func_000044F4(char *a0, int a1, int a2) {
-    char *self;
-    char *s1;       /* sub-region @ a0+0xE4 OR alloc'd 0x3E0 child */
-    char *s0;       /* loop pointer for sub-object init */
-    char _pad[152]; /* grow frame to 0xE8 (232) to match target's prologue.
-                     * SOURCE=5 audit 2026-06-01: current pad[160] re-grew
-                     * the frame to 0xF0; pad[152] restores target size. */
-    char *_t_buf[1];  /* per-iter sp+0xE0 store-load scratch */
-    volatile int a1_sp = a1; /* force late finalizer args through stack locals */
-    volatile int a2_sp = a2;
+    /* 2026-06-11 STRUCT-MARSHALLING REWRITE (agent-x):
+     *  - The marshalling slot (sp+0x2C, held in $s2) is a 4-byte STRUCT
+     *    passed BY VALUE as the init call's 3rd arg. Struct-by-value args
+     *    are homed to the outgoing-arg area => `sw a2,8(sp)` in the jal
+     *    delay slot (probe-verified vs 5th-dup-arg's `sw a2,0x10(sp)`).
+     *    Struct locals are addressed via materialized ILDA pointers, which
+     *    is (a) the per-iter `addiu tN,sp,slot; lw 0(tN)` indirect-load
+     *    shape (struct copy `*s2 = slotK`) and (b) the $s2 promotion
+     *    mechanism (high-refcount call-crossing &marsh web).
+     *  - The per-iter tmpl spill slots (0xE0 down to 0x40) are 41 NAMED
+     *    struct locals; decl order = slot map (FRAME-SLOT HOME ASSIGNMENT
+     *    RULE). 48 decls span 0x28-0xE4; colored vars + volatile pads fill
+     *    the dead slots (0xE4, 0x3C-0x30, 0x28).
+     *  - Sentinel re-derive: target compare const = -SLOT for EVERY iter
+     *    (old `SLOT - 0x100` table was an alignment misread). The real C is
+     *    `s0 = s1 + SLOT; if (s0 == NULL) alloc;` (IDO folds to
+     *    `bne s1, -SLOT`). Same for stage 3 (-0xE4 = -(0xE4)).
+     *  - Control flow: iter alloc-failure SKIPS to the NEXT ITER (per-iter
+     *    skip labels), alloc(0x3E0) failure goes to the FINALIZE phase,
+     *    only alloc(0x4E0) failure returns directly. Return value is always
+     *    the a0 home slot (sp+0xE8). */
+    typedef struct { char *p; } S;
+    volatile int pad_e4;  /* dead slot @0xE4 (colored var in original) */
+    S slot_0;             /* @0xE0 — per-iter tmpl marshalling slots */
+    S slot_A;
+    S slot_B;
+    S slot_C;
+    S slot_D;
+    S slot_E;
+    S slot_F;
+    S slot_G;
+    S slot_H;
+    S slot_I;
+    S slot_J;
+    S slot_K;
+    S slot_L;
+    S slot_M;
+    S slot_N;
+    S slot_O;
+    S slot_P;
+    S slot_Q;
+    S slot_R;
+    S slot_S;
+    S slot_T;
+    S slot_U;
+    S slot_V;
+    S slot_W;
+    S slot_X;
+    S slot_Y;
+    S slot_Z;
+    S slot_AA;
+    S slot_BB;
+    S slot_CC;
+    S slot_DD;
+    S slot_EE;
+    S slot_FF;
+    S slot_GG;
+    S slot_HH;
+    S slot_II;
+    S slot_JJ;
+    S slot_KK;
+    S slot_LL;
+    S slot_MM;
+    S slot_NN;            /* @0x40 */
+    char *v1;             /* colored — dead slot @0x3C */
+    char *s1;             /* colored $s1 — dead slot @0x38 */
+    char *s0;             /* colored $s0 — dead slot @0x34 */
+    volatile int pad_30;  /* dead slot @0x30 */
+    S marsh;              /* @0x2C — THE marshalling slot */
+    S *s2 = &marsh;       /* colored $s2 — dead slot @0x28 */
 
     /* Stage 1: allocate main object if not provided */
     if (a0 == NULL) {
-        self = (char*)gl_func_00000000(0x4E0);
-        if (self == NULL) goto epi;
-        a0 = self;
+        a0 = (char*)gl_func_00000000(0x4E0);
+        if (a0 == NULL) goto epi;
     }
 
     /* Stage 2: init main from template at D[0x6D0]; set parent ptr */
     gl_func_00000000(a0, (char*)&D_00000000 + 0x6D0);
     *(char**)(a0 + 0x28) = &D_00000000;
 
-    /* Stage 3: sub-region. Expected compares a0 directly against -0xE4,
-     * computes s1 = a0 + 0xE4 in the bne delay slot, and allocates the
-     * 0x3E0 child only on the sentinel-equality path. */
+    /* Stage 3: sub-region; alloc failure still runs the finalize phase */
     s1 = a0 + 0xE4;
-    if (a0 == (char*)-0xE4) {
+    if (s1 == NULL) {
         s1 = (char*)gl_func_00000000(0x3E0);
-        if (s1 == NULL) goto epi;
+        if (s1 == NULL) goto finalize;
     }
 
-    /* Stage 4 (v1 setup + iter 0): v1 = s1 ?: alloc(8); a failed alloc(8)
-     * skips only the template-head stores. Iter 0 allocates on the -8
-     * sentinel path, then always initializes the first sub-object slot. */
+    /* Stage 4: template-head init; alloc(8) failure skips only the stores */
+    v1 = s1;
+    if (v1 == NULL) {
+        v1 = (char*)gl_func_00000000(8);
+        if (v1 == NULL) goto skip_head;
+    }
+    *(char**)v1 = (char*)&D_00000000 + 0x6D8;
+    *(int*)(v1 + 4) = 0;
+skip_head:
+
     {
-        char *v1;
-        char *tmpl0;
-        char *_s2_buf;       /* stack temp at sp+0x2C, target uses for marshalling */
-        char *s2 = (char*)&_s2_buf;
-        v1 = s1;
-        if (s1 == NULL) {
-            v1 = (char*)gl_func_00000000(8);
-            if (v1 == NULL) goto after_head_template;
-        }
-        *(char**)v1 = (char*)&D_00000000 + 0x6D8;
-        *(int*)(v1 + 4) = 0;
-after_head_template:
+        extern char D_44F4_iter0,
+                    D_44F4_iterA, D_44F4_iterB, D_44F4_iterC, D_44F4_iterD,
+                    D_44F4_iterE, D_44F4_iterF, D_44F4_iterG, D_44F4_iterH,
+                    D_44F4_iterI, D_44F4_iterJ, D_44F4_iterK, D_44F4_iterL,
+                    D_44F4_iterM, D_44F4_iterN, D_44F4_iterO, D_44F4_iterP,
+                    D_44F4_iterQ, D_44F4_iterR, D_44F4_iterS, D_44F4_iterT,
+                    D_44F4_iterU, D_44F4_iterV, D_44F4_iterW, D_44F4_iterX,
+                    D_44F4_iterY, D_44F4_iterZ, D_44F4_iterAA, D_44F4_iterBB,
+                    D_44F4_iterCC, D_44F4_iterDD, D_44F4_iterEE, D_44F4_iterFF,
+                    D_44F4_iterGG, D_44F4_iterHH, D_44F4_iterII, D_44F4_iterJJ,
+                    D_44F4_iterKK, D_44F4_iterLL, D_44F4_iterMM, D_44F4_iterNN;
+        /* Per-iter unique externs (DB) defeat IDO's global CSE on the
+         * &D base — target reloads lui per access. */
+#define INIT_ITER(ID, SLOT, TMPL_OFF, FLOAT_EXPR, DB) \
+        slot_##ID.p = *(char**)((char*)&DB + (TMPL_OFF)); \
+        *s2 = slot_##ID; \
+        s0 = s1 + (SLOT); \
+        if (s0 == NULL) { \
+            s0 = (char*)gl_func_00000000(0x18); \
+            if (s0 == NULL) goto skip_##ID; \
+        } \
+        gl_func_00000000(s0, s1, *s2, 1); \
+        *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
+        *(int*)(s0 + 0x14) = 0; \
+        *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
+skip_##ID:;
 
-        {
-            extern char D_44F4_iter0, D_44F4_typtag;
-            tmpl0 = *(char**)((char*)&D_44F4_iter0 + 0x6E8);
-            s0 = s1 + 8;
-            *(char**)s2 = tmpl0;
-            if (s1 == (char*)-8) {
-                s0 = (char*)gl_func_00000000(0x18);
-                if (s0 == NULL) goto epi;
-            }
-            {
-                char *arg2 = *(char**)s2;
-                gl_func_00000000(s0, s1, arg2, 1, arg2);
-            }
-            *(char**)(s0 + 0xC) = (char*)&D_44F4_typtag + 0x3C8;
-            *(int*)(s0 + 0x14) = 0;
-            *(float*)(s0 + 0x10) = *(float*)((char*)&D_44F4_iter0 + 0x9C);
-        }
-
-        /* Unrolled iters A-D (slots 0x20, 0x38, 0x50, 0x68; tmpl_off
-         * 0x6EC, 0x6F0, 0x6F4, 0x6F8; sentinel = slot - 0x100). */
-        {
-            extern char D_44F4_iterA, D_44F4_iterB, D_44F4_iterC,
-                        D_44F4_iterD, D_44F4_iterE, D_44F4_iterF;
-#define INIT_ITER(SLOT, TMPL_OFF, FLOAT_EXPR, DB) do { \
-            char *_t = *(char**)((char*)&DB + (TMPL_OFF)); \
-            s0 = s1 + (SLOT); \
-            _t_buf[0] = _t; \
-            *(char**)s2 = _t_buf[0]; \
-            if (s1 == (char*)((SLOT) - 0x100)) { \
-                s0 = (char*)gl_func_00000000(0x18); \
-                if (s0 == NULL) goto epi; \
-            } \
-            { \
-                char *arg2 = *(char**)s2; \
-                gl_func_00000000(s0, s1, arg2, 1, arg2); \
-            } \
-            *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
-            *(int*)(s0 + 0x14) = 0; \
-            *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
-        } while (0)
-
-            INIT_ITER(0x20,  0x6EC, *(float*)((char*)&D_44F4_iterA + 0xA0), D_44F4_iterA);  /* A */
-            INIT_ITER(0x38,  0x6F0, *(float*)((char*)&D_44F4_iterB + 0xA4), D_44F4_iterB);  /* B */
-            INIT_ITER(0x50,  0x6F4, -800.0f,                                D_44F4_iterC);  /* C */
-            INIT_ITER(0x68,  0x6F8, *(float*)((char*)&D_44F4_iterD + 0xA8), D_44F4_iterD);  /* D */
-            INIT_ITER(0x80,  0x6FC, *(float*)((char*)&D_44F4_iterE + 0xAC), D_44F4_iterE);  /* E */
-            INIT_ITER(0x98,  0x700, -4000.0f,                               D_44F4_iterF);  /* F (lui 0xC57A) */
+        INIT_ITER(0,  0x08,  0x6E8, *(float*)((char*)&D_44F4_iter0 + 0x9C), D_44F4_iter0)   /* iter 0 */
+        INIT_ITER(A,  0x20,  0x6EC, *(float*)((char*)&D_44F4_iterA + 0xA0), D_44F4_iterA)   /* A */
+        INIT_ITER(B,  0x38,  0x6F0, *(float*)((char*)&D_44F4_iterB + 0xA4), D_44F4_iterB)   /* B */
+        INIT_ITER(C,  0x50,  0x6F4, -800.0f,                                D_44F4_iterC)   /* C (lui 0xC448) */
+        INIT_ITER(D,  0x68,  0x6F8, *(float*)((char*)&D_44F4_iterD + 0xA8), D_44F4_iterD)   /* D */
+        INIT_ITER(E,  0x80,  0x6FC, *(float*)((char*)&D_44F4_iterE + 0xAC), D_44F4_iterE)   /* E */
+        INIT_ITER(F,  0x98,  0x700, -4000.0f,                               D_44F4_iterF)   /* F (lui 0xC57A) */
+        INIT_ITER(G,  0xB0,  0x704, -8000.0f,                               D_44F4_iterG)   /* G (lui 0xC5FA) */
+        INIT_ITER(H,  0xC8,  0x708, *(float*)((char*)&D_44F4_iterH + 0xB0), D_44F4_iterH)   /* H */
+        INIT_ITER(I,  0xE0,  0x70C, *(float*)((char*)&D_44F4_iterI + 0xB4), D_44F4_iterI)   /* I */
+        INIT_ITER(J,  0xF8,  0x710, *(float*)((char*)&D_44F4_iterJ + 0xB8), D_44F4_iterJ)   /* J */
+        INIT_ITER(K,  0x110, 0x714, *(float*)((char*)&D_44F4_iterK + 0xBC), D_44F4_iterK)   /* K */
+        INIT_ITER(L,  0x128, 0x718, *(float*)((char*)&D_44F4_iterL + 0xC0), D_44F4_iterL)   /* L */
+        INIT_ITER(M,  0x140, 0x71C, *(float*)((char*)&D_44F4_iterM + 0xC4), D_44F4_iterM)   /* M */
+        INIT_ITER(N,  0x158, 0x720, *(float*)((char*)&D_44F4_iterN + 0xC8), D_44F4_iterN)   /* N */
+        INIT_ITER(O,  0x170, 0x724, *(float*)((char*)&D_44F4_iterO + 0xCC), D_44F4_iterO)   /* O */
+        INIT_ITER(P,  0x188, 0x728, *(float*)((char*)&D_44F4_iterP + 0xD0), D_44F4_iterP)   /* P */
+        INIT_ITER(Q,  0x1A0, 0x72C, *(float*)((char*)&D_44F4_iterQ + 0xD4), D_44F4_iterQ)   /* Q */
+        INIT_ITER(R,  0x1B8, 0x730, 1200.0f,                                D_44F4_iterR)   /* R (lui 0x4496) */
+        INIT_ITER(S,  0x1D0, 0x734, 1200.0f,                                D_44F4_iterS)   /* S */
+        INIT_ITER(T,  0x1E8, 0x738, 1200.0f,                                D_44F4_iterT)   /* T */
+        INIT_ITER(U,  0x200, 0x73C, 60.0f,                                  D_44F4_iterU)   /* U (lui 0x4270) */
+        INIT_ITER(V,  0x218, 0x740, 60.0f,                                  D_44F4_iterV)   /* V */
+        INIT_ITER(W,  0x230, 0x744, 60.0f,                                  D_44F4_iterW)   /* W */
+        INIT_ITER(X,  0x248, 0x748, 1.5f,                                   D_44F4_iterX)   /* X (lui 0x3FC0) */
+        INIT_ITER(Y,  0x260, 0x74C, *(float*)((char*)&D_44F4_iterY + 0xD8), D_44F4_iterY)   /* Y */
+        INIT_ITER(Z,  0x278, 0x750, 1.5f,                                   D_44F4_iterZ)   /* Z */
+        INIT_ITER(AA, 0x290, 0x754, 2000.0f,                                D_44F4_iterAA)  /* AA (lui 0x44FA) */
+        INIT_ITER(BB, 0x2A8, 0x758, 2000.0f,                                D_44F4_iterBB)  /* BB */
+        INIT_ITER(CC, 0x2C0, 0x75C, 2000.0f,                                D_44F4_iterCC)  /* CC */
+        INIT_ITER(DD, 0x2D8, 0x760, *(float*)((char*)&D_44F4_iterDD + 0xDC), D_44F4_iterDD) /* DD */
+        INIT_ITER(EE, 0x2F0, 0x764, *(float*)((char*)&D_44F4_iterEE + 0xE0), D_44F4_iterEE) /* EE */
+        INIT_ITER(FF, 0x308, 0x768, *(float*)((char*)&D_44F4_iterFF + 0xE4), D_44F4_iterFF) /* FF */
+        INIT_ITER(GG, 0x320, 0x76C, 240.0f,                                 D_44F4_iterGG)  /* GG (lui 0x4370) */
+        INIT_ITER(HH, 0x338, 0x770, 240.0f,                                 D_44F4_iterHH)  /* HH */
+        INIT_ITER(II, 0x350, 0x774, 240.0f,                                 D_44F4_iterII)  /* II */
+        INIT_ITER(JJ, 0x368, 0x778, 240.0f,                                 D_44F4_iterJJ)  /* JJ */
+        INIT_ITER(KK, 0x380, 0x77C, 240.0f,                                 D_44F4_iterKK)  /* KK */
+        INIT_ITER(LL, 0x398, 0x780, 240.0f,                                 D_44F4_iterLL)  /* LL */
+        INIT_ITER(MM, 0x3B0, 0x784, 240.0f,                                 D_44F4_iterMM)  /* MM */
+        INIT_ITER(NN, 0x3C8, 0x788, 240.0f,                                 D_44F4_iterNN)  /* NN (final iter) */
 #undef INIT_ITER
-        }
-
-        /* Iters G-NN: SCALED 2026-05-05 to use the 4-arg unique-extern
-         * form (same as A-F above). Each iter declares its own extern at
-         * offset 0 to defeat IDO's global CSE on &D_00000000 — IDO can
-         * no longer share a single $sN base across iterations. */
-        {
-            extern char D_44F4_iterG, D_44F4_iterH, D_44F4_iterI, D_44F4_iterJ,
-                        D_44F4_iterK, D_44F4_iterL, D_44F4_iterM, D_44F4_iterN,
-                        D_44F4_iterO, D_44F4_iterP, D_44F4_iterQ, D_44F4_iterR,
-                        D_44F4_iterS, D_44F4_iterT, D_44F4_iterU, D_44F4_iterV,
-                        D_44F4_iterW, D_44F4_iterX, D_44F4_iterY, D_44F4_iterZ,
-                        D_44F4_iterAA, D_44F4_iterBB, D_44F4_iterCC, D_44F4_iterDD,
-                        D_44F4_iterEE, D_44F4_iterFF, D_44F4_iterGG, D_44F4_iterHH,
-                        D_44F4_iterII, D_44F4_iterJJ, D_44F4_iterKK, D_44F4_iterLL,
-                        D_44F4_iterMM, D_44F4_iterNN;
-#define INIT_ITER(SLOT, TMPL_OFF, FLOAT_EXPR, DB) do { \
-            char *_t = *(char**)((char*)&DB + (TMPL_OFF)); \
-            s0 = s1 + (SLOT); \
-            _t_buf[0] = _t; \
-            *(char**)s2 = _t_buf[0]; \
-            if (s1 == (char*)((SLOT) - 0x100)) { \
-                s0 = (char*)gl_func_00000000(0x18); \
-                if (s0 == NULL) goto epi; \
-            } \
-            { \
-                char *arg2 = *(char**)s2; \
-                gl_func_00000000(s0, s1, arg2, 1, arg2); \
-            } \
-            *(char**)(s0 + 0xC) = (char*)&DB + 0x3C8; \
-            *(int*)(s0 + 0x14) = 0; \
-            *(float*)(s0 + 0x10) = (FLOAT_EXPR); \
-        } while (0)
-            INIT_ITER(0xB0,  0x704, -8000.0f,                                D_44F4_iterG);  /* G (lui 0xC5FA) */
-            INIT_ITER(0xC8,  0x708, *(float*)((char*)&D_44F4_iterH + 0xB0), D_44F4_iterH);  /* H */
-            INIT_ITER(0xE0,  0x70C, *(float*)((char*)&D_44F4_iterI + 0xB4), D_44F4_iterI);  /* I */
-            INIT_ITER(0xF8,  0x710, *(float*)((char*)&D_44F4_iterJ + 0xB8), D_44F4_iterJ);  /* J */
-            INIT_ITER(0x110, 0x714, *(float*)((char*)&D_44F4_iterK + 0xBC), D_44F4_iterK);  /* K */
-            INIT_ITER(0x128, 0x718, *(float*)((char*)&D_44F4_iterL + 0xC0), D_44F4_iterL);  /* L */
-            INIT_ITER(0x140, 0x71C, *(float*)((char*)&D_44F4_iterM + 0xC4), D_44F4_iterM);  /* M */
-            INIT_ITER(0x158, 0x720, *(float*)((char*)&D_44F4_iterN + 0xC8), D_44F4_iterN);  /* N */
-            INIT_ITER(0x170, 0x724, *(float*)((char*)&D_44F4_iterO + 0xCC), D_44F4_iterO);  /* O */
-            INIT_ITER(0x188, 0x728, *(float*)((char*)&D_44F4_iterP + 0xD0), D_44F4_iterP);  /* P */
-            INIT_ITER(0x1A0, 0x72C, *(float*)((char*)&D_44F4_iterQ + 0xD4), D_44F4_iterQ);  /* Q */
-            INIT_ITER(0x1B8, 0x730, 1200.0f,                                D_44F4_iterR);  /* R (lui 0x4496) */
-            INIT_ITER(0x1D0, 0x734, 1200.0f,                                D_44F4_iterS);  /* S */
-            INIT_ITER(0x1E8, 0x738, 1200.0f,                                D_44F4_iterT);  /* T */
-            INIT_ITER(0x200, 0x73C, 60.0f,                                  D_44F4_iterU);  /* U (lui 0x4270) */
-            INIT_ITER(0x218, 0x740, 60.0f,                                  D_44F4_iterV);  /* V */
-            INIT_ITER(0x230, 0x744, 60.0f,                                  D_44F4_iterW);  /* W */
-            INIT_ITER(0x248, 0x748, 1.5f,                                   D_44F4_iterX);  /* X (lui 0x3FC0) */
-            INIT_ITER(0x260, 0x74C, *(float*)((char*)&D_44F4_iterY + 0xD8), D_44F4_iterY);  /* Y */
-            INIT_ITER(0x278, 0x750, 1.5f,                                   D_44F4_iterZ);  /* Z */
-            INIT_ITER(0x290, 0x754, 2000.0f,                                D_44F4_iterAA); /* AA (lui 0x44FA) */
-            INIT_ITER(0x2A8, 0x758, 2000.0f,                                D_44F4_iterBB); /* BB */
-            INIT_ITER(0x2C0, 0x75C, 2000.0f,                                D_44F4_iterCC); /* CC */
-            INIT_ITER(0x2D8, 0x760, *(float*)((char*)&D_44F4_iterDD + 0xDC), D_44F4_iterDD); /* DD */
-            INIT_ITER(0x2F0, 0x764, *(float*)((char*)&D_44F4_iterEE + 0xE0), D_44F4_iterEE); /* EE */
-            INIT_ITER(0x308, 0x768, *(float*)((char*)&D_44F4_iterFF + 0xE4), D_44F4_iterFF); /* FF */
-            INIT_ITER(0x320, 0x76C, 240.0f,                                 D_44F4_iterGG); /* GG (lui 0x4370) */
-            INIT_ITER(0x338, 0x770, 240.0f,                                 D_44F4_iterHH); /* HH */
-            INIT_ITER(0x350, 0x774, 240.0f,                                 D_44F4_iterII); /* II */
-            INIT_ITER(0x368, 0x778, 240.0f,                                 D_44F4_iterJJ); /* JJ */
-            INIT_ITER(0x380, 0x77C, 240.0f,                                 D_44F4_iterKK); /* KK */
-            INIT_ITER(0x398, 0x780, 240.0f,                                 D_44F4_iterLL); /* LL */
-            INIT_ITER(0x3B0, 0x784, 240.0f,                                 D_44F4_iterMM); /* MM */
-            INIT_ITER(0x3C8, 0x788, 240.0f,                                 D_44F4_iterNN); /* NN (final iter, slot 0x3C8) */
-            (void)s2;
-#undef INIT_ITER
-        }
     }
+finalize:;
 
     /* Stage 5+ (deprecated doc — see Stages 8-11 for full per-iter
      * unrolled loop characterization; all 38 iters TBD as C body): write sub-region back-pointer; init sub-region from
@@ -4330,8 +4334,6 @@ after_head_template:
      *     plus pad[152] baseline until the sp+0x2C pointer can be promoted
      *     without changing frame size.
      */
-    (void)s0;
-
     /* Stage 12: LINKAGE/FINALIZE — store fixed values into a0's main
      * struct fields (offsets 0x2C, 0x30, 0xA0, 0xA8..0xE0, 0x4DC).
      * Mix of arg pass-through, zero-stores, D-table loads, and float
@@ -4351,8 +4353,8 @@ after_head_template:
      * base is broken by intervening lui-for-fp-constant instructions:
      * 0x428C, 0x4366, 0x4140, 0x4248, 0x41A0, 0x4170 all clobber $at).
      * NOT a useful knob here — leave shared &D form. */
-    *(int*)(a0 + 0x30) = a1_sp;
-    *(int*)(a0 + 0x2C) = a2_sp;
+    *(int*)(a0 + 0x30) = a1;
+    *(int*)(a0 + 0x2C) = a2;
     *(float*)(a0 + 0xA8) = 0.0f;
     *(float*)(a0 + 0xAC) = *(float*)((char*)&D_00000000 + 0xE8);
     *(float*)(a0 + 0xB0) = 500.0f;
