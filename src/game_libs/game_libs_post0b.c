@@ -5983,19 +5983,141 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
 //   STRUCTURAL body below — gate + Vec3 delta + length skeleton
 //   only. Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern float sqrtf(float);
-void gl_func_0003B9C0(char *o, float *a, float *b) {
-    float dx, dy, dz, len2, len;
-    if (*(int *)(o + 0x84) == 0) return;
-    dx = a[0] - b[0];
-    dy = a[1] - b[1];
-    dz = a[2] - b[2];
-    len2 = dx * dx + dy * dy + dz * dz;
-    len = sqrtf(len2);
-    *(float *)(o + 0x88) = len;
-    *(float *)(o + 0x8C) = dx;
-    *(float *)(o + 0x90) = dy;
-    *(float *)(o + 0x94) = dz;
+/* PASS-2 2026-06-10 (big-swing): FULL m2c graft (279 insns; 8 f64 +
+ * 13 COP1 mild-mixed; prior body replaced -- preserved in git). */
+s32 gl_func_0003B9C0(char *arg0, s32 arg1, s32 arg2, s32 arg3, char *arg4, char *arg5, s32 arg7) {
+    f32 spC0;
+    f32 spBC;
+    f32 spB8;
+    f32 spA8;
+    f32 spA4;
+    f32 spA0;
+    s32 sp80;
+    f32 temp_f0;
+    f32 temp_f12;
+    f32 temp_f16;
+    f32 temp_f18;
+    f32 temp_f20;
+    f32 temp_f22;
+    s16 *var_a2;
+    s16 temp_a0_3;
+    s16 temp_a1_2;
+    s16 temp_t8;
+    s32 temp_a0;
+    s32 temp_a1;
+    s32 temp_ra;
+    s32 temp_s0;
+    s32 temp_t5;
+    s32 temp_v0_3;
+    s32 temp_v0_4;
+    s32 temp_v1;
+    s32 temp_v1_3;
+    s32 var_a1;
+    s32 var_s1;
+    s32 var_s8;
+    s8 temp_a0_2;
+    s8 temp_v1_2;
+    u32 var_a0;
+    u32 var_s3;
+    char *temp_s5;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_5;
+    char *var_a3;
+    char *var_t4;
+
+    var_s8 = 0;
+    if (*(s32 *)((char *)(arg0) + 0x84) == 0) {
+        return 0;
+    }
+    spA0 = *(s32 *)((char *)(arg5) + 0x0) - *(s32 *)((char *)(arg4) + 0x0);
+    spA4 = *(s32 *)((char *)(arg5) + 0x4) - *(s32 *)((char *)(arg4) + 0x4);
+    spA8 = *(s32 *)((char *)(arg5) + 0x8) - *(s32 *)((char *)(arg4) + 0x8);
+    if (*(f64 *)0x1AA8 < (f64) func_00000000((spA0 * spA0) + (spA4 * spA4) + (spA8 * spA8))) {
+        func_00000000(&spA0);
+    } else {
+        spA0 = 0.0f;
+        spA8 = 0.0f;
+        spA4 = -1.0f;
+    }
+    var_a0 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0x44);
+    var_s3 = 0;
+    var_a1 = 0;
+    if (var_a0 != 0) {
+loop_7:
+        temp_v1 = *(s32 *)((char *)(arg0) + 0x2C);
+        temp_v0 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0x54) + var_a1;
+        if ((*(s32 *)((char *)((temp_v1 + var_a1)) + 0x4) >= 0) && (temp_f16 = *(s32 *)((char *)(temp_v0) + 0x0), temp_f18 = *(s32 *)((char *)(temp_v0) + 0x4), temp_f20 = *(s32 *)((char *)(temp_v0) + 0x8), var_a2 = 0, temp_f12 = (temp_f16 * spA0) + (temp_f18 * spA4) + (temp_f20 * spA8), !(*(f64 *)0x1AB0 < (f64) temp_f12))) {
+            sp80 = var_a1;
+            temp_f0 = *(s32 *)((char *)(arg4) + 0x0);
+            temp_a1 = var_s3 * 0xC;
+            var_s1 = 1;
+            temp_f22 = -(((temp_f0 * temp_f16) + (*(s32 *)((char *)(arg4) + 0x4) * temp_f18) + (*(s32 *)((char *)(arg4) + 0x8) * temp_f20)) - *(s32 *)((char *)((temp_v1 + temp_a1)) + 0x8)) / temp_f12;
+            spB8 = temp_f0 + (spA0 * temp_f22);
+            spBC = *(s32 *)((char *)(arg4) + 0x4) + (spA4 * temp_f22);
+            spC0 = *(s32 *)((char *)(arg4) + 0x8) + (spA8 * temp_f22);
+            temp_s5 = *(s32 *)((char *)(arg0) + 0x84);
+            temp_a0 = *(s32 *)((char *)(temp_s5) + 0x4C);
+            if (temp_a0 != 0) {
+                var_t4 = *(s32 *)((char *)(temp_s5) + 0x68) + (*(s16 *)(temp_a0 + (var_s3 * 2)) * 8);
+            } else {
+                var_t4 = *(s32 *)((char *)(temp_s5) + 0x68) + (var_s3 * 8);
+            }
+            temp_t5 = *(s32 *)((char *)(temp_s5) + 0x60);
+            temp_v0_2 = *(s32 *)((char *)(arg0) + 0x2C) + temp_a1;
+            temp_v1_2 = *(s32 *)((char *)(temp_v0_2) + 0x0);
+            temp_a0_2 = *(s32 *)((char *)(temp_v0_2) + 0x1);
+            var_a3 = var_t4;
+            temp_ra = temp_v1_2 * 2;
+            temp_s0 = temp_a0_2 * 2;
+loop_13:
+            temp_t8 = *var_a2;
+            var_a2 += 2;
+            temp_v0_3 = temp_t5 + (*(s32 *)((char *)(var_a3) + 0x2) * 6);
+            temp_a0_3 = *(s16 *)(temp_v0_3 + temp_ra);
+            temp_a1_2 = *(s16 *)(temp_v0_3 + temp_s0);
+            temp_v1_3 = temp_t5 + (*(s32 *)((char *)((var_t4 + (temp_t8 * 2))) + 0x2) * 6);
+            if (((((f32) (s16) (*(s16 *)(temp_v1_3 + temp_ra) - temp_a0_3) * (f32) (s16) (s32) ((&spB8)[temp_a0_2] - (f32) temp_a1_2)) - ((f32) (s16) (*(s16 *)(temp_v1_3 + temp_s0) - temp_a1_2) * (f32) (s16) (s32) ((&spB8)[temp_v1_2] - (f32) temp_a0_3))) * (f32) *(s32 *)((char *)(temp_v0_2) + 0x3)) > 0.0f) {
+                var_s1 = 0;
+            }
+            if (var_s1 != 0) {
+                var_a3 += 2;
+                if (var_a2 != (s16 *)6) {
+                    goto loop_13;
+                }
+            }
+            temp_v0_4 = var_s8 * 4;
+            if (var_s1 != 0) {
+                *(f32 *)(arg2 + temp_v0_4) = temp_f22;
+                *(s32 *)(arg3 + temp_v0_4) = *(s32 *)((char *)(arg0) + 0x2C) + (var_s3 * 0xC);
+                if (arg7 != 0) {
+                    temp_v0_5 = arg7 + (var_s8 * 0xC);
+                    *(s32 *)((char *)(temp_v0_5) + 0x0) = spB8;
+                    *(s32 *)((char *)(temp_v0_5) + 0x4) = spBC;
+                    *(s32 *)((char *)(temp_v0_5) + 0x8) = spC0;
+                }
+                var_s8 += 1;
+                if (var_s8 >= arg1) {
+
+                } else {
+                    goto block_23;
+                }
+            } else {
+block_23:
+                var_a0 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0x44);
+                var_a1 = sp80;
+                goto block_24;
+            }
+        } else {
+block_24:
+            var_s3 += 1;
+            var_a1 += 0xC;
+            if (var_s3 < var_a0) {
+                goto loop_7;
+            }
+        }
+    }
+    return var_s8;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);
