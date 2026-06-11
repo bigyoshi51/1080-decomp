@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_0004ACD4",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T18:33:10.065509+00:00",
+  "end_time": "2026-06-11T18:33:10.065551+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T18:33:10.065536+00:00",
+      "assistant_text": "Wave-2 rules crack: inner-scope named deref base (scope-overlay lever) -- naming the base in an inner scope gives it v0 coloring with the slot overlaid, no frame growth.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 56,
+  "initial_m2c_source": null,
+  "final_source": "extern int D_00000000;\nvoid gl_func_0004ACD4(int *self) {\n    int i;\n    int count = self[0x40 / 4] * 10;\n    self[0xD0 / 4] = gl_func_00000000(&D_00000000, count * 2);\n    for (i = 0; i < count; i++) {\n        ((short *)self[0xD0 / 4])[i] = -1;\n    }\n    {\n        int *g = *(int **)((char *)&D_00000000 + 0x214);\n        *(short *)((char *)self + 0xD4) =\n            *(int *)((char *)(*(int *)((char *)g + 0x1C)) + 4);\n    }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/gl_func_0004ACD4_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_0004ACD4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}

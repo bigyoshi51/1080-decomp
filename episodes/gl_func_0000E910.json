@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_0000E910",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T18:33:12.492325+00:00",
+  "end_time": "2026-06-11T18:33:12.492385+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T18:33:12.492370+00:00",
+      "assistant_text": "Wave-2 rules crack: rule-4 phantom sizing; sibling of E6E8 (inverted-slot class).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 44,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_0000E910(int *self, int a1, int a2, int *a3_int_ptr) {\n    int *q;\n    volatile int pad[2];\n    if (self[0x60 / 4] == 0) {\n        gl_func_00000000();\n    }\n    self[0x7C / 4] = (int)a3_int_ptr;\n    self[0x78 / 4] = gl_func_00000000(0, self[0x60 / 4]);\n    gl_func_00000000((int *)self[0x78 / 4], *(int *)self[0x7C / 4]);\n    gl_func_00000000((int *)self[0x78 / 4], a1, a2);\n    q = (int *)self[0x78 / 4];\n    gl_func_00000000((char *)self + 0x10, q);\n    if (q[0x14 / 4] != 0) {\n        q[0x4 / 4] = 1;\n    }\n    q[0x14 / 4] = (int)self;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/gl_func_0000E910_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_0000E910.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}

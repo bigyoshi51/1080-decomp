@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_0000D9B8",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T18:33:11.054012+00:00",
+  "end_time": "2026-06-11T18:33:11.054053+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T18:33:11.054040+00:00",
+      "assistant_text": "Wave-2 rules crack: hidden pass-through arity -- declaring a1/a2 as live pass-through params makes the temp color a3.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 11,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nvoid gl_func_0000D9B8(int *a0, int a1, int a2) {\n    int *p = (int*)a0[0x1B];\n    if (p != 0) gl_func_00000000(p, a1, a2);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/gl_func_0000D9B8_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_0000D9B8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}

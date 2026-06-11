@@ -1,0 +1,32 @@
+{
+  "function_name": "uso_skip_to_end",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T18:33:11.533560+00:00",
+  "end_time": "2026-06-11T18:33:11.533588+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T18:33:11.533579+00:00",
+      "assistant_text": "Wave-2 rules crack: beq/bne operand order is ucode shape (uoptinput ==/!= isvar swap); struct-field vs array-element access discriminates the operand order.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 36,
+  "initial_m2c_source": null,
+  "final_source": "s32 uso_skip_to_end(FileState *file)\n{\n  s32 pad;\n  struct { u32 type; u32 size; u32 x; } header;\n  s32 new_var;\n  do\n  {\n    new_var = func_800009D8(&header, 12, 1, file);\n    pad = header.type;\n    if (new_var < 0)\n    {\n      return D_80013004;\n    }\n    if (8 != pad)\n    {\n      ((s32 *) file)[1] += header.size;\n    }\n  }\n  while (header.type != 11);\n  return 0;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/uso_skip_to_end_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/kernel/uso_skip_to_end.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}

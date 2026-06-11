@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_0004880C",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T18:33:10.571741+00:00",
+  "end_time": "2026-06-11T18:33:10.571783+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T18:33:10.571770+00:00",
+      "assistant_text": "Wave-2 rules crack: guard-scoped param copy -- placing the entry copy inside the guard region fills the blez delay slot.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 37,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nint gl_func_0004880C(int a0, int a1) {\n    int v1 = *(int *)(a0 + 0x594);\n    int i = 0;\n    int p;\n    if (v1 > 0) {\n        p = a1;\n        do {\n            int flag = (i == 0) || (*(int *)(a0 + 0x594) == 2);\n            if (gl_func_00000000(a0, flag, p) < 0) {\n                return 0;\n            }\n            v1 = *(int *)(a0 + 0x594);\n            p += 0x10;\n            i++;\n        } while (i < v1);\n    }\n    return 1;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/gl_func_0004880C_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_0004880C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}
