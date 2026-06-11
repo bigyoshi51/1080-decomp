@@ -1856,8 +1856,10 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251
  *  call alias (gl_func_00000000_void = 0x0) makes the return provably
  *  dead, so IDO reuses $v0 for the next load = the target shape.
  *  91.19 -> 99.52. FINAL residual: the two 2-op addu operand orders
- *  (294C class, all spellings probed: grouped, mult-side, array) + 2
- *  reloc-false stores. One allocator choice from exact. */
+ *  (294C class; ALL spellings probed including grouped-with-void-alias
+ *  2026-06-11 -- the lever sequencing left that combo untried, now
+ *  also flat) + 2 reloc-false stores. One allocator choice from
+ *  exact; permuter or uopt-internals territory. */
 extern int gl_func_00000000();
 extern void gl_func_00000000_void(int);  /* void-prototyped alias (=0x0): dead-return-reuse lever */
 extern char D_arc_27BC_str;
