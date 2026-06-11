@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_00054A14",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T17:01:27.193365+00:00",
+  "end_time": "2026-06-11T17:01:27.193405+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T17:01:27.193392+00:00",
+      "assistant_text": "Rules-sweep crack: float-typed 4th param -- 0.0f through an int arg register materializes as li (addiu) where integer 0 copies $zero (move); the zero-materialization tell.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "extern int D_00000000, D_54a_o0, D_54a_o1, D_54a_o2, D_54a_o3, D_54a_o4;\nvoid gl_func_00054A14(int *s0) {\n    gl_func_00000000((int)&D_54a_o0, (int)((char *)&D_00000000 + 0x21090), 0);\n    gl_func_00000000_54a((int)&D_54a_o1, (int)((char *)&D_00000000 + 0x2109C), (int)((char *)s0 + 0xC8), 0.0f, 8000.0f, 1);\n    gl_func_00000000_54a((int)&D_54a_o2, (int)((char *)&D_00000000 + 0x210A4), (int)((char *)s0 + 0xCC), 0.0f, 1000.0f, 1);\n    gl_func_00000000((int)&D_54a_o3, (int)((char *)&D_00000000 + 0x210AC), (int)((char *)s0 + 0xD0), 0);\n    gl_func_00000000((int)((char *)s0 + 0x10C), 0);\n    gl_func_00000000((int)&D_54a_o4);\n    gl_func_00000000(s0);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/gl_func_00054A14_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00054A14.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}

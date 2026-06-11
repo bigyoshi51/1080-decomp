@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_00035188",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T17:01:26.683709+00:00",
+  "end_time": "2026-06-11T17:01:26.683754+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T17:01:26.683739+00:00",
+      "assistant_text": "Rules-sweep crack: inline-don't-name the vtable base (coloring-order rule -- naming the base gave it an early bitpos and the wrong color; inlining the deref removes the live range).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 25,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_00035188(int a0, int a1) {\n    int rv;\n    int *p = &a0;\n    /* 2026-06-11 rules-sweep CRACK (rule 2 / inline-don't-name): naming g\n     * made it a colored LR -> $v0 for both vtable-base loads; inlining the\n     * *(int**)&D deref into each call expression keeps the base in the ugen\n     * temp pool -> fresh $t6/$t7 per statement, matching. */\n    ((void(*)(int, int))(*(int**)&D_00000000)[0x74/4])(a0, a1);\n    rv = ((int(*)(int))(*(int**)&D_00000000)[0x40/4])(a1);\n    if (rv < 0) {\n        gl_func_00000000((char*)&D_00000000 + 0x1E510, a1, rv);\n    }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/gl_func_00035188_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_00035188.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}

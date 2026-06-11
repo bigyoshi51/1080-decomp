@@ -1,0 +1,32 @@
+{
+  "function_name": "game_uso_func_000000A0",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T17:01:25.628933+00:00",
+  "end_time": "2026-06-11T17:01:25.628979+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T17:01:25.628965+00:00",
+      "assistant_text": "Rules-sweep crack: right-nested FP reduction grouping (a+(b+(c+...)) reproduces the target FP operand order; flat left associativity mirrors the adds). Rule derived from uopt source reading.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "float game_uso_func_000000A0(float *a, float *b) {\n    /* 2026-06-11 rules-sweep CRACK: right-nested grouping flips the final\n     * add.s to target order (cfe ufad ichain = ucode shape, rule-1 cousin);\n     * found via exhaustive 1920-variant enumeration (perm x mul-swap x\n     * parenthesization). The left-assoc default was the only family probed\n     * before. */\n    return a[3]*b[3] + (a[2]*b[2] + (a[1]*b[1] + b[0]*a[0]));\n}\n",
+  "metadata": {
+    "source_path": "/tmp/game_uso_func_000000A0_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_uso/game_uso/game_uso_func_000000A0.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make exit 0 + ROM byte-identical"
+  }
+}
