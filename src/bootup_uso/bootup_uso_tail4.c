@@ -165,7 +165,11 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *     LARGER frame (-0x60 vs our -0x50) = 2 values stack-resident in
  *     the original; our graft promotes 2 long-range vars to s4/s5
  *     (not call-window crossing -- long-distance ranges, m2c names
- *     var_t2/var_t5/var_v0_2 class). IDENTIFIED (pass 7): s5 holds
+ *     RESOLVED (pass 8): for-loop re-derivation (row<<5 recompute in
+ *     place of the accumulator+snapshot) killed both extras; register
+ *     set now matches the target EXACTLY. Residual: 3 insns short,
+ *     frame -72 vs -96 (target keeps 2 stack-resident values we fold).
+ *     Original pass-7 analysis: s5 held
  *     var_t2 (the += 0x20 outer-loop offset accumulator); s4 holds a
  *     SNAPSHOT of var_t2 taken before the inner loop (move s4,t2;
  *     bne s4,t5 loop-back) -- m2c's goto-loop_19 rendering created an
