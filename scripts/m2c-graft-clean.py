@@ -27,6 +27,10 @@ def clean(b, fn, self_recursive=False):
     b = b.replace('NULL','0')                                              # 14: before *0
     b = b.replace('?32','s32')
     b = re.sub(r'(\w+) = &jtbl_\d \+ [^;]+;', r'\1 = 0; /* jtbl addr read collapsed */', b)
+    # (u32)float FCSR-dance decomposition -> recompose (IDO_CODEGEN)
+    b = re.sub(
+        r'''(\s+)if \(M2C_ERROR\(/\* cfc1 \*/\) & 0x78\) \{\s+if \(!\(M2C_ERROR\(/\* cfc1 \*/\) & 0x78\)\) \{\s+(var_\w+) = \(s32\) \((\w+) - 2\.1474836e9f\) \| 0x80000000;\s+\} else \{\s+goto (block_\d+);\s+\}\s+\} else \{\s+\2 = \(s32\) \3;\s+if \(\2 < 0\) \{\s*\n\4:\s+\2 = -1;\s+\}\s+\}''',
+        r'\1\2 = (u32) \3; /* recomposed (u32)float */', b)
     b = b.replace('(bitwise f32)','*(f32 *)&')
     b = b.replace('(bitwise s32)','*(s32 *)&')
     b = b.replace('(? *)','(char *)')

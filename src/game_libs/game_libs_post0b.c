@@ -14130,49 +14130,13 @@ void gl_func_000454C4(char *arg0, char *arg1, char *arg2, f32 arg3) {
     temp_v0 = *(s32 *)((char *)(arg0) + 0x194);
     temp_s4 = *(s32 *)((char *)(*(s32 *)((char *)(arg1) + 0x2C)) + 0x0) + (temp_v1 * 0x48);
     temp_f10 = *(s32 *)((char *)(temp_v0) + 0xFC) * *(s32 *)((char *)(arg2) + 0x0) * 255.0f;
-    if (M2C_ERROR(/* cfc1 */) & 0x78) {
-        if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-            var_t0 = (s32) (temp_f10 - 2.1474836e9f) | 0x80000000;
-        } else {
-            goto block_3;
-        }
-    } else {
-        var_t0 = (s32) temp_f10;
-        if (var_t0 < 0) {
-block_3:
-            var_t0 = -1;
-        }
-    }
+    var_t0 = (u32) temp_f10; /* recomposed (u32)float (FCSR-dance) */
     var_t0_2 = var_t0 & 0xFF;
     temp_f8 = *(s32 *)((char *)(temp_v0) + 0x100) * *(s32 *)((char *)(arg2) + 0x4) * 255.0f;
-    if (M2C_ERROR(/* cfc1 */) & 0x78) {
-        if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-            var_t1 = (s32) (temp_f8 - 2.1474836e9f) | 0x80000000;
-        } else {
-            goto block_8;
-        }
-    } else {
-        var_t1 = (s32) temp_f8;
-        if (var_t1 < 0) {
-block_8:
-            var_t1 = -1;
-        }
-    }
+    var_t1 = (u32) temp_f8; /* recomposed (u32)float (FCSR-dance) */
     var_t1_2 = var_t1 & 0xFF;
     temp_f6 = *(s32 *)((char *)(temp_v0) + 0x104) * *(s32 *)((char *)(arg2) + 0x8) * 255.0f;
-    if (M2C_ERROR(/* cfc1 */) & 0x78) {
-        if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-            var_t2 = (s32) (temp_f6 - 2.1474836e9f) | 0x80000000;
-        } else {
-            goto block_13;
-        }
-    } else {
-        var_t2 = (s32) temp_f6;
-        if (var_t2 < 0) {
-block_13:
-            var_t2 = -1;
-        }
-    }
+    var_t2 = (u32) temp_f6; /* recomposed (u32)float (FCSR-dance) */
     var_t2_2 = var_t2 & 0xFF;
     if ((f64) arg3 != 1.0) {
         var_f4 = (f32) var_t0_2;
@@ -14185,19 +14149,7 @@ block_13:
         } else {
             var_f2 = 255.0f;
         }
-        if (M2C_ERROR(/* cfc1 */) & 0x78) {
-            if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-                var_t0_3 = (s32) (var_f2 - 2.1474836e9f) | 0x80000000;
-            } else {
-                goto block_24;
-            }
-        } else {
-            var_t0_3 = (s32) var_f2;
-            if (var_t0_3 < 0) {
-block_24:
-                var_t0_3 = -1;
-            }
-        }
+        var_t0_3 = (u32) var_f2; /* recomposed (u32)float */
         var_t0_2 = var_t0_3 & 0xFF;
         temp_f12_2 = (f32) var_t1_2 * arg3;
         if (temp_f12_2 < 255.0f) {
@@ -14205,19 +14157,7 @@ block_24:
         } else {
             var_f2_2 = 255.0f;
         }
-        if (M2C_ERROR(/* cfc1 */) & 0x78) {
-            if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-                var_t1_3 = (s32) (var_f2_2 - 2.1474836e9f) | 0x80000000;
-            } else {
-                goto block_32;
-            }
-        } else {
-            var_t1_3 = (s32) var_f2_2;
-            if (var_t1_3 < 0) {
-block_32:
-                var_t1_3 = -1;
-            }
-        }
+        var_t1_3 = (u32) var_f2_2; /* recomposed (u32)float */
         var_t1_2 = var_t1_3 & 0xFF;
         temp_f12_3 = (f32) var_t2_2 * arg3;
         if (temp_f12_3 < 255.0f) {
@@ -14225,19 +14165,7 @@ block_32:
         } else {
             var_f2_3 = 255.0f;
         }
-        if (M2C_ERROR(/* cfc1 */) & 0x78) {
-            if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-                var_t2_3 = (s32) (var_f2_3 - 2.1474836e9f) | 0x80000000;
-            } else {
-                goto block_40;
-            }
-        } else {
-            var_t2_3 = (s32) var_f2_3;
-            if (var_t2_3 < 0) {
-block_40:
-                var_t2_3 = -1;
-            }
-        }
+        var_t2_3 = (u32) var_f2_3; /* recomposed (u32)float */
         var_t2_2 = var_t2_3 & 0xFF;
     }
     *(s32 *)((char *)(temp_s4) + 0x0) = var_t0_2;
@@ -28314,65 +28242,17 @@ void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *
         sp34 = temp_t3;
         func_00000000(arg0, arg1, arg10);
         temp_f4 = *(s32 *)((char *)(arg5) + 0x0) * 255.0f;
-        if (M2C_ERROR(/* cfc1 */) & 0x78) {
-            if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-                var_t8 = (s32) (temp_f4 - 2.1474836e9f) | 0x80000000;
-            } else {
-                goto block_7;
-            }
-        } else {
-            var_t8 = (s32) temp_f4;
-            if (var_t8 < 0) {
-block_7:
-                var_t8 = -1;
-            }
-        }
+        var_t8 = (u32) temp_f4; /* recomposed (u32)float */
         spA4 = (s8) var_t8;
         temp_f8 = *(s32 *)((char *)(arg5) + 0x4) * 255.0f;
-        if (M2C_ERROR(/* cfc1 */) & 0x78) {
-            if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-                var_t6 = (s32) (temp_f8 - 2.1474836e9f) | 0x80000000;
-            } else {
-                goto block_12;
-            }
-        } else {
-            var_t6 = (s32) temp_f8;
-            if (var_t6 < 0) {
-block_12:
-                var_t6 = -1;
-            }
-        }
+        var_t6 = (u32) temp_f8; /* recomposed (u32)float */
         spA5 = (s8) var_t6;
         temp_f18 = *(s32 *)((char *)(arg5) + 0x8) * 255.0f;
-        if (M2C_ERROR(/* cfc1 */) & 0x78) {
-            if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-                var_t7 = (s32) (temp_f18 - 2.1474836e9f) | 0x80000000;
-            } else {
-                goto block_17;
-            }
-        } else {
-            var_t7 = (s32) temp_f18;
-            if (var_t7 < 0) {
-block_17:
-                var_t7 = -1;
-            }
-        }
+        var_t7 = (u32) temp_f18; /* recomposed (u32)float */
         sp20 = var_t8;
         temp_f6 = *(s32 *)((char *)(arg5) + 0xC) * 255.0f;
         spA6 = (s8) var_t7;
-        if (M2C_ERROR(/* cfc1 */) & 0x78) {
-            if (!(M2C_ERROR(/* cfc1 */) & 0x78)) {
-                var_t8_2 = (s32) (temp_f6 - 2.1474836e9f) | 0x80000000;
-            } else {
-                goto block_22;
-            }
-        } else {
-            var_t8_2 = (s32) temp_f6;
-            if (var_t8_2 < 0) {
-block_22:
-                var_t8_2 = -1;
-            }
-        }
+        var_t8_2 = (u32) temp_f6; /* recomposed (u32)float */
         spA7 = (s8) var_t8_2;
         temp_a3 = *(s32 *)((char *)(arg0) + 0xC);
         temp_v1_2 = *(s32 *)((char *)(temp_a3) + 0x4);
