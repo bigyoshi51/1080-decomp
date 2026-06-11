@@ -1,0 +1,32 @@
+{
+  "function_name": "arcproc_uso_func_000027BC",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-11T04:59:57.976051+00:00",
+  "end_time": "2026-06-11T04:59:57.976079+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-11T04:59:57.976070+00:00",
+      "assistant_text": "First permuter-completed match. Hand ladder (inline-deref lr-split, full inline, fresh locals, void-prototyped alias for dead-return v0 reuse) reached 99.52; the scoped permuter (import.py) found the rest: index-through-variable, mult-first inline, comma-expr compare, assignment-in-index, displacement-in-variable. 91.19 -> 100.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 42,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nextern void gl_func_00000000_void(int);  /* void-prototyped alias (=0x0): dead-return-reuse lever */\nextern char D_arc_27BC_str;\nextern int D_arc_27BC_g70;\nextern int D_arc_27BC_g74;\nvoid arcproc_uso_func_000027BC(int *a0)\n{\n  int new_var2;\n  unsigned char new_var3;\n  int new_var;\n ;\n  if (gl_func_00000000(&D_arc_27BC_str, 0x40100, a0) != 0)\n  {\n    int *p0 = 0;\n    new_var2 = 0x7C / 4;\n    p0 = (int *) a0[0x48 / 4];\n    if ((*((int *) ((((char *) p0) + (p0[0x7C / 4] * 0x28)) + 0x90))) != ((0, 0)))\n    {\n      gl_func_00000000_void(5);\n      D_arc_27BC_g70 = a0[new_var = 0x48 / 4];\n      D_arc_27BC_g74 = (int) a0;\n      {\n        int *p1 = 0;\n        p1 = (int *) a0[new_var];\n        ((void (*)(void)) (*((int *) ((((char *) p1) + (p1[new_var2] * 0x28)) + (new_var3 = 0x90)))))();\n      }\n    }\n  }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/27bc_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_000027BC.s",
+    "segment": "arcproc_uso",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full-make ROM byte-identical (cmp clean)"
+  }
+}
