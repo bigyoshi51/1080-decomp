@@ -1865,7 +1865,24 @@ extern int gl_func_00000000();
  * temp means the original had an expression that consumed t8 and was
  * optimized away AFTER temp numbering (uoptlist-visible, not
  * C-steerable: dead-load probes allocate a frame slot, +8, without
- * occupying the temp). Definitive uoptlist-class; do not re-grind. */
+ * occupying the temp). Definitive uoptlist-class; do not re-grind.
+ * 2026-06-11 ugen-crack session (-Wc,-d trace + reg_mgr decompiled; see
+ * docs/IDO_CODEGEN "UGEN TEMP ROTATION MECHANISM"): mechanism now exact.
+ * ugen reg_mgr = circular scratch queue t6,t7,t8,t9,t0..t5 (head-take,
+ * tail-append). eval_mov (16-byte struct copy) pops the data pair (t6,t7)
+ * and binds them REVERSED (first emitted word uses pop#2) -> ping-pong
+ * t7,t6 matches both sides; frees t6,t7 at move end. Our istr-value uilod
+ * then pops queue head = t8; target has t9. So the original popped ONE
+ * extra scratch STRICTLY between the move's pair-pop and the istr's
+ * value-pop -- a translate-time pop whose instruction was deleted later
+ * (ugen labelopt or as1 redundant-move cleanup; as1 DOES delete
+ * ugen-emitted moves and rename registers: ugen emits lw t8,0(s0) here,
+ * as1 renames to 0(a1)). That window contains only the move tail (no C
+ * handle), the sw-zero stmt, and the uilod itself. ~25 spellings probed
+ * vs a byte-comparator harness (named ptr, int* index, cast/cvt chains,
+ * bitfield c:32, volatile, xor-zero, stmt-order swaps): all byte-neutral
+ * (uopt canonicalizes before ugen) or regress. No C grammar reaches the
+ * window. Cap stands -- mechanism precisely documented. */
 struct gl_func_0000C28C_Four { int a, b, c, d; };
 void gl_func_0000C28C(void *arg0, struct gl_func_0000C28C_Four *arg1) {
     struct gl_func_0000C28C_Four buf10;
