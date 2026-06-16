@@ -13074,14 +13074,18 @@ extern int gl_func_00000000();
 
 #ifdef NON_MATCHING
 void gl_func_0002A4D0(volatile unsigned char *a0) {
-    unsigned int raw;
-    unsigned int val;
-    if (a0 == 0) return;
-    gl_func_00000000((void*)a0);
-    raw = *a0;
-    val = raw & 0xFF7F;
-    *a0 = val;
-    *a0 = val | 0x40;
+  unsigned int raw;
+  unsigned int val;
+  if (a0 == 0)
+  {
+    return;
+  }
+  gl_func_00000000((void *) a0);
+  raw = *a0;
+  val = raw & 0xFF7F;
+  *a0 = ((((val & 0xFFFFFFFFFFFFFFFF) & 0xFFFFFFFFFFFFFFFF) & 0xFFFFFFFFFFFFFFFF) & 0xFFFFFFFFFFFFFFFF) & 0xFFFFFFFFFFFFFFFF;
+  *a0 = ((unsigned char) val) | 0x40;
+  raw = raw;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A4D0);
