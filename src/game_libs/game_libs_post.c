@@ -16076,9 +16076,9 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
             }
             *(f32 *)((char *)(arg0) + 0x50) = (f32) ((temp_f16 + *(f32 *)((char *)(arg0) + 0x0)) * 0.5f);
             *(f32 *)((char *)(arg0) + 0x44) = (f32) ((*(f32 *)((char *)(arg0) + 0x44) + (*(f32 *)((char *)(arg0) + 0x0) * temp_f14 * 100.0f)) * 0.5f);
-            sp7D = gl_func_00043824(*(f32 *)((char *)(arg0) + 0x4) * 120.0f, *(f32 *)((char *)(arg0) + 0x4), 1, 0x1C250, 0x10);
+            sp7D = gl_func_00043824(*(f32 *)((char *)(arg0) + 0x4) * 120.0f, *(f32 *)((char *)(arg0) + 0x4), 1, (s32)((char *)&D_00000000 + 0x1C250), 0x10);
             temp_f2 = *(f32 *)((char *)(arg0) + 0x0);
-            temp_t7 = (gl_func_00043824(*(f32 *)((char *)(arg0) + 0x44), 0x1C290, 0x20) * 4) & 0xFF;
+            temp_t7 = (gl_func_00043824(*(f32 *)((char *)(arg0) + 0x44), (s32)((char *)&D_00000000 + 0x1C290), 0x20) * 4) & 0xFF;
             temp_f4 = (temp_f2 / 200.0f) + *(f32 *)((char *)&D_00000000 + 0x16E0);
             temp_f10 = temp_t7;
             sp78 = temp_f4;
