@@ -874,18 +874,20 @@ void mgrproc_uso_func_00001AD0(int *a0, int a1) {
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void mgrproc_uso_func_00001B58(int *a0) {
-    int *p;
-    int *t6;
-    int *t7;
-    gl_func_00000000(a0);
-    p = *(int**)((char*)&D_00000000 + 0x134);
-    t6 = (int*)((int*)p[0xC4/4])[0x800/4];
-    t7 = (int*)((int*)p[0xCC/4])[0x800/4];
-    gl_func_00000000(a0, p[0xCC/4]);
-    gl_func_00000000(t6, 0);
-    gl_func_00000000(t7, 0);
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x138), 0, 0);
-    a0[0x4F4/4] = 0;
+  int *p;
+  int *new_var;
+  int *t6;
+  int *t7;
+  gl_func_00000000(a0);
+  p = *((int **) (((char *) (&D_00000000)) + 0x134));
+  new_var = (int *) p[0xC4 / 4];
+  t6 = (int *) new_var[0x800 / 4];
+  t7 = (int *) ((int *) p[0xCC / 4])[0x800 / 4];
+  gl_func_00000000(a0, p[0xCC / 4]);
+  gl_func_00000000(t6, (0x4F4 / 4) * 0);
+  gl_func_00000000(t7, 0);
+  gl_func_00000000(*((int *) (((char *) (&D_00000000)) + (0x138 & 0xFF))), 0, 0);
+  a0[0x4F4 / 4] = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
