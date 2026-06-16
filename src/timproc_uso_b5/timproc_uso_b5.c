@@ -8752,18 +8752,29 @@ void timproc_uso_b5_func_0000CE5C(int *a0, int a1) {
  * promotion was REMOVED 2026-05-23 as match-faking. */
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CE6C(char *a0) {
-    char *v;
-    float a, b, c, d;
-    v = *(char**)(a0 + 0x2B8);
-    a = *(float*)(a0 + 0x294);
-    b = *(float*)(a0 + 0x264);
-    c = *(float*)(a0 + 0x260);
-    d = *(float*)(a0 + 0x25C);
-    *(float*)(v + 0x118) = a;
-    *(float*)(v + 0x10C) = b;
-    *(float*)(v + 0x114) = c;
-    *(float*)(v + 0x110) = d;
-    timproc_uso_b5_func_00003F58();
+  char *v;
+  float a;
+  float b;
+  float c;
+  float d;
+  if (!b)
+  {
+  }
+  v = *((char **) (a0 + 0x2B8));
+  a = *((float *) (a0 + 0x294));
+  if (((!a0) && (!a0)) && (!a0))
+  {
+  }
+  d++;
+  d--;
+  b = *((float *) (a0 + 0x264));
+  c = *((float *) (a0 + 0x260));
+  d = *((float *) (a0 + 0x25C));
+  *((float *) (v + 0x118)) = a;
+  *((float *) (v + 0x10C)) = b;
+  *((float *) (v + 0x114)) = c;
+  *((float *) (v + 0x110)) = d;
+  timproc_uso_b5_func_00003F58();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE6C);
