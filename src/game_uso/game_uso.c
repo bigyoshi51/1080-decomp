@@ -3088,29 +3088,33 @@ extern float gl_func_00000000_f();
 extern float gl_func_00000000_ff(float);  /* float-prototyped alias of _f (=0x0): avoids K&R float->double arg promotion */
 #ifdef NON_MATCHING
 float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
-    float unused;
-    Vec3 vb;
-    Vec3 va;
-    char pad[8];
-    float ret;
-    float r;
-
-    (void)unused;
-    (void)pad;
-    vb = *a1;
-    gl_func_00000000(&vb);
-    va = *a0;
-    gl_func_00000000(&va);
-    r = gl_func_00000000_ff(va.x * vb.x + va.z * vb.z);
-    r = r / *(float*)((char*)&D_00000000 + 0x90);
-    ret = r;
-    if ((va.z * vb.x) < (va.x * vb.z)) {
-        ret = -r;
-    }
-    if (a2 != NULL) {
-        *a2 = 0;
-    }
-    return ret;
+  float unused;
+  Vec3 vb;
+  char *new_var;
+  Vec3 va;
+  char pad[8];
+  float ret;
+  float r;
+  new_var = ((char *) (&D_00000000)) + 0x90;
+  ret = r;
+  (void) unused;
+  (void) pad;
+  vb = *a1;
+  gl_func_00000000(&vb);
+  va = *a0;
+  gl_func_00000000(&va);
+  r = gl_func_00000000_ff((va.x * vb.x) + (va.z * vb.z));
+  r = r / (*((float *) new_var));
+  ret = r;
+  if ((va.z * vb.x) < (va.x * vb.z))
+  {
+    ret = -r;
+  }
+  if (a2 != ((void *) 0))
+  {
+    *a2 = 0;
+  }
+  return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
