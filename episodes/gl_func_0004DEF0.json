@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_0004DEF0",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-16T10:19:38.721783+00:00",
+  "end_time": "2026-06-16T10:19:38.721821+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-16T10:19:38.721808+00:00",
+      "assistant_text": "Permuter-factory's first TRUE 100.0 crack -- the unattended queue-runner found a byte-exact body; verified through the full-link ROM cmp gate (not just objdiff, which masks reloc addends on relocatable game_libs functions).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 40,
+  "initial_m2c_source": null,
+  "final_source": "extern int D_00000000;\nvoid gl_func_0004DEF0(int *a0) {\n  int i;\n  int off;\n  char *new_var;\n do { if ((*((int *) (((char *) a0) + 0x38))) > 0) { i = 0; new_var = (char *) a0; off = 0; do { gl_func_00000000(&D_00000000, (*((int *) ((*((int *) (((char *) a0) + 0x30))) + off))) + 112); { int *v = *((int **) ((*((int *) (new_var + 0x2C))) + off)); int *vt = (int *) (*((int *) (((char *) (*((int **) ((*((int *) (new_var + 0x2C))) + off)))) + 0x28))); ((void (*)(int)) (*((int *) (((char *) vt) + 0x1C))))((*((short *) (((char *) vt) + 0x18))) + ((int) v)); } i++; off += 4; } while (i < (*((int *) (((char *) a0) + 0x38)))); } } while (0);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/4DEF0_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_0004DEF0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full make exit 0 + ROM byte-identical (passed the ROM gate that rejected 5C9BC false-100)"
+  }
+}
