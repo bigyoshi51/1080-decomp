@@ -18,6 +18,8 @@ extern char *game_uso_alias();
  * feedback_game_uso_dnm_typedef_inside_ifdef.md). */
 extern int gl_func_00000000();
 extern char D_00000000;
+extern char import_80020110;
+extern int import_8006EF48;
 extern int D_game_11564_flag;
 extern int D_game_11564_table;
 typedef struct { float x, y, z; } Vec3;
@@ -4720,7 +4722,7 @@ void game_uso_func_0000591C(int *a0) {
     Vec3 effect_delta;
     Vec3 effect_delta2;
     Vec3 effect_stage;
-    char pad[0xB0];
+    char pad[0xA0];
     int state_flag;
     int active_state;
     int resolved_state;
@@ -4743,8 +4745,8 @@ void game_uso_func_0000591C(int *a0) {
     self = a0;
 
     /* Two early-out guards on globals. */
-    if (((int*)&D_00000000)[0x1E] != 0) return;
-    if (((int*)&D_00000000)[0] == 0) return;
+    if (*(int*)((char*)&import_80020110 + 0x78) != 0) return;
+    if (import_8006EF48 == 0) return;
 
     /* 4-way bit dispatch on a0->field_68 (flag byte).  Each handler
      * makes one gl_func_00000000 call and returns. Fall-through goes
@@ -4763,11 +4765,12 @@ void game_uso_func_0000591C(int *a0) {
         return;
     }
 
+    staged_axis = *(Vec3*)(*(char**)((char*)self + 0x30) + 0xB4);
     sub = *(char**)((char*)self + 0x30);
-    staged_axis = *(Vec3*)(sub + 0xB4);
-    scaled_axis.x = *(float*)(sub + 0x318) * *(float*)((char*)self + 0xA8);
-    scaled_axis.y = *(float*)(sub + 0x31C) * *(float*)((char*)self + 0xA8);
-    scaled_axis.z = *(float*)(sub + 0x320) * *(float*)((char*)self + 0xA8);
+    scale = *(float*)((char*)self + 0xA8);
+    scaled_axis.x = *(float*)(sub + 0x318) * scale;
+    scaled_axis.y = *(float*)(sub + 0x31C) * scale;
+    scaled_axis.z = *(float*)(sub + 0x320) * scale;
     mul_axis = scaled_axis;
     staged_axis.x += mul_axis.x;
     staged_axis.y += mul_axis.y;
@@ -6619,7 +6622,7 @@ void game_uso_func_00007424(void *a0) {
  * pre-computes `a3 = a0 + 0x35C` at insn 3 and uses `lwc1 f18, 0x10(a3)`
  * for the 3rd scale_y access — probably a struct-field access in source.
  * 27/36 insns match structurally; body is semantically correct.
- * 2026-06-01: struct-field form `((struct{char pad[0x10];float f;}*)(table+OFF))->f`
+ * 2026-06-01: struct-field form `((struct{char pad[0xA0];float f;}*)(table+OFF))->f`
  * ALSO folds to direct offset (still 27 insns) — IDO merges base+0x10 to a single
  * lwc1 regardless of C shape (named-base, struct-field, both tried). The 9-insn
  * gap (target's addiu base; lwc1 0x10(base) cursor pairs + per-access table
