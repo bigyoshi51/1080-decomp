@@ -28137,7 +28137,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             temp_t3 = (sp1E8 & 0xF) << 0xE;
             temp_t4 = (sp1E4 & 3) << 8;
             temp_t5 = (sp1EC & 0xF) * 0x10;
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | 0x07000000 | temp_t3 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | temp_t4 | temp_t5 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA));
+            FW(temp_a0, 0x4) = (s32) ((((temp_t2 | 0x07000000 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28177,7 +28177,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
             temp_a0 = FW(FW(arg0, 0xC), 0x0) + (temp_a1 * 8);
             FW(temp_a0, 0x0) = (s32) (((((s32) (((*(s16 *)((char *)arg1 + 0x20)) * 2) + 7) >> 3) & 0x1FF) << 9) | 0xF5180000 | temp_ra_2);
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | temp_t3 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA) | temp_t4 | temp_t5 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | ((FW(arg1, 0x3C) & 7) << 0x18));
+            FW(temp_a0, 0x4) = (s32) ((((((FW(arg1, 0x3C) & 7) << 0x18) | temp_t2 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28269,7 +28269,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             temp_t3 = (sp1E8 & 0xF) << 0xE;
             temp_t4 = (sp1E4 & 3) << 8;
             temp_t5 = (sp1EC & 0xF) * 0x10;
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | 0x07000000 | temp_t3 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | temp_t4 | temp_t5 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA));
+            FW(temp_a0, 0x4) = (s32) ((((temp_t2 | 0x07000000 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28309,7 +28309,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
             temp_a0 = FW(FW(arg0, 0xC), 0x0) + (temp_a1 * 8);
             FW(temp_a0, 0x0) = (s32) (((((s32) ((*(s16 *)((char *)arg1 + 0x20)) + 7) >> 3) & 0x1FF) << 9) | 0xF5680000 | temp_ra_4);
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | temp_t3 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA) | temp_t4 | temp_t5 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | ((FW(arg1, 0x3C) & 7) << 0x18));
+            FW(temp_a0, 0x4) = (s32) ((((((FW(arg1, 0x3C) & 7) << 0x18) | temp_t2 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28335,7 +28335,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             temp_t3 = (sp1E8 & 0xF) << 0xE;
             temp_t4 = (sp1E4 & 3) << 8;
             temp_t5 = (sp1EC & 0xF) * 0x10;
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | 0x07000000 | temp_t3 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | temp_t4 | temp_t5 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA));
+            FW(temp_a0, 0x4) = (s32) ((((temp_t2 | 0x07000000 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28375,7 +28375,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
             temp_a0 = FW(FW(arg0, 0xC), 0x0) + (temp_a1 * 8);
             FW(temp_a0, 0x0) = (s32) (((((s32) ((*(s16 *)((char *)arg1 + 0x20)) + 7) >> 3) & 0x1FF) << 9) | 0xF5880000 | temp_ra_5);
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | temp_t3 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA) | temp_t4 | temp_t5 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | ((FW(arg1, 0x3C) & 7) << 0x18));
+            FW(temp_a0, 0x4) = (s32) ((((((FW(arg1, 0x3C) & 7) << 0x18) | temp_t2 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28401,7 +28401,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             temp_t3 = (sp1E8 & 0xF) << 0xE;
             temp_t4 = (sp1E4 & 3) << 8;
             temp_t5 = (sp1EC & 0xF) * 0x10;
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | 0x07000000 | temp_t3 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | temp_t4 | temp_t5 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA));
+            FW(temp_a0, 0x4) = (s32) ((((temp_t2 | 0x07000000 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28441,7 +28441,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
             temp_a0 = FW(FW(arg0, 0xC), 0x0) + (temp_a1 * 8);
             FW(temp_a0, 0x0) = (s32) (((((s32) (((s16) (*(s16 *)((char *)arg1 + 0x20)) >> 1) + 7) >> 3) & 0x1FF) << 9) | 0xF5800000 | temp_ra_6);
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | temp_t3 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA) | temp_t4 | temp_t5 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | ((FW(arg1, 0x3C) & 7) << 0x18));
+            FW(temp_a0, 0x4) = (s32) ((((((FW(arg1, 0x3C) & 7) << 0x18) | temp_t2 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28510,7 +28510,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             temp_t3 = (sp1E8 & 0xF) << 0xE;
             temp_t4 = (sp1E4 & 3) << 8;
             temp_t5 = (sp1EC & 0xF) * 0x10;
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | 0x07000000 | temp_t3 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | temp_t4 | temp_t5 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA));
+            FW(temp_a0, 0x4) = (s32) ((((temp_t2 | 0x07000000 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
@@ -28552,7 +28552,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
             temp_a0 = FW(FW(arg0, 0xC), 0x0) + (temp_a1 * 8);
             FW(temp_a0, 0x0) = (s32) (((((s32) (FW(var_a2, 0xC) + 7) >> 3) & 0x1FF) << 9) | 0xF5480000 | temp_ra_8);
-            FW(temp_a0, 0x4) = (s32) (temp_t2 | temp_t3 | (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA) | temp_t4 | temp_t5 | ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF) | ((FW(arg1, 0x3C) & 7) << 0x18));
+            FW(temp_a0, 0x4) = (s32) ((((((FW(arg1, 0x3C) & 7) << 0x18) | temp_t2 | temp_t3) + (((*(s16 *)((char *)arg1 + 0x2E)) & 0xF) << 0xA)) | temp_t4 | temp_t5) + ((*(s16 *)((char *)arg1 + 0x2C)) & 0xF));
             temp_v1 = FW(arg0, 0xC);
             temp_a1 = FW(temp_v1, 0x4);
             FW(temp_v1, 0x4) = (s32) (temp_a1 + 1);
