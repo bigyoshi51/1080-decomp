@@ -3021,14 +3021,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp36C.unk8;
             var_a0_11 = var_s0_2 + 0xF8;
             sp60.unkC = (s32) sp36C.unkC;
-            sp50.unk0 = (s32) sp35C.unk0;
-            sp50.unk4 = (s32) sp35C.unk4;
-            sp50.unk8 = (s32) sp35C.unk8;
-            sp50.unkC = (s32) sp35C.unkC;
-            sp40.unk0 = (s32) sp34C.unk0;
-            sp40.unk4 = (s32) sp34C.unk4;
-            sp40.unk8 = (s32) sp34C.unk8;
-            sp40.unkC = (s32) sp34C.unkC;
+            sp50 = sp35C;
+            sp40 = sp34C;
             tmp.p = sp348;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0xF8) || (temp_v0_15 = timproc_uso_b5_alias((char *)0x24), var_a0_11 = temp_v0_15, (temp_v0_15 != NULL))) {
@@ -3059,14 +3053,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp338.unk8;
             var_a0_12 = var_s0_2 + 0x11C;
             sp60.unkC = (s32) sp338.unkC;
-            sp50.unk0 = (s32) sp328.unk0;
-            sp50.unk4 = (s32) sp328.unk4;
-            sp50.unk8 = (s32) sp328.unk8;
-            sp50.unkC = (s32) sp328.unkC;
-            sp40.unk0 = (s32) sp318.unk0;
-            sp40.unk4 = (s32) sp318.unk4;
-            sp40.unk8 = (s32) sp318.unk8;
-            sp40.unkC = (s32) sp318.unkC;
+            sp50 = sp328;
+            sp40 = sp318;
             tmp.p = sp314;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x11C) || (temp_v0_16 = timproc_uso_b5_alias((char *)0x24), var_a0_12 = temp_v0_16, (temp_v0_16 != NULL))) {
@@ -3097,14 +3085,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp304.unk8;
             var_a0_13 = var_s0_2 + 0x140;
             sp60.unkC = (s32) sp304.unkC;
-            sp50.unk0 = (s32) sp2F4.unk0;
-            sp50.unk4 = (s32) sp2F4.unk4;
-            sp50.unk8 = (s32) sp2F4.unk8;
-            sp50.unkC = (s32) sp2F4.unkC;
-            sp40.unk0 = (s32) sp2E4.unk0;
-            sp40.unk4 = (s32) sp2E4.unk4;
-            sp40.unk8 = (s32) sp2E4.unk8;
-            sp40.unkC = (s32) sp2E4.unkC;
+            sp50 = sp2F4;
+            sp40 = sp2E4;
             tmp.p = sp2E0;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x140) || (temp_v0_17 = timproc_uso_b5_alias((char *)0x24), var_a0_13 = temp_v0_17, (temp_v0_17 != NULL))) {
@@ -3135,14 +3117,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp2D0.unk8;
             var_a0_14 = var_s0_2 + 0x164;
             sp60.unkC = (s32) sp2D0.unkC;
-            sp50.unk0 = (s32) sp2C0.unk0;
-            sp50.unk4 = (s32) sp2C0.unk4;
-            sp50.unk8 = (s32) sp2C0.unk8;
-            sp50.unkC = (s32) sp2C0.unkC;
-            sp40.unk0 = (s32) sp2B0.unk0;
-            sp40.unk4 = (s32) sp2B0.unk4;
-            sp40.unk8 = (s32) sp2B0.unk8;
-            sp40.unkC = (s32) sp2B0.unkC;
+            sp50 = sp2C0;
+            sp40 = sp2B0;
             tmp.p = sp2AC;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x164) || (temp_v0_18 = timproc_uso_b5_alias((char *)0x24), var_a0_14 = temp_v0_18, (temp_v0_18 != NULL))) {
@@ -3173,14 +3149,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp29C.unk8;
             var_a0_15 = var_s0_2 + 0x188;
             sp60.unkC = (s32) sp29C.unkC;
-            sp50.unk0 = (s32) sp28C.unk0;
-            sp50.unk4 = (s32) sp28C.unk4;
-            sp50.unk8 = (s32) sp28C.unk8;
-            sp50.unkC = (s32) sp28C.unkC;
-            sp40.unk0 = (s32) sp27C.unk0;
-            sp40.unk4 = (s32) sp27C.unk4;
-            sp40.unk8 = (s32) sp27C.unk8;
-            sp40.unkC = (s32) sp27C.unkC;
+            sp50 = sp28C;
+            sp40 = sp27C;
             tmp.p = sp278;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x188) || (temp_v0_19 = timproc_uso_b5_alias((char *)0x24), var_a0_15 = temp_v0_19, (temp_v0_19 != NULL))) {
@@ -3211,14 +3181,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp268.unk8;
             var_a0_16 = var_s0_2 + 0x1AC;
             sp60.unkC = (s32) sp268.unkC;
-            sp50.unk0 = (s32) sp258.unk0;
-            sp50.unk4 = (s32) sp258.unk4;
-            sp50.unk8 = (s32) sp258.unk8;
-            sp50.unkC = (s32) sp258.unkC;
-            sp40.unk0 = (s32) sp248.unk0;
-            sp40.unk4 = (s32) sp248.unk4;
-            sp40.unk8 = (s32) sp248.unk8;
-            sp40.unkC = (s32) sp248.unkC;
+            sp50 = sp258;
+            sp40 = sp248;
             tmp.p = sp244;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x1AC) || (temp_v0_20 = timproc_uso_b5_alias((char *)0x24), var_a0_16 = temp_v0_20, (temp_v0_20 != NULL))) {
@@ -3249,14 +3213,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp234.unk8;
             var_a0_17 = var_s0_2 + 0x1D0;
             sp60.unkC = (s32) sp234.unkC;
-            sp50.unk0 = (s32) sp224.unk0;
-            sp50.unk4 = (s32) sp224.unk4;
-            sp50.unk8 = (s32) sp224.unk8;
-            sp50.unkC = (s32) sp224.unkC;
-            sp40.unk0 = (s32) sp214.unk0;
-            sp40.unk4 = (s32) sp214.unk4;
-            sp40.unk8 = (s32) sp214.unk8;
-            sp40.unkC = (s32) sp214.unkC;
+            sp50 = sp224;
+            sp40 = sp214;
             tmp.p = sp210;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x1D0) || (temp_v0_21 = timproc_uso_b5_alias((char *)0x24), var_a0_17 = temp_v0_21, (temp_v0_21 != NULL))) {
@@ -3287,14 +3245,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp200.unk8;
             var_a0_18 = var_s0_2 + 0x1F4;
             sp60.unkC = (s32) sp200.unkC;
-            sp50.unk0 = (s32) sp1F0.unk0;
-            sp50.unk4 = (s32) sp1F0.unk4;
-            sp50.unk8 = (s32) sp1F0.unk8;
-            sp50.unkC = (s32) sp1F0.unkC;
-            sp40.unk0 = (s32) sp1E0.unk0;
-            sp40.unk4 = (s32) sp1E0.unk4;
-            sp40.unk8 = (s32) sp1E0.unk8;
-            sp40.unkC = (s32) sp1E0.unkC;
+            sp50 = sp1F0;
+            sp40 = sp1E0;
             tmp.p = sp1DC;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x1F4) || (temp_v0_22 = timproc_uso_b5_alias((char *)0x24), var_a0_18 = temp_v0_22, (temp_v0_22 != NULL))) {
@@ -3325,14 +3277,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp1CC.unk8;
             var_a0_19 = var_s0_2 + 0x218;
             sp60.unkC = (s32) sp1CC.unkC;
-            sp50.unk0 = (s32) sp1BC.unk0;
-            sp50.unk4 = (s32) sp1BC.unk4;
-            sp50.unk8 = (s32) sp1BC.unk8;
-            sp50.unkC = (s32) sp1BC.unkC;
-            sp40.unk0 = (s32) sp1AC.unk0;
-            sp40.unk4 = (s32) sp1AC.unk4;
-            sp40.unk8 = (s32) sp1AC.unk8;
-            sp40.unkC = (s32) sp1AC.unkC;
+            sp50 = sp1BC;
+            sp40 = sp1AC;
             tmp.p = sp1A8;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x218) || (temp_v0_23 = timproc_uso_b5_alias((char *)0x24), var_a0_19 = temp_v0_23, (temp_v0_23 != NULL))) {
@@ -3364,14 +3310,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp198.unk8;
             var_a0_20 = var_s0_2 + 0x23C;
             sp60.unkC = (s32) sp198.unkC;
-            sp50.unk0 = (s32) sp188.unk0;
-            sp50.unk4 = (s32) sp188.unk4;
-            sp50.unk8 = (s32) sp188.unk8;
-            sp50.unkC = (s32) sp188.unkC;
-            sp40.unk0 = (s32) sp178.unk0;
-            sp40.unk4 = (s32) sp178.unk4;
-            sp40.unk8 = (s32) sp178.unk8;
-            sp40.unkC = (s32) sp178.unkC;
+            sp50 = sp188;
+            sp40 = sp178;
             tmp.p = sp174;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x23C) || (temp_v0_24 = timproc_uso_b5_alias((char *)0x24), var_a0_20 = temp_v0_24, (temp_v0_24 != NULL))) {
@@ -3402,14 +3342,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp164.unk8;
             var_a0_21 = var_s0_2 + 0x260;
             sp60.unkC = (s32) sp164.unkC;
-            sp50.unk0 = (s32) sp154.unk0;
-            sp50.unk4 = (s32) sp154.unk4;
-            sp50.unk8 = (s32) sp154.unk8;
-            sp50.unkC = (s32) sp154.unkC;
-            sp40.unk0 = (s32) sp144.unk0;
-            sp40.unk4 = (s32) sp144.unk4;
-            sp40.unk8 = (s32) sp144.unk8;
-            sp40.unkC = (s32) sp144.unkC;
+            sp50 = sp154;
+            sp40 = sp144;
             tmp.p = sp140;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x260) || (temp_v0_25 = timproc_uso_b5_alias((char *)0x24), var_f2 = *(s32 *)((char *)&D_00000000 + 0x168), var_a0_21 = temp_v0_25, (temp_v0_25 != NULL))) {
@@ -3441,14 +3375,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) sp130.unk8;
             var_a0_22 = var_s0_2 + 0x284;
             sp60.unkC = (s32) sp130.unkC;
-            sp50.unk0 = (s32) sp120.unk0;
-            sp50.unk4 = (s32) sp120.unk4;
-            sp50.unk8 = (s32) sp120.unk8;
-            sp50.unkC = (s32) sp120.unkC;
-            sp40.unk0 = (s32) sp110.unk0;
-            sp40.unk4 = (s32) sp110.unk4;
-            sp40.unk8 = (s32) sp110.unk8;
-            sp40.unkC = (s32) sp110.unkC;
+            sp50 = sp120;
+            sp40 = sp110;
             tmp.p = sp10C;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x284) || (temp_v0_26 = timproc_uso_b5_alias((char *)0x24), var_a0_22 = temp_v0_26, (temp_v0_26 != NULL))) {
@@ -3479,14 +3407,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp60.unk8 = (s32) spFC.unk8;
             var_a0_23 = var_s0_2 + 0x2A8;
             sp60.unkC = (s32) spFC.unkC;
-            sp50.unk0 = (s32) spEC.unk0;
-            sp50.unk4 = (s32) spEC.unk4;
-            sp50.unk8 = (s32) spEC.unk8;
-            sp50.unkC = (s32) spEC.unkC;
-            sp40.unk0 = (s32) spDC.unk0;
-            sp40.unk4 = (s32) spDC.unk4;
-            sp40.unk8 = (s32) spDC.unk8;
-            sp40.unkC = (s32) spDC.unkC;
+            sp50 = spEC;
+            sp40 = spDC;
             tmp.p = spD8;
             marsh = tmp;
             if ((var_s0_2 != (char *)-0x2A8) || (temp_v0_27 = timproc_uso_b5_alias((char *)0x24), var_a0_23 = temp_v0_27, (temp_v0_27 != NULL))) {
