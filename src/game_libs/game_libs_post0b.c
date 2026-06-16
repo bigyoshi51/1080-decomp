@@ -27597,10 +27597,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * into one pre-dispatch local (forces callee-save live range) CRATERS
  * every region EX 1734->944 -- the target's at/ra coloring is allocator-
  * internal, NOT a hoisted-C-var artifact. Reconfirms pass-9 negative.
- * CONCLUSION: 93.82 is the C-reachable ceiling for this NM body with
- * the current allocator model; remaining ~6.2% is allocator-internal
- * (split-spill pressure + at/ra const coloring + globally-coupled
- * or-chain order). No tractable per-statement handle remains. */
+ * PASS-10 CONCLUSION ("93.82 is the C-reachable ceiling") WAS WRONG —
+ * it was a LOCAL fix to a GLOBAL problem. PASS 11 (2026-06-15) broke it
+ * to 96.25 with TWO whole-function coordinations:
+ *  (1) or-chain pack class (the "globally-coupled" cascade): the
+ *      0x2C/0x2E mid-chain-complex packs ARE reachable via a mixed +/|
+ *      spine (bracket each complex operand's | joins with + so the +
+ *      nodes escape or-canonicalization and emit in source order, at
+ *      addu-vs-or cost = 2 words/chain). Pass 10 applied it to ONE arm,
+ *      saw a no-chain arm regress 100->66 (downstream ugen-rotation
+ *      phase shift) and called it a cap. Applying the SAME spine to ALL
+ *      5 switch-2 arms AT ONCE makes the phase consistent and nets
+ *      POSITIVE: per-region EX 1734->1755, fuzzy 93.82->96.18.
+ *  (2) at/ra const coloring: NOT allocator-internal. The two F518
+ *      stores per switch-1 arm were written as TEXTUALLY IDENTICAL
+ *      chains (named temp w/temp_a0_6 reused), so uopt CSE'd the whole
+ *      computed value into one long callee-save web that stole ra from
+ *      the spanning 0x07000000. FIX: inline the second store's load
+ *      (temp_a0_6 -> FW(sp1DC,0x4)) to break the CSE; F518 then remats
+ *      per-use via at (target shape) and 0700 claims ra. All 6 arms:
+ *      EX 1755->1775, fuzzy 96.18->96.25. (Verified with -Wo,-zdbug:6
+ *      uoptlist: lui ra,0x700 now appears in every switch-1 arm.)
+ *      Both techniques in docs/IDO_CODEGEN (UOPT OR-CHAIN ROTATION sec).
+ * STILL ALLOCATOR-INTERNAL (genuinely resists C handles, re-confirmed
+ * pass 11 — every probe REGRESSED per-region EX): switch-2 div-hazard
+ * split-spills (dl-ptr to frame homes 0x80/0x9C/0xB8/0xF0; build keeps
+ * in scratch reg; slotmap shows tgt 2 / bld 0 at those offsets; the
+ * sp44->sp80 rename and forcing-pressure probes both DROP EX); the
+ * per-arm switch-1 t1-ptr homes (1A8/18C/170/154 — per-arm rename
+ * cascade-regresses the arm-body scratch rotation, EX 1775->1589,
+ * reconfirms pass-8); and the case-0x508 const-emit scheduling swap
+ * (as1 hoists a later lui above an earlier ori, ~2 words). Next swing:
+ * find the register-pressure C construct that forces the div-hazard
+ * spill WITHOUT shifting the rotation phase (the remaining ~3.75%). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
