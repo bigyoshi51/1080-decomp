@@ -27568,7 +27568,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * (f) residual per-arm scratch-queue PERMUTATIONS (constant within a
  * region, e.g. word-2139 arm's 4-cycle) - upstream free-order; fix
  * arms left-to-right as shapes close. Probe harness: /tmp/tmpl578b.py
- * (per-anchor-region exact/blind scoring, ~0.3s/build standalone). */
+ * (per-anchor-region exact/blind scoring, ~0.3s/build standalone).
+ * PASS 10 (2026-06-15, laggard switch-2 arms): drilled the worst
+ * per-region EX arms 1563(spC4 0x408)/1754(spA8 0x308)/2221(sp50
+ * 0x508) per the focused queue. Disassembly-aligned blind-diffs show
+ * their residual is ENTIRELY the already-documented no-handle classes,
+ * confirmed three ways:
+ *  (i) or-chain 0x2C/0x2E interleave (class b shape): ALL chain arms'
+ *      target wants (arg1+0x2E)<<0xA before t4/t5 and (arg1+0x2C) last.
+ *      Reordering the 5 C chains to that order RAISES SequenceMatcher
+ *      LCS 1673->1724 BUT objdiff fuzzy DROPS 93.82->93.76 and per-
+ *      region EX 1734->1709 (1563 81->129 yet 1195 109->86, 1386 100->
+ *      66 -- and 1386 has NO 0x2C/0x2E chain). The local fix triggers a
+ *      global web-coupling cascade. CALIBRATION: score578 SequenceMatcher
+ *      LCS is NOT a faithful proxy for objdiff here (it matches words
+ *      out of true position); tmpl578b per-region EX IS faithful (it
+ *      predicted the regression). Gate on EX + objdiff, not raw LCS.
+ *  (ii) arm dl-ptr split-spill (class c): target spills the per-arm
+ *      pointer (t0/t8) to a frame home (sp184/sp44...) across the div
+ *      hazard-check breaks; build keeps it live in a reg. Pure allocator
+ *      pressure-internal; the surrounding shape is byte-identical modulo
+ *      that one reg-vs-home choice. No C handle.
+ *  (iii) multu/addu operand reg naming + constant addiu-vs-ori
+ *      (0x219C4 tail): tested multiply-operand swap, (0x20000+0x19C4),
+ *      L-suffix, (s32) cast -- ALL identical output. ucode/const-pool
+ *      canonical, source-order-blind.
+ * Also retried const-web at/ra (class b): hoisting 0x07000000 (26 uses)
+ * into one pre-dispatch local (forces callee-save live range) CRATERS
+ * every region EX 1734->944 -- the target's at/ra coloring is allocator-
+ * internal, NOT a hoisted-C-var artifact. Reconfirms pass-9 negative.
+ * CONCLUSION: 93.82 is the C-reachable ceiling for this NM body with
+ * the current allocator model; remaining ~6.2% is allocator-internal
+ * (split-spill pressure + at/ra const coloring + globally-coupled
+ * or-chain order). No tractable per-statement handle remains. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
