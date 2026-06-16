@@ -205,10 +205,32 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *  group renumber dominates; a t4/t5 first-occurrence swap was flat
  *  -- identifying the actual renumbered LR pair needs the
  *  -Wo,-zdbug:6 coloring trace, now fully documented).
+ *  PASS-15 2026-06-15 (coloring-trace pass, -Wo,-zdbug:6 on
+ *  /tmp/tail4_nocmt.c): the residual is ONE coupled allocator
+ *  permutation, NOT a single LR swap. The base ptr
+ *  `temp_a0_3 = *(*(0x254)+0x158)` is loaded ONCE (lw _,344(t9)) and
+ *  held for the entire ~340-insn record-emit tail = the function's
+ *  LONGEST live range -> LOWEST priority (compute_save = save/span) ->
+ *  target colors it LAST -> gets a0 (after the per-block derefs grab
+ *  v0/v1). OUR build colors it into v0 instead -> the whole 27-block
+ *  emit + 2 bnel/bne forms rebase (a0<->v0, deref v1<->v0, count
+ *  a0<->v1). This is the ARG-REGISTER-TARGETING cap (docs: no
+ *  pseudo-order lever moves a value INTO an arg reg; web-order-inversion
+ *  full-inline REGRESSED 92.5->67). The loop body has the coupled
+ *  var_t4(clamp)<->var_t5(outer-IV) t4/t5 swap: target colors both
+ *  unconstrained-by-bitpos (clamp earlier-bitpos -> t4); our build's
+ *  outer-IV is CONSTRAINED -> colored first -> grabs t4 (clamp ->t5).
+ *  WINS this pass: inlining the ==2/==3 mode-check derefs (outer line
+ *  376/381 + inner line 461) makes the compared value an isop at
+ *  uopt-input -> the Uneq operand-swap fires -> `bne s3,v0`/`bne s2,v0`
+ *  const-first (matches target) instead of var-first. 92.5 -> 92.61.
+ *  REMAINING = arg-reg-target base cascade + IV-constrained t4/t5 +
+ *  inner-counter v0/v1 + sp44 spill $f4-vs-$f24/64-vs-68. All
+ *  allocator-internal; permuter floored 97k (no regalloc randomizer).
  *  FINAL LADDER: 2.8 (pre-graft) -> 77.4 (m2c graft)
  *  -> 84.1 ((u32)float) -> 86.3 (pool syms) -> 87.8 (for-loop
- *  re-derivation) -> 88.8 (decode fixes) -> 92.5 (permuter). The
- *  fn rests at 92.50; remaining instruments: uopt internals.
+ *  re-derivation) -> 88.8 (decode fixes) -> 92.5 (permuter)
+ *  -> 92.61 (bne const-first via isop mode-checks).
  *  3c. (pass 10 negative-flat) the target loads mode-consts 2/3 into
  *     s3/s2 BEFORE the jal (register compares: bne s3,v0 / bne s2,v0).
  *     Plain pre-call locals (const_two=2; const_three=3) got folded
