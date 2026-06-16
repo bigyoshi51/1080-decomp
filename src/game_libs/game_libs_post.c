@@ -9163,10 +9163,10 @@ char *gl_func_00026214(void) {
     }
     *(s32 *)0x2090 = gl_func_0001CA10(*(s32 *)0x2090, (s32) &sp68, sp58, (s32) FW(sp3C, 0x214C));
     temp_a3 = *(s32 *)0x2078;
-    temp_lo = gl_func_0001CA10() * (*(s32 *)0x2154 + temp_a3);
-    *(s32 *)0x2154 = temp_lo;
+    temp_lo = gl_func_0001CA10() * (*(s32 *)((char *)&D_00000000 + 0x2154) + temp_a3);
+    *(s32 *)((char *)&D_00000000 + 0x2154) = temp_lo;
     temp_t3 = *(int*)(FW(sp34, 0x2140) + ((temp_a3 & 0xFF) * 2)) + temp_lo;
-    *(s32 *)0x2154 = temp_t3;
+    *(s32 *)((char *)&D_00000000 + 0x2154) = temp_t3;
     *(s32 *)0x20 = temp_t3 & 0xFFF0;
     FW((*(s32 *)0x2094), 0x40) = 0;
     FW((*(s32 *)0x2094), 0x44) = 0;
@@ -13801,7 +13801,7 @@ s32 gl_func_0002B5F4(char *arg0, s32 arg1) {
     }
     temp_v1_4 = FW(temp_t0, 0xD);
     if (temp_v1_4 != 0) {
-        temp_v0_4 = *(u32 *)0x2154;
+        temp_v0_4 = *(u32 *)((char *)&D_00000000 + 0x2154);
         temp_f12 = FW(arg0, 0x3C);
         temp_hi = temp_v0_4 % temp_v1_4;
         var_f18 = (f32) temp_hi;
@@ -16169,7 +16169,7 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
             if (*(u8 *)((char *)(arg0) + 0x16) & 1) {
                 *(s32 *)((char *)(arg0) + 0x8) = (f32) (*(s32 *)((char *)(arg0) + 0x8) + 50.0f);
                 gl_func_00043BE4(arg0, 0, *(u8 *)((char *)(arg0) + 0x2C) - 1, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
-                var_f0_2 = func_00000000(arg0, (*(u32 *)0x2154 & 7) + 0x20);
+                var_f0_2 = func_00000000(arg0, (*(u32 *)((char *)&D_00000000 + 0x2154) & 7) + 0x20);
                 *(u8 *)((char *)(arg0) + 0x16) = (u8) (*(u8 *)((char *)(arg0) + 0x16) & ~1);
             }
             var_v0_2 = *(u8 *)((char *)(arg0) + 0x14);
@@ -16329,7 +16329,7 @@ block_83:
                         }
                         break;
                     }
-                    func_00000000(arg0, var_v0_2 + ((u32) *(s32 *)0x2154 % sp50));
+                    func_00000000(arg0, var_v0_2 + ((u32) *(s32 *)((char *)&D_00000000 + 0x2154) % sp50));
                     *(s32 *)((char *)(arg0) + 0x48) = 0xA;
                     *(u8 *)((char *)(arg0) + 0x29) = 0U;
                     *(u8 *)((char *)(arg0) + 0x16) = (u8) (*(u8 *)((char *)(arg0) + 0x16) & 0xFFFB);
@@ -16355,7 +16355,7 @@ block_83:
                                 *(f32 *)((char *)&D_00000000 + 0x1C738) = 1.0f;
                             }
                         } else if (temp_v0_8 >= 7) {
-                            var_f0_3 = *(f32 *)((char *)(arg0) + 0x0) / *(s32 *)0x1C738;
+                            var_f0_3 = *(f32 *)((char *)(arg0) + 0x0) / *(f32 *)((char *)&D_00000000 + 0x1C738);
                             if (var_f0_3 <= 0.5f) {
                                 var_f0_3 = 0.5f;
                             }
