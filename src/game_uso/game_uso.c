@@ -13610,29 +13610,33 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void game_uso_func_000102CC(int *a0) {
-    int *s0 = a0;
-    int *v0;
-    int *t;
-    gl_func_00000000(a0);
-    gl_func_00000000(s0, s0[0xFC / 4] | 0x19, 3, 4, 2, 1);
-    v0 = (int *)s0[0xB4 / 4];
-    if (*(float *)((char *)v0 + 0x31C) < 0.0f &&
-        *(float *)((char *)v0 + 0x9D0) < 1000.0f) {
-        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xDE8));
-        v0 = (int *)s0[0xB4 / 4];
+  int *s0 = a0;
+  int *v0;
+  int *t;
+  int new_var;
+  gl_func_00000000(a0);
+  gl_func_00000000(s0, s0[0xFC / 4] | 0x19, 3, 4, 2, 1);
+  v0 = (int *) s0[0xB4 / 4];
+  if (((*((float *) (((char *) v0) + 0x31C))) < 0.0f) && ((*((float *) (((char *) v0) + 0x9D0))) < 1000.0f))
+  {
+    gl_func_00000000(s0, *((Pair2 *) (((char *) (&D_00000000)) + 0xDE8)));
+    v0 = (int *) s0[0xB4 / 4];
+  }
+  if ((*((int *) (((char *) (new_var = *((int *) (((char *) v0) + 0x800)))) + 0x18))) & 0x400)
+  {
+    gl_func_00000000(s0, *((Pair2 *) (((char *) (&D_00000000)) + 0xDE0)));
+  }
+  gl_func_00000000(s0, 0);
+  if (gl_func_00000000(s0) == 0)
+  {
+    ;
+    if (((int *) s0[0xB4 / 4])[0x938 / 4] != 0)
+    {
+      gl_func_00000000(s0, *((Pair2 *) (((char *) (&D_00000000)) + 0xDF8)));
+      gl_func_00000000(s0);
     }
-    if (*(int *)((char *)*(int *)((char *)v0 + 0x800) + 0x18) & 0x400) {
-        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xDE0));
-    }
-    gl_func_00000000(s0, 0);
-    if (gl_func_00000000(s0) == 0) {
-        t = (int *)s0[0xB4 / 4];
-        if (t[0x938 / 4] != 0) {
-            gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xDF8));
-            gl_func_00000000(s0);
-        }
-        gl_func_00000000(s0);
-    }
+    gl_func_00000000(s0);
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000102CC);
