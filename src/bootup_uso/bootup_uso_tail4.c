@@ -373,12 +373,12 @@ void func_0001304C(char *arg0)
     temp_v0 = *((s32 *) (((char *) arg0) + 0x40));
     var_t4 = 0;
     var_t5 = 0;
-    if (temp_v0 == 2)
+    if ((*((s32 *) (((char *) arg0) + 0x40))) == 2)
     {
       sp44 = D_00000C50;
     }
     var_f24 = sp44;
-    if (temp_v0 == 3)
+    if ((*((s32 *) (((char *) arg0) + 0x40))) == 3)
     {
       if ((*((s32 *) (((char *) arg0) + 0x68))) != 0)
       {
