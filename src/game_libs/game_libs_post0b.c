@@ -10617,15 +10617,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040070);
  * as match-faking (per feedback_no_instruction_forcing_matches_policy).
  * Default build is INCLUDE_ASM. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
 void gl_func_000402A4(int *a0, float dx, float dy, float dz) {
  *((float *) (((char *) a0) + 0xB4)) += dx; *((float *) (((char *) a0) + 0xB8)) += dy;
   *((float *) (((char *) a0) + 0xBC)) += dz;
   gl_func_00000000(((char *) a0) + 0xB4, ((char *) a0) + 0x30, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000402A4);
-#endif
+
 
 // gl_func_00040304 — STRUCTURAL PASS (0x338 / 207 words, no episode). Raw-.word
 // USO. realjr=1 (the early 01E00008 is jr t7 = jump-table dispatch, NOT a
