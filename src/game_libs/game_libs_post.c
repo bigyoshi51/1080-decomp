@@ -15989,18 +15989,11 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
     u32 sp50;
     s32 sp2C;
     f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f0_4;
     f32 temp_f10_2;
     f32 temp_f14;
     f32 temp_f16;
     f32 temp_f2;
-    f32 temp_f2_2;
-    f32 temp_f2_3;
-    f32 temp_f2_4;
     f32 temp_f4;
-    f32 temp_f4_2;
     f32 var_f0;
     f32 var_f0_2;
     f32 var_f0_3;
@@ -16034,7 +16027,6 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
     u8 temp_a0_3;
     u8 temp_t0;
     u8 temp_t8;
-    u8 temp_t8_2;
     u8 temp_t9;
     u8 temp_v0_4;
     u8 temp_v0_5;
@@ -16074,9 +16066,9 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                 *(f32 *)((char *)(arg0) + 0x4) = (f32) (temp_f14 * temp_f0);
             }
             temp_f16 = *(f32 *)((char *)(arg0) + 0x50);
-            temp_f0_2 = temp_f16 - *(f32 *)((char *)(arg0) + 0x0);
-            if (temp_f0_2 >= 0.5f) {
-                var_f0 = temp_f0_2 + 0.5f;
+            temp_f0 = temp_f16 - *(f32 *)((char *)(arg0) + 0x0);
+            if (temp_f0 >= 0.5f) {
+                var_f0 = temp_f0 + 0.5f;
                 if (var_f0 >= 2.0f) {
                     var_f0 = 2.0f;
                 }
@@ -16129,24 +16121,24 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
             }
             if (*(u8 *)((char *)(arg0) + 0x1C) & 1) {
                 temp_t9 = *(u8 *)((char *)(arg0) + 0x26);
-                temp_f0_3 = *(f32 *)((char *)(arg0) + 0x54);
+                temp_f0 = *(f32 *)((char *)(arg0) + 0x54);
                 var_f10 = (f32) temp_t9;
                 if ((s32) temp_t9 < 0) {
                     var_f10 += 4294967296.0f;
                 }
-                temp_f4_2 = var_f10 * temp_f0_3;
-                var_t3 = (u32) temp_f4_2; /* recomposed (u32)float */
+                temp_f4 = var_f10 * temp_f0;
+                var_t3 = (u32) temp_f4; /* recomposed (u32)float */
                 *(u8 *)((char *)(arg0) + 0x26) = (u8) var_t3;
                 sp78 *= *(f32 *)((char *)(arg0) + 0x58);
                 *(u8 *)((char *)(arg0) + 0x28) = (u8) ((s32) (*(u8 *)((char *)(arg0) + 0x28) + *(u8 *)((char *)(arg0) + 0x60)) >> 1);
                 if (*(u8 *)((char *)(arg0) + 0x21) == 0) {
-                    func_00000000(0x01020000, temp_f0_3);
+                    func_00000000(0x01020000, temp_f0);
                     func_00000000(0x03020000, (s8) *(u8 *)((char *)(arg0) + 0x28));
                     func_00000000(0x90000000, 0x806);
                     func_00000000(0x0C00FF00, *(s8 *)((char *)(arg0) + 0x63));
                     var_f0_2 = func_00000000(0x0D00FF00, 0x3000);
                 } else {
-                    func_00000000(0x01020100, temp_f0_3);
+                    func_00000000(0x01020100, temp_f0);
                     func_00000000(0x03020100, (s8) *(u8 *)((char *)(arg0) + 0x28));
                     func_00000000(0x90000000, 0x1060);
                     func_00000000(0x0C00FF00, *(s8 *)((char *)(arg0) + 0x63));
@@ -16357,9 +16349,9 @@ block_83:
                     if (*(u8 *)((char *)(arg0) + 0x14) == 0) {
                         temp_v0_8 = *(s32 *)((char *)(arg0) + 0x38);
                         if (temp_v0_8 == 0) {
-                            temp_f2_2 = *(f32 *)((char *)(arg0) + 0x0);
-                            *(f32 *)((char *)&D_00000000 + 0x1C738) = temp_f2_2;
-                            if (temp_f2_2 == 0.0f) {
+                            temp_f2 = *(f32 *)((char *)(arg0) + 0x0);
+                            *(f32 *)((char *)&D_00000000 + 0x1C738) = temp_f2;
+                            if (temp_f2 == 0.0f) {
                                 *(f32 *)((char *)&D_00000000 + 0x1C738) = 1.0f;
                             }
                         } else if (temp_v0_8 >= 7) {
@@ -16375,9 +16367,9 @@ block_83:
                                 *(s32 *)((char *)&D_00000000 + 0) = (s32) (temp_v0_9 - 1);
                                 var_f0_3 *= *(s32 *)((char *)(((temp_v0_9 & 0x1F) * 4)) + 0x1C430);
                             }
-                            temp_f2_3 = *(f32 *)((char *)&D_00000000 + 0x1724);
-                            if (temp_f2_3 <= var_f0_3) {
-                                var_f0_3 = temp_f2_3;
+                            temp_f2 = *(f32 *)((char *)&D_00000000 + 0x1724);
+                            if (temp_f2 <= var_f0_3) {
+                                var_f0_3 = temp_f2;
                             }
                             *(s32 *)((char *)&D_00000000 + 0x14) = 0x20;
                             *(f32 *)((char *)&D_00000000 + 0x1C73C) = var_f0_3;
@@ -16386,11 +16378,11 @@ block_83:
                     } else {
                         temp_v0_10 = *(f32 *)((char *)&D_00000000 + 0x14);
                         if (temp_v0_10 != 0) {
-                            temp_f0_4 = *(f32 *)((char *)&D_00000000 + 0x1C73C);
-                            temp_f2_4 = *(f32 *)((char *)&D_00000000 + 0x1728);
-                            var_f0_4 = ((1.0f - temp_f0_4) / (f32) temp_v0_10) + temp_f0_4;
-                            if (temp_f2_4 <= var_f0_4) {
-                                var_f0_4 = temp_f2_4;
+                            temp_f0 = *(f32 *)((char *)&D_00000000 + 0x1C73C);
+                            temp_f2 = *(f32 *)((char *)&D_00000000 + 0x1728);
+                            var_f0_4 = ((1.0f - temp_f0) / (f32) temp_v0_10) + temp_f0;
+                            if (temp_f2 <= var_f0_4) {
+                                var_f0_4 = temp_f2;
                             }
                             if (var_f0_4 <= 0.5f) {
                                 var_f0_4 = 0.5f;
@@ -16417,9 +16409,9 @@ block_83:
                             *(u8 *)((char *)(arg0) + 0x33) = 0x1AU;
                         }
                         if (*(f32 *)((char *)&D_00000000 + 0x172C) < *(f32 *)((char *)(arg0) + 0xC)) {
-                            temp_t8_2 = *(u8 *)((char *)(arg0) + 0x33) + 1;
-                            *(u8 *)((char *)(arg0) + 0x33) = temp_t8_2;
-                            if ((temp_t8_2 & 0xFF) == 0x19) {
+                            temp_t8 = *(u8 *)((char *)(arg0) + 0x33) + 1;
+                            *(u8 *)((char *)(arg0) + 0x33) = temp_t8;
+                            if ((temp_t8 & 0xFF) == 0x19) {
                                 func_00000000(arg0, 0x3C);
                             }
                         }
