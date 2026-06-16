@@ -7612,21 +7612,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D620);
  * SAME-LEN 36) per docs/POST_CC_RECIPES.md#feedback-insn-patch-screen-by-opmismatch-count. */
 #ifdef NON_MATCHING
 void gl_func_0003D68C(int *a0) {
-    int i0, i1, i2;
-    float f[3];
-    struct { int tag; float *pf; } s;
-    int v0;
-    func_00000000(&i0);
-    func_00000000(&i1);
-    func_00000000(&i2);
-    f[0] = (float)i0;
-    f[1] = (float)i1;
-    f[2] = (float)i2;
-    s.tag = 7;
-    s.pf = &f[0];
-    v0 = *(int *)((char *)a0 + 0x28);
-    (*(void (**)(int *, int *))(v0 + 0x2C))(
-        (int *)((char *)a0 + *(short *)(v0 + 0x28)), (int *)&s);
+  int i0;
+  int i1;
+  int i2;
+  float f[3];
+  struct 
+  {
+    int tag;
+    float *pf;
+  } s;
+  int v0;
+  func_00000000(&i0);
+  func_00000000(&i1);
+  func_00000000(&i2);
+  f[0] = (float) i0;
+  f[1] = (float) i1;
+  if (!i0)
+  {
+  }
+  f[2] = (float) i2;
+  s.tag = 7;
+  s.pf = &f[0];
+  f[1] = (float) i1;
+  v0 = *((int *) (((char *) a0) + 0x28));
+  (*((void (**)(int *, int *)) (v0 + 0x2C)))((int *) (((char *) a0) + (*((short *) (v0 + 0x28)))), (int *) (&s));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D68C);
