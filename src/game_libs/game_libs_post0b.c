@@ -13723,16 +13723,19 @@ extern int gl_func_00000000();
 extern int D_00000000;
 #ifdef NON_MATCHING
 void game_libs_func_00044540(int *a0, int **a1) {
-    int rv;
-    int counter;
-    int *base;
-    int *self = *(int **)((char *)&D_00000000 + 0x214);
-    rv = gl_func_00000000((char*)(a0[0] * 8 + (int)((int**)self[0xC/4])[0]));
-    counter = ((int*)a1[0xC/4])[0x4/4];
-    ((int*)a1[0xC/4])[0x4/4] = counter + 1;
-    base = (int*)((int*)a1[0xC/4])[0];
-    base[counter * 2 + 0] = 0x06000000;
-    base[counter * 2 + 1] = rv;
+  int rv;
+  int counter;
+  int *base;
+  int *self = *((int **) (((char *) (&D_00000000)) + 0x214));
+  rv = gl_func_00000000((char *) ((a0[0] * 8) + ((int) ((int **) self[0xC / 4])[0])));
+  counter = ((int *) a1[0xC / 4])[0x4 / 4];
+  ((int *) a1[0xC / 4])[0x4 / 4] = counter + 1;
+  base = (int *) ((int *) a1[0xC / 4])[0];
+  if ((rv && rv) && rv)
+  {
+  }
+  base[(counter * 2) + 0] = 0x06000000;
+  base[(counter * 2) + 1] = rv;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
