@@ -1495,15 +1495,26 @@ extern int D_00000000;
  * + ret-funnel shapes regress structure. ugen-internal; stays NM.
  * 2026-06-11 ugen-crack session: spill-SOURCE forensics sharpen the verdict.
  * Target spills FROM v0 (sw v0,0x1C in the jal delay) with carrier a2; ours
- * spills FROM the carrier (sw v1,0x1C). Target's no-call-path piece of r's
- * split web is COLORED (a2 = the only caller-saved reg not redefined in the
- * range: v1 free but unpicked, a0/a1 marshal-redefined); ours is REJECTED
- * (-ve save) so ugen binds it at translate (v1 = first available v-reg).
- * The gap is the split piece's adjsave sign inside uopt needsplit/split —
- * not steerable: K&R fn-ptr cast (v0:v1-protection theory) NEUTRAL,
- * a0-param-reuse flips to spill-from-v0 but collapses the frame (arg-slot
- * home), `return r|0` and `register` NEUTRAL. Mechanism fully located
- * (uopt split + ugen translate binding interplay); no C handle. */
+ * spills FROM the carrier (sw v1,0x1C). (Note: standalone repro spills v0 in
+ * BOTH; sw v0,28(sp) identical — the ONLY diff is the carrier of r.)
+ * 2026-06-15 split-phase model session (scripts/split-solve.py): RETRACT the
+ * "r's split web is rejected" claim. zdbug:5 printregs + split-solve decode:
+ *   - r is the M-class local (ichain {1008|0}, LR bitpos 7). It is COLORED
+ *     (NOT rejected) to reg 2 = v1, with forbidden=[v0,a0,a1]. a2 is FREE
+ *     for it — v1 simply wins as the LOWEST free caller-saved reg.
+ *   - The SPLIT/reject in the trace is on LR0 = a1 (the cross-call arg, used
+ *     by func()); both its pieces are -ve-save (numsparselr). That split is
+ *     INCIDENTAL to r's carrier.
+ *   - LR2 = the a2 PARAM is colored to reg a2 (short entry->marshal range);
+ *     it does not interfere with r, so it does not block r from a2.
+ * So r->v1 is a LOWEST-FREE-REGISTER tie, not a split-rejection adjsave-sign
+ * problem. To force a2, v1 must be FORBIDDEN for r — needs an interfering LR
+ * colored to v1 living across r's reload. No such value exists naturally and
+ * adding one changes the insn count. Confirmed NEUTRAL/structure-preserving:
+ * register kw, unsigned cast, ret-var, extra no-call use, base-ptr local,
+ * fn-ptr local, ternary-if; a1-param reuse collapses the frame; branch-invert
+ * regresses structure (all verified standalone). Genuine lowest-free-reg cap;
+ * residual = 3 register-name-only diffs (or v1,v0 / lw v1 / or v0,v1). NM. */
 int gl_func_00035834(int a0, int a1, int a2) {
     int r = ((int(*)(int,int))(*(int**)&D_00000000)[0x48/4])(a1, a2);
     if (r < 0) {
