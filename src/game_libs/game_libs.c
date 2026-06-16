@@ -2331,11 +2331,21 @@ void gl_func_000041D4(Vec3 *dst) {
  * per-unit cd58 aliases break the 31-use constant LR (s-reg cascade
  * snaps: var_s0->s0, &sp78->s1@120, &sp54->s2@84); ptr-name pairing
  * (14 names) + decl layout + 2 pads = frame 1864 exact.
- * RESIDUE (~87 words): units 2-32 spill slots 144-196 vs target's
- * shared 56 (one-variable-home shape: 1 shared name colors callee-
- * saved, 31 names fragment templocs — uoptreg2 spilltemps region
- * sharing unreproduced) + its lui-phase shadow + 2 scheduler swaps
- * (prologue or/sdc1, at/-8 vs s2 ILDA). */
+ * RESIDUE CHARACTERIZED (agent-y 2026-06-15, reloc-filtered word LCS
+ * 2417/2479, positional 2413; the "~87" was a fuzzy artifact, true 66
+ * non-reloc words). ZERO logic/structural errors; all 66 = 3 caps:
+ *   C (58w, 29 sw/lw pairs): per-unit var_a0 spill home — target shares
+ *     ONE temploc 0x38(sp) (anonymous spilltemp, rule-6 region sharing);
+ *     we get distinct named-M-class homes 0xC0..0x90 (rule-1, no repack).
+ *     NO-CLEAN-HANDLE: distinct names=distinct slots; single name=COLORS
+ *     to a new s-reg (spill vanishes, -30 insns); volatile=shares slot
+ *     but reloads every use (+insns). All verified in-tree + 2-unit mini
+ *     + -zdbug:6. See docs/IDO_CODEGEN.md "4244 ladder levers".
+ *   A (6w): prologue as1 schedule — target hoists move s0,a0 above saves,
+ *     fills bnez delay with sdc1 $f20. No-handle.
+ *   B (2w): li at,-8 (sentinel) vs addiu s2,sp,84 (&sp54 hoist) order.
+ *     No-handle (sp54 is loop-invariant; source position doesn't move it).
+ * At byte-exact ceiling under no-instruction-forcing policy; leave NM. */
 extern int D_00000000_cd58_u1;
 extern int D_00000000_cd58_u2;
 extern int D_00000000_cd58_u3;
