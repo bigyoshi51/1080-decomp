@@ -14092,15 +14092,21 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
  * that births the loaded value in $t9; not a frame/structure problem. */
 #ifdef NON_MATCHING
 void game_uso_func_000110A4(int *a0) {
-    int *p_B4 = *(int **)((char*)a0 + 0xB4);
-    int v;
-    *(Pair2*)((char*)a0 + 0xD0) = *(Pair2*)((char*)&D_00000000 + 0xF20);
-    v = *(int*)((char*)p_B4 + 0xA58);
-    p_B4 = (int*)((char*)p_B4 + 0xA58);
-    *p_B4 = v & ~4;
-    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
-    gl_func_00000000(a0);
-    ((int*)*(int **)((char*)a0 + 0xB4))[0x960 / 4] = 0x64;
+  char *new_var;
+  int *new_var2;
+  int *p_B4 = *((int **) (((char *) a0) + 0xB4));
+  int *new_var3;
+  int v;
+ do { } while (0);
+  new_var = ((char *) (&D_00000000)) + 0xF20;
+  new_var3 = a0;
+  *((Pair2 *) (((char *) a0) + 0xD0)) = *((Pair2 *) new_var);
+  ;
+  new_var2 = (p_B4 = (int *) (((char *) p_B4) + 0xA58));
+  *p_B4 = (*new_var2) & (~4);
+  gl_func_00000000(a0, *((Pair2 *) (((char *) (&D_00000000)) + 0xE10)));
+  gl_func_00000000(a0);
+  ((int *) (*((int **) (((char *) new_var3) + 0xB4))))[0x960 / 4] = 0x64;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
