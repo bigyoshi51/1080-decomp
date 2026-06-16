@@ -3030,10 +3030,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_11, var_s0_2, marsh, 1);
                 FW(var_a0_11, 0xC) = 0x188;
                 FW(var_a0_11, 0x20) = 0;
-                FW(var_a0_11, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_11, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_11, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_11, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_11 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp338.unkC = 0.0f;
             sp328.unk0 = 0;
@@ -3062,10 +3059,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_12, var_s0_2, marsh, 1);
                 FW(var_a0_12, 0xC) = 0x188;
                 FW(var_a0_12, 0x20) = 0;
-                FW(var_a0_12, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_12, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_12, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_12, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_12 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp304.unkC = 0.0f;
             sp2F4.unk0 = 0;
@@ -3094,10 +3088,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_13, var_s0_2, marsh, 1);
                 FW(var_a0_13, 0xC) = 0x188;
                 FW(var_a0_13, 0x20) = 0;
-                FW(var_a0_13, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_13, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_13, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_13, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_13 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp2D0.unkC = 0.0f;
             sp2C0.unk0 = 0;
@@ -3126,10 +3117,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_14, var_s0_2, marsh, 1);
                 FW(var_a0_14, 0xC) = 0x188;
                 FW(var_a0_14, 0x20) = 0;
-                FW(var_a0_14, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_14, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_14, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_14, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_14 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp29C.unkC = 0.0f;
             sp28C.unk0 = 0;
@@ -3158,10 +3146,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_15, var_s0_2, marsh, 1);
                 FW(var_a0_15, 0xC) = 0x188;
                 FW(var_a0_15, 0x20) = 0;
-                FW(var_a0_15, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_15, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_15, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_15, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_15 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp268.unkC = 0.0f;
             sp258.unk0 = 0;
@@ -3190,10 +3175,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_16, var_s0_2, marsh, 1);
                 FW(var_a0_16, 0xC) = 0x188;
                 FW(var_a0_16, 0x20) = 0;
-                FW(var_a0_16, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_16, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_16, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_16, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_16 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp234.unkC = 0.0f;
             sp224.unk0 = 0;
@@ -3222,10 +3204,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_17, var_s0_2, marsh, 1);
                 FW(var_a0_17, 0xC) = 0x188;
                 FW(var_a0_17, 0x20) = 0;
-                FW(var_a0_17, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_17, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_17, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_17, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_17 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp200.unkC = 0.0f;
             sp1F0.unk0 = 0;
@@ -3254,10 +3233,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_18, var_s0_2, marsh, 1);
                 FW(var_a0_18, 0xC) = 0x188;
                 FW(var_a0_18, 0x20) = 0;
-                FW(var_a0_18, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_18, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_18, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_18, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_18 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp1CC.unkC = 0.0f;
             sp1BC.unk0 = 0;
@@ -3286,10 +3262,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_19, var_s0_2, marsh, 1);
                 FW(var_a0_19, 0xC) = 0x188;
                 FW(var_a0_19, 0x20) = 0;
-                FW(var_a0_19, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_19, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_19, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_19, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_19 + 0x10) = *(Quad4 *)&sp60;
             }
             temp_f2 = *(s32 *)((char *)&D_00000000 + 0x15C);
             *(float *)&sp198.unkC = 0.0f;
@@ -3319,10 +3292,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_20, var_s0_2, marsh, 1);
                 FW(var_a0_20, 0xC) = 0x188;
                 FW(var_a0_20, 0x20) = 0;
-                FW(var_a0_20, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_20, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_20, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_20, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_20 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&sp164.unkC = 0.0f;
             sp154.unk0 = 0;
@@ -3352,10 +3322,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 var_f2 = *(s32 *)((char *)&D_00000000 + 0x16C);
                 FW(var_a0_21, 0xC) = 0x188;
                 FW(var_a0_21, 0x20) = 0;
-                FW(var_a0_21, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_21, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_21, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_21, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_21 + 0x10) = *(Quad4 *)&sp60;
             }
             sp130.unk0 = var_f2;
             sp130.unk4 = var_f2;
@@ -3384,10 +3351,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_22, var_s0_2, marsh, 1);
                 FW(var_a0_22, 0xC) = 0x188;
                 FW(var_a0_22, 0x20) = 0;
-                FW(var_a0_22, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_22, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_22, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_22, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_22 + 0x10) = *(Quad4 *)&sp60;
             }
             *(float *)&spFC.unkC = 0.0f;
             spEC.unk0 = 0;
@@ -3416,10 +3380,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
                 timproc_uso_b5_alias(var_a0_23, var_s0_2, marsh, 1);
                 FW(var_a0_23, 0xC) = 0x188;
                 FW(var_a0_23, 0x20) = 0;
-                FW(var_a0_23, 0x10) = (s32) sp60.unk0;
-                FW(var_a0_23, 0x14) = (s32) sp60.unk4;
-                FW(var_a0_23, 0x18) = (s32) sp60.unk8;
-                FW(var_a0_23, 0x1C) = (s32) sp60.unkC;
+                *(Quad4 *)((char *)var_a0_23 + 0x10) = *(Quad4 *)&sp60;
             }
             spD4 = *(char **)((char *)&D_00000000 + 0x12D8);
             var_a0_24 = var_s0_2 + 0x2CC;
