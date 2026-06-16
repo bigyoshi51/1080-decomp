@@ -14064,15 +14064,16 @@ extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
 void game_uso_func_00011024(int *a0) {
-    int *p_B4 = *(int **)((char*)a0 + 0xB4);
-    int v;
-    *(Pair2*)((char*)a0 + 0xD0) = *(Pair2*)((char*)&D_00000000 + 0xF48);
-    v = *(int*)((char*)p_B4 + 0xA58);
-    p_B4 = (int*)((char*)p_B4 + 0xA58);
-    *p_B4 = v & ~4;
-    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
-    gl_func_00000000(a0);
-    ((int*)*(int **)((char*)a0 + 0xB4))[0x960 / 4] = 0x64;
+  int v;
+  int *p_B4 = *((int **) (((char *) a0) + 0xB4));
+  *((Pair2 *) (((char *) a0) + 0xD0)) = *((Pair2 *) (((char *) (&D_00000000)) + 0xF48));
+  ;
+  p_B4 = (int *) (((char *) p_B4) + 0xA58);
+ goto dummy_label_965124; dummy_label_965124: ;
+  *p_B4 = (*((int *) (p_B4 + 0xA58))) & (~4);
+  gl_func_00000000(a0, *((Pair2 *) (((char *) (&D_00000000)) + 0xE10)));
+  gl_func_00000000(a0);
+  ((int *) (*((int **) (((char *) a0) + 0xB4))))[0x960 / 4] = 0x64;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
