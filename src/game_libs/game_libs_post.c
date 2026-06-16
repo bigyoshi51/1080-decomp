@@ -16059,8 +16059,8 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
             *(u8 *)((char *)(arg0) + 0x20) = 0U;
             temp_v0_2 = temp_v1_2 * 4;
             if (temp_v1_2 != 0) {
-                temp_f0 = *(s32 *)((char *)(temp_v0_2) + 0x1C3B0);
-                sp64 = *(s32 *)((char *)(temp_v0_2) + 0x1C330);
+                temp_f0 = *(f32 *)((char *)&D_00000000 + 0x1C3B0 + temp_v0_2);
+                sp64 = *(f32 *)((char *)&D_00000000 + 0x1C330 + temp_v0_2);
                 sp60 = 1.0f * temp_f0;
                 *(u8 *)((char *)(arg0) + 0x32) = (u8) (temp_v1_2 - 1);
                 *(f32 *)((char *)(arg0) + 0x4) = (f32) (temp_f14 * temp_f0);
