@@ -4751,7 +4751,142 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000076F4);
  * unrolled per-row halfword copy + branch-likely guards. Full
  * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
  * (no episode; tautology-trap rule). */
+#ifdef NON_MATCHING
+void func_000077D0(char *arg0, char *arg1, s32 arg2) {
+    s32 sp20;
+    f32 temp_f6;
+    s32 temp_a3;
+    s32 temp_t0;
+    s32 temp_v0;
+    s32 temp_v0_2;
+    s32 var_a0_2;
+    s32 var_a0_3;
+    s32 var_a2;
+    s32 var_a2_2;
+    s32 var_a3;
+    s32 var_a3_2;
+    s32 var_v1_3;
+    u16 temp_t3;
+    u16 temp_t9;
+    char *temp_a0;
+    char *temp_a0_2;
+    char *temp_a1;
+    char *temp_a1_2;
+    char *temp_a1_3;
+    char *temp_a1_4;
+    char *temp_a1_5;
+    char *temp_a1_6;
+    char *temp_a1_7;
+    char *temp_a1_8;
+    char *var_a0;
+    char *var_a1;
+    char *var_v1;
+    char *var_v1_2;
+
+    var_a0 = arg0;
+    var_a1 = arg1;
+    temp_t0 = *(s32 *)((char *)(var_a0) + 0x64);
+    if (temp_t0 != 0) {
+        temp_v0 = *(s32 *)((char *)(var_a0) + 0x58);
+        var_a3 = temp_v0;
+        if (arg2 != 0) {
+            var_a3 = temp_v0 + 0x60;
+        }
+        temp_v0_2 = *(s32 *)((char *)(var_a0) + 0x5C);
+        var_a2 = 0;
+        if (temp_v0_2 != 0) {
+            if (temp_v0_2 != 2) {
+                var_a3_2 = 0;
+                if (temp_v0_2 != 1) {
+                    return;
+                }
+                do {
+                    arg1 = var_a1;
+                    sp20 = var_a3_2;
+                    temp_f6 = func_00000000(var_a0, var_a1, var_a2, var_a3_2) * 64.0f;
+                    var_a1 = arg1;
+                    var_a2 = 0;
+                    var_a3_2 += 1;
+                    var_a0 = (void *) ((s32) temp_f6 * 2);
+loop_22:
+                    temp_a0 = var_a0 + 2;
+                    *(s32 *)((char *)(var_a1) + 0x0) = (u16) *(s32 *)((char *)(var_a0) + 0x0);
+                    temp_a1 = var_a1 + 2;
+                    temp_a0_2 = temp_a0 + 2;
+                    *(s32 *)((char *)(var_a1) + 0x2) = (u16) *(s32 *)((char *)(var_a0) + 0x2);
+                    temp_a1_2 = temp_a1 + 2;
+                    *(s32 *)((char *)(temp_a1) + 0x2) = (u16) *(s32 *)((char *)(temp_a0) + 0x2);
+                    var_a2 += 4;
+                    var_a1 = temp_a1_2 + 2 + 2;
+                    var_a0 = temp_a0_2 + 2 + 2;
+                    *(s32 *)((char *)(temp_a1_2) + 0x2) = (u16) *(s32 *)((char *)(temp_a0_2) + 0x2);
+                    if (var_a2 != 0x40) {
+                        goto loop_22;
+                    }
+                } while (var_a3_2 != 0x20);
+            } else {
+                var_a2_2 = 0;
+                var_v1 = temp_t0 + (var_a3 * 0x140 * 2);
+                do {
+                    var_a0_2 = 0;
+loop_17:
+                    temp_a1_3 = var_a1 + 2;
+                    *(s32 *)((char *)(var_a1) + 0x0) = (u16) *(s32 *)((char *)(var_v1) + 0x0);
+                    temp_a1_4 = temp_a1_3 + 2;
+                    *(s32 *)((char *)(var_a1) + 0x2) = (u16) *(s32 *)((char *)(var_v1) + 0xA);
+                    *(s32 *)((char *)(temp_a1_3) + 0x2) = (u16) *(s32 *)((char *)(var_v1) + 0x14);
+                    temp_t9 = *(s32 *)((char *)(var_v1) + 0x1E);
+                    var_a0_2 += 4;
+                    var_a1 = temp_a1_4 + 2 + 2;
+                    var_v1 += 0x28;
+                    *(s32 *)((char *)(temp_a1_4) + 0x2) = temp_t9;
+                    if (var_a0_2 != 0x40) {
+                        goto loop_17;
+                    }
+                    var_a2_2 += 1;
+                    var_v1 += 0x500;
+                } while (var_a2_2 != 0x20);
+            }
+        } else {
+            do {
+                temp_a3 = var_a3 & 0xFF;
+                var_a2 += 1;
+                if (temp_a3 < 0xF0) {
+                    var_a0_3 = 0;
+                    var_v1_2 = temp_t0 + (temp_a3 * 0x140 * 2);
+                    do {
+                        temp_a1_5 = var_a1 + 2;
+                        *(s32 *)((char *)(var_a1) + 0x0) = (u16) *(s32 *)((char *)(var_v1_2) + 0x0);
+                        temp_a1_6 = temp_a1_5 + 2;
+                        *(s32 *)((char *)(var_a1) + 0x2) = (u16) *(s32 *)((char *)(var_v1_2) + 0xA);
+                        *(s32 *)((char *)(temp_a1_5) + 0x2) = (u16) *(s32 *)((char *)(var_v1_2) + 0x14);
+                        temp_t3 = *(s32 *)((char *)(var_v1_2) + 0x1E);
+                        var_a0_3 += 4;
+                        var_a1 = temp_a1_6 + 2 + 2;
+                        var_v1_2 += 0x28;
+                        *(s32 *)((char *)(temp_a1_6) + 0x2) = temp_t3;
+                    } while (var_a0_3 != 0x40);
+                } else {
+                    var_v1_3 = 0;
+                    do {
+                        *(s32 *)((char *)(var_a1) + 0x0) = 0;
+                        temp_a1_7 = var_a1 + 2;
+                        *(s32 *)((char *)(var_a1) + 0x2) = 0;
+                        temp_a1_8 = temp_a1_7 + 2;
+                        *(s32 *)((char *)(temp_a1_7) + 0x2) = 0;
+                        var_v1_3 += 4;
+                        *(s32 *)((char *)(temp_a1_8) + 0x2) = 0;
+                        var_a1 = temp_a1_8 + 2 + 2;
+                    } while (var_v1_3 != 0x40);
+                }
+                var_a3 = temp_a3 + 3;
+            } while (var_a2 != 0x20);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000077D0);
+#endif
 
 void func_00007A48(char *a0) {
     int scratch;
