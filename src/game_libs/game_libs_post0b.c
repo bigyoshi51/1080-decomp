@@ -20481,24 +20481,10 @@ extern int gl_func_00000000();
 extern int D_00000000;
 #ifdef NON_MATCHING
 void gl_func_0004DEF0(int *a0) {
-    int i;
-    int off;
-    if (*(int*)((char*)a0 + 0x38) > 0) {
-        i = 0;
-        off = 0;
-        do {
-            gl_func_00000000(&D_00000000,
-                *(int*)(*(int*)((char*)a0 + 0x30) + off) + 112);
-            {
-                int *v = *(int**)(*(int*)((char*)a0 + 0x2C) + off);
-                int *vt = (int*)*(int*)((char*)v + 0x28);
-                ((void(*)(int))*(int*)((char*)vt + 0x1C))(
-                    *(short*)((char*)vt + 0x18) + (int)v);
-            }
-            i++;
-            off += 4;
-        } while (i < *(int*)((char*)a0 + 0x38));
-    }
+  int i;
+  int off;
+  char *new_var;
+ do { if ((*((int *) (((char *) a0) + 0x38))) > 0) { i = 0; new_var = (char *) a0; off = 0; do { gl_func_00000000(&D_00000000, (*((int *) ((*((int *) (((char *) a0) + 0x30))) + off))) + 112); { int *v = *((int **) ((*((int *) (new_var + 0x2C))) + off)); int *vt = (int *) (*((int *) (((char *) (*((int **) ((*((int *) (new_var + 0x2C))) + off)))) + 0x28))); ((void (*)(int)) (*((int *) (((char *) vt) + 0x1C))))((*((short *) (((char *) vt) + 0x18))) + ((int) v)); } i++; off += 4; } while (i < (*((int *) (((char *) a0) + 0x38)))); } } while (0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DEF0);
