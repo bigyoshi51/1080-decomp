@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_000402A4",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-16T21:25:09.253244+00:00",
+  "end_time": "2026-06-16T21:25:09.253284+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-16T21:25:09.253270+00:00",
+      "assistant_text": "Permuter-factory true crack #3; ROM-gated past the reloc-masking false-100 risk.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 24,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nvoid gl_func_000402A4(int *a0, float dx, float dy, float dz) {\n *((float *) (((char *) a0) + 0xB4)) += dx; *((float *) (((char *) a0) + 0xB8)) += dy;\n  *((float *) (((char *) a0) + 0xBC)) += dz;\n  gl_func_00000000(((char *) a0) + 0xB4, ((char *) a0) + 0x30, a0);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/402a4_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/gl_func_000402A4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full make exit 0 + ROM byte-identical (fresh ROM)"
+  }
+}
