@@ -458,7 +458,7 @@ void func_0001304C(char *arg0)
           var_f0 = *((f32 *) ((*((s32 *) (((char *) arg0) + 0x58))) + var_a2));
         }
         temp_v0_3 = *((s32 *) (((char *) arg0) + 0x40));
-        if ((temp_v0_3 == 2) || (temp_v0_3 == 3))
+        if (((*((s32 *) (((char *) arg0) + 0x40))) == 2) || ((*((s32 *) (((char *) arg0) + 0x40))) == 3))
         {
           var_f2_2 = var_f0;
         }
