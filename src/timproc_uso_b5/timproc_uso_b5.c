@@ -8473,34 +8473,43 @@ extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C8AC(int *a0) {
-    int *v1;
-    float *p128;
-    v1 = (int*)a0[0x2B8 / 4];
-    p128 = (float*)((char*)v1 + 0x128);
-    if (*(int*)((char*)v1 + 0x134) != 0) {
-        *p128 += *(float*)((char*)&D_00000000 + 0x374);
-        if (*(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) > 1.0f) {
-            *(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) = 1.0f;
-        }
-    } else {
-        *p128 -= *(float*)((char*)&D_00000000 + 0x378);
-        if (*(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) < 0.0f) {
-            *(float*)((char*)((int*)a0[0x2B8 / 4]) + 0x128) = 0.0f;
-        }
-    }
+  int *v1;
+  float *p128;
+  v1 = (int *) a0[0x2B8 / 4];
+  p128 = (float *) (((char *) v1) + 0x128);
+  if ((*((int *) (((char *) v1) + 0x134))) != 0)
+  {
+    *p128 += *((float *) (((char *) (&D_00000000)) + 0x374));
+    if ((*((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128))) > 1.0f)
     {
-        float a, b, c, d;
-        v1 = (int*)a0[0x2B8 / 4];
-        a = *(float*)((char*)a0 + 0x25C);
-        b = *(float*)((char*)a0 + 0x260);
-        c = *(float*)((char*)a0 + 0x264);
-        d = *(float*)((char*)a0 + 0x294);
-        *(float*)((char*)v1 + 0x110) = a;
-        *(float*)((char*)v1 + 0x114) = b;
-        *(float*)((char*)v1 + 0x10C) = c;
-        *(float*)((char*)v1 + 0x118) = d;
+      *((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128)) = 1.0f;
     }
-    gl_func_00000000();
+  }
+  else
+  {
+    *p128 -= *((float *) (((char *) (&D_00000000)) + 0x378));
+    if ((*((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128))) < 0.0f)
+    {
+      *((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128)) = 0.0f;
+    }
+  }
+  p128 = (int *) a0[0x2B8 / 4];
+  {
+    float a;
+    float b;
+    float c;
+    float d;
+    v1 = p128;
+    a = *((float *) (((char *) a0) + 0x25C));
+    b = *((float *) (((char *) a0) + 0x260));
+    c = *((float *) (((char *) a0) + 0x264));
+    d = *((float *) (((char *) a0) + 0x294));
+    *((float *) (((char *) v1) + 0x110)) = a;
+    *((float *) (((char *) v1) + 0x114)) = b;
+    *((float *) (((char *) v1) + 0x10C)) = c;
+    *((float *) (((char *) v1) + 0x118)) = d;
+  }
+  gl_func_00000000();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C8AC);
