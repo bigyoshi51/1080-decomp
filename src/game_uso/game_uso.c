@@ -14090,7 +14090,6 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
  * target uses $t9, cascading the &D-E10 base $t0->$t1 and the tail $t3/$t4->
  * $t4/$t5. Both siblings share it. Needs the permuter or an allocno tweak
  * that births the loaded value in $t9; not a frame/structure problem. */
-#ifdef NON_MATCHING
 void game_uso_func_000110A4(int *a0) {
   char *new_var;
   int *new_var2;
@@ -14108,9 +14107,7 @@ void game_uso_func_000110A4(int *a0) {
   gl_func_00000000(a0);
   ((int *) (*((int **) (((char *) new_var3) + 0xB4))))[0x960 / 4] = 0x64;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000110A4);
-#endif
+
 
 /* BYTE-EXACT 2026-05-31. 2-call wrapper: gl_func(a0); gl_func(a0, D[0xF50],
  * D[0xF54], 1). The documented "82.18% pre-call-spill cap" was STALE — passing
