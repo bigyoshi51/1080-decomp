@@ -1,0 +1,32 @@
+{
+  "function_name": "game_uso_func_000110A4",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-16T11:27:07.031586+00:00",
+  "end_time": "2026-06-16T11:27:07.031627+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-16T11:27:07.031613+00:00",
+      "assistant_text": "Permuter-factory true crack #2; verified through the full-link ROM cmp gate.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 28,
+  "initial_m2c_source": null,
+  "final_source": "void game_uso_func_000110A4(int *a0) {\n  char *new_var;\n  int *new_var2;\n  int *p_B4 = *((int **) (((char *) a0) + 0xB4));\n  int *new_var3;\n  int v;\n do { } while (0);\n  new_var = ((char *) (&D_00000000)) + 0xF20;\n  new_var3 = a0;\n  *((Pair2 *) (((char *) a0) + 0xD0)) = *((Pair2 *) new_var);\n  ;\n  new_var2 = (p_B4 = (int *) (((char *) p_B4) + 0xA58));\n  *p_B4 = (*new_var2) & (~4);\n  gl_func_00000000(a0, *((Pair2 *) (((char *) (&D_00000000)) + 0xE10)));\n  gl_func_00000000(a0);\n  ((int *) (*((int **) (((char *) new_var3) + 0xB4))))[0x960 / 4] = 0x64;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/110A4_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_uso/game_uso/game_uso_func_000110A4.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full make exit 0 + ROM byte-identical (fresh ROM)"
+  }
+}
