@@ -10619,10 +10619,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040070);
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 void gl_func_000402A4(int *a0, float dx, float dy, float dz) {
-    *(float*)((char*)a0 + 0xB4) += dx;
-    *(float*)((char*)a0 + 0xB8) += dy;
-    *(float*)((char*)a0 + 0xBC) += dz;
-    gl_func_00000000((char*)a0 + 0xB4, (char*)a0 + 0x30, a0);
+ *((float *) (((char *) a0) + 0xB4)) += dx; *((float *) (((char *) a0) + 0xB8)) += dy;
+  *((float *) (((char *) a0) + 0xBC)) += dz;
+  gl_func_00000000(((char *) a0) + 0xB4, ((char *) a0) + 0x30, a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000402A4);
