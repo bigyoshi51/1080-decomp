@@ -1647,49 +1647,64 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * void-call coloring; uoptlist class. */
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_00002A8C(int *a0) {
-    int *s0 = a0;
-    if (gl_func_00000000(&D_00000000, 0x10001)) {
-        if (s0[0x58 / 4] != 0) {
-            gl_func_00000000(1);
-            s0[0x58 / 4] = 0;
-        }
+  int *s0 = a0;
+  if (gl_func_00000000(&D_00000000, 0x10001))
+  {
+    if (s0[0x58 / 4] != 0)
+    {
+      gl_func_00000000(1);
+      s0[0x58 / 4] = 0;
     }
-    if (gl_func_00000000(&D_00000000, 0x4002)) {
-        if (s0[0x58 / 4] == 0) {
-            gl_func_00000000(1);
-            s0[0x58 / 4] = 1;
-        }
+  }
+  if (gl_func_00000000(&D_00000000, 0x4002))
+  {
+    if (s0[0x58 / 4] == 0)
+    {
+      gl_func_00000000(1);
+      s0[0x58 / 4] = 1;
     }
-    if (gl_func_00000000(&D_00000000, 0x40100)) {
-        if (s0[0x58 / 4] == 0) {
-            int *obj;
-            int *vt;
-            gl_func_00000000(5);
-            gl_func_00000000(&D_00000000, 1);
-            *(int *)((char *)s0[0x48 / 4] + 0xD8) = 0;
-            obj = (int *)s0[0x48 / 4];
-            s0[0x50 / 4] = 0;
-            vt = (int *)obj[0x28 / 4];
-            ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)obj);
-        } else {
-            int *obj;
-            int *vt;
-            gl_func_00000000(2050);
-            obj = (int *)s0[0x48 / 4];
-            s0[0x50 / 4] = 0;
-            vt = (int *)obj[0x28 / 4];
-            ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)obj);
-        }
+  }
+  if (gl_func_00000000(&D_00000000, 0x40100))
+  {
+    if (s0[0x58 / 4] == 0)
+    {
+      int *obj;
+      int *vt;
+      gl_func_00000000(5);
+      gl_func_00000000(&D_00000000, 1);
+      *((int *) (((char *) s0[0x48 / 4]) + 0xD8)) = 0;
+      if (!vt)
+      {
+      }
+      obj = (int *) s0[0x48 / 4];
+      s0[0x50 / 4] = 0;
+      vt = (int *) obj[0x28 / 4];
+      ((void (*)(int)) vt[0x5C / 4])((*((short *) (((char *) vt) + 0x58))) + ((int) obj));
     }
-    if (gl_func_00000000(&D_00000000, 512)) {
-        int *obj;
-        int *vt;
-        gl_func_00000000(2050);
-        obj = (int *)s0[0x48 / 4];
-        s0[0x50 / 4] = 0;
-        vt = (int *)obj[0x28 / 4];
-        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)obj);
+    else
+    {
+      int *obj;
+      int *vt;
+      gl_func_00000000(2050);
+      obj = (int *) s0[0x48 / 4];
+      s0[0x50 / 4] = 0;
+      vt = (int *) obj[0x28 / 4];
+      ((void (*)(int)) vt[0x5C / 4])((*((short *) (((char *) vt) + 0x58))) + ((int) obj));
     }
+  }
+  if (gl_func_00000000(&D_00000000, 512))
+  {
+    int *obj;
+    int *vt;
+    gl_func_00000000(2050);
+    if (vt)
+    {
+    }
+    obj = (int *) s0[0x48 / 4];
+    s0[0x50 / 4] = 0;
+    vt = (int *) obj[0x28 / 4];
+    ((void (*)(int)) vt[0x5C / 4])((*((short *) (((char *) vt) + 0x58))) + ((int) obj));
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002A8C);
