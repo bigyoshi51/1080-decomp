@@ -2882,9 +2882,9 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
         var_s0 = arg0;
         if ((var_s0 != NULL) || (temp_v0_2 = timproc_uso_b5_alias((char *)0x2C), var_s0 = temp_v0_2, (temp_v0_2 != NULL))) {
             timproc_uso_b5_alias(var_s0, ((char *)&D_00000000 + 0x1260));
-            FW(var_s0, 0x28) = 0;
+            FW(var_s0, 0x28) = (s32)&D_00000000;
         }
-        FW(arg0, 0x28) = 0;
+        FW(arg0, 0x28) = (s32)&D_00000000;
         var_s0_2 = arg0 + 0x2C;
         if ((arg0 != (char *)-0x2C) || (temp_v0_3 = timproc_uso_b5_alias((char *)0x38C), var_s0_2 = temp_v0_3, (temp_v0_3 != NULL))) {
             var_v1 = var_s0_2;
