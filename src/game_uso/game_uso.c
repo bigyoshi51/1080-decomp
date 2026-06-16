@@ -4883,14 +4883,51 @@ void game_uso_func_0000591C(int *a0) {
     } else {
         state_bits = *(int*)((char*)self + 0x6C);
         if (state_bits & 1) {
-            if (((resolved_state & 1) == 0) && ((resolved_state & 2) == 0)) {
+            if ((resolved_state & 1) && ((resolved_state & 2) == 0)) {
                 *(int*)((char*)self + 0x6C) = state_bits & ~1;
                 *(int*)((char*)self + 0x48) = 0x14;
-            }
-            if (resolved_state & 4) {
-                out_flags = 0x20;
-            } else if (resolved_state & 0x800) {
-                out_flags = 0x80;
+                if (resolved_state & 4) {
+                    out_flags = 0x20;
+                } else if (resolved_state & 0x800) {
+                    out_flags = 0x80;
+                }
+            } else if (hit_parent != NULL) {
+                if (*(int*)(hit_parent + 0x84) & 2) {
+                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    if (effect_vec != NULL) {
+                        entity_pos = helper_ptr + 0x30;
+                        effect_vec->y = 0.0f;
+                        effect_vec->z = *(float*)(entity_pos + 8);
+                        effect_vec->x = *(float*)entity_pos;
+                    }
+                    entity_pos = hit_parent + 0x30;
+                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    if (effect_vec != NULL) {
+                        effect_vec->y = 0.0f;
+                        effect_vec->x = scratch_xz.x - *(float*)entity_pos;
+                        effect_vec->z = scratch_xz.z - *(float*)(entity_pos + 8);
+                    }
+                    mul_axis = scratch_xz;
+                    derived_vec = mul_axis;
+                    sub = *(char**)((char*)self + 0x30);
+                    entity_pos = sub + 0xB4;
+                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    if (effect_vec != NULL) {
+                        effect_vec->y = 0.0f;
+                        effect_vec->x = *(float*)entity_pos;
+                        effect_vec->z = *(float*)(entity_pos + 8);
+                    }
+                    entity_pos = hit_parent + 0x30;
+                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    if (effect_vec != NULL) {
+                        effect_vec->y = 0.0f;
+                        effect_vec->x = derived_vec.x - *(float*)entity_pos;
+                        effect_vec->z = derived_vec.z - *(float*)(entity_pos + 8);
+                    }
+                    mul_axis = scratch_xz;
+                    *(int*)((char*)self + 0x48) = 0x14;
+                    *(int*)((char*)self + 0x6C) = *(int*)((char*)self + 0x6C) & ~1;
+                }
             }
         } else if ((hit_parent != NULL) && (*(int*)(hit_parent + 0x84) & 2)) {
             helper_ptr += 0x30;
