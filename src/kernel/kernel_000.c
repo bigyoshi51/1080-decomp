@@ -1143,48 +1143,67 @@ extern s32 func_800005DC_d2c(void*, void*);
 #define DSC func_800005DC_d2c
 #ifdef NON_MATCHING
 s32 func_80000D2C(u8 *out, s32 id) {
-    u8 iter[0x2C];   /* sp+0x64 */
-    u8 entry[0x2C];  /* sp+0x38; +0x4 = id field, +0xC = name */
-    s32 *list;
-    u8 *tbl;
-    s32 i;
-    u8 c;
-
-    tbl = (u8 *)D_80012D60[id];
-    list = (s32 *)D_8000A2E0;
-    if (tbl != NULL) {
-        c = tbl[0x72];
-        i = 0;
-        out[0] = c;
-        if (c != 0) {
-            do {
-                i++;
-                c = ((u8 *)D_80012D60[id])[i + 0x72];
-                out[i] = c;
-            } while (c != 0);
+  u8 iter[0x2C];
+  s32 new_var3;
+  u8 entry[0x2C];
+  u8 *new_var;
+  s32 *list;
+  u8 *tbl;
+  s32 i;
+  u8 new_var2;
+  u8 c;
+  tbl = (u8 *) D_80012D60[id];
+  new_var = tbl;
+  list = (s32 *) D_8000A2E0;
+  if (new_var != ((void *) 0))
+  {
+    c = new_var[0x72];
+    i = 0;
+    out[0] = c;
+    if (c != 0)
+    {
+      do
+      {
+        i++;
+        c = ((u8 *) D_80012D60[id])[i + 0x72];
+        out[i] = (new_var2 = c);
+      }
+      while (c != 0);
+    }
+    return 2;
+  }
+  if ((*list) != 0)
+  {
+    do
+    {
+      func_80000880(iter, list);
+      if (func_80000A98(iter, entry) != 0)
+      {
+        do
+        {
+          if (1)
+          {
+            new_var3 = *((s32 *) (entry + 0x4));
+          }
+          if (new_var3 == id)
+          {
+            func_800005DC_d2c(out, entry + 0xC);
+            return 1;
+          }
+          if (func_80000B34(iter) < 0)
+          {
+            return D_80013004;
+          }
         }
-        return 2;
+        while (func_80000A98(iter, entry) != 0);
+      }
+      func_8000098C(iter);
+      i = *((s32 *) (((u8 *) list) + 0x14));
+      list = (s32 *) (((u8 *) list) + 0x14);
     }
-    if (*list != 0) {
-        do {
-            func_80000880(iter, list);
-            if (func_80000A98(iter, entry) != 0) {
-                do {
-                    if (*(s32 *)(entry + 0x4) == id) {
-                        DSC(out, entry + 0xC);
-                        return 1;
-                    }
-                    if (func_80000B34(iter) < 0) {
-                        return D_80013004;
-                    }
-                } while (func_80000A98(iter, entry) != 0);
-            }
-            func_8000098C(iter);
-            i = *(s32 *)((u8 *)list + 0x14);
-            list = (s32 *)((u8 *)list + 0x14);
-        } while (i != 0);
-    }
-    return 0;
+    while (i != 0);
+  }
+  return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000D2C);
