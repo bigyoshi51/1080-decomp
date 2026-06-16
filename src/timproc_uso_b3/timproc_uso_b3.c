@@ -631,31 +631,37 @@ void timproc_uso_b3_func_000010B4(int a0) {
 extern int D_arg_b3_10E4;
 extern int D_cur_b3_10E4;
 void timproc_uso_b3_func_000010E4(int *self) {
-    int *v0;
-    int v1;
-    int stride;
-    void (*fn)(void);
-
-    if (gl_func_00000000(D_arg_b3_10E4) == 0) {
-        return;
+  int *v0;
+  int v1;
+  int stride;
+  void (*fn)(void);
+  if (gl_func_00000000(D_arg_b3_10E4) == 0)
+  {
+    return;
+  }
+  v0 = (int *) self[0x48 / 4];
+  v1 = v0[0x7C / 4];
+  if (v1 != 0)
+  {
+    gl_func_00000000(5);
+    if (1)
+    {
     }
-    v0 = (int *)self[0x48 / 4];
+    v0 = (int *) self[0x48 / 4];
     v1 = v0[0x7C / 4];
-    if (v1 != 0) {
-        gl_func_00000000(5);
-        if (1) {}
-        v0 = (int *)self[0x48 / 4];
-        v1 = v0[0x7C / 4];
+  }
+  stride = 40;
+  ;
+  if (((void (*)(void)) (*((int *) ((((char *) v0) + (v1 * stride)) + 0x90)))) != 0)
+  {
+    D_cur_b3_10E4 = (int) self;
+    if (1)
+    {
     }
-    stride = 40;
-    fn = (void (*)(void))*(int *)((char *)v0 + v1 * stride + 0x90);
-    if (fn != 0) {
-        D_cur_b3_10E4 = (int)self;
-        if (1) {}
-        v0 = (int *)self[0x48 / 4];
-        fn = (void (*)(void))*(int *)((char *)v0 + v0[0x7C / 4] * stride + 0x90);
-        fn();
-    }
+    v0 = (int *) self[0x48 / 4];
+    fn = (void (*)(void)) (*((int *) ((((char *) v0) + (v0[0x7C / 4] * stride)) + 0x90)));
+    fn();
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000010E4);
