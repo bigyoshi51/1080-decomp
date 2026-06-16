@@ -7711,16 +7711,20 @@ void timproc_uso_b5_func_0000BB78(int *a0, int unused) {
 /* 2026-05-31: BYTE-IDENTICAL to the 98% timproc_uso_b5_func_0000C1B4; applied its body
  * (pre-load all 4 floats into locals THEN store, + func_00000000 placeholder). */
 void timproc_uso_b5_func_0000BB88(int *a0) {
-    int *p = (int*)a0[0x2B8 / 4];
-    float a = *(float*)((char*)a0 + 0x294);
-    float b = *(float*)((char*)a0 + 0x264);
-    float c = *(float*)((char*)a0 + 0x260);
-    float d = *(float*)((char*)a0 + 0x25C);
-    *(float*)((char*)p + 0x11C) = a;
-    *(float*)((char*)p + 0x110) = b;
-    *(float*)((char*)p + 0x118) = c;
-    *(float*)((char*)p + 0x114) = d;
-    timproc_uso_b5_func_00003F58();
+  int *p = (int *) a0[0x2B8 / 4];
+  float new_var;
+  float a = *((float *) (((char *) a0) + 0x294));
+  float b = *((float *) (((char *) a0) + 0x264));
+  float c = *((float *) (((char *) a0) + 0x260));
+  float d = *((float *) (((char *) a0) + 0x25C));
+  *((float *) (((char *) p) + 0x11C)) = a;
+  *((float *) (((char *) p) + 0x118)) = (new_var = c);
+  if (1)
+  {
+    *((float *) (((char *) p) + 0x110)) = b;
+  }
+  *((float *) (((char *) p) + 0x114)) = d;
+  timproc_uso_b5_func_00003F58();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BB88);
