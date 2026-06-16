@@ -4,6 +4,9 @@ tenshoe.z64
 *.n64
 *.v64
 build/
+.permuter-factory/
+.pf-run.log
+.permuter-factory-99band.log
 tools/ido-static-recomp/build/
 tools/gcc*
 *.o
