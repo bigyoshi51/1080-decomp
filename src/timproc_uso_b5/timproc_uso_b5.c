@@ -2801,6 +2801,7 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
     char *spB8;
     char *spA8;
     P1 marsh;
+    P1 tmp;
     char *sp74;
     char *sp28;
     s32 temp_f2;
@@ -2894,7 +2895,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp3A0 = *(char **)((char *)&D_00000000 + 0x127C);
             var_a0 = var_s0_2 + 8;
-            marsh.p = sp3A0;
+            tmp.p = sp3A0;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-8) || (temp_v0_5 = timproc_uso_b5_alias((char *)0x18), var_a0 = temp_v0_5, (temp_v0_5 != NULL))) {
                 spA8 = var_a0;
                 timproc_uso_b5_alias(var_a0, var_s0_2, marsh, 1);
@@ -2904,7 +2906,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp39C = *(char **)((char *)&D_00000000 + 0x1280);
             var_a0_2 = var_s0_2 + 0x20;
-            marsh.p = sp39C;
+            tmp.p = sp39C;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x20) || (temp_v0_6 = timproc_uso_b5_alias((char *)0x18), var_a0_2 = temp_v0_6, (temp_v0_6 != NULL))) {
                 spA8 = var_a0_2;
                 timproc_uso_b5_alias(var_a0_2, var_s0_2, marsh, 1);
@@ -2914,7 +2917,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp398 = *(char **)((char *)&D_00000000 + 0x1284);
             var_a0_3 = var_s0_2 + 0x38;
-            marsh.p = sp398;
+            tmp.p = sp398;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x38) || (temp_v0_7 = timproc_uso_b5_alias((char *)0x18), var_a0_3 = temp_v0_7, (temp_v0_7 != NULL))) {
                 spA8 = var_a0_3;
                 timproc_uso_b5_alias(var_a0_3, var_s0_2, marsh, 1);
@@ -2924,7 +2928,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp394 = *(char **)((char *)&D_00000000 + 0x1288);
             var_a0_4 = var_s0_2 + 0x50;
-            marsh.p = sp394;
+            tmp.p = sp394;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x50) || (temp_v0_8 = timproc_uso_b5_alias((char *)0x18), var_a0_4 = temp_v0_8, (temp_v0_8 != NULL))) {
                 spA8 = var_a0_4;
                 timproc_uso_b5_alias(var_a0_4, var_s0_2, marsh, 1);
@@ -2934,7 +2939,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp390 = *(char **)((char *)&D_00000000 + 0x128C);
             var_a0_5 = var_s0_2 + 0x68;
-            marsh.p = sp390;
+            tmp.p = sp390;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x68) || (temp_v0_9 = timproc_uso_b5_alias((char *)0x18), var_a0_5 = temp_v0_9, (temp_v0_9 != NULL))) {
                 spA8 = var_a0_5;
                 timproc_uso_b5_alias(var_a0_5, var_s0_2, marsh, 1);
@@ -2944,7 +2950,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp38C = *(char **)((char *)&D_00000000 + 0x1290);
             var_a0_6 = var_s0_2 + 0x80;
-            marsh.p = sp38C;
+            tmp.p = sp38C;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x80) || (temp_v0_10 = timproc_uso_b5_alias((char *)0x18), var_a0_6 = temp_v0_10, (temp_v0_10 != NULL))) {
                 spA8 = var_a0_6;
                 timproc_uso_b5_alias(var_a0_6, var_s0_2, marsh, 1);
@@ -2954,7 +2961,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp388 = *(char **)((char *)&D_00000000 + 0x1294);
             var_a0_7 = var_s0_2 + 0x98;
-            marsh.p = sp388;
+            tmp.p = sp388;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x98) || (temp_v0_11 = timproc_uso_b5_alias((char *)0x18), var_a0_7 = temp_v0_11, (temp_v0_11 != NULL))) {
                 spA8 = var_a0_7;
                 timproc_uso_b5_alias(var_a0_7, var_s0_2, marsh, 1);
@@ -2964,7 +2972,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp384 = *(char **)((char *)&D_00000000 + 0x1298);
             var_a0_8 = var_s0_2 + 0xB0;
-            marsh.p = sp384;
+            tmp.p = sp384;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0xB0) || (temp_v0_12 = timproc_uso_b5_alias((char *)0x18), var_a0_8 = temp_v0_12, (temp_v0_12 != NULL))) {
                 spA8 = var_a0_8;
                 timproc_uso_b5_alias(var_a0_8, var_s0_2, marsh, 1);
@@ -2974,7 +2983,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp380 = *(char **)((char *)&D_00000000 + 0x129C);
             var_a0_9 = var_s0_2 + 0xC8;
-            marsh.p = sp380;
+            tmp.p = sp380;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0xC8) || (temp_v0_13 = timproc_uso_b5_alias((char *)0x18), var_a0_9 = temp_v0_13, (temp_v0_13 != NULL))) {
                 spA8 = var_a0_9;
                 timproc_uso_b5_alias(var_a0_9, var_s0_2, marsh, 1);
@@ -2984,7 +2994,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             sp37C = *(char **)((char *)&D_00000000 + 0x12A0);
             var_a0_10 = var_s0_2 + 0xE0;
-            marsh.p = sp37C;
+            tmp.p = sp37C;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0xE0) || (temp_v0_14 = timproc_uso_b5_alias((char *)0x18), var_a0_10 = temp_v0_14, (temp_v0_14 != NULL))) {
                 spA8 = var_a0_10;
                 timproc_uso_b5_alias(var_a0_10, var_s0_2, marsh, 1);
@@ -3018,7 +3029,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp34C.unk4;
             sp40.unk8 = (s32) sp34C.unk8;
             sp40.unkC = (s32) sp34C.unkC;
-            marsh.p = sp348;
+            tmp.p = sp348;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0xF8) || (temp_v0_15 = timproc_uso_b5_alias((char *)0x24), var_a0_11 = temp_v0_15, (temp_v0_15 != NULL))) {
                 sp74 = var_a0_11;
                 timproc_uso_b5_alias(var_a0_11, var_s0_2, marsh, 1);
@@ -3055,7 +3067,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp318.unk4;
             sp40.unk8 = (s32) sp318.unk8;
             sp40.unkC = (s32) sp318.unkC;
-            marsh.p = sp314;
+            tmp.p = sp314;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x11C) || (temp_v0_16 = timproc_uso_b5_alias((char *)0x24), var_a0_12 = temp_v0_16, (temp_v0_16 != NULL))) {
                 sp28 = var_a0_12;
                 timproc_uso_b5_alias(var_a0_12, var_s0_2, marsh, 1);
@@ -3092,7 +3105,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp2E4.unk4;
             sp40.unk8 = (s32) sp2E4.unk8;
             sp40.unkC = (s32) sp2E4.unkC;
-            marsh.p = sp2E0;
+            tmp.p = sp2E0;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x140) || (temp_v0_17 = timproc_uso_b5_alias((char *)0x24), var_a0_13 = temp_v0_17, (temp_v0_17 != NULL))) {
                 sp28 = var_a0_13;
                 timproc_uso_b5_alias(var_a0_13, var_s0_2, marsh, 1);
@@ -3129,7 +3143,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp2B0.unk4;
             sp40.unk8 = (s32) sp2B0.unk8;
             sp40.unkC = (s32) sp2B0.unkC;
-            marsh.p = sp2AC;
+            tmp.p = sp2AC;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x164) || (temp_v0_18 = timproc_uso_b5_alias((char *)0x24), var_a0_14 = temp_v0_18, (temp_v0_18 != NULL))) {
                 sp28 = var_a0_14;
                 timproc_uso_b5_alias(var_a0_14, var_s0_2, marsh, 1);
@@ -3166,7 +3181,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp27C.unk4;
             sp40.unk8 = (s32) sp27C.unk8;
             sp40.unkC = (s32) sp27C.unkC;
-            marsh.p = sp278;
+            tmp.p = sp278;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x188) || (temp_v0_19 = timproc_uso_b5_alias((char *)0x24), var_a0_15 = temp_v0_19, (temp_v0_19 != NULL))) {
                 sp28 = var_a0_15;
                 timproc_uso_b5_alias(var_a0_15, var_s0_2, marsh, 1);
@@ -3203,7 +3219,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp248.unk4;
             sp40.unk8 = (s32) sp248.unk8;
             sp40.unkC = (s32) sp248.unkC;
-            marsh.p = sp244;
+            tmp.p = sp244;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x1AC) || (temp_v0_20 = timproc_uso_b5_alias((char *)0x24), var_a0_16 = temp_v0_20, (temp_v0_20 != NULL))) {
                 sp28 = var_a0_16;
                 timproc_uso_b5_alias(var_a0_16, var_s0_2, marsh, 1);
@@ -3240,7 +3257,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp214.unk4;
             sp40.unk8 = (s32) sp214.unk8;
             sp40.unkC = (s32) sp214.unkC;
-            marsh.p = sp210;
+            tmp.p = sp210;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x1D0) || (temp_v0_21 = timproc_uso_b5_alias((char *)0x24), var_a0_17 = temp_v0_21, (temp_v0_21 != NULL))) {
                 sp28 = var_a0_17;
                 timproc_uso_b5_alias(var_a0_17, var_s0_2, marsh, 1);
@@ -3277,7 +3295,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp1E0.unk4;
             sp40.unk8 = (s32) sp1E0.unk8;
             sp40.unkC = (s32) sp1E0.unkC;
-            marsh.p = sp1DC;
+            tmp.p = sp1DC;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x1F4) || (temp_v0_22 = timproc_uso_b5_alias((char *)0x24), var_a0_18 = temp_v0_22, (temp_v0_22 != NULL))) {
                 sp28 = var_a0_18;
                 timproc_uso_b5_alias(var_a0_18, var_s0_2, marsh, 1);
@@ -3314,7 +3333,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp1AC.unk4;
             sp40.unk8 = (s32) sp1AC.unk8;
             sp40.unkC = (s32) sp1AC.unkC;
-            marsh.p = sp1A8;
+            tmp.p = sp1A8;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x218) || (temp_v0_23 = timproc_uso_b5_alias((char *)0x24), var_a0_19 = temp_v0_23, (temp_v0_23 != NULL))) {
                 sp28 = var_a0_19;
                 timproc_uso_b5_alias(var_a0_19, var_s0_2, marsh, 1);
@@ -3352,7 +3372,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp178.unk4;
             sp40.unk8 = (s32) sp178.unk8;
             sp40.unkC = (s32) sp178.unkC;
-            marsh.p = sp174;
+            tmp.p = sp174;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x23C) || (temp_v0_24 = timproc_uso_b5_alias((char *)0x24), var_a0_20 = temp_v0_24, (temp_v0_24 != NULL))) {
                 sp28 = var_a0_20;
                 timproc_uso_b5_alias(var_a0_20, var_s0_2, marsh, 1);
@@ -3389,7 +3410,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp144.unk4;
             sp40.unk8 = (s32) sp144.unk8;
             sp40.unkC = (s32) sp144.unkC;
-            marsh.p = sp140;
+            tmp.p = sp140;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x260) || (temp_v0_25 = timproc_uso_b5_alias((char *)0x24), var_f2 = *(s32 *)((char *)&D_00000000 + 0x168), var_a0_21 = temp_v0_25, (temp_v0_25 != NULL))) {
                 sp28 = var_a0_21;
                 timproc_uso_b5_alias(var_a0_21, var_s0_2, marsh, 1);
@@ -3427,7 +3449,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) sp110.unk4;
             sp40.unk8 = (s32) sp110.unk8;
             sp40.unkC = (s32) sp110.unkC;
-            marsh.p = sp10C;
+            tmp.p = sp10C;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x284) || (temp_v0_26 = timproc_uso_b5_alias((char *)0x24), var_a0_22 = temp_v0_26, (temp_v0_26 != NULL))) {
                 sp28 = var_a0_22;
                 timproc_uso_b5_alias(var_a0_22, var_s0_2, marsh, 1);
@@ -3464,7 +3487,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             sp40.unk4 = (s32) spDC.unk4;
             sp40.unk8 = (s32) spDC.unk8;
             sp40.unkC = (s32) spDC.unkC;
-            marsh.p = spD8;
+            tmp.p = spD8;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x2A8) || (temp_v0_27 = timproc_uso_b5_alias((char *)0x24), var_a0_23 = temp_v0_27, (temp_v0_27 != NULL))) {
                 sp28 = var_a0_23;
                 timproc_uso_b5_alias(var_a0_23, var_s0_2, marsh, 1);
@@ -3477,7 +3501,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             spD4 = *(char **)((char *)&D_00000000 + 0x12D8);
             var_a0_24 = var_s0_2 + 0x2CC;
-            marsh.p = spD4;
+            tmp.p = spD4;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x2CC) || (temp_v0_28 = timproc_uso_b5_alias((char *)0x18), var_a0_24 = temp_v0_28, (temp_v0_28 != NULL))) {
                 spA8 = var_a0_24;
                 timproc_uso_b5_alias(var_a0_24, var_s0_2, marsh, 1);
@@ -3487,7 +3512,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             spD0 = *(char **)((char *)&D_00000000 + 0x12DC);
             var_a0_25 = var_s0_2 + 0x2E4;
-            marsh.p = spD0;
+            tmp.p = spD0;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x2E4) || (temp_v0_29 = timproc_uso_b5_alias((char *)0x18), var_a0_25 = temp_v0_29, (temp_v0_29 != NULL))) {
                 spA8 = var_a0_25;
                 timproc_uso_b5_alias(var_a0_25, var_s0_2, marsh, 1);
@@ -3497,7 +3523,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             spCC = *(char **)((char *)&D_00000000 + 0x12E0);
             var_a0_26 = var_s0_2 + 0x2FC;
-            marsh.p = spCC;
+            tmp.p = spCC;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x2FC) || (temp_v0_30 = timproc_uso_b5_alias((char *)0x18), var_a0_26 = temp_v0_30, (temp_v0_30 != NULL))) {
                 spA8 = var_a0_26;
                 timproc_uso_b5_alias(var_a0_26, var_s0_2, marsh, 1);
@@ -3507,7 +3534,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             spC8 = *(char **)((char *)&D_00000000 + 0x12E4);
             var_a0_27 = var_s0_2 + 0x314;
-            marsh.p = spC8;
+            tmp.p = spC8;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x314) || (temp_v0_31 = timproc_uso_b5_alias((char *)0x18), var_a0_27 = temp_v0_31, (temp_v0_31 != NULL))) {
                 spA8 = var_a0_27;
                 timproc_uso_b5_alias(var_a0_27, var_s0_2, marsh, 1);
@@ -3517,7 +3545,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             spC4 = *(char **)((char *)&D_00000000 + 0x12E8);
             var_a0_28 = var_s0_2 + 0x32C;
-            marsh.p = spC4;
+            tmp.p = spC4;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x32C) || (temp_v0_32 = timproc_uso_b5_alias((char *)0x18), var_a0_28 = temp_v0_32, (temp_v0_32 != NULL))) {
                 spA8 = var_a0_28;
                 timproc_uso_b5_alias(var_a0_28, var_s0_2, marsh, 1);
@@ -3527,7 +3556,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             spC0 = *(char **)((char *)&D_00000000 + 0x12EC);
             var_a0_29 = var_s0_2 + 0x344;
-            marsh.p = spC0;
+            tmp.p = spC0;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x344) || (temp_v0_33 = timproc_uso_b5_alias((char *)0x18), var_a0_29 = temp_v0_33, (temp_v0_33 != NULL))) {
                 spA8 = var_a0_29;
                 timproc_uso_b5_alias(var_a0_29, var_s0_2, marsh, 1);
@@ -3537,7 +3567,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             spBC = *(char **)((char *)&D_00000000 + 0x12F0);
             var_a0_30 = var_s0_2 + 0x35C;
-            marsh.p = spBC;
+            tmp.p = spBC;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x35C) || (temp_v0_34 = timproc_uso_b5_alias((char *)0x18), var_a0_30 = temp_v0_34, (temp_v0_34 != NULL))) {
                 spA8 = var_a0_30;
                 timproc_uso_b5_alias(var_a0_30, var_s0_2, marsh, 1);
@@ -3547,7 +3578,8 @@ char *timproc_uso_b5_func_00004118(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32
             }
             spB8 = *(char **)((char *)&D_00000000 + 0x12F4);
             var_a0_31 = var_s0_2 + 0x374;
-            marsh.p = spB8;
+            tmp.p = spB8;
+            marsh = tmp;
             if ((var_s0_2 != (char *)-0x374) || (temp_v0_35 = timproc_uso_b5_alias((char *)0x18), var_a0_31 = temp_v0_35, (temp_v0_35 != NULL))) {
                 spA8 = var_a0_31;
                 timproc_uso_b5_alias(var_a0_31, var_s0_2, marsh, 1);
