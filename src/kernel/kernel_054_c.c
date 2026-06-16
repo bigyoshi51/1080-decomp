@@ -96,34 +96,37 @@ extern void func_80009030(s32, s32);
  * remaining are RA/scheduling caps. */
 #ifdef NON_MATCHING
 s32 func_80009474(s32* msg) {
-    register s32* p;
-    RmonHdr16 hdr;
-    register s32 i;
+  register s32 *p;
+  RmonHdr16 hdr;
+  register s32 i;
+  if (func_80008430(msg) != 0)
+  {
+    return -4;
+  }
+  func_80009148((RmonMsg91FC *) 0);
+  for (i = 0; i < 0x20; i++)
+  {
+    func_80006A50(0x04000000, ((u32 *) p)[4 + i]);
+    func_80009030(0x23, i);
+    func_80008498();
+  }
 
-    if (func_80008430(msg) != 0) {
-        return -4;
-    }
-    func_80009148((RmonMsg91FC*)0);
-    for (i = 0; i < 0x20; i++) {
-        func_80006A50(0x04000000, ((u32*)p)[4 + i]);
-        func_80009030(0x23, i);
-        func_80008498();
-    }
-    func_800091F0(0);
-    func_80006A50(0x04040004, ((u32*)p)[0x24]);
-    func_80006A50(0x04040000, ((u32*)p)[0x25]);
-    {
-        s32 masked = ((u32*)p)[0x27] & 0xFFF;
-        func_80006A50(0x04080000, masked);
-    }
-    func_80006A50(0x0404000C, ((u32*)p)[0x28]);
-    func_80006A50(0x04040010, ((u32*)p)[0x29]);
-    hdr.field_0C = p[3];
-    hdr.type = ((u8*)p)[4];
-    hdr.flags = 0;
-    func_800073F8(&hdr, 0x10, 1);
-    return 0;
-    p = msg;
+  func_800091F0(0);
+  func_80006A50(0x04040004, ((u32 *) p)[0x24]);
+  func_80006A50(0x04040000, ((u32 *) p)[0x25]);
+  {
+    s32 masked = ((u32 *) p)[0x27] & 0xFFF;
+    func_80006A50(0x04080000, masked);
+  }
+  func_80006A50(0x0404000C, ((u32 *) p)[0x28]);
+  func_80006A50(0x04040010, ((u32 *) p)[0x29]);
+  i = p[3];
+  hdr.field_0C = i;
+  hdr.type = ((u8 *) p)[4];
+  hdr.flags = 0;
+  func_800073F8(&hdr, 0x10, 1);
+  return 0;
+  p = msg;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80009474);
