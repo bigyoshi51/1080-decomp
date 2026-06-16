@@ -8610,16 +8610,27 @@ void timproc_uso_b5_func_0000CC64(int *a0, int a1) {
  * SUFFIX_BYTES 5 alt-entry tail words. Both in Makefile. */
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CC74(int *a0) {
-    int *p = (int*)a0[0x2B8 / 4];
-    float a = *(float*)((char*)a0 + 0x294);
-    float b = *(float*)((char*)a0 + 0x264);
-    float c = *(float*)((char*)a0 + 0x260);
-    float d = *(float*)((char*)a0 + 0x25C);
-    *(float*)((char*)p + 0x118) = a;
-    *(float*)((char*)p + 0x10C) = b;
-    *(float*)((char*)p + 0x114) = c;
-    *(float*)((char*)p + 0x110) = d;
-    timproc_uso_b5_func_00003F58();
+  int *p = (int *) a0[0x2B8 / 4];
+  float a = *((float *) (((char *) a0) + 0x294));
+  float b = *((float *) (((char *) a0) + 0x264));
+  char *new_var2;
+  float c = *((float *) (((char *) a0) + 0x260));
+  float d = *((float *) (((char *) a0) + 0x25C));
+  float *new_var;
+  if (a0)
+  {
+  }
+  *((float *) (((char *) p) + 0x118)) = a;
+  if ((a0 && a0) && a0)
+  {
+  }
+  new_var = (float *) (((char *) p) + 0x114);
+  *((float *) (((char *) p) + 0x10C)) = b;
+  *new_var = c;
+  new_var2 = (char *) p;
+  *((float *) (new_var2 + 0x110)) = d;
+ do { } while (0); if (c) { }
+  timproc_uso_b5_func_00003F58();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CC74);
