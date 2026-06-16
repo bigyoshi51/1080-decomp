@@ -32368,16 +32368,18 @@ int gl_func_0005FDCC(int a0, int a1, int a2) {
  * reg for capacity). swap-decl/inline-cap regressed. Stays NM. */
 #ifdef NON_MATCHING
 char *game_libs_func_0005FE14(int a0) {
-    char *p = *(char**)&D_00000000;
-    int capacity = *(int*)(p + 0x34);
-    int count = *(int*)(p + 0x38);
-    p += 0x2C;
-    if (count >= capacity) {
-        gl_func_00000000((char*)&D_00000000 + 0x21C40, count);
-        count = *(int*)(p + 0xC);
-    }
-    *(int*)(p + 0xC) = count + 1;
-    return *(char**)(p + 0) + count * 68;
+  char *p = *((char **) (&D_00000000));
+  int capacity;
+  int count = *((int *) (p + 0x38));
+  p += 0x2C;
+  if (count >= capacity)
+  {
+    gl_func_00000000((&D_00000000) + 0x21C40, count);
+    capacity = *((int *) (p + 0x34));
+    count = *((int *) (p + 0xC));
+  }
+  *((int *) (p + 0xC)) = count + 1;
+  return (*((char **) (p + 0))) + (count * 68);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FE14);
