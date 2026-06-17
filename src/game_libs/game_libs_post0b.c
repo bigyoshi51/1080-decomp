@@ -12164,14 +12164,11 @@ void gl_func_000423D8(void) {
  * INSN_PATCH-promoted; INSN_PATCH REMOVED 2026-05-23 as match-faking
  * (per feedback_no_instruction_forcing_matches_policy). Default build is
  * INCLUDE_ASM. */
-#ifdef NON_MATCHING
 unsigned short game_libs_func_00042400(int a0, int a1) {
   int *entry = (int *) (((char *) (&D_00000000)) + (a1 * 8));
   return entry[1] + (a0 << entry[0]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042400);
-#endif
+
 
 unsigned short game_libs_func_00042428(int a0, int a1) {
     return (a0 << 3) | a1;
