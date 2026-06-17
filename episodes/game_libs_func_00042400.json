@@ -1,0 +1,32 @@
+{
+  "function_name": "game_libs_func_00042400",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-17T00:42:15.930356+00:00",
+  "end_time": "2026-06-17T00:42:15.930387+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-17T00:42:15.930378+00:00",
+      "assistant_text": "Permuter-factory true crack #4; ROM-gated past reloc-masking.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 10,
+  "initial_m2c_source": null,
+  "final_source": "unsigned short game_libs_func_00042400(int a0, int a1) {\n  int *entry = (int *) (((char *) (&D_00000000)) + (a1 * 8));\n  return entry[1] + (a0 << entry[0]);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/42400_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_libs/game_libs/game_libs_func_00042400.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full make exit 0 + ROM byte-identical"
+  }
+}
