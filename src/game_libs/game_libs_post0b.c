@@ -12166,8 +12166,8 @@ void gl_func_000423D8(void) {
  * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 unsigned short game_libs_func_00042400(int a0, int a1) {
-    int *entry = (int*)((char*)&D_00000000 + a1 * 8);
-    return (a0 << entry[0]) + entry[1];
+  int *entry = (int *) (((char *) (&D_00000000)) + (a1 * 8));
+  return entry[1] + (a0 << entry[0]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042400);
