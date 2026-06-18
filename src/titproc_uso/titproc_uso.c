@@ -198,21 +198,17 @@ void titproc_uso_func_000003D0(void) {
  * Default build is INCLUDE_ASM. */
 extern char import_00020098;
 extern float titproc_uso_func_075EE4();
-#ifdef NON_MATCHING
+/* permuter crack 2026-06-18: the no-op `if (!selected) {}` forces the
+ * uninitialized-`selected` preload (lw $5,24(sp)) to be scheduled ahead of
+ * `index=0` (or $2,$0,$0), matching the target's order and resolving the
+ * documented 2-diff scheduler swap (the 97k-iter run that "could not move
+ * it" used the cached-mask shape; this is the inlined-mask + early-read form). */
 int titproc_uso_func_00000418(void) {
-    /* 93.8% → ~98% (6→2 diffs): inlining the mask read into the loop body
-     * (instead of caching as `unsigned short mask` local) drops the extra
-     * 8-byte frame slot and aligns the spill offset to sp+24. Residual 2
-     * diffs are a scheduler-decision order swap between `lw $5,24(sp)`
-     * (preload uninit selected) and `or $2,$0,$0` (index=0) — independent
-     * instructions, both emitted but in opposite order. SOURCE=1 re-audit
-     * 2026-06-01 re-audit switched the NM body to target-named externs,
-     * removing cosmetic reloc-name differences. The live object still differs
-     * only by this swapped pair; IDO_CODEGEN documents a 97k-iteration
-     * permuter run that could not move it. */
     int index = 0;
     int selected;
 
+    if (!selected) {
+    }
     do {
         if ((**(unsigned short**)((char*)&import_00020098 + 0x154) & (1 << index)) != 0) {
             selected = index + 1;
@@ -223,9 +219,6 @@ int titproc_uso_func_00000418(void) {
     selected -= 2;
     return (int)((titproc_uso_func_075EE4() * (float)selected) + 2.0f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00000418);
-#endif
 
 void titproc_uso_func_0000049C(int *dst) {
     int buf[2];
