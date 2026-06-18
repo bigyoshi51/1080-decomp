@@ -844,34 +844,34 @@ void gui_uso_func_00001794(int a0) {
  * appends. Don't re-run the permuter. INCLUDE_ASM stays the build path. */
 #ifdef NON_MATCHING
 void gui_uso_func_000017DC(int a0, int a1, float *col, int alpha) {
-    int *rec = *(int **)&D_00000000;
-    int *sub;
-    int count;
-    int *arr;
-
-    sub = (int *)rec[3];
-    count = sub[1];
-    sub[1] = count + 1;
-    arr = (int *)(((int *)rec[3])[0] + count * 8);
-    arr[0] = 0xFC309A61; arr[1] = 0xFF37FFFF;
-
-    rec = *(int **)&D_00000000;
-    sub = (int *)rec[3];
-    count = sub[1];
-    sub[1] = count + 1;
-    arr = (int *)(((int *)rec[3])[0] + count * 8);
-    arr[0] = 0xFB000000; arr[1] = a1 & 0xFF;
-
-    rec = *(int **)&D_00000000;
-    sub = (int *)rec[3];
-    count = sub[1];
-    sub[1] = count + 1;
-    arr = (int *)(((int *)rec[3])[0] + count * 8);
-    arr[0] = 0xFA000000;
-    arr[1] = ((int)(unsigned)(col[0] * 255.0f) << 24)
-           | (((int)(unsigned)(col[1] * 255.0f) & 0xFF) << 16)
-           | (((int)(unsigned)(col[2] * 255.0f) & 0xFF) << 8)
-           | (alpha & 0xFF);
+  int *new_var;
+  int *rec = *((int **) (&D_00000000));
+  int new_var2;
+  int *sub;
+  int count;
+  int *arr;
+  sub = (int *) rec[3];
+  count = sub[1];
+  sub[1] = count + 1;
+  new_var = (int *) (((int *) rec[3])[0] + (count * 8));
+  arr = new_var;
+  arr[0] = 0xFC309A61;
+  arr[1] = 0xFF37FFFF;
+  rec = *((int **) (&D_00000000));
+  sub = (int *) rec[3];
+  new_var2 = sub[1];
+  count = new_var2;
+  sub[1] = count + 1;
+  arr = (int *) (((int *) rec[3])[0] + (count * 8));
+  arr[0] = 0xFB000000;
+  arr[1] = a1 & 0xFF;
+  rec = *((int **) (&D_00000000));
+  sub = (int *) rec[3];
+  count = sub[1];
+  sub[1] = count + 1;
+  arr = (int *) (((int *) rec[3])[0] + (count * 8));
+  arr[0] = 0xFA000000;
+  arr[1] = (((((int) ((unsigned) (col[0] * 255.0f))) << 24) | ((((int) ((unsigned) (col[1] * 255.0f))) & 0xFF) << 16)) | ((((int) ((unsigned) (col[2] * 255.0f))) & 0xFF) << 8)) | (alpha & 0xFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000017DC);

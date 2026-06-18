@@ -3009,17 +3009,28 @@ out:
  * INCLUDE_ASM remains the build path (function not yet byte-exact). */
 #ifdef NON_MATCHING
 void *game_libs_func_0001FDF4(int *a0, unsigned int n) {
-    unsigned int aligned = (n + 15) & ~15;
-    unsigned int cur = a0[1];
-    unsigned int newcur = cur + aligned;
-    if ((unsigned int)(a0[0] + a0[2]) >= newcur) {
-        a0[1] = newcur;
-        goto success;
+  unsigned int new_var2;
+  unsigned int aligned = (n + 15) & (~15);
+  void *new_var;
+  unsigned int new_var3;
+  unsigned int cur = a0[1];
+  unsigned int newcur = a0[1] + aligned;
+  new_var = (void *) (cur ^ 0);
+  new_var3 = (unsigned int) (a0[0] + a0[2]);
+  new_var2 = newcur;
+  if (new_var3 >= new_var2)
+  {
+    a0[1] = cur + aligned;
+    goto success;
+    if (!cur)
+    {
     }
-    return 0;
-success:
-    a0[3] += 1;
-    return (void*)cur;
+  }
+  return 0;
+  success:
+  a0[3] += 1;
+
+  return new_var;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FDF4);
