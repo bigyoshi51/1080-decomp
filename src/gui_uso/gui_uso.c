@@ -871,7 +871,7 @@ void gui_uso_func_000017DC(int a0, int a1, float *col, int alpha) {
   sub[1] = count + 1;
   arr = (int *) (((int *) rec[3])[0] + (count * 8));
   arr[0] = 0xFA000000;
-  arr[1] = (((((int) ((unsigned) (col[0] * 255.0f))) << 24) | ((((int) ((unsigned) (col[1] * 255.0f))) & 0xFF) << 16)) | ((((int) ((unsigned) (col[2] * 255.0f))) & 0xFF) << 8)) | (alpha & 0xFF);
+  arr[1] = (((((int) ((unsigned) (col[0] * 255.0f))) << 24) | (((((int) ((unsigned) (col[1] * 255.0f))) & 0xFF) << 3) << 13)) | ((((unsigned) (col[2] * 255.0f)) & 0xFF) << 8)) | (alpha & 0xFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000017DC);

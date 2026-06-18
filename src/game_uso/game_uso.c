@@ -14556,16 +14556,18 @@ void *game_uso_func_00011A94(int *arg0) {
   int *node;
   int *head;
   node = (int *) gl_func_00000000(0x40);
-  if (node != 0)
   {
     gl_func_00000000(node);
+    if (1)
+    {
+    }
     node[10] = (int) (&D_00000000);
     node[15] = 0;
   }
   head = (int *) arg0[16];
   if (((int *) arg0[16]) != 0)
   {
-    gl_func_00000000(node + 4, head);
+    gl_func_00000000(node - -4, head);
     if (head[5] != 0)
     {
       head[1] = 1;
