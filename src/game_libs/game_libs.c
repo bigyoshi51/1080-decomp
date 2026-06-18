@@ -605,45 +605,48 @@ int gl_func_00000FA4(char *a0, int arg1) {
 #endif
 typedef char *(*GP_00000FD0)();
 char *gl_func_00000FD0(char *arg0, s32 arg1) {
-    char *sp34;
-    f32 d255 = 255.0f;
-    char *sp2C;
-    char *sp28;
-    char *temp_a0;
-    char *temp_a3;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *var_a2;
-    char *var_s0;
-
-    var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = (char*)func_00000000((char *)0x13C), var_s0 = temp_v0, (temp_v0 != 0))) {
-        var_a2 = var_s0;
-        if ((var_s0 != 0) || (temp_v0_2 = (char*)func_00000000((char *)0x10C), var_a2 = temp_v0_2, (temp_v0_2 != 0))) {
-            sp34 = var_a2;
-            (char*)func_00000000(var_a2, (char *)0xCBFC, var_a2);
-            *(int*)((char*)var_a2 + 0x28) = (int)&D_00000000;
-            (char*)func_00000000(var_a2 + 0x2C);
-        }
-        FW(var_s0, 0xC) = 0xCC04;
-        temp_a0 = var_s0 + 0x10C;
-        sp2C = temp_a0;
-        (char*)func_00000000(temp_a0, (char *)0x50002);
-        temp_a3 = var_s0 + 0x124;
-        sp28 = temp_a3;
-        (char*)func_00000000(temp_a3, (char *)0x50008);
-        (char*)func_00000000(var_s0, sp28, sp2C);
-        FW(var_s0, 0xD4) = 0x80;
-        FW(var_s0, 0xD8) = 0xFF;
-        FW(var_s0, 0xDC) = 0x82;
-        *(f32*)((char*)var_s0 + 0xC4) = 250.0f / d255;
-        *(f32*)((char*)var_s0 + 0xC8) = 235.0f / d255;
-        *(f32*)((char*)var_s0 + 0xCC) = 100.0f / d255;
-        *(f32*)((char*)var_s0 + 0xD0) = 0.0f / d255;
-        FW(var_s0, 0xE0) = arg1;
-        (char*)func_00000000(var_s0, (char *)-3, (char *)-1, 0x25, 0);
+  char *sp34;
+  f32 d255 = 255.0f;
+  char *sp2C;
+  char *sp28;
+  char *temp_a0;
+  char *temp_a3;
+  char *temp_v0;
+  char *temp_v0_2;
+  char *var_a2;
+  char *var_s0;
+  arg0++;
+  arg0--;
+  var_s0 = arg0;
+  if ((arg0 != 0) || ((temp_v0 = (char *) func_00000000((char *) 0x13C), var_s0 = temp_v0, temp_v0 != 0)))
+  {
+    var_a2 = var_s0;
+    if ((var_s0 != 0) || ((temp_v0_2 = (char *) func_00000000((char *) 0x10C), var_a2 = temp_v0_2, temp_v0_2 != 0)))
+    {
+      sp34 = var_a2;
+      (char *) func_00000000(var_a2, (char *) 0xCBFC, var_a2);
+      *((int *) (((char *) var_a2) + 0x28)) = (int) (&D_00000000);
+      (char *) func_00000000(var_a2 + 0x2C);
     }
-    return var_s0;
+    *((int *) (((char *) var_s0) + 0xC)) = 0xCC04;
+    temp_a0 = var_s0 + 0x10C;
+    sp2C = temp_a0;
+    (char *) func_00000000(temp_a0, (char *) 0x50002);
+    temp_a3 = var_s0 + 0x124;
+    sp28 = temp_a3;
+    (char *) func_00000000(temp_a3, (char *) 0x50008);
+    (char *) func_00000000(var_s0, sp28, sp2C);
+    *((int *) (((char *) var_s0) + 0xD4)) = 0x80;
+    *((int *) (((char *) var_s0) + 0xD8)) = 0xFF;
+    *((int *) (((char *) var_s0) + 0xDC)) = 0x82;
+    *((f32 *) (((char *) var_s0) + 0xC4)) = 250.0f / d255;
+    *((f32 *) (((char *) var_s0) + 0xC8)) = 235.0f / d255;
+    *((f32 *) (((char *) var_s0) + 0xCC)) = 100.0f / d255;
+    *((f32 *) (((char *) var_s0) + 0xD0)) = 0.0f / d255;
+    *((int *) (((char *) var_s0) + 0xE0)) = arg1;
+    (char *) func_00000000(var_s0, (char *) (-3), (char *) (-1), 0x25, 0);
+  }
+  return var_s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000FD0);
@@ -4712,24 +4715,32 @@ struct GlExisting {
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
-    struct GlConstructed *ptr;
-    struct GlConstructed *ret;
-    struct GlExisting *existing;
-    ptr = (struct GlConstructed *)gl_func_00000000(0x40);
-    if (ptr != 0) {
-        gl_func_00000000(ptr);
-        ptr->field_28 = (int *)&D_00000000;
-        ptr->field_3C = 0;
+  struct GlConstructed *ptr;
+  struct GlConstructed *ret;
+  int new_var;
+  struct GlExisting *existing;
+  ptr = (struct GlConstructed *) gl_func_00000000(0x40);
+  if (ptr != 0)
+  {
+    gl_func_00000000(ptr);
+    ptr->field_28 = (int *) (&D_00000000);
+    ptr->field_3C = 0;
+  }
+  ret = ptr;
+  if (((!orig->field_40) && (!orig->field_40)) && (!orig->field_40))
+  {
+  }
+  if ((existing = orig->field_40) != 0)
+  {
+    new_var = 1;
+    gl_func_00000000(((char *) ret) + 0x10, existing);
+    if (existing->field_14 != 0)
+    {
+      existing->field_4 = new_var;
     }
-    ret = ptr;
-    if ((existing = orig->field_40) != 0) {
-        gl_func_00000000((char *)ret + 0x10, existing);
-        if (existing->field_14 != 0) {
-            existing->field_4 = 1;
-        }
-        existing->field_14 = ret;
-    }
-    return ret;
+    (*existing).field_14 = ret;
+  }
+  return ret;
 }
 #else
 #ifdef NON_MATCHING

@@ -538,26 +538,28 @@ void func_00000BE0(char *a0) {
 extern int func_00000000();
 #ifdef NON_MATCHING
 void *func_00000C10(int *arg0) {
-    volatile int **vparg = (volatile int **)&arg0;
-    int *node;
-    int *head;
-
-    node = (int*)func_00000000(0x40);
-    if (node != 0) {
-        func_00000000(node);
-        node[10] = (int)&D_00000000;
-        node[15] = 0;
+  volatile int **vparg = (volatile int **) (&arg0);
+  int *node;
+  int *head;
+  node = (int *) func_00000000(0x40);
+  if (node != 0)
+  {
+    func_00000000(node);
+    node[10] = (int) (&D_00000000);
+    node[15] = 0;
+  }
+  head = (int *) arg0[16];
+  if (((int *) arg0[16]) != 0)
+  {
+    func_00000000(node + 4, head);
+    if (head[5] != 0)
+    {
+      head[1] = 1;
     }
-    head = (int*)arg0[16];
-    if (head != 0) {
-        func_00000000(node + 4, head);
-        if (head[5] != 0) {
-            head[1] = 1;
-        }
-        head[5] = (int)node;
-    }
-    (void)vparg;
-    return node;
+    head[5] = (int) node;
+  }
+  (void) vparg;
+  return node;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000C10);
