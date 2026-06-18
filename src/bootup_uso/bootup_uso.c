@@ -4924,26 +4924,26 @@ void func_00007AD8(char *a0) {
  * is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void *func_00007B08(char *a0) {
-    char *ret;
-    int *link;
-
-    ret = (char*)func_00000000(0x40);
-    if (ret != 0) {
-        func_00000000(ret);
-        *(char**)(ret + 0x28) = &D_00000000;
-        *(int*)(ret + 0x3C) = 0;
+  char *ret;
+  int *link;
+  ret = (char *) func_00000000(0x40);
+  if (ret != 0)
+  {
+    func_00000000(ret);
+    *((char **) (ret + 0x28)) = &D_00000000;
+    *((int *) (ret + 0x3C)) = 0;
+  }
+  link = *((int **) (a0 + 0x40));
+  if ((*((int **) (a0 + 0x40))) != 0)
+  {
+    func_00000000(ret + 0x10, link);
+    if (link[5] != 0)
+    {
+      link[1] = 1;
     }
-
-    link = *(int**)(a0 + 0x40);
-    if (link != 0) {
-        func_00000000(ret + 0x10, link);
-        if (link[5] != 0) {
-            link[1] = 1;
-        }
-        link[5] = (int)ret;
-    }
-
-    return ret;
+    link[5] = (int) ret;
+  }
+  return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007B08);

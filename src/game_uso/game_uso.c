@@ -2878,23 +2878,26 @@ void game_uso_func_000039F8(char *dst) {
  * jal-position swap (+0x1C non-jal→jal, +0x20 jal→non-jal). */
 #ifdef NON_MATCHING
 int *game_uso_func_00003A28(int *arg0) {
-    int *obj;
-    int *other;
-    obj = (int*)gl_func_00000000(0x40);
-    if (obj != 0) {
-        gl_func_00000000(obj);
-        *(int*)((char*)obj + 0x28) = (int)&D_00000000;
-        *(int*)((char*)obj + 0x3C) = 0;
+  int *obj;
+  int *other;
+  obj = (int *) gl_func_00000000(0x40);
+  if (obj != 0)
+  {
+    gl_func_00000000(obj);
+    *((int *) (((char *) obj) + 0x28)) = (int) (&D_00000000);
+    *((int *) (((char *) obj) + 0x3C)) = 0;
+  }
+  other = (int *) arg0[0x40 / 4];
+  if (((int *) arg0[0x40 / 4]) != 0)
+  {
+    gl_func_00000000(((char *) obj) + 0x10, other);
+    if (other[0x14 / 4] != 0)
+    {
+      other[0x4 / 4] = 1;
     }
-    other = (int*)arg0[0x40 / 4];
-    if (other != 0) {
-        gl_func_00000000((char*)obj + 0x10, other);
-        if (other[0x14 / 4] != 0) {
-            other[0x4 / 4] = 1;
-        }
-        other[0x14 / 4] = (int)obj;
-    }
-    return obj;
+    other[0x14 / 4] = (int) obj;
+  }
+  return obj;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003A28);
