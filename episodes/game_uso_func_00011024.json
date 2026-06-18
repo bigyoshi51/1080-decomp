@@ -1,0 +1,32 @@
+{
+  "function_name": "game_uso_func_00011024",
+  "project": "projects/1080-agent-a",
+  "model": "claude-manual",
+  "start_time": "2026-06-18T03:16:17.631781+00:00",
+  "end_time": "2026-06-18T03:16:17.631828+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-18T03:16:17.631811+00:00",
+      "assistant_text": "Deep-push hand-finish from a factory 99.969 near-miss: the sole diff was an int-pointer-arithmetic bug in a read-modify-write -- *((int*)(p_B4 + 0xA58)) read at p_B4+0xA58*4 (wrong, offset 13240); the target is a plain RMW *(base+0xA58) &= ~4, fixed to *p_B4 = *p_B4 & ~4. USO jal-form word extraction was needed to see the true 1-word residual.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 28,
+  "initial_m2c_source": null,
+  "final_source": "extern char D_00000000;\nvoid game_uso_func_00011024(int *a0) {\n  int v;\n  int *p_B4 = *((int **) (((char *) a0) + 0xB4));\n  *((Pair2 *) (((char *) a0) + 0xD0)) = *((Pair2 *) (((char *) (&D_00000000)) + 0xF48));\n  ;\n  p_B4 = (int *) (((char *) p_B4) + 0xA58);\n goto dummy_label_965124; dummy_label_965124: ;\n  *p_B4 = (*p_B4) & (~4);\n  gl_func_00000000(a0, *((Pair2 *) (((char *) (&D_00000000)) + 0xE10)));\n  gl_func_00000000(a0);\n  ((int *) (*((int **) (((char *) a0) + 0xB4))))[0x960 / 4] = 0x64;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/11024_src.c",
+    "asm_path": "projects/1080-agent-a/asm/nonmatchings/game_uso/game_uso/game_uso_func_00011024.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "verification": "objdiff 100.0 + full make exit 0 + ROM byte-identical"
+  }
+}
