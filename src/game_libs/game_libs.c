@@ -4727,8 +4727,11 @@ extern int gl_func_00000000();
 struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
   struct GlConstructed *ptr;
   struct GlConstructed *ret;
+  struct GlExisting *new_var2;
   int new_var;
   struct GlExisting *existing;
+  struct GlOrig *new_var4;
+  struct GlExisting *new_var3;
   ptr = (struct GlConstructed *) gl_func_00000000(0x40);
   if (ptr != 0)
   {
@@ -4736,16 +4739,19 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
     ptr->field_28 = (int *) (&D_00000000);
     ptr->field_3C = 0;
   }
+  new_var3 = orig->field_40;
   ret = ptr;
-  if (((!orig->field_40) && (!orig->field_40)) && (!orig->field_40))
+  new_var4 = orig;
+  new_var2 = orig->field_40;
   {
   }
-  if ((existing = orig->field_40) != 0)
+  if ((existing = new_var2) != 0)
   {
     ptr = ret;
     new_var = 1;
     gl_func_00000000(((char *) ptr) + 0x10, existing);
-    if (existing->field_14 != 0)
+    new_var2 = existing;
+    if (new_var2->field_14 != 0)
     {
       existing->field_4 = new_var;
     }
