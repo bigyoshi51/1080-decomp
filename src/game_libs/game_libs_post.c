@@ -14186,6 +14186,8 @@ void game_libs_func_0002BA08(void *arg0, int arg1) {
 extern int gl_func_00000000();
 int gl_func_0002BA38(char *a0, int a1, int **a2, char *a3) {
   char *rv;
+  int new_var2;
+  char *new_var;
   rv = (char *) gl_func_00000000(*((unsigned char *) (a0 + 7)));
   if (rv == 0)
   {
@@ -14193,10 +14195,13 @@ int gl_func_0002BA38(char *a0, int a1, int **a2, char *a3) {
     return 0;
   }
   *((int *) (a3 + 4)) = *((int *) (rv + 4));
-  *((unsigned char *) a3) = *((unsigned char *) (rv + 3));
+  new_var = a3;
+  *((unsigned char *) new_var) = *((unsigned char *) (rv + 3));
   a1 = (unsigned char) a1;
   *a2 = (int *) rv;
-  return (a1 + 2) & 0xFF;
+  new_var2 = (a1 + 2) & 0xFF;
+  a1 = (unsigned char) a1;
+  return new_var2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BA38);
