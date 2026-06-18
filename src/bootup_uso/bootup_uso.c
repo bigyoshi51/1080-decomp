@@ -4926,22 +4926,23 @@ void func_00007AD8(char *a0) {
  * is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 void *func_00007B08(char *a0) {
+  int new_var;
   char *ret;
   int *link;
+  char *new_var2;
   ret = (char *) func_00000000(0x40);
+  new_var2 = ret;
   if (ret != 0)
   {
-    func_00000000(ret);
+    func_00000000(new_var2);
     *((char **) (ret + 0x28)) = &D_00000000;
     *((int *) (ret + 0x3C)) = 0;
   }
   link = *((int **) (a0 + 0x40));
+  new_var = 1;
   if ((*((int **) (a0 + 0x40))) != 0)
   {
-    func_00000000(ret + 0x10, link);
-    if (link[5] != 0)
-    {
-      link[1] = 1;
+ do { func_00000000(ret + 0x10, link); } while (0); if (link[5] != 0) { link[new_var] = new_var;
     }
     link[5] = (int) ret;
   }
@@ -4972,6 +4973,7 @@ void func_00007BC8(char *a0) {
 int func_00007BF4(char *a0) {
   short *pair = (short *) (a0 + 8);
   short key = pair[1];
+  short new_var;
   short offset = pair[0];
   char *arg = *((char **) (a0 + 4));
   char *entry;
@@ -4992,10 +4994,10 @@ int func_00007BF4(char *a0) {
         a0 = (char *) 0x28;
       }
     }
-    if ((selector && selector) && selector)
+    if (((selector & 0xFFFF) && selector) && selector)
     {
     }
-    entry = (*((char **) (arg + ((int) a0)))) + (pair[1] << 3);
+    entry = (*((char **) (arg + ((int) a0)))) + ((new_var = pair[1]) << 3);
     arg += *((short *) entry);
     fnptr = *((int (**)(char *)) (entry + 4));
   }
