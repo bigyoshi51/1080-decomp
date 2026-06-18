@@ -3929,14 +3929,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
  * move v0,0 ordering) — isolated-vs-full-TU scheduling swap. Was
  * previously closed via 2-insn INSN_PATCH — REMOVED 2026-05-23 as
  * match-faking (per feedback_no_instruction_forcing_matches_policy). */
-#ifdef NON_MATCHING
 void game_libs_func_00020DF4(short *a0) {
-  short *p = a0;
- do { int i = 0; do { i += 4; p[1] = 0; p[2] = 0; p[3] = 0; p += 4; p[-4] = 0; } while (i != 8); } while (0);
+ do { int i = 0; short *p = a0; do {
+      i += 4;
+      p[1] = 0;
+      p[2] = 0;
+      p[3] = 0;
+      p += 4;
+      p[-4] = 0;
+    }
+    while (i != 8);
+  }
+  while (0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020DF4);
-#endif
 
 /* Copies the a1-th 16-byte (8-short) entry of the &D_00000000+0x... table to
  * a0. Target emits a rotated 2x4-short copy loop (counter 0..8 step 4); the
