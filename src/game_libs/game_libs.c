@@ -2466,6 +2466,17 @@ extern int D_00000000_d008;
 extern int D_00000000_d00c;
 typedef struct { f32 x, y, z, w; } GlV4_4244;
 typedef struct { s32 v; } GlF1_4244;
+/* 9916-byte fully-unrolled initializer (32 units, zero backward branches).
+ * NM 99.762%, residual = CONFIRMED CAP, no logic/decode error remains.
+ * DO NOT re-grind names/decl-order/pads — see docs/IDO_CODEGEN.md
+ * "4244 ladder levers" (agent-y 2026-06-15, full characterization).
+ * Residual re-verified independently 2026-06-17 (116 insn diffs, identical
+ * picture): 58 = CLASS C spill-home sharing (target reuses ONE temploc
+ * sw/lw a0,0x38(sp) for every unit's alloc-ptr spill; any C spelling makes
+ * it a NAMED M-class home — uopt never repacks named homes, rule 1; the
+ * only C forms that share a slot either drop the spill entirely or force
+ * volatile reloads); 50 = lui-order schedule swap; 6 = prologue or-first.
+ * Canonical "spilltemps region-sharing unreproduced" cap. */
 void *gl_func_00004244(char *arg0) {
     GlV4_4244 u1_a;
     GlV4_4244 u1_b;
