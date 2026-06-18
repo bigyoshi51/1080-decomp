@@ -9225,26 +9225,33 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E2D0);
  * build path (no episode; tautology-trap rule). */
 #ifdef NON_MATCHING
 void func_0000E4DC(char *a0) {
-    int n;
-    short *p;
-    int i;
-    char *c;
-    int *v;
-    func_00000000(a0 + 0x540);
-    func_000089C0(&n);
-    p = (short*)(a0 + 0x8C8);
-    for (i = 0; i < n; i++) {
-        func_000089FC(p);
-        n = n;
-        p += 1;
-    }
-    c = *(char**)(a0 + 0x840);
-    v = *(int**)(c + 0x28);
-    (*(void (**)(char*))((char*)v + 0x4C))((char*)((int)(short)*(short*)((char*)v + 0x48) + (int)c));
-    c = *(char**)(a0 + 0x804);
-    v = *(int**)(c + 0x28);
-    (*(void (**)(char*))((char*)v + 0x4C))((char*)((int)(short)*(short*)((char*)v + 0x48) + (int)c));
-    func_00000000(a0 + 0x108);
+  int n;
+  short *p;
+  int i;
+  char *c;
+  int *v;
+  func_00000000(a0 + 0x540);
+  func_000089C0(&n);
+  p = (short *) (a0 + 0x8C8);
+  if (a0)
+  {
+  }
+  for (i = 0; i < n; i++)
+  {
+    func_000089FC(p);
+    n = n;
+    p += 1;
+  }
+
+  c = *((char **) (a0 + 0x840));
+ do { v = *((int **) (c + 0x28)); (*((void (**)(char *)) (((char *) v) + 0x4C)))((char *) (((int) ((short) (*((short *) (((char *) v) + 0x48))))) + ((int) c))); } while (0);
+  c = *((char **) (a0 + 0x804));
+  v = *((int **) (c + 0x28));
+  (*((void (**)(char *)) (((char *) v) + 0x4C)))((char *) (((int) ((short) (*((short *) (((char *) v) + 0x48))))) + ((int) c)));
+  func_00000000(a0 + 0x108);
+  if (v)
+  {
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E4DC);

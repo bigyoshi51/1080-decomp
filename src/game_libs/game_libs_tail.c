@@ -1291,18 +1291,20 @@ int gl_func_0000B290(int *a0) {
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
 int gl_func_0000B310(int *a0, int *a1) {
-    int count = 0;
-    int iter = 0;
-    int offset = 0;
-    for (; iter != 8; iter++) {
-        if (gl_func_00000000(a0[0] + offset) ||
-            gl_func_00000000(a0[0] + offset)) {
-            a1[count] = iter;
-            count++;
-        }
-        offset += 0x30;
+  int count = 0;
+  int iter = 0;
+  int offset = 0;
+  for (; iter != 8; iter++)
+  {
+    if (gl_func_00000000(a0[0] + offset) || gl_func_00000000(a0[0] + offset))
+    {
+      a1[(((((((((count & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu] = iter;
+      count++;
     }
-    return count;
+    offset += 0x30;
+  }
+
+  return count;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B310);
