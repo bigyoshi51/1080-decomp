@@ -3629,25 +3629,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006C38);
  * (no episode; tautology-trap rule). */
 #ifdef NON_MATCHING
 void gl_func_00006CDC(char *a0, int a1, int a2) {
-    char *v;
-    *(int*)(a0 + 0x4F8) = a2;
-    *(int*)(a0 + 0x4E0) = 3;
-    *(int*)(a0 + 0x4DC) = 2;
-    gl_func_00000000(&D_00000000, 0);
-    *(int*)(a0 + 0x4EC) = 0;
-    *(int*)(a0 + 0x518) = 60;
-    *(int*)(a0 + 0x4E4) = a1;
-    *(float*)(a0 + 0x54C) = 120.0f;
-    if (*(int*)((char*)&D_00000000 + 0x34) == 2) *(float*)(a0 + 0x54C) = 60.0f;
-    if (*(int*)((char*)&D_00000000 + 0x34) == 3) gl_func_00000000(a0);
-    *(int*)(a0 + 0x540) = 255;
-    *(float*)(a0 + 0x550) = 0.0f;
-    *(float*)(a0 + 0x554) = 150.0f;
-    v = *(char**)(a0 + 0x28);
-    {
-        void (*fn)(char *) = *(void (**)(char*))(v + 0x84);
-        fn((char*)((int)(short)*(short*)(v + 0x80) + (int)a0));
-    }
+  char *v;
+  v = a0 + 0x4DC;
+  *((int *) (a0 + 0x4F8)) = a2;
+  *((int *) (a0 + 0x4E0)) = 3;
+  *((int *) v) = 2;
+  gl_func_00000000(&D_00000000, 0);
+  *((int *) (a0 + 0x4EC)) = 0;
+  *((int *) (a0 + 0x518)) = 60;
+  *((int *) (a0 + 0x4E4)) = a1;
+  a1++;
+  a1--;
+  *((float *) (a0 + 0x54C)) = 120.0f;
+  if ((*((int *) (((char *) (&D_00000000)) + 0x34))) == 2)
+  {
+    *((float *) (a0 + 0x54C)) = 60.0f;
+  }
+  if ((*((int *) (((char *) (&D_00000000)) + 0x34))) == 3)
+  {
+    gl_func_00000000(a0);
+  }
+  *((int *) (a0 + 0x540)) = 255;
+  *((float *) (a0 + 0x550)) = 0.0f;
+  *((float *) (a0 + 0x554)) = 150.0f;
+  v = *((char **) (a0 + 0x28));
+  {
+    void (*fn)(char *) = *((void (**)(char *)) (v + 0x84));
+    fn((char *) (((int) ((short) (*((short *) (v + 0x80))))) + ((int) a0)));
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006CDC);

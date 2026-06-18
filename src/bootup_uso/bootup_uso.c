@@ -4968,29 +4968,36 @@ void func_00007BC8(char *a0) {
  * is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int func_00007BF4(char *a0) {
-    short *pair = (short*)(a0 + 8);
-    short key = pair[1];
-    short offset = pair[0];
-    char *arg = *(char**)(a0 + 4);
-    char *entry;
-    int (*fnptr)(char *);
-
-    arg += offset;
-    if (key < 0) {
-        fnptr = *(int (**)(char *))(a0 + 0xC);
-    } else {
-        int selector = *(int*)(pair + 2);
-        a0 = (char*)selector;
-        if (selector == 0) {
-            if (pair[0] == 0) {
-                a0 = (char*)0x28;
-            }
-        }
-        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
-        arg += *(short*)entry;
-        fnptr = *(int (**)(char *))(entry + 4);
+  short *pair = (short *) (a0 + 8);
+  short key = pair[1];
+  short offset = pair[0];
+  char *arg = *((char **) (a0 + 4));
+  char *entry;
+  int (*fnptr)(char *);
+  arg += offset;
+  if (key < 0)
+  {
+    fnptr = *((int (**)(char *)) (a0 + 0xC));
+  }
+  else
+  {
+    int selector = *((int *) (pair + 2));
+    a0 = (char *) selector;
+    if (selector == 0)
+    {
+      if (pair[0] == 0)
+      {
+        a0 = (char *) 0x28;
+      }
     }
-    return fnptr(arg);
+    if ((selector && selector) && selector)
+    {
+    }
+    entry = (*((char **) (arg + ((int) a0)))) + (pair[1] << 3);
+    arg += *((short *) entry);
+    fnptr = *((int (**)(char *)) (entry + 4));
+  }
+  return fnptr(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007BF4);

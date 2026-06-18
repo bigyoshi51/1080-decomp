@@ -1650,9 +1650,13 @@ int game_libs_func_000359B8(int a0) {
  * gl_func(a1, a3) (2-arg). a0 unused. */
 #ifdef NON_MATCHING
 void gl_func_000359C4(int a0, int a1, int a2, int a3) {
-    gl_func_00000000(a1, a3, a2);
-    gl_func_00000000(0, a2, a1);
-    gl_func_00000000(a1, a3, a1);
+  int new_var2;
+  int new_var;
+  ;
+  new_var2 = new_var;
+  gl_func_00000000(a1, a3, a2);
+  gl_func_00000000(0, a2, new_var2);
+  gl_func_00000000(a1, a3, new_var2);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000359C4);
