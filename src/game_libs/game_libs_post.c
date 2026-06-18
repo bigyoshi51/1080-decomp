@@ -14180,17 +14180,18 @@ void game_libs_func_0002BA08(void *arg0, int arg1) {
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 int gl_func_0002BA38(char *a0, int a1, int **a2, char *a3) {
-    char *rv;
-    a1 = (unsigned char)a1;
-    rv = (char *)gl_func_00000000(*(unsigned char *)(a0 + 7));
-    if (rv == 0) {
-        *a2 = 0;
-        return 0;
-    }
-    *(int *)(a3 + 4) = *(int *)(rv + 4);
-    *(unsigned char *)a3 = *(unsigned char *)(rv + 3);
-    *a2 = (int *)rv;
-    return (a1 + 2) & 0xFF;
+  char *rv;
+  rv = (char *) gl_func_00000000(*((unsigned char *) (a0 + 7)));
+  if (rv == 0)
+  {
+    *a2 = 0;
+    return 0;
+  }
+  *((int *) (a3 + 4)) = *((int *) (rv + 4));
+  *((unsigned char *) a3) = *((unsigned char *) (rv + 3));
+  a1 = (unsigned char) a1;
+  *a2 = (int *) rv;
+  return (a1 + 2) & 0xFF;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BA38);

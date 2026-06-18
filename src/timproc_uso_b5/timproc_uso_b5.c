@@ -4304,28 +4304,48 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * index-temp register-rename. NM wrap, no donor splice. */
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_00006D30(int *self) {
-    int i = 0;
-    int cnt;
-    if (*(float*)((char*)gl_func_00000000(self) + 0x2A4) == 0.0f) {
-        cnt = gl_func_00000000(self);
-        if (cnt > 0) {
-            do {
-                int idx = self[0x3C4 / 4];
-                int *p = (int*)((char*)self + idx * 4 + 0x3D0);
-                int r, idx2;
-                int *q, *v;
-                *p = *p + 1;
-                r = gl_func_00000000(self);
-                idx2 = self[0x3C4 / 4];
-                q = (int*)((char*)self + idx2 * 4 + 0x3D0);
-                if (*q >= r) *q = 0;
-                v = (int*)gl_func_00000000(self);
-                i++;
-                if (*(float*)((char*)v + 0x2A4) != 0.0f) break;
-                cnt = gl_func_00000000(self);
-            } while (i < cnt);
+  int i = 0;
+  char *new_var;
+  int cnt;
+  int new_var2;
+  int new_var4;
+  int *new_var3;
+  if ((*((float *) (((char *) gl_func_00000000(self)) + 0x2A4))) == 0.0f)
+  {
+    new_var4 = i;
+    cnt = gl_func_00000000(self);
+    new_var2 = 0x3D0;
+    if (cnt > 0)
+    {
+      do
+      {
+        int idx = self[0x3C4 / 4];
+        int *p = (int *) ((((char *) self) + (idx * 4)) + new_var2);
+        int r;
+        int idx2;
+        int *q;
+        int *v;
+        *p = (*p) + 1;
+        r = gl_func_00000000(self);
+        idx2 = self[0x3C4 / 4];
+        q = (int *) ((((char *) self) + (idx2 * 4)) + 0x3D0);
+        new_var3 = self;
+        if ((*q) >= r)
+        {
+          *q = 0;
         }
+        v = (int *) gl_func_00000000(new_var3);
+        new_var = ((char *) v) + 0x2A4;
+        i++;
+        if ((*((float *) new_var)) != 0.0f)
+        {
+          break;
+        }
+        cnt = gl_func_00000000(self);
+      }
+      while (new_var4 < cnt);
     }
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006D30);
