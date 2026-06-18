@@ -1652,11 +1652,14 @@ int game_libs_func_000359B8(int a0) {
 void gl_func_000359C4(int a0, int a1, int a2, int a3) {
   int new_var2;
   int new_var;
+  int new_var3;
   ;
   new_var2 = new_var;
   gl_func_00000000(a1, a3, a2);
   gl_func_00000000(0, a2, new_var2);
-  gl_func_00000000(a1, a3, new_var2);
+  new_var3 = new_var2;
+  new_var2 = a1;
+  gl_func_00000000(new_var2, a3, new_var3);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000359C4);
@@ -31880,8 +31883,8 @@ typedef char *(*GP_0005F27C)();
 void game_libs_func_0005F27C(char *arg0, char *arg1, char *arg2) {
   *((f32 *) (((char *) arg0) + 0x0)) = (f32) (((-(*((f32 *) (((char *) arg2) + 0x4)))) * (*((f32 *) (((char *) arg1) + 0x4)))) + ((-(*((f32 *) (((char *) arg2) + 0x8)))) * (*((f32 *) (((char *) arg1) + 0x8)))));
   *((f32 *) (((char *) arg0) + 0x4)) = (f32) ((*((f32 *) (((char *) arg2) + 0x0))) * (*((f32 *) (((char *) arg1) + 0x4))));
-  *((f32 *) (((char *) arg0) + 0xC)) = 0.0f;
   *((f32 *) (((char *) arg0) + 0x8)) = (f32) ((*((f32 *) (((char *) arg2) + 0x0))) * (*((f32 *) (((char *) arg1) + 0x8))));
+  *((f32 *) (((char *) arg0) + 0xC)) = 0.0f;
   *((f32 *) (((char *) arg0) + 0x10)) = (f32) ((*((f32 *) (((char *) arg2) + 0x4))) * (*((f32 *) (((char *) arg1) + 0x0))));
   *((f32 *) (((char *) arg0) + 0x14)) = (f32) (((-(*((f32 *) (((char *) arg2) + 0x0)))) * (*((f32 *) (((char *) arg1) + 0x0)))) + ((-(*((f32 *) (((char *) arg2) + 0x8)))) * (*((f32 *) (((char *) arg1) + 0x8)))));
   *((f32 *) (((char *) arg0) + (0x1C ^ 0))) = 0.0f;
