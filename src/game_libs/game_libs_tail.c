@@ -911,16 +911,11 @@ void gl_func_0000AA7C(int *a0, int a1, int a2, int a3, int arg5, int arg6, int a
 extern int D_1D438, D_1D3E8;
 #ifdef NON_MATCHING
 void gl_func_0000AAEC(int *a0) {
-    int *self_p = a0;
-    int *self2 = &D_1D438;
-    int *data2 = &D_1D3E8;
-    int i;
-    for (i = 0; i < 3; i++) {
-        int a1 = i + ((i + 4) << 3);
-        gl_func_00000000(self_p, a1, self2, data2);
-        self_p = (int*)((char*)self_p + 0x20);
-        data2 = (int*)((char*)data2 + 0x18);
-    }
+  int *self_p;
+  int *self2 = &D_1D438;
+  int *data2 = &D_1D3E8;
+  int i;
+ do { self_p = a0; for (i = 0; i < 3; i++) { int a1 = i + ((i + 4) << 3); gl_func_00000000(self_p, a1, self2, data2); self_p = (int *) (((char *) self_p) + 0x20); data2 = (int *) (((char *) data2) + 0x18); } } while (0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AAEC);

@@ -55,13 +55,17 @@ extern s32 func_80005120(void*);
  * here per the tautology trap). Default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
 u32 func_800047B0(u8 *a0) {
-    volatile u32 sb;
-    register u32 acc;
-    acc = (a0[0] & 0xFF) << 24;   sb = acc;
-    acc |= (a0[1] & 0xFF) << 16;  sb = acc;
-    acc |= (a0[2] & 0xFF) << 8;   sb = acc;
-    acc |= (a0[3] & 0xFF);        sb = acc;
-    return acc;
+  volatile u32 sb;
+  register u32 acc;
+  acc = (a0[0] & 0xFF) << 24;
+  sb = acc;
+  acc = acc | ((a0[1] & 0xFF) << 16);
+  sb = acc;
+  acc |= (a0[2] & 0xFF) << 8;
+  sb = acc;
+  acc = acc | (a0[3] & 0xFF);
+  sb = acc;
+  return acc;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800047B0);
