@@ -542,10 +542,12 @@ void *func_00000C10(int *arg0) {
   int *node;
   int *head;
   node = (int *) func_00000000(0x40);
-  if (node != 0)
   {
     func_00000000(node);
     node[10] = (int) (&D_00000000);
+    if (((!vparg) && (!vparg)) && (!vparg))
+    {
+    }
     node[15] = 0;
   }
   head = (int *) arg0[16];

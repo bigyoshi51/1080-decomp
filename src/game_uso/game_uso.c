@@ -2881,11 +2881,15 @@ int *game_uso_func_00003A28(int *arg0) {
   int *obj;
   int *other;
   obj = (int *) gl_func_00000000(0x40);
+  other = obj;
   if (obj != 0)
   {
-    gl_func_00000000(obj);
+    gl_func_00000000(other);
     *((int *) (((char *) obj) + 0x28)) = (int) (&D_00000000);
-    *((int *) (((char *) obj) + 0x3C)) = 0;
+    *((int *) (((char *) obj) + (0x3C & 0xFFFF))) = 0;
+    if (!obj)
+    {
+    }
   }
   other = (int *) arg0[0x40 / 4];
   if (((int *) arg0[0x40 / 4]) != 0)

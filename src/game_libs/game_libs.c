@@ -4742,13 +4742,14 @@ struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
   }
   if ((existing = orig->field_40) != 0)
   {
+    ptr = ret;
     new_var = 1;
-    gl_func_00000000(((char *) ret) + 0x10, existing);
+    gl_func_00000000(((char *) ptr) + 0x10, existing);
     if (existing->field_14 != 0)
     {
       existing->field_4 = new_var;
     }
-    (*existing).field_14 = ret;
+    (*existing).field_14 = ptr;
   }
   return ret;
 }
