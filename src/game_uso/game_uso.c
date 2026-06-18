@@ -405,34 +405,37 @@ int game_uso_func_00000674(int *a0) {
  * cap (cnt $v0/$v1 + sw-in-jal-delay + addu operand order, all coupled). */
 #ifdef NON_MATCHING
 void game_uso_func_00000724(char *a0) {
-    int i;
-    int cnt;
-    int *p;
-
-    game_uso_func_000002BC((Quad4*)a0);
-    game_uso_func_000002BC((Quad4*)(a0 + 0x10));
-    game_uso_func_00000314((Pair2*)(a0 + 0x20));
-    game_uso_func_00000314((Pair2*)(a0 + 0x28));
-    game_uso_func_0000035C((int*)(a0 + 0x30));
-    game_uso_func_00000280((int*)(a0 + 0x34));
-
-    cnt = *(int*)(a0 + 0x34);
-    p = (int*)(a0 + 4);
-    i = 1;
-    if (cnt > 0) {
-        do {
-            int tmp = gl_func_00000000(0x38);
-            *(int*)((char*)p + 0x38) = tmp;
-            gl_func_00000000(tmp);
-            gl_func_00000000(*(int*)((char*)p + 0x38));
-            cnt = *(int*)(a0 + 0x34);
-            i++;
-            p++;
-        } while (i <= cnt);
+  int i;
+  int cnt;
+  int *p;
+  game_uso_func_000002BC((Quad4 *) a0);
+  game_uso_func_000002BC((Quad4 *) (a0 + 0x10));
+  game_uso_func_00000314((Pair2 *) (a0 + 0x20));
+  game_uso_func_00000314((Pair2 *) (a0 + 0x28));
+  game_uso_func_0000035C((int *) (a0 + 0x30));
+  game_uso_func_00000280((int *) (a0 + 0x34));
+  cnt = *((int *) (a0 + 0x34));
+  i = 1;
+  p = (int *) (a0 + 4);
+  if (cnt > 0)
+  {
+    do
+    {
+      int tmp = gl_func_00000000(0x38);
+      if (1)
+      {
+        *((int *) (((char *) p) + 0x38)) = tmp;
+        gl_func_00000000(tmp);
+      }
+      gl_func_00000000(*((int *) (((char *) p) + 0x38)));
+      cnt = *((int *) (a0 + 0x34));
+      i++;
+      p++;
     }
-
-    *(int*)(a0 + 0x38) = *(int*)(a0 + 0x3C);
-    *(int*)(a0 + cnt * 4 + 0x3C) = *(int*)(a0 + cnt * 4 + 0x38);
+    while (i <= cnt);
+  }
+  *((int *) (a0 + 0x38)) = *((int *) (a0 + 0x3C));
+  *((int *) ((a0 + (cnt * 4)) + 0x3C)) = *((int *) ((a0 + (cnt * 4)) + 0x38));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000724);

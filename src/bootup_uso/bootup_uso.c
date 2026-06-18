@@ -3233,31 +3233,25 @@ void func_00005068(int a0) {
 extern char D_00007DA4;
 #ifdef NON_MATCHING
 int func_000050A0(int a0) {
-    float buf[4];
-    char pad[24];  /* declared AFTER buf so pad is at lower offset, buf at 0x38 */
-    volatile int saved_a0;
-    int *p;
-    /* Statement-order matters: target asm has init-call FIRST (0x10),
-     * THEN buf-clear (0x24-0x30), then alloc (0x34). Reordering the
-     * source to match avoids IDO -O2 hoisting the buf-clear above the
-     * first jal (which would change f0 setup placement).
-     *
-     * `pad[24]` adds 24 bytes of unused stack to bump the frame size
-     * from -0x30 to -0x48 — matches target's frame size, which shifts
-     * buf placement from 0x20 to 0x38. */
-    (void)pad;
-    func_00000000(&D_00007DA4);
-    buf[0] = 0.0f;
-    buf[1] = 0.0f;
-    buf[2] = 0.0f;
-    buf[3] = 0.0f;
-    saved_a0 = a0;
-    p = (int*)func_00000000(0x58);
-    if (p != 0) {
-        func_00000000(p, saved_a0, *(int*)&D_00000000, &buf);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-    }
-    return (int)p;
+  float buf[4];
+  char pad[24];
+  volatile int saved_a0;
+  volatile int new_var;
+  int *p;
+  (void) pad;
+  func_00000000(&D_00007DA4);
+  buf[0] = (0, 0.0f);
+  buf[1] = 0.0f;
+  buf[2] = 0.0f;
+  buf[3] = 0.0f;
+  saved_a0 = a0;
+  p = (int *) func_00000000(0x58);
+  if (p != 0)
+  {
+    func_00000000(p, new_var = saved_a0, *((int *) (&D_00000000)), &buf);
+    *((int *) (((char *) p) + 0x28)) = (int) (&D_00000000);
+  }
+  return (int) p;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);

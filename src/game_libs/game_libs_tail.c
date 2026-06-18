@@ -414,18 +414,20 @@ int game_libs_func_00009D00(int *a0, int a1) {
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 void game_libs_func_00009D24(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
-    s32 i;
-
-    FW(arg0, 0x1C) = arg1;
-    *(s8*)((char*)arg0 + 0x4) = arg3;
-    i = 0;
-    if (arg3 > 0) {
-        do {
-            *(s32*)((char*)arg0 + (i * 4) + 8) = *(s32*)((char*)arg2 + (i * 4));
-            i += 1;
-        } while (i != arg3);
+  s32 i;
+  *((int *) (((char *) arg0) + 0x1C)) = arg1;
+  *((s8 *) (((char *) arg0) + 0x4)) = arg3 & 0xFFFF;
+  i = 0;
+  if (arg3 > 0)
+  {
+    do
+    {
+      *((s32 *) ((((char *) arg0) + (i * 4)) + 8)) = *((s32 *) (((char *) arg2) + (i * 4)));
+      i += 1;
     }
-    FW(arg0, 0x0) = (s32) (FW(arg0, 0x0) | 0x80);
+    while (i != arg3);
+  }
+  *((int *) (((char *) arg0) + 0x0)) = (s32) ((*((int *) (((char *) arg0) + 0x0))) | 0x80);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D24);
