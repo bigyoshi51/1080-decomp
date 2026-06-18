@@ -14102,7 +14102,6 @@ void game_uso_func_00010FB8(int *a0) {
  * See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair. */
 extern int gl_func_00000000();
 extern char D_00000000;
-#ifdef NON_MATCHING
 void game_uso_func_00011024(int *a0) {
   int v;
   int *p_B4 = *((int **) (((char *) a0) + 0xB4));
@@ -14110,14 +14109,12 @@ void game_uso_func_00011024(int *a0) {
   ;
   p_B4 = (int *) (((char *) p_B4) + 0xA58);
  goto dummy_label_965124; dummy_label_965124: ;
-  *p_B4 = (*((int *) (p_B4 + 0xA58))) & (~4);
+  *p_B4 = (*p_B4) & (~4);
   gl_func_00000000(a0, *((Pair2 *) (((char *) (&D_00000000)) + 0xE10)));
   gl_func_00000000(a0);
   ((int *) (*((int **) (((char *) a0) + 0xB4))))[0x960 / 4] = 0x64;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011024);
-#endif
+
 
 /* Sibling of game_uso_func_00011024 — same 32-insn dual-call orchestrator;
  * only the D-offsets differ (0xF20/0xF24 vs 0xF48/0xF4C). 2026-05-31: the
