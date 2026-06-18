@@ -10798,7 +10798,12 @@ void game_libs_func_00027C48(char *arg0, f32 arg1) {
   char *temp_v0;
   char *temp_v0_2;
   temp_v0 = ((int) arg0) + 0xB0;
- dummy_label_367138: ;
+  dummy_label_367138:
+  ;
+
+  ;
+  ;
+  var_f0 = arg1;
   if (arg1 < 2.0f)
   {
     temp_f2 = *((f32 *) (((char *) (&D_00000000)) + 0xFC8));
@@ -10820,7 +10825,21 @@ void game_libs_func_00027C48(char *arg0, f32 arg1) {
   {
     new_var = &D_00000000;
     *((u8 *) (((char *) temp_v0) + 0x1)) = (u8) ((*((u8 *) (((char *) temp_v0) + 0x1))) | 2);
- if (1) { } if (1) { } if (1) { } if (1) { } if (1) { }
+    if (1)
+    {
+    }
+    if (1)
+    {
+    }
+    if (1)
+    {
+    }
+    if (1)
+    {
+    }
+    if (1)
+    {
+    }
     if ((*((f32 *) (((char *) new_var) + 0xFCC))) < arg1)
     {
       var_f0 = *((f32 *) (((char *) new_var) + 0xFD0));

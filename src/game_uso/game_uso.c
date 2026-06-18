@@ -406,13 +406,15 @@ int game_uso_func_00000674(int *a0) {
 #ifdef NON_MATCHING
 void game_uso_func_00000724(char *a0) {
   int i;
+  int new_var;
   int cnt;
   int *p;
   game_uso_func_000002BC((Quad4 *) a0);
+  new_var = 0x30;
   game_uso_func_000002BC((Quad4 *) (a0 + 0x10));
   game_uso_func_00000314((Pair2 *) (a0 + 0x20));
   game_uso_func_00000314((Pair2 *) (a0 + 0x28));
-  game_uso_func_0000035C((int *) (a0 + 0x30));
+  game_uso_func_0000035C((int *) (a0 + new_var));
   game_uso_func_00000280((int *) (a0 + 0x34));
   cnt = *((int *) (a0 + 0x34));
   i = 1;
@@ -428,6 +430,9 @@ void game_uso_func_00000724(char *a0) {
         gl_func_00000000(tmp);
       }
       gl_func_00000000(*((int *) (((char *) p) + 0x38)));
+      if (!a0)
+      {
+      }
       cnt = *((int *) (a0 + 0x34));
       i++;
       p++;
