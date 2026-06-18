@@ -3920,16 +3920,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
  * match-faking (per feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_libs_func_00020DF4(short *a0) {
-    int i = 0;
-    short *p = a0;
-    do {
-        i += 4;
-        p[1] = 0;
-        p[2] = 0;
-        p[3] = 0;
-        p += 4;
-        p[-4] = 0;
-    } while (i != 8);
+  short *p = a0;
+ do { int i = 0; do { i += 4; p[1] = 0; p[2] = 0; p[3] = 0; p += 4; p[-4] = 0; } while (i != 8); } while (0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020DF4);
