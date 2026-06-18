@@ -3635,9 +3635,10 @@ void gl_func_00006CDC(char *a0, int a1, int a2) {
   *((int *) (a0 + 0x4E0)) = 3;
   *((int *) v) = 2;
   gl_func_00000000(&D_00000000, 0);
+  *((int *) (a0 + 0x4E4)) = a1;
   *((int *) (a0 + 0x4EC)) = 0;
   *((int *) (a0 + 0x518)) = 60;
-  *((int *) (a0 + 0x4E4)) = a1;
+ if (1) { }
   a1++;
   a1--;
   *((float *) (a0 + 0x54C)) = 120.0f;
