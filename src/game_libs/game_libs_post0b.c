@@ -31090,23 +31090,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DF64);
  * register-renumber (op-mismatch=0). INSN_PATCH 12 words + NON_MATCHING twin. */
 #ifdef NON_MATCHING
 void game_libs_func_0005DFE4(float *a0, float *a1) {
-    int i = 0;
-    float *drow = a1;
-    float *srow = a0;
-    do {
-        int j = 0;
-        float *s = srow;
-        float *d = drow;
-        do {
-            *d = *s;
-            s++;
-            d++;
-            j++;
-        } while (j != 3);
-        i++;
-        drow += 4;
-        srow += 4;
-    } while (i != 3);
+  int i = 0;
+  float *drow = a1;
+  float *srow = a0;
+  do
+  {
+    int j = 0;
+    float *s = srow;
+    float *d = drow;
+    do
+    {
+      *d = *s;
+      d++;
+      s++;
+      j++;
+    }
+    while (j != 3);
+    i++;
+    drow += 4;
+    srow += 4;
+  }
+  while (i != 3);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DFE4);
