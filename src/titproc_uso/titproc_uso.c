@@ -1011,26 +1011,41 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000171
  * 84.26% (+7.39pp; smaller gain than 1B10/1D7C because the body is
  * longer so proportional improvement is diluted).
  *
- * 2026-05-17: guarded the dead-arm sub init and stopped caching the D base,
- * raising C-only emit to 94.70%. The remaining seven same-size scheduling /
- * spill-slot diffs are patched with INSN_PATCH in the Makefile; actual build
- * bytes match expected. */
+ * 2026-06-19: full exact-source reconstruction from the raw asm. Wired
+ * the REAL intra-USO symbols (func_055750/04C678/001AF8/00F4CC, data
+ * D_0001FC / D_00048C / import_00073B18) so relocs resolve correctly, and
+ * restored the precise control flow: `sub = self; if (self==0){ sub =
+ * alloc(0x2C); if(!sub) goto skip; }` (bne s0,zero fall-through into the
+ * func_04C678 block; second-alloc null check is beq v0,zero,skip). This
+ * drops the C-only emit to just 4 NON-RELOC diffs (~94%): (1+2) the
+ * prologue `or s0,a0` vs `sw ra` delay-slot fill at 0x08/0x10 — as1's
+ * fixed from-before delay fill, not C-reachable; (3+4) the saved-`sub`
+ * arg-temp home at sp+0x24 vs our sp+0x20 (one-word spill-home delta).
+ * A 1500s / ~80k-iter permuter found NO improvement past this base
+ * (best score 120, no objdiff gain). Confirmed ugen temploc-binding /
+ * as1-fill cap class; INSN_PATCH removed (banned 2026-05-23). Stays NM. */
 #ifdef NON_MATCHING
+extern int titproc_uso_func_04C678();
+extern int titproc_uso_func_001AF8();
+extern int titproc_uso_func_00F4CC();
+extern char titproc_uso_D_0001FC;
 void *titproc_uso_func_00001840(void *a0) {
     void *self = a0;
     void *sub;
     if (self == 0) {
-        self = (void*)gl_func_00000000(0x74);
+        self = (void*)titproc_uso_func_055750(0x74);
         if (self == 0) goto end;
     }
     sub = self;
-    if (self == 0) sub = (void*)gl_func_00000000(0x2C);  /* dead-arm */
-    if (sub != 0) {
-        gl_func_00000000(sub, (char*)&D_00000000 + 0x4D8);
-        *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+    if (self == 0) {
+        sub = (void*)titproc_uso_func_055750(0x2C);
+        if (sub == 0) goto skip;
     }
-    *(int*)((char*)self + 0x28) = (int)&D_00000000;
-    *(int*)((char*)self + 0x0C) = (int)((char*)&D_00000000 + 0x4E0);
+    titproc_uso_func_04C678(sub, (char*)&titproc_uso_D_00048C + 0x4D8);
+    *(int*)((char*)sub + 0x28) = (int)&import_00073B18;
+skip:
+    *(int*)((char*)self + 0x28) = (int)&titproc_uso_D_0001FC;
+    *(int*)((char*)self + 0x0C) = (int)((char*)&titproc_uso_D_00048C + 0x4E0);
     *(int*)((char*)self + 0x4C) = 163;
     *(int*)((char*)self + 0x50) = 154;
     *(int*)((char*)self + 0x6C) = 67;
@@ -1047,8 +1062,8 @@ void *titproc_uso_func_00001840(void *a0) {
     *(float*)((char*)self + 0x40) = 1.0f;
     *(float*)((char*)self + 0x44) = 1.0f;
     *(float*)((char*)self + 0x48) = 0.0f;
-    gl_func_00000000(self);
-    gl_func_00000000(self);
+    titproc_uso_func_001AF8(self);
+    titproc_uso_func_00F4CC(self);
 end:
     return self;
 }
