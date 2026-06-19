@@ -31109,6 +31109,8 @@ void game_libs_func_0005DFE4(float *a0, float *a1) {
     i++;
     drow += 4;
     srow += 4;
+    drow++;
+    drow--;
   }
   while (i != 3);
 }
