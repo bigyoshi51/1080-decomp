@@ -7972,29 +7972,43 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #define C044_STEP_UP   (*(float *)((char *)&D_00000000 + 0x360))
 #define C044_STEP_DOWN (*(float *)((char *)&D_00000000 + 0x364))
 void timproc_uso_b5_func_0000C044(char *a0, float target) {
-    char *s;
-    float *v;
-    if (*(float *)(a0 + 0x2A4) == 0.0f) {
-        target = 0.0f;
+  char *s;
+  volatile unsigned char pad;
+  float *v;
+  float *new_var;
+  volatile int pad2;
+  if ((*((float *) (a0 + 0x2A4))) == 0.0f)
+  {
+    target = 0.0f;
+  }
+  s = *((char **) (a0 + 0x2B8));
+  if ((*((int *) (s + 0x12C))) != 0)
+  {
+    target = 1.0f;
+  }
+  v = (float *) (s + 0x124);
+  if ((*v) < target)
+  {
+    new_var = (float *) (((char *) (&D_00000000)) + 0x360);
+    *v += *new_var;
+    ;
+    if (target < (*((float *) ((*((char **) (a0 + 0x2B8))) + 0x124))))
+    {
+      *((float *) ((*((char **) (a0 + 0x2B8))) + 0x124)) = target;
     }
-    s = *(char **)(a0 + 0x2B8);
-    if (*(int *)(s + 0x12C) != 0) {
-        target = 1.0f;
+  }
+  else
+  {
+    *v -= *((float *) (((char *) (&D_00000000)) + 0x364));
+    if (target && target)
+    {
     }
-    v = (float *)(s + 0x124);
-    if (*v < target) {
-        *v += C044_STEP_UP;
-        s = *(char **)(a0 + 0x2B8);
-        if (target < *(float *)(s + 0x124)) {
-            *(float *)(s + 0x124) = target;
-        }
-    } else {
-        *v -= C044_STEP_DOWN;
-        s = *(char **)(a0 + 0x2B8);
-        if (*(float *)(s + 0x124) < target) {
-            *(float *)(s + 0x124) = target;
-        }
+    s = *((char **) (a0 + 0x2B8));
+    if ((*((float *) (s + 0x124))) < target)
+    {
+      *((float *) (s + 0x124)) = target;
     }
+  }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C044);

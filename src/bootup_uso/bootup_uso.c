@@ -9633,28 +9633,31 @@ void func_0000EE5C(char *a0) {
  * by the established bootup_uso INSN_PATCH alloc-cascade recipe. */
 #ifdef NON_MATCHING
 void *func_0000EE8C(void *caller_a0) {
-    char pad[4];
-    void *target;
-    register void *p;
-    void *ret;
-    (void)pad;
-    p = (void*)func_00000000(0x40);
-    if (p != 0) {
-        func_00000000(p);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p + 0x3C) = 0;
+  char pad[4];
+  void *target;
+  register void *p;
+  void *ret;
+  (void) pad;
+  p = (void *) func_00000000(0x40);
+  if (p != 0)
+  {
+    func_00000000(p);
+    *((int *) (((char *) p) + 0x28)) = (int) (&D_00000000);
+    *((int *) (((char *) p) + 0x3C)) = 0;
+  }
+  ret = p;
+  p = ((char *) p) + 0x10;
+  target = *((void **) (((char *) caller_a0) + 0x40));
+  if ((*((void **) (((char *) caller_a0) + 0x40))) != 0)
+  {
+    func_00000000(p, target);
+    if ((*((int *) (((char *) target) + 0x14))) != 0)
+    {
+      *((int *) (((char *) target) + 0x4)) = 1;
     }
-    ret = p;
-    p = (char*)p + 0x10;
-    target = *(void**)((char*)caller_a0 + 0x40);
-    if (target != 0) {
-        func_00000000(p, target);
-        if (*(int*)((char*)target + 0x14) != 0) {
-            *(int*)((char*)target + 0x4) = 1;
-        }
-        *(int*)((char*)target + 0x14) = (int)ret;
-    }
-    return ret;
+    *((int *) (((char *) target) + 0x14)) = (int) ret;
+  }
+  return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EE8C);
