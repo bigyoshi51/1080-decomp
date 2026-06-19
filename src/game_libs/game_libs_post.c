@@ -4098,15 +4098,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
  * wall. Permuter candidate. */
 #ifdef NON_MATCHING
 void game_libs_func_00021130(void) {
-    char *base = (char *)&D_00000000;
-    int v0 = *(int *)(base + 0x2084);
-    short hv = *(short *)(base + 0x203E);
-    char *a0 = base + v0 * 4;
-    int a1;
-    *(short *)(base + v0 * 2 + 0x214C) = hv;
-    for (a1 = 0; a1 != 0xB00; a1 += 2) {
-        *(short *)(*(int *)(a0 + 0x2140) + a1) = 0;
-    }
+  char *base = (char *) (&D_00000000);
+  int v0 = *((int *) (((char *) (&D_00000000)) + 0x2084));
+  short hv;
+  char *a0 = ((char *) (&D_00000000)) + (v0 * 4);
+  int a1;
+  *((short *) ((base + (v0 * 2)) + 0x214C)) = *((short *) (((char *) (&D_00000000)) + 0x203E));
+ for (a1 = 0; a1 != 0xB00; a1 += 2) { *((short *) ((*((int *) (a0 + 0x2140))) + a1)) = 0;
+  }
+
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);

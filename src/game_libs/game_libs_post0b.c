@@ -8694,35 +8694,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E238);
 // trio + cb open/value/close as sibling serializers gl_func_00040640 / 00040974.
 #ifdef NON_MATCHING
 void gl_func_0003E2B0(void *a0) {
-    int *node = *(int**)((char*)a0 + 0x2C);   /* s0 - list head */
-    char *g = (char*)&D_00000000;              /* s1 - emit base */
-    int term;   /* sp+0x38 (highest local) */
-    int hA;     /* s2 = &hA (sp+0x34) */
-    int hB;     /* s3 = &hB (sp+0x30) */
-
-    if (node != 0) {
-        do {
-            if (*(int*)((char*)node + 0x10) != 0) {
-                int rc;
-                int *vt;
-                int (*fn)();
-                gl_func_00000000((char*)node + 0x2C);   /* H_0145A8 (hardcoded jal) */
-                gl_func_00000000(g, 1, 0);               /* cb open */
-                hA = gl_func_00000000(&hA);              /* H_01459B (hardcoded jal) */
-                vt = *(int**)((char*)node + 0x28);
-                fn = *(int(**)())((char*)vt + 0x44);
-                fn(*(short*)((char*)vt + 0x40) + (int)node);  /* virtual dispatch */
-                rc = gl_func_00000000(g, 1, 0);          /* cb */
-                hB = rc - hA - 4;
-                gl_func_00000000(g, 0, hA);              /* cb(g,0,hA) */
-                gl_func_00000000(&hB);                   /* H_01459B (hardcoded jal) */
-                gl_func_00000000(g, 1, hB);              /* cb(g,1,hB) */
-            }
-            node = *(int**)((char*)node + 0x30);
-        } while (node != 0);
+  int *node = *((int **) (((char *) a0) + 0x2C));
+  char *g = (char *) (&D_00000000);
+  int term;
+  int hA;
+  int (*new_var2)();
+  int hB;
+  unsigned short new_var;
+  if (node != 0)
+  {
+    do
+    {
+      if ((*((int *) (((char *) node) + 0x10))) != 0)
+      {
+        int rc;
+        int *vt;
+        int (*fn)();
+        gl_func_00000000(((char *) node) + 0x2C);
+        gl_func_00000000(g, 1, 0);
+        hA = gl_func_00000000(&hA);
+        vt = *((int **) (((char *) node) + 0x28));
+        new_var = 1;
+        fn = *((int (**)()) (((char *) vt) + 0x44));
+        fn = (new_var2 = *((int (**)()) (((char *) vt) + 0x44)));
+        fn((*((short *) (((char *) vt) + 0x40))) + ((int) node));
+        rc = gl_func_00000000(g, new_var, 0);
+        hB = (rc - hA) - 4;
+        gl_func_00000000(g, 0, hA);
+        gl_func_00000000(&hB);
+        gl_func_00000000(g, new_var, hB);
+      }
+      node = *((int **) (((char *) node) + 0x30));
     }
-    term = 0;
-    gl_func_00000000(&term);                             /* H_0145B5 (hardcoded jal) */
+    while (node != 0);
+  }
+  term = 0;
+  gl_func_00000000(&term);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E2B0);
