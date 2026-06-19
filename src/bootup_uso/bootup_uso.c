@@ -3817,44 +3817,52 @@ void func_00005EF8(int *dst) {
 extern char D_00007E6C;
 #ifdef NON_MATCHING
 char *func_00005F34(int a0, int a1, int a2, int a3, int a4, int a5, int a6) {
-    char *s1 = (char*)func_00000000(0, &D_00007E6C, 0);
-    char *list;
-    char *r;
-    (void)a0;
-    /* element 0 from a1, angle 0 */
-    r = (char*)func_00000000(0, a1, 0, 0, 0);
-    list = s1 + 0x10;
+  char *s1 = (char *) func_00000000(0, &D_00007E6C, 0);
+  char *list;
+  char *r;
+  (void) a0;
+ r = (char *) func_00000000(0, a1, 0, 0, 0); list = s1 + 0x10; func_00000000(list, r); if ((*((int *) (r + 0x14))) != 0) { *((int *) (r + 0x4)) = 1; }
+  *((void **) (r + 0x14)) = s1;
+  r = (char *) func_00000000(0, a2, 0, 90, 0);
+  func_00000000(list, r);
+  if ((*((int *) (r + 0x14))) != 0)
+  {
+    *((int *) (r + 0x4)) = 1;
+  }
+  *((void **) (r + 0x14)) = s1;
+  r = (char *) func_00000000(0, a3, 0, 180, 0);
+  func_00000000(list, r);
+  if ((*((int *) (r + 0x14))) != 0)
+  {
+    *((int *) (r + 0x4)) = 1;
+  }
+  *((void **) (r + 0x14)) = s1;
+  r = (char *) func_00000000(0, a4, 0, 270, 0);
+  func_00000000(list, r);
+  if ((*((int *) (r + 0x14))) != 0)
+  {
+    *((int *) (r + 0x4)) = 1;
+  }
+  *((void **) (r + 0x14)) = s1;
+  r = (char *) func_00000000(0, a5, -90, 0, 0);
+  func_00000000(list, r);
+  if ((*((int *) (r + 0x14))) != 0)
+  {
+    *((int *) (r + 0x4)) = 1;
+  }
+  *((void **) (r + 0x14)) = s1;
+  if (a6 != 0)
+  {
+    r = (char *) func_00000000(0, a6, 90, 0, 0);
     func_00000000(list, r);
-    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
-    *(void**)(r + 0x14) = s1;
-    /* element 1 from a2, angle 90 */
-    r = (char*)func_00000000(0, a2, 0, 90, 0);
-    func_00000000(list, r);
-    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
-    *(void**)(r + 0x14) = s1;
-    /* element 2 from a3, angle 180 */
-    r = (char*)func_00000000(0, a3, 0, 180, 0);
-    func_00000000(list, r);
-    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
-    *(void**)(r + 0x14) = s1;
-    /* element 3 from a4, angle 270 */
-    r = (char*)func_00000000(0, a4, 0, 270, 0);
-    func_00000000(list, r);
-    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
-    *(void**)(r + 0x14) = s1;
-    /* element 4 from a5, angle -90 (a2 slot) */
-    r = (char*)func_00000000(0, a5, -90, 0, 0);
-    func_00000000(list, r);
-    if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
-    *(void**)(r + 0x14) = s1;
-    /* element 5 from a6, angle 90 (a2 slot), only when a6 != 0 */
-    if (a6 != 0) {
-        r = (char*)func_00000000(0, a6, 90, 0, 0);
-        func_00000000(list, r);
-        if (*(int*)(r + 0x14) != 0) *(int*)(r + 0x4) = 1;
-        *(void**)(r + 0x14) = s1;
+    if ((*((int *) (r + 0x14))) != 0)
+    {
+      *((int *) (r + 0x4)) = 1;
+      *((int *) (r + 0x4)) = 1;
     }
-    return s1;
+    *((void **) (r + 0x14)) = s1;
+  }
+  return s1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005F34);
