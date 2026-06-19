@@ -8797,6 +8797,7 @@ int game_libs_func_00025A80(int *a0, int a1, int **a2) {
 }
 
 // gl_func_00025AC8 — STRUCTURAL PASS (0x18C / 99 words, no episode).
+// permuter resists: verify-fails every batch (x5+, 2026-06-19) — factory skip.
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
 // (named fn + 1 trailing helper) — deferred USO re-split. The named
 // leading fn iterates a registry record's sub-entries.
@@ -18829,6 +18830,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031898);
 #endif
 
 // gl_func_0003190C — STRUCTURAL PASS (0x158 / 86 words, no episode).
+// permuter resists: verify-fails every batch (x5+, 2026-06-19) — factory skip.
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A dual state-block conditional command emitter.
 //
