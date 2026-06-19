@@ -12534,10 +12534,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000298D8);
  * fields differ. Straight-line + reloc-free → permuter-crackable episode target. */
 #ifdef NON_MATCHING
 int game_libs_func_00029934(int *a0) {
-    int acc = a0[1] + (int)*(float *)((char *)a0 + 0x10);
-    int idx = ((unsigned int)acc >> 10) & 0x3F;
-    a0[1] = acc;
-    return (short)(((short *)a0[2])[idx] >> 8);
+  int acc = ((int) (*((float *) (((char *) a0) + 0x10)))) + a0[1];
+  int *new_var3;
+  int new_var;
+  int idx = (((unsigned int) acc) >> 10) & 0x3F;
+  int *new_var2;
+  new_var2 = a0;
+  a0[1] = acc;
+  new_var3 = new_var2;
+  new_var = new_var3[2];
+ acc = new_var; goto dummy_label_501080; dummy_label_501080: ;
+  return (short) (((short *) acc)[idx] >> 8);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029934);
