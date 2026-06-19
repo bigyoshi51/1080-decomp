@@ -32215,31 +32215,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FC64);
  * 2026-05-23 and POST_CC_RECIPES.md deprecated (per
  * feedback_no_instruction_forcing_matches_policy). Default build is
  * INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* matched 2026-06-19: operate on the param a0 directly (no `int *p = a0`) so
+ * IDO spills a0 to its own incoming-arg home slot (sp+24) instead of a fresh
+ * in-frame slot — shrinks frame 0x20->0x18 to match. The separate-local form
+ * (m2c/permuter) reached 99.91 but forced the extra slot. */
 int gl_func_0005FCC4(int *a0) {
-  int new_var;
-  int *p;
-  new_var = 1;
-  p = a0;
-  if (p == 0)
+  if (a0 == 0)
   {
-    p = (int *) gl_func_00000000(0xC);
-    if (p == 0)
+    a0 = (int *) gl_func_00000000(0xC);
+    if (a0 == 0)
     {
       goto end;
     }
   }
-  p[0] = gl_func_00000000(0xC80) ^ 0;
-  p[new_var] = p[0];
-  gl_func_00000000(p[0]);
-  p[2] = 0;
+  a0[0] = gl_func_00000000(0xC80);
+  a0[1] = a0[0];
+  gl_func_00000000(a0[0]);
+  a0[2] = 0;
   end:
-  return (int) p;
+  return (int) a0;
 
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FCC4);
-#endif
 
 /* 3-call printf-style debug logger logging two Vec3s as 6 floats.
  * Format strings at offsets 0x21B6C/0x21B88/0x21BA4 (28 bytes apart).
