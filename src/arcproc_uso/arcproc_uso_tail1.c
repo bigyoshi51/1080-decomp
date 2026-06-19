@@ -1927,26 +1927,33 @@ void arcproc_uso_func_00002864(void) {
 typedef struct { int w[5]; } Arc2884Buf;
 #ifdef NON_MATCHING
 void arcproc_uso_func_00002884(void *a0) {
-    Arc2884Buf buf;
-    int i;
-    int s0;
-    int s3;
-    char *base = (char *)&D_00000000 + 0x10;
-    buf = *(Arc2884Buf *)((char *)&D_00000000 + 0x4A0);
-    s3 = 16;
-    do {
-        i = 0;
-        s0 = 0;
-        do {
-            char *s1 = base; s1 += buf.w[i] * 24;
-            gl_func_00000000(s1);
-            gl_func_00000000(s1);
-            gl_func_00000000(s1, s0, s3, 0);
-            s0 += 64;
-            i++;
-        } while (s0 != 320);
-        s3 += 32;
-    } while (s3 != 240);
+  Arc2884Buf buf;
+  int i;
+  int s0;
+  int s3;
+  char *base = ((char *) (&D_00000000)) + 0x10;
+  buf = *((Arc2884Buf *) (((char *) (&D_00000000)) + 0x4A0));
+  s3 = 16;
+  do
+  {
+    base++;
+    base--;
+    i = 0;
+    s0 = 0;
+    do
+    {
+      char *s1 = base;
+      s1 += buf.w[i] * 24;
+      gl_func_00000000(s1);
+      gl_func_00000000(s1);
+      gl_func_00000000(s1, s0, s3, 0);
+      s0 += 64;
+      i++;
+    }
+    while (s0 != 320);
+    s3 += 32;
+  }
+  while (s3 != 240);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00002884);

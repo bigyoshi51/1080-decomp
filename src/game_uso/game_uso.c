@@ -2133,42 +2133,51 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
  * DEPRECATED. NATURAL CEILING 95.40% NM. */
 #ifdef NON_MATCHING
 void *game_uso_func_00002744(void *arg0) {
-    void *var_a1;
-    void *var_v1;
-    void *var_a0;
-    volatile int init_arg;
-    volatile int init_arg_copy;
-
-    var_a1 = arg0;
-    if (arg0 == NULL) {
-        var_a1 = (void*)gl_func_00000000(0x20);
-        if (var_a1 == NULL) goto done;
+  void *var_a1;
+  void *var_v1;
+  void *var_a0;
+  volatile int init_arg;
+  volatile int init_arg_copy;
+  var_a1 = arg0;
+  if (arg0 == ((void *) 0))
+  {
+    var_a1 = (void *) gl_func_00000000(0x20);
+    if (var_a1 == ((void *) 0))
+    {
+      goto done;
     }
-
-    var_v1 = var_a1;
-    if (var_a1 == NULL) {
-        var_v1 = (void*)gl_func_00000000(8);
-        if (var_v1 == NULL) goto after_template;
+  }
+  var_v1 = var_a1;
+  if (var_a1 == ((void *) 0))
+  {
+    var_v1 = (void *) gl_func_00000000(8);
+    if (var_v1 == ((void *) 0))
+    {
+      goto after_template;
     }
-    ((int*)var_v1)[0] = (int)((char*)&D_00000000 + 0x354);
-    ((int*)var_v1)[1] = 0;
+  }
+  ((int *) var_v1)[0] = (int) (((char *) (&D_00000000)) + 0x354);
+  ((int *) var_v1)[1] = 0;
+  after_template:
+  init_arg = *((int *) (((char *) (&D_00000000)) + 0x35C));
 
-after_template:
-    init_arg = *(int*)((char*)&D_00000000 + 0x35C);
-    init_arg_copy = init_arg;
-    var_a0 = (char*)var_a1 + 8;
-    if (var_a1 == (void*)-8) {
-        var_a0 = (void*)gl_func_00000000(0x18);
-        if (var_a0 == NULL) goto done;
+  init_arg_copy = init_arg;
+  var_a0 = ((char *) var_a1) + 8;
+  if (var_a1 == ((void *) (-8)))
+  {
+    var_a0 = (void *) gl_func_00000000(0x18);
+    if (var_a0 == ((void *) 0))
+    {
+      goto done;
     }
+  }
+  gl_func_00000000(var_a0, var_a1, init_arg = init_arg_copy, 1);
+  ((int *) var_a0)[3] = (int) (((char *) (&D_00000000)) + 0x18);
+  ((float *) var_a0)[4] = 0.0f;
+  ((int *) var_a0)[5] = 0;
+  done:
+  return var_a1;
 
-    gl_func_00000000(var_a0, var_a1, init_arg_copy, 1);
-    ((int*)var_a0)[3] = (int)((char*)&D_00000000 + 0x18);
-    ((float*)var_a0)[4] = 0.0f;
-    ((int*)var_a0)[5] = 0;
-
-done:
-    return var_a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
