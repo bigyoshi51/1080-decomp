@@ -4986,7 +4986,7 @@ int func_00007BF4(char *a0) {
   char *arg = *((char **) (a0 + 4));
   char *entry;
   int (*fnptr)(char *);
-  arg += offset;
+  arg = arg + offset;
   if (key < 0)
   {
     fnptr = *((int (**)(char *)) (a0 + 0xC));
@@ -5006,7 +5006,7 @@ int func_00007BF4(char *a0) {
     {
     }
     entry = (*((char **) (arg + ((int) a0)))) + ((new_var = pair[1]) << 3);
-    arg += *((short *) entry);
+    arg = arg + (*((short *) entry));
     fnptr = *((int (**)(char *)) (entry + 4));
   }
   return fnptr(arg);

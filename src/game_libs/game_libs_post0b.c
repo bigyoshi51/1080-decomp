@@ -12659,79 +12659,97 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042944);
 #endif
 typedef char *(*GP_00042F4C)();
 void game_libs_func_00042F4C(char *arg0, char *arg1, char *arg2) {
-    f32 f128 = 128.0f;
-    f32 f127 = f127;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f0_4;
-    f32 temp_f0_5;
-    f32 temp_f0_6;
-    f32 var_f2;
-    f32 var_f2_2;
-    f32 var_f2_3;
-    f32 var_f2_4;
-    f32 var_f2_5;
-    f32 var_f2_6;
-
-    temp_f0 = (*(f32*)((char*)arg1 + 0x0)) * f128;
-    if (temp_f0 < f127) {
-        var_f2 = temp_f0;
-    } else {
-        var_f2 = f127;
-    }
-    (*(s8*)((char*)arg0 + 0x8)) = (s8) (s32) var_f2;
-    temp_f0_2 = (*(f32*)((char*)arg1 + 0x4)) * f128;
-    if (temp_f0_2 < f127) {
-        var_f2_2 = temp_f0_2;
-    } else {
-        var_f2_2 = f127;
-    }
-    (*(s8*)((char*)arg0 + 0x9)) = (s8) (s32) var_f2_2;
-    temp_f0_3 = (*(f32*)((char*)arg1 + 0x8)) * f128;
-    if (temp_f0_3 < f127) {
-        var_f2_3 = temp_f0_3;
-    } else {
-        var_f2_3 = f127;
-    }
-    (*(s8*)((char*)arg0 + 0xA)) = (s8) (s32) var_f2_3;
-    temp_f0_4 = (*(f32*)((char*)arg2 + 0x0)) * f128;
-    if (temp_f0_4 < f127) {
-        var_f2_4 = temp_f0_4;
-    } else {
-        var_f2_4 = f127;
-    }
-    (*(s8*)((char*)arg0 + 0x18)) = (s8) (s32) var_f2_4;
-    temp_f0_5 = (*(f32*)((char*)arg2 + 0x4)) * f128;
-    if (temp_f0_5 < f127) {
-        var_f2_5 = temp_f0_5;
-    } else {
-        var_f2_5 = f127;
-    }
-    (*(s8*)((char*)arg0 + 0x19)) = (s8) (s32) var_f2_5;
-    temp_f0_6 = (*(f32*)((char*)arg2 + 0x8)) * f128;
-    if (temp_f0_6 < f127) {
-        var_f2_6 = temp_f0_6;
-    } else {
-        var_f2_6 = f127;
-    }
-    (*(s8*)((char*)arg0 + 0x0)) = 0;
-    (*(s8*)((char*)arg0 + 0x1)) = 0;
-    (*(s8*)((char*)arg0 + 0x2)) = 0;
-    (*(s8*)((char*)arg0 + 0x3)) = 0;
-    (*(s8*)((char*)arg0 + 0x4)) = 0;
-    (*(s8*)((char*)arg0 + 0x5)) = 0;
-    (*(s8*)((char*)arg0 + 0x6)) = 0;
-    (*(s8*)((char*)arg0 + 0x7)) = 0;
-    (*(s8*)((char*)arg0 + 0x10)) = 0;
-    (*(s8*)((char*)arg0 + 0x11)) = 0x80;
-    (*(s8*)((char*)arg0 + 0x12)) = 0;
-    (*(s8*)((char*)arg0 + 0x13)) = 0;
-    (*(s8*)((char*)arg0 + 0x14)) = 0;
-    (*(s8*)((char*)arg0 + 0x15)) = 0x80;
-    (*(s8*)((char*)arg0 + 0x16)) = 0;
-    (*(s8*)((char*)arg0 + 0x17)) = 0;
-    (*(s8*)((char*)arg0 + 0x1A)) = (s8) (s32) var_f2_6;
+  f32 f128 = 128.0f;
+  f32 f127 = f127;
+  f32 temp_f0;
+  f32 temp_f0_2;
+  f32 temp_f0_3;
+  f32 temp_f0_4;
+  f32 temp_f0_5;
+  f32 temp_f0_6;
+  f32 var_f2;
+  f32 var_f2_2;
+  f32 var_f2_3;
+  f32 var_f2_4;
+  f32 var_f2_5;
+  f32 var_f2_6;
+  temp_f0 = (*((f32 *) (((char *) arg1) + 0x0))) * f128;
+  if (temp_f0 < f127)
+  {
+    var_f2 = temp_f0;
+  }
+  else
+  {
+    var_f2 = f127;
+  }
+  *((s8 *) (((char *) arg0) + 0x8)) = (s8) ((s32) var_f2);
+  var_f2 = (*((f32 *) (((char *) arg1) + 0x4))) * f128;
+  temp_f0_2 = var_f2;
+  if (temp_f0_2 < f127)
+  {
+    var_f2_2 = temp_f0_2;
+  }
+  else
+  {
+    var_f2_2 = f127;
+  }
+  *((s8 *) (((char *) arg0) + 0x9)) = (s8) ((s32) var_f2_2);
+  temp_f0_3 = (*((f32 *) (((char *) arg1) + 0x8))) * f128;
+  if (temp_f0_3 < f127)
+  {
+    var_f2_3 = temp_f0_3;
+  }
+  else
+  {
+    var_f2_3 = f127;
+  }
+  *((s8 *) (((char *) arg0) + 0xA)) = (s8) ((s32) var_f2_3);
+  temp_f0_4 = (*((f32 *) (((char *) arg2) + 0x0))) * f128;
+  if (temp_f0_4 < f127)
+  {
+    var_f2_4 = temp_f0_4;
+  }
+  else
+  {
+    var_f2_4 = f127;
+  }
+  *((s8 *) (((char *) arg0) + 0x18)) = (s8) ((s32) var_f2_4);
+  temp_f0_5 = (*((f32 *) (((char *) arg2) + 0x4))) * f128;
+  if (temp_f0_5 < f127)
+  {
+    var_f2_5 = temp_f0_5;
+  }
+  else
+  {
+    var_f2_5 = f127;
+  }
+  *((s8 *) (((char *) arg0) + 0x19)) = (s8) ((s32) var_f2_5);
+  temp_f0_6 = (*((f32 *) (((char *) arg2) + 0x8))) * f128;
+  if (temp_f0_6 < f127)
+  {
+    var_f2_6 = temp_f0_6;
+  }
+  else
+  {
+    var_f2_6 = f127;
+  }
+  *((s8 *) (((char *) arg0) + 0x0)) = 0;
+  *((s8 *) (((char *) arg0) + 0x1)) = 0;
+  *((s8 *) (((char *) arg0) + 0x2)) = 0;
+  *((s8 *) (((char *) arg0) + 0x3)) = 0;
+  *((s8 *) (((char *) arg0) + 0x4)) = 0;
+  *((s8 *) (((char *) arg0) + 0x5)) = 0;
+  *((s8 *) (((char *) arg0) + 0x6)) = 0;
+  *((s8 *) (((char *) arg0) + 0x7)) = 0;
+  *((s8 *) (((char *) arg0) + 0x10)) = 0;
+  *((s8 *) (((char *) arg0) + 0x11)) = 0x80;
+  *((s8 *) (((char *) arg0) + 0x12)) = 0;
+  *((s8 *) (((char *) arg0) + 0x13)) = 0;
+  *((s8 *) (((char *) arg0) + 0x14)) = 0;
+  *((s8 *) (((char *) arg0) + 0x15)) = 0x80;
+  *((s8 *) (((char *) arg0) + 0x16)) = 0;
+  *((s8 *) (((char *) arg0) + 0x17)) = 0;
+  *((s8 *) (((char *) arg0) + 0x1A)) = (s8) ((s32) var_f2_6);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042F4C);
