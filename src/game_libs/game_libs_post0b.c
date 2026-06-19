@@ -32193,18 +32193,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FC64);
  * INCLUDE_ASM. */
 #ifdef NON_MATCHING
 int gl_func_0005FCC4(int *a0) {
-    int *p;
-    p = a0;
-    if (p == 0) {
-        p = (int*)gl_func_00000000(0xC);
-        if (p == 0) goto end;
+  int new_var;
+  int *p;
+  new_var = 1;
+  p = a0;
+  if (p == 0)
+  {
+    p = (int *) gl_func_00000000(0xC);
+    if (p == 0)
+    {
+      goto end;
     }
-    p[0] = gl_func_00000000(0xC80);
-    p[1] = p[0];
-    gl_func_00000000(p[0]);
-    p[2] = 0;
-end:
-    return (int)p;
+  }
+  p[0] = gl_func_00000000(0xC80) ^ 0;
+  p[new_var] = p[0];
+  gl_func_00000000(p[0]);
+  p[2] = 0;
+  end:
+  return (int) p;
+
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FCC4);
