@@ -9636,16 +9636,16 @@ extern int gl_func_00000000();
 extern int D_00000000;
 #ifdef NON_MATCHING
 void game_libs_func_00026B40(void) {
-    char *p = (char *)&D_00000000;
-    p[0x53B8] = 0;
-    p[0x53B9] = 0;
-    p[0x53BA] = 0;
-    *(char **)(p + 0x53C8) = p + 0x53D0;
-    *(char **)(p + 0x53CC) = p + 0x53E8;
-    *(char **)(p + 0x53C4) = p + 0x5400;
-    gl_func_00000000(p + 0x53D0, p + 0x5418, 1);
-    gl_func_00000000(*(char **)((char *)&D_00000000 + 0x53CC), (char *)&D_00000000 + 0x5420, 4);
-    gl_func_00000000(*(char **)((char *)&D_00000000 + 0x53C4), (char *)&D_00000000 + 0x541C, 1);
+  char *p;
+  ((char *) (&D_00000000))[0x53B8] = 0;
+ if (1) { } { }
+  ((char *) (&D_00000000))[0x53BA] = (((char *) (&D_00000000))[0x53B9] = 0);
+  *((char **) (((char *) (&D_00000000)) + 0x53C8)) = ((char *) (&D_00000000)) + 0x53D0;
+  *((char **) (((char *) (&D_00000000)) + 0x53CC)) = ((char *) (&D_00000000)) + 0x53E8;
+  *((char **) (((char *) (&D_00000000)) + 0x53C4)) = ((char *) (&D_00000000)) + 0x5400;
+  gl_func_00000000(((char *) (&D_00000000)) + (0x53D0 ^ 0), ((char *) (&D_00000000)) + 0x5418, 1);
+  gl_func_00000000(*((char **) (((char *) (&D_00000000)) + 0x53CC)), ((char *) (&D_00000000)) + 0x5420, 4);
+  gl_func_00000000(*((char **) (((char *) (&D_00000000)) + 0x53C4)), ((char *) (&D_00000000)) + 0x541C, 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026B40);

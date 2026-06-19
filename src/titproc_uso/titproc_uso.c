@@ -1282,29 +1282,35 @@ void titproc_uso_func_00001C68(int *a0) {
  * sibling 0x1840. Default build bytes match expected. */
 #ifdef NON_MATCHING
 void *titproc_uso_func_00001D7C(void *a0) {
-    char *base = &D_00000000;
-    void *self = a0;
-    if (self == 0) {
-        self = (void*)gl_func_00000000(0x40);
-        if (self == 0) goto end;
+  char *base = &D_00000000;
+  void *self = a0;
+  if (self == 0)
+  {
+    self = (void *) gl_func_00000000(0x40);
+    if (self == 0)
+    {
+      goto end;
     }
-    a0 = self;
-    if (self == 0) {
-        a0 = (void*)gl_func_00000000(0x2C);  /* dead-arm */
-        if (a0 == 0) goto init_self;
+  }
+  a0 = self;
+  if (self == 0)
+  {
+    a0 = (void *) gl_func_00000000(0x2C);
+    if (a0 == 0)
+    {
+      goto init_self;
     }
-    gl_func_00000000(a0, base + 0x500);
-    *(int*)((char*)a0 + 0x28) = (int)base;
-init_self:
-    *(int*)((char*)self + 0x28) = (int)base;
-    *(int*)((char*)self + 0x0C) = (int)(base + 0x508);
-    *(int*)((char*)self + 0x3C) = 0;
-    *(float*)((char*)self + 0x2C) = 1.0f;
-    *(float*)((char*)self + 0x30) = 1.0f;
-    *(float*)((char*)self + 0x34) = 1.0f;
-    *(float*)((char*)self + 0x38) = 1.0f;
-end:
-    return self;
+  }
+ gl_func_00000000(a0, base + 0x500); *((int *) (((char *) a0) + 0x28)) = (int) base; init_self: *((int *) (((char *) self) + 0x28)) = (int) base;
+  *((int *) (((char *) self) + 0x0C)) = (int) (base + 0x508);
+  *((int *) (((char *) self) + 0x3C)) = 0;
+  *((float *) (((char *) self) + 0x2C)) = 1.0f;
+  *((float *) (((char *) self) + 0x30)) = 1.0f;
+  *((float *) (((char *) self) + 0x34)) = 1.0f;
+  *((float *) (((char *) self) + 0x38)) = 1.0f;
+  end:
+  return self;
+
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001D7C);
