@@ -384,26 +384,12 @@ int game_uso_func_00000674(int *a0) {
     return r;
 }
 
-/* 89.96% NM. Prior commit 764b62d landed this as "100%" but that was
- * expected-baseline contamination — subsequent refresh-expected-baseline
- * run reset expected/ to pure baserom bytes and revealed the real diff.
- *
- * Real remaining diffs at -O2 (2026-04-20):
- *   (1) `cnt` in $v1 (mine) vs $v0 (target). Reordering decls is a no-op
- *       per feedback_ido_sreg_order_not_decl_driven.md.
- *   (2) In-loop scheduling: target has `or a0,v0,0; jal; sw v0,0x38(s0)` —
- *       sw in jal2's delay slot. Mine has `sw v0,0x38(s0); jal; or a0,v0,0`.
- *       Tried swapping store/call order (regressed via extra $s0 alloc).
- *   (3) Operand order `addu v0,t7,s2` vs target `addu v1,s2,t7` — partially
- *       fixable via `int off = cnt*4`, but cascaded reg diff from (1) remains.
- *
- * 2026-05-28: both suggested next-steps now TRIED and failed. Inlining `cnt`
- * at its uses (removing the local, repeating `*(int*)(a0+0x34)`) REGRESSES to
- * 18 diffs — the loop-cond + after-loop reads each add a reload, same failure
- * mode as func_00007C74's multi-use-across-call inline. Permuter floored at
- * base score 410 (100s, -j4), no crack. Accept as ~90% regalloc+scheduling
- * cap (cnt $v0/$v1 + sw-in-jal-delay + addu operand order, all coupled). */
-#ifdef NON_MATCHING
+/* MATCHED 2026-06-20. The stale ~90%-cap comment was wrong: cnt was already
+ * in $v0 and the loop scheduling already matched. The ONLY residual diff was
+ * the trailing tail store address: target `addu v1,s2,t7` (a0 base first) vs
+ * built `addu v1,t7,s2` (index first). Writing the tail as true int-array
+ * indexing `((int*)a0)[cnt+15] = ((int*)a0)[cnt+14]` makes IDO canonicalize
+ * the commutative addu with the base register first → 0 diffs. */
 void game_uso_func_00000724(char *a0) {
   int i;
   int new_var;
@@ -440,11 +426,8 @@ void game_uso_func_00000724(char *a0) {
     while (i <= cnt);
   }
   *((int *) (a0 + 0x38)) = *((int *) (a0 + 0x3C));
-  *((int *) ((a0 + (cnt * 4)) + 0x3C)) = *((int *) ((a0 + (cnt * 4)) + 0x38));
+  ((int *) a0)[cnt + 15] = ((int *) a0)[cnt + 14];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000724);
-#endif
 
 void game_uso_func_000007E0(int *a0) {
     a0[9] = 0;

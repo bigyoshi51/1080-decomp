@@ -858,39 +858,40 @@ void mgrproc_uso_func_00001AD0(int *a0, int a1) {
     *(int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;
 }
 
-/* mgrproc_uso_func_00001B58: 28-insn (0x70) main body + 4 trailing donation
- * insns (= 0x8C declared size, 35 insns total).
+/* mgrproc_uso_func_00001B58: 0x7C, 31-insn leaf orchestrator. BYTE-EXACT.
  *
- * Promoted 2026-05-14 from 87.37% NM to byte-exact via the recipe pre-
- * documented in the 2026-05-08 wrap:
- *   - 8-entry INSN_PATCH at 0x1c/0x20/0x24/0x2c/0x34/0x44/0x64/0x68 to
- *     shift target's $v1 regalloc + adjust a1-spill slot from sp+0x1C
- *     to sp+0x20 (and the t7-via-sp+0x18 reload chain)
- *   - 4-entry SUFFIX_BYTES (0x00803025, 0x3C040000, 0x24840000,
- *     0x8C830064) for the chained-prologue donation to successor
- *     mgrproc_uso_func_00001BE4 (BE4 reads $a2/$a0/$v1 set up by these
- *     4 trailing insns). */
+ * Two regalloc levers landed it (2026-06-20, agent-e):
+ *  1. $v1-coloring: naming the throwaway intermediate `c4 = p[0xC4/4]` as its
+ *     own short-lived local forces IDO to color it into $v1 (the natural
+ *     next register after $v0=p), giving the v1->t6->t7 chain. Inlining it
+ *     skips $v1 and shifts the whole chain up (t6->t7->t8).
+ *  2. Spill-slot decl-order: the two call-crossing pointers t6/t7 home at
+ *     0x20/0x18 (gap at 0x1C). Decl order `p; t6; c4; t7;` (c4 BETWEEN the
+ *     two spilled temps) packs the slots to match; adjacent decls 4-pack
+ *     them (0x1C/0x18). See docs/IDO_CODEGEN interleave-decl-spill-slot
+ *     (same lever cracked the sibling func_00001AD0). */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
+extern int mgrproc_uso_func_01B0F8();
+extern int mgrproc_uso_func_01CCD4();
+extern int mgrproc_uso_func_07BA68();
+extern int import_000B7FF0();
 void mgrproc_uso_func_00001B58(int *a0) {
   int *p;
-  int *new_var;
   int *t6;
+  int *c4;
   int *t7;
-  gl_func_00000000(a0);
+  mgrproc_uso_func_01B0F8(a0);
   p = *((int **) (((char *) (&D_00000000)) + 0x134));
-  new_var = (int *) p[0xC4 / 4];
-  t6 = (int *) new_var[0x800 / 4];
+  c4 = (int *) p[0xC4 / 4];
+  t6 = (int *) c4[0x800 / 4];
   t7 = (int *) ((int *) p[0xCC / 4])[0x800 / 4];
-  gl_func_00000000(a0, p[0xCC / 4]);
-  gl_func_00000000(t6, (0x4F4 / 4) * 0);
-  gl_func_00000000(t7, 0);
-  gl_func_00000000(*((int *) (((char *) (&D_00000000)) + (0x138 & 0xFF))), 0, 0);
+  mgrproc_uso_func_01CCD4(a0, p[0xCC / 4]);
+  mgrproc_uso_func_07BA68(t6, 0);
+  mgrproc_uso_func_07BA68(t7, 0);
+  import_000B7FF0(*((int *) (((char *) (&D_00000000)) + 0x138)), 0, 0);
+
   a0[0x4F4 / 4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001B58);
-#endif
 
 /* vram 0x1BD4: 4-word stolen-prologue donation to func_00001BE4 (the old
  * SUFFIX_BYTES absorption was removed 2026-05-23, silently dropping these
