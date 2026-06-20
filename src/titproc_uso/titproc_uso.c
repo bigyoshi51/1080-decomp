@@ -1167,29 +1167,56 @@ void titproc_uso_func_00001AF8(int *a0) {
  *
  * 2026-05-17: matched the dead-arm constructor shape used by sibling
  * 0x1D7C: the secondary alloc is unreachable after the primary non-null
- * guard, and the final dispatch is one-argument. */
+ * guard, and the final dispatch is one-argument.
+ *
+ * 2026-06-20: full reconstruction with the REAL reloc callees/symbols
+ * (titproc_uso_func_055750 alloc, titproc_uso_func_04C678 init,
+ * &import_00073B18 for the sub-arm 0x28, &titproc_uso_D_000264 for the
+ * common 0x28; base = &titproc_uso_D_00048C; final dispatch
+ * titproc_uso_func_00F4CC(self) then self+0x3C = 0). Modeled exactly on
+ * the reconstructed sibling 0x1D7C (reuse-param-as-object lever: `self`
+ * IS the param so IDO arg-saves to the caller slot sw a2,0x20(sp)).
+ * Collapsed the prior placeholder body's 44 reg/spill diffs to 2.
+ * RESIDUAL (same size 42/42, exact insns): the identical 2-insn as1
+ * scheduler tie seen in 0x1D7C — the `self` reload `lw a2,0x20(sp)` is
+ * hoisted into the gap between t6's `lui`/`addiu` (&import_00073B18)
+ * instead of scheduling after the addiu. Dataflow-independent
+ * load-hoist; tried temp-local, statement-reorder, array-index access,
+ * register-param — none move it. No reliable C lever. Still NM. */
 #ifdef NON_MATCHING
-void *titproc_uso_func_00001B10(void *a0) {
-    char *base = &D_00000000;
-    void *self = a0;
-    if (self == 0) {
-        self = (void*)gl_func_00000000(0x40);
-        if (self == 0) goto end;
+extern int titproc_uso_func_055750();
+extern int titproc_uso_func_04C678();
+extern int titproc_uso_func_00F4CC();
+extern char titproc_uso_D_000264;
+void *titproc_uso_func_00001B10(void *self) {
+  void *sub;
+  char *base = &titproc_uso_D_00048C;
+  if (self == 0)
+  {
+    self = (void *) titproc_uso_func_055750(0x40);
+    if (self == 0)
+    {
+      goto end;
     }
-    a0 = self;
-    if (self == 0) {
-        a0 = (void*)gl_func_00000000(0x2C);
-        if (a0 == 0) goto init_self;
+  }
+  sub = self;
+  if (self == 0)
+  {
+    sub = (void *) titproc_uso_func_055750(0x2C);
+    if (sub == 0)
+    {
+      goto common;
     }
-    gl_func_00000000(a0, base + 0x4EC);
-    *(int*)((char*)a0 + 0x28) = (int)base;
-init_self:
-    *(int*)((char*)self + 0x28) = (int)base;
-    *(int*)((char*)self + 0xC) = (int)(base + 0x4F4);
-    gl_func_00000000(self);
-    *(int*)((char*)self + 0x3C) = 0;
-end:
-    return self;
+  }
+  titproc_uso_func_04C678(sub, base + 0x4EC);
+  *((int *) (((char *) sub) + 0x28)) = (int) &import_00073B18;
+ common:
+  *((int *) (((char *) self) + 0x28)) = (int) &titproc_uso_D_000264;
+  *((int *) (((char *) self) + 0x0C)) = (int) (base + 0x4F4);
+  titproc_uso_func_00F4CC(self);
+  *((int *) (((char *) self) + 0x3C)) = 0;
+  end:
+  return self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
