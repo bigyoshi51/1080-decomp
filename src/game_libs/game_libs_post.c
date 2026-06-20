@@ -18796,21 +18796,13 @@ extern int gl_ref_00045E5C();
 extern int gl_ref_00045EA8();
 
 /* gl_func_00031898: 29-insn (0x74) tri-call dispatcher.
- *   - if a0->field_5C != 0: call gl_ref_00045DF0(a0); ret_val = 0
+ *   - if a0->field_5C != 0: call gl_ref_00045DF0(a0)
  *   - if a0->field_48 != 0: ret_val = gl_ref_00045E5C(a0)
- *   - if a0->field_48 == 0: call gl_ref_00045EA8(ret_val)
+ *   - if a0->field_48 == 0: call gl_ref_00045EA8(a0)
  *   - return ret_val
- *
- * NATURAL CEILING: 95.86% NM. 5 remaining diffs:
- *  - 3 alt-entry jal targets (0x45DF0, 0x45E5C, 0x45EA8) at offsets
- *    0x1C/0x38/0x54. C-emit produces `jal 0` with R_MIPS_26 placeholder.
- *    Recipe in docs/MATCHING_WORKFLOW.md#alt-entry-jal-in-segment-jal-lands-inside-another-function-with-no-clean-symbol.
- *  - bnez -> bnezl (branch-likely) at 0x4C + lw-in-delay vs move-in-delay
- *    at 0x50. IDO -O2 emits regular `bnez` regardless of source shape
- *    (verified 2026-05-08 — goto-skip and if-body forms both produce
- *    same emit). Branch-likely cap.
- * The 5-diff INSN_PATCH was REMOVED 2026-05-23 as match-faking. */
-#ifdef NON_MATCHING
+ * The previously-documented "branch-likely cap" was a misread: the third
+ * call passes the struct pointer (a0), NOT ret_val — that arg fix makes
+ * IDO emit the bnezl with lw-ra hoisted into the annulled delay (exact). */
 int gl_func_00031898(int *a0) {
     int ret_val = 0;
     if (a0[23] != 0) {
@@ -18820,13 +18812,10 @@ int gl_func_00031898(int *a0) {
         ret_val = gl_ref_00045E5C(a0);
     }
     if (a0[18] == 0) {
-        gl_ref_00045EA8(ret_val);
+        gl_ref_00045EA8(a0);
     }
     return ret_val;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031898);
-#endif
 
 // gl_func_0003190C — STRUCTURAL PASS (0x158 / 86 words, no episode).
 // permuter resists: verify-fails every batch (x5+, 2026-06-19) — factory skip.
