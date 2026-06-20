@@ -2063,7 +2063,18 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002250);
  * 2026-05-20: direct-pointer/count-reload variants also emitted the same
  * rotated-register body. The INSN_PATCH promotion was REMOVED 2026-05-23
  * as match-faking; the function is now at honest 91.06% NM (permuter-class
- * register-allocation cap). */
+ * register-allocation cap).
+ *
+ * 2026-06-20 (agent-b): statement-reorder narrowed the coloring. Loading the
+ * list (`v0 = a0[0x3C/4]`) BEFORE saving the arg, and initializing the entry
+ * pointer (`a2 = ...`) BEFORE the counter (`v1 = 0`), pins list->$v0, entry
+ * ptr->$a2 and the loop type-word->$v0 EXACTLY as target (was list->$v1,
+ * ptr->$a3 fully-rotated before). RESIDUAL is now a single 2-register swap:
+ * saved-arg lands in $v1 / counter in $a3 (target: arg->$a3, counter->$v1).
+ * This last swap is coupled to the as1 scheduler: emitting the counter-init
+ * before the ptr-init (to flip the coloring) reorders the prologue insns and
+ * sends the entry ptr to $a3 instead. The two can't be satisfied together via
+ * statement order (scheduler-tie + coloring). Genuine ugen coloring cap. */
 #ifdef NON_MATCHING
 int func_8000235C(int *a0, int a1) {
     int a3;
@@ -2071,13 +2082,13 @@ int func_8000235C(int *a0, int a1) {
     short *a2;
     int v0;
 
-    a3 = a1;
     v0 = a0[0x3C / 4];
     if (v0 == 0) return 0;
 
+    a3 = a1;
     a1 = a0[0x4 / 4];
-    v1 = 0;
     a2 = (short*)v0;
+    v1 = 0;
     if (a1 <= 0) goto end;
 
     do {
