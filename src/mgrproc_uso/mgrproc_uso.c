@@ -1709,48 +1709,61 @@ void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
 }
 #else
 #ifdef NON_MATCHING
+/* 2026-06-20 RECONSTRUCT: wired the real resolved callees from the .s
+ * (import_000B8BA4/8D08/8DCC/8F68 draw-list ops, import_000B4650 lookup,
+ * import_000AA8BC/AAA60 object create+config, mgrproc_uso_func_013FE0/07ACE0)
+ * and the &import_80264A58+0x688 vtable pointer / import_800200FC+0x64 index.
+ * The prior body used a single placeholder callee (mgrproc_uso_func_00000AE0)
+ * for all of them — the missing logic was the distinct callee identities and
+ * the per-call argument marshaling. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00002EF0)();
-void mgrproc_uso_func_00002EF0(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 *arg4) {
-    char *sp2C;
-    char *sp24;
-    f32 temp_f0;
-    char *temp_a1;
-    char *temp_v0;
+extern int import_000B8BA4();
+extern int import_000B8D08();
+extern int import_000B8DCC();
+extern int import_000B8F68();
+extern int import_000B4650();
+extern int import_000AA8BC();
+extern int import_000AAA60();
+extern int mgrproc_uso_func_013FE0();
+extern int mgrproc_uso_func_07ACE0();
+extern char import_80264A58;
+extern int import_800200FC;
+void mgrproc_uso_func_00002EF0(char *self, char *a1, s32 a2, s32 a3, s32 arg5) {
+    f32 c = 192.0f / 255.0f;
+    unsigned char *node;
 
-    temp_f0 = 192.0f / 255.0f;
-    FW(arg0, 0xC) = 0x688;
-    FW(arg0, 0xBC) = arg1;
-    FW(arg0, 0xB8) = arg3;
-    FW(arg0, 0x54) = arg2;
-    FW(arg0, 0xD4) = 0xFF;
-    FW(arg0, 0xD8) = 0;
-    FW(arg0, 0xDC) = 0;
-    FW(arg0, 0x30) = 0;
-    FW(arg0, 0x4C) = arg4;
-    FW(arg0, 0xCC) = temp_f0;
-    FW(arg0, 0xC4) = temp_f0;
-    FW(arg0, 0xC8) = (f32) (255.0f / 255.0f);
-    FW(arg0, 0xD0) = (f32) (0.0f / 255.0f);
-    if (FW(arg1, 0x4F0) & 0x10000) {
-        mgrproc_uso_func_00000AE0((char *)0xE8, (char *)0x13, FW(arg0, 0x44) + 0x10);
-        mgrproc_uso_func_00000AE0(arg0, (char *)0x123, 0xE1U, (char *)0xD);
-        mgrproc_uso_func_00000AE0(arg0, (char *)0x47, 0x13U, (int)arg0 + 0x30);
-        mgrproc_uso_func_00000AE0(arg0, (char *)0x44, 0x26U, FW(arg0, 0x44) + 0x28);
-        sp24 = mgrproc_uso_func_00000AE0(*(int*)(FW(arg0, 0x4C)) + (*(s32 *)0x64 * 0x30), 0);
-        temp_v0 = mgrproc_uso_func_00000AE0(0, FW(arg0, 0x60));
-        FW(arg0, 0xC0) = temp_v0;
-        mgrproc_uso_func_00000AE0(temp_v0, (char *) FW(sp24, 0x5), FW(sp24, 0x6), (char *) FW(sp24, 0x7));
-        mgrproc_uso_func_00000AE0(FW(arg0, 0xC0), (char *)0x4B, 0xD6U);
-        temp_a1 = FW(arg0, 0xC0);
-        sp2C = temp_a1;
-        mgrproc_uso_func_00000AE0((int)arg0 + 0x10, temp_a1);
-        if (FW(temp_a1, 0x14) != 0) {
-            FW(temp_a1, 0x4) = 1;
+    FW(self, 0xC)  = (int)(&import_80264A58 + 0x688);
+    FW(self, 0xBC) = (int)a1;
+    FW(self, 0xB8) = a3;
+    FW(self, 0x54) = a2;
+    FW(self, 0xD4) = 0xFF;
+    FW(self, 0xD8) = 0;
+    FW(self, 0xDC) = 0;
+    FW(self, 0x30) = 0;
+    FW(self, 0x4C) = arg5;
+    FW(self, 0xCC) = c;
+    FW(self, 0xC4) = c;
+    FW(self, 0xC8) = (f32)(255.0f / 255.0f);
+    FW(self, 0xD0) = (f32)(0.0f / 255.0f);
+
+    if (FW(a1, 0x4F0) & 0x10000) {
+        import_000B8BA4(self, 0xE8, 0x13, FW(self, 0x44) + 0x10);
+        import_000B8D08(self, 0x123, 0xE1, 0xD);
+        import_000B8DCC(self, 0x47, 0x13, (int)(self + 0x30));
+        import_000B8F68(self, 0x44, 0x26, FW(self, 0x44) + 0x28);
+        node = (unsigned char *)import_000B4650(
+            *(int *)FW(self, 0x4C) + FW(&import_800200FC, 0x64) * 0x30, 0);
+        FW(self, 0xC0) = import_000AA8BC(0, FW(self, 0x60));
+        import_000AAA60((char *)FW(self, 0xC0), node[5], node[6], node[7]);
+        mgrproc_uso_func_013FE0(FW(self, 0xC0), 0x4B, 0xD6);
+        node = (unsigned char *)FW(self, 0xC0);
+        mgrproc_uso_func_07ACE0((int)(self + 0x10), node);
+        if (FW(node, 0x14) != 0) {
+            FW(node, 0x4) = 1;
         }
-        FW(temp_a1, 0x14) = arg0;
+        FW(node, 0x14) = (int)self;
     }
 }
 #else
