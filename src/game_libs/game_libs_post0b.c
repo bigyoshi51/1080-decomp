@@ -31269,49 +31269,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
    four blocks of 4, stride 0x10, store-in-delay-slot).
    2026-05-28: 98.26% -> 99.87%. Fixed call 1 to PASS a0 — it is
    reloc1(a0), not reloc1() — so the incoming int is consumed by the call
-   instead of being needlessly homed; size now matches target (62 insns,
-   was 63). RESIDUAL (2 caps, both known/not-C-controllable):
-   (a) frame 0x20 vs target 0x28 (8-byte spill-slot delta for `s` across
-       the warning call; a `char _pad[8]` doesn't take — allocator-driven,
-       not paddable), cascading the a1 home 0x24->0x2C;
-   (b) PARTIALLY CRACKED 2026-06-10: the flat-for suppressed IDO's
-       unroller; a DO-WHILE form (i=0; do { m[i]=m[i]/s; i++; } while
-       (i<16);) triggers the x4 UNROLL+SOFTWARE-PIPELINE the target has
-       (peeled final iteration, next-element preload in body) -- the
-       loop structure now matches insn-for-insn. Remaining 8 word
-       diffs: the induction counter is still by-4-element (li 16 /
-       step 4) vs the target's by-1-trip (li 4 / step 1) -- explicit
-       i*16 trip form explodes (86 insns), unsigned/compound forms
-       neutral -- plus the frame 0x28-vs-0x20 pair and the m-home
-       cascade. The 5BDC0-class IV cap is thus NARROWED to counter
-       form only. Body below uses the do-while.
-       2026-06-10 TARGET SHAPE DECODED (full diff read): the loop is
-       SOFTWARE-PIPELINED 2 rows/trip -- bound 4 in a REGISTER (li
-       a0,4; beq v1,a0 vs-reg compare), v1 += 1 TWICE per trip, v0
-       advances 16/half with negative-offset stores (swc1 -16..-4(v0))
-       and a peeled epilogue half. Probes: nested 4x4 do-while TIES
-       the baseline (99.87); row-unrolled form explodes (IDO unrolls
-       trip-4, 38.8). Matching needs the register bound (s-reg-const
-       class, resists plain forcers) + a 2-row body so IDO emits the
-       rotated schedule. Focused-session item. */
+   instead of being needlessly homed; size now matches target (62 insns).
+   2026-06-20 FRAME CAP CRACKED — 8 word diffs -> 3. The old note claimed
+   the frame 0x20-vs-0x28 (8-byte `s`-spill slot, cascading a1 home
+   0x24->0x2C) was "allocator-driven, not paddable; a char _pad[8] doesn't
+   take". WRONG: a `volatile int pad[2]` declared FIRST in the decl list
+   homes per the FRAME-SLOT HOME ASSIGNMENT RULE and grows the frame to
+   0x28 with the a1 home landing at 0x2C — byte-exact. All 5 frame-layout
+   words (prologue 0x27BDFFD8, a1 sw/lw 0x2C, v0 lw 0x2C, epilogue 0x28)
+   now match. (This is the game_uso_func_00003ED4 lesson: a "coloring cap"
+   that is really a FRAME-LAYOUT diff. Confirmed: 5 of the 8 residual words
+   were offset-only frame, fully C-reachable.)
+   RESIDUAL (3 words, the SAME registers/offsets, IMMEDIATE-only): the
+   do-while x4-unroll+software-pipeline matches insn-for-insn, but the IV
+   is still by-4-ELEMENT (li a0,16 / addiu v1,v1,4) vs the target's
+   by-1-TRIP (li a0,4 / addiu v1,v1,1). The flat `m[t]` do-while keeps the
+   target's EXACT v0/v1/a0 loop-trio coloring + pipeline (only 3 imm diffs);
+   the nested-do-while form (5BDC0 IV crack) DOES produce the by-1 counter
+   but shifts the whole trio up one register (v1/a0/a1, 26 diffs) because
+   it changes first-need order. So: flat form = right coloring + wrong
+   counter stride (3 diffs); nested form = right counter + wrong coloring
+   (26 diffs). The two are mutually exclusive under tried C forms. The
+   residual is the 5BDC0-class IV strength-reduction choice NARROWED to the
+   counter stride, on a structure-exact + frame-exact body. Body uses the
+   flat do-while (closest: 3 immediate-only diffs). Permuter-factory
+   candidate (single-choice IV gate). Focused-session item. */
 extern int gl_func_00000000();
 extern float gl_func_0005E190_scale();
 extern int D_00000000;
 void gl_func_0005E190(int a0, float *m) {
+    volatile int pad[2];
     float s;
     float as;
-    int i;
+    int t;
     gl_func_00000000(a0);
     s = gl_func_0005E190_scale(m);
     as = (s < 0.0f) ? -s : s;
     if (as < *(float *)((char *)&D_00000000 + 0x204C)) {
         gl_func_00000000((char *)&D_00000000 + 0x21B28);
     }
-    i = 0;
+    t = 0;
     do {
-        m[i] = m[i] / s;
-        i++;
-    } while (i < 16);
+        m[t] = m[t] / s;
+        t++;
+    } while (t < 16);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E190);
