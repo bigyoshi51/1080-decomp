@@ -3798,30 +3798,43 @@ void func_00005EF8(int *dst) {
     *dst = buf[0];
 }
 
-/* func_00005F34 - full decode (0x1CC, 115 insns, 95.52% NM, was 42.2%).
- * It is a SIX-element list builder (not 3): 7 params (a0 unused +
- * a1,a2,a3 in regs + a4,a5,a6 on the caller stack at sp+80/84/88).
- * s1 = a container object built from D_00007E6C; list = s1+0x10 is its
- * child attach point. Per element: r = func_00000000(0, payload, A2, A3, 0)
- * with an angle constant threaded into a3 (0/90/180/270) for elements
- * 0-3 and into a2 (-90/90) for elements 4-5; then func_00000000(list, r)
- * attaches it (return discarded), then back-link: if (r->0x14 != 0)
- * r->0x4 = 1 (linked flag), r->0x14 = s1 (owner). Element 5 (a6) is gated
- * on a6 != 0 and uses a beql back-link (duplicated store) since it precedes
- * the epilogue. Returns s1.
- * Residual <100 = IDO dead-arg-home: the target homes the UNUSED a0 to its
- * caller home slot (frame 64 vs 56) and emits a dead `or a3,a0,zero` copy
- * (a3 overwritten with 0 before any read) — a +1-insn prologue shuffle that
- * shifts the whole alignment. Same dead-arg-home cap class as C3E8; not
- * C-reachable. INCLUDE_ASM remains build path. */
+/* func_00005F34 - SIX-element list builder. 7 params (a0 unused + a1,a2,a3
+ * in regs + a4,a5,a6 on the caller stack at sp+80/84/88). s1 = a container
+ * object built from D_00007E6C; list = s1+0x10 is its child attach point.
+ * Per element: r = func_00000000(0, payload, A2, A3, 0) with an angle constant
+ * threaded into a3 (0/90/180/270) for elements 0-3 and into a2 (-90/90) for
+ * elements 4-5; then func_00000000(list, r) attaches it (return discarded),
+ * then back-link: if (r->0x14 != 0) r->0x4 = 1 (linked flag), r->0x14 = s1
+ * (owner). Element 5 (a6) is gated on a6 != 0 and uses a beql back-link
+ * (duplicated store) since it precedes the epilogue. Returns s1.
+ * Prologue cracked (was 42->95.52->99.x%): the target homes the unused a0 to
+ * its caller home slot AND emits a dead `or a3,a0,zero` copy — reproduced by
+ * passing a0 as a dead 4th arg to the s1 constructor (func_00000000 is K&R,
+ * 3 args used). The +8 frame (64 vs 56) with list pinned at sp+0x28 needs
+ * `volatile int pad[2]` declared LAST (8-aligned pad takes the bottom dead
+ * space, leaving list at the top local slot). Result: 113/115 .text words
+ * byte-exact (the remaining word is a R_MIPS_LO16 reloc to D_00007E6C, equal
+ * once relocated).
+ * RESIDUAL CAP = 2-insn as1-scheduler tie: after the first element's call the
+ * target schedules `sw list,0x28(sp)` (stack store) BEFORE `or s0,v0` (save r
+ * to callee-saved s0); the build picks the opposite tie order. Both ops are
+ * independent and ready at the same point — the IDO scheduler tie-break is not
+ * C-driven (tried decl-order, register, embedded/nested-assign, list-before-
+ * call promotes list to a reg and regresses). Documented permuter-proof
+ * scheduler-tie class (docs/IDO_CODEGEN.md). INCLUDE_ASM remains build path. */
 extern char D_00007E6C;
 #ifdef NON_MATCHING
 char *func_00005F34(int a0, int a1, int a2, int a3, int a4, int a5, int a6) {
-  char *s1 = (char *) func_00000000(0, &D_00007E6C, 0);
+  char *s1 = (char *) func_00000000(0, &D_00007E6C, 0, a0);
   char *list;
   char *r;
-  (void) a0;
- r = (char *) func_00000000(0, a1, 0, 0, 0); list = s1 + 0x10; func_00000000(list, r); if ((*((int *) (r + 0x14))) != 0) { *((int *) (r + 0x4)) = 1; }
+  volatile int pad[2];
+  r = (char *) func_00000000(0, a1, 0, 0, 0);
+  list = s1 + 0x10;
+  func_00000000(list, r);
+  if ((*((int *) (r + 0x14))) != 0) {
+    *((int *) (r + 0x4)) = 1;
+  }
   *((void **) (r + 0x14)) = s1;
   r = (char *) func_00000000(0, a2, 0, 90, 0);
   func_00000000(list, r);

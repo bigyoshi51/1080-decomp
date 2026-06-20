@@ -23273,12 +23273,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
  * 0x20634, 0x20D88) are ADDRESSES `&D_00000000 + 0xN`, not int literals — the
  * literal form makes GCC emit `lui+ori` (zero-extend, build) where the target's
  * address form is `lui+addiu` (sign-extend); +9.6pp. Plus the final cb's 1st arg
- * is &D_00000000 not literal 0 (+2pp). Residual (~2%): the 0x20630/0x20634
- * handler pair won't cluster (target `addiu base,0x630; lw 0/4` vs mine folded
- * `lw 1584/1588`) — the name[256] buffer keeps register pressure too high for the
- * base to stay live (FC34-class) + the spill slots land 4 bytes off + one
- * fmtSel branch IDO folds. Caps: self struct + USO cb prototypes untyped.
- * Kept NON_MATCHING. */
+ * is &D_00000000 not literal 0 (+2pp).
+ * 2026-06-20: fmtSel rewritten as a TERNARY (`cond ? 0x20EE8 : 0x20EEC`),
+ * not pre-assign-default + if-overwrite. The if-form folds away the `else`
+ * branch; the ternary forces IDO to emit the explicit branch-around
+ * `b .+1` the target has (idx10 `10000001`). This realigned the entire
+ * tail: 68/77 mismatching words -> 14/77 (the missing b had cascade-shifted
+ * everything from idx10 on). Residual 14 words = TWO documented caps only:
+ * (A) compiler caller-save spill slots at sp+0x34/0x38 vs target 0x30/0x34
+ *     (anonymous templocs, first-need order, NOT M-class — decl-order
+ *     brute-force + register-qualifier confirmed immovable; near-zero
+ *     fuzzy weight per the FRAME-SLOT-HOME-ASSIGNMENT CAVEAT); and
+ * (B) the 0x20630 handler-pair R_MIPS_LO16-placement fold: `&D_00000000+0x630`
+ *     deref'd twice -> IDO ALWAYS emits form (b) `addiu base,0; lw 0x630(base)`
+ *     where target uses form (a) `addiu base,0x630; lw 0(base)`. Same address
+ *     after reloc, byte-different encoding — the documented not-C-controllable
+ *     LO16-placement cap (IDO_CODEGEN: pointer-mutate `p+=N` only forces form
+ *     (a) at the cost of a +8 frame slot; reusing an existing local re-folds).
+ *     The t-register renumber (target t1/t3/t2/t4 vs mine v0/t1/t2/t3, incl.
+ *     the 0xD88 store reg) cascades directly from this fold. Not reloc-fakeable.
+ * Kept NON_MATCHING (14/77 word residual = caps A+B only). */
 extern int gl_func_00000000();
 void gl_func_000519A4(char *self) {
     char name[256];
@@ -23288,10 +23302,7 @@ void gl_func_000519A4(char *self) {
     int *a0p;
     int *o;
 
-    fmtSel = (int)((char *)&D_00000000 + 0x20EEC);
-    if (*(int *)(self + 0x38) & 0x400000) {
-        fmtSel = (int)((char *)&D_00000000 + 0x20EE8);
-    }
+    fmtSel = (*(int *)(self + 0x38) & 0x400000) ? (int)((char *)&D_00000000 + 0x20EE8) : (int)((char *)&D_00000000 + 0x20EEC);
     if (*(int *)(self + 0x14) != 0) {
         if (*(int *)(self + 0x4C) != 0) {
             gl_func_00000000(name, (char *)&D_00000000 + 0x20EF0, *(int *)(self + 0x18), self + 0x58, fmtSel);
