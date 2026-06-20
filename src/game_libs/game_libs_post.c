@@ -16282,11 +16282,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
 //   Remaining body is still only a prefix sketch; target has 0x80 frame, saved
 //   s0, initialized float locals, and ~900 words of FP/update/draw logic.
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft via the raw-word
- * pipeline + TWO synthesized jumptables (5-case @data+0x5860, 11-case
- * @data+0x5880; case heads inferred by block-walk -- case ORDER is
- * approximate pending true table extraction from the USO reloc
- * records). Cleanup checklist items 1-11 applied. */
+/* PASS-3 2026-06-20 (big-swing, 65.36 -> 67.30%): TRUE jumptable case
+ * orders extracted from the bootup.uso RoDataReloc records (module
+ * 0xD9FE28, shim +0x1466C) via scripts/extract-uso-jumptable.py:
+ *   jtbl_A @data+0x16E4 (idx byte[0x22]-1, 5 entries): byte 2,3 -> a1=0xC;
+ *       byte 4,5 -> a1=8; default -> a1=0xC (idx0 is a float, unreachable).
+ *   jtbl_B @data+0x16F8 (idx sp6B, 11 entries): 1,3 -> 0xC; 5,7 -> 0x10;
+ *       9 -> 0x38; even/default -> byte[0x29] sub-dispatch.
+ * Also fixed: the 0x1A/0x48 FP gate block (was M2C-unset placeholder),
+ * field 0x33 (was 0x21) in the unk23 outer gate, byte[0x29]!=3 gate (was
+ * M2C-unset), and several int-vs-float load typings (0x1C310 / 0x1C430 /
+ * data+0x14 reader). RESIDUAL: IDO (s32)/(u32)float cfc1/ctc1/cvt.w.s
+ * rounding idioms + the -0xF0-vs-0x80 frame inflation (m2c-graft spills)
+ * = documented regalloc/frame cap; byte-match still deferred. */
 extern int gl_func_000428FC();
 extern int gl_func_00043824();
 extern int gl_func_000438F4();
@@ -16371,17 +16379,17 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
             *(u8 *)((char *)(arg0) + 0x20) = 0U;
             temp_v0_2 = temp_v1_2 * 4;
             if (temp_v1_2 != 0) {
-                temp_f0 = *(f32 *)((char *)&D_00000000 + 0x1C3B0 + temp_v0_2);
                 sp64 = *(f32 *)((char *)&D_00000000 + 0x1C330 + temp_v0_2);
+                temp_f0 = *(f32 *)((char *)&D_00000000 + 0x1C3B0 + temp_v0_2);
                 sp60 = 1.0f * temp_f0;
                 *(u8 *)((char *)(arg0) + 0x32) = (u8) (temp_v1_2 - 1);
                 *(f32 *)((char *)(arg0) + 0x4) = (f32) (temp_f14 * temp_f0);
             }
             temp_f16 = *(f32 *)((char *)(arg0) + 0x50);
             temp_f0 = temp_f16 - *(f32 *)((char *)(arg0) + 0x0);
-            if (temp_f0 >= 0.5f) {
+            if (0.5f <= temp_f0) {
                 var_f0 = temp_f0 + 0.5f;
-                if (var_f0 >= 2.0f) {
+                if (2.0f <= var_f0) {
                     var_f0 = 2.0f;
                 }
                 sp60 *= var_f0;
@@ -16511,13 +16519,18 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                     temp_t8 = *(u8 *)((char *)(arg0) + 0x22);
                     temp_t9_2 = temp_t8 - 1;
                     if (temp_t9_2 < 5U) {
-                        /* dispatch (5-case table; structure approximated) */
-                        if (temp_t8 == 1) {
+                        /* jtbl @data+0x16E4: byte 4,5 -> a1=8; byte 2,3 -> a1=0xC */
+                        switch (temp_t8) {
+                        case 4:
+                        case 5:
                             gl_func_00043BE4(arg0, 8, var_a2, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
+                            goto block_78;
+                        case 2:
+                        case 3:
+                            gl_func_00043BE4(arg0, 0xC, var_a2, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
                             goto block_78;
                         }
                     } else {
-                    /* case 2 (switch 3, flattened) */
                         gl_func_00043BE4(arg0, 0xC, var_a2, *(s32 *)((char *)(arg0) + 0x8), (s32) *(u8 *)((char *)(arg0) + 0x28));
 block_78:
                         goto block_81;
@@ -16537,23 +16550,17 @@ block_81:
 block_83:
                 if (*(u16 *)((char *)(arg0) + 0x1A) != 0) {
                     if (*(s32 *)((char *)(arg0) + 0x48) == 0) {
+                        temp_f2 = *(f32 *)((char *)(arg0) + 0x0);
                         var_v0_2 = 0x11;
-                        var_at = (s32 *)0x42480000;
-                        if (*(f32 *)((char *)(arg0) + 0x0) >= 75.0f) {
+                        if (75.0f <= temp_f2) {
                             var_v0_2 = 0x13;
-                        } else {
-                        /* case 4 (switch 3, flattened) */
-                            /* M2C: unset-$f2 read across the synthesized jumptable
-                             * (case-order approximation broke this FP web); placeholder
-                             * comparison pending true table extraction. */
-                            if (*(f32 *)&var_at <= 0.0f) {
-                                var_v0_2 = 0x12;
-                            }
+                        } else if (50.0f <= temp_f2) {
+                            var_v0_2 = 0x12;
                         }
                         sp6B = var_v0_2;
-                        if (0 /* M2C unset $f2 */ >= 25.0f) {
+                        if (25.0f <= temp_f2) {
                             sp6B = var_v0_2;
-                            gl_func_00043BE4(arg0, 0, 0, 0.0f, (s32) *(u8 *)((char *)(arg0) + 0x28)); /* flattened-case arg recovery pending */
+                            gl_func_00043BE4(arg0, 0x10, var_v0_2, 127.0f, (s32) *(u8 *)((char *)(arg0) + 0x28));
                         }
                     }
                     *(u16 *)((char *)(arg0) + 0x1A) = 0U;
@@ -16566,7 +16573,7 @@ block_83:
                     sp6B = var_v0_2;
                     temp_a0_3 = *(u8 *)((char *)(arg0) + 0x29);
                     var_a2_2 = var_v0_2 & 0xFF;
-                    var_f0_2 = *(s32 *)((char *)((temp_a0_3 * 4)) + 0x1C310);
+                    var_f0_2 = *(f32 *)((char *)((temp_a0_3 * 4)) + 0x1C310);
                     if ((s32) var_v0_2 < 0xB) {
                         switch (temp_a0_3) {        /* switch 4; irregular */
                         default:                    /* switch 4 */
@@ -16574,7 +16581,6 @@ block_83:
                             break;
                         case 0:                     /* switch 4 */
                         case 1:                     /* switch 4 */
-                        /* case 5 (switch 3, flattened) */
                             var_a2_2 = (var_v0_2 & 0xFF) + 1;
                             break;
                         case 2:                     /* switch 4 */
@@ -16583,7 +16589,7 @@ block_83:
                             break;
                         }
                     }
-                    if ((*(u16 *)((char *)(arg0) + 0x30) != 1) || (0 /* M2C unset $a0 */ != 3)) {
+                    if ((*(u16 *)((char *)(arg0) + 0x30) != 1) || (temp_a0_3 != 3)) {
                         temp_v0_4 = *(u8 *)((char *)(arg0) + 0x22);
                         if ((s32) temp_v0_4 >= 6) {
                             var_a2_2 = temp_v0_4 + 0xE;
@@ -16605,20 +16611,19 @@ block_83:
                             gl_func_00043BE4(arg0, 0x10, var_a2_2, var_f0_2, var_v0_3); var_v0_2 = 0; /* M2C: v0-after-void-call */
                         }
                     }
-                    switch (sp6B) {                 /* switch 5 */
-                    case 0:                         /* switch 5 */
-                        var_v0_2 = 8;
-                        break;
+                    switch ((u8) sp6B) {            /* switch 5; jtbl @data+0x16F8 */
                     case 1:                         /* switch 5 */
+                    case 3:                         /* switch 5 */
                         var_v0_2 = 0xC;
                         break;
-                    case 2:                         /* switch 5 */
+                    case 5:                         /* switch 5 */
+                    case 7:                         /* switch 5 */
                         var_v0_2 = 0x10;
                         break;
-                    case 3:                         /* switch 5 */
+                    case 9:                         /* switch 5 */
                         var_v0_2 = 0x38;
                         break;
-                    default:                        /* switch 5 */
+                    default:                        /* switch 5 (cases 0,2,4,6,8,10) */
                         temp_v1_6 = *(u8 *)((char *)(arg0) + 0x29);
                         var_v0_2 = 0x10;
                         if (temp_v1_6 != 0) {
@@ -16628,15 +16633,9 @@ block_83:
                                     var_v0_2 = 8;
                                 }
                             } else {
-                            case 6:                 /* switch 5 */
-                            case 7:                 /* switch 5 */
-                            case 8:                 /* switch 5 */
-                            case 9:                 /* switch 5 */
-                            case 10:                /* switch 5 */
                                 var_v0_2 = 0x18;
                             }
                         } else {
-                        case 5:                     /* switch 5 */
                             sp50 = 6;
                         }
                         break;
@@ -16657,7 +16656,7 @@ block_83:
                 }
             }
             if (*(u8 *)((char *)(arg0) + 0x23) != 0) {
-                if ((*(s32 *)((char *)&D_00000000 + 0) == 1) && ((temp_v0_7 = *(s32 *)((char *)&D_00000000 + 0), (temp_v0_7 == 4)) || (temp_v0_7 == 0xA)) && ((temp_v0_7 != 4) || (*(u8 *)((char *)(arg0) + 0x21) != 2))) {
+                if ((*(s32 *)((char *)&D_00000000 + 0) == 1) && ((temp_v0_7 = *(s32 *)((char *)&D_00000000 + 0), (temp_v0_7 == 4)) || (temp_v0_7 == 0xA)) && ((temp_v0_7 != 4) || (*(u8 *)((char *)(arg0) + 0x33) != 2))) {
                     if (*(u8 *)((char *)(arg0) + 0x14) == 0) {
                         temp_v0_8 = *(s32 *)((char *)(arg0) + 0x38);
                         if (temp_v0_8 == 0) {
@@ -16668,16 +16667,16 @@ block_83:
                             }
                         } else if (temp_v0_8 >= 7) {
                             var_f0_3 = *(f32 *)((char *)(arg0) + 0x0) / *(f32 *)((char *)&D_00000000 + 0x1C738);
-                            if (var_f0_3 <= 0.5f) {
+                            if (!(0.5f <= var_f0_3)) {
                                 var_f0_3 = 0.5f;
                             }
-                            if (var_f0_3 >= 1.0f) {
+                            if (1.0f <= var_f0_3) {
                                 var_f0_3 = 1.0f;
                             }
                             temp_v0_9 = *(s32 *)((char *)&D_00000000 + 0);
                             if (temp_v0_9 != 0) {
                                 *(s32 *)((char *)&D_00000000 + 0) = (s32) (temp_v0_9 - 1);
-                                var_f0_3 *= *(s32 *)((char *)(((temp_v0_9 & 0x1F) * 4)) + 0x1C430);
+                                var_f0_3 *= *(f32 *)((char *)(((temp_v0_9 & 0x1F) * 4)) + 0x1C430);
                             }
                             temp_f2 = *(f32 *)((char *)&D_00000000 + 0x1724);
                             if (temp_f2 <= var_f0_3) {
@@ -16688,7 +16687,7 @@ block_83:
                             func_00000000(0x3F000000, 0x04010900, var_f0_3);
                         }
                     } else {
-                        temp_v0_10 = *(f32 *)((char *)&D_00000000 + 0x14);
+                        temp_v0_10 = *(s32 *)((char *)&D_00000000 + 0x14);
                         if (temp_v0_10 != 0) {
                             temp_f0 = *(f32 *)((char *)&D_00000000 + 0x1C73C);
                             temp_f2 = *(f32 *)((char *)&D_00000000 + 0x1728);
@@ -16696,7 +16695,7 @@ block_83:
                             if (temp_f2 <= var_f0_4) {
                                 var_f0_4 = temp_f2;
                             }
-                            if (var_f0_4 <= 0.5f) {
+                            if (!(0.5f <= var_f0_4)) {
                                 var_f0_4 = 0.5f;
                             }
                             *(s32 *)((char *)&D_00000000 + 0x14) = (s32) (temp_v0_10 - 1);
