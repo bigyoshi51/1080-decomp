@@ -8403,7 +8403,7 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
  *   v1->[0x110] = a0->[0x25C];
  *   v1->[0x114] = a0->[0x260];
  *   v1->[0x118] = a0->[0x294];
- *   gl_func_00000000();               ; tail call (no args)
+ *   timproc_uso_b5_func_00003F58();   ; tail call (no args, intra-module)
  *
  * Initial decode — multi-pass refinement expected. The bc1fl + delay-likely
  * pattern + reload-of-v1 across the fork are likely structural cap drivers.
@@ -8429,7 +8429,24 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
  * for the first-live pseudo regardless because the only use of $v0-as-
  * return-value is the final jr ra delay slot, well after all other
  * pseudo-allocations are settled. Reverted. The C-level register-flip
- * lever isn't reachable here; this is permuter-territory. */
+ * lever isn't reachable here; this is permuter-territory.
+ *
+ * 2026-06-20 reconstruction pass: resolved placeholder tail call
+ * gl_func_00000000() -> the REAL intra-module callee
+ * timproc_uso_b5_func_00003F58() (matches the .s jal). In .text the jal
+ * disk-encodes as 0C000000 for BOTH the placeholder and the real symbol
+ * (relocatable USO: R_MIPS_26 applied at load), so the swap does NOT
+ * change reloc-filtered .text bytes — it's a correctness/clarity fix, not
+ * a %-mover. Function is now 99.61% (47/51 words exact). The 4 residual
+ * diffs are ALL the same regalloc cap: the entry-block a0->[0x2B8] pointer
+ * (live insns 2-5: lw .0x2B8, lw .0x134, addiu +0x128) colors $a1 in the
+ * build vs $v1 in the target; the post-branch reloads already color $v1.
+ * Tried: decl-order swap (no change); hoisting p128 into both arms (drops
+ * the shared pre-beql `addiu $v0,$v1,0x128` -> worse); assigning the
+ * clamp reloads back into `v1` (forces `move $v1,$a1` + growth -> worse).
+ * IDO unifies the reloaded pointer onto $v1 and leaves the first,
+ * separately-loaded pseudo on $a1; no C-level live-range edit reachable
+ * here flips it. Class: first-pseudo register-coloring. Permuter-territory. */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
@@ -8470,7 +8487,7 @@ void timproc_uso_b5_func_0000C8AC(int *a0) {
     *((float *) (((char *) v1) + 0x10C)) = c;
     *((float *) (((char *) v1) + 0x118)) = d;
   }
-  gl_func_00000000();
+  timproc_uso_b5_func_00003F58();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C8AC);
