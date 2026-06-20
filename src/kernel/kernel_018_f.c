@@ -157,12 +157,32 @@ extern u8 __rmonRcpAtBreak;
  * break-word via func_80006A98, flag a pending RCP break), else find the CPU
  * thread in the chain (func_80009C30) by id and copy its saved PC/break state.
  * The 0x8000785C alt-entry (external callers via undefined_syms) is the shared
- * unk12-flag tail. (Unblocked by adding an alabel for m2c parsing.) */
+ * unk12-flag tail. (Unblocked by adding an alabel for m2c parsing.)
+ *
+ * 2026-06-20 (95.9 -> 99.5%): structural rebuild. (1) `void *volatile sp18`
+ * forces the per-statement reload of the thread-chain node that the target does
+ * everywhere (loop walk + 4 tail accesses) — at -O1 IDO otherwise CSEs the
+ * pointer across the loop's branch BB and collapses the `sp18 = sp18->0xC`
+ * reload (loop emitted 2 insns short). (2) the goto-loop form (NOT `while`,
+ * which let IDO cache sp18 and grew it +5 insns) matches the guard+top-test
+ * shape. (3) the HW(sp18,0x10) value is reused via `sp1C` (already homed for
+ * the later 0x11C value) so the lhu result is held in a register across the
+ * branch, matching the target's single `lhu $t0` reuse — NOT a fresh named
+ * `temp_t0` (that adds a 3rd M-class home → frame 0x20 -> 0x28, the +8 cascade).
+ * RESIDUAL (1 real insn, genuine cap): target keeps the HW value in a
+ * register-only subexpression temp ($t0, no stack home); reusing the homed
+ * `sp1C` forces a dead `sw $t0,0x1C(sp)` into the beqz delay slot (target=nop).
+ * Register-only temp is unreachable from C here: named locals always home
+ * (M-class), and the volatile sp18 required for the loop blocks the inline-CSE
+ * that would otherwise yield a homeless temp. Verified across 12+ variants
+ * (named/block/register temp, ternary, arg0-reuse, inline, ptr-snapshot,
+ * store-then-fixup, RW(&sp18) volatile-addr, non-volatile do-while). The other
+ * 6 word-diffs are R_MIPS_26/HI16/LO16 reloc placeholders (func_80008430,
+ * func_80006A98, func_80009C30, __rmonRcpAtBreak) that resolve at link. */
 s32 func_80007698(s32 arg0, s32 arg1, void *arg2) {
     extern s32 func_80008430();
     s32 sp1C;
-    void *sp18;
-    u16 temp_t0;
+    void *volatile sp18;
 
     FW(arg2, 0x14) = arg1;
     if (arg0 == 1) {
@@ -212,9 +232,9 @@ loop_12:
         return -2;
     }
     FW(arg2, 0x28) = FW(sp18, 4);
-    temp_t0 = HW(sp18, 0x10);
-    if (temp_t0 != 0) {
-        FW(arg2, 0xC) = temp_t0;
+    sp1C = HW(sp18, 0x10);
+    if (sp1C != 0) {
+        FW(arg2, 0xC) = sp1C;
     } else {
         FW(arg2, 0xC) = 1;
     }
