@@ -1645,25 +1645,13 @@ int game_libs_func_000359B8(int a0) {
     return 0;
 }
 
-/* gl_func_000359C4: 21-insn 3-call dispatcher with permuted arg lists.
- * Calls gl_func(a1, a3, a2), then gl_func(0, a2, a1), then
- * gl_func(a1, a3) (2-arg). a0 unused. */
-#ifdef NON_MATCHING
+/* gl_func_000359C4: 21-insn 3-call dispatcher. All 4 args homed at entry,
+ * reloaded per call: f(a1,a3); f(0,a2,a1,a3); f(a1,a3). a0 homed but unused. */
 void gl_func_000359C4(int a0, int a1, int a2, int a3) {
-  int new_var2;
-  int new_var;
-  int new_var3;
-  ;
-  new_var2 = new_var;
-  gl_func_00000000(a1, a3, a2);
-  gl_func_00000000(0, a2, new_var2);
-  new_var3 = new_var2;
-  new_var2 = a1;
-  gl_func_00000000(new_var2, a3, new_var3);
+    gl_func_00000000(a1, a3);
+    gl_func_00000000(0, a2, a1, a3);
+    gl_func_00000000(a1, a3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000359C4);
-#endif
 
 // gl_func_00035A18 — STRUCTURAL PASS (0x80 / 32 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one

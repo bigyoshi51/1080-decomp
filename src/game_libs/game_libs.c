@@ -3512,46 +3512,24 @@ void gl_func_00006AAC(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006AAC);
 #endif
 
-/* gl_func_00006B80 - verified structural decode (0xB8, 46 insns,
- * object initializer).
- *   void gl_func_00006B80(int *a0, int a1, int a2) {
- *       a0->0x4F8 = a2;
- *       a0->0x4E0 = 3;
- *       a0->0x4DC = 2;
- *       gl_func_00000000(&D_00000000, 0);
- *       a0->0x4EC = 0;
- *       a0->0x518 = 0;
- *       a0->0x4E4 = a1;
- *       a0->0x54C = 120.0f;                       // 0x42F00000
- *       if (g_mode == 2)                          // *(&D)->0x34
- *           a0->0x54C = 60.0f;                    // 0x42700000
- *       a0->0x550 = 0.0f;
- *       a0->0x544 = 255;
- *       a0->0x554 = 150.0f;                       // 0x43160000
- *       v = a0->0x28;
- *       (*(fn)v->0x7C)((s16)v->0x78 + (int)a0);   // obj-0x28 dispatch
- *   }
- * Struct-typing reference: a0 = a large object. Fields: 0x4DC (1244)
- * s32 = 2, 0x4E0 (1248) s32 = 3, 0x4E4 (1252) s32 = a1, 0x4EC (1260)
- * s32 = 0, 0x4F8 (1272) s32 = a2, 0x518 (1304) s32 = 0, 0x544 (1348)
- * s32 = 255, 0x54C (1356) f32 timer/duration = 120.0 (60.0 when the
- * global mode *(&D)->0x34 == 2), 0x550 (1360) f32 = 0.0, 0x554
- * (1364) f32 = 150.0; a0->0x28 (40) vtable ptr with fn @0x7C (124)
- * + s16 base-adjust @0x78 (120) - the engine-wide obj-0x28 dispatch
- * idiom, 0x7C/0x78 variant. Caps <80: FP-const loads (lui+mtc1) x4
- * + bne global-mode branch + gl_func_00000000 reloc call + &D reloc
- * + vtable jalr. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
+/* gl_func_00006B80 - object initializer (0xB8, 46 insns). MATCHED 2026-06-20.
+ * Two landing levers: (1) assign a0->0x4E4 = a1 BEFORE the two zero-stores so
+ * IDO's as1 scheduler hoists the a1 reload + the &D mode-load lui to cover
+ * load latency (matches target schedule exactly); (2) call the vtable fn
+ * THROUGH the dereferenced pointer (no intermediate `fn` local) so IDO uses
+ * $t9 for the jalr target instead of $v1. a0 = large object: 0x4DC=2, 0x4E0=3,
+ * 0x4E4=a1, 0x4EC=0, 0x4F8=a2, 0x518=0, 0x544=255, 0x54C f32 duration (120,
+ * or 60 when global mode *(&D)->0x34==2), 0x550=0.0, 0x554=150.0; a0->0x28
+ * vtable ptr, fn @0x7C, s16 base-adjust @0x78 (obj-0x28 dispatch idiom). */
 void gl_func_00006B80(char *a0, int a1, int a2) {
     char *v;
     *(int *)(a0 + 0x4F8) = a2;
     *(int *)(a0 + 0x4E0) = 3;
     *(int *)(a0 + 0x4DC) = 2;
     gl_func_00000000(&D_00000000, 0);
+    *(int *)(a0 + 0x4E4) = a1;
     *(int *)(a0 + 0x4EC) = 0;
     *(int *)(a0 + 0x518) = 0;
-    *(int *)(a0 + 0x4E4) = a1;
     *(float *)(a0 + 0x54C) = 120.0f;
     if (*(int *)((char *)&D_00000000 + 0x34) == 2) {
         *(float *)(a0 + 0x54C) = 60.0f;
@@ -3560,14 +3538,8 @@ void gl_func_00006B80(char *a0, int a1, int a2) {
     *(int *)(a0 + 0x544) = 255;
     *(float *)(a0 + 0x554) = 150.0f;
     v = *(char **)(a0 + 0x28);
-    {
-        void (*fn)(char *) = *(void (**)(char *))(v + 0x7C);
-        fn((char *)((int)(short)*(short *)(v + 0x78) + (int)a0));
-    }
+    (*(void (**)(char *))(v + 0x7C))((char *)((int)(short)*(short *)(v + 0x78) + (int)a0));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006B80);
-#endif
 
 /* gl_func_00006C38: 41-insn struct-init. Sets a0->{0x4F8,0x4E0,0x4DC} from
  * args; calls gl_func_0(&D, 0, a2, orig_a0) (4 args, a3 = saved orig_a0);
