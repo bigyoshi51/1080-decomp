@@ -2246,8 +2246,13 @@ int game_libs_func_0006656C(int *a0) {
 
 void game_libs_func_000665A4(int *a0, int a1) { *(int*)a0 = a1; *(int*)((char*)a0 + 8) = 0; *(int*)((char*)a0 + 4) = 0; }
 
-#ifdef NON_MATCHING
-/* gl_func_000665B4: too-big-N-function-bundle (declared size 0xC0, 48 words).
+/* gl_func_000665B4: alloc-retry cache-lookup loop. MATCHED 2026-06-20 via
+ * chained-assignment `v1 = *(p+4) = alloc(...)` forcing store-before-call-arg
+ * (the prior "permuter-floored scheduler tie" cap was wrong — it was a
+ * C-formulation issue). The two jal targets are the relocatable-USO placeholder
+ * gl_func_00000000 (correct .text bytes; R_MIPS_26 supplied by USO loader).
+ *
+ * Original decode notes (bundle context):
  * 2-function bundle.
  *
  * SUB-FUNCTION 1 (0x665B4..0x66620, 27 insns, 0x6C bytes) — retry-alloc-cache lookup:
@@ -2301,8 +2306,7 @@ int gl_func_000665B4(int a0) {
     do {
         v1 = *(int *)(a0 + 4);
         if (v1 == 0) {
-            v1 = gl_func_00000000(0, *(int *)a0);
-            *(int *)(a0 + 4) = v1;
+            v1 = *(int *)(a0 + 4) = gl_func_00000000(0, *(int *)a0);
             *(int *)(a0 + 8) += 1;
         }
         v0 = gl_func_00000000(v1);
@@ -2312,9 +2316,6 @@ int gl_func_000665B4(int a0) {
     } while (v0 == 0);
     return v0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000665B4);
-#endif
 
 
 /* game_libs_func_00066620: leaf-branch-past-end CAP per

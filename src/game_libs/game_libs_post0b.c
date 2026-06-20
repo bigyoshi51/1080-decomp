@@ -32278,60 +32278,19 @@ char *game_libs_func_0005FE14(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FE14);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0005FE7C: 0x98 (38 insns) — sibling of gl_func_0005FDCC (just-landed),
- * gl_func_0005FCC4 (97% NM), gl_func_0005FD20 (92.5% NM). 0x90-byte stack frame.
- *
- * Decoded structure (resource-load / sprintf+open style):
- *   1. helper1(a0+0x24, a1)               — strcpy or similar w/ a0+0x24 buffer
- *   2. helper2(&D + 0x21C50)              — fmt/log call with format string
- *   3. v0 = helper3(a1, &local_buf[0])    — read/parse, returns bool
- *   4. if (v0 != 0) helper4(a0+0x24, &local_buf[0])  — conditional copy
- *   5. if (*(int*)&D == 0) helper5(&D + 0x21C68)     — log error if global=0
- *   6. s0[0x18/4] = 0; s0[0x14/4] = 0; s0[0x1C/4] = 0
- *   7. helper6() — likely Yay0 or compression-related
- *   8. s0[0x8/4] = 0
- *   9. s0[0x10/4] = helper7() — final result store (probably handle/ptr)
- *
- * The bnel-with-shared-store at insn 24 (`bnel t6,zero,+4; sw zero,0x18(s0) [delay-likely]`)
- * matches the IDO emit for `if (*ptr == 0) helper(); s0[6] = 0;`
- * — the store at 0x18(s0) happens on BOTH paths (delay-likely on the
- * branch-taken path, fall-through after helper on branch-not-taken).
- *
- * Per feedback_partial_alloc_block_add_irreversible.md, partial body adds
- * to multi-call functions risk regression. Started with full body decoded
- * together. Multiple `gl_func_00000000` calls with distinct args — plausible
- * 80%+ first try, similar to gl_func_0005FD20 sibling.
- *
- * 2026-05-05 91.87% NM diff analysis: target frame 0x90, build frame 0x90
- * (same total). The cap is local_buf placement: target uses sp+0x2C, build
- * uses sp+0x24. 8-byte hole at sp+0x24..0x2B in target's layout — purpose
- * unclear (NOT for arg-spill since a1 spills to caller's sp+0x94 outside
- * frame). Could be reserved outgoing-arg shadow or aligned-struct slot.
- *
- * Variants tried 2026-05-05 (none promote — IDO collapses unused locals):
- *   (a) `char pad[8]` BEFORE local_buf[24]: pad eliminated, buf at sp+0x24
- *   (b) `char pad[8]` AFTER local_buf[24]: same, buf at sp+0x24
- *   (c) `struct { int top_pad[2]; int data[24]; } buf;`: struct top_pad
- *       eliminated by IDO, buf.data at sp+0x24
- *
- * The 8-byte offset cascades through the rest of the diff — every
- * `addiu a1, sp, 0x2C` in target becomes `addiu a1, sp, 0x24` in build.
- * Plus 2 trailing-jal delay-slot-fillers (target has nop+sw, build has
- * sw+sw merged). All structural-scheduling caps.
- *
- * Promotion likely needs: (1) a way to FORCE 8 bytes of unused stack
- * reserve (IDO doesn't honor `volatile` for this), or (2) INSN_PATCH
- * on ~6 sp-offset insns (each addiu/lw with sp+0x24 → sp+0x2C). */
+/* gl_func_0005FE7C: resource-load helper (frame 0x90). The 0x68-byte
+ * scratch buffer is passed as &local_buf[2] (data at sp+0x2C, 8 dead
+ * bytes at sp+0x24 below it). Tail stores are ordered so s0[0x8]=0 fills
+ * helper6's jal delay slot. */
 extern int gl_func_00000000();
 void gl_func_0005FE7C(int *a0, int a1) {
     int v0;
-    int local_buf[26];   /* sp+0x2C..sp+0x94 area, ~0x68 bytes */
+    int local_buf[26];
     gl_func_00000000((char*)a0 + 0x24, a1);
     gl_func_00000000((char*)&D_00000000 + 0x21C50);
-    v0 = gl_func_00000000(a1, &local_buf[0]);
+    v0 = gl_func_00000000(a1, &local_buf[2]);
     if (v0 != 0) {
-        gl_func_00000000((char*)a0 + 0x24, &local_buf[0]);
+        gl_func_00000000((char*)a0 + 0x24, &local_buf[2]);
     }
     if (*(int*)&D_00000000 == 0) {
         gl_func_00000000((char*)&D_00000000 + 0x21C68);
@@ -32339,13 +32298,10 @@ void gl_func_0005FE7C(int *a0, int a1) {
     *(int*)((char*)a0 + 0x18) = 0;
     *(int*)((char*)a0 + 0x14) = 0;
     *(int*)((char*)a0 + 0x1C) = 0;
-    gl_func_00000000();
     *(int*)((char*)a0 + 0x8) = 0;
+    gl_func_00000000();
     *(int*)((char*)a0 + 0x10) = gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005FE7C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005FF14: 47-insn header-dump + chain-walk debug formatter (0xBC, frame 0x70).

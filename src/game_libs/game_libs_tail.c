@@ -186,38 +186,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
 #endif
 
 /* 7-arg string-builder: a0[0]=a1; a0[1]=a2; 3x copy (a3[i]-0x61)->a0[2..4];
- * a0[5..7]=stack args. 90% NM. Splitting the local decls from their
- * initializers (declare n/d/s, THEN store a0[0]/a0[1], THEN init) hoists
- * both byte-stores to the top together, matching the target (was 80% when
- * the `int n=0; char *d=a0; char *s=a3;` inits preceded the stores).
- * Residual single diff: the loop-bound const `addiu a1,zero,3` schedules
- * after the n/d/s setup-moves vs before them in the target — a scheduling
- * tie (the const reuses dead param reg a1, has no data dep on the moves, so
- * its position among them is a priority tie GCC breaks the other way).
- * The old INSN_PATCH positional swap was REMOVED 2026-05-23 as match-faking. */
-#ifdef NON_MATCHING
+ * a0[5..7]=stack args. MATCHED (byte-exact). The prior "loop-bound const
+ * scheduling tie" was MISDIAGNOSED: the fix is to place the n/d/s inits in
+ * the for-init clause AFTER the two byte stores, with the loop exit as a
+ * trailing `if (n == 3) break;`. That ordering makes GCC materialize the
+ * bound `li a1,3` immediately after the stores (before the setup moves),
+ * exactly as the target schedules it. */
 void game_libs_func_000099DC(char *a0, int a1, int a2, char *a3, int a4, int a5, int a6) {
     int n;
     char *d;
     char *s;
     a0[0] = a1;
     a0[1] = a2;
-    n = 0;
-    d = a0;
-    s = a3;
-    do {
+    for (n = 0, d = a0, s = a3; ;) {
         n++;
         d++;
         d[1] = *s - 0x61;
         s++;
-    } while (n != 3);
+        if (n == 3) {
+            break;
+        }
+    }
     a0[5] = a4;
     a0[6] = a5;
     a0[7] = a6;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000099DC);
-#endif
 
 /* game_libs_func_00009A2C: flag-test accessor. splat's jr-ra heuristic split
  * the return-0 tail (jr ra; nop) into 00009A48 — which coincidentally matched
