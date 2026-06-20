@@ -3434,47 +3434,26 @@ void func_000054A0(int a0) {
 
 extern char D_000078D8;
 
-#ifdef NON_MATCHING
-/* func_000054D8: 25-insn alloc-and-init wrapper (0x64). Allocates a 0x58-byte
- * struct, initializes via gl_func with 5 args, sets vtable-style pointer at
- * +0x28, returns the new pointer (or 0 on alloc fail).
- *
- * Decoded structure:
- *   p = func_00000000(0x58);                     // alloc
- *   if (p == 0) return 0;
- *   func_00000000(p, arg0, *D_a, &D_b, arg0);    // init (5-arg, varargs spill)
- *   p->0x28 = &D_000078D8;                       // vtable
- *   return p;
- *
- * -O2 indicators: filled jal delay slots (sw a1,4(sp) in delay slot of init
- * call — varargs 5th arg spilled), `or v0,a0,zero` epilogue setting return
- * value from $a0 (since both alloc-success and alloc-fail paths converge to
- * `return p`).
- *
- * Two D_00000000 references at 0x4FC/0x500 (lui+lw, lui+addiu) - distinct
- * USO data placeholders.
- *
- * 2026-05-06 update: applied goto-end + same-type unique-extern aliases
- * (D_54D8_init_value, D_54D8_init_arg, both at 0x0) per docs/IDO_CODEGEN.md
- * #feedback-ido-type-split-unique-extern-breaks-cse 2026-05-06 expansion.
- * Promoted 84.20% -> 88.40%. Remaining ~12% diff is the documented
- * pre-call arg-spill cap (sw a1, 0x4(sp) in jal delay slot) per
- * feedback-ido-precall-arg-spill-unreachable; that ~2-insn diff cascades
- * to the frame-size delta (0x20 mine vs 0x28 target) since target reserves
- * an extra spill slot for arg0. Permuter-only further. */
+/* 25-insn constructor wrapper: alloc 0x58 bytes, init via runtime-patched
+ * callee, set field 0x28 to &D_000078D8.  BYTE-EXACT (2026-06-20).
+ * Byte-identical sibling of func_0000553C — same three IDO levers stacked
+ * (struct-by-value PARAM homes a0; struct-by-value ARG homes outgoing a1 in
+ * the jal delay slot; volatile int pad grows the frame 0x20 -> 0x28). The
+ * only difference from 553C is the field-0x28 data symbol (D_000078D8 here
+ * vs D_000079C8 there). D_54D8_init_value/_arg are base-0 externs. */
 extern char D_54D8_init_value;
 extern char D_54D8_init_arg;
-int* func_000054D8(int arg0) {
-    int *p = (int*)func_00000000(0x58);
+int *func_000054D8(struct OneI arg0) {
+    volatile int pad;
+    int *p;
+    int saved_a0 = arg0.x;
+    p = (int*)func_00000000(0x58);
     if (p == 0) goto end;
-    func_00000000(p, arg0, *(int*)&D_54D8_init_value, &D_54D8_init_arg);
+    func_00000000(p, *(struct OneI*)&saved_a0, *(int*)&D_54D8_init_value, &D_54D8_init_arg);
     p[10] = (int)&D_000078D8;
 end:
     return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054D8);
-#endif
 
 /* 25-insn constructor wrapper: alloc 0x58 bytes, init via runtime-patched
  * callee, set field 0x28 to &D_000079C8.  BYTE-EXACT (2026-06-20).
@@ -5831,37 +5810,31 @@ void func_00008AEC(Quad4 *dst) {
 }
 
 #ifdef NON_MATCHING
-/* func_00008B44: 36-insn (0x90) alloc-or-given init. 57.89% NM (2026-05-17).
+/* func_00008B44: 36-insn (0x90) alloc-or-given init. The C BODY BELOW IS
+ * BYTE-EXACT (verified 2026-06-20: 0 non-reloc diffs, 36/36 insns) but CANNOT
+ * be landed as the live build path: func_0000D900 AND func_000080EC (both still
+ * INCLUDE_ASM) take the ADDRESS of internal labels of this function —
+ * `.L00008B6C` (= 8B44+0x28) and `D_00008B70` (= 8B44+0x2C). Converting 8B44
+ * to C deletes those local label defs, so the bootup_uso.o link fails with
+ * `undefined reference to .L00008B6C`. This lands cleanly once D900 and 080EC
+ * are also decompiled (cross-refs become normal C-internal addresses). NO
+ * episode (build path is INCLUDE_ASM; would be a tautology).
  *
- * Decoded:
  *   p = a0;
- *   if (p == 0) {
- *       p = alloc(0x178);
- *       if (p == 0) goto end;
- *   }
+ *   if (p == 0) { p = alloc(0x178); if (p == 0) goto end; }
  *   call(p, a1, a3, a4, f_arg);              // 5-arg, a2 SKIPPED, 5th=float via stack
  *   p->0x28 = &D_00000000;                   // vtable-style
- *   p->0x170 = a1;                           // reload a1 from caller-arg slot
- *   p->0x150 = 1.0f;                         // f6 from lui 0x3F80
+ *   p->0x170 = a1;                           // reload a1 from caller slot
  *   p->0x174 = (u16)a2;                      // lhu low half of a2 ONLY use
- *   p->0x154 = 10.0f;                        // f8 from lui 0x4120
- * end:
+ *   p->0x150 = 1.0f;  p->0x154 = 10.0f;
  *   return p;
  *
- * Caller reloads at sp+0x24 (a1), sp+0x2C (a3 → as call arg2!), sp+0x30 (a4),
- * lwc1 sp+0x34 (f_arg) — so the outgoing call args are (p, a1, a3, a4, f_arg).
- * Variable a2 NOT passed to call; only used for (u16)a2 short store.
- *
- * 2026-06-02 (57.9->87.2%): both residuals fixed.
- *   (1) typed-float proto func_8b44_init makes the 5th arg pass single swc1
- *       (was K&R double-promote sdc1).
- *   (2) using the param a0 DIRECTLY (not a separate `p` local) keeps the obj
- *       in a0 (spilled/reloaded around the call) instead of promoting it to
- *       $s0 — drops the s0 save/restore pair and realigns (+24pp).
- * Residual ~13% = `(u16)a2` reads lw+sh here vs target lhu(42(sp))+sh, + one
- * lui-1.0f scheduling slot. Minor codegen; INCLUDE_ASM stays. */
-/* typed-float proto (0x0-alias): 5th arg f_arg is a single float on the stack
- * (target swc1 0x10); K&R func_00000000 double-promotes it. */
+ * Two final levers that took the prior 87.2% NM to byte-exact:
+ *  - the (u16)a2 store must read the saved int slot's low halfword by MEMORY
+ *    (`((unsigned short*)&a2)[1]` -> lhu 0x2A(sp)), not reload+truncate (lw).
+ *  - the short store (0x174) must be emitted BEFORE the float stores in C so
+ *    as1 schedules the 1.0f/10.0f lui/mtc1/swc1 materialization to match.
+ * typed-float proto func_8b44_init keeps the 5th arg a single swc1. */
 extern void func_8b44_init(char *, int, int, int, float);
 char* func_00008B44(char *a0, int a1, int a2, int a3, int a4, float f_arg) {
     if (a0 == 0) {
@@ -5871,8 +5844,8 @@ char* func_00008B44(char *a0, int a1, int a2, int a3, int a4, float f_arg) {
     func_8b44_init(a0, a1, a3, a4, f_arg);
     *(int*)(a0 + 0x28) = (int)&D_00000000;
     *(int*)(a0 + 0x170) = a1;
+    *(unsigned short*)(a0 + 0x174) = ((unsigned short*)&a2)[1];
     *(float*)(a0 + 0x150) = 1.0f;
-    *(unsigned short*)(a0 + 0x174) = (unsigned short)a2;
     *(float*)(a0 + 0x154) = 10.0f;
 end:
     return a0;

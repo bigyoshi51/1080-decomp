@@ -2415,37 +2415,29 @@ int game_libs_func_000666FC(void) {
     return (int)&D_gl_00041310;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00066720: 29-insn chunked-transfer loop. Splits a (src, dst, len)
- * transfer into 0x2710 = 10000-byte chunks, calling gl_func_00000000 per
- * chunk. Early-exits on len==0.
- *
- * 58.6% match — structural decode correct, cap is the 0x2710 inlining:
- *   target: `addiu s0, 0, 0x2710; sltu at, s1, s0` (2 insns, register cmp)
- *   c-emit: `sltiu at, s1, 0x2710` (1 insn, immediate cmp)
- * IDO -O2 constant-folds chunk = 0x2710 into the sltiu when chunk is
- * function-local and the value is visible. To force the addiu+sltu pair,
- * 0x2710 must be opaque (memory load, asm barrier, or extern const) —
- * none of which the source likely had. Plus 1-insn prologue-spill order
- * (target spills s0 first, IDO defers s0 spill to after assignments).
- *
- * Variants tried 2026-05-15: int len, unsigned int len, register-keyword
- * on chunk — all 17/29 same. */
+/* gl_func_00066720: chunked transfer w/ 10000-byte (0x2710) limit per call.
+ * MATCHED 2026-06-20: sibling of gl_func_00066794 — same shared-limit/chunk
+ * lever. The limit (0x2710) and the per-iteration chunk SHARE one register
+ * (s0): a SINGLE `chunk` variable initialized ONCE outside the loop, only
+ * narrowed in-loop by `if (len < chunk) chunk = len`. Reusing the single var
+ * (no separate `limit` + ternary) makes IDO load `li s0,0x2710` ONCE in the
+ * prologue and reuse it for the loop `sltu at,s1,s0` (register cmp, not the
+ * constant-folded sltiu). Differs from 66794 only in the post-call update
+ * order: here `dst += chunk` is the LAST source statement so it lands in the
+ * bne delay slot. jal is the relocatable-USO placeholder gl_func_00000000. */
 void gl_func_00066720(char *src, char *dst, unsigned int len) {
-    unsigned int chunk;
+    unsigned int chunk = 10000;
     if (len == 0) return;
     do {
-        chunk = 0x2710;
-        if (len < chunk) chunk = len;
+        if (len < chunk) {
+            chunk = len;
+        }
         gl_func_00000000(src, dst, chunk);
         len -= chunk;
         src += chunk;
         dst += chunk;
     } while (len != 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066720);
-#endif
 
 /* gl_func_00066794: chunked transfer w/ 10000-byte (0x2710) limit per call.
  * MATCHED 2026-06-20: the prior "0x2710 folds to sltiu" cap was wrong. The
