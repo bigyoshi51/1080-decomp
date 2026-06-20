@@ -3201,28 +3201,26 @@ void game_libs_func_0000E050(int a0, int a1) { (void)a0; (void)a1; }
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 void gl_func_0000E05C(int *self, int a1, int a2) {
-    extern int D_sym1, D_sym2;
     int *v0 = (int*)gl_func_00000000(self);
     int a2_var = -1;
-    int flags;
     int *vt;
     int (*fn)(int, int);
     short off;
     if (v0 == 0) return;
     if ((v0[1] & 1) == 0) return;
-    flags = self[0xB4 / 4];
-    if (flags & 0x10) {
-        a2_var = (int)gl_func_00000000(&D_sym1);
+    /* flags re-read each test (not cached) — matches target's two lw 0xB4(s0). */
+    if (self[0xB4 / 4] & 0x10) {
+        a2_var = (int)gl_func_00000000(*(int*)&D_00000000, a2);
     }
-    if (flags & 0x1) {
-        int r1 = (int)gl_func_00000000(&D_sym2, a1);
+    if (self[0xB4 / 4] & 0x1) {
+        int r1 = (int)gl_func_00000000(*(int*)&D_00000000, a2);
         gl_func_00000000(self, r1, a2_var);
     }
-    gl_func_00000000(0x24, a1);
+    gl_func_00000000(0x24, a2);
     vt = (int*)self[0x28 / 4];
     fn = (int(*)(int, int))vt[0x6C / 4];
     off = *(short*)((char*)vt + 0x68);
-    fn((int)((char*)self + off), a1);
+    fn((int)((char*)self + off), a2);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E05C);
