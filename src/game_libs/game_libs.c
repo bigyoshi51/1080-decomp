@@ -3901,7 +3901,15 @@ void game_libs_func_000076E8(int a0) {
 #ifdef NON_MATCHING
 /* PASS-1 2026-06-10 (big-swing): FULL m2c graft, THREE small sparse
  * jumptables synthesized (bounds 6/4/4, full head coverage; order
- * approximate). First C body for this fn. */
+ * approximate). First C body for this fn.
+ * PASS-2 2026-06-20 (agent-e): added explicit `case 2/3/4: break;` to
+ * switch1 (on field 0x4E0) so IDO emits the bounds-6 indirect jumptable
+ * (sltiu at,v0,6; jr t7) matching the target head instead of a beql
+ * cascade. True opcode-alignment 30.2%->32.2% (exact-byte still ~2.8% —
+ * fuzzy% overstates). Residual: pervasive scattered regalloc (v0/v1 swaps,
+ * a0-vs-s0 base, branch-likely delay-fill order) + switch2/switch4
+ * jumptable case-data ambiguity (USO base-0 jtbl resolved at load, absent
+ * from .s). Genuine regalloc/scheduling cap. */
 void gl_func_000076F0(char *arg0) {
     s32 sp24;
     s32 sp20;
@@ -4074,6 +4082,10 @@ block_17:
                 *(s32 *)((char *)(arg0) + 0x4E0) = 7U;
                 ((void (*)())*(s32 *)((char *)(temp_v0_6) + 0xCC))(*(s32 *)((char *)(temp_v0_6) + 0xC8) + arg0);
             }
+            break;
+        case 2:                                     /* switch 1 */
+        case 3:                                     /* switch 1 */
+        case 4:                                     /* switch 1 */
             break;
         }
         if ((*(s32 *)((char *)(arg0) + 0x500) != 0) && ((temp_v0_7 = *(s32 *)((char *)(arg0) + 0x28), ((void (*)())*(s32 *)((char *)(temp_v0_7) + 0xE4))(*(s32 *)((char *)(temp_v0_7) + 0xE0) + arg0), temp_v0_8 = *(s32 *)((char *)(arg0) + 0x4F8), (temp_v0_8 == 0)) || (temp_v0_8 == 5))) {
