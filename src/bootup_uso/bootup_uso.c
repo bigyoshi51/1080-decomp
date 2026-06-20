@@ -527,45 +527,34 @@ void func_00000BE0(char *a0) {
     func_00000008((int*)(a0 + 0x10));
 }
 
-/* func_00000C10: mirror of func_000046EC. Was previously byte-identical via
- * a "volatile-int-pp lever for frame match + 22-word INSN_PATCH for
- * register-allocator deltas" recipe (docs/POST_CC_RECIPES.md sibling-INSN_PATCH
- * transfer). INSN_PATCH REMOVED 2026-05-23 as match-faking per
- * feedback_no_instruction_forcing_matches_policy; docs/POST_CC_RECIPES.md
- * DEPRECATED. Function rolled back to NM-wrap with the volatile-int-pp
- * frame-match lever still in place; NATURAL CEILING (register-allocator
- * deltas stay NM). */
+/* func_00000C10: mirror of func_000046EC / func_00007B08 / func_0000E690.
+ * BYTE-EXACT twin of donor eddproc_uso_func_000003BC, via the donor's clean C
+ * form (p2/head/p1 decl order + char*-cast field access + p1[0x40/4] re-read).
+ * Was once force-matched via 22-word INSN_PATCH (banned 2026-05-23, recipe
+ * deprecated); this is the genuine C match. */
 extern int func_00000000();
-#ifdef NON_MATCHING
 void *func_00000C10(int *arg0) {
-  volatile int **vparg = (volatile int **) (&arg0);
-  int *node;
-  int *head;
-  node = (int *) func_00000000(0x40);
-  {
-    func_00000000(node);
-    node[10] = (int) (&D_00000000);
-    if (((!vparg) && (!vparg)) && (!vparg))
-    {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)func_00000000(0x40);
+    if (p1 != 0) {
+        func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    node[15] = 0;
-  }
-  head = (int *) arg0[16];
-  if (((int *) arg0[16]) != 0)
-  {
-    func_00000000(node + 4, head);
-    if (head[5] != 0)
-    {
-      head[1] = 1;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        func_00000000((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    head[5] = (int) node;
-  }
-  (void) vparg;
-  return node;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000C10);
-#endif
 
 /* func_00000CA0 - verified structural decode (0xF4, 61 insns,
  * get-or-create constructor + box-corner table generator).
@@ -2954,44 +2943,35 @@ void func_000046BC(char *a0) {
 
 extern char D_00000000;
 
-/* func_000046EC: 36-insn (0x90) entry-list constructor.
- *
- * NATURAL CEILING: 89.31% NM (size-preserving — 35 insns / 0x90 bytes both
- * ways). The 22 byte-level register/operand diffs across 0x14..0x84 are
- * the regalloc family cap (build keeps node in $a2; target uses $a0/$v1
- * with extra `or v1, a0, 0` save), same cluster as 7C74/7B08/7204. Built
- * frame 0x28 already matches target 0x28 thanks to the `volatile int **vparg
- * = (volatile int **)&arg0;` lever from 2026-05-08. Was previously
- * documented (2026-05-14) as promoted to byte-exact via 22-entry
- * INSN_PATCH — INSN_PATCH REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* func_000046EC: 36-insn (0x90) entry-list constructor. BYTE-EXACT, ported
+ * from its masked-hash twin donor eddproc_uso_func_000003BC (byte-identical
+ * body, 0 non-reloc word diffs). The donor's clean C form (p2/head/p1 decl
+ * order + char*-cast field access + p1[0x40/4] re-read) reproduces the target's
+ * $a0/$v1 regalloc + 0x28 frame that the prior node[]/head[] array-index NM
+ * body (89.31% ceiling) couldn't. Was once force-matched via 22-entry
+ * INSN_PATCH (banned 2026-05-23); this is the genuine C match. */
 void *func_000046EC(int *arg0) {
-    volatile int **vparg = (volatile int **)&arg0;
-    int *node;
+    int *p2;
     int *head;
-
-    node = (int*)func_00000000(0x40);
-    if (node != 0) {
-        func_00000000(node);
-        node[10] = (int)&D_00000000;
-        node[15] = 0;
+    int *p1;
+    p1 = (int*)func_00000000(0x40);
+    if (p1 != 0) {
+        func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    head = (int*)arg0[16];
-    if (head != 0) {
-        func_00000000(node + 4, head);
-        if (head[5] != 0) {
-            head[1] = 1;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        func_00000000((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
         }
-        head[5] = (int)node;
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    (void)vparg;
-    return node;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000046EC);
-#endif
 
 /* func_0000477C - verified structural decode (0xE0, 56 insns,
  * slider/parameter registration). SIBLING of func_00006734 (same
@@ -4881,47 +4861,36 @@ void func_00007AD8(char *a0) {
     func_00006194((int*)(a0 + 0x10));
 }
 
-/* func_00007B08: 36-insn alloc/init/link helper. Runtime behavior:
- *   ret = alloc(0x40); if (ret) { init(ret); ret->field_28 = &D_00000000;
- *   ret->field_3C = 0; } link = a0->field_40; if (link) {
- *   init(ret + 0x10, link); if (link->field_14) link->field_04 = 1;
- *   link->field_14 = ret; } return ret.
- *
- * NATURAL CEILING: 89.31% NM (size-preserving). Same recipe family as
- * func_00007C74: shifted frame layout (0x20 -> 0x28) + register-alloc
- * swap (built $a2 -> target $a0/$v1). 2nd member of the
- * project_1080_bootup_regalloc_cluster (7C74 / 7B08 / 7204). Was
- * previously documented (2026-05-14) as promoted to byte-exact via
- * 25-entry INSN_PATCH; INSN_PATCH REMOVED 2026-05-23 as match-faking
- * (per feedback_no_instruction_forcing_matches_policy). Default build
- * is INCLUDE_ASM. */
-#ifdef NON_MATCHING
-void *func_00007B08(char *a0) {
-  int new_var;
-  char *ret;
-  int *link;
-  char *new_var2;
-  ret = (char *) func_00000000(0x40);
-  new_var2 = ret;
-  if (ret != 0)
-  {
-    func_00000000(new_var2);
-    *((char **) (ret + 0x28)) = &D_00000000;
-    *((int *) (ret + 0x3C)) = 0;
-  }
-  link = *((int **) (a0 + 0x40));
-  new_var = 1;
-  if ((*((int **) (a0 + 0x40))) != 0)
-  {
- do { func_00000000(ret + 0x10, link); } while (0); if (link[5] != 0) { link[new_var] = new_var;
+/* func_00007B08: 36-insn (0x90) alloc/init/link constructor. BYTE-EXACT,
+ * ported from its masked-hash twin donor eddproc_uso_func_000003BC — the two
+ * bodies are byte-identical (0 non-reloc word diffs). The donor's clean C
+ * form (int* param + p2/head/p1 decl order + p1[0x40/4] int-array indexing)
+ * is what produces the target's frame (0x28) and $a0/$v1 register allocation,
+ * which the prior permuter-mangled char* NM body (93.72% ceiling) could not
+ * reach. Was once force-matched via 25-entry INSN_PATCH (banned 2026-05-23);
+ * this is the genuine C match. */
+void *func_00007B08(int *arg0) {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)func_00000000(0x40);
+    if (p1 != 0) {
+        func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    link[5] = (int) ret;
-  }
-  return ret;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        func_00000000((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p2;
+    }
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007B08);
-#endif
 
 void func_00007B98(char *a0) {
     int scratch;
@@ -9278,35 +9247,33 @@ void func_0000E660(char *a0) {
     func_000089C0((int*)(a0 + 0x10));
 }
 
-/* func_0000E690: byte-identical mirror of func_00000C10 / func_000046EC.
- * Third member of this constructor-mirror cluster. Same C body
- * (volatile-int-pp lever) + same INSN_PATCH in Makefile. */
-#ifdef NON_MATCHING
+/* func_0000E690: byte-identical mirror of func_00000C10 / func_000046EC /
+ * func_00007B08 — all byte-exact twins of donor eddproc_uso_func_000003BC.
+ * BYTE-EXACT via the donor's clean C form (p2/head/p1 decl order + char*-cast
+ * field access + p1[0x40/4] re-read). Was once force-matched via INSN_PATCH
+ * (banned 2026-05-23); this is the genuine C match. */
 void *func_0000E690(int *arg0) {
-    volatile int **vparg = (volatile int **)&arg0;
-    int *node;
+    int *p2;
     int *head;
-
-    node = (int*)func_00000000(0x40);
-    if (node != 0) {
-        func_00000000(node);
-        node[10] = (int)&D_00000000;
-        node[15] = 0;
+    int *p1;
+    p1 = (int*)func_00000000(0x40);
+    if (p1 != 0) {
+        func_00000000(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    head = (int*)arg0[16];
-    if (head != 0) {
-        func_00000000(node + 4, head);
-        if (head[5] != 0) {
-            head[1] = 1;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        func_00000000((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
         }
-        head[5] = (int)node;
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    (void)vparg;
-    return node;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E690);
-#endif
 
 void func_0000E720(char *a0) {
     func_00000000(a0 + 0x2C);

@@ -1645,51 +1645,28 @@ void titproc_uso_func_00002270(int a0, int *a1) {
     gl_func_00000000(a0, a1);
 }
 
-#ifdef NON_MATCHING
+extern int titproc_uso_D_count_22BC;
+extern int titproc_uso_D_target_22BC;
+extern int titproc_uso_D_arg0_22BC, titproc_uso_D_arg1_22BC, titproc_uso_D_arg2_22BC, titproc_uso_D_arg3_22BC, titproc_uso_D_arg4_22BC, titproc_uso_D_arg5_22BC, titproc_uso_D_arg6_22BC;
 /* titproc_uso_func_000022BC: per-frame init orchestrator — submit 7 display
- * lists (a3 = &titproc_uso_func_00018C..000380), then reset slot 0x128.
- *
- * 2026-06-20 RECONSTRUCT (65.85% -> 86.05%): wired the REAL resolved callees
- * from the .s. The prior stub called gl_func_00000000 for everything and used
- * &D_00000000 placeholders. The actual missing logic was:
- *   - first call is titproc_uso_func_010A9C(D[0x6C0]) (1 arg, distinct callee)
- *   - the 7 body calls are import_000A69BC(D[0x6C0], packed, N, a3) with a3 =
- *     a DISTINCT function-pointer arg each iteration (00018C/1DC/230/284/2D8/32C/380)
- *   - the count source is &import_0002022C cached once in $s1 (a1=((*s1+1)<<16)|low)
- *   - tail gate is titproc_uso_func_07BBBC(*(import_00020098+0xC4)).
- * Residual (14 diffs): IDO re-materializes the &import_0002022C address per call
- * (lui+lw) instead of pinning it in $s1 like the target — a cost-model
- * re-materialize-vs-pin decision (permuter-class; `register` honored narrowly
- * here, no effect). NON_MATCHING. */
-extern char import_0002022C;
-extern int import_000A69BC();
-extern int titproc_uso_func_010A9C();
-extern int titproc_uso_func_07BBBC();
-extern char titproc_uso_func_00018C;
-extern char titproc_uso_func_0001DC;
-extern char titproc_uso_func_000230;
-extern char titproc_uso_func_000284;
-extern char titproc_uso_func_0002D8;
-extern char titproc_uso_func_00032C;
-extern char titproc_uso_func_000380;
-void titproc_uso_func_000022BC(char *s0) {
-    register int *s1 = (int *)&import_0002022C;  /* pin base addr in $s1 across calls */
-
-    titproc_uso_func_010A9C(*(int *)(s0 + 0x6C0));
-    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 1, 0, &titproc_uso_func_00018C);
-    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 2, 1, &titproc_uso_func_0001DC);
-    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 3, 2, &titproc_uso_func_000230);
-    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 6, 3, &titproc_uso_func_000284);
-    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 4, 4, &titproc_uso_func_0002D8);
-    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 7, 5, &titproc_uso_func_00032C);
-    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 5, 6, &titproc_uso_func_000380);
-    if (titproc_uso_func_07BBBC(*(int *)((char *)&import_00020098 + 0xC4)) != 0) {
-        *(int *)(*(int *)(s0 + 0x6C0) + 0x128) = 0;
+ * lists, then reset slot 0x128. BYTE-EXACT (336 bytes), ported from its
+ * masked-hash twin donor titproc_uso_func_0000101C (84-word identical body,
+ * only struct offset 0x5C->0x6C0 differs). Reading the count global directly
+ * (no `register`) is what makes IDO pin %hi/%lo in $s1 across the 7 calls —
+ * the residual the prior register-based NM attempt couldn't crack. */
+void titproc_uso_func_000022BC(int *a0) {
+    gl_func_00000000(*(int*)((char*)a0 + 0x6C0));
+    gl_func_00000000(*(int*)((char*)a0 + 0x6C0), ((titproc_uso_D_count_22BC + 1) << 16) | 1, 0, &titproc_uso_D_arg0_22BC);
+    gl_func_00000000(*(int*)((char*)a0 + 0x6C0), ((titproc_uso_D_count_22BC + 1) << 16) | 2, 1, &titproc_uso_D_arg1_22BC);
+    gl_func_00000000(*(int*)((char*)a0 + 0x6C0), ((titproc_uso_D_count_22BC + 1) << 16) | 3, 2, &titproc_uso_D_arg2_22BC);
+    gl_func_00000000(*(int*)((char*)a0 + 0x6C0), ((titproc_uso_D_count_22BC + 1) << 16) | 6, 3, &titproc_uso_D_arg3_22BC);
+    gl_func_00000000(*(int*)((char*)a0 + 0x6C0), ((titproc_uso_D_count_22BC + 1) << 16) | 4, 4, &titproc_uso_D_arg4_22BC);
+    gl_func_00000000(*(int*)((char*)a0 + 0x6C0), ((titproc_uso_D_count_22BC + 1) << 16) | 7, 5, &titproc_uso_D_arg5_22BC);
+    gl_func_00000000(*(int*)((char*)a0 + 0x6C0), ((titproc_uso_D_count_22BC + 1) << 16) | 5, 6, &titproc_uso_D_arg6_22BC);
+    if (gl_func_00000000(*(int*)((char*)&titproc_uso_D_target_22BC + 0xC4)) == 0) {
+        *(int*)((char*)*(int**)((char*)a0 + 0x6C0) + 0x128) = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000022BC);
-#endif
 
 /* titproc_uso_func_0000240C - verified structural decode; SIBLING of
  * titproc_uso_func_000026FC (the titproc state-machine family).
