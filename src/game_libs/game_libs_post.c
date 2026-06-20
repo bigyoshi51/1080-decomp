@@ -13192,13 +13192,12 @@ void gl_func_0002A50C(int **a0, int a1) {
 extern int gl_func_00000000();
 void gl_func_0002A55C(char *obj) {
     int i;
-    unsigned char f;
     for (i = 0; i < 8; i++) {
         gl_func_00000000(obj, i);
     }
     gl_func_00000000(obj + 0x94);
-    f = *(unsigned char *)obj & ~0x80;
-    *(unsigned char *)obj = f | 0x40;
+    obj[0] = obj[0] & 0xFF7F;
+    obj[0] = obj[0] | 0x40;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
@@ -13307,22 +13306,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
 //   stored TWICE — `o->0 = f|0x80` then `o->0 = (f|0x80)&~0x40` (set bit7, then
 //   clear bit6, as separate stores), not one combined store; (2) the per-element
 //   loop is CONDITIONAL — `if ((o + i*4)->0x50 != 0) initElem(o, i)` — not
-//   unconditional. Remaining ~7% = USO reloc + register alloc.
+//   unconditional.
+// 2026-06-20 (agent-b): body now BYTE-EXACT (38/38 words, 7 diffs left, ALL pure
+//   temp-register-ring numbering). Re-derived 3 real fixes: (a) idx is an
+//   `unsigned char` PARAM (homes `sw a1,44` + `andi a1,0xff`); (b) addu operand
+//   order base+idx*4 (a0 as rs) via array-index form `((char**)(base+0x38))[idx]`
+//   (plain `base+idx*4` puts the scaled index as rs); (c) keep BOTH flag stores
+//   via `*o = *o|0x80; *o &= 0xBF` (mask 0xBF not ~0x40). Residual: lbu result
+//   lands in t8 (cached form: v0), target wants t9 — uniform +1 temp-ring offset
+//   invariant to every C form tried; permuter 38k iters no crack. Genuine
+//   allocno-numbering cap.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
-void gl_func_0002A740(char *base, int idx, int a2) {
+void gl_func_0002A740(char *base, unsigned char idx, int a2) {
     char *o;
     char *p;
-    unsigned char f;
     int i;
-    idx &= 0xFF;
-    o = *(char **)(base + idx * 4 + 0x38);
-    f = *(unsigned char *)o;
+    o = ((char **)(base + 0x38))[idx];
     *(unsigned char *)(o + 0x88) = 0;
     *(int *)(o + 0x70) = a2;
-    f = f | 0x80;
-    *(unsigned char *)o = f;
-    *(unsigned char *)o = f & ~0x40;
+    *(unsigned char *)o = *(unsigned char *)o | 0x80;
+    *(unsigned char *)o &= 0xBF;
     *(short *)(o + 0x1E) = 0;
     p = o;
     for (i = 0; i < 8; i++) {
@@ -18774,9 +18778,13 @@ void game_libs_func_0003183C(void *arg0) {
         *(int *)((char *)arg0 + 0x4C) = 0;
         do {
             v = *(int *)((char *)arg0 + rd * 4);
-            /* target keeps both stores (idx=rd+1 then idx=(rd+1)&0xF); IDO
-             * -O2 here DSEs the first -> 1 store. The lone redundant store
-             * + register numbering is the ~7% residual (DSE/regalloc cap). */
+            /* Target keeps BOTH index stores (idx=rd+1 then idx=(rd+1)&0xF).
+             * Re-derived 2026-06-20 (agent-b): IDO -O2 DSEs the first store no
+             * matter the C form (separate local, explicit memory re-read, etc).
+             * Only `*(volatile int*)` keeps both — but volatile then forces rd+1
+             * into a caller-saved reg ($a1), so all temp numbering cascades off
+             * (li-1, v-load, mask all land in wrong regs). Genuine DSE+regalloc
+             * cap: size-exact (23w) via volatile but never byte-exact. NM-wrap. */
             *(int *)((char *)arg0 + 0x44) = (rd + 1) & 0xF;
             *(int *)((char *)arg0 + 0x50) = v;
             if (v != 0) {
