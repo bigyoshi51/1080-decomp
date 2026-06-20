@@ -1007,32 +1007,24 @@ char *game_libs_func_0000AD20(char *a0, int a1) {
     return a0 + off;
 }
 
-/* gl_func_0000AD2C: 28-insn 3-iter try-or-advance loop.
- *   for (i = 0; i < 3; i++) {
- *     if (func(p, a1) != 0) return i;
- *     p += 0x20;
- *   }
- *   return 3;
- *
- * NATURAL CEILING: 92.14% NM. The 4-insn prologue-setup reorder (target:
- * s2=a1 / sw-ra / s0=0 / s1=a0  vs  IDO emit: s1=a0 / s2=a1 / sw-ra /
- * s0=0) was previously documented as INSN_PATCH-promoted to EXACT —
- * INSN_PATCH REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-extern int func_00000000();
-#ifdef NON_MATCHING
+/* gl_func_0000AD2C: 28-insn 3-iter try-or-advance loop. MATCHED (byte-exact).
+ * The "natural ceiling 92.14%" prologue-setup-reorder cap was MISDIAGNOSED:
+ * it was a first-use ordering issue. Fix = a separate pointer local `p = a0`
+ * AND initializing `i = 0` BEFORE `p = a0` (so the saved-reg copy order becomes
+ *   move s2,a1 / sw ra / move s0,0 (i) / move s1,a0 (p)
+ * matching target). Both levers needed: the bare-loop form copied s1=a0 first. */
+extern int gl_func_00000000();
 int gl_func_0000AD2C(char *a0, int a1) {
+    char *p;
     int i;
-    for (i = 0; i != 3; i++) {
-        if (func_00000000(a0, a1) != 0) return i;
-        a0 += 0x20;
+    i = 0;
+    p = a0;
+    for (; i != 3; i++) {
+        if (gl_func_00000000(p, a1) != 0) return i;
+        p += 0x20;
     }
     return 3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD2C);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
@@ -3509,25 +3501,40 @@ void gl_func_0000E53C(int *a0) {
  * and 0xC are tier breakpoints — sets [0xD4]=8 at tier-1 entry, [0xE8]=4
  * at tier-2 entry.
  *
- * 2026-05-28: 94% → 95.64%. Re-deref self->0x60 INLINE in each check (no cached
- * `factory` local): the store through the pointer between the checks defeats CSE,
- * so IDO re-reads self->0x60->0 each time (matching the target's two lw 96(v1)).
- * Structure now fully matches (39=39 insns). RESIDUAL (~4%): pure register-renumber
- * — target self/factory in $v1/$v0, mine in $a1/$v1; read temp $a0 vs $t9/$t2.
- * Permuter-resistant regalloc cap. Stays NM. */
+ * 2026-06-20 (this session): 95.64% -> STRUCTURE BYTE-EXACT, 8 reg diffs.
+ * The target re-reads factory->[0] into a FRESH register for the second check
+ * (t9 for check1, t2 for check2) and hoists that re-read into the first bnezl's
+ * delay slot (the skip-path copy). Plain inline-deref CSEs the value into ONE
+ * register (the old NM did, leaving 15 diffs). The fix is two things:
+ *   (1) type factory as a struct so n=factory->n / sub=factory->sub deref the
+ *       0x0 and 0x20 fields cleanly;
+ *   (2) RELOAD factory = self->0x60 UNCONDITIONALLY before the second check
+ *       (not inside the first if) -> IDO re-reads factory->n for check2 instead
+ *       of reusing the check1 read, reproducing the bnezl-delay re-read plus the
+ *       second `lw v0,96(v1); lw t2,0(v0)` pair. Now 39=39 insns and every
+ *       opcode/offset matches (verified word-diff vs the .s).
+ * RESIDUAL (8 words): a pure 2-register cyclic renumber — target holds self in
+ * $v1 / factory in $v0; this build holds self in $a0 / factory in $v1. The
+ * -Wo,-zdbug:6 coloring trace assigns factory->reg2($v0) and self->reg3($v1)
+ * (the TARGET coloring) yet reemission lands the self spilltemp reload in $a0;
+ * decl-order, register kw, named-vs-inline, and stmt-reorder all leave it.
+ * Genuine spilltemp-reload coloring cap. Stays NM. */
+struct gl_E5D0_factory { int n; char pad[0x1c]; int *sub; };
 void gl_func_0000E5D0(int *self) {
     extern int D_A;
-    int *factory = (int*)gl_func_00000000(0, &D_A, 0xC0, 0xB, 0xC, 1);
+    struct gl_E5D0_factory *factory =
+        (struct gl_E5D0_factory *)gl_func_00000000(0, &D_A, 0xC0, 0xB, 0xC, 1);
     self[0x60 / 4] = (int)factory;
     gl_func_00000000(factory, -2);
-    /* re-deref self->0x60 inline (not a cached `factory` local): the store
-     * through the pointer between the two checks defeats IDO's CSE, so it
-     * re-reads self->0x60->0 each time (target keeps self in $v1, factory in $v0). */
-    if (((int*)self[0x60 / 4])[0] >= 0xB) {
-        ((int*)((int*)self[0x60 / 4])[0x20 / 4])[0xD4 / 4] = 8;
+    factory = (struct gl_E5D0_factory *)self[0x60 / 4];
+    if (factory->n >= 0xB) {
+        factory->sub[0xD4 / 4] = 8;
     }
-    if (((int*)self[0x60 / 4])[0] >= 0xC) {
-        ((int*)((int*)self[0x60 / 4])[0x20 / 4])[0xE8 / 4] = 4;
+    /* unconditional reload defeats CSE -> check2 re-reads factory->n
+     * (matches the target's bnezl-delay re-read). */
+    factory = (struct gl_E5D0_factory *)self[0x60 / 4];
+    if (factory->n >= 0xC) {
+        factory->sub[0xE8 / 4] = 4;
     }
 }
 #else

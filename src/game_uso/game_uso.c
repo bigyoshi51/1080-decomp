@@ -11435,42 +11435,26 @@ void game_uso_func_0000D5DC(char *a0) {
     *(Pair2*)(a0 + 0xC8) = *(Pair2*)((char*)&D_00000000 + 0xDC8);
 }
 
-#ifdef NON_MATCHING
-/* Varargs (&a1) sink: if a3==-1 set a0->0x68=a3 else a0->0x64=a3; then copy the
- * a1/a2 pair to adjacent a0->0xC0/0xC4 via the struct-copy lever
- * (*(Pair2*)(a0+0xC0)=*(Pair2*)&a1, same as D5BC/D438).
+/* Varargs (&a1) pair-sink: if a3==-1 set a0->0x68=a3 else a0->0x64=a3; then copy
+ * the a1/a2 pair to adjacent a0->0xC0/0xC4 via the struct-by-value `pair` arg
+ * (homes a1,a2 to 4/8(sp)). Signature `(char*, Pair2, int)` gives the direct
+ * jal from the in-TU callers (00011258/000112E0).
  *
- * 2026-05-31: the "can't force a3 home without breaking other parts" note was
- * WRONG. Reading the else-arm as `*(volatile int*)&a3` DOES home a3 (`sw a3,
- * 0xC(sp)` in the bne delay) and shifts a2's home before the branch — the first
- * 7 insns now match the target EXACTLY (li/sw a1/sw a2/bne/sw a3,0xC/b/sw a3,
- * 0x68). The SOLE residual is one inserted insn: the else-arm a3 read is
- * `addiu t7,sp,0xC; lw 0(t7)` (pointer-materialize) where the target spill-
- * reloads direct `lw 0xC(sp)` (15 vs 16 insns; the +1 cascades the branch
- * offset + tail by a slot). That direct sp-relative SPILL reload is allocator-
- * only — every C form of the read is one of: register (named a3 / non-volatile
- * `(&a1)[2]` copy-propagate to $a3), or pointer-materialize (any volatile/&-
- * deref → addiu+lw). Genuine varargs-home + direct-spill-reload artifact: not
- * C-reachable as a leaf. (Varargs `(char*,int,...)` is OUT — it adds a -8 frame
- * and v0/v1/bnel, diverging entirely.) Body below is the 7-insn-exact reference.
- *
- * 2026-06-20: signature changed to `(char *a0, Pair2 pair, int a3)` — D5F8 is
- * genuinely a varargs pair-sink (homes a1/a2 to 4/8(sp)), and the Pair2-by-value
- * prototype lets its callers (game_uso_func_00011258/000112E0) reproduce the
- * `sw a1,4(sp); sw a2,8(sp)` arg-home with a DIRECT jal to D5F8 instead of a
- * fn-ptr-cast jalr. D5F8 stays INCLUDE_ASM (ROM unaffected); the residual a3
- * direct-spill-reload note above still holds. */
+ * MATCHED 2026-06-20 (stale-cap catch): the prior cap claimed the else-arm
+ * direct sp-relative spill reload (`lw t7,0xC(sp); sw t7,0x64(a0)`) was
+ * allocator-only / not C-reachable, because `*(volatile int*)&a3` materialized
+ * the address (addiu t7,sp,0xC; lw 0(t7)) = +1 insn (16 vs 15). The fix is to
+ * DROP the `volatile`: plain `*(int*)&a3` forces the a3 home (sw a3,0xC(sp) in
+ * the bne delay) AND lets IDO fold the reload to a direct sp-offset load.
+ * 15/15 words byte-exact, 0 diffs. */
 void game_uso_func_0000D5F8(char *a0, Pair2 pair, int a3) {
     if (a3 == -1) {
         *(int*)(a0 + 0x68) = a3;
     } else {
-        *(int*)(a0 + 0x64) = *(volatile int*)&a3;
+        *(int*)(a0 + 0x64) = *(int*)&a3;
     }
     *(Pair2*)(a0 + 0xC0) = pair;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5F8);
-#endif
 
 /* 2-insn leaf: jr ra; sw a0, 0(sp) (a0 spilled to its caller-arg slot in the
  * delay slot, no prologue). Byte-exact: `void f(int a0){(void)a0;}` — the
