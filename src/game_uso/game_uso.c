@@ -11442,14 +11442,21 @@ void game_uso_func_0000D5DC(char *a0) {
  * `(&a1)[2]` copy-propagate to $a3), or pointer-materialize (any volatile/&-
  * deref → addiu+lw). Genuine varargs-home + direct-spill-reload artifact: not
  * C-reachable as a leaf. (Varargs `(char*,int,...)` is OUT — it adds a -8 frame
- * and v0/v1/bnel, diverging entirely.) Body below is the 7-insn-exact reference. */
-void game_uso_func_0000D5F8(char *a0, int a1, int a2, int a3) {
+ * and v0/v1/bnel, diverging entirely.) Body below is the 7-insn-exact reference.
+ *
+ * 2026-06-20: signature changed to `(char *a0, Pair2 pair, int a3)` — D5F8 is
+ * genuinely a varargs pair-sink (homes a1/a2 to 4/8(sp)), and the Pair2-by-value
+ * prototype lets its callers (game_uso_func_00011258/000112E0) reproduce the
+ * `sw a1,4(sp); sw a2,8(sp)` arg-home with a DIRECT jal to D5F8 instead of a
+ * fn-ptr-cast jalr. D5F8 stays INCLUDE_ASM (ROM unaffected); the residual a3
+ * direct-spill-reload note above still holds. */
+void game_uso_func_0000D5F8(char *a0, Pair2 pair, int a3) {
     if (a3 == -1) {
         *(int*)(a0 + 0x68) = a3;
     } else {
         *(int*)(a0 + 0x64) = *(volatile int*)&a3;
     }
-    *(Pair2*)(a0 + 0xC0) = *(Pair2*)&a1;
+    *(Pair2*)(a0 + 0xC0) = pair;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D5F8);
@@ -14210,27 +14217,45 @@ void game_uso_func_00011168(int *a0) {
 
 /* game_uso_func_00011258: 34-insn (0x88) init+register-clear helper.
  * Structure:
- *   func(a0, 0x70009, 0, 2, /stack: 1, 1/);                     // call #1
- *   func(a0, *(D+0xF18), *(D+0xF1C), 2, /stack: a1, a2/);       // call #2
- *   func(a0);                                                     // call #3
- *   a0->[0xB4]->[0xA58] &= ~0x800;   // bit-clear (probably an
- *                                       SP/RSP status mask)
+ *   game_uso_func_077C44(a0, 0x70009, 0, 2, /stack: 1, 1/);     // call #1
+ *   game_uso_func_0000D5F8(a0, *(D+0xF18), *(D+0xF1C), 2);      // call #2 (varargs pair home)
+ *   game_uso_func_0000D5DC(a0);                                 // call #3
+ *   p = a0->[0xB4]; p[0xA58] &= ~0x800;   // bit-clear (RSP/SP status mask)
  *
- * NATURAL CEILING: 89.26% NM. C emits the right control flow but IDO's
- * D-base load shape + caller-slot spills + bit-clear address form + epilogue
- * placement diverge from the USO byte pattern. The historical SUFFIX_BYTES +
- * INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking. */
+ * 2026-06-20: reconstructed with the REAL reloc callees (was placeholder
+ * func_00000000/D_00000000, which score 100% under name-blind objdiff but are
+ * NOT byte/episode-correct). game_uso_func_0000D5F8 is varargs (homes the pair
+ * to 4(sp)/8(sp)); passing the D-pair BY VALUE (`Pair2`) reproduces the
+ * `addiu base,base,0xF18; lw 0/4(base)` + stack-home shape with a DIRECT jal
+ * (a fn-ptr cast would emit lui/addiu/jalr). The tail bit-clear emits the
+ * target's `addiu base,base,0xA58; sw 0(base)` via the pointer-mutate lever
+ * (`p = (char*)p + 0xA58; *p = ...`); `q = p + N` folds the offset back.
+ *
+ * Built is now EXACT SIZE (34 insns), all but 2 words byte-identical INCLUDING
+ * relocs (was 1-insn-short + wrong-symbol placeholders). SOLE RESIDUAL = a
+ * 2-register renumber in the tail RMW: target colors the loaded/masked values
+ * into $t2/$t3, IDO colors them $v1/$t2 (one free-list slot lower). Confirmed
+ * via -Wo,-zdbug:6: the value LRs are caller-saved "-ve save" temps colored by
+ * the global-coloring free-list phase; no C form (decl reorder, statement
+ * reorder, inline-vs-name, named mask, separate-pointer) shifts the phase
+ * (10+ variants tried). Same cap class as the documented v1-vs-mid-temp
+ * register-renumber (space-exhausted without coloring-search interference
+ * injection). Honest NON_MATCHING. */
 extern int func_00000000();
+extern char game_uso_D_807FF508;
 #ifdef NON_MATCHING
 void game_uso_func_00011258(int *a0) {
     int *p;
-    int *status;
-    func_00000000(a0, 0x70009, 0, 2, 1, 1);
-    func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF18), 2);
-    func_00000000(a0);
+    int raw;
+    int val;
+    game_uso_func_077C44(a0, 0x70009, 0, 2, 1, 1);
+    game_uso_func_0000D5F8((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF508 + 0xF18), 2);
+    game_uso_func_0000D5DC((char*)a0);
     p = *(int**)((char*)a0 + 0xB4);
-    status = (int*)((char*)p + 0xA58);
-    *status &= ~0x800;
+    raw = p[0xA58 / 4];
+    val = raw & ~0x800;
+    p = (int*)((char*)p + 0xA58);
+    *p = val;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
@@ -14238,15 +14263,34 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
 
 /* game_uso_func_000112E0: 34-insn sibling of game_uso_func_00011258.
  * Byte-identical to 11258 except the first-call magic constant
- * 0x70009 -> 0x70008. NATURAL CEILING: 89.26% NM (same cap class as
- * 11258). SUFFIX_BYTES_FORCE + INSN_PATCH recipe was REMOVED 2026-05-23. */
-extern int func_00000000();
+ * 0x70009 -> 0x70008.
+ *
+ * 2026-06-20: reconstructed with the REAL reloc callees (game_uso_func_077C44,
+ * game_uso_func_0000D5F8 via Pair2-by-value, game_uso_func_0000D5DC) and the
+ * real D base (game_uso_D_807FF508), and the tail bit-clear emits the target's
+ * `addiu base,base,0xA58; sw 0(base)` via the pointer-mutate lever. Built is
+ * now EXACT SIZE (34 insns) with all but 2 words byte-identical including
+ * relocs. SOLE RESIDUAL = a 2-register renumber in the tail RMW: target colors
+ * the loaded value/masked value into $t2/$t3, IDO colors them $v1/$t2 (one
+ * free-list slot lower). Confirmed via -Wo,-zdbug:6 global-coloring dump: the
+ * value LRs are caller-saved "-ve save" temps colored by the free-list phase;
+ * no decl/statement/inline-vs-name C form shifts the phase (10+ variants).
+ * Same cap class as the documented v1-vs-mid-temp renumber (space-exhausted).
+ * Honest NON_MATCHING. */
+extern char game_uso_D_807FF508;
 #ifdef NON_MATCHING
 void game_uso_func_000112E0(int *a0) {
-    func_00000000(a0, 0x70008, 0, 2, 1, 1);
-    func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xF18), 2);
-    func_00000000(a0);
-    *(int*)((char*)*(int**)((char*)a0 + 0xB4) + 0xA58) &= ~0x800;
+    int *p;
+    int raw;
+    int val;
+    game_uso_func_077C44(a0, 0x70008, 0, 2, 1, 1);
+    game_uso_func_0000D5F8((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF508 + 0xF18), 2);
+    game_uso_func_0000D5DC((char*)a0);
+    p = *(int**)((char*)a0 + 0xB4);
+    raw = p[0xA58 / 4];
+    val = raw & ~0x800;
+    p = (int*)((char*)p + 0xA58);
+    *p = val;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000112E0);
