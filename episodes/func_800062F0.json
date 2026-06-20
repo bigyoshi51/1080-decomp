@@ -1,0 +1,33 @@
+{
+  "function_name": "func_800062F0",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-06-20T17:26:47.725225+00:00",
+  "end_time": "2026-06-20T17:26:47.725225+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-20T17:26:47.725225+00:00",
+      "assistant_text": "__osRdbSend ring-buffer packer (kernel_014). Reconstructed body was 97.6% fuzzy with 39 pure register-coloring diffs (no frame/structural). Cracked via three -O1 coloring levers: (1) flat-pointer-add operand order *(char*)(sp24+arg0) loads the int index first in both copy loops; (2) reordered sp20=1 flag-set to AFTER arg1-=sp2C/sp18=sp2C so the loaded values color into lower temps before the const (fixed phase rotation, 36->9 diffs); (3) reordered __osRdb_IP6_Ct+=1 before arg1-=sp2C in the second loop tail (9->0). Linked-ELF byte-exact (175 words, real jal targets + __osRdb_IP6 symbols resolved).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 175,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n\n\nINCLUDE_ASM(\"asm/nonmatchings/kernel\", func_800062D0);\n\nextern s32 func_800066B0(void);\nextern void func_800066D0(s32);\nextern s32 D_8000A490;\nextern u32 __osRdb_IP6_Ct;\nextern u32 __osRdb_IP6_CurWrite;\nextern s32 __osRdb_IP6_Data;\nextern u32 __osRdb_IP6_Size;\ntypedef struct {\n    unsigned type : 6;\n    unsigned length : 2;\n    char buf[3];\n} rdbPacket;\n/* __osRdbSend(buf, size, type): pack `size` chars (3 per packet) into rdbPackets\n * (header byte = type<<2 | length). With interrupts disabled, optionally emit one\n * packet to the local-write register (0xC0000000) if D_8000A490 is set, then fill\n * the __osRdb_IP6 ring buffer (slot = CurWrite*4 + Data) until the source is\n * drained or the ring is full. Returns the number of chars queued. */\nu32 func_800062F0(s32 arg0, u32 arg1, s32 arg2) {\n    rdbPacket *sp34;\n    rdbPacket sp30;\n    u32 sp2C;\n    u32 sp28;\n    s32 sp24;\n    s32 sp20;\n    s32 sp1C;\n    u32 sp18;\n\n    sp24 = 0;\n    sp20 = 0;\n    sp18 = 0;\n    sp1C = func_800066B0();\n    if (D_8000A490 != 0) {\n        D_8000A490 = 0;\n        sp30.type = arg2;\n        if (arg1 < 3U) {\n            sp2C = arg1;\n        } else {\n            sp2C = 3;\n        }\n        sp28 = 0;\n        sp30.length = sp2C;\n        if (sp2C != 0) {\n            do {\n                sp30.buf[sp28] = *((char *) (sp24 + arg0));\n                sp28 += 1;\n                sp24 += 1;\n            } while (sp28 < sp2C);\n        }\n        arg1 -= sp2C;\n        sp18 = sp2C;\n        sp20 = 1;\n    }\n    if ((arg1 != 0) && (__osRdb_IP6_Ct < __osRdb_IP6_Size)) {\n        do {\n            if (arg1 < 3U) {\n                sp2C = arg1;\n            } else {\n                sp2C = 3;\n            }\n            sp34 = (rdbPacket *) (__osRdb_IP6_CurWrite * 4 + __osRdb_IP6_Data);\n            sp34->type = arg2;\n            sp34->length = sp2C;\n            sp28 = 0;\n            if (sp2C != 0) {\n                do {\n                    sp34->buf[sp28] = *((char *) (sp24 + arg0));\n                    sp28 += 1;\n                    sp24 += 1;\n                } while (sp28 < sp2C);\n            }\n            __osRdb_IP6_CurWrite += 1;\n            if (__osRdb_IP6_CurWrite >= __osRdb_IP6_Size) {\n                __osRdb_IP6_CurWrite = 0;\n            }\n            __osRdb_IP6_Ct += 1;\n            arg1 -= sp2C;\n            sp18 += sp2C;\n        } while ((arg1 != 0) && (__osRdb_IP6_Ct < __osRdb_IP6_Size));\n    }\n    if (sp20 != 0) {\n        *(s32 *) 0xC0000000 = *(s32 *) &sp30;\n    }\n    func_800066D0(sp1C);\n    return sp18;\n}\n\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_014.c",
+    "asm_path": "asm/nonmatchings/kernel/func_800062F0.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Linked-ELF byte-exact: objdump of build/tenshoe.elf at 0x800062F0 == target .s, 0 diffs across 175 words (relocs resolved). ROM md5 gate not applicable in worktree (baserom.z64 absent)."
+  }
+}

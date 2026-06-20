@@ -4,7 +4,6 @@
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800062D0);
 
-#ifdef NON_MATCHING
 extern s32 func_800066B0(void);
 extern void func_800066D0(s32);
 extern s32 D_8000A490;
@@ -48,14 +47,14 @@ u32 func_800062F0(s32 arg0, u32 arg1, s32 arg2) {
         sp30.length = sp2C;
         if (sp2C != 0) {
             do {
-                sp30.buf[sp28] = *((char *) arg0 + sp24);
+                sp30.buf[sp28] = *((char *) (sp24 + arg0));
                 sp28 += 1;
                 sp24 += 1;
             } while (sp28 < sp2C);
         }
-        sp20 = 1;
         arg1 -= sp2C;
         sp18 = sp2C;
+        sp20 = 1;
     }
     if ((arg1 != 0) && (__osRdb_IP6_Ct < __osRdb_IP6_Size)) {
         do {
@@ -70,7 +69,7 @@ u32 func_800062F0(s32 arg0, u32 arg1, s32 arg2) {
             sp28 = 0;
             if (sp2C != 0) {
                 do {
-                    sp34->buf[sp28] = *((char *) arg0 + sp24);
+                    sp34->buf[sp28] = *((char *) (sp24 + arg0));
                     sp28 += 1;
                     sp24 += 1;
                 } while (sp28 < sp2C);
@@ -79,8 +78,8 @@ u32 func_800062F0(s32 arg0, u32 arg1, s32 arg2) {
             if (__osRdb_IP6_CurWrite >= __osRdb_IP6_Size) {
                 __osRdb_IP6_CurWrite = 0;
             }
-            arg1 -= sp2C;
             __osRdb_IP6_Ct += 1;
+            arg1 -= sp2C;
             sp18 += sp2C;
         } while ((arg1 != 0) && (__osRdb_IP6_Ct < __osRdb_IP6_Size));
     }
@@ -90,7 +89,4 @@ u32 func_800062F0(s32 arg0, u32 arg1, s32 arg2) {
     func_800066D0(sp1C);
     return sp18;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800062F0);
-#endif
 
