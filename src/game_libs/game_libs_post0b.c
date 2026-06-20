@@ -29833,28 +29833,19 @@ float game_libs_func_0005BC04(float a, float b) {
  * L arrives in a1 (GPR) -> mtc1 f12: standard o32, a float arg after a
  * non-float (ptr) arg passes in a GPR. if/else-if store form -> bc1fl.
  *
- * 91.32% NM wrap (2026-06-06). Components 0 and 1 byte-match (full
- * high+low clamp); the third component's LOW-clamp is a CROSS-FUNCTION
- * TAIL-SHARE — its `bc1fl +4` branches into the adjacent function
- * game_libs_func_0005BCAC (which is exactly `if (a0[2] < -L) a0[2] = -L`
- * reading caller-set f0/f12), so it cannot be expressed standalone (same
- * cap class as sibling 0005BBEC, cross-fn shared epilogue). Writing the
- * third else-if here instead emits an in-function block (8 extra insns,
- * 76%); the high-clamp-only form aligns the shared prefix best at 91.3%.
- * Residual is the cross-fn branch only. */
-#ifdef NON_MATCHING
+ * MATCHED 2026-06-20: splat over-split this fn. The third component's
+ * else-if low-clamp tail was disassembled as a separate function
+ * (game_libs_func_0005BCAC); merging it back in (full 3-component clamp,
+ * dropping the BCAC INCLUDE_ASM) makes BC24 span 0x5BC24..0x5BCCC and
+ * byte-match both fragments (42 insns, 0 diffs). */
 void game_libs_func_0005BC24(float *a0, float L) {
     if (L < a0[0]) a0[0] = L;
     else if (a0[0] < -L) a0[0] = -L;
     if (L < a0[1]) a0[1] = L;
     else if (a0[1] < -L) a0[1] = -L;
     if (L < a0[2]) a0[2] = L;
+    else if (a0[2] < -L) a0[2] = -L;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BC24);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BCAC);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BCCC);
 

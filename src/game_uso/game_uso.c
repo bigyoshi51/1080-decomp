@@ -9887,39 +9887,35 @@ void game_uso_func_0000AC48(char *dst) {
 }
 
 #ifdef NON_MATCHING
-/* game_uso_func_0000AC78: 36-insn alloc-init constructor with conditional
- * sub-init. Body:
- *   ptr = gl_func(0x40);
- *   if (ptr) { gl_func(ptr); ptr[0x28] = &D_00000000; ptr[0x3C] = 0; }
- *   v0 = a0->[0x40];
- *   if (v0) {
- *       gl_func(ptr + 0x10, v0);  // some sub-init
- *       if (v0->[0x14] != 0) v0->[0x4] = 1;
- *       v0->[0x14] = ptr;
- *   }
- *   return ptr;
+/* game_uso_func_0000AC78: alloc-init constructor (twin of game_uso_func_000041C0
+ * tail). alloc(0x40) + init(051C28), set vtable 0x28 = &import_8006ED80, clear
+ * 0x3C; then walk a0->0x40 node and link it back via 07ACE0 + delay-likely store.
+ * Callees RESOLVED post Yay0-split migration (was placeholder gl_func).
  *
- * Target uses beqzl with delay-likely v0->[0x14]=ptr — which IDO -O2
- * emits naturally for `if (cond) { store; ... } common_store; return`.
- * Initial commit produces decoded structure; register allocation may
- * need tuning to byte-match. */
+ * CAP (2026-06-20): logic exact + frame-exact (volatile-int pad gives the 0x28
+ * frame). Remaining 22 diffs are pure regalloc coloring: target keeps ptr in
+ * a0(reloaded)/v1, IDO colors it a2 here (single-slot reuse vs target's
+ * spill/reload through a0->v1). v1-vs-a2 renumber class; spelling-invariant
+ * (struct-access / array-index / pad all reproduce a2). Twin 41C0 only gets the
+ * v1 shape from its dead-stage register pressure, absent here. */
+extern char import_8006ED80;
 int *game_uso_func_0000AC78(int *a0) {
     int *ptr;
-    int *v0;
+    int *node;
 
-    ptr = (int*)gl_func_00000000(0x40);
+    ptr = (int *)game_uso_func_055750(0x40);
     if (ptr != 0) {
-        gl_func_00000000(ptr);
-        ptr[10] = (int)&D_00000000;
-        ptr[15] = 0;
+        game_uso_func_051C28(ptr);
+        *(int *)((char *)ptr + 0x28) = (int)&import_8006ED80;
+        *(int *)((char *)ptr + 0x3C) = 0;
     }
-    v0 = (int*)a0[16];
-    if (v0 != 0) {
-        gl_func_00000000(ptr + 4, v0);
-        if (v0[5] != 0) {
-            v0[1] = 1;
+    node = *(int **)((char *)a0 + 0x40);
+    if (node != 0) {
+        game_uso_func_07ACE0((char *)ptr + 0x10, node);
+        if (*(int *)((char *)node + 0x14) != 0) {
+            *(int *)((char *)node + 4) = 1;
         }
-        v0[5] = (int)ptr;
+        *(int *)((char *)node + 0x14) = (int)ptr;
     }
     return ptr;
 }
