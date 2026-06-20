@@ -1669,6 +1669,7 @@ game_uso_func_07ACE0 = 0;
 game_uso_func_07C0C0 = 0;
 game_uso_func_07C0FC = 0;
 game_uso_func_07E330 = 0;
+game_uso_func_07E330_ff = 0;
 game_uso_func_07F6C0 = 0;
 game_uso_func_082880 = 0;
 import_000966AC = 0;

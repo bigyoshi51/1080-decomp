@@ -3081,43 +3081,29 @@ void game_uso_func_00003AC0(void *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003AC0);
 #endif
 
-/* game_uso_func_00003ED4: 54-insn FPU geometry. Copy a1 Vec3->vb, X(&vb);
- * copy a0 Vec3->va, X(&va); X(); r = X3ret / D[0x90];
- * if ((va.z*vb.x) < (va.x*vb.z)) r = -r; if (a2) *a2 = 0; return r.
- * USO: call -> func_00000000, data -> &D_00000000+off.
- * 2026-05-30: 92.5% -> 99.44%. The +1 was a stray K&R float->double promotion:
- * the `r=...` callee returns float but `gl_func_00000000_f()` is K&R (also called
- * with 3 pointers @0x4309), so the float arg promoted -> a `cvt.d.s`. Fixed via a
- * float-PROTOTYPED alias `gl_func_00000000_ff(float)` (=0x0 in undefined_syms_auto)
- * — removes the cvt.d.s AND lands the add.s result directly in $f12, size-exact 54.
- * Residual 0.56% = an FP register swap on exactly 4 insns ([34] div.s, [42] mov.s,
- * [45] neg.s, [51] mov.s): div result `r` in $f2 / `ret` in $f12, target reversed
- * ($f12/$f2). The div result wants $f12 because $f12 held the call ARG (computed in
- * the jal delay slot [29] add.s f12) and IDO reuses it post-call; mine picks $f2.
- * 2026-05-30 grind (12 variants total, NONE flip it): ternary, combined call/div,
- * a<b comparison swap, swap decl order, if/else arms, swap r/ret ROLES (div->ret,
- * return r), swap roles + decl, temp-local for call result, neg-uses-ret (ret=-ret),
- * `register float` hints on r and ret (IDO ignores), remove `unused` (REGRESSES to
- * 99.15 — the leading float local is load-bearing for frame/alloc). Pure IDO FP-
- * allocator coloring, not C-reachable (the per-function-RE cap class, cf.
- * project_1080_cap_analysis). Next tool: permuter, or rebuild scripts/regalloc-dump
- * (ecvt patch to tools/ido-static-recomp, gitignored) for the FP candidate ordering.
- * INSN_PATCH that previously "fixed" this was removed 2026-05-23 as match-faking.
- * Honest NM. 2026-06-10: the pseudo-order lever family swept -- FP
- * early-pseudo (dead-init r) neutral in-tree (99.44 unchanged); the
- * arg-then-result single-web form regresses scheduling (+3 insns,
- * add.s leaves the jal delay). Confirms the arg-reg-coloring boundary
- * extends to FP arg registers ($f12 here, $a0 in the 1130 case): the
- * family controls v0/v1/temp-pool only. uoptlist queue. */
-extern float gl_func_00000000_f();
-extern float gl_func_00000000_ff(float);  /* float-prototyped alias of _f (=0x0): avoids K&R float->double arg promotion */
-#ifdef NON_MATCHING
+/* game_uso_func_00003ED4: 54-insn FPU geometry helper (yaw-between-vectors).
+ * Copies a1's Vec3 to vb and normalizes it via game_uso_func_071028, copies a0's
+ * Vec3 to va and normalizes it, then r = game_uso_func_07E330(dot_xz(va,vb)) /
+ * D_00000000[0x90]; flips sign of the result by the cross-product test, zeroes
+ * *a2 if non-NULL, returns the (possibly negated) result.
+ * 2026-06-20 (agent-b): MATCHED byte-exact. Reconstructed to the real callees
+ * the .s names (game_uso_func_071028 = the Vec3 normalize; game_uso_func_07E330
+ * = the float-returning dot-product consumer). game_uso_func_07E330_ff is a
+ * float-prototyped alias (addr 0) that suppresses the K&R float->double arg
+ * promotion (no cvt.d.s). The prior 0.56% residual was NOT FP register coloring
+ * (as earlier notes guessed) but a frame-layout diff: declaring va immediately
+ * after vb (before new_var) packs the two Vec3 stack slots adjacent (va @sp+0x2C,
+ * vb @sp+0x38), matching IDO's layout -> 0 diffs. Relocatable USO: intra-module
+ * jal emits 0C000000 and the %hi/%lo data ref is base-0 +0x90 (&D_00000000+0x90),
+ * relocs applied at load. The `unused` leading float local is load-bearing for
+ * the frame size; pad[4] fills the tail slot. */
+extern float game_uso_func_07E330_ff(float);  /* float-prototyped alias of game_uso_func_07E330 (addr 0): avoids K&R float->double arg promotion */
 float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
   float unused;
   Vec3 vb;
-  char *new_var;
   Vec3 va;
-  char pad[8];
+  char *new_var;
+  char pad[4];
   float ret;
   float r;
   new_var = ((char *) (&D_00000000)) + 0x90;
@@ -3125,10 +3111,10 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
   (void) unused;
   (void) pad;
   vb = *a1;
-  gl_func_00000000(&vb);
+  game_uso_func_071028(&vb);
   va = *a0;
-  gl_func_00000000(&va);
-  r = gl_func_00000000_ff((va.x * vb.x) + (va.z * vb.z));
+  game_uso_func_071028(&va);
+  r = game_uso_func_07E330_ff((va.x * vb.x) + (va.z * vb.z));
   r = r / (*((float *) new_var));
   ret = r;
   if ((va.z * vb.x) < (va.x * vb.z))
@@ -3141,9 +3127,6 @@ float game_uso_func_00003ED4(Vec3 *a0, Vec3 *a1, int *a2) {
   }
   return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003ED4);
-#endif
 
 /* game_uso_func_00003FAC: 53-insn (0xD4) FPU-heavy 2D-rotation-like
  * vector builder. Frame -0x20, single cross-USO call.
