@@ -6128,106 +6128,105 @@ void timproc_uso_b5_func_00008D90(int *a0, int a1) {
     a0[0x4B0 / 4] = *(int *)((char *)&D_00000000 + 0xF18);
 }
 
-// timproc_uso_b5_func_00008DB4 — STRUCTURAL PASS (0x1E4 / 121 words,
-// no episode). Raw-.word USO form (genuine code, single function).
-// Hand-decoded.
+// timproc_uso_b5_func_00008DB4 — STRUCTURAL PASS w/ REAL SYMBOLS
+// (0x1E4 / 121 words, no episode). Timing-screen sub-panel constructor
+// (alloc-or-reuse); returns self. Default build is INCLUDE_ASM.
 //
-// Timing-screen sub-panel constructor (alloc-or-reuse); returns self.
+// 2026-06-20: rewrote the NM body to reference the RESOLVED .s symbols
+// (timproc_uso_b5_func_055750/002C94/04C678/002060/07ACE0/0000131C/
+// 0000283C + import_800201CC/8005C2CC/8005C39C/8005EBA4/800200A8/
+// 80020098 + timproc_uso_b5_D_807FEBA4/B0/B4) instead of the old fake
+// D_8DB4_* aliases. Word-exact (reloc-filtered) went 111 -> 18 non-reloc
+// diffs (size now matches, 121==121).
 //
-//   void *timproc_uso_b5_func_00008DB4(Self *self, a1) {
-//     if (!self) { self = func_00000000(0xC); if (!self) return 0; }
-//     func_00000000(*(M**)(D_0+0x134), 2);                // mgr init
-//     *(int*)(D_0+0x1C4) &= ~8;                            // clear flags
-//     Vec4 *v = &D_00000294;  v->0=v->4=v->8=v->C = 0.0f;   // zero Vec4
-//     A = func_00000000(0, &D_00001334);  *(f32*)(D+0x2A0)=0.0f;
-//     B = func_00000000(0, &D_00001340);
-//     C = func_00000000(0, &D_00001344);
-//     func_00000000(*(M**)(D_0+0x134), C, B, A, 0, 0);
-//     func_00000000(A+0x10, B);
-//     if (B->0x14) B->0x4 = 1;  B->0x14 = A;               // dirty+attach
-//     func_00000000(A+0x10, C);
-//     if (C->0x14) C->0x4 = 1;  C->0x14 = A;
-//     func_00000000(D_00000000+0x10, A);
-//     if (A->0x14) A->0x4 = 1;  A->0x14 = D_00000000;
-//     func_00000000(0, a1);  self->0x00 = ret;
-//     self->0x04 = (a1 == 1) ? func_00000000(0, 1, 1, 0x3C)
-//                            : func_00000000(0, 1, 2, 0x29);
-//     self->0x08 = func_00000000(0, 2, 3, 0x29);
-//     *(int*)(self->0x08->0x0C + 0x1B8) = self->0x04->0x0C; // publish
-//     return self;
-//   }
+// Levers applied (all in docs):
+//   - goto-end shared epilogue for alloc-fail + a1==1 early exits
+//     (IDO_CODEGEN feedback-ido-goto-epilogue, UNIFIED form).
+//   - frame 0x58 + B/C high homes: decl order A,B,C,volatile pad[6]
+//     (A colored to s0 -> dead -4 slot; B@0x50, C@0x4C per FRAME-SLOT
+//     HOME ASSIGNMENT RULE); pad[6] sizes the frame to 0x58.
+//   - import_8005C39C+0x294 base-adjust via POINTER MUTATE
+//     (`p=&sym; p+=0x294;`) forces `addiu r,r,0x294` not offset-fold
+//     (IDO_CODEGEN feedback-ido-pointer-mutate-forces-base-register-adjust).
+//   - import_8005EBA4 (the 0x2A0 store) and 8005C39C (the Vec4) were
+//     SWAPPED in the prior hand-decode; corrected here.
 //
-// Struct-typing reference:
-//   self (alloc 0xC): 0x00/0x04/0x08 sub-element ptrs. A/B/C child
-//     handles use 0x04 dirty-flag + 0x14 attach-link (dirty-and-attach
-//     idiom).
-//   D_0 + 0x134 = global manager ptr; D_0 + 0x1C4 = global flag word
-//     (0x8 cleared); D_0 + 0x1B8 = published global (= self->0x04
-//     ->0x0C). &D_00000294 = a zeroed Vec4; &D_00001334/1340/1344 =
-//     USO child name/desc data. func_00000000 = USO placeholder
-//     dispatcher (alloc / factory / attach). Param triples (mode,
-//     a, b) like (0,1,1,0x3C), (0,1,2,0x29), and (0,2,3,0x29)
-//     pick element kinds.
-// NATURAL CEILING: high-NM via the unique D_8DB4_* aliases that break
-// IDO &D CSE. The frame/reloc/register residuals were previously
-// documented as a scoped INSN_PATCH — INSN_PATCH REMOVED 2026-05-23 as
-// match-faking (per feedback_no_instruction_forcing_matches_policy).
-// Default build is INCLUDE_ASM.
+// RESIDUAL = 18 non-reloc diffs, ALL allocator/encoding caps:
+//   * flag-clear `*(C2CC+0x1C4) &= ~8`: target emits TWO luis (t6 load,
+//     at store, no addiu, %lo folded into lw/sw) + as1 schedules the
+//     Vec4 `mtc1 zero,f0` into the region; IDO from C always CACHES the
+//     base (one lui+addiu in a2) -> form(a)/(b) reloc-encoding + as1
+//     scheduler tie (idx 15-23). Not C-controllable (IDO_CODEGEN line:
+//     R_MIPS_LO16 placement for &D+const).
+//   * v0-vs-v1 coloring cascade off that base choice: C39C base, Vec4
+//     base, C dirty-attach handle (idx 26-29,67-77), publish t8-vs-t9
+//     (idx 112-114). Pure register coloring.
+// All logic / control-flow / frame / symbols are exact; only register
+// names + the flag two-lui encoding differ. Honest NON_MATCHING.
 #ifdef NON_MATCHING
 char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
-    extern char D_8DB4_0134_a;
-    extern char D_8DB4_01C4_load;
-    extern char D_8DB4_01C4_store;
-    extern char D_8DB4_0294;
-    extern char D_8DB4_02A0;
-    extern char D_8DB4_1334;
-    extern char D_8DB4_1340;
-    extern char D_8DB4_1344;
-    extern char D_8DB4_0134_b;
-    extern char D_8DB4_0010;
-    extern char D_8DB4_0000;
+    extern int timproc_uso_b5_func_055750();
+    extern int timproc_uso_b5_func_002C94();
+    extern int timproc_uso_b5_func_04C678();
+    extern int timproc_uso_b5_func_002060();
+    extern int timproc_uso_b5_func_07ACE0();
+    extern char import_800201CC;
+    extern char import_8005C2CC;
+    extern char import_8005C39C;
+    extern char import_8005EBA4;
+    extern char import_800200A8;
+    extern char import_80020098;
+    extern char timproc_uso_b5_D_807FEBA4;
+    extern char timproc_uso_b5_D_807FEBB0;
+    extern char timproc_uso_b5_D_807FEBB4;
     char *A;
     char *B;
     char *C;
-    float *v;
+    volatile int pad[6];
+    char *p39c;
     if (self == 0) {
-        self = (char *)func_00000000(0xC);
-        if (self == 0) goto done;
+        self = (char *)timproc_uso_b5_func_055750(0xC);
+        if (self == 0) {
+            goto end;
+        }
     }
-    func_00000000(*(char **)((char *)&D_8DB4_0134_a + 0x134), 2);
-    *(int *)((char *)&D_8DB4_01C4_store + 0x1C4) = *(int *)((char *)&D_8DB4_01C4_load + 0x1C4) & ~8;
-    v = (float *)&D_8DB4_0294;
-    v[3] = 0.0f; v[2] = 0.0f; v[1] = 0.0f; v[0] = 0.0f;
-    *(float *)((char *)&D_8DB4_02A0 + 0x2A0) = 0.0f;
-    A = (char *)func_00000000(0, (char *)&D_8DB4_1334 + 0x00001334);
-    B = (char *)func_00000000(0, (char *)&D_8DB4_1340 + 0x00001340);
-    C = (char *)func_00000000(0, (char *)&D_8DB4_1344 + 0x00001344);
-    func_00000000(*(char **)((char *)&D_8DB4_0134_b + 0x134), C, B, A, 0, 0);
-    func_00000000(A + 0x10, B);
+    timproc_uso_b5_func_002C94(*(char **)((char *)&import_800201CC + 0x134), 2);
+    *(int *)((char *)&import_8005C2CC + 0x1C4) &= ~8;
+    p39c = (char *)&import_8005C39C;
+    p39c += 0x294;
+    ((float *)p39c)[3] = 0.0f;
+    ((float *)p39c)[2] = 0.0f;
+    ((float *)p39c)[1] = 0.0f;
+    ((float *)p39c)[0] = 0.0f;
+    *(float *)((char *)&import_8005EBA4 + 0x2A0) = 0.0f;
+    A = (char *)timproc_uso_b5_func_04C678(0, (char *)&timproc_uso_b5_D_807FEBA4 + 0x1334);
+    B = (char *)timproc_uso_b5_func_04C678(0, (char *)&timproc_uso_b5_D_807FEBB0 + 0x1340);
+    C = (char *)timproc_uso_b5_func_04C678(0, (char *)&timproc_uso_b5_D_807FEBB4 + 0x1344);
+    timproc_uso_b5_func_002060(*(char **)((char *)&import_800201CC + 0x134), C, B, A, 0, 0);
+    timproc_uso_b5_func_07ACE0(A + 0x10, B);
     if (*(char **)(B + 0x14) != 0) {
         *(int *)(B + 0x4) = 1;
     }
     *(char **)(B + 0x14) = A;
-    func_00000000(A + 0x10, C);
+    timproc_uso_b5_func_07ACE0(A + 0x10, C);
     if (*(char **)(C + 0x14) != 0) {
         *(int *)(C + 0x4) = 1;
     }
     *(char **)(C + 0x14) = A;
-    func_00000000((char *)&D_8DB4_0010 + 0x10, A);
+    timproc_uso_b5_func_07ACE0((char *)&import_800200A8 + 0x10, A);
     if (*(char **)(A + 0x14) != 0) {
         *(int *)(A + 0x4) = 1;
     }
-    *(char **)(A + 0x14) = &D_8DB4_0000;
-    *(int *)(self + 0x00) = func_00000000(0, a1);
+    *(char **)(A + 0x14) = (char *)&import_80020098;
+    *(int *)(self + 0x00) = timproc_uso_b5_func_0000131C(0, a1);
     if (a1 == 1) {
-        *(char **)(self + 0x04) = (char *)func_00000000(0, 1, 1, 0x3C);
-        goto done;
-    } else {
-        *(char **)(self + 0x04) = (char *)func_00000000(0, 1, 2, 0x29);
+        *(int *)(self + 0x04) = timproc_uso_b5_func_0000283C(0, 1, 1, 0x3C);
+        goto end;
     }
-    *(char **)(self + 0x08) = (char *)func_00000000(0, 2, 3, 0x29);
+    *(int *)(self + 0x04) = timproc_uso_b5_func_0000283C(0, 1, 2, 0x29);
+    *(int *)(self + 0x08) = timproc_uso_b5_func_0000283C(0, 2, 3, 0x29);
     *(int *)(*(char **)(*(char **)(self + 0x08) + 0x0C) + 0x1B8) = *(int *)(*(char **)(self + 0x04) + 0x0C);
-done:
+end:
     return self;
 }
 #else
