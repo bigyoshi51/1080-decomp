@@ -543,52 +543,45 @@ int gl_func_00000EA4(char *a0, int arg1) {
     return gl_func_00000000(a0 + 0xE4, &gl_ref_0000CBD8, arg1);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00000ED0: constructor. obj = a0 ?: alloc(212); a defensive second
  * obj-or-alloc (node); init(node, &D+0xCBE0); node->0x28 = &D; init(node+0x2C);
  * then field inits (vtable ptr &D+0xCBE8, three 0xC74-floats, flags). Returns
- * obj. Fresh decode 2026-05-29: bare INCLUDE_ASM -> 93.51%, logic-complete and
- * SIZE-EXACT (51/51 insns). Residual is a clean register renumber — IDO puts
- * obj in $v1 / node in $a2 where the target uses $a2 / $a3 (spill slots shift
- * sp+0x18/0x1C vs target sp+0x1C/0x20); decl-order swap didn't flip it.
- * Allocator-internal reg-renumber cap; logic + structure are exact. */
+ * obj. Matched: param-direct (reuse a0 instead of separate obj local) puts obj
+ * in $a2 / node in $a3; second-alloc failure falls through to field-init (not
+ * ret); 0xA0/0xB0 store-order swap fixes the as1 scheduler tie. */
 int gl_func_00000ED0(int a0, int a1) {
-    int obj;
     int node;
     float v;
-    obj = a0;
-    if (obj == 0) {
-        obj = gl_func_00000000(212);
-        if (obj == 0) {
+    if (a0 == 0) {
+        a0 = gl_func_00000000(212);
+        if (a0 == 0) {
             goto ret;
         }
     }
-    node = obj;
+    node = a0;
     if (node == 0) {
         node = gl_func_00000000(212);
         if (node == 0) {
-            goto ret;
+            goto initfields;
         }
     }
     gl_func_00000000(node, (char*)&D_00000000 + 0xCBE0);
     *(int*)(node + 0x28) = (int)&D_00000000;
     gl_func_00000000(node + 0x2C);
+initfields:
     v = *(float*)((char*)&D_00000000 + 0xC74);
-    *(int*)(obj + 0xC) = (int)((char*)&D_00000000 + 0xCBE8);
-    *(int*)(obj + 0x74) = 0;
-    *(int*)(obj + 0x78) = 255;
-    *(float*)(obj + 0x64) = v;
-    *(float*)(obj + 0x68) = v;
-    *(float*)(obj + 0x6C) = v;
-    *(float*)(obj + 0x70) = 0.0f;
-    *(int*)(obj + 0xA0) = 0;
-    *(int*)(obj + 0xB0) = a1;
+    *(int*)(a0 + 0xC) = (int)((char*)&D_00000000 + 0xCBE8);
+    *(int*)(a0 + 0x74) = 0;
+    *(int*)(a0 + 0x78) = 255;
+    *(float*)(a0 + 0x64) = v;
+    *(float*)(a0 + 0x68) = v;
+    *(float*)(a0 + 0x6C) = v;
+    *(float*)(a0 + 0x70) = 0.0f;
+    *(int*)(a0 + 0xB0) = a1;
+    *(int*)(a0 + 0xA0) = 0;
 ret:
-    return obj;
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000ED0);
-#endif
 
 void game_libs_func_00000F9C(int a0) {
 }
