@@ -6082,29 +6082,18 @@ int gl_func_0006B974(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B974);
 #endif
 
-#ifdef NON_MATCHING
-/* 20-insn 2-call init wrapper. Stores 1 to D_00000000 (via separate $at
- * temp), then calls gl_func(&D, 0x42750, 1) followed by gl_func(&D, 0, 0).
- * Declared size 0x58 includes 2 trailing dead insns (lui t6, 0; lw t6, 0(t6))
- * — stolen prologue setup for the successor.
- *
- * Two structural diffs from C-emit:
- * 1. Target loads &D into BOTH $at (for the sw 1) and $a0 (for the call).
- *    IDO's CSE makes mine reuse $a0 for both. Unique-extern alias not yet
- *    tried — could promote.
- * 2. Target encodes 0x42750 as `lui 0x4; addiu 0x2750`; mine encodes as
- *    `lui 0x4; ori 0x2750`. IDO picks ori for unsigned literals; addiu
- *    requires signed encoding. Castings tried: no flip from C.
- *
- * Default INCLUDE_ASM build matches. */
+/* gl_func_0006B9B4: byte-identical twin of matched gl_func_0006BE14 (differs
+ * only in the arg2 offset, 0x42750 vs 0x42800). Same crack: the 0x42750 arg is
+ * a SYMBOL reference (&D_00000000 + 0x42750 -> lui 0x4; addiu 0x2750), not a
+ * literal (which gives lui; ori). arg1 bases are distinct externs (gl_data_B9B4
+ * _b/_c), mirroring gl_func_0006BE14's gl_data_BE14_b/_c. */
+extern char gl_data_B9B4_b;
+extern char gl_data_B9B4_c;
 void gl_func_0006B9B4(void) {
     *(int*)&D_00000000 = 1;
-    gl_func_00000000(&D_00000000, (void*)0x42750, 1);
-    gl_func_00000000(&D_00000000, 0, 0);
+    gl_func_00000000(&gl_data_B9B4_b, (char*)&D_00000000 + 0x42750, 1);
+    gl_func_00000000(&gl_data_B9B4_c, 0, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B9B4);
-#endif
 /* game_libs_func_0006BA04 (2-word splat mis-split: lui t6,0; lw t6,0(t6))
  * was the stolen prologue of gl_func_0006BA0C — forward-merged into it
  * (boundary correction; orphan-function removed). */

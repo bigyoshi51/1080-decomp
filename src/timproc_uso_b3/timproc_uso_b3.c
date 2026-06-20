@@ -1360,10 +1360,14 @@ void timproc_uso_b3_func_000021B0(void) {
     gl_func_00000000(gl_ref_0000020C, -1, 0);
 }
 
-/* func_000021F4 (0x44): restored 2026-06-10 -- the unit had NO emission for
- * it (its .s existed but no INCLUDE_ASM line), leaving the block -0x4C and
- * every later fn early. Twin of timproc_uso_b1_func_00001FE4. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000021F4);
+/* func_000021F4 (0x44): byte-identical twin of timproc_uso_b1_func_000020AC
+ * (matched) except the state constant (li 6 vs li 1). Ported donor body w/
+ * gl_ref_00000040 = 6. */
+void timproc_uso_b3_func_000021F4(void) {
+    gl_func_00000000(gl_ref_00000208);
+    gl_ref_00000040 = 6;
+    gl_func_00000000(gl_ref_0000020C, -1, 0);
+}
 
 /* vram 0x2238: 2-word stolen-prologue orphan (lui $a0,%hi; lw $a0,0x148($a0)
  * ahead of func_00002240's prologue; twin of b1's 0x2028 orphan).

@@ -8066,24 +8066,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DBEC);
 //   through handler vtable ((o->0x28)+0x84) with threaded accumulator;
 //   list/handler structs untyped. Real-C STRUCTURAL body below.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-void gl_func_0003DC90(char *o) {
-    char *h = *(char **)(o + 0x28);
-    int (*fp)(int, int);
-    int acc;
-    char *n;
-    fp = *(int (**)(int, int))(h + 0x84);
-    acc = ((int (*)(int))fp)(*(short *)(h + 0x80) + (int)o);
-    if (acc == 0) return;
-    *(int *)(o + 0x34) = acc;
-    for (n = *(char **)(o + 0x10); n != 0; n = *(char **)(n + 0x04)) {
-        acc = fp(acc, *(short *)(h + 0x80) + (int)o);
-        *(int *)(o + 0x84) = acc;
+/* gl_func_0003DC90: byte-identical twin of matched gl_func_0003D914 (the
+ * vtable-dispatch list-walk reduce). The ONLY asm difference is the per-loop
+ * result store offset: s0->0x84 here vs s0->0x2C in 0003D914. Ported the
+ * donor's exact match-form (all load-bearing shapes preserved: result-naming
+ * assignment-expr store, empty `if(r){}` live-range extender, hoisted
+ * p[0]=p[1], no return). */
+int gl_func_0003DC90(D914Obj *a0) {
+    D914Node *p[2];
+    int s0;
+    int v1;
+
+    p[1] = a0->list;
+    s0 = a0->vt->fn(a0->vt->off + (int)a0, 0);
+    a0->field_34 = s0;
+    if (s0 != 0) {
+        do {
+            int r;
+            r = (*(int *)(s0 + 0x84) = a0->vt->fn(a0->vt->off + (int)a0, s0));
+            p[0] = p[1];
+            if (p[1] != 0) {
+                p[1] = p[1]->next;
+                v1 = p[0]->key;
+            } else {
+                v1 = 0;
+            }
+            s0 = v1;
+            if (r) {}
+        } while (v1 != 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DC90);
-#endif
 
 // gl_func_0003DD28 — STRUCTURAL PASS (0x98 / 38 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
@@ -21301,51 +21313,31 @@ void gl_func_0004ED0C(int *self)
 }
 
 
-#ifdef NON_MATCHING
-/* gl_func_0004ED7C — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
- * (declared 0xC8 / 50 words, realjr=2). NAMED fn = indirect-
- * dispatch iterator, insns 1..28 (prologue 27BDFFD8 frame 0x28,
- * saves ra+s0..s2, jr ra at insn 28):
- *   void gl_func_0004ED7C(int *self) {
- *     int i; char *cur = (char*)self;            // s1
- *     if (self->0x11C <= 0) return;              // blez count
- *     for (i = 0; i < self->0x11C; i++, cur += 4) {
- *         int *v1 = *(int**)(cur + 0x124);
- *         int *v0 = *(int**)v1;
- *         void (*fp)() = (void(*)())v0[3];        // v0->0xC
- *         fp((char*)v1 + *(short*)((char*)v1 + 8)); // jalr t9
- *     }
- *   }
- * count (self->0x11C) reloaded per iter; loop back-edge is
- * bnel-delay-likely with `lw v1,0x124(s1)` pre-loaded.
- *
- * BOUNDARY NOTE (DEFERRED USO RE-SPLIT): insns 29..50 after the
- * jr ra are a TRAILING LEAF — a bounded (cap 3) append:
- *   void <leaf>(int *self, int a1) {
- *     self->[0x134 + self->0x120 * 4] = a1;
- *     if (self->0x120 < 3) self->0x120 += 1;
- *   }
- * own 03E00008. The 0xC8 size spans it so the iterator can't
- * byte-match standalone without a re-split at the named-fn end.
- * Real decoded C of both fns documented; INCLUDE_ASM is the
- * bundle build path. */
-void gl_func_0004ED7C(int *self) {
+/* gl_func_0004ED7C: byte-identical twin of matched
+ * timproc_uso_b5_func_0000A97C (indirect-dispatch iterator). Same shape,
+ * different struct offsets: count a0+0x11C (vs 0x3C), cursor p+0x124 (vs 0x40),
+ * v1->v0 at +0x0 (vs 0x28), fn at v0+0xC (vs 0x4C), short off at v0+0x8 (vs
+ * 0x48). Ported the donor's exact match-form incl. the `if (1) {}` block-
+ * boundary lever (flips v0/v1 caller-save alloc to target's). */
+void gl_func_0004ED7C(char *a0) {
     int i;
-    char *cur = (char *)self;
-    if (*(int *)((char *)self + 0x11C) <= 0) {
-        return;
-    }
-    for (i = 0; i < *(int *)((char *)self + 0x11C); i++, cur += 4) {
-        int *v1 = *(int **)(cur + 0x124);
-        int *v0 = *(int **)v1;
-        void (*fp)() = (void (*)())v0[3];
-        fp((char *)v1 + *(short *)((char *)v1 + 8));
-    }
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ED7C);
+    char *p;
+    int *v1;
+    int *v0;
 
-#endif
+    if (*(int*)(a0 + 0x11C) <= 0) return;
+    i = 0;
+    p = a0;
+    do {
+        v1 = *(int**)(p + 0x124);
+        if (1) {
+            v0 = *(int**)((char*)v1 + 0x0);
+            (*(int(**)())((char*)v0 + 0xC))(*(short*)((char*)v0 + 0x8) + (int)v1);
+            i++;
+        }
+        p += 4;
+    } while (i < *(int*)(a0 + 0x11C));
+}
 
 void game_libs_func_0004EDEC(int *a0, int a1) {
     *(int *)((char *)a0 + a0[0x48] * 4 + 0x134) = a1;
@@ -29576,30 +29568,19 @@ int game_libs_func_0005B63C(int *a0) {
 void game_libs_func_0005B680(int a0, int a1) {
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0005B68C: 22-insn sentinel-set helper. If a1->[0xC] !=
- * 0x12345678, call gl_func(&D_0+0x21A0C, a0->[0x20], a1). Then write
- * sentinel 0x87654321 to a1->[0xC].
- *
- * Cap: target spills a0 to sp+0x18 BEFORE the comparison branch; built
- * keeps a0 in $a0 across the branch. 84 vs 88 bytes (1 insn short).
- * 2026-05-17: tested trailing `(void)a0;` arg-spill recipe — REGRESSED
- * 95% → 73% (the post-call `(void)a0` widened a0's live range across
- * the whole function, churning $a0 vs $s-reg allocation; not the same
- * surgical effect as in `gl_func_0004D05C` where a0 was unused-in-body
- * and the spill was at the same offset as target's). Recipe only
- * works when the function has NO body-level use of a0 — once a0 is
- * read inside the body (here: `a0[0x20]` inside if-block), the
- * `(void)a0` after triggers $s-reg promotion instead of just home save. */
+/* gl_func_0005B68C: byte-identical twin of matched gl_func_0005B6E4
+ * (sentinel-set helper). Differs only in the two magic constants (compare
+ * 0x12345678 / store 0x87654321 — swapped vs the donor) and the format-string
+ * offset (0x21A0C vs 0x21A20). The old "1-insn-short" cap was a MISSING 4TH
+ * ARG: the call is gl_func(&D+ofs, a0->0x20, a1[3], a1) (4 args, a1[3] passed
+ * BY VALUE before the store), not the 3-arg form. Ported the donor's exact
+ * match-form. */
 void gl_func_0005B68C(int *a0, int *a1) {
-    if (a1[0xC/4] != 0x12345678) {
-        gl_func_00000000((char*)&D_00000000 + 0x21A0C, a0[0x20/4], a1);
+    if (a1[3] != 0x12345678) {
+        gl_func_00000000((char*)&D_00000000 + 0x21A0C, *(int*)((char*)a0 + 0x20), a1[3], a1);
     }
-    a1[0xC/4] = 0x87654321;
+    a1[3] = 0x87654321;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005B68C);
-#endif
 
 void gl_func_0005B6E4(int *a0, int *a1) {
     if (a1[3] != 0x87654321) {
