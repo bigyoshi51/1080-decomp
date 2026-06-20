@@ -5417,6 +5417,29 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
  * load, and applied the typed alias-extern recipe for the 7-arg float-stack
  * call. C-only fuzzy improved 75.59% -> 97.87%.
  *
+ * 2026-06-20 CORRECTION: the prior "pure RELOC-NAME-COLLAPSE, bytes complete"
+ * claim below is WRONG. Reloc-filtered word-compare of the built .o vs target .s
+ * shows the residual is NOT zero non-reloc diffs. Two diff classes were found:
+ *   (A) FP-COLORING CASCADE (6 diffs) -- FIXED THIS TICK. The gate-2 sum was a
+ *       NAMED local `float f10 = a0->0x54 + f12;`. IDO -O2 reused the now-dead
+ *       scale-const reg ($f0) for the sum, cascading every downstream FP reg one
+ *       slot low ($f10/$f16 vs target $f16/$f18 for the call-2 stack-float args).
+ *       INLINING the sum into the `if` condition (no named f10) makes IDO pick a
+ *       fresh higher $f-reg, restoring the exact target FP coloring. 9->3 diffs.
+ *   (B) BASE-REGISTER $v0 vs $v1 (3 diffs, REMAINING CAP). Target holds the CSE'd
+ *       &D base in $v0 at 0x8300 `lw $t6,0x254($v0)`, 0x8314 `lwc1 $f0,0x130($v0)`,
+ *       0x839C `lw $a0,0x254($v0)`; our build colors the same base into $v1. $v0
+ *       is the constrained call-return register (both calls return into $v0); IDO
+ *       routes the base off $v0 to avoid the call-return live ranges, while the
+ *       target coalesces base+return into $v0. The -zdbug:6 dump confirms the base
+ *       candidate (38) is assigned R=2($v1) and R=1($v0) is reserved. This is a
+ *       caller-saved-temp renumber that the docs class as permuter-floors /
+ *       not-C-reachable; every C lever tried (named base ptr, named first-deref
+ *       int/t6 local, statement reorder, compound f2*=) either left base in $v1
+ *       AND disturbed the fragile gate-3 2-insn fold, or regressed. The all-inline
+ *       body is the minimum-diff reachable form. permuter not installed in worktree.
+ *
+ * --- (stale 2026-05-24 note retained below for archaeology; its premise is wrong) ---
  * 2026-05-24: confirmed this is a pure RELOC-NAME-COLLAPSE cap, not codegen.
  * The BYTES are complete; the 2.13% is 3 reloc names the decomp collapses to
  * placeholders. Each of the 3 aliases is LOAD-BEARING FOR THE BYTES, and the
@@ -5442,30 +5465,29 @@ extern int func_00000000_082F8(int, int, int, int, float, int, float);
 extern char D_00000000_a;
 extern char D_func_00000008_data;
 void func_000082F8(int *a0) {
-    /* Inline the two single-use pointer derefs (no named t6/t7): named locals
-     * grab $v0/$v1, but the target keeps the multiply-referenced &D base in $v0
-     * and these derefs in $t-regs (regalloc-dump-identified, scripts/regalloc-dump.sh). */
+    /* Keep EVERY deref inline (no named t6/t7/f10 locals): any named int/float
+     * local grabs $v0 and ALSO disturbs the gate-3 2-insn fold (regresses).
+     * Inlining the gate-2 sum (was `float f10=...`) fixes the FP-coloring cascade.
+     * Residual = &D base in $v1 vs target $v0 (caller-saved renumber; see header). */
     float f0 = *(float*)((char*)&D_00000000 + 0x130);
     float f2 = *(float*)((char*)*(int**)((char*)BOOT_SELF_PTR + 0x70) + 0xA8) * f0;
     float f12 = *(float*)((char*)a0 + 0x38) * f0;
 
     if (f12 < f2) {
-        float f10 = *(float*)((char*)a0 + 0x54) + f12;
-        if (f10 > f2) {
+        if (*(float*)((char*)a0 + 0x54) + f12 > f2) {
             func_00000000(*(int*)&D_00000000_a, *(int*)((char*)a0 + 0x6C));
         }
     }
 
     if (*(int*)(&D_func_00000008_data + 0x2C) == 8) {
-        int v0 = func_00000000_082F8(
+        if (func_00000000_082F8(
             *(int*)((char*)&D_00000000 + 0x254),
             3,
             *(int*)((char*)a0 + 0x30),
             *(int*)((char*)a0 + 0x34),
             *(float*)((char*)a0 + 0x38),
             0,
-            0.0f);
-        if (v0 != 0) {
+            0.0f) != 0) {
             func_00000000(a0);
         }
     }

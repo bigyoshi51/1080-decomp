@@ -1101,54 +1101,57 @@ void func_000140C4(char *s0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000140C4);
 #endif
 
-/* func_00014228 - verified structural decode (0x164, 89 insns).
- * INSTRUCTION-IDENTICAL TWIN of func_000140C4 (the 3-element
- * draw/place dispatcher) - same exact body, only the internal
- * branch-label addresses differ (a second copy of the same routine,
- * e.g. for a different render pass / mirrored layout). See
- * func_000140C4 for the full decode and field map:
- *   if (s0->0x104) { select; n=(int)((f32)s0->0xDC*D_g);
- *       set(n,col); pos(s0->0x44+0x74, s0->0x5C+0x8C); }
- *   if (s0->0x108) { select; n=(int)((f32)s0->0xD8*D_g);
- *       set(n,col); pos(s0->0x44+0xA4, s0->0x5C+0xBC); }
- *   select(s0->0xE0); n=(int)((f32)s0->0xD8*D_g);
- *   set(s0->0xE0,n,&s0->0xC4,s0->0xD4);
- *   pos(s0->0xE0,s0->0x44,s0->0x5C,&s0->0xE4);
- * Struct-typing reference: identical layout to func_000140C4 -
- * s0->0x104/0x108/0xE0 drawable handles, s0->0xDC/0xD8 scaled
- * counts (* global f32 D_g), s0->0x44/0x5C base position, per-elem
- * offsets {0x74,0x8C}/{0xA4,0xBC}, obj-C local params s0->0xC4/
- * 0xD4/0xE4, const (1,1,1,1) col. Caps <80: FP cvt.s.w/mul.s/
- * trunc.w.s + &D global + ~10 func_00000000 reloc + beql
- * branch-likely. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+/* func_00014228 - 3-element draw/place dispatcher (twin of func_000140C4).
+ * NM body brought to 10 non-reloc diffs (from 24) - body is byte-exact
+ * except the 10-word prologue/save-order cluster (as1 scheduler-tie).
+ * Levers that landed the body:
+ *   - frame 0x68 / col@0x58: `volatile int pad[12]` declared AFTER col
+ *     (frame-slot rule: first-decl = highest offset, pad fills low slots).
+ *   - FP mul order: write `*(f32*)&D * (float)count` (GLOBAL FIRST). The
+ *     count-first spelling reverses the fp-reg coloring in all 3 blocks
+ *     (23->10). IDO emits `mul cvt(count), global` regardless of source
+ *     side; the global-first C gives count the lower cvt reg.
+ *   - addend order: write `*(s0+0xHI) + *(s0+0x44)` (high offset first);
+ *     IDO reverses to load 0x44 first, matching target (group-D, -8 diffs).
+ *   - condition stays a direct deref `if(*(int*)(s0+0xN))` to keep the
+ *     `beql` branch-likely (any held-temp form downgrades it to beq).
+ * RESIDUAL (10 words, as1 scheduler-tie, NOT C-reachable): block-1
+ * prologue only. Target saves $s0@0x18 BEFORE $ra@0x1C with `or s0,a0`
+ * scheduled into the inter-save gap, then reads the first handle into
+ * $a0 directly (`lw a0,0x104(a0)`) - no a0/a1 move, jal delay = nop.
+ * My build saves $ra first (adjacent saves, no gap), reads the handle
+ * into $a1, moves `or s0,a0` after, and fills the jal delay with
+ * `or a0,a1`. Blocks 2 & 3 use the identical C shape and match exactly,
+ * proving the body is correct - only the param/prologue scheduling of
+ * the FIRST block diverges. Tried: held-temp (spills + downgrades beql),
+ * array-index condition, int param, float temp - all 10 or worse.
+ * INCLUDE_ASM build path (no episode; NM body for %-progress only). */
 #ifdef NON_MATCHING
 void func_00014228(char *s0) {
-  int n;
-  float col[4];
- if (0) { }
-  col[0] = 1.0f;
-  col[1] = 1.0f;
-  col[2] = 1.0f;
-  col[3] = 1.0f;
-  if (*((int *) (s0 + 0x104)))
-  {
-    func_00000000(*((int *) (s0 + 0x104)));
-    n = (int) ((*((float *) (&D_00000000))) * ((float) (*((int *) (s0 + 0xDC)))));
-    func_00000000(*((int *) (s0 + 0x104)), n, col, 0);
-    func_00000000(*((int *) (s0 + 0x104)), (*((int *) (s0 + 0x44))) + (*((int *) (s0 + 0x74))), (*((int *) (s0 + 0x5C))) + (*((int *) (s0 + 0x8C))), 0);
-  }
-  if (*((int *) (s0 + 0x108)))
-  {
-    func_00000000(*((int *) (s0 + 0x108)));
-    n = (int) (((float) (*((int *) (s0 + 0xD8)))) * (*((float *) (&D_00000000))));
-    func_00000000(*((int *) (s0 + 0x108)), n, col, 0);
-    func_00000000(*((int *) (s0 + 0x108)), (*((int *) (s0 + 0x44))) + (*((int *) (s0 + 0xA4))), (*((int *) (s0 + 0x5C))) + (*((int *) (s0 + 0xBC))), 0);
-  }
-  func_00000000(*((int *) (s0 + 0xE0)));
-  n = (int) (((float) (*((int *) (s0 + 0xD8)))) * ((*((float *) (&D_00000000))) * 1.0f));
-  func_00000000(*((int *) (s0 + 0xE0)), n, s0 + 0xC4, *((int *) (s0 + 0xD4)));
-  func_00000000(*((int *) (s0 + 0xE0)), *((int *) (s0 + 0x44)), *((int *) (s0 + 0x5C)), s0 + 0xE4);
+    float col[4];
+    volatile int pad[12];
+    int n;
+    col[0] = 1.0f; col[1] = 1.0f; col[2] = 1.0f; col[3] = 1.0f;
+    if (*(int*)(s0 + 0x104)) {
+        func_00000000(*(int*)(s0 + 0x104));
+        n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xDC));
+        func_00000000(*(int*)(s0 + 0x104), n, col, 0);
+        func_00000000(*(int*)(s0 + 0x104),
+                      *(int*)(s0 + 0x74) + *(int*)(s0 + 0x44),
+                      *(int*)(s0 + 0x8C) + *(int*)(s0 + 0x5C), 0);
+    }
+    if (*(int*)(s0 + 0x108)) {
+        func_00000000(*(int*)(s0 + 0x108));
+        n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xD8));
+        func_00000000(*(int*)(s0 + 0x108), n, col, 0);
+        func_00000000(*(int*)(s0 + 0x108),
+                      *(int*)(s0 + 0xA4) + *(int*)(s0 + 0x44),
+                      *(int*)(s0 + 0xBC) + *(int*)(s0 + 0x5C), 0);
+    }
+    func_00000000(*(int*)(s0 + 0xE0));
+    n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xD8));
+    func_00000000(*(int*)(s0 + 0xE0), n, s0 + 0xC4, *(int*)(s0 + 0xD4));
+    func_00000000(*(int*)(s0 + 0xE0), *(int*)(s0 + 0x44), *(int*)(s0 + 0x5C), s0 + 0xE4);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014228);
