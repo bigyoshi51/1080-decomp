@@ -5854,55 +5854,55 @@ void timproc_uso_b5_func_0000896C(char *a0) {
  * loop 2 relaxed (f_2A4 != 0 only), each returning the running index;
  * the cursor is the REUSED a0 ARG (dead-arg overwrite) and the entry
  * ptr reuses a1. Negative: a clean two-do-while rewrite with arg-reuse
- * explodes to 145 insns (IDO -O2 loop restructuring duplicates the
- * blocks); the m2c goto-form body below (48 insns, 20 diffs) remains
- * the best compilable approximation. Residual class: loop-shape, not
- * regalloc. */
+ * explodes to 145 insns (IDO -O2 unrolls the do/while 4x). 2026-06-20:
+ * a FLAT goto-form (counter + cursor, `if (i < n) goto loopN`) compiles
+ * NON-unrolled to 42 words vs the 44-word target -- only TWO residual
+ * diffs, one per loop: IDO collapses my `i < n` back-branch to a single
+ * `bne v1,a3` (unit-stride IV: i!=n == i<n) where the target keeps the
+ * explicit `slt at,v1,a3; bnez at` (2 words). Tried >=/!(>=)/n>i/++i<n,
+ * pointer-end compare, do/while -- all either collapse to `bne` or unroll
+ * or spill (-O1). This is a genuine IDO induction-variable-collapse tie
+ * (loop-shape, not regalloc): no C structure that keeps a clean counter
+ * loop forces `slt` over `bne`. Body below = the 42-word/2-diff form. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00008988)();
 s32 timproc_uso_b5_func_00008988(char *arg0, s32 arg1, s32 arg2) {
-    s32 temp_a3;
-    s32 var_v1;
-    char *temp_a1;
-    char *temp_v0;
-    char *var_a0;
-    char *var_a0_2;
+    s32 i;
+    s32 n;
+    char *e;
+    char *p;
+    char *c;
 
-    var_v1 = 0;
-    temp_v0 = FW((FW(arg0, 0x40C) + (arg1 * 4)), 0x40);
-    temp_a3 = FW(temp_v0, 0x6C);
-    if (temp_a3 > 0) {
-        var_a0 = temp_v0;
-loop_2:
-        temp_a1 = FW(var_a0, 0x3C);
-        if ((*(f32 *)((char *)temp_a1 + 0x2A4) != 0.0f) && (arg2 == FW(temp_a1, 0x2B0))) {
-            return var_v1;
+    i = 0;
+    p = FW((FW(arg0, 0x40C) + (arg1 * 4)), 0x40);
+    n = FW(p, 0x6C);
+    if (n > 0) {
+        c = p;
+loop1:
+        e = FW(c, 0x3C);
+        if ((*(f32 *)((char *)e + 0x2A4) != 0.0f) && (arg2 == FW(e, 0x2B0))) {
+            return i;
         }
-        var_v1 += 1;
-        var_a0 += 4;
-        if (var_v1 >= temp_a3) {
-            var_v1 = 0;
-            goto block_7;
+        i += 1;
+        c += 4;
+        if (i < n) {
+            goto loop1;
         }
-        goto loop_2;
     }
-block_7:
-    var_a0_2 = temp_v0;
-    if (temp_a3 > 0) {
-loop_8:
-        if (*(f32 *)((char *)FW(var_a0_2, 0x3C) + 0x2A4) != 0.0f) {
-            return var_v1;
+    i = 0;
+    if (n > 0) {
+        c = p;
+loop2:
+        if (*(f32 *)((char *)FW(c, 0x3C) + 0x2A4) != 0.0f) {
+            return i;
         }
-        var_v1 += 1;
-        var_a0_2 += 4;
-        if (var_v1 >= temp_a3) {
-            /* Duplicate return node #11. Try simplifying control flow for better match */
-            return 0;
+        i += 1;
+        c += 4;
+        if (i < n) {
+            goto loop2;
         }
-        goto loop_8;
     }
     return 0;
 }
