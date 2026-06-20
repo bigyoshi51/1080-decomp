@@ -2447,45 +2447,28 @@ void gl_func_00066720(char *src, char *dst, unsigned int len) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066720);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00066794: 31-insn chunked transfer w/ 10000-byte limit (0x7C, frame 0x28).
- *
- * Decoded structure (raw-word disasm):
- *   if (count == 0) return;
- *   do {
- *       chunk = min(count, 10000);                  // 0x2710 limit (DMA boundary)
- *       func(dst, src, chunk);                       // perform transfer
- *       count -= chunk;
- *       src   += chunk;                              // advance per chunk
- *       dst   += chunk;
- *   } while (count != 0);
- *
- * The 0x2710 (10000) limit is a classic DMA boundary on N64 (libultra
- * osPiStartDma's per-call maximum). This wrapper amortizes large transfers
- * across multiple sub-DMA calls.
- *
- * Frame saves s0-s3 + ra (5 regs, 0x28 frame). The min() is emitted as
- * `sltu at, count, limit; beq at,$0,skip; move chunk, limit; <delay slot>;
- * move chunk, count` — IDO -O2 standard for ternary on unsigned comparison.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+/* gl_func_00066794: chunked transfer w/ 10000-byte (0x2710) limit per call.
+ * MATCHED 2026-06-20: the prior "0x2710 folds to sltiu" cap was wrong. The
+ * limit (0x2710) and the per-iteration chunk SHARE one register (s0): IDO
+ * loads it ONCE before the loop, and the `if (count < chunk) chunk = count`
+ * only narrows it (full chunks keep s0=0x2710 so the next `sltu` reuses it).
+ * Reusing the single `chunk` variable (no separate `limit` + ternary) makes
+ * IDO emit `li s0,0x2710` (prologue) + `sltu at,s1,s0` (loop) — register cmp,
+ * not the constant-folded sltiu. The jal is the relocatable-USO placeholder
+ * gl_func_00000000 (correct .text; R_MIPS_26 supplied by the USO loader). */
 void gl_func_00066794(char *dst, char *src, unsigned int count) {
-    unsigned int limit = 10000;
-    unsigned int chunk;
+    unsigned int chunk = 10000;
     if (count == 0) return;
     do {
-        chunk = (count < limit) ? count : limit;
+        if (count < chunk) {
+            chunk = count;
+        }
         gl_func_00000000(dst, src, chunk);
         count -= chunk;
         src += chunk;
         dst += chunk;
     } while (count != 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066794);
-#endif
 /* game_libs_func_00066808 (2-word splat mis-split: lui t6,0; lw t6,0(t6)) was
  * the stolen prologue of gl_func_00066810 — forward-merged into it. */
 void gl_func_00066810(int a0) {
@@ -5551,19 +5534,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD78);
  * for body-fidelity; INSN_PATCH overwrites its sw with nop. */
 #ifdef NON_MATCHING
 void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
-    volatile int dummy;
-    dummy = a0_unused;
-    if (a3 == 0) goto out;
-    do {
-        if (a3 == a1) {
-            *a2 = *a1;
-            goto out;
-        }
-        a2 = a3;
-        a3 = *(int**)a3;
-    } while (a3 != 0);
-out:
-    ;
+    if (a3 != 0) {
+        do {
+            if (a3 == a1) {
+                *a2 = *a3;
+                return;
+            }
+            a2 = a3;
+            a3 = *(int **)a3;
+        } while (a3 != 0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF0C);

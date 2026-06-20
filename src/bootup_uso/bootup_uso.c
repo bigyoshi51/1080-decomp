@@ -3476,62 +3476,33 @@ end:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000054D8);
 #endif
 
-#ifdef NON_MATCHING
 /* 25-insn constructor wrapper: alloc 0x58 bytes, init via runtime-patched
- * callee, set field 0x28 to &D_000079C8 (data-table address).
+ * callee, set field 0x28 to &D_000079C8.  BYTE-EXACT (2026-06-20).
  *
- * Decoded:
- *   p = gl_func_00000000(0x58);  // alloc
- *   if (p != 0) {
- *       gl_func_00000000(p, arg0, *D_X, &D_Y);  // init
- *       p->field_28 = &D_000079C8;
- *   }
- *   return p;
- *
- * Where D_X and D_Y are runtime-patched extern symbols (lui+addiu /
- * lui+lw both with 0-fill — USO relocatable). Without proper symbol
- * names, K&R extern decl is the closest we can get.
- *
- * Won't byte-match without typed structs for arg0/p and proper extern
- * names for D_X/D_Y. Default INCLUDE_ASM keeps ROM correct. */
+ * The match needed three IDO levers stacked:
+ *  - struct-by-value PARAM (`struct OneI arg0`) homes the incoming a0 to its
+ *    caller slot (`sw a0,0x28(sp)`) AND copies it to a local (`sw a0,0x1C`).
+ *  - struct-by-value ARG (`*(struct OneI*)&saved_a0`) homes the outgoing a1
+ *    to its arg slot in the jal delay slot (`sw a1,0x4(sp)`) —
+ *    docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair.
+ *  - `volatile int pad;` adds the 8-byte bottom phantom slot to grow the
+ *    frame 0x20 -> 0x28 (target is bigger) —
+ *    docs/IDO_CODEGEN.md VOLATILE-PAD phantom-slot maker.
+ * D_553C_init_value/_arg are base-0 externs (init args read/passed at 0x0). */
 extern char D_000079C8;
 extern char D_553C_init_value;
 extern char D_553C_init_arg;
-int *func_0000553C(int *arg0) {
+int *func_0000553C(struct OneI arg0) {
+    volatile int pad;
     int *p;
-    char pad[8];
-    volatile int saved_a0 = (int)arg0;
+    int saved_a0 = arg0.x;
     p = (int*)func_00000000(0x58);
     if (p == 0) goto end;
-    func_00000000(p, (int*)saved_a0, *(int*)&D_553C_init_value, &D_553C_init_arg);
+    func_00000000(p, *(struct OneI*)&saved_a0, *(int*)&D_553C_init_value, &D_553C_init_arg);
     p[10] = (int)&D_000079C8;
-    (void)pad;
 end:
     return p;
 }
-/* 2026-05-06 update: applied goto-end + 2 same-type unique-extern aliases
- * (D_553C_init_value, D_553C_init_arg, both at 0x0) per
- * docs/IDO_CODEGEN.md#feedback-ido-type-split-unique-extern-breaks-cse
- * 2026-05-06 expansion. Promoted 84.20% -> 88.40% (mirrors func_000054D8
- * sibling improvement).
- *
- * 2026-05-06 retry #2: tried `volatile int saved_a0 = (int)arg0` per
- * docs/IDO_CODEGEN.md#feedback-ido-volatile-unused-local-forces-local-slot-spill.
- * Promoted 88.40% -> 89.80% (+1.4pp) — the int-typed volatile (NOT pointer-
- * typed) forced the `sw a0, 0x1c(sp)` local-slot spill. The matching
- * `lw a1, 0x1c(sp)` reload still missing — separating into a `reloaded`
- * intermediate local REGRESSED to 84.20%, so simpler is better here.
- *
- * 2026-05-06 retry #3: added `char pad[8]` to grow frame from -0x20 to
- * -0x28 (matching target). Promoted 89.80% -> 89.88% — the larger frame
- * decouples the explicit local save from the implicit caller-arg-slot
- * save, so both writes emit. Remaining ~10% is the `sw a1, 0x4(sp)`
- * shadow store before the 2nd jal (varargs caller-side spill not
- * reachable from C without varargs prototype, which would change call
- * resolution to jalr indirect — see game_uso_func_00010E2C cap notes). */
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000553C);
-#endif
 
 #ifdef NON_MATCHING
 /* func_000055A0 - STRUCTURAL PASS (big-swing 2026-06-02).

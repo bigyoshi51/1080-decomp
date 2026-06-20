@@ -1926,8 +1926,15 @@ void titproc_uso_func_00002950(char *dst) {
     titproc_uso_func_0000056C((Vec3*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
 /* titproc_uso_func_00002980: 36-insn (0x90) alloc-and-link node helper.
+ * BYTE-IDENTICAL sibling of eddproc_uso_func_000003BC / mgrproc_uso_func_00003358.
+ * The "frame-0x20-vs-0x28 spill cap" was a MISDIAGNOSIS — porting the exact
+ * matched two-web sibling body (p1/p2 split + decl order p2,head,p1 + reload of
+ * arg0[0x40] for the second condition) reproduces the frame-0x28 two-web spill
+ * shape byte-for-byte. Do not "simplify" the reuse or the re-load; they are
+ * load-bearing for the register/slot allocation. The trailing all-zero
+ * _pad.s word is legit alignment data (no instruction-faking).
+ * --- prior misdiagnosis kept for archaeology below ---
  * Sibling of mgrproc_uso_func_00003358 (same frame/regalloc cap class).
  *
  * Structure (decoded from asm 0x2980-0x2A0C). The three jals are DISTINCT
@@ -1962,25 +1969,28 @@ extern int titproc_uso_func_055750();
 extern int titproc_uso_func_051C28();
 extern int titproc_uso_func_07ACE0();
 extern char import_0006ED80;
-int *titproc_uso_func_00002980(int *a0) {
-    int *p = (int*)titproc_uso_func_055750(0x40);
-    int *q;
-    if (p != 0) {
-        titproc_uso_func_051C28(p);
-        p[0x28/4] = (int)&import_0006ED80;
-        p[0x3C/4] = 0;
+void *titproc_uso_func_00002980(int *arg0) {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)titproc_uso_func_055750(0x40);
+    if (p1 != 0) {
+        titproc_uso_func_051C28(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&import_0006ED80;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    q = (int*)a0[0x40/4];
-    if (q != 0) {
-        titproc_uso_func_07ACE0((char*)p + 0x10, q);
-        if (q[0x14/4] != 0) q[0x4/4] = 1;
-        q[0x14/4] = (int)p;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        titproc_uso_func_07ACE0((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    return p;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00002980);
-#endif
 
 
 /* titproc_uso_func_00002A10: last function in the segment — a 2-insn
