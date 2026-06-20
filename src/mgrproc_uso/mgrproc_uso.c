@@ -805,34 +805,23 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000182
 void mgrproc_uso_func_00001A5C(int a0) {
 }
 
-#ifdef NON_MATCHING
+extern char import_800201CC;
 void mgrproc_uso_func_00001A64(int *a0) {
   int *ptr;
-  int val0;
-  int val1;
-  int val2;
-  int val3;
   ptr = *((int **) (((char *) a0) + 0x51C));
-  val0 = *((int *) (((char *) ptr) + 0x18));
   ptr = (int *) (((char *) ptr) + 0x18);
-  *ptr = val0 & (~8);
+  *ptr = *ptr & (~8);
   ptr = *((int **) (((char *) a0) + 0x51C));
-  val1 = *((int *) (((char *) ptr) + 0x18));
   ptr = (int *) (((char *) ptr) + 0x18);
-  *ptr = val1 & (~4);
+  *ptr = *ptr & (~4);
   ptr = *((int **) (((char *) a0) + 0x520));
-  val2 = *((int *) (((char *) ptr) + 0x18));
   ptr = (int *) (((char *) ptr) + 0x18);
-  *ptr = val2 | ((unsigned long long) 8);
+  *ptr = *ptr | 8;
   ptr = *((int **) (((char *) a0) + 0x520));
-  val3 = *((int *) (((char *) ptr) + 0x18));
   ptr = (int *) (((char *) ptr) + 0x18);
-  *ptr = val3 | 4;
-  *((int **) ((*((int *) (((char *) (&D_00000000)) + 0x134))) + 0x108)) = *((int **) (((char *) a0) + 0x520));
+  *ptr = *ptr | 4;
+  *((int **) ((*((int *) (((char *) (&import_800201CC)) + 0x134))) + 0x108)) = *((int **) (((char *) a0) + 0x520));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001A64);
-#endif
 
 /* mgrproc_uso_func_00001AD0: 34-insn (0x88) 5-call orchestrator.
  * Interleaving the int/pointer local declarations (v0, n0, p0, n1, p1) makes
