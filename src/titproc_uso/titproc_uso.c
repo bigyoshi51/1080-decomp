@@ -1293,30 +1293,51 @@ void titproc_uso_func_00001C68(int *a0) {
  *
  * 2026-05-17: reusing a0 for the subobject removed the extra local frame
  * slot and raised C-only emit to 93.02%. The remaining same-size $v1/$a2
- * and spill-slot diffs are patched with INSN_PATCH in the Makefile, like
- * sibling 0x1840. Default build bytes match expected. */
+ * and spill-slot diffs were previously patched with INSN_PATCH (REMOVED
+ * 2026-05-23 as match-faking).
+ *
+ * 2026-06-20: full reconstruction with the REAL reloc callees/symbols
+ * (titproc_uso_func_055750 alloc, titproc_uso_func_04C678 init,
+ * &import_00073B18 for the sub-arm 0x28, &titproc_uso_D_0002CC for the
+ * common 0x28; base = &titproc_uso_D_00048C). The prior body used
+ * placeholder gl_func_00000000 / &D_00000000 (objdiff-name-blind 100%
+ * but byte/episode-WRONG). Applying the reuse-param-as-object lever
+ * (docs/IDO_CODEGEN.md#feedback-ido-reuse-param-as-object-caller-slot-spill)
+ * — `self` IS the parameter, so IDO arg-saves it to the caller slot
+ * (sw a2,0x20(sp)) instead of an in-frame spill — collapsed 18 reg/spill
+ * diffs to 2. RESIDUAL (same size 44/44, exact insns): a 2-insn as1
+ * scheduler tie — the `self` reload `lw a2,0x20(sp)` fills the gap between
+ * t6's `lui`/`addiu` (&import_00073B18) instead of scheduling after the
+ * addiu. Dataflow-independent pair; no reliable C lever (per the for-loop
+ * comma-init schedule rule, which is loop-specific). Still NM. */
 #ifdef NON_MATCHING
-void *titproc_uso_func_00001D7C(void *a0) {
-  char *base = &D_00000000;
-  void *self = a0;
+extern int titproc_uso_func_055750();
+extern int titproc_uso_func_04C678();
+extern char titproc_uso_D_0002CC;
+void *titproc_uso_func_00001D7C(void *self) {
+  void *sub;
+  char *base = &titproc_uso_D_00048C;
   if (self == 0)
   {
-    self = (void *) gl_func_00000000(0x40);
+    self = (void *) titproc_uso_func_055750(0x40);
     if (self == 0)
     {
       goto end;
     }
   }
-  a0 = self;
+  sub = self;
   if (self == 0)
   {
-    a0 = (void *) gl_func_00000000(0x2C);
-    if (a0 == 0)
+    sub = (void *) titproc_uso_func_055750(0x2C);
+    if (sub == 0)
     {
-      goto init_self;
+      goto common;
     }
   }
- gl_func_00000000(a0, base + 0x500); *((int *) (((char *) a0) + 0x28)) = (int) base; init_self: *((int *) (((char *) self) + 0x28)) = (int) base;
+  titproc_uso_func_04C678(sub, base + 0x500);
+  *((int *) (((char *) sub) + 0x28)) = (int) &import_00073B18;
+ common:
+  *((int *) (((char *) self) + 0x28)) = (int) &titproc_uso_D_0002CC;
   *((int *) (((char *) self) + 0x0C)) = (int) (base + 0x508);
   *((int *) (((char *) self) + 0x3C)) = 0;
   *((float *) (((char *) self) + 0x2C)) = 1.0f;

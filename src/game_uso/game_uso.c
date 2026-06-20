@@ -2100,7 +2100,18 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
  * and scheduler differences were byte-restored with INSN_PATCH. INSN_PATCH
  * REMOVED 2026-05-23 as match-faking per
  * feedback_no_instruction_forcing_matches_policy; docs/POST_CC_RECIPES.md
- * DEPRECATED. NATURAL CEILING 95.40% NM. */
+ * DEPRECATED.
+ *
+ * 2026-06-20 agent-b: the 0x35C value is loaded once and homed to slot 0x1C
+ * as the call arg; passing it as `init_arg = init_arg_copy` (assign-expr in
+ * the call) made IDO emit an EXTRA volatile store + reload (53 words = SIZE
+ * MISMATCH vs the 52-word target). Splitting it into `init_arg_copy = load;
+ * init_arg = init_arg_copy;` and passing the plain `init_arg_copy` drops the
+ * extra word -> 52 words = CORRECT SIZE, 23 non-reloc diffs. Residuals are now
+ * pure frame-layout caps: frame -0x38 vs -0x30 (one extra stack slot) and
+ * var_a1 spill at sp+0x38 vs sp+0x2C, plus the dead-store(0x34)/spill(0x1C)
+ * two-homes-no-reload pattern that IDO only emits with the original (lost)
+ * source. NATURAL CEILING ~95.40% NM; remaining gap = sp-offset coloring. */
 #ifdef NON_MATCHING
 void *game_uso_func_00002744(void *arg0) {
   void *var_a1;
@@ -2129,9 +2140,8 @@ void *game_uso_func_00002744(void *arg0) {
   ((int *) var_v1)[0] = (int) (((char *) (&D_00000000)) + 0x354);
   ((int *) var_v1)[1] = 0;
   after_template:
-  init_arg = *((int *) (((char *) (&D_00000000)) + 0x35C));
-
-  init_arg_copy = init_arg;
+  init_arg_copy = *((int *) (((char *) (&D_00000000)) + 0x35C));
+  init_arg = init_arg_copy;
   var_a0 = ((char *) var_a1) + 8;
   if (var_a1 == ((void *) (-8)))
   {
@@ -2141,7 +2151,7 @@ void *game_uso_func_00002744(void *arg0) {
       goto done;
     }
   }
-  gl_func_00000000(var_a0, var_a1, init_arg = init_arg_copy, 1);
+  gl_func_00000000(var_a0, var_a1, init_arg_copy, 1);
   ((int *) var_a0)[3] = (int) (((char *) (&D_00000000)) + 0x18);
   ((float *) var_a0)[4] = 0.0f;
   ((int *) var_a0)[5] = 0;

@@ -335,31 +335,40 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000119
  * (full-range -> id 1, else start+2). Packed ids: high bits select
  * a category (0x210000 = the main widget group, 0x200000 / 0xA0000
  * / 0x1E0000 = variants OR'd with a per-element index or a global
- * value from &D_x/&D_y). ~10x gl_func_00000000 reloc calls + lui/ori
- * packed-constant builds + a branch on the queue range. C body builds
- * builds at ~97% NM (64/66 byte-exact, placeholder calls -> addr 0). The
+ * value from &D_x/&D_y). 2026-06-20: replaced placeholder gl_func_00000000
+ * calls with the REAL reloc callees — first 6 calls = import_0024F228,
+ * last 5 = import_0024F278 — and the real bases (&import_80263D30 arg0;
+ * global reads from &import_800200FC+0x64 and &import_800200EC+0x54). The
  * remaining 2-of-66 diff is a schedule-swap between the first arg's lui-
- * const and the `(a1-1)` addiu — previously INSN_PATCH'd; INSN_PATCH
- * REMOVED 2026-05-23 (per feedback_no_instruction_forcing_matches_policy).
- * No episode (reloc-blind call targets); default build is INCLUDE_ASM. */
+ * const (`lui at,0x20` for 0x200000) and the `(a1-1)` addiu — previously
+ * INSN_PATCH'd (REMOVED 2026-05-23). Dataflow-independent as1 scheduler
+ * tie: IDO consistently schedules the `addiu a1,a1,-1` decrement before
+ * the const-lui; OR-operand reorder, separate-statement, and named-temp
+ * forms all leave it (the swap just migrates to the next adjacent op).
+ * No reliable C lever. Still NM; default build is INCLUDE_ASM. */
 #ifdef NON_MATCHING
+extern int import_0024F228();
+extern int import_0024F278();
+extern char import_80263D30;
+extern int import_800200EC;
+extern int import_800200FC;
 void mgrproc_uso_func_000011A4(char *s0, int a1) {
     int *q;
-    gl_func_00000000(&D_00000000, (a1 - 1) | 0x200000);
-    gl_func_00000000(s0 + 0x6B0, *(int *)((char *)&D_00000000 + 0x64) | 0x000A0000);
-    gl_func_00000000(s0 + 0x6C8, 0x210000);
+    import_0024F228(&import_80263D30, (a1 - 1) | 0x200000);
+    import_0024F228(s0 + 0x6B0, *(int *)((char *)&import_800200FC + 0x64) | 0x000A0000);
+    import_0024F228(s0 + 0x6C8, 0x210000);
     q = *(int **)(s0 + 0x6A8);
     if (q[2] == q[1] + 1) {
-        gl_func_00000000(s0 + 0x6E0, 0x210000 | 1);
+        import_0024F228(s0 + 0x6E0, 0x210000 | 1);
     } else {
-        gl_func_00000000(s0 + 0x6E0, 0x210000 | (q[1] + 2));
+        import_0024F228(s0 + 0x6E0, 0x210000 | (q[1] + 2));
     }
-    gl_func_00000000(s0 + 0x6F8, *(int *)((char *)&D_00000000 + 0x54) | 0x001E0000);
-    gl_func_00000000(s0 + 0x728, 0x210000 | 0x7);
-    gl_func_00000000(s0 + 0x740, 0x210000 | 0x8);
-    gl_func_00000000(s0 + 0x758, 0x210000 | 0x9);
-    gl_func_00000000(s0 + 0x770, 0x210000 | 0xA);
-    gl_func_00000000(s0 + 0x788, 0x210000 | 0xD);
+    import_0024F228(s0 + 0x6F8, *(int *)((char *)&import_800200EC + 0x54) | 0x001E0000);
+    import_0024F278(s0 + 0x728, 0x210000 | 0x7);
+    import_0024F278(s0 + 0x740, 0x210000 | 0x8);
+    import_0024F278(s0 + 0x758, 0x210000 | 0x9);
+    import_0024F278(s0 + 0x770, 0x210000 | 0xA);
+    import_0024F278(s0 + 0x788, 0x210000 | 0xD);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000011A4);
@@ -590,26 +599,38 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F
  *    0x00000000 in undefined_syms_auto.txt. The split forces IDO to
  *    emit 2 separate `lui rN, 0` instead of caching `&D` across both
  *    use sites — matches target's no-cache pattern.
- * 2. The 14-insn register-rename at 0x28-0x68 (the post-jal multu chain
+ * 2. The 13-insn register-rename at 0x28-0x68 (the post-jal multu chain
  *    — IDO -O2 prefers $a2/$v1/{t6..t8}; target uses $v1/{t6..t9}) was
  *    previously documented as INSN_PATCH-promotable; INSN_PATCH REMOVED
- *    2026-05-23 as match-faking (per
- *    feedback_no_instruction_forcing_matches_policy). Default build is
- *    INCLUDE_ASM. */
+ *    2026-05-23 as match-faking. 2026-06-20: replaced placeholder
+ *    gl_func/D externs with the REAL reloc symbols (callee
+ *    mgrproc_uso_func_013980; bases &import_80020228 (D[0x190]) and
+ *    &import_80263D60 (D[0x30])). ROOT CAUSE confirmed via -zdbug:6 dump:
+ *    the loop-invariant stride constant 0x28 (used by BOTH multu chains)
+ *    is the LAST-encountered constrained candidate, so IDO colors it $a2
+ *    (color 5); the target colored it $v1 (color 2), cascading the whole
+ *    multu chain ($v1/t6..t9 vs $a2/v1/t6..t8). Its first-use is
+ *    structurally after the two index loads, so no decl-order / named-
+ *    local / commutative-operand lever moves it earlier (all verified
+ *    in-tree: stride local, 0x28*idx, etc — candidate stays last). Genuine
+ *    register-renumber cap. Default build is INCLUDE_ASM. */
 extern int gl_func_00000000();
 extern int D_mgr_1594_a, D_mgr_1594_c;
 #ifdef NON_MATCHING
+extern int mgrproc_uso_func_013980();
+extern int import_80020228;
+extern int import_80263D60;
 void mgrproc_uso_func_00001594(int *a0) {
     int *p;
     int idx;
     int *q;
     void (*fn)();
-    if (gl_func_00000000(*(int*)((char*)&D_mgr_1594_a + 0x190), a0) == 0) return;
+    if (mgrproc_uso_func_013980(*(int*)((char*)&import_80020228 + 0x190), a0) == 0) return;
     p = (int*)a0[0x48 / 4];
     idx = *(int*)((char*)p + 0x7C);
     q = (int*)((char*)p + idx * 0x28);
     if (q[0x90 / 4] == 0) return;
-    *(int*)((char*)&D_mgr_1594_c + 0x30) = (int)a0;
+    *(int*)((char*)&import_80263D60 + 0x30) = (int)a0;
     p = (int*)a0[0x48 / 4];
     idx = *(int*)((char*)p + 0x7C);
     q = (int*)((char*)p + idx * 0x28);
