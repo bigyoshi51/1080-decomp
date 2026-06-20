@@ -11529,30 +11529,19 @@ void game_uso_func_0000D6E4(char *a0) {
     }
 }
 
-/* Conditional 3-call state update. NATURAL CEILING: 93.05% NM. Caps are
- * v0/v1 regalloc swap + beql/beq epilogue layout shift (target uses
- * "b zero,zero,end; addiu v0,1 (delay)" instead of built's "addiu v1,1;
- * lw ra (was beql delay)"). The historical SUFFIX_BYTES_FORCE (+1 nop) +
- * 11-entry INSN_PATCH promotion was REMOVED 2026-05-23 as match-faking.
- *
- * Original 2026-05-13 wrap follows (kept for reference):
- * Conditional 3-call state update. 90.31% -> 92.45% via two fixes 2026-05-13:
- *   1. Inline-deref obj ptr (no named local) → $t6 holds obj inline (per
- *      feedback-ido-v0-reuse-via-locals).
- *   2. `int result = 0; if (...) { body; result = 1; } return result;` —
- *      preemptive-set + single-return shape matches target's `or v0, zero, zero`
- *      before the beqz.
- *
- * Remaining cap: IDO puts `result` in $v1 not $v0 → trailing `or v0, v1, 0`
- * extra move + frame grows by 8 (extra spill). Two-returns form regresses
- * to 90.6 %. The 92.45 % is the local maximum for $v0/$v1 regalloc choice
- * cap class (per feedback-ido-v0-reuse-via-locals — named locals across
- * function calls compete for $v0/$v1 with IDO's allocno priority). */
-#ifdef NON_MATCHING
+/* Conditional 3-call state update. BYTE-EXACT 2026-06-20.
+ * The prior "v0/v1 regalloc swap + beql/beq" cap was MISDIAGNOSED: it came
+ * from the `int result = 0; ...; result = 1; return result;` single-return
+ * shape, which spans `result` to the tail and makes IDO pick $v1 + a
+ * branch-likely (beqzl) + trailing `or v0,v1`. Rewriting as the POSITIVE
+ * two-return form — `if (cond) { body; return 1; } return 0;` (no `result`
+ * local) — preinits $v0=0, emits a plain `beqz t7,end; nop` fallthrough, and
+ * a `b end; li v0,1` tail with $v0 throughout, matching the target exactly.
+ * Dropping the `result` local also keeps `arg`'s spill at 0x24 (the extra
+ * local had pushed it to 0x20). */
 int game_uso_func_0000D74C(char *a0) {
-    int result = 0;
     int arg;
-    if (*(int*)(*(char**)(a0 + 0xB4) + 0x938) != 0) {
+    if (*(int*)(*(char**)(a0 + 0xB4) + 0x938)) {
         gl_func_00000000(a0, 1);
         gl_func_00000000(a0, 2, 0);
         arg = *(int*)(a0 + 0xFC) | 0xA;
@@ -11563,13 +11552,10 @@ int game_uso_func_0000D74C(char *a0) {
         gl_func_00000000(a0, 3, 0, arg);
         gl_func_00000000(a0, arg);
         gl_func_00000000(a0, 0);
-        result = 1;
+        return 1;
     }
-    return result;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D74C);
-#endif
 
 /* Conditional fall-below-floor update. BYTE-EXACT. The E90 table pair is passed
  * BY VALUE as `*(Pair2*)((char*)&D_00000000 + 0xE90)`: the base+offset ADDEND form
