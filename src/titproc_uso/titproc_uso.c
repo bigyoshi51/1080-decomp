@@ -1598,34 +1598,44 @@ void titproc_uso_func_00002270(int a0, int *a1) {
 }
 
 #ifdef NON_MATCHING
-/* titproc_uso_func_000022BC: 84-insn (0x150) per-frame init orchestrator.
- * Structural decode: ~7 iterations of setup-and-call pattern, each calling
- * gl_func(D[0x6C0], packed-a1, a2=N, a3=base) for N=0..6.
+/* titproc_uso_func_000022BC: per-frame init orchestrator — submit 7 display
+ * lists (a3 = &titproc_uso_func_00018C..000380), then reset slot 0x128.
  *
- * Per-iter shape (decoded from 0x22D0-0x2310):
- *   a0 = D[0x6C0];
- *   s1 = &D + offset; a1 = *s1;
- *   a3 = &D + constant;
- *   a1 = ((a1+1) << 16) | low_bits;       // pack (count, flag)
- *   gl_func(a0_reload, a1, a2=N, a3);
- *
- * Tail (0x23E0-0x23F4):
- *   a0 = D[0xC4];
- *   if (a0 != 0) D[0x6C0]->0x128 = 0;     // bnel-likely + delay-slot store
- *
- * Likely a per-frame "submit N display lists, then reset slot 0x128".
- * Multi-tick decomp expected. Stub body so wrap parses; default build
- * matches via INCLUDE_ASM. */
+ * 2026-06-20 RECONSTRUCT (65.85% -> 86.05%): wired the REAL resolved callees
+ * from the .s. The prior stub called gl_func_00000000 for everything and used
+ * &D_00000000 placeholders. The actual missing logic was:
+ *   - first call is titproc_uso_func_010A9C(D[0x6C0]) (1 arg, distinct callee)
+ *   - the 7 body calls are import_000A69BC(D[0x6C0], packed, N, a3) with a3 =
+ *     a DISTINCT function-pointer arg each iteration (00018C/1DC/230/284/2D8/32C/380)
+ *   - the count source is &import_0002022C cached once in $s1 (a1=((*s1+1)<<16)|low)
+ *   - tail gate is titproc_uso_func_07BBBC(*(import_00020098+0xC4)).
+ * Residual (14 diffs): IDO re-materializes the &import_0002022C address per call
+ * (lui+lw) instead of pinning it in $s1 like the target — a cost-model
+ * re-materialize-vs-pin decision (permuter-class; `register` honored narrowly
+ * here, no effect). NON_MATCHING. */
+extern char import_0002022C;
+extern int import_000A69BC();
+extern int titproc_uso_func_010A9C();
+extern int titproc_uso_func_07BBBC();
+extern char titproc_uso_func_00018C;
+extern char titproc_uso_func_0001DC;
+extern char titproc_uso_func_000230;
+extern char titproc_uso_func_000284;
+extern char titproc_uso_func_0002D8;
+extern char titproc_uso_func_00032C;
+extern char titproc_uso_func_000380;
 void titproc_uso_func_000022BC(char *s0) {
-    gl_func_00000000(*(int *)(s0 + 0x6C0));
-    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 1, 0, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 2, 1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 3, 2, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 6, 3, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 4, 4, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 7, 5, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 0x6C0), ((*(int *)&D_00000000 + 1) << 16) | 5, 6, &D_00000000);
-    if (gl_func_00000000(*(int *)((char *)&D_00000000 + 0xC4)) != 0) {
+    register int *s1 = (int *)&import_0002022C;  /* pin base addr in $s1 across calls */
+
+    titproc_uso_func_010A9C(*(int *)(s0 + 0x6C0));
+    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 1, 0, &titproc_uso_func_00018C);
+    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 2, 1, &titproc_uso_func_0001DC);
+    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 3, 2, &titproc_uso_func_000230);
+    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 6, 3, &titproc_uso_func_000284);
+    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 4, 4, &titproc_uso_func_0002D8);
+    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 7, 5, &titproc_uso_func_00032C);
+    import_000A69BC(*(int *)(s0 + 0x6C0), ((*s1 + 1) << 16) | 5, 6, &titproc_uso_func_000380);
+    if (titproc_uso_func_07BBBC(*(int *)((char *)&import_00020098 + 0xC4)) != 0) {
         *(int *)(*(int *)(s0 + 0x6C0) + 0x128) = 0;
     }
 }
