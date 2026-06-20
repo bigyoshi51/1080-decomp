@@ -5778,27 +5778,13 @@ void func_00008AEC(Quad4 *dst) {
     *dst = buf;
 }
 
-#ifdef NON_MATCHING
-/* func_00008B44: 36-insn (0x90) alloc-or-given init. The C BODY BELOW IS
- * BYTE-EXACT (verified 2026-06-20: 0 non-reloc diffs, 36/36 insns) but CANNOT
- * be landed as the live build path: func_0000D900 AND func_000080EC (both still
- * INCLUDE_ASM) take the ADDRESS of internal labels of this function —
- * `.L00008B6C` (= 8B44+0x28) and `D_00008B70` (= 8B44+0x2C). Converting 8B44
- * to C deletes those local label defs, so the bootup_uso.o link fails with
- * `undefined reference to .L00008B6C`. This lands cleanly once D900 and 080EC
- * are also decompiled (cross-refs become normal C-internal addresses). NO
- * episode (build path is INCLUDE_ASM; would be a tautology).
+/* func_00008B44: 36-insn (0x90) alloc-or-given init. BYTE-EXACT (0 non-reloc
+ * diffs, 36/36 insns). func_0000D900 (still INCLUDE_ASM) takes the address of
+ * two interior points of this function (8B44+0x28, 8B44+0x2C); its .s now
+ * references them as `func_00008B44 + 0x28 / + 0x2C` (identical relocation
+ * bytes) instead of the now-removed local labels `.L00008B6C` / `D_00008B70`.
  *
- *   p = a0;
- *   if (p == 0) { p = alloc(0x178); if (p == 0) goto end; }
- *   call(p, a1, a3, a4, f_arg);              // 5-arg, a2 SKIPPED, 5th=float via stack
- *   p->0x28 = &D_00000000;                   // vtable-style
- *   p->0x170 = a1;                           // reload a1 from caller slot
- *   p->0x174 = (u16)a2;                      // lhu low half of a2 ONLY use
- *   p->0x150 = 1.0f;  p->0x154 = 10.0f;
- *   return p;
- *
- * Two final levers that took the prior 87.2% NM to byte-exact:
+ * Two levers that took the prior 87.2% NM to byte-exact:
  *  - the (u16)a2 store must read the saved int slot's low halfword by MEMORY
  *    (`((unsigned short*)&a2)[1]` -> lhu 0x2A(sp)), not reload+truncate (lw).
  *  - the short store (0x174) must be emitted BEFORE the float stores in C so
@@ -5819,9 +5805,6 @@ char* func_00008B44(char *a0, int a1, int a2, int a3, int a4, float f_arg) {
 end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008B44);
-#endif
 
 // func_00008BD4 — STRUCTURAL PASS (0x344 / 209 insns, no episode).
 // Collision impulse / force-application onto a physics body, gated by

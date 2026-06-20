@@ -17735,35 +17735,18 @@ void gl_func_00030564(void) {
     gl_func_00000000(0x06000801, 1);
 }
 
-#ifdef NON_MATCHING
-/* Gate function — calls gl_func_00000000 if both D[8] and D[0xC] zero.
- * Predecessor's SUFFIX_BYTES emits `lui v0; addiu v0,&D; lw t6,0x8(v0)`
- * just before our prologue, supplying v0=&D and t6=*(D+8). With
- * PROLOGUE_STEALS=8 + this C body: 10/13 words match (size 0x34 OK).
- * Remaining 3 diffs:
- *   1. Built emits `bne` (15c00006); target uses `bnel` (55c00007).
- *      IDO -O2 doesn't recognize the early-return-restore-ra-via-likely
- *      pattern from `if (cond) return;`. Sibling of recipes that promote
- *      bne→bnel via `goto` to shared epilogue + delay-likely lw ra.
- *   2. Built does fresh `lui+lw` for D[3] access; target reuses v0
- *      from stolen prologue (`lw t7, 0xC(v0)`). Needs unique-extern-
- *      typed-as-int* recipe (feedback-prologue-steals-with-dangling-
- *      register-use), which conflicts with file's existing
- *      `extern int D_00000000` decl — needs renamed alias symbol.
- *   3. Same as (2) for the second-arm reload.
- * Promotion path: introduce `extern int *gl_d_30598_v0;` mapped to 0,
- * use it for the D[3] access, +PROLOGUE_STEALS=8. Multi-tick. */
-extern int *gl_d_30598_v0;  /* unique-extern alias mapped to 0x0; CSE-break */
+/* gl_func_00030598: gate — calls gl_func_00000000 only if both D[2] and
+ * D[3] (base-relative ints at &D+8 / &D+0xC) are zero. Reads the relocated
+ * &D base directly (NOT a held pointer deref): the two `if (X) goto end`
+ * arms each emit a `bnezl ...,end` likely-branch that hoists the epilogue's
+ * `lw ra` into the delay slot. Byte-exact (16/16 words, reloc-filtered). */
 void gl_func_00030598(void) {
-    if (gl_d_30598_v0[2] != 0) goto end;
-    if (gl_d_30598_v0[3] != 0) goto end;
+    if (*(int *)((char *)&D_00000000 + 8) != 0) goto end;
+    if (*(int *)((char *)&D_00000000 + 0xC) != 0) goto end;
     gl_func_00000000();
 end:
     return;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030598);
-#endif
 
 /* gl_func_000305CC: 17-insn signed-clamp + 2-arg call wrapper.
  *

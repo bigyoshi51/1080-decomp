@@ -102,39 +102,55 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00000C14: 44-insn (0xB0) state-update with conditional
- * branch. Reads (int*)&D[0x30] = global state ptr, queries via gl_func()
- * the outer->[0x6AC]->[0x4C] sub-state, and based on result either:
- *   - cond TRUE: clear state[0x504], state[0x4E0]=7, D[0x40]=5,
- *                D[0x44]=7, state[0x7D8]=1, call gl_func(state)
- *   - cond FALSE: D[0x40]=7, call gl_func(state, 0, 0)
+ * branch. state = *(int**)(&import_80263D60 + 0x30) (global state ptr);
+ * queries import_01FA1C(state->[0x6AC]->[0x4C]) and based on result either:
+ *   - cond TRUE: clear state[0x504], state[0x4E0]=7, other[0x40]=5,
+ *                other[0x44]=7, state[0x7D8]=1, call import_000A5938(state)
+ *   - cond FALSE: other[0x40]=7, call mgrproc_uso_func_00F954(state, 0, 0)
+ *   where other = &import_80020098.
  *
- * Multiple D[0x30] reloads in target asm (5 separate `lw rN, 0(v1)`)
- * suggest IDO -O2 doesn't CSE the state-ptr load across the if-arm
- * boundaries.
+ * SYMBOLS RE-DERIVED 2026-06-20: the prior body used gl_func_00000000 /
+ * D_C14_state / D_00000000 placeholders (relocs all WRONG). The four calls
+ * are DISTINCT real targets (import_000A5A1C, import_01FA1C, import_000A5938,
+ * mgrproc_uso_func_00F954) and the two bases are DISTINCT imports
+ * (import_80263D60+0x30 = state-storage, import_80020098 = `other`). Body
+ * below now emits the correct relocs + the 6 fresh `lw 0(v1)` state reloads
+ * IDO uses (no CSE across the call/if boundaries) — front + reload count + all
+ * struct offsets are byte-exact except for the cap below.
  *
- * 2026-05-14 retest with `D_00000000 + 0x30` alias: makes built 20 bytes
- * SHORTER than target (38 diffs, 156 vs 176) — IDO CSEs the lui/addiu/lw
- * sequence into named-local + 3 reloads, but target wants 5 separate
- * 3-insn reload sequences. INSN_PATCH+SUFFIX_BYTES grow recipe would be
- * heavy (~38 entries + 20 bytes). Deferred. */
-extern int gl_func_00000000();
-extern char D_00000000;
-extern int *D_C14_state; /* alias of D + 0x30 (state ptr) */
+ * NM cap (24/44 non-reloc words; same size 0xB0): two cascading IDO
+ * addressing choices that no natural C lever reproduces:
+ *  (1) LO16-FOLD on the state slot — target emits `lui v1,%hi; addiu
+ *      v1,v1,0x30; lw 0(v1)` (0x30 in the addiu), IDO from
+ *      `*(int**)(&sym+0x30)` emits `lui v1,%hi; addiu v1,v1,%lo; lw 0x30(v1)`
+ *      (0x30 folded into the load). Held-pointer / struct-index / array-index
+ *      variants all CSE the address away or add an extra indirection.
+ *  (2) `other` base — target keeps &import_80020098 live in $a3 across both
+ *      true-arm stores (0x40/0x44) and the else-arm store; IDO rematerializes
+ *      `lui at` per store. Both cascade into register renumbering. Genuine
+ *      LO16-fold + address-rematerialization cap. Default build INCLUDE_ASM. */
+extern int import_80263D60;
+extern char import_80020098;
+extern int import_000A5A1C();
+extern int import_000A5938();
+extern int mgrproc_uso_func_01FA1C();
+extern int mgrproc_uso_func_00F954();
+#define C14_STATE (*(int **)((char *)&import_80263D60 + 0x30))
 void mgrproc_uso_func_00000C14(void) {
-    int *other = (int*)&D_00000000;
+    int *other = (int *)&import_80020098;
     int v0;
-    gl_func_00000000(D_C14_state);
-    v0 = gl_func_00000000(*(int*)((char*)(D_C14_state)[0x6AC/4] + 0x4C));
+    import_000A5A1C(C14_STATE);
+    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)C14_STATE[0x6AC / 4] + 0x4C));
     if (v0 != 0) {
-        D_C14_state[0x504/4] = 0;
-        D_C14_state[0x4E0/4] = 7;
-        other[0x40/4] = 5;
-        other[0x44/4] = 7;
-        D_C14_state[0x7D8/4] = 1;
-        gl_func_00000000(D_C14_state);
+        C14_STATE[0x504 / 4] = 0;
+        C14_STATE[0x4E0 / 4] = 7;
+        other[0x40 / 4] = 5;
+        other[0x44 / 4] = 7;
+        C14_STATE[0x7D8 / 4] = 1;
+        import_000A5938(C14_STATE);
     } else {
-        other[0x40/4] = 7;
-        gl_func_00000000(D_C14_state, 0, 0);
+        other[0x40 / 4] = 7;
+        mgrproc_uso_func_00F954(C14_STATE, 0, 0);
     }
 }
 #else
