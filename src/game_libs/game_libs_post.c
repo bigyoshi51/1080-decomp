@@ -6931,38 +6931,11 @@ int gl_func_00023B08(int a0, int a1) {
     return a1;
 }
 
-// gl_func_00023B44 — STRUCTURAL PASS (0x98 / 38 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 5-jr USO bundle
-// (named fn + 4 tiny trailing getters) — deferred USO re-split. The
-// named leading fn (~20 words, ends at 0x23B90) is a two-step
-// init/begin.
-//
-//   int gl_func_00023B44(int a0, int a1) {
-//     int r = (*step1)(a0, a1);                          // jal 0 USO
-//     if (r == 0) return 0;                               // step1 fail
-//     int r2 = (*step2)(r, 2);                            // jal 0 USO
-//     if (r2 == 0) return 0;
-//     return 1;                                            // success
-//   }
-//
-// Struct-typing reference: a sequenced begin — calls one USO-relocated
-//   setup routine (`jal 0` slot) with the caller args; only on a
-//   non-zero result does it invoke a second USO-relocated routine
-//   (with constant 2), returning a 0/1 success flag. The 4 trailing
-//   bundled bodies are tiny accessors of the same &D_0 subsystem:
-//   a type→pointer selector (a0 == 0 / 1 / 2 picks a &D_ blob) and
-//   simple word getters reading globals &D_0+0x201C / 0x2020 / 0x2024
-//   (the registry/limit globals used by the gl_func_000221D8 /
-//   gl_func_00022FC0 families). Left for the deferred USO re-split.
-// Caps (DEFERRED): single jr $ra (the "5-fn unsplit bundle" note is
-//   STALE; .s is 0x54/21 words, ONE function). Two-stage
-//   lookup-or-fallback. Real-C STRUCTURAL body below per the
-//   analysis (r = jal-0 reloc1(a0,a1); if r != 0 return r; else
-//   jal-0 reloc2(a0,2,a1); return 0). Byte-match deferred —
-//   placeholder jal-0 calls + beql schedule need USO reloc infra.
-//   Name pre-checked: no extern reuse (collision-safe).
-//   gl_func_00000000 = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
+/* gl_func_00023B44: two-stage begin. Calls a USO-relocated setup routine
+ * (jal-0 placeholder) with the caller args; only on a non-zero result does it
+ * invoke a second routine (constant arg 2 + original a1). Positive two-return
+ * form (if r!=0 return r; ... return 0) makes IDO emit beql for the second
+ * arm, matching the target. MATCHED byte-exact (21 words, reloc-filtered). */
 extern int gl_func_00000000();
 int gl_func_00023B44(int a0, int a1) {
     int r = gl_func_00000000(a0, a1);
@@ -6970,14 +6943,11 @@ int gl_func_00023B44(int a0, int a1) {
         return r;
     }
     r = gl_func_00000000(a0, 2, a1);
-    if (r == 0) {
-        return 0;
+    if (r != 0) {
+        return r;
     }
-    return r;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023B44);
-#endif
 
 /* game_libs_func_00023B98: 3-case dispatch returning USO data fields.
  * MERGED 2026-05-26: absorbed shared-tail fragments _00023BC0, _00023BC8,

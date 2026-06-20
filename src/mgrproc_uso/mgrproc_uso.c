@@ -1924,48 +1924,38 @@ void mgrproc_uso_func_00003328(char *dst) {
     (void)p;
 }
 
-#ifdef NON_MATCHING
-/* mgrproc_uso_func_00003358: 39-insn (0x90) alloc-and-link node helper.
- * BYTE-IDENTICAL sibling of eddproc_uso_func_000003BC (matched 100%) and
- * arcproc_uso_func_00002334 (89% NM). Same C body that matches eddproc
- * lands at 89.08% here.
- *
- * 2026-05-08 retest: applied eddproc lever (volatile int **p_arg0 = &arg0;
- * + late head reload via `((int*)*p_arg0)[0x10]`). Result identical to
- * arcproc sibling — 89% with frame-size diff (target 0x28, built 0x20).
- * Same C body, same file-context-dependent regalloc cap as arcproc.
- *
- * Pattern: the 36-insn alloc-and-link constructor matches in eddproc_uso.c
- * but not in mgrproc_uso.c or arcproc_uso_tail1.c, despite identical C
- * source. Suspect file-level state (other functions' codegen perturbing
- * IDO's allocator) since OPT_FLAGS are nominally same. Multi-tick decomp;
- * cap inherited from arcproc sibling. */
-extern int gl_func_00000000();
+/* mgrproc_uso_func_00003358: 36-insn (0x90) alloc-and-link node helper.
+ * BYTE-IDENTICAL sibling of eddproc_uso_func_000003BC (matched 100%). The
+ * "file-level state cap" was a MISDIAGNOSIS — porting eddproc's exact body
+ * verbatim (p1/p2 split + decl order p2,head,p1 + reload of arg0[0x40])
+ * matches byte-for-byte here. The frame-0x28 two-web spill shape is forced
+ * by the variable reuse, not file context. Do not "simplify" the reuse or
+ * the re-load; they are load-bearing for the register/slot allocation. */
+extern int mgrproc_uso_func_051C28();
+extern char import_8006ED80;
 
 void *mgrproc_uso_func_00003358(int *arg0) {
-    int *p;
+    int *p2;
     int *head;
-    volatile int **p_arg0;
-    p_arg0 = (volatile int**)&arg0;
-    p = (int*)gl_func_00000000(0x40);
-    if (p != 0) {
-        gl_func_00000000(p);
-        *(int*)((char*)p + 0x28) = (int)&D_00000000;
-        *(int*)((char*)p + 0x3C) = 0;
+    int *p1;
+    p1 = (int*)mgrproc_uso_func_055750(0x40);
+    if (p1 != 0) {
+        mgrproc_uso_func_051C28(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&import_8006ED80;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    head = (int*)((int*)*p_arg0)[0x10];
-    if (head != 0) {
-        gl_func_00000000((char*)p + 0x10, head);
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        mgrproc_uso_func_07ACE0((char*)p2 + 0x10, head);
         if (*(int*)((char*)head + 0x14) != 0) {
-            *(int*)((char*)p + 0x4) = 1;
+            *(int*)((char*)head + 0x4) = 1;
         }
-        *(int*)((char*)head + 0x14) = (int)p;
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    return p;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003358);
-#endif
 
 void mgrproc_uso_func_000033E8(char *dst) {
     int tmp;
