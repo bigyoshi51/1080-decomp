@@ -555,30 +555,45 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C
  *
  * Always-call gl_func_0(D + 0x628, a0->[0x4D8]) at entry.
  *
- * NATURAL CEILING: ~90% NM. Was previously documented as "exact via 3-extern
- * split + 4-insn INSN_PATCH at 0x4C/0x50/0x54/0x58" — INSN_PATCH REMOVED
- * 2026-05-23 as match-faking (per feedback_no_instruction_forcing_matches_policy).
- * The remaining cap is the third equality test's branch-likely-vs-beq+goto-
- * epilogue diff: target emits `beq v0,at(=3),case_13; nop; b end; lw ra (delay)`
- * vs IDO's `bnel v0,at,end; lw ra (delay); b case_13; nop`. The 3-extern split
- * (D_mgr_14F4_a/b/c, all aliased to 0x0) is retained to keep the lui/lo
- * structural decode honest in the NM body; default build is INCLUDE_ASM. */
-extern int D_mgr_14F4_a, D_mgr_14F4_b, D_mgr_14F4_c;
+ * NATURAL CEILING: 36/40 words (~90%). Callees RE-DERIVED 2026-06-20: the
+ * three calls are DISTINCT intra-module targets (func_048E7C, func_0139B0,
+ * func_00001AD0) and the three address bases are DISTINCT imports
+ * (import_802649F8+0x628, import_80020228[0x190], import_80020208[0x170]) —
+ * the prior decode collapsed all three calls into the gl_func_00000000
+ * placeholder + a single D_mgr_14F4_* base, which is wrong (relocs/symbols
+ * didn't match). Fixed to the real callees/imports below; verified via build
+ * (build/src .o) word-compare: 36/40 .text words match, frame/struct exact.
+ *
+ * Was previously documented as "exact via 3-extern split + 4-insn INSN_PATCH
+ * at 0x4C/0x50/0x54/0x58" — INSN_PATCH REMOVED 2026-05-23 as match-faking.
+ * The remaining 4-word cap is the THIRD equality test (v==3): target emits the
+ * un-optimized `beq v0,at,case_13; nop; b end; lw ra (delay)`; IDO's branch
+ * optimizer folds the epilogue `lw ra` into a branch-likely instead, giving
+ * `bnel v0,at,end; lw ra (delay); b case_13; nop`. Confirmed as1-scheduler /
+ * branch-likely cap: goto-end, switch, and if/else-if forms all reproduce the
+ * bnel; the surrounding 36 words (incl. all three reloc'd calls + import bases
+ * + the hoisted `li a1,3; li a2,1`) are byte-exact. Default build INCLUDE_ASM. */
+extern char import_802649F8;
+extern int import_80020228;
+extern char import_80020208;
+extern void mgrproc_uso_func_048E7C(void *, int);
+extern void mgrproc_uso_func_00001AD0(int *, int);
+extern int mgrproc_uso_func_0139B0();
 #ifdef NON_MATCHING
 void mgrproc_uso_func_000014F4(int *a0) {
     int v;
-    gl_func_00000000((char*)&D_mgr_14F4_a + 0x628, *(int*)((char*)a0 + 0x4D8));
+    mgrproc_uso_func_048E7C((char*)&import_802649F8 + 0x628, *(int*)((char*)a0 + 0x4D8));
     v = *(int*)((char*)a0 + 0x4D8);
     if (v == 2) goto case_2;
     if (v == 1) goto case_13;
     if (v == 3) goto case_13;
     return;
 case_2:
-    gl_func_00000000(*(int*)((char*)&D_mgr_14F4_b + 0x190), 3, 1, a0);
+    mgrproc_uso_func_0139B0(*(int*)((char*)&import_80020228 + 0x190), 3, 1, a0);
     *(int*)((char*)a0 + 0x7D4) = 1;
     return;
 case_13:
-    gl_func_00000000(a0, *(int*)((char*)&D_mgr_14F4_c + 0x170) + 0x26000F);
+    mgrproc_uso_func_00001AD0(a0, *(int *)(&import_80020208 + 0x170) + 0x26000F);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F4);
