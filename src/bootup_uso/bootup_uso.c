@@ -586,39 +586,43 @@ void *func_00000C10(int *arg0) {
  * round) is written as a box/quad corner pattern into a global s16
  * vertex table (4 entries, 0x10 stride, x/y/z at +0/+2/+4 - all z =
  * +h, xy = the 4 (+-h) corners); a3 also stored to two global int
- * slots (&D and func_00000000+4). D_000066A8 = init datum. Caps
- * <80: get-or-create branch + 2x func_00000000 reloc + FP 1.0
- * consts + signed-halve + many &D/global s16 stores. Stays
- * INCLUDE_ASM (no episode). */
+ * slots (&D and func_00000000+4). D_000066A8 = init datum.
+ * 2026-06-20 reconstruction 61->79%: (1) control flow rewritten to
+ * `if (a0 || (o=alloc())) { body }` + shared-epilogue `return o`
+ * (was a separate `return 0` path); (2) added the missing
+ * `*(func_00000000+4)=a3` store; (3) `a3/2` (IDO signed-div emit)
+ * puts the half-extent in $a0 matching target (manual >>1 ternary used
+ * $v0). RESIDUAL caps: descriptor-symbol reg, prologue move/sw-a2
+ * scheduling, and the 2 single-int global stores want $at-fused form
+ * but IDO holds D_00000000 in $v1 (shared with the 12-entry box table).
+ * Stays INCLUDE_ASM (no episode). */
 #ifdef NON_MATCHING
 extern int func_00000000();
 extern char D_00000000;
+extern char D_000066A8;
 void *func_00000CA0(void *a0, int a1, int a2, int a3) {
     char *o = (char *)a0;
     short *v;
     int h, nh;
-    if (o == 0) {
-        o = (char *)func_00000000(0x40);
-        if (o == 0) {
-            return 0;
-        }
-        func_00000000(o, (char *)&D_00000000 + 0x66A8);
+    if (a0 != 0 || (o = (char *)func_00000000(0x40)) != 0) {
+        func_00000000(o, &D_000066A8);
+        *(int *)(o + 0x28) = (int)&D_00000000;   /* descriptor */
+        *(float *)(o + 0x34) = 1.0f;
+        *(int *)(o + 0xC) = a1;
+        *(float *)(o + 0x30) = 1.0f;
+        *(float *)(o + 0x2C) = 1.0f;             /* scale = (1,1,1) */
+        *(float *)(o + 0x38) = 0.0f;
+        *(int *)(o + 0x3C) = a2;
+        *(int *)&D_00000000 = a3;                /* global g0 */
+        *(int *)((char *)&func_00000000 + 4) = a3;
+        h = a3 / 2;
+        nh = -h;
+        v = (short *)&D_00000000;                /* global box-corner table, 0x10 stride */
+        v[0] = h;   v[1] = h;   v[2] = h;
+        v[8] = nh;  v[9] = h;   v[10] = h;
+        v[16] = nh; v[17] = nh; v[18] = h;
+        v[24] = h;  v[25] = nh; v[26] = h;
     }
-    *(int *)(o + 0x28) = (int)&D_00000000;   /* descriptor */
-    *(float *)(o + 0x34) = 1.0f;
-    *(int *)(o + 0xC) = a1;
-    *(float *)(o + 0x30) = 1.0f;
-    *(float *)(o + 0x2C) = 1.0f;             /* scale = (1,1,1) */
-    *(float *)(o + 0x38) = 0.0f;
-    *(int *)(o + 0x3C) = a2;
-    *(int *)&D_00000000 = a3;                /* global g0 */
-    h = (a3 >= 0) ? (a3 >> 1) : ((a3 + 1) >> 1);  /* a3/2, signed-round */
-    nh = -h;
-    v = (short *)&D_00000000;                /* global box-corner table, 0x10 stride */
-    v[0] = h;   v[1] = h;   v[2] = h;
-    v[8] = nh;  v[9] = h;   v[10] = h;
-    v[16] = nh; v[17] = nh; v[18] = h;
-    v[24] = h;  v[25] = nh; v[26] = h;
     return o;
 }
 #else
@@ -2324,30 +2328,34 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
  * 0x64 head, 0x6D terminator-ish). Result r: r->0x70 (112) = a2,
  * and r is published to the global func_00000008+0x24. a0->0x84
  * (132) / a0->0x80 (128) = optional-callback gates; final
- * func_00000000(a0, r) attaches r to a0. D_000074D0 = builder
- * datum. Caps <80: ~5 reloc + big tagged stack-arg block + FP global
- * Vec copy + cross-symbol (func_00000008/000003F8) refs + beql
- * branch-likely gates. INCLUDE_ASM remains build path. */
+ * func_00000000(a0, r) attaches r to a0. D_000074D0 = builder datum.
+ * 2026-06-20 correctness fixes (67->68.6%): removed a spurious
+ * `*(+0x24)=r` store (not in target); `r->0x70=a2` placed correctly
+ * (2nd-call delay slot); the two optional-callback calls take TWO args
+ * `func(r, a0->0x84)` / `func(r, a0->0x80)` (the 2nd arg was missing).
+ * RESIDUAL caps: (1) FP global-copy base — target holds
+ * `&func_00000008+0x28` in $v0 (stores at 0/4/8/C); IDO folds my held
+ * pointer to base+displacement. (2) frame -112 vs -96 (varargs stack-arg
+ * block placement). Both structural; INCLUDE_ASM remains build path. */
 extern char D_000074D0;
 extern void func_00000008();  /* used as data-symbol base */
 extern void func_000003F8();  /* used as data-symbol base */
 #ifdef NON_MATCHING
 void *func_000034E8(char *a0, int *a1, int a2) {
     float *g = (float*)((char*)&func_00000008 + 0x28);
-    void *r;
+    char *r;
     g[0] = *(float*)((char*)&func_000003F8 + 0x140);
     g[1] = *(float*)((char*)&func_000003F8 + 0x144);
     g[2] = *(float*)((char*)&func_000003F8 + 0x148);
     g[3] = 0.0f;
-    r = (void*)func_00000000(0, 0x64, &D_000074D0, 0x6D,
+    r = (char*)func_00000000(0, 0x64, &D_000074D0, 0x6D,
                               2, 0x6E, a1[0], a1[1], 0x6F, a1[2], a1[3],
                               0x70, a1[6] | 2, 0x71, 1, 0x73, a1[4],
                               0x74, a1[5], 0);
-    *(void**)((char*)&func_00000008 + 0x24) = r;
     func_00000000((char*)&func_00000008 + 0x24, r);
-    *(int*)((char*)r + 0x70) = a2;
-    if (*(int*)(a0 + 0x84) != 0) func_00000000(r);
-    if (*(int*)(a0 + 0x80) != 0) func_00000000(r);
+    *(int*)(r + 0x70) = a2;
+    if (*(int*)(a0 + 0x84) != 0) func_00000000(r, *(int*)(a0 + 0x84));
+    if (*(int*)(a0 + 0x80) != 0) func_00000000(r, *(int*)(a0 + 0x80));
     func_00000000(a0, r);
     return r;
 }
@@ -5948,30 +5956,32 @@ end:
  *      counter zero-cross. Table at *(D_00000000) with [0x8]=max [0xC]=count.
  *      Realloc-via-call when count >= max, then append self.
  *
- * Initial structural NM ~30-40% expected. The FPU int-via-stack-bitcast
- * is the natural-C idiom; the table-append tail needs more decoding for
- * the exact stride/index math. */
+ * RECONSTRUCTED 2026-06-20: faithful body now ~94% (13 word diffs, was 71.9%).
+ * Vec3i struct-copy idiom reproduces the v0-store/sp-load scatter exactly;
+ * return is void; 0xFC written before 0x100; tbl spilled across realloc
+ * (count re-read, tbl not). volatile pad_hi/pad_lo size the 0x48 frame
+ * (zero-instruction phantom slots). RESIDUAL CAP: IDO as1 hoists the
+ * &D_00008714 address into the pre-branch delay region, forcing `count`
+ * off $a0 onto $v1 (coloring-renumber), plus the tbl-spill slot lands at
+ * 0x1C instead of 0x40. Pure scheduler-tie + coloring; not C-fixable. */
 extern char D_00008714;
-void *func_00008FA8(int *self) {
-    int scratch[3];
-    scratch[0] = self[0xB4/4];
-    scratch[1] = self[0xB8/4];
-    scratch[2] = self[0xBC/4];
-    *(float*)((char*)self + 0xDC) = *(float*)&scratch[0];
-    *(float*)((char*)self + 0xE0) = *(float*)&scratch[1];
-    *(float*)((char*)self + 0xE4) = *(float*)&scratch[2];
-    scratch[0] = self[0xC0/4];
-    scratch[1] = self[0xC4/4];
-    scratch[2] = self[0xC8/4];
-    *(float*)((char*)self + 0xE8) = *(float*)&scratch[0];
-    *(float*)((char*)self + 0xEC) = *(float*)&scratch[1];
-    *(float*)((char*)self + 0xF0) = *(float*)&scratch[2];
-    scratch[0] = self[0xCC/4];
-    scratch[1] = self[0xD0/4];
-    scratch[2] = self[0xD4/4];
-    *(float*)((char*)self + 0xF4) = *(float*)&scratch[0];
-    *(float*)((char*)self + 0xF8) = *(float*)&scratch[1];
-    *(float*)((char*)self + 0xFC) = *(float*)&scratch[2];
+typedef struct { int a, b, c; } Vec3i_8FA8;
+void func_00008FA8(int *self) {
+    volatile int pad_hi[4];
+    Vec3i_8FA8 scratch;
+    volatile int pad_lo[2];
+    scratch = *(Vec3i_8FA8*)((char*)self + 0xB4);
+    *(float*)((char*)self + 0xDC) = *(float*)&scratch.a;
+    *(float*)((char*)self + 0xE0) = *(float*)&scratch.b;
+    *(float*)((char*)self + 0xE4) = *(float*)&scratch.c;
+    scratch = *(Vec3i_8FA8*)((char*)self + 0xC0);
+    *(float*)((char*)self + 0xE8) = *(float*)&scratch.a;
+    *(float*)((char*)self + 0xEC) = *(float*)&scratch.b;
+    *(float*)((char*)self + 0xF0) = *(float*)&scratch.c;
+    scratch = *(Vec3i_8FA8*)((char*)self + 0xCC);
+    *(float*)((char*)self + 0xF4) = *(float*)&scratch.a;
+    *(float*)((char*)self + 0xF8) = *(float*)&scratch.b;
+    *(float*)((char*)self + 0xFC) = *(float*)&scratch.c;
     *(float*)((char*)self + 0x100) = *(float*)((char*)self + 0xD8);
     func_00000000(self);
     {
@@ -5979,18 +5989,15 @@ void *func_00008FA8(int *self) {
         self[0x3D4/4] = counter - 1;
         if (counter <= 0) {
             int *tbl = *(int**)&D_00000000;
-            int capacity = tbl[3];
-            int max = tbl[2];
-            if (capacity >= max) {
-                func_00000000(0, &D_00008714);
-                tbl = *(int**)&D_00000000;
-                capacity = tbl[3];
+            int count = tbl[3];
+            if (count >= tbl[2]) {
+                func_00000000(&D_00008714, self);
+                count = tbl[3];
             }
-            tbl[3] = capacity + 1;
-            tbl[0] = (int)self;
+            tbl[3] = count + 1;
+            *(int*)(tbl[0] + count * 4) = (int)self;
         }
     }
-    return self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008FA8);
@@ -7290,22 +7297,31 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);
  *   gl_func(0, (char*)func_00008A40 + 0x18, v, 0);        // dispatch
  *
  * The dispatched function ptr is `func_00008A40 + 0x18` — a code address
- * inside an existing function (alt-entry). 2026-05-14: applied
- * magic-arg-via-symbol recipe (gl_ref_00008A58 in undefined_syms_auto.txt)
- * for the alt-entry pointer, collapsing 3-insn (lui+addiu+addiu) to
- * 2-insn (lui+addiu_with_offset). 65.58% → 68.48% (+2.90pp). Remaining
- * caps are register-cascade in the table-lookup setup (v0/v1/t6 vs a0/t6)
- * and arg-spill placement (sw v0 vs sw a0 to sp+0x1C). */
-extern void func_00008A40();
+ * inside an existing function (alt-entry); gl_ref_00008A58 folds the +0x18.
+ *
+ * RECONSTRUCTED 2026-06-20: faithful body now 99.94% — EVERY instruction,
+ * register, and stack offset is byte-identical to the target EXCEPT the
+ * prologue/epilogue frame size (-40 here vs -32 target). Key fixes:
+ *   - first call takes (table1[idx], idx)  (idx was missing before)
+ *   - elem ADDRESS spilled at 0x18 + reloaded for the fallback 2nd arg
+ *   - idx*4 spilled at 0x1C + reused (t7) for the 3rd-table lookup
+ *   - `int j = idx` copy places the two spills at 0x18/0x1C (matches target)
+ * RESIDUAL CAP: frame -40 vs -32. The elem-address spill REQUIRES elem as a
+ * local (-> frame +8); inlining it (recompute) shrinks the frame to -32 but
+ * eliminates the address spill (28 diffs). This is the documented
+ * file-context / spill-allocator frame-size cap (docs/IDO_CODEGEN.md): the
+ * 3 saves fit in 0x20 but IDO reserves an extra 8-byte home. Not C-fixable
+ * without destroying the (correct) spill structure. */
 extern char gl_ref_00008A58;
 void func_0000B49C(int idx) {
-    int v;
-    if (idx >= 10) idx = 9;
-    v = ((int*)&D_00000000)[idx];
-    if (gl_func_00000000(v) == 0) {
-        gl_func_00000000(&D_00000000, v);
+    int j = idx;
+    int *elem;
+    if (j >= 10) j = 9;
+    elem = &((int*)&D_00000000)[j];
+    if (gl_func_00000000(*elem, j) == 0) {
+        gl_func_00000000(&D_00000000, *elem);
     }
-    gl_func_00000000(0, &gl_ref_00008A58, v, 0);  /* alt-entry: func_00008A40 + 0x18 */
+    gl_func_00000000(0, &gl_ref_00008A58, ((int*)&D_00000000)[j], 0);  /* func_00008A40+0x18 */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B49C);

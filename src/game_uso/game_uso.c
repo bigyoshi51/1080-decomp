@@ -243,8 +243,7 @@ void game_uso_func_0000039C(Quad4 *dst) {
  * GLOBAL_ASM sidecar cannot emit exactly; the C placeholder minimum is 8
  * bytes -- docs/MATCHING_WORKFLOW.md asm-processor 1-word-pad defect). */
 
-#ifdef NON_MATCHING
-/* 21.32% NM. Camera/view init function. Initializes a 0x38-byte struct at $a0:
+/* Camera/view init: initializes a 0x38-byte struct at a0:
  *   a0+0x00..0x08 = Vec3(0, 0, 0)        ; eye position
  *   a0+0x0C..0x14 = Vec3(0, 0, -1000)    ; target / look-at (z = -1000)
  *   a0+0x18..0x20 = Vec3(0, 1, 0)        ; up vector (Y-up)
@@ -252,74 +251,50 @@ void game_uso_func_0000039C(Quad4 *dst) {
  *   a0+0x28       = 15 (int)             ; mode/flags
  *   a0+0x2C..0x34 = Vec3(0, 0, 0)        ; offset
  *
- * 77-insn FPU/stack-init function (size 0x134, no jal).
- *
- * 2026-05-04 attempt: tried `float f(void *a0) { ...; return 0.0f; }` to anchor
- * $f0 = 0.0f for in-body 0.0f stores. Result: IDO switched to RODATA-based
- * struct-literal init (lui+addiu from globals + 3-word memcpy each), shrunk
- * function 308→240 bytes — totally different shape. The `swc1 $f0, ...` body
- * pattern in expected requires $f0 = 0.0 at ENTRY (caller-arranged), not a
- * float-return. Reverted to void return.
- *
- * Quirk: $f0 is read at entry as the source for "0.0f" stores. $f0 is the
- * float-return register, not a standard arg. The caller must arrange for
- * $f0 to hold 0.0f at the call site (e.g. tail-called after a function
- * that returns 0.0, or compiler-arranged via inline expansion). Plain C
- * `0.0f` literals would emit `mtc1 $zero, $fX` instead.
- *
- * Codegen pattern per Vec3 assignment (4 Vec3 writes total): build scalar
- * locals on stack scratch, copy via int regs, then store to a0+offset.
- * 2026-06-01: Replaced the old struct-literal form (IDO used .data constant
- * copies, 21.32%) with scalar-initialized local Vec3s (27.36%). Explicit
- * `tmp` copy-through-temp regressed to 16.49%; an uninitialized `float z`
- * to model entry-$f0 scored only 27.38% and would be undefined C, so it was
- * rejected. Remaining gap is target's caller-arranged $f0 zero source and
- * deeper stack double-copy scheduling, not the high-level field map. Default
- * build still uses INCLUDE_ASM. */
+ * MATCH 2026-06-20 (byte-exact, 78 words, no jal). Reconstruction from the
+ * resolved .s: 4 distinct Vec3 staging slots + a common temp + 2 unused-pad
+ * Vec3 + an 8-byte bottom pad reproduce the 0x60 frame and slot layout. Each
+ * staging Vec3 is zeroed (component order chosen to match IDO's swc1 $f0
+ * scheduling), copied to the temp via an INTEGER struct copy (*(Tri3i*)),
+ * then stored to a0 via FLOAT (lwc1/swc1). $f0=0.0 is hoisted once at entry
+ * (mtc1 zero,$f0) and reused for every zero component. */
 void game_uso_func_000003F8(void *a0) {
-    /* 2026-06-04 42.4%->61.6%: the v0->a0 store is INTEGER lw/sw, not float
-     * lwc1/swc1 (the prior comment was wrong) — `*(Vec3*)a0 = v0` emitted a
-     * float copy; `((int*)a0)[i] = ((int*)&v0)[i]` matches the target's int
-     * copy. Each Vec3 built at a distinct stack slot (single reused slot
-     * REGRESSED to 31%), copied (int) to common temp v0, then int-copied to
-     * a0+off. Residual: 0x20 frame delta + a few $t-reg/slot renumbers. */
     Vec3 zero, fwd, up, zero2;
-    Vec3 v0;
+    Vec3 pad0, pad1;
+    Vec3 tmp;
+    int padbot[2];
 
     zero.x = 0.0f;
     zero.y = 0.0f;
     zero.z = 0.0f;
-    v0 = zero;
-    ((int *)((char *)a0 + 0x00))[0] = ((int *)&v0)[0];
-    ((int *)((char *)a0 + 0x00))[1] = ((int *)&v0)[1];
-    ((int *)((char *)a0 + 0x00))[2] = ((int *)&v0)[2];
-    fwd.x = 0.0f;
+    *(Tri3i *)&tmp = *(Tri3i *)&zero;
+    *(float *)((char *)a0 + 0x00) = tmp.x;
+    *(float *)((char *)a0 + 0x04) = tmp.y;
+    *(float *)((char *)a0 + 0x08) = tmp.z;
     fwd.y = 0.0f;
+    fwd.x = 0.0f;
     fwd.z = -1000.0f;
-    v0 = fwd;
-    ((int *)((char *)a0 + 0x0C))[0] = ((int *)&v0)[0];
-    ((int *)((char *)a0 + 0x0C))[1] = ((int *)&v0)[1];
-    ((int *)((char *)a0 + 0x0C))[2] = ((int *)&v0)[2];
+    *(Tri3i *)&tmp = *(Tri3i *)&fwd;
+    *(float *)((char *)a0 + 0x0C) = tmp.x;
+    *(float *)((char *)a0 + 0x10) = tmp.y;
+    *(float *)((char *)a0 + 0x14) = tmp.z;
+    up.z = 0.0f;
     up.x = 0.0f;
     up.y = 1.0f;
-    up.z = 0.0f;
-    v0 = up;
-    ((int *)((char *)a0 + 0x18))[0] = ((int *)&v0)[0];
-    ((int *)((char *)a0 + 0x18))[1] = ((int *)&v0)[1];
-    ((int *)((char *)a0 + 0x18))[2] = ((int *)&v0)[2];
+    *(Tri3i *)&tmp = *(Tri3i *)&up;
+    *(float *)((char *)a0 + 0x18) = tmp.x;
+    *(float *)((char *)a0 + 0x1C) = tmp.y;
+    *(float *)((char *)a0 + 0x20) = tmp.z;
     *(float *)((char *)a0 + 0x24) = 85.0f;
     *(int *)((char *)a0 + 0x28) = 15;
-    zero2.x = 0.0f;
-    zero2.y = 0.0f;
     zero2.z = 0.0f;
-    v0 = zero2;
-    ((int *)((char *)a0 + 0x2C))[0] = ((int *)&v0)[0];
-    ((int *)((char *)a0 + 0x2C))[1] = ((int *)&v0)[1];
-    ((int *)((char *)a0 + 0x2C))[2] = ((int *)&v0)[2];
+    zero2.y = 0.0f;
+    zero2.x = 0.0f;
+    *(Tri3i *)&tmp = *(Tri3i *)&zero2;
+    *(float *)((char *)a0 + 0x2C) = tmp.x;
+    *(float *)((char *)a0 + 0x30) = tmp.y;
+    *(float *)((char *)a0 + 0x34) = tmp.z;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
-#endif
 
 void game_uso_func_0000052C(int unused, Vec3 *a1, Vec3 *a2, int *a3, Vec3 *p4) {
     if (a3[4] == 2) {
