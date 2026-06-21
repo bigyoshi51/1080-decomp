@@ -11,9 +11,6 @@ typedef struct { float x, y, z; } Vec3;
 extern char D_2D064_148;
 extern char D_2D064_152;
 extern char D_tbl_288ac;
-extern char gl_ref_00000368;
-extern char gl_ref_00000430;
-extern char gl_ref_0001E250;
 extern float D_0001C1D8[];
 extern int *D_2D8D8_X;
 extern int D_00000000;
@@ -493,9 +490,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000349E8);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_0001E468;
+extern int D_00000000;
 int gl_func_00034A54() {
-    return gl_func_00000000(&gl_ref_0001E468);
+    return gl_func_00000000((char *)&D_00000000 + 0x1E468);
 }
 
 // gl_func_00034A78 — STRUCTURAL PASS (0xEC / 59 words, no episode).
@@ -1528,12 +1525,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035834);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_0001E660;
 int gl_func_00035894(int *a0) {
     if (a0[1] == 0) {
         return gl_func_00000000(gl_func_00000000);
     }
-    gl_func_00000000(&gl_ref_0001E660);
+    gl_func_00000000(((char *)&D_00000000 + 0x0001E660));
     return 0;
 }
 
@@ -5828,14 +5824,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003AE58);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_0001EE7C;
 
 int gl_func_0003AFD4(char *a0) {
     if (a0 == 0) {
         a0 = (char*)gl_func_00000000(0x90);
         if (a0 == 0) goto end;
     }
-    gl_func_00000000(a0, &gl_ref_0001EE7C);
+    gl_func_00000000(a0, ((char *)&D_00000000 + 0x0001EE7C));
     *(int*)(a0 + 0x84) = 0;
 end:
     return (int)a0;
@@ -8996,9 +8991,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E5E0);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_0001F338;
 void gl_func_0003E840(int a0) {
-    gl_func_00000000(&gl_ref_0001F338);
+    gl_func_00000000(((char *)&D_00000000 + 0x0001F338));
 }
 
 // gl_func_0003E868 — STRUCTURAL PASS (0x9C / 39 words, no episode). Raw-.word
@@ -9494,7 +9488,7 @@ void gl_func_0003ED8C(int *a0) {
 
 /* gl_func_0003EDBC: 24-insn local-flag + 3-call wrapper. 13-insn
  * INSN_PATCH closes the local-slot offset (sp+0x1C → sp+0x28), the
- * &gl_ref_0001F398 reloc-vs-literal split, jr-ra delay-slot fill
+ * ((char *)&D_00000000 + 0x0001F398) reloc-vs-literal split, jr-ra delay-slot fill
  * (`li v0, 1` moved into delay slot), and v0/v1 register choice. */
 #ifdef NON_MATCHING
 int gl_func_0003EDBC(int *a0) {
@@ -11196,9 +11190,8 @@ int gl_func_00041104() {
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_0001F568;
 int gl_func_00041124() {
-    return gl_func_00000000(&gl_ref_0001F568);
+    return gl_func_00000000(((char *)&D_00000000 + 0x0001F568));
 }
 
 // gl_func_00041148 — STRUCTURAL PASS (0x10C / 68 words, no episode). Raw-.word
@@ -11624,9 +11617,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004182C);
 void game_libs_func_00041A6C(int a0) {}
 
 extern int gl_func_00000000();
-extern char gl_ref_0001F63C;
 void gl_func_00041A74(int a0) {
-    gl_func_00000000(&gl_ref_0001F63C);
+    gl_func_00000000(((char *)&D_00000000 + 0x0001F63C));
 }
 
 // gl_func_00041A9C — STRUCTURAL PASS (0x2A0 / 169 words, no episode). Raw-.word
@@ -12283,9 +12275,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042484);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_0001FCB4;
 int gl_func_000424D8() {
-    return gl_func_00000000(&gl_ref_0001FCB4);
+    return gl_func_00000000(((char *)&D_00000000 + 0x0001FCB4));
 }
 
 extern int gl_func_00000000();
@@ -12296,11 +12287,10 @@ void gl_func_000424FC(void) {
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_0001FCBC;
-extern int gl_ref_0001FB14;
 
 int gl_func_00042540(int a0) {
-    return gl_func_00000000(&gl_ref_0001FCBC, a0, gl_ref_0001FB14);
+    return gl_func_00000000(((char *)&D_00000000 + 0x0001FCBC), a0,
+                            *(int *)((char *)&D_00000000 + 0x0001FB14));
 }
 
 /* Quad4 writer: copy a 16-byte Quad4 from *a0 onto stack buf, call
@@ -12788,10 +12778,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000430D8);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000430E4);
 
 extern int gl_func_00000000();
-extern char gl_ref_0001FD00;
 void gl_func_00043284(int *a0, int a1) {
     if ((*a0 & 7) != 0) {
-        gl_func_00000000(&gl_ref_0001FD00);
+        gl_func_00000000(((char *)&D_00000000 + 0x0001FD00));
     }
 }
 
@@ -19715,7 +19704,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D0B4);
  *
  * 2026-05-14: applied magic-arg-via-symbol recipe for the 0x3EB00 constant:
  * literal `0x3EB00` emitted lui+ori (0x35ceeb00) while target uses lui+addiu
- * (0x25efeb00). Switched to `(int)&gl_ref_0003EB00` (symbol declared in
+ * (0x25efeb00). Switched to `(int)((char *)&D_00000000 + 0x0003EB00)` (symbol declared in
  * undefined_syms_auto.txt) to force the addiu emit form. 70.37% → 72.44%
  * (+2.07pp). Remaining cap: constant-load ordering (IDO hoists 0xC00/1
  * loads EARLY, target places them in lw-load-delay-slot AFTER D_0 read)
@@ -19731,7 +19720,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D0B4);
  * is $s0/$s1 swap (self vs i loop counter) — first-assignment trick
  * regressed (87.67%) because of interaction with the leading
  * gl_func_00000000() call. */
-extern char gl_ref_0003EB00;
 void game_libs_func_0004D0E4(int *a0, int a1, int a2) {
     a0[0x58/4] = a2;
     a0[0x6C/4] = a1;
@@ -19740,7 +19728,7 @@ void game_libs_func_0004D0E4(int *a0, int a1, int a2) {
     a0[0x74/4] = 0;
     a0[0x10/4] = 1;
     a0[0x14/4] = 0;
-    a0[0x18/4] = (int)&gl_ref_0003EB00;
+    a0[0x18/4] = (int)((char *)&D_00000000 + 0x0003EB00);
     a0[0x1C/4] = 0x100;
     a0[0x24/4] = 0x1000;
     a0[0x2C/4] = 0x800;
@@ -20038,9 +20026,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D468);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_000201FC;
 void gl_func_0004D658(int a0) {
-    gl_func_00000000(&gl_ref_000201FC);
+    gl_func_00000000(((char *)&D_00000000 + 0x000201FC));
     gl_func_00000000(a0);
 }
 
@@ -21271,9 +21258,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EB54);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_000205F0;
 void gl_func_0004ECE4(int a0) {
-    gl_func_00000000(&gl_ref_000205F0);
+    gl_func_00000000(((char *)&D_00000000 + 0x000205F0));
 }
 
 /* gl_func_0004ED0C: 28-insn array-iter + vtable-dispatch loop.
@@ -23092,10 +23078,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00051714);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_00020EA0;
 
 void gl_func_00051774(unsigned char *a0, int a1) {
-    gl_func_00000000(&gl_ref_00020EA0, a1, a0[0], a0[1], a0[2], a0[3]);
+    gl_func_00000000(((char *)&D_00000000 + 0x00020EA0), a1, a0[0], a0[1], a0[2], a0[3]);
 }
 
 void gl_func_000517B8(int *a0, int a1) {
@@ -25405,14 +25390,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054264);
  * compute (eliminating the explicit `return 0` plumbing), and the symbol ref
  * forces lui+addiu for the 0x2107C constant (literal int → lui+ori). */
 extern int gl_func_00000000();
-extern char gl_ref_0002107C;
 void *gl_func_000545BC(void *a0, float a1, float a2, float a3, float a4) {
     float *v1;
     if (a0 == 0) {
         a0 = (void*)gl_func_00000000(0x3C);
         if (a0 == 0) goto end;
     }
-    gl_func_00000000(a0, &gl_ref_0002107C);
+    gl_func_00000000(a0, ((char *)&D_00000000 + 0x0002107C));
     *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
     v1 = (float*)((char*)a0 + 0x2C);
     if ((char*)a0 + 0x2C == 0) {
@@ -26122,34 +26106,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000551E0);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000551E0_pad.s")
 
 extern int gl_func_00000000();
-extern char gl_ref_00021144;
 void gl_func_00055264(char *a0) {
     if (*(int*)(*(int*)(a0 + 0x3C) + 0x10) == 0) {
-        gl_func_00000000(&gl_ref_00021144);
+        gl_func_00000000(((char *)&D_00000000 + 0x00021144));
     }
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_00021160;
 void gl_func_00055298(char *a0) {
     if (*(int*)(*(int*)(a0 + 0x3C) + 0xC) == 0) {
-        gl_func_00000000(&gl_ref_00021160);
+        gl_func_00000000(((char *)&D_00000000 + 0x00021160));
     }
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_00021180;
 void gl_func_000552CC(int *a0) {
     if (a0[4] == 0) {
-        gl_func_00000000(&gl_ref_00021180);
+        gl_func_00000000(((char *)&D_00000000 + 0x00021180));
     }
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_00021198;
 void gl_func_000552FC(int *a0) {
     if (a0[3] == 0) {
-        gl_func_00000000(&gl_ref_00021198);
+        gl_func_00000000(((char *)&D_00000000 + 0x00021198));
     }
 }
 
@@ -26851,11 +26831,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056814);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_00021908;
 
 void gl_func_00056864(char *a0) {
     gl_func_00000000(a0);
-    gl_func_00000000(&gl_ref_00021908, *(int*)(a0 + 0x70));
+    gl_func_00000000(((char *)&D_00000000 + 0x00021908), *(int*)(a0 + 0x70));
 }
 
 #ifdef NON_MATCHING
@@ -32518,7 +32497,7 @@ void game_libs_func_0006024C(int a0) {
 void game_libs_func_00060258(void) {}
 
 #ifdef NON_MATCHING
-/* gl_func_00060260: r = call1(a0); if (r) return; call2(&gl_ref_00021CBC, a0);
+/* gl_func_00060260: r = call1(a0); if (r) return; call2(((char *)&D_00000000 + 0x00021CBC), a0);
  * call3(r).  2026-06-20 value-flow FIX: target passes call1's result r (saved
  * across call2 via stack slot 0x1C) to call3 — NOT call2's result as previously
  * decoded. Logic now exact. Residual (12/18): target fills the bnez delay with a
@@ -32526,12 +32505,11 @@ void game_libs_func_00060258(void) {}
  * frame -32; build collapses the redundant move (frame matches at -32 but 2 fewer
  * insns). as1-scheduler delay-fill tie on the cross-call spill — not C-flippable. */
 extern int gl_func_00000000();
-extern char gl_ref_00021CBC;
 
 void gl_func_00060260(char *a0) {
     int r = gl_func_00000000(a0);
     if (r != 0) return;
-    gl_func_00000000(&gl_ref_00021CBC, a0);
+    gl_func_00000000(((char *)&D_00000000 + 0x00021CBC), a0);
     gl_func_00000000(r);
 }
 #else
@@ -32831,7 +32809,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000608A4);
  * load-resolved placeholders with no in-object relocs). The NM body compiles
  * to byte-identical .text vs the target (reloc-filtered) — verified via
  * build/non_matching. */
-#ifdef NON_MATCHING
 extern int D_00000000;
 extern int D_60A88_owner;
 extern int gl_func_00000000();
@@ -32842,9 +32819,6 @@ void gl_func_00060A74(int a0, int a1, ...) {
         gl_func_00000000(&D_00000000, 0, a1, ap);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060A74);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00060AD0: 67-insn per-element char-classify + dispatch loop (0x10C, frame 0x30).
@@ -33517,10 +33491,9 @@ int gl_func_000618D0(char *a0, int a1) {
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_00021F00;
 
 void gl_func_000618F8(int *a0, int a1) {
-    gl_func_00000000(a1, &gl_ref_00021F00, (int)a0 + 4, *a0);
+    gl_func_00000000(a1, ((char *)&D_00000000 + 0x00021F00), (int)a0 + 4, *a0);
 }
 
 /* MATCHED 2026-05-28: 40-insn self-init + factory call passing a 4-float
@@ -33804,8 +33777,6 @@ void gl_func_00061E1C(int *dst) {
 }
 
 /* gl_func_00061E58: 17-insn (0x44) "split arg into halfwords + tail-call". */
-extern int gl_ref_0003F020;
-extern int gl_ref_00022038;
 int gl_func_00061E58(int arg0) {
     gl_func_00000000((char *)&D_00000000 + 0x3F020, (char *)&D_00000000 + 0x22038,
                      (arg0 >> 16) & 0xFFFF, arg0 & 0xFFFF);

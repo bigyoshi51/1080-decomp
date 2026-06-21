@@ -12,7 +12,7 @@
       "notes": "flags: -O2 -g2"
     }
   ],
-  "final_c": "extern int gl_ref_00045DC0();\nextern int gl_ref_00045DF0();\nextern char gl_ref_00000430;\nvoid gl_func_000316CC(int a0) {\n    gl_ref_00045DC0(&gl_ref_00000430, 1, a0 + 0x17F, 0x7F);\n    gl_ref_00045DF0(&gl_ref_00000430);\n}",
+  "final_c": "extern int gl_ref_00045DC0();\nextern int gl_ref_00045DF0();\nvoid gl_func_000316CC(int a0) {\n    gl_ref_00045DC0((char *)&D_00000000 + 0x430, 1, a0 + 0x17F, 0x7F);\n    gl_ref_00045DF0((char *)&D_00000000 + 0x430);\n}",
   "matched": true,
   "instruction_count": 17,
   "has_branches": false,

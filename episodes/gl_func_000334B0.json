@@ -12,7 +12,7 @@
       "notes": "flags: -O2 -g2"
     }
   ],
-  "final_c": "extern int gl_func_00000000();\nextern char gl_ref_0001E250;\nvoid gl_func_000334B0(int a0, int a1, int a2) {\n    gl_func_00000000(&gl_ref_0001E250, a0, a1, a2);\n}",
+  "final_c": "extern int gl_func_00000000();\nvoid gl_func_000334B0(int a0, int a1, int a2) {\n    gl_func_00000000((char *)&D_00000000 + 0x1E250, a0, a1, a2);\n}",
   "matched": true,
   "instruction_count": 14,
   "has_branches": false,

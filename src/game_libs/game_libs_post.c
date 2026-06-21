@@ -9811,14 +9811,22 @@ int gl_func_00027180(void) {
 }
 
 /* gl_func_000271D8: 21-insn do-while loop. Repeatedly calls
- * gl_func(*(int*)&D_0+0x53C4, &scratch, 0) until result is -1. */
+ * gl_func(*(int*)&D_0+0x53C4, &scratch, 0) until result is -1.
+ * PROGRESS (agent-i 2026-06-21): naming the loop sentinel `int sentinel = -1`
+ * (declared FIRST) + inlining the call result into the while-test fixed the
+ * s-register coloring AND the frame size: sentinel->s0, base->s1, &scratch->s2
+ * EXACTLY matching target, frame -48 (10 diffs -> 2). RESIDUAL (2 words): the
+ * two independent constant materializations `addiu s1,s1,0` (base lo) and
+ * `addiu s0,zero,-1` (sentinel) emit in swapped order vs target — a pure as1
+ * scheduler tie between two independent hoisted constants (no data dependency,
+ * no C handle on the order). Named-base-ptr regresses (folds to a0 reload);
+ * for-comma-init duplicates the test. as1-tie cap. */
 #ifdef NON_MATCHING
 void gl_func_000271D8(void) {
+    int sentinel = -1;
     int scratch;
-    int val;
     do {
-        val = gl_func_00000000(*(int*)((char*)&D_00000000 + 0x53C4), &scratch, 0);
-    } while (val != -1);
+    } while (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x53C4), &scratch, 0) != sentinel);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000271D8);
@@ -18508,10 +18516,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031608);
 
 extern int gl_ref_00045DC0();
 extern int gl_ref_00045DF0();
-extern char gl_ref_00000430;
 void gl_func_000316CC(int a0) {
-    gl_ref_00045DC0(&gl_ref_00000430, 1, a0 + 0x17F, 0x7F);
-    gl_ref_00045DF0(&gl_ref_00000430);
+    gl_ref_00045DC0((char *)&D_00000000 + 0x430, 1, a0 + 0x17F, 0x7F);
+    gl_ref_00045DF0((char *)&D_00000000 + 0x430);
 }
 
 // gl_func_00031710 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
@@ -19483,9 +19490,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003344C);
 #endif
 
 extern int gl_func_00000000();
-extern char gl_ref_0001E250;
 void gl_func_000334B0(int a0, int a1, int a2) {
-    gl_func_00000000(&gl_ref_0001E250, a0, a1, a2);
+    gl_func_00000000((char *)&D_00000000 + 0x1E250, a0, a1, a2);
 }
 
 // gl_func_000334E8 — STRUCTURAL PASS (0x2C4 / 177 words, no episode).

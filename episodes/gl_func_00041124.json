@@ -1,28 +1,33 @@
 {
   "function_name": "gl_func_00041124",
-  "asm_text": "nonmatching gl_func_00041124, 0x24\n\nglabel gl_func_00041124\n    /* E261FC 00041124 27BDFFE8 */  .word 0x27BDFFE8\n    /* E26200 00041128 AFBF0014 */  .word 0xAFBF0014\n    /* E26204 0004112C 3C040002 */  .word 0x3C040002\n    /* E26208 00041130 0C000000 */  .word 0x0C000000\n    /* E2620C 00041134 2484F568 */  .word 0x2484F568\n    /* E26210 00041138 8FBF0014 */  .word 0x8FBF0014\n    /* E26214 0004113C 27BD0018 */  .word 0x27BD0018\n    /* E26218 00041140 03E00008 */  .word 0x03E00008\n    /* E2621C 00041144 00000000 */  .word 0x00000000\nendlabel gl_func_00041124\n",
-  "m2c_output": "",
-  "attempts": [
+  "project": "1080-agent-b",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T14:00:00.000000+00:00",
+  "end_time": "2026-06-21T14:00:00.000000+00:00",
+  "steps": [
     {
-      "c_code": "extern int gl_func_00000000();\nextern char gl_ref_0001F568;\nint gl_func_00041124() {\n    return gl_func_00000000(&gl_ref_0001F568);\n}",
-      "matched": true,
-      "diff_count": 0,
-      "diff_details": [],
-      "compiler_flags": "",
-      "notes": "flags: -O2 -g2"
+      "step_number": 1,
+      "timestamp": "2026-06-21T14:00:00.000000+00:00",
+      "assistant_text": "Cast-bug fix (EPISODE-HONESTY): a USO data-symbol argument that was passed via an `extern char gl_ref_NNNNN` placeholder (so the HI16/LO16 addend landed in the relocation entry, leaving the .text immediate at 0) is rewritten as `(char *)&D_00000000 + 0xNNNNN`, which folds the absolute addend into the .text words exactly as the target encodes them. gl_ref_NNNNN = 0xNNNNN and D_00000000 = 0 both resolve to the same linked address, so the ROM is unchanged (objdiff was already 100 via reloc-awareness); the win is self-contained honest C plus a schema-valid episode. gl_func_00000000 / D_00000000 are canonical USO load-resolved placeholders (= 0 in undefined_syms_auto.txt).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
     }
   ],
-  "final_c": "extern int gl_func_00000000();\nextern char gl_ref_0001F568;\nint gl_func_00041124() {\n    return gl_func_00000000(&gl_ref_0001F568);\n}",
-  "matched": true,
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
   "instruction_count": 9,
-  "has_branches": false,
-  "has_calls": false,
-  "timestamp": 1776571521.5880365,
-  "game": "glover",
-  "compiler": "gcc_2.7.2_kmc",
-  "compiler_flags": "-O2 -g2",
-  "nearby_decompiled": [],
-  "called_functions": [],
-  "referenced_data": [],
-  "segment": "game_libs"
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nint gl_func_00041124() {\n    return gl_func_00000000(((char *)&D_00000000 + 0x0001F568));\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00041124.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "byte-exact (.text word-diff = 0 vs expected/.o, reloc-aware); full make ROM byte-identical to baserom (ROM OK)."
+  }
 }

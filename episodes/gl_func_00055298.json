@@ -1,28 +1,33 @@
 {
   "function_name": "gl_func_00055298",
-  "asm_text": "nonmatching gl_func_00055298, 0x34\n\nglabel gl_func_00055298\n    /* E3A370 00055298 27BDFFE8 */  .word 0x27BDFFE8\n    /* E3A374 0005529C AFBF0014 */  .word 0xAFBF0014\n    /* E3A378 000552A0 8C8E003C */  .word 0x8C8E003C\n    /* E3A37C 000552A4 3C040002 */  .word 0x3C040002\n    /* E3A380 000552A8 8DCF000C */  .word 0x8DCF000C\n    /* E3A384 000552AC 55E00004 */  .word 0x55E00004\n    /* E3A388 000552B0 8FBF0014 */  .word 0x8FBF0014\n    /* E3A38C 000552B4 0C000000 */  .word 0x0C000000\n    /* E3A390 000552B8 24841160 */  .word 0x24841160\n    /* E3A394 000552BC 8FBF0014 */  .word 0x8FBF0014\n    /* E3A398 000552C0 27BD0018 */  .word 0x27BD0018\n    /* E3A39C 000552C4 03E00008 */  .word 0x03E00008\n    /* E3A3A0 000552C8 00000000 */  .word 0x00000000\nendlabel gl_func_00055298\n",
-  "m2c_output": "",
-  "attempts": [
+  "project": "1080-agent-b",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T14:00:00.000000+00:00",
+  "end_time": "2026-06-21T14:00:00.000000+00:00",
+  "steps": [
     {
-      "c_code": "extern int gl_func_00000000();\nextern char gl_ref_00021160;\nvoid gl_func_00055298(char *a0) {\n    if (*(int*)(*(int*)(a0 + 0x3C) + 0xC) == 0) {\n        gl_func_00000000(&gl_ref_00021160);\n    }\n}",
-      "matched": true,
-      "diff_count": 0,
-      "diff_details": [],
-      "compiler_flags": "",
-      "notes": "flags: -O2 -g2"
+      "step_number": 1,
+      "timestamp": "2026-06-21T14:00:00.000000+00:00",
+      "assistant_text": "Cast-bug fix (EPISODE-HONESTY): a USO data-symbol argument that was passed via an `extern char gl_ref_NNNNN` placeholder (so the HI16/LO16 addend landed in the relocation entry, leaving the .text immediate at 0) is rewritten as `(char *)&D_00000000 + 0xNNNNN`, which folds the absolute addend into the .text words exactly as the target encodes them. gl_ref_NNNNN = 0xNNNNN and D_00000000 = 0 both resolve to the same linked address, so the ROM is unchanged (objdiff was already 100 via reloc-awareness); the win is self-contained honest C plus a schema-valid episode. gl_func_00000000 / D_00000000 are canonical USO load-resolved placeholders (= 0 in undefined_syms_auto.txt).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
     }
   ],
-  "final_c": "extern int gl_func_00000000();\nextern char gl_ref_00021160;\nvoid gl_func_00055298(char *a0) {\n    if (*(int*)(*(int*)(a0 + 0x3C) + 0xC) == 0) {\n        gl_func_00000000(&gl_ref_00021160);\n    }\n}",
-  "matched": true,
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
   "instruction_count": 13,
-  "has_branches": false,
-  "has_calls": false,
-  "timestamp": 1776574818.4047527,
-  "game": "glover",
-  "compiler": "gcc_2.7.2_kmc",
-  "compiler_flags": "-O2 -g2",
-  "nearby_decompiled": [],
-  "called_functions": [],
-  "referenced_data": [],
-  "segment": "game_libs"
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nvoid gl_func_00055298(char *a0) {\n    if (*(int*)(*(int*)(a0 + 0x3C) + 0xC) == 0) {\n        gl_func_00000000(((char *)&D_00000000 + 0x00021160));\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00055298.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "byte-exact (.text word-diff = 0 vs expected/.o, reloc-aware); full make ROM byte-identical to baserom (ROM OK)."
+  }
 }
