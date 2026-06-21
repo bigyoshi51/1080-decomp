@@ -10949,47 +10949,36 @@ int game_uso_func_0000C3E8(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
 #endif
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor.
+/* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor. MATCHED 2026-06-20.
  *   func_C0F0(&D_807FFBC4);                   // setup, base held in $s3
- *   count = D_807FFBC4;
- *   D_807FFBC0 = alloc(count << 6);           // ptr base held in $s2
+ *   D_807FFBC0 = alloc(D_807FFBC4 << 6);      // ptr base held in $s2
  *   for (i = 0; (u32)i < (u32)D_807FFBC4; i++)
  *       func_C12C(D_807FFBC0 + i*0x40);
  *
- * SYMBOLS RE-DERIVED 2026-06-20: prior body used &D_00000000 for BOTH bases
- * (two DISTINCT imports: game_uso_D_807FFBC4 = count storage held in $s3,
- * game_uso_D_807FFBC0 = alloc'd-ptr storage held in $s2) + gl_func_00000000 for
- * the alloc (= game_uso_func_055750). Reference the symbols DIRECTLY (no
- * held-pointer locals) — that lets IDO's loop-invariant address motion promote
- * &D_807FFBC4/&D_807FFBC0 into $s3/$s2 for the whole function (the held-pointer
- * form prevents promotion: re-luis each use, +2 words). 4-diff cap, 37/37 words.
- *
- * REMAINING CAP (NM): the two intra-module calls are HARDCODED jals in the ROM
- * (`jal 0xC0F0` = 0c00303c, `jal 0xC12C` = 0c00304b — no R_MIPS_26 reloc; see
- * reference_1080_hardcoded_jal_addresses). A normal C call to func_0000C0F0/
- * C12C emits the relocatable `0c000000 + R_MIPS_26` form — not the baked
- * absolute jal — so the .text words differ pre-relocation (un-matchable from C).
- * Plus a 1-word sw/beq schedule swap (IDO fills the beq delay with the alloc
- * store). Default INCLUDE_ASM. */
+ * Two DISTINCT globals (D_807FFBC4 = count in $s3, D_807FFBC0 = alloc'd-ptr in
+ * $s2); reference them DIRECTLY (no held-pointer locals) so IDO promotes
+ * &D_807FFBC4/&D_807FFBC0 into $s3/$s2 across the function. The C0F0/C12C calls
+ * are intra-module (R_MIPS_26, resolve to the baked 0c00303c/0c00304b post-link).
+ * LAND LEVER: hoist `i = 0;` ABOVE the `if (count)` so IDO fills the beqz delay
+ * slot with `move s0,zero` instead of the alloc store `sw v0,0(s2)` — that
+ * store/branch schedule swap was the last 2-word diff. */
 extern int game_uso_D_807FFBC4;
 extern int *game_uso_D_807FFBC0;
 void game_uso_func_0000C3F8(int *a0) {
     int i;
+    int *p;
 
     game_uso_func_0000C0F0(&game_uso_D_807FFBC4);
-    game_uso_D_807FFBC0 = (int*)game_uso_func_055750(game_uso_D_807FFBC4 << 6);
+    p = (int*)game_uso_func_055750(game_uso_D_807FFBC4 << 6);
+    game_uso_D_807FFBC0 = p;
+    i = 0;
     if (game_uso_D_807FFBC4 != 0) {
-        i = 0;
         do {
             game_uso_func_0000C12C((int*)((char*)game_uso_D_807FFBC0 + i * 0x40));
             i++;
         } while ((u32)i < (u32)game_uso_D_807FFBC4);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3F8);
-#endif
 
 #ifdef NON_MATCHING
 /* 2.46% NM. SPINE constructor (game_uso_func_0000C48C, 0xD84 = 865 insns, 3.4 KB)

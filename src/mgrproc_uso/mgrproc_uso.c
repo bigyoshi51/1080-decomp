@@ -1410,14 +1410,24 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000023F
  * p2 = &a2[-i] incrementing, do/while) to match the s1/s2 pointer-walk
  * with homed-and-reloaded a1/a2.
  *
- * NM cap (45/53 words, 84.96%): FRAME-LAYOUT. Target frame -0x68 with a
- * 0x30-byte gap between the saved-reg block (ends sp+0x24) and buf[4]
- * (sp+0x58..0x64) + a1/a2 homed at sp+0x6C/0x70 (incoming-arg slots above
- * a 0x68 frame). Every natural-C layout packs buf at sp+0x48 (frame -0x58)
- * homing a1/a2 lower — 0x10 short, with 2 extra loop-counter words. The
- * 0x30 gap is not reproducible from the visible locals (buf[4]+counters);
- * likely an as1/uopt frame-pin artifact. Genuine frame-layout cap; default
- * build INCLUDE_ASM (no episode). */
+ * NM (53/53 words, ~17 prologue-only diffs, was 84.96% / 42 raw diffs):
+ * FRAME-LAYOUT solved + AS1-SCHEDULER-TIE residual. The 0x10-short frame and
+ * the buf-position diff are CRACKED: `volatile int pad0..pad3;` declared AFTER
+ * buf[4] grows the frame -0x58 -> -0x68 (4 dead slots at the bottom, zero
+ * insns) AND pins buf[4] to the TOP (sp+0x58..0x64) while a1/a2 home to their
+ * incoming-arg slots sp+0x6C/0x70 — every frame/offset word now matches. The
+ * loop is the index/byte-offset pointer-walk (s0=i<<2 counter, p1=&a1[i]
+ * decrementing, p2=&a2[-i] incrementing, bltz-guard + bgez-continue) — body,
+ * frame, and all 3 R_MIPS_26 calls are byte-exact.
+ *   RESIDUAL = pure prologue instruction SCHEDULE: target emits
+ *     sw s0,0x14 ; move s0,a0 ; sw ra ; sw s3 ; sw s2 ; sw s1
+ *   then reads the struct field via `lwc1 $f6,1956(s0)` (s0 established early
+ *   because a0 is reused for the first call's `lui a0`). Every natural-C form
+ *   instead emits the reverse save-block order (ra..s0) and reads the field
+ *   from a0 (`lwc1 $f4,1956(a0)`) with `move s0,a0` deferred to just before
+ *   the jal. The const-vs-field f-reg pick (f4/f6) and the s0-early copy are an
+ *   as1/uopt scheduler tie not reachable by statement reorder / operand swap /
+ *   tgt-hoist (all tried). Genuine scheduler-tie cap; default INCLUDE_ASM. */
 extern char import_8024CAF8;
 extern void import_0024E608();
 extern void import_0024F2C8();
@@ -1425,9 +1435,11 @@ extern void import_0024F34C();
 #ifdef NON_MATCHING
 void mgrproc_uso_func_00002850(char *s0, int *a1, int *a2, int a3) {
     float buf[4];
+    volatile int pad0, pad1, pad2, pad3;
     int n;
     char *tgt;
     int i;
+    int off;
     int *p1;
     int *p2;
     buf[0] = 1.0f; buf[1] = 1.0f; buf[2] = 1.0f; buf[3] = 1.0f;
@@ -1437,14 +1449,15 @@ void mgrproc_uso_func_00002850(char *s0, int *a1, int *a2, int a3) {
     import_0024F2C8(tgt);
     i = a3 - 1;
     if (i >= 0) {
-        p1 = &a1[i];
-        p2 = &a2[-i];
+        off = i << 2;
+        p1 = (int *)((char *)a1 + off);
+        p2 = (int *)((char *)a2 - off);
         do {
             import_0024F34C(tgt, p1, p2, 3);
+            off -= 4;
             p1--;
             p2++;
-            i--;
-        } while (i >= 0);
+        } while (off >= 0);
     }
 }
 #else

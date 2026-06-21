@@ -3543,25 +3543,19 @@ void gl_func_00006B80(char *a0, int a1, int a2) {
 
 /* gl_func_00006C38: 41-insn struct-init. Sets a0->{0x4F8,0x4E0,0x4DC} from
  * args; calls gl_func_0(&D, 0, a2, orig_a0) (4 args, a3 = saved orig_a0);
- * post-call: writes a0->{0x4EC=0, 0x518=0, 0x4E4=a1, 0x54C=120.0f, 0x550=0.0f,
+ * post-call: writes a0->{0x4E4=a1, 0x4EC=0, 0x518=0, 0x54C=120.0f, 0x550=0.0f,
  * 0x544=0xFF, 0x554=150.0f}; if (D[0x34]==2) overwrite 0x54C with 60.0f.
- *
- * Closed with INSN_PATCH for an IDO post-call scheduling cap:
- *   - Mine:   lui+mtc1 (120.0f); sw 0, 4EC; sw 0, 518; lw t8 (a1 reload);
- *             lui t9 (D base); swc1 f4; sw t8 (a1 store); lw t9 (D[0x34])
- *   - Target: lw t8 (a1) FIRST; lui+mtc1 (120.0f); lui t9 (D base);
- *             sw 0, 4EC; sw 0, 518; sw t8; swc1 f4; lw t9 (D[0x34])
- * Target hoists the a1 reload before the FP setup, then fills load-delay
- * slots with the zero stores. */
-#ifdef NON_MATCHING
+ * Match key: the 0x4E4=a1 store is the FIRST post-call statement so IDO hoists
+ * the a1 reload ahead of the FP setup and fills the load-delay slots with the
+ * zero stores. (Prior "INSN_PATCH scheduling cap" diagnosis was wrong.) */
 void gl_func_00006C38(int *a0, int a1, int a2) {
     a0[0x4F8/4] = a2;
     a0[0x4E0/4] = 3;
     a0[0x4DC/4] = 2;
     gl_func_00000000(&D_00000000, 0, a2, a0);
+    a0[0x4E4/4] = a1;
     a0[0x4EC/4] = 0;
     a0[0x518/4] = 0;
-    a0[0x4E4/4] = a1;
     *(float*)((char*)a0 + 0x54C) = 120.0f;
     if (*(int*)((char*)&D_00000000 + 0x34) == 2) {
         *(float*)((char*)a0 + 0x54C) = 60.0f;
@@ -3570,9 +3564,6 @@ void gl_func_00006C38(int *a0, int a1, int a2) {
     a0[0x544/4] = 0xFF;
     *(float*)((char*)a0 + 0x554) = 150.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006C38);
-#endif
 
 /* gl_func_00006CDC - verified structural decode (0xEC, ~55 insns +
  * 2 bundled stubs). NEAR-SIBLING of gl_func_00006B80 (same large-
