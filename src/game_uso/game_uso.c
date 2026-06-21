@@ -11881,101 +11881,37 @@ void game_uso_func_0000E1FC(char *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
 #endif
 
-/* game_uso_func_0000E2D0 — verified structural decode (~30%, LEN-DIFF 33/35;
- * branch-likely-sense + compiler dead-store tail + FPU operand order cap →
- * <80 so INCLUDE_ASM build path; struct-typing reference).
- * void f(int *a0){
- *   if (*(int*)&D_00000000 != 0) return;           // global gate (D+0)
- *   short v0 = *(short*)(a0+0xE4);
- *   if (v0 < 0) return;
- *   int *p = (int*)a0->0xB4;
- *   if ((((int*)p->0x800)->0x10 & 0x300) == 0) { *(short*)(a0+0xE4)=-1; return; }
- *   *(short*)(a0+0xE4) = v0 + 1;
- *   if (v0 >= a0->0x1CC) return;
- *   p = (int*)a0->0xB4;
- *   if (p->0x9A8 & 1) return;
- *   *(float*)(p+0x31C) += *(float*)(a0+0x1E4);
- * }
- * Struct-typing: a0->0xE4 short counter (clamped, set -1 on flag-fail),
- * a0->0x1CC int bound, a0->0x1E4 float delta, a0->0xB4 object whose
- * ->0x800->0x10 has flag bits 0x300, ->0x9A8 bit 0x1, ->0x31C accumulator
- * float. Caps <80: target uses beql (branch-likely) with the -1 store in
- * the delay slot + an unreachable trailing `a0->0xE4=-1` dead store IDO
- * emitted + FPU lwc1 operand ordering — not reachable by clean C.
- * INCLUDE_ASM is the correct build path (no episode; tautology-trap rule). */
-/* game_uso_func_0000E2D0 - verified structural decode (leaf, ~35 insns).
- * Per-frame advance of a timed/animated sub-object on game-object a0.
- *   if (gGlobalGate != 0) return;            // &D reloc, runtime-patched
- *   s16 fc = a0->0xE4;                        // frame counter (signed)
- *   if (fc < 0) return;
- *   parent = a0->0xB4;
- *   blk = parent->0x800;
- *   if ((blk->0x10 & 0x300) == 0) {           // branch-likely: store only
- *       a0->0xE4 = -1;                        //   on the taken path (beql,
- *       return;                               //   sh in delay slot)
- *   }
- *   if (fc >= a0->0x1CC) return;              // s32 limit; no store
- *   a0->0xE4 = fc + 1;                        // delay-slot store (always)
- *   parent = a0->0xB4;
- *   if (parent->0x9A8 & 1) return;
- *   acc_at_parent_plus_0x31C += a0->0x1E4;    // f32 += f32 (jr ra, swc1
- *                                             //   in delay slot)
- * Struct-typing reference: a0 = game object; a0->0xE4 (228) s16 active
- * frame counter (-1 = inactive sentinel), a0->0xB4 (180) parent ptr,
- * a0->0x1CC (460) s32 frame limit, a0->0x1E4 (484) f32 per-frame delta;
- * parent->0x800 (2048) sub-block ptr, sub-block->0x10 (16) flags mask
- * 0x300 (enable gate), parent->0x9A8 (2472) flags mask 0x1 (freeze
- * gate), parent+0x31C (796) f32 accumulator. Caps <80: branch-likely
- * conditional store-in-delay + jr-ra swc1-in-delay + &D reloc. Full
- * body now carried in C. Target's branch-likely/unreachable-store/jr-delay
- * shape was previously promoted with a Makefile INSN_PATCH/
- * SUFFIX_BYTES_FORCE recipe — both REMOVED 2026-05-23 as match-faking
- * (per feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM.
- *
- * 2026-05-28 BOUNDARY FIX: the .s was truncated to 0x80 (32 insns); the
- * function is really 0x8C (35 insns) — its `bnez t3, 0xE354` targets its
- * own dropped tail (sh t4,0xE4(a0); jr ra; nop at 0xE350..0xE358, from
- * Yay0 block_1), NOT a cross-fn cap. Restored the full .s (segment was
- * short 3 words). C is still a ~30% partial (33/35, 24 diffs) — FPU body
- * decode pending; correctly bounded now for a future pass. */
-#ifdef NON_MATCHING
+/* game_uso_func_0000E2D0 - per-frame advance of a timed sub-object on game
+ * object a0. Global gate at &D+0; if active (a0->0xE4 frame counter >= 0) and
+ * the sub-block (a0->0xB4->0x800->0x10) has flag bits 0x300, advance the
+ * counter and accumulate a0->0x1E4 into parent->0x31C when not frozen
+ * (parent->0x9A8 bit 0); otherwise reset the counter to -1.
+ * Match keys: (s16)frame used inline (not reassigned) so the load stays live
+ * across the beql, splitting the sign-extension (sll/sra) and coloring the
+ * extended temp into v1; if/else (not early-return) emits the beql + dead
+ * store-tail. Exact. */
+extern char game_uso_D_807FF684;
 void game_uso_func_0000E2D0(char *a0) {
-    s16 frame;
-    s16 next_frame;
-    char *parent;
+    int frame;
     char *block;
+    float *acc;
 
-    if (*(int*)&D_00000000 != 0) {
-        return;
-    }
-
-    frame = *(s16*)(a0 + 0xE4);
-    if (frame < 0) {
-        return;
-    }
-
-    parent = *(char**)(a0 + 0xB4);
-    block = *(char**)(parent + 0x800);
-    if ((*(int*)(block + 0x10) & 0x300) == 0) {
-        *(s16*)(a0 + 0xE4) = -1;
-        return;
-    }
-
-    next_frame = frame + 1;
-    *(s16*)(a0 + 0xE4) = next_frame;
-    if (frame >= *(int*)(a0 + 0x1CC)) {
-        return;
-    }
-
-    parent = *(char**)(a0 + 0xB4);
-    if ((*(int*)(parent + 0x9A8) & 1) == 0) {
-        *(float*)(parent + 0x31C) += *(float*)(a0 + 0x1E4);
+    if (*(int*)&game_uso_D_807FF684 == 0 && (frame = *(s16*)(a0 + 0xE4), frame >= 0)) {
+        block = *(char**)(*(char**)(a0 + 0xB4) + 0x800);
+        if (*(int*)(block + 0x10) & 0x300) {
+            *(s16*)(a0 + 0xE4) = (s16)frame + 1;
+            if ((s16)frame < *(int*)(a0 + 0x1CC)) {
+                char *parent = *(char**)(a0 + 0xB4);
+                acc = (float*)(parent + 0x31C);
+                if ((*(int*)(parent + 0x9A8) & 1) == 0) {
+                    *acc += *(float*)(a0 + 0x1E4);
+                }
+            }
+        } else {
+            *(s16*)(a0 + 0xE4) = -1;
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E2D0);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000E35C: slot/queue advance. If arg0->0xF0 (current) != NULL:
@@ -12614,25 +12550,27 @@ void game_uso_func_0000EF70(int *a0) {
  * order; this C caches p/v1 + checks 0x938 first. Inline-uncached + ternary
  * reorder both REGRESSED (27%) — the beql-chain scheduling is the cap.
  * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair */
-extern int gl_func_00000000();
+extern int import_0010DB28();
+extern int import_000966AC();
+void game_uso_func_0000F360(int *a0);
+void game_uso_func_00011888(int *a0);
 void game_uso_func_0000F060(int *a0) {
     int *s0 = a0;
     int *v1;
     int *p;
-    gl_func_00000000(a0);
-    s0[0xF4 / 4] = 0;
+    a0[0xF4 / 4] = 0;
+    game_uso_func_00011888(a0);
     v1 = (int *)s0[0xB4 / 4];
     p = (int *)v1[0x800 / 4];
-    if (v1[0x938 / 4] &&
-        !((p[0x10 / 4] & 0x100) && !(p[0x10 / 4] & 0x200))) {
-        gl_func_00000000(s0);
+    if (((p[0x10 / 4] & 0x100) == 0 || (p[0x10 / 4] & 0x200) != 0) && v1[0x938 / 4] != 0) {
+        game_uso_func_0000F360(s0);
         return;
     }
-    gl_func_00000000(s0, 0x10011, 0, 0, 0x100, s0[0x16C / 4]);
-    gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xEB0), -1);
+    import_0010DB28(s0, 0x10011, 0, 0, 0x100, s0[0x16C / 4]);
+    game_uso_func_0000D5F8((char *)s0, *(Pair2 *)((char *)&D_00000000 + 0xEB0), -1);
     *(short *)((char *)s0 + 0xE6) = 0;
     *(short *)((char *)s0 + 0xE4) = *(short *)((char *)s0 + 0xE4) + 1;
-    gl_func_00000000((char *)s0[0xB4 / 4] + 0x808);
+    import_000966AC((char *)s0[0xB4 / 4] + 0x808);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);

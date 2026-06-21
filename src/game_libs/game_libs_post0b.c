@@ -3617,33 +3617,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038108);
 //   subsystem over a shared message table; the obj->0x28->0x44
 //   slot ties this to the device-object vtable family
 //   (gl_func_00034188 / 00034458 / 0003537x).
-// Caps (DEFERRED): raw-word USO + USO-relocated jal-0 printf
-//   callbacks + contiguous fixed string-data table + jalr through
-//   object vtable (obj->0x28+0x44); string table / vtable untyped.
-//   Real-C STRUCTURAL body below — sibling of gl_func_00038108.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// gl_func_000381F8: diagnostic-print + vtable-dispatch leaf. MATCHED
+//   byte-exact 2026-06-21. Levers: (1) distinct extern string symbols
+//   (D_strA..D_strD) defeat IDO's &D_00000000 CSE-into-s0 (each printf
+//   format string is a distinct symbol → per-call lui/addiu recompute,
+//   frame -32 no s0); (2) exact call arg shapes (trailing 0 args, the
+//   5-arg call2 with stack 5th arg, 3-arg call3); (3) inlined fn-ptr
+//   call → jalr t9 + o reloaded into v1 for the self-relative add.
 extern int D_00000000;
+extern int D_00000000_c;
+extern int D_00000000_d;
+extern int D_00000000_e;
+extern int D_00000000_f;
 void gl_func_000381F8(char *o) {
     char *r;
-    void (*fp)(int);
-    short h;
-    gl_func_00000000(&D_00000000);
-    if (gl_func_00000000((char *)&D_00000000 + 0x0001EC20,
-                         (char *)&D_00000000 + 0x0001EC28,
-                         &D_00000000)) {
-        if (gl_func_00000000((char *)&D_00000000 + 0x0001EC30)) {
+    gl_func_00000000(&D_00000000_c, 0);
+    if (gl_func_00000000(&D_00000000, (char *)&D_00000000 + 0x0001EC20,
+                         (char *)&D_00000000 + 0x0001EC28, &D_00000000_d, 0)) {
+        if (gl_func_00000000(&D_00000000_e, &D_00000000_f,
+                             (char *)&D_00000000 + 0x0001EC30)) {
             r = *(char **)(o + 0x28);
-            fp = *(void (**)(int))(r + 0x44);
-            h = *(short *)(r + 0x40);
-            fp(h + (int)r);
-            gl_func_00000000(&D_00000000);
+            (*(int (**)(int))(r + 0x44))(*(short *)(r + 0x40) + (int)o);
+            gl_func_00000000(&D_00000000_c);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000381F8);
-#endif
 
 void game_libs_func_00038294(int a0) {
 }
@@ -16361,8 +16359,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048510);
 #ifdef NON_MATCHING
 /* gl_func_00048720: 16-byte-key record search — returns matching
  * record index in [a0->0xC, a0->0xC + a0->4), else -1. Decoded from
- * bare stub 2026-05-18; algorithm correct, build = 62 vs 59 (count
- * diff) + structural reorder. Remaining (multi-pass, defer):
+ * bare stub 2026-05-18; algorithm correct. 2026-06-21: tightened to
+ * 60 vs 59 insns (80.5% fuzzy) via `if(i<end){off=i*16; do{...}while}`
+ * guard form (end=a0[1]+i loads a0[1] first). RESIDUAL CAP: register
+ * coloring — target keeps the key ptr live in $a2 and saves the flag
+ * (a1) to $s0; IDO colors mine key->$s0, offset->$a2 vs target's
+ * offset->$a1. Functionally identical, coloring-renumber cap.
+ * Earlier multi-pass notes (now partly addressed):
  *  - prologue order: `t6=a0[1](0x4); v1=a0[3](0xC); a3=v1+t6;
  *    if(!(v1<a3))return -1; a1=v1<<4` with the `a1=v1*16` in the
  *    beq's DELAY slot (not a separate `int off`); a1 then `+=0x10`
@@ -16384,30 +16387,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048510);
 int gl_func_00048720(int *a0, int a1, int a2) {
     int s0 = a1;
     int i = a0[3];
-    int end = i + a0[1];
-    int off = i * 16;
-    if (i >= end) {
-        return -1;
+    int end = a0[1] + i;
+    int off;
+    if (i < end) {
+        off = i * 16;
+        do {
+            int rec = *(int *)(*(int *)(*(int *)a0 + 0x1C)) + off;
+            if (*(short *)(a2 + 0) == *(short *)(rec + 0) &&
+                *(short *)(a2 + 2) == *(short *)(rec + 2) &&
+                *(short *)(a2 + 4) == *(short *)(rec + 4) &&
+                *(short *)(a2 + 8) == *(short *)(rec + 8) &&
+                *(short *)(a2 + 0xA) == *(short *)(rec + 0xA)) {
+                if (s0 == 0) {
+                    return i;
+                }
+                if (*(unsigned char *)(a2 + 0xC) == *(unsigned char *)(rec + 0xC) &&
+                    *(unsigned char *)(a2 + 0xD) == *(unsigned char *)(rec + 0xD) &&
+                    *(unsigned char *)(a2 + 0xE) == *(unsigned char *)(rec + 0xE)) {
+                    return i;
+                }
+            }
+            i++;
+            off += 16;
+        } while (i < end);
     }
-    do {
-        int rec = *(int *)(*(int *)(*(int *)a0 + 0x1C)) + off;
-        if (*(short *)(a2 + 0) == *(short *)(rec + 0) &&
-            *(short *)(a2 + 2) == *(short *)(rec + 2) &&
-            *(short *)(a2 + 4) == *(short *)(rec + 4) &&
-            *(short *)(a2 + 8) == *(short *)(rec + 8) &&
-            *(short *)(a2 + 0xA) == *(short *)(rec + 0xA)) {
-            if (s0 == 0) {
-                return i;
-            }
-            if (*(unsigned char *)(a2 + 0xC) == *(unsigned char *)(rec + 0xC) &&
-                *(unsigned char *)(a2 + 0xD) == *(unsigned char *)(rec + 0xD) &&
-                *(unsigned char *)(a2 + 0xE) == *(unsigned char *)(rec + 0xE)) {
-                return i;
-            }
-        }
-        i++;
-        off += 16;
-    } while (i < end);
     return -1;
 }
 #else
@@ -20225,9 +20228,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D688);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0004DA40 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
- * (declared 0x110 / 68 words). NAMED fn = stateful init/register,
- * insns 1..64 (prologue 27BDFFD8 frame 0x28, jr ra at insn 64):
+/* gl_func_0004DA40 — decoded 2026-05-19; re-split standalone (62 words,
+ * 0xF8). 2026-06-21: corrected first guard sense (self->0xC != 0, was
+ * inverted) + threaded self->4 through an explicit v0 local → 40 diffs
+ * / 76.9% fuzzy (was 73.7%). RESIDUAL CAP: register coloring — target
+ * keeps the reloaded object ptr (self->0xC) live in $a1 across the
+ * body; IDO colors mine into $v0/$v1, cascading the offset/temp regs.
+ * NAMED fn = stateful init/register:
  *   int gl_func_0004DA40(int *self) {
  *     if (self->0xC == 0) cb1(&D_00000000 + 0x202F0);   // beql-likely
  *     if (self->4 == 0) return 0;                        // beq end
@@ -20259,15 +20266,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D688);
 extern int gl_func_00000000();
 extern int D_00000000;
 int gl_func_0004DA40(int *self) {
+    int v0;
     int g;
-    if (self[0xC / 4] == 0) {
+    if (self[0xC / 4] != 0) {
         gl_func_00000000((char *)&D_00000000 + 0x202F0);
     }
-    if (self[4 / 4] == 0) {
+    v0 = self[4 / 4];
+    if (v0 == 0) {
         return 0;
     }
-    self[0xC / 4] = self[4 / 4];
-    gl_func_00000000(self[4 / 4]);
+    self[0xC / 4] = v0;
+    gl_func_00000000(v0);
     if (*(int *)(self[0xC / 4] + 0x74) != 0) {
         gl_func_00000000(*(int *)(self[0xC / 4] + 0x74));
     }
