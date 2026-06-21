@@ -11856,15 +11856,43 @@ L_BC:
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000D9CC)();
-/* Per-frame physics-update spine: chained c.lt.s residual gates, each
- * OR-ing a state-bit mask into arg0->0x108 and setting a mode indicator.
- * Prior prose structural analysis (field meanings, 0x01F0 state mask) is in
- * git history (game_uso_func_0000D9CC "complete 524-insn structural decode").
- * This m2c lift replaced that comment-only shell with real C. */
+/* Per-frame edge-trigger spine (524 words / 0x830, game_uso -O2, USO).
+ *
+ * 2026-06-21 DEEP RECONSTRUCTION (agent-i): replaced the prior m2c-derived
+ * shell — which called the placeholder symbol `game_uso_alias` everywhere
+ * (wrong jal target, wrong arg shapes, 625 emitted words vs 524 target) —
+ * with a faithful decode against the RESOLVED .s. All callees are now the
+ * REAL reloc symbols recovered from the .s R_MIPS_26 entries:
+ *   - game_uso_func_0000EDCC(arg0, mode)  -> a0[0x10C/4] = mode (14 calls,
+ *     the c.lt.s/bc1fl residual-gate cascade; each gate sets a state-bit
+ *     mask into arg0->0x108 + a 'mode' index)
+ *   - game_uso_func_07C0FC / _0001189C / _0000EDD4 / _0000D63C   (tail)
+ *   - game_uso_func_077C44(a0, mask, 0, dir, 1, 1)               (tail logger)
+ *   - game_uso_func_0000D5F8(a0, Pair2, flag)                    (pair-home)
+ *   - game_uso_func_0000D5DC(a0)                                 (pair-copy)
+ * with the real globals game_uso_D_807FF478/480/3B8 for the tail pair loads
+ * (same recipe as the matched siblings 00011258/000112E0).
+ *
+ * RESIDUAL / CAP CLASS: this is the documented "intractable" cap at extreme
+ * scale — a 524-word body saturated with branch-LIKELY FP codegen (bc1fl /
+ * bc1tl from the c.lt.s/c.le.s/c.lt.d/c.eq.d residual gates), abs-value
+ * mov.s/b/neg.s/mov.s idioms, double-precision rodata-literal compares, and
+ * 14+ vararg-logger calls whose arg ordering pins a specific spill/temp
+ * coloring. m2c cannot emit branch-likely directly; IDO's FP scheduler +
+ * global coloring fixes the exact $f/$t numbering. No single C form lands the
+ * whole cascade. Honest NON_MATCHING — this body is a faithful logical decode
+ * with the correct callees/relocs, not a byte match. */
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
+extern void game_uso_func_07C0FC();
+void game_uso_func_0000EDCC(int *a0, int a1);
+void game_uso_func_0000EDD4(int *a0, unsigned int a1, int a2);
+void game_uso_func_0001189C(int *a0, int a1, int a2);
+extern char game_uso_D_807FF478;
+extern char game_uso_D_807FF480;
+extern char game_uso_D_807FF3B8;
+extern char game_uso_D_807FF68C;
 void game_uso_func_0000D9CC(char *arg0) {
     f32 sp34;
     s32 sp30;
@@ -11889,13 +11917,13 @@ void game_uso_func_0000D9CC(char *arg0) {
     char *temp_v1;
     char *var_v1;
 
-    FF(arg0, 0x108) = 0;
+    FW(arg0, 0x108) = 0;
     sp30 = 1;
     sp2C = 0;
     sp28 = 0;
     var_v1 = FW(arg0, 0xB4);
     var_a3 = 0.0f;
-    if ((FW(var_v1, 0x348) > 30.0f) && (FW(var_v1, 0xA10) & 0x1F0)) {
+    if ((FF(var_v1, 0x348) > 30.0f) && (FW(var_v1, 0xA10) & 0x1F0)) {
         temp_f2 = FF(var_v1, 0xA1C);
         if (temp_f2 < 0.0f) {
             var_f0 = -temp_f2;
@@ -11905,9 +11933,9 @@ void game_uso_func_0000D9CC(char *arg0) {
         if (FF(arg0, 0x244) < var_f0) {
             sp30 = 0;
             sp28 = 2;
-            game_uso_alias(arg0, 1, 0);
+            game_uso_func_0000EDCC((int *)arg0, 1);
             var_a3 = 3;
-            if (FW(FW(arg0, 0xB4), 0xA1C) > 0.0f) {
+            if (FF(FW(arg0, 0xB4), 0xA1C) > 0.0f) {
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x16);
                 sp2C = (char *)1;
             } else {
@@ -11923,7 +11951,7 @@ void game_uso_func_0000D9CC(char *arg0) {
         }
         if (FF(arg0, 0x22C) < var_f0_2) {
             sp30 = 0;
-            game_uso_alias(arg0, 4, 0);
+            game_uso_func_0000EDCC((int *)arg0, 4);
             temp_v1 = FW(arg0, 0xB4);
             var_a3 = 2;
             temp_f2_2 = FF(temp_v1, 0x970);
@@ -11932,7 +11960,7 @@ void game_uso_func_0000D9CC(char *arg0) {
             } else {
                 var_f0_3 = temp_f2_2;
             }
-            if (*(f64 *)0x1F8 < (f64) var_f0_3) {
+            if (1.0 < (f64) var_f0_3) {
                 if (temp_f2_2 <= 0.0f) {
                     FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xE);
                     sp2C = (char *)3;
@@ -11953,19 +11981,19 @@ block_24:
     }
     if (FF(var_v1, 0x9D0) < 500.0f) {
         temp_v0 = var_v1 + 0xCC;
-        if ((f64) FF(var_v1, 0xA0C) < *(f64 *)0x200) {
+        if ((f64) FF(var_v1, 0xA0C) < 1.0) {
             FF(var_v1, 0xCC) = 0.0f;
             FF(temp_v0, 0x4) = 0.0f;
             FF(temp_v0, 0x8) = 0.0f;
             FF(temp_v0, 0xC) = 1.0f;
             sp28 = 2;
             sp34 = 4;
-            game_uso_alias(arg0, 2);
+            game_uso_func_0000EDCC((int *)arg0, 2);
             var_a3 = 4;
-            if (FW(FW(arg0, 0xB4), 0x3CC) < 0.0f) {
-                FF(arg0, 0x108) = 0x1002A;
+            if (FF(FW(arg0, 0xB4), 0x3CC) < 0.0f) {
+                FW(arg0, 0x108) = 0x1002A;
             } else {
-                FF(arg0, 0x108) = 0x1002B;
+                FW(arg0, 0x108) = 0x1002B;
             }
             var_v1 = FW(arg0, 0xB4);
         }
@@ -11984,42 +12012,42 @@ block_24:
         if ((FF(arg0, 0x304) * FF(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 3;
             sp30 = 0;
-            game_uso_alias(var_f12, temp_f14, arg0, 2);
+            game_uso_func_0000EDCC((int *)arg0, 2);
             var_a3 = 5;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
         } else if ((FF(arg0, 0x2EC) * FF(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 0;
             sp30 = 0;
-            game_uso_alias(var_f12, temp_f14, arg0, 5);
+            game_uso_func_0000EDCC((int *)arg0, 5);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2D);
         } else if ((FF(arg0, 0x2D4) * FF(temp_v0_2, 0x10)) <= var_f2) {
             sp28 = 0;
             sp30 = 0;
-            game_uso_alias(var_f12, temp_f14, arg0, 4);
+            game_uso_func_0000EDCC((int *)arg0, 4);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2C);
         } else if (FF(arg0, 0x2BC) <= var_f0_4) {
             sp28 = 4;
-            game_uso_alias(var_f12, temp_f14, arg0, 3);
+            game_uso_func_0000EDCC((int *)arg0, 3);
             var_a3 = 5;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
         } else if (FF(arg0, 0x2A4) <= var_f0_4) {
             sp28 = 3;
             sp34 = 4;
-            game_uso_alias(var_f12, temp_f14, arg0, 2);
+            game_uso_func_0000EDCC((int *)arg0, 2);
             var_a3 = 4;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xB);
         } else if (FF(arg0, 0x28C) <= var_f0_4) {
             sp28 = 2;
             sp34 = 3;
-            game_uso_alias(var_f12, temp_f14, arg0, 1);
+            game_uso_func_0000EDCC((int *)arg0, 1);
             var_a3 = 3;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xA);
         } else if (FF(arg0, 0x274) <= var_f0_4) {
             sp28 = 0;
             sp30 = 0;
-            game_uso_alias(var_f12, temp_f14, arg0, 1);
+            game_uso_func_0000EDCC((int *)arg0, 1);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2C);
         } else if (var_f0_4 <= -FF(arg0, 0x334)) {
@@ -12027,14 +12055,14 @@ block_24:
             sp2C = (char *)2;
             sp34 = 3;
             sp30 = 0;
-            game_uso_alias(var_f12, temp_f14, arg0, 5);
+            game_uso_func_0000EDCC((int *)arg0, 5);
             var_a3 = 3;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x16);
         } else if (var_f0_4 <= -FF(arg0, 0x31C)) {
             sp28 = 0;
             sp2C = (char *)2;
             sp30 = 0;
-            game_uso_alias(var_f12, temp_f14, arg0, 5);
+            game_uso_func_0000EDCC((int *)arg0, 5);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x14);
         } else {
@@ -12042,59 +12070,60 @@ block_24:
             if (temp_f0 <= var_f12) {
                 sp28 = 3;
                 sp34 = 2;
-                game_uso_alias(var_f12, temp_f14, arg0, 2);
+                game_uso_func_0000EDCC((int *)arg0, 2);
                 var_a3 = 2;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x13);
             } else if (var_f12 <= -temp_f0) {
                 sp28 = 3;
                 sp34 = 2;
-                game_uso_alias(var_f12, temp_f14, arg0, 2);
+                game_uso_func_0000EDCC((int *)arg0, 2);
                 var_a3 = 2;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x12);
-            } else if ((*(f32 *)0x1098 <= var_f2) && ((f64) temp_f14 == 1.0) && (FF(var_v1, 0x9CC) == 0)) {
+            } else if ((1.0f <= var_f2) && ((f64) temp_f14 == 1.0) && (FF(var_v1, 0x9CC) == 0)) {
                 sp28 = 0;
                 sp30 = 0;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2F);
                 sp34 = var_a3;
-                game_uso_alias(var_f12, temp_f14, FF(var_v1, 0x800), (char *)&D_00000000 + 4252, 0xA, var_a3);
+                game_uso_func_07C0FC(FW(var_v1, 0x800),
+                                     (char *)&game_uso_D_807FF68C + 4252, 0xA);
             }
         }
     }
-    if ((FF(arg0, 0x114) == 1) && (sp28 == 0)) {
-        FF(arg0, 0x108) = 0;
+    if ((FF(arg0, 0x114) == 1.0f) && (sp28 == 0)) {
+        FW(arg0, 0x108) = 0;
     }
-    if (FF(arg0, 0x108) != 0) {
-        game_uso_alias(arg0, var_a3, sp2C, var_a3);
+    if (FW(arg0, 0x108) != 0) {
+        game_uso_func_0001189C((int *)arg0, (s32) var_a3, sp30);
         FF(arg0, 0x11C) = 1.0f;
-        game_uso_alias(arg0, (f32) sp28, sp2C);
+        game_uso_func_0000EDD4((int *)arg0, sp28, sp2C);
         temp_v0_3 = FW(arg0, 0xB4);
         FF(temp_v0_3, 0x308) = 1.0f;
         FF(temp_v0_3, 0x2FC) = 0.0f;
         FF(temp_v0_3, 0x300) = 0.0f;
         FF(temp_v0_3, 0x304) = 0.0f;
-        game_uso_alias(arg0, (f32) (sp28 == 0));
+        game_uso_func_0000D63C(arg0, (sp28 == 0));
         FW(FW(arg0, 0xB4), 0x3DC) = 0;
         if (sp30 != 0) {
-            game_uso_alias(arg0, FF(arg0, 0x108), 0, 2, 1, 1);
-            game_uso_alias(arg0, (char *)FW(0xE88, 0x0), (char *)FW(0xE88, 0x4), 2);
+            game_uso_func_077C44(arg0, FW(arg0, 0x108), 0, 2, 1, 1);
+            game_uso_func_0000D5F8(arg0, *(Pair2 *)&game_uso_D_807FF478, 2);
         } else {
-            game_uso_alias(arg0, FF(arg0, 0x108), 0, 1, 1, 1);
-            game_uso_alias(arg0, (char *)FW(0xE90, 0x0), (char *)FW(0xE90, 0x4), 1);
+            game_uso_func_077C44(arg0, FW(arg0, 0x108), 0, 1, 1, 1);
+            game_uso_func_0000D5F8(arg0, *(Pair2 *)&game_uso_D_807FF480, 1);
         }
-        game_uso_alias(arg0);
-        FF(arg0, 0x114) = 0;
+        game_uso_func_0000D5DC(arg0);
+        FW(arg0, 0x114) = 0;
     }
     if (FW(FW(arg0, 0xB4), 0xA14) <= 0) {
-        temp_v0_4 = FF(arg0, 0x108);
-        FF(arg0, 0x114) = 0;
+        temp_v0_4 = FW(arg0, 0x108);
+        FW(arg0, 0x114) = 0;
         if (temp_v0_4 != 0) {
             temp_a1 = (temp_v0_4 & 0xFFFF) | 0x60000;
-            FF(arg0, 0x108) = temp_a1;
-            game_uso_alias(arg0, (f32) temp_a1, 0, 1, 1, 1);
-            game_uso_alias(arg0, (char *)FW(0xDC8, 0x0), (char *)FW(0xDC8, 0x4), 1);
+            FW(arg0, 0x108) = temp_a1;
+            game_uso_func_077C44(arg0, temp_a1, 0, 1, 1, 1);
+            game_uso_func_0000D5F8(arg0, *(Pair2 *)&game_uso_D_807FF3B8, 1);
         }
         FW(FW(arg0, 0xB4), 0x960) = 0x64;
-        game_uso_alias(arg0);
+        game_uso_func_0000D5DC(arg0);
     }
 }
 #else
