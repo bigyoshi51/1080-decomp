@@ -32812,39 +32812,33 @@ void gl_func_000608A4(char *arg0, s32 arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000608A4);
 #endif
 
-/* gl_func_00060A74: 23-insn guarded-call wrapper with K&R varargs
- * forwarding shape.
- *   if (a0->[0x34] == 0) {
- *       D_60A88_owner = a0;
- *       call(&D_60A88_fmt, 0, a1, va_arg-ptr);
- *   }
+/* gl_func_00060A74: 23-insn guarded one-shot init, BYTE-EXACT (NM path).
+ * If a0->0x34 == 0, stash a0 into a global and forward the variadic tail to a
+ * format/print-family callback with (&fmt, 0, a1, va_ptr).
  *
- * The `addiu a3, sp, 0x2B; and a3, -4` pattern is the K&R varargs
- * align-up: `(va_list)(((unsigned)&first_vararg + 3) & ~3)`. Target
- * frame=0x20 (vs naive 0x18) — extra 8 bytes likely reserve a slot
- * for the `va_list ap` local. Target's 3rd-arg setup is `lw a2,
- * 0x24(sp)` in the jal delay slot (reloading a1 from caller-spill);
- * naive C emits `move a2, a1` earlier instead.
+ * THE FRAME-SIZE CAP WAS A MISDIAGNOSED VARIADIC fn (docs/IDO_CODEGEN.md
+ * #feedback-ido-frame-size-cap-is-misdiagnosed-variadic): a fixed
+ * f(int,int,int,int) homes only the &-taken args (frame 0x18); the real
+ * signature `(int a0, int a1, ...)` homes ALL named+unnamed arg regs a0..a3
+ * at the frame TOP and grows the frame to 0x20 for free, and the va-pointer
+ * is `((int)&a1 + 4 + 3) & ~3` (= sp+0x28, just past a1's home). Two DISTINCT
+ * globals (owner vs fmt) are needed so IDO doesn't CSE the address and reload
+ * a0 — `D_60A88_owner = a0` keeps a0 in $a0 for the store while $at carries
+ * the global addr; the call's `&D_..fmt` then reloads $a0.
  *
- * Naive C scored 65% mnemonic-only — without IDO's va_list/va_start
- * macros + matching ap-slot reservation, can't close the gap. NM
- * wrap kept as plain INCLUDE_ASM for the documentation; promote
- * once varargs idiom is needed elsewhere. */
+ * Build path is the #else INCLUDE_ASM (raw-.word USO: jal/%hi/%lo are
+ * load-resolved placeholders with no in-object relocs). The NM body compiles
+ * to byte-identical .text vs the target (reloc-filtered) — verified via
+ * build/non_matching. */
 #ifdef NON_MATCHING
-/* gl_func_00060A74: 23-insn guarded one-shot init. If a0->0x34 == 0, stash a0
- * into a global and call the (collapsed) callback with (&global2, 0, a1, ptr)
- * where ptr is an aligned scratch buffer in this frame ((sp+0x2B)&~3). a0-a3 are
- * all home-saved on entry. NM (reference decode): two collapsed D refs + a
- * collapsed-placeholder call (raw-.word game_libs reloc depression); the two
- * distinct D symbols collapse to D_00000000 and the aligned stack ptr is
- * approximated by a local buffer. */
 extern int D_00000000;
+extern int D_60A88_owner;
 extern int gl_func_00000000();
-void gl_func_00060A74(int a0, int a1, int a2, int a3) {
+void gl_func_00060A74(int a0, int a1, ...) {
     if (*(int *)((char *)a0 + 0x34) == 0) {
-        int buf[2];
-        *(int *)&D_00000000 = a0;
-        gl_func_00000000(&D_00000000, 0, a1, buf);
+        char *ap = (char *)(((int)&a1 + 4 + 3) & ~3);
+        D_60A88_owner = a0;
+        gl_func_00000000(&D_00000000, 0, a1, ap);
     }
 }
 #else

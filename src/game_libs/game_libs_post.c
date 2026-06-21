@@ -3804,24 +3804,32 @@ int gl_func_000208BC(int a0, int a1, int a2) {
 //   extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int D_00000000;
-/* Whole-body decode 2026-06-01 (prior body was wrong float math). int
- * record-lookup: select a per-mode descriptor base (D+0x21F8/0x2308/0x2418),
- * v1 = base+0xD4. flag==0: probe v1->0x1E (set v1->0=1, return v1->0x14) or
- * v1->0x2A (set v1->0=0, return v1->0x20), else 0. flag!=0: scan base[count]
- * records (stride 12) for key==rec->0x1E returning rec->0x14; on miss, if
- * flag==2 call gl(mode,0) and return 0. */
+/* Whole-body decode 2026-06-01; reconstruction refined 2026-06-20.
+ * int record-lookup(mode, flag, key): switch(mode) picks a per-mode descriptor
+ * base (D+0x21F8/0x2308/0x2418; default reads an uninit sp slot). v1=base+0xD4.
+ * flag==0: probe v1->0x1E (set v1->0=1, return v1->0x14) or v1->0x2A (set
+ * v1->0=0, return v1->0x20), else 0. flag!=0: scan base[base[0]] records
+ * (stride 12) for key==rec->0x1E returning rec->0x14; on miss, if flag==2
+ * recurse gl_func_00020914(mode, 0, key) and return 0.
+ * 2026-06-20: 35->33 diffs. Fixed: drop the `char *D` and `uninit` locals so the
+ * frame is 0x20 (was 0x28); switch(mode) gives the beq-chain dispatch with arg
+ * homes at 0x24 byte-exact; flag==0 probe FIRST (fall-through) so the flag test
+ * is bnel (was beql); recurse to self (was placeholder gl_func_00000000).
+ * Residual 33 (size 67 exact): the flag!=0 SCAN LOOP — target uses branch-LIKELY
+ * (bnel a2,t1 / bnel at,zero) and RELOADS the base[0] count via $a0 each
+ * iteration; the structured do/while makes IDO hoist the count into a reg (one
+ * load) + plain bne, so the loop schedule/coloring diverges. Plus the default
+ * uninit slot lands at 0x1C vs 0x18 (phantom-slot, no named lever w/o regrowing
+ * the frame). Genuine branch-likely-schedule + loop-invariant-reload cap. */
 int gl_func_00020914(int mode, int flag, int key) {
-    char *D = (char *)&D_00000000;
     char *base;
     char *v1;
-    char *uninit;
     int v0;
 
     switch (mode) {
-    case 0:  base = D + 0x21F8; break;
-    case 1:  base = D + 0x2308; break;
-    case 2:  base = D + 0x2418; break;
-    default: base = uninit;     break;  /* target reads an uninit sp slot here */
+    case 0:  base = (char *)&D_00000000 + 0x21F8; break;
+    case 1:  base = (char *)&D_00000000 + 0x2308; break;
+    case 2:  base = (char *)&D_00000000 + 0x2418; break;
     }
     v1 = base + 0xD4;
     if (flag == 0) {
@@ -3847,7 +3855,7 @@ int gl_func_00020914(int mode, int flag, int key) {
         } while ((unsigned)v0 < (unsigned)*(int *)base);
     }
     if (flag == 2) {
-        gl_func_00000000(mode, 0);
+        gl_func_00020914(mode, 0, key);
     }
     return 0;
 }
@@ -4056,26 +4064,31 @@ typedef char *(*GP_00020FFC)();
  * decay the u16 field at +0x24 by 25% (v -= v/4), repeated var_v0 (1 or 2,
  * per &D+0x2034) times. m2c dropped the &D record base (rec = &D + v1*0x158)
  * and the &D scalar bases; field is a halfword (sh). Simple inner loop lets
- * IDO unroll it (x4 + remainder) as the target does. */
+ * IDO unroll it (x4 + remainder) as the target does.
+ * 2026-06-20: structure/size/insn-count byte-exact (77 words). Levers applied:
+ * (1) v0-select as ternary (target uses explicit beq zero,zero unconditional
+ * branch w/ v0=2 in delay); (2) record base ptr `rec = &D + v1*0x158` with the
+ * +0x24 kept on the ACCESS (not folded into the addiu) so the field offset is
+ * 36(rec); (3) inline-deref the field (no named temp) so the unroller chains the
+ * masked u16 value in one register instead of copying to a sibling reg.
+ * Residual = 29 single-register-renumber diffs: target chains the field value in
+ * $a2 / count-copy in $a3; build mirrors them ($a3/$a2). Named temp / count-down
+ * / decl-reorder all REGRESS. Genuine $a2<->$a3 coloring cap in the unroller. */
 void game_libs_func_00020FFC(void) {
-    s32 var_v0 = 1;
+    s32 var_v0;
     s32 var_v1;
     s32 var_a1;
-    u16 *field;
-    u16 v;
+    char *rec;
 
-    if (*(s16 *)((char *)&D_00000000 + 0x2034) == 2) {
-        var_v0 = 2;
-    }
+    var_v0 = (*(s16 *)((char *)&D_00000000 + 0x2034) == 2) ? 2 : 1;
     var_v1 = 0;
     if (*(s8 *)((char *)&D_00000000 + 1) > 0) {
         do {
             if (var_v0 > 0) {
-                field = (u16 *)((char *)&D_00000000 + var_v1 * 0x158 + 0x24);
+                rec = (char *)&D_00000000 + var_v1 * 0x158;
                 var_a1 = 0;
                 do {
-                    v = *field;
-                    *field = (u16) (v - (s32) v / 4);
+                    *(u16 *)(rec + 0x24) = (u16) (*(u16 *)(rec + 0x24) - (s32) *(u16 *)(rec + 0x24) / 4);
                     var_a1 += 1;
                 } while (var_a1 != var_v0);
             }
@@ -8422,38 +8435,52 @@ void game_libs_func_000253B0(int a0, int a1, int a2, int a3) {
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000253C4)();
+/* 2026-06-20 reconstruction: 76->66 diffs. node = *arg0 + arg1 (gated unsigned
+ * < 0x80000001), stored back; if (node->0 & 0xFFFFFF) and bit0 clear: bump the
+ * +8/+0xC words by arg1, then a 4-way switch on bits[26:27] of node->0
+ * ((node->0<<4)>>30) adds arg2->8/0xC to node->4 and folds (arg2->0x10/0x14)<<2
+ * &0xC into node->0 low byte (cases 0/1; 2/3 noop); set bit0; finally if bit
+ * 0x02000000 set AND bits[26:27]!=0, append node to the &D+0x430 table indexed
+ * by the &D+0x1030 counter and bump it. Bare 0x1030/0x430 fixed to &D-relative.
+ * Residual 66 (size 80 exact, logic correct): target COPIES node into $a2 (and
+ * config arg2 into $a3) and uses $a2 as the long-lived node base while reusing
+ * $v1 as the per-field add scratch; build keeps node in $v1, so the register
+ * assignment cascades. Genuine node-base coloring ($a2 vs $v1) cap — needs the
+ * original two-variable (store-temp vs access-base) split that can't be
+ * reconstructed from the .s. */
 void game_libs_func_000253C4(u32 *arg0, s32 arg1, char *arg2) {
+    char *D = (char *)&D_00000000;
     s32 temp_v0_3;
     u32 temp_v0;
     u32 temp_v0_2;
-    u32 temp_v1;
+    char *node;
 
-    temp_v0 = *(int*)arg0;
+    temp_v0 = *arg0;
     if (temp_v0 < 0x80000001U) {
-        temp_v1 = temp_v0 + (int)arg1;
-        *arg0 = temp_v1;
-        if ((FW(temp_v1, 0x0) & 0xFFFFFF) && (((u8) FW(temp_v1, 0x0) & 1) != 1)) {
-            FW(temp_v1, 0x8) = (s32) (FW(temp_v1, 0x8) + (int)arg1);
-            temp_v0_2 = (u32) (FW(temp_v1, 0x0) * 0x10) >> 0x1E;
-            FW(temp_v1, 0xC) = (s32) (FW(temp_v1, 0xC) + (int)arg1);
+        node = (char *)(temp_v0 + arg1);
+        *arg0 = (u32) node;
+        if ((*(s32 *)node & 0xFFFFFF) && (((u8) *(s32 *)node & 1) != 1)) {
+            *(s32 *)(node + 8) += arg1;
+            temp_v0_2 = (u32) (*(s32 *)node << 4) >> 0x1E;
+            *(s32 *)(node + 0xC) += arg1;
             switch (temp_v0_2) {                    /* irregular */
             case 2:
             case 3:
                 break;
             case 0:
-                FW(temp_v1, 0x4) = (s32) (FW(temp_v1, 0x4) + FW(arg2, 0x8));
-                FW(temp_v1, 0x0) = (s8) (((FW(arg2, 0x10) * 4) & 0xC) | ((u8) FW(temp_v1, 0x0) & 0xFFF3));
+                *(s32 *)(node + 4) += *(s32 *)(arg2 + 8);
+                *(s8 *)node = (s8) (((*(s32 *)(arg2 + 0x10) << 2) & 0xC) | ((u8) *(s32 *)node & 0xFFF3));
                 break;
             case 1:
-                FW(temp_v1, 0x4) = (s32) (FW(temp_v1, 0x4) + FW(arg2, 0xC));
-                FW(temp_v1, 0x0) = (s8) (((FW(arg2, 0x14) * 4) & 0xC) | ((u8) FW(temp_v1, 0x0) & 0xFFF3));
+                *(s32 *)(node + 4) += *(s32 *)(arg2 + 0xC);
+                *(s8 *)node = (s8) (((*(s32 *)(arg2 + 0x14) << 2) & 0xC) | ((u8) *(s32 *)node & 0xFFF3));
                 break;
             }
-            FW(temp_v1, 0x0) = (s8) ((u8) FW(temp_v1, 0x0) | 1);
-            temp_v0_3 = FW(temp_v1, 0x0);
-            if ((temp_v0_3 & 0x02000000) && (((u32) (temp_v0_3 * 0x10) >> 0x1E) != 0)) {
-                FW((*(s32 *)0x1030 * 4), 0x430) = temp_v1;
-                *(s32 *)0x1030 += 1;
+            *(s8 *)node |= 1;
+            temp_v0_3 = *(s32 *)node;
+            if ((temp_v0_3 & 0x02000000) && (((u32) (temp_v0_3 << 4) >> 0x1E) != 0)) {
+                *(char **)(D + *(s32 *)(D + 0x1030) * 4 + 0x430) = node;
+                *(s32 *)(D + 0x1030) += 1;
             }
         }
     }
