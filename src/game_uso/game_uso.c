@@ -4372,7 +4372,12 @@ void game_uso_func_000057B8(char *a0) {
  * borderline-density (7 dense cases) jumptable-vs-cascade codegen cap
  * (docs/IDO_CODEGEN.md switch-vs-if-goto-dispatch-polarity). Default build is
  * INCLUDE_ASM. NB: SUFFIX_BYTES_FORCE/INSN_PATCH removed 2026-05-23 as
- * match-faking (feedback_no_instruction_forcing_matches_policy). */
+ * match-faking (feedback_no_instruction_forcing_matches_policy).
+ * 2026-06-20: corrected call ABI — the 4 trailing mode-dispatch callees take a
+ * SINGLE arg `a0` (target jal delay slots are `nop`, no arg setup). Prior body
+ * passed a spurious 2nd arg, emitting `li a1,2` in each delay slot. The dispatch
+ * tail now matches target word-for-word; only the 7-case selector (grouped-vs-
+ * interleaved cascade) remains divergent. */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0);
 void game_uso_func_00006A30(int *a0);
@@ -4389,31 +4394,26 @@ void game_uso_func_000057D8(char *a0) {
         *(s32 *)(a0 + 0x4D8) = 0;
 
         state = *(char **)(sub + 0x908);
-        if (state != 0) {
-            if ((*(s32 *)(sub + 0x848) == 2) &&
-                    (*(s32 *)(state + 0x848) != 2)) {
-                mode = *(s32 *)(state + 0x8C4);
-                /* Target dispatch: 7-case literal selector, "compares grouped /
-                 * bodies after" (addiu at,N; beq v0,at cascade, NOT a .rodata
-                 * jumptable). Reconstructed as the documented goto-chain idiom. */
-                if (mode == 1) goto c1;
-                if (mode == 2) goto c2;
-                if (mode == 3) goto c3;
-                if (mode == 4) goto c4;
-                if (mode == 5) goto c5;
-                if (mode == 6) goto c6;
-                if (mode == 7) goto c7;
-                value = *(f32 *)(a0 + 0x4BC); goto cdone;
-                c7: value = *(f32 *)(a0 + 0x4A4); goto cdone;
-                c6: value = *(f32 *)(a0 + 0x48C); goto cdone;
-                c5: value = *(f32 *)(a0 + 0x474); goto cdone;
-                c4: value = *(f32 *)(a0 + 0x45C); goto cdone;
-                c3: value = *(f32 *)(a0 + 0x444); goto cdone;
-                c2: value = *(f32 *)(a0 + 0x42C); goto cdone;
-                c1: value = *(f32 *)(a0 + 0x414);
-                cdone:
-                *(f32 *)(sub + 0x768) = value;
-            }
+        if ((state != 0) && (*(s32 *)(sub + 0x848) == 2) &&
+                (*(s32 *)(state + 0x848) != 2)) {
+            mode = *(s32 *)(state + 0x8C4);
+            if (mode == 1) goto c1;
+            if (mode == 2) goto c2;
+            if (mode == 3) goto c3;
+            if (mode == 4) goto c4;
+            if (mode == 5) goto c5;
+            if (mode == 6) goto c6;
+            if (mode == 7) goto c7;
+            value = *(f32 *)(a0 + 0x4BC); goto cdone;
+            c7: value = *(f32 *)(a0 + 0x4A4); goto cdone;
+            c6: value = *(f32 *)(a0 + 0x48C); goto cdone;
+            c5: value = *(f32 *)(a0 + 0x474); goto cdone;
+            c4: value = *(f32 *)(a0 + 0x45C); goto cdone;
+            c3: value = *(f32 *)(a0 + 0x444); goto cdone;
+            c2: value = *(f32 *)(a0 + 0x42C); goto cdone;
+            c1: value = *(f32 *)(a0 + 0x414);
+            cdone:
+            *(f32 *)(sub + 0x768) = value;
         }
     }
 
