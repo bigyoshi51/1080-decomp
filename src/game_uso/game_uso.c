@@ -1752,7 +1752,6 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
 #endif
 
-#ifdef NON_MATCHING
 /* game_uso_func_000023D4: rotate a Vec3 by the upper-3x3 of a column-major
  * 4x4 matrix. Input Vec3 at a1+0x5C; matrix at (*(float**)(a1+0x38))+0x70
  * (column stride 0x10 = 4 floats, row stride 4). Double-buffers through a
@@ -1763,28 +1762,22 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
  *   out.y = M[1]*v.x + M[5]*v.y + M[9]*v.z
  *   out.z = M[2]*v.x + M[6]*v.y + M[10]*v.z
  *
- * RELOC-FREE. Using a Vec3 STRUCT copy (not int buf[3]) gets the input read
- * via DIRECT sp (lwc1 $f6,0x14(sp)) instead of v1-indirect, matching the
- * first 22 insns exactly: 16/50 diffs now (was 39/50 with int buf[3]).
- * The residual 16 are the FP-reduction final-add operand-order cap applied
- * to all 3 rows (IDO emits add.s with the still-fused mult subexpr as fs;
- * target has running-sum as fs), plus the reg-alloc cascade it forces -- see
- * docs/IDO_CODEGEN.md#feedback-ido-fpu-reduction-operand-order. No C shape
- * flips it (a named float temp nukes the whole FPU schedule); INSN_PATCH is
- * banned. Reloc-free permuter/tightening seed. */
+ * MATCHED. Two operand-order spellings stacked: (1) outer add written
+ * product-first (`M[8]*v.z + (...)`) flips the final reduction add so the
+ * running-sum lands as `fs` (target order); (2) inner pair written
+ * v.y-term-first (`M[4]*v.y + M[0]*v.x`) restores IDO's RTL evaluation so the
+ * M[0]*v.x product/load is emitted first, matching the target's load schedule.
+ * Both are commutative no-ops at the value level, byte-flips at the encoding. */
 Vec3* game_uso_func_000023D4(Vec3 *a0, char *a1) {
     Vec3 v = *(Vec3*)(a1 + 0x5C);
     float *mm = (float*)((char*)(*(void**)(a1 + 0x38)) + 0x70);
-    float X = mm[0]*v.x + mm[4]*v.y + mm[8]*v.z;
-    float Y = mm[1]*v.x + mm[5]*v.y + mm[9]*v.z;
-    float Z = mm[2]*v.x + mm[6]*v.y + mm[10]*v.z;
+    float X = mm[8]*v.z + (mm[4]*v.y + mm[0]*v.x);
+    float Y = mm[9]*v.z + (mm[5]*v.y + mm[1]*v.x);
+    float Z = mm[10]*v.z + (mm[6]*v.y + mm[2]*v.x);
     v.x = X; v.y = Y; v.z = Z;
     *a0 = v;
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000023D4);
-#endif
 
 extern void game_uso_func_00000000();
 

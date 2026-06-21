@@ -1,0 +1,31 @@
+{
+  "function_name": "game_uso_func_000023D4",
+  "project": "projects/1080-agent-b",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T20:14:48.184506+00:00",
+  "end_time": "2026-06-21T20:14:48.184506+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T20:14:48.184506+00:00",
+      "assistant_text": "Vec3-by-3x3-matrix rotate (column-major, stride 0x10). 16-diff near-miss was the FP-reduction final-add operand-order cap PLUS its load-schedule cascade. Cracked by stacking two commutative-spelling levers: (1) write outer add product-first `M[8]*v.z + (...)` so the running-sum lands as add.s fs (target order); (2) write the inner pair v.y-term-first `M[4]*v.y + M[0]*v.x` so IDO's RTL eval emits the M[0]*v.x product/load first, matching the target load schedule. 16->8 (outer swap)->0 (inner swap).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 50,
+  "initial_m2c_source": null,
+  "final_source": "Vec3* game_uso_func_000023D4(Vec3 *a0, char *a1) {\n    Vec3 v = *(Vec3*)(a1 + 0x5C);\n    float *mm = (float*)((char*)(*(void**)(a1 + 0x38)) + 0x70);\n    float X = mm[8]*v.z + (mm[4]*v.y + mm[0]*v.x);\n    float Y = mm[9]*v.z + (mm[5]*v.y + mm[1]*v.x);\n    float Z = mm[10]*v.z + (mm[6]*v.y + mm[2]*v.x);\n    v.x = X; v.y = Y; v.z = Z;\n    *a0 = v;\n    return a0;\n}\n",
+  "metadata": {
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/game_uso/game_uso/game_uso_func_000023D4.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "verification": "reloc-filtered word-compare vs expected/.o = 0 non-reloc diffs + reloc-set match (reloc-free); matching .o byte-exact; full make exit 0"
+  }
+}
