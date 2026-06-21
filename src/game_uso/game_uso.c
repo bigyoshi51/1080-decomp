@@ -448,53 +448,19 @@ void game_uso_func_000007EC(int *arg0) {
     }
 }
 
-#ifdef NON_MATCHING
-/* 80.88% NM (up from 71.12% with goto-out fix). 8-arg constructor/initializer.
- *   void *f(T *a0,    // dst, alloc 0x27C if NULL
- *           int a1,   // -> a0->0x150 post-init
- *           int a2,   // -> 1st gl_func arg
- *           int a3,   // -> 2nd gl_func arg
- *           int arg4, // -> 3rd gl_func arg
- *           float arg5,  // -> 4th gl_func arg (FLOAT!)
- *           int arg6, // -> a0->0x274 post-init
- *           int arg7) // flag: if !=0, gl_func(a0, 1) midway
- *
- * 2026-05-04 grind: replaced inner `return a0` with `goto out` to land the
- * single-epilogue shape (saved 3 insns). Remaining cap is the if-arg7 block:
- * IDO emits `beql t7, zero, +5` with 24C-store duplicated across both paths
- * (delay-likely + post-fall-through), 1 insn larger than expected `beq a2,
- * zero, +5; sw zero, 0x24C(a0) [in delay slot]`. Built/expected size delta
- * = +4 bytes (42 vs 41 insns). Tried: store ordering, register hint, if-curly
- * vs if-no-curly, goto-skip — all produced beql. Promotion-path is to find
- * a C lever that flips IDO to `beq` (puts arg7 in $a2).
- *
- * 2026-05-04 retry: tried `int flag = arg7; int slot1 = arg1; int slot6 = arg6;`
- * captured-early-locals to raise arg7's register-allocation priority — same
- * 80.88%, no register-class shift. The arg7 → $t7 (vs target's $a2) choice
- * is structural to IDO -O2's allocator weight calculation (refs × live_length)
- * and isn't reachable via local-declaration tricks.
- *
- * 2026-05-06 retry: tried two more knobs:
- *   (a) Reorder `*(...0x24C) = 0;` BEFORE the if-block (so the unconditional
- *       store could be hoisted into the beq's delay slot by IDO scheduler).
- *       Result: regressed — IDO emits the lui+addiu for D_0 reload at a
- *       different position, shifting the rest of the body and breaking the
- *       offset alignment.
- *   (b) Inverted to `if (arg7 == 0) goto skip; gl_setflag(); skip: store;`
- *       (per docs/IDO_CODEGEN.md branch-likely emit rules). Same regression
- *       — goto-invert didn't flip the allocator's choice of $t7 vs $a2 for
- *       arg7, just shifted the branch type without fixing the underlying
- *       register issue.
- *
- * Confirms the prior conclusion: the cap is allocator-weight-driven and
- * unreachable from C-level reordering or goto-conversion. Next promotion
- * path is decomp-permuter (random allocno-priority shifts). INSN_PATCH
- * was REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy) — not an option. */
+/* 8-arg constructor/initializer (byte-exact 2026-06-20).
+ *   a0 = dst (alloc 0x27C if NULL); a1 -> a0->0x150; a2/a3/arg4 -> 047484 args;
+ *   arg5 (float) -> 047484 5th arg; arg6 -> a0->0x274; arg7 -> flag + 04C774 3rd arg.
+ * Crack: 04C774 takes arg7 as its 3rd argument (was passed only 2 args). Passing
+ * arg7 to the call pins it to $a2, turning the prior `beql t7` (test-only reload)
+ * into the target's plain `beq a2` (test value reused as call arg) — the prior
+ * "allocator-weight $t7-vs-$a2 cap" was a missing call-argument. Store reorder
+ * (0x24C before the if; 0x274 right after 0x150) lets IDO fill the delay/latency
+ * slots in target order. */
 extern char game_uso_D_807FE770;
 extern int game_uso_func_055750();
 extern void game_uso_func_047484(int *dst, int a, int b, int c, float f);
-extern void game_uso_func_04C774(int *dst, int flag);
+extern void game_uso_func_04C774(int *dst, int flag, int arg7);
 
 int *game_uso_func_00000858(int *a0, int arg1, int arg2, int arg3, int arg4, float arg5, int arg6, int arg7) {
     if (a0 == 0) {
@@ -504,19 +470,16 @@ int *game_uso_func_00000858(int *a0, int arg1, int arg2, int arg3, int arg4, flo
     game_uso_func_047484(a0, arg2, arg3, arg4, arg5);
     *(int*)((char*)a0 + 0x28) = (int)&game_uso_D_807FE770;
     *(int*)((char*)a0 + 0x1D0) = 0;
-    if (arg7 != 0) game_uso_func_04C774(a0, 1);
     *(int*)((char*)a0 + 0x24C) = 0;
+    if (arg7 != 0) game_uso_func_04C774(a0, 1, arg7);
     *(int*)((char*)a0 + 0x150) = arg1;
+    *(int*)((char*)a0 + 0x274) = arg6;
     *(int*)((char*)a0 + 0x26C) = 0;
     *(int*)((char*)a0 + 0x270) = 0;
     *(int*)((char*)a0 + 0x268) = 0;
-    *(int*)((char*)a0 + 0x274) = arg6;
 out:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00000858);
-#endif
 
 void game_uso_func_000008FC(int *a0) {
     int *v0 = (int*)*(int*)((char*)a0 + 0xF4);

@@ -6075,44 +6075,47 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 /* timproc_uso_b5_func_00008D38: 21-insn frameless bit-scan leaf
  * (boundary-merged 2026-06-02 from the 8D78 tail).
- * DECODE CORRECTED 2026-06-10: the bitmap base is the ARG (a0->0x154,
- * dead-arg overwritten as the cursor base) -- the old body read a
- * GLOBAL D+0x154 (wrong logic). Scans bits 0..23 of the byte+6 table:
- * first CLEAR bit -> return 0; all 24 set -> return 3. The 24 lives in
- * $v0 (the return-variable web, slt v1,v0 register compare) and a0 is
- * homed at 0(sp) at entry.
- * Shape matrix (2026-06-10): -O2 folds the 24 into slti and drops the
- * a0 home (20/21, 20 diffs); -O1 homes everything (+frame, 26-28
- * insns); &a0 address-taken at -O2 produces the home store at insn 0
- * but restructures the body loads. The home+register-24 combination is
- * between our -O1 and -O2 shapes.
- * 2026-06-10 pass 2 NEGATIVE MATRIX: {7.1, 5.3} x {-O1, -O2, -O1
- * -Olimit 1, -O2 -Olimit 1} x {goto-ret form, simple form, K&R def,
- * &a0 address-taken} -- 18 cells, none reproduce home-store + register
- * 24 + -O2 body simultaneously. &a0 gets the home but restructures
- * loads; everything else either folds the 24 (O2) or over-homes (O1).
- * Treat as a shape cap pending a genuinely new lever; do NOT re-run
- * this matrix. */
+ * DECODE RE-CORRECTED 2026-06-20: the prior "DECODE CORRECTED 2026-06-10"
+ * was WRONG -- it claimed the bitmap base is the ARG (a0->0x154). The .s
+ * is unambiguous: `lui a0,%hi(import_800201EC); lw a0,0x154(a0)` reads a
+ * GLOBAL (import_800201EC + 0x154), NOT a0. The incoming arg is homed to
+ * 0(sp) at entry and otherwise unused. Body scans bits 0..23 of the
+ * byte+6 table at *(import_800201EC+0x154): first CLEAR bit -> return 0;
+ * all 24 set -> return 3.
+ * The global-base body below now reproduces the ENTIRE loop body byte-for-
+ * byte (the sw a0,0(sp) home store, sra/addu/lbu/andi/li/sllv/and/bnez bit
+ * test, the return-0 path) -- 10 residual non-reloc diffs, ALL from two
+ * coupled IDO allocator choices:
+ *   (1) REGISTER SWAP: target keeps the pointer in $a0 (natural from
+ *       `lui a0`) and the loop bound 24 in $v0; IDO here picks $v0 for the
+ *       pointer and $a0 for 24 (mirror image). The whole idx2-6 + the
+ *       addu operand order flip from this single pick.
+ *   (2) COMPARE COLLAPSE: target keeps `slt at,v1,v0; bnezl at` (explicit
+ *       register compare, 2 words) vs our `bnel v1,a0` (unit-stride IV
+ *       collapse i<n == i!=n -> single word). Same IDO induction-variable
+ *       collapse documented for func_00008988; no C loop form forces slt
+ *       over bne for a clean counter.
+ * Any 3rd named local (n/ret/r holding 24) DROPS the home store and shifts
+ * everything by one (21 diffs) -- the 2-local goto form is the floor. for/
+ * do-while regress to 12. Genuine 2-axis regalloc+IV-collapse cap; do NOT
+ * re-run the -O matrix. */
 #ifdef NON_MATCHING
+extern char import_800201EC;
 s32 timproc_uso_b5_func_00008D38(char *a0) {
-    s32 ret;
+    char *p;
     s32 v1;
 
-    ret = 24;
-    a0 = *(char **)(a0 + 0x154);
+    p = *(char **)(&import_800201EC + 0x154);
     v1 = 0;
 loop:
-    if (!(*(unsigned char *)(a0 + (v1 >> 3) + 6) & (1 << (v1 & 7)))) {
-        ret = 0;
-        goto out;
+    if (!(*(unsigned char *)(p + (v1 >> 3) + 6) & (1 << (v1 & 7)))) {
+        return 0;
     }
     v1 += 1;
-    if (v1 < ret) {
+    if (v1 < 24) {
         goto loop;
     }
-    ret = 3;
-out:
-    return ret;
+    return 3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D38);
