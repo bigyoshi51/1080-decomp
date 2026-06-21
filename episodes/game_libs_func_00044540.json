@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00044540",
+  "project": "1080-agent-b",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T12:30:00.000000+00:00",
+  "end_time": "2026-06-21T12:30:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T12:30:00.000000+00:00",
+      "assistant_text": "Held-base-pointer coloring crack of a documented '2nd-block regalloc renumber cap' (was 99.07% / 4 real-diff words). Two held-pointer levers: (1) scope the slot-counter's field pointer into its own block (`{ int *fld = (int*)a1[0xC/4]; counter = fld[1]; fld[1] = counter+1; }`) so IDO colors it into $v1 and the counter into $a0 (reproducing the target's reuse of the dead first param $a0 for counter); (2) compute the destination as a HELD element pointer `base = &((int*)((int*)a1[0xC/4])[0])[counter*2]` so IDO emits the target's load-base-then-addu tail (lw t2; addu a1,t2,t3; sw...a1) instead of base-into-a1/addu-into-v1. Appends a 2-word F3DEX2 G_DL command (0x06000000 marker + call return) into a per-handle ring buffer. gl_func_00000000 = canonical USO runtime-resolved placeholder callee (ROM has raw 0x0C000000).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 27,
+  "initial_m2c_source": null,
+  "final_source": "void game_libs_func_00044540(int *a0, int **a1) {\n  int rv;\n  int counter;\n  int *base;\n  int *self = *((int **) (((char *) (&D_00000000)) + 0x214));\n  rv = gl_func_00000000((char *) ((a0[0] * 8) + ((int) ((int **) self[0xC / 4])[0])));\n  {\n  int *fld = (int *) a1[0xC / 4];\n  counter = fld[0x4 / 4];\n  fld[0x4 / 4] = counter + 1;\n  }\n  base = &((int *) ((int *) a1[0xC / 4])[0])[counter * 2];\n  if ((rv && rv) && rv)\n  {\n  }\n  base[0] = 0x06000000;\n  base[1] = rv;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_00044540.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "byte-exact (.text word-diff = 0 vs expected/.o); full make ROM byte-identical to baserom (ROM OK)."
+  }
+}

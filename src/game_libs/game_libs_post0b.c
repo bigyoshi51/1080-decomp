@@ -13731,41 +13731,35 @@ void gl_func_000444B4(int* a0, int a1) {
 void game_libs_func_00044534(int a0, int a1) {
 }
 
-/* game_libs_func_00044540: 25-insn DList/RDP-cmd appender. The orphan
- * game_libs_func_00044540 (lui v0; lw v0,0x214(v0) = *(void**)(&D+0x214))
- * was the stolen prologue of gl_func_00044548 — it loads `self`, the base
- * used at the top (self->0xC). The prior decode wrongly read this as a0->0xC;
- * it is the global at &D+0x214. Merged FORWARD (one 0x6C symbol at 0x44540,
- * successor .s deleted; no jal targets). Reading &D+0x214 inline makes IDO
- * hoist the lui;lw above the prologue (same recipe as game_libs_func_00026B40);
- * v0 is reused for the call return (rv). The 0x06000000 is the F3DEX2 G_DL
- * command opcode marker. 2026-05-30: orphan-merge + decode fix (a0->self) +
- * store-before-base-read reorder + a0[0]*8-first operand order → STRUCTURE
- * EXACT (27/27 opcodes/order). Residual = a 2nd-block regalloc renumber: the
- * target reuses $a0 (dead first param) for `counter` and keeps a1->0xC in
- * $v1/$t1; mine puts counter in $t2 and a1->0xC in $a0 — same opcodes, swapped
- * regs (caller-saved-temp class, not lever-crackable). Stays NM. */
+/* game_libs_func_00044540: 25-insn DList/RDP-cmd appender. Loads `self` from
+ * the global at &D+0x214 (the orphan-merged prologue), appends a 2-word F3DEX2
+ * G_DL command (0x06000000 marker + the call return rv) into a per-handle ring
+ * buffer at a1->0xC, post-incrementing the slot counter. 2026-06-21: MATCHED
+ * byte-exact. The "2nd-block regalloc renumber cap" was a held-pointer coloring
+ * issue: scoping the counter's field pointer (`int *fld = a1[0xC/4]`) into its
+ * own block colors it into $v1 (counter into $a0, matching target's dead-param
+ * reuse), and computing the destination as a HELD element pointer
+ * (`&base[counter*2]`) gives the target's load-base-then-addu tail. */
 extern int gl_func_00000000();
 extern int D_00000000;
-#ifdef NON_MATCHING
 void game_libs_func_00044540(int *a0, int **a1) {
   int rv;
   int counter;
   int *base;
   int *self = *((int **) (((char *) (&D_00000000)) + 0x214));
   rv = gl_func_00000000((char *) ((a0[0] * 8) + ((int) ((int **) self[0xC / 4])[0])));
-  counter = ((int *) a1[0xC / 4])[0x4 / 4];
-  ((int *) a1[0xC / 4])[0x4 / 4] = counter + 1;
-  base = (int *) ((int *) a1[0xC / 4])[0];
+  {
+  int *fld = (int *) a1[0xC / 4];
+  counter = fld[0x4 / 4];
+  fld[0x4 / 4] = counter + 1;
+  }
+  base = &((int *) ((int *) a1[0xC / 4])[0])[counter * 2];
   if ((rv && rv) && rv)
   {
   }
-  base[(counter * 2) + 0] = 0x06000000;
-  base[(counter * 2) + 1] = rv;
+  base[0] = 0x06000000;
+  base[1] = rv;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044540);
-#endif
 
 // gl_func_000445AC — STRUCTURAL PASS (0x368 / 219 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame

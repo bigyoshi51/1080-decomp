@@ -2129,15 +2129,13 @@ void gl_func_00066364(int a0) {
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_00022498;
 int gl_func_00066384(int a0) {
-    return gl_func_00000000(&gl_ref_00022498, a0);
+    return gl_func_00000000((char *)&D_00000000 + 0x22498, a0);
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_000224B0;
 int gl_func_000663AC() {
-    return gl_func_00000000(&gl_ref_000224B0);
+    return gl_func_00000000((char *)&D_00000000 + 0x224B0);
 }
 
 extern int gl_func_00000000();
@@ -3036,24 +3034,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000671E4);
 
 #ifdef NON_MATCHING
 /* gl_func_00067220: 17-insn (0x44) busy-wait loop on a0->[0x13E8].
- *   if (a0->[0x13E8] != 0) return;
- *   do { gl_func_00000000(); } while (a0->[0x13E8] == 0);
+ *   while (a0->[0x13E8] == 0) gl_func_00000000();
  *
- * 76.5 % byte-exact (13/17). Cap is the prologue-schedule order:
- * target emits `sw s0; move s0, a0; sw ra; lw t6, 0x13E8(s0)`,
- * built emits `sw ra; sw s0; lw t6, 0x13E8(a0); move s0, a0` —
- * IDO scheduler picks lw-via-a0 first then move; target picks
- * move-then-lw-via-s0. Tried plain `int *a0`, `register int *s0`,
- * and `int v = ...` named-local — all stay at 76.5 % or regress
- * (58.8 %). Cap class: IDO scheduler choice not C-controllable. */
-void gl_func_00067220(int *a0) {
-    register int *s0 = a0;
-    if (s0[0x13E8 / 4] != 0) {
-        return;
-    }
-    do {
+ * 4-word residual (off 0x4..0x10), 88% byte-exact. Body+control-flow now
+ * byte-exact via the `while` form (matches bnel + the loop's lw-via-s0).
+ * Residual is purely the PROLOGUE-SCHEDULE tie: target emits
+ * `sw s0; move s0,a0; sw ra; lw t6,0x13E8(s0)`, build emits
+ * `sw ra; sw s0; lw t6,0x13E8(a0); move s0,a0`. The first field load is
+ * scheduled via a0 (pre-move) by IDO's as1. Tried while/do-while/for-comma-
+ * init, char* held-base, register int*s0, int v named-local — all hold the
+ * 4-word prologue tie. Cap class: IDO as1 prologue-schedule choice, not
+ * C-controllable here (2026-06-21 agent-i). */
+void gl_func_00067220(char *a0) {
+    char *s0 = a0;
+    while (*(int *)(s0 + 0x13E8) == 0) {
         gl_func_00000000();
-    } while (s0[0x13E8 / 4] == 0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067220);
@@ -3189,8 +3185,7 @@ void gl_func_000673FC(int *a0, int a1) {
  * jal-0 placeholders = the correct ROM bytes). No episode — placeholder relocs.
  * First call's arg uses absolute address 0x225D8 (lui $a0,0x2; addiu $a0,0x25D8). */
 void gl_func_00067470(int* a0, int a1) {
-    extern int gl_data_67470_addr;
-    gl_func_00000000(&gl_data_67470_addr, a0[13], a1);
+    gl_func_00000000((char *)&D_00000000 + 0x225D8, a0[13], a1);
     if (a0[30] != 0) {
         gl_func_00000000(&gl_data_00000000, a0[13] - 1, 0);
     }
@@ -3391,14 +3386,13 @@ void gl_func_000679BC(int *a0, int a1, int a2, int *a3) {
 }
 
 extern int gl_func_00000000();
-extern char gl_ref_00022604;
 
 void gl_func_00067A10(char *a0, int a1, int a2) {
     *(int*)(a0 + 0x5C) = a1;
     *(int*)(a0 + 0x50) = 0;
     *(int*)(a0 + 0x54) = a2;
     *(int*)(a0 + 0x4C) = 1;
-    gl_func_00000000(&gl_ref_00022604, *(int*)(a0 + 0x34));
+    gl_func_00000000((char *)&D_00000000 + 0x22604, *(int*)(a0 + 0x34));
 }
 
 /* gl_func_00067A54: too-big-N-function-bundle (declared size 0x74, 29 words).
@@ -3960,10 +3954,8 @@ void gl_func_000682BC(int *dst) {
  * The bundle had 3 trailing 8-byte stubs (sw a0, 0(sp); jr ra) that
  * split-fragments separated as game_libs_func_0006833{8,40,48} —
  * those remain INCLUDE_ASM in this file (sandwich-ordered). */
-extern char gl_ref_0002B3B8;
-
 void gl_func_000682F8(int *self) {
-    gl_func_00000000(self + 5, &gl_ref_0002B3B8, self);
+    gl_func_00000000(self + 5, (char *)&D_00000000 + 0x2B3B8, self);
     self[4] = 0;
     self[0] = 0;
     self[2] = 0;
@@ -4281,14 +4273,12 @@ void gl_func_000687B8(int *a0)
  * post-alloc init call uses fixed args (a0, &gl_ref_0002B420, 0) instead of
  * (a0, orig_a1); only sets a0[0xA] (no zeroing of a0[0xC]/a0[0xD]); the
  * orig a1 is forwarded to the second optional init call as its a2 arg. */
-extern char gl_ref_0002B420;
-
 int *gl_func_00068884(int *a0, int a1) {
     if (a0 == 0) {
         a0 = (int *)gl_func_00000000(0x38);
         if (a0 == 0) goto end;
     }
-    gl_func_00000000(a0, &gl_ref_0002B420, 0);
+    gl_func_00000000(a0, (char *)&D_00000000 + 0x2B420, 0);
     a0[0xA] = (int)&D_00000000;
     if (a1 != 0) {
         gl_func_00000000(a0, 1, a1);

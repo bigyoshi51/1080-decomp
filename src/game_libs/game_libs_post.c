@@ -4100,26 +4100,27 @@ void game_libs_func_00020FFC(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
 #endif
 
-/* game_libs_func_00021130: zero a 0xB00-byte short array, base reloaded inline
- * per store (inline-base-reload lever, see gl_func_00060CB8). Logic + STRUCTURE
- * exact: IDO unrolls the simple `for(a1!=0xB00;a1+=2) *(short*)(reload+a1)=0`
- * loop x4 to the target's 27-insn shape (4 stores at +0/+2/+4/+6, each reloading
- * *(int*)(a0+0x2140)). Only register allocation diverges (17/27 renumber: hv in
- * $t6 vs $v1, setup temps shifted, one commutative-add operand flip). Same
- * register-alloc near-miss class as game_libs_func_00020E78 — straight-line
- * single-base funcs (26AF8) match clean, but LOOP single-base ones hit this
- * wall. Permuter candidate. */
+/* game_libs_func_00021130: zero a 0xB00-byte short array. Logic + STRUCTURE
+ * exact; IDO unrolls the `for(a1!=0xB00;a1+=2) *(short*)(reload+a1)=0` loop x4.
+ * 2026-06-21 (agent-e): cut 17->6 word renumber via the s32-held-base lever
+ * (`int base = (int)&D_00000000;` by-value, NOT char*) + v0-loaded-FIRST
+ * (inline `(int)&D_00000000` in the v0 load so v0 colors to $v0/$2). With
+ * those, EVERY insn is byte-identical except the single &D base register:
+ * build colors base $v1/$3, target $a2/$6 (a clean +3 renumber on ONE live
+ * range — all other regs match). char*-typed base reverts to 17; early a1=0
+ * or hv-temp reorder also reverts. Irreducible single-reg coloring tie on the
+ * long-lived base; not crackable via decl-order / type / init-site levers.
+ * Permuter / uoptlist-renumber candidate. */
 #ifdef NON_MATCHING
 void game_libs_func_00021130(void) {
-  char *base = (char *) (&D_00000000);
-  int v0 = *((int *) (((char *) (&D_00000000)) + 0x2084));
-  short hv;
-  char *a0 = ((char *) (&D_00000000)) + (v0 * 4);
+  int v0 = *((int *) ((int) (&D_00000000) + 0x2084));
+  int base = (int) (&D_00000000);
   int a1;
-  *((short *) ((base + (v0 * 2)) + 0x214C)) = *((short *) (((char *) (&D_00000000)) + 0x203E));
- for (a1 = 0; a1 != 0xB00; a1 += 2) { *((short *) ((*((int *) (a0 + 0x2140))) + a1)) = 0;
+  int a0 = base + (v0 * 4);
+  *((short *) ((base + (v0 * 2)) + 0x214C)) = *((short *) (base + 0x203E));
+  for (a1 = 0; a1 != 0xB00; a1 += 2) {
+    *((short *) ((*((int *) (a0 + 0x2140))) + a1)) = 0;
   }
-
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);
