@@ -14415,66 +14415,43 @@ void game_uso_func_00011168(int *a0) {
  * relocs (was 1-insn-short + wrong-symbol placeholders). SOLE RESIDUAL = a
  * 2-register renumber in the tail RMW: target colors the loaded/masked values
  * into $t2/$t3, IDO colors them $v1/$t2 (one free-list slot lower). Confirmed
- * via -Wo,-zdbug:6: the value LRs are caller-saved "-ve save" temps colored by
- * the global-coloring free-list phase; no C form (decl reorder, statement
- * reorder, inline-vs-name, named mask, separate-pointer) shifts the phase
- * (10+ variants tried). Same cap class as the documented v1-vs-mid-temp
- * register-renumber (space-exhausted without coloring-search interference
- * injection). Honest NON_MATCHING. */
+ * MATCH 2026-06-21 (byte-exact, ROM-identical). The "v1/t2 free-list coloring
+ * cap" was NOT coloring-immune: the lever is the RMW-THROUGH-ADVANCED-POINTER
+ * form. Instead of `raw = p[0xA58/4]; val = raw & ~M; p = p+0xA58; *p = val;`
+ * (which colors the loaded value v1, masked t2), advance the pointer FIRST then
+ * read+mask+write through it in a single statement:
+ *   `p = (int*)((char*)p + 0xA58); *p = *p & ~0x800;`
+ * This makes the load and the masked store share one address LR, and IDO colors
+ * the value/result into t2/t3 (target). Found via decomp-permuter (it produced
+ * the advance-first shape with a corrupted double-offset; fixing the offset to
+ * the `*p = *p & ~M` RMW landed it). Callees/data resolve to absolute 0 (USO
+ * runtime relocs) so the unwrapped C links and the ROM stays byte-identical. */
 extern int func_00000000();
 extern char game_uso_D_807FF508;
-#ifdef NON_MATCHING
 void game_uso_func_00011258(int *a0) {
     int *p;
-    int raw;
-    int val;
     game_uso_func_077C44(a0, 0x70009, 0, 2, 1, 1);
     game_uso_func_0000D5F8((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF508 + 0xF18), 2);
     game_uso_func_0000D5DC((char*)a0);
     p = *(int**)((char*)a0 + 0xB4);
-    raw = p[0xA58 / 4];
-    val = raw & ~0x800;
     p = (int*)((char*)p + 0xA58);
-    *p = val;
+    *p = *p & ~0x800;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011258);
-#endif
 
 /* game_uso_func_000112E0: 34-insn sibling of game_uso_func_00011258.
  * Byte-identical to 11258 except the first-call magic constant
- * 0x70009 -> 0x70008.
- *
- * 2026-06-20: reconstructed with the REAL reloc callees (game_uso_func_077C44,
- * game_uso_func_0000D5F8 via Pair2-by-value, game_uso_func_0000D5DC) and the
- * real D base (game_uso_D_807FF508), and the tail bit-clear emits the target's
- * `addiu base,base,0xA58; sw 0(base)` via the pointer-mutate lever. Built is
- * now EXACT SIZE (34 insns) with all but 2 words byte-identical including
- * relocs. SOLE RESIDUAL = a 2-register renumber in the tail RMW: target colors
- * the loaded value/masked value into $t2/$t3, IDO colors them $v1/$t2 (one
- * free-list slot lower). Confirmed via -Wo,-zdbug:6 global-coloring dump: the
- * value LRs are caller-saved "-ve save" temps colored by the free-list phase;
- * no decl/statement/inline-vs-name C form shifts the phase (10+ variants).
- * Same cap class as the documented v1-vs-mid-temp renumber (space-exhausted).
- * Honest NON_MATCHING. */
+ * 0x70009 -> 0x70008. MATCH 2026-06-21 via the same RMW-through-advanced-pointer
+ * lever as the twin (see 11258 above). Byte-exact, ROM-identical. */
 extern char game_uso_D_807FF508;
-#ifdef NON_MATCHING
 void game_uso_func_000112E0(int *a0) {
     int *p;
-    int raw;
-    int val;
     game_uso_func_077C44(a0, 0x70008, 0, 2, 1, 1);
     game_uso_func_0000D5F8((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF508 + 0xF18), 2);
     game_uso_func_0000D5DC((char*)a0);
     p = *(int**)((char*)a0 + 0xB4);
-    raw = p[0xA58 / 4];
-    val = raw & ~0x800;
     p = (int*)((char*)p + 0xA58);
-    *p = val;
+    *p = *p & ~0x800;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000112E0);
-#endif
 
 /* MATCHED 2026-05-28: struct-by-value (F08/F0C pair). Family sibling #5 of
  * game_uso_func_00010E2C. See

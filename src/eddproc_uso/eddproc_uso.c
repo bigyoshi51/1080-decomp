@@ -88,7 +88,6 @@ void eddproc_uso_func_000001E8(char *a0) {
     gl_func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
 /* Multi-stage allocator/initializer (50 insns, 0xC8). Pattern:
  *
  *   T* f(T *a0, T *a1) {
@@ -154,17 +153,17 @@ void eddproc_uso_func_000001E8(char *a0) {
  *   (2) REUSE the `a0` param as the obj0 accumulator (not a fresh `a2` local) so
  *       its cross-jal spill homes at sp+0x20 (a0's incoming arg slot), matching
  *       target's spill layout obj0->0x20 / v1->0x1c / obj2->0x18.
- * REMAINING 4% = a 3-insn scheduler reorder in the obj2 vtable block only:
- *   mine    `lui t6; lw v1; lw a2; addiu t6; sw t6`
- *   target  `lui t6; addiu t6; lw v1; lw a2; sw t6`
- * IDO's scheduler hoists the two cross-jal reloads (lw v1, lw a2) into the
- * lui->addiu gap; target keeps the materialize adjacent. No C-level lever found
- * for this single 3-window reorder (the reloads are mandatory — v1/a2 are
- * caller-saved and live across the final jal). Final-mile scheduler cap.
- * 2026-06-10: the if(1){} BB-split (role #6, address materialization)
- * tested at 3 placements + a block-scoped vt local -- all neutral (2
- * word diffs). The hoist happens WITHIN the final block's scheduling
- * window, which a preceding BB edge cannot reach. Cap confirmed. */
+ * MATCH 2026-06-21 (96.0 -> 100.0, byte-exact, ROM byte-identical). The
+ * "final-mile scheduler cap" (the obj2 vtable block hoisted the two cross-jal
+ * reloads `lw v1; lw a2` into the lui->addiu gap; target keeps `addiu` adjacent
+ * to `lui`) WAS crackable via the STATEMENT-LINE-JOIN as1-tie lever: putting the
+ * `have2:` label + the gl_func call + the vtable store all on ONE source line
+ * (`have2: gl_func(...); *(...) = vt0;`) flips IDO's scheduler to keep the
+ * materialize adjacent (target order `lui t6; addiu t6; lw v1; lw a2; sw t6`).
+ * Found via focused permuter (perm_sameline). The three vtable externs resolve
+ * to absolute 0 (undefined_syms_auto.txt: D_edd_vt0/1/2 = 0) so they emit
+ * zero-immediate lui/addiu with NO ELF reloc, matching the target's raw words;
+ * distinct symbols still bust the address CSE at the C level. */
 extern char D_edd_vt0;
 extern char D_edd_vt1;
 extern char D_edd_vt2;
@@ -189,9 +188,7 @@ have1:
     if (v1 != 0) goto have2;
     obj2 = (int*)gl_func_00000000(0x2C);
     if (obj2 == 0) goto Sv1;
-have2:
-    gl_func_00000000(obj2, (char*)&D_00000000 + 0x22C);
-    *(int*)((char*)obj2 + 0x28) = (int)&D_edd_vt0;
+have2: gl_func_00000000(obj2, (char*)&D_00000000 + 0x22C); *(int*)((char*)obj2 + 0x28) = (int)&D_edd_vt0;
 Sv1:
     *(int*)((char*)v1 + 0x28) = (int)&D_edd_vt1;
 Sa2:
@@ -199,9 +196,6 @@ Sa2:
 Ret:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/eddproc_uso/eddproc_uso", eddproc_uso_func_0000025C);
-#endif
 
 void eddproc_uso_func_00000324(int a0) {
 }
