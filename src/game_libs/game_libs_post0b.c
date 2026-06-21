@@ -18116,7 +18116,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
 //   targets live in the runtime reloc table, not the .text); promoting would
 //   link wrong jal targets. The .text instruction bytes match the extraction
 //   exactly. Branch-likely-to-epilogue emitted via `if(a1==0){body} return r`.
-#ifdef NON_MATCHING
 extern int D_00000000;
 // r = cb1(self,a1,a2,aux,a4) [a4 on stack]; early-return r if a1 != 0.
 // Otherwise dispatch a cb pipeline gated on self->0x38 bit 15: the flag-set
@@ -18153,9 +18152,6 @@ int gl_func_0004AE40(char *self, int a1, int a2, int aux, int a4) {
     }
     return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004AE40);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0004AFB4: 35-insn 5-arg wrapper + conditional pair-dispatch (0x8C, frame 0x28).
