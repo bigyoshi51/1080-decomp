@@ -1,0 +1,33 @@
+{
+  "function_name": "titproc_uso_func_00001D7C",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T08:50:00+00:00",
+  "end_time": "2026-06-21T09:05:00+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T09:05:00+00:00",
+      "assistant_text": "2-cascade constructor (alloc 0x40 / dead-arm alloc 0x2C, init via func_04C678, vtable + 4 floats=1.0f). The reuse-param-as-object lever (self IS the parameter, arg-saved to the caller slot at sw a2,0x20(sp)) had already collapsed 18 reg/spill diffs to a residual 2-insn as1 scheduler tie: the self-reload `lw a2,0x20(sp)` was filling the gap between t6's lui/addiu for &import_00073B18 instead of scheduling after the addiu (dataflow-independent pair). decomp-permuter cracked it via a statement-join: closing the post-alloc block brace onto the same physical source line as the func_04C678 call, the *(sub+0x28) store, the common: label, and the next store. This re-anchors the as1 schedule so the addiu precedes the self-reload, matching the target byte-for-byte. The one-line layout is load-bearing (reflowing reverts the swap). Verified IN-TREE: matching build 0/44 word diffs vs expected, full ROM byte-identical (make: ROM OK), verify-blocks OK. (1D7C was a permuter/objdiff FALSE-100 in a prior batch via an adjacent-insn swap; this land was confirmed solely by the ROM cmp gate.)",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 44,
+  "initial_m2c_source": null,
+  "final_source": "extern int titproc_uso_func_055750();\nextern int titproc_uso_func_04C678();\nextern char titproc_uso_D_0002CC;\nvoid *titproc_uso_func_00001D7C(void *self) {\n  void *sub;\n  char *base = &titproc_uso_D_00048C;\n  if (self == 0)\n  {\n    self = (void *) titproc_uso_func_055750(0x40);\n    if (self == 0)\n    {\n      goto end;\n    }\n  }\n  sub = self;\n  if (self == 0)\n  {\n    sub = (void *) titproc_uso_func_055750(0x2C);\n    if (sub == 0)\n    {\n      goto common;\n    }\n } titproc_uso_func_04C678(sub, base + 0x500); *((int *) (((char *) sub) + 0x28)) = (int) (&import_00073B18); common: *((int *) (((char *) self) + 0x28)) = (int) (&titproc_uso_D_0002CC);\n  *((int *) (((char *) self) + 0x0C)) = (int) (base + 0x508);\n  *((int *) (((char *) self) + 0x3C)) = 0;\n  *((float *) (((char *) self) + 0x2C)) = 1.0f;\n  *((float *) (((char *) self) + 0x30)) = 1.0f;\n  *((float *) (((char *) self) + 0x34)) = 1.0f;\n  *((float *) (((char *) self) + 0x38)) = 1.0f;\n  end:\n  return self;\n\n}\n",
+  "metadata": {
+    "source_path": "src/titproc_uso/titproc_uso.c",
+    "asm_path": "asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_00001D7C.s",
+    "segment": "titproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "in-tree exact: 44/44 words, 0 non-reloc diffs (matching build vs expected); full ROM byte-identical to baserom (make: ROM OK); verify-blocks OK. Cracked by decomp-permuter statement-join (as1 scheduler tie). Confirmed via ROM cmp gate (was a prior false-100)."
+  }
+}

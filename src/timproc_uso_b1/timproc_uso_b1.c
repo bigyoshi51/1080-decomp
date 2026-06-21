@@ -409,38 +409,19 @@ void timproc_uso_b1_func_00000DA0(char *a0) {
     gl_func_00000000(a0 + 0x6E4);
 }
 
-#ifdef NON_MATCHING
-/* 98.57% — 5 register-position word-diffs only (regalloc-renumber).
- * NOT the splice-donor recipe class: tested 2026-05-26 with -O0 donor
- * (emitted 0x78 / 30 insn — 9 over target) and -O1 donor (emitted 0x5C /
- * 23 insn — 2 over target with early stack-spill); target is 0x54 / 21
- * insn at -O2-style register coloring but with FRESH temps (t7, t9, t8)
- * per reload of saved-a0 rather than reuse of a3. IDO 7.1 at any -O*
- * level reuses a3 after the first jal saves it; the "reload into fresh
- * temp" allocator decision is not C-reachable for our toolchain binary.
- * See feedback_splice_import_donor_relocs_recipe for the working sibling
- * (5A4/65C) cases, and project_1080_other_diff_nearmiss_vein for the
- * regalloc-renumber cap class. CAP — keep INCLUDE_ASM. */
-/* 2026-06-10 re-test with the new session levers, ALL negative (still
- * the same 5 reload-reg diffs, ours a3-reuse vs target t7/t9/t8 fresh):
- * volatile-qualified PARAM (over-homes: 24 insns), post-call copy var
- * p=a0 (coalesced away, x2 placements), return-inside-if (epilogue
- * dup), arg4 as a0+0 / &a0[0] / int-typed a0 (all folded). The target's
- * temp numbering (t7 reload1, t8 li-1, t9 reload2) = pure expression-
- * temp pool, i.e. the post-call a0 web is MEMORY-RESIDENT in the
- * original; no tested C shape stops IDO from coalescing the web with
- * the a3 arg copy. Residual lever: uoptlist regalloc dump session. */
-int timproc_uso_b1_func_00000DEC(char *a0) {
-    if (*(int*)(a0 + 0x4FC) == 0) {
-        gl_func_00000000(*(int*)(a0 + 0x6A8), 0, 1, a0);
-        gl_func_00000000(*(int*)(a0 + 0x6A8));
-        *(int*)(a0 + 0x4FC) = 1;
+/* TWIN-LEVER 2026-06-21: cracked via b3_func_00001184 twin shape. The old
+ * "regalloc-renumber cap, a3-reuse vs t7/t9/t8 fresh" note was WRONG: the
+ * lever was `int *a0` array-index form (a0[off/4]) instead of `char *a0`
+ * pointer arith — array indexing keeps the post-call self web memory-
+ * resident, forcing fresh reload temps that match the target. Byte-exact. */
+int timproc_uso_b1_func_00000DEC(int *a0) {
+    if (a0[0x4FC / 4] == 0) {
+        gl_func_00000000((int *)a0[0x6A8 / 4], 0, 1);
+        gl_func_00000000((int *)a0[0x6A8 / 4]);
+        a0[0x4FC / 4] = 1;
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000DEC);
-#endif
 
 /* 32-insn dispatcher: lookup-call gates state set on D[0x40]/D[0x44]
  * then ALWAYS runs the t9 check (a0->[0x4F8] -> store-or-call).
@@ -982,7 +963,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * gates the whole configure block. Linked into a1x->0x14 list (sets
  * ->0x4=1 on first). Caps <80: 8-call spill cascade + beql/bgezl branch-
  * likely + &D %hi/%lo + 1.0f/255 const scheduling. INCLUDE_ASM is the
- * correct build path (no episode; tautology-trap rule). */
+ * correct build path (no episode; tautology-trap rule).
+ *
+ * 2026-06-21 permuter (36k iters): closed 5 of 9 diffs via the r5 add-
+ * operand swap (D[0x64]*0x30 FIRST, then *s0[0x4C]) -> 99.23%->99.96%.
+ * FLOOR: 2 swapped spill slots remain (v0-web r6 wants 0x20 not 0x30;
+ * a1x list-ptr wants 0x34 not 0x24). Genuine spilltemps-bitpos tie;
+ * decl-permute regressed the frame, permuter could not flip the pair. */
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
   int *s0 = a0;
@@ -1003,7 +990,7 @@ void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
   *((float *) (((char *) a0) + 0xCC)) = 1.0f;
   *((float *) (((char *) a0) + 0xC8)) = 1.0f;
   *((float *) (((char *) a0) + 0xC4)) = 1.0f;
-  *((float *) (((char *) a0) - -0xC0)) = 1.0f;
+  *((float *) (((char *) a0) - (-0xC0))) = 1.0f;
   if (((*((int *) (((char *) a1) + 0x4F0))) << 15) >= 0)
   {
     return;
@@ -1012,7 +999,7 @@ void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
   gl_func_00000000(s0, 0x123, 0xE1, 1);
   gl_func_00000000(s0, 0x47, 0x13, ((int) s0) + 0x30);
   gl_func_00000000(s0, 0x44, 0x22, s0[0x44 / 4] + 0x28);
-  r5 = gl_func_00000000((*((int *) s0[0x4C / 4])) + ((*((int *) (((char *) (&D_00000000)) + 0x64))) * 0x30), 0);
+  r5 = gl_func_00000000(((*((int *) (((char *) (&D_00000000)) + 0x64))) * 0x30) + (*((int *) s0[0x4C / 4])), 0);
   r6 = gl_func_00000000(0, s0[0x60 / 4]);
   s0[0xBC / 4] = r6;
   gl_func_00000000(r6, *((unsigned char *) (r5 + 5)), *((unsigned char *) (r5 + 6)), *((unsigned char *) (r5 + 7)));

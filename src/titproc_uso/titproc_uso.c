@@ -1336,8 +1336,18 @@ void titproc_uso_func_00001C68(int *a0) {
  * scheduler tie — the `self` reload `lw a2,0x20(sp)` fills the gap between
  * t6's `lui`/`addiu` (&import_00073B18) instead of scheduling after the
  * addiu. Dataflow-independent pair; no reliable C lever (per the for-loop
- * comma-init schedule rule, which is loop-specific). Still NM. */
-#ifdef NON_MATCHING
+ * comma-init schedule rule, which is loop-specific).
+ *
+ * 2026-06-21: CRACKED (byte-exact, ROM-identical). The residual 2-insn as1
+ * scheduler tie (`lw a2,0x20(sp)` reload vs t6's `addiu` for &import_00073B18)
+ * flips when the post-alloc-block close-brace is JOINED onto the same source
+ * statement-line as the `func_04C678` call + the `*(sub+0x28)` store +
+ * `common:` label + the next store (one physical line). decomp-permuter found
+ * this statement-join; it re-anchors the as1 schedule so the addiu precedes the
+ * self-reload, matching the target. Verified IN-TREE: matching build 0/44 word
+ * diffs vs expected, full ROM byte-identical (make: ROM OK), verify-blocks OK.
+ * NOTE: the one-line layout is load-bearing — reflowing it onto separate lines
+ * reverts to the 2-diff swap (as1 statement-boundary scheduling sensitivity). */
 extern int titproc_uso_func_055750();
 extern int titproc_uso_func_04C678();
 extern char titproc_uso_D_0002CC;
@@ -1360,11 +1370,7 @@ void *titproc_uso_func_00001D7C(void *self) {
     {
       goto common;
     }
-  }
-  titproc_uso_func_04C678(sub, base + 0x500);
-  *((int *) (((char *) sub) + 0x28)) = (int) &import_00073B18;
- common:
-  *((int *) (((char *) self) + 0x28)) = (int) &titproc_uso_D_0002CC;
+ } titproc_uso_func_04C678(sub, base + 0x500); *((int *) (((char *) sub) + 0x28)) = (int) (&import_00073B18); common: *((int *) (((char *) self) + 0x28)) = (int) (&titproc_uso_D_0002CC);
   *((int *) (((char *) self) + 0x0C)) = (int) (base + 0x508);
   *((int *) (((char *) self) + 0x3C)) = 0;
   *((float *) (((char *) self) + 0x2C)) = 1.0f;
@@ -1375,9 +1381,6 @@ void *titproc_uso_func_00001D7C(void *self) {
   return self;
 
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001D7C);
-#endif
 
 extern int gl_func_00000000();
 extern char D_00000000;
