@@ -1,0 +1,33 @@
+{
+    "function_name": "game_libs_func_0006C7E4",
+    "project": "1080-agent-e",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Masked-twin sweep (round 2): game_libs_func_0006C7E4 is the byte-identical (0 relocs) twin of matched kernel func_80002AE0 / func_80002A3C (kernel_056.c, __ull_rem duplicate, return a % b). 15-insn ddivu body. Added to the -O2 -mips3 donor unit game_libs_mips3_6C740.c and spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. Reloc-masked word compare 0 diffs.",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 15,
+    "initial_m2c_source": null,
+    "final_source": "u64 game_libs_func_0006C7E4(u64 a, u64 b) { return a % b; }\n",
+    "metadata": {
+        "source_path": "src/game_libs/game_libs_mips3_6C740.c",
+        "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0006C7E4.s",
+        "segment": "game_libs",
+        "compiler": "ido7.1",
+        "compiler_flags": "-O2 -mips3 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "standalone donor .text byte-identical to target (15 insns, 0 relocs); spliced build/.o byte-identical to expected/.o; full make ROM byte-identical; verify-blocks OK."
+    }
+}

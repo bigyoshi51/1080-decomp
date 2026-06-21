@@ -1,0 +1,33 @@
+{
+    "function_name": "gl_func_0006C9F4",
+    "project": "1080-agent-e",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Cross-module masked-twin sweep (scripts/find-masked-twins.py) grouped gl_func_0006C9F4 with the matched kernel func_80004650 in a strict 56-insn signature cluster; reloc-masked word comparison (scripts/twin-compare.py) showed 0 non-reloc diffs. Both are libultra __osPiRawStartDma: wait on PI status & 3, set up the direct-mapped 0xA4600000 register block, dispatch by direction (0=read/1=write/else=-1). Ported the kernel donor C verbatim to game_libs_ido53_6C9F4.c at IDO 5.3 -O1 (the libultra-carve recipe; default unit is -O2). The collapsed cart-base helper + DMA cfg-base global map to the address-0 USO placeholders gl_func_00000000 / D_00000000 (jal 0 / lui 0,lw 0 in the ROM). Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY (0xc8->0xe0, 3 donor relocs imported).",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 56,
+    "initial_m2c_source": null,
+    "final_source": "extern int gl_func_00000000();\nint gl_func_0006C9F4(int direction, unsigned int devAddr, int dramAddr, unsigned int size) {\n    register unsigned int status;\n    while ((status = *(volatile unsigned int*)0xA4600010) & 3) ;\n    *(volatile unsigned int*)0xA4600000 = gl_func_00000000(dramAddr);\n    *(volatile unsigned int*)0xA4600004 = (D_00000000 | devAddr) & 0x1FFFFFFF;\n    switch (direction) {\n        case 0: *(volatile unsigned int*)0xA460000C = size - 1; break;\n        case 1: *(volatile unsigned int*)0xA4600008 = size - 1; break;\n        default: return -1;\n    }\n    return 0;\n}\n",
+    "metadata": {
+        "source_path": "src/game_libs/game_libs_ido53_6C9F4.c",
+        "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0006C9F4.s",
+        "segment": "game_libs",
+        "compiler": "ido5.3",
+        "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "standalone donor .text reloc-masked byte-identical to target (56 insns, 0 non-reloc diffs); spliced build/.o function reloc-masked byte-identical to expected/.o; build relocs (gl_func_00000000, D_00000000) both resolve to 0x0; full `make` ROM byte-identical to baserom; make verify-blocks OK."
+    }
+}

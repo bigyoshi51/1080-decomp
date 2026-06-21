@@ -5251,40 +5251,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00069CB8);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069CD0);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00069CD0_pad.s")
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00069E04)();
-s32 gl_func_00069E04(char *arg0, s32 arg1, s32 arg2) {
-    char *temp_s0;
-
-    temp_s0 = gl_func_00062F64();
-    if (FW(arg0, 0x8) >= FW(arg0, 0x10)) {
-loop_1:
-        if (arg2 == 1) {
-            FW((*(int*)0), 0x10) = 8;
-            gl_func_00062F64((int)arg0 + 4);
-            if (FW(arg0, 0x8) < FW(arg0, 0x10)) {
-                goto block_5;
-            }
-            goto loop_1;
+/* gl_func_00069E04 = libultra osSendMesg. LANDED 2026-06-21 as a byte-identical
+ * TWIN-PORT of matched kernel func_800059C0 (kernel_009): block while the queue
+ * is full (or fail if non-blocking), append msg to the ring buffer, then if a
+ * thread waits on mtqueue, wake it. Real C lives in the donor unit
+ * game_libs_ido53_69E04.c (IDO 5.3 -O1), spliced via REPLACE_FUNC_BODY. OS-API
+ * callees -> gl_func_00000000; running-thread ptr -> D_00000000. */
+typedef struct {
+    void *mtqueue; void *fullqueue; int validCount; int first; int msgCount; int **msg;
+} OSMesgQueue_69E04;
+typedef struct { int field0; int pri; int queue; int pad0C; unsigned short state; } Thread_69E04;
+int gl_func_00069E04(OSMesgQueue_69E04 *mq, int msg, int flags) {
+    register int saveMask = gl_func_00000000();
+    register int last;
+    while (mq->validCount >= mq->msgCount) {
+        if (flags == 1) {
+            ((Thread_69E04 *)D_00000000)->state = 8;
+            gl_func_00000000((int *)&mq->fullqueue);
+        } else {
+            gl_func_00000000(saveMask);
+            return -1;
         }
-        gl_func_00062F64(temp_s0);
-        return -1;
     }
-block_5:
-    *(int*)(FW(arg0, 0x14) + (((s32) (FW(arg0, 0xC) + FW(arg0, 0x8)) % (s32) FW(arg0, 0x10)) * 4)) = arg1;
-    FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) + 1);
-    if (*(int*)(FW(arg0, 0x0)) != 0) {
-        gl_func_00062F64(gl_func_00062F64(arg0));
+    last = (mq->first + mq->validCount) % mq->msgCount;
+    mq->msg[last] = (int *)msg;
+    mq->validCount++;
+    if (*(void **)mq->mtqueue != 0) {
+        register void *t = (void *)gl_func_00000000(mq);
+        gl_func_00000000(t);
     }
-    gl_func_00062F64(temp_s0);
+    gl_func_00000000(saveMask);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069E04);
-#endif
 
 /* game_libs_func_00069F50 = 1 zero pad word + a VI_CURRENT_REG
  * (0xA4400010) reader at 0x69F54 (template-scan find 2026-06-10). The
@@ -6150,44 +6148,26 @@ void gl_func_0006BA48(void) {
     gl_func_00000000(&D_00000000, 0, 0);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0006BA7C: 19-insn (0x4C) PI-DMA-wait + uncached-cart-read.
- * Spin-waits while (a2 & 3) testing PI_STATUS_REG (0xA4600010) — bits 0
- * and 1 are PI_STATUS_DMA_BUSY and PI_STATUS_IO_BUSY. Once PI is idle,
- * reads the value at ((D_00000000 | a0) | 0xA0000000) — uncached KSEG1
- * access — and stores it to *a1.
- *
- * D_00000000 here is the relocatable cartridge-segment base (gets
- * resolved by the USO loader to e.g. 0x10000000+). The OR-with-a0
- * computes a ROM-domain offset, OR-with-0xA0000000 puts it in KSEG1
- * for cache-bypass read post-DMA.
- *
- * This is a direct-cart-read helper used after a PI DMA completes
- * (caller passes a2 = previous PI_STATUS read; if non-busy already,
- * skip the spin-wait).
- *
- * Caps at the byte level:
- *   1. Stack frame: target has `addiu sp, -8` (leaf with no spills).
- *      IDO -O2 from natural C produces no frame.
- *   2. PI_STATUS_REG addressing: target uses `lui t8, 0xA460; lw a2,
- *      0x10(t8)` (lui + signed-offset load). IDO emits `lui+ori; lw
- *      0(p)` (full 32-bit materialization). Tried various constant-
- *      fold tricks (raw, base+offset, ORed, extern-as-pointer): no
- *      change. Likely needs a HW_REG-style macro or compiler flag.
- *   3. bnez vs bnel: target spin-loop uses `bnez t9, -4; nop`. IDO
- *      emits `bnel t7, $0, -2; lw a2(delay)` (branch-likely + delay-
- *      load). Same scheduler quirk seen on EA98.
- *
- * NM-wrap with structural decode. Default INCLUDE_ASM matches bytes. */
-void gl_func_0006BA7C(int a0, int *a1, unsigned int a2) {
-    while (a2 & 3) {
-        a2 = *(volatile int*)0xA4600010;
-    }
-    *a1 = *(volatile int*)((((int)&D_00000000) | a0) | 0xA0000000);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BA7C);
+/* gl_func_0006BA7C = libultra __osPiRawReadIo variant. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_800029B0 (kernel_045): read
+ * PI_STATUS once, if busy spin until idle, then read the KSEG1-uncached cart
+ * word ((D | devAddr) | 0xA0000000) into *out. The leaf `char pad[4]` frame and
+ * the `lui 0xA460; lw 0x10` PI_STATUS form (prior "byte-level cap") come for free
+ * at IDO 5.3 -O1. Real C lives in the donor unit game_libs_ido53_6BA7C.c, spliced
+ * via REPLACE_FUNC_BODY. Cart-base global -> D_00000000. */
+#ifndef PI_STATUS_6BA7C
+#define PI_STATUS_6BA7C (*(volatile unsigned int *)0xA4600010)
 #endif
+int gl_func_0006BA7C(unsigned int devAddr, unsigned int *out) {
+    char pad[4];
+    register unsigned int s;
+    s = PI_STATUS_6BA7C;
+    if (s & 3) {
+        do { s = PI_STATUS_6BA7C; } while (s & 3);
+    }
+    *out = *(unsigned int *)((((unsigned int)D_00000000) | devAddr) | 0xA0000000);
+    return 0;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BA7C_pad.s")
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BAD4);

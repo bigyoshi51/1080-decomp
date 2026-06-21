@@ -1,0 +1,33 @@
+{
+    "function_name": "gl_func_0006CCD4",
+    "project": "1080-agent-e",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Cross-module masked-twin sweep grouped gl_func_0006CCD4 with the matched kernel func_80004AC0 in a strict 20-insn signature cluster; reloc-masked word comparison showed 0 non-reloc diffs. Both are libultra __osPiRawReadIo: PI-busy probe, then uncached KSEG1 read (devAddr | 0xA0000000) into *data. The prior 'delay-slot-fill cap (80.65%)' was an -O2 artifact -- this is an -O1 libultra helper. At IDO 5.3 -O1 the beqz delay slot is filled by the success-path lw exactly as the ROM does. Ported the kernel donor C to game_libs_ido53_6CCD4.c at IDO 5.3 -O1; the busy probe collapses to the address-0 placeholder gl_func_00000000. Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY (0x4c->0x50, 1 donor reloc imported).",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 20,
+    "initial_m2c_source": null,
+    "final_source": "extern int gl_func_00000000();\nint gl_func_0006CCD4(int devAddr, int *data) {\n    if (gl_func_00000000() != 0) {\n        return -1;\n    }\n    *data = *(volatile int *)(0xA0000000 | devAddr);\n    return 0;\n}\n",
+    "metadata": {
+        "source_path": "src/game_libs/game_libs_ido53_6CCD4.c",
+        "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0006CCD4.s",
+        "segment": "game_libs",
+        "compiler": "ido5.3",
+        "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "standalone donor .text reloc-masked byte-identical to target (20 insns, 0 non-reloc diffs); spliced build/.o function reloc-masked byte-identical to expected/.o; build reloc (gl_func_00000000) resolves to 0x0; full `make` ROM byte-identical to baserom; make verify-blocks OK."
+    }
+}

@@ -4,72 +4,43 @@ typedef struct { int a, b, c, d; } Quad4;
 typedef struct { float x, y, z; } Vec3;
 
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-extern int D_00000000;   // D_a: fixed data arg threaded to the cb (lui+addiu)
-extern int D_74C_b;      // D_b: address compared against arg0->0x8
-extern int *D_74C_c;     // *&D_c: gate pointer + record (->4)
-extern int *D_74C_d;     // *&D_d: peer record stored into (->0x10)
-// State-machine step keyed on the u16 arg0->0x10. st==1: if the handle
-// arg0->0x8 is null or the sentinel &D_b, demote to 2 and notify(&D_a,arg0);
-// else promote to 8, notify(handle,arg0) and notify(&D_a, notify(handle)).
-// st==8: demote to 2 + notify(&D_a,arg0). Then a global-record pass: if *&D_c
-// is null, notify(); else if (*&D_d)->4 < (*&D_c)->4 demote (*&D_d)->0x10 to 2
-// + notify(&D_a). Finally notify(s0) with the saved first-call result. The cb
-// (game_libs_func_00070FCC) and &D globals are reloc-blind (field-0 matchable).
-// 2026-06-10 SUPERSEDED CAP ANALYSIS: at IDO 5.3 -O1 (the ido53-carve
-// compiler) with `register char *s0; register int x;` (x holds st AND the
-// later call result -- one variable, the s1 reuse), the build reproduces
-// the s0/s1 saves, the v0->s0 capture, and 84/84 instruction count with
-// correct branch polarity when the st arms are written as
-// `if (x != 1) { if (x == 8) {...} } else {...}`. Residual (~5 real
-// shapes cascading into ~73 word diffs via offset/regnum shift): (a) the
-// target reloads p from its stack home INSIDE the st==8 arm while 5.3
-// CSEs the earlier load (basic-block-boundary reload not yet forced --
-// typed struct members did NOT change this, unlike the -O0 case); (b)
-// frame 0x28 vs 0x30 (+8, likely the h temp slot). 2026-06-10 pass:
-// FRAME CRACKED -- removing the named `h` local (inline the handle
-// expression twice; 5.3 CSEs to one load, no slot) hits the exact
-// 0x28 frame (the remove-local-recompute lever). 51 -> 48 diffs.
-// Remaining residual (a) sharpened: the target reloads arg0 from its
-// HOME (lw 40(sp)) inside the store arms only; `char * volatile arg0`
-// over-reloads (+2 insns, 37 diffs) -- selective home-reload not yet
-// C-reachable. Body below = the 5.3-form with the h fix; carve at 5.3
-// -O1 when the reload cracks (or accept ~44/84 byte level).
-void gl_func_00074C04(char *arg0) {
-    register char *s0;
-    register int x;
-
-    s0 = (char *)game_libs_func_00070FCC();
-    x = *(unsigned short *)(arg0 + 0x10);
-    if (x != 1) {
-        if (x == 8) {
-            *(unsigned short *)(arg0 + 0x10) = 2;
-            game_libs_func_00070FCC((char *)&D_00000000, arg0);
-        }
-    } else {
-        if ((*(char **)(arg0 + 0x8) == 0) || (*(char **)(arg0 + 0x8) == (char *)&D_74C_b)) {
-            *(unsigned short *)(arg0 + 0x10) = 2;
-            game_libs_func_00070FCC((char *)&D_00000000, arg0);
+/* gl_func_00074C04 = libultra osStartThread. LANDED 2026-06-21 as a byte-identical
+ * TWIN-PORT of matched kernel func_80009D10 (kernel_037): move the thread to
+ * RUNNABLE and (re)enqueue it per its current state, then preempt if it now
+ * outranks the running thread. The 2026-06-10 cap analysis (44/84, frame/reload
+ * residuals) was an in-context approximation; the verbatim kernel twin is exact.
+ * Real C lives in the donor unit game_libs_ido53_74C04.c (IDO 5.3 -O1), spliced
+ * via REPLACE_FUNC_BODY. OS-API callees -> gl_func_00000000; the two distinct
+ * globals (run queue -> D_00000000, running ptr -> gl_data_00000000) kept
+ * separate so IDO does not CSE them. */
+extern int gl_func_00000000();
+extern int gl_data_00000000;
+typedef struct { int field0; int pri; int queue; int pad0C; unsigned short state; } Thread_74C04;
+void gl_func_00074C04(Thread_74C04 *t) {
+    register int saveMask = gl_func_00000000();
+    switch (t->state) {
+    case 8:
+        t->state = 2;
+        gl_func_00000000(&D_00000000, t);
+        break;
+    case 1:
+        if (t->queue == 0 || t->queue == (int)&D_00000000) {
+            t->state = 2;
+            gl_func_00000000(&D_00000000, t);
         } else {
-            *(unsigned short *)(arg0 + 0x10) = 8;
-            game_libs_func_00070FCC(*(char **)(arg0 + 0x8), arg0);
-            x = game_libs_func_00070FCC(*(char **)(arg0 + 0x8));
-            game_libs_func_00070FCC((char *)&D_00000000, x);
+            t->state = 8;
+            gl_func_00000000((void *)t->queue, t);
+            gl_func_00000000(&D_00000000, gl_func_00000000((void *)t->queue));
         }
+        break;
     }
-    if (D_74C_c == 0) {
-        game_libs_func_00070FCC();
+    if ((int)gl_data_00000000 == 0) {
+        gl_func_00000000();
     } else {
-        if (D_74C_d[1] < D_74C_c[1]) {
-            *(unsigned short *)((char *)D_74C_d + 0x10) = 2;
-            game_libs_func_00070FCC((char *)&D_00000000);
+        if (((Thread_74C04 *)gl_data_00000000)->pri < ((Thread_74C04 *)D_00000000)->pri) {
+            ((Thread_74C04 *)gl_data_00000000)->state = 2;
+            gl_func_00000000(&D_00000000);
         }
     }
-    game_libs_func_00070FCC(s0);
+    gl_func_00000000(saveMask);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074C04);
-#endif

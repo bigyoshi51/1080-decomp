@@ -294,35 +294,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070320);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070244_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_00070634: 22-insn 2-call bit-mask helper.
- *   v0 = func();                                          // (some setup call)
- *   mask = ~(a0 & ~0x401);                                // clear bits 0,9 of a0, invert
- *   *(D2) = *(D) & mask;                                  // mask bit-clear D into D2
- *   func(v0);                                             // (cleanup call)
- *
- * Uses 2 distinct extern symbols (D_00000000 + gl_data_00000000) to bust
- * IDO CSE per docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs.
- *
- * 85.45% cap: target uses $s0 to preserve v0=func() return across call#2,
- * giving frame -0x28 (s0-save + slot for caller a0). Built keeps v0 in $v0
- * across the call and spills a0 to caller arg slot, frame -0x18.
- *
- * 2026-05-17 tested `register int v0 = func();` — no change at 85.45%.
- * IDO ref-count formula doesn't promote v0 to $s0 from `register` alone
- * (per feedback-ido-register-keyword-doesnt-block-constant-fold style cap).
- * Permuter-class register-allocation cap. */
-extern int gl_data_00000000;
-void gl_func_00070634(int a0) {
-    int v0 = func_00000000();
-    int mask = ~(a0 & ~0x401);
-    *(int*)&gl_data_00000000 = (*(int*)&D_00000000) & mask;
-    func_00000000(v0);
+/* gl_func_00070634 = libultra global-int-mask bit-clear. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_80006250 (kernel_013) -- NOT
+ * the "85.45% 2-global cap" the prior wrap guessed: it is disable-int, AND-NOT
+ * the (mask & ~0x401) bits out of ONE global int-mask word, restore-int. The
+ * two calls are osDisableInt/osRestoreInt. Real C lives in the donor unit
+ * game_libs_ido53_70634.c (IDO 5.3 -O1), spliced via REPLACE_FUNC_BODY. Callees
+ * -> gl_func_00000000; int-mask word -> D_00000000. */
+extern int gl_func_00000000();
+void gl_func_00070634(int mask) {
+    register int sr = gl_func_00000000();
+    D_00000000 &= ~(mask & ~0x401);
+    gl_func_00000000(sr);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070634);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070634_pad.s")
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW

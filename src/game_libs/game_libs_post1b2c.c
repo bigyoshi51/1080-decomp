@@ -10,6 +10,8 @@ typedef struct { int a, b, c, d; } Quad4;
 typedef struct { int a, b, c; } Tri3i;
 typedef struct { int a, b; } Pair2;
 typedef struct { float x, y, z; } Vec3;
+/* osThread subset used by gl_func_0006F534 (osSetThreadPri twin) */
+typedef struct { int field0; int pri; int queue; int pad0C; unsigned short state; } Thread_0006F534;
 
 /* game_libs_post1b2 TAIL (post1b2c): functions from 0x6C400 onward, carved
  * after gl_func_0006C384 was moved to its own -O1 unit
@@ -111,21 +113,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C484);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C710);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C740);
+/* 64-bit libgcc helper family. LANDED 2026-06-21 as byte-identical TWIN-PORTs
+ * of the matched kernel_056.c funcs (0 relocs, self-contained). Real C lives in
+ * the donor unit game_libs_mips3_6C740.c (-O2 -mips3 so IDO inlines the
+ * d-arithmetic); spliced in via REPLACE_FUNC_BODY because this TU is -mips2. */
+u64 game_libs_func_0006C740(u64 a, u64 b) { return a % b; }   /* __ull_rem  <- func_80002A3C */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C77C);
+u64 game_libs_func_0006C77C(u64 a, u64 b) { return a / b; }   /* __ull_div  <- func_80002A78 */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C7B8);
+u64 game_libs_func_0006C7B8(u64 a, u64 b) { return a << b; }  /* __ll_lshift <- func_80002AB4 */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C7E4);
+/* __ull_rem (duplicate) <- kernel func_80002AE0. TWIN-PORT, donor game_libs_mips3_6C740.c. */
+u64 game_libs_func_0006C7E4(u64 a, u64 b) { return a % b; }
 
-/* game_libs_func_0006C820: 64-bit signed divide runtime helper (homes
- * all four arg regs, ld pairs + ddiv) -- the libgcc/MIPS3 runtime
- * class (see reference: ld/sd/ddiv = not emittable from IDO C with
- * -mips2). Permanent INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C820);
+s64 game_libs_func_0006C820(s64 a, s64 b) { return a / b; }   /* __ll_div   <- func_80002B1C */
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C87C);
+s64 game_libs_func_0006C87C(s64 a, s64 b) { return a * b; }   /* __ll_mul   <- func_80002B78 */
 
 /* 64-bit-by-short divmod. LANDED 2026-06-21 as a byte-identical TWIN-PORT of
  * kernel func_80002BA8 (kernel_056): same 0x60-byte ddivu body, no relocs.
@@ -203,7 +206,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C90C);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C9A8);
+/* __ll_rshift <- kernel func_80002CA4. TWIN-PORT, donor game_libs_mips3_6C740.c. */
+s64 game_libs_func_0006C9A8(s64 a, s64 b) { return a >> b; }
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C9D4);
 
@@ -214,38 +218,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C9D4);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C9E4);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C90C_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_0006C9F4: 56-insn game_libs USO equivalent of __osPiRawStartDma
- * (kernel func_80004650). Same structure: wait on PI status & 3, set up
- * DMA registers, dispatch by direction (0=read, 1=write, else=-1).
- *
- * USO version uses unresolved relocs for all PI hardware register
- * addresses (D_A460xxxx) and the kernel helper func_80004B30 (= virtual
- * to physical address translation). Initial structural wrap; D_/jal
- * alias-externs deferred to multi-pass. */
-extern int gl_func_0001CA10();  /* placeholder for func_80004B30 equiv */
-extern int gl_data_6C9F4_devCfg;
-extern volatile int gl_pi_status;
-extern volatile int gl_pi_dramAddr;
-extern volatile int gl_pi_devAddr;
-extern volatile int gl_pi_rdLen;
-extern volatile int gl_pi_wrLen;
+/* gl_func_0006C9F4 = libultra __osPiRawStartDma. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_80004650 (kernel_042_b).
+ * Body is IDO 5.3 -O1 (this TU is -O2), so the real C lives in the donor unit
+ * game_libs_ido53_6C9F4.c and is spliced in via REPLACE_FUNC_BODY. The PI
+ * register block is direct-mapped (literal lui 0xA460); the cart-base helper
+ * + DMA cfg-base global collapse to the address-0 USO placeholders
+ * gl_func_00000000 / D_00000000. */
+extern int gl_func_00000000();
 int gl_func_0006C9F4(int direction, unsigned int devAddr, int dramAddr, unsigned int size) {
     register unsigned int status;
-    status = gl_pi_status;
-    while (status & 3) status = gl_pi_status;
-    gl_pi_dramAddr = gl_func_0001CA10(dramAddr);
-    gl_pi_devAddr = (gl_data_6C9F4_devCfg | devAddr) & 0x1FFFFFFF;
+    while ((status = *(volatile unsigned int*)0xA4600010) & 3) ;
+    *(volatile unsigned int*)0xA4600000 = gl_func_00000000(dramAddr);
+    *(volatile unsigned int*)0xA4600004 = (D_00000000 | devAddr) & 0x1FFFFFFF;
     switch (direction) {
-        case 0: gl_pi_rdLen = size - 1; break;
-        case 1: gl_pi_wrLen = size - 1; break;
+        case 0: *(volatile unsigned int*)0xA460000C = size - 1; break;
+        case 1: *(volatile unsigned int*)0xA4600008 = size - 1; break;
         default: return -1;
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C9F4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006CAD4: 43-insn PIF DMA wrapper (Serial Interface I/O) (0xAC, frame 0x18).
@@ -387,36 +379,21 @@ void gl_func_0006CC64(unsigned char a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC64);
 #endif
 
-/* gl_func_0006CCD4: 20-insn DMA-sync + uncached-read helper. Calls
- * gl_func(src, dst); on success (returns 0), reads *src from the
- * KSEG1-uncached mirror (a0 | 0xA0000000) and writes to *dst. Returns
- * 0 on success, -1 on failure. NATURAL CEILING: pure delay-slot-fill
- * cap — IDO fills the beqz delay slot with the success-path's first lw
- * (delay-slot-fill-by-reorg.c); target leaves it as nop.
- * 2026-05-27 retests (both regressed):
- *   (a) `goto fail; ... fail: return -1;` form — moves -1 return
- *       out-of-line. Regressed 80.65% → 25% (goto-out moves fail block
- *       after success, swapping layout).
- *   (b) `register int rc = ...` hint — IDO ignored at -O2 and shifted
- *       the rc allocation. Regressed 80.65% → 35%.
- * Natural if/return-here form is the closest reachable.
- * Was previously documented (fresh decode 2026-05-14) as byte-exact via
- * 12-entry INSN_PATCH + 1-word SUFFIX_BYTES_FORCE — both REMOVED
- * 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-#ifdef NON_MATCHING
-int gl_func_0006CCD4(int *src, int *dst) {
-    int rc = gl_func_00000000(src, dst);
-    if (rc != 0) {
+/* gl_func_0006CCD4 = libultra __osPiRawReadIo. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_80004AC0 (kernel_001). The
+ * prior "delay-slot-fill cap (80.65%)" was an -O2 artifact: this is an -O1
+ * libultra helper. At IDO 5.3 -O1 the beqz delay slot is filled by the
+ * success-path lw exactly as the ROM does. Real C lives in the donor unit
+ * game_libs_ido53_6CCD4.c (this TU is -O2), spliced in via REPLACE_FUNC_BODY.
+ * The PI-busy probe collapses to the address-0 placeholder gl_func_00000000;
+ * the uncached cart read is a KSEG1 literal (devAddr | 0xA0000000). */
+int gl_func_0006CCD4(int devAddr, int *data) {
+    if (gl_func_00000000() != 0) {
         return -1;
     }
-    *dst = *(volatile int*)((unsigned int)src | 0xA0000000);
+    *data = *(volatile int *)(0xA0000000 | devAddr);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CCD4);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_0006CD24() {
@@ -903,30 +880,22 @@ loop_12:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DD14);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0006E1A4: 30-insn table-write + call-and-call dispatcher.
- *   ret = gl_func_00000000(idx, a, b);                   // first call
- *   entry = &gl_data[idx * 2];                            // 8-byte entries
- *   entry[0] = a;
- *   entry[1] = b;
- *   gl_func_00000000(ret);                                // second call (1 arg)
- * Table base is a USO data symbol; idx is multiplied by 8 via sll for
- * pointer arithmetic.
- *
- * Cap: 62% — target spills `entry` to stack slot sp+0x20 and uses $s0
- * to hold the call return. Mine keeps both in temp regs. The store-and-
- * reload roundtrip of entry through stack is hard to reproduce from C
- * without ugly volatile tricks. Multi-tick polish. */
-void gl_func_0006E1A4(int idx, int a, int b) {
-    int* entry = (int*)((char*)&gl_data_00000000 + idx * 8);
-    int ret = gl_func_00000000(idx, a, b);
-    entry[0] = a;
-    entry[1] = b;
-    gl_func_00000000(ret);
+/* gl_func_0006E1A4 = libultra osSetEventMesg. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_80004DE0 (kernel_003) -- NOT
+ * the "62% dispatcher cap" the prior wrap guessed: it is disable-int, write
+ * queue+msg into the event-state table entry, restore-int. The earlier reading
+ * had the call before the table write and the wrong arg shape. Real C lives in
+ * the donor unit game_libs_ido53_6E1A4.c (IDO 5.3 -O1), spliced via
+ * REPLACE_FUNC_BODY. OS-API callees -> gl_func_00000000; event-state table base
+ * -> D_00000000. */
+typedef struct { int queue; int msg; } EventState_0006E1A4;
+void gl_func_0006E1A4(int event, void *queue, int msg) {
+    register int sr = gl_func_00000000();
+    EventState_0006E1A4 *es = &((EventState_0006E1A4 *)&D_00000000)[event];
+    es->queue = (int)queue;
+    es->msg = msg;
+    gl_func_00000000(sr);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006E1A4);
-#endif
 
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006E20C);
@@ -1932,58 +1901,33 @@ block_5:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3E4);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0006F534: 56-insn game_libs USO version of osSetThreadPri.
- * Same C body shape as kernel func_80006110 (which IS osSetThreadPri),
- * just with all OS-API calls funneled through gl_func_0001CA10 and
- * two distinct D_ aliases playing the role of __osRunningThread + __osRunQueue.
- *
- * Decoded structure (per imm-masked sibling match with func_80006110):
- *   sr = gl_func_0001CA10();   // osDisableInt
- *   if (thread == 0) thread = D_run;
- *   if (thread->pri != pri) {
- *       thread->pri = pri;
- *       if (thread != D_run && thread->state != 1) {
- *           gl_func_0001CA10(thread->queue, thread);  // dequeue
- *           gl_func_0001CA10(thread->queue, thread);  // enqueue (typo? both same call)
- *       }
- *       if (D_runq->pri < D_run->pri) {
- *           D_run->state = 2;
- *           gl_func_0001CA10(&D_runq);  // dispatch
- *       }
- *   }
- *   gl_func_0001CA10(sr);     // osRestoreInt
- *
- * Initial structural wrap; multi-pass tightening pending — needs alias-extern
- * for 2 distinct D_ symbols (D_run vs D_runq) + verified struct offsets. */
-extern int gl_func_0001CA10();
-extern int D_6F534_run;
-extern int D_6F534_runq;
-void gl_func_0006F534(int *thread, int pri) {
-    int sr;
-    int *cur;
-    int *rq;
-    sr = gl_func_0001CA10();
-    if (thread == 0) thread = *(int**)&D_6F534_run;
-    if (thread[1] != pri) {
-        thread[1] = pri;
-        cur = *(int**)&D_6F534_run;
-        if (thread != cur && *(unsigned short*)((char*)thread + 0x10) != 1) {
-            gl_func_0001CA10(thread[2], thread);
-            gl_func_0001CA10(thread[2], thread);
+/* gl_func_0006F534 = libultra osSetThreadPri. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_80006110 (kernel_011_b) --
+ * verbatim osSetThreadPri body including the (Thread*)(void*) double-cast that
+ * pins the t-reg allocno pair. Real C lives in the donor unit
+ * game_libs_ido53_6F534.c (IDO 5.3 -O1; this TU is -O2), spliced in via
+ * REPLACE_FUNC_BODY. All five OS-API callees collapse to the address-0
+ * placeholder gl_func_00000000; the two distinct globals (running-thread ptr
+ * + run-queue head) map to the two distinct zero-resolving placeholders
+ * D_00000000 / gl_data_00000000 (kept separate so IDO does not CSE them). */
+void gl_func_0006F534(Thread_0006F534 *thread, int pri) {
+    register int sr = gl_func_00000000();
+    if (thread == 0) {
+        thread = (Thread_0006F534 *)D_00000000;
+    }
+    if (thread->pri != pri) {
+        thread->pri = pri;
+        if ((Thread_0006F534 *)(void *)thread != (Thread_0006F534 *)D_00000000 && thread->state != 1) {
+            gl_func_00000000(thread->queue, thread);
+            gl_func_00000000(thread->queue, thread);
         }
-        cur = *(int**)&D_6F534_run;
-        rq = *(int**)&D_6F534_runq;
-        if (rq[1] < cur[1]) {
-            *(short*)((char*)cur + 0x10) = 2;
-            gl_func_0001CA10(&D_6F534_runq);
+        if (((Thread_0006F534 *)D_00000000)->pri < ((Thread_0006F534 *)gl_data_00000000)->pri) {
+            ((Thread_0006F534 *)D_00000000)->state = 2;
+            gl_func_00000000(&gl_data_00000000);
         }
     }
-    gl_func_0001CA10(sr);
+    gl_func_00000000(sr);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F534);
-#endif
 
 extern int *D_6F614_X;
 int game_libs_func_0006F614(int *a0) {
@@ -2503,40 +2447,18 @@ insert:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FE5C);
 #endif
 
-/* gl_func_0006FFE4: 19-insn 2-call wrapper with intermediate global OR.
- * Verified decode (sub-80 resume-comment per
- * docs/MATCHING_WORKFLOW.md#feedback-sub80-complex-embed-decode-resume-comment):
- *
- *   int r = gl_func(a0);
- *   *(int*)&D_OTHER = (*(int*)&D) | a0;
- *   return gl_func(r);
- *
- * Natural form: 16-17 insns, frame -0x18, r stays in $v0 (no $s0 save).
- * Target: 19 insns, frame -0x28, r preserved via $s0 across the 2nd call
- * (sw s0/lw s0 + or s0,v0,zero + or a0,s0,zero).
- *
- * Cap class: IDO's regalloc doesn't promote r to $s0 without longer live
- * range. `register int r` + struct ordering both ineffective 2026-05-17.
- * Target likely had additional source between calls (maybe a side-effecting
- * helper that got inlined away, leaving the spill+s0-use artifact).
- * Remains INCLUDE_ASM at 68.9%; multi-tick / permuter class. */
-#ifdef NON_MATCHING
-/* gl_func_0006FFE4: 19-insn wrapper. Calls the (collapsed) callback with a0,
- * OR-folds a0 into a global word, then re-invokes the callback with the first
- * result: r = cb(a0); *D_B = *D_A | a0; cb(r);  (a0 reloaded from its home slot
- * across the first call). NM (reference decode): two collapsed-placeholder calls
- * + two collapsed D refs (raw-.word game_libs reloc depression); the distinct
- * read/write D symbols collapse to D_00000000 here. */
-extern int gl_func_00000000();
-extern int D_00000000;
-void gl_func_0006FFE4(int a0) {
-    int r = gl_func_00000000(a0);
-    *(int *)&D_00000000 = *(int *)&D_00000000 | a0;
-    gl_func_00000000(r);
+/* gl_func_0006FFE4 = libultra __osSetGlobalIntMask. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_800061F0 (kernel_011_b) --
+ * NOT the "68.9% 2-call wrapper cap" the prior wrap guessed: it is disable-int,
+ * OR the arg into the global int-mask word, restore-int. The two calls are
+ * osDisableInt/osRestoreInt (both collapse to gl_func_00000000), not a callback.
+ * Real C lives in the donor unit game_libs_ido53_6FFE4.c (IDO 5.3 -O1), spliced
+ * via REPLACE_FUNC_BODY. Global int-mask word -> D_00000000. */
+void gl_func_0006FFE4(int mask) {
+    register int sr = gl_func_00000000();
+    D_00000000 |= mask;
+    gl_func_00000000(sr);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FFE4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070030);
 

@@ -829,40 +829,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00074554);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00074554_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_000747F4: 19-insn uncached-write helper + 4-stub BUNDLE (0xAC declared,
- * real fn is 19 insns = 0x4C; rest are 4 small leaf utilities).
- *
- * Decoded fn 1 (gl_func_000747F4 proper):
- *   if (func_acquire() != 0) return -1;
- *   *(volatile int*)((uintptr_t)a0 | 0xA0000000) = a1;  // KSEG1 uncached write
- *   return 0;
- *
- * The `lui at, 0xA000; or t8, t7, at` is KSEG0→KSEG1 conversion: forces
- * write to bypass dcache (DMA-buffer poke / hardware register).
- *
- * Bundled siblings @0x4C-0xAC (need fragment-split for byte-exact):
- *   - @0x4C: `*(volatile int*)0xA4040010 = a0;`     // SP_STATUS_REG write
- *   - @0x58: `return *(volatile int*)0xA4040010;`   // SP_STATUS_REG read
- *   - @0x68: icache invalidate 0x80000000..0x80002000 (8KB via `cache 0x01`)
- *   - @0x94: getter — returns *(int*)&D_sym
- *
- * The cache-invalidate loop is the libultra-style `osInvalDCache` / icache
- * primitive — directly invokes `cache 0x01, off(t0)` insn for SI-related
- * hardware operations.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-int gl_func_000747F4(void *a0, int a1) {
-    int rc = (int)gl_func_00000000(a0, a1);
-    if (rc != 0) return -1;
-    *(volatile int*)((unsigned int)a0 | 0xA0000000) = a1;
+/* gl_func_000747F4 = libultra __osPiRawWriteIo. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_80009C40 (kernel_046) -- the
+ * write twin of the landed __osPiRawReadIo at gl_func_0006CCD4: PI-busy probe
+ * (no-arg call), then uncached KSEG1 write of data to (devAddr | 0xA0000000).
+ * The prior wrap guessed a 2-arg acquire call + a 4-stub bundle; it is a single
+ * 19-insn fn. Real C lives in the donor unit game_libs_ido53_747F4.c (IDO 5.3
+ * -O1), spliced via REPLACE_FUNC_BODY. Busy probe -> gl_func_00000000. */
+int gl_func_000747F4(int devAddr, int data) {
+    if (gl_func_00000000() != 0) {
+        return -1;
+    }
+    *(volatile int *)(0xA0000000 | devAddr) = data;
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000747F4);
-#endif
 
 
 /* game_libs_func_00074840 (0x10): RSP SP_STATUS (0xA4040010) WRITE accessor.

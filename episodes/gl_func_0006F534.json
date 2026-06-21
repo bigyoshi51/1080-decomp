@@ -1,0 +1,33 @@
+{
+    "function_name": "gl_func_0006F534",
+    "project": "1080-agent-e",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Cross-module masked-twin sweep grouped gl_func_0006F534 with the matched kernel func_80006110 in a strict 56-insn signature cluster; reloc-masked word comparison showed 0 non-reloc diffs. Both are libultra osSetThreadPri. Ported the kernel donor C verbatim (including the (Thread*)(void*) double-cast that pins the t-reg allocno pair) to game_libs_ido53_6F534.c at IDO 5.3 -O1. All five OS-API callees collapse to the address-0 placeholder gl_func_00000000; the two distinct globals (running-thread ptr + run-queue head) map to the two distinct zero-resolving placeholders D_00000000 / gl_data_00000000 -- kept SEPARATE so IDO does not CSE them (a single symbol would renumber the t-reg pair). Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY (0xc4->0xe0, 15 donor relocs imported). Prior agent had decoded the structure but left it INCLUDE_ASM pending the distinct-D_-alias requirement; this resolves it.",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 56,
+    "initial_m2c_source": null,
+    "final_source": "typedef struct { int field0; int pri; int queue; int pad0C; unsigned short state; } Thread_0006F534;\nextern int gl_func_00000000();\nvoid gl_func_0006F534(Thread_0006F534 *thread, int pri) {\n    register int sr = gl_func_00000000();\n    if (thread == 0) thread = (Thread_0006F534 *)D_00000000;\n    if (thread->pri != pri) {\n        thread->pri = pri;\n        if ((Thread_0006F534 *)(void *)thread != (Thread_0006F534 *)D_00000000 && thread->state != 1) {\n            gl_func_00000000(thread->queue, thread);\n            gl_func_00000000(thread->queue, thread);\n        }\n        if (((Thread_0006F534 *)D_00000000)->pri < ((Thread_0006F534 *)gl_data_00000000)->pri) {\n            ((Thread_0006F534 *)D_00000000)->state = 2;\n            gl_func_00000000(&gl_data_00000000);\n        }\n    }\n    gl_func_00000000(sr);\n}\n",
+    "metadata": {
+        "source_path": "src/game_libs/game_libs_ido53_6F534.c",
+        "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0006F534.s",
+        "segment": "game_libs",
+        "compiler": "ido5.3",
+        "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "standalone donor .text reloc-masked byte-identical to target (56 insns, 0 non-reloc diffs); spliced build/.o function reloc-masked byte-identical to expected/.o; build relocs (gl_func_00000000, D_00000000, gl_data_00000000) all resolve to 0x0; full `make` ROM byte-identical to baserom; make verify-blocks OK."
+    }
+}

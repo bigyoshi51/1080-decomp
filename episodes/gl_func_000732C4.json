@@ -1,0 +1,33 @@
+{
+    "function_name": "gl_func_000732C4",
+    "project": "1080-agent-e",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Cross-module masked-twin sweep grouped gl_func_000732C4 with the matched kernel func_80009A50 (kernel_023) in a strict 19-insn signature cluster; reloc-masked word comparison showed 0 non-reloc diffs. It is libultra scheduler yield/dispatch (disable-int, set running-thread state=2, dispatch run-queue head, restore-int). Ported the kernel donor C verbatim to game_libs_ido53_732C4.c at IDO 5.3 -O1 (the libultra-carve recipe; default unit is -O2); spliced into the parent unit via REPLACE_FUNC_BODY with donor relocs imported. Collapsed USO cross-refs map to the address-0 placeholders gl_func_00000000 / D_00000000 / gl_data_00000000 (all resolve to 0x0). Prior NM-wrap had mis-decoded this as a regalloc/dispatch cap; the kernel twin resolves it.",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 19,
+    "initial_m2c_source": null,
+    "final_source": "see game_libs_ido53_732C4.c",
+    "metadata": {
+        "source_path": "src/game_libs/game_libs_ido53_732C4.c",
+        "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_000732C4.s",
+        "segment": "game_libs",
+        "compiler": "ido5.3",
+        "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "standalone donor .text reloc-masked byte-identical to target (19 insns, 0 non-reloc diffs); spliced build/.o function reloc-masked byte-identical to expected/.o; build reloc syms all resolve to 0x0; full make ROM byte-identical to baserom; make verify-blocks OK."
+    }
+}

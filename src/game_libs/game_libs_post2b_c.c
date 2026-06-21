@@ -139,32 +139,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073258);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000730CC_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_000732C4: 19-insn 3-call sequence storing 2 into a singleton.
- * Decode:
- *   r = gl_func_00000000();          // jal #1 (no args)
- *   p = *(short**)&gl_data_X;        // lui+lw chain → t7
- *   p[8] = 2;                        // sh t6=2, 0x10(t7)  (delay slot of jal #2)
- *   gl_func_00000000(&gl_data_Y);    // jal #2 (a0 = &D_Y)
- *   gl_func_00000000(r);             // jal #3 (a0 = s0 = r)
- * 2026-05-17: natural C scored 61%. 2026-05-18 retry with explicit `short* p`
- * named local to force the lui+lw to compute t7 before the constant-2
- * generation, matching the target's instruction ordering. */
-extern int gl_data_732C4_load;
-extern int gl_data_732C4_arg;
-
+/* gl_func_000732C4 = libultra scheduler yield/dispatch. LANDED 2026-06-21 as a
+ * byte-identical TWIN-PORT of matched kernel func_80009A50 (kernel_023):
+ * disable-int, set the running-thread state word (running_ptr + 0x10) to 2,
+ * dispatch the run-queue head, restore-int. The prior wrap mis-read the running
+ * ptr as a direct value and missed the &run-queue dispatch arg. Real C lives in
+ * the donor unit game_libs_ido53_732C4.c (IDO 5.3 -O1), spliced via
+ * REPLACE_FUNC_BODY. Callees -> gl_func_00000000; running-thread ptr ->
+ * D_00000000, run-queue head -> gl_data_00000000 (distinct, no CSE). */
+extern int gl_func_00000000();
+extern int gl_data_00000000;
 void gl_func_000732C4(void) {
-    register int r;
-    short* p;
-    r = gl_func_00000000();
-    p = *(short**)&gl_data_732C4_load;
-    p[8] = 2;
-    gl_func_00000000(&gl_data_732C4_arg);
-    gl_func_00000000(r);
+    register int sr = gl_func_00000000();
+    *(short *)((char *)D_00000000 + 0x10) = 2;
+    gl_func_00000000(&gl_data_00000000);
+    gl_func_00000000(sr);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000732C4);
-#endif
 
 /* VI-status read leaf (VI_CURRENT/STATUS 0xA4400010 & 1). The old
  * PREFIX_BYTES + INSN_PATCH fake was removed 2026-05-23. STRUCTURE

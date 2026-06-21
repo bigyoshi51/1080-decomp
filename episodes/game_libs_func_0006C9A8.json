@@ -1,0 +1,33 @@
+{
+    "function_name": "game_libs_func_0006C9A8",
+    "project": "1080-agent-e",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Cross-module masked-twin sweep grouped game_libs_func_0006C9A8 with the matched kernel func_80002CA4 (kernel_056.c) in a strict 11-insn signature cluster; reloc-masked word comparison showed 0 non-reloc diffs. Both are the libgcc 64-bit __ll_rshift helper (return a >> b), a self-contained body with NO relocs. Needs -mips3 (IDO inlines the d-arithmetic instead of jal-to-self) which the -mips2 parent TU cannot use, so the donor (game_libs_mips3_6C740.c, -O2 -mips3) is compiled and spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. Same recipe as the landed game_libs_func_0006C8AC divmod.",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 11,
+    "initial_m2c_source": null,
+    "final_source": "long long game_libs_func_0006C9A8(long long a, long long b) { return a >> b; }\n",
+    "metadata": {
+        "source_path": "src/game_libs/game_libs_mips3_6C740.c",
+        "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0006C9A8.s",
+        "segment": "game_libs",
+        "compiler": "ido7.1",
+        "compiler_flags": "-O2 -mips3 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "standalone donor .text byte-identical to target (11 insns, 0 relocs); spliced build/.o function byte-identical to expected/.o; full make ROM byte-identical to baserom; make verify-blocks OK."
+    }
+}
