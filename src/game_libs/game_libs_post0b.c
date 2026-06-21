@@ -24647,11 +24647,10 @@ int game_libs_func_0005318C(int *a0, int a1) {
 #ifdef NON_MATCHING
 /* gl_func_000531C0: element-offset computer. Calls helper(&D+0x21010, arg1, arg0);
  * then returns arg0->0x58 + idx*0xC where idx = arg0->0x70 ? *(u16*)(arg0->0x70 +
- * arg1*6) : arg1. Decoded via disasm-func.py --m2c (None->~55%). Logic exact + 3-arg
- * call + strength-reduced *6/*12 all correct; residual is post-call regalloc (arg1
- * reloads to a1, target a0) + scheduling around the jal. Permuter improved 320->210
- * (no crack, 2026-05-24) — multi-tick / C-lever needed for the reload-register +
- * jal-scheduling. Forward progress: None -> ~55%, logic captured. */
+ * arg1*6) : arg1. Logic/structure exact (dup-load two-return, *6/*12 strength-reduce,
+ * 3-arg call all correct, same size 0x7C). Residual = pure regalloc renumber: target
+ * reloads arg1 into $a0 (and threads t6/t8/t9/t0), build picks $a1/$a5. Documented
+ * regalloc-cap class; permuter 320->210 no crack (2026-05-24); not C-lever crackable. */
 extern int gl_func_00000000();
 int gl_func_000531C0(void *arg0, int arg1) {
     unsigned short *p;
@@ -32524,14 +32523,20 @@ void game_libs_func_0006024C(int a0) {
 void game_libs_func_00060258(void) {}
 
 #ifdef NON_MATCHING
-/* NON_MATCHING: 82% — target has stack frame -32 (vs my -24) and extra v0→a2 shuffle via stack after 2nd call */
+/* gl_func_00060260: r = call1(a0); if (r) return; call2(&gl_ref_00021CBC, a0);
+ * call3(r).  2026-06-20 value-flow FIX: target passes call1's result r (saved
+ * across call2 via stack slot 0x1C) to call3 — NOT call2's result as previously
+ * decoded. Logic now exact. Residual (12/18): target fills the bnez delay with a
+ * redundant `move a2,v0` (early save of r) and reloads r into a2 after call2,
+ * frame -32; build collapses the redundant move (frame matches at -32 but 2 fewer
+ * insns). as1-scheduler delay-fill tie on the cross-call spill — not C-flippable. */
 extern int gl_func_00000000();
 extern char gl_ref_00021CBC;
 
 void gl_func_00060260(char *a0) {
     int r = gl_func_00000000(a0);
     if (r != 0) return;
-    r = gl_func_00000000(&gl_ref_00021CBC, a0);
+    gl_func_00000000(&gl_ref_00021CBC, a0);
     gl_func_00000000(r);
 }
 #else
@@ -32649,7 +32654,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060370);
  * p[1]=v; p[2]+=p[1]-p[0]; func(p); v=func(); p=a0->0x44; p[0]=v. Reloc-blind
  * (jal-0 placeholders, a0->0x44 reloaded inline). Straight C caps at 77% — IDO
  * regalloc/scheduler divergence across the 3 calls (below the 80% threshold,
- * documented for completeness; kept INCLUDE_ASM as the build path). */
+ * documented for completeness; kept INCLUDE_ASM as the build path).
+ * 2026-06-20: re-derived; target forms &p[2] (addiu a1,v1,8) and RMWs p[2]
+ * through that pointer (2 extra insns vs folded direct-offset). Reused-ptr
+ * lever folds back to direct offset — needs the real struct member typed. */
 void gl_func_00060468(int *a0) {
     int *p;
     int v;
