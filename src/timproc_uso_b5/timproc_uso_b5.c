@@ -7091,30 +7091,20 @@ void timproc_uso_b5_func_0000A928(int *a0) {
     a0[0x3C / 4] = 0;
 }
 
-#ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000A95C: array-append + count-increment, returns a1.
- * Logic exact (8/8 insns); genuine IN-TREE scheduling cap on the 0x10/0x14 pair:
- * target emits `addu t8,a0,t7` (array addr) BEFORE `sw t6,0x3C(a0)` (count store);
- * the full-TU build emits the count store first. NOTE: a STANDALONE compile of
- * this body schedules them in the target order (false match) — the full-TU
- * schedule differs (per MATCHING_WORKFLOW standalone-vs-in-tree caveat), so this
- * is verified NON_MATCHING in-tree. No C reorder flips it (store-first/array-first
- * both regress); permuter-class scheduling lever needed.
- * 2026-06-10: re-measured -- the floor is the SAME pure 2-insn
- * position swap as bootup 2088 (addu t8 vs sw count, operands all
- * correct; the early move v0,a1 matches naturally). The sw-before-addu
- * scheduler cap, exactly one scheduling decision wide; family now has
- * two members at the identical floor (2088, A95C). Early-pseudo on the
- * return is neutral. */
+ * EXACT (2026-06-21, decomp-permuter). The residual was a pure 2-insn schedule
+ * swap: target emits `addu t8,a0,t7` (array addr) BEFORE `sw t6,0x3C(a0)` (count
+ * store), but the natural one-statement-per-line C made IDO schedule the count
+ * store first. CRACK: put both stores on ONE source line (the documented
+ * "one-line stores fix schedule order" lever) — IDO then schedules the addu
+ * before the count sw, matching. Verified IN-TREE against the full-TU build
+ * (8/8 words, 0 diffs); the prior "standalone false match" caveat is moot now
+ * that the real build is byte-exact. (Twin: bootup_uso ...2088, same pair.) */
 int timproc_uso_b5_func_0000A95C(int *a0, int a1) {
     int v1 = a0[0x3C / 4];
-    a0[0x3C / 4] = v1 + 1;
-    *(int *)((char *)a0 + (v1 << 2) + 0x40) = a1;
+    a0[0x3C / 4] = v1 + 1; *(int *)((char *)a0 + (v1 << 2) + 0x40) = a1;
     return a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000A95C);
-#endif
 
 /* timproc_uso_b5_func_0000A97C: 23-insn loop calling slot->0x28->0x4C(short@0x48)
  * per element via the incrementing cursor `p`. MATCHED 2026-06-04 via

@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000A95C",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T07:30:00+00:00",
+  "end_time": "2026-06-21T07:45:00+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T07:45:00+00:00",
+      "assistant_text": "Array-append + count-increment. The 8-insn residual was a pure 2-insn schedule swap: target emits `addu t8,a0,t7` (array addr) BEFORE `sw t6,0x3C(a0)` (count store); natural one-statement-per-line C made IDO schedule the count store first. decomp-permuter found the fix in 80 iters: put both stores on ONE source line (the documented one-line-stores schedule lever). Verified IN-TREE against the full-TU build (8/8 words, 0 diffs), defeating the prior 'standalone false match' caveat.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 8,
+  "initial_m2c_source": null,
+  "final_source": "int timproc_uso_b5_func_0000A95C(int *a0, int a1) {\n    int v1 = a0[0x3C / 4];\n    a0[0x3C / 4] = v1 + 1; *(int *)((char *)a0 + (v1 << 2) + 0x40) = a1;\n    return a1;\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000A95C.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "in-tree exact: 8/8 words, 0 diffs (no relocs); full `make` ROM byte-identical to baserom; cracked by decomp-permuter (one-line-stores schedule lever)"
+  }
+}

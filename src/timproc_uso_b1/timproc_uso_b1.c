@@ -572,60 +572,46 @@ void timproc_uso_b1_func_00001100(int a0) {
     gl_func_00000000(a0, -1, 0);
 }
 
-/* Vtable-entry dispatcher (twin of timproc_uso_b3_func_000010E4). Pass 2 2026-06-10:
- * re-decode fixed the OLD body's structure -- the *40 is a real multu
- * with the stride in a register (variable stride; old body's shift
- * decomposition was wrong), the gl(5) arg loads EARLY into a0 before
- * the beqzl, and the if(1){} BB-split after the call is load-bearing
- * (the 4-for-4 v0/v1 lever). 29/40 -> 11 word-diffs remaining: stride
- * colors a2 vs target a0 (the 5-then-40 single-web trick did not take;
- * k still splits), and the fn-temp renumber downstream of it.
- * 2026-06-10 pseudo-order family sweep NEGATIVE: early-pseudo (stride
- * dead-initialized / pre-declared first) and decl reorders all leave
- * stride in a2. The residual is ARG-REGISTER coloring of a non-arg
- * value (a0 freed after the jal consumed the 5); none of the three
- * pseudo-order levers (BB-split / web-inversion / early-pseudo)
- * address arg-reg targeting. Remaining lever: uoptlist dump. */
-#ifdef NON_MATCHING
+/* Vtable-entry dispatcher (twin of timproc_uso_b3_func_000010E4): gate on
+ * gl_func(D[0x190]), reload the sub-object/count after the refresh call, then
+ * indirect-call the fn-ptr at entry+0x90. */
 extern int D_arg_b1_1130[];
 extern int D_cur_b1_1130;
+/* EXACT (2026-06-21, decomp-permuter). The single residual addu operand-order
+ * diff (target `addu rd,base,prod` vs the inline-web's `addu rd,prod,base`) is
+ * resolved by two scheduler/coloring nudges that the permuter discovered:
+ *   - `self[(0x48 / 4) ^ 0]` (identity XOR) re-orders the index web so the
+ *     final addr addu emits base-rs while preserving the $t9 coalesce, and
+ *   - `(new_var = 0x90)` parks the +0x90 offset in a throwaway local, which
+ *     fixes the temp-numbering of the call register.
+ * Both are semantic no-ops; verified in-tree (0 non-reloc word diffs, 40/40
+ * words, reloc records at the 6 target offsets). */
 void timproc_uso_b1_func_00001130(int *self) {
-  int *v0;
-  int v1;
-  int stride;
-  if (gl_func_00000000(D_arg_b1_1130[0x190 / 4]) == 0) {
-    return;
-  }
-  v0 = (int *) self[0x48 / 4];
-  v1 = v0[0x7C / 4];
-  if (v1 != 0) {
-    gl_func_00000000(5);
-    if (1) {
+    int *v0;
+    int new_var;
+    int v1;
+    int stride;
+    if (gl_func_00000000(D_arg_b1_1130[0x190 / 4]) == 0) {
+        return;
     }
     v0 = (int *) self[0x48 / 4];
     v1 = v0[0x7C / 4];
-  }
-  stride = 40;
-  if (((void (*)(void)) (*((int *) ((((char *) v0) + (v1 * stride)) + 0x90)))) != 0) {
-    D_cur_b1_1130 = (int) self;
-    if (1) {
+    if (v1 != 0) {
+        gl_func_00000000(5);
+        if (1) {
+        }
+        v0 = (int *) self[0x48 / 4];
+        v1 = v0[0x7C / 4];
     }
-    v0 = (int *) self[0x48 / 4];
-    /* Direct indirect-call through the inline-loaded fn-ptr: coalesces the
-     * index web with the $t9 call register exactly as the target does
-     * (lw $t9; ...; lw $t9,0x90($t1); jalr $t9). 39/40 words; the single
-     * residual is the addr addu operand order: target emits
-     * `addu $t1,$v0,$t0` (base rs) but the inline web (required for the
-     * $t9 coalesce) forces `addu $t1,$t0,$v0` (product rs). Naming the
-     * index OR the address flips the addu to base-rs but breaks the $t9
-     * coalesce (index/addr colors $v1) -> more diffs. The two are mutually
-     * exclusive in C: web-unification with $t9 implies product-rs addu. */
-    (*((void (**)(void)) ((((char *) v0) + (v0[0x7C / 4] * stride)) + 0x90)))();
-  }
+    stride = 40;
+    if (((void (*)(void)) (*((int *) ((((char *) v0) + (v1 * stride)) + 0x90)))) != 0) {
+        D_cur_b1_1130 = (int) self;
+        if (1) {
+        }
+        v0 = (int *) self[(0x48 / 4) ^ 0];
+        (*((void (**)(void)) ((((char *) v0) + (v0[0x7C / 4] * stride)) + (new_var = 0x90))))();
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001130);
-#endif
 
 /* timproc_uso_b1_func_000011D0: 2-insn alt-entry (lui at,0x3F80; mtc1 at,$f0
  * = set f0=1.0f) that falls through into 000011D8. RECOVERED 2026-05-28 from
