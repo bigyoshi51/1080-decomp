@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000020AC",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T17:31:00.000000+00:00",
+  "end_time": "2026-06-21T17:31:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T17:31:00.000000+00:00",
+      "assistant_text": "11-insn append-pair (count at 0xC0, 8-byte pairs at 0xC4/0xC8). Sibling of func_00002088 with the identical as1 SCHEDULER TIE cap (documented 81.82% NM, 10+ variants tried, feedback_ido_sw_before_addu_unreachable). The two independent instructions are `addu t1,a0,t0` (entry base addr) and `sw t9,0xC0(a0)` (store incremented count); the delay slot store depends on t1. Collapsing the count-store and the entry-store onto a SINGLE source line frees IDO's as1 scheduler to interleave by data-readiness, hoisting the addu and producing the target's addu-before-sw order. Whitespace-only steer; same-line grouping is load-bearing.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 11,
+  "initial_m2c_source": null,
+  "final_source": "void func_000020AC(int *a0, int a1, int a2) {\n    int idx;\n    *(int*)((char*)a0 + *(int*)((char*)a0 + 0xC0) * 8 + 0xC8) = a2;\n    idx = *(int*)((char*)a0 + 0xC0);\n    *(int*)((char*)a0 + 0xC0) = idx + 1; *(int*)((char*)a0 + idx * 8 + 0xC4) = a1;\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/bootup_uso/func_000020AC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "matching-build wordcmp (reloc-masked): 0 non-reloc text diffs, 11==11 insns, same instruction multiset, reloc-set match; build/.o == expected/.o byte-identical; full make ROM byte-identical (cmp clean)"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00002088",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T17:30:00.000000+00:00",
+  "end_time": "2026-06-21T17:30:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T17:30:00.000000+00:00",
+      "assistant_text": "7-insn list-append (count at 0x104, 4-byte entries at 0x108). The long-standing 'sw-before-addu unreachable' cap (documented across 16+ C variants) was actually an as1 SCHEDULER TIE keyed on per-statement debug line numbers. The two independent instructions in question are `addu t8,a0,t7` (compute entry base addr) and `sw t6,0x104(a0)` (store incremented count); the delay slot is `sw a1,0x108(t8)` which depends on t8. With the count-store and entry-store on SEPARATE source lines, IDO's as1 list-scheduler tie-break (line-number ordered) keeps `sw count` first; the target schedules `addu` first so t8 is ready for the delay slot. Collapsing the count-store and entry-store onto a SINGLE source line lets the scheduler interleave them purely by data-readiness, hoisting the addu and matching the target's addu-before-sw order. Whitespace-only steer (semantically identical); the same-line grouping is load-bearing. Same lever as func_00005F34.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 7,
+  "initial_m2c_source": null,
+  "final_source": "void func_00002088(char *a0, int a1) {\n    int idx = *(int *)(a0 + 0x104);\n    *(int *)(a0 + 0x104) = idx + 1; *(int *)(a0 + idx * 4 + 0x108) = a1;\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/bootup_uso/func_00002088.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "matching-build wordcmp (reloc-masked): 0 non-reloc text diffs, 7==7 insns, same instruction multiset, reloc-set match; build/.o == expected/.o byte-identical; full make ROM byte-identical (cmp clean)"
+  }
+}

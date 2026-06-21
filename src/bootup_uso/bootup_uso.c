@@ -1497,48 +1497,32 @@ void func_00002060(char *a0, int a1, int a2, int a3, int a4, int a5) {
 void func_00002080(int *a0) { *(int*)((char*)a0 + 0x104) = 0; }
 
 /* append to count+entries list at 0x104 (count) + 0x108 (4-byte entries).
- * NATURAL CEILING: 71.43% NM (~10 of 7 insns match; structural). 16+ C
- * variants couldn't reach the target's `addu`-before-`sw count` scheduling
- * at -O2 (per feedback_ido_sw_before_addu_unreachable.md); 1-insn cap
- * intrinsic to IDO's scheduler. INSN_PATCH bridge (offsets 0xC/0x10) was
- * REMOVED 2026-05-23 as match-faking. Same sibling cap class as
- * func_000020AC (81.8%, 8-byte-pair variant). */
-#ifdef NON_MATCHING
+ * MATCHED 2026-06-21: the long-standing `addu`-before-`sw count` cap was an
+ * as1 SCHEDULER TIE keyed on per-statement debug line numbers. Collapsing the
+ * count-store and the entry-store onto a SINGLE source line lets IDO's as1
+ * scheduler interleave them by data-readiness (it hoists `addu t8,a0,t7` so
+ * t8 is ready for the delay-slot `sw a1,0x108(t8)`), producing the target's
+ * addu-before-sw order. Same-line lever (cf. func_00005F34). Sibling
+ * func_000020AC cracked identically. */
 void func_00002088(char *a0, int a1) {
-    /* 2026-06-10 shape re-check with the new levers: the ORIGINAL
-     * count-first form below is the optimum -- 2 word diffs that are a
-     * PURE position swap of `addu t8,a0,t7` and `sw count` with
-     * CORRECT operand order (the address-first restructure scored the
-     * same swap but regressed the addu operands; reverted same-tick
-     * per the in-tree-verify rule). The sw-before-addu scheduler cap
-     * stands at exactly one scheduling decision. */
     int idx = *(int *)(a0 + 0x104);
-    *(int *)(a0 + 0x104) = idx + 1;
-    *(int *)(a0 + idx * 4 + 0x108) = a1;
+    *(int *)(a0 + 0x104) = idx + 1; *(int *)(a0 + idx * 4 + 0x108) = a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002088);
-#endif
 
 void func_000020A4(int *a0) { *(int*)((char*)a0 + 0xC0) = 0; }
 
 /* append-pair to a count+entries list at offset 0xC0 (count) + 0xC4 (pairs
- * of 8). NATURAL CEILING: 81.82% NM. The 1-insn structural cap (IDO -O2
- * schedules `sw t9,0xC0(a0)` before `addu t1,a0,t0` but target has the
- * swapped order) is documented in feedback_ido_sw_before_addu_unreachable.md
- * (10+ C variants tried). INSN_PATCH bridge (Makefile: 2 swapped words at
- * 0x1C/0x20) was REMOVED 2026-05-23 as match-faking. */
-#ifdef NON_MATCHING
+ * of 8). MATCHED 2026-06-21: same as1 SCHEDULER TIE as func_00002088 — the
+ * `sw t9,0xC0(a0)`-before-`addu t1,a0,t0` cap was a per-statement-line
+ * tie-break. Collapsing the count-store and entry-store onto one source line
+ * lets as1 hoist the addu (t1 needed for the delay-slot store), matching the
+ * target's addu-before-sw order. */
 void func_000020AC(int *a0, int a1, int a2) {
     int idx;
     *(int*)((char*)a0 + *(int*)((char*)a0 + 0xC0) * 8 + 0xC8) = a2;
     idx = *(int*)((char*)a0 + 0xC0);
-    *(int*)((char*)a0 + 0xC0) = idx + 1;
-    *(int*)((char*)a0 + idx * 8 + 0xC4) = a1;
+    *(int*)((char*)a0 + 0xC0) = idx + 1; *(int*)((char*)a0 + idx * 8 + 0xC4) = a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000020AC);
-#endif
 
 void func_000020D8(char *a0, int a1) {
     int i;

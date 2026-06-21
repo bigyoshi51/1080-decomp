@@ -4680,7 +4680,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  * deficit). Two synthesized calls (metric `_f` helper at the inlined
  * 5C98 region, and the `(self,out_flags,metric)` effect call) have no
  * matching jal and remain placeholders — body-structure divergences, not
- * symbol bugs. No episode: not exact. */
+ * symbol bugs. No episode: not exact.
+ *
+ * 2026-06-21 agent-i: the metric `_f` placeholder IS a real callee —
+ * game_uso_func_00003ED4(Vec3*,Vec3*,int*) (the yaw-between-vectors FPU
+ * helper, defined at 0x3ED4 in this TU). Wired it; the call-reloc set no
+ * longer has 00003ED4 as exp-only. CALL-SEQ ZIP (built vs target) now shows
+ * the only remaining call-set deltas are STRUCTURAL, not symbol bugs:
+ *   - target order at idx 7/8 is alloc(055750) THEN 00003ED4; this body
+ *     emits 00003ED4 then the loop allocs (swapped). The target's pre-metric
+ *     055750 is the DEAD-SENTINEL alloc-into-scratch at 0x3ac
+ *     (`a3=sp+376; bne a3,zero,skip; v1=a0+968; a0=12; jal alloc; ...` then
+ *     a Vec3 copy into a1/sp+376) — a conditional copy-or-alloc of a 12-byte
+ *     Vec3 scratch that this body skips. Reconstructing that scratch-Vec3
+ *     copy/alloc guard is the next structural step (recovers the missing
+ *     055750 + realigns the metric region).
+ *   - the `(self,out_flags,metric)` effect call at line ~4951 still has no
+ *     matching jal once ordering is accounted; it is a body-structure
+ *     divergence (extra/mis-ordered call), NOT a known real symbol — leave
+ *     as placeholder until the scratch-Vec3 region is rebuilt. No episode. */
 #ifdef NON_MATCHING
 /* forward decls for 591C real callees (defined later in this TU) */
 void game_uso_func_0000A3C4();
@@ -4863,7 +4881,7 @@ void game_uso_func_0000591C(int *a0) {
     scratch_xz.x = *(float*)(sub + 0x3C8);
     scratch_xz.y = 0.0f;
     scratch_xz.z = *(float*)(sub + 0x3D0);
-    metric = gl_func_00000000_f(&scratch_xz, &transform_in, &transform_out);
+    metric = game_uso_func_00003ED4(&scratch_xz, &transform_in, (int *)&transform_out);
     if (metric < 0.0f) {
         metric = -metric;
     }
@@ -11151,16 +11169,37 @@ void game_uso_func_0000C3F8(int *a0) {
  * int(1,2,3,5,8,21-31), float-lit(6,7,10-20). Residual is the documented
  * s2-scratch round-trip + rotating sp-scratch register coloring across the
  * 32 unrolled stages (permuter-class regalloc ceiling). */
+/* 2026-06-21 (agent-i) reloc-structure correction + call-set fix:
+ *   (a) the entry-init call is the REAL import_0010D33C (was a 055750
+ *       placeholder); with this fix the CALL-reloc set is now BYTE-IDENTICAL
+ *       to target (055750x35, 04A188x32, import_0010D33Cx1, 0000D458x1).
+ *   (b) The per-stage template-ptr model is WRONG in the opposite direction
+ *       to what the agent-e note assumed. Target's HI16/LO16 reloc histogram
+ *       is: game_uso_D_807FF568 x16, game_uso_D_807FF5B0 x16 (the obj[0xC]
+ *       template writes — ONE base symbol re-materialized with a FRESH
+ *       lui/addiu PER stage, 16 each), plus the index-table symbols
+ *       D_807FF81C..898 x1 each. This NM body emits only 2 relocs for FF568
+ *       and 2 for FF5B0 because IDO -O2 CSEs `&D_807FF568+0xf78` into ONE
+ *       register reused across all 16 float stages. Busting that CSE (so each
+ *       stage re-materializes the base) is the path to the +189-insn gap +
+ *       the FF568x16/FF5B0x16 reloc histogram. Per docs 3281/3188, distinct-
+ *       extern CSE-bust does NOT hold under this function's register pressure
+ *       (862 insns), so it stays the documented permuter-class ceiling; the
+ *       reloc-histogram target is now recorded for a future pressure-reduced
+ *       (regalloc-dump) attack. The rotating sp-scratch round-trip
+ *       (sw tmpl,192-4N(sp); lw; sw 0(s2); lw a2,0(s2)) per stage is the
+ *       other ~3-insn/stage source of the gap. */
 extern char game_uso_D_807FF568, game_uso_D_807FF5B0, game_uso_D_807FF74C, game_uso_D_807FF814, game_uso_D_807FF81C, game_uso_D_807FF820, game_uso_D_807FF824, game_uso_D_807FF828, game_uso_D_807FF82C, game_uso_D_807FF830, game_uso_D_807FF834, game_uso_D_807FF838, game_uso_D_807FF83C, game_uso_D_807FF840, game_uso_D_807FF844, game_uso_D_807FF848, game_uso_D_807FF84C, game_uso_D_807FF850, game_uso_D_807FF854, game_uso_D_807FF858, game_uso_D_807FF85C, game_uso_D_807FF860, game_uso_D_807FF864, game_uso_D_807FF868, game_uso_D_807FF86C, game_uso_D_807FF870, game_uso_D_807FF874, game_uso_D_807FF878, game_uso_D_807FF87C, game_uso_D_807FF880, game_uso_D_807FF884, game_uso_D_807FF888, game_uso_D_807FF88C, game_uso_D_807FF890, game_uso_D_807FF894, game_uso_D_807FF898;
 extern int game_uso_func_055750();
 extern int game_uso_func_04A188();
+extern int import_0010D33C();
 void game_uso_func_0000D458(s32);
 void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     char *p = (char *)a0;
     int *s1, *v1, *obj;
     int val;
     if (p == 0) { p = (char *)game_uso_func_055750(0x444); if (p == 0) goto end; }
-    game_uso_func_055750(p, a1); /* import_0010D33C */
+    import_0010D33C(p, a1);
     *(int *)(p + 0x28) = (int)&game_uso_D_807FF74C;
     s1 = (int *)(p + 0x13C);
     if (p == (char *)-0x13C) { s1 = (int *)game_uso_func_055750(0x308); if (s1 == 0) goto end; }
@@ -11920,7 +11959,16 @@ L_BC:
  * coloring. m2c cannot emit branch-likely directly; IDO's FP scheduler +
  * global coloring fixes the exact $f/$t numbering. No single C form lands the
  * whole cascade. Honest NON_MATCHING — this body is a faithful logical decode
- * with the correct callees/relocs, not a byte match. */
+ * with the correct callees/relocs, not a byte match.
+ *
+ * 2026-06-21 decode refinement (agent-i): the 0xA10 state-bit test is a
+ * HALFWORD read (lhu, not lw) — fixed to *(u16*)(v1+0xA10) & 0x1F0, matching
+ * the target word at that offset. Remaining gap (545 vs 524 insns, 496
+ * non-reloc diffs; reloc SYMBOL set is identical, only offset-shifted): IDO
+ * spills the var_a3 f32 to a stack slot and reload-churns it around the EDCC
+ * call cascade (built frame -80 vs target -56; extra swc1/lwc1 44(sp) pairs).
+ * That FP spill/reload coloring + the branch-likely FP gates are the residual
+ * cap; logic + symbols are correct. */
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
@@ -11962,7 +12010,7 @@ void game_uso_func_0000D9CC(char *arg0) {
     sp28 = 0;
     var_v1 = FW(arg0, 0xB4);
     var_a3 = 0.0f;
-    if ((FF(var_v1, 0x348) > 30.0f) && (FW(var_v1, 0xA10) & 0x1F0)) {
+    if ((FF(var_v1, 0x348) > 30.0f) && (*(u16 *)(var_v1 + 0xA10) & 0x1F0)) {
         temp_f2 = FF(var_v1, 0xA1C);
         if (temp_f2 < 0.0f) {
             var_f0 = -temp_f2;
