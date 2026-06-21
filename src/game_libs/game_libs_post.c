@@ -10133,18 +10133,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
 
 #ifdef NON_MATCHING
 /* game_libs_func_00027300: a0*352-strided lookup returning a signed byte, or
- * -1 when the slot's 0x2D00 word is non-negative. Logic verified exact for all
- * insns EXCEPT the -1 return: target's `beql t9,zero` (sign==0) branches PAST
- * its own end (0x2734C > 0x27348) into the NEXT function's shared epilogue —
- * a -O1 cross-fn-epilogue / tail-merge of the `return -1`. C must emit a
- * self-contained epilogue (li v1,-1; jr; move v0,v1) = +3 insns. Unmatchable
- * standalone (see feedback_leaf_branch_past_end_is_cross_fn_epilogue). The
- * `(unsigned)v>>31` form IS correct (produces the srl 0x1F + beql shape).
- * Sibling of game_libs_func_00026AF8 (same *352 stride, matched plain-C). */
+ * -1 when the slot's 0x2D00 word is non-negative.
+ *
+ * 2026-06-20 (agent-i): BODY now BYTE-EXACT for all 18 own-words (was 12 diffs,
+ * now 3). Levers that cracked the regalloc cascade:
+ *   - `if ((unsigned)v >> 31) { ... } return -1;` (NOT the ternary) frees $v0
+ *     for the return so the *352 base lands in $v1 (target's 01CF1821), the
+ *     loaded byte goes straight to $v0, and the -1 epilogue is `li v0,-1`.
+ *   - array-index `((int*)(p+0x2D38))[a1]` gives `addu t1, v1, t0` in the
+ *     target's operand order (was `addu t1, t0, v1`).
+ *   - splitting the inner pointer into `char *q` makes IDO reuse the dead $a0
+ *     param for the load (`lw a0,...(t1)`; `addu t2,a0,a2`).
+ * The ONLY residual: the `return -1` here is a SELF-CONTAINED 3-word epilogue
+ * (li v0,-1; jr; nop) appended to this symbol, whereas the target shares it as
+ * the SEPARATE adjacent symbol game_libs_func_00027348 — 27300's `beql` branches
+ * PAST its own end (0x2734C) into 27348's `jr`. That is an IDO cross-function
+ * tail-merge that C cannot force: making 27348 a real `return -1` function makes
+ * IDO EITHER inline the epilogue into 27300 (21-word symbol, no merge) OR emit a
+ * duplicate 2-word 27348 — never the target's beql-crosses-boundary split. So
+ * the two-symbol byte layout (27300=0x48 + 27348=0xc) is unreachable from C;
+ * INCLUDE_ASM stays the build path. Sibling of game_libs_func_00026AF8 (matched,
+ * void return → base in $v0). See feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
 int game_libs_func_00027300(int a0, int a1, int a2) {
     char *p = (char *)&D_00000000 + a0 * 352;
-    int v = *(int *)(p + 0x2D00);
-    return ((unsigned int)v >> 31) ? *(signed char *)(*(int *)(p + a1 * 4 + 0x2D38) + a2 + 0xD4) : -1;
+    if ((unsigned int)*(int *)(p + 0x2D00) >> 31) {
+        char *q = (char *)((int *)(p + 0x2D38))[a1];
+        return *(signed char *)(q + a2 + 0xD4);
+    }
+    return -1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027300);

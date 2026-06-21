@@ -1,0 +1,28 @@
+{
+  "function_name": "gl_func_0006C384",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T00:34:12.224317+00:00",
+  "end_time": "2026-06-21T00:34:12.224337+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T00:34:12.224331+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* The TLB-probe callee is an intra-module call that the USO loader relocates\n * at runtime; the ROM stores it as a bare `jal 0` (0x0C000000). Calling the\n * address-0 placeholder gl_func_00000000 reproduces those .text bytes exactly\n * (resolving the real symbol gl_func_00062F64 would emit a non-zero jal that\n * diverges from the ROM). Standard 1080 USO placeholder-callee convention. */\nextern u32 gl_func_00000000();\n\n/* gl_func_0006C384 = libultra osVirtualToPhysical (os/virtualtophysical.c).\n * KSEG0 (0x80000000..0x9FFFFFFF) and KSEG1 (0xA0000000..0xBFFFFFFF) are\n * direct-mapped to physical via `& 0x1FFFFFFF`; otherwise delegate to the\n * TLB-probe runtime helper (collapsed intra-module jal at splat time).\n *\n * MATCHES byte-exact only at -O1 (the target homes a0 to the stack and\n * reloads it for each KSEG comparison and for the fallback call -- a -O1\n * codegen trait; -O2 keeps a0 in $a0 and emits no homing). Carved out of\n * game_libs_post1b2.c (which is -O2) into this dedicated -O1 unit so the\n * function compiles with the matching optimization level. See the .ld for\n * the VRAM ordering (between post1b2 head and post1b2c tail). */\nu32 gl_func_0006C384(u32 a0) {\n    if (a0 >= 0x80000000U && a0 < 0xA0000000U) {\n        return a0 & 0x1FFFFFFF;\n    }\n    if (a0 >= 0xA0000000U && a0 < 0xC0000000U) {\n        return a0 & 0x1FFFFFFF;\n    }\n    return gl_func_00000000(a0);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6C384.c"
+  }
+}
