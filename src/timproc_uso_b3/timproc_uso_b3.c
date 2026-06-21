@@ -628,39 +628,35 @@ void timproc_uso_b3_func_000010B4(int a0) {
  * pseudo-order levers (BB-split / web-inversion / early-pseudo)
  * address arg-reg targeting. Remaining lever: uoptlist dump. */
 #ifdef NON_MATCHING
-extern int D_arg_b3_10E4;
+extern int D_arg_b3_10E4[];
 extern int D_cur_b3_10E4;
 void timproc_uso_b3_func_000010E4(int *self) {
   int *v0;
   int v1;
   int stride;
-  void (*fn)(void);
-  if (gl_func_00000000(D_arg_b3_10E4) == 0)
-  {
+  if (gl_func_00000000(D_arg_b3_10E4[0x190 / 4]) == 0) {
     return;
   }
   v0 = (int *) self[0x48 / 4];
   v1 = v0[0x7C / 4];
-  if (v1 != 0)
-  {
+  if (v1 != 0) {
     gl_func_00000000(5);
-    if (1)
-    {
+    if (1) {
     }
     v0 = (int *) self[0x48 / 4];
     v1 = v0[0x7C / 4];
   }
   stride = 40;
-  ;
-  if (((void (*)(void)) (*((int *) ((((char *) v0) + (v1 * stride)) + 0x90)))) != 0)
-  {
+  if (((void (*)(void)) (*((int *) ((((char *) v0) + (v1 * stride)) + 0x90)))) != 0) {
     D_cur_b3_10E4 = (int) self;
-    if (1)
-    {
+    if (1) {
     }
     v0 = (int *) self[0x48 / 4];
-    fn = (void (*)(void)) (*((int *) ((((char *) v0) + (v0[0x7C / 4] * stride)) + 0x90)));
-    fn();
+    /* Twin of b1's 1130: direct inline-loaded indirect call coalesces the
+     * index web into the $t9 call register; 39/40 words. Single residual
+     * is the addr addu operand order (product-rs vs target base-rs), a cap
+     * coupled to the $t9 coalesce (see the b1 twin's comment). */
+    (*((void (**)(void)) ((((char *) v0) + (v0[0x7C / 4] * stride)) + 0x90)))();
   }
 }
 #else

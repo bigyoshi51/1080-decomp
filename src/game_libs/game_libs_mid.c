@@ -41,10 +41,20 @@ extern char D_8C3C_root_desc;
  * 2026-06-10 branch-nesting probe: the target's bnez/beqz pattern reads
  * as nested fail-checks (if(!p){p=alloc; if(!p) goto ...}) but the
  * nested-goto form REGRESSES to 91.5 at -O0 (gotos emit extra b/label
- * traffic); the flat double-check form (this body) is correct for -O0.
- * The 3 branch-offset diffs + slot diffs are facets of the same -O0
- * temp-allocator cap. The 4 lui/addiu "diffs" at +0x24/+0xDC are FALSE
- * (relocs against D_0000D138/D148 resolve to target bytes). */
+ * traffic).
+ * 2026-06-20 BRANCH-EXACT via SHORT-CIRCUIT ||: the target's `bne +7`
+ * (skip alloc AND the post-alloc null-check) is reproduced by
+ * `if (p != 0 || (p = alloc()) != 0) { body }`. The `||` makes IDO -O0
+ * emit `bne p,zero,body; alloc; beq p,zero,end:` -- a SINGLE beq (not the
+ * bnez+b that an explicit `if(p==0)goto` produces), so the bne offset
+ * spans both the alloc and the beq exactly like the target. This drops
+ * the 3 branch-offset diffs (28/37/46) the flat double-check form had;
+ * residual is now ONLY the call_root temp-slot (0x28 mine vs 0x34 target)
+ * + the 2 D_D138/D148 reloc-addiu (FALSE, resolve to target bytes).
+ * The slot stays 0x28 across every C steer tried (2026-06-20: int cast,
+ * function-scope decl, explicit a0[0] temp [grows frame], block scope) --
+ * confirmed IDO -O0 temp-pool artifact, same class as gl_func_0005D054.
+ * Honest cap; stays INCLUDE_ASM. */
 extern char D_0000D138, D_0000D148, D_8C3C_v0;
 gl_func_00008C3C(a0, a1) int * a0; int a1; {
     register int *root;
@@ -56,24 +66,14 @@ gl_func_00008C3C(a0, a1) int * a0; int a1; {
     gl_func_00000000(&D_00000000, 7, 0, 0);
 
     root = 0;
-    if (root == 0) {
-        root = (int*)gl_func_00000000(0xD4);
-    }
-    if (root != 0) {
+    if (root != 0 || (root = (int*)gl_func_00000000(0xD4)) != 0) {
         mid = root;
-        if (mid == 0) {
-            mid = (int*)gl_func_00000000(0x50);
-        }
-        if (mid != 0) {
+        if (mid != 0 || (mid = (int*)gl_func_00000000(0x50)) != 0) {
             child = mid;
-            if (child == 0) {
-                child = (int*)gl_func_00000000(0x2C);
-            }
-            if (child != 0) {
+            if (child != 0 || (child = (int*)gl_func_00000000(0x2C)) != 0) {
                 gl_func_00000000(child, &D_0000D148);
                 child[0x28 / 4] = (int)&D_8C3C_child_desc;
             }
-
             mid[0x28 / 4] = (int)&D_8C3C_mid_desc;
         }
         root[0x28 / 4] = (int)&D_8C3C_root_desc;
@@ -85,7 +85,6 @@ gl_func_00008C3C(a0, a1) int * a0; int a1; {
         root = call_root;
     }
     gl_func_00000000(a0, 0, root);
-    (void)a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008C3C);

@@ -587,32 +587,40 @@ void timproc_uso_b1_func_00001100(int a0) {
  * pseudo-order levers (BB-split / web-inversion / early-pseudo)
  * address arg-reg targeting. Remaining lever: uoptlist dump. */
 #ifdef NON_MATCHING
-extern int D_arg_b1_1130;
+extern int D_arg_b1_1130[];
 extern int D_cur_b1_1130;
 void timproc_uso_b1_func_00001130(int *self) {
   int *v0;
   int v1;
   int stride;
-  void (*fn)(void);
-  if (gl_func_00000000(D_arg_b1_1130) == 0)
-  {
+  if (gl_func_00000000(D_arg_b1_1130[0x190 / 4]) == 0) {
     return;
- } v0 = (int *) self[0x48 / 4]; v1 = v0[0x7C / 4]; if (v1 != 0) { gl_func_00000000(5); if (1) {
+  }
+  v0 = (int *) self[0x48 / 4];
+  v1 = v0[0x7C / 4];
+  if (v1 != 0) {
+    gl_func_00000000(5);
+    if (1) {
     }
     v0 = (int *) self[0x48 / 4];
     v1 = v0[0x7C / 4];
   }
   stride = 40;
-  ;
-  if (((void (*)(void)) (*((int *) ((((char *) v0) + (v1 * stride)) + 0x90)))) != 0)
-  {
+  if (((void (*)(void)) (*((int *) ((((char *) v0) + (v1 * stride)) + 0x90)))) != 0) {
     D_cur_b1_1130 = (int) self;
-    if (1)
-    {
+    if (1) {
     }
     v0 = (int *) self[0x48 / 4];
-    fn = (void (*)(void)) (*((int *) ((((char *) v0) + (v0[0x7C / 4] * stride)) + ((0, 0x90)))));
-    fn();
+    /* Direct indirect-call through the inline-loaded fn-ptr: coalesces the
+     * index web with the $t9 call register exactly as the target does
+     * (lw $t9; ...; lw $t9,0x90($t1); jalr $t9). 39/40 words; the single
+     * residual is the addr addu operand order: target emits
+     * `addu $t1,$v0,$t0` (base rs) but the inline web (required for the
+     * $t9 coalesce) forces `addu $t1,$t0,$v0` (product rs). Naming the
+     * index OR the address flips the addu to base-rs but breaks the $t9
+     * coalesce (index/addr colors $v1) -> more diffs. The two are mutually
+     * exclusive in C: web-unification with $t9 implies product-rs addu. */
+    (*((void (**)(void)) ((((char *) v0) + (v0[0x7C / 4] * stride)) + 0x90)))();
   }
 }
 #else
