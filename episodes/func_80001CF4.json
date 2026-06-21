@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80001CF4",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T18:00:00.000000+00:00",
+  "end_time": "2026-06-21T18:20:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T18:20:00.000000+00:00",
+      "assistant_text": "Three-stage sub-object finalize/validate (kernel, 0xDC / 55 insns). Dead-#else harvest: the matching body sat in a dead `#else / #ifdef NON_MATCHING` branch (never compiled) while the build path was INCLUDE_ASM; the active #ifdef-NON_MATCHING body above it (return-on-failure-before-commit form) was the wrong shape. The dead body's structure matches the target's beql branch-likely chain: for each non-NULL handle slot (0x54/0x50/0x4C) it calls func_80001EDC(self, handle, paramA, paramB) (4 args, a0=self in s0), runs func_80000518(handle, paramC) ALWAYS (commit emitted in the `beql s1,0,next` delay slot, i.e. BEFORE the failure test), then tests temp_s1 and returns -0xE/-0xF/-0x10 on failure. Promoted the dead body to the active path and unwrapped. Linked ROM byte-identical to baserom (`cmp tenshoe.z64 baserom.z64` clean); build/.o vs expected/.o: 0 non-reloc word diffs, reloc-set MATCH (6 relocs: func_80001EDC x3, func_80000518 x3).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 55,
+  "initial_m2c_source": null,
+  "final_source": "#ifndef FW\n#define FW(p, o) (*(s32 *)((char *)(p) + (o)))\n#endif\ns32 func_80001CF4(void *arg0) {\n    extern s32 func_80001EDC();\n    s32 temp_s1;\n\n    if (FW(arg0, 0x54) != 0) {\n        temp_s1 = func_80001EDC(arg0, FW(arg0, 0x54), FW(arg0, 0x48), FW(arg0, 0x10));\n        func_80000518(FW(arg0, 0x54), FW(arg0, 0x1C));\n        if (temp_s1 != 0) {\n            return -0xE;\n        }\n    }\n    if (FW(arg0, 0x50) != 0) {\n        temp_s1 = func_80001EDC(arg0, FW(arg0, 0x50), FW(arg0, 0x44), FW(arg0, 0xC));\n        func_80000518(FW(arg0, 0x50), FW(arg0, 0x18));\n        if (temp_s1 != 0) {\n            return -0xF;\n        }\n    }\n    if (FW(arg0, 0x4C) != 0) {\n        temp_s1 = func_80001EDC(arg0, FW(arg0, 0x4C), FW(arg0, 0x40), FW(arg0, 0x8));\n        func_80000518(FW(arg0, 0x4C), FW(arg0, 0x14));\n        if (temp_s1 != 0) {\n            return -0x10;\n        }\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_000.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/kernel/func_80001CF4.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "build/.o vs expected/.o: 0 non-reloc word diffs, reloc-set MATCH (6 relocs); full `make verify` ROM byte-identical to baserom (cmp clean); verify-blocks OK"
+  }
+}

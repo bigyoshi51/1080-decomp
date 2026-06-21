@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00002420",
+  "project": "1080-agent-i",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T21:42:05.602116+00:00",
+  "end_time": "2026-06-21T21:42:05.602116+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T21:42:05.602116+00:00",
+      "assistant_text": "bootup_uso object constructor (alloc-or-given a0, init 0x50-byte struct). RE-CLASSIFY-THEN-LEVER: the prior NM-wrap (93.8%) diagnosed an 'unreachable two-instruction scheduling tie' between the s4 store and the four zero/const stores. Re-classifying the diff WORDS showed the real issue was the s5 store being ordered LAST (after the zero/const block) in the C; IDO's list scheduler then deferred the sp-loaded s4 store past the cheap zero-stores. Lever (store-order): move the `a0->0x34 = s5;` statement up to be adjacent to `a0->0x30 = s4;` so both sp-loaded stores stay together ahead of the zero/const block. Result: 0 non-reloc diffs vs expected; reloc symbol set = func_00000000 x2 + D_0000731C HI/LO (matches the .s placeholder callees). The a0+0x28 `&D_00000000` store materialises as `lui 0; addiu 0` post-link, byte-identical to the target's reloc-stripped `lui (0x0>>16); addiu 0x0`. Full `make` ROM stays byte-identical to baserom; verify + verify-blocks pass.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 38,
+  "initial_m2c_source": null,
+  "final_source": "extern char D_0000731C;\nint *func_00002420(int *a0, int a1, int a2, int a3, int s4, int s5) {\n    if (a0 == 0) {\n        a0 = (int*)func_00000000(0x50);\n        if (a0 == 0) goto end;\n    }\n    func_00000000(a0, &D_0000731C);\n    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;\n    *(int*)((char*)a0 + 0x38) = a1;\n    *(int*)((char*)a0 + 0x40) = a2;\n    *(int*)((char*)a0 + 0x2C) = a3;\n    *(int*)((char*)a0 + 0x30) = s4;\n    *(int*)((char*)a0 + 0x34) = s5;\n    *(int*)((char*)a0 + 0x3C) = 0;\n    *(int*)((char*)a0 + 0x44) = 0;\n    *(int*)((char*)a0 + 0x48) = 0x2710;\n    *(int*)((char*)a0 + 0x4C) = 0;\nend:\n    return a0;\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00002420.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "0 non-reloc diffs vs expected/.o (reloc-filtered word-compare); reloc symbol set matches .s placeholder callees + D_0000731C; a0+0x28 &D_00000000 resolves to lui0/addiu0 = target bytes; full `make` ROM byte-identical to baserom (cmp clean); make verify + verify-blocks pass."
+  }
+}

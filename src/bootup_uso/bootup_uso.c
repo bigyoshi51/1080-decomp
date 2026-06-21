@@ -1638,19 +1638,16 @@ void func_000023C8(Quad4 *dst) {
     *dst = buf;
 }
 
-#ifdef NON_MATCHING
-/* 93.8% match. IDO's list scheduler reorders: target emits
- *   sw t0,0x30(a0); lw t1,0x2C(sp)(s5-load); zero-stores; sw t2,0x48(a0)
- *   (0x2710 in $t2); sw t1,0x34(a0)
- * IDO produces instead:
- *   zero-stores; sw t1,0x48(a0) (0x2710 in $t1); sw t0,0x30(a0); lw t2,0x2C(sp);
- *   sw t2,0x34(a0)
- * i.e. IDO pushes the s4 store down past the zero-stores because stack-loaded
- * t0 has more pending dependency than $zero. Const 0x2710 register flips t2→t1
- * as a knock-on because the s5-load slot is gone. Tried: hoisting s5 into a
- * named local before zero-stores (no effect — const-prop), and reading order
- * variants. Same class as feedback_ido_sw_before_addu_unreachable.md — two
- * independent instructions' ordering is not reachable from C source. */
+/* MATCHED 2026-06-21: the s4/s5-store schedule swap is C-reachable after all.
+ * The target emits the s4 store (sp-loaded) then the s5 store BEFORE the four
+ * zero/const stores; the prior C ordered s5 LAST (after the zeros), and IDO's
+ * list scheduler then deferred the s4 store past the cheap zero-stores. Moving
+ * the `a0->0x34 = s5;` statement up to be adjacent to `a0->0x30 = s4;` pins
+ * both sp-loaded stores together ahead of the zero/const block, matching the
+ * target schedule exactly (0 non-reloc diffs vs expected; reloc symbol set =
+ * func_00000000 x2 + D_0000731C HI/LO; the a0+0x28 store's `&D_00000000`
+ * materialises as `lui 0; addiu 0` post-link, byte-identical to the target's
+ * reloc-stripped `lui (0x0>>16); addiu 0x0`). */
 extern char D_0000731C;
 int *func_00002420(int *a0, int a1, int a2, int a3, int s4, int s5) {
     if (a0 == 0) {
@@ -1663,17 +1660,14 @@ int *func_00002420(int *a0, int a1, int a2, int a3, int s4, int s5) {
     *(int*)((char*)a0 + 0x40) = a2;
     *(int*)((char*)a0 + 0x2C) = a3;
     *(int*)((char*)a0 + 0x30) = s4;
+    *(int*)((char*)a0 + 0x34) = s5;
     *(int*)((char*)a0 + 0x3C) = 0;
     *(int*)((char*)a0 + 0x44) = 0;
     *(int*)((char*)a0 + 0x48) = 0x2710;
     *(int*)((char*)a0 + 0x4C) = 0;
-    *(int*)((char*)a0 + 0x34) = s5;
 end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002420);
-#endif
 
 // func_000024B8(obj): per-frame state/animation tick for a bootup_uso scene object.
 // Sibling of the obj->0x28 vtable-dispatch family (the 0x6C/0x68 jalr idiom appears 3x,

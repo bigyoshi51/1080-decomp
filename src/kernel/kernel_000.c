@@ -1798,36 +1798,16 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001ADC);
  * Caps <80: leaked predecessor prologue word (boundary) + beql
  * branch-likely chain + 2 callees. INCLUDE_ASM remains build path
  * (no episode; tautology-trap rule + unresolved head boundary). */
-#ifdef NON_MATCHING
-extern int func_80001EDC(int handle, int paramA, int paramB);
-extern void func_80000518(int handle, int paramC);
-s32 func_80001CF4(char *s) {
-    if (*(int*)(s + 0x54) != 0) {
-        if (func_80001EDC(*(int*)(s + 0x54), *(int*)(s + 0x48), *(int*)(s + 0x10)) != 0)
-            return -0xE;
-        func_80000518(*(int*)(s + 0x54), *(int*)(s + 0x1C));
-    }
-    if (*(int*)(s + 0x50) != 0) {
-        if (func_80001EDC(*(int*)(s + 0x50), *(int*)(s + 0x44), *(int*)(s + 0xC)) != 0)
-            return -0xF;
-        func_80000518(*(int*)(s + 0x50), *(int*)(s + 0x18));
-    }
-    if (*(int*)(s + 0x4C) != 0) {
-        if (func_80001EDC(*(int*)(s + 0x4C), *(int*)(s + 0x40), *(int*)(s + 0x8)) != 0)
-            return -0x10;
-        func_80000518(*(int*)(s + 0x4C), *(int*)(s + 0x14));
-    }
-    return 0;
-}
-#else
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(s32 *)((char *)(p) + (o)))
 #endif
-/* Three-stage sub-object finalize/validate: for each non-NULL sub-object
- * (unk54/unk50/unk4C) run func_80001EDC(self, sub, paramA, paramB) + the
- * func_80000518(sub, paramC) cleanup; bail with -0xE/-0xF/-0x10 if the stage
- * fails. (Unblocked by the func_80001ADC/CF4 splat-boundary delay-slot fix.) */
+/* func_80001CF4: MATCHED 2026-06-21 (dead-#else promotion). Three-stage
+ * sub-object finalize/validate: for each non-NULL sub-object (unk54/unk50/
+ * unk4C) run func_80001EDC(self, sub, paramA, paramB) + the func_80000518(
+ * sub, paramC) cleanup (commit runs in the beql delay slot, BEFORE the
+ * failure test); bail with -0xE/-0xF/-0x10 if the stage fails. The matching
+ * body sat in a dead #else/#ifdef branch (never compiled) while the build
+ * path was INCLUDE_ASM. ROM byte-identical to baserom. */
 s32 func_80001CF4(void *arg0) {
     extern s32 func_80001EDC();
     s32 temp_s1;
@@ -1855,10 +1835,6 @@ s32 func_80001CF4(void *arg0) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001CF4);
-#endif
-#endif
 
 /* func_80001DD0 - verified structural decode (kernel, 0xF8, 62
  * insns). SIBLING of func_80001CF4 (same 3-slot resource init/
