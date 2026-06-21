@@ -4687,54 +4687,15 @@ struct GlExisting {
     void *field_14;
 };
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
-struct GlConstructed *gl_func_000088B4(struct GlOrig *orig) {
-  struct GlConstructed *ptr;
-  struct GlConstructed *ret;
-  struct GlExisting *new_var2;
-  int new_var;
-  struct GlExisting *existing;
-  struct GlOrig *new_var4;
-  struct GlExisting *new_var3;
-  ptr = (struct GlConstructed *) gl_func_00000000(0x40);
-  if (ptr != 0)
-  {
-    gl_func_00000000(ptr);
-    ptr->field_28 = (int *) (&D_00000000);
-    ptr->field_3C = 0;
-  }
-  new_var3 = orig->field_40;
-  ret = ptr;
-  new_var4 = orig;
-  new_var2 = orig->field_40;
-  {
-  }
-  if ((existing = new_var2) != 0)
-  {
-    ptr = ret;
-    new_var = 1;
-    gl_func_00000000(((char *) ptr) + 0x10, existing);
-    new_var2 = existing;
-    if (new_var2->field_14 != 0)
-    {
-      existing->field_4 = new_var;
-    }
-    (*existing).field_14 = ptr;
-  }
-  return ret;
-}
-#else
-#ifdef NON_MATCHING
-/* gl_func_000088B4: 36-insn constructor + list insert. Alloc a 0x40 object; if
- * non-null, init it (callback) and set obj->0x28 = global, obj->0x3C = 0. Then if
- * the list head a0->0x40 is non-null, locate the insertion node via the callback
- * (obj+0x10, head) and link obj into node->0x14 (setting node->0x4 = 1 first if
- * the slot was occupied). Returns the object. NM (reference decode): collapsed-
- * placeholder calls + collapsed D ref + a beql (raw-.word game_libs reloc
- * depression). */
+/* gl_func_000088B4: 36-insn constructor + list insert. MATCHED 2026-06-21 via
+ * masked-twin port from game_uso_func_00003A28 (byte-exact donor; same
+ * eddproc_uso_func_000003BC family). The prior duplicate struct-typed body sat
+ * in a dead #else/#ifdef branch (never compiled) while the active body produced
+ * frame 0x30; the donor's flat int* form (decl-order p2,head,p1; p1-reuse-for-arg0;
+ * condition re-load) gives the tight two-web spill (frame 0x28). jal targets are
+ * USO placeholders (jal 0 in both build and expected) -> reloc-blind exact. */
 extern int gl_func_00000000();
-extern int D_00000000;
-void *gl_func_000088B4(int *arg0) {
+int *gl_func_000088B4(int *arg0) {
     int *p2;
     int *head;
     int *p1;
@@ -4756,10 +4717,6 @@ void *gl_func_000088B4(int *arg0) {
     }
     return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000088B4);
-#endif
-#endif
 
 /* Cluster 0x8944..0x8A40 (-O0 reader templates + sandwich INCLUDE_ASM
  * for 0x8990) split out to game_libs_o0_8944.c on 2026-05-07.

@@ -1,0 +1,33 @@
+{
+  "function_name": "func_8000817C",
+  "project": "1080-agent-i",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T17:00:00.000000+00:00",
+  "end_time": "2026-06-21T17:30:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T17:30:00.000000+00:00",
+      "assistant_text": "__rmonClearBreak block-1 fragment (21 insns / 0x54, TRUNCATE_TEXT=0x100; block 2 = func_800081D0 in kernel_020_c.c). Was a documented NON_MATCHING cap at 3 diffs (formerly INSN_PATCH'd, banned). Re-classified the diffs: NOT pure coloring -- two distinct C-fixable levers. (1) SPILL-PLACEMENT: the target homes the masked BREAK-test value `*saved_a` (t8) into a dead phantom stack slot 28(sp), written once in the bne delay slot and never reloaded; the prior C homed the saved_a POINTER (t7) in the wrong (beq) delay slot. Naming the dereferenced compare value as its own local `instr_a` while reading the pointer FRESH from rmonbrk_bss_0000[0] for the stores (no pointer caching) reproduces the exact phantom-slot home + delay-slot fill -- 3 diffs -> 1 diff. Caching the pointer in a local instead grows the frame +8 and adds a real spill. (2) CROSS-FRAGMENT BRANCH: the remaining 1 diff was the beqz displacement (build +0x17 vs target +0x18) -- a per-.o objdump artifact of truncation, but it is baked into the .o word and so a REAL miss. Block 1's `rmonbrk_bss_0000 = 0` tail was emitting one fewer instruction than the target's lui+addiu+sw pointer-form store; writing it as `((s32*)&rmonbrk_bss_0000)[0] = 0` (array/pointer form) forces the 3-insn materialization, lengthening block 1 by one instruction so the cross-fragment branch lands at +0x18. Linked-ELF objdump: all 21 words byte-identical to asm/nonmatchings/kernel/func_8000817C.s including the `.word 0x11E00018` cross-fragment beqz; objdiff fuzzy 100.0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "void func_8000817C(void) {\n    s32 instr_a;\n\n    if (((s32 *)&rmonbrk_bss_0000)[0] != 0) {\n        instr_a = *(s32 *)((s32 *)&rmonbrk_bss_0000)[0];\n        if ((instr_a & 0xFC00003F) == 0xD) {\n            *(s32 *)((s32 *)&rmonbrk_bss_0000)[0] = ((s32 *)&rmonbrk_bss_0000)[1];\n            func_800031F0((void *)((s32 *)&rmonbrk_bss_0000)[0], 4);\n            func_80005350((void *)((s32 *)&rmonbrk_bss_0000)[0], 4);\n        }\n        ((s32 *)&rmonbrk_bss_0000)[0] = 0;\n    }\n\n    if (D_8001FEF0 != 0) {\n        s32 *saved_b = (s32 *)D_8001FEF0;\n\n        if ((*saved_b & 0xFC00003F) == 0xD) {\n            *saved_b = D_8001FEF4;\n            func_800031F0((void *)D_8001FEF0, 4);\n            func_80005350((void *)D_8001FEF0, 4);\n        }\n        D_8001FEF0 = 0;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_040.c",
+    "asm_path": "projects/1080-agent-i/asm/nonmatchings/kernel/func_8000817C.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul (TRUNCATE_TEXT=0x100)",
+    "verification": "linked-ELF objdump: all 21 .text words (0x8000817C-0x800081CC, block-1 fragment) byte-identical to asm/nonmatchings/kernel/func_8000817C.s including the cross-fragment `.word 0x11E00018` beqz; objdiff fuzzy_match_percent=100.0; full `make` ROM build rc=0; verify-blocks OK"
+  }
+}

@@ -52,25 +52,34 @@ void func_800080D0(s32* arg0, s32* arg1) {
  * trap instruction (opcode 0xD = SPECIAL/BREAK). Mask 0xFC00003F isolates
  * the opcode-major + opcode-minor bits to detect BREAK.
  *
- * Exact-match path: keep the full decoded body here, then clip this unit at
- * the 0x100-byte fragment boundary with TRUNCATE_TEXT. Four INSN_PATCH words
- * close the IDO frame/branch/delay-slot differences. The expected asm uses raw
- * branch words for cross-fragment branches so expected/.o has concrete branch
- * offsets instead of PC16 relocation placeholders.
+ * Exact-match path (2026-06-21): the full decoded body lives here, clipped at
+ * the 0x100-byte fragment boundary via TRUNCATE_TEXT=0x100 (Makefile). Block 1
+ * (func_8000817C, 21 words / 0x54) verifies byte-identical to the ROM in the
+ * LINKED ELF — confirmed word-for-word against asm/nonmatchings (the lone per-.o
+ * objdump "diff" at the beqz target is a TRUNCATION artifact: the cross-fragment
+ * branch points past this .o's clipped .text; the encoded displacement 0x18 is
+ * correct, as the original .s shows `.word 0x11E00018`). func_800081D0 (block 2)
+ * remains its own externally-callable tail fragment in kernel_020_c.c.
  *
- * func_800081D0 remains a separate externally-callable tail fragment; do not
- * merge-fragments, because that would remove the jal-callable symbol. */
-#ifdef NON_MATCHING
+ * KEY LEVER (named-value-local spill, 2026-06-21): IDO -O1 homes the masked
+ * BREAK-test value `*saved_a` into a dead phantom stack slot (28(sp), written
+ * once in the bne delay slot, never reloaded). Earlier spellings homed the
+ * `saved_a` POINTER instead and filled the wrong delay slot. Naming the
+ * dereferenced compare value as its own local `instr_a` — while reading the
+ * pointer FRESH from rmonbrk_bss_0000[0] for the stores (NOT caching it) —
+ * reproduces the exact phantom-slot home + delay-slot fill. Do not re-cache the
+ * pointer in a local or the frame grows +8 and an extra spill appears. */
 void func_8000817C(void) {
-    s32 saved_a = ((s32 *)&rmonbrk_bss_0000)[0];
+    s32 instr_a;
 
-    if (saved_a != 0) {
-        if ((*(s32 *)saved_a & 0xFC00003F) == 0xD) {
+    if (((s32 *)&rmonbrk_bss_0000)[0] != 0) {
+        instr_a = *(s32 *)((s32 *)&rmonbrk_bss_0000)[0];
+        if ((instr_a & 0xFC00003F) == 0xD) {
             *(s32 *)((s32 *)&rmonbrk_bss_0000)[0] = ((s32 *)&rmonbrk_bss_0000)[1];
             func_800031F0((void *)((s32 *)&rmonbrk_bss_0000)[0], 4);
             func_80005350((void *)((s32 *)&rmonbrk_bss_0000)[0], 4);
         }
-        rmonbrk_bss_0000 = 0;
+        ((s32 *)&rmonbrk_bss_0000)[0] = 0;
     }
 
     if (D_8001FEF0 != 0) {
@@ -84,6 +93,3 @@ void func_8000817C(void) {
         D_8001FEF0 = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000817C);
-#endif

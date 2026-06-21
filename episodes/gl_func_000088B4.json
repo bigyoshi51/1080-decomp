@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000088B4",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T21:17:27.630847+00:00",
+  "end_time": "2026-06-21T21:17:27.630881+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T21:17:27.630870+00:00",
+      "assistant_text": "Masked-twin port from byte-exact donor game_uso_func_00003A28 (same eddproc_uso_func_000003BC alloc-init constructor family). Root cause: gl_func_000088B4 had two NM bodies \u2014 a stale struct-typed body (active, frame 0x30) and a maintained donor-port body sitting in a dead #else/#ifdef NON_MATCHING branch that never compiled. Promoted the flat int* donor-port form (decl-order p2,head,p1; p1-reuse-for-arg0; p1[0x40/4] condition re-load) which yields the tight two-web spill (frame 0x28). jal targets are USO placeholders (jal 0 in both build and expected) so reloc-blind exact. Verified 0 word diffs (incl reloc words) on DEFAULT build path; full ROM byte-identical; verify-blocks clean.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 36,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000();\nint *gl_func_000088B4(int *arg0) {\n    int *p2;\n    int *head;\n    int *p1;\n    p1 = (int*)gl_func_00000000(0x40);\n    if (p1 != 0) {\n        gl_func_00000000(p1);\n        *(int*)((char*)p1 + 0x28) = (int)&D_00000000;\n        *(int*)((char*)p1 + 0x3C) = 0;\n    }\n    p2 = p1;\n    p1 = arg0;\n    head = (int*)p1[0x40 / 4];\n    if ((int*)p1[0x40 / 4] != 0) {\n        gl_func_00000000((char*)p2 + 0x10, head);\n        if (*(int*)((char*)head + 0x14) != 0) {\n            *(int*)((char*)head + 0x4) = 1;\n        }\n        *(int*)((char*)head + 0x14) = (int)p2;\n    }\n    return p2;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_000088B4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "default-build .o byte-exact vs expected/.o (0 word diffs incl reloc); make ROM byte-identical; make verify-blocks pass"
+  }
+}
