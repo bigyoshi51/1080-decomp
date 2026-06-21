@@ -2798,43 +2798,40 @@ void game_uso_func_000039F8(char *dst) {
     game_uso_func_00000280((int*)(dst + 0x10));
 }
 
-/* game_uso_func_00003A28: 36-insn alloc + conditional-init + registry-link
- * wrapper with branch-likely tail-merge. Was previously promoted from 89.22%
- * NM cap via 25-word INSN_PATCH. INSN_PATCH REMOVED 2026-05-23 as match-
- * faking per feedback_no_instruction_forcing_matches_policy;
- * docs/POST_CC_RECIPES.md DEPRECATED. NATURAL CEILING 89.22% NM.
- * Underlying caps: IDO's register-allocation pick ($a1/$a2 for obj/other vs
- * target's $v0/$v1) AND a frame-size diff (0x20 vs 0x28), plus a
- * jal-position swap (+0x1C non-jal→jal, +0x20 jal→non-jal). */
-#ifdef NON_MATCHING
+/* game_uso_func_00003A28: 36-insn alloc-init constructor. alloc(0x40) +
+ * init(051C28), set vtable 0x28 = &import_8006ED80, clear 0x3C; then walk
+ * a0->0x40 node and link it back via 07ACE0.
+ *
+ * 2026-06-21 CRACKED via masked-twin port from eddproc_uso_func_000003BC
+ * (donor, byte-exact). The prior "89.22% NM ceiling / v0-v1 regalloc +
+ * frame + jal-swap cap" was a structure+symbol issue: the old body used
+ * placeholder gl_func/&D and the simplified obj/other locals. The donor's
+ * p2/head/p1 split + p1-reuse-for-arg0 + decl-order (p2,head,p1) + condition
+ * re-load forces the two-web spill (frame 0x28) and the a0/v1 coloring.
+ * Do NOT simplify the variable reuse or the re-load. */
+extern char import_8006ED80;
 int *game_uso_func_00003A28(int *arg0) {
-  int *obj;
-  int *other;
-  obj = (int *) gl_func_00000000(0x40);
-  other = obj;
-  {
-    gl_func_00000000(other);
-    *((int *) (((char *) obj) + 0x28)) = (int) (&D_00000000);
-    *((int *) (((char *) obj) + (0x3C & 0xFFFF))) = 0;
-    if (!obj)
-    {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)game_uso_func_055750(0x40);
+    if (p1 != 0) {
+        game_uso_func_051C28(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&import_8006ED80;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-  }
-  other = (int *) arg0[0x40 / 4];
-  if (((int *) arg0[0x40 / 4]) != 0)
-  {
-    gl_func_00000000(((char *) obj) + 0x10, other);
-    if (other[0x14 / 4] != 0)
-    {
-      other[0x4 / 4] = 1;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        game_uso_func_07ACE0((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    other[0x14 / 4] = (int) obj;
-  }
-  return obj;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003A28);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00003A28_pad.s")
 
 /* game_uso_func_00003AC0: 261-insn (0x414) constructor. Frame -0x70.
@@ -9943,43 +9940,42 @@ void game_uso_func_0000AC48(char *dst) {
     game_uso_func_00004080((int*)(dst + 0x10));
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000AC78: alloc-init constructor (twin of game_uso_func_000041C0
- * tail). alloc(0x40) + init(051C28), set vtable 0x28 = &import_8006ED80, clear
- * 0x3C; then walk a0->0x40 node and link it back via 07ACE0 + delay-likely store.
- * Callees RESOLVED post Yay0-split migration (was placeholder gl_func).
+/* game_uso_func_0000AC78: 36-insn alloc-init constructor. alloc(0x40) +
+ * init(051C28), set vtable 0x28 = &import_8006ED80, clear 0x3C; then walk
+ * a0->0x40 node and link it back via 07ACE0.
  *
- * CAP (2026-06-20): logic exact + frame-exact. Remaining 25 diffs are pure
- * regalloc coloring: target keeps ptr in a0(reloaded)/v1 (0x28 frame), IDO
- * colors it a2 here (0x20 frame, single-slot reuse vs target's spill/reload
- * through a0->v1). v1-vs-a2 renumber class; spelling-invariant (struct-access /
- * array-index / pad all reproduce a2). Twin 41C0 only gets the v1 shape from its
- * dead-stage register pressure, absent here. */
+ * 2026-06-21 CRACKED via masked-twin port from eddproc_uso_func_000003BC
+ * (donor, byte-exact). The prior "25-diff v1-vs-a2 regalloc cap" was a
+ * structure issue, not a true cap: the donor's p2/head/p1 split + p1-reuse-
+ * for-arg0 + decl-order (p2,head,p1) + condition re-load (`if((int*)p1[0x40/4]
+ * !=0)`) forces IDO to spill the object as two live ranges (frame 0x28) and
+ * color it a0(block1)/v1(block2) instead of a2(0x20). Do NOT simplify the
+ * variable reuse or the re-load — they are load-bearing for the reg/slot
+ * allocation. See docs/IDO_CODEGEN.md interleave-decl-spill-slot. */
 extern char import_8006ED80;
-int *game_uso_func_0000AC78(int *a0) {
-    int *ptr;
-    int *node;
-
-    ptr = (int *)game_uso_func_055750(0x40);
-    if (ptr != 0) {
-        game_uso_func_051C28(ptr);
-        *(int *)((char *)ptr + 0x28) = (int)&import_8006ED80;
-        *(int *)((char *)ptr + 0x3C) = 0;
+int *game_uso_func_0000AC78(int *arg0) {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)game_uso_func_055750(0x40);
+    if (p1 != 0) {
+        game_uso_func_051C28(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&import_8006ED80;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    node = *(int **)((char *)a0 + 0x40);
-    if (node != 0) {
-        game_uso_func_07ACE0((char *)ptr + 0x10, node);
-        if (*(int *)((char *)node + 0x14) != 0) {
-            *(int *)((char *)node + 4) = 1;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        game_uso_func_07ACE0((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
         }
-        *(int *)((char *)node + 0x14) = (int)ptr;
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    return ptr;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AC78);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_0000AC78_pad.s")
-#endif
 
 void game_uso_func_0000AD10(float *dst) {
     float buf[2];
@@ -14912,38 +14908,36 @@ void game_uso_func_00011A64(char *dst) {
     game_uso_func_0000C194((int*)(dst + 0x10));
 }
 
-/* game_uso_func_00011A94: byte-identical mirror of bootup_uso/func_000046EC
- * (and func_00000C10, func_0000E690 — see those wrap docs). Cross-segment
- * sibling transfer: same C body + same INSN_PATCH bytes. game_uso uses
- * the gl_func_00000000 cross-segment placeholder for `func` calls. */
-#ifdef NON_MATCHING
+/* game_uso_func_00011A94: 36-insn alloc-init constructor. alloc(0x40) +
+ * init(051C28), set vtable 0x28 = &import_8006ED80, clear 0x3C; then walk
+ * a0->0x40 node and link it back via 07ACE0.
+ *
+ * 2026-06-21 CRACKED via masked-twin port from eddproc_uso_func_000003BC
+ * (donor, byte-exact); identical to the 3A28/AC78 lands. The prior body
+ * used placeholder gl_func/&D + the INSN_PATCH-era shape. The donor's
+ * p2/head/p1 split + p1-reuse-for-arg0 + decl-order + condition re-load
+ * forces the two-web spill and a0/v1 coloring. */
+extern char import_8006ED80;
 void *game_uso_func_00011A94(int *arg0) {
-  volatile int **vparg = (volatile int **) (&arg0);
-  int *node;
-  int *head;
-  node = (int *) gl_func_00000000(0x40);
-  {
-    gl_func_00000000(node);
-    if (1)
-    {
+    int *p2;
+    int *head;
+    int *p1;
+    p1 = (int*)game_uso_func_055750(0x40);
+    if (p1 != 0) {
+        game_uso_func_051C28(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&import_8006ED80;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    node[10] = (int) (&D_00000000);
-    node[15] = 0;
-  }
-  head = (int *) arg0[16];
-  if (((int *) arg0[16]) != 0)
-  {
-    gl_func_00000000(node - -4, head);
-    if (head[5] != 0)
-    {
-      head[1] = 1;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        game_uso_func_07ACE0((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
+        }
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    head[5] = (int) node;
-  }
-  (void) vparg;
-  return node;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011A94);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_uso/game_uso/game_uso_func_00011A94_pad.s")

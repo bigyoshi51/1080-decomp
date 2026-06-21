@@ -7133,90 +7133,37 @@ void timproc_uso_b5_func_0000AAF4(char *a0) {
 }
 
 
-#ifdef NON_MATCHING
-/* 89.3 % match. Previously NOTE was inverted: re-decoded 2026-05-02 the
- * post-jal stores DO use the 2nd jal's return value (call result spilled
- * to sp+0x20, reloaded as $a1 then used for q->0x14 / q->0x4 / q->0x14
- * stores). r (= arg0->0x40) is only used as the 2nd jal's a1-arg.
- * Adding `char pad[8]` coerces frame 0x20 -> 0x28 (target spills a0 to
- * caller's outgoing slot at sp+0x28).
- *
- * Remaining diffs (register-allocation flip):
- * - Target uses $a0 throughout the 1st init block (no scratch copy), then
- *   explicitly `or v1, a0, zero` to move p to $v1 right before the 2nd jal.
- *   Our build pre-allocates p to $a2 right after the 1st jal returns
- *   (extra `or a2, v0, zero` insertion + uses $a2 throughout). $v1 home
- *   for cross-jal preservation isn't reachable from C — IDO won't pick the
- *   v0/return-low register as a long-lived hold reg.
- * - Spill slot offsets: target 0x1C/0x20/0x24, ours 0x1C/0x18 (only 2
- *   distinct slots; not enough variables to need 3).
- * - Final beq vs beql: target `beq v0,zero,+0xC` then `or a1,v0,zero`
- *   delay-slot; ours `beql a1,zero,...` with epilogue-load delay-fill
- *   (because we named `r` as a local, IDO promotes it to a1 early).
- *
- * These are all knock-on from the same root: IDO's register allocator
- * picks $a2 instead of $a0/$v1 for p's hold-across-2nd-jal slot. Same
- * structural cap as `feedback_ido_arg_save_reg_pick.md` — the choice of
- * arg/scratch reg for cross-jal preserve isn't C-controllable.
- *
- * 2026-05-04 TRIED: inline `r` (no named local — use `*(void**)(arg0+0x40)`
- * directly twice in the if-test and the call arg). Result: same ~89% shape,
- * but emit changed to use v0-directly-as-q (no q-spill+reload), beql in
- * delay slot variants. Net: still 32+ insns vs target 36, p still in $a2
- * not $v1. Inlining `r` actually drops the q-spill (target HAS the q-spill
- * at sp+0x20 — which mine doesn't), so this regresses, not improves. The
- * named-`r` form is closer to target's full structure. Reverted.
- *
- * 2026-05-04 TRIED (later session): `register void *p` keyword hint — IDO
- * IGNORES register hint here, same emit as plain `void *p`. p still in $a2
- * (not $v1 as target wants). Confirms IDO's regalloc for caller-saved
- * "preserve-across-jal" slots is purely weight-driven and doesn't honor
- * register hints (vs. its strong honoring for $s-regs in interrupt-bracket
- * patterns). Different from the GCC `register T x asm("$N")` strong-hint
- * trick that's GCC-only.
- *
- * 2026-05-04: re-tested for INSN_PATCH eligibility. Built emits 34 insns,
- * expected has 36 — a 2-insn deficit (built lacks the `or v1, a0, zero`
- * + an extra spill-store). Per feedback_insn_patch_size_diff_blocked.md
- * INSN_PATCH alone can't fix this. Promotion needs a sibling
- * inject-insn-at.py recipe OR a different C shape that emits the extra
- * `or v1,a0` move. Deferred.
- *
- * 2026-05-05 TRIED: pass arg0 as 3rd arg to gl_func_00000000(p+0x10, r,
- * arg0) — hoping the extra K&R-arg pass would force a0 preservation /
- * register reshuffle. REGRESSED 83.25% → 82.56% (the unused 3rd arg
- * forced an extra `sw a2, 8(sp)` outgoing-arg-slot store that target
- * doesn't have). Reverted. The cap class IS purely the v1-vs-a2
- * register pick for the cross-jal-preserve slot of `p`, not reachable
- * via K&R arg-list manipulation. */
-/* 2026-05-31: BYTE-IDENTICAL to game_uso_func_00011A94@89% (vparg-lever variant of the
- * eddproc-3BC constructor). Applied its body — the old one inserted into the call RESULT
- * q instead of HEAD, and lacked the vparg spill. */
+/* 2026-06-21 CRACKED via masked-twin port from eddproc_uso_func_000003BC
+ * (donor, byte-exact); identical land to game_uso 3A28/AC78/11A94. alloc(0x40)
+ * + init(051C28), vtable 0x28 = &import_8006ED80, clear 0x3C; then walk
+ * arg0->0x40 node and link via 07ACE0. The donor's p2/head/p1 split +
+ * p1-reuse-for-arg0 + decl-order (p2,head,p1) + condition re-load forces the
+ * two-web spill (frame 0x28) and the a0/v1 coloring that the prior
+ * single-web/vparg body could not reach. */
+extern int timproc_uso_b5_func_051C28();
+extern char import_8006ED80;
 void *timproc_uso_b5_func_0000AB24(int *arg0) {
-    volatile int **vparg = (volatile int **)&arg0;
-    int *node;
+    int *p2;
     int *head;
-
-    node = (int*)gl_func_00000000(0x40);
-    if (node != 0) {
-        gl_func_00000000(node);
-        node[10] = (int)&D_00000000;
-        node[15] = 0;
+    int *p1;
+    p1 = (int*)timproc_uso_b5_func_055750(0x40);
+    if (p1 != 0) {
+        timproc_uso_b5_func_051C28(p1);
+        *(int*)((char*)p1 + 0x28) = (int)&import_8006ED80;
+        *(int*)((char*)p1 + 0x3C) = 0;
     }
-    head = (int*)arg0[16];
-    if (head != 0) {
-        gl_func_00000000(node + 4, head);
-        if (head[5] != 0) {
-            head[1] = 1;
+    p2 = p1;
+    p1 = arg0;
+    head = (int*)p1[0x40 / 4];
+    if ((int*)p1[0x40 / 4] != 0) {
+        timproc_uso_b5_func_07ACE0((char*)p2 + 0x10, head);
+        if (*(int*)((char*)head + 0x14) != 0) {
+            *(int*)((char*)head + 0x4) = 1;
         }
-        head[5] = (int)node;
+        *(int*)((char*)head + 0x14) = (int)p2;
     }
-    (void)vparg;
-    return node;
+    return p2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AB24);
-#endif
 
 void timproc_uso_b5_func_0000ABB4(int *a0) {
     *(int*)((char*)a0 + 0xB0) = 1;
