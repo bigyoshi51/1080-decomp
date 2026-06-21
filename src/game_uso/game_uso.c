@@ -1105,22 +1105,22 @@ void game_uso_func_0000174C(int *a0, int a1, int a2) {
     if (a1 == 17) goto c17;
     if (a1 == 18) goto c18;
     goto end;
-c3:  gl_func_00000000(a0, 1); *(int*)((char*)a0 + 0x268) = 1; goto end;
-c4:  gl_func_00000000(a0, 15); goto end;
-c5:  gl_func_00000000(a0, 16); goto end;
-c6:  gl_func_00000000(a0, 17); goto end;
-c7:  gl_func_00000000(a0, 18); goto end;
-c8:  gl_func_00000000(a0, 19); goto end;
-c9:  gl_func_00000000(a0, 20); goto end;
-c10: gl_func_00000000(a0, 21); goto end;
-c11: gl_func_00000000(a0, 22); goto end;
-c12: gl_func_00000000(a0, 23); goto end;
-c13: gl_func_00000000(a0, 24); goto end;
-c14: gl_func_00000000(a0, 25); goto end;
-c15: gl_func_00000000(a0, 26); goto end;
-c16: gl_func_00000000(a0, 27); goto end;
-c17: gl_func_00000000(a0, 28); goto end;
-c18: gl_func_00000000(a0, 29);
+c3:  game_uso_func_00000AEC(a0, 1); *(int*)((char*)a0 + 0x268) = 1; goto end;
+c4:  game_uso_func_00000AEC(a0, 15); goto end;
+c5:  game_uso_func_00000AEC(a0, 16); goto end;
+c6:  game_uso_func_00000AEC(a0, 17); goto end;
+c7:  game_uso_func_00000AEC(a0, 18); goto end;
+c8:  game_uso_func_00000AEC(a0, 19); goto end;
+c9:  game_uso_func_00000AEC(a0, 20); goto end;
+c10: game_uso_func_00000AEC(a0, 21); goto end;
+c11: game_uso_func_00000AEC(a0, 22); goto end;
+c12: game_uso_func_00000AEC(a0, 23); goto end;
+c13: game_uso_func_00000AEC(a0, 24); goto end;
+c14: game_uso_func_00000AEC(a0, 25); goto end;
+c15: game_uso_func_00000AEC(a0, 26); goto end;
+c16: game_uso_func_00000AEC(a0, 27); goto end;
+c17: game_uso_func_00000AEC(a0, 28); goto end;
+c18: game_uso_func_00000AEC(a0, 29);
 end: ;
 }
 #else
@@ -10995,8 +10995,9 @@ int game_uso_func_0000C3CC(int a0, int a1) {
  * The tiny-leaf scan vein is now exhausted project-wide; see
  * docs/MATCHING_WORKFLOW "template scans filter by cdef presence". */
 #ifdef NON_MATCHING
+extern int game_uso_D_807FFBC4;
 int game_uso_func_0000C3E8(int a0) {
-    return *(int*)&D_00000000;
+    return game_uso_D_807FFBC4;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
@@ -11688,8 +11689,9 @@ void game_uso_func_0000D5BC(char *a0, Pair2 pair) {
  * lw/sw/lw/sw via the &D pointer in the target's $t order; separate field copies
  * gave the wrong $t order. Same lever as D438/D5BC (here the source is a global).
  * Byte-exact (in-tree verified). */
+extern char game_uso_D_807FF3B8;
 void game_uso_func_0000D5DC(char *a0) {
-    *(Pair2*)(a0 + 0xC8) = *(Pair2*)((char*)&D_00000000 + 0xDC8);
+    *(Pair2*)(a0 + 0xC8) = *(Pair2*)((char*)&game_uso_D_807FF3B8 + 0xDC8);
 }
 
 /* Varargs (&a1) pair-sink: if a3==-1 set a0->0x68=a3 else a0->0x64=a3; then copy
@@ -11759,10 +11761,11 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
  *   (b) Swap if/else arms + invert condition fixes both branch
  *       direction (bnel → beql) AND lui register allocation order
  *       (which value goes into t1 vs t2). */
+extern int game_uso_func_00E124();
 void game_uso_func_0000D6E4(char *a0) {
     int *p = (int*)(*(char**)(a0 + 0xB4) + 0xA58);
     *p ^= 0x40;
-    gl_func_00000000(*(char**)(a0 + 0xB4), a0);
+    game_uso_func_00E124(*(char**)(a0 + 0xB4), a0);
     if ((*(int*)(*(char**)(a0 + 0xB4) + 0xA58) & 0x40) != 0) {
         *(int*)(a0 + 0xFC) = 0x00050000;
     } else {
@@ -12813,6 +12816,7 @@ void game_uso_func_0000EE74(void *a0) {
  * Makefile INSN_PATCH + SUFFIX_BYTES_FORCE — both REMOVED 2026-05-23 as
  * match-faking (per feedback_no_instruction_forcing_matches_policy).
  * Default build is INCLUDE_ASM. */
+extern char game_uso_D_807FF488;
 void game_uso_func_0000EE84(int *a0) {
     int a1;
     *(float *)((char *)(int *)a0[0xB4 / 4] + 0xA74) = 0.0f;
@@ -12822,9 +12826,9 @@ void game_uso_func_0000EE84(int *a0) {
     } else {
         a1 = a0[0xFC / 4] | 0x1D;
     }
-    func_00000000(a0, a1, 0, 1, 1, 1);
-    func_00000000(a0, *(Pair2 *)((char *)&D_00000000 + 0xE98), 1);
-    func_00000000(a0);
+    game_uso_func_077C44(a0, a1, 0, 1, 1, 1);
+    game_uso_func_0000D5F8((char *)a0, *(Pair2 *)((char *)&game_uso_D_807FF488 + 0xE98), 1);
+    game_uso_func_0000D5DC((char *)a0);
 }
 
 /* MATCHED 2026-05-28 via struct-by-value (E40/E44 pair homes a1,a2). See
@@ -13588,7 +13592,11 @@ void game_uso_func_0000FD04(int *a0) {
         base = *(int**)((char*)s0 + 0xB4);
         base_788 = (float*)((char*)base + 0x788);
         base_31C = (float*)((char*)base + 0x31C);
-        *base_31C = *base_31C + base_788[0x10 / 4];
+        {
+            float f4 = base_31C[0];
+            float f6 = base_788[0x10 / 4];
+            base_31C[0] = f4 + f6;
+        }
 
         base = *(int**)((char*)s0 + 0xB4);
         base_2FC = (float*)((char*)base + 0x2FC);
@@ -13889,34 +13897,37 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
  * Residual (18 diffs, all regalloc-renumber): the s0->0xB4 reload lands in v1
  * here vs v0 in target (cascades); same logic, len 79=79. INCLUDE_ASM build. */
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
+extern char game_uso_D_807FF3D8;
+extern char game_uso_D_807FF3D0;
+extern char game_uso_D_807FF3E8;
+void game_uso_func_000104A4(char *a0);
+void game_uso_func_00011750(char *obj);
 void game_uso_func_000102CC(int *a0) {
   int *s0 = a0;
   int *v0;
-  int *t;
   int new_var;
-  gl_func_00000000(a0);
-  gl_func_00000000(s0, s0[0xFC / 4] | 0x19, 3, 4, 2, 1);
+  game_uso_func_0000E2D0((char *)a0);
+  import_0010DB28(s0, s0[0xFC / 4] | 0x19, 3, 4, 2, 1);
   v0 = (int *) s0[0xB4 / 4];
   if (((*((float *) (((char *) v0) + 0x31C))) < 0.0f) && ((*((float *) (((char *) v0) + 0x9D0))) < 1000.0f))
   {
-    gl_func_00000000(s0, *((Pair2 *) (((char *) (&D_00000000)) + 0xDE8)));
+    game_uso_func_0000D5BC((char *)s0, *((Pair2 *) (((char *) (&game_uso_D_807FF3D8)) + 0xDE8)));
     v0 = (int *) s0[0xB4 / 4];
   }
   if ((*((int *) (((char *) (new_var = *((int *) (((char *) v0) + 0x800)))) + 0x18))) & 0x400)
   {
-    gl_func_00000000(s0, *((Pair2 *) (((char *) (&D_00000000)) + 0xDE0)));
+    game_uso_func_0000D5BC((char *)s0, *((Pair2 *) (((char *) (&game_uso_D_807FF3D0)) + 0xDE0)));
   }
-  gl_func_00000000(s0, 0);
-  if (gl_func_00000000(s0) == 0)
+  game_uso_func_0000E5C8((char *)s0, 0);
+  if (game_uso_func_0000E35C((char *)s0) == 0)
   {
     ;
     if (((int *) s0[0xB4 / 4])[0x938 / 4] != 0)
     {
-      gl_func_00000000(s0, *((Pair2 *) (((char *) (&D_00000000)) + 0xDF8)));
-      gl_func_00000000(s0);
+      game_uso_func_0000D5BC((char *)s0, *((Pair2 *) (((char *) (&game_uso_D_807FF3E8)) + 0xDF8)));
+      game_uso_func_000104A4((char *)s0);
     }
-    gl_func_00000000(s0);
+    game_uso_func_00011750((char *)s0);
   }
 }
 #else
