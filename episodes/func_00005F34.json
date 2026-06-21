@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00005F34",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T16:05:00.000000+00:00",
+  "end_time": "2026-06-21T16:05:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T16:05:00.000000+00:00",
+      "assistant_text": "115-insn six-element list builder. The existing NM wrap was already 113/115 byte-exact (98.26% fuzzy): the prologue (dead a0 home + dead `or a3,a0,zero` via a0-as-dead-4th-arg), the +8 frame via `volatile int pad[2]` declared last, the s-reg cascade, the per-element back-link, and all relocs were exact. The sole residual was a 2-insn as1-scheduler tie after the first element's call: the target schedules `sw list,0x28(sp)` (home the list stack temp) BEFORE `or s0,v0` (save r to callee-saved s0); the default statement layout picked the opposite tie order. The permuter cracked it by COLLAPSING the first element's three statements (`r = func_00000000(0,a1,...)`, `list = s1 + 0x10`, `func_00000000(list, r)`) onto a SINGLE source line. IDO's as1 scheduler uses the per-statement debug line number as a tie-break, so sharing one line re-anchors the tie to emit the list-home store first, matching the target. Whitespace-only steer (the C is semantically identical); the same-line grouping is load-bearing.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 115,
+  "initial_m2c_source": null,
+  "final_source": "extern char D_00007E6C;\nchar *func_00005F34(int a0, int a1, int a2, int a3, int a4, int a5, int a6) {\n  char *s1 = (char *) func_00000000(0, &D_00007E6C, 0, a0);\n  char *list;\n  char *r;\n  volatile int pad[2];\n r = (char *) func_00000000(0, a1, 0, 0, 0); list = s1 + 0x10; func_00000000(list, r); if ((*((int *) (r + 0x14))) != 0) {\n    *((int *) (r + 0x4)) = 1;\n  }\n  *((void **) (r + 0x14)) = s1;\n  r = (char *) func_00000000(0, a2, 0, 90, 0);\n  func_00000000(list, r);\n  if ((*((int *) (r + 0x14))) != 0)\n  {\n    *((int *) (r + 0x4)) = 1;\n  }\n  *((void **) (r + 0x14)) = s1;\n  r = (char *) func_00000000(0, a3, 0, 180, 0);\n  func_00000000(list, r);\n  if ((*((int *) (r + 0x14))) != 0)\n  {\n    *((int *) (r + 0x4)) = 1;\n  }\n  *((void **) (r + 0x14)) = s1;\n  r = (char *) func_00000000(0, a4, 0, 270, 0);\n  func_00000000(list, r);\n  if ((*((int *) (r + 0x14))) != 0)\n  {\n    *((int *) (r + 0x4)) = 1;\n  }\n  *((void **) (r + 0x14)) = s1;\n  r = (char *) func_00000000(0, a5, -90, 0, 0);\n  func_00000000(list, r);\n  if ((*((int *) (r + 0x14))) != 0)\n  {\n    *((int *) (r + 0x4)) = 1;\n  }\n  *((void **) (r + 0x14)) = s1;\n  if (a6 != 0)\n  {\n    r = (char *) func_00000000(0, a6, 90, 0, 0);\n    func_00000000(list, r);\n    if ((*((int *) (r + 0x14))) != 0)\n    {\n      *((int *) (r + 0x4)) = 1;\n      *((int *) (r + 0x4)) = 1;\n    }\n    *((void **) (r + 0x14)) = s1;\n  }\n  return s1;\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/bootup_uso/func_00005F34.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "matching-build wordcmp (reloc-masked): 0 non-reloc text diffs, 115==115 insns; reloc-set match (R_MIPS_26 func_00000000, R_MIPS_HI16/LO16 D_00007E6C); full make ROM byte-identical (cmp clean)"
+  }
+}

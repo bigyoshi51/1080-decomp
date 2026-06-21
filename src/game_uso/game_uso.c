@@ -12589,8 +12589,16 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 //   obj->0x128 += d; obj->0x124 = tgt. Then: counter saturates at >=6 (sets v0);
 //   if v0 (enable-zero OR saturated): clear 0x126, param-gated negations of 0x128
 //   (a1 && 0xB4->0xA58&0x80; a2), then obj->0x128 -> obj->0x12C dispatch
-//   (>=3:4, >0:3, <-2:2, <0:1, 0:0) returned as v1. RESIDUAL: pure
-//   regalloc-renumber (every insn matches modulo register names; logic exact).
+//   (>=3:4, >0:3, <-2:2, <0:1, 0:0) returned as v1.
+// 2026-06-21 (agent-e): DECODE TIGHTENED 70.86 -> 71.48 (476 -> 496 bytes,
+//   reloc-set MATCH, now only 2 insns short of 504). Re-derived ctx fresh
+//   inside the d==0 block (lw 0xB4(a0); lw 0x800; matches target eb84/eb88)
+//   and re-read *(ctx+0x18) per flag-test instead of caching `fl`. RESIDUAL
+//   (genuine cap): the target's d==0 flag dispatch and the tail param-gated
+//   negations emit BRANCH-LIKELY (beql/bgezl) with a redundant reload
+//   (lw 0x18(a2) / lw 8(sp)) annulled into each branch delay slot — an IDO
+//   -O2 reorg-annul scheduling choice not steerable from C (per-test re-read
+//   yields plain beq here, not beql). Same reorg-annul class as func_0000174C.
 #ifdef NON_MATCHING
 int game_uso_func_0000EAF4(char *obj, int a1, int a2) {
     char *ctx = *(char **)(*(char **)(obj + 0xB4) + 0x800);
@@ -12618,26 +12626,27 @@ int game_uso_func_0000EAF4(char *obj, int a1, int a2) {
             *(int *)(obj + 0x12C) = 0;
         }
         if (d == 0) {
-            unsigned int fl = *(unsigned int *)(ctx + 0x18);
-            if (fl & 0x10000) {
+            char *c2 = *(char **)(*(char **)(obj + 0xB4) + 0x800);
+            if (*(unsigned int *)(c2 + 0x18) & 0x10000) {
                 d = -1;
-            } else if (fl & 0x4000) {
+            } else if (*(unsigned int *)(c2 + 0x18) & 0x4000) {
                 d = 1;
-            } else if (fl & 0x2000) {
+            } else if (*(unsigned int *)(c2 + 0x18) & 0x2000) {
                 *(int *)(obj + 0x12C) = 5;
-            } else if (fl & 0x8000) {
+            } else if (*(unsigned int *)(c2 + 0x18) & 0x8000) {
                 *(int *)(obj + 0x12C) = 6;
             }
         }
         *(short *)(obj + 0x128) = *(short *)(obj + 0x128) + d;
-        tgt = *(short *)(ctx + 0x7C);
+        tgt = *(short *)(*(char **)(*(char **)(obj + 0xB4) + 0x800) + 0x7C);
     } else {
         v0 = 1;
     }
     *(short *)(obj + 0x124) = tgt;
     if (*(short *)(obj + 0x126) != 0) {
-        if ((int)*(short *)(obj + 0x126) >= 6) {
-            *(short *)(obj + 0x126) = *(short *)(obj + 0x126) + 1;
+        int cnt = *(short *)(obj + 0x126);
+        if (cnt >= 6) {
+            *(short *)(obj + 0x126) = cnt + 1;
             v0 = 1;
         }
     }

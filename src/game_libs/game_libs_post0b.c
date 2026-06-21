@@ -2550,10 +2550,10 @@ char *gl_func_00036E74(char *o, int a1, int a2) {
     *(int *)(o + 0x00) = 0x40;
     *(int *)(o + 0x3C) = 0;
     *(int *)(o + 0x4C) = a2;
-    *(float *)(o + 0x2C) = 1000.0f;
-    *(float *)(o + 0x30) = -90.0f;
-    *(float *)(o + 0x34) = 180.0f;
-    *(float *)(o + 0x38) = 0.0f;
+    *(f32 *)(o + 0x2C) = 1000.0f;
+    *(f32 *)(o + 0x30) = -90.0f;
+    *(f32 *)(o + 0x34) = 180.0f;
+    *(f32 *)(o + 0x38) = 0.0f;
 out:
     return o;
 }
@@ -8482,61 +8482,51 @@ extern int D_00000000;
  * parameterized form below approximates this structure but the exact branch
  * flow is structural-only, not byte-correct.
  *
- * 2026-05-08 retest: tried `field2C = obj[0x2C/4]` (load value, not address)
- * to fix the always-taken bne — REGRESSED 81.63% → 65.10%. The original
- * `(char*)obj + 0x2C` (address-of) is correct for matching, even though
- * the resulting branch is dead-always-taken at runtime. IDO's CSE relies
- * on the addiu-vs-add-immediate distinction to encode the test, and
- * loading the value instead changes the prologue+body shape. Reverted.
- *
- * 2026-05-14: added `char pad[24];` local — grows frame from 0x38 (56) to
- * 0x50 (80), matching target. Pad takes spill slots that target had
- * reserved for the return-value mem-roundtrip + alignment. Fuzzy barely
- * moves (81.63% → 81.71%) because the bigger diffs are structural:
- *   - vec3 placement: built sp+60; target sp+48 (offset diff from pad
- *     position in stack layout)
- *   - conditional alloc branch shape: target uses `beq v0, zero` (test
- *     alloc result directly) where built uses `bne v1, zero` (test
- *     post-or stash); diff is 2-3 insns
- *   - final jal delay slot: target has `sw a0, 76(sp)` (mem-roundtrip
- *     of return value) where built has `lw a1, 64(t7)` (arg setup in
- *     delay slot); the 76-sp spill + reload at `lw v0, 76(sp)` adds
- *     2 insns to target. Function is 2-3 insns short of target.
- *   - 12-byte trailing artifact (`lw t6, 16(a0)`) is splat-boundary
- *     into next function's prologue.
- * Remaining promotion: SUFFIX_BYTES + INSN_PATCH to add the 2-3 missing
- * insns and rewrite the conditional alloc shape, similar to gl_func_0003EAE0
- * 2026-05-14 promotion. Frame-size fix is a prerequisite. */
+ * 2026-06-21 STRUCTURAL REWRITE (agent-i): replaced the prior `char pad[24]`
+ * frame-fake body (which referenced the now-banned SUFFIX_BYTES/INSN_PATCH
+ * promotion path) with the faithful constructor shape decoded from the target
+ * .s:
+ *   - the conditional 4-byte sub-alloc is the proven `if (s0 == (char*)-44)`
+ *     sentinel form (matches the 62E80/36E74 constructor family), with the
+ *     positive-test `if (v1 != 0) goto store;` shape for the second alloc;
+ *   - the Vec3 zero-init + the unconditional finalize via `*(int*)(arg0+0x40)`
+ *     past the early-exit label.
+ * This cut suspect word-diffs 21 -> 18 (reloc-filtered word-compare vs
+ * expected/.o) with no fake padding.
+ * RESIDUAL (regalloc/scheduling cap, not structural): target frame is 0x50 vs
+ * built 0x38 because the return value mem-round-trips through sp+0x4C
+ * (`sw a0,0x4C(sp)` in the final jal delay; `lw v0,0x4C(sp)` in the epilogue)
+ * — an IDO return-spill the C can't force; plus the `*v1=0` store base reg
+ * (a0 vs v1) and the `bnel`-vs-`bne` flavor on the sub-alloc test. The 0xC4
+ * symbol size includes one trailing splat-boundary word (`lw t6,0x10(a0)`)
+ * belonging to the next function. Byte-match deferred to the return-spill cap. */
 #ifdef NON_MATCHING
-void* gl_func_0003E0F0(int *arg0) {
-    int *obj;
-    int *field2C;
-    float local_vec3[3];
-    char pad[24]; /* 2026-05-14: grows frame 0x38 -> 0x50 to match target */
-
-    obj = (int*)gl_func_00000000(0xB4);
-    if (obj != 0) {
-        gl_func_00000000(obj, (char*)&D_00000000 + 0x1F2E4);
-        obj[10] = (int)&D_00000000;
-        field2C = (int*)((char*)obj + 0x2C);
-        if (field2C == 0) {
-            field2C = (int*)gl_func_00000000(4);
+void *gl_func_0003E0F0(char *arg0) {
+    char *s0 = (char *)gl_func_00000000(0xB4);
+    if (s0 != 0) {
+        int *v1;
+        f32 vec3[3];
+        gl_func_00000000(s0, (char *)&D_00000000 + 0x1F2E4);
+        *(char **)(s0 + 0x28) = (char *)&D_00000000;
+        v1 = (int *)(s0 + 0x2C);
+        if (s0 == (char *)-44) {
+            v1 = (int *)gl_func_00000000(4);
+            if (v1 == 0) goto L9d0c;
         }
-        if (field2C == 0) {
-            field2C = (int*)gl_func_00000000(4);
-        }
-        if (field2C != 0) {
-            *field2C = 0;
-        }
-        gl_func_00000000(obj);
-        local_vec3[0] = 0.0f;
-        local_vec3[1] = 0.0f;
-        local_vec3[2] = 0.0f;
-        gl_func_00000000((char*)obj + 0x30, local_vec3);
+        if (v1 != 0) goto store;
+        v1 = (int *)gl_func_00000000(4);
+        if (v1 == 0) goto L9d0c;
+    store:
+        *v1 = 0;
+    L9d0c:
+        gl_func_00000000(s0);
+        vec3[0] = 0.0f;
+        vec3[1] = 0.0f;
+        vec3[2] = 0.0f;
+        gl_func_00000000(s0 + 0x30, vec3);
     }
-    (void)pad;
-    gl_func_00000000(obj, arg0[16]);
-    return obj;
+    gl_func_00000000(s0, *(int *)(arg0 + 0x40));
+    return s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E0F0);

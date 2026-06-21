@@ -3788,24 +3788,25 @@ void func_00005EF8(int *dst) {
  * space, leaving list at the top local slot). Result: 113/115 .text words
  * byte-exact (the remaining word is a R_MIPS_LO16 reloc to D_00007E6C, equal
  * once relocated).
- * RESIDUAL CAP = 2-insn as1-scheduler tie: after the first element's call the
- * target schedules `sw list,0x28(sp)` (stack store) BEFORE `or s0,v0` (save r
- * to callee-saved s0); the build picks the opposite tie order. Both ops are
- * independent and ready at the same point — the IDO scheduler tie-break is not
- * C-driven (tried decl-order, register, embedded/nested-assign, list-before-
- * call promotes list to a reg and regresses). Documented permuter-proof
- * scheduler-tie class (docs/IDO_CODEGEN.md). INCLUDE_ASM remains build path. */
+ * MATCH (permuter as1-tie crack, 2026-06-21): the residual was a 2-insn
+ * as1-scheduler tie — the target schedules `sw list,0x28(sp)` (home the
+ * `list` stack temp) BEFORE `or s0,v0` (save r to callee-saved s0), and the
+ * default statement layout picks the opposite tie. The permuter cracked it by
+ * COLLAPSING `r = func_00000000(0,a1,...)`, `list = s1 + 0x10`, and the first
+ * `func_00000000(list, r)` onto a SINGLE source line: IDO's as1 scheduler uses
+ * the per-statement debug line number as a tie-break, so giving the three
+ * statements one shared line re-anchors the tie to emit the list-home store
+ * first, exactly matching the target. (Whitespace-only steer — the C is
+ * identical; the SAME line is load-bearing, do not re-split it.) 115/115 .text
+ * words byte-exact (the lone reloc word to D_00007E6C resolves equal).
+ * Frame 64 with list at sp+0x28. */
 extern char D_00007E6C;
-#ifdef NON_MATCHING
 char *func_00005F34(int a0, int a1, int a2, int a3, int a4, int a5, int a6) {
   char *s1 = (char *) func_00000000(0, &D_00007E6C, 0, a0);
   char *list;
   char *r;
   volatile int pad[2];
-  r = (char *) func_00000000(0, a1, 0, 0, 0);
-  list = s1 + 0x10;
-  func_00000000(list, r);
-  if ((*((int *) (r + 0x14))) != 0) {
+ r = (char *) func_00000000(0, a1, 0, 0, 0); list = s1 + 0x10; func_00000000(list, r); if ((*((int *) (r + 0x14))) != 0) {
     *((int *) (r + 0x4)) = 1;
   }
   *((void **) (r + 0x14)) = s1;
@@ -3850,9 +3851,6 @@ char *func_00005F34(int a0, int a1, int a2, int a3, int a4, int a5, int a6) {
   }
   return s1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005F34);
-#endif
 
 void func_00006100(float *dst) {
     float buf[2];
