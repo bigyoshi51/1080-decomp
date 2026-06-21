@@ -1,0 +1,33 @@
+{
+    "function_name": "game_libs_func_0006C8AC",
+    "project": "1080-agent-e",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Byte-identical TWIN-PORT of the landed kernel func_80002BA8 (kernel_056). find-masked-twins.py grouped them into a strict-signature cluster; reloc-masked word comparison showed all 24 words equal. Both are the 64-bit-by-short divmod (*quot = val/d; *rem = val%d), a 0x60-byte ddivu body with NO relocs. The function needs -O1 -mips3 (ddivu/ld/sd) which game_libs_post1b2c (default -O2 -mips2) cannot use TU-wide, so the -O1 -mips3 donor (game_libs_o1_6C8AC.c) was compiled and spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. The donor's standalone .text is byte-identical to the target; the splice (0x70->0x60) leaves the TRUNCATE_TEXT 0x3D94 boundary intact.",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 24,
+    "initial_m2c_source": null,
+    "final_source": "#include \"common.h\"\n\nvoid game_libs_func_0006C8AC(u64 *quot, u64 *rem, u64 val, u16 d) {\n    *quot = val / d;\n    *rem = val % d;\n}\n",
+    "metadata": {
+        "source_path": "src/game_libs/game_libs_o1_6C8AC.c",
+        "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0006C8AC.s",
+        "segment": "game_libs",
+        "compiler": "ido7.1",
+        "compiler_flags": "-O1 -mips3 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "objdiff report.json fuzzy_match_percent=100.0; build/.o vs expected/.o function bytes byte-identical (96 bytes, no relocs); standalone donor .text byte-identical to target .s; full `make` ROM byte-identical to baserom; make verify-blocks OK."
+    }
+}

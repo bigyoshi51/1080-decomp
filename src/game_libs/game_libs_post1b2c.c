@@ -127,7 +127,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C820);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C87C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C8AC);
+/* 64-bit-by-short divmod. LANDED 2026-06-21 as a byte-identical TWIN-PORT of
+ * kernel func_80002BA8 (kernel_056): same 0x60-byte ddivu body, no relocs.
+ * Needs -O1 -mips3, which this -O2/-mips2 TU can't use, so the -O1 -mips3
+ * donor (game_libs_o1_6C8AC.c) is spliced in via REPLACE_FUNC_BODY. */
+void game_libs_func_0006C8AC(u64 *quot, u64 *rem, u64 val, u16 d) {
+    *quot = val / d;
+    *rem = val % d;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_0006C90C: too-big-N-function-bundle (declared 0xE4, 57 words) — 4 MIPS3 runtime helpers.

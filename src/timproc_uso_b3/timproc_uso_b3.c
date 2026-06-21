@@ -154,33 +154,35 @@ timproc_uso_b3_func_000000B0(a0, a1) int * a0; int a1; {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000000B0);
 #endif
 
-#ifdef NON_MATCHING
-/* timproc_uso_b3_func_000005A4: byte-identical mirror of
- * timproc_uso_b1_func_000005A4 except the mode literal is 2 instead of 1.
+extern int D_00000148;
+extern int D_0000014C;
+extern int D_00000068;
+
+/* 46-insn -O0 allocator-wrapper (0xB8). LANDED 2026-06-21 as a masked-shape
+ * TWIN-PORT of timproc_uso_b1_func_000005A4: the two target functions are
+ * instruction-for-instruction identical except two immediates (b1 0x1, b3
+ * 0x2). Matched via the same splice-import-donor-relocs recipe as b1 — the
+ * -O0 donor timproc_uso_b3_o0_5A4.c is spliced in via REPLACE_FUNC_BODY, which
+ * imports the donor HI16/LO16/26 relocs; D_00000148/0x14C/0x68 in
+ * undefined_syms_auto.txt resolve to the reloc-blind expected/.o bytes. The
+ * earlier "BLOCKED by Yay0 pipeline" note was wrong: the splice operates on
+ * the .o, independent of Yay0 compression. fuzzy=100.
  *
- * -O0 indicators match the b1 sibling: unfilled jal delay slots, saved s0 for
- * a short-lived return value, redundant `b +1; nop`, and a conservative stack
- * frame. Current -O2 NM build is 35.11% and 0x90 bytes vs target 0xB8, losing
- * the unfilled delay slots and conservative stores. BLOCKED by the Yay0
- * pipeline: timproc_uso_b3 is compressed, so the per-file -O0 split recipe
- * does not apply. Default build stays INCLUDE_ASM; wrap preserves the decoded
- * body for future tooling. */
+ * -O0 indicators preserved (the donor IS compiled at -O0): unfilled jal delay
+ * slots, `move s0,v0` save, trailing `b epilogue; nop`, frame -0x28. */
 void timproc_uso_b3_func_000005A4(int **arg0, int arg1, int arg2) {
     int handle = gl_func_00000000(2);
-    int new_obj = gl_func_00000000(0, *(int*)((char*)&D_00000000 + 0x148), 2, arg2);
+    register int new_obj = gl_func_00000000(0, D_00000148, 2, arg2);
     *arg0 = (int*)new_obj;
-    *(int*)((char*)&D_00000000 + 0x14C) = new_obj;
+    D_0000014C = new_obj;
     gl_func_00000000(handle);
     if (arg1 != 0) {
         *(int*)((char*)*arg0 + 0x14) = 2;
     } else {
         *(int*)((char*)*arg0 + 0x14) = 0;
     }
-    *(int*)((char*)&D_00000000 + 0x68) = 0;
+    D_00000068 = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000005A4);
-#endif
 
 /* 21-insn -O0 cleanup wrapper. Single gl_func + zero a0[0] + zero D[0x14C].
  * Byte-identical .s to the EXACT timproc_uso_b1_func_0000065C (same 0x65C).

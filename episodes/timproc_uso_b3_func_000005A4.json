@@ -1,0 +1,33 @@
+{
+    "function_name": "timproc_uso_b3_func_000005A4",
+    "project": "1080-agent-e",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Masked-shape TWIN-PORT of the landed timproc_uso_b1_func_000005A4. find-masked-twins.py grouped the two functions into one strict signature cluster (46-insn, same opcode+register structure). Raw target .s files are instruction-for-instruction identical except two immediates (b1 0x24060001/0x24180001 -> b3 0x24060002/0x24180002, i.e. the mode literal 1->2). Ported the b1 -O0 donor body verbatim with the 1->2 literal swap, compiled at -O0, and spliced into the -O2 main object via the existing REPLACE_FUNC_BODY infra (importing 9 donor HI16/LO16/26 relocs). The earlier source note claimed b3 was BLOCKED by the Yay0 pipeline; that was wrong -- the donor splice operates on the .o, independent of Yay0 compression, exactly as it already did for timproc_uso_b3_func_0000065C.",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 46,
+    "initial_m2c_source": null,
+    "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern int D_00000148;\nextern int D_0000014C;\nextern int D_00000068;\n\nvoid timproc_uso_b3_func_000005A4(int **arg0, int arg1, int arg2) {\n    int handle = gl_func_00000000(2);\n    register int new_obj = gl_func_00000000(0, D_00000148, 2, arg2);\n    *arg0 = (int*)new_obj;\n    D_0000014C = new_obj;\n    gl_func_00000000(handle);\n    if (arg1 != 0) {\n        *(int*)((char*)*arg0 + 0x14) = 2;\n    } else {\n        *(int*)((char*)*arg0 + 0x14) = 0;\n    }\n    D_00000068 = 0;\n}\n",
+    "metadata": {
+        "source_path": "src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c",
+        "asm_path": "asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000005A4.s",
+        "segment": "timproc_uso_b3",
+        "compiler": "ido7.1",
+        "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "objdiff report.json fuzzy_match_percent=100.0; built .o carries R_MIPS_HI16/LO16 vs D_00000148/D_0000014C/D_00000068 (=0x148/0x14C/0x68) + R_MIPS_26 vs gl_func_00000000, identical reloc symbol set to the landed twin timproc_uso_b1_func_000005A4; the only build-vs-expected word diffs (0x30/0x54/0x98) are the reloc-blind %lo fields, identical relationship to the accepted b1 land; full `make` ROM byte-identical to baserom (timproc_uso_b3 Yay0 block included); make verify-blocks OK."
+    }
+}
