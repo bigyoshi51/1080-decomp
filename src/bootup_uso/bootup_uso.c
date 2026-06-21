@@ -709,10 +709,17 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000D94);
 //   tiled quad-mesh + index-buffer builder skeleton. Name pre-checked:
 //   no extern reuse.
 #ifdef NON_MATCHING
+extern char D_000066B0, D_000066B8;
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft via the pipeline +
- * scripts/m2c-graft-clean.py (759 insns, no jumptables, 0 M2C_ERRORs). */
+ * scripts/m2c-graft-clean.py (759 insns, no jumptables, 0 M2C_ERRORs).
+ * PASS-3 2026-06-21 (agent-i): correctness fixes verified to emit the
+ * target idioms (frame remains the genuine spill cap, untouched):
+ * &D_000066B0/&D_000066B8 data refs (HI16/LO16 now emit), f32-typed 1.0f
+ * stores (lui 0x3f80/mtc1/swc1), removed spurious 2nd alloc arg, sp130
+ * sized to its real 0x80 span. Frame still over-spilled (0x340 vs 0x1d8)
+ * by IDO coloring of ~150 m2c temps -> documented coloring/spill cap. */
 void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
-    s32 sp130[16];
+    s32 sp130[32];
     s32 sp1D4;
     s32 sp1D0;
     s32 sp1CC;
@@ -869,19 +876,19 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
     char *var_v0_2;
 
     if ((arg0 != 0) || (temp_v0 = func_00000000(0x4C), arg0 = temp_v0, (temp_v0 != 0))) {
-        func_00000000(arg0, 0x66B0);
+        func_00000000(arg0, &D_000066B0);
         *(s32 *)((char *)(arg0) + 0x28) = 0;
-        *(s32 *)((char *)(arg0) + 0xC) = 0x66B8;
+        *(s32 *)((char *)(arg0) + 0xC) = (s32)&D_000066B8;
         sp1D4 = *(s32 *)((char *)(arg1) + 0x8);
         sp1D0 = *(s32 *)((char *)(arg1) + 0xC);
         *(s32 *)((char *)(arg0) + 0x2C) = arg2;
         *(s32 *)((char *)(arg0) + 0x30) = arg3;
         *(s32 *)((char *)(arg0) + 0x34) = arg4;
-        *(s32 *)((char *)(arg0) + 0x48) = 1.0f;
-        *(s32 *)((char *)(arg0) + 0x44) = 1.0f;
-        *(s32 *)((char *)(arg0) + 0x40) = 1.0f;
-        *(s32 *)((char *)(arg0) + 0x3C) = 1.0f;
-        temp_v0_2 = func_00000000(0x800, 0x10);
+        *(f32 *)((char *)(arg0) + 0x48) = 1.0f;
+        *(f32 *)((char *)(arg0) + 0x44) = 1.0f;
+        *(f32 *)((char *)(arg0) + 0x40) = 1.0f;
+        *(f32 *)((char *)(arg0) + 0x3C) = 1.0f;
+        temp_v0_2 = func_00000000(0x800);
         sp1CC = temp_v0_2;
         func_00000000(temp_v0_2, 0x800, 0);
         var_a3 = *(s32 *)4;
@@ -3497,27 +3504,40 @@ end:
  * NOT matched: folded-pool refs + ~52-call register allocation are a
  * multi-tick grind (project_1080_cap_analysis_2026-05-28). This body
  * replaces the prior "too big to decode" bail comment with the full
- * decoded structure for the next pass. */
-#define DROOT (*(int **)&D_00000000)
+ * decoded structure for the next pass.
+ *
+ * RELOC-BLIND CAP (2026-06-21, agent-i): MATCH is unreachable from C. The
+ * target .s has 44 zero-page USO-GOT refs (`lui rX,(0x0>>16); lw rX,0(rX)`)
+ * with NO relocs (splat could not resolve the GOT syms; expected/.o is
+ * post-link stripped). Any C expression carries an HI16/LO16 reloc our .o
+ * keeps -> reloc_mismatch can never reach 0. Same for the float const pool
+ * at func_0000057C+0x1C..0x30 (6 uses): target emits a fresh
+ * `lui %hi(func_0000057C+N); lwc1 %lo(..+N)` per use (distinct addend per
+ * %hi), but IDO CSEs our shared `&func_0000057C` base into one callee-saved
+ * reg -> the splat-fold per-use form is C-irreproducible. The real fix is
+ * the spimdisasm USO-reloc migration (expected/ becomes reloc-aware), not a
+ * per-fn C change.
+ *
+ * Best achievable structure (this pass): scratch block 0xC4..0x163 modeled
+ * as one address-taken float m[40] (forces the contiguous stack reservation
+ * the target has; size 429->504 words of 598); gRoot as a distinct base-0
+ * pointer extern (breaks the &D_00000000 CSE-into-saved-reg for the ~12
+ * root-reload registration sites); CF() = func_0000057C const pool. Prefix
+ * still 0 (word-0 frame -0x180 not yet reproduced: depends on reconstructing
+ * all 44 distinct globals so the 52-call spill schedule converges). */
+extern void *gRoot; /* zero-page USO-GOT global; reloaded per use (no CSE) */
+#define DROOT ((int *)gRoot)
 #define DI(o) (*(int *)((char *)&D_00000000 + (o)))
 #define DF(o) (*(float *)((char *)&D_00000000 + (o)))
+#define CF(o) (*(float *)((char *)&func_0000057C + (o))) /* float const pool */
 #define DP(o) ((void *)((char *)&D_00000000 + (o)))
 #define OI(p, o) (*(int *)((char *)(p) + (o)))
 #define OF(p, o) (*(float *)((char *)(p) + (o)))
 
+/* scratch[0] == sp+0xC4. Indices below are byte-offset/4 from 0xC4. */
+#define M(off) m[((off) - 0xC4) / 4]
 void func_000055A0(int arg0, int arg1, int arg2) {
-    float sp154, sp158, sp15C, sp160;
-    float sp144, sp148, sp150;
-    float sp134, sp138, sp140, sp130;
-    float sp114, sp11C, sp120;
-    float sp104, sp10C, sp110;
-    float spF4, spFC, sp100;
-    float spEC, spF0;
-    float spD8, spDC, spE0;
-    float spC8, spCC, spD0;
-    float sp14C, sp124, sp128, sp12C, sp118, spC4;
-    float sp13C, sp108, spE4, spE8, spD4;
-    float spF8;
+    float m[40]; /* sp+0xC4 .. sp+0x163 */
     float sp74, sp68, sp6C, sp70;
     float sp50, sp44, sp48, sp4C;
     float sp34, sp28, sp2C, sp30;
@@ -3531,18 +3551,18 @@ void func_000055A0(int arg0, int arg1, int arg2) {
     DI(0) = 0;
     DI(0) = 0;
     var_s0 = arg2 | 0x10;
-    sp154 = 0.0f; sp158 = 0.0f; sp15C = 0.0f; sp160 = 0.0f;
-    sp144 = 0.0f; sp148 = 0.0f; sp150 = 0.0f;
-    sp134 = 0.0f; sp138 = 0.0f; sp140 = 0.0f; sp130 = 0.0f;
-    sp114 = 0.0f; sp11C = 0.0f; sp120 = 0.0f;
-    sp104 = 0.0f; sp10C = 0.0f; sp110 = 0.0f;
-    spF4 = 0.0f; spFC = 0.0f; sp100 = 0.0f;
-    spEC = 0.0f; spF0 = 0.0f;
-    spD8 = 0.0f; spDC = 0.0f; spE0 = 0.0f;
-    spC8 = 0.0f; spCC = 0.0f; spD0 = 0.0f;
-    sp14C = 1.0f; sp124 = 1.0f; sp128 = 1.0f; sp12C = 1.0f; sp118 = 1.0f; spC4 = 1.0f;
-    sp13C = 0.5f; sp108 = 0.5f; spE4 = 0.5f; spE8 = 0.5f; spD4 = 0.5f;
-    spF8 = DF(0x1C);
+    M(0x154) = 0.0f; M(0x158) = 0.0f; M(0x15C) = 0.0f; M(0x160) = 0.0f;
+    M(0x144) = 0.0f; M(0x148) = 0.0f; M(0x150) = 0.0f;
+    M(0x134) = 0.0f; M(0x138) = 0.0f; M(0x140) = 0.0f; M(0x130) = 0.0f;
+    M(0x114) = 0.0f; M(0x11C) = 0.0f; M(0x120) = 0.0f;
+    M(0x104) = 0.0f; M(0x10C) = 0.0f; M(0x110) = 0.0f;
+    M(0xF4) = 0.0f; M(0xFC) = 0.0f; M(0x100) = 0.0f;
+    M(0xEC) = 0.0f; M(0xF0) = 0.0f;
+    M(0xD8) = 0.0f; M(0xDC) = 0.0f; M(0xE0) = 0.0f;
+    M(0xC8) = 0.0f; M(0xCC) = 0.0f; M(0xD0) = 0.0f;
+    M(0x14C) = 1.0f; M(0x124) = 1.0f; M(0x128) = 1.0f; M(0x12C) = 1.0f; M(0x118) = 1.0f; M(0xC4) = 1.0f;
+    M(0x13C) = 0.5f; M(0x108) = 0.5f; M(0xE4) = 0.5f; M(0xE8) = 0.5f; M(0xD4) = 0.5f;
+    M(0xF8) = CF(0x1C);
 
     if (arg1 == 1) {
         DI(4) = 0x28002;
@@ -3600,7 +3620,7 @@ void func_000055A0(int arg0, int arg1, int arg2) {
             }
             OF(obj, 0x4C) = 0.0f; OF(obj, 0x50) = 0.0f; OF(obj, 0x54) = 0.0f; OF(obj, 0x58) = 1.0f;
             sp74 = 1.0f;
-            sp68 = DF(0x20); sp6C = DF(0x20); sp70 = DF(0x20);
+            sp68 = CF(0x20); sp6C = CF(0x20); sp70 = CF(0x20);
             func_00000000(0x3F800000, node, &sp68, DP(0x3E1), 0x3E5);
             OI(obj, 0x38) = 1;
             OI(obj, 0x48) = 0;
@@ -3622,7 +3642,7 @@ void func_000055A0(int arg0, int arg1, int arg2) {
             }
             OF(obj, 0x4C) = 0.0f; OF(obj, 0x50) = 0.0f; OF(obj, 0x54) = 0.0f; OF(obj, 0x58) = 1.0f;
             sp50 = 1.0f;
-            sp44 = DF(0x24); sp48 = DF(0x24); sp4C = DF(0x24);
+            sp44 = CF(0x24); sp48 = CF(0x24); sp4C = CF(0x24);
             func_00000000(0x3F800000, node, &sp44, DP(0x3E1), 0x3E5);
             OI(obj, 0x38) = 1;
             OI(obj, 0x48) = 0;
@@ -3643,7 +3663,7 @@ void func_000055A0(int arg0, int arg1, int arg2) {
                 func_00000000(node, node);
             }
             OF(obj, 0x58) = 1.0f; OF(obj, 0x4C) = 0.0f; OF(obj, 0x50) = 0.0f; OF(obj, 0x54) = 0.0f;
-            sp28 = DF(0x28); sp2C = DF(0x2C); sp30 = DF(0x30); sp34 = 1.0f;
+            sp28 = CF(0x28); sp2C = CF(0x2C); sp30 = CF(0x30); sp34 = 1.0f;
             func_00000000(node, &sp28, DP(0x3E1), DP(0x3E5));
             OI(obj, 0x38) = 1;
             OI(obj, 0x48) = 0;
@@ -3708,18 +3728,19 @@ void func_000055A0(int arg0, int arg1, int arg2) {
     }
     func_00000000(DROOT, obj, DP(0xFFFF));
 
-    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &sp144), DP(0xFFFF));
-    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &sp114), DP(0xFFFF));
-    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &spD4), DP(0xFFFF));
-    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &spC4), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &M(0x144)), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &M(0x114)), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &M(0xD4)), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &M(0xC4)), DP(0xFFFF));
 
     obj = (void *)func_00000000(0x58);
     if (obj != 0) {
-        func_00000000(obj, DROOT, DI(0), &spE4);
+        func_00000000(obj, DROOT, DI(0), &M(0xE4));
         OI(obj, 0x28) = 0;
     }
     func_00000000(DROOT, obj, DP(0xFFFF));
 }
+#undef M
 #undef DROOT
 #undef DI
 #undef DF
@@ -4074,6 +4095,18 @@ void func_00006734(char *a0) {
 //   Folded literal-pool refs (func_00000000+0x4 mode word,
 //   func_00000188+0x3C table, func_0000057C+0x38 jumptable) kept as
 //   offset reads — they cannot be symbolized in this build (USO GOT).
+// PASS-4 2026-06-21 (agent-i): DOUBLY-CAPPED, confirmed empirically vs
+//   expected .o. (1) Reloc cap: target materializes its held s4/s5
+//   globals as bare `lui 0; addiu 0` with NO reloc (USO-GOT base patched
+//   at load; reloc consumed in post-processing). C cannot emit a
+//   zero-immediate lui without a HI16/LO16 reloc, so &D_ refs diverge.
+//   (2) Coloring cap: the two s4/s5 globals are BOTH address-0 (same
+//   symbol) — a register pointer CSEs to ONE reg, so the s4/s5 split is
+//   structurally unreproducible; frame can't reach -0xF0 (built -0x110).
+//   `register` hints had no effect (weight-driven alloc). NOT landable
+//   without the deferred splat/GOT-symbolization infra pass + original cc.
+//   Fixed two m2c-unset-temp literals in the tail (sw 6 to s5 global;
+//   0xA8002 mode word) — faithful corrections, prefix still 0% (frame).
 #ifdef NON_MATCHING
 extern char D_00007EC4, D_00007ECC, D_00007ED8, D_00007EE8, D_00007EEC;
 extern char D_00007EF0, D_00007EF4, D_00007EF8, D_00007EFC, D_00007F08;
@@ -4288,9 +4321,9 @@ block_25:
         sp9C = (f32) *(s32 *)((char *)(temp_s1) + 0x8);
         goto block_25;
     }
-    *(s32 *)((char *)&D_00000000 + 0) = 0 /* M2C unset $t1 */;
+    *(s32 *)((char *)&D_00000000 + 0) = 6;
     *(s32 *)((char *)&D_00000000 + 0) = (s32) ((*(s32 *)var_v0 & ~8) | 0x100);
-    *(s32 *)((char *)&D_00000000 + 4) = (s32) (0 /* M2C unset $t2 */ | 0x8002);
+    *(s32 *)((char *)&D_00000000 + 4) = (s32) 0xA8002;
     *(s32 *)((char *)&D_00000000 + 0) = 0;
     func_00000000(&D_00007F0C, 0);
     temp_s1_2 = func_00000000(0, &D_00007F18, 0, 0);

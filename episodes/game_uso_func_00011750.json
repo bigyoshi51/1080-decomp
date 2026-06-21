@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_00011750",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T13:27:07.629488+00:00",
+  "end_time": "2026-06-21T13:27:07.629488+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T13:27:07.629488+00:00",
+      "assistant_text": "Call-graph DFS from game_uso EE84 state-orchestrator family. Corrected all callees from gl_func_00000000 placeholder + &D_00000000 to the resolved in-TU symbols: game_uso_func_077C44 (event/sound dispatch, R_MIPS_26 import-class), game_uso_func_0000D5F8 (Pair2-by-value sink, homes a1/a2), game_uso_func_0000D5DC (pair-copy trailing call), real global game_uso_D_807FF490. Control-flow: flipped the FP gate to the POSITIVE if (c.lt.s; bc1fl with else-reset in the branch-likely delay slot); made the counter advance UNCONDITIONAL before the cnt<3 return (bne-likely delay-slot store). Final lever to 0: inlined the obj->0xB4 base derefs at both the FP read and the 0x9CC read (dropped the held char *s local) so IDO floats the base into $t8 like the target instead of $v0 (off-by-one register renumber, 19->0).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 70,
+  "initial_m2c_source": null,
+  "final_source": "void game_uso_func_00011750(char *obj) {\n    short cnt;\n    if (*(float *)(*(char **)(obj + 0xB4) + 0xA38) < -30.0f) {   /* hard hit */\n        cnt = *(short *)(obj + 0x130);\n        *(short *)(obj + 0x130) = cnt + 1;        /* always advance (delay slot) */\n        if (cnt < 3) return;                      /* not yet armed */\n        *(short *)(obj + 0x130) = 0;\n        if (*(int *)(*(char **)(obj + 0xB4) + 0x9CC) != 0) {\n            game_uso_func_077C44(obj, *(int *)(obj + 0xFC) | 0x24, 0, 0, 0x100, 5);\n            game_uso_func_0000D5F8(obj, *(Pair2 *)((char *)&game_uso_D_807FF490 + 0xEA0), -1);\n        } else {\n            game_uso_func_077C44(obj, *(int *)(obj + 0xFC) | 0x1D, 0, 0, 0x100, 5);\n            game_uso_func_0000D5F8(obj, *(Pair2 *)((char *)&game_uso_D_807FF490 + 0xEA0), -1);\n        }\n        game_uso_func_0000D5DC(obj);\n    } else {\n        *(short *)(obj + 0x130) = 0;              /* not a hard hit: reset */\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/game_uso/game_uso/game_uso_func_00011750.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "matching-build wordcmp: 70/70 words, 0 non-reloc diffs, reloc symbols agree; full make ROM byte-identical (ROM OK)"
+  }
+}

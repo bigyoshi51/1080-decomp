@@ -2272,11 +2272,11 @@ void game_uso_func_00002CA8(char *a0) {
 #ifdef NON_MATCHING
 void game_uso_func_00002CC8(char *a0, char *a1) {
     char *out;
-    char *s;
     int mode;
     Vec3 *r;
     Vec3 staged, tmp1, divv, cp1, cp2, scratch;
     float invd;
+    char *s;
 
     out = *(char **)(a0 + 0x14);
     s = *(char **)(*(char **)(a0 + 0x3C) + 0x38);
@@ -4663,8 +4663,44 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  * out_flags-shaped tail is therefore retained as the best measured IDO
  * allocation shape, despite being less semantically direct than the asm's
  * stack-slot split. No episode: not an exact C/body match.
- */
+ *
+ * 2026-06-21 agent-e ROOT-CAUSE LEVER: the body had been calling the
+ * PLACEHOLDER `gl_func_00000000` at every call site (wrong jal target /
+ * wrong reloc). Mapped 26 of 28 call sites to their REAL in-TU callees by
+ * zipping the body's source-order call sequence against the R_MIPS_26 jal
+ * sequence in the resolved .s and cross-checking arg shapes:
+ *   bit1/2/4 dispatch -> A3C4/A604/A7F8;  4-arg helper -> 7ACC;  state
+ *   helper -> 7A98;  transform arms -> 7C1C (resolved==0) / 8CD8 (==1);
+ *   all `(0xC)` Vec3 allocs -> 055750;  tail state machine ->
+ *   074D8/0751C/074D8/07448/07424, 09B88/A7D8 (0x20 path), A0E8/AB98
+ *   (0x40 path), 071A4/06FA8 (0x400 path), and commit tail -> 07538.
+ * Forward decls added (callees are defined later in this TU). objdiff
+ * fuzzy 57.512% -> 58.211%. Residual is the documented coloring/frame-
+ * layout cap (880 diff insns spread across the body, ~59-word size
+ * deficit). Two synthesized calls (metric `_f` helper at the inlined
+ * 5C98 region, and the `(self,out_flags,metric)` effect call) have no
+ * matching jal and remain placeholders — body-structure divergences, not
+ * symbol bugs. No episode: not exact. */
 #ifdef NON_MATCHING
+/* forward decls for 591C real callees (defined later in this TU) */
+void game_uso_func_0000A3C4();
+void game_uso_func_0000A604(char *);
+void game_uso_func_0000A7F8(char *);
+int game_uso_func_00007ACC();
+float game_uso_func_00007A98(int *);
+int game_uso_func_00007C1C();
+void *game_uso_func_00008CD8();
+void game_uso_func_000074D8(char *);
+void game_uso_func_0000751C(char *);
+void game_uso_func_00007448(char *);
+void game_uso_func_00007424(void *);
+int game_uso_func_00009B88();
+void game_uso_func_0000A7D8(int *);
+int game_uso_func_0000A0E8(char *, char *, char *);
+void game_uso_func_0000AB98(void *);
+void game_uso_func_000071A4(int *);
+int game_uso_func_00006FA8(int *);
+long long game_uso_func_00007538(int *, int);
 void game_uso_func_0000591C(int *a0) {
     int *self;
     int v0;
@@ -4717,15 +4753,15 @@ void game_uso_func_0000591C(int *a0) {
      * to the per-frame body at 0x5998 — not yet decoded. */
     v0 = *(int*)((char*)self + 0x68);
     if (v0 & 1) {
-        gl_func_00000000();
+        game_uso_func_0000A3C4();
         return;
     }
     if (v0 & 2) {
-        gl_func_00000000(self);
+        game_uso_func_0000A604(self);
         return;
     }
     if (v0 & 4) {
-        gl_func_00000000(self);
+        game_uso_func_0000A7F8(self);
         return;
     }
 
@@ -4745,7 +4781,7 @@ void game_uso_func_0000591C(int *a0) {
     staged_axis.y += mul_axis.y;
     staged_axis.z += mul_axis.z;
 
-    helper_ptr = (char*)gl_func_00000000(self, &hit_parent, &staged_axis, &hit_obj);
+    helper_ptr = (char*)game_uso_func_00007ACC(self, &hit_parent, &staged_axis, &hit_obj);
     if (helper_ptr == 0) return;
 
     state_flag = *(int*)(helper_ptr + 0x84);
@@ -4755,7 +4791,7 @@ void game_uso_func_0000591C(int *a0) {
         resolved_state = 0;
     }
 
-    gl_func_00000000(self);
+    game_uso_func_00007A98(self);
 
     active_state = *(int*)((char*)self + 0x74);
     if (active_state == 0) {
@@ -4806,7 +4842,7 @@ void game_uso_func_0000591C(int *a0) {
 
     sub = *(char**)((char*)self + 0x30);
     if (resolved_state == 0) {
-        vec_result = (Vec3*)gl_func_00000000(sub, self, helper_ptr, hit_parent,
+        vec_result = (Vec3*)game_uso_func_00007C1C(sub, self, helper_ptr, hit_parent,
             &staged_axis, &transform_out);
         vec_tmp = *vec_result;
         vec_copy = vec_tmp;
@@ -4814,7 +4850,7 @@ void game_uso_func_0000591C(int *a0) {
         transform_in.y = vec_copy.y;
         transform_in.z = vec_copy.z;
     } else if (resolved_state == 1) {
-        vec_result = (Vec3*)gl_func_00000000(&mul_axis, self, helper_ptr,
+        vec_result = (Vec3*)game_uso_func_00008CD8(&mul_axis, self, helper_ptr,
             hit_parent, transform_flag);
         vec_tmp = *vec_result;
         vec_copy = vec_tmp;
@@ -4862,7 +4898,7 @@ void game_uso_func_0000591C(int *a0) {
                 }
             } else if (hit_parent != NULL) {
                 if (*(int*)(hit_parent + 0x84) & 2) {
-                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
                     if (effect_vec != NULL) {
                         entity_pos = helper_ptr + 0x30;
                         effect_vec->y = 0.0f;
@@ -4870,7 +4906,7 @@ void game_uso_func_0000591C(int *a0) {
                         effect_vec->x = *(float*)entity_pos;
                     }
                     entity_pos = hit_parent + 0x30;
-                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
                     if (effect_vec != NULL) {
                         effect_vec->y = 0.0f;
                         effect_vec->x = scratch_xz.x - *(float*)entity_pos;
@@ -4880,14 +4916,14 @@ void game_uso_func_0000591C(int *a0) {
                     derived_vec = mul_axis;
                     sub = *(char**)((char*)self + 0x30);
                     entity_pos = sub + 0xB4;
-                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
                     if (effect_vec != NULL) {
                         effect_vec->y = 0.0f;
                         effect_vec->x = *(float*)entity_pos;
                         effect_vec->z = *(float*)(entity_pos + 8);
                     }
                     entity_pos = hit_parent + 0x30;
-                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
                     if (effect_vec != NULL) {
                         effect_vec->y = 0.0f;
                         effect_vec->x = derived_vec.x - *(float*)entity_pos;
@@ -4922,7 +4958,7 @@ void game_uso_func_0000591C(int *a0) {
             sub = *(char**)((char*)self + 0x30);
             if (*(char**)(sub + 0x908) != NULL) {
                 if (transform_out.y <= -2000.0f) {
-                    effect_vec = (Vec3*)gl_func_00000000(0xC);
+                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
                     if (effect_vec != NULL) {
                         entity_pos = helper_ptr + 0x30;
                         effect_vec->x = *(float*)entity_pos;
@@ -4936,7 +4972,7 @@ void game_uso_func_0000591C(int *a0) {
 
     if (hit_parent != NULL) {
         entity_pos = hit_parent + 0x30;
-        effect_vec = (Vec3*)gl_func_00000000(0xC);
+        effect_vec = (Vec3*)game_uso_func_055750(0xC);
         if (effect_vec != NULL) {
             effect_vec->x = transform_out.x - *(float*)entity_pos;
             effect_vec->y = 0.0f;
@@ -4946,7 +4982,7 @@ void game_uso_func_0000591C(int *a0) {
         effect_stage = effect_delta;
         sub = *(char**)((char*)self + 0x30);
         entity_pos = sub + 0xB4;
-        effect_vec = (Vec3*)gl_func_00000000(0xC);
+        effect_vec = (Vec3*)game_uso_func_055750(0xC);
         if (effect_vec != NULL) {
             effect_vec->x = *(float*)entity_pos;
             effect_vec->y = 0.0f;
@@ -4954,7 +4990,7 @@ void game_uso_func_0000591C(int *a0) {
         }
 
         entity_pos = hit_parent + 0x30;
-        effect_vec = (Vec3*)gl_func_00000000(0xC);
+        effect_vec = (Vec3*)game_uso_func_055750(0xC);
         if (effect_vec != NULL) {
             effect_vec->x = effect_pos.x - *(float*)entity_pos;
             effect_vec->y = 0.0f;
@@ -4995,7 +5031,7 @@ void game_uso_func_0000591C(int *a0) {
 
         if (out_flags & 8) {
             if (*(int*)((char*)self + 0x4C4) > 0) {
-                gl_func_00000000(self);
+                game_uso_func_000074D8(self);
                 *(int*)((char*)self + 0x4C4) = 0;
             }
         } else {
@@ -5010,7 +5046,7 @@ void game_uso_func_0000591C(int *a0) {
                     state_value = *(float*)((char*)self + 0x2C4);
                 }
                 if (metric < state_value) {
-                    gl_func_00000000(self);
+                    game_uso_func_0000751C(self);
                     state_code = *(int*)((char*)self + 0x2C);
                     if (state_code == 3) {
                         state_value = *(float*)((char*)self + 0x324);
@@ -5025,7 +5061,7 @@ void game_uso_func_0000591C(int *a0) {
                 state_code = *(int*)((char*)self + 0x2C) - 1;
                 if (state_code == 1) {
                     *(int*)((char*)self + 0x4C4) = state_code;
-                    gl_func_00000000(self);
+                    game_uso_func_000074D8(self);
                 }
             }
         }
@@ -5044,7 +5080,7 @@ void game_uso_func_0000591C(int *a0) {
 
         if (state_value < transform_out.y) {
             *(int*)((char*)self + 0x4C4) = state_code - 1;
-            gl_func_00000000(self);
+            game_uso_func_00007448(self);
         }
     }
 
@@ -5096,7 +5132,7 @@ void game_uso_func_0000591C(int *a0) {
         state_counter = *(int*)((char*)self + 0x54) + 1;
         if (state_counter >= 75) {
             *(int*)((char*)self + 0x54) = 0;
-            gl_func_00000000(self);
+            game_uso_func_00007424(self);
         } else {
             *(int*)((char*)self + 0x54) = state_counter;
         }
@@ -5105,22 +5141,22 @@ void game_uso_func_0000591C(int *a0) {
     }
 
     if (resolved_state & 0x20) {
-        if (gl_func_00000000(self, helper_ptr, hit_parent) == 0) {
-            gl_func_00000000(self);
+        if (game_uso_func_00009B88(self, helper_ptr, hit_parent) == 0) {
+            game_uso_func_0000A7D8(self);
             goto commit_flags;
         }
     }
 
     if (resolved_state & 0x40) {
-        if (gl_func_00000000(self, helper_ptr, hit_parent) == 0) {
-            gl_func_00000000(self);
+        if (game_uso_func_0000A0E8(self, helper_ptr, hit_parent) == 0) {
+            game_uso_func_0000AB98(self);
             goto commit_flags;
         }
     }
 
     if (out_flags & 0x400) {
-        gl_func_00000000(self);
-        *(int*)((char*)self + 0x40) = gl_func_00000000(self);
+        game_uso_func_000071A4(self);
+        *(int*)((char*)self + 0x40) = game_uso_func_00006FA8(self);
         goto commit_flags;
     }
 
@@ -5214,7 +5250,7 @@ void game_uso_func_0000591C(int *a0) {
     }
 
 commit_flags:
-    gl_func_00000000(self, out_flags);
+    game_uso_func_00007538(self, out_flags);
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
      *   t2 = a0->0x30;                                  // sub-struct ptr
@@ -12987,41 +13023,46 @@ void game_uso_func_0000F284(int *a0) {
  *   *(float*)(p + 0x31C) += f8 * f0;          // accumulate
  *   a0->0xF0 = 0;
  *
- *   // 2 cross-USO calls (placeholder relocs):
- *   gl_func(a0->0xB4 + 0x808);  // (1st jal; spills a1 = a0)
- *   gl_func(a0);                 // (2nd jal; reloads a1)
+ * 2026-06-21 (call-graph DFS): callees/global corrected from placeholder
+ * gl_func_00000000 / &D_00000000 to the resolved relocs:
+ *   import_00096874(a0->0xB4 + 0x808);   // 1st jal (spills a1=a0)
+ *   game_uso_func_0001001C(a0);           // 2nd jal (reloads a1)
+ *   double const at game_uso_D_807FFB60 + 0x240 (the ldc1 576(at)).
  *
- * The if/else branch shape compiles to a BNEL t6,$0,+6 with delay-likely
- * lwc1 f16 (= the t6!=0 arm) + b +3 trailing the t6==0 arm. The byte-exact
- * match requires this exact if-then-else expression form. There is an
- * apparently-dead `lwc1 f16, 0x10(v0=v1+0x770)` at 0xF3B8 between the b's
- * delay slot and BNEL target — likely IDO's scheduler artifact.
- *
- * Multi-pass NM placeholder. */
-extern char D_00000000;
+ * RESIDUAL (honest NON_MATCHING, 1 word short, 48 vs 49): the if/else arms
+ * compile to a BNEL/BEQL pair, but the target's branch-LIKELY delay slot
+ * DUPLICATES the t6==0 arm's `lwc1 f16,16(v0)` (the dead-looking load at 0xF3B4
+ * + its re-load at the merge) — the +1 instruction. This beql-likely
+ * delay-slot duplication is an IDO FP-scheduler artifact not reproducible from
+ * the if-then-else C form (ternary collapses the per-arm add -> 45 words;
+ * if/else hoists f2 but omits the duplicate -> 48 words). Documented
+ * FP-scheduler cap. */
+extern char game_uso_D_807FFB60;
+extern void import_00096874(int);
+extern void game_uso_func_0001001C(int *);
 void game_uso_func_0000F360(int *a0) {
-    short v0_s = *(short*)((char*)a0 + 0xE4);
+    int v0 = *(short*)((char*)a0 + 0xE4);
     int *p;
     float thresh, f2, f0;
-    if (v0_s < 0) {
+    if (v0 < 0) {
         *(short*)((char*)a0 + 0xE4) = 0;
-        v0_s = 0;
+        v0 = *(short*)((char*)a0 + 0xE4);
     }
     p = *(int**)((char*)a0 + 0xB4);
     thresh = *(float*)((char*)a0 + 0x1B4);
-    f2 = thresh * (float)v0_s;
+    f2 = thresh * (float)v0;
     if (*(int*)((char*)p + 0x9CC) != 0) {
         f0 = *(float*)((char*)p + 0x780) + f2;
     } else {
         f0 = *(float*)((char*)p + 0x798) + f2;
     }
     if (*(short*)((char*)p + 0x9A2) == 0x62) {
-        f0 = (float)((double)f0 * *(double*)((char*)&D_00000000 + 0x240));
+        f0 = (float)((double)f0 * *(double*)((char*)&game_uso_D_807FFB60 + 0x240));
     }
     *(float*)((char*)p + 0x31C) += *(float*)((char*)p + 0x520) * f0;
     *(int*)((char*)a0 + 0xF0) = 0;
-    gl_func_00000000(*(char**)((char*)a0 + 0xB4) + 0x808);
-    gl_func_00000000(a0);
+    import_00096874((int)(*(char**)((char*)a0 + 0xB4) + 0x808));
+    game_uso_func_0001001C(a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F360);
@@ -13336,11 +13377,17 @@ void game_uso_func_0000F8E8(int *a0) {
  * eliminating one of the 3 Vec3 copies despite volatile. The exact
  * fuzzy% on this function is sensitive to expected/.o baseline state.
  *
- * Conclusion: F948 NM-cap is NOT promotable via C-shape variations alone.
- * Permuter or INSN_PATCH are the only remaining options. Multi-tick
- * deferred. */
-extern int gl_func_00000000();
-extern char D_00000000;
+ * 2026-06-21 (call-graph DFS): callees corrected from the placeholder
+ * gl_func_00000000 / &D_00000000 to the resolved in-TU symbols
+ * import_0010DB28 (logger) + game_uso_func_0000D5F8 (Pair2-by-value sink) and
+ * the real global game_uso_D_807FF448 (+0xE58 pair). Frame deflated from -0xD0
+ * to -0x80 by dropping the spurious frame_pad[128] and declaring the three Vec3
+ * temps in reverse order (vc,vb,a). RESIDUAL (honest NON_MATCHING): IDO's
+ * reverse-order stack-frame allocator places the a/vb/vc copy block at
+ * sp+36/48/60 vs target sp+72/92/116 (the frame holds 0x80 with the block at
+ * the TOP), plus the mul.s batch-vs-interleave FP schedule. Documented
+ * stack-arrangement + FP-scheduler cap, not the (cleared) pair cap. */
+extern char game_uso_D_807FF448;
 typedef struct { float x, y, z; } F948_Vec3;
 void game_uso_func_0000F948(int *a0) {
     /* 2026-05-28: the family-cap pair component is now SOLVED via
@@ -13352,14 +13399,12 @@ void game_uso_func_0000F948(int *a0) {
      * and the frame is -0x88 (mine) vs -0x80 (target). 64 vs 67 insns.
      * These FPU/frame residuals are a separate multi-tick problem, NOT the
      * (now-cleared) pair cap. */
-    char frame_pad[128];
     int *b;
     float scale;
-    volatile F948_Vec3 a, vb;
-    F948_Vec3 vc;
+    F948_Vec3 vc, vb, a;
 
-    gl_func_00000000(a0, *(int*)((char*)a0 + 0xFC), 0, 2, 1, 1);
-    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE58), 2);
+    import_0010DB28(a0, *(int*)((char*)a0 + 0xFC), 0, 2, 1, 1);
+    game_uso_func_0000D5F8((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF448 + 0xE58), 2);
 
     b = (int*)a0[0xB4 / 4];
     scale = *(float*)((char*)a0 + 0x1FC);
@@ -14629,45 +14674,43 @@ void game_uso_func_000116D4(void *a0) {
 //   detection + effect trigger skeleton. Byte-match deferred. Name
 //   pre-checked: no extern reuse. D_00000000 reuses file-scope
 //   extern char (no redeclaration).
-#ifdef NON_MATCHING
-/* 2026-05-27 logic fix: the slti/bne emits branch-when-count<3 (skip body),
- * so body runs when count REACHES threshold. Prior C had inverted return
- * condition. Also: sh always increments (delay slot), then body either
- * runs or branches past.
- * 2026-05-31 structural completion 53.3->71.1%: fixed 4 errors — (1) the FP
- * gate is INVERTED (reset+return when s->0xA38 >= -30, i.e. NOT a hard hit;
- * the counter/fire body runs when < -30), (2) counter test is `cnt < 3` not
- * `cnt+1 < 3`, (3) the state gate is `s->0x9CC != 0` not `!= 0x100`, (4) the
- * fire sequence is a TWO-ARM branch (s->0x9CC!=0 vs ==0) each with a 6-arg
- * event call (obj, obj->0xFC|{0x24,0x1D}, 0, 0, 0x100, 5) + a 4-arg FX call
- * (obj, D[0xEA0], D[0xEA1], -1), then a trailing call(obj). Residual (71->100)
- * is the FP-compare form (c.le.s vs target c.lt.s+bc1fl) + reset-store
- * placement + &D reloc scheduling + the 4/8(sp) D-spill — codegen caps. */
+/* game_uso_func_00011750: hard-landing/wipeout detector + FX trigger
+ * (EE84 state-orchestrator family). MATCHED 2026-06-21 (call-graph DFS +
+ * just-in-time family typing). The prior NM body called placeholder
+ * gl_func_00000000 + loaded &D_00000000; the resolved .s relocs name the real
+ * callees game_uso_func_077C44 (event/sound dispatch, R_MIPS_26 to an undefined
+ * import-class symbol), game_uso_func_0000D5F8 (Pair2-by-value sink — homes
+ * a1/a2 to sp+4/sp+8 via the prototype-flip lever), game_uso_func_0000D5DC
+ * (pair-copy trailing call), and the real global game_uso_D_807FF490. Control
+ * flow: the FP gate is the POSITIVE if (`if (s->0xA38 < -30.0f)` => the target
+ * `c.lt.s; bc1fl` with the else-reset folded into the branch-likely delay slot);
+ * the counter advance is UNCONDITIONAL (`obj->0x130 = cnt+1` always, before the
+ * `cnt < 3` return — matches the bne-likely delay-slot store). FINAL lever to 0:
+ * INLINE the `obj->0xB4` base derefs (drop the held `char *s` local) at BOTH the
+ * FP read and the 0x9CC read — a held base local colored into $v0 and shifted
+ * every later temp down one register (off-by-one renumber, 19 diffs); the inline
+ * form lets IDO float the base into $t8 exactly like the target (19->0).
+ * Byte-exact (0 non-reloc word diffs, reloc symbols agree). */
+extern char game_uso_D_807FF490;
 void game_uso_func_00011750(char *obj) {
-    char *s = *(char **)(obj + 0xB4);
     short cnt;
-    int *e;
-    if (!(*(float *)(s + 0xA38) < -30.0f)) {      /* not a hard hit: reset + return */
+    if (*(float *)(*(char **)(obj + 0xB4) + 0xA38) < -30.0f) {   /* hard hit */
+        cnt = *(short *)(obj + 0x130);
+        *(short *)(obj + 0x130) = cnt + 1;        /* always advance (delay slot) */
+        if (cnt < 3) return;                      /* not yet armed */
         *(short *)(obj + 0x130) = 0;
-        return;
-    }
-    cnt = *(short *)(obj + 0x130);
-    *(short *)(obj + 0x130) = cnt + 1;
-    if (cnt < 3) return;                          /* not yet armed */
-    s = *(char **)(obj + 0xB4);                   /* reload after the short store */
-    *(short *)(obj + 0x130) = 0;
-    if (*(int *)(s + 0x9CC) != 0) {
-        gl_func_00000000(obj, *(int *)(obj + 0xFC) | 0x24, 0, 0, 0x100, 5);
-        gl_func_00000000(obj, *(F5A8Pair *)((char *)&D_00000000 + 0xEA0), -1);
+        if (*(int *)(*(char **)(obj + 0xB4) + 0x9CC) != 0) {
+            game_uso_func_077C44(obj, *(int *)(obj + 0xFC) | 0x24, 0, 0, 0x100, 5);
+            game_uso_func_0000D5F8(obj, *(Pair2 *)((char *)&game_uso_D_807FF490 + 0xEA0), -1);
+        } else {
+            game_uso_func_077C44(obj, *(int *)(obj + 0xFC) | 0x1D, 0, 0, 0x100, 5);
+            game_uso_func_0000D5F8(obj, *(Pair2 *)((char *)&game_uso_D_807FF490 + 0xEA0), -1);
+        }
+        game_uso_func_0000D5DC(obj);
     } else {
-        gl_func_00000000(obj, *(int *)(obj + 0xFC) | 0x1D, 0, 0, 0x100, 5);
-        gl_func_00000000(obj, *(F5A8Pair *)((char *)&D_00000000 + 0xEA0), -1);
+        *(short *)(obj + 0x130) = 0;              /* not a hard hit: reset */
     }
-    gl_func_00000000(obj);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00011750);
-#endif
 
 void game_uso_func_00011868(int *a0) {
     *(float *)((char *)a0[0xB4 / 4] + 0x970) = 0.0f;
