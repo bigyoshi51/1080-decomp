@@ -16977,7 +16977,6 @@ void game_libs_func_0002F630(void) {
 //   multi-way mode dispatch — byte-match needs USO mnemonic disasm
 //   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
 /* Whole-body decode 2026-06-01 (prior dispatch was wrong). op = a0?6:2;
  * v1 = op<<8; cmd3 = 0x03000000|v1; cmd6 = 0x06000000|v1. Always emit
@@ -16995,9 +16994,6 @@ void gl_func_0002F638(int a0, int sel, int arg3, int arg4, int stk_43) {
         gl_func_00000000((0x06000000 | v1), (signed char)(sel + arg3));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F638);
-#endif
 
 
 #ifdef NON_MATCHING
