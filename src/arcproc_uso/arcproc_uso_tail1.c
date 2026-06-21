@@ -1923,7 +1923,18 @@ void arcproc_uso_func_00002864(void) {
  *  - REMAINING 5 diffs: pure instruction-SCHEDULING order (values all correct) —
  *    3 swapped pairs where target emits the address setup (addiu s4 base / addiu
  *    s2 bufptr) BEFORE the counter init (li s3 / move s0). Resists init-statement
- *    reordering (scheduler is in ugen backend, not uopt). Stays NM at 92%. */
+ *    reordering (scheduler is in ugen backend, not uopt). Stays NM at 92%.
+ *  - 2026-06-21 (agent-b sweep): REMOVED the old `base++; base--;` no-op lever —
+ *    it had drifted into emitting a REAL trailing `addiu s3,s3,0` (and a 2nd at the
+ *    loop bottom), making the build 252b / 6-non-reloc-diff and OVERSIZE vs the
+ *    248b target. Dropping it restores SIZE-EXACT 248b. Residual is now 5 non-reloc
+ *    diffs = (a) base/counter saved-reg coloring TIE (target base=s4, counter=s3;
+ *    build base=s3, counter=s4 — encounter-order priority, `register` hint + split
+ *    decls no-op) + (b) bufptr/s0 INIT-ORDER schedule tie (target `addiu s2,sp,84`
+ *    before `or s0,zero,zero`; build reverse). Both are ugen-backend allocator/
+ *    scheduler ties: permuter-immune (prior run), and 6 manual levers tried this
+ *    sweep (split-decl, single-expr s1, ptr-walk bp++, buf.w[0]*0 init, commuted
+ *    24*buf.w[i], base-after-buf-copy) all 0-effect. IMMUNE. Stays NM, size-exact. */
 typedef struct { int w[5]; } Arc2884Buf;
 #ifdef NON_MATCHING
 void arcproc_uso_func_00002884(void *a0) {
@@ -1936,8 +1947,6 @@ void arcproc_uso_func_00002884(void *a0) {
   s3 = 16;
   do
   {
-    base++;
-    base--;
     i = 0;
     s0 = 0;
     do
