@@ -1,0 +1,33 @@
+{
+    "function_name": "gl_func_0006C90C",
+    "project": "1080-agent-i",
+    "model": "claude-manual",
+    "start_time": "2026-06-21T00:00:00.000000+00:00",
+    "end_time": "2026-06-21T00:00:00.000000+00:00",
+    "steps": [
+        {
+            "step_number": 1,
+            "timestamp": "2026-06-21T00:00:00.000000+00:00",
+            "assistant_text": "Byte-identical TWIN-PORT of the landed kernel func_80002C08 (kernel_056). find-masked-twins.py grouped them into a strict-signature 39-insn cluster; reloc-masked word comparison showed all 39 words equal with no relocs on either side. Both are the signed 64-bit Euclidean (floored) modulo: r = a % b; if signs of r and b differ, r += b. A prior agent left it INCLUDE_ASM noting the -O2 standalone form leaf-optimizes to 33 insns vs the 39-insn target; the divergence is OPT_FLAGS, not TU-context: the kernel donor builds at -O1 -mips3 which keeps arg-homing (39 insns, 0x9c). Compiled the function in the existing -O1 -mips3 donor unit game_libs_o1_6C8AC.c (standalone .text byte-identical to target, 156 bytes, no relocs) and spliced into game_libs_post1b2c.c.o (default -O2 -mips2) via REPLACE_FUNC_BODY. The earlier '4 MIPS3 sub-function bundle / 57 words' decode comment was a splat-oversize misread.",
+            "tool_calls": [],
+            "match_percent": 100.0,
+            "compiled": true,
+            "token_usage": null
+        }
+    ],
+    "outcome": "match",
+    "final_match_percent": 100.0,
+    "best_match_percent": 100.0,
+    "total_tokens": 0,
+    "instruction_count": 39,
+    "initial_m2c_source": null,
+    "final_source": "#include \"common.h\"\n\nlong long gl_func_0006C90C(long long a, long long b) {\n    long long r = a % b;\n    if ((r < 0 && b > 0) || (r > 0 && b < 0)) r += b;\n    return r;\n}\n",
+    "metadata": {
+        "source_path": "src/game_libs/game_libs_o1_6C8AC.c",
+        "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0006C90C.s",
+        "segment": "game_libs",
+        "compiler": "ido7.1",
+        "compiler_flags": "-O1 -mips3 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+        "verification": "build/.o vs expected/.o function bytes byte-identical (156 bytes, 39 insns, no relocs on either side, reloc symset match); standalone -O1 -mips3 donor .text byte-identical to target; full `make` ROM byte-identical to baserom; make verify-blocks OK."
+    }
+}

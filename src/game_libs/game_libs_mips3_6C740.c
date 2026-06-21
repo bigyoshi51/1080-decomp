@@ -16,6 +16,7 @@ long long game_libs_func_0006C820(long long a, long long b) { return a / b; }  /
 long long game_libs_func_0006C87C(long long a, long long b) { return a * b; }  /* __ll_mul <- func_80002B78 */
 long long game_libs_func_0006C9A8(long long a, long long b) { return a >> b; } /* __ll_rshift <- func_80002CA4 */
 
-/* gl_func_0006C90C (Euclidean mod <- func_80002C08) NOT ported here: standalone
- * -O2 -mips3 leaf-optimizes (33 insns) vs the in-context kernel form (39 insns
- * w/ arg homing). TU-context divergence; left INCLUDE_ASM. */
+/* gl_func_0006C90C (Euclidean mod <- func_80002C08) LANDED 2026-06-21 in the
+ * -O1 -mips3 donor game_libs_o1_6C8AC.c, NOT here: the divergence was OPT_FLAGS
+ * (this unit is -O2 → leaf-optimizes to 33 insns), not TU-context. At -O1 -mips3
+ * IDO keeps arg-homing → byte-exact 39-insn (0x9c) form. */

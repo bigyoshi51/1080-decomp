@@ -11,3 +11,13 @@ void game_libs_func_0006C8AC(u64 *quot, u64 *rem, u64 val, u16 d) {
     *quot = val / d;
     *rem = val % d;
 }
+
+/* gl_func_0006C90C — byte-identical twin of landed kernel func_80002C08
+ * (kernel_056). Euclidean mod. At -O1 -mips3 IDO keeps arg-homing (39 insns,
+ * 0x9c, no relocs); the -O2 standalone form leaf-optimizes to 33 insns, hence
+ * this donor must stay -O1. Spliced into game_libs_post1b2c.c.o. */
+long long gl_func_0006C90C(long long a, long long b) {
+    long long r = a % b;
+    if ((r < 0 && b > 0) || (r > 0 && b < 0)) r += b;
+    return r;
+}

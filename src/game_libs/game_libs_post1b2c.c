@@ -139,71 +139,19 @@ void game_libs_func_0006C8AC(u64 *quot, u64 *rem, u64 val, u16 d) {
     *rem = val % d;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0006C90C: too-big-N-function-bundle (declared 0xE4, 57 words) — 4 MIPS3 runtime helpers.
- *
- * This bundle contains FOUR libgcc/runtime support functions emitted by the IDO
- * compiler. All use MIPS3 64-bit instructions (ld/sd/ddiv/dsrav/dsra32) and
- * CP0 access (mtc0/mfc0). Classic "support library" family.
- *
- * SUB-FUNCTION 1 (0x6C90C..0x6C9A8, 38 insns) — __floor_mod64:
- *     int64_t __floor_mod64(int64_t x, int64_t y) {
- *         if (y == 0) trap(7);                          // break 7 = div-by-0
- *         if (x == INT64_MIN && y == -1) trap(6);       // break 6 = overflow
- *         int64_t r = x % y;                            // ddiv → HI
- *         // Adjust for floored division: if signs differ and r != 0, add y
- *         if (!(r > 0)
- *             && !(y > 0 && r >= 0)
- *             && !(y >= 0 && r >= 0))
- *             r += y;
- *         return r;
- *     }
- *   Standard "signed 64-bit floored modulo" — adjusts truncating-toward-zero
- *   ddiv result to floor-toward-negative semantics by adding divisor when the
- *   signs of remainder and divisor differ.
- *   Returns 64-bit value in v0:v1 (lw $v0, 0($sp); lw $v1, 4($sp) — o32 ABI
- *   high-low split of saved 64-bit stack slot).
- *
- * SUB-FUNCTION 2 (0x6C9A8..0x6C9D4, 12 insns) — __ashr64:
- *     int64_t __ashr64(int64_t x, int64_t shift) {
- *         return x >> shift;          // dsrav: arithmetic shift, sa from low-6-bits of shift
- *     }
- *   Tail epilogue: dsra32 $v0, $v0, 0 in delay slot = no-op extra normalization
- *   (or part of sign-ext into the return register pair).
- *
- * SUB-FUNCTION 3 (0x6C9D4..0x6C9E4, 4 insns) — __set_cp0_status:
- *     void __set_cp0_status(uint32_t status) {
- *         asm("mtc0 $a0, $12");      // CP0 reg 12 = Status
- *         asm("nop");                 // CP0 hazard delay
- *     }
- *
- * SUB-FUNCTION 4 (0x6C9E4..0x6C9F0, 3 insns) — __get_cp0_status:
- *     uint32_t __get_cp0_status(void) {
- *         asm("mfc0 $v0, $12");      // returns Status register
- *         return v0;
- *     }
- *
- * Notes:
- *  - All four functions use MIPS3 instructions (ld/sd/ddiv/dsrav/dsll32/dsra32/
- *    mtc0/mfc0) that IDO C does not emit from standard C — they require inline
- *    asm OR are part of the libgcc/libult runtime emitted by the compiler.
- *  - 4 internal `jr $ra` confirm the bundle structure.
- *  - The MIPS3 64-bit family + CP0 access is hallmark of `__mips3_runtime`
- *    helpers — see libreultra `src/libgcc/` or libgcc-equivalent.
- *  - Splat boundary issue: candidate for split-fragments.py.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+/* gl_func_0006C90C: Euclidean (floored) signed 64-bit modulo. LANDED 2026-06-21
+ * as a byte-identical TWIN-PORT of the matched kernel func_80002C08 (kernel_056):
+ * identical 0x9c-byte ddiv body, no relocs. Needs -O1 -mips3 (keeps arg-homing,
+ * 39 insns; the -O2 standalone form leaf-optimizes to 33 insns), which this
+ * -O2/-mips2 TU can't use, so the -O1 -mips3 donor (game_libs_o1_6C8AC.c) is
+ * spliced in via REPLACE_FUNC_BODY. The earlier "4 MIPS3 sub-function bundle /
+ * 57 words" decode was a splat-oversize misread — the function is a single
+ * 39-insn floored-mod. */
 long long gl_func_0006C90C(long long a, long long b) {
     long long r = a % b;
-    if (r != 0 && ((r ^ b) < 0)) {
-        r += b;
-    }
+    if ((r < 0 && b > 0) || (r > 0 && b < 0)) r += b;
     return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C90C);
-#endif
 
 
 /* __ll_rshift <- kernel func_80002CA4. TWIN-PORT, donor game_libs_mips3_6C740.c. */
