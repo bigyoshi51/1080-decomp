@@ -5294,26 +5294,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022398);
 //   placeholder jal-0 lookup needs USO reloc infra + branch/index
 //   schedule. Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
-#ifdef NON_MATCHING
 extern int gl_func_00000000();
-extern int D_00000000;
-int gl_func_000223DC(int arg) {
+void *gl_func_000223DC(int arg) {
     char *D = (char *)&D_00000000;
     char *base = D + 0x26B8;
     int r = gl_func_00000000(base, arg);
-    if (r != 0) {
-        int count = *(int *)(D + 0x2948);
-        char *e = base + count * 0x14 + 0x10;
+    if (r == 0) {
+        return 0;
+    }
+    {
+        char *e = base + *(int *)(D + 0x2948) * 0x14 + 0x10;
         *(char *)(e + 0) = 1;
         *(int *)(e + 8) = r;
         *(int *)(e + 0x10) = arg;
-        *(int *)(D + 0x2948) = count + 1;
+        *(int *)(D + 0x2948) = *(int *)(D + 0x2948) + 1;
+        return e;
     }
-    return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000223DC);
-#endif
 
 // gl_func_00022464 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
