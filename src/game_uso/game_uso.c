@@ -144,8 +144,7 @@ float game_uso_func_000000A0(float *a, float *b) {
 }
 
 
-#ifdef NON_MATCHING
-/* Cubic B-spline weighted point evaluator (61 insns, FPU-only). 96.95% NM.
+/* Cubic B-spline weighted point evaluator (61 insns, FPU-only).
  * Input:  out (Vec3*),  ctrl (Vec3*[4]: 4 control point pointers),
  *         weights (float[4]: B0..B3 from game_uso_func_00000000)
  * Output: out[i] = sum over k=0..3 of (*ctrl[k])[i] * weights[k]
@@ -154,25 +153,19 @@ float game_uso_func_000000A0(float *a, float *b) {
  * on a uniform cubic B-spline curve in 3D — camera path / track / skater
  * limb interpolation.
  *
- * Cap at 96.95% (27 FPU register-allocation diffs across the 3 dot-product
- * blocks). Variants tried (all regressed):
- *   - Swapping operand order (weights[k] * ctrl[k]->x): 27 → 32 diffs.
- *   - Pre-loading ctrl[0..3] into named locals: 27 → 44 diffs.
- * Build chooses $t9 as base for some weight loads where expected uses $a2
- * directly + offset 0xC. FPU pipeline forwarding + base-register choice are
- * not flippable from C alone — needs decomp-permuter to find a matching
- * variant. */
+ * MATCHED via the FP-reduction commutative-spelling lever (same shape as the
+ * sibling dot-product game_uso_func_000000A0): each 4-term dot written
+ * last-term-first with right-nesting and the innermost pair source-reversed
+ * (`c3*w3 + (c2*w2 + (c1*w1 + w0*c0))`). This restores IDO's RTL eval so loads
+ * and add.s all land in target order. */
 void game_uso_func_000000E0(Vec3 *out, Vec3 **ctrl, float *weights) {
-    out->x = ctrl[0]->x * weights[0] + ctrl[1]->x * weights[1]
-           + ctrl[2]->x * weights[2] + ctrl[3]->x * weights[3];
-    out->y = ctrl[0]->y * weights[0] + ctrl[1]->y * weights[1]
-           + ctrl[2]->y * weights[2] + ctrl[3]->y * weights[3];
-    out->z = ctrl[0]->z * weights[0] + ctrl[1]->z * weights[1]
-           + ctrl[2]->z * weights[2] + ctrl[3]->z * weights[3];
+    out->x = ctrl[3]->x * weights[3] + (ctrl[2]->x * weights[2]
+           + (ctrl[1]->x * weights[1] + weights[0] * ctrl[0]->x));
+    out->y = ctrl[3]->y * weights[3] + (ctrl[2]->y * weights[2]
+           + (ctrl[1]->y * weights[1] + weights[0] * ctrl[0]->y));
+    out->z = ctrl[3]->z * weights[3] + (ctrl[2]->z * weights[2]
+           + (ctrl[1]->z * weights[1] + weights[0] * ctrl[0]->z));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000000E0);
-#endif
 
 void game_uso_func_000001D4(Vec3 *dst) {
     int pad_top[1];

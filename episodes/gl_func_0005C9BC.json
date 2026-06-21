@@ -1,0 +1,31 @@
+{
+  "function_name": "gl_func_0005C9BC",
+  "project": "projects/1080-agent-b",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T20:47:48.607460+00:00",
+  "end_time": "2026-06-21T20:47:48.607460+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T20:47:48.607460+00:00",
+      "assistant_text": "3-component normalize with epsilon-degenerate fallback. 98.40%/11-diff near-miss was the FP-reduction operand-order cap on the sum-of-squares (load order + final add.s fs). Cracked by writing the sum last-term-first with the inner pair source-reversed: `a0[2]^2 + (a0[1]^2 + a0[0]^2)`, so IDO emits x,y,z square loads/muls in target order and the final add lands the running-sum as fs. 11->0. Reloc-free jal-0 sqrt via gl_func_00000000_c9bc placeholder.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 47,
+  "initial_m2c_source": null,
+  "final_source": "int gl_func_0005C9BC(float *a0) {\n    float s = a0[2]*a0[2] + (a0[1]*a0[1] + a0[0]*a0[0]);\n    if (s < *(float *)((char *)&D_00000000 + 0x2034)) {\n        a0[1] = 0.0f;\n        a0[0] = 0.0f;\n        a0[2] = 1.0f;\n        return 0;\n    }\n    {\n        float inv = 1.0f / gl_func_00000000_c9bc(s);\n        a0[0] *= inv;\n        a0[1] *= inv;\n        a0[2] *= inv;\n    }\n    return 1;\n}\n",
+  "metadata": {
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/game_libs/game_libs/gl_func_0005C9BC.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "reloc-filtered word-compare vs expected/.o = 0 non-reloc diffs (jal-0/base-0 placeholders resolve to 0); 100.0 objdiff fuzzy; full make -> ROM byte-identical to baserom; verify-blocks OK"
+  }
+}

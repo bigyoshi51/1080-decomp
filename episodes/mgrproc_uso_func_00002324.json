@@ -1,0 +1,31 @@
+{
+  "function_name": "mgrproc_uso_func_00002324",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T20:52:02.068396+00:00",
+  "end_time": "2026-06-21T20:52:02.068396+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T20:52:02.068396+00:00",
+      "assistant_text": "One-shot FP state-advance trigger (54 insns, 0xD8). Structural decode was correct; the 12-word near-miss was two C-steerable as1/ugen shape issues, NOT a true FP-scheduling cap. Lever 1 (store-order): the target emits the two integer stores 0x7C4=1 / 0x7C8-=1 BEFORE the FP stores 0x7A8/0x7AC; moving those two int statements ahead of the x+4/y-4 stores in source dropped 12->6 diffs. Lever 2 (const-first FP-reg coloring): the 1.0f written to 0x7C0 must color $f10 (low) and the add/sub results $f16/$f18 (high); IDO numbers FP pseudos in source-statement order, so placing the `*(0x7C0)=one;` assignment BEFORE the x+4/y-4 stores creates the const pseudo first -> $f10, pushing the arith results up to $f16/$f18 (target). 6->0. Kept `float two=2.0f; /two` (forces div.s-by-literal + target-like bnel returns). Tail callee resolved from the .s reloc: gl_func_00000000 placeholder -> real mgrproc_uso_func_0002DC(50) (both jal-encode 0C000000 under USO R_MIPS_26 runtime reloc, ROM unchanged).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "void mgrproc_uso_func_00002324(char *a0) {\n    float x, y;\n    float two = 2.0f;\n    float one = 1.0f;\n    if (*(int *)(a0 + 0x7C4) != 0) return;\n    x = *(float *)(a0 + 0x7A8);\n    y = *(float *)(a0 + 0x7AC);\n    *(float *)(a0 + 0x7BC) = *(float *)(a0 + 0x7B8) / two;\n    *(int *)(a0 + 0x7C4) = 1;\n    *(int *)(a0 + 0x7C8) -= 1;\n    *(float *)(a0 + 0x7C0) = one;\n    *(float *)(a0 + 0x7A8) = x + 4.0f;\n    *(float *)(a0 + 0x7AC) = y - 4.0f;\n    *(float *)(a0 + 0x7B0) = x;\n    *(float *)(a0 + 0x7B4) = y;\n    mgrproc_uso_func_0002DC(50);\n    if (*(int *)(a0 + 0x7C8) != 0) return;\n    *(float *)(a0 + 0x554) = 200.0f;\n    *(float *)(a0 + 0x558) = 160.0f;\n    *(float *)(a0 + 0x55C) = -64.0f;\n    *(float *)(a0 + 0x560) = 0.0f;\n    *(float *)(a0 + 0x564) = 120.0f;\n}\n",
+  "metadata": {
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00002324.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "verification": "reloc-filtered word-compare vs expected/.o = 0 non-reloc diffs + reloc-set match (R_MIPS_26 -> mgrproc_uso_func_0002DC); matching build/.o byte-exact; full make exit 0 + ROM cmp byte-identical to baserom.z64"
+  }
+}

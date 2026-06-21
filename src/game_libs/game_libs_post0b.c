@@ -30129,14 +30129,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C960);
 // gl_func_0005C9BC — 3-component normalize with epsilon-degenerate fallback.
 //   If |a0|² < D[0x2034], snap to (0,0,1) and return 0; otherwise normalize
 //   in place and return 1. Sibling of gl_func_0005D4F8.
-//   STRUCTURAL pass 98.40% fuzzy. 11 register-renumber diffs in load order
-//   (TU-context-sensitive scheduling). Reloc-free jal -> sqrtf.
-//   Permuter-class for byte-match.
-#ifdef NON_MATCHING
+//   MATCHED via the FP-reduction commutative-spelling lever: the sum-of-squares
+//   is written last-term-first with the inner pair source-reversed
+//   (`z² + (y² + x²)`) so IDO emits x²,y²,z² loads/muls in target order and the
+//   final add.s lands the running-sum as fs. Reloc-free jal -> sqrtf.
 extern int D_00000000;
-extern float sqrtf(float);
+extern float gl_func_00000000_c9bc(float);  /* reloc-free jal-0 sqrt (0x0C000000) */
 int gl_func_0005C9BC(float *a0) {
-    float s = a0[0]*a0[0] + a0[1]*a0[1] + a0[2]*a0[2];
+    float s = a0[2]*a0[2] + (a0[1]*a0[1] + a0[0]*a0[0]);
     if (s < *(float *)((char *)&D_00000000 + 0x2034)) {
         a0[1] = 0.0f;
         a0[0] = 0.0f;
@@ -30144,16 +30144,13 @@ int gl_func_0005C9BC(float *a0) {
         return 0;
     }
     {
-        float inv = 1.0f / sqrtf(s);
+        float inv = 1.0f / gl_func_00000000_c9bc(s);
         a0[0] *= inv;
         a0[1] *= inv;
         a0[2] *= inv;
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C9BC);
-#endif
 
 /* game_libs_func_0005CA78 (size 0x74, 29 insns): VERIFIED STRUCTURAL DECODE
  * 6-axis short-circuit AABB-overlap-like test returning 1 if all 6 inequalities
@@ -30592,23 +30589,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D474);
 // gl_func_0005D4F8 — 4-component normalize (quaternion / 4-float vector).
 //   Loads 4 floats from a0[0..3], sums squares, calls sqrtf, divides 1.0 by
 //   the length, scales all 4 back into a0. Reloc-free jal -> sqrtf (libc).
-//   STRUCTURAL pass 97.22% fuzzy. Logic exact; 14 register-renumber diffs
-//   between target's float-reg picks ($f0,$f2,$f14,$f16) and full-TU's
-//   ($f2,$f14,$f16,$f0). Documented cap: TU-context-sensitive scheduling.
-//   Permuter-class for full byte-match.
-#ifdef NON_MATCHING
-extern float sqrtf(float);
+//   MATCHED via the FP-reduction commutative-spelling lever applied RECURSIVELY
+//   to the 4-term sum-of-squares: each level written last-term-first with the
+//   innermost pair source-reversed
+//   (`w² + (z² + (y² + x²))`), so the loads emit x,y,z,w in order and every
+//   add.s lands the running-sum as fs (target order).
+extern float gl_func_00000000_d4f8(float);  /* reloc-free jal-0 sqrt (0x0C000000) */
 void gl_func_0005D4F8(float *a0) {
-    float len = sqrtf(a0[0]*a0[0] + a0[1]*a0[1] + a0[2]*a0[2] + a0[3]*a0[3]);
+    float len = gl_func_00000000_d4f8(a0[3]*a0[3] + (a0[2]*a0[2] + (a0[1]*a0[1] + a0[0]*a0[0])));
     float inv = 1.0f / len;
     a0[0] *= inv;
     a0[1] *= inv;
     a0[2] *= inv;
     a0[3] *= inv;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D4F8);
-#endif
 
 /* Vec3 cross product (xyz) + dot product (w) of a1 and a2 into a 4-float a0:
  *   a0[0..2] = a1 x a2 ; a0[3] = a1 . a2
@@ -31163,7 +31157,6 @@ loop:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0005E190: 4x4-matrix normalize-by-scalar with degeneracy
    guard. reloc1() setup; s = reloc2(m) (float scale -- det/norm);
    compute |s| via sign-test+neg; if |s| < const@(&D_00000000+0x204C)
@@ -31183,43 +31176,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E138);
    now match. (This is the game_uso_func_00003ED4 lesson: a "coloring cap"
    that is really a FRAME-LAYOUT diff. Confirmed: 5 of the 8 residual words
    were offset-only frame, fully C-reachable.)
-   RESIDUAL (3 words, the SAME registers/offsets, IMMEDIATE-only): the
-   do-while x4-unroll+software-pipeline matches insn-for-insn, but the IV
-   is still by-4-ELEMENT (li a0,16 / addiu v1,v1,4) vs the target's
-   by-1-TRIP (li a0,4 / addiu v1,v1,1). The flat `m[t]` do-while keeps the
-   target's EXACT v0/v1/a0 loop-trio coloring + pipeline (only 3 imm diffs);
-   the nested-do-while form (5BDC0 IV crack) DOES produce the by-1 counter
-   but shifts the whole trio up one register (v1/a0/a1, 26 diffs) because
-   it changes first-need order. So: flat form = right coloring + wrong
-   counter stride (3 diffs); nested form = right counter + wrong coloring
-   (26 diffs). The two are mutually exclusive under tried C forms. The
-   residual is the 5BDC0-class IV strength-reduction choice NARROWED to the
-   counter stride, on a structure-exact + frame-exact body. Body uses the
-   flat do-while (closest: 3 immediate-only diffs). Permuter-factory
-   candidate (single-choice IV gate). Focused-session item. */
+   2026-06-21 BYTE-EXACT — the final 3-imm IV-stride residual CRACKED. The
+   tension was: flat `do{m[t];t++}while(t<16)` keeps the target's EXACT
+   v0/v1/a0 loop coloring + software-pipeline but with the by-4-ELEMENT IV
+   (li a0,16 / addiu v1,v1,4); earlier nested forms got the by-1 counter but
+   shifted the coloring. The resolving form is a NESTED do-while whose SINGLE
+   running index `t` (not i*4+j) feeds m[t], with the outer trip counter i<4
+   and inner j<4: this hands IDO a by-1 TRIP counter (li a0,4 / addiu v1,v1,1)
+   while the running `t`→`v0` pointer keeps the +16 stride and the exact same
+   coloring/pipeline. All 248 bytes identical to target (0 non-reloc diffs,
+   reloc set unchanged). The "mutually exclusive" claim was wrong: the index
+   expression (running `t` vs `i*4+j`) is the discriminator, not the nesting. */
 extern int gl_func_00000000();
-extern float gl_func_0005E190_scale();
+extern float gl_func_00000000_5e190s();
 extern int D_00000000;
 void gl_func_0005E190(int a0, float *m) {
     volatile int pad[2];
     float s;
     float as;
+    int i;
     int t;
     gl_func_00000000(a0);
-    s = gl_func_0005E190_scale(m);
+    s = gl_func_00000000_5e190s(m);
     as = (s < 0.0f) ? -s : s;
     if (as < *(float *)((char *)&D_00000000 + 0x204C)) {
         gl_func_00000000((char *)&D_00000000 + 0x21B28);
     }
     t = 0;
+    i = 0;
     do {
-        m[t] = m[t] / s;
-        t++;
-    } while (t < 16);
+        int j = 0;
+        do {
+            m[t] = m[t] / s;
+            t++;
+            j++;
+        } while (j < 4);
+        i++;
+    } while (i < 4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005E190);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW

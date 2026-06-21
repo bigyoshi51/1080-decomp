@@ -1,0 +1,31 @@
+{
+  "function_name": "gl_func_0005D4F8",
+  "project": "projects/1080-agent-b",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T20:47:48.607460+00:00",
+  "end_time": "2026-06-21T20:47:48.607460+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T20:47:48.607460+00:00",
+      "assistant_text": "4-component (quaternion) normalize. 97.22%/14-diff near-miss was the FP-reduction operand-order cap on the 4-term sum-of-squares. Cracked by applying the commutative-spelling lever RECURSIVELY: `w^2 + (z^2 + (y^2 + x^2))` (each level last-term-first, innermost pair source-reversed) so all loads emit x,y,z,w in order and every add.s lands the running-sum as fs. 14->2->0. Reloc-free jal-0 sqrt via gl_func_00000000_d4f8 placeholder.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 36,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_0005D4F8(float *a0) {\n    float len = gl_func_00000000_d4f8(a0[3]*a0[3] + (a0[2]*a0[2] + (a0[1]*a0[1] + a0[0]*a0[0])));\n    float inv = 1.0f / len;\n    a0[0] *= inv;\n    a0[1] *= inv;\n    a0[2] *= inv;\n    a0[3] *= inv;\n}\n",
+  "metadata": {
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/game_libs/game_libs/gl_func_0005D4F8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "verification": "reloc-filtered word-compare vs expected/.o = 0 non-reloc diffs (jal-0/base-0 placeholders resolve to 0); 100.0 objdiff fuzzy; full make -> ROM byte-identical to baserom; verify-blocks OK"
+  }
+}

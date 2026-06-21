@@ -1177,35 +1177,40 @@ void mgrproc_uso_func_00002294(int *a0) {
  * (1968/1972) f32 = snapshot of prev (x,y); a0->0x7B8 (1976) f32
  * source halved into a0->0x7BC (1980); a0->0x7C0 (1984) f32 = 1.0;
  * final-pose block a0->0x554..0x564 (1364..1380) f32 =
- * {200,160,-64,0,120}. Caps <80: FP div.s/add.s/sub.s + many
- * lui+mtc1 const loads + bnel branch-likely (x2) + gl_func_00000000
- * reloc call. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule).
+ * {200,160,-64,0,120}.
  *
- * 2026-06-01 sibling pass from exact 02294: `float two = 2.0f; ... / two`
- * is a real promotion over literal `/ 2.0f`: keeps frame 0x18, emits the
- * target-like `bnel` early returns, and forces `div.s` by a 2.0f literal
- * instead of strength-reducing to multiply by 0.5f. `volatile float two`
- * also forces `div.s` but grows the frame to 0x28 and reschedules heavily.
- * Reordering the main stores to put 0x7C4/0x7C8 earlier regressed the
- * constant-load/FPU-store sequence; keep the cleaner nonvolatile-divisor
- * order. */
-#ifdef NON_MATCHING
+ * MATCHED 2026-06-21 (byte-exact, ROM-identical). The prior "FP-scheduling cap"
+ * was really two C-steerable shape issues, cracked by two source-order levers:
+ *   (1) STORE-ORDER: the target emits the two integer stores (0x7C4=1,
+ *       0x7C8-=1) BEFORE the FP stores 0x7A8/0x7AC. Moving those two int
+ *       statements ahead of the x+4/y-4 stores in source drops 12->6 diffs
+ *       (the as1 scheduler then matches the int/FP store interleave).
+ *   (2) CONST-FIRST FP-REG: the 1.0f written to 0x7C0 must color $f10 (LOW),
+ *       and the add/sub results $f16/$f18 (HIGH). IDO numbers FP pseudos in
+ *       source-statement order, so placing `*(0x7C0) = one;` BEFORE the
+ *       x+4/y-4 stores creates the const pseudo first -> $f10, pushing the
+ *       arith results up to $f16/$f18 (target). 6->0. (`float two=2.0f; /two`
+ *       still forces the div.s-by-literal, frame 0x18, target-like bnel returns
+ *       — keep it.) The real tail callee is mgrproc_uso_func_0002DC(50) (was
+ *       the cross-USO placeholder gl_func_00000000); both disk-encode jal as
+ *       0C000000 under the USO R_MIPS_26 runtime reloc, so the ROM is identical
+ *       and the swap only makes objdiff count the call. */
 void mgrproc_uso_func_00002324(char *a0) {
     float x, y;
     float two = 2.0f;
+    float one = 1.0f;
     if (*(int *)(a0 + 0x7C4) != 0) return;
     x = *(float *)(a0 + 0x7A8);
     y = *(float *)(a0 + 0x7AC);
-    *(float *)(a0 + 0x7B0) = x;
-    *(float *)(a0 + 0x7B4) = y;
-    *(float *)(a0 + 0x7A8) = x + 4.0f;
-    *(float *)(a0 + 0x7AC) = y - 4.0f;
     *(float *)(a0 + 0x7BC) = *(float *)(a0 + 0x7B8) / two;
-    *(float *)(a0 + 0x7C0) = 1.0f;
     *(int *)(a0 + 0x7C4) = 1;
     *(int *)(a0 + 0x7C8) -= 1;
-    gl_func_00000000(50);
+    *(float *)(a0 + 0x7C0) = one;
+    *(float *)(a0 + 0x7A8) = x + 4.0f;
+    *(float *)(a0 + 0x7AC) = y - 4.0f;
+    *(float *)(a0 + 0x7B0) = x;
+    *(float *)(a0 + 0x7B4) = y;
+    mgrproc_uso_func_0002DC(50);
     if (*(int *)(a0 + 0x7C8) != 0) return;
     *(float *)(a0 + 0x554) = 200.0f;
     *(float *)(a0 + 0x558) = 160.0f;
@@ -1213,9 +1218,6 @@ void mgrproc_uso_func_00002324(char *a0) {
     *(float *)(a0 + 0x560) = 0.0f;
     *(float *)(a0 + 0x564) = 120.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002324);
-#endif
 
 #ifdef NON_MATCHING
 
