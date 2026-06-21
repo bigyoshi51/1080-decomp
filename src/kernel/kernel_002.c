@@ -1,23 +1,10 @@
 #include "common.h"
 
 
-#ifdef NON_MATCHING
-/* func_80004B10: 52-insn (0xD0) RDB read-loop with lazy init.
- * Likely __osRdbRead-style host-read function.
- *
- * Lazy-inits a message queue (D_8000A440 flag-guarded) on first call:
- *   osCreateMesgQueue(&readhost_bss_0000, &readhost_bss_0018, 1)
- *   osSetEventMesg(0xF, &readhost_bss_0000, 0)
- *
- * Then publishes (buf, ct) to global slots __osRdb_Read_Data_Buf/Ct,
- * and if ct != 0, loops osRecvMesg until accumulated recv > 0.
- * Final osSendMesg releases the queue.
- *
- * Initial structural decode - no register tuning yet.
- * 2026-06-04: kernel_002 flipped to -O1 (mis-flagged -O2). func_80004B10
- * 73->96.2%, func_80004BE0 62->82.3% (both spill every local); the other
- * two funcs are INCLUDE_ASM. Residual ~4% here is the -O1 loop-accumulator
- * spill detail (sp+0x28 reload + bnez-on-accumulator). */
+/* func_80004B10: RDB host-read with lazy message-queue init.
+ * Lazy-inits a message queue (D_8000A440 flag-guarded) on first call,
+ * publishes (buf, ct) to __osRdb_Read_Data_Buf/Ct, then loops the recv
+ * helper until a non-zero count accumulates, and releases the queue. */
 extern int func_800053D0(void*, void*, int);
 extern int func_800051E0(int, void*, int);
 extern int func_800066F0(void*, int, int);
@@ -38,16 +25,11 @@ void func_80004B10(void* buf, int ct) {
     }
     __osRdb_Read_Data_Buf = (int)buf;
     __osRdb_Read_Data_Ct = ct;
-    if (ct != 0) {
-        do {
-            count += func_800066F0(&msg, 1, 5);
-        } while (count == 0);
+    while (count == 0) {
+        count += func_800066F0(&msg, 1, 5);
     }
     func_80004FE0(&readhost_bss_0000, 0, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80004B10);
-#endif
 
 
 /* func_80004BE0 - verified structural decode (kernel, 0x138, 80
