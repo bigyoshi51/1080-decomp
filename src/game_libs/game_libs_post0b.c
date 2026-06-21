@@ -22837,9 +22837,6 @@ s32 gl_func_000510F0(s32 arg0, s32 arg1, char *arg2, s32 arg3, char *arg4, s32 a
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000510F0);
 #endif
 
-extern int gl_data_513CC_addr;
-
-#ifdef NON_MATCHING
 /* gl_func_000513CC: 31-insn 3-call linked-list insertion init.
  *   gl_func_00000000(a0);
  *   r2 = gl_func_00000000(0, &gl_data_513CC_addr);   // 0x20E5C
@@ -22868,20 +22865,17 @@ void gl_func_000513CC(int* a0) {
     int* a3;
     int* r2;
     gl_func_00000000(a0);
-    r2 = (int*)gl_func_00000000(0, (char *)&D_00000000 + 0xE5C);
+    r2 = (int*)gl_func_00000000(0, (char *)&D_00000000 + 0x20E5C);
     a0[11] = (int)r2;
     a0[3] = (int)r2;
     a0[4] = (int)r2;
     a3 = (int*)((int*)a0[15])[4];
     gl_func_00000000(a3 + 4, r2);
     if (r2[5] != 0) {
-        a3[1] = 1;
+        r2[1] = 1;
     }
     r2[5] = (int)a3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000513CC);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00051448: 54-insn lazy constructor + cb-register +
@@ -32240,16 +32234,24 @@ int gl_func_0005FDCC(int a0, int a1, int a2) {
  * That + the orphan hoist gives STRUCTURE EXACT (26/26 opcodes, bne not bnel).
  * Residual = a caller-saved-temp regalloc renumber (capacity $v0 mine vs $t6
  * target, cascading the $t6-$t9 chain down by one; mine reuses the $v0 return
- * reg for capacity). swap-decl/inline-cap regressed. Stays NM. */
+ * reg for capacity). swap-decl/inline-cap regressed. Stays NM.
+ * 2026-06-21 (agent-e base-pin vein): fixed TWO real C bugs that were inflating
+ * the diff — (1) capacity was read UNINITIALIZED (declared, never assigned
+ * before `count >= capacity`); now `capacity = p[0x34]` read first, `count =
+ * p[0x38]` second, matching target lw order (52(v1) then 56(v1)). (2) the grow
+ * call arg was `(&D)+0x21C40` with D typed `int` -> 4x-scaled to 0x87100 (lui
+ * a0,0x8); now `(char*)(&D)+0x21C40` (lui a0,0x2). 99.77->down to 9 register-
+ * only diffs (capacity v0-vs-t6 lowest-free tie + cascade). Genuine coloring
+ * residual; not landed. */
 #ifdef NON_MATCHING
 char *game_libs_func_0005FE14(int a0) {
   char *p = *((char **) (&D_00000000));
-  int capacity;
+  int capacity = *((int *) (p + 0x34));
   int count = *((int *) (p + 0x38));
   p += 0x2C;
   if (count >= capacity)
   {
-    gl_func_00000000((&D_00000000) + 0x21C40, count);
+    gl_func_00000000((char *)(&D_00000000) + 0x21C40, count);
     capacity = *((int *) (p + 0x34));
     count = *((int *) (p + 0xC));
   }

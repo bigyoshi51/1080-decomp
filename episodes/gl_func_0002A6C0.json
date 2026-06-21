@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0002A6C0",
+  "project": "1080-agent-b",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T11:39:46.981013+00:00",
+  "end_time": "2026-06-21T11:39:46.981013+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T11:39:46.981013+00:00",
+      "assistant_text": "Base-pin land via held-base-pointer lever + 3 codegen levers. (1) The `(x != dflt) == 1` boolean form reproduces the target's xor/sltu/bnel-against-1 idiom and 5-saved-reg/0x30 frame. (2) Declaring the held base &D_0+0x5280 as `s32` (its integer value, used only by-value) instead of `char *` colors it into s2 ahead of the held constant 1 (s3), matching target (char* form mis-colored: 9 diffs). (3) The `for`-loop with comma-init schedules the dflt-lo addiu ahead of the two zero-cost prologue moves, closing the last 3-word as1 scheduler tie. Bulk apply-to-all-live-slots sweep over a 16-entry table; per-slot handler called when slot+0x38 differs from the default object pointer. gl_func_00000000 = canonical USO placeholder callee.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_0002A6C0(char *arg0, s32 arg1) {\n    s32 dflt = (s32)((char *)&D_00000000 + 0x5280);\n    s32 var_s0;\n    char *var_s1;\n\n    for (var_s0 = 0, var_s1 = arg0; var_s0 != 0x40; var_s0 += 4, var_s1 += 4) {\n        s32 temp_a0 = *(s32 *)(var_s1 + 0x38);\n        if ((temp_a0 != dflt) == 1) {\n            gl_func_00000000(temp_a0);\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0002A6C0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff fuzzy=100.0; full make ROM byte-identical to baserom (ROM OK)."
+  }
+}

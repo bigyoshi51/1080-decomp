@@ -13049,23 +13049,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A5C8);
 //   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
 //   Real-C STRUCTURAL body below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// gl_func_0002A6C0 (game_libs, -O2 USO) — BYTE-EXACT (agent-b 2026-06-21).
+//   Bulk "apply to all live slots" sweep: for each of 16 table entries, if the
+//   slot's +0x38 word differs from the default object (&D_0+0x5280), invoke the
+//   per-slot handler. Landed via the held-base-pointer lever + 3 codegen
+//   levers: (1) the `(x != dflt) == 1` boolean form reproduces the target's
+//   xor/sltu/bnel-against-1 idiom and 5-saved-reg/0x30 frame; (2) declaring
+//   the held base as `s32` (its integer value, used only by-value) — not a
+//   `char *` — colors it into s2 (lower) ahead of the held constant 1 (s3),
+//   matching target (char* form mis-colored: 9 diffs); (3) the `for`-loop
+//   with comma-init `(var_s0=0, var_s1=arg0; ...)` schedules the dflt-lo addiu
+//   ahead of the two zero-cost moves in the prologue, closing the last 3-word
+//   as1 scheduler tie. gl_func_00000000 = canonical USO placeholder callee.
 extern int gl_func_00000000();
-extern int D_00000000;
-void gl_func_0002A6C0(char *tbl, int arg) {
-    char *dflt = (char *)&D_00000000 + 0x5280;
-    int i;
-    for (i = 0; i < 0x40; i++) {
-        char *e = *(char **)(tbl + 0x38);
-        if (e != dflt) {
-            gl_func_00000000(e, arg);
+void gl_func_0002A6C0(char *arg0, s32 arg1) {
+    s32 dflt = (s32)((char *)&D_00000000 + 0x5280);
+    s32 var_s0;
+    char *var_s1;
+
+    for (var_s0 = 0, var_s1 = arg0; var_s0 != 0x40; var_s0 += 4, var_s1 += 4) {
+        s32 temp_a0 = *(s32 *)(var_s1 + 0x38);
+        if ((temp_a0 != dflt) == 1) {
+            gl_func_00000000(temp_a0);
         }
-        tbl += 4;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A6C0);
-#endif
 
 // gl_func_0002A740 — STRUCTURAL PASS (0x98 / 38 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -13265,26 +13273,41 @@ int game_libs_func_0002A8C4(void *a0) {
 //   STALE 4-jr-bundle comment: grep -c 03E00008 = 1 (.s now single
 //   fn). Real-C STRUCTURAL body below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
+// BASE-PIN PROGRESS (agent-b 2026-06-21): held-base-pointer lever applied.
+//   Loop pointers pinned as held char* in saved regs, each incremented +0x80,
+//   call arg passed as held pointer (`or a0,sN,zero`). The s32-INT lever
+//   (see gl_func_0002A6C0) FIXED the anchor coloring: declaring `anchor`
+//   (used only by value — stored + passed, never deref'd) as `s32` instead
+//   of `char *` flips it from s4 to s3, EXACTLY matching target (37->36
+//   diffs, and now anchor=s3/var_s4=s4 like target). RESIDUAL (36 words):
+//   (a) the setup/prologue instruction SCHEDULE order (addiu materializations
+//   land in different positions though the register assignments now match) —
+//   as1 backend tie; (b) target uses a distinct temp v0=&D for the 4 top
+//   stores but IDO merges it with the loop base s0=&D. Both are scheduling/
+//   single-symbol-merge residuals, not coloring or base-pin. gl_func_00000000
+//   = canonical USO placeholder.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0002A904(void) {
-    char *anchor = (char *)&D_00000000 + 0x5368;
-    char *e = (char *)&D_00000000 + 0x52F0;
-    char *t = (char *)&D_00000000 + 0x3280;
-    int i;
-    *(int *)anchor             = (int)anchor;
-    *(int *)(anchor + 4)       = (int)anchor;
-    *(int *)(anchor + 8)       = 0;
-    *(int *)(anchor + 0xC)     = 0;
-    for (i = 0; i < 0x10; i++) {
-        char *slot = (char *)&D_00000000 + 0x32F0 + i * 0x80;
-        *(int *)(slot + 8) = (int)t;
-        *(int *)slot       = 0;
-        gl_func_00000000(anchor, e);
-        e += 0x80;
-        t += 0x80;
-    }
+    s32 anchor = (s32)((char *)&D_00000000 + 0x5368);
+    char *var_s0 = (char *)&D_00000000;
+    char *var_s1 = (char *)&D_00000000 + 0x32F0;
+    char *var_s2 = (char *)&D_00000000 + 0x3280;
+    char *var_s4 = (char *)&D_00000000 + 0x52F0;
+    char *v0 = (char *)&D_00000000;
+    *(s32 *)(v0 + 0x5368) = anchor;
+    *(s32 *)(v0 + 0x536C) = anchor;
+    *(s32 *)(v0 + 0x5370) = 0;
+    *(s32 *)(v0 + 0x5374) = 0;
+    do {
+        *(s32 *)(var_s0 + 0x32F8) = (s32) var_s2;
+        *(s32 *)(var_s0 + 0x32F0) = 0;
+        gl_func_00000000(anchor, var_s1);
+        var_s1 += 0x80;
+        var_s0 += 0x80;
+        var_s2 += 0x80;
+    } while (var_s1 != var_s4);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A904);
@@ -17637,22 +17660,73 @@ void gl_func_000305CC(int a0) {
 //   branch mode cascade + conditional commit — byte-match needs
 //   USO mnemonic disasm. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
+// BASE-PIN PROGRESS (agent-b 2026-06-21): full reconstruction via held base
+//   pointer g = &D_0; m2c control flow + direct *(T*)(g+off) accesses. IDO
+//   re-materializes the base per-use (target spreads it across v0/t0/t7/t8/
+//   t9/t1/at, NOT one saved reg) — direct g-relative accesses reproduce that
+//   exactly. Went 101 -> 26 raw-word diffs; ALL base materializations and
+//   the full control flow now match through 0xb0. RESIDUAL (26 words): FP
+//   register COLORING in the two scale blocks ($f8/$f0, $f10/$f6 swaps —
+//   same insns, different fp regnums) + a tail constant-CSE (target keeps
+//   a3=4 from entry alive as the call's 4th arg; IDO here reloads it,
+//   +1 word, shifting tail branch offsets). Both are coloring/scheduling
+//   residuals independent of the base-pin lever. gl_func_00000000 = USO
+//   placeholder (final jal 0).
 #ifdef NON_MATCHING
-extern int D_00000000;
-void gl_func_0003061C(char *lim, int val, int m, int kind) {
-    int *rec;
-    if (kind == 4) return;
-    rec = *(int **)((char *)&D_00000000 + 0);
-    if (m == 0) m = 8;
-    else if (m == 1) m = 0xA;
-    else if (m == 3) m = 0xB;
-    else if (kind == 5) m = 0xB;
-    if (rec == 0) return;
-    if ((char *)rec < lim) return;
-    if (m == *(int *)((char *)&D_00000000 + 4)) {
-        rec[3] = val;
+extern int gl_func_00000000();
+void gl_func_0003061C(s32 arg0, s32 arg1, s32 arg2) {
+    char *g = (char *)&D_00000000;
+    f32 temp_f8;
+    s32 temp_v0;
+    s32 var_v1;
+
+    var_v1 = *(s32 *)(g + 8);
+    if (*(s32 *)(g + 0) != 4) {
+        temp_v0 = *(s32 *)(g + 0);
+        if (temp_v0 == 2) {
+            if (arg2 == 0) {
+                arg2 = 8;
+            }
+            if (arg2 == 1) {
+                arg2 = 0xA;
+            }
+            if (arg2 == 3) {
+                arg2 = 0xB;
+            }
+            if (arg2 == 4) {
+                arg2 = 0xB;
+            }
+            if (arg2 == 5) {
+                arg2 = 0xB;
+            }
+        }
+        if ((var_v1 != 0) && (var_v1 < arg0)) {
+            if (arg2 == *(s32 *)(g + 4)) {
+                *(s32 *)(g + 0xC) = arg1;
+            } else {
+                temp_f8 = *(f32 *)(g + 0x10) / 1.5f;
+                var_v1 = 0;
+                *(f32 *)(g + 0x10) = temp_f8;
+                *(s32 *)(g + 8) = arg0;
+                if (arg0 != 0) {
+                    f32 num = 1.0f - temp_f8;
+                    *(f32 *)(g + 0x18) = num / (f32) *(s32 *)(g + 8);
+                }
+                *(s32 *)(g + 0xC) = arg1;
+            }
+        } else {
+            *(s32 *)(g + 8) = arg0;
+            if (arg0 != 0) {
+                f32 num = 1.0f - *(f32 *)(g + 0x10);
+                *(f32 *)(g + 0x18) = num / (f32) *(s32 *)(g + 8);
+            }
+            *(s32 *)(g + 0xC) = arg1;
+        }
+        if ((temp_v0 != 0) && ((arg2 != *(s32 *)(g + 4)) || (var_v1 == 0)) && (*(s32 *)(g + 8) != 0)) {
+            *(s32 *)(g + 4) = arg2;
+            gl_func_00000000(0x06000800, (s8) arg2, arg2, 4);
+        }
     }
-    (void)*(float *)(lim + 0x10);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
@@ -17923,23 +17997,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000309B4);
 //   needs USO mnemonic disasm + reloc-pad jal infra. Real-C
 //   STRUCTURAL body below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
+// BASE-PIN DIAGNOSED (agent-b 2026-06-21): base-pin lever reproduces the
+//   structure (call;store-arg0;call(0xF)[store-arg1 in delay]; gate; two
+//   threshold branches), but the byte-match is BLOCKED by SINGLE-SYMBOL
+//   COLLAPSE, not coloring: the target references FOUR distinct module
+//   globals (the two stored slots, the gate word, and the held `p` base in
+//   v1) that ALL disassemble as D_0+0 because splat exposes only one extern
+//   `D_00000000`. With one symbol IDO CSEs/dead-store-eliminates them into a
+//   single base, so the two distinct stores and the separate v1 base can't
+//   be reproduced. Needs the USO data symbols split out (infra), then the
+//   held-pointer lever lands it. Faithful structural body below per m2c.
 #ifdef NON_MATCHING
-void gl_func_00030A20(int a, int b) {
-    char *p;
+extern int gl_func_00000000();
+void gl_func_00030A20(s32 arg0, s32 arg1) {
+    char *g = (char *)&D_00000000;
+    s32 temp_v0;
+
     gl_func_00000000();
-    *(int *)((char *)&D_00000000 + 0x18) = a;
+    *(s32 *)(g + 0) = arg0;
     gl_func_00000000(0xF);
-    *(int *)((char *)&D_00000000 + 0x1C) = b;
-    if (*(int *)((char *)&D_00000000 + 4) != 4) return;
-    p = *(char **)((char *)&D_00000000 + 0x20);
-    if (a < 5) {
-        gl_func_00000000(*(int *)p + 0x29);
-    } else {
-        gl_func_00000000(*(int *)p + 0x04);
+    *(s32 *)(g + 0) = arg1;
+    temp_v0 = *(s32 *)(g + 0);
+    if ((temp_v0 == 0) || (temp_v0 == 4)) {
+        if (arg0 >= 5) {
+            gl_func_00000000(*(s32 *)(g + 0) + 0x29);
+        } else {
+            gl_func_00000000(*(s32 *)(g + 0) + 4);
+        }
         gl_func_00000000(0xE);
-    }
-    if (b < 5) {
-        gl_func_00000000(*(int *)p);
+        if (arg1 >= 5) {
+            gl_func_00000000(*(s32 *)(g + 0) + 0x29);
+            return;
+        }
+        gl_func_00000000(*(s32 *)(g + 0) + 4);
     }
 }
 #else

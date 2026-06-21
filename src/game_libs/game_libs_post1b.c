@@ -4982,12 +4982,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000695F4);
  * self->0x30[i] and copies a 3-short (6-byte) record from arg2->0x60 to self->0x3C;
  * stores arg2 at self->0x34, inits via cb(self), wires cb(arg1+0x70, self+0x50)
  * and back-links self->0x34->0xA8/0xAC. Returns self->0x34. Fresh decode 2026-05-29
- * (m2c-confirmed). 87.3% reg-blind (same 79-insn count). Residual: tail regalloc
- * — target reloads arg1 into the dead arg2 reg (s1) and increments in-place,
- * spilling a1ptr to 32(sp); my clean form spills p instead → +16-byte frame +
- * cascaded sp-offsets (forcing arg1 in-place promotes it to an extra saved reg,
- * worse). Also 0x2C5B0 wants lui+addiu (symbol-reloc) not lui+ori (literal).
- * Caps: self/arg2 structs + 3 cb prototypes untyped (USO-reloc). Kept NON_MATCHING. */
+ * (m2c-confirmed). 2026-06-21 base-pin lever applied (agent-i): 25->7 gate-diffs
+ * (objcopy .text vs expected/.o, reloc-blind = the land gate). THREE cracks:
+ *   (1) HELD-POINTER BASE-PIN: cb(0x2C5B0) was an INT LITERAL -> lui;ori; passing
+ *       (char*)&D_00000000 + 0x2C5B0 (held pointer) -> lui 0x3;addiu -14928, which
+ *       asm-processor BAKES into .text identically to expected (D_00000000 resolves
+ *       to USO offset 0 + addend; surviving HI16/LO16 relocs are reloc-blind to the
+ *       byte_verify gate -- verified via objcopy .text compare). Killed 2 diffs.
+ *   (2) tail decl-order p-before-a1ptr -> IDO reloads arg1 into dead arg2 reg (s1)
+ *       and increments in-place exactly like target (killed the structural tail diff).
+ *   (3) copy-loop: compute dst BEFORE src -> src->v1, dst->v0 matching target
+ *       (killed the 12-diff v0/v1 copy-loop renumber).
+ * RESIDUAL (7 diffs): pure FRAME-SIZE allocator cap. Body+control-flow+regs are now
+ * byte-exact; IDO allocates a 72-byte frame where target uses 56 (+16), shifting the
+ * a1ptr spill 32->36 and the arg1 home slot 60->76. Tried: inline a1ptr (re-CSE'd),
+ * pointer-store arg1, decl reorder, j/k loop order -- all frame-neutral. Irreducible
+ * IDO stack-rounding/min-frame artifact. Caps: self/arg2 structs untyped. NON_MATCHING. */
 extern int gl_func_00000000();
 void *gl_func_00069688(char *self, char *arg1, char *arg2) {
     unsigned int i;
@@ -4999,7 +5009,7 @@ void *gl_func_00069688(char *self, char *arg1, char *arg2) {
     char *p;
 
     if (*(int *)(self + 0x38) != 0) {
-        gl_func_00000000(0x2C5B0);
+        gl_func_00000000((char *)&D_00000000 + 0x2C5B0);
     }
     *(int *)(self + 0x38) = (int)arg1;
     *(int *)(self + 0x3C) = gl_func_00000000(*(int *)(arg2 + 0x40) * 6);
@@ -5014,8 +5024,8 @@ void *gl_func_00069688(char *self, char *arg1, char *arg2) {
             i += 1;
             *(short *)(*(char **)(self + 0x30) + j) = 100;
             j += 2;
-            src = (short *)(*(char **)(arg2 + 0x60) + k);
             dst = (short *)(*(char **)(self + 0x3C) + k);
+            src = (short *)(*(char **)(arg2 + 0x60) + k);
             k += 6;
             dst[0] = src[0];
             dst[1] = src[1];
@@ -5024,8 +5034,8 @@ void *gl_func_00069688(char *self, char *arg1, char *arg2) {
     }
     *(char **)(self + 0x34) = arg2;
     gl_func_00000000(self);
-    a1ptr = self + 0x50;
     p = arg1 + 0x70;
+    a1ptr = self + 0x50;
     gl_func_00000000(p, a1ptr);
     *(char **)(*(char **)(self + 0x34) + 0xA8) = a1ptr;
     *(char **)(*(char **)(self + 0x34) + 0xAC) = p;
