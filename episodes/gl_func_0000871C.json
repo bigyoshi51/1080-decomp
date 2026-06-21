@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0000871C",
+  "project": "1080-agent-d",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T12:51:53.242208+00:00",
+  "end_time": "2026-06-21T12:51:53.242208+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T12:51:53.242208+00:00",
+      "assistant_text": "Coloring-cap-tail vein: gl_func_0000871C sat at 99.96% (2 real word-diffs) as an as1 FP-setup scheduler tie \u2014 build emitted `lwc1 $f0,0x550(a0); mtc1 at,$f4` (load f550 then materialize the 4.0f constant) while the target schedules `mtc1 at,$f4; lwc1 $f0,0x550(a0)` (constant first). Flipped the schedule by inlining the f550 load into the comparison condition `if ((f550 = *(float*)((char*)a0+0x550)) < four)` instead of a separate pre-load statement, forcing `four` to materialize before the memory load. Result: 0 non-reloc word diffs; only reloc residue is the benign &D_00000000+0xE60 HI16/LO16 (same symbol, resolves to identical bytes). objdiff 100.0%.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_0000871C(int *a0) {\n    float four = 4.0f;\n    float f550;\n    if ((f550 = *(float*)((char*)a0 + 0x550)) < four) {\n        double t;\n        *(float*)((char*)a0 + 0x550) =\n            (float)(*(double*)((char*)&D_00000000 + 0xE60) + (t = (double)f550));\n        f550 = *(float*)((char*)a0 + 0x550);\n    }\n    *(float*)((char*)a0 + 0x54C) = *(float*)((char*)a0 + 0x54C) + f550;\n    if (*(float*)((char*)a0 + 0x554) < *(float*)((char*)a0 + 0x54C)) {\n        if (2.0f < f550) {\n            int *v = (int*)a0[0x28/4];\n            ((void(*)(int))v[0x134/4])(\n                *(short*)((char*)v + 0x130) + (int)a0);\n            f550 = *(float*)((char*)a0 + 0x550);\n        }\n        *(float*)((char*)a0 + 0x54C) =\n            *(float*)((char*)a0 + 0x54C) - f550;\n        *(float*)((char*)a0 + 0x550) = -(f550 / four);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0000871C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm",
+    "verification": "objdiff 100% on src/game_libs/game_libs; reloc-filtered word-compare vs expected/.o = 0 non-reloc diffs, sole reloc diff is benign D_00000000 HI16/LO16 (resolves to identical bytes)."
+  }
+}

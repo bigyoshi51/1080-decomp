@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000F5A8",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T13:00:30.725887+00:00",
+  "end_time": "2026-06-21T13:00:30.725912+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T13:00:30.725904+00:00",
+      "assistant_text": "Call-graph DFS from game_uso EE84-family. Corrected all callees from gl_func_00000000 placeholder to resolved in-TU symbols (D74C predicate, D5BC/D5F8 pair-sinks, D5DC pair-copy, import_0010DB28 logger, F6D4 sibling). Cracked the final D5BC home residual by converting game_uso_func_0000D5BC to its true Pair2-by-value prototype (char*, Pair2), which triggers the K&R a1/a2 home spill the folded two-int form suppressed. Byte-exact.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 47,
+  "initial_m2c_source": null,
+  "final_source": "void game_uso_func_0000F5A8(int *a0) {\n    int *s0 = a0;\n    if (s0[0xF0 / 4] != 0) {\n        if (game_uso_func_0000D74C((char*)a0) == 0) {\n            char *p = (char *)&game_uso_D_807FF4D0 + 0xEE0;\n            game_uso_func_0000D5BC((char*)s0, *(Pair2*)p);\n            game_uso_func_0000F6D4((char*)s0);\n        }\n    } else {\n        import_0010DB28(s0, *(int *)((char *)s0[0xF4 / 4] + 0x20), 3, 1, 1, 1);\n        game_uso_func_0000D5F8((char*)s0,\n            *(Pair2 *)((char *)&game_uso_D_807FF4D8 + 0xEE8), 1);\n        game_uso_func_0000D5DC((char*)s0);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_0000F5A8.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "matching-build wordcmp: 188/188 bytes, 0 SUSPECT, 0 reloc-type diffs; full make ROM byte-identical"
+  }
+}

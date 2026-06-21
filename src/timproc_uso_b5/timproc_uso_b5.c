@@ -8858,30 +8858,22 @@ void timproc_uso_b5_func_0000CE5C(int *a0, int a1) {
     *(int*)((char*)a0[0x2B8/4] + 0x138) = 0;
 }
 
-/* 4-float load-batched store + jal. NATURAL CEILING: 97.5% NM (8-insn
- * float register-renumbering cap). The historical INSN_PATCH (operand
- * cap) + SUFFIX_BYTES (trailing prologue-stolen-PREDECESSOR pattern)
- * promotion was REMOVED 2026-05-23 as match-faking. */
+/* 4-float load-batched store + jal. Clean NM body 2026-06-21 (agent-d):
+ * frame (-24) and the load-all-then-store-all batch structure are now
+ * byte-exact; the SOLE residual is the FP register-pick DIRECTION — IDO
+ * allocates f0,f2,f12,f14 ASCENDING in load-encounter order, the target
+ * wants them DESCENDING (f14,f12,f2,f0). Pure FP-renumber coloring cap
+ * (immune; decl-order/load-order permutations only relabel, never reverse
+ * the allocator's pick direction). 8 words -> 8 FP-reg-only diffs; frame +
+ * structure now exact. Replaces a pre-2026-05-23 INSN_PATCH-era garbage
+ * body of uninitialized-local no-ops. */
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000CE6C(char *a0) {
-  char *v;
-  float a;
-  float b;
-  float c;
-  float d;
-  if (!b)
-  {
-  }
-  v = *((char **) (a0 + 0x2B8));
-  a = *((float *) (a0 + 0x294));
-  if (((!a0) && (!a0)) && (!a0))
-  {
-  }
-  d++;
-  d--;
-  b = *((float *) (a0 + 0x264));
-  c = *((float *) (a0 + 0x260));
-  d = *((float *) (a0 + 0x25C));
+  char *v = *((char **) (a0 + 0x2B8));
+  float a = *((float *) (a0 + 0x294));
+  float b = *((float *) (a0 + 0x264));
+  float c = *((float *) (a0 + 0x260));
+  float d = *((float *) (a0 + 0x25C));
   *((float *) (v + 0x118)) = a;
   *((float *) (v + 0x10C)) = b;
   *((float *) (v + 0x114)) = c;

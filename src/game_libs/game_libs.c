@@ -4536,15 +4536,14 @@ void game_libs_func_000086A0(char *a0) {
  *     a0->f54C -= a0->f550;
  *     a0->f550 = -(a0->f550 / 4.0f);
  *   }
- * CAP: C-emit's $f6/$f8 reg-swap on the double-add stays NM ($f4-pinning
- * via named `four = 4.0f` plus inline D-deref with literal +0xE60 offset
- * gets 50/54 byte-identical; INSN_PATCH REMOVED 2026-05-23 per
- * feedback_no_instruction_forcing_matches_policy). */
-#ifdef NON_MATCHING
+ * MATCHED 2026-06-21: as1 FP-setup scheduler tie (lwc1 f550 vs mtc1 four
+ * order swap) flipped by inlining the f550 load into the comparison
+ * condition `(f550 = *...) < four`, forcing `four` materialization first.
+ * Byte-exact; only reloc residue is benign &D_00000000+0xE60. */
 void gl_func_0000871C(int *a0) {
     float four = 4.0f;
-    float f550 = *(float*)((char*)a0 + 0x550);
-    if (f550 < four) {
+    float f550;
+    if ((f550 = *(float*)((char*)a0 + 0x550)) < four) {
         double t;
         *(float*)((char*)a0 + 0x550) =
             (float)(*(double*)((char*)&D_00000000 + 0xE60) + (t = (double)f550));
@@ -4563,9 +4562,6 @@ void gl_func_0000871C(int *a0) {
         *(float*)((char*)a0 + 0x550) = -(f550 / four);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000871C);
-#endif
 
 extern int gl_ref_00018770();
 extern int gl_ref_000187AC();

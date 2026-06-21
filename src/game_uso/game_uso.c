@@ -11596,7 +11596,7 @@ extern int game_uso_func_077C44();
 extern int import_0010D420();
 extern int game_uso_func_049280();
 extern int game_uso_func_048020();
-extern void game_uso_func_0000D5BC(char *, int, int);
+extern void game_uso_func_0000D5BC(char *, Pair2);
 extern char import_800200CC;
 extern char game_uso_D_807FF3A0, game_uso_D_807FF3A8, game_uso_D_807FF3B0;
 void game_uso_func_0000D458(s32 arg0) {
@@ -11615,9 +11615,9 @@ void game_uso_func_0000D458(s32 arg0) {
     game_uso_func_077C44(arg0, FW(arg0, 0xFC) | 8, 0, 0, 1, 1);
     import_0010D420(arg0);
     if (*(int *)((char *)&import_800200CC + 0x34) == 3) {
-        game_uso_func_0000D5BC(arg0, FW(&game_uso_D_807FF3A0, 0x0), FW(&game_uso_D_807FF3A0, 0x4));
+        game_uso_func_0000D5BC(arg0, *(Pair2*)&game_uso_D_807FF3A0);
     } else {
-        game_uso_func_0000D5BC(arg0, FW(&game_uso_D_807FF3A8, 0x0), FW(&game_uso_D_807FF3A8, 0x4));
+        game_uso_func_0000D5BC(arg0, *(Pair2*)&game_uso_D_807FF3A8);
     }
     game_uso_func_049280();
     game_uso_func_048020((s32) &sp30, 0xF10, 0x10);
@@ -11630,7 +11630,7 @@ void game_uso_func_0000D458(s32 arg0) {
         }
     }
     if (var_v0 == 0) {
-        game_uso_func_0000D5BC(arg0, FW(&game_uso_D_807FF3B0, 0x0), FW(&game_uso_D_807FF3B0, 0x4));
+        game_uso_func_0000D5BC(arg0, *(Pair2*)&game_uso_D_807FF3B0);
     }
 }
 #else
@@ -11643,8 +11643,8 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D458);
  * &a1 into $t6, and emits the lw/sw/lw/sw via the pointer in the target's regs.
  * The volatile-int-pointer form left the &a1 pointer in $v0 (was a regalloc cap);
  * struct-copy is the lever (same as game_uso_func_0000D438). Byte-exact. */
-void game_uso_func_0000D5BC(char *a0, int a1, int a2) {
-    *(Pair2*)(a0 + 0xC8) = *(Pair2*)&a1;
+void game_uso_func_0000D5BC(char *a0, Pair2 pair) {
+    *(Pair2*)(a0 + 0xC8) = pair;
 }
 
 /* Copy the adjacent global pair D+0xDC8/0xDCC to adjacent a0->0xC8/0xCC.
@@ -12860,6 +12860,7 @@ extern int import_0010DB28();
 extern int import_000966AC();
 void game_uso_func_0000F360(int *a0);
 void game_uso_func_00011888(int *a0);
+extern char game_uso_D_807FF4A0;
 void game_uso_func_0000F060(int *a0) {
     int *s0 = a0;
     int *v1;
@@ -12873,7 +12874,7 @@ void game_uso_func_0000F060(int *a0) {
         return;
     }
     import_0010DB28(s0, 0x10011, 0, 0, 0x100, s0[0x16C / 4]);
-    game_uso_func_0000D5F8((char *)s0, *(Pair2 *)((char *)&D_00000000 + 0xEB0), -1);
+    game_uso_func_0000D5F8((char *)s0, *(Pair2 *)((char *)&game_uso_D_807FF4A0 + 0xEB0), -1);
     *(short *)((char *)s0 + 0xE6) = 0;
     *(short *)((char *)s0 + 0xE4) = *(short *)((char *)s0 + 0xE4) + 1;
     import_000966AC((char *)s0[0xB4 / 4] + 0x808);
@@ -13127,34 +13128,39 @@ void game_uso_func_0000F514(int *a0) {
     gl_func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_0000F5A8: 47-insn EE84-family two-path orchestrator (sibling
- * of F664). 76.6% -> 96.6% via the struct-by-value lever (the EE0/EE4 and
- * EE8/EEC pairs are passed by value, which homes a1,a2 to 4(sp)/8(sp) and
- * materializes the pair address with addiu+0/4 instead of a folded-offset
- * lw). See docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair.
- * Residual (1 insn): the target hoists the shared a2=3/a3=1 constant loads
- * above the `beq` (GCSE'd — both the then-cond-call gl(a0,a1,3,1) and the
- * else-first-call gl(s0,X,3,1,1,1) use args 3,1), leaving the cond-call's
- * delay slot an unfilled nop. IDO won't hoist them from this C shape. */
 extern int gl_func_00000000();
 typedef struct { int a, b; } F5A8Pair;
-void game_uso_func_0000F5A8(int *a0, int a1) {
+extern char game_uso_D_807FF4D0;
+extern char game_uso_D_807FF4D8;
+int game_uso_func_0000D74C(char *a0);
+void game_uso_func_0000F6D4(char *a0);
+/* game_uso_func_0000F5A8: 47-insn EE84-family two-path state orchestrator.
+ * MATCHED 2026-06-21 (call-graph DFS + just-in-time family typing). The prior
+ * NM body called the cross-USO placeholder gl_func_00000000 for every call and
+ * carried a phantom `int a1` param. The resolved .s relocs name the real in-TU
+ * callees: game_uso_func_0000D74C (predicate), game_uso_func_0000D5BC /
+ * _0000D5F8 (pair-sinks), game_uso_func_0000D5DC (pair-copy),
+ * import_0010DB28 (state logger), game_uso_func_0000F6D4 (sibling). The last
+ * residual (the D5BC call not homing a1/a2 to sp+4/sp+8) was cracked by
+ * converting game_uso_func_0000D5BC to its true Pair2-by-value prototype
+ * `(char*, Pair2)` — the by-value pair triggers the K&R home spill that the
+ * folded two-int form suppressed (same lever as the matched D5F8 callers
+ * 00011258/000112E0). Byte-exact (0 SUSPECT / 0 reloc-type diffs). */
+void game_uso_func_0000F5A8(int *a0) {
     int *s0 = a0;
     if (s0[0xF0 / 4] != 0) {
-        if (gl_func_00000000(a0, a1, 3, 1) == 0) {
-            gl_func_00000000(s0, *(F5A8Pair *)((char *)&D_00000000 + 0xEE0));
-            gl_func_00000000(s0);
+        if (game_uso_func_0000D74C((char*)a0) == 0) {
+            char *p = (char *)&game_uso_D_807FF4D0 + 0xEE0;
+            game_uso_func_0000D5BC((char*)s0, *(Pair2*)p);
+            game_uso_func_0000F6D4((char*)s0);
         }
     } else {
-        gl_func_00000000(s0, *(int *)((char *)s0[0xF4 / 4] + 0x20), 3, 1, 1, 1);
-        gl_func_00000000(s0, *(F5A8Pair *)((char *)&D_00000000 + 0xEE8), 1);
-        gl_func_00000000(s0);
+        import_0010DB28(s0, *(int *)((char *)s0[0xF4 / 4] + 0x20), 3, 1, 1, 1);
+        game_uso_func_0000D5F8((char*)s0,
+            *(Pair2 *)((char *)&game_uso_D_807FF4D8 + 0xEE8), 1);
+        game_uso_func_0000D5DC((char*)s0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F5A8);
-#endif
 
 /* MATCHED 2026-05-28: struct-by-value (EC8/ECC pair homes a1,a2) + inlining the
  * a0->0xF4 deref (named local -> $v0; inline -> $t6 like target). The
@@ -13449,27 +13455,52 @@ void game_uso_func_0000FBF8(int *a0) {
  * — ugen FP-scheduling, not coloring. */
 extern int gl_func_00000000();
 extern char D_00000000;
+/* game_uso_func_0000FC34: EE84-family state setter (52 insns, 0xD0). ~89% NM.
+ * 2026-06-21 (call-graph DFS): callees corrected from the cross-USO placeholder
+ * gl_func_00000000 (+ pairs from &D_00000000) to the resolved in-TU symbols
+ * game_uso_func_0000D5BC (pair-copy, now homing via the Pair2-by-value
+ * prototype flip), import_0010DB28 (logger), game_uso_func_0000D5F8 (pair-sink)
+ * and the real globals game_uso_D_807FFB68/400/410. The D5BC/D5F8/logger half
+ * now matches byte-for-byte. RESIDUAL (honest NON_MATCHING): the FP block holds
+ * two sub-pointers (a3=base+0x770 for `lwc1 16(a3)`, v0=base+0x31C for
+ * load+store) that IDO folds into direct displacements in this C shape, plus an
+ * FP-reg cascade (f2/f4, f6/f8 numbering) — documented ugen FP-scheduling cap,
+ * not coloring. */
+extern char game_uso_D_807FFB68;
+extern char game_uso_D_807FF400;
+extern char game_uso_D_807FF410;
+void game_uso_func_0000D5BC(char *, Pair2);
+void game_uso_func_0000D5F8(char *a0, Pair2 pair, int a3);
+extern int import_0010DB28();
 #ifdef NON_MATCHING
 void game_uso_func_0000FC34(int *a0) {
     char *base = (char*)*(int**)((char*)a0 + 0xB4);
     int *flag_loc = *(int**)(base + 0x800);
     char *field_770 = base + 0x770;
-    float *field_31C = (float*)(base + 0x31C);
     if ((flag_loc[0x10/4] & 0x100) == 0) {
         float v = *(float*)(field_770 + 0x10);
-        double dconst = *(double*)((char*)&D_00000000 + 0x248);
+        double dconst = *(double*)((char*)&game_uso_D_807FFB68 + 0x248);
+        float *field_31C = (float*)(base + 0x31C);
         *field_31C = (float)((double)*field_31C + (double)v * dconst);
-        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE10));
+        game_uso_func_0000D5BC((char*)a0,
+            *(Pair2*)((char*)&game_uso_D_807FF400 + 0xE10));
     }
-    gl_func_00000000(a0, 0x30001, 2, 2, 0x100, 0xA);
-    gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE20), -1);
+    import_0010DB28(a0, 0x30001, 2, 2, 0x100, 0xA);
+    game_uso_func_0000D5F8((char*)a0,
+        *(Pair2*)((char*)&game_uso_D_807FF410 + 0xE20), -1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
 #endif
 
+extern char game_uso_D_807FF408;
+void game_uso_func_0000D5DC(char *a0);
 #ifdef NON_MATCHING
 /* game_uso_func_0000FD04: 50-insn sibling of game_uso_func_0000FC34.
+ * 2026-06-21 (call-graph DFS): callees corrected from gl_func_00000000
+ * placeholder to the resolved in-TU symbols import_0010DB28 (logger),
+ * game_uso_func_0000D5F8 (pair-sink, trailing int 3 → homes a1/a2),
+ * game_uso_func_0000D5DC (pair-copy); real global game_uso_D_807FF408.
  * 2026-05-15 fix: FPU op corrected sub→add (target's 0x46062200 is
  * add.s f8,f4,f6 — function field = 000000, not 000001). Prior wrap
  * had `-=` which never matched. Now adds the 0x798-field to the
@@ -13496,23 +13527,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000FC34);
  * to extra pointer stack spills. Exact C match remains blocked by the
  * documented game_uso precall-arg-spill cap in docs/PATTERNS.md. */
 void game_uso_func_0000FD04(int *a0) {
-    int *base = *(int**)((char*)a0 + 0xB4);
+    int *s0 = a0;
+    int *base = *(int**)((char*)s0 + 0xB4);
     int *flags = *(int**)((char*)base + 0x800);
 
     if ((flags[0x10 / 4] & 0x100) == 0) {
         float *base_788;
         float *base_31C;
         float *base_2FC;
-        gl_func_00000000(a0, 0x30001, 2, 3, 1, 1);
-        gl_func_00000000(a0, *(F5A8Pair *)((char *)&D_00000000 + 0xE18), 3);
-        gl_func_00000000(a0);
+        import_0010DB28(s0, 0x30001, 2, 3, 1, 1);
+        game_uso_func_0000D5F8((char*)s0,
+            *(Pair2 *)((char *)&game_uso_D_807FF408 + 0xE18), 3);
+        game_uso_func_0000D5DC((char*)s0);
 
-        base = *(int**)((char*)a0 + 0xB4);
+        base = *(int**)((char*)s0 + 0xB4);
         base_788 = (float*)((char*)base + 0x788);
         base_31C = (float*)((char*)base + 0x31C);
-        *base_31C += base_788[0x10 / 4];
+        *base_31C = *base_31C + base_788[0x10 / 4];
 
-        base = *(int**)((char*)a0 + 0xB4);
+        base = *(int**)((char*)s0 + 0xB4);
         base_2FC = (float*)((char*)base + 0x2FC);
         base_2FC[3] = 1.0f;
         base_2FC[2] = 0.0f;
