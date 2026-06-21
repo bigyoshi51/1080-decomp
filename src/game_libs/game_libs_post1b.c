@@ -1041,17 +1041,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064388);
  *  - alloc/init parent (0x3D4) if arg0==NULL; init via (arg0, arg1, 0,0,0).
  *  - child region var_s0 = arg0+0x108 (alloc 0x180); head node (8 bytes)
  *    {D+0x223C0, 0}.
- *  - 13 simple slots, stride 0x18 from +8: get-or-alloc(0x18);
+ *  - 13 simple slots, stride 0x18 from +8 (skipping +0xE0): get-or-alloc(0x18);
  *      init(slot, var_s0, DI(0x223D0 + i*4), 1);
  *      slot[0xC]=0x221D8; slot[0x14]=0; slot[0x10]=<float table/const>.
- *  - 1 complex slot at +0x160 (alloc 0x20): init w/ DI(0x22408);
- *      slot[0xC]=0x221F0; slot[0x1C]=0; slot[0x10..0x18]=Vec3{1,1,0}.
+ *  - 2 complex slots (alloc 0x20) at +0xE0 (idx 0x223F4, slot[0xC]=0x221F0,
+ *      Vec3{0,0,0} copied through a staged bounding-box struct {hdr; max{1000};
+ *      min{-1000}; {0,0,0}}) and +0x160 (idx 0x22408, slot[0xC]=0x221F0,
+ *      Vec3{1,1,0}). slot[0x1C]=0.
  *  - two 4-byte fields at arg0+0x39C / +0x3A0 set to 0; final
  *    gl_func_0001CA10(arg0).
  *
- * NOT matched: folded-pool data refs + ~37-call register allocation are a
- * multi-tick grind (project_1080_cap_analysis_2026-05-28). Full structure
- * documented for the next pass. */
+ * 2026-06-21 (agent-i deep-recon pass): added the previously-MISSING +0xE0
+ * complex slot (data idx 0x223F4 between 0x223F0/0x223F8 confirmed the gap).
+ * Call count now matches target exactly (37 jal). arg0[0x28] corrected to a
+ * &D pointer (was 0). Structure complete (15 slots + head + parent + 2 fields
+ * + final). NOT matched: single &D pool base referenced ~30x = base-pin cap
+ * (infra-blocked); remaining word-diffs are IDO spill-home/regalloc numbering
+ * driven by the 0x150 frame, not source-controllable. */
 #define DI(o) (*(int *)((char *)&D_00000000 + (o)))
 #define DF(o) (*(float *)((char *)&D_00000000 + (o)))
 #define DP(o) ((void *)((char *)&D_00000000 + (o)))
@@ -1069,7 +1075,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
     if (arg0 != NULL ||
         (arg0 = (void *)gl_func_0001CA10((void *)0x3D4)) != NULL) {
         gl_func_0001CA10(arg0, arg1, 0, 0, 0.0f);
-        SI(arg0, 0x28, 0);
+        SI(arg0, 0x28, (int)DP(0x0));
         base = (char *)arg0 + 0x108;
         if (base != NULL ||
             (base = (void *)gl_func_0001CA10((void *)0x180)) != NULL) {
@@ -1159,6 +1165,28 @@ void *gl_func_00064588(void *arg0, void *arg1) {
                 SI(slot, 0xC, 0x221D8);
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 1.0f);
+            }
+            /* complex slot (0x20) at +0xE0: bounding-box init via a staged
+             * struct {hdr=DI(0x223F4); max{1000,1000,1000}; min{-1000,-1000,
+             * -1000}; {0,0,0}} copied through intermediate frame slots; the
+             * Vec3 written into slot[0x10..0x18] resolves to {0,0,0}. */
+            {
+                struct { int hdr; float a[3]; float b[3]; float c[3]; } box;
+                box.hdr = DI(0x223F4);
+                box.a[0] = box.a[1] = box.a[2] = 1000.0f;
+                box.b[0] = box.b[1] = box.b[2] = -1000.0f;
+                box.c[0] = box.c[1] = box.c[2] = 0.0f;
+                val = box.hdr;
+                slot = (char *)base + 0xE0;
+                if (slot != NULL ||
+                    (slot = (void *)gl_func_0001CA10((void *)0x20)) != NULL) {
+                    gl_func_0001CA10(slot, base, val, 1);
+                    SI(slot, 0xC, 0x221F0);
+                    SI(slot, 0x1C, 0);
+                    SF(slot, 0x10, box.c[0]);
+                    SF(slot, 0x14, box.c[1]);
+                    SF(slot, 0x18, box.c[2]);
+                }
             }
             val = DI(0x223F8);
             slot = (char *)base + 0x100;

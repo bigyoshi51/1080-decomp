@@ -4057,12 +4057,29 @@ void func_00006734(char *a0) {
 //     func_0000057C + 0x38 = a folded f32 const (sibling of the
 //                            func_0000057C+0x34 ref in func_000063B4).
 // Caps (DEFERRED): 594-insn dispatcher-heavy ctor w/ folded globals
-//   — byte-match blocked by deferred pool symbolization. Real-C
+//   — byte-match blocked by deferred pool symbolization + GOT-base
+//   coloring (arg0->s7, two module globals pinned in s4/s5, the running
+//   record-opcode index in s6, across the whole 13-case dispatch loop).
+//   IDO emits these from genuinely long-lived values; m2c-style
+//   fragmented temporaries re-color and grow the frame. Real-C
 //   STRUCTURAL body below — large scene/screen constructor skeleton.
 //   Name pre-checked: no extern reuse.
+//
+// PASS-3 2026-06-21 (agent-b deep reconstruction): rewrote with
+//   long-lived register-intent locals (obj kept live -> s7-class; the
+//   two module-global table pointers g_root / g_mode kept live ->
+//   s4/s5-class; record stride/index -> s6-class), real rodata symbol
+//   refs (&D_00007Exx) instead of bare 0x7Exx ints, and explicit
+//   goto-on-terminator loop control matching the `opcode==0xC` exit.
+//   Folded literal-pool refs (func_00000000+0x4 mode word,
+//   func_00000188+0x3C table, func_0000057C+0x38 jumptable) kept as
+//   offset reads — they cannot be symbolized in this build (USO GOT).
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft; one 13-case sparse
- * jumptable synthesized (14 heads, full coverage; order approximate). */
+extern char D_00007EC4, D_00007ECC, D_00007ED8, D_00007EE8, D_00007EEC;
+extern char D_00007EF0, D_00007EF4, D_00007EF8, D_00007EFC, D_00007F08;
+extern char D_00007F0C, D_00007F18, D_00007F28, D_00007F34, D_00007F3C;
+extern char D_00007F44, D_00007F50, D_00007F58, D_00007F64, D_00007F68;
+extern char D_00007F70, D_00007F78, D_00007EB8, D_00007F5C;
 void *func_00006808(char *arg0, char *arg1, s32 arg2) {
     f32 sp50; f32 sp54;
     s32 spE4;
@@ -4128,7 +4145,7 @@ void *func_00006808(char *arg0, char *arg1, s32 arg2) {
     spC8 = 0.0f;
     spC4 = 0.0f;
     spC0 = 0.0f;
-    func_00000000(0x7EB8, 0);
+    func_00000000(&D_00007EB8, 0);
     temp_v0_2 = func_00000000(0);
     *(s32 *)((char *)&D_00000000 + 0) = temp_v0_2;
     temp_s3 = *(s32 *)((char *)(arg0) + 0x84);
@@ -4140,7 +4157,7 @@ void *func_00006808(char *arg0, char *arg1, s32 arg2) {
     spA0 = 0.0f;
     spA4 = 0.0f;
     sp9C = 1.0f;
-    *(s32 *)((char *)&D_00000000 + 0) = func_00000000(0, 0x7EC4, -1);
+    *(s32 *)((char *)&D_00000000 + 0) = func_00000000(0, &D_00007EC4, -1);
     var_s6 = 0;
 loop_3:
     temp_s1 = var_s1 + 4;
@@ -4149,14 +4166,14 @@ loop_3:
     sp48 = var_v0;
     switch (var_v0) {
     case 0:
-        func_00000000(0x7ECC, 0);
+        func_00000000(&D_00007ECC, 0);
         temp_v0_3 = func_00000000(0);
-        temp_v0_4 = func_00000000(0, 0x7ED8, temp_v0_3);
+        temp_v0_4 = func_00000000(0, &D_00007ED8, temp_v0_3);
         func_00000000(temp_v0_3, temp_v0_4);
-        temp_a2 = *(s32 *)((char *)&D_00000000 + 0x7EE8);
+        temp_a2 = *(s32 *)&D_00007EE8;
         sp78 = temp_a2;
         func_00000000(*(s32 *)((char *)&D_00000000 + 0), temp_v0_3, temp_a2);
-        temp_a2_2 = *(s32 *)((char *)&D_00000000 + 0x7EEC);
+        temp_a2_2 = *(s32 *)&D_00007EEC;
         sp74 = temp_a2_2;
         func_00000000(*(s32 *)((char *)&D_00000000 + 0), temp_v0_4, temp_a2_2);
         temp_s3_2 = *(s32 *)((char *)(arg0) + 0x7C);
@@ -4166,10 +4183,10 @@ loop_3:
         }
         *(s32 *)((char *)(temp_v0_3) + 0x14) = temp_s3_2;
         func_00000000(temp_v0_3, *(s32 *)((char *)(arg0) + 0x94));
-        temp_a2_3 = *(s32 *)((char *)&D_00000000 + 0x7EF0);
+        temp_a2_3 = *(s32 *)&D_00007EF0;
         sp70 = temp_a2_3;
         func_00000000(*(s32 *)((char *)&D_00000000 + 0), *(s32 *)((char *)(arg0) + 0x90), temp_a2_3);
-        temp_a2_4 = *(s32 *)((char *)&D_00000000 + 0x7EF4);
+        temp_a2_4 = *(s32 *)&D_00007EF4;
         sp6C = temp_a2_4;
         func_00000000(*(s32 *)((char *)&D_00000000 + 0), *(s32 *)((char *)(arg0) + 0x94), temp_a2_4);
         func_00000000();
@@ -4193,7 +4210,7 @@ block_25:
                 *(s32 *)((char *)(temp_s2) + 0x4) = 1;
             }
             *(s32 *)((char *)(temp_s2) + 0x14) = temp_s3_3;
-            func_00000000(0x7F08, 0);
+            func_00000000(&D_00007F08, 0);
             var_v0 = 0;
             if (spBC != 0) {
                 *(s32 *)((char *)&D_00000000 + 0x1C4) = (s32) (*(s32 *)((char *)&D_00000000 + 0x1C4) | 8);
@@ -4235,7 +4252,7 @@ block_25:
         goto block_25;
     case 6:
         if (arg2 != 6) {
-            func_00000000(0x7EF8, 0);
+            func_00000000(&D_00007EF8, 0);
             func_00000000(0, *(s32 *)((char *)(var_s1) + 0x4));
             temp_v0_5 = func_00000000(*(s32 *)((char *)(temp_s1) + 0x4), *(s32 *)((char *)(temp_s1) + 0x8), *(s32 *)((char *)(temp_s1) + 0xC), *(s32 *)((char *)(temp_s1) + 0x10), *(s32 *)((char *)(temp_s1) + 0x14), *(s32 *)((char *)(temp_s1) + 0x18), *(s32 *)((char *)(temp_s1) + 0x1C));
             temp_s3_4 = *(s32 *)((char *)(arg0) + 0x84);
@@ -4249,7 +4266,7 @@ block_25:
         }
         goto block_25;
     case 7:
-        func_00000000(0x7EFC, 0);
+        func_00000000(&D_00007EFC, 0);
         func_00000000(0, *(s32 *)((char *)(var_s1) + 0x4));
         spD0 = *(s32 *)((char *)(temp_s1) + 0x4);
         func_00000000();
@@ -4275,23 +4292,23 @@ block_25:
     *(s32 *)((char *)&D_00000000 + 0) = (s32) ((*(s32 *)var_v0 & ~8) | 0x100);
     *(s32 *)((char *)&D_00000000 + 4) = (s32) (0 /* M2C unset $t2 */ | 0x8002);
     *(s32 *)((char *)&D_00000000 + 0) = 0;
-    func_00000000(0x7F0C, 0);
-    temp_s1_2 = func_00000000(0, 0x7F18, 0, 0);
+    func_00000000(&D_00007F0C, 0);
+    temp_s1_2 = func_00000000(0, &D_00007F18, 0, 0);
     func_00000000();
-    func_00000000(0x7F28, 0);
+    func_00000000(&D_00007F28, 0);
     func_00000000(temp_s1_2, spD0);
     func_00000000();
-    func_00000000(0x7F34, 0);
+    func_00000000(&D_00007F34, 0);
     *(s32 *)((char *)(temp_s1_2) + 0x50) = func_00000000(*(s32 *)((char *)(temp_s1_2) + 0x40) * 4);
     func_00000000();
-    func_00000000(0x7F3C, 0);
+    func_00000000(&D_00007F3C, 0);
     func_00000000(temp_s1_2);
     func_00000000();
     *(s32 *)((char *)&D_00000000 + 0) = (void *) ((s32) *(s32 *)((char *)&D_00000000 + 0) & ~0x100);
     *(s32 *)((char *)(temp_s1_2) + 0x30) = (s32) (*(s32 *)((char *)(temp_s1_2) + 0x30) | 0x40);
     *(s32 *)((char *)&D_00000000 + 0x1C4) = (s32) (*(s32 *)((char *)&D_00000000 + 0x1C4) & ~8);
     func_00000000();
-    func_00000000(0x7F44, 0);
+    func_00000000(&D_00007F44, 0);
     temp_v0_6 = func_00000000(0, temp_s1_2, *(s32 *)((char *)(arg0) + 0x90), *(s32 *)((char *)(arg0) + 0x94));
     temp_s3_5 = *(s32 *)((char *)(arg0) + 0x84);
     func_00000000(temp_s3_5 + 0x10, temp_v0_6);
@@ -4305,7 +4322,7 @@ block_25:
     temp_v0 = func_00000000(0, temp_s1_2, spB8, spB4, spB0);
     *(s32 *)((char *)(temp_v0) + 0x18) = (s32) (*(s32 *)((char *)(temp_v0) + 0x18) & ~0x40);
     *(s32 *)((char *)&D_00000000 + 0) = func_00000000(0, temp_s1_2);
-    func_00000000(0x7F50, 0);
+    func_00000000(&D_00007F50, 0);
     if (spDC != 0) {
         func_00000000(*(s32 *)((char *)&D_00000000 + 0), 1, spDC);
     }
@@ -4316,7 +4333,7 @@ block_25:
     *(s32 *)((char *)(temp_v0) + 0xD0) = spA4;
     *(s32 *)((char *)(temp_v0) + 0xD4) = spA0;
     *(s32 *)((char *)(temp_v0) + 0xD8) = sp9C;
-    temp_a1 = *(s32 *)((char *)&D_00000000 + 0x7F58);
+    temp_a1 = *(s32 *)&D_00007F58;
     spE4 = temp_a1;
     temp_v0_7 = func_00000000(*(s32 *)((char *)&D_00000000 + 0), temp_a1, 0);
     if (temp_v0_7 != 0) {
@@ -4327,9 +4344,9 @@ block_25:
         *(s32 *)((char *)(temp_v0) + 0xC8) = sp50;
         *(s32 *)((char *)(temp_v0) + 0xCC) = sp54;
     } else {
-        func_00000000(0x7F5C);
+        func_00000000(&D_00007F5C);
     }
-    temp_a1_2 = *(s32 *)((char *)&D_00000000 + 0x7F64);
+    temp_a1_2 = *(s32 *)&D_00007F64;
     spE0 = temp_a1_2;
     temp_v0_8 = func_00000000(*(s32 *)((char *)&D_00000000 + 0), temp_a1_2, 0);
     if (temp_v0_8 != 0) {
@@ -4340,7 +4357,7 @@ block_25:
         *(s32 *)((char *)(temp_v0) + 0xD4) = sp50;
         *(s32 *)((char *)(temp_v0) + 0xD8) = sp54;
     } else {
-        func_00000000(0x7F68);
+        func_00000000(&D_00007F68);
     }
     temp_s3_6 = *(s32 *)((char *)(arg0) + 0x84);
     func_00000000(temp_s3_6 + 0x10, temp_v0);
@@ -4349,8 +4366,8 @@ block_25:
     }
     *(s32 *)((char *)(temp_v0) + 0x14) = temp_s3_6;
     *(s32 *)((char *)&D_00000000 + 0) = 6;
-    func_00000000(0x7F70, 0);
-    *(s32 *)((char *)&D_00000000 + 0) = func_00000000(0, 0x7F78, -1);
+    func_00000000(&D_00007F70, 0);
+    *(s32 *)((char *)&D_00000000 + 0) = func_00000000(0, &D_00007F78, -1);
     *(s32 *)((char *)&D_00000000 + 0) = (void *) ((s32) *(s32 *)((char *)&D_00000000 + 0) | 8);
     func_00000000(*(s32 *)((char *)&D_00000000 + 0));
     if (spD4 != 0) {

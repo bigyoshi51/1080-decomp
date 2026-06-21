@@ -17969,212 +17969,222 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
 //   canned-sequence and multi-bank emitters, and the
 //   gl_func_000307B0 per-frame timer all run against the record
 //   this function allocates and wires up.
-// Caps (DEFERRED): 0x840 / 528-word ≈ 2.1KB raw-word USO TOP-LEVEL
-//   CONSTRUCTOR with ~103 call sites (~60 fixed intra-USO sub-inits
-//   + ~43 USO-reloc callbacks), 0x45010-byte arena allocation, 74
-//   lwc1 / 42 swc1 FP seeding, and a computed jump sub-mode select.
-//   Byte-match deferred to a future non-loop session (USO mnemonic
-//   disasm + arena struct typing + jump-table symbolization
-//   prerequisites). Real-C STRUCTURAL skeleton below per the
-//   analysis (one-time init guard + alloc only — full body
-//   summarised in the in-comment analysis above). Name pre-checked:
-//   no extern reuse.
+// Caps (INFRA-BLOCKED, 2026-06-21 agent-e re-analysis from raw target
+//   words): 0x840 / 528-word raw-word USO graphics-MODE setup routine.
+//   CORRECTED FACTS vs the old header: this is NOT FP-heavy — only ONE
+//   lwc1/swc1 pair (@0x60C/0x620); the bulk is integer command-word
+//   emits (0xFB/0xF8/0x83010000/0x46010000/0x81000F00/0x81001300 RDP/RSP
+//   command words) and base-0 global state traffic. Three computed jumps:
+//   switch-1 (a0<14 @0xD8, jtbl 0x1874), switch-2 (a0copy<12 @0x64C,
+//   jtbl 0x18B0), switch-3 (v0<8 @0x6CC, jtbl 0x18E0).
+//   WHY BYTE-LANDING IS BLOCKED (two independent infra caps):
+//   (1) BASE-PIN: the target recomputes a fresh base for ~61 distinct
+//       base-0 globals (`lui REG,0x0 [; addiu REG,REG,0]` per access);
+//       with one &D_00000000 placeholder IDO CSEs the base into a saved
+//       reg, so neither the per-access lui count NOR the instruction
+//       count can match. 8 of these are a command-buffer struct
+//       (`sw id,0(cmd); emit(cmd.byte3)` @ 0x134/0x2D0/0x420/0x444/
+//       0x4A0/0x4F0/0x568/0x588).
+//   (2) FIXED INTRA-USO JALS: 0x41D0C/0x42364/0x460D0/0x41ED4/0x41F0C/
+//       0x41F44/0x44F18 bake their absolute offset into the jal word
+//       (non-reloc 0x0C0108D9-style), requiring symbols defined at those
+//       exact USO offsets — no such named symbols exist to pin them.
+//   The NM body below is a hand-traced STRUCTURAL reconstruction: correct
+//   frame (-0x38), prologue, init-guard, arena alloc, zero-sweep, and all
+//   three switches with correct selectors / case structure / call-arg
+//   shapes. Decode progress = structure; bytes = infra-blocked.
+//   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft; THREE jumptables
- * (14-bound/6-head dense-ish, 12/13 + 8/9 sparse; order approximate). */
-void gl_func_00030AF4(u32 arg0, u32 arg1, s32 arg2) {
-    s32 sp34;
-    u32 sp2C;
-    u32 sp1C;
-    s32 *var_at;
-    u32 temp_v1;
-    u32 temp_v1_2;
-    u32 var_v0;
+/* PASS-3 2026-06-21 (agent-e deep reconstruction): hand-traced from the raw
+ * target words (.s), region-by-region. Frame -0x38 (was wrongly -0x40 in the
+ * old m2c graft). Three computed jumps (switch on a0 <14 @0xD8; switch on a0
+ * <12 @0x64C; switch on v0 <8 @0x6CC). Heavy base-0 (&D_00000000) global
+ * traffic; many distinct globals collapse to the literal-0 placeholder. This
+ * is a graphics-MODE setup routine: the constants 0xFB000000 / 0xF8000000 /
+ * 0x83010000 / 0x46010000 / 0x81000F00 / 0x81001300 are RDP/RSP command words
+ * passed as a0 to the relocated emitter (the `jal 0x0` calls).
+ *
+ * RESIDUAL CAP (infra): the intra-USO FIXED jals (0x41D0C/0x42364/0x460D0/
+ * 0x41ED4/0x41F0C/0x41F44/0x44F18) bake their absolute offset into the
+ * instruction word — they require symbols defined at those exact USO offsets,
+ * which the placeholder names here don't pin; plus the per-access base-0
+ * recompute (base-pin cap). Structural/control-flow/call-arg shape is the
+ * decode progress; byte-landing is infra-blocked on symbol placement. */
+extern int gl_func_00041D0C();
+extern int gl_func_00042364();
+extern int gl_func_000460D0();
+extern int gl_func_00041ED4();
+extern int gl_func_00041F0C();
+extern int gl_func_00041F44();
+extern int gl_func_00044F18();
+extern int gl_func_emit();     /* the `jal 0x0` relocated command emitter */
 
-    sp34 = 0;
-    if (*(s32 *)((char *)&D_00000000 + 0) == 1) {
+#define D8(off) (*(s32 *)((char *)&D_00000000 + (off)))
+
+void gl_func_00030AF4(u32 mode, u32 sub, s32 arg2) {
+    s32 flag;        /* sp+52 */
+    u32 prev;        /* sp+44 : old value of the state global */
+    u32 modeSel;     /* sp+28 : copy of `mode`, switch-2 selector */
+    s32 spA3;        /* sp+40 : command/value carried into emits */
+    s32 spLocal;     /* sp+48 : value held across emit calls */
+    s32 *rec;        /* freshly-allocated record base */
+    s32 g;           /* scratch for global reads */
+
+    flag = 0;
+    if (D8(0) == 1) {
         gl_func_00041D0C();
     }
-    func_00000000(0xFB000000, 0x45010);
-    sp2C = *(s32 *)((char *)&D_00000000 + 0);
-    *(s32 *)((char *)&D_00000000 + 0) = arg0;
-    func_00000000(0);
-    func_00000000(1);
-    *(s32 *)((char *)&D_00000000 + 0) = 0U;
-    *(s32 *)((char *)&D_00000000 + 0) = 0U;
-    *(s32 *)((char *)&D_00000000 + 0) = 0U;
-    *(s32 *)((char *)&D_00000000 + 0) = 0U;
-    *(s32 *)4 = 0;
-    *(s32 *)8 = 0;
-    *(s32 *)((char *)&D_00000000 + 0x14) = 0;
-    *(s32 *)((char *)&D_00000000 + 0) = 0;
-    *(u32 *)0x18 = 0;
-    func_00000000();
+    rec = (s32 *)gl_func_emit(0xFB000000, 0x45010);   /* large arena alloc */
+    prev = D8(0);
+    D8(0) = mode;
+    gl_func_emit(0);
+    gl_func_emit(1);
+    D8(0) = 0;
+    D8(0) = 0;
+    D8(0) = 0;
+    rec[1] = 0;     /* +4 */
+    rec[2] = 0;     /* +8 */
+    rec[5] = 0;     /* +0x14 */
+    rec[0] = 0;     /* +0 */
+    gl_func_emit(rec[6] = 0);   /* +0x18 (sw zero in jal delay) */
     gl_func_000460D0();
-    sp1C = arg0;
-    if (arg0 < 0xEU) {
-        var_at = 0; /* jtbl read collapsed */
-        switch (arg0) {                             /* switch 1 */
-        case 0:                                     /* switch 1 */
+
+    modeSel = mode;
+    if (mode < 14) {
+        switch (mode) {                 /* switch 1 @0xD8 */
+        case 0:
             gl_func_00042364(1);
-            sp34 = 1;
+            flag = 1;
             break;
-        case 1:                                     /* switch 1 */
-            *(s32 *)((char *)&D_00000000 + 0) = 0U;
+        case 1:
+            D8(0) = 0;
             gl_func_00042364(0);
-            func_00000000(2);
-            sp34 = 1;
+            gl_func_emit(2);
+            flag = 1;
             break;
-        case 2:                                     /* switch 1 */
+        case 2:
             gl_func_00042364(2);
-            *(s32 *)((char *)&D_00000000 + 0) = 0x10U;
-            func_00000000(*(u8 *)3);
-            sp34 = 1;
+            D8(0) = 16;
+            gl_func_emit(*(u8 *)((char *)rec + 3));
+            flag = 1;
             break;
-        case 3:                                     /* switch 1 */
-            if (sp2C != 0) {
+        case 3:
+            if (prev != 0) {
                 gl_func_00042364(5);
-                sp34 = 1;
+                flag = 1;
             }
-            func_00000000(3);
-            break;
-        case 4:                                     /* switch 1 */
-            var_at = (s32 *)3;
-            if (sp2C == 0) {
-                *(s32 *)((char *)&D_00000000 + 0) = 0xCU;
+            gl_func_emit(3);
+            break;          /* falls to flag==1 check via 0x598 path */
+        case 4: case 5: case 6: case 7: case 8:
+        case 9: case 10: case 11: case 12: case 13:
+            /* Shared body @0x170 for jumptable cases >=4. (m2c-confirmed the
+             * 4..13 entries share this tail; the `prev` value selects the
+             * sub-paths within it.) */
+            if (prev == 0) {
+                D8(0) = 12;
+                break;
+            }
+            if (prev == 3) {
+                /* poll loop @0x198: while emit(2,0xE,0) >= 100 emit() */
+                while (gl_func_emit(2, 14, 0) >= 100) {
+                    gl_func_emit();
+                }
+            }
+            D8(0) = sub;
+            D8(0) = sub + 4;
+            g = D8(0);
+            if (g != 0 && sub == 6) {
+                D8(0) = 7;
+            }
+            if (g == 4) {
+                gl_func_00042364(4);
+                D8(0) = D8(0) + 18;
+            } else if (sub == 0) {
+                gl_func_00042364(6);
             } else {
-            case 5:                                 /* switch 1 */
-            case 6:                                 /* switch 1 */
-            case 7:                                 /* switch 1 */
-            case 8:                                 /* switch 1 */
-            case 9:                                 /* switch 1 */
-            case 10:                                /* switch 1 */
-            case 11:                                /* switch 1 */
-            case 12:                                /* switch 1 */
-            case 13:                                /* switch 1 */
-                if (0 /* M2C unset $t8 */ == var_at) {
-loop_13:
-                    if (func_00000000(2, 0xE, 0) >= 0x64) {
-                        func_00000000();
-                        goto loop_13;
-                    }
-                }
-                *(s32 *)((char *)&D_00000000 + 0) = arg1;
-                *(s32 *)((char *)&D_00000000 + 0) = (u32) (arg1 + 4);
-                temp_v1 = *(s32 *)((char *)&D_00000000 + 0);
-                if ((temp_v1 != 0) && (arg1 == 6)) {
-                    *(s32 *)((char *)&D_00000000 + 0) = 7U;
-                }
-                if (temp_v1 == 4) {
-                    gl_func_00042364(4);
-                    *(s32 *)((char *)&D_00000000 + 0) = (u32) (*(s32 *)((char *)&D_00000000 + 0) + 0x12);
-                } else if (arg1 == 0) {
-                    gl_func_00042364(6);
-                } else {
-                    gl_func_00042364(3);
-                }
-                sp34 = 1;
-                *(s32 *)((char *)&D_00000000 + 0) = 0xEU;
+                gl_func_00042364(3);
             }
+            flag = 1;
+            D8(0) = 14;
             break;
         }
     }
-    if (sp34 == 1) {
+
+    if (flag == 1) {
         gl_func_00041ED4();
-        func_00000000();
+        gl_func_emit();
         gl_func_00041F0C();
         gl_func_00041F44();
-        if (sp1C != 4) {
-            func_00000000(0, 0);
+        if (modeSel != 4) {
+            gl_func_emit(0, 0);
         }
     }
-    if (*(s32 *)((char *)&D_00000000 + 0) != 5) {
-        var_v0 = gl_func_00044F18(0);
+
+    if (D8(0) != 5) {
+        gl_func_00044F18(0);
     } else {
-        *(s32 *)((char *)&D_00000000 + 0x14) = (u32) *(u32 *)0x18AC;
-        var_v0 = func_00000000(0, 0x64, *(s32 *)((char *)&D_00000000 + 4));
-        *(s32 *)((char *)&D_00000000 + 0) = 4U;
+        rec[5] = *(s32 *)((char *)&D_00000000 + 0x18AC);   /* +0x14 = lwc1 src */
+        gl_func_emit(0, 100, rec[1]);
+        D8(0) = 4;
     }
-    switch (sp1C) {                                 /* switch 2 */
-    case 0:                                         /* switch 2 */
-        if (sp2C != 0) {
-            var_v0 = *(s32 *)((char *)&D_00000000 + 0);
-            if (var_v0 == 1) {
+
+    switch (modeSel) {                  /* switch 2 @0x64C */
+    case 0:
+        if (prev != 0) {
+            g = D8(0);
+            if (g == 1) {
                 gl_func_00044F18(1);
-                goto block_79;
+                g = D8(0);
             }
-        case 1:                                     /* switch 2 */
-            if (var_v0 == 0) {
+            if (g == 0) {
                 gl_func_00044F18(2);
-block_79:
-                var_v0 = *(s32 *)((char *)&D_00000000 + 0);
+                g = D8(0);
             }
-            temp_v1_2 = *(s32 *)((char *)&D_00000000 + 0);
-            if ((temp_v1_2 == 1) || (temp_v1_2 == 3)) {
-                switch (var_v0) {                   /* switch 3 */
-                case 0:                             /* switch 3 */
-                    func_00000000(0x1F);
-block_92:
-                    var_v0 = *(s32 *)((char *)&D_00000000 + 0);
-                    break;
-                case 2:                             /* switch 2 */
-                case 1:                             /* switch 3 */
-                    func_00000000(0x1B);
-                    goto block_92;
-                case 3:                             /* switch 2 */
-                /* case 2 (flattened) */
-                    func_00000000(0x1D);
-                    goto block_92;
-                case 4:                             /* switch 2 */
-                /* case 3 (flattened) */
-                    func_00000000(0x19);
-                    goto block_92;
-                case 5:                             /* switch 2 */
-                /* case 4 (flattened) */
-                    func_00000000(0x1E);
-                    goto block_92;
-                case 6:                             /* switch 2 */
-                /* case 5 (flattened) */
-                    func_00000000(0x1C);
-                    goto block_92;
-                case 7:                             /* switch 2 */
-                /* case 6 (flattened) */
-                    func_00000000(0x1A);
-                    goto block_92;
-                case 8:                             /* switch 2 */
-                /* case 7 (flattened) */
-                    func_00000000(0x18);
-                    goto block_92;
+            {
+                s32 m = D8(0);
+                if (m == 1 || m == 3) {
+                    switch (g) {        /* switch 3 @0x6CC (v0 <8) */
+                    case 0: gl_func_emit(0x1F); g = D8(0); break;
+                    case 1: gl_func_emit(0x1B); g = D8(0); break;
+                    case 2: gl_func_emit(0x1D); g = D8(0); break;
+                    case 3: gl_func_emit(0x19); g = D8(0); break;
+                    case 4: gl_func_emit(0x1E); g = D8(0); break;
+                    case 5: gl_func_emit(0x1C); g = D8(0); break;
+                    case 6: gl_func_emit(0x1A); g = D8(0); break;
+                    case 7: gl_func_emit(0x18); g = D8(0); break;
+                    }
                 }
             }
-            if (var_v0 == 8) {
-                func_00000000(0xBC);
+            if (g == 8) {
+                gl_func_emit(0xBC);
             }
         }
         break;
-    case 9:                                         /* switch 2 */
-        func_00000000(0xF8000000, 0);
-        func_00000000(0xA3);
+    case 9:
+        gl_func_emit(0xF8000000, 0);
+        gl_func_emit(0xA3);
         break;
-    case 10:                                        /* switch 2 */
-        func_00000000(0xF8000000, 0);
-        func_00000000(0, 0x3E99999A, 0);
+    case 10:
+        gl_func_emit(0xF8000000, 0);
+        gl_func_emit(0, 0x3E99999A, 0);
         break;
-    case 11:                                        /* switch 2 */
-        switch (arg1) {                             /* switch 4; irregular */
-        case 0:                                     /* switch 4 */
-            func_00000000(0xE);
+    case 11:
+        switch (sub) {                  /* switch 4 @0x7D4 (if-chain) */
+        case 0:
+            gl_func_emit(14);
             break;
-        case 1:                                     /* switch 4 */
-            func_00000000(0xF);
+        case 1:
+            gl_func_emit(15);
             break;
         }
         break;
     }
-    func_00000000(0xFB000000, 0);
-    func_00000000(0);
-    func_00000000(0xFB000000, 0x45F78);
+
+    gl_func_emit(0xFB000000, 0);
+    gl_func_emit(0);
+    gl_func_emit(0xFB000000, 0x45F78);
 }
+#undef D8
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030AF4);
 #endif
