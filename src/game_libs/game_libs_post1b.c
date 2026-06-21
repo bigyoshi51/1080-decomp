@@ -3186,13 +3186,26 @@ int gl_func_00067510(int *a0) {
 }
 
 /* gl_func_00067550: 21-insn bit-test helper. If a0->[0x34] != 0:
- * call gl_func(&D_0, a0); v0 &= (1 << (a0->[0x34] + 31)). Return v0. */
+ * call gl_func(&D_0, a0); return v0 & (1 << (a0->[0x34] + 31)); else return 0.
+ *
+ * 2026-06-21 (agent-b): 6 diffs -> 1 diff. The `return v0 & (...)` two-return
+ * form (instead of `v0 = v0 & (...); return v0;`) fixes the whole branch
+ * layout: target sets v0=0 in the beqz delay slot and fills the post-AND with
+ * `b epilogue; and v0,v0,t0` (delay-slot AND), which the two-return shape
+ * reproduces (no trailing `move v0,v1`). RESIDUAL (1 word @ 0x40): commutative
+ * AND operand order — target `and v0,v0,t0` (call-result v0 as rs), build emits
+ * `and v0,t0,v0` (shift t0 as rs). IDO canonicalizes commutative AND by the
+ * lower colored reg ($2 v0 < $8 t0), so target's order needs v0 to be rs at
+ * coloring time. Tried: operand-swap in C (IDO re-normalizes), `&=` accumulate
+ * (regresses, brings back the move), assignment-expr pin `(v0=call())&...`
+ * (no flip), `... & (t=shift)` (adds a live temp, sllv->wrong reg, 2 diffs).
+ * Genuine operand-order/coloring tie, 1 word. */
 #ifdef NON_MATCHING
 int gl_func_00067550(int *a0) {
     int v0 = 0;
     if (a0[0x34/4] != 0) {
         v0 = gl_func_00000000(&D_00000000, a0);
-        v0 = v0 & (1 << (a0[0x34/4] + 31));
+        return v0 & (1 << (a0[0x34/4] + 31));
     }
     return v0;
 }

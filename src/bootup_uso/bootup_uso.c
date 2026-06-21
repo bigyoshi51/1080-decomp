@@ -9574,15 +9574,26 @@ void func_0000EE5C(char *a0) {
 }
 
 /* func_0000EE8C: alloc-cascade constructor, sibling of func_0000EBE8.
- * The remaining outer-branch scheduling/stack-slot artifacts are promoted
- * by the established bootup_uso INSN_PATCH alloc-cascade recipe. */
+ * BODY NOW BYTE-EXACT (2026-06-21): the only residual was a compiler spill-slot
+ * offset (v1/ret homed at 0x18 vs target 0x24); fixed by declaration order —
+ * `ret` declared FIRST so IDO assigns it the highest local slot (0x24). Found
+ * via the interleave-decl spill-slot brute-force (docs/IDO_CODEGEN.md). The
+ * earlier `char pad[4]` was a wrong-slot hack; the clean decl order needs no pad.
+ *
+ * CANNOT LAND despite the byte-exact body: the target has a single trailing
+ * alignment nop at 0xEF1C (func size 0x90 code + 1 nop = 0x94; next fn
+ * func_0000EF20 must sit at 0xEF20). A 1-word trailing pad sidecar is NOT
+ * reproducible here — asm-processor reserves GLOBAL_ASM space with an empty
+ * dummy function whose -O2 floor is 8 bytes (`jr ra; nop`), so a 1-word pad
+ * followed by another function overshoots by 4 bytes (func_0000EF20 lands at
+ * 0xEF24). The 1-word-pad sidecars elsewhere in the tree only work at
+ * segment-end (no following symbol). Stays NON_MATCHING / INCLUDE_ASM until a
+ * sub-8-byte trailing-pad mechanism exists. */
 #ifdef NON_MATCHING
 void *func_0000EE8C(void *caller_a0) {
-  char pad[4];
+  void *ret;
   void *target;
   register void *p;
-  void *ret;
-  (void) pad;
   p = (void *) func_00000000(0x40);
   if (p != 0)
   {
