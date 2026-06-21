@@ -1171,16 +1171,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006E224);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0006E894 - STRUCTURAL PASS (big-swing 2026-06-02).
- * printf/doprnt-style formatted-string emitter (0x648, 402 insns).
- * arg0 is the output callback (s32 (*)(s32,u8*,s32,u8*)); scans the
- * format string, flushes literal runs via arg0, and on '%' (0x25)
- * parses flags/width/precision/'*'/conversion using a spec-table
- * lookup (gl_func_0001CA10) + number formatting into the sp74 buffer.
- * Helpers gl_func_0001CA10 / gl_func_0007526C. Mechanically lifted
- * from m2c (X->unkN -> FW word access). The sp74..spB8 number buffer
- * is modeled as scalars (m2c didn't reconstruct the aliasing). NOT
- * matched; default INCLUDE_ASM path byte-exact. */
+/* gl_func_0006E894 - DEEP STRUCTURAL PASS (reconstruction 2026-06-21).
+ * printf/_doprnt-style formatted-string emitter (0x648, 402 insns).
+ * arg0 = output callback s32(*)(s32 acc, const u8 *src, s32 n, const u8 *fmt).
+ * Scans the format string; flushes literal runs via arg0; on '%' (0x25)
+ * parses flags/width/precision/'*'/length-mod/conversion. Flag/length lookup
+ * via gl_func_0001CA10 (spec table @ &D_00000000+0x23D4, flag bitmask table
+ * @ +0x23DC). The conversion itself is formatted by gl_func_0007526C, which
+ * writes a result aggregate (`Doprnt`): a prefix buffer (sp74), a body
+ * pointer (+0x34) and six segment-length ints (+0x38..+0x4C). The emitter
+ * then lays out left-pad / prefix / leading-zeros / body / trailing-pad
+ * around that aggregate, blank-filling 0x20 bytes (' ') from D_0003E484 and
+ * '0' fill from D_0003E460 in 0x20-byte chunks.
+ *
+ * Verified against the TRUE target disasm (raw .word, not the prior built
+ * NM): va_list advances by 4 per arg (read at sp+0xE4 onward); the body is a
+ * POINTER (+0x34) plus an offset, not an inline 0x40 buffer (the 2026-06-02
+ * pass modelled spA8 as a buffer — corrected here). Logic now byte-faithful
+ * to the target; residual is pure IDO frame-slot/regalloc divergence on a
+ * 402-insn function (documented printf-family cap). Default INCLUDE_ASM path
+ * is byte-exact; this body is reference-only. */
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 extern int gl_func_0001CA10();
 extern int gl_func_0007526C();
@@ -1226,7 +1236,7 @@ s32 gl_func_0006E894(s32 (*arg0)(), s32 arg1, u8 *arg2, s32 arg3) {
     s32 var_s1_4;
     s32 var_s1_5;
     s32 var_s3;
-    u8 spA8[0x40];
+    u8 *spA8;
     int spAC;
     int spB0;
     int spB4;
@@ -1458,7 +1468,7 @@ block_74:
     }
 block_75:
     if (spBC > 0) {
-        temp_v0_12 = arg0(var_s3, &spA8[spB4], spBC);
+        temp_v0_12 = arg0(var_s3, spA8 + spB4, spBC);
         var_s3 = temp_v0_12;
         if (temp_v0_12 != 0) {
             spCC += spBC;

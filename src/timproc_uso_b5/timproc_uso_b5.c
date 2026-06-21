@@ -372,128 +372,185 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * in delay slot. Same recipe as game_libs_func_0000E044/E050. */
 void timproc_uso_b5_func_00000770(int a0) { (void)a0; }
 
-// timproc_uso_b5_func_00000778 — FULL m2c DECODE (68.93% NM, no episode).
-// NON-jumptable control-flow fn: no emulator/dump needed — disasm-func from
-// the expected obj, m2c direct (0 errors), then the blunt control-flow lift
-// (48 X->unkN -> FW(X,0xN), 77 placeholder calls cast via GP, void*->char*,
-// NULL->0, *NULL->*(int*)0). Raw-.word USO form (genuine code, NOT data).
-//
-// Shape: a FLAT bulk-registration routine — 76 back-to-back
-// func_00000000() calls, ZERO control flow (1 jr at end, 1 branch).
-// Hand-decoded prologue + repeating unit:
-//   void timproc_uso_b5_func_00000778(State *st) {  // st -> s0 (arg0)
-//     // addiu sp,-0x20; save s0/s1/ra; s0 = arg0;
-//     // repeated ~76x, each unit:
-//     //   v = st->0x50;                       // lw a1,0x50(s0)
-//     //   a0 = &D + K;                        // lui a0 / addiu a0,a0,K
-//     //   a1 = v*9 (or v*8, v<<N) + small;    // sll/addu index calc
-//     //   a1 |= 0x70000 (lui at,7; or/ori);   // handle/tag prefix
-//     //   func_00000000(a0=&D+K, a1);         // register one entry
-//     //   K advances (0x10, 0x28, 0x130, ... 0x718) per entry;
-//     // restore ra/s0/s1; addiu sp,0x20; return;
-//   }
-// Net effect: binds ~76 timproc_uso_b5 table slots (&D + {0x10..0x718})
-// to indices/handles derived from st->0x50 (a base index/count),
-// tagged with the 0x7000B handle prefix.
-//
-// Struct-typing reference:
-//   st(a0=s0): 0x50 = base index/count used to compute every entry's
-//     handle (a1 = f(st->0x50) per slot). &D = the timproc_uso_b5
-//     registration table; K = per-slot byte offsets (0x10,0x28,0x130,
-//     …,0x718). Tag prefix 0x70000 / handle low bits ~0xB.
-// Caps (DEFERRED): raw-word USO + 76 placeholder func_00000000 calls;
-//   USO mnemonic disasm limitation prevents byte-match. Real-C
-//   STRUCTURAL body below — flat 76-entry bulk-registration skeleton
-//   (3 representative entries shown). Byte-match deferred. Name
-//   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-
-
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-typedef char *(*GP)();
-#endif
+/* timproc_uso_b5_func_00000778 — flat bulk-registration: 76 back-to-back
+ * import_0024F228 / import_0024F278 calls binding the b5 registration
+ * table (timproc_uso_b5_D_807FF4xx..Bxx) to packed ids derived from
+ * arg0->0x50 (n) and *(int*)&import_8002022C (g). Two `if (g != 0)`
+ * blocks gate the 0xB00000-group and 0x110000-group entries. Reconstructed
+ * 2026-06-21 from resolved .s with REAL reloc callees + per-call symbol+addend.
+ * Structure/arithmetic exact: 603 words (target 605, 2-word short). vs expected:
+ * 127 non-reloc diffs, of which 95 are PURE register-rename (coloring) and 32
+ * are structural — but those 32 are themselves regalloc/scheduling artifacts:
+ *   - 0x70000 const hoisted to saved $s1 once + reused (calls 2-4); IDO later
+ *     repurposes $s1 for &import_8002022C. Cross-statement const-CSE into a
+ *     callee-saved reg — not C-controllable.
+ *   - calls 51-55: expected reads n (arg0->0x50) before g; build reads g first
+ *     (| operand-eval order). calls 69-70: expected keeps g in $a1 and does
+ *     g*12 in place (addu at,a1,0; sll; subu; sll); build uses temps.
+ * CAP CLASS: genuine ugen register-coloring + as1 scheduler-tie. Down from 248
+ * non-reloc diffs (old placeholder body). Default build is INCLUDE_ASM. */
+extern int import_0024F228();
+extern int import_0024F278();
+extern int import_8002022C;
+extern char timproc_uso_b5_D_807FF490;
+extern char timproc_uso_b5_D_807FF4A8;
+extern char timproc_uso_b5_D_807FF4C0;
+extern char timproc_uso_b5_D_807FF4D8;
+extern char timproc_uso_b5_D_807FF4F0;
+extern char timproc_uso_b5_D_807FF508;
+extern char timproc_uso_b5_D_807FF520;
+extern char timproc_uso_b5_D_807FF538;
+extern char timproc_uso_b5_D_807FF550;
+extern char timproc_uso_b5_D_807FF568;
+extern char timproc_uso_b5_D_807FF580;
+extern char timproc_uso_b5_D_807FF598;
+extern char timproc_uso_b5_D_807FF5B0;
+extern char timproc_uso_b5_D_807FF5C8;
+extern char timproc_uso_b5_D_807FF5E0;
+extern char timproc_uso_b5_D_807FF5F8;
+extern char timproc_uso_b5_D_807FF610;
+extern char timproc_uso_b5_D_807FF628;
+extern char timproc_uso_b5_D_807FF640;
+extern char timproc_uso_b5_D_807FF658;
+extern char timproc_uso_b5_D_807FF670;
+extern char timproc_uso_b5_D_807FF688;
+extern char timproc_uso_b5_D_807FF6A0;
+extern char timproc_uso_b5_D_807FF6B8;
+extern char timproc_uso_b5_D_807FF6D0;
+extern char timproc_uso_b5_D_807FF6E8;
+extern char timproc_uso_b5_D_807FF700;
+extern char timproc_uso_b5_D_807FF718;
+extern char timproc_uso_b5_D_807FF730;
+extern char timproc_uso_b5_D_807FF748;
+extern char timproc_uso_b5_D_807FF760;
+extern char timproc_uso_b5_D_807FF778;
+extern char timproc_uso_b5_D_807FF790;
+extern char timproc_uso_b5_D_807FF7A8;
+extern char timproc_uso_b5_D_807FF7C0;
+extern char timproc_uso_b5_D_807FF7D8;
+extern char timproc_uso_b5_D_807FF7F0;
+extern char timproc_uso_b5_D_807FF808;
+extern char timproc_uso_b5_D_807FF820;
+extern char timproc_uso_b5_D_807FF838;
+extern char timproc_uso_b5_D_807FF850;
+extern char timproc_uso_b5_D_807FF868;
+extern char timproc_uso_b5_D_807FF880;
+extern char timproc_uso_b5_D_807FF898;
+extern char timproc_uso_b5_D_807FF8B0;
+extern char timproc_uso_b5_D_807FF8C8;
+extern char timproc_uso_b5_D_807FF8E0;
+extern char timproc_uso_b5_D_807FF8F8;
+extern char timproc_uso_b5_D_807FF910;
+extern char timproc_uso_b5_D_807FF928;
+extern char timproc_uso_b5_D_807FF940;
+extern char timproc_uso_b5_D_807FF958;
+extern char timproc_uso_b5_D_807FF970;
+extern char timproc_uso_b5_D_807FF988;
+extern char timproc_uso_b5_D_807FF9A0;
+extern char timproc_uso_b5_D_807FF9B8;
+extern char timproc_uso_b5_D_807FF9D0;
+extern char timproc_uso_b5_D_807FF9E8;
+extern char timproc_uso_b5_D_807FFA00;
+extern char timproc_uso_b5_D_807FFA18;
+extern char timproc_uso_b5_D_807FFA30;
+extern char timproc_uso_b5_D_807FFA48;
+extern char timproc_uso_b5_D_807FFA60;
+extern char timproc_uso_b5_D_807FFA78;
+extern char timproc_uso_b5_D_807FFA90;
+extern char timproc_uso_b5_D_807FFAA8;
+extern char timproc_uso_b5_D_807FFAC0;
+extern char timproc_uso_b5_D_807FFAD8;
+extern char timproc_uso_b5_D_807FFAF0;
+extern char timproc_uso_b5_D_807FFB08;
+extern char timproc_uso_b5_D_807FFB20;
+extern char timproc_uso_b5_D_807FFB38;
+extern char timproc_uso_b5_D_807FFB50;
+extern char timproc_uso_b5_D_807FFB68;
+extern char timproc_uso_b5_D_807FFB80;
+extern char timproc_uso_b5_D_807FFB98;
 void timproc_uso_b5_func_00000778(char *arg0) {
-    timproc_uso_b5_alias(0x10, (FW(arg0, 0x50) * 9) | 0x70000);
-    timproc_uso_b5_alias(0x28, 0x70000 | ((FW(arg0, 0x50) * 9) + 1));
-    timproc_uso_b5_alias(0x130, 0x70000 | ((FW(arg0, 0x50) * 2) + 3));
-    timproc_uso_b5_alias(0x148, 0x70000 | ((FW(arg0, 0x50) * 2) + 4));
-    timproc_uso_b5_alias(0x160, ((*(int*)0 + 8) << 0x10) | 2);
-    timproc_uso_b5_alias(0x178, ((*(int*)0 + 8) << 0x10) | ((FW(arg0, 0x50) * 3) + 3));
-    timproc_uso_b5_alias(0x190, ((*(int*)0 + 8) << 0x10) | ((FW(arg0, 0x50) * 3) + 4));
-    timproc_uso_b5_alias(0x1A8, ((*(int*)0 + 8) << 0x10) | ((FW(arg0, 0x50) * 3) + 5));
-    timproc_uso_b5_alias(0x40, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10) | 1);
-    timproc_uso_b5_alias(0x58, ((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10);
-    timproc_uso_b5_alias(0x70, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10) | 2);
-    timproc_uso_b5_alias(0x88, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10) | 4);
-    timproc_uso_b5_alias(0xA0, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x14) << 0x10) | 3);
-    timproc_uso_b5_alias(0xB8, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10) | 2);
-    timproc_uso_b5_alias(0xD0, ((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10);
-    timproc_uso_b5_alias(0xE8, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10) | 1);
-    timproc_uso_b5_alias(0x100, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10) | 4);
-    timproc_uso_b5_alias(0x118, (((FW(arg0, 0x50) * 2) + *(int*)0 + 0x18) << 0x10) | 3);
-    timproc_uso_b5_alias(0x1C0, 0xA0000);
-    timproc_uso_b5_alias(0x1D8, 0xA0001);
-    timproc_uso_b5_alias(0x1F0, 0xA0002);
-    timproc_uso_b5_alias(0x208, 0xA0003);
-    timproc_uso_b5_alias(0x220, 0xA0004);
-    timproc_uso_b5_alias(0x238, 0xA0005);
-    timproc_uso_b5_alias(0x250, 0xA0006);
-    timproc_uso_b5_alias(0x268, 0xA0007);
-    if (*(int*)0 != 0) {
-        timproc_uso_b5_alias(0x280, 0xB0000);
-        timproc_uso_b5_alias(0x298, 0xB0001);
-        timproc_uso_b5_alias(0x2B0, 0xB0002);
-        timproc_uso_b5_alias(0x2C8, 0xB0003);
-        timproc_uso_b5_alias(0x2E0, 0xB0004);
-        timproc_uso_b5_alias(0x2F8, 0xB0005);
-        timproc_uso_b5_alias(0x310, 0xB0006);
-        timproc_uso_b5_alias(0x328, 0xB0007);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF490 + 0x10, ((*(int *)((char *)arg0 + 0x50))*9) | 0x70000);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF4A8 + 0x28, 0x70000 | ((*(int *)((char *)arg0 + 0x50))*9 + 1));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF5B0 + 0x130, 0x70000 | ((*(int *)((char *)arg0 + 0x50))*2 + 3));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF5C8 + 0x148, 0x70000 | ((*(int *)((char *)arg0 + 0x50))*2 + 4));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF5E0 + 0x160, (((*(int *)&import_8002022C) + 8) << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF5F8 + 0x178, (((*(int *)&import_8002022C) + 8) << 16) | (((*(int *)((char *)arg0 + 0x50))*4 - (*(int *)((char *)arg0 + 0x50))) + 3));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF610 + 0x190, (((*(int *)&import_8002022C) + 8) << 16) | (((*(int *)((char *)arg0 + 0x50))*4 - (*(int *)((char *)arg0 + 0x50))) + 4));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF628 + 0x1a8, (((*(int *)&import_8002022C) + 8) << 16) | (((*(int *)((char *)arg0 + 0x50))*4 - (*(int *)((char *)arg0 + 0x50))) + 5));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF4C0 + 0x40, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16) | 1);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF4D8 + 0x58, (((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF4F0 + 0x70, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF508 + 0x88, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16) | 4);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF520 + 0xa0, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x14) << 16) | 3);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF538 + 0xb8, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF550 + 0xd0, (((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF568 + 0xe8, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16) | 1);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF580 + 0x100, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16) | 4);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF598 + 0x118, ((((*(int *)((char *)arg0 + 0x50))*2 + (*(int *)&import_8002022C)) + 0x18) << 16) | 3);
+    import_0024F278((char *)&timproc_uso_b5_D_807FF640 + 0x1c0, 0xA << 16);
+    import_0024F278((char *)&timproc_uso_b5_D_807FF658 + 0x1d8, (0xA << 16) | 1);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF670 + 0x1f0, (0xA << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF688 + 0x208, (0xA << 16) | 3);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF6A0 + 0x220, (0xA << 16) | 4);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF6B8 + 0x238, (0xA << 16) | 5);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF6D0 + 0x250, (0xA << 16) | 6);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF6E8 + 0x268, (0xA << 16) | 7);
+    if ((*(int *)&import_8002022C) != 0) {
+        import_0024F278((char *)&timproc_uso_b5_D_807FF700 + 0x280, 0xB << 16);
+        import_0024F278((char *)&timproc_uso_b5_D_807FF718 + 0x298, (0xB << 16) | 1);
+        import_0024F278((char *)&timproc_uso_b5_D_807FF730 + 0x2b0, (0xB << 16) | 2);
+        import_0024F278((char *)&timproc_uso_b5_D_807FF748 + 0x2c8, (0xB << 16) | 3);
+        import_0024F278((char *)&timproc_uso_b5_D_807FF760 + 0x2e0, (0xB << 16) | 4);
+        import_0024F278((char *)&timproc_uso_b5_D_807FF778 + 0x2f8, (0xB << 16) | 5);
+        import_0024F278((char *)&timproc_uso_b5_D_807FF790 + 0x310, (0xB << 16) | 6);
+        import_0024F278((char *)&timproc_uso_b5_D_807FF7A8 + 0x328, (0xB << 16) | 7);
     }
-    timproc_uso_b5_alias(0x340, ((FW(arg0, 0x50) * 2) + 0x10) << 0x10);
-    timproc_uso_b5_alias(0x358, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 1);
-    timproc_uso_b5_alias(0x370, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 2);
-    timproc_uso_b5_alias(0x388, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 3);
-    timproc_uso_b5_alias(0x3A0, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 4);
-    timproc_uso_b5_alias(0x3B8, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 5);
-    timproc_uso_b5_alias(0x3D0, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 6);
-    timproc_uso_b5_alias(0x3E8, (((FW(arg0, 0x50) * 2) + 0x10) << 0x10) | 7);
-    if (*(int*)0 != 0) {
-        timproc_uso_b5_alias(0x400, ((FW(arg0, 0x50) * 2) + 0x11) << 0x10);
-        timproc_uso_b5_alias(0x418, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 1);
-        timproc_uso_b5_alias(0x430, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 2);
-        timproc_uso_b5_alias(0x448, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 3);
-        timproc_uso_b5_alias(0x460, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 4);
-        timproc_uso_b5_alias(0x478, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 5);
-        timproc_uso_b5_alias(0x490, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 6);
-        timproc_uso_b5_alias(0x4A8, (((FW(arg0, 0x50) * 2) + 0x11) << 0x10) | 7);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF7C0 + 0x340, ((*(int *)((char *)arg0 + 0x50))*2 + 0x10) << 16);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF7D8 + 0x358, (((*(int *)((char *)arg0 + 0x50))*2 + 0x10) << 16) | 1);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF7F0 + 0x370, (((*(int *)((char *)arg0 + 0x50))*2 + 0x10) << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF808 + 0x388, (((*(int *)((char *)arg0 + 0x50))*2 + 0x10) << 16) | 3);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF820 + 0x3a0, (((*(int *)((char *)arg0 + 0x50))*2 + 0x10) << 16) | 4);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF838 + 0x3b8, (((*(int *)((char *)arg0 + 0x50))*2 + 0x10) << 16) | 5);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF850 + 0x3d0, (((*(int *)((char *)arg0 + 0x50))*2 + 0x10) << 16) | 6);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF868 + 0x3e8, (((*(int *)((char *)arg0 + 0x50))*2 + 0x10) << 16) | 7);
+    if ((*(int *)&import_8002022C) != 0) {
+        import_0024F228((char *)&timproc_uso_b5_D_807FF880 + 0x400, ((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16);
+        import_0024F228((char *)&timproc_uso_b5_D_807FF898 + 0x418, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 1);
+        import_0024F228((char *)&timproc_uso_b5_D_807FF8B0 + 0x430, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 2);
+        import_0024F228((char *)&timproc_uso_b5_D_807FF8C8 + 0x448, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 3);
+        import_0024F228((char *)&timproc_uso_b5_D_807FF8E0 + 0x460, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 4);
+        import_0024F228((char *)&timproc_uso_b5_D_807FF8F8 + 0x478, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 5);
+        import_0024F228((char *)&timproc_uso_b5_D_807FF910 + 0x490, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 6);
+        import_0024F228((char *)&timproc_uso_b5_D_807FF928 + 0x4a8, (((*(int *)((char *)arg0 + 0x50))*2 + 0x11) << 16) | 7);
     }
-    timproc_uso_b5_alias(0x4C0, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | (*(int*)0 * 5));
-    timproc_uso_b5_alias(0x4D8, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | ((*(int*)0 * 5) + 1));
-    timproc_uso_b5_alias(0x4F0, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | ((*(int*)0 * 5) + 2));
-    timproc_uso_b5_alias(0x508, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | ((*(int*)0 * 5) + 3));
-    timproc_uso_b5_alias(0x520, (((FW(arg0, 0x50) * 2) + 0xC) << 0x10) | ((*(int*)0 * 5) + 4));
-    timproc_uso_b5_alias(0x538, ((FW(arg0, 0x50) * 2) + 0xD) << 0x10);
-    timproc_uso_b5_alias(0x550, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 1);
-    timproc_uso_b5_alias(0x568, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 2);
-    timproc_uso_b5_alias(0x580, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 3);
-    timproc_uso_b5_alias(0x598, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 4);
-    timproc_uso_b5_alias(0x5B0, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 5);
-    timproc_uso_b5_alias(0x5C8, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 6);
-    timproc_uso_b5_alias(0x5E0, (((FW(arg0, 0x50) * 2) + 0xD) << 0x10) | 7);
-    timproc_uso_b5_alias(0x688, (*(int*)0 + 0x23) << 0x10);
-    timproc_uso_b5_alias(0x6A0, ((*(int*)0 + 0x23) << 0x10) | 1);
-    timproc_uso_b5_alias(0x6B8, ((*(int*)0 + 0x23) << 0x10) | 2);
-    timproc_uso_b5_alias(0x640, 0x70008);
-    timproc_uso_b5_alias(0x628, 0x70007);
-    timproc_uso_b5_alias(0x5F8, (*(int*)0 * 0xC) | 0x80000);
-    timproc_uso_b5_alias(0x610, ((*(int*)0 * 0xC) + 1) | 0x80000);
-    timproc_uso_b5_alias(0x658, (FW(arg0, 0x50) * 2) | 0x1C0000);
-    timproc_uso_b5_alias(0x670, ((FW(arg0, 0x50) * 2) + 1) | 0x1C0000);
-    timproc_uso_b5_alias(0x6D0, 0x2F0010);
-    timproc_uso_b5_alias(0x6E8, ((*(int*)0 + 8) << 0x10) | 9);
-    timproc_uso_b5_alias(0x700, ((*(int*)0 + 8) << 0x10) | 0xA);
-    timproc_uso_b5_alias(0x718, ((*(int*)0 + 8) << 0x10) | 0xB);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF940 + 0x4c0, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF958 + 0x4d8, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5 + 1));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF970 + 0x4f0, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5 + 2));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF988 + 0x508, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5 + 3));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF9A0 + 0x520, (((*(int *)((char *)arg0 + 0x50))*2 + 0xC) << 16) | ((*(int *)&import_8002022C)*5 + 4));
+    import_0024F228((char *)&timproc_uso_b5_D_807FF9B8 + 0x538, ((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF9D0 + 0x550, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 1);
+    import_0024F228((char *)&timproc_uso_b5_D_807FF9E8 + 0x568, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA00 + 0x580, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 3);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA18 + 0x598, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 4);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA30 + 0x5b0, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 5);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA48 + 0x5c8, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 6);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA60 + 0x5e0, (((*(int *)((char *)arg0 + 0x50))*2 + 0xD) << 16) | 7);
+    import_0024F278((char *)&timproc_uso_b5_D_807FFB08 + 0x688, ((*(int *)&import_8002022C) + 0x23) << 16);
+    import_0024F278((char *)&timproc_uso_b5_D_807FFB20 + 0x6a0, (((*(int *)&import_8002022C) + 0x23) << 16) | 1);
+    import_0024F278((char *)&timproc_uso_b5_D_807FFB38 + 0x6b8, (((*(int *)&import_8002022C) + 0x23) << 16) | 2);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFAC0 + 0x640, (0x7 << 16) | 8);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFAA8 + 0x628, (0x7 << 16) | 7);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA78 + 0x5f8, (((*(int *)&import_8002022C)*4 - (*(int *)&import_8002022C)) * 4) | 0x80000);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFA90 + 0x610, ((((*(int *)&import_8002022C)*4 - (*(int *)&import_8002022C)) * 4) + 1) | 0x80000);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFAD8 + 0x658, ((*(int *)((char *)arg0 + 0x50))*2) | 0x1C0000);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFAF0 + 0x670, ((*(int *)((char *)arg0 + 0x50))*2 + 1) | 0x1C0000);
+    import_0024F278((char *)&timproc_uso_b5_D_807FFB50 + 0x6d0, (0x2F << 16) | 0x10);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFB68 + 0x6e8, (((*(int *)&import_8002022C) + 8) << 16) | 9);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFB80 + 0x700, (((*(int *)&import_8002022C) + 8) << 16) | 0xA);
+    import_0024F228((char *)&timproc_uso_b5_D_807FFB98 + 0x718, (((*(int *)&import_8002022C) + 8) << 16) | 0xB);
+
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000778);
