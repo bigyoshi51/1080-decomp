@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00008988",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T08:40:00+00:00",
+  "end_time": "2026-06-21T08:55:00+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T08:55:00+00:00",
+      "assistant_text": "Two-loop counter array-scan. The flat goto-form had 2 residual IV-collapse diffs (one per loop): IDO folds the i<n back-branch to a single bne where the target keeps slt at,v1,a3; bnez at. decomp-permuter cracked it by sinking the inter-loop i=0 reset INSIDE the first if(n>0) block, which perturbs the i/n live range across the loop boundary so the as1 IV analysis stops folding i<n to bne. Verified IN-TREE via ROM cmp (44/44 words, 0 relocs, ROM byte-identical).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 44,
+  "initial_m2c_source": null,
+  "final_source": "#ifndef FW\n#define FW(p, o) (*(int *)((char *)(p) + (o)))\n#endif\ns32 timproc_uso_b5_func_00008988(char *arg0, s32 arg1, s32 arg2) {\n  s32 i;\n  s32 n;\n  char *e;\n  char *p;\n  char *c;\n  i = 0;\n  p = *((int *) (((char *) ((*((int *) (((char *) arg0) + 0x40C))) + (arg1 * 4))) + 0x40));\n  n = *((int *) (((char *) p) + 0x6C));\n  if (n > 0)\n  {\n    c = p;\n    loop1:\n    e = *((int *) (((char *) c) + 0x3C));\n\n    if (((*((f32 *) (((char *) e) + 0x2A4))) != 0.0f) && (arg2 == (*((int *) (((char *) e) + 0x2B0)))))\n    {\n      return i;\n    }\n    i += 1;\n    c += 4;\n    if (i < n)\n    {\n      goto loop1;\n    }\n    i = 0;\n  }\n  if (n > 0)\n  {\n    c = p;\n    loop2:\n    if ((*((f32 *) (((char *) (*((int *) (((char *) c) + 0x3C)))) + 0x2A4))) != 0.0f)\n    {\n      return i;\n    }\n\n    i += 1;\n    c += 4;\n    if (i < n)\n    {\n      goto loop2;\n    }\n  }\n  return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00008988.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "in-tree exact: 44/44 words, 0 non-reloc diffs, 0 relocs (a0-relative addressing); full ROM byte-identical to baserom (make: ROM OK); cracked by decomp-permuter inter-loop-reset-sink"
+  }
+}

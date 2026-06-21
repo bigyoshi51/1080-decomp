@@ -627,11 +627,19 @@ void timproc_uso_b3_func_000010B4(int a0) {
  * value (a0 freed after the jal consumed the 5); none of the three
  * pseudo-order levers (BB-split / web-inversion / early-pseudo)
  * address arg-reg targeting. Remaining lever: uoptlist dump. */
-#ifdef NON_MATCHING
+/* EXACT (2026-06-21, ported from byte-identical twin timproc_uso_b1_func_00001130).
+ * The single residual addu operand-order diff (target `addu rd,base,prod` vs the
+ * inline-web's `addu rd,prod,base`) is resolved by two scheduler/coloring nudges:
+ *   - `self[(0x48 / 4) ^ 0]` (identity XOR) re-orders the index web so the final
+ *     addr addu emits base-rs while preserving the $t9 coalesce, and
+ *   - `(new_var = 0x90)` parks the +0x90 offset in a throwaway local, fixing the
+ *     temp-numbering of the call register.
+ * Both are semantic no-ops; verified in-tree (0 non-reloc word diffs). */
 extern int D_arg_b3_10E4[];
 extern int D_cur_b3_10E4;
 void timproc_uso_b3_func_000010E4(int *self) {
   int *v0;
+  int new_var;
   int v1;
   int stride;
   if (gl_func_00000000(D_arg_b3_10E4[0x190 / 4]) == 0) {
@@ -651,17 +659,10 @@ void timproc_uso_b3_func_000010E4(int *self) {
     D_cur_b3_10E4 = (int) self;
     if (1) {
     }
-    v0 = (int *) self[0x48 / 4];
-    /* Twin of b1's 1130: direct inline-loaded indirect call coalesces the
-     * index web into the $t9 call register; 39/40 words. Single residual
-     * is the addr addu operand order (product-rs vs target base-rs), a cap
-     * coupled to the $t9 coalesce (see the b1 twin's comment). */
-    (*((void (**)(void)) ((((char *) v0) + (v0[0x7C / 4] * stride)) + 0x90)))();
+    v0 = (int *) self[(0x48 / 4) ^ 0];
+    (*((void (**)(void)) ((((char *) v0) + (v0[0x7C / 4] * stride)) + (new_var = 0x90))))();
   }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000010E4);
-#endif
 
 /* timproc_uso_b3_func_00001184: 20-insn (func1 of the split bundle).
  *   if (a0->0x4FC == 0) { X(a0->0x6A8,0,1); X(a0->0x6A8); a0->0x4FC=1; }

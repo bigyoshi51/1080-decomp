@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b3_func_000010E4",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T08:00:00+00:00",
+  "end_time": "2026-06-21T08:15:00+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T08:15:00+00:00",
+      "assistant_text": "Vtable-entry dispatcher; byte-identical twin of the just-landed timproc_uso_b1_func_00001130. The NM body had a single residual: the address addu emitted product-rs (`addu rd,prod,base`) where the target emits base-rs (`addu rd,base,prod`), coupled to the $t9 coalesce. Ported the twin's two semantic-no-op coloring nudges directly (swapping b3's symbols/offsets): `self[(0x48/4) ^ 0]` (identity XOR re-orders the index web to base-rs while keeping the $t9 coalesce) and `(new_var = 0x90)` (parks the +0x90 offset in a throwaway local, fixing the call-register temp number). Immediate land, no permuter needed. Verified in-tree exact, not an isolated false-100.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 40,
+  "initial_m2c_source": null,
+  "final_source": "extern int D_arg_b3_10E4[];\nextern int D_cur_b3_10E4;\nvoid timproc_uso_b3_func_000010E4(int *self) {\n  int *v0;\n  int new_var;\n  int v1;\n  int stride;\n  if (gl_func_00000000(D_arg_b3_10E4[0x190 / 4]) == 0) {\n    return;\n  }\n  v0 = (int *) self[0x48 / 4];\n  v1 = v0[0x7C / 4];\n  if (v1 != 0) {\n    gl_func_00000000(5);\n    if (1) {\n    }\n    v0 = (int *) self[0x48 / 4];\n    v1 = v0[0x7C / 4];\n  }\n  stride = 40;\n  if (((void (*)(void)) (*((int *) ((((char *) v0) + (v1 * stride)) + 0x90)))) != 0) {\n    D_cur_b3_10E4 = (int) self;\n    if (1) {\n    }\n    v0 = (int *) self[(0x48 / 4) ^ 0];\n    (*((void (**)(void)) ((((char *) v0) + (v0[0x7C / 4] * stride)) + (new_var = 0x90))))();\n  }\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b3/timproc_uso_b3.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000010E4.s",
+    "segment": "timproc_uso_b3",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "in-tree exact: 40/40 words, 0 non-reloc diffs, reloc records at 6 target offsets (D_arg_b3_10E4 HI16/LO16, gl_func_00000000 x2 jal, D_cur_b3_10E4 HI16/LO16); ROM byte-identical to baserom; ported twin lever from timproc_uso_b1_func_00001130"
+  }
+}

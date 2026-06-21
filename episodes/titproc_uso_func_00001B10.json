@@ -1,0 +1,33 @@
+{
+  "function_name": "titproc_uso_func_00001B10",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-21T08:20:00+00:00",
+  "end_time": "2026-06-21T08:35:00+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T08:35:00+00:00",
+      "assistant_text": "3-stage chained alloc-cascade ctor (twin of 0x1D7C). The reconstructed body with real reloc callees/symbols had 2 residual diffs: a dataflow-independent as1 scheduler tie where the self reload (lw a2,0x20(sp)) hoists into the gap between the &import_00073B18 lui/addiu. decomp-permuter found that joining the 04C678 init call and the sub->0x28 store onto a single statement re-anchors the as1 schedule so the reload lands after the addiu. Verified IN-TREE via ROM cmp (objdiff alone is unreliable for adjacent-insn swaps \u2014 the twin 0x1D7C produced an objdiff false-100 that the ROM rejected).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 42,
+  "initial_m2c_source": null,
+  "final_source": "extern int titproc_uso_func_055750();\nextern int titproc_uso_func_04C678();\nextern int titproc_uso_func_00F4CC();\nextern char titproc_uso_D_000264;\nvoid *titproc_uso_func_00001B10(void *self) {\n  void *sub;\n  char *base = &titproc_uso_D_00048C;\n  if (self == 0)\n  {\n    self = (void *) titproc_uso_func_055750(0x40);\n    if (self == 0)\n    {\n      goto end;\n    }\n  }\n  sub = self;\n  if (self == 0)\n  {\n    sub = (void *) titproc_uso_func_055750(0x2C);\n    if (sub == 0)\n    {\n      goto common;\n    }\n  }\n  titproc_uso_func_04C678(sub, base + 0x4EC); *((int *) (((char *) sub) + 0x28)) = (int) (&import_00073B18);\n  common:\n  *((int *) (((char *) self) + 0x28)) = (int) (&titproc_uso_D_000264);\n  *((int *) (((char *) self) + 0x0C)) = (int) (base + 0x4F4);\n  titproc_uso_func_00F4CC(self);\n  *((int *) (((char *) self) + 0x3C)) = 0;\n  end:\n  return self;\n\n}\n",
+  "metadata": {
+    "source_path": "src/titproc_uso/titproc_uso.c",
+    "asm_path": "asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_00001B10.s",
+    "segment": "titproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "in-tree exact: 42/42 words, 0 non-reloc diffs, 12 reloc records identical to expected; full ROM byte-identical to baserom (make: ROM OK); cracked by decomp-permuter statement-join"
+  }
+}

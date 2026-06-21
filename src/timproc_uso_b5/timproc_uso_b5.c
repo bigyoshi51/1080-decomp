@@ -5916,56 +5916,64 @@ void timproc_uso_b5_func_0000896C(char *a0) {
  * NON-unrolled to 42 words vs the 44-word target -- only TWO residual
  * diffs, one per loop: IDO collapses my `i < n` back-branch to a single
  * `bne v1,a3` (unit-stride IV: i!=n == i<n) where the target keeps the
- * explicit `slt at,v1,a3; bnez at` (2 words). Tried >=/!(>=)/n>i/++i<n,
- * pointer-end compare, do/while -- all either collapse to `bne` or unroll
- * or spill (-O1). This is a genuine IDO induction-variable-collapse tie
- * (loop-shape, not regalloc): no C structure that keeps a clean counter
- * loop forces `slt` over `bne`. Body below = the 42-word/2-diff form. */
-#ifdef NON_MATCHING
+ * explicit `slt at,v1,a3; bnez at` (2 words).
+ *
+ * EXACT (2026-06-21, decomp-permuter). The 2-insn IV-collapse tie was cracked
+ * by SINKING the inter-loop `i = 0;` reset INSIDE the first `if (n > 0)` block
+ * (right after loop1's back-branch) instead of leaving it between the two
+ * loops. This changes the live range of `i`/`n` across the loop boundary so
+ * the as1 IV analysis no longer folds `i < n` to `bne`, restoring the target's
+ * `slt at,v1,a3; bnez at` in both loops. Verified IN-TREE: 44/44 words, 0
+ * non-reloc diffs (the fn has 0 relocs, all a0-relative), full ROM
+ * byte-identical to baserom. Body below = the exact form. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 s32 timproc_uso_b5_func_00008988(char *arg0, s32 arg1, s32 arg2) {
-    s32 i;
-    s32 n;
-    char *e;
-    char *p;
-    char *c;
+  s32 i;
+  s32 n;
+  char *e;
+  char *p;
+  char *c;
+  i = 0;
+  p = *((int *) (((char *) ((*((int *) (((char *) arg0) + 0x40C))) + (arg1 * 4))) + 0x40));
+  n = *((int *) (((char *) p) + 0x6C));
+  if (n > 0)
+  {
+    c = p;
+    loop1:
+    e = *((int *) (((char *) c) + 0x3C));
 
-    i = 0;
-    p = FW((FW(arg0, 0x40C) + (arg1 * 4)), 0x40);
-    n = FW(p, 0x6C);
-    if (n > 0) {
-        c = p;
-loop1:
-        e = FW(c, 0x3C);
-        if ((*(f32 *)((char *)e + 0x2A4) != 0.0f) && (arg2 == FW(e, 0x2B0))) {
-            return i;
-        }
-        i += 1;
-        c += 4;
-        if (i < n) {
-            goto loop1;
-        }
+    if (((*((f32 *) (((char *) e) + 0x2A4))) != 0.0f) && (arg2 == (*((int *) (((char *) e) + 0x2B0)))))
+    {
+      return i;
+    }
+    i += 1;
+    c += 4;
+    if (i < n)
+    {
+      goto loop1;
     }
     i = 0;
-    if (n > 0) {
-        c = p;
-loop2:
-        if (*(f32 *)((char *)FW(c, 0x3C) + 0x2A4) != 0.0f) {
-            return i;
-        }
-        i += 1;
-        c += 4;
-        if (i < n) {
-            goto loop2;
-        }
+  }
+  if (n > 0)
+  {
+    c = p;
+    loop2:
+    if ((*((f32 *) (((char *) (*((int *) (((char *) c) + 0x3C)))) + 0x2A4))) != 0.0f)
+    {
+      return i;
     }
-    return 0;
+
+    i += 1;
+    c += 4;
+    if (i < n)
+    {
+      goto loop2;
+    }
+  }
+  return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008988);
-#endif
 
 /* timproc_uso_b5_func_00008A38/A64/A90: indexed double-deref accessors. The
  * addu operand-order lever (scaled index FIRST, fully inlined — no named

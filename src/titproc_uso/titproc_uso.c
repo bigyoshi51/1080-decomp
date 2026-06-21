@@ -1177,13 +1177,16 @@ void titproc_uso_func_00001AF8(int *a0) {
  * the reconstructed sibling 0x1D7C (reuse-param-as-object lever: `self`
  * IS the param so IDO arg-saves to the caller slot sw a2,0x20(sp)).
  * Collapsed the prior placeholder body's 44 reg/spill diffs to 2.
- * RESIDUAL (same size 42/42, exact insns): the identical 2-insn as1
- * scheduler tie seen in 0x1D7C — the `self` reload `lw a2,0x20(sp)` is
- * hoisted into the gap between t6's `lui`/`addiu` (&import_00073B18)
- * instead of scheduling after the addiu. Dataflow-independent
- * load-hoist; tried temp-local, statement-reorder, array-index access,
- * register-param — none move it. No reliable C lever. Still NM. */
-#ifdef NON_MATCHING
+ *
+ * EXACT (2026-06-21, decomp-permuter). The 2-insn as1 scheduler tie was
+ * cracked by joining the `04C678(...)` init call and the sub->0x28 store onto
+ * one statement (re-anchors the as1 schedule so the `self` reload lands after
+ * the &import_00073B18 addiu rather than hoisting into its lui/addiu gap).
+ * Verified IN-TREE: 42/42 words, 0 non-reloc diffs, 12 reloc records identical
+ * to expected; full ROM byte-identical to baserom. NOTE: the twin 0x1D7C is
+ * NOT cracked — its permuter "100" was an objdiff false-100 (the adjacent
+ * independent-insn swap scores 100 fuzzy but the ROM bytes stayed wrong). The
+ * ONLY valid gate for these as1 ties is the ROM cmp, not objdiff. */
 extern int titproc_uso_func_055750();
 extern int titproc_uso_func_04C678();
 extern int titproc_uso_func_00F4CC();
@@ -1208,19 +1211,16 @@ void *titproc_uso_func_00001B10(void *self) {
       goto common;
     }
   }
-  titproc_uso_func_04C678(sub, base + 0x4EC);
-  *((int *) (((char *) sub) + 0x28)) = (int) &import_00073B18;
- common:
-  *((int *) (((char *) self) + 0x28)) = (int) &titproc_uso_D_000264;
+  titproc_uso_func_04C678(sub, base + 0x4EC); *((int *) (((char *) sub) + 0x28)) = (int) (&import_00073B18);
+  common:
+  *((int *) (((char *) self) + 0x28)) = (int) (&titproc_uso_D_000264);
   *((int *) (((char *) self) + 0x0C)) = (int) (base + 0x4F4);
   titproc_uso_func_00F4CC(self);
   *((int *) (((char *) self) + 0x3C)) = 0;
   end:
   return self;
+
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001B10);
-#endif
 
 /* titproc_uso_func_00001BB8: 42-insn dual-state-bracket helper. Two
  * gl_func dispatches with asymmetric inner-D[0] gates. LANDED fuzzy=100
