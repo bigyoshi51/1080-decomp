@@ -4698,7 +4698,22 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  *   - the `(self,out_flags,metric)` effect call at line ~4951 still has no
  *     matching jal once ordering is accounted; it is a body-structure
  *     divergence (extra/mis-ordered call), NOT a known real symbol — leave
- *     as placeholder until the scratch-Vec3 region is rebuilt. No episode. */
+ *     as placeholder until the scratch-Vec3 region is rebuilt. No episode.
+ *
+ * 2026-06-21 agent-i (this session): RECONSTRUCTED the dead-sentinel
+ * copy-or-alloc scratch-Vec3 at 0x5cb0-0x5cf8 (target: a3=&scratch never NULL
+ * so the 055750(0xC) alloc is dead, live path copies (sub+0x3c8).{x,z}+y=0
+ * through the held pointer, then metric=00003ED4(scratch,transform_in,...)).
+ * This recovers a 055750 call -> objdiff 941 -> 936 non-reloc diffs, gap
+ * 240B -> 236B. BUT the call ORDER (target: alloc THEN 00003ED4; build: still
+ * 00003ED4 first) is NOT fixed: IDO 7.1 -O2 DEAD-CODE-ELIMINATES the
+ * `if (&local == NULL) alloc` guard because &scratch_xz is provably non-null,
+ * so the alloc floats away from the metric region. The target keeps the
+ * provably-dead alloc, which means the original source's scratch pointer was
+ * NOT a plain &local — it was a held pointer whose &local origin IDO could not
+ * trace (assigned via a prior conditional / opaque path). Forcing that
+ * un-provable held pointer is the remaining anti-DCE structural step. No
+ * episode: 936 diffs, the documented coloring/frame-layout cap dominates. */
 #ifdef NON_MATCHING
 /* forward decls for 591C real callees (defined later in this TU) */
 void game_uso_func_0000A3C4();
@@ -4878,10 +4893,24 @@ void game_uso_func_0000591C(int *a0) {
     }
 
     sub = *(char**)((char*)self + 0x30);
-    scratch_xz.x = *(float*)(sub + 0x3C8);
-    scratch_xz.y = 0.0f;
-    scratch_xz.z = *(float*)(sub + 0x3D0);
-    metric = game_uso_func_00003ED4(&scratch_xz, &transform_in, (int *)&transform_out);
+    {
+        /* dead-sentinel copy-or-alloc of a 12-byte Vec3 scratch (target
+         * 0x5cb0-0x5cf8): a3 = &scratch_xz is never NULL, so the alloc is
+         * dead code; the live path copies (sub+0x3c8).{x,z} into the scratch
+         * with y cleared, through the held pointer.  Reconstructing this guard
+         * recovers the missing 055750(0xC) call + realigns the metric region. */
+        Vec3 *scratch_src = (Vec3 *)(sub + 0x3C8);
+        Vec3 *scratch_ptr = &scratch_xz;
+        if (scratch_ptr == NULL) {
+            scratch_ptr = (Vec3 *)game_uso_func_055750(0xC);
+            if (scratch_ptr == 0) goto skip_scratch;
+        }
+        scratch_ptr->x = scratch_src->x;
+        scratch_ptr->z = scratch_src->z;
+        scratch_ptr->y = 0.0f;
+skip_scratch:;
+        metric = game_uso_func_00003ED4(scratch_ptr, &transform_in, (int *)&transform_out);
+    }
     if (metric < 0.0f) {
         metric = -metric;
     }
@@ -11156,7 +11185,18 @@ void game_uso_func_0000C3F8(int *a0) {
  * worse); IDO allocates by live-range, not C scope. Also noted target
  * round-trips the init template through an s2 stack scratch (sw t0,0(s2);
  * lw a2,0(s2)) where this C passes `val` directly. The +28-insn entry gap is a
- * genuine regalloc ceiling; needs the permuter, not a C-structural lever. */
+ * genuine regalloc ceiling; needs the permuter, not a C-structural lever.
+ *
+ * 2026-06-21 agent-i confirmation: reloc SYMBOL SET already MATCHES (137 vs
+ * 141 build, only HI16/LO16 count differs from CSE). The 189-word size DEFICIT
+ * is fully explained: per stage the target (a) re-materializes the F568/F5B0
+ * template addr via a fresh lui/addiu (build CSEs to one reg), AND (b) spills
+ * each stage's `val` to a DISTINCT descending stack slot (sp+192,188,184,...)
+ * then reloads + stores into a val-array at sp+44 (`sw t1,0(s2)`), which is
+ * why the target frame is -200 vs build's -72. Reproducing 32 stages of exact
+ * descending-spill-slot allocation + per-stage val-array store is an
+ * allocator-shape match, not a C-structural one. Confirmed permuter-class;
+ * no C lever lands it. No episode. */
 /* Whole-body reconstruction 2026-06-21 (agent-e): REAL symbols wired.
  * Prior NM body used placeholder gl_func_00000000 / &D_00000000 for ALL 32
  * sub-object stages, collapsing 32 DISTINCT per-stage globals
@@ -11963,12 +12003,27 @@ L_BC:
  *
  * 2026-06-21 decode refinement (agent-i): the 0xA10 state-bit test is a
  * HALFWORD read (lhu, not lw) — fixed to *(u16*)(v1+0xA10) & 0x1F0, matching
- * the target word at that offset. Remaining gap (545 vs 524 insns, 496
- * non-reloc diffs; reloc SYMBOL set is identical, only offset-shifted): IDO
- * spills the var_a3 f32 to a stack slot and reload-churns it around the EDCC
- * call cascade (built frame -80 vs target -56; extra swc1/lwc1 44(sp) pairs).
- * That FP spill/reload coloring + the branch-likely FP gates are the residual
- * cap; logic + symbols are correct. */
+ * the target word at that offset.
+ *
+ * 2026-06-21 agent-i (this session) — three structural fixes, reloc set now
+ * MATCHES + size within 1 word:
+ *   1. var_a3 was wrongly declared f32; the asm inits it `or a3,zero,zero`
+ *      (INTEGER zero) and only ever stores integer state indices (1..5) into
+ *      it. Retyped to s32 and changed the init `0.0f`->`0`. This killed the
+ *      spurious `mtc1 zero,$f18` at the head and the f32 spill/reload churn.
+ *   2. The two `c.lt.d` gates compared against literal `1.0`, but the .s loads
+ *      the doubles from CROSS-TU globals via ldc1: `*(f64*)(&D_807FFB18+0x1F8)`
+ *      (the abs(0x970)>X gate, db2c) and `*(f64*)(&D_807FFB20+0x200)` (the
+ *      0xA0C<X gate, dbfc). Wired both; the two exp-only reloc symbols
+ *      (B18/B20) are now present -> RELOC SYMBOL SET MATCH.
+ * Result: size gap -84B -> +4B (524 vs 523 insns), non-reloc diffs 441 -> 418.
+ *
+ * RESIDUAL CAP: built frame -80 vs target -56 (0x18 over). Root is the
+ * 6-arg vararg calls (077C44 a0,mask,0,dir,1,1) whose outgoing-arg region IDO
+ * lays out non-overlapping with the 4 named stack vars (build slots
+ * 44/64/68/72 vs target's contiguous 40/44/48/52), plus pervasive $f/$t
+ * coloring and branch-LIKELY (beql/beq) FP gates that m2c/C cannot pin. Logic
+ * + callees + globals are all correct; honest NON_MATCHING. */
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
@@ -11980,6 +12035,8 @@ extern char game_uso_D_807FF478;
 extern char game_uso_D_807FF480;
 extern char game_uso_D_807FF3B8;
 extern char game_uso_D_807FF68C;
+extern char game_uso_D_807FFB18;
+extern char game_uso_D_807FFB20;
 void game_uso_func_0000D9CC(char *arg0) {
     f32 sp34;
     s32 sp30;
@@ -11989,7 +12046,7 @@ void game_uso_func_0000D9CC(char *arg0) {
     f32 temp_f14;
     f32 temp_f2;
     f32 temp_f2_2;
-    f32 var_a3;
+    s32 var_a3;
     f32 var_f0;
     f32 var_f0_2;
     f32 var_f0_3;
@@ -12009,7 +12066,7 @@ void game_uso_func_0000D9CC(char *arg0) {
     sp2C = 0;
     sp28 = 0;
     var_v1 = FW(arg0, 0xB4);
-    var_a3 = 0.0f;
+    var_a3 = 0;
     if ((FF(var_v1, 0x348) > 30.0f) && (*(u16 *)(var_v1 + 0xA10) & 0x1F0)) {
         temp_f2 = FF(var_v1, 0xA1C);
         if (temp_f2 < 0.0f) {
@@ -12047,7 +12104,7 @@ void game_uso_func_0000D9CC(char *arg0) {
             } else {
                 var_f0_3 = temp_f2_2;
             }
-            if (1.0 < (f64) var_f0_3) {
+            if (*(f64 *)((char *)&game_uso_D_807FFB18 + 0x1F8) < (f64) var_f0_3) {
                 if (temp_f2_2 <= 0.0f) {
                     FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xE);
                     sp2C = (char *)3;
@@ -12068,7 +12125,7 @@ block_24:
     }
     if (FF(var_v1, 0x9D0) < 500.0f) {
         temp_v0 = var_v1 + 0xCC;
-        if ((f64) FF(var_v1, 0xA0C) < 1.0) {
+        if ((f64) FF(var_v1, 0xA0C) < *(f64 *)((char *)&game_uso_D_807FFB20 + 0x200)) {
             FF(var_v1, 0xCC) = 0.0f;
             FF(temp_v0, 0x4) = 0.0f;
             FF(temp_v0, 0x8) = 0.0f;
@@ -12170,7 +12227,6 @@ block_24:
                 sp28 = 0;
                 sp30 = 0;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2F);
-                sp34 = var_a3;
                 game_uso_func_07C0FC(FW(var_v1, 0x800),
                                      (char *)&game_uso_D_807FF68C + 4252, 0xA);
             }
