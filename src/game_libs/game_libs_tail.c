@@ -689,17 +689,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A540);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000A670)();
+/* gl_func_0000A670: 5x/8x-stepped twin-call loop over two data-segment cursors.
+ * The three loop cursors (0xD268/0xD388 + the 0xD3E8 end-sentinel) are DATA
+ * ADDRESSES into the &D base, not magic integer constants: the target
+ * materializes each as `lui rX,0x1; addiu rX,rX,-NNNN` (= 0xDxxx via signed
+ * %hi/%lo), which only `(char *)&D_00000000 + 0xDxxx` reproduces — bare
+ * `0xD268` compiled to `ori`/`li` (the old 85.2% form). With the pointer
+ * typing the body is structurally exact (size 61 vs 62 words, modulo idioms,
+ * twin calls, increments all match). Residual: (1) a cyclic $s-reg renumber
+ * (var_s2/var_s0 swap s0<->s2, end-sentinel s6 vs s7) — IDO allocno coloring,
+ * not C-steerable; (2) one dead `move v0,zero` pre-loop init the original
+ * carried (a dead local IDO didn't DCE) that no C form reproduces without
+ * regressing. Coloring + phantom-slot cap. */
 void gl_func_0000A670(s32 arg0) {
-    s32 temp_hi;
-    s32 temp_s5;
     s32 var_s0;
     s32 var_s1;
-    s32 var_s2;
-    s32 var_s3;
+    char *var_s2;
+    char *var_s3;
+    s32 temp_hi;
+    s32 temp_s5;
+    char *var_end;
 
-    var_s3 = 0xD268;
-    var_s2 = 0xD388;
+    var_s3 = (char *)&D_00000000 + 0xD268;
+    var_s2 = (char *)&D_00000000 + 0xD388;
+    var_end = (char *)&D_00000000 + 0xD3E8;
     var_s0 = arg0;
     var_s1 = 0;
     do {
@@ -711,7 +724,7 @@ void gl_func_0000A670(s32 arg0) {
         var_s0 += 0x30;
         var_s1 += 3;
         var_s3 += 0x24;
-    } while (var_s2 != 0xD3E8);
+    } while (var_s2 != var_end);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A670);

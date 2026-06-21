@@ -565,44 +565,32 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C
 #endif
 
 /* mgrproc_uso_func_000014F4: 40-insn 3-way switch on a0->[0x4D8] (v):
- *   v == 2: gl_func_0(D[0x190], 3, 1, a0); a0->[0x7D4] = 1;
- *   v == 1 || v == 3: gl_func_0(a0, D[0x170] + 0x26000F);
+ *   v == 2: func_0139B0(D[0x190], 3, 1, a0); a0->[0x7D4] = 1;
+ *   v == 1 || v == 3: func_00001AD0(a0, D[0x170] + 0x26000F);
  *   else: skip
+ *   Always-call func_048E7C(D + 0x628, a0->[0x4D8]) at entry.
  *
- * Always-call gl_func_0(D + 0x628, a0->[0x4D8]) at entry.
- *
- * NATURAL CEILING: 36/40 words (~90%). Callees RE-DERIVED 2026-06-20: the
- * three calls are DISTINCT intra-module targets (func_048E7C, func_0139B0,
- * func_00001AD0) and the three address bases are DISTINCT imports
- * (import_802649F8+0x628, import_80020228[0x190], import_80020208[0x170]) —
- * the prior decode collapsed all three calls into the gl_func_00000000
- * placeholder + a single D_mgr_14F4_* base, which is wrong (relocs/symbols
- * didn't match). Fixed to the real callees/imports below; verified via build
- * (build/src .o) word-compare: 36/40 .text words match, frame/struct exact.
- *
- * Was previously documented as "exact via 3-extern split + 4-insn INSN_PATCH
- * at 0x4C/0x50/0x54/0x58" — INSN_PATCH REMOVED 2026-05-23 as match-faking.
- * The remaining 4-word cap is the THIRD equality test (v==3): target emits the
- * un-optimized `beq v0,at,case_13; nop; b end; lw ra (delay)`; IDO's branch
- * optimizer folds the epilogue `lw ra` into a branch-likely instead, giving
- * `bnel v0,at,end; lw ra (delay); b case_13; nop`. Confirmed as1-scheduler /
- * branch-likely cap: goto-end, switch, and if/else-if forms all reproduce the
- * bnel; the surrounding 36 words (incl. all three reloc'd calls + import bases
- * + the hoisted `li a1,3; li a2,1`) are byte-exact. Default build INCLUDE_ASM. */
+ * MATCHED 2026-06-20. The v==3 test had emitted a branch-likely fold
+ * (bnel v0,at,end; lw ra) instead of the target's plain `beq case_13; b end;
+ * lw ra (delay)`. Lever: write the third test as `if (v != 3) goto end;
+ * goto case_13;` (split the equality+fallthrough into an explicit inverted
+ * skip-branch + unconditional goto) — this suppresses the branch-likely
+ * conversion and emits the plain beq + b end. Byte-exact, 40/40 words. */
 extern char import_802649F8;
 extern int import_80020228;
 extern char import_80020208;
 extern void mgrproc_uso_func_048E7C(void *, int);
 extern void mgrproc_uso_func_00001AD0(int *, int);
 extern int mgrproc_uso_func_0139B0();
-#ifdef NON_MATCHING
 void mgrproc_uso_func_000014F4(int *a0) {
     int v;
     mgrproc_uso_func_048E7C((char*)&import_802649F8 + 0x628, *(int*)((char*)a0 + 0x4D8));
     v = *(int*)((char*)a0 + 0x4D8);
     if (v == 2) goto case_2;
     if (v == 1) goto case_13;
-    if (v == 3) goto case_13;
+    if (v != 3) goto end;
+    goto case_13;
+end:
     return;
 case_2:
     mgrproc_uso_func_0139B0(*(int*)((char*)&import_80020228 + 0x190), 3, 1, a0);
@@ -611,9 +599,6 @@ case_2:
 case_13:
     mgrproc_uso_func_00001AD0(a0, *(int *)(&import_80020208 + 0x170) + 0x26000F);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000014F4);
-#endif
 
 /* mgrproc_uso_func_00001594: 32-insn (0x80) check-then-vtable-call helper.
  * Decoded:

@@ -2626,43 +2626,46 @@ skip_template:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003018);
 #endif
 
-/* 45-insn alloc-or-passthrough constructor. 2026-05-31: fixed the bogus
- * `&D_3A0` (undefined extern → addiu 0) to `(char*)&D_00000000 + 0x3A0` so the
- * +0x34 `lui;addiu a1,0x3A0` reloc word now matches the target FROM C — this is
- * the relocation word the removed 23-word INSN_PATCH used to fake (per
- * feedback_no_instruction_forcing_matches_policy). REMAINING CAP (unreachable
- * from C): the IDO scheduler's prologue-deferred `or s0,a0` (target sets it
- * before the arg-homes + bne; C defers it to the bne delay slot) + the mid-body
- * float-store / mtc1 reordering. fuzzy% stays ~77.6 (objdiff alignment is pinned
- * by the prologue shift) but the bytes are now more correct. Default INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* game_uso_func_000034A4: 45-insn alloc-or-passthrough constructor, sibling of
+ * game_uso_func_00000858 (same alloc-if-null + init + set-vtable + conditional
+ * 04C774(self,1,a3) + field-init-with-floats idiom). MATCHED 2026-06-20 by
+ * reconstruction from the resolved .s: the prior body used gl_func_00000000
+ * placeholder callees + &D_00000000 bases (all wrong). Real callees: alloc
+ * 055750(0x138), init 04C678(self, &D_807FE990+0x3A0), 00003018(self+0x50),
+ * conditional 04C774(self,1,a3). Real vtable base &game_uso_D_807FE8A8. Twin's
+ * `int *a0; if(!a0) a0=alloc; if(!a0) goto out;` form (reuse param as the
+ * pointer, early goto on alloc-fail) gives the prologue `or s0,a0`. Final lever
+ * (last 12 store-schedule diffs): write the `0x4C = a2` store IMMEDIATELY after
+ * `0x48 = a1` (before 0x2C=0 and the six 0.0f swc1 stores) — this nudges IDO to
+ * hoist the `lw a2,0x28(sp)` reload to the target's early slot (right after the
+ * a1 store) instead of deferring it to just before its own store. C field-WRITE
+ * order != asm field order but bytes are identical. 45/45 words. */
+extern char game_uso_D_807FE990;
+extern char game_uso_D_807FE8A8;
+extern void game_uso_func_04C678(int *dst, void *tmpl);
+extern void *game_uso_func_00003018();
+
 int *game_uso_func_000034A4(int *a0, int a1, int a2, int a3) {
-    int *s = a0;
-    if (s == 0) {
-        s = (int*)gl_func_00000000(0x138);
+    if (a0 == 0) {
+        a0 = (int *)game_uso_func_055750(0x138);
+        if (a0 == 0) goto out;
     }
-    if (s != 0) {
-        gl_func_00000000(s, (char *)&D_00000000 + 0x3A0);
-        *(int*)((char*)s + 0x28) = (int)&D_00000000;
-        gl_func_00000000((int*)((char*)s + 0x50));
-        if (a3 != 0) {
-            gl_func_00000000(s, 1, a3);
-        }
-        *(int*)((char*)s + 0x48) = a1;
-        *(int*)((char*)s + 0x2C) = 0;
-        *(float*)((char*)s + 0x38) = 0.0f;
-        *(float*)((char*)s + 0x34) = 0.0f;
-        *(float*)((char*)s + 0x30) = 0.0f;
-        *(float*)((char*)s + 0x44) = 0.0f;
-        *(float*)((char*)s + 0x40) = 0.0f;
-        *(float*)((char*)s + 0x3C) = 0.0f;
-        *(int*)((char*)s + 0x4C) = a2;
-    }
-    return s;
+    game_uso_func_04C678(a0, (char *)&game_uso_D_807FE990 + 0x3A0);
+    *(int*)((char*)a0 + 0x28) = (int)&game_uso_D_807FE8A8;
+    game_uso_func_00003018((int*)((char*)a0 + 0x50));
+    if (a3 != 0) game_uso_func_04C774(a0, 1, a3);
+    *(int*)((char*)a0 + 0x48) = a1;
+    *(int*)((char*)a0 + 0x4C) = a2;
+    *(int*)((char*)a0 + 0x2C) = 0;
+    *(float*)((char*)a0 + 0x38) = 0.0f;
+    *(float*)((char*)a0 + 0x34) = 0.0f;
+    *(float*)((char*)a0 + 0x30) = 0.0f;
+    *(float*)((char*)a0 + 0x44) = 0.0f;
+    *(float*)((char*)a0 + 0x40) = 0.0f;
+    *(float*)((char*)a0 + 0x3C) = 0.0f;
+out:
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000034A4);
-#endif
 
 /* game_uso_func_00003558: 252-insn (0x3F0) heavy state-builder. Frame -0x100,
  * saves s0/ra and double-FPU $f20/$f21 (sdc1 at 0x18). Sibling of
@@ -9846,12 +9849,12 @@ void game_uso_func_0000AC48(char *dst) {
  * 0x3C; then walk a0->0x40 node and link it back via 07ACE0 + delay-likely store.
  * Callees RESOLVED post Yay0-split migration (was placeholder gl_func).
  *
- * CAP (2026-06-20): logic exact + frame-exact (volatile-int pad gives the 0x28
- * frame). Remaining 22 diffs are pure regalloc coloring: target keeps ptr in
- * a0(reloaded)/v1, IDO colors it a2 here (single-slot reuse vs target's
- * spill/reload through a0->v1). v1-vs-a2 renumber class; spelling-invariant
- * (struct-access / array-index / pad all reproduce a2). Twin 41C0 only gets the
- * v1 shape from its dead-stage register pressure, absent here. */
+ * CAP (2026-06-20): logic exact + frame-exact. Remaining 25 diffs are pure
+ * regalloc coloring: target keeps ptr in a0(reloaded)/v1 (0x28 frame), IDO
+ * colors it a2 here (0x20 frame, single-slot reuse vs target's spill/reload
+ * through a0->v1). v1-vs-a2 renumber class; spelling-invariant (struct-access /
+ * array-index / pad all reproduce a2). Twin 41C0 only gets the v1 shape from its
+ * dead-stage register pressure, absent here. */
 extern char import_8006ED80;
 int *game_uso_func_0000AC78(int *a0) {
     int *ptr;
@@ -10948,38 +10951,40 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
 
 #ifdef NON_MATCHING
 /* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor.
- * Body:
- *   func_C0F0(&D_00000000);                    // intra-segment setup call
- *   count = *(int*)&D_00000000;
- *   ptr = gl_func(count << 6);                 // alloc(count * 64)
- *   *(int**)&D_00000000_2 = ptr;               // store ptr at second D-base
- *   if (count != 0) {
- *       for (i = 0; i < count; i++) {
- *           game_uso_func_0000C12C((char*)ptr + i*64);  // init each 64-byte chunk
- *       }
- *   }
+ *   func_C0F0(&D_807FFBC4);                   // setup, base held in $s3
+ *   count = D_807FFBC4;
+ *   D_807FFBC0 = alloc(count << 6);           // ptr base held in $s2
+ *   for (i = 0; (u32)i < (u32)D_807FFBC4; i++)
+ *       func_C12C(D_807FFBC0 + i*0x40);
  *
- * Two distinct lui+addiu pairs in target — likely two different D-base
- * relocations (or two sites IDO didn't CSE). The first reloc reads count;
- * the second writes the alloc'd pointer back. */
-extern void game_uso_func_0000C0F0();
-extern void game_uso_func_0000C12C();
-int **D_00000000_p2;  /* placeholder for second D-base */
+ * SYMBOLS RE-DERIVED 2026-06-20: prior body used &D_00000000 for BOTH bases
+ * (two DISTINCT imports: game_uso_D_807FFBC4 = count storage held in $s3,
+ * game_uso_D_807FFBC0 = alloc'd-ptr storage held in $s2) + gl_func_00000000 for
+ * the alloc (= game_uso_func_055750). Reference the symbols DIRECTLY (no
+ * held-pointer locals) — that lets IDO's loop-invariant address motion promote
+ * &D_807FFBC4/&D_807FFBC0 into $s3/$s2 for the whole function (the held-pointer
+ * form prevents promotion: re-luis each use, +2 words). 4-diff cap, 37/37 words.
+ *
+ * REMAINING CAP (NM): the two intra-module calls are HARDCODED jals in the ROM
+ * (`jal 0xC0F0` = 0c00303c, `jal 0xC12C` = 0c00304b — no R_MIPS_26 reloc; see
+ * reference_1080_hardcoded_jal_addresses). A normal C call to func_0000C0F0/
+ * C12C emits the relocatable `0c000000 + R_MIPS_26` form — not the baked
+ * absolute jal — so the .text words differ pre-relocation (un-matchable from C).
+ * Plus a 1-word sw/beq schedule swap (IDO fills the beq delay with the alloc
+ * store). Default INCLUDE_ASM. */
+extern int game_uso_D_807FFBC4;
+extern int *game_uso_D_807FFBC0;
 void game_uso_func_0000C3F8(int *a0) {
-    int count;
-    int *ptr;
     int i;
 
-    game_uso_func_0000C0F0(&D_00000000);
-    count = *(int*)&D_00000000;
-    ptr = (int*)gl_func_00000000(count << 6);
-    *(int**)&D_00000000 = ptr;
-    if (count != 0) {
+    game_uso_func_0000C0F0(&game_uso_D_807FFBC4);
+    game_uso_D_807FFBC0 = (int*)game_uso_func_055750(game_uso_D_807FFBC4 << 6);
+    if (game_uso_D_807FFBC4 != 0) {
         i = 0;
         do {
-            game_uso_func_0000C12C((char*)*(int**)&D_00000000 + i * 0x40);
+            game_uso_func_0000C12C((int*)((char*)game_uso_D_807FFBC0 + i * 0x40));
             i++;
-        } while ((u32)i < *(u32*)&D_00000000);
+        } while ((u32)i < (u32)game_uso_D_807FFBC4);
     }
 }
 #else
@@ -12802,26 +12807,38 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F360);
  *   gl_func_00000000(a0);                          // first runtime-patched callee
  *   gl_func_00000000(a0, 0);                       // second with arg2=0
  *
- * Will not byte-match without typed structs + careful regalloc — IDO -O2
- * picks its own intermediate float regs + the bnez shape depends on the
- * compile-time order of `flag = p_b4->field_9A8` and the &1 mask.
- * Documented for the next pass; default INCLUDE_ASM keeps ROM correct. */
+ * 2026-06-20 reconstruction: real callees recovered from the resolved .s —
+ * first call is game_uso_func_0000E2D0(q + 0x170) (NOT a0), second is
+ * game_uso_func_0000E5C8(a0, 0). The prior body collapsed both into the
+ * gl_func_00000000 placeholder + passed a0 to the first call. The arg5 base
+ * q+0x170 also feeds the lwc1 (0x10 off it) — held as $5 = q+0x170, so the
+ * first float read goes through `base` to keep $5 live for the E2D0 call.
+ *
+ * REMAINING CAP (~5 structural diffs, FP-reg-renumber-desynced to ~28 word
+ * positions): (a) IDO allocates the float temps f0/f2/f4/f6/f8/f10; target uses
+ * f4/f8/f6/f10/f16/f18 (FP-register-renumber cap, source-order-invariant — a/b
+ * and b/a read order both reproduce f0-start). (b) IDO keeps a0 alive in $6
+ * (`or $6,$4`) across the float block + spills $6; target instead spills the
+ * param a0 to its caller-shadow 0x18(sp) in the E2D0 jal delay and reloads for
+ * E5C8 (one fewer word). `&a0`/`*&a0` home levers are DCE'd. Default INCLUDE_ASM. */
 void game_uso_func_0000F424(int *a0) {
     int *p_b4;
+    char *base;
     int flag;
 
     p_b4 = (int*)a0[0xB4 / 4];
     p_b4[0xA18 / 4] = 0;
     a0[0x114 / 4] = 1;
     p_b4 = (int*)a0[0xB4 / 4];
+    base = (char*)p_b4 + 0x170;
     flag = ((int*)p_b4)[0x9A8 / 4];
     if ((flag & 1) == 0) {
-        float a = *(float*)((char*)p_b4 + 0x180);
+        float a = *(float*)(base + 0x10);
         float b = *(float*)((char*)p_b4 + 0x6A8);
         *(float*)((char*)p_b4 + 0x31C) += -a * b;
     }
-    gl_func_00000000(a0);
-    gl_func_00000000(a0, 0);
+    game_uso_func_0000E2D0(base);
+    game_uso_func_0000E5C8(a0, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
