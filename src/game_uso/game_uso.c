@@ -13924,15 +13924,28 @@ void game_uso_func_00010068(int *a0) {
  * (3) the float-compare `>= 1000.0f` has a REAL else (bc1fl .L10254): C-call args
  * 2,3,1,1 then gl_func(a0,&D+0xDF0,3) (D5F8) + gl_func(a0) (D5DC) — those two run
  * ONLY on the >=1000 arm, not unconditionally. Both arms converge to E5C8(a0,0) +
- * E35C(a0)->v0 + v0==0 tail. Residual v0/v1 placement = coloring cap. */
+ * E35C(a0)->v0 + v0==0 tail. Residual v0/v1 placement = coloring cap.
+ * 2026-06-21 (agent-e): 79%->94.29% raw-word (count-exact 105=105). Naming the
+ * `outer->0x800` deref as a local `mid` (outer stays inlined) keeps the flag-test
+ * chain TIGHT at v0/v1+t8/t9 and pulls the D-base to $8 — matching the target's
+ * register shape for ALL of the function EXCEPT the outer<->mid v0/v1 PAIR: the
+ * target colors `outer` (the a0->0xB4 reload) into $v0 and `mid` into $v1; the
+ * named `mid` web always claims $v0 instead, pushing the inline `outer` reload to
+ * $v1. Exhaustively floored (agent-e, 14 src variants): naming outer instead
+ * collapses the chain (climbs to $24/$25, 36 diffs); naming both, register-kw,
+ * inner-scope, embedded-assign (mid=(outer=..)[..]), leaf-field-name, held-outer
+ * (spills, +1 frame) all leave the same outer<->mid v0/v1 web tie. Permuter is
+ * inapplicable (raw-.word USO asm, no mnemonic/reloc form). Genuine spilltemp-web
+ * coloring cap (the named pointer web's $v0 claim is unreachable from C). */
 extern int gl_func_00000000();
 extern char D_00000000;
 void game_uso_func_00010128(int *a0) {
     int *inner;
-    int v0;
+    int *mid;
 
     ((int*)a0[0xB4 / 4])[0xA18 / 4] = 1;
-    if ((((int*)((int*)a0[0xB4 / 4])[0x800 / 4])[0x18 / 4] & 0x400) != 0) {
+    mid = (int*)((int*)a0[0xB4 / 4])[0x800 / 4];
+    if ((mid[0x18 / 4] & 0x400) != 0) {
         gl_func_00000000(a0,
                          *(Pair2*)((char*)&D_00000000 + 0xDE0));
     }
@@ -13961,8 +13974,7 @@ void game_uso_func_00010128(int *a0) {
         gl_func_00000000(a0);
     }
     gl_func_00000000(a0, 0);
-    v0 = gl_func_00000000(a0);
-    if (v0 == 0) {
+    if (gl_func_00000000(a0) == 0) {
         gl_func_00000000(a0);
         gl_func_00000000(a0);
     }
