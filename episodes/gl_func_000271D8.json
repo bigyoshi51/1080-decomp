@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000271D8",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T14:33:58.113505+00:00",
+  "end_time": "2026-06-21T14:33:58.113505+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T14:33:58.113505+00:00",
+      "assistant_text": "21-insn do-while sentinel loop calling gl_func(*(&D+0x53C4), &scratch, 0) until result == -1. Baseline NM wrap (sentinel=-1 initializer + inlined call test) gave s-reg coloring + frame -48 exact but left a 2-word as1 const-materialization-order tie: base-lo `addiu s1,s1,0` and sentinel `addiu s0,zero,-1` emitted swapped. Permuter found that ASSIGNING `sentinel = -1` INSIDE the do-loop body (instead of as a first-statement initializer) flips the schedule so base-lo emits before sentinel, matching the target. The reassign is free (-1 is loop-invariant, hoisted by IDO).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_000271D8(void) {\n    int sentinel;\n    int scratch;\n    do {\n        sentinel = -1;\n    } while (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x53C4), &scratch, 0) != sentinel);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/game_libs/game_libs/gl_func_000271D8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "matching-build wordcmp (reloc-masked): 0 non-reloc diffs, sizes 84==84; relocs HI16/LO16 D_00000000 + R_MIPS_26 gl_func_00000000 (same placeholder convention as landed sibling gl_func_0002A50C); full make ROM byte-identical (ROM OK)"
+  }
+}

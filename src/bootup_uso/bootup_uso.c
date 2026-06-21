@@ -3228,12 +3228,26 @@ void func_00005068(int a0) {
  *
  * 2026-05-18: had promoted to byte-exact via SUFFIX_BYTES_FORCE / INSN_PATCH
  * on the third-call scheduler cap; both mechanisms REMOVED 2026-05-23 as
- * match-faking. Function is at honest 89.45% NM now. */
+ * match-faking. Function is at honest 89.45% NM now.
+ *
+ * 2026-06-21 (98.82% -> 99.09%): the pad local was 24 bytes, over-reserving
+ * the frame by 8 (frame -80, buf at sp+0x40). Shrinking to `char pad[16]`
+ * drops buf to sp+0x38 and the frame to -72 = target EXACTLY, collapsing 9
+ * of the 17 diffs (all the frame/buf-offset ones). RESIDUAL 8 diffs are pure
+ * spill-slot-coloring + register-renumber: target spills saved_a0 to the LOW
+ * home 0x1C and p(v0) to the HIGH home 0x30, with the defensive `sw a1,0x4(sp)`
+ * delay store going to the arg-build area (0x4); mine inverts the two home
+ * slots (saved_a0 at 0x24, p at 0x1C) and puts the defensive store at 0x20,
+ * plus the consequent t8-vs-t7 renumber. The bodies are otherwise instruction-
+ * identical. This is the documented spill-slot-coloring cap — the
+ * earlier-spilled value taking the lower home is an IDO allocator choice not
+ * reachable by reordering C (declaration-order + embedded-assign permutations
+ * all regress, retested). Stays NM at 99.09%. */
 extern char D_00007DA4;
 #ifdef NON_MATCHING
 int func_000050A0(int a0) {
   float buf[4];
-  char pad[24];
+  char pad[16];
   volatile int saved_a0;
   volatile int new_var;
   int *p;

@@ -9812,25 +9812,19 @@ int gl_func_00027180(void) {
 
 /* gl_func_000271D8: 21-insn do-while loop. Repeatedly calls
  * gl_func(*(int*)&D_0+0x53C4, &scratch, 0) until result is -1.
- * PROGRESS (agent-i 2026-06-21): naming the loop sentinel `int sentinel = -1`
- * (declared FIRST) + inlining the call result into the while-test fixed the
- * s-register coloring AND the frame size: sentinel->s0, base->s1, &scratch->s2
- * EXACTLY matching target, frame -48 (10 diffs -> 2). RESIDUAL (2 words): the
- * two independent constant materializations `addiu s1,s1,0` (base lo) and
- * `addiu s0,zero,-1` (sentinel) emit in swapped order vs target — a pure as1
- * scheduler tie between two independent hoisted constants (no data dependency,
- * no C handle on the order). Named-base-ptr regresses (folds to a0 reload);
- * for-comma-init duplicates the test. as1-tie cap. */
-#ifdef NON_MATCHING
+ * MATCH (permuter, 2026-06-21): assigning the sentinel `sentinel = -1`
+ * INSIDE the do-loop body (rather than as a first-statement initializer)
+ * flips the as1 schedule so the base-lo `addiu s1,s1,0` emits before the
+ * sentinel `addiu s0,zero,-1`, matching the target. The in-loop reassign is
+ * free (-1 is loop-invariant; IDO hoists it) and resolves the 2-word
+ * const-materialization-order tie. Frame -48, byte-exact (84 bytes). */
 void gl_func_000271D8(void) {
-    int sentinel = -1;
+    int sentinel;
     int scratch;
     do {
+        sentinel = -1;
     } while (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x53C4), &scratch, 0) != sentinel);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000271D8);
-#endif
 
 // gl_func_0002722C — STRUCTURAL PASS (0x98 / 38 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -18579,6 +18573,14 @@ void game_libs_func_00031754(int *a0, int a1, int a2, int a3) {
     a0[0x5C / 4] = (int)((char *)&D_00000000 + (((int)v >> 1) << 1));
 }
 
+/* game_libs_func_00031784: ring-buffer write-index advance (mask-wrap by 0xF).
+ * NM (permuter-narrowed 2026-06-21, 4->2 diffs): reading the write index via a
+ * reused `v0` local AND forcing the `+1` through `(long long)1` colors the
+ * load/incr pair to the target's t2/t3 (was v0/t3). RESIDUAL (2 words): the
+ * final `andi t5,t3,0xf; sw t5` masked-store result lands in t9 not t5 — a
+ * lowest-free-register coloring residual (target skips t4->t5; permuter floored
+ * at score 10 / 2 reg diffs, can't reach it). The `(long long)1` cast is
+ * load-bearing (drop it -> 5 diffs, t2/t3 decolor). */
 #ifdef NON_MATCHING
 void game_libs_func_00031784(int *a0) {
   int v0 = a0[0x54 / 4];
@@ -18598,9 +18600,10 @@ void game_libs_func_00031784(int *a0) {
     a0[0x40 / 4] = a0[0x44 / 4];
   }
   a0[a0[0x40 / 4]] = a0[0x5C / 4];
-  t = a0[0x40 / 4] + 1;
+  v0 = 0x10;
+  t = a0[v0] + (long long)1;
   ((volatile int *) a0)[0x40 / 4] = t;
-  a0[0x40 / 4] = ((t & 0xF) & 0xFFFFu) & 0xFFFFu;
+  a0[0x40 / 4] = (t & 0xF) & 0xFFFFu;
   end:
   a0[0x5C / 4] = 0;
 
