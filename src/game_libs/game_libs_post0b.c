@@ -25908,13 +25908,25 @@ void gl_func_00054C24(char *a0, char *a1) {
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ *
+ * 2026-06-20: func3 (the call with the 1.0f stack arg) re-routed through a
+ * float-prototyped placeholder (gl_func_00000000f) so the 1.0f is passed as
+ * single precision (swc1) instead of K&R-promoted double (sdc1). This
+ * collapsed the frame (0x28->0x20) AND the float store, taking the diff from
+ * ~8 words down to a SINGLE word: 37/38 match, exact same size. Remaining
+ * diff is `move a3,zero` (build) vs `addiu a3,zero,0` (target) for func3's
+ * a3=0 — a constant-0 materialization idiom tie (IDO emits `move` for any
+ * folded constant 0 in arg position; tried int/long/uint/ptr params,
+ * NULL casts, arithmetic 0-forms, shared zero var — all yield `move`).
+ * as1-internal; not flippable from C.
  */
 void gl_func_00054C6C(int *self) {
     extern int D_00000000;
     extern int D_strA, D_strB, D_strC, D_strD;
+    extern int gl_func_00000000f(void *, void *, void *, int, float, int);
     gl_func_00000000(&D_strA, (char*)&D_00000000 + 0x210CC, 0);
     gl_func_00000000(&D_strB, (char*)&D_00000000 + 0x210D8, (char*)self + 0x120, 0);
-    gl_func_00000000(&D_strC, (char*)&D_00000000 + 0x210E4, (char*)self + 0x124, 0,
+    gl_func_00000000f(&D_strC, (char*)&D_00000000 + 0x210E4, (char*)self + 0x124, 0,
                       1.0f, 0);
     gl_func_00000000(&D_strD);
     gl_func_00000000(self);

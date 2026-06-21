@@ -1415,23 +1415,51 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000023F
  * a3-1 (a1 forward base, a2 mirrored: &a2[-i]). Bundled tail sets
  * s0->0x54C (1356) f32 = 116.0 and s0->0x554 (1364) f32 = 170.0
  * (same field group as the mgrproc final-pose constants seen in
- * mgrproc_uso_func_00002324). Caps <80: FP 255.0 mul + trunc.w.s
- * + 1.0 consts + reloc-call loop + bundled tail leaf (jr-count 2,
- * splittable later). Full body INCLUDE_ASM-preserved (.s = source
- * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * mgrproc_uso_func_00002324).
+ *
+ * SYMBOLS RE-DERIVED 2026-06-20: the prior body used gl_func_00000000 /
+ * &D_00000000 placeholders (relocs WRONG). The three calls are DISTINCT
+ * real targets (import_0024E608, import_0024F2C8, import_0024F34C) and the
+ * first call's buffer base is import_8024CAF8 — fixed below. The loop is
+ * rewritten as the target's pointer-walk form (p1 = &a1[i] decrementing,
+ * p2 = &a2[-i] incrementing, do/while) to match the s1/s2 pointer-walk
+ * with homed-and-reloaded a1/a2.
+ *
+ * NM cap (45/53 words, 84.96%): FRAME-LAYOUT. Target frame -0x68 with a
+ * 0x30-byte gap between the saved-reg block (ends sp+0x24) and buf[4]
+ * (sp+0x58..0x64) + a1/a2 homed at sp+0x6C/0x70 (incoming-arg slots above
+ * a 0x68 frame). Every natural-C layout packs buf at sp+0x48 (frame -0x58)
+ * homing a1/a2 lower — 0x10 short, with 2 extra loop-counter words. The
+ * 0x30 gap is not reproducible from the visible locals (buf[4]+counters);
+ * likely an as1/uopt frame-pin artifact. Genuine frame-layout cap; default
+ * build INCLUDE_ASM (no episode). */
+extern char import_8024CAF8;
+extern void import_0024E608();
+extern void import_0024F2C8();
+extern void import_0024F34C();
 #ifdef NON_MATCHING
 void mgrproc_uso_func_00002850(char *s0, int *a1, int *a2, int a3) {
     float buf[4];
     int n;
     char *tgt;
     int i;
+    int *p1;
+    int *p2;
     buf[0] = 1.0f; buf[1] = 1.0f; buf[2] = 1.0f; buf[3] = 1.0f;
     n = (int)(255.0f * *(float *)(s0 + 0x7A4));
-    gl_func_00000000(&D_00000000, n, buf);
+    import_0024E608(&import_8024CAF8, n, buf);
     tgt = s0 + 0x6F8;
-    gl_func_00000000(tgt);
-    for (i = a3 - 1; i >= 0; i--) {
-        gl_func_00000000(tgt, &a1[i], &a2[-i], 3);
+    import_0024F2C8(tgt);
+    i = a3 - 1;
+    if (i >= 0) {
+        p1 = &a1[i];
+        p2 = &a2[-i];
+        do {
+            import_0024F34C(tgt, p1, p2, 3);
+            p1--;
+            p2++;
+            i--;
+        } while (i >= 0);
     }
 }
 #else

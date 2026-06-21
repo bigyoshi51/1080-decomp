@@ -9550,30 +9550,21 @@ int game_uso_func_0000A0E8(char *a0, char *a1, char *a2) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
 #endif
 
-#ifdef NON_MATCHING
-/* 86.70% NM. 86.7%: body+control flow match; target has 2 pre-jal a1 spills:
- *   sw \$a1, 0x1C(\$sp) before 1st jal
- *   sw \$a1, 0x4(\$sp)  IN 1st jal delay slot
- * My IDO -O2 build doesn't emit either spill. Variants tested 2026-04-20:
- *   (a) `extern int gl_func_00000000_va();` (K&R alias) — no spill
- *   (b) `extern int gl_func_00000000_va(int, ...);` (varargs) — no spill
- * Same class as feedback_ido_precall_arg_spill_unreachable.md. Cap 86.7%.
- * 2026-05-31: RESOLVED the placeholder callees to real targets (was
- * gl_func_00000000_va / &D_00000000): loads *import_8006EF48, calls
- * game_uso_func_053104(that, a1) [varargs], on nonzero tail-calls
- * game_uso_func_000043D8(r, a2, 0). Decode-accurate; a1-spill residual unchanged
- * (documented cap). */
-
-extern int game_uso_func_053104(int, ...);
+/* MATCHED 2026-06-20 (stale-cap catch): the "2 pre-jal a1 spills" cap
+ * (sw a1,0x1C(sp) incoming-home + sw a1,0x4(sp) in the jal delay slot) is the
+ * struct-by-value-homes-arg lever (docs/IDO_CODEGEN). The first call is varargs
+ * passing a1 by VALUE as a 1-int struct: IDO places it in $a1 AND homes it to
+ * the outgoing-arg slot 0x4(sp), while the struct's addressability forces the
+ * incoming home at 0x1C(sp). K&R and `(int,...)` prototypes both fail to emit
+ * the home; only struct-by-value does. 20/20 words byte-exact, 0 non-reloc diffs. */
+extern int game_uso_func_053104();
 extern int import_8006EF48;
+typedef struct { int a; } S1A374;
 int game_uso_func_0000A374(int a0, int a1, int a2) {
-    int r = game_uso_func_053104(*(int *)&import_8006EF48, a1);
+    int r = game_uso_func_053104(*(int *)&import_8006EF48, *(S1A374*)&a1);
     if (r == 0) return 0;
     return (int)game_uso_func_000043D8((int **)r, (int *)a2, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A374);
-#endif
 
 /* game_uso_func_0000A3C4 - verified structural decode (~144-insn; 54->58.6% 2026-06-02
  * via the dead-alloc/stack-buffer Vec3 idiom: vref/v1c/v2c are built into stack buffers
