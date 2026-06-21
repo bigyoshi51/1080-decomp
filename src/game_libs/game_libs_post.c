@@ -15001,19 +15001,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D224);
  *       gl_func_0005EB4C_alt(s0);
  *   }
  *
- * Initial structural pass; alt-entry call shape caps expected. */
+ * NM 20->18 diffs: first-loop addressing rewritten so cursor walks base+0
+ * with fixed +0x3280/+0x3250/+0x3200 derefs (matches target's post-increment
+ * store offsets), and base materialized inline (not a shared `base` local) so
+ * the prologue + first loop body match exactly. RESIDUAL CAP: target emits
+ * TWO independent lui sequences for the first-loop cursor (v0) and limit (v1)
+ * — IDO CSEs the common `&D_00000000` base into a saved reg here, which
+ * cascades into the second loop reusing it (limit recomputed inside the loop
+ * vs target precomputing it). Base-CSE/coloring cap. */
 void gl_func_0002D2F4(void) {
-    char *base = &D_00000000;
     char *p, *s0;
     gl_func_00000000();
-    p = base + 0x3280;
-    while (p < base + 0x5280) {
-        *(char*)(p + 0x00) &= 0xFF7F;
-        *(int*)(p + 0x50) = 0;
+    for (p = (char*)&D_00000000; p < (char*)&D_00000000 + 0x2000;) {
+        char c = *(char*)(p + 0x3280);
         p += 0x80;
+        *(int*)(p + 0x3250) = 0;
+        *(char*)(p + 0x3200) = c & 0xFF7F;
     }
-    s0 = base + 0x2D00;
-    while (s0 != base + 0x3280) {
+    s0 = (char*)&D_00000000 + 0x2D00;
+    while (s0 != (char*)&D_00000000 + 0x3280) {
         gl_func_00000000(s0);
         s0 += 0x160;
     }

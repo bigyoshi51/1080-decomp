@@ -4357,11 +4357,22 @@ void game_uso_func_000057B8(char *a0) {
     game_uso_func_00000000(a0 + 0xE4);
 }
 
-/* NATURAL CEILING: NM only. C body is semantically compact; target's
- * branch-expanded selector layout was previously restored via Makefile
- * SUFFIX_BYTES_FORCE + INSN_PATCH — both REMOVED 2026-05-23 as
- * match-faking (per feedback_no_instruction_forcing_matches_policy).
- * Default build is INCLUDE_ASM. */
+/* NATURAL CEILING: NM only. Reconstructed body is now structurally faithful
+ * (resolved callees + real struct offsets verified vs target .s). Two literal
+ * dispatchers: (1) a 7-case value selector over state->0x8C4 picking a float
+ * from a0+{0x414..0x4A4} stride 0x18 (default 0x4BC), stored to sub->0x768;
+ * (2) the trailing 4-way mode dispatch over a0->0x64.
+ * RESIDUAL CAP = selector (1) shape. Target emits the IDO non-jumptable
+ * switch-cascade (`addiu at,N; beq v0,at` with each beq delay holding the NEXT
+ * `addiu at,N+1`, bodies grouped after with `b merge`). Neither C form
+ * reproduces it: a real `switch` lowers to a .rodata jumptable
+ * (sltiu/lui/lw/jr — discarded by 1080's linker), and the documented
+ * `if(mode==N) goto cN;` chain lets IDO fill each beq delay with the case body
+ * `lwc1` instead of the next compare (interleaved, +4 words). This is the
+ * borderline-density (7 dense cases) jumptable-vs-cascade codegen cap
+ * (docs/IDO_CODEGEN.md switch-vs-if-goto-dispatch-polarity). Default build is
+ * INCLUDE_ASM. NB: SUFFIX_BYTES_FORCE/INSN_PATCH removed 2026-05-23 as
+ * match-faking (feedback_no_instruction_forcing_matches_policy). */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0);
 void game_uso_func_00006A30(int *a0);
@@ -4379,14 +4390,28 @@ void game_uso_func_000057D8(char *a0) {
 
         state = *(char **)(sub + 0x908);
         if (state != 0) {
-            if ((*(volatile s32 *)(sub + 0x848) == 2) &&
-                    (*(volatile s32 *)(state + 0x848) != 2)) {
+            if ((*(s32 *)(sub + 0x848) == 2) &&
+                    (*(s32 *)(state + 0x848) != 2)) {
                 mode = *(s32 *)(state + 0x8C4);
-                if ((u32)(mode - 1) < 7U) {
-                    value = *(f32 *)(a0 + 0x3FC + (mode * 0x18));
-                } else {
-                    value = *(f32 *)(a0 + 0x4BC);
-                }
+                /* Target dispatch: 7-case literal selector, "compares grouped /
+                 * bodies after" (addiu at,N; beq v0,at cascade, NOT a .rodata
+                 * jumptable). Reconstructed as the documented goto-chain idiom. */
+                if (mode == 1) goto c1;
+                if (mode == 2) goto c2;
+                if (mode == 3) goto c3;
+                if (mode == 4) goto c4;
+                if (mode == 5) goto c5;
+                if (mode == 6) goto c6;
+                if (mode == 7) goto c7;
+                value = *(f32 *)(a0 + 0x4BC); goto cdone;
+                c7: value = *(f32 *)(a0 + 0x4A4); goto cdone;
+                c6: value = *(f32 *)(a0 + 0x48C); goto cdone;
+                c5: value = *(f32 *)(a0 + 0x474); goto cdone;
+                c4: value = *(f32 *)(a0 + 0x45C); goto cdone;
+                c3: value = *(f32 *)(a0 + 0x444); goto cdone;
+                c2: value = *(f32 *)(a0 + 0x42C); goto cdone;
+                c1: value = *(f32 *)(a0 + 0x414);
+                cdone:
                 *(f32 *)(sub + 0x768) = value;
             }
         }

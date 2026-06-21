@@ -49,51 +49,37 @@ void mgrproc_uso_func_00000B20(void) {
 }
 
 #ifdef NON_MATCHING
+extern int import_80263D60;
+extern char import_80020098;
+extern int import_000A5A1C();
+extern int import_000A5938();
+extern int mgrproc_uso_func_01FA1C();
+extern int mgrproc_uso_func_00F954();
 /* mgrproc_uso_func_00000B5C: 46-insn (0xB8) state-update with cond branch.
- * Sibling of mgrproc_uso_func_00000C14 — identical structure, different
- * constants (state[0x4E0]=5 vs 7 in 00C14; otherD[0x40]=3 vs 5; FALSE arm
- * passes 4 instead of 0 to gl_func).
- *
- * Decoded:
- *   state = D[0x30];
- *   gl_func(state);
- *   v0 = gl_func(state->[0x6AC]->[0x4C]);
- *   if (v0 != 0) {
- *     state->[0x504] = 7;
- *     state->[0x4E0] = 5;
- *     otherD[0x40] = 3;
- *     otherD[0x44] = 7;
- *     state->[0x7D8] = 1;
- *     gl_func(state);
- *   } else {
- *     otherD[0x40] = 3;
- *     gl_func(state, state->[0x6A8]->[0xC], 4);
- *   }
- *
- * Multi-pass NM. Default INCLUDE_ASM build remains byte-correct. */
-extern int gl_func_00000000();
+ * Sibling of mgrproc_uso_func_00000C14 — identical control structure, same
+ * state-slot (&import_80263D60 + 0x30) and `other` base (&import_80020098),
+ * different constants. True-arm: [0x504]=0; [0x4E0]=7; other[0x40]=5;
+ * other[0x44]=3; [0x7D8]=1; import_000A5938(state). FALSE-arm: other[0x40]=3;
+ * mgrproc_uso_func_00F954(state, state->[0x6A8]->[0xC], 4). Symbols re-derived
+ * 2026-06-20 from the resolved .s (prior body's gl_func placeholders + constants
+ * were WRONG). Same LO16-fold + `other`-rematerialization shape as 00C14. */
+#define B5C_STATE (*(int **)((char *)&import_80263D60 + 0x30))
 void mgrproc_uso_func_00000B5C(void) {
-    int *state = MGR_STATE_PTR;
-    int *other = (int*)&D_00000000;
+    int *other = (int *)&import_80020098;
     int v0;
-    gl_func_00000000(state);
-    v0 = gl_func_00000000(*(int*)((char*)*(int**)((int*)((char*)&D_00000000 + 0x30))[0x6AC/4] + 0x4C));
+    import_000A5A1C(B5C_STATE);
+    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)B5C_STATE[0x6AC / 4] + 0x4C));
     if (v0 != 0) {
-        int *s = MGR_STATE_PTR;
-        s[0x504/4] = 7;
-        s = MGR_STATE_PTR;
-        s[0x4E0/4] = 5;
-        other[0x40/4] = 3;
-        other[0x44/4] = 7;
-        s = MGR_STATE_PTR;
-        s[0x7D8/4] = 1;
-        gl_func_00000000(*(int*)((char*)&D_00000000 + 0x30));
+        B5C_STATE[0x504 / 4] = 0;
+        B5C_STATE[0x4E0 / 4] = 7;
+        other[0x40 / 4] = 5;
+        other[0x44 / 4] = 3;
+        B5C_STATE[0x7D8 / 4] = 1;
+        import_000A5938(B5C_STATE);
     } else {
-        other[0x40/4] = 3;
-        gl_func_00000000(
-            *(int*)((char*)&D_00000000 + 0x30),
-            *(int*)((char*)MGR_STATE_PTR + 0x6A8 + 0xC),
-            4);
+        int *a0 = B5C_STATE;
+        other[0x40 / 4] = 3;
+        mgrproc_uso_func_00F954(a0, *(int *)((char *)*(int **)((char *)a0 + 0x6A8) + 0xC), 4);
     }
 }
 #else
@@ -451,114 +437,95 @@ int mgrproc_uso_func_00001324(char *arg0) {
 }
 
 #ifdef NON_MATCHING
-/* mgrproc_uso_func_000013C8: 75-insn (0x12C) post-init dispatcher.
+/* mgrproc_uso_func_000013C8: 75-insn (0x12C) post-init state dispatcher.
+ * Real symbols re-derived 2026-06-20 from the resolved .s (the prior body
+ * used gl_func_00000000 / &D_00000000 placeholders + wrong constants — ALL
+ * relocs were wrong). Correct callees: mgrproc_uso_func_00000140 / _00000170
+ * / _01FA1C / import_000A8114. Globals: import_800200DC (slot 0x44),
+ * import_800200D8 (slot 0x40), import_80020100 (args to import_000A8114).
  *
- * Sibling of mgrproc_uso_func_00001324 (the lazy-init guard at +0x4FC),
- * runs AFTER guard is set. Reads a0[0x4F8] (state idx); if non-zero,
- * runs early-return. Otherwise calls a0[0x6A8] init, checks v0 (alloc
- * result); if 0 returns. On success, sets D[0x44]=7, then probes
- * 0xA0000200 (likely RDP MI hardware reg or memory signature) against
- * 0xAC290000 — if equals, takes one branch (D[0x40]=7 + clears state),
- * else other branch (loads D[0x68], decrements arg, calls func_0).
- * Continues into a 3-stage check ladder calling a0[0x6A8] / a0[0x6AC]
- * / a0[0x6AC]+0x4C with conditional state writes to D[0x40]/D[0x44]
- * and a0[0x504]/a0[0x7D8].
- *
- * Hardware register read at 0xA0000200 is the SI (Serial Interface)
- * SI_DRAM_ADDR_REG per references/indexes/hw_registers.h — likely a
- * controller-pak / EEPROM probe sequence. Comparison constant
- * 0xAC290000 is SI command bytes (RAM-write opcode upper).
- *
- * 75 insns is multi-tick decomp. Initial structural NM. Default build
- * INCLUDE_ASM keeps ROM byte-correct. */
-/* 2026-05-07: full structural decode (was TODO stub).
- *
- * Logic (75 insns):
- *   if (a0->[0x4F8] != 0) goto epilogue;     // state guard
- *   if (gl_func(a0->[0x6A8]) == 0) goto epi; // init callback returns
- *   spill_var = 1;
- *   D[0x44] = 7;
- *   if (*(int*)0xA0000200 != 0xAC290000) {
- *       // SI register doesn't match expected: load D[0x68], decrement,
- *       // call func_0(&D, D[0x68] - 1), then go to merge
- *       gl_func(&D, D[0x68] - 1);
- *       goto merge;  // skip 7C8 reset
- *   } else {
- *       // SI register matches: clear a0->[0x7C8], goto epilogue
- *       a0->[0x7C8] = 0;
- *       goto epi;
+ * Flow (s0 = a0; spill = stack 0x24):
+ *   spill = 0;
+ *   if (a0[0x4F8] == 0) {
+ *       if (func_140(a0[0x6A8]) == 0) goto term;
+ *       spill = 1; DC[0x44] = 7;
+ *       if (*(int*)0xA0000200 == 0xAC290000) { s0[0x7C8]=0; return; }
+ *       import_000A8114(&import_80020100, import_80020100[0x68] - 1);
+ *       goto term;
  *   }
- *  merge:
- *   t4 = a0->[0x7C8];
- *   if (gl_func(a0->[0x6A8]) == 0) {
- *       D[0x40] = 7;
- *       D[0x44] = a0->[0x44];  // re-load (likely just preserve)
- *       spill_var = 1;
- *   } else {
- *       t4 = a0->[0x7C8];
- *       if (gl_func(a0->[0x6AC]) == 0) {
- *           t4 = a0->[0x6AC];
- *           if (gl_func(t4 + 0x4C) != 0) {
- *               D[0x40] = 5;
- *               spill_var = 0;
- *           } else {
- *               D[0x40] = 7;
- *           }
- *           a0->[0x7D8] = 1;
- *       }
- *   }
- *   if (spill_var == 4) a0->[0x504] = spill_var;
- *   else                a0->[0x504] = 0;
- *  epi: return;
+ *   // a0[0x4F8] != 0
+ *   if (func_170(s0[0x6A8]) == 0) goto term;
+ *   D8[0x40] = DC[0x44]; spill = 1; DC[0x44] = 7;
+ * term:
+ *   if (s0[0x7C8] != 0) { if (func_170(s0[0x6A8])==0) goto store; t5=s0[0x6AC]; }
+ *   else                { t5 = s0[0x6AC]; }
+ *   if (func_01FA1C(t5[0x4C]) != 0) { D8[0x40]=5; s0[0x7D8]=1; }
+ *   else                           { D8[0x40]=7; spill=0; }
+ * store:
+ *   s0[0x504] = (spill == 0) ? 4 : 0;
  *
- * Hardware register read at 0xA0000200 = SI_DRAM_ADDR_REG; comparison
- * 0xAC290000 likely an opcode pattern check (controller-pak / EEPROM
- * probe). Multi-tick: structure captured, but byte match needs unique
- * externs (D[0x40], D[0x44], D[0x68]), the SI-register pattern, and
- * IDO's specific branch shape. Default INCLUDE_ASM remains exact.
+ * 0xA0000200 = SI_DRAM_ADDR_REG; 0xAC290000 = SI command-word check.
  *
- * 2026-06-04 corrected the terminal store: target is
- *   D[0x504] = (spill_var == 0) ? 4 : 0;   // li t0,4; beqzl spill_var
- * (store 4 when zero, else 0). The prior C `(spill_var == 4) ? spill_var : 0`
- * was a DEAD branch — spill_var is only ever 0/1, so it always wrote 0.
- * Logic now matches the asm. Still 58 real diffs @ len 69 vs target 62
- * (7 extra insns): NEGATIVE result — `volatile int spill_var` REGRESSES
- * (+3 diffs, over-spills every access). The 7 extra insns are NOT the global
- * base (MGR_STATE_CODE/MGR_D_44/D+0x68 all share &D_00000000; IDO reloads
- * `lui at,%hi` per store like the target); they're in the branch-likely
- * dispatch shape + regalloc. Multi-tick. */
-extern int gl_func_00000000();
+ * NM cap (logic + control-flow + all symbols byte-correct, same size 0x12C).
+ * Residual is genuine IDO addressing/scheduling idiom, multi-diff:
+ *  - two separate `lui import_80020100` for the a0/a1 args (IDO does not
+ *    reuse the base across the two operands; C reuse/fold collapses it);
+ *  - per-store `lui at,%hi` rematerialization of the import_800200D8/DC
+ *    global bases (target keeps the base register live; held-pointer C
+ *    variants CSE it away);
+ *  - branch-likely DIRECTION on the terminal (target beql spill==0 -> store 4;
+ *    C emits bnel regardless of if/else or ternary phrasing).
+ * Cap class = LO16/address-rematerialization + as1 branch-likely tie.
+ * Default build INCLUDE_ASM keeps the ROM byte-correct. */
+extern int mgrproc_uso_func_00000140();
+extern int mgrproc_uso_func_00000170();
+extern int mgrproc_uso_func_01FA1C();
+extern int import_000A8114();
+extern int import_800200DC;
+extern char import_800200D8;
+extern int import_80020100;
 void mgrproc_uso_func_000013C8(int *a0) {
-    int spill_var = 0;
-    int t4;
-    if (a0[0x4F8 / 4] != 0) return;
-    if (gl_func_00000000(a0[0x6A8 / 4]) == 0) return;
-    spill_var = 1;
-    MGR_D_44 = 7;
-    if (*(volatile int*)0xA0000200 != (int)0xAC290000) {
-        gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000 + 0x68) - 1);
-        t4 = a0[0x7C8 / 4];
-    } else {
-        a0[0x7C8 / 4] = 0;
-        return;
-    }
-    if (gl_func_00000000(a0[0x6A8 / 4]) == 0) {
-        MGR_STATE_CODE = 7;
-        MGR_D_44 = a0[0x44 / 4];
-        spill_var = 1;
-    } else {
-        if (gl_func_00000000(a0[0x6AC / 4]) == 0) {
-            t4 = a0[0x6AC / 4];
-            if (gl_func_00000000(t4 + 0x4C / 4) != 0) {
-                MGR_STATE_CODE = 5;
-                spill_var = 0;
+    int spill;          /* stack 0x24(sp) */
+    int *s0 = a0;
+    int *t5;
+    spill = 0;
+    if (a0[0x4F8 / 4] == 0) {
+        if (mgrproc_uso_func_00000140(a0[0x6A8 / 4]) != 0) {
+            spill = 1;
+            *(int *)((char *)&import_800200DC + 0x44) = 7;
+            if (*(volatile int *)0xA0000200 == (int)0xAC290000) {
+                import_000A8114(&import_80020100, *(int *)((char *)&import_80020100 + 0x68) - 1);
+                goto term;
             } else {
-                MGR_STATE_CODE = 7;
+                s0[0x7C8 / 4] = 0;
+                goto epi;
             }
-            a0[0x7D8 / 4] = 1;
         }
+        goto term;
     }
-    a0[0x504 / 4] = (spill_var == 0) ? 4 : 0;
+    /* a0[0x4F8] != 0 */
+    if (mgrproc_uso_func_00000170(s0[0x6A8 / 4]) == 0) goto term;
+    *(int *)((char *)&import_800200D8 + 0x40) = *(int *)((char *)&import_800200DC + 0x44);
+    spill = 1;
+    *(int *)((char *)&import_800200DC + 0x44) = 7;
+term:
+    if (s0[0x7C8 / 4] != 0) {
+        if (mgrproc_uso_func_00000170(s0[0x6A8 / 4]) == 0) goto storestate;
+        t5 = (int *)s0[0x6AC / 4];
+    } else {
+        t5 = (int *)s0[0x6AC / 4];
+    }
+    if (mgrproc_uso_func_01FA1C(t5[0x4C / 4]) != 0) {
+        *(int *)((char *)&import_800200D8 + 0x40) = 5;
+        s0[0x7D8 / 4] = 1;
+    } else {
+        *(int *)((char *)&import_800200D8 + 0x40) = 7;
+        spill = 0;
+    }
+storestate:
+    s0[0x504 / 4] = (spill == 0) ? 4 : 0;
+epi:
+    return;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000013C8);

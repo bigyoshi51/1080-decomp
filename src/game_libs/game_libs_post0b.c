@@ -1537,26 +1537,25 @@ int gl_func_00035894(int *a0) {
     return 0;
 }
 
-/* Caps (DEFERRED): target hoists `or a1, a0, 0` for $a1-carrier;
- * not C-reachable (best 68.9% via switch / if-else-if / 2-arg-sig
- * variants). Real-C STRUCTURAL body below per the in-comment
- * decode (6th sibling of the kind-dispatch family at vtable slot
- * 0x58). Byte-match deferred. Name pre-checked: no extern reuse. */
+/* gl_func_000358DC: kind-dispatch (vtable slot 0x58). NM 20->19 diffs.
+ * KEY LOGIC FIX: both call sites take a0 as an IMPLICIT 2nd arg (target's
+ * hoisted `or a1,a0,0` carrier) — the vtable call is f(a0->0x20, a0) and
+ * the case-0 call is gl_func(&D, a0). if/else-if form gives the matching
+ * `or a1,a0,0` + 2-arg shape. RESIDUAL CAP: target uses forward `beq v0,k`
+ * dispatch with each case's `&D` lui HOISTED into the branch delay slots;
+ * IDO won't reproduce that delay-fill from C (best 19 via if/else-if;
+ * switch=21, goto=18-but-+1-word). Scheduler/delay-fill cap. */
 #ifdef NON_MATCHING
 void gl_func_000358DC(char *a0) {
     char *g;
-    void (*f)(int);
-    switch (*(int *)(a0 + 4)) {
-        case 1:
-            g = *(char **)((char *)&D_00000000 + 0);
-            f = *(void (**)(int))(g + 0x58);
-            f(*(int *)(a0 + 0x20));
-            break;
-        case 0:
-            gl_func_00000000(&D_00000000);
-            break;
-        default:
-            break;
+    void (*f)(int, char *);
+    int k = *(int *)(a0 + 4);
+    if (k == 1) {
+        g = *(char **)((char *)&D_00000000 + 0);
+        f = *(void (**)(int, char *))(g + 0x58);
+        f(*(int *)(a0 + 0x20), a0);
+    } else if (k == 0) {
+        gl_func_00000000(&D_00000000, a0);
     }
 }
 #else
@@ -7250,27 +7249,22 @@ out:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D16C);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0003D228: 24-insn helper. Calls gl_func(a0+0x10, a1), sets
- * a0->[0x4]=1 if a0->[0x14] was non-zero, then sets a0->[0x14]=a0
- * (self-ref). Finally indirect-call via a0->[0x28]->[0x64].
- * Cap: target uses beql-likely for the conditional; built emits regular
- * beq. 88 vs 96 bytes. */
-void gl_func_0003D228(int *a0, int a1) {
+/* gl_func_0003D228: 24-insn helper. Calls gl_func(a0+0x10, a1); if
+ * a1->[0x14] was non-zero sets a1->[0x4]=1; stores a1->[0x14]=a0; then
+ * indirect-calls (a0->[0x28])->[0x64](a0 + (short)v0->[0x60], a1, a0).
+ * MATCHED: inlining the fn-ptr call (no `fn` local) forces $t9 for the
+ * call register (MIPS jalr-t9 convention). */
+void gl_func_0003D228(int *a0, int *a1) {
     int *v0;
-    int (*fn)(int*);
-    gl_func_00000000(a0 + 4, a1);
-    if (a0[0x14/4] != 0) {
-        a0[0x4/4] = 1;
+    gl_func_00000000((char*)a0 + 0x10, a1);
+    if (a1[0x14/4] != 0) {
+        a1[0x4/4] = 1;
     }
-    a0[0x14/4] = (int)a0;
+    a1[0x14/4] = (int)a0;
     v0 = (int*)a0[0x28/4];
-    fn = (int(*)(int*))v0[0x64/4];
-    fn((int*)((char*)a0 + *(short*)((char*)v0 + 0x60)));
+    (*(int(**)(int*, int*, int*))((char*)v0 + 0x64))(
+        (int*)((char*)a0 + *(short*)((char*)v0 + 0x60)), a1, a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D228);
-#endif
 
 extern int gl_func_00000000();
 
