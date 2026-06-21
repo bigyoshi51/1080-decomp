@@ -3893,6 +3893,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   mnemonic disasm limitation prevents byte-match. Real-C STRUCTURAL
 //   body below — bound guards + query + draw skeleton only.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
+// 2026-06-21 RECONSTRUCT 64.4%->69.9% (gap -3 -> +5, LCS 197->214): first
+// query call is a DIRECT alias() (jal), not a fnptr-cast jalr; the result
+// indexes (&D_6394_F5E0)[ret] array base, *24, added to (char*)&D_00000160
+// base; the two FP draw blocks pass a0 = &import_8024CAF8 (alpha=0xFF call) and
+// the row template = &D_6394_FF5B0 / &D_6394_FF5C8 (reloc'd globals, not bare
+// 0x130/0x148); the template +0x20 fields are *(s16*) (lh), and the *0.25f/
+// *0.75f strength-reduced FP scales preserved. The +5 overshoot is FP-block
+// global-address re-materialization scheduling; residual otherwise pure
+// register-renumber coloring (permuter-immune cap class).
 #ifdef NON_MATCHING
 
 
@@ -3901,6 +3910,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00006394)();
+extern int D_6394_F5E0;
+extern char D_00000160;
+extern char import_8024CAF8;
+extern char D_6394_FF5B0;
+extern char D_6394_FF5C8;
 void timproc_uso_b5_func_00006394(char *arg0) {
     char *sp44;
     char *sp40;
@@ -3941,7 +3955,7 @@ void timproc_uso_b5_func_00006394(char *arg0) {
             var_v0_2 = 0x15;
         }
         sp44 = (char *) var_v0_2;
-        sp40 = (*(int*)(((int(*)())timproc_uso_b5_func_00000000)(arg0, FW(arg0, 0x3C8)) * 4) * 0x18) + 0x160;
+        sp40 = (char *)&D_00000160 + (&D_6394_F5E0)[(s32) timproc_uso_b5_alias(arg0, FW(arg0, 0x3C8))] * 0x18;
         timproc_uso_b5_alias(0, FW(arg0, 0x398), (int)arg0 + 0x1E8);
         timproc_uso_b5_alias(sp40);
         timproc_uso_b5_alias(sp40, 0xA0, sp44, 3);
@@ -3952,14 +3966,14 @@ void timproc_uso_b5_func_00006394(char *arg0) {
                 FW(arg0, 0x48C) = (s32) (temp_v0_2 + 1);
                 if (temp_v0_2 & 8) {
                     if (timproc_uso_b5_alias(arg0) != 0) {
-                        timproc_uso_b5_alias(0, 0xFF, (int)arg0 + 0x20C);
-                        timproc_uso_b5_alias((char *)0x130);
-                        timproc_uso_b5_alias((char *)0x130, (s32) ((((s16) FW(FW(sp40, 0x10), 0x20) / 2) + 0xA0) - (FW(FW(0x130, 0x10), 0x20) * 0.25f)), sp44, 2);
+                        timproc_uso_b5_alias(&import_8024CAF8, 0xFF, (int)arg0 + 0x20C);
+                        timproc_uso_b5_alias(&D_6394_FF5B0);
+                        timproc_uso_b5_alias(&D_6394_FF5B0, (s32) (((*(s16*)((char*)FW(sp40, 0x10) + 0x20) / 2) + 0xA0) - (*(s16*)((char*)FW(&D_6394_FF5B0, 0x10) + 0x20) * 0.25f)), sp44, 2);
                     }
                     if (timproc_uso_b5_alias(arg0) != 0) {
-                        timproc_uso_b5_alias(0, 0xFF, (int)arg0 + 0x20C);
-                        timproc_uso_b5_alias((char *)0x148);
-                        timproc_uso_b5_alias((char *)0x148, (s32) ((0xA0 - ((s16) FW(FW(sp40, 0x10), 0x20) / 2)) - (FW(FW(0x148, 0x10), 0x20) * 0.75f)), sp44, 2);
+                        timproc_uso_b5_alias(&import_8024CAF8, 0xFF, (int)arg0 + 0x20C);
+                        timproc_uso_b5_alias(&D_6394_FF5C8);
+                        timproc_uso_b5_alias(&D_6394_FF5C8, (s32) ((0xA0 - (*(s16*)((char*)FW(sp40, 0x10) + 0x20) / 2)) - (*(s16*)((char*)FW(&D_6394_FF5C8, 0x10) + 0x20) * 0.75f)), sp44, 2);
                     }
                 }
             }
@@ -4192,7 +4206,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   disasm limitation prevents byte-match. Real-C STRUCTURAL body
 //   below — reset + cursor-switch + per-element write skeleton only.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
+// 2026-06-21 RECONSTRUCT: cursor table -> array-base (&D_69E8_F24)[cursor]
+//   form (count-exact F24 block); store target corrected 0x4E0; single-arg
+//   alias(&D..1304). Body now structurally count-complete (133 vs 134, the
+//   -1 is an IDO g-address reload before the *g==0x17D7 compare). Residual =
+//   pure register-renumber coloring (permuter-immune cap class).
 #ifdef NON_MATCHING
+extern int D_69E8_F24;
 int timproc_uso_b5_func_000069E8(char *scr, int a1) {
     char *g = (char *)&D_00000000;
     char *C, *elem;
@@ -4205,8 +4225,8 @@ int timproc_uso_b5_func_000069E8(char *scr, int a1) {
     *(int *)*(char **)(scr + 0x4E0) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
     a4 = *(int *)(scr + 0x4A4);
     if (a4 != 0 && a4 < 4) {
-        func_00000000((char *)&D_00000000 + 0x1304, a4);
-        *(int *)*(char **)(scr + 0x4E0) = *(int *)((char *)&D_00000000 + *(int *)(scr + 0x4A4) * 4 + 0xF24) - 1;
+        func_00000000((char *)&D_00000000 + 0x1304);
+        *(int *)*(char **)(scr + 0x4E0) = (&D_69E8_F24)[*(int *)(scr + 0x4A4)] - 1;
     }
     if (*(int *)g == 0x17D7) {
         elem = *(char **)(*(char **)(scr + 0x40C) + 0x4C) + *(int *)(scr + 0x3DC) * 4;
@@ -5070,6 +5090,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   skeleton + vtable-dispatch chain. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 // timproc_uso_b5_func_00007B2C — FULL m2c DECODE (67.36% NM, no episode). Non-jumptable control-flow fn via scripts/lift-uso-controlflow.py.
+// 2026-06-21 RECONSTRUCT 60.8%->76.3% (COUNT-EXACT 194=194): the 5 gate calls'
+// a0 = &import_80020098 (reloc, not 0); the 4 list dispatches index array bases
+// (&D_7B2C_F60)[v0] / (&D_807FE778/768/748)[idx] (not bare *4 fold); dropped
+// redundant sp24/sp20 spill locals (use temp_v0/temp_v1 directly). Residual =
+// register-renumber coloring + commutative addu operand-order ties + a 24-byte
+// over-allocated spill frame (-64 vs -40; IDO spills more live temps across the
+// calls than the original) — permuter-immune cap classes per docs cap analysis.
 #ifdef NON_MATCHING
 
 
@@ -5077,9 +5104,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00007B2C)();
+extern char import_80020098;
+extern int D_7B2C_F60;
+extern int timproc_uso_b5_D_807FE748;
+extern int timproc_uso_b5_D_807FE768;
+extern int timproc_uso_b5_D_807FE778;
 void timproc_uso_b5_func_00007B2C(char *arg0) {
-    s32 sp24;
-    s32 sp20;
     s32 temp_t2;
     s32 temp_v0;
     s32 temp_v0_2;
@@ -5099,21 +5129,19 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
     if (FW(arg0, 0x3C4) == 1) {
         temp_v0 = timproc_uso_b5_alias();
         if (temp_v0 != 0) {
-            temp_v1 = FW((temp_v0 * 4), 0xF60);
-            sp24 = temp_v0;
-            sp20 = temp_v1;
-            if (timproc_uso_b5_alias(0, *(int*)(temp_v1 + (FW(arg0, 0x4AC) * 4))) != 0) {
+            temp_v1 = (&D_7B2C_F60)[temp_v0];
+            if (timproc_uso_b5_alias(&import_80020098, *(int*)(temp_v1 + (FW(arg0, 0x4AC) * 4))) != 0) {
                 temp_v0_2 = FW(arg0, 0x4AC);
                 FW(arg0, 0x4B0) = (s32) *(s32 *)((char *)&D_00000000 + 0xF18);
                 if (*(int*)(temp_v1 + (temp_v0_2 * 4)) != 0x100) {
                     FW(arg0, 0x4AC) = (s32) (temp_v0_2 + 1);
                 } else {
                     timproc_uso_b5_alias(arg0, 1);
-                    FW(arg0, 0x4A8) = (s32) (sp24 + 1);
+                    FW(arg0, 0x4A8) = (s32) (temp_v0 + 1);
                     timproc_uso_b5_alias((char *)0x27, 0x3E8);
                 }
             } else {
-                if (timproc_uso_b5_alias(0, ~*(int*)(temp_v1 + (FW(arg0, 0x4AC) * 4))) != 0) {
+                if (timproc_uso_b5_alias(&import_80020098, ~*(int*)(temp_v1 + (FW(arg0, 0x4AC) * 4))) != 0) {
                     FW(arg0, 0x4B0) = 0;
                 }
                 temp_t2 = FW(arg0, 0x4B0) - 1;
@@ -5124,7 +5152,7 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
             }
         }
     }
-    if (timproc_uso_b5_alias(0, 0x100) != 0) {
+    if (timproc_uso_b5_alias(&import_80020098, 0x100) != 0) {
         temp_v0_3 = timproc_uso_b5_alias(arg0);
         temp_v1_2 = FW(temp_v0_3, 0x28);
         ((GP_00007B2C)FW(temp_v1_2, 0x8C))(*(s16*)((char*)temp_v1_2 + 0x88) + temp_v0_3, 0);
@@ -5133,22 +5161,22 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
         temp_v1_3 = FW(temp_v0_4, 0x28);
         ((GP_00007B2C)FW(temp_v1_3, 0x84))(*(s16*)((char*)temp_v1_3 + 0x80) + temp_v0_4, 0);
         temp_v0_5 = FW(arg0, 0x3C4);
-        timproc_uso_b5_alias(*(int*)(temp_v0_5 * 4), FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_5 * 4)), 0x3D0));
+        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE778)[temp_v0_5], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_5 * 4)), 0x3D0));
         timproc_uso_b5_alias(arg0);
         FW(arg0, 0x3CC) = 7;
-        timproc_uso_b5_alias(*(int*)(FW(arg0, 0x3C4) * 4), FW(arg0, 0x4D4) | (FW((timproc_uso_b5_alias(arg0)), 0x2B0) + 1));
+        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], FW(arg0, 0x4D4) | (FW((timproc_uso_b5_alias(arg0)), 0x2B0) + 1));
         *(f32 *)((char *)arg0 + 0x484) = 1.0f;
         temp_v0_6 = timproc_uso_b5_alias(arg0);
         temp_v1_4 = FW(temp_v0_6, 0x28);
         ((GP_00007B2C)FW(temp_v1_4, 0x74))(*(s16*)((char*)temp_v1_4 + 0x70) + temp_v0_6);
         return;
     }
-    if (timproc_uso_b5_alias(0, 0x200) != 0) {
+    if (timproc_uso_b5_alias(&import_80020098, 0x200) != 0) {
         if (timproc_uso_b5_alias(arg0) == 0) {
             timproc_uso_b5_alias(arg0);
         } else {
             temp_v0_7 = FW(arg0, 0x3C4);
-            timproc_uso_b5_alias(*(int*)(temp_v0_7 * 4), FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_7 * 4)), 0x3D0));
+            timproc_uso_b5_alias((&timproc_uso_b5_D_807FE748)[temp_v0_7], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_7 * 4)), 0x3D0));
             temp_v0_8 = timproc_uso_b5_alias(arg0);
             temp_v1_5 = FW(temp_v0_8, 0x28);
             ((GP_00007B2C)FW(temp_v1_5, 0xAC))(*(s16*)((char*)temp_v1_5 + 0xA8) + temp_v0_8);
@@ -5163,7 +5191,7 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
             timproc_uso_b5_alias(arg0, 1);
         }
     }
-    if (timproc_uso_b5_alias(0, 0x14003) != 0) {
+    if (timproc_uso_b5_alias(&import_80020098, 0x14003) != 0) {
         timproc_uso_b5_alias(arg0, 1);
     }
 }
@@ -5346,6 +5374,13 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — draw/update + idle/show skeleton only. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 // timproc_uso_b5_func_000080F4 — FULL m2c DECODE (68.73% NM, no episode). Non-jumptable control-flow fn via scripts/lift-uso-controlflow.py.
+// 2026-06-21 RECONSTRUCT 41.2%->42.1% (gap -9 -> -4): the 0x44<0x4BC test is a
+// FLOAT compare *(f32*)+0x44 < *(f32*)+0x4BC (lwc1/c.lt.s, not slt); the +0x78
+// vtable-offset field is lh (signed halfword); the two 0x100/0x200 gate calls'
+// a0 = &import_80020098; the 0x3C4 list dispatch -> (&D_807FE748)[idx] array
+// base. Structurally near-complete now. Residual: arg0 lands in s-reg $20 not
+// $18 (the do-while needs 2 extra call-surviving s-regs, pushing the saved-reg
+// count from 3 to 5) — pure register-renumber coloring, permuter-immune.
 #ifdef NON_MATCHING
 
 
@@ -5353,6 +5388,8 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000080F4)();
+extern char import_80020098;
+extern int timproc_uso_b5_D_807FE748;
 void timproc_uso_b5_func_000080F4(char *arg0) {
     char *sp3C;
     s32 sp28;
@@ -5389,15 +5426,15 @@ void timproc_uso_b5_func_000080F4(char *arg0) {
         var_s1 = FW(arg0, 0x4B4);
         var_a1 = (char *)1;
     }
-    if (FW(arg0, 0x44) < FW(arg0, 0x4BC)) {
+    if (*(f32 *)((char *)arg0 + 0x44) < *(f32 *)((char *)arg0 + 0x4BC)) {
         sp3C = var_a1;
         temp_v0 = timproc_uso_b5_alias(arg0, var_a1);
         temp_v1 = FW(temp_v0, 0x28);
-        ((GP_000080F4)FW(temp_v1, 0x7C))(FW(temp_v1, 0x78) + temp_v0);
+        ((GP_000080F4)FW(temp_v1, 0x7C))(*(s16*)((char*)temp_v1 + 0x78) + temp_v0);
     }
     temp_t2 = (var_s1 != 0) == 0;
     sp28 = temp_t2;
-    if ((temp_t2 != 0) && (var_a1 != 0) && (timproc_uso_b5_alias(0, (char *)0x100) != 0)) {
+    if ((temp_t2 != 0) && (var_a1 != 0) && (timproc_uso_b5_alias(&import_80020098, (char *)0x100) != 0)) {
         temp_v0_2 = timproc_uso_b5_alias(arg0);
         temp_v1_2 = FW(temp_v0_2, 0x28);
         ((GP_000080F4)FW(temp_v1_2, 0x8C))(*(s16*)((char*)temp_v1_2 + 0x88) + temp_v0_2, 0);
@@ -5423,13 +5460,13 @@ void timproc_uso_b5_func_000080F4(char *arg0) {
         timproc_uso_b5_alias(arg0, (char *)1);
     }
     timproc_uso_b5_alias(0, FW(arg0, 0x3B8));
-    if ((sp28 != 0) && (timproc_uso_b5_alias(0, (char *)0x200) != 0)) {
+    if ((sp28 != 0) && (timproc_uso_b5_alias(&import_80020098, (char *)0x200) != 0)) {
         if (timproc_uso_b5_alias(arg0) == 0) {
             timproc_uso_b5_alias(arg0);
             return;
         }
         temp_v0_5 = FW(arg0, 0x3C4);
-        timproc_uso_b5_alias(*(int*)((s32) temp_v0_5 * 4), (char *) (FW(arg0, 0x4D4) | FW((arg0 + ((s32) temp_v0_5 * 4)), 0x3D0)));
+        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE748)[(s32) temp_v0_5], (char *) (FW(arg0, 0x4D4) | FW((arg0 + ((s32) temp_v0_5 * 4)), 0x3D0)));
         if ((FW(arg0, 0x3BC) == 2) && ((FW(arg0, 0x3B8) + 1) == FW(FW(arg0, 0x41C), 0x48))) {
             var_s1_2 = 0;
             var_s0_2 = 0;

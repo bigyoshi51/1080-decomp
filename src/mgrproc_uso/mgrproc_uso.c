@@ -634,8 +634,26 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000159
  * decode 2026-05-29 (m2c-confirmed). Caps: arg0/node structs + ~14 cb prototypes
  * untyped (USO-reloc), &D-relative literals not symbolized. 91.8% reg-blind, exact
  * 98-insn count — the `switch` (not if-else chain) matched the target's up-front
- * compare-dispatch (beqz/beq/beql/b). Residual: deep spill-slot regalloc. NON_MATCHING. */
+ * compare-dispatch (beqz/beq/beql/b). Residual: deep spill-slot regalloc.
+ *
+ * 2026-06-21: ALL 13 callees resolved from expected-.o relocs (gl_func_00000000
+ * placeholders -> mgrproc_uso_func_0139B0/000188/013924/000148/012110/00001AD0/
+ * 00002940/07ACE0/00000140/00001BD4/00F954 + imports 000B2888/007FE4E8). 96.27%
+ * -> 97.65%. RESIDUAL (2 caps): (a) target frame -0x30 vs C-emit -0x28 (1 extra
+ * 8-byte spill slot, cascades the jal-delay scheduling, +1 word); (b) the
+ * import_80020228+0x190 reads use the inline %hi/%lo(sym+0x190) addend-fold
+ * (form a) vs the base+displacement form (b) the held-base context emits
+ * (docs/IDO_CODEGEN.md R_MIPS_LO16 entry). NON_MATCHING. */
 extern int gl_func_00000000();
+extern int mgrproc_uso_func_0139B0();
+extern int mgrproc_uso_func_000188();
+extern int mgrproc_uso_func_013924();
+extern int mgrproc_uso_func_000148();
+extern int mgrproc_uso_func_012110();
+extern int mgrproc_uso_func_07ACE0();
+extern int mgrproc_uso_func_00F954();
+extern int mgrproc_uso_func_00001BD4();
+extern void *mgrproc_uso_func_00002940(char *, int, int);
 void mgrproc_uso_func_00001614(char *arg0) {
     int state = *(int *)(arg0 + 0x504);
     void *node;
@@ -643,37 +661,37 @@ void mgrproc_uso_func_00001614(char *arg0) {
 
     switch (state) {
     case 0:
-        gl_func_00000000(*(int *)((char *)&D_00000000 + 0x190), 3, 1);
+        mgrproc_uso_func_0139B0(*(int *)((char *)&import_80020228 + 0x190), 3, 1);
         *(int *)(arg0 + 0x504) = 1;
-        gl_func_00000000(7, 0, 0);
+        mgrproc_uso_func_000188(7, 0, 0);
         break;
     case 1:
-        if (gl_func_00000000(*(int *)((char *)&D_00000000 + 0x190), state, 1) != 0) {
+        if (mgrproc_uso_func_013924(*(int *)((char *)&import_80020228 + 0x190), state, 1) != 0) {
             *(int *)(arg0 + 0x4D8) = 1;
-            gl_func_00000000(7, 0, 0);
-            gl_func_00000000(0);
-            gl_func_00000000(arg0);
-            gl_func_00000000(arg0, *(int *)((char *)&D_00000000 + 0x170) + 0x26000F);
-            *(void **)(arg0 + 0x524) = (void *)gl_func_00000000(0, arg0, *(int *)(arg0 + 0x7D8));
-            gl_func_00000000(*(void **)(arg0 + 0x524), *(int *)(arg0 + 0x528));
+            mgrproc_uso_func_000148(7, 0, 0);
+            mgrproc_uso_func_012110(&import_80020098);
+            import_000B2888(arg0);
+            mgrproc_uso_func_00001AD0(arg0, *(int *)((char *)&import_80020208 + 0x170) + 0x26000F);
+            *(void **)(arg0 + 0x524) = (void *)mgrproc_uso_func_00002940(0, arg0, *(int *)(arg0 + 0x7D8));
+            import_007FE4E8(*(void **)(arg0 + 0x524), *(int *)(arg0 + 0x528));
             hdr = *(int *)(arg0 + 0x56C);
             node = *(void **)(arg0 + 0x524);
-            gl_func_00000000(hdr + 0x10, node);
+            mgrproc_uso_func_07ACE0(hdr + 0x10, node);
             if (*(int *)((char *)node + 0x14) != 0) {
                 *(int *)((char *)node + 4) = 1;
             }
             *(int *)((char *)node + 0x14) = hdr;
-            if (gl_func_00000000(*(int *)(arg0 + 0x6A8), node) != 0) {
+            if (mgrproc_uso_func_00000140(*(int *)(arg0 + 0x6A8), node) != 0) {
                 *(int *)((char *)*(void **)(arg0 + 0x524) + 0x60) = 2;
-                gl_func_00000000(arg0);
+                mgrproc_uso_func_00001BD4(arg0);
             }
-            gl_func_00000000(*(int *)((char *)&D_00000000 + 0x190), 1, 1);
+            mgrproc_uso_func_0139B0(*(int *)((char *)&import_80020228 + 0x190), 1, 1);
         }
         break;
     case 4:
         {
             char *p = *(char **)(arg0 + 0x6A8);
-            gl_func_00000000(arg0, 4, *(int *)(p + (*(int *)(p + 4) * 4) + 0x10));
+            mgrproc_uso_func_00F954(arg0, 4, *(int *)(p + (*(int *)(p + 4) * 4) + 0x10));
         }
         break;
     }

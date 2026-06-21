@@ -14216,32 +14216,52 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
  *   // epilogue
  *
  * Body is ~67 insns; the bc1fl-likely abs.s pattern + double-precision
- * threshold + 2-path 5-arg dispatch is the spine pattern. Multi-pass
- * NM placeholder — INCLUDE_ASM remains the build path. */
+ * threshold + 2-path 5-arg dispatch is the spine pattern.
+ *
+ * 2026-06-21 RECONSTRUCTION (call-graph DFS, reloc-sites): all callees +
+ * globals resolved from game_uso.reloc-sites.json — 60.79% -> 80.09%:
+ *   0x18 jal game_uso_func_0000D8A8(a0)
+ *   0x20 jal game_uso_func_0000D8EC(a0)
+ *   0x9C jal import_0010DB78(a0,0x20002,0x20003,(int)f,0,1)   [abs>thresh]
+ *   0xB0 jal import_0010DB28(a0,0x20002,0x20003,(int)f,6,1)   [abs<=thresh]
+ *   0xB8 jal game_uso_func_0000E1FC(a0)
+ *   0xE8 jal game_uso_func_0000D5BC(a0, *(Pair2*)(&D_807FF400+0xE10))  [gated]
+ *   0xF0 jal game_uso_func_00011750(a0)
+ *   double threshold = *(double*)(&D_807FFB78 + 0x258)
+ * NOTE: there is NO stage-1 conditional call — the a1=0x20008/a2=0/a3=1
+ * setup at 0x30-0x4C is dead arg-prep overwritten before any call (the
+ * bc1f only selects neg.s vs mov.s for the abs).
+ *
+ * RESIDUAL CAP (~80%, not landable): the two dispatch calls pass the raw
+ * float bits of `saved_f0` as a3 via the target's single `mfc1 a3,$f0`.
+ * IDO C cannot emit single-insn mfc1 for a float local — `*(int*)&saved_f0`
+ * forces a swc1+lw stack round-trip (+1 slot, frame -48 vs -40). Documented
+ * 14-variants-tried cap (docs/IDO_CODEGEN.md#feedback-ido-mfc1-from-c).
+ * Default INCLUDE_ASM. */
+extern char game_uso_D_807FFB78;
+extern int import_0010DB78();
 void game_uso_func_00010840(int *a0) {
     int *sub = (int*)a0[0xB4/4];
     float saved_f0;
     float abs_f0;
     sub[0x3DC/4] = 1;
-    gl_func_00000000(a0);
-    gl_func_00000000(a0);
+    game_uso_func_0000D8A8((char*)a0);
+    game_uso_func_0000D8EC(a0);
     sub = (int*)a0[0xB4/4];
     saved_f0 = *(float*)((char*)sub + 0x970);
-    if (saved_f0 < 0.0f) {
-        gl_func_00000000(a0, 0x00020008, 0, 1);
-    }
     abs_f0 = (saved_f0 < 0.0f) ? -saved_f0 : saved_f0;
-    if (*(double*)((char*)&D_00000000 + 0x258) < (double)abs_f0) {
-        gl_func_00000000(a0, 0x20002, 0x20003, *(int*)&saved_f0, 0, 1);
+    if ((double)abs_f0 > *(double*)((char*)&game_uso_D_807FFB78 + 0x258)) {
+        import_0010DB78(a0, 0x20002, 0x20003, *(int*)&saved_f0, 0, 1);
     } else {
-        gl_func_00000000(a0, 0x20002, 0x20003, *(int*)&saved_f0, 6, 1);
+        import_0010DB28(a0, 0x20002, 0x20003, *(int*)&saved_f0, 6, 1);
     }
-    gl_func_00000000(a0);
+    game_uso_func_0000E1FC((char*)a0);
     sub = (int*)a0[0xB4/4];
     if (sub[0x9CC/4] == 0) {
-        gl_func_00000000(a0,
-                         *(Pair2*)((char*)&D_00000000 + 0xE10));
+        game_uso_func_0000D5BC((char*)a0,
+                         *(Pair2*)((char*)&game_uso_D_807FF400 + 0xE10));
     }
+    game_uso_func_00011750((char*)a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
