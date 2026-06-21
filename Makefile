@@ -510,6 +510,11 @@ build/assets/timproc_uso_block5_yay0.bin: YAY0_TEXT_SIZE := 0xE620
 # USO-header PREFIX_BYTES, TRUNCATE_TEXT / TEXT_CLIP_KEEP_ALIGN, and the -O0
 # donor splice REPLACE_FUNC_BODY (real -O0 compiler output).
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x00000000,0x00000000
+# func_0000EE8C: byte-exact C body ends `jr ra; nop` at 0xEF1C; the target has a
+# single trailing 8-byte-alignment nop so func_0000EF20 sits at 0xEF20. Append it
+# as an all-zero (nop) word via SUFFIX_BYTES_FORCE (alignment pad, not an invented
+# instruction). FORCE because the natural epilogue trips the plain-SUFFIX skip path.
+build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/game_libs/game_libs_o1_6C8AC.c src/arcproc_uso/arcproc_uso_o0_748.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))

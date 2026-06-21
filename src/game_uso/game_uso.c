@@ -13912,9 +13912,19 @@ void game_uso_func_00010068(int *a0) {
  *
  * 2026-05-31: 73.8%->79.0% by INLINING a0->0xB4 (outer) at each use instead of
  * caching it in a local — the target reloads a0->0xB4 per access (the cache forced an
- * extra saved-reg + frame slot). Residual is the register-allocation cascade (t0/t1,
- * v0/v1 renumbering) + frame 0x30 vs 0x28 — the documented regalloc cap. Sibling
- * game_uso_func_00010068 (the shared outer->0x800->0x18&0x400 pattern) is now 100%. */
+ * extra saved-reg + frame slot). Sibling game_uso_func_00010068 (the shared
+ * outer->0x800->0x18&0x400 pattern) is now 100%.
+ * 2026-06-21: 79.0%->97.90% (COUNT-EXACT 112=112; residual = PURE v0/v1 + t-reg
+ * renumber, every remaining diff is a register name only). The over-production was
+ * THREE structural bugs, NOT the claimed regalloc cap: (1) every 6-arg C-call
+ * (import_DB28) had a spurious leading `0` arg, pushing 5,5/1,1 down a slot and
+ * inflating the frame; the calls are (a0, a0->0xFC|0x19, a2, a3, sp16, sp20).
+ * (2) the inner==0 path is NOT a separate (0,0)-arg call — it FALLS THROUGH to the
+ * &1==0 body (args 5,5,0x100,10), so the guard is `(inner != 0) && (inner->0x38&1)`.
+ * (3) the float-compare `>= 1000.0f` has a REAL else (bc1fl .L10254): C-call args
+ * 2,3,1,1 then gl_func(a0,&D+0xDF0,3) (D5F8) + gl_func(a0) (D5DC) — those two run
+ * ONLY on the >=1000 arm, not unconditionally. Both arms converge to E5C8(a0,0) +
+ * E35C(a0)->v0 + v0==0 tail. Residual v0/v1 placement = coloring cap. */
 extern int gl_func_00000000();
 extern char D_00000000;
 void game_uso_func_00010128(int *a0) {
@@ -13932,31 +13942,29 @@ void game_uso_func_00010128(int *a0) {
                              *(Pair2*)((char*)&D_00000000 + 0xDE8));
         }
         inner = (int*)a0[0xF4 / 4];
-        if (inner != 0) {
-            if (inner[0x38 / 4] & 1) {
-                gl_func_00000000(a0,
-                                 *(int*)((char*)a0 + 0xFC) | 0x19,
-                                 0, 5, 5, 1, 1);
-            } else {
-                gl_func_00000000(a0,
-                                 *(int*)((char*)a0 + 0xFC) | 0x19,
-                                 0, 5, 5, 0x100, 10);
-            }
+        if ((inner != 0) && (inner[0x38 / 4] & 1)) {
+            gl_func_00000000(a0,
+                             *(int*)((char*)a0 + 0xFC) | 0x19,
+                             5, 5, 1, 1);
         } else {
             gl_func_00000000(a0,
                              *(int*)((char*)a0 + 0xFC) | 0x19,
-                             0, 5, 5, 0, 0);
+                             5, 5, 0x100, 10);
         }
+    } else {
+        gl_func_00000000(a0,
+                         *(int*)((char*)a0 + 0xFC) | 0x19,
+                         2, 3, 1, 1);
         gl_func_00000000(a0,
                          *(Pair2*)((char*)&D_00000000 + 0xDF0),
                          3);
         gl_func_00000000(a0);
-        gl_func_00000000(a0, 0);
-        v0 = gl_func_00000000(a0);
-        if (v0 == 0) {
-            gl_func_00000000(a0);
-            gl_func_00000000(a0);
-        }
+    }
+    gl_func_00000000(a0, 0);
+    v0 = gl_func_00000000(a0);
+    if (v0 == 0) {
+        gl_func_00000000(a0);
+        gl_func_00000000(a0);
     }
 }
 #else

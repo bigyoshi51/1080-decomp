@@ -9614,22 +9614,16 @@ void func_0000EE5C(char *a0) {
 }
 
 /* func_0000EE8C: alloc-cascade constructor, sibling of func_0000EBE8.
- * BODY NOW BYTE-EXACT (2026-06-21): the only residual was a compiler spill-slot
- * offset (v1/ret homed at 0x18 vs target 0x24); fixed by declaration order —
- * `ret` declared FIRST so IDO assigns it the highest local slot (0x24). Found
- * via the interleave-decl spill-slot brute-force (docs/IDO_CODEGEN.md). The
- * earlier `char pad[4]` was a wrong-slot hack; the clean decl order needs no pad.
- *
- * CANNOT LAND despite the byte-exact body: the target has a single trailing
- * alignment nop at 0xEF1C (func size 0x90 code + 1 nop = 0x94; next fn
- * func_0000EF20 must sit at 0xEF20). A 1-word trailing pad sidecar is NOT
- * reproducible here — asm-processor reserves GLOBAL_ASM space with an empty
- * dummy function whose -O2 floor is 8 bytes (`jr ra; nop`), so a 1-word pad
- * followed by another function overshoots by 4 bytes (func_0000EF20 lands at
- * 0xEF24). The 1-word-pad sidecars elsewhere in the tree only work at
- * segment-end (no following symbol). Stays NON_MATCHING / INCLUDE_ASM until a
- * sub-8-byte trailing-pad mechanism exists. */
-#ifdef NON_MATCHING
+ * BYTE-EXACT + LANDED (2026-06-21). The body was byte-exact once `ret` was
+ * declared FIRST (IDO assigns it the highest local slot 0x24, matching target);
+ * the only residual was the target's single trailing 8-byte-alignment nop at
+ * 0xEF1C (so func_0000EF20 sits at 0xEF20). Resolved by appending that one
+ * all-zero (nop) word via `SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000` in
+ * the Makefile — the SAME legitimate alignment-pad mechanism already used for
+ * gui_func_0000161C / h2hproc fns. The earlier "cannot land" note assumed a
+ * GLOBAL_ASM dummy (8-byte -O2 floor → +4 overshoot); SUFFIX_BYTES_FORCE appends
+ * exactly one word, so func_0000EF20 lands at 0xEF20 and the ROM stays exact.
+ * This works mid-segment (with a following symbol), not just at segment-end. */
 void *func_0000EE8C(void *caller_a0) {
   void *ret;
   void *target;
@@ -9655,9 +9649,6 @@ void *func_0000EE8C(void *caller_a0) {
   }
   return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EE8C);
-#endif
 
 void func_0000EF20(int *dst) {
     int buf[2];

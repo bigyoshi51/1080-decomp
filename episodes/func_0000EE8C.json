@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000EE8C",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-06-21T21:57:29.276725+00:00",
+  "end_time": "2026-06-21T21:57:29.276725+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-21T21:57:29.276725+00:00",
+      "assistant_text": "Alloc-cascade constructor. Body was already byte-exact (ret declared first -> IDO homes it at local slot 0x24 matching target's spill layout). The sole blocker was the target's single trailing 8-byte-alignment nop at 0xEF1C, needed so func_0000EF20 sits at 0xEF20. Landed by unwrapping the INCLUDE_ASM to the real C body and appending the one all-zero (nop) alignment word via SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 -- the same legitimate alignment-pad mechanism already used for gui_func_0000161C and h2hproc fns. The prior 'cannot land' note wrongly assumed a GLOBAL_ASM dummy (8-byte -O2 floor); SUFFIX_BYTES_FORCE appends exactly one word, works mid-segment, ROM stays byte-identical.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 36,
+  "initial_m2c_source": null,
+  "final_source": "void *func_0000EE8C(void *caller_a0) {\n  void *ret;\n  void *target;\n  register void *p;\n  p = (void *) func_00000000(0x40);\n  if (p != 0)\n  {\n    func_00000000(p);\n    *((int *) (((char *) p) + 0x28)) = (int) (&D_00000000);\n    *((int *) (((char *) p) + 0x3C)) = 0;\n  }\n  ret = p;\n  p = ((char *) p) + 0x10;\n  target = *((void **) (((char *) caller_a0) + 0x40));\n  if ((*((void **) (((char *) caller_a0) + 0x40))) != 0)\n  {\n    func_00000000(p, target);\n    if ((*((int *) (((char *) target) + 0x14))) != 0)\n    {\n      *((int *) (((char *) target) + 0x4)) = 1;\n    }\n    *((int *) (((char *) target) + 0x14)) = (int) ret;\n  }\n  return ret;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-b/src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/bootup_uso/func_0000EE8C.s",
+    "segment": "bootup_uso",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Body byte-exact vs target asm; trailing alignment nop via SUFFIX_BYTES_FORCE all-zero word. Full make => 'ROM OK (byte-identical to baserom)', cmp clean, verify-blocks OK. func_0000EF20 confirmed at 0xEF20."
+  }
+}
