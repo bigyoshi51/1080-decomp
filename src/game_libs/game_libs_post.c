@@ -4316,21 +4316,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder for the sub-routines.
 //
-// CAP CLASS (confirmed 2026-06-21, agent-e deep pass): BASE-POINTER-PIN
-//   regalloc divergence. Target (549w/0x894) pins the &D_0 base in a
-//   SAVED reg ($s6) and references it 73x as `off($s6)`, live across the
-//   whole body. The placeholder base is &D_00000000 == address 0, so IDO
-//   refuses to pin it and instead re-materializes `lui at,0x0; lw/sw
-//   off(at)` per access (built obj: 45x `(at)` + 19x `(s3)`). This
-//   cascades into a different schedule + frame size (-0xC0 built vs -0x98
-//   target) and ~394 non-reloc word diffs at +44w. NOT fixable in C while
-//   the base is a literal-0 placeholder: matching needs the REAL typed
-//   global struct symbol (so IDO pins its address in $s6), which is a
-//   multi-session whole-subsystem typing effort. Also: 2 intra-module
-//   jals carry REAL targets (0x33D20 inside gl_func_00033BE4, 0x3408C
-//   inside gl_func_00033EB8 — both splat-over-merged callees), needing
-//   those callees split out as real symbols. Body below is the faithful
-//   STRUCTURAL reconstruction (NM path builds clean); byte-match deferred.
+// CAP CLASS (CORRECTED 2026-06-21, agent-b deep diagnostic): BASE-POINTER-PIN
+//   is a C-DATAFLOW divergence, NOT an address-value/infra problem. The
+//   prior note's claim "IDO refuses to pin a literal-0 base" is FALSE —
+//   proven by experiment:
+//     (1) The current `char *g = &D_00000000` ALREADY pins g into a saved
+//         reg ($s3, copied to $s5) and uses `off($s3)` for direct accesses.
+//         IDO pins base-0 addresses fine.
+//     (2) H2 control: setting D_00000000 = 0x80300000 in undefined_syms and
+//         rebuilding produces IDENTICAL codegen (same `lui sN,0x0`+HI16 reloc,
+//         same pin count). The symbol value is a LINK-TIME fill; it has ZERO
+//         effect on the compiler's pinning/scheduling. So non-zero data
+//         addresses are NOT the trigger and would only BREAK the .text byte
+//         match (target stores base-0 placeholder bytes + HI16/LO16 relocs to
+//         D_0, exactly like our build — verified in the .s and the .o).
+//   THE REAL DIVERGENCE: the STRUCTURAL C below passes INTEGER LITERALS where
+//   the target passes `&D_0 + offset` POINTERS held across calls. Target pins
+//   `$s3 = g + 0x2198` ONCE (offset 0x420: `addiu s3,s3,8600`) and passes it
+//   as `or a0,s3,zero` for all 16 allocator calls; pins `s0 = g + 0x2D00`
+//   incrementing by 0x160 per loop iter; passes `a0 = g + {0x2BE0,0x2BF0,
+//   0x2BF8,0x2C04}` as pointers. PROTOTYPE (agent-b): converting the allocator
+//   arg to a held `char *alloc = g + 0x2198;` and the group calls to pointers
+//   flipped 0 -> 20 `or a0,sN,zero` passes (target 19) and pinned $s3 = g+8600
+//   EXACTLY matching the target. So H1 (held-base-pointer in C) WORKS for the
+//   call-arg bases. RESIDUAL (why not yet 0-diff): IDO still re-materializes g
+//   (`lui;off(at)`) for many DIRECT `*(T*)(g+off)` accesses right after jals
+//   instead of keeping ONE base live the whole body like target's $s6 (73x
+//   off(s6)). Closing that needs the second index-base pinned like target's
+//   $t8 (`temp_v0 = g + idx*0x38` as its own held base, not derived from g)
+//   and decl/dataflow tuning so g stays in a single saved reg across all
+//   calls. VERDICT: C-fixable (no infra) — full land is a precise per-stmt
+//   reconstruction of the largest fn in the file, deferred. Also: 2 intra-
+//   module jals carry REAL targets (0x33D20 in gl_func_00033BE4, 0x3408C in
+//   gl_func_00033EB8 — splat-over-merged callees) needing split-out symbols.
+//   Body below is the faithful STRUCTURAL reconstruction (NM path builds clean).
 #ifdef NON_MATCHING
 extern int gl_func_0001CA10();
 extern int func_33d20();
