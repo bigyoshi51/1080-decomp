@@ -4369,6 +4369,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
 //   module jals carry REAL targets (0x33D20 in gl_func_00033BE4, 0x3408C in
 //   gl_func_00033EB8 — splat-over-merged callees) needing split-out symbols.
 //   Body below is the faithful STRUCTURAL reconstruction (NM path builds clean).
+//
+// FIELD-WIDTH PASS (agent-b 2026-06-22): drove size-gap -44 -> -33 words and
+//   eliminated ALL 24 unaligned swl/swr/lwl/lwr ops (now 0) by correcting field
+//   widths to the target mnemonics: the per-record loop and entry block stored
+//   bytes/halfwords via `*(s32*)` (m2c over-widened), which both mis-modeled the
+//   struct AND generated unaligned-access bloat. Fixed: g+0x2070/0x2048/0x2/0x1 &
+//   the sp60+5/6/7/0x14 sources to (u8)/(u16); the 9 s4-record + 8 s2-record
+//   stores to their true s8/s16 widths; the var_s4 zero loop to sb (start=g, not
+//   0). RESIDUAL (391 non-reloc diffs, -33 words): the base-pin cap above — 48
+//   surplus `lui` re-materializing &D_0 after jals where target uses off(s6).
+//   Closing it needs live-local economy so IDO keeps g in one saved reg across
+//   all ~20 calls; m2c's temp explosion (~45 locals) evicts it. Not landable.
 #ifdef NON_MATCHING
 extern int gl_func_0001CA10();
 extern int func_33d20();
@@ -4449,13 +4461,13 @@ void gl_func_00021498(void) {
     *(f32 *)(g + 0x2050) = (f32) (1.0f / temp_f0);
     *(s32 *)(g + 0x2060) = (s32) (*(s32 *)(sp60 + 0xC));
     *(s32 *)(g + 0x2064) = (s32) (*(s32 *)(sp60 + 0x10));
-    *(s32 *)(g + 0x2070) = (s32) (*(s32 *)(sp60 + 0x5));
-    *(s16 *)(g + 0x2048) = (s16) (*(s32 *)(sp60 + 0x6));
+    *(s32 *)(g + 0x2070) = (*(u8 *)(sp60 + 0x5));
+    *(s16 *)(g + 0x2048) = (*(u8 *)(sp60 + 0x6));
     if (*(s16 *)(g + 0x2048) >= 5) {
         *(s16 *)(g + 0x2048) = 4;
     }
-    *(u8 *)(g + 2) = (u16) (*(s32 *)(sp60 + 0x14));
-    temp_f18 = ((temp_f0 * *(f32 *)(g + 0xE90)) / (f32) (s16) *(s32 *)(g + 2)) / *(f32 *)(g + 0x2138);
+    *(s16 *)(g + 2) = (*(u16 *)(sp60 + 0x14));
+    temp_f18 = ((temp_f0 * *(f32 *)(g + 0xE90)) / (f32) *(s16 *)(g + 2)) / *(f32 *)(g + 0x2138);
     var_t5 = (s32) temp_f18;
     temp_t6 = *(u16 *)(g + 0x2038);
     *(s16 *)(g + 0x2074) = (s16) var_t5;
@@ -4473,7 +4485,7 @@ void gl_func_00021498(void) {
     if (temp_v0_3 >= 2) {
         *(s16 *)(g + 0x203C) = (s16) (*(s16 *)(g + 0x203C) - 0x10);
     }
-    *(s32 *)(g + 0x206C) = (s32) ((*(s32 *)(g + 0x2070) * 0x10 * *(s16 *)(g + 0x2040)) + ((*(s32 *)(sp60 + 0x7)) * 0x18) + 0x140);
+    *(s32 *)(g + 0x206C) = (s32) ((*(s32 *)(g + 0x2070) * 0x10 * *(s16 *)(g + 0x2040)) + ((*(u8 *)(sp60 + 0x7)) * 0x18) + 0x140);
     temp_s0 = (*(s32 *)(sp60 + 0x18)) + (*(s32 *)(sp60 + 0x1C)) + (*(s32 *)(sp60 + 0x20)) + 0x10;
     temp_s1 = (*(s32 *)(sp60 + 0x24)) + (*(s32 *)(sp60 + 0x28)) + (*(s32 *)(sp60 + 0x2C)) + 0x10;
     temp_v0_4 = temp_s0 + temp_s1;
@@ -4506,14 +4518,14 @@ void gl_func_00021498(void) {
     } while (var_s0 != (g + 8));
     *(s32 *)(g + 0x2CF8) = gl_func_0001CA10(0x2198, 0x400);
     func_33d20();
-    var_s4 = 0;
+    var_s4 = g;
     do {
         var_s4 += 0x158;
-        (*(s32 *)(var_s4 - 0x13F)) = 0;
+        (*(s8 *)(var_s4 - 0x13F)) = 0;
     } while (var_s4 < (g + 0x408));
     sp6C = 0;
     var_s2 = g + 0x18;
-    *(u8 *)(g + 1) = (*(s32 *)(sp60 + 0x7));
+    *(u8 *)(g + 1) = (*(u8 *)(sp60 + 0x7));
     var_s4_2 = g;
     var_s7 = 0;
     if ((s8) *(u8 *)(g + 1) > 0) {
@@ -4521,35 +4533,35 @@ void gl_func_00021498(void) {
         var_fp = 0x130;
         do {
             temp_s5 = (*(s32 *)(sp60 + 0x8)) + var_s7;
-            temp_t5 = (*(s32 *)(temp_s5 + 0x0));
-            (*(s32 *)(var_s4_2 + 0x1C)) = temp_t5;
-            temp_t6_2 = (*(s32 *)(temp_s5 + 0x1)) << 6;
+            temp_t5 = (*(u8 *)(temp_s5 + 0x0));
+            (*(s8 *)(var_s4_2 + 0x1C)) = temp_t5;
+            temp_t6_2 = (*(u8 *)(temp_s5 + 0x1)) << 6;
             temp_lo = (s32) (temp_t6_2 & 0xFFFF) / (s32) (temp_t5 & 0xFF);
             (*(s16 *)(var_s4_2 + 0x1E)) = temp_t6_2;
             (*(s16 *)(var_s4_2 + 0x1E)) = (s16) temp_lo;
-            (*(s32 *)(var_s4_2 + 0x24)) = (u16) (*(s32 *)(temp_s5 + 0x2));
-            (*(s32 *)(var_s4_2 + 0x22)) = (u16) (*(s32 *)(temp_s5 + 0x4));
-            (*(s32 *)(var_s4_2 + 0x28)) = (u16) (*(u16 *)(temp_s5 + 0x6));
-            (*(s32 *)(var_s4_2 + 0x2A)) = (u16) (*(s32 *)(temp_s5 + 0x8));
-            (*(s32 *)(var_s4_2 + 0x1D)) = (s8) (*(s32 *)(temp_s5 + 0xA));
-            (*(s32 *)(var_s4_2 + 0x19)) = 8;
-            (*(s32 *)(var_s4_2 + 0x20)) = (u16) (*(s32 *)(temp_s5 + 0xC));
+            (*(s16 *)(var_s4_2 + 0x24)) = (*(u16 *)(temp_s5 + 0x2));
+            (*(s16 *)(var_s4_2 + 0x22)) = (*(u16 *)(temp_s5 + 0x4));
+            (*(s16 *)(var_s4_2 + 0x28)) = (*(u16 *)(temp_s5 + 0x6));
+            (*(s16 *)(var_s4_2 + 0x2A)) = (*(u16 *)(temp_s5 + 0x8));
+            (*(s8 *)(var_s4_2 + 0x1D)) = (*(s8 *)(temp_s5 + 0xA));
+            (*(s8 *)(var_s4_2 + 0x19)) = 8;
+            (*(s16 *)(var_s4_2 + 0x20)) = (*(u16 *)(temp_s5 + 0xC));
             (*(s32 *)(var_s2 + 0x20)) = gl_func_0001CA10(0x2198, (temp_lo & 0xFFFF) * 2);
             temp_a1_2 = (*(u16 *)(var_s2 + 0x6));
             (*(s32 *)(var_s2 + 0x24)) = gl_func_0001CA10(0x2198, (*(u16 *)(var_s2 + 0x6)) * 2);
             (*(s32 *)(var_s2 + 0x14)) = 0;
             (*(s32 *)(var_s2 + 0x18)) = 0;
-            (*(s32 *)(var_s2 + 0x3)) = 0;
-            (*(s32 *)(var_s2 + 0x2)) = 2;
-            (*(s32 *)(var_s2 + 0x0)) = 1;
+            (*(s8 *)(var_s2 + 0x3)) = 0;
+            (*(s8 *)(var_s2 + 0x2)) = 2;
+            (*(s8 *)(var_s2 + 0x0)) = 1;
             (*(s32 *)(var_s2 + 0x110)) = var_fp;
-            temp_t7 = ((*(s32 *)(var_s2 + 0x118)) & 0xFF0F) | 0x40;
+            temp_t7 = ((*(u8 *)(var_s2 + 0x118)) & 0xFF0F) | 0x40;
             (*(s32 *)(var_s2 + 0x1C)) = (s32) temp_a1_2;
-            (*(s32 *)(var_s2 + 0x118)) = temp_t7;
-            (*(s32 *)(var_s2 + 0x118)) = (u8) (temp_t7 & 0xF3);
+            (*(s8 *)(var_s2 + 0x118)) = temp_t7;
+            (*(s8 *)(var_s2 + 0x118)) = (u8) (temp_t7 & 0xF3);
             temp_a0_2 = (s32) (*(s32 *)(var_s2 + 0x118));
             (*(s32 *)(var_s2 + 0x120)) = sp40;
-            temp_v0_7 = (*(s32 *)(var_s2 + 0x4));
+            temp_v0_7 = (*(u8 *)(var_s2 + 0x4));
             (*(s32 *)(var_s2 + 0x118)) = (s32) (((u32) ((((temp_a1_2 * 2) & 0xFFFFFF) ^ temp_a0_2) << 8) >> 8) ^ temp_a0_2);
             (*(s32 *)(var_s2 + 0x128)) = 0;
             (*(s32 *)(var_s2 + 0x130)) = 1;

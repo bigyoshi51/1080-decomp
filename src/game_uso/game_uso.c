@@ -12058,7 +12058,33 @@ L_BC:
  * lays out non-overlapping with the 4 named stack vars (build slots
  * 44/64/68/72 vs target's contiguous 40/44/48/52), plus pervasive $f/$t
  * coloring and branch-LIKELY (beql/beq) FP gates that m2c/C cannot pin. Logic
- * + callees + globals are all correct; honest NON_MATCHING. */
+ * + callees + globals are all correct; honest NON_MATCHING.
+ *
+ * 2026-06-22 agent-i (big-swing re-verify, fuzzy ~45%, 419 non-reloc diffs):
+ * confirmed RELOC SET MATCH + size within 1 word (build 523 vs target 524).
+ * Re-derived the diff roots from the live build/non_matching object vs a
+ * freshly refresh-expected-baseline'd expected/.o (decisive Yay0 gate). Four
+ * INTERLOCKING IDO-allocator/scheduler ties drive ~all 419 diffs (each
+ * cascades branch targets, inflating the raw count):
+ *   (A) FRAME SIZE -80 vs -56: target OVERLAPS the 4 named locals into the
+ *       6-arg outgoing-arg region (locals at sp40/44/48/52 packed atop
+ *       outgoing 0-28); build keeps them disjoint (sp44/64/68/72, 0x18 gap).
+ *       IDO stack-overlap artifact; not C-controllable w/o faking.
+ *   (B) FP COLORING $f0<->$f2 and $f16<->$f18 throughout: target colors the
+ *       abs-source temp_f2 -> $f2 and the mtc1-zero const -> $f16; build
+ *       picks $f0/$f18. Decl-order reorder tried (var_f0 group before
+ *       temp_f2): ZERO movement -> floats colored by live-range, permuter-
+ *       immune (matches the documented game_uso coloring cap).
+ *   (C) BRANCH-LIKELY asymmetry: target uses bc1fl (likely) for FP-flag
+ *       gates but plain beqz (+nop) for the integer (t8 & 0x1F0) gate; build
+ *       makes the int gate beqzl. This is as1's branch-form heuristic, not a
+ *       C `&&` vs nested-if choice (restructure does not flip it).
+ *   (D) DELAY-SLOT FILL count tie in the cvt.d.s/c.lt.d double-compare block
+ *       (the abs(0x970)>X and 0xA0C<X f64 gates) -> the lone +1-word gap.
+ * No held-base / missing-deref / wrong-base C bug remains (spot-checked the
+ * v0-vs-v1 base at block_24 and the temp_v0_2=v1+0x528 held base — both are
+ * register-coloring choices, not deref errors). Honest NON_MATCHING; the
+ * core is the documented coloring+as1-scheduler-tie cap. */
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif

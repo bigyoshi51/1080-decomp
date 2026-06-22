@@ -1057,7 +1057,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064388);
  * &D pointer (was 0). Structure complete (15 slots + head + parent + 2 fields
  * + final). NOT matched: single &D pool base referenced ~30x = base-pin cap
  * (infra-blocked); remaining word-diffs are IDO spill-home/regalloc numbering
- * driven by the 0x150 frame, not source-controllable. */
+ * driven by the 0x150 frame, not source-controllable.
+ *
+ * 2026-06-22 (agent-d deep-recon pass): corrected slot[0xC] from LITERAL
+ * 0x221D8/0x221F0 (emitted lui/ori, NO reloc) to &D-pointer DP(0x221D8)/
+ * DP(0x221F0) (emits lui/addiu + R_MIPS_HI16/LO16 against D_00000000, matching
+ * the target's reloc form). Three CONFIRMED structural caps block byte-exact:
+ *   (1) ABI: parent init call passes single-precision floats placed in INT arg
+ *       regs (mtc1 zero,f0; mfc1 a2,f0; mfc1 a3,f0; swc1 f0,16(sp) = same 0.0f
+ *       bits 3x). No K&R C form yields single-precision (every float arg promotes
+ *       to double -> cvt.d.s/sdc1/mfc1-pair); needs a float prototype, but the
+ *       SAME callee is called with int args in the 13 slots -> single prototype
+ *       impossible. Genuine non-source-reproducible ABI cap.
+ *   (2) Struct staging: each complex slot (+0xE0, +0x160) builds a {hdr; Vec3
+ *       max; Vec3 min; Vec3 zero} box at sp[0x100], copies it word-triplet-wise
+ *       into a SECOND 0x10-strided struct (sp[0x64/0x74/0x84]), then copies one
+ *       Vec3 again into a temp (sp[0x4C]) before the slot write. ~80 insns of
+ *       nested struct-copy whose exact source-variable decomposition drives the
+ *       spill numbering. Exact-structure-RE cap.
+ *   (3) Per-slot val spill homes: each DI(0x223Dx) val is stored to a UNIQUE
+ *       descending dead-store home (sp[0x148,0x144,...0x128]) AND sp[0xB4];
+ *       the unique homes are never re-read = IDO regalloc spill numbering over
+ *       the 0x150 frame. Not source-controllable.
+ * Build: -336 frame target vs reconstructed smaller frame; 82+ insn structural
+ * gap is items (2)+(3). Reloc-form fix is the only source-reproducible lever. */
 #define DI(o) (*(int *)((char *)&D_00000000 + (o)))
 #define DF(o) (*(float *)((char *)&D_00000000 + (o)))
 #define DP(o) ((void *)((char *)&D_00000000 + (o)))
@@ -1090,7 +1113,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 0.0f);
             }
@@ -1099,7 +1122,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, DF(0x20D4));
             }
@@ -1108,7 +1131,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 100.0f);
             }
@@ -1117,7 +1140,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 0.0f);
             }
@@ -1126,7 +1149,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, DF(0x20D8));
             }
@@ -1135,7 +1158,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 0.0f);
             }
@@ -1144,7 +1167,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, DF(0x20DC));
             }
@@ -1153,7 +1176,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, DF(0x20E0));
             }
@@ -1162,7 +1185,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 1.0f);
             }
@@ -1181,7 +1204,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
                 if (slot != NULL ||
                     (slot = (void *)gl_func_0001CA10((void *)0x20)) != NULL) {
                     gl_func_0001CA10(slot, base, val, 1);
-                    SI(slot, 0xC, 0x221F0);
+                    SI(slot, 0xC, DP(0x221F0));
                     SI(slot, 0x1C, 0);
                     SF(slot, 0x10, box.c[0]);
                     SF(slot, 0x14, box.c[1]);
@@ -1193,7 +1216,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 0.0f);
             }
@@ -1202,7 +1225,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 1.0f);
             }
@@ -1211,7 +1234,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 420.0f);
             }
@@ -1220,7 +1243,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x18)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221D8);
+                SI(slot, 0xC, DP(0x221D8));
                 SI(slot, 0x14, 0);
                 SF(slot, 0x10, 150.0f);
             }
@@ -1230,7 +1253,7 @@ void *gl_func_00064588(void *arg0, void *arg1) {
             if (slot != NULL ||
                 (slot = (void *)gl_func_0001CA10((void *)0x20)) != NULL) {
                 gl_func_0001CA10(slot, base, val, 1);
-                SI(slot, 0xC, 0x221F0);
+                SI(slot, 0xC, DP(0x221F0));
                 SI(slot, 0x1C, 0);
                 SF(slot, 0x10, 1.0f);
                 SF(slot, 0x14, 1.0f);
