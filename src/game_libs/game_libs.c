@@ -3700,7 +3700,138 @@ void game_libs_func_00007334(int a0) {
 
 void game_libs_func_0000733C(int a0) {}
 
+#ifdef NON_MATCHING
+/* gl_func_00007344: per-panel HUD-element updater/dispatcher.
+ *   switch(arg1) over 7 element slots (cases 0/5, 1/6, 2, 3, 4 share bodies).
+ *   Each case snapshots two Quad4 field-blocks from the object into local
+ *   scratch (spA=obj fields, spB=obj fields), points `target` at a per-slot
+ *   sub-object (obj + 0x600..0x678), and — unless the global mode word
+ *   (&D_0 + 0x34) == 2 — runs a refresh callee + a vtable dispatch
+ *   (*(obj->u28->fptr))(obj + (short)obj->u28->ofs).
+ * Trailing: if a target was selected, ramp obj->u544 by +2 clamped to 255
+ *   (on reaching 255 also set obj->u554 = 175.0f), then 3 emit callees. */
+extern int gl_func_00000000();
+
+typedef struct GlHudObj {
+    char unk0[0x28];
+    struct GlHudVt *unk28;          /* 0x28 vtable/handler */
+    char unk2C[0x140 - 0x2C];
+    Quad4 unk140;                   /* case 0/5 src A */
+    char unk150[0x164 - 0x150];
+    Quad4 unk164;                   /* case 0/5 src B */
+    char unk174[0x188 - 0x174];
+    Quad4 unk188;                   /* case 2 src A */
+    char unk198[0x1AC - 0x198];
+    Quad4 unk1AC;                   /* case 2 src B */
+    char unk1BC[0x1D0 - 0x1BC];
+    Quad4 unk1D0;                   /* case 4 src A */
+    char unk1E0[0x1F4 - 0x1E0];
+    Quad4 unk1F4;                   /* case 4 src B */
+    char unk204[0x218 - 0x204];
+    Quad4 unk218;                   /* case 3 src A */
+    char unk228[0x23C - 0x228];
+    Quad4 unk23C;                   /* case 3 src B */
+    char unk24C[0x410 - 0x24C];
+    Quad4 unk410;                   /* case 1/6 src A */
+    char unk420[0x434 - 0x420];
+    Quad4 unk434;                   /* case 1/6 src B */
+    char unk444[0x544 - 0x444];
+    int unk544;                     /* alpha ramp counter */
+    char unk548[0x554 - 0x548];
+    float unk554;                   /* alpha ramp clamp float */
+} GlHudObj;
+
+typedef struct GlHudVt {
+    char unkF8pad[0xF8];
+    short unkF8;                    /* 0xF8 element-offset (short) */
+    char unkFApad[0xFC - 0xFA];
+    void (*unkFC)(void *);          /* 0xFC handler */
+    short unk100;                   /* 0x100 element-offset (short) */
+    char unk102pad[0x104 - 0x102];
+    void (*unk104)(void *);         /* 0x104 handler */
+} GlHudVt;
+
+void gl_func_00007344(GlHudObj *arg0, u32 arg1, void *arg2) {
+    void *target;
+    Quad4 spA;
+    Quad4 spB;
+    int mode;
+    int alpha;
+
+    target = NULL;
+    switch (arg1) {
+    case 0:
+    case 5:
+        mode = *(int *)((char *)&D_00000000 + 0x34);
+        if (mode == 3 || mode == 2) {
+            spA = arg0->unk140;
+            target = (char *)arg0 + 0x618;
+            spB = arg0->unk164;
+        } else {
+            spA = arg0->unk140;
+            target = (char *)arg0 + 0x600;
+            spB = arg0->unk164;
+        }
+        if (mode != 2) {
+            gl_func_00000000(arg0);
+        }
+        arg0->unk28->unkFC(arg0->unk28->unkF8 + (char *)arg0);
+        break;
+    case 1:
+    case 6:
+        spA = arg0->unk410;
+        target = (char *)arg0 + 0x648;
+        spB = arg0->unk434;
+        if (*(int *)((char *)&D_00000000 + 0x34) != 2) {
+            gl_func_00000000(arg0);
+        }
+        arg0->unk28->unkFC(arg0->unk28->unkF8 + (char *)arg0);
+        break;
+    case 2:
+        spA = arg0->unk188;
+        target = (char *)arg0 + 0x630;
+        spB = arg0->unk1AC;
+        if (*(int *)((char *)&D_00000000 + 0x34) != 2) {
+            gl_func_00000000(arg0);
+        }
+        break;
+    case 3:
+        spA = arg0->unk218;
+        target = (char *)arg0 + 0x678;
+        spB = arg0->unk23C;
+        if (*(int *)((char *)&D_00000000 + 0x34) != 2) {
+            gl_func_00000000(arg0);
+        }
+        arg0->unk28->unk104(arg0->unk28->unk100 + (char *)arg0);
+        break;
+    case 4:
+        spA = arg0->unk1D0;
+        target = (char *)arg0 + 0x660;
+        spB = arg0->unk1F4;
+        if (*(int *)((char *)&D_00000000 + 0x34) != 2) {
+            gl_func_00000000(arg0);
+        }
+        break;
+    }
+    if (target != NULL) {
+        alpha = arg0->unk544;
+        if (alpha < 255) {
+            alpha += 2;
+            arg0->unk544 = alpha;
+            if (alpha >= 255) {
+                alpha = 255;
+                arg0->unk544 = 255;
+                arg0->unk554 = 175.0f;
+            }
+        }
+        gl_func_00000000(&D_00000000, alpha, &spA, &spB);
+        gl_func_00000000(target);
+        gl_func_00000000(target, 0xA0, arg2, 3);
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007344);
+#endif
 
 /* Empty one-arg stub; IDO keeps the caller-slot spill in the return delay. */
 void game_libs_func_000076C8(int a0) {

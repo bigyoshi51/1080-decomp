@@ -13913,10 +13913,23 @@ void game_uso_func_00010068(int *a0) {
     gl_func_00000000(a0);
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_00010128: 105-insn (0x1A4) complex dispatcher.
+/* game_uso_func_00010128: 105-insn (0x1A4) complex dispatcher. LANDED 2026-06-22
+ * (agent-e): byte-exact (ROM-identical, `make verify` clean; 0 non-reloc word
+ * diffs vs expected). The "outer<->mid v0/v1 spilltemp-web coloring cap" was a
+ * PLACEHOLDER-SYMBOL artifact, NOT a real coloring cap: the body had used
+ * gl_func_00000000/D_00000000 placeholders, which color differently than the
+ * REAL reloc callees. Rewriting with the real symbols (game_uso_func_0000D5BC,
+ * import_0010DB28, game_uso_func_0000D5F8 typed varargs-Pair2-by-value,
+ * D5DC/E5C8/E35C/E2D0/11750, and game_uso_D_807FF3D0/D8/E0) flipped the
+ * coloring so `outer`(a0->0xB4 reload)=$v0 and `mid`(outer->0x800)=$v1 — exactly
+ * the target — and the 6 v0/v1 word diffs vanished. (Same lesson as twin 11258:
+ * placeholder symbols score under name-blind objdiff but are not byte-correct;
+ * the real-symbol coloring is the match.) The only residual vs expected is 3
+ * extra LO16 relocs (HI16+LO16 pair vs expected's HI16+baked-LO16) — a benign
+ * raw-word-USO encoding artifact that resolves identically at the ROM-bin level.
+ * Original decode notes preserved below.
  *
- * Frame -0x28; saves s0 (= a0), ra. Multiple cross-USO calls dispatched
+ * 105-insn complex dispatcher. Frame -0x28; saves s0 (= a0), ra. Multiple cross-USO calls dispatched
  * via float-compare and bit-flag tests. Sibling of 0x10068 (the same
  * "outer = a0->0xB4; if (outer->0x800->0x18 & 0x400) ..." pattern).
  *
@@ -13990,8 +14003,15 @@ void game_uso_func_00010068(int *a0) {
  * (spills, +1 frame) all leave the same outer<->mid v0/v1 web tie. Permuter is
  * inapplicable (raw-.word USO asm, no mnemonic/reloc form). Genuine spilltemp-web
  * coloring cap (the named pointer web's $v0 claim is unreachable from C). */
-extern int gl_func_00000000();
-extern char D_00000000;
+extern char game_uso_D_807FF3D0;
+extern char game_uso_D_807FF3D8;
+extern char game_uso_D_807FF3E0;
+extern void game_uso_func_0000D5F8(char *, Pair2, int);
+extern void game_uso_func_0000D5DC(char *);
+extern void game_uso_func_0000E5C8(char *, int);
+extern int game_uso_func_0000E35C(char *);
+extern void game_uso_func_0000E2D0(char *);
+extern void game_uso_func_00011750(char *);
 void game_uso_func_00010128(int *a0) {
     int *inner;
     int *mid;
@@ -13999,42 +14019,39 @@ void game_uso_func_00010128(int *a0) {
     ((int*)a0[0xB4 / 4])[0xA18 / 4] = 1;
     mid = (int*)((int*)a0[0xB4 / 4])[0x800 / 4];
     if ((mid[0x18 / 4] & 0x400) != 0) {
-        gl_func_00000000(a0,
-                         *(Pair2*)((char*)&D_00000000 + 0xDE0));
+        game_uso_func_0000D5BC((char*)a0,
+                         *(Pair2*)((char*)&game_uso_D_807FF3D0 + 0xDE0));
     }
     if (*(float*)((char*)(int*)a0[0xB4 / 4] + 0x9D0) < 1000.0f) {
         if (((int*)a0[0xB4 / 4])[0x938 / 4] != 0) {
-            gl_func_00000000(a0,
-                             *(Pair2*)((char*)&D_00000000 + 0xDE8));
+            game_uso_func_0000D5BC((char*)a0,
+                             *(Pair2*)((char*)&game_uso_D_807FF3D8 + 0xDE8));
         }
         inner = (int*)a0[0xF4 / 4];
         if ((inner != 0) && (inner[0x38 / 4] & 1)) {
-            gl_func_00000000(a0,
+            import_0010DB28(a0,
                              *(int*)((char*)a0 + 0xFC) | 0x19,
                              5, 5, 1, 1);
         } else {
-            gl_func_00000000(a0,
+            import_0010DB28(a0,
                              *(int*)((char*)a0 + 0xFC) | 0x19,
                              5, 5, 0x100, 10);
         }
     } else {
-        gl_func_00000000(a0,
+        import_0010DB28(a0,
                          *(int*)((char*)a0 + 0xFC) | 0x19,
                          2, 3, 1, 1);
-        gl_func_00000000(a0,
-                         *(Pair2*)((char*)&D_00000000 + 0xDF0),
+        game_uso_func_0000D5F8((char*)a0,
+                         *(Pair2*)((char*)&game_uso_D_807FF3E0 + 0xDF0),
                          3);
-        gl_func_00000000(a0);
+        game_uso_func_0000D5DC((char*)a0);
     }
-    gl_func_00000000(a0, 0);
-    if (gl_func_00000000(a0) == 0) {
-        gl_func_00000000(a0);
-        gl_func_00000000(a0);
+    game_uso_func_0000E5C8((char*)a0, 0);
+    if (game_uso_func_0000E35C((char*)a0) == 0) {
+        game_uso_func_0000E2D0((char*)a0);
+        game_uso_func_00011750((char*)a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010128);
-#endif
 
 /* game_uso_func_000102CC — verified EE84-family decode (29%, LEN-DIFF 72/79;
  * branch-likely + float short-circuit + D-pair stack-args cap → <80 so
