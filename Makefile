@@ -73,8 +73,13 @@ build/src/eddproc_uso/eddproc_uso.c.o: TRUNCATE_TEXT := 0x480
 # the fns end `jr ra; nop`, which trips the plain-SUFFIX_BYTES skip path.
 build/src/gui_uso/gui_uso.c.o: SUFFIX_BYTES_FORCE := gui_func_0000161C=0x00000000
 build/src/gui_uso/gui_uso.c.o: TRUNCATE_TEXT := 0x4880
+# Mirror the suffix onto the non_matching object so report.json/objdiff (which
+# compare build/non_matching vs expected) score the trailing alignment-nop word.
+# splat-symbol-boundary trailing-delay-nop class — see docs/MATCHING_WORKFLOW.md.
+build/non_matching/src/gui_uso/gui_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gui_func_0000161C=0x00000000
 build/src/h2hproc_uso/h2hproc_uso.c.o: SUFFIX_BYTES_FORCE := h2hproc_uso_func_00000274=0x00000000 h2hproc_uso_func_00001AFC=0x00000000
 build/src/h2hproc_uso/h2hproc_uso.c.o: TRUNCATE_TEXT := 0x1B30
+build/non_matching/src/h2hproc_uso/h2hproc_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := h2hproc_uso_func_00000274=0x00000000
 # 2026-05-27: removed instruction-appending PREFIX_BYTES for game_libs_func_0003ECDC,
 # game_libs_func_0005AFB0, kernel func_80007FC8 — all were leading-nop / self-branch
 # instruction-faking that violated the 2026-05-23 no-instruction-forcing-matches policy
@@ -524,6 +529,9 @@ build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x
 # as an all-zero (nop) word via SUFFIX_BYTES_FORCE (alignment pad, not an invented
 # instruction). FORCE because the natural epilogue trips the plain-SUFFIX skip path.
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000
+# Mirror onto the non_matching object so report.json/objdiff score the trailing
+# alignment-nop word (splat-symbol-boundary trailing-delay-nop class).
+build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/game_libs/game_libs_o1_6C8AC.c src/arcproc_uso/arcproc_uso_o0_748.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))

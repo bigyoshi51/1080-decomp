@@ -11832,21 +11832,25 @@ void gl_func_00028FCC(int *a0, int a1) {
  * field_5 byte to a0->field_30, ORs bit 0x10 into a0->field_60, loads
  * a float from D[0x2050] and stores it to a0->field_6C.
  *
- * 25.82% fuzzy. Cap: REG_ALLOC_ORDER picks $v0/$v1 before $t6+ in this
- * 2-arg leaf (no return). Expected uses $t6/$t9/$t7/$t0; mine emits
- * $v0/$v1/$t6/$t7. Same insn count, instruction order shuffled (sw a1
- * gets hoisted by IDO scheduler to position 3 vs target's position 1).
- * Per docs/IDO_CODEGEN.md#feedback-ido-t-register-swap-unreachable, no
- * C-level lever forces IDO to skip $v0/$v1 in single-arg leaf context. */
-void game_libs_func_00029000(int *a0, int a1) {
-    a0[0x48/4] = a1;
-    {
-        int *sub = (int*)a0[0x50/4];
-        unsigned char flags = *((unsigned char*)a0 + 0x60);
-        *((char*)a0 + 0x30) = *((char*)sub + 0x5);
-        *((char*)a0 + 0x60) = flags | 0x10;
-    }
+ * 2026-06-22 STRUCTURAL FIX: arg1 is a POINTER, and `sub` is loaded from
+ * a1->field_50 (lw t6,80(a1)) — NOT a0->field_50 as the prior decode read.
+ * Fixing the base + reordering the tail (field_30 store, float store, then
+ * field_60|0x10 store LAST) brought the body to insn-order-exact: only the
+ * register coloring differs now (6 words). 25.82% -> the sole residual is
+ * REG_ALLOC_ORDER picking $v0/$v1 for the first two loaded temps where the
+ * target uses $t6/$t9 (then $t7/$t0). Same insn count + order; no C-level
+ * lever forces IDO to skip $v0/$v1 in this 2-arg void leaf (it never calls,
+ * so v0/v1 stay in the free pool and get picked first). Genuine coloring
+ * cap; INCLUDE_ASM build emits correct bytes. */
+void game_libs_func_00029000(int *a0, int *a1) {
+    int *sub;
+    unsigned char flags;
+    a0[0x48/4] = (int)a1;
+    sub = (int*)a1[0x50/4];
+    flags = *((unsigned char*)a0 + 0x60);
+    *((char*)a0 + 0x30) = *((char*)sub + 0x5);
     *(float*)((char*)a0 + 0x6C) = *(float*)((char*)&D_00000000 + 0x2050);
+    *((char*)a0 + 0x60) = flags | 0x10;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029000);

@@ -14498,12 +14498,22 @@ void game_libs_func_00045394(int a0, int a1, int a2, int a3) {
 //   named fn (int→float trampoline) only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-float gl_func_000453A8(void *a0, int a1, float a2) {
+/* 2026-06-22 STRUCTURE NAILED: the NAMED fn is only 48 bytes (12 insns) — a
+ * two-call float trampoline. It moves arg1 (a float arriving in GPR a1) into
+ * $f12 via `mtc1` (raw bit-move, NO cvt — proves the callee takes a SINGLE
+ * float, not a promoted double), spills a0/a2, then `jal CALLEE`(a0,$f12=a1),
+ * then `jal CALLEE`(a0,$f12=a2 reloaded via lwc1 from 32(sp)). Shape:
+ *     void f(void *a0, float a1, float a2){ cb(a0,a1); cb(a0,a2); }
+ * CAP: the callee is a USO R_MIPS_26 reloc baked to 0 in expected/ (no reloc
+ * info), so its identity AND its (void*,float) prototype are unknown here.
+ * Calling the only in-TU candidate (K&R `int gl_func_00034458()`) double-
+ * promotes float->double (cvt.d.s + mfc1 pair, +8 insns) — wrong. Needs the
+ * real callee resolved with a float prototype (deferred USO re-split). */
+void gl_func_000453A8(void *a0, int a1, float a2) {
     float f = (float)a1;
     gl_func_00000000(a0, f);
     gl_func_00000000();
-    return a2;
+    return;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
