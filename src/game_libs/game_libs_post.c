@@ -3365,7 +3365,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020100);
  * C; deep tail kept as INCLUDE_ASM-equivalent stub return so the body
  * compiles. ~low% expected — multi-run. INCLUDE_ASM is the build path
  * (ROM byte-exact). */
-// gl_func_000201B8 — FULL m2c DECODE (40.41% NM, no episode). game_libs non-jumptable control-flow via scripts/lift-uso-controlflow.py.
+// gl_func_000201B8 — 4-way state-dispatched record processor (no episode).
+// 44.49% -> 51.12% via reloc-form/field-width reconstruction levers:
+//   (1) per-case bases were integer literals (0x21F8/0x2308/0x2418 +
+//       0x2C70/0x2C40/0x2C10) -> &D_00000000+off pointer values so IDO
+//       emits the target's `lui;addiu` (held in a3/t2 per case) instead
+//       of `addiu zero` int-loads. (+4.2pp; the main lever.)
+//   (2) wrong field widths: `var_a2_2 = var_a3 + 0xD4` was WORD-scaled
+//       -> (char*)+0xD4 BYTE; `FW(var_a3,0xF2)` (word, lwl/lwr) -> *(s16*)
+//       (target `lh 242(a3)`); var_t3/var_t4 table reads int->u8 (target
+//       `lbu 0(tN)`); size deficit 16->-4.
+// RESIDUAL (deferred, regalloc/control-flow): build still spills a0/a1/a3
+//   to a -200 frame (target -80, args reg-resident) and forces the case
+//   bases into a SAVED reg (s1) because the back-edge `goto loop_1` makes
+//   them live across the loop, whereas the target's loop re-enters at the
+//   switch (+0x2c) so a3/t2 are re-derived per iteration in TEMP regs.
+//   Closing it = full prologue/loop reconstruction (arg-in-reg dataflow +
+//   mid-function loop target), not a mechanical graft transform.
 #ifdef NON_MATCHING
 extern int game_libs_func_0003443C();
 extern int gl_func_0001CA10();
@@ -3426,31 +3442,31 @@ s32 gl_func_000201B8(s32 arg0, s32 arg1, s32 *arg2, s32 arg3) {
 loop_1:
     switch (arg0) {                                 /* switch 1; irregular */
     case 0:                                         /* switch 1 */
-        var_a3 = (s32 *)0x21F8;
-        var_t2 = 0x2C70;
+        var_a3 = (s32 *)((char *)&D_00000000 + 0x21F8);
+        var_t2 = (s32) ((char *)&D_00000000 + 0x2C70);
         break;
     case 1:                                         /* switch 1 */
-        var_a3 = (s32 *)0x2308;
-        var_t2 = 0x2C40;
+        var_a3 = (s32 *)((char *)&D_00000000 + 0x2308);
+        var_t2 = (s32) ((char *)&D_00000000 + 0x2C40);
         break;
     case 2:                                         /* switch 1 */
-        var_a3 = (s32 *)0x2418;
-        var_t2 = 0x2C10;
+        var_a3 = (s32 *)((char *)&D_00000000 + 0x2418);
+        var_t2 = (s32) ((char *)&D_00000000 + 0x2C10);
         break;
     }
     if (var_a2 == 0) {
         var_t3 = 0;
-        var_a2_2 = var_a3 + 0xD4;
-        if (FW(var_a3, 0xF2) == -1) {
-            var_a2_2 = var_a3 + 0xD4;
+        var_a2_2 = (s32 *)((char *)var_a3 + 0xD4);
+        if (*(s16 *)((char *)var_a3 + 0xF2) == -1) {
+            var_a2_2 = (s32 *)((char *)var_a3 + 0xD4);
         } else {
-            var_t3 = *(int*)((*(s16 *)((char *)var_a2_2 + 0x1E)) + var_t2);
+            var_t3 = *(u8 *)((*(s16 *)((char *)var_a2_2 + 0x1E)) + var_t2);
         }
         temp_a0 = (*(s16 *)((char *)var_a2_2 + 0x2A));
         if (temp_a0 == -1) {
             var_t4 = 0;
         } else {
-            var_t4 = *(int*)(temp_a0 + var_t2);
+            var_t4 = *(u8 *)(temp_a0 + var_t2);
         }
         if (arg0 == 1) {
             if (var_t3 == 4) {
@@ -3477,10 +3493,10 @@ loop_19:
                 }
             }
             if (var_t4 == 4) {
-                temp_a1_2 = *(char *)0x2070;
+                temp_a1_2 = *(s32 *)0x2070;
                 var_v1_3 = 0;
                 if (temp_a1_2 > 0) {
-                    var_v0_2 = *(char *)0x2CFC;
+                    var_v0_2 = *(char **)0x2CFC;
 loop_27:
                     if ((FW(var_v0_2, 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_2, 0xB0) >> 0x1F) == 0)) {
                         var_v1_3 += 1;
@@ -3548,7 +3564,7 @@ loop_46:
             }
 block_51:
             if (var_t4 == 2) {
-                temp_a0_3 = *(char *)0x2048;
+                temp_a0_3 = *(s16 *)0x2048;
                 var_v0_5 = 0;
                 var_v1_5 = 0;
                 if (temp_a0_3 > 0) {
@@ -3572,10 +3588,10 @@ loop_53:
         }
         if (arg0 == 1) {
             if (var_t3 == 2) {
-                temp_a1_3 = *(char *)0x2070;
+                temp_a1_3 = *(s32 *)0x2070;
                 var_v1_6 = 0;
                 if (temp_a1_3 > 0) {
-                    var_v0_6 = *(char *)0x2CFC;
+                    var_v0_6 = *(char **)0x2CFC;
 loop_62:
                     if ((FW(var_v0_6, 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0_6, 0xB0) >> 0x1F) == 0)) {
                         var_v1_6 += 1;
@@ -3594,10 +3610,10 @@ loop_62:
             }
 block_67:
             if (var_t4 == 2) {
-                temp_a1_4 = *(char *)0x2070;
+                temp_a1_4 = *(s32 *)0x2070;
                 var_v1_7 = 0;
                 if (temp_a1_4 > 0) {
-                    var_v0_7 = *(char *)0x2CFC;
+                    var_v0_7 = *(char **)0x2CFC;
 loop_70:
                     if ((FW(var_v0_7, 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_7, 0xB0) >> 0x1F) == 0)) {
                         var_v1_7 += 1;
@@ -11550,7 +11566,7 @@ void gl_func_00028A68(void) {
     n = GL_COUNT_2070;
     if (n <= 0) return;
     for (i = 0; i < n; i++) {
-        char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + i * 0xD0;
+        char *rec = *(char **)0x2CFC + i * 0xD0;
         *(int *)(rec + 8) = (int)rec;
         *(int *)rec = 0;
         gl_func_00000000(rec);
@@ -12125,7 +12141,7 @@ void gl_func_00029494(void) {
     desc = (char *)&D_00000000 + 0x2198;   // per-record descriptor (s6)
     zero = 0.0f;
     for (i = 0; i < n; i++) {
-        char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + i * 0xD0;
+        char *rec = *(char **)0x2CFC + i * 0xD0;
         *(int *)(rec + 0xB0) = *(int *)(src + 0x0);
         *(int *)(rec + 0xB4) = *(int *)(src + 0x4);
         *(int *)(rec + 0xB8) = *(int *)(src + 0x8);
@@ -13175,11 +13191,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
 //   gl_func_0002349C teardown / gl_func_00026CF0 submit / gl_func_
 //   00023838 decoder touch. The "commit the active selection" entry
 //   of the game_libs registry/object subsystem.
-// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc dispatch — byte-
-//   match needs USO mnemonic disasm + reloc-pad jal infra. STALE
-//   4-jr-bundle comment: grep -c 03E00008 = 1 (.s now single fn).
-//   Real-C STRUCTURAL body below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// 2026-06-22 STRUCTURAL FIX (96.16->98.37%): target keeps BOTH stores to
+//   o[0] (sb f|0x40 ; sb (f|0x40)&0x7F) — IDO dead-store-eliminated the
+//   first when the masked value was computed from a register. Forcing the
+//   masked store to RE-READ o[0] (`*o = *o & 0x7F`) makes IDO retain store1
+//   and forward the register (no extra reload), matching the target's
+//   sb/andi/sb shape. Residual: uniform register-coloring shift from the
+//   first body temp (target lbu->t7 skips v1; build lbu->v1, then tN->t(N-2)
+//   cascade) — call-return v0/v1 liveness coloring; not C-reachable.
+// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc dispatch + register
+//   coloring (above) — byte-match deferred. STALE 4-jr-bundle comment:
+//   grep -c 03E00008 = 1 (.s now single fn). Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int gl_func_0003ED2C();
@@ -13192,7 +13214,7 @@ void gl_func_0002A7D8(char *o) {
     f = *(unsigned char *)o;
     m = *(unsigned char *)(o + 4);
     *(unsigned char *)o = f | 0x40;
-    *(unsigned char *)o = (f | 0x40) & 0x7F;
+    *(unsigned char *)o = *(unsigned char *)o & 0x7F;
     r = gl_func_00000000(m);
     if (r != 0) {
         gl_func_00000000(*(unsigned char *)(o + 4), 3);
