@@ -730,13 +730,24 @@ extern s32 D_00000004;
  *       use a separate `D_00000004` symbol so each emits its own folded
  *       2-insn load (target uses func_00000000+0x4, a distinct symbol from
  *       the dim-B reads at D_00000000+0).
- * REMAINING CAP (68 insns, phase-1 grid build): IDO CSEs the &D_00000000
- * base of the ~10 dim-B (+0) reads into a callee-saved reg ($s1), whereas
- * the target re-materializes `lui(0x0); lw 0x0(x)` per use. This is the same
- * &D_00000000-CSE-into-saved-reg cap documented for func_000055A0 (~line
- * 3512): C-irreproducible without the spimdisasm USO-reloc migration; it
- * also perturbs the saved-reg coloring of the scratch buffer in $s2 and the
- * div-idiom register choices. Not a fakeable diff -> stays NON_MATCHING. */
+ * PASS-5 2026-06-22 (agent-i): self->0x28 store is a RELOC'd pointer
+ *       (&D_00000000, target lui+addiu+sw), not integer 0 (was sw $zero).
+ *       Fixed -> emits the target's 3-insn pointer store; -12 real word diffs.
+ * REMAINING CAP (measured: built 832 words vs 759 target, ~73-word gap;
+ * ~789 reloc-masked word diffs). TWO compounding regalloc/frame caps, both
+ * C-irreproducible from this body:
+ *   (a) m2c local explosion -> IDO spills a pile of temps IDO won't coalesce;
+ *       built frame is 0x348 vs target 0x1D8 (~0xE0+ of extra spill slots),
+ *       producing ~60 scattered spill lw/sw the target lacks. The grid array
+ *       (sp130[32]) is the only genuine stack array and is correctly 0x80.
+ *   (b) loop-invariant grid-dim-A read (D_00000004) is hoisted into the
+ *       callee-saved $s1, whereas the target re-loads func_00000000+0x4 into
+ *       a temp at each of its 3 read sites (0xF5C/0x10C8/0x14AC). Distinct
+ *       externs do not defeat this (the value is invariant across both loop
+ *       phases, so IDO colors it to a saved reg regardless).
+ * Same class as the func_000055A0 &D-CSE-into-saved-reg cap (~line 3512):
+ * solvable only by identical allocator coloring, not C/symbol tricks. Not a
+ * fakeable diff -> stays NON_MATCHING. */
 void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
     s32 sp130[32];
     s32 sp1D4;
@@ -897,7 +908,7 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
 
     if ((arg0 != 0) || (temp_v0 = func_00000000(0x4C), arg0 = temp_v0, (temp_v0 != 0))) {
         func_00000000(arg0, &D_000066B0);
-        *(s32 *)((char *)(arg0) + 0x28) = 0;
+        *(s32 *)((char *)(arg0) + 0x28) = (s32)&D_00000000;
         *(s32 *)((char *)(arg0) + 0xC) = (s32)&D_000066B8;
         sp1D4 = *(s32 *)((char *)(arg1) + 0x8);
         sp1D0 = *(s32 *)((char *)(arg1) + 0xC);

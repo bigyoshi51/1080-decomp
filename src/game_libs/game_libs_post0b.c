@@ -22449,6 +22449,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00050444);
  * Residual (~78 insns, 34.6%): the target keeps extra redundant Vec3
  * scratch copies (sp124->sp134->sp104 second-stage) that IDO still
  * collapses here, plus 3 fewer div.s; deep per-copy scheduling. */
+/* PASS-3 2026-06-22 (agent-e, ANALYSIS — no land, body unchanged):
+ * Pinpointed the exact residual. The "-0x250 exact" claim in PASS-2 is
+ * STALE: the current build emits frame -584 (-0x248), target is -592
+ * (-0x250) => 8 bytes / 2 slots short. `volatile int pad` (first local)
+ * is ELIDED at -O2 here (does NOT grow the frame) because the 80-local
+ * set already saturates coloring; the pad-first lever does not apply.
+ *
+ * Root cause of the 78-insn gap = WRONG midpoint data-flow + NON-shared
+ * scratch. Target div.s count = 19; this build = 12 (missing 7).
+ * Target structure is 6 EDGE-MIDPOINTS, each:
+ *   (1) sum vtxA+vtxB (3 add.s) -> scratch vec3 @ sp+336/340/344 (base t8)
+ *   (2) lw/sw word-copy scratch -> sp+356 (v0) -> sp+580 (t1)
+ *   (3) HALVE: div.s sp+580/584/588 by 2.0 (f14) -> sp+292/296/300 (t4)
+ *   (4) lw/sw word-copy sp+292 -> sp+308 (v1) -> sp+260 (a0)
+ *   (5) lwc1 sp+260/264/268 -> swc1 to the per-edge OUTPUT slot
+ *       (516/512/508, then 504/500/496, ... one block per edge).
+ * The SAME scratch slots (260/292/308/336/356/568/580) are REUSED across
+ * all 6 edges; only the output slot advances. THIS build allocated a
+ * fresh slot-set per edge (sp150/sp12C/spF8/spEC/...) => frame too big in
+ * one axis, and the divides read the WRONG slots (e.g. `sp12C=sp24C/two`
+ * where sp24C is not the summed vec) => 7 missing/misrouted div.s.
+ * Halved div count + per-edge slot duplication = the entire residual.
+ *
+ * TO LAND (next pass): rewrite as a single repeated edge-statement
+ * pattern over ONE shared set of named scratch locals (sum->copy->halve
+ * ->copy->store) so IDO reuses the 7 scratch slots and emits all 19
+ * div.s; then the held base-pointers (t8/v0/t1/t4/v1/a0/t2) fall out and
+ * the frame returns to -592. Held-pointer coloring is the only residual
+ * left after that. NOT attempted here to avoid regressing the 65%
+ * committed state mid-rewrite. */
 s32 gl_func_0005062C(volatile s32 arg0, volatile s32 arg1, volatile s32 arg2, volatile s32 arg3, volatile s32 arg4, volatile s32 arg5, volatile s32 arg6, f32 arg7, f32 arg8, f32 arg9, f32 arg10, f32 arg11, f32 arg12, f32 arg13, f32 arg14, f32 arg15, f32 arg16, f32 arg17, f32 arg18, f32 arg19, f32 arg20, f32 arg21, f32 arg22, f32 arg23, f32 arg24) {
     f32 sp108; f32 sp10C; f32 sp1A0; f32 sp1A4; f32 sp1AC; f32 sp1B0; f32 sp1B8; f32 sp1BC; f32 sp20C; f32 sp210; f32 sp218; f32 sp21C; f32 sp224; f32 sp228; f32 sp230; f32 sp234; f32 sp23C; f32 sp240; f32 sp248; f32 sp24C;
     f32 sp244;
