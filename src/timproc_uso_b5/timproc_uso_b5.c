@@ -2060,7 +2060,29 @@ char *timproc_uso_b5_func_00002B74(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00002B74);
 #endif
 
-// timproc_uso_b5_func_000032C8 — m2c DECODE (38.26% NM, no episode). non-jumptable via scripts/decomp-uso-cf.py.
+// timproc_uso_b5_func_000032C8 — m2c DECODE + real-callee fix (48.76% NM, no
+// episode). Composite "panel" constructor (sibling of func_00002B74): alloc-or-
+// reuse a 0x108 parent, then 6 text-row children (0x18, class D_807FDA10+0x1A0;
+// first field 0x10=0, rest =2), 2 vec3 children (0x20, class D_807FD9E0+0x170 with
+// an FP vec-fill that resolves to vec={0,0,0}), 2 value children (0x18, class
+// D_807FD9C8+0x158, field 0x10=0.0f). Names come from the consecutive D_807FE9F8..
+// D_807FEA1C int table; FP constants from the D_807FEA10/D_807FEA14 pool.
+//
+// 2026-06-22 (agent-d big-swing): replaced the generic `timproc_uso_b5_alias`
+// placeholder with the real distinct callees — func_055750 (alloc-or-reuse) and
+// func_04A188 (init+attach). The R_MIPS_26 call-reloc set now matches the target
+// exactly (12x func_055750, 10x func_04A188). fuzzy holds at 48.76%.
+//
+// STRUCTURAL CAP (byte-exact unreachable in C): the entire timproc_uso_b5 expected
+// object carries 731 R_MIPS_HI16 and ZERO R_MIPS_LO16 relocs — every data symbol's
+// low half is a baked literal immediate (USO raw-word disasm). Any IDO-compiled C
+// reference to a named USO data symbol emits a paired HI16/LO16, which (a) cannot
+// match the literal-low target word and (b) the extra lui instructions shift the
+// instruction stream out of alignment, REGRESSING objdiff fuzzy (tested: naming the
+// class pointers DA10/D9E0/D9C8 drops 48.76 -> 40.16; full named-symbol rewrite
+// -> 42.82). So the data references are kept as immediate/single-base reads here;
+// the named-callee fix is the only correctness gain that does not cost score.
+// Real byte-match requires the deferred spimdisasm USO migration, not a C rewrite.
 #ifdef NON_MATCHING
 
 
@@ -2133,9 +2155,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
     char *var_v1;
 
     var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = timproc_uso_b5_alias((char *)0x108), var_s0 = temp_v0, (temp_v0 != 0))) {
+    if ((arg0 != 0) || (temp_v0 = (char *)timproc_uso_b5_func_055750((char *)0x108), var_s0 = temp_v0, (temp_v0 != 0))) {
         var_v1 = var_s0;
-        if ((var_s0 != 0) || (temp_v0_2 = timproc_uso_b5_alias((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+        if ((var_s0 != 0) || (temp_v0_2 = (char *)timproc_uso_b5_func_055750((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
             FW(var_v1, 0x0) = 0x1178;
             FW(var_v1, 0x4) = 0;
         }
@@ -2143,9 +2165,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         var_a0 = var_s0 + 8;
         sp124 = temp_t7;
         spA4 = temp_t7;
-        if ((var_s0 != (char *)-8) || (temp_v0_3 = timproc_uso_b5_alias((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
+        if ((var_s0 != (char *)-8) || (temp_v0_3 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
             spA8 = var_a0;
-            timproc_uso_b5_alias(var_a0, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0, var_s0, spA4, 1);
             FW(var_a0, 0xC) = 0x1A0;
             FW(var_a0, 0x14) = 0;
             FW(var_a0, 0x10) = 0;
@@ -2154,9 +2176,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         var_a0_2 = var_s0 + 0x20;
         sp120 = temp_t1;
         spA4 = temp_t1;
-        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = timproc_uso_b5_alias((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
+        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
             spA8 = var_a0_2;
-            timproc_uso_b5_alias(var_a0_2, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_2, var_s0, spA4, 1);
             FW(var_a0_2, 0x10) = 2;
             FW(var_a0_2, 0xC) = 0x1A0;
             FW(var_a0_2, 0x14) = 0;
@@ -2165,9 +2187,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         var_a0_3 = var_s0 + 0x38;
         sp11C = temp_t6;
         spA4 = temp_t6;
-        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = timproc_uso_b5_alias((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
+        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
             spA8 = var_a0_3;
-            timproc_uso_b5_alias(var_a0_3, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_3, var_s0, spA4, 1);
             FW(var_a0_3, 0x10) = 2;
             FW(var_a0_3, 0xC) = 0x1A0;
             FW(var_a0_3, 0x14) = 0;
@@ -2176,9 +2198,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         var_a0_4 = var_s0 + 0x50;
         sp118 = temp_t1_2;
         spA4 = temp_t1_2;
-        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = timproc_uso_b5_alias((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
+        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
             spA8 = var_a0_4;
-            timproc_uso_b5_alias(var_a0_4, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_4, var_s0, spA4, 1);
             FW(var_a0_4, 0x10) = 2;
             FW(var_a0_4, 0xC) = 0x1A0;
             FW(var_a0_4, 0x14) = 0;
@@ -2187,9 +2209,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         var_a0_5 = var_s0 + 0x68;
         sp114 = temp_t6_2;
         spA4 = temp_t6_2;
-        if ((var_s0 != (char *)-0x68) || (temp_v0_7 = timproc_uso_b5_alias((char *)0x18), var_a0_5 = temp_v0_7, (temp_v0_7 != 0))) {
+        if ((var_s0 != (char *)-0x68) || (temp_v0_7 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_5 = temp_v0_7, (temp_v0_7 != 0))) {
             spA8 = var_a0_5;
-            timproc_uso_b5_alias(var_a0_5, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_5, var_s0, spA4, 1);
             FW(var_a0_5, 0x10) = 2;
             FW(var_a0_5, 0xC) = 0x1A0;
             FW(var_a0_5, 0x14) = 0;
@@ -2198,9 +2220,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         var_a0_6 = var_s0 + 0x80;
         sp110 = temp_t1_3;
         spA4 = temp_t1_3;
-        if ((var_s0 != (char *)-0x80) || (temp_v0_8 = timproc_uso_b5_alias((char *)0x18), var_a0_6 = temp_v0_8, (temp_v0_8 != 0))) {
+        if ((var_s0 != (char *)-0x80) || (temp_v0_8 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_6 = temp_v0_8, (temp_v0_8 != 0))) {
             spA8 = var_a0_6;
-            timproc_uso_b5_alias(var_a0_6, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_6, var_s0, spA4, 1);
             FW(var_a0_6, 0x10) = 2;
             FW(var_a0_6, 0xC) = 0x1A0;
             FW(var_a0_6, 0x14) = 0;
@@ -2228,9 +2250,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         sp54.unk4 = (s32) spEC.unk4;
         sp54.unk8 = (s32) spEC.unk8;
         spA4 = spE8;
-        if ((var_s0 != (char *)-0x98) || (temp_v0_9 = timproc_uso_b5_alias((char *)0x20), var_a0_7 = temp_v0_9, (temp_v0_9 != 0))) {
+        if ((var_s0 != (char *)-0x98) || (temp_v0_9 = (char *)timproc_uso_b5_func_055750((char *)0x20), var_a0_7 = temp_v0_9, (temp_v0_9 != 0))) {
             sp84 = var_a0_7;
-            timproc_uso_b5_alias(var_a0_7, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_7, var_s0, spA4, 1);
             FW(var_a0_7, 0xC) = 0x170;
             FW(var_a0_7, 0x1C) = 0;
             sp3C.unk0 = sp74.unk0;
@@ -2263,9 +2285,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         sp54.unk4 = (s32) spC4.unk4;
         sp54.unk8 = (s32) spC4.unk8;
         spA4 = spC0;
-        if ((var_s0 != (char *)-0xB8) || (temp_v0_10 = timproc_uso_b5_alias((char *)0x20), var_a0_8 = temp_v0_10, (temp_v0_10 != 0))) {
+        if ((var_s0 != (char *)-0xB8) || (temp_v0_10 = (char *)timproc_uso_b5_func_055750((char *)0x20), var_a0_8 = temp_v0_10, (temp_v0_10 != 0))) {
             sp50 = var_a0_8;
-            timproc_uso_b5_alias(var_a0_8, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_8, var_s0, spA4, 1);
             FW(var_a0_8, 0xC) = 0x170;
             FW(var_a0_8, 0x1C) = 0;
             sp3C.unk0 = sp74.unk0;
@@ -2279,9 +2301,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         var_a0_9 = var_s0 + 0xD8;
         spBC = temp_t6_3;
         spA4 = temp_t6_3;
-        if ((var_s0 != (char *)-0xD8) || (temp_v0_11 = timproc_uso_b5_alias((char *)0x18), var_a0_9 = temp_v0_11, (temp_v0_11 != 0))) {
+        if ((var_s0 != (char *)-0xD8) || (temp_v0_11 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_9 = temp_v0_11, (temp_v0_11 != 0))) {
             spA8 = var_a0_9;
-            timproc_uso_b5_alias(var_a0_9, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_9, var_s0, spA4, 1);
             FW(var_a0_9, 0xC) = 0x158;
             FW(var_a0_9, 0x14) = 0;
             *(f32 *)((char *)var_a0_9 + 0x10) = 0.0f;
@@ -2290,9 +2312,9 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
         var_a0_10 = var_s0 + 0xF0;
         spB8 = temp_t0;
         spA4 = temp_t0;
-        if ((var_s0 != (char *)-0xF0) || (temp_v0_12 = timproc_uso_b5_alias((char *)0x18), var_a0_10 = temp_v0_12, (temp_v0_12 != 0))) {
+        if ((var_s0 != (char *)-0xF0) || (temp_v0_12 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_10 = temp_v0_12, (temp_v0_12 != 0))) {
             spA8 = var_a0_10;
-            timproc_uso_b5_alias(var_a0_10, var_s0, spA4, 1);
+            timproc_uso_b5_func_04A188(var_a0_10, var_s0, spA4, 1);
             FW(var_a0_10, 0xC) = 0x158;
             FW(var_a0_10, 0x14) = 0;
             *(f32 *)((char *)var_a0_10 + 0x10) = 0.0f;
@@ -2303,6 +2325,8 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
 #endif
+
+
 
 /* Zero fields: 0x2B4 (int), 0x164/0x168/0x16C/0x2A0 (float). The target uses
  * TWO zero FP regs — $f0 for the first three stores, $f4 for the 0x2A0

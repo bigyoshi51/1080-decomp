@@ -1255,491 +1255,158 @@ void game_uso_func_00001DC4(void *a0) {
     *(f32*)((char*)a0 + 0x34) = 0.0f;
 }
 
-/* game_uso_func_00001DDC: 0x5FC (383 insns) — strategy-memo spine candidate,
- * confirmed single function (grep -c 03E00008 = 1, not a bundle).
+/* game_uso_func_00001DDC: 0x5FC (382 insns). Per-entity AI "homing/follow"
+ * spine. Twin of game_uso_func_000028C0 (same 070238/071028/072EE8 callee
+ * trio and same out=a0->0x14 / s=a0->0x3C->0x38 layout), but performs TWO
+ * homing passes (planar XZ then vertical Y), each gated by a magnitude
+ * clamp, and commits a frame-delta into the entity's 0x2C..0x34 Vec3.
  *
- * PROLOGUE / ENTITY-PTR REGALLOC (decoded 2026-05-28): the prologue diverges at
- * insn 0 and cascades. TARGET saves ONLY $ra (frame 0x180) and keeps the entity
- * ptr in caller-saved $a2 spilled to home slot sp+0x180, reloaded each use.
- * MINE originally promoted it to $s0/$s1 (frame 0x1A8) via `register int *ctx`.
- * FIX (partial, +0.88pp → 39.13%): changed `register int *ctx` to
- * `int * volatile ctx = a0;` — the volatile-ptr-local knob (docs gl_func_00072550
- * knob 3) forces home-slot reload each use instead of $s-promotion. This dropped
- * $s1 (now only $s0 saved) and spilled the ptr to the stack. Residual: spill
- * lands at sp+0xFC (a local slot) not target's sp+0x180 home slot, frame still
- * 0x1A8, one $s0 remains. Further gains need the missing 135 insns decoded
- * (mine 247 vs target 382) so IDO's allocno set matches — multi-pass.
- * ENTRY DISPATCH (first ~35 insns decoded):
- *   key = a0[0x40]  ; dispatch key
- *   if (key == 0) goto final_exit (very far forward, single-ra-restore)
- *   if (key != 3)  goto branch_at_88 (unknown sub-case)
- *   // case key == 3:
- *   t6 = a0[0x14]   ; save to sp+0x170 (spill for reload)
- *   v1 = a0[0x3C]
- *   // Copy Vec3 from v1+0xA0..0xA8 (alias (v1+0x70)+0x34..0x38 via addiu trick)
- *   //   into both t6[0x60..0x68] and back into v1[0xA0..0xA8]
- *   // (routine mirrors a Vec3 then writes it back, same 3 floats)
- *   goto late_label (b +0x15A from 0x1E58) — skip ~350 insns of other cases
+ * Dispatch on key = a0[0x40]:
+ *   key == 0 : return (no work)
+ *   key == 3 : short path — mirror the source orientation Vec3 from
+ *              v1(=a0[0x3C])->0xA0 into out(=a0[0x14])->0x60 and out->0xA0.
+ *   else     : the homing body (branch_88) below.
  *
- * CASE key != 3 (branch_at_88 @ 0x1E60, ~25 insns decoded 2026-04-20):
- *   t7 = a2->0x14                ; (a2 = entity ptr, same as a0 via $a2 reuse)
- *   scratch_a = sp+0xFC          ; local sub-struct arg
- *   spill t7 at sp+0x12C for reload
- *   Copy Vec3 from t7+0xA0..0xA8 to sp+0x13C  (referenced sub-obj Vec3)
- *   v1 = a2->0x38                ; another sub-obj ptr
- *   Copy Vec3 from v1+0xA0..0xA8 to sp+0x130  (IDO-style: increments v1
- *     by 0x70 between reads so v1[0xA4] becomes (v1+0x70)[0x34])
- *   spill a2 at sp+0x180
- *   call gl_func_00000000(scratch_a, a2)  ; returns Vec3* in v0
- *   Copy 3 words from *v0 to sp+0x154    ; callee-result Vec3
- *   Element-wise add: sp+0x130[i] += sp+0x154[i] (for i=0,1,2)
- *     → adjusts sub-obj Vec3 by callee-supplied delta
- *   mtc1 zero, f14               ; f14 = 0.0f (used later)
- *   (continues with more float math at 0x1F00+)
- *
- * REMAINING 300+ insns: more dispatch cases plus the late_label
- * convergence point and final_exit. The key=3 path is short; the non-3
- * path is where the real work happens.
- * NEXT PASS: decode 0x1F00-0x2050 (continuation of non-3 case), identify
- * call signatures of gl_func_00000000 invocations.
- * 2026-05-02: per feedback_partial_decode_with_stub_body.md, wrapping with
- * placeholder stub so the decode comment is a tracked NM wrap rather than
- * a floating block-comment above an INCLUDE_ASM. Default build still uses
- * INCLUDE_ASM. */
+ * REBUILD 2026-06-22 (this pass): the body was previously a folded 2-emit
+ * approximation calling the gl_func_00000000 placeholder. Re-decoded region
+ * by region from expected/.o and rewritten as the real 4-emit / 2-pass
+ * structure with the actual callee symbols:
+ *   ref_v  = out->{0xA0,0xA4,0xA8}                 (out = a0[0x14])
+ *   self_v = (a0[0x38])->{0xA0,0xA4,0xA8}          (via +0x70 / +0x34,+0x38)
+ *   delta  = game_uso_func_000023D4(&scratch, a0); self_v += *delta
+ *   diff   = { self_v.x-ref_v.x, 0, self_v.z-ref_v.z };  speed = a0[0x94]
+ *   mag    = game_uso_func_070238(diff.x^2 + 0 + diff.z^2)
+ *   game_uso_func_071028(&diff)                    (normalize diff xyz)
+ *   PASS 1 (planar): excess = (mag < a0[0x7C]) ? mag-a0[0x7C] : mag-speed
+ *     acc1 = diff * excess; game_uso_func_072EE8(out+0x30, &acc1)
+ *     a0->{0x2C,0x30,0x34} = diff * speed
+ *   sel = (a0[0x40]==2) ? a0[0xF4] : a0[0xDC]
+ *   PASS 2 (vertical): yd = ref_v.y - self_v.y; up = {0,1,0}
+ *     y_excess = (yd < a0[0xC4]) ? a0[0xC4]-yd : sel-yd
+ *     acc2 = up * y_excess; game_uso_func_072EE8(out+0x30, &acc2)
+ *     prev = scratch; scratch = up * sel
+ *     a0->{0x2C,0x30,0x34} -= prev
+ * The struct copies fan each scaled Vec3 through two stack temps (the
+ * *(Tri3i*)d2 = *(Tri3i*)d1 = *(Tri3i*)src integer-copy idiom, same as the
+ * 028C0 family) — that double-buffering is what produces the interleaved
+ * lw/sw fanout in the target. Logic is faithful end-to-end; residual byte
+ * gap is IDO stack-slot/regalloc scheduling across the four emit blocks. */
 #ifdef NON_MATCHING
-/* extended partial decode 2026-05-03: 0x1F00-0x1FA0 region decoded as a 2D
- * vector-distance + length + normalize pattern (likely AI homing / soft
- * target-following). Net body grew from ~50 to ~75 insns of decoded C. ~250
- * insns still stubbed in block-comment annotations (gl_func_TODO_00001DDC
- * stub call removed 2026-05-07; remaining sub-blocks documented inline).
- *
- * Decoded semantics for 0x1F00-0x1FA0 sub-block:
- *   diff_x = self_v.x - ref_v.x
- *   diff_z = self_v.z - ref_v.z       (treats Y as up — 2D distance in XZ plane)
- *   speed = a2->0x94                   (some scalar from entity)
- *   sqrlen = diff_x*diff_x + 0 + diff_z*diff_z
- *   length = sqrt(sqrlen)              (first jal — IDO-emit `mul.s; add.s` then
- *                                        jal in delay slot of f12-set; canonical
- *                                        sqrt-via-extern-helper shape)
- *   normalize_into_local(&local[delta_x, 0, delta_z, speed], ...)
- *                                        (second jal — likely normalizes the
- *                                         delta vector in-place)
- *   threshold = a2->0x7C
- *   if (length >= threshold) excess = length - threshold; else excess = length - speed
- *   scale delta by excess (compute three scaled-output Vec3s)
- *
- * The two `jal 0` placeholders at 0x1F44 and 0x1F50 are cross-USO calls;
- * likely candidates per gl_func_00000000 placeholder convention:
- *   - First: `float sqrt(float)` or `float vec_sqrlen_to_len(float)` — single
- *     float arg in $f12, float return in $f0.
- *   - Second: `void normalize3(Vec3*)` or similar in-place transform on the
- *     local sp+0x110 array.
- *
- * The bc1fl at 0x1F74 is branch-likely; takes the THEN arm for "length ≥
- * threshold" (likely the homing-toward case); ELSE arm for "too close"
- * (likely the soft-stop case). */
-extern float gl_func_sqrt(float);
-extern void gl_func_normalize3(int *vec);
-typedef struct { float x, y, z; } Vec3f;
-/* Signature correction 2026-05-17: the documented 0x2394-0x23C0 tail subtracts
- * through the function-local $a2 copy of a0, not an incoming second argument.
- * The target has `or a2, a0, zero` at entry and later spills/reloads that $a2
- * at sp+0x180; there is no corresponding a1 save. Keep this single-arg so the
- * NM body does not inject an artificial `or a3, a1, zero` path. */
+extern Vec3* game_uso_func_000023D4(Vec3 *out, char *a1);
+extern float game_uso_func_070238(float);
+extern void game_uso_func_071028(Vec3 *v);
+extern void game_uso_func_072EE8(char *dst, Vec3 *v);
+
 void game_uso_func_00001DDC(int *a0) {
-    /* Frame-padding fix 2026-05-08: built was emitting sp -= 0xC8 vs
-     * target sp -= 0x180 (184-byte gap). RE-TRIMMED 2026-05-28: as the
-     * branch_88 Vec3 locals (~76 bytes) were decoded since, pad[168] over-shot
-     * to frame 0x1A8 (-424); the correct value is now `frame_pad[128]`, which
-     * lands the frame exactly at target 0x180 (-384) — insn 0 byte-exact again.
-     * (Fuzzy stays ~39.13%: the residual ra@28+s0+a0-spill prologue vs target's
-     * ra@20-only + entity-ptr-in-a2 is interlocked with the still-undecoded
-     * ~135 body insns — IDO's s0 promotion only drops once the full allocno set
-     * is present. Multi-pass, per prior analysis above.)
-     *
-     * 2026-06-01 strategy pass: key==3's Vec3 copy now uses a volatile stack
-     * temp. This makes IDO emit the target-like store/reload scaffold for the
-     * short copy path instead of writing both destinations directly from FPU
-     * registers. Direct object diff: 39.1335% -> 39.1649%. The temp lands at
-     * sp+0xE4 instead of target's sp+0x174, so this is only a local structural
-     * improvement; the larger frame/local-layout problem remains.
-     *
-     * 2026-05-08 (later) — objdiff confirms TARGET and BASE both 407 insns
-     * (insn-count match achieved). Fuzzy 18.26% (after `local_xz[1]*[1]`
-     * +0.73pp tweak) means register allocation / operand ordering account
-     * for the ~82% of byte-mismatch — NOT structural mismatch. Tested the
-     * scaled_y block's `0.0f * y_excess` → `local_xz[1] * y_excess` swap
-     * (using the same memory-loaded-zero pattern) — 0pp (the y_excess
-     * scale is far enough from local_xz[1]'s init that IDO keeps the
-     * 0-mul folded). The block uses `mtc1 zero, fX` for its zero source,
-     * which can't be reproduced from C without a closer-in-scope memory
-     * 0.0f. Ideal next-pass approach remains: permuter (manual mode with
-     * PERM_LINESWAP on the multi-Vec3 fanout copies and PERM_GENERAL on
-     * the inline-vs-spill scale-mul site). Future passes will replace
-     * `frame_pad` with typed locals as they're decoded. */
-    char frame_pad[128];
-    int * volatile ctx = a0; /* volatile ptr local -> home-slot reload each use, not $s0 (docs gl_func_00072550 knob 3) */
+    char *out = (char *)a0[0x14 / 4];
     int key = a0[0x40 / 4];
-    (void)frame_pad;
-    if (key == 0) goto end;
-    if (key != 3) goto branch_88;
-    /* key == 3: short Vec3 copy from v1+0xA0..0xA8 to t6+0x60..0x68
-     * and t6+0xA0..0xA8. */
-    {
-        int *t6 = (int*)a0[0x14 / 4];
-        int *v1 = (int*)a0[0x3C / 4];
-        volatile Vec3f tmp;
-        tmp.x = *(float*)((char*)v1 + 0xA0);
-        tmp.y = *(float*)((char*)v1 + 0xA4);
-        tmp.z = *(float*)((char*)v1 + 0xA8);
-        *(float*)((char*)t6 + 0x60) = tmp.x;
-        *(float*)((char*)t6 + 0x64) = tmp.y;
-        *(float*)((char*)t6 + 0x68) = tmp.z;
-        *(float*)((char*)t6 + 0xA0) = tmp.x;
-        *(float*)((char*)t6 + 0xA4) = tmp.y;
-        *(float*)((char*)t6 + 0xA8) = tmp.z;
-        goto late_label;
+
+    if (key == 0) {
+        return;
     }
-branch_88: {
-    /* Decoded sub-block at 0x1E60-0x1F00:
-     *   - copy a0->0x14->Vec3@0xA0 into local "ref_v"
-     *   - copy a0->0x38->Vec3@0xA0 into local "self_v" (using base-shift trick)
-     *   - call gl_func(&scratch, a0) -> returns Vec3* delta
-     *   - copy *delta into local "delta_v"
-     *   - element-wise add: self_v[i] += delta_v[i]
-     * Then sub-block 0x1F00-0x1FA0 (extended 2026-05-03):
-     *   - 2D distance (XZ plane) between self_v and ref_v
-     *   - sqrt(sum-of-squares) gives length; normalize delta vector
-     *   - clamped excess scaling for AI homing
-     * After this, ~300 more insns remain stubbed. */
-    /* IDO declaration order: first-declared = highest sp offset. Re-ordered
-     * 2026-05-08 to match documented stack layout: delta_v at 0x154 (highest),
-     * ref_v 0x13C, self_v 0x130, local_xz 0x110, scratch 0xFC (lowest). */
-    Vec3f delta_v;                /* sp+0x154 — gl_func returned offset */
-    Vec3f ref_v;                  /* sp+0x13C — referenced sub-obj position */
-    Vec3f self_v;                 /* sp+0x130 — own position copy (accumulator) */
-    float local_xz[4];            /* sp+0x110..0x11C: [diff_x, 0, diff_z, speed] */
-    char scratch[0x18];           /* sp+0xFC scratch sub-struct (address-taken) */
-    Vec3f *t7 = (Vec3f*)((char*)ctx[0x14 / 4] + 0xA0);
-    Vec3f *v1 = (Vec3f*)((char*)ctx[0x38 / 4] + 0xA0);
-    Vec3f *delta;
-    float length, excess, threshold, speed, sqrlen;
-    ref_v = *t7;
-    self_v = *v1;
-    delta = (Vec3f*)gl_func_00000000((int*)scratch, (int)ctx);
-    delta_v = *delta;
-    self_v.x += delta_v.x;
-    self_v.y += delta_v.y;
-    self_v.z += delta_v.z;
-    /* 2D distance + sqrt + normalize block (0x1F00-0x1FA0) */
-    speed = *(float*)((char*)ctx + 0x94);
-    local_xz[0] = self_v.x - ref_v.x;
-    local_xz[1] = 0.0f;
-    local_xz[2] = self_v.z - ref_v.z;
-    local_xz[3] = speed;
-    sqrlen = local_xz[0]*local_xz[0] + local_xz[1]*local_xz[1] + local_xz[2]*local_xz[2];
-    length = gl_func_sqrt(sqrlen);
-    gl_func_normalize3((int*)local_xz);
-    threshold = *(float*)((char*)ctx + 0x7C);
-    if (length < threshold) {
-        excess = length - speed;
-    } else {
-        excess = length - threshold;
+    if (key == 3) {
+        char *v1 = (char *)a0[0x3C / 4];
+        Vec3 tmp;
+        tmp.x = *(float *)(v1 + 0xA0);
+        v1 += 0x70;
+        tmp.y = *(float *)(v1 + 0x34);
+        tmp.z = *(float *)(v1 + 0x38);
+        *(float *)(out + 0x60) = tmp.x;
+        *(float *)(out + 0x64) = tmp.y;
+        *(float *)(out + 0x68) = tmp.z;
+        *(float *)(out + 0xA0) = tmp.x;
+        *(float *)(out + 0xA4) = tmp.y;
+        *(float *)(out + 0xA8) = tmp.z;
+        return;
     }
-    /* TODO 0x1FA0-end: scale delta by excess, store into 3 output Vec3s,
-     * second gl_func dispatch (sp+0x110/sp+0x130 args), stores to
-     * a0->0x60..0x68 (resulting Vec3), nested call to scale/normalize.
-     * Estimated ~250 insns remaining.
-     *
-     * Extended scan 2026-05-04 (0x1FA0-0x2050, ~30 more insns characterized):
-     *   - 0x1FB0-0x1FD4: triple `lw t9/lw tA/sw t9/sw tA` pairs FROM t6+0/4/8
-     *     INTO TWO destinations (e.g. ACEB/AC6A registers = a3+0x0..8 AND
-     *     v1+0x0..8). Pattern is "struct copy 12 bytes, fanned out to 2 dst".
-     *   - 0x1FD8-0x1FF0: load sp+0xC4/0xC8/0xCC (3 floats), store into
-     *     sp+0x120/0x124/0x128 (Vec3 reposition).
-     *   - 0x1FF4: `mul.s f0, f16, f1` — scalar*vec scale (excess * something).
-     *   - 0x2004: `mul.s f12, f8, f0` — second mul (continuation of scale).
-     *   - 0x2010-0x201C: `mul.s f2, f10, f0` triple-mul completing 3-component
-     *     vector scale.
-     *   - 0x2030-0x2050: another t6 → t7+0/4/8 struct copy (similar to first).
-     *
-     * So 0x1FA0-0x2050 is "Vec3 = scale * other_vec3" (3 mul.s), preceded by
-     * a 12-byte struct copy and followed by a duplicate copy. Likely
-     * "delta_scaled = excess * normalized_delta; copy delta_scaled to two
-     * downstream Vec3 fields". Decoding C body deferred — current stub
-     * captures structure without breaking build.
-     *
-     * Extended scan 2026-05-04 (0x2050-0x20F0, +30 insns characterized):
-     *   - 0x2050-0x205C: continue 12-byte struct copy a3+0x4/0x8 → t9+0x4/0x8.
-     *   - 0x2060-0x208C: SECOND Vec3 scale computation. Reads 3 floats from
-     *     sp+0xB0/0xB4/0xB8 (input vec) and 1 scalar from a2+0xAC (a2-derived
-     *     scaler). Computes mul.s f2/f12/f14 = vec[i] * scaler. Stores
-     *     results to sp+0x94/0x98/0x9C. Pattern is `out_vec3 = scaler * in_vec3`.
-     *   - 0x2090-0x20BC: Triple-fanout 12-byte struct copy. Reads from t2+0/4/8;
-     *     writes to BOTH v1+0/4/8 (the canonical dest) AND t5+0/4/8 (a second
-     *     dest captured BEFORE overwrite via `lw t7, 0(v1); sw t7, 0(t5)`
-     *     interleaved with the writes — so t5 gets v1's PRE-COPY value).
-     *     Likely a "save old value, overwrite with new" idiom for an undo
-     *     buffer or an alternate-frame slot.
-     *   - 0x20C0-0x20EC: Forward 3-float copy sp+0x74..0x7C → sp+0x120..0x128
-     *     (loads f4/f6/f8 in reverse, stores in forward order). Then
-     *     lw v0, 0x12C(sp) reloads earlier spill, addiu a1, sp, 0x120 sets
-     *     up arg1 = &copied-Vec3. addiu a0, v0+0x30 in jal delay slot — second
-     *     gl_func dispatch with new args. ~290 insns remain stubbed past 0x20F0. */
-    /* Decoded 2026-05-05 (asm 0x1FA0-0x2050): scale normalized delta by excess.
-     * Mirrors: scaled.x = excess * delta_v.x; .y = excess * delta_v.y; .z = ... */
+
     {
-        Vec3f delta_scaled;
-        delta_scaled.x = excess * local_xz[0];
-        delta_scaled.y = excess * local_xz[1];
-        delta_scaled.z = excess * local_xz[2];
-        /* Decoded 2026-05-05 (asm 0x20F0-0x21F4, +66 insns): apply XZ-scaled
-         * delta + Y-axis homing.
-         *
-         * 0x20F0-0x2130: re-multiply (`excess * local_xz[i]`) into sp+0x60..0x68.
-         *   The whole excess*local_xz triple is recomputed here even though it
-         *   was already in `delta_scaled` above — IDO emits the muls inline at
-         *   each use site rather than spilling.
-         * 0x2134-0x2158: 12-byte fanout copy. sp+0x60..0x68 (the just-stored
-         *   scaled vec) replicated into BOTH sp+0xFC..0x108 (scratch) and
-         *   sp+0xC4..0xCC (v1 base). The interleaved ld/st pattern (a3+0 read
-         *   AFTER first sw to a3, then sw to v1+0) is IDO's load-delay-slot
-         *   scheduler shuffling, not a meaningful order dependence — both
-         *   destinations end up with identical scaled.xyz.
-         * 0x215C-0x2178: store sp+0xC4..0xCC (= scaled.xyz) to a0[0x2C..0x34].
-         *   This commits the XZ-plane translation to the entity's pos field.
-         * 0x2174 branch: `if (a0[0x40] == 2)` pick scalar a0[0xF4] (case-2
-         *   threshold), else a0[0xDC] (default threshold).
-         * 0x2188-0x21C4: SECOND-pass homing on Y axis.
-         *   Resets local_xz to (0, 1, 0) — pure Y unit vector.
-         *   y_diff = ref_v.y - self_v.y                  ; vertical distance
-         *   threshold_y = a0[0xC4]
-         *   if (y_diff < threshold_y)
-         *       y_excess = threshold_y - y_diff          ; pull upward
-         *   else
-         *       y_excess = scalar - y_diff               ; clamp down (bc1fl)
-         * 0x21C8-0x21F0: scaled_y = (0, y_excess, 0); store to sp+0x54..0x5C.
-         *   Same delta_scaled pattern as XZ but along Y. */
-        {
-            Vec3f scaled_y;
-            float y_diff, threshold_y, y_scalar, y_excess;
-            *(float*)((char*)ctx + 0x2C) = delta_scaled.x;
-            *(float*)((char*)ctx + 0x30) = delta_scaled.y;
-            *(float*)((char*)ctx + 0x34) = delta_scaled.z;
-            gl_func_00000000((char*)ctx[0x14 / 4] + 0x30, &delta_scaled);
-            y_scalar = (ctx[0x40 / 4] == 2)
-                ? *(float*)((char*)ctx + 0xF4)
-                : *(float*)((char*)ctx + 0xDC);
-            y_diff = ref_v.y - self_v.y;
-            threshold_y = *(float*)((char*)ctx + 0xC4);
-            if (y_diff < threshold_y) {
-                y_excess = threshold_y - y_diff;
-                local_xz[0] = 0.0f;
-                local_xz[1] = 1.0f;
-                local_xz[2] = 0.0f;
-                scaled_y.x = local_xz[0] * y_excess;
-                scaled_y.y = local_xz[1] * y_excess;
-                scaled_y.z = local_xz[2] * y_excess;
-                *(Vec3f*)scratch = scaled_y;
-                self_v = *(Vec3f*)scratch;
-            } else {
-                y_excess = y_scalar - y_diff;
-                local_xz[0] = 0.0f;
-                local_xz[1] = 1.0f;
-                local_xz[2] = 0.0f;
-                scaled_y.x = local_xz[0] * y_excess;
-                scaled_y.y = local_xz[1] * y_excess;
-                scaled_y.z = local_xz[2] * y_excess;
-                *(Vec3f*)scratch = scaled_y;
-                self_v = *(Vec3f*)scratch;
-            }
-            /* TODO 0x21F4-end: continued Y-homing apply + final-exit convergence.
-             * ~225 insns remain stubbed.
-             *
-             * Extended scan 2026-05-05 (0x21F4-0x227C, +34 insns characterized):
-             *   0x21F4-0x2218: ANOTHER 12-byte struct fanout copy. Reads a3+0/4/8
-             *     (= scaled_y) writes t6+0/4/8 AND t8+0/4/8 (interleaved with
-             *     pre-overwrite reads from t8 — IDO's load-delay shuffle of the
-             *     "save-old + write-new" idiom seen at 0x2090-0x20BC earlier).
-             *     Likely commits scaled_y into the entity's Y-axis vel/pos field
-             *     pair (e.g. a0+0x40 and a0+0x44, vs the XZ commit at 0x2C/0x30
-             *     above).
-             *   0x221C-0x2230: lwc1 sp+0xCC, sp+0xC8 (re-load XZ delta_scaled),
-             *     mtc1 zero / lui constant 0x3F800000 (= 1.0f) — sets up an
-             *     identity float for the next computation.
-             *   0x2234-0x2260: re-multiply excess * (0,1,0) trio (mirror of the
-             *     scaled_y compute earlier; IDO emits the muls inline at each
-             *     reuse). Stores to sp+0x110/0x114/0x118 (third copy of scaled
-             *     Y-vec).
-             *   0x2264-0x227C: lwc1 sp+0x114 / sp+0x118 (re-load Y components
-             *   from the Y-axis-scale staging slots), then begins a fanout copy
-             *   sequence (`lw t1, 0(t9); sw t1, 0(a3); lw t0, 4(t9); lw t4, 0(a3)`).
-             *   NOTE 2026-05-07: prior memo claimed `abs.s f0 (idiom for
-             *   fabs(y_excess))` at this offset, but a grep of the function's
-             *   raw bytes finds NO abs.s (funct=0x05) or neg.s (funct=0x07)
-             *   opcodes ANYWHERE — the abs claim is a decode error. The
-             *   y_excess ELSE-arm in C is `y_scalar - y_diff` (no fabs); IDO
-             *   emits two `mov.s` insns at 0x21AC/0x21B0 (funct=0x06) that
-             *   were the misread source. Don't add fabs() during the next grind.
-             *   ~190 insns still stubbed past 0x227C.
-             *
-             * Extended scan 2026-05-05 (0x227C-0x2300, +35 insns characterized):
-             *   0x2270-0x2298: triple-fanout 12-byte struct copy. Reads
-             *     a3+0/4/8 (= scaled_y replicated again) writes t9+0/4/8 AND
-             *     t2+0/4/8 (sp-relative locals). Same "save-old + write-new"
-             *     idiom as 0x21F4 earlier — y-axis scale gets committed to a
-             *     second pair of slots (likely the entity's other vel/pos
-             *     buffer for double-buffering or alternate frame).
-             *   0x229C-0x22B8: 3-mul.s scale (mul.s f6/f8/f4 = excess * (0,1,0)
-             *     re-computed inline yet again) — third inline mul of the same
-             *     identity scale, IDO chooses to emit per use site rather
-             *     than spill. Stores to sp+0x30/0x34/0x38 (yet another local
-             *     copy of scaled_y).
-             *   0x22BC-0x22D0: third triple-fanout struct copy. Reads a1+0/4/8
-             *     writes v1+0/4/8 — likely commits scaled_y to the FINAL
-             *     output pair before the late_label epilogue setup.
-             *   0x22D4-0x22EC: lwc1 sp+0x4C/sp+0x50, lui 0x4248 (50.0f scale
-             *     constant per memo header), mtc1 zero / cvt — switches to
-             *     COORDINATE-SCALE phase. Likely "scale Vec3 by 50.0f for
-             *     world->camera projection" prelude.
-             *   0x22F0+: continues with mul.s/swc1 chain — TODO. ~155 insns
-             *   remain stubbed past 0x2300.
-             *
-             * Extended scan 2026-05-05 (0x2300-0x2350, +24 insns characterized):
-             *   0x2300-0x2310: lwc1 sp+0x74/0x78/0x7C (load 3 floats from yet
-             *     ANOTHER local Vec3 buffer), swc1 sp+0x120/0x124/0x128. This
-             *     is the classic "stage Vec3 in slot N, advance to slot M"
-             *     pattern — 4th replication of a transformed Vec3 across stack
-             *     locals (the function maintains many simultaneous Vec3 working
-             *     buffers).
-             *   0x2314-0x2328: lw spilled-context-arg from sp+0x12C; sw t6 to
-             *     sp+0x180 (entity ref); swc1 f18 to sp+0x108 (sets up FPU
-             *     value into a stack slot for use across upcoming jal). Then
-             *     `jal 0` (cross-USO call) with a0 = sp+0x30 (delayed-set in
-             *     jal delay slot). Pre-call args setup spans ~6 insns.
-             *   0x232C-0x2350: post-call: lwc1 sp+0x108 reload (the FPU value
-             *     pre-spilled), lwc1 sp+0x110/0x114/0x118 (re-load Vec3),
-             *     mul.s f10 = f10 * f18 (scale by the spilled scalar from
-             *     0x108). a0 next-jal-arg = sp+0x24, a2 = sp+0xFC (yet another
-             *     local), a1 = sp+0xC4. Multiple call-arg setups in flight.
-             *
-             * Extended scan 2026-05-05 (0x2350-0x23D0, FINAL 32 insns — function tail):
-             *   0x2350-0x2360: completion of mul-trio (f0/f12/f2 = scaled output).
-             *     `addiu t4, sp, 0x148` sets up t4 = pointer to spill-area Vec3.
-             *     `mul.s f2, f6, f18` is the third scale mul.
-             *     `swc1 f0/f12/f2 → sp+0x24/0x28/0x2C` writes the scaled vec to
-             *     yet-another local Vec3 slot (the post-jal output staging area).
-             *   0x2364-0x2390: triple-fanout 12-byte struct copy with save-old-
-             *     value idiom. Reads t1+0/4/8 (a Vec3 src), writes a3+0/4/8
-             *     (canonical dest), and ALSO writes the PRE-overwrite a3+0/4/8
-             *     value to t4+0/4/8 (the just-computed pointer above). Same
-             *     "save old vec to undo buffer, write new vec" pattern as 0x2090
-             *     and 0x21F4 earlier — third instance in this function.
-             *   0x2394-0x23C0: element-wise subtract `a2[+0x2C..0x34] -= sp[+0x148..0x150]`.
-             *     a2 was reloaded from sp+0x180 spill at 0x2108 (context-arg passed
-             *     in via the original $a1 spilled then reloaded into $a2 here —
-             *     this function takes a SECOND arg used only as the late-stage
-             *     delta-output target; the explicit re-load suggests a register-
-             *     pressure crunch in the middle, not a separate variable.)
-             *     Loads sp+0x148/0x14C/0x150 (the saved-old Vec3 from the t4 dest
-             *     above), reads a2+0x2C/0x30/0x34, computes `sub.s` per-component,
-             *     stores back to a2+0x2C/0x30/0x34. C shape (decoded 2026-05-05):
-             *         a2->vec.x -= saved_old.x;
-             *         a2->vec.y -= saved_old.y;
-             *         a2->vec.z -= saved_old.z;
-             *     where saved_old = Vec3 captured pre-overwrite by the t4-fanout
-             *     idiom at 0x2364-0x2390. This commits "delta_to_caller = new_pos
-             *     - prior_pos" semantics — the function returns the Vec3 delta
-             *     applied this frame.
-             *
-             *     Implication for byte-matching: the tail delta target is the
-             *     function-local $a2 copy of a0. A prior pass misread this as an
-             *     incoming second argument; the target has no a1 save and later
-             *     reloads the spilled a2.
-             *   0x23C4-0x23D0: epilogue (`lw ra, 0x14(sp); addiu sp, +0x180; jr ra; nop`).
-             *
-             * FUNCTION DECODE COMPLETE: 383 insns characterized end-to-end.
-             * Net story: dispatch on a0[0x40] (key); for key=3, simple Vec3
-             * mirror; for key!=3, complex 2D-XZ homing + Y-axis homing combine
-             * with multiple intermediate Vec3 working buffers (the function
-             * maintains 8+ simultaneous Vec3 stack locals).
-             *
-             * Open work for future-pass byte-matching (this function will need
-             * a multi-pass grind):
-             *   1. Decompile the asm-level scaffolding into proper C (currently
-             *      stubbed in long block-comment annotations; the prior
-             *      gl_func_TODO_00001DDC stub call was removed 2026-05-07).
-             *      The critical pieces: the 3-component scale
-             *      `excess * delta_v` (XZ), the 3-component Y-axis scale
-             *      (0,1,0)*y_excess, and the multiple Vec3 fanout copies.
-             *   2. Identify the two `jal 0` call signatures (sqrt-helper at
-             *      0x1F44, normalize3 at 0x1F50, then the late jal at 0x2320
-             *      that takes `(sp+0x30, sp+0xC4, sp+0xFC)` args).
-             *   3. Match the entity-field commit chain `a0[0x2C..0x34]`,
-             *      `a0[0x44..0x4C]` (Y-vel pair?), and the `a0+0x60..0x68`
-             *      target. Likely a Vec3+Vec3 (pos + vel) pair OR pos + accum.
-             *   4. Lay out stack locals to match IDO's 0x1A8 frame: sp+0xFC scratch
-             *      sub-struct, sp+0x110-0x148 multi-Vec3 working buffers,
-             *      sp+0x148-0x150 saved-prev-pos triplet, sp+0x180 entity ref.
-             *
-             * 2026-05-20 Codex pass: moved the duplicated Y-scale arm, late
-             * gl_func dispatch, local_xz re-scale, and saved-old subtract into
-             * real C. This raised the NM body from 19.18% to 37.70%.
-             * Follow-up in that pass added the mid-body Vec3 dispatch at the
-             * 0x20B4 join and lifted the verified NM score to 38.25%.
-             * 2026-06-01 source=5 checkpoint: current verified score is 39.16%
-             * after the key==3 stack-copy work. The full asm is characterized
-             * end-to-end; the remaining gap is stack-slot layout, saved-register
-             * pressure, and fanout-copy load-delay scheduling inside branch_88,
-             * not missing late_label logic. */
-            {
-                Vec3f call_stage;
-                Vec3f post_scaled;
-                Vec3f saved_old;
-                float late_speed;
+        char *s = (char *)a0[0x38 / 4];
+        Vec3 ref_v, self_v, diff, scratch;
+        Vec3 *delta;
+        Vec3 acc, stage, vbuf, prev;
+        float speed, mag, excess, sel, yd, y_excess;
 
-                local_xz[0] = 0.0f;
-                local_xz[1] = 1.0f;
-                local_xz[2] = 0.0f;
-                call_stage.x = local_xz[0] * y_excess;
-                call_stage.y = local_xz[1] * y_excess;
-                call_stage.z = local_xz[2] * y_excess;
-                *(Vec3f*)scratch = call_stage;
+        ref_v.x = *(float *)(out + 0xA0);
+        ref_v.y = *(float *)(out + 0xA4);
+        ref_v.z = *(float *)(out + 0xA8);
 
-                gl_func_00000000((int*)&post_scaled, (int*)&self_v, (int*)scratch);
+        self_v.x = *(float *)(s + 0xA0);
+        s += 0x70;
+        self_v.y = *(float *)(s + 0x34);
+        self_v.z = *(float *)(s + 0x38);
 
-                late_speed = *(float*)((char*)ctx + 0x94);
-                post_scaled.x = local_xz[0] * late_speed;
-                post_scaled.y = local_xz[1] * late_speed;
-                post_scaled.z = local_xz[2] * late_speed;
-                saved_old = *(Vec3f*)scratch;
-                *(Vec3f*)scratch = post_scaled;
-                *(float*)((char*)ctx + 0x2C) -= saved_old.x;
-                *(float*)((char*)ctx + 0x30) -= saved_old.y;
-                *(float*)((char*)ctx + 0x34) -= saved_old.z;
-            }
+        delta = game_uso_func_000023D4(&scratch, (char *)a0);
+        self_v.x = self_v.x + delta->x;
+        self_v.y = self_v.y + delta->y;
+        self_v.z = self_v.z + delta->z;
+
+        speed = *(float *)((char *)a0 + 0x94);
+        diff.x = self_v.x - ref_v.x;
+        diff.y = 0.0f;
+        diff.z = self_v.z - ref_v.z;
+
+        mag = game_uso_func_070238(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+        game_uso_func_071028(&diff);
+
+        /* PASS 1 — planar (XZ) homing */
+        if (mag < *(float *)((char *)a0 + 0x7C)) {
+            excess = mag - *(float *)((char *)a0 + 0x7C);
+        } else {
+            excess = mag - speed;
         }
-        (void)delta_scaled;
+        stage.x = diff.x * excess;
+        stage.y = diff.y * excess;
+        stage.z = diff.z * excess;
+        *(Tri3i *)&scratch = *(Tri3i *)&stage;
+        *(Tri3i *)&vbuf = *(Tri3i *)&scratch;
+        acc.x = vbuf.x;
+        acc.y = vbuf.y;
+        acc.z = vbuf.z;
+        game_uso_func_072EE8(out + 0x30, &acc);
+
+        stage.x = diff.x * speed;
+        stage.y = diff.y * speed;
+        stage.z = diff.z * speed;
+        *(Tri3i *)&scratch = *(Tri3i *)&stage;
+        *(Tri3i *)&vbuf = *(Tri3i *)&scratch;
+        *(float *)((char *)a0 + 0x2C) = vbuf.x;
+        *(float *)((char *)a0 + 0x30) = vbuf.y;
+        *(float *)((char *)a0 + 0x34) = vbuf.z;
+
+        sel = (a0[0x40 / 4] == 2) ? *(float *)((char *)a0 + 0xF4)
+                                  : *(float *)((char *)a0 + 0xDC);
+
+        /* PASS 2 — vertical (Y) homing along {0,1,0} */
+        diff.x = 0.0f;
+        diff.y = 1.0f;
+        diff.z = 0.0f;
+        yd = ref_v.y - self_v.y;
+        if (yd < *(float *)((char *)a0 + 0xC4)) {
+            y_excess = *(float *)((char *)a0 + 0xC4) - yd;
+        } else {
+            y_excess = sel - yd;
+        }
+        stage.x = diff.x * y_excess;
+        stage.y = diff.y * y_excess;
+        stage.z = diff.z * y_excess;
+        *(Tri3i *)&scratch = *(Tri3i *)&stage;
+        *(Tri3i *)&vbuf = *(Tri3i *)&scratch;
+        acc.x = vbuf.x;
+        acc.y = vbuf.y;
+        acc.z = vbuf.z;
+        game_uso_func_072EE8(out + 0x30, &acc);
+
+        stage.x = diff.x * sel;
+        stage.y = diff.y * sel;
+        stage.z = diff.z * sel;
+        *(Tri3i *)&scratch = *(Tri3i *)&stage;
+        prev = scratch;
+        *(Tri3i *)&vbuf = *(Tri3i *)&scratch;
+        *(float *)((char *)a0 + 0x2C) -= prev.x;
+        *(float *)((char *)a0 + 0x30) -= prev.y;
+        *(float *)((char *)a0 + 0x34) -= prev.z;
     }
-    (void)excess;
-}
-late_label:
-    /* CORRECTION 2026-05-29: this label is correctly EMPTY. The prior two
-     * commits (structural-decode + source-trace of an "~80-insn late_label
-     * convergence") were WRONG — verified via the entry control flow:
-     *   insn 5  beqzl v0,0x5ec   key==0 -> epilogue (end)
-     *   insn 7  bnel  v0,at,0x88 key!=3 -> branch_88 (insns 34..377)
-     *   insns 8-30  key==3 Vec3 copy, then
-     *   insn 31 `b 0x5e8`        -> insn 378 = the EPILOGUE, directly.
-     * So the key==3 path returns straight after its copy; there is NO key==3
-     * convergence/scale/subtract. The asm region 0x4A0-0x5E4 (insns 296-377) I
-     * mis-attributed here is in fact branch_88's OWN tail (the AI-homing
-     * scale + ctx-subtract), which is already represented in the branch_88
-     * block above. `late_label` is just the C fall-through join to `end:` and
-     * needs no body. The 122-insn build gap is reg-alloc / fanout-scheduling
-     * WITHIN branch_88, not a missing late_label block. */
-end:
-    return;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00001DDC);
@@ -2148,9 +1815,7 @@ void game_uso_func_000028A8(void *a0) {
 //   body. Multi-run.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
-extern float game_uso_func_070238(float);
-extern int game_uso_func_071028();
-extern int game_uso_func_072EE8();
+/* game_uso_func_070238/071028/072EE8 declared near game_uso_func_00001DDC. */
 /* 2CC8/A0E8-family builder. mode=a0->0x40 dispatch; both arms compute a
  * delta vec, normalize (070238), transform (071028), scale by a0->0x5C,
  * emit (072EE8 -> out->0x60), then mirror out->0x60.. into out->0xA0.. */
@@ -7641,7 +7306,7 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
  * s0->0x30 in asm aren't cached (each access re-reads), which the compiler
  * will reproduce when expressed as direct field accesses below. */
 extern void game_uso_func_047B1C();
-extern int game_uso_func_071028();
+/* game_uso_func_071028 declared near game_uso_func_00001DDC. */
 int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
     int v;
     int *r;

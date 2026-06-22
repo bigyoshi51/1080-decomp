@@ -1348,24 +1348,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00002840);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000029F8);
 
 #ifdef NON_MATCHING
-/* PASS-1 2026-06-10 (big-swing): FULL m2c graft (361 insns, table-free,
- * 6.4% COP1). Hardened insert (item 22). */
+/* PASS-2 2026-06-22 (big-swing tighten): hand reconstruction from
+ * expected/ disasm. Normalized opcode-stream match 23.9% -> 51.2%.
+ * Key corrections vs PASS-1 m2c graft:
+ *   - int array spA8[4], float array spB8[4]={1,1,1,1}, sp74[4]
+ *   - obj->0x10 fields at +0x20/+0x22 are s16 (lh, not lwl/lwr)
+ *   - 0xFF color uses f32 global: (s32)(255.0f * *(f32*)&D_00000000), inline
+ *     (no CSE local -> distinct lwc1 per site, matches target)
+ *   - obj->0x1CC/0x1D0/0x1D4.. compared/used as FLOAT (c.lt.s / c.le.s / div.s)
+ *   - single-arg first call gl_func_00000000(p); single reused s1 ptr
+ *   - 0x8 / 0x20 tail blocks re-read m1C0 fresh
+ * RESIDUAL = pure register-allocation + instruction-scheduling cap (correct
+ * logic, divergent IDO coloring/scheduling; target frame -200 vs minimal -168
+ * implies extra named locals in original). Permuter not installed (multi-tick
+ * infra). Class: documented 1080 regalloc cap. */
 void gl_func_00002B94(char *arg0) {
-    f32 spC4;
-    f32 spC0;
-    f32 spBC;
-    f32 spB8;
-    s32 spA8;
+    f32 spB8[4];
+    s32 spA8[4];
     s32 spA4;
     s32 spA0;
     s32 sp9C;
     s32 sp98;
     s32 sp90;
     s32 sp8C;
-    f32 sp80;
-    f32 sp7C;
-    f32 sp78;
-    f32 sp74;
+    f32 sp74[4];
     f32 temp_f0;
     f32 temp_f12;
     f32 temp_f14;
@@ -1378,54 +1384,51 @@ void gl_func_00002B94(char *arg0) {
     s32 var_v0_3;
     char *temp_a0;
     char *temp_a1;
-    char *temp_s1;
-    char *temp_s1_2;
     char *var_s1;
-    char *var_s1_2;
 
-    temp_a1 = *(s32 *)((char *)(arg0) + 0x1F0);
+    temp_a1 = *(char **)((char *)(arg0) + 0x1F0);
     if (temp_a1 != 0) {
-        func_00000000(temp_a1, temp_a1);
-        temp_a0 = *(s32 *)((char *)(arg0) + 0x1F0);
-        *(s32 *)((char *)(arg0) + 0x44) = (s32) (*(s32 *)((char *)(arg0) + 0x1C4) - *(s32 *)((char *)(*(s32 *)((char *)(temp_a0) + 0x10)) + 0x20));
-        *(s32 *)((char *)(arg0) + 0x5C) = (s32) (*(s32 *)((char *)(arg0) + 0x1C8) - *(s32 *)((char *)(*(s32 *)((char *)(temp_a0) + 0x10)) + 0x22));
-        spC4 = 1.0f;
-        spC0 = 1.0f;
-        spBC = 1.0f;
-        spB8 = 1.0f;
-        *((s32 *)&spA8 + 0) = (s32) *(s32 *)((char *)(arg0) + 0x194);
-        *((s32 *)&spA8 + 1) = (s32) *(s32 *)((char *)(arg0) + 0x198);
-        *((s32 *)&spA8 + 2) = (s32) *(s32 *)((char *)(arg0) + 0x19C);
-        *((s32 *)&spA8 + 3) = (s32) *(s32 *)((char *)(arg0) + 0x1A0);
-        func_00000000(*(s32 *)((char *)(arg0) + 0x1F0), (s32) (255.0f * *(s32 *)((char *)&D_00000000 + 0)), &spA8, 0xFF);
-        func_00000000(*(s32 *)((char *)(arg0) + 0x1F0), *(s32 *)((char *)(arg0) + 0x44), *(s32 *)((char *)(arg0) + 0x5C), 0);
-        temp_s1 = arg0 + 0x224;
-        func_00000000(temp_s1);
-        func_00000000(temp_s1, (s32) (255.0f * *(s32 *)((char *)&D_00000000 + 0)), &spB8, 0xFF);
-        func_00000000(temp_s1, *(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0x74) + *(s32 *)((char *)(arg0) + 0xA4), *(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0x8C) + *(s32 *)((char *)(arg0) + 0xBC), 3);
-        temp_s1_2 = arg0 + 0x23C;
-        func_00000000(temp_s1_2);
-        func_00000000(temp_s1_2, (s32) (255.0f * *(s32 *)((char *)&D_00000000 + 0)), &spB8, 0xFF);
-        func_00000000(temp_s1_2, *(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0xD4) + *(s32 *)((char *)(arg0) + 0x104), *(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0xEC) + *(s32 *)((char *)(arg0) + 0x11C), 3);
-        temp_f12 = *(s32 *)((char *)(arg0) + 0x1E4);
-        temp_f2 = *(s32 *)((char *)(arg0) + 0x1EC);
+        gl_func_00000000(temp_a1);
+        temp_a0 = *(char **)((char *)(arg0) + 0x1F0);
+        *(s32 *)((char *)(arg0) + 0x44) = (s32) (*(s32 *)((char *)(arg0) + 0x1C4) - *(s16 *)((char *)(*(char **)((char *)(temp_a0) + 0x10)) + 0x20));
+        *(s32 *)((char *)(arg0) + 0x5C) = (s32) (*(s32 *)((char *)(arg0) + 0x1C8) - *(s16 *)((char *)(*(char **)((char *)(temp_a0) + 0x10)) + 0x22));
+        spB8[3] = 1.0f;
+        spB8[2] = 1.0f;
+        spB8[1] = 1.0f;
+        spB8[0] = 1.0f;
+        spA8[0] = *(s32 *)((char *)(arg0) + 0x194);
+        spA8[1] = *(s32 *)((char *)(arg0) + 0x198);
+        spA8[2] = *(s32 *)((char *)(arg0) + 0x19C);
+        spA8[3] = *(s32 *)((char *)(arg0) + 0x1A0);
+        gl_func_00000000(*(char **)((char *)(arg0) + 0x1F0), (s32) (255.0f * *(f32 *)((char *)&D_00000000 + 0)), spA8, 0xFF);
+        gl_func_00000000(*(char **)((char *)(arg0) + 0x1F0), *(s32 *)((char *)(arg0) + 0x44), *(s32 *)((char *)(arg0) + 0x5C), 0);
+        var_s1 = arg0 + 0x224;
+        gl_func_00000000(var_s1);
+        gl_func_00000000(var_s1, (s32) (255.0f * *(f32 *)((char *)&D_00000000 + 0)), spB8, 0xFF);
+        gl_func_00000000(var_s1, *(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0x74) + *(s32 *)((char *)(arg0) + 0xA4), *(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0x8C) + *(s32 *)((char *)(arg0) + 0xBC), 3);
+        var_s1 = arg0 + 0x23C;
+        gl_func_00000000(var_s1);
+        gl_func_00000000(var_s1, (s32) (255.0f * *(f32 *)((char *)&D_00000000 + 0)), spB8, 0xFF);
+        gl_func_00000000(var_s1, *(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0xD4) + *(s32 *)((char *)(arg0) + 0x104), *(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0xEC) + *(s32 *)((char *)(arg0) + 0x11C), 3);
+        temp_f12 = *(f32 *)((char *)(arg0) + 0x1E4);
+        temp_f2 = *(f32 *)((char *)(arg0) + 0x1EC);
         var_s1 = arg0 + 0x254;
         var_v0 = 2;
         temp_f0 = (f32) *(s32 *)((char *)(arg0) + 0xEC) - (f32) *(s32 *)((char *)(arg0) + 0x8C);
-        spA4 = (s32) (temp_f0 * ((*(s32 *)((char *)(arg0) + 0x1D4) - temp_f12) / temp_f2));
-        temp_f14 = *(s32 *)((char *)(arg0) + 0x1E8);
-        spA0 = (s32) (temp_f0 * ((*(s32 *)((char *)(arg0) + 0x1D8) - temp_f14) / temp_f2));
-        sp9C = (s32) (temp_f0 * ((*(s32 *)((char *)(arg0) + 0x1DC) - temp_f12) / temp_f2));
-        sp98 = (s32) (temp_f0 * ((*(s32 *)((char *)(arg0) + 0x1E0) - temp_f14) / temp_f2));
-        if (*(s32 *)((char *)(arg0) + 0x1D0) < *(s32 *)((char *)(arg0) + 0x1CC)) {
+        spA4 = (s32) (temp_f0 * ((*(f32 *)((char *)(arg0) + 0x1D4) - temp_f12) / temp_f2));
+        temp_f14 = *(f32 *)((char *)(arg0) + 0x1E8);
+        spA0 = (s32) (temp_f0 * ((*(f32 *)((char *)(arg0) + 0x1D8) - temp_f14) / temp_f2));
+        sp9C = (s32) (temp_f0 * ((*(f32 *)((char *)(arg0) + 0x1DC) - temp_f12) / temp_f2));
+        sp98 = (s32) (temp_f0 * ((*(f32 *)((char *)(arg0) + 0x1E0) - temp_f14) / temp_f2));
+        if (*(f32 *)((char *)(arg0) + 0x1D0) < *(f32 *)((char *)(arg0) + 0x1CC)) {
             var_s1 = arg0 + 0x26C;
             var_v0 = -0x10;
         }
         sp8C = var_v0;
         sp90 = -0x13;
-        func_00000000(temp_f12, temp_f14, var_s1);
-        func_00000000(var_s1, (s32) (255.0f * *(s32 *)((char *)&D_00000000 + 0)), &spB8, 0xFF);
-        func_00000000(var_s1, (*(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0x74) + spA4) - 0x13, *(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0x8C) + spA0 + sp8C, 0);
+        gl_func_00000000(var_s1);
+        gl_func_00000000(var_s1, (s32) (255.0f * *(f32 *)((char *)&D_00000000 + 0)), spB8, 0xFF);
+        gl_func_00000000(var_s1, (*(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0x74) + spA4) - 0x13, *(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0x8C) + spA0 + sp8C, 0);
         temp_v1 = *(s32 *)((char *)(arg0) + 0x1C0);
         var_v0_2 = sp8C;
         var_t0 = sp90;
@@ -1435,7 +1438,7 @@ void gl_func_00002B94(char *arg0) {
             var_v0_2 = -0xE;
             var_s1 = arg0 + 0x284;
             var_t0 = -3;
-            if (*(s32 *)((char *)(arg0) + 0x1CC) <= *(s32 *)((char *)(arg0) + 0x1D0)) {
+            if (*(f32 *)((char *)(arg0) + 0x1CC) <= *(f32 *)((char *)(arg0) + 0x1D0)) {
                 var_s1 = arg0 + 0x29C;
                 var_t0 = -3;
             } else {
@@ -1446,7 +1449,7 @@ void gl_func_00002B94(char *arg0) {
             var_s1 = arg0 + 0x2B4;
             var_t0 = -3;
             var_v0_2 = 0;
-            if (*(s32 *)((char *)(arg0) + 0x1CC) <= *(s32 *)((char *)(arg0) + 0x1D0)) {
+            if (*(f32 *)((char *)(arg0) + 0x1CC) <= *(f32 *)((char *)(arg0) + 0x1D0)) {
                 var_s1 = arg0 + 0x2CC;
                 var_t0 = -3;
                 var_v0_2 = -0xE;
@@ -1455,38 +1458,38 @@ void gl_func_00002B94(char *arg0) {
         if (var_a0 != 0) {
             sp8C = var_v0_2;
             sp90 = var_t0;
-            func_00000000(var_s1);
-            func_00000000(var_s1, (s32) (255.0f * *(s32 *)((char *)&D_00000000 + 0)), &spB8, 0xFF);
-            func_00000000(var_s1, *(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0x74) + sp9C + sp90, *(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0x8C) + sp98 + sp8C, 0);
+            gl_func_00000000(var_s1);
+            gl_func_00000000(var_s1, (s32) (255.0f * *(f32 *)((char *)&D_00000000 + 0)), spB8, 0xFF);
+            gl_func_00000000(var_s1, *(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0x74) + sp9C + sp90, *(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0x8C) + sp98 + sp8C, 0);
         }
         var_v0_3 = *(s32 *)((char *)(arg0) + 0x1C0) & 8;
         if (var_v0_3 != 0) {
-            var_s1_2 = arg0 + 0x20C;
-            if (*(s32 *)((char *)(arg0) + 0x1D0) < *(s32 *)((char *)(arg0) + 0x1CC)) {
-                var_s1_2 = arg0 + 0x1F4;
-                sp74 = 1.0f;
-                sp78 = *(f32 *)((char *)&D_00000000 + 0xCB8);
-                sp7C = *(f32 *)((char *)&D_00000000 + 0xCBC);
-                sp80 = 0.0f;
+            var_s1 = arg0 + 0x20C;
+            if (*(f32 *)((char *)(arg0) + 0x1D0) < *(f32 *)((char *)(arg0) + 0x1CC)) {
+                var_s1 = arg0 + 0x1F4;
+                sp74[0] = 1.0f;
+                sp74[1] = *(f32 *)((char *)&D_00000000 + 0xCB8);
+                sp74[2] = *(f32 *)((char *)&D_00000000 + 0xCBC);
+                sp74[3] = 0.0f;
             } else {
-                sp74 = *(f32 *)((char *)&D_00000000 + 0xCC0);
-                sp78 = *(f32 *)((char *)&D_00000000 + 0xCC4);
-                sp7C = 1.0f;
-                sp80 = 0.0f;
+                sp74[0] = *(f32 *)((char *)&D_00000000 + 0xCC0);
+                sp74[1] = *(f32 *)((char *)&D_00000000 + 0xCC4);
+                sp74[2] = 1.0f;
+                sp74[3] = 0.0f;
             }
-            func_00000000(var_s1_2);
+            gl_func_00000000(var_s1);
             *(s32 *)((char *)(arg0) + 0x134) = (s32) (*(s32 *)((char *)(arg0) + 0x44) + *(s32 *)((char *)(arg0) + 0xD4));
             *(s32 *)((char *)(arg0) + 0x14C) = (s32) ((*(s32 *)((char *)(arg0) + 0x5C) + *(s32 *)((char *)(arg0) + 0xEC)) - 0x18);
-            func_00000000(var_s1_2, (s32) (255.0f * *(s32 *)((char *)&D_00000000 + 0)), &sp74, 0xFF);
-            func_00000000(var_s1_2, *(s32 *)((char *)(arg0) + 0x134), *(s32 *)((char *)(arg0) + 0x14C), 3);
+            gl_func_00000000(var_s1, (s32) (255.0f * *(f32 *)((char *)&D_00000000 + 0)), sp74, 0xFF);
+            gl_func_00000000(var_s1, *(s32 *)((char *)(arg0) + 0x134), *(s32 *)((char *)(arg0) + 0x14C), 3);
             var_v0_3 = *(s32 *)((char *)(arg0) + 0x1C0) & 8;
         }
         if (var_v0_3 != 0) {
-            func_00000000(arg0, 0, *(s32 *)((char *)(arg0) + 0x1DC), *(s32 *)((char *)(arg0) + 0x1E0), *(s32 *)((char *)(arg0) + 0x17C));
+            gl_func_00000000(arg0, 0, *(s32 *)((char *)(arg0) + 0x1DC), *(s32 *)((char *)(arg0) + 0x1E0), *(s32 *)((char *)(arg0) + 0x17C));
         }
         if (*(s32 *)((char *)(arg0) + 0x1C0) & 0x20) {
-            func_00000000(arg0, 0, *(s32 *)((char *)(arg0) + 0x1DC), *(s32 *)((char *)(arg0) + 0x1E0), *(s32 *)((char *)(arg0) + 0x17C) - 0x6E);
-            func_00000000(arg0, 1, *(s32 *)((char *)(arg0) + 0x1D4), *(s32 *)((char *)(arg0) + 0x1D8), *(s32 *)((char *)(arg0) + 0x17C));
+            gl_func_00000000(arg0, 0, *(s32 *)((char *)(arg0) + 0x1DC), *(s32 *)((char *)(arg0) + 0x1E0), *(s32 *)((char *)(arg0) + 0x17C) - 0x6E);
+            gl_func_00000000(arg0, 1, *(s32 *)((char *)(arg0) + 0x1D4), *(s32 *)((char *)(arg0) + 0x1D8), *(s32 *)((char *)(arg0) + 0x17C));
         }
     }
 }

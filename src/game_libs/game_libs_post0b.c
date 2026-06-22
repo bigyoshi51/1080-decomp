@@ -12454,39 +12454,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042778);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042938);
 
-// gl_func_00042944 — STRUCTURAL PASS (0x78C / 488 words, no episode). Raw-.word
-// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
-// at the jr at 0x42F44 (~388 words); a SECOND substantial real function
-// (~99 words) follows at 0x42F48 — DEFERRED USO RE-SPLIT (a genuine function
-// boundary splat could not separate, NOT a stub; belongs to the next symbol).
+// gl_func_00042944 — 0x604 / 386 words, single fn, clean single prologue
+// (frame 0x58, saves ra+s0) and single epilogue at 0x42AEC (jr ra). The OLD
+// "2-function bundle / deferred re-split" note was WRONG: this fn ends at the
+// jr at 0x42AEC; the next symbol game_libs_func_00042F4C is already a SEPARATE
+// objdump entry (splat boundary is fine, NOT a bundle).
 //
-// Named fn = global table-registration / init driver (single prologue frame
-// 0x58, saves ra, s0):
-//   void gl_func_00042944(void *a0) {
-//     if (a0 == 0) return;                          // bnez-guarded entry
-//     // for several managed table entries, repeated block:
-//     base = *(void**)&D_tbl;                        // global table head
-//     n    = base->idx;                              // current count
-//     off  = n * 0x50;                               // 0x50-byte record stride
-//     base->idx = 1;                                  // set ready/flag
-//     *(void**)(0x3C938 + n*4) = entry_ptr;           // publish into a fixed
-//     *(void**)(0x3C93C + n*4) = entry_ptr2;          //   parallel global
-//                                                     //   pointer array
-//     // (multu/mflo computes n*0x50; AC2EC938 / AC2FC93C store the resolved
-//     //  record + sub-record pointers into the &0x3C938.. registry slabs;
-//     //  the block repeats per entry with the next global table head.)
-//   }
-// Builds a registry of fixed-stride (0x50-byte) records by walking one or
-// more global table heads, multiplying the per-table index by 0x50, and
-// publishing the resolved record pointers into a parallel global pointer
-// array based at *0x3C938 / *0x3C93C. Family: cb-less global
-// table-registration / init (relates to the segment's registration drivers
-// gl_func_0004182C / 000412E8). Per-entry block not exhaustively decoded
-// (388-word driver) — the a0 guard, the *0x50 stride math and the
-// &0x3C938.. publish targets are exact; the per-table-head iteration count
-// is representative. Trailing fn at 0x42F48 = real ~99-word function
-// (deferred re-split). Caps: record/table struct + the 0x3C9xx global
-// registry untyped. Full body INCLUDE_ASM-preserved.
+// WHAT IT REALLY IS: a GBI display-list / framebuffer-tile setup driver. After
+// a 3-entry conditional registry-prime (publishing record fields into the
+// &D+0x3C938.. global pointer slabs), it macro-expands ~7 gfx commands into the
+// active display-list buffer — gfxp = *(D+0x254); buf = gfxp->f158->fC; w =
+// buf->count; buf->count = w+1; *(u64*)(buf->base + w*8) = <ED/B6/B9/B7/BA cmd>.
+// The ED000000 (SetTextureImage-ish), B600/B900031D (442478), B7000000,
+// BA001402 words + two gl_func_00034458 calls + a tri/vtx block (sh stores of
+// 320*2, 240*2 scaled coords) are gDPxxx/gSPxxx emissions. Tail (when
+// D[0x1FCC8]==0) writes 3 color words into a 0x50-stride record via a
+// per-channel ((hi+c)%65535<<16)|((lo+c)%65535) blend (the div/break pairs).
+//
+// STRUCTURAL CAP — NOT LANDABLE (caller-set register convention):
+//   e4f4  bnez  t6, ...        # t6 is LIVE-IN (caller-set), no prior def
+//   e51c  sw    v1, 0(v0)      # v0 is LIVE-IN (caller-set), no prior def
+// The very first basic block is `if (t6==0) { *v0 = 1; ... }` where t6 and v0
+// are caller-set non-ABI registers (not a0-a3, not a return value — there is no
+// prior call). IDO C cannot read an uninitialized v0/t6 nor pin a value to a
+// specific register without emitting materialization insns that change the
+// bytes, and this entry-block divergence cascades through v0/v1/t6 allocation
+// for the whole body. Documented cap class:
+// feedback_caller_set_int_reg_cap_1080_game_libs ("1080 game_libs uses
+// caller-set $v0/$v1/$t6 as state-ptr args; IDO C can't reproduce"). Permanent
+// INCLUDE_ASM. Best honest reconstruction = the m2c graft below (fuzzy 60.87%);
+// fuzzy=100 is unreachable, so this stays NON_MATCHING (no episode). Family:
+// gfx-list setup drivers; the &D+0x3C938.. slabs + 0x50-stride record untyped.
 #ifdef NON_MATCHING
 /* PASS-1 2026-06-10 (big-swing): FULL m2c graft (386 insns, table-free,
  * 3.6% COP1). */
