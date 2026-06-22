@@ -1177,7 +1177,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
 //   frame s0-s8 schedule. Name pre-checked: no extern reuse
 //   (collision-safe). gl_func_00000000 = canonical never-defined USO
 //   placeholder for the leaf glyph/sprite draws.
-// gl_func_0001E134 — FULL m2c DECODE (56.24% NM, no episode). Largest non-jumptable lift yet (849w); game_libs control-flow via scripts/lift-uso-controlflow.py.
+// gl_func_0001E134 — FULL m2c DECODE (57.2% NM, no episode). Largest non-jumptable lift yet (849w); texture-tile DMA dlist builder, 22 K&R variadic emits to game_libs_func_0003443C + 1 gl_func_0001CA10 alloc, 5 nested irregular switches.
+// Reloc-form fix pass (agent-d 2026-06-22): absolute D_BASE derefs (*(s32*)0x2CFC, *(s32*)0x10) -> FW(&D_00000000, off) so HI16/LO16 relocs emit (matches target lui/lw). Reloc-filtered word-cmp vs expected: 812->790 non-reloc diffs, size gap -14->-13 words.
+// CAP: frame still -504 (m2c) vs -352 (target); m2c over-spills ~19 temps the original kept in registers, mis-aligning the entire 800-word body. Landing needs exact-structure RE of the register/spill set (multi-session). No sibling in this builder family (DCB4 57%) has matched.
 #ifdef NON_MATCHING
 
 
@@ -1296,7 +1298,7 @@ s32 *gl_func_0001E134(s32 arg0, u8 *arg1, u8 *arg2, int arg3, u32 arg4, s32 *arg
     sp8C = (u32) (temp_v1 << 0xB) >> 0x1E;
     var_t3 = (u32) (temp_v1 * 4) >> 0x1F;
     var_t1 = 0;
-    temp_a3 = (arg0 * 0xD0) + *(s32 *)0x2CFC;
+    temp_a3 = (arg0 * 0xD0) + FW(&D_00000000, 0x2CFC);
     if (((u32) (temp_v1 * 2) >> 0x1F) == 1) {
         *(u8*)((char*)arg2 + 0x0) = 0;
         FW(arg2, 0x8) = 0;
@@ -1367,22 +1369,22 @@ block_11:
             }
             if ((temp_t0_2 == 0) || (temp_t0_2 == 3)) {
                 temp_v0_3 = FW(sp150, 0xC) + 8;
-                if (*(s32 *)0x10 != temp_v0_3) {
+                if (FW(&D_00000000, 0x10) != temp_v0_3) {
                     switch (sp8C) {                 /* switch 1; irregular */
                     case 1:                         /* switch 1 */
-                        *(char *)0x10 = 2;
+                        *(s8 *)((char*)&D_00000000 + 0x10) = 2;
                         break;
                     default:                        /* switch 1 */
                     case 2:                         /* switch 1 */
                     case 3:                         /* switch 1 */
-                        *(char *)0x10 = temp_v0_3;
+                        *(s8 *)((char*)&D_00000000 + 0x10) = temp_v0_3;
                         break;
                     }
                     temp_v0_4 = FW(sp150, 0xC);
                     temp_v1_2 = var_s3_2;
                     var_s3_2 += 8;
                     FW(temp_v1_2, 0x0) = ((FW(temp_v0_4, 0x0) * 0x10 * FW(temp_v0_4, 0x4)) & 0xFFFFFF) | 0x0B000000;
-                    FW(temp_v1_2, 0x4) = (s32) (*(char *)0x10 + 0x80000000);
+                    FW(temp_v1_2, 0x4) = (s32) (*(s8 *)((char*)&D_00000000 + 0x10) + 0x80000000);
                     var_a0 = sp50;
                 }
             }
@@ -16160,11 +16162,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
  * M2C-unset), and several int-vs-float load typings (0x1C310 / 0x1C430 /
  * data+0x14 reader). RESIDUAL: IDO (s32)/(u32)float cfc1/ctc1/cvt.w.s
  * rounding idioms + the -0xF0-vs-0x80 frame inflation (m2c-graft spills)
- * = documented regalloc/frame cap; byte-match still deferred. */
+ * = documented regalloc/frame cap; byte-match still deferred.
+ *
+ * PASS-4 2026-06-22 (big-swing, objdiff 54.5 -> 69.2% on this fn):
+ *   (1) DISTINCT-EXTERN CSE-DEFEAT. The whole file collapsed every distinct
+ *       global into one `&D_00000000`, letting IDO CSE the base address into a
+ *       held register (a2) and reuse it across reads that the target re-emits
+ *       as fresh lui/lw. The first region (cfg/stateB/stateC/stateD reads) now
+ *       uses distinct externs D_cfg/D_stateB/D_stateC/D_stateD_E354 (+ D_stateF
+ *       for the 0x28 sub-switch, D_stateE for the final 0x44C38 gate). This
+ *       re-aligned the prologue + early state machine: the structural
+ *       divergence point moved from word 0 to word 41 (early region now
+ *       matches except for 3 local micro-scheduling diffs in the ||-chain).
+ *   (2) FP-REDUCTION PRODUCT-FIRST. The o->0x44 update product
+ *       (o->0x0 * o->0x4 * 100) is now computed into temp_f18 BEFORE the
+ *       o->0x32 block (matching target 11a34/11a40) so temp_f14 (orig o->0x4)
+ *       dies early instead of spilling across the block; o->0x4 is re-read
+ *       after the block (matching target 11a90).
+ *   REMAINING (still-deferred cap): the -0xF0-vs-0x80 frame inflation. The
+ *   body still allocates 19 sp slots vs the target's 13 (~6 extra m2c spill
+ *   temps), so every sp-relative offset in the 880-word main region is shifted
+ *   by 0x70 and can't byte-align until the frame shrinks. Cracking it needs
+ *   aggressive variable-economy coalescing of the var_f0_N / temp_v0_N temp
+ *   families into the target's reused-register set + the ||-chain beql/li-at
+ *   regalloc idiom. Byte-match deferred; NM wrap (no episode). */
 extern int gl_func_000428FC();
 extern int gl_func_00043824();
 extern int gl_func_000438F4();
 extern int gl_func_00044C38();
+/* Distinct global symbols (offset-0 reads). The target re-emits a fresh
+ * lui/lw for each because they are SEPARATE globals; collapsing them into one
+ * &D_00000000 lets IDO CSE the base into a held register (frame/regalloc
+ * divergence). Distinct externs defeat that CSE. */
+extern s32 D_cfg_E354;      /* config word (v0): 0=idle, 4=special */
+extern s32 D_stateB_E354;   /* state word B (t9): ==1 -> clear o->0x23 */
+extern s32 D_stateC_E354;   /* state word C (v1): 1/2/3 sub-state gate */
+extern s32 D_stateD_E354;   /* state word D (t1): ==1 -> early return */
+extern s32 D_stateF_E354;   /* state word F (t7): ==4 -> o->0x28 sub-switch */
+extern s32 D_stateE_E354;   /* state word E (t6): ==1 -> final 0x44C38 gate */
 void gl_func_0002E354(char *arg0, s32 arg1) {
     u8 sp7D;
     f32 sp78;
@@ -16178,6 +16213,7 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
     f32 temp_f10_2;
     f32 temp_f14;
     f32 temp_f16;
+    f32 temp_f18;
     f32 temp_f2;
     f32 temp_f4;
     f32 var_f0;
@@ -16223,24 +16259,30 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
     u8 temp_v1_6;
     u8 var_v0_2;
 
-    temp_v0 = *(s32 *)((char *)&D_00000000 + 0);
+    temp_v0 = D_cfg_E354;
     sp64 = 1.0f;
     sp60 = 1.0f;
     if (temp_v0 != 0) {
-        if ((temp_v0 == 4) && ((temp_v1 = *(s32 *)((char *)&D_00000000 + 0), (temp_v1 == 1)) || (temp_v1 == 2) || (temp_v1 == 3)) && (*(u8 *)((char *)(arg0) + 0x1C) == 1) && (*(u8 *)((char *)(arg0) + 0x21) == 0)) {
-            *(u8 *)((char *)(arg0) + 0x21) = 2U;
-            *(f32 *)((char *)(arg0) + 0x54) = 0.0f;
+        if (temp_v0 == 4) {
+            temp_v1 = D_stateC_E354;
+            if (((temp_v1 == 1) || (temp_v1 == 2) || (temp_v1 == 3)) && (*(u8 *)((char *)(arg0) + 0x1C) == 1) && (*(u8 *)((char *)(arg0) + 0x21) == 0)) {
+                *(u8 *)((char *)(arg0) + 0x21) = 2U;
+                *(f32 *)((char *)(arg0) + 0x54) = 0.0f;
+            }
         }
-        if (*(s32 *)((char *)&D_00000000 + 0) == 1) {
+        if (D_stateB_E354 == 1) {
             *(u8 *)((char *)(arg0) + 0x23) = 0U;
             return;
         }
-        if ((*(s32 *)((char *)&D_00000000 + 0) != 1) && (*(u8 *)((char *)(arg0) + 0x23) != 0)) {
+        if ((D_stateD_E354 != 1) && (*(u8 *)((char *)(arg0) + 0x23) != 0)) {
             if (*(u8 *)((char *)(arg0) + 0x20) == 0) {
                 func_00000000(arg0);
                 return;
             }
             temp_f14 = *(f32 *)((char *)(arg0) + 0x4);
+            /* product-first: compute o->0x0 * o->0x4 * 100 BEFORE the o->0x32
+             * block so temp_f14 (orig o->0x4) dies early and need not spill. */
+            temp_f18 = *(f32 *)((char *)(arg0) + 0x0) * temp_f14 * 100.0f;
             temp_v1_2 = *(u8 *)((char *)(arg0) + 0x32);
             *(u8 *)((char *)(arg0) + 0x20) = 0U;
             temp_v0_2 = temp_v1_2 * 4;
@@ -16251,6 +16293,7 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                 *(u8 *)((char *)(arg0) + 0x32) = (u8) (temp_v1_2 - 1);
                 *(f32 *)((char *)(arg0) + 0x4) = (f32) (temp_f14 * temp_f0);
             }
+            temp_f14 = *(f32 *)((char *)(arg0) + 0x4);
             temp_f16 = *(f32 *)((char *)(arg0) + 0x50);
             temp_f0 = temp_f16 - *(f32 *)((char *)(arg0) + 0x0);
             if (0.5f <= temp_f0) {
@@ -16261,7 +16304,7 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                 sp60 *= var_f0;
             }
             *(f32 *)((char *)(arg0) + 0x50) = (f32) ((temp_f16 + *(f32 *)((char *)(arg0) + 0x0)) * 0.5f);
-            *(f32 *)((char *)(arg0) + 0x44) = (f32) ((*(f32 *)((char *)(arg0) + 0x44) + (*(f32 *)((char *)(arg0) + 0x0) * temp_f14 * 100.0f)) * 0.5f);
+            *(f32 *)((char *)(arg0) + 0x44) = (f32) ((*(f32 *)((char *)(arg0) + 0x44) + temp_f18) * 0.5f);
             sp7D = gl_func_00043824(*(f32 *)((char *)(arg0) + 0x4) * 120.0f, *(f32 *)((char *)(arg0) + 0x4), 1, (s32)((char *)&D_00000000 + 0x1C250), 0x10);
             temp_f2 = *(f32 *)((char *)(arg0) + 0x0);
             temp_t7 = (gl_func_00043824(*(f32 *)((char *)(arg0) + 0x44), (s32)((char *)&D_00000000 + 0x1C290), 0x20) * 4) & 0xFF;
@@ -16331,7 +16374,7 @@ void gl_func_0002E354(char *arg0, s32 arg1) {
                     var_f0_2 = func_00000000(0x0D00FF00, 0x3000);
                 }
             } else {
-                if (*(s32 *)((char *)&D_00000000 + 0) == 4) {
+                if (D_stateF_E354 == 4) {
                     temp_a0_2 = *(u8 *)((char *)(arg0) + 0x21);
                     switch (temp_a0_2) {            /* switch 2; irregular */
                     case 0:                         /* switch 2 */
@@ -16615,7 +16658,7 @@ block_83:
                 }
                 gl_func_000438F4(arg0);
             }
-            if ((*(s32 *)((char *)&D_00000000 + 0) == 1) && (*(u8 *)((char *)(arg0) + 0x21) == 0)) {
+            if ((D_stateE_E354 == 1) && (*(u8 *)((char *)(arg0) + 0x21) == 0)) {
                 gl_func_00044C38((s32) ((*(f32 *)((char *)(arg0) + 0x10) + 1.0f) * 63.5f));
             }
         }
