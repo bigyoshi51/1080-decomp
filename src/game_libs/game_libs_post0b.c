@@ -18621,7 +18621,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B620);
 // Caps (DEFERRED): &D_g/&D_g2 struct and cb signatures untyped;
 //   per-pass body not decoded (423-word driver). Real-C STRUCTURAL
 //   body below — snapshot + init + null-guard + FP scale skeleton
-//   only. Byte-match deferred. Name pre-checked: no extern reuse.
+//   only. Name pre-checked: no extern reuse.
+// 2026-06-22 (agent-b): float-type + integer-compare corrections drove
+//   52.76% -> 60.91% (base 455->426 insns vs target 423). Fixes: arg0
+//   fields +0xB0/+0xB4/+0xB8/+0xBC/+0xC8 are f32 (lwc1, not lw+cvt);
+//   arg0+0xC0 and temp_t2+0x20/+0x22 are s16 (lh); the bounds-check
+//   temp_a2 is s32 so the >= guards emit integer slt (target) not c.le.s.
+//   RESIDUAL = documented hard cap: target SPILLS arg0 to sp+0xF0 and
+//   re-reads it (vs my $16-saved hold) + the &D config base is folded as
+//   &D+0xA0 in the symbol reloc (vs &D + inline +0xA0 offset). Both drive
+//   the frame 0xF0(target) vs 0x168(mine) divergence — cross-call coloring
+//   + base-fold, not missing logic.
 #ifdef NON_MATCHING
 extern int gl_func_00034458();
 void gl_func_0004BAF4(char *arg0) {
@@ -18639,7 +18649,7 @@ void gl_func_0004BAF4(char *arg0) {
     s32 sp7C;
     s32 sp78;
     s32 sp74;
-    f32 temp_a2;
+    s32 temp_a2;
     f32 *temp_a2_4;
     f32 *temp_a3;
     f32 *temp_a3_2;
@@ -18707,30 +18717,30 @@ void gl_func_0004BAF4(char *arg0) {
     spE8 = *(f32 *)(g + 0xA0 + 0x34);
     spEC = *(f32 *)(g + 0xA0 + 0x38);
     if (gl_func_00034458(*(void **)(g + 0x254), &spE4, 1, &spA0) != 0) {
-        temp_f16 = (s32) (((spEC + 1.0f) * 16384.0f) + (*(s32 *)(arg0 + 0xC8)));
+        temp_f16 = (s32) (((spEC + 1.0f) * 16384.0f) + (*(f32 *)(arg0 + 0xC8)));
         if ((*(s32 *)(arg0 + 0xC4)) != 0) {
             temp_f0 = (f32) ((f64) (f32) (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xBC)) * 0.5 * (f64) spA0);
-            var_f2 = (*(s32 *)(arg0 + 0xB0)) * temp_f0;
-            var_f12 = (*(s32 *)(arg0 + 0xB4)) * temp_f0;
+            var_f2 = (*(f32 *)(arg0 + 0xB0)) * temp_f0;
+            var_f12 = (*(f32 *)(arg0 + 0xB4)) * temp_f0;
         } else {
-            var_f2 = (*(s32 *)(arg0 + 0xB0));
-            var_f12 = (*(s32 *)(arg0 + 0xB4));
+            var_f2 = (*(f32 *)(arg0 + 0xB0));
+            var_f12 = (*(f32 *)(arg0 + 0xB4));
         }
-        temp_t2 = *(s32 *)((*(s32 *)(arg0 + 0x84)) + ((*(s32 *)(arg0 + 0xC0)) * 4));
-        temp_f6 = spE4 - ((f32) ((s16) (*(s32 *)(temp_t2 + 0x20)) >> 1) * var_f2);
+        temp_t2 = *(s32 *)((*(s32 *)(arg0 + 0x84)) + ((*(s16 *)(arg0 + 0xC0)) * 4));
+        temp_f6 = spE4 - ((f32) ((*(s16 *)(temp_t2 + 0x20)) >> 1) * var_f2);
         spE4 = temp_f6;
-        temp_f4 = spE8 - ((f32) ((s16) (*(s32 *)(temp_t2 + 0x22)) >> 1) * var_f12);
+        temp_f4 = spE8 - ((f32) ((*(s16 *)(temp_t2 + 0x22)) >> 1) * var_f12);
         spE8 = temp_f4;
-        temp_f18 = temp_f6 + (*(s32 *)(arg0 + 0xB8));
+        temp_f18 = temp_f6 + (*(f32 *)(arg0 + 0xB8));
         spE4 = temp_f18;
         temp_f6_2 = (s32) temp_f18;
-        temp_f16_2 = temp_f4 + (*(s32 *)(arg0 + 0xBC));
+        temp_f16_2 = temp_f4 + (*(f32 *)(arg0 + 0xBC));
         temp_f10 = (s32) temp_f16_2;
         spE8 = temp_f16_2;
         sp80 = temp_f6_2;
         sp7C = temp_f10;
-        sp78 = (s32) (*(s32 *)(temp_t2 + 0x20));
-        sp74 = (s32) (*(s32 *)(temp_t2 + 0x22));
+        sp78 = (s32) (*(s16 *)(temp_t2 + 0x20));
+        sp74 = (s32) (*(s16 *)(temp_t2 + 0x22));
         temp_a2 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xC0));
         if ((temp_a2 + (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xB8))) >= temp_f6_2) {
             temp_t0 = (*(s32 *)((char *)(*(s32 *)(g + 0x254)) + 0xC4));
@@ -22449,36 +22459,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00050444);
  * Residual (~78 insns, 34.6%): the target keeps extra redundant Vec3
  * scratch copies (sp124->sp134->sp104 second-stage) that IDO still
  * collapses here, plus 3 fewer div.s; deep per-copy scheduling. */
-/* PASS-3 2026-06-22 (agent-e, ANALYSIS — no land, body unchanged):
- * Pinpointed the exact residual. The "-0x250 exact" claim in PASS-2 is
- * STALE: the current build emits frame -584 (-0x248), target is -592
- * (-0x250) => 8 bytes / 2 slots short. `volatile int pad` (first local)
- * is ELIDED at -O2 here (does NOT grow the frame) because the 80-local
- * set already saturates coloring; the pad-first lever does not apply.
+/* PASS-4 2026-06-22 (agent-e): NM-% 65.37 -> 66.52. Two correctness
+ * fixes to the recursive-call arg lists (NOT a structural rewrite). The
+ * PASS-3 "shared-scratch rewrite" hypothesis was a RED HERRING — verified
+ * against a full region-by-region decode of the target (scripts/disasm-raw.py):
  *
- * Root cause of the 78-insn gap = WRONG midpoint data-flow + NON-shared
- * scratch. Target div.s count = 19; this build = 12 (missing 7).
- * Target structure is 6 EDGE-MIDPOINTS, each:
- *   (1) sum vtxA+vtxB (3 add.s) -> scratch vec3 @ sp+336/340/344 (base t8)
- *   (2) lw/sw word-copy scratch -> sp+356 (v0) -> sp+580 (t1)
- *   (3) HALVE: div.s sp+580/584/588 by 2.0 (f14) -> sp+292/296/300 (t4)
- *   (4) lw/sw word-copy sp+292 -> sp+308 (v1) -> sp+260 (a0)
- *   (5) lwc1 sp+260/264/268 -> swc1 to the per-edge OUTPUT slot
- *       (516/512/508, then 504/500/496, ... one block per edge).
- * The SAME scratch slots (260/292/308/336/356/568/580) are REUSED across
- * all 6 edges; only the output slot advances. THIS build allocated a
- * fresh slot-set per edge (sp150/sp12C/spF8/spEC/...) => frame too big in
- * one axis, and the divides read the WRONG slots (e.g. `sp12C=sp24C/two`
- * where sp24C is not the summed vec) => 7 missing/misrouted div.s.
- * Halved div count + per-edge slot duplication = the entire residual.
+ *  - The m2c-faithful midpoint body is already CORRECT. Each of the 6 edges
+ *    is sum(vtxA+vtxB) -> word-copy via the SHARED v0(356)/v1(308)/a0(260)
+ *    buffers -> div.s by 2.0 -> store to the per-edge OUTPUT slot
+ *    (E1..E6 = sp1FC/1F0/1E4/1D8/1CC/1C0). The sums/divs/outputs all map
+ *    to the right slots; the m2c divisor is a `f32 two` VARIABLE (not the
+ *    literal 2.0f, which IDO strength-reduces to *0.5 => 0 div.s).
+ *  - Edge vtx pairs (verified): E1=V0+V1, E2=V1+V2, E3=V2+V0, E4=V3+V4,
+ *    E5=V4+V5, E6=V5+V3 (V0=arg7,V1=arg10,V2=arg13,V3=arg16,V4=arg19,V5=arg22).
+ *  - a2!=0 arm: 4 recursive calls, each func(arg0..arg6, <6 Vec3 triples>).
+ *    Call1 had a bogus `temp_f12, 0x40000000` scalar prefix (paraphrase
+ *    artifact from the guard); calls 2-4 were already exact. Fixed Call1.
+ *  - a2==0 arm: 6 leaf calls func(arg1,arg3,&vtxA,&vtxB,arg4) -> sp18C..sp178,
+ *    then 4 emit calls func(arg3,arg5,resX,resY,resZ,arg6). Leaf call1 had
+ *    the same bogus prefix; fixed. Calls 2-6 + all 4 emit calls already exact.
  *
- * TO LAND (next pass): rewrite as a single repeated edge-statement
- * pattern over ONE shared set of named scratch locals (sum->copy->halve
- * ->copy->store) so IDO reuses the 7 scratch slots and emits all 19
- * div.s; then the held base-pointers (t8/v0/t1/t4/v1/a0/t2) fall out and
- * the frame returns to -592. Held-pointer coloring is the only residual
- * left after that. NOT attempted here to avoid regressing the 65%
- * committed state mid-rewrite. */
+ * REMAINING RESIDUAL = pure IDO stack-coloring cap, NOT a C-structure bug:
+ *  (a) frame -576 vs target -592: the target allocates edge1's div-input
+ *      buffer (sp244/248/24C = sp+580/584/588) at the TOP of the frame,
+ *      16 bytes higher than IDO chooses for this C. The slot is dead after
+ *      its divide, so IDO packs it into a freed lower slot. Decl-order
+ *      reordering does NOT move it at -O2 (tested). This 16-byte difference
+ *      cascades every sp+offset, killing the line-level match.
+ *  (b) div.s 12 vs 19: FP register pressure makes IDO CSE/spill some of the
+ *      18 edge divides. `volatile f32 two` forces all 19 but adds reload
+ *      insns each div => net WORSE (60.6%). Held-f14-divisor is a coloring
+ *      outcome of the original source's reg pressure, not reproducible via C.
+ * Both are coloring/frame-layout outcomes. No C-level lever found that
+ * recovers the 16-byte frame without regressing the metric. Leaving
+ * NON_MATCHING at the improved 66.52%. */
 s32 gl_func_0005062C(volatile s32 arg0, volatile s32 arg1, volatile s32 arg2, volatile s32 arg3, volatile s32 arg4, volatile s32 arg5, volatile s32 arg6, f32 arg7, f32 arg8, f32 arg9, f32 arg10, f32 arg11, f32 arg12, f32 arg13, f32 arg14, f32 arg15, f32 arg16, f32 arg17, f32 arg18, f32 arg19, f32 arg20, f32 arg21, f32 arg22, f32 arg23, f32 arg24) {
     f32 sp108; f32 sp10C; f32 sp1A0; f32 sp1A4; f32 sp1AC; f32 sp1B0; f32 sp1B8; f32 sp1BC; f32 sp20C; f32 sp210; f32 sp218; f32 sp21C; f32 sp224; f32 sp228; f32 sp230; f32 sp234; f32 sp23C; f32 sp240; f32 sp248; f32 sp24C;
     f32 sp244;
@@ -22755,12 +22769,12 @@ s32 gl_func_0005062C(volatile s32 arg0, volatile s32 arg1, volatile s32 arg2, vo
     sp1C0 = sp104;
     if (temp_a2 != 0) {
         arg2 = temp_a2;
-        func_00000000(temp_f12, 0x40000000, arg0, arg1, temp_a2, arg3, arg4, arg5, arg6, *((s32 *)&arg7 + 0), *((s32 *)&arg7 + 1), *((s32 *)&arg7 + 2), *((s32 *)&sp1FC + 0), *((s32 *)&sp1FC + 1), *((s32 *)&sp1FC + 2), *((s32 *)&sp1E4 + 0), *((s32 *)&sp1E4 + 1), *((s32 *)&sp1E4 + 2), *((s32 *)&arg16 + 0), *((s32 *)&arg16 + 1), *((s32 *)&arg16 + 2), *((s32 *)&sp1D8 + 0), *((s32 *)&sp1D8 + 1), *((s32 *)&sp1D8 + 2), *((s32 *)&sp1C0 + 0), *((s32 *)&sp1C0 + 1), *((s32 *)&sp1C0 + 2));
+        func_00000000(arg0, arg1, arg2, arg3, arg4, arg5, arg6, *((s32 *)&arg7 + 0), *((s32 *)&arg7 + 1), *((s32 *)&arg7 + 2), *((s32 *)&sp1FC + 0), *((s32 *)&sp1FC + 1), *((s32 *)&sp1FC + 2), *((s32 *)&sp1E4 + 0), *((s32 *)&sp1E4 + 1), *((s32 *)&sp1E4 + 2), *((s32 *)&arg16 + 0), *((s32 *)&arg16 + 1), *((s32 *)&arg16 + 2), *((s32 *)&sp1D8 + 0), *((s32 *)&sp1D8 + 1), *((s32 *)&sp1D8 + 2), *((s32 *)&sp1C0 + 0), *((s32 *)&sp1C0 + 1), *((s32 *)&sp1C0 + 2));
         func_00000000(arg0, arg1, arg2, arg3, arg4, arg5, arg6, *((s32 *)&sp1FC + 0), *((s32 *)&sp1FC + 1), *((s32 *)&sp1FC + 2), *((s32 *)&arg10 + 0), *((s32 *)&arg10 + 1), *((s32 *)&arg10 + 2), *((s32 *)&sp1F0 + 0), *((s32 *)&sp1F0 + 1), *((s32 *)&sp1F0 + 2), *((s32 *)&sp1D8 + 0), *((s32 *)&sp1D8 + 1), *((s32 *)&sp1D8 + 2), *((s32 *)&arg19 + 0), *((s32 *)&arg19 + 1), *((s32 *)&arg19 + 2), *((s32 *)&sp1CC + 0), *((s32 *)&sp1CC + 1), *((s32 *)&sp1CC + 2));
         func_00000000(arg0, arg1, arg2, arg3, arg4, arg5, arg6, *((s32 *)&sp1E4 + 0), *((s32 *)&sp1E4 + 1), *((s32 *)&sp1E4 + 2), *((s32 *)&sp1F0 + 0), *((s32 *)&sp1F0 + 1), *((s32 *)&sp1F0 + 2), *((s32 *)&arg13 + 0), *((s32 *)&arg13 + 1), *((s32 *)&arg13 + 2), *((s32 *)&sp1C0 + 0), *((s32 *)&sp1C0 + 1), *((s32 *)&sp1C0 + 2), *((s32 *)&sp1CC + 0), *((s32 *)&sp1CC + 1), *((s32 *)&sp1CC + 2), *((s32 *)&arg22 + 0), *((s32 *)&arg22 + 1), *((s32 *)&arg22 + 2));
         func_00000000(arg0, arg1, arg2, arg3, arg4, arg5, arg6, *((s32 *)&sp1FC + 0), *((s32 *)&sp1FC + 1), *((s32 *)&sp1FC + 2), *((s32 *)&sp1F0 + 0), *((s32 *)&sp1F0 + 1), *((s32 *)&sp1F0 + 2), *((s32 *)&sp1E4 + 0), *((s32 *)&sp1E4 + 1), *((s32 *)&sp1E4 + 2), *((s32 *)&sp1D8 + 0), *((s32 *)&sp1D8 + 1), *((s32 *)&sp1D8 + 2), *((s32 *)&sp1CC + 0), *((s32 *)&sp1CC + 1), *((s32 *)&sp1CC + 2), *((s32 *)&sp1C0 + 0), *((s32 *)&sp1C0 + 1), *((s32 *)&sp1C0 + 2));
     } else {
-        sp18C = func_00000000(temp_f12, 0x40000000, arg1, arg3, &arg7, &arg16, arg4);
+        sp18C = func_00000000(arg1, arg3, &arg7, &arg16, arg4);
         sp188 = func_00000000(arg1, arg3, &arg10, &arg19, arg4);
         sp184 = func_00000000(arg1, arg3, &arg13, &arg22, arg4);
         sp180 = func_00000000(arg1, arg3, &sp1FC, &sp1D8, arg4);
