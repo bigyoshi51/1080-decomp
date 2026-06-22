@@ -10829,27 +10829,48 @@ void game_libs_func_00027DC0(char *a0) {
 //   per-frame "process every sprite record" passes of that subsystem
 //   (sibling to gl_func_0001E134's builder / gl_func_0001FAE8's
 //   reactivate sweep).
-// Caps (DEFERRED): raw-word USO + heavy per-record loop with FP +
-//   jal-0 USO-reloc calls — byte-match needs USO mnemonic disasm +
-//   the reloc-pad jal infra. Real-C STRUCTURAL body below per the
-//   analysis (placeholder calls / fields). Byte-match deferred.
+// DECODE PROGRESS 2026-06-22: 54.5% -> 73.5% fuzzy; size gap 56w -> ~0
+//   (262w -> 317w vs target 318w). Two structural decode fixes:
+//   (1) func_3be70 arg buffer sp+0x64..0x7A was modelled as separate
+//       scalar locals -> IDO DCE'd every store but &sp64 (only one read
+//       by address). Replaced with a single contiguous `struct buf64`
+//       passed as &buf; all stores now survive (+~50 insns recovered).
+//       Layout: u8 b0..b3, f32 f4/f8, gap[4], s32 w10, u8 b14, pad, u16 h16.
+//       Field types corrected from mnemonics (lbu=u8, lwc1=f32, lhu=u16).
+//   (2) base &D_0 was rematerialised (8x lui/lo16) instead of held in a
+//       saved reg like the target (s6). `g = &D_0 + (s32)&D_0` forces the
+//       address into a saved reg (1 reload) without a volatile spill.
+//   FP mul.s chain + buf.f4-stored-twice pattern now matches structurally.
+// Caps (RESIDUAL, regalloc-class): remaining ~26% is pure register-
+//   renumber + frame-layout cascade — base reg (mine s3 vs target s6),
+//   *13 as li/multu vs target shift-add strength-reduction, 0x20000000
+//   held-const vs target inline sll-2/bgez bit-test, frame 168 vs 152.
+//   Correct logic, divergent coloring: the documented per-function-RE-only
+//   cap class. jal-0 USO-reloc calls (gl_func_0001CA10/func_3be70/3d414)
+//   credited via placeholder convention. Byte-match deferred.
 //   STALE bundle-note: grep -c 03E00008 = 1 (.s is single fn now).
 //   Name pre-checked: no extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int func_3be70();
 extern int func_3d414();
 extern int gl_func_0001CA10();
+struct buf64 {
+    u8  b0;        /* +0x00 (sp+0x64) */
+    u8  b1;        /* +0x01 (sp+0x65) */
+    u8  b2;        /* +0x02 (sp+0x66) */
+    u8  b3;        /* +0x03 (sp+0x67) */
+    f32 f4;        /* +0x04 (sp+0x68) */
+    f32 f8;        /* +0x08 (sp+0x6C) */
+    u8  pad0C[4];  /* +0x0C (sp+0x70) */
+    s32 w10;       /* +0x10 (sp+0x74) */
+    u8  b14;       /* +0x14 (sp+0x78) */
+    u8  pad15;     /* +0x15 (sp+0x79) */
+    u16 h16;       /* +0x16 (sp+0x7A) */
+};
+
 void gl_func_00027E24(void) {
-    char *g = (char *)&D_00000000;
-    u16 sp7A;
-    u8 sp78;
-    s32 sp74;
-    f32 sp6C;
-    f32 sp68;
-    u8 sp67;
-    u8 sp66;
-    u8 sp65;
-    u8 sp64;
+    char *g = (char *)&D_00000000 + (s32)&D_00000000;
+    struct buf64 buf;
     u8 sp63;
     f32 sp5C;
     f32 temp_f18;
@@ -10971,44 +10992,44 @@ block_37:
                         temp_v0_2 = (*(u8 *)(var_s0 + 0x4));
                         if ((temp_v0_2 == 1) || (temp_v0_2 == 2)) {
                             temp_v0_3 = var_s0 + 0x1C;
-                            sp68 = (*(s32 *)(temp_v0_3 + 0x8));
-                            sp6C = (*(s32 *)(temp_v0_3 + 0xC));
-                            sp66 = (*(s32 *)(temp_v0_3 + 0x2));
-                            sp64 = (*(s32 *)(var_s0 + 0x1C));
-                            sp67 = (*(s32 *)(temp_v0_3 + 0x3));
-                            sp65 = (*(s32 *)(temp_v0_3 + 0x1));
-                            sp74 = (*(s32 *)(temp_v0_3 + 0x10));
-                            sp78 = (*(s32 *)(temp_v0_3 + 0x4));
-                            sp7A = (*(s32 *)(temp_v0_3 + 0x6));
+                            buf.f4 = (*(f32 *)(temp_v0_3 + 0x8));
+                            buf.f8 = (*(f32 *)(temp_v0_3 + 0xC));
+                            buf.b2 = (*(u8 *)(temp_v0_3 + 0x2));
+                            buf.b0 = (*(u8 *)(temp_v0_3 + 0x0));
+                            buf.b3 = (*(u8 *)(temp_v0_3 + 0x3));
+                            buf.b1 = (*(u8 *)(temp_v0_3 + 0x1));
+                            buf.w10 = (*(s32 *)(temp_v0_3 + 0x10));
+                            buf.b14 = (*(u8 *)(temp_v0_3 + 0x4));
+                            buf.h16 = (*(u16 *)(temp_v0_3 + 0x6));
                             var_v1 = ((u32) ((*(s32 *)(var_s2 + 0x0)) << 0xB) >> 0x1E) & 0xFF;
                         } else {
                             temp_v1 = (*(s32 *)(var_s0 + 0x14));
                             temp_v0_4 = (*(s32 *)(temp_v1 + 0x50));
-                            sp68 = (*(s32 *)(temp_v1 + 0x44));
-                            sp6C = (*(s32 *)(temp_v1 + 0x40));
-                            sp66 = (*(s32 *)(temp_v1 + 0x6));
-                            if ((*(s32 *)(temp_v1 + 0x1)) == 0) {
-                                sp67 = (*(s32 *)(temp_v0_4 + 0xE0));
+                            buf.f4 = (*(f32 *)(temp_v1 + 0x44));
+                            buf.f8 = (*(f32 *)(temp_v1 + 0x40));
+                            buf.b2 = (*(u8 *)(temp_v1 + 0x6));
+                            if ((*(u8 *)(temp_v1 + 0x1)) == 0) {
+                                buf.b3 = (*(u8 *)(temp_v0_4 + 0xE0));
                             } else {
-                                sp67 = (*(s32 *)(temp_v1 + 0x1));
+                                buf.b3 = (*(u8 *)(temp_v1 + 0x1));
                             }
-                            sp64 = (*(s32 *)(temp_v0_4 + 0x4));
-                            sp65 = (*(s32 *)(temp_v0_4 + 0xC));
-                            sp74 = (*(s32 *)(temp_v0_4 + 0xDC));
-                            sp78 = (*(s32 *)(temp_v0_4 + 0xF));
-                            sp7A = (*(s32 *)(temp_v0_4 + 0x20));
-                            var_v1 = (*(s32 *)(temp_v0_4 + 0x9)) & 7 & 0xFF;
+                            buf.b0 = (*(u8 *)(temp_v0_4 + 0x4));
+                            buf.b1 = (*(u8 *)(temp_v0_4 + 0xC));
+                            buf.w10 = (*(s32 *)(temp_v0_4 + 0xDC));
+                            buf.b14 = (*(u8 *)(temp_v0_4 + 0xF));
+                            buf.h16 = (*(u16 *)(temp_v0_4 + 0x20));
+                            var_v1 = (*(u8 *)(temp_v0_4 + 0x9)) & 7 & 0xFF;
                             if ((*(s32 *)(*(s32 *)(temp_v0_4 + 0x4C)) & 0x20000000) && ((*(s32 *)(temp_v0_4 + 0x3)) & 8)) {
-                                sp68 = 0.0f;
-                                sp6C = 0.0f;
+                                buf.f4 = 0.0f;
+                                buf.f8 = 0.0f;
                             }
                         }
                         sp63 = var_v1;
-                        temp_f18 = sp68 * ((*(s32 *)(var_s0 + 0xC)) * (*(s32 *)(var_s0 + 0x8)));
-                        sp68 = temp_f18;
-                        sp68 = temp_f18 * *(f32 *)(g + 0x204C);
-                        sp6C *= sp5C;
-                        func_3be70(temp_s1, &sp64);
+                        temp_f18 = buf.f4 * (*(f32 *)(var_s0 + 0xC) * *(f32 *)(var_s0 + 0x8));
+                        buf.f4 = temp_f18;
+                        buf.f4 = temp_f18 * *(f32 *)(g + 0x204C);
+                        buf.f8 *= sp5C;
+                        func_3be70(temp_s1, &buf);
                         (*(u8 *)(var_s2 + 0x1)) = (u8) (((sp63 * 8) & 0x18) | ((*(u8 *)(var_s2 + 0x1)) & 0xFFE7));
                     }
                 }

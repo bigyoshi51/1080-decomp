@@ -8483,6 +8483,8 @@ int game_uso_func_000097EC(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 #endif
 
+extern void game_uso_func_047B1C();
+extern char game_uso_D_807FEDB8;
 #ifdef NON_MATCHING
 /* 54.950580% NM (objdiff 2026-05-20; up from 50.38% before this pass).
  * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
@@ -8710,8 +8712,8 @@ int game_uso_func_00009B88(a0, a1, a2)
     (void)spill_a1;
 
     if (a2 == 0) {
-        /* Assert: line 0x623 (1571) — message at &D+0x7BC / &D+0x7C8 */
-        gl_func_00000000(&D_00000000 + 0x7BC, &D_00000000 + 0x7C8, 0x623);
+        /* Assert: line 0x623 (1571) — message at &game_uso_D_807FEDB8+0x7BC / +0x7C8 */
+        game_uso_func_047B1C(&game_uso_D_807FEDB8 + 0x7BC, &game_uso_D_807FEDB8 + 0x7C8, 0x623);
     }
 
     /* Dispatch 1: write Vec3 XZ-projection to local_190 (sp+0x190).
@@ -8729,7 +8731,7 @@ int game_uso_func_00009B88(a0, a1, a2)
      * these C shapes; needs a fresh idea or the permuter. Kept as if-form. */
     out = (int*)local_190;
     if (out == 0) {  /* dead arm */
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         src_x = *(float*)((char*)a2 + 0x30);
@@ -8743,7 +8745,7 @@ int game_uso_func_00009B88(a0, a1, a2)
      * Same ternary shape; uses local_190 (just-written) for src_x/src_z. */
     out = (int*)local_DC;
     if (out == 0) {  /* dead arm */
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         dx = local_190[0] - *(float*)((char*)a1 + 0x30);
@@ -8783,7 +8785,7 @@ int game_uso_func_00009B88(a0, a1, a2)
      * `bne v1,$zero` skip over the helper allocation. */
     out = (int*)local_C4;
     if (out == 0) {
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         ((float*)out)[0] = local_144[2];   /* x = old z */
@@ -9071,14 +9073,37 @@ int game_uso_func_00009B88(a0, a1, a2)
  *   - applying the same raw-buffer treatment to local_120 regressed to
  *     53.139534%, so it was rejected; volatile lower output Vec3s tied the
  *     current best.
- *   Exact not reached; keep INCLUDE_ASM fallback, no new episode. */
+ *   Exact not reached; keep INCLUDE_ASM fallback, no new episode.
+ *
+ * 2026-06-22 reloc-symbol correctness pass (agent-e):
+ *   Decoded the TARGET from expected/src/game_uso/game_uso.c.o (objdump -dr).
+ *   All cross-USO relocs were pointing at PLACEHOLDERS (gl_func_00000000 /
+ *   D_00000000); replaced them with the real reloc symbols read off the
+ *   target's R_MIPS_26 / R_MIPS_HI16 entries:
+ *     - assert  @0x9bb0 : game_uso_func_047B1C(&game_uso_D_807FEDB8+0x7BC,
+ *                         &game_uso_D_807FEDB8+0x7C8, 1571)
+ *     - alloc   (9x)    : game_uso_func_055750(0xC)   (was gl_func_00000000)
+ *     - normalize@0x9cf8: game_uso_func_071028((Vec3*)local_138)  (single-arg;
+ *                         a1/a2 at the call site are residual copy regs, not args)
+ *   These are byte-neutral in objdiff fuzzy (same lui/jal/addiu insn bytes;
+ *   only the relocation ENTRIES change), so fuzzy stayed ~54.92% — but the C
+ *   is now correct toward a real match instead of relocating to dead stubs.
+ *   The single-arg 071028 fix shifted one scheduling slot (54.95->54.92, noise).
+ *   CASCADE ROOT CONFIRMED INTRACTABLE: dispatch-1 @0x9bb8 emits `bnezl v1`
+ *   (branch-LIKELY) on a stack address (&local_190) with the a2 home-slot
+ *   reload (lw v0,0x1b0(sp)) in the annulled delay — IDO does NOT fold the
+ *   dead alloc arm. No C alloc-ternary / if-else / held-ptr shape reproduces
+ *   the likely-branch-on-stack-addr (held-base-ptr in dispatch-1 regressed
+ *   334->338 non-reloc diffs). This roots a 330+/344 body cascade. Needs the
+ *   permuter or a non-obvious source idiom (the original `out` was likely a
+ *   struct-field / fn-ptr return IDO can't prove non-null, not a stack local). */
     *(int*)&local_EC[0] = local_C4[0];
     *(int*)&local_EC[1] = local_C4[1];
     *(int*)&local_EC[2] = local_C4[2];
     *(int*)&local_138[0] = local_C4[0];
     *(int*)&local_138[1] = local_C4[1];
     *(int*)&local_138[2] = local_C4[2];
-    gl_func_00000000(local_138, local_C4, local_EC);
+    game_uso_func_071028((Vec3 *)local_138);
 
     /* @ 0x9D00-0x9D34: 3-word copy local_12C = local_138 buffer (the 90°-rotated
      * XZ Vec3 from the alloc-or-fill above). Both serve as input to the
@@ -9106,7 +9131,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     src_vec = (float*)((char*)*(int*)((char*)a0 + 0x30) + 0xB4);
     out = (int*)local_184;
     if (out == 0) {
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         ((float*)out)[0] = src_vec[0];
@@ -9117,7 +9142,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     /* @ 0x9F48-0x9F9C: build the second delta vector against a1+0x30. */
     out = (int*)local_B8;
     if (out == 0) {
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         ((float*)out)[0] = local_184[0] - *(float*)((char*)a1 + 0x30);
@@ -9132,7 +9157,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     /* @ 0x9FF4-0xA194: four unrolled screen-space Vec3 combinations. */
     out = (int*)local_A0;
     if (out == 0) {
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         ((float*)out)[0] = local_144[0] + local_138[0];
@@ -9145,7 +9170,7 @@ int game_uso_func_00009B88(a0, a1, a2)
 
     out = (int*)local_88;
     if (out == 0) {
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         ((float*)out)[0] = local_120[0] - local_12C[0];
@@ -9161,7 +9186,7 @@ int game_uso_func_00009B88(a0, a1, a2)
 
     out = (int*)local_6C;
     if (out == 0) {
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         ((float*)out)[0] = local_144[0] - local_138[0];
@@ -9177,7 +9202,7 @@ int game_uso_func_00009B88(a0, a1, a2)
 
     out = (int*)local_38;
     if (out == 0) {
-        out = (int*)gl_func_00000000(0xC);
+        out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
         ((float*)out)[0] = local_120[0] + local_12C[0];
@@ -10318,12 +10343,25 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 //     func_00000000 = USO placeholder dispatcher (sqrt / cross /
 //     collision-query helpers). Core snowboard physics — collision
 //     contact-response.
-// Caps (DEFERRED): raw-word USO + placeholder calls + 252-word FP
-//   solver; USO mnemonic disasm limitation prevents byte-match.
-//   Real-C STRUCTURAL body below — query-struct setup + collision
-//   query + response writeback skeleton (core snowboard physics
-//   collision contact-response). Byte-match deferred. Name
-//   pre-checked: no extern reuse.
+// RECONSTRUCTION 2026-06-22 (52.98% -> 62.50%): replaced all 6
+//   function-pointer placeholder calls (jalr through game_uso_func_00000000)
+//   with the real direct-jal callees resolved from the expected reloc set —
+//   game_uso_func_070F38 (transform1), game_uso_func_071028 (Vec3 normalize,
+//   single-arg per its established prototype), game_uso_func_05B750,
+//   game_uso_func_05B614, and game_uso_func_0000B750 (x2 in the loop).
+//   Rewrote the m2c struct-copy churn (which emitted spurious int->float
+//   cvt.s.w via the `(f32)` int-field casts) as plain Vec3 array/struct
+//   copies, restoring the integer lw/sw Vec3 copies the target uses. The
+//   reloc set now matches the target EXACTLY (verified objdump -dr: 2x B750
+//   + 070F38/071028/05B750/05B614 R_MIPS_26 + D_807FFA88/90/98 +
+//   import_8005C108/80087DA8 HI16/LO16). Size-gap 252-vs-256 -> 252-vs-244.
+//   Residual ~238 non-reloc diffs = genuine IDO FP-regalloc + instruction
+//   scheduling + stack-slot assignment cap (target frame 0x128=296; mine 312
+//   from one extra Vec3 slot the target reuses). Below 80% -> INCLUDE_ASM
+//   build path, no episode (tautology rule). Name pre-checked: no extern
+//   reuse. Two distinct vectors feed the loop's 0000B750: `world` (sp+260,
+//   raw transform2 output) and `norm` (sp+248, the obj-relative diff after
+//   071028 normalize) — m2c had collapsed them.
 #ifdef NON_MATCHING
 
 
@@ -10331,101 +10369,73 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000BB8C)();
 extern int import_80087DA8;
 extern char import_8005C108;
 extern char game_uso_D_807FFA88, game_uso_D_807FFA90, game_uso_D_807FFA98;
-typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_0000BB8C;
+extern void game_uso_func_070F38();
+extern void game_uso_func_05B750();
+extern void game_uso_func_05B614();
 void game_uso_func_0000BB8C(char *arg0) {
-    Q_0000BB8C sp90;
-    Q_0000BB8C spA4;
-    Q_0000BB8C spC0;
-    Q_0000BB8C spCC;
-    f32 sp124;
-    f32 sp120;
-    f32 sp11C;
-    f32 sp118;
-    f32 sp114;
-    f32 sp110;
-    f32 sp10C;
-    f32 sp108;
-    f32 sp104;
-    f32 sp100;
-    f32 spFC;
-    f32 spF8;
+    f32 q[6];          /* sp+272: {x,y,z, a,b,c} input to transform 070F38 */
+    Vec3 scaled;       /* sp+192 */
+    Vec3 tmp;          /* sp+164 */
+    Vec3 world;        /* sp+260: raw transform2 output */
+    Vec3 norm;         /* sp+248: diff -> normalized by 071028 */
+    f32 spF8, spFC, sp100;
+    f32 sp114, sp110, sp118;
     s32 sp88;
     s32 sp84;
     f32 sp78;
     f32 sp74;
     f32 sp70;
     f32 sp6C;
-    f32 *temp_a2_2;
     f32 temp_f0;
     f32 temp_f12;
     f32 temp_f20;
     f32 temp_f24;
     f32 temp_f2;
     f32 temp_f2_2;
-    f32 temp_f8;
     f32 var_f20;
     f32 var_f24;
     f64 temp_f22;
     f64 var_f0;
-    s32 temp_t6;
-    s32 temp_t7;
-    s32 temp_t8;
-    s32 temp_t9;
     u32 var_s1;
     char *temp_a2;
+    char *temp_a2_2;
     char *temp_v0;
     char *temp_v0_2;
     char *var_s0;
 
-    temp_a2 = FW(arg0, 0x220);
+    temp_a2 = (char *)FW(arg0, 0x220);
     temp_a2_2 = temp_a2 + 0x70;
-    sp11C = FW(temp_a2, 0xA0);
-    sp120 = FW(temp_a2_2, 0x34);
-    sp114 = 0.0f;
-    sp110 = 0.0f;
-    sp118 = -1.0f;
-    sp124 = FW(temp_a2_2, 0x38);
-    ((GP_0000BB8C)game_uso_func_00000000)(&sp110, FW(((*(int *)&import_80087DA8)), 0x70) + 0xB4, temp_a2_2);
-    temp_v0 = (*(int *)&import_80087DA8);
-    *(float *)&spC0.unk0 = sp110 * 1000.0f;
-    *(float *)&spC0.unk4 = sp114 * 1000.0f;
-    *(float *)&spC0.unk8 = sp118 * 1000.0f;
-    *(float *)&spCC.unk0 = (f32) spC0.unk0;
-    temp_t8 = spC0.unk4;
-    spCC.unk4 = temp_t8;
-    temp_t9 = spC0.unk8;
-    spA4.unk4 = temp_t8;
-    spA4.unk0 = spCC.unk0;
-    spCC.unk8 = temp_t9;
-    spA4.unk8 = temp_t9;
-    sp10C = spA4.unk8;
-    sp108 = spA4.unk4;
-    sp104 = spA4.unk0;
-    sp104 = spA4.unk0 + ((*(f32 *)((char *)FW(temp_v0, 0x70) + 0xA0)) * (*(f32 *)((char *)&import_8005C108 + 0x128)));
-    sp108 = spA4.unk4 + ((*(f32 *)((char *)FW(temp_v0, 0x70) + 0xA4)) * (*(f32 *)((char *)&import_8005C108 + 0x12C)));
-    temp_f8 = spA4.unk8 + ((*(f32 *)((char *)FW(temp_v0, 0x70) + 0xA8)) * (*(f32 *)((char *)&import_8005C108 + 0x130)));
-    *(float *)&sp90.unk0 = sp104 - sp11C;
-    sp10C = temp_f8;
-    temp_f12 = temp_f8 - sp124;
-    *(float *)&sp90.unk4 = sp108 - sp120;
-    *(float *)&sp90.unk8 = temp_f12;
-    *(float *)&spCC.unk0 = (f32) sp90.unk0;
-    temp_t6 = sp90.unk4;
-    spCC.unk4 = temp_t6;
-    temp_t7 = sp90.unk8;
-    spA4.unk4 = temp_t6;
-    spA4.unk0 = spCC.unk0;
-    spCC.unk8 = temp_t7;
-    spA4.unk8 = temp_t7;
-    sp100 = spA4.unk8;
-    spFC = spA4.unk4;
-    spF8 = spA4.unk0;
-    ((GP_0000BB8C)game_uso_func_00000000)(temp_f12, 0x447A0000, &spF8, &spA4);
+    q[0] = 0.0f;
+    q[1] = 0.0f;
+    q[2] = -1.0f;
+    q[3] = *(f32 *)(temp_a2 + 0xA0);
+    q[4] = *(f32 *)(temp_a2_2 + 0x34);
+    q[5] = *(f32 *)(temp_a2_2 + 0x38);
+    game_uso_func_070F38(q, (char *)FW((*(int *)&import_80087DA8), 0x70) + 0xB4, temp_a2_2);
+    temp_v0 = (char *)(*(int *)&import_80087DA8);
+    scaled.x = q[0] * 1000.0f;
+    scaled.y = q[1] * 1000.0f;
+    scaled.z = q[2] * 1000.0f;
+    tmp = scaled;
+    world.x = tmp.x + (*(f32 *)((char *)FW(temp_v0, 0x70) + 0xA0)) * (*(f32 *)((char *)&import_8005C108 + 0x128));
+    world.y = tmp.y + (*(f32 *)((char *)FW(temp_v0, 0x70) + 0xA4)) * (*(f32 *)((char *)&import_8005C108 + 0x12C));
+    world.z = tmp.z + (*(f32 *)((char *)FW(temp_v0, 0x70) + 0xA8)) * (*(f32 *)((char *)&import_8005C108 + 0x130));
+    tmp.x = world.x - q[3];
+    temp_f12 = world.z - q[5];
+    tmp.y = world.y - q[4];
+    tmp.z = temp_f12;
+    norm = tmp;
+    game_uso_func_071028(&norm);
+    spF8 = norm.x;
+    spFC = norm.y;
+    sp100 = norm.z;
     temp_f0 = *(f32 *)((char *)arg0 + 0x23C);
+    sp110 = q[0];
+    sp114 = q[1];
+    sp118 = q[2];
     temp_f2 = -((sp110 * spF8) + (sp114 * spFC) + (sp118 * sp100));
     if (temp_f0 < temp_f2) {
         var_f24 = (temp_f2 - temp_f0) / (1.0f - temp_f0);
@@ -10451,9 +10461,9 @@ void game_uso_func_0000BB8C(char *arg0) {
                     sp70 = 0.0f;
                     sp6C = 0.0f;
                     sp78 = var_f20 * (*(f32 *)((char *)arg0 + 0x254));
-                    ((GP_0000BB8C)game_uso_func_00000000)((f32 *)0x3F800000, 0, 0, &sp6C);
+                    game_uso_func_05B750((f32 *)0x3F800000, 0, 0, &sp6C);
                     temp_v0_2 = (*(int *)&import_80087DA8);
-                    ((GP_0000BB8C)game_uso_func_00000000)(0, FW(temp_v0_2, 0xC0), FW(temp_v0_2, 0xC4), FW(temp_v0_2, 0xB8), FW(temp_v0_2, 0xBC), &sp84);
+                    game_uso_func_05B614(0, FW(temp_v0_2, 0xC0), FW(temp_v0_2, 0xC4), FW(temp_v0_2, 0xB8), FW(temp_v0_2, 0xBC), &sp84);
                 }
             }
             temp_f22 = (*(f64 *)((char *)&game_uso_D_807FFA98 + 0x178));
@@ -10464,10 +10474,10 @@ void game_uso_func_0000BB8C(char *arg0) {
                     if (*(f32 *)((char *)var_s0 + 0xD8) < temp_f2) {
                         if (FW(var_s0, 0xD4) & 1) {
                             if (temp_f22 < (f64) var_f20) {
-                                ((GP_0000BB8C)game_uso_func_00000000)(var_s0 + 0xB8, FW(arg0, 0xB4), &sp104, &spF8, var_f20);
+                                game_uso_func_0000B750(var_s0 + 0xB8, (char *)FW(arg0, 0xB4), (float *)&world, (float *)&norm, var_f20);
                             }
                         } else {
-                            ((GP_0000BB8C)game_uso_func_00000000)(var_s0 + 0xB8, FW(arg0, 0xB4), &sp104, &spF8, temp_f24);
+                            game_uso_func_0000B750(var_s0 + 0xB8, (char *)FW(arg0, 0xB4), (float *)&world, (float *)&norm, temp_f24);
                         }
                     }
                     var_s1 += 1;

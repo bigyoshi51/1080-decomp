@@ -24847,6 +24847,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053A2C);
 #endif
 
 #ifdef NON_MATCHING
+/* gl_func_00053C04: per-vertex face-normal accumulator (vertex normals).
+ * Logic is reconstructed and correct; ~56% fuzzy. STRUCTURAL REGALLOC CAP:
+ * target frame is 0x1CC (464B) and homes ALL float work to stack slots
+ * (sp1AC..sp1CC at 428-460(sp), reloaded each use via lwc1/swc1) and homes
+ * arg1 to its incoming slot 468(sp) (reloaded into a2), keeping ONLY $f0-$f18
+ * caller-saved FP temps and s0-s8 ints. Our -O2 build instead PROMOTES the 9
+ * face floats into callee-saved $f20-$f30 (sdc1/ldc1 save/restore) and caches
+ * arg1 in s8 -> a smaller 0x158 frame and a ~20-insn cross-product shape gap.
+ * This whole-function FP promote-vs-spill divergence is the documented
+ * high-pressure regalloc cap (project_1080_cap_analysis); small levers
+ * (decl-order pair-swap, temp economy) do not flip the allocator's strategy.
+ * The byte-store `var_v0[-1]=0` (sb, not swl/swr) is the one confirmed fix.
+ */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -24913,7 +24926,7 @@ void gl_func_00053C04(char *arg0, s32 arg1) {
             (*(f32*)((char*)temp_v1 + 0x0)) = 0.0f;
             (*(f32*)((char*)temp_v1 + 0x4)) = 0.0f;
             (*(f32*)((char*)temp_v1 + 0x8)) = 0.0f;
-            FW(var_v0, -0x1) = 0;
+            var_v0[-1] = 0;
             var_s0 += 0xC;
         } while (var_s1 < (u32) FW(arg0, 0x40));
         var_s1 = 0;
