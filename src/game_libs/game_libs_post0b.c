@@ -26684,132 +26684,116 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005640C);
 #endif
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-int *gl_func_00056580(int *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6) {
-  int *sp30;
-  int *sp2C;
-  int *sp28;
-  int *sp24;
-  int *sp20;
-  int *temp_v0;
-  int *temp_v0_2;
-  int *temp_v0_3;
-  int *temp_v0_4;
-  int *temp_v0_5;
-  int *temp_v0_6;
-  int *temp_v0_7;
-  int *temp_v0_8;
-  int *temp_v0_9;
-  int *var_a0;
-  int *var_s0;
-  int *var_v1;
-  int *var_v1_2;
-  int *var_v1_3;
-  int *var_v1_4;
-  int *var_v1_5;
-  int *var_v1_6;
-  int *var_v1_7;
-  var_s0 = arg0;
-  arg0++;
-  arg0--;
-  if ((arg0 != 0) || ((temp_v0 = gl_func_00034458(0x7C), var_s0 = temp_v0, temp_v0 != 0)))
-  {
-    var_v1 = var_s0;
-    if ((var_s0 != 0) || ((temp_v0_2 = gl_func_00034458(0x10), var_v1 = temp_v0_2, temp_v0_2 != 0)))
-    {
-      *((int *) (((char *) var_v1) + 0x8)) = 0;
-      *((int *) (((char *) var_v1) + 0x4)) = 0;
-      *((int *) (((char *) var_v1) + 0xC)) = var_v1;
+/* 7-arg allocator-fallback constructor: object at param_1 (or alloc 0x7C),
+ * then 6 sub-list heads (offsets 0x10/0x20/0x30/0x40/0x50 + the 0x78 flag
+ * slot) each init'd via "ptr = base+off; if (base+off==0) ptr = alloc(...)".
+ * 2026-06-22 Ghidra-typed reconstruction: Ghidra's decomp reused a SINGLE
+ * init-target temp (puVar1) across all blocks and kept only the 5 saved
+ * sub-pointers (puVar3..puVar7) — the raw m2c body had invented 9 dead
+ * temp_v0_* + 7 var_v1_* SSA names, bloating the frame to 0x90 and adding a
+ * spurious `arg0++;arg0--;` (addiu a0,a0,0). Adopting Ghidra's variable
+ * economy + writing the sub-list tails as puVarN[1]/[3] (not param_1[k])
+ * fixed the second-half store scheduling and brought it to 13 word diffs,
+ * ALL of which are the lone residual: IDO reserves a 0x50 frame vs target
+ * 0x40 (over-allocates 0x10 of dead spill space). Pure frame-layout cap —
+ * the +N-frame is the WRONG direction for the volatile-pad lever (pad ADDS
+ * slots; here we need to REMOVE 4 words). Permuter not wired in this
+ * worktree. 99.32% -> 99.92%. VERDICT: Ghidra typed-decomp DID surface a
+ * real structural gap (variable economy / store-tail form) the per-tick m2c
+ * scout missed; the irreducible core is genuine IDO frame over-allocation. */
+int *gl_func_00056580(int *param_1, int param_2, int param_3, int param_4, int param_5, int param_6, int param_7) {
+  int *puVar1;
+  int *puVar2;
+  int *puVar3;
+  int *puVar4;
+  int *puVar5;
+  int *puVar6;
+  int *puVar7;
+
+  if ((param_1 != 0) || ((param_1 = (int *) gl_func_00034458(0x7C), param_1 != 0))) {
+    puVar1 = param_1;
+    if ((param_1 != 0) || ((puVar1 = (int *) gl_func_00034458(0x10), puVar1 != 0))) {
+      puVar1[2] = 0;
+      puVar1[1] = 0;
+      puVar1[3] = (int) puVar1;
     }
-    var_v1_2 = (int *) (((char *) var_s0) + 0x10);
-    sp30 = var_v1_2;
-    if ((var_s0 != ((int *) (-0x10))) || ((temp_v0_3 = gl_func_00034458(0x10), var_v1_2 = temp_v0_3, temp_v0_3 != 0)))
-    {
-      *((int *) (((char *) var_v1_2) + 0x8)) = 0;
-      *((int *) (((char *) var_v1_2) + 0x4)) = 0;
-      *((int *) (((char *) var_v1_2) + 0xC)) = var_v1_2;
+    puVar3 = param_1 + 4;
+    puVar1 = puVar3;
+    if ((param_1 != (int *) 0xFFFFFFF0) || ((puVar1 = (int *) gl_func_00034458(0x10), puVar1 != 0))) {
+      puVar1[2] = 0;
+      puVar1[1] = 0;
+      puVar1[3] = (int) puVar1;
     }
-    var_v1_3 = (int *) (((char *) var_s0) + 0x20);
-    sp2C = var_v1_3;
-    if ((var_s0 != ((int *) (-0x20))) || ((temp_v0_4 = gl_func_00034458(0x10), var_v1_3 = temp_v0_4, temp_v0_4 != 0)))
-    {
-      *((int *) (((char *) var_v1_3) + 0x8)) = 0;
-      *((int *) (((char *) var_v1_3) + 0x4)) = 0;
-      *((int *) (((char *) var_v1_3) + 0xC)) = var_v1_3;
+    puVar4 = param_1 + 8;
+    puVar1 = puVar4;
+    if ((param_1 != (int *) 0xFFFFFFE0) || ((puVar1 = (int *) gl_func_00034458(0x10), puVar1 != 0))) {
+      puVar1[2] = 0;
+      puVar1[1] = 0;
+      puVar1[3] = (int) puVar1;
     }
-    var_v1_4 = (int *) (((char *) var_s0) + 0x30);
-    sp28 = var_v1_4;
-    if ((var_s0 != ((int *) (-0x30))) || ((temp_v0_5 = gl_func_00034458(0x10), var_v1_4 = temp_v0_5, temp_v0_5 != 0)))
-    {
-      *((int *) (((char *) var_v1_4) + 0x8)) = 0;
-      *((int *) (((char *) var_v1_4) + 0x4)) = 0;
-      *((int *) (((char *) var_v1_4) + 0xC)) = var_v1_4;
+    puVar5 = param_1 + 0xC;
+    puVar1 = puVar5;
+    if ((param_1 != (int *) 0xFFFFFFD0) || ((puVar1 = (int *) gl_func_00034458(0x10), puVar1 != 0))) {
+      puVar1[2] = 0;
+      puVar1[1] = 0;
+      puVar1[3] = (int) puVar1;
     }
-    var_v1_5 = (int *) (((char *) var_s0) + 0x40);
-    sp24 = var_v1_5;
-    if ((var_s0 != ((int *) (-0x40))) || ((temp_v0_6 = gl_func_00034458(0x10), var_v1_5 = temp_v0_6, temp_v0_6 != 0)))
-    {
-      *((int *) (((char *) var_v1_5) + 0x8)) = 0;
-      *((int *) (((char *) var_v1_5) + 0x4)) = 0;
-      *((int *) (((char *) var_v1_5) + 0xC)) = var_v1_5;
+    puVar6 = param_1 + 0x10;
+    puVar1 = puVar6;
+    if ((param_1 != (int *) 0xFFFFFFC0) || ((puVar1 = (int *) gl_func_00034458(0x10), puVar1 != 0))) {
+      puVar1[2] = 0;
+      puVar1[1] = 0;
+      puVar1[3] = (int) puVar1;
     }
-    var_v1_6 = (int *) (((char *) var_s0) + 0x50);
-    sp20 = var_v1_6;
-    if ((var_s0 != ((int *) (-0x50))) || ((temp_v0_7 = gl_func_00034458(0x10), var_v1_6 = temp_v0_7, temp_v0_7 != 0)))
-    {
-      *((int *) (((char *) var_v1_6) + 0x8)) = 0;
-      *((int *) (((char *) var_v1_6) + 0x4)) = 0;
-      *((int *) (((char *) var_v1_6) + 0xC)) = var_v1_6;
+    puVar7 = param_1 + 0x14;
+    puVar1 = puVar7;
+    if ((param_1 != (int *) 0xFFFFFFB0) || ((puVar1 = (int *) gl_func_00034458(0x10), puVar1 != 0))) {
+      puVar1[2] = 0;
+      puVar1[1] = 0;
+      puVar1[3] = (int) puVar1;
     }
-    var_v1_7 = (int *) (((char *) var_s0) + 0x78);
-    if (((var_s0 != ((int *) (-0x78))) || ((temp_v0_8 = gl_func_00034458(4), var_v1_7 = temp_v0_8, temp_v0_8 != 0))) && (((var_a0 = var_v1_7, var_v1_7 != 0)) || ((temp_v0_9 = gl_func_00034458(4), var_a0 = temp_v0_9, temp_v0_9 != 0))))
-    {
-      *var_a0 = 0;
+    puVar1 = param_1 + 0x1E;
+    if (((param_1 != (int *) 0xFFFFFF88) || ((puVar1 = (int *) gl_func_00034458(4), puVar1 != 0))) &&
+        (((puVar2 = puVar1, puVar1 != 0)) || ((puVar2 = (int *) gl_func_00034458(4), puVar2 != 0)))) {
+      *puVar2 = 0;
     }
-    *((int *) (((char *) var_s0) + 0x70)) = arg1;
-    *((int *) (((char *) var_s0) + 0x8)) = arg2;
-    if (arg2 != 0)
-    {
-      *((int *) (((char *) var_s0) + 0x0)) = gl_func_00034458((arg2 * 8) + 8);
+    param_1[0x1C] = param_2;
+    param_1[2] = param_3;
+    if (param_3 != 0) {
+      *param_1 = gl_func_00034458(param_3 * 8 + 8);
     }
-    *((int *) (((char *) var_s0) + 0x4)) = 0;
-    *((int *) (((char *) var_s0) + 0xC)) = var_s0;
-    *((int *) (((char *) var_s0) + 0x18)) = arg3;
-    if (arg3 != 0)
-    {
-      *((int *) (((char *) sp30) + 0x0)) = gl_func_00034458((arg3 * 0x10) + 0x10);
+    param_1[1] = 0;
+    param_1[3] = (int) param_1;
+    param_1[6] = param_4;
+    if (param_4 != 0) {
+      *puVar3 = gl_func_00034458(param_4 * 0x10 + 0x10);
     }
-    *((int *) (((char *) sp30) + 0x4)) = 0;
-    *((int *) (((char *) sp30) + 0xC)) = sp30;
-    *((int *) (((char *) var_s0) + 0x28)) = arg4;
-    if (arg4 != 0)
-    {
-      *((int *) (((char *) sp2C) + 0x0)) = gl_func_00034458((arg4 * 0x48) + 0x48);
+    puVar3[1] = 0;
+    puVar3[3] = (int) puVar3;
+    param_1[10] = param_5;
+    if (param_5 != 0) {
+      *puVar4 = gl_func_00034458(param_5 * 0x48 + 0x48);
     }
-    *((int *) (((char *) sp2C) + 0x4)) = 0;
-    *((int *) (((char *) sp2C) + 0xC)) = sp2C;
-    *((int *) (((char *) var_s0) + 0x38)) = arg5;
-    if (arg5 != 0)
-    {
-      *((int *) (((char *) sp28) + 0x0)) = gl_func_00034458((arg5 << 6) + 0x40);
+    puVar4[1] = 0;
+    puVar4[3] = (int) puVar4;
+    param_1[0xE] = param_6;
+    if (param_6 != 0) {
+      *puVar5 = gl_func_00034458(param_6 * 0x40 + 0x40);
     }
-    *((int *) (((char *) sp28) + 0x4)) = 0;
-    *((int *) (((char *) sp28) + 0xC)) = sp28;
-    *((int *) (((char *) var_s0) + 0x48)) = arg6;
-    if (arg6 != 0)
-    {
-      *((int *) (((char *) sp24) + 0x0)) = gl_func_00034458((arg6 * 0x10) + 0x10);
+    puVar5[1] = 0;
+    puVar5[3] = (int) puVar5;
+    param_1[0x12] = param_7;
+    if (param_7 != 0) {
+      *puVar6 = gl_func_00034458(param_7 * 0x10 + 0x10);
     }
-    *((int *) (((char *) sp24) + 0x4)) = 0;
-    *((int *) (((char *) sp24) + 0xC)) = sp24;
-    *((int *) (((char *) var_s0) + 0x58)) = 0;
-    *((int *) (((char *) sp20) + 0x4)) = 0;
-    *((int *) (((char *) sp20) + 0xC)) = sp20;
-    gl_func_00034458(var_s0);
+    puVar6[1] = 0;
+    puVar6[3] = (int) puVar6;
+    param_1[0x16] = 0;
+    puVar7[1] = 0;
+    puVar7[3] = (int) puVar7;
+    gl_func_00034458(param_1);
   }
-  return var_s0;
+  return param_1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056580);

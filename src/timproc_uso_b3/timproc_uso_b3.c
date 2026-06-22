@@ -10,6 +10,9 @@
 
 extern int gl_func_00000000();
 extern char D_00000000;
+extern char D_00000001;
+extern char D_00000002, D_00000003, D_00000004, D_00000005;
+extern char D_00000006, D_00000007, D_00000008, D_00000009;
 typedef struct { int a, b, c, d; } Quad4;
 
 #ifdef NON_MATCHING
@@ -1432,71 +1435,87 @@ void timproc_uso_b3_func_000023DC(void) {}
 
 /* Alloc-cascade ctor (sibling of arcproc_uso_func_0000251C): alloc 108/80/44
  * + ->0x28=&D + &D+1160/1168 descriptors, then a registration tail. Decoded
- * 2026-06-02. */
+ * 2026-06-02. Reconstructed 2026-06-22 (agent-e): 59.73 -> 95.54%.
+ *  - Whole body wrapped in the `(arg0 != 0 || (alloc; cond))` short-circuit
+ *    ladder so the alloc-failure paths fall through to `return s0` (matches
+ *    the nested `bne X,zero;<delay assignment>` cascade exactly).
+ *  - Distinct extern symbols per global-deref site (D_00000002..8 for the 7
+ *    OR'd-value reads; D_00000001 for the 4th-arg pointer) DEFEAT IDO's CSE
+ *    that hoisted &D into a saved $s1: target re-materializes the base with a
+ *    fresh `lui` per call. This collapsed the size gap -24 -> -1 word and
+ *    dropped 162 -> 57 reloc-filtered diffs. (relocs are masked by the gate.)
+ *  - `(D[0] == 0x17D7) == 0` form emits the target's `xori;sltiu;bnel`
+ *    seq-idiom (a plain `!= 0x17D7` regresses to li+beql).
+ * RESIDUAL (~57 diffs, -1 word): deterministic IDO frame-layout/regalloc —
+ *  spill-slot numbering off-by-4 (target 0x2C/0x38/0x3C vs base 0x28/0x34/
+ *  0x38), bne-delay-slot fill (or s0,a0 vs sw ra at entry), and the indirect-
+ *  call object/vtable v0/a3 -> v1/a1 renumber. Not C-controllable (cap class
+ *  per docs/TOOLING_DECOMP "register PLACEMENT" / preheader slot order). */
 #ifdef NON_MATCHING
 char *timproc_uso_b3_func_000023E4(char *a0) {
     char *s0;
-    char *p2;
-    char *p3;
-    s0 = a0 ? a0 : (char *)gl_func_00000000(108);
-    if (!s0) return s0;
-    p2 = (char *)gl_func_00000000(80);
-    if (p2) {
-        p3 = (char *)gl_func_00000000(44);
-        if (p3) {
-            gl_func_00000000(p3, (char *)&D_00000000 + 1160);
-            *(char **)(p3 + 0x28) = &D_00000000;
+    char *a3;
+    char *p;
+    char *v0;
+    char *vt;
+    s0 = a0;
+    if (a0 != 0 ||
+        (s0 = (char *)gl_func_00000000(108), s0 != 0)) {
+        a3 = s0;
+        if (s0 != 0 ||
+            (a3 = (char *)gl_func_00000000(80), a3 != 0)) {
+            p = a3;
+            if (a3 != 0 ||
+                (p = (char *)gl_func_00000000(44), p != 0)) {
+                gl_func_00000000(p, (char *)&D_00000000 + 1160);
+                *(char **)(p + 0x28) = &D_00000000;
+            }
+            *(char **)(a3 + 0x28) = &D_00000000;
         }
-        *(char **)(p2 + 0x28) = &D_00000000;
-    }
-    *(char **)(s0 + 0x28) = &D_00000000;
-    *(char **)(s0 + 0xC) = (char *)&D_00000000 + 1168;
-    gl_func_00000000(s0);
-    *(int *)(s0 + 96) = 120;
-    *(int *)(s0 + 100) = 161;
-    *(int *)(s0 + 104) = 191;
-    *(int *)(s0 + 72) = gl_func_00000000(0);
-    gl_func_00000000(*(int *)(s0 + 72), s0);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 6, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 7, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
-    *(int *)(*(int *)(s0 + 72) + 48) =
-        gl_func_00000000(0, &D_00000000, 72, 221, 3, 13);
-    gl_func_00000000(*(int *)(s0 + 72));
-    gl_func_00000000(*(int *)(s0 + 72), 140);
-    {
-        char *v0 = *(char **)(s0 + 72);
-        char *vt = *(char **)(v0 + 40);
+        *(char **)(s0 + 0x28) = &D_00000000;
+        *(char **)(s0 + 0xC) = (char *)&D_00000000 + 1168;
+        gl_func_00000000(s0);
+        *(int *)(s0 + 0x60) = 120;
+        *(int *)(s0 + 0x64) = 161;
+        *(int *)(s0 + 0x68) = 191;
+        *(int *)(s0 + 0x48) = gl_func_00000000(0);
+        gl_func_00000000(*(int *)(s0 + 0x48), s0);
+        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000002 + 3) << 16) | 1, -1, &D_00000001);
+        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000003 + 3) << 16) | 6, -1, &D_00000001);
+        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000004 + 3) << 16) | 7, -1, &D_00000001);
+        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000005 + 3) << 16) | 4, -1, &D_00000001);
+        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000006 + 3) << 16) | 3, -1, &D_00000001);
+        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000007 + 3) << 16) | 2, -1, &D_00000001);
+        gl_func_00000000(*(int *)(s0 + 0x48), ((*(int *)&D_00000008 + 3) << 16) | 5, -1, &D_00000001);
+        *(int *)(*(int *)(s0 + 0x48) + 0x30) =
+            gl_func_00000000(0, &D_00000000, 72, 221, 3, 13);
+        gl_func_00000000(*(int *)(s0 + 0x48));
+        gl_func_00000000(*(int *)(s0 + 0x48), 140);
+        v0 = *(char **)(s0 + 0x48);
+        vt = *(char **)(v0 + 0x28);
         ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v0);
-    }
-    gl_func_00000000(s0 + 16, *(int *)(s0 + 72));
-    {
-        char *a3 = *(char **)(s0 + 72);
+        gl_func_00000000(s0 + 0x10, *(int *)(s0 + 0x48));
+        a3 = *(char **)(s0 + 0x48);
         if (*(int *)(a3 + 0x14) != 0) {
             *(int *)(a3 + 0x4) = 1;
         }
         *(int *)(a3 + 0x14) = (int)s0;
-    }
-    if (*(int *)((char *)&D_00000000 + 388) == 0 || *(int *)&D_00000000 != 0x17D7) {
-        *(int *)(*(int *)(s0 + 72) + 0xD8) = 0;
-    }
-    gl_func_00000000(s0 + 16, *(int *)((char *)&D_00000000 + 400));
-    {
-        char *a3 = *(char **)((char *)&D_00000000 + 400);
+        if (*(int *)((char *)&D_00000000 + 388) == 0 ||
+            (*(int *)&D_00000000 == 0x17D7) == 0) {
+            *(int *)(*(int *)(s0 + 0x48) + 0xD8) = 0;
+        }
+        a3 = *(char **)((char *)&D_00000000 + 400);
+        gl_func_00000000(s0 + 0x10, a3);
         if (*(int *)(a3 + 0x14) != 0) {
             *(int *)(a3 + 0x4) = 1;
         }
         *(int *)(a3 + 0x14) = (int)s0;
+        gl_func_00000000(*(int *)((char *)&D_00000009 + 400), 1, 0, a3);
+        *(int *)(s0 + 0x54) = 0;
+        *(int *)(s0 + 0x50) = 0;
+        *(int *)(s0 + 0x30) = 1;
+        *(int *)(s0 + 0x2C) = 0;
     }
-    gl_func_00000000(*(int *)((char *)&D_00000000 + 400));
-    *(int *)(s0 + 84) = 0;
-    *(int *)(s0 + 80) = 0;
-    *(int *)(s0 + 48) = 1;
-    *(int *)(s0 + 44) = 0;
     return s0;
 }
 #else
