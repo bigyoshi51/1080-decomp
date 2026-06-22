@@ -5775,10 +5775,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003AC5C);
  * 2026-06-04 FULL RECONSTRUCT via Ghidra 11% -> 81.9% (+71pp): loop body
  * reads a1->0x44 entries, each indexed via the optional a1->0x4c table
  * (if !=0) into a1->0x68, reads a short index at ent+2, uses it to fetch a
- * Vec3 of shorts from a1->0x60 (stride 6), converts to float (fx/fy/fz),
- * and emits per-iter gl_func(a0->0x2c+off, &fx, (a0->0x84)->0x54+off, i).
- * Tail no-arg gl_func call. Residual ~18%: frame -0x70 vs -0x50 (extra
- * spill) + loop $t-reg renumbering — regalloc-tier. */
+ * Vec3 of shorts from a1->0x60 (stride 6), converts to float (fv[0..2]),
+ * and emits per-iter gl_func(a0->0x2c+off, fv, (a0->0x84)->0x54+off, i).
+ * Tail no-arg gl_func call.
+ * 2026-06-21 81.9% -> 92.6% (+10.6pp): the three converted floats are a
+ * Vec3 passed BY ADDRESS (the callee reads fv[1]/fv[2] through the pointer).
+ * As three scalar locals fx/fy/fz only fx escaped via &fx, so IDO dead-store
+ * eliminated fy/fz (-3 cvt sequences). Declaring `float fv[3]` and passing
+ * `fv` keeps all three writes (the whole array object's address escapes).
+ * Residual ~7%: frame -0x70 vs -0x50 (extra 0x20 spill region) + loop
+ * $t-reg renumbering + loop-back bnel-vs-beq;beq — regalloc/scheduler-tier. */
 extern int gl_func_00000000();
 extern char gl_data_0001EE5C, gl_data_0001EE70;
 int *gl_func_0003AE58(int *a0, int *a1) {
@@ -5787,7 +5793,7 @@ int *gl_func_0003AE58(int *a0, int *a1) {
     int tbl;
     int ent;
     short *v;
-    float fx, fy, fz;
+    float fv[3];
     if (a0 != 0 || (a0 = (int*)gl_func_00000000(0x90), a0 != 0)) {
         gl_func_00000000(a0, &gl_data_0001EE5C);
         gl_func_00000000(&gl_data_0001EE70, 0);
@@ -5804,10 +5810,10 @@ int *gl_func_0003AE58(int *a0, int *a1) {
                     ent = *(int*)((char*)a1 + 0x68) + i * 8;
                 }
                 v = (short*)(*(int*)((char*)a1 + 0x60) + (unsigned int)*(unsigned short*)(ent + 2) * 6);
-                fx = (float)(int)v[0];
-                fy = (float)(int)v[1];
-                fz = (float)(int)v[2];
-                gl_func_00000000(*(int*)((char*)a0 + 0x2C) + off, &fx,
+                fv[0] = (float)(int)v[0];
+                fv[1] = (float)(int)v[1];
+                fv[2] = (float)(int)v[2];
+                gl_func_00000000(*(int*)((char*)a0 + 0x2C) + off, fv,
                                  *(int*)(*(int*)((char*)a0 + 0x84) + 0x54) + off, i);
                 i = i + 1;
                 off = off + 0xC;
