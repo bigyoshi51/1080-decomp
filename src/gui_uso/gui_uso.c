@@ -501,7 +501,29 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000D04);
  *     + the s2/s3 ctx renumber it cascades). IDO chooses to cache the
  *     stack-passed arg5 rather than re-`lw` from its home; no C lever found to
  *     force home-reload. Structure + FP (div.s 5/5) + arg/init order all now
- *     match; the residual is this IDO spill-vs-reload choice (permuter-class). */
+ *     match; the residual is this IDO spill-vs-reload choice (permuter-class).
+ *   - 2026-06-22 (agent-b): 69.97% -> 75.45% fuzzy via three correct-C levers:
+ *     (1) CURSOR SPILL ELIMINATED: the two TEXRECT clamps used `wa3=0; if(..)`
+ *         init-then-override; switching to symmetric `if(..)x;else x=0;` (like
+ *         the target's other clamps) freed a saved reg so the cursor lives in
+ *         $s7 instead of spilling to sp+0x118 — frame dropped one extra slot
+ *         and insn count is now exact (313). (2) CURSOR/IDX REGISTER MATCH:
+ *         swapping the `s7=arg5;`/`idx=0;` decl-init order flipped IDO to
+ *         cursor=$s7, idx=$s8 (was idx=$s7, cursor=$s8) matching the target.
+ *         (3) DL-WRITE RE-READ: the header append's base pointer is re-loaded
+ *         from `a3->0xC` (write `**(char***)(a3+0xC)`), not the cached `dl`;
+ *         this matched the target's exact pre-loop DL-build schedule (insns
+ *         0-57 now identical bar reg-renumber). NB: applying the same re-read
+ *         to the 3 LOOP appends REGRESSED (the loop already caches dl for
+ *         cnt+write, so re-reading double-loads) — header only.
+ *   - REMAINING (permuter/coloring-class, no C lever found): frame still 0x130
+ *     vs 0x108 (+40 = IDO places the 3 spills sp7C/spD3/spD4 high w/ small top
+ *     reservation; target places them low w/ a 0x34 top hole — same spill COUNT,
+ *     different layout); one duplicated `multu` in the cmd3[1] f10b clamp (IDO
+ *     tail-duplicates it into both inner branches, target keeps it single — a
+ *     short-cast temp did NOT defeat it); `beql` vs `beq` on the space-skip
+ *     test; and the resulting recompute(sll/sra)-vs-reload(lw/move) opcode
+ *     skew. Opcode multiset differs by these few; logic is byte-correct. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, unsigned char *arg5) {
@@ -522,7 +544,7 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
     dl = *(int**)((char*)a3 + 0xC);
     cnt = dl[1];
     dl[1] = cnt + 1;
-    cmd = (int*)(*(char**)dl + cnt * 8);
+    cmd = (int*)(**(char***)((char*)a3 + 0xC) + cnt * 8);
     cmd[0] = 0xBB000001;
     cmd[1] = 0x80008000;
     {
@@ -533,8 +555,8 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
         var_f22 = -((float)gl_func_00000000(arg0, arg5) / two) - two;
         spD4 = -((float)*(int*)((char*)arg0 + 0x10) / two);
     }
-    idx = 0;
     s7 = arg5;
+    idx = 0;
     if (gl_func_00000000(arg5) != 0) {
         do {
             unsigned char ch = *s7;
@@ -567,12 +589,11 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
                 cnt2 = dl[1];
                 f0b = (float)s0 * arg3;
                 dl[1] = cnt2 + 1;
-                wa3 = 0;
                 f8 = (int)((float)arg1 + (var_f22 * arg3));
                 cmd2 = (int*)(*(char**)dl + cnt2 * 8);
                 ca0 = (f8 + (int)f0b) * 4;
                 ca1 = f8 * 4;
-                if (ca0 > 0) wa3 = ca0;
+                if (ca0 > 0) wa3 = ca0; else wa3 = 0;
                 if (s1 > 0) wa0 = s1; else wa0 = 0;
                 cmd2[0] = ((wa3 & 0xFFF) << 0xC) | 0xE4000000 | (wa0 & 0xFFF);
                 if (ca1 > 0) xa3 = ca1; else xa3 = 0;
@@ -1339,170 +1360,145 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
 #ifdef NON_MATCHING
 void gui_func_00002DE0(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
     char *g = (char *)&D_00000000;
+    char *gctx;
+    char *dl;
+    char *slot;
+    s32 idx;
     s32 sp3C;
     s32 sp38;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f12;
-    f32 temp_f14;
-    s16 temp_a0;
-    s16 temp_a1;
-    s16 temp_a2;
-    s16 temp_v0_3;
-    s16 var_s0;
-    s16 var_s0_2;
-    s16 var_t0;
-    s16 var_t0_2;
-    s32 temp_a0_2;
-    s32 temp_a0_3;
-    s32 temp_f10;
-    s32 temp_f4;
-    s32 temp_s0_2;
-    s32 temp_v0_5;
-    s32 temp_v0_6;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 temp_v1_4;
-    s32 var_a1;
-    s32 var_a2;
-    s32 var_s0_3;
-    s32 var_t1;
-    s32 var_v0;
-    s32 var_v1;
-    void **var_t3;
-    char *temp_a0_4;
-    char *temp_a3;
-    char *temp_s0;
-    char *temp_s0_3;
-    char *temp_s0_4;
-    char *temp_s0_5;
-    char *temp_t0;
-    char *temp_t1;
-    char *temp_t2;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_4;
-    char *temp_v0_7;
+    char *t0;
+    s32 mode;
+    f32 fW;
+    f32 fH;
+    f32 wScaled;
+    f32 hScaled;
+    s16 x0;
+    s16 y0;
+    s16 x1;
+    s16 y1;
+    s32 ulx;
+    s32 uly;
+    s32 lrx;
+    s32 lry;
+    s32 dsdx;
+    s32 dtdy;
+    s32 tmp;
 
-    var_t3 = g;
-    temp_s0 = (*(s32 *)g);
-    temp_v0 = (*(s32 *)(temp_s0 + 0xC));
-    temp_v1 = (*(s32 *)(temp_v0 + 0x4));
-    (*(s32 *)(temp_v0 + 0x4)) = (s32) (temp_v1 + 1);
-    temp_a3 = (*(s32 *)((char *)(*(s32 *)(temp_s0 + 0xC)) + 0x0)) + (temp_v1 * 8);
-    (*(s32 *)(temp_a3 + 0x0)) = 0xBB000001;
-    (*(s32 *)(temp_a3 + 0x4)) = 0x80008000;
-    temp_t0 = (*(s32 *)(arg0 + 0x10));
-    sp3C = (s32) (*(s32 *)(temp_t0 + 0x20));
-    sp38 = (s32) (*(s32 *)(temp_t0 + 0x22));
-    temp_s0_2 = (*(s32 *)(temp_t0 + 0x24));
-    switch (temp_s0_2) {                            /* irregular */
+    gctx = (*(char **)g);
+    dl = (*(char **)(gctx + 0xC));
+    idx = (*(s32 *)(dl + 0x4));
+    (*(s32 *)(dl + 0x4)) = idx + 1;
+    slot = (char *)((*(s32 *)((*(char **)(gctx + 0xC)) + 0x0)) + idx * 8);
+    (*(s32 *)(slot + 0x0)) = 0xBB000001;
+    (*(s32 *)(slot + 0x4)) = 0x80008000;
+
+    t0 = (*(char **)(arg0 + 0x10));
+    sp3C = (*(s16 *)(t0 + 0x20));
+    sp38 = (*(s16 *)(t0 + 0x22));
+    mode = (*(s32 *)(t0 + 0x24));
+    switch (mode) {
     case 0x408:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-block_7:
-        var_t3 = g;
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        gctx = (*(char **)g);
         break;
     case 0x120:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        goto block_7;
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        gctx = (*(char **)g);
+        break;
     case 0x110:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        goto block_7;
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        gctx = (*(char **)g);
+        break;
     }
-    temp_s0_3 = *var_t3;
-    temp_v0_2 = (*(s32 *)(temp_s0_3 + 0xC));
-    var_t0 = 0;
-    temp_v1_2 = (*(s32 *)(temp_v0_2 + 0x4));
-    (*(s32 *)(temp_v0_2 + 0x4)) = (s32) (temp_v1_2 + 1);
-    temp_f0 = (f32) sp3C;
-    var_s0 = 0;
-    temp_t1 = (*(s32 *)((char *)(*(s32 *)(temp_s0_3 + 0xC)) + 0x0)) + (temp_v1_2 * 8);
-    temp_f12 = temp_f0 * arg3;
-    temp_f4 = (s32) ((f32) arg1 + (-(temp_f0 / 2.0f) * arg3));
-    temp_f0_2 = (f32) sp38;
-    temp_a0 = (temp_f4 + (s32) temp_f12) * 4;
-    if (temp_a0 > 0) {
-        var_s0 = temp_a0;
+
+    dl = (*(char **)(gctx + 0xC));
+    idx = (*(s32 *)(dl + 0x4));
+    (*(s32 *)(dl + 0x4)) = idx + 1;
+    fW = (f32) sp3C;
+    y0 = 0;
+    x0 = 0;
+    slot = (char *)((*(s32 *)((*(char **)(gctx + 0xC)) + 0x0)) + idx * 8);
+    ulx = (s32) ((f32) arg1 + (-(fW / 2.0f) * arg3));
+    wScaled = fW * arg3;
+    fH = (f32) sp38;
+    if ((s16) ((ulx + (s32) wScaled) * 4) > 0) {
+        x0 = (ulx + (s32) wScaled) * 4;
     }
-    temp_f14 = temp_f0_2 * arg4;
-    var_s0_2 = 0;
-    temp_a1 = temp_f4 * 4;
-    temp_f10 = (s32) ((f32) arg2 + (-(temp_f0_2 / 2.0f) * arg4));
-    temp_v0_3 = (temp_f10 + (s32) temp_f14) * 4;
-    temp_a2 = temp_f10 * 4;
-    if (temp_v0_3 > 0) {
-        var_t0 = temp_v0_3;
+    hScaled = fH * arg4;
+    x1 = 0;
+    lrx = ulx * 4;
+    uly = (s32) ((f32) arg2 + (-(fH / 2.0f) * arg4));
+    if ((s16) ((uly + (s32) hScaled) * 4) > 0) {
+        y0 = (uly + (s32) hScaled) * 4;
     }
-    (*(s32 *)(temp_t1 + 0x0)) = (s32) (((var_s0 & 0xFFF) << 0xC) | 0xE4000000 | (var_t0 & 0xFFF));
-    if (temp_a1 > 0) {
-        var_s0_2 = temp_a1;
+    lry = uly * 4;
+    (*(s32 *)(slot + 0x0)) = (s32) (((x0 & 0xFFF) << 0xC) | 0xE4000000 | (y0 & 0xFFF));
+    if (lrx > 0) {
+        x1 = lrx;
     }
-    if (temp_a2 > 0) {
-        var_t0_2 = temp_a2;
+    if (lry > 0) {
+        y1 = lry;
     } else {
-        var_t0_2 = 0;
+        y1 = 0;
     }
-    (*(s32 *)(temp_t1 + 0x4)) = (s32) (((var_s0_2 & 0xFFF) << 0xC) | (var_t0_2 & 0xFFF));
-    temp_s0_4 = *var_t3;
-    temp_v0_4 = (*(s32 *)(temp_s0_4 + 0xC));
-    temp_v1_3 = (*(s32 *)(temp_v0_4 + 0x4));
-    (*(s32 *)(temp_v0_4 + 0x4)) = (s32) (temp_v1_3 + 1);
-    temp_t2 = (*(s32 *)((char *)(*(s32 *)(temp_s0_4 + 0xC)) + 0x0)) + (temp_v1_3 * 8);
-    (*(s32 *)(temp_t2 + 0x0)) = 0xB4000000;
-    if (temp_a1 < 0) {
-        var_t1 = (s32) (((f32) (sp3C - 1) * 1024.0f) / temp_f12);
-        if ((s16) var_t1 < 0) {
-            temp_a0_2 = (s32) (temp_a1 * (s16) var_t1) >> 7;
-            if (temp_a0_2 > 0) {
-                var_s0_3 = temp_a0_2;
+    (*(s32 *)(slot + 0x4)) = (s32) (((x1 & 0xFFF) << 0xC) | (y1 & 0xFFF));
+
+    gctx = (*(char **)g);
+    dl = (*(char **)(gctx + 0xC));
+    idx = (*(s32 *)(dl + 0x4));
+    (*(s32 *)(dl + 0x4)) = idx + 1;
+    slot = (char *)((*(s32 *)((*(char **)(gctx + 0xC)) + 0x0)) + idx * 8);
+    (*(s32 *)(slot + 0x0)) = 0xB4000000;
+    if (lrx < 0) {
+        dsdx = (s32) (((f32) (sp3C - 1) * 1024.0f) / wScaled);
+        if ((s16) dsdx < 0) {
+            tmp = (s32) (lrx * (s16) dsdx) >> 7;
+            if (tmp > 0) {
+                ulx = tmp;
             } else {
-                var_s0_3 = 0;
+                ulx = 0;
             }
         } else {
-            var_v0 = 0;
-            temp_a0_3 = (s32) (temp_a1 * (s16) var_t1) >> 7;
-            if (temp_a0_3 < 0) {
-                var_v0 = temp_a0_3;
+            uly = 0;
+            tmp = (s32) (lrx * (s16) dsdx) >> 7;
+            if (tmp < 0) {
+                uly = tmp;
             }
-            var_s0_3 = var_v0;
+            ulx = uly;
         }
     } else {
-        var_s0_3 = 0;
-        var_t1 = (s32) (((f32) (sp3C - 1) * 1024.0f) / temp_f12);
+        ulx = 0;
+        dsdx = (s32) (((f32) (sp3C - 1) * 1024.0f) / wScaled);
     }
-    if (temp_f10 & 0x20000000) {
-        var_t3 = g;
-        var_a2 = (s32) (((f32) (sp38 - 1) * 1024.0f) / temp_f14);
-        if ((s16) var_a2 < 0) {
-            var_a1 = 0;
-            temp_v0_5 = (s32) (temp_a2 * (s16) var_a2) >> 7;
-            if (temp_v0_5 > 0) {
-                var_t3 = g;
-                var_a1 = temp_v0_5;
-            } else {
-                var_t3 = g;
+    if (lry < 0) {
+        dtdy = (s32) (((f32) (sp38 - 1) * 1024.0f) / hScaled);
+        if ((s16) dtdy < 0) {
+            lrx = 0;
+            tmp = (s32) (lry * (s16) dtdy) >> 7;
+            if (tmp > 0) {
+                lrx = tmp;
             }
         } else {
-            var_v1 = 0;
-            temp_v0_6 = (s32) (temp_a2 * (s16) var_a2) >> 7;
-            if (temp_v0_6 < 0) {
-                var_v1 = temp_v0_6;
+            uly = 0;
+            tmp = (s32) (lry * (s16) dtdy) >> 7;
+            if (tmp < 0) {
+                uly = tmp;
             }
-            var_a1 = var_v1;
+            lrx = uly;
         }
     } else {
-        var_a1 = 0;
-        var_a2 = (s32) (((f32) (sp38 - 1) * 1024.0f) / temp_f14);
+        lrx = 0;
+        dtdy = (s32) (((f32) (sp38 - 1) * 1024.0f) / hScaled);
     }
-    (*(s32 *)(temp_t2 + 0x4)) = (s32) ((var_s0_3 * -0x10000) | (-var_a1 & 0xFFFF));
-    temp_s0_5 = *var_t3;
-    temp_v0_7 = (*(s32 *)(temp_s0_5 + 0xC));
-    temp_v1_4 = (*(s32 *)(temp_v0_7 + 0x4));
-    (*(s32 *)(temp_v0_7 + 0x4)) = (s32) (temp_v1_4 + 1);
-    temp_a0_4 = (*(s32 *)((char *)(*(s32 *)(temp_s0_5 + 0xC)) + 0x0)) + (temp_v1_4 * 8);
-    (*(s32 *)(temp_a0_4 + 0x4)) = (s32) ((var_t1 << 0x10) | (var_a2 & 0xFFFF));
-    (*(s32 *)(temp_a0_4 + 0x0)) = 0xB3000000;
+    (*(s32 *)(slot + 0x4)) = (s32) ((ulx * -0x10000) | (-lrx & 0xFFFF));
+
+    gctx = (*(char **)g);
+    dl = (*(char **)(gctx + 0xC));
+    idx = (*(s32 *)(dl + 0x4));
+    (*(s32 *)(dl + 0x4)) = idx + 1;
+    slot = (char *)((*(s32 *)((*(char **)(gctx + 0xC)) + 0x0)) + idx * 8);
+    (*(s32 *)(slot + 0x4)) = (s32) ((dsdx << 0x10) | (dtdy & 0xFFFF));
+    (*(s32 *)(slot + 0x0)) = 0xB3000000;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
@@ -1674,79 +1670,160 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
 #endif
 
 #ifdef NON_MATCHING
-/* gui_func_00003714: 256-insn / 0x400 RDP DL builder (originally bundled
- * with a 27-insn trailing helper at 0x3B14, split-fragments output
- * already INCLUDE_ASM-wired below).
- *
- * Same family entry shape as gui_func_0000329C / gui_func_00002DE0 /
- * gui_func_00002BB0 — D_GUI_CTX deref, cursor bump on ctx[0xC]->[1],
- * RDP 0xBB000001 + 0x80008000 segment-marker emit at slot 0.
- *
- * 4-arg signature, frame to be characterized in next pass. Multi-pass
- * NM remains. Default INCLUDE_ASM keeps ROM exact. */
-void gui_func_00003714(int *a0, int a1, int a2, int a3, int a4, float a5, float a6) {
+/* gui_func_00003714: 256-insn / 0x400 RDP DL builder, same D_GUI_CTX family as
+ * gui_func_0000329C. Double-deref base = *(int*)g; cursor q = *(base+0xC); bump
+ * q[1]; emit at *q + n*8. Reconstructed from expected m2c (2026-06-22): true
+ * double-deref + `/two` named divisor (forces div.s 2.0f, target form) +
+ * per-block base capture -> 64.5% -> 68.5% fuzzy. Residual is a register-
+ * coloring / &D-rematerialization cap (target holds &D in t4 across blocks
+ * 3-4; IDO here rematerializes lui/addiu) + frame -88 vs -96 + sp30 sh-vs-sw
+ * home. Default INCLUDE_ASM keeps ROM byte-exact. */
+void gui_func_00003714(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5, f32 arg6) {
     char *g = (char *)&D_00000000;
-    int *q, *slot, n;
-    int *t1;
-    int sp30;
-    float fw, fh;
-    int left, top, a1v, a0v, a2v, a3v, a1v2, a0v2;
-    int sS, sT, tS, tT;
+    f32 two = 2.0f;
+    s32 sp30;
+    f32 temp_f0;
+    f32 temp_f0_2;
+    f32 temp_f12;
+    f32 temp_f14;
+    s16 temp_a1;
+    s16 temp_a1_2;
+    s16 temp_t0_2;
+    s16 temp_t3;
+    s16 temp_v1_3;
+    s16 var_a0;
+    s16 var_a0_2;
+    s16 var_a3;
+    s16 var_a3_2;
+    s32 temp_f10;
+    s32 temp_f10_2;
+    s32 temp_v0_4;
+    s32 temp_v0_5;
+    s32 temp_v0_6;
+    s32 temp_v0_7;
+    s32 temp_v1;
+    s32 temp_v1_2;
+    s32 temp_v1_4;
+    s32 temp_v1_5;
+    s32 var_a1;
+    s32 var_a2;
+    s32 var_a3_3;
+    s32 var_t4;
+    char *temp_t0;
+    char *temp_t1;
+    char *temp_t1_2;
+    char *temp_t1_3;
+    char *temp_t1_4;
+    char *temp_v0;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_v0_8;
+    char *temp_s0;
+    char *temp_s0_2;
+    char *temp_s0_3;
+    char *temp_s0_4;
 
-    /* segment marker */
-    q = *(int **)(g + 0xC); n = q[1]; q[1] = n + 1;
-    slot = (int *)(q[0] + n * 8); slot[0] = 0xBB000001; slot[1] = 0x80008000;
-
-    t1 = (int *)a0[0x10 / 4];
-    sp30 = (short)*(short *)((char *)t1 + 0x22);
-    gui_func_00000000(*(int *)g, t1[8 / 4], *(short *)((char *)t1 + 0x20), (short)sp30,
-                      a3, 0, a4, sp30, 0);
-
-    fw = (float)a4;
-    q = *(int **)(g + 0xC); n = q[1]; q[1] = n + 1;
-    slot = (int *)(q[0] + n * 8);
-    fw = fw * a5;
-    left = (int)((float)a1 + (-((float)a4 / 2.0f) * a5));
-    a1v = ((short)((left + (int)fw) * 4) > 0) ? (short)((left + (int)fw) * 4) : 0;
-    fh = (float)sp30 * a6;
-    a2v = (short)(left * 4);
-    top = (int)((float)a2 + (-((float)sp30 / 2.0f) * a6));
-    a0v = ((short)((top + (int)fh) * 4) > 0) ? (short)((top + (int)fh) * 4) : 0;
-    a3v = (short)(top * 4);
-    slot[0] = ((a1v & 0xFFF) << 0xC) | 0xE4000000 | (a0v & 0xFFF);
-    a1v2 = (a2v > 0) ? a2v : 0;
-    a0v2 = (a3v > 0) ? a3v : 0;
-    slot[1] = ((a1v2 & 0xFFF) << 0xC) | (a0v2 & 0xFFF);
-
-    q = *(int **)(g + 0xC); n = q[1]; q[1] = n + 1;
-    slot = (int *)(q[0] + n * 8); slot[0] = 0xB4000000;
-    if (a2v < 0) {
-        sS = (int)(((float)(a4 - 1) * 1024.0f) / fw);
-        if ((short)sS < 0) {
-            tS = (a2v * (short)sS) >> 7; sT = (tS > 0) ? tS : 0;
+    temp_s0 = (*(s32 *)g);
+    temp_v0 = (*(s32 *)(temp_s0 + 0xC));
+    temp_v1 = (*(s32 *)(temp_v0 + 0x4));
+    (*(s32 *)(temp_v0 + 0x4)) = (s32) (temp_v1 + 1);
+    temp_t1 = (*(s32 *)((char *)(*(s32 *)(temp_s0 + 0xC)) + 0x0)) + (temp_v1 * 8);
+    (*(s32 *)(temp_t1 + 0x0)) = 0xBB000001;
+    (*(s32 *)(temp_t1 + 0x4)) = 0x80008000;
+    temp_t0 = (*(s32 *)(arg0 + 0x10));
+    temp_t3 = (*(s16 *)(temp_t0 + 0x22));
+    sp30 = (s32) temp_t3;
+    gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t0 + 0x8)), (*(s16 *)(temp_t0 + 0x20)), temp_t3, arg3, 0, arg4, (s32) temp_t3, 0);
+    temp_s0_2 = (*(s32 *)g);
+    temp_v0_2 = (*(s32 *)(temp_s0_2 + 0xC));
+    temp_f0 = (f32) arg4;
+    temp_v1_2 = (*(s32 *)(temp_v0_2 + 0x4));
+    temp_f12 = temp_f0 * arg5;
+    (*(s32 *)(temp_v0_2 + 0x4)) = (s32) (temp_v1_2 + 1);
+    temp_t1_2 = (*(s32 *)((char *)(*(s32 *)(temp_s0_2 + 0xC)) + 0x0)) + (temp_v1_2 * 8);
+    var_a3 = 0;
+    temp_f10 = (s32) ((f32) arg1 + (-(temp_f0 / two) * arg5));
+    temp_a1 = ((s32) temp_f12 + temp_f10) * 4;
+    if (temp_a1 > 0) {
+        var_a3 = temp_a1;
+    }
+    temp_f0_2 = (f32) temp_t3;
+    temp_f14 = temp_f0_2 * arg6;
+    temp_a1_2 = temp_f10 * 4;
+    var_a0 = 0;
+    var_a3_2 = 0;
+    temp_f10_2 = (s32) ((f32) arg2 + (-(temp_f0_2 / two) * arg6));
+    temp_v1_3 = ((s32) temp_f14 + temp_f10_2) * 4;
+    if (temp_v1_3 > 0) {
+        var_a0 = temp_v1_3;
+    }
+    temp_t0_2 = temp_f10_2 * 4;
+    (*(s32 *)(temp_t1_2 + 0x0)) = (s32) (((var_a3 & 0xFFF) << 0xC) | 0xE4000000 | (var_a0 & 0xFFF));
+    if (temp_a1_2 > 0) {
+        var_a3_2 = temp_a1_2;
+    }
+    if (temp_t0_2 > 0) {
+        var_a0_2 = temp_t0_2;
+    } else {
+        var_a0_2 = 0;
+    }
+    (*(s32 *)(temp_t1_2 + 0x4)) = (s32) (((var_a3_2 & 0xFFF) << 0xC) | (var_a0_2 & 0xFFF));
+    temp_s0_3 = (*(s32 *)g);
+    temp_v0_3 = (*(s32 *)(temp_s0_3 + 0xC));
+    temp_v1_4 = (*(s32 *)(temp_v0_3 + 0x4));
+    (*(s32 *)(temp_v0_3 + 0x4)) = (s32) (temp_v1_4 + 1);
+    temp_t1_3 = (*(s32 *)((char *)(*(s32 *)(temp_s0_3 + 0xC)) + 0x0)) + (temp_v1_4 * 8);
+    (*(s32 *)(temp_t1_3 + 0x0)) = 0xB4000000;
+    if (temp_a1_2 < 0) {
+        var_t4 = (s32) (((f32) (arg4 - 1) * 1024.0f) / temp_f12);
+        if ((s16) var_t4 < 0) {
+            temp_v0_4 = (s32) ((s16) var_t4 * temp_a1_2) >> 7;
+            if (temp_v0_4 > 0) {
+                var_a1 = temp_v0_4;
+            } else {
+                var_a1 = 0;
+            }
         } else {
-            tS = (a2v * (short)sS) >> 7; sT = (tS < 0) ? tS : 0;
+            temp_v0_5 = (s32) ((s16) var_t4 * temp_a1_2) >> 7;
+            if (temp_v0_5 < 0) {
+                var_a1 = temp_v0_5;
+            } else {
+                var_a1 = 0;
+            }
         }
     } else {
-        sT = 0;
-        sS = (int)(((float)(a4 - 1) * 1024.0f) / fw);
+        var_a1 = 0;
+        var_t4 = (s32) (((f32) (arg4 - 1) * 1024.0f) / temp_f12);
     }
-    if (a3v < 0) {
-        tS = (int)(((float)(sp30 - 1) * 1024.0f) / fh);
-        if ((short)tS < 0) {
-            tT = (a3v * (short)tS) >> 7; a3v = (tT > 0) ? tT : 0;
+    if (temp_t0_2 < 0) {
+        var_a3_3 = (s32) (((f32) (temp_t3 - 1) * 1024.0f) / temp_f14);
+        if ((s16) var_a3_3 < 0) {
+            temp_v0_6 = (s32) ((s16) var_a3_3 * temp_t0_2) >> 7;
+            if (temp_v0_6 > 0) {
+                var_a2 = temp_v0_6;
+            } else {
+                var_a2 = 0;
+            }
         } else {
-            tT = (a3v * (short)tS) >> 7; a3v = (tT < 0) ? tT : 0;
+            temp_v0_7 = (s32) ((s16) var_a3_3 * temp_t0_2) >> 7;
+            if (temp_v0_7 < 0) {
+                var_a2 = temp_v0_7;
+            } else {
+                var_a2 = 0;
+            }
         }
     } else {
-        a3v = 0;
-        tS = (int)(((float)(sp30 - 1) * 1024.0f) / fh);
+        var_a2 = 0;
+        var_a3_3 = (s32) (((f32) (temp_t3 - 1) * 1024.0f) / temp_f14);
     }
-    slot[1] = (sT * -0x10000) | (-a3v & 0xFFFF);
-
-    q = *(int **)(g + 0xC); n = q[1]; q[1] = n + 1;
-    slot = (int *)(q[0] + n * 8); slot[0] = 0xB3000000;
-    slot[1] = (sS << 0x10) | (tS & 0xFFFF);
+    (*(s32 *)(temp_t1_3 + 0x4)) = (s32) ((var_a1 * -0x10000) | (-var_a2 & 0xFFFF));
+    temp_s0_4 = (*(s32 *)g);
+    temp_v0_8 = (*(s32 *)(temp_s0_4 + 0xC));
+    temp_v1_5 = (*(s32 *)(temp_v0_8 + 0x4));
+    temp_t1_4 = (*(s32 *)((char *)(*(s32 *)(temp_s0_4 + 0xC)) + 0x0)) + (temp_v1_5 * 8);
+    (*(s32 *)(temp_v0_8 + 0x4)) = (s32) (temp_v1_5 + 1);
+    (*(s32 *)(temp_t1_4 + 0x0)) = 0xB3000000;
+    (*(s32 *)(temp_t1_4 + 0x4)) = (s32) ((var_t4 << 0x10) | (var_a3_3 & 0xFFFF));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);

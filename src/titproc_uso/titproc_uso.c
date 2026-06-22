@@ -1438,6 +1438,20 @@ void titproc_uso_func_00001E2C(char *a0) {
 #ifdef NON_MATCHING
 /* titproc_uso_func_00001E9C: 245-insn titproc constructor for ~0x6C8-byte object.
  *
+ * 2026-06-22 REAL-SYMBOL PASS: prior body used gl_func_00000000 / &D_00000000
+ * placeholders + D_tit_1E9C_v0..3 fakes -> ALL jal/HI16/LO16 relocs were WRONG.
+ * Remapped every callee/global from the resolved relocs in
+ * expected/src/titproc_uso/titproc_uso.c.o: allocator titproc_uso_func_055750;
+ * init titproc_uso_func_04C678; vtable ptrs import_00073B18/B80/745F8 +
+ * titproc_uso_D_000334; node-init titproc_uso_func_07ACE0; dispatch allocs
+ * 0015F4/001840/001D7C/001B10; data base titproc_uso_D_00048C
+ * (+0x514/0x51C/0x52C/0x530) and import_00020098 (+0x84/0x138/0x190). Fuzzy
+ * held at 73.5% (instruction shape unchanged) but relocs now resolve correctly.
+ * RESIDUAL = pure register-coloring/economy cap: target binds self->s1 (mine
+ * s0) and threads the dead-guard chain through v1/a0 with a single sp+0x38
+ * spill, while IDO spills an extra temp here (~12-insn size gap). Same cap
+ * class as NM-capped sibling titproc_uso_func_00001840 (94%). Stays NM.
+ *
  * 2026-06-01 (18.67 -> 27.64): confirmed SIBLING of timproc_uso_b3_func_00000994
  * / timproc_uso_b1_func_0000097C (0x6A8-alloc constructor family). The prior
  * "multi-write to p->0x28" reading was WRONG — it's the standard cascade's 4
@@ -1527,11 +1541,34 @@ void titproc_uso_func_00001E2C(char *a0) {
  * Default build INCLUDE_ASM matches. C body below covers the ~50% of insns
  * with the highest structural confidence; remaining ~120 insns of the
  * sub-loop tail are stubbed as TODO. */
-extern void *titproc_uso_func_00001E9C_TODO_loop(void *p, void *sub, void *a1, void *a2, void *a3);
-extern char D_tit_1E9C_v0;
-extern char D_tit_1E9C_v1;
-extern char D_tit_1E9C_v2;
-extern char D_tit_1E9C_v3;
+/* 2026-06-22: real-symbol pass (was placeholder gl_func/&D -> wrong relocs).
+ * Callees/data mapped from resolved relocs in expected/.../titproc_uso.c.o.
+ * Structure kept from the higher-fuzzy prior reconstruction. Register coloring
+ * is the same ugen temploc-binding / as1-fill cap class as sibling
+ * titproc_uso_func_00001840 (NM at 94%) -> stays NON_MATCHING. */
+extern int titproc_uso_func_055750();
+extern int titproc_uso_func_04C678();
+extern int titproc_uso_func_074710();
+extern int titproc_uso_func_01B0F8();
+extern int titproc_uso_func_0015F4();
+extern int titproc_uso_func_001D7C();
+extern int titproc_uso_func_001B10();
+extern int titproc_uso_func_0022BC();
+extern int titproc_uso_func_0139B0();
+extern int titproc_uso_func_074840();
+extern int import_00073B80();
+extern int import_000745F8();
+extern int import_000AE700();
+extern int import_000B0DBC();
+extern int import_000A7ECC();
+extern int import_000B6C40();
+extern int import_000B88CC();
+extern int import_000A5D38();
+extern int import_000A5F40();
+extern int import_000A5FBC();
+extern int import_0024CCF4();
+extern char titproc_uso_D_000334;
+extern char titproc_uso_D_00052C;
 void *titproc_uso_func_00001E9C(void *a0, void *a1, void *a2, void *a3) {
     int *p = (int *)a0;
     int *n1, *n2, *n3;
@@ -1539,57 +1576,57 @@ void *titproc_uso_func_00001E9C(void *a0, void *a1, void *a2, void *a3) {
      * timproc_uso_b1_func_0000097C; self alloc 0x6C8 here, D-template 0x514).
      * goto-chain dead-guards + distinct-extern vtable stores (CSE-bust). */
     if (a0 == NULL) {
-        p = (int *)gl_func_00000000(0x6C8);
+        p = (int *)titproc_uso_func_055750(0x6C8);
         if (p == NULL) return (void *)p;
     }
     n1 = p;
-    if (p == NULL) { n1 = (int *)gl_func_00000000(0x6A8); if (n1 == NULL) goto S_self; }
+    if (p == NULL) { n1 = (int *)titproc_uso_func_055750(0x6A8); if (n1 == NULL) goto S_self; }
     n2 = n1;
-    if (n1 == NULL) { n2 = (int *)gl_func_00000000(0x50); if (n2 == NULL) goto S_n1; }
+    if (n1 == NULL) { n2 = (int *)titproc_uso_func_055750(0x50); if (n2 == NULL) goto S_n1; }
     n3 = n2;
-    if (n2 == NULL) { n3 = (int *)gl_func_00000000(0x2C); if (n3 == NULL) goto S_n2; }
-    gl_func_00000000(n3, (char *)&D_00000000 + 0x514);
-    n3[0x28 / 4] = (int)&D_tit_1E9C_v0;
+    if (n2 == NULL) { n3 = (int *)titproc_uso_func_055750(0x2C); if (n3 == NULL) goto S_n2; }
+    titproc_uso_func_04C678(n3, (char *)&titproc_uso_D_00048C + 0x514);
+    n3[0x28 / 4] = (int)&import_00073B18;
 S_n2:
-    n2[0x28 / 4] = (int)&D_tit_1E9C_v1;
+    n2[0x28 / 4] = (int)&import_00073B80;
 S_n1:
-    n1[0x28 / 4] = (int)&D_tit_1E9C_v2;
-    gl_func_00000000((char *)n1 + 0x50);
+    n1[0x28 / 4] = (int)&import_000745F8;
+    import_000AE700((char *)n1 + 0x50);
 S_self:
-    p[0x28 / 4] = (int)&D_tit_1E9C_v3;
+    p[0x28 / 4] = (int)&titproc_uso_D_000334;
     p[0x568 / 4] = 0;
-    gl_func_00000000(p, a1, (char *)&D_00000000 + 0x51C, a2);
+    import_000B0DBC(p, a1, (char *)&titproc_uso_D_00048C + 0x51C, a2);
     p[0x528 / 4] = (int)a3;
-    gl_func_00000000(p);
-    gl_func_00000000((char *)&D_00000000 + 0x530, 0);
-    gl_func_00000000(&D_00000000, 0);
-    p[0x6AC / 4] = (int)gl_func_00000000(0);
-    *(int *)((char *)&D_00000000 + 0x138) = p[0x6AC / 4];
+    titproc_uso_func_000000(p);
+    titproc_uso_func_074710((char *)&titproc_uso_D_00048C + 0x530, 0);
+    import_000A7ECC(&import_00020098, 0);
+    p[0x6AC / 4] = (int)import_000B6C40(0);
+    *(int *)((char *)&import_00020098 + 0x138) = p[0x6AC / 4];
 
     /* tail: node init + virtual dispatch (insns 78-108) */
-    gl_func_00000000(p[0x6AC / 4]);
+    import_000B88CC(p[0x6AC / 4]);
     {
         int *node = (int *)p[0x6AC / 4];
-        gl_func_00000000((char *)p + 0x10, node);
+        titproc_uso_func_07ACE0((char *)p + 0x10, node);
         if (node[0x14 / 4] != 0) {
             node[0x4 / 4] = 1;
         }
         node[0x14 / 4] = (int)p;
     }
-    gl_func_00000000(p, a1);
+    titproc_uso_func_01B0F8(p, a1);
     p[0x48 / 4] = 0;
     p[0x4F4 / 4] = (int)a1 & 0xFFFF;
     if (((int)a1 << 6) < 0) {
         p[0x6B4 / 4] = 0;
     }
     {
-        int *r6b0 = (int *)gl_func_00000000(0);
+        int *r6b0 = (int *)titproc_uso_func_0015F4(0);
         int *vt;
         p[0x6B0 / 4] = (int)r6b0;
         vt = (int *)r6b0[0x28 / 4];
         ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)r6b0);
     }
-    gl_func_00000000((char *)p + 0x10, (int *)p[0x6B0 / 4]);
+    titproc_uso_func_07ACE0((char *)p + 0x10, (int *)p[0x6B0 / 4]);
     {
         int *n = (int *)p[0x6B0 / 4];
         if (n[0x14 / 4] != 0) {
@@ -1597,7 +1634,7 @@ S_self:
         }
         n[0x14 / 4] = (int)p;
     }
-    p[0x6B4 / 4] = (int)gl_func_00000000(0);
+    p[0x6B4 / 4] = (int)titproc_uso_func_001840(0);
     {
         int *n = (int *)p[0x6B4 / 4];
         int *vt;
@@ -1606,7 +1643,7 @@ S_self:
         vt = (int *)n[0x28 / 4];
         ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)n);
     }
-    gl_func_00000000((char *)p + 0x10, (int *)p[0x6B4 / 4]);
+    titproc_uso_func_07ACE0((char *)p + 0x10, (int *)p[0x6B4 / 4]);
     {
         int *n = (int *)p[0x6B4 / 4];
         if (n[0x14 / 4] != 0) {
@@ -1616,8 +1653,8 @@ S_self:
             p[0x6B4 / 4] = 0;
         }
     }
-    p[0x6BC / 4] = (int)gl_func_00000000(0);
-    gl_func_00000000((char *)p + 0x10, (int *)p[0x6BC / 4]);
+    p[0x6BC / 4] = (int)titproc_uso_func_001D7C(0);
+    titproc_uso_func_07ACE0((char *)p + 0x10, (int *)p[0x6BC / 4]);
     {
         int *n = (int *)p[0x6BC / 4];
         if (n[0x14 / 4] != 0) {
@@ -1628,25 +1665,25 @@ S_self:
     if (((int)a1 << 8) >= 0) {
         p[0x6C0 / 4] = 0;
     } else {
-        int *n6b8 = (int *)gl_func_00000000(0);
+        int *n6b8 = (int *)titproc_uso_func_001B10(0);
         p[0x6B8 / 4] = (int)n6b8;
-        gl_func_00000000((char *)p + 0x10, n6b8);
+        titproc_uso_func_07ACE0((char *)p + 0x10, n6b8);
         if (n6b8[0x14 / 4] != 0) {
             n6b8[0x4 / 4] = 1;
         }
         n6b8[0x14 / 4] = (int)p;
-        p[0x6C0 / 4] = (int)gl_func_00000000(0);
-        gl_func_00000000((int *)p[0x6C0 / 4], p);
-        gl_func_00000000(p);
+        p[0x6C0 / 4] = (int)import_000A5D38(0);
+        import_000A5F40((int *)p[0x6C0 / 4], p);
+        titproc_uso_func_0022BC(p);
         {
             int *n6c0 = (int *)p[0x6C0 / 4];
-            n6c0[0x30 / 4] = (int)gl_func_00000000(0, (char *)&D_00000000, 0x48, 0xDD, 3, 13);
+            n6c0[0x30 / 4] = (int)import_0024CCF4(0, &titproc_uso_D_00052C, 0x48, 0xDD, 3, 13);
             *(float *)((char *)n6c0 + 0x74) = 17.0f;
         }
-        gl_func_00000000((int *)p[0x6C0 / 4]);
-        gl_func_00000000((int *)p[0x6C0 / 4]);
-        *(int *)((char *)p[0x6C0 / 4] + 0x7C) = *(int *)((char *)&D_00000000 + 0x84);
-        gl_func_00000000((char *)p + 0x10, (int *)p[0x6C0 / 4]);
+        import_000A5FBC((int *)p[0x6C0 / 4]);
+        titproc_uso_func_00F4CC((int *)p[0x6C0 / 4]);
+        *(int *)((char *)p[0x6C0 / 4] + 0x7C) = *(int *)((char *)&import_00020098 + 0x84);
+        titproc_uso_func_07ACE0((char *)p + 0x10, (int *)p[0x6C0 / 4]);
         {
             int *n = (int *)p[0x6C0 / 4];
             if (n[0x14 / 4] != 0) {
@@ -1659,15 +1696,15 @@ S_self:
     }
     p[0x6C4 / 4] = 0;
     {
-        int *node = *(int **)((char *)&D_00000000 + 0x190);
-        gl_func_00000000((char *)p + 0x10, node);
+        int *node = *(int **)((char *)&import_00020098 + 0x190);
+        titproc_uso_func_07ACE0((char *)p + 0x10, node);
         if (node[0x14 / 4] != 0) {
             node[0x4 / 4] = 1;
             node[0x14 / 4] = (int)p;
         }
-        gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0);
-        gl_func_00000000();
-        gl_func_00000000(&D_00000000, 0);
+        titproc_uso_func_0139B0(*(int **)((char *)&import_00020098 + 0x190), 1, 0);
+        titproc_uso_func_074840();
+        import_000A7ECC(&import_00020098, 0);
     }
     return (void *)p;
 }
