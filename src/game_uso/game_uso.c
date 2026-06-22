@@ -11788,6 +11788,21 @@ void game_uso_func_0000D634(int a0) {
     (void)a0;
 }
 
+/* game_uso_func_0000D63C: ramp-down/clamp dispatch (75.62%->80.02% 2026-06-22,
+ * agent-e). Resolved the two placeholder jal-0 callees from the .s R_MIPS_26
+ * relocs: import_000B8698 (idx-table entry call) and game_uso_func_022784
+ * (final notify); the indexed value comes from the global array
+ * game_uso_D_807FF7B4[idx]; the first arg of both calls is
+ * *(int*)(&import_800201D0 + 0x138). Residual: the target keeps the base in
+ * $s0 (callee-saved, saved in a -40 frame) while IDO here colors it into $a3
+ * (caller-saved, spilled/reloaded around both calls) -> -24 frame + 3 extra
+ * insns; coupled with that, the indexed-global load emits an extra %lo16 the
+ * target folds (HI-only + lw 0(reg)). Saved-vs-caller-reg coloring cap on the
+ * base pointer; callee identities are now correct (was gl_func_00000000). */
+extern int import_000B8698();
+extern int game_uso_func_022784();
+extern char import_800201D0;
+extern char game_uso_D_807FF7B4;
 #ifdef NON_MATCHING
 void game_uso_func_0000D63C(char *a0, int a1) {
     char *s0 = a0;
@@ -11800,16 +11815,17 @@ void game_uso_func_0000D63C(char *a0, int a1) {
                 idx = 10;
                 *(int*)(s0 + 0x100) = idx;
             }
-            value = *(int*)((idx * 4));
+            value = ((int*)&game_uso_D_807FF7B4)[idx];
             if (value != 0) {
-                gl_func_00000000(*(int*)(&D_00000000 + 0x138),
-                                 *(int*)(s0 + 0xB4), value);
+                import_000B8698(*(int*)((char*)&import_800201D0 + 0x138),
+                                *(int*)(s0 + 0xB4), value);
             }
         }
     }
     *(int*)(s0 + 0xF8) = 0;
     *(int*)(s0 + 0x100) = 0;
-    gl_func_00000000(*(int*)(&D_00000000 + 0x138), *(int*)(s0 + 0xB4), a1);
+    game_uso_func_022784(*(int*)((char*)&import_800201D0 + 0x138),
+                         *(int*)(s0 + 0xB4), a1);
     *(int*)(s0 + 0x120) = 1;
 }
 #else

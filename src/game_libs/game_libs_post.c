@@ -19293,58 +19293,57 @@ void gl_func_00033228(char *o) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
 #endif
 
-// gl_func_000332B4 — STRUCTURAL PASS (0x84 / 33 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
-// prologue). A single-opcode command-stream handler step.
+// gl_func_000332B4 — command-stream handler step (0x84 / 33 words).
+// CLEAN SINGLE FUNCTION (1 jr, one prologue).
+//
+// CORRECTED logic 2026-06-22 (prior comment had the if/else inverted).
+// Verified vs expected/.o disasm — the in-range path does NOT call the
+// callback; the table store happens on BOTH the in-range and out-of-range
+// paths (they reconverge), and the o-callback is the shared tail for the
+// tag-mismatch case only:
 //
 //   void gl_func_000332B4(O *o, Cmd *c) {
-//     if (c->tag_0 != 0x69) return;           // tag gate
-//     int *sp = (int*)c->cur_4;
-//     c->cur_4 = (int)(sp + 1);               // advance cursor +4
-//     int idx = *sp;                          // stream param
-//     if ((u32)idx < 0x28) {                        // range guard (<40)
-//       callback((void*)0x0001E194, idx);     // jal 0 (USO cb)
-//       o->p_F4 = D_0_table[idx];              // &D_0 + idx*4
-//     } else {
-//       callback0(o);                          // else USO cb
+//     if (c->tag_0 == 0x69) {
+//       int *sp = (int*)c->cur_4;
+//       c->cur_4 = (int)(sp + 1);              // advance cursor +4
+//       int idx = *sp;                         // stream param
+//       if ((u32)idx >= 0x28)                  // OUT of range (>=40)
+//         callback(&D_0 + 0x1E194, idx);       // jal 0 (USO cb)
+//       o->p_F4 = D_0_table[idx];              // ALWAYS: &D_0 + idx*4
+//       return;
 //     }
+//     callback0(o);                            // shared else (tag mismatch)
 //   }
 //
-// Struct-typing reference: one handler in the command-stream
-//   interpreter. It validates the incoming command record's tag
-//   word (*c == 0x69), advances the record's read cursor (field
-//   0x4) by one int, fetches an index parameter from the stream,
-//   bounds it to [0, 0x27] (< 0x28 = 40 entries), and on the
-//   in-range path indexes a dispatch table based at &D_0 (stride 4;
-//   also passing the fixed data-segment reference 0x0001E194 to a
-//   USO-relocated callback, jal 0 → resolved at load), storing the
-//   resolved value into the target object at o->0xF4 — the SAME
-//   handle/child field written by the gl_func_00033094 transform
-//   and the gl_func_00032E18 / gl_func_00033228 constructors,
-//   confirming o->0xF4 is this object's primary sub-object handle.
-//   The out-of-range path takes an alternate callback. A per-opcode
-//   step of the game_libs object subsystem's command VM (sibling
-//   handler to the gl_func_0002FB74 interpreter's inline arms,
-//   factored out for the 0x69 command).
-// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + &D_0
-//   dispatch table + fixed data-seg ref (0x0001E194 unsymbolized) —
-//   byte-match needs USO mnemonic disasm + table symbolized.
-//   Real-C STRUCTURAL body below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// 2026-06-22 reconstruction (signature-#2 reloc-form arg): the fixed
+//   data-seg ref 0x0001E194 is really `(char*)&D_00000000 + 0x1E194`
+//   (lui 0x2; addiu -7788 via %hi/%lo reloc — NOT lui 0x1; ori 0xe194).
+//   With that fix + corrected control flow + split-locals (idx anchors a2,
+//   val→v0), the body is BYTE-EXACT except ONE instruction: the tag load
+//   `*c` lands in $a2 (build) vs $v0 (target) — a single-register allocator
+//   tie. idx's home reg is $a2; IDO coalesces the short-lived tag value
+//   into it, whereas the target splits the live range and uses $v0.
+//   Permuter (11k+ iters, perm_temp_for_expr) plateaued at score 30 (=this
+//   one reg); two-var split flips tag→v0 but moves idx→a1 (worse). Genuine
+//   $v0-vs-$a2 coloring cap — NM-wrap. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void gl_func_000332B4(char *o, char *c) {
     int *sp;
     int idx;
-    if (*(int *)c != 0x69) return;
-    sp = *(int **)(c + 4);
-    *(int **)(c + 4) = sp + 1;
-    idx = *sp;
-    if ((u32)idx < 0x28) {
-        gl_func_00000000((void *)0x0001E194, idx);
-        *(int *)(o + 0xF4) = *(int *)((char *)&D_00000000 + idx * 4);
-    } else {
-        gl_func_00000000(o);
+    int val;
+    idx = *(int *)c;
+    if (idx == 0x69) {
+        sp = *(int **)(c + 4);
+        *(int **)(c + 4) = sp + 1;
+        idx = *sp;
+        if ((u32)idx >= 0x28) {
+            gl_func_00000000((char *)&D_00000000 + 0x1E194, idx);
+        }
+        val = *(int *)((char *)&D_00000000 + idx * 4);
+        *(int *)(o + 0xF4) = val;
+        return;
     }
+    gl_func_00000000(o);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000332B4);
