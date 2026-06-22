@@ -5793,24 +5793,39 @@ void game_libs_func_00022F30(int a0, int a1) {
 #ifdef NON_MATCHING
 /* Header at a0: a0[0]=s16 count, a0+2=s16 (set to a2), a0+4=int (set to a1).
  * For each of `count` 16-byte elements (starting at a0), if elem->0x14 != 0 AND
- * elem->0x18(s8) == 2, add a1 to elem->0x10. Structurally exact (23 of 24 insns
- * map 1:1 with branch-likely beqzl/bnel skips) EXCEPT the target's leading
- * `sw a2, 8(sp)` arg-home of a2 (no frame), which C-emit doesn't reproduce
- * (arg-home-spill cap) — and the remaining loop $t-renumber is permuter-resistant
- * (loop). Reloc-free. */
-void game_libs_func_00022F60(short *a0, int a1, int a2) {
-    int v0 = 0;
-    char *cursor = (char *)a0;
+ * elem->0x18(s8) == 2, add a1 to elem->0x10. Reloc-free, 24 insns.
+ *
+ * 2026-06-22: 22/24 insns now mnemonic-exact (was "arg-home-spill cap").
+ * Two levers cracked the previously-unreproducible bits:
+ *   (a) The leading `sw a2, 8(sp)` arg-home (no frame) IS reproducible by
+ *       declaring the 3rd param `unsigned short a2` — that triggers IDO's
+ *       arg-home with NO sign-extension (plain `short a2` adds sll/sra;
+ *       `int a2` emits no home at all). The header store `sh a2,2(a0)`
+ *       truncates anyway, so unsigned short is value-equivalent.
+ *   (b) Re-reading the count via a named `short n = *a0;` (recomputed in the
+ *       loop tail) places the count in $v1 (target) instead of $a3, and the
+ *       counter in $v0 — matching the target's {v0=i, v1=count} pair.
+ * RESIDUAL (the only diff): a pure same-multiset 2-register swap of the
+ * cursor and the loop-invariant const 2 — target colors cursor=$a2 (reusing
+ * the home-freed arg reg) + const=$a3; every C ordering tried colors
+ * cursor=$a3 + const=$a2. The const (loop-invariant, hoisted before the
+ * loop) always wins the home-freed $a2; the cursor's defining `move` at loop
+ * entry takes $a3. Same-multiset {v0,v1,a2,a3} coloring permutation =
+ * documented permuter-class cap. INCLUDE_ASM remains build path (no episode). */
+void game_libs_func_00022F60(short *a0, int a1, unsigned short a2) {
+    int i = 0;
+    short n = *a0;
+    char *cursor;
     *(short *)((char *)a0 + 2) = a2;
     *(int *)((char *)a0 + 4) = a1;
-    if (*a0 > 0) {
-        do {
-            v0++;
-            if (*(int *)(cursor + 0x14) != 0 && *(signed char *)(cursor + 0x18) == 2) {
-                *(int *)(cursor + 0x10) += a1;
-            }
-            cursor += 16;
-        } while (v0 < *a0);
+    cursor = (char *)a0;
+    while (i < n) {
+        i++;
+        if (*(int *)(cursor + 0x14) != 0 && *(signed char *)(cursor + 0x18) == 2) {
+            *(int *)(cursor + 0x10) += a1;
+        }
+        cursor += 16;
+        n = *a0;
     }
 }
 #else
