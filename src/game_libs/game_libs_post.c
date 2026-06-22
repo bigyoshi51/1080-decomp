@@ -18188,21 +18188,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00030A20);
 //   shapes. Decode progress = structure; bytes = infra-blocked.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* PASS-3 2026-06-21 (agent-e deep reconstruction): hand-traced from the raw
- * target words (.s), region-by-region. Frame -0x38 (was wrongly -0x40 in the
- * old m2c graft). Three computed jumps (switch on a0 <14 @0xD8; switch on a0
- * <12 @0x64C; switch on v0 <8 @0x6CC). Heavy base-0 (&D_00000000) global
- * traffic; many distinct globals collapse to the literal-0 placeholder. This
- * is a graphics-MODE setup routine: the constants 0xFB000000 / 0xF8000000 /
- * 0x83010000 / 0x46010000 / 0x81000F00 / 0x81001300 are RDP/RSP command words
- * passed as a0 to the relocated emitter (the `jal 0x0` calls).
+/* PASS-4 2026-06-22 (agent-d): PROVEN-UNREPRODUCIBLE byte-land. The function
+ * is NON_MATCHING permanently — not by laziness but by a structural IDO codegen
+ * limit empirically demonstrated below.
  *
- * RESIDUAL CAP (infra): the intra-USO FIXED jals (0x41D0C/0x42364/0x460D0/
- * 0x41ED4/0x41F0C/0x41F44/0x44F18) bake their absolute offset into the
- * instruction word — they require symbols defined at those exact USO offsets,
- * which the placeholder names here don't pin; plus the per-access base-0
- * recompute (base-pin cap). Structural/control-flow/call-arg shape is the
- * decode progress; byte-landing is infra-blocked on symbol placement. */
+ * STRUCTURE (hand-traced from raw target words, region-by-region; frame -0x38):
+ * a graphics-MODE setup routine. Prologue + one-time init guard on base-0 state
+ * word; arena alloc; field zero-sweep; then THREE base-0 external jumptable
+ * dispatches:
+ *   switch1: `sltiu at,mode,14; lui at,0x0; addu at,at,mode<<2; lw t0,0x1874(at);
+ *            jr t0`  (14 cases @ +0xC8)
+ *   switch2: `sltiu at,sel,12;  ... lw t2,0x18B0(at); jr t2`  (12 cases @ +0x630)
+ *   switch3: `sltiu at,v0,8;    ... lw t4,0x18E0(at); jr t4`  (8  cases @ +0x6BC)
+ * Command words 0xFB000000/0xF8000000/0x83010000/0x46010000/0x81000F00/
+ * 0x81001300 are RDP/RSP command words handed to the relocated emitter (jal 0).
+ *
+ * WHY BYTE-LANDING IS STRUCTURALLY IMPOSSIBLE (empirically proven 2026-06-22):
+ * The expected .o has ZERO relocations AND ZERO .rodata section (verified:
+ * `readelf -S expected/.../game_libs_post.c.o` shows no .rodata/.rel*). All
+ * three dispatches read their jumptable from an EXTERNAL base-0 address at a
+ * FIXED offset — `lui REG,0x0; addu REG,REG,idx<<2; lw REG,0x18xx(REG); jr REG`
+ * — i.e. the case-target table lives in the USO's data segment (resolved at
+ * load), NOT in this object. A compiled IDO `switch` ALWAYS emits the jumptable
+ * into a LOCAL `.rodata` section and references it via R_MIPS_HI16/LO16 relocs
+ * (confirmed with a minimal 8-case switch: IDO 7.1 -O2 emits a 0x20 .rodata
+ * table + .rel.text + .rel.rodata, load = `lui at,%hi(.rodata); lw,%lo(.rodata)`).
+ * No C construct makes IDO read switch targets from an external global array at
+ * a literal offset, and asm-processor's reloc-blinding can zero a reloc but can
+ * neither delete the emitted .rodata section nor turn a local-table reference
+ * into an external base-0 read. => the three jr-table words can never match the
+ * target's external-data form. Permanent INCLUDE_ASM cap (same class as the
+ * sibling gl_func_000076F0 switch2/switch4 note).
+ *
+ * (Note: the OLD "base-pin" / "fixed intra-USO jal" caps cited in prior passes
+ * are NOT the blocker — distinct `D_xxx = 0` externs defeat IDO's base CSE, and
+ * the fixed jals build literally from INCLUDE_ASM. The external-data jumptable
+ * is the sole, structural blocker.)
+ *
+ * The body below is a faithful structural reconstruction (control flow, call-arg
+ * shapes, field accesses) for decode-progress only; bytes are blocked above. */
 extern int gl_func_00041D0C();
 extern int gl_func_00042364();
 extern int gl_func_000460D0();
