@@ -9452,262 +9452,220 @@ char *timproc_uso_b5_func_0000D884(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D884);
 #endif
 
-// timproc_uso_b5_func_0000DF14 — FULL m2c DECODE via compressed-module
-// jumptable path (43.18% NM, no episode). 14-case switch (idx=*(sp+84),
-// dispatch jr $t4 @ 0xE1A0, default 0xE490) extracted from the Yay0-
-// compressed USO emulator dump (ram_base 0x807ef230, table @dump 0x7FF420)
-// and fed to m2c. Lift: 50 X->unkN -> FW(X,0xN), placeholder calls cast
-// via FP4, void*->char* for IDO arithmetic, NULL->0. FW redefined locally
-// (an earlier wrap #undef'd it at line ~5336). Raw-.word USO form (single
-// function). Near-identical SIBLING of func_0000D884 (same shape; differs
-// only in descriptor-table base) — D884 decodes the same way.
-//
-// Timing-screen panel constructor (descriptor variant &D_000016D8).
-//
-//   void *timproc_uso_b5_func_0000DF14(a0, a1, a2, a3) {
-//     R *r = func_00000000(0x2BC);  if (!r) return 0;      // main alloc
-//     S *s = func_00000000(0x2B8);  if (s) {               // sub alloc
-//       func_00000000(s, &D_000016D8);                     // base-init
-//       s->0x28 = &D_0;
-//       func_00000000(s + 0x2C);  func_00000000(s + 0x194);
-//       s->0x28 = &D_000016E0 + 0x9A4;  s->0x0C = …;        // vtable wire
-//     }
-//     func_00000000(a0);                                   // owner init
-//     if (!owner->0x14) owner->0x4 = 1;  owner->0x14 = …;
-//     r->0x2AC = a3->0x6C + 0x10;
-//     r->0x2A4 = (float)a2;                                 // value/ts
-//     r->0x2B0 = a3;
-//     // ~remaining ~400 words: build many named child widgets from
-//     //   the D_000016D8 / 16E0 descriptor pool (factory calls)
-//     //   and wire them into r/s.
-//     return r;
-//   }
-//
-// Struct-typing reference:
-//   r (alloc 0x2BC) = panel object: 0x2A4 f32 (from a2), 0x2AC a
-//     derived offset, 0x2B0 = a3; s (alloc 0x2B8) = sub-record
-//     (0x28 vtable, 0x2C/0x194 child anchors). a0 = owner (0x04
-//     dirty / 0x14 attach). D_000016D8 / 16E0 = USO static
-//     descriptor tables. func_00000000 = USO placeholder dispatcher.
-// Caps (DEFERRED): raw-word USO + placeholder calls + 422-word
-//   builder; USO mnemonic disasm limitation prevents byte-match.
-//   Real-C STRUCTURAL body below — alloc-cascade + sub-record init
-//   + owner-attach + derived-offset stamp skeleton (sibling of
-//   0000D884 with descriptor variant). Byte-match deferred. Name
-//   pre-checked: no extern reuse.
-/* 2026-06-02 UPDATE: applying the head re-decode below (single-r, owner=a0,
- * func(r), arg-stamp a1/a2) is METRIC-NEUTRAL (tested: 10.42%->10.10%) — the
- * head is <10% of this 422-word function, so ONLY decoding the ~400-word FP
- * factory tail moves the %. Don't bother re-decoding the head in isolation;
- * the tail (alloc 324/364/...; func(child,&D+desc,0.0f,0.0f via mtc1/mfc1) +
- * int/float field stamps + distinct descriptor symbols) is the sole lever.
- * HEAD RE-DECODE NEEDED (current body 10.42% is partly mis-decoded;
- * verified against disasm): the alloc(0x2B8)/`s` is the DEAD arm of an
- * alloc-or-passthrough — sp+84 is always r, so the sub-record init
- * (s->0x28=&D, func(s+0x2C/0x194), s->0xC) is actually on r (single object,
- * no separate s). Also r->0x2AC = owner(a0)->0x6C (NOT a3->0x6C+0x10), the
- * owner-attach `if(x->0x14)x->4=1; x->0x14=a0` is on r (not a0), and owner=a0
- * (sp+96) while a3 is only used for r->0x2B0=a3. After the head the ~400-word
- * tail is a run of FP factory calls (alloc 324/364/...; func(child,&D+desc,
- * 0.0f,0.0f via mtc1/mfc1); int+float field stamps; distinct descriptor
- * symbols -> CSE-bust). Sibling D884 shares the exact shape (descriptor base
- * &D+0x1620 vs DF14's &D+0x16D8) — fix one, port to the other. Multi-tick.
- *
- * 2026-06-02 WIDGET RECIPE (o32-decoded tail, for a dedicated FP tick). After
- * the head, s0 is REUSED as "current child". Each widget:
- *   child = func(SIZE); if(!child) goto far;        // sizes 324, 364, ...
- *   typed_proto(child, &D+DESC, 0.0f, 0.0f, 0.0f);  // a2/a3 = float via
- *       // mtc1 zero,f0; mfc1 a2/a3,f0; swc1 f0,16(sp) — NEEDS a typed proto
- *       // (void*,void*,float,float,float); K&R int/double args won't emit the
- *       // mtc1/mfc1 detour. func is still the gl placeholder (reloc-blind jal),
- *       // so declare a distinct typed alias = 0x0 in undefined_syms.
- *   child->0x28 = &D+DESC2;  child->0xC = &D+DESC3;  // int stamps
- *   // some widgets also: child->0x120=1; child->0x108/0x10C/0x110 = fpoolconst
- *   //   (lwc1 f0,OFF(at) from the .rodata float pool); child->0x124 = 1.0f.
- * Widget 1: SIZE=324, DESC=&D+5868, child->0x28=&D+1300, child->0xC=&D+5876.
- * Widget 2: SIZE=364, DESC=&D+5888, child->0x120=1, child->0x28=&D, plus
- *   3x float-pool stamps + 1.0f, and the child is chained into s0->0x108. */
+// timproc_uso_b5_func_0000DF14 — timing-screen panel constructor (NM, 59.1%,
+// no episode). Full STRUCTURAL reconstruction from expected disasm: alloc-or-
+// passthrough head (func_055750 0x2BC/0x2B8), sub-record init, owner attach,
+// then a child-widget factory with a 14-entry jumptable (switch(arg2+10),
+// table @ D_807FF420+0x400) selecting D_807FExxx descriptors and calling
+// func_05D0E0/func_04DFFC per mode (import_800200CC+0x34). DISTINCT named
+// callees (func_055750/04C678/00002B74/000032C8/00003890/07ACE0/0546DC/
+// 04DFFC/05D0E0) — each emits its own R_MIPS_26 reloc; the old single-`alias`
+// collapse capped the reloc set at 55%. Residual ~40%: stack-frame size
+// (0x50 vs target 0x60) drives load/store-offset drift across the body, and
+// the K&R float-call return spill (swc1 $f0,16(sp) after func_0546DC) is not
+// reproduced — func_0546DC needs a (void*,void*,float,float) proto but its
+// 5-arg D884 sibling call blocks a shared typed decl. FP-heavy structural cap.
 #ifdef NON_MATCHING
 
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-char *timproc_uso_b5_func_0000DF14(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8) {
-    char *sp5C;
-    char *sp54;
-    s32 sp30;
-    char *sp28;
-    f32 temp_f0;
-    s32 temp_s0;
-    s32 temp_t1;
-    s32 temp_v0_10;
-    s32 temp_v0_11;
-    s32 temp_v0_6;
-    s32 temp_v0_7;
-    s32 temp_v0_8;
-    s32 temp_v0_9;
-    char *temp_v0;
-    char *temp_v0_12;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
 
-    temp_v0 = timproc_uso_b5_alias((char *)0x2BC);
-    if (temp_v0 != 0) {
-        sp54 = temp_v0;
-        if ((temp_v0 != 0) || (temp_v0_2 = timproc_uso_b5_alias((char *)0x2B8), sp54 = temp_v0_2, (temp_v0_2 != 0))) {
-            timproc_uso_b5_alias(sp54, (char *)0x16D8);
-            FW(sp54, 0x28) = 0;
-            timproc_uso_b5_alias(sp54 + 0x2C);
-            timproc_uso_b5_alias(sp54 + 0x194);
+/* Data symbols not declared elsewhere; subscripted as byte arrays so
+ * &SYM[N] forms HI16/LO16 against the named global (distinct relocs). */
+extern char timproc_uso_b5_D_807FEF48[];
+extern char timproc_uso_b5_D_807FEF50[];
+extern char timproc_uso_b5_D_807FEF5C[];
+extern char timproc_uso_b5_D_807FEF64[];
+extern char timproc_uso_b5_D_807FEF70[];
+extern char timproc_uso_b5_D_807FEFA0[];
+extern char timproc_uso_b5_D_807FEFAC[];
+extern char timproc_uso_b5_D_807FEFB8[];
+extern char timproc_uso_b5_D_807FEFC4[];
+extern char timproc_uso_b5_D_807FEFD0[];
+extern char timproc_uso_b5_D_807FEFDC[];
+extern char timproc_uso_b5_D_807FEFE8[];
+extern char timproc_uso_b5_D_807FEFF4[];
+extern char import_80087FB8[];
+
+char *timproc_uso_b5_func_0000DF14(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8) {
+    char *r;
+    char *child;
+    char *sub;
+    s32 flag;
+    s32 mode;
+
+    r = timproc_uso_b5_func_055750((char *)0x2BC);
+    if (r != 0) {
+        sub = r;
+        if (r == 0) {
+            sub = timproc_uso_b5_func_055750((char *)0x2B8);
+            if (sub == 0) {
+                goto owner;
+            }
         }
-        FW(temp_v0, 0x28) = 0x9A4;
-        FW(temp_v0, 0xC) = 0x16E0;
-        timproc_uso_b5_alias(temp_v0);
+        timproc_uso_b5_func_04C678(sub, &timproc_uso_b5_D_807FEF48[5848]);
+        FW(sub, 0x28) = (s32) (&timproc_uso_b5_D_807FDB64 + 0);
+        timproc_uso_b5_func_00002B74(sub + 44);
+        timproc_uso_b5_func_000032C8(sub + 404);
+        FW(r, 0x28) = (s32) &timproc_uso_b5_D_807FEF50[2468];
+        FW(r, 0xC) = (s32) &timproc_uso_b5_D_807FEF50[5856];
+        timproc_uso_b5_func_00003890(r);
     }
-    sp5C = temp_v0;
-    FW(temp_v0, 0x2AC) = (s32) FW(arg0, 0x6C);
-    timproc_uso_b5_alias(arg0 + 0x10, temp_v0);
-    if (FW(temp_v0, 0x14) != 0) {
-        FW(temp_v0, 0x4) = 1;
+owner:
+    timproc_uso_b5_func_07ACE0(arg0 + 16, r);
+    FW(r, 0x2AC) = FW(arg0, 0x6C);
+    if (FW(r, 0x14) != 0) {
+        FW(r, 0x4) = 1;
     }
-    FW(temp_v0, 0x14) = arg0;
-    FW(sp5C, 0x2B0) = arg2;
-    *(f32 *)((char *)sp5C + 0x2A4) = (f32) arg1;
-    sp54 = arg2 + 0xA;
-    temp_v0_3 = timproc_uso_b5_alias((char *)0x144);
-    if (temp_v0_3 != 0) {
-        timproc_uso_b5_alias(temp_v0_3, (char *)0x16EC, 0, 0, 0.0f);
-        FW(temp_v0_3, 0x28) = 0x514;
-        FW(temp_v0_3, 0xC) = 0x16F4;
-        temp_v0_4 = timproc_uso_b5_alias((char *)0x16C);
-        sp28 = temp_v0_4;
-        if (temp_v0_4 != 0) {
-            timproc_uso_b5_alias(temp_v0_4, (char *)0x1700, 0, 0, 0.0f);
-            temp_f0 = *(f32 *)((char *)&D_00000000 + 0x3FC);
-            FW(sp28, 0x120) = 1;
-            FW(sp28, 0x28) = 0;
-            FW(sp28, 0x108) = temp_f0;
-            FW(sp28, 0x10C) = temp_f0;
-            FW(sp28, 0x110) = temp_f0;
-            FW(sp28, 0x124) = 1.0f;
+    FW(r, 0x14) = (s32) arg0;
+    FW(r, 0x2B0) = arg2;
+    *(f32 *)(r + 0x2A4) = (f32) arg1;
+    child = timproc_uso_b5_func_055750((char *)0x144);
+    FW(r, 0x144) = (s32) child;
+    if (child != 0) {
+        timproc_uso_b5_func_0546DC(child, &timproc_uso_b5_D_807FEF5C[5868], 0.0f, 0.0f);
+        FW(child, 0x28) = (s32) &timproc_uso_b5_D_807FEF64[1300];
+        FW(child, 0xC) = (s32) &timproc_uso_b5_D_807FEF64[5876];
+        sub = timproc_uso_b5_func_055750((char *)0x16C);
+        FW(child, 0x28) = (s32) sub;
+        if (sub != 0) {
+            timproc_uso_b5_func_0546DC(sub, &timproc_uso_b5_D_807FEF70[5888], 0.0f, 0.0f);
+            *(s32 *)(sub + 0x120) = 1;
+            FW(sub, 0x28) = (s32) &import_80087FB8[0];
+            *(f32 *)(sub + 0x108) = *(f32 *)(&import_80807FB8 + 1020);
+            *(f32 *)(sub + 0x10C) = *(f32 *)(&import_80807FB8 + 1020);
+            *(f32 *)(sub + 0x110) = *(f32 *)(&import_80807FB8 + 1020);
+            *(f32 *)(sub + 0x124) = 1.0f;
         }
-        FW(temp_v0_3, 0x108) = sp28;
-        timproc_uso_b5_alias(temp_v0_3, sp28);
-        temp_v0_5 = FW(temp_v0_3, 0x108);
-        FW(temp_v0_5, 0xBC) = 0.0f;
-        FW(temp_v0_5, 0xB8) = 0.0f;
-        FW(temp_v0_5, 0xB4) = 0.0f;
-        FW(temp_v0_3, 0x124) = 1.0f;
-        temp_t1 = *(s32 *)4 & 0x80000;
-        *(char *)4 = (s32) (*(char *)4 & 0xFFF7FFFF);
-        *(char *)4 = (s32) (*(char *)4 & ~1);
-        *(char *)4 = (s32) (*(char *)4 | 2);
-        *(char *)4 = (s32) (*(char *)4 & 0xFFFDFFFF);
-        sp30 = temp_t1;
-        *(char *)4 = (s32) (*(char *)4 | 0x2000);
-        FW(temp_v0_3, 0x140) = 1;
-        FW(temp_v0_3, 0x13C) = 1;
-        switch ((s32) sp54) {
-        case 11:
-            if (*(s32 *)((char *)&D_00000000 + 0x34) == 3) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x170C, 0, 0));
-            }
-            FW(temp_v0_3, 0x13C) = 0;
-            break;
-        case 12:
-            if (*(char *)((char *)&D_00000000 + 0x34) == 3) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x1718, 0, 0));
-            }
-            FW(temp_v0_3, 0x13C) = 0;
-            break;
-        case 13:
-            if (*(char *)((char *)&D_00000000 + 0x34) == 3) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x1724, 0, 0));
-            }
-            FW(temp_v0_3, 0x13C) = 0;
-            break;
+        FW(child, 0x108) = (s32) sub;
+        timproc_uso_b5_func_04DFFC(child, sub);
+        {
+            char *gc = (char *) FW(child, 0x108);
+            *(f32 *)(gc + 0xBC) = 0.0f;
+            *(f32 *)(gc + 0xB8) = 0.0f;
+            *(f32 *)(gc + 0xB4) = 0.0f;
+        }
+        *(f32 *)(child + 0x124) = 1.0f;
+        flag = *(s32 *)(&import_8005EE6C + 4) & 0x80000;
+        *(s32 *)(&import_8005EE6C + 4) = *(s32 *)(&import_8005EE6C + 4) & ~0x80000;
+        *(s32 *)(&import_8005EE6C + 4) = *(s32 *)(&import_8005EE6C + 4) & ~1;
+        *(s32 *)(&import_8005EE6C + 4) = *(s32 *)(&import_8005EE6C + 4) | 2;
+        *(s32 *)(&import_8005EE6C + 4) = *(s32 *)(&import_8005EE6C + 4) & ~0x20000;
+        *(s32 *)(&import_8005EE6C + 4) = *(s32 *)(&import_8005EE6C + 4) | 0x2000;
+        FW(child, 0x140) = 1;
+        FW(child, 0x13C) = 1;
+        switch (arg2 + 10) {
         case 0:
-            if (*(char *)((char *)&D_00000000 + 0x34) != 2) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x1730, 0, 0));
+            if (*(s32 *)(&import_800200CC + 52) == 3) {
+                timproc_uso_b5_func_05D0E0((&timproc_uso_b5_D_807FEBB4 + 5900), (&import_8077EBB4 + 0), 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
             }
+            FW(child, 0x13C) = 0;
             break;
         case 1:
-            if (*(char *)((char *)&D_00000000 + 0x34) != 2) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x173C, 0, 0));
+            if (*(s32 *)(&import_800200CC + 52) == 3) {
+                timproc_uso_b5_func_05D0E0((&timproc_uso_b5_D_807FA914 + 5912), (&import_8077A914 + 0), 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
             }
+            FW(child, 0x13C) = 0;
             break;
         case 2:
-            temp_v0_6 = *(char *)((char *)&D_00000000 + 0x34);
-            if ((temp_v0_6 != 3) && (temp_v0_6 != 5)) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x1748, 0, 0));
+            if (*(s32 *)(&import_800200CC + 52) == 3) {
+                timproc_uso_b5_func_05D0E0((&import_80806674 + 5924), (&import_80776674 + 0), 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
             }
+            FW(child, 0x13C) = 0;
             break;
         case 3:
-            temp_v0_7 = *(char *)((char *)&D_00000000 + 0x34);
-            if ((temp_v0_7 != 3) && (temp_v0_7 != 5)) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x1754, 0, 0));
+            if (*(s32 *)(&import_800200CC + 52) != 2) {
+                timproc_uso_b5_func_05D0E0(&timproc_uso_b5_D_807FEFA0[5936], (char *)0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
             }
             break;
         case 4:
-            temp_v0_8 = *(char *)((char *)&D_00000000 + 0x34);
-            if ((temp_v0_8 != 3) && (temp_v0_8 != 5)) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x1760, 0, 0));
+            if (*(s32 *)(&import_800200CC + 52) != 2) {
+                timproc_uso_b5_func_05D0E0(&timproc_uso_b5_D_807FEFAC[5948], (char *)0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
             }
             break;
         case 5:
-            temp_v0_9 = *(char *)((char *)&D_00000000 + 0x34);
-            if ((temp_v0_9 != 3) && (temp_v0_9 != 5)) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x176C, 0, 0));
+            mode = *(s32 *)(&import_800200CC + 52);
+            if ((mode != 3) && (mode != 5)) {
+                timproc_uso_b5_func_05D0E0(&timproc_uso_b5_D_807FEFB8[5960], (char *)0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
             }
             break;
         case 6:
-            temp_v0_10 = *(char *)((char *)&D_00000000 + 0x34);
-            if ((temp_v0_10 != 3) && (temp_v0_10 != 5)) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x1778, 0, 0));
+            mode = *(s32 *)(&import_800200CC + 52);
+            if ((mode != 3) && (mode != 5)) {
+                timproc_uso_b5_func_05D0E0(&timproc_uso_b5_D_807FEFC4[5972], (char *)0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
             }
             break;
         case 7:
-            temp_v0_11 = *(char *)((char *)&D_00000000 + 0x34);
-            if ((temp_v0_11 != 3) && (temp_v0_11 != 5)) {
-                timproc_uso_b5_alias(temp_v0_3, timproc_uso_b5_alias(0, (char *)0x1784, 0, 0));
+            mode = *(s32 *)(&import_800200CC + 52);
+            if ((mode != 3) && (mode != 5)) {
+                timproc_uso_b5_func_05D0E0(&timproc_uso_b5_D_807FEFD0[5984], (char *)0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
+            }
+            break;
+        case 8:
+            mode = *(s32 *)(&import_800200CC + 52);
+            if ((mode != 3) && (mode != 5)) {
+                timproc_uso_b5_func_05D0E0(&timproc_uso_b5_D_807FEFDC[5996], (char *)0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
+            }
+            break;
+        case 9:
+            mode = *(s32 *)(&import_800200CC + 52);
+            if ((mode != 3) && (mode != 5)) {
+                timproc_uso_b5_func_05D0E0(&timproc_uso_b5_D_807FEFE8[6008], (char *)0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
+            }
+            break;
+        case 10:
+            mode = *(s32 *)(&import_800200CC + 52);
+            if ((mode != 3) && (mode != 5)) {
+                timproc_uso_b5_func_05D0E0(&timproc_uso_b5_D_807FEFF4[6020], (char *)0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child);
             }
             break;
         }
-        if (sp30 != 0) {
-            *(char *)4 = (s32) (*(char *)4 | 0x80000);
+        if (flag != 0) {
+            *(s32 *)(&import_8005EE6C + 4) = *(s32 *)(&import_8005EE6C + 4) | 0x80000;
         } else {
-            *(char *)4 = (s32) (*(char *)4 & 0xFFF7FFFF);
+            *(s32 *)(&import_8005EE6C + 4) = *(s32 *)(&import_8005EE6C + 4) & ~0x80000;
         }
-        FW(temp_v0_3, 0xDC) = arg3;
-        FW(temp_v0_3, 0xE0) = arg4;
-        FW(temp_v0_3, 0xE4) = arg5;
-        FW(temp_v0_3, 0x10C) = arg6;
-        FW(temp_v0_3, 0x110) = arg7;
-        FW(temp_v0_3, 0x134) = 0;
-        FW(temp_v0_3, 0x130) = 0;
-        FW(temp_v0_3, 0x128) = 0.0f;
-        FW(temp_v0_3, 0x11C) = 0.0f;
-        FW(temp_v0_3, 0x114) = arg8;
-        FW(temp_v0_3, 0x124) = 0.0f;
-        *(f32 *)((char *)temp_v0_3 + 0x120) = *(f32 *)0x438;
+        *(f32 *)(child + 0xDC) = arg3;
+        *(f32 *)(child + 0xE0) = arg4;
+        *(f32 *)(child + 0xE4) = arg5;
+        *(f32 *)(child + 0x10C) = arg6;
+        *(f32 *)(child + 0x110) = arg7;
+        FW(child, 0x134) = 0;
+        FW(child, 0x130) = 0;
+        *(f32 *)(child + 0x128) = 0.0f;
+        *(f32 *)(child + 0x11C) = 0.0f;
+        *(f32 *)(child + 0x114) = arg8;
+        *(f32 *)(child + 0x124) = 0.0f;
+        *(f32 *)(child + 0x120) = *(f32 *)&import_80087FB8[1080];
     }
-    FW(sp5C, 0x2B8) = temp_v0_3;
-    FW(sp5C, 0x29C) = temp_v0_3;
-    FW(sp5C, 0x134) = -32.0f;
-    temp_v0_12 = FW(arg0, 0x38);
-    sp54 = temp_v0_12;
-    timproc_uso_b5_alias(temp_v0_12 + 0x10, temp_v0_3);
-    if (FW(temp_v0_3, 0x14) != 0) {
-        FW(temp_v0_3, 0x4) = 1;
+    FW(r, 0x2B8) = (s32) child;
+    FW(r, 0x29C) = (s32) child;
+    *(f32 *)(r + 0x134) = -32.0f;
+    sub = (char *) FW(arg0, 0x38);
+    timproc_uso_b5_func_07ACE0(sub + 16, child);
+    if (FW(child, 0x14) != 0) {
+        FW(child, 0x4) = 1;
     }
-    FW(temp_v0_3, 0x14) = sp54;
-    temp_s0 = FW(arg0, 0x6C);
-    FW(arg0, 0x6C) = (s32) (temp_s0 + 1);
-    FW((arg0 + (temp_s0 * 4)), 0x3C) = sp5C;
-    return sp5C;
+    FW(child, 0x14) = (s32) sub;
+    {
+        s32 n = FW(arg0, 0x6C);
+        FW(arg0, 0x6C) = n + 1;
+        FW(arg0 + n * 4, 0x3C) = (s32) r;
+    }
+    return r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000DF14);

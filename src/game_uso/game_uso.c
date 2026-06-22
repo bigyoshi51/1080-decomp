@@ -11247,7 +11247,23 @@ void game_uso_func_0000C3F8(int *a0) {
  *       reloc-histogram target is now recorded for a future pressure-reduced
  *       (regalloc-dump) attack. The rotating sp-scratch round-trip
  *       (sw tmpl,192-4N(sp); lw; sw 0(s2); lw a2,0(s2)) per stage is the
- *       other ~3-insn/stage source of the gap. */
+ *       other ~3-insn/stage source of the gap.
+ * 2026-06-22 (agent-i) +11pp BIG-SWING: 48.33 -> 59.31%. The target spills
+ *   each stage's `val` to a FRESH DESCENDING stack slot then reloads it for the
+ *   04A188 a2 arg (the sw val,X(sp); lw a2,X(sp) round-trip). Modeling `val`
+ *   as a per-stage `volatile int val` reproduces this exactly (gap 189->159
+ *   insns; call-reloc set stays byte-identical). VERIFIED IN-TREE 2 NEW levers:
+ *     - a per-stage block-scoped `char *tmpl = &D_807FF568+0xf78` (fresh local,
+ *       SAME symbol) DOES defeat the template-CSE in ISOLATION (FF568 x2->x4 in
+ *       a 2-stage harness, fresh lui/addiu per stage matching target) — but
+ *       under the full 32-stage register pressure IDO RE-HOISTS the invariant
+ *       address and CSE returns to x2. So `tmpl` is retained (harmless, models
+ *       intent) but does not move the FF568x16 histogram. Confirms docs 3281/
+ *       3188: CSE-bust needs pressure reduction (regalloc-dump), not a C lever.
+ *   Residual 159-insn gap = (a) FF568/FF5B0 template CSE x2-vs-x16 (~28 insns,
+ *   pressure-bound), (b) the target's DOUBLE round-trip val->scratch(0xC0..)->
+ *   reload-via-&ptr->valarray(s2=0x2C)->a2 vs build's single spill->a2 (the
+ *   extra addiu pscratch + lw-via-ptr + sw-to-s2 per stage). Permuter-class. */
 extern char game_uso_D_807FF568, game_uso_D_807FF5B0, game_uso_D_807FF74C, game_uso_D_807FF814, game_uso_D_807FF81C, game_uso_D_807FF820, game_uso_D_807FF824, game_uso_D_807FF828, game_uso_D_807FF82C, game_uso_D_807FF830, game_uso_D_807FF834, game_uso_D_807FF838, game_uso_D_807FF83C, game_uso_D_807FF840, game_uso_D_807FF844, game_uso_D_807FF848, game_uso_D_807FF84C, game_uso_D_807FF850, game_uso_D_807FF854, game_uso_D_807FF858, game_uso_D_807FF85C, game_uso_D_807FF860, game_uso_D_807FF864, game_uso_D_807FF868, game_uso_D_807FF86C, game_uso_D_807FF870, game_uso_D_807FF874, game_uso_D_807FF878, game_uso_D_807FF87C, game_uso_D_807FF880, game_uso_D_807FF884, game_uso_D_807FF888, game_uso_D_807FF88C, game_uso_D_807FF890, game_uso_D_807FF894, game_uso_D_807FF898;
 extern int game_uso_func_055750();
 extern int game_uso_func_04A188();
@@ -11256,7 +11272,6 @@ void game_uso_func_0000D458(s32);
 void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     char *p = (char *)a0;
     int *s1, *v1, *obj;
-    int val;
     if (p == 0) { p = (char *)game_uso_func_055750(0x444); if (p == 0) goto end; }
     import_0010D33C(p, a1);
     *(int *)(p + 0x28) = (int)&game_uso_D_807FF74C;
@@ -11268,290 +11283,354 @@ void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     v1[1] = 0;
 stage0:;
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF81C + 0x122c);
         obj = (int *)((char *)s1 + 0x8);
         if (s1 == (int *)-0x8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = *(float *)((char *)&game_uso_D_807FF820 + 0x1ec);
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF820 + 0x1230);
         obj = (int *)((char *)s1 + 0x20);
         if (s1 == (int *)-0x20) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 20;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF824 + 0x1234);
         obj = (int *)((char *)s1 + 0x38);
         if (s1 == (int *)-0x38) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 60;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF828 + 0x1238);
         obj = (int *)((char *)s1 + 0x50);
         if (s1 == (int *)-0x50) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 5;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF82C + 0x123c);
         obj = (int *)((char *)s1 + 0x68);
         if (s1 == (int *)-0x68) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = *(float *)((char *)&game_uso_D_807FF830 + 0x1f0);
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF830 + 0x1240);
         obj = (int *)((char *)s1 + 0x80);
         if (s1 == (int *)-0x80) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 20;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF834 + 0x1244);
         obj = (int *)((char *)s1 + 0x98);
         if (s1 == (int *)-0x98) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 3.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF838 + 0x1248);
         obj = (int *)((char *)s1 + 0xb0);
         if (s1 == (int *)-0xb0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 7.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF83C + 0x124c);
         obj = (int *)((char *)s1 + 0xc8);
         if (s1 == (int *)-0xc8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 3;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF840 + 0x1250);
         obj = (int *)((char *)s1 + 0xe0);
         if (s1 == (int *)-0xe0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 0.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF844 + 0x1254);
         obj = (int *)((char *)s1 + 0xf8);
         if (s1 == (int *)-0xf8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 4.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF848 + 0x1258);
         obj = (int *)((char *)s1 + 0x110);
         if (s1 == (int *)-0x110) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 50.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF84C + 0x125c);
         obj = (int *)((char *)s1 + 0x128);
         if (s1 == (int *)-0x128) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 25.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF850 + 0x1260);
         obj = (int *)((char *)s1 + 0x140);
         if (s1 == (int *)-0x140) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 40.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF854 + 0x1264);
         obj = (int *)((char *)s1 + 0x158);
         if (s1 == (int *)-0x158) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF858 + 0x1268);
         obj = (int *)((char *)s1 + 0x170);
         if (s1 == (int *)-0x170) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 120.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF85C + 0x126c);
         obj = (int *)((char *)s1 + 0x188);
         if (s1 == (int *)-0x188) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 80.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF860 + 0x1270);
         obj = (int *)((char *)s1 + 0x1a0);
         if (s1 == (int *)-0x1a0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF864 + 0x1274);
         obj = (int *)((char *)s1 + 0x1b8);
         if (s1 == (int *)-0x1b8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 150.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF868 + 0x1278);
         obj = (int *)((char *)s1 + 0x1d0);
         if (s1 == (int *)-0x1d0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF86C + 0x127c);
         obj = (int *)((char *)s1 + 0x1e8);
         if (s1 == (int *)-0x1e8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF568 + 0xf78);
+        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 150.0f;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF870 + 0x1280);
         obj = (int *)((char *)s1 + 0x200);
         if (s1 == (int *)-0x200) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF874 + 0x1284);
         obj = (int *)((char *)s1 + 0x218);
         if (s1 == (int *)-0x218) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF878 + 0x1288);
         obj = (int *)((char *)s1 + 0x230);
         if (s1 == (int *)-0x230) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF87C + 0x128c);
         obj = (int *)((char *)s1 + 0x248);
         if (s1 == (int *)-0x248) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF880 + 0x1290);
         obj = (int *)((char *)s1 + 0x260);
         if (s1 == (int *)-0x260) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF884 + 0x1294);
         obj = (int *)((char *)s1 + 0x278);
         if (s1 == (int *)-0x278) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF888 + 0x1298);
         obj = (int *)((char *)s1 + 0x290);
         if (s1 == (int *)-0x290) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF88C + 0x129c);
         obj = (int *)((char *)s1 + 0x2a8);
         if (s1 == (int *)-0x2a8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF890 + 0x12a0);
         obj = (int *)((char *)s1 + 0x2c0);
         if (s1 == (int *)-0x2c0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF894 + 0x12a4);
         obj = (int *)((char *)s1 + 0x2d8);
         if (s1 == (int *)-0x2d8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 30;
     }
     {
+        volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF898 + 0x12a8);
         obj = (int *)((char *)s1 + 0x2f0);
         if (s1 == (int *)-0x2f0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
         game_uso_func_04A188(obj, s1, val, 1);
-        obj[0xC / 4] = (int)((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 100;
     }
