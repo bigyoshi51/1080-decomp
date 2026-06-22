@@ -10262,15 +10262,18 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
  * RESIDUAL (1 insn): target stores `swc1 $f0,buf[2]/buf[3]` with NO
  * `mtc1 zero,$f0` anywhere — it relies on $f0 already holding 0.0 from calling
  * context (full-TU artifact). In isolation GCC must materialize the zero
- * (`mtc1 zero,$f0`), the lone extra insn. Isolated-vs-full-TU cap. */
-extern float D_b424_140;  /* &D_0 + 0x140 */
+ * (`mtc1 zero,$f0`), the lone extra insn. Isolated-vs-full-TU cap.
+ * 2026-06-22: replaced the bogus separate `extern float D_b424_140` (resolved to
+ * its own symbol @ off 0 -> `lwc1 $f4,0(at)`) with `*(float*)((char*)&D_00000000
+ * + 0x140)` -> `lwc1 $f4,0x140(at)` reloc-form, the true address. Sole counted
+ * residual is now the `mtc1 zero,$f0` FP-zero materialization cap. */
 extern void game_uso_func_070338(float f, float *p1, float *p2);
 extern void game_uso_func_04DA24(int *a0);
 void game_uso_func_0000B424(int *a0) {
     float buf[5];
     buf[2] = 0.0f;
     buf[3] = 0.0f;
-    buf[4] = D_b424_140;      /* sp+0x2C = D[0x140] */
+    buf[4] = *(float*)((char*)&D_00000000 + 0x140);      /* sp+0x2C = D[0x140] */
     /* float-first arg (-> $f12); a0 is saved across the calls, not passed */
     game_uso_func_070338(*(float*)((char*)a0 + 0x11C), &buf[3], &buf[4]);
     game_uso_func_070338(*(float*)((char*)a0 + 0x104), &buf[2], &buf[4]);

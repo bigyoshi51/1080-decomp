@@ -19950,6 +19950,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D3E4);
 // address, the &D_0004EB00 dest, the zeroed header block and the cb4(0x78,
 // 0x10) sub-alloc are exact. Caps: object struct + cb signatures untyped.
 // Full body INCLUDE_ASM-preserved.
+//
+// 2026-06-22 reloc-form pass (76.1 -> 78.6 NM): the cb args 0x201F4 / 0x3EB00 /
+// 0x3C950 and the *(int*)0 / *(int*)0x1C globals are NOT integer literals — they
+// are `(char*)&D_00000000 + N` addresses (IDO emits lui+addiu w/ HI16/LO16 reloc;
+// the old `0xNU` literals emitted lui+ori, off by one insn each). 0x19000 /
+// 0x3CB00 / 0xB0000B70 / 0x12345678 stay plain ori-form literals (verified vs
+// target). RESIDUAL is register-coloring: target holds a single &D base in s0
+// across the *(int*)&D pokes + reuses 0x19000 via `addiu a0,t6,4`, while IDO
+// re-derives; the prologue arg-save order and v1/a3/s2 temp renumber are the
+// coloring-MULTISET cap class. NON_MATCHING.
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -19968,8 +19978,8 @@ u32 gl_func_0004D468(u32 arg0) {
 
     var_s1 = arg0;
     if ((arg0 != 0) || (temp_v0 = gl_func_00034458(0x50U), var_s1 = temp_v0, (temp_v0 != 0))) {
-        gl_func_00034458(0x201F4U, 0);
-        gl_func_00034458(0x3EB00U, (char *)0xB0000B70, 0x100);
+        gl_func_00034458((char *)&D_00000000 + 0x201F4, 0);
+        gl_func_00034458((char *)&D_00000000 + 0x3EB00, (char *)0xB0000B70, 0x100);
         FW(var_s1, 0x44) = 0;
         FW(var_s1, 0x0) = 0;
         FW(var_s1, 0x4) = 0;
@@ -19993,20 +20003,20 @@ u32 gl_func_0004D468(u32 arg0) {
             var_a3_2 = 0;
         }
         FW(var_s1, 0x14) = var_a3_2;
-        *(int*)0 = gl_func_00034458(0xC00U, (char *)0x10);
-        *(int*)0 = 0x19000U;
-        temp_v0_4 = gl_func_00034458(0x19004U, (char *)0x40);
-        temp_t1 = ((u32) *(int*)0 >> 2) * 4;
-        *(int*)0 = temp_v0_4;
+        *(int*)&D_00000000 = gl_func_00034458(0xC00U, (char *)0x10);
+        *(int*)&D_00000000 = 0x19000;
+        temp_v0_4 = gl_func_00034458((char *)0x19000 + 4, (char *)0x40);
+        temp_t1 = ((u32) *(int*)&D_00000000 >> 2) * 4;
+        *(int*)&D_00000000 = temp_v0_4;
         *(int*)(temp_v0_4 + temp_t1) = 0x12345678;
         FW(var_s1, 0x2C) = gl_func_00034458(0x400U, (char *)0x10);
-        gl_func_00034458(0x3C950U, (char *)4, 0, (char *) var_s1, 0x3EB00, 0xB);
+        gl_func_00034458((char *)&D_00000000 + 0x3C950, (char *)4, 0, (char *) var_s1, (char *)&D_00000000 + 0x3EB00, 0xB);
         *(s32 *)0x3CB00 = 0x12345678;
         *(s32 *)0x3CB04 = 0x12345678;
-        gl_func_00034458(9U, *(char **)0x1C, 0x66);
-        gl_func_00034458(4U, *(char **)0x1C, 0x65);
-        gl_func_00034458(0xEU, *(char **)0x1C, 0x6C);
-        gl_func_00034458(0x3C950U);
+        gl_func_00034458(9U, *(char **)((char *)&D_00000000 + 0x1C), 0x66);
+        gl_func_00034458(4U, *(char **)((char *)&D_00000000 + 0x1C), 0x65);
+        gl_func_00034458(0xEU, *(char **)((char *)&D_00000000 + 0x1C), 0x6C);
+        gl_func_00034458((char *)&D_00000000 + 0x3C950);
         FW(var_s1, 0x20) = 0;
         FW(var_s1, 0x1C) = 0;
         FW(var_s1, 0x24) = 0;
