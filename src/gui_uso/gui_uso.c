@@ -1289,8 +1289,8 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
  * Frame -0x70 (saves s0-s7, s8 + ra). 5th arg `a4_stack` arrives via
  * sp[0x80] (caller arg-save slot 5). a2 spilled to sp+0x78. */
 void gui_func_00002BB0(int *a0, int a1, int a2, int a3, int a4) {
-    int *s7 = (int *)&D_00000000;
-    int *ctx = *(int **)s7;
+    int **s7 = (int **)&D_00000000;
+    int *ctx = *s7;
     int s5 = a1, s4 = a3, s1 = a4;
     int field58, s0, s8;
     int *v1, *tex;
@@ -1784,27 +1784,29 @@ void gui_uso_func_00003B14(int a0, int a1, int a2, int a3, int arg5) {
  * 0x80008000 segment-marker emit at slot 0. ~230 insns of body to
  * decode in next pass. Multi-pass NM remains. */
 extern int D_3B80_f0, D_3B80_f1, D_3B80_f2;
-/* Whole-body decode 2026-06-01 (was 1.81% stub). Paginated RDP texture-DL
- * builder: D_GUI_CTX deref + RDP 0xBB000001/0x80008000 marker emit, switch on
- * a0->0xc selecting a row-emit fn-ptr (sp+92) + max-bytes-per-page, then split
- * a0->8 (height) into pages of (max/height) rows — per-page frow(ctx,..)+gl(..)
- * calls, with a single-page fast path when width*height fits. Stack-arg/loop
- * details approximate; multi-tick remainder. */
+/* Whole-body re-decode 2026-06-22 (agent-e). Paginated RDP texture-DL builder.
+ * &D_00000000 referenced DIRECTLY at each use (not via a held-pointer local) so
+ * IDO's LICM promotes the address into a saved reg + single `lw 0(base)` per ctx
+ * deref, matching target's held base (see docs/IDO_CODEGEN "Reference the SYMBOL
+ * DIRECTLY"). s5=a0 held; a1/a2 spilled to home slots and reloaded; frow ptr on
+ * stack. Switch on a0[3] selects frow + max-bytes-per-page; split a0[2] (height)
+ * into pages of (max/height) rows.
+ * RESIDUAL (raw-word USO, permuter N/A): base colored into $s4 not target's $s7
+ * (longest-LR coloring tie); +8 frame; switch li-hoist + a3-spill scheduler ties.
+ * Logic byte-correct; 79% mnemonic / 87.3% fuzzy. */
 void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
-    int *s7 = (int *)&D_00000000;
-    int *ctx = *(int **)s7;
     int *s5 = a0;
     int s8 = 0;
-    int s2, s0, s3, s1;
+    int s2, s0, s3, s1, s4, s6;
     int max;
     void (*frow)();
 
     {
-        int *v0 = (int *)ctx[0xC / 4];
-        int idx = v0[1];
-        v0[1] = idx + 1;
+        int *dlp = (int *)(*(int **)&D_00000000)[0xC / 4];
+        int idx = dlp[1];
+        dlp[1] = idx + 1;
         {
-            int *slot = (int *)(((int *)ctx[0xC / 4])[0]) + idx * 2;
+            int *slot = (int *)(((int *)(*(int **)&D_00000000)[0xC / 4])[0]) + idx * 2;
             slot[0] = 0xBB000001;
             slot[1] = (int)0x80008000;
         }
@@ -1815,28 +1817,33 @@ void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
     case 2:  frow = (void (*)())&D_3B80_f2; max = 1024; break;
     default: frow = 0;                      max = a3;   break;
     }
-    s2 = a0[4 / 4];   /* width  */
-    s0 = a0[8 / 4];   /* height */
+    s2 = s5[4 / 4];   /* width  */
+    s0 = s5[8 / 4];   /* height */
     if (s2 * s0 > max) {
         s1 = gl_func_00000000(max / s0);   /* rows per page */
         s3 = s0;                            /* height */
-        s0 = a0[4 / 4];                     /* width as page counter */
+        s0 = s5[4 / 4];                     /* width as page counter */
+        s6 = (s3 << 10) / s3;
         while (s0 != 0) {
             if (s1 < s0) {
-                frow(ctx, a0[0], s2, a0[8 / 4], 0, s8, 0, s1, s3, 0);
-                gl_func_00000000(ctx, a1, a2, s1, s3, (s1 << 10) / s1, (s3 << 10) / s3);
+                s4 = (s1 << 10) / s1;
+                frow(*(int **)&D_00000000, s5[0], s2, s5[8 / 4], s8, 0, s1, s3, 0);
+                gl_func_00000000(*(int **)&D_00000000, a1, a2, s1, s3, s4, s6);
                 s8 += s1;
                 s0 -= s1;
                 a1 += s1;
             } else {
-                frow(ctx, a0[0], s2, a0[8 / 4], 0, s8, 0, s0, s3, 0);
-                gl_func_00000000(ctx, a1, a2, s0, s3, (s0 << 10) / s0);
+                s1 = s0;
+                frow(*(int **)&D_00000000, s5[0], s2, s0, s8, 0, s0, s3, 0);
+                gl_func_00000000(*(int **)&D_00000000, a1, a2, s0, s3, (s0 << 10) / s0, s6);
                 s0 -= s1;
             }
         }
     } else {
-        frow(ctx, a0[0], s2, s0, 0, 0, s2, s0, 0);
-        gl_func_00000000(ctx, a1, a2, s2, s0, (s2 << 10) / s2, (s0 << 10) / s0);
+        frow(*(int **)&D_00000000, s5[0], s2, s0, 0, 0, s2, s0, 0);
+        s2 = s5[4 / 4];
+        s0 = s5[8 / 4];
+        gl_func_00000000(*(int **)&D_00000000, a1, a2, s2, s0, (s2 << 10) / s2, (s0 << 10) / s0);
     }
 }
 #else
