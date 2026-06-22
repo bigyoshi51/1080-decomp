@@ -253,175 +253,195 @@ void titproc_uso_func_0000056C(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-/* titproc_uso_func_000005DC STRUCTURE MAP (2026-06-02, for a budgeted decode).
- * 356-insn do-while + 12-case jr-table switch (last fresh pure-integer switch;
- * jr-rodata reproduces per PATTERNS). Skeleton:
- *   void f(char *a0, int a1) {
- *     char *d=&D(s0), *arg=a0(s2), *d16=&D+16(s8); int done=0(s6), s7=1, s5;
- *     do { if((u)a1<12) switch(a1){...}  a1 = *(int*)(d+0x40); } while(!done);
- *   }
- * Tail @0x554: `if(done(s6)==0) goto dispatch; a1 = d->0x40`. Cases set done=1
- * (terminal) or d->0x40 (next-state, loops). Cross-case saved reg s5 is the
- * tricky bit: read from sp+92 at entry, set to 0x800000 in case 3, written
- * back to sp+92 at epilogue (560) — model as a persistent local.
- * Cases decoded so far:
- *   c0: gl(&D,0,0,0); done=1; D->0x68=0; D->0x8C=0x820000; sub=gl(&D,2,9,1);
- *       a1=gl(&D+16); if(sub->0x14)sub->4=1; gl(0,sub); sub->0x14=&D; gl(arg,0)
- *   c1: gl(arg,-1); gl(arg,0x9FFF0,0x10000,arg->0); D->0x44=2; done=1
- *   c3: a4=D->0x44; D->0x44=0; s5=0x800000; D->0x40=a4  (loops)
- *   c2 @0x124 ambiguous (jal with stale a0 — re-check). c4+/c5+ are the
- *   sub-object + s5/s6 setup cases (multi-call). Decode all 12 for the dense
- *   jr-table, then SUB_*-style per-case bodies. Multi-tick. */
+/* titproc_uso_func_000005DC: 356-insn do-while + 12-case jr-table state machine.
+ * Reconstructed 2026-06-22. D base (`import_00020098`) is HELD in s0 across the
+ * whole function (and d16 = &D+0x10 in s8) — the target reloads neither, so the
+ * two base pointers must be single locals that survive every call (callee-saved
+ * coloring). `s5v` is a persistent cross-case local read from sp+92 at entry and
+ * written back at epilogue (uninitialized stack-resident state). Jumptable reloc
+ * is `import_00263E00`; objdiff scores .text only so the generated .rodata table
+ * is harmless. Callees use the real intra-USO `titproc_uso_func_*` symbols.
+ * LOGIC COMPLETE: jal call sequence is byte-identical to target (53/53 R_MIPS_26
+ * relocs in order). RESIDUAL is the held-base allocator cap: the target keeps
+ * `&import_00020098` in saved $s0 and emits `sw X,K($s0)` per field store (form b,
+ * IDO_CODEGEN "&D+const folds to held base"), but our -O2 build re-materializes
+ * `lui $at,%hi(import_00020098); sw X,%lo($at)` per store (form a) at ~24 sites —
+ * the address-fold-vs-CSE allocator coin-flip documented as the SKIP class
+ * (IDO_CODEGEN: "neither form is C-forceable; do NOT grind decl-order /
+ * struct-wrap / pointer-hoist"). Compounded with s0/s1/s2 coloring + the s5v
+ * spill-slot offset, this leaves a +15-insn frame/coloring gap. Stays NM. */
+extern int titproc_uso_func_0120A8();
+extern int titproc_uso_func_0027E8();
+extern int titproc_uso_func_000C54();
+extern int titproc_uso_func_01DA48();
+extern int titproc_uso_func_000B6C();
+extern int titproc_uso_func_000C0C();
+extern int titproc_uso_func_000418();
+extern int titproc_uso_func_011CD8();
+extern int titproc_uso_func_001E9C();
+extern int titproc_uso_func_01EF10();
+extern int titproc_uso_func_01EF44();
+extern int titproc_uso_func_01EF94();
+extern int titproc_uso_func_01EFC8();
+extern int import_000B3268();
+
 #ifdef NON_MATCHING
 void titproc_uso_func_000005DC(char *a0, int a1) {
-    char *d = (char *)&D_00000000;
+    char *d = (char *)&import_00020098;
+    char *d16 = d + 0x10;
     char *arg = a0;
     int done = 0;
-    int s5 = 0;
+    int one = 1;
+    int s5v;
     do {
         if ((unsigned int)a1 < 12) {
             switch (a1) {
-            case 1:
-                gl_func_00000000(arg, -1);
-                gl_func_00000000(arg, 0x9FFF0, 0x10000, *(int *)arg);
-                *(int *)(d + 0x44) = 2;
+            case 0: {
+                int *sub;
+                titproc_uso_func_0120A8(d, 0, 0, 0);
                 done = 1;
+                *(int *)(d + 0x68) = 0;
+                *(int *)(d + 0x8C) = 0x820000;
+                sub = (int *)titproc_uso_func_0027E8(d, 2, 9, one);
+                titproc_uso_func_07ACE0(d16);
+                if (*(int *)((char *)sub + 0x14) != 0) {
+                    *(int *)((char *)sub + 0x4) = one;
+                }
+                titproc_uso_func_000C54(0, sub);
+                *(int *)((char *)sub + 0x14) = (int)d;
+                titproc_uso_func_01DA48(arg, 0);
+                break;
+            }
+            case 1:
+                titproc_uso_func_000B6C(arg, -1);
+                done = 1;
+                import_000B3268(arg, 0x9FFF0, 0x10000, *(int *)arg);
+                *(int *)(d + 0x44) = 2;
+                break;
+            case 2:
+                titproc_uso_func_000C0C(arg);
+                *(int *)(d + 0x40) = 0;
                 break;
             case 3: {
                 int a4 = *(int *)(d + 0x44);
                 *(int *)(d + 0x44) = 0;
-                s5 = 0x800000;
+                s5v = 0x800000;
                 *(int *)(d + 0x40) = a4;
                 break;
             }
-            case 6:
-                gl_func_00000000(arg);
-                s5 = 0x2100000;
-                *(int *)(d + 0x40) = 10;
-                break;
-            case 0: {
-                int *sub;
-                gl_func_00000000(d, 0, 0, 0);
-                done = 1;
-                *(int *)(d + 0x68) = 0;
-                *(int *)(d + 0x8C) = 0x820000;
-                sub = (int *)gl_func_00000000(d, 2, 9, 1);
-                gl_func_00000000(d + 16);
-                if (*(int *)((char *)sub + 0x14) != 0) {
-                    *(int *)((char *)sub + 0x4) = 1;
-                }
-                gl_func_00000000(0, sub);
-                *(int *)((char *)sub + 0x14) = (int)d;
-                gl_func_00000000(arg, 0);
-                break;
-            }
-            case 2:
-                gl_func_00000000(arg);
-                break;
             case 4: {
                 int *r1, *r2;
-                int mask = s5 | 0x90898;
+                int mask = (s5v | 0x10000) | 0x80000 | 0x898;
                 done = 1;
-                r1 = (int *)gl_func_00000000(arg);
-                gl_func_00000000(d, 4, r1, 0);
-                r2 = (int *)gl_func_00000000(d, r1, 10, 1);
-                gl_func_00000000(d + 16);
+                r1 = (int *)titproc_uso_func_000418();
+                titproc_uso_func_0120A8(d, 4, r1, 0);
+                r2 = (int *)titproc_uso_func_0027E8(d, r1, 10, one);
+                titproc_uso_func_07ACE0(d16);
                 if (*(int *)((char *)r2 + 0x14) != 0) {
-                    *(int *)((char *)r2 + 0x4) = 1;
+                    *(int *)((char *)r2 + 0x4) = one;
                 }
-                gl_func_00000000(d, 1);
+                titproc_uso_func_011CD8(d, one);
                 *(int *)((char *)r2 + 0x14) = (int)d;
-                gl_func_00000000(0, mask, r2, 0);
-                gl_func_00000000(arg, 0);
+                titproc_uso_func_001E9C(0, mask, r2, 0);
+                titproc_uso_func_01DA48(arg, 0);
+                *(int *)(d + 0x40) = 0;
                 break;
             }
             case 5: {
                 int *r1, *r2;
                 int mask;
                 *(int *)(d + 0x40) = 0;
-                mask = s5 | 0x1090898;
+                mask = (s5v | 0x1010000) | 0x80000 | 0x898;
                 done = 1;
-                r1 = (int *)gl_func_00000000(arg);
-                gl_func_00000000(d, 4, r1, 0);
-                r2 = (int *)gl_func_00000000(d, r1, 11, 2);
-                gl_func_00000000(d + 16);
+                r1 = (int *)titproc_uso_func_000418();
+                titproc_uso_func_0120A8(d, 4, r1, 0);
+                r2 = (int *)titproc_uso_func_0027E8(d, r1, 11, 2);
+                titproc_uso_func_07ACE0(d16);
                 if (*(int *)((char *)r2 + 0x14) != 0) {
-                    *(int *)((char *)r2 + 0x4) = 1;
+                    *(int *)((char *)r2 + 0x4) = one;
                 }
-                gl_func_00000000(d, 1);
+                titproc_uso_func_011CD8(d, one);
                 *(int *)((char *)r2 + 0x14) = (int)d;
-                gl_func_00000000(0, mask, r2, 0);
-                gl_func_00000000(arg, 0);
+                titproc_uso_func_001E9C(0, mask, r2, 0);
+                titproc_uso_func_01DA48(arg, 0);
+                *(int *)(d + 0x40) = 0;
                 break;
             }
+            case 6:
+                titproc_uso_func_000C0C(arg);
+                s5v = 0x2100000;
+                *(int *)(d + 0x40) = 10;
+                break;
             case 7: {
                 int *r;
-                int v;
-                int flag = s5 & 0x2000000;
-                int s4 = s5 | 0x80A0000;
+                int flag = s5v & 0x2000000;
+                int mask = (s5v | 0x8020000) | 0x80000;
                 done = 1;
-                gl_func_00000000(arg, 2);
-                *(char *)(d + 0x181) = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                *(char *)(d + 0x182) = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                *(char *)(d + 0x183) = gl_func_00000000(*(int *)(*(int *)arg + 8));
+                titproc_uso_func_000B6C(arg, 2);
+                *(char *)(d + 0x181) = titproc_uso_func_01EF10(*(int *)(*(int *)arg + 8));
+                *(char *)(d + 0x182) = titproc_uso_func_01EF44(*(int *)(*(int *)arg + 8));
+                *(char *)(d + 0x183) = titproc_uso_func_01EF94(*(int *)(*(int *)arg + 8));
                 if (flag != 0) {
-                    v = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                    gl_func_00000000(d, 10, v, 2);
+                    titproc_uso_func_0120A8(d, 10, titproc_uso_func_01EFC8(*(int *)(*(int *)arg + 8)), 2);
+                    *(int *)(d + 0x34) = 6;
                 } else {
-                    v = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                    gl_func_00000000(d, 4, v, 0);
+                    *(int *)(d + 0x34) = 6;
+                    titproc_uso_func_0120A8(d, 4, titproc_uso_func_01EFC8(*(int *)(*(int *)arg + 8)), 0);
                 }
-                *(int *)(d + 0x34) = 6;
-                *(int *)(d + 0x64) = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                r = (int *)gl_func_00000000(d, *(int *)(d + 0x64), 4, 1);
-                *(int *)(d + 0x34) = 1;
-                gl_func_00000000(d + 16);
+                *(int *)(d + 0x64) = titproc_uso_func_01EFC8(*(int *)(*(int *)arg + 8));
+                r = (int *)titproc_uso_func_0027E8(d, *(int *)(d + 0x64), 4, one);
+                *(int *)(d + 0x34) = one;
+                titproc_uso_func_07ACE0(d16);
                 if (*(int *)((char *)r + 0x14) != 0) {
-                    *(int *)((char *)r + 0x4) = 1;
+                    *(int *)((char *)r + 0x4) = one;
                 }
-                gl_func_00000000(d, 1);
+                titproc_uso_func_011CD8(d, one);
                 *(int *)((char *)r + 0x14) = (int)d;
-                gl_func_00000000(0, s4 + *(int *)(*(int *)(*(int *)arg + 8) + 4), r, *(int *)arg);
-                gl_func_00000000(arg, 0);
+                titproc_uso_func_001E9C(0, mask + *(int *)(*(int *)(*(int *)arg + 8) + 4), r, *(int *)arg);
+                titproc_uso_func_01DA48(arg, 0);
                 *(int *)(d + 0x40) = 11;
                 break;
             }
-            case 8:  *(int *)(d + 0x40) = 105; break;
+            case 8:
+                titproc_uso_func_000C0C(arg);
+                s5v = 0x2100000;
+                *(int *)(d + 0x40) = 9;
+                break;
             case 9: {
                 int *r;
-                int v;
-                int flag = s5 & 0x2000000;
-                int s4 = s5 | 0x80A0000;
+                int flag = s5v & 0x2000000;
+                int mask = (s5v | 0x8020000) | 0x80000;
                 done = 1;
-                gl_func_00000000(arg, 1);
-                *(char *)(d + 0x181) = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                *(char *)(d + 0x182) = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                *(char *)(d + 0x183) = gl_func_00000000(*(int *)(*(int *)arg + 8));
+                titproc_uso_func_000B6C(arg, one);
+                *(char *)(d + 0x181) = titproc_uso_func_01EF10(*(int *)(*(int *)arg + 8));
+                *(char *)(d + 0x182) = titproc_uso_func_01EF44(*(int *)(*(int *)arg + 8));
+                *(char *)(d + 0x183) = titproc_uso_func_01EF94(*(int *)(*(int *)arg + 8));
                 if (flag != 0) {
-                    v = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                    gl_func_00000000(d, 10, v, 1);
+                    titproc_uso_func_0120A8(d, 10, titproc_uso_func_01EFC8(*(int *)(*(int *)arg + 8)), one);
                 } else {
-                    v = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                    gl_func_00000000(d, 4, v, 0);
+                    titproc_uso_func_0120A8(d, 4, titproc_uso_func_01EFC8(*(int *)(*(int *)arg + 8)), 0);
                 }
-                *(int *)(d + 0x64) = gl_func_00000000(*(int *)(*(int *)arg + 8));
-                r = (int *)gl_func_00000000(d, *(int *)(d + 0x64), 4, 1);
-                gl_func_00000000(d + 16);
+                *(int *)(d + 0x64) = titproc_uso_func_01EFC8(*(int *)(*(int *)arg + 8));
+                r = (int *)titproc_uso_func_0027E8(d, *(int *)(d + 0x64), 4, one);
+                titproc_uso_func_07ACE0(d16);
                 if (*(int *)((char *)r + 0x14) != 0) {
-                    *(int *)((char *)r + 0x4) = 1;
+                    *(int *)((char *)r + 0x4) = one;
                 }
-                gl_func_00000000(d, 1);
+                titproc_uso_func_011CD8(d, one);
                 *(int *)((char *)r + 0x14) = (int)d;
-                gl_func_00000000(0, s4 + *(int *)(*(int *)(*(int *)arg + 8) + 4), r, *(int *)arg);
-                gl_func_00000000(arg, 0);
+                titproc_uso_func_001E9C(0, mask + *(int *)(*(int *)(*(int *)arg + 8) + 4), r, *(int *)arg);
+                titproc_uso_func_01DA48(arg, 0);
                 *(int *)(d + 0x40) = 11;
                 break;
             }
-            case 10: break;
-            case 11: break;
+            case 10:
+                break;
+            case 11:
+                titproc_uso_func_000C0C(arg);
+                *(int *)(d + 0x40) = *(int *)(d + 0x44);
+                break;
             }
         }
-        (void)s5;
         a1 = *(int *)(d + 0x40);
     } while (done == 0);
 }

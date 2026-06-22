@@ -43,99 +43,97 @@ ret:
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
 #endif
 
-/* gui_func_00000148: BUNDLED splat symbol (0x7D0 total / 500 insns).
- * splat could not separate sub-functions (no inter-function relocs).
- * Per feedback_uso_split_fragments_breaks_expected_match.md, splitting
- * USO funcs is risky - expected/.o keeps the bundled symbol. Bundled.
+/* gui_func_00000148: single coherent function, 0x148-0x558 (0x410 / 260
+ * insns), terminated by `jr ra; addiu sp,sp,0x80`. The earlier "BUNDLED
+ * 0x7D0/500-insn / 3 sub-fns + orphan" note was STALE: expected/gui_uso.c.o
+ * shows the next symbol gui_uso_func_0000055C starting at 0x55C, and the
+ * function has zero inter-function relocs in range. The two `jal 0` are
+ * baked-zero placeholders -> gl_func_00000000 (find-or-create allocator).
  *
- * Sub-function layout (boundary = jr $ra + delay slot):
- *   F1 @ 0x148-0x558: 0x410 / 260 insns. addiu sp,-0x80 prologue, saves
- *     12 callee-saves (s0-s5+s6+s7+fp+s3+s4). HEAVY div idiom
- *     (multiple div+break-on-zero pairs at 0x1A4/0x1D0/0x20C). Alloc
- *     sub-object via gl_func_00000000(0x28) at insn 9. Stores results
- *     to s2->{0x4, 0xC, 0x0, 0x10, 0x14, 0x18, 0x1C}. Likely
- *     GLYPH-LAYOUT-MEASURE function: divides string-width / glyph-count
- *     to produce kerning/spacing fields.
- *   F2 @ 0x55C-0x6B4: 0x158 / 87 insns. Smaller helper.
- *   F3 @ 0x6B8-0x8BC: 0x204 / 129 insns. Mid-size.
- *   ORPHAN @ 0x8C0-0x914: 22 insns with NO jr $ra. Starts `lw v0,
- *     0x24(a0)`. Loads from $a0 + setup of 0xB900031D / 0x4242240
- *     constants (RDP DPC commands?). Either dead code or a tail-call
- *     site that doesn't return through the standard jr-ra path.
- *     gui_func_00000918 (next splat symbol) starts at 0x918 with its
- *     own addiu-sp prologue, so the 22 orphan insns DO NOT logically
- *     continue there. Verified 2026-05-03 via boundary recheck (0x918
- *     has 1 jr ra at 0xB50, single coherent function).
+ * GLYPH-GRID-LAYOUT constructor. Args
+ *   (char *obj, int a1, int a2, int a3, int rows, int cols)   [rows=sp+0x90,
+ *   cols=sp+0x94]. Find-or-create obj (alloc 40 if null). Fields:
+ *     o->4  = a1 (pixel/atlas base ptr)
+ *     o->C  = a2/rows (gw, glyph cell width) -- later overwritten by maxw
+ *     o->0  = rows*cols (cell count)
+ *     o->10 = o->14 = a3/cols (gh, glyph cell height)
+ *     o->18 = a2,  o->1C = a3
+ *     o->20 = gl_func_00000000(rows*cols*20)  (per-cell record array, 20B ea)
+ *   Then per cell (col in [0,cols), row in [0,rows), gi = col*rows+row):
+ *   scans the gh x gw pixel block at base + col*gh*a2 + row*gw, finding
+ *   min/max non-zero column (minx/maxx). Writes record g = o->0x20 + gi*20:
+ *     g[0]=row*gw+minx, g[1]=col*gh, g[2]=(maxx+1)-minx, g[4]=minx.
+ *   Tracks maxw = max(maxx+1), sum = sum(maxx+1). Finally o->C = maxw,
+ *   o->8 = (int)((sum*0.5f)/o->0), and back-fills g[3]=o->C for every cell.
  *
- * Total cost to NM-wrap: would need to write 3 sub-bodies + an orphan
- * tail as one ~500-insn C function with goto-chains, which IDO won't
- * reproduce. Best path forward: type the GUI struct (sub-object @ 0x28
- * from gl_func) first via siblings, then attempt a
- * split-with-refresh-expected later.
- */
+ * STATUS: correct-C reconstruction, ~71% fuzzy (was 55%). Structure exact;
+ * residual is uopt spill-coloring + arg->saved-reg assignment (frame 0x98 vs
+ * target 0x80) -- the documented regalloc-coloring cap class. Permuter (5k+
+ * iters) does not close it. NOT byte-exact; kept NON_MATCHING. */
 #ifdef NON_MATCHING
-/* Partial decode 2026-06-01. Grid/table-allocator constructor: find-or-create
- * (size 40), stores the dims (cols=a2/rows, rows*cols, a3/cols) and allocates
- * the cell buffer (rows*cols*20) at obj->0x20. The nested-loop per-cell init
- * (~180 insns) is a follow-up. */
 void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
     char *o = a0;
-    int prod;
+    int gw, gh, prod;
+    int sum, maxw;
+    int col, row, gi;
 
     if (a0 == 0) {
         o = (char *)gl_func_00000000(40);
         if (o == 0) {
-            return 0;
+            goto end;
         }
     }
+    gw = a2 / rows;
+    gh = a3 / cols;
     *(int *)(o + 4) = a1;
-    *(int *)(o + 0xC) = a2 / rows;
+    *(int *)(o + 0xC) = gw;
     prod = rows * cols;
     *(int *)(o + 0) = prod;
-    *(int *)(o + 0x10) = a3 / cols;
+    *(int *)(o + 0x10) = gh;
     *(int *)(o + 0x18) = a2;
     *(int *)(o + 0x1C) = a3;
-    *(int *)(o + 0x14) = a3 / cols;
+    *(int *)(o + 0x14) = gh;
     *(int *)(o + 0x20) = gl_func_00000000(prod * 20);
-    {
-        int gw = a2 / rows;
-        int gh = a3 / cols;
-        int s5 = 0, s6 = 0;
-        int v1, ra, t2, v0, gi;
-        for (v1 = 0; v1 < cols; v1++) {
-            gi = v1 * rows;
-            for (ra = 0; ra < rows; ra++) {
-                int minx = gw, maxx = 0;
-                for (t2 = 0; t2 < gh; t2++) {
-                    char *px = (char *)*(int *)(o + 4) + (v1 * gh) * a2 + ra * gw + t2 * a2;
-                    for (v0 = 0; v0 < gw; v0++) {
-                        if (px[v0] != 0) {
-                            if (v0 < minx) minx = v0;
-                            if (maxx < v0) maxx = v0;
-                        }
+
+    sum = 0;
+    maxw = 0;
+    for (col = 0; col < cols; col++) {
+        gi = col * rows;
+        for (row = 0; row < rows; row++) {
+            char *px = (char *)*(int *)(o + 4) + (col * gh) * a2 + row * gw;
+            int minx = gw, maxx = 0;
+            int y;
+            for (y = 0; y < gh; y++) {
+                char *line = px + y * a2;
+                int x;
+                for (x = 0; x < gw; x++) {
+                    if (line[x] != 0) {
+                        if (x < minx) minx = x;
+                        if (maxx < x) maxx = x;
                     }
                 }
-                {
-                    int *g = (int *)(*(int *)(o + 0x20) + gi * 0x14);
-                    g[0] = ra * gw + minx;
-                    g[1] = v1 * gh;
-                    g[2] = (maxx + 1) - minx;
-                    g[4] = minx;
-                    if (s6 < maxx + 1) s6 = maxx + 1;
-                    s5 += maxx + 1;
-                }
-                gi++;
             }
-        }
-        *(int *)(o + 0xC) = s6;
-        *(int *)(o + 8) = (int)(((float)s5 * 0.5f) / *(int *)(o + 0));
-        {
-            int i;
-            for (i = 0; i < *(int *)(o + 0); i++) {
-                *(int *)(*(int *)(o + 0x20) + i * 0x14 + 0xC) = *(int *)(o + 0xC);
+            {
+                int *g = (int *)(*(int *)(o + 0x20) + gi * 0x14);
+                g[0] = row * gw + minx;
+                g[1] = col * gh;
+                g[2] = (maxx + 1) - minx;
+                g[4] = minx;
             }
+            if (maxw < maxx + 1) maxw = maxx + 1;
+            sum += maxx + 1;
+            gi++;
         }
     }
+    *(int *)(o + 0xC) = maxw;
+    *(int *)(o + 8) = (int)(((float)sum * 0.5f) / *(int *)(o + 0));
+    {
+        int i;
+        for (i = 0; i < *(int *)(o + 0); i++) {
+            *(int *)(*(int *)(o + 0x20) + i * 0x14 + 0xC) = *(int *)(o + 0xC);
+        }
+    }
+end:
     return o;
 }
 #else
@@ -1505,165 +1503,146 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
 #endif
 
 #ifdef NON_MATCHING
+/* gui_func_0000329C: int-arg sibling of gui_func_00002DE0 (same RDP scissor +
+ * texrect-scale DL builder; double-deref base = *(int*)g, cursor = base[0xC],
+ * bump cur[1], emit at *cur + n*8). Rewritten 2026-06-22 from m2c into the
+ * clean reused-local 00002DE0 shape -> 58.6% -> 70.7% fuzzy. Two real
+ * misdecodes fixed: sp3C/sp38 are s16 reads (lh) not lw; the H-block guard is
+ * `(s16)(by*4) < 0` not the m2c `temp_f6 & 0x20000000` phantom. All ops/field-
+ * types now match target; residual is pure whole-function register coloring +
+ * scheduling (target keeps the deref base + accumulator in callee-saved s0
+ * across blocks; IDO here colors them caller-saved, -88 vs -80 frame). Permuter
+ * can't score this (USO-relocatable raw-.word target). Default INCLUDE_ASM
+ * keeps ROM byte-exact. */
 void gui_func_0000329C(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     char *g = (char *)&D_00000000;
+    char *base;
+    char *dl;
+    char *slot;
+    s32 idx;
     s32 sp3C;
     s32 sp38;
-    f32 temp_f0;
-    f32 temp_f2;
-    s16 temp_a0;
-    s16 temp_a1;
-    s16 temp_a2;
-    s16 temp_v0_3;
-    s16 var_s0;
-    s16 var_s0_2;
-    s16 var_t2;
-    s16 var_t2_2;
-    s32 temp_a0_2;
-    s32 temp_a0_3;
-    s32 temp_f6;
-    s32 temp_f8;
-    s32 temp_s0_2;
-    s32 temp_v0_5;
-    s32 temp_v0_6;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 temp_v1_4;
-    s32 var_a1;
-    s32 var_a2;
-    s32 var_s0_3;
-    s32 var_t0;
-    s32 var_v0;
-    s32 var_v1;
-    void **var_t3;
-    char *temp_a0_4;
-    char *temp_s0;
-    char *temp_s0_3;
-    char *temp_s0_4;
-    char *temp_s0_5;
-    char *temp_t0;
-    char *temp_t0_2;
-    char *temp_t1;
-    char *temp_t2;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_4;
-    char *temp_v0_7;
+    char *t2;
+    s32 mode;
+    f32 fW;
+    f32 fH;
+    s32 bx;
+    s32 by;
+    s16 x0;
+    s16 y0;
+    s16 x1;
+    s16 y1;
+    s32 dsdx;
+    s32 dtdy;
+    s32 tmp;
 
-    var_t3 = g;
-    temp_s0 = (*(s32 *)g);
-    temp_v0 = (*(s32 *)(temp_s0 + 0xC));
-    temp_v1 = (*(s32 *)(temp_v0 + 0x4));
-    (*(s32 *)(temp_v0 + 0x4)) = (s32) (temp_v1 + 1);
-    temp_t0 = (*(s32 *)((char *)(*(s32 *)(temp_s0 + 0xC)) + 0x0)) + (temp_v1 * 8);
-    (*(s32 *)(temp_t0 + 0x0)) = 0xBB000001;
-    (*(s32 *)(temp_t0 + 0x4)) = 0x80008000;
-    temp_t2 = (*(s32 *)(arg0 + 0x10));
-    sp3C = (s32) (*(s32 *)(temp_t2 + 0x20));
-    sp38 = (s32) (*(s32 *)(temp_t2 + 0x22));
-    temp_s0_2 = (*(s32 *)(temp_t2 + 0x24));
-    switch (temp_s0_2) {                            /* irregular */
+    base = (*(char **)g);
+    dl = (*(char **)(base + 0xC));
+    idx = (*(s32 *)(dl + 0x4));
+    (*(s32 *)(dl + 0x4)) = idx + 1;
+    slot = (char *)((*(s32 *)((*(char **)(base + 0xC)) + 0x0)) + idx * 8);
+    (*(s32 *)(slot + 0x0)) = 0xBB000001;
+    (*(s32 *)(slot + 0x4)) = 0x80008000;
+
+    t2 = (*(char **)(arg0 + 0x10));
+    sp3C = (*(s16 *)(t2 + 0x20));
+    sp38 = (*(s16 *)(t2 + 0x22));
+    mode = (*(s32 *)(t2 + 0x24));
+    switch (mode) {
     case 0x408:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-block_7:
-        var_t3 = g;
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
         break;
     case 0x120:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        goto block_7;
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        break;
     case 0x110:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        goto block_7;
+        gui_func_00000000((*(s32 *)g), (*(s32 *)(t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+        break;
     }
-    temp_s0_3 = *var_t3;
-    var_t2 = 0;
-    temp_v0_2 = (*(s32 *)(temp_s0_3 + 0xC));
-    temp_v1_2 = (*(s32 *)(temp_v0_2 + 0x4));
-    (*(s32 *)(temp_v0_2 + 0x4)) = (s32) (temp_v1_2 + 1);
-    temp_t0_2 = (*(s32 *)((char *)(*(s32 *)(temp_s0_3 + 0xC)) + 0x0)) + (temp_v1_2 * 8);
-    temp_f0 = (f32) (arg3 - arg1);
-    var_s0 = 0;
-    temp_f8 = (s32) (f32) arg1;
-    temp_f2 = (f32) (arg4 - arg2);
-    temp_a0 = (temp_f8 + (s32) temp_f0) * 4;
-    temp_a1 = temp_f8 * 4;
-    if (temp_a0 > 0) {
-        var_s0 = temp_a0;
+    base = (*(char **)g);
+    y0 = 0;
+    dl = (*(char **)(base + 0xC));
+    idx = (*(s32 *)(dl + 0x4));
+    (*(s32 *)(dl + 0x4)) = idx + 1;
+    slot = (char *)((*(s32 *)((*(char **)(base + 0xC)) + 0x0)) + idx * 8);
+    fW = (f32) (arg3 - arg1);
+    x0 = 0;
+    bx = (s32) (f32) arg1;
+    fH = (f32) (arg4 - arg2);
+    if ((s16) ((bx + (s32) fW) * 4) > 0) {
+        x0 = (bx + (s32) fW) * 4;
     }
-    temp_f6 = (s32) (f32) arg2;
-    var_s0_2 = 0;
-    temp_v0_3 = (temp_f6 + (s32) temp_f2) * 4;
-    temp_a2 = temp_f6 * 4;
-    if (temp_v0_3 > 0) {
-        var_t2 = temp_v0_3;
+    by = (s32) (f32) arg2;
+    x1 = 0;
+    if ((s16) ((by + (s32) fH) * 4) > 0) {
+        y0 = (by + (s32) fH) * 4;
     }
-    (*(s32 *)(temp_t0_2 + 0x0)) = (s32) (((var_s0 & 0xFFF) << 0xC) | 0xE4000000 | (var_t2 & 0xFFF));
-    if (temp_a1 > 0) {
-        var_s0_2 = temp_a1;
+    (*(s32 *)(slot + 0x0)) = (s32) (((x0 & 0xFFF) << 0xC) | 0xE4000000 | (y0 & 0xFFF));
+    if ((s16) (bx * 4) > 0) {
+        x1 = bx * 4;
     }
-    if (temp_a2 > 0) {
-        var_t2_2 = temp_a2;
+    if ((s16) (by * 4) > 0) {
+        y1 = by * 4;
     } else {
-        var_t2_2 = 0;
+        y1 = 0;
     }
-    (*(s32 *)(temp_t0_2 + 0x4)) = (s32) (((var_s0_2 & 0xFFF) << 0xC) | (var_t2_2 & 0xFFF));
-    temp_s0_4 = *var_t3;
-    temp_v0_4 = (*(s32 *)(temp_s0_4 + 0xC));
-    temp_v1_3 = (*(s32 *)(temp_v0_4 + 0x4));
-    (*(s32 *)(temp_v0_4 + 0x4)) = (s32) (temp_v1_3 + 1);
-    temp_t1 = (*(s32 *)((char *)(*(s32 *)(temp_s0_4 + 0xC)) + 0x0)) + (temp_v1_3 * 8);
-    (*(s32 *)(temp_t1 + 0x0)) = 0xB4000000;
-    if (temp_a1 < 0) {
-        var_t0 = (s32) (((f32) (sp3C - 1) * 1024.0f) / temp_f0);
-        if ((s16) var_t0 < 0) {
-            temp_a0_2 = (s32) (temp_a1 * (s16) var_t0) >> 7;
-            if (temp_a0_2 > 0) {
-                var_s0_3 = temp_a0_2;
+    (*(s32 *)(slot + 0x4)) = (s32) (((x1 & 0xFFF) << 0xC) | (y1 & 0xFFF));
+    base = (*(char **)g);
+    dl = (*(char **)(base + 0xC));
+    idx = (*(s32 *)(dl + 0x4));
+    (*(s32 *)(dl + 0x4)) = idx + 1;
+    slot = (char *)((*(s32 *)((*(char **)(base + 0xC)) + 0x0)) + idx * 8);
+    (*(s32 *)(slot + 0x0)) = 0xB4000000;
+    if ((s16) (bx * 4) < 0) {
+        dsdx = (s32) (((f32) (sp3C - 1) * 1024.0f) / fW);
+        if ((s16) dsdx < 0) {
+            tmp = (s32) ((s16) (bx * 4) * (s16) dsdx) >> 7;
+            if (tmp > 0) {
+                x0 = tmp;
             } else {
-                var_s0_3 = 0;
+                x0 = 0;
             }
         } else {
-            var_v0 = 0;
-            temp_a0_3 = (s32) (temp_a1 * (s16) var_t0) >> 7;
-            if (temp_a0_3 < 0) {
-                var_v0 = temp_a0_3;
+            y0 = 0;
+            tmp = (s32) ((s16) (bx * 4) * (s16) dsdx) >> 7;
+            if (tmp < 0) {
+                y0 = tmp;
             }
-            var_s0_3 = var_v0;
+            x0 = y0;
         }
     } else {
-        var_s0_3 = 0;
-        var_t0 = (s32) (((f32) (sp3C - 1) * 1024.0f) / temp_f0);
+        x0 = 0;
+        dsdx = (s32) (((f32) (sp3C - 1) * 1024.0f) / fW);
     }
-    if (temp_f6 & 0x20000000) {
-        var_a2 = (s32) (((f32) (sp38 - 1) * 1024.0f) / temp_f2);
-        if ((s16) var_a2 < 0) {
-            temp_v0_5 = (s32) (temp_a2 * (s16) var_a2) >> 7;
-            if (temp_v0_5 > 0) {
-                var_a1 = temp_v0_5;
+    if ((s16) (by * 4) < 0) {
+        dtdy = (s32) (((f32) (sp38 - 1) * 1024.0f) / fH);
+        if ((s16) dtdy < 0) {
+            tmp = (s32) ((s16) (by * 4) * (s16) dtdy) >> 7;
+            if (tmp > 0) {
+                y1 = tmp;
             } else {
-                var_a1 = 0;
+                y1 = 0;
             }
         } else {
-            var_v1 = 0;
-            temp_v0_6 = (s32) (temp_a2 * (s16) var_a2) >> 7;
-            if (temp_v0_6 < 0) {
-                var_v1 = temp_v0_6;
+            x1 = 0;
+            tmp = (s32) ((s16) (by * 4) * (s16) dtdy) >> 7;
+            if (tmp < 0) {
+                x1 = tmp;
             }
-            var_a1 = var_v1;
+            y1 = x1;
         }
     } else {
-        var_a1 = 0;
-        var_a2 = (s32) (((f32) (sp38 - 1) * 1024.0f) / temp_f2);
+        y1 = 0;
+        dtdy = (s32) (((f32) (sp38 - 1) * 1024.0f) / fH);
     }
-    (*(s32 *)(temp_t1 + 0x4)) = (s32) ((var_s0_3 * -0x10000) | (-var_a1 & 0xFFFF));
-    temp_s0_5 = (*(s32 *)g);
-    temp_v0_7 = (*(s32 *)(temp_s0_5 + 0xC));
-    temp_v1_4 = (*(s32 *)(temp_v0_7 + 0x4));
-    (*(s32 *)(temp_v0_7 + 0x4)) = (s32) (temp_v1_4 + 1);
-    temp_a0_4 = (*(s32 *)((char *)(*(s32 *)(temp_s0_5 + 0xC)) + 0x0)) + (temp_v1_4 * 8);
-    (*(s32 *)(temp_a0_4 + 0x4)) = (s32) ((var_t0 << 0x10) | (var_a2 & 0xFFFF));
-    (*(s32 *)(temp_a0_4 + 0x0)) = 0xB3000000;
+    (*(s32 *)(slot + 0x4)) = (s32) ((x0 * -0x10000) | (-y1 & 0xFFFF));
+    base = (*(char **)g);
+    dl = (*(char **)(base + 0xC));
+    idx = (*(s32 *)(dl + 0x4));
+    (*(s32 *)(dl + 0x4)) = idx + 1;
+    slot = (char *)((*(s32 *)((*(char **)(base + 0xC)) + 0x0)) + idx * 8);
+    (*(s32 *)(slot + 0x4)) = (s32) ((dsdx << 0x10) | (dtdy & 0xFFFF));
+    (*(s32 *)(slot + 0x0)) = 0xB3000000;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
