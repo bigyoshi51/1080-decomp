@@ -1,4 +1,4 @@
-nonmatching gl_func_00067370, 0x24
+nonmatching gl_func_00067370, 0x20
 
 glabel gl_func_00067370
     /* 067370 00067370 27BDFFE8 */  .word 0x27BDFFE8
@@ -9,6 +9,4 @@ glabel gl_func_00067370
     /* 067384 00067384 27BD0018 */  .word 0x27BD0018
     /* 067388 00067388 03E00008 */  .word 0x03E00008
     /* 06738C 0006738C 00000000 */  .word 0x00000000
-    /* inter-fn ROM pad (folded; was the 1-word sidecar) */
-    /* 067390 00067390 00000000 */  .word 0x00000000
 endlabel gl_func_00067370

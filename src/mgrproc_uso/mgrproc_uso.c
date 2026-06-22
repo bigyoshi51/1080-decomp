@@ -1665,13 +1665,27 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002B7
  * pick a0+312/+288 by v0; X(that); X(.., trunc(255.0*a0->0x168), &..);
  * if (a0->0x68 & 8) X(.., 160, 124, 3). Decode only when the Yay0/-O0
  * pipeline + the chained FPU-prologue pair are tackled together. */
+extern int mgrproc_uso_func_01F874();
+extern void import_0024E388();
 #ifdef NON_MATCHING
+/* RE-DERIVED 2026-06-22: prior body claimed -O0/Yay0 cap, but the target is
+ * -O2 with FILLED delay slots and real reloc names. Three calls are distinct
+ * real targets (mgrproc_uso_func_01F874, import_0024F2C8, import_0024E388,
+ * import_0024F34C); a0 is saved across F2C8 (sw/lw sp+68) and reused.
+ * Twin (if/else form) of titproc_uso_func_00001710. Body now logically
+ * byte-faithful (97.49%): frame -0x58, rgba@sp+0x48, branch order, all 4
+ * callees + args match. RESIDUAL = a single STOLEN-PROLOGUE `mtc1 zero,$f0`
+ * that lives in the 8-byte splat gap at 0x2E34..0x2E38 (predecessor 2B7C ends
+ * at 0x2E34; 2E3C declared from 0x2E3C) — the real fn start with the f0-init
+ * is OUTSIDE the splat boundary, so the swc1 f0 stores read f0 set by that
+ * orphaned insn. Natural C must emit `mtc1 zero,f0` to zero rgba (the
+ * DIFF_INSERT). This is a SPLAT-BOUNDARY / stolen-prologue cap (not -O0, not
+ * C-reachable without a fragment-merge of 0x2E34). INCLUDE_ASM build path. */
 void mgrproc_uso_func_00002E3C(char *a0) {
   float rgba[4];
   char pad[0x18];
   char *target;
   int state;
-  float new_var;
   int alpha;
   (void) pad;
   rgba[0] = 0.0f;
@@ -1679,7 +1693,7 @@ void mgrproc_uso_func_00002E3C(char *a0) {
   rgba[2] = 0.0f;
   rgba[3] = 0.0f;
   *((int *) (a0 + 0x68)) = (*((int *) (a0 + 0x68))) + 1;
-  state = gl_func_00000000(*((int *) (a0 + 0x50)));
+  state = mgrproc_uso_func_01F874(*((int *) (a0 + 0x50)));
   if (state == 0)
   {
     return;
@@ -1692,12 +1706,12 @@ void mgrproc_uso_func_00002E3C(char *a0) {
   {
     target = a0 + 0x138;
   }
-  gl_func_00000000(target);
-  alpha = (int) ((*((float *) (a0 + 0x168))) * (new_var = 255.0f));
-  gl_func_00000000(target, alpha, rgba, 0xFF);
+  import_0024F2C8(target);
+  alpha = (int) (255.0f * (*((float *) (a0 + 0x168))));
+  import_0024E388(target, alpha, rgba, 255);
   if (((*((int *) (a0 + 0x68))) & 8) != 0)
   {
-    gl_func_00000000(target, 0xA0, 0x7C, 3);
+    import_0024F34C(target, 160, 124, 3);
   }
 }
 #else

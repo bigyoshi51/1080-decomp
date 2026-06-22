@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006EF08",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-22T00:00:00+00:00",
+  "end_time": "2026-06-22T00:00:00+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-22T00:00:00+00:00",
+      "assistant_text": "Trailing-nop / unfilled-jr-delay class. The -O2 body was already instruction-identical to the target (varargs decl `(char*,int,int,...)` homes all four arg regs at a 0x20 frame; `((int*)&a2)[-1]` forces the 3rd-arg memory reload `lw a2,36(sp)`). The residual was a SYMBOL-SIZE artifact: splat had split gl_func_0006EF08.s at 0x54 ending in a bare `jr ra` and carved the jr-ra delay nop into a separate _pad.s sidecar, so the baseline function symbol was 0x54 — but a C-compiled `jr ra` always owns its delay slot, so -O2 emits a 0x58 symbol. objdiff scored 95.65% on that 1-word symbol-boundary mismatch. Investigated -g3 (the prompt's unfilled-jr-delay hypothesis): REJECTED, -g3 reschedules the prologue store pair (sw ra/sw a0) and the epilogue (lw ra/addiu sp/move v0), diverging the body. Investigated REPLACE_FUNC_BODY donor splice: the splice keys on the function symbol size, so a donor's trailing alignment pad is outside the symbol and never spliced (skip). Resolved by correcting the splat boundary: merged the delay nop into gl_func_0006EF08.s (size 0x58) so the baseline symbol matches real -O2 codegen, then appended the genuine 1-word all-zero alignment pad at 0x6EF60 via SUFFIX_BYTES_FORCE (sanctioned all-zero data pad; FORCE since the function now ends in the natural jr-ra;nop epilogue) so gl_func_0006EF64 lands at +0x5C. _pad.s sidecar deleted. Verified against a true INCLUDE_ASM baseline (refresh-expected-baseline.py): 100.0 fuzzy + clean-build ROM byte-identical.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "extern int func_00000000();\nextern int D_00000000;\nint gl_func_0006EF08(char *a0, int a1, int a2, ...) {\n    int rv = func_00000000((char*)&D_00000000 + 0x83550, a0, ((int *)&a2)[-1], &a2);\n    if (rv >= 0) {\n        a0[rv] = 0;\n    }\n    return rv;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b2c.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/game_libs/game_libs/gl_func_0006EF08.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul; SUFFIX_BYTES_FORCE one all-zero alignment-pad word; gl_func_0006EF08.s delay-nop merged (0x54->0x58)",
+    "verification": "clean-build ROM byte-identical + objdiff fuzzy=100 vs INCLUDE_ASM baseline"
+  }
+}

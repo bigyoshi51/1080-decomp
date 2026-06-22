@@ -972,26 +972,50 @@ void titproc_uso_func_000016B8(int *a0) {
  * GBI-ish data bases. Caps <80: div.s/mul.s/sub.s lerp scheduling + the
  * sp 1.0f stack-temp dance + &D %hi/%lo reloc + 3-call spill. INCLUDE_ASM
  * is the correct build path (no episode; tautology-trap rule). */
+extern char import_00263E00;
+extern char import_0024CAF8;
+extern char import_00263D30;
+extern void import_0024E608();
+extern void import_0024F2C8();
+extern void import_0024F34C();
 #ifdef NON_MATCHING
+/* SYMBOLS RE-DERIVED 2026-06-22: prior body used gl_func_00000000/&D
+ * placeholders (relocs WRONG) and passed the F2C8 *return* to F34C — the
+ * target instead saves a0 across F2C8 (sw a0,92(sp); lw a0,92(sp)) and reuses
+ * the SAME import_00263D30[+0x18] base. Three calls are distinct real targets
+ * (import_0024E608, import_0024F2C8, import_0024F34C); the first call's a0 is
+ * import_0024CAF8 in BOTH branches, only a2 (lerped &sp36 vs ones &sp96) and
+ * the tgt base (+0x18 in if, +0 in else) differ. Twin of
+ * mgrproc_uso_func_00002850 (loop form). RELOCS + LOGIC now byte-faithful;
+ * residual is a FRAME-SIZE cap (target -0x70 frame parks the ones-vec at
+ * sp+96..108 with 3 extra stack-temp stores; natural C emits a -0x60 frame,
+ * 73 vs 76 insns) PLUS the FP-renumber cap (1.0f colored to $f16 in target,
+ * $f0 here). Both are SKIP-class caps (no pad-forcing); INCLUDE_ASM is the
+ * build path. */
 void titproc_uso_func_00001710(char *s0) {
     float f16 = 1.0f;
-    float sp_96 = f16, sp_100 = f16, sp_104 = f16, sp_108 = f16;
-    float sp_36, sp_40, sp_44;
+    float ones[4];
+    float vec[5];   /* vec[0]=sp48 vec[1]=sp52 vec[2]=sp56 vec[3]=sp60 vec[4]=sp64 */
+    float out[3];
     float t, dc;
-    char *r;
-    (void)sp_108;
-    if (*(int *)((char *)&D_00000000 + 0x18C) != 0) {
-        dc = *(float *)((char *)&D_00000000 + 0x40);
+    char *tgt;
+    ones[0] = f16; ones[1] = f16; ones[2] = f16; ones[3] = f16;
+    if (*(int *)((char *)&import_00020098 + 0x18C) != 0) {
+        dc = *(float *)((char *)&import_00263E00 + 0x40);
+        vec[1] = f16; vec[4] = f16; vec[2] = dc; vec[3] = dc;
         t = (float)*(int *)(s0 + 0x2C) / 255.0f;
-        sp_36 = sp_96  + (1.0f - sp_96)  * t;
-        sp_40 = sp_100 + (dc   - sp_100) * t;
-        sp_44 = sp_104 + (dc   - sp_104) * t;
-        gl_func_00000000((char *)&D_00000000 + 0x18, *(int *)(s0 + 0x2C), &sp_36);
+        vec[0] = f16;
+        out[0] = ones[0] + (vec[1] - ones[0]) * t;
+        out[1] = ones[1] + (vec[2] - ones[1]) * t;
+        out[2] = ones[2] + (vec[3] - ones[2]) * t;
+        import_0024E608(&import_0024CAF8, *(int *)(s0 + 0x2C), out);
+        tgt = (char *)&import_00263D30 + 0x18;
     } else {
-        gl_func_00000000(&D_00000000, *(int *)(s0 + 0x2C), &sp_96);
+        import_0024E608(&import_0024CAF8, *(int *)(s0 + 0x2C), ones);
+        tgt = (char *)&import_00263D30;
     }
-    r = (char *)gl_func_00000000(&D_00000000);
-    gl_func_00000000(r, (int)*(float *)(s0 + 0x34), (int)*(float *)(s0 + 0x38), 3);
+    import_0024F2C8(tgt);
+    import_0024F34C(tgt, (int)*(float *)(s0 + 0x34), (int)*(float *)(s0 + 0x38), 3);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001710);
@@ -1078,10 +1102,22 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000184
  * decrement scheduling, one-word stack-slot shift, and register-choice
  * diffs. INSN_PATCH REMOVED 2026-05-23 as match-faking per
  * feedback_no_instruction_forcing_matches_policy; now an honest NM cap. */
+extern void import_0024E388();
 #ifdef NON_MATCHING
+/* RE-DERIVED 2026-06-22: prior body used gl_func_00000000/&D placeholders
+ * (relocs WRONG). Real callees are import_0024F2C8 (begin), import_0024E388
+ * (alpha+rgba), import_0024F34C (coords); base is import_00263D30 with the
+ * +0x60/+0x78/+0x90 block offsets. Twin family of titproc_uso_func_00001710
+ * / mgrproc_uso_func_00002E3C. RELOCS + LOGIC now byte-faithful (96.24%):
+ * frame -0x60, decrement/clamp + increment/clamp blocks, all 9 calls + bases
+ * match. RESIDUAL = register-coloring (target keeps v in a fresh $t8 and
+ * fills the beq-delay with `addiu t8,v0,-4` + `or v0,t8` in the bgez-delay;
+ * natural C reuses $v0 with a nop-delay) PLUS a 4-byte buf-position frame
+ * shift (buf@sp+0x4c target vs +0x50 here). Both are SKIP-class regalloc/
+ * frame caps; INCLUDE_ASM build path. */
 void titproc_uso_func_00001950(int *a0) {
     float buf_a[4];
-    char pad[20];
+    char pad[24];
     float buf_b[4];
     int v;
 
@@ -1108,16 +1144,16 @@ void titproc_uso_func_00001950(int *a0) {
         buf_a[1] = 1.0f;
         buf_a[2] = 1.0f;
         buf_a[3] = 1.0f;
-        gl_func_00000000(&D_00000000 + 0x60);
-        gl_func_00000000(&D_00000000 + 0x60, a0[0x2C / 4], buf_a, 0xFF);
-        gl_func_00000000(&D_00000000 + 0x60,
-                         a0[0x4C / 4] + a0[0x54 / 4],
-                         a0[0x50 / 4] + a0[0x58 / 4], 3);
-        gl_func_00000000(&D_00000000 + 0x78);
-        gl_func_00000000(&D_00000000 + 0x78, a0[0x2C / 4], buf_a, 0xFF);
-        gl_func_00000000(&D_00000000 + 0x78,
-                         a0[0x4C / 4] + a0[0x64 / 4],
-                         a0[0x50 / 4] + a0[0x68 / 4], 3);
+        import_0024F2C8((char *)&import_00263D30 + 0x60);
+        import_0024E388((char *)&import_00263D30 + 0x60, a0[0x2C / 4], buf_a, 0xFF);
+        import_0024F34C((char *)&import_00263D30 + 0x60,
+                        a0[0x4C / 4] + a0[0x54 / 4],
+                        a0[0x50 / 4] + a0[0x58 / 4], 3);
+        import_0024F2C8((char *)&import_00263D30 + 0x78);
+        import_0024E388((char *)&import_00263D30 + 0x78, a0[0x2C / 4], buf_a, 0xFF);
+        import_0024F34C((char *)&import_00263D30 + 0x78,
+                        a0[0x4C / 4] + a0[0x64 / 4],
+                        a0[0x50 / 4] + a0[0x68 / 4], 3);
     } else {
         v = a0[0x2C / 4];
         if (v < 0xFF) {
@@ -1131,10 +1167,10 @@ void titproc_uso_func_00001950(int *a0) {
         buf_b[1] = 1.0f;
         buf_b[2] = 1.0f;
         buf_b[3] = 1.0f;
-        gl_func_00000000(&D_00000000 + 0x90);
-        gl_func_00000000(&D_00000000 + 0x90, a0[0x2C / 4], buf_b, 0xFF);
-        gl_func_00000000(&D_00000000 + 0x90,
-                         a0[0x6C / 4], a0[0x70 / 4], 3);
+        import_0024F2C8((char *)&import_00263D30 + 0x90);
+        import_0024E388((char *)&import_00263D30 + 0x90, a0[0x2C / 4], buf_b, 0xFF);
+        import_0024F34C((char *)&import_00263D30 + 0x90,
+                        a0[0x6C / 4], a0[0x70 / 4], 3);
     }
     (void)pad;
 }

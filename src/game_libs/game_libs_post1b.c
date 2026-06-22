@@ -3130,17 +3130,15 @@ int game_libs_func_00067368(char *a0) {
     return *(unsigned char *)(a0 + 0x13EC);
 }
 
-/* gl_func_00067370 + the 1-word ROM pad after it: pad sat between two
- * matched C fns (no emission host; 1-word blocks emit +4). Converted to
- * one combined [fn+pad] INCLUDE block (route b, 2026-06-10); the proven
- * matching C is preserved below. */
-#ifdef NON_MATCHING
+/* gl_func_00067370: MATCHED. Single-call leaf (`gl_func_00000000();`). The 1-word
+ * all-zero ROM pad after it (at 0x67390) sat between two matched C fns with no
+ * emission host; it's now appended to this function via SUFFIX_BYTES_FORCE
+ * (sanctioned all-zero data pad; FORCE because the body ends jr-ra;nop). The .s
+ * keeps the pad folded into the 0x24 symbol so the INCLUDE_ASM baseline matches.
+ * (Was kept INCLUDE_ASM as "route b" 2026-06-10; the -O2 body is byte-exact.) */
 void gl_func_00067370(void) {
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067370);
-#endif
 
 /* gl_func_00067394: 26-insn rv-store + sign-flip-or-assert + call.
  *   rv = func(a0, a1); a0->[0x64] = rv;

@@ -1469,24 +1469,26 @@ int gl_func_0006EEE4(int a0, int a1, int a2) {
     return gl_func_00000000(a0, a1) + a2;
 }
 
-/* gl_func_0006EF08: vsprintf-style varargs wrapper.
+/* gl_func_0006EF08: vsprintf-style varargs wrapper. MATCHED.
  *   rv = func("string@0x83550", a0, a1, &a2);   // &a2 = va_list start
  *   if (rv >= 0) a0[rv] = 0;
  *   return rv;
  *
- * NM body is now INSTRUCTION-IDENTICAL to the target body: declaring it
- * VARARGS `(char*, int, int, ...)` makes IDO home all four arg regs at a
- * 0x20 frame and reload them (was the "frame-size shift" cap), and reading
+ * Declaring it VARARGS `(char*, int, int, ...)` makes IDO home all four arg regs
+ * at a 0x20 frame and reload them (was the "frame-size shift" cap), and reading
  * the 3rd call arg from memory via `((int*)&a2)[-1]` forces the reload
- * (`lw a2,36(sp)`) instead of a register move. The 1 residual byte is the
- * trailing jr-ra delay nop: the target leaves it UNFILLED (supplied by the
- * `_pad.s` sidecar, 84-byte body), but -O2 emits it inline (88 bytes) — an
- * unfilled-jr-delay/pad split, the same class as the -g3/-O0 split caps.
- * Body matches; dewrap blocked on the trailing-nop split. INCLUDE_ASM
- * remains the build path. */
+ * (`lw a2,36(sp)`) instead of a register move. At -O2 the body emits byte-for-byte
+ * the 0x58 target function (21 insns ending `jr ra` + the delay-slot nop). The
+ * function .s was previously split at 0x54 with the jr-ra delay nop carved into a
+ * _pad.s sidecar — a splat boundary artifact, since a C-compiled `jr ra` always
+ * owns its delay slot. Restored the delay nop into gl_func_0006EF08.s (size 0x58)
+ * so the baseline function symbol matches the real -O2 codegen. The _pad.s sidecar
+ * The 1-word all-zero alignment pad at 0x6EF60 (so the next fn gl_func_0006EF64
+ * sits at +0x5C) is appended via SUFFIX_BYTES_FORCE (sanctioned all-zero data
+ * pad; FORCE because the function ends in the natural jr-ra;nop epilogue).
+ * (A -g3 unit was tried and rejected: -g3 reschedules the prologue/epilogue.) */
 extern int func_00000000();
 extern int D_00000000;
-#ifdef NON_MATCHING
 int gl_func_0006EF08(char *a0, int a1, int a2, ...) {
     int rv = func_00000000((char*)&D_00000000 + 0x83550, a0, ((int *)&a2)[-1], &a2);
     if (rv >= 0) {
@@ -1494,10 +1496,6 @@ int gl_func_0006EF08(char *a0, int a1, int a2, ...) {
     }
     return rv;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF08);
-#endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006EF08_pad.s")
 
 #ifdef NON_MATCHING
 /* gl_func_0006EF64: ~52-insn dispatch helper.
