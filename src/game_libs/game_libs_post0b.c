@@ -18318,205 +18318,143 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B2FC);
 //   }
 // Larger constructor variant: alloc-if-null a 0xD8-byte object plus a 0xCC
 // sub-object (cb1/cb2), register under the &D_0002F0FC name, zero a field
-// block (self->0xC0/0xC4 + FP fields 0xB8/0xBC/0xC8) and seed self->0xB0 =
-// 1.0f (a scale/identity default), then continue with cb-registered
-// sub-fields. Family: cb-driven constructor + name/handler registration
-// (siblings gl_func_0004B0A8 / 00040070 / 0003E5E0). Per-field wiring tail
-// representative (309-word constructor) — the 0xD8/0xCC allocs, the
-// &D_0002F0FC name key, the zeroed 0xC0/0xC4/0xB8/0xBC/0xC8 block and the
-// self->0xB0 = 1.0f default are exact. Caps: object/sub struct + cb
-// signatures untyped. Full body INCLUDE_ASM-preserved.
+// block (self->0xC0[sh]/0xC4[sw] + FP fields 0xB8/0xBC/0xC8) and seed
+// self->0xB0/0xB4 = 1.0f, then build two display lists at self->0xCC and
+// self->0xD0 by appending fixed 2-word Gfx commands (E7000000, BA001402,
+// B9000201/4, BA000C02/2000, BA001301, BB000001/80008000 for 0xCC;
+// BA001301/80000, B9000201, BB000000/80008000 for 0xD0), and walk the
+// collection at self->0x84 via an inlined 0xC-byte iterator (ptr/idx/count
+// at +0/+4/+8), allocating a 0x14-byte sub-list at node->0x64 and emitting
+// per-node commands. Family: cb-driven constructor (siblings 0004B0A8 /
+// 00040070 / 0003E5E0).
+//
+// RECONSTRUCTION (2026-06-22 agent-i): full correct-C body now present.
+// All callees route through the gl_func_00000000 placeholder (jal 0,
+// USO-relocated); data keys via &D_00000000 + 0x200FC/0x20104/0x20110/
+// 0x2011C. DL-append macro emits the exact double-read-of-+0xC,
+// single-&buf[n] shape; field widths (sh @0xC0, sw @0xC4, swc1 FP) and
+// offsets (0xCC/0xD0 lists, 0x64 sub-list) all match; iterator
+// ptr[idx]->0x64 / +0x34 call cascade matches; FP 1.0f/0.0f seeds match.
+// Register-normalized stream ratio ~0.73.
+// CAP (regalloc + branch-fold): byte-exact blocked by two IDO-allocator
+// effects this constructor family shares — (1) target colors self into s4
+// (5 saved s-regs s0..s4); this C colors self into s3 (4 saved s-regs),
+// shifting every register operand; (2) target preserves a dead
+// `&iter != 0 || alloc(0xC)` guard (8 words) that IDO -O2 folds away from a
+// plain `&local`. Both stem from an inlined iterator-constructor returning
+// by value (the it->it2->it3 triple stack copy) that standard C can't
+// reconstruct without the original helper. Body INCLUDE_ASM-preserved.
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
 extern int D_00000000;
-typedef struct { int unk0, unk4, unk8; } Q_0004B620;
-char *gl_func_0004B620(char *arg0, char *arg1) {
-    Q_0004B620 sp60;
-    Q_0004B620 sp6C;
-    Q_0004B620 spA4;
-    int *temp_s2;
-    int *temp_s2_2;
-    int *temp_s2_3;
-    int *temp_s2_4;
-    int *temp_s2_5;
-    int *temp_s2_7;
-    int *temp_s2_8;
-    int *temp_v0;
-    int *temp_v0_2;
-    int *temp_v0_3;
-    int *temp_v0_6;
-    int *temp_v0_9;
-    int *var_s2;
-    int *var_s3;
-    int *var_s4;
-    s32 temp_s0;
-    s32 temp_s0_2;
-    s32 temp_s0_7;
-    s32 temp_s1;
-    s32 temp_s1_2;
-    s32 temp_s3;
-    s32 temp_s3_2;
-    s32 temp_s3_3;
-    s32 temp_s3_4;
-    s32 temp_s3_5;
-    s32 temp_s3_6;
-    s32 temp_s3_7;
-    s32 temp_t2;
-    s32 temp_t7;
-    s32 temp_t7_2;
-    s32 temp_t8;
-    s32 temp_v0_8;
-    s32 var_a0;
-    s32 var_v0;
-    char *temp_a0;
-    char *temp_a0_2;
-    char *temp_a1;
-    char *temp_a1_2;
-    char *temp_s0_10;
-    char *temp_s0_3;
-    char *temp_s0_4;
-    char *temp_s0_5;
-    char *temp_s0_6;
-    char *temp_s0_8;
-    char *temp_s0_9;
-    char *temp_s2_6;
-    char *temp_v0_10;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_7;
-    char *temp_v1;
-    char *temp_v1_2;
-    char *temp_v1_3;
-    char *temp_v1_4;
+/* Gfx command word pair appended to a dynamic display list. */
+typedef struct { u32 w0, w1; } Gfx620;
+/* Display-list head: buf at +0x0, count at +0x4. */
+typedef struct { Gfx620 *buf; s32 count; } DLHead620;
+/* Display-list handle held at obj->0xCC / 0xD0; head ptr at +0xC. */
+typedef struct { s32 pad0[3]; DLHead620 *head; } DLList620;
+/* Self object (0xD8 bytes). */
+typedef struct {
+    s32 unk00[10];                    /* 0x00 */
+    s32 unk28;                        /* 0x28 */
+    s32 unk2C[0x16];                  /* 0x2C */
+    s32 unk84;                        /* 0x84 (collection lives here) */
+    s32 unk88[10];                    /* 0x88 */
+    f32 unkB0, unkB4, unkB8, unkBC;   /* 0xB0..0xBC */
+    s16 unkC0;                        /* 0xC0 (sh) */
+    s16 unkC2_pad;
+    s32 unkC4;                        /* 0xC4 */
+    f32 unkC8;                        /* 0xC8 */
+    DLList620 *unkCC;                 /* 0xCC */
+    DLList620 *unkD0;                 /* 0xD0 */
+    s32 unkD4;                        /* 0xD4 */
+} Obj620;
 
-    var_s4 = arg0;
-    if ((arg0 != 0) || (temp_v0 = gl_func_00034458(0xD8), var_s4 = temp_v0, (temp_v0 != 0))) {
-        var_s2 = var_s4;
-        if ((var_s4 != 0) || (temp_v0_2 = gl_func_00034458(0xCC), var_s2 = temp_v0_2, (temp_v0_2 != 0))) {
-            gl_func_00034458(var_s2, (char *)((char *)&D_00000000 + 0x200FC), arg1, 0);
-            FW(var_s2, 0xC0) = 0;
-            FW(var_s2, 0xC4) = 0;
-            (*(f32*)((char*)var_s2 + 0xB8)) = 0.0f;
-            (*(f32*)((char*)var_s2 + 0xBC)) = 0.0f;
-            (*(f32*)((char*)var_s2 + 0xC8)) = 0.0f;
-            (*(f32*)((char*)var_s2 + 0xB0)) = 1.0f;
-            (*(f32*)((char*)var_s2 + 0xB4)) = 1.0f;
+/* Append a 2-word Gfx command (hi,lo) to a display-list handle expression. */
+#define DL_APPEND(handle, hi, lo)                                  \
+    do {                                                           \
+        DLList620 *_dl = (handle);                                 \
+        DLHead620 *_h = _dl->head;                                 \
+        s32 _n = _h->count;                                        \
+        Gfx620 *_cmd;                                              \
+        _h->count = _n + 1;                                        \
+        _cmd = &_dl->head->buf[_n];                                \
+        _cmd->w0 = (hi);                                           \
+        _cmd->w1 = (lo);                                           \
+    } while (0)
+
+/* Inlined iterator over the collection at obj->0x84. */
+typedef struct { s32 **ptr; s32 idx; s32 count; } Iter620;
+
+char *gl_func_0004B620(char *arg0, char *arg1) {
+    Iter620 it;
+    Iter620 it2;
+    Iter620 it3;
+    Obj620 *self = (Obj620 *) arg0;
+    Iter620 *itp;
+    s32 *cur;
+    s32 *node;
+
+    if ((arg0 != 0) || ((self = (Obj620 *) gl_func_00000000(0xD8)) != 0)) {
+        Obj620 *sub = self;
+        if ((self != 0) || ((sub = (Obj620 *) gl_func_00000000(0xCC)) != 0)) {
+            gl_func_00000000(sub, (char *)&D_00000000 + 0x200FC, arg1, 0);
+            sub->unkC0 = 0;
+            sub->unkC4 = 0;
+            sub->unkB8 = 0.0f;
+            sub->unkBC = 0.0f;
+            sub->unkC8 = 0.0f;
+            sub->unkB0 = 1.0f;
+            sub->unkB4 = 1.0f;
         }
-        FW(var_s4, 0x28) = 0;
-        FW(var_s4, 0xD0) = 0;
-        FW(var_s4, 0xD4) = 0;
-        temp_v0_3 = gl_func_00034458(0, (char *)((char *)&D_00000000 + 0x20104), 0x14, 0, 0, 0, 0);
-        FW(var_s4, 0xCC) = temp_v0_3;
-        temp_v1 = FW(temp_v0_3, 0xC);
-        temp_s0 = FW(temp_v1, 0x4);
-        FW(temp_v1, 0x4) = (s32) (temp_s0 + 1);
-        temp_a0 = FW(FW(temp_v0_3, 0xC), 0x0) + (temp_s0 * 8);
-        FW(temp_a0, 0x0) = 0xE7000000;
-        FW(temp_a0, 0x4) = 0;
-        temp_s2 = FW(var_s4, 0xCC);
-        temp_v1_2 = FW(temp_s2, 0xC);
-        temp_s0_2 = FW(temp_v1_2, 0x4);
-        FW(temp_v1_2, 0x4) = (s32) (temp_s0_2 + 1);
-        temp_a1 = FW(FW(temp_s2, 0xC), 0x0) + (temp_s0_2 * 8);
-        FW(temp_a1, 0x0) = 0xBA001402;
-        FW(temp_a1, 0x4) = 0;
-        temp_s2_2 = FW(var_s4, 0xCC);
-        temp_s0_3 = FW(temp_s2_2, 0xC);
-        temp_s3 = FW(temp_s0_3, 0x4);
-        FW(temp_s0_3, 0x4) = (s32) (temp_s3 + 1);
-        temp_v0_4 = FW(FW(temp_s2_2, 0xC), 0x0) + (temp_s3 * 8);
-        FW(temp_v0_4, 0x0) = 0xB9000201;
-        FW(temp_v0_4, 0x4) = 4;
-        temp_s2_3 = FW(var_s4, 0xCC);
-        temp_s0_4 = FW(temp_s2_3, 0xC);
-        temp_s3_2 = FW(temp_s0_4, 0x4);
-        FW(temp_s0_4, 0x4) = (s32) (temp_s3_2 + 1);
-        temp_v1_3 = FW(FW(temp_s2_3, 0xC), 0x0) + (temp_s3_2 * 8);
-        FW(temp_v1_3, 0x0) = 0xBA000C02;
-        FW(temp_v1_3, 0x4) = 0x2000;
-        temp_s2_4 = FW(var_s4, 0xCC);
-        temp_s0_5 = FW(temp_s2_4, 0xC);
-        temp_s3_3 = FW(temp_s0_5, 0x4);
-        FW(temp_s0_5, 0x4) = (s32) (temp_s3_3 + 1);
-        temp_a1_2 = FW(FW(temp_s2_4, 0xC), 0x0) + (temp_s3_3 * 8);
-        FW(temp_a1_2, 0x0) = 0xBA001301;
-        FW(temp_a1_2, 0x4) = 0;
-        temp_s2_5 = FW(var_s4, 0xCC);
-        temp_s0_6 = FW(temp_s2_5, 0xC);
-        temp_s3_4 = FW(temp_s0_6, 0x4);
-        FW(temp_s0_6, 0x4) = (s32) (temp_s3_4 + 1);
-        temp_v0_5 = FW(FW(temp_s2_5, 0xC), 0x0) + (temp_s3_4 * 8);
-        FW(temp_v0_5, 0x0) = 0xBB000001;
-        FW(temp_v0_5, 0x4) = 0x80008000;
-        gl_func_00034458(FW(var_s4, 0xCC), temp_a1_2);
-        var_s3 = &sp60;
-        if ((&sp60 != 0) || (temp_v0_6 = gl_func_00034458(0xC), var_s3 = temp_v0_6, (temp_v0_6 != 0))) {
-            temp_v0_7 = var_s4 + 0x84;
-            FW(var_s3, 0x4) = -1;
-            FW(var_s3, 0x0) = temp_v0_7;
-            FW(var_s3, 0x8) = (s32) (FW(temp_v0_7, 0xC) - 1);
+        self->unk28 = (s32) ((char *)&D_00000000 + 0);
+        self->unkD0 = 0;
+        self->unkD4 = 0;
+        self->unkCC = (DLList620 *) gl_func_00000000(0, (char *)&D_00000000 + 0x20104, 0x14, 0, 0, 0, 0);
+        DL_APPEND(self->unkCC, 0xE7000000, 0);
+        DL_APPEND(self->unkCC, 0xBA001402, 0);
+        DL_APPEND(self->unkCC, 0xB9000201, 4);
+        DL_APPEND(self->unkCC, 0xBA000C02, 0x2000);
+        DL_APPEND(self->unkCC, 0xBA001301, 0);
+        DL_APPEND(self->unkCC, 0xBB000001, 0x80008000);
+        gl_func_00000000(self->unkCC);
+
+        itp = &it;
+        if ((&it != 0) || ((itp = (Iter620 *) gl_func_00000000(0xC)) != 0)) {
+            f32 *coll = &self->unk84;
+            itp->idx = -1;
+            itp->ptr = (s32 **) coll;
+            itp->count = ((s32 *) coll)[3] - 1;
         }
-        sp6C.unk0 = (s32 *) sp60.unk0;
-        sp6C.unk4 = (s32) sp60.unk4;
-        sp6C.unk8 = (s32) sp60.unk8;
-        spA4.unk0 = sp6C.unk0;
-        spA4.unk4 = (s32) sp6C.unk4;
-        var_v0 = 0;
-        spA4.unk8 = (s32) sp6C.unk8;
-        if (spA4.unk4 < spA4.unk8) {
-            temp_s0_7 = spA4.unk4 + 1;
-            spA4.unk4 = temp_s0_7;
-            var_v0 = *(int*)spA4.unk0 + (temp_s0_7 * 4);
+        it2 = it;
+        it3 = it2;
+        cur = 0;
+        if (it3.idx < it3.count) {
+            it3.idx += 1;
+            cur = (s32 *) ((char *) *it3.ptr + (it3.idx * 4));
         }
-        if (var_v0 != 0) {
+        if (cur != 0) {
             do {
-                temp_s2_6 = *(int*)(*(int*)spA4.unk0 + (spA4.unk4 * 4));
-                FW(temp_s2_6, 0x64) = gl_func_00034458(0, (char *)((char *)&D_00000000 + 0x20110), 0x14, 0, 0, 0, 0);
-                temp_t7 = *(int*)spA4.unk0;
-                temp_t8 = spA4.unk4 * 4;
-                gl_func_00034458(FW((*(int*)(temp_t7 + temp_t8)), 0x64), *(int*)(temp_t7 + temp_t8) + 0x34);
-                temp_t2 = *(int*)spA4.unk0;
-                temp_s1 = spA4.unk4 * 4;
-                gl_func_00034458(FW((*(int*)(temp_t2 + temp_s1)), 0x64), *(int*)(temp_t2 + temp_s1) + 0x34);
-                temp_t7_2 = *(int*)spA4.unk0;
-                temp_s1_2 = spA4.unk4 * 4;
-                gl_func_00034458(FW((*(int*)(temp_t7_2 + temp_s1_2)), 0x64), *(int*)(temp_t7_2 + temp_s1_2), 0);
-                gl_func_00034458(FW((*(int*)(*(int*)spA4.unk0 + (spA4.unk4 * 4))), 0x64));
-                var_a0 = 0;
-                if (spA4.unk4 < spA4.unk8) {
-                    temp_v0_8 = spA4.unk4 + 1;
-                    spA4.unk4 = temp_v0_8;
-                    var_a0 = *(int*)spA4.unk0 + (temp_v0_8 * 4);
+                node = (s32 *) (*it3.ptr)[it3.idx];
+                node[0x64 / 4] = (s32) gl_func_00000000(0, (char *)&D_00000000 + 0x20110, 0x14, 0, 0, 0, 0);
+                gl_func_00000000(((s32 *)(*it3.ptr)[it3.idx])[0x64 / 4], (char *)(*it3.ptr)[it3.idx] + 0x34);
+                gl_func_00000000(((s32 *)(*it3.ptr)[it3.idx])[0x64 / 4], (char *)(*it3.ptr)[it3.idx] + 0x34);
+                gl_func_00000000(((s32 *)(*it3.ptr)[it3.idx])[0x64 / 4], (*it3.ptr)[it3.idx], 0);
+                gl_func_00000000(((s32 *)(*it3.ptr)[it3.idx])[0x64 / 4]);
+                cur = 0;
+                if (it3.idx < it3.count) {
+                    it3.idx += 1;
+                    cur = (s32 *) ((char *) *it3.ptr + (it3.idx * 4));
                 }
-            } while (var_a0 != 0);
+            } while (cur != 0);
         }
-        temp_v0_9 = gl_func_00034458(0, (char *)((char *)&D_00000000 + 0x2011C), 0xA, 0, 0, 0, 0);
-        FW(var_s4, 0xD0) = temp_v0_9;
-        temp_s0_8 = FW(temp_v0_9, 0xC);
-        temp_s3_5 = FW(temp_s0_8, 0x4);
-        FW(temp_s0_8, 0x4) = (s32) (temp_s3_5 + 1);
-        temp_v1_4 = FW(FW(temp_v0_9, 0xC), 0x0) + (temp_s3_5 * 8);
-        FW(temp_v1_4, 0x0) = 0xBA001301;
-        FW(temp_v1_4, 0x4) = 0x80000;
-        temp_s2_7 = FW(var_s4, 0xD0);
-        temp_s0_9 = FW(temp_s2_7, 0xC);
-        temp_s3_6 = FW(temp_s0_9, 0x4);
-        FW(temp_s0_9, 0x4) = (s32) (temp_s3_6 + 1);
-        temp_a0_2 = FW(FW(temp_s2_7, 0xC), 0x0) + (temp_s3_6 * 8);
-        FW(temp_a0_2, 0x0) = 0xB9000201;
-        FW(temp_a0_2, 0x4) = 0;
-        temp_s2_8 = FW(var_s4, 0xD0);
-        temp_s0_10 = FW(temp_s2_8, 0xC);
-        temp_s3_7 = FW(temp_s0_10, 0x4);
-        FW(temp_s0_10, 0x4) = (s32) (temp_s3_7 + 1);
-        temp_v0_10 = FW(FW(temp_s2_8, 0xC), 0x0) + (temp_s3_7 * 8);
-        FW(temp_v0_10, 0x0) = 0xBB000000;
-        FW(temp_v0_10, 0x4) = 0x80008000;
-        gl_func_00034458(FW(var_s4, 0xD0));
+
+        self->unkD0 = (DLList620 *) gl_func_00000000(0, (char *)&D_00000000 + 0x2011C, 0xA, 0, 0, 0, 0);
+        DL_APPEND(self->unkD0, 0xBA001301, 0x80000);
+        DL_APPEND(self->unkD0, 0xB9000201, 0);
+        DL_APPEND(self->unkD0, 0xBB000000, 0x80008000);
+        gl_func_00000000(self->unkD0);
     }
-    return var_s4;
+    return (char *) self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B620);

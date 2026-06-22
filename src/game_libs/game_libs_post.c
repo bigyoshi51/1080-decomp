@@ -9083,7 +9083,19 @@ int gl_func_000261F4() {
 //   ring-modulo guarded sdiv + indirect callback schedule. Name
 //   pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
-// gl_func_00026214 — FULL m2c DECODE (53.56% NM, no episode). game_libs non-jumptable control-flow via scripts/lift-uso-controlflow.py.
+// gl_func_00026214 — DEEP STRUCTURAL RECONSTRUCTION (52.93% -> 67.66% objdiff
+// fuzzy, no episode). Rebuilt to a HELD-BASE form: s2 = &D_00000000, every
+// field reached as (char*)&D_00000000 + off (was bare *(int*)0xNNNN, which lost
+// the base register and corrupted widths). Width fixes: 0x2034 is s16 (lh, the
+// modulo divisor); 0x2CF0/0x2CF1/0x53BA are u8 (lbu); 0x203A/0x203C/0x203E are
+// s16. Distinct-extern CSE-defeat: callback fn-ptr (D_cb_26214) and the lui-0x2
+// region globals (0x20, 0x1B3D0, 0x1B3D4) get their own lui-zero, matching the
+// target's separate address materializations. RESIDUAL = pure register-allocation
+// coloring: target uses s0/s1/s2 with a -0x70 spill-heavy frame; IDO -O2 here
+// promotes one extra value to a callee-saved reg (s3), giving a -0x98 frame and a
+// register-name cascade through the body. Structural control flow / field
+// accesses / call args / FP-free reductions are faithful; the byte gap is the
+// documented spill-vs-color tradeoff (coloring cap), not a logic error.
 #ifdef NON_MATCHING
 extern int game_libs_func_0003443C();
 extern int gl_func_0001CA10();
@@ -9092,173 +9104,167 @@ extern int gl_func_0001CA10();
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+/* Held-base accessors. s2 = &D_00000000 (placeholder base, =0). IDO
+ * holds the symbol address in a register and reaches every field via a
+ * signed 16-bit displacement; bare integer addresses would not. */
+#define BB        ((char *)&D_00000000)
+#define D_W(o)    (*(s32 *)(BB + (o)))     /* lw  */
+#define D_H(o)    (*(s16 *)(BB + (o)))     /* lh  */
+#define D_BU(o)   (*(u8  *)(BB + (o)))     /* lbu */
 typedef char *(*GP_00026214)();
+extern GP_00026214 D_cb_26214;   /* distinct lui-zero callback global */
+extern s32 D_26214_20;           /* separate-lui scratch at 0x20 */
+extern char *D_26214_1B3D4;      /* lui 0x2 region result global */
+extern s32 D_26214_1B3D0;        /* lui 0x2 region max-tracker */
 char *gl_func_00026214(void) {
-    u32 sp6C;
     s32 sp68;
-    s32 sp5C;
-    s32 sp58;
     s32 sp4C;
-    s32 sp48;
-    s32 sp3C;
     s32 sp34;
-    int (*temp_v0)();
-    int (*temp_v0_3)();
+    int (*cb)();
     s16 temp_a0;
-    s16 temp_v0_2;
     s16 temp_v1_3;
-    s32 temp_a2;
     s32 temp_a3;
     s32 temp_hi;
     s32 temp_hi_2;
     s32 temp_lo;
     s32 temp_s0;
-    s32 temp_t0;
     s32 temp_t3;
     s32 temp_t4;
     s32 temp_t7;
-    s32 temp_t8;
-    s32 temp_v1;
     s32 temp_v1_2;
+    s32 sp6C;
+    s32 sp58;
     s32 var_a0;
     s32 var_s0;
-    s32 var_s0_2;
-    s32 var_s0_3;
-    s32 var_s0_4;
     s32 var_v1;
     s32 var_v1_2;
     char *temp_v1_4;
 
-    temp_t7 = *(s32 *)0x2078 + 1;
-    var_a0 = temp_t7 % (s16) *(s32 *)0x2034;
-    *(s32 *)0x2078 = temp_t7;
+    temp_t7 = D_W(0x2078) + 1;
+    temp_a3 = temp_t7;
+    var_a0 = temp_t7 % D_H(0x2034);
+    D_W(0x2078) = temp_t7;
     if (var_a0 != 0) {
-        temp_v0 = *(int*)0;
-        if (temp_v0 != 0) {
-            temp_v0(var_a0, temp_t7, 0, temp_t7);
-            var_a0 = (s32) *(char *)0x2078 % (s16) *(char *)0x2034;
+        cb = D_cb_26214;
+        if (cb != 0) {
+            cb(var_a0, temp_t7, 0, temp_a3);
+            var_a0 = D_W(0x2078) % D_H(0x2034);
         }
-        if (*(char *)0x2034 == (var_a0 + 1)) {
-            return *(char **)0x1B3D4;
+        if (D_H(0x2034) == (var_a0 + 1)) {
+            return D_26214_1B3D4;
         }
         return 0;
     }
-    gl_func_0001CA10(*(s32 *)0x53C8, temp_t7, 0, temp_t7);
-    temp_t4 = *(s32 *)0x2084 + 1;
+    gl_func_0001CA10(D_W(0x53C8), temp_t7, 0, temp_a3);
+    temp_t4 = D_W(0x2084) + 1;
     temp_hi = temp_t4 % 3;
-    temp_hi_2 = (s32) (temp_hi + 1) % 3;
-    *(s32 *)0x2084 = temp_t4;
-    *(s32 *)0x2080 ^= 1;
-    *(s32 *)0x2084 = temp_hi;
-    sp6C = gl_func_0001CA10() >> 2;
-    if ((u32) *(s32 *)0x215C < 0x10U) {
-        temp_a2 = temp_hi_2 * 2;
-        temp_v0_2 = FW(temp_a2, 0x214C);
-        temp_v1 = temp_hi_2 * 4;
-        if (temp_v0_2 != 0) {
-            sp34 = temp_v1;
-            sp3C = temp_a2;
-            gl_func_0001CA10(FW(temp_v1, 0x2140), temp_v0_2 * 4, temp_a2);
+    temp_hi_2 = (temp_hi + 1) % 3;
+    D_W(0x2084) = temp_t4;
+    D_W(0x2080) ^= 1;
+    D_W(0x2084) = temp_hi;
+    sp6C = (u32) gl_func_0001CA10() >> 2;
+    if ((u32) D_W(0x215C) < 0x10U) {
+        s32 idx2 = temp_hi_2 * 2;
+        s16 cnt = FW((char *)&D_00000000 + idx2, 0x214C);
+        s32 idx4 = temp_hi_2 * 4;
+        if (cnt != 0) {
+            sp34 = idx4;
+            gl_func_0001CA10(FW((char *)&D_00000000 + idx4, 0x2140), cnt * 4, idx2);
         }
     }
-    temp_v0_3 = *(int*)0;
-    if (temp_v0_3 != 0) {
-        temp_v0_3();
+    cb = D_cb_26214;
+    if (cb != 0) {
+        cb();
     }
-    var_v1 = *(s32 *)0x207C;
+    var_v1 = D_W(0x207C);
     var_s0 = 0;
     if (var_v1 > 0) {
         do {
-            sp5C = var_v1;
-            if (gl_func_0001CA10(0x16BCU, 0, 0) == 0) {
+            if (gl_func_0001CA10(BB + 0x16BC, 0, 0) == 0) {
                 var_v1 -= 1;
             }
             var_s0 += 1;
-        } while (var_s0 < *(s32 *)0x207C);
+        } while (var_s0 < D_W(0x207C));
     }
     if (var_v1 != 0) {
-        var_s0_2 = 0;
+        var_s0 = 0;
         if (var_v1 > 0) {
             do {
-                sp5C = var_v1;
-                gl_func_0001CA10(0x16BCU, 0, 1);
-                var_s0_2 += 1;
-            } while (var_s0_2 != var_v1);
+                gl_func_0001CA10(BB + 0x16BC, 0, 1);
+                var_s0 += 1;
+            } while (var_s0 != var_v1);
         }
     }
-    var_v1_2 = *(s32 *)0x16C4;
+    var_v1_2 = D_W(0x16C4);
     if (var_v1_2 != 0) {
-        var_s0_3 = 0;
+        var_s0 = 0;
         if (var_v1_2 > 0) {
             do {
-                sp48 = var_v1_2;
-                gl_func_0001CA10(0x16BCU, 0, 0);
-                var_s0_3 += 1;
-            } while (var_s0_3 != var_v1_2);
+                gl_func_0001CA10(BB + 0x16BC, 0, 0);
+                var_s0 += 1;
+            } while (var_s0 != var_v1_2);
         }
     }
-    *(s32 *)0x207C = 0;
+    D_W(0x207C) = 0;
     gl_func_0001CA10();
-    gl_func_0001CA10((u32) *(s32 *)0x2CF0);
-    if ((*(s32 *)0x2CF0 != 0) && (gl_func_0001CA10() == 0)) {
-        if (*(s32 *)0x2CF0 == 0) {
-            gl_func_0001CA10(*(s32 *)0x53C4, (s32) *(s32 *)0x2CF1, 0);
+    gl_func_0001CA10(D_BU(0x2CF0));
+    if ((D_BU(0x2CF0) != 0) && (gl_func_0001CA10() == 0)) {
+        if (D_BU(0x2CF0) == 0) {
+            gl_func_0001CA10(D_W(0x53C4), D_BU(0x2CF1), 0);
         }
-        *(char *)0x1B3D4 = 0;
+        D_26214_1B3D4 = 0;
         return 0;
     }
-    if ((u32) *(s32 *)0x215C >= 0x11U) {
+    if ((u32) D_W(0x215C) >= 0x11U) {
         return 0;
     }
-    if (*(s32 *)0x215C != 0) {
-        *(s32 *)0x215C += 1;
+    if (D_W(0x215C) != 0) {
+        D_W(0x215C) += 1;
     }
-    temp_v1_2 = *(s32 *)0x2080;
-    temp_s0 = *(s32 *)0x2084;
-    *(s32 *)0x2094 = (temp_v1_2 * 0x50) + 0x2098;
-    temp_t8 = temp_s0 * 4;
-    *(s32 *)0x2090 = FW((temp_v1_2 * 4), 0x2088);
-    sp34 = temp_t8;
-    temp_t0 = temp_s0 * 2;
-    FW(temp_t0, 0x214C) = (s16) ((((*(s32 *)0x203A - sp6C) + 0x80) & 0xFFF0) + 0x10);
-    temp_a0 = *(s32 *)0x203E;
-    sp58 = FW(temp_t8, 0x2140);
-    if (FW(temp_t0, 0x214C) < temp_a0) {
-        FW(temp_t0, 0x214C) = temp_a0;
+    temp_v1_2 = D_W(0x2080);
+    temp_s0 = D_W(0x2084);
+    D_W(0x2094) = (s32) (BB + (temp_v1_2 * 0x50) + 0x2098);
+    sp34 = temp_s0 * 4;
+    D_W(0x2090) = FW((char *)&D_00000000 + (temp_v1_2 * 4), 0x2088);
+    sp58 = FW((char *)&D_00000000 + sp34, 0x2140);
+    FW((char *)&D_00000000 + (temp_s0 * 2), 0x214C) =
+        (s16) ((((D_H(0x203A) - sp6C) + 0x80) & 0xFFF0) + 0x10);
+    temp_a0 = D_H(0x203E);
+    if (FW((char *)&D_00000000 + (temp_s0 * 2), 0x214C) < temp_a0) {
+        FW((char *)&D_00000000 + (temp_s0 * 2), 0x214C) = temp_a0;
     }
-    temp_v1_3 = *(s32 *)0x203C;
-    if (temp_v1_3 < FW(temp_t0, 0x214C)) {
-        FW(temp_t0, 0x214C) = temp_v1_3;
+    temp_v1_3 = D_H(0x203C);
+    if (temp_v1_3 < FW((char *)&D_00000000 + (temp_s0 * 2), 0x214C)) {
+        FW((char *)&D_00000000 + (temp_s0 * 2), 0x214C) = temp_v1_3;
     }
-    var_s0_4 = 0;
-    sp3C = temp_t0;
-    if (*(s32 *)0x2CF0 == 0) {
-        sp3C = temp_t0;
-        if (gl_func_0001CA10(*(s32 *)0x53CC, (s32) &sp4C, 0) != -1U) {
+    var_s0 = 0;
+    if (D_BU(0x2CF0) == 0) {
+        if (gl_func_0001CA10(D_W(0x53CC), &sp4C, 0) != -1) {
             do {
                 game_libs_func_0003443C(sp4C);
-                var_s0_4 += 1;
-            } while (gl_func_0001CA10(*(s32 *)0x53CC, (s32) &sp4C, 0) != -1U);
+                var_s0 += 1;
+            } while (gl_func_0001CA10(D_W(0x53CC), &sp4C, 0) != -1);
         }
-        if ((var_s0_4 == 0) && (*(s32 *)0x53BA != 0)) {
+        if ((var_s0 == 0) && (D_BU(0x53BA) != 0)) {
             gl_func_0001CA10();
         }
     }
-    *(s32 *)0x2090 = gl_func_0001CA10(*(s32 *)0x2090, (s32) &sp68, sp58, (s32) FW(sp3C, 0x214C));
-    temp_a3 = *(s32 *)0x2078;
-    temp_lo = gl_func_0001CA10() * (*(s32 *)((char *)&D_00000000 + 0x2154) + temp_a3);
-    *(s32 *)((char *)&D_00000000 + 0x2154) = temp_lo;
-    temp_t3 = *(int*)(FW(sp34, 0x2140) + ((temp_a3 & 0xFF) * 2)) + temp_lo;
-    *(s32 *)((char *)&D_00000000 + 0x2154) = temp_t3;
-    *(s32 *)0x20 = temp_t3 & 0xFFF0;
-    FW((*(s32 *)0x2094), 0x40) = 0;
-    FW((*(s32 *)0x2094), 0x44) = 0;
-    temp_v1_4 = *(s32 *)0x2094;
+    D_W(0x2090) = gl_func_0001CA10(D_W(0x2090), &sp68, sp58,
+                                  FW((char *)&D_00000000 + (temp_s0 * 2), 0x214C));
+    temp_a3 = D_W(0x2078);
+    temp_lo = gl_func_0001CA10() * (D_W(0x2154) + temp_a3);
+    D_W(0x2154) = temp_lo;
+    temp_t3 = *(s16 *)(FW((char *)&D_00000000 + sp34, 0x2140) + ((temp_a3 & 0xFF) * 2)) + temp_lo;
+    D_W(0x2154) = temp_t3;
+    D_26214_20 = temp_t3 & 0xFFF0;
+    FW(D_W(0x2094), 0x40) = 0;
+    FW(D_W(0x2094), 0x44) = 0;
+    temp_v1_4 = (char *) D_W(0x2094);
     FW(temp_v1_4, 0x0) = 2;
     FW(temp_v1_4, 0x4) = 0;
     FW(temp_v1_4, 0x8) = 0;
     FW(temp_v1_4, 0xC) = 0x1000;
-    FW(temp_v1_4, 0x1C) = (s32) ((((s32) (0 * 0) >> 3) * 8) - 1);
+    FW(temp_v1_4, 0x1C) = (((0 >> 3) * 8) - 1);
     FW(temp_v1_4, 0x10) = 0;
     FW(temp_v1_4, 0x18) = 0;
     FW(temp_v1_4, 0x14) = 0x1000;
@@ -9266,17 +9272,17 @@ char *gl_func_00026214(void) {
     FW(temp_v1_4, 0x24) = 0;
     FW(temp_v1_4, 0x28) = 0;
     FW(temp_v1_4, 0x2C) = 0;
-    FW(temp_v1_4, 0x30) = (s32) FW((*(s32 *)0x2080 * 4), 0x2088);
+    FW(temp_v1_4, 0x30) = FW((char *)&D_00000000 + (D_W(0x2080) * 4), 0x2088);
     FW(temp_v1_4, 0x38) = 0;
     FW(temp_v1_4, 0x3C) = 0;
-    FW(temp_v1_4, 0x34) = (s32) (sp68 * 8);
-    if (*(s32 *)0x1B3D0 < sp68) {
-        *(char *)0x1B3D0 = sp68;
+    FW(temp_v1_4, 0x34) = sp68 * 8;
+    if (D_26214_1B3D0 < sp68) {
+        D_26214_1B3D0 = sp68;
     }
-    if (*(s32 *)0x2034 == 1) {
-        return *(s32 *)0x2094;
+    if (D_H(0x2034) == 1) {
+        return D_W(0x2094);
     }
-    *(char *)0x1B3D4 = (char *) *(s32 *)0x2094;
+    D_26214_1B3D4 = (char *) D_W(0x2094);
     return 0;
 }
 #else
@@ -13706,13 +13712,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AD1C);
 //   jal-0 USO-reloc handlers — byte-match needs USO mnemonic disasm
 //   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-/* Decoded via jumptable extraction (uso-jumptable-to-m2c.py). Per-opcode
- * script-VM executor; var_v1 (opcode) selects load-next / load-loop / default
- * (positioned read with a nested transform switch on o->0x20). f32(u32)
- * conversions via the +4294967296 idiom. Globals &D+0x205C/0x2074/0x2040;
- * the *(sp18*4) frame-time table + the (v1*0x158) object base are USO-relative
- * (&D + folded). gl_func_0001CA10 = real callee. Residual: those table/object
- * relocs + regalloc. */
+/* Per-opcode script-VM executor; var_v1 (selector) chooses load-next (case 0) /
+ * load-loop (case 1) / default (positioned read with a nested transform switch
+ * on the o->0x20 byte). f32(u32) conversions via the +4294967296 idiom. Globals
+ * &D+0x205C/0x2074/0x2040; the *(pos*4) frame-time table + the (v1*0x158) object
+ * base are USO-relative (&D + folded). gl_func_0001CA10 = real callee.
+ *
+ * CORRECTNESS PASS 2026-06-22 (agent-b): decoded the TARGET from
+ * expected/.../game_libs_post.c.o (objdump -d) and corrected the C body:
+ *   - buf+0x24, buf+0x26, o+0x10 are s16 (lh), not u8 (lbu).
+ *   - o+0x48 (va0) is a full word (lw), not a byte.
+ *   - o+0x20 (transform flags) is an unsigned-char byte, re-read each use.
+ *   - sp38+8 reads as u16 (lhu) in the &0x80 branch.
+ *   - block-46 frame-rate divisor walks THREE derefs + 4:
+ *       *(int*)( *(int*)( *(int*)(o->w_4C) + 8 ) + 4 )  (was a 2-deep chain).
+ * Logic is instruction-for-instruction faithful (difflib finds the full block
+ * structure); residual is a register-coloring renumber cascade (b_2 vs selector
+ * vs arg1 -> v1/a3 first-temp tie; frame 0x68 vs 0x70).
+ *
+ * STRUCTURAL CAP (byte-match infeasible from this expected .o): the nested
+ * transform switch (cases 1..5 on o->0x20 & ~0x80) compiles in the TARGET to a
+ * JUMPTABLE accessed USO-relative -- `lui at,0x0 ; lw t8,4248(at) ; jr t8` --
+ * i.e. an external/named-global jump table at &D+0x1098. The expected .o is
+ * .text-only (TRUNCATE_TEXT), so the table entries are not present, and a C
+ * switch emits either a local-label jumptable (wrong reloc form) or a beq/beql
+ * chain (current build). Reproducing the USO-relative jumptable needs the
+ * uso-jumptable + reloc-pad infra. Reported, not ground. Permuter (700s/j4)
+ * found no byte-exact -- consistent with the cap. NON_MATCHING. */
 #ifdef NON_MATCHING
 int gl_func_0002B09C(char *arg0, int arg1) {
     char *buf = *(char **)(arg0 + 0x50);
@@ -13724,12 +13750,12 @@ int gl_func_0002B09C(char *arg0, int arg1) {
     short c;
     if (t0 == 0xFF) {
         if (!(*(int *)(buf + 0) & 0x08000000)) return -1;
-        v1 = *(unsigned char *)(buf + 0x24);
+        v1 = *(short *)(buf + 0x24);
     }
     switch (v1) {
     case 0:
         r = (void **)gl_func_0001CA10(*(unsigned char *)(buf + 7),
-            (arg1 + *(unsigned char *)(buf + 0x26) + *(unsigned char *)(arg0 + 0x10)) & 0xFF, arg0, arg1);
+            (arg1 + *(short *)(buf + 0x26) + *(short *)(arg0 + 0x10)) & 0xFF, arg0, arg1);
         if (r == 0) { *(unsigned char *)(arg0 + 0) |= 0x20; *(short *)(arg0 + 0xC) = *(short *)(arg0 + 8); return -1; }
         *(int *)(arg0 + 0x1C) = *(int *)((char *)r + 0xC);
         *(unsigned char *)(arg0 + 0x18) = *(unsigned char *)((char *)r + 0);
@@ -13739,20 +13765,20 @@ int gl_func_0002B09C(char *arg0, int arg1) {
         goto block_46;
     case 1:
         r = (void **)gl_func_0001CA10(*(unsigned char *)(buf + 7),
-            ((*(unsigned char *)(arg0 + 0x10) << 6) + (arg1 & 0xFF)) & 0xFFFF, arg0, arg1);
+            ((*(short *)(arg0 + 0x10) << 6) + (arg1 & 0xFF)) & 0xFFFF, arg0, arg1);
         if (r == 0) { *(unsigned char *)(arg0 + 0) |= 0x20; *(short *)(arg0 + 0xC) = *(short *)(arg0 + 8) + 1; return -1; }
         *(int *)(arg0 + 0x4C) = (int)r;
         *(float *)(arg0 + 0x30) = *(float *)((char *)r + 4);
         goto block_46;
     default: {
-        int pos = (arg1 + *(short *)(sp38 + 0xE) + *(unsigned char *)(buf + 0x26) + *(unsigned char *)(arg0 + 0x10)) & 0xFF;
+        int pos = (arg1 + *(short *)(sp38 + 0xE) + *(short *)(buf + 0x26) + *(short *)(arg0 + 0x10)) & 0xFF;
         int va0, va1;
         float f02, f2, f03;
         char *e20 = arg0 + 0x20;
-        int t9, v0;
+        int t9, v0, b20;
         if (pos >= 0x80) { *(unsigned char *)(arg0 + 0) |= 0x20; return -1; }
-        va0 = (t0 == 0xFF) ? *(unsigned char *)(buf + 0x48) : *(unsigned char *)(arg0 + 0x48);
-        if (*(int *)(arg0 + 0x20) != 0) {
+        va0 = (t0 == 0xFF) ? *(int *)(buf + 0x48) : *(int *)(arg0 + 0x48);
+        if (*(unsigned char *)(arg0 + 0x20) != 0) {
             va1 = *(unsigned char *)(arg0 + 4);
             if (va1 < pos) va1 = pos;
             if (va0 != 0) {
@@ -13767,7 +13793,8 @@ int gl_func_0002B09C(char *arg0, int arg1) {
                 if (v1 >= 0xC0) *(int *)(arg0 + 0x4C) = (v1 * 0x158) + ((int)&D_00000000 - 0x100D8);
             }
             f2 = *(float *)((char *)&D_00000000 + pos * 4) * f02;
-            t9 = *(int *)(arg0 + 0x20) & ~0x80;
+            b20 = *(unsigned char *)(arg0 + 0x20);
+            t9 = b20 & ~0x80;
             if ((unsigned)(t9 - 1) < 5) {
                 switch (t9) {
                 case 1: case 3: f03 = *(float *)((char *)&D_00000000 + *(unsigned char *)(arg0 + 4) * 4) * f02; break;
@@ -13777,8 +13804,8 @@ int gl_func_0002B09C(char *arg0, int arg1) {
                 f03 = f2;
             }
             *(float *)(e20 + 8) = (f03 / f2) - 1.0f;
-            if (*(int *)(arg0 + 0x20) & 0x80) {
-                v0 = (((*(short *)(sp38 + 8) << 0xF) / *(short *)((char *)&D_00000000 + 0x2074)) << 8) / (*(short *)(arg0 + 8) * *(short *)(arg0 + 0xE));
+            if (b20 & 0x80) {
+                v0 = (((*(unsigned short *)(sp38 + 8) << 0xF) / *(short *)((char *)&D_00000000 + 0x2074)) << 8) / (*(short *)(arg0 + 8) * *(short *)(arg0 + 0xE));
             } else {
                 v0 = 0x20000 / (*(short *)(arg0 + 0xE) * *(short *)((char *)&D_00000000 + 0x2040));
             }
@@ -13786,7 +13813,7 @@ int gl_func_0002B09C(char *arg0, int arg1) {
             *(short *)(e20 + 4) = (short)v0;
             *(short *)(e20 + 2) = 0;
             *(float *)(arg0 + 0x30) = f2;
-            if ((*(int *)(arg0 + 0x20) & ~0x80) == 5) *(unsigned char *)(arg0 + 4) = (unsigned char)pos;
+            if ((*(unsigned char *)(arg0 + 0x20) & ~0x80) == 5) *(unsigned char *)(arg0 + 4) = (unsigned char)pos;
         } else if (va0 != 0) {
             void **t7 = *(void ***)(arg0 + 0x4C);
             r = (void **)gl_func_0001CA10(va0, pos, arg0, arg1);
@@ -13806,7 +13833,7 @@ block_46:
     *(short *)(arg0 + 0xC) = c;
     *(float *)(arg0 + 0x30) = *(float *)(arg0 + 0x30) * *(float *)(arg0 + 0x34);
     if (c == 0) {
-        int t4 = *(int *)(*(char **)((*(char ***)(arg0 + 0x4C))[2]) + 4);
+        int t4 = *(int *)(*(int *)(*(int *)(*(int *)(arg0 + 0x4C)) + 8) + 4);
         float f0 = (float)(unsigned)t4;
         unsigned short t6 = *(unsigned short *)(sp38 + 8);
         float f18 = (float)(unsigned)t6;
