@@ -2530,16 +2530,39 @@ int *game_uso_func_00003A28(int *arg0) {
  * size-descending). Structural NM wrap @ 63.67% (was bare INCLUDE_ASM).
  * INCLUDE_ASM still the build path so ROM stays byte-correct.
  *
- * Remaining 36% gap = SAME $s-promotion cascade as game_uso_func_00003018:
- * EXP frame -0x70 saving only $s0; computes Dval, spills it twice
- * (sp+0x6C home + sp+0x24 working) BEFORE the alloc call, reloads after.
- * C-emit frame -0x58, also saves $s1 because IDO keeps `dN` live across
- * the alloc() call and promotes it to callee-saved $s1 instead of
- * stack-spilling. Next-run lever: force `dN` to a stack temp not live
- * across the alloc (e.g. spill/reload idiom or compute-after-alloc with a
- * reloaded copy) — but per 00003018's findings this resists source
- * restructuring; likely a permuter-class final-mile. Multi-run expected. */
+ * 2026-06-22 (agent-i): reconstructed to the TRUE per-iteration structure
+ * with the SAME reloc symbols expected uses — the 12 distinct globals
+ * game_uso_D_807FEC70..D_807FEC9C, each read as *(int*)(&sym + 0x680),
+ * alloc(0x58), init via game_uso_func_051E64, parent ptr = &game_uso_D_807FEAA8
+ * @ obj+0x28, register via game_uso_func_052F70(arg0, s0, -1). Body is the
+ * correct C.
+ *
+ * HARD CAP — NOT byte-matchable from compilable C. Two irreducible diffs:
+ *   (1) RELOC FORM (structural, unfixable). EXPECTED loads each global as
+ *       `lui %hi(D_807FECxx)` + a RAW-WORD `lw 0x680(reg)` carrying NO
+ *       R_MIPS_LO16 (splat left the lw unpaired because the HI16 symbol and
+ *       the 0x680 offset don't form a clean %hi/%lo pair). IDO ALWAYS emits
+ *       a HI16+LO16 *pair* for `&sym + off` (verified in standalone-cc:
+ *       lui %hi -> lw %lo, both relocs). No C construct yields HI16-only +
+ *       literal-offset lw. => >=12 permanent reloc diffs, one per iteration.
+ *   (2) $s-promotion cascade (same as game_uso_func_00003018): EXP frame
+ *       -0x70 spills the global temp to a home slot (108,104,..,64) + working
+ *       slot (36) around the alloc and reloads; IDO keeps dN live across the
+ *       alloc and promotes to $s1 (frame -0x58). Resists source restructuring.
+ * Even solving (2) leaves (1) unmatchable. Permanent INCLUDE_ASM. */
 #ifdef NON_MATCHING
+extern char game_uso_D_807FEC70;
+extern char game_uso_D_807FEC74;
+extern char game_uso_D_807FEC78;
+extern char game_uso_D_807FEC7C;
+extern char game_uso_D_807FEC80;
+extern char game_uso_D_807FEC84;
+extern char game_uso_D_807FEC88;
+extern char game_uso_D_807FEC8C;
+extern char game_uso_D_807FEC90;
+extern char game_uso_D_807FEC94;
+extern char game_uso_D_807FEC98;
+extern char game_uso_D_807FEC9C;
 extern char game_uso_D_807FEAA8;
 extern int game_uso_func_055750();
 extern void game_uso_func_051E64();
@@ -2548,9 +2571,7 @@ void game_uso_func_00003AC0(void *arg0) {
     void *s0;
     int d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11;
 
-    s0 = NULL;
-
-    d0 = *(int*)((char*)&D_00000000 + 0x680);
+    d0 = *(int*)((char*)&game_uso_D_807FEC70 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d0, 0, 0);
@@ -2558,7 +2579,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d1 = *(int*)((char*)&D_00000000 + 0x684);
+    d1 = *(int*)((char*)&game_uso_D_807FEC74 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d1, 0, 0);
@@ -2566,7 +2587,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d2 = *(int*)((char*)&D_00000000 + 0x688);
+    d2 = *(int*)((char*)&game_uso_D_807FEC78 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d2, 0, 0);
@@ -2574,7 +2595,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d3 = *(int*)((char*)&D_00000000 + 0x68C);
+    d3 = *(int*)((char*)&game_uso_D_807FEC7C + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d3, 0, 0);
@@ -2582,7 +2603,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d4 = *(int*)((char*)&D_00000000 + 0x690);
+    d4 = *(int*)((char*)&game_uso_D_807FEC80 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d4, 0, 0);
@@ -2590,7 +2611,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d5 = *(int*)((char*)&D_00000000 + 0x694);
+    d5 = *(int*)((char*)&game_uso_D_807FEC84 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d5, 0, 0);
@@ -2598,7 +2619,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d6 = *(int*)((char*)&D_00000000 + 0x698);
+    d6 = *(int*)((char*)&game_uso_D_807FEC88 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d6, 0, 0);
@@ -2606,7 +2627,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d7 = *(int*)((char*)&D_00000000 + 0x69C);
+    d7 = *(int*)((char*)&game_uso_D_807FEC8C + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d7, 0, 0);
@@ -2614,7 +2635,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d8 = *(int*)((char*)&D_00000000 + 0x6A0);
+    d8 = *(int*)((char*)&game_uso_D_807FEC90 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d8, 0, 0);
@@ -2622,7 +2643,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d9 = *(int*)((char*)&D_00000000 + 0x6A4);
+    d9 = *(int*)((char*)&game_uso_D_807FEC94 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d9, 0, 0);
@@ -2630,7 +2651,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d10 = *(int*)((char*)&D_00000000 + 0x6A8);
+    d10 = *(int*)((char*)&game_uso_D_807FEC98 + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d10, 0, 0);
@@ -2638,7 +2659,7 @@ void game_uso_func_00003AC0(void *arg0) {
     }
     game_uso_func_052F70(arg0, s0, -1);
 
-    d11 = *(int*)((char*)&D_00000000 + 0x6AC);
+    d11 = *(int*)((char*)&game_uso_D_807FEC9C + 0x680);
     s0 = (void*)game_uso_func_055750(0x58);
     if (s0 != NULL) {
         game_uso_func_051E64(s0, d11, 0, 0);
