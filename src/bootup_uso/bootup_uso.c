@@ -8399,9 +8399,29 @@ void func_0000CCE0(char *st, int a1) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
 #endif
 
-// func_0000CFA0 — STRUCTURAL PASS (0x4A0 / 296 insns, no episode).
+// func_0000CFA0 — STRUCTURAL PASS (0x4A0 / 296 insns, 64.76% fuzzy, no episode).
 // Per-frame active-object sync + draw-state / color update on a large
 // state struct (st = a0 = s0).
+//
+// 2026-06-22 (agent-d): refined to byte-faithful structure (build 292/296
+// insns, body logic matches target instruction-for-instruction). Fixed:
+//   - reloc form: &func_0000023C+0x18 / &func_00000080+0x64 / &func_00000940
+//     +0x30/+0x38 (was &D_00000000 — wrong reloc symbol).
+//   - 112.0f/255.0f forced runtime div via shared `float div255=255.0f`
+//     (held in $f0, reused for all 4 divisions) — defeats const-fold to .rodata.
+//   - RGB halve = `(float)(unsigned)(unsigned char)(*(u8*)/2)` reproducing the
+//     signed-/2 (bgez;+1;sra) + andi 0xff + unsigned->float (4f80) fixup chain.
+// RESIDUAL CAP (regalloc/K&R, NOT GOT-blind — every global is reloc'd):
+//   (1) First call passes f32 args (st->0xBC, 0.0f) that the target stores
+//   single-precision (swc1 16(sp)/24(sp)); the in-TU K&R `func_00000000()`
+//   default-promotes float->double (cvt.d.s + sdc1), inflating the frame to
+//   -160 (target -136) and cascading the whole register allocation. The
+//   `<name>f` float-prototype workaround is unavailable: bootup is LINK-DIRECT,
+//   so a func_00000000f reloc breaks the ROM link AND mismatches the target's
+//   R_MIPS_26 func_00000000 symbol (see docs IDO knr-float-call). (2) ctx =
+//   *(func_0000023C+0x18) is read 3x; IDO -O2 CSEs the guard+call-arg reads
+//   (no intervening barrier) while the target reloads each — no C knob forces
+//   the reload. Net: correct logic, divergent regalloc — permuter/cc territory.
 //
 //   void func_0000CFA0(State *st) {
 //     int *ctx = *(int**)(func_0000023C+0x18);          // global ctx ptr
@@ -8463,10 +8483,9 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
 //   strided fold table to +0x4..+0x38; func_00000080+0x64 (writable
 //   global flag, cleared 2x); see
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
-// Caps (DEFERRED): 296-insn multi-branch sync w/ folded globals +
-//   vtable dispatch — byte-match blocked by deferred pool
-//   symbolization. Real-C STRUCTURAL body below. Name pre-checked:
-//   no extern reuse. D_00000000 reuses file-scope extern char.
+//   (Pool symbolization is RESOLVED: refs use real reloc symbols, not
+//   placeholder offsets — see the cap note above for the true blocker.)
+//   Real-C STRUCTURAL body below. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void func_0000CFA0(char *st) {
     char *ctx;
@@ -8475,12 +8494,14 @@ void func_0000CFA0(char *st) {
     int changed;
     float dp[3];
     int sp30;
-    ctx = *(char **)((char *)&D_00000000 + 0x18);
+    ctx = *(char **)((char *)&func_0000023C + 0x18);
     if ((*(int *)(st + 0xA58) & 0x2000) && ctx == *(char **)(st + 0x8DC)) return;
-    r = (char *)func_00000000(ctx, 2, *(int *)(st + 0xB4), *(int *)(st + 0xB8),
+    r = (char *)func_00000000(*(char **)((char *)&func_0000023C + 0x18), 2,
+                              *(int *)(st + 0xB4), *(int *)(st + 0xB8),
                               *(float *)(st + 0xBC), &out_at_sp84, 0.0f);
     if (!r) return;
     *(char **)(st + 0xA40) = r;
+    ctx = *(char **)((char *)&func_0000023C + 0x18);
     changed = (*(float *)(ctx + 0x98) < out_at_sp84) ? 1
               : (((int)ctx ^ *(int *)(st + 0x8DC)) != 0);
     if ((*(int *)(st + 0xA58) & 0x10000) && *(short *)(st + 0x9A0) == 0x61 &&
@@ -8519,17 +8540,18 @@ void func_0000CFA0(char *st) {
         func_00000000(0, st + 0x8E0);
         func_00000000(st);
         func_00000000(st);
-        *(int *)((char *)&D_00000000 + 0x64) = 0;
+        *(int *)((char *)&func_00000080 + 0x64) = 0;
     } else {
         if ((*(int *)(st + 0x8B8) & 0xA) && *(int *)(st + 0xA4C) &&
             !(*(int *)(st + 0x9A8) & 0x400)) {
             func_00000000(*(int *)(st + 0x850), st + 0x9D8, dp);
             if ((double)(dp[0] * *(float *)(st + 0x9D8) + dp[1] * *(float *)(st + 0x9DC) +
                          dp[2] * *(float *)(st + 0x9E0)) < *(double *)((char *)&func_00000940 + 0x38)) {
-                *(float *)(st + 0x9E8) = (float)(*(unsigned char *)(st + 0xA30) >> 1) / 255.0f;
-                *(float *)(st + 0x9EC) = (float)(*(unsigned char *)(st + 0xA31) >> 1) / 255.0f;
-                *(float *)(st + 0x9F0) = (float)(*(unsigned char *)(st + 0xA32) >> 1) / 255.0f;
-                *(float *)(st + 0x9F4) = 112.0f / 255.0f;
+                float div255 = 255.0f;
+                *(float *)(st + 0x9E8) = (float)(unsigned int)(unsigned char)(*(unsigned char *)(st + 0xA30) / 2) / div255;
+                *(float *)(st + 0x9EC) = (float)(unsigned int)(unsigned char)(*(unsigned char *)(st + 0xA31) / 2) / div255;
+                *(float *)(st + 0x9F0) = (float)(unsigned int)(unsigned char)(*(unsigned char *)(st + 0xA32) / 2) / div255;
+                *(float *)(st + 0x9F4) = 112.0f / div255;
                 func_00000000(st + 0x9E8);
                 if (*(int *)(st + 0x8B8) & 2) {
                     char *o, *vt;
@@ -8546,14 +8568,14 @@ void func_0000CFA0(char *st) {
                     (*(void (**)(char *))(vt + 0x1C))(o + *(short *)(vt + 0x18));
                 }
             }
-            *(int *)((char *)&D_00000000 + 0x64) = 0;
+            *(int *)((char *)&func_00000080 + 0x64) = 0;
         }
     }
     func_00000000((*(int *)(st + 0x8B8) & 1) ? 0x11 : 0x14);
     sp30 = 0;
     func_00000000(0, &sp30);
     func_00000000(st);
-    func_00000000(*(int *)(*(char **)((char *)&D_00000000 + 0x254) + 0x108));
+    func_00000000(*(int *)(*(char **)((char *)&func_0000023C + 0x18) + 0x108));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);

@@ -576,6 +576,8 @@ D_A0000200 = 0xA0000200;
 D_00000000 = 0x00000000;
 D_60A88_owner = 0x00000000;  /* gl_func_00060A74 owner global; distinct sym keeps target's 2 separate lui-zero (no CSE with fmt arg). USO load-resolved. */
 D_cb_26214 = 0x00000000;  /* gl_func_00026214 per-advance callback fn-ptr global; distinct sym keeps target's separate lui-zero (no CSE with &D_00000000 base). USO load-resolved. */
+D_4D688_g1 = 0x00000000;  /* gl_func_0004D688: s5 state base (lui-zero), read at +0x1C; distinct from D_4D688_g2 to keep target's 2 separate lui-zero. USO load-resolved. */
+D_4D688_g2 = 0x00000000;  /* gl_func_0004D688: s7 flag global (lui-zero), poked *s7=0/1; distinct sym (no CSE with g1). USO load-resolved. */
 D_26214_20 = 0x00000020;     /* gl_func_00026214: separate-lui scratch global at 0x20 (own lui-zero, not s2 base). */
 D_26214_1B3D0 = 0x0001B3D0;  /* gl_func_00026214: max-tracker global (lui 0x2 base region, distinct from s2). */
 D_26214_1B3D4 = 0x0001B3D4;  /* gl_func_00026214: result/cache global (lui 0x2 base region, distinct from s2). */

@@ -19952,7 +19952,24 @@ void gl_func_0004D658(int a0) {
 //   STRUCTURAL body below — clear + bind + register + magic-check
 //   skeleton only. Byte-match deferred. Name pre-checked: no extern
 //   reuse.
-// gl_func_0004D688 — FULL m2c DECODE (60.76% NM, no episode). game_libs non-jumptable; gl_func_00034458 (in-file void(void) placeholder) calls cast via K&R fn-ptr. scripts/lift-uso-controlflow.py.
+// gl_func_0004D688 — reloc-form + dispatch pass (60.76 -> 68.70 NM, no episode).
+// 2026-06-22 (agent-b): the 0x2xxxx args (0x2021C name literal, 0x20224..0x202D4
+// fmt/desc strings) are NOT integer literals — they are `(char*)&D_00000000 + N`
+// addresses (IDO emits lui+addiu, the old `0xNU` form emitted lui+ori, off by one
+// insn each). 0x3CB00/0x3CB04 (magic-pair check) + 0x12345678 stay plain
+// lui+ori/lw-form integer literals (verified vs target). s5 = &D_4D688_g1 (state
+// base, read at +0x1C, passed to cb), s7 = &D_4D688_g2 (flag global poked 0/1) —
+// two distinct lui-zero symbols (no CSE). Char-event dispatch on *(g1+0x1C)->+0x1C
+// over 'd'/'e'/'f'/'g'/'h'/'l' (0x64..0x6C), kept as an if-chain (a `switch`
+// collapses 0x64..0x68 into a JUMPTABLE — structural divergence — so if-chain).
+// RESIDUAL CAP (coloring-multiset): target colors exactly 8 callee-saved values
+// and HOLDS the &D_4D688_g2 base in s7 across the loop; our placeholder build
+// resolves &D_4D688_g2 to address 0, so IDO re-derives it (lui at,0) rather than
+// hoisting, freeing s7 for a var and spilling a 9th value into s8 (frame 0x40 vs
+// target 0x50). That frame-size shift renumbers nearly every temp, and the
+// dispatch emits branch-likely (bnel/beql) where target uses plain beq. Both are
+// allocator decisions, not C-shape choices — permuter-class (permuter not
+// installed here). NON_MATCHING.
 #ifdef NON_MATCHING
 
 
@@ -19960,7 +19977,9 @@ void gl_func_0004D658(int a0) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0004D688)();
+#define DSTR(o) ((char *)&D_00000000 + (o))
+extern char D_4D688_g1;
+extern char D_4D688_g2;
 void gl_func_0004D688(char *arg0) {
     char *sp38;
     s32 temp_a1;
@@ -19972,35 +19991,37 @@ void gl_func_0004D688(char *arg0) {
     char *temp_a0_3;
     char *var_s2;
     char *var_s6;
+    s32 *g2 = (s32 *)&D_4D688_g2;
+#define g1 (&D_4D688_g1)
 
     FW(arg0, 0x48) = 0;
     FW(arg0, 0x18) = 0;
-    FW(arg0, 0x40) = 0x2021C;
+    FW(arg0, 0x40) = (s32) DSTR(0x2021C);
     FW(arg0, 0x10) = 0;
     var_s3 = 0;
     var_s2 = 0;
     var_s6 = 0;
     var_s4 = 0;
-    gl_func_00034458(0);
+    gl_func_00034458(g1);
 loop_1:
     if ((*(s32 *)0x3CB00 != 0x12345678) || (*(s32 *)0x3CB04 != 0x12345678)) {
-        gl_func_00034458((char *)0x20224);
+        gl_func_00034458(DSTR(0x20224));
     }
-    temp_a0 = *(char **)0x1C;
-    *(int*)0 = 0;
+    temp_a0 = *(char **)(g1 + 0x1C);
+    *g2 = 0;
     sp38 = temp_a0;
     gl_func_00034458(temp_a0, temp_a0 + 0x1C, 1);
-    temp_a1 = FW(temp_a0, 0x1C);
-    *(int*)0 = 1;
+    temp_a1 = FW(sp38, 0x1C);
+    *g2 = 1;
     if (temp_a1 == 0x65) {
         FW(arg0, 0x20) = 0;
         if (FW(arg0, 0x18) != 0) {
-            gl_func_00034458((char *)0x20240, temp_a1);
+            gl_func_00034458(DSTR(0x20240), temp_a1);
             temp_a0_2 = FW(arg0, 0xC);
             if ((temp_a0_2 != 0) && (FW(temp_a0_2, 0x5C) != 0)) {
-                FW(arg0, 0x3C) = 0x20248;
+                FW(arg0, 0x3C) = (s32) DSTR(0x20248);
                 gl_func_00034458(temp_a0_2);
-                FW(arg0, 0x40) = 0x20250;
+                FW(arg0, 0x40) = (s32) DSTR(0x20250);
                 FW(arg0, 0x20) = 1;
             } else {
                 gl_func_00034458(arg0);
@@ -20012,11 +20033,11 @@ loop_1:
             FW(FW(arg0, 0xC), 0x5C) = gl_func_00034458(FW(arg0, 0xC) + 0x10, temp_a1);
             FW(arg0, 0x18) = var_s6;
             gl_func_00034458();
-            FW(arg0, 0x3C) = 0x2025C;
-            gl_func_00034458((char *)0x20260);
+            FW(arg0, 0x3C) = (s32) DSTR(0x2025C);
+            gl_func_00034458(DSTR(0x20260));
             gl_func_00034458(FW(arg0, 0x18));
             gl_func_00034458(FW(arg0, 0x18));
-            FW(arg0, 0x40) = 0x20268;
+            FW(arg0, 0x40) = (s32) DSTR(0x20268);
             FW(arg0, 0x20) = 1;
         } else {
             gl_func_00034458(arg0, temp_a1);
@@ -20026,14 +20047,14 @@ loop_1:
     }
     if (temp_a1 == 0x66) {
         FW(arg0, 0x1C) = 0;
-        gl_func_00034458((char *)0x2026C, temp_a1);
+        gl_func_00034458(DSTR(0x2026C), temp_a1);
         goto loop_1;
     }
     if (temp_a1 == 0x64) {
         var_s3 += 1;
         if (var_s3 & 1) {
-            gl_func_00034458(0, temp_a1);
-            gl_func_00034458(0);
+            gl_func_00034458(g1, temp_a1);
+            gl_func_00034458(g1);
         }
         var_s6 = var_s2;
         if (var_s2 != 0) {
@@ -20041,35 +20062,34 @@ loop_1:
                 var_s4 = 1;
                 gl_func_00034458();
             } else {
-                FW(arg0, 0x18) = var_s2;
+                FW(arg0, 0x18) = (s32) var_s2;
                 gl_func_00034458();
-                FW(arg0, 0x3C) = 0x20270;
-                gl_func_00034458((char *)0x20274);
+                FW(arg0, 0x3C) = (s32) DSTR(0x20270);
+                gl_func_00034458(DSTR(0x20274));
                 gl_func_00034458(FW(arg0, 0x18));
                 gl_func_00034458(FW(arg0, 0x18));
-                FW(arg0, 0x40) = 0x2027C;
+                FW(arg0, 0x40) = (s32) DSTR(0x2027C);
                 FW(arg0, 0x20) = 1;
             }
         }
-        FW(arg0, 0x3C) = 0x20280;
-        gl_func_00034458((char *)0x20288);
+        FW(arg0, 0x3C) = (s32) DSTR(0x20280);
+        gl_func_00034458(DSTR(0x20288));
         var_s2 = gl_func_00034458();
-        gl_func_00034458((char *)0x20290);
+        gl_func_00034458(DSTR(0x20290));
         temp_a0_3 = FW(arg0, 0x44);
-        FW(arg0, 0x3C) = 0x20298;
+        FW(arg0, 0x3C) = (s32) DSTR(0x20298);
         FW(arg0, 0x24) = (s32) (FW(arg0, 0x24) + 1);
         if ((temp_a0_3 != 0) && (FW(arg0, 0x24) & 1)) {
             gl_func_00034458(temp_a0_3, 0x64, 1);
         }
         goto loop_1;
     }
-    if (temp_a1 == 0x67) {
-block_30:
+    if (temp_a1 == 0x67 || temp_a1 == 0x68) {
         if (FW(arg0, 0xC) != 0) {
-            gl_func_00034458((char *)0x202A0, temp_a1);
+            gl_func_00034458(DSTR(0x202A0), temp_a1);
         }
         if (FW(arg0, 0x4) != 0) {
-            gl_func_00034458((char *)0x202B4);
+            gl_func_00034458(DSTR(0x202B4));
         }
         temp_t9 = FW(arg0, 0x8);
         FW(arg0, 0x8) = 0;
@@ -20078,21 +20098,19 @@ block_30:
         if (FW(arg0, 0x18) == 0) {
             gl_func_00034458(arg0);
         }
-        gl_func_00034458((char *)0x202D0);
+        gl_func_00034458(DSTR(0x202D0));
         goto loop_1;
     }
-    if (temp_a1 == 0x68) {
-        goto block_30;
-    }
     if (temp_a1 == 0x6C) {
-        gl_func_00034458(0, temp_a1);
+        gl_func_00034458(g1, temp_a1);
         gl_func_00034458();
         FW(arg0, 0x48) = 1;
         goto loop_1;
     }
-    gl_func_00034458((char *)0x202D4, temp_a1);
+    gl_func_00034458(DSTR(0x202D4), temp_a1);
     goto loop_1;
 }
+#undef g1
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D688);
 #endif
@@ -24226,284 +24244,201 @@ int gl_func_00052BBC(int *a0, int a1, int a2, int a3, int a4) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052BBC);
 #endif
 
-// gl_func_00052CD4 — STRUCTURAL PASS (decl 0x4EC / 315 words, no
-// episode). Raw-.word USO. realjr=5, regjr=1 → MULTI-FUNCTION BUNDLE.
-// The regjr is the JUMP-TABLE DISPATCH at insn 21 (jr t6 after
-// lw t6, 0x1BE4(at); ADDENDUM-18c, NOT a return).
-// BOUNDARY NOTE (DEFERRED USO RE-SPLIT): declared symbol holds the
-// main decoder (insns 1..282, prologue 27BDFFB8 frame 0x48, saves
-// ra+s0..s2) + FOUR no-frame leaf accessors (ADDENDUM-18b, each reads
-// caller-set a0/a1, own jr ra). Future re-split cuts at jr-ra ends
-// 0x00053134 / 0x0005316C / 0x00053184 / 0x000531A4 / 0x000531B8.
-// (1) gl_func_00052CD4 — jump-table command-stream decoder, 14 jal-0
-//     USO callbacks:
-//   int *gl_func_00052CD4(void *out, int *strm) {
-//     op = *strm & 0xFFFF; i = op - 2;
-//     if (op == 2) ...; if ((u32)i >= 0x25) return cur;  // bound
-//     cur = strm;
-//     switch (i) {                          // table at &D_0+0x1BE4
-//       // each case: v = *cur; cur += 4; store v into out at a
-//       // case-specific offset (out->0xA0/0x40/0x60/0x44/0x68/
-//       // 0x90/0x8C/0x80/0x64/0x78/0x7C/0x50/0x4C/0x98/0x54 ...);
-//       // some cases set/clear flag bits on a fetched record word
-//       // (ori 0x8 / ori 0x2000 / andi ~0x2000 / andi ~0x20000000)
-//       // or call a USO sub-decoder/allocator/error reporter
-//       // (cb_*(out, ...) ; msg offsets 0x20FD4 / 0x20FDC / 0x20FF4)
-//       ...
-//     }
-//     return cur;                           // advanced cursor (v0=s0)
-//   }
-// (2) leaf @0x00053138: idx->record ptr —
-//     return &out->field_60[ (out->field_70[i]) * 6 ];  // 6B stride
-// (3) leaf @0x00053170: return &out->field_60[ k * 6 + 2 ];
-// (4) leaf @0x00053188: return &(out->field_70 ? base+i*6+2 : ..);
-// (5) leaf @0x000531A8: return &out->field_64[i];        // 4B stride
-// Family: jump-table command/parameter decoder (1) + index->record
-// pointer accessor leaves (2..5; same 0x60 6-byte / 0x64 4-byte /
-// 0x70 directory geometry as the gl_func_000500EC/00050444 record
-// family). The bundle boundaries, the frames (0x48 / no-frame
-// leaves), the (op-2) normalize + 0x25 bound + &D_0+0x1BE4 table +
-// jr-t6 dispatch, the cursor-advance (v=*cur; cur+=4) per-case read,
-// the per-case out-struct offsets, the ori/andi-inverse flag toggles,
-// the 14 USO callback sites, the return-advanced-cursor, and the four
-// leaf record-pointer formulas are exact; the individual case bodies,
-// the cb prototypes and the exact field map are representative
-// (deferred FULL-DECODE node — needs the 0x25-entry table resolved).
-// Caps: out/stream structs + 14 cb prototypes untyped, jump table +
-// msg offsets not symbolized (USO-relocated); bundle awaits re-split.
-// Full body INCLUDE_ASM-preserved (all 5 fns).
+// gl_func_00052CD4 — command-stream decoder (size 0x468 = 282 insns,
+// SINGLE function, NOT a bundle — earlier "5-fn bundle" note was WRONG;
+// the next .text symbol is gl_func_00053... at 0x1ece4 = base+0x468).
+//
+// VERIFIED STRUCTURE (2026-06-22 agent-i, expected objdump):
+//   op = *strm & 0xFFFF; cur = strm + 1; s1 = out;     // op DIRECT, NOT op-2
+//   if (op != 2) do {
+//     if ((u32)op >= 37) cur = default(out, op, cur);  // sltiu 37 bound
+//     else switch (op) { ... }                         // jr t6 via table
+//     op = *cur++ & 0xFFFF;                             // bnel a3,2 loop
+//   } while (op != 2);
+//   ...finalize (dflag/lflag/rflag stack flags + two *0xC allocs)...
+//   return cur;
+// Per-case body: each reads v=*cur++ (one or two words) and stores into
+// out at a case-specific offset; cases 1/4/5/14 call USO callbacks
+// (msg literals 0x20FD4/0x20FDC/0x20FF4); cases 8/12/19 RMW flag bits at
+// out+0x38 (|8, |0x2000/&~0x2000, |0x4000/&~0x4000); cases D/L/R set
+// stack flags sp+48/sp+52/sp+40. Finalize allocs out+0x58 / out+0x54 =
+// CB(out->0x40*0xC) / CB(out->0x44*0xC) when dflag set; tail frees
+// out+0x54 unless (&D_0[0] & 0x100).
+//
+// STRUCTURAL CAP — NOT C-MATCHABLE (external USO jumptable):
+//   Dispatch is `sll t6,op,2; lui at,0x0; addu at,at,t6; lw t6,0x1BE4(at);
+//   jr t6` — an indirect jump through a jumptable living in EXTERNAL USO
+//   data at &D_0+0x1BE4 (the %hi resolves to 0 in the USO, %lo=0x1BE4).
+//   A C `switch` ALWAYS emits its own LOCAL .rodata table referenced by a
+//   `R_MIPS_HI16/LO16 .rodata` reloc pair (build emits `lw 0x90(at)` to a
+//   local table); there is no C construct that does `jr` through an
+//   arbitrary external data symbol at a fixed offset. The 0x1BE4-vs-0x90
+//   table-base word can never match. Knock-on emit-shape diffs that ride
+//   the same non-C dispatch: op held in caller-saved a3 (build forces a
+//   saved reg), out in s1 (build s2), and a per-read `move v1,s0` copy
+//   before every `lw 0(v1)` (build folds to `lw 0(s0)`). Body logic +
+//   per-case offsets + flag RMWs + finalize are reconstructed exactly;
+//   the dispatch prologue + table-base reloc form is the residual cap.
+//   Reconstruction lifted fuzzy 65.37 -> 76.95% (agent-i). Keep INCLUDE_ASM.
 #ifdef NON_MATCHING
-/* PASS-1 2026-06-10 (big-swing): FULL m2c graft; one sparse table.
- * Hardened insert (item 22). */
+/* PASS-2 2026-06-22 (agent-i): true-structure rebuild. switch(op) [op =
+ * *strm & 0xFFFF, op in 0..36, op-DIRECT not op-2], v=*cur++ per case.
+ * Dispatch is an EXTERNAL USO jumptable (&D_0+0x1BE4) = structural cap;
+ * a C switch emits a local .rodata table (different base + reloc). */
 s32 *gl_func_00052CD4(char *arg0, s32 *arg1) {
-    s32 sp34;
-    s32 sp30;
-    s32 sp28;
-    s32 *var_s0;
-    s32 temp_a0;
-    s32 temp_a0_2;
-    s32 temp_a0_3;
-    s32 temp_a1;
-    s32 temp_a1_2;
-    s32 temp_a3;
-    s32 temp_f4;
-    s32 temp_t0;
-    s32 temp_t1;
-    s32 temp_t1_2;
-    s32 temp_t3;
-    s32 temp_t4;
-    s32 temp_t4_2;
-    s32 temp_t5;
-    s32 temp_t6;
-    s32 temp_t6_2;
-    s32 temp_t7;
-    s32 temp_t7_2;
-    s32 temp_t8;
-    s32 temp_t9;
-    s32 temp_t9_2;
-    s32 temp_t9_3;
-    u32 var_a3;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
+    s32 *cur;
+    s32 op;
+    s32 v;
+    s32 v2;
+    s32 n;
+    s32 rflag;
+    s32 dflag;
+    s32 lflag;
 
-    sp28 = 0;
-    sp30 = 0;
-    sp34 = 0;
-    var_a3 = *arg1 & 0xFFFF;
-    var_s0 = arg1 + 4;
-    if (var_a3 != 2) {
-loop_1:
-        switch (var_a3) {
-        case 0:
-            temp_t7 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            *(s32 *)((char *)(arg0) + 0xA0) = temp_t7;
-block_34:
-            temp_a3 = *var_s0;
-            var_s0 += 4;
-            var_a3 = temp_a3 & 0xFFFF;
-            if (var_a3 == 2) {
-                goto block_35;
-            }
-            goto loop_1;
-        case 1:
-            temp_a1 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            func_00000000(arg0, temp_a1);
-            goto block_34;
-        case 2:
-            *(s32 *)((char *)(arg0) + 0x40) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
-            temp_t9 = *(s32 *)((char *)(var_s0) + 0x4);
-            var_s0 = var_s0 + 4 + 4;
-            *(s32 *)((char *)(arg0) + 0x60) = temp_t9;
-            goto block_34;
-        case 3:
-            *(s32 *)((char *)(arg0) + 0x44) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
-            temp_t1 = *(s32 *)((char *)(var_s0) + 0x4);
-            var_s0 = var_s0 + 4 + 4;
-            *(s32 *)((char *)(arg0) + 0x68) = temp_t1;
-            sp30 = 1;
-            goto block_34;
-        case 4:
-            func_00000000(0x20FD4, 0);
-            temp_a1_2 = *(s32 *)((char *)(var_s0) + 0x0);
-            temp_t3 = *(s32 *)((char *)(var_s0) + 0x4);
-            var_s0 = var_s0 + 4 + 4;
-            *(s32 *)((char *)(arg0) + 0x90) = 0;
-            *(s32 *)((char *)(arg0) + 0x8C) = temp_a1_2;
-            *(s32 *)((char *)(arg0) + 0x80) = temp_t3;
-            if (temp_a1_2 != 0) {
-                *(s32 *)((char *)(arg0) + 0x84) = func_00000000(temp_a1_2 * 4, temp_a1_2);
-            }
-            func_00000000(arg0, *(s32 *)((char *)(arg0) + 0x80));
-            func_00000000();
-            goto block_34;
-        case 5:
-            func_00000000(0x20FDC);
-            goto block_34;
-        case 6:
-            temp_t4 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            *(s32 *)((char *)(arg0) + 0x64) = temp_t4;
-            goto block_34;
-        case 7:
-            temp_t5 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            *(s32 *)((char *)(arg0) + 0x78) = temp_t5;
-            goto block_34;
-        case 8:
-            temp_t6 = *(s32 *)((char *)(var_s0) + 0x0);
-            temp_v0 = arg0 + 0x34;
-            var_s0 += 4;
-            *(s32 *)((char *)(arg0) + 0x7C) = temp_t6;
-            *(s32 *)((char *)(temp_v0) + 0x4) = (s32) (*(s32 *)((char *)(temp_v0) + 0x4) | 8);
-            goto block_34;
-        case 9:
-            temp_t9_2 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            *(s32 *)((char *)(arg0) + 0x50) = temp_t9_2;
-            goto block_34;
-        case 10:
-            *(s32 *)((char *)(arg0) + 0x44) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
-            temp_t1_2 = *(s32 *)((char *)(var_s0) + 0x4);
-            var_s0 = var_s0 + 4 + 4;
-            *(s32 *)((char *)(arg0) + 0x4C) = temp_t1_2;
-            goto block_34;
-        case 11:
-            sp34 = 1;
-            goto block_34;
-        case 12:
-            temp_a0 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            temp_v0_2 = arg0 + 0x34;
-            if (temp_a0 != 0) {
-                *(s32 *)((char *)(temp_v0_2) + 0x4) = (s32) (*(s32 *)((char *)(temp_v0_2) + 0x4) | 0x2000);
-            } else {
-            case 13:
-                *(s32 *)((char *)&D_00000000 + 0x4) /* M2C unset $v0 */ = (s32) (*(s32 *)((char *)&D_00000000 + 0x4) /* M2C unset $v0 */ & ~0x2000);
-            }
-            goto block_34;
-        case 14:
-            var_s0 += 0xC;
-            func_00000000(0x20FF4);
-            goto block_34;
-        case 15:
-            temp_t7_2 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            *(s32 *)((char *)(arg0) + 0x98) = temp_t7_2;
-            goto block_34;
-        case 16:
-            temp_f4 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            *(f32 *)((char *)(arg0) + 0x9C) = (f32) ((f32) temp_f4 / *(f32 *)((char *)&D_00000000 + 0x1C78));
-            goto block_34;
-        case 17:
-            var_s0 += 4;
-            goto block_34;
-        case 18:
-            temp_t9_3 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            sp28 = temp_t9_3;
-            goto block_34;
-        case 19:
-            temp_a0_2 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            temp_v0_3 = arg0 + 0x34;
-            if (temp_a0_2 != 0) {
-                *(s32 *)((char *)(temp_v0_3) + 0x4) = (s32) (*(s32 *)((char *)(temp_v0_3) + 0x4) | 0x4000);
-            } else {
-            case 20:
-                *(s32 *)((char *)&D_00000000 + 0x4) /* M2C unset $v0 */ = (s32) (*(s32 *)((char *)&D_00000000 + 0x4) /* M2C unset $v0 */ & ~0x4000);
-            }
-            goto block_34;
-        case 21:
-            var_s0 += 4;
-            goto block_34;
-        case 22:
-            temp_t4_2 = *(s32 *)((char *)(var_s0) + 0x0);
-            var_s0 += 4;
-            *(s32 *)((char *)(arg0) + 0x5C) = temp_t4_2;
-            goto block_34;
-        case 23:
-            *(s32 *)((char *)(arg0) + 0x48) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
-            temp_t6_2 = *(s32 *)((char *)(var_s0) + 0x4);
-            var_s0 = var_s0 + 4 + 4;
-            *(s32 *)((char *)(arg0) + 0x6C) = temp_t6_2;
-            goto block_34;
-        case 24:
-            *(s32 *)((char *)(arg0) + 0x58) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
-            temp_t8 = *(s32 *)((char *)(var_s0) + 0x4);
-            var_s0 = var_s0 + 4 + 4;
-            *(s32 *)((char *)(arg0) + 0x54) = temp_t8;
-            goto block_34;
-        case 25:
-            *(s32 *)((char *)(arg0) + 0x74) = (s32) *(s32 *)((char *)(var_s0) + 0x0);
-            temp_t0 = *(s32 *)((char *)(var_s0) + 0x4);
-            var_s0 = var_s0 + 4 + 4;
-            *(s32 *)((char *)(arg0) + 0x70) = temp_t0;
-            goto block_34;
-        default:
-            var_s0 = func_00000000(arg0, var_a3, var_s0, var_a3);
-            goto block_34;
-        }
-    } else {
-block_35:
-        if (sp30 != 0) {
-            if ((*(s32 *)((char *)(arg0) + 0x5C) == 0) && (*(s32 *)((char *)(arg0) + 0x58) == 0)) {
-                *(s32 *)((char *)(arg0) + 0x58) = func_00000000(*(s32 *)((char *)(arg0) + 0x40) * 0xC);
-            }
-            if (*(s32 *)((char *)(arg0) + 0x54) == 0) {
-                *(s32 *)((char *)(arg0) + 0x54) = func_00000000(*(s32 *)((char *)(arg0) + 0x44) * 0xC);
-            }
-            if (*(s32 *)((char *)(arg0) + 0x5C) != 0) {
-                func_00000000(arg0, sp34);
-            } else {
-            /* case 27 (flattened) */
-            /* case 28 (flattened) */
-            /* case 29 (flattened) */
-            /* case 30 (flattened) */
-            /* case 31 (flattened) */
-            /* case 32 (flattened) */
-            /* case 33 (flattened) */
-            /* case 34 (flattened) */
-            /* case 35 (flattened) */
-            /* case 36 (flattened) */
+    rflag = 0;
+    dflag = 0;
+    lflag = 0;
+    op = *arg1 & 0xFFFF;
+    cur = arg1 + 1;
+    if (op != 2) {
+        do {
+            switch (op) {
+            case 0:
+                *(s32 *)(arg0 + 0xA0) = *cur++;
+                break;
+            case 1:
+                v = *cur++;
+                func_00000000(arg0, v);
+                break;
+            case 2:
+                *(s32 *)(arg0 + 0x40) = *cur++;
+                *(s32 *)(arg0 + 0x60) = *cur++;
+                break;
+            case 3:
+                *(s32 *)(arg0 + 0x44) = *cur++;
+                *(s32 *)(arg0 + 0x68) = *cur++;
+                dflag = 1;
+                break;
+            case 4:
+                func_00000000(0x20FD4, 0);
+                v = *cur++;
+                v2 = *cur++;
+                *(s32 *)(arg0 + 0x90) = 0;
+                *(s32 *)(arg0 + 0x8C) = v;
+                *(s32 *)(arg0 + 0x80) = v2;
+                if (v != 0) {
+                    *(s32 *)(arg0 + 0x84) = func_00000000(v * 4, v);
+                }
+                func_00000000(arg0, *(s32 *)(arg0 + 0x80));
                 func_00000000();
+                break;
+            case 5:
+                func_00000000(0x20FDC);
+                break;
+            case 6:
+                *(s32 *)(arg0 + 0x64) = *cur++;
+                break;
+            case 7:
+                *(s32 *)(arg0 + 0x78) = *cur++;
+                break;
+            case 8:
+                *(s32 *)(arg0 + 0x7C) = *cur++;
+                *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) | 8;
+                break;
+            case 9:
+                *(s32 *)(arg0 + 0x50) = *cur++;
+                break;
+            case 10:
+                *(s32 *)(arg0 + 0x44) = *cur++;
+                *(s32 *)(arg0 + 0x4C) = *cur++;
+                break;
+            case 11:
+                lflag = 1;
+                break;
+            case 12:
+                v = *cur++;
+                if (v != 0) {
+                    *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) | 0x2000;
+                } else {
+                    *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) & ~0x2000;
+                }
+                break;
+            case 14:
+                cur += 3;
+                func_00000000(0x20FF4);
+                break;
+            case 15:
+                *(s32 *)(arg0 + 0x98) = *cur++;
+                break;
+            case 16:
+                v = *cur++;
+                *(f32 *)(arg0 + 0x9C) = (f32) v / *(f32 *)((char *)&D_00000000 + 0x1C78);
+                break;
+            case 17:
+                cur++;
+                break;
+            case 18:
+                rflag = *cur++;
+                break;
+            case 19:
+                v = *cur++;
+                if (v != 0) {
+                    *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) | 0x4000;
+                } else {
+                    *(s32 *)(arg0 + 0x38) = *(s32 *)(arg0 + 0x38) & ~0x4000;
+                }
+                break;
+            case 21:
+                cur++;
+                break;
+            case 22:
+                *(s32 *)(arg0 + 0x5C) = *cur++;
+                break;
+            case 23:
+                *(s32 *)(arg0 + 0x48) = *cur++;
+                *(s32 *)(arg0 + 0x6C) = *cur++;
+                break;
+            case 24:
+                *(s32 *)(arg0 + 0x58) = *cur++;
+                *(s32 *)(arg0 + 0x54) = *cur++;
+                break;
+            case 25:
+                *(s32 *)(arg0 + 0x74) = *cur++;
+                *(s32 *)(arg0 + 0x70) = *cur++;
+                break;
+            default:
+                cur = func_00000000(arg0, op, cur, op);
+                break;
             }
+            op = *cur++ & 0xFFFF;
+        } while (op != 2);
+    }
+    if (dflag != 0) {
+        if ((*(s32 *)(arg0 + 0x5C) == 0) && (*(s32 *)(arg0 + 0x58) == 0)) {
+            n = *(s32 *)(arg0 + 0x40);
+            *(s32 *)(arg0 + 0x58) = func_00000000(n * 0xC);
+        }
+        if (*(s32 *)(arg0 + 0x54) == 0) {
+            n = *(s32 *)(arg0 + 0x44);
+            *(s32 *)(arg0 + 0x54) = func_00000000(n * 0xC);
+        }
+        if (*(s32 *)(arg0 + 0x5C) != 0) {
+            func_00000000(arg0, lflag);
+        } else {
+            func_00000000(arg0, 1);
         }
     }
-    if (sp28 != 0) {
+    if (rflag != 0) {
         func_00000000(arg0);
     }
-    if (!(*(s32 *)((char *)&D_00000000 + 0) & 0x100)) {
-        temp_a0_3 = *(s32 *)((char *)(arg0) + 0x54);
-        if (temp_a0_3 != 0) {
-            func_00000000(temp_a0_3);
-            *(s32 *)((char *)(arg0) + 0x54) = 0;
+    if (!(*(s32 *)&D_00000000 & 0x100)) {
+        v = *(s32 *)(arg0 + 0x54);
+        if (v != 0) {
+            func_00000000(v);
+            *(s32 *)(arg0 + 0x54) = 0;
         }
     }
-    return var_s0;
+    return cur;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052CD4);
