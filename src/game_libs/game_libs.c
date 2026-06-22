@@ -3414,12 +3414,11 @@ void *gl_func_00004244(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00004244);
 #endif
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00006900)();
 void gl_func_00006900(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
+    volatile int pad;
     char *sp28;
     char *temp_v0;
     char *temp_v0_2;
@@ -3429,7 +3428,7 @@ void gl_func_00006900(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
     FW(arg0, 0x4F0) = arg1;
     if (arg1 & 0x10000) {
         if (FW(arg0, 0x568) == 0) {
-            temp_v0 = (char*)func_00000000(0, 0, 0x48, 0xEE, 3, 0xE);
+            temp_v0 = (char*)func_00000000(0, &D_00000000, 0x48, 0xEE, 3, 0xE);
             FW(arg0, 0x568) = temp_v0;
             (char*)func_00000000(temp_v0, (char *)-8);
         }
@@ -3447,8 +3446,8 @@ void gl_func_00006900(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
         (char*)func_00000000((int)arg0 + 0x648, (char *)0x6000B);
     }
     FW(arg0, 0x4D8) = 0;
-    (char*)func_00000000(arg0, (char *)1, 0xD010);
-    temp_v0_2 = (char*)func_00000000(0, (char *)0xD020);
+    (char*)func_00000000(arg0, (char *)1, (char *)&D_00000000 + 0xD010);
+    temp_v0_2 = (char*)func_00000000(0, (char *)&D_00000000 + 0xD020);
     FW(arg0, 0x56C) = temp_v0_2;
     sp28 = temp_v0_2;
     (char*)func_00000000((int)arg0 + 0x10, temp_v0_2);
@@ -3457,9 +3456,6 @@ void gl_func_00006900(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
     }
     FW(sp28, 0x14) = arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006900);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00006A8C(char *a0, int a1) {
