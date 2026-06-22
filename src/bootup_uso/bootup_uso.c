@@ -1867,8 +1867,21 @@ void func_000027C0(char *a0, int *a1) {
     }
 }
 
-// func_000027E8 — STRUCTURAL PASS (0x4AC / 299 insns, no episode).
-// UI/scene setup constructor for the bootup/title screen.
+// func_000027E8 — RECONSTRUCTED 93.97% fuzzy (0x4AC / 299 insns, no episode).
+// UI/scene setup constructor for the bootup/title screen. Body below is the
+// true C structure (verified vs expected .o): correct call sequence, all 3
+// u32->float ratio blocks emit byte-aligned (denom loaded via D_00000000+0x20C
+// object-fold so the +0x10 folds into the lw; per-block `fd` temp forces the
+// denominator to be evaluated FIRST, matching IDO's divisor-first scheduling),
+// correct +0x98 store via held base ptr, correct return (s3C = slot 0x3C).
+// Size gap driven from -99 insns (old stub) to -1.
+// RESIDUAL CAP (~6%, NOT byte-exact, no episode): IDO register/slot coloring +
+// addressing-mode in the `g` singleton region — target keeps g live in $a1
+// across the inner func() call and stores the singleton via a held $v1 pointer
+// (lui+addiu+sw, 3 insns); our C yields the la-macro sw (2 insns, the -1) plus
+// a redundant g spill/reload, inflating the frame 80->88 (+2 slots) which
+// renumbers nearly every stack slot. This is the documented coloring/
+// addressing-mode cap class, not a structural/decode bug.
 //
 //   void *func_000027E8(Scene *scene, A a1, B a2, C a3) {  // args spilled
 //                                                          // sp+0x50/54/58/5C
@@ -1914,8 +1927,10 @@ void func_000027C0(char *a0, int *a1) {
 //   no extern reuse. D_00000000 reuses file-scope extern char.
 #ifdef NON_MATCHING
 void *func_000027E8(char *scene, int a1, int a2, int a3) {
-    char *r80, *r8C, *r90, *r94, *r98, *g, *p;
-    func_00000000(&D_00000000);
+    char *s3C, *s4C, *s48, *s44, *s40, *g, *p;
+    int sv, m, base;
+    f32 fd;
+    sv = (int)func_00000000(&D_00000000);
     *(int *)(scene + 0x3C) = a2;
     func_00000000((char *)&D_00000000 + 0x7328, 0);
     func_00000000(&D_00000000, (char *)&D_00000000 + 0x7334);
@@ -1925,48 +1940,54 @@ void *func_000027E8(char *scene, int a1, int a2, int a3) {
     func_00000000(&D_00000000, (char *)&D_00000000 + 0x7360);
     func_00000000();
     func_00000000((char *)&D_00000000 + 0x7374, 0);
-    r80 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7380);
-    r8C = (char *)func_00000000(0, (char *)&D_00000000 + 0x738C);
-    r90 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7390);
-    r94 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7394);
-    r98 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7398);
+    s3C = (char *)func_00000000(0, (char *)&D_00000000 + 0x7380);
+    s4C = (char *)func_00000000(0, (char *)&D_00000000 + 0x738C);
+    s48 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7390);
+    s44 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7394);
+    s40 = (char *)func_00000000(0, (char *)&D_00000000 + 0x7398);
     g = (char *)func_00000000(0);
-    *(char **)&D_00000000 = g;
-    func_00000000(r8C + 0x10, g);
+    *(int *)&D_00000000 = (int)g;
+    func_00000000(s4C + 0x10, g);
     if (*(int *)(g + 0x14)) *(int *)(g + 0x4) = 1;
-    *(char **)(g + 0x14) = r8C;
     func_00000000();
-    func_00000000(*(int *)(scene + 0x134), r90, r8C, r80, r94, r98);
+    *(int *)(g + 0x14) = (int)s4C;
+    func_00000000(*(int *)(scene + 0x134), s44, s4C, s3C, s48, s40);
     func_00000000(*(int *)(scene + 0x134));
     func_00000000(*(int *)(scene + 0x134));
     func_00000000(*(int *)(scene + 0x134));
-    func_00000000(0);
-    func_00000000((char *)&D_00000000 + 0x739C);
-    func_00000000(0);
-    *(int *)(*(int *)(scene + 0x134) + 0x98) =
-        (int)func_00000000(*(int *)(scene + 0x134), func_00000000(*(int *)(scene + 0x134), a1), a2);
-    func_00000000(0);
-    func_00000000((char *)&D_00000000 + 0x73B4);
-    func_00000000(0);
+    m = (int)func_00000000(&D_00000000);
+    fd = (f32)(u32)*(int *)((char *)&D_00000000 + 0x20C);
+    func_00000000((char *)&D_00000000 + 0x739C,
+                  ((f32)(u32)m - (f32)(u32)sv) / fd);
+    sv = (int)func_00000000(&D_00000000);
+    func_00000000(*(int *)(scene + 0x134), func_00000000(*(int *)(scene + 0x134), a1), a2);
+    base = *(int *)(scene + 0x134);
+    m = (int)func_00000000(&D_00000000);
+    *(int *)(base + 0x98) = m;
+    fd = (f32)(u32)*(int *)((char *)&D_00000000 + 0x20C);
+    func_00000000((char *)&D_00000000 + 0x73B4,
+                  ((f32)(u32)m - (f32)(u32)sv) / fd);
+    sv = (int)func_00000000(&D_00000000);
     func_00000000(*(int *)(scene + 0x134), a2, a3);
-    func_00000000(0);
-    func_00000000((char *)&D_00000000 + 0x73CC);
-    p = r90 + 0x10;
-    func_00000000(p, r94);
-    if (*(int *)(r94 + 0x14)) *(int *)(r94 + 0x4) = 1;
-    *(char **)(r94 + 0x14) = r90;
-    func_00000000(p, r98);
-    if (*(int *)(r98 + 0x14)) *(int *)(r98 + 0x4) = 1;
-    *(char **)(r98 + 0x14) = r90;
-    func_00000000();
-    p = r80 + 0x10;
-    func_00000000(p, r8C);
-    if (*(int *)(r8C + 0x14)) *(int *)(r8C + 0x4) = 1;
-    *(char **)(r8C + 0x14) = r80;
-    func_00000000(p, r90);
-    if (*(int *)(r90 + 0x14)) *(int *)(r90 + 0x4) = 1;
-    *(char **)(r90 + 0x14) = r80;
-    return r80;
+    m = (int)func_00000000(&D_00000000);
+    fd = (f32)(u32)*(int *)((char *)&D_00000000 + 0x20C);
+    func_00000000((char *)&D_00000000 + 0x73CC,
+                  ((f32)(u32)m - (f32)(u32)sv) / fd);
+    p = s48 + 0x10;
+    func_00000000(p, s44);
+    if (*(int *)(s44 + 0x14)) *(int *)(s44 + 0x4) = 1;
+    *(int *)(s44 + 0x14) = (int)s48;
+    func_00000000(p, s40);
+    if (*(int *)(s40 + 0x14)) *(int *)(s40 + 0x4) = 1;
+    *(int *)(s40 + 0x14) = (int)s48;
+    p = s3C + 0x10;
+    func_00000000(p, s4C);
+    if (*(int *)(s4C + 0x14)) *(int *)(s4C + 0x4) = 1;
+    *(int *)(s4C + 0x14) = (int)s3C;
+    func_00000000(p, s48);
+    if (*(int *)(s48 + 0x14)) *(int *)(s48 + 0x4) = 1;
+    *(int *)(s48 + 0x14) = (int)s3C;
+    return s3C;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000027E8);

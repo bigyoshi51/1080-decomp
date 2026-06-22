@@ -19132,158 +19132,149 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
 //   body representative. Real-C STRUCTURAL body below — wait loop +
 //   post-ready skeleton only. Byte-match deferred. Name pre-checked:
 //   no extern reuse.
-// gl_func_0004C928 — FULL m2c DECODE (54.80% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_0004C928 — FULL STRUCTURAL RECONSTRUCTION (agent-e, 61.8->91.25%).
+// Correct types/offsets/control-flow: state-spin wait loops (state=*(D+0x218),
+// fields 0x04/0x0C/0x1C), float clamp (4.0f - arg1->fBC/fC0 -> arg0->dD0/dD4),
+// D+0x1C4 RMW flag (|2 around call, &~2), two stack-struct callback dispatches
+// (StackA{n,&StackB} via obj->0x28->{0x2C method, 0x28 base}). cnt=u16@(*(D)+0x48)
+// with kept-first-store (volatile view defeats DCE). Residual = register-allocation
+// + stack-slot coloring cap (v1/v0 wait-loop pick, float-spill scheduling) — C is
+// structurally exact; remaining diffs are allocator-internal, not C-fixable.
 #ifdef NON_MATCHING
+struct St4C928 { /* global readiness state object */
+    char pad0[4];
+    s32 p04;        /* 0x04 */
+    char pad8[4];
+    s32 p0C;        /* 0x0C */
+    char pad10[12];
+    s32 p1C;        /* 0x1C */
+};
+struct Cb4C928 {            /* arg0->0x28 first callback object */
+    char pad0[0x60];
+    s16 h60;            /* 0x60 (lh) */
+    char pad62[2];
+    s32 *m64;           /* 0x64 method ptr */
+};
+struct Obj4C928 {           /* arg1->0x10C target object */
+    char pad0[40];
+    s16 h28;            /* 0x28 (lh) */
+    char pad2A[2];
+    s32 *m2C;           /* 0x2C method ptr / callback */
+};
+#define D_STATE (*(struct St4C928 **)((char *)&D_00000000 + 0x218))
+#define D_TICK  (*(struct St4C928 **)((char *)&D_00000000 + 0x22C))
+#define D_FLAG  (*(s32 *)((char *)&D_00000000 + 0x1C4))
+#define D_R0    (*(s32 *)((char *)&D_00000000 + 0x0))
+#define D_R1C8  (*(s32 *)((char *)&D_00000000 + 0x1C8))
+#define D_W1C   (*(s32 *)((char *)&D_00000000 + 0x1C))
 
+#define ST_TEST(s, r) do { \
+    r = (s)->p1C != 0; \
+    if (r == 0) { r = (s)->p04 != 0; if (r == 0) { r = (s)->p0C != 0; } } \
+} while (0)
+#define WAIT_READY(s) do { \
+    s32 r; \
+    ST_TEST(s, r); \
+    if (r != 0) { do { gl_func_00034458(); ST_TEST(s, r); } while (r != 0); } \
+} while (0)
 
+typedef s32 (*GP_0004C928)();
 
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0004C928)();
-void gl_func_0004C928(char *arg0, char *arg1) {
-    s32 sp70;
-    s32 sp6C;
-    s32 sp68;
-    s16 sp64;
-    s16 *sp48;
-    s32 sp44;
-    char *sp38;
-    s32 sp34;
-    s16 *sp2C;
-    s32 sp28;
-    s32 temp_a1;
-    s32 temp_s0_3;
-    s32 temp_v1;
-    s32 var_v0;
-    s32 var_v0_2;
-    s32 var_v1;
-    s32 var_v1_2;
-    s32 var_v1_3;
-    s32 var_v1_4;
-    u16 temp_t5;
-    char *temp_s0;
-    char *temp_s0_2;
-    char *temp_s0_4;
-    char *temp_s0_5;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v1_2;
-    char *temp_v1_3;
-    char *temp_v1_4;
+struct Arg4C928 {
+    char pad0[0xBC];
+    f32 fBC;        /* 0xBC */
+    f32 fC0;        /* 0xC0 */
+    char padC4[0x48];
+    struct Obj4C928 *p10C;  /* 0x10C */
+};
+struct A4C928 {
+    char padD0[0xD0];
+    s32 dD0;        /* 0xD0 */
+    s32 dD4;        /* 0xD4 */
+    char padD8[0xD0];
+    s32 d1A8;       /* 0x1A8 */
+    s16 h1AC;       /* 0x1AC */
+};
 
-    temp_s0 = *(char **)0x218;
-    var_v1 = FW(temp_s0, 0x1C) != 0;
-    if (var_v1 == 0) {
-        var_v1 = FW(temp_s0, 0x4) != 0;
-        if (var_v1 == 0) {
-            var_v1 = FW(temp_s0, 0xC) != 0;
-        }
-    }
-    if (var_v1 != 0) {
-        do {
-            gl_func_00034458();
-            var_v1_2 = FW(temp_s0, 0x1C) != 0;
-            if (var_v1_2 == 0) {
-                var_v1_2 = FW(temp_s0, 0x4) != 0;
-                if (var_v1_2 == 0) {
-                    var_v1_2 = FW(temp_s0, 0xC) != 0;
-                }
-            }
-        } while (var_v1_2 != 0);
-    }
-    FW((*(char **)0x22C), 0xC) = 0;
-    temp_s0_2 = FW(arg0, 0x28);
-    *(int*)0 = ((GP_0004C928)FW(temp_s0_2, 0x64))(FW(temp_s0_2, 0x60) + (int)arg0);
-    temp_s0_3 = FW(arg0, 0xD0);
-    temp_v1 = FW(arg0, 0xD4);
-    FW(arg0, 0xD0) = (s32) (4.0f - FW(arg1, 0xBC));
-    FW(arg0, 0xD4) = (s32) (4.0f - FW(arg1, 0xC0));
-    sp70 = temp_v1;
-    *(char *)0x1C4 = (s32) (*(s32 *)0x1C4 | 2);
+struct StackB { s16 a; s32 b; s32 c; };       /* sp+0x64 */
+struct StackA { s32 n; struct StackB *p; };   /* sp+0x44 / sp+0x34 / sp+0x28 */
+extern char D_str_2017C;
+extern char D_str_20188;
+
+void gl_func_0004C928(struct A4C928 *arg0, struct Arg4C928 *arg1) {
+    struct St4C928 *st;
+    struct Cb4C928 *fcb;
+    struct Obj4C928 *cb;
+    struct Obj4C928 *m;
+    s32 old_d0, old_d4;
+    u16 cnt;
+    struct StackB b;
+    struct StackA a0blk;
+    struct StackA a1blk;
+    struct StackA a2blk;
+
+    st = D_STATE;
+    WAIT_READY(st);
+    D_TICK->p0C = 0;
+    fcb = *(struct Cb4C928 **)((char *)arg0 + 0x28);
+    D_R0 = ((GP_0004C928)fcb->m64)(fcb->h60 + (s32)arg0);
+
+    old_d0 = arg0->dD0;
+    old_d4 = arg0->dD4;
+    arg0->dD0 = (s32)(4.0f - arg1->fBC);
+    arg0->dD4 = (s32)(4.0f - arg1->fC0);
+    D_FLAG = D_FLAG | 2;
     gl_func_00034458(arg0);
-    *(char *)0x1C4 = (s32) (*(char *)0x1C4 & ~2);
-    FW(arg0, 0xD0) = temp_s0_3;
-    FW(arg0, 0xD4) = temp_v1;
+    D_FLAG = D_FLAG & ~2;
+    arg0->dD0 = old_d0;
+    arg0->dD4 = old_d4;
     gl_func_00034458(arg0, 1);
-    temp_s0_4 = *(char *)0x218;
-    var_v1_3 = FW(temp_s0_4, 0x1C) != 0;
-    if (var_v1_3 == 0) {
-        var_v1_3 = FW(temp_s0_4, 0x4) != 0;
-        if (var_v1_3 == 0) {
-            var_v1_3 = FW(temp_s0_4, 0xC) != 0;
+
+    st = D_STATE;
+    WAIT_READY(st);
+    gl_func_00034458(D_W1C, 0x68, 1);
+    st = D_STATE;
+    WAIT_READY(st);
+
+    if (arg1->p10C != 0) {
+        s32 v1a = arg0->d1A8;
+        s32 v0a = arg0->h1AC;
+        b.b = 0;
+        a0blk.p = &b;
+        a0blk.n = 0xC;
+        b.c = v1a;
+        b.a = (s16)v0a;
+        cb = arg1->p10C;
+        m = *(struct Obj4C928 **)((char *)cb + 0x28);
+        ((GP_0004C928)m->m2C)(m->h28 + (s32)cb, &a0blk);
+    }
+    cnt = *(u16 *)((char *)*(s32 **)((char *)&D_00000000) + 0x48);
+    *(volatile s32 *)&arg0->d1A8 = cnt;
+    arg0->d1A8 = (s32)cnt >> 1;
+    arg1->p10C = (struct Obj4C928 *)gl_func_00034458(arg0, arg0->d1A8);
+    gl_func_00034458((char *)&D_str_2017C, arg0->d1A8);
+    D_R1C8 = (s32)arg1->p10C;
+    if (arg1->p10C != 0) {
+        gl_func_00034458((char *)&D_str_20188, *(s32 *)((char *)arg1->p10C + 0xC));
+        a1blk.n = 4;
+        a1blk.p = (struct StackB *)arg1;
+        cb = arg1->p10C;
+        m = *(struct Obj4C928 **)((char *)cb + 0x28);
+        ((GP_0004C928)m->m2C)(m->h28 + (s32)cb, &a1blk);
+        {
+            s32 v1c = arg0->d1A8;
+            s32 v0c = arg0->h1AC;
+            b.b = 1;
+            a2blk.p = &b;
+            a2blk.n = 0xC;
+            b.c = v1c;
+            b.a = (s16)v0c;
         }
+        cb = arg1->p10C;
+        m = *(struct Obj4C928 **)((char *)cb + 0x28);
+        ((GP_0004C928)m->m2C)(m->h28 + (s32)cb, &a2blk);
     }
-    if (var_v1_3 != 0) {
-        do {
-            gl_func_00034458();
-            var_v0 = FW(temp_s0_4, 0x1C) != 0;
-            if (var_v0 == 0) {
-                var_v0 = FW(temp_s0_4, 0x4) != 0;
-                if (var_v0 == 0) {
-                    var_v0 = FW(temp_s0_4, 0xC) != 0;
-                }
-            }
-        } while (var_v0 != 0);
-    }
-    gl_func_00034458(*(char **)0x1C, 0x68, 1);
-    temp_s0_5 = *(char *)0x218;
-    var_v1_4 = FW(temp_s0_5, 0x1C) != 0;
-    if (var_v1_4 == 0) {
-        var_v1_4 = FW(temp_s0_5, 0x4) != 0;
-        if (var_v1_4 == 0) {
-            var_v1_4 = FW(temp_s0_5, 0xC) != 0;
-        }
-    }
-    if (var_v1_4 != 0) {
-        do {
-            gl_func_00034458();
-            var_v0_2 = FW(temp_s0_5, 0x1C) != 0;
-            if (var_v0_2 == 0) {
-                var_v0_2 = FW(temp_s0_5, 0x4) != 0;
-                if (var_v0_2 == 0) {
-                    var_v0_2 = FW(temp_s0_5, 0xC) != 0;
-                }
-            }
-        } while (var_v0_2 != 0);
-    }
-    if (FW(arg1, 0x10C) != 0) {
-        sp68 = 0;
-        sp48 = &sp64;
-        sp44 = 0xC;
-        sp6C = FW(arg0, 0x1A8);
-        sp64 = (s16) FW(arg0, 0x1AC);
-        temp_v0 = FW(arg1, 0x10C);
-        temp_v1_2 = FW(temp_v0, 0x28);
-        ((GP_0004C928)FW(temp_v1_2, 0x2C))(FW(temp_v1_2, 0x28) + temp_v0, &sp44);
-    }
-    temp_t5 = FW((*(int*)0), 0x48);
-    FW(arg0, 0x1A8) = (s32) temp_t5;
-    temp_a1 = (s32) temp_t5 >> 1;
-    FW(arg0, 0x1A8) = temp_a1;
-    FW(arg1, 0x10C) = gl_func_00034458(arg0, temp_a1);
-    gl_func_00034458((char *)0x2017C, FW(arg0, 0x1A8));
-    *(char **)0x1C8 = FW(arg1, 0x10C);
-    temp_v0_2 = FW(arg1, 0x10C);
-    if (temp_v0_2 != 0) {
-        gl_func_00034458((char *)0x20188, FW(temp_v0_2, 0xC));
-        sp34 = 4;
-        sp38 = arg1;
-        temp_v0_3 = FW(arg1, 0x10C);
-        temp_v1_3 = FW(temp_v0_3, 0x28);
-        ((GP_0004C928)FW(temp_v1_3, 0x2C))(FW(temp_v1_3, 0x28) + temp_v0_3, &sp34);
-        sp68 = 1;
-        sp2C = &sp64;
-        sp28 = 0xC;
-        sp6C = FW(arg0, 0x1A8);
-        sp64 = (s16) FW(arg0, 0x1AC);
-        temp_v0_4 = FW(arg1, 0x10C);
-        temp_v1_4 = FW(temp_v0_4, 0x28);
-        ((GP_0004C928)FW(temp_v1_4, 0x2C))(FW(temp_v1_4, 0x28) + temp_v0_4, &sp28);
-    }
-    FW((*(char *)0x22C), 0xC) = 0;
+    D_TICK->p0C = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);
