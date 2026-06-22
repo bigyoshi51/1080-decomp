@@ -2844,43 +2844,51 @@ typedef char *(*GP_00066D54)();
 void gl_func_00066D54(char *arg0) {
     u8 sp53;
     s32 temp_s0;
-    s32 temp_s4;
+    char *temp_s4;
+    char *msgbase;
+    s32 ten;
+    s32 stride;
+    u8 *psp53;
     s32 temp_v0;
     s32 var_s1;
     char *temp_s0_2;
     char *temp_s2;
 
-    temp_s4 = (int)arg0 + 0x11B0;
+    temp_s4 = arg0 + 0x11B0;
     gl_func_00062F64(temp_s4, (int)arg0 + 0x13EC, (int)arg0 + 0x1218);
+    msgbase = (char *)0x22570;
     var_s1 = 0;
+    ten = 10;
+    stride = 0x68;
+    psp53 = &sp53;
     do {
         temp_s0 = 1 << var_s1;
-        if (FW(arg0, 0x13EC) & temp_s0) {
+        if (*(u8*)((char*)arg0 + 0x13EC) & temp_s0) {
             temp_s2 = (int)arg0 + (var_s1 * 4);
-            if (!(FW(temp_s2, 0x121B) & 8)) {
-                gl_func_00062F64(0x22570, var_s1);
+            if (!(*(u8*)((char*)temp_s2 + 0x121B) & 8)) {
+                gl_func_00062F64(msgbase, var_s1);
                 sp53 = 0;
-                gl_func_00062F64(temp_s4, (s32) &sp53);
+                gl_func_00062F64(temp_s4, (s32) psp53);
                 if (sp53 & temp_s0) {
-                    temp_s0_2 = (int)arg0 + (var_s1 * 0x68) + 0x1228;
+                    temp_s0_2 = (int)arg0 + (var_s1 * stride) + 0x1228;
                     temp_v0 = gl_func_00062F64(temp_s4, (s32) temp_s0_2, var_s1);
-                    if (temp_v0 == 0xA) {
+                    if (temp_v0 == ten) {
                         if (gl_func_00062F64(temp_s4, (s32) temp_s0_2, var_s1) != 0) {
-                            gl_func_00062F64(0x22584);
+                            gl_func_00062F64(msgbase + 0x14);
                             FW(temp_s2, 0x13C8) = 0;
                         } else {
-                            gl_func_00062F64(0x2258C);
+                            gl_func_00062F64(msgbase + 0x1C);
                             FW(temp_s2, 0x13C8) = 2;
                             FW(((int)arg0 + var_s1), 0x13DC) = 1;
                         }
                     } else if (temp_v0 == 0) {
-                        gl_func_00062F64(0x22594);
+                        gl_func_00062F64(msgbase + 0x24);
                         FW(temp_s2, 0x13C8) = 1;
                     }
                 } else {
-                    gl_func_00062F64(0x22598);
+                    gl_func_00062F64(msgbase + 0x28);
                 }
-                gl_func_00062F64(0x225A0);
+                gl_func_00062F64(msgbase + 0x30);
             }
         }
         var_s1 += 1;

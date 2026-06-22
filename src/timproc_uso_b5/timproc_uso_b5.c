@@ -6371,10 +6371,23 @@ void timproc_uso_b5_func_00008F98(char *a0) {
 //   &D_00001348..&D_000014A4 = USO widget/label descriptor table.
 //   func_00000000 = USO placeholder dispatcher (alloc / init /
 //     factory / position / attach).
-// Caps: raw-word USO + unsplit bundle + 84 placeholder calls + 1645
-//   words — not exact-matchable here; structural (entry/alloc/
-//   fan-out) partial pass only, no byte body. Multi-run: future
-//   passes can expand the 0x70 sub-record build loop.
+// DECODE-PROGRESS 2026-06-22 (agent-d big-swing): callees are NOT
+//   jal-0 placeholders — all 84 R_MIPS_26 resolve to named USO funcs
+//   (055750=alloc, 04C678=base-init, 07ACE0=attach-child, 0000A928=
+//   register, 0546DC/04DFFC/05D0E0=panel-build, etc.). The entry
+//   cascade (prologue + first 3 sub-objects) is now reconstructed with
+//   DISTINCT callee externs + symbol-relative descriptor args
+//   (&D_807FExxx + off, &D_807FE5F4 vtable). That fixed the call/global
+//   reloc class: jals + %hi/%lo now match (instr-exact 155->160,
+//   fuzzy 41.88->42.19). REMAINING CAP is register-allocation +
+//   instruction-scheduling across the full 1624-insn body (419 DELETE /
+//   341 INSERT / 856 ARG = reg coloring + IDO save/move interleave),
+//   plus the FP-math regions (mtc1/mfc1/swc1 panel positioning) and the
+//   5-case mode switch (D_807FF344+0x324, idx=lhu(import_800201EC+0x154,
+//   2)-1). Correct logic, divergent regalloc — documented unlandable
+//   cap class; further sweep of the 70 remaining alias calls yields
+//   ~+0.02pp each (regression-prone), so stopped here.
+// Caps: 1624-insn FP/math HUD master ctor; regalloc+scheduling cap.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_00008FC8 - STRUCTURAL PASS (COMPRESSED-MODULE JUMPTABLE).
@@ -6386,6 +6399,15 @@ void timproc_uso_b5_func_00008F98(char *a0) {
 typedef void *(*F0)();
 typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } S16;
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
+extern int timproc_uso_b5_func_04C678();
+extern int timproc_uso_b5_func_07ACE0();
+void timproc_uso_b5_func_0000A928(int *a0);
+extern char timproc_uso_b5_D_807FE5F4;
+extern char timproc_uso_b5_D_807FEBB8;
+extern char timproc_uso_b5_D_807FEBCC;
+extern char timproc_uso_b5_D_807FEBD4;
+extern char timproc_uso_b5_D_807FEBE0;
+extern char timproc_uso_b5_D_807FEBE8;
 void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
     S16 sp154;
     S16 sp148;
@@ -6525,31 +6547,37 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
     void *temp_s1_9;
     void *temp_v0_30;
     var_s2 = arg0;
-    if ((arg0 != 0) || (temp_v0 = (void*)timproc_uso_b5_alias((void **)0x60), var_s2 = temp_v0, (temp_v0 != 0))) {
-        (void*)timproc_uso_b5_alias(var_s2, (void **)0x1348);
-        FW(var_s2, 0x28) = 0;
-        FW(var_s2, 0xC) = 0x1350;
-        temp_v0_2 = (void*)timproc_uso_b5_alias((void **)0x30);
+    if (arg0 == 0) {
+        var_s2 = (void*)timproc_uso_b5_func_055750(0x60);
+        if (var_s2 == 0) {
+            return var_s2;
+        }
+    }
+    {
+        (void*)timproc_uso_b5_func_04C678(var_s2, &timproc_uso_b5_D_807FEBB8 + 0x1348);
+        FW(var_s2, 0x28) = (int)&timproc_uso_b5_D_807FE5F4;
+        FW(var_s2, 0xC) = (int)(&timproc_uso_b5_D_807FE5F4 + 0x1350);
+        temp_v0_2 = (void*)timproc_uso_b5_func_055750(0x30);
         if (temp_v0_2 != 0) {
-            (void*)timproc_uso_b5_alias(temp_v0_2, (void **)0x135C);
-            FW(temp_v0_2, 0x28) = 0;
-            FW(temp_v0_2, 0xC) = 0x1364;
+            (void*)timproc_uso_b5_func_04C678(temp_v0_2, &timproc_uso_b5_D_807FEBCC + 0x135C);
+            FW(temp_v0_2, 0x28) = (int)&timproc_uso_b5_D_807FEBD4;
+            FW(temp_v0_2, 0xC) = (int)(&timproc_uso_b5_D_807FEBD4 + 0x1364);
             FW(temp_v0_2, 0x2C) = var_s2;
         }
         FW(var_s2, 0x50) = temp_v0_2;
         temp_a0 = var_s2 + 0x10;
         sp50 = temp_a0;
-        (void*)timproc_uso_b5_alias(temp_a0, temp_v0_2);
+        (void*)timproc_uso_b5_func_07ACE0(temp_a0, temp_v0_2);
         if (FW(temp_v0_2, 0x14) != 0) {
             FW(temp_v0_2, 0x4) = 1;
         }
         FW(temp_v0_2, 0x14) = var_s2;
-        (void*)timproc_uso_b5_alias(var_s2);
-        temp_v0_3 = (void*)timproc_uso_b5_alias((void **)0x2C);
+        timproc_uso_b5_func_0000A928((int *)var_s2);
+        temp_v0_3 = (void*)timproc_uso_b5_func_055750(0x2C);
         if (temp_v0_3 != 0) {
-            (void*)timproc_uso_b5_alias(temp_v0_3, (void **)0x1370);
-            FW(temp_v0_3, 0x28) = 0xCC4;
-            FW(temp_v0_3, 0xC) = 0x1378;
+            (void*)timproc_uso_b5_func_04C678(temp_v0_3, &timproc_uso_b5_D_807FEBE0 + 0x1370);
+            FW(temp_v0_3, 0x28) = (int)(&timproc_uso_b5_D_807FEBE8 + 0xCC4);
+            FW(temp_v0_3, 0xC) = (int)(&timproc_uso_b5_D_807FEBE8 + 0x1378);
         }
         temp_s1 = FW(var_s2, 0x30);
         FW(var_s2, 0x38) = temp_v0_3;

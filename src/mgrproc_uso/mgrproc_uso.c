@@ -1853,7 +1853,17 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF
  * (arg0->0x44->0x6C) is a FLOAT passed on the stack (lwc1/swc1) — m2c showed it as
  * int; needs a float-typed call alias. Caps: arg0/sub structs + cb prototypes
  * untyped (USO-reloc). NON_MATCHING. */
-extern int gl_func_00000000();
+extern int import_000B70AC();
+extern int import_000B1284();
+extern int import_000B1334();
+extern int import_000B12B4();
+extern int mgrproc_uso_func_0002FC();
+extern int import_000B139C();
+extern int import_000B7058();
+extern int import_000B14CC();
+extern int mgrproc_uso_func_016BB8();
+extern int mgrproc_uso_func_016BEC();
+extern int mgrproc_uso_func_04CD94();
 void mgrproc_uso_func_00003074(char *arg0) {
     char *a1;
     int v0;
@@ -1865,7 +1875,7 @@ void mgrproc_uso_func_00003074(char *arg0) {
     if ((*(int *)(a1 + 0x4F0) & 0x10000) && (*(int *)(a1 + 0x4DC) == 1)) {
         *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;
     }
-    gl_func_00000000(arg0, a1);
+    import_000B70AC(arg0, a1);
     a1 = *(char **)(arg0 + 0xBC);
     v0 = *(int *)(a1 + 0x4F0) & 0x10000;
     if ((v0 != 0) && (*(int *)(a1 + 0x4DC) == 1)) {
@@ -1873,11 +1883,11 @@ void mgrproc_uso_func_00003074(char *arg0) {
         if (*(int *)(p + 0x34) != 0) {
             v1 = *(int *)(p + 0x94);
             if (v1 == 0) {
-                gl_func_00000000(a1, a1);
+                import_000B1284(a1);
             } else if (v1 == 1) {
-                gl_func_00000000(a1, a1);
+                import_000B1334(a1);
             } else {
-                gl_func_00000000(a1, a1);
+                import_000B12B4(a1);
             }
         }
         t4 = *(int *)(arg0 + 0xDC) + 1;
@@ -1887,27 +1897,27 @@ void mgrproc_uso_func_00003074(char *arg0) {
         }
         p = *(char **)(arg0 + 0x98);
         if ((p != 0) && (*(int *)(p + 0xC4) >= 0xC) && (*(int *)(arg0 + 0xDC) == 0)) {
-            gl_func_00000000(0x135, 0);
+            mgrproc_uso_func_0002FC(0x135, 0);
         }
         if (*(int *)(*(char **)(arg0 + 0x98) + 0xC8) <= 0) {
-            gl_func_00000000(*(int *)(arg0 + 0xBC));
+            import_000B139C(*(int *)(arg0 + 0xBC), *(int *)(arg0 + 0xBC));
         }
         v0 = *(int *)(*(char **)(arg0 + 0xBC) + 0x4F0) & 0x10000;
     }
     if (v0 != 0) {
         if ((*(int *)(*(char **)(arg0 + 0xBC) + 0x4DC) == 1) &&
-            (gl_func_00000000(arg0, *(int *)(arg0 + 0xBC)) != 0)) {
-            gl_func_00000000(*(int *)(arg0 + 0xBC));
+            (import_000B7058(arg0) != 0)) {
+            import_000B14CC(*(int *)(arg0 + 0xBC));
             *(float *)(*(char **)(arg0 + 0xBC) + 0x554) = 200.0f;
             *(int *)(arg0 + 0x2C) = 0;
         }
         p = *(char **)(arg0 + 0x44);
-        gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(p + 0x30), *(int *)(p + 0x90));
+        mgrproc_uso_func_016BB8(*(int *)(arg0 + 0x80), *(int *)(p + 0x30), *(int *)(p + 0x90));
         p = *(char **)(arg0 + 0x44);
-        gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(p + 8), *(int *)(p + 0xC),
-                         *(int *)(p + 0x68), *(int *)(p + 0x6C));
+        mgrproc_uso_func_016BEC(*(int *)(arg0 + 0x80), *(int *)(p + 8), *(int *)(p + 0xC),
+                         *(int *)(p + 0x68), (double)*(float *)(p + 0x6C));
     }
-    gl_func_00000000(arg0);
+    mgrproc_uso_func_04CD94(arg0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003074);

@@ -4697,6 +4697,42 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  * trace (assigned via a prior conditional / opaque path). Forcing that
  * un-provable held pointer is the remaining anti-DCE structural step. No
  * episode: 936 diffs, the documented coloring/frame-layout cap dominates. */
+/*
+ * 2026-06-22 agent-i (re-attack w/ refined toolkit): two GENUINE structural
+ * corrections, both fuzzy-neutral (56.297% before and after; coloring + the
+ * documented pointer-materialization cap dominate the metric):
+ *
+ *   (1) REMOVED the fabricated `gl_func_00000000(self, out_flags, metric)`
+ *       call that sat between the out_flags-synthesis block and the
+ *       `effect_pos = transform_out` tail. Positional zip of the R_MIPS_26
+ *       jal sequence (build vs target) proved it had NO matching jal: target
+ *       has exactly 8 effect-allocs (055750) after the metric region; the
+ *       placeholder was a 9th, spurious call (it even passed `metric` as a
+ *       double via cvt.d.s/mfc1 a2,a3). After removal the build call set is
+ *       28 calls, ALL real symbols (no gl_func_00000000 placeholder left),
+ *       and the ONLY remaining call-seq delta vs target (29 calls) is the
+ *       single dead-sentinel 055750 at idx 7 (see below).
+ *
+ *   (2) FRAME SIZE now matches target. pad[0x90] yields addiu sp,sp,-464
+ *       (=0x1D0, the target frame) vs the prior pad[0xA0]'s -480 (0x1E0).
+ *       Swept 0x90..0xB0: fuzzy identical at every size, so 0x90 is strictly
+ *       more faithful. (Stack-SLOT assignment within the frame still differs
+ *       — pad position shifts the Vec3 locals — but total frame is exact.)
+ *
+ * REMAINING (confirmed multi-layer cap, not a bug):
+ *   - dead-sentinel 055750 at target idx 7 (0x5cc8, before 00003ED4): IDO
+ *     7.1 -O2 const-folds `&scratch_xz == 0` to false and DCEs the alloc
+ *     regardless of guard structure (verified: tried hoisting scratch_src
+ *     into the branch arms — still folded). Per docs/PATTERNS.md (A7F8
+ *     "fragility" note) the target's dead allocs are an inlined vec-init
+ *     helper inlined BEFORE the const-fold pass; a top-level `if(p==0)`
+ *     runs after that pass and is folded. We can't add a noinline helper.
+ *   - pointer materialization at 0x59E0+ (target: addiu v0,v0,792;
+ *     addiu v0,sp,348 between the scaled-axis muls) — IDO re-folds C
+ *     pointer-locals to big direct offsets; documented permuter-class cap
+ *     (docs/PATTERNS.md pointer-materialization vein).
+ *   - pervasive register/FP coloring + per-slot stack layout.
+ * No episode: not exact. */
 #ifdef NON_MATCHING
 /* forward decls for 591C real callees (defined later in this TU) */
 void game_uso_func_0000A3C4();
@@ -4738,7 +4774,7 @@ void game_uso_func_0000591C(int *a0) {
     Vec3 effect_delta;
     Vec3 effect_delta2;
     Vec3 effect_stage;
-    char pad[0xA0];
+    char pad[0x90];
     int state_flag;
     int active_state;
     int resolved_state;
@@ -4977,8 +5013,6 @@ skip_scratch:;
             out_flags = 0x40;
         }
     }
-
-    gl_func_00000000(self, out_flags, metric);
 
     effect_pos = transform_out;
     effect_delta = derived_vec;
