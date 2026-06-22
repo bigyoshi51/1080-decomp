@@ -1469,27 +1469,29 @@ int gl_func_0006EEE4(int a0, int a1, int a2) {
     return gl_func_00000000(a0, a1) + a2;
 }
 
-/* gl_func_0006EF08: 22-insn string-format-style wrapper.
- *   rv = func("string@0x83550", a0, a1, &a2);
+/* gl_func_0006EF08: vsprintf-style varargs wrapper.
+ *   rv = func("string@0x83550", a0, a1, &a2);   // &a2 = va_list start
  *   if (rv >= 0) a0[rv] = 0;
  *   return rv;
  *
- * NATURAL CEILING: 89.77% NM. The 13-insn diff is a frame-size shift
- * (build emits 0x18 frame; target uses 0x20). C-only `char pad[8]` and
- * `volatile int pad[2]` are both elided by IDO -O2, so the natural emit
- * cannot grow the frame. Was previously documented as INSN_PATCH-promoted
- * to EXACT; INSN_PATCH REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+ * NM body is now INSTRUCTION-IDENTICAL to the target body: declaring it
+ * VARARGS `(char*, int, int, ...)` makes IDO home all four arg regs at a
+ * 0x20 frame and reload them (was the "frame-size shift" cap), and reading
+ * the 3rd call arg from memory via `((int*)&a2)[-1]` forces the reload
+ * (`lw a2,36(sp)`) instead of a register move. The 1 residual byte is the
+ * trailing jr-ra delay nop: the target leaves it UNFILLED (supplied by the
+ * `_pad.s` sidecar, 84-byte body), but -O2 emits it inline (88 bytes) — an
+ * unfilled-jr-delay/pad split, the same class as the -g3/-O0 split caps.
+ * Body matches; dewrap blocked on the trailing-nop split. INCLUDE_ASM
+ * remains the build path. */
 extern int func_00000000();
 extern int D_00000000;
 #ifdef NON_MATCHING
-int gl_func_0006EF08(char *a0, int a1, int a2, int a3) {
-    int rv = func_00000000((char*)&D_00000000 + 0x83550, a0, a1, &a2);
+int gl_func_0006EF08(char *a0, int a1, int a2, ...) {
+    int rv = func_00000000((char*)&D_00000000 + 0x83550, a0, ((int *)&a2)[-1], &a2);
     if (rv >= 0) {
         a0[rv] = 0;
     }
-    (void)a3;
     return rv;
 }
 #else

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0000CDDC",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-22T05:26:34.542465+00:00",
+  "end_time": "2026-06-22T05:26:34.542484+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-22T05:26:34.542479+00:00",
+      "assistant_text": "Structural-gap: missing inner deref. Was NM-wrapped at 87.57% reading 0x58/0x5C/0x28 fields directly off a0. Real shape loads sub-object p=*(a0+0x28) then accesses p[0x58] (s16) and p[0x5C] (fn ptr). Inlined the fn-ptr call to defer the load into the jalr-t9 slot; local 'int cmd=*a1' shifted the compare temp to v0. Dewrapped to real build path.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 23,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0000CDDC: 23-insn conditional vtable-dispatch + chain. If\n * *a1 == 9, load the sub-object p = *(a0 + 0x28), then call\n * (*p->[0x5C])(a0 + s16(p->[0x58])). Then always call gl_func(a0, a1).\n * The \"lw v0,0x28(a0)\" is the real sub-object deref (not a dummy):\n * the 0x58/0x5C accesses are off p, not off a0. */\nint gl_func_0000CDDC(int *a0, int *a1) {\n    int cmd = *a1;\n    if (cmd == 9) {\n        int *p = (int *)a0[0x28 / 4];\n        int *new_a0 = (int*)((char*)a0 + *(short*)((char*)p + 0x58));\n        (*(int(**)(int*))((char*)p + 0x5C))(new_a0);\n    }\n    return gl_func_00000000(a0, a1);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/game_libs/game_libs/gl_func_0000CDDC.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "clean-build ROM byte-identical + objdiff fuzzy=100"
+  }
+}

@@ -2300,24 +2300,20 @@ void gl_func_0000CD80(float a0, float a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CD80);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0000CDDC: 23-insn conditional vtable-dispatch + chain. If
- * *a1 == 9, call (*a0->[0x5C])(a0 + s16(a0->[0x58])). Then always
- * call gl_func(a0, a1).
- *
- * Cap: target has a "dummy lw v0, 0x28(a0)" + dual home-slot spills
- * for a0/a1 across the jalr; IDO doesn't emit these. 84 vs 92 bytes. */
+ * *a1 == 9, load the sub-object p = *(a0 + 0x28), then call
+ * (*p->[0x5C])(a0 + s16(p->[0x58])). Then always call gl_func(a0, a1).
+ * The "lw v0,0x28(a0)" is the real sub-object deref (not a dummy):
+ * the 0x58/0x5C accesses are off p, not off a0. */
 int gl_func_0000CDDC(int *a0, int *a1) {
-    if (*a1 == 9) {
-        int (*fn)(int*) = (int(*)(int*))a0[0x5C/4];
-        int *new_a0 = (int*)((char*)a0 + *(short*)((char*)a0 + 0x58));
-        fn(new_a0);
+    int cmd = *a1;
+    if (cmd == 9) {
+        int *p = (int *)a0[0x28 / 4];
+        int *new_a0 = (int*)((char*)a0 + *(short*)((char*)p + 0x58));
+        (*(int(**)(int*))((char*)p + 0x5C))(new_a0);
     }
     return gl_func_00000000(a0, a1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CDDC);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
