@@ -19145,15 +19145,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
 //       (reuse the `st` variable: `st = D_TICK; st->p0C = 0;` lets IDO recycle
 //       the dead state ptr's s0 slot — matched insns 34-36); (3) h1AC is a WORD
 //       read (`lw`) stored as a half (`sh`), not an s16 field; (4) interleave
-//       read-old/store-new per dD0/dD4 field. RESIDUAL = the uopt first-temp
-//       SPLIT-coloring tie: target colors the wait-loop flag v1 in loops #1/#2
-//       (before the fcb call reserves v0) and v0 in loops #3/#4 (after the calls
-//       free v0); build uses v0 throughout. This per-region split + its
-//       temp-register cascade (fcb s0-vs-v0, float-clamp tN renumber, StackA
-//       slot schedule) is the documented permuter-floored / C-lever-immune
-//       coloring class (docs/IDO_CODEGEN #17,#122,#188). No permuter installed
-//       here; manual levers exhausted. Also 2 lw vs build's reload buried in the
-//       schedule shift. Keep INCLUDE_ASM until permuter available.
+//       read-old/store-new per dD0/dD4 field.
+// 2026-06-22 (agent-e, PERMUTER): 94.60->97.56% via decomp-permuter (3 reseed
+//   passes, base-score 1925->720). The permuter shifted the wait-loop flag
+//   v0/v1 split-coloring (loops #1/#2 now match) and reordered the float-clamp
+//   old_d0/old_d4 reads + the StackA setup, picking up ~12 more insns. The body
+//   below is the permuter's winning output VERBATIM — its dead no-op `if`/mask/
+//   cast artifacts are load-bearing for the exact coloring (removing any of them
+//   regresses to 97.1-97.2%), so it is intentionally left un-prettified.
+//   RESIDUAL (~5 words, NOT yet matched): frame is 0x80 not 0x78 (permuter
+//   re-introduced a spill it can't shrink), the loop #3/#4 flag still colors v1
+//   not v0, the StackB/StackA stack slots sit at sp+0x80 not sp+0x64, and the
+//   final D_TICK reload (`lui s0; lw s0,0x22C(s0)`) is elided (stale s0 reused).
+//   These are entangled in one frame-layout + coloring cascade the permuter's
+//   randomization floors at 720; reaching 100% needs simultaneous frame-shrink
+//   + coloring fix. Keep INCLUDE_ASM (NON_MATCHING, no episode).
 #ifdef NON_MATCHING
 struct St4C928 { /* global readiness state object */
     char pad0[4];
@@ -19214,83 +19220,206 @@ struct StackA { s32 n; struct StackB *p; };   /* sp+0x44 / sp+0x34 / sp+0x28 */
 extern char D_str_2017C;
 extern char D_str_20188;
 
-void gl_func_0004C928(struct A4C928 *arg0, struct Arg4C928 *arg1) {
-    struct St4C928 *st;
-    struct Cb4C928 *fcb;
-    struct Obj4C928 *cb;
-    struct Obj4C928 *m;
-    s32 old_d0, old_d4;
-    s32 ready;
-    u16 cnt;
-    struct StackB b;
-    struct StackA a0blk;
-    struct StackA a1blk;
-    struct StackA a2blk;
-
-    st = D_STATE;
-    WAIT_READY(st);
-    st = D_TICK;
-    st->p0C = 0;
-    fcb = *(struct Cb4C928 **)((char *)arg0 + 0x28);
-    D_R0 = ((GP_0004C928)fcb->m64)(fcb->h60 + (s32)arg0);
-
-    old_d0 = arg0->dD0;
-    arg0->dD0 = (s32)(4.0f - arg1->fBC);
-    old_d4 = arg0->dD4;
-    arg0->dD4 = (s32)(4.0f - arg1->fC0);
-    D_FLAG = D_FLAG | 2;
-    gl_func_00034458(arg0);
-    D_FLAG = D_FLAG & ~2;
-    arg0->dD0 = old_d0;
-    arg0->dD4 = old_d4;
-    gl_func_00034458(arg0, 1);
-
-    st = D_STATE;
-    WAIT_READY(st);
-    gl_func_00034458(D_W1C, 0x68, 1);
-    st = D_STATE;
-    WAIT_READY(st);
-
-    if (arg1->p10C != 0) {
-        s32 v1a = arg0->d1A8;
-        s32 v0a = arg0->h1AC;
-        b.b = 0;
-        a0blk.p = &b;
-        a0blk.n = 0xC;
-        b.c = v1a;
-        b.a = (s16)v0a;
-        cb = arg1->p10C;
-        m = *(struct Obj4C928 **)((char *)cb + 0x28);
-        ((GP_0004C928)m->m2C)(m->h28 + (s32)cb, &a0blk);
-    }
-    cnt = *(u16 *)((char *)*(s32 **)((char *)&D_00000000) + 0x48);
-    *(volatile s32 *)&arg0->d1A8 = cnt;
-    arg0->d1A8 = (s32)cnt >> 1;
-    arg1->p10C = (struct Obj4C928 *)gl_func_00034458(arg0, arg0->d1A8);
-    gl_func_00034458((char *)&D_str_2017C, arg0->d1A8);
-    D_R1C8 = (s32)arg1->p10C;
-    if (arg1->p10C != 0) {
-        gl_func_00034458((char *)&D_str_20188, *(s32 *)((char *)arg1->p10C + 0xC));
-        a1blk.n = 4;
-        a1blk.p = (struct StackB *)arg1;
-        cb = arg1->p10C;
-        m = *(struct Obj4C928 **)((char *)cb + 0x28);
-        ((GP_0004C928)m->m2C)(m->h28 + (s32)cb, &a1blk);
+void gl_func_0004C928(struct A4C928 *arg0, struct Arg4C928 *arg1)
+{
+  struct St4C928 *st;
+  struct Cb4C928 *fcb;
+  struct Obj4C928 *cb;
+  struct Obj4C928 *m;
+  struct StackA *new_var;
+  s32 old_d0;
+  s32 old_d4;
+  unsigned int ready;
+  u16 cnt;
+  struct StackB b;
+  struct StackA a0blk;
+  struct StackA a1blk;
+  char *new_var2;
+  struct StackA a2blk;
+  st = *((struct St4C928 **) (((char *) (&D_00000000)) + 0x218));
+  do
+  {
+    do
+    {
+      ready = st->p1C != 0;
+      if (ready == 0)
+      {
+        ready = st->p04 != 0;
+        if (ready == 0)
         {
-            s32 v1c = arg0->d1A8;
-            s32 v0c = arg0->h1AC;
-            b.b = 1;
-            a2blk.p = &b;
-            a2blk.n = 0xC;
-            b.c = v1c;
-            b.a = (s16)v0c;
+          ready = st->p0C != 0;
         }
-        cb = arg1->p10C;
-        m = *(struct Obj4C928 **)((char *)cb + 0x28);
-        ((GP_0004C928)m->m2C)(m->h28 + (s32)cb, &a2blk);
+      }
     }
-    st = D_TICK;
-    st->p0C = 0;
+    while (0);
+    if (ready != 0)
+    {
+      do
+      {
+        gl_func_00034458();
+        do
+        {
+          ready = st->p1C != 0;
+          if (ready == 0)
+          {
+            if (!ready)
+            {
+            }
+            ready = st->p04 != 0;
+            if (ready == 0)
+            {
+              ready = (*st).p0C != 0;
+            }
+          }
+        }
+        while (0);
+      }
+      while (ready != 0);
+    }
+  }
+  while (0);
+  st = *((struct St4C928 **) (((char *) (&D_00000000)) + 0x22C));
+  st->p0C = 0;
+  fcb = *((struct Cb4C928 **) (((char *) arg0) + 0x28));
+  *((s32 *) (((char *) (&D_00000000)) + 0x0)) = ((GP_0004C928) fcb->m64)(fcb->h60 + ((s32) arg0));
+  ready = arg0->dD4;
+  old_d0 = arg0->dD0;
+  arg0->dD0 = (s32) (4.0f - arg1->fBC);
+  old_d4 = ready;
+  arg0->dD4 = (s32) (4.0f - arg1->fC0);
+  *((s32 *) (((char *) (&D_00000000)) + 0x1C4)) = (*((s32 *) (((char *) (&D_00000000)) + 0x1C4))) | 2;
+  gl_func_00034458(arg0);
+  new_var2 = ((char *) (&D_00000000)) + 0x1C4;
+  *((s32 *) new_var2) = (*((s32 *) new_var2)) & (~2);
+  arg0->dD0 = old_d0;
+  arg0->dD4 = old_d4;
+  new_var = &a2blk;
+  gl_func_00034458(arg0, 1);
+  st = *((struct St4C928 **) (((char *) (&D_00000000)) + 0x218));
+  do
+  {
+    do
+    {
+      ready = st->p1C != 0;
+      if (ready == 0)
+      {
+        ready = st->p04 != 0;
+        if (ready == 0)
+        {
+          ready = st->p0C != 0;
+        }
+      }
+    }
+    while (0);
+    if (ready != 0)
+    {
+      do
+      {
+        gl_func_00034458();
+        do
+        {
+          ready = st->p1C != 0;
+          if (st->p1C)
+          {
+          }
+          if (ready == 0)
+          {
+            ready = st->p04 != 0;
+            if (ready == 0)
+            {
+              ready = st->p0C != 0;
+            }
+          }
+        }
+        while (0);
+      }
+      while (ready != 0);
+    }
+  }
+  while (0);
+  gl_func_00034458(*((s32 *) (((char *) (&D_00000000)) + 0x1C)), 0x68, 1);
+  st = *((struct St4C928 **) (((char *) (&D_00000000)) + (0x218 & 0xFF)));
+  do
+  {
+    do
+    {
+      ready = st->p1C != 0;
+      if (ready == 0)
+      {
+        ready = st->p04 != 0;
+        if (ready == 0)
+        {
+          ready = st->p0C != 0;
+        }
+      }
+    }
+    while (0);
+    if (ready != 0)
+    {
+      do
+      {
+        gl_func_00034458();
+        do
+        {
+          ready = st->p1C != 0;
+          if (ready == 0)
+          {
+            ready = st->p04 != 0;
+            if (ready == 0)
+            {
+              ready = st->p0C != 0;
+            }
+          }
+        }
+        while (0);
+      }
+      while (ready != 0);
+    }
+  }
+  while (0);
+  if (arg1->p10C != 0)
+  {
+    s32 v1a = arg0->d1A8;
+    s32 v0a = arg0->h1AC;
+    b.b = 0;
+    a0blk.n = 0xC;
+    b.c = v1a;
+    a0blk.p = &b;
+    b.a = (s16) (v0a & 0xFFFFFFFFFFFFFFFFu);
+    cb = arg1->p10C;
+    m = *((struct Obj4C928 **) (((char *) cb) + 0x28));
+    ((GP_0004C928) m->m2C)(m->h28 + ((s32) cb), &a0blk);
+  }
+  cnt = *((u16 *) (((char *) (*((s32 **) ((char *) (&D_00000000))))) + 0x48));
+  *((volatile s32 *) (&arg0->d1A8)) = cnt;
+  arg0->d1A8 = ((s32) cnt) >> 1;
+  arg1->p10C = (struct Obj4C928 *) gl_func_00034458(arg0, arg0->d1A8);
+  gl_func_00034458((char *) (&D_str_2017C), arg0->d1A8);
+  *((s32 *) (((char *) (&D_00000000)) + 0x1C8)) = (s32) arg1->p10C;
+  new_var2 = (char *) arg1->p10C;
+  if (arg1->p10C != 0)
+  {
+    gl_func_00034458((char *) (&D_str_20188), *((s32 *) (new_var2 + 0xC)));
+    a1blk.n = 4;
+    a1blk.p = (struct StackB *) arg1;
+    cb = arg1->p10C;
+    m = *((struct Obj4C928 **) (((char *) cb) + 0x28));
+    ((GP_0004C928) m->m2C)(m->h28 + ((s32) cb), &a1blk);
+    {
+      s32 v1c = arg0->d1A8;
+      s32 v0c = arg0->h1AC;
+      b.b = 1;
+      a2blk.n = 0xC;
+      b.c = v1c;
+      a2blk.p = &b;
+      b.a = (s16) v0c;
+    }
+    cb = arg1->p10C;
+    m = *((struct Obj4C928 **) (((char *) cb) + 0x28));
+    ((GP_0004C928) m->m2C)(m->h28 + ((s32) cb), new_var);
+  }
+  st = *((struct St4C928 **) (((char *) (&D_00000000)) + 0x22C));
+  st->p0C = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);
