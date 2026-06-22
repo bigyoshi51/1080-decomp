@@ -3561,25 +3561,12 @@ void gl_func_00006C38(int *a0, int a1, int a2) {
     *(float*)((char*)a0 + 0x554) = 150.0f;
 }
 
-/* gl_func_00006CDC - verified structural decode (0xEC, ~55 insns +
- * 2 bundled stubs). NEAR-SIBLING of gl_func_00006B80 (same large-
- * object initializer family); variant differences noted.
- * BUNDLED: jr-count 3 - after the main body splat appended TWO tiny
- * leaf stubs `void f(int a0){ *(int*)sp = a0; }` (jr ra; sw a0,0(sp))
- * - separate 2-insn functions, splittable via split-fragments later.
- * NM-wrap body below documents ONLY the main body; trailing stubs
- * stay inside the INCLUDE_ASM build path.
- * Struct-typing reference (extends gl_func_00006B80 object map):
- * 0x4DC (1244)=2, 0x4E0 (1248)=3, 0x4E4 (1252)=a1, 0x4EC (1260)=0,
- * 0x4F8 (1272)=a2, 0x518 (1304) s32 = 60 (this variant; 0 in 6B80),
- * 0x540 (1344)=255, 0x54C (1356) f32 = 120.0/60.0 by global mode
- * *(&D)->0x34, 0x550 (1360) f32=0.0, 0x554 (1364) f32=150.0; a0->
- * 0x28 (40) vtable -> {fn@0x84 (132), s16@0x80 (128)} (obj-0x28
- * dispatch, 0x84/0x80 variant). Caps <80: FP-const loads + global-
- * mode branches (==2 / ==3) + gl_func_00000000 reloc + vtable jalr
- * + 2 bundled tail stubs. INCLUDE_ASM remains build path
- * (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
+/* gl_func_00006CDC - large-object initializer, near-sibling of the matched
+ * gl_func_00006B80. Variant differences from 6B80: 0x518 (1304) s32 = 60
+ * (0 in 6B80); extra global-mode==3 branch calls gl_func_00000000(48); vtable
+ * dispatch via obj->0x28 -> {fn@0x84, s16@0x80}. Struct map: 0x4DC=2, 0x4E0=3,
+ * 0x4E4=a1, 0x4EC=0, 0x4F8=a2, 0x544=255, 0x54C f32=120/60 by mode, 0x550=0.0,
+ * 0x554=150.0. */
 void gl_func_00006CDC(char *a0, int a1, int a2) {
   char *v;
   v = a0 + 0x4DC;
@@ -3600,20 +3587,14 @@ void gl_func_00006CDC(char *a0, int a1, int a2) {
   }
   if ((*((int *) (((char *) (&D_00000000)) + 0x34))) == 3)
   {
-    gl_func_00000000(a0);
+    gl_func_00000000(48);
   }
-  *((int *) (a0 + 0x540)) = 255;
+  *((int *) (a0 + 0x544)) = 255;
   *((float *) (a0 + 0x550)) = 0.0f;
   *((float *) (a0 + 0x554)) = 150.0f;
   v = *((char **) (a0 + 0x28));
-  {
-    void (*fn)(char *) = *((void (**)(char *)) (v + 0x84));
-    fn((char *) (((int) ((short) (*((short *) (v + 0x80))))) + ((int) a0)));
-  }
+  (*((void (**)(char *)) (v + 0x84)))((char *) (((int) ((short) (*((short *) (v + 0x80))))) + ((int) a0)));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006CDC);
-#endif
 
 void game_libs_func_00006DB8(int a0) {}
 

@@ -27119,27 +27119,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005703C);
 #endif
 
 
-/* gl_func_00057104: F3D/GBI command emitter. Verified decode (m2c via disasm-func.py):
- *   r = helper(arg1);
- *   if ((arg1->4 & 0x80000) || (arg1->4 & 0x800000)) extra = helper(arg1, arg1, r);
- *   dl = arg0->0xC; count = dl->4; dl->4 = count+1;
- *   buf = arg0->0xC->0;
- *   buf[count*2]   = 0xB900031D;          // GBI cmd word0
- *   buf[count*2+1] = r | extra;           // word1
- * 95.97% NM (was 89%): NOT caching `dl = arg0->0xC` once — re-deref `arg0->0xC`
- * for the base AFTER the count++ store recovers the target's `lw t9,12(a3)` reload
- * and the increment-before-slot ordering. Residual 12 diffs are register coloring:
- * the 0xB900031D const lands in t2 (build t1) and the `r|v` OR result in t3 (build
- * t2) because the target materializes the const BEFORE the dl load; this temp
- * renumber cascades — coloring-tie residual, not missing logic. */
-#ifdef NON_MATCHING
-/* gl_func_00057104: 36-insn GBI command emitter. Calls the (collapsed) callback
- * on a1; if flag bits 19 or 23 of a1->4 are set, calls it again; then appends an
- * 8-byte display-list command (word0 = 0xB900031D, word1 = the OR of the two call
- * results) into the buffer referenced by a0->0xC (a {base, count} ctx; count is
- * post-incremented and the slot is base + count*8). NM (reference decode):
- * collapsed-placeholder calls + branch-likely bit tests (raw-.word game_libs
- * reloc depression); the exact bnezl/bgezl shape isn't byte-reproducible. */
+/* gl_func_00057104: 36-insn F3D/GBI command emitter. MATCHED 2026-06-22.
+ *   r = helper(a1);
+ *   if ((a1->4 << 12) < 0 || (a1->4 << 8) < 0) v = helper(a1);  // flag bits 19/23
+ *   dl = a0->0xC; count = dl[1]; dl[1] = count + 1;
+ *   slot = (a0->0xC)[0] + count*8;   // base lives at dl[0]; re-deref a0->0xC twice
+ *   slot[0] = 0xB900031D;  slot[1] = r | v;
+ * The prior NM floored at ~96% (12 reg-coloring diffs) because it used
+ * `dl + count*8` for the slot base, missing the `[0]` deref of the re-loaded
+ * a0->0xC. Adding that extra `[0]` load (target's `lw t0,0(t9)`) both fixes the
+ * address math AND resolves the t1/t2 vs t2/t3 temp-renumber cascade — the const
+ * and OR result then color exactly as the target. Byte-exact. */
 extern int gl_func_00000000();
 void gl_func_00057104(int a0, int a1) {
     int r = gl_func_00000000(a1);
@@ -27153,14 +27143,11 @@ void gl_func_00057104(int a0, int a1) {
         int count = dl[1];
         int *slot;
         dl[1] = count + 1;
-        slot = (int *)(*(int *)((char *)a0 + 0xC) + count * 8);
+        slot = (int *)((*(int **)((char *)a0 + 0xC))[0] + count * 8);
         slot[0] = 0xB900031D;
         slot[1] = r | v;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057104);
-#endif
 
 /* GBI display-list command emitter, gated on flag bits in a1->4. If bit 19
  * ((flags<<12)<0) OR bit 23 ((flags<<8)<0) is set, append a 2-word command
