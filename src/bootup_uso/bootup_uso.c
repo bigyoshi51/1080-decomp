@@ -1867,7 +1867,29 @@ void func_000027C0(char *a0, int *a1) {
     }
 }
 
-// func_000027E8 — RECONSTRUCTED 93.97% fuzzy (0x4AC / 299 insns, no episode).
+// func_000027E8 — RECONSTRUCTED 95.21% fuzzy (0x4AC / 299 insns, no episode).
+// 2026-06-22 (agent-b): cracked the +8 frame inflation (now -0x50 = target) by
+// dropping a dead `base` local + reordering the `g->0x14=s4C` store before the
+// trailing call (lands the store in the call's DELAY SLOT, killing a redundant
+// g spill/reload pair); fixed the handle-slot coloring (s3C/s4C/s48/s44/s40 now
+// land at 0x3C/0x4C/0x48/0x44/0x40 exactly) by declaring s3C LAST in the ptr
+// list, and g LAST overall (g spill now at 0x34 = target). Function is now
+// BYTE-IDENTICAL through the first ~73 insns; length matches (299).
+// REMAINING RESIDUAL (~5%, coloring/addressing, NOT structural):
+//   (1) the `*D_0 = g` singleton store: target emits the 3-insn HELD-$v1 form
+//       (lui v1; addiu v1; sw v0,0(v1)); IDO emits the 2-insn la-macro
+//       (lui at; sw v0,0(at)) for a direct symbol store. `*(volatile int*)`
+//       DOES force the 3-insn held form but mis-colors it ($t9 not $v1) and
+//       shifts downstream regs (nets -0.5%); plain la-macro scores higher.
+//   (2) the +0x98 store base: target loads scene->0x134 right before the
+//       m-call and stores in the delay slot (no spill); our C spills the base
+//       across the call (+1 sw/lw in the ratio region). Neither nested-deref
+//       nor a held local reproduces IDO's pre-call late-load schedule.
+//   (3) `sv` spill slot 0x30 vs target 0x38 + two as1-scheduler ties (a
+//       0x4F800000 `lui` position swap; a trailing `jal` swap) — register-
+//       numerical / scheduler-tie class, no C-level lever found.
+// These are the documented coloring/addressing-mode cap (docs/IDO_CODEGEN.md
+// line ~126); permuter-class. Earlier note (was 93.97%):
 // UI/scene setup constructor for the bootup/title screen. Body below is the
 // true C structure (verified vs expected .o): correct call sequence, all 3
 // u32->float ratio blocks emit byte-aligned (denom loaded via D_00000000+0x20C
@@ -1927,8 +1949,8 @@ void func_000027C0(char *a0, int *a1) {
 //   no extern reuse. D_00000000 reuses file-scope extern char.
 #ifdef NON_MATCHING
 void *func_000027E8(char *scene, int a1, int a2, int a3) {
-    char *s3C, *s4C, *s48, *s44, *s40, *g, *p;
-    int sv, m, base;
+    char *s4C, *s48, *s44, *s40, *s3C, *p, *g;
+    int sv, m;
     f32 fd;
     sv = (int)func_00000000(&D_00000000);
     *(int *)(scene + 0x3C) = a2;
@@ -1949,8 +1971,8 @@ void *func_000027E8(char *scene, int a1, int a2, int a3) {
     *(int *)&D_00000000 = (int)g;
     func_00000000(s4C + 0x10, g);
     if (*(int *)(g + 0x14)) *(int *)(g + 0x4) = 1;
-    func_00000000();
     *(int *)(g + 0x14) = (int)s4C;
+    func_00000000();
     func_00000000(*(int *)(scene + 0x134), s44, s4C, s3C, s48, s40);
     func_00000000(*(int *)(scene + 0x134));
     func_00000000(*(int *)(scene + 0x134));
@@ -1961,9 +1983,9 @@ void *func_000027E8(char *scene, int a1, int a2, int a3) {
                   ((f32)(u32)m - (f32)(u32)sv) / fd);
     sv = (int)func_00000000(&D_00000000);
     func_00000000(*(int *)(scene + 0x134), func_00000000(*(int *)(scene + 0x134), a1), a2);
-    base = *(int *)(scene + 0x134);
+    g = (char *)*(int *)(scene + 0x134);
     m = (int)func_00000000(&D_00000000);
-    *(int *)(base + 0x98) = m;
+    *(int *)(g + 0x98) = m;
     fd = (f32)(u32)*(int *)((char *)&D_00000000 + 0x20C);
     func_00000000((char *)&D_00000000 + 0x73B4,
                   ((f32)(u32)m - (f32)(u32)sv) / fd);

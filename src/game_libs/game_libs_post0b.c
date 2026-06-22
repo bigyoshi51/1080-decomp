@@ -6004,145 +6004,146 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B1AC);
 //   game_libs object subsystem (consumes the matrices/vectors the
 //   gl_func_0003B1AC matrix-apply / gl_func_00036694 concat /
 //   gl_func_00036224 viewport leaves produce).
-// Caps (DEFERRED): 0x3B4 raw-word USO + FP-literal-pool constants
-//   (&D_0+0x128/0x130 unsymbolized) + USO-relocated jal-0 cb +
-//   data-seg ref + heavy FP transform. Real-C STRUCTURAL body below
-//   — gate + scale + conditional cb skeleton only. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// Caps (DEFERRED): REGALLOC + CSE divergence cap. PASS-3 reconstruction
+//   (2026-06-22) rebuilt the true structure from target disasm:
+//   point-projection into a per-object spatial grid (o=arg0->0x84,
+//   g=o->0xA0), cell lookup, then a winding-test walk over a 3-edge
+//   table at &D_0 with a signed cross-product >= -1000 gate, emitting
+//   barycentric-style depth values. Field types corrected: grid
+//   divisors o->0xA0+0x10/+0x14 are f32 (were int); B[i] (o->0x54,
+//   0xC stride) fields +0x0/+0x4/+0x8 are f32; parallel array o->0x2C
+//   +0x8 is f32. arg4 is the 5th (stack) arg; callback takes only the
+//   int 0x1EE8C (floats merely live across). Match 47.4% -> 61.1%.
+//   RESIDUAL = whole-function IDO coloring divergence: target homes
+//   arg1/arg2 in incoming-arg slots and reloads o=*(arg0+0x84) each
+//   grid access (frame 0x98, arg0->s5), while our compile CSEs the
+//   reloads and promotes arg1/arg2 to s-regs (frame 0x58). This is the
+//   documented per-function regalloc/CSE cap (see project memory):
+//   not a structural-C bug. Byte-match deferred. Name: no extern reuse.
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft (237 insns, 4.6% COP1;
- * both pre-filters green; prior body replaced -- preserved in git). */
+/* PASS-3 2026-06-22 (big-swing reconstruction): structure rebuilt from
+ * target disasm. Corrected field types: grid divisors at +0x10/+0x14 are
+ * f32 (lwc1, not int); B[i] fields at +0x0/+0x4/+0x8 are f32; the +0x2C
+ * parallel-array field +0x8 is f32. arg0 held; arg1/arg2 stack-homed;
+ * arg4 is the 5th (stack) arg. Callback takes only the int 0x1EE8C, with
+ * the two scaled floats merely live across the call. The three contiguous
+ * vec slots {sp8C, sp90, sp94} carry the projected point. */
 s32 gl_func_0003B2EC(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
-    f32 sp94;
-    f32 sp90;
     f32 sp8C;
+    f32 sp90;
+    f32 sp94;
     s32 sp3C;
     s32 sp38;
-    f32 *temp_t8;
-    f32 temp_f2;
-    f32 var_f12;
-    f32 var_f14;
-    s16 *var_s3;
-    s16 *var_t3;
-    s16 *var_v0;
-    s16 temp_a0;
-    s16 temp_a1_3;
-    s16 var_a0_2;
-    s32 temp_a1;
-    s32 temp_a1_2;
-    s32 temp_f18;
-    s32 temp_f8;
-    s32 temp_s2;
-    s32 temp_t5;
-    s32 temp_v0;
-    s32 var_a0;
-    s32 var_s4;
-    char *temp_s1;
-    char *temp_v0_2;
-    char *temp_v1;
-    char *temp_v1_2;
-    char *temp_v1_3;
-    char *temp_v1_4;
-    char *temp_v1_5;
-    char *temp_v1_6;
-    char *temp_v1_7;
-    char *var_t2;
-    char *var_t4;
+    f32 u;
+    f32 v;
+    s32 cell;
+    s32 cx;
+    s32 cy;
+    char *o;
+    char *g;
+    s16 *list;
+    s16 *p;
+    s16 idx;
+    s32 ent;
+    s32 i;
+    s32 count;
+    char *rec;
+    char *par;
+    char *edge;
+    char *vbase;
+    char *vp;
+    s16 *kp;
+    f32 area;
 
-    var_f12 = arg3 * *(f32 *)((char *)&D_00000000 + 0x128);
-    temp_v1 = *(s32 *)((char *)(arg0) + 0x84);
-    var_f14 = arg4 * *(f32 *)((char *)&D_00000000 + 0x130);
-    var_s4 = 0;
-    if (temp_v1 == 0) {
+    u = arg3 * *(f32 *)((char *)&D_00000000 + 0x128);
+    o = *(s32 *)((char *)(arg0) + 0x84);
+    v = arg4 * *(f32 *)((char *)&D_00000000 + 0x130);
+    count = 0;
+    if (o == 0) {
         return 0;
     }
-    if (*(s32 *)((char *)(temp_v1) + 0xA0) == 0) {
-        arg3 = var_f12;
-        arg4 = var_f14;
-        func_00000000(var_f12, var_f14, 0x1EE8C);
-        var_f12 = arg3;
-        var_f14 = arg4;
+    if (*(s32 *)((char *)(o) + 0xA0) == 0) {
+        func_00000000(0x1EE8C);
     }
-    sp8C = var_f12;
-    sp94 = var_f14;
+    sp8C = u;
+    sp94 = v;
     sp90 = 0.0f;
-    var_a0 = -1;
-    temp_v1_2 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0xA0);
-    temp_f8 = (s32) ((sp8C - (f32) *(s32 *)((char *)(temp_v1_2) + 0x8)) / *(s32 *)((char *)(temp_v1_2) + 0x10));
-    sp3C = temp_f8;
-    temp_v1_3 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0xA0);
-    temp_f18 = (s32) ((sp94 - (f32) *(s32 *)((char *)(temp_v1_3) + 0xC)) / *(s32 *)((char *)(temp_v1_3) + 0x14));
-    sp38 = temp_f18;
-    if (temp_f8 >= 0) {
-        temp_v1_4 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0xA0);
-        temp_v0 = *(s32 *)((char *)(temp_v1_4) + 0x0);
-        if ((temp_f8 < temp_v0) && (temp_f18 >= 0) && (temp_f18 < *(s32 *)((char *)(temp_v1_4) + 0x4))) {
-            var_a0 = temp_f8 + (temp_f18 * temp_v0);
+    cell = -1;
+    g = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0xA0);
+    cx = (s32) ((sp8C - (f32) *(s32 *)((char *)(g) + 0x8)) / *(f32 *)((char *)(g) + 0x10));
+    sp3C = cx;
+    g = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0xA0);
+    cy = (s32) ((sp94 - (f32) *(s32 *)((char *)(g) + 0xC)) / *(f32 *)((char *)(g) + 0x14));
+    sp38 = cy;
+    if (cx >= 0) {
+        g = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0xA0);
+        if ((cx < *(s32 *)((char *)(g) + 0x0)) && (cy >= 0) && (cy < *(s32 *)((char *)(g) + 0x4))) {
+            cell = cx + (cy * *(s32 *)((char *)(g) + 0x0));
         }
     }
-    if (var_a0 < 0) {
+    if (cell < 0) {
         return 0;
     }
-    temp_v1_5 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0xA0);
-    var_v0 = 0;
-    temp_a1 = *(s32 *)(*(s32 *)((char *)(temp_v1_5) + 0x1C) + (var_a0 * 4));
-    if (temp_a1 != -1) {
-        var_v0 = *(s32 *)((char *)(temp_v1_5) + 0x18) + (temp_a1 * 2);
+    g = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0xA0);
+    list = 0;
+    ent = *(s32 *)(*(s32 *)((char *)(g) + 0x1C) + (cell * 4));
+    if (ent != -1) {
+        list = *(s32 *)((char *)(g) + 0x18) + (ent * 2);
     }
-    if (var_v0 == 0) {
+    if (list == 0) {
         return 0;
     }
-    var_a0_2 = *var_v0;
-    var_s3 = var_v0 + 2;
-    if (var_a0_2 != -1) {
+    idx = *list;
+    p = list + 2;
+    if (idx != -1) {
 loop_17:
-        temp_v1_6 = *(s32 *)((char *)(arg0) + 0x84);
-        temp_s2 = var_a0_2 * 0xC;
-        temp_s1 = *(s32 *)((char *)(temp_v1_6) + 0x54) + temp_s2;
-        temp_f2 = *(s32 *)((char *)(temp_s1) + 0x4);
-        var_t3 = 0;
-        if (temp_f2 > 0.0f) {
-            temp_a1_2 = *(s32 *)((char *)(temp_v1_6) + 0x4C);
-            temp_t5 = *(s32 *)((char *)(temp_v1_6) + 0x60);
-            if (temp_a1_2 != 0) {
-                var_t4 = *(s32 *)((char *)(temp_v1_6) + 0x68) + (*(s16 *)(temp_a1_2 + (var_a0_2 * 2)) * 8);
+        o = *(s32 *)((char *)(arg0) + 0x84);
+        rec = *(s32 *)((char *)(o) + 0x54) + (idx * 0xC);
+        area = *(f32 *)((char *)(rec) + 0x4);
+        kp = (s16 *)((char *)&D_00000000);
+        if (0.0f < area) {
+            par = *(s32 *)((char *)(o) + 0x4C);
+            edge = *(s32 *)((char *)(o) + 0x60);
+            if (par != 0) {
+                vbase = *(s32 *)((char *)(o) + 0x68) + (*(s16 *)(par + (idx * 2)) * 8);
             } else {
-                var_t4 = *(s32 *)((char *)(temp_v1_6) + 0x68) + (var_a0_2 * 8);
+                vbase = *(s32 *)((char *)(o) + 0x68) + (idx * 8);
             }
-            var_t2 = var_t4;
+            vp = vbase;
 loop_22:
-            temp_v0_2 = temp_t5 + (*(s32 *)((char *)(var_t2) + 0x2) * 6);
-            temp_a0 = *(s32 *)((char *)(temp_v0_2) + 0x0);
-            temp_a1_3 = *(s32 *)((char *)(temp_v0_2) + 0x4);
-            temp_v1_7 = temp_t5 + (*(s32 *)((char *)((var_t4 + (*var_t3 * 2))) + 0x2) * 6);
-            if ((((s16) (s32) (var_f12 - (f32) temp_a0) * (s16) (*(s32 *)((char *)(temp_v1_7) + 0x4) - temp_a1_3)) - ((s16) (s32) (var_f14 - (f32) temp_a1_3) * (s16) (*(s32 *)((char *)(temp_v1_7) + 0x0) - temp_a0))) >= -0x3E8) {
-                var_t3 += 2;
-                var_t2 += 2;
-                if (var_t3 != (s16 *)6) {
-                    goto loop_22;
+            {
+                char *e0 = edge + (*(u16 *)((char *)(vp) + 0x2) * 6);
+                char *e1 = edge + (*(u16 *)((char *)((vbase + (*kp * 2))) + 0x2) * 6);
+                s32 ax = *(s16 *)((char *)(e0) + 0x0);
+                s32 ay = *(s16 *)((char *)(e0) + 0x4);
+                s16 dx = (s16) (*(s16 *)((char *)(e1) + 0x0) - ax);
+                s16 dy = (s16) (*(s16 *)((char *)(e1) + 0x4) - ay);
+                if ((((s16) (s32) (u - (f32) ax) * dy) - ((s16) (s32) (v - (f32) ay) * dx)) >= -0x3E8) {
+                    kp += 1;
+                    vp += 2;
+                    if (kp != (s16 *)((char *)&D_00000000 + 6)) {
+                        goto loop_22;
+                    }
                 }
             }
-            if (var_t3 == (s16 *)6) {
-                if (var_s4 >= arg1) {
+            if (kp == (s16 *)((char *)&D_00000000 + 6)) {
+                if (count >= arg1) {
                     return -1;
                 }
-                temp_t8 = arg2 + (var_s4 * 4);
-                var_s4 += 1;
-                *temp_t8 = -((((*(s32 *)((char *)(temp_s1) + 0x0) * var_f12) + (*(s32 *)((char *)(temp_s1) + 0x8) * var_f14)) - *(s32 *)((char *)((*(s32 *)((char *)(arg0) + 0x2C) + temp_s2)) + 0x8)) / temp_f2) / *(f32 *)((char *)&D_00000000 + 0x12C);
-                goto block_28;
+                *(f32 *)(arg2 + (count * 4)) =
+                    -((((*(f32 *)((char *)(rec) + 0x0) * u) + (*(f32 *)((char *)(rec) + 0x8) * v)) -
+                       *(f32 *)((char *)((*(s32 *)((char *)(arg0) + 0x2C) + (idx * 0xC))) + 0x8)) / area) /
+                    *(f32 *)((char *)&D_00000000 + 0x12C);
+                count += 1;
             }
-            goto block_28;
         }
-block_28:
-        var_a0_2 = *var_s3;
-        var_s3 += 2;
-        if (var_a0_2 == -1) {
-            goto block_29;
+        idx = *p;
+        p += 2;
+        if (idx != -1) {
+            goto loop_17;
         }
-        goto loop_17;
     }
-block_29:
-    return var_s4;
+    return count;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B2EC);
@@ -19132,14 +19133,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C5E4);
 //   body representative. Real-C STRUCTURAL body below — wait loop +
 //   post-ready skeleton only. Byte-match deferred. Name pre-checked:
 //   no extern reuse.
-// gl_func_0004C928 — FULL STRUCTURAL RECONSTRUCTION (agent-e, 61.8->91.25%).
+// gl_func_0004C928 — FULL STRUCTURAL RECONSTRUCTION (agent-e, 61.8->94.60%).
 // Correct types/offsets/control-flow: state-spin wait loops (state=*(D+0x218),
 // fields 0x04/0x0C/0x1C), float clamp (4.0f - arg1->fBC/fC0 -> arg0->dD0/dD4),
 // D+0x1C4 RMW flag (|2 around call, &~2), two stack-struct callback dispatches
 // (StackA{n,&StackB} via obj->0x28->{0x2C method, 0x28 base}). cnt=u16@(*(D)+0x48)
-// with kept-first-store (volatile view defeats DCE). Residual = register-allocation
-// + stack-slot coloring cap (v1/v0 wait-loop pick, float-spill scheduling) — C is
-// structurally exact; remaining diffs are allocator-internal, not C-fixable.
+// with kept-first-store (volatile view defeats DCE).
+// 2026-06-22 (agent-e): pushed 91.25->94.60% (161->145 word diffs). FIXED:
+//   (1) frame size 0x80->0x78 (shared `ready` flag local kills the extra
+//       old_d0/old_d4 double-spill pair); (2) D_TICK reload now colors into s0
+//       (reuse the `st` variable: `st = D_TICK; st->p0C = 0;` lets IDO recycle
+//       the dead state ptr's s0 slot — matched insns 34-36); (3) h1AC is a WORD
+//       read (`lw`) stored as a half (`sh`), not an s16 field; (4) interleave
+//       read-old/store-new per dD0/dD4 field. RESIDUAL = the uopt first-temp
+//       SPLIT-coloring tie: target colors the wait-loop flag v1 in loops #1/#2
+//       (before the fcb call reserves v0) and v0 in loops #3/#4 (after the calls
+//       free v0); build uses v0 throughout. This per-region split + its
+//       temp-register cascade (fcb s0-vs-v0, float-clamp tN renumber, StackA
+//       slot schedule) is the documented permuter-floored / C-lever-immune
+//       coloring class (docs/IDO_CODEGEN #17,#122,#188). No permuter installed
+//       here; manual levers exhausted. Also 2 lw vs build's reload buried in the
+//       schedule shift. Keep INCLUDE_ASM until permuter available.
 #ifdef NON_MATCHING
 struct St4C928 { /* global readiness state object */
     char pad0[4];
@@ -19173,9 +19187,8 @@ struct Obj4C928 {           /* arg1->0x10C target object */
     if (r == 0) { r = (s)->p04 != 0; if (r == 0) { r = (s)->p0C != 0; } } \
 } while (0)
 #define WAIT_READY(s) do { \
-    s32 r; \
-    ST_TEST(s, r); \
-    if (r != 0) { do { gl_func_00034458(); ST_TEST(s, r); } while (r != 0); } \
+    ST_TEST(s, ready); \
+    if (ready != 0) { do { gl_func_00034458(); ST_TEST(s, ready); } while (ready != 0); } \
 } while (0)
 
 typedef s32 (*GP_0004C928)();
@@ -19193,7 +19206,7 @@ struct A4C928 {
     s32 dD4;        /* 0xD4 */
     char padD8[0xD0];
     s32 d1A8;       /* 0x1A8 */
-    s16 h1AC;       /* 0x1AC */
+    s32 h1AC;       /* 0x1AC (read as word, stored as half) */
 };
 
 struct StackB { s16 a; s32 b; s32 c; };       /* sp+0x64 */
@@ -19207,6 +19220,7 @@ void gl_func_0004C928(struct A4C928 *arg0, struct Arg4C928 *arg1) {
     struct Obj4C928 *cb;
     struct Obj4C928 *m;
     s32 old_d0, old_d4;
+    s32 ready;
     u16 cnt;
     struct StackB b;
     struct StackA a0blk;
@@ -19215,13 +19229,14 @@ void gl_func_0004C928(struct A4C928 *arg0, struct Arg4C928 *arg1) {
 
     st = D_STATE;
     WAIT_READY(st);
-    D_TICK->p0C = 0;
+    st = D_TICK;
+    st->p0C = 0;
     fcb = *(struct Cb4C928 **)((char *)arg0 + 0x28);
     D_R0 = ((GP_0004C928)fcb->m64)(fcb->h60 + (s32)arg0);
 
     old_d0 = arg0->dD0;
-    old_d4 = arg0->dD4;
     arg0->dD0 = (s32)(4.0f - arg1->fBC);
+    old_d4 = arg0->dD4;
     arg0->dD4 = (s32)(4.0f - arg1->fC0);
     D_FLAG = D_FLAG | 2;
     gl_func_00034458(arg0);
@@ -19274,7 +19289,8 @@ void gl_func_0004C928(struct A4C928 *arg0, struct Arg4C928 *arg1) {
         m = *(struct Obj4C928 **)((char *)cb + 0x28);
         ((GP_0004C928)m->m2C)(m->h28 + (s32)cb, &a2blk);
     }
-    D_TICK->p0C = 0;
+    st = D_TICK;
+    st->p0C = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004C928);

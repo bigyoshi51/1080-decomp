@@ -1620,219 +1620,219 @@ void gl_func_000033E4(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* PASS-1 2026-06-10 (big-swing): FULL m2c graft; one table synthesized.
- * Hardened insert (item 22). */
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+#ifndef FF
+#define FF(p, o) (*(f32 *)((char *)(p) + (o)))
+#endif
+/* PASS-2 2026-06-22 (big-swing): full float-typed reconstruction of the 8-way
+ * state-machine jumptable; FF=f32 fields, FW=int fields per mnemonics.
+ * Distinct externs per pool/global ref defeat the &D_00000000 base-pointer
+ * CSE hoist (target reloads `lui at` each use). */
+extern f32 D_00000000_3430_cc8;
+extern f32 D_00000000_3430_cec;
+extern f32 D_00000000_3430_cf0;
+extern f32 D_00000000_3430_cf4;
+extern char D_00000000_3430_cce8;
 void gl_func_00003430(char *arg0) {
-    f32 temp_f0;
-    f32 temp_f0_2;
     f32 var_f2;
-    s32 *var_at;
-    s32 temp_t1;
-    s32 temp_t1_2;
-    s32 temp_t2;
-    s32 temp_t5;
-    s32 temp_t6;
-    s32 temp_t6_2;
-    s32 temp_t7;
-    s32 temp_t7_2;
-    s32 temp_t9;
-    s32 temp_t9_2;
-    s32 temp_t9_3;
-    s32 temp_v0;
-    s32 temp_v0_2;
-    s32 temp_v0_4;
-    s32 temp_v0_5;
-    s32 temp_v0_6;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 var_a0;
-    s32 var_a2;
-    s32 var_s3;
-    u32 temp_t8;
-    char *temp_s0;
-    char *temp_v0_3;
-    char *var_s4;
-    char *var_v0;
+    f32 temp;
+    s32 t;
+    s32 i;
+    s32 n;
+    char *s0;
+    char *v0;
+    char *p;
 
-    *(s32 *)((char *)(arg0) + 0xEC) = 1;
-    var_f2 = *(f32 *)((char *)&D_00000000 + 0xCC8);
-    var_s3 = 0;
-    var_s4 = arg0;
+    FW(arg0, 0xEC) = 1;
+    var_f2 = D_00000000_3430_cc8;
+    i = 0;
+    v0 = arg0;
     do {
-        temp_s0 = *(s32 *)((char *)(var_s4) + 0x2C);
-        temp_t7 = *(s32 *)((char *)(temp_s0) + 0x94);
-        temp_t8 = temp_t7 - 1;
-        if (temp_t8 < 8U) {
-            var_at = 0; /* jtbl addr read collapsed */
-            switch (temp_t7) {
+        s0 = (char *)FW(v0, 0x2C);
+        t = FW(s0, 0x94);
+        if ((u32)(t - 1) < 8U) {
+            switch (t) {
             case 1:
-                *(f32 *)((char *)(temp_s0) + 0xA8) = (f32) (*(s32 *)((char *)(temp_s0) + 0xA8) + *(s32 *)((char *)(temp_s0) + 0xAC));
-                temp_f0 = *(s32 *)((char *)(temp_s0) + 0xA8);
-                *(s32 *)((char *)(temp_s0) + 0x74) = 0;
-                *(s32 *)((char *)(temp_s0) + 0x9C) = (s32) (*(s32 *)((char *)(temp_s0) + 0x9C) - 1);
-                *(f32 *)((char *)(temp_s0) + 0x5C) = (f32) (*(s32 *)((char *)(temp_s0) + 0x5C) + temp_f0);
-                *(f32 *)((char *)(temp_s0) + 0x44) = (f32) (*(s32 *)((char *)(temp_s0) + 0x44) + *(s32 *)((char *)(temp_s0) + 0xA4));
-                if (*(f32 *)((char *)(temp_s0) + 0x5C) > 110.0f) {
-                    *(s32 *)((char *)(temp_s0) + 0xA8) = (f32) -temp_f0;
+                FF(s0, 0xA8) = FF(s0, 0xA8) + FF(s0, 0xAC);
+                temp = FF(s0, 0xA8);
+                FW(s0, 0x74) = 0;
+                FW(s0, 0x9C) = FW(s0, 0x9C) - 1;
+                FF(s0, 0x5C) = FF(s0, 0x5C) + temp;
+                FF(s0, 0x44) = FF(s0, 0x44) + FF(s0, 0xA4);
+                if (110.0f < FF(s0, 0x5C)) {
+                    FF(s0, 0xA8) = -temp;
                 }
-                temp_v0 = *(s32 *)((char *)(temp_s0) + 0x78);
-                temp_t1 = temp_v0 + 0x20;
-                if (temp_v0 < 0xFF) {
-                    *(s32 *)((char *)(temp_s0) + 0x78) = temp_t1;
-                    if (temp_t1 >= 0x100) {
-                        *(s32 *)((char *)(temp_s0) + 0x78) = 0xFF;
+                t = FW(s0, 0x78);
+                if (t < 0xFF) {
+                    t += 0x20;
+                    FW(s0, 0x78) = t;
+                    if (t >= 0x100) {
+                        FW(s0, 0x78) = 0xFF;
                     }
                 }
-                temp_f0_2 = *(s32 *)((char *)(temp_s0) + 0x88);
-                var_at = (s32 *)0x42C80000;
-                if (temp_f0_2 < 1.0f) {
-                    *(f32 *)((char *)(temp_s0) + 0x88) = (f32) (temp_f0_2 + var_f2);
-                    *(f32 *)((char *)(temp_s0) + 0x8C) = (f32) (*(s32 *)((char *)(temp_s0) + 0x8C) + var_f2);
+                if (FF(s0, 0x88) < 1.0f) {
+                    FF(s0, 0x88) = FF(s0, 0x88) + var_f2;
+                    FF(s0, 0x8C) = FF(s0, 0x8C) + var_f2;
                 } else {
-                case 2:
-                    *(s32 *)((char *)(temp_s0) + 0x88) = 1.0f;
-                    *(s32 *)((char *)(temp_s0) + 0x8C) = 1.0f;
+                    FF(s0, 0x88) = 1.0f;
+                    FF(s0, 0x8C) = 1.0f;
                 }
-                if (*(s32 *)((char *)(temp_s0) + 0x9C) < 0) {
-                    *(s32 *)((char *)(temp_s0) + 0x94) = 4;
-                    *(f32 *)((char *)(temp_s0) + 0xA4) = (f32) ((*(f32 *)& var_at - *(s32 *)((char *)(temp_s0) + 0x44)) / 10.625f);
-                    *(f32 *)((char *)(temp_s0) + 0xA8) = (f32) ((40.0f - *(s32 *)((char *)(temp_s0) + 0x5C)) / 10.625f);
+                if (FW(s0, 0x9C) < 0) {
+                    FW(s0, 0x94) = 4;
+                    FF(s0, 0xA4) = (100.0f - FF(s0, 0x44)) / 10.625f;
+                    FF(s0, 0xA8) = (40.0f - FF(s0, 0x5C)) / 10.625f;
                 }
-                if (*(s32 *)((char *)(temp_s0) + 0x7C) != 0) {
-                    *(s32 *)((char *)(arg0) + 0xEC) = 0;
+                if (FW(s0, 0x7C) != 0) {
+                    FW(arg0, 0xEC) = 0;
+                }
+                break;
+            case 2:
+                t = FW(s0, 0x78);
+                if (t != 0) {
+                    FF(s0, 0x44) = FF(s0, 0x44) + FF(s0, 0xA4);
+                    FF(s0, 0x5C) = FF(s0, 0x5C) + FF(s0, 0xA8);
+                    t -= 0x20;
+                    FW(s0, 0x78) = t;
+                    if (t < 0) {
+                        FW(s0, 0x78) = 0;
+                        FW(s0, 0x94) = 0;
+                        p = (char *)FW(*(char **)((char *)&D_00000000 + 0x138), 0x44) + 0x18;
+                        *(int *)p = *(int *)p + FW(s0, 0x98);
+                    }
+                }
+                if (FW(s0, 0x7C) != 0) {
+                    FW(arg0, 0xEC) = 0;
                 }
                 break;
             case 3:
-                temp_v0_2 = *(s32 *)((char *)(temp_s0) + 0x78);
-                if (temp_v0_2 != 0) {
-                    temp_t6 = temp_v0_2 - 0x20;
-                    *(s32 *)((char *)(temp_s0) + 0x78) = temp_t6;
-                    *(f32 *)((char *)(temp_s0) + 0x44) = (f32) (*(s32 *)((char *)(temp_s0) + 0x44) + *(s32 *)((char *)(temp_s0) + 0xA4));
-                    *(f32 *)((char *)(temp_s0) + 0x5C) = (f32) (*(s32 *)((char *)(temp_s0) + 0x5C) + *(s32 *)((char *)(temp_s0) + 0xA8));
-                    if (temp_t6 < 0) {
-                        *(s32 *)((char *)(temp_s0) + 0x78) = 0;
-                        *(s32 *)((char *)(temp_s0) + 0x94) = 0;
-                        temp_v0_3 = *(s32 *)((char *)((*(void **)0x138)) + 0x44);
-                        *(s32 *)((char *)(temp_v0_3) + 0x18) = (s32) (*(s32 *)((char *)(temp_v0_3) + 0x18) + *(s32 *)((char *)(temp_s0) + 0x98));
+                FF(s0, 0xA8) = FF(s0, 0xA8) + FF(s0, 0xAC);
+                FW(s0, 0x74) = 0;
+                FW(s0, 0x9C) = FW(s0, 0x9C) - 1;
+                FF(s0, 0x44) = FF(s0, 0x44) + FF(s0, 0xA4);
+                FF(s0, 0x5C) = FF(s0, 0x5C) + FF(s0, 0xA8);
+                t = FW(s0, 0x78);
+                if (t < 0xFF) {
+                    t += 0x20;
+                    FW(s0, 0x78) = t;
+                    if (t >= 0x100) {
+                        FW(s0, 0x78) = 0xFF;
                     }
                 }
-                if (*(s32 *)((char *)(temp_s0) + 0x7C) != 0) {
-                    *(s32 *)((char *)(arg0) + 0xEC) = 0;
+                if (FW(s0, 0x9C) < 0) {
+                    FW(s0, 0x94) = 2;
+                    FF(s0, 0xA4) = (200.0f - FF(s0, 0x44)) / 10.625f;
+                    FF(s0, 0xA8) = (20.0f - FF(s0, 0x5C)) / 10.625f;
                 }
+                FW(arg0, 0xEC) = 0;
                 break;
             case 4:
-                temp_v0_4 = *(s32 *)((char *)(temp_s0) + 0x78);
-                *(f32 *)((char *)(temp_s0) + 0xA8) = (f32) (*(s32 *)((char *)(temp_s0) + 0xA8) + *(s32 *)((char *)(temp_s0) + 0xAC));
-                *(s32 *)((char *)(temp_s0) + 0x74) = 0;
-                *(s32 *)((char *)(temp_s0) + 0x9C) = (s32) (*(s32 *)((char *)(temp_s0) + 0x9C) - 1);
-                *(f32 *)((char *)(temp_s0) + 0x44) = (f32) (*(s32 *)((char *)(temp_s0) + 0x44) + *(s32 *)((char *)(temp_s0) + 0xA4));
-                *(f32 *)((char *)(temp_s0) + 0x5C) = (f32) (*(s32 *)((char *)(temp_s0) + 0x5C) + *(s32 *)((char *)(temp_s0) + 0xA8));
-                if (temp_v0_4 < 0xFF) {
-                    temp_t5 = temp_v0_4 + 0x20;
-                    *(s32 *)((char *)(temp_s0) + 0x78) = temp_t5;
-                    if (temp_t5 >= 0x100) {
-                        *(s32 *)((char *)(temp_s0) + 0x78) = 0xFF;
+                t = FW(s0, 0x78);
+                if (t != 0) {
+                    FF(s0, 0x44) = FF(s0, 0x44) + FF(s0, 0xA4);
+                    FF(s0, 0x5C) = FF(s0, 0x5C) + FF(s0, 0xA8);
+                    t -= 0x18;
+                    FW(s0, 0x78) = t;
+                    if (t < 0) {
+                        FW(s0, 0x78) = 0;
+                        FW(s0, 0x94) = 0;
                     }
                 }
-                if (*(s32 *)((char *)(temp_s0) + 0x9C) < 0) {
-                    *(s32 *)((char *)(temp_s0) + 0x94) = 2;
-                    *(f32 *)((char *)(temp_s0) + 0xA4) = (f32) ((200.0f - *(s32 *)((char *)(temp_s0) + 0x44)) / 10.625f);
-                    *(f32 *)((char *)(temp_s0) + 0xA8) = (f32) ((20.0f - *(s32 *)((char *)(temp_s0) + 0x5C)) / 10.625f);
-                }
-                *(s32 *)((char *)(arg0) + 0xEC) = 0;
+                FW(arg0, 0xEC) = 0;
                 break;
             case 5:
-                temp_v0_5 = *(s32 *)((char *)(temp_s0) + 0x78);
-                if (temp_v0_5 != 0) {
-                    temp_t9 = temp_v0_5 - 0x18;
-                    *(s32 *)((char *)(temp_s0) + 0x78) = temp_t9;
-                    *(f32 *)((char *)(temp_s0) + 0x44) = (f32) (*(s32 *)((char *)(temp_s0) + 0x44) + *(s32 *)((char *)(temp_s0) + 0xA4));
-                    *(f32 *)((char *)(temp_s0) + 0x5C) = (f32) (*(s32 *)((char *)(temp_s0) + 0x5C) + *(s32 *)((char *)(temp_s0) + 0xA8));
-                    if (temp_t9 < 0) {
-                        *(s32 *)((char *)(temp_s0) + 0x78) = 0;
-                        *(s32 *)((char *)(temp_s0) + 0x94) = 0;
-                    }
+                t = FW(s0, 0x9C) - 1;
+                if (t < 0) {
+                    FW(s0, 0x9C) = t;
+                    FW(s0, 0x94) = 6;
+                    FW(s0, 0x74) = 0;
                 }
-                *(s32 *)((char *)(arg0) + 0xEC) = 0;
                 break;
             case 6:
-                temp_t2 = *(s32 *)((char *)(temp_s0) + 0x9C) - 1;
-                *(s32 *)((char *)(temp_s0) + 0x9C) = temp_t2;
-                if (temp_t2 < 0) {
-                    *(s32 *)((char *)(temp_s0) + 0x94) = 6;
-                    *(s32 *)((char *)(temp_s0) + 0x74) = 0;
+                if (gl_func_00000000(s0, 0xB4) != 0) {
+                    FW(s0, 0x94) = 7;
                 }
+                var_f2 = D_00000000_3430_cec;
                 break;
             case 7:
-                if (func_00000000(temp_s0, 0xB4) != 0) {
-                    *(s32 *)((char *)(temp_s0) + 0x94) = 7;
+                t = FW(s0, 0x98);
+                if (t != 0) {
+                    t -= 0x32;
+                    FW(s0, 0x98) = t;
                 }
-                var_f2 = *(f32 *)((char *)&D_00000000 + 0xCEC);
+                if (t <= 0) {
+                    FW(s0, 0x98) = 0;
+                    FW(s0, 0x94) = 8;
+                    t = 0;
+                }
+                gl_func_00000000(s0 + 0xB4, &D_00000000_3430_cce8, t);
+                t = FW(s0, 0x74) + 0x10;
+                FW(s0, 0x74) = t;
+                if (t >= 0x100) {
+                    FW(s0, 0x74) = 0xFF;
+                }
+                gl_func_00000000(s0, 0x104);
+                var_f2 = D_00000000_3430_cf0;
                 break;
             case 8:
-                var_a2 = *(s32 *)((char *)(temp_s0) + 0x98);
-                temp_t6_2 = var_a2 - 0x32;
-                if (var_a2 != 0) {
-                    *(s32 *)((char *)(temp_s0) + 0x98) = temp_t6_2;
-                    var_a2 = temp_t6_2;
+                t = FW(s0, 0x74) + 0x10;
+                FW(s0, 0x74) = t;
+                if (t >= 0x100) {
+                    FW(s0, 0x74) = 0xFF;
                 }
-                if (var_a2 <= 0) {
-                    *(s32 *)((char *)(temp_s0) + 0x98) = 0;
-                    *(s32 *)((char *)(temp_s0) + 0x94) = 8;
-                    var_a2 = 0;
+                t = FW(s0, 0x78) - 8;
+                FW(s0, 0x78) = t;
+                if (t < 0) {
+                    FW(s0, 0x78) = 0;
                 }
-                func_00000000(temp_s0 + 0xB4, 0xCCE8, var_a2);
-                temp_t9_2 = *(s32 *)((char *)(temp_s0) + 0x74) + 0x10;
-                *(s32 *)((char *)(temp_s0) + 0x74) = temp_t9_2;
-                if (temp_t9_2 >= 0x100) {
-                    *(s32 *)((char *)(temp_s0) + 0x74) = 0xFF;
+                if (gl_func_00000000(s0, 0x104) != 0) {
+                    FW(s0, 0x94) = 0;
                 }
-                func_00000000(temp_s0, 0x104);
-                var_f2 = *(f32 *)((char *)&D_00000000 + 0xCF0);
+                var_f2 = D_00000000_3430_cf4;
                 break;
             }
         }
-        var_s3 += 4;
-        var_s4 += 4;
-    } while (var_s3 != 0x20);
-    var_a0 = 0;
-    var_v0 = arg0;
+        i += 4;
+        v0 += 4;
+    } while (i != 0x20);
+    n = 0;
+    v0 = arg0;
     do {
-        temp_v1 = *(s32 *)((char *)(var_v0) + 0x8C);
-        var_a0 += 4;
-        temp_t7_2 = temp_v1 + 1;
-        if (temp_v1 < 0x80) {
-            *(s32 *)((char *)(var_v0) + 0x8C) = temp_t7_2;
-            if (temp_t7_2 < 0x70) {
-                temp_v1_2 = *(s32 *)((char *)(var_v0) + 0x9C);
-                temp_t9_3 = temp_v1_2 + 0x10;
-                if (temp_v1_2 < 0xFF) {
-                    *(s32 *)((char *)(var_v0) + 0x9C) = temp_t9_3;
-                    if (temp_t9_3 >= 0x100) {
-                        *(s32 *)((char *)(var_v0) + 0x9C) = 0xFF;
+        t = FW(v0, 0x8C);
+        n += 4;
+        if (t < 0x80) {
+            t += 1;
+            FW(v0, 0x8C) = t;
+            if (t < 0x70) {
+                t = FW(v0, 0x9C);
+                if (t < 0xFF) {
+                    t += 0x10;
+                    FW(v0, 0x9C) = t;
+                    if (t >= 0x100) {
+                        FW(v0, 0x9C) = 0xFF;
                     }
                 }
             } else {
-                temp_v1_3 = *(s32 *)((char *)(var_v0) + 0x9C);
-                temp_t1_2 = temp_v1_3 - 0x10;
-                if (temp_v1_3 > 0) {
-                    *(s32 *)((char *)(var_v0) + 0x9C) = temp_t1_2;
-                    if (temp_t1_2 < 0) {
-                        *(s32 *)((char *)(var_v0) + 0x9C) = 0;
-                        *(s32 *)((char *)(var_v0) + 0xBC) = 0x64;
+                t = FW(v0, 0x9C);
+                if (t > 0) {
+                    t -= 0x10;
+                    FW(v0, 0x9C) = t;
+                    if (t < 0) {
+                        FW(v0, 0x9C) = 0;
+                        FW(v0, 0xBC) = 0x64;
                     }
                 }
             }
         }
-        if (*(s32 *)((char *)(arg0) + 0x88) != 0) {
-            *(s32 *)((char *)(var_v0) + 0xBC) = (s32) (*(s32 *)((char *)(var_v0) + 0xBC) - 2);
+        if (FW(arg0, 0x88) != 0) {
+            FW(v0, 0xBC) = FW(v0, 0xBC) - 2;
         }
-        var_v0 += 4;
-    } while (var_a0 != 0x10);
-    temp_v0_6 = *(s32 *)((char *)(arg0) + 0x88);
-    if (temp_v0_6 > 0) {
-        *(s32 *)((char *)(arg0) + 0x88) = (s32) (temp_v0_6 - 2);
+        v0 += 4;
+    } while (n != 0x10);
+    t = FW(arg0, 0x88);
+    if (t > 0) {
+        FW(arg0, 0x88) = t - 2;
     }
 }
 #else
