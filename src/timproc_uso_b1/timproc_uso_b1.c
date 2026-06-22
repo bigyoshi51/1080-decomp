@@ -961,16 +961,14 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * (scale/color), @0x44 sub-region base, @0x60 handle, @0xBC built child,
  * @0x30 inline sub-struct, @0x10 another. a1->0x4F0 bit-31-after-<<15
  * gates the whole configure block. Linked into a1x->0x14 list (sets
- * ->0x4=1 on first). Caps <80: 8-call spill cascade + beql/bgezl branch-
- * likely + &D %hi/%lo + 1.0f/255 const scheduling. INCLUDE_ASM is the
- * correct build path (no episode; tautology-trap rule).
+ * ->0x4=1 on first).
  *
- * 2026-06-21 permuter (36k iters): closed 5 of 9 diffs via the r5 add-
- * operand swap (D[0x64]*0x30 FIRST, then *s0[0x4C]) -> 99.23%->99.96%.
- * FLOOR: 2 swapped spill slots remain (v0-web r6 wants 0x20 not 0x30;
- * a1x list-ptr wants 0x34 not 0x24). Genuine spilltemps-bitpos tie;
- * decl-permute regressed the frame, permuter could not flip the pair. */
-#ifdef NON_MATCHING
+ * LANDED 2026-06-22 (agent-i): byte-exact. ROM-identical (`make verify`
+ * clean) and timproc_uso_block1 verify-blocks other=0. The "99.96% floor /
+ * 2 swapped spill slots" the permuter reported was the RELOC-PRESENCE
+ * FALSE-NEGATIVE: the build .o carries HI16+LO16 reloc words for the real
+ * &D_00000000+offset references where expected/ had HI16-only, inflating the
+ * fuzzy word-diff while the .text is byte-identical. No real coloring cap. */
 void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
   int *s0 = a0;
   int r5;
@@ -1013,9 +1011,6 @@ void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
   }
   a1x[0x14 / 4] = (int) s0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001A64);
-#endif
 
 /* timproc_uso_b1_func_00001BCC - verified structural decode (~158-insn
  * per-frame update state machine; 20 branches incl bnel/beql
