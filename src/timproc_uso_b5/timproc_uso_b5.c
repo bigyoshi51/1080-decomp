@@ -5118,13 +5118,7 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
     s32 temp_v0_9;
     s32 temp_v1;
     char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_6;
-    char *temp_v0_8;
     char *temp_v1_2;
-    char *temp_v1_3;
-    char *temp_v1_4;
-    char *temp_v1_5;
 
     if (FW(arg0, 0x3C4) == 1) {
         temp_v0 = timproc_uso_b5_alias();
@@ -5157,18 +5151,18 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
         temp_v1_2 = FW(temp_v0_3, 0x28);
         ((GP_00007B2C)FW(temp_v1_2, 0x8C))(*(s16*)((char*)temp_v1_2 + 0x88) + temp_v0_3, 0);
         timproc_uso_b5_alias(arg0);
-        temp_v0_4 = timproc_uso_b5_alias(arg0);
-        temp_v1_3 = FW(temp_v0_4, 0x28);
-        ((GP_00007B2C)FW(temp_v1_3, 0x84))(*(s16*)((char*)temp_v1_3 + 0x80) + temp_v0_4, 0);
+        temp_v0_3 = timproc_uso_b5_alias(arg0);
+        temp_v1_2 = FW(temp_v0_3, 0x28);
+        ((GP_00007B2C)FW(temp_v1_2, 0x84))(*(s16*)((char*)temp_v1_2 + 0x80) + temp_v0_3, 0);
         temp_v0_5 = FW(arg0, 0x3C4);
         timproc_uso_b5_alias((&timproc_uso_b5_D_807FE778)[temp_v0_5], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_5 * 4)), 0x3D0));
         timproc_uso_b5_alias(arg0);
         FW(arg0, 0x3CC) = 7;
         timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], FW(arg0, 0x4D4) | (FW((timproc_uso_b5_alias(arg0)), 0x2B0) + 1));
         *(f32 *)((char *)arg0 + 0x484) = 1.0f;
-        temp_v0_6 = timproc_uso_b5_alias(arg0);
-        temp_v1_4 = FW(temp_v0_6, 0x28);
-        ((GP_00007B2C)FW(temp_v1_4, 0x74))(*(s16*)((char*)temp_v1_4 + 0x70) + temp_v0_6);
+        temp_v0_3 = timproc_uso_b5_alias(arg0);
+        temp_v1_2 = FW(temp_v0_3, 0x28);
+        ((GP_00007B2C)FW(temp_v1_2, 0x74))(*(s16*)((char*)temp_v1_2 + 0x70) + temp_v0_3);
         return;
     }
     if (timproc_uso_b5_alias(&import_80020098, 0x200) != 0) {
@@ -5177,9 +5171,9 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
         } else {
             temp_v0_7 = FW(arg0, 0x3C4);
             timproc_uso_b5_alias((&timproc_uso_b5_D_807FE748)[temp_v0_7], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_7 * 4)), 0x3D0));
-            temp_v0_8 = timproc_uso_b5_alias(arg0);
-            temp_v1_5 = FW(temp_v0_8, 0x28);
-            ((GP_00007B2C)FW(temp_v1_5, 0xAC))(*(s16*)((char*)temp_v1_5 + 0xA8) + temp_v0_8);
+            temp_v0_3 = timproc_uso_b5_alias(arg0);
+            temp_v1_2 = FW(temp_v0_3, 0x28);
+            ((GP_00007B2C)FW(temp_v1_2, 0xAC))(*(s16*)((char*)temp_v1_2 + 0xA8) + temp_v0_3);
             FW(arg0, 0x3CC) = 0xA;
             timproc_uso_b5_alias(arg0, 0);
             *(f32 *)((char *)arg0 + 0x484) = 0.0f;
@@ -5243,6 +5237,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // (second) array bases, not bare *4. Remaining: the var_v1 `|`-operand load order
 // (1208(v0) vs 1204(s0)) and the `arg0 + idx*4` addu operand order (s0+v0 vs
 // v1+s0) — scheduling/coloring ties, permuter-immune per cap analysis.
+// 2026-06-21 (agent-e): 99.11% -> 99.18% (23->21 diffs). The `0x4B8|0x4B4` OR
+// load-order diff (idx 11/12) was structural: target loads the call-result
+// deref (0x4B8) FIRST. Swapped to `FW(arg0,0x4B4) | FW(call,0x4B8)` so the
+// 0x4B8 deref is the RIGHT operand (IDO evals it first here) — matches. The
+// remaining 21 diffs are all the `(&D_807FExxx)[idx]` array-index coloring
+// (index reg + addu operand order) — documented permuter-immune class.
 #ifdef NON_MATCHING
 
 
@@ -5272,7 +5272,7 @@ void timproc_uso_b5_func_00007E34(char *arg0) {
     char *temp_v1_6;
 
     if (FW(arg0, 0x3BC) == 2) {
-        var_v1 = FW(timproc_uso_b5_alias(FW(arg0, 0x41C), FW(arg0, 0x3B8)), 0x4B8) | FW(arg0, 0x4B4);
+        var_v1 = FW(arg0, 0x4B4) | FW(timproc_uso_b5_alias(FW(arg0, 0x41C), FW(arg0, 0x3B8)), 0x4B8);
     } else {
         var_v1 = FW(arg0, 0x4B4);
     }
@@ -7660,7 +7660,18 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #ifdef NON_MATCHING
 /* step constants are reloc'd USO float globals; reference through the
  * file's existing int placeholder to avoid the extern-type-mismatch
- * redeclaration break (docs/MATCHING_WORKFLOW). */
+ * redeclaration break (docs/MATCHING_WORKFLOW).
+ * 2026-06-21 (agent-e): 93.88% -> 95.57% COUNT-EXACT (49=49). Hoisting the
+ * `v = (float*)(s+0x130)` assignment ABOVE the `if (s->i_138)` check matches
+ * the target's early `addiu v1,v0,0x130` materialization (the addr is computed
+ * right after the `s`/`s->i_138` load, dead until recomputed per-arm). Residual
+ * 14 diffs = pure address-reg coloring tie: the named persistent `v` colors
+ * into $a1 + a `move v1,a1` where the target keeps it in $v1 directly, and the
+ * first `*v` compare reads `0(a1)` vs target's CSE'd `0x130(v0)`. Coupled: any
+ * recompute-per-arm variant CSEs the stores back to base+offset and drops the
+ * count to 47/48 (tried 4 variants). uoptlist: `v`=cand14->R4($a1), lost $v1
+ * (cand12) by encounter-order; unreachable from C without a persistent local.
+ * Genuine first-temp/address-reg coloring cap. */
 #define B850_STEP_UP   (*(float *)((char *)&D_00000000 + 0x358))
 #define B850_STEP_DOWN (*(float *)((char *)&D_00000000 + 0x35C))
 void timproc_uso_b5_func_0000B850(char *a0, float target) {
@@ -7670,10 +7681,10 @@ void timproc_uso_b5_func_0000B850(char *a0, float target) {
         target = 0.0f;
     }
     s = *(char **)(a0 + 0x2B8);
+    v = (float *)(s + 0x130);
     if (*(int *)(s + 0x138) != 0) {
         target = 1.0f;
     }
-    v = (float *)(s + 0x130);
     if (*v < target) {
         *v += B850_STEP_UP;
         s = *(char **)(a0 + 0x2B8);

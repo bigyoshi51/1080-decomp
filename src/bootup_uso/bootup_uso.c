@@ -9217,7 +9217,15 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E2D0);
  * child B ptr; child->0x28 (40) vtable ptr with fn @0x4C (76) and
  * s16 base-adjust @0x48 (72). Caps <80: 2x reloc + 2x vtable jalr +
  * blezl branch-likely loop with per-iter reload. INCLUDE_ASM remains
- * build path (no episode; tautology-trap rule). */
+ * build path (no episode; tautology-trap rule).
+ * 2026-06-21 (agent-b sweep): 7->5 non-reloc diffs. Hoisting the loop
+ * counter init (`i = 0;` BEFORE `p = a0+0x8C8;`) and dropping the dead
+ * `if(a0){}` / `n = n;` no-ops matches the target's counter-before-base
+ * schedule (`move s0,zero` ahead of `addiu s1,s2,0x8C8`). RESIDUAL 5
+ * diffs are ALL the frame-layout delta: target reserves -0x38, build
+ * -0x40 (8 extra bytes of IDO spill-pad between the saved-reg block and
+ * the `&n` slot at sp+0x34 vs sp+0x3C). Pure allocator frame-reservation
+ * (the `&n` escapes to func_000089C0); not C-reachable. Stays NM. */
 #ifdef NON_MATCHING
 void func_0000E4DC(char *a0) {
   int n;
@@ -9227,14 +9235,11 @@ void func_0000E4DC(char *a0) {
   int *v;
   func_00000000(a0 + 0x540);
   func_000089C0(&n);
+  i = 0;
   p = (short *) (a0 + 0x8C8);
-  if (a0)
-  {
-  }
-  for (i = 0; i < n; i++)
+  for (; i < n; i++)
   {
     func_000089FC(p);
-    n = n;
     p += 1;
   }
 
