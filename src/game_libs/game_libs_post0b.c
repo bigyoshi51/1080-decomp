@@ -27116,11 +27116,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005703C);
  *   buf = arg0->0xC->0;
  *   buf[count*2]   = 0xB900031D;          // GBI cmd word0
  *   buf[count*2+1] = r | extra;           // word1
- * Logic exact but sub-80 (built 38 vs target 36): the flag test compiles to a
- * bltz + bgezl (branch-LIKELY) pair the explicit `extra` var doesn't reproduce
- * (v0 is tracked through the register, not a named local), plus arg0-home schedule.
- * Resume: model the `r|v0` via the call's return register directly + match the
- * bgezl per docs/IDO_CODEGEN branch-likely recipes — multi-tick. */
+ * 95.97% NM (was 89%): NOT caching `dl = arg0->0xC` once — re-deref `arg0->0xC`
+ * for the base AFTER the count++ store recovers the target's `lw t9,12(a3)` reload
+ * and the increment-before-slot ordering. Residual 12 diffs are register coloring:
+ * the 0xB900031D const lands in t2 (build t1) and the `r|v` OR result in t3 (build
+ * t2) because the target materializes the const BEFORE the dl load; this temp
+ * renumber cascades — coloring-tie residual, not missing logic. */
 #ifdef NON_MATCHING
 /* gl_func_00057104: 36-insn GBI command emitter. Calls the (collapsed) callback
  * on a1; if flag bits 19 or 23 of a1->4 are set, calls it again; then appends an
@@ -27138,10 +27139,11 @@ void gl_func_00057104(int a0, int a1) {
         v = gl_func_00000000(a1);
     }
     {
-        int *ctx = *(int **)((char *)a0 + 0xC);
-        int idx = ctx[1];
-        int *slot = (int *)(ctx[0] + idx * 8);
-        ctx[1] = idx + 1;
+        int *dl = *(int **)((char *)a0 + 0xC);
+        int count = dl[1];
+        int *slot;
+        dl[1] = count + 1;
+        slot = (int *)(*(int *)((char *)a0 + 0xC) + count * 8);
         slot[0] = 0xB900031D;
         slot[1] = r | v;
     }

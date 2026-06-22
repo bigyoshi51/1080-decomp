@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00027DC0",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-22T03:44:56.093237+00:00",
+  "end_time": "2026-06-22T03:44:56.093237+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-22T03:44:56.093237+00:00",
+      "assistant_text": "Object-reset function (clear flag bits in byte 0xB0, zero fields 0x30/0x34, set words 0x40/0x44 to -1, clear low nibble of byte 0x60, zero float 0x70). Was 86.48% NM: the target re-reads a0->0xB0 before the bit7 and bit5 clears, but IDO CSE'd the just-stored value because the intervening non-aliasing byte stores let it prove the reload redundant (1 insn short). Routing the two later byte-clears through a `volatile unsigned char*` view forces the reloads, matching the target's three lbu/andi/sb pairs. Byte-exact, 25/25 words.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 25,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00027DC0: object reset. If bit30 of a0->0xB0 is set, clear its\n * bit6; then clear bits 7 and 5 of a0->0xB0, zero the bytes at 0x30/0x34, set\n * the words at 0x40/0x44 to -1, clear the low nibble of byte a0->0x60, and zero\n * the float at 0x70. The `&= ~0xNN` byte masks emit andi 0xffNN (16-bit imm).\n * The bit30 test needs `== 1` (not bare truthy) to emit the target's explicit\n * `sll;srl;bne ==1` extract instead of a collapsed `sll;bgezl` sign-check. The\n * target RE-READS a0->0xB0 before the bit7/bit5 clears (the intervening\n * non-aliasing byte stores let IDO CSE the just-stored value, dropping a reload);\n * routing those two clears through a `volatile unsigned char*` view forces the\n * reloads \u2192 byte-exact. */\nvoid game_libs_func_00027DC0(char *a0) {\n    if ((((unsigned int)*(int *)(a0 + 0xB0) << 1) >> 31) == 1) {\n        *(unsigned char *)(a0 + 0xB0) &= ~0x40;\n    }\n    *(char *)(a0 + 0x30) = 0;\n    *(volatile unsigned char *)(a0 + 0xB0) &= ~0x80;\n    *(char *)(a0 + 0x34) = 0;\n    *(volatile unsigned char *)(a0 + 0xB0) &= ~0x20;\n    *(int *)(a0 + 0x44) = -1;\n    *(int *)(a0 + 0x40) = -1;\n    *(unsigned char *)(a0 + 0x60) &= ~0x0F;\n    *(float *)(a0 + 0x70) = 0.0f;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_00027DC0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Clean build (make clean && make RUN_CC_CHECK=0) -> ROM OK (byte-identical to baserom); word-compare 25/25."
+  }
+}

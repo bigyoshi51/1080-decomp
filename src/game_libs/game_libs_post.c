@@ -10724,32 +10724,29 @@ void gl_func_00027D00(int *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027D00);
 #endif
 
-#ifdef NON_MATCHING
 /* game_libs_func_00027DC0: object reset. If bit30 of a0->0xB0 is set, clear its
  * bit6; then clear bits 7 and 5 of a0->0xB0, zero the bytes at 0x30/0x34, set
  * the words at 0x40/0x44 to -1, clear the low nibble of byte a0->0x60, and zero
  * the float at 0x70. The `&= ~0xNN` byte masks emit andi 0xffNN (16-bit imm).
- * 86.48% NM. The bit30 test needs `== 1` (not bare truthy) to emit the target's
- * explicit `sll;srl;bne ==1` extract instead of a collapsed `sll;bgezl` sign-
- * check (+16pp). Residual 1 insn: the target RE-READS a0->0xB0 before the bit5
- * clear where IDO CSEs the just-stored value (the intervening a0->0x34=0 byte
- * store doesn't alias, so IDO proves the reload redundant) — permuter-class. */
+ * The bit30 test needs `== 1` (not bare truthy) to emit the target's explicit
+ * `sll;srl;bne ==1` extract instead of a collapsed `sll;bgezl` sign-check. The
+ * target RE-READS a0->0xB0 before the bit7/bit5 clears (the intervening
+ * non-aliasing byte stores let IDO CSE the just-stored value, dropping a reload);
+ * routing those two clears through a `volatile unsigned char*` view forces the
+ * reloads → byte-exact. */
 void game_libs_func_00027DC0(char *a0) {
     if ((((unsigned int)*(int *)(a0 + 0xB0) << 1) >> 31) == 1) {
         *(unsigned char *)(a0 + 0xB0) &= ~0x40;
     }
     *(char *)(a0 + 0x30) = 0;
-    *(unsigned char *)(a0 + 0xB0) &= ~0x80;
+    *(volatile unsigned char *)(a0 + 0xB0) &= ~0x80;
     *(char *)(a0 + 0x34) = 0;
-    *(unsigned char *)(a0 + 0xB0) &= ~0x20;
+    *(volatile unsigned char *)(a0 + 0xB0) &= ~0x20;
     *(int *)(a0 + 0x44) = -1;
     *(int *)(a0 + 0x40) = -1;
     *(unsigned char *)(a0 + 0x60) &= ~0x0F;
     *(float *)(a0 + 0x70) = 0.0f;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027DC0);
-#endif
 
 // gl_func_00027E24 — STRUCTURAL PASS (0x534 / 333 words ≈ 1.3KB, no
 // episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO
