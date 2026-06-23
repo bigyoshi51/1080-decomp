@@ -1,0 +1,32 @@
+{
+  "function_name": "func_800049B8",
+  "project": "1080-agent-d",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T08:26:26.166308+00:00",
+  "end_time": "2026-06-23T08:26:26.166352+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T08:26:26.166337+00:00",
+      "assistant_text": "Byte-exact -O1 match. Loop reads D_8000A430 and i directly (no cached pos local) to get the double global/local reload; pre-increment ++i in while test keeps the i+1 result feeding both sltiu and the store-back; Y,X decl order reverses the X/Y spill-slot numbering (0x1C/0x20) at -O1. Verified: all 63 opcode bytes + relocs identical to expected/src/kernel/kernel_000_o1.c.o; full make clean && make ROM byte-identical to baserom.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 66,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern void* D_8000A420;\n\n/* func_800049B8: 64-insn rmon/kdebugserver packet parser. Receives 24\n * bits per call (high 3 bytes of arg0); appends them to packet buffer\n * kdebugserver_bss_01B0[] at write-position D_8000A430. After append:\n *   - if buf[0] == 2: send a fixed-size packet (0x190 bytes from\n *     D_8000A420+0x20 via func_80004CE8); reset position\n *   - else if pos < 9: return (need more data)\n *   - else if buf[0] == 1: parse two u32s (BE) at buf[1] and buf[5]\n *     via func_80004BB0; pass to func_80004CE8; reset position\n *   - else: return (other tag \u2014 discard)\n * -O1 split: byte-exact match (loop reads D_8000A430 + i directly, no\n * cached pos; ++i pre-incr in the while test; Y,X decl order = reverse\n * stack-slot numbering at -O1). */\nextern u32 D_8000A430;\nextern u8 kdebugserver_bss_01B0[];\nextern void func_80004CE8(u32 a, u32 b);\nextern u32 func_80004BB0(u8 *p);\nvoid func_800049B8(u32 arg0) {\n    s32 i;\n    u32 Y, X;\n\n    i = 0;\n    do {\n        kdebugserver_bss_01B0[D_8000A430] = ((u8*)&arg0)[1 + i];\n        D_8000A430 = D_8000A430 + 1;\n    } while ((u32)++i < 3);\n\n    if (kdebugserver_bss_01B0[0] == 2) {\n        func_80004CE8((u32)((u8*)D_8000A420 + 0x20), 0x190);\n        D_8000A430 = 0;\n    } else if (D_8000A430 >= 9) {\n        if (kdebugserver_bss_01B0[0] == 1) {\n            X = func_80004BB0(&kdebugserver_bss_01B0[1]);\n            Y = func_80004BB0(&kdebugserver_bss_01B0[5]);\n            func_80004CE8(X, Y);\n            D_8000A430 = 0;\n        }\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_000_o1.c",
+    "asm_path": "asm/nonmatchings/kernel/func_800049B8.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+  }
+}

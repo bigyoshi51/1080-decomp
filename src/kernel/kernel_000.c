@@ -846,38 +846,33 @@ extern s32 D_8000A2E4;
 extern s32 D_80012F7C;
 
 #ifdef NON_MATCHING
-/* 83% NM (up from 43.91% by removing the cross-iteration `temp_v0` local —
- * that 5th $s register was forcing a +0x30 frame instead of +0x28). Iterate
- * through a fixed table of entry pointers (D_80012D60 .. D_80012F7C); for
- * each non-NULL entry, dispatch a callback at D_80012BC0 + 0x84 with the
- * entry's data + a length pair derived from fields 0x4C and 0x14.
+/* Logic-exact NM. Iterate a fixed table of entry pointers
+ * (D_80012D60 .. D_80012F7C); for each non-NULL entry dispatch the callback
+ * at D_80012BC0 + 0x84 with (arg0, &entry[0x72], field_4C, field_4C+field_14).
  *
- * Per feedback_ido_o0_register_count_matches_target_s_saves_exactly.md
- * applied to -O1: target saves 4 s-regs (s0/s1/s2/s3) for the 4
- * `register T x` decls (p, end, arg0, state). My C has the matching
- * count BUT IDO's allocator picks 3 s-saves (s0/s1/s2) and computes
- * `end` as `addiu sN, p, 0x21C` runtime-folded — see disasm at offset
- * 0x9d0 onward (3 lui's, no s3-save). The CSE between p (D_80012D60)
- * and end (D_80012F7C = D_80012D60+0x21C) is what IDO collapses; both
- * being known constants triggers strength-reduction.
+ * SINGLE residual = IDO -O2 register-allocation cap (verified 2026-06-23,
+ * decl-order sweep + 480s permuter / multiple variants, none reached 0).
+ * Target saves FOUR callee-saved s-regs and hoists all four loop-invariant
+ * base pointers: s0=D_80012D60(p), s1=D_8000A2E4(arg0), s2=D_80012BC0(state),
+ * s3=D_80012F7C(end) — `lui` order p/arg0/state/end (decls below mirror it),
+ * `addiu` order reversed. It then loads the callback via `lw $t9,0x84($s2)`.
  *
- * Promotion path tried (2026-05-05):
- *   - Split decl-init from later assignment: same 83%, no change.
- *   - `register` hint already present on all 4 — IDO ignores for the
- *     CSE-foldable end.
- *   - Proxy-zero on `end` per feedback_proxy_extern_at_0_breaks_constant_fold:
- *     known to renumber other $s allocations (regression class).
+ * This build saves only THREE s-regs (s0/s1/s2) and leaves `state` in a
+ * caller-saved temp: `lui $t9; lw $t9,0x84($t9)` rematerialized per iter.
+ * Cause: `state`'s live range dies before the `jalr` (it is read only to
+ * fetch the function pointer into t9), so -O2 declines callee-save promotion
+ * for it and keeps end+arg0 instead. The `addu $a3,$a2,$t6` vs `$t6,$a2`
+ * operand-order diff is downstream of the same allocation (IDO canonicalizes
+ * the commutative add by allocated-reg order, not by C source order — verified
+ * both `off+field_14` and `field_14+off` emit `t6,a2`).
  *
- * Remaining caps: state isn't getting $s-promoted in the path I expect
- * (build inlines `lui+lw` per iter; target uses `lw 0x84(s2)` with s2=state);
- * end is collapsed into computed-from-p (3 s-saves vs 4); addu operand
- * order on the length-pair add is swapped. All IDO -O1 codegen-choice
- * caps not C-source-reachable. */
+ * No semantics-preserving C reshaping promotes a 4th callee-saved invariant
+ * whose range dies pre-call. Genuine -O2 coloring cap, not C-source-reachable. */
 void func_800007D4(void) {
     register UsoEntry74 **p = (UsoEntry74**)&D_80012D60;
-    register UsoEntry74 **end = (UsoEntry74**)&D_80012F7C;
     register void *arg0 = &D_8000A2E4;
     register UsoCallbacks84 *state = (UsoCallbacks84*)&D_80012BC0;
+    register UsoEntry74 **end = (UsoEntry74**)&D_80012F7C;
 
     do {
         UsoEntry74 *e = *p;
@@ -1309,6 +1304,7 @@ extern s32 D_80012D34;
 extern s32 D_80012D38;
 extern s32 D_80012D3C[];
 extern s32 D_80012D5C;
+extern s32 D_80012D5C_alias; /* distinct extern @ 0x80012D5C: breaks store<->end CSE */
 
 #ifdef NON_MATCHING
 /* NON_MATCHING: target uses a fixed 2-iter pointer loop with no zero-guard.
@@ -1384,25 +1380,45 @@ extern s32 D_80012D5C;
  * that forces shared-$at base on two of the four naked stores. The
  * `extern int[2]` array trick picks $a0 (per 9th variant), not $at.
  * No new naked-store form found that triggers $at-base reuse. Reverted.
- * Cap still holds — needs permuter or hypothetical mid-function-shrink
- * recipe. */
+ *
+ * 2026-06-23 13th variant: 81.58% -> 82.11%. Two refinements:
+ * (1) Store D_80012D5C via a distinct extern `D_80012D5C_alias` (same
+ *     VRAM, via undefined_syms_auto.txt) so the naked $at store no longer
+ *     CSEs with `end = &D_80012D5C`. This lets `end` keep the clean
+ *     `lui v?; addiu v?` D5C load form AND keeps the prologue store naked
+ *     ($at), instead of the earlier `end = D_80012D3C + 8` workaround that
+ *     re-derived end from the D3C base (extra lui + addiu N).
+ * (2) Compare `end != ptr` (not `ptr != end`) -> `bne v1,v0` operand order
+ *     now matches target exactly.
+ * Residual = exactly TWO confirmed IDO-7.1 hard caps (verified by direct
+ * cc probes of naked/array/struct/ptr-arith forms at -O1/-O2/-O3/mips1/2):
+ *   (a) D_80012D34 merge: target emits `lui at,D30; sw 0(at); sw 0(at)[D34]`
+ *       (one $at, two stores). IDO 7.1 NEVER reuses $at across naked
+ *       absolute stores (always re-`lui at`); any base-sharing form
+ *       (array[i]=0 / struct field / ptr-arith) materializes the base in a
+ *       GPR (a0/v1) instead of $at. Merged-naked-$at is unreachable here.
+ *   (b) reg-renumber: target gives the loop-incremented ptr the HIGHER reg
+ *       (v1) and the constant bound `end` the lower (v0); IDO's priority
+ *       (refs x loop_depth) always assigns the incremented loop var v0.
+ *       Decl-order / assign-order / register hints do not flip it.
+ * Both are emit-shape caps, not C bugs. Stays NON_MATCHING. */
 void func_80001184(void) {
     s32* ptr;
     s32* end;
 
-    *(s32*)&D_80012D5C = 0;
+    *(s32*)&D_80012D5C_alias = 0;
     *(s32*)&D_80012D30 = 0;
     *(s32*)&D_80012D34 = 0;
     *(s32*)&D_80012D38 = 0;
     ptr = D_80012D3C;
-    end = D_80012D3C + 8;
+    end = &D_80012D5C;
 loop:
     ptr += 4;
     ptr[-4] = 0;
     ptr[-3] = 0;
     ptr[-2] = 0;
     ptr[-1] = 0;
-    if (ptr != end) {
+    if (end != ptr) {
         goto loop;
     }
 }

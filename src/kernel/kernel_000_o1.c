@@ -49,7 +49,6 @@ void func_800048E8(char *arg0, s32 arg1) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800048E8);
 #endif
 
-#ifdef NON_MATCHING
 /* func_800049B8: 64-insn rmon/kdebugserver packet parser. Receives 24
  * bits per call (high 3 bytes of arg0); appends them to packet buffer
  * kdebugserver_bss_01B0[] at write-position D_8000A430. After append:
@@ -59,23 +58,22 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800048E8);
  *   - else if buf[0] == 1: parse two u32s (BE) at buf[1] and buf[5]
  *     via func_80004BB0; pass to func_80004CE8; reset position
  *   - else: return (other tag — discard)
- * -O1 split (2026-06-04): 39% (-O2) -> 78% (-O1). */
+ * -O1 split: byte-exact match (loop reads D_8000A430 + i directly, no
+ * cached pos; ++i pre-incr in the while test; Y,X decl order = reverse
+ * stack-slot numbering at -O1). */
 extern u32 D_8000A430;
 extern u8 kdebugserver_bss_01B0[];
 extern void func_80004CE8(u32 a, u32 b);
 extern u32 func_80004BB0(u8 *p);
 void func_800049B8(u32 arg0) {
     s32 i;
-    u32 pos;
-    u32 X, Y;
+    u32 Y, X;
 
     i = 0;
     do {
-        pos = D_8000A430;
-        kdebugserver_bss_01B0[pos] = ((u8*)&arg0)[1 + i];
-        D_8000A430 = pos + 1;
-        i++;
-    } while ((u32)i < 3);
+        kdebugserver_bss_01B0[D_8000A430] = ((u8*)&arg0)[1 + i];
+        D_8000A430 = D_8000A430 + 1;
+    } while ((u32)++i < 3);
 
     if (kdebugserver_bss_01B0[0] == 2) {
         func_80004CE8((u32)((u8*)D_8000A420 + 0x20), 0x190);
@@ -89,6 +87,3 @@ void func_800049B8(u32 arg0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800049B8);
-#endif
