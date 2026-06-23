@@ -47,59 +47,60 @@
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
-#endif
+extern u32 D_A4600010;
+extern s32 D_A4600014, D_A4600018, D_A460001C, D_A4600020;
+extern s32 D_A4600024, D_A4600028, D_A460002C, D_A4600030;
+extern s32 D_A0000000;
 extern void *D_8000A470;
 /* PI raw cartridge read with BSD domain register setup. Wait for PI not-busy
- * (PI_STATUS 0xA4600010 & 3), then if this handle isn't the cached one for its
+ * (PI_STATUS D_A4600010 & 3), then if this handle isn't the cached one for its
  * domain (arg0->unk9, the D_8000A470[domain] slot), reprogram the domain's BSD
  * timing registers that changed (latency unk5, pagesize unk6, release unk7,
- * pulse unk8 -> dom0 0xA4600014/1C/20/18 or dom1 0xA4600024/2C/30/28) and cache
- * the handle. Finally read the cartridge word at (base | offset | 0xA0000000). */
+ * pulse unk8 -> dom0 D_A4600014/1C/20/18 or dom1 D_A4600024/2C/30/28) and cache
+ * the handle. Finally read the cartridge word at (&D_A0000000 + base|offset).
+ * Externalized MMIO symbols (vs raw 0xA46000xx) give the HI16/LO16 reloc form
+ * the target uses; residual = -O1 register-coloring of domain/status only. */
 s32 func_80009850(void *arg0, s32 arg1, s32 *arg2) {
+    s32 domain;
     void *sp4;
-    u8 temp_t0;
-    void *temp_t7;
 
-    if (*(volatile u32 *) 0xA4600010 & 3) {
+    if (D_A4600010 & 3) {
         do {
-        } while (*(volatile u32 *) 0xA4600010 & 3);
+        } while (D_A4600010 & 3);
     }
-    temp_t0 = *(u8 *)((char *) arg0 + 9);
-    if (((void **) &D_8000A470)[temp_t0] != arg0) {
-        temp_t7 = ((void **) &D_8000A470)[temp_t0];
-        sp4 = temp_t7;
-        if (temp_t0 == 0) {
-            if (*(u8 *)((char *) temp_t7 + 5) != *(u8 *)((char *) arg0 + 5)) {
-                *(volatile s32 *) 0xA4600014 = *(u8 *)((char *) arg0 + 5);
+    domain = *(u8 *)((char *) arg0 + 9);
+    if (((void **) &D_8000A470)[domain] != arg0) {
+        sp4 = ((void **) &D_8000A470)[domain];
+        if (domain == 0) {
+            if (*(u8 *)((char *) sp4 + 5) != *(u8 *)((char *) arg0 + 5)) {
+                D_A4600014 = *(u8 *)((char *) arg0 + 5);
             }
             if (*(u8 *)((char *) sp4 + 6) != *(u8 *)((char *) arg0 + 6)) {
-                *(volatile s32 *) 0xA460001C = *(u8 *)((char *) arg0 + 6);
+                D_A460001C = *(u8 *)((char *) arg0 + 6);
             }
             if (*(u8 *)((char *) sp4 + 7) != *(u8 *)((char *) arg0 + 7)) {
-                *(volatile s32 *) 0xA4600020 = *(u8 *)((char *) arg0 + 7);
+                D_A4600020 = *(u8 *)((char *) arg0 + 7);
             }
             if (*(u8 *)((char *) sp4 + 8) != *(u8 *)((char *) arg0 + 8)) {
-                *(volatile s32 *) 0xA4600018 = *(u8 *)((char *) arg0 + 8);
+                D_A4600018 = *(u8 *)((char *) arg0 + 8);
             }
         } else {
             if (*(u8 *)((char *) sp4 + 5) != *(u8 *)((char *) arg0 + 5)) {
-                *(volatile s32 *) 0xA4600024 = *(u8 *)((char *) arg0 + 5);
+                D_A4600024 = *(u8 *)((char *) arg0 + 5);
             }
             if (*(u8 *)((char *) sp4 + 6) != *(u8 *)((char *) arg0 + 6)) {
-                *(volatile s32 *) 0xA460002C = *(u8 *)((char *) arg0 + 6);
+                D_A460002C = *(u8 *)((char *) arg0 + 6);
             }
             if (*(u8 *)((char *) sp4 + 7) != *(u8 *)((char *) arg0 + 7)) {
-                *(volatile s32 *) 0xA4600030 = *(u8 *)((char *) arg0 + 7);
+                D_A4600030 = *(u8 *)((char *) arg0 + 7);
             }
             if (*(u8 *)((char *) sp4 + 8) != *(u8 *)((char *) arg0 + 8)) {
-                *(volatile s32 *) 0xA4600028 = *(u8 *)((char *) arg0 + 8);
+                D_A4600028 = *(u8 *)((char *) arg0 + 8);
             }
         }
-        ((void **) &D_8000A470)[temp_t0] = arg0;
+        ((void **) &D_8000A470)[domain] = arg0;
     }
-    *arg2 = *(s32 *)(FW(arg0, 0xC) | arg1 | 0xA0000000);
+    *arg2 = *(s32 *)((char *) &D_A0000000 + (*(s32 *)((char *) arg0 + 0xC) | arg1));
     return 0;
 }
 #else

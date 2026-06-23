@@ -1840,6 +1840,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003430);
 #endif
 
 #ifdef NON_MATCHING
+/* gl_func_000038F4: render-loop over a 4-slot ring (idx = (arg0->0x80 + i) & 3).
+ * Two sprintf-style format calls (&D_0001CCEC / &D_0001CCF8 into stack scratch
+ * buffers spE4/sp64), then a sequence of draw calls through arg0->0x50, scaling
+ * arg0->slot->0x9C (an int) by a float global (&D_00000000) via int->float +
+ * mul + trunc.w.s. First a per-component init loop (16 entries, stride 4)
+ * dispatches each slot's vtable fn (slot->0x28->0x1C).
+ * Decode is byte-correct in logic + structure: 20/138 words differ, of which
+ *   - 4 are link-resolved HI16/LO16 fills for the &D_0001CCEC/F8 format strings
+ *     (immediate baked to 0 in the unlinked .o; correct after the ROM link),
+ *   - 3 are stack-frame-layout slots (buffers land at sp+0xF8/0x78 vs target
+ *     sp+0xE4/0x64; frame size 360 matches),
+ *   - 13 are pure register-coloring (int temps t0/t1.. vs v0/t9 in the index
+ *     calc + arg0->0x84 reload, and the FP $f-reg numbering in the 3 scale
+ *     blocks). Documented "correct C, divergent IDO allocation" cap class.
+ * The FP multiply operand order (global * converted) was already tuned to the
+ * target (took residual 30->20). */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -1847,13 +1863,15 @@ typedef int (*GP_000038F4)();
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
+extern char D_0001CCEC;
+extern char D_0001CCF8;
 void gl_func_000038F4(char *arg0) {
-    int spE4;
-    int sp64;
+    char spE4[112];
+    char sp64[128];
     int *temp_a3;
-    int *temp_s2;
-    int *temp_s3;
-    int *temp_s7;
+    int temp_s2;
+    int temp_s3;
+    char *temp_s7;
     s32 var_s0;
     s32 var_s4;
     char *temp_s0;
@@ -1864,32 +1882,32 @@ void gl_func_000038F4(char *arg0) {
     var_s0 = 0;
     var_s2 = arg0;
     do {
-        temp_v1 = FW(var_s2, 0x2C);
+        temp_v1 = (char *)FW(var_s2, 0x2C);
         if (FW(temp_v1, 0x94) != 0) {
-            temp_v0 = FW(temp_v1, 0x28);
-            ((GP_000038F4)FW(temp_v0, 0x1C))(*(s16*)((char*)temp_v0 + 0x18) + temp_v1);
+            temp_v0 = (char *)FW(temp_v1, 0x28);
+            ((GP_000038F4)FW(temp_v0, 0x1C))(*(s16*)(temp_v0 + 0x18) + temp_v1);
         }
         var_s0 += 4;
         var_s2 += 4;
     } while (var_s0 != 0x20);
     func_00000000(FW(arg0, 0x50));
     var_s4 = 0;
-    temp_s7 = (int)arg0 + 0xCC;
+    temp_s7 = arg0 + 0xCC;
     if (FW(arg0, 0x84) > 0) {
         do {
-            temp_s0 = (int)arg0 + (((FW(arg0, 0x80) + var_s4) & 3) * 4);
-            temp_a3 = FW(temp_s0, 0x6C);
+            temp_s0 = arg0 + ((FW(arg0, 0x80) + var_s4) & 3) * 4;
+            temp_a3 = (int *)FW(temp_s0, 0x6C);
             if (temp_a3 != (int *)-1) {
-                func_00000000(&spE4, (int *)0xCCEC, FW(temp_s0, 0x5C), temp_a3);
-                func_00000000(&sp64, (int *)0xCCF8, FW(temp_s0, 0x6C));
-                temp_s2 = func_00000000(FW(arg0, 0x50), FW(temp_s0, 0xAC), &spE4);
+                func_00000000(spE4, &D_0001CCEC, FW(temp_s0, 0x5C), temp_a3);
+                func_00000000(sp64, &D_0001CCF8, FW(temp_s0, 0x6C));
+                temp_s2 = func_00000000(FW(arg0, 0x50), FW(temp_s0, 0xAC), spE4);
                 temp_s3 = func_00000000(FW(arg0, 0x50), FW(temp_s0, 0x5C)) + temp_s2;
-                func_00000000(FW(arg0, 0x50), (int *) (s32) (FF(temp_s0, 0x9C) * *(int*)0), temp_s7, (int *)0xFF);
+                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(temp_s0, 0x9C)), temp_s7, 0xFF);
                 func_00000000(FW(arg0, 0x50), temp_s2, FW(temp_s0, 0xBC), FW(temp_s0, 0x5C));
-                func_00000000(FW(arg0, 0x50), (int *) (s32) (FF(temp_s0, 0x9C) * *(int*)0), (int)arg0 + 0xDC, (int *)0xFF);
-                func_00000000(FW(arg0, 0x50), temp_s3, FW(temp_s0, 0xBC), &sp64);
+                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(temp_s0, 0x9C)), arg0 + 0xDC, 0xFF);
+                func_00000000(FW(arg0, 0x50), temp_s3, FW(temp_s0, 0xBC), sp64);
             } else {
-                func_00000000(FW(arg0, 0x50), (int *) (s32) (FF(temp_s0, 0x9C) * *(int*)0), temp_s7, (int *)0xFF);
+                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(temp_s0, 0x9C)), temp_s7, 0xFF);
                 func_00000000(FW(arg0, 0x50), func_00000000(FW(arg0, 0x50), FW(temp_s0, 0xAC), FW(temp_s0, 0x5C)), FW(temp_s0, 0xBC), FW(temp_s0, 0x5C));
             }
             var_s4 += 1;

@@ -145,7 +145,6 @@ void func_800070A0(char *addr, int len) {
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800070A0);
 #endif
 
-#ifdef NON_MATCHING
 extern void func_800082EC(void);
 extern void func_80008E08(void);
 extern void func_80008E38(void);
@@ -164,6 +163,7 @@ extern s32 __rmonMQ;
  * 0x10 -> just clear), clearing the bit as it goes; bit 0x20 is a one-shot
  * (clear and continue), otherwise re-loop. */
 void func_800071C0(void) {
+    register s32 phantom;
     s32 sp20;
 
     D_8001B7D0 = 0;
@@ -173,6 +173,7 @@ void func_800071C0(void) {
     D_8000A580 = 1;
     rmonmain_bss_046C = 0;
     rmonmain_bss_0470 = &rmonmain_bss_0008;
+    phantom = 0;
 loop_1:
     func_80004FE0(&__rmonMQ, &sp20, 1);
     D_8001B7D0 |= sp20;
@@ -199,6 +200,3 @@ loop_1:
     D_8001B7D0 &= 0xDF;
     goto loop_1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800071C0);
-#endif

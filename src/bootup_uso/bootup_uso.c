@@ -7937,20 +7937,39 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B75C);
  * (1288); outputs s0->0x9FC (2556) / s0->0x360 (864) / s0->0xA00
  * (2560); s0->0x9F8 (2552) = s0->0x490 (1168). s0->0x9A2 (2466)
  * s16, 0.5 const for the signed sub-path. Likely a carve/lean
- * direction (left vs right) parameter swap per frame. Caps <80:
- * FP-heavy cvt.d.s/c.lt.d/mul.s + many lui+mtc1 consts + beql/
- * bc1fl branch-likely + flag-gated dual param sets + reloc.
- * Full body INCLUDE_ASM-preserved (.s = source of truth).
- * INCLUDE_ASM (no episode; tautology-trap rule). */
+ * direction (left vs right) parameter swap per frame.
+ *
+ * RECONSTRUCTED 2026-06-23: faithful full-body decode now uses the REAL
+ * resolved reloc symbols (func_000008F4+0x20 f32 / +0x24 f64 const-pool;
+ * func_00008A40+0x20 / +0x2C dispatch-target addresses passed to the
+ * allocator func_00000000) in place of the old &D_00000000 placeholders.
+ * Build emits EXACTLY 186 instructions = target's 186 (same opcode
+ * multiset, all relocs correct: 2x func_000008F4 HI/LO, 2x func_00008A40
+ * HI/LO, 8x func_00000000 R_MIPS_26).
+ *
+ * RESIDUAL CAP (~35 mnemonic-position diffs, permuter-immune — floored at
+ * score ~2015 over 7-thread x10min, never approached 0): three clusters,
+ * all scheduler/coloring, none C-controllable:
+ *   (1) sign-flag block: target uses bc1fl/beqzl BRANCH-LIKELY with the
+ *       mtc1/lwc1 const-load hoisted into the delay slot; build emits the
+ *       plain-branch + separate-slot shape.
+ *   (2) switch default arm: target's 3rd compare is `beql` (likely) with
+ *       lwc1 0x360 in delay + ldc1/add.d/cvt ordering; build differs only
+ *       in as1 instruction scheduling.
+ *   (3) tail: func_00008A40+0x20/+0x2C — target re-materializes the symbol
+ *       address with two independent lui/addiu per call; IDO -O2 here
+ *       CSE-collapses the common &func_00008A40 base into a single spill
+ *       (sw v0,36(sp)), bloating the frame -32 -> -80 and cascading the
+ *       register coloring. Same-symbol CSE-vs-recompute is an allocator
+ *       choice, not source-reorderable (the distinct-extern bust needs a
+ *       2nd defined symbol at the same addr, unavailable for an in-TU
+ *       func). Also affects sibling func_0000B1B4 (same +0x8/+0x14 pattern).
+ * Logic + structure are byte-faithful; INCLUDE_ASM remains the build path
+ * (no episode; not 0-diff). */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0000BF8C)();
 void func_0000BF8C(char *arg0) {
     f32 temp_f0;
     f32 temp_f0_2;
-    f32 var_f10;
     f32 var_f12;
     f32 var_f2;
     s16 temp_v0_2;
@@ -7960,80 +7979,78 @@ void func_0000BF8C(char *arg0) {
     char *temp_v0;
 
     var_f12 = 0.0f;
-    temp_v0 = FW(arg0, 0x800);
+    temp_v0 = *(char **)((char *)arg0 + 0x800);
     var_t6 = 0;
-    if ((f64) (*(f32*)((char*)temp_v0 + 0x4)) < -0.75) {
+    if ((f64) (*(f32 *)((char *)temp_v0 + 0x4)) < -0.75) {
         var_t6 = 1;
     }
-    FW(arg0, 0x990) = var_t6;
-    temp_t9 = (FW(temp_v0, 0x10) & 0x400) != 0;
-    FW(arg0, 0x9CC) = temp_t9;
-    (*(f32*)((char*)arg0 + 0x9F8)) = (f32) (*(f32*)((char*)arg0 + 0x490));
+    *(s32 *)((char *)arg0 + 0x990) = var_t6;
+    temp_t9 = (*(s32 *)((char *)temp_v0 + 0x10) & 0x400) != 0;
+    *(s32 *)((char *)arg0 + 0x9CC) = temp_t9;
+    *(f32 *)((char *)arg0 + 0x9F8) = *(f32 *)((char *)arg0 + 0x490);
     if (temp_t9 != 0) {
-        (*(f32*)((char*)arg0 + 0x9FC)) = (f32) (*(f32*)((char*)arg0 + 0x4F0));
-        (*(f32*)((char*)arg0 + 0x360)) = (f32) (*(f32*)((char*)arg0 + 0x4D8));
-        (*(f32*)((char*)arg0 + 0xA00)) = (f32) ((*(f32*)((char*)arg0 + 0x6F0)) * (*(f32*)((char*)arg0 + 0x508)));
+        *(f32 *)((char *)arg0 + 0x9FC) = *(f32 *)((char *)arg0 + 0x4F0);
+        *(f32 *)((char *)arg0 + 0x360) = *(f32 *)((char *)arg0 + 0x4D8);
+        *(f32 *)((char *)arg0 + 0xA00) = (f32) ((*(f32 *)((char *)arg0 + 0x6F0)) * (*(f32 *)((char *)arg0 + 0x508)));
     } else {
-        (*(f32*)((char*)arg0 + 0x9FC)) = (f32) (*(f32*)((char*)arg0 + 0x4C0));
-        (*(f32*)((char*)arg0 + 0x360)) = (f32) (*(f32*)((char*)arg0 + 0x4A8));
-        (*(f32*)((char*)arg0 + 0xA00)) = (f32) ((*(f32*)((char*)arg0 + 0x708)) * (*(f32*)((char*)arg0 + 0x508)));
+        *(f32 *)((char *)arg0 + 0x9FC) = *(f32 *)((char *)arg0 + 0x4C0);
+        *(f32 *)((char *)arg0 + 0x360) = *(f32 *)((char *)arg0 + 0x4A8);
+        *(f32 *)((char *)arg0 + 0xA00) = (f32) ((*(f32 *)((char *)arg0 + 0x708)) * (*(f32 *)((char *)arg0 + 0x508)));
     }
-    if (FW(arg0, 0x990) != 0) {
-        if (FW(arg0, 0x9CC) != 0) {
-            var_f12 = (*(f32*)((char*)&D_00000000 + 0x20));
+    if (*(s32 *)((char *)arg0 + 0x990) != 0) {
+        if (*(s32 *)((char *)arg0 + 0x9CC) != 0) {
+            var_f12 = *(f32 *)((char *)&func_000008F4 + 0x20);
         } else {
             var_f12 = 0.5f;
         }
-        temp_f0 = (*(f32*)((char*)arg0 + 0x970));
+        temp_f0 = *(f32 *)((char *)arg0 + 0x970);
         if (temp_f0 < 0.0f) {
             var_f2 = -temp_f0;
         } else {
             var_f2 = temp_f0;
         }
-        (*(f32*)((char*)arg0 + 0x360)) = (f32) ((*(f32*)((char*)arg0 + 0x360)) + (var_f2 * var_f12));
+        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x360)) + (var_f2 * var_f12));
     }
-    temp_v0_2 = FW(arg0, 0x9A2);
+    temp_v0_2 = *(s16 *)((char *)arg0 + 0x9A2);
     switch (temp_v0_2) {                            /* irregular */
+    case 0x63:
+        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x360)) * (*(f32 *)((char *)arg0 + 0x448)));
+        *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x9FC)) * (*(f32 *)((char *)arg0 + 0x430)));
+        break;
     case 0x61:
         break;
-    default:
-        (*(f32*)((char*)arg0 + 0x9FC)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0x9F8)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0x360)) = (f32) ((f64) (*(f32*)((char*)arg0 + 0x360)) + (*(f64*)((char*)&D_00000000 + 0x24)));
-        break;
-    case 0x63:
-        var_f10 = (*(f32*)((char*)arg0 + 0x9FC)) * (*(f32*)((char*)arg0 + 0x430));
-        (*(f32*)((char*)arg0 + 0x360)) = (f32) ((*(f32*)((char*)arg0 + 0x360)) * (*(f32*)((char*)arg0 + 0x448)));
-block_19:
-        (*(f32*)((char*)arg0 + 0x9FC)) = var_f10;
-        break;
     case 0x62:
-        var_f10 = (*(f32*)((char*)arg0 + 0x9FC)) * (*(f32*)((char*)arg0 + 0x460));
-        (*(f32*)((char*)arg0 + 0x360)) = (f32) ((*(f32*)((char*)arg0 + 0x360)) * (*(f32*)((char*)arg0 + 0x478)));
-        goto block_19;
+        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x360)) * (*(f32 *)((char *)arg0 + 0x478)));
+        *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x9FC)) * (*(f32 *)((char *)arg0 + 0x460)));
+        break;
+    default:
+        *(f32 *)((char *)arg0 + 0x9FC) = 0.0f;
+        *(f32 *)((char *)arg0 + 0x9F8) = 0.0f;
+        *(f32 *)((char *)arg0 + 0x360) = (f32) ((f64) (*(f32 *)((char *)arg0 + 0x360)) + (*(f64 *)((char *)&func_000008F4 + 0x24)));
+        break;
     }
-    temp_v0_3 = FW(arg0, 0x960);
-    (*(f32*)((char*)arg0 + 0x9FC)) = (f32) ((*(f32*)((char*)arg0 + 0x9FC)) * (*(f32*)((char*)arg0 + 0x5D0)));
-    (*(f32*)((char*)arg0 + 0x360)) = (f32) ((*(f32*)((char*)arg0 + 0x360)) * (*(f32*)((char*)arg0 + 0x5E8)));
+    temp_v0_3 = *(s32 *)((char *)arg0 + 0x960);
+    *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x9FC)) * (*(f32 *)((char *)arg0 + 0x5D0)));
+    *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x360)) * (*(f32 *)((char *)arg0 + 0x5E8)));
     if (temp_v0_3 != 0) {
-        (*(f32*)((char*)arg0 + 0x9FC)) = 0.0f;
-        temp_f0_2 = 1.0f - (*(f32*)((char*)arg0 + 0x6D8));
-        (*(f32*)((char*)arg0 + 0x360)) = (f32) ((*(f32*)((char*)arg0 + 0x360)) + ((f32) temp_v0_3 / 100.0f));
-        (*(f32*)((char*)arg0 + 0x318)) = (f32) ((*(f32*)((char*)arg0 + 0x318)) * temp_f0_2);
-        (*(f32*)((char*)arg0 + 0x320)) = (f32) ((*(f32*)((char*)arg0 + 0x320)) * temp_f0_2);
+        *(f32 *)((char *)arg0 + 0x9FC) = 0.0f;
+        temp_f0_2 = 1.0f - (*(f32 *)((char *)arg0 + 0x6D8));
+        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x360)) + ((f32) temp_v0_3 / 100.0f));
+        *(f32 *)((char *)arg0 + 0x318) = (f32) ((*(f32 *)((char *)arg0 + 0x318)) * temp_f0_2);
+        *(f32 *)((char *)arg0 + 0x320) = (f32) ((*(f32 *)((char *)arg0 + 0x320)) * temp_f0_2);
     }
-    (char*)func_00000000(arg0);
-    (char*)func_00000000(arg0);
-    (char*)func_00000000((char*)((char*)&D_00000000 + 0x20));
-    (char*)func_00000000(arg0);
-    (char*)func_00000000((char*)((char*)&D_00000000 + 0x2C));
-    (char*)func_00000000(arg0);
-    if ((FW(arg0, 0x960) == 0x64) && ((*(f32*)((char*)arg0 + 0x348)) < 30.0f)) {
-        (*(f32*)((char*)arg0 + 0x318)) = 0.0f;
-        (*(f32*)((char*)arg0 + 0x320)) = 0.0f;
+    func_00000000(arg0);
+    func_00000000(arg0);
+    func_00000000((char *)&func_00008A40 + 0x20);
+    func_00000000(arg0);
+    func_00000000((char *)&func_00008A40 + 0x2C);
+    func_00000000(arg0);
+    if ((*(s32 *)((char *)arg0 + 0x960) == 0x64) && ((*(f32 *)((char *)arg0 + 0x348)) < 30.0f)) {
+        *(f32 *)((char *)arg0 + 0x318) = 0.0f;
+        *(f32 *)((char *)arg0 + 0x320) = 0.0f;
     }
-    (char*)func_00000000(arg0);
-    (char*)func_00000000(arg0);
+    func_00000000(arg0);
+    func_00000000(arg0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000BF8C);
