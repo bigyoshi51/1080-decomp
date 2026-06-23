@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80007B3C",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T07:22:04.264454+00:00",
+  "end_time": "2026-06-23T07:22:04.264454+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T07:22:04.264454+00:00",
+      "assistant_text": "rmon breakpoint/thread-control command handler (kernel_018_g, -O1, 165 insns, frame 0x98). Reconstructed from expected/.o disasm: switch on msg->0x9; case 0 walks func_80009C30() thread chain by id, requires state==1, clears node flags, optional set 0x11C / validate via func_80008C48, then shared SendHeader epilogue (func_800073F8, flag 1) + wake (func_8000A110), returns 1; case 1 arms/disarms RCP single-step break (func_80006A50/func_80006A98/func_8000898C/func_80008498/__rmonRcpAtBreak), SendHeader, optional temp break (func_80007A98->func_80008D0C->0x4C reply), returns 0; default returns -4. Byte-exact landed via: register hints on var_s0/var_s1 + decl-order to pin cmd/node/flag -> s2/s0/s1 and lay out buf/header/sp94, header-build zero/tag reorder, and loop-compare operand-order (sp94->0xC != node->0x14) to fix temp-register numbering. Full ROM verified byte-identical to baserom.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 165,
+  "initial_m2c_source": null,
+  "final_source": "s32 func_80007B3C(void *arg0) {\n    extern s32 func_80008430();\n    extern void func_80007A98();\n    extern void func_800073F8();\n    void *sp94 = arg0;\n    struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 id; } sp84;\n    u8 sp38[0x4C];\n    register void *var_s0;\n    register s32 var_s1;\n\n    var_s1 = 0;\n    switch (*(u8 *)((char *) arg0 + 9)) {\n    case 0:\n        var_s0 = (void *) func_80009C30();\n        if (FW(var_s0, 4) != -1) {\nloop_4:\n            if (FW(sp94, 0xC) != FW(var_s0, 0x14)) {\n                var_s0 = (void *) FW(var_s0, 0xC);\n                if (FW(var_s0, 4) != -1) {\n                    goto loop_4;\n                }\n            }\n        }\n        if (FW(var_s0, 4) == -1) {\n            return -2;\n        }\n        if (FHU(var_s0, 0x10) != 1) {\n            return -4;\n        }\n        FHU(var_s0, 0x12) = FHU(var_s0, 0x12) & ~3;\n        if (FW(sp94, 0x10) & 2) {\n            FW(var_s0, 0x11C) = FW(sp94, 0x14);\n        }\n        if ((FW(sp94, 0x10) & 1) && (func_80008C48(FW(sp94, 0xC), FW(var_s0, 0x11C)) == 0)) {\n            return -4;\n        }\n        var_s1 = 1;\n        break;\n    case 1:\n        if (func_80008430() != 0) {\n            return -4;\n        }\n        if (FW(sp94, 0x10) & 2) {\n            func_80006A50(0x04080000, FW(sp94, 0x14) + 0xFBFFF000);\n        }\n        if (FW(sp94, 0x10) & 1) {\n            if (!(func_8000898C(1, 0x3E8, func_80006A98(0x04080000) + 0x04001000) & 3)) {\n                func_80008498();\n            }\n            func_80008498();\n            __rmonRcpAtBreak = 1;\n        } else {\n            __rmonRcpAtBreak = 0;\n            func_800084AC();\n        }\n        sp84.tag = *(u8 *)((char *) sp94 + 4);\n        sp84.zero = 0;\n        sp84.id = FW(sp94, 0xC);\n        func_800073F8(&sp84, 0x10, 1);\n        if (FW(sp94, 0x10) & 1) {\n            func_80007A98(1, 0x3E8, sp38);\n            func_80008D0C(sp38);\n            func_800073F8(sp38, 0x4C, 2);\n        }\n        return 0;\n    default:\n        return -4;\n    }\n\n    sp84.tag = *(u8 *)((char *) sp94 + 4);\n    sp84.zero = 0;\n    sp84.id = FW(sp94, 0xC);\n    func_800073F8(&sp84, 0x10, 1);\n    if (var_s1 != 0) {\n        func_8000A110(var_s0);\n    }\n    return 1;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_018_g.c",
+    "asm_path": "asm/nonmatchings/kernel/func_80007B3C.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Byte-exact: build/non_matching/.../kernel_018_g.c.o func_80007B3C == expected (165/165 words identical); full make clean && make ROM byte-identical to baserom (cmp clean)."
+  }
+}

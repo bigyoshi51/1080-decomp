@@ -203,21 +203,33 @@ s32 func_80006790(void *arg0) {
  * the RDRAM address (func_80004B30) / length (<=0x400). For an SP-window address
  * (0x04000000..0x05000000): unaligned single-byte/halfword -> read-modify-write
  * via func_80006A98/func_80006A50; aligned -> word-loop via func_80006A50. Else
- * (general RAM) bulk-write via func_80006AEC. Then send the 0x10 reply header. */
-s32 func_8000698C(void *arg0) {
+ * (general RAM) bulk-write via func_80006AEC. Then send the 0x10 reply header.
+ *
+ * Structurally-exact decode (frame 0x48 EXACT, all logic verified vs target):
+ * arg0 pinned s0 (register), range-flag/loop-counter pinned s1 (register), the
+ * RMW byte-merge is THREE independent ifs (==1 high-word merge, ==2 mid merge,
+ * then unconditional low-byte merge) using lbu(arg0+0x18) NOT lw, the word-loop
+ * tests pre-decrement (var_s1 = sp28; sp28--). Residual ~189 mnemonic diffs are
+ * a genuine -O1 coloring + 4-byte slot-offset cascade: IDO defers `move s0,t6`
+ * (loads param to a temp, uses once, then commits to s0) in the prologue and
+ * 8-byte-aligns sp34 at 0x38 (target packs it at 0x34 with the gap at 0x44),
+ * shifting every local slot +4 and renumbering nearly all $t regs. Not
+ * C-controllable at -O1 (decl reorder/param naming explored, frame stays 0x48
+ * but the gap position + prologue temp-move don't reproduce). Permuter base
+ * score 2065, no convergence in 600 iters. Coloring/frame-layout cap. */
+s32 func_8000698C(void *sp48) {
     extern void func_800073F8();
     extern void func_80006A50();
     extern void func_80006AEC();
     struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 id; } sp34;
-    s32 sp30;
-    s32 sp2C;
-    u32 sp28;
     s32 *sp24;
-    s32 temp_a1;
-    s32 temp_t4;
-    s32 var_s1;
-    s32 var_t2;
+    u32 sp28;
+    s32 sp2C;
+    s32 sp30;
+    register void *arg0;
+    register s32 var_s1;
 
+    arg0 = sp48;
     if ((*(u8 *)((char *) arg0 + 9) == 0) && (func_80004B30(FW(arg0, 0x10)) == -1)) {
         return -5;
     }
@@ -230,24 +242,19 @@ s32 func_8000698C(void *arg0) {
         var_s1 = 1;
     }
     if (var_s1 != 0) {
-        temp_t4 = FW(arg0, 0x10) & 3;
-        sp30 = temp_t4;
-        if (temp_t4 != 0) {
+        sp30 = FW(arg0, 0x10) & 3;
+        if (sp30 != 0) {
             if (FW(arg0, 0x14) != 1) {
                 return -5;
             }
             sp2C = func_80006A98(FW(arg0, 0x10) & ~3);
             if (sp30 == 1) {
-                var_t2 = (FW(arg0, 0x18) << 0x10) | (sp2C & 0xFF00FFFF);
-                goto block_18;
+                sp2C = (*(u8 *)((char *) arg0 + 0x18) << 0x10) | (sp2C & 0xFF00FFFF);
             }
             if (sp30 == 2) {
-                sp2C = (FW(arg0, 0x18) << 8) | (sp2C & 0xFFFF00FF);
-            } else {
-                var_t2 = FW(arg0, 0x18) | (sp2C & ~0xFF);
-block_18:
-                sp2C = var_t2;
+                sp2C = (*(u8 *)((char *) arg0 + 0x18) << 8) | (sp2C & 0xFFFF00FF);
             }
+            sp2C = *(u8 *)((char *) arg0 + 0x18) | (sp2C & ~0xFF);
             func_80006A50(FW(arg0, 0x10) & ~3, sp2C);
             goto block_26;
         }
@@ -256,15 +263,15 @@ block_18:
         if (FW(arg0, 0x14) & 3) {
             return -5;
         }
+        var_s1 = sp28;
         sp28 -= 1;
-        if (sp28 != 0) {
+        if (var_s1 != 0) {
             do {
-                temp_a1 = *sp24;
-                sp24 += 1;
-                func_80006A50(FW(arg0, 0x10), temp_a1);
+                func_80006A50(FW(arg0, 0x10), *sp24++);
                 FW(arg0, 0x10) = FW(arg0, 0x10) + 4;
+                var_s1 = sp28;
                 sp28 -= 1;
-            } while (sp28 != 0);
+            } while (var_s1 != 0);
         }
         goto block_26;
     }

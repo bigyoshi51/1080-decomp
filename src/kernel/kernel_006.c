@@ -6,6 +6,37 @@ extern s32 siacs_bss_0000;
 extern void func_800053D0(s32*, s32*, s32);
 extern void func_80005DC0(s32*, s32, s32);
 
+/* func_80005350 (splat fragment "0x1D0" @ kernel) is NOT a standalone
+ * function and CANNOT be landed as C. Verified 2026-06-23 from the linked
+ * ELF symbol table (build/tenshoe.elf):
+ *
+ *     800052f0 T func_800052F0       <- the ONLY real text symbol here
+ *     80005350 A func_80005350       <- ABSOLUTE (alt-entry address const)
+ *     800053d0 A func_800053D0       <- ABSOLUTE
+ *     80005400 A func_80005400       <- ABSOLUTE
+ *     800054c0 A func_800054C0       <- ABSOLUTE
+ *
+ * The single real function is func_800052F0 = __osEPiRawStartDma
+ * (libreultra src/io/epirawdma.c; EPI_SYNC macro inlined). Its body spans
+ * 0x800052F0..0x8000551C with ONE -0x30 frame (prologue in func_800052F0)
+ * and ONE epilogue/`jr ra` at 0x80005508. The four 0x350/0x3D0/0x400/0x4C0
+ * symbols are alt-ENTRY points into that shared body, exported as absolutes
+ * in undefined_syms so the PI raw read/write/DMA wrapper callers can jal
+ * directly to the appropriate offset (shared-tail / multi-entry pattern).
+ *
+ * Proof these are mid-body, not function starts (raw ROM bytes):
+ *   0x800053D0 = 0x114D0024  beq  $t2,$t5,...   (a compare, not a prologue)
+ *   0x80005400 = 0xAF380024  sw   $t8,0x24($t9) (mid store)
+ *   0x800054C0 = 0x00000000  nop                (a branch-DELAY slot!)
+ * A C function cannot begin at a delay-slot nop, and standalone C cannot
+ * emit multiple external entry points into one frame. The prior annotation
+ * "func_800053D0 = osCreateMesgQueue" was incorrect (those bytes are a beq,
+ * and the symbol is ABSOLUTE, not a T function).
+ *
+ * CONFIRMED CAP (not a bug): no honest C decode exists for func_80005350 on
+ * its own; the whole function is func_800052F0 (decoded NON_MATCHING in
+ * kernel_005_b.c, itself an -O1 reg-coloring/scheduling residual). Body
+ * kept INCLUDE_ASM (.s = source of truth, ROM byte-exact). No episode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80005350);
 
 /* func_80005520 - verified structural decode (kernel, 0x1CC, 115

@@ -154,20 +154,26 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80007A98);
  * 0x14 (20) thread id, node->0x11C (284) = a programmable break
  * value. Returns -2 (no such thread) / -4 (wrong state). Programs
  * the RCP/CPU breakpoint via func_80006A50/func_80006A98 +
- * __rmonRcpAtBreak, then __rmonSendHeader (func_800073F8). Caps
- * <80: command switch + thread-chain walk + flag RMW + ~9 rmon/
- * MMIO callees + branch-likely. Full body INCLUDE_ASM-preserved
- * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
- * rule). */
-#ifdef NON_MATCHING
+ * __rmonRcpAtBreak, then __rmonSendHeader (func_800073F8). MATCHED
+ * byte-exact: cmd/var_s0/var_s1 pinned to s2/s0/s1 via register
+ * hints + decl-order (buf/header/sp94 layout), shared SendHeader
+ * epilogue (case 0 -> var_s1=1 -> wake), loop compare operand-order
+ * (sp94->0xC != node->0x14) fixed temp-register numbering. */
 #ifndef FW
 #define FW(p, o) (*(s32 *)((char *)(p) + (o)))
 #endif
+#ifndef FHU
+#define FHU(p, o) (*(u16 *)((char *)(p) + (o)))
+#endif
 extern void func_80006A50(s32, s32);
+extern s32 func_80006A98(s32);
 extern s32 func_8000898C(s32, s32, s32);
+extern void func_80008498(void);
 extern void func_800084AC(void);
 extern void func_80008D0C(void *);
 extern s32 func_80008C48(s32, s32);
+extern char *func_80009C30(void);
+extern void func_8000A110(void *);
 extern u8 __rmonRcpAtBreak;
 /* rmon command dispatch on arg0->unk9. case 0: resume a thread - find it in the
  * chain by id (unk14==arg0->unkC), require it stopped (unk10==1), clear its
@@ -180,17 +186,19 @@ s32 func_80007B3C(void *arg0) {
     extern s32 func_80008430();
     extern void func_80007A98();
     extern void func_800073F8();
+    void *sp94 = arg0;
     struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 id; } sp84;
     u8 sp38[0x4C];
-    void *volatile sp94 = arg0;
-    void *var_s0;
+    register void *var_s0;
+    register s32 var_s1;
 
+    var_s1 = 0;
     switch (*(u8 *)((char *) arg0 + 9)) {
     case 0:
         var_s0 = (void *) func_80009C30();
         if (FW(var_s0, 4) != -1) {
 loop_4:
-            if (FW(var_s0, 0x14) != FW(sp94, 0xC)) {
+            if (FW(sp94, 0xC) != FW(var_s0, 0x14)) {
                 var_s0 = (void *) FW(var_s0, 0xC);
                 if (FW(var_s0, 4) != -1) {
                     goto loop_4;
@@ -200,22 +208,18 @@ loop_4:
         if (FW(var_s0, 4) == -1) {
             return -2;
         }
-        if (FW(var_s0, 0x10) != 1) {
+        if (FHU(var_s0, 0x10) != 1) {
             return -4;
         }
-        *(u16 *)((char *) var_s0 + 0x12) = *(u16 *)((char *) var_s0 + 0x12) & ~3;
+        FHU(var_s0, 0x12) = FHU(var_s0, 0x12) & ~3;
         if (FW(sp94, 0x10) & 2) {
             FW(var_s0, 0x11C) = FW(sp94, 0x14);
         }
         if ((FW(sp94, 0x10) & 1) && (func_80008C48(FW(sp94, 0xC), FW(var_s0, 0x11C)) == 0)) {
             return -4;
         }
-        sp84.zero = 0;
-        sp84.tag = *(u8 *)((char *) sp94 + 4);
-        sp84.id = FW(sp94, 0xC);
-        func_800073F8(&sp84, 0x10, 1);
-        func_8000A110(var_s0);
-        return 1;
+        var_s1 = 1;
+        break;
     case 1:
         if (func_80008430() != 0) {
             return -4;
@@ -233,8 +237,8 @@ loop_4:
             __rmonRcpAtBreak = 0;
             func_800084AC();
         }
-        sp84.zero = 0;
         sp84.tag = *(u8 *)((char *) sp94 + 4);
+        sp84.zero = 0;
         sp84.id = FW(sp94, 0xC);
         func_800073F8(&sp84, 0x10, 1);
         if (FW(sp94, 0x10) & 1) {
@@ -246,7 +250,13 @@ loop_4:
     default:
         return -4;
     }
+
+    sp84.tag = *(u8 *)((char *) sp94 + 4);
+    sp84.zero = 0;
+    sp84.id = FW(sp94, 0xC);
+    func_800073F8(&sp84, 0x10, 1);
+    if (var_s1 != 0) {
+        func_8000A110(var_s0);
+    }
+    return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80007B3C);
-#endif
