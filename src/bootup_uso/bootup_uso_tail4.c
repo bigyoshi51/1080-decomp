@@ -1072,45 +1072,57 @@ void func_00014010(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014010);
 #endif
 
-/* func_000140C4 - verified structural decode (0x164, 89 insns,
- * 3-element draw/place dispatcher).
- * (draw_* = func_00000000 reloc helpers: select, set count+color,
- * set position.) Struct-typing reference: s0->0x104 (260) / 0x108
- * (264) / 0xE0 (224) = three drawable sub-object handles (A/B
- * optional, C unconditional). s0->0xDC (220) / 0xD8 (216) s32
- * counts scaled by a global f32 (read from &D) and truncated to int.
- * Position = common base s0->0x44 (68) x / s0->0x5C (92) y plus
- * per-element offsets: A {0x74 (116), 0x8C (140)}, B {0xA4 (164),
- * 0xBC (188)}. Object C uses object-local params instead of the
- * shared col: s0->0xC4 (196) colour/param block, s0->0xD4 (212)
- * flag, s0->0xE4 (228) extra struct. col = const (1,1,1,1) RGBA.
- * Caps <80: FP cvt.s.w/mul.s/trunc.w.s scaled counts + &D global +
- * ~10 reloc + beql branch-likely on the optional handles.
- * INCLUDE_ASM remains build path. */
+/* func_000140C4 - 3-element draw/place dispatcher. EXACT TWIN of
+ * func_00014228 (byte-for-byte identical TARGET except the function
+ * address): same prologue, same body, same epilogue. Same NM C body
+ * applied (the levers that landed func_00014228's body verbatim:
+ * `volatile int pad[12]` after col[4] for frame 0x68/col@0x58;
+ * global-first FP `*(f32*)&D * (float)count` for cvt-reg coloring;
+ * high-offset-first addends; direct-deref `if(*(int*)(s0+N))` to keep
+ * the beql branch-likely).
+ * STATE (2026-06-23 agent-b): body BYTE-EXACT. Residual = 6 insns,
+ * ALL in the FIRST block's prologue, identical to the func_00014228
+ * twin's documented as1-scheduler + register-coloring cap:
+ *   target: sw s0,0x18 / or s0,a0 (in gap) / sw ra,0x1C / ...
+ *           lw a0,0x104(a0) / beql a0 / jal-delay = nop
+ *   build:  sw ra,0x1C / sw s0,0x18 (adjacent, no gap) /
+ *           lw a1,0x104(a0) / or s0,a0 / beql a1 /
+ *           jal-delay = or a0,a1
+ * Root: target reads the FIRST handle from the RAW INCOMING a0 (before
+ * the arg-save to s0 is forced), keeping it in a0 so the call reuses it
+ * with a nop delay; our build colors it into a1 and needs the extra
+ * `move a0,a1`. NOT a pure as1 reorder (insn MULTISET differs: target
+ * has extra nop+`lw a0`, ours has extra `move a0,a1`+`lw a1`) -> the
+ * register-coloring class the docs flag IMMUNE to source reordering.
+ * Blocks 2 & 3 use the identical C shape and match EXACTLY, proving the
+ * body C is correct. Twin exhausted held-temp (spills + downgrades
+ * beql), array-index condition, int param, float temp - all 10-or-worse;
+ * permuter has no regalloc randomizer (floored prior). Genuine
+ * as1+coloring cap. INCLUDE_ASM remains build path (no episode). */
 #ifdef NON_MATCHING
 void func_000140C4(char *s0) {
     float col[4];
+    volatile int pad[12];
     int n;
-    float D_g = *(float*)&D_00000000;  /* global scale */
     col[0] = 1.0f; col[1] = 1.0f; col[2] = 1.0f; col[3] = 1.0f;
     if (*(int*)(s0 + 0x104)) {
         func_00000000(*(int*)(s0 + 0x104));
-        n = (int)((float)*(int*)(s0 + 0xDC) * D_g);
+        n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xDC));
         func_00000000(*(int*)(s0 + 0x104), n, col, 0);
         func_00000000(*(int*)(s0 + 0x104),
-                      *(int*)(s0 + 0x44) + *(int*)(s0 + 0x74),
-                      *(int*)(s0 + 0x5C) + *(int*)(s0 + 0x8C), 0);
+                      *(int*)(s0 + 0x74) + *(int*)(s0 + 0x44),
+                      *(int*)(s0 + 0x8C) + *(int*)(s0 + 0x5C), 0);
     }
     if (*(int*)(s0 + 0x108)) {
         func_00000000(*(int*)(s0 + 0x108));
-        n = (int)((float)*(int*)(s0 + 0xD8) * D_g);
+        n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xD8));
         func_00000000(*(int*)(s0 + 0x108), n, col, 0);
         func_00000000(*(int*)(s0 + 0x108),
-                      *(int*)(s0 + 0x44) + *(int*)(s0 + 0xA4),
-                      *(int*)(s0 + 0x5C) + *(int*)(s0 + 0xBC), 0);
+                      *(int*)(s0 + 0xA4) + *(int*)(s0 + 0x44),
+                      *(int*)(s0 + 0xBC) + *(int*)(s0 + 0x5C), 0);
     }
     func_00000000(*(int*)(s0 + 0xE0));
-    n = (int)((float)*(int*)(s0 + 0xD8) * D_g);
+    n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xD8));
     func_00000000(*(int*)(s0 + 0xE0), n, s0 + 0xC4, *(int*)(s0 + 0xD4));
     func_00000000(*(int*)(s0 + 0xE0), *(int*)(s0 + 0x44), *(int*)(s0 + 0x5C), s0 + 0xE4);
 }

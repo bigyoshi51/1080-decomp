@@ -713,18 +713,34 @@ int arcproc_uso_func_00000F78(int *a0) {
  * Initial decode 2026-05-05 — first-pass NM. ~80 insns of body (cases
  * 0/1/4) sketched as TODO; full decode requires multiple passes. */
 extern int gl_func_00000000();
-/* Whole-body decode 2026-06-01. State dispatch on s0 = a0->0x504 (beql/beq
- * order 0,1,4). The prior pass mis-mapped the cases: what it labeled "case 1"
- * (gl(D[0x190],3,1); 0x504=1) is actually case 0's TAIL, and the real case 1
- * (s0==1) is a ~40-insn list-registration block. Search loop in case 0 breaks
- * when a0->0x6B0 (updated by the callee) diverges from list->0x1C. */
+/* Whole-body decode 2026-06-01; switch-dispatch refinement 2026-06-23 (agent-i).
+ * State dispatch on s0 = a0->0x504, cases 0,1,4. The target's dispatch is the
+ * IDO sparse-switch beql-chain (beqzl s0,case0; beq s0,1,case1; beql s0,4,case4;
+ * b end) with each delay slot pre-loading the case body's first lw — a `switch`
+ * (NOT if-else) reproduces this dispatch shape exactly (137->116 insns, dispatch
+ * byte-matches). See docs/PATTERNS.md "rodata-jumptable cap is FALSE for a
+ * single symbol" + docs/IDO_CODEGEN.md sparse-switch-beql-preload. The prior
+ * if-else pass mis-mapped the cases: what it labeled "case 1" (gl(D[0x190],3,1);
+ * 0x504=1) is actually case 0's TAIL. Search loop in case 0 breaks when
+ * a0->0x6B0 (updated by the callee) diverges from list->0x1C.
+ *
+ * State reads into $s0 (saved) and the dispatch (beqzl/beq/beql on s0) is
+ * byte-exact by reusing the discriminant variable as case-0's loop counter `i`.
+ *
+ * RESIDUAL (coloring cap, still NM): target holds `list` in $v0 (caller-saved)
+ * across the case-0 loop's call, saving only s0/s1 (frame -48). Our build colors
+ * list->$s2 (frame -40), so the body is instruction-for-instruction identical
+ * but +2 insns (bltzl vs bltz + a duplicated `li t,1`). The target's
+ * list-in-v0-across-call relies on the specific callee preserving $v0 — not
+ * reliably C-reachable. Default INCLUDE_ASM build remains ROM-exact. */
 void arcproc_uso_func_00000FA8(char *a0) {
-    int s0 = *(int*)(a0 + 0x504);
+    int i = *(int*)(a0 + 0x504);
     char *s1 = a0;
 
-    if (s0 == 0) {
+    switch (i) {
+    case 0: {
         int *list = *(int**)(s1 + 0x6AC);
-        int count, i;
+        int count;
         *(int*)(s1 + 0x6B0) = *(int*)(*(char**)((char*)list + 0x44) + 0x14);
         count = *(int*)(*(char**)((char*)list + 0x44) + 0x40);
         i = count - 1;
@@ -742,9 +758,9 @@ void arcproc_uso_func_00000FA8(char *a0) {
         gl_func_00000000(7, 0, 0);
         gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 3, 1);
         *(int*)(s1 + 0x504) = 1;
-        return;
+        break;
     }
-    if (s0 == 1) {
+    case 1: {
         int v0;
         char *node, *buf;
         if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) == 0) return;
@@ -764,13 +780,14 @@ void arcproc_uso_func_00000FA8(char *a0) {
         }
         *(int*)(node + 0x14) = (int)buf;
         gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 1);
-        return;
+        break;
     }
-    if (s0 == 4) {
+    case 4: {
         int *v0 = *(int**)(s1 + 0x6A8);
         int idx = *(int*)((char*)v0 + 0x4);
         gl_func_00000000(s1, 4, *(int*)((char*)v0 + idx * 4 + 0x10));
-        return;
+        break;
+    }
     }
 }
 #else
