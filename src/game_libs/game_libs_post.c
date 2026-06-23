@@ -2298,22 +2298,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
 //   guarded-sdiv + multi-iteration emit, placeholder jals need USO
 //   reloc infra. Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
-// gl_func_0001EF20 — FULL m2c DECODE (58.18% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_0001EF20 — CORRECTED RECONSTRUCTION (agent-e, 58.18->63.04% NM).
+// Decode-bug fixes vs prior pass:
+//   * field reads now u16/u8 (lhu/lbu), NOT 32-bit FW (prior used lw+lwl/lwr
+//     at wrong offsets — a1->8/->A/->5, a2->0x10/->0x12/->4);
+//   * a2->4 write is a BYTE store (sb), a2->0x10/->0x12 are HALFWORD stores
+//     (sh) — prior emitted sw / swl/swr;
+//   * var_t1 = (a2->b4 & 0x7F) computed LATE (matches target's andi-before-
+//     multu liveness) instead of early — saved one cross-call live value.
+//   * three baked USO jals wired to gl_ref_00031BC8 / 00031D00 / 00031D8C
+//     (undefined_syms_auto absolutes; were placeholder game_libs_func_0003443C
+//     R_MIPS_26).
+// RESIDUAL (deferred): register-COLORING + spill-slot offsets. IDO keeps
+//   key(a2->0x10) and ra(a2->0x12) in callee-saved s2/s3 (frame -0x98) where
+//   the target spills both to stack (frame -0x68, only s0/s1 saved). This is
+//   the documented permuter-immune ugen-coloring cap class; instruction MIX
+//   now matches the target (same lhu/lbu/sh/sb/div/mflo set), only register
+//   names + sp offsets diverge. Byte-match left NON_MATCHING (honest).
 #ifdef NON_MATCHING
 
+extern int gl_ref_00031BC8();
+extern int gl_ref_00031D00();
+extern int gl_ref_00031D8C();
 
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0001EF20)();
 char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s32 arg5) {
     s16 sp56;
     s16 sp54;
-    s16 sp52;
+    s32 sp52;
     s16 sp50;
     s32 sp34;
     s32 sp30;
     s32 sp28;
+    s16 sp82;
     s16 var_a3;
     s16 var_t0;
     s32 temp_t0;
@@ -2322,8 +2338,8 @@ char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s
     s32 var_a1;
     s32 var_t1;
     s32 var_v0;
-    u16 temp_ra;
     u16 temp_t5;
+    u16 temp_ra;
     u8 temp_t2;
     u8 temp_t4;
     char *temp_s0;
@@ -2331,11 +2347,11 @@ char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s
     char *temp_s0_3;
     char *var_s0;
 
-    temp_t5 = FW(arg2, 0x10);
-    temp_t0 = (FW(arg1, 0x8) * 0x10) & 0xFFFF;
-    temp_t2 = FW(arg1, 0x5);
-    temp_ra = FW(arg2, 0x12);
-    temp_v1 = (FW(arg1, 0xA) * 0x10) & 0xFFFF;
+    temp_t0 = (*(u16 *)(arg1 + 0x8) << 4) & 0xFFFF;
+    temp_v1 = (*(u16 *)(arg1 + 0xA) << 4) & 0xFFFF;
+    temp_t5 = *(u16 *)(arg2 + 0x10);
+    temp_t2 = *(u8 *)(arg1 + 0x5);
+    temp_ra = *(u16 *)(arg2 + 0x12);
     if (temp_t5 != temp_t0) {
         var_v0 = arg3 >> 3;
         var_a3 = (s16) ((s32) (temp_t0 - temp_t5) / var_v0);
@@ -2348,30 +2364,31 @@ char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s
     } else {
         var_t0 = 0;
     }
-    temp_t4 = FW(arg2, 0x4);
+    temp_t4 = *(u8 *)(arg2 + 0x4);
     sp30 = (s32) temp_t5;
-    var_t1 = temp_t4 & 0x7F;
     if (temp_t4 != temp_t2) {
-        var_t1 = temp_t4 & 0x7F;
-        sp52 = (s16) ((s32) (((temp_t2 & 0x7F) - var_t1) << 9) / var_v0);
-        FW(arg2, 0x4) = temp_t2;
+        var_t1 = temp_t4;
+        sp82 = (s16) ((s32) (((temp_t2 & 0x7F) - (temp_t4 & 0x7F)) << 9) / var_v0);
+        *(u8 *)(arg2 + 0x4) = temp_t2;
     } else {
-        sp52 = 0;
+        var_t1 = temp_t4;
+        sp82 = 0;
     }
-    FW(arg2, 0x10) = (u16) (sp30 + (var_a3 * var_v0));
-    FW(arg2, 0x12) = (u16) (temp_ra + (var_t0 * var_v0));
-    if (FW(arg1, 0x0) & 1) {
+    var_t1 = var_t1 & 0x7F;
+    *(u16 *)(arg2 + 0x10) = (u16) (sp30 + (var_a3 * var_v0));
+    *(u16 *)(arg2 + 0x12) = (u16) (temp_ra + (var_t0 * var_v0));
+    if (*(s32 *)(arg1 + 0x0) & 1) {
         temp_s0 = arg0 + 8;
         sp56 = var_a3;
         sp54 = var_t0;
         sp34 = var_t1;
         sp28 = (s32) temp_ra;
         sp50 = (s16) temp_t4;
-        game_libs_func_0003443C(arg0, 0x5C0, 0x1A0, var_a3);
+        gl_ref_00031BC8(arg0, 0x5C0, 0x1A0, var_a3);
         temp_s0_2 = temp_s0 + 8;
-        game_libs_func_0003443C(temp_s0, var_t1 * 2, sp52, var_a3, (s32) var_t0);
+        gl_ref_00031D00(temp_s0, var_t1 * 2, sp82, var_a3, (s32) var_t0);
         var_s0 = temp_s0_2 + 8;
-        game_libs_func_0003443C(temp_s0_2, sp30, (s16) sp28);
+        gl_ref_00031D8C(temp_s0_2, sp30, (s16) sp28);
         switch (arg5) {                             /* irregular */
         case 1:
             var_a1 = *(s32 *)0x1A2D4;
@@ -2382,16 +2399,16 @@ char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s
         }
     } else {
         temp_s0_3 = arg0 + 8;
-        FW(arg0, 0x0) = (s32) ((((var_t1 * 2) & 0xFF) << 0x10) | 0x12000000 | (sp52 & 0xFFFF));
-        FW(arg0, 0x4) = (s32) ((var_a3 << 0x10) | (var_t0 & 0xFFFF));
-        FW(arg0, 0x8) = 0x16000000;
-        FW(temp_s0_3, 0x4) = (s32) ((temp_t5 << 0x10) | (temp_ra & 0xFFFF));
+        *(s32 *)(arg0 + 0x0) = ((((var_t1 * 2) & 0xFF) << 0x10) | 0x12000000 | (sp82 & 0xFFFF));
+        *(s32 *)(arg0 + 0x4) = ((var_a3 << 0x10) | (var_t0 & 0xFFFF));
+        *(s32 *)(arg0 + 0x8) = 0x16000000;
+        *(s32 *)(temp_s0_3 + 0x4) = ((temp_t5 << 0x10) | (temp_ra & 0xFFFF));
         var_s0 = temp_s0_3 + 8;
         var_a1 = *(s32 *)0x1A2DC;
     }
-    temp_v1_2 = (s32) FW(arg1, 0x0);
-    FW(var_s0, 0x4) = var_a1;
-    FW(var_s0, 0x0) = (s32) (((((s32) arg4 >> 4) & 0xFF) << 0x10) | *(s32 *)0x1A2D0 | ((arg3 & 0xFF) << 8) | ((((s32) (temp_t4 & 0x80) >> 7) & 1) * 0x10) | ((((u32) (temp_v1_2 << 6) >> 0x1F) & 1) * 8) | (((u8) FW(arg1, 0x0) & 1) * 4) | ((((u32) (temp_v1_2 * 0x10) >> 0x1F) & 1) * 2) | (((u32) (temp_v1_2 << 5) >> 0x1F) & 1));
+    temp_v1_2 = *(s32 *)(arg1 + 0x0);
+    *(s32 *)(var_s0 + 0x4) = var_a1;
+    *(s32 *)(var_s0 + 0x0) = (((((s32) arg4 >> 4) & 0xFF) << 0x10) | *(s32 *)0x1A2D0 | ((arg3 & 0xFF) << 8) | ((((s32) (temp_t4 & 0x80) >> 7) & 1) * 0x10) | ((((u32) (temp_v1_2 << 6) >> 0x1F) & 1) * 8) | ((*(u8 *)(arg1 + 0x0) & 1) * 4) | ((((u32) (temp_v1_2 * 0x10) >> 0x1F) & 1) * 2) | (((u32) (temp_v1_2 << 5) >> 0x1F) & 1));
     return var_s0 + 8;
 }
 #else
@@ -15396,25 +15413,43 @@ void gl_func_0002D8D8(void) {
  * grep-discoverable structural skeleton + named BSS-offset constants
  * for future tightening passes.
  *
- * Initial pass — entry dispatch + structural TODO only. Default emit
- * remains INCLUDE_ASM. */
-/* Reloc-blind absolute globals: the target bakes `lui 0x2; lw -159xx` (e.g.
- * 0x1C1BC), so use absolute-address literals (each emits its own lui+lw with
- * the offset baked) rather than named externs (which emit reloc lw 0(base)). */
-#define D_2C1BC (*(int *)0x1C1BC)
-#define D_2C1C0 (*(int *)0x1C1C0)
-#define D_2C1C4 (*(int *)0x1C1C4)
-#define D_2C1C8 (*(int *)0x1C1C8)
-#define D_2C1CC (*(int *)0x1C1CC)
-#define D_2C1D0 (*(int *)0x1C1D0)
-#define D_2C1D4 (*(int *)0x1C1D4)
+ * FULL-BODY RECONSTRUCTION (agent-d 2026-06-22): structure verified
+ * correct against expected/ disasm; ~57% -> 59.58% (objdiff fuzzy).
+ * Real-bug fixes this pass:
+ *   - D_00000000 and *(+4) are TWO DISTINCT absolute symbols (target does
+ *     `lui;lw 0()` twice, not base+disp) -> split into D_00000000 / D_00000004.
+ *   - The D+0x1C1xx BSS slots must emit the assembler `$at` macro form
+ *     (`lui at; sw -159xx(at)`); IDO only does that for NAMED EXTERN symbols
+ *     (`*(int*)LITERAL` allocates a GPR and GCSE-merges the address into
+ *     `lui 0x1; ori`). So the macros now alias named externs D_0001C1xx.
+ * RESIDUAL = IDO register-coloring / scheduling cap (SAME -24 frame):
+ *   the constant 1 colors to a held $v1 (CSE'd across every `== 1` compare)
+ *   vs scattered temps; beq operand order; per-return bnel ra-reload in the
+ *   annulled delay slot (211 vs 217 insns). Permuter not useful here: its
+ *   target.o (assembled .word, no relocs) fights the reloc-vs-baked immediate
+ *   mismatch and scores noise. Needs exact-structure RE of the temp/$v1
+ *   coloring (multi-session). Default emit remains INCLUDE_ASM (ROM exact). */
+/* Reloc-blind globals: the target's D+0x1C1xx slots emit the `lui $at;
+ * sw -159xx($at)` assembler-macro form, which IDO produces only for NAMED
+ * EXTERN symbols (HI16/LO16 relocs), NOT for `*(int*)LITERAL` (that takes a
+ * GPR and GCSE-merges the address into `lui 0x1; ori`). D_00000000/+4 are two
+ * separate symbols (target re-loads each at offset 0). */
+extern int D_00000004;
+extern int D_0001C1BC, D_0001C1C0, D_0001C1C4, D_0001C1C8, D_0001C1CC, D_0001C1D0, D_0001C1D4;
+#define D_2C1BC D_0001C1BC
+#define D_2C1C0 D_0001C1C0
+#define D_2C1C4 D_0001C1C4
+#define D_2C1C8 D_0001C1C8
+#define D_2C1CC D_0001C1CC
+#define D_2C1D0 D_0001C1D0
+#define D_2C1D4 D_0001C1D4
 
 void gl_func_0002D910(int a0, int a1, int a2, int a3) {
     int v0;
-    if (*(int *)&D_00000000 != 10) {
+    if (D_00000000 != 10) {
         return;
     }
-    if (*(int *)((char *)&D_00000000 + 4) != 1) {
+    if (D_00000004 != 1) {
         return;
     }
     if (D_2C1BC != a0) {

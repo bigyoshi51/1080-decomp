@@ -10699,7 +10699,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040304);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040640);
 
-// gl_func_00040974 — STRUCTURAL PASS (0x334 / 206 words, no episode). Raw-.word
+// gl_func_00040974 — DECODE PROGRESS 57->70% (0x334 / 206 words, no episode).
+// Block-A (the self->0x2C&2 struct-graft) now matches the target's int-fill /
+// float-drain-through-scratch pattern: fill spBC[0..2] via int sw, then store
+// the dest words as f32 reads of the scratch (`*(f32*)&spBC.unkN`) so IDO emits
+// lwc1/swc1 out (was plain int sw -> wrong schedule). Residual: list-walk keeps
+// the spE0/spE4 cursors in callee regs (s6/s7/s8) instead of spilling them to
+// stack like the target, inflating frame 0xE8->0xF0 (+8) and the prologue saves;
+// loop B (the sp+0x64 matrix-accumulate) is software-pipelined and its schedule
+// still diverges. Both residuals are register-coloring / frame-layout class.
+// Raw-.word
 // USO. realjr=1, regjr=0 (no jump table) → ONE clean function. Single prologue
 // frame 0xE8, saves ra + s0..s5 + f20 (FP accumulator). cb = jal 0
 // USO-relocated. Iterate-list-with-flag-filter + FP accumulate.
@@ -10805,22 +10814,22 @@ void gl_func_00040974(char *arg0) {
                             spBC.unk0 = FW(var_s1, 0xB4);
                             spBC.unk4 = (s32) FW(var_s1, 0xB8);
                             spBC.unk8 = (s32) FW(var_s1, 0xBC);
-                            FW(var_s1, 0xDC) = spBC.unk0;
-                            FW(var_s1, 0xE0) = spBC.unk4;
-                            FW(var_s1, 0xE4) = spBC.unk8;
+                            *(f32*)((char*)var_s1 + 0xDC) = *(f32*)&spBC.unk0;
+                            *(f32*)((char*)var_s1 + 0xE0) = *(f32*)&spBC.unk4;
+                            *(f32*)((char*)var_s1 + 0xE4) = *(f32*)&spBC.unk8;
                             spBC.unk0 = FW(var_s1, 0xC0);
                             spBC.unk4 = (s32) FW(var_s1, 0xC4);
                             spBC.unk8 = (s32) FW(var_s1, 0xC8);
-                            FW(var_s1, 0xE8) = spBC.unk0;
-                            FW(var_s1, 0xEC) = spBC.unk4;
-                            FW(var_s1, 0xF0) = spBC.unk8;
+                            *(f32*)((char*)var_s1 + 0xE8) = *(f32*)&spBC.unk0;
+                            *(f32*)((char*)var_s1 + 0xEC) = *(f32*)&spBC.unk4;
+                            *(f32*)((char*)var_s1 + 0xF0) = *(f32*)&spBC.unk8;
                             spBC.unk0 = FW(var_s1, 0xCC);
                             spBC.unk4 = (s32) FW(var_s1, 0xD0);
                             spBC.unk8 = (s32) FW(var_s1, 0xD4);
-                            FW(var_s1, 0xF4) = spBC.unk0;
-                            FW(var_s1, 0xF8) = spBC.unk4;
+                            *(f32*)((char*)var_s1 + 0xF4) = *(f32*)&spBC.unk0;
+                            *(f32*)((char*)var_s1 + 0xF8) = *(f32*)&spBC.unk4;
                             *(f32*)((char*)var_s1 + 0x100) = *(f32*)((char*)var_s1 + 0xD8);
-                            FW(var_s1, 0xFC) = spBC.unk8;
+                            *(f32*)((char*)var_s1 + 0xFC) = *(f32*)&spBC.unk8;
                         } else {
                             gl_func_00034458(sp54, var_s1 + 0xB4, var_s1 + 0xDC);
                         }
@@ -13755,85 +13764,83 @@ void game_libs_func_00044540(int *a0, int **a1) {
   base[1] = rv;
 }
 
-// gl_func_000445AC — STRUCTURAL PASS (0x368 / 219 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function (large). Single prologue frame
-// 0x58 (saves ra, s0). Config/command-table registration driver (cb = jal 0
-// USO-relocated; string keys around &D_0002FDE4 / &D_0002FDEC).
+// gl_func_000445AC — DEEP RECONSTRUCTION (0x368 / 219 words, no episode).
+// Raw-.word USO, single function, frame 0x58 (saves ra, s0). One-shot
+// command/keymap table init + object-list bootstrap driver.
 //
-//   void gl_func_000445AC(void) {
-//     cb(0x140, 0xF0);                              // alloc record A
-//     cb(0x140, 0xF0);                              // alloc record B
-//     cb(&D_0002FDE4, 0);                            // register named scope
-//     // build a large stack-arg block of opcode/key-ID immediates:
-//     //   2, 0x6E, 0x6F, 0x70, 0x1E00, 0x71, 2, ...  (key/opcode + flags)
-//     // spilled to sp+0x10..0x38, then a varargs-style registration call:
-//     cb(0, 0x64, 0x6D, &D_0002FDEC, ... stack-args);// command/keymap entry
-//     // ... the immediate-load + sp-spill + cb pattern repeats for the
-//     //     remaining command entries, each keyed by a literal in the
-//     //     contiguous &D_0002FDxx table with its own opcode/flag tuple.
-//   }
-// One-shot command/keymap table init: allocates a couple of fixed-size
-// records, then publishes a series of command entries into the registrar
-// via varargs-style cb calls whose numeric args are key/opcode IDs
-// (0x6E..0x71) and flags (0x1E00), keyed by string literals in the
-// contiguous &D_0002FDE4 / &D_0002FDEC table.
+// objdiff fuzzy ~95% (was ~62% structural skeleton). Full control flow now
+// recovered byte-for-byte EXCEPT a localized allocator residual:
+//   - The cb(32) record-alloc block: target SPILLS the new record ptr to
+//     sp+0x54 across cb(p,p,8) and reloads it; IDO here keeps it in a reg
+//     instead, so a 1-word sw/lw spill pair is missing (217 vs 219 words),
+//     which shifts/cascades the alloc-block + tail in a naive word-diff but
+//     objdiff aligns it to ~5% residual. Frame rounds to 0x60 vs 0x58.
+// This is a FRAME-LAYOUT / spill-coloring residual: correct C, divergent
+// allocation. permuter (101k iters, -j6) found no 100% — conceded as a cap.
 //
-// Caps (DEFERRED): registrar/record struct, &D_0002FDxx table and cb
-//   signature untyped; per-entry arg tuples not exhaustively decoded
-//   (219-word driver). Real-C STRUCTURAL body below — representative
-//   skeleton only. Byte-match deferred. Name pre-checked: no extern
-//   reuse.
+// Placeholder convention: every cb() is `jal 0` (gl_func_00000000), USO-
+// relocated at runtime; data refs are &D_00000000 + 0x1FDxx (the lui 0x2 /
+// addiu split that reproduces the baked raw words). D_glob_a..e are the
+// distinct globals loaded for the two varargs registration calls. Name
+// pre-checked: no extern reuse. NON_MATCHING (95%) — no episode.
 #ifdef NON_MATCHING
 extern int D_00000000;
+extern int D_glob_a, D_glob_b, D_glob_c, D_glob_d, D_glob_e;
+extern float gl_funcf_00000000();
 void gl_func_000445AC(char *a0) {
     char *s0 = a0;
     char *g = (char *)&D_00000000;
+    char *a3;
+    char *v1;
+    int v;
     gl_func_00000000(0x140, 0xF0);
     gl_func_00000000(0x140, 0xF0);
-    gl_func_00000000(g + 0x2FDE4, 0);
+    gl_func_00000000(g + 0x1FDE4, 0);
     *(int *)(s0 + 0x240) = gl_func_00000000(
-        0, 0x64, g + 0x2FDEC, 0x6D,
-        2, 0x6E, 0, 0, 0x6F, *(int *)g, *(int *)g, 0x70, 0x1E00, 0x71, 2, 0);
-    *(int *)(s0 + 0x280) = gl_func_00000000(0, g + 0x2FDFC, 40, 0, 0, 0, 0);
-    *(int *)(s0 + 0x284) = gl_func_00000000(0, g + 0x2FE04, 40, 0, 0, 0, 0);
-    *(int *)g = gl_func_00000000(0, g + 0x2FE0C, 20, 0, 0, 0, 0);
+        0, 0x64, g + 0x1FDEC, 0x6D,
+        2, 0x6E, 0, 0, 0x6F, D_glob_a, D_glob_b, 0x70, 0x1E00, 0x71, 2, 0);
+    gl_func_00000000();
+    *(int *)(s0 + 0x280) = gl_func_00000000(0, g + 0x1FDFC, 40, 0, 0, 0, 0);
+    *(int *)(s0 + 0x284) = gl_func_00000000(0, g + 0x1FE04, 40, 0, 0, 0, 0);
+    *(int *)g = gl_func_00000000(0, g + 0x1FE0C, 20, 0, 0, 0, 0);
     gl_func_00000000(s0);
-    gl_func_00000000(g + 0x2FE14, 0);
+    gl_func_00000000(g + 0x1FE14, 0);
     *(int *)(s0 + 0x214) = gl_func_00000000(
-        0, g + 0x2FE24, *(int *)g, *(int *)g, *(int *)g, *(int *)g, *(int *)g);
-    {
-        char *a = (char *)gl_func_00000000(40);
-        char *b;
-        if (a != 0) {
-            b = (char *)gl_func_00000000(32);
-            *(int *)(b + 0x18) = gl_func_00000000(b, b, 8);
-            a = b;
-        }
-        *(int *)((char *)&D_00000000 + 0x1C) = (int)a;
-        gl_func_00000000(a, 0x64, 1);
-        b = (char *)gl_func_00000000(24);
-        if (b != 0) {
-            *(int *)(b + 0x8) = 10;
-            *(int *)(b + 0xC) = 0;
-            *(int *)b = gl_func_00000000(40);
-            *(int *)(b + 0x14) = (int)&D_00000000;
-        }
-        *(int *)(s0 + 0x22C) = (int)b;
+        0, g + 0x1FE24, D_glob_a, D_glob_b, D_glob_c, D_glob_d, D_glob_e);
+    gl_func_00000000();
+    a3 = (char *)gl_func_00000000(40);
+    if (a3 != 0) {
+        a3 = (char *)gl_func_00000000(32);
+        gl_func_00000000(a3, a3, 8);
+        *(int *)(a3 + 0x18) = (int)a3;
     }
+    *(int *)(g + 0x1C) = (int)a3;
+    gl_func_00000000(a3, 0x64, 1);
+    a3 = (char *)gl_func_00000000(24);
+    if (a3 != 0) {
+        v1 = a3;
+        if (a3 == 0) {
+            v1 = a3 = (char *)gl_func_00000000(20);
+            if (a3 == 0) goto skip_body;
+        }
+        *(int *)(v1 + 0x8) = 10;
+        *(int *)(v1 + 0xC) = 0;
+        *(int *)v1 = gl_func_00000000(40);
+skip_body:
+        *(int *)(a3 + 0x14) = (int)g;
+    }
+    *(int *)(s0 + 0x22C) = (int)a3;
     *(int *)(s0 + 0x218) = gl_func_00000000(0);
     gl_func_00000000(s0);
     gl_func_00000000(s0);
     *(int *)(s0 + 0x20C) = 1;
-    gl_func_00000000(g + 0x2FE30);
+    gl_func_00000000(g + 0x1FE30);
     gl_func_00000000(s0);
-    gl_func_00000000(g + 0x2FE3C);
-    gl_func_00000000(g + 0x2FE48);
-    {
-        int v = (int)(*(float *)g);
-        if ((unsigned int)v < 10) {
-            *(int *)(s0 + 0x20C) = v;
-            gl_func_00000000(g + 0x2FE54);
-        }
+    gl_func_00000000(g + 0x1FE3C);
+    v = (unsigned int)gl_funcf_00000000(g + 0x1FE48);
+    *(int *)(s0 + 0x20C) = v;
+    if ((unsigned int)v < 10) {
+        gl_func_00000000(g + 0x1FE54);
     }
     gl_func_00000000(s0);
     gl_func_00000000(0x202);
