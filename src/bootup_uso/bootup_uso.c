@@ -643,6 +643,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000CA0);
  * INCLUDE_ASM remains build path. */
 extern void func_00000044();  /* used as data-symbol base */
 extern void func_0000027C();  /* used as data-symbol base */
+extern int D_00007324;
 #ifdef NON_MATCHING
 void func_00000D94(char *a0) {
     char *g = (char*)&D_00000000;
@@ -1746,8 +1747,16 @@ end:
 //        0x400/0x1000, 0x18 flag 0x40 latch-enable); 0x40 id (poll key + 0xB4),
 //        0x44 cached poll result, 0x48 frame/timeout counter, 0x4C active latch.
 //   func_00000044+0x20 == 1 = global-mode gate;  D_00007324 = poll-table word arg.
-// Caps <80: 4 func_00000000 dispatcher calls with stack-slot return + nested vtable
-//   indirections; structural, no C body byte-matches yet.
+// NM body now structurally faithful: gate read folds via FW(&func_00000044,0x20)
+//   HI16/LO16 reloc; 0x68 delegate base is s16 (lh, FH macro); cam->0x14C activate
+//   is a FLOAT store (FF, was wrongly FW=int 85); D_00007324 is the poll-table
+//   global (extern int); 2.0f hoisted to `two` local so cfg->0x4/0x0 emit mul.s
+//   (not strength-reduced x+x); cam field updates via &cam->field pointer temps.
+// Reg-agnostic similarity ~82% (166/175 insns). RESIDUAL CAP = register coloring +
+//   frame-size: target saves TWO callee regs (s0,s1) for arg0+held-temp across the
+//   4 dispatcher calls; IDO here colors arg0 into a single saved reg (frame 0x40 vs
+//   target 0x50). Permuter 3205->2810 plateau (only 0x14C-hoist nudge, no crack) —
+//   classic coloring/two-saved-reg barrier. Genuine type/value/CSE bugs all fixed.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
 #ifndef FW
@@ -1756,6 +1765,9 @@ end:
 typedef char *(*GP_000024B8)();
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
+#endif
+#ifndef FH
+#define FH(p, o) (*(s16 *)((char *)(p) + (o)))
 #endif
 void func_000024B8(char *arg0) {
     s32 sp4C;
@@ -1779,10 +1791,10 @@ void func_000024B8(char *arg0) {
     char *var_v1;
 
     var_t0 = 0;
-    if (*(s32 *)0x20 == 1) {
+    if (FW(&func_00000044, 0x20) == 1) {
         temp_v0 = FW(arg0, 0x38);
         sp4C = 0;
-        (char*)func_00000000((FW(temp_v0, 0x10) & 0x400) != 0, (FW(temp_v0, 0x10) & 0x1000) != 0, FW(temp_v0, 0x8), FW(temp_v0, 0x9));
+        (char*)func_00000000((FW(temp_v0, 0x10) & 0x400) != 0, (FW(temp_v0, 0x10) & 0x1000) != 0, (s8)temp_v0[0x8], (s8)temp_v0[0x9]);
         var_t0 = sp4C;
     }
     if (FW(FW(arg0, 0x38), 0x18) & 0x40) {
@@ -1790,27 +1802,39 @@ void func_000024B8(char *arg0) {
         FW(arg0, 0x4C) = (s32) ((FW(arg0, 0x4C) != 0) == 0);
     }
     if (FW(arg0, 0x4C) != 0) {
+        char *cfg;
+        char *cam;
+        f32 *fp;
+        f32 two = 2.0f;
         if (var_t0 != 0) {
             (char*)func_00000000((s32) arg0, 0);
             temp_v0_2 = FW(arg0, 0x30);
             temp_s0 = FW(temp_v0_2, 0x28);
-            ((GP_000024B8)FW(temp_s0, 0x6C))(FW(temp_s0, 0x68) + temp_v0_2, 3, 0);
-            FW(FW(FW(arg0, 0x2C), 0x70), 0x14C) = 85.0f;
+            ((GP_000024B8)FW(temp_s0, 0x6C))(FH(temp_s0, 0x68) + temp_v0_2, 3, 0);
+            FF(FW(FW(arg0, 0x2C), 0x70), 0x14C) = 85.0f;
         }
-        if (FW(FW(arg0, 0x38), 0x10) & 8) {
-            temp_v1 = FW(FW(arg0, 0x2C), 0x70);
-            if (FF(temp_v1, 0x14C) < 120.0f) {
-                FF(temp_v1, 0x14C) = (f32) (FF(temp_v1, 0x14C) + 2.0f);
+        cfg = FW(arg0, 0x38);
+        if (FW(cfg, 0x10) & 8) {
+            cam = FW(FW(arg0, 0x2C), 0x70);
+            if (FF(cam, 0x14C) < 120.0f) {
+                fp = (f32 *)(cam + 0x14C);
+                *fp = *fp + two;
             }
         }
-        var_v1 = FW(FW(arg0, 0x2C), 0x70);
-        if ((FW(FW(arg0, 0x38), 0x10) & 4) && (FF(var_v1, 0x14C) > 45.0f)) {
-            FF(var_v1, 0x14C) = (f32) (FF(var_v1, 0x14C) - 2.0f);
-            var_v1 = FW(FW(arg0, 0x2C), 0x70);
+        cfg = FW(arg0, 0x38);
+        if (FW(cfg, 0x10) & 4) {
+            cam = FW(FW(arg0, 0x2C), 0x70);
+            if (FF(cam, 0x14C) > 45.0f) {
+                fp = (f32 *)(cam + 0x14C);
+                *fp = *fp - two;
+            }
         }
-        FF(var_v1, 0x134) = (f32) (FF(var_v1, 0x134) + (FF(FW(arg0, 0x38), 0x4) * 2.0f));
-        temp_s0_2 = FW(FW(arg0, 0x2C), 0x70);
-        FF(temp_s0_2, 0x138) = (f32) (FF(temp_s0_2, 0x138) + (FF(FW(arg0, 0x38), 0x0) * 2.0f));
+        cam = FW(FW(arg0, 0x2C), 0x70);
+        fp = (f32 *)(cam + 0x134);
+        *fp = *fp + (FF(FW(arg0, 0x38), 0x4) * two);
+        cam = FW(FW(arg0, 0x2C), 0x70);
+        fp = (f32 *)(cam + 0x138);
+        *fp = *fp + (FF(FW(arg0, 0x38), 0x0) * two);
         return;
     }
     if (var_t0 != 0) {
@@ -1819,7 +1843,7 @@ void func_000024B8(char *arg0) {
     temp_s0_3 = FW(arg0, 0x48);
     FW(arg0, 0x48) = (s32) (temp_s0_3 + 1);
     if (temp_s0_3 >= 0x3C) {
-        temp_a1 = *(int*)0;
+        temp_a1 = D_00007324;
         sp38 = temp_a1;
         temp_v0_3 = (char*)func_00000000(*(int*)0, temp_a1, FW(arg0, 0x40) + 0xB4, 0);
         sp40 = temp_v0_3;
@@ -1830,13 +1854,13 @@ void func_000024B8(char *arg0) {
                 (char*)func_00000000((s32) arg0, 0);
                 temp_v0_4 = FW(arg0, 0x30);
                 temp_s0_4 = FW(temp_v0_4, 0x28);
-                ((GP_000024B8)FW(temp_s0_4, 0x6C))(FW(temp_s0_4, 0x68) + temp_v0_4, sp2C, sp40);
+                ((GP_000024B8)FW(temp_s0_4, 0x6C))(FH(temp_s0_4, 0x68) + temp_v0_4, sp2C, sp40);
             } else {
                 sp2C = temp_a3;
                 (char*)func_00000000((s32) arg0, 1);
                 temp_v0_5 = FW(arg0, 0x34);
                 temp_s0_5 = FW(temp_v0_5, 0x28);
-                ((GP_000024B8)FW(temp_s0_5, 0x6C))(FW(temp_s0_5, 0x68) + temp_v0_5, sp2C, sp40);
+                ((GP_000024B8)FW(temp_s0_5, 0x6C))(FH(temp_s0_5, 0x68) + temp_v0_5, sp2C, sp40);
             }
             FW(arg0, 0x48) = 0;
             FW(arg0, 0x44) = sp40;

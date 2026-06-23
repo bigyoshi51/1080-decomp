@@ -367,7 +367,20 @@ void arcproc_uso_func_000009CC(Vec3 *dst) {
  *
  * This is a CONSTRUCTOR with cross-USO alloc dependency — multi-tick decomp.
  * Stub C body documents the 4-stage alloc skeleton for grep discoverability;
- * does NOT match (default INCLUDE_ASM build is correct). */
+ * does NOT match (default INCLUDE_ASM build is correct).
+ *
+ * 2026-06-22 RESIDUAL CLASS = GLOBAL REGALLOC + FRAME-SIZE cap (not a bug):
+ * fuzzy 64.57%. Full body decoded & control-flow verified against target
+ * (expected/.../arcproc_uso_tail1.c.o @0x7fc). Logic is correct, but IDO
+ * threads the primary object through a DIFFERENT s-register than target
+ * (target: self=s1 / n1=s0, args spilled low @0x44/48/4c in prologue;
+ * build: self=s0, args spilled high @0x5c/60/64) and the frame is 0x58 vs
+ * target 0x40 (6-word gap). Normalized LCS (branch/jal offsets masked) is
+ * only 73/205 = 35.6% — two-thirds of insns differ in opcode/register, so
+ * this is whole-function coloring divergence, NOT a small permuter-bridgeable
+ * residual. The frame-size delta alone is beyond permuter's local moves.
+ * Matches the documented "correct-logic / divergent-regalloc on large fn" cap
+ * class. All callees are jal-0 placeholders (no recoverable symbols). */
 extern int gl_func_arc_alloc();
 extern char D_arc_table_3B8[];
 extern char D_arc_table_3D0[];
@@ -380,9 +393,10 @@ extern char D_arc_A3C_v4;
 void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3, int a4) {
     int *s1 = a0;
     int *n1, *n2, *n3;
-    /* 5-stage get-or-create cascade (994/097C/titproc_1E9C sibling; self alloc
-     * 0x780 here, D-template 0x3B8 same as 994). goto-chain dead-guards +
-     * distinct-extern vtable stores (CSE-bust -> target t7/t8/t0/t1). */
+    /* get-or-create cascade. Each stage TESTS ITS INPUT (non-zero => skip alloc),
+     * allocs into a reused slot, and field-init stores happen in reverse at the
+     * merge labels (CSE-bust -> target t7/t8/t0/t1). n1 lives in s0; n2/n3 are
+     * stack temps reloaded at the merge points. */
     if (a0 == 0) {
         s1 = (int*)gl_func_00000000(0x780);
         if (s1 == 0) return (void*)s1;
@@ -392,8 +406,10 @@ void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3, int a4) {
     n2 = n1;
     if (n1 == 0) { n2 = (int*)gl_func_00000000(0x50); if (n2 == 0) goto S_n1; }
     n3 = n2;
-    if (n2 == 0) { n3 = (int*)gl_func_00000000(0x2C); if (n3 == 0) goto S_n2; }
-    gl_func_00000000(n3, (char*)&D_00000000 + 0x3B8);
+    if (n2 == 0) {
+        n3 = (int*)gl_func_00000000(0x2C); if (n3 == 0) goto S_n2;
+        gl_func_00000000(n3, (char*)&D_00000000 + 0x3B8);
+    }
     n3[0x28 / 4] = (int)&D_arc_A3C_v0;
 S_n2:
     n2[0x28 / 4] = (int)&D_arc_A3C_v1;
