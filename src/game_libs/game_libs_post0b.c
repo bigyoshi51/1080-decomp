@@ -12278,15 +12278,12 @@ unsigned short game_libs_func_00042428(int a0, int a1) {
  * 100%; permuter unlikely (failed on 0004E384's twin). Leave both INCLUDE_ASM until
  * the $v0/$v1-skip lever is found. (A stale /tmp byte-cmp falsely showed exact —
  * ALWAYS confirm orphan merges via in-tree objdiff, not a standalone byte compare.) */
-extern int *D_state_0042440;     /* = &D+0x240 (undefined_syms); the merged orphan's p-load */
 extern char gl_data_42440_arg;   /* = &D (undefined_syms); the call's a0 */
 void game_libs_func_00042438(void)
 {
-  int *p = D_state_0042440;
-  int **new_var;
-  int new_var2;
-  new_var = &D_state_0042440;
-  new_var2 = p[0xBC / 4];
+  int *p = *(int **)((char *)&D_00000000 + 0x240);  /* was placeholder D_state_0042440 */
+  int **new_var = (int **)((char *)&D_00000000 + 0x240);
+  int new_var2 = p[0xBC / 4];
   gl_func_00000000(&gl_data_42440_arg, 0x110, ((int *) (*new_var)[0x148 / 4])[0xF0 / 4], (*new_var)[0xB8 / 4], new_var2);
 }
 
