@@ -177,16 +177,66 @@ void mgrproc_uso_func_00000D94(Vec3 *dst) {
 }
 
 #ifdef NON_MATCHING
-/* Partial structural decode 2026-06-01. Constructor: 4-stage find-or-create
- * cascade (sizes 2032/1704/80/44, collapse to obj since arg!=0), vtable
- * wiring (->0x28 = &D), then a large field-init block (object handles,
- * FP seeds) + a final indirect vtable call. Cross-USO calls are the
- * gl_func_00000000 import. Tail (indirect call + late init) left for a
- * follow-up. */
+/* mgrproc_uso_func_00000E04: 0x396-byte constructor. SYMBOLS RE-DERIVED
+ * 2026-06-23 from the resolved .s — the prior body used gl_func_00000000 /
+ * single-`d`(&D_00000000) placeholders (all relocs WRONG). Real form:
+ *  - 4-stage find-or-create cascade (sizes 2032/1704/80/44), collapses to obj
+ *    since arg!=0; returns obj (move v0,s0 in epilogue).
+ *  - Each vtable/base reference is a DISTINCT USO data import
+ *    (import_80XXXXXX, value 0 in undefined_syms) referenced as
+ *    `(char*)&sym + off` / `*(T*)(&sym + off)`. Each distinct char-symbol
+ *    keeps its own unpaired-HI16 lui (offset folded into the addiu/lw/sw
+ *    displacement, no LO16) — the B20/12AC matched idiom. One shared base
+ *    would CSE the luis and emit paired HI16+LO16.
+ *  - All cross-USO calls are DISTINCT named targets (import_000XXXXX /
+ *    mgrproc_uso_func_XXXXXX), not a single gl_func placeholder.
+ * 75.19 -> 76.67 (objdiff fuzzy). All R_MIPS_26 call relocs + struct offsets
+ * + control flow byte-exact. Residual (~23%) is genuine IDO regalloc/scheduling
+ * divergence, NOT logic: (1) frame 0x40 vs 0x58 — target threads the 4-stage
+ * cascade through a single $a3 + stack temps 0x38/0x3c; build keeps o0..o3 in
+ * more slots (~100 register-renumber + frame diffs cascade from this).
+ * (2) record-flag blocks: target emits beqzl (likely, store hoisted+dup) for
+ * the 2nd/3rd `if(rec[0x14]){rec[4]=1;} rec[0x14]=o0;` but plain beqz for the
+ * 1st — IDO scheduler-tie, identical C, no source lever. (3) a few
+ * &import+offset refs render as %hi+0x608 addend vs target's addend-0 lui +
+ * literal addiu (byte-identical low-half, objdiff-flagged only). K&R param
+ * style tested = no change. Genuine coloring/scheduling cap. */
 extern int mgrproc_uso_func_055750();
+extern int import_000AE700();
+extern int import_000B0DBC();
+extern int import_000A7ECC();
+extern int import_000B6C40();
+extern int import_000A5D38();
+extern int import_000A5F40();
+extern int import_000A69BC();
+extern int import_000A5FBC();
+extern int mgrproc_uso_func_04C678();
+extern void mgrproc_uso_func_0000119C();
+extern int mgrproc_uso_func_074710();
+extern void mgrproc_uso_func_00002EF0();
+extern int mgrproc_uso_func_07ACE0();
+extern int mgrproc_uso_func_01B0F8();
+extern int mgrproc_uso_func_0139B0();
+extern int mgrproc_uso_func_074840();
+extern char import_802649D8;
+extern char import_80073B18;
+extern char import_80073B80;
+extern char import_800745F8;
+extern char import_80264880;
+extern char import_802649E0;
+extern char import_802649F0;
+extern char import_80020098;
+extern char import_80264800;
+extern char import_800201D0;
+extern char import_8002022C;
+extern char import_80265570;
+extern char import_802655B0;
+extern char import_802655EC;
+extern char import_802656A4;
+extern int import_80020228;
+extern char import_800200D8;
 void mgrproc_uso_func_00000E04(char *obj, int a1, int a2, int a3, int arg5) {
     char *o0, *o1, *o2, *o3;
-    char *d = (char *)&D_00000000;
     char *w;
     float f0 = 0.0f;
     int n;
@@ -211,20 +261,20 @@ void mgrproc_uso_func_00000E04(char *obj, int a1, int a2, int a3, int arg5) {
         o3 = (char *)mgrproc_uso_func_055750(44);
         if (o3 == 0) goto Lvt2;
     }
-    gl_func_00000000(o3, d + 1544);
-    *(int *)(o3 + 0x28) = (int)d;
+    mgrproc_uso_func_04C678(o3, &import_802649D8 + 1544);
+    *(int *)(o3 + 0x28) = (int)&import_80073B18;
 Lvt2:
-    *(int *)(o2 + 0x28) = (int)d;
+    *(int *)(o2 + 0x28) = (int)&import_80073B80;
 Lvt1:
-    gl_func_00000000(o1 + 80);
-    *(int *)(o1 + 0x28) = (int)d;
+    import_000AE700(o1 + 80);
+    *(int *)(o1 + 0x28) = (int)&import_800745F8;
 Lvt0:
-    *(int *)(o0 + 0x28) = (int)d;
+    *(int *)(o0 + 0x28) = (int)&import_80264880;
     *(int *)(o0 + 0x568) = 0;
-    gl_func_00000000(o0, a1, d + 1552, a2);
+    import_000B0DBC(o0, a1, &import_802649E0 + 1552, a2);
     *(int *)(o0 + 0x528) = arg5;
     *(int *)(o0 + 0x7D4) = 0;
-    gl_func_00000000(o0);
+    mgrproc_uso_func_0000119C(o0);
     *(int *)(o0 + 0x6A8) = a3;
     w = *(char **)(o0 + 0x6A8);
     *(int *)(o0 + 0x7C4) = 0;
@@ -236,8 +286,8 @@ Lvt0:
     *(int *)(o0 + 0x7C8) = n;
     *(float *)(o0 + 0x7AC) = 211.0f;
     *(float *)(o0 + 0x7A8) = 192.0f - (float)(n * 2 - 2);
-    gl_func_00000000(d + 1568, 0);
-    gl_func_00000000(d, 0);
+    mgrproc_uso_func_074710(&import_802649F0 + 1568, 0);
+    import_000A7ECC(&import_80020098, 0);
 
     {
         char *o5;
@@ -245,50 +295,60 @@ Lvt0:
         char *vt;
         o5 = (char *)mgrproc_uso_func_055750(224);
         if (o5 != 0) {
-            gl_func_00000000(o5);
-            *(int *)(o5 + 0x28) = (int)d;
+            import_000B6C40(o5);
+            *(int *)(o5 + 0x28) = (int)&import_80264800;
         }
         *(int *)(o0 + 0x6AC) = (int)o5;
-        *(int *)(d + 312) = (int)o5;
+        *(int *)(&import_800201D0 + 312) = (int)o5;
 
-        gl_func_00000000(*(int *)(o0 + 0x6AC), o0, *(int *)(o0 + 0x568),
-                         *(int *)(o0 + 0x6A8), *(int *)(o0 + 0x528));
+        mgrproc_uso_func_00002EF0(*(int *)(o0 + 0x6AC), o0, *(int *)(o0 + 0x568),
+                                  *(int *)(o0 + 0x6A8), *(int *)(o0 + 0x528));
 
         rec = *(char **)(o0 + 0x6AC);
         vt = *(char **)(rec + 0x28);
         ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)rec);
 
-        rec = (char *)gl_func_00000000(o0 + 16, *(int *)(o0 + 0x6AC));
+        rec = (char *)mgrproc_uso_func_07ACE0(o0 + 16, *(int *)(o0 + 0x6AC));
         if (*(int *)(rec + 0x14) != 0) {
             *(int *)(rec + 0x4) = 1;
         }
         *(int *)(rec + 0x14) = (int)o0;
 
-        *(int *)(o0 + 0x48) = gl_func_00000000(0);
-        gl_func_00000000(*(int *)(o0 + 0x48), o0);
+        mgrproc_uso_func_01B0F8(o0, a1);
+        *(int *)(o0 + 0x48) = import_000A5D38(0);
+        import_000A5F40(*(int *)(o0 + 0x48), o0);
 
-        gl_func_00000000(*(int *)(o0 + 0x48), (*(int *)d + 3) << 16, -1, d);
-        gl_func_00000000(*(int *)(o0 + 0x48), ((*(int *)d + 3) << 16) | 8, -1, d);
-        gl_func_00000000(*(int *)(o0 + 0x48), ((*(int *)d + 3) << 16) | 9, -1, d);
-        gl_func_00000000(*(int *)(o0 + 0x48), ((*(int *)d + 3) << 16) | 5, -1, d);
+        import_000A69BC(*(int *)(o0 + 0x48), (*(int *)&import_8002022C + 3) << 16,
+                        -1, &import_80265570);
+        import_000A69BC(*(int *)(o0 + 0x48),
+                        ((*(int *)&import_8002022C + 3) << 16) | 8, -1,
+                        &import_802655B0);
+        import_000A69BC(*(int *)(o0 + 0x48),
+                        ((*(int *)&import_8002022C + 3) << 16) | 9, -1,
+                        &import_802655EC);
+        import_000A69BC(*(int *)(o0 + 0x48),
+                        ((*(int *)&import_8002022C + 3) << 16) | 5, -1,
+                        &import_802656A4);
 
         *(int *)(*(int *)(o0 + 0x48) + 0x30) = *(int *)(o0 + 0x568);
-        gl_func_00000000(*(int *)(o0 + 0x48));
+        import_000A5FBC(*(int *)(o0 + 0x48));
 
-        rec = (char *)gl_func_00000000(o0 + 16, *(int *)(o0 + 0x48));
+        rec = (char *)mgrproc_uso_func_07ACE0(o0 + 16, *(int *)(o0 + 0x48));
         if (*(int *)(rec + 0x14) != 0) {
             *(int *)(rec + 0x4) = 1;
         }
         *(int *)(rec + 0x14) = (int)o0;
 
-        rec = (char *)gl_func_00000000(o0 + 16, *(int *)(d + 400));
+        rec = (char *)mgrproc_uso_func_07ACE0(o0 + 16,
+                                              *(int *)((char *)&import_80020228 + 400));
         if (*(int *)(rec + 0x14) != 0) {
             *(int *)(rec + 0x4) = 1;
         }
         *(int *)(rec + 0x14) = (int)o0;
 
-        gl_func_00000000(*(int *)(d + 400), 1, 0);
-        *(int *)(d + 0x40) = 4;
+        mgrproc_uso_func_0139B0(*(int *)((char *)&import_80020228 + 400), 1, 0);
+        mgrproc_uso_func_074840();
+        *(int *)(&import_800200D8 + 0x40) = 4;
     }
 }
 #else
@@ -1573,30 +1633,74 @@ void mgrproc_uso_func_00002AFC(int *a0) {
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00002B7C: number/glyph display dispatcher (switch arg0->0xD4->
- * 0x7E4). Case 1: draw two labeled rows (cb-nested alpha pattern) at &sp60 strings
- * 0x658/0x66C. Case 3: a 16-glyph loop — for each i, fetch the glyph string ptr
- * ((char**)&D)[a3->0x7DC + i], digit = *str - '0', inner switch picks a sub-object
- * (a3+0x458/0x47C/0x4A0), draw it + the string at x=s2 (s2 = -1-a3->0x7E0, +=0x10);
- * then if a3->0x7E8 < 0x96 fade arg0->0x170 + draw a panel. Case 4: same fade+panel.
- * cb-nested form: cb(h, cb(h,0xA0,p), v, p). Fresh decode 2026-05-29 (m2c-confirmed).
- * 76.6% reg-blind. Residual: the spA4..B0 {1,1,1,1} float Vec is set but its
- * consumer cb is undetermined so IDO DCEs the 4 stores here (~4 insns) + regalloc.
- * Caps: structs + cb prototypes untyped (USO-reloc), &D glyph table not symbolized.
- * NON_MATCHING. */
-extern int gl_func_00000000();
+ * 0x7E4). a3 = arg0->0xD4 (the mgr sub-object); s4 = arg0.
+ *
+ * Case 1: two labeled rows. import_0024D108(a3->0x568); blit a digit/value via
+ *   import_0024E608(&import_8024CAF8, 0xFF, a3+0x4A0); then for each of two label
+ *   strings (&import_80264A28+0x658, &import_80264A3C+0x66C) call the text-layout
+ *   helper mgrproc_uso_func_083574(&sp60, str), then
+ *   import_0024D704(h->0x568, import_0024E060(h->0x568, 0xA0, &sp60), x, &sp60)
+ *   with x = 0x46 (70) then 0x64 (100).
+ * Case 3: 16-glyph loop. s2 = -1 - a3->0x7E0; import_0024D108(a3->0x568); for
+ *   i in 0..15: reload a3; s1 = ((char**)&import_8025CAF8)[a3->0x7DC + i];
+ *   digit = *s1 - '0'; s1++; inner switch(digit){0:a3+0x458; 1:a3+0x47C;
+ *   2(+default):a3+0x4A0} -> sub-object s3; import_0024E608(&import_8024CAF8,
+ *   0xFF, s3); import_0024D704(h->0x568, import_0024E060(h->0x568,0xA0,s1), s2,
+ *   s1); s2 += 0x10. After loop, if a3->0x7E8 < 0x96 do the fade+panel tail
+ *   (shared with case 4): if arg0->0x170 >= 0x79 decrement it;
+ *   import_0024E608(&import_8024CAF8, 0xFF, h+0x4C4); import_0024F2C8(panel);
+ *   import_0024F34C(panel, 0xA0, arg0->0x170, 3) where panel = &import_80263D48+0x18.
+ * Case 4: just the fade+panel tail.
+ *
+ * SYMBOLS RE-DERIVED 2026-06-23 (was 73.91%, all calls collapsed to
+ * gl_func_00000000 / glyph table = &D_00000000 -> WRONG R_MIPS_26 + reloc form).
+ * Six distinct real R_MIPS_26 callees now wired (import_0024D108 / _0024E608 /
+ * _0024E060 / _0024D704 / _0024F2C8 / _0024F34C + the intra-USO text helper
+ * mgrproc_uso_func_083574); the four data bases (import_8024CAF8 string buffer,
+ * import_8025CAF8 glyph-ptr table, import_80264A28/3C label strings,
+ * import_80263D48 panel object) symbolized.
+ *
+ * RESIDUAL CAPS (DECODE-ONLY, not landable from C):
+ *  (1) HI16-PAIR: every data base (import_8024CAF8/8025CAF8/80264A28/80264A3C/
+ *      80263D48) is reached in the TARGET by an *unpaired* R_MIPS_HI16 lui plus a
+ *      baked, un-relocated addiu immediate (the symbols are NOT page-aligned:
+ *      low16 != 0, so this is the USO link-direct form where the loader patches
+ *      only HI16). Standard C `&import_X + off` always emits a HI16/LO16 *pair*
+ *      (objdump shows R_MIPS_LO16 on our addiu's), which cannot be suppressed.
+ *  (2) 5-SAVED-REG / FRAME COLORING: the target pins arg0 to s4 (5 saved regs
+ *      s0..s4, frame -0xB8) and keeps the sub-object ptr in saved s3 spilled/
+ *      reloaded at 0xA0(sp) live across the loop (`lw s3,0xA0` pre-loop on an
+ *      uninit value, `sw s3,0xA0` post-loop). Our C only needs 4 saved regs
+ *      (arg0->s3, frame -0xA8); a `sub=sub` self-assign is DCE'd. The s3-vs-s4
+ *      base-register difference cascades through every `lw ...,0xD4(sX)`.
+ *  (3) LOOP STRENGTH-REDUCTION: target keeps the 0..15 index in s0 and recomputes
+ *      `(field+i)<<2` each iter; IDO instead strength-reduces our index into a
+ *      byte-offset counter (+=4, compare !=0x40). Coloring/IV tie.
+ * What IS now correct vs the prior 73.91% placeholder body: all six DISTINCT
+ * R_MIPS_26 callees, the full case-1/3/4 control flow, the inner digit switch,
+ * and the data symbols are right. Best-effort correct-C decode; NON_MATCHING. */
+extern char import_8025CAF8;
+extern char import_80264A28;
+extern char import_80264A3C;
+extern char import_80263D48;
+extern int import_0024D108();
+extern int import_0024E060();
+extern int import_0024D704();
+extern int mgrproc_uso_func_083574();
 void mgrproc_uso_func_00002B7C(char *arg0) {
-    float spB0;
-    float spAC;
-    float spA8;
-    float spA4;
-    void *s3;
-    char sp60[12];
+    volatile float spB0;
+    volatile float spAC;
+    volatile float spA8;
+    volatile float spA4;
+    char *panel;
+    char sp60[68];
     char *a3;
+    char *h;
     int s0;
     int s2;
     char *s1;
-    char *s1_2;
-    int v1;
+    int digit;
+    char *sub;
 
     spA4 = 1.0f;
     spA8 = 1.0f;
@@ -1605,50 +1709,55 @@ void mgrproc_uso_func_00002B7C(char *arg0) {
     a3 = *(char **)(arg0 + 0xD4);
     switch (*(int *)(a3 + 0x7E4)) {
     case 1:
-        gl_func_00000000(*(int *)(a3 + 0x568), a3);
-        gl_func_00000000(0, 0xFF, a3 + 0x490 + 0x10);
-        gl_func_00000000(&sp60, 0x658);
-        gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
-                         gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, &sp60), 0x46, &sp60);
-        gl_func_00000000(&sp60, 0x66C);
-        gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
-                         gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, &sp60), 0x64, &sp60);
+        import_0024D108(*(int *)(a3 + 0x568));
+        import_0024E608(&import_8024CAF8, 0xFF, a3 + 0x4A0);
+        mgrproc_uso_func_083574(&sp60, &import_80264A28 + 0x658);
+        import_0024D704(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
+                        import_0024E060(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, &sp60),
+                        0x46, &sp60);
+        mgrproc_uso_func_083574(&sp60, &import_80264A3C + 0x66C);
+        import_0024D704(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
+                        import_0024E060(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, &sp60),
+                        0x64, &sp60);
         return;
     case 3:
         s2 = -1 - *(int *)(a3 + 0x7E0);
-        gl_func_00000000(*(int *)(a3 + 0x568), a3);
+        import_0024D108(*(int *)(a3 + 0x568));
         s0 = 0;
-        s3 = s3;
         do {
             a3 = *(char **)(arg0 + 0xD4);
-            s1 = *(char **)((char *)&D_00000000 + (*(int *)(a3 + 0x7DC) + s0) * 4);
-            s1_2 = s1 + 1;
-            v1 = *s1 - 0x30;
-            switch (v1) {
+            s1 = ((char **)&import_8025CAF8)[*(int *)(a3 + 0x7DC) + s0];
+            digit = *s1 - 0x30;
+            s1++;
+            switch (digit) {
             case 0:
-                s3 = a3 + 0x458;
+                sub = a3 + 0x458;
                 break;
             case 1:
-                s3 = a3 + 0x47C;
+                sub = a3 + 0x47C;
                 break;
             case 2:
-                s3 = a3 + 0x4A0;
+            default:
+                sub = a3 + 0x4A0;
                 break;
             }
-            gl_func_00000000(0, 0xFF, s3, a3);
-            gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
-                             gl_func_00000000(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, s1_2), s2, s1_2);
+            import_0024E608(&import_8024CAF8, 0xFF, sub);
+            import_0024D704(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
+                            import_0024E060(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, s1),
+                            s2, s1);
             s0 += 1;
             s2 += 0x10;
         } while (s0 != 0x10);
-        if (*(int *)(*(char **)(arg0 + 0xD4) + 0x7E8) < 0x96) {
+        h = *(char **)(arg0 + 0xD4);
+        if (*(int *)(h + 0x7E8) < 0x96) {
             if (*(int *)(arg0 + 0x170) >= 0x79) {
                 *(int *)(arg0 + 0x170) = *(int *)(arg0 + 0x170) - 1;
+                h = *(char **)(arg0 + 0xD4);
             }
-            gl_func_00000000(0, 0xFF, *(char **)(arg0 + 0xD4) + 0x4C4, *(char **)(arg0 + 0xD4));
-            gl_func_00000000(0x18);
-            gl_func_00000000(0x18, 0xA0, *(int *)(arg0 + 0x170), 3);
-            return;
+            import_0024E608(&import_8024CAF8, 0xFF, h + 0x4C4);
+            panel = &import_80263D48 + 0x18;
+            import_0024F2C8(panel);
+            import_0024F34C(panel, 0xA0, *(int *)(arg0 + 0x170), 3);
         }
         return;
     case 4:
@@ -1656,9 +1765,10 @@ void mgrproc_uso_func_00002B7C(char *arg0) {
             *(int *)(arg0 + 0x170) = *(int *)(arg0 + 0x170) - 1;
             a3 = *(char **)(arg0 + 0xD4);
         }
-        gl_func_00000000(0, 0xFF, a3 + 0x4C4, a3);
-        gl_func_00000000(0x18);
-        gl_func_00000000(0x18, 0xA0, *(int *)(arg0 + 0x170), 3);
+        import_0024E608(&import_8024CAF8, 0xFF, a3 + 0x4C4);
+        panel = &import_80263D48 + 0x18;
+        import_0024F2C8(panel);
+        import_0024F34C(panel, 0xA0, *(int *)(arg0 + 0x170), 3);
         break;
     }
 }
@@ -1871,12 +1981,20 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF
  * frame counter at arg0->0xDC; periodic cb(0x135,0) when arg0->0x98->0xC4>=0xC;
  * cb(sub) when arg0->0x98->0xC8<=0. Final block (if still gated && ->0x4DC==1 &&
  * cb()!=0): cb(sub), sub->0x554=200.0f, arg0->0x2C=0; then two cb(arg0->0x80, ...)
- * from arg0->0x44 fields. cb(arg0) tail. Fresh decode 2026-05-29 (m2c-confirmed).
- * 89.7% reg-blind. Residuals: the 3-way ->0x94 dispatch emits redundant arg-moves
- * (3 identical placeholder bodies; real targets differ), and the last cb's 5th arg
- * (arg0->0x44->0x6C) is a FLOAT passed on the stack (lwc1/swc1) — m2c showed it as
- * int; needs a float-typed call alias. Caps: arg0/sub structs + cb prototypes
- * untyped (USO-reloc). NON_MATCHING. */
+ * from arg0->0x44 fields. cb(arg0) tail. Decode refined 2026-06-23: float-5th-arg
+ * FIXED (016BEC prototyped with trailing `float` → swc1, no cvt.d.s/sdc1); the BC
+ * pointer is CSE-reused for the final gate test (a1 reload before final v0); the
+ * 0xC8 cb reuses the 0x98 pointer; the 0xDC counter is inlined (`*p += 1`) so it
+ * no longer steals v0 — counter region now byte-exact. Register-BLIND structure is
+ * now IDENTICAL to target. RESIDUAL (64 diffs, all derived from ONE coloring
+ * decision): IDO assigns the post-call gate value + the 0x44/0x98 pointers to v1
+ * here vs v0 in target — a uniform v0<->v1 global-coloring renumber. The 3-way
+ * dispatch's redundant beqz-recheck and the B139C duplicate-arg move both follow
+ * from that swap. PERMUTER-IMMUNE (40k iters, temp_for_expr/reorder passes: base
+ * score 480 -> 360 floor, no zero; only no-op if(1){}/const-mangle "wins").
+ * decl-order, if(1)-wrap, &&-reorder, nested-else, truthy-cond all 0-effect on the
+ * swap. Genuine IDO post-call v-reg coloring cap. Caps: arg0/sub structs + cb
+ * prototypes untyped (USO-reloc). NON_MATCHING. */
 extern int import_000B70AC();
 extern int import_000B1284();
 extern int import_000B1334();
@@ -1886,14 +2004,13 @@ extern int import_000B139C();
 extern int import_000B7058();
 extern int import_000B14CC();
 extern int mgrproc_uso_func_016BB8();
-extern int mgrproc_uso_func_016BEC();
+extern int mgrproc_uso_func_016BEC(int, int, int, int, float);
 extern int mgrproc_uso_func_04CD94();
 void mgrproc_uso_func_00003074(char *arg0) {
     char *a1;
     int v0;
     char *p;
     int v1;
-    int t4;
 
     a1 = *(char **)(arg0 + 0xBC);
     if ((*(int *)(a1 + 0x4F0) & 0x10000) && (*(int *)(a1 + 0x4DC) == 1)) {
@@ -1914,23 +2031,23 @@ void mgrproc_uso_func_00003074(char *arg0) {
                 import_000B12B4(a1);
             }
         }
-        t4 = *(int *)(arg0 + 0xDC) + 1;
-        *(int *)(arg0 + 0xDC) = t4;
-        if (t4 >= 0x33) {
+        *(int *)(arg0 + 0xDC) += 1;
+        if (*(int *)(arg0 + 0xDC) >= 0x33) {
             *(int *)(arg0 + 0xDC) = 0;
         }
         p = *(char **)(arg0 + 0x98);
         if ((p != 0) && (*(int *)(p + 0xC4) >= 0xC) && (*(int *)(arg0 + 0xDC) == 0)) {
             mgrproc_uso_func_0002FC(0x135, 0);
         }
-        if (*(int *)(*(char **)(arg0 + 0x98) + 0xC8) <= 0) {
+        p = *(char **)(arg0 + 0x98);
+        if (*(int *)(p + 0xC8) <= 0) {
             import_000B139C(*(int *)(arg0 + 0xBC), *(int *)(arg0 + 0xBC));
         }
-        v0 = *(int *)(*(char **)(arg0 + 0xBC) + 0x4F0) & 0x10000;
+        a1 = *(char **)(arg0 + 0xBC);
+        v0 = *(int *)(a1 + 0x4F0) & 0x10000;
     }
     if (v0 != 0) {
-        if ((*(int *)(*(char **)(arg0 + 0xBC) + 0x4DC) == 1) &&
-            (import_000B7058(arg0) != 0)) {
+        if ((*(int *)(a1 + 0x4DC) == 1) && (import_000B7058(arg0) != 0)) {
             import_000B14CC(*(int *)(arg0 + 0xBC));
             *(float *)(*(char **)(arg0 + 0xBC) + 0x554) = 200.0f;
             *(int *)(arg0 + 0x2C) = 0;
@@ -1939,7 +2056,7 @@ void mgrproc_uso_func_00003074(char *arg0) {
         mgrproc_uso_func_016BB8(*(int *)(arg0 + 0x80), *(int *)(p + 0x30), *(int *)(p + 0x90));
         p = *(char **)(arg0 + 0x44);
         mgrproc_uso_func_016BEC(*(int *)(arg0 + 0x80), *(int *)(p + 8), *(int *)(p + 0xC),
-                         *(int *)(p + 0x68), (double)*(float *)(p + 0x6C));
+                         *(int *)(p + 0x68), *(float *)(p + 0x6C));
     }
     mgrproc_uso_func_04CD94(arg0);
 }

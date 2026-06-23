@@ -419,9 +419,24 @@ extern char D_00000000;
  * (idx = gl_func(c)), make two per-glyph render calls, advance x by glyph width.
  * The two `1024` packet metrics are REDUNDANT signed divisions in the target:
  * (scale<<10)/scale and (glyph[2]<<10)/glyph[2] (each ==1024 but IDO emits the
- * div + the div-by-0 / -1<<31-overflow break-traps). Modeling both + the byte-4
- * a0 field + the re-deref'd cmd_list[0] lifts the body 45.3 -> 71%. Residual cap:
- * 9-saved-reg allocation (s0-s8) numbering + frame-size/scheduling; INCLUDE_ASM
+ * div + the div-by-0 / -1<<31-overflow break-traps).
+ *
+ * Decode 2026-06-23: 71 -> 95.74% (128/128 insns, all-correct C) via:
+ *  (1) loop bound is the per-char callback's RETURN re-evaluated each iter, NOT a
+ *      hoisted strlen: peeled do/while `if(cond){do{...}while(cond);}` with
+ *      `(unsigned)i < (unsigned)gl_func(a3)` (unsigned -> sltu/beqzl like target);
+ *  (2) the SECOND glyph lookup re-derives its index from `(unsigned char)g`
+ *      (target's `andi s5,v0,0xff`) - first lookup uses raw g, second the byte;
+ *  (3) compute the masked glyph OFFSET *after* the first render call so the masked
+ *      byte stays live in a saved reg across the call (target s5) - this single
+ *      reorder evicts the loop-invariant ' '(=32) from its hoisted saved reg
+ *      (li s8,32), shifting i->s8 / p->s7 to match (82 -> 94%);
+ *  (4) hold glyph[2] in a named local `gw` (target s0) reused by both calls + div;
+ *  (5) keep only the masked OFFSET (goff) and re-derive the base `a0->0x20` at
+ *      each glyph2 field access (target re-reads s1->0x20), not a cached pointer.
+ * Residual 4.26% = pure as1/uopt scheduling+coloring ties: prologue RDP-const
+ * ori/lw order, `move s8,zero` delay-slot placement, char read into v0+`move a0,v0`
+ * vs target's `lbu a0`, and the glyph[0]/[1] stack-store schedule. INCLUDE_ASM
  * stays the build path. */
 void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
     int *cmd_state = (int *)a0[0x24 / 4];
@@ -429,29 +444,36 @@ void gui_func_00000D04(int *a0, int *a1, int a2, char *a3) {
     int scale = a0[0x14 / 4];
     int idx = cmd_list[1];
     int *slot;
-    int count, i, x;
+    int i;
+    int x = (int)a1;
     char *p = a3;
     cmd_list[1] = idx + 1;
     slot = (int *)((char *)((int *)cmd_state[0xC / 4])[0] + idx * 8);
     slot[0] = 0xBB000001;
     slot[1] = 0x80008000;
-    count = gl_func_00000000(a3);
-    if (count == 0) return;
-    x = (int)a1;
-    for (i = 0; i < count; i++) {
-        char c = *p;
-        if (c != ' ') {
-            int g = gl_func_00000000((int)c);
-            int *glyph = (int *)((char *)a0[0x20 / 4] + g * 0x14);
-            gl_func_00000000(a0[0x24 / 4], a0[0x4 / 4], a0[0x18 / 4], a0[0x1C / 4],
-                             glyph[0], glyph[1], glyph[2], scale, 0);
-            gl_func_00000000(a0[0x24 / 4], x + glyph[4], a2, glyph[2], scale,
-                             (glyph[2] * 1024) / glyph[2], (scale * 1024) / scale);
-            x += glyph[3];
-        } else {
-            x += ((int *)a0[0x20 / 4])[3];
-        }
-        p++;
+    i = 0;
+    if ((unsigned int)i < (unsigned int)gl_func_00000000(a3)) {
+        do {
+            char c = *p;
+            if (c != ' ') {
+                int g = gl_func_00000000((int)c);
+                unsigned int gi = (unsigned char)g;
+                int sd = (scale * 1024) / scale;
+                int *glyph = (int *)((char *)a0[0x20 / 4] + g * 0x14);
+                int goff;
+                int gw = glyph[2];
+                gl_func_00000000(a0[0x24 / 4], a0[0x4 / 4], a0[0x18 / 4], a0[0x1C / 4],
+                                 glyph[0], glyph[1], gw, scale, 0);
+                goff = gi * 0x14;
+                gl_func_00000000(a0[0x24 / 4], x + *(int *)((char *)a0[0x20 / 4] + goff + 16),
+                                 a2, gw, scale, (gw * 1024) / gw, sd);
+                x += *(int *)((char *)a0[0x20 / 4] + goff + 12);
+            } else {
+                x += ((int *)a0[0x20 / 4])[3];
+            }
+            p++;
+            i++;
+        } while ((unsigned int)i < (unsigned int)gl_func_00000000(a3));
     }
 }
 #else
