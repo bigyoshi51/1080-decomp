@@ -102,31 +102,30 @@ extern UsoSlotGroup D_800182E4;
  * splat mis-split at 0x800047E4. Symbol kept as alt-entry via
  * undefined_syms_auto.txt for direct callers (jal func_800047E4). */
 
-/* ===== func_80004808 / func_8000487C: branch-LIKELY-emission cap (NOT -O0) =====
- * SCOPE CORRECTION 2026-06-04: this branch-likely cap applies ONLY to func_80004808
- * (73%) and func_8000487C (91%), which stay HERE at -O2 (they score higher at -O2).
- * The OTHER two tail functions func_800048E8 / func_800049B8 were a DIFFERENT class —
- * genuinely -O1 (spill-every-local), 34/39% at -O2 vs 72/78% at -O1 — and have been
- * moved to kernel_000_o1.c (-O1 split). The 2026-05-30 "whole tail is -O2" claim below
- * was an over-generalization; it is correct only for 4808/487C.
- * CORRECTION 2026-05-30: an -O0 split was tried and REVERTED — it does NOT match.
- * The target is -O2-COMPACT (e.g. func_8000487C = 27 insns) but with REGULAR
- * bnez/beqz (no branch-likely). Measured (exact flags -mips2 -32 -G0 -non_shared
- * -Xcpluscomm -Wab,-r4300_mul): -O2 = 28 insns + 2 bnezl (branch-LIKELY); -O1 = 36
- * insns regular; -O0 = 38 insns regular. So -O0/-O1 are BLOATED (worse), and -O2 is
- * compact-but-branch-likely. The target = -O2-size WITHOUT branch-likely — i.e. an
- * -O2 branch-likely-EMISSION cap, not an opt-level mismatch. The func-call-in-body
- * do-while form (this code) still emits bnezl; the C-structure lever doesn't suppress
- * it here. Genuine branch-likely cap. [Earlier "confirmed -O0" was an error: I matched
- * branch-TYPE but ignored instruction COUNT — -O0 regular branches come WITH +10 insns
- * of spills.]
- * VERIFIED 2026-05-31: NO branch-likely-disable flag exists in IDO 7.1 cc — the bnezl
- * emission is internal to ugen (`f_emit_branch_rrll`), not exposed via any -Wo/-W
- * command-line option (checked the cc binary strings). So this stays NM; the only
- * theoretical fixes are a C shape that makes the branch-target's first insn
- * non-delay-slot-fillable (so ugen falls back to regular bnez+nop) — not found despite
- * the do-while/call-in-body tries — or a ugen patch (out of scope). Applies to func_80004808
- * / func_8000487C + other -O2 branch-likely near-misses (e.g. gl_func_0006AF0C). */
+/* ===== func_80004808: -O2 double-store / coloring cap (NOT branch-likely) =====
+ * CORRECTION 2026-06-23: the older "branch-LIKELY-emission cap" header (below, in
+ * spirit) is STALE for func_80004808. The current clean -O2 C body emits REGULAR
+ * beqz/bnez — identical branch TYPE to the target. There is NO branch-likely diff.
+ * The real residual is a STRUCTURAL/coloring gap: target = 29 insns, clean -O2 C = 26.
+ * The 3 extra target insns form the "double-store" idiom for the sp+0x4 header byte:
+ *   (1) sb $t8,0x4($sp)   <- a FIRST store of (sp4[0]&0xFF03)|0x30
+ *   (2) andi $t1,$t8,0xFF <- read sp4[0] back as a u8 (in-register, not reloaded)
+ *   (3) andi $t0,$t9,0x3  <- a redundant 2nd mask of (arg1 & 3)
+ * plus the final read is `addiu $t1,$sp,0x4; lw 0x0($t1)` (2 insns) not `lw 0x4($sp)`.
+ * The clean -O2 body CSEs the two `sp4[0]=` assigns into ONE store with no readback,
+ * folds (arg1&3) once, and folds the final read to `lw 0x4($sp)`. To get the target's
+ * double-store at -O2 you must defeat CSE on the readback, but every legitimate lever
+ * that does so MATERIALIZES a pointer the target lacks AND/OR narrows the wide masks:
+ *   - volatile-cast header writes  -> double-store BUT `addiu $v0,$sp,4` ptr + reload
+ *   - union {u32 w; u8 b[4]}       -> double-store BUT `addiu $v0,$sp,4` ptr + `&0xfc`
+ *   - sp4[arg1*0] CSE-defeat hack  -> closest shape BUT `*0` index is match-faking
+ *   - u8 temp x reused             -> dead-store-eliminated (first sb dropped, frame+8)
+ * The target wants double-store WITH direct 4($sp) addressing AND wide masks — a
+ * combination IDO -O2 will not emit from any clean C. -O1 reproduces the double-store
+ * + addiu/lw character but is 32 insns (unfilled delays, extra reloads); -O0 = 36.
+ * Permuter cannot bridge a 3-insn structural gap (coloring-only). Genuine -O2 ugen cap.
+ * VERIFIED 2026-05-31 (still relevant for the bnezl family elsewhere): no branch-likely
+ * disable flag exists in IDO 7.1 cc. */
 #ifdef NON_MATCHING
 /* 2026-06-04 (72.68->73.03%): structural cleanup. sp4 is the 4-byte packet
  * word at sp+0x4 (declare `u8 sp4[4]` BEFORE `u32 sp0` so IDO lays sp0 at

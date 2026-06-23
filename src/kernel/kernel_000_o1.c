@@ -10,44 +10,41 @@
 
 extern void* D_8000A420;
 
-#ifdef NON_MATCHING
-/* func_800048E8: 52-insn chunked-write driver. Borrows hardware (init via
+/* func_800048E8: chunked-write driver. Borrows hardware (init via
  * func_80004C7C if D_8000A490 was clear), processes arg1 bytes from arg0
- * in chunks of <=3 via func_80004C08, then conditionally re-invokes
- * func_80004C7C if D_8000A490 was already set on entry. -O1 split (2026-06-04):
- * 34% (-O2) -> 72% (-O1). Logic confirmed against asm. */
+ * in chunks of <=3 via func_80004C08, re-arming the hardware between chunks,
+ * then conditionally re-invokes func_80004C7C if D_8000A490 was already set
+ * on entry. -O1 file-split (matched 2026-06-23). */
 extern s32 D_8000A490;
 extern void func_80004C7C(void);
 extern void func_80004C08(char *p, s32 n);
 void func_800048E8(char *arg0, s32 arg1) {
-    s32 wasInit;
     s32 chunkSize;
     s32 offset;
+    s32 wasInit;
 
     offset = 0;
-    if (D_8000A490 != 0) {
-        wasInit = 1;
-    } else {
+    if (D_8000A490 == 0) {
         func_80004C7C();
         wasInit = 0;
+    } else {
+        wasInit = 1;
     }
 
-    if (arg1 != 0) {
-        do {
-            chunkSize = ((u32)arg1 < 3) ? arg1 : 3;
-            func_80004C08(arg0 + offset, chunkSize);
-            arg1 -= chunkSize;
-            offset += chunkSize;
-        } while (arg1 != 0);
+    while (arg1 != 0) {
+        chunkSize = ((u32)arg1 < 3) ? arg1 : 3;
+        func_80004C08(arg0 + offset, chunkSize);
+        arg1 -= chunkSize;
+        offset += chunkSize;
+        if (arg1 != 0) {
+            func_80004C7C();
+        }
     }
 
     if (wasInit != 0) {
         func_80004C7C();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800048E8);
-#endif
 
 /* func_800049B8: 64-insn rmon/kdebugserver packet parser. Receives 24
  * bits per call (high 3 bytes of arg0); appends them to packet buffer

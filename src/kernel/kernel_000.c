@@ -592,29 +592,35 @@ s32 func_8000058C(s32 arg0) {
  * permuter-crackable. (Kernel = non-asm-processor so the permuter runs
  * cleanly here, unlike the game_libs asm-processor floor.) */
 #ifdef NON_MATCHING
+/* 2026-06-23: separate-cursor reconstruction lands 15 of 16 insns byte-exact.
+ * Persistent cursors sp/dp (=$v0/$v1) hold src/dst; per-iteration working
+ * copies p/q (=$a0/$a3) deref while sp/dp increment; rem (=$a1) snapshots the
+ * count. count is decremented IN PLACE in $a2 (decrement the ARG, not a copy).
+ * Register picks, snapshot order (q before rem), store-via-$a3, and the
+ * bnez+addiu loop tail ALL byte-match. SOLE residual: the target's prologue
+ * `or $a3,$a2` -- a DEAD count-copy IDO refuses to emit for us (DCE strips any
+ * never-read copy; an empty `if(rem){}`/`(void)rem` read is itself DCE'd, and
+ * forcing a read via the loop test introduces `li -1`/`bne` that costs more
+ * than the one insn it buys -- see variant log). Genuine over-emit/dead-insn
+ * cap (target keeps a dead copy unreachable from semantics-preserving C).
+ * Per no-instruction-forcing policy, stays NON_MATCHING. */
 void func_80000598(u8* src, u8* dst, s32 count) {
-    register u8* sp;
-    register u8* dp;
-    register s32 cp;
-    register u8* p, *q;
-    register s32 rem;
-    register u8 c;
-    cp = count;
+    u8 *sp, *dp, *p, *q;
+    s32 rem;
     sp = src;
     dp = dst;
-    (void)cp;
-    if (count == 0) return;
-    count--;
-    do {
-        p = sp;
-        c = *p;
-        q = dp;
-        rem = count;
-        dp++;
-        sp++;
-        *q = c;
-        rem = count--;
-    } while (rem != 0);
+    if (count != 0) {
+        count--;
+        do {
+            p = sp;
+            rem = count;
+            q = dp;
+            dp++;
+            sp++;
+            *q = *p;
+            count--;
+        } while (rem != 0);
+    }
 }
 #else
 #ifdef NON_MATCHING
@@ -894,23 +900,36 @@ typedef struct {
 
 extern s32 D_8000A2F4;
 
-/* NON_MATCHING: traversal is correct, but the callback argument setup still
- * compiles with the wrong register pairing for `var_s0` and `var_s2`. */
+/* NON_MATCHING: logic + instruction sequence byte-exact in SIZE (38 insns) and
+ * shape, but two -O2 register-allocation divergences remain:
+ *
+ * 1. GENUINE COLORING CAP (same class as sibling func_800007D4): target keeps
+ *    `state` (=&D_80012BC0) pinned in a SIXTH callee-saved reg ($s4) and reloads
+ *    the callback via `lw $t9,0x84($s4)` each iter; this build saves only FIVE
+ *    s-regs and rematerializes the base (`lui $t9; lw $t9,0x84($t9)`). Cause:
+ *    `state`'s live range DIES before the per-iter `jalr` (it is read only to
+ *    fetch the fn ptr), and -O2 only callee-save-promotes a value used AFTER a
+ *    call. Verified not a capacity issue: dropping the named `end` (literal
+ *    bound) still keeps the 0x87 constant in a saved reg over `state`. No
+ *    semantics-preserving C extends state's range past the call without changing
+ *    the emitted code.
+ * 2. `lui;ori` vs target `lui;addiu` for the two no-reloc absolute base
+ *    constants (0x800130A0 / 0x80013112) — IDO literal-formation choice,
+ *    downstream of the same allocation.
+ *
+ * FAILED levers: `register` hints (no-op for IDO), decl-order permutation,
+ * literal vs named loop bound, for-loop literal-count (does NOT unroll — emits
+ * 49 insns w/ mult, larger). Genuine -O2 coloring cap; the do/while form below
+ * is the correct (size-exact) structure. */
 #ifdef NON_MATCHING
 void func_8000085C(void) {
-    s32 var_s0;
-    UsoTable94* var_s1;
-    void* var_s2;
-    void* arg0;
-    UsoCallbacks84* state;
-    s32 end;
+    UsoTable94* var_s1 = (UsoTable94*)0x800130A0;
+    void* var_s2 = (void*)0x80013112;
+    void* arg0 = &D_8000A2F4;
+    UsoCallbacks84* state = (UsoCallbacks84*)&D_80012BC0;
+    s32 var_s0 = 0;
+    s32 end = 0x87;
 
-    var_s1 = (UsoTable94*)0x800130A0;
-    var_s2 = (void*)0x80013112;
-    arg0 = &D_8000A2F4;
-    state = (UsoCallbacks84*)&D_80012BC0;
-    var_s0 = 0;
-    end = 0x87;
     do {
         state->field_84(arg0, var_s0, var_s1->field_94, var_s2);
         var_s0 += 1;
