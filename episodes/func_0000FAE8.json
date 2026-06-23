@@ -1,0 +1,43 @@
+{
+  "function_name": "func_0000FAE8",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T23:01:49.705209+00:00",
+  "end_time": "2026-06-23T23:01:49.705242+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T23:01:49.705232+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 57,
+  "initial_m2c_source": null,
+  "final_source": "void func_0000FAE8(int *self) {\n    register int *q, *r;\n    register int flag;\n    register int *x;\n\n    func_00000000();\n    if (self[0x38 / 4] == 0) {\n        func_00000000(&D_00000000);\n    }\n    func_00000000(self[0x48 / 4]);\n    self[0x30 / 4] = 0;\n    self[0x34 / 4] = 0;\n    if (self[0x4C / 4] != 0) {\n        q = (int*)((char*)self[0x4C / 4] + 0x18);\n        r = q;\n        flag = 1;\n        if (flag) {\n            x = r;\n            *x |= 8;\n        } else {\n            x = r;\n            *x &= ~8;\n        }\n    }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/fae8.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0000FAE8.s",
+    "segment": "bootup_uso",
+    "compiler": "ido_7.1",
+    "compiler_flags": "-O0 -G0 -mips2"
+  },
+  "matched": true,
+  "final_c": "void func_0000FAE8(int *self) {\n    register int *q, *r;\n    register int flag;\n    register int *x;\n\n    func_00000000();\n    if (self[0x38 / 4] == 0) {\n        func_00000000(&D_00000000);\n    }\n    func_00000000(self[0x48 / 4]);\n    self[0x30 / 4] = 0;\n    self[0x34 / 4] = 0;\n    if (self[0x4C / 4] != 0) {\n        q = (int*)((char*)self[0x4C / 4] + 0x18);\n        r = q;\n        flag = 1;\n        if (flag) {\n            x = r;\n            *x |= 8;\n        } else {\n            x = r;\n            *x &= ~8;\n        }\n    }\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_0000FAE8(int *self) {\n    register int *q, *r;\n    register int flag;\n    register int *x;\n\n    func_00000000();\n    if (self[0x38 / 4] == 0) {\n        func_00000000(&D_00000000);\n    }\n    func_00000000(self[0x48 / 4]);\n    self[0x30 / 4] = 0;\n    self[0x34 / 4] = 0;\n    if (self[0x4C / 4] != 0) {\n        q = (int*)((char*)self[0x4C / 4] + 0x18);\n        r = q;\n        flag = 1;\n        if (flag) {\n            x = r;\n            *x |= 8;\n        } else {\n            x = r;\n            *x &= ~8;\n        }\n    }\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "compiler_flags": "-O0 -G0 -mips2",
+      "notes": "-O0 file-split of func_0000FAE8 from bootup_uso_tail1.c. Target is -O0: reloads self each use, bit-manip intermediates (q,r,flag,x) are `register` -> s0-s3 in encounter order, if(1) dead-branch emits both arms. Byte-exact via the split (make verify byte-identical)."
+    }
+  ]
+}

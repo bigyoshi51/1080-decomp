@@ -109,7 +109,7 @@ build/src/bootup_uso/bootup_uso_o0_F390.c.o: TRUNCATE_TEXT := 0x334
 build/src/bootup_uso/bootup_uso_F434.c.o build/non_matching/src/bootup_uso/bootup_uso_F434.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_F434.c.o: TRUNCATE_TEXT := 0xA8
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: TRUNCATE_TEXT := 0xB0
-build/src/bootup_uso/bootup_uso_tail1.c.o: TRUNCATE_TEXT := 0x3B0
+build/src/bootup_uso/bootup_uso_tail1.c.o: TRUNCATE_TEXT := 0x2CC
 build/src/bootup_uso/bootup_uso_o0_FBCC.c.o: TRUNCATE_TEXT := 0x5C
 build/src/bootup_uso/bootup_uso_tail1_bot.c.o: TRUNCATE_TEXT := 0x4C8
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x58
@@ -118,6 +118,8 @@ build/src/bootup_uso/bootup_uso_tail2.c.o build/non_matching/src/bootup_uso/boot
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
 build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x1710
 build/src/bootup_uso/bootup_uso_tail3a.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a.c.o: OPT_FLAGS := -O2 -g3
+build/src/bootup_uso/bootup_uso_o0_FAE8.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_FAE8.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_FAE8.c.o: TRUNCATE_TEXT := 0xE4
 build/src/bootup_uso/bootup_uso_o0_100F0.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_100F0.c.o: OPT_FLAGS := -O0
 # 0x15C = exact len of the 0x100F0..0x1024C region (func_000100F0 0x7C +
 # func_0001016C 0xE0); clips IDO's trailing pad and drops sh_addralign to 4.
