@@ -118,7 +118,18 @@ void func_00011DF8(void) {
  * Cap: -O2 -g3 emits 41 insns vs target's 53 (compact control flow
  * vs -O0 separate-load-and-branch pattern). Migration to a dedicated
  * -O0 file is blocked by the same adjacent-empty-stub issue noted on
- * func_00011D78 (per docs/MATCHING_WORKFLOW.md#feedback-asmproc-o0-min-insn-count-blocks-2insn-include-asm). */
+ * func_00011D78 (per docs/MATCHING_WORKFLOW.md#feedback-asmproc-o0-min-insn-count-blocks-2insn-include-asm).
+ *
+ * 2026-06-23 -O0-C RECIPE (verified in isolation, ready when the split
+ * unblocks): the target is -O0 (frame -8, loop counter i spilled to sp+4,
+ * NO branch-likely). INLINE idx and p (reload a0[0x128] / the slot pointer
+ * each use — do NOT cache them as locals; caching adds sp slots -> frame -16,
+ * +18w). With inline idx/p + a single-exit `int result` form, the isolated
+ * -O0 build is 59w vs 53w; residual is -O0 control-flow shape (target shares
+ * ONE `move v0,zero` return-0 reached by all early exits + computes the value
+ * returns directly in v0; multi-return-no-var duplicates return-0, result-var
+ * spills to stack, goto-form 62w — none exact yet). Same recipe applies to the
+ * mirror siblings func_00011ED4 / func_00011FA8 (all 6.6%, identical shape). */
 int func_00011E00(int *a0, int a1) {
     int idx;
     int i;
