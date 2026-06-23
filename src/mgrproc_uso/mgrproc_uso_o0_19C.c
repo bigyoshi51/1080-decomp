@@ -139,8 +139,15 @@ void mgrproc_uso_func_00000504(int *a0) {
 
 #ifdef NON_MATCHING
 /* 76-insn (0x130) random-unique-ID assignment: fills 4 entries at
- * (a0->8)->[idx*4 + 0x24] with 4 unique random IDs in {0..4}. */
-typedef float (*FloatFn)(void);
+ * (a0->8)->[idx*4 + 0x24] with 4 unique random IDs in {0..4}. 78-diff NM
+ * (was 92). Levers: float-returning import called DIRECTLY (gl_func_00000000f,
+ * not a (FloatFn) cast) -> jal + f0 return; outer loop is `do{}while(count<4)`
+ * (target tests count at the bottom, inner result==-1 check runs first); the
+ * random result via a `float rnd` temp drops the callee-saved $f20 the bare
+ * `call()*const` form needed (IDO pre-loaded the const into f20 across the
+ * call). Residual: rnd round-trips through the stack (swc1;lwc1) where target
+ * uses f0 directly in mul.s, + deeper -O0 codegen. Multi-tick. */
+extern float gl_func_00000000f(void);
 void mgrproc_uso_func_000005D0(char *a0) {
     int count = 0;
     int result = -1;
@@ -148,11 +155,13 @@ void mgrproc_uso_func_000005D0(char *a0) {
     int idx;
     int *arr;
 
-    while (count < 4) {
+    do {
         while (result == -1) {
-            candidate = ((int)(((FloatFn)gl_func_00000000)() *
-                               *(float*)((char*)&D_00000000 + 0x24))
-                         + *(int*)((char*)&D_00000000 + 0x4C) + 1) % 5;
+            {
+                float rnd = gl_func_00000000f();
+                candidate = ((int)(rnd * *(float*)((char*)&D_00000000 + 0x24))
+                             + *(int*)((char*)&D_00000000 + 0x4C) + 1) % 5;
+            }
             arr = *(int**)(a0 + 8);
             for (idx = 0; idx < count; idx++) {
                 if (*(int*)((char*)arr + idx * 4 + 0x24) == candidate) break;
@@ -165,7 +174,7 @@ void mgrproc_uso_func_000005D0(char *a0) {
         *(int*)((char*)arr + count * 4 + 0x24) = result;
         count++;
         result = -1;
-    }
+    } while (count < 4);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D0);
