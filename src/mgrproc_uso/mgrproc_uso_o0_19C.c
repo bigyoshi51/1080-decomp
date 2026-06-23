@@ -143,10 +143,21 @@ void mgrproc_uso_func_00000504(int *a0) {
  * (was 92). Levers: float-returning import called DIRECTLY (gl_func_00000000f,
  * not a (FloatFn) cast) -> jal + f0 return; outer loop is `do{}while(count<4)`
  * (target tests count at the bottom, inner result==-1 check runs first); the
- * random result via a `float rnd` temp drops the callee-saved $f20 the bare
- * `call()*const` form needed (IDO pre-loaded the const into f20 across the
- * call). Residual: rnd round-trips through the stack (swc1;lwc1) where target
- * uses f0 directly in mul.s, + deeper -O0 codegen. Multi-tick. */
+ * random result via a `float rnd` temp; inner unique-check reads the array
+ * inline (`(*(int**)(a0+8))[..]`) so a0+8 reloads each iter like the target.
+ * 76-diff NM, 83 insns vs target 76.
+ *
+ * FLOORED BY THE -O0 FLOAT-EVAL-ORDER (root cause of the residual cascade):
+ * the target computes `(int)(call() * const)` as jal -> f0; load const -> f4
+ * (AFTER the call); mul.s f6,f0,f4 -- f0 used directly, NO spill, -40 frame.
+ * At -O0 every C form spills: `float rnd` temp round-trips rnd through a stack
+ * slot (swc1;lwc1); the bare `call()*const` (either operand order) loads the
+ * const BEFORE the jal so it must survive in callee-saved $f20 (sdc1). Either
+ * spill adds 8 frame bytes the target lacks (-48/-56 vs -40), shifting every
+ * local slot up 8 and cascading to ~70 diffs. No C form gets IDO -O0 to load
+ * the const AFTER the call (the order is fixed regardless of source operand
+ * order). So this fn cannot byte-match at -O0 from C; the loop body otherwise
+ * reconstructs cleanly. */
 extern float gl_func_00000000f(void);
 void mgrproc_uso_func_000005D0(char *a0) {
     int count = 0;
@@ -162,9 +173,8 @@ void mgrproc_uso_func_000005D0(char *a0) {
                 candidate = ((int)(rnd * *(float*)((char*)&D_00000000 + 0x24))
                              + *(int*)((char*)&D_00000000 + 0x4C) + 1) % 5;
             }
-            arr = *(int**)(a0 + 8);
             for (idx = 0; idx < count; idx++) {
-                if (*(int*)((char*)arr + idx * 4 + 0x24) == candidate) break;
+                if (*(int*)((char*)*(int**)(a0 + 8) + idx * 4 + 0x24) == candidate) break;
             }
             if (idx == count) {
                 result = candidate;
