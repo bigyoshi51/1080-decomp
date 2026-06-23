@@ -2017,7 +2017,126 @@ s32 func_80001DD0(void *arg0, s32 arg1) {
     return 0;
 }
 
+#ifdef NON_MATCHING
+/* func_80001EC8: USO/module section-record loader main loop (732B, was 0%).
+ * Fully decoded 2026-06-23 (agent-b). arg0 = a per-module table whose entries
+ * are written by section type; arg1 = the open file handle (fed to the
+ * fread-like func_800009D8). Walks 0xC-byte section records until a record of
+ * type 0xB (end). For each record:
+ *   - allocate/look-up the section buffer via a callbacks struct at &D_80012BC0
+ *     (field 0x98 = alloc-by-size, field 0x34 = look-up-by-(value,byte)),
+ *     selected by record flag bit 0 (rec[9] & 1);
+ *   - type 8 (BSS): zero-fill `size` bytes; other types: read `size` bytes from
+ *     the file (second func_800009D8). When flag bit0 set on a non-BSS record,
+ *     run the reloc/format callback (field 0x84, with format string D_8000A384),
+ *     a per-symbol look-up (field 0x34), an offset fixup (func_800027E0) and a
+ *     finalize (field 0x9C);
+ *   - stash the section buffer pointer at arg0[n+0xE] (n<0xE) and accumulate the
+ *     section size into the global D_80012D30[n] size table;
+ *   - finally dispatch on the section type (n-1, 12-way jumptable jtbl_8000A64C):
+ *     most types record the raw size at arg0[n]; two types record size/0xC
+ *     (entry-count: ddiv by the constant 0xC in s6); one type stamps the global
+ *     symbol/module identity (D_80012C64/D_80012C68) from arg0; one type aborts
+ *     with -0x1B (bad section). On read error the errno word D_80013004 is
+ *     returned; a null alloc returns -0x12.
+ *
+ * CAP (NON_MATCHING, INCLUDE_ASM remains the build path; no episode): the
+ * 12-way switch compiles to an IDO jumptable that splat symbolized as
+ * jtbl_8000A64C, but that VRAM (0x8000A64C) lands inside the kernel's panic
+ * string pool ("Hit SP Break"/"HitCpuFault") in BOTH baserom and the linked
+ * ELF — the table base was mis-split from the `lui 0x8001 / lw -0x59B4` pair.
+ * Because the original table cannot be cleanly resolved/relocated, IDO would
+ * emit a fresh .rodata jumptable at a non-matching address; m2c also aborts on
+ * the `jr $t5`. This is the jumptable-cap class. The body below is logic- and
+ * shape-complete for reference / future boundary-fix work. */
+typedef struct {
+    char pad_00[0x34];
+    void* (*lookup34)(s32, u8);   /* 0x34: resolve section by (value, byte)   */
+    char pad_38[0x4C];
+    void (*reloc84)(void*, s32, void*);  /* 0x84: reloc/format with fmt string */
+    char pad_88[0x10];
+    void* (*alloc98)(s32);        /* 0x98: allocate section buffer by size     */
+    void (*final9C)(void*);       /* 0x9C: finalize section buffer             */
+} SectionCallbacks;
+
+extern s32 func_800027E0(void*);
+extern s32 D_8000A384;
+extern s32 D_80012D30;
+
+s32 func_80001EC8(s32* arg0, void* file) {
+    SectionCallbacks* cb = (SectionCallbacks*)&D_80012BC0;
+    s32 s7 = 0;                /* always-zero loop guard (IDO artifact) */
+    s32 rec[3];               /* 0xC-byte section record */
+    s32 type;                 /* rec[0] */
+    s32 size;                 /* rec[1] */
+    u8* flags = (u8*)rec;     /* rec bytes: flags[8]=byte field, flags[9]=flag */
+    void* buf;
+
+    do {
+        if (func_800009D8(rec, 0xC, 1, file) < 0) {
+            return D_80013004;
+        }
+        if (size = rec[1], type = rec[0], size != 0) {
+            if (((u8*)rec)[9] & 1) {
+                buf = cb->alloc98(size);
+            } else {
+                buf = cb->lookup34(size, ((u8*)rec)[8]);
+            }
+            if (buf == 0) {
+                return -0x12;
+            }
+            if (type == 8) {
+                if (size != 0) {
+                    s32 i;
+                    char* p = (char*)buf;
+                    for (i = 0; i < size; i++) {
+                        *p++ = 0;
+                    }
+                }
+            } else {
+                void* sub;
+                if (func_800009D8(buf, size, 1, file) < 0) {
+                    return D_80013004;
+                }
+                if (((u8*)rec)[9] & 1) {
+                    sub = ((void**)buf)[1];
+                    cb->reloc84(&D_8000A384, size, sub);
+                    {
+                        void* sub2 = cb->lookup34((s32)sub, ((u8*)rec)[8]);
+                        cb->reloc84(buf, func_800027E0(buf), 0); /* arg fixup */
+                        cb->final9C(buf);
+                        buf = sub2;
+                    }
+                }
+            }
+            if (type < 0xE) {
+                arg0[type + 0xE] = (s32)buf;
+            }
+        }
+        if (type < 0xE) {
+            (&D_80012D30)[type] += size;
+        }
+        switch (type) {            /* jtbl_8000A64C, indexed type-1, 12 cases */
+            case 1:
+                D_80012C64 = arg0[0];
+                D_80012C68 = ((s16*)arg0)[0x38];
+                break;
+            case 3:
+            case 7:
+                arg0[type] = (s32)((u32)size / 0xC);
+                break;
+            case 12:
+                return -0x1B;
+            default:
+                arg0[type] = size;
+                break;
+        }
+    } while (type != 0xB && s7 == 0);
+    return 0;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
+#endif
 
 
 /* func_800021A4: 43-insn entry-list walker (absorbed func_800021D0 fragment

@@ -109,8 +109,27 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800084D0);
  * breakpoint after a branch). jtbl_8000AA90 = 24-entry opcode
  * dispatch, jtbl_8000AAF0 = a secondary (REGIMM/funct) table.
  * This is the disassembler half of rmon hardware single-step.
- * Caps <80: two .rodata jump tables (jr $t1) + heavy bitfield
- * sra/andi extraction + mode branch + reloc callees. Full body
+ * Caps <80: two jump tables (jr $t1) + heavy bitfield sra/andi
+ * extraction + mode branch + reloc callees.
+ *
+ * HARD INFRA CAP (verified 2026-06-23, agent-e): the two jump
+ * tables are referenced by the absolute symbols jtbl_8000AA90 /
+ * jtbl_8000AAF0 (encoded lui 0x8001 + lo -0x5570 => 0x8000AA90),
+ * which splat assigned into the kernel .data blob (vram base
+ * 0x80009FD0, assets/kernel.data.bin). BUT at data off 0xAC0
+ * (vram 0x8000AA90) the blob holds AUDIO COEFFICIENT data, not
+ * code-address pointers — splat mislabeled the address (cf.
+ * jtbl_8000A720 @ data off 0x750 which DOES hold real pointers
+ * 0x80008B9C/0x80008AB4, and jtbl_8000A63C/A64C/A770 which point
+ * into rmon STRING data "HitBreak"/"SetRegisters"). An exhaustive
+ * baserom scan finds NO run of words in the case-target range
+ * 0x800085F0..0x800087B0 anywhere — the true 24/20-entry table
+ * for this fn is not correctly extracted by the current splat
+ * layout. This is the documented drift-region relayout cap
+ * (residue=414 reloc words). A C switch reconstruction would emit
+ * a duplicate compiler jumptable into .rodata at the wrong
+ * address and BREAK the byte-identical ROM. Cannot match without
+ * fixing the kernel .data/.rodata relayout first. Full body
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_8000858C);

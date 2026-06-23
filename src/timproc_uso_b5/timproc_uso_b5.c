@@ -3979,9 +3979,23 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // base; the two FP draw blocks pass a0 = &import_8024CAF8 (alpha=0xFF call) and
 // the row template = &D_6394_FF5B0 / &D_6394_FF5C8 (reloc'd globals, not bare
 // 0x130/0x148); the template +0x20 fields are *(s16*) (lh), and the *0.25f/
-// *0.75f strength-reduced FP scales preserved. The +5 overshoot is FP-block
-// global-address re-materialization scheduling; residual otherwise pure
-// register-renumber coloring (permuter-immune cap class).
+// *0.75f strength-reduced FP scales preserved.
+// 2026-06-23 RECONSTRUCT 69.1%->73.2% (size 311->306 words EXACT, LCS 215->224),
+// fixing 4 genuine bugs (size-corrected, not faked):
+//   (1) field 0x480 is f32 compared to 1.0f -> *(float*)(arg0+0x480) (was
+//       FW int->cvt.s.w, +2 phantom words: lwc1+c.eq.s vs lw/mtc1/cvt/c.eq).
+//   (2) table base is &D_807FF5E0+0x160 (reloc'd global) not bare &D_00000160.
+//   (3) the +0x34==2 gate reads global import_800200CC+0x34, not &D_00000000.
+//   (4) tail dispatch: drop redundant sp24 local + REORDER so the
+//       func_00008A64 call precedes the FW(arg0,0x4A4) read -> kills the v1
+//       spill/reload pair (caller had two phantom spill words).
+// RESIDUAL (~82 word diffs, all SAME-SIZE): (a) the D_807FE728/D_807FF5E0 array+
+//   base load is HI16-only-unpaired (target folds +0x160 into the base addiu via
+//   reloc + literal-0 lw offsets; IDO-from-C emits paired HI16/LO16 + folds
+//   +0x160 into the index multiply) -- the documented raw-word-USO unpaired-HI16
+//   cap, unreproducible from C. (b) everything else is pure register-renumber
+//   coloring + stack-slot cascade + 1 scheduler load-order swap (permuter-immune
+//   cap class). Byte-match remains DEFERRED (DECODE-ONLY). Name pre-checked.
 #ifdef NON_MATCHING
 
 
@@ -3991,14 +4005,14 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 #endif
 typedef char *(*GP_00006394)();
 extern int D_6394_F5E0;
-extern char D_00000160;
+extern char D_6394_FF5E0;
 extern char import_8024CAF8;
 extern char D_6394_FF5B0;
 extern char D_6394_FF5C8;
+extern char import_800200CC;
 void timproc_uso_b5_func_00006394(char *arg0) {
     char *sp44;
     char *sp40;
-    s32 sp24;
     s32 temp_v0;
     s32 temp_v0_12;
     s32 temp_v0_2;
@@ -4035,7 +4049,7 @@ void timproc_uso_b5_func_00006394(char *arg0) {
             var_v0_2 = 0x15;
         }
         sp44 = (char *) var_v0_2;
-        sp40 = (char *)&D_00000160 + (&D_6394_F5E0)[(s32) timproc_uso_b5_alias(arg0, FW(arg0, 0x3C8))] * 0x18;
+        sp40 = (char *)&D_6394_FF5E0 + 0x160 + (&D_6394_F5E0)[(s32) timproc_uso_b5_alias(arg0, FW(arg0, 0x3C8))] * 0x18;
         timproc_uso_b5_alias(0, FW(arg0, 0x398), (int)arg0 + 0x1E8);
         timproc_uso_b5_alias(sp40);
         timproc_uso_b5_alias(sp40, 0xA0, sp44, 3);
@@ -4064,7 +4078,7 @@ void timproc_uso_b5_func_00006394(char *arg0) {
     var_v1 = FW(FW(var_v0, 0xC), 0xBC);
     if (var_v1 >= 0x78) {
         temp_v0_3 = FW(arg0, 0x3CC);
-        if ((temp_v0_3 != 1) && (temp_v0_3 != 0xA) && (FW(arg0, 0x480) == 1.0f) && (FW(arg0, 0x4B4) != 1)) {
+        if ((temp_v0_3 != 1) && (temp_v0_3 != 0xA) && (*(float *)((char *)arg0 + 0x480) == 1.0f) && (FW(arg0, 0x4B4) != 1)) {
             if ((temp_v0_3 == 5) || (temp_v0_3 == 7)) {
                 if (FW(arg0, 0x490) & 8) {
                     temp_v0_4 = timproc_uso_b5_alias(arg0);
@@ -4080,7 +4094,7 @@ void timproc_uso_b5_func_00006394(char *arg0) {
                 temp_v1_4 = FW(temp_v0_6, 0x28);
                 ((GP_00006394)FW(temp_v1_4, 0xC4))(*(s16*)((char*)temp_v1_4 + 0xC0) + temp_v0_6, arg0, (int)arg0 + 0x254, (int)arg0 + 0x278);
             }
-            if (*(s32 *)((char *)&D_00000000 + 0x34) == 2) {
+            if (*(s32 *)((char *)&import_800200CC + 0x34) == 2) {
                 temp_v0_7 = FW(arg0, 0x3CC);
                 if (temp_v0_7 == 4) {
                     temp_v0_8 = timproc_uso_b5_alias(arg0);
@@ -4105,8 +4119,8 @@ void timproc_uso_b5_func_00006394(char *arg0) {
     }
     temp_v0_12 = FW(arg0, 0x3CC);
     if (((var_v1 >= 0x78) && (FW(arg0, 0x4B4) != 1) && (temp_v0_12 == 6)) || (temp_v0_12 == 7)) {
-        temp_v1_9 = FW(arg0, 0x4A4);
         var_a2 = FW((timproc_uso_b5_alias(arg0)), 0x2B0);
+        temp_v1_9 = FW(arg0, 0x4A4);
         if (temp_v1_9 == 1) {
             var_a2 = 5;
         }
@@ -4116,7 +4130,6 @@ void timproc_uso_b5_func_00006394(char *arg0) {
         if (temp_v1_9 == 3) {
             var_a2 = 7;
         }
-        sp24 = var_a2;
         temp_v0_13 = timproc_uso_b5_alias(arg0);
         temp_v1_10 = FW(temp_v0_13, 0x28);
         ((GP_00006394)FW(temp_v1_10, 0xCC))(*(s16*)((char*)temp_v1_10 + 0xC8) + temp_v0_13, arg0, var_a2);
@@ -5323,6 +5336,17 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // 0x4B8 deref is the RIGHT operand (IDO evals it first here) — matches. The
 // remaining 21 diffs are all the `(&D_807FExxx)[idx]` array-index coloring
 // (index reg + addu operand order) — documented permuter-immune class.
+// 2026-06-23 (agent-i): 99.18% -> ~99.30% (21->18 diffs). Lifted the two
+// `(&D_807FExxx)[idx]` accesses to a shared pre-shifted byte offset
+// (`temp = FW(arg0,0x3C4)*4; *(int*)((char*)&base + temp)` and
+// `FW((arg0 + temp),0x3D0)`). This made IDO CSE the `idx<<2` into ONE value
+// reused as `s0 + off` (correct `addu rX,s0,vY` operand order, was `addu
+// rX,vY,s0`) and collapse the duplicate base materialization — both array
+// clusters now differ only by register NUMBER, not structure/operand order.
+// Residual 18 diffs are all pure register-renumber coloring ties (v0<->v1,
+// t1<->t2, t6<->t7 across the two array clusters + the 0x3CC=6 store + the
+// 0x4002/0x10001 0x2B4&0x20 reads). HI16-only-unpaired raw-word USO =
+// DECODE-ONLY: fuzzy=100 unreachable; correct C is the port-goal deliverable.
 #ifdef NON_MATCHING
 
 
@@ -5364,8 +5388,8 @@ void timproc_uso_b5_func_00007E34(char *arg0) {
         temp_v0_2 = timproc_uso_b5_alias(arg0);
         temp_v1_2 = FW(temp_v0_2, 0x28);
         ((GP_00007E34)FW(temp_v1_2, 0x84))(*(s16*)((char*)temp_v1_2 + 0x80) + temp_v0_2, 0);
-        temp_v0_3 = FW(arg0, 0x3C4);
-        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE778)[temp_v0_3], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_3 * 4)), 0x3D0));
+        temp_v0_3 = FW(arg0, 0x3C4) * 4;
+        timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE778 + temp_v0_3), FW(arg0, 0x4D4) | FW((arg0 + temp_v0_3), 0x3D0));
         if (timproc_uso_b5_alias(arg0) == 0) {
             timproc_uso_b5_alias(FW(arg0, 0x41C));
             return;
@@ -5385,8 +5409,8 @@ void timproc_uso_b5_func_00007E34(char *arg0) {
         if (timproc_uso_b5_alias(arg0) == 0) {
             timproc_uso_b5_alias(arg0);
         } else {
-            temp_v0_5 = FW(arg0, 0x3C4);
-            timproc_uso_b5_alias((&timproc_uso_b5_D_807FE758)[temp_v0_5], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_5 * 4)), 0x3D0));
+            temp_v0_5 = FW(arg0, 0x3C4) * 4;
+            timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE758 + temp_v0_5), FW(arg0, 0x4D4) | FW((arg0 + temp_v0_5), 0x3D0));
             temp_v0_6 = timproc_uso_b5_alias(arg0);
             temp_v1_3 = FW(temp_v0_6, 0x28);
             ((GP_00007E34)FW(temp_v1_3, 0xAC))(*(s16*)((char*)temp_v1_3 + 0xA8) + temp_v0_6);
