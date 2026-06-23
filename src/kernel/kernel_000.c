@@ -1905,15 +1905,28 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
 
 
 /* func_800021A4: 43-insn entry-list walker (absorbed func_800021D0 fragment
- * via merge-fragments). NATURAL CEILING: ~85% NM. Was previously documented
- * as "Promoted via 27-word INSN_PATCH + SUFFIX_BYTES of 8 trailing nops" —
- * both mechanisms REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Real cap structure: my
- * emit produces 41 insns vs target's 43 (the 2-insn extra is end-of-body
- * cleanup that IDO's scheduler folds into the goto-chain); the +0x20..+0xA4
- * region needs register-rename for t/a-reg constants, branch offset
- * adjustments after the body shift, and one switch-case body reordering at
- * +0x5C..+0x90. C-only path can't reach this; default build is INCLUDE_ASM. */
+ * via merge-fragments). objdiff 94.53% (2026-06-23, agent-e) — up from the
+ * old ~85% ceiling after a structural rewrite: insn COUNT now exact (43),
+ * the comparison constants 2/4/3 are correctly hoisted before the loop, the
+ * case-2/case-4 (beq/beql) dispatch and store-block (addu a0+(type>>4)*4;
+ * lw 0x38; add value; sh|8; sw) match shape exactly, and entry/exit/loop
+ * back-edge are byte-identical.
+ *
+ * RESIDUAL = 2 mnemonic diffs + register-coloring (genuine cap class):
+ *   1. case-3 (a3==3) scheduling: target emits `beq a3,t2,.L2230` with the
+ *      `ori` speculatively in the delay slot and a separate `sh t8` block
+ *      falling into the shared `slt`; my emit inverts to `bne` and inlines
+ *      `sh` in the b-delay (slt vs sh swap). IDO branch-sense + delay-slot
+ *      scheduling artifact — no C lever flips it without duplicating the
+ *      loop tail (tried: !=3/goto-skip splits → +slt/+addiu dup, regresses).
+ *   2. t-register renumber: constants land in t1/t2/t3 not t0/t1/t2 because
+ *      the store-block value-load (lw 0x4(a2)) grabs t0; cascades into the
+ *      whole +0x44..+0x68 store block (t9/a3/t0/t4 vs t3/t4/t7/t6) and the
+ *      post-shift branch offsets. Live-range coloring, decl-order-invariant
+ *      (verified). Permuter would be the tool but import is blocked here by
+ *      the asm-processor two-phase build (cc1 chokes on INCLUDE_ASM; see
+ *      docs/MATCHING_WORKFLOW.md "PERMUTER=1 DOESN'T work").
+ * Default build is INCLUDE_ASM (byte-exact via raw bytes). */
 #ifdef NON_MATCHING
 int func_800021A4(int *a0) {
     int *v0;
@@ -1931,7 +1944,7 @@ int func_800021A4(int *a0) {
     do {
         type_word = a2[0];
         v1++;
-        if (type_word & 0x8) goto next;
+        if (type_word & 0x8) goto cond;
         a3 = type_word & 0x7;
         t8 = type_word >> 4;
         if (a3 == 2) {
@@ -1942,12 +1955,9 @@ int func_800021A4(int *a0) {
             t9 = t8 << 2;
             goto do_store;
         }
-        if (a3 == 3) {
-            *a2 = (short)(type_word | 0x8);
-            a1 = a0[0x4 / 4];
-            goto next;
-        }
-        goto next;
+        t8 = type_word | 0x8;
+        if (a3 == 3) goto set_flag;
+        goto cond;
     store_lookup:
     do_store: {
             int *tp = (int*)((char*)a0 + t9);
@@ -1958,8 +1968,12 @@ int func_800021A4(int *a0) {
             t5 = t7 + t4;
             ((int*)a2)[0x4 / 4] = t5;
             a1 = a0[0x4 / 4];
+            goto cond;
         }
-    next:
+    set_flag:
+        *a2 = (short)t8;
+        a1 = a0[0x4 / 4];
+    cond:
         a2 = (short*)((char*)a2 + 0xC);
     } while (v1 < a1);
 end:
@@ -1987,21 +2001,35 @@ extern s32 D_8000A3A0;
  * if the target isn't loaded yet (unk3C==0), fire the callback
  * (D_80012BC0->field_84) and bail -2; else link the entry's unk4 to the target's
  * resolved address.
- * 90.13% NM; residual = a 1-insn $s0/$a3 candidate-order swap (the loop counter
- * wins $s0, arg0 lands $a3; target is reversed). REGALLOC-DUMP CONFIRMED
- * (cc -Wo,-zdbug:6 -> uoptlist: candidate 16->$s0=counter, 73->$a3=arg0). All
- * three documented levers FAIL here - do not re-try: decl-order swap (no-op),
- * count-cache (82%), `register void *self=arg0` alias to force the early
- * candidate (87%). A genuine candidate-creation-order cap for a param-vs-
- * loop-counter contest. */
+ * Residual = 23 diff words (do-while form, size-exact 0x10C), all the SAME
+ * single coloring decision: target puts arg0 in saved $s0 (freeing $a0 for the
+ * entry-field_8 index `lh $a0,8($v1)`) and the loop counter in caller-saved
+ * $a3 (=4th call-arg slot, so the callback delay is a nop); our build does the
+ * reverse (arg0->$a3, counter->$s0, delay = `move a3,s0`). Everything else
+ * (multu/addu operand order, index temp reg) cascades from that one swap.
+ *
+ * 2026-06-23 PROGRESS (agent-b): rewrote goto->do/while which MERGED the
+ * count<=0 skip and loop-exit into one shared `return 0` tail (was the +2-word
+ * structural diff, 56->25 words). Then `new_var = &var_v1->4` store-target
+ * hoist + inline `((UsoCallbacks84*)&D_80012BC0)->field_84` (drop the `state`
+ * local) trimmed 25->23. Levers that FAIL (do not re-try): decl-order swap
+ * (no-op), `register`/plain `void *self=arg0` alias (30/65 words, forces a
+ * copy), `register s32 var_a3` (no-op), counter-copy for call arg (no-op).
+ * REGALLOC-DUMP (cc -Wo,-zdbug:6 -> uoptlist) for the do/while body: arg0 is a
+ * LATE candidate (73, "not colored / -ve save") while the counter is candidate
+ * 13 winning the saved slot. Permuter (>18k iters, 7 threads, reseeded from the
+ * 23-word body) finds NO clean zero - its best (135 score) only matches by
+ * overwriting var_a3 with the index (semantic corruption, rejected). Genuine
+ * candidate-creation-order coloring cap: arg0(param, read-only) vs counter(IV
+ * passed as 4th call-arg) contest for the single saved register. */
 s32 func_80002250(void *arg0) {
-    UsoCallbacks84 *state = (UsoCallbacks84 *)&D_80012BC0;
     s16 temp_v0_2;
     s32 temp_a2;
     s32 var_a3;
     void *temp_a1;
     void *temp_v0;
     void *var_v1;
+    s32 *new_var;
 
     temp_v0 = (void *) FW(arg0, 0x3C);
     *(u8 *)((char *)arg0 + 0x99) = 0;
@@ -2011,30 +2039,28 @@ s32 func_80002250(void *arg0) {
     var_a3 = 0;
     var_v1 = temp_v0;
     if (FW(arg0, 4) > 0) {
-loop_4:
-        temp_v0_2 = *(s16 *)var_v1;
-        var_a3 += 1;
-        if (!(temp_v0_2 & 8) && ((temp_v0_2 & 7) == 1)) {
-            temp_a1 = ((void **)&D_80012D60)[temp_v0_2 >> 4];
-            if (temp_a1 == NULL) {
-                *(u8 *)((char *)arg0 + 0x99) = 1;
-                FW(&D_80012BC0, 0x18) = FW(&D_80012BC0, 0x18) + 1;
-                goto block_12;
+        do {
+            temp_v0_2 = *(s16 *)var_v1;
+            var_a3 += 1;
+            if (!(temp_v0_2 & 8) && ((temp_v0_2 & 7) == 1)) {
+                temp_a1 = ((void **)&D_80012D60)[temp_v0_2 >> 4];
+                if (temp_a1 == NULL) {
+                    *(u8 *)((char *)arg0 + 0x99) = 1;
+                    FW(&D_80012BC0, 0x18) = FW(&D_80012BC0, 0x18) + 1;
+                    goto block_12;
+                }
+                temp_a2 = FW(temp_a1, 0x3C);
+                if (temp_a2 == 0) {
+                    ((UsoCallbacks84 *)&D_80012BC0)->field_84(&D_8000A3A0, temp_a1, temp_a2, var_a3);
+                    return -2;
+                }
+                new_var = (s32 *)((char *)var_v1 + 4);
+                *(s16 *)var_v1 = temp_v0_2 | 8;
+                *new_var = *(s32 *)((char *)temp_a2 + (*(s16 *)((char *)var_v1 + 8)) * 0xC + 4);
             }
-            temp_a2 = FW(temp_a1, 0x3C);
-            if (temp_a2 == 0) {
-                state->field_84(&D_8000A3A0, temp_a1, temp_a2, var_a3);
-                return -2;
-            }
-            *(s16 *)var_v1 = temp_v0_2 | 8;
-            *(s32 *)((char *)var_v1 + 4) = *(s32 *)((char *)temp_a2 + (*(s16 *)((char *)var_v1 + 8)) * 0xC + 4);
-        }
 block_12:
-        var_v1 = (char *)var_v1 + 0xC;
-        if (var_a3 >= FW(arg0, 4)) {
-            return 0;
-        }
-        goto loop_4;
+            var_v1 = (char *)var_v1 + 0xC;
+        } while (var_a3 < FW(arg0, 4));
     }
     return 0;
 }

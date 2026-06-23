@@ -52,23 +52,28 @@ void func_800080D0(s32* arg0, s32* arg1) {
  * trap instruction (opcode 0xD = SPECIAL/BREAK). Mask 0xFC00003F isolates
  * the opcode-major + opcode-minor bits to detect BREAK.
  *
- * Exact-match path (2026-06-21): the full decoded body lives here, clipped at
- * the 0x100-byte fragment boundary via TRUNCATE_TEXT=0x100 (Makefile). Block 1
- * (func_8000817C, 21 words / 0x54) verifies byte-identical to the ROM in the
- * LINKED ELF — confirmed word-for-word against asm/nonmatchings (the lone per-.o
- * objdump "diff" at the beqz target is a TRUNCATION artifact: the cross-fragment
- * branch points past this .o's clipped .text; the encoded displacement 0x18 is
- * correct, as the original .s shows `.word 0x11E00018`). func_800081D0 (block 2)
- * remains its own externally-callable tail fragment in kernel_020_c.c.
+ * Exact-match path (2026-06-23): the FULL function (both entry blocks) now
+ * compiles byte-exact here. TRUNCATE_TEXT=0x194 (Makefile) keeps the whole
+ * 0xE8/58-insn body (0x800080D0..0x80008264) instead of clipping at block 1.
+ * The mid-function alt-entry label func_800081D0 (jal'd from kernel_018_o2.c
+ * and func_8000745C) is exposed in tenshoe.ld as `func_800081D0 =
+ * func_8000817C + 0x54` (section-relative so R_MIPS_26 jal relocs resolve).
+ * kernel_020_c.c no longer owns func_800081D0 — its INCLUDE_ASM fragment was
+ * removed and the orphaned asm/nonmatchings/kernel/func_800081D0.s deleted.
+ * Full ROM verified cmp-clean vs baserom.
  *
- * KEY LEVER (named-value-local spill, 2026-06-21): IDO -O1 homes the masked
- * BREAK-test value `*saved_a` into a dead phantom stack slot (28(sp), written
- * once in the bne delay slot, never reloaded). Earlier spellings homed the
- * `saved_a` POINTER instead and filled the wrong delay slot. Naming the
- * dereferenced compare value as its own local `instr_a` — while reading the
- * pointer FRESH from rmonbrk_bss_0000[0] for the stores (NOT caching it) —
- * reproduces the exact phantom-slot home + delay-slot fill. Do not re-cache the
- * pointer in a local or the frame grows +8 and an extra spill appears. */
+ * KEY LEVER 1 (named-value-local spill, 2026-06-21): IDO -O1 homes the masked
+ * BREAK-test value into a dead phantom stack slot (written once in the bne
+ * delay slot, never reloaded). Earlier spellings homed the POINTER instead and
+ * filled the wrong delay slot. Naming the dereferenced compare value as its own
+ * local — while reading the pointer FRESH (NOT caching it) — reproduces the
+ * exact phantom-slot home + delay-slot fill.
+ *
+ * KEY LEVER 2 (dead-slot coalesce, 2026-06-23): block 2's BREAK-test value must
+ * REUSE block 1's slot (0x1C(sp)). Spelling block 2 with its own fresh local
+ * (instr_b) gives it a separate slot (0x18(sp)) — one diff word. REUSING the
+ * single local `instr_a` for both blocks (their lifetimes don't overlap)
+ * coalesces to 0x1C(sp), matching the target's `sw t7,0x1C(sp)`. */
 void func_8000817C(void) {
     s32 instr_a;
 
@@ -83,10 +88,9 @@ void func_8000817C(void) {
     }
 
     if (D_8001FEF0 != 0) {
-        s32 *saved_b = (s32 *)D_8001FEF0;
-
-        if ((*saved_b & 0xFC00003F) == 0xD) {
-            *saved_b = D_8001FEF4;
+        instr_a = *(s32 *)D_8001FEF0;
+        if ((instr_a & 0xFC00003F) == 0xD) {
+            *(s32 *)D_8001FEF0 = D_8001FEF4;
             func_800031F0((void *)D_8001FEF0, 4);
             func_80005350((void *)D_8001FEF0, 4);
         }

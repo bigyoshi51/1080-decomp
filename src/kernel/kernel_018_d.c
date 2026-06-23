@@ -117,26 +117,44 @@ extern void func_80005534(void);
  * (`if (!(addr&3))`) so IDO inlines it and emits `bnez addr&3 -> unaligned`
  * matching the target's arm order (+24pp); (2) the SP-range test needs BOTH
  * bounds `0x04000000 <= addr < 0x05000000` (the upper `lui 0x500; sltu` is
- * real). Residual ~16% is the -O1 frame-size (8 bytes smaller than target =
- * a spill the target keeps) + loop-counter RA. */
+ * real).
+ * 2026-06-23 (84.0->92.3%, 6/78 diffs left): frame size CRACKED to -0x38
+ * (was -0x30). Three structural fixes: (1) decl order `p, n, tmp, tmp2`
+ * gives the target's high->low slot numbering addr@52/n@48/tmp@44/tmp2@40
+ * (IDO -O1 assigns slots in decl order, high addr first); (2) a separate
+ * cursor `p` (copy of addr) keeps the arg-home slots @56/@60 distinct from
+ * the loop-resident addr@52 (the +8 the old -O0 frame was missing); (3) two
+ * distinct tmps (one per aligned/unaligned loop) force the target's two
+ * scratch slots @44/@40; (4) the `p += 4; func(p - 4, ...)` form hoists the
+ * pointer increment ABOVE the calls so addr is not reloaded post-call
+ * (natural `func(p); p += 4` reloads, +2 insns, 59 diffs). Verified the
+ * `p - 4` form against every structural alternative (load-first, temp-ptr,
+ * do-while) — all strictly worse. Residual 6 = pure -O1 regalloc/sched ties
+ * NO C shape resolves: cart `move a0,t2`(keep old-p) vs my `addiu a0,t3,-4`
+ * (recompute); else `lw a0,0(t4)` vs `lw a0,-4(t5)` (pre/post-incr base);
+ * and the unaligned loop-bottom delay-slot store-order tie (sw addr vs sw n).
+ * Permuter (2 runs, tuned weights, 1500s) did not flip them. Coloring cap. */
 void func_800070A0(char *addr, int len) {
+    char *p = addr;
     unsigned int n = ((unsigned int)len + 3) >> 2;
     int tmp;
+    int tmp2;
     if (!((unsigned int)addr & 3)) {
         while (n--) {
-            if ((unsigned int)addr >= 0x04000000U && (unsigned int)addr < 0x05000000U) {
-                func_80008FB0(addr, &tmp);
+            if ((unsigned int)p >= 0x04000000U && (unsigned int)p < 0x05000000U) {
+                p += 4;
+                func_80008FB0(p - 4, &tmp);
                 func_80005584(tmp);
             } else {
-                func_80005584(*(int*)addr);
+                p += 4;
+                func_80005584(*(int*)(p - 4));
             }
-            addr += 4;
         }
     } else {
         while (n--) {
-            func_80006AEC(&tmp, addr, 4);
-            func_80005584(tmp);
-            addr += 4;
+            func_80006AEC(&tmp2, p, 4);
+            func_80005584(tmp2);
+            p += 4;
         }
     }
     func_80005534();

@@ -276,8 +276,8 @@ build/src/kernel/kernel_038.c.o build/non_matching/src/kernel/kernel_038.c.o: OP
 build/src/kernel/kernel_039.c.o build/non_matching/src/kernel/kernel_039.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: POST_COMPILE = $(OBJCOPY) --remove-section=.mdebug $@
-build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: TRUNCATE_TEXT := 0x100
-build/non_matching/src/kernel/kernel_040.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x100
+build/src/kernel/kernel_040.c.o build/non_matching/src/kernel/kernel_040.c.o: TRUNCATE_TEXT := 0x194
+build/non_matching/src/kernel/kernel_040.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x194
 build/src/kernel/kernel_041.c.o build/non_matching/src/kernel/kernel_041.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_042.c.o build/non_matching/src/kernel/kernel_042.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_043.c.o build/non_matching/src/kernel/kernel_043.c.o: OPT_FLAGS := -O1

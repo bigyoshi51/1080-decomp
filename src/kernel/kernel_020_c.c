@@ -14,52 +14,15 @@ extern void func_80005350(void*, s32);
 /* split from kernel_020.c - 2026-06-10 kernel ROM-order relayout */
 
 
-#ifdef NON_MATCHING
-/* func_800081D0: callable continuation of func_8000817C's clear-break path.
- * The entry has no stack-frame setup because func_8000817C falls through
- * into it after saving ra and reserving 0x20 bytes. It is also called
- * directly by the rmon event loop, so normal C cannot express both entry
- * modes in one byte-matching function.
- *
- * 2026-05-17 source-2 exact attempt after func_8000817C land:
- * - Reference search for __rmonClearBreak/rmonClearBreak found no local
- *   libreultra/OoT/Papermario source hit.
- * - Baseline C-only objdiff: 74.13513%. Target begins at the inherited frame
- *   (`addiu a1,4; lui/addiu t3,&rmonbrk_bss_0000`) and later writes the
- *   fetched instruction to caller stack arg slot 0x1C(sp). Natural C emits a
- *   fresh `addiu sp,-0x18; sw ra,0x14(sp)` prologue and relocations at the
- *   wrong offsets, so a full-function INSN_PATCH/PREFIX rewrite would lose
- *   required kernel symbol relocations and is not a valid promotion.
- * - Tried pointer-base locals for `&rmonbrk_bss_0000` / `&D_8001FEF0`:
- *   still 74.13513%.
- * - Tried volatile saved-instruction variants to force the 0x1C(sp) store:
- *   regressed to 65.35135% / 64.54054%.
- * - Tried explicit early-return/goto shape to avoid IDO's beql epilogue
- *   preload: still 74.13513%.
- * - Tried m2c's inherited-stack-arg hint with an 8-arg dummy signature
- *   (`arg7 = inst`): regressed to 67.10811% because IDO spilled incoming
- *   args and shifted the useful relocations later.
- *
- * Keep this as NM until there is a real alt-entry/mid-function-label recipe
- * that can preserve relocations without replacing the whole function body. */
-void func_800081D0(void) {
-    func_80005350((void*)rmonbrk_bss_0000, 4);
-    rmonbrk_bss_0000 = 0;
-
-    if (D_8001FEF0 != 0) {
-        s32 *saved = (s32*)D_8001FEF0;
-
-        if ((*saved & 0xFC00003F) == 0xD) {
-            *saved = D_8001FEF4;
-            func_800031F0((void*)D_8001FEF0, 4);
-            func_80005350((void*)D_8001FEF0, 4);
-        }
-        D_8001FEF0 = 0;
-    }
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800081D0);
-#endif
+/* func_800081D0: the no-prologue CONTINUATION (second half) of the single
+ * logical function __rmonClearBreak. The matching bytes for 0x800081D0..0x80008264
+ * are emitted by the full C body of func_8000817C in kernel_040.c (verified
+ * byte-exact, reloc-correct). kernel_040.c.o now compiles the WHOLE function
+ * (TRUNCATE_TEXT=0x194) so the continuation is real compiled C, not asm.
+ * The mid-function entry label func_800081D0 (jal'd from kernel_018_o2.c /
+ * func_8000745C) is provided as a fixed address symbol in symbol_addrs.txt —
+ * splat would emit the same glabel. There is no standalone C body here because
+ * the entry has no stack frame of its own (it reuses func_8000817C's frame). */
 
 #ifdef NON_MATCHING
 #ifndef FW
