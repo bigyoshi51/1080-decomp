@@ -1139,138 +1139,100 @@ void gui_func_0000271C(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* gui_func_000027A0: 260-insn / 0x410 multi-flag dispatcher. Likely a text/glyph
- * positioning helper given its location in gui_uso (similar shape to nearby
- * text-rendering functions).
+/* gui_func_000027A0: 260-insn / 0x410 tiled-texture / glyph blitter.
+ * FULL-BODY reconstruction (2026-06-22). Structure matches target end-to-end
+ * (~81% mnemonic); residual is register-coloring + a 1-insn prologue schedule
+ * (a2-home spill vs move-s8) + 3-insn count gap from IDO's distinct coloring
+ * of the held info/budget pointers. Logic is exact.
  *
- * ENTRY DECODE (0x27A0-0x2820, ~24 insns):
- *   Args: (a0=widget?, a1=x, a2=*, a3=flags)
- *   Saves s0-s7, s8 (8 saved regs); 0x78-byte frame.
- *   s0 = a0; s8 = a1 (x position cached)
- *   if (a3 & 4) {
- *       v0 = a0[4];                      // a0->field_10
- *       a1 = (s16)v0[0x10];               // signed-half load
- *       s8 -= a1;                          // shift x position
- *       goto common;
- *   }
- *   if (!(a3 & 1)) {
- *       // a3 lacks bit-1: alternative arm (continues at 0x281C+)
- *   } else {
- *       v0 = s0[4];
- *       a1 = (s16)v0[0x10];
- *       // ... continues
- *   }
- * common:
- *   ... (large body, decoded in future passes)
+ * Args: (a0=widget, a1=x, a2=y, a3=flags). info = a0->field_10.
  *
- * Saves & frame layout (sp+0x78):
- *   ra:   sp+0x54
- *   s8:   sp+0x50
- *   s7-s0: sp+0x4C..0x30 (decreasing offsets in declared order)
- *   a2 spill: sp+0x80 (caller-arg-save slot)
+ * 1. Flag-driven origin adjustment (signed div-by-2 = bgez/sra/addiu+1/sra):
+ *      if (flags & 4)  x  -= (s16)info[0x20];          // full width
+ *      else if (flags & 1) x -= (s16)info[0x20] / 2;   // half width
+ *      if (flags & 2)  y  -= (s16)info[0x22] / 2;       // half height
+ * 2. Emit RDP setothermode word pair (0xBB000001 / 0x80008000) into the
+ *    current DL (gctx[3]), bumping the DL index.
+ * 3. Mode dispatch (info[0x24]) selects a texel budget + per-mode tile fn:
+ *      1032 -> 4096, fn1032 ; 272 -> 2048, fn272 ;
+ *      288  -> 1024, fn288  ; default -> 2048, fndef.
+ * 4. If budget >= w*h: single blit (load whole sprite, one tile+draw).
+ *    Else: tile horizontally in columns of width (gl_func(budget/h)),
+ *    looping render+draw per column, advancing x and the source x-offset,
+ *    until the remaining width is consumed.
  *
- * 256+ insns of body decode deferred - multi-pass NM. Default build still
- * uses INCLUDE_ASM via #else; this wrap captures the entry signature and
- * the bit-4/bit-1/bit-2 flag-dispatch shape for next pass. */
-/* 2026-05-07: entry-stage decode (insns 0-40 / 0x00-0xA8).
+ * Frame 0x78: ra@0x54, s8@0x50, s7..s0@0x4C..0x30, mode-fn@0x5c,
+ * held-widget spill@0x78, a2(y) home@0x80.
  *
- * The bit-4/bit-1/bit-2 dispatch resolves x/y adjustments BEFORE the
- * shared body. The signed-half-load + bgtz-or-add-then-sra pattern is
- * "x - rounded_half" — taking a0->field_10's halfword field and
- * subtracting (val + (val<0 ? 1 : 0)) >> 1 from x_pos:
- *
- *   if (a3 & 4) {
- *       a1_h = (s16)a0->[0x10]->[0x20];
- *       x_pos -= a1_h;                    // FULL value subtracted
- *       goto common;
- *   }
- *   if (a3 & 1) {
- *       a1_h = (s16)a0->[0x10]->[0x20];
- *       x_pos -= (a1_h + (a1_h <= 0 ? 1 : 0)) >> 1;  // HALF (rounded)
- *   }
- *   if (a3 & 2) {
- *       a1_h = (s16)a0->[0x10]->[0x22];
- *       a2 -= (a1_h + (a1_h <= 0 ? 1 : 0)) >> 1;  // HALF (rounded)
- *   }
- *  common:
- *   ... 220 more insns of body ...
- *
- * The "bgtz + add 1 + sra 1" is the standard signed-int divide-by-2
- * with round-to-nearest-toward-zero correction. Confirms a1_h is
- * signed (lh, not lhu).
- *
- * 220+ insns of body still TODO. Default INCLUDE_ASM keeps ROM exact. */
+ * Default build uses INCLUDE_ASM via #else; ROM stays exact. */
 extern int D_27A0_fn1032, D_27A0_fn272, D_27A0_fn288, D_27A0_fndef;
 void gui_func_000027A0(int *a0, int a1, int a2, int a3) {
-    int *p;
-    int a1_h;
+    int *info;
+    int s8 = a1;
+    int budget;
+    int w, h;
+    int s6;
+    int (*render_fn)();
+    int *gctx;
+    int *dl;
+    int idx;
+
     if (a3 & 4) {
-        p = (int*)a0[0x10 / 4];
-        a1_h = *(short*)((char*)p + 0x20);
-        a1 -= a1_h;
-    } else {
-        if (a3 & 1) {
-            p = (int*)a0[0x10 / 4];
-            a1_h = *(short*)((char*)p + 0x20);
-            if (a1_h <= 0) a1_h += 1;
-            a1 -= a1_h >> 1;
-        }
-        if (a3 & 2) {
-            p = (int*)a0[0x10 / 4];
-            a1_h = *(short*)((char*)p + 0x22);
-            if (a1_h <= 0) a1_h += 1;
-            a2 -= a1_h >> 1;
-        }
+        info = (int *)a0[0x10 / 4];
+        s8 -= *(short *)((char *)info + 0x20);
+    } else if (a3 & 1) {
+        s8 -= (*(short *)((char *)(int *)a0[0x10 / 4] + 0x20)) / 2;
     }
-    {
-        int *gctx = *(int **)&D_00000000;
-        int *dl = (int *)gctx[0xC / 4];
-        int idx = dl[1];
-        dl[1] = idx + 1;
-        {
-            int *slot = (int *)(((int *)gctx[0xC / 4])[0]) + idx * 2;
-            slot[0] = 0xBB000001;
-            slot[1] = (int)0x80008000;
-        }
+    if (a3 & 2) {
+        a2 -= (*(short *)((char *)(int *)a0[0x10 / 4] + 0x22)) / 2;
     }
+
+    gctx = *(int **)&D_00000000;
+    dl = (int *)gctx[0xC / 4];
+    idx = dl[1];
+    dl[1] = idx + 1;
     {
-        int *a3v = (int *)a0[0x10 / 4];
-        int mode = a3v[0x24 / 4];
-        int (*render_fn)();
-        int v1, w, h;
-        if (mode == 1032) { v1 = 4096; render_fn = (int (*)())&D_27A0_fn1032; }
-        else if (mode == 272) { v1 = 2048; render_fn = (int (*)())&D_27A0_fn272; }
-        else if (mode == 288) { v1 = 1024; render_fn = (int (*)())&D_27A0_fn288; }
-        else { v1 = 2048; render_fn = (int (*)())&D_27A0_fndef; }
-        w = *(short *)((char *)a3v + 0x20);
-        h = *(short *)((char *)a3v + 0x22);
-        if (v1 >= w * h) {
-            render_fn(*(int **)&D_00000000, a3v[8 / 4], w, h, 0, 0, w, h, 0);
-            gl_func_00000000(*(int **)&D_00000000, a1, a2, w, h, (w << 10) / w, (h << 10) / h);
-        } else {
-            int cols = v1 / h;
-            int acc = 0;
-            int tile = gl_func_00000000(cols);
-            int rem = w;
-            int s4 = (h << 10) / h;
-            if (w != 0) {
-                while (rem != 0) {
-                    if (tile < rem) {
-                        int s3 = (tile << 10) / tile;
-                        render_fn(*(int **)&D_00000000, ((int *)a0[0x10 / 4])[8 / 4], w, h, acc, 0, tile, h, 0);
-                        gl_func_00000000(*(int **)&D_00000000, a1, a2, tile, h, s3, s4);
-                        a1 += tile;
-                        acc += tile;
-                        rem -= tile;
-                    } else {
-                        int t0 = (rem << 10) / rem;
-                        render_fn(*(int **)&D_00000000, ((int *)a0[0x10 / 4])[8 / 4], w, h, acc, 0, rem, h, 0);
-                        gl_func_00000000(*(int **)&D_00000000, a1, a2, rem, h, t0, s4);
-                        rem = 0;
-                    }
+        int *slot = (int *)(((int *)gctx[0xC / 4])[0]) + idx * 2;
+        slot[0] = 0xBB000001;
+        slot[1] = (int)0x80008000;
+    }
+
+    s6 = 0;
+    info = (int *)a0[0x10 / 4];
+    budget = 2048;
+    switch (info[0x24 / 4]) {
+    case 1032: budget = 4096; render_fn = (int (*)())&D_27A0_fn1032; break;
+    case 272:  render_fn = (int (*)())&D_27A0_fn272;  break;
+    case 288:  budget = 1024; render_fn = (int (*)())&D_27A0_fn288;  break;
+    default:   render_fn = (int (*)())&D_27A0_fndef;  break;
+    }
+    w = *(short *)((char *)info + 0x20);
+    h = *(short *)((char *)info + 0x22);
+
+    if (budget < w * h) {
+        int tile = gl_func_00000000(budget / h);
+        int s0 = w;
+        int s4 = (h << 10) / h;
+        if (w != 0) {
+            do {
+                if (tile < s0) {
+                    int s3 = (tile << 10) / tile;
+                    render_fn(*(int **)&D_00000000, ((int *)a0[0x10 / 4])[8 / 4], w, h, s6, 0, tile, h, 0);
+                    gl_func_00000000(*(int **)&D_00000000, s8, a2, tile, h, s3, s4);
+                    s8 += tile;
+                    s6 += tile;
+                    s0 -= tile;
+                } else {
+                    int t0 = (s0 << 10) / s0;
+                    render_fn(*(int **)&D_00000000, ((int *)a0[0x10 / 4])[8 / 4], w, h, s6, 0, s0, h, 0);
+                    gl_func_00000000(*(int **)&D_00000000, s8, a2, s0, h, t0, s4);
+                    s0 -= tile;
                 }
-            }
+            } while (s0 != 0);
         }
+    } else {
+        render_fn(*(int **)&D_00000000, info[8 / 4], w, h, 0, 0, w, h, 0);
+        gl_func_00000000(*(int **)&D_00000000, s8, a2, w, h, (w << 10) / w, (h << 10) / h);
     }
 }
 #else

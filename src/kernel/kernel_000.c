@@ -2097,7 +2097,9 @@ extern void func_80002DB0(s32, u32 *);
 extern s32 func_80002F78(s32, s32, s32, s32);
 extern u32 func_80002E78(s32, u32, s32, s32);
 extern void func_800030D0(void *, s32);
-extern struct { s32 w0, w1, w2, w3; } D_80003270;
+typedef struct { s32 w0, w1, w2, w3; } VecHandler;
+extern VecHandler D_80003270;
+extern VecHandler func_80000000;
 extern u32 D_8000A3D0;
 extern s32 D_8000A3D4;
 extern s32 D_8000A3D8;
@@ -2108,10 +2110,19 @@ extern s32 __kmc_pt_mode;
 extern s32 D_BFF00000;
 /* Kernel boot / exception-vector + KMC-debugger init. Set SR, configure caches
  * (func_80009C40), poll the PIF (0x1FC007FC), install the exception-handler stub
- * (D_80003270, 4 words) at the TLB/XTLB/general vectors (0x80000080/100/180) +
- * flush, size RDRAM (func_80002DB0) and set up the heap/TLB, pick the cart ID
- * word by D_80000300, then if running under KMC (D_BFF00000 == 'KMC\0') relocate
- * its handler + ROM image and jump to its entry. */
+ * (D_80003270, 4 words) at the reset/TLB/XTLB/general vectors
+ * (0x80000000 [=func_80000000] / 0x80000080 / 0x80000100 / 0x80000180) + flush,
+ * size RDRAM (func_80002DB0) and set up the heap/TLB, pick the cart ID word by
+ * D_80000300, then if running under KMC (D_BFF00000 == 'KMC\0') relocate its
+ * handler + ROM image and jump to its entry.
+ *
+ * NON_MATCHING (~53%). Logic + relocs reconstructed. Residual is IDO-internal
+ * and resists C expression: (1) the four 16-byte handler copies share one
+ * &D_80003270 base (CSE) whereas the target re-materializes %hi/%lo per group;
+ * (2) the PIF poll loops hoist 0x1FC007FC into $s0 + emit branch-likely, target
+ * re-loads the literal per call with plain bnez+nop; (3) the KMC stub/ROM copies
+ * are stack-resident pointer-walks (sp44/sp48 spilled+incremented per word) that
+ * array/pointer-walk C does not reproduce. Documented coloring/CSE cap class. */
 void func_80002530(void) {
     extern void func_800031D0();
     extern s32 func_800031F0();
@@ -2136,18 +2147,10 @@ void func_80002530(void) {
     }
     while (func_8000A040(0x1FC007FC, sp5C | 8) != 0) {
     }
-    *(s32 *)0x80000080 = D_80003270.w0;
-    *(s32 *)0x80000084 = D_80003270.w1;
-    *(s32 *)0x80000088 = D_80003270.w2;
-    *(s32 *)0x8000008C = D_80003270.w3;
-    *(s32 *)0x80000100 = D_80003270.w0;
-    *(s32 *)0x80000104 = D_80003270.w1;
-    *(s32 *)0x80000108 = D_80003270.w2;
-    *(s32 *)0x8000010C = D_80003270.w3;
-    *(s32 *)0x80000180 = D_80003270.w0;
-    *(s32 *)0x80000184 = D_80003270.w1;
-    *(s32 *)0x80000188 = D_80003270.w2;
-    *(s32 *)0x8000018C = D_80003270.w3;
+    *(VecHandler *)&func_80000000 = D_80003270;
+    *(VecHandler *)0x80000080 = D_80003270;
+    *(VecHandler *)0x80000100 = D_80003270;
+    *(VecHandler *)0x80000180 = D_80003270;
     func_800031F0(0x80000000, 0x190);
     func_80005350(0x80000000, 0x190);
     func_80009DF0();

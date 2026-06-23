@@ -2006,7 +2006,31 @@ void game_uso_func_00002FF8(void) {
 }
 
 #ifdef NON_MATCHING
-/* game_uso_func_00003018: 291-insn (0x48C) constructor. Frame -0xE8.
+/* game_uso_func_00003018: 291-insn (0x48C) alloc-cascade constructor, frame
+ * -0xE8. RECONSTRUCTED 2026-06-22 (agent-i) from expected/game_uso.c.o to the
+ * REAL callees + globals (was placeholder gl_func_00000000 / &D_00000000):
+ *   alloc  = game_uso_func_055750(size)
+ *   init   = game_uso_func_04A188(obj, s0, *D_807FE9xx[+TVAL], 1)
+ *   vtable = &D_807FE964 + 0x374 ; tags &D_807FE620+48 (st1), &D_807FE608+24
+ *   per-stage word = *( &D_807FE970..98C + 0x380..0x39C )
+ * Structure: alloc-or-passthrough(0xE8) -> secondary alias/alloc(8)+template
+ * -> 3 Vec3 buffers on stack (0/0/0, -1000/-1000/-1000, 1000/1000/1000) +
+ * counter word D_807FE96C+0x37C, struct-copied (Tri3i int copy) to 3 ent
+ * slots -> 9 sentinel-guarded sub-object stages (s0+8 then +0x28..+0xD0,
+ * stride 0x18; stage1 0x20-obj reads ent_a, stages 2-9 0x18-obj store 0.0f).
+ * Direct sibling = game_uso_func_000018FC (same STAGE shape, also unmatched).
+ *
+ * **DECODE-ONLY: reloc-form cap.** expected references EVERY D_807FE6xx/9xx
+ * data symbol with a HI16-ONLY UNPAIRED reloc (LO16/displacement baked at
+ * assembly time; ZERO R_MIPS_LO16 for these syms across the whole .o). IDO
+ * from any C extren-symbol form always emits a HI16+LO16 PAIR, so the reloc
+ * SET cannot be reproduced (build: 12 HI16 + 12 LO16 vs expected 19 HI16 + 0
+ * LO16). No matched game_uso fn references these syms — confirmed cap class.
+ * Secondary gap: the min/max buffer + their ent copies are DEAD stores the
+ * target emits anyway (genuine IDO dead-store; array/held-ptr/Tri3i copy all
+ * dead-stripped — same unsolved gap as the 18FC sibling). Size 257 vs 291.
+ * Logic/callees/globals are faithful; left NON_MATCHING (reloc-cap). */
+/* (historical notes:) 291-insn (0x48C) constructor. Frame -0xE8.
  * Same family as spine constructor game_uso_func_000044F4.
  *
  * Stage 1 @ 0x3018-0x303C (alloc-or-passthrough): if (!arg0) arg0 = alloc(0xE8).
@@ -2096,156 +2120,87 @@ void game_uso_func_00002FF8(void) {
  * step is the permuter (register-allocation search) on the CURRENT
  * single-`sub` body — permuter-class cap, NOT a hand structural-rewrite
  * candidate. (INSN_PATCH was REMOVED 2026-05-23 as match-faking.) */
-void* game_uso_func_00003018(void* arg0) {
-    void *s0;
-    void *v1;
-    void *sub;
-    Vec3 zero_vec;
-    Vec3 min_vec;
-    Vec3 max_vec;
+extern char game_uso_D_807FE964, game_uso_D_807FE96C, game_uso_D_807FE970,
+            game_uso_D_807FE974, game_uso_D_807FE978, game_uso_D_807FE97C,
+            game_uso_D_807FE980, game_uso_D_807FE984, game_uso_D_807FE988,
+            game_uso_D_807FE98C;
+void *game_uso_func_00003018(void *a0) {
+    char *s0 = (char *)a0;
+    int *q;
+    Vec3 zbuf, nbuf, xbuf;
     int counter;
-    int tmpl;
     Vec3 ent_a, ent_b, ent_c;
+    Vec3 obj_c;
 
-    s0 = arg0;
-    if (s0 == NULL) {
-        s0 = (void*)gl_func_00000000(0xE8);
-        if (s0 == NULL) return NULL;
+    if (s0 == 0) {
+        s0 = (char *)game_uso_func_055750(0xE8);
+        if (s0 == 0) return 0;
     }
-    v1 = s0;
-    if (s0 == NULL) {
-        v1 = (void*)gl_func_00000000(8);
-        if (v1 == NULL) goto skip_template;
+    q = (int *)s0;
+    if (s0 == 0) {
+        q = (int *)game_uso_func_055750(8);
+        if (q == 0) goto fp;
     }
-    *(int*)((char*)v1 + 0) = (int)((char*)&D_00000000 + 0x374);
-    *(int*)((char*)v1 + 4) = 0;
+    q[0] = (int)((char *)&game_uso_D_807FE964 + 0x374);
+    q[1] = 0;
+fp:
+    zbuf.x = 0.0f;
+    zbuf.y = 0.0f;
+    zbuf.z = 0.0f;
+    nbuf.x = -1000.0f;
+    counter = *(int *)((char *)&game_uso_D_807FE96C + 0x37C);
+    nbuf.y = -1000.0f;
+    nbuf.z = -1000.0f;
+    xbuf.x = 1000.0f;
+    xbuf.y = 1000.0f;
+    xbuf.z = 1000.0f;
+    {
+        Vec3 *zp = &zbuf;
+        Vec3 *np = &nbuf;
+        Vec3 *xp = &xbuf;
+        *(Tri3i *)&ent_a = *(Tri3i *)zp;
+        *(Tri3i *)&ent_b = *(Tri3i *)np;
+        *(Tri3i *)&ent_c = *(Tri3i *)xp;
+    }
 
-skip_template:
-    zero_vec.x = zero_vec.y = zero_vec.z = 0.0f;
-    min_vec.x = min_vec.y = min_vec.z = -1000.0f;
-    counter = *(int*)((char*)&D_00000000 + 0x37C);
-    max_vec.x = max_vec.y = max_vec.z = 1000.0f;
-    ent_a = zero_vec;
-    ent_b = min_vec;
-    ent_c = max_vec;
-    (void)counter;
-
-    sub = (char*)s0 + 8;
-    if (s0 == (void*)-8) {
-        sub = (void*)gl_func_00000000(0x20);
-        if (sub != NULL) {
-            gl_func_00000000(sub, s0, counter, 1, counter);
-            *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x30);
-            *(int*)((char*)sub + 0x1C) = 0;
-            *(float*)((char*)sub + 0x10) = ent_a.x;
-            *(float*)((char*)sub + 0x14) = ent_a.y;
-            *(float*)((char*)sub + 0x18) = ent_a.z;
+    /* stage 1: s0+8, alloc(0x20), template D_807FE620+48, Vec3 init from ent_a. */
+    {
+        int *obj = (int *)(s0 + 8);
+        Vec3 *ap = &ent_a;
+        if (s0 == (char *)-8) {
+            obj = (int *)game_uso_func_055750(0x20);
+            if (obj == 0) goto end;
         }
-    } else {
-        gl_func_00000000(sub, s0, counter, 1, counter);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x30);
-        *(int*)((char*)sub + 0x1C) = 0;
-        *(float*)((char*)sub + 0x10) = ent_a.x;
-        *(float*)((char*)sub + 0x14) = ent_a.y;
-        *(float*)((char*)sub + 0x18) = ent_a.z;
+        game_uso_func_04A188(obj, s0, counter, 1);
+        obj[0xC / 4] = (int)((char *)&game_uso_D_807FE620 + 48);
+        obj[0x1C / 4] = 0;
+        *(Tri3i *)&obj_c = *(Tri3i *)ap;
+        *(float *)((char *)obj + 0x10) = obj_c.x;
+        *(float *)((char *)obj + 0x14) = obj_c.y;
+        *(float *)((char *)obj + 0x18) = obj_c.z;
     }
-
-    tmpl = *(int*)((char*)&D_00000000 + 0x380);
-    sub = (char*)s0 + 0x28;
-    if (s0 == (void*)-0x28) {
-        sub = (void*)gl_func_00000000(0x18);
+#define STAGE(OFF, SYM, TVAL) \
+    { \
+        int *obj = (int *)(s0 + (OFF)); \
+        if (s0 == (char *)-(OFF)) { \
+            obj = (int *)game_uso_func_055750(0x18); \
+            if (obj == 0) goto end; \
+        } \
+        game_uso_func_04A188(obj, s0, *(int *)((char *)&(SYM) + (TVAL)), 1); \
+        obj[0xC / 4] = (int)((char *)&game_uso_D_807FE608 + 24); \
+        obj[0x14 / 4] = 0; \
+        *(float *)((char *)obj + 0x10) = 0.0f; \
     }
-    if (sub != NULL) {
-        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
-        *(int*)((char*)sub + 0x14) = 0;
-        *(float*)((char*)sub + 0x10) = 0.0f;
-    }
-
-    tmpl = *(int*)((char*)&D_00000000 + 0x384);
-    sub = (char*)s0 + 0x40;
-    if (s0 == (void*)-0x40) {
-        sub = (void*)gl_func_00000000(0x18);
-    }
-    if (sub != NULL) {
-        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
-        *(int*)((char*)sub + 0x14) = 0;
-        *(float*)((char*)sub + 0x10) = 0.0f;
-    }
-
-    tmpl = *(int*)((char*)&D_00000000 + 0x388);
-    sub = (char*)s0 + 0x58;
-    if (s0 == (void*)-0x58) {
-        sub = (void*)gl_func_00000000(0x18);
-    }
-    if (sub != NULL) {
-        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
-        *(int*)((char*)sub + 0x14) = 0;
-        *(float*)((char*)sub + 0x10) = 0.0f;
-    }
-
-    tmpl = *(int*)((char*)&D_00000000 + 0x38C);
-    sub = (char*)s0 + 0x70;
-    if (s0 == (void*)-0x70) {
-        sub = (void*)gl_func_00000000(0x18);
-    }
-    if (sub != NULL) {
-        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
-        *(int*)((char*)sub + 0x14) = 0;
-        *(float*)((char*)sub + 0x10) = 0.0f;
-    }
-
-    tmpl = *(int*)((char*)&D_00000000 + 0x390);
-    sub = (char*)s0 + 0x88;
-    if (s0 == (void*)-0x88) {
-        sub = (void*)gl_func_00000000(0x18);
-    }
-    if (sub != NULL) {
-        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
-        *(int*)((char*)sub + 0x14) = 0;
-        *(float*)((char*)sub + 0x10) = 0.0f;
-    }
-
-    tmpl = *(int*)((char*)&D_00000000 + 0x394);
-    sub = (char*)s0 + 0xA0;
-    if (s0 == (void*)-0xA0) {
-        sub = (void*)gl_func_00000000(0x18);
-    }
-    if (sub != NULL) {
-        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
-        *(int*)((char*)sub + 0x14) = 0;
-        *(float*)((char*)sub + 0x10) = 0.0f;
-    }
-
-    tmpl = *(int*)((char*)&D_00000000 + 0x398);
-    sub = (char*)s0 + 0xB8;
-    if (s0 == (void*)-0xB8) {
-        sub = (void*)gl_func_00000000(0x18);
-    }
-    if (sub != NULL) {
-        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
-        *(int*)((char*)sub + 0x14) = 0;
-        *(float*)((char*)sub + 0x10) = 0.0f;
-    }
-
-    tmpl = *(int*)((char*)&D_00000000 + 0x39C);
-    sub = (char*)s0 + 0xD0;
-    if (s0 == (void*)-0xD0) {
-        sub = (void*)gl_func_00000000(0x18);
-    }
-    if (sub != NULL) {
-        gl_func_00000000(sub, s0, tmpl, 1, tmpl);
-        *(int*)((char*)sub + 0x0C) = (int)((char*)&D_00000000 + 0x18);
-        *(int*)((char*)sub + 0x14) = 0;
-        *(float*)((char*)sub + 0x10) = 0.0f;
-    }
-
+    STAGE(40,  game_uso_D_807FE970, 0x380)
+    STAGE(64,  game_uso_D_807FE974, 0x384)
+    STAGE(88,  game_uso_D_807FE978, 0x388)
+    STAGE(112, game_uso_D_807FE97C, 0x38C)
+    STAGE(136, game_uso_D_807FE980, 0x390)
+    STAGE(160, game_uso_D_807FE984, 0x394)
+    STAGE(184, game_uso_D_807FE988, 0x398)
+    STAGE(208, game_uso_D_807FE98C, 0x39C)
+#undef STAGE
+end:
     return s0;
 }
 #else
