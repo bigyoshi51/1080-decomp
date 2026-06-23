@@ -1785,116 +1785,133 @@ void titproc_uso_func_000022BC(int *a0) {
     }
 }
 
-/* titproc_uso_func_0000240C - verified structural decode; SIBLING of
- * titproc_uso_func_000026FC (the titproc state-machine family).
- * Documented switch + vtable + branch-likely sub-80 ceiling ->
- * INCLUDE_ASM build path; struct-typing reference.
- *   s0 = a0;
- *   if (s0->0x6C0 == 0) goto end;                 // 1728 active gate
- *   switch (s0->0x6C4) {                          // 1732 state
- *     case 0:
- *        if (s0->0x6B4 != 0) gl_func_00000000(s0->0x6B4);   // 1716
- *        if (*(u16*)(*(int*)(&D+0x154) + 4) & 0x8) {
- *            gl_func_00000000(144);
- *            v1 = (int*)s0->0x6B8;                            // 1720
- *            (*(fn)((int*)v1->0x28)->0x5C)(
- *                (short)((int*)v1->0x28)->0x58 + (int)v1);    // vtable idiom
- *        }
- *        if (s0->0x6B0 != 0) gl_func_00000000(...);           // 1712
- *        s0->0x6C4 = 2;
- *        v1=(int*)s0->0x6C0; (*(fn)v1->0x28->0x5C)(...);      // vtable
- *        break;
- *     case 1: ...   case 2: ...   default: goto end;
- *   }
- * end: ...
- * Struct-typing: cross-confirms the titproc state-machine family -
- * s0->0x6C0 (1728) active/handle gate, s0->0x6C4 (1732) state selector
- * (0/1/2), s0->0x6B0/0x6B4/0x6B8 (1712/1716/1720) sub-handles,
- * D[0x154]->0x4 (u16) flag bit 0x8, obj->0x28 vtable {fn@0x5C,
- * short@0x58} dispatch (the engine-wide obj-dispatch idiom, 0x5C/0x58
- * variant). Per-state runs cleanup/vtable-notify then transitions
- * state. Caps <80: beql switch dispatch + vtable jalr + branch-likely
- * + &D reloc. Full per-state body INCLUDE_ASM-preserved (.s = source
- * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+/* titproc_uso_func_0000240C - FULL CORRECT-C DECODE (93.87% fuzzy, 2026-06-23).
+ * SIBLING of titproc_uso_func_000026FC (the titproc state-machine family).
+ * Structure, logic, all relocs (real resolved symbols), immediates, field
+ * offsets and branch shapes are byte-aligned with the target. The remaining
+ * residual is the documented coloring/scheduling ceiling for this family:
+ *   - ~61 off-by-one register-coloring diffs (v0<->a1, t2<->t3, a0<->v1 etc),
+ *     interdependent across the 212-insn body (permuter-immune class);
+ *   - 2 scheduling diffs in the shutdown tail: a branch-likely that hoists the
+ *     shared `s0->0x528 = 0` store into the delay slot, and IDO CSE-ing the
+ *     `&import_00020098` base (target re-materializes lui/%lo per access; the C
+ *     shares it) — both the "shared &D base regresses" cap.
+ * Struct-typing: s0->0x6C0 (1728) active/handle gate; s0->0x6C4 (1732) state
+ * (0/1/2/default); s0->0x6B0/0x6B4/0x6B8/0x6BC sub-handles; s0->0x4F0 flag word
+ * (bit checked via <<4 sign), s0->0x528 list, s0->0x7C dispatch index (*40+0x90
+ * fn-ptr array); import_00020098[0x154]->0x4 (u16) flag bit 0x8, [0x40/0x44/
+ * 0x84/0x14C] globals; import_00263D30[0xA8] self-ptr; obj->0x28 vtable
+ * {fn@0x5C, short@0x58} dispatch. Correct-C kept under NON_MATCHING; build path
+ * stays INCLUDE_ASM. No episode (not byte-exact). */
 #ifdef NON_MATCHING
+extern int titproc_uso_func_0002DC();
+extern int titproc_uso_func_011E00();
+extern int titproc_uso_func_01F7FC();
+extern int titproc_uso_func_012150();
+extern int titproc_uso_func_00F954();
+extern int import_000A53B4();
 void titproc_uso_func_0000240C(char *s0) {
     char *v1;
-    if (*(int *)(s0 + 0x6C0) == 0) return;
+    char *vt;
+    int idx;
+
+    if (*(int *)(s0 + 0x6C0) == 0) {
+        goto tail;
+    }
     switch (*(int *)(s0 + 0x6C4)) {
         case 0:
-            if (*(int *)(s0 + 0x6B4) != 0) gl_func_00000000(*(int *)(s0 + 0x6B4));
-            if (*(unsigned short *)(*(int *)((char *)&D_00000000 + 0x154) + 4) & 0x8) {
-                gl_func_00000000(144);
-                v1 = *(char **)(s0 + 0x6B8);
-                {
-                    char *vt = *(char **)(v1 + 0x28);
-                    void (*fn)(char *) = *(void (**)(char *))(vt + 0x5C);
-                    short base = *(short *)(vt + 0x58);
-                    if (fn) fn((char *)((int)base + (int)v1));
-                }
+            idx = *(int *)(s0 + 0x6B4);
+            if (idx != 0) {
+                titproc_uso_func_00F4CC(idx);
             }
-            if (*(int *)(s0 + 0x6B0) != 0) gl_func_00000000(*(int *)(s0 + 0x6B0));
-            *(int *)(s0 + 0x6C4) = 2;
-            v1 = *(char **)(s0 + 0x6C0);
-            {
-                char *vt = *(char **)(v1 + 0x28);
-                void (*fn)(char *) = *(void (**)(char *))(vt + 0x5C);
-                if (fn) fn(v1);
+            if (*(unsigned short *)(*(int *)((char *)&import_00020098 + 0x154) + 4) & 0x8) {
+                titproc_uso_func_0002DC(144);
+                v1 = *(char **)(s0 + 0x6B8);
+                vt = *(char **)(v1 + 0x28);
+                (*(void (**)(char *))(vt + 0x5C))(
+                    (char *)((int)*(short *)(vt + 0x58) + (int)v1));
+                if (*(int *)(s0 + 0x6B0) != 0) {
+                    titproc_uso_func_00F4CC(*(int *)(s0 + 0x6B0));
+                }
+                *(int *)(s0 + 0x6C4) = 2;
+            } else {
+                v1 = *(char **)(s0 + 0x6C0);
+                vt = *(char **)(v1 + 0x28);
+                (*(void (**)(char *))(vt + 0x5C))(
+                    (char *)((int)*(short *)(vt + 0x58) + (int)v1));
+                if (*(int *)(s0 + 0x6B0) != 0) {
+                    titproc_uso_func_00F4CC(*(int *)(s0 + 0x6B0));
+                }
+                titproc_uso_func_0002DC(144);
+                *(int *)(s0 + 0x6C4) = 1;
             }
             break;
         case 1:
             if (*(int *)(*(char **)(s0 + 0x6BC) + 0x3C) == 0 &&
-                gl_func_00000000((char *)&D_00000000, 0x200) != 0) {
-                gl_func_00000000(0x802);
-                gl_func_00000000(*(int *)(s0 + 0x6C0));
+                titproc_uso_func_011E00((char *)&import_00020098, 0x200) != 0) {
+                titproc_uso_func_0002DC(0x802);
+                titproc_uso_func_00F4CC(*(int *)(s0 + 0x6C0));
                 v1 = *(char **)(s0 + 0x6B4);
                 if (v1 != 0) {
-                    char *vt = *(char **)(v1 + 0x28);
-                    void (*fn)(char *) = *(void (**)(char *))(vt + 0x5C);
-                    short base = *(short *)(vt + 0x58);
-                    if (fn) fn((char *)((int)base + (int)v1));
+                    vt = *(char **)(v1 + 0x28);
+                    (*(void (**)(char *))(vt + 0x5C))(
+                        (char *)((int)*(short *)(vt + 0x58) + (int)v1));
                 }
-                if (*(int *)(s0 + 0x6B0) != 0) gl_func_00000000(*(int *)(s0 + 0x6B0));
+                if (*(int *)(s0 + 0x6B0) != 0) {
+                    titproc_uso_func_00F4CC(*(int *)(s0 + 0x6B0));
+                }
                 *(int *)(s0 + 0x6C4) = 0;
             } else {
-                gl_func_00000000(*(int *)(s0 + 0x6C0));
-                gl_func_00000000(5);
+                import_000A53B4(*(int *)(s0 + 0x6C0));
+                titproc_uso_func_0002DC(5);
                 v1 = *(char **)(s0 + 0x6C0);
-                if (*(int *)(v1 + *(int *)(v1 + 0x7C) * 40 + 0x90) == 0) return;
-                *(int *)((char *)&D_00000000 + 0xA8) = (int)s0;
-                *(int *)((char *)&D_00000000 + 0x84) = *(int *)(*(char **)(s0 + 0x6C0) + 0x7C);
+                idx = *(int *)(v1 + 0x7C);
+                if (*(int *)(v1 + idx * 40 + 0x90) == 0) {
+                    return;
+                }
+                *(int *)((char *)&import_00263D30 + 0xA8) = (int)s0;
+                *(int *)((char *)&import_00020098 + 0x84) =
+                    *(int *)(*(char **)(s0 + 0x6C0) + 0x7C);
                 if ((*(int *)(s0 + 0x4F0) << 4) < 0) {
                     if (*(int *)(s0 + 0x528) != 0) {
-                        gl_func_00000000(*(int *)(s0 + 0x528), 3);
+                        titproc_uso_func_01F7FC(*(int *)(s0 + 0x528), 3);
                     }
                     *(int *)(s0 + 0x528) = 0;
-                    *(int *)((char *)&D_00000000 + 0x14C) = 0;
+                    *(int *)((char *)&import_00020098 + 0x14C) = 0;
                 }
                 v1 = *(char **)(s0 + 0x6C0);
-                (*(void (**)(void))(v1 + *(int *)(v1 + 0x7C) * 40 + 0x90))();
+                idx = *(int *)(v1 + 0x7C);
+                (*(void (**)(void))(v1 + idx * 40 + 0x90))();
             }
-            break;
+            return;
         case 2:
-            gl_func_00000000(5);
-            {
-                int *d154 = *(int **)((char *)&D_00000000 + 0x154);
-                unsigned short v = *(unsigned short *)((char *)d154 + 4);
-                gl_func_00000000((char *)&D_00000000);
-                *(short *)((char *)d154 + 4) = (short)(v & 0xFFF7);
-            }
-            gl_func_00000000(*(int *)(s0 + 0x6B8));
+            titproc_uso_func_0002DC(5);
+            v1 = *(char **)((char *)&import_00020098 + 0x154) + 4;
+            *(short *)v1 = (short)(*(unsigned short *)v1 & 0xFFF7);
+            titproc_uso_func_012150((char *)&import_00020098);
+            titproc_uso_func_00F4CC(*(int *)(s0 + 0x6B8));
             v1 = *(char **)(s0 + 0x6C0);
-            {
-                char *vt = *(char **)(v1 + 0x28);
-                void (*fn)(char *) = *(void (**)(char *))(vt + 0x5C);
-                short base = *(short *)(vt + 0x58);
-                if (fn) fn((char *)((int)base + (int)v1));
-            }
+            vt = *(char **)(v1 + 0x28);
+            (*(void (**)(char *))(vt + 0x5C))(
+                (char *)((int)*(short *)(vt + 0x58) + (int)v1));
             *(int *)(s0 + 0x6C4) = 1;
             break;
         default:
             return;
     }
+    return;
+
+tail:
+    if ((*(int *)(s0 + 0x4F0) << 4) < 0) {
+        if (*(int *)(s0 + 0x528) != 0) {
+            titproc_uso_func_01F7FC(*(int *)(s0 + 0x528), 3);
+        }
+        *(int *)(s0 + 0x528) = 0;
+        *(int *)((char *)&import_00020098 + 0x14C) = 0;
+    }
+    *(int *)((char *)&import_00020098 + 0x40) =
+        *(int *)((char *)&import_00020098 + 0x44);
+    titproc_uso_func_00F954(s0, 0, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000240C);

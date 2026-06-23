@@ -819,13 +819,29 @@ void gl_func_00034E8C(int a0) {
 //   gl_func_00034548 initializers; the 0x0001E47C..E4A0 templates
 //   are deferred data-segment symbolization sites — a contiguous
 //   descriptor table to type together).
-// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + &D_0
-//   global flag gate + four fixed data-seg template pointers
-//   (0x0001E47C / 0x0001E484 / 0x0001E490 / 0x0001E494 / 0x0001E4A0
-//   unsymbolized) — byte-match needs USO mnemonic disasm +
-//   descriptor table typed. Real-C STRUCTURAL body below per the
-//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-// gl_func_00034EB4 — FULL m2c DECODE (53.84% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_00034EB4 — CORRECT-C RECONSTRUCTION (94.01% NM, 167/167 words, no
+//   episode). Major lift over the prior 53.84% raw-integer decode:
+//   - Data-seg template pointers (0x1E47C..0x1E508) and the global base
+//     are now referenced as `(char*)&D_00000000 + off`, so IDO emits the
+//     target's `lui 0x2 + signed addiu` encoding WITH correct R_MIPS_HI16/
+//     LO16 relocs against D_00000000 (was raw `lui 0x1 + ori` constants,
+//     reloc-blind).
+//   - The four loop-invariant templates promote to s5/s6/s7/s8 and the
+//     base to s3 (matching the target's saved-reg bank), and the frame
+//     grows to the correct 0x40 / 9-saved-reg layout. This was unlocked
+//     by giving the loop the target's dual-back-edge shape:
+//     `do { ... } while (var_s4 == 0); <0x6C dispatch>; goto loop_top;`
+//     where var_s4 is a permanently-0 flag (IDO rotates this into the
+//     `beqzl s4` back-edge + dead 0x6C/`b` fall-through). A plain
+//     `do{}while(1)` did NOT promote the templates.
+//   RESIDUAL (~36-word contiguous head-block region): IDO schedules the
+//   &D_0 flag read (`*(int*)&D_00000000 & 1`) into its own temp `lui t6;
+//   lw t6,0(t6)` and the 0x218 deref as `lw 0x218(s3)`, whereas our build
+//   CSE-folds the flag read onto s3 (base) and re-materializes `lui` for
+//   0x218. Same-symbol/same-offset CSE-vs-recompute scheduler choice;
+//   permuter (base 1210 -> 760) only cracked it via noise mutations, not
+//   clean source. Genuine IDO scheduling/CSE cap. Byte-match deferred.
+// game_libs non-jumptable via scripts/decomp-uso-cf.py.
 #ifdef NON_MATCHING
 
 
@@ -834,6 +850,7 @@ void gl_func_00034E8C(int a0) {
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00034EB4)();
+#define DB ((char *)&D_00000000)
 void gl_func_00034EB4(char *arg0, char *arg1) {
     int (*temp_v0_5)();
     char *temp_v0;
@@ -842,12 +859,24 @@ void gl_func_00034EB4(char *arg0, char *arg1) {
     char *temp_v0_4;
     char *temp_v0_6;
     char *var_s0;
+    char *t0;
+    char *t1;
+    char *t2;
+    char *t3;
+    char *base;
+    int var_s4;
 
-    gl_func_00034458((char *)0x1E47C);
-    if (*(int*)0 & 1) {
+    gl_func_00034458(DB + 0x1E47C);
+    if (*(int *)DB & 1) {
         gl_func_00034458();
     }
-loop_3:
+    t0 = DB + 0x1E484;
+    t1 = DB + 0x1E490;
+    t2 = DB + 0x1E494;
+    t3 = DB + 0x1E4A0;
+    base = DB + 0;
+    var_s4 = 0;
+loop_top:
     FW(arg0, 0x0) = (s32) (FW(arg0, 0x0) & ~1);
     temp_v0 = FW(arg1, 0x28);
     ((GP_00034EB4)FW(temp_v0, 0x24))(*(s16*)((char*)temp_v0 + 0x20) + (int)arg1);
@@ -860,7 +889,7 @@ loop_3:
                 var_s0 = FW(var_s0, 0x60);
             } while (var_s0 != 0);
         }
-        if (FW((*(char **)0x218), 0x48) != 0) {
+        if (FW(FW(base, 0x218), 0x48) != 0) {
             temp_v0_2 = FW(arg1, 0x28);
             ((GP_00034EB4)FW(temp_v0_2, 0x7C))(*(s16*)((char*)temp_v0_2 + 0x78) + (int)arg1);
         }
@@ -871,31 +900,31 @@ loop_3:
             } while (FW(arg0, 0x0) & 4);
         }
         FW(arg0, 0x10) = 0;
-        gl_func_00034458((char *)0x1E484);
-        gl_func_00034458(0);
-        gl_func_00034458((char *)0x1E490);
+        gl_func_00034458(t0);
+        gl_func_00034458(base);
+        gl_func_00034458(t1);
         gl_func_00034458();
-        gl_func_00034458((char *)0x1E494);
-        gl_func_00034458((char *)0x1E4A0);
+        gl_func_00034458(t2);
+        gl_func_00034458(t3);
         temp_v0_3 = FW(arg1, 0x28);
-        ((GP_00034EB4)FW(temp_v0_3, 0x24))(FW(temp_v0_3, 0x20) + (int)arg1);
-        gl_func_00034458((char *)0x1E4AC);
+        ((GP_00034EB4)FW(temp_v0_3, 0x24))(*(s16*)((char*)temp_v0_3 + 0x20) + (int)arg1);
+        gl_func_00034458(DB + 0x1E4AC);
         gl_func_00034458();
-        gl_func_00034458((char *)0x1E4B8);
-        gl_func_00034458((char *)0x1E4C4);
+        gl_func_00034458(DB + 0x1E4B8);
+        gl_func_00034458(DB + 0x1E4C4);
         temp_v0_4 = FW(arg1, 0x28);
-        ((GP_00034EB4)FW(temp_v0_4, 0x1C))(FW(temp_v0_4, 0x18) + (int)arg1);
-        gl_func_00034458((char *)0x1E4D0);
+        ((GP_00034EB4)FW(temp_v0_4, 0x1C))(*(s16*)((char*)temp_v0_4 + 0x18) + (int)arg1);
+        gl_func_00034458(DB + 0x1E4D0);
         gl_func_00034458();
-        gl_func_00034458((char *)0x1E4DC);
-        gl_func_00034458(0);
+        gl_func_00034458(DB + 0x1E4DC);
+        gl_func_00034458(base);
         gl_func_00034458();
-        gl_func_00034458((char *)0x1E4E4);
-        gl_func_00034458((char *)0x1E4F0);
-        gl_func_00034458((char *)0x1E4F4);
-        gl_func_00034458((char *)0x1E500);
+        gl_func_00034458(DB + 0x1E4E4);
+        gl_func_00034458(DB + 0x1E4F0);
+        gl_func_00034458(DB + 0x1E4F4);
+        gl_func_00034458(DB + 0x1E500);
         gl_func_00034458();
-        gl_func_00034458((char *)0x1E508);
+        gl_func_00034458(DB + 0x1E508);
         gl_func_00034458();
         FW(arg0, 0x14) = (s32) (FW(arg0, 0x14) + 1);
         temp_v0_5 = FW(arg1, 0x30);
@@ -903,10 +932,10 @@ loop_3:
             temp_v0_5();
             FW(arg1, 0x30) = 0;
         }
-    } while (0 == 0);
+    } while (var_s4 == 0);
     temp_v0_6 = FW(arg1, 0x28);
-    ((GP_00034EB4)FW(temp_v0_6, 0x6C))(FW(temp_v0_6, 0x68) + (int)arg1);
-    goto loop_3;
+    ((GP_00034EB4)FW(temp_v0_6, 0x6C))(*(s16*)((char*)temp_v0_6 + 0x68) + (int)arg1);
+    goto loop_top;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034EB4);
