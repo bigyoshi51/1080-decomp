@@ -24,24 +24,23 @@ void func_0001266C(char *a0, int a1) {
 typedef char *(*GP_000126EC)();
 void func_000126EC(char *arg0, s32 arg1) {
     s32 sp34;
-    s32 *var_s1;
-    char *temp_s0;
-    char *temp_s0_2;
-    char *temp_s2;
+    register u16 *p;
+    register s32 *q;
+    register char *r;
 
-    temp_s0 = FW(arg0, 0x154);
-    FW(temp_s0, 0x4) = (u16) (FW(temp_s0, 0x4) & ~4);
+    p = (u16 *)(*(char **)(arg0 + 0x154) + 4);
+    *p = *p & ~4;
     if (arg1 != 0) {
-        temp_s0_2 = FW(arg0, 0x154);
-        FW(temp_s0_2, 0x4) = (u16) (FW(temp_s0_2, 0x4) | 4);
+        p = (u16 *)(*(char **)(arg0 + 0x154) + 4);
+        *p = *p | 4;
     }
     *(int*)0 = arg1;
-    var_s1 = &sp34;
-    if ((var_s1 != 0) || (var_s1 = ((s32 *(*)())func_00000000)(0xC), (var_s1 != 0))) {
-        *var_s1 = 0x15;
+    q = &sp34;
+    if ((q != 0) || (q = ((s32 *(*)())func_00000000)(0xC), (q != 0))) {
+        *q = 0x15;
     }
-    temp_s2 = *(char **)0x28;
-    ((GP_000126EC)FW(temp_s2, 0x34))(FW(temp_s2, 0x30), var_s1);
+    r = *(char **)0x28;
+    ((GP_000126EC)FW(r, 0x34))(FW(r, 0x30), q);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000126EC);
