@@ -42,9 +42,19 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80005350);
  * access-queue-enable selector. func_800053D0 = osCreateMesgQueue,
  * func_800051E0 = osCreateThread (stack pre-filled 0x22222222),
  * func_800064F0/_80006510 = osGetThreadPri/osSetThreadPri,
- * func_800066B0 = __osDisableInt. Caps <80: libultra thread+queue
- * init + interrupt bracket + ~8 callees + many &D global stores.
- * Full body INCLUDE_ASM-preserved (.s = source of truth).
+ * func_800066B0 = __osDisableInt. 2026-06-23: devmgr fields now
+ * modeled as one PiDevMgr struct at D_8000A450 (offsets +0..+0x18:
+ * active/cmdQueue/evtQueue/thread/acsQueue/dma/edma) — semantically
+ * exact, objdiff unchanged at 77.43%. CAP (confirmed, not a bug):
+ * the residual is pure IDO instruction SCHEDULING + register coloring
+ * of the contiguous devmgr-store block. Expected batches all
+ * address-computations then issues the stores sharing a single
+ * %hi(D_8000A450) base (the -O2 store-base CSE); this file is pinned
+ * -O1 (Makefile:297) which reloads `lui at` per store, so the
+ * register/order shuffle diverges on ~67/114 insns despite identical
+ * logic. m2c-confirmed shape; permuter import blocked by NM-wrap +
+ * asm-processor two-phase. Not -O1-reachable from straight C.
+ * Full body INCLUDE_ASM-preserved (.s = source of truth, ROM-exact).
  * INCLUDE_ASM (no episode; tautology-trap rule). */
 #ifdef NON_MATCHING
 extern void func_800051E0(s32, s32 *, s32);
@@ -56,7 +66,16 @@ extern s32 func_800066B0(void);
 extern void func_800066D0(s32);
 extern void func_80005F10(void *, s32, void *, void *, void *, s32);
 extern void func_8000A110(void *);
-extern s32 D_8000A450, D_8000A454, D_8000A458, D_8000A45C, D_8000A460, D_8000A464, D_8000A468;
+typedef struct {
+    /* 0x00 */ s32 active;
+    /* 0x04 */ s32 cmdQueue;
+    /* 0x08 */ s32 evtQueue;
+    /* 0x0C */ s32 thread;
+    /* 0x10 */ s32 acsQueue;
+    /* 0x14 */ s32 dma;
+    /* 0x18 */ s32 edma;
+} PiDevMgr;
+extern PiDevMgr D_8000A450;
 extern s32 D_80006060, D_80005AEC;
 extern void func_80004A50();
 /* 2026-06-10 kernel-relayout: this is ROM 0x800056EC (addiu included).
@@ -78,7 +97,7 @@ void func_80005520(s32 arg0, s32 *arg1, s32 *arg2, s32 arg3) {
     s32 sp24;
     s32 temp_v0;
 
-    if (D_8000A450 == 0) {
+    if (D_8000A450.active == 0) {
         func_800053D0(arg1, arg2, arg3);
         func_800053D0(&pimgr_bss_17A0, &pimgr_bss_17B8, 1);
         if (D_8000A480 == 0) {
@@ -92,14 +111,14 @@ void func_80005520(s32 arg0, s32 *arg1, s32 *arg2, s32 arg3) {
             func_80006510(0, arg0);
         }
         temp_v0 = func_800066B0();
-        D_8000A450 = 1;
-        D_8000A454 = (s32) &pimgr_bss_0000;
-        D_8000A45C = (s32) &pimgr_bss_17A0;
-        D_8000A458 = (s32) arg1;
+        D_8000A450.active = 1;
+        D_8000A450.cmdQueue = (s32) &pimgr_bss_0000;
+        D_8000A450.thread = (s32) &pimgr_bss_17A0;
+        D_8000A450.evtQueue = (s32) arg1;
         sp2C = temp_v0;
-        D_8000A460 = (s32) &__osPiAccessQueue;
-        D_8000A464 = (s32) &func_80004A50;
-        D_8000A468 = (s32) &func_800056F0; /* ROM stores the post-addiu entry */
+        D_8000A450.acsQueue = (s32) &__osPiAccessQueue;
+        D_8000A450.dma = (s32) &func_80004A50;
+        D_8000A450.edma = (s32) &func_800056F0; /* ROM stores the post-addiu entry */
         func_80005F10(&pimgr_bss_0000, 0, &D_80006060, &D_8000A450, (char *) &pimgr_bss_01B0 + 0x1000, arg0);
         func_8000A110(&pimgr_bss_0000);
         func_80005F10(&pimgr_bss_11B0, 0, &D_80005AEC, NULL, (char *) &pimgr_bss_1360 + 0x400, arg0 - 1);

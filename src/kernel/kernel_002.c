@@ -32,56 +32,70 @@ void func_80004B10(void* buf, int ct) {
 }
 
 
-/* func_80004BE0 - verified structural decode (kernel, 0x138, 80
- * insns) = libultra osRecvMesg. Reference: libreultra
- * src/os/recvmesg.c / sendmesg.c (OSMesgQueue, __os* thread ops).
- * Struct-typing reference: mq = OSMesgQueue - 0x4 fullqueue
- * (blocked-sender list), 0x8 validCount, 0xC first, 0x10 msgCount,
- * 0x14 msg[] (OSMesg array). func_800066B0/_800066D0 =
+/* func_80004BE0 = libultra osRecvMesg (kernel_002, -O1, byte-exact).
+ * Reference: libreultra src/os/recvmesg.c. mq = OSMesgQueue (0x4
+ * fullqueue blocked-sender list, 0x8 validCount, 0xC first,
+ * 0x10 msgCount, 0x14 msg[]). func_800066B0/_800066D0 =
  * __osDisableInt/__osRestoreInt; func_80003D0C = __osEnqueueAndYield;
- * func_80003E54 = __osPopThread; func_8000A110 = __osEnqueueThread;
- * D_8000A420 = __osRunningThread (->0x10 = state, set 8 = blocked-on-
- * recv). The `div $0,t2,t4; mfhi; bnez t4,+2; break 7` plus
- * `addiu at,-1; bne t4,at; lui at,0x8000; bne t2,at; break 6` is
+ * func_80003E54 = __osPopThread; func_8000A110 = osStartThread;
+ * D_8000A420 = __osRunningThread (->0x10 = state, 8 = OS_STATE_WAITING).
+ * The `div/mfhi; bnez+break 7` plus `bne at,0x8000/break 6` is
  * the IDO signed `%` div0/INT_MIN-overflow guard pair on the ring
  * index - documented C-unsuppressible (docs/IDO_CODEGEN.md
- * #feedback-ido-signed-mod-break-pair). INCLUDE_ASM remains build
- * path (sub-100 cap via scoring quirk + interrupt bracket / yield-
- * loop shape; no episode; tautology-trap rule). */
-extern int func_800066B0(void);
-extern void func_800066D0(int s);
-extern void func_80003D0C(int *q);
-extern int *func_80003E54(int *q);
-extern void func_8000A110(int *q, int *t);
-extern int *D_8000A420;
-extern int __osRunQueue;
-#ifdef NON_MATCHING
-s32 func_80004BE0(int *mq, int *msg, s32 flag) {
-    int s = func_800066B0();
-    while (*(int*)((char*)mq + 0x8) == 0) {
+ * #feedback-ido-signed-mod-break-pair). MATCHED via libultra source
+ * + 1080 struct offsets at -O1; verified byte-identical vs ROM. */
+extern s32 func_800066B0(void);
+extern void func_800066D0(s32 s);
+extern void func_80003D0C(void *q);
+extern void *func_80003E54(void *q);
+extern void func_8000A110(void *t);
+extern void *D_8000A420;
+
+typedef struct RecvThread2 { struct RecvThread2 *next; } RecvThread2;
+typedef struct {
+    void* mtqueue;
+    RecvThread2* fullqueue;
+    s32 validCount;
+    s32 first;
+    s32 msgCount;
+    s32** msg;
+} RecvMesgQueue;
+
+typedef struct RecvThread {
+    s32 field0;
+    s32 pri;
+    s32 queue;
+    s32 pad0C;
+    u16 state;
+} RecvThread;
+
+/* osRecvMesg (libultra). Reference: libreultra src/os/recvmesg.c. */
+s32 func_80004BE0(RecvMesgQueue *mq, s32 *msg, s32 flag) {
+    register s32 saveMask = func_800066B0();
+
+    while (mq->validCount == 0) {
         if (flag == 0) {
-            func_800066D0(s);
+            func_800066D0(saveMask);
             return -1;
         }
-        *(s16*)((char*)D_8000A420 + 0x10) = 8;
-        func_80003D0C(mq);
+        ((RecvThread*)D_8000A420)->state = 8;
+        func_80003D0C(&mq->mtqueue);
     }
+
     if (msg != 0) {
-        *msg = *(int*)((char*)mq + 0x14 + *(int*)((char*)mq + 0xC) * 4);
-        *(int*)((char*)mq + 0xC) =
-            (*(int*)((char*)mq + 0xC) + 1) % *(int*)((char*)mq + 0x10);
+        *msg = (s32)mq->msg[mq->first];
     }
-    *(int*)((char*)mq + 0x8) -= 1;
-    if (*(int**)((char*)mq + 0x4) != 0)
-        func_8000A110(&__osRunQueue, func_80003E54((int*)((char*)mq + 0x4)));
-    func_800066D0(s);
+    mq->first = (mq->first + 1) % mq->msgCount;
+    mq->validCount--;
+    if (mq->fullqueue->next != 0) {
+        func_8000A110(func_80003E54(&mq->fullqueue));
+    }
+    func_800066D0(saveMask);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80004BE0);
-#endif
-
-
+/* 2 trailing alignment nops (16-byte boundary) — spliced via pad sidecar
+ * to preserve the exact .o/ROM layout (next func at 0x5D20). */
+#pragma GLOBAL_ASM("asm/nonmatchings/kernel/func_80004BE0_pad.s")
 
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80004D20);

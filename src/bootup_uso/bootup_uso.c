@@ -5815,63 +5815,63 @@ void func_00008744(char *a0) {
 
 extern char D_00007FF4;
 extern float D_000005F0;
-extern int D_087A4_word0_load;
-extern int D_087A4_word0_store;
-extern int D_087A4_word0_base;
-extern int D_087A4_word0_final;
-extern char D_087A4_vtable;
-extern void func_00000000_087A4(char *, char *, int, int, float);
 
-/* func_000087A4: allocator/init sibling of func_000086C0.
+/* func_000087A4: allocator/init sibling of func_000086C0. Body below is the
+ * honest, correct-C decode (all callees are direct `jal func_00000000`; all
+ * relocs verified against expected/src/bootup_uso/bootup_uso.c.o R_MIPS_*).
  *
- * 2026-05-17: added `char pad2[8]` lever — fixes frame size mismatch
- * (was built -0x48, now matches target -0x50). +0.05pp.
- * 2026-05-18: moving pad2 before scalar locals keeps frame -0x50 while
- * restoring `kind` to target sp+0x44, and assigning child after the
- * descriptor store matches the target's bne delay slot. 91.14 -> 92.42%.
- * Re-tested alias-extern after the stack-layout fix; unlike the earlier
- * attempt, `func_00000000_087A4(..., float)` now improves net score by
- * emitting target `lwc1/swc1` for the 5th arg. 92.42 -> 93.95%.
- * 2026-05-20: promoted after adding the 3-nop suffix plus fixed-word
- * patches for the first-block schedule/branch/code-label bytes. The two
- * byte-identical raw-zero LUI words (`D_087A4_word0_base` /
- * `D_087A4_word0_load`) need a second same-word patch invocation so
- * patch-insn-bytes strips their orphan HI16 relocs after the main patch.
- * `D_087A4_vtable = 0x7A48` keeps the vtable pointer as a two-insn
- * relocated `symbol + 0x10` address without IDO emitting an extra addiu.
+ * 2026-06-23 (agent-b): the prior "match" relied on the BANNED instruction-
+ * forcing toolchain (func_00000000_087A4 jal-alias + 3-nop SUFFIX + fixed-word
+ * patches + D_087A4_word0_* placeholder symbols). Removed per the no-faking
+ * policy. Drove the body to the genuine C decode and measured the full-ROM
+ * residual (make clean && make vs baserom, the true gate). THREE compounding,
+ * C-irreproducible caps confirmed:
  *
- * Negative variants tried 2026-05-20:
- *   - spelling the vtable descriptor as `(char*)func_00007A48 + 0x10`
- *     regressed to 91.78%;
- *   - using a local `base` pointer for D_087A4_word0_base regressed slightly;
- *   - calling real `func_00000000` for the 5-arg float call regressed to
- *     92.26%, while a block-local float prototype is rejected by IDO as an
- *     incompatible redeclaration. The alias keeps the target float stack
- *     argument shape; post-cc patching rewrites the jal word.
+ *   (1) FLOAT-STACK-ARG via DIRECT jal func_00000000 (call @0x88D8). Target
+ *       passes D_000005F0 as a SINGLE float (swc1 $f6,0x10(sp)) through a
+ *       direct `jal func_00000000`. func_00000000 is defined K&R-empty in this
+ *       TU (its own bytes are `jr ra; nop` at USO offset 0), so any call-site
+ *       float arg promotes to double -> emits cvt.d.s + sdc1 (built 0x88CC/D0)
+ *       instead of swc1. A fn-ptr cast restores swc1 but turns the call into
+ *       lui/addiu/jalr (indirect), not the target's R_MIPS_26 direct jal.
+ *       No C reconciles direct-jal + single-float when the symbol is K&R here.
  *
- * This captures the lazy arg0->0x40 setup, 0xC8/0x40 allocation
- * fallback, vtable callback, child link, and final flag/callback. */
+ *   (2) RAW-ZERO ADDRESS-0 ACCESSES hoisted above the branch (0x87BC..0x87E8).
+ *       Target materializes address 0 in THREE separate regs (t8 read base,
+ *       at OR-store base, v0 for +0/+4 stores) via bare `lui r,0` (no reloc),
+ *       with two of the luis HOISTED above the `bnez` (0x87C4) and one in its
+ *       delay slot. C can only spell this as `&D_00000000` (emits HI16/LO16,
+ *       which DO resolve to lui 0 at static link) or literal 0 (emits $zero,
+ *       single insn). Neither reproduces the 3-distinct-base + above-branch
+ *       hoist; the allocator chooses both, shifting the whole body by ~1 insn.
+ *
+ *   (3) Register coloring of the straight-line temps (t5/t6, t8/t9 numbering)
+ *       and the 0x50 vs 0x48/0x40 frame size — the standard uopt coloring cap.
+ *
+ * Full-ROM measurement of the honest body: 86/91 words differ (dominated by
+ * the cap-(2) phase shift), build regresses from byte-exact -> stays
+ * NON_MATCHING. Same class as func_000055A0 / the bootup_uso &D-CSE caps.
+ *
+ * Decode captures: lazy arg0->0x40 setup, 0xC8/0x40 allocation fallback,
+ * vtable callback, child link, final flag/callback. */
 #ifdef NON_MATCHING
 void *func_000087A4(char *arg0) {
-    char pad2[8];  /* frame target -0x50 vs natural -0x48 */
     int kind;
     char *self;
     char *child;
     char *desc;
-    char *link_arg;
-    char pad[4];
 
     if (*(int*)(arg0 + 0x40) == 0) {
-        D_087A4_word0_store = D_087A4_word0_load | 8;
-        (&D_087A4_word0_base)[1] = 0xAA002;
-        D_087A4_word0_base = 0;
+        *(int*)&D_00000000 = (*(int*)&D_00000000) | 8;
+        *(int*)((char*)&D_00000000 + 4) = 0xAA002;
+        *(int*)&D_00000000 = 0;
         *(int*)(arg0 + 0x40) = func_00000000(0, &D_00007FF4, *(int*)(arg0 + 0x48), 0);
     }
 
     self = (char*)func_00000000(0xC8);
     if (self != 0) {
         func_00000000(self);
-        *(volatile char**)(self + 0x28) = &D_087A4_vtable + 0x10;
+        *(int*)(self + 0x28) = (int)((char*)&func_00007A48 + 0x10);
         child = self + 0x88;
         if (self == (char*)-0x88) {
             child = (char*)func_00000000(0x40);
@@ -5880,29 +5880,26 @@ void *func_000087A4(char *arg0) {
             }
         }
         func_00000000(child);
-        *(char**)(child + 0x30) = &D_00000000;
+        *(int*)(child + 0x30) = (int)&D_00000000;
     }
 
 init_self:
-    (void)pad;
-    (void)pad2;
     *(float*)(self + 0x70) = 10.0f;
     kind = 0x13;
     child = self;
     desc = *(char**)(self + 0x28);
     ((void (*)(char *, int *))*(int*)(desc + 0x2C))(self + *(short*)(desc + 0x28), &kind);
 
-    link_arg = child + 0x10;
     self = *(char**)(arg0 + 0x40);
-    func_00000000(link_arg, self);
+    func_00000000(child + 0x10, self);
     if (*(int*)(self + 0x14) != 0) {
         *(int*)(self + 4) = 1;
     }
-    *(char**)(self + 0x14) = child;
-    link_arg = child + 0x88;
-    func_00000000_087A4(link_arg, child, 0x74, 0x43160000, D_000005F0);
+    *(int*)(self + 0x14) = (int)child;
+    /* 5th arg is a SINGLE float (swc1) via direct jal -> cap (1) above. */
+    func_00000000(child + 0x88, child, 0x74, 0x43160000, D_000005F0);
     *(int*)(child + 0x98) |= 1;
-    func_00000000(D_087A4_word0_final, link_arg);
+    func_00000000(*(int*)&D_00000000, child + 0x88);
     return child;
 }
 #else

@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80004BE0",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T06:37:33.086750+00:00",
+  "end_time": "2026-06-23T06:37:33.086750+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T06:37:33.086750+00:00",
+      "assistant_text": "libultra osRecvMesg (kernel_002, IDO 7.1 -O1). Recognized from the asm shape (__osDisableInt/__osRestoreInt interrupt bracket, validCount==0 yield loop, ring-index `% msgCount` with the IDO signed-mod div0/INT_MIN break-pair, __osPopThread/osStartThread fullqueue drain). Reconstructed directly from libreultra src/os/recvmesg.c with the 1080 OSMesgQueue offsets (0x4 fullqueue, 0x8 validCount, 0xC first, 0x10 msgCount, 0x14 msg[]) and Thread.state at 0x10 (u16, set 8 = OS_STATE_WAITING). `register s32 saveMask` pins the int-save into s0 across the loop; `mq->fullqueue->next` (fullqueue is a list head whose first field is next) reproduces the `lw 0x4; lw 0x0; beqz` drain guard; func_8000A110(func_80003E54(&mq->fullqueue)) is the single-arg osStartThread of the popped thread. Compiled .text is byte-identical to the target (78 insns, 0 non-reloc diffs). The real function occupies 0x140 (2 trailing 16-byte-alignment nops at 0x5D18/0x5D1C before func_80004D20 at 0x5D20); those nops are spliced back via a pad sidecar (#pragma GLOBAL_ASM func_80004BE0_pad.s, genuine all-zero alignment padding) so the .o/ROM layout is preserved. Full `make clean && make` produces a ROM byte-identical to baserom (cmp clean, checksum OK).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 78,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n\n/* func_80004B10: RDB host-read with lazy message-queue init.\n * Lazy-inits a message queue (D_8000A440 flag-guarded) on first call,\n * publishes (buf, ct) to __osRdb_Read_Data_Buf/Ct, then loops the recv\n * helper until a non-zero count accumulates, and releases the queue. */\nextern int func_800053D0(void*, void*, int);\nextern int func_800051E0(int, void*, int);\nextern int func_800066F0(void*, int, int);\nextern int func_80004FE0(void*, int, int);\nextern int D_8000A440;\nextern int readhost_bss_0000;\nextern int readhost_bss_0018;\nextern int __osRdb_Read_Data_Buf;\nextern int __osRdb_Read_Data_Ct;\n\nvoid func_80004B10(void* buf, int ct) {\n    int msg;\n    int count = 0;\n    if (D_8000A440 == 0) {\n        func_800053D0(&readhost_bss_0000, &readhost_bss_0018, 1);\n        func_800051E0(0xF, &readhost_bss_0000, 0);\n        D_8000A440 = 1;\n    }\n    __osRdb_Read_Data_Buf = (int)buf;\n    __osRdb_Read_Data_Ct = ct;\n    while (count == 0) {\n        count += func_800066F0(&msg, 1, 5);\n    }\n    func_80004FE0(&readhost_bss_0000, 0, 1);\n}\n\n\n/* func_80004BE0 = libultra osRecvMesg (kernel_002, -O1, byte-exact).\n * Reference: libreultra src/os/recvmesg.c. mq = OSMesgQueue (0x4\n * fullqueue blocked-sender list, 0x8 validCount, 0xC first,\n * 0x10 msgCount, 0x14 msg[]). func_800066B0/_800066D0 =\n * __osDisableInt/__osRestoreInt; func_80003D0C = __osEnqueueAndYield;\n * func_80003E54 = __osPopThread; func_8000A110 = osStartThread;\n * D_8000A420 = __osRunningThread (->0x10 = state, 8 = OS_STATE_WAITING).\n * The `div/mfhi; bnez+break 7` plus `bne at,0x8000/break 6` is\n * the IDO signed `%` div0/INT_MIN-overflow guard pair on the ring\n * index - documented C-unsuppressible (docs/IDO_CODEGEN.md\n * #feedback-ido-signed-mod-break-pair). MATCHED via libultra source\n * + 1080 struct offsets at -O1; verified byte-identical vs ROM. */\nextern s32 func_800066B0(void);\nextern void func_800066D0(s32 s);\nextern void func_80003D0C(void *q);\nextern void *func_80003E54(void *q);\nextern void func_8000A110(void *t);\nextern void *D_8000A420;\n\ntypedef struct RecvThread2 { struct RecvThread2 *next; } RecvThread2;\ntypedef struct {\n    void* mtqueue;\n    RecvThread2* fullqueue;\n    s32 validCount;\n    s32 first;\n    s32 msgCount;\n    s32** msg;\n} RecvMesgQueue;\n\ntypedef struct RecvThread {\n    s32 field0;\n    s32 pri;\n    s32 queue;\n    s32 pad0C;\n    u16 state;\n} RecvThread;\n\n/* osRecvMesg (libultra). Reference: libreultra src/os/recvmesg.c. */\ns32 func_80004BE0(RecvMesgQueue *mq, s32 *msg, s32 flag) {\n    register s32 saveMask = func_800066B0();\n\n    while (mq->validCount == 0) {\n        if (flag == 0) {\n            func_800066D0(saveMask);\n            return -1;\n        }\n        ((RecvThread*)D_8000A420)->state = 8;\n        func_80003D0C(&mq->mtqueue);\n    }\n\n    if (msg != 0) {\n        *msg = (s32)mq->msg[mq->first];\n    }\n    mq->first = (mq->first + 1) % mq->msgCount;\n    mq->validCount--;\n    if (mq->fullqueue->next != 0) {\n        func_8000A110(func_80003E54(&mq->fullqueue));\n    }\n    func_800066D0(saveMask);\n    return 0;\n}\n/* 2 trailing alignment nops (16-byte boundary) \u2014 spliced via pad sidecar\n * to preserve the exact .o/ROM layout (next func at 0x5D20). */\n#pragma GLOBAL_ASM(\"asm/nonmatchings/kernel/func_80004BE0_pad.s\")\n\n\nINCLUDE_ASM(\"asm/nonmatchings/kernel\", func_80004D20);\n\nINCLUDE_ASM(\"asm/nonmatchings/kernel\", func_80004DB8);\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_002.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/kernel/func_80004BE0.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Full make clean && make produces ROM byte-identical to baserom (cmp clean, md5 OK). func_80004BE0 .text byte-identical to target (78 insns, 0 diffs); 2 trailing 16-byte alignment nops spliced via func_80004BE0_pad.s GLOBAL_ASM sidecar. Source: libultra osRecvMesg (libreultra src/os/recvmesg.c)."
+  }
+}

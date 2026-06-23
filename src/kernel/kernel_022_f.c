@@ -105,40 +105,53 @@ s32 func_800092B0(s32 a0) {
  * func_80006A98(RDRAM)) snapshots a 32-entry register window;
  * 8 fixed RSP/RDP regs follow. Shipped via __rmonSendHeader
  * (func_800073F8), flag 1.
- * Caps <80: rmon stack-buffer build + 32x callee loop + 8 MMIO-
- * read calls + 7 distinct callees. INCLUDE_ASM remains build path. */
-#ifdef NON_MATCHING
-extern void func_800073F8();  /* fn-ptr-cast at call site */
+ * rmon stack-buffer build + 32x callee loop + 8 MMIO-read calls.
+ * MATCHED byte-exact 2026-06-23 (agent-d): register-pin arg->s0 + loop
+ * idx->s1; single contiguous RmonRegDump struct (regs[] at +0x10) passed
+ * whole; direct (non-fn-ptr-cast) call to func_800073F8; decl-order
+ * `register s0; struct dump; register i;` pins the struct to sp+0x24
+ * (struct-FIRST overshoots to +0x28, struct-LAST to +0x20). */
+extern void func_800073F8(void *hdr, int len, int flag);
 extern void func_80009148(int x);
 extern void func_80008498(void);
 extern void func_800091F0(int x);
 /* func_80006A98 / func_80009030 already file-scope-declared at top. */
-s32 func_80009314(char *s0) {
-    int hdr[4];
-    int buf[40];  /* 32-entry register window + 8 fixed regs */
-    int i;
-    if (func_80008430((s32)s0) == 0) return -4;
-    hdr[0] = *(int*)(s0 + 0xC);
-    *(unsigned char*)((char*)hdr + 0xA) = *(unsigned char*)(s0 + 0x4);
-    *(unsigned short*)((char*)hdr + 0x6) = 0;
+
+typedef struct RmonRegDump {
+    /* 0x00 */ char pad0[4];
+    /* 0x04 */ unsigned char domain;
+    /* 0x05 */ char pad5;
+    /* 0x06 */ unsigned short zero6;
+    /* 0x08 */ char pad8[4];
+    /* 0x0C */ int type;
+    /* 0x10 */ int regs[40];   /* 32 loop entries + 8 fixed */
+} RmonRegDump;                 /* 0xB0 bytes */
+
+s32 func_80009314(char *arg0) {
+    register char *s0 = arg0;
+    RmonRegDump dump;
+    register int i;
+    if (func_80008430() != 0) {
+        return -4;
+    }
+    dump.type = *(int *)(s0 + 0xC);
+    dump.domain = *(unsigned char *)(s0 + 0x4);
+    dump.zero6 = 0;
     func_80009148(0);
     for (i = 0; i < 0x20; i++) {
         func_80009030(0x2B, i);
         func_80008498();
-        buf[i] = func_80006A98(0x04000000);
+        dump.regs[i] = func_80006A98(0x04000000);
     }
     func_800091F0(0);
-    buf[0x20] = func_80006A98(0x04040004);
-    buf[0x21] = func_80006A98(0x04040000);
-    buf[0x22] = func_80006A98(0x04040008);
-    buf[0x23] = func_80006A98(0x04080000) + 0x04001000;
-    buf[0x24] = func_80006A98(0x0404000C);
-    buf[0x25] = func_80006A98(0x04040010);
-    buf[0x26] = func_80006A98(0x04040014);
-    buf[0x27] = func_80006A98(0x04040018);
-    ((void (*)(void*, int, int))func_800073F8)(hdr, 0xB0, 1);
+    dump.regs[0x20] = func_80006A98(0x04040004);
+    dump.regs[0x21] = func_80006A98(0x04040000);
+    dump.regs[0x22] = func_80006A98(0x04040008);
+    dump.regs[0x23] = func_80006A98(0x04080000) + 0x04001000;
+    dump.regs[0x24] = func_80006A98(0x0404000C);
+    dump.regs[0x25] = func_80006A98(0x04040010);
+    dump.regs[0x26] = func_80006A98(0x04040014);
+    dump.regs[0x27] = func_80006A98(0x04040018);
+    func_800073F8(&dump, 0xB0, 1);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009314);
-#endif
