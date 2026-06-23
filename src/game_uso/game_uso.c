@@ -1446,46 +1446,35 @@ void game_uso_func_0000249C(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* game_uso_func_000024BC: 0x258 (150 insns) — sibling of game_uso_func_00001DDC.
- * Same 3-way dispatch pattern on a0[0x10] (key field):
+/* game_uso_func_000024BC: 0x258 (150 insns) — sibling of game_uso_func_00001DDC
+ * and member of the 028C0/024BC homing family. 3-way dispatch on a0->0x40 (key):
+ * key==0 early return; key==3 dual Vec3 copy from sub-obj@0xA0 to out+0x60 and
+ * out+0xA0; else a planar-homing pass (ref_v += game_uso_func_000023D4 delta;
+ * project arg1 onto XZ, normalize via game_uso_func_071028, scale and subtract;
+ * height-select add; per-axis divide-and-subtract; writeback to out+0x60/0xA0).
+ * 2026-06-23 (agent-d): rewrote with the REAL resolved callees
+ * (game_uso_func_000023D4 first-call, game_uso_func_071028 second-call =
+ * single-arg Vec3 normalize) instead of the generic gl_func placeholder, so
+ * the R_MIPS_26 reloc set now pairs with the target (R_MIPS_26 023D4 + 071028,
+ * verified vs objdump -r of expected). Modeled on the MATCHED sibling
+ * game_uso_func_00001DDC (same ref_v/delta/Tri3i-copy idioms). Logic verified
+ * correct vs m2c + target disasm; fuzzy 72.05%.
  *
- *   key = a0[0x10];
- *   if (key == 0) return a0;
- *   if (key == 3) {
- *       v1 = a0[0xF];                        // sub-obj
- *       (a0[5])->Vec3@0x60 = v1->Vec3@0xA0;  // 3-float copy to t6's state
- *       (a0[5])->Vec3@0xA0 = v1->Vec3@0xA0;  // and to t6's child/state mirror
- *       goto end;
- *   }
- *   else: {
- *       v1 = a0[0xE];
- *       ref_v = v1->Vec3@0xA0;               // copy to local sp+0x60
- *       delta = *(Vec3*)gl_func(&scratch_3C, a0);
- *       self.x = ref_v.x + delta.x;
- *       self.y = ref_v.y + delta.y;
- *       self.z = ref_v.z + delta.z;
- *       sp+0x54 = (a1.x, 0, a1.z);           // zero-Y projection of arg1
- *       gl_func(&sp+0x54, ... );             // second dispatch
- *       ... ~120 insns of FPU math and stores remain TBD ...
- *   }
- *   end: return a0;
- *
- * STATUS 2026-06-02 (72.69%, 147/150 insns — the "~120 TBD" note below is
- * STALE; the else-arm IS decoded). Residual is RA-divergence, not missing
- * logic: (a) frame is -0xC0/192 vs target -0x98/152 — the build allocates ~40
- * extra stack bytes (more spill slots); (b) the target keeps the result/self
- * pointer (a0->0x14, sp+0x94) live in t6 across the body and reuses it for the
- * 96/100/104(t6) writebacks, where the build spills it to sp+0x2C and reloads
- * it (as t6/t7/t8) at each store; (c) the scratch-Vec3 stack offsets differ
- * throughout. Same long-lived-pointer-spill cap class as gl_func_000641DC
- * (see docs/IDO_CODEGEN.md s0-promotion-failure entry) — permuter-class, no
- * C lever found. Logic verified correct. Initial decode 2026-05-05; tail
- * writeback 2026-05-08; RA-divergence characterized 2026-06-02. */
-extern int gl_func_00000000();
+ * CAP (confirmed permuter-resistant 2026-06-23, agent-d): residual is NOT a
+ * missing-logic or operand-order bug — it is frame layout + long-lived-pointer
+ * spill. (a) build frame -0xB8/184 vs target -0x98/152 (the volatile self/copy
+ * temps + work[9] scratch take ~32 more bytes than the target's tightly-reused
+ * sp+0x48..0x94 slots); (b) the target keeps a0->0x14 live in t6 across the
+ * whole body and reloads v0 from the sp+0x94 spill for the 0xA0 writebacks,
+ * whereas the build's spill/reload cadence differs per store. A dedicated
+ * permuter run (51k iters, -j4, target.o assembled from expected mnemonics with
+ * both R_MIPS_26 stubs) drove the internal score from 4735 -> 3465 but never
+ * reached 0; all wins were cosmetic expr-rewrites, none touched the frame/spill
+ * diffs. Same long-lived-pointer-spill cap class as gl_func_000641DC
+ * (docs/IDO_CODEGEN.md s0-promotion-failure). No C lever found. */
 void game_uso_func_000024BC(int *a0, int *a1) {
     int *t6;
     int key;
-    int *v1;
     char *vc;
     float work[9];
     float ref_x, ref_y, ref_z;
@@ -1495,7 +1484,7 @@ void game_uso_func_000024BC(int *a0, int *a1) {
     float proj_x, proj_y, proj_z;
     float scale;
     float denom_xz, denom_y;
-    int *delta;
+    Vec3 *delta;
     Tri3i delta_copy;
     int * volatile mirror_t6;
 
@@ -1524,84 +1513,12 @@ void game_uso_func_000024BC(int *a0, int *a1) {
     goto end;
 
 branch_else:
-    /* Else-arm decoded through ~70 of ~120 insns:
-     *
-     * Stage 1 (insns 0x88-0xb8): load ref_v from a0[0xE]@+0xA0, spill scratch
-     *   v1 = a0[0x38/4]                       // a0->[0x38]
-     *   sp[0x60..0x68] = v1->Vec3@0xA0        // ref_v
-     *
-     * Stage 2 (0xb4-0xe0): first jal — alloc/compute delta vector
-     *   spill a2,a3 to sp+0x98/0x9C
-     *   v0 = gl_func(sp+0x3C, a2)             // returns Vec3* (or 3-word struct ptr)
-     *   reload a2,a3
-     *   sp[0x6C..0x74] = *(int[3]*)v0         // copy delta (3 words)
-     *
-     * Stage 3 (0xe4-0x114): self_v = ref_v + delta_v
-     *   sp[0x60..0x68] = ref_v + delta_v       (3 add.s ops)
-     *
-     * Stage 4 (0x118-0x134): zero-Y projection of a3 → sp[0x54..0x5C]
-     *   sp[0x54] = a3->x; sp[0x58] = 0.0; sp[0x5C] = a3->z
-     *
-     * Stage 5 (0x130): second jal — gl_func(sp+0x54, ...)
-     *
-     * Stage 6 (0x138-0x250): post-jal vector adjustment + final writeback:
-     *   scaled_proj = sp[0x54..0x5C] * a0->0x94
-     *   self_v -= scaled_proj
-     *   self_v.y += (a0->0x40 == 2) ? a0->0xF4 : a0->0xDC
-     *   self_v -= { a1.x / a0->0xAC, a1.y / a0->0x10C, a1.z / a0->0xAC }
-     *   t6->Vec3@0x60 = self_v
-     *   t6->Vec3@0xA0 = self_v
-     *
-     * Initial decode 2026-05-05; extended decode 2026-05-06.
- *
-     * 2026-05-18 Codex status: 72.62% fuzzy (up from 58.74%). Improvements
-     * this tick: force the late key==2 check to reload a0->0x40 instead of
-     * keeping `key` live across both calls (58.67 -> 60.32); rewrite the
-     * height-adjust branch as a selected add, producing the shared add shape
-     * (62.54); and most importantly, copy the first call's returned 3 words
-     * through a concrete Tri3i local before interpreting them as floats
-     * (72.61/72.62). Also folded first-call scratch, div temps, and second-call
-     * projection into one work array to document target-style stack reuse; this
-     * was byte-score-neutral but keeps the C closer to the target scratch
-     * lifetime. Negative variants: in-place ref-vector rewrite regressed to
-     * 61.80%, non-volatile mirror_t6 regressed to 71.61%, and int[3] delta_copy
-     * regressed to 64.96%. Remaining exact blockers are stack slot placement
-     * (target frame 0x98 vs built 0xC0, target scratch at sp+0x3C and
-     * accumulator at sp+0x60) and the key==2 branch-likely/plain-branch shape.
-     *
-     * Prior 2026-05-18 Codex status: 58.31% fuzzy (up from 47.13%). Improvements:
-     * stack-resident copy_x/y/z temps for the key==3 dual Vec3 copy,
-     * volatile self_x/y/z for the else-arm final vector, and void return type
-     * (target epilogue does not set v0). Retested key==0 early-return after
-     * the void change: score flat, still emits plain beq rather than target
-     * beql-to-epilogue. Negative variants: volatile t6 regressed to 48.56%,
-     * volatile proj_x/y/z to 55.47%, in-place ref-vector rewrite to 52.19%,
-     * and moving copy temps earlier to 55.67%. Remaining work needs to target
-     * the early `sw t6, 0x94(sp)` spill and the first-call delta copy/scratch
-     * scheduling around sp+0x6C.
-     *
-     * 2026-05-18 deep attempt: reached 58.74% after reversing the self-vector
-     * volatile declaration order (`self_z,self_y,self_x`), adding a 4-byte
-     * frame-only pad before those locals so IDO places self at sp+0x60/64/68
-     * (matching the target's main accumulator slots), and changing the
-     * division scratch array from volatile to normal stack floats. Negative
-     * variants: 8-byte self pad regressed to 55.69%, removing the volatile
-     * mirror pointer regressed to 54.65%, moving scratch later regressed to
-     * 55.68%, and inlining the division expressions regressed to 58.61%.
-     *
-     * Prior 2026-05-18 deep attempt: kept 58.34% after testing target-shaped
-     * cursor loads (`base+0x70; +0x34/+0x38`), block-scoped copy temps,
-     * a volatile mirror pointer for the early t6 spill, and explicit
-     * division-result locals/array for the tail. IDO folds the cursor loads
-     * back to direct +0xA4/+0xA8 and keeps the key-first beqz schedule; the
-     * likely branch/early spill mismatch matches the branch-likely and
-     * stack-slot codegen cap class in docs/IDO_CODEGEN.md. */
     vc = (char*)a0[0x38 / 4];
     ref_x = *(float*)(vc + 0xA0);
     vc += 0x70;
     ref_y = *(float*)(vc + 0x34);
     ref_z = *(float*)(vc + 0x38);
-    delta = (int*)gl_func_00000000(work, a0);
+    delta = game_uso_func_000023D4((Vec3*)work, (char*)a0);
     delta_copy = *(Tri3i*)delta;
     delta_x = *(float*)&delta_copy.a;
     delta_y = *(float*)&delta_copy.b;
@@ -1609,11 +1526,11 @@ branch_else:
     self_x = ref_x + delta_x;
     self_y = ref_y + delta_y;
     self_z = ref_z + delta_z;
-    /* Zero-Y projection of a1 then second gl_func call. */
-    work[6] = *(float*)&a1[0];      /* a3.x */
+    /* Zero-Y projection of a1 then second call: Vec3 normalize. */
+    work[6] = *(float*)&a1[0];      /* a1.x */
     work[7] = 0.0f;
-    work[8] = *(float*)&a1[2];      /* a3.z */
-    gl_func_00000000(&work[6], a0);
+    work[8] = *(float*)&a1[2];      /* a1.z */
+    game_uso_func_071028((Vec3*)&work[6]);
 
     scale = *(float*)((char*)a0 + 0x94);
     proj_x = work[6] * scale;
@@ -12236,7 +12153,30 @@ void game_uso_func_0000E564(int *a0) {
 
 // game_uso_func_0000E5C8 — STRUCTURAL PASS (0x354 / 213 words,
 // no episode). Raw-.word USO form (single function, game_uso main
-// game-logic). Pure bitfield work (1 call, no FP). 78.2% NM.
+// game-logic). Pure bitfield work (1 call, no FP). ~85.6% (insn-mnemonic).
+//
+// 2026-06-23 (agent-i): callee CONFIRMED = game_uso_func_0000EAF4 (was the
+//   generic `func_00000000` placeholder → wrong reloc symbol). Now calls
+//   game_uso_func_0000EAF4 directly so the NM-build emits the correct
+//   `jal game_uso_func_0000EAF4` R_MIPS_26 (matches target reloc). No score
+//   change but a genuine correctness/reloc fix.
+//   CAP CONFIRMED — function will NOT land in either dispatch form:
+//   (a) SWITCH-LOWERING: cases 1-6 are contiguous so IDO emits this `switch`
+//       as a JUMPTABLE (adds a .rodata jumptable + HI16/LO16 rodata relocs
+//       the target does NOT have). The target lowers the SAME switch as a
+//       linear compare cascade (`li at,N; beq v0,at,Hn` then forward bodies,
+//       v0=lw 0xE8 loaded ONCE) with NO rodata. Rewriting as C `if/else if`
+//       produces `li const; bne v0,const,NEXT` with INLINE bodies (not the
+//       target's beq-to-forward-handler) and drops mnemonic-ratio 0.856->0.60
+//       AND removes the rodata — but the inline-body shape never converges.
+//       No clean IDO-C steers a contiguous-1-6 switch to the target's
+//       beq-chain-with-trailing-bodies. Genuine switch-lowering cap.
+//   (b) A58-call gate: target materializes `a1=(v0&0x20)!=0` via sltu and
+//       `move a2,v1` (raw 0x20) before the call; clean `if(v0&0x20)` C emits
+//       a direct beqz (no sltu) — eval-order/bool-materialization cap.
+//   (c) count-global `lui a2,%hi(D_00000000-region)` is HOISTED to just after
+//       the jal (e6c4) — a no-reloc lui0 codegen the search-loop C can't pin.
+//   (d) several beqzl/bnezl likely-branch polarity + loop sltu/bnez choices.
 //
 // 2026-05-31 DECODE FINDING (do NOT "fix" the switch to a cascade — it
 // REGRESSES). The 0x12C-gated dispatch on obj->0xE8 (cases 5,6,2,1,4,3)
@@ -12311,8 +12251,11 @@ void game_uso_func_0000E5C8(char *a0, int a1) {
 
     sub = *(char **)(a3 + 0xB4);
     v0 = *(unsigned int *)(sub + 0xA58);
-    if (v0 & 0x20) {
-        func_00000000(a3, (v0 & 0x40) != 0, v0 & 0x20);
+    {
+        unsigned int g = v0 & 0x20;
+        if (g != 0) {
+            game_uso_func_0000EAF4(a3, (v0 & 0x40) != 0, g);
+        }
     }
 
     if (*(int *)(a3 + 0x12C) != 0) {

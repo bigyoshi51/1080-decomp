@@ -2040,15 +2040,21 @@ s32 func_80001DD0(void *arg0, s32 arg1) {
  *     with -0x1B (bad section). On read error the errno word D_80013004 is
  *     returned; a null alloc returns -0x12.
  *
- * CAP (NON_MATCHING, INCLUDE_ASM remains the build path; no episode): the
- * 12-way switch compiles to an IDO jumptable that splat symbolized as
- * jtbl_8000A64C, but that VRAM (0x8000A64C) lands inside the kernel's panic
- * string pool ("Hit SP Break"/"HitCpuFault") in BOTH baserom and the linked
- * ELF — the table base was mis-split from the `lui 0x8001 / lw -0x59B4` pair.
- * Because the original table cannot be cleanly resolved/relocated, IDO would
- * emit a fresh .rodata jumptable at a non-matching address; m2c also aborts on
- * the `jr $t5`. This is the jumptable-cap class. The body below is logic- and
- * shape-complete for reference / future boundary-fix work. */
+ * CAP (NON_MATCHING, INCLUDE_ASM remains the build path; no episode) —
+ * NOT C-FIXABLE (re-verified 2026-06-23, agent-b): the dispatch hardcodes the
+ * ABSOLUTE address jtbl_8000A64C (lui 0x8001 + lo -0x59B4 => 0x8000A64C; index
+ * = (type-1), sltiu 0xC, so base = the symbol). splat AUTO-minted that symbol,
+ * but the retail baserom bytes at 0x8000A64C are rmon panic STRINGS ("SP Break\n"
+ * /"HitCpuFault\n"), not code pointers — and an exhaustive kernel-region scan
+ * finds NO case-target pointer run anywhere. The table does not exist in the
+ * ROM (dead/stripped rmon code; the jumptable was never linked into retail and
+ * the absolute reference dangles onto string data). There is no symbol/section
+ * edit that surfaces a table, and a C switch always emits a TU-LOCAL PC-relative
+ * .rodata table (at the kernel .rodata vram ~0x8000DE60) — it can neither
+ * hardcode the foreign absolute 0x8000A64C nor reproduce bytes that aren't a
+ * table. m2c also aborts on the `jr $t5`. The body below is logic- and shape-
+ * complete for reference. See docs/N64_FORENSICS.md "Kernel rmon switch fns:
+ * jumptable resolves to DATA". */
 typedef struct {
     char pad_00[0x34];
     void* (*lookup34)(s32, u8);   /* 0x34: resolve section by (value, byte)   */
