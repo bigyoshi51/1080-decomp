@@ -293,7 +293,7 @@ build/src/kernel/kernel_054.c.o build/non_matching/src/kernel/kernel_054.c.o: OP
 build/src/kernel/kernel_022_o1.c.o build/non_matching/src/kernel/kernel_022_o1.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_002.c.o build/non_matching/src/kernel/kernel_002.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_018.c.o build/non_matching/src/kernel/kernel_018.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_018_o2.c.o build/non_matching/src/kernel/kernel_018_o2.c.o: OPT_FLAGS := -O2
+build/src/kernel/kernel_018_o2.c.o build/non_matching/src/kernel/kernel_018_o2.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_006.c.o build/non_matching/src/kernel/kernel_006.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_000_o1.c.o build/non_matching/src/kernel/kernel_000_o1.c.o: OPT_FLAGS := -O1
 # 2026-06-10 kernel ROM-order relayout: split-piece opt flags (inherit parent unit -O1)

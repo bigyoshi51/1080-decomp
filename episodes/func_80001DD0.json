@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80001DD0",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T08:00:00.000000+00:00",
+  "end_time": "2026-06-23T08:30:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T08:30:00.000000+00:00",
+      "assistant_text": "Three-stage sub-object finalize/validate (kernel, 0xF8 / 62 insns). Sibling of the MATCHED func_80001CF4, with an extra threaded arg. Disassembled target from expected/src/kernel/kernel_000.c.o. For each non-NULL handle slot (0x54/0x50/0x4C) the target calls the 5-arg helper func_80001CF0(self, handle, paramA, paramB, arg1): self=a0 (held in s0 from `move s0,a0`), handle=a1, paramA=a2, paramB=a3, and the 5th arg (arg1) is saved at sp+0x2c in the prologue then reloaded into t6/t7/t8 and stored to the sp+0x10 stack-arg slot in each call's delay region. func_80000518(handle, paramC) runs ALWAYS (commit emitted in the `beql s1,0,next` branch-likely delay slot, i.e. BEFORE the failure test); then temp_s1 is tested and -0xE/-0xF/-0x10 returned on failure. The prior NM body used a 4-arg call + return-before-commit shape (~63%); the correct form is the CF4 commit-before-check structure with self as the leading 5th-removed... i.e. 5-arg call. The memo 'adding a leading s arg makes it 5-arg and regresses' was measured against the wrong control structure and does not apply. build/.o vs expected/.o func region 0x1dd0..0x1ec8: 248 bytes, byte-identical; reloc-set MATCH (func_80001CF0 x3, func_80000518 x3). Full `make clean && make` ROM byte-identical to baserom (cmp clean, verify OK).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 62,
+  "initial_m2c_source": null,
+  "final_source": "#ifndef FW\n#define FW(p, o) (*(s32 *)((char *)(p) + (o)))\n#endif\ns32 func_80001DD0(void *arg0, s32 arg1) {\n    extern s32 func_80001CF0();\n    s32 temp_s1;\n\n    if (FW(arg0, 0x54) != 0) {\n        temp_s1 = func_80001CF0(arg0, FW(arg0, 0x54), FW(arg0, 0x48), FW(arg0, 0x10), arg1);\n        func_80000518(FW(arg0, 0x54), FW(arg0, 0x1C));\n        if (temp_s1 != 0) {\n            return -0xE;\n        }\n    }\n    if (FW(arg0, 0x50) != 0) {\n        temp_s1 = func_80001CF0(arg0, FW(arg0, 0x50), FW(arg0, 0x44), FW(arg0, 0xC), arg1);\n        func_80000518(FW(arg0, 0x50), FW(arg0, 0x18));\n        if (temp_s1 != 0) {\n            return -0xF;\n        }\n    }\n    if (FW(arg0, 0x4C) != 0) {\n        temp_s1 = func_80001CF0(arg0, FW(arg0, 0x4C), FW(arg0, 0x40), FW(arg0, 0x8), arg1);\n        func_80000518(FW(arg0, 0x4C), FW(arg0, 0x14));\n        if (temp_s1 != 0) {\n            return -0x10;\n        }\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_000.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/kernel/func_80001DD0.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "build/.o vs expected/.o func region 0x1dd0..0x1ec8: 248 bytes byte-identical, reloc-set MATCH (6 relocs); full `make clean && make` ROM byte-identical to baserom (cmp tenshoe.z64 baserom.z64 clean; make verify OK)"
+  }
+}

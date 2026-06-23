@@ -1,59 +1,67 @@
 #include "common.h"
 
-/* kernel_018_o2: -O2 carve-out of func_8000745C, which is the ONE function in
- * kernel_018 that prefers -O2 (62.6%) over -O1 (58.8%, +14 insns bloat). The
- * rest of kernel_018 was flipped to -O1 (7 functions improved, e.g. func_80007698
- * 43->94%). objdiff is per-function so this carve keeps func_8000745C at -O2 with
- * no regression. Verified 2026-06-04. */
+/* kernel_018_o2: carve-out of func_8000745C (rmon thread/request-chain walker).
+ *
+ * NOTE: despite the historical "_o2" filename, this function actually builds at
+ * -O1 (see OPT_FLAGS override in the Makefile). The target uses register vars in
+ * s0/s1 with PLAIN branches (no branch-likely) and fresh `li at,-1` per compare
+ * plus no-CSE double-loads of unk4 -- the -O1 codegen signature. Building it at
+ * -O2 folds every branch to beql/bnel and hoists -1 into a saved reg, diverging
+ * hard. -O1 + `register` keywords reproduces the exact saved-reg coloring.
+ * Byte-exact 2026-06-23. */
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(s32 *)((char *)(p) + (o)))
-#endif
-extern void func_800081D0();
-extern char *func_80009C30(void);
-/* Thread/request-chain walker (rmon). func_80009C30 = chain head; nodes link
- * via ->unkC, carry a request-id at ->unk4 (-1 = end sentinel) and a key at
- * ->unk14. arg0!=0: find the node whose unk14==arg0 and, if it holds a live
- * request (0 < id < 0x80), service it via func_800081D0 (returns arg0).
- * arg0==0: service every live node, returns -1. */
+typedef struct RmonNode {
+    char pad0[4];
+    s32 unk4;
+    char pad8[4];
+    struct RmonNode *unkC;
+    char pad10[4];
+    s32 unk14;
+} RmonNode;
+
+extern s32 func_800081D0(RmonNode *);
+extern RmonNode *func_80009C30(void);
+
+/* arg0 != 0: find the chain node whose unk14 == arg0 and, if it holds a live
+ * request (0 < unk4 < 0x80), service it via func_800081D0; returns arg0.
+ * arg0 == 0: service every live node in the chain; returns -1.
+ * unk4 == -1 is the chain end sentinel; unkC links to the next node. */
 s32 func_8000745C(s32 arg0) {
-    s32 var_s0;
-    void *var_s1;
+    register s32 result;
+    register RmonNode *p;
 
-    var_s0 = 0;
-    var_s1 = (void *) func_80009C30();
+    result = 0;
+    p = func_80009C30();
     if (arg0 != 0) {
-        if (FW(var_s1, 4) != -1) {
-loop_2:
-            if (FW(var_s1, 0x14) != arg0) {
-                var_s1 = (void *) FW(var_s1, 0xC);
-                if (FW(var_s1, 4) != -1) {
-                    goto loop_2;
+        if (p->unk4 != -1) {
+            for (;;) {
+                if (p->unk14 == arg0) {
+                    break;
+                }
+                p = p->unkC;
+                if (p->unk4 == -1) {
+                    break;
                 }
             }
         }
-        if (FW(var_s1, 4) == -1) {
+        if (p->unk4 == -1) {
             return 0;
         }
-        if ((FW(var_s1, 4) > 0) && (FW(var_s1, 4) < 0x80)) {
-            func_800081D0(var_s1);
-            var_s0 = arg0;
+        if (p->unk4 > 0 && p->unk4 < 0x80) {
+            func_800081D0(p);
+            result = arg0;
         }
-        goto block_14;
+        goto end;
     }
-    if (FW(var_s1, 4) != -1) {
+    if (p->unk4 != -1) {
         do {
-            if ((FW(var_s1, 4) > 0) && (FW(var_s1, 4) < 0x80)) {
-                func_800081D0(var_s1);
-                var_s0 = -1;
+            if (p->unk4 > 0 && p->unk4 < 0x80) {
+                func_800081D0(p);
+                result = -1;
             }
-            var_s1 = (void *) FW(var_s1, 0xC);
-        } while (FW(var_s1, 4) != -1);
+            p = p->unkC;
+        } while (p->unk4 != -1);
     }
-block_14:
-    return var_s0;
+end:
+    return result;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000745C);
-#endif

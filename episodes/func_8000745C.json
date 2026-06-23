@@ -1,0 +1,33 @@
+{
+  "function_name": "func_8000745C",
+  "project": "1080-agent-e",
+  "model": "claude-opus-4-8",
+  "start_time": "2026-06-23T10:08:41.520490+00:00",
+  "end_time": "2026-06-23T10:08:41.520535+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T10:08:41.520520+00:00",
+      "assistant_text": "rmon thread/request-chain walker. Despite the _o2 filename it builds at -O1 (target uses plain branches + register vars s0/s1 + fresh li at,-1 + no-CSE double-loads = -O1 signature; -O2 folds to branch-likely). Levers: register keyword (forces s0/s1 saved-reg coloring at -O1), for(;;) inner loop with explicit breaks (matches target's top unk14==arg0 test / bottom unk4!=-1 continuation), goto-shared-return tail (shares move v0,s0 at epilogue + fills the b-delay with result=arg0 load). 66/66 insns byte-exact; full clean ROM byte-identical to baserom.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 66,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* kernel_018_o2: carve-out of func_8000745C (rmon thread/request-chain walker).\n *\n * NOTE: despite the historical \"_o2\" filename, this function actually builds at\n * -O1 (see OPT_FLAGS override in the Makefile). The target uses register vars in\n * s0/s1 with PLAIN branches (no branch-likely) and fresh `li at,-1` per compare\n * plus no-CSE double-loads of unk4 -- the -O1 codegen signature. Building it at\n * -O2 folds every branch to beql/bnel and hoists -1 into a saved reg, diverging\n * hard. -O1 + `register` keywords reproduces the exact saved-reg coloring.\n * Byte-exact 2026-06-23. */\n\ntypedef struct RmonNode {\n    char pad0[4];\n    s32 unk4;\n    char pad8[4];\n    struct RmonNode *unkC;\n    char pad10[4];\n    s32 unk14;\n} RmonNode;\n\nextern s32 func_800081D0(RmonNode *);\nextern RmonNode *func_80009C30(void);\n\n/* arg0 != 0: find the chain node whose unk14 == arg0 and, if it holds a live\n * request (0 < unk4 < 0x80), service it via func_800081D0; returns arg0.\n * arg0 == 0: service every live node in the chain; returns -1.\n * unk4 == -1 is the chain end sentinel; unkC links to the next node. */\ns32 func_8000745C(s32 arg0) {\n    register s32 result;\n    register RmonNode *p;\n\n    result = 0;\n    p = func_80009C30();\n    if (arg0 != 0) {\n        if (p->unk4 != -1) {\n            for (;;) {\n                if (p->unk14 == arg0) {\n                    break;\n                }\n                p = p->unkC;\n                if (p->unk4 == -1) {\n                    break;\n                }\n            }\n        }\n        if (p->unk4 == -1) {\n            return 0;\n        }\n        if (p->unk4 > 0 && p->unk4 < 0x80) {\n            func_800081D0(p);\n            result = arg0;\n        }\n        goto end;\n    }\n    if (p->unk4 != -1) {\n        do {\n            if (p->unk4 > 0 && p->unk4 < 0x80) {\n                func_800081D0(p);\n                result = -1;\n            }\n            p = p->unkC;\n        } while (p->unk4 != -1);\n    }\nend:\n    return result;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_018_o2.c",
+    "asm_path": "asm/nonmatchings/kernel/func_8000745C.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Full make clean && make: ROM OK byte-identical to baserom (cmp clean). .text 264 bytes byte-identical to expected/src/kernel/kernel_018_o2.c.o; relocs match (func_80009C30 @0x14, func_800081D0 @0x94,0xd0)."
+  }
+}

@@ -848,6 +848,11 @@ typedef struct {
     void (*field_84)(void*, void*, s32, s32);
 } UsoCallbacks84;
 
+typedef struct {
+    char pad_00[0x84];
+    void (*field_84)();
+} UsoLooseCb;
+
 extern s32 D_8000A2E4;
 extern s32 D_80012F7C;
 
@@ -1285,31 +1290,39 @@ extern s32 D_80012D30;
 
 #ifdef NON_MATCHING
 /* Logic-correct decode of the D_80012BC0+0x84 logger-dump family
- * (SIBLING of func_800007D4 / func_8000085C). Hits func_800007D4's
- * exact documented -O1 cap (see its NM comment, "state isn't getting
- * $s-promoted ... build inlines lui+lw per iter; target uses
- * lw 0x84(s2) with s2=state"): my build emits lui+lw of the absolute
- * D_80012BC0 address per call and allocates 4 s-saves (s0/s1/s2/s3,
- * frame -0x28) while the target keeps state in s2, reloads
- * lw t9,0x84(s2), and uses 5 s-saves (s0-s4, frame -0x30) with s4
- * holding `end` (&D_80012D5C). The state-pointer CSE/promotion is an
- * IDO -O1 codegen choice not reachable from C source (same as the
- * sibling). Logic verified correct vs asm.
- * Struct-typing: prints &D_8000A34C with arg D_80012D5C once, then
- * walks parallel s32 tables D_80012D30[] (values) and D_8000A2A0[]
- * (values), 11 entries (D_80012D30..D_80012D5C), calling the
- * UsoCallbacks84.field_84 logger(&D_8000A35C, D_8000A2A0[i],
- * D_80012D30[i]) per entry. */
+ * (SIBLING of func_800007D4 / func_8000085C). Build 50 insns vs target
+ * 53; the SINGLE residual is the documented sibling coloring cap.
+ *
+ * Target (expected/.../kernel_000.c.o, -O2): frame -0x30, FIVE callee
+ * saves s0-s4, pins state(&D_80012BC0) in s2 and reloads the callback
+ * via `lw $t9,0x84($s2)` for BOTH the pre-loop call and every loop iter;
+ * s4 holds end(&D_80012D5C), s3 fmt2, s0/s1 the two table pointers.
+ *
+ * This build (-O2): frame -0x28, FOUR callee saves (s0/s1/s2/s3), keeps
+ * end/p0/p1/fmt2 in s-regs but leaves `state` in a caller-saved temp,
+ * rematerializing `lui $t9; lw $t9,0x84($t9)` per call. state's value is
+ * read only to fetch the fn-ptr, so -O2 declines the 5th callee-save
+ * promotion for it. Verified NOT C-source-reachable 2026-06-23:
+ *   - struct-field deref (state->field_84) vs cast-deref: identical alloc
+ *   - decl-order sweep (state first / various): identical alloc
+ *   - first-call 2nd arg via *end (couples end liveness): identical alloc
+ *   - 1842-iter permuter run (-stop-on-zero, j8): floor ~1320, never 0
+ * Genuine IDO -O2 register-coloring cap, same class as func_800007D4.
+ *
+ * Struct-typing: prints &D_8000A34C with arg *end (=D_80012D5C value)
+ * once, then walks parallel s32 tables D_80012D30[] and D_8000A2A0[]
+ * (11 entries, D_80012D30..<D_80012D5C), calling the field_84 logger
+ * (&D_8000A35C, D_8000A2A0[i], D_80012D30[i]) per entry. */
 void func_800010E8(void) {
-    register s32 *p0 = &D_80012D30;
+    register UsoLooseCb *state = (UsoLooseCb*)&D_80012BC0;
     register s32 *p1 = &D_8000A2A0;
-    register UsoCallbacks84 *state = (UsoCallbacks84*)&D_80012BC0;
-    register void *fmt2 = &D_8000A35C;
+    register s32 *p0 = &D_80012D30;
     register s32 *end = &D_80012D5C;
+    register void *fmt2 = &D_8000A35C;
 
-    (*(void (**)())((char*)state + 0x84))(&D_8000A34C, D_80012D5C);
+    state->field_84(&D_8000A34C, *end);
     do {
-        (*(void (**)())((char*)state + 0x84))(fmt2, *p1, *p0);
+        state->field_84(fmt2, *p1, *p0);
         p0++;
         p1++;
     } while (p0 != end);
@@ -1896,48 +1909,44 @@ s32 func_80001CF4(void *arg0) {
     return 0;
 }
 
-/* func_80001DD0 - verified structural decode (kernel, 0xF8, 62
- * insns). SIBLING of func_80001CF4 (same 3-slot resource init/
- * commit family); variant: calls func_80001CF0 (not func_80001EDC)
- * and threads an extra arg `a1` via the sp+0x10 stack-arg slot.
- * Clean prologue here (NO leaked-predecessor-word artifact, unlike
- * func_80001CF4).
- * Struct-typing reference: identical 3-slot layout to func_80001CF4
- * - slot i in {0,1,2}: handle s->{0x54,0x50,0x4C} (84/80/76),
- * paramA s->{0x48,0x44,0x40} (72/68/64), paramB s->{0x10,0xC,0x8}
- * (16/12/8), paramC s->{0x1C,0x18,0x14} (28/24/20). a1 = a shared
- * extra arg passed to every func_80001CF0 (init/validate; nonzero
- * = failure -> -0xE/-0xF/-0x10), then func_80000518(handle, paramC)
- * commits. func_80001CF0 here vs func_80001EDC in CF4 = the
- * with-extra-arg variant of the same init helper. Caps <80: beql
- * branch-likely chain + 2 callees + sp+0x10 stack-arg passing.
- * INCLUDE_ASM remains build path.
- * 2026-05-31 RULED OUT: adding a leading `s` arg to func_80001CF0 (making it
- * 5-arg func(s,handle,paramA,paramB,a1)) REGRESSES 62.7->56.9%. The 4-arg
- * form below is correct; do not re-try the 5-arg form. */
-#ifdef NON_MATCHING
-extern int func_80001CF0(int handle, int paramA, int paramB, int a1);
-s32 func_80001DD0(char *s, int a1) {
-    if (*(int*)(s + 0x54) != 0) {
-        if (func_80001CF0(*(int*)(s + 0x54), *(int*)(s + 0x48), *(int*)(s + 0x10), a1) != 0)
+/* func_80001DD0: MATCHED 2026-06-23 (sibling of func_80001CF4). Three-stage
+ * sub-object finalize/validate with an extra threaded arg. For each non-NULL
+ * handle slot (0x54/0x50/0x4C) it calls the 5-arg helper func_80001CF0(self,
+ * handle, paramA, paramB, arg1) (self=a0 in s0; arg1 saved at sp+0x2c and
+ * passed via the sp+0x10 stack-arg slot), then runs func_80000518(handle,
+ * paramC) ALWAYS (commit emitted in the `beql s1,0,next` delay slot, BEFORE
+ * the failure test), then bails -0xE/-0xF/-0x10 on failure. The 5-arg form
+ * (self as the leading arg, like func_80001CF4 passes arg0 to func_80001EDC)
+ * is correct with this beql-commit-before-check shape — the old "5-arg
+ * regresses" note was measured against the wrong (return-before-commit)
+ * structure. ROM byte-identical to baserom. */
+s32 func_80001DD0(void *arg0, s32 arg1) {
+    extern s32 func_80001CF0();
+    s32 temp_s1;
+
+    if (FW(arg0, 0x54) != 0) {
+        temp_s1 = func_80001CF0(arg0, FW(arg0, 0x54), FW(arg0, 0x48), FW(arg0, 0x10), arg1);
+        func_80000518(FW(arg0, 0x54), FW(arg0, 0x1C));
+        if (temp_s1 != 0) {
             return -0xE;
-        func_80000518(*(int*)(s + 0x54), *(int*)(s + 0x1C));
+        }
     }
-    if (*(int*)(s + 0x50) != 0) {
-        if (func_80001CF0(*(int*)(s + 0x50), *(int*)(s + 0x44), *(int*)(s + 0xC), a1) != 0)
+    if (FW(arg0, 0x50) != 0) {
+        temp_s1 = func_80001CF0(arg0, FW(arg0, 0x50), FW(arg0, 0x44), FW(arg0, 0xC), arg1);
+        func_80000518(FW(arg0, 0x50), FW(arg0, 0x18));
+        if (temp_s1 != 0) {
             return -0xF;
-        func_80000518(*(int*)(s + 0x50), *(int*)(s + 0x18));
+        }
     }
-    if (*(int*)(s + 0x4C) != 0) {
-        if (func_80001CF0(*(int*)(s + 0x4C), *(int*)(s + 0x40), *(int*)(s + 0x8), a1) != 0)
+    if (FW(arg0, 0x4C) != 0) {
+        temp_s1 = func_80001CF0(arg0, FW(arg0, 0x4C), FW(arg0, 0x40), FW(arg0, 0x8), arg1);
+        func_80000518(FW(arg0, 0x4C), FW(arg0, 0x14));
+        if (temp_s1 != 0) {
             return -0x10;
-        func_80000518(*(int*)(s + 0x4C), *(int*)(s + 0x14));
+        }
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001DD0);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80001EC8);
 
