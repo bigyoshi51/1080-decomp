@@ -123,11 +123,37 @@ extern void func_800073F8();
 /* rmon register-FETCH (inverse of func_80008FF4): read the live debug context's
  * 64-bit GPRs (lo word) into a 0xA4 header's 32-bit register array, copy the 3
  * special regs, send it (func_800073F8, len 0xA4). Returns -2 on bad sub-id /
- * missing context. Multi-entry symbol (alabels EA0/ED0/FB0 kept by #else). */
+ * missing context. Multi-entry symbol (alabels EA0/ED0/FB0 kept by #else).
+ *
+ * 2026-06-23 DEEP RECONSTRUCT (agent-d): logic is now byte-exact in shape —
+ * prologue (s0=msg reloaded from 0xD8 spill, s1=loop counter, frame -0xD8),
+ * both guards (msg[9]!=0 and ctx==NULL with their two separate `li -2`
+ * returns placed in ROM order), and BOTH copy loops match the target
+ * mnemonic-for-mnemonic, including the dead high-word load + redundant move
+ * that come from reading each GPR as a 64-bit pair and narrowing to lo
+ * (`hdr.reg[i] = (s32)*src;` where src is `s64 *`). Register hints
+ * (`register s32 *msg`, `register s32 i`) reproduce the s0/s1 pinning.
+ *
+ * RESIDUAL = IDO frame SLOT-ORDERING (a documented regalloc cap, NOT a logic
+ * bug): the target assigns the spill temporaries (ctx, loop pointer) the LOW
+ * stack slots (sp+0x28 / sp+0x2C) and the address-taken `hdr` aggregate the
+ * HIGH slots (sp+0x30+), so its tail recomputes `&hdr` per store and reloads
+ * ctx per read. IDO 7.1 here does the opposite (hdr at sp+0x24, spills high),
+ * caching ctx + &hdr and skipping the redundancy. Frame SIZE matches (0xD8);
+ * only the within-frame slot assignment differs, shifting every sp-relative
+ * immediate by 0xC. This is the same allocno-numbering class that pins the
+ * matched-family sibling func_8000969C at 99.7% NM. Tried: decl-order
+ * permutation (no effect on slot zone), volatile/struct-prefix pads (worse,
+ * land in the wrong zone), ctx/msg register-qualifier sweep, hdr-write
+ * reorder, -O2 (wrong, drops s0/s1). Permuter fuzzy-gain is a FALSE positive
+ * on a slot-offset residual (objdiff normalizes sp-offsets — docs
+ * TOOLING_DECOMP), and the 3 alt-entry alabels make a clean import fragile.
+ * Honest NON_MATCHING. */
 s32 func_80008E98(void *arg0) {
+    register s32 *msg = arg0;
+    register s32 i;
+    s64 *src;
     void *ctx;
-    s32 *src;
-    s32 i;
     struct {
         s32 w0;
         u8 tag;     /* +4 */
@@ -141,31 +167,23 @@ s32 func_80008E98(void *arg0) {
         s32 spA0;
     } hdr;
 
-    hdr.id = FW(arg0, 0xC);
+    hdr.id = msg[3];
+    hdr.tag = ((u8 *)msg)[4];
     hdr.zero = 0;
-    hdr.tag = *(u8 *)((char *)arg0 + 4);
-    if ((*(u8 *)((char *)arg0 + 9)) == 0) {
-        ctx = func_800077DC(FW(arg0, 0xC));
+    if (((u8 *)msg)[9] == 0) {
+        ctx = func_800077DC(msg[3]);
         if (ctx == NULL) {
             return -2;
         }
-        i = 1;
-        src = (s32 *)((char *)ctx + 0x20);
-        if (i < 0x1A) {
-            do {
-                hdr.reg[i] = src[1];
-                i += 1;
-                src += 2;
-            } while (i < 0x1A);
+        src = (s64 *)((char *)ctx + 0x20);
+        for (i = 1; i < 0x1A; i++) {
+            hdr.reg[i] = (s32)*src;
+            src++;
         }
-        i = 0x1C;
-        src = (s32 *)((char *)ctx + 0xE8);
-        if (i < 0x22) {
-            do {
-                hdr.reg[i] = src[1];
-                i += 1;
-                src += 2;
-            } while (i < 0x22);
+        src = (s64 *)((char *)ctx + 0xE8);
+        for (i = 0x1C; i < 0x22; i++) {
+            hdr.reg[i] = (s32)*src;
+            src++;
         }
         hdr.sp98 = FW(ctx, 0x120);
         hdr.sp9C = FW(ctx, 0x11C);

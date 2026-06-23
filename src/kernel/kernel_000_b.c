@@ -155,57 +155,45 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80003FF0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80004030);
 
-/* func_800044CC - verified structural decode (kernel, 0xEC, libultra
- * PI-event callback: inlined osSendMesg + thread wake).
- * Reference: libreultra src/os/seteventmesg.c / osSendMesg.c /
- * exceptasm.s (__osEventStateTab, __OSEventState).
- *   void func_800044CC(void) {
- *       __OSEventState *es = &__osEventStateTab[OS_EVENT_PI]; // +0x40
- *       OSMesgQueue *mq = es->queue;          // es->0x0 (at +0x40)
- *       if (mq == NULL) return;
- *       if (mq->validCount < mq->msgCount) {  // 0x8 < 0x10
- *           // inlined osSendMesg body:
- *           idx = (mq->first + mq->validCount) % mq->msgCount;
- *           mq->msg[idx] = es->message;       // es->0x4 -> mq->0x14[]
- *           mq->validCount++;                 // mq->0x8++
- *           if (mq->mtqueue->next != NULL) {  // mq->0x0 -> ->0x0
- *               t = func_80003E54(mq);        // __osPopThread
- *               func_80003E0C(&D_8000A418, t);// __osEnqueueThread
- *           }                                 //   (D_8000A418 =
- *       }                                     //    __osRunQueue)
- *   }
- * Struct-typing reference: __osEventStateTab = libultra event table,
- * __OSEventState = { OSMesgQueue *queue; OSMesg message; } (8 bytes);
- * entry +0x40 = index 8 = OS_EVENT_PI. OSMesgQueue fields used:
- * 0x0 mtqueue (blocked-thread list head), 0x8 validCount, 0xC first,
- * 0x10 msgCount, 0x14 msg[] (OSMesg array). func_80003E54 =
- * __osPopThread(&queue), func_80003E0C = __osEnqueueThread, global
- * D_8000A418 = __osRunQueue. The `div $zero,t4,t5; mfhi` + `break 7`
- * / `break 6` are IDO's signed `%` divide-by-zero (msgCount==0) and
- * INT_MIN/-1 overflow guards on the ring-index modulo. CAP REASON
- * (corrected 2026-05-23): the guards themselves DO match a C `%`; the real
- * blocker is their PLACEMENT — the target emits the break guards AFTER the
- * mq->msg[idx] store, whereas C `%` emits them right after the div (before
- * the store). Plus the event-table base resolves to 0x8001F510 here, not
- * symbol_addrs' __osEventStateTab=0x80019510 (a 0x6000 discrepancy to
- * reconcile before a match). Stays INCLUDE_ASM (no episode). */
+/* func_800044CC - kernel PI-event message dispatch (inlined send_mesg from
+ * libultra exceptasm.s). Sends __osEventStateTab[OS_EVENT_PI].message to the
+ * registered queue and wakes any blocked thread.
+ * Reference: libreultra src/os/exceptasm.s send_mesg / __osPopThread /
+ * __osEnqueueThread; src/os/seteventmesg.c (__osEventStateTab, __OSEventState).
+ *   __osEventStateTab : __OSEventState[16] @ 0x80019510 (REAL reloc base;
+ *                       prior "0x8001F510 discrepancy" note was WRONG).
+ *   __OSEventState    : { OSMesgQueue *messageQueue; OSMesg message; } (8B).
+ *   entry [8] = +0x40 = OS_EVENT_PI.
+ *   OSMesgQueue fields: 0x0 mtqueue, 0x8 validCount, 0xC first,
+ *                       0x10 msgCount, 0x14 msg[] (OSMesg*).
+ *   func_80003E54 = __osPopThread, func_80003E0C = __osEnqueueThread,
+ *   D_8000A418 = __osRunQueue.
+ * The div/mfhi + break 7 (div-by-zero) + break 6 (INT_MIN/-1 overflow) are
+ * IDO's signed `%` guards; placement AFTER the store DOES match a plain C `%`
+ * at -O1 (verified standalone). Compiles at -O1 to within a few words of the
+ * target; residual = whether IDO spills mq/es to stack (target reloads on each
+ * use) vs keeps them live in regs (this C). Pure register-coloring residual,
+ * not a logic diff. */
 #ifdef NON_MATCHING
-extern char __osEventStateTab_real[]; /* @0x8001F510 (note: != symbol_addrs) */
-extern int D_8000A418;                 /* __osRunQueue */
-extern void *func_80003E54(void *);    /* __osPopThread */
-extern void func_80003E0C(void *, void *); /* __osEnqueueThread */
+/* Reuses existing OSMesgQueue (mtqueue/validCount/first/msgCount/msg) and the
+ * OSEventState event table declared above. __OSEventState entry = 8 bytes:
+ * { OSMesgQueue *messageQueue @0x0; void *message @0x4 }. */
+typedef struct __OSEventState {
+    OSMesgQueue *messageQueue;
+    void *message;
+} __OSEventState;
+/* D_8000A418 (__osRunQueue) and func_80003E54 (__osPopThread) are declared
+ * earlier in this file; func_80003E0C is __osEnqueueThread. */
+extern void func_80003E0C(void *, void *);  /* __osEnqueueThread */
 void func_800044CC(void) {
-    char *es = __osEventStateTab_real + 0x40; /* &table[OS_EVENT_PI] */
-    char *mq = *(char **)es;                  /* es->queue */
-    if (mq == 0) {
-        return;
-    }
-    if (*(int *)(mq + 0x8) < *(int *)(mq + 0x10)) {   /* validCount < msgCount */
-        int idx = (*(int *)(mq + 0xC) + *(int *)(mq + 0x8)) % *(int *)(mq + 0x10);
-        *(int *)(mq + 0x14 + idx * 4) = *(int *)(es + 0x4); /* msg[idx] = es->message */
-        *(int *)(mq + 0x8) += 1;                       /* validCount++ */
-        if (*(char **)(*(char **)mq) != 0) {           /* mtqueue->next */
-            void *t = func_80003E54(mq);
+    __OSEventState *es = &((__OSEventState *)__osEventStateTab)[8]; /* OS_EVENT_PI */
+    OSMesgQueue *mq = es->messageQueue;
+    if (mq != 0 && mq->validCount < mq->msgCount) {
+        int last = (mq->first + mq->validCount) % mq->msgCount;
+        mq->msg[last] = (s32 *)es->message;
+        mq->validCount++;
+        if (((void **)mq->mtqueue)[0] != 0) {
+            register void *t = func_80003E54(mq);
             func_80003E0C(&D_8000A418, t);
         }
     }

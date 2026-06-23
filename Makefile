@@ -296,6 +296,10 @@ build/src/kernel/kernel_018.c.o build/non_matching/src/kernel/kernel_018.c.o: OP
 build/src/kernel/kernel_018_o2.c.o build/non_matching/src/kernel/kernel_018_o2.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_006.c.o build/non_matching/src/kernel/kernel_006.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_000_o1.c.o build/non_matching/src/kernel/kernel_000_o1.c.o: OPT_FLAGS := -O1
+# kernel_000_b: only C-compiled fn is func_800044CC (PI-event send_mesg), which
+# is -O1-shaped (no branch-likely, stack-spilled mq/es). All other fns in this
+# unit are INCLUDE_ASM (raw bytes, opt-independent), so -O1 is safe here.
+build/src/kernel/kernel_000_b.c.o build/non_matching/src/kernel/kernel_000_b.c.o: OPT_FLAGS := -O1
 # 2026-06-10 kernel ROM-order relayout: split-piece opt flags (inherit parent unit -O1)
 build/src/kernel/kernel_042_b.c.o build/non_matching/src/kernel/kernel_042_b.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_027_b.c.o build/non_matching/src/kernel/kernel_027_b.c.o: OPT_FLAGS := -O1

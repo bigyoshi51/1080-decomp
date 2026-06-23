@@ -266,38 +266,29 @@ void func_800001DC(char* dst, char* src) {
 /* uso_find_slash — scan a string for '/' and write its index to *arg1.
  *
  * Returns 1 if found (writing the slash's index to *arg1), 0 if end of
- * string reached.
- *
- * Cap (96 bytes vs target 84): IDO's bnel-back-branch with v0=v1 in delay
- * slot is the load-bearing optimization that target uses to merge the
- * "next-iteration v0 update" into the loop-tail branch. Standard C goto/do-while
- * shapes emit bne+nop without the delay-slot preload (3 extra insns).
- *
- * UPDATE 2026-05-02: cleaned up old wrap that had 6× `if (1) {}` dummy
- * blocks and a `dummy_label_580214` goto-into-fallthrough. Those didn't
- * close the bnel-preload gap and obscured the actual logic. */
-#ifdef NON_MATCHING
+ * string reached. v0 trails v1 by one statement; the duplicate `v0 = v1;`
+ * at the top of the loop body is the value-numbering nudge that lets IDO
+ * fill both the entry-beqz and loop-back-bnel delay slots with `or v0,v1`. */
 s32 func_8000020C(char *arg0, s32 *arg1) {
     s32 v0;
     s32 v1;
 
-    v0 = 0;
     v1 = 0;
-    if ((u8)arg0[0] == 0) return 0;
-    do {
-        if ((u8)arg0[v0] == '/') {
-            v1 -= 1;
-            *arg1 = v1;
-            return 1;
-        }
-        v0 = v1;
-        v1++;
-    } while ((u8)arg0[v1] != 0);
+    v0 = v1;
+    if ((u8)arg0[v0] != 0) {
+        do {
+            v0 = v1;
+            v1++;
+            if ((u8)arg0[v0] == '/') {
+                v1 -= 1;
+                *arg1 = v1;
+                return 1;
+            }
+            v0 = v1;
+        } while ((u8)arg0[v1] != 0);
+    }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_8000020C);
-#endif
 
 extern s32 func_800005DC();
 extern s32 func_8000060C();

@@ -1,0 +1,33 @@
+{
+  "function_name": "func_8000020C",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T09:00:00.000000+00:00",
+  "end_time": "2026-06-23T09:40:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T09:40:00.000000+00:00",
+      "assistant_text": "uso_find_slash (kernel, 0x54 / 21 insns): scan a NUL-terminated string for '/' and write the index to *arg1, return 1 if found else 0. Disassembled the target from expected/src/kernel/kernel_000.c.o (objdump -d 0x20c..0x260). The structure is a do/while where index v0 trails v1 by one statement: at loop entry v0==v1; the body loads arg0[v0], increments v1, computes &arg0[v1] (the continuation char) BEFORE the '/' test, and the bnel back-branch + the entry beqz both fill their delay slots with `or v0,v1,zero`. The old NM wrap (96B, ~58%) had v0 init split from the carry, so IDO put `move v0,zero` before the entry branch and filled the delay with the loop-invariant `li a2,0x2F` constant, and the loop body emitted v1++ AFTER the '/' branch (3 insns of divergence). Rewriting as `v1=0; v0=v1; if(arg0[v0]) do{...; v1++; if(arg0[v0]=='/'){...} v0=v1;}while(arg0[v1]);` brought the whole loop body and registers byte-exact, leaving exactly TWO delay-slot-filler diffs (entry beqz delay + loop-back bnel delay: target `or v0,v1` vs mine const/addr-recompute) — a pure scheduling tie. Ran decomp-permuter (IDO -O2, no PERM macros) from base score 285; it found score=0 by adding a duplicate `v0 = v1;` at the TOP of the loop body. That extra copy is the value-numbering nudge that makes IDO schedule `or v0,v1` into both delay slots. build/.o vs expected/.o func region 0x20c..0x260: 21 words / 84 bytes byte-identical. Full `make clean && make` ROM byte-identical to baserom (cmp tenshoe.z64 baserom.z64 clean; make verify: ROM OK).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "s32 func_8000020C(char *arg0, s32 *arg1) {\n    s32 v0;\n    s32 v1;\n\n    v1 = 0;\n    v0 = v1;\n    if ((u8)arg0[v0] != 0) {\n        do {\n            v0 = v1;\n            v1++;\n            if ((u8)arg0[v0] == '/') {\n                v1 -= 1;\n                *arg1 = v1;\n                return 1;\n            }\n            v0 = v1;\n        } while ((u8)arg0[v1] != 0);\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_000.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/kernel/func_8000020C.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "build/.o vs expected/.o func region 0x20c..0x260: 21 words (84 bytes) byte-identical; full `make clean && make` ROM byte-identical to baserom (cmp tenshoe.z64 baserom.z64 clean; make verify OK). Solved via decomp-permuter (score 285 -> 0)."
+  }
+}
