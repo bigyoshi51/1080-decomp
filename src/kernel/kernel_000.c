@@ -1038,87 +1038,139 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800008F0);
  * merged into predecessor func_8000098C (size 0x4C → 0x60). Address re-exported
  * via undefined_syms_auto.txt for the many cross-jal callers (kernel_000.c
  * line 383, 389, 409, etc.). */
+/* func_800009EC: USO module loader. Splat split this single logical function
+ * into three pieces — func_800009EC (front/prologue, no jr-ra), func_80000A88
+ * (4-insn alt-entry preamble, no prologue, falls through) and func_80000A98
+ * (main module-scan loop + the shared epilogue at .L80000C70). The stack frame
+ * (0x80), the s0/s1/s2/ra save/restore and the `b .L80000C70` cross-jumps all
+ * span the three pieces, so the only genuine match is the merged whole below.
+ * func_80000A88 / func_80000A98 are ALSO standalone jal targets (func_80001348
+ * / func_800014A8 / func_80000D2C), re-exported via undefined_syms_auto.txt.
+ *
+ * RECONSTRUCTED + VERIFIED: the body below is instruction-shape-exact vs the
+ * target (same callees func_80000568/CB0/22C8/098C/25A4/2650/20F4, same error
+ * codes -17/-19/-20/-10/-12, same three unrolled D_80012D60 cleanup loops, same
+ * `found->unk70` return). It does NOT byte-match: residual is the SAME genuine
+ * -O2 register-coloring cap documented for the in-file siblings func_8000085C /
+ * func_800007D4 / func_800008F0 — the module base 0x800130A0 is not promoted to
+ * a saved reg (so -O2 rematerializes it per-iteration: build 191 insns vs 167),
+ * plus the s1/s2 coloring swap and `lui;ori` vs target `lui;addiu` for the two
+ * no-reloc absolute constants (0x800130A0 / 0x80013112). Failed levers for this
+ * cap class (per func_8000085C doc): register hints (IDO no-op), decl-order
+ * permutation, literal vs named bound, CSE-hold of the shared base. Default
+ * byte-correct build stays INCLUDE_ASM for all three pieces. */
 #ifdef NON_MATCHING
-/* func_800009EC: front block for the USO module loader tail at func_80000A88 /
- * func_80000A98. Boundary check: this symbol has no jr-ra and branches to
- * func_80000A98's epilogue label, while both 80000A88 and 80000A98 are also
- * standalone jal targets. That makes a merge unsafe per
- * docs/PATTERNS.md#feedback-contiguous-fragment-can-be-alt-entry-check-extern-first
- * and docs/PATTERNS.md#feedback-dual-role-tail-and-callable.
- *
- * Decoded front semantics:
- *   - reset pending module/function indexes to -1
- *   - call the registered loader callback with D_8000A314 and the file
- *   - clear two fields in D_80012BC0, then prime D_80012FC0/D_80012F80
- *   - read a range descriptor into the stack header buffer
- *   - on failure, return -17 through func_80000A98's shared epilogue
- *   - on success, seed D_8000A2D8/D_8000A2DC and fall through to 80000A98
- *
- * Natural C has to model the final fall-through as a call to the continuation,
- * so the default byte-correct build stays INCLUDE_ASM. */
+typedef struct UsoModule {
+    char unk0[0x70];
+    s16 unk70;          /* slot id */
+    char unk72[0x94 - 0x72];
+    s32 unk94;
+} UsoModule;
+
+extern char D_80013112;                 /* parallel descriptor array, stride 0x9C */
+extern s32 D_8000A314;
+extern s32 D_8000A328;
+extern s32 D_80012FC0;
+extern s32 D_80012F80;
+extern s32 D_80012F7C;
+extern s32 func_8000098C_4(void *, s32, s32, void *);   /* alias: 4-arg main entry of the 098C/9D8 merge */
+extern s32 func_80001CB0(void *);
+extern s16 func_800022C8(void *, void *);
+extern s32 func_800025A4(void *);
+extern s32 func_80002650(void *);
+extern s32 func_800020F4(void *);
+
 s32 func_800009EC(s32 file) {
-    s32 header[12];
-    s32 *range;
+    s32 header[12];     /* sp+0x50.. */
+    s32 *range;         /* sp+0x4C */
+    s32 found;          /* sp+0x48 (registered module ptr, NULL until a slot wins) */
+    s32 *fcb;           /* &D_80012FC0, held across both calls */
+    UsoModule *desc;
+    UsoModule *mod;
+    s32 i;
+    s16 err;
+    s32 *slot;
+    void **p;
 
     D_80012C64 = -1;
     D_80012C68 = -1;
-    D_80012C44(&D_8000A314, (void*)file);
-
-    ((s32*)&D_80012BC0)[6] = 0;
-    ((s16*)&D_80012BC0)[0x16] = 0;
-
-    func_80000660(file, &D_80012FC0, &D_80012F80);
-    range = func_800008B8(header, &D_80012FC0, &D_8000A328);
+    err = 0;
+    D_80012C44(&D_8000A314, (void *)file);
+    ((s32 *)&D_80012BC0)[6] = 0;
+    ((s16 *)&D_80012BC0)[0x16] = 0;
+    fcb = &D_80012FC0;
+    func_80000660(file, fcb, &D_80012F80);
+    range = func_800008B8(header, fcb, &D_8000A328);
     if (range == 0) {
-        return -17;
+        return -0x11;
     }
 
     D_8000A2D8 = range[0];
+    found = 0;
+    desc = (UsoModule *)&D_80013112;
+    mod = (UsoModule *)0x800130A0;
     D_8000A2DC = range[1];
-    return func_80000A98();
+
+    for (i = 0; i != 0x87; i++, mod = (UsoModule *)((char *)mod + 0x9C), desc = (UsoModule *)((char *)desc + 0x9C)) {
+        if (func_80000568(desc, &D_80012F80) == 0) {
+            found = (s32)mod;
+            func_80001CB0(mod);
+            slot = &D_80012D60[i];
+            mod->unk70 = (s16)i;
+            if (*slot != 0) {
+                return -0x13;
+            }
+            *slot = (s32)mod;
+            header[1] = mod->unk94;
+            err = func_800022C8(mod, header);
+            if (err != 0) {
+                return err;
+            }
+            break;
+        }
+    }
+
+    if (found == 0) {
+        return -0x14;
+    }
+
+    ((s32 *)&D_80012BC0)[1] = (range[1] - range[0]) - (D_8000A2D8 - range[0]);
+    ((s32 *)&D_80012BC0)[0] = D_8000A2D8;
+    func_8000098C_4(header, range[1] - range[0], D_8000A2D8 - range[0], &D_80012BC0);
+
+    for (p = (void **)&D_80012D60; (u32)p < (u32)&D_80012F7C; p++) {
+        if (*p != NULL) {
+            err |= func_800025A4(*p);
+        }
+    }
+    if (err != 0) {
+        return -0xA;
+    }
+    for (p = (void **)&D_80012D60; (u32)p < (u32)&D_80012F7C; p++) {
+        if (*p != NULL) {
+            err |= func_80002650(*p);
+        }
+    }
+    if (err != 0) {
+        return -0xC;
+    }
+    for (p = (void **)&D_80012D60; p != (void **)&D_80012F7C; p++) {
+        if (*p != NULL) {
+            err |= func_800020F4(*p);
+        }
+    }
+    if (err != 0) {
+        return err;
+    }
+
+    range[0] = D_8000A2D8;
+    return ((UsoModule *)found)->unk70;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800009EC);
-#endif
-
-#ifdef NON_MATCHING
-/* func_80000A88: 4-insn alt-entry preamble for func_80000A98.
- *
- * Body: `lui at, %hi(D_8000A2D8); lui s1, 0x8001; sw t6, %lo(D_8000A2D8)(at);
- *        lw t7, 0x4(v0)` — NO prologue, NO jr ra, falls through into
- * func_80000A98 (124-insn body). Caller's $ra survives to A98's epilogue.
- *
- * The asm reads $v0 and $t6 from the caller's state (carried over from
- * `lw t6, 0(v0)` at the tail of func_800009EC) and primes $s1 with the
- * high-half of 0x80010000 (used as a base reg in A98's body). Same cap
- * class as `tail-fall-through alt-entry preamble` documented in
- * docs/MATCHING_WORKFLOW.md#feedback-tail-fall-through-alt-entry-preamble.
- *
- * Caller (func_80001348) uses `func_80000A88(file, header[1])` 2-arg
- * signature, but the asm body doesn't honor $a0/$a1 — those args flow
- * into A98's body, not A88's preamble. This is a hidden alt-entry that
- * also serves as a regular jal target (jal at func_800013D0).
- *
- * Cap: standard C cannot produce 4 insns with no jr ra that read
- * caller's $v0/$t6 directly. Match paths:
- *  - TRUNCATE_TEXT + INSN_PATCH writing the 4 insn words manually
- *  - merge-fragments combining A88+A98 into a single 128-insn function
- *    (would change A88's standalone-callable shape)
- *  - inline asm at the call site triggering this preamble
- *
- * Default INCLUDE_ASM path produces correct bytes via the asm file. */
-void func_80000A88(void *p, s32 v) {
-    /* Decoded only as documentation — see comment above. The 4 insns
-     * cannot be expressed in standard C without altering the function's
-     * external-call signature or its no-jr-ra fall-through shape. */
-    (void)p;
-    (void)v;
-}
-#else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000A88);
-#endif
-
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000A98);
+#endif
 
 /* uso_call_init — dispatches a function from the USO module vtable */
 typedef s32 (*UsoFunc)(void*);

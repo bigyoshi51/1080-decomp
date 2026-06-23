@@ -19,6 +19,7 @@ func_80004650 = 0x80004650; // type:func
 func_80004730 = 0x80004730; // type:func
 func_80004808 = 0x80004808; // type:func
 func_80004AC0 = 0x80004AC0; // type:func
+__osProbeTLB = 0x80004D20; // type:func
 func_80004DE0 = 0x80004DE0; // type:func
 func_80005134 = 0x80005134; // type:func
 func_800051F0 = 0x800051F0; // type:func

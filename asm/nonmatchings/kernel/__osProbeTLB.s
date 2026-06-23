@@ -1,8 +1,8 @@
 
 /* Handwritten function */
-nonmatching func_80004D20, 0x98
+nonmatching __osProbeTLB, 0x98
 
-glabel func_80004D20
+glabel __osProbeTLB
     /* 5D20 80004D20 40085000 */  mfc0       $t0, $10 /* handwritten instruction */
     /* 5D24 80004D24 310900FF */  andi       $t1, $t0, 0xFF
     /* 5D28 80004D28 2401E000 */  addiu      $at, $zero, -0x2000
@@ -43,4 +43,4 @@ glabel func_80004D20
     /* 5DAC 80004DAC 3421FFC0 */  ori        $at, $at, (0x3FFFFFC0 & 0xFFFF)
     /* 5DB0 80004DB0 00411024 */  and        $v0, $v0, $at
     /* 5DB4 80004DB4 00021180 */  sll        $v0, $v0, 6
-endlabel func_80004D20
+endlabel __osProbeTLB

@@ -98,6 +98,22 @@ s32 func_80004BE0(RecvMesgQueue *mq, s32 *msg, s32 flag) {
 #pragma GLOBAL_ASM("asm/nonmatchings/kernel/func_80004BE0_pad.s")
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80004D20);
+/* __osProbeTLB (libultra). Hand-written CP0/TLB assembly: probes the TLB for
+ * the page mapping a virtual address and returns its physical address (or -1).
+ * Byte-for-byte identical to libreultra/oot/papermario __osProbeTLB
+ * (references/papermario/src/os/__osProbeTLB.s). Uses mfc0/mtc0 $10 (EntryHi),
+ * tlbp, tlbr, mfc0 $0/$2/$3/$5 (Index/EntryLo0/EntryLo1/PageMask) — none of
+ * which IDO C can emit, so this is a permanent hand-written INCLUDE_ASM cap
+ * (same class as __osSetFpcCsr). Counterpart C wrapper would be
+ * osVirtualToPhysical (libreultra src/os/virtualtophysical.c).
+ *
+ * The 1080 __osException dispatcher (func_800031F0) jal's the address-compute
+ * tail at 0x80004DB8 directly as a code-share, which is why splat emits a
+ * second label (func_80004DB8) mid-function; that tail must keep its own
+ * symbol so the exception handler's jal resolves. Both fragments together
+ * span 0x80004D20..0x80004DD4 (+2 alignment nops) and reconstruct the single
+ * __osProbeTLB byte-exactly. */
+INCLUDE_ASM("asm/nonmatchings/kernel", __osProbeTLB);
 
+/* __osProbeTLB address-compute tail (shared jal target from __osException). */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80004DB8);
