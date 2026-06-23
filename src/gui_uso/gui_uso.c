@@ -207,7 +207,22 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000055C);
 #ifdef NON_MATCHING
 /* Full decode 2026-06-01. SETPRIMCOLOR-style DL emitter: appends a 0xFA
  * command packing the a2 Vec3 (each *255, cast to byte) as RGB plus a1 as
- * alpha into word1, to the gfx builder at a0->0x24. */
+ * alpha into word1, to the gfx builder at a0->0x24. The RGB channels use the
+ * IDO (int)(unsigned)(f*255.0f) saturating float->int cast (cfc1/ctc1/cvt.w.s
+ * + lui at,0x4f00;sub.s overflow-bias ladder); word1 = (R<<24)|(G&0xff)<<16|
+ * (B&0xff)<<8|(a1&0xff). Single-arg-deref base (a0->0x24), NOT the held-&D
+ * form of the multi-block siblings (00001CA8/00001EF4).
+ *
+ * CAP (2026-06-23, agent-i): structure EXACT — opcode multiset identical to
+ * target (verified opcode-only diff = empty). Residual is two strands of the
+ * documented as1-scheduler-tie + ugen-coloring core (docs/IDO_CODEGEN.md
+ * "unsigned-cast 0x4f00 scheduler cap"): (1) integer register coloring is
+ * renumbered (t1/t3/t9/t8/t0 vs t9/t2/t8/t0/t1) across the whole body; (2)
+ * the MIDDLE (G-channel) cast schedules `lui at,0x4f00` AFTER its `mul.s`
+ * where the build emits it before — the bias-lui is emitted INSIDE the cast
+ * macro so source can't reorder it (1st/3rd blocks already agree). permuter
+ * -j6 10min: base 1095 -> best 550, never 0 (plateaus; perturbations only add
+ * noise). NOT source-reorderable; keep INCLUDE_ASM. */
 void gui_uso_func_000006B8(char *a0, int a1, float *a2, int a3) {
     char *b = *(char **)(a0 + 0x24);
     char *p;

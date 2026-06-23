@@ -479,134 +479,178 @@ void titproc_uso_func_00000C0C(int *a0) {
     *(int*)((char*)&D_00000000 + 0x168) = 0;
 }
 
-#ifdef NON_MATCHING
-/* Constructor / orchestrator (223 insns, 0x37C). Allocates or accepts a
- * 0x78-byte root object, initializes the template/vtable fields, chains
- * children through root+0x10, and stores the constructed root in v0.
+/* titproc_uso_func_00000C54: 223-insn (0x37C) title-screen constructor /
+ * orchestrator. Allocates or accepts a 0x78-byte root, sets its template
+ * (+0x28) and vtable (+0x0C) pointers, runs the two no-arg init thunks
+ * (func_000000/func_000098), then allocates SIX child objects via the
+ * func_07ACE0 register-into-list(+0x10) helper, wiring each child's parent
+ * back-pointer (+0x14) and dispatching one vtable call. Finishes with the
+ * timing fields (+0x6C/0x70/0x74) and a global-gated +0x3C/+0x40 setup.
  *
- * 2026-05-08 NM-cap detail: with predecessor C0 fixed to use unconditional-
- * store-then-overwrite, C54 hovers at 90.03% as a real C body. Frame is
- * 0x48 (built) vs 0x40 (target). Earlier doc-claims that the 86.58% was a
- * pure address-shift artifact were wrong — the body itself does have ~22
- * register-allocation diffs that need permuter or multi-tick grinding.
- * Documented field offsets: 0xC, 0x14, 0x28, 0x2C, 0x30, 0x38, 0x3C, 0x40,
- * 0x48, 0x50, 0x54, 0x58, 0x5C, 0x60, 0x64, 0x68, 0x6C, 0x70, 0x74, 0x7C. */
-void *titproc_uso_func_00000C54(int *a0, int a1) {
-    int *root;
-    int *sub;
-    int *child;
-    int *link;
-    int *vtable;
+ * 2026-06-23: full exact-source reconstruction from raw asm. Wired ALL real
+ * intra-USO reloc symbols (func_055750 alloc, func_04C678 init, func_07ACE0
+ * register, func_0015F4/001840/001B10/001D7C/00101C/00F4CC/0139B0 children,
+ * data D_000114/00048C/00052C, imports 00073B18/00073B80/00020098/B6C40/
+ * B88CC/A5D38/A5F40/24CCF4/A5FBC/A7ECC). The +0x10 list base is held in a
+ * stack home (sp+0x2C). Modeled on landed siblings 0x1B10 / 0x1840.
+ *
+ * VERIFIED: all 55 reloc records are byte-identical to expected, in order,
+ * and the logic/control-flow is exact (de-nested the dead 0x50/0x2C alloc
+ * arm to match target's single-level structure). The remaining diffs are
+ * ALL register-coloring + a cascading +8 frame size, NOT logic bugs:
+ *   - dead-arm `child` colors to $a2 (home sp+0x40) vs target $a0 (sp+0x38);
+ *     this single choice cascades the a1 arg-home 0x44->0x4C and the whole
+ *     frame 0x40->0x48 (+8).
+ *   - vtable dispatch: target keeps child in $v0 / vtable in $s0; built uses
+ *     $a2 / $v0 — renumbers every downstream temp ($t0->$t1, etc).
+ * Tried decl-order swap, init+store statement-join, commutative addu reorder:
+ * none move the child->a0/v0 coloring. Permuter can't score this USO fn (the
+ * target .s is raw `.word`; relocs baked separately) and the family is the
+ * documented ugen-coloring / frame-size cap. Honest NON_MATCHING; the build
+ * path is INCLUDE_ASM. Prior body's "90%" was reloc-WRONG placeholders; this
+ * one is reloc-faithful at ~89.56% objdiff (coloring-sensitive metric). */
+extern int titproc_uso_func_000000();
+extern int titproc_uso_func_000098();
+extern int titproc_uso_func_07ACE0();
+extern int titproc_uso_func_0015F4();
+extern int titproc_uso_func_001D7C();
+extern int titproc_uso_func_0139B0();
+extern int titproc_uso_func_001840();
+extern int titproc_uso_func_001B10();
+extern int titproc_uso_func_055750();
+extern int titproc_uso_func_04C678();
+extern int titproc_uso_func_00F4CC();
+extern int titproc_uso_func_00101C();
+extern int import_00073B80();
+extern char titproc_uso_D_000114;
+extern char titproc_uso_D_00052C;
+extern int import_000B6C40();
+extern int import_000B88CC();
+extern int import_000A5D38();
+extern int import_000A5F40();
+extern int import_0024CCF4();
+extern int import_000A5FBC();
+extern int import_000A7ECC();
+#ifdef NON_MATCHING
+void *titproc_uso_func_00000C54(void *a0, int a1) {
+    void *root;
+    void *child;
+    void *sub;
+    void **vtable;
+    void *list;
     int count;
 
     root = a0;
     if (root == 0) {
-        root = (int*)gl_func_00000000(0x78);
+        root = titproc_uso_func_055750(0x78);
         if (root == 0) goto end;
     }
+    sub = root;
     if (root == 0) {
-        sub = (int*)gl_func_00000000(0x50);
-        if (sub != 0) {
-            child = (int*)gl_func_00000000(0x2C);
-            if (child != 0) {
-                gl_func_00000000(child, (char*)&D_00000000 + 0x4A8);
-            }
-            *(int*)((char*)sub + 0x28) = (int)&D_00000000;
-        }
-        *(int*)((char*)root + 0x28) = (int)&D_00000000;
+        sub = titproc_uso_func_055750(0x50);
+        if (sub == 0) goto skip_a;
     }
-    *(int*)((char*)root + 0x28) = (int)&D_00000000;
-    *(int*)((char*)root + 0x0C) = (int)((char*)&D_00000000 + 0x4B0);
-    gl_func_00000000();
-    gl_func_00000000();
-    *(int*)((char*)root + 0x50) = (int)gl_func_00000000(0);
-    *(int*)((char*)&D_00000000 + 0x138) = *(int*)((char*)root + 0x50);
-
-    gl_func_00000000(*(int*)((char*)root + 0x50));
-    link = (int*)((char*)root + 0x10);
-
-    sub = *(int**)((char*)root + 0x50);
-    gl_func_00000000(link, sub);
-    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
-    *(int*)((char*)sub + 0x14) = (int)root;
-    *(int*)((char*)root + 0x54) = (int)gl_func_00000000(0);
-
-    sub = *(int**)((char*)root + 0x54);
-    gl_func_00000000(link, sub);
-    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
-    *(int*)((char*)sub + 0x14) = (int)root;
-    if (*(int*)((char*)&D_00000000 + 0x18C) != 0) {
-        child = *(int**)((char*)root + 0x54);
-        vtable = *(int**)((char*)child + 0x28);
-        ((void(*)(int))*(int*)((char*)vtable + 0x5C))(
-            *(short*)((char*)vtable + 0x58) + (int)child);
+    child = sub;
+    if (sub == 0) {
+        child = titproc_uso_func_055750(0x2C);
+        if (child == 0) goto skip_b;
     }
-    *(int*)((char*)root + 0x58) = (int)gl_func_00000000(0);
+    titproc_uso_func_04C678(child, (char *)&titproc_uso_D_00048C + 0x4A8);
+    *(int *)((char *)child + 0x28) = (int)&import_00073B18;
+skip_b:
+    *(int *)((char *)sub + 0x28) = (int)&import_00073B80;
+skip_a:
+    *(int *)((char *)root + 0x28) = (int)&titproc_uso_D_000114;
+    *(int *)((char *)root + 0x0C) = (int)((char *)&titproc_uso_D_00048C + 0x4B0);
+    titproc_uso_func_000000();
+    titproc_uso_func_000098();
+    *(void **)((char *)root + 0x50) = (void *)import_000B6C40(0);
+    *(int *)((char *)&import_00020098 + 0x138) = *(int *)((char *)root + 0x50);
+    import_000B88CC(*(int *)((char *)root + 0x50));
 
-    sub = *(int**)((char*)root + 0x58);
-    gl_func_00000000(link, sub);
-    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
-    *(int*)((char*)sub + 0x14) = (int)root;
-    *(int*)((char*)root + 0x60) = (int)gl_func_00000000(0);
+    sub = *(void **)((char *)root + 0x50);
+    list = (char *)root + 0x10;
+    titproc_uso_func_07ACE0(list, sub);
+    if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
+    *(int *)((char *)sub + 0x14) = (int)root;
+    *(void **)((char *)root + 0x54) = titproc_uso_func_0015F4(0);
 
-    sub = *(int**)((char*)root + 0x60);
-    gl_func_00000000(link, sub);
-    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
-    *(int*)((char*)sub + 0x14) = (int)root;
-    *(int*)((char*)root + 0x64) = (int)gl_func_00000000(0);
+    sub = *(void **)((char *)root + 0x54);
+    titproc_uso_func_07ACE0(list, sub);
+    if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
+    *(int *)((char *)sub + 0x14) = (int)root;
+    if (*(int *)((char *)&import_00020098 + 0x18C) != 0) {
+        child = *(void **)((char *)root + 0x54);
+        vtable = *(void ***)((char *)child + 0x28);
+        ((void (*)(int))vtable[0x5C / 4])(
+            *(short *)((char *)vtable + 0x58) + (int)child);
+    }
+    *(void **)((char *)root + 0x58) = titproc_uso_func_001840(0);
 
-    sub = *(int**)((char*)root + 0x64);
-    gl_func_00000000(link, sub);
-    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
-    *(int*)((char*)sub + 0x14) = (int)root;
-    *(int*)((char*)root + 0x5C) = (int)gl_func_00000000(0);
+    sub = *(void **)((char *)root + 0x58);
+    titproc_uso_func_07ACE0(list, sub);
+    if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
+    *(int *)((char *)sub + 0x14) = (int)root;
+    *(void **)((char *)root + 0x60) = titproc_uso_func_001B10(0);
 
-    gl_func_00000000(*(int*)((char*)root + 0x5C), root);
-    gl_func_00000000(root);
-    *(int*)((char*)*(int**)((char*)root + 0x5C) + 0x30) =
-        gl_func_00000000(0, &D_00000000, 0x48, 0xDD, 3, 0xD);
-    *(float*)((char*)*(int**)((char*)root + 0x5C) + 0x74) = 17.0f;
-    gl_func_00000000(*(int*)((char*)root + 0x5C));
-    gl_func_00000000(*(int*)((char*)root + 0x5C));
-    *(int*)((char*)*(int**)((char*)root + 0x5C) + 0x7C) =
-        *(int*)((char*)&D_00000000 + 0x84);
+    sub = *(void **)((char *)root + 0x60);
+    titproc_uso_func_07ACE0(list, sub);
+    if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
+    *(int *)((char *)sub + 0x14) = (int)root;
+    *(void **)((char *)root + 0x64) = titproc_uso_func_001D7C(0);
 
-    sub = *(int**)((char*)root + 0x5C);
-    gl_func_00000000(link, sub);
-    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
-    *(int*)((char*)sub + 0x14) = (int)root;
+    sub = *(void **)((char *)root + 0x64);
+    titproc_uso_func_07ACE0(list, sub);
+    if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
+    *(int *)((char *)sub + 0x14) = (int)root;
+    *(void **)((char *)root + 0x5C) = import_000A5D38(0);
 
-    sub = *(int**)((char*)&D_00000000 + 0x190);
-    gl_func_00000000(link, sub);
-    if (*(int*)((char*)sub + 0x14) != 0) *(int*)((char*)sub + 0x4) = 1;
-    *(int*)((char*)sub + 0x14) = (int)root;
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
+    import_000A5F40(*(void **)((char *)root + 0x5C), root);
+    titproc_uso_func_00101C(root);
+    *(int *)((char *)*(void **)((char *)root + 0x5C) + 0x30) =
+        import_0024CCF4(0, &titproc_uso_D_00052C, 0x48, 0xDD, 3, 0xD);
+    *(float *)((char *)*(void **)((char *)root + 0x5C) + 0x74) = 17.0f;
+    import_000A5FBC(*(int *)((char *)root + 0x5C));
+    titproc_uso_func_00F4CC(*(int *)((char *)root + 0x5C));
+    *(int *)((char *)*(void **)((char *)root + 0x5C) + 0x7C) =
+        *(int *)((char *)&import_00020098 + 0x84);
 
-    *(int*)((char*)root + 0x6C) = 5;
-    *(int*)((char*)root + 0x70) = 0x48;
-    *(int*)((char*)root + 0x74) = 15000;
-    count = *(volatile int*)((char*)root + 0x6C);
+    sub = *(void **)((char *)root + 0x5C);
+    titproc_uso_func_07ACE0(list, sub);
+    if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
+    *(int *)((char *)sub + 0x14) = (int)root;
 
-    if (*(int*)((char*)&D_00000000 + 0x88) != 0) {
-        *(int*)((char*)root + 0x40) = 0;
-        *(int*)((char*)root + 0x3C) = ((count << 4) - count) * 2;
+    sub = *(void **)((char *)&import_00020098 + 0x190);
+    titproc_uso_func_07ACE0(list, sub);
+    if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
+    *(int *)((char *)sub + 0x14) = (int)root;
+    titproc_uso_func_0139B0(*(int *)((char *)&import_00020098 + 0x190));
+
+    *(int *)((char *)root + 0x6C) = 5;
+    *(int *)((char *)root + 0x70) = 0x48;
+    *(int *)((char *)root + 0x74) = 15000;
+
+    if (*(int *)((char *)&import_00020098 + 0x88) != 0) {
+        count = *(int *)((char *)root + 0x6C);
+        *(int *)((char *)root + 0x40) = 0;
+        *(int *)((char *)root + 0x3C) = ((count << 4) - count) * 2;
     } else {
-        *(int*)((char*)root + 0x40) = 1;
-        *(int*)((char*)root + 0x3C) =
-            ((*(int*)((char*)root + 0x70) << 4) - *(int*)((char*)root + 0x70)) * 2;
-        *(int*)((char*)root + 0x68) = 0;
-        *(int*)((char*)*(int**)((char*)root + 0x58) + 0x38) = 1;
-        *(int*)((char*)*(int**)((char*)root + 0x58) + 0x2C) = 0;
-        child = *(int**)((char*)root + 0x58);
-        vtable = *(int**)((char*)child + 0x28);
-        ((void(*)(int))*(int*)((char*)vtable + 0x5C))(
-            *(short*)((char*)vtable + 0x58) + (int)child);
+        count = *(int *)((char *)root + 0x70);
+        *(int *)((char *)root + 0x40) = 1;
+        *(int *)((char *)root + 0x3C) = ((count << 4) - count) * 2;
+        *(int *)((char *)root + 0x68) = 0;
+        *(int *)((char *)*(void **)((char *)root + 0x58) + 0x38) = 1;
+        *(int *)((char *)*(void **)((char *)root + 0x58) + 0x2C) = 0;
+        child = *(void **)((char *)root + 0x58);
+        vtable = *(void ***)((char *)child + 0x28);
+        ((void (*)(int))vtable[0x5C / 4])(
+            *(short *)((char *)vtable + 0x58) + (int)child);
     }
 
-    *(int*)((char*)&D_00000000 + 0x88) = 0;
-    gl_func_00000000(&D_00000000, 0);
-    *(int*)((char*)root + 0x2C) = 0;
-    *(int*)((char*)root + 0x48) = 0;
+    *(int *)((char *)&import_00020098 + 0x88) = 0;
+    import_000A7ECC(&import_00020098, 0);
+    *(int *)((char *)root + 0x2C) = 0;
+    *(int *)((char *)root + 0x48) = 0;
     (void)a1;
 end:
     return root;
@@ -1145,35 +1189,43 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000184
  * feedback_no_instruction_forcing_matches_policy; now an honest NM cap. */
 extern void import_0024E388();
 #ifdef NON_MATCHING
-/* RE-DERIVED 2026-06-22: prior body used gl_func_00000000/&D placeholders
- * (relocs WRONG). Real callees are import_0024F2C8 (begin), import_0024E388
- * (alpha+rgba), import_0024F34C (coords); base is import_00263D30 with the
- * +0x60/+0x78/+0x90 block offsets. Twin family of titproc_uso_func_00001710
- * / mgrproc_uso_func_00002E3C. RELOCS + LOGIC now byte-faithful (96.24%):
- * frame -0x60, decrement/clamp + increment/clamp blocks, all 9 calls + bases
- * match. RESIDUAL = register-coloring (target keeps v in a fresh $t8 and
- * fills the beq-delay with `addiu t8,v0,-4` + `or v0,t8` in the bgez-delay;
- * natural C reuses $v0 with a nop-delay) PLUS a 4-byte buf-position frame
- * shift (buf@sp+0x4c target vs +0x50 here). Both are SKIP-class regalloc/
- * frame caps; INCLUDE_ASM build path. */
-void titproc_uso_func_00001950(int *a0) {
-    float buf_a[4];
-    char pad[24];
-    float buf_b[4];
+/* RE-DERIVED 2026-06-22; REFINED 2026-06-23 (agent-b). Real callees are
+ * import_0024F2C8 (begin), import_0024E388 (alpha+rgba), import_0024F34C
+ * (coords); base import_00263D30 with +0x60/+0x78/+0x90 block offsets.
+ * Twin family of titproc_uso_func_00001710 / mgrproc_uso_func_00002E3C.
+ * RELOCS (paired HI16/LO16 + R_MIPS_26) + LOGIC + FRAME now byte-faithful:
+ * frame -0x60, buf_a@sp+0x4c, buf_b@sp+0x28 (fixed the prior +0x50 frame
+ * shift via decl-order `int v` first + pad[20]); F34C addu operand source
+ * order swapped to match target load order (4C,54,50,58). 23 residual word
+ * diffs, ALL one cascaded register-NUMBER offset originating at the first
+ * short-lived temp: target colors the (v-4)/(v+4) decrement/increment value
+ * to $t8 (a high throwaway temp, hoisted into the beqz/slti delay slot),
+ * natural C colors it $v0/$v1; that pick cascades through every downstream
+ * t-reg (li t9 vs t8, lw t0..t3 vs t9.., addu operands). This is the pure
+ * uopt first-temp coloring tie of the timproc/titproc master-tick family
+ * (see docs/IDO_CODEGEN timproc_uso_b5 7E34/7078/C8AC). PERMUTER-FLOORED
+ * 2026-06-23 (-j4 ~230 iters/thread, best output ADDED insns, never < 23
+ * word diffs); C-lever-immune (inline-temp, named-temp, inline-CSE-twice,
+ * embedded-assign, decl-order all reproduce $v0/$v1). True coloring cap;
+ * INCLUDE_ASM build path. */
+void titproc_uso_func_00001950(int *s0) {
     int v;
+    float buf_a[4];
+    char pad[20];
+    float buf_b[4];
 
-    if (a0[0x38 / 4] == 0) {
-        if (a0[0x34 / 4] != 0) {
-            a0[0x34 / 4]--;
-            v = a0[0x2C / 4];
+    if (s0[0x38 / 4] == 0) {
+        if (s0[0x34 / 4] != 0) {
+            s0[0x34 / 4]--;
+            v = s0[0x2C / 4];
         } else {
-            v = a0[0x2C / 4];
+            v = s0[0x2C / 4];
             if (v != 0) {
                 v -= 4;
-                a0[0x2C / 4] = v;
+                s0[0x2C / 4] = v;
                 if (v < 0) {
-                    a0[0x2C / 4] = 0;
-                    a0[0x38 / 4] = 1;
+                    s0[0x2C / 4] = 0;
+                    s0[0x38 / 4] = 1;
                     v = 0;
                 }
             }
@@ -1186,22 +1238,22 @@ void titproc_uso_func_00001950(int *a0) {
         buf_a[2] = 1.0f;
         buf_a[3] = 1.0f;
         import_0024F2C8((char *)&import_00263D30 + 0x60);
-        import_0024E388((char *)&import_00263D30 + 0x60, a0[0x2C / 4], buf_a, 0xFF);
+        import_0024E388((char *)&import_00263D30 + 0x60, s0[0x2C / 4], buf_a, 0xFF);
         import_0024F34C((char *)&import_00263D30 + 0x60,
-                        a0[0x4C / 4] + a0[0x54 / 4],
-                        a0[0x50 / 4] + a0[0x58 / 4], 3);
+                        s0[0x54 / 4] + s0[0x4C / 4],
+                        s0[0x58 / 4] + s0[0x50 / 4], 3);
         import_0024F2C8((char *)&import_00263D30 + 0x78);
-        import_0024E388((char *)&import_00263D30 + 0x78, a0[0x2C / 4], buf_a, 0xFF);
+        import_0024E388((char *)&import_00263D30 + 0x78, s0[0x2C / 4], buf_a, 0xFF);
         import_0024F34C((char *)&import_00263D30 + 0x78,
-                        a0[0x4C / 4] + a0[0x64 / 4],
-                        a0[0x50 / 4] + a0[0x68 / 4], 3);
+                        s0[0x64 / 4] + s0[0x4C / 4],
+                        s0[0x68 / 4] + s0[0x50 / 4], 3);
     } else {
-        v = a0[0x2C / 4];
+        v = s0[0x2C / 4];
         if (v < 0xFF) {
             v += 4;
-            a0[0x2C / 4] = v;
+            s0[0x2C / 4] = v;
             if (v >= 0xFF) {
-                a0[0x2C / 4] = 0xFF;
+                s0[0x2C / 4] = 0xFF;
             }
         }
         buf_b[0] = 1.0f;
@@ -1209,9 +1261,9 @@ void titproc_uso_func_00001950(int *a0) {
         buf_b[2] = 1.0f;
         buf_b[3] = 1.0f;
         import_0024F2C8((char *)&import_00263D30 + 0x90);
-        import_0024E388((char *)&import_00263D30 + 0x90, a0[0x2C / 4], buf_b, 0xFF);
+        import_0024E388((char *)&import_00263D30 + 0x90, s0[0x2C / 4], buf_b, 0xFF);
         import_0024F34C((char *)&import_00263D30 + 0x90,
-                        a0[0x6C / 4], a0[0x70 / 4], 3);
+                        s0[0x6C / 4], s0[0x70 / 4], 3);
     }
     (void)pad;
 }
