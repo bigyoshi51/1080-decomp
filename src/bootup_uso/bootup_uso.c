@@ -2914,11 +2914,24 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003F00);
  * 0x58005/0x48024, tag 0x1B) + 0x908 cross-link; b3=builder(s1,0,s1->0x80,r1,
  * o1); b4=builder(s1,1,...); f1=builder(s1,&D+a1*0x1C,b3); conditional o3=alloc
  * { func(o3,1); big=builder(0,o3,r1,f1,b3,b4); func(s1->0x84+0x10,big);
- * linked-set finalizer on big; } r1/r2->0x8DC=f1. All field stores byte-match;
- * residual ~37% = regalloc (RNG/FP-index materialize + &D const-fold). */
+ * linked-set finalizer on big; } r1/r2->0x8DC=f1. All field stores byte-match.
+ *
+ * 2026-06-23 62.9->69.6% (correct-C bugfixes, agent-e):
+ *  (1) rand callee returns FLOAT in $f0 — K&R int-return proto emitted spurious
+ *      mtc1/cvt.s.w per call; fixed with `func_411c_rf` float-RETURN 0x0-alias
+ *      (docs/MATCHING_WORKFLOW K&R-float-return). +6.5pp.
+ *  (2) finalizer reuses s1->0x84 via single `int p84` local (was reloaded twice).
+ *  RESIDUAL CAP (~30%, NOT C-fixable): the func_000003F8 const-base (idx1/idx2
+ *  float consts at +0x14C/+0x150) is live across the 2nd rand call so IDO -O2
+ *  PROMOTES it to callee-saved $s0; target re-materializes `at` per-use (a global
+ *  is always re-loadable, IDO chose not to promote). The s0 occupation evicts
+ *  o2/big to the stack -> frame -0x88/-0x90 vs target -0x70 (3 extra spill slots)
+ *  + downstream reg renumber. No C syntax breaks the CSE without changing the
+ *  reloc SYMBOL (objdiff scores by symbol name). bootup CSE-collapse/s-reg cap. */
 #ifdef NON_MATCHING
 /* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats. */
 extern char *func_411c_r(char *, int, int, int, char *, int, float, float, int, int);
+extern float func_411c_rf(void); /* 0x0-alias: rand callee returns f32 in $f0 directly */
 void func_0000411C(char *s1, int a1) {
     char *o1 = (char*)func_00000000(0x80);
     char *o2, *cfg, *Dg = &D_00000000;
@@ -2932,9 +2945,9 @@ void func_0000411C(char *s1, int a1) {
     func_00000000(o2, 0);
     func_00000000(Dg, o1);
     func_00000000(Dg, o2);
-    r = (float)func_00000000();
+    r = func_411c_rf();
     idx1 = (int)(r * *(float*)((char*)&func_000003F8 + 0x14C));
-    rr = (float)func_00000000();
+    rr = func_411c_rf();
     idx2 = (int)(rr * *(float*)((char*)&func_000003F8 + 0x150) + (float)idx1 + 1.0f) % 3;
     cfg = *(char**)(s1 + 0x98);
     row1 = *(char**)((char*)&func_00000080 + idx1 * 4 + 0x90);
@@ -2952,11 +2965,13 @@ void func_0000411C(char *s1, int a1) {
     o3 = (char*)func_00000000(0x80);
     if (o3 != 0) {
         char *big;
+        int p84;
         func_00000000(o3, 1);
         big = (char*)func_00000000(0, o3, r1, f1, b3, b4);
-        func_00000000(*(int*)(s1 + 0x84) + 0x10, big);
+        p84 = *(int*)(s1 + 0x84);
+        func_00000000(p84 + 0x10, big);
         if (*(int*)(big + 0x14) != 0) *(int*)(big + 0x4) = 1;
-        *(int*)(big + 0x14) = *(int*)(s1 + 0x84);
+        *(int*)(big + 0x14) = p84;
     }
     *(char**)(r1 + 0x8DC) = f1;
     *(char**)(r2 + 0x8DC) = f1;

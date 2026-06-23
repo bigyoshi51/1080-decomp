@@ -8528,6 +8528,10 @@ int game_libs_func_0003E0C0(int a0, int a1) {
 
 extern char D_0002F2E4;
 extern int D_00000000;
+extern char D_0002F730;
+extern char D_0002F970;
+extern char D_0002FD34, D_0002FD40, D_0002FD50, D_0002FD58, D_0002FD64;
+extern char D_0002FD6C, D_0002FD78, D_0002FD88, D_0002FD94, D_0002FDA4, D_0002FDD4;
 
 /* gl_func_0003E0F0: 49-insn (0xC4) constructor. NATURAL CEILING: 81.71%
  * NM. Multi-class cap: frame-offset shifts (sp+0x30/0x4C vs sp+0x3C/...),
@@ -13670,12 +13674,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004406C);
 // immediates are exact. Trailing no-frame-leaf stack = deferred re-split.
 // Caps: registrar/config struct, &D_g + &D_0002FDxx table and cb signature
 // untyped. Full body INCLUDE_ASM-preserved.
+//
+// 2026-06-23 decode refinement (raw-.word USO, ZERO relocs in this file =
+// UNLANDABLE / decode-only): rewrote bare integer-constant args into the
+// established &D_00000000-base + distinct &D_0002FDxx-key convention so each
+// cb call materializes its global base/key (lui/addiu) and re-routed the
+// 1.0f stack arg through the float-prototyped placeholder gl_func_00000000f
+// (swc1 single, not K&R sdc1 double). Build words 162 -> 173 / target 199;
+// jal count now EXACT (24/24); mnemonic multiset fidelity ~79%. Residual gap
+// is entirely the repeated &D_00000000 a0-base reload: target emits a fresh
+// lui/addiu per call (13x, each an independent USO relocation IDO can't see),
+// while C CSEs the single &D_00000000 symbol address into one saved-reg
+// `move` — a CSE/coloring cap with no C-level lever for raw-word USO.
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00044144)();
+// Raw-.word USO: cb = gl_func_00000000 placeholder, all globals are
+// &D_00000000 + offset (the lui a0,0x0 / addiu a0,a0,0 base-load pair).
+// a0 base = g = &D_00000000 throughout.
 void gl_func_00044144(char *arg0) {
+    extern int gl_func_00000000f(void *, void *, void *, int, float, int);
+    char *g = (char *)&D_00000000;
     int sp38;
     s32 *sp30;
     s32 *temp_v0;
@@ -13696,63 +13716,63 @@ void gl_func_00044144(char *arg0) {
     s32 *var_v1_4;
     char *temp_v0_9;
 
-    gl_func_00034458(0, (int *)0x1FD34, 0);
-    gl_func_00034458(0, (int *)0x1FD40, (s32 *)0x24C, 0, 0x3F800000, 0);
-    gl_func_00034458(0, (int *)0x1FD50, (s32 *)0x250);
-    gl_func_00034458(0, (int *)0x1FD58, (s32 *)0x1F970);
-    gl_func_00034458(0, (int *)0x1FD64, 0, 0x400, 0x19000, 0);
-    gl_func_00034458((int *)0x294);
-    temp_v0 = gl_func_00034458((int *)8);
+    gl_func_00000000(g, &D_0002FD34, 0);
+    gl_func_00000000f(g, &D_0002FD40, g + 0x24C, 0, 1.0f, 0);
+    gl_func_00000000(g, &D_0002FD50, g + 0x250);
+    gl_func_00000000(g, &D_0002FD58, &D_0002F970);
+    gl_func_00000000(g, &D_0002FD64, g + 0x0, 0x400, 0x19000, 0);
+    gl_func_00000000(g + 0x294);
+    temp_v0 = gl_func_00000000((int *)8);
     var_a2 = temp_v0;
     if (temp_v0 != 0) {
         var_v1 = temp_v0;
-        if ((temp_v0 != 0) || (sp30 = temp_v0, temp_v0_2 = gl_func_00034458((int *)4), var_a2 = sp30, var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
-            *var_v1 = 0x1F730;
+        if ((temp_v0 != 0) || (sp30 = temp_v0, temp_v0_2 = gl_func_00000000((int *)4), var_a2 = sp30, var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+            *var_v1 = (s32)&D_0002F730;
         }
-        FW(var_a2, 0x0) = 0;
-        FW(var_a2, 0x4) = 0;
+        FW(var_a2, 0x0) = (s32)g;
+        FW(var_a2, 0x4) = (s32)g;
     }
-    gl_func_00034458(0, (int *)0x1FD6C, var_a2, 1);
-    temp_v0_3 = gl_func_00034458((int *)8);
+    gl_func_00000000(g, &D_0002FD6C, var_a2, 1);
+    temp_v0_3 = gl_func_00000000((int *)8);
     var_a2_2 = temp_v0_3;
     if (temp_v0_3 != 0) {
         var_v1_2 = temp_v0_3;
-        if ((temp_v0_3 != 0) || (sp30 = temp_v0_3, temp_v0_4 = gl_func_00034458((int *)4), var_a2_2 = sp30, var_v1_2 = temp_v0_4, (temp_v0_4 != 0))) {
-            *var_v1_2 = 0x1F730;
+        if ((temp_v0_3 != 0) || (sp30 = temp_v0_3, temp_v0_4 = gl_func_00000000((int *)4), var_a2_2 = sp30, var_v1_2 = temp_v0_4, (temp_v0_4 != 0))) {
+            *var_v1_2 = (s32)&D_0002F730;
         }
-        FW(var_a2_2, 0x0) = 0;
-        FW(var_a2_2, 0x4) = 0;
+        FW(var_a2_2, 0x0) = (s32)g;
+        FW(var_a2_2, 0x4) = (s32)g;
     }
-    gl_func_00034458(0, (int *)0x1FD78, var_a2_2, 1);
-    temp_v0_5 = gl_func_00034458((int *)8);
+    gl_func_00000000(g, &D_0002FD78, var_a2_2, 1);
+    temp_v0_5 = gl_func_00000000((int *)8);
     var_a2_3 = temp_v0_5;
     if (temp_v0_5 != 0) {
         var_v1_3 = temp_v0_5;
-        if ((temp_v0_5 != 0) || (sp30 = temp_v0_5, temp_v0_6 = gl_func_00034458((int *)4), var_a2_3 = sp30, var_v1_3 = temp_v0_6, (temp_v0_6 != 0))) {
-            *var_v1_3 = 0x1F730;
+        if ((temp_v0_5 != 0) || (sp30 = temp_v0_5, temp_v0_6 = gl_func_00000000((int *)4), var_a2_3 = sp30, var_v1_3 = temp_v0_6, (temp_v0_6 != 0))) {
+            *var_v1_3 = (s32)&D_0002F730;
         }
-        FW(var_a2_3, 0x0) = 0;
-        FW(var_a2_3, 0x4) = 0;
+        FW(var_a2_3, 0x0) = (s32)g;
+        FW(var_a2_3, 0x4) = (s32)g;
     }
-    gl_func_00034458(0, (int *)0x1FD88, var_a2_3, 0);
-    temp_v0_7 = gl_func_00034458((int *)8);
+    gl_func_00000000(g, &D_0002FD88, var_a2_3, 0);
+    temp_v0_7 = gl_func_00000000((int *)8);
     var_a2_4 = temp_v0_7;
     if (temp_v0_7 != 0) {
         var_v1_4 = temp_v0_7;
-        if ((temp_v0_7 != 0) || (sp30 = temp_v0_7, temp_v0_8 = gl_func_00034458((int *)4), var_a2_4 = sp30, var_v1_4 = temp_v0_8, (temp_v0_8 != 0))) {
-            *var_v1_4 = 0x1F730;
+        if ((temp_v0_7 != 0) || (sp30 = temp_v0_7, temp_v0_8 = gl_func_00000000((int *)4), var_a2_4 = sp30, var_v1_4 = temp_v0_8, (temp_v0_8 != 0))) {
+            *var_v1_4 = (s32)&D_0002F730;
         }
-        FW(var_a2_4, 0x0) = 0;
-        FW(var_a2_4, 0x4) = 0;
+        FW(var_a2_4, 0x0) = (s32)g;
+        FW(var_a2_4, 0x4) = (s32)g;
     }
-    gl_func_00034458(0, (int *)0x1FD94, var_a2_4, 1);
-    temp_v0_9 = *(char **)0x218;
-    gl_func_00034458(&sp38, (int *)0x1FDA4, FW(temp_v0_9, 0x3C), FW(temp_v0_9, 0x40), FW(temp_v0_9, 0x24), FW(temp_v0_9, 0x1C), FW(temp_v0_9, 0x20), *(int*)0);
-    gl_func_00034458(0, &sp38);
-    gl_func_00034458(&sp38, (int *)0x1FDD4, *(int*)0);
-    gl_func_00034458(0, &sp38);
-    gl_func_00034458(0);
-    gl_func_00034458(arg0);
+    gl_func_00000000(g, &D_0002FD94, var_a2_4, 1);
+    temp_v0_9 = *(char **)(g + 0x218);
+    gl_func_00000000(&sp38, &D_0002FDA4, FW(temp_v0_9, 0x3C), FW(temp_v0_9, 0x40), FW(temp_v0_9, 0x24), FW(temp_v0_9, 0x1C), FW(temp_v0_9, 0x20), *(int *)g);
+    gl_func_00000000(g, &sp38);
+    gl_func_00000000(&sp38, &D_0002FDD4, *(int *)g);
+    gl_func_00000000(g, &sp38);
+    gl_func_00000000(g);
+    gl_func_00000000(arg0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044144);
@@ -22164,167 +22184,178 @@ s32 gl_func_0004FD18(char *arg0, s32 arg1, s32 arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
 #endif
 
-// gl_func_000500EC — STRUCTURAL PASS (0x2B8 / 174 words, no episode).
-// Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x38,
-// saves ra + s0..s7. Two jal-0 = USO-relocated callbacks (resolved at
-// load): cb1 (predicate/comparator) and cb2 (action). Shape:
-//   int gl_func_000500EC(void *self, int nOuter) {
-//     if (self->field_44 == 0) return 0;            // empty list short-circuit
-//     base = self->field_60; idx = self->field_68;  // 0x60 records, 0x68 dir
-//     for (i = 0; i != nOuter; i++) {
-//       cnt   = u16 idx[i].field_2;                  // dir entry stride 8
-//       recA  = base + cnt * 6;                      // 6-byte (3x u16) record
-//       end   = idx + nOuter * 8;
-//       for (j = idx; j != end; j += 8) {
-//         recB = base + (u16 j.field_2) * 6;
-//         // 3-field u16 key equality (offsets +0, +2, +4): each pair
-//         // xor'd, sltiu v0,v0,1 (==0 test), all three must match
-//         if (recA[0]==recB[0] && recA[2]==recB[2] && recA[4]==recB[4]) {
-//           if (!cb1(self, recA, recB)) continue;    // USO predicate
-//           cb2(self, ...);                          // USO action
-//           // mark/append into self->field_78 byte-list with dedup:
-//           p = self->field_78; flag = 1;
-//           while (p < self->field_44) {             // lbu scan, sb mark
-//             if (*p == 0) { *p = 1; ...; }
-//             p++;
+// gl_func_000500EC — FULL DECODE (0x2B8 / 174 words, no episode).
+// Raw-.word USO (zero relocs in expected/...post0b.c.o → UNLANDABLE,
+// decode-only). Frame 0x38, saves ra + s0..s7. Both jal-0 sites are the
+// SAME USO-relocated callback `cb(self, idxA, idxB)` returning int — NOT
+// gl_func_00034458 (prior decode mis-named it). Verified instruction by
+// instruction against objdump of the raw words. Shape:
+//   int gl_func_000500EC(self, n) {
+//     count = self->field_44;                        // s32 list length
+//     if (count == 0) return 0;
+//     for (i = 0; i < count; i++) {                  // i = s3
+//       if (i == n) continue;                         // skip self-row
+//       dir = self->field_68; rec = self->field_60;   // dir stride 8, rec stride 6
+//       dirI  = dir + i*8;  dirN = dir + n*8;          // dir entries
+//       recA  = rec + (u16)dirI[1] * 6;               // dirI->field_2 (lhu)
+//       k = 0;
+//       for (;;) {                                     // k: 0,2,4 (3 tries)
+//         recB = rec + (u16)dirN[1] * 6;  k += 2;      // dirN->field_2 (lhu)
+//         // s16 triple-key equality at rec offsets +0,+2,+4 (lh + xor + sltiu,1)
+//         match = (recB[0]==recA[0] && recB[2]==recA[2] && recB[4]==recA[4]);
+//         if (!match) { // retry vs recA built from dirI->field_4 then field_6
+//           recC = rec + (u16)dirI[2]*6;               // dirI->field_4
+//           match = (recB[0]==recC[0] && recB[2]==recC[2] && recB[4]==recC[4]);
+//           if (!match) {
+//             recD = rec + (u16)dirI[3]*6;             // dirI->field_6
+//             match = (recB[0]==recD[0] && recB[2]==recD[2] && recB[4]==recD[4]);
+//             if (!match) { dirN += 2; if (k==6) break; else continue; }
 //           }
-//           // second dedup pass over field_78 (lbu/sb), then advance
 //         }
+//         if (cb(self, i, n)) {                          // USO predicate
+//           ok = 1; j = 0;
+//           p = self->field_78;                          // u8 byte-list
+//           if (p[i] == 0) { p[i] = (u8)*gCounter;        // gCounter: USO global
+//                            if (++*gCounter >= 13) *gCounter = 1; }
+//           if (self->field_44 != 0) {
+//             do {                                         // dedup scan, j = s0
+//               u8 *q = self->field_78;
+//               if (q[j]==q[i] && cb(self,j,i)==0) { ok=0; break; }
+//             } while (++j < (u32)self->field_44);
+//           }
+//           if (ok) { u8 *r = self->field_78; r[n] = r[i]; return 1; }
+//         }
+//         break;                                          // fall through to next i
 //       }
 //     }
 //     return 0;
 //   }
 // Family: structured-record key-match + dedup-merge driver (sibling of
-// the structured-record decode/accumulate family gl_func_00049DBC /
-// 0004A308 / 0004FD18; this one is the 2-callback merge variant). The
-// frame, saved-reg set, the 6-byte (3x u16) record geometry, the
-// stride-8 0x68 directory, the 0x60 record base, the triple-u16 key
-// equality idiom, the 0x44 list-length guard and the 0x78 byte-list
-// dedup passes are exact; the two USO callback signatures and the
-// inner mark/advance bookkeeping are representative. Caps: self struct
-// and cb1/cb2 prototypes untyped (USO-relocated). Full body
-// INCLUDE_ASM-preserved.
+// gl_func_00049DBC / 0004A308 / 0004FD18). Field widths nailed from
+// mnemonics: 0x44=s32 count, 0x60=rec base (6B / 3x s16 keys), 0x68=dir
+// base (stride 8, candidate indices at field_2/4/6 as u16), 0x78=u8
+// byte-list. The 6-byte record stride is t8*6 (sll2-sub-sll1 for recA,
+// multu-by-6 for recB/recC/recD). Caps: self struct + cb prototype +
+// gCounter are USO-relocated (untyped). Full body INCLUDE_ASM-preserved.
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000500EC)();
-s32 gl_func_000500EC(char *arg0, u32 arg1) {
-    s32 temp_a2;
-    s32 temp_t4;
-    s32 temp_t6;
-    s32 temp_v1_3;
-    s32 temp_v1_4;
-    s32 var_s5;
-    s32 var_t0;
-    s32 var_v0;
-    s32 var_v0_2;
-    s32 var_v0_3;
-    u32 var_s0;
-    u32 var_s3;
-    u32 var_t3;
-    u8 *temp_v0;
-    char *temp_a1;
-    char *temp_a3;
-    char *temp_t2;
-    char *temp_v1;
-    char *temp_v1_2;
-    char *var_t1;
+/* USO-relocated externals (raw 0x0C000000 jal / lui-addiu 0): callback
+ * cb(self, idxA, idxB) -> int, and a global wrap-counter gCounter. Both
+ * are resolved at module load; placeholders here keep the decode honest. */
+extern int gl_func_000500EC_cb(char *self, s32 idxA, s32 idxB);
+extern s32 gl_func_000500EC_gCounter;
+#define S16(p, o) (*(s16 *)((char *)(p) + (o)))
+#define U16(p, o) (*(u16 *)((char *)(p) + (o)))
+#define S32F(p, o) (*(s32 *)((char *)(p) + (o)))
 
-    var_t3 = FW(arg0, 0x44);
-    var_s3 = 0;
-    if (var_t3 != 0) {
-loop_2:
-        if (var_s3 != arg1) {
-            temp_t6 = FW(arg0, 0x68);
-            temp_a2 = FW(arg0, 0x60);
-            temp_t2 = temp_t6 + (var_s3 * 8);
-            var_t0 = 0;
-            var_t1 = temp_t6 + (arg1 * 8);
-            temp_a3 = temp_a2 + (FW(temp_t2, 0x2) * 6);
-loop_4:
-            var_t0 += 2;
-            temp_a1 = temp_a2 + (FW(var_t1, 0x2) * 6);
-            var_v0 = FW(temp_a1, 0x0) == FW(temp_a3, 0x0);
-            if (var_v0 != 0) {
-                var_v0 = FW(temp_a1, 0x2) == FW(temp_a3, 0x2);
-                if (var_v0 != 0) {
-                    var_v0 = FW(temp_a1, 0x4) == FW(temp_a3, 0x4);
+s32 gl_func_000500EC(char *arg0, u32 arg1) {
+    s32 count;       /* t3/var_t3 : self->0x44 */
+    s32 i;           /* s3 : outer index */
+    char *dir;       /* t6 : self->0x68 */
+    char *rec;       /* a2 : self->0x60 */
+    char *dirI;      /* t2 : dir + i*8 */
+    char *dirN;      /* t1 : dir + arg1*8, advanced +2 */
+    char *recA;      /* a3 : rec + dirI->field_2*6 */
+    char *recB;      /* a1 : rec + dirN->field_2*6 */
+    char *recC;      /* v1 */
+    s32 k;           /* t0 : 0,2,4 */
+    s32 match;       /* v0 */
+    s32 ok;          /* s5 */
+    u32 j;           /* s0 : dedup index */
+    u8 *p;
+    u8 *q;
+
+    count = S32F(arg0, 0x44);
+    i = 0;
+    if (count != 0) {
+loop_outer:
+        if ((u32) i != arg1) {
+            dir = (char *) S32F(arg0, 0x68);
+            rec = (char *) S32F(arg0, 0x60);
+            dirI = dir + (i * 8);
+            k = 0;
+            dirN = dir + (arg1 * 8);
+            recA = rec + (U16(dirI, 0x2) * 6);
+loop_inner:
+            k += 2;
+            recB = rec + (U16(dirN, 0x2) * 6);
+            match = S16(recB, 0x0) == S16(recA, 0x0);
+            if (match != 0) {
+                match = S16(recB, 0x2) == S16(recA, 0x2);
+                if (match != 0) {
+                    match = S16(recB, 0x4) == S16(recA, 0x4);
                 }
             }
-            if (var_v0 == 0) {
-                temp_v1 = temp_a2 + (FW(temp_t2, 0x4) * 6);
-                var_v0_2 = FW(temp_a1, 0x0) == FW(temp_v1, 0x0);
-                if (var_v0_2 != 0) {
-                    var_v0_2 = FW(temp_a1, 0x2) == FW(temp_v1, 0x2);
-                    if (var_v0_2 != 0) {
-                        var_v0_2 = FW(temp_a1, 0x4) == FW(temp_v1, 0x4);
+            if (match == 0) {
+                recC = rec + (U16(dirI, 0x4) * 6);
+                match = S16(recB, 0x0) == S16(recC, 0x0);
+                if (match != 0) {
+                    match = S16(recB, 0x2) == S16(recC, 0x2);
+                    if (match != 0) {
+                        match = S16(recB, 0x4) == S16(recC, 0x4);
                     }
                 }
-                if (var_v0_2 == 0) {
-                    temp_v1_2 = temp_a2 + (FW(temp_t2, 0x6) * 6);
-                    var_v0_3 = FW(temp_a1, 0x0) == FW(temp_v1_2, 0x0);
-                    if (var_v0_3 != 0) {
-                        var_v0_3 = FW(temp_a1, 0x2) == FW(temp_v1_2, 0x2);
-                        if (var_v0_3 != 0) {
-                            var_v0_3 = FW(temp_a1, 0x4) == FW(temp_v1_2, 0x4);
+                if (match == 0) {
+                    recC = rec + (U16(dirI, 0x6) * 6);
+                    match = S16(recB, 0x0) == S16(recC, 0x0);
+                    if (match != 0) {
+                        match = S16(recB, 0x2) == S16(recC, 0x2);
+                        if (match != 0) {
+                            match = S16(recB, 0x4) == S16(recC, 0x4);
                         }
                     }
-                    if (var_v0_3 != 0) {
-                        goto block_16;
+                    if (match != 0) {
+                        goto do_match;
                     }
-                    var_t1 += 2;
-                    if (var_t0 == 6) {
-                        goto block_29;
+                    dirN += 2;
+                    if (k == 6) {
+                        goto next_outer;
                     }
-                    goto loop_4;
+                    goto loop_inner;
                 }
-                goto block_16;
+                goto do_match;
             }
-block_16:
-            if (gl_func_00034458(arg0, var_s3, arg1, temp_a3) != 0) {
-                var_s5 = 1;
-                var_s0 = 0;
-                temp_v0 = FW(arg0, 0x78) + var_s3;
-                if (*(int*)temp_v0 == 0) {
-                    *temp_v0 = (u8) *(int*)0;
-                    temp_t4 = *(int*)0 + 1;
-                    *(int*)0 = temp_t4;
-                    if (temp_t4 >= 0xD) {
-                        *(int*)0 = 1;
+do_match:
+            if (gl_func_000500EC_cb(arg0, i, (s32) arg1) != 0) {
+                ok = 1;
+                j = 0;
+                p = (u8 *) S32F(arg0, 0x78) + i;
+                if (*p == 0) {
+                    *p = (u8) gl_func_000500EC_gCounter;
+                    if (++gl_func_000500EC_gCounter >= 0xD) {
+                        gl_func_000500EC_gCounter = 1;
                     }
                 }
-                if (FW(arg0, 0x44) != 0) {
-loop_21:
-                    temp_v1_3 = FW(arg0, 0x78);
-                    if ((*(int*)(temp_v1_3 + var_s3) == *(int*)(temp_v1_3 + var_s0)) && (gl_func_00034458(arg0, var_s0, var_s3) == 0)) {
-                        var_s5 = 0;
+                if (S32F(arg0, 0x44) != 0) {
+loop_dedup:
+                    q = (u8 *) S32F(arg0, 0x78);
+                    if ((q[i] == q[j]) && (gl_func_000500EC_cb(arg0, j, i) == 0)) {
+                        ok = 0;
                     } else {
-                        var_s0 += 1;
-                        if (var_s0 < (u32) FW(arg0, 0x44)) {
-                            goto loop_21;
+                        j += 1;
+                        if (j < (u32) S32F(arg0, 0x44)) {
+                            goto loop_dedup;
                         }
                     }
                 }
-                if (var_s5 != 0) {
-                    temp_v1_4 = FW(arg0, 0x78);
-                    *(int*)(temp_v1_4 + (int)arg1) = *(int*)(temp_v1_4 + var_s3);
+                if (ok != 0) {
+                    q = (u8 *) S32F(arg0, 0x78);
+                    q[(s32) arg1] = q[i];
                     return 1;
                 }
-                goto block_27;
+                goto next_reload;
             }
-block_27:
-            var_t3 = FW(arg0, 0x44);
-            goto block_29;
+next_reload:
+            count = S32F(arg0, 0x44);
+            goto next_outer;
         }
-block_29:
-        var_s3 += 1;
-        if (var_s3 >= var_t3) {
-            goto block_30;
+next_outer:
+        i += 1;
+        if ((u32) i >= (u32) count) {
+            goto done;
         }
-        goto loop_2;
+        goto loop_outer;
     }
-block_30:
+done:
     return 0;
 }
 #else
