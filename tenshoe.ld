@@ -1322,6 +1322,7 @@ SECTIONS
         build/src/bootup_uso/bootup_uso_F434.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_F7F4.c.o(.text);
         build/src/bootup_uso/bootup_uso_tail1.c.o(.text);
+        build/src/bootup_uso/bootup_uso_o0_F954.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_FAE8.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_FBCC.c.o(.text);
         build/src/bootup_uso/bootup_uso_tail1_bot.c.o(.text);

@@ -1,0 +1,43 @@
+{
+  "function_name": "func_0000F954",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T23:25:00.057499+00:00",
+  "end_time": "2026-06-23T23:25:00.057537+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T23:25:00.057528+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 37,
+  "initial_m2c_source": null,
+  "final_source": "void func_0000F954(int *a0, int a1, int a2) {\n    if (*(int*)((char*)a0 + 0x48) != 0) {\n        func_00000000(*(int*)((char*)a0 + 0x48));\n    }\n    func_00000000(&D_00000000);\n    func_00000000(func_00000188.c, 3, 0);\n    *(int*)((char*)a0 + 0x2C) = 1;\n    func_00000000(a1, a2, 0);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/f954.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_0000F954.s",
+    "segment": "bootup_uso",
+    "compiler": "ido_7.1",
+    "compiler_flags": "-O0 -G0 -mips2"
+  },
+  "matched": true,
+  "final_c": "void func_0000F954(int *a0, int a1, int a2) {\n    if (*(int*)((char*)a0 + 0x48) != 0) {\n        func_00000000(*(int*)((char*)a0 + 0x48));\n    }\n    func_00000000(&D_00000000);\n    func_00000000(func_00000188.c, 3, 0);\n    *(int*)((char*)a0 + 0x2C) = 1;\n    func_00000000(a1, a2, 0);\n}\n",
+  "attempts": [
+    {
+      "c_code": "void func_0000F954(int *a0, int a1, int a2) {\n    if (*(int*)((char*)a0 + 0x48) != 0) {\n        func_00000000(*(int*)((char*)a0 + 0x48));\n    }\n    func_00000000(&D_00000000);\n    func_00000000(func_00000188.c, 3, 0);\n    *(int*)((char*)a0 + 0x2C) = 1;\n    func_00000000(a1, a2, 0);\n}\n",
+      "matched": true,
+      "diff_count": 0,
+      "compiler_flags": "-O0 -G0 -mips2",
+      "notes": "-O0 cluster split (F954+F9E8 moved to bootup_uso_o0_F954.c, tail1 keeps F81C). Key lever: the 3rd-call arg loads func_00000188+8 via a STRUCT-FIELD ref (func_00000188.c) -> folds to lui;lw 8; an array/scalar+offset ref instead emits an extra addiu materializing the address. Byte-exact (make verify)."
+    }
+  ]
+}
