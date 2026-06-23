@@ -535,7 +535,11 @@ build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x
 build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000
 # Mirror onto the non_matching object so report.json/objdiff score the trailing
 # alignment-nop word (splat-symbol-boundary trailing-delay-nop class).
-build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000
+# func_0000F1B4 likewise: matching build has SUFFIX_BYTES (3 all-zero pad words to
+# the next-fn boundary at 0xF1F0); mirror it so objdiff sizes the symbol 0x3C not
+# 0x30 (was scoring 80%=12/15w on a byte-identical fn). F1B4 is the LAST fn in the
+# file so the pad just extends .text (no shift / TRUNCATE needed on non_matching).
+build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 func_0000F1B4=0x00000000,0x00000000,0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/game_libs/game_libs_o1_6C8AC.c src/arcproc_uso/arcproc_uso_o0_748.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
