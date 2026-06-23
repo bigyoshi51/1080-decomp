@@ -5844,11 +5844,35 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
  * 2026-05-18 pass: added explicit frame padding so IDO emits the target
  * 0x88-byte frame / epilogue, and tried register-vs-stack dispatch_arg plus
  * single-scale-load variants. Best measured C body is 76.12745% by objdiff;
- * single-scale-load regressed to 69.80% because it grew the frame to 0x90. */
+ * single-scale-load regressed to 69.80% because it grew the frame to 0x90.
+ *
+ * 2026-06-23 pass (agent-e): 77.75% -> 82.40%. Three BUGS fixed:
+ *   (1) real callees wired with paired R_MIPS_26 relocs: the two timer-gate
+ *       dispatch calls are game_uso_func_00011024(sub->0x840, dispatch_arg)
+ *       (called via implicit K&R 2-arg decl so a1 is passed), the tail is
+ *       game_uso_func_00007538(a0, dispatch_arg). Threading dispatch_arg into
+ *       the tail (a1 already live) was the big mover: it stops IDO emitting a
+ *       spurious `move a1,zero` and reproduces the a1+a2 save/restore pair
+ *       around each call. All 3 relocs now byte-match target.
+ *   (2) dispatch comparison: target is `c.le.s f6(sub->0x348),f4(30)` + bc1f,
+ *       i.e. dispatch fires when sub->0x348 <= 30.0f (fall-through), timer+1
+ *       when > 30. Rewrote the inner if as `if (x <= 30.0f) dispatch; else
+ *       timer+1`. Old `30.0f < x` emitted the wrong `c.lt.s` form.
+ *   (3) frame/decl order: V3 decl order added,base,tmp,scaled + pad[12] gives
+ *       the 0x88 frame and the right relative slot ordering.
+ * RESIDUAL (all coloring/scheduling caps, permuter-immune per project notes):
+ *   - IDO schedules the scaled-vec block as load*3/mul*3/store*3 (grouped) and
+ *     loads a0->0xA8 once; our C emits interleaved load/mul/store w/ 3 reloads.
+ *   - exact stack-slot offsets shift by a few words (slot coloring).
+ *   - target has a dead `addiu v0,v0,792` (&sub->0x318 address-form) + nop we
+ *     can't reproduce from member-offset loads.
+ *   - one likely-branch (bnezl) vs target non-likely on the dispatch_arg if.
+ * Default INCLUDE_ASM build remains exact; logic + relocs are now correct. */
+void game_uso_func_00011024();
 void game_uso_func_00006CF0(int *a0) {
     int *sub;
-    V3_6A30 base_vec, scaled_vec, tmp_vec, added_vec;
-    int pad[10];
+    V3_6A30 added_vec, base_vec, tmp_vec, scaled_vec;
+    int pad[12];
     register int dispatch_arg;
     int timer;
 
@@ -5878,19 +5902,19 @@ void game_uso_func_00006CF0(int *a0) {
     if (*(int*)((char*)sub + 0x938) != 0 && *(int*)((char*)sub + 0xA54) != 0) {
         timer = *(int*)((char*)a0 + 0x70);
         if (timer < 60) {
-            if (30.0f < *(float*)((char*)sub + 0x348)) {
-                gl_func_00000000(*(int*)((char*)sub + 0x840), dispatch_arg);
+            if (*(float*)((char*)sub + 0x348) <= 30.0f) {
+                game_uso_func_00011024(*(int*)((char*)sub + 0x840), dispatch_arg);
                 *(int*)((char*)a0 + 0x70) = 61;
             } else {
                 *(int*)((char*)a0 + 0x70) = timer + 1;
             }
         } else if (timer == 60) {
-            gl_func_00000000(*(int*)((char*)sub + 0x840), dispatch_arg);
+            game_uso_func_00011024(*(int*)((char*)sub + 0x840), dispatch_arg);
             *(int*)((char*)a0 + 0x70) = 61;
         }
     }
 
-    gl_func_00000000(a0);
+    game_uso_func_00007538(a0, dispatch_arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006CF0);
@@ -11358,20 +11382,26 @@ void game_uso_func_0000D438(char *a0) {
     *(Pair2*)(a0 + 0xC8) = *(Pair2*)(a0 + 0xC0);
 }
 
-/* game_uso_func_0000D458: parent F1 (frame -0x48, ~89 insns) + 4 helper
- * functions it calls (D5BC/D5DC/D5F8/D634). STATUS CORRECTED 2026-06-01: the
- * old "keep bundled, splitting risky" note is STALE — the helpers ARE already
- * split at the symbol level (separate tracked .s) and 3 are matched:
- *   D5BC 100%, D5DC 100%, D634 100% (C defs below), D5F8 89.93% (varargs +1
- *   insn cap, NM). Only F1 (D458 itself, 0%) remains to decode.
- * REMAINING BOUNDARY DEFECT: the D458 SYMBOL is still sized 0x1E4 (whole
- * bundle) so objdiff scores a bogus 484-byte D458 at 0% that OVERLAPS the
- * matched helpers. Fix = truncate this .s to 0x164 (F1 only, ends at the
- * 0xD5B8 nop) THEN run scripts/refresh-expected-baseline.py so expected/D458
- * = F1's 89 insns. Verified the truncation links cleanly + keeps the helpers
- * matched (2026-06-01), but the expected refresh is a full-tree rebuild —
- * deferred to a dedicated tick to keep the loop's main green. After the
- * boundary fix, F1 (a per-frame update calling D5BC ×3) is the decode target.
+/* game_uso_func_0000D458: parent F1 (frame -0x48, 90 words/0x164) + 4 helper
+ * functions it calls (D5BC/D5DC/D5F8/D634, defs below; D5BC/D5DC/D634 100%).
+ * Boundary defect RESOLVED: this .s is truncated to 0x164 (F1 only, ends at the
+ * 0xD5B8 nop) and expected/game_uso.c.o carries D458 at the F1 size — verified.
+ * STATUS 2026-06-23: DECODE-ONLY CAP — body is logic-exact (see NM below) but
+ * BYTE-MATCH IS IMPOSSIBLE from C. Two unfixable residuals:
+ *   (1) RELOC-FORM CAP (HI16-only-unpaired): expected references import_800200CC
+ *       and game_uso_D_807FF3A0/A8/B0 with R_MIPS_HI16 and ZERO R_MIPS_LO16
+ *       (offsets 0xDB8/0xDB0/0xDC0 baked as literal addiu immediates). IDO from
+ *       ANY C extern-symbol form emits a HI16+LO16 PAIR, so the reloc SET cannot
+ *       match. Classify: `objdump -r game_uso.c.o | grep 807FF3 | grep -c LO16`
+ *       == 0. See docs/N64_FORENSICS HI16-only-unpaired cap.
+ *   (2) `subu a1,s0,s0; addiu a1,a1,124` (the 0x7C 2nd arg to 07F6C0): a
+ *       self-subtract artifact from IDO's value web; `x-x` folds to li from any
+ *       C source (docs/IDO_CODEGEN) — so target's 2-insn form is unreproducible
+ *       (= the 90-vs-89-word deficit) and the +8 frame (-0x48 vs the -0x40 C
+ *       gives) rides the same phantom slot.
+ * Residual otherwise = only those + VRAM-relative branch displacements (==).
+ * Logic was decode-verified 2026-06-23: var_v0 nested-if shape (beq;li;b;move)
+ * and the 16-byte &sp30[4] buffer (048020 size arg 0x10) now match target.
  * DO NOT use split-fragments.py here: it DROPS the symbolic `lui %hi` line at
  * the D5DC boundary (size header says +1 word vs the file's word count),
  * corrupting the .s — see docs/MATCHING_WORKFLOW. */
@@ -11389,8 +11419,7 @@ extern void game_uso_func_0000D5BC(char *, Pair2);
 extern char import_800200CC;
 extern char game_uso_D_807FF3A0, game_uso_D_807FF3A8, game_uso_D_807FF3B0;
 void game_uso_func_0000D458(s32 arg0) {
-    int sp34;
-    s32 sp30;
+    s32 sp30[4];
     s32 var_v0;
 
     game_uso_func_07F6C0((int)arg0 + 0xBC, (arg0 * 0) + 0x7C);
@@ -11410,13 +11439,12 @@ void game_uso_func_0000D458(s32 arg0) {
     }
     game_uso_func_049280();
     game_uso_func_048020((s32) &sp30, 0xF10, 0x10);
-    if (sp30 != 0x04080040) {
+    if (sp30[0] != 0x04080040) {
+        var_v0 = 0;
+    } else if (sp30[1] != 0x02081040) {
         var_v0 = 0;
     } else {
         var_v0 = 1;
-        if (sp34 != 0x02081040) {
-            var_v0 = 0;
-        }
     }
     if (var_v0 == 0) {
         game_uso_func_0000D5BC(arg0, *(Pair2*)&game_uso_D_807FF3B0);
