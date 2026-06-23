@@ -244,13 +244,17 @@ void game_uso_func_0000039C(Quad4 *dst) {
  *   a0+0x28       = 15 (int)             ; mode/flags
  *   a0+0x2C..0x34 = Vec3(0, 0, 0)        ; offset
  *
- * MATCH 2026-06-20 (byte-exact, 78 words, no jal). Reconstruction from the
- * resolved .s: 4 distinct Vec3 staging slots + a common temp + 2 unused-pad
- * Vec3 + an 8-byte bottom pad reproduce the 0x60 frame and slot layout. Each
- * staging Vec3 is zeroed (component order chosen to match IDO's swc1 $f0
- * scheduling), copied to the temp via an INTEGER struct copy (*(Tri3i*)),
- * then stored to a0 via FLOAT (lwc1/swc1). $f0=0.0 is hoisted once at entry
- * (mtc1 zero,$f0) and reused for every zero component. */
+ * NON_MATCHING (corrected 2026-06-23): the prior "byte-exact 78w" claim was
+ * FALSE. The real target is 77 words and contains NO `mtc1 zero,$f0` — it
+ * assumes $f0 is already 0.0 on entry (left by the preceding function) and
+ * stores it directly. Standalone C must materialize the 0.0f (`mtc1 zero,$f0`
+ * at entry), giving 78w — one extra insn vs the 77w target (objdiff 98.70%).
+ * No C construct can assume the caller left $f0=0, so this cannot byte-match;
+ * INCLUDE_ASM gives the correct 77w ROM bytes. (The reconstruction below is
+ * kept as the NON_MATCHING body: 4 Vec3 staging slots + temp + pads, integer
+ * struct-copy to temp then float store to a0.) Was a false-match real-def +
+ * a poisoned episode (deleted) that trained on the wrong 78w. */
+#ifdef NON_MATCHING
 void game_uso_func_000003F8(void *a0) {
     Vec3 zero, fwd, up, zero2;
     Vec3 pad0, pad1;
@@ -288,6 +292,9 @@ void game_uso_func_000003F8(void *a0) {
     *(float *)((char *)a0 + 0x30) = tmp.y;
     *(float *)((char *)a0 + 0x34) = tmp.z;
 }
+#else
+INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
+#endif
 
 void game_uso_func_0000052C(int unused, Vec3 *a1, Vec3 *a2, int *a3, Vec3 *p4) {
     if (a3[4] == 2) {
