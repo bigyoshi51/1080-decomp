@@ -253,24 +253,36 @@ void mgrproc_uso_func_000009A8(int *a0) {
 extern int import_000B574C();
 extern int mgrproc_uso_D_01F97C();
 extern int import_000AE5B0();
+/* -O0 OR-accumulate loop. 14-diff NM (45/48 insns exact): the entire algorithm,
+ * all 3 import jals, the do-while loop, and the prologue match. Levers applied:
+ *   - imports called DIRECTLY (not via `((int(*)())import)()` casts) -> `jal`
+ *     not `lui;addiu;jalr` (K&R-direct-call lever; saved 6 insns).
+ *   - `register s32 r` -> the call result lands in callee-saved s0 (target's
+ *     `move s0,v0; or t2,acc,s0`), and the -O0 stack layout (buf@48,count@44,
+ *     acc@40,i@36) falls out of decl order.
+ *   - `} while (++i < count)` (NOT `i++; } while(i<count)`) reuses the
+ *     incremented i in the slt instead of reloading from the stack.
+ * Residual (3 insns, coupled -O0 codegen): the tail reads buf[0] via an
+ * address recompute (`addiu t,sp,48; lw 0(t)`) vs target's direct `lw 48(sp)`,
+ * plus a trailing dead `b epilogue` (the -O0 inner-exit-branch pattern,
+ * docs/PATTERNS.md "Inner return ... extra branch" — goto-out made it worse
+ * here). Not landable until those 3 insns close. */
 s32 mgrproc_uso_func_00000A14(s32 *arg0, s32 *arg1) {
     s32 buf[8];
     s32 count;
     s32 acc;
     s32 i;
-    s32 r;
+    register s32 r;
 
     acc = 0;
-    count = ((int(*)())import_000B574C)(*arg0);
-    ((int(*)())mgrproc_uso_D_01F97C)(*arg0, &buf[0]);
+    count = import_000B574C(*arg0);
+    mgrproc_uso_D_01F97C(*arg0, &buf[0]);
     i = 0;
-    if (count > 0) {
+    if (count > 0)
         do {
-            r = ((int(*)())import_000AE5B0)(buf[i]);
+            r = import_000AE5B0(buf[i]);
             acc |= r;
-            i++;
-        } while (i < count);
-    }
+        } while (++i < count);
     *arg1 = buf[0];
     return acc;
 }
