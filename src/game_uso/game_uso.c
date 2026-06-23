@@ -377,13 +377,13 @@ void game_uso_func_00000724(char *a0) {
   {
     do
     {
-      int tmp = gl_func_00000000(0x38);
+      int tmp = game_uso_func_055750(0x38);
       if (1)
       {
         *((int *) (((char *) p) + 0x38)) = tmp;
-        gl_func_00000000(tmp);
+        game_uso_func_000003F4(tmp);
       }
-      gl_func_00000000(*((int *) (((char *) p) + 0x38)));
+      game_uso_func_000005B8((Vec3 *) *((int *) (((char *) p) + 0x38)));
       if (!a0)
       {
       }
