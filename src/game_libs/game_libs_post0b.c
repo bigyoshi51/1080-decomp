@@ -26871,134 +26871,166 @@ void gl_func_00056974(char *arg0, char *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056974);
 #endif
 
+/* gl_func_00056D14: 10-case GP-command dispatch (mask = a1->4 & 0xF00), each
+ * arm appends an 8-byte GFX word pair to the list at a0->C. STRUCTURAL CAP
+ * (66.51->72.61 fuzzy, permuter best score 4205 @ ~12k iters, NOT coloring):
+ * target packs the whole beq dispatch with delay-slot li/body loads + uses
+ * beqzl for case 0, AND keeps arg0 in $a0 / mask in $a2 / append-ptr in $a1
+ * (reusing dead arg1). Both `switch` (slti binary-search) and `if/goto` chain
+ * leave arg0 spilled (`move a2,a0`) and emit a +6..8-insn looser dispatch with
+ * nop/bnel delays — a coupled $a-class regalloc + dispatch-packing divergence
+ * unreachable from C. Permuter ($a-class resist) plateaus at 72.61. Body
+ * (factory permuter best) is the highest-fuzzy NM form; ROM path = INCLUDE_ASM. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00056D14)();
 void gl_func_00056D14(char *arg0, char *arg1) {
-    s32 temp_a2;
-    s32 temp_v0;
-    s32 temp_v1;
-    s32 temp_v1_10;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 temp_v1_4;
-    s32 temp_v1_5;
-    s32 temp_v1_6;
-    s32 temp_v1_7;
-    s32 temp_v1_8;
-    s32 temp_v1_9;
-    char *temp_a1;
-    char *temp_a1_10;
-    char *temp_a1_2;
-    char *temp_a1_3;
-    char *temp_a1_4;
-    char *temp_a1_5;
-    char *temp_a1_6;
-    char *temp_a1_7;
-    char *temp_a1_8;
-    char *temp_a1_9;
-    char *temp_v0_10;
-    char *temp_v0_11;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *temp_v0_7;
-    char *temp_v0_8;
-    char *temp_v0_9;
+  s32 temp_a2;
+  s32 temp_v0;
+  s32 temp_v1;
+  s32 temp_v1_10;
+  s32 temp_v1_2;
+  s32 temp_v1_3;
+  s32 temp_v1_4;
+  s32 temp_v1_5;
+  s32 temp_v1_6;
+  s32 temp_v1_7;
+  s32 temp_v1_8;
+  s32 temp_v1_9;
+  char *temp_a1;
+  char *temp_a1_10;
+  char *temp_a1_2;
+  char *temp_a1_3;
+  char *temp_a1_4;
+  char *temp_a1_5;
+  char *temp_a1_6;
+  char *temp_a1_7;
+  char *temp_a1_8;
+  char *temp_a1_9;
+  char *temp_v0_10;
+  char *temp_v0_11;
+  char *temp_v0_2;
+  char *temp_v0_3;
+  char *temp_v0_4;
+  char *temp_v0_5;
+  char *temp_v0_6;
+  char *temp_v0_7;
+  char *temp_v0_8;
+  char *temp_v0_9;
+  temp_v0 = *((int *) (((char *) arg1) + 0x4));
+  temp_a2 = temp_v0 & 0xF00;
+  if (temp_a2 == 0x0)
+  {
+    goto c0;
+  }
+  if (temp_a2 == 0x400)
+  {
+    goto c400;
+  }
+  if (temp_a2 == 0x100)
+  {
+    goto c100;
+  }
+  if (temp_a2 == 0x200)
+  {
+    goto c200;
+  }
+  if (temp_a2 == 0x600)
+  {
+    goto c500;
+    goto c200;
+  }
+  if (temp_a2 == 0x500)
+  {
+  }
+  if (temp_a2 == 0xA00)
+  {
+    goto cA00;
+  }
+  if (temp_a2 == 0xB00)
+  {
+    goto cB00;
+  }
+  if (temp_a2 == 0x900)
+  {
+    goto c900;
+  }
+  if (temp_a2 == 0x300)
+  {
+    goto c300;
+  }
+  goto cdef;
+  c0:
+  temp_v0_2 = *((int *) (((char *) arg0) + 0xC));
 
-    temp_v0 = FW(arg1, 0x4);
-    temp_a2 = temp_v0 & 0xF00;
-    switch (temp_a2) {                              /* irregular */
-    case 0x0:
-        temp_v0_2 = FW(arg0, 0xC);
-        temp_v1 = FW(temp_v0_2, 0x4);
-        FW(temp_v0_2, 0x4) = (s32) (temp_v1 + 1);
-        temp_a1 = FW(FW(arg0, 0xC), 0x0) + (temp_v1 * 8);
-        FW(temp_a1, 0x0) = 0xFCFFFFFF;
-        FW(temp_a1, 0x4) = 0xFFFE7838;
-        return;
-    case 0x400:
-        temp_v0_3 = FW(arg0, 0xC);
-        temp_v1_2 = FW(temp_v0_3, 0x4);
-        FW(temp_v0_3, 0x4) = (s32) (temp_v1_2 + 1);
-        temp_a1_2 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_2 * 8);
-        FW(temp_a1_2, 0x0) = 0xFCFFFFFF;
-        FW(temp_a1_2, 0x4) = 0xFFFDF638;
-        return;
-    case 0x100:
-        temp_v0_4 = FW(arg0, 0xC);
-        temp_v1_3 = FW(temp_v0_4, 0x4);
-        FW(temp_v0_4, 0x4) = (s32) (temp_v1_3 + 1);
-        temp_a1_3 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_3 * 8);
-        FW(temp_a1_3, 0x0) = 0xFCFFFFFF;
-        FW(temp_a1_3, 0x4) = 0xFFFCF238;
-        return;
-    case 0x200:
-    case 0x600:
-        temp_v0_5 = FW(arg0, 0xC);
-        temp_v1_4 = FW(temp_v0_5, 0x4);
-        FW(temp_v0_5, 0x4) = (s32) (temp_v1_4 + 1);
-        temp_a1_4 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_4 * 8);
-        FW(temp_a1_4, 0x0) = 0xFC30B3FF;
-        FW(temp_a1_4, 0x4) = 0x4FFE4838;
-        return;
-    case 0x500:
-        temp_v0_6 = FW(arg0, 0xC);
-        temp_v1_5 = FW(temp_v0_6, 0x4);
-        FW(temp_v0_6, 0x4) = (s32) (temp_v1_5 + 1);
-        temp_a1_5 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_5 * 8);
-        FW(temp_a1_5, 0x0) = 0xFC30B3FF;
-        FW(temp_a1_5, 0x4) = -0x1C8;
-        return;
-    case 0xA00:
-        temp_v0_7 = FW(arg0, 0xC);
-        temp_v1_6 = FW(temp_v0_7, 0x4);
-        FW(temp_v0_7, 0x4) = (s32) (temp_v1_6 + 1);
-        temp_a1_6 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_6 * 8);
-        FW(temp_a1_6, 0x0) = 0xFC40B3FF;
-        FW(temp_a1_6, 0x4) = 0x3FFDFE38;
-        return;
-    case 0xB00:
-        temp_v0_8 = FW(arg0, 0xC);
-        temp_v1_7 = FW(temp_v0_8, 0x4);
-        FW(temp_v0_8, 0x4) = (s32) (temp_v1_7 + 1);
-        temp_a1_7 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_7 * 8);
-        FW(temp_a1_7, 0x0) = 0xFC40E3FF;
-        FW(temp_a1_7, 0x4) = 0x3FFDCE38;
-        return;
-    case 0x900:
-        temp_v0_9 = FW(arg0, 0xC);
-        temp_v1_8 = FW(temp_v0_9, 0x4);
-        FW(temp_v0_9, 0x4) = (s32) (temp_v1_8 + 1);
-        temp_a1_8 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_8 * 8);
-        FW(temp_a1_8, 0x0) = 0xFC30B3FF;
-        FW(temp_a1_8, 0x4) = 0x5FFEFE38;
-        return;
-    case 0x300:
-        if (temp_v0 & 0x80000) {
-            temp_v0_10 = FW(arg0, 0xC);
-            temp_v1_9 = FW(temp_v0_10, 0x4);
-            FW(temp_v0_10, 0x4) = (s32) (temp_v1_9 + 1);
-            temp_a1_9 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_9 * 8);
-            FW(temp_a1_9, 0x0) = 0xFC127FFF;
-            FW(temp_a1_9, 0x4) = -0xDC8;
-            return;
-        }
-        temp_v0_11 = FW(arg0, 0xC);
-        temp_v1_10 = FW(temp_v0_11, 0x4);
-        FW(temp_v0_11, 0x4) = (s32) (temp_v1_10 + 1);
-        temp_a1_10 = FW(FW(arg0, 0xC), 0x0) + (temp_v1_10 * 8);
-        FW(temp_a1_10, 0x0) = 0xFC257E04;
-        FW(temp_a1_10, 0x4) = 0x1FFCF3F8;
-        return;
-    default:
-        gl_func_00034458(0x2199C, temp_a2, temp_a2);
-        return;
-    }
+  temp_v1 = *((int *) (((char *) temp_v0_2) + 0x4));
+  *((int *) (((char *) temp_v0_2) + 0x4)) = (s32) (temp_v1 + 1);
+  temp_a1 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1 * 8);
+  *((int *) (((char *) temp_a1) + 0x0)) = 0xFCFFFFFF;
+  *((int *) (((char *) temp_a1) + 0x4)) = 0xFFFE7838;
+  goto end;
+  c400:
+  temp_v0_3 = *((int *) (((char *) arg0) + 0xC));
+
+  temp_v1_2 = *((int *) (((char *) temp_v0_3) + 0x4));
+  *((int *) (((char *) temp_v0_3) + 0x4)) = (s32) (temp_v1_2 + 1);
+  temp_a1_2 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_2 * 8);
+  *((int *) (((char *) temp_a1_2) + 0x0)) = 0xFCFFFFFF;
+  *((int *) (((char *) temp_a1_2) + 0x4)) = 0xFFFDF638;
+  goto end;
+  c100:
+  temp_v0_4 = *((int *) (((char *) arg0) + 0xC));
+
+  temp_v1_3 = *((int *) (((char *) temp_v0_4) + 0x4));
+  *((int *) (((char *) temp_v0_4) + 0x4)) = (s32) (temp_v1_3 + 1);
+  temp_a1_3 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_3 * 8);
+  *((int *) (((char *) temp_a1_3) + 0x0)) = 0xFCFFFFFF;
+  *((int *) (((char *) temp_a1_3) + 0x4)) = 0xFFFCF238;
+  goto end;
+  c200:
+  temp_v0_5 = *((int *) (((char *) arg0) + 0xC));
+
+  temp_v1_4 = *((int *) (((char *) temp_v0_5) + 0x4));
+  *((int *) (((char *) temp_v0_5) + 0x4)) = (s32) (temp_v1_4 + 1);
+  temp_a1_4 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_4 * 8);
+  *((int *) (((char *) temp_a1_4) + 0x0)) = 0xFC30B3FF;
+  *((int *) (((char *) temp_a1_4) + 0x4)) = 0x4FFE4838;
+  goto end;
+  c500:
+  temp_v0_6 = *((int *) (((char *) arg0) + 0xC));
+
+  temp_v1_5 = *((int *) (((char *) temp_v0_6) + 0x4));
+  *((int *) (((char *) temp_v0_6) + 0x4)) = (s32) (temp_v1_5 + 1);
+  temp_a1_5 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_5 * 8);
+  *((int *) (((char *) temp_a1_5) + 0x0)) = 0xFC30B3FF;
+  *((int *) (((char *) temp_a1_5) + 0x4)) = -0x1C8;
+  goto end;
+  cA00:
+  temp_v0_7 = *((int *) (((char *) arg0) + 0xC));
+
+  temp_v1_6 = *((int *) (((char *) temp_v0_7) + 0x4));
+  *((int *) (((char *) temp_v0_7) + 0x4)) = (s32) (temp_v1_6 + 1);
+  temp_a1_6 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_6 * 8);
+  *((int *) (((char *) temp_a1_6) + 0x0)) = 0xFC40B3FF;
+  *((int *) (((char *) temp_a1_6) + 0x4)) = 0x3FFDFE38;
+  goto end;
+  cB00:
+  temp_v0_8 = *((int *) (((char *) arg0) + 0xC));
+
+  temp_v1_7 = *((int *) (((char *) temp_v0_8) + 0x4));
+  *((int *) (((char *) temp_v0_8) + 0x4)) = (s32) (temp_v1_7 + 1);
+  temp_a1_7 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_7 * 8);
+  *((int *) (((char *) temp_a1_7) + 0x0)) = 0xFC40E3FF;
+  *((int *) (((char *) temp_a1_7) + 0x4)) = 0x3FFDCE38;
+  goto end;
+  c900:
+  temp_v0_9 = *((int *) (((char *) arg0) + 0xC));
+
+ temp_v1_8 = *((int *) (((char *) temp_v0_9) + 0x4)); *((int *) (((char *) temp_v0_9) + 0x4)) = (s32) (temp_v1_8 + 1); temp_a1_8 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_8 * 8); *((int *) (((char *) temp_a1_8) + 0x0)) = 0xFC30B3FF; *((int *) (((char *) temp_a1_8) + 0x4)) = 0x5FFEFE38; goto end; c300: if (temp_v0 & 0x80000) { temp_v0_10 = *((int *) (((char *) arg0) + 0xC)); temp_v1_9 = *((int *) (((char *) temp_v0_10) + 0x4)); *((int *) (((char *) temp_v0_10) + 0x4)) = (s32) (temp_v1_9 + 1); temp_a1_9 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_9 * 8); *((int *) (((char *) temp_a1_9) + 0x0)) = 0xFC127FFF; *((int *) (((char *) temp_a1_9) + 0x4)) = -0xDC8; goto end; } temp_v0_11 = *((int *) (((char *) arg0) + 0xC)); temp_v1_10 = *((int *) (((char *) temp_v0_11) + 0x4)); *((int *) (((char *) temp_v0_11) + 0x4)) = (s32) (temp_v1_10 + 1); temp_a1_10 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_10 * 8); *((int *) (((char *) temp_a1_10) + 0x0)) = 0xFC257E04; *((int *) (((char *) temp_a1_10) + 0x4)) = 0x1FFCF3F8; goto end; cdef: gl_func_00034458(0x2199C, temp_a2, temp_a2); end: ;
+  ;
+  ;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056D14);
