@@ -69,52 +69,73 @@ extern OSEventState __osEventStateTab[];
 
 /* func_80009474 split out to kernel_054.c (-O1, NON_MATCHING) */
 
-/* func_80009584 - verified structural decode (kernel, 0x118, rmon
- * debug command handler). SIBLING of the rmon family (calls
- * __rmonSendHeader; cf. func_8000798C / func_80007A98 / RmonMsg).
- * Struct-typing reference: s0 = RmonMsg (same layout as the
- * func_8000798C family) - s0->0x4 (4) u8 domain, s0->0xC (12) type;
- * stack rmon header at sp+0x30 {type@+0, 0x210 const at +4,
- * flags@+0x6 (u16), domain@+0xA (u8)}. func_800066F0(dst, maxlen,
- * chunk) = bounded read returning bytes read; needs >=4 to proceed.
- * __rmonSendHeader(hdr, len=0x10, flag=1) = the shared rmon emit.
- * The 0x20-iteration loop (func_800090B4(0x3A,i) build +
- * func_80008498 + func_800074A0(0x04000000=PI/cart, 0x10) IO)
- * streams 32 records; func_80009148(1)/func_800091F0(1) = bracket
- * begin/end. Caps <80: rmon stack-struct builder + bounded-read +
- * 32x callee loop + 8 distinct callees. INCLUDE_ASM remains build
- * path (no episode; tautology-trap rule). */
+/* func_80009584 - near-exact structural decode (kernel, 0x118, rmon
+ * debug command handler). All logic, callees, loop structure and frame
+ * layout match the target; residual is a pure IDO coloring/scheduling
+ * cap (~6 diff words of 70, 0 logic diffs). REGALLOC/SCHED residual,
+ * NOT a logic bug - verified with decomp-permuter (~5500 iters, base
+ * score 410 -> 255, never reached 0).
+ *
+ * Corrected vs prior decode: the 0xA4 call is __rmonSendHeader (real
+ * symbol @0x80007360), NOT func_800073F8 (@0x800073F8) - the prior
+ * fn-ptr cast pointed at the wrong address. func_800074A0 is a direct
+ * jal (no cast). Both now link-direct to real kernel symbols.
+ *
+ * Shape: arg0 = RmonMsg (s0->0x4 u8 type, s0->0xC s32 code). Stack
+ * rmon header at sp+0x30 {zero0=0x210 @+0, type @+4 (u8), flags @+6
+ * (u16)=0, code @+0xC (s32)}, len 0x10. A 1-word local `val`=0x210 is
+ * read over by func_800066F0(&val+cnt, 4-cnt, 8) until cnt>=4 (mirrors
+ * kernel_043 func_80006FF8 bounded-read idiom). Then __rmonSendHeader
+ * + func_80009148(1) begin; 0x20-iter loop emits records via
+ * func_800090B4(0x3A,i)/func_80008498/func_800074A0(0x04000000,0x10);
+ * func_800091F0(1) ends. Large 0x200 unused stack buffer (buf[128])
+ * present in the original frame (0x250) - hence the buf decl.
+ *
+ * Residual diffs: (1) prologue s0-save ordering; (2) target reloads s0
+ * into the delay slot of the func_80008430 call while IDO here emits a
+ * dead `lw a0` + separate `lw s0` (+1 insn); (3) a 4-byte stack-pad
+ * placement shift on the val/cnt/p trio (target 0x244/0x248/0x24C vs
+ * 0x240/0x244/0x248); (4) branch-target offsets cascade from (2).
+ * INCLUDE_ASM remains build path (no episode; not byte-exact). */
 #ifdef NON_MATCHING
-extern int func_800066F0(void *dst, int maxlen, int chunk);
-extern void func_80009148(int x);
-extern void func_800090B4(int a, int b);
-extern void func_80008498(void);
-extern void func_800091F0(int x);
-extern void func_800073F8();   /* fn-ptr-cast at call site below */
-extern void func_800074A0();   /* fn-ptr-cast at call site below */
-s32 func_80009584(char *s0) {
-    int hdr[4];
-    int buf[128];  /* sp+0x244 */
-    int *bufptr;
-    int cnt = 0;
-    int n;
-    int i;
-    if (func_80008430((s32)s0) == 0) return -4;
-    hdr[0] = *(int*)(s0 + 0xC);
-    hdr[1] = 0x210;
-    *(unsigned short*)((char*)hdr + 0x6) = 0;
-    *(unsigned char*)((char*)hdr + 0xA) = *(unsigned char*)(s0 + 0x4);
-    bufptr = buf;
-    n = func_800066F0((char*)bufptr + cnt, 4 - cnt, 8);
-    cnt += n;
-    if (cnt >= 4) {
-        ((void (*)(void*, int, int))func_800073F8)(hdr, 0x10, 1);
-        func_80009148(1);
-        for (i = 0; i < 0x20; i++) {
-            func_800090B4(0x3A, i);
-            func_80008498();
-            ((void (*)(unsigned int, int))func_800074A0)(0x04000000U, 0x10);
-        }
+extern s32 func_800066F0(void*, s32, s32);
+extern void __rmonSendHeader(s32*, s32, s32);
+extern void func_800090B4(s32, s32);
+extern void func_800074A0(s32, s32);
+
+typedef struct { s32 zero0; u8 type; char pad5; u16 flags; s32 pad8; s32 code; } RmonHdr16;
+
+s32 func_80009584(char* arg0) {
+    register char* s0;
+    char* p;
+    s32 cnt;
+    s32 val;
+    s32 buf[128];
+    RmonHdr16 hdr;
+    register s32 i;
+    register s32 recv;
+
+    if (func_80008430((s32)arg0) != 0) {
+        return -4;
+    }
+    s0 = arg0;
+    hdr.code = *(s32*)(s0 + 0xC);
+    hdr.type = *(u8*)(s0 + 0x4);
+    hdr.zero0 = 0x210;
+    hdr.flags = 0;
+    val = 0x210;
+    p = (char*)&val;
+    cnt = 0;
+    do {
+        recv = func_800066F0(p + cnt, 4 - cnt, 8);
+        cnt += recv;
+    } while (cnt < 4);
+    __rmonSendHeader((s32*)&hdr, 0x10, 1);
+    func_80009148(1);
+    for (i = 0; i < 0x20; i++) {
+        func_800090B4(0x3A, i);
+        func_80008498();
+        func_800074A0(0x04000000, 0x10);
     }
     func_800091F0(1);
     return 0;

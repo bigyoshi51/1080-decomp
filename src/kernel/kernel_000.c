@@ -202,44 +202,70 @@ void func_80000118(s32 a0, s32 a1) {
 #ifdef NON_MATCHING
 /* String-compare returning 0 if equal, 1 if different.
  *
- * UPDATE 2026-05-02: 124 → 120 bytes (target 116) via goto-based structure
- * with `p1 = a0` saved across loop iter (mirrors target's `or v1, a0, zero`
- * delay slot). 4 bytes closer to target.
+ * UPDATE 2026-06-23: SIZE-EXACT (116B / 29 words) with HEAD (entry v0 check +
+ * `sltu v1,zero,v0` in the beql delay) and TAIL (merged `v1 = v0 != 0; if(v1)
+ * return v1; v1 = *a1 != 0` returning via `bnel v1,0 / or v0,v1` delay) now
+ * BYTE-EXACT. The old 4-byte-too-long beql cap was a TAIL-shape problem:
+ * splitting the final return into `var_v1 = var_v0 != 0; if (var_v1 == 0)
+ * var_v1 = *arg1 != 0;` produces the target's `bnel`+`sltu` tail exactly.
  *
- * Remaining 4 bytes / 1-insn cap: target uses `beql v0, zero, end` with
- * `sltu v1, zero, v0` in delay slot for entry/loop-tail v0==0 checks; mine
- * emits `beq v0, zero` with nop-filled delay. To reach target, IDO needs to
- * recognize the v0==0 branch's target as starting with the sltu pattern (so
- * it can hoist into delay), but my tail uses `if (v0 != 0) return 1;` which
- * compiles to a different shape. Tried (v4): explicit `v1 = v0 != 0; if(v1)
- * return v1;` — compiles to 124 bytes (back to baseline, sltu emitted but
- * with different surrounding structure). Cap is structural beql-emission
- * not flippable from C. */
-s32 func_80000168(char *a0, char *a1) {
-    s32 v0;
-    s32 t7, t8;
-    char *vv;
-    char *p1;
+ * Residual: 18 loop-body word diffs (offsets 0x16c-0x1b0). Root cause is a
+ * single IDO -O2 CSE/scheduling artifact: the target reads `*a1` in the loop
+ * THROUGH a freshly-saved pointer (`or v0,a1,zero; lbu t7,0(v0)`) — distinct
+ * from the entry/bottom `*a1` null-checks (t6/t9) — which keeps the entry
+ * check a PLAIN `beqz t6` with the `pa = arg0` save (`or v1,a0`) filling its
+ * delay slot. Our build CSEs the entry `*arg1` check with the loop's first
+ * `*pb` read, so the entry check becomes branch-LIKELY (`beqzl`, sltu in
+ * delay) and the loop loses the dual-pointer indirection; everything from
+ * 0x16c on cascades. This is the as1 branch-delay-fill priority quirk
+ * (from-before pa-save vs likely-copy sltu) combined with -O2 load CSE — not
+ * reachable from C. Verified: ~13 hand variants (do-while/goto, explicit
+ * temps t6/t9, pa-save in if-branch delay, split end/pre_end entry points,
+ * inline *pb deref) all regress or hold at 18; permuter 14.5k iters floored
+ * at score 370 (no zero, structural). Genuine loop-body coloring/CSE cap. */
+s32 func_80000168(u8 *arg0, u8 *arg1) {
+    s32 var_v1;
+    s32 temp_t7;
+    s32 temp_t8;
+    s32 var_v0;
+    s32 temp_t6;
+    s32 temp_t9;
+    u8 *pa;
+    u8 *pb;
 
-    v0 = (u8)*a0;
-    if (v0 == 0) goto tail;
-    if ((u8)*a1 == 0) goto tail;
-    p1 = a0;
-loop:
-    vv = a1;
-    t7 = (u8)*vv;
-    t8 = (u8)*p1;
-    a1++;
-    a0++;
-    if (t7 != t8) return 1;
-    v0 = (u8)*a0;
-    if (v0 == 0) goto tail;
-    if ((u8)*a1 == 0) goto tail;
-    p1 = a0;
-    goto loop;
-tail:
-    if (v0 != 0) return 1;
-    return (u8)*a1 != 0;
+    var_v0 = *arg0;
+    if (var_v0 == 0) {
+        goto block_6;
+    }
+    temp_t6 = *arg1;
+    pa = arg0;
+    if (temp_t6 == 0) {
+        goto block_6;
+    }
+loop_2:
+    pb = arg1;
+    temp_t7 = *pb;
+    temp_t8 = *pa;
+    arg1 += 1;
+    arg0 += 1;
+    if (temp_t7 != temp_t8) {
+        return 1;
+    }
+    var_v0 = *arg0;
+    if (var_v0 == 0) {
+        goto block_6;
+    }
+    temp_t9 = *arg1;
+    pa = arg0;
+    if (temp_t9 != 0) {
+        goto loop_2;
+    }
+block_6:
+    var_v1 = var_v0 != 0;
+    if (var_v1 == 0) {
+        var_v1 = *arg1 != 0;
+    }
+    return var_v1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80000168);

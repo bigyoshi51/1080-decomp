@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80008C30",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T12:00:00.000000+00:00",
+  "end_time": "2026-06-23T12:45:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T12:45:00.000000+00:00",
+      "assistant_text": "RSP/RDP-style command emit (kernel_022_d, -O1, 0x84 / 33 insns): a0 carries a 6-bit signed field x, a1 a 5-bit signed field y. They are packed into a 4-byte stack command word (byte0 bits 2-7 = x<<2, byte1 bits 0-4 = y), then func_80006A50(0x04001000, word) submits the word and func_80006A50(0x04080000, 0) kicks/commits. Disassembled the target from expected/src/kernel/kernel_022_d.c.o (objdump -dr). The prior NM wrap was recorded as a ~68% structure-driven cap with char bitfields. Two levers cracked it byte-exact: (1) use INT bitfields, not char -- a char/signed-char bitfield forces an 8-bit sign-truncation (sll 0x18; sra 0x18) on the assigned value before the field shift, which the target does NOT have; int bitfields store the already-6-bit sign-extended value directly (target's plain sll<<2; andi 0xfc). (2) route the word zero-init and the *(int*) read through a union { struct bits; s32 w; } overlay -- a bare struct with *(int*)&cmd reads (or a u8[4] array) is address-taken at -O1 (addiu rX,sp; sw zero,0(rX) ... lw a1,0(rX)), whereas union.w keeps it a direct frame slot (single sw zero,28(sp); direct lb/sb RMW; lw a1,28(sp)). The byte read-backs survive as andi 0xff03 / 0xffe0 (complement masks promoted to int, low-16 andi imm). build/.o vs expected/.o: 33 insns / 0x84 bytes byte-identical. Full make clean && make ROM byte-identical to baserom (cmp tenshoe.z64 baserom.z64 clean; sha1 79cd1166c365e5809dec9b62e6d40d6032d5db3a; make verify: ROM OK). Kernel link-direct, real symbols.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 33,
+  "initial_m2c_source": null,
+  "final_source": "typedef struct {\n    int x : 6;\n    int f0lo : 2;\n    int f1hi : 3;\n    int y : 5;\n    int b2 : 8;\n    int b3 : 8;\n} CmdBits8C30;\n\ntypedef union {\n    CmdBits8C30 c;\n    s32 w;\n} CmdU8C30;\n\nvoid func_80008C30(int a0, int a1) {\n    CmdU8C30 u;\n    u.w = 0;\n    u.c.x = (a0 << 26) >> 26;\n    u.c.y = (a1 << 27) >> 27;\n    func_80006A50(0x04001000, u.w);\n    func_80006A50(0x04080000, 0);\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_022_d.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/kernel/func_80008C30.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "build/.o vs expected/.o func region 0x9C30..0x9CB4: 33 insns (0x84 bytes) byte-identical; full make clean && make ROM byte-identical to baserom (cmp tenshoe.z64 baserom.z64 clean; sha1 79cd1166c365e5809dec9b62e6d40d6032d5db3a; make verify OK). Cracked the old ~68% char-bitfield cap via int bitfields (kills 8-bit sign-truncation) + union overlay (kills address-taken init/read at -O1)."
+  }
+}

@@ -207,52 +207,77 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80008E98);
 #endif
 extern void *func_800077DC(s32);
 extern void func_800073F8();
-/* rmon GPR-save: copy the message's general regs into the live debug context
- * (func_800077DC) as sign-extended 64-bit pairs, stamp the special regs, send a
- * 0x10 ack header (func_800073F8 = __rmonSendHeader). Returns -2 if the message
- * targets a non-zero sub-id or the context is missing. Merged symbol (0x150);
+/* rmon GPR-save (inverse of func_80008E98 register-FETCH): copy the message's
+ * general regs into the live debug context (func_800077DC) as sign-extended
+ * 64-bit pairs, stamp the 3 special regs, send a 0x10 ack header
+ * (func_800073F8 = __rmonSendHeader). Returns -2 if the message targets a
+ * non-zero sub-id or the context is missing. Merged symbol (0x150);
  * func_80009000/9030 are link-time alt-entry labels resolved via undefined_syms,
- * preserved by the #else INCLUDE_ASM path. */
+ * preserved by the #else INCLUDE_ASM path.
+ *
+ * 2026-06-23 DEEP RECONSTRUCT (agent-d): 40.75% -> 83.55% NM. Logic is now
+ * byte-exact in SHAPE — prologue (s0 = arg0 reloaded from sp+0x40 spill via
+ * `register s32 *msg`, s1 = loop counter via `register s32 i`, frame -0x40),
+ * both guards (msg[9]!=0 and ctx==NULL with the two `li -2` returns in ROM
+ * order), and BOTH sign-extend-store loops match the target mnemonic-for-
+ * mnemonic, INCLUDING the redundant `or $t5,$t2,$zero` lo-half move. The crack
+ * was writing each pair as a single 64-bit store `*p = (s64)msg[i+4];` with
+ * `p` a `s64 *` (NOT two s32 stores via a spilled `temp` local, which forced an
+ * extra +0x8 frame slot and a temp spill/reload — that variant capped at
+ * 40.75%/-0x48). The s64-store form drops the temp slot, restores frame size
+ * -0x40, and produces the hi(`sra ...,31`) + lo(`or ...,0`) pair the target
+ * uses.
+ *
+ * RESIDUAL = IDO frame SLOT-ORDERING (the documented allocno-numbering cap, NOT
+ * a logic bug — same class as sibling func_80008E98): the target assigns the
+ * spill temporaries (ctx, loop pointer) the LOW slots (sp+0x24 ptr / sp+0x28
+ * ctx) and the address-taken `hdr` aggregate the HIGH slots (sp+0x2C+); IDO 7.1
+ * here does the opposite (hdr at sp+0x24, spills high at sp+0x30/0x34). Frame
+ * SIZE matches (-0x40); only the within-frame zone assignment differs, shifting
+ * every remaining sp-relative immediate, plus the two jal targets (link-time
+ * relocs, harmless) and the derived branch displacements. Tried: decl-order
+ * permutation (hdr-first vs scalars-first: no effect on zone), early-return-
+ * flat restructure (82.89%, worse — moved the guard block). Permuter conceded:
+ * this is a multi-diff slot-offset residual, which objdiff normalizes
+ * (false-positive class, see docs/TOOLING_DECOMP) and which the factory rules
+ * say plateaus and doesn't fall. Honest NON_MATCHING; default INCLUDE_ASM build
+ * stays byte-exact. */
 s32 func_80008FF4(void *arg0) {
+    register s32 *msg = arg0;
+    register s32 i;
     void *ctx;
-    s32 *p;
-    s32 temp;
-    s32 i;
+    s64 *p;
     struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 id; } hdr;
 
-    if ((*(u8 *)((char *)arg0 + 9)) == 0) {
-        ctx = func_800077DC(FW(arg0, 0xC));
+    if (((u8 *)msg)[9] == 0) {
+        ctx = func_800077DC(msg[3]);
         if (ctx == NULL) {
             return -2;
         }
         i = 1;
-        p = (s32 *)((char *)ctx + 0x20);
+        p = (s64 *)((char *)ctx + 0x20);
         if (i < 0x1A) {
             do {
-                temp = FW(arg0, i * 4 + 0x10);
+                *p = (s64)msg[i + 4];
                 i += 1;
-                p[0] = temp >> 0x1F;
-                p[1] = temp;
-                p += 2;
+                p++;
             } while (i < 0x1A);
         }
         i = 0x1C;
-        p = (s32 *)((char *)ctx + 0xE8);
+        p = (s64 *)((char *)ctx + 0xE8);
         if (i < 0x22) {
             do {
-                temp = FW(arg0, i * 4 + 0x10);
+                *p = (s64)msg[i + 4];
                 i += 1;
-                p[0] = temp >> 0x1F;
-                p[1] = temp;
-                p += 2;
+                p++;
             } while (i < 0x22);
         }
-        FW(ctx, 0x120) = FW(arg0, 0x98);
-        FW(ctx, 0x11C) = FW(arg0, 0x9C);
-        FW(ctx, 0x118) = FW(arg0, 0xA0);
-        hdr.id = FW(arg0, 0xC);
+        FW(ctx, 0x120) = msg[0x26];
+        FW(ctx, 0x11C) = msg[0x27];
+        FW(ctx, 0x118) = msg[0x28];
+        hdr.id = msg[3];
         hdr.zero = 0;
-        hdr.tag = *(u8 *)((char *)arg0 + 4);
+        hdr.tag = ((u8 *)msg)[4];
         func_800073F8(&hdr, 0x10, 1);
         return 0;
     }

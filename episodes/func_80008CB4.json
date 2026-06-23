@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80008CB4",
+  "project": "1080-agent-b",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T12:00:00.000000+00:00",
+  "end_time": "2026-06-23T12:45:00.000000+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T12:45:00.000000+00:00",
+      "assistant_text": "Sibling of func_80008C30 (kernel_022_d, -O1, 0x94 / 37 insns): same RSP/RDP command-emit shape (6-bit x from a0 into byte0 bits 2-7, 5-bit y from a1 into byte1 bits 0-4) but packs a 3rd field z into byte2: target does lb byte2; andi 0xff07; ori 0x20; sb -- i.e. byte2 = (byte2 & 0x07) | 0x20. Modeled z as an int bitfield at byte2 bits 3-7 (int z:5; int b2lo:3) set to 4, so (4<<3)=0x20. Same two levers as the sibling: INT bitfields (no char 8-bit sign-truncation) + union { struct bits; s32 w; } overlay for the single sw-zero init and the direct-frame word read at -O1. build/.o vs expected/.o: 37 insns / 0x94 bytes byte-identical. Full make clean && make ROM byte-identical to baserom (cmp clean; sha1 79cd1166c365e5809dec9b62e6d40d6032d5db3a; make verify OK). Kernel link-direct, real symbols.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 37,
+  "initial_m2c_source": null,
+  "final_source": "typedef struct {\n    int x : 6;\n    int f0lo : 2;\n    int f1hi : 3;\n    int y : 5;\n    int z : 5;\n    int b2lo : 3;\n    int b3 : 8;\n} CmdBitsCB4;\n\ntypedef union {\n    CmdBitsCB4 c;\n    s32 w;\n} CmdUCB4;\n\nvoid func_80008CB4(int a0, int a1) {\n    CmdUCB4 u;\n    u.w = 0;\n    u.c.x = (a0 << 26) >> 26;\n    u.c.y = (a1 << 27) >> 27;\n    u.c.z = 4;\n    func_80006A50(0x04001000, u.w);\n    func_80006A50(0x04080000, 0);\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_022_d.c",
+    "asm_path": "projects/1080-agent-b/asm/nonmatchings/kernel/func_80008CB4.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "build/.o vs expected/.o func region 0x9CB4..0x9D48: 37 insns (0x94 bytes) byte-identical; full make clean && make ROM byte-identical to baserom (cmp tenshoe.z64 baserom.z64 clean; sha1 79cd1166c365e5809dec9b62e6d40d6032d5db3a; make verify OK)."
+  }
+}
