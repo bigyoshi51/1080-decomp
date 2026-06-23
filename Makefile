@@ -406,6 +406,10 @@ build/src/timproc_uso_b1/timproc_uso_b1_o0_65C.c.o build/non_matching/src/timpro
 TIMPROC_B3_65C_DONOR := build/src/timproc_uso_b3/timproc_uso_b3_o0_65C.c.o
 TIMPROC_B3_5A4_DONOR := build/src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c.o
 build/src/timproc_uso_b3/timproc_uso_b3.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3.c.o: REPLACE_FUNC_BODY := timproc_uso_b3_func_000005A4=$(TIMPROC_B3_5A4_DONOR) timproc_uso_b3_func_0000065C=$(TIMPROC_B3_65C_DONOR)
+# timproc_uso_b3_func_0000217C: byte-correct real-def whose target symbol has an extra
+# trailing alignment nop (target 0x34/13w vs build 0x30/12w). Grow the non_matching
+# symbol with one all-zero word so objdiff scores 13w. ROM-neutral (non_matching .o).
+build/non_matching/src/timproc_uso_b3/timproc_uso_b3.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := timproc_uso_b3_func_0000217C=0x00000000
 build/src/timproc_uso_b3/timproc_uso_b3_o0_65C.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3_o0_65C.c.o: OPT_FLAGS := -O0
 build/src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c.o build/non_matching/src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c.o: OPT_FLAGS := -O0
 # game_libs_func_0006C8AC: byte-identical twin of kernel func_80002BA8 (64-bit
