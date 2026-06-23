@@ -680,6 +680,28 @@ void titproc_uso_func_0000101C(int *a0) {
  *    closest form. Do not re-sweep switch shapes for this head.
  *    Remaining small gaps: lui/addiu materializes at 0x22C/0x28C and
  *    a nop/lw/li triplet at 0x2DC (per-arm reload items).
+ *  - PASS-10 2026-06-22 DEFINITIVE CAP CLASSIFICATION: the head's
+ *    jumptable is the documented EXTERNAL-NAMED-GLOBAL jumptable cap
+ *    (docs/PATTERNS.md "External-NAMED-global jumptable is
+ *    C-irreproducible"). The dispatch is
+ *      lui  at, %hi(import_00263E00 + 0x30)
+ *      addu at, at, t6        (t6 = state*4)
+ *      lw   t6, %lo(import_00263E00 + 0x30)(at)
+ *      jr   t6
+ *    i.e. the case-target table lives at import_00263E00+0x30 -- an
+ *    UNDEFINED EXTERNAL symbol (undefined_syms_auto.txt, links to
+ *    0x263E00, far outside this USO). A C `switch` ALWAYS synthesizes
+ *    its OWN LOCAL .rodata jumptable with a %hi/%lo(.rodata) self-ref
+ *    reloc; it can never emit %hi/%lo(import_00263E00+0x30). So the
+ *    4-entry table at word 8-11 is irreproducible REGARDLESS of switch
+ *    form (this is WHY the 9-form sweep failed -- not an IDO heuristic
+ *    quirk). PERMANENT cap. Drives the whole-body cascade (comb fallback
+ *    shifts every following insn). fuzzy ceiling ~86%.
+ *  - PASS-10 frame fix: switching the dispatch value to be read inline
+ *    (switch(*(int*)(s0+0x40))) instead of a reused `state` local, and
+ *    writing `state+1` as the literal `1`, dropped the frame 0x30->0x20
+ *    (target) and removed the arg/v0 stack spill across the dispatch.
+ *    84.87 -> 86.35. That is the realizable win; the head cap stands.
  *  - PASS-4 RECON 2026-06-10: the NM emit is 0x414 vs target 0x488 =
  *    29 insns SHORT; the gap is distributed (position diff useless at
  *    this delta -- next pass needs a mnemonic-level side-by-side to
@@ -695,10 +717,9 @@ void titproc_uso_func_0000101C(int *a0) {
  * 1 already-planned big decode = this). */
 void titproc_uso_func_0000116C(char *s0) {
     char *v1, *vt;
-    int state = *(int *)(s0 + 0x40);
     int n, t, v;
 
-    switch (state) {
+    switch (*(int *)(s0 + 0x40)) {
     case 0: {
         t = *(int *)(s0 + 0x3C) - 1;
         *(int *)(s0 + 0x3C) = t;
@@ -712,7 +733,7 @@ void titproc_uso_func_0000116C(char *s0) {
         ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
         gl_func_00000000(*(int *)(s0 + 0x58));
         n = *(int *)(s0 + 0x70);
-        *(int *)(s0 + 0x40) = state + 1;
+        *(int *)(s0 + 0x40) = 1;
         *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
         *(int *)(s0 + 0x68) = 40;
         gl_func_00000000(13);

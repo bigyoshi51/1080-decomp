@@ -247,8 +247,25 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012E00);
  *     store-then-test with hoisted load; ours emits sw/bnel reorder.
  *     Plus +0x130 move/move-vs-li ordering. Both small.
  *  4. +0xC0..+0x108: lui/beqz/nop pattern (collapsed-pointer guard
- *     pairs) vs graft's beqzl forms -- the per-test reload recipe. */
+ *     pairs) vs graft's beqzl forms -- the per-test reload recipe.
+ *  PASS-16 2026-06-22 (agent-b): CTX-LOAD BUG FIXED. The base ptr was
+ *  read from a RAW absolute `*(void**)0x254` (emitting a spurious
+ *  D_00000000 HI16/LO16 pair) instead of the real symbol fold. Target
+ *  does `lui %hi(func_0000023C)` + `lw 0x18(t9)` (offset folded into the
+ *  load). Switched the decl to `extern char func_0000023C[]` (DATA array,
+ *  not a function) so `*(char**)(func_0000023C + 0x18)` folds +0x18 into
+ *  the lw LO16 -- function-symbol arithmetic would instead MATERIALIZE
+ *  the address (extra addiu), the known bootup func-sym-arith cap (see
+ *  bootup_uso.c:4760). Result: mnemonic ratio 82.55 -> 87.61, objdiff
+ *  fuzzy 92.61 -> 93.22. REMAINING (verified pass-16): allocator coloring
+ *  cascade (t6<->v1, $f6<->$f8 renumber), the a2/a3 accumulator-vs-recompute
+ *  loop tradeoff (E[146] addiu a2,a2,4 / E[77] move a3,t2 snapshot), the
+ *  li/move + li/ori const-first scheduling swaps, and the lui-0/addiu-0
+ *  no-reloc D_00000000 arg pair (link-time artifact, resolves at link).
+ *  All allocator/scheduling/link-artifact class; permuter has no regalloc
+ *  randomizer (floored 97k iters prior). */
 extern f32 D_00000C50, D_00000C54, D_00000C58, D_00000C5C, D_00000C60;
+extern char func_0000023C[];  /* data-symbol base: ctx ptr @ +0x18 */
 void func_0001304C(char *arg0)
 {
 
@@ -506,7 +523,7 @@ void func_0001304C(char *arg0)
         *((s32 *) (((char *) arg0) + 0x40)) = 0;
       }
     }
-    temp_a0_3 = *((s32 *) (((char *) (*((void **) 0x254))) + 0x158));
+    temp_a0_3 = *((s32 *) (((char *) (*((char **) (func_0000023C + 0x18)))) + 0x158));
     temp_v0_4 = *((s32 *) (((char *) temp_a0_3) + 0xC));
     temp_v1 = *((s32 *) (((char *) temp_v0_4) + 0x4));
     *((s32 *) (((char *) temp_v0_4) + 0x4)) = (s32) (temp_v1 + 1);

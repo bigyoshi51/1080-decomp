@@ -958,11 +958,24 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001CA8);
 #endif
 
 #ifdef NON_MATCHING
-/* Full decode 2026-06-01. DL emitter: SETCOMBINE (FC309A61/5536FF7F), then
- * an FB command packing a3 Vec3*255 + a1 alpha, then an FA (SETPRIMCOLOR)
- * packing a2 Vec3*255 + a1 alpha, to the builder at *(&D). Same b->0xC
- * re-read + (int)(unsigned) levers as gui_uso_func_00001A5C. */
+/* DL emitter: SETCOMBINE (FC309A61/5536FF7F), then an FB command packing
+ * a3 Vec3*255 + (a1 & 0xff) alpha, then an FA (SETPRIMCOLOR) packing
+ * a2 Vec3*255 + 0xff alpha, to the builder at *(&D). The global ADDRESS is
+ * held in one register (char **dp = &D_00000000) and re-dereffed each block,
+ * matching the target's lui;addiu t2 once + lw v0,0(t2) per block (line-73
+ * "reference symbol via held address" form; plain *(char**)&D folds %lo).
+ * The last FA word uses | 0xff (target `ori ...,0xff`), the FB word uses
+ * (a1 & 0xff) (target `andi a1,0xff`).
+ *
+ * CAP (2026-06-22, agent-e): structure exact (mnemonic multiset matches modulo
+ * one block-3 address recompute), residual is the IDO unsigned-cast macro's
+ * internal `lui at,0x4f00` AS1-SCHEDULER placement (emitted inside the
+ * float->int cast, not a source statement) + register coloring cascade. NOT
+ * source-reorderable. permuter-factory -j4 ~15min PLATEAUED at score 2085
+ * (86.94 -> 92.40% objdiff, descends fast then flat). This is the documented
+ * as1-scheduler-tie + ugen-coloring core; keep INCLUDE_ASM. */
 void gui_uso_func_00001EF4(char *a0, int a1, float *a2, float *a3) {
+    char **dp = (char **)&D_00000000;
     char *b;
     char *p;
     char *buf;
@@ -970,7 +983,7 @@ void gui_uso_func_00001EF4(char *a0, int a1, float *a2, float *a3) {
     int r, g, bl;
     (void)a0;
 
-    b = *(char **)&D_00000000;
+    b = *dp;
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
@@ -978,7 +991,6 @@ void gui_uso_func_00001EF4(char *a0, int a1, float *a2, float *a3) {
     *(int *)(buf + i * 8) = 0xFC309A61;
     *(int *)(buf + i * 8 + 4) = 0x5536FF7F;
 
-    b = *(char **)&D_00000000;
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
@@ -990,7 +1002,7 @@ void gui_uso_func_00001EF4(char *a0, int a1, float *a2, float *a3) {
     *(int *)(buf + i * 8 + 4) =
         (r << 24) | ((g & 0xff) << 16) | ((bl & 0xff) << 8) | (a1 & 0xff);
 
-    b = *(char **)&D_00000000;
+    b = *dp;
     p = *(char **)(b + 0xC);
     i = *(int *)(p + 4);
     *(int *)(p + 4) = i + 1;
@@ -998,9 +1010,10 @@ void gui_uso_func_00001EF4(char *a0, int a1, float *a2, float *a3) {
     *(int *)(buf + i * 8) = 0xFA000000;
     r = (int)(unsigned)(a2[0] * 255.0f);
     g = (int)(unsigned)(a2[1] * 255.0f);
+    b = *dp;
     bl = (int)(unsigned)(a2[2] * 255.0f);
     *(int *)(buf + i * 8 + 4) =
-        (r << 24) | ((g & 0xff) << 16) | ((bl & 0xff) << 8) | (a1 & 0xff);
+        (r << 24) | ((g & 0xff) << 16) | ((bl & 0xff) << 8) | 0xff;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00001EF4);

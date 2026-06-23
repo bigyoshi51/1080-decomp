@@ -12049,88 +12049,86 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000290C8);
 //   mnemonic disasm + reloc-pad jal infra. Real-C STRUCTURAL body
 //   below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
-// gl_func_000291C0 — FULL m2c DECODE (83.50% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py (one ptr==int compare cast manually).
+// gl_func_000291C0 — full reconstruction from clean target disasm
+//   (supersedes the earlier broken m2c decode that collapsed all callees
+//   into game_libs_func_0003443C/gl_func_0001CA10 with wrong args).
+//   obj->w_50 (= v1) holds a descriptor whose byte +2 is a 4-bit mode mask
+//   (bits 1/2/4/8). For the bit0 case it unlinks obj from its parent's
+//   intrusive 0x40/0x48 list (sentinel -1) and runs detach (gl_ref_0003D66C)
+//   + two frees (gl_func_00000000 = USO load-resolved). The bit1/2/3 and
+//   default cases each fan a short-circuit chain of three callee families
+//   B/C/D = gl_ref_0003D698 / gl_ref_0003D6E4 / gl_ref_0003D734 over the
+//   sub-record tables (sub+0x94, sub->0x4C+0x9C, &D_5378), returning the
+//   first nonzero; on all-zero, sets obj->0 |= 8 and returns 0.
+//   gl_func_00000000 = canonical never-defined USO placeholder (jal 0);
+//   gl_ref_0003D66C/698/6E4/734 = baked-jal absolute syms (undefined_syms).
+//   Callees/args/globals/CFG all verified byte-for-byte against the target.
+//   Name pre-checked: no extern reuse (collision-safe).
+// CAP (register coloring): the short-circuit chain seeds its first call's
+//   3rd arg from a *leftover* register (target: a2 holding obj->0x2C / entry
+//   garbage), threads the accumulator purely through a2, and uses ONE
+//   saved reg (s0=obj, frame -0x28). C semantics cannot express an
+//   "uninitialized leftover register" — declaring the accumulator forces
+//   IDO to keep it in a callee-saved reg (s0/s1, frame -0x30) with a
+//   double-store (move s0,v0 + move a2,v0) per call → 204 insns vs the
+//   target's 182. Permuter is noise-floored here (PERMUTER=1 leaves jals
+//   as relocs vs the baked target → base score ~3180 dominated by jal
+//   immediates; best 2995, no structural crack). Logic is exact; the
+//   residual is the documented uninitialized-leftover-seed coloring class.
+extern int gl_func_00000000();
+extern int gl_ref_0003D66C();
+extern char *gl_ref_0003D698();
+extern char *gl_ref_0003D6E4();
+extern char *gl_ref_0003D734();
 #ifdef NON_MATCHING
-
-
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000291C0)();
-char *gl_func_000291C0(char *arg0, char *arg2) {
-    char *sp24;
-    u8 temp_v0;
-    char *temp_v0_10;
-    char *temp_v0_11;
-    char *temp_v0_12;
-    char *temp_v0_13;
-    char *temp_v0_14;
-    char *temp_v0_15;
-    char *temp_v0_16;
-    char *temp_v0_17;
-    char *temp_v0_18;
-    char *temp_v0_19;
-    char *temp_v0_20;
-    char *temp_v0_21;
-    char *temp_v0_22;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *temp_v0_7;
-    char *temp_v0_8;
-    char *temp_v0_9;
-    char *temp_v1;
-    char *var_a2;
-    char *var_a2_2;
-    char *var_a2_3;
-    char *var_a2_4;
-    char *var_a2_5;
-
-    var_a2_5 = arg2;
-    temp_v1 = FW(arg0, 0x50);
-    temp_v0 = FW(temp_v1, 0x2);
-    if (temp_v0 & 1) {
-        var_a2_5 = FW(arg0, 0x2C);
-        if ((var_a2_5 != 0) && ((int)arg0 == FW(var_a2_5, 0x40)) && (FW(var_a2_5, 0x48) == -1)) {
-            sp24 = var_a2_5;
-            game_libs_func_0003443C(var_a2_5, arg0, var_a2_5);
-            gl_func_0001CA10(sp24);
-            gl_func_0001CA10(FW(sp24, 0xC) + 0x20, sp24);
+char *gl_func_000291C0(char *obj) {
+    char *r;
+    char *sub = *(char **)(obj + 0x50);
+    unsigned char mode = *(unsigned char *)(sub + 0x2);
+    if (mode & 1) {
+        char *par = *(char **)(obj + 0x2C);
+        if ((par != 0) && (obj == *(char **)(par + 0x40)) && (*(int *)(par + 0x48) == -1)) {
+            gl_ref_0003D66C(par, obj);
+            gl_func_00000000(par);
+            gl_func_00000000(*(char **)(par + 0xC) + 0x20, par);
+            return par;
         }
     }
-    if (temp_v0 & 2) {
-        temp_v0_2 = game_libs_func_0003443C(temp_v1 + 0x94, arg0, var_a2_5);
-        var_a2_4 = temp_v0_2;
-        if ((temp_v0_2 != 0) || (temp_v0_3 = game_libs_func_0003443C(FW(arg0, 0x50) + 0x94, arg0, var_a2_4), var_a2_4 = temp_v0_3, (temp_v0_3 != 0)) || (temp_v0_4 = game_libs_func_0003443C(FW(arg0, 0x50) + 0x94, arg0, var_a2_4), var_a2_4 = temp_v0_4, (temp_v0_4 != 0))) {
-            return var_a2_4;
+    if (mode & 2) {
+        if ((r = gl_ref_0003D698(sub + 0x94, obj, r)) != 0 ||
+            (r = gl_ref_0003D6E4(*(char **)(obj + 0x50) + 0x94, obj, r)) != 0 ||
+            (r = gl_ref_0003D734(*(char **)(obj + 0x50) + 0x94, obj, r)) != 0) {
+            return r;
         }
-        goto block_33;
-    }
-    if (temp_v0 & 4) {
-        temp_v0_5 = game_libs_func_0003443C(temp_v1 + 0x94, arg0, var_a2_5);
-        var_a2_3 = temp_v0_5;
-        if ((temp_v0_5 != 0) || (temp_v0_6 = game_libs_func_0003443C(FW(FW(arg0, 0x50), 0x4C) + 0x9C, arg0, var_a2_3), var_a2_3 = temp_v0_6, (temp_v0_6 != 0)) || (temp_v0_7 = game_libs_func_0003443C(FW(arg0, 0x50) + 0x94, arg0, var_a2_3), var_a2_3 = temp_v0_7, (temp_v0_7 != 0)) || (temp_v0_8 = game_libs_func_0003443C(FW(FW(arg0, 0x50), 0x4C) + 0x9C, arg0, var_a2_3), var_a2_3 = temp_v0_8, (temp_v0_8 != 0)) || (temp_v0_9 = game_libs_func_0003443C(FW(arg0, 0x50) + 0x94, arg0, var_a2_3), var_a2_3 = temp_v0_9, (temp_v0_9 != 0)) || (temp_v0_10 = game_libs_func_0003443C(FW(FW(arg0, 0x50), 0x4C) + 0x9C, arg0, var_a2_3), var_a2_3 = temp_v0_10, (temp_v0_10 != 0))) {
-            return var_a2_3;
+    } else if (mode & 4) {
+        if ((r = gl_ref_0003D698(sub + 0x94, obj, r)) != 0 ||
+            (r = gl_ref_0003D698(*(char **)(*(char **)(obj + 0x50) + 0x4C) + 0x9C, obj, r)) != 0 ||
+            (r = gl_ref_0003D6E4(*(char **)(obj + 0x50) + 0x94, obj, r)) != 0 ||
+            (r = gl_ref_0003D6E4(*(char **)(*(char **)(obj + 0x50) + 0x4C) + 0x9C, obj, r)) != 0 ||
+            (r = gl_ref_0003D734(*(char **)(obj + 0x50) + 0x94, obj, r)) != 0 ||
+            (r = gl_ref_0003D734(*(char **)(*(char **)(obj + 0x50) + 0x4C) + 0x9C, obj, r)) != 0) {
+            return r;
         }
-        goto block_33;
-    }
-    if (temp_v0 & 8) {
-        temp_v0_11 = game_libs_func_0003443C((char *)0x5378, arg0, var_a2_5);
-        var_a2_2 = temp_v0_11;
-        if ((temp_v0_11 != 0) || (temp_v0_12 = game_libs_func_0003443C((char *)0x5378, arg0, var_a2_2), var_a2_2 = temp_v0_12, (temp_v0_12 != 0)) || (temp_v0_13 = game_libs_func_0003443C((char *)0x5378, arg0, var_a2_2), var_a2_2 = temp_v0_13, (temp_v0_13 != 0))) {
-            return var_a2_2;
+    } else if (mode & 8) {
+        if ((r = gl_ref_0003D698((char *)&D_00000000 + 0x5378, obj, r)) != 0 ||
+            (r = gl_ref_0003D6E4((char *)&D_00000000 + 0x5378, obj, r)) != 0 ||
+            (r = gl_ref_0003D734((char *)&D_00000000 + 0x5378, obj, r)) != 0) {
+            return r;
         }
-        goto block_33;
+    } else {
+        if ((r = gl_ref_0003D698(sub + 0x94, obj, r)) != 0 ||
+            (r = gl_ref_0003D698(*(char **)(*(char **)(obj + 0x50) + 0x4C) + 0x9C, obj, r)) != 0 ||
+            (r = gl_ref_0003D698((char *)&D_00000000 + 0x5378, obj, r)) != 0 ||
+            (r = gl_ref_0003D6E4(*(char **)(obj + 0x50) + 0x94, obj, r)) != 0 ||
+            (r = gl_ref_0003D6E4(*(char **)(*(char **)(obj + 0x50) + 0x4C) + 0x9C, obj, r)) != 0 ||
+            (r = gl_ref_0003D6E4((char *)&D_00000000 + 0x5378, obj, r)) != 0 ||
+            (r = gl_ref_0003D734(*(char **)(obj + 0x50) + 0x94, obj, r)) != 0 ||
+            (r = gl_ref_0003D734(*(char **)(*(char **)(obj + 0x50) + 0x4C) + 0x9C, obj, r)) != 0 ||
+            (r = gl_ref_0003D734((char *)&D_00000000 + 0x5378, obj, r)) != 0) {
+            return r;
+        }
     }
-    temp_v0_14 = game_libs_func_0003443C(temp_v1 + 0x94, arg0, var_a2_5);
-    var_a2 = temp_v0_14;
-    if ((temp_v0_14 != 0) || (temp_v0_15 = game_libs_func_0003443C(FW(FW(arg0, 0x50), 0x4C) + 0x9C, arg0, var_a2), var_a2 = temp_v0_15, (temp_v0_15 != 0)) || (temp_v0_16 = game_libs_func_0003443C((char *)0x5378, arg0, var_a2), var_a2 = temp_v0_16, (temp_v0_16 != 0)) || (temp_v0_17 = game_libs_func_0003443C(FW(arg0, 0x50) + 0x94, arg0, var_a2), var_a2 = temp_v0_17, (temp_v0_17 != 0)) || (temp_v0_18 = game_libs_func_0003443C(FW(FW(arg0, 0x50), 0x4C) + 0x9C, arg0, var_a2), var_a2 = temp_v0_18, (temp_v0_18 != 0)) || (temp_v0_19 = game_libs_func_0003443C((char *)0x5378, arg0, var_a2), var_a2 = temp_v0_19, (temp_v0_19 != 0)) || (temp_v0_20 = game_libs_func_0003443C(FW(arg0, 0x50) + 0x94, arg0, var_a2), var_a2 = temp_v0_20, (temp_v0_20 != 0)) || (temp_v0_21 = game_libs_func_0003443C(FW(FW(arg0, 0x50), 0x4C) + 0x9C, arg0, var_a2), var_a2 = temp_v0_21, (temp_v0_21 != 0)) || (temp_v0_22 = game_libs_func_0003443C((char *)0x5378, arg0, var_a2), var_a2 = temp_v0_22, (temp_v0_22 != 0))) {
-        return var_a2;
-    }
-block_33:
-    *(u8*)((char*)arg0 + 0x0) = (u8) (*(u8*)((char*)arg0 + 0x0) | 8);
+    *(unsigned char *)obj = (unsigned char)(*(unsigned char *)obj | 8);
     return 0;
 }
 #else
