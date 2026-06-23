@@ -8,7 +8,7 @@
  * -O0 (set in the Makefile). */
 
 extern int func_00000000();
-extern int func_00000188();
+extern struct { int a, b, c; } func_00000188;
 
 #ifdef NON_MATCHING
 /* 42-insn -O0 method dispatcher: optionally invokes a pre-call hook
@@ -41,7 +41,7 @@ void func_0000F6C4(char *a0) {
     }
     func_00000000(a0);
     if (*(int*)(a0 + 0x2C) != 0) {
-        if (func_00000000(*(int*)((char*)&func_00000188 + 0x8 + 0x190))) {
+        if (func_00000000(func_00000188.c)) {
             m = *(char**)(a0 + 0x28);
             (*(int(**)())(m + 0x64))(*(short*)(m + 0x60) + a0);
         }
