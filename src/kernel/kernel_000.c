@@ -108,13 +108,23 @@ extern s32 D_80012D5C;
  *   D_8000A2DC = heap end limit (returns NULL when exceeded)
  *   D_80012D5C = running total of bytes allocated
  *
- * Current match: 15/26 insns (~58%). The 11 mismatches are register-allocation
- * differences cascading from one root cause: the C body lets IDO put `new_top`
- * in $v0 (the return register), which forces a delay-slot `or $v0, $v1, $0`
- * to copy `result` (orig) into $v0 when the bounds-check branch is taken.
- * The target instead preemptively emits `or $v0, $v1, $0` BEFORE the
- * sltu/bnez (so the branch's delay slot is a NOP and the failure
- * fall-through clears $v0), making the function 1 insn larger.
+ * Current match: 18/25 insns (~72%), 7 mnemonic diffs (was 15/26 ~58%).
+ * 2026-06-23 NM-body rewrite (agent-i) cut the residual from 11 diffs to 7:
+ *   - INLINE the alignment mask `(alignment - 1)` (drop the named `v` mask
+ *     var) so IDO frees $a1/$a2 for the two global-pointer bases and hoists
+ *     `lui %hi(D_80012D5C)` into the early beqz delay slot — the entire
+ *     address-materialization region (a1/a2 coloring) now MATCHES the target.
+ *   - explicit `r = v; if (oom) r = 0; return r;` reserves $v0 for the result
+ *     so the load/store/bookkeeping region matches too.
+ * Residual 7 diffs are the genuine documented structural cap:
+ *   (1) `and t6,a0,v0` vs `and t6,v0,a0` — commutative & operand order; IDO
+ *       won't swap it from any C source orientation (verified flip-and = 7).
+ *   (2-7) the target preemptively emits `move v0,v1` BEFORE the sltu/bnez and
+ *       uses TWO `jr ra` (success falls to a bare return; OOM zeroes v0 in the
+ *       second jr's delay slot), making the target 25 insns vs IDO's natural
+ *       24. No tested C shape forces IDO to emit the +1-insn double-jr-ra form
+ *       (goto-out, do/while-break, nested if/else, explicit two-return all
+ *       regress; permuter-immune per cap_analysis_2026-05-28, 153k iters).
  *
  * Tried: condition-flip with goto-out (9/26, regressed), explicit
  * `result = orig; if (oom) result = 0; return result;` early-set
@@ -158,21 +168,23 @@ extern s32 D_80012D5C;
  *   accepted by IDO cfe (`Syntax Error` at `asm`). This lever is unavailable. */
 #ifdef NON_MATCHING
 u32 func_800000B0(u32 size, u32 alignment) {
-    u32 v;  /* reused: mask, then the returned heap ptr — shares $v0 like target */
-    u32 new_top;
+    u32 v;   /* old heap top -> $v1, the returned ptr on success */
+    u32 r;   /* result: r=v then forced to 0 on OOM, lives in return reg */
 
-    v = alignment - 1;
-    if (size & v) {
-        size = (size + alignment) & ~v;
+    /* inline mask (alignment-1) instead of a named var: lets IDO put the mask
+     * in $v0/$v1 and free $a1/$a2 for the two global-pointer bases, matching
+     * the target's a1/a2 pointer coloring and the lui-%hi-in-beqz-delay hoist. */
+    if (size & (alignment - 1)) {
+        size = (size + alignment) & ~(alignment - 1);
     }
     v = D_8000A2D8;
-    new_top = v + size;
-    D_8000A2D8 = new_top;
+    D_8000A2D8 = v + size;
     D_80012D5C += size;
-    if (new_top >= D_8000A2DC) {
-        return 0U;
+    r = v;
+    if (D_8000A2D8 >= D_8000A2DC) {
+        r = 0U;
     }
-    return v;
+    return r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800000B0);
@@ -1412,16 +1424,27 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80001184);
  * `void(void)` to `s32 func_80000568()` (callable) so this can DIRECT-`jal` it
  * instead of the jalr-emitting func-ptr cast — that took it 3%->55% (func_80000568
  * stays INCLUDE_ASM/EXACT in the default build; the cast-callers at ~482/886 still
- * compile). REMAINING (~25 diffs, multi-tick — HARD, investigated 2026-05-30):
- * (a) frame 0x38 vs target 0x60 — the target has ~0x2C of UNUSED stack (0x30-0x5C
- * never accessed) = a "ghost" DCE'd local the original C declared. `volatile s32
- * ghost[10]` reproduces the 0x60 frame but ADDS a spurious access (net 27, WORSE);
- * needs the right address-taken-but-unused local, NOT volatile. (b) q/p/end
- * lui/addiu is EMISSION-SCHEDULING order (ugen backend) — the q=s0/p=s1/end=s2
- * coloring already matches; only the setup ORDER differs (same hard class as
- * 2884/33B6C residuals, NOT encounter-order-fixable). (c) found-flag return tail.
- * All hard backend-scheduling/ghost-frame. Kernel-C vein ENABLED (func_80000568
- * unlock); THIS fn's residual is hard — pursue the other cast-callers first. */
+ * compile). 2026-06-23 REWORK (agent-e): residual cut from ~25 to 10 words.
+ *   FIXED: return tail now byte-exact — `if (found == 0) return -0x11; return 0;`
+ *     emits `or v0,zero,zero / bnez found / nop / b / addiu v0,-0x11` (was a
+ *     v1-based bnezl form). The 0-value must be the FALL-THROUGH return so IDO
+ *     materializes v0=0 first and tests `bnez found`.
+ *   FIXED: pointer-setup lui delay-slot — assigning `p` (D_800130A0) BEFORE `q`
+ *     puts `lui s1,%hi(D_800130A0)` in the verify-branch delay slot, matching.
+ *   REMAINING (10 words, 3 HARD backend caps — permuter 40k iters never beat
+ *     base score 150, exhaustive C-variant grind failed):
+ *   (a) FRAME 0x38 vs 0x60 — 0x30 bytes (0x30-0x5C) of UNUSED stack = a ghost
+ *       DCE'd address-taken local. Any surviving address-taken local needs an
+ *       `addiu reg,sp,off` to materialize the address (=+1 insn, breaks match);
+ *       volatile array adds a spurious access. uopt retains the slot WITHOUT any
+ *       access only via a pattern no C construct reproduces. (4 words: 1,9,17,55.)
+ *   (b) loop-preamble addiu LO order: target emits end(s2)/q(s0)/p(s1), build
+ *       emits q/p/end — same coloring, different ugen emission schedule. (2 words.)
+ *   (c) found-block scheduler tie: target interleaves `li t6,1; sw t6,found`
+ *       BETWEEN the two record/arg1 loads and the deferred store; build does the
+ *       const+store first. Same registers (t7/t8/t6), different as1 schedule;
+ *       not statement-order-fixable. (4 words.)
+ *   Genuine ugen/as1 cap — leave NON_MATCHING. */
 #ifdef NON_MATCHING
 extern char D_8000A368, D_80013112, D_80018356;
 s32 uso_find_file(void *arg0, void *arg1) {
@@ -1433,19 +1456,22 @@ s32 uso_find_file(void *arg0, void *arg1) {
         return -0x11;
     }
     found = 0;
-    q = &D_80013112;
     p = (char *)&D_800130A0;
+    q = &D_80013112;
     do {
         s32 r = func_80000568(q, &D_80012F80);
         q += 0x9C;
         if (r == 0) {
-            ((s32 *)arg1)[1] = *(s32 *)(p + 0x94);
             found = 1;
+            ((s32 *)arg1)[1] = *(s32 *)(p + 0x94);
             break;
         }
         p += 0x9C;
     } while (q != &D_80018356);
-    return (found != 0) ? 0 : -0x11;
+    if (found == 0) {
+        return -0x11;
+    }
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", uso_find_file);

@@ -68,11 +68,16 @@ extern OSEventState __osEventStateTab[];
 
 
 #ifdef NON_MATCHING
-/* PI DOM2 timing + system init. Tried both per-byte externs and struct-based
- * addressing; IDO -O1 still emits a fresh `lui $at` per store regardless of
- * struct typing, while target shares `$at` across adjacent %lo pairs. The
- * coalescing appears to be a specific compiler mood we can't trigger from C.
- * NON_MATCHING body is structurally correct; permuter or closer analysis needed. */
+/* PI DOM2 timing + system init. Single residual diff (2026-06-23): the target
+ * shares ONE `lui $at` across the two adjacent byte stores D6/D7
+ * (`li t0,6; li t1,2; sb t0,%lo(D6)(at); sb t1,%lo(D7)(at)`), hoisting both
+ * immediates before the pair; IDO -O1 from straight C instead reloads
+ * `lui $at` for D7. Every other store (D4/D5/D8/D9) emits its own `lui $at`
+ * and matches exactly. All structural levers regress (char* base / u8[] array
+ * spill a held base reg; struct retype no-ops the share — IDO_CODEGEN.md:741);
+ * permuter (2 runs, ~1.5k iters, temp/reorder/split weights) never beat the
+ * baseline 1-diff. This is an IDO internal-scheduler `$at`-coalescing decision
+ * not reachable from source. Leave NON_MATCHING (no episode). */
 extern u8 D_800195D4;
 extern u8 D_800195D5;
 extern u8 D_800195D6;
@@ -88,16 +93,15 @@ extern s32 func_800030D0(s32*, s32);
 
 #define IO_WRITE(addr, val) (*(volatile s32*)(addr) = (val))
 
-/* func_80004E50: 94.8% NM (global-init + PI-BSD-DOM HW-reg writes). The
- * expected/.o carries D_A4600024/28/2C/30 relocs (splat symbolized the PI
- * regs) while this C bakes the 0xA46000xx literals — but DO NOT "fix" that:
- * objdiff is reloc-aware and ALREADY counts the baked literal == the symbol
- * reloc (both resolve to 0xA46000xx), so the IO_WRITE form is NOT a diff.
- * Verified 2026-05-31: converting the 4 IO_WRITEs to `extern volatile s32
- * D_A46000xx; D_A46000xx = v;` REGRESSES 94.8%->68.7% (the volatile-lvalue
- * assignment re-allocates/re-schedules the whole function). The real 5.2%
- * residual is store-scheduling (the D_800195Dx constant-load/store order +
- * frame-setup placement differs from the target), an IDO -O1 scheduling cap. */
+/* func_80004E50: global-init + PI-BSD-DOM HW-reg writes. NOTES:
+ * - The 4 IO_WRITE literals (0xA46000xx) link byte-identical to the expected
+ *   D_A46000xx relocs (both resolve to the same final address). Do NOT convert
+ *   to `extern volatile s32 D_A46000xx = v;` — that re-schedules the whole fn.
+ * - func_800030D0's first arg is derived from &D_800195D0 (the returned base),
+ *   NOT &D_800195E0: `&D_800195D0 + 5` == 0x800195E4 == &D_800195E0 + 1. This
+ *   matters for the linked bytes (target materializes &D_800195D0 then +0x14),
+ *   fixed 2026-06-23; previously baked &D_800195E0 (a real byte diff).
+ * - Sole remaining diff: the D6/D7 shared-$at store pair (see comment above). */
 void* func_80004E50(void) {
     s32 sr;
     D_800195D4 = 2;
@@ -112,7 +116,7 @@ void* func_80004E50(void) {
     IO_WRITE(0xA460002C, D_800195D6);
     IO_WRITE(0xA4600030, D_800195D7);
     D_800195E0 = 0;
-    func_800030D0(&D_800195E0 + 1, 0x60);
+    func_800030D0(&D_800195D0 + 5, 0x60);
     sr = func_800066B0();
     D_800195D0 = (s32)D_8000A46C;
     D_8000A46C = &D_800195D0;
