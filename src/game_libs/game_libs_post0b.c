@@ -4647,118 +4647,147 @@ void gl_func_00038FE0(char *a0) {
  *     (node->[0]->[0x28])->[0x1C](*(short*)((char*)... + 0x18) + (int)v1)
  * After loop: final gl_func_00000000().
  *
- * Cap: 201 insns + jump table for 8-case dispatch + FPU vec3 mat-mul
- * sequence in case 8 + nested re-load/re-check pattern in iterator. Too
- * many caps in one function — initial wrap-only commit. Future ticks
- * incrementally refine per-case bodies.
+ * Cap: 201 insns + jump table for 8-case dispatch + FPU vec3 scale in
+ * case 8 + nested re-load/re-check beqzl pattern in iterator.
  *
- * 2026-05-14: started as INCLUDE_ASM-only; this commit upgrades to a
- * decoded-skeleton NM wrap.
+ * 2026-05-14: started INCLUDE_ASM-only, then decoded-skeleton NM wrap.
+ * 2026-06-22 DEEP RECONSTRUCTION (52.09% -> 81.54%): real callee name
+ * gl_func_00034458 (variadic K&R -> jal); switch state-machine with the
+ * `if(state!=0) switch(...){case 0;case 1..8}` guard reproducing target's
+ * `beqz; sltiu<9; beqz; sll*4; jtbl` (0-based, no -1 adjust); 16-word
+ * struct-copy in case 8 (3-word unroll, sp+0x48); distinct base-0
+ * placeholder symbols per call-arg-0 site (D_39094_a*) so IDO
+ * re-materializes lui/addiu per use instead of CSE-promoting one shared
+ * base into a saved reg (docs/IDO_CODEGEN line 74); `int * volatile next`
+ * forces the bundle-chain ptr into a stack home so the loop-advance reload
+ * fills the beqzl/branch-likely delay slots (beqzl count 0->5, matching
+ * target); block-local vt per case to color the vtable load into v0.
+ * RESIDUAL (~250 diff lines, NOT byte-exact): whole-function register
+ * coloring (root in s0 vs frame-size tradeoff with case-5/6 dispatch
+ * temps; t-reg numbering; v0/v1 on the dispatch path), the volatile-next
+ * stack slot (148 vs 156) and the first-call `move a0,a1` schedule. These
+ * are coloring/frame-layout caps (permuter territory), not logic bugs.
  */
-extern int gl_func_00000000();
+extern int gl_func_00034458();
+/* Distinct base-0 placeholders so IDO re-materializes lui/addiu per use
+ * (matching target) instead of CSE-promoting one shared base into a saved
+ * reg. arg = singleton-record-pointer passed as arg0; dat = the +0xE8/+0x128
+ * data block (separate lui-register from arg0 in the target). All resolve to
+ * 0 at link (see undefined_syms_auto.txt) so .text bytes are identical. */
+extern int D_39094_a1, D_39094_a2a, D_39094_a2b, D_39094_a3, D_39094_a4;
+extern int D_39094_a5a, D_39094_a5b, D_39094_a6a, D_39094_a6b, D_39094_a7;
+extern int D_39094_a8a, D_39094_a8b;
+extern int D_39094_dat;
+struct gl_39094_blk16 { int w[16]; };
 int gl_func_00039094(int *root) {
-    int **bundle = (int**)root[0x10/4];
-    int **iter;
-    int *node = NULL;
-    int v0_state = root[0xB0/4];
+    int **bundle = (int**)root[0x10/4];   /* sp+156 home: a0[0x10] */
+    int *cur;
+    int * volatile next;
+    int *vt;
+    int ret;
 
-    gl_func_00000000(root[0xC/4]);
+    gl_func_00034458(root[0xC/4]);
 
-    if (v0_state != 0 && (unsigned)v0_state < 9) {
-        switch (v0_state) {
-            case 1:
-                gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0xE8);
-                break;
-            case 2: {
-                int ret;
-                int *vt;
-                gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0xE8, &D_00000000);
-                vt = (int*)root[0x28/4];
-                ret = ((int(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58) + (int)root);
-                gl_func_00000000(&D_00000000, ret);
-                break;
-            }
-            case 3: {
-                int ret;
-                int *vt = (int*)root[0x28/4];
-                ret = ((int(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58) + (int)root);
-                gl_func_00000000(&D_00000000, ret);
-                break;
-            }
-            case 4: {
-                int ret;
-                int *vt = (int*)root[0x28/4];
-                ret = ((int(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58) + (int)root);
-                gl_func_00000000(&D_00000000, ret);
-                break;
-            }
-            case 5: case 6: {
-                /* Two-step dispatch via global root + own dispatch */
-                int *gr = *(int**)&D_00000000;
-                int *vt_gr;
-                int *vt_self;
-                int ret_gr, ret_self;
-                vt_gr = (int*)gr[0x28/4];
-                ret_gr = ((int(*)(int))vt_gr[0x5C/4])(*(short*)((char*)vt_gr + 0x58) + (int)gr);
-                gl_func_00000000(&D_00000000, ret_gr);
-                vt_self = (int*)root[0x28/4];
-                ret_self = ((int(*)(int))vt_self[0x5C/4])(*(short*)((char*)vt_self + 0x58) + (int)root);
-                gl_func_00000000(&D_00000000, ret_self);
-                break;
-            }
-            case 7:
-                gl_func_00000000(&D_00000000);
-                break;
-            case 8: {
-                float vec[19];   /* sp+0x48..0x90 region */
-                float *gvec = (float*)((char*)&D_00000000 + 0x128);
-                /* Copy 13 words from (&D_0 + 0xE8) into sp+0x48 */
-                {
-                    int *src = (int*)((char*)&D_00000000 + 0xE8);
-                    int *dst = (int*)((char*)vec - 0x48 + 0x48); /* placeholder */
-                    int i;
-                    for (i = 0; i < 13; i++) dst[i] = src[i];
+    if (root[0xB0/4] != 0)
+    switch (root[0xB0/4]) {
+        case 0:
+            break;
+        case 1:
+            gl_func_00034458(&D_39094_a1, (char*)&D_39094_dat + 0xE8);
+            break;
+        case 2: {
+            int *vt2;
+            gl_func_00034458(&D_39094_a2a, (char*)&D_39094_dat + 0xE8);
+            vt2 = (int*)root[0x28/4];
+            ret = ((int(*)(int))vt2[0x5C/4])(*(short*)((char*)vt2 + 0x58) + (int)root);
+            gl_func_00034458(&D_39094_a2b, ret);
+            break;
+        }
+        case 3: {
+            int *vt3 = (int*)root[0x28/4];
+            ret = ((int(*)(int))vt3[0x5C/4])(*(short*)((char*)vt3 + 0x58) + (int)root);
+            gl_func_00034458(&D_39094_a3, ret);
+            break;
+        }
+        case 4: {
+            int *vt4 = (int*)root[0x28/4];
+            ret = ((int(*)(int))vt4[0x5C/4])(*(short*)((char*)vt4 + 0x58) + (int)root);
+            gl_func_00034458(&D_39094_a4, ret);
+            break;
+        }
+        case 5: {
+            int *gr = *(int**)&D_00000000;
+            int *vt5 = (int*)gr[0x28/4];
+            ret = ((int(*)(int))vt5[0x5C/4])(*(short*)((char*)vt5 + 0x58) + (int)gr);
+            gl_func_00034458(&D_39094_a5a, ret);
+            vt5 = (int*)root[0x28/4];
+            ret = ((int(*)(int))vt5[0x5C/4])(*(short*)((char*)vt5 + 0x58) + (int)root);
+            gl_func_00034458(&D_39094_a5b, ret);
+            break;
+        }
+        case 6: {
+            int *gr = *(int**)&D_00000000;
+            int *vt6 = (int*)gr[0x28/4];
+            ret = ((int(*)(int))vt6[0x5C/4])(*(short*)((char*)vt6 + 0x58) + (int)gr);
+            gl_func_00034458(&D_39094_a6a, ret);
+            vt6 = (int*)root[0x28/4];
+            ret = ((int(*)(int))vt6[0x5C/4])(*(short*)((char*)vt6 + 0x58) + (int)root);
+            gl_func_00034458(&D_39094_a6b, ret);
+            break;
+        }
+        case 7:
+            gl_func_00034458(&D_39094_a7);
+            break;
+        case 8: {
+            struct gl_39094_blk16 vec;                           /* sp+0x48, 64 bytes */
+            float scaled[3];                                     /* sp+0x3C */
+            float *gv = (float*)((char*)&D_39094_dat + 0x128);
+            vec = *(struct gl_39094_blk16*)((char*)&D_39094_dat + 0xE8);
+            scaled[0] = *(float*)((char*)root + 0xA0) * gv[0];
+            scaled[1] = *(float*)((char*)root + 0xA4) * gv[1];
+            scaled[2] = *(float*)((char*)root + 0xA8) * gv[2];
+            gl_func_00034458(&D_39094_a8a, scaled);
+            gl_func_00034458(&D_39094_a8b, &vec);
+            break;
+        }
+    }
+
+    /* Iterate bundle list at sp+156. cur = bundle, next = bundle->next(4),
+     * v0 = bundle->node(0). */
+    ret = 0;
+    if (bundle == NULL) goto done;
+    cur = (int*)bundle;
+    next = (int*)bundle[0x4/4];
+    if (bundle[0x0/4] == 0) goto done;
+
+    for (;;) {
+        int *node = (int*)cur[0];
+        if (node[0x18/4] & 0x4) {
+            if (((int*)cur[0])[0x18/4] & 0x4) {
+                int *t1;
+                if (root[0x2C/4] & 0x2) {
+                    *(int**)&D_00000000 = root;
+                    node = (int*)cur[0];
                 }
-                vec[16] = *(float*)((char*)root + 0xA0) * gvec[0];
-                vec[17] = *(float*)((char*)root + 0xA4) * gvec[1];
-                vec[18] = *(float*)((char*)root + 0xA8) * gvec[2];
-                gl_func_00000000(&D_00000000, &vec[15]);
-                gl_func_00000000(&D_00000000, vec);
-                break;
+                t1 = (int*)node[0x4/4];
+                if (t1 != 0) node[0x14/4] = (int)root;
+                ret = gl_func_00034458();
+                node = (int*)cur[0];
+                if (node[0x20/4] & ret) {
+                    vt = (int*)node[0x28/4];
+                    ((void(*)(int))vt[0x1C/4])(*(short*)((char*)vt + 0x18) + (int)node);
+                }
             }
         }
+        ret = 0;
+        if (next == NULL) goto done;
+        cur = next;
+        next = (int*)next[0x4/4];
+        if (cur[0x0/4] == 0) goto done;
     }
 
-    /* Iterate bundle list */
-    if (bundle != NULL) {
-        iter = (int**)bundle[0x4/4];
-        node = (int*)bundle[0x0/4];
-    } else {
-        iter = NULL;
-    }
-    while (node != NULL) {
-        int *child = (int*)bundle[0x0/4]; /* current node */
-        if ((((int*)child[0])[0x18/4] & 0x4) && (((int*)child[0])[0x18/4] & 0x4)) {
-            int *cur = (int*)child[0];
-            int ret;
-            int *vt;
-            if (root[0x2C/4] & 0x2) {
-                *(int**)&D_00000000 = root;
-                cur = (int*)child[0];
-            }
-            ret = gl_func_00000000();
-            if (cur[0x20/4] & ret) {
-                vt = (int*)cur[0x28/4];
-                ((void(*)(int))vt[0x1C/4])(*(short*)((char*)vt + 0x18) + (int)cur);
-            }
-        }
-        if (iter == NULL) break;
-        bundle = iter;
-        node = (int*)iter[0];
-        iter = (int**)iter[1];
-    }
-
-    gl_func_00000000();
+done:
+    gl_func_00034458();
     return 0;
 }
 #else

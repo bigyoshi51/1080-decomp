@@ -5318,26 +5318,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002266C);
 //   block whose free space fits `size`). Byte-match deferred —
 //   allocator loop / split-or-advance branch schedule. Name
 //   pre-checked: no extern reuse (collision-safe).
-// gl_func_00022760 — FULL m2c DECODE (53.33% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_00022760 — DEEP RECONSTRUCTION (game_libs first-fit heap allocator).
+// State block at &D_00000000: D+0x1E08 = block-table base, D+0x1E0C = block
+// count, D+0x1E10 = arena-end / preferred index. Two parallel free-index
+// rings: D+0x2019/0x201B cursor+limit + D+0x1F18[] index array (ring A);
+// D+0x2018/0x201A/0x201B cursor+limits + D+0x1E18[] index array (ring B).
+// D+0x207C = registration counter. Each block is a 0x10-byte header:
+// +0x0 = base ptr, +0x4 = block size, +0x8 = capacity copy, +0xA = capacity
+// (u16), +0xD = back-link byte, +0xE = state byte (0 free, 0x20/2/3 modes).
+// Reconstruction ~79.9% NM, no episode. Logic + control flow match the target
+// instruction-for-instruction (size 205 vs 207 words); residual is register
+// COLORING + a 48-byte FRAME-SIZE gap (target -80 keeps the loop index in $a0;
+// ours spills one extra local → -128). KEY LEVER: the state block must be a
+// distinct array extern (gl_d_00022760[]) referenced DIRECTLY in every deref so
+// IDO materializes the base once per block (lui;addiu;lw off) and reuses it —
+// (char*)&D_00000000+off constant-folds to per-access lui;lw and diverges hard.
+// Residual is permuter territory (coloring/frame); not reached 0 here.
 #ifdef NON_MATCHING
 
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00022760)();
+/* gl_func_00022760 state block — a single aggregate symbol accessed as an
+ * array so IDO materializes the base once per block (lui;addiu) and reuses
+ * it with field displacements, matching the target's single-base codegen. */
+extern u8 gl_d_00022760[];
 s32 gl_func_00022760(s32 arg0, s32 arg1, s32 arg2, u8 *arg3, s32 arg4) {
-    char *sp48;
+    char *found;
     s32 sp38;
     s32 temp_s0;
-    s32 temp_t5;
     s32 temp_v0;
     s32 temp_v0_4;
     s32 var_t2;
     s32 var_t3;
     u16 temp_v0_7;
     u32 temp_a1;
-    u32 temp_a1_2;
     u32 temp_a2;
     u32 temp_v1_3;
     u32 var_a0;
@@ -5349,111 +5365,100 @@ s32 gl_func_00022760(s32 arg0, s32 arg1, s32 arg2, u8 *arg3, s32 arg4) {
     u8 temp_v0_6;
     u8 temp_v1;
     u8 temp_v1_2;
-    u8 var_v0;
-    char *temp_t0;
-    char *var_t0;
+    u32 var_v0;
     char *var_v1;
 
     var_t3 = 0;
-    if ((arg2 != 0) || (var_v0 = *(int*)arg3, ((var_v0 < (u32) *(u32 *)0x1E10) == 0))) {
-        temp_a2 = *(u32 *)0x1E10;
-        temp_a1 = *(u32 *)0x1E0C;
+    if ((arg2 != 0) || (var_v0 = *arg3, (var_v0 < *(u32 *)(gl_d_00022760 + 0x1E10)) == 0)) {
+        temp_a2 = *(u32 *)(gl_d_00022760 + 0x1E10);
+        temp_a1 = *(u32 *)(gl_d_00022760 + 0x1E0C);
         var_a0 = temp_a2;
         if (temp_a2 < temp_a1) {
-            var_v1 = (var_a0 * 0x10) + *(u32 *)0x1E08;
+            var_v1 = (char *)((var_a0 * 0x10) + *(u32 *)(gl_d_00022760 + 0x1E08));
 loop_4:
-            temp_t0 = var_v1;
+            found = var_v1;
             temp_v0 = arg0 - FW(var_v1, 0x4);
-            if ((temp_v0 >= 0) && ((u32) ((*(u16 *)((char *)temp_t0 + 0xA)) - arg1) >= (u32) temp_v0)) {
-                if ((*(u8 *)((char *)temp_t0 + 0xE)) == 0) {
-                    temp_v0_2 = *(u32 *)0x2019;
-                    if (*(u32 *)0x201B != temp_v0_2) {
-                        temp_v1 = (*(u8 *)((char *)temp_t0 + 0xD));
+            if ((temp_v0 >= 0) && ((u32) ((*(u16 *)(found + 0xA)) - arg1) >= (u32) temp_v0)) {
+                if (*(u8 *)(found + 0xE) == 0) {
+                    temp_v0_2 = gl_d_00022760[0x2019];
+                    if (gl_d_00022760[0x201B] != temp_v0_2) {
+                        temp_v1 = *(u8 *)(found + 0xD);
                         if (temp_v0_2 != temp_v1) {
-                            (*(u8 *)((char *)temp_v1 + 0x1F18)) = (u8) (*(u8 *)((char *)temp_v0_2 + 0x1F18));
-                            FW((*(u32 *)0x1E08 + (FW((*(u32 *)0x2019), 0x1F18) * 0x10)), 0xD) = (u8) (*(u8 *)((char *)temp_t0 + 0xD));
+                            gl_d_00022760[temp_v1 + 0x1F18] = gl_d_00022760[temp_v0_2 + 0x1F18];
+                            *(u8 *)((char *)(*(u32 *)(gl_d_00022760 + 0x1E08) + (gl_d_00022760[gl_d_00022760[0x2019] + 0x1F18] * 0x10)) + 0xD) = *(u8 *)(found + 0xD);
                         }
-                        *(u32 *)0x2019 = (u8) (*(u32 *)0x2019 + 1);
+                        gl_d_00022760[0x2019] = gl_d_00022760[0x2019] + 1;
                     }
                 }
-                (*(u8 *)((char *)temp_t0 + 0xE)) = 0x20U;
-                *arg3 = (u8) var_a0;
-                return (FW(temp_t0, 0x0) + (int)arg0) - FW(temp_t0, 0x4);
+                *(u8 *)(found + 0xE) = 0x20;
+                *arg3 = var_a0;
+                return (FW(found, 0x0) + arg0) - FW(found, 0x4);
             }
             var_a0 += 1;
             var_v1 += 0x10;
-            if (var_a0 >= temp_a1) {
-                sp48 = temp_t0;
-                goto block_14;
+            if (var_a0 < temp_a1) {
+                goto loop_4;
             }
-            goto loop_4;
         }
-block_14:
-        var_t0 = sp48;
         if (arg2 == 0) {
-            var_v0 = *(int*)arg3;
+            var_v0 = *arg3;
             goto block_20;
         }
-        temp_v0_3 = *(u32 *)0x2019;
-        if ((*(u32 *)0x201B != temp_v0_3) && (arg2 != 0)) {
-            temp_t2 = FW(temp_v0_3, 0x1F18);
-            *(u32 *)0x2019 = (u8) (temp_v0_3 + 1);
+        temp_v0_3 = gl_d_00022760[0x2019];
+        if ((gl_d_00022760[0x201B] != temp_v0_3) && (arg2 != 0)) {
+            temp_t2 = gl_d_00022760[temp_v0_3 + 0x1F18];
+            gl_d_00022760[0x2019] = temp_v0_3 + 1;
             var_t3 = 1;
-            sp38 = (s32) temp_t2;
-            var_t0 = (temp_t2 * 0x10) + *(u32 *)0x1E08;
+            sp38 = temp_t2;
+            found = (char *)((temp_t2 * 0x10) + *(u32 *)(gl_d_00022760 + 0x1E08));
         }
         goto block_29;
     }
 block_20:
-    temp_a1_2 = *(u32 *)0x1E08;
-    var_t0 = (var_v0 * 0x10) + temp_a1_2;
+    found = (char *)((var_v0 * 0x10) + *(u32 *)(gl_d_00022760 + 0x1E08));
     var_a0_2 = 0;
 loop_21:
-    temp_v0_4 = arg0 - FW(var_t0, 0x4);
-    if ((temp_v0_4 >= 0) && ((u32) (FW(var_t0, 0xA) - arg1) >= (u32) temp_v0_4)) {
-        if (FW(var_t0, 0xE) == 0) {
-            temp_v0_5 = *(u32 *)0x2018;
-            temp_v1_2 = FW(var_t0, 0xD);
+    temp_v0_4 = arg0 - FW(found, 0x4);
+    if ((temp_v0_4 >= 0) && ((u32) ((*(u16 *)(found + 0xA)) - arg1) >= (u32) temp_v0_4)) {
+        if (*(u8 *)(found + 0xE) == 0) {
+            temp_v0_5 = gl_d_00022760[0x2018];
+            temp_v1_2 = *(u8 *)(found + 0xD);
             if (temp_v0_5 != temp_v1_2) {
-                FW(temp_v1_2, 0x1E18) = (u8) FW(temp_v0_5, 0x1E18);
-                FW((*(u32 *)0x1E08 + (FW((*(u32 *)0x2018), 0x1E18) * 0x10)), 0xD) = (u8) FW(var_t0, 0xD);
+                gl_d_00022760[temp_v1_2 + 0x1E18] = gl_d_00022760[temp_v0_5 + 0x1E18];
+                *(u8 *)((char *)(*(u32 *)(gl_d_00022760 + 0x1E08) + (gl_d_00022760[gl_d_00022760[0x2018] + 0x1E18] * 0x10)) + 0xD) = *(u8 *)(found + 0xD);
             }
-            *(u32 *)0x2018 = (u8) (*(u32 *)0x2018 + 1);
+            gl_d_00022760[0x2018] = gl_d_00022760[0x2018] + 1;
         }
-        FW(var_t0, 0xE) = 2U;
-        return (FW(var_t0, 0x0) + (int)arg0) - FW(var_t0, 0x4);
+        *(u8 *)(found + 0xE) = 2;
+        return (FW(found, 0x0) + arg0) - FW(found, 0x4);
     }
-    temp_t5 = var_a0_2 * 0x10;
+    found = (char *)((var_a0_2 * 0x10) + *(u32 *)(gl_d_00022760 + 0x1E08));
     var_a0_2 += 1;
-    var_t0 = temp_t5 + temp_a1_2;
-    if (*(u32 *)0x1E10 < var_a0_2) {
-block_29:
-        var_t2 = sp38;
-        if (var_t3 == 0) {
-            temp_v0_6 = *(u32 *)0x2018;
-            if (*(u32 *)0x201A == temp_v0_6) {
-                return 0;
-            }
-            var_t2 = (s32) FW(temp_v0_6, 0x1E18);
-            *(u32 *)0x2018 = (u8) (temp_v0_6 + 1);
-            var_t0 = (var_t2 * 0x10) + *(u32 *)0x1E08;
-            goto block_33;
-        }
-block_33:
-        temp_v0_7 = FW(var_t0, 0xA);
-        FW(var_t0, 0xE) = 3;
-        temp_s0 = arg0 & ~0xF;
-        FW(var_t0, 0x4) = temp_s0;
-        FW(var_t0, 0x8) = temp_v0_7;
-        temp_v1_3 = *(u32 *)0x207C;
-        *(u32 *)0x207C = temp_v1_3 + 1;
-        sp38 = var_t2;
-        sp48 = var_t0;
-        game_libs_func_0003443C((temp_v1_3 * 0x18) + 0x17D4, 0, 0, temp_s0, FW(var_t0, 0x0), (s32) temp_v0_7, 0x16BC, arg4, 0x1AA84);
-        *arg3 = (u8) var_t2;
-        return (arg0 - temp_s0) + FW(var_t0, 0x0);
+    if (*(u32 *)(gl_d_00022760 + 0x1E10) >= var_a0_2) {
+        goto loop_21;
     }
-    goto loop_21;
+block_29:
+    var_t2 = sp38;
+    if (var_t3 == 0) {
+        temp_v0_6 = gl_d_00022760[0x2018];
+        if (gl_d_00022760[0x201A] == temp_v0_6) {
+            return 0;
+        }
+        var_t2 = gl_d_00022760[temp_v0_6 + 0x1E18];
+        gl_d_00022760[0x2018] = temp_v0_6 + 1;
+        found = (char *)((var_t2 * 0x10) + *(u32 *)(gl_d_00022760 + 0x1E08));
+    }
+    temp_v0_7 = *(u16 *)(found + 0xA);
+    *(u8 *)(found + 0xE) = 3;
+    temp_s0 = arg0 & ~0xF;
+    FW(found, 0x4) = temp_s0;
+    *(u16 *)(found + 0x8) = temp_v0_7;
+    temp_v1_3 = *(u32 *)(gl_d_00022760 + 0x207C);
+    *(u32 *)(gl_d_00022760 + 0x207C) = temp_v1_3 + 1;
+    sp38 = var_t2;
+    game_libs_func_0003443C(gl_d_00022760 + (temp_v1_3 * 0x18) + 0x17D4, 0, 0, temp_s0, FW(found, 0x0), (s32) temp_v0_7, 0x16BC, arg4, 0x1AA84);
+    *arg3 = sp38;
+    return (arg0 - temp_s0) + FW(found, 0x0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);

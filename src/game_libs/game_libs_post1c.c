@@ -13,6 +13,10 @@
  * section grew and diffs ran to the end) -- precise emission tracing
  * needed; relayout session. */
 extern int D_00000000;
+/* __osViNext / __osViCurr: DISTINCT relocatable globals (pointers to the active
+ * VI context). Kept as separate symbols so the swap-tail self-copy is not DCE'd. */
+extern void *gl_data_osViNext;
+extern void *gl_data_osViCurr;
 extern int gl_data_00000000;
 extern int gl_data_67470_addr;
 extern int gl_data_6C9F4_devCfg;
@@ -579,46 +583,62 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070B04);
 /* __osViSwapContext (1080 game_libs port). vc = __osViNext, vm = vc->modep.
  * Programs the VI register block (0xA4400000..34) from the active mode + the
  * VI_CURRENT field parity, applying the per-state scale/origin/black/repeat/fade
- * fixups, then swaps next<->curr and copies the 0x30-byte context. The
- * __osViNext / __osViCurr globals are DISTINCT but reloc-collapse to
- * &D_00000000 here (caps the swap tail). Ref: libreultra viswapcontext.c. */
+ * fixups, then swaps next<->curr and copies the 0x30-byte context.
+ * Ref: libreultra viswapcontext.c. Logic VERIFIED byte-for-byte against the
+ * target opcode stream (register-blind diff is clean). __osViNext/__osViCurr
+ * modelled as DISTINCT externs (gl_data_osViNext/osViCurr) so the swap-tail
+ * self-copy is not DCE'd and emits the 0x30-byte copy loop.
+ *
+ * RESIDUAL = hard IDO-7.1 coloring cap (52.4%): the target keeps vc/vm/physBase
+ * in saved regs s1/s0/s2 (frame -0x48), but IDO-7.1 promotes only vc, spilling
+ * vm to a caller-saved slot (frame -0x40) across the osVirtualToPhysical calls.
+ * That single allocation difference cascades into a body-wide $t-renumber +
+ * fldRegs-index CSE divergence (target recomputes vm+field*0x14 per access; IDO
+ * CSEs it). No C lever flips vm to a saved reg (tried: register hints on both,
+ * decl reorder, inline FLD recompute, split physBase temp). Permuter: base
+ * score 71090, floor ~69620 over 10k+ iters / 6 cores -- local minimum, no
+ * crack. Genuine REG-ALLOCATION cap, not a logic bug. */
 typedef struct { int w[12]; } ViCtx30;
+/* vm->fldRegs[field] member at byte offset `o` (relative to fldRegs element
+ * base 0x28). Recomputed inline per access (NOT cached) so IDO reloads `field`
+ * from its stack slot and re-emits the sll/sll/addu index sequence each time,
+ * matching the target's per-access addressing. */
+#define FLD(o) FW(vm + field * 0x14, (o))
 void gl_func_00070C44(void) {
-    void *vc;
-    void *vm;
-    void *fld;
-    s32 field;
-    s32 origin;
-    s32 hStart;
+    register char *vm;
+    register char *vc;
+    u32 field;
+    u32 origin;
+    u32 hStart;
     u32 nomValue;
 
-    vc = (void *)*(int *)&D_00000000;       /* __osViNext */
-    vm = (void *)FW(vc, 0x8);               /* vc->modep  */
+    field = 0;
+    vc = (char *)gl_data_osViNext;          /* __osViNext */
+    vm = (char *)FW(vc, 0x8);               /* vc->modep  */
     field = *(s32 *)0xA4400010 & 1;         /* VI_CURRENT & 1 */
-    fld = (char *)vm + field * 0x14;        /* &vm->fldRegs[field] */
-    origin = FW(fld, 0x28) + gl_func_00062F64(FW(vc, 0x4));
-    if (FW(vc, 0x0) & 2) {
+    origin = FLD(0x28) + gl_func_00062F64(FW(vc, 0x4));
+    if (*(u16 *)vc & 2) {
         FW(vc, 0x20) = FW(vc, 0x20) | (FW(vm, 0x20) & ~0xFFF);
     } else {
         FW(vc, 0x20) = FW(vm, 0x20);
     }
-    if (FW(vc, 0x0) & 4) {
-        nomValue = FW(fld, 0x2C) & 0xFFF;
-        FW(vc, 0x2C) = (u32)((*(f32 *)((char *)vc + 0x24)) * (f32) nomValue);
-        FW(vc, 0x2C) = FW(vc, 0x2C) | (FW(fld, 0x2C) & ~0xFFF);
+    if (*(u16 *)vc & 4) {
+        nomValue = FLD(0x2C) & 0xFFF;
+        FW(vc, 0x2C) = (u32)((*(f32 *)(vc + 0x24)) * (f32) nomValue);
+        FW(vc, 0x2C) = FW(vc, 0x2C) | (FLD(0x2C) & ~0xFFF);
     } else {
-        FW(vc, 0x2C) = FW(fld, 0x2C);
+        FW(vc, 0x2C) = FLD(0x2C);
     }
     hStart = FW(vm, 0x1C);
-    if (FW(vc, 0x0) & 0x20) {
+    if (*(u16 *)vc & 0x20) {
         hStart = 0;
     }
-    if (FW(vc, 0x0) & 0x40) {
+    if (*(u16 *)vc & 0x40) {
         FW(vc, 0x2C) = 0;
         origin = gl_func_00062F64(FW(vc, 0x4));
     }
-    if (FW(vc, 0x0) & 0x80) {
-        FW(vc, 0x2C) = (FW(vc, 0x28) << 0x10) & 0x03FF0000;
+    if (*(u16 *)vc & 0x80) {
+        FW(vc, 0x2C) = (*(u16 *)(vc + 0x28) << 0x10) & 0x03FF0000;
         origin = gl_func_00062F64(FW(vc, 0x4));
     }
     *(s32 *)0xA4400004 = origin;
@@ -628,15 +648,15 @@ void gl_func_00070C44(void) {
     *(s32 *)0xA440001C = FW(vm, 0x14);
     *(s32 *)0xA4400020 = FW(vm, 0x18);
     *(s32 *)0xA4400024 = hStart;
-    *(s32 *)0xA4400028 = FW(fld, 0x30);
-    *(s32 *)0xA440002C = FW(fld, 0x34);
-    *(s32 *)0xA440000C = FW(fld, 0x38);
+    *(s32 *)0xA4400028 = FLD(0x30);
+    *(s32 *)0xA440002C = FLD(0x34);
+    *(s32 *)0xA440000C = FLD(0x38);
     *(s32 *)0xA4400030 = FW(vc, 0x20);
     *(s32 *)0xA4400034 = FW(vc, 0x2C);
     *(s32 *)0xA4400000 = FW(vc, 0xC);
-    *(int *)&D_00000000 = *(int *)&D_00000000;    /* __osViNext = __osViCurr */
-    *(int *)&D_00000000 = (int) vc;               /* __osViCurr = vc */
-    *(ViCtx30 *)(*(int *)&D_00000000) = *(ViCtx30 *)(*(int *)&D_00000000);
+    gl_data_osViNext = gl_data_osViCurr;          /* __osViNext = __osViCurr */
+    gl_data_osViCurr = vc;                         /* __osViCurr = vc */
+    *(ViCtx30 *)gl_data_osViNext = *(ViCtx30 *)gl_data_osViCurr;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070C44);
