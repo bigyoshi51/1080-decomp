@@ -120,9 +120,11 @@ extern OSEventState __osEventStateTab[];
  * emit. The RSP DMEM/IMEM range gate prevents reads outside the
  * SP memory window. Caps <80: rmon buffer build + multi-range
  * sltu validation + osVirtualToPhysical/PI-read + branch-likely +
- * 4 callees. Full body INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
+ * 4 callees. MATCHED byte-exact (agent-b 2026-06-23): -O1, register
+ * flags var_s0/var_s1 -> s0/s1 (loop accumulator reuses s0), decl
+ * order pins the stack-slot layout (frame 0x40), and the SP-range
+ * `len + addr` summands plus `sp34 = len+0x10` ordered before `p =
+ * &sp34` fix the addu commutativity + token-loop scheduling. */
 #ifndef FW
 #define FW(p, o) (*(s32 *)((char *)(p) + (o)))
 #endif
@@ -140,16 +142,14 @@ extern char __rmonUtilityBuffer;
  * token (func_800066F0), send the header, and kick the transfer
  * (func_800074A0(addr, len)). */
 s32 func_80006790(void *arg0) {
-    char *volatile sp2C = &__rmonUtilityBuffer;
-    void *volatile sp30 = arg0;
-    s32 sp34;
-    s32 sp38;
-    s32 var_s0;
-    s32 var_s1;
-    u32 temp_t0;
-    u32 temp_t4;
-    u32 addr;
     char *p;
+    s32 sp38;
+    s32 sp34;
+    void *sp30 = arg0;
+    char *sp2C = &__rmonUtilityBuffer;
+    u32 addr;
+    register s32 var_s0;
+    register s32 var_s1;
 
     *(u8 *)(sp2C + 4) = *(u8 *)((char *)arg0 + 4);
     FW(sp2C, 0xC) = FW(sp30, 0xC);
@@ -161,15 +161,13 @@ s32 func_80006790(void *arg0) {
         return -8;
     }
     if (*(u8 *)((char *)arg0 + 9) == 1) {
-        temp_t0 = FW(sp30, 0x10);
-        if ((temp_t0 < 0x04001000U) || ((u32) (temp_t0 + FW(sp30, 0x14)) >= 0x04002000U)) {
+        if (((u32) FW(sp30, 0x10) < 0x04001000U) || ((u32) (FW(sp30, 0x14) + FW(sp30, 0x10)) >= 0x04002000U)) {
             var_s0 = 0;
         } else {
             var_s0 = 1;
         }
         if (var_s0 == 0) {
-            temp_t4 = FW(sp30, 0x10);
-            if ((temp_t4 < 0x04000000U) || ((u32) (temp_t4 + FW(sp30, 0x14)) >= 0x04001000U)) {
+            if (((u32) FW(sp30, 0x10) < 0x04000000U) || ((u32) (FW(sp30, 0x14) + FW(sp30, 0x10)) >= 0x04001000U)) {
                 var_s1 = 0;
             } else {
                 var_s1 = 1;
@@ -185,19 +183,17 @@ s32 func_80006790(void *arg0) {
     }
     addr = FW(sp30, 0x10);
     FW(sp2C, 0) = FW(sp30, 0x14) + 0x10;
+    sp34 = FW(sp30, 0x14) + 0x10;
     p = (char *) &sp34;
     sp38 = 0;
-    sp34 = FW(sp30, 0x14) + 0x10;
     do {
-        sp38 += func_800066F0(p + sp38, 4 - sp38, 8);
+        var_s0 = func_800066F0(p + sp38, 4 - sp38, 8);
+        sp38 += var_s0;
     } while (sp38 < 4);
     __rmonSendHeader(sp2C, 0x10, 1);
     func_800074A0(addr, FW(sp30, 0x14));
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80006790);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW

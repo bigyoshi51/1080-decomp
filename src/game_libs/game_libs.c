@@ -3654,7 +3654,24 @@ extern int gl_func_00000000();
  * epilogue. OTHERWISE (next==0 || call==0) fall into the SECOND dispatch
  * (D[0x34] in {6,5} -> D[0x138] sub-tree), then the THIRD dispatch on a0->0x4F8,
  * then epilogue (a0->0x510 = 1). Calls are USO placeholders (gl_func_00000000);
- * several leave $a0 register-leftover so exact arg recovery is partial. */
+ * several leave $a0 register-leftover so exact arg recovery is partial.
+ *
+ * NOT LANDABLE — HARD CAP (confirmed 2026-06-23, agent-e):
+ *   game_libs.c is the raw-word USO BASE object: `readelf -r
+ *   expected/src/game_libs/game_libs.c.o` => "There are no relocations in this
+ *   file." Every jal/lui-data target is baked into the ROM as ZERO (relocs are
+ *   applied at USO load time, not in the static image). This function has 14+
+ *   jal calls + several lui/lw data refs, so compiled C emits R_MIPS_26 /
+ *   R_MIPS_HI16/LO16 against gl_func_00000000 / D_00000000 (verified in
+ *   build/non_matching/.../game_libs.c.o) which the static linker resolves to
+ *   NON-ZERO addresses -> can never match the zeroed ROM words. Only call-free
+ *   / data-ref-free LEAF stubs (e.g. game_libs_func_00000B8C) land in this
+ *   zero-reloc base. Landing this fn requires the deferred multi-day
+ *   spimdisasm-proper USO-reloc migration (project_1080_uso_spimdisasm_migration_todo).
+ *   Do not re-attempt as a single-tick land. Residual vs target after the call
+ *   words (which display-match as both-zero): the body is also 5 words short and
+ *   carries genuine arg-arity (4-arg f(5,5,X,0)) + regalloc decode drift in the
+ *   second/third dispatch — decode-quality only, irrelevant to landability. */
 void gl_func_000070FC(int *a0) {
     int *next;
     int m;

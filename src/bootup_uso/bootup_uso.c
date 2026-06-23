@@ -243,111 +243,99 @@ void func_0000057C(int *arg0, int arg1, int arg2) {
     func_00000000(arg0[0], sel);
 }
 
-/* func_00000610 - verified structural decode (0x24C, 147 insns,
- * FP parameter normalize / clamp / scale).
- *   void func_00000610(St *s0, f32 a1, f32 a2, int a3) {
- *       o = s0->0x0;
- *       if (o == 0) return;
- *       // normalize a1 by a f64 divisor const, clamp to [0,1]:
- *       f32 r = (f32)((f64)a1 / *(f64*)(func_00000044 + 0x14));
- *       if (r < 0.0f)      r = 0.0f;
- *       else if (1.0f < r) r = 1.0f;
- *       o->0xC = r;
- *       // |a2| scaled by 63.0 + f64 offset const:
- *       f32 s = (a2 < 0.0f) ? -a2 : a2;
- *       f32 v = (f32)((f64)s + *(f64*)(func_00000044 + 0x1C));
- *       f32 w = a2 * 63.0f;                        // 0x427C0000
- *       int flags = ((int*)&a3)[...];              // sp+0x50
- *       bool b = (flags & 0x80) != 0;
- *       ... (uses 'a' = 0x61 constant; func_00000000 reloc) ...
- *   }
- * Struct-typing reference: s0->0x0 (0) -> target object o (NULL ->
- * no-op); o->0xC (12) f32 = the normalized 0..1 control value
- * (a1 divided by the f64 const at func_00000044+0x14, then
- * saturated). a1 / a2 are raw input axes (a2 sign-folded to its
- * magnitude, scaled by 63.0, biased by the f64 const at
- * func_00000044+0x1C). a3 + the sp+0x50 flag word (bit 7 / 0x80)
- * select a sub-path; literal 0x61 ('a') used as a tag/threshold.
- * Likely an analogue-stick / lean axis -> normalized steering
- * parameter. Caps <80: FP-heavy cvt.d.s/div.d/cvt.s.d double
- * promotion + c.lt.s clamp pair + neg.s abs + add.d f64 const +
- * bc1fl branch-likely + func_00000000 reloc. Full body
- * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode; tautology-trap rule). */
+/* func_00000610 - corrected full decode (0x24C, 147 insns, FP param
+ * normalize / clamp / scale + 5 func_00000000 dispatch calls).
+ * Signature recovered from arg-home slots: a0=int* (struct-ptr ptr),
+ * then 5 f32 (arg1..arg5) + 3 s32 (arg6..arg8). o = arg0[0]; bails if 0.
+ *   - o->0xC  = clamp01( (f32)((f64)arg5 / *(f64*)(&func_00000044+0x14)) )
+ *   - o->0x4  = (f32)((f64)fabsf(arg4) + *(f64*)(&func_00000044+0x1C))
+ *   - o->0x18 = (s8)(s32)(arg4 * 63.0f)            // 0x427C0000
+ *   - o->0x1E = (arg8 & 0x80)   != 0
+ *   - switch(arg6){0,'a','b','c','d'} -> o->0x15 / o->0x14 tags
+ *   - o->0x0  = arg2 / 4.0f ;  o->0x8 = arg3 / 4.0f
+ *   - o->0x20 = 1 ;  o->0x1C = (arg8 & 0x8000) != 0
+ *   - if(o->0x1C) { func_00000000((int)arg1bits,&sp28,&sp24,arg7);
+ *                   func_00000000(arg0[0],*(int*)&sp28,(s8)sp24); }
+ *   - func_00000000(&D_00006584); func_00000000(arg0[0],0);
+ *     func_00000000();
+ * The &func_00000044+off ldc1 doubles are f64 consts embedded in
+ * func_00000044's literal pool (same idiom as func_000024B8 line ~1794,
+ * which emits the matching R_MIPS_HI16/LO16 func_00000044 relocs).
+ * NM body now reproduces all relocs + the full call/switch/clamp shape
+ * (100 residual diff words, down from 125). Residual classes — both
+ * permuter-immune, hence INCLUDE_ASM (no episode):
+ *   1) div.s-vs-mul.s: arg2/4.0f & arg3/4.0f. -O2 -r4300_mul ALWAYS
+ *      reciprocal-muls a foldable /4.0f (lui 0x3e80; mul.s). Target
+ *      keeps lui 0x4080; mtc1; div.s twice (no stack store) — only
+ *      reachable from a NON-foldable 4.0 (verified: needs a branch-fed
+ *      local or a global load; both add insns/stores the target lacks).
+ *      Cannot be produced from honest /4.0f literal C.
+ *   2) +16B frame / FP-register coloring cascade: &sp28/&sp24
+ *      address-taken locals land 16B higher than target's sp+0x24/0x28
+ *      slots, shifting arg-home + $f-register numbering throughout.
+ * INCLUDE_ASM-preserved (.s = source of truth). */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00000610)();
-extern int a610_a(int, float, float, void*, void*, int);
-extern int a610_b(int, float, float);
-extern int a610_c(int, float);
-void func_00000610(f32 arg1, char **arg0, f32 arg2, f32 arg3, f32 arg4, f32 arg5, s32 arg6, s32 arg7, s32 arg8) {
-    int sp27;
+extern char D_00006584;
+void func_00000610(int *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, s32 arg6, s32 arg7, s32 arg8) {
+    int o;
     f32 sp28;
     int sp24;
     f32 temp_f2;
     f32 var_f0;
     f32 var_f0_2;
-    f32 var_f14;
-    char *temp_v0;
 
-    var_f14 = arg1;
-    temp_v0 = *(int*)arg0;
-    if (temp_v0 != 0) {
-        temp_f2 = (f32) ((f64) arg5 / *(f64*)((char*)&D_00000000 + 0x14));
+    o = arg0[0];
+    if (o != 0) {
+        temp_f2 = (f32) ((f64) arg5 / *(f64*)((char*)&func_00000044 + 0x14));
         if (temp_f2 < 0.0f) {
             var_f0 = 0.0f;
+        } else if (1.0f < temp_f2) {
+            var_f0 = 1.0f;
         } else {
-            var_f14 = 1.0f;
-            if (temp_f2 > 1.0f) {
-                var_f0 = 1.0f;
-            } else {
-                var_f0 = temp_f2;
-            }
+            var_f0 = temp_f2;
         }
-        (*(f32*)((char*)temp_v0 + 0xC)) = var_f0;
+        *(f32*)((char*)o + 0xC) = var_f0;
         if (arg4 < 0.0f) {
             var_f0_2 = -arg4;
         } else {
             var_f0_2 = arg4;
         }
-        (*(f32*)((char*)(*(int*)arg0) + 0x4)) = (f32) ((f64) var_f0_2 + *(f64*)((char*)&D_00000000 + 0x1C));
-        (*(s8*)((char*)(*(int*)arg0) + 0x18)) = (s8) (s32) (arg4 * 63.0f);
-        (*(s8*)((char*)(*(int*)arg0) + 0x1E)) = (s8) ((arg8 & 0x80) != 0);
-        switch (arg6) {                             /* irregular */
+        *(f32*)((char*)arg0[0] + 0x4) = (f32) ((f64) var_f0_2 + *(f64*)((char*)&func_00000044 + 0x1C));
+        *(s8*)((char*)arg0[0] + 0x18) = (s8) (s32) (arg4 * 63.0f);
+        *(s8*)((char*)arg0[0] + 0x1E) = (s8) ((arg8 & 0x80) != 0);
+        switch (arg6) {
         case 0x0:
-            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 1;
-            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 0;
+            *(s8*)((char*)arg0[0] + 0x15) = 1;
+            *(s8*)((char*)arg0[0] + 0x14) = 0;
             break;
         case 0x61:
-            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 1;
-            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 1;
+            *(s8*)((char*)arg0[0] + 0x15) = 1;
+            *(s8*)((char*)arg0[0] + 0x14) = 1;
             break;
         case 0x62:
-            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 3;
-            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 1;
+            *(s8*)((char*)arg0[0] + 0x15) = 3;
+            *(s8*)((char*)arg0[0] + 0x14) = 1;
             break;
         case 0x63:
-            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 2;
-            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 1;
+            *(s8*)((char*)arg0[0] + 0x15) = 2;
+            *(s8*)((char*)arg0[0] + 0x14) = 1;
             break;
         case 0x64:
-            (*(s8*)((char*)(*(int*)arg0) + 0x15)) = 2;
-            (*(s8*)((char*)(*(int*)arg0) + 0x14)) = 2;
+            *(s8*)((char*)arg0[0] + 0x15) = 2;
+            *(s8*)((char*)arg0[0] + 0x14) = 2;
             break;
         }
-        (*(f32*)((char*)(*(int*)arg0) + 0x0)) = (f32) (arg2 / 4.0f);
-        (*(f32*)((char*)(*(int*)arg0) + 0x8)) = (f32) (arg3 / 4.0f);
-        (*(s8*)((char*)(*(int*)arg0) + 0x20)) = 1;
-        (*(u8*)((char*)(*(int*)arg0) + 0x1C)) = (u8) ((arg8 & 0x8000) != 0);
-        if ((*(u8*)((char*)(*(int*)arg0) + 0x1C)) != 0) {
-            (char*)a610_a(0, var_f14, arg1, &sp28, &sp24, arg7);
-            (char*)a610_b(*(int*)arg0, sp28, (f32) sp27);
+        *(f32*)((char*)arg0[0] + 0x0) = arg2 / 4.0f;
+        *(f32*)((char*)arg0[0] + 0x8) = arg3 / 4.0f;
+        *(s8*)((char*)arg0[0] + 0x20) = 1;
+        *(u8*)((char*)arg0[0] + 0x1C) = (u8) ((arg8 & 0x8000) != 0);
+        if (*(u8*)((char*)arg0[0] + 0x1C) != 0) {
+            func_00000000(*(int*)&arg1, &sp28, &sp24, arg7);
+            func_00000000(arg0[0], *(int*)&sp28, (s8) sp24);
         }
-        (char*)func_00000000(0);
-        (char*)a610_c(*(int*)arg0, 0.0f);
-        (char*)func_00000000();
+        func_00000000(&D_00006584);
+        func_00000000(arg0[0], 0);
+        func_00000000();
     }
 }
 #else
@@ -2733,32 +2721,51 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
  * Caps <80: ~12 reloc + FP stack-arg passing + packed-flag lui/ori
  * (with global u8 inputs) + a1*0x1C index + list-link beql.
  *
- * 2026-06-02 FULL CHAIN DECODED 37.3->82.8% (+45.5pp): single-alloc variant.
+ * 2026-06-02 FULL CHAIN DECODED: single-alloc variant.
  * r1=builder(byte args CFG->0x181/0x183, flags=CFG->0x182|0x8001|0x10000|
  * 0x40000, tag 0x1B); b2=builder(s1,0,s1->0x80,r1,o); b3=builder(s1,1,...);
  * f1=builder(s1,&D+a1*0x1C,b2); b2->0x14C=85.0f; then a CONDITIONAL o2=alloc:
  * if(o2){ func(o2,1); big=builder(0,o2,r1,f1,b2,b3); func(s1->0x84+0x10,big);
  * linked-set finalizer on big (big->0x14/0x4 vs s1->0x84); } r1->0x8DC=f1.
- * All field stores byte-match; residual ~17% = &D-base const-fold (CFG byte
- * reads re-lui'd vs shared base) + scheduling. INCLUDE_ASM stays. */
+ *
+ * 2026-06-23 RAW-BYTE-POSITION RE-MEASURE + decode progress 20.4% -> 52.2%
+ * (NOT 82.8% -- the prior figure was windowed/fuzzy which masks reloc + the
+ * sp-slot-offset cascade). Real levers applied (all kept):
+ *   (1) frame now -0x60 (matched) via spilling the conditional v1_84 local.
+ *   (2) SHARED CFG BASE (IDO_CODEGEN deferred-assign+named-locals lever):
+ *       register u8 *C; C=CFG; c182=C[0x182]; ... uses C[0x181]/C[0x183]
+ *       -> one held base reg + 3 lbu (was 3 separate lui/addiu). +28pp.
+ *   (3) v1_84 = s1->0x84 read AFTER the big-builder call (target order).
+ * RESIDUAL ~48% = register-COLORING cascade: held base C lands in t1/t9
+ * not target's $v1, cascading every spill-slot assignment off by 8 (same
+ * 0x60 frame, different slot numbering) + as1 tail scheduling. Permuter
+ * RAN (base score 1215, every mutation +score / 1-error) -> CANNOT crack;
+ * objdiff normalizes sp-offsets so it is blind to the slot cascade. This is
+ * the documented coloring-cap class for the 38C0/3734/39D8/3B78 family.
+ * INCLUDE_ASM stays (honest NON_MATCHING). */
 #ifdef NON_MATCHING
 /* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats. */
 extern char *func_3b78_r(char *, int, int, int, char *, int, float, float, int, int);
+extern unsigned char CFG_3b78[];  /* global byte-config block (placeholder &D_00000000) */
 void func_00003B78(char *s1, int a1) {
     char *o = (char*)func_00000000(0x80);
     char *cfg;
-    char *CFG = &D_00000000;  /* global byte-config (placeholder) */
+    register unsigned char *C;
     char *r1, *b2, *b3, *f1, *o2, *row;
+    int v1_84;
+    int c182;
     int flags;
     if (o == 0) return;
     func_00000000(o, 0);
-    func_00000000(CFG, o);
-    func_00000000(CFG, o, 0);
+    func_00000000(CFG_3b78, o);
+    func_00000000(CFG_3b78, o, 0);
+    C = CFG_3b78;
+    c182 = C[0x182];
     cfg = *(char**)(s1 + 0x98);
-    flags = (*(unsigned char*)(CFG + 0x182) | 0x8001) | 0x10000 | 0x40000;
+    flags = (c182 | 0x8001) | 0x10000 | 0x40000;
     r1 = func_3b78_r(s1, 0,
-                     *(unsigned char*)(CFG + 0x181),
-                     *(unsigned char*)(CFG + 0x183),
+                     C[0x181],
+                     C[0x183],
                      o, *(int*)(s1 + 0x80),
                      *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
                      flags, 0x1B);
@@ -2770,11 +2777,11 @@ void func_00003B78(char *s1, int a1) {
     o2 = (char*)func_00000000(0x80);
     if (o2 != 0) {
         char *big;
-        func_00000000(o2, 1);
         big = (char*)func_00000000(0, o2, r1, f1, b2, b3);
-        func_00000000(*(int*)(s1 + 0x84) + 0x10, big);
+        v1_84 = *(int*)(s1 + 0x84);
+        func_00000000(v1_84 + 0x10, big);
         if (*(int*)(big + 0x14) != 0) *(int*)(big + 0x4) = 1;
-        *(int*)(big + 0x14) = *(int*)(s1 + 0x84);
+        *(int*)(big + 0x14) = v1_84;
     }
     *(char**)(r1 + 0x8DC) = f1;
 }
