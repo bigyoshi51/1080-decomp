@@ -708,9 +708,25 @@ void h2hproc_uso_func_00000BAC(int *a0) {
  *   (3) only gl_func(alloc2,1) is gated on `if(alloc2)`; the 6-arg call + the
  *       linked-set finalizer (on r2, not q) + gl_func(retbind,a0) run UNCOND.
  *   Also: 0x108 second mask reloads via a0->0x520; final call is 2-arg.
- * RESIDUAL ~22%: (a) s1<->s2 renumber (target param=s1/slot=s2; mine swapped),
- *   (b) the two flag RMWs use addiu-address+0(reg) in target vs offset
- *   addressing in mine (addiu-form cap, feedback_rmw_pointer_local_folds...).
+ * 2026-06-23 RMW-FORM + DOUBLE-STORE FIXED → instruction-stream MNEMONIC-EXACT
+ *   (difflib mnemonic LCS 90.5%; 122 of target's 123 insns; full-insn LCS 32.9%).
+ *   Levers applied (docs/IDO_CODEGEN base-reassign + volatile-view):
+ *   - 0xC4 flag: `int *f=&root->0xC4->0xA58; *f=*f|0x8000;` (symmetric addiu+0(v1)).
+ *   - 0xCC flag: base-MUTATE asymmetric (`t=*(g+0xA58); g+=0xA58; *g=t|M;`) → matches
+ *     target's offset-load-first-then-addiu (line-305 reassign-base-forces-addiu-sw0).
+ *   - 0x108 two clears: first symmetric (mutate p then *p=*p&~8), second asymmetric
+ *     (offset-load, then mutate, store 0).
+ *   - 0x10C: `volatile int *p=&...->0x18;` to force target's TWO dead-stores
+ *     (sw t4,0(v0); sw t6,0(v0)) — plain double-store CSE-collapses to one.
+ * RESIDUAL = pure register-renumber CAP rooted in the s1<->s2 coloring tie
+ *   (target param=s1 / slot=s2; uopt colors mine param=s2 / slot=s1). The whole
+ *   t-register stream and the b84 stack-spill-vs-saved-reg + -88/-80 frame all
+ *   cascade off that ONE tie. Permuter 2970->2170 over ~600s/j7 = noise, never 0
+ *   (the interferer that would forbid the low reg is never emission-neutral).
+ *   Documented permuter-floored coloring cap for the h2hproc family
+ *   (MATCHING_WORKFLOW.md 696 / IDO_CODEGEN 21-23). FAILED extra levers:
+ *   register-kw param-alias (DCE'd back to a0, +0 change). Logic VERIFIED bug-free
+ *   (all 8 call arg-setups + beqzl finalizer cross-checked vs target). Keep NM.
  *
  * 2026-05-31 TAIL RECONSTRUCTED 52->56.4% (gap 38->20): the body's tail now matches
  * the verified asm structure below (alloc2 uncond -> root->0x108; if(alloc2) chain +
@@ -751,35 +767,47 @@ void h2hproc_uso_func_00000C18(int *a0) {
         slot = *(int**)((char*)((char*)RT + idx * 8) + 0xC4);
     }
 
-    /* First flag-set is on root->0xC4 + 0xA58 (NOT slot — reloads root->0xC4). */
+    /* First flag-set is on root->0xC4 + 0xA58 (NOT slot — reloads root->0xC4).
+     * Base-reassign form: target does `addiu v1,v0,0xA58; lw 0(v1); ori; sw 0(v1)`
+     * (symmetric — address computed once, both load+store via 0(v1)). */
     {
-        int *f = *(int**)((char*)RT + 0xC4);
-        *(int*)((char*)f + 0xA58) = *(int*)((char*)f + 0xA58) | 0x8000;
+        int *f = (int*)((char*)*(int**)((char*)RT + 0xC4) + 0xA58);
+        *f = *f | 0x8000;
     }
-    /* Second flag on root->0xCC + 0xA58. */
+    /* Second flag on root->0xCC + 0xA58. Asymmetric: target LOADS offset-form
+     * first (`lw t2,0xA58(v1)`) THEN reassigns base (`addiu v1,v1,0xA58`) and
+     * stores 0(v1). (line-305 base-reassign-forces-addiu-sw0.) */
     {
         int *g = *(int**)((char*)RT + 0xCC);
-        *(int*)((char*)g + 0xA58) = *(int*)((char*)g + 0xA58) | 0x8000;
+        int t = *(int*)((char*)g + 0xA58);
+        g = (int*)((char*)g + 0xA58);
+        *g = t | 0x8000;
     }
 
     /* Per-side make calls (5-arg, 5th on stack). */
     s518_ret = (int*)gl_func_00000000(RT, 0, *(int*)((char*)RT + 0x80), slot, *(int*)((char*)slot + 0x800));
     bound    = (int*)gl_func_00000000(RT, 1, *(int*)((char*)RT + 0x80), slot, *(int*)((char*)slot + 0x800));
 
-    /* 0x108 struct: clear bit3, then RELOAD via a0->0x520 and clear bit2. */
+    /* 0x108 struct: clear bit3 (base-reassign, symmetric 0(v1)), then RELOAD via
+     * a0->0x520 and clear bit2 (asymmetric: offset-load first, then reassign). */
     {
         int *p = *(int**)((char*)RT + 0x108);
         *(int*)((char*)a0 + 0x520) = (int)p;
-        *(int*)((char*)p + 0x18) = *(int*)((char*)p + 0x18) & ~0x8;
-        p = *(int**)((char*)a0 + 0x520);
-        *(int*)((char*)p + 0x18) = *(int*)((char*)p + 0x18) & ~0x4;
+        p = (int*)((char*)p + 0x18);     /* MUTATE base: addiu v1,p,24 (symmetric) */
+        *p = *p & ~0x8;                  /* lw 0(v1); and; sw 0(v1) */
+        p = *(int**)((char*)a0 + 0x520); /* reload p from a0->0x520 */
+        v = *(int*)((char*)p + 0x18);    /* lw t0,24(v1) offset-load FIRST */
+        p = (int*)((char*)p + 0x18);     /* addiu v1,v1,24 (asymmetric) */
+        *p = v & ~0x4;                   /* sw 0(v1) */
     }
-    /* 0x10C struct: compute (x & ~0x8) once, store, then store (x & ~0x8 & ~0x4). */
+    /* 0x10C struct: SYMMETRIC base (addiu v0,v1,24 first, then 0(v0) for load +
+     * BOTH stores). Fresh-pointer form keeps addiu-first; volatile view on the
+     * store forces the target's two dead-stores (sw t4,0(v0); sw t6,0(v0)). */
     {
-        int *p = *(int**)((char*)RT + 0x10C);
-        v = *(int*)((char*)p + 0x18) & ~0x8;
-        *(int*)((char*)p + 0x18) = v;
-        *(int*)((char*)p + 0x18) = v & ~0x4;
+        volatile int *p = (volatile int*)((char*)*(int**)((char*)RT + 0x10C) + 0x18);
+        int a = *p & ~0x8;
+        *p = a;
+        *p = a & ~0x4;
     }
 
     retbind = (int*)gl_func_00000000(RT, &D_00000000 + 0x1C, s518_ret);
@@ -1390,9 +1418,24 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
  *
  * 2026-06-02 (78.5->79.6%): sub3's 5th init arg is a single float (same as
  * 15F0) — routed through the typed-float proto gl_func_15f0(...,float) to get
- * the single swc1 instead of K&R cvt.d.s+sdc1 double-promotion. Residual is
- * the v0/v1 +1-shift temp renumber (t7->t8 etc.) + frame 0x28 vs 0x30 (mine
- * spills 2 extra) — permuter-class — plus a still-missing mid-body block.
+ * the single swc1 instead of K&R cvt.d.s+sdc1 double-promotion.
+ *
+ * 2026-06-23 (79.6->83.2%): rebuilt the two bit-16 gates as a NESTED
+ * if(parent->4F0 & 0x10000){ if(parent->4DC==1){ ... } } (failure skips to the
+ * shared tail) and recoded the v->0x34 branch as the correct lazy-p148 shape:
+ * v1=v->0x34; if(v1){ p148=v->0x148; if(p148==0) gl(parent,0); else { gl(parent);
+ * self->B8->6B8=-1; } } else { p148=v->0x148; if(p148) gl(parent,1); }. Logic
+ * now verified exact vs TARGET. Residual (all caps):
+ *   - SLL-vs-AND idiom on the 2nd/late gate: TARGET keeps v0 = x & 0x10000 live
+ *     and tail-merges the early-gate-fail INTO the late beqz v0 (one shared exit
+ *     at 0x1944); IDO branch-chaining, not forceable from straight C.
+ *   - v->0x34 block: TARGET emits beqzl branch-likely with VESTIGIAL dead v1
+ *     re-tests (0x1840 beqzl v1, 0x186c bnez v1) — IDO cross-jump/tail-merge of
+ *     the shared gl_func(parent,..) tails; correct nested C does not reproduce.
+ *     (as1-scheduler-tie + branch-likely shared-tail cap.)
+ *   - frame 0x28 vs 0x30 + v0/v1/temp +1 renumber — coloring/permuter-class.
+ * Expected object has ZERO relocs (all jal=raw 0 placeholder) => link-direct,
+ * landable once the codegen caps crack.
  *
  * STRUCTURE:
  *   parent = self->[0xB8];
@@ -1450,24 +1493,32 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
 void h2hproc_uso_func_000017A0(int *self) {
     int *parent = (int*)*(int*)((char*)self + 0xB8);
     int *v;
+    int v1;
+    int p148;
     int counter;
     if ((((unsigned)parent[0x4F0/4] << 15) >> 31) && parent[0x4DC/4] == 1) {
         *(int*)((char*)self + 0x30) += 0x21;
     }
     gl_func_00000000(self);
     parent = (int*)*(int*)((char*)self + 0xB8);
-    if ((parent[0x4F0/4] & 0x10000) == 0) goto tail;
-    if (parent[0x4DC/4] != 1) goto tail;
+    if (parent[0x4F0/4] & 0x10000) {
+    if (parent[0x4DC/4] == 1) {
 
     v = (int*)*(int*)((char*)self + 0x44);
-    if (v[0x34/4] == 0) {
-        if (v[0x148/4] == 0) {
+    v1 = v[0x34/4];
+    if (v1 != 0) {
+        p148 = v[0x148/4];
+        if (p148 == 0) {
             gl_func_00000000(parent, 0);
         } else {
             gl_func_00000000(parent);
+            *(int*)(((char*)*(int*)((char*)self + 0xB8)) + 0x6B8) = -1;
         }
-        *(int*)((char*)self + 0xB8);  /* reload */
-        *(int*)(((char*)*(int*)((char*)self + 0xB8)) + 0x6B8) = -1;
+    } else {
+        p148 = v[0x148/4];
+        if (p148 != 0) {
+            gl_func_00000000(parent, 1);
+        }
     }
 
     counter = *(int*)((char*)self + 0xD4) + 1;
@@ -1494,13 +1545,12 @@ void h2hproc_uso_func_000017A0(int *self) {
     parent = (int*)*(int*)((char*)self + 0xB8);
     if (parent[0x4F0/4] & 0x10000) {
         if (gl_func_00000000(self) != 0) {
-            v = (int*)*(int*)((char*)self + 0x44);
             gl_func_00000000(*(int*)((char*)self + 0xB8));
             gl_func_00000000(self);
-            v = (int*)*(int*)((char*)self + 0x44);
         }
         v = (int*)*(int*)((char*)self + 0x44);
         gl_func_00000000(*(int*)((char*)self + 0xE8), v[0x28/4]);
+        v = (int*)*(int*)((char*)self + 0x44);
         gl_func_00000000(*(int*)((char*)self + 0xEC), v[0x88/4]);
         v = (int*)*(int*)((char*)self + 0x44);
         gl_func_00000000(*(int*)((char*)self + 0x80), v[0x30/4], v[0x90/4]);
@@ -1508,7 +1558,8 @@ void h2hproc_uso_func_000017A0(int *self) {
         gl_func_15f0((void*)*(int*)((char*)self + 0x80), v[0x8/4], v[0xC/4],
                      v[0x68/4], *(float*)((char*)v + 0x6C));
     }
-tail:
+    }
+    }
     gl_func_00000000(self);
 }
 #else

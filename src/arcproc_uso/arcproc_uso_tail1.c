@@ -913,8 +913,32 @@ void arcproc_uso_func_00001228(int *a0) {
  * on raw .word USO asm and Ghidra project was unavailable in this worktree.
  * NON_MATCHING only; default INCLUDE_ASM keeps ROM exact. Tried volatile
  * one0..one3 locals (70.72%) and inverted threshold branch layout (64.82%);
- * plain ones[4] with the >= threshold layout is best at 74.63%. */
+ * plain ones[4] with the >= threshold layout is best at 74.63%.
+ *
+ * 2026-06-23 (74.63 -> 80.42): &D-float-CSE bust. The three threshold floats
+ * at D+0x30/0x34/0x38 were written as `*(float*)((char*)&D_00000000 + N)`,
+ * which IDO CSE-collapsed onto a single D base in $a0 (one `lui a0` reused).
+ * The target re-materializes the D base in $at per lwc1 (a separate `lui at`
+ * each time). Switching to three DISTINCT externs (D_arc125C_30/_34/_38) makes
+ * each float its own address -> per-use `lui at`, byte-matching the dispatch
+ * AND flipping the second threshold arm from bc1f to bc1fl (both arms now
+ * branch-likely). Same cocktail as arcproc_uso_func_000014C8. Also read the
+ * 0x6E4-field before 0x6FC in the first `sum` to match the add operand order.
+ *
+ * RESIDUAL (~20%, coloring + frame cap, still NM): +7 insns vs target (147 vs
+ * 140). (1) FRAME 0x70 vs 0x50: target reserves an extra 0x20 placing ones[4]
+ * at sp+0x50 and spilling `span` at sp+0x48 / a0 at sp+0x20; mine packs ones at
+ * sp+0x40. (2) FP COLORING: target materializes the 1.0f in $f0 (cascading
+ * $f0/$f8/$f16/$f4 through the FP chain); mine uses $f2 ($f2/$f10/$f18). Decl-
+ * order permute of ones/progress does not flip it. (3) SPAN-SPILL: target
+ * computes `span = 160 - half` once (`subu t6,t5,t4`) and spills span@sp+0x48;
+ * mine spills `half` and recomputes span (2x subu) in each tail arm. (4) the
+ * else-arm progress reload reads $s0 in target vs $a0 in mine. All four are
+ * whole-function regalloc/frame divergences (permuter can't bridge a frame-size
+ * delta), not logic bugs -- logic verified insn-for-insn against expected/.o.
+ * Default INCLUDE_ASM build remains ROM-exact. */
 #ifdef NON_MATCHING
+extern float D_arc125C_30, D_arc125C_34, D_arc125C_38;
 void arcproc_uso_func_0000125C(char *a0) {
     float ones[4];
     float progress;
@@ -935,12 +959,12 @@ void arcproc_uso_func_0000125C(char *a0) {
 
     progress = *(float*)(a0 + 0x77C);
     if (*(int*)(a0 + 0x4E4) >= 11) {
-        if (progress < *(float*)((char*)&D_00000000 + 0x30)) {
-            progress += *(float*)((char*)&D_00000000 + 0x34);
+        if (progress < D_arc125C_30) {
+            progress += D_arc125C_34;
             *(float*)(a0 + 0x77C) = progress;
         }
     } else if (progress > 0.0f) {
-        progress -= *(float*)((char*)&D_00000000 + 0x38);
+        progress -= D_arc125C_38;
         *(float*)(a0 + 0x77C) = progress;
     }
 
@@ -951,8 +975,8 @@ void arcproc_uso_func_0000125C(char *a0) {
     gl_func_00000000(a0 + 0x6BC);
     gl_func_00000000(a0 + 0x6BC, 0xA0, 0xB6, 3);
 
-    sum = *(short*)(*(char**)(a0 + 0x6FC) + 0x20) +
-          *(short*)(*(char**)(a0 + 0x6E4) + 0x20) + 4;
+    sum = *(short*)(*(char**)(a0 + 0x6E4) + 0x20) +
+          *(short*)(*(char**)(a0 + 0x6FC) + 0x20) + 4;
     if (sum < 0) {
         half = (sum + 1) >> 1;
     } else {

@@ -736,7 +736,26 @@ void mgrproc_uso_func_0000181C(int a0) {}
  * gate on s0->0x7D4, a 5-case timer-countdown dispatch on s0->0x7E4 (each
  * decrements the s0->0x7E8 timer and transitions at 0), and a phase-1 init
  * block. Calls/data refs resolved to their real import/intra-segment
- * symbols (was gl_func_00000000/&D placeholders). */
+ * symbols (was gl_func_00000000/&D placeholders).
+ *
+ * 2026-06-23: switch-form lever on the 0x7E4 dispatch (was if/else-if
+ * cascade) -> IDO now emits the jump-table dispatch (sltiu .,5 / beqz /
+ * sll *4 / lui %hi / addu / lw 0(at) / jr). Drove the decode size-EXACT
+ * (142 == 142 words) and fuzzy 79.9% -> 90.8%.
+ *
+ * DECODE-ONLY (permanent INCLUDE_ASM cap): the dispatch is the documented
+ * jr-via-EXTERNAL-rodata-table cap. Target: `lui %hi(import_80264348)`
+ * HI16-only (NO LO16 reloc) + `lw t8,1464(at)` with the 0x5B8 table offset
+ * FOLDED into the lw displacement = indexing a pre-existing external/cross-TU
+ * data table. IDO's C switch ALWAYS lowers to `lui %hi(.rodata)` +
+ * `lw 0(at)` with a PAIRED HI16+LO16 against a SELF-LOCAL .rodata label and
+ * zero displacement -- unreproducible from any C, and forcing the external
+ * reference would be match-faking (banned). Plus the data globals
+ * import_80020098/80020208/800200D8 are HI16-only-unpaired too (IDO-from-C
+ * always emits HI16+LO16 pairs). Class = the 12-fn external-rodata-table
+ * cohort in docs/MATCHING_WORKFLOW.md, now extended to mgrproc_uso. Residual
+ * beyond the dispatch reloc = jump-table case-block ordering + register
+ * coloring. No episode (NON_MATCHING). */
 extern int import_000A7B90();
 extern int import_00096228();
 extern int import_000B2888();
@@ -763,43 +782,48 @@ void mgrproc_uso_func_00001824(char *s0) {
     phase = *(int *)(s0 + 0x7D4);
     if (phase == 0) {
         state = *(int *)(s0 + 0x7E4);
-        if ((unsigned int)state < 5) {
-            if (state == 0) {
-                if (--*(int *)(s0 + 0x7E8) == 0) {
-                    *(int *)(s0 + 0x7E4) = 1;
-                    *(int *)(s0 + 0x7E8) = 1050;
-                    mgrproc_uso_func_0002DC(512);
-                }
-            } else if (state == 1) {
-                if (--*(int *)(s0 + 0x7E8) == 0) {
-                    *(int *)(s0 + 0x7D4) = 1;
-                }
-            } else if (state == 2) {
-                if (--*(int *)(s0 + 0x7E8) == 0) {
-                    *(int *)(s0 + 0x7E4) = 3;
-                    *(int *)(s0 + 0x7E8) = 1650;
-                    mgrproc_uso_func_000188(13, 0, 0);
-                    mgrproc_uso_func_000148(13, 0, 0);
-                }
-            } else if (state == 3) {
-                int n;
-                if (--*(int *)(s0 + 0x7E8) == 0) {
-                    *(int *)(s0 + 0x7E8) = 300;
-                    *(int *)(s0 + 0x7E4) = 4;
-                    mgrproc_uso_func_0002DC(512);
-                }
-                n = *(int *)(s0 + 0x7E0) + 1;
-                if (n >= 16) {
-                    *(int *)(s0 + 0x7E0) = n - 16;
-                    *(int *)(s0 + 0x7DC) = *(int *)(s0 + 0x7DC) + 1;
-                } else {
-                    *(int *)(s0 + 0x7E0) = n;
-                }
-            } else {
-                if (--*(int *)(s0 + 0x7E8) == 0) {
-                    *(int *)(s0 + 0x7D4) = 1;
-                }
+        switch (state) {
+        case 0:
+            if (--*(int *)(s0 + 0x7E8) == 0) {
+                *(int *)(s0 + 0x7E4) = 1;
+                *(int *)(s0 + 0x7E8) = 1050;
+                mgrproc_uso_func_0002DC(512);
             }
+            break;
+        case 1:
+            if (--*(int *)(s0 + 0x7E8) == 0) {
+                *(int *)(s0 + 0x7D4) = 1;
+            }
+            break;
+        case 2:
+            if (--*(int *)(s0 + 0x7E8) == 0) {
+                *(int *)(s0 + 0x7E4) = 3;
+                *(int *)(s0 + 0x7E8) = 1650;
+                mgrproc_uso_func_000188(13, 0, 0);
+                mgrproc_uso_func_000148(13, 0, 0);
+            }
+            break;
+        case 3: {
+            int n;
+            if (--*(int *)(s0 + 0x7E8) == 0) {
+                *(int *)(s0 + 0x7E8) = 300;
+                *(int *)(s0 + 0x7E4) = 4;
+                mgrproc_uso_func_0002DC(512);
+            }
+            n = *(int *)(s0 + 0x7E0) + 1;
+            if (n >= 16) {
+                *(int *)(s0 + 0x7E0) = n - 16;
+                *(int *)(s0 + 0x7DC) = *(int *)(s0 + 0x7DC) + 1;
+            } else {
+                *(int *)(s0 + 0x7E0) = n;
+            }
+            break;
+        }
+        case 4:
+            if (--*(int *)(s0 + 0x7E8) == 0) {
+                *(int *)(s0 + 0x7D4) = 1;
+            }
+            break;
         }
     } else if (phase == 1) {
         r = (char *)mgrproc_uso_func_01FA1C(*(int *)(s0 + 0x528));
