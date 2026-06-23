@@ -1050,35 +1050,18 @@ void game_uso_func_00001714(int a0, int *a1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* 95.74% NM. 16-case dispatch on a1 (cases 3..18). For a1 == 3 the body
- * is special (extra `a0->0x268 = 1` after the call); for cases 4..18 the
- * body is a single `gl_func_00000000(a0, a1 + 11)` call. Implemented as
- * `if (a1 == N) goto cN;` chain because:
- *   - `switch` with 3+ cases emits a .rodata jump table (linker discards
- *     .rodata in this segment, breaks the link). 49 % at if-else, 69 % at
- *     switch, 95 % at goto chain.
- *   - The goto chain matches IDO's "compares first, bodies after" layout.
- * Last-comparison cap: IDO uses `bnel` for the LAST `if` (folding `lw ra`
- * into the BL delay), where target uses plain `beq + nop` then `b end`
- * with `lw ra` in `b`'s delay.
- * Tried (this run, 2026-05-02): inline c18's body into the dispatch
- * (`if (a1 == 18) gl_func_00000000(a0, 29);`) — regressed to 92.56 %,
- * same as `if (a1 != 18) goto end; <body>` from prior pass. Inlining the
- * last case puts the body in the dispatch chain proper, which changes
- * the bnel/beq pattern but introduces a worse mismatch.
- * Tried previously: `goto end;` vs `return;` — both 95 %.
- * Permuter remains the next-step recommendation. */
-/* game_uso_func_0000174C: 16-case (a1==3..18) dispatch. NON_MATCHING (4 diffs).
- * PRECISE DIAGNOSIS: goto-chain matches 15/16 tests; the LAST test (a1==18) is
- * the sole residual — target emits `beq a1,at,c18 / nop / b end / lw ra(b-delay)`
- * (epilogue reload fills the unconditional `b end` delay), but IDO annuls ours
- * into `bnel a1,at,end` (pulls `lw ra` into the beq delay). Same logic; purely
- * reorg's choice of WHICH branch gets the epilogue in its delay slot — not
- * C-steerable on this fixed byte layout. TESTED-NEGATIVE 2026-05-29: if-else-if
- * chain regresses to 98 diffs (IDO reorders the whole dispatch); `switch`
- * jump-tables (106 diffs); decomp-permuter 500+ iters never beat base score 400
- * (the 4-diff floor). goto-chain IS the floor. Genuine reorg-annul cap. */
+/* game_uso_func_0000174C: 16-case (a1==3..18) dispatch. MATCHED byte-exact
+ * 2026-06-23 (agent-b). 16-case dispatch on a1 (cases 3..18); a1==3 has a
+ * special body (extra `a0->0x268 = 1` after the call), cases 4..18 are a single
+ * `game_uso_func_00000AEC(a0, a1 + 11)` call. Implemented as an `if (a1 == N)
+ * goto cN;` chain (switch emits a .rodata jump table that the linker discards in
+ * this segment; if-else-if reorders the whole dispatch). The former 4-diff
+ * residual was the LAST test (a1==18) folding into `bnel a1,at,end` (epilogue
+ * `lw ra` pulled into the BL delay), where the target wants plain
+ * `beq a1,at,c18 / nop / b end / lw ra(b-delay)`. FIX (docs/IDO_CODEGEN.md
+ * "split-last-eq-test-to-suppress-bnel"): write the last test as an explicit
+ * inverted skip + unconditional goto (`if (a1 != 18) goto end; goto c18;`) so
+ * the optimizer can't fold the epilogue into a branch-likely. 0 diffs. */
 void game_uso_func_0000174C(int *a0, int a1, int a2) {
     *(int*)((char*)a0 + 0x268) = 0;
     if (a1 == 3)  goto c3;
@@ -1096,8 +1079,8 @@ void game_uso_func_0000174C(int *a0, int a1, int a2) {
     if (a1 == 15) goto c15;
     if (a1 == 16) goto c16;
     if (a1 == 17) goto c17;
-    if (a1 == 18) goto c18;
-    goto end;
+    if (a1 != 18) goto end;
+    goto c18;
 c3:  game_uso_func_00000AEC(a0, 1); *(int*)((char*)a0 + 0x268) = 1; goto end;
 c4:  game_uso_func_00000AEC(a0, 15); goto end;
 c5:  game_uso_func_00000AEC(a0, 16); goto end;
@@ -1116,9 +1099,6 @@ c17: game_uso_func_00000AEC(a0, 28); goto end;
 c18: game_uso_func_00000AEC(a0, 29);
 end: ;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000174C);
-#endif
 
 #ifdef NON_MATCHING
 /* 3.83% NM (stub body, alloc-or-passthrough only). 269-insn / 0x434 size,
@@ -9344,30 +9324,57 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 //     (bit 0x2 cleared each step), 0xB4/0xB8/0xBC a transform Vec3,
 //     0x38/0x54/0x84 f32 state. const 250.0f. func_00000000 = USO
 //     placeholder dispatcher (sample / query).
-// Caps (DEFERRED): raw-word USO + placeholder calls + 117-word
-//   FP/physics step; USO mnemonic disasm limitation prevents
-//   byte-match. Real-C STRUCTURAL body below — per-object
-//   physics/state advance + wrap-counter skeleton. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// State 2026-06-23: 78.55% -> 89.54% (objdiff fuzzy). Structural
+//   bugs FIXED this pass:
+//   (1) FP clamp `f0 = f0 + 250.0f*x` -> compound `f0 += 250.0f*x`
+//       gives IDO's const-first operand order (mtc1 const; lwc1 x;
+//       mul) + `add.s f0,f0,prod` (was operand-swapped). [line-109
+//       FP-compound-assign lever]
+//   (2) scaled = w->0x318[i]*s computed via 3 temp scalars
+//       (mx/my/mz) THEN stored -> grouped lwc1/lwc1/lwc1 then
+//       mul.s f2/f12/f14 (exact target reg/eval order). Per-element
+//       store-immediately interleaved load/mul/store (wrong).
+//   (3) `w` re-derefed inline (`*(char**)(obj+0x30)` twice, no held
+//       local) -> target's TWO `lw,48(a0)` (t6 for tbuf copy, v0 for
+//       scale) instead of a single cached load.
+// RESIDUAL CAP (frame-spread coloring): build frame -0x80 vs target
+//   -0x98 (6 words short). Target interleaves the v0/a1arg/a2 call-
+//   spill slots AMONG the 4 Vec3 buffers (scaled 0x50, copy1 0x64,
+//   tbuf 0x7C, copy2 0x8C w/ gaps); our build packs the buffers
+//   contiguously + spills low. Every downstream sp-offset then
+//   cascades (the remaining ~88 "other" diffs are all same-opcode
+//   offset shifts, NOT structure). Permuter base score 1705, NOT
+//   beaten across 500 iters (randomize/reorder-decl/temp-for-expr/
+//   commutative) -> genuine slot-allocation cap. .text-only ROM gate
+//   would land IF the frame matched; it does not. Left NM at 89.54%.
+//   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void game_uso_func_0000A604(char *obj) {
-    char *w = *(char **)(obj + 0x30);
-    float s = *(float *)(obj + 0xA8);
-    Vec3 tbuf;
-    Vec3 scaled;
-    Vec3 copy1;
+    float s;
     Vec3 copy2;
+    Vec3 tbuf;
+    Vec3 copy1;
+    Vec3 scaled;
+    char *w;
     char *rec;
     char *a1arg;
     char *v0;
     int counter;
     int field2c;
     float f0;
+    float *p;
+    float mx, my, mz;
 
-    tbuf = *(Vec3 *)(w + 0xB4);
-    scaled.x = *(float *)(w + 0x318) * s;
-    scaled.y = *(float *)(w + 0x31C) * s;
-    scaled.z = *(float *)(w + 0x320) * s;
+    tbuf = *(Vec3 *)(*(char **)(obj + 0x30) + 0xB4);
+    s = *(float *)(obj + 0xA8);
+    w = *(char **)(obj + 0x30);
+    p = (float *)(w + 0x318);
+    mx = p[0] * s;
+    my = p[1] * s;
+    mz = p[2] * s;
+    scaled.x = mx;
+    scaled.y = my;
+    scaled.z = mz;
     copy1 = scaled;
     copy2 = copy1;
     tbuf.x = tbuf.x + copy2.x;
@@ -9385,7 +9392,7 @@ void game_uso_func_0000A604(char *obj) {
                 if (game_uso_func_0000A0E8(obj, v0, (char *)field2c) != 0) {
                     f0 = tbuf.z - *(float *)(v0 + 0x38);
                     if (f0 < 0.0f) {
-                        f0 = f0 + 250.0f * *(float *)(v0 + 0x54);
+                        f0 += 250.0f * *(float *)(v0 + 0x54);
                         if (0.0f <= f0 && f0 < *(float *)(obj + 0x60)) {
                             *(float *)(obj + 0x60) = f0;
                             *(int *)(obj + 0x40) = *(int *)(obj + 0x5C);
@@ -12080,14 +12087,30 @@ void game_uso_func_0000E2D0(char *a0) {
  * Returns 1; else 0. 75.5% -> 91.6%: the three D-pair calls (EC0/EC4, EC8/ECC,
  * ED0/ED4) pass BY VALUE as *(Pair2*), homing a1,a2 (same lever as EF70,
  * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair). 91.6 ->
- * 95.14 (2026-05-31): the &D+0x138 access (both branches) uses the distinct
- * extern `D_00000138` instead of `*(int*)(&D+0x138)`, so it no longer shares
- * IDO's CSE'd &D base register with `base` (&D+0) — each re-materializes its own
- * lui, matching the target. Same fix as the sibling F6D4. Residual (~5%):
- * regalloc-renumber + the `base` (&D+0) load placement + one commutative addu +
- * the prev-write/v0-keep scheduling — documented cap classes. NON_MATCHING. */
-extern int gl_func_00000000();
-extern int D_00000138;
+ * 95.14 (2026-05-31): the &D+0x138 access used distinct extern `D_00000138`.
+ * 2026-06-23 (agent-e): REAL CALLEES/GLOBALS recovered from expected/ relocs.
+ * The placeholder gl_func_00000000 fan-out is now the true symbol set, all
+ * matching expected's R_MIPS_26 exactly: game_uso_func_0000EE30 (first cb),
+ * import_000B8518 (index cb), game_uso_func_0000E564 (advance), 077C44/D5F8
+ * (Pair2 tail), D5BC (final). Globals: game_uso_D_807FFBC0 (queue base),
+ * import_800201D0+0x138 (cfg), game_uso_D_807FF4B0/B8/C0 (EC0/EC8/ED0 pairs).
+ * Verified vs target: ignoring reloc-pairing-form + register renaming, the only
+ * structural residual is the prev-write branch-delay `move v0,prev` duplication.
+ * REMAINING CAP (shared with sibling F6D4): the target emits UNPAIRED
+ * R_MIPS_HI16 (lui %hi; lw <lit>(reg), no LO16) for every D-global, because in
+ * the original link those symbols had REAL addresses (e.g. 0x800201D0). In this
+ * USO build every such symbol is forced to value 0 (load-resolved), so any
+ * `&SYM+off` access IDO emits as a HI16+LO16 PAIR; the unpaired form is
+ * unreachable from C here (D_00000138 is unpaired only because its VALUE is
+ * 0x138). That + regalloc-renumber are the residual. NON_MATCHING. */
+extern int *game_uso_D_807FFBC0;
+extern char game_uso_D_807FF4B0;
+extern char game_uso_D_807FF4B8;
+extern char game_uso_D_807FF4C0;
+extern void game_uso_func_0000EE30(char *, int, int);
+extern void game_uso_func_0000E564(int *);
+extern int import_000B8518();
+extern char import_800201D0;
 int game_uso_func_0000E35C(char *arg0) {
     char *cur;
     char *b4;
@@ -12097,15 +12120,15 @@ int game_uso_func_0000E35C(char *arg0) {
 
     cur = *(char **)(arg0 + 0xF0);
     if (cur != 0) {
-        gl_func_00000000(*(int *)(cur + 0x30), 1);
+        game_uso_func_0000EE30(arg0, *(int *)(cur + 0x30), 1);
         b4 = *(char **)(arg0 + 0xB4);
         if (*(int *)(b4 + 0xA58) & 0x20) {
-            int base = *(int *)&D_00000000;
-            gl_func_00000000(D_00000138, b4,
+            int base = *(int *)&game_uso_D_807FFBC0;
+            import_000B8518(*(int *)((char *)&import_800201D0 + 0x138), b4,
                 (int)((base + (*(int *)(*(char **)(arg0 + 0xF0) + 0x3C) << 6)) - base) / 64);
         } else {
-            gl_func_00000000(D_00000138, b4,
-                (int)((int)*(char **)(arg0 + 0xF0) - *(int *)&D_00000000) / 64);
+            import_000B8518(*(int *)((char *)&import_800201D0 + 0x138), b4,
+                (int)((int)*(char **)(arg0 + 0xF0) - *(int *)&game_uso_D_807FFBC0) / 64);
         }
         prev = *(char **)(arg0 + 0xF0);
         *(int *)(arg0 + 0x100) = *(int *)(arg0 + 0x100) + 1;
@@ -12115,7 +12138,7 @@ int game_uso_func_0000E35C(char *arg0) {
             *(int *)(arg0 + 0x100) = 0;
         }
         *(char **)(arg0 + 0xF8) = prev;
-        gl_func_00000000(arg0);
+        game_uso_func_0000E564((int *)arg0);
         if ((*(int *)(*(char **)(arg0 + 0xB4) + 0xA58) & 0x40) &&
             (f4 = *(char **)(arg0 + 0xF4), v1 = *(int *)(f4 + 0x28), (v1 != 0))) {
             *(int *)(f4 + 0x20) = v1;
@@ -12125,13 +12148,13 @@ int game_uso_func_0000E35C(char *arg0) {
         }
         f4 = *(char **)(arg0 + 0xF4);
         if (*(int *)(f4 + 0x38) & 2) {
-            gl_func_00000000(arg0, *(int *)(f4 + 0x20), 0, 2, 1, 1);
-            gl_func_00000000(arg0, *(Pair2 *)((char *)&D_00000000 + 0xEC0), 2);
+            game_uso_func_077C44(arg0, *(int *)(f4 + 0x20), 0, 2, 1, 1);
+            game_uso_func_0000D5F8(arg0, *(Pair2 *)((char *)&game_uso_D_807FF4B0 + 0xEC0), 2);
         } else {
-            gl_func_00000000(arg0, *(int *)(f4 + 0x20), 0, 3, 1, 1);
-            gl_func_00000000(arg0, *(Pair2 *)((char *)&D_00000000 + 0xEC8), 3);
+            game_uso_func_077C44(arg0, *(int *)(f4 + 0x20), 0, 3, 1, 1);
+            game_uso_func_0000D5F8(arg0, *(Pair2 *)((char *)&game_uso_D_807FF4B8 + 0xEC8), 3);
         }
-        gl_func_00000000(arg0, *(Pair2 *)((char *)&D_00000000 + 0xED0));
+        game_uso_func_0000D5BC(arg0, *(Pair2 *)((char *)&game_uso_D_807FF4C0 + 0xED0));
         return 1;
     }
     return 0;
@@ -13065,7 +13088,43 @@ void game_uso_func_0000F664(char *a0) {
 }
 
 /* game_uso_func_0000F6D4 - SIBLING of game_uso_func_0000E35C (same
- * node-process/queue-advance shape). 36% -> 86.53% 2026-05-31: the prior body
+ * node-process/queue-advance shape).
+ *
+ * 2026-06-23 (agent-i) 90.11% -> 95.32% (objdiff fuzzy): replaced ALL the
+ * generic `func_00000000` placeholder callees and the `D_00000000`/`D_00000138`
+ * placeholder globals with the REAL reloc symbols recovered from the resolved
+ * target .o (objdump -dr expected/src/game_uso/game_uso.c.o, R_MIPS_26 +
+ * R_MIPS_HI16):
+ *   - game_uso_func_0000D6E4(s0)                     pre-flush (was func_00000000)
+ *   - game_uso_func_0000EE30(s0, cur->0x30, 1)       worker
+ *   - import_000B8518(*(int*)(&import_800201D0+0x138), b4, idx)   index call
+ *   - game_uso_func_0000E564((int*)s0)               mid call (was func_00000000(s0))
+ *   - game_uso_func_077C44(s0, f4->0x20, 4, dir,1,1) tail logger
+ *   - game_uso_func_0000D5F8(s0, Pair2, dir)         tail pair-home
+ *   - game_uso_func_0000D5BC(s0, Pair2)              trailing pair-copy
+ * globals: base = *(int*)&game_uso_D_807FFBC0 (was D_00000000); the index call's
+ * first arg = *(int*)((char*)&import_800201D0 + 0x138) (was the wrong distinct
+ * extern D_00000138); the 3 tail D-pairs use the distinct symbols
+ * game_uso_D_807FF4B0+0xEC0 / _4B8+0xEC8 / _4C0+0xED0 (were all &D_00000000+...).
+ * Also fixed a BUG: prev is read from s0->0xF0 (the current node), not s0->0xF4
+ * (E35C-identical). Now 131->133 insns, exact size 0x214.
+ *   RESIDUAL (~4.7%, 3 diff clusters, all coloring/scheduling caps verified):
+ *   (A) the `(base + (x<<6))` addu emits `addu t5,t4,v0` (shift-operand first)
+ *       vs target `addu t5,v0,t4` (base first) — commutative-addu source-order
+ *       cap; tried both `base + (x<<6)` and `(x<<6) + base`, IDO normalizes to
+ *       shift-first regardless. (B) the prev-wrap block colors `prev` into $v0
+ *       (no redundant moves) vs the target's $t0 + two `move v0,t0` — IDO's
+ *       global allocator reserves $v0 here; tried split-cmp-local, int-cast,
+ *       if/else-swap — all keep prev in $v0. (C) the entire tail (8 lui/addiu +
+ *       sw-pairs + the 077C44/D5F8 arg setup) is a UNIFORM +1 temp-register
+ *       renumber downstream of (B): t0/t8/t9/t4/t5 in target vs v0/t0/t3/t7 here.
+ *       Crack (B) and (C) follows. permuter (base score 650, 4-way ~4.5min)
+ *       reached 255 only via incidental a0/s0 substitution (not byte-0; a0 is
+ *       clobbered by the calls so not a real fix). Genuine regalloc-renumber cap
+ *       of the E35C/E5C8/F6D4 family. Callees/globals/relocs now ALL correct.
+ *
+ * --- HISTORY ---
+ * 36% -> 86.53% 2026-05-31: the prior body
  * was INCOMPLETE (58 vs 133 insns) — missing E35C's whole tail (the 0xA58&0x40
  * flag-set + 0x38&2 D-pair dispatch with EC0/EC8/ED0 pairs) AND had a wrong
  * index-calc (was `*64`/`>>6` 2-arg; target is the E35C base-cancellation
@@ -13104,53 +13163,56 @@ void game_uso_func_0000F664(char *a0) {
  * E35C - beql/bgez branch-likely + D-pair sp-spill + &D reloc + ceil
  * scheduling. Full per-instance call args/D-offsets are INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
-extern int D_00000138;
+extern char game_uso_D_807FF4B0;
+extern char game_uso_D_807FF4B8;
+extern char game_uso_D_807FF4C0;
+extern int import_000B8518();
 #ifdef NON_MATCHING
 void game_uso_func_0000F6D4(char *a0) {
     char *s0 = a0;
-    char *old;
+    char *prev;
+    char *f4;
+    int v1;
     if (*(int *)(*(char **)(s0 + 0xF4) + 0x38) & 1) {
-        func_00000000(*(char **)(s0 + 0xF0));
+        game_uso_func_0000D6E4(s0);
     }
-    func_00000000(s0, *(int *)(*(char **)(s0 + 0xF0) + 0x30), 1);
+    game_uso_func_0000EE30(s0, *(int *)(*(char **)(s0 + 0xF0) + 0x30), 1);
     {
-        int base = *(int *)&D_00000000;
-        if (*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x20) {
-            func_00000000(D_00000138, *(char **)(s0 + 0xB4),
+        char *b4 = *(char **)(s0 + 0xB4);
+        if (*(int *)(b4 + 0xA58) & 0x20) {
+            int base = *(int *)&game_uso_D_807FFBC0;
+            import_000B8518(*(int *)((char *)&import_800201D0 + 0x138), b4,
                 (int)((base + (*(int *)(*(char **)(s0 + 0xF0) + 0x3C) << 6)) - base) / 64);
         } else {
-            func_00000000(D_00000138, *(char **)(s0 + 0xB4),
-                (int)((int)*(char **)(s0 + 0xF0) - base) / 64);
+            import_000B8518(*(int *)((char *)&import_800201D0 + 0x138), b4,
+                (int)((int)*(char **)(s0 + 0xF0) - *(int *)&game_uso_D_807FFBC0) / 64);
         }
     }
-    *(int *)(s0 + 0x100) += 1;
-    old = *(char **)(s0 + 0xF4);
-    *(int *)(s0 + 0xF0) = 0;
-    *(char **)(s0 + 0xF4) = old;
-    if (old == *(char **)(s0 + 0xF8)) {
+    prev = *(char **)(s0 + 0xF0);
+    *(int *)(s0 + 0x100) = *(int *)(s0 + 0x100) + 1;
+    *(char **)(s0 + 0xF0) = 0;
+    *(char **)(s0 + 0xF4) = prev;
+    if (prev == *(char **)(s0 + 0xF8)) {
         *(int *)(s0 + 0x100) = 0;
     }
-    *(char **)(s0 + 0xF8) = old;
-    func_00000000(s0);
-    {
-        char *f4;
-        if ((*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x40) &&
-            (f4 = *(char **)(s0 + 0xF4), *(int *)(f4 + 0x28) != 0)) {
-            *(int *)(f4 + 0x20) = *(int *)(f4 + 0x28);
-        } else {
-            f4 = *(char **)(s0 + 0xF4);
-            *(int *)(f4 + 0x20) = *(int *)(f4 + 0x24);
-        }
+    *(char **)(s0 + 0xF8) = prev;
+    game_uso_func_0000E564((int *)s0);
+    if ((*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x40) &&
+        (f4 = *(char **)(s0 + 0xF4), v1 = *(int *)(f4 + 0x28), (v1 != 0))) {
+        *(int *)(f4 + 0x20) = v1;
+    } else {
         f4 = *(char **)(s0 + 0xF4);
-        if (*(int *)(f4 + 0x38) & 2) {
-            func_00000000(s0, *(int *)(f4 + 0x20), 4, 2, 1, 1);
-            func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xEC0), 2);
-        } else {
-            func_00000000(s0, *(int *)(f4 + 0x20), 4, 3, 1, 1);
-            func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xEC8), 3);
-        }
-        func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xED0));
+        *(int *)(f4 + 0x20) = *(int *)(f4 + 0x24);
     }
+    f4 = *(char **)(s0 + 0xF4);
+    if (*(int *)(f4 + 0x38) & 2) {
+        game_uso_func_077C44(s0, *(int *)(f4 + 0x20), 4, 2, 1, 1);
+        game_uso_func_0000D5F8(s0, *(Pair2 *)((char *)&game_uso_D_807FF4B0 + 0xEC0), 2);
+    } else {
+        game_uso_func_077C44(s0, *(int *)(f4 + 0x20), 4, 3, 1, 1);
+        game_uso_func_0000D5F8(s0, *(Pair2 *)((char *)&game_uso_D_807FF4B8 + 0xEC8), 3);
+    }
+    game_uso_func_0000D5BC(s0, *(Pair2 *)((char *)&game_uso_D_807FF4C0 + 0xED0));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F6D4);
