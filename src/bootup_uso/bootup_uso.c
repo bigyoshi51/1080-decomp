@@ -7372,76 +7372,96 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 //   2026-05-31 partial completion 55.9->67.1%: added the two sentinel-keyed
 //   sub-allocs (alloc(8)->s+0x34={0,0} guarded by s==-52; alloc(4)->s+0x58={0}
 //   guarded by s==-88, dead-arm passthrough form) and fixed the clamps to
-//   UNSIGNED (sltiu: (unsigned)idx>=0xA, (unsigned)cat>=9). RESIDUAL (67->100):
-//   args-home-spill frame (target 0x80 spills a0-a3 to home slots; ours 0x40)
-//   + the r/s alloc-or-passthrough dead-arm retry cascades + register alloc.
-//   Big multi-cascade fn; remaining is focused-RE/frame work. Name pre-checked.
+//   UNSIGNED (sltiu: (unsigned)idx>=0xA, (unsigned)cat>=9).
+//   2026-06-23 decode pass (agent-e) 161->177 insns (target 186), sim
+//   35.7->37.5%: (1) CORRECTNESS FIX — replaced all D_00000000+off named-table
+//   refs with the REAL symbols the .s relocs name: func_00000148 (writable
+//   table+flag+count), func_000089FC+0x2C (name data), func_000083D0+0x70
+//   (vtable), func_00008A40+0x8/+0x14 (string data). Build reloc set now
+//   matches target's named relocs. (2) Reconstructed the nested ||-allocator-
+//   fallback cascade (m2c shape): r=alloc(0x90); r||(r=alloc) ; s=r||(s=alloc
+//   0x60) ; the s+0x34 / s+0x58 sentinel sub-allocs. (3) 5th stack arg a4 +
+//   a2/a4 home copies. RESIDUAL (37.5->100), genuine IDO -O2 caps:
+//   * CSE-COLLAPSE: target re-materializes &func_00000148 at 5 sites (5x HI16);
+//     IDO -O2 here CSEs ours into 1 reg held across calls (1x HI16). 4 missing
+//     re-lui's. C-level CSE defeat (volatile addr) not faithful.
+//   * ARG-HOME FRAME: target -0x80 homes cat/idx to BOTH arg slots (0x80/0x84)
+//     AND local copies (0x74/0x78), reloading memory for the 7/6 test while
+//     keeping arg-home for the end dispatch; a4 double-stored 0x40/0x44, a2
+//     0x7C. Ours -0x50, fewer homes — memory-vs-register alloc divergence.
+//   * REG NUMBERING: target threads r in a2 / s in a3 where ours uses a1/a2.
+//   Permuter unlikely to bridge (structural, not small coloring residual).
+//   Name pre-checked. Build via INCLUDE_ASM; ROM byte-identical (NM diff only).
 #ifdef NON_MATCHING
-void func_0000B1B4(int cat, int idx, int a2, int a3) {
+void func_0000B1B4(unsigned int cat, unsigned int idx, int a2, int a3, int a4) {
     char *r;
     char *s;
+    char *t;
     char *buf;
     int n;
     char *e;
-    char *sp34;
-    if ((unsigned int)idx >= 0xA) idx = 9;
-    if ((unsigned int)cat >= 9)  cat = 8;
-    if (cat == 7 || cat == 6) {
-        if (*(int *)((char *)&D_00000000 + 0x148) == 0) {
-            func_00000000((char *)&D_00000000 + 0x2C);
-            r = (char *)func_00000000(0x90);
-            if (r) {
-                s = (char *)func_00000000(0x60);
-                *(char **)(s + 0x5C) = &D_00000000;
-                {
-                    int *t8 = (int *)(s + 0x34);
-                    if (s == (char *)0xFFFFFFCC) {
-                        t8 = (int *)func_00000000(8);
-                        if (t8 == 0) goto sub8_done;
+    int sp34;
+    int lcat;
+    int lidx;
+    int la4a;
+    int la4b;
+    char *la2;
+    if (idx >= 0xA) idx = 9;
+    if (cat >= 9)  cat = 8;
+    la2 = (char *)a2;
+    la4a = a4;
+    la4b = a4;
+    lcat = cat;
+    lidx = idx;
+    if ((lcat == 7 || lcat == 6) && *(int *)&func_00000148 == 0) {
+        func_00000000((char *)&func_000089FC + 0x2C);
+        r = (char *)func_00000000(0x90);
+        if (r != 0) {
+            if (r != 0 || (r = (char *)func_00000000(0x90)) != 0) {
+                s = r;
+                if (s != 0 || (s = (char *)func_00000000(0x60)) != 0) {
+                    *(char **)(s + 0x5C) = &D_00000000;
+                    t = s + 0x34;
+                    if (s == (char *)0xFFFFFFCC || (t = (char *)func_00000000(8)) != 0) {
+                        *(int *)(t + 4) = 0;
+                        *(int *)(t + 0) = 0;
                     }
-                    t8[1] = 0;
-                    t8[0] = 0;
-                }
-            sub8_done:;
-                {
-                    int *t4 = (int *)(s + 0x58);
-                    if (s == (char *)0xFFFFFFA8) {
-                        t4 = (int *)func_00000000(4);
-                        if (t4 == 0) goto sub4_done;
+                    t = s + 0x58;
+                    if (s == (char *)0xFFFFFFA8 || (t = (char *)func_00000000(4)) != 0) {
+                        *(int *)(t + 0) = 0;
                     }
-                    t4[0] = 0;
+                    func_00000000(s);
                 }
-            sub4_done:;
-                func_00000000(s);
-                *(int *)(r + 0x24) = 0x110;
-                *(char **)(r + 0x5C) = (char *)&D_00000000 + 0x70;
-                buf = (char *)func_00000000(0x1000);
-                *(int *)(r + 0x28) = 0x1100;
-                *(short *)(r + 0x22) = 0x20;
-                *(short *)(r + 0x20) = 0x40;
-                *(int *)(r + 0x38) = 0x402C4B;
-                *(char **)(r + 0x1C) = buf;
-                *(int *)(r + 0x34) = 0;
-                *(int *)(r + 0x18) = 0;
+                *(char **)(r + 0x5C) = &D_00000000;
             }
-            if (*(int *)((char *)&D_00000000 + 0x148 + 0x14) >= 5) func_00000000(r);
-            n = *(int *)((char *)&D_00000000 + 0x148 + 0x14);
-            *(int *)((char *)&D_00000000 + 0x148 + 0x14) = n + 1;
-            *(char **)((char *)&D_00000000 + 0x148 + n * 4) = r;
+            *(int *)(r + 0x24) = 0x110;
+            *(char **)(r + 0x5C) = (char *)&func_000083D0 + 0x70;
+            buf = (char *)func_00000000(0x1000);
+            *(int *)(r + 0x28) = 0x1100;
+            *(short *)(r + 0x22) = 0x20;
+            *(short *)(r + 0x20) = 0x40;
+            *(int *)(r + 0x38) = 0x402C4B;
+            *(char **)(r + 0x1C) = buf;
+            *(int *)(r + 0x34) = 0;
+            *(int *)(r + 0x18) = 0;
         }
+        if (*(int *)((char *)&func_00000148 + 0x14) >= 5) func_00000000(r);
+        n = *(int *)((char *)&func_00000148 + 0x14);
+        *(int *)((char *)&func_00000148 + 0x14) = n + 1;
+        *(char **)((char *)&func_00000148 + n * 4) = r;
     }
-    func_00000000((char *)&D_00000000 + 0x8, 0);
-    func_00000000((char *)&D_00000000 + 0x14, 0);
-    if (idx) {
+    func_00000000((char *)&func_00008A40 + 0x8, 0);
+    func_00000000((char *)&func_00008A40 + 0x14, 0);
+    if (idx != 0) {
         e = *(char **)((char *)&D_00000000 + idx * 4);
-        if (!func_00000000(*(int *)e)) func_00000000(&D_00000000, *(int *)e);
+        if (func_00000000(*(int *)e) == 0) func_00000000(&D_00000000, *(int *)e);
     }
     e = *(char **)((char *)&D_00000000 + cat * 4);
-    if (!func_00000000(*(int *)e)) func_00000000(&D_00000000, *(int *)e);
+    if (func_00000000(*(int *)e) == 0) func_00000000(&D_00000000, *(int *)e);
     func_00000000();
-    sp34 = 0;
-    func_00000000(&D_00000000, a3, a2, &sp34);
+    func_00000000(&D_00000000, a4, a3, &sp34);
     func_00000000();
+    (void)lcat; (void)lidx;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);

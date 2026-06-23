@@ -8098,116 +8098,114 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025044);
 //   transitions need USO reloc infra. Name pre-checked: no extern
 //   reuse (collision-safe). gl_func_00000000 = canonical
 //   never-defined USO placeholder.
-// gl_func_000250C8 — FULL m2c DECODE (61.83% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_000250C8 — RECONSTRUCTED DECODE (67.15 -> 85.15% fuzzy, no episode).
+// Object-tick / advance-state entry of the game_libs object subsystem.
+// Reconstructed from the linked-ELF disassembly (agent-b). All mid-function
+// jal targets (0x37dcc/0x39b70/0x39a1c/0x3998c) plus the USO-relocated leaf
+// calls are represented by the canonical never-defined placeholder
+// gl_func_00000000 (same convention as sibling gl_func_00023838) — those
+// baked-jal words are the inherent USO-reloc residual, so this can NEVER be
+// byte-exact / landed until USO-reloc infra exists. Globals: D+0x2024 =
+// shared registry ptr (`reg`, read as *(short*)(reg+2) in the count path);
+// D+0x2030 = registry table base (0x14 stride). Logic landed via: signed-byte
+// mode read; switch(kind) on (field18>>16)&0xff (case 0/1/2 ordering); buf[6]
+// stack-struct packing for the c2/c3/result/out-param sextet passed to 39b70;
+// scalar c2/c3 (kept register-resident -> beq not beql); sub-reused-as-idx
+// to coalesce the spill slot (frame -96). RESIDUAL CAPS (matches sibling's
+// 85% plateau): (1) IDO -O2 cross-jumps the identical case 0 / case 2 bodies
+// that the target keeps separate; (2) lower-half (count/sub) $a2-vs-temp
+// register-coloring tie; (3) one bne operand-order diff. Genuine
+// regalloc-coloring + cross-jump residual — NM-wrap.
 #ifdef NON_MATCHING
+extern int gl_func_00000000();
 
+void gl_func_000250C8(char *obj, int arg1) {
+    char *reg;
+    int mode;
+    int sub;
+    unsigned int field18;
+    int kind;
+    char *rec;
+    int buf[6];
+    int c2, c3;
+    int rem;
 
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000250C8)();
-void gl_func_000250C8(char *arg0, s32 arg1) {
-    char *sp5C;
-    s32 sp44;
-    int sp40;
-    int sp3C;
-    s32 sp38;
-    s32 sp34;
-    s32 sp30;
-    s32 sp2C;
-    u32 sp24;
-    s32 temp_v0_3;
-    s32 temp_v1_2;
-    s8 temp_v0;
-    u32 temp_a0;
-    u32 temp_a1;
-    u32 temp_a2;
-    u32 temp_a2_2;
-    u32 temp_t7;
-    u8 temp_a0_2;
-    u8 var_a2;
-    char *temp_v0_2;
-    char *temp_v1;
-
-    temp_v0 = FW(arg0, 0x1);
-    temp_v1 = *(char **)0x2024;
-    if (temp_v0 >= 2) {
-        FW(arg0, 0x1) = (s8) (temp_v0 - 1);
+    mode = *(signed char *)(obj + 1);
+    reg = *(char **)((char *)&D_00000000 + 0x2024);
+    if (mode >= 2) {
+        *(char *)(obj + 1) = (char)(mode - 1);
         return;
     }
-    if (temp_v0 == 1) {
-        *(u8*)((char*)arg0 + 0x1) = 0;
-        goto block_7;
+    if (mode == 1) {
+        *(char *)(obj + 1) = 0;
+        goto block7;
     }
     if (arg1 != 0) {
-        gl_func_0001CA10((int)arg0 + 0x20, 0U, 1, 1);
-        *(u8*)((char*)arg0 + 0x0) = 0;
+        gl_func_00000000(obj + 0x20, 0, 1);
+        *(char *)(obj + 0) = 0;
         return;
     }
-    sp5C = temp_v1;
-    if (gl_func_0001CA10((int)arg0 + 0x20, 0U, 0, 1) != -1) {
-block_7:
-        temp_t7 = FW(arg0, 0x10);
-        sp24 = temp_t7;
-        if (temp_t7 == 0) {
-            temp_a1 = FW(arg0, 0x18);
-            temp_v1_2 = (temp_a1 >> 0x10) & 0xFF;
-            switch (temp_v1_2) {                    /* irregular */
-            case 0:
-                gl_func_0001CA10((char *) ((temp_a1 >> 8) & 0xFF), temp_a1 & 0xFF);
-                break;
-            case 2:
-                gl_func_0001CA10((char *) ((temp_a1 >> 8) & 0xFF), temp_a1 & 0xFF);
-                break;
-            case 1:
-                temp_a0 = (temp_a1 >> 8) & 0xFF;
-                sp24 = temp_a0;
-                gl_func_0001CA10((char *) temp_a0, temp_a1 & 0xFF);
-                temp_v0_2 = *(s32 *)0x2030 + (sp24 * 0x14);
-                temp_a0_2 = FW(temp_v0_2, 0x2);
-                var_a2 = FW(temp_v0_2, 0x3);
-                sp2C = (s32) temp_a0_2;
-                sp30 = (s32) var_a2;
-                if (temp_a0_2 != 0xFF) {
-                    sp44 = (s32) var_a2;
-                    temp_v0_3 = game_libs_func_0003443C(temp_a0_2, &sp3C, var_a2);
-                    var_a2 = (u8) sp44;
-                    sp34 = temp_v0_3;
-                } else {
-                    sp34 = 0;
-                }
-                if (var_a2 != 0xFF) {
-                    sp38 = game_libs_func_0003443C(var_a2, &sp40, var_a2);
-                } else {
-                    sp38 = 0;
-                }
-                game_libs_func_0003443C((u8) sp24, FW(arg0, 0x4), (u8) &sp2C, 1);
-                break;
-            }
-            *(u8*)((char*)arg0 + 0x0) = 0;
-            gl_func_0001CA10(FW(arg0, 0x1C), FW(arg0, 0x18), 0);
-            return;
-        }
-        temp_a2 = FW(arg0, 0x14);
-        if (sp24 < temp_a2) {
-            if (FW(arg0, 0x2) == 1) {
-                game_libs_func_0003443C((u8) FW(arg0, 0x8), FW(arg0, 0xC), (u8) sp24, FW(temp_v1, 0x2));
-            } else {
-                game_libs_func_0003443C((u8) arg0, (int *) sp24, (u8) sp24, 1);
-            }
-            FW(arg0, 0x10) = 0U;
-            return;
-        }
-        if (FW(arg0, 0x2) == 1) {
-            game_libs_func_0003443C((u8) FW(arg0, 0x8), FW(arg0, 0xC), (u8) temp_a2, FW(temp_v1, 0x2));
-        } else {
-            game_libs_func_0003443C((u8) arg0, (int *) temp_a2, (u8) temp_a2, 1);
-        }
-        temp_a2_2 = FW(arg0, 0x14);
-        FW(arg0, 0x10) = (u32) (FW(arg0, 0x10) - temp_a2_2);
-        FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) + temp_a2_2);
-        FW(arg0, 0xC) = (int *) (FW(arg0, 0xC) + temp_a2_2);
+    if (gl_func_00000000(obj + 0x20, 0, 0) == -1) {
+        return;
     }
+block7:
+    sub = *(int *)(obj + 0x10);
+    if (sub == 0) {
+        field18 = *(int *)(obj + 0x18);
+        kind = (field18 >> 16) & 0xff;
+        switch (kind) {
+        case 0:
+            gl_func_00000000((field18 >> 8) & 0xff, field18 & 0xff);
+            break;
+        case 1:
+            sub = (field18 >> 8) & 0xff;
+            gl_func_00000000(sub, field18 & 0xff);
+            rec = *(char **)((char *)&D_00000000 + 0x2030) + sub * 0x14;
+            c2 = *(unsigned char *)(rec + 2);
+            c3 = *(unsigned char *)(rec + 3);
+            buf[0] = c2;
+            buf[1] = c3;
+            if (c2 != 0xff) {
+                buf[2] = gl_func_00000000(c2, &buf[4]);
+            } else {
+                buf[2] = 0;
+            }
+            if (c3 != 0xff) {
+                buf[3] = gl_func_00000000(c3, &buf[5]);
+            } else {
+                buf[3] = 0;
+            }
+            gl_func_00000000(sub, *(int *)(obj + 4), &buf[0], 1);
+            break;
+        case 2:
+            gl_func_00000000((field18 >> 8) & 0xff, field18 & 0xff);
+            break;
+        }
+        *(char *)(obj + 0) = 0;
+        gl_func_00000000(*(int *)(obj + 0x1c), *(int *)(obj + 0x18), 0);
+        return;
+    }
+    rem = *(int *)(obj + 0x14);
+    if (sub < rem) {
+        if (*(signed char *)(obj + 2) == 1) {
+            gl_func_00000000(*(int *)(obj + 8), *(int *)(obj + 0xc), sub,
+                             *(short *)(reg + 2));
+        } else {
+            gl_func_00000000(obj, sub, sub);
+        }
+        *(int *)(obj + 0x10) = 0;
+        return;
+    }
+    if (*(signed char *)(obj + 2) == 1) {
+        gl_func_00000000(*(int *)(obj + 8), *(int *)(obj + 0xc), rem,
+                         *(short *)(reg + 2));
+    } else {
+        gl_func_00000000(obj, rem, rem);
+    }
+    rem = *(int *)(obj + 0x14);
+    *(int *)(obj + 0x10) = *(int *)(obj + 0x10) - rem;
+    *(int *)(obj + 8) = *(int *)(obj + 8) + rem;
+    *(int *)(obj + 0xc) = *(int *)(obj + 0xc) + rem;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000250C8);
@@ -14625,10 +14623,10 @@ extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0002C7A4(char *o) {
     int w = *(int *)o;
-    int idx;
     char *t;
     short n;
     int m;
+    int idx;
     if (w >= 0) return;
     if (gl_func_00000000(*(unsigned char *)(o + 4))) {
         gl_func_00000000(*(unsigned char *)(o + 5));
@@ -20103,104 +20101,121 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
 //   typed. Real-C STRUCTURAL body below per the analysis (sibling
 //   of gl_func_000334E8). Byte-match deferred. Name pre-checked:
 //   no extern reuse.
-// gl_func_00033BE4 — FULL m2c DECODE (64.98% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_00033BE4 — CORRECT-C RECONSTRUCTION (NM, no episode). PERMANENT CAP for byte-land.
+//
+// WHY THIS CANNOT BYTE-LAND (raw-.word USO form):
+//   asm/nonmatchings/.../gl_func_00033BE4.s is a flat `.word` dump and the
+//   expected/.o (game_libs_post.c.o) carries ZERO relocations. Every call is
+//   baked `0x0C000000` (jal 0) and every global ref is baked `lui 0 / addiu 0`
+//   (or `lui 0 / lw N(.)`). These are USO-relocated sites patched at load time;
+//   the resolved target is *not* in the object. A genuine C body calling real
+//   functions / referencing real globals compiles to `jal <target>` + R_MIPS_26
+//   and `lui hi / addiu lo` + R_MIPS_HI16/LO16 — i.e. NONZERO bytes that differ
+//   from the expected unrelocated `0x0C000000` / `lui 0`. So the ONLY byte-exact
+//   form is INCLUDE_ASM (the #else path, which bakes the raw words). A real C
+//   definition would CHANGE the ROM. No episode — honest NON_MATCHING cap.
+//   (Same family as gl_func_000334E8 / 00033EB8 / 00030AF4; none have landed.)
+//
+// The body below is a faithful semantic reconstruction (correct-C decode
+// progress), not a match. Decoded from objdump of expected game_libs_post.c.o:
+//   * `cb`  = the USO-relocated dispatch callee (jal 0); takes the module
+//             context `gCtx` as first arg, returns int (compared to sentinel).
+//   * `gA`  = allocator-state struct: .cur(+8), .mark(+0x14), .save(+0x24),
+//             .end(+0x2C)  [lw/sw at those offsets off a `lui 0` global].
+//   * `gB`  = struct holding a register/DMA block ptr at +0x28; the pointed-to
+//             block has fields at +0, +8 (status word, polled vs sentinel),
+//             +0xC (length).  [lw 40(.) then +0/+8/+0xC].
+//   * `gDst`= the USO-relocated destination buffer (`lui 0 / addiu 0`) the
+//             unaligned head bytes are copied into.
+//   * SENT  = 0x12340002 (lui 0x1234; ori 2) — block/DMA completion sentinel.
+//   * a1 templates 0x0001E330 / 0x0001E344 / 0x0001E358 are deferred-symbol
+//             rodata error/diag strings (lui 0x2; addiu -0x1Cxx).
 #ifdef NON_MATCHING
-
-
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00033BE4)();
+extern int   cb();                 /* USO-relocated dispatch (jal 0)        */
+extern void *gCtx;                 /* module context (a0 to every cb)       */
+extern u8    gA[];                 /* allocator state (fields at +8..+0x2C) */
+extern u8    gB[];                 /* register-block holder (ptr at +0x28)  */
+extern u8    gDst[];               /* unaligned-head copy destination       */
+#define FA(o) (*(s32 *)(gA + (o)))
+#define FB(p, o) (*(s32 *)((u8 *)(p) + (o)))
 void gl_func_00033BE4(s32 arg0, u32 arg1) {
-    s32 temp_a0;
-    s32 temp_a2;
-    s32 temp_a2_2;
-    s32 temp_t4;
-    s32 var_s5;
-    s32 var_v1;
-    u32 temp_v0;
-    u32 temp_v1;
-    u32 var_s2;
-    u32 var_s4;
-    u32 var_v0;
-    u8 temp_t0;
-    char *var_a0;
+    s32   src = arg0;             /* s5: source cursor                      */
+    u32   remaining = arg1;       /* s4: bytes left to process              */
+    s32  *blk;                    /* s0: gB's register/DMA block pointer    */
+    s32   cur;                    /* current allocator write cursor         */
+    const s32 SENT = 0x12340002;  /* s3                                     */
 
-    var_s4 = arg1;
-    var_s5 = arg0;
     if (arg1 & 1) {
-        gl_func_0001CA10(0, 0x1E330);
+        cb(gCtx, (void *)0x0001E330);
     }
-    gl_func_0001CA10(0);
+    cb(gCtx);
     if (arg1 != 0) {
         do {
-            var_s2 = var_s4;
-            temp_a0 = var_s5 & 7;
-            temp_v0 = *(s32 *)0x2C - *(s32 *)8;
-            if (temp_v0 < var_s4) {
-                var_s2 = temp_v0;
+            u32 chunk = remaining;            /* s2: this iteration's span  */
+            s32 mis   = src & 7;              /* 8-byte misalignment        */
+            u32 avail = FA(0x2C) - FA(0x8);   /* free span end - cur        */
+            if (avail < remaining) {
+                chunk = avail;
             }
-            if (var_s2 != 0) {
-                if (temp_a0 != 0) {
-                    temp_v1 = 8 - temp_a0;
-                    var_v0 = 0;
-                    if (temp_v1 < var_s2) {
-                        var_s2 = temp_v1;
+            if (chunk != 0) {
+                if (mis != 0) {
+                    /* align head: copy (8-mis) bytes into gDst first */
+                    u32 head = 8 - mis;
+                    u32 i = 0;
+                    if (head < chunk) {
+                        chunk = head;
                     }
-                    if (var_s2 != 0) {
-                        var_a0 = 0;
-                        var_v1 = var_s5;
+                    if (chunk != 0) {
+                        u8 *d = gDst;
+                        u8 *s = (u8 *)src;
                         do {
-                            temp_t0 = *(int*)var_v1;
-                            var_v0 += 1;
-                            var_v1 += 1;
-                            var_a0 += 1;
-                            FW(var_a0, -0x1) = temp_t0;
-                        } while (var_v0 < var_s2);
+                            u8 b = *s++;
+                            i++;
+                            *d++ = b;
+                        } while (i < chunk);
                     }
-                    gl_func_0001CA10(0, *(char *)8, 0, var_s2);
+                    cb(gCtx, FA(0x8), gDst, chunk);
                 } else {
-                    gl_func_0001CA10(0, *(char *)8, var_s5, var_s2);
+                    cb(gCtx, FA(0x8), src, chunk);
                 }
-                temp_a2 = *(char *)8 + var_s2;
-                *(char *)8 = temp_a2;
-                gl_func_0001CA10(0, *(s32 *)0x28, temp_a2);
+                cur = FA(0x8) + chunk;
+                FA(0x8) = cur;
+                cb(gCtx, FB(gB, 0x28), cur);
             }
-            temp_t4 = *(char *)8;
-            if (*(char *)0x2C == temp_t4) {
-                *(s32 *)0x14 = temp_t4;
-                gl_func_0001CA10(0, *(char *)0x28 + 0xC, temp_t4);
-                if (*(char *)0x2C != *(char *)8) {
-                    gl_func_0001CA10(0, 0x1E344);
+            cur = FA(0x8);
+            if (FA(0x2C) == cur) {                 /* hit segment end       */
+                FA(0x14) = cur;
+                blk = (s32 *)FB(gB, 0x28);
+                cb(gCtx, FB(blk, 0xC), cur);
+                if (FA(0x2C) != FA(0x8)) {
+                    cb(gCtx, (void *)0x0001E344);
                 }
-                gl_func_0001CA10(0, *(char *)0x28 + 8, 0x12340001);
-                if (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002) {
-                    do {
-                        gl_func_0001CA10(0);
-                    } while (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002);
+                cb(gCtx, FB(blk, 8), 0x12340001);  /* kick DMA */
+                while (cb(gCtx, FB(blk, 8)) != SENT) {
+                    cb(gCtx);                      /* spin until complete   */
                 }
-                temp_a2_2 = *(s32 *)0x24;
-                *(char *)8 = temp_a2_2;
-                gl_func_0001CA10(0, *(char *)0x28, temp_a2_2);
-                gl_func_0001CA10(0, *(char *)0x28 + 8, 0x12340003);
-                if (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002) {
-                    do {
-                        gl_func_0001CA10(0);
-                    } while (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002);
+                cur = FA(0x24);                    /* rebase to saved start */
+                FA(0x8) = cur;
+                cb(gCtx, FB(blk, 0), cur);
+                cb(gCtx, FB(blk, 8), 0x12340003);  /* kick second DMA */
+                while (cb(gCtx, FB(blk, 8)) != SENT) {
+                    cb(gCtx);
                 }
             }
-            var_s4 -= var_s2;
-            var_s5 += var_s2;
-            if ((s32) var_s4 < 0) {
-                gl_func_0001CA10(0, 0x1E358);
+            remaining -= chunk;
+            src       += chunk;
+            if ((s32)remaining < 0) {
+                cb(gCtx, (void *)0x0001E358);      /* underflow diag */
             }
-            if (var_s4 != 0) {
-                gl_func_0001CA10(0);
+            if (remaining != 0) {
+                cb(gCtx);
             }
-        } while (var_s4 != 0);
+        } while (remaining != 0);
     }
-    gl_func_0001CA10(0);
+    cb(gCtx);
 }
+#undef FA
+#undef FB
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 #endif

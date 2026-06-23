@@ -1126,7 +1126,20 @@ void arcproc_uso_func_00001604(int *s0) {
  * mul.s/trunc.w.s + div + 12-call s0-s8 spill frame (-328) + beql
  * branch-likely + &D %hi/%lo reloc scheduling. Full body
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode; tautology-trap rule). */
+ * episode; tautology-trap rule).
+ *
+ * 2026-06-23 decode 66.26%->78.48%: fixed field types from mnemonics —
+ * a0+0x77C is f32 (lwc1, not lw+cvt.s.w); the {0x744,0x714,0x72C}->0x20
+ * and 0x75C->{0x20,0x22} reads are s16 (lh, not lw); the trailing
+ * arg-3 region is f32 sp138[4] all =1.0f (4x swc1, not a single scalar);
+ * call args at +0 and the &spB8 second arg are &D_00000000(+0x3D8)
+ * pointers (lui/addiu %hi/%lo), not literals 0/984. RESIDUAL = register
+ * coloring / frame-size tie: target allocates 9 saved regs (s0-s8, arg1
+ * in s8, frame -328) keeping the four region pointers + v0 loop-count in
+ * s-regs; IDO here picks 8 saved regs (s0-s7, frame -200) and spills two
+ * region pointers to stack early. Opcode sequence otherwise aligned;
+ * remaining ~38-op delta is the spill-vs-move tradeoff. Permuter-class
+ * coloring residual (not a logic bug). */
 #ifdef NON_MATCHING
 
 
@@ -1136,10 +1149,7 @@ void arcproc_uso_func_00001604(int *s0) {
 #endif
 typedef char *(*GP_000016F4)();
 void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
-    f32 sp144;
-    f32 sp140;
-    f32 sp13C;
-    f32 sp138;
+    f32 sp138[4];
     u8 spB8;
     s32 sp94;
     s32 sp90;
@@ -1164,36 +1174,36 @@ void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
     char *temp_t2;
     char *temp_t3;
 
-    sp138 = 1.0f;
-    sp13C = 1.0f;
-    sp140 = 1.0f;
-    sp144 = 1.0f;
+    sp138[0] = 1.0f;
+    sp138[1] = 1.0f;
+    sp138[2] = 1.0f;
+    sp138[3] = 1.0f;
     if (FW(FW(arg0, 0x528), 0x14) & 4) {
-        arcproc_uso_func_00001B88(0, (s32) (255.0f * FW(arg0, 0x77C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        arcproc_uso_func_00001B88(&D_00000000, (s32) (255.0f * (*(f32 *)((char *)arg0 + 0x77C))), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
         temp_s7 = (int)arg0 + 0x74C;
         arcproc_uso_func_00001B88(temp_s7);
         temp_s1 = (int)arg0 + 0x704;
-        temp_s5 = (s16) FW(FW(arg0, 0x75C), 0x20) / 12;
+        temp_s5 = *(s16 *)((char *)FW(arg0, 0x75C) + 0x20) / 12;
         arcproc_uso_func_00001B88(temp_s1);
         temp_s2 = (int)arg0 + 0x71C;
         arcproc_uso_func_00001B88(temp_s2);
         temp_s0 = (int)arg0 + 0x734;
         arcproc_uso_func_00001B88(temp_s0);
-        arcproc_uso_func_00001B88(&spB8, 0x3D8, arg2);
-        sp64 = temp_s1;
-        sp60 = temp_s2;
+        arcproc_uso_func_00001B88(&spB8, (char *)&D_00000000 + 0x3D8, arg2);
         temp_v0 = arcproc_uso_func_00001B88(&spB8);
         temp_t3 = FW(arg0, 0x744);
         temp_t1 = FW(arg0, 0x714);
         temp_t2 = FW(arg0, 0x72C);
         temp_a2 = (int)arg1 + 0x32;
-        temp_s1_2 = 0xA0 - ((s32) (FW(temp_t3, 0x20) + (temp_v0 * 0xD) + FW(temp_t1, 0x20) + FW(temp_t2, 0x20) + 0x10) / 2);
-        temp_s2_2 = FW(temp_t2, 0x20) + temp_s1_2 + 4;
-        temp_a1 = FW(temp_t1, 0x20) + temp_s2_2 + 4;
-        sp88 = FW(temp_t3, 0x20) + temp_a1 + 8;
+        temp_s1_2 = 0xA0 - ((s32) (*(s16 *)(temp_t3 + 0x20) + (temp_v0 * 0xD) + *(s16 *)(temp_t1 + 0x20) + *(s16 *)(temp_t2 + 0x20) + 0x10) / 2);
+        temp_s2_2 = *(s16 *)(temp_t2 + 0x20) + temp_s1_2 + 4;
+        temp_a1 = *(s16 *)(temp_t1 + 0x20) + temp_s2_2 + 4;
+        sp88 = *(s16 *)(temp_t3 + 0x20) + temp_a1 + 8;
         sp90 = temp_s2_2;
         sp94 = temp_s1_2;
         sp58 = temp_a2;
+        sp64 = temp_s1;
+        sp60 = temp_s2;
         arcproc_uso_func_00001B88(temp_s0, temp_a1, temp_a2, (char *)2);
         var_s0 = &spB8;
         if (temp_v0 > 0) {
@@ -1201,13 +1211,13 @@ void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
             var_s2 = sp88;
             do {
                 *var_s0 -= 0x30;
-                arcproc_uso_func_00001B88(temp_s7, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x75C), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s5), temp_s5);
+                arcproc_uso_func_00001B88(temp_s7, var_s2, (arg1 - (*(s16 *)((char *)FW(arg0, 0x75C) + 0x22) / 2)) + 0x32, (char *) (*var_s0 * temp_s5), temp_s5);
                 var_s1 += 0xD;
                 var_s0 += 1;
                 var_s2 += 0xD;
             } while (var_s1 != (temp_v0 * 0xD));
         }
-        arcproc_uso_func_00001B88(0, (s32) (255.0f * FW(arg0, 0x77C)), &sp138);
+        arcproc_uso_func_00001B88(&D_00000000, (s32) (255.0f * (*(f32 *)((char *)arg0 + 0x77C))), sp138);
         arcproc_uso_func_00001B88(sp64, sp90, sp58, (char *)2);
         arcproc_uso_func_00001B88(sp60, sp94, sp58, (char *)2);
     }
