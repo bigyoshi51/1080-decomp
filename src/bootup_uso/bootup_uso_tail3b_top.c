@@ -9,7 +9,13 @@ typedef struct { int a, b, c, d; } Quad4;
  * -O0 set-bit-and-call helper) matched at -O0 and moved to
  * bootup_uso_o0_120A8.c (the adjacent -O0 run-8 file). See that file. */
 
-/* func_000122C4 - verified structural decode (0x12C, 75 insns,
+/* func_000122C4 [-O0 eval-order+reg-alloc CAP, 88.75%]: comparison-operand
+ * inversion does NOT flip the eval order — IDO loads the memory operand of
+ * `a1+1 == *field` first regardless of which side a1+1 is on (target computes
+ * a1+1 first). Also the increment block uses s0 for the field ptr where the
+ * build uses a temp. Correct logic, divergent -O0 codegen; leave NM (2026-06-23).
+ *
+ * func_000122C4 - verified structural decode (0x12C, 75 insns,
  * scripted-sequence step gate).
  * Struct-typing reference: a0->0x154 (340) = ptr to a sequence-state
  * struct; state->0x2 (2) u16 = the current step counter (advanced
