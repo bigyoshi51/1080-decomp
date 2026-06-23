@@ -1540,13 +1540,15 @@ void* func_800012BC(void* arg0) {
 
 extern void func_80000A88(void*, s32);
 
-#ifdef NON_MATCHING
-/* NON_MATCHING: local stack layout differs from target, so the loop header
- * buffer and file-state fields end up at different offsets and branch layout
- * drifts after the `header[0] == 6` check. */
+/* USO record-walk loop: open via func_800015D0, read 12-byte records with
+ * func_800009D8 until type==6 (end), dispatching others to func_80000A88.
+ * Byte-exact: `char pad_hi[4]` (above header) + `file` declared AFTER `header`
+ * reproduce the target frame (file@sp+0x30, header@sp+0x58, frame 0x68); the
+ * `result = header[0]` reuse pins the record-type into $v0 as the beql rs. */
 s32 func_80001348(void* arg0, s32* arg1) {
-    s32 file[10];
+    char pad_hi[4];
     s32 header[3];
+    s32 file[10];
     s32 result;
 
     result = func_800015D0(arg0, file);
@@ -1562,18 +1564,19 @@ s32 func_80001348(void* arg0, s32* arg1) {
             }
             return result;
         }
-        if (header[0] == 6) {
-            *arg1 = file[3] + file[1];
-            return 0;
+        result = header[0];
+        if (result == 6) {
+            break;
         }
-        if (header[0] != 8) {
-            func_80000A88(file, header[1]);
+        if (result == 8) {
+            continue;
         }
+        func_80000A88(file, header[1]);
     }
+    *arg1 = file[1] + file[3];
+    (void)pad_hi;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80001348);
-#endif
 
 /* uso_read */
 s32 func_80001414(void* file, void* buf, s32 size) {

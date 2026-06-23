@@ -1,0 +1,32 @@
+{
+  "function_name": "func_80001348",
+  "project": "1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-06-23T12:00:00+00:00",
+  "end_time": "2026-06-23T12:00:00+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-06-23T12:00:00+00:00",
+      "assistant_text": "Byte-exact -O2 match (51 opcode words + 3 relocs func_800015D0/func_800009D8/func_80000A88 identical; full make clean && make ROM byte-identical to baserom). USO record-walk loop: open arg0 via func_800015D0 into a 10-word file buffer, then loop reading 12-byte records with func_800009D8 until result<=0 (return result, mapping 0 -> -1000) or header[0]==6 (end -> *arg1 = file[1]+file[3], return 0); header[0]==8 records are skipped, all others dispatched to func_80000A88(file, header[1]). Three levers got from 11 diffs to 0: (1) `char pad_hi[4]` declared FIRST (highest local, 4-byte gap above header) + `file[10]` declared AFTER `header[3]` reproduce the target frame layout file@sp+0x30, header@sp+0x58, frame 0x68 (IDO allocates last-declared array lowest); (2) `*arg1 = file[1] + file[3]` source order makes IDO load file[3] into the earlier reg ($t6) matching the target addu order; (3) `result = header[0]` reuse (instead of a fresh `type` local, which spilled to $v1 and grew the frame) keeps the record-type in $v0 so the two equality tests emit `beql $v0,$s2`/`beql $v0,$s3` with $v0 as rs, matching the target operand order.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 51,
+  "initial_m2c_source": null,
+  "final_source": "/* USO record-walk loop: open via func_800015D0, read 12-byte records with\n * func_800009D8 until type==6 (end), dispatching others to func_80000A88.\n * Byte-exact: `char pad_hi[4]` (above header) + `file` declared AFTER `header`\n * reproduce the target frame (file@sp+0x30, header@sp+0x58, frame 0x68); the\n * `result = header[0]` reuse pins the record-type into $v0 as the beql rs. */\ns32 func_80001348(void* arg0, s32* arg1) {\n    char pad_hi[4];\n    s32 header[3];\n    s32 file[10];\n    s32 result;\n\n    result = func_800015D0(arg0, file);\n    if (result < 0) {\n        return result;\n    }\n\n    while (1) {\n        result = func_800009D8(header, 0xC, 1, file);\n        if (result <= 0) {\n            if (result == 0) {\n                result = -1000;\n            }\n            return result;\n        }\n        result = header[0];\n        if (result == 6) {\n            break;\n        }\n        if (result == 8) {\n            continue;\n        }\n        func_80000A88(file, header[1]);\n    }\n    *arg1 = file[1] + file[3];\n    (void)pad_hi;\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_000.c",
+    "asm_path": "asm/nonmatchings/kernel/func_80001348.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+  }
+}

@@ -100,13 +100,38 @@ extern OSEventState __osEventStateTab[];
  * (.L8000764C) that EVERY path reaches — so the -1 arm must fall through
  * to the msg->9 check and the two end-stores must be unconditional after
  * the if/else, not behind the early-exit label. Now structured as plain
- * nested if/else with one tail. RESIDUAL (regalloc tail, multi-tick): the
- * target spills &__rmonUtilityBuffer to 0x28(sp) at entry and RELOADS it
- * per use (9x) + spills/reloads the arg (sw a0,0x30(sp); lw s0,0x30(sp)),
- * frame -0x30; my C keeps ub register-resident (frame -0x18). Sibling
- * func_80006790 hits this reload-per-use shape at plain -O2 (68%), so it
- * is structure-driven not opt-driven — kernel_018 -O2 -g3 only nudges 7564
- * +0.8pp and REGRESSES 6790/71C0/745C, so NOT an opt split. */
+ * nested if/else with one tail.
+ * 2026-06-23 (37.99 -> 76/77 words, 1-insn residual): full regalloc rebuild.
+ * Levers that reproduced the target's frame -0x30 layout exactly:
+ *   (1) `register char *m = msg;` + `register char *t;` — pins msg to $s0
+ *       (reloaded once from its 0x30 arg-home at entry, live across the two
+ *       jals to its 0x4 use at .L8000764C) and the thread node to $s1
+ *       (register-resident through the chain walk). m used for msg->0xC/0x4.
+ *   (2) the msg->0x9 check reads the RAW PARAMETER `msg` (NOT `m`): at the
+ *       branch-join .L800075B0 the target reloads msg from 0x30(sp) rather
+ *       than reuse $s0 — using `msg` here emits that `lw $t1,0x30(sp)`.
+ *   (3) the msg->0xC==-1 arm writes the GLOBAL directly
+ *       (`*(int*)(&__rmonUtilityBuffer+0xC)=0x3EA`) so it uses the live
+ *       lui/addiu $t6 (`sw $t8,0xC($t6)`); every other ub access goes
+ *       through the stack-homed `ub` pointer (reloaded from 0x28(sp), 9x).
+ *   (4) `int pad;` declared BEFORE `ub` reserves slot 0x2C so the M-class
+ *       `ub` pointer lands at 0x28 (decl-order = high->low slot numbering:
+ *       first-declared gets the highest sp offset; without pad ub takes
+ *       0x2C, with ub-last it takes 0x24). Phantom-slot frame-layout lever.
+ *   (5) func_800073F8 called DIRECTLY (no fn-ptr cast) -> `jal` not jalr.
+ * RESIDUAL (1 real insn, genuine -O1 coloring artifact): the tail builds
+ * the 2nd arg as `count*4+0x14`. Target emits `sll $t0,$a1,2; or $a1,$t0,0`
+ * (materializes the product in a scratch $t reg then MOVES it back to $a1),
+ * mine emits `sll $a1,$a1,2` in place — exactly 1 instr short (76 vs 77
+ * words). The redundant `move $a1,$t0` is an IDO scheduling/coloring
+ * consequence of `a0=ub` being assigned BETWEEN the lhu(count) and the
+ * shift; clean C at -O1 never re-materializes through the temp. Verified
+ * non-reproducible across ~10 arg-expression forms (int/unsigned/short
+ * casts, <<2 vs *4, operand reorder, register-temp, block-scoped copy —
+ * each either folds the move away or regresses the frame to -0x38). The
+ * other 4 word-diffs are HI16/LO16(__rmonUtilityBuffer) + R_MIPS_26
+ * (func_80009C30, func_800073F8) reloc placeholders that resolve at link.
+ * INCLUDE_ASM remains the build path (NM body below; no episode). */
 extern void func_800073F8(); /* needed by NM body; split piece lost the chunk-local extern */
 #ifdef NON_MATCHING
 extern char __rmonUtilityBuffer;
@@ -114,12 +139,14 @@ extern char *func_80009C30(void);
 /* func_800073F8 is forward-declared 0-arg above (fragment stub); cast at
  * call site to its real 3-arg __rmonSendHeader signature. */
 s32 func_80007564(char *msg) {
+    int pad;
     char *ub = &__rmonUtilityBuffer;
-    char *t;
-    if (*(int*)(msg + 0xC) == -1) {
-        *(int*)(ub + 0xC) = 0x3EA;
+    register char *m = msg;
+    register char *t;
+    if (*(int*)(m + 0xC) == -1) {
+        *(int*)(&__rmonUtilityBuffer + 0xC) = 0x3EA;
     } else {
-        *(int*)(ub + 0xC) = *(int*)(msg + 0xC);
+        *(int*)(ub + 0xC) = *(int*)(m + 0xC);
     }
     if (*(unsigned char*)(msg + 0x9) == 1) {
         *(unsigned short*)(ub + 0x10) = 1;
@@ -137,9 +164,9 @@ s32 func_80007564(char *msg) {
             } while (*(int*)(t + 0x4) != -1);
         }
     }
-    *(unsigned char*)(ub + 0x4) = *(unsigned char*)(msg + 0x4);
+    *(unsigned char*)(ub + 0x4) = *(unsigned char*)(m + 0x4);
     *(unsigned short*)(ub + 0x6) = 0;
-    ((void (*)(void*, int, int))func_800073F8)(ub, *(unsigned short*)(ub + 0x10) * 4 + 0x14, 1);
+    func_800073F8(ub, *(unsigned short*)(ub + 0x10) * 4 + 0x14, 1);
     return 0;
 }
 #else
