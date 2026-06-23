@@ -1494,16 +1494,28 @@ void arcproc_uso_func_00001F0C(char *a0) {
  * block; ramp arg0->0xA8 toward arg0->0x44->0x18 by 0xFA/0x32/0x19/1; draw; in
  * states 0/1 three more draws (one with a 0.0f float arg via gl_proto_1f54); if
  * arg0->0x44->0x1C: enable a sub-widget (0x94) + ramp its 0x20 by 0x32/5/1, else
- * disable; in state 2 (0x4F8==0) blink 0x8C by (0xAC++ & 8). cb(arg0) tail. Fresh
- * decode 2026-05-29 (m2c-confirmed). 80.6% reg-blind. Residual: float-call mfc1
- * arg setup + spill regalloc. Caps: structs + cb prototypes untyped (USO-reloc).
- * NON_MATCHING. */
+ * disable; in state 2 (0x4F8==0) blink 0x8C by (0xAC++ & 8). cb(arg0) tail.
+ * Re-decode 2026-06-22: 80.6% -> 88.77%. Fixes landed: (1) prologue 0x30-bump
+ * scheduled into 1st cb(arg0) delay; arg0->0xA0=t2 stored unconditionally then
+ * floored to 0; (2) 0xA8 ramp precomputes a1+0xFA into a temp (bnezl cascade);
+ * (3) flag RMW `*(p+0x18) |= 4` via `q=(int*)(p+0x18); *q=*q|4` -> computed-addr
+ * store (addiu base,base,0x18; sw 0(base)) matching all three 0x18 sites + 0x20
+ * ramp stores. RESIDUAL (~129 reloc-masked word diffs, ~45 register-coloring):
+ * the 0x20-ramp branches reload the field via computed-addr in the target but IDO
+ * CSEs the subtraction's offset-form `a=p44->0x20` read into the `*q` RMW read in
+ * full-TU context (8-insn structural gap). Verified NOT reproducible in isolated
+ * cc (standalone always caches+offset-stores) -> full-TU regalloc/CSE tie, not a
+ * C lever. Permuter (200-insn, no perm macros, dup .NON_MATCHING obj symbol)
+ * floored at base score, no productive moves. Caps: structs + cb prototypes
+ * untyped (USO-reloc). NON_MATCHING. */
 extern int gl_proto_1f54(void *, int, int, float, float);
 void arcproc_uso_func_00001F54(char *arg0) {
     char *bc;
     char *p44;
     char *p94;
     char *p8c;
+    char *sub;
+    int *q;
     int a1;
     int rem;
     int v0;
@@ -1515,7 +1527,7 @@ void arcproc_uso_func_00001F54(char *arg0) {
     bc = *(char **)(arg0 + 0xBC);
     if ((*(int *)(bc + 0x4F0) & 0x10000) && (*(int *)(bc + 0x4DC) == 1)) {
         *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;
-        gl_func_00000000();
+        gl_func_00000000(arg0);
         gl_func_00000000(arg0);
         t2 = *(int *)(arg0 + 0xA0) - 0x21;
         *(int *)(arg0 + 0xA0) = t2;
@@ -1536,19 +1548,20 @@ void arcproc_uso_func_00001F54(char *arg0) {
             gl_func_00000000(*(int *)(arg0 + 0xBC));
         }
         a1 = *(int *)(arg0 + 0xA8);
+        t2 = a1 + 0xFA;
         rem = *(int *)(*(char **)(arg0 + 0x44) + 0x18) - a1;
         if (rem >= 0xFA) {
-            a1 += 0xFA;
-            *(int *)(arg0 + 0xA8) = a1;
+            *(int *)(arg0 + 0xA8) = t2;
+            a1 = t2;
         } else if (rem >= 0x32) {
-            a1 += 0x32;
-            *(int *)(arg0 + 0xA8) = a1;
+            *(int *)(arg0 + 0xA8) = a1 + 0x32;
+            a1 = a1 + 0x32;
         } else if (rem >= 0x19) {
-            a1 += 0x19;
-            *(int *)(arg0 + 0xA8) = a1;
+            *(int *)(arg0 + 0xA8) = a1 + 0x19;
+            a1 = a1 + 0x19;
         } else if (rem > 0) {
-            a1 += 1;
-            *(int *)(arg0 + 0xA8) = a1;
+            *(int *)(arg0 + 0xA8) = a1 + 1;
+            a1 = a1 + 1;
         }
         gl_func_00000000(*(int *)(arg0 + 0x8C), a1);
         v0 = *(int *)(*(char **)(arg0 + 0xBC) + 0x4DC);
@@ -1561,17 +1574,19 @@ void arcproc_uso_func_00001F54(char *arg0) {
         if (*(int *)(*(char **)(arg0 + 0x44) + 0x1C) != 0) {
             gl_proto_1f54(*(int *)(arg0 + 0x94), 0xA0, 0x46, 1.0f, 1.0f);
             *(int *)(*(char **)(arg0 + 0x94) + 0x78) = 0xFF;
-            p94 = *(char **)(arg0 + 0x94);
-            *(int *)(p94 + 0x18) = *(int *)(p94 + 0x18) | 4;
+            q = (int *)(*(char **)(arg0 + 0x94) + 0x18);
+            *q = *q | 4;
             p44 = *(char **)(arg0 + 0x44);
             a = *(int *)(p44 + 0x20);
             r = *(int *)(p44 + 0x1C) - a;
             if (r >= 0x32) {
-                *(int *)(p44 + 0x20) = *(int *)(p44 + 0x20) + 0x32;
+                q = (int *)(p44 + 0x20);
+                *q = *q + 0x32;
                 gl_func_00000000(0x20, 0x32);
                 a = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
             } else if (r >= 5) {
-                *(int *)(p44 + 0x20) = *(int *)(p44 + 0x20) + 5;
+                q = (int *)(p44 + 0x20);
+                *q = *q + 5;
                 gl_func_00000000(0x20, 5);
                 a = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
             } else if (r > 0) {
@@ -1589,11 +1604,11 @@ void arcproc_uso_func_00001F54(char *arg0) {
             t8 = *(int *)(arg0 + 0xAC) + 1;
             *(int *)(arg0 + 0xAC) = t8;
             if (t8 & 8) {
-                p8c = *(char **)(arg0 + 0x8C);
-                *(int *)(p8c + 0x18) = *(int *)(p8c + 0x18) & ~4;
+                q = (int *)(*(char **)(arg0 + 0x8C) + 0x18);
+                *q = *q & ~4;
             } else {
-                p8c = *(char **)(arg0 + 0x8C);
-                *(int *)(p8c + 0x18) = *(int *)(p8c + 0x18) | 4;
+                q = (int *)(*(char **)(arg0 + 0x8C) + 0x18);
+                *q = *q | 4;
             }
         }
     }

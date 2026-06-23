@@ -321,9 +321,30 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
  *   Tail now structurally complete (177 vs 175 insns). Residual ~23% is
  *   regalloc: target keeps the finalizer object in $a3 (mine $v1), frame
  *   0x38 vs 0x48 (mine spills 4 extra temps), + lui &D CSE on the last two
- *   calls — alloc-cascade spill/renumber cap (multi-tick / permuter). */
+ *   calls — alloc-cascade spill/renumber cap (multi-tick / permuter).
+ *
+ * 2026-06-22 (logic fixes, fuzzy 77.3): corrected THREE real bugs that were
+ *   masked by the coloring divergence:
+ *   (1) cascade alloc-fail arms fall through to the matching `*(x+0x28)=&D`
+ *       store (goto Lp/Lq/Lr), NOT `goto end` — matches target's 6f8/6e4/6d4
+ *       fall-in targets (alloc-or-passthrough cascade w/ dead arms).
+ *   (2) the init call is gl_func(p, &D+0x3C8, a1, a2) and the 0x6A8 store is
+ *       `*(p+0x6A8)=a3` — earlier C swapped a2/a3 (args spill a1@0x3c/a2@0x40/
+ *       a3@0x44; target reads 0x44=a3 for the store, 0x40=a2 for the call).
+ *   (3) vtable call arg is (short)vt[0x58] + p->0x6B0 (addu a0,t5,v0 in the
+ *       jalr delay), not just (short)vt[0x58].
+ *   Also dropped the shared `base` local (forced a long-lived spill); each &D
+ *   ref now re-materializes (4 distinct D_h2h_620_dN symbols for the +0x28
+ *   stores). Frame is still 0x48 vs 0x38: target colors q into $a3 and reuses
+ *   slot 0x30 for r; IDO here parks q in $a2 and spills one extra temp word.
+ *   Permuter (j4, --best-only, tuned reorder/temp/split weights, ~660 iters):
+ *   base score 159650, floor 158080 — local minimum, no crack. Genuine
+ *   alloc-cascade spill/renumber cap; stays INCLUDE_ASM. */
+extern char D_h2h_620_d0, D_h2h_620_d1, D_h2h_620_d2, D_h2h_620_d3;
+extern int  D_h2h_620_e0;
+extern char D_h2h_620_e1;
+
 void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
-    char *base = &D_00000000;
     void *p, *q, *r, *child;
     int *z;
 
@@ -335,31 +356,34 @@ void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
     q = p;
     if (q == 0) {
         q = (void*)gl_func_00000000(0x6A8);
-        if (q == 0) goto end;
+        if (q == 0) goto Lp;
     }
     r = q;
     if (r == 0) {
         r = (void*)gl_func_00000000(0x50);
-        if (r == 0) goto end;
+        if (r == 0) goto Lq;
     }
     child = r;
     if (child == 0) {
         child = (void*)gl_func_00000000(0x2C);
-        if (child == 0) goto end;
+        if (child == 0) goto Lr;
     }
-    gl_func_00000000(child, base + 0x3C0);
-    *(int*)((char*)child + 0x28) = (int)base;
-    *(int*)((char*)r + 0x28)     = (int)base;
-    *(int*)((char*)q + 0x28)     = (int)base;
+    gl_func_00000000(child, &D_00000000 + 0x3C0);
+    *(int*)((char*)child + 0x28) = (int)&D_h2h_620_d0;
+Lr:
+    *(int*)((char*)r + 0x28)     = (int)&D_h2h_620_d1;
+Lq:
+    *(int*)((char*)q + 0x28)     = (int)&D_h2h_620_d2;
     gl_func_00000000((char*)q + 0x50);
-    *(int*)((char*)p + 0x28)     = (int)base;
+Lp:
+    *(int*)((char*)p + 0x28)     = (int)&D_h2h_620_d3;
     *(int*)((char*)p + 0x568)    = 0;
 
-    gl_func_00000000(p, base + 0x3C8, a1, a3);
+    gl_func_00000000(p, &D_00000000 + 0x3C8, a1, a2);
     *(int*)((char*)p + 0x528) = 0;
     gl_func_00000000(p, a2);
-    *(int*)((char*)p + 0x6A8) = a2;
-    gl_func_00000000(base + 0x3D8, 0);
+    *(int*)((char*)p + 0x6A8) = a3;
+    gl_func_00000000(&D_00000000 + 0x3D8, 0);
     {
         void *grandchild = (void*)gl_func_00000000(0xF0);
         if (grandchild != 0) {
@@ -371,10 +395,11 @@ void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
     }
     gl_func_00000000(*(int*)((char*)p + 0x6B0), p,
                      *(int*)((char*)p + 0x568));
-    /* virtual call via vtable: vtable[0x5C] applied to vtable[0x58] + retval */
+    /* virtual call via vtable: vt[0x5C]( (short)vt[0x58] + p->0x6B0 ) */
     {
-        int *vt = *(int**)((char*)*(int**)((char*)p + 0x6B0) + 0x28);
-        ((void(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58));
+        int gc = *(int*)((char*)p + 0x6B0);
+        int *vt = *(int**)((char*)gc + 0x28);
+        ((void(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58) + gc);
     }
     gl_func_00000000((char*)p + 0x10, *(int*)((char*)p + 0x6B0));
     z = *(int**)((char*)p + 0x6B0);
@@ -386,9 +411,9 @@ void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
         *(int*)((char*)p + 0x48) = (int)sub;
         gl_func_00000000(sub, p);
         gl_func_00000000(*(int*)((char*)p + 0x48),
-                         (*(int*)(base + 0x3E0) + 3) << 16, -1, base + 0x3E8);
+                         (*(int*)&D_h2h_620_e0 + 3) << 16, -1, &D_h2h_620_e1);
         gl_func_00000000(*(int*)((char*)p + 0x48),
-                         ((*(int*)(base + 0x3E0) + 3) << 16) | 8, -1, base + 0x3E8);
+                         ((*(int*)&D_h2h_620_e0 + 3) << 16) | 8, -1, &D_h2h_620_e1);
         *(int*)((char*)*(int**)((char*)p + 0x48) + 0x30) =
             *(int*)((char*)p + 0x568);
         gl_func_00000000(*(int*)((char*)p + 0x48));
