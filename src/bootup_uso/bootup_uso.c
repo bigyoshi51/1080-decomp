@@ -7522,6 +7522,10 @@ void func_0000B49C(int idx) {
     if (gl_func_00000000(*elem, j) == 0) {
         gl_func_00000000(&D_00000000, *elem);
     }
+    /* 3rd arg: target loads *(int*)(0 + rv), rv = first call's return (spilled@28), NOT D[j].
+     * 2026-06-24 tried capturing rv + *(int*)rv: REGRESSED 99.94->69% (rv held in temp t0 +
+     * 1-insn deref vs target's home-spill + lui;addu;lw 3-insn form; frame stayed -40). Frame
+     * cap (1-word, -40 vs -32) stands; the rv-spill + literal-0-base deref isn't C-reproducible. */
     gl_func_00000000(0, &gl_ref_00008A58, ((int*)&D_00000000)[j], 0);  /* func_00008A40+0x18 */
 }
 #else
