@@ -298,22 +298,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009204);
  * node/g to callee-saved $s1/$s0 (frame -56); my C keeps them in t-regs/spills
  * (frame -40) — s-reg-promotion cap. */
 extern int gl_func_00000000();
-extern int D_92f_a, D_92f_b, D_92f_c, D_92f_d, D_92f_e, D_92f_f;
+extern int D_0000004C;
 int gl_func_000092F4(int a0, int a1) {
-    int *node;
-    char *g;
-    int t;
-    gl_func_00000000(&D_92f_a, *(int *)((char *)&D_92f_b + 8));
-    t = *(int *)((char *)&D_92f_c + 0x4C);
-    gl_func_00000000(t, t);
-    node = (int *)gl_func_00000000(&D_92f_d, 8, 2, a1);
-    g = (char *)&D_92f_e;
-    gl_func_00000000(g + 0x10, node);
+    register char *g;      /* s0 */
+    register int *node;    /* s1 */
+    register char *tmp;    /* s2 */
+    gl_func_00000000(&D_00000000, *(int *)((char *)&D_00000000 + 8));
+    gl_func_00000000(D_0000004C, D_0000004C);
+    node = (int *)gl_func_00000000(&D_00000000, 8, 2, a1);
+    g = (char *)&D_00000000;
+    tmp = g + 0x10;
+    gl_func_00000000(tmp, node);
     if (node[0x14 / 4] != 0) {
         node[0x4 / 4] = 1;
     }
     node[0x14 / 4] = (int)g;
-    gl_func_00000000(&D_92f_f, 0);
+    gl_func_00000000(&D_00000000, 0);
+    (void)a0;
     return (int)node;
 }
 #else
