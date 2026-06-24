@@ -6554,11 +6554,6 @@ void game_uso_func_0000751C(char *a0) {
  * the next arm's setup). Next pass: decode 0x77B8-0x7880 (bits 0x20, 0x80,
  * 0x100) and the merge block proper. */
 long long game_uso_func_00007538(int *a0, int a1) {
-    /* 2026-05-08 destructive refactor: eliminate `outer` named local + reduce
-     * named-int locals. Goal: defeat IDO's $s0 promotion for the 5+-use
-     * cross-block value `(int*)a0[0x30/4]`, push function into leaf shape.
-     * Each use site now reads the field inline so allocator sees independent
-     * live ranges per arm. */
     int ret_lo = 0;
     int ret_hi = 0;
     int a1_saved = a1;
@@ -6572,10 +6567,7 @@ long long game_uso_func_00007538(int *a0, int a1) {
     flag2 = a0[0x6C / 4];
     if (flag2 != 0) goto trunk;
 
-    /* ==== DISPATCH CASCADE (flag2 == 0) ==== */
-    /* Bit tests are on a1_saved (the input arg); the running mask `a1`
-     * starts at 0 (= flag2) and gets ORed bits stored into a0[0x6C]. */
-    a1 = flag2;  /* explicit: running mask starts at 0 */
+    a1 = flag2;
 
     if (a1_saved & 0x10) {
         if (((int*)a0[0x30 / 4])[0x938 / 4] != 0) {
@@ -6587,7 +6579,7 @@ long long game_uso_func_00007538(int *a0, int a1) {
     }
 
     if (a1_saved & 0x01) {
-        flags = a0[0x48 / 4];  /* reload — asm reads at 0x75E0 */
+        flags = a0[0x48 / 4];
         if (flags != 0) goto check_40;
         a0[0x6C / 4] = a1 | 0x01;
         a0[0x44 / 4] = 91;
@@ -6603,39 +6595,31 @@ check_40:
     }
     if (a1_saved & 0x04) {
         if (counter != 0) goto check_20;
-        /* arg1 & 0x04 arm: reset counter + set f2 = 1.0f, ret_hi = 1 */
-        a0[0x50 / 4] = 8;
         f2 = 1.0f;
         ret_hi = 1;
+        a0[0x50 / 4] = 8;
+        a1 = a0[0x6C / 4];
         goto trunk;
     }
 check_20:
     if (a1_saved & 0x20) {
-        /* arg1 & 0x20 arm body: fabs(outer->0xB4) % 9 */
+        a0[0x6C / 4] = a1 | 0x20;
+        a0[0x4C / 4] = 38;
         f_tmp = *(float*)&((int*)a0[0x30 / 4])[0xB4 / 4];
         if (f_tmp < 0.0f) f_tmp = -f_tmp;
+        a1 = a0[0x6C / 4];
         a0[0x44 / 4] = 60;
         a0[0x58 / 4] = (int)f_tmp % 9;
         goto trunk;
     }
     if (a1_saved & 0x80) {
-        /* arg1 & 0x80 arm body. Per asm trace 0x7660-0x767C: ret_hi = 1 set
-         * here (line 3624-3627 doc). Without it, the bit-0x80 ARM-FIRE path
-         * was returning v1=0 instead of v1=1 to caller. */
         a0[0x6C / 4] = a1 | 0x80;
         a0[0x4C / 4] = 0;
         a0[0x44 / 4] = 2;
         a1 = a1 | 0x80;
-        ret_hi = 1;
         goto trunk;
     }
     if (a1_saved & 0x08) {
-        /* 2026-05-07 BUG FIX: prior C had the condition inverted.
-         * Asm 0x76F4 `beql t4, $0, +0x13` means: if outer->0x938 == 0,
-         * branch directly to trunk (annulled delay-slot, no f2 store).
-         * Else (outer->0x938 != 0): fall through to mtc1 -1.0f → f2,
-         * then b to trunk. Both arms reach trunk; only the non-zero
-         * arm sets f2 = -1.0f. */
         if (((int*)a0[0x30 / 4])[0x938 / 4] != 0) {
             f2 = -1.0f;
         }
@@ -6643,7 +6627,7 @@ check_20:
     }
     if (a1_saved & 0x02) {
         if (((int*)a0[0x30 / 4])[0x938 / 4] != 0) {
-            ret_lo |= 0x400;
+            ret_lo = 0x400;
             if (a1_saved & 0x100) {
                 a0[0x6C / 4] = a1_saved | 0x100;
                 a0[0x44 / 4] = 0x68;
@@ -6653,417 +6637,124 @@ check_20:
     }
 
 trunk:
-    /* ==== FLAG-DECREMENT TRUNK (0x7744-0x7A??) ==== */
-    /* Per-bit: if (a1 & BIT), decrement a0[0x44], OR ret_lo bits, and on
-     * zero clear the bit in a0[0x6C]. Currently only bits 0x01 / 0x40 / 0x20
-     * are decoded; 0x80 / 0x100 / 0x08 / 0x04 / 0x10 are TODO. */
     if (a1 & 0x01) {
         ret_lo |= 0x500;
         counter = a0[0x44 / 4] - 1;
         a0[0x44 / 4] = counter;
         if (counter == 0) {
-            a0[0x6C / 4] &= ~0xA1;  /* clears 0x80|0x20|0x01 together */
-            goto ret;
+            a0[0x6C / 4] &= ~0xA1;
         }
+        goto ret_tail;
     }
     if (a1 & 0x40) {
-        /* 0x7774-0x77A4: bit-0x40 arm. Both paths goto a shared post-trunk
-         * region (NOT the function epilogue — it's the bit-0x100/inner-state
-         * processing at 0x79F8). asm uses bnel to skip the bit-clear when
-         * counter != 0, which annuls the bit-clear store; fall-through stores
-         * cleared bit. ret_lo |= 0x100 is the delay slot of the counter!=0
-         * goto, so it ONLY happens on counter!=0. counter==0 path stores the
-         * cleared bit then jumps without OR. */
         counter = a0[0x44 / 4] - 1;
         if (counter != 0) {
             a0[0x44 / 4] = counter;
             ret_lo |= 0x100;
-            goto ret;
+        } else {
+            a0[0x6C / 4] &= ~0x40;
         }
-        a0[0x6C / 4] &= ~0x40;
-        goto ret;
+        goto ret_tail;
     }
     if (a1 & 0x20) {
-        /* 0x77A8-0x7824: bit-0x20 trunk arm. Guarded by outer->[0x938] == 0;
-         * decrements a0[0x4C] (sub-counter). When sub-counter < 31 (slti at
-         * 0x77CC), also reads 2-float (x,y) pair from D+0x638+a0[0x58]*8 into
-         * f0/f2. When sub-counter expires (== 0 after decrement), clear bit
-         * 0x20 directly. While sub-counter still ticks, also decrement
-         * a0[0x44] (main duration counter); when THAT hits zero, also clear
-         * bit 0x20. ret_lo |= 0x200 unconditionally inside outer-zero arm. */
         if (((int*)a0[0x30 / 4])[0x938 / 4] == 0) {
             int cnt = a0[0x4C / 4];
             ret_hi = 1;
             ret_lo |= 0x200;
-            if (cnt < 31) {
-                int sub_idx = a0[0x58 / 4];
-                f0 = *(float*)((char*)&D_00000000 + 0x638 + sub_idx * 8);
-                f2 = *(float*)((char*)&D_00000000 + 0x638 + sub_idx * 8 + 4);
+            if (cnt >= 31) {
+                int idx = a0[0x58 / 4];
+                f0 = *(float*)((char*)&D_00000000 + 0x638 + idx * 8);
+                f2 = *(float*)((char*)&D_00000000 + 0x638 + idx * 8 + 4);
             }
             a0[0x4C / 4] = cnt - 1;
-            if (a0[0x4C / 4] != 0) {
-                /* sub-counter still ticking: also decrement main counter */
-                counter = a0[0x44 / 4] - 1;
-                if (counter != 0) {
-                    a0[0x44 / 4] = counter;
-                    goto ret;
-                }
-            }
-            /* sub-counter expired OR main counter expired: clear bit */
-            a0[0x6C / 4] &= ~0x20;
-            goto ret;
         }
+        if (a0[0x4C / 4] == 0) {
+            a0[0x6C / 4] &= ~0x20;
+        } else {
+            counter = a0[0x44 / 4] - 1;
+            if (counter != 0) {
+                a0[0x44 / 4] = counter;
+            } else {
+                a0[0x6C / 4] &= ~0x20;
+            }
+        }
+        goto ret_tail;
     }
-    /* Trunk-arms wired: 0x01 / 0x40 / 0x20 / 0x80 / 0x100. Bits 0x02 /
-     * 0x04 / 0x08 / 0x10 are dispatch-cascade-only — verified
-     * 2026-05-07 by walking 0x7740-0x7990 of the asm.
-     *
-     * Status 2026-05-17: 58.686047% via `objdiff-cli report generate`
-     * after rebuilding build/non_matching/src/game_uso/game_uso.c.o.
-     * (2026-05-28 update: the earlier "full project link blocked by
-     * D_A0000200/D_35360_X/D_6F614_X" note is STALE — `make RUN_CC_CHECK=0`
-     * now links build/tenshoe.elf cleanly; the only residual is the
-     * documented pre-existing ~0x550-byte ROM_MISMATCH, not a link error.)
-     *
-     * Status 2026-05-08 (later): 48.97% (drift from 48.81% earlier same day; +0.16pp
-     * is upstream parallel-agent activity reshuffling expected/.o baselines, NOT a
-     * grind on this function — no C body change between measurements). Confirmed
-     * via fresh `scripts/refresh-report.sh` after rebase onto latest origin/main.
-     * Remaining 51% is structural: built saves $s0 (frame -0x28) where
-     * target uses NO stack frame at all (target is a pure leaf — verified
-     * 2026-05-08 via `grep -E "0C[0-9A-F]{6}" <asm>` returning ZERO matches,
-     * i.e., no jal opcodes anywhere). Target compiles as a leaf using only
-     * caller-save regs ($a2/$a3/$v0/$v1/$t-regs) for the entire body.
-     *
-     * Built's `outer` / `register int *t` locals get promoted to $s0
-     * because their live ranges span the goto-cascade (multiple arms each
-     * `outer = (int*)a0[0x30/4]; ... goto trunk;`). Even with no jal calls,
-     * IDO -O2's allocator decides $s0 is the cheapest slot for a value
-     * referenced 5+ times across cascading basic blocks.
-     *
-     * Path to break the cap (multi-tick — destructive refactor):
-     * (a) [TESTED 2026-05-08, NEGATIVE RESULT] Eliminate the `outer` named
-     *     local entirely. Inline `(int*)a0[0x30/4]` at EACH use site. Did
-     *     NOT move fuzzy% (48.81% → 48.81%). IDO -O2 hoists the repeated
-     *     `lw t,0x30(a0)` reads back into a single CSE'd $s0-held value
-     *     across the cascade — inlining alone is insufficient to break the
-     *     extern-base CSE pattern. (Confirms `docs/IDO_CODEGEN.md`'s
-     *     inverse-CSE caveat: extern-base loads with constant offsets are
-     *     non-defeatable via local-introduction.)
-     * (b) Replace `goto trunk` from each arm with explicit `if/else if`
-     *     control flow so the dispatch cascade has no shared join point
-     *     (each arm's life range becomes independent). UNTESTED — would
-     *     require reshaping ~9 dispatch arms; speculation is that without
-     *     the trunk-join, the running-mask state can stay in caller-save
-     *     regs since no two arms share a value at runtime. Multi-tick
-     *     destructive refactor; NOT a single-tick action.
-     * (c) Verify the leaf-shape (no stack frame) emerges, then re-grind
-     *     per-arm body.
-     *
-     * 2026-05-08 cheap-test of `register int *a0, register int a1`
-     *     parameter hints: NEGATIVE (0pp). IDO ignores `register` on
-     *     function parameters (per `feedback_ido_register.md` — `register`
-     *     is honored for locals as a $s0 hint, but the calling convention
-     *     fixes parameter registers). Built still emits prologue at
-     *     offset 0 (-0x28 frame, sw $s0 at 0x18). The s0 promotion is
-     *     driven by use-frequency of `a0` in the body, not by parameter
-     *     declaration.
-     *
-     * 2026-05-08 PATH-(b) TESTED, NEGATIVE RESULT (-1.69pp): converted
-     *     `goto trunk` cascade to mutually-exclusive `if/else if` chain
-     *     wrapped in `if (flag2 == 0) { ... } else { a1 = flag2; }`. Hoped
-     *     the per-arm scoping would defeat `outer = a0[0x30/4]` $s0
-     *     promotion. Result: 48.97% → 47.28%. Hypothesis fails.
-     *     Reverted. The `goto trunk` shape is closer to target's actual
-     *     control flow (target uses fall-through `b trunk` after each arm,
-     *     which corresponds 1-to-1 to source-level `goto trunk`). The
-     *     if/else-if structure introduces extra jumps to a join point AT
-     *     the end of the chain (single fall-out from the if-cascade), which
-     *     doesn't match target's per-arm-direct-to-trunk pattern. Both
-     *     paths (a) inlining and (b) if/else if are now confirmed
-     *     dead-ends; cap is structural, not C-level fixable.
-     *     Path-(c) (verify leaf shape after path-(b)) is moot.
-     *
-     * 2026-05-15 PATH-(d) TESTED, NEGATIVE RESULT (-0.66pp): added
-     *     `ret_hi = 1;` at the top of the bit-0x80 trunk arm (matching
-     *     asm 0x783C `addiu v1, $0, 1` which executes unconditionally
-     *     for both fast/slow paths). Result: 48.97% → 48.31%. Setting
-     *     ret_hi locally here changes downstream `if (ret_hi != 0)`
-     *     float-state-update tail emit because IDO sees ret_hi as a
-     *     live value through to the tail, which alters the cross-block
-     *     allocation. The asm's v1=1 likely couples differently
-     *     (e.g. the addiu is scheduled for the slow-path-only or
-     *     consumed by an immediate post-branch use we haven't modeled).
-     *     Adding ret_hi in C without modeling the precise scope where
-     *     v1=1 is live regresses. Reverted. */
-    /*
-     * 2026-05-16 branch-target audit, no C-body change: re-read the
-     * bit-0x80 slow-path classifier at 0x7848-0x7874. Two earlier notes
-     * over-flattened it into a simple low/mid/high tier cascade. The asm
-     * has an early branch from the `sub_cnt < 2 * list_base + 16` test
-     * directly into the post-lookup counter transition at 0x7930, with
-     * `main_cnt = a0[0x44]` in the branch-likely delay slot. That path
-     * bypasses the D+0x638 Vec2 load entirely. Any next code pass should
-     * model this as a range-classifier with a no-table transition arm,
-     * not as one shared table lookup for all three tiers.
-     */
-
     if (a1 & 0x80) {
-        /* bit-0x80 trunk arm — 3-tier range classifier on sub_cnt with
-         * shared Vec2 table lookup at D[0x638] and post-lookup limit check.
-         *
-         * 2026-05-17: wire the branch-target audit from 0x7848-0x7874.
-         * The `sub_cnt < 2 * list_base + 16` slow-path branch jumps straight
-         * to the post-lookup counter transition and uses the branch-likely
-         * delay slot to load main_cnt; it does NOT read D+0x638. The table
-         * path also indexes by the tier-local offset in a0[0x58], not by the
-         * absolute sub_cnt. */
         int sub_cnt = a0[0x4C / 4];
-        int list_base = a0[0x4DC / 4];
-        int main_cnt;
-        int new_sub_cnt;
-        int limit;
-        int table_idx;
+        int list_base;
+        int main_cnt, new_sub_cnt, limit, table_idx;
+        ret_hi = 1;
 
         if (sub_cnt < 8) {
-            table_idx = sub_cnt;
-            a0[0x58 / 4] = table_idx;
+            list_base = a0[0x4DC / 4];
+            a0[0x58 / 4] = sub_cnt;
             if (sub_cnt >= 5) {
-                ret_lo |= 0x1000;
+                if (sub_cnt < 8) ret_lo |= 0x1000;
             }
             goto bit80_table;
         }
-
-        if (sub_cnt < list_base + 8) {
-            /* Slow-path no-table transition: 0x7870 branch target. */
-            goto bit80_count_transition;
-        }
-
-        if (sub_cnt < list_base + 16) {
-            goto bit80_mid_tier;
-        }
-
-        if (sub_cnt < list_base * 2 + 16) {
-            /* Slow-path no-table transition: branch-likely target 0x7934. */
-            goto bit80_count_transition;
-        }
-
-        table_idx = sub_cnt - (list_base * 2) - 16;
-        a0[0x58 / 4] = table_idx;
-        if (sub_cnt >= list_base * 2 + 21 && sub_cnt <= list_base * 2 + 23) {
-            ret_lo |= 0x1600;
-        }
+        list_base = a0[0x4DC / 4];
+        if (sub_cnt < list_base + 8)  goto bit80_count;
+        if (sub_cnt < list_base + 16) goto bit80_mid;
+        if (sub_cnt < list_base * 2 + 16) goto bit80_count;
+        a0[0x58 / 4] = (sub_cnt - list_base * 2) - 16;
+        if (sub_cnt < list_base * 2 + 21) goto bit80_table;
+        if (list_base * 2 + 23 < sub_cnt) goto bit80_table;
+        ret_lo |= 0x1600;
         goto bit80_table;
-
-bit80_mid_tier:
-        table_idx = sub_cnt - list_base - 8;
-        a0[0x58 / 4] = table_idx;
-        if (sub_cnt >= list_base + 13 && sub_cnt <= list_base + 15) {
-            ret_lo |= 0x1200;
-        }
-
+bit80_mid:
+        a0[0x58 / 4] = (sub_cnt - list_base) - 8;
+        if (sub_cnt < list_base + 13) goto bit80_table;
+        if (list_base + 15 < sub_cnt) goto bit80_table;
+        ret_lo |= 0x1200;
 bit80_table:
         table_idx = a0[0x58 / 4];
         f0 = *(float*)((char*)&D_00000000 + 0x638 + table_idx * 8);
         f2 = *(float*)((char*)&D_00000000 + 0x638 + table_idx * 8 + 4);
-
-bit80_count_transition:
+bit80_count:
         main_cnt = a0[0x44 / 4];
         new_sub_cnt = sub_cnt + 1;
         a0[0x4C / 4] = new_sub_cnt;
-        if (main_cnt == 0) {
-            limit = 8;
-        } else if (main_cnt == 1) {
-            limit = list_base + 16;
-        } else {
-            limit = list_base * 2 + 24;
-        }
+        if (main_cnt == 0)      limit = 8;
+        else if (main_cnt == 1) limit = a0[0x4DC / 4] + 16;
+        else                    limit = a0[0x4DC / 4] * 2 + 24;
         if (new_sub_cnt >= limit) {
             a0[0x6C / 4] &= ~0x80;
         }
-        goto ret;
+        goto ret_tail;
     }
-
     if (a1 & 0x100) {
-        /* bit-0x100 trunk arm @ 0x7990-0x79F4 (3-tier main_cnt classifier):
-         *   main_cnt = a0[0x44];
-         *   if (main_cnt >= 93)        f2 = 1.0f, ret_hi = 1; (path A)
-         *   else if (main_cnt >= 73)   ret_hi = 1; skip bnez check (path B)
-         *   else if (main_cnt >= 61)   ret_lo |= 0x100;  (path D)
-         *   else                       (no flag set)     (path C)
-         *
-         *   Merge @ 0x79E0:
-         *     new_cnt = main_cnt - 1;
-         *     if (new_cnt != 0) a0[0x44] = new_cnt;
-         *     else              a0[0x6C] &= ~0x100;
-         *
-         * Path B (main_cnt >= 73) bypasses the bnez merge: it stores
-         * (main_cnt - 1) directly to a0[0x44] in the delay slot of an
-         * unconditional jump to the post-merge ret-finalize at 0x79F8. */
         int main_cnt = a0[0x44 / 4];
-        int new_cnt = main_cnt - 1;
+        int new_cnt  = main_cnt - 1;
         if (main_cnt >= 93) {
             f2 = 1.0f;
             ret_hi = 1;
-            if (new_cnt != 0) a0[0x44 / 4] = new_cnt;
-            else              a0[0x6C / 4] &= ~0x100;
         } else if (main_cnt >= 73) {
             ret_hi = 1;
-            a0[0x44 / 4] = new_cnt;
-        } else {
-            if (main_cnt >= 61) ret_lo |= 0x100;
-            if (new_cnt != 0) a0[0x44 / 4] = new_cnt;
-            else              a0[0x6C / 4] &= ~0x100;
+        } else if (main_cnt >= 61) {
+            ret_lo |= 0x100;
         }
-        /* Falls through to common ret_hi-conditional float-state update
-         * @ 0x79F8-0x7A78 (now wired below): if ret_hi != 0, f16 absorbs
-         * +1.0 or -1.0 depending on a0[0x3C], then stores back. */
+        if (new_cnt != 0) a0[0x44 / 4] = new_cnt;
+        else              a0[0x6C / 4] &= ~0x100;
     }
 
-    /* bit-0x80 entry (0x7828-0x7848, decoded 2026-05-05):
-     *   if (a1 & 0x80) {
-     *       sub_cnt = a0[0x4C];                 // same sub-counter as bit-0x20
-     *       if (sub_cnt < 8) {
-     *           list_base = a0[0x4DC];          // SHARED-PATH: load list-base
-     *           ... fast-path body (0x787C-0x7900) ...
-     *       } else {
-     *           list_base = a0[0x4DC];          // (delay-slot load — same)
-     *           ... slow-path body (0x7848-0x787C) ...
-     *       }
-     *   }
-     *
-     * Slow-path (sub_cnt >= 8, 0x7848-0x787C, decoded 2026-05-05 next pass):
-     *   t8 = list_base + 8;
-     *   if (sub_cnt < t8) goto small_path;       // bnez +3
-     *   t9 = list_base + 0x10;
-     *   if (sub_cnt < t9) goto med_path;          // bnez +5
-     *   t0 = list_base + list_base;               // 2*list_base (stride calc)
-     *   t9 = list_base + 0x10;
-     *   if (sub_cnt < t9) ... else goto +0x30 (epilogue?)
-     *
-     * The `t0 = list_base * 2` is a stride-doubling calc — likely for a
-     * tiered list lookup. cnt<8/cnt<16/cnt<24 boundaries match a 3-tier
-     * 8-entry-each list (max 24 sub-objects).
-     *
-     * BIT-0x80 FAST-PATH BODY DECODED 2026-05-05 (asm 0x787C-0x7900, 33 insns):
-     *   stride = list_base * 2;                    // 2x stride for 3rd tier
-     *   if (sub_cnt < stride + 16) goto tier_lo;
-     *     // tier_hi (sub_cnt >= stride+16):
-     *     a0[0x58] = sub_cnt - stride - 16;
-     *     if (sub_cnt < stride + 21) goto epilogue_7914;
-     *     if (stride + 23 < sub_cnt) {
-     *         t2 = a0[0x58];                      // reload, used at 0x7918
-     *         goto epilogue_7918;
-     *     }
-     *     ret_lo |= 0x1600;                       // tier-hi mid OR-flag
-     *     goto epilogue_7914;
-     *   tier_lo:
-     *     if (sub_cnt < list_base + 8) goto tier_low;
-     *       // tier_mid (list_base+8 ≤ sub_cnt < stride+16):
-     *       a0[0x58] = sub_cnt - list_base - 8;
-     *       if (sub_cnt < list_base + 13) goto epilogue_7914;
-     *       if (list_base + 15 < sub_cnt) {
-     *           t2 = a0[0x58]; goto epilogue_7918;
-     *       }
-     *       ret_lo |= 0x1200;                     // tier-mid OR-flag
-     *       goto epilogue_7914;
-     *   tier_low:
-     *     if (sub_cnt < 5) goto epilogue_7914;
-     *     // (continues at 0x7900+, not yet decoded — likely tier_low body)
-     *
-     * Net structure: 3-tier range classifier on sub_cnt, with a0[0x58] set
-     * to the within-tier offset and ret_lo OR'd with tier-specific flag bits
-     * (0x1200 for mid tier, 0x1600 for high tier). The boundary constants
-     * (8, 13, 16, 21, 23) suggest a 5-zone subdivision per 8-stride unit,
-     * possibly matching anim/state-frame ranges.
-     *
-     * Cumulative bit-0x80 body decoded: 33/~80 insns.
-     *
-     * BIT-0x80 TIER_LOW + LIMIT-CHECK BODY DECODED 2026-05-05 (asm
-     * 0x7900-0x7990, +36 insns):
-     *   // tier_low completion (came here when sub_cnt >= 5):
-     *   a0[0x58] = sub_cnt;
-     *   if (sub_cnt < 8) {
-     *       ret_lo |= 0x1000;                      // tier_low OR-flag
-     *   }
-     *   // shared table lookup for all 3 tiers:
-     *   {
-     *       Vec2 *table = (Vec2*)((char*)&D_00000000 + 0x638);
-     *       f0 = table[sub_cnt].x;                  // 8-byte stride lookup
-     *       f2 = table[sub_cnt].y;
-     *   }
-     *   // post-lookup state transition:
-     *   main_cnt = a0[0x44];
-     *   new_sub_cnt = sub_cnt + 1;
-     *   a0[0x4C] = new_sub_cnt;                     // commit new sub_cnt
-     *   if (main_cnt == 0)         limit = 8;
-     *   else if (main_cnt == 1)    limit = a0[0x4DC] + 16;  // list_base+16
-     *   else                       limit = a0[0x4DC]*2 + 24; // 2*list_base+24
-     *   if (new_sub_cnt >= limit) {
-     *       a0[0x6C] &= ~0x80;                      // clear bit-0x80 (done)
-     *   }
-     *
-     * The 3-tier limit (8 / list_base+16 / 2*list_base+24) confirms the
-     * earlier hypothesis: list_base*2 stride is for tier 3 (high), list_base
-     * stride for tier 2 (mid), constant 8 for tier 1 (low). Each tier has
-     * 8 entries, max 24 sub-objects. The Vec2 table at D[0x638] is shared
-     * — the per-tier code paths just compute a different a0[0x58] index
-     * into it. The OR-flags (0x1000/0x1200/0x1600) signal the calling
-     * dispatcher which tier was hit so it can drive different rendering.
-     *
-     * Cumulative bit-0x80 body decoded: 69/~80 insns (~86%). Remaining
-     * ~10 insns at 0x7990+ (likely final return/ret_lo finalize). */
-
-    /* common float-state update tail @ 0x79F8-0x7A94 (decoded 2026-05-07,
-     * 26 insns). Triggered after any trunk-arm completes:
-     *   if (ret_hi != 0) {
-     *       float f12 = a0[0x3C];
-     *       if      (f12 >  0.0)  a0[0x3C] = 1.0f;        // path A
-     *       else if (f12 <  0.0)  a0[0x3C] = -1.0f;       // path B-b
-     *       // f12 == 0: no change                          (path B-a)
-     *       a0[0x38] = a0[0x3C];                            // commit sign
-     *       f0 = a0[0x3C];                                  // for store @ 0x44(v1)
-     *   } else {
-     *       a0[0x38] = f16;                                 // f16 = 0.0f initial
-     *       f0 = ?;                                         // f0 used at 0x7A80
-     *   }
-     *   ((float*)((int*)a0[0x30])->[0x800])->[0x44] = f0;
-     *   ((float*)((int*)a0[0x30])->[0x800])->[0x48] = f2;
-     *   ((int*)((int*)a0[0x30])->[0x800])->[0x40] = ret_lo;
-     *
-     * Wired below as the function's epilogue-with-FPU section. The
-     * `f0 = ?` for ret_hi==0 path is unclear; target falls through the
-     * mov.s f0,f12 at 0x7A74 in path A and uses f12 from the 0x3C reload
-     * — whether ret_hi==0 path also goes through it (with f12 = a0[0x38]
-     * after the swc1 f16,0x38 store) is the unresolved bit. */
+ret_tail:
     if (ret_hi != 0) {
         f_tmp = *(float*)&a0[0x3C / 4];
-        if (f_tmp > 0.0f)        *(float*)&a0[0x3C / 4] = 1.0f;
-        else if (f_tmp < 0.0f)   *(float*)&a0[0x3C / 4] = -1.0f;
-        /* f_tmp == 0: leave as-is */
-        *(float*)&a0[0x38 / 4] = *(float*)&a0[0x3C / 4];
-        f0 = *(float*)&a0[0x3C / 4];  /* f0 = sign-clamped value */
+        if (0.0 < (double)f_tmp)        *(float*)&a0[0x3C / 4] = 1.0f;
+        else if ((double)f_tmp < 0.0)   *(float*)&a0[0x3C / 4] = -1.0f;
+        f0 = *(float*)&a0[0x3C / 4];
     } else {
-        *(float*)&a0[0x38 / 4] = 0.0f;  /* f16 was 0.0f initial */
-        /* f0 unchanged: bit-0x80 trunk may have set it, otherwise 0.0f initial */
+        *(float*)&a0[0x38 / 4] = 0.0f;
+        goto store_out;
     }
-    /* fall through to ret */
+    *(float*)&a0[0x38 / 4] = *(float*)&a0[0x3C / 4];
 
-ret:
-    /* Common epilogue (0x7A78-0x7A94, 7 insns): three stores to
-     * outer->[0x800] (= a0->[0x30]->[0x800]), then jr ra with sw delay.
-     * Two reloads of outer happen — at 0x7A78 and 0x7A88 (after the
-     * f0/f2 stores, before the ret_lo store). */
+store_out:
     *(float*)&((int*)((int*)a0[0x30 / 4])[0x800 / 4])[0x44 / 4] = f0;
     *(float*)&((int*)((int*)a0[0x30 / 4])[0x800 / 4])[0x48 / 4] = f2;
-    /* Reload outer (target's 0x7A88-0x7A8C reload before jr ra+sw delay) */
     ((int*)((int*)a0[0x30 / 4])[0x800 / 4])[0x40 / 4] = ret_lo;
-    /* Build the s64 return as hi:lo words directly (big-endian v0:v1) rather
-     * than `(ll)ret_hi << 32 | ret_lo` — the explicit `<< 32` compiles to an
-     * __ll_lshift runtime CALL, which forces a stack frame + ra-save and the
-     * $a0->$s0 callee-saved promotion (a0 must survive the call). The target is
-     * a frameless LEAF (no jal); the union places ret_hi/ret_lo into the two
-     * return registers with no shift. */
     {
         union { long long ll; struct { int hi; int lo; } w; } _r;
         _r.w.hi = ret_hi;
