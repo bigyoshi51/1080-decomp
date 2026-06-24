@@ -4356,6 +4356,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000057D8);
  *   - pervasive register/FP coloring + per-slot stack layout.
  * No episode: not exact. */
 #ifdef NON_MATCHING
+/* game_uso_func_0000591C (spine, 1093w) — three-scalar separation pass.
+ *
+ * 2026-06-24 agent-e: prior C conflated THREE distinct stack floats into one
+ * `metric`, discarding the float return of game_uso_func_00007A98(self):
+ *   metric_a    = game_uso_func_00007A98(self)            -> sp+0x19C (412)
+ *   yaw_metric  = fabs(game_uso_func_00003ED4(...))       -> sp+0x170 (368)
+ *   accel_metric= fabs(self->0x3C)                        -> sp+0x16C (364)
+ * Each tail comparison was routed to the slot the EXPECTED .o actually loads
+ * (per-site reloc/offset audit): the 0x10-dispatch + several state-LUT
+ * compares read 412(metric_a); the dist/dot proximity block reads 368(yaw);
+ * the normalized-delta + accel gate read 364(accel). Also added the missing
+ * `if (self->0x74 != 0) goto commit` early-skip after the metric block.
+ * SELF-VERIFY only; not exact — coloring/frame-layout cap dominates. */
 /* forward decls for 591C real callees (defined later in this TU) */
 void game_uso_func_0000A3C4();
 void game_uso_func_0000A604(char *);
@@ -4408,7 +4421,9 @@ void game_uso_func_0000591C(int *a0) {
     Vec3 *effect_vec;
     char *entity_pos;
     float state_limit;
-    float metric;
+    float metric_a;
+    float yaw_metric;
+    float accel_metric;
     float scale;
     float dist_sq;
     float dot;
@@ -4465,7 +4480,8 @@ void game_uso_func_0000591C(int *a0) {
         resolved_state = 0;
     }
 
-    game_uso_func_00007A98(self);
+    /* metric_a: float return of 00007A98 cached at sp+0x19C (412). */
+    metric_a = game_uso_func_00007A98(self);
 
     active_state = *(int*)((char*)self + 0x74);
     if (active_state == 0) {
@@ -4538,8 +4554,7 @@ void game_uso_func_0000591C(int *a0) {
         /* dead-sentinel copy-or-alloc of a 12-byte Vec3 scratch (target
          * 0x5cb0-0x5cf8): a3 = &scratch_xz is never NULL, so the alloc is
          * dead code; the live path copies (sub+0x3c8).{x,z} into the scratch
-         * with y cleared, through the held pointer.  Reconstructing this guard
-         * recovers the missing 055750(0xC) call + realigns the metric region. */
+         * with y cleared, through the held pointer. */
         Vec3 *scratch_src = (Vec3 *)(sub + 0x3C8);
         Vec3 *scratch_ptr = &scratch_xz;
         if (scratch_ptr == NULL) {
@@ -4550,22 +4565,26 @@ void game_uso_func_0000591C(int *a0) {
         scratch_ptr->z = scratch_src->z;
         scratch_ptr->y = 0.0f;
 skip_scratch:;
-        metric = game_uso_func_00003ED4(scratch_ptr, &transform_in, (int *)&transform_out);
+        /* yaw_metric: fabs of 00003ED4 return cached at sp+0x170 (368). */
+        yaw_metric = game_uso_func_00003ED4(scratch_ptr, &transform_in, (int *)&transform_out);
     }
-    if (metric < 0.0f) {
-        metric = -metric;
+    if (yaw_metric < 0.0f) {
+        yaw_metric = -yaw_metric;
     }
 
     scale = *(float*)(sub + 0x348) / *(float*)((char*)self + 0xB0);
     scale += 1.0f;
     *(float*)((char*)self + 0x3C) =
-        (metric * scale * *(float*)((char*)self + 0xAC)) / *(float*)(sub + 0x708);
+        (yaw_metric * scale * *(float*)((char*)self + 0xAC)) / *(float*)(sub + 0x708);
 
-    metric = *(float*)((char*)self + 0x3C);
-    if (metric < 0.0f) {
-        metric = -metric;
+    /* accel_metric: fabs(self->0x3C) cached at sp+0x16C (364). */
+    accel_metric = *(float*)((char*)self + 0x3C);
+    if (accel_metric < 0.0f) {
+        accel_metric = -accel_metric;
     }
 
+    /* early-skip: if self->0x74 != 0, jump straight to the state tail
+     * (target 0x5D9C-0x5DB8: beqzl self->0x74; if ==1 -> v0=self->0x2C). */
     active_state = *(int*)((char*)self + 0x74);
     out_flags = 0;
     if (active_state != 0) {
@@ -4573,6 +4592,7 @@ skip_scratch:;
             active_state = *(int*)((char*)self + 0x2C);
         }
         out_flags = active_state;
+        goto commit_flags;
     } else {
         state_bits = *(int*)((char*)self + 0x6C);
         if (state_bits & 1) {
@@ -4643,7 +4663,7 @@ skip_scratch:;
         if ((*(int*)(hit_parent + 0x84) & 0x804) != 0) {
             sub = *(char**)((char*)self + 0x30);
             if (*(char**)(sub + 0x908) != NULL) {
-                if (transform_out.y <= -2000.0f) {
+                if (metric_a <= -2000.0f) {
                     effect_vec = (Vec3*)game_uso_func_055750(0xC);
                     if (effect_vec != NULL) {
                         entity_pos = helper_ptr + 0x30;
@@ -4694,23 +4714,23 @@ skip_scratch:;
                 *(int*)((char*)self + 0x48) = 0x14;
                 *(int*)((char*)self + 0x6C) &= ~1;
             } else {
-                if (*(float*)((char*)self + 0xBC) <= transform_out.y) {
-                    if (metric < 50.0f) {
+                if (*(float*)((char*)self + 0xBC) <= yaw_metric) {
+                    if (yaw_metric < 50.0f) {
                         out_flags |= 0x40;
                     }
                 }
             }
         }
 
-        if (transform_out.y < *(float*)((char*)self + 0xB8)) {
+        if (yaw_metric < *(float*)((char*)self + 0xB8)) {
             if (*(char**)(sub + 0x908) != NULL) {
-                state_value = transform_out.y;
+                state_value = yaw_metric;
                 if (state_value < 0.0f) {
                     if (((int*)&D_00000000)[0x1E] == 0) {
                         out_flags |= 4;
                     }
                 }
-                state_value = (state_value / *(float*)((char*)self + 0xB8)) * metric;
+                state_value = (state_value / *(float*)((char*)self + 0xB8)) * accel_metric;
                 out_flags |= 8;
             }
         }
@@ -4731,7 +4751,7 @@ skip_scratch:;
                 } else {
                     state_value = *(float*)((char*)self + 0x2C4);
                 }
-                if (metric < state_value) {
+                if (metric_a < state_value) {
                     game_uso_func_0000751C(self);
                     state_code = *(int*)((char*)self + 0x2C);
                     if (state_code == 3) {
@@ -4764,7 +4784,7 @@ skip_scratch:;
             state_value = *(float*)((char*)self + 0x39C);
         }
 
-        if (state_value < transform_out.y) {
+        if (state_value < metric_a) {
             *(int*)((char*)self + 0x4C4) = state_code - 1;
             game_uso_func_00007448(self);
         }
@@ -4779,17 +4799,17 @@ skip_scratch:;
         state_value = *(float*)((char*)self + 0xFC);
     }
 
-    if (state_value < transform_out.y) {
+    if (state_value < metric_a) {
         if (*(int*)(sub + 0x9CC) != 0) {
             state_value2 = *(float*)((char*)self + 0xC8);
         } else {
             state_value2 = 1.0f;
         }
-        if (metric <= state_value2 * *(float*)((char*)self + 0xC4)) {
+        if (accel_metric <= state_value2 * *(float*)((char*)self + 0xC4)) {
             out_flags |= 2;
         }
     } else if (resolved_state & 0x800) {
-        if ((*(char**)(sub + 0x908) == NULL) || (transform_out.y <= -2000.0f)) {
+        if ((*(char**)(sub + 0x908) == NULL) || (metric_a <= -2000.0f)) {
             out_flags |= 0x80;
         }
     }
@@ -4804,8 +4824,8 @@ skip_scratch:;
     }
 
     flag_word = (int*)(sub + 0xA58);
-    if (transform_out.y < state_value) {
-        if (((int)transform_out.y & 3) == 0) {
+    if (metric_a < state_value) {
+        if (((int)metric_a & 3) == 0) {
             *flag_word |= 0x4000;
         } else {
             *flag_word &= ~0x4000;
@@ -4859,7 +4879,7 @@ skip_scratch:;
             } else {
                 state_value = *(float*)((char*)self + 0x234);
             }
-            if (state_value >= transform_out.y) {
+            if (state_value >= metric_a) {
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             } else if (*(char**)(sub + 0x908) != NULL) {
                 state_value = *(float*)(*(char**)(sub + 0x908) + 0xBC);
@@ -4880,7 +4900,7 @@ skip_scratch:;
                 } else {
                     state_value = *(float*)((char*)self + 0x1A4);
                 }
-                if (transform_out.y <= state_value) {
+                if (metric_a <= state_value) {
                     *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
                 }
             } else {
@@ -4895,7 +4915,7 @@ skip_scratch:;
             } else {
                 state_value = *(float*)((char*)self + 0x15C);
             }
-            if (transform_out.y <= state_value) {
+            if (metric_a <= state_value) {
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             }
         } else {
@@ -4907,9 +4927,9 @@ skip_scratch:;
             } else {
                 state_value = *(float*)((char*)self + 0x1EC);
             }
-            if (state_value <= transform_out.y) {
+            if (state_value <= metric_a) {
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
-            } else if (transform_out.y > 0.0f) {
+            } else if (metric_a > 0.0f) {
                 *(int*)((char*)self + 0x68) |= 1;
             } else if (*(char**)(sub + 0x908) != NULL) {
                 state_value = *(float*)(*(char**)(sub + 0x908) + 0xBC);
@@ -4937,6 +4957,7 @@ skip_scratch:;
 
 commit_flags:
     game_uso_func_00007538(self, out_flags);
+
 
     /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
      *   t2 = a0->0x30;                                  // sub-struct ptr
@@ -7285,435 +7306,280 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
 #endif
 
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft via the pipeline +
- * scripts/m2c-graft-clean.py. One 4-case jumptable synthesized (2
- * distinct heads, order approximate). NOTE: this fn's HEAD is also the
- * 7C1C over-extension target (7C1C's true body runs to 0x8CD8 -- this
- * symbol starts exactly there; boundary consistent). */
-void *game_uso_func_00008CD8(char *arg0, char *arg1, f32 *arg2, char *arg3, s32 arg4) {
-    f32 sp120; f32 sp124; f32 sp178; f32 sp17C; f32 sp1B4; f32 sp1B8; f32 sp1C0; f32 sp1C4; f32 sp1CC; f32 sp1D0; f32 sp1E8; f32 sp1F4; f32 sp200; f32 sp74; f32 sp7C; f32 sp80; f32 spBC; f32 spC8; f32 spD0; f32 spD4; f32 spE0; f32 spE4; f32 spEC;
-    f32 sp204;
-    f32 sp1F8;
-    f32 sp1EC;
-    f32 sp1E0;
-    f32 sp1D4;
-    f32 sp1C8;
-    f32 sp1BC;
-    f32 sp1B0;
-    f32 sp1AC;
-    f32 *sp1A4;
-    f32 *sp1A0;
-    f32 sp174;
-    s32 sp164;
-    f32 sp14C;
-    f32 sp11C;
-    f32 sp110;
-    f32 sp10C;
-    f32 sp108;
-    f32 sp104;
-    f32 sp100;
-    f32 spFC;
-    f32 spF0;
-    f32 spD8;
-    f32 spCC;
-    f32 spC0;
-    f32 spB4;
-    s32 spA8;
-    f32 sp9C;
-    f32 sp90;
-    f32 sp84;
-    f32 sp78;
-    f32 sp6C;
-    f32 sp68;
-    f32 sp64;
-    f32 sp60;
-    f32 sp54;
-    f32 sp48;
-    f32 sp44;
-    f32 sp40;
-    f32 sp3C;
-    f32 sp24;
-    char *var_v1;
-    char *var_v1_4;
-    f32 *temp_v1;
-    f32 *var_a0;
-    f32 *var_a0_2;
-    f32 *var_a0_3;
-    f32 *var_a0_4;
-    f32 *var_a0_5;
-    f32 *var_a0_6;
-    f32 *var_a0_7;
-    f32 *var_a0_8;
-    f32 *var_a0_9;
-    f32 *var_v0;
-    f32 *var_v0_2;
-    f32 *var_v1_2;
-    f32 *var_v1_3;
-    f32 *var_v1_5;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f16;
-    f32 temp_f2;
-    f32 temp_f4;
-    f32 temp_f8;
-    f32 var_f10;
-    s32 temp_at;
-    s32 temp_t6;
-    s32 temp_t7;
-    s32 temp_t7_2;
-    s32 temp_t8;
-    u32 temp_t6_2;
-    u32 temp_t8_2;
-    char *temp_a0;
+/* game_uso_func_00008CD8: large vector/triangle integrator.
+ * Reconstructed from EXPECTED .o (0x8cd8..0x97ec, 0xb14/709w).
+ * arg0 = out Vec3* (returned). arg1 = self obj. arg2 = ref obj.
+ * arg3 = aux obj. arg4 = flag selecting the two main branches.
+ * Repeated alloc-guard idiom: p = &local; if(p==0){p=alloc(12);} if(p){ write Vec3 }.
+ * 16x game_uso_func_055750(12) Vec3 allocs, 2x game_uso_func_071028 normalize,
+ * 4-entry dispatch game_uso_D_807FFA20 on (self[0x9C]+1)&3 sharing tail @0x973c.
+ * FP consts: 2.0, 0.5, 250.0, -1.0. */
+void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32 arg4) {
+    Vec3 sp1F8;   /* sp+504 */
+    Vec3 sp204;   /* sp+516 (only x used as scratch chain) */
+    Vec3 sp1E0;   /* sp+480 */
+    Vec3 sp14C;   /* sp+332 */
+    Vec3 sp1D4;   /* sp+468 */
+    Vec3 sp11C;   /* sp+284 */
+    Vec3 sp1C8;   /* sp+456 */
+    Vec3 sp1BC;   /* sp+444 */
+    Vec3 sp1B0;   /* sp+432 */
+    Vec3 sp164;   /* sp+356 */
+    Vec3 sp174;   /* sp+372 working Vec3 */
+    Vec3 spE4;    /* sp+228 */
+    Vec3 spA8;    /* sp+168 */
+    Vec3 spF0;    /* sp+240 */
+    Vec3 spCC;    /* sp+204 */
+    Vec3 sp9C;    /* sp+156 */
+    Vec3 spC0;    /* sp+192 */
+    Vec3 spD8;    /* sp+216 */
+    Vec3 sp90;    /* sp+144 */
+    Vec3 spB4;    /* sp+180 */
+    Vec3 sp54;    /* sp+84  */
+    Vec3 sp60;    /* sp+96  */
+    Vec3 sp84;    /* sp+132 */
+    Vec3 sp48;    /* sp+72  */
+    Vec3 sp6C;    /* sp+108 */
+    Vec3 sp78;    /* sp+120 */
+    Vec3 sp3C;    /* sp+60  */
+    Vec3 sp24;    /* sp+36  */
+    Vec3 *p;
+    Vec3 *base;
+    f32 lenf;
+    f32 dot;
+    s32 idx;
+    s32 idxm;
+    Vec3 *ref30;
 
     if (arg4 != 0) {
-        var_a0 = &sp1F8;
-        if (var_a0 != 0) {
-            goto block_6;
+        /* --- branch A (flag set) --- */
+        p = &sp1F8;
+        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+        if (p != 0) {
+            p->x = *(f32 *)(arg3 + 0x30);
+            p->y = 0.0f;
+            p->z = *(f32 *)(arg3 + 0x38);
         }
-        var_a0 = 0 /* M2C unset $v0 */;
-        if (0 /* M2C unset $v0 */ != 0) {
-block_6:
-            *(f32 *)((char *)(var_a0) + 0x4) = (f32) 0 /* M2C unset $f4 */;
-            *(f32 *)((char *)(var_a0) + 0x8) = (f32) *(s32 *)((char *)((arg3 + 0x30)) + 0x8);
-            *(s32 *)((char *)(var_a0) + 0x0) = *(s32 *)((char *)(arg3) + 0x30);
+        ref30 = (Vec3 *)(arg3 + 0x30);
+        p = &sp164;
+        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+        if (p != 0) {
+            p->x = sp1F8.x - ref30->x;
+            p->y = 0.0f;
+            p->z = sp1F8.z - ref30->z;
         }
-        var_v1 = &sp164;
-        if (&sp164 == 0) {
-            var_v1 = 0 /* M2C unset $v0 */;
-            if (0 /* M2C unset $v0 */ != 0) {
-                goto block_10;
-            }
-        } else {
-block_10:
-            *(f32 *)((char *)(var_v1) + 0x0) = (f32) (sp1F8 - *(s32 *)((char *)&D_00000000 + 0x30) /* M2C unset $v0 */);
-            *(s32 *)((char *)(var_v1) + 0x4) = 0.0f;
-            *(f32 *)((char *)(var_v1) + 0x8) = (f32) (sp200 - *(s32 *)((char *)&D_00000000 + 0x38) /* M2C unset $v0 */);
+        sp174 = sp164;
+        sp204 = sp174;
+        sp1B0 = sp174;
+        game_uso_func_071028(&sp1B0);
+
+        base = (Vec3 *)(*(s32 *)(arg1 + 0x30) + 0xB4);
+        p = &sp1E0;
+        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+        if (p != 0) {
+            p->x = base->x;
+            p->z = base->z;
+            p->y = 0.0f;
         }
-        temp_t7 = *((s32 *)&sp164 + 1);
-        *((s32 *)&sp174 + 0) = *((s32 *)&sp164 + 0);
-        temp_t8 = *((s32 *)&sp164 + 2);
-        var_v0 = &sp204;
-        *(s32 *)((char *)(var_v0) + 0x0) = *((s32 *)&sp174 + 0);
-        *((s32 *)&sp1B0 + 1) = temp_t7;
-        *(s32 *)((char *)(var_v0) + 0x4) = temp_t7;
-        *((s32 *)&sp174 + 1) = temp_t7;
-        *((s32 *)&sp1B0 + 2) = temp_t8;
-        *(s32 *)((char *)(var_v0) + 0x8) = temp_t8;
-        *((s32 *)&sp174 + 2) = temp_t8;
-        *((s32 *)&sp1B0 + 0) = *(s32 *)((char *)(var_v0) + 0x0);
-        var_a0_2 = &sp1E0;
-        temp_v1 = *(s32 *)((char *)(arg1) + 0x30) + 0xB4;
-        if (var_a0_2 == 0) {
-            sp1A0 = temp_v1;
-            var_a0_2 = var_v0;
-            if (var_v0 != 0) {
-                goto block_14;
-            }
-        } else {
-block_14:
-            *(s32 *)((char *)(var_a0_2) + 0x0) = 0 /* M2C unset $f0 */;
-            *(f32 *)((char *)(var_a0_2) + 0x8) = (f32) *(s32 *)((char *)(temp_v1) + 0x8);
-            *(s32 *)((char *)(var_a0_2) + 0x4) = 0.0f;
+        p = &sp14C;
+        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+        if (p != 0) {
+            Vec3 *r = (Vec3 *)(arg2 + 0x30);
+            p->x = sp1E0.x - r->x;
+            p->y = 0.0f;
+            p->z = sp1E0.z - r->z;
         }
-        var_v1_2 = &sp14C;
-        if (&sp14C == 0) {
-            var_v1_2 = var_v0;
-            if (var_v0 != 0) {
-                var_v0 = arg2;
-                goto block_18;
-            }
-        } else {
-block_18:
-            temp_f4 = *(s32 *)((char *)(var_v0) + 0x30);
-            temp_f8 = *(s32 *)((char *)(var_v0) + 0x38);
-            var_v0 += 0x30;
-            *(s32 *)((char *)(var_v1_2) + 0x0) = sp1E0 - temp_f4;
-            *(s32 *)((char *)(var_v1_2) + 0x4) = 0.0f;
-            *(f32 *)((char *)(var_v1_2) + 0x8) = (f32) (sp1E8 - temp_f8);
+        sp174 = sp14C;
+        sp1D4 = sp174;
+
+        lenf = (sp1B0.x * sp1D4.x) + (sp1B0.z * sp1D4.z);
+        p = &sp1D4;
+        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+        if (p != 0) {
+            Vec3 *r = (Vec3 *)(arg2 + 0x30);
+            p->y = 0.0f;
+            p->z = r->z;
+            p->x = r->x;
         }
-        *((s32 *)&sp174 + 0) = *((s32 *)&sp14C + 0);
-        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp14C + 1);
-        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp14C + 2);
-        *((s32 *)&sp1EC + 0) = *((s32 *)&sp174 + 0);
-        var_v1_3 = &sp1D4;
-        var_a0_3 = var_v1_3;
-        *((s32 *)&sp1EC + 1) = (s32) *((s32 *)&sp174 + 1);
-        *((s32 *)&sp1EC + 2) = (s32) *((s32 *)&sp174 + 2);
-        temp_f16 = (sp1B0 * sp1EC) + (sp1B8 * sp1F4);
-        if (var_v1_3 == 0) {
-            sp1AC = temp_f16;
-            var_v1_3 = &sp1D4;
-            var_a0_3 = var_v0;
-            if (var_v0 != 0) {
-                var_v0 = arg2;
-                goto block_22;
-            }
-        } else {
-block_22:
-            *(s32 *)((char *)(var_a0_3) + 0x4) = 0.0f;
-            *(f32 *)((char *)(var_a0_3) + 0x8) = (f32) *(s32 *)((char *)((var_v0 + 0x30)) + 0x8);
-            *(s32 *)((char *)(var_a0_3) + 0x0) = *(s32 *)((char *)(var_v0) + 0x30);
-        }
-        var_v0_2 = &sp11C;
-        *((s32 *)&sp174 + 0) = *(s32 *)((char *)(var_v1_3) + 0x0);
-        *((s32 *)&sp174 + 1) = (s32) *(s32 *)((char *)(var_v1_3) + 0x4);
-        *((s32 *)&sp174 + 2) = (s32) *(s32 *)((char *)(var_v1_3) + 0x8);
-        *(s32 *)((char *)(arg1) + 0x90) = sp174;
-        *(s32 *)((char *)(arg1) + 0x94) = sp178;
-        *(s32 *)((char *)(arg1) + 0x98) = sp17C;
-        *(s32 *)((char *)(var_v0_2) + 0x0) = *(s32 *)((char *)(arg1) + 0x90);
-        *(f32 *)((char *)(var_v0_2) + 0x4) = (f32) *(s32 *)((char *)(arg1) + 0x94);
-        *(f32 *)((char *)(var_v0_2) + 0x8) = (f32) *(s32 *)((char *)(arg1) + 0x98);
-        *(s32 *)((char *)(arg1) + 0x84) = sp11C;
-        *(s32 *)((char *)(arg1) + 0x88) = sp120;
-        *(s32 *)((char *)(arg1) + 0x8C) = sp124;
-        temp_f0 = temp_f16 + ((*(s32 *)((char *)(*(s32 *)((char *)(arg1) + 0x30)) + 0x348) * *(s32 *)((char *)(arg1) + 0xDC)) / 2.0f);
-        sp108 = sp1B0 * temp_f0;
-        sp10C = sp1B4 * temp_f0;
-        sp110 = sp1B8 * temp_f0;
-        *((s32 *)&sp174 + 0) = *((s32 *)&sp108 + 0);
-        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp108 + 1);
-        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp108 + 2);
-        *((s32 *)&sp1C8 + 0) = *((s32 *)&sp174 + 0);
-        *((s32 *)&sp1C8 + 1) = (s32) *((s32 *)&sp174 + 1);
-        *((s32 *)&sp1C8 + 2) = (s32) *((s32 *)&sp174 + 2);
-        *(f32 *)((char *)(arg1) + 0x84) = (f32) (*(s32 *)((char *)(arg1) + 0x84) + sp1C8);
-        *(f32 *)((char *)(arg1) + 0x88) = (f32) (*(s32 *)((char *)(arg1) + 0x88) + sp1CC);
-        *(f32 *)((char *)(arg1) + 0x8C) = (f32) (*(s32 *)((char *)(arg1) + 0x8C) + sp1D0);
-        temp_f0_2 = temp_f16 - ((*(s32 *)((char *)(*(s32 *)((char *)(arg1) + 0x30)) + 0x348) * *(s32 *)((char *)(arg1) + 0xDC)) / 2.0f);
-        spFC = sp1B0 * temp_f0_2;
-        sp100 = sp1B4 * temp_f0_2;
-        sp104 = sp1B8 * temp_f0_2;
-        *((s32 *)&sp174 + 0) = *((s32 *)&spFC + 0);
-        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&spFC + 1);
-        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&spFC + 2);
-        *((s32 *)&sp1BC + 0) = *((s32 *)&sp174 + 0);
-        *((s32 *)&sp1BC + 1) = (s32) *((s32 *)&sp174 + 1);
-        *((s32 *)&sp1BC + 2) = (s32) *((s32 *)&sp174 + 2);
-        *(f32 *)((char *)(arg1) + 0x90) = (f32) (*(s32 *)((char *)(arg1) + 0x90) + sp1BC);
-        *(f32 *)((char *)(arg1) + 0x94) = (f32) (*(s32 *)((char *)(arg1) + 0x94) + sp1C0);
-        *(s32 *)((char *)(arg1) + 0x9C) = 0U;
-        *(f32 *)((char *)(arg1) + 0x98) = (f32) (*(s32 *)((char *)(arg1) + 0x98) + sp1C4);
-        goto block_67;
+        sp174 = sp1D4;
+        *(f32 *)(arg1 + 0x90) = sp174.x;
+        *(f32 *)(arg1 + 0x94) = sp174.y;
+        *(f32 *)(arg1 + 0x98) = sp174.z;
+        sp11C = sp174;
+        *(f32 *)(arg1 + 0x84) = sp11C.x;
+        *(f32 *)(arg1 + 0x88) = sp11C.y;
+        *(f32 *)(arg1 + 0x8C) = sp11C.z;
+
+        dot = lenf + ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / 2.0f);
+        sp1C8.x = sp1B0.x * dot;
+        sp1C8.y = sp1B0.y * dot;
+        sp1C8.z = sp1B0.z * dot;
+        sp174 = sp1C8;
+        sp1C8 = sp174;
+        *(f32 *)(arg1 + 0x84) += sp1C8.x;
+        *(f32 *)(arg1 + 0x88) += sp1C8.y;
+        *(f32 *)(arg1 + 0x8C) += sp1C8.z;
+
+        dot = lenf - ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / 2.0f);
+        sp1BC.x = sp1B0.x * dot;
+        sp1BC.y = sp1B0.y * dot;
+        sp1BC.z = sp1B0.z * dot;
+        sp174 = sp1BC;
+        sp1BC = sp174;
+        *(f32 *)(arg1 + 0x90) += sp1BC.x;
+        *(f32 *)(arg1 + 0x94) += sp1BC.y;
+        *(s32 *)(arg1 + 0x9C) = 0;
+        *(f32 *)(arg1 + 0x98) += sp1BC.z;
+        goto tail;
     }
-    temp_a0 = 0 /* M2C unset $v0 */;
-    if (0 /* M2C unset $v0 */ != 0) {
-        *(s32 *)((char *)(temp_a0) + 0x4) = 0.0f;
-        *(f32 *)((char *)(temp_a0) + 0x8) = (f32) *(s32 *)((char *)((arg3 + 0x30)) + 0x8);
-        *(f32 *)((char *)(temp_a0) + 0x0) = (f32) *(s32 *)((char *)(arg3) + 0x30);
+
+    /* --- branch B (flag clear) --- */
+    p = &spE4;
+    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+    if (p != 0) {
+        p->y = 0.0f;
+        p->z = *(f32 *)(arg3 + 0x38);
+        p->x = *(f32 *)(arg3 + 0x30);
     }
-    var_v1_4 = &spA8;
-    if (&spA8 == 0) {
-        var_v1_4 = 0 /* M2C unset $v0 */;
-        if (0 /* M2C unset $v0 */ != 0) {
-            goto block_34;
-        }
-    } else {
-block_34:
-        *(f32 *)((char *)(var_v1_4) + 0x0) = (f32) (spE4 - *(s32 *)((char *)&D_00000000 + 0x30) /* M2C unset $v0 */);
-        *(s32 *)((char *)(var_v1_4) + 0x4) = 0.0f;
-        *(f32 *)((char *)(var_v1_4) + 0x8) = (f32) (spEC - *(s32 *)((char *)&D_00000000 + 0x38) /* M2C unset $v0 */);
+    ref30 = (Vec3 *)(arg3 + 0x30);
+    p = &spA8;
+    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+    if (p != 0) {
+        p->x = spE4.x - ref30->x;
+        p->y = 0.0f;
+        p->z = spE4.z - ref30->z;
     }
-    temp_t6 = *((s32 *)&spA8 + 1);
-    *((s32 *)&sp174 + 0) = *((s32 *)&spA8 + 0);
-    temp_t7_2 = *((s32 *)&spA8 + 2);
-    var_v0_2 = &spF0;
-    *(s32 *)((char *)(var_v0_2) + 0x0) = *((s32 *)&sp174 + 0);
-    *(s32 *)((char *)(var_v0_2) + 0x4) = temp_t6;
-    *((s32 *)&sp174 + 1) = temp_t6;
-    *(s32 *)((char *)(var_v0_2) + 0x8) = temp_t7_2;
-    *((s32 *)&sp174 + 2) = temp_t7_2;
-    *((s32 *)&spCC + 0) = *(s32 *)((char *)(var_v0_2) + 0x0);
-    var_a0_4 = &sp9C;
-    *((s32 *)&spCC + 1) = (s32) *(s32 *)((char *)(var_v0_2) + 0x4);
-    *((s32 *)&spCC + 2) = (s32) *(s32 *)((char *)(var_v0_2) + 0x8);
-    if (&sp9C == 0) {
-        var_a0_4 = var_v0_2;
-        if (var_v0_2 != 0) {
-            var_v0_2 = arg1 + 0x84;
-            goto block_38;
-        }
-    } else {
-block_38:
-        *(s32 *)((char *)(var_a0_4) + 0x0) = *(s32 *)((char *)(var_v0_2) + 0x0) - *(s32 *)((char *)(arg1) + 0x90);
-        *(s32 *)((char *)(var_a0_4) + 0x4) = 0.0f;
-        *(f32 *)((char *)(var_a0_4) + 0x8) = (f32) (*(s32 *)((char *)(var_v0_2) + 0x8) - *(s32 *)((char *)((arg1 + 0x90)) + 0x8));
+    sp174 = spA8;
+    spF0 = spA8;
+    spCC = spF0;
+
+    base = (Vec3 *)(arg1 + 0x84);
+    p = &sp9C;
+    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+    if (p != 0) {
+        p->x = spF0.x - *(f32 *)(arg1 + 0x90);
+        p->y = 0.0f;
+        p->z = spF0.z - *(f32 *)(arg1 + 0x98);
     }
-    *((s32 *)&sp174 + 0) = *((s32 *)&sp9C + 0);
-    *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp9C + 1);
-    *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp9C + 2);
-    *((s32 *)&spC0 + 0) = *((s32 *)&sp174 + 0);
-    var_a0_5 = &spD8;
-    *((s32 *)&spC0 + 1) = (s32) *((s32 *)&sp174 + 1);
-    *((s32 *)&spC0 + 2) = (s32) *((s32 *)&sp174 + 2);
-    var_v1_3 = *(s32 *)((char *)(arg1) + 0x30) + 0xB4;
-    if (var_a0_5 == 0) {
-        sp1A0 = var_v1_3;
-        var_a0_5 = var_v0_2;
-        if (var_v0_2 != 0) {
-            goto block_42;
-        }
-    } else {
-block_42:
-        *(s32 *)((char *)(var_a0_5) + 0x0) = 0 /* M2C unset $f0 */;
-        *(f32 *)((char *)(var_a0_5) + 0x8) = (f32) *(s32 *)((char *)(var_v1_3) + 0x8);
-        *(s32 *)((char *)(var_a0_5) + 0x4) = 0.0f;
+    sp174 = sp9C;
+    spC0 = sp174;
+
+    base = (Vec3 *)(*(s32 *)(arg1 + 0x30) + 0xB4);
+    p = &spD8;
+    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+    if (p != 0) {
+        p->x = base->x;
+        p->z = base->z;
+        p->y = 0.0f;
     }
-    var_a0_6 = &sp90;
-    if (&sp90 == 0) {
-        var_a0_6 = var_v0_2;
-        if (var_v0_2 != 0) {
-            var_v1_3 = arg1 + 0x90;
-            goto block_46;
-        }
-    } else {
-block_46:
-        *(s32 *)((char *)(var_a0_6) + 0x0) = spD8 - *(s32 *)((char *)(var_v1_3) + 0x0);
-        *(s32 *)((char *)(var_a0_6) + 0x4) = 0.0f;
-        *(f32 *)((char *)(var_a0_6) + 0x8) = (f32) (spE0 - *(s32 *)((char *)(var_v1_3) + 0x8));
+    p = &sp90;
+    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+    if (p != 0) {
+        Vec3 *r = (Vec3 *)(arg1 + 0x90);
+        p->x = spD8.x - r->x;
+        p->y = 0.0f;
+        p->z = spD8.z - r->z;
     }
-    *((s32 *)&sp174 + 0) = *((s32 *)&sp90 + 0);
-    *((s32 *)&sp174 + 2) = (f32) *((s32 *)&sp90 + 2);
-    *((s32 *)&sp174 + 1) = (f32) *((s32 *)&sp90 + 1);
-    *((s32 *)&spB4 + 0) = *((s32 *)&sp174 + 0);
-    *((s32 *)&spB4 + 1) = (f32) *((s32 *)&sp174 + 1);
-    *((s32 *)&spB4 + 2) = (f32) *((s32 *)&sp174 + 2);
-    if ((((spCC * spC0) + (spD4 * spC8)) * 0.5f) < ((spCC * spB4) + (spD4 * spBC))) {
-        *((s32 *)&sp174 + 0) = *(s32 *)((char *)(arg1) + 0x84);
-        *((s32 *)&sp174 + 1) = (f32) *(s32 *)((char *)(arg1) + 0x88);
-        *((s32 *)&sp174 + 2) = (f32) *(s32 *)((char *)(arg1) + 0x8C);
-        *(s32 *)((char *)(arg1) + 0x90) = sp174;
-        *(s32 *)((char *)(arg1) + 0x94) = sp178;
-        *(s32 *)((char *)(arg1) + 0x98) = sp17C;
-        var_v1_5 = &sp54;
-        if (&sp54 == 0) {
-            var_v1_5 = var_v0_2;
-            if (var_v0_2 != 0) {
-                goto block_51;
-            }
-        } else {
-block_51:
-            *(s32 *)((char *)(var_v1_5) + 0x0) = spD4;
-            *(f32 *)((char *)(var_v1_5) + 0x8) = (f32) -0 /* M2C unset $f2 */;
-            *(s32 *)((char *)(var_v1_5) + 0x4) = 0.0f;
+    sp174 = sp90;
+    spB4 = sp174;
+
+    if ((((spCC.x * spC0.x) + (spCC.z * spC0.z)) * 0.5f) < ((spCC.x * spB4.x) + (spCC.z * spB4.z))) {
+        sp174.x = *(f32 *)(arg1 + 0x84);
+        sp174.y = *(f32 *)(arg1 + 0x88);
+        sp174.z = *(f32 *)(arg1 + 0x8C);
+        spCC = sp174;
+        *(f32 *)(arg1 + 0x90) = sp174.x;
+        *(f32 *)(arg1 + 0x94) = sp174.y;
+        *(f32 *)(arg1 + 0x98) = sp174.z;
+        game_uso_func_071028(&spCC);
+
+        p = &sp54;
+        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+        if (p != 0) {
+            p->x = spCC.z;
+            p->z = -spCC.x;
+            p->y = 0.0f;
         }
-        *((s32 *)&sp174 + 0) = *((s32 *)&sp54 + 0);
-        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp54 + 1);
-        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp54 + 2);
-        *((s32 *)&sp60 + 0) = *((s32 *)&sp174 + 0);
-        var_a0_7 = &sp84;
-        *((s32 *)&sp60 + 1) = (s32) *((s32 *)&sp174 + 1);
-        *((s32 *)&sp60 + 2) = (s32) *((s32 *)&sp174 + 2);
-        if (&sp84 == 0) {
-            var_a0_7 = var_v0_2;
-            if (var_v0_2 != 0) {
-                var_v0_2 = arg2;
-                goto block_55;
-            }
-        } else {
-block_55:
-            var_v0_2 += 0x30;
-            *(s32 *)((char *)(var_a0_7) + 0x4) = 0.0f;
-            *(f32 *)((char *)(var_a0_7) + 0x8) = (f32) *(s32 *)((char *)(var_v0_2) + 0x8);
-            *(s32 *)((char *)(var_a0_7) + 0x0) = *(s32 *)((char *)(var_v0_2) + 0x0);
+        sp174 = sp54;
+        sp60 = sp174;
+
+        p = &sp84;
+        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+        if (p != 0) {
+            Vec3 *r = (Vec3 *)(arg2 + 0x30);
+            p->y = 0.0f;
+            p->z = r->z;
+            p->x = r->x;
         }
-        *((s32 *)&sp174 + 0) = *((s32 *)&sp84 + 0);
-        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp84 + 1);
-        var_a0_8 = &sp48;
-        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp84 + 2);
-        *(s32 *)((char *)(arg1) + 0x84) = sp174;
-        *(s32 *)((char *)(arg1) + 0x88) = sp178;
-        *(s32 *)((char *)(arg1) + 0x8C) = sp17C;
-        if (&sp48 == 0) {
-            var_a0_8 = var_v0_2;
-            if (var_v0_2 != 0) {
-                var_v0_2 = arg2;
-                goto block_59;
-            }
-        } else {
-block_59:
-            *(s32 *)((char *)(var_a0_8) + 0x0) = *(s32 *)((char *)(arg1) + 0x90) - *(s32 *)((char *)(var_v0_2) + 0x30);
-            *(s32 *)((char *)(var_a0_8) + 0x4) = 0.0f;
-            *(f32 *)((char *)(var_a0_8) + 0x8) = (f32) (*(s32 *)((char *)((arg1 + 0x90)) + 0x8) - *(s32 *)((char *)(var_v0_2) + 0x38));
+        sp174 = sp84;
+        *(f32 *)(arg1 + 0x84) = sp174.x;
+        *(f32 *)(arg1 + 0x88) = sp174.y;
+        *(f32 *)(arg1 + 0x8C) = sp174.z;
+
+        p = &sp48;
+        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+        if (p != 0) {
+            Vec3 *r = (Vec3 *)(arg2 + 0x30);
+            p->x = *(f32 *)(arg1 + 0x90) - r->x;
+            p->y = 0.0f;
+            p->z = *(f32 *)(arg1 + 0x98) - r->z;
         }
-        *((s32 *)&sp174 + 0) = *((s32 *)&sp48 + 0);
-        *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp48 + 1);
-        *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp48 + 2);
-        *((s32 *)&sp6C + 0) = *((s32 *)&sp174 + 0);
-        var_v0_2 = &sp11C;
-        *((s32 *)&sp6C + 1) = (s32) *((s32 *)&sp174 + 1);
-        *((s32 *)&sp6C + 2) = (s32) *((s32 *)&sp174 + 2);
-        temp_f2 = (spCC * sp6C) + (spD4 * sp74) + (*(s32 *)((char *)(*(s32 *)((char *)(arg1) + 0x30)) + 0x348) * *(s32 *)((char *)(arg1) + 0xDC));
-        sp3C = spCC * temp_f2;
-        sp40 = spD0 * temp_f2;
-        sp44 = spD4 * temp_f2;
-        *(s32 *)((char *)(var_v0_2) + 0x0) = *((s32 *)&sp3C + 0);
-        *(f32 *)((char *)(var_v0_2) + 0x4) = (f32) *((s32 *)&sp3C + 1);
-        *(f32 *)((char *)(var_v0_2) + 0x8) = (f32) *((s32 *)&sp3C + 2);
-        *((s32 *)&sp78 + 0) = *(s32 *)((char *)(var_v0_2) + 0x0);
-        *((s32 *)&sp78 + 1) = (f32) *(s32 *)((char *)(var_v0_2) + 0x4);
-        *((s32 *)&sp78 + 2) = (f32) *(s32 *)((char *)(var_v0_2) + 0x8);
-        *(f32 *)((char *)(arg1) + 0x84) = (f32) (*(s32 *)((char *)(arg1) + 0x84) + sp78);
-        *(f32 *)((char *)(arg1) + 0x88) = (f32) (*(s32 *)((char *)(arg1) + 0x88) + sp7C);
-        *(f32 *)((char *)(arg1) + 0x8C) = (f32) (*(s32 *)((char *)(arg1) + 0x8C) + sp80);
-        temp_f0_3 = 250.0f * *(s32 *)((char *)(arg3) + 0x54) * *(s32 *)((char *)(arg1) + 0xE0);
-        sp60 *= temp_f0_3;
-        var_f10 = sp68 * temp_f0_3;
-        sp64 *= temp_f0_3;
-        sp68 = var_f10;
-        temp_t6_2 = *(s32 *)((char *)(arg1) + 0x9C) + 1;
-        temp_t8_2 = temp_t6_2 & 3;
-        *(s32 *)((char *)(arg1) + 0x9C) = temp_t6_2;
-        temp_at = temp_t8_2 < 4U;
-        *(s32 *)((char *)(arg1) + 0x9C) = temp_t8_2;
-        if (temp_at != 0) {
-            /* 2nd dispatch site sharing jtbl_0 (m2c could not bind it);
-             * structured as if-dispatch on the same index. */
-            switch (temp_t8_2) {
+        sp174 = sp48;
+        sp6C = sp174;
+
+        dot = (spCC.x * sp6C.x) + (spCC.z * sp6C.z)
+            + (*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC));
+        sp3C.x = spCC.x * dot;
+        sp3C.y = spCC.y * dot;
+        sp3C.z = spCC.z * dot;
+        sp11C = sp3C;
+        sp78 = sp11C;
+        *(f32 *)(arg1 + 0x84) += sp78.x;
+        *(f32 *)(arg1 + 0x88) += sp78.y;
+        *(f32 *)(arg1 + 0x8C) += sp78.z;
+
+        lenf = 250.0f * *(f32 *)(arg3 + 0x54) * *(f32 *)(arg1 + 0xE0);
+        sp60.x *= lenf;
+        sp60.z *= lenf;
+        sp60.y *= lenf;
+
+        idx = *(s32 *)(arg1 + 0x9C) + 1;
+        idxm = idx & 3;
+        *(s32 *)(arg1 + 0x9C) = idx;
+        *(s32 *)(arg1 + 0x9C) = idxm;
+        if ((u32)idxm < 4U) {
+            switch (idxm) {
             case 0:
-                sp60 *= 0.0f;
-                sp64 *= 0.0f;
-                sp68 *= 0.0f;
+                sp60.x *= 0.0f;
+                sp60.y *= 0.0f;
+                sp60.z *= 0.0f;
                 break;
             case 1:
-            case 2:
-            case 3:
-                sp60 *= -1.0f;
-                sp64 *= -1.0f;
-                sp68 *= -1.0f;
+                sp60.x *= -1.0f;
+                sp60.y *= -1.0f;
+                sp60.z *= -1.0f;
                 break;
             }
-            var_f10 = *(s32 *)((char *)(arg1) + 0x84);
         }
-        *(f32 *)((char *)(arg1) + 0x84) = (f32) (var_f10 + sp60);
-        *(f32 *)((char *)(arg1) + 0x88) = (f32) (*(s32 *)((char *)(arg1) + 0x88) + sp64);
-        *(f32 *)((char *)(arg1) + 0x8C) = (f32) (*(s32 *)((char *)(arg1) + 0x8C) + sp68);
-        var_a0_9 = &sp24;
-        var_v1_3 = *(s32 *)((char *)(arg1) + 0x30) + 0xB4;
-        if (&sp24 == 0) {
-            goto block_66;
-        }
-        goto block_69;
+        *(f32 *)(arg1 + 0x84) += sp60.x;
+        *(f32 *)(arg1 + 0x88) += sp60.y;
+        *(f32 *)(arg1 + 0x8C) += sp60.z;
     }
-block_66:
-    sp1A4 = var_v1_3;
-block_67:
-    var_a0_9 = var_v0_2;
-    if (var_v0_2 != 0) {
-        var_v0_2 = arg1 + 0x84;
-block_69:
-        *(s32 *)((char *)(var_a0_9) + 0x0) = *(s32 *)((char *)(var_v0_2) + 0x0) - *(s32 *)((char *)(var_v1_3) + 0x0);
-        *(s32 *)((char *)(var_a0_9) + 0x4) = 0.0f;
-        *(f32 *)((char *)(var_a0_9) + 0x8) = (f32) (*(s32 *)((char *)(var_v0_2) + 0x8) - *(s32 *)((char *)(var_v1_3) + 0x8));
+
+tail:
+    base = (Vec3 *)(*(s32 *)(arg1 + 0x30) + 0xB4);
+    p = &sp24;
+    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
+    if (p != 0) {
+        Vec3 *r = (Vec3 *)(arg1 + 0x84);
+        p->x = r->x - base->x;
+        p->y = 0.0f;
+        p->z = r->z - base->z;
     }
-    *((s32 *)&sp174 + 0) = sp24;
-    *((s32 *)&sp174 + 1) = (s32) *((s32 *)&sp24 + 1);
-    *((s32 *)&sp174 + 2) = (s32) *((s32 *)&sp24 + 2);
-    *(f32 *)((char *)(arg0) + 0x0) = (f32) *((s32 *)&sp174 + 0);
-    *(s32 *)((char *)(arg0) + 0x4) = (s32) *((s32 *)&sp174 + 1);
-    *(s32 *)((char *)(arg0) + 0x8) = (s32) *((s32 *)&sp174 + 2);
+    sp174 = sp24;
+    *(f32 *)(arg0 + 0x0) = sp174.x;
+    *(f32 *)(arg0 + 0x4) = sp174.y;
+    *(f32 *)(arg0 + 0x8) = sp174.z;
     return arg0;
 }
 #else
