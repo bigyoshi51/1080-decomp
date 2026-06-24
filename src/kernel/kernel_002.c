@@ -112,7 +112,11 @@ s32 func_80004BE0(RecvMesgQueue *mq, s32 *msg, s32 flag) {
  * second label (func_80004DB8) mid-function; that tail must keep its own
  * symbol so the exception handler's jal resolves. Both fragments together
  * span 0x80004D20..0x80004DD4 (+2 alignment nops) and reconstruct the single
- * __osProbeTLB byte-exactly. */
+ * __osProbeTLB byte-exactly.
+ * 2026-06-24 REFERENCE-CONFIRMED (decomp-search): __osProbeTLB is HANDWRITTEN .s in BOTH
+ * libreultra (src/os/probetlb.s) and oot (src/libultra/os/probetlb.s) — uses tlbp/mtc0/
+ * mfc0 (privileged, no C form). So INCLUDE_ASM is CANONICAL/PERMANENT here; 0.0% fuzzy is
+ * correct (not a pending decode). */
 INCLUDE_ASM("asm/nonmatchings/kernel", __osProbeTLB);
 
 /* __osProbeTLB address-compute tail (shared jal target from __osException). */
