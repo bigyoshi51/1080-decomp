@@ -211,6 +211,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008FFC);
  * return-from-home; register int *obj keeps it in s1) — identical to 8FFC. */
 extern unsigned char D_00000179, D_0000017A, D_0000017B, D_00000181, D_00000182, D_00000183;
 extern int D_0000004C, D_00000064;
+/* gl_func_00009100 [-O0 temp-slot CAP, 93.5%]: same class as gl_func_00008C3C /
+ * gl_func_00008FFC. obj is correctly `register` (s1) — objdiff reloc-resolves the
+ * distinct-extern D_xxx loads so the lbu-0-vs-377 immediates already score matching;
+ * the residual is the obj home-spill (target sw v0,52(sp) / reload, returns from the
+ * home slot). TESTED-NEGATIVE 2026-06-23: making obj a plain (spilled) local -> 85.4%
+ * (worse); rewriting the D-relative reads as &D_00000000+offset -> 74% (adds a
+ * materializing addiu, worse). Original register form stays. */
 #ifdef NON_MATCHING
 int gl_func_00009100(int a0, int a1, int a2) {
     register char *base;     /* s0 */
