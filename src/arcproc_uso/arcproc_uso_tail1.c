@@ -169,9 +169,18 @@ extern int *D_arc5C8_148;
 extern int D_arc5C8_14C;
 extern int D_arc5C8_68;
 #ifdef NON_MATCHING
+/* arcproc_uso_func_000005C8 [-O0 fn in the -O2 arcproc_uso_tail1.c, 43%]: target has
+ * UNFILLED jal delays (jal;nop) + 48w; this file is -O2 so the build fills them (jal;sw)
+ * and compacts to 37w. NEEDS AN -O0 SPLIT (model: arcproc_uso_o0_50/12C/748.c — move to
+ * src/arcproc_uso/arcproc_uso_o0_5C8.c, OPT_FLAGS := -O0 + TRUNCATE 0x60 + tenshoe.ld +
+ * objdiff unit; gate make verify — Yay0 USO so the ROM cmp covers the compressed block).
+ * -O0 C is ready below: s0 is `register` (target keeps the constructor result in s0 across
+ * the saved2-free call). D-reads are reloc-resolved: D_arc5C8_148/14C/68 fold to
+ * lw/sw 328/332/104 (=0x148/0x14C/0x68) — already score matching. The arcproc_uso_tail1
+ * -O0 family (5C8/688/199C/...) all need the same split. */
 void arcproc_uso_func_000005C8(int *a0) {
     int saved1, saved2;
-    int s0;
+    register int s0;
     saved1 = gl_func_00000000(2);
     a0[2] = gl_func_00000000(0x38);
     gl_func_00000000(saved1);
