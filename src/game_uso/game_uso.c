@@ -2049,6 +2049,7 @@ void *game_uso_func_00003018(void *a0) {
     int counter;
     Vec3 ent_a, ent_b, ent_c;
     Vec3 obj_c;
+    int v1, v2, v3, v4, v5, v6, v7, v8;
 
     if (s0 == 0) {
         s0 = (char *)game_uso_func_055750(0xE8);
@@ -2081,7 +2082,6 @@ fp:
         *(Tri3i *)&ent_c = *(Tri3i *)xp;
     }
 
-    /* stage 1: s0+8, alloc(0x20), template D_807FE620+48, Vec3 init from ent_a. */
     {
         int *obj = (int *)(s0 + 8);
         Vec3 *ap = &ent_a;
@@ -2097,26 +2097,27 @@ fp:
         *(float *)((char *)obj + 0x14) = obj_c.y;
         *(float *)((char *)obj + 0x18) = obj_c.z;
     }
-#define STAGE(OFF, SYM, TVAL) \
+#define STAGE(OFF, SYM, TVAL, VAL) \
     { \
         int *obj = (int *)(s0 + (OFF)); \
+        (VAL) = *(int *)((char *)&(SYM) + (TVAL)); \
         if (s0 == (char *)-(OFF)) { \
             obj = (int *)game_uso_func_055750(0x18); \
             if (obj == 0) goto end; \
         } \
-        game_uso_func_04A188(obj, s0, *(int *)((char *)&(SYM) + (TVAL)), 1); \
+        game_uso_func_04A188(obj, s0, (VAL), 1); \
         obj[0xC / 4] = (int)((char *)&game_uso_D_807FE608 + 24); \
         obj[0x14 / 4] = 0; \
         *(float *)((char *)obj + 0x10) = 0.0f; \
     }
-    STAGE(40,  game_uso_D_807FE970, 0x380)
-    STAGE(64,  game_uso_D_807FE974, 0x384)
-    STAGE(88,  game_uso_D_807FE978, 0x388)
-    STAGE(112, game_uso_D_807FE97C, 0x38C)
-    STAGE(136, game_uso_D_807FE980, 0x390)
-    STAGE(160, game_uso_D_807FE984, 0x394)
-    STAGE(184, game_uso_D_807FE988, 0x398)
-    STAGE(208, game_uso_D_807FE98C, 0x39C)
+    STAGE(40,  game_uso_D_807FE970, 0x380, v1)
+    STAGE(64,  game_uso_D_807FE974, 0x384, v2)
+    STAGE(88,  game_uso_D_807FE978, 0x388, v3)
+    STAGE(112, game_uso_D_807FE97C, 0x38C, v4)
+    STAGE(136, game_uso_D_807FE980, 0x390, v5)
+    STAGE(160, game_uso_D_807FE984, 0x394, v6)
+    STAGE(184, game_uso_D_807FE988, 0x398, v7)
+    STAGE(208, game_uso_D_807FE98C, 0x39C, v8)
 #undef STAGE
 end:
     return s0;
