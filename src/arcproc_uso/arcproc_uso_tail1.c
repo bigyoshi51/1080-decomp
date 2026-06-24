@@ -173,20 +173,16 @@ extern int D_00000148, D_0000014C, D_00000068;
  * 0 real diffs — all residual diffs are reloc-resolved jal/D-read immediates + relative
  * branches). Levers: ONE reused `saved` int (frame -40 not -48); `register` s0; valued
  * distinct-externs D_00000148/14C/68 (fold to lw/sw 328/332/104).
- * STRUCTURE/FRAME verified, but PROMOTION FAILED make verify (2026-06-24 front-carve,
- * reverted clean). The carve infra is CORRECT (sizes 0x508/0x2238, arcproc non-Yay0). The
- * calls are NOT the blocker: the jals are `jal 0` (0x0C000000, USO-relocated not baked) and
- * the matched sibling arcproc_uso_o0_50 promotes fine with gl_func_00000000 calls. The
- * blocker is the D+OFFSET READS: this fn reads D_00000148/14C/68; o0_50's matched fn has NO
- * offset D-reads. Distinct-externs (D_00000148 valued 0x148) FOLD nicely + score matching in
- * objdiff (reloc-resolved), but generate a DIFFERENT USO reloc-table entry than the target's
- * base(D_00000000)+0x148 -> ROM mismatch. And base+offset `&D_00000000+0x148` gives the right
- * USO reloc but MATERIALIZES at -O0 (lui+addiu+lw, extra word) -> wrong .text. This
- * fold-vs-USO-reloc tension makes USO -O0 fns with D+offset reads hard to promote (the
- * isolated reloc-aware diff hides it; only make verify sees the USO reloc table). Front-carve
- * plan ready (240+5C8+688 -> o0_5C8.c, tail1 starts 748) IF the D-read reloc form is solved.
- * Until the
- * calls are resolved, stays NM. Same blocker for the whole arcproc_uso_tail1 -O0 family. */
+ * PROMOTION CAPPED (2026-06-24, multiple carve attempts, reverted clean — make verify):
+ * the -O0 front-carve infra is correct (sizes confirmed, arcproc non-Yay0) and the calls
+ * (gl_func_00000000) are fine (matched sibling o0_50 promotes with them). The D+offset
+ * reads WERE SOLVED via STRUCT-CAST-FOLD (`extern struct{...} D_00000000; D_00000000.f148`
+ * -> relocs to D_00000000+offset matching the USO reloc table AND folds to lui+lw; see
+ * docs/IDO_CODEGEN.md). RESIDUAL CAP: a -O0 TEMP-SLOT mismatch — `saved`'s home is sp+0x20
+ * here vs sp+0x24 in the target (4 byte diffs, the sw/lw v0 offset). Same -O0 temp-pool
+ * cap class as gl_func_00008C3C (NOT C-steerable). GOTCHA: an isolated reloc-aware diff
+ * that filters sw/lw immediates MASKS this stack-slot diff (stack offsets aren't reloc'd)
+ * -> it falsely read 0-diffs; make verify is the only promotion gate. Stays NM. */
 void arcproc_uso_func_000005C8(int *a0) {
     register int s0;
     int saved;
