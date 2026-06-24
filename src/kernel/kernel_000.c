@@ -1382,6 +1382,11 @@ extern s32 D_80012D30;
  * once, then walks parallel s32 tables D_80012D30[] and D_8000A2A0[]
  * (11 entries, D_80012D30..<D_80012D5C), calling the field_84 logger
  * (&D_8000A35C, D_8000A2A0[i], D_80012D30[i]) per entry. */
+/* func_800010E8 [58.8%, -O2 reg-alloc near-miss, NOT under-decoded]: logic complete
+ * (2 state->field_84 calls bracketing a parallel-array loop). Residual: target CSEs
+ * &D_80012BC0 into s2 + uses a 5th saved reg s4 for `end` (39w); the build re-lui's
+ * state each call + collapses to 4 saved regs (36w). Decl-order reorder doesn't move it
+ * (global-allocator choice). -O2 reg-alloc cap; stays NM. */
 void func_800010E8(void) {
     register UsoLooseCb *state = (UsoLooseCb*)&D_80012BC0;
     register s32 *p1 = &D_8000A2A0;
