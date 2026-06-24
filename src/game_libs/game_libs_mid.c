@@ -110,35 +110,45 @@ void gl_func_00008DAC(int a0, int a1, int a2, int a3) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00008E48)();
+extern int D_0000004C, D_00000064;
+extern unsigned char D_00000181, D_00000182, D_00000183;
+/* gl_func_00008E48: -O0 alloc-cascade (sibling of 8C3C/8FFC/9100). 69.2->92.98%
+ * (2026-06-23): distinct-externs D_0000004C/64/181/2/3 (valued at offset -> per-read
+ * folded lui), &D+8 materialized arg, `0` call-args -> &D_00000000, base/sp3C/tmp
+ * register (s0/s1/s2), sp3C[0x14]=base, chained sp38=sp34 (no temp_t6 round-trip).
+ * Residual ~7% = -O0 temp-slot/reg-alloc (sp3C register `move s1,v0` vs target spill
+ * `sw v0,60(sp)`+reload; sp3C-plain regresses to 89.98). Same cap class as 9100/8C3C. */
 char *gl_func_00008E48(char **arg0, int arg1, s32 arg2) {
-    char *sp3C;
+    register char *base;   /* s0 */
+    register char *sp3C;   /* s1 */
+    register char *tmp;    /* s2 */
     char *sp38;
     char *sp34;
-    char *temp_t6;
 
-    temp_t6 = *(char **)0x4C;
-    sp38 = temp_t6;
-    sp34 = temp_t6;
-    gl_func_00008C3C(0, *(char **)8);
+    sp38 = sp34 = (char *)D_0000004C;
+    gl_func_00008C3C(&D_00000000, *(int *)((char *)&D_00000000 + 8));
     if (FW(FW((*(int*)arg0), 0x8), 0x8) != 0) {
-        *(u8 *)0x181 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
-        sp34 = (char *) *(char *)0x181;
-        *(u8 *)0x182 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
-        *(u8 *)0x183 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
+        D_00000181 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
+        sp34 = (char *)(int)D_00000181;
+        D_00000182 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
+        D_00000183 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
     }
     gl_func_00008C3C(sp38, sp34);
     if (FW(FW((*(int*)arg0), 0x8), 0x8) != 0) {
-        sp3C = gl_func_00008C3C(0, *(char **)0x64, 3, arg2);
+        sp3C = gl_func_00008C3C(&D_00000000, D_00000064, 3, arg2);
     } else {
-        sp3C = gl_func_00008C3C(0, *(char *)0x64, 2, arg2);
+        sp3C = gl_func_00008C3C(&D_00000000, D_00000064, 2, arg2);
     }
-    gl_func_00008C3C((char *)0x10, sp3C);
+    base = (char *)&D_00000000;
+    tmp = base + 0x10;
+    gl_func_00008C3C(tmp, sp3C);
     if (FW(sp3C, 0x14) != 0) {
         FW(sp3C, 0x4) = 1;
     }
-    FW(sp3C, 0x14) = 0;
-    gl_func_00008C3C(0, 0);
+    FW(sp3C, 0x14) = (int)base;
+    gl_func_00008C3C(&D_00000000, 0);
+    (void)arg1;
+    return sp3C;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
