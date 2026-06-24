@@ -11853,6 +11853,12 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 //   -O2 reorg-annul scheduling choice not steerable from C (per-test re-read
 //   yields plain beq here, not beql). Same reorg-annul class as func_0000174C.
 #ifdef NON_MATCHING
+// game_uso_func_0000EAF4 — steering/lean input integrator with rate-clamping.
+// Improvement over prior 71.48% structural pass: rewrote the keep-window clamp
+// as a single `if (d >= 3 || d < -2) d = 0;` so IDO emits the target's
+// fallthrough-shared `move a1,zero` + branch-likely (beqzl) reload of 0x126
+// (eb58-eb6c), eliminating a spurious `b` merge and matching the reflection
+// clamp exactly. Verified 71.48 -> 73.12 fuzzy in-tree.
 int game_uso_func_0000EAF4(char *obj, int a1, int a2) {
     char *ctx = *(char **)(*(char **)(obj + 0xB4) + 0x800);
     int tgt = *(short *)(ctx + 0x7C);
@@ -11868,11 +11874,7 @@ int game_uso_func_0000EAF4(char *obj, int a1, int a2) {
         }
         if (d >= 8) d = 7 - d;
         if (d < -7) d = -7 - d;
-        if (d < 3) {
-            if (d < -2) d = 0;
-        } else {
-            d = 0;
-        }
+        if (d >= 3 || d < -2) d = 0;
         if (*(short *)(obj + 0x126) == 0) {
             *(short *)(obj + 0x126) = 1;
             *(short *)(obj + 0x128) = 0;
