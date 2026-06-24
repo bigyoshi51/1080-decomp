@@ -2235,78 +2235,123 @@ out:
  * the sub-frame build at p->[0x48] (mtc1 zero,$f20 + 2 gl_func, currently
  * elided). Picked source-2 (sibling of 0x3AC0). INCLUDE_ASM is the build
  * path so ROM stays byte-correct. */
+/* game_uso_func_00003558: 252-insn (0x3F0) camera/spring vector solve. Frame
+ * -0x100, saves s0/ra + double $f20/$f21 (sdc1 0x18 / ldc1 epilogue), f20=0.0f
+ * sentinel used by the 3-way clamp. Sibling of game_uso_func_00001DDC's solve
+ * tail; shares the Vec3 double-buffer fanout and the (070238 / 071028 / 072EE8)
+ * callee triple.
+ *
+ * REBUILD 2026-06-24 (this pass): re-decoded region by region from
+ * expected/.o (the prior NM body called the gl_func_00000000 placeholder, had
+ * the wrong callees, and the wrong clamp/emit tail; stale-.s gap NM 0x280 vs
+ * expected 0x3F0). Real callees (R_MIPS_26): game_uso_func_070238 (magnitude),
+ * game_uso_func_071028 (normalize Vec3), game_uso_func_072EE8 (accumulate into
+ * dst). Faithful end-to-end:
+ *   p   = s0->[0x14]                                    (spilled sp+0xFC)
+ *   va  = p->{0xA0,0xA4,0xA8}                           (ref vec, sp+0xF0)
+ *   m0  = s0->[0x48];  M = m0 + 0x70
+ *   vb  = { m0->[0xA0], M->[0x34], M->[0x38] }          (self vec, sp+0xE4)
+ *   v   = (Vec3 read of) s0->Tri3i@0x68                 (int bits as float)
+ *   acc = M(3x3) * v   (rows {0x00,0x10,0x20}/{0x04,0x14,0x24}/{0x08,0x18,0x28})
+ *   vb += acc;  d = vb - va                             (sp+0x68, normalized later)
+ *   s0->{0x3C,0x40,0x44} = d                            (Tri3i fanout writeback)
+ *   mag = game_uso_func_070238(d.x^2 + d.y^2 + d.z^2)
+ *   side = { 0, d.y * s0->[0x130], 0 }; game_uso_func_072EE8(p+0x30, &side)
+ *   game_uso_func_071028(&d)                            (normalize d)
+ *   m1  = s0->[0x4C];  M1 = m1 + 0x70
+ *   w   = { m1->[0xA0]-va.x, 0, M1->[0x38]-va.z }       (sp+0xB0)
+ *   t   = game_uso_func_070238(w.x^2 + w.y^2 + w.z^2)
+ *   game_uso_func_071028(&w)                            (normalize w)
+ *   if (s0->[0x88] < t)      sc = t - s0->[0xA0];
+ *   else if (t < s0->[0xA0]) sc = t - s0->[0xA0];
+ *   else                     sc = 0.0f;   (f20 sentinel)
+ *   w *= sc;
+ *   k   = (mag - s0->[0xB8]) * s0->[0x118];
+ *   out = d*k + w; game_uso_func_072EE8(p+0x30, &out)
+ * The Vec3 copies fan through stack temps via the *(Tri3i*)d=*(Tri3i*)s
+ * integer-copy idiom (same family as 00001DDC) producing the interleaved
+ * lw/sw fanout. Residual byte gap is IDO float-slot/regalloc scheduling across
+ * the emit blocks (USO raw-word, no m2c). INCLUDE_ASM stays the build path so
+ * ROM is byte-correct; this body is decode-progress only. */
 #ifdef NON_MATCHING
+extern float game_uso_func_070238(float);
+extern void game_uso_func_071028(Vec3 *v);
+extern void game_uso_func_072EE8(char *dst, Vec3 *v);
+
 void game_uso_func_00003558(char *s0) {
-    char *p;
-    char *m0;
-    char *m1;
-    float va[3], vb[3], v[3], acc[3], d[3];
-    float scratch[3], nrm[3], sub[3];
-    float len, t, scale, k;
-    int i;
+    char *p, *m0, *m1, *M, *M1;
+    Vec3 va, vb, v, acc, d, side, w, out;
+    float mag, t, sc, k;
 
-    p = *(char**)(s0 + 0x14);
-    va[0] = *(float*)(p + 0xA0);
-    va[1] = *(float*)(p + 0xA4);
-    va[2] = *(float*)(p + 0xA8);
+    p = *(char **)(s0 + 0x14);
+    va.x = *(float *)(p + 0xA0);
+    va.y = *(float *)(p + 0xA4);
+    va.z = *(float *)(p + 0xA8);
 
-    m0 = *(char**)(s0 + 0x48);
-    vb[0] = *(float*)(m0 + 0xA0);
-    vb[1] = *(float*)(m0 + 0x70 + 0x34);
-    vb[2] = *(float*)(m0 + 0x70 + 0x38);
+    m0 = *(char **)(s0 + 0x48);
+    M  = m0 + 0x70;
+    vb.x = *(float *)(m0 + 0xA0);
+    vb.y = *(float *)(M + 0x34);
+    vb.z = *(float *)(M + 0x38);
 
-    v[0] = *(float*)(s0 + 0x68);
-    v[1] = *(float*)(s0 + 0x6C);
-    v[2] = *(float*)(s0 + 0x70);
+    /* Tri3i (integer) read of the input vector, reused as float bits. */
+    *(Tri3i *)&v = *(Tri3i *)(s0 + 0x68);
 
-    /* out = vb + M*v, M is 3x3 at (m0+0x70) */
-    {
-        char *M = m0 + 0x70;
-        acc[0] = vb[0] + *(float*)(M + 0x00) * v[0]
-                       + *(float*)(M + 0x10) * v[1]
-                       + *(float*)(M + 0x20) * v[2];
-        acc[1] = vb[1] + *(float*)(M + 0x04) * v[0]
-                       + *(float*)(M + 0x14) * v[1]
-                       + *(float*)(M + 0x24) * v[2];
-        acc[2] = vb[2] + *(float*)(M + 0x08) * v[0]
-                       + *(float*)(M + 0x18) * v[1]
-                       + *(float*)(M + 0x28) * v[2];
-    }
+    acc.x = *(float *)(M + 0x00) * v.x
+          + *(float *)(M + 0x10) * v.y
+          + *(float *)(M + 0x20) * v.z;
+    acc.y = *(float *)(M + 0x04) * v.x
+          + *(float *)(M + 0x14) * v.y
+          + *(float *)(M + 0x24) * v.z;
+    acc.z = *(float *)(M + 0x08) * v.x
+          + *(float *)(M + 0x18) * v.y
+          + *(float *)(M + 0x28) * v.z;
 
-    d[0] = acc[0] - va[0];
-    d[1] = acc[1] - va[1];
-    d[2] = acc[2] - va[2];
+    vb.x = vb.x + acc.x;
+    vb.y = vb.y + acc.y;
+    vb.z = vb.z + acc.z;
 
-    *(float*)(s0 + 0x3C) = v[0];
-    *(float*)(s0 + 0x40) = v[1];
-    *(float*)(s0 + 0x44) = v[2];
+    d.x = vb.x - va.x;
+    d.y = vb.y - va.y;
+    d.z = vb.z - va.z;
 
-    for (i = 0; i < 3; i++) { scratch[i] = d[i]; nrm[i] = acc[i]; }
-    len = gl_func_00000000(&nrm[0]);
+    /* Vec3 double-buffer fanout -> s0->{0x3C,0x40,0x44}. */
+    *(Tri3i *)(s0 + 0x3C) = *(Tri3i *)&d;
 
-    m1 = *(char**)(s0 + 0x4C);
-    sub[0] = *(float*)(m1 + 0xA0) - vb[0];
-    sub[1] = *(float*)(m1 + 0x70 + 0x34) - vb[1];
-    sub[2] = *(float*)(m1 + 0x70 + 0x38) - vb[2];
-    t = gl_func_00000000(&sub[0]);
+    mag = game_uso_func_070238(d.x * d.x + d.y * d.y + d.z * d.z);
 
-    if (*(float*)(s0 + 0x88) < t) {
-        scale = t - *(float*)(s0 + 0xA0);
-    } else if (t < *(float*)(s0 + 0xA0)) {
-        scale = t - *(float*)(s0 + 0xA0);
+    side.x = 0.0f;
+    side.y = d.y * *(float *)(s0 + 0x130);
+    side.z = 0.0f;
+    game_uso_func_072EE8(p + 0x30, &side);
+
+    game_uso_func_071028(&d);
+
+    m1 = *(char **)(s0 + 0x4C);
+    M1 = m1 + 0x70;
+    w.x = *(float *)(m1 + 0xA0) - va.x;
+    w.y = 0.0f;
+    w.z = *(float *)(M1 + 0x38) - va.z;
+
+    t = game_uso_func_070238(w.x * w.x + w.y * w.y + w.z * w.z);
+    game_uso_func_071028(&w);
+
+    if (*(float *)(s0 + 0x88) < t) {
+        sc = t - *(float *)(s0 + 0xA0);
+    } else if (t < *(float *)(s0 + 0xA0)) {
+        sc = t - *(float *)(s0 + 0xA0);
     } else {
-        scale = 0.0f;
+        sc = 0.0f;
     }
-    nrm[0] *= scale;
-    nrm[1] *= scale;
-    nrm[2] *= scale;
+    w.x = w.x * sc;
+    w.y = w.y * sc;
+    w.z = w.z * sc;
 
-    k = (scratch[0] - *(float*)(s0 + 0xB8)) * *(float*)(s0 + 0x118);
-    sub[0] = sub[0] * k + nrm[0];
-    sub[1] = sub[1] * k + nrm[1];
-    sub[2] = sub[2] * k + nrm[2];
-    gl_func_00000000(&sub[0]);
-    (void)len;
+    k = (mag - *(float *)(s0 + 0xB8)) * *(float *)(s0 + 0x118);
+    out.x = d.x * k + w.x;
+    out.y = d.y * k + w.y;
+    out.z = d.z * k + w.z;
+    game_uso_func_072EE8(p + 0x30, &out);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003558);
@@ -8866,53 +8911,76 @@ void game_uso_func_0000A7D8(int *a0) {
 //   compose skeleton (family of 000028C0 / 00002CC8 / 0000A604).
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* game_uso_func_0000A7F8 — DECODE PASS (0x3A0 / 232 words). Same FP
+ * world-transform-compose family as 000028C0 / 00002CC8 / 0000A604.
+ * Decode upgrade over prior STRUCTURAL stub: the three placeholder
+ * func_00000000 dispatch calls are now bound to their reloc-resolved
+ * real callees —
+ *   a8e0  jal game_uso_func_0000A374 (varargs: 4th arg `node` homed to sp+4)
+ *   a908  jal game_uso_func_0000A0E8 (obj, r1, m)
+ *   a96c/a9b0/aa40/aa7c  jal game_uso_func_055750 (12-byte node allocator)
+ * — and the static-table lookup node = *(*(D[obj->0x5C]+0x548)) is kept.
+ * Byte-match still deferred (A374 varargs ABI + raw-word USO disasm); this
+ * pass raises decode fidelity (placeholder calls -> typed real callees). */
 void game_uso_func_0000A7F8(char *obj) {
     char *w = *(char **)(obj + 0x30);
     char *r1, *m;
     Vec3 blockA, scaled, c1, c2;
     Vec3 b1, b2, b3, b4, b5, b6;
     Vec3 *p1, *p2, *p4, *p5;
+    Vec3 *volatile vp;
     float s, d, magsq, cross, result;
     int idx, cnt;
     char *node;
-    /* blockA = w transform (0xB4) + scaled world-vec (0x318 * obj scale 0xA8).
-     * Vec3 struct-copies emit int lw/sw (see docs/IDO_CODEGEN.md float-Vec3),
-     * scale/add stay element float-ops. Two dead intermediate copies c1/c2. */
-    blockA = *(Vec3 *)(w + 0xB4);
+    /* blockA(sp+0xE4) = w transform (0xB4) Vec3; scaled(sp+0xB8) = world-vec
+     * (0x318) * obj scale (0xA8) as three separate mul.s. The scaled vec is
+     * then fanned out through two scratch copies c1(sp+0xCC) <- scaled,
+     * c2(sp+0xF4) <- c1 (Tri3i int-word copies), and blockA += c2 element-wise.
+     * The intermediate buffers must be addressed (&) to survive as distinct
+     * scratch slots — see docs/IDO_CODEGEN.md float-Vec3 fanout. */
+    *(Tri3i *)&blockA = *(Tri3i *)(w + 0xB4);
     s = *(float *)(obj + 0xA8);
     scaled.x = *(float *)(w + 0x318) * s;
     scaled.y = *(float *)(w + 0x31C) * s;
     scaled.z = *(float *)(w + 0x320) * s;
-    c1 = scaled;
-    c2 = c1;
+    *(Tri3i *)&c1 = *(Tri3i *)&scaled;
+    *(Tri3i *)&c2 = *(Tri3i *)&c1;
     blockA.x = blockA.x + c2.x;
     blockA.y = blockA.y + c2.y;
     blockA.z = blockA.z + c2.z;
     /* node = *(*(GLOBAL + obj->0x5C*4 + 0x548)) */
     idx = *(int *)(obj + 0x5C);
     node = *(char **)(*(char **)((char *)&D_00000000 + 0x548 + idx * 4));
-    r1 = (char *)func_00000000(obj, node, &blockA);
+    /* A374: world-query. Target homes a 4th vararg (node) to sp+4, but A374's
+     * established 3-arg prototype blocks that here (see func_00006F38 note);
+     * call with the matching 3 args to stay compilable. */
+    r1 = (char *)game_uso_func_0000A374(obj, node, &blockA);
     if (r1 != 0) {
     m = *(char **)(r1 + 0x2C);
     if (m != 0) {
-    if (func_00000000(obj, r1, m) != 0) {
+    if (game_uso_func_0000A0E8(obj, r1, m) != 0) {
     /* FP threshold gate: d = blockA.z - r1->0x38; if (d<0) d += 250*r1->0x54;
      * if (d<0) return. */
     d = blockA.z - *(float *)(r1 + 0x38);
     if (d < 0.0f) d += 250.0f * *(float *)(r1 + 0x54);
     if (d >= 0.0f) {
-        /* b1 = m's XZ vec; b2 = b1 - r1's XZ vec; b3 = b2 (each via dead-alloc) */
-        p1 = &b1; if (p1 == 0) p1 = (Vec3 *)func_00000000(12);
+        /* b1 = m's XZ vec; b2 = b1 - r1's XZ vec; b3 = b2. Each Vec3 slot is a
+         * conditionally-allocated node: p = &slot; if (!p) p = alloc(12). The
+         * target emits the bnez + jal game_uso_func_055750 guard even though
+         * &slot is non-null, so the &-of-stack pointer is routed through a
+         * volatile temp to stop the optimizer proving it non-zero (preserves
+         * the dead allocator branch — see docs/IDO_CODEGEN.md). */
+        vp = &b1; p1 = vp; if (p1 == 0) p1 = (Vec3 *)game_uso_func_055750(12);
         p1->x = *(float *)(m + 0x30); p1->z = *(float *)(m + 0x38); p1->y = 0.0f;
-        p2 = &b2; if (p2 == 0) p2 = (Vec3 *)func_00000000(12);
+        vp = &b2; p2 = vp; if (p2 == 0) p2 = (Vec3 *)game_uso_func_055750(12);
         p2->z = p1->z - *(float *)(r1 + 0x38); p2->x = p1->x - *(float *)(r1 + 0x30); p2->y = 0.0f;
-        b3 = b2;
+        *(Tri3i *)&b3 = *(Tri3i *)&b2;
         /* b4 = blockA XZ; b5 = b4 - r1's XZ vec; b6 = b5 */
-        p4 = &b4; if (p4 == 0) p4 = (Vec3 *)func_00000000(12);
+        vp = &b4; p4 = vp; if (p4 == 0) p4 = (Vec3 *)game_uso_func_055750(12);
         p4->x = blockA.x; p4->z = blockA.z; p4->y = 0.0f;
-        p5 = &b5; if (p5 == 0) p5 = (Vec3 *)func_00000000(12);
+        vp = &b5; p5 = vp; if (p5 == 0) p5 = (Vec3 *)game_uso_func_055750(12);
         p5->z = p4->z - *(float *)(r1 + 0x38); p5->x = p4->x - *(float *)(r1 + 0x30); p5->y = 0.0f;
-        b6 = b5;
+        *(Tri3i *)&b6 = *(Tri3i *)&b5;
         /* result = cross(b3,b6)^2 / |b3|^2 in the XZ plane */
         magsq = b3.x * b3.x + b3.z * b3.z;
         if (magsq == 0.0f) {
