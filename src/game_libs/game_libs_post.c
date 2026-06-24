@@ -15655,7 +15655,11 @@ extern int gl_func_00000000();
  * target home-saves a0 (sw a0,0x18) AND copies a0->a2, working from a2; built
  * uses a0 directly (1 short). volatile `*p` forces the spill but via an
  * address-comp (addiu+lw, wrong form, +2). The direct sw-a0-home + a2-copy
- * isn't C-reachable (same class as gl_func_00035164/66BD4). */
+ * isn't C-reachable (same class as gl_func_00035164/66BD4).
+ * 2026-06-24 CORRECTION: the `move a2,a0` is NOT a dead copy — a2 is the 3RD CALL ARG
+ * (real call is gl_func_0001CA10(packed, 1000, a0)). The 2-arg NM body here scores higher
+ * (92.5%) than the correct 3-arg form (78%, move misplaced + a0-home-save/mask-from-a2
+ * reg-alloc diverges). Near-miss cap either way; the 3-arg form is the true semantics. */
 void gl_func_0002DD58(int a0) {
     int *p = &a0;
     gl_func_00000000(0x82030000 | ((a0 & 0xFF) << 8), 0x3E8);
