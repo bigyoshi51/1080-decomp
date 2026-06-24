@@ -165,32 +165,34 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000024
  * the alloc result, frame is 0x28 — my -O2 fills the delays, keeps the result in v0,
  * frame 0x20. Needs a per-file -g3 split (Yay0-split infra) AND the raw-word jal relocs
  * are placeholder gl_func_00000000 (USO reloc-presence). Don't re-grind at -O2. */
-extern int *D_arc5C8_148;
-extern int D_arc5C8_14C;
-extern int D_arc5C8_68;
+extern int D_00000148, D_0000014C, D_00000068;
 #ifdef NON_MATCHING
-/* arcproc_uso_func_000005C8 [-O0 fn in the -O2 arcproc_uso_tail1.c, 43%]: target has
- * UNFILLED jal delays (jal;nop) + 48w; this file is -O2 so the build fills them (jal;sw)
- * and compacts to 37w. NEEDS AN -O0 SPLIT (model: arcproc_uso_o0_50/12C/748.c — move to
- * src/arcproc_uso/arcproc_uso_o0_5C8.c, OPT_FLAGS := -O0 + TRUNCATE 0x60 + tenshoe.ld +
- * objdiff unit; gate make verify — Yay0 USO so the ROM cmp covers the compressed block).
- * -O0 C is ready below: s0 is `register` (target keeps the constructor result in s0 across
- * the saved2-free call). D-reads are reloc-resolved: D_arc5C8_148/14C/68 fold to
- * lw/sw 328/332/104 (=0x148/0x14C/0x68) — already score matching. The arcproc_uso_tail1
- * -O0 family (5C8/688/199C/...) all need the same split. */
+/* arcproc_uso_func_000005C8 [-O0 fn in the -O2 arcproc_uso_tail1.c, 43% at -O2]: target has
+ * UNFILLED jal delays (jal;nop) + 48w; this file is -O2 so the build fills them and compacts
+ * to 37w. The -O0 C below is VERIFIED BYTE-EXACT (2026-06-23: isolated -O0 build = 48w/48w,
+ * 0 real diffs — all residual diffs are reloc-resolved jal/D-read immediates + relative
+ * branches). Levers: ONE reused `saved` int (target shares the slot, sw v0,36 twice -> frame
+ * -40 not -48); `register` s0 (constructor result kept in s0 across the final call); valued
+ * distinct-externs D_00000148/14C/68 (fold to lw/sw 328/332/104). NEEDS AN -O0 SPLIT to land
+ * (model arcproc_uso_o0_50/12C/748.c -> src/arcproc_uso/arcproc_uso_o0_5C8.c, OPT_FLAGS -O0 +
+ * TRUNCATE 0xC0 + tenshoe.ld + objdiff unit; Yay0 USO so make verify ROM-cmp gates). BUT 5C8
+ * is MID-FILE (func_00000240 before, func_00000688 after) in a MIXED file (37 matched -O2 +
+ * 18 -O0 NM) -> the split needs tail1 carved into pre/post parts or a contiguous -O0 cluster
+ * (5C8+688 are adjacent, both -O0). Multi-step; the C is ready when a dedicated split tick
+ * runs. Whole arcproc_uso_tail1 -O0 family (5C8/688/199C/251C/16F4/125C/1B04/1BBC) same. */
 void arcproc_uso_func_000005C8(int *a0) {
-    int saved1, saved2;
     register int s0;
-    saved1 = gl_func_00000000(2);
+    int saved;
+    saved = gl_func_00000000(2);
     a0[2] = gl_func_00000000(0x38);
-    gl_func_00000000(saved1);
-    saved2 = gl_func_00000000(2);
-    s0 = gl_func_00000000(0, D_arc5C8_148, -1, -1);
+    gl_func_00000000(saved);
+    saved = gl_func_00000000(2);
+    s0 = gl_func_00000000(0, D_00000148, -1, -1);
     a0[0] = s0;
-    D_arc5C8_14C = s0;
-    gl_func_00000000(saved2);
+    D_0000014C = s0;
+    gl_func_00000000(saved);
     *(int*)((char*)a0[0] + 0x14) = 4;
-    D_arc5C8_68 = 0;
+    D_00000068 = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000005C8);
