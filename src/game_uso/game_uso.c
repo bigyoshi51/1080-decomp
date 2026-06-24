@@ -2888,14 +2888,26 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000041C0);
  * a1 in a REGISTER ($a3); there's no C knob to pin a loop-long value to a
  * caller-saved reg instead of $s. Whole-function allocation-strategy cap. */
 #ifdef NON_MATCHING
+/* game_uso_func_000043D8: 60-insn cell-walk + FPU nearest-select.
+ * v2 reconstruction: two-cursor stack-spilled walk. head=a0->0x10; seed
+ * both cursors (cur@sp0, nextcell@sp4) from head; for each cell value n!=a2
+ * compute d = a1->8 - n->0x38; track nearest-below (largest d<0 -> v1/f2)
+ * and nearest-above (smallest d>=0 -> v0/f0), seeded from base[0x94]/[0x98].
+ * Return v0 ? v0 : v1. */
 void *game_uso_func_000043D8(int **a0, int *a1, void *a2) {
-    float fmin = *(float *)((char *)&D_00000000 + 0x94);
-    float fmax = *(float *)((char *)&D_00000000 + 0x98);
+    float fmin = *(float *)0x94;
+    float fmax = *(float *)0x98;
     void *v0 = 0;
     void *v1 = 0;
     int *head = a0[4]; /* a0->0x10 */
-    int *cur = (head != 0) ? (int *)head[0] : 0;
-    int *nextcell = (head != 0) ? (int *)head[1] : 0;
+    int *cur;
+    int *nextcell;
+    if (head != 0) {
+        nextcell = (int *)head[1];
+        cur = (int *)head[0];
+    } else {
+        cur = 0;
+    }
     while (cur != 0) {
         if ((void *)cur != a2) {
             float d = *(float *)((char *)a1 + 8) - *(float *)((char *)cur + 0x38);
@@ -12327,60 +12339,46 @@ void game_uso_func_0000F284(int *a0) {
 #ifdef NON_MATCHING
 /* game_uso_func_0000F360: 49-insn float-compare-gated state-mux update.
  *
- * Decoded structure (full body, 2026-05-27 multi-pass continuation):
- *   v0_short = a0->0xE4 (signed)
- *   if (v0_short < 0) { a0->0xE4 = 0; v0_short = 0; }
- *   f6 = (float)v0_short  (via mtc1 + cvt.s.w)
- *   p = a0->0xB4 (sub-state ptr)
- *   thresh = a0->0x1B4 (float)
- *   f2 = thresh * (float)v0_short
+ * 2026-06-24 (game_uso spine reconstruction, 70.8% -> 89.67%):
+ *  (1) Arms swapped vs the prior decode. The target's `beqzl t6,f3c0`
+ *      (branch-LIKELY) loads the t6==0 arm value (p+0x780) in its delay slot;
+ *      the t6!=0 fallthrough loads (p+0x798):
+ *        if (p->0x9CC != 0) f0 = *(p+0x798) + f2;  // t6!=0 fallthrough
+ *        else               f0 = *(p+0x780) + f2;  // t6==0 beqzl-taken
+ *  (2) `fv = (float)v0` as an EXPLICIT float local forces IDO to hoist the
+ *      single cvt.s.w + mul.s before the branch (matches f390/f3a0). Without
+ *      the named float temp IDO sinks/duplicates the conversion into both arms
+ *      (the old 70.8% shape).
+ *  f2 = (a0->0x1B4) * fv; scale = *(p+0x520); *(p+0x31C) += scale * f0;
+ *  a0->0xF0 = 0; import_00096874(p+0x808); game_uso_func_0001001C(a0);
+ *  double const at game_uso_D_807FFB60 + 0x240 (ldc1 576(at)).
  *
- *   if (p->0x9CC != 0) {
- *       f0 = *(float*)(p + 0x780) + f2;
- *   } else {
- *       f0 = *(float*)(p + 0x798) + f2;
- *   }
- *
- *   if ((short)p->0x9A2 == 0x62) {
- *       f0 = (float)((double)f0 * D_240);    // D_240 is a double constant
- *   }
- *
- *   f8 = *(float*)(p + 0x520);                // scale
- *   *(float*)(p + 0x31C) += f8 * f0;          // accumulate
- *   a0->0xF0 = 0;
- *
- * 2026-06-21 (call-graph DFS): callees/global corrected from placeholder
- * gl_func_00000000 / &D_00000000 to the resolved relocs:
- *   import_00096874(a0->0xB4 + 0x808);   // 1st jal (spills a1=a0)
- *   game_uso_func_0001001C(a0);           // 2nd jal (reloads a1)
- *   double const at game_uso_D_807FFB60 + 0x240 (the ldc1 576(at)).
- *
- * RESIDUAL (honest NON_MATCHING, 1 word short, 48 vs 49): the if/else arms
- * compile to a BNEL/BEQL pair, but the target's branch-LIKELY delay slot
- * DUPLICATES the t6==0 arm's `lwc1 f16,16(v0)` (the dead-looking load at 0xF3B4
- * + its re-load at the merge) — the +1 instruction. This beql-likely
- * delay-slot duplication is an IDO FP-scheduler artifact not reproducible from
- * the if-then-else C form (ternary collapses the per-arm add -> 45 words;
- * if/else hoists f2 but omits the duplicate -> 48 words). Documented
- * FP-scheduler cap. */
+ * RESIDUAL (honest NON_MATCHING, ~89.67%): two coloring/scheduler artifacts.
+ *  - Target keeps p in $v1 and materializes per-block `addiu` base regs
+ *    (v1+1904, v1+1296, v1+1928, v1+796); our build addresses off one base
+ *    with large displacements. Intermediate `char*` pointer locals const-fold
+ *    back to single-base (verified: variant C = identical 89.67%).
+ *  - Target's beqzl-likely delay duplicates `lwc1 f16,16(v0)` (dead at the
+ *    t6!=0 merge, the +1 instruction). FP-scheduler delay-slot dup, not
+ *    reproducible from the if/else C form. */
 extern char game_uso_D_807FFB60;
 extern void import_00096874(int);
 extern void game_uso_func_0001001C(int *);
 void game_uso_func_0000F360(int *a0) {
     int v0 = *(short*)((char*)a0 + 0xE4);
     int *p;
-    float thresh, f2, f0;
+    float f2, f0, fv;
     if (v0 < 0) {
         *(short*)((char*)a0 + 0xE4) = 0;
         v0 = *(short*)((char*)a0 + 0xE4);
     }
     p = *(int**)((char*)a0 + 0xB4);
-    thresh = *(float*)((char*)a0 + 0x1B4);
-    f2 = thresh * (float)v0;
+    fv = (float)v0;
+    f2 = *(float*)((char*)a0 + 0x1B4) * fv;
     if (*(int*)((char*)p + 0x9CC) != 0) {
-        f0 = *(float*)((char*)p + 0x780) + f2;
-    } else {
         f0 = *(float*)((char*)p + 0x798) + f2;
+    } else {
+        f0 = *(float*)((char*)p + 0x780) + f2;
     }
     if (*(short*)((char*)p + 0x9A2) == 0x62) {
         f0 = (float)((double)f0 * *(double*)((char*)&game_uso_D_807FFB60 + 0x240));
