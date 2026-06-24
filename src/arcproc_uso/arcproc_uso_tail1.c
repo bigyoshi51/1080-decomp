@@ -173,14 +173,19 @@ extern int D_00000148, D_0000014C, D_00000068;
  * 0 real diffs — all residual diffs are reloc-resolved jal/D-read immediates + relative
  * branches). Levers: ONE reused `saved` int (frame -40 not -48); `register` s0; valued
  * distinct-externs D_00000148/14C/68 (fold to lw/sw 328/332/104).
- * STRUCTURE/FRAME verified, but PROMOTION IS BLOCKED (2026-06-24 carve attempt failed
- * make verify, reverted): the 6 calls are `gl_func_00000000` PLACEHOLDERS. arcproc USO
- * jals are BAKED addresses (no ELF reloc in the expected .o), so a promoted real-def's
- * gl_func_00000000 calls resolve to the WRONG address -> ROM mismatch. The isolated
- * reloc-aware diff MASKS this (jal-vs-jal scored matching, ignoring the target). To land,
- * the 6 real call targets must be resolved first (map each jal's baked addr to its real
- * arcproc symbol), THEN do the -O0 front-carve (240+5C8+688 -> o0_5C8.c, tail1 starts at
- * 748; sizes 0x508/0x2238 confirmed; arcproc is non-Yay0, make verify gates). Until the
+ * STRUCTURE/FRAME verified, but PROMOTION FAILED make verify (2026-06-24 front-carve,
+ * reverted clean). The carve infra is CORRECT (sizes 0x508/0x2238, arcproc non-Yay0). The
+ * calls are NOT the blocker: the jals are `jal 0` (0x0C000000, USO-relocated not baked) and
+ * the matched sibling arcproc_uso_o0_50 promotes fine with gl_func_00000000 calls. The
+ * blocker is the D+OFFSET READS: this fn reads D_00000148/14C/68; o0_50's matched fn has NO
+ * offset D-reads. Distinct-externs (D_00000148 valued 0x148) FOLD nicely + score matching in
+ * objdiff (reloc-resolved), but generate a DIFFERENT USO reloc-table entry than the target's
+ * base(D_00000000)+0x148 -> ROM mismatch. And base+offset `&D_00000000+0x148` gives the right
+ * USO reloc but MATERIALIZES at -O0 (lui+addiu+lw, extra word) -> wrong .text. This
+ * fold-vs-USO-reloc tension makes USO -O0 fns with D+offset reads hard to promote (the
+ * isolated reloc-aware diff hides it; only make verify sees the USO reloc table). Front-carve
+ * plan ready (240+5C8+688 -> o0_5C8.c, tail1 starts 748) IF the D-read reloc form is solved.
+ * Until the
  * calls are resolved, stays NM. Same blocker for the whole arcproc_uso_tail1 -O0 family. */
 void arcproc_uso_func_000005C8(int *a0) {
     register int s0;
