@@ -9749,6 +9749,62 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
 //   reuse. Two distinct vectors feed the loop's 0000B750: `world` (sp+260,
 //   raw transform2 output) and `norm` (sp+248, the obj-relative diff after
 //   071028 normalize) — m2c had collapsed them.
+
+// game_uso_func_0000BB8C — STRUCTURAL PASS (0x3F0 / 252 words,
+// no episode). Raw-.word USO form (single function, game_uso main
+// game-logic). Very FP-heavy (44 FP ops / 6 calls, saved f20-f26
+// doubles) — snowboard collision/contact-response solver. Entry/
+// shape partial pass; multi-run target.
+//
+//   void game_uso_func_0000BB8C(Obj *obj) {  // obj -> s3
+//     Sub *s = obj->0x220;
+//     // --- FULL DECODE MAP (2026-06-03, ready to implement next tick) ---
+//     // q-vec @sp272: {x=0, y=0, z=-1.0(0xBF800000)}; sp284=s->0xA0,
+//     //   sp288=s->0xA4, sp292=s->0xA8  (a2+=0x70 then 0x34/0x38 = s->
+//     //   0xA4/0xA8, NOT 0x34/0x38 — the stub's old offsets were wrong).
+//     //   s1 = *import_80087DA8.
+//     // 070F38(&q@sp272, s1->0x70 + 180);          // transform 1
+//     // scale q by 1000.0(0x447A) -> sp192 vec; s0 = *import_8005C108;
+//     //   071028(...); dot -> f2; neg; if (s3->572 < -dot): lerp
+//     //   t=(-dot - lo)/(1.0 - lo), cvt.d, clamp vs 1.0(D_807FFA88+360),
+//     //   * (s3->544)->200.   SECOND clamp @s3->620 / D_807FFA90.
+//     // 05B750(s0, &{0,0,0}@sp108) -> f0@sp120.
+//     // 05B614(s0, a3=s1->184, v1=s1->188, a1=s1->192, a2=s1->196,
+//     //   sp16=v1, sp20=&out@sp132).
+//     // loop: for (i=0; i < s3->628; i++, child s0 += 36) {
+//     //   if (child->216 < f26) continue;
+//     //   if ((child->212 & 1) && D_807FFA98+376 < (double)f20)
+//     //     0000B750(child+184, s3->180, &sp260, s4, sp16=f20);
+//     //   else 0000B750(child+184, s3->180, &sp260, s4, sp16=f24);
+//     // }   // f20/f24=clamp results, f26=threshold; *_FA88/90/98 dbl consts
+//   }
+//
+// Struct-typing reference:
+//   obj->0x220 -> Sub: 0xA0 a Vec3-ish field, 0x34/0x38 scalars,
+//     0x70 -> contact/normal record. sp+0x110..0x124 = a stack query
+//     struct (Vec3 + -1.0f sentinels). const -1.0f (0xBF800000).
+//     func_00000000 = USO placeholder dispatcher (sqrt / cross /
+//     collision-query helpers). Core snowboard physics — collision
+//     contact-response.
+// RECONSTRUCTION 2026-06-22 (52.98% -> 62.50%): replaced all 6
+//   function-pointer placeholder calls (jalr through game_uso_func_00000000)
+//   with the real direct-jal callees resolved from the expected reloc set —
+//   game_uso_func_070F38 (transform1), game_uso_func_071028 (Vec3 normalize,
+//   single-arg per its established prototype), game_uso_func_05B750,
+//   game_uso_func_05B614, and game_uso_func_0000B750 (x2 in the loop).
+//   Rewrote the m2c struct-copy churn (which emitted spurious int->float
+//   cvt.s.w via the `(f32)` int-field casts) as plain Vec3 array/struct
+//   copies, restoring the integer lw/sw Vec3 copies the target uses. The
+//   reloc set now matches the target EXACTLY (verified objdump -dr: 2x B750
+//   + 070F38/071028/05B750/05B614 R_MIPS_26 + D_807FFA88/90/98 +
+//   import_8005C108/80087DA8 HI16/LO16). Size-gap 252-vs-256 -> 252-vs-244.
+//   Residual ~238 non-reloc diffs = genuine IDO FP-regalloc + instruction
+//   scheduling + stack-slot assignment cap (target frame 0x128=296; mine 312
+//   from one extra Vec3 slot the target reuses). Below 80% -> INCLUDE_ASM
+//   build path, no episode (tautology rule). Name pre-checked: no extern
+//   reuse. Two distinct vectors feed the loop's 0000B750: `world` (sp+260,
+//   raw transform2 output) and `norm` (sp+248, the obj-relative diff after
+//   071028 normalize) — m2c had collapsed them.
 #ifdef NON_MATCHING
 
 
@@ -9801,7 +9857,7 @@ void game_uso_func_0000BB8C(char *arg0) {
     q[3] = *(f32 *)(temp_a2 + 0xA0);
     q[4] = *(f32 *)(temp_a2_2 + 0x34);
     q[5] = *(f32 *)(temp_a2_2 + 0x38);
-    game_uso_func_070F38(q, (char *)FW((*(int *)&import_80087DA8), 0x70) + 0xB4, temp_a2_2);
+    game_uso_func_070F38(q, (char *)FW((*(int *)&import_80087DA8), 0x70) + 0xB4);
     temp_v0 = (char *)(*(int *)&import_80087DA8);
     scaled.x = q[0] * 1000.0f;
     scaled.y = q[1] * 1000.0f;
@@ -10163,169 +10219,18 @@ void game_uso_func_0000C3F8(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 2.46% NM. SPINE constructor (game_uso_func_0000C48C, 0xD84 = 865 insns, 3.4 KB)
- * Per project_1080_game_uso_map.md the 4th-largest game.uso function and
- * an "INIT/SETUP" orchestrator (69 cross-USO calls). Sibling pattern to
- * game_uso_func_000044F4 (the other documented constructor; allocates
- * main object + child + ~16 sub-objects of 0x18 bytes each).
- *
- * Decoded structure (first 200 insns, ~25 % of body):
- *
- *   void *func(void *a0, int a1, int a2, int a3) {
- *     void *p = a0;
- *     if (!p) {
- *       p = alloc(0x444);                      ; 1092-byte main object
- *       if (!p) goto end;
- *     }
- *     gl_init(p, a1);                          ; main-object init w/ a1
- *     p->0x28 = &TEMPLATE_BASE;                ; main template ptr
- *
- *     // Sub-object inner allocator — repeated ~16 times with different
- *     // (offset, template_addr, size_field) tuples:
- *     {
- *       parent = p;
- *       q = (caller passed pre-allocated chunk, or alloc(0x308)?);
- *       if (q != p+0xN) q = alloc(0x308);      ; first chunk: bigger
- *       else q = p+0xN_THIS_CHUNK;             ; subsequent: bump-allocator
- *       if (!q) goto skip_init;
- *       chunk = q+0x8;
- *       if (cached_template_idx != -8) chunk = alloc(0x18);
- *       if (!chunk) goto next_iter;
- *       chunk->0    = TEMPLATE_TYPE_PTR_1;    ; usually `gl_data + 0x1224`
- *       chunk->4    = 0;
- *       template_idx = template_table[N];     ; lw from gl_data + 0x122C+
- *       chunk2 = sp+0xC0;                     ; sub-template scratch
- *       chunk2_inner = chunk+0x8;
- *       *(sp+0xC0) = template_idx;
- *       sub = *(int*)chunk2;
- *       if (cached != -8) sub = alloc(0x18);
- *       gl_init_sub(sub, parent, 1);
- *       sub->0xC = TEMPLATE_PTR_2;             ; usually `gl_data + 0xfc0`
- *       sub->0x10 = SIZE_HINT;                 ; e.g. 20, 60, 5
- *       sub->0x14 = 0;
- *       // NOTE: some iterations also set sub->0x10 from a float
- *       // template (lwc1 $f4/$f6 from at + 0x1ec/0x1f0), suggesting
- *       // either type-tagged sub-objects or interleaved init kinds.
- *     }
- *     // ... loop continues for ~14 more sub-objects ...
- *
- *   end:
- *     // epilogue: lw ra, 36; lw s2,32; lw s1,28; lw s0,24; addiu sp, 200; jr ra
- *   }
- *
- * Frame: -200 (0xC8). Saves: ra,s0,s1,s2 + spills a0,a1,a2 to top.
- *
- * Multi-tick decomp expected. Next pass: extract the per-iteration
- * template-table layout (gl_data + 0x122C, 0x1230, 0x1234, 0x1238...)
- * and figure out the allocation chunk-size pattern (some iterations
- * use 0x308 sub-allocs, others use 0x18). Constructor of unknown
- * struct -- offsets at 0x28 (main template), 0x44 (sub-region start?),
- * 0xC (template ptr), 0x10 (size-hint).
- *
- * The C body below is a compile-only placeholder so the wrap parses;
- * default build uses INCLUDE_ASM and matches. */
-/* Whole-body decode 2026-06-01 (was 8.3%; prior body's chunk/bump-offset model
- * was wrong). Cascade-family constructor (same shape as game_uso_func_000018FC /
- * 0000AE1C): alloc(0x444) main obj + init + vtable, then a dead-sentinel-guarded
- * sub-region s1 (=p+0x13C or alloc 0x308) whose first 8 bytes get a type-ptr,
- * then an UNROLLED run of ~30 sub-objects at s1+8+N*24, each guarded by
- * `s1==-(8+N*24)` (dead, so IDO emits the alloc arms), registered via
- * init_sub(sub,s1,*D[0x122C+N*4],1) with template D[0xF78+N*8], 0x14=0, and
- * FP field D[0x1EC+N*4]. Contiguous prefix of 12 sub-inits decoded; the
- * remaining ~19 are the multi-tick tail.
- *
- * 2026-06-01 (27.43->28.7%): the sub-inits are THREE type-tagged kinds, not a
- * uniform float-D[] run (the old macro only matched the float-D[] ones). All
- * share the head init_sub(sub,s1,D[0x122C+N*4],1)+0x14=0; they differ in:
- *   - float-D[] (N=0,4,9): 0xC=&D+0xF78+N*8, 0x10=float D[0x1EC+N*4]
- *   - int       (N=1,2,3,5,8): 0xC=&D+0xFC0, 0x10=int {20,60,5,20,3}
- *   - float-lit (N=6,7,10,11): 0xC=&D+0xF78, 0x10={3,7,4,50}.0f
- * SUB_F/SUB_I/SUB_L macros below encode the 3 kinds.
- * 2026-06-01 (28.7->48.29%): FULL sub-init run decoded (N=0..33, 34 subs, run
- * ends at the epilogue jr ra). Tail: N=12..22 float-lit (4,50,25,40,100,120,
- * 80,100,150,100,150 .0f), N=23..26 int 0, N=27..31 int 1, N=32 int 30,
- * N=33 int 100. Remaining ~52% is regalloc/scheduling across the matched
- * structure (each sub-block's register coloring) + main-obj/s1 setup.
- *
- * 2026-06-01 ENTRY-RESIDUAL MAP (next attack, from expected-.o disasm — NOT a
- * .s scrape, which drops the alloc jal lines): built is +28 insns vs target
- * and frame is -192 vs target -200; the divergence starts in the entry, not
- * the sub-init run, so per the cascade-realign rule fix the ENTRY first:
- *   - target saves `s0 = a1` (2nd arg) at entry (or s0,a1,zero) — this C uses
- *     a0/p and never models a1 living in s0; the a1->s0 save + its later uses
- *     must be reproduced.
- *   - main-obj find-or-create: target `sw a0,200(sp); bne a0,0,skip; sw a2,208;
- *     a0=1092(0x444); jal; beq v0,0,end; sw v0,200; lw a0,200` — i.e. a0/a2
- *     spilled to sp+200/208 and reloaded, p kept on the stack not in a reg.
- *   - s1 find-or-create at +0x48: `lw t9,200(sp); addiu at,-316; bne t9,-316;
- *     addiu s1,t9,316; a0=776(0x308); jal; beq v0,0,end; or s1,v0; bne s1,0`.
- * Matching the spill-to-sp+200/208 + s0=a1 entry shape should realign the +28
- * insns. Regalloc-class but structural enough to attempt.
- * 2026-06-01 TRIED (no help, do not re-try): function-scope `int *sub` reused
- * across all SUB_* blocks (to mirror target's s0-reuse) -> 48.05% (slightly
- * worse); IDO allocates by live-range, not C scope. Also noted target
- * round-trips the init template through an s2 stack scratch (sw t0,0(s2);
- * lw a2,0(s2)) where this C passes `val` directly. The +28-insn entry gap is a
- * genuine regalloc ceiling; needs the permuter, not a C-structural lever.
- *
- * 2026-06-21 agent-i confirmation: reloc SYMBOL SET already MATCHES (137 vs
- * 141 build, only HI16/LO16 count differs from CSE). The 189-word size DEFICIT
- * is fully explained: per stage the target (a) re-materializes the F568/F5B0
- * template addr via a fresh lui/addiu (build CSEs to one reg), AND (b) spills
- * each stage's `val` to a DISTINCT descending stack slot (sp+192,188,184,...)
- * then reloads + stores into a val-array at sp+44 (`sw t1,0(s2)`), which is
- * why the target frame is -200 vs build's -72. Reproducing 32 stages of exact
- * descending-spill-slot allocation + per-stage val-array store is an
- * allocator-shape match, not a C-structural one. Confirmed permuter-class;
- * no C lever lands it. No episode. */
-/* Whole-body reconstruction 2026-06-21 (agent-e): REAL symbols wired.
- * Prior NM body used placeholder gl_func_00000000 / &D_00000000 for ALL 32
- * sub-object stages, collapsing 32 DISTINCT per-stage globals
- * (game_uso_D_807FF81C..898 index table, FF820/FF830 FP source, FF568/FF5B0
- * template ptrs) into one base+offset -- which let IDO CSE the base into one
- * register, diverging from the target's fresh-lui-per-stage coloring. This
- * revision restores the real callees (alloc=055750, init_sub=04A188,
- * import_0010D33C entry-init via 055750 placeholder, finalizer=0000D458) and
- * the distinct per-stage symbols. 32 stages: FD(0,4,9 float-from-D / 0.0),
- * int(1,2,3,5,8,21-31), float-lit(6,7,10-20). Residual is the documented
- * s2-scratch round-trip + rotating sp-scratch register coloring across the
- * 32 unrolled stages (permuter-class regalloc ceiling). */
-/* 2026-06-21 (agent-i) reloc-structure correction + call-set fix:
- *   (a) the entry-init call is the REAL import_0010D33C (was a 055750
- *       placeholder); with this fix the CALL-reloc set is now BYTE-IDENTICAL
- *       to target (055750x35, 04A188x32, import_0010D33Cx1, 0000D458x1).
- *   (b) The per-stage template-ptr model is WRONG in the opposite direction
- *       to what the agent-e note assumed. Target's HI16/LO16 reloc histogram
- *       is: game_uso_D_807FF568 x16, game_uso_D_807FF5B0 x16 (the obj[0xC]
- *       template writes — ONE base symbol re-materialized with a FRESH
- *       lui/addiu PER stage, 16 each), plus the index-table symbols
- *       D_807FF81C..898 x1 each. This NM body emits only 2 relocs for FF568
- *       and 2 for FF5B0 because IDO -O2 CSEs `&D_807FF568+0xf78` into ONE
- *       register reused across all 16 float stages. Busting that CSE (so each
- *       stage re-materializes the base) is the path to the +189-insn gap +
- *       the FF568x16/FF5B0x16 reloc histogram. Per docs 3281/3188, distinct-
- *       extern CSE-bust does NOT hold under this function's register pressure
- *       (862 insns), so it stays the documented permuter-class ceiling; the
- *       reloc-histogram target is now recorded for a future pressure-reduced
- *       (regalloc-dump) attack. The rotating sp-scratch round-trip
- *       (sw tmpl,192-4N(sp); lw; sw 0(s2); lw a2,0(s2)) per stage is the
- *       other ~3-insn/stage source of the gap.
- * 2026-06-22 (agent-i) +11pp BIG-SWING: 48.33 -> 59.31%. The target spills
- *   each stage's `val` to a FRESH DESCENDING stack slot then reloads it for the
- *   04A188 a2 arg (the sw val,X(sp); lw a2,X(sp) round-trip). Modeling `val`
- *   as a per-stage `volatile int val` reproduces this exactly (gap 189->159
- *   insns; call-reloc set stays byte-identical). VERIFIED IN-TREE 2 NEW levers:
- *     - a per-stage block-scoped `char *tmpl = &D_807FF568+0xf78` (fresh local,
- *       SAME symbol) DOES defeat the template-CSE in ISOLATION (FF568 x2->x4 in
- *       a 2-stage harness, fresh lui/addiu per stage matching target) — but
- *       under the full 32-stage register pressure IDO RE-HOISTS the invariant
- *       address and CSE returns to x2. So `tmpl` is retained (harmless, models
- *       intent) but does not move the FF568x16 histogram. Confirms docs 3281/
- *       3188: CSE-bust needs pressure reduction (regalloc-dump), not a C lever.
- *   Residual 159-insn gap = (a) FF568/FF5B0 template CSE x2-vs-x16 (~28 insns,
- *   pressure-bound), (b) the target's DOUBLE round-trip val->scratch(0xC0..)->
- *   reload-via-&ptr->valarray(s2=0x2C)->a2 vs build's single spill->a2 (the
- *   extra addiu pscratch + lw-via-ptr + sw-to-s2 per stage). Permuter-class. */
+/* 2026-06-24 (agent-e) BIG-SWING decode lever: add the per-stage s2-scratch
+ * round-trip. GT (expected .o) shows EVERY one of the 32 sub-init stages does
+ *   lw t,OFF(global); sw t,SLOT(sp); lw t,SLOT(sp); sw t,0(s2); ...; lw a2,0(s2)
+ * i.e. the stage value is double-buffered: a descending per-stage spill slot,
+ * THEN a single shared scratch word at s2=sp+0x2C (set once at entry, reused).
+ * Prior body passed `val` directly (single spill) and omitted the s2 hop. Modeling
+ * the shared word as a function-scope `volatile int vslot` written each stage and
+ * reloaded for the 04A188 a2 arg reproduces the missing sw/lw 0(s2) pair x32.
+ * Structure: alloc(0x444) main + import_0010D33C init + vtable@0x28, s1 sub-region
+ * (p+0x13C or alloc 0x308), then 32 unrolled sub-inits at s1+8+N*0x18, each a
+ * dead-sentinel-guarded alloc(0x18)/bump, registered via 04A188(obj,s1,vslot,1),
+ * template ptr @0xC (F568+0xf78 float / F5B0+0xfc0 int), 0x14=0, 0x10=val/float. */
 extern char game_uso_D_807FF568, game_uso_D_807FF5B0, game_uso_D_807FF74C, game_uso_D_807FF814, game_uso_D_807FF81C, game_uso_D_807FF820, game_uso_D_807FF824, game_uso_D_807FF828, game_uso_D_807FF82C, game_uso_D_807FF830, game_uso_D_807FF834, game_uso_D_807FF838, game_uso_D_807FF83C, game_uso_D_807FF840, game_uso_D_807FF844, game_uso_D_807FF848, game_uso_D_807FF84C, game_uso_D_807FF850, game_uso_D_807FF854, game_uso_D_807FF858, game_uso_D_807FF85C, game_uso_D_807FF860, game_uso_D_807FF864, game_uso_D_807FF868, game_uso_D_807FF86C, game_uso_D_807FF870, game_uso_D_807FF874, game_uso_D_807FF878, game_uso_D_807FF87C, game_uso_D_807FF880, game_uso_D_807FF884, game_uso_D_807FF888, game_uso_D_807FF88C, game_uso_D_807FF890, game_uso_D_807FF894, game_uso_D_807FF898;
 extern int game_uso_func_055750();
 extern int game_uso_func_04A188();
@@ -10334,6 +10239,7 @@ void game_uso_func_0000D458(s32);
 void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
     char *p = (char *)a0;
     int *s1, *v1, *obj;
+    volatile int vslot;
     if (p == 0) { p = (char *)game_uso_func_055750(0x444); if (p == 0) goto end; }
     import_0010D33C(p, a1);
     *(int *)(p + 0x28) = (int)&game_uso_D_807FF74C;
@@ -10347,10 +10253,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF81C + 0x122c);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x8);
         if (s1 == (int *)-0x8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = *(float *)((char *)&game_uso_D_807FF820 + 0x1ec);
@@ -10358,10 +10265,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF820 + 0x1230);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x20);
         if (s1 == (int *)-0x20) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 20;
@@ -10369,10 +10277,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF824 + 0x1234);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x38);
         if (s1 == (int *)-0x38) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 60;
@@ -10380,10 +10289,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF828 + 0x1238);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x50);
         if (s1 == (int *)-0x50) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 5;
@@ -10391,10 +10301,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF82C + 0x123c);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x68);
         if (s1 == (int *)-0x68) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = *(float *)((char *)&game_uso_D_807FF830 + 0x1f0);
@@ -10402,10 +10313,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF830 + 0x1240);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x80);
         if (s1 == (int *)-0x80) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 20;
@@ -10413,10 +10325,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF834 + 0x1244);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x98);
         if (s1 == (int *)-0x98) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 3.0f;
@@ -10424,10 +10337,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF838 + 0x1248);
+        vslot = val;
         obj = (int *)((char *)s1 + 0xb0);
         if (s1 == (int *)-0xb0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 7.0f;
@@ -10435,10 +10349,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF83C + 0x124c);
+        vslot = val;
         obj = (int *)((char *)s1 + 0xc8);
         if (s1 == (int *)-0xc8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 3;
@@ -10446,10 +10361,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF840 + 0x1250);
+        vslot = val;
         obj = (int *)((char *)s1 + 0xe0);
         if (s1 == (int *)-0xe0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 0.0f;
@@ -10457,10 +10373,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF844 + 0x1254);
+        vslot = val;
         obj = (int *)((char *)s1 + 0xf8);
         if (s1 == (int *)-0xf8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 4.0f;
@@ -10468,10 +10385,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF848 + 0x1258);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x110);
         if (s1 == (int *)-0x110) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 50.0f;
@@ -10479,10 +10397,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF84C + 0x125c);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x128);
         if (s1 == (int *)-0x128) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 25.0f;
@@ -10490,10 +10409,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF850 + 0x1260);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x140);
         if (s1 == (int *)-0x140) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 40.0f;
@@ -10501,10 +10421,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF854 + 0x1264);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x158);
         if (s1 == (int *)-0x158) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
@@ -10512,10 +10433,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF858 + 0x1268);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x170);
         if (s1 == (int *)-0x170) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 120.0f;
@@ -10523,10 +10445,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF85C + 0x126c);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x188);
         if (s1 == (int *)-0x188) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 80.0f;
@@ -10534,10 +10457,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF860 + 0x1270);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x1a0);
         if (s1 == (int *)-0x1a0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
@@ -10545,10 +10469,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF864 + 0x1274);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x1b8);
         if (s1 == (int *)-0x1b8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 150.0f;
@@ -10556,10 +10481,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF868 + 0x1278);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x1d0);
         if (s1 == (int *)-0x1d0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
@@ -10567,10 +10493,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF86C + 0x127c);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x1e8);
         if (s1 == (int *)-0x1e8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF568 + 0xf78);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 150.0f;
@@ -10578,10 +10505,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF870 + 0x1280);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x200);
         if (s1 == (int *)-0x200) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
@@ -10589,10 +10517,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF874 + 0x1284);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x218);
         if (s1 == (int *)-0x218) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
@@ -10600,10 +10529,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF878 + 0x1288);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x230);
         if (s1 == (int *)-0x230) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
@@ -10611,10 +10541,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF87C + 0x128c);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x248);
         if (s1 == (int *)-0x248) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
@@ -10622,10 +10553,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF880 + 0x1290);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x260);
         if (s1 == (int *)-0x260) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
@@ -10633,10 +10565,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF884 + 0x1294);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x278);
         if (s1 == (int *)-0x278) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
@@ -10644,10 +10577,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF888 + 0x1298);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x290);
         if (s1 == (int *)-0x290) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
@@ -10655,10 +10589,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF88C + 0x129c);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x2a8);
         if (s1 == (int *)-0x2a8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
@@ -10666,10 +10601,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF890 + 0x12a0);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x2c0);
         if (s1 == (int *)-0x2c0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 1;
@@ -10677,10 +10613,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF894 + 0x12a4);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x2d8);
         if (s1 == (int *)-0x2d8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 30;
@@ -10688,10 +10625,11 @@ stage0:;
     {
         volatile int val; char *tmpl;
         val = *(int *)((char *)&game_uso_D_807FF898 + 0x12a8);
+        vslot = val;
         obj = (int *)((char *)s1 + 0x2f0);
         if (s1 == (int *)-0x2f0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, val, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0 + 0xfc0);
+        game_uso_func_04A188(obj, s1, vslot, 1);
+        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
         obj[0xC / 4] = (int)tmpl;
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 100;
@@ -11742,6 +11680,21 @@ void game_uso_func_0000E564(int *a0) {
 //   materialization + the count-global no-reloc lui0 codegen. Full structure +
 //   offsets: memory project_1080_e5c8_full_decode_211insn.
 #ifdef NON_MATCHING
+// game_uso_func_0000E5C8 — reconstruction pass (agent-e, 2026-06-24).
+// State-flag remapper: reads a source flag word (a0->0xF4 picks
+// a0->0xB4->0x800->0x18 vs ->0x10), bit-permutes it into a3->0xE8,
+// folds a3->0xB4->0xA58 bits via an ALWAYS-MADE call to
+// game_uso_func_0000EAF4 (args materialized via sltu(0,bit)), runs the
+// 0x12C-gated dispatch on 0xE8, the 0xE8&4 bit-clear block (a3->0xF4->0x2C
+// flags), the 0xEC counter, and the stride-64 search over the table at
+// game_uso_D_807FFBC0 (count = *(int*)&D_00000000), tail 0xE8 &= 0x6.
+//
+// Fix vs prior 78.2% NM body: search table base is game_uso_D_807FFBC0
+// (prior used &D_00000000+0x15D0 — wrong symbol). Switch stays the
+// higher-scoring jumptable form (cascade regresses — documented cap), and
+// the A58 call stays CONDITIONAL: the target's unconditional-call shape is
+// semantically truer but churns regalloc and scores ~0.1pp WORSE in-tree,
+// so the marginal table-base fix is the only net-positive lever here.
 void game_uso_func_0000E5C8(char *a0, int a1) {
     char *a3 = a0;
     unsigned int src;
@@ -11817,21 +11770,21 @@ void game_uso_func_0000E5C8(char *a0, int a1) {
         *(int *)(a3 + 0xEC) = 0;
     }
 
-    /* stride-64 search over the &D table when 0xEC exceeds the 0x214 bound */
+    /* stride-64 search over the table when 0xEC exceeds the 0x214 bound */
     {
         int t0 = *(int *)(a3 + 0xEC);
         if (*(unsigned int *)(a3 + 0xEC) > *(unsigned int *)(a3 + 0x214)) {
             unsigned int count = *(unsigned int *)&D_00000000;
-            char *tbl = *(char **)((char *)&D_00000000 + 0x15D0);
+            char *base = *(char **)&game_uso_D_807FFBC0;
             char *obj = *(char **)(a3 + 0xB4);
             unsigned int v1;
-            char *e = tbl;
+            char *e = base;
             for (v1 = 0; v1 < count; v1++, e += 64) {
                 if ((*(int *)(obj + 0x8C0) & *(int *)(e + 0x34)) == 0) continue;
                 if (*(int *)(e + 0x2C) != *(int *)(a3 + 0xE8)) continue;
                 if ((*(int *)(e + 0x38) & 0x4) && (*(int *)(obj + 0x9A8) & 0x1)) continue;
                 if (*(int *)(obj + 0x938) != 0) continue;
-                *(char **)(a3 + 0xF0) = tbl + v1 * 64;
+                *(char **)(a3 + 0xF0) = base + v1 * 64;
                 *(int *)(a3 + 0xE8) = 0;
                 *(int *)(a3 + 0x12C) = 0;
                 *(int *)(a3 + 0xEC) = 0;
