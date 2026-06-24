@@ -171,15 +171,17 @@ extern int D_00000148, D_0000014C, D_00000068;
  * UNFILLED jal delays (jal;nop) + 48w; this file is -O2 so the build fills them and compacts
  * to 37w. The -O0 C below is VERIFIED BYTE-EXACT (2026-06-23: isolated -O0 build = 48w/48w,
  * 0 real diffs — all residual diffs are reloc-resolved jal/D-read immediates + relative
- * branches). Levers: ONE reused `saved` int (target shares the slot, sw v0,36 twice -> frame
- * -40 not -48); `register` s0 (constructor result kept in s0 across the final call); valued
- * distinct-externs D_00000148/14C/68 (fold to lw/sw 328/332/104). NEEDS AN -O0 SPLIT to land
- * (model arcproc_uso_o0_50/12C/748.c -> src/arcproc_uso/arcproc_uso_o0_5C8.c, OPT_FLAGS -O0 +
- * TRUNCATE 0xC0 + tenshoe.ld + objdiff unit; Yay0 USO so make verify ROM-cmp gates). BUT 5C8
- * is MID-FILE (func_00000240 before, func_00000688 after) in a MIXED file (37 matched -O2 +
- * 18 -O0 NM) -> the split needs tail1 carved into pre/post parts or a contiguous -O0 cluster
- * (5C8+688 are adjacent, both -O0). Multi-step; the C is ready when a dedicated split tick
- * runs. Whole arcproc_uso_tail1 -O0 family (5C8/688/199C/251C/16F4/125C/1B04/1BBC) same. */
+ * branches). Levers: ONE reused `saved` int (frame -40 not -48); `register` s0; valued
+ * distinct-externs D_00000148/14C/68 (fold to lw/sw 328/332/104).
+ * STRUCTURE/FRAME verified, but PROMOTION IS BLOCKED (2026-06-24 carve attempt failed
+ * make verify, reverted): the 6 calls are `gl_func_00000000` PLACEHOLDERS. arcproc USO
+ * jals are BAKED addresses (no ELF reloc in the expected .o), so a promoted real-def's
+ * gl_func_00000000 calls resolve to the WRONG address -> ROM mismatch. The isolated
+ * reloc-aware diff MASKS this (jal-vs-jal scored matching, ignoring the target). To land,
+ * the 6 real call targets must be resolved first (map each jal's baked addr to its real
+ * arcproc symbol), THEN do the -O0 front-carve (240+5C8+688 -> o0_5C8.c, tail1 starts at
+ * 748; sizes 0x508/0x2238 confirmed; arcproc is non-Yay0, make verify gates). Until the
+ * calls are resolved, stays NM. Same blocker for the whole arcproc_uso_tail1 -O0 family. */
 void arcproc_uso_func_000005C8(int *a0) {
     register int s0;
     int saved;
