@@ -2770,13 +2770,15 @@ void game_uso_func_00004168(Quad4 *dst) {
 
 #ifdef NON_MATCHING
 /* game_uso_func_000041C0: cascading subsystem-init constructor (frame -0x48).
- * Whole-body decode 2026-06-01. alloc(0x8C) + init(051C28), set vtable 0x28,
- * then four dead sentinel-guarded sub-stages (acc == -0x3C/-8/-0x20/-0x38,
- * never true on the live path since acc = p1+0x3C from an opaque alloc, so
- * IDO must emit the dead arms — the family's dead-stage-guard pattern), each
- * alloc(0x18)+register(04A188)+template-init. Tail walks a0->0x40 and links
- * the new node back to p1. Data %hi-refs approximate (named-symbol externs;
- * the target's %hi-only+literal form leaves the addiu-imm as a residual). */
+ * Whole-body re-decode 2026-06-24 from expected/.o (size 0x218). alloc(0x8C)
+ * + init(051C28) + set vtable slot 0x28; obj = p1+0x3C (realloc(0x50) only if
+ * obj==0). Three dead sentinel-guarded sub-stages (obj == -8/-0x20/-0x38,
+ * never live since obj = p1+0x3C from an opaque alloc — the family's
+ * dead-stage-guard pattern): each loads template = *(D+0x6cX), computes
+ * a0=obj+8/+0x20/+0x38, and on the (dead) equal arm alloc(0x18)+register
+ * (04A188(obj2,obj,template,flag)) + template-init (incl. 1.0f swc1 in arm 1).
+ * Tail: walk a0saved->0x40 node; if non-null link p1+0x10 via 07ACE0, set
+ * node+4=1 when node+0x14!=0, then node+0x14 = p1. Returns p1 (v1). */
 extern char game_uso_D_807FEB68;
 extern char game_uso_D_807FECA0;
 extern char game_uso_D_807FECB4;
@@ -2790,68 +2792,80 @@ extern int game_uso_func_04A188();
 extern int game_uso_func_07ACE0();
 int *game_uso_func_000041C0(int a0) {
     int *p1;
-    int *acc;
     int *obj;
-    int t;
+    int *obj2;
+    int tmpl;
     int *node;
+    int *parent;
 
     p1 = (int *)game_uso_func_055750(0x8C);
-    if (p1 == 0) return 0;
+    if (p1 == 0) {
+        return p1;
+    }
     game_uso_func_051C28(p1);
     *(int *)((char *)p1 + 0x28) = (int)&game_uso_D_807FEB68;
 
-    acc = (int *)((char *)p1 + 0x3C);
+    obj = (int *)((char *)p1 + 0x3C);
     if ((int)p1 == -0x3C) {
-        acc = (int *)game_uso_func_055750(0x50);
-        if (acc == 0) return 0;
+        obj = (int *)game_uso_func_055750(0x50);
+        if (obj == 0) {
+            return obj;
+        }
     }
-    if (acc == 0) {
-        int *q = (int *)game_uso_func_055750(8);
-        if (q != 0) {
-            q[0] = (int)((char *)&game_uso_D_807FECA0 + 0x6B0);
-            q[1] = 0;
+    if (obj == 0) {
+        obj2 = (int *)game_uso_func_055750(8);
+        if (obj2 != 0) {
+            obj2[0] = (int)((char *)&game_uso_D_807FECA0 + 0x6B0);
+            obj2[1] = 0;
         }
     }
 
-    t = *(int *)((char *)&game_uso_D_807FECB4 + 0x6C4);
-    if ((int)acc == -8) {
-        obj = (int *)game_uso_func_055750(0x18);
-        if (obj == 0) return 0;
-        game_uso_func_04A188(obj, acc, t, 1);
-        *(int *)((char *)obj + 0xC) = (int)((char *)&game_uso_D_807FE9B8 + 0x3C8);
-        *(int *)((char *)obj + 0x14) = 0;
-        *(float *)((char *)obj + 0x10) = 1.0f;
+    tmpl = *(int *)((char *)&game_uso_D_807FECB4 + 0x6C4);
+    if ((int)obj == -8) {
+        obj2 = (int *)game_uso_func_055750(0x18);
+        if (obj2 == 0) {
+            return obj2;
+        }
+        game_uso_func_04A188(obj2, obj, tmpl, 1);
+        *(int *)((char *)obj2 + 0xC) = (int)((char *)&game_uso_D_807FE9B8 + 0x3C8);
+        *(int *)((char *)obj2 + 0x14) = 0;
+        *(float *)((char *)obj2 + 0x10) = 1.0f;
     }
 
-    t = *(int *)((char *)&game_uso_D_807FECB8 + 0x6C8);
-    if ((int)acc == -0x20) {
-        obj = (int *)game_uso_func_055750(0x18);
-        if (obj == 0) return 0;
-        game_uso_func_04A188(obj, acc, t, 1);
-        *(int *)((char *)obj + 0xC) = (int)((char *)&game_uso_D_807FEA00 + 0x410);
-        *(int *)((char *)obj + 0x10) = 0;
-        *(int *)((char *)obj + 0x14) = 0;
+    tmpl = *(int *)((char *)&game_uso_D_807FECB8 + 0x6C8);
+    if ((int)obj == -0x20) {
+        obj2 = (int *)game_uso_func_055750(0x18);
+        if (obj2 == 0) {
+            return obj2;
+        }
+        game_uso_func_04A188(obj2, obj, tmpl, 1);
+        *(int *)((char *)obj2 + 0xC) = (int)((char *)&game_uso_D_807FEA00 + 0x410);
+        *(int *)((char *)obj2 + 0x10) = 0;
+        *(int *)((char *)obj2 + 0x14) = 0;
     }
 
-    t = *(int *)((char *)&game_uso_D_807FECBC + 0x6CC);
-    if ((int)acc == -0x38) {
-        obj = (int *)game_uso_func_055750(0x18);
-        if (obj == 0) return 0;
-        game_uso_func_04A188(obj, acc, t, 0);
-        *(int *)((char *)obj + 0xC) = (int)((char *)&game_uso_D_807FEA00 + 0x410);
-        *(int *)((char *)obj + 0x14) = 0;
-        *(int *)((char *)obj + 0x10) = 0;
+    tmpl = *(int *)((char *)&game_uso_D_807FECBC + 0x6CC);
+    if ((int)obj == -0x38) {
+        obj2 = (int *)game_uso_func_055750(0x18);
+        if (obj2 == 0) {
+            return obj2;
+        }
+        game_uso_func_04A188(obj2, obj, tmpl, 0);
+        *(int *)((char *)obj2 + 0xC) = (int)((char *)&game_uso_D_807FEA00 + 0x410);
+        *(int *)((char *)obj2 + 0x14) = 0;
+        *(int *)((char *)obj2 + 0x10) = 0;
     }
 
     node = *(int **)((char *)a0 + 0x40);
+    parent = p1;
     if (node != 0) {
         game_uso_func_07ACE0((char *)p1 + 0x10, node);
         if (*(int *)((char *)node + 0x14) != 0) {
             *(int *)((char *)node + 4) = 1;
         }
-        *(int *)((char *)node + 0x14) = (int)p1;
+        *(int *)((char *)node + 0x14) = (int)parent;
     }
-    return p1;
+    return parent;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000041C0);
@@ -10588,76 +10602,107 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
  * on the `f0 < thresh` path and the child mode-mask is `& ~3` (corrected from the
  * earlier comment's `!(...)` / `~4`). Future tightening = per-block RE. */
 #ifdef NON_MATCHING
+/* game_uso_func_0000D204/D210 - reconstructed against expected .o (133w).
+ * Corrections over prior 47.4% body: real callee names from R_MIPS_26 relocs
+ * (07C0C0/D9CC/ECE8/076E78/0775F8 instead of gl_func_00000000); import_80020098
+ * base for the +0x64 gate, child obj = import->0x138, v1=import reused;
+ * D-pair arg = &game_uso_D_807FF68C+4252; table-scan loop vs D_807FF3B8+0xDC8. */
+extern char import_80020098;
+extern char game_uso_D_807FF68C;
+extern char game_uso_D_807FF3B8;
+extern void game_uso_func_07C0C0(int, char *, int);
+extern void game_uso_func_0000D9CC(char *);
+extern void game_uso_func_0000ECE8(int *);
+extern void game_uso_func_076E78(int);
+extern void game_uso_func_0775F8(int *);
 void game_uso_func_0000D204(int *a0) {
     int *a3 = a0;
     int *obj;
     int *child;
     int *v0;
     int *v1;
-    float thresh = *(float*)((char*)&D_00000000 + 0x1F4);
+    float thresh = *(float *)((char *)&D_00000000 + 0x1F4);
 
-    if (*(int*)((char*)&D_00000000 + 0x64) == 0) {
-        obj = *(int**)((char*)a3 + 0xB4);
-        if (*(float*)((char*)obj + 0xBC) < thresh) {
-            *(int*)((char*)a3 + 0x120) = 0;
+    if (*(int *)((char *)&import_80020098 + 0x64) == 0) {
+        obj = *(int **)((char *)a3 + 0xB4);
+        if (*(float *)((char *)obj + 0xBC) < thresh) {
+            *(int *)((char *)a3 + 0x120) = 0;
         }
-        obj = *(int**)((char*)a3 + 0xB4);
-        if (*(float*)((char*)obj + 0xBC) < thresh) {
-            child = *(int**)((char*)&D_00000000 + 0x138);
-            *(int*)((char*)child + 0xB4) &= ~3;
-        } else if (*(int*)((char*)a3 + 0x120) == 0) {
-            child = *(int**)((char*)&D_00000000 + 0x138);
-            *(int*)((char*)child + 0xB4) |= 3;
+        obj = *(int **)((char *)a3 + 0xB4);
+        if (*(float *)((char *)obj + 0xBC) < thresh) {
+            child = *(int **)((char *)&import_80020098 + 0x138);
+            *(int *)((char *)child + 0xB4) &= ~3;
+        } else if (*(int *)((char *)a3 + 0x120) == 0) {
+            child = *(int **)((char *)&import_80020098 + 0x138);
+            *(int *)((char *)child + 0xB4) |= 3;
         } else {
-            child = *(int**)((char*)&D_00000000 + 0x138);
-            *(int*)((char*)child + 0xB4) &= ~3;
+            child = *(int **)((char *)&import_80020098 + 0x138);
+            *(int *)((char *)child + 0xB4) &= ~3;
         }
     }
 
-    v0 = *(int**)((char*)a3 + 0xB4);
-    if (*(int*)((char*)v0 + 0x938) == 0
-        && *(float*)((char*)v0 + 0x9D0) < 700.0f
-        && *(float*)((char*)v0 + 0x31C) < -100.0f) {
-        gl_func_00000000(*(int*)((char*)v0 + 0x800),
-                         (char*)&D_00000000 + 0x109C, 1);
+    v0 = *(int **)((char *)a3 + 0xB4);
+    if (*(int *)((char *)v0 + 0x938) == 0
+        && *(float *)((char *)v0 + 0x9D0) < 700.0f
+        && *(float *)((char *)v0 + 0x31C) < -100.0f) {
+        game_uso_func_07C0C0(*(int *)((char *)v0 + 0x800),
+                             (char *)&game_uso_D_807FF68C + 4252, 1);
     }
 
-    if (*(int*)((char*)a3 + 0x114) == 0) {
-        gl_func_00000000(a3);
+    if (*(int *)((char *)a3 + 0x114) == 0) {
+        game_uso_func_0000D9CC((char *)a3);
     }
 
-    v1 = (int*)((char*)a3 + 200);
+    v1 = (int *)((char *)a3 + 200);
     {
-        int *tbl = (int*)((char*)&D_00000000 + 0xDC8);
-        if (v1[0] == tbl[0] && v1[1] == tbl[1]) {
-            if (*(short*)((char*)a3 + 0xCA) >= 0) {
-                char *base = (char*)a3 + *(short*)((char*)a3 + 0xC8);
+        int *tbl = (int *)((char *)&game_uso_D_807FF3B8 + 0xDC8);
+        int *p = v1;
+        int found = 0;
+        do {
+            if (*p != *tbl) {
+                found = 0;
+                break;
+            }
+            p++;
+            tbl++;
+        } while (p != v1 + 2);
+        if (p == v1 + 2) {
+            found = 1;
+        }
+        if (found) {
+            char *base = (char *)a3 + *(short *)((char *)a3 + 0xC8);
+            int (*fn)();
+            int a0v;
+            if (*(short *)((char *)a3 + 0xCA) >= 0) {
                 int sel;
                 int *row;
-                int (*fn)();
-                if (v1[1] != 0 || *(short*)((char*)v1 + 0) != 0) {
+                if (v1[1] != 0) {
                     sel = v1[1];
+                } else if (*(short *)((char *)v1 + 0) != 0) {
+                    sel = 0;
                 } else {
                     sel = 40;
                 }
-                row = *(int**)(base + sel);
-                row = (int*)((char*)row + (*(short*)((char*)v1 + 2) << 3));
-                fn = (int(*)())row[1];
-                fn((char*)a3 + *(short*)((char*)row + 0));
+                row = *(int **)(base + sel);
+                row = (int *)((char *)row + (*(short *)((char *)v1 + 2) << 3));
+                fn = (int (*)())row[1];
+                a0v = (int)((char *)base + *(short *)((char *)row + 0));
             } else {
-                gl_func_00000000(a3, v1[1]);
+                fn = (int (*)())v1[1];
+                a0v = (int)base;
             }
+            fn(a0v);
         }
     }
 
-    gl_func_00000000(a3);
-    if (*(int*)((char*)a3 + 0x74) != 0) {
-        gl_func_00000000(*(int*)((char*)a3 + 0x58));
-        if (*(int*)((char*)a3 + 0x74) != *(int*)((char*)a3 + 0x104)) {
-            *(int*)((char*)a3 + 0x104) = *(int*)((char*)a3 + 0x74);
+    game_uso_func_0000ECE8(a3);
+    if (*(int *)((char *)a3 + 0x74) != 0) {
+        game_uso_func_076E78(*(int *)((char *)a3 + 0x58));
+        if (*(int *)((char *)a3 + 0x74) != *(int *)((char *)a3 + 0x104)) {
+            *(int *)((char *)a3 + 0x104) = *(int *)((char *)a3 + 0x74);
         }
     }
-    gl_func_00000000(a3);
+    game_uso_func_0775F8(a3);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D204);
