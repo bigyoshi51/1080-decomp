@@ -113,16 +113,20 @@ extern UsoSlotGroup D_800182E4;
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002CD0);
 
+/* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002DB0);
 
+/* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002DE0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002DF0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002E70);
 
+/* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002E78);
 
+/* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002F78);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800030D0);
@@ -131,6 +135,7 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800031D0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800031E0);
 
+/* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800031F0);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80003C24);

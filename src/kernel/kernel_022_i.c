@@ -68,4 +68,5 @@ extern OSEventState __osEventStateTab[];
 
 
 
+/* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800099F0);
