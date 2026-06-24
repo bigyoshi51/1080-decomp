@@ -21,6 +21,11 @@ void func_0001266C(char *a0, int a1) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+/* func_000126EC [84.95%, -O0, capped]: residual is -O0 literal-address-0 materialization
+ * (`*(int*)0=arg1` emits sw 0(zero) vs target lui;sw) + short-load + move-s0-s1. The
+ * struct-cast-fold lever does NOT apply: relocs checked (2026-06-24) — the only reloc is the
+ * R_MIPS_26 call; the 0/0x28 reads are LITERAL addresses, not D_00000000-relative, so there
+ * is no base symbol to fold against. Don't re-attempt the struct-cast on it. */
 typedef char *(*GP_000126EC)();
 void func_000126EC(char *arg0, s32 arg1) {
     s32 sp34;
