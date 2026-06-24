@@ -1150,8 +1150,13 @@ extern char game_uso_D_807FE908, game_uso_D_807FE910, game_uso_D_807FE914,
 void *game_uso_func_000018FC(void *a0) {
     char *s0 = (char *)a0;
     int *q;
-    Vec3 vbuf;
-    Vec3 vbuf_c1;
+    struct { int idx; Vec3 v; } big;
+    Vec3 lo;
+    Vec3 hi;
+    Vec3 lo_c1;
+    Vec3 hi_c1;
+    Vec3 big_c1;
+    int idx_save;
 
     if (s0 == 0) {
         s0 = (char *)game_uso_func_055750(0xD0);
@@ -1165,13 +1170,22 @@ void *game_uso_func_000018FC(void *a0) {
     q[0] = (int)((char *)&game_uso_D_807FE908 + 0x318);
     q[1] = 0;
 fp:
-    vbuf.x = 0.0f;
-    vbuf.y = 64.0f;
-    vbuf.z = 0.0f;
-    vbuf_c1 = vbuf;
+    hi.x = 0.0f;
+    hi.z = 0.0f;
+    lo.x = -1000.0f;
+    lo.y = -1000.0f;
+    lo.z = -1000.0f;
+    big.idx = *(int *)((char *)&game_uso_D_807FE910 + 0x320);
+    big.v.x = 1000.0f;
+    big.v.y = 1000.0f;
+    big.v.z = 1000.0f;
+    hi.y = 64.0f;
 
-    /* stage 1: s0+8, alloc(0x20), template D_807FE620+48, Vec3 init via
-     * struct-copy chain (vbuf -> vbuf_c1 -> obj_c -> obj+0x10). */
+    hi_c1 = hi;
+    lo_c1 = lo;
+    big_c1 = big.v;
+    idx_save = big.idx;
+
     {
         int *obj = (int *)(s0 + 8);
         Vec3 obj_c;
@@ -1179,10 +1193,10 @@ fp:
             obj = (int *)game_uso_func_055750(0x20);
             if (obj == 0) goto end;
         }
-        game_uso_func_04A188(obj, s0, *(int *)((char *)&game_uso_D_807FE910 + 0x320), 1);
+        game_uso_func_04A188(obj, s0, idx_save, 1);
         obj[0xC / 4] = (int)((char *)&game_uso_D_807FE620 + 48);
         obj[0x1C / 4] = 0;
-        obj_c = vbuf_c1;
+        obj_c = hi_c1;
         *(float *)((char *)obj + 0x10) = obj_c.x;
         *(float *)((char *)obj + 0x14) = obj_c.y;
         *(float *)((char *)obj + 0x18) = obj_c.z;
