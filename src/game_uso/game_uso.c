@@ -1299,33 +1299,33 @@ extern void game_uso_func_071028(Vec3 *v);
 extern void game_uso_func_072EE8(char *dst, Vec3 *v);
 
 void game_uso_func_00001DDC(int *a0) {
-    char *out = (char *)a0[0x14 / 4];
     int key = a0[0x40 / 4];
 
     if (key == 0) {
         return;
     }
     if (key == 3) {
-        char *v1 = (char *)a0[0x3C / 4];
-        Vec3 tmp;
-        tmp.x = *(float *)(v1 + 0xA0);
-        v1 += 0x70;
-        tmp.y = *(float *)(v1 + 0x34);
-        tmp.z = *(float *)(v1 + 0x38);
-        *(float *)(out + 0x60) = tmp.x;
-        *(float *)(out + 0x64) = tmp.y;
-        *(float *)(out + 0x68) = tmp.z;
-        *(float *)(out + 0xA0) = tmp.x;
-        *(float *)(out + 0xA4) = tmp.y;
-        *(float *)(out + 0xA8) = tmp.z;
+        char *out = (char *)a0[0x14 / 4];
+        char *src = (char *)a0[0x3C / 4];
+        Vec3 m;
+        m.x = *(float *)(src + 0xA0);
+        src += 0x70;
+        m.y = *(float *)(src + 0x34);
+        m.z = *(float *)(src + 0x38);
+        *(float *)(out + 0x60) = m.x;
+        *(float *)(out + 0x64) = m.y;
+        *(float *)(out + 0x68) = m.z;
+        *(float *)(out + 0xA0) = m.x;
+        *(float *)(out + 0xA4) = m.y;
+        *(float *)(out + 0xA8) = m.z;
         return;
     }
 
     {
-        char *s = (char *)a0[0x38 / 4];
-        Vec3 ref_v, self_v, diff, scratch;
+        char *out = (char *)a0[0x14 / 4];
+        char *s   = (char *)a0[0x38 / 4];
+        Vec3 ref_v, self_v, diff, scratch, stage, buf, acc;
         Vec3 *delta;
-        Vec3 acc, stage, vbuf, prev;
         float speed, mag, excess, sel, yd, y_excess;
 
         ref_v.x = *(float *)(out + 0xA0);
@@ -1350,63 +1350,80 @@ void game_uso_func_00001DDC(int *a0) {
         mag = game_uso_func_070238(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
         game_uso_func_071028(&diff);
 
-        /* PASS 1 — planar (XZ) homing */
         if (mag < *(float *)((char *)a0 + 0x7C)) {
             excess = mag - *(float *)((char *)a0 + 0x7C);
+            stage.x = diff.x * excess;
+            stage.y = diff.y * excess;
+            stage.z = diff.z * excess;
+            *(Tri3i *)&buf = *(Tri3i *)&stage;
+            acc.x = buf.x;
+            acc.y = buf.y;
+            acc.z = buf.z;
         } else {
+            float k = *(float *)((char *)a0 + 0xAC);
             excess = mag - speed;
+            stage.x = diff.x * excess;
+            stage.y = diff.y * excess;
+            stage.z = diff.z * excess;
+            *(Tri3i *)&buf = *(Tri3i *)&stage;
+            stage.x = buf.x * k;
+            stage.y = buf.y * k;
+            stage.z = buf.z * k;
+            *(Tri3i *)&buf = *(Tri3i *)&stage;
+            acc.x = buf.x;
+            acc.y = buf.y;
+            acc.z = buf.z;
         }
-        stage.x = diff.x * excess;
-        stage.y = diff.y * excess;
-        stage.z = diff.z * excess;
-        *(Tri3i *)&scratch = *(Tri3i *)&stage;
-        *(Tri3i *)&vbuf = *(Tri3i *)&scratch;
-        acc.x = vbuf.x;
-        acc.y = vbuf.y;
-        acc.z = vbuf.z;
         game_uso_func_072EE8(out + 0x30, &acc);
 
         stage.x = diff.x * speed;
         stage.y = diff.y * speed;
         stage.z = diff.z * speed;
-        *(Tri3i *)&scratch = *(Tri3i *)&stage;
-        *(Tri3i *)&vbuf = *(Tri3i *)&scratch;
-        *(float *)((char *)a0 + 0x2C) = vbuf.x;
-        *(float *)((char *)a0 + 0x30) = vbuf.y;
-        *(float *)((char *)a0 + 0x34) = vbuf.z;
+        *(Tri3i *)&buf = *(Tri3i *)&stage;
+        *(float *)((char *)a0 + 0x2C) = buf.x;
+        *(float *)((char *)a0 + 0x30) = buf.y;
+        *(float *)((char *)a0 + 0x34) = buf.z;
 
         sel = (a0[0x40 / 4] == 2) ? *(float *)((char *)a0 + 0xF4)
                                   : *(float *)((char *)a0 + 0xDC);
 
-        /* PASS 2 — vertical (Y) homing along {0,1,0} */
         diff.x = 0.0f;
         diff.y = 1.0f;
         diff.z = 0.0f;
         yd = ref_v.y - self_v.y;
         if (yd < *(float *)((char *)a0 + 0xC4)) {
             y_excess = *(float *)((char *)a0 + 0xC4) - yd;
+            stage.x = diff.x * y_excess;
+            stage.y = diff.y * y_excess;
+            stage.z = diff.z * y_excess;
+            *(Tri3i *)&buf = *(Tri3i *)&stage;
+            acc.x = buf.x;
+            acc.y = buf.y;
+            acc.z = buf.z;
         } else {
+            float k = *(float *)((char *)a0 + 0x10C);
             y_excess = sel - yd;
+            stage.x = diff.x * y_excess;
+            stage.y = diff.y * y_excess;
+            stage.z = diff.z * y_excess;
+            *(Tri3i *)&buf = *(Tri3i *)&stage;
+            stage.x = buf.x * k;
+            stage.y = buf.y * k;
+            stage.z = buf.z * k;
+            *(Tri3i *)&buf = *(Tri3i *)&stage;
+            acc.x = buf.x;
+            acc.y = buf.y;
+            acc.z = buf.z;
         }
-        stage.x = diff.x * y_excess;
-        stage.y = diff.y * y_excess;
-        stage.z = diff.z * y_excess;
-        *(Tri3i *)&scratch = *(Tri3i *)&stage;
-        *(Tri3i *)&vbuf = *(Tri3i *)&scratch;
-        acc.x = vbuf.x;
-        acc.y = vbuf.y;
-        acc.z = vbuf.z;
         game_uso_func_072EE8(out + 0x30, &acc);
 
         stage.x = diff.x * sel;
         stage.y = diff.y * sel;
         stage.z = diff.z * sel;
-        *(Tri3i *)&scratch = *(Tri3i *)&stage;
-        prev = scratch;
-        *(Tri3i *)&vbuf = *(Tri3i *)&scratch;
-        *(float *)((char *)a0 + 0x2C) -= prev.x;
-        *(float *)((char *)a0 + 0x30) -= prev.y;
-        *(float *)((char *)a0 + 0x34) -= prev.z;
+        *(Tri3i *)&buf = *(Tri3i *)&stage;
+        *(float *)((char *)a0 + 0x2C) -= buf.x;
+        *(float *)((char *)a0 + 0x30) -= buf.y;
+        *(float *)((char *)a0 + 0x34) -= buf.z;
     }
 }
 #else
