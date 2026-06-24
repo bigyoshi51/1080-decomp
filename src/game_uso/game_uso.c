@@ -9222,42 +9222,69 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
  * FPU chain + bc1tl/bc1fl branch-likely + &D %hi/%lo reloc + 4-call
  * spill. INCLUDE_ASM remains build path (no episode; tautology). */
 #ifdef NON_MATCHING
+/* game_uso_func_0000B274 — reconstructed from expected/.o (reloc-aware). s1 base =
+ * import_8005C108 cached in a saved register; four double thresholds live in distinct
+ * rodata symbols game_uso_D_807FFA40/48/50/58 (each at +0x120/0x128/0x130/0x138);
+ * destination vec at import_8005C1A8+0xD0..0xD8. Callees: game_uso_func_063734,
+ * import_000F8678, game_uso_func_04D700, game_uso_func_05B750. */
+extern char import_8005C108;
+extern char import_8005C1A8;
+extern char game_uso_D_807FFA40;
+extern char game_uso_D_807FFA48;
+extern char game_uso_D_807FFA50;
+extern char game_uso_D_807FFA58;
+extern int game_uso_func_063734();
+extern int import_000F8678();
+extern void game_uso_func_04D700();
+extern void game_uso_func_05B750();
+
 void game_uso_func_0000B274(char *s0) {
-    char *s1 = (char*)&D_00000000;
+    char *s1 = &import_8005C108;
+    char *dst;
     float vec[3];
     float r;
     char *t2;
     char *v1;
     int *vt;
-    if ((double)*(float*)(s1 + 0x2A0) > *(double*)(s1 + 0x120)) return;
-    vec[0] = *(float*)(s0 + 0xA0);
-    vec[1] = *(float*)(s0 + 0xA4);
-    vec[2] = *(float*)(s0 + 0xA8);
-    if (gl_func_00000000(*(int*)(s1 + 0x254), &vec[0], 1, 0) == 0) return;
-    *(int*)(s0 + 0xD0) = (int)vec[0];
-    *(int*)(s0 + 0xD4) = (int)vec[1];
-    gl_func_00000000(s1, s0 + 0xDC);
-    *(int*)(s0 + 0xD8) = *(int*)(s1 + 0x254);
-    *(float*)(s0 + 0xC8) = *(float*)(s0 + 0xCC);
-    if (*(double*)(s1 + 0x128) < (double)*(float*)(s1 + 0x2A0)) {
-        double d = ((double)*(float*)(s1 + 0x2A0) - *(double*)(s1 + 0x128))
-                   / *(double*)(s1 + 0x130);
-        *(float*)(s0 + 0xC8) = (float)((double)*(float*)(s0 + 0xC8) * (0.0 - d));
+
+    if ((double)*(float *)(s1 + 0x2A0) > *(double *)(&game_uso_D_807FFA40 + 0x120)) return;
+
+    vec[0] = *(float *)(s0 + 0xA0);
+    vec[1] = *(float *)(s0 + 0xA4);
+    vec[2] = *(float *)(s0 + 0xA8);
+    if (game_uso_func_063734(*(int *)(s1 + 0x254), &vec[0], 1, 0) == 0) return;
+
+    *(int *)(s0 + 0xD0) = (int)vec[0];
+    *(int *)(s0 + 0xD4) = (int)vec[1];
+    import_000F8678(s1, s0 + 0xDC);
+    *(int *)(s0 + 0xD8) = *(int *)(s1 + 0x254);
+    *(float *)(s0 + 0xC8) = *(float *)(s0 + 0xCC);
+
+    if (*(double *)(&game_uso_D_807FFA48 + 0x128) < (double)*(float *)(s1 + 0x2A0)) {
+        double d = ((double)*(float *)(s1 + 0x2A0) - *(double *)(&game_uso_D_807FFA48 + 0x128))
+                   / *(double *)(&game_uso_D_807FFA50 + 0x130);
+        *(float *)(s0 + 0xC8) = (float)((double)*(float *)(s0 + 0xC8) * (1.0 - d));
     }
-    if (*(double*)(s1 + 0x138) < (double)*(float*)(s0 + 0xC8)) return;
-    gl_func_00000000(s0);
-    *(int*)(s1 + 0xA0 + 0x30) = *(int*)(s0 + 0xA0);
-    *(int*)(s1 + 0xA0 + 0x34) = *(int*)(s0 + 0xA4);
-    *(int*)(s1 + 0xA0 + 0x38) = *(int*)(s0 + 0xA8);
-    r = *(float*)(s0 + 0x134) * *(float*)(s0 + 0xC8);
-    gl_func_00000000(s1, s0 + 0x164);
-    t2 = *(char**)(s0 + 0xC4);
-    *(short*)(t2 + 0xC0) = *(short*)(s0 + 0x14C);
-    *(float*)(*(char**)(s0 + 0xC4) + 0xB0) = r;
-    *(float*)(*(char**)(s0 + 0xC4) + 0xB4) = r;
-    v1 = *(char**)(s0 + 0xC4);
-    vt = *(int**)(v1 + 0x28);
-    (*(void (**)(char*))((char*)vt + 0x1C))((char*)((int)(short)*(short*)((char*)vt + 0x18) + (int)v1));
+
+    if (*(double *)(&game_uso_D_807FFA58 + 0x138) < (double)*(float *)(s0 + 0xC8)) return;
+
+    game_uso_func_04D700(s0);
+
+    dst = &import_8005C1A8;
+    *(float *)(dst + 0xD0) = *(float *)(s0 + 0xA0);
+    *(float *)(dst + 0xD4) = *(float *)(s0 + 0xA4);
+    *(float *)(dst + 0xD8) = *(float *)(s0 + 0xA8);
+    r = *(float *)(s0 + 0x134) * *(float *)(s0 + 0xC8);
+    game_uso_func_05B750(s1, s0 + 0x164);
+
+    t2 = *(char **)(s0 + 0xC4);
+    *(short *)(t2 + 0xC0) = *(short *)(s0 + 0x14C);
+    *(float *)(*(char **)(s0 + 0xC4) + 0xB0) = r;
+    *(float *)(*(char **)(s0 + 0xC4) + 0xB4) = r;
+
+    v1 = *(char **)(s0 + 0xC4);
+    vt = *(int **)(v1 + 0x28);
+    (*(void (**)(char *))((char *)vt + 0x1C))((char *)((int)(short)*(short *)((char *)vt + 0x18) + (int)v1));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B274);
@@ -11764,38 +11791,69 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
  *   WORSE (68.78); by-value 69.63 is best — plus the beql/beq switch dispatch +
  *   branch-likely. Documented EE84-family switch ceiling.
  *   docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair */
+/* game_uso_func_0000E91C — reconstruction pass (agent-e, 2026-06-24).
+ * EE84-family branchy orchestrator. Reads o=s0->0xB4, v0=o->0xA58, clears
+ * s0->0xB0, calls game_uso_func_0000EAF4(s0, (v0&0x20)?((v0&0x40)!=0):0,
+ * v0&0x20). When o->0x800->0x10 & 0x1000, dispatches on s0->0x12C (1..4):
+ * each arm ORs a literal into s0->0xB0 (from s0->0xFC), homes a Pair2 from a
+ * D-table (D_807FF430+0xE40 or D_807FF4E0+0xEF0) into a stack slot, and calls
+ * an import with a0 = s0->0xB4 + 0x808. Tail (when s0->0xB0 != 0): zero
+ * s0->0x12C, log via import_0010DB28, then game_uso_func_0000D5F8(s0,
+ * homed-pair, 1) + game_uso_func_0000D5DC(s0).
+ *
+ * Fix vs prior 69.6% body: resolve real callees/D-symbols (was placeholder
+ * func_00000000 / D_00000000 + Pair2 by-value mid-air); the homed pair now
+ * persists from switch arm to the D5F8 tail (shared sp slot), the EAF4 arg
+ * uses the correct (v0&0x20)-gated ternary, and the 0x1000 gate is the
+ * branch-likely switch.
+ */
 #ifdef NON_MATCHING
+extern int import_00096724();
+extern int import_00096704();
+extern int import_0010DB28();
+extern char game_uso_D_807FF430;
+extern char game_uso_D_807FF4E0;
+
 void game_uso_func_0000E91C(char *a0, int a1) {
     char *s0 = a0;
     char *o = *(char **)(s0 + 0xB4);
     unsigned int v0 = *(unsigned int *)(o + 0xA58);
-    int x1_arg = (v0 & 0x20) ? 1 : ((v0 & 0x40) != 0);
+    Pair2 homed;
+    int x1_arg = (v0 & 0x20) ? ((v0 & 0x40) != 0) : 0;
+
     *(int *)(s0 + 0xB0) = 0;
-    func_00000000(s0, x1_arg, v0 & 0x20);
+    game_uso_func_0000EAF4(s0, x1_arg, v0 & 0x20);
+
     if (*(unsigned int *)(*(char **)(o + 0x800) + 0x10) & 0x1000) {
         switch (*(int *)(s0 + 0x12C)) {
             case 1:
                 *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x18;
-                func_00000000(o + 0x808, *(Pair2 *)((char *)&D_00000000 + 0xEF0));
+                homed = *(Pair2 *)(&game_uso_D_807FF4E0 + 0xEF0);
+                import_00096704(*(char **)(s0 + 0xB4) + 0x808);
                 break;
             case 2:
                 *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1B;
-                func_00000000(o + 0x808, *(Pair2 *)((char *)&D_00000000 + 0xE40));
+                homed = *(Pair2 *)(&game_uso_D_807FF430 + 0xE40);
+                import_00096724(*(char **)(s0 + 0xB4) + 0x808);
                 break;
             case 3:
                 *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1A;
-                func_00000000(o + 0x808, *(Pair2 *)((char *)&D_00000000 + 0xEF0));
+                homed = *(Pair2 *)(&game_uso_D_807FF4E0 + 0xEF0);
+                import_00096704(*(char **)(s0 + 0xB4) + 0x808);
                 break;
             case 4:
                 *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1C;
-                func_00000000(o + 0x808, *(Pair2 *)((char *)&D_00000000 + 0xE40));
+                homed = *(Pair2 *)(&game_uso_D_807FF430 + 0xE40);
+                import_00096724(*(char **)(s0 + 0xB4) + 0x808);
                 break;
         }
     }
+
     if (*(int *)(s0 + 0xB0) != 0) {
         *(int *)(s0 + 0x12C) = 0;
-        func_00000000(s0, 0, 1, 1);
-        func_00000000(s0);
+        import_0010DB28(s0, *(int *)(s0 + 0xB0), 0, 1, 1, 1);
+        game_uso_func_0000D5F8(s0, homed, 1);
+        game_uso_func_0000D5DC(s0);
     }
     (void)a1;
 }
@@ -13346,76 +13404,76 @@ void game_uso_func_00010648(void *a0) {
 }
 
 #ifdef NON_MATCHING
-/* game_uso_func_00010694: 0x1AC (107 insns), 0x30-byte stack frame, saves
- * s0+ra. Strategy-memo source-5 pick (game_uso, smallest fresh non-spine
- * with no prior wrap). Per ~25-insn entry decode:
- *   - Sets 3 fields in a0->0xB4 substruct (0xA18=1, 0x3DC=1, 0x960=0)
- *   - Sets a0->0x114=2, a0->0x11C=1.0f
- *   - Saves f0 = (a0->0xB4)->0x970 to sp+0x2C
- *   - 3 cross-USO calls (gl_func_0(a0, ...) — first sets f0 arg via swc1
- *     spill, second/third just pass a0)
- *   - Then: |f0|; convert to double (cvt.d.s); load D-table double constant
- *     at &D+0x250; double arithmetic with f2/f10 — likely sqrt/log/clamp
- *   - ~80 more insns of double-prec math + cross-call sequence (still TODO)
+/* game_uso_func_00010694: 0x1AC (107 insns). State-machine entry handler,
+ * sibling of 00010840. Reconstructed vs expected .o (call-graph DFS, reloc
+ * sites): distinct D symbols (D_807FFB70 ldc1 +0x250 threshold, D_807FF438
+ * +0xE48 pair, D_807FF3B8 +0xDC8 table), real callee names, two dispatch
+ * arms call DIFFERENT funcs (import_0010DB78 above-threshold,
+ * import_0010DB28 below-threshold), 2-word table-scan vs D_807FF3B8+0xDC8
+ * (modeled on sibling 0000D204).
  *
- * Entry pattern is "init substruct flags + cache float + dispatch + clamp".
- * Likely a state-machine entry handler (key=2 from a0->0x114 = 2).
- * Multi-pass NM, default INCLUDE_ASM keeps ROM exact. */
-extern int gl_func_00000000();
+ * RESIDUAL CAP (shared with 00010840): the above-arm passes the raw float
+ * bits of saved_f0 as a3 via the target's single `mfc1 a3,$f0`. IDO C cannot
+ * emit single-insn mfc1 for a float local — `*(int*)&saved_f0` forces a
+ * swc1+lw stack round-trip. Documented mfc1-from-C cap. Default INCLUDE_ASM. */
+extern void game_uso_func_0000E1FC(char *);
+extern void game_uso_func_0000D8A8(char *);
+extern void game_uso_func_0000D8EC(int *);
+extern int import_0010DB78();
+extern int import_0010DB28();
+extern void game_uso_func_0000E91C_1arg(char *);
+extern void game_uso_func_00011750(char *);
+extern void game_uso_func_0000D5BC(char *, Pair2);
+extern char game_uso_D_807FFB70;
+extern char game_uso_D_807FF438;
 void game_uso_func_00010694(int *a0) {
-    int *sub = (int*)a0[0xB4/4];
+    int *sub;
     float saved_f0;
     float abs_f0;
     int v;
-    sub[0xA18/4] = 1;
+    ((int*)a0[0xB4/4])[0xA18/4] = 1;
     a0[0x114/4] = 2;
-    sub = (int*)a0[0xB4/4];
-    sub[0x3DC/4] = 1;
-    sub = (int*)a0[0xB4/4];
+    ((int*)a0[0xB4/4])[0x3DC/4] = 1;
     *(float*)((char*)a0 + 0x11C) = 1.0f;
-    saved_f0 = *(float*)((char*)sub + 0x970);
-    gl_func_00000000(a0);
-    sub = (int*)a0[0xB4/4];
-    sub[0x960/4] = 0;
-    gl_func_00000000(a0);
-    gl_func_00000000(a0);
+    saved_f0 = *(float*)((char*)(int*)a0[0xB4/4] + 0x970);
+    game_uso_func_0000E1FC((char*)a0);
+    ((int*)a0[0xB4/4])[0x960/4] = 0;
+    game_uso_func_0000D8A8((char*)a0);
+    game_uso_func_0000D8EC(a0);
 
-    /* @ 0x60-0x84: abs_f0 = (saved_f0 < 0) ? -saved_f0 : saved_f0  (bc1fl-likely) */
     abs_f0 = (saved_f0 < 0.0f) ? -saved_f0 : saved_f0;
 
-    /* @ 0x84-0xC8: 2-arm dispatch on (D[0x250] < (double)abs_f0). Both arms
-     * pack a 6-arg gl_func_0 with state | 2/3, mfc1 of f0 as a3, stack args
-     * t0=0/6, t1=1. Below-threshold (bc1f-not-taken) uses t0=6, above uses t0=0. */
     v = a0[0xFC/4];
-    if (*(double*)((char*)&D_00000000 + 0x250) < (double)abs_f0) {
-        gl_func_00000000(a0, v | 2, v | 3, *(int*)&saved_f0, 0, 1);
+    if ((double)abs_f0 > *(double*)((char*)&game_uso_D_807FFB70 + 0x250)) {
+        import_0010DB78(a0, v | 2, v | 3, *(int*)&saved_f0, 0, 1);
     } else {
-        gl_func_00000000(a0, v | 2, v | 3, *(int*)&saved_f0, 6, 1);
+        import_0010DB28(a0, v | 8, 0, 1, 6, 1);
     }
 
-    /* @ 0xC8-0xF8: reload sub; check sub->0x9CC == 0; if so, sub-call with
-     * D[0xE48..0x10F0] table walk pair. Common pattern from sibling 10840. */
     sub = (int*)a0[0xB4/4];
     if (sub[0x9CC/4] != 0) {
-        gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE48));
+        game_uso_func_0000D5BC((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF438 + 0xE48));
     }
-    gl_func_00000000(a0);
-    gl_func_00000000(a0);
-    /* cache 0xB4->0x938 into 0xDC, then match 0xD0[0..1] against D[0xDC8][0..1] */
+    game_uso_func_0000E91C_1arg((char*)a0);
+    game_uso_func_00011750((char*)a0);
+
     *(int*)((char*)a0 + 0xDC) = ((int*)a0[0xB4/4])[0x938/4];
     {
         int *p = (int*)((char*)a0 + 0xD0);
-        int *t = (int*)((char*)&D_00000000 + 0xDC8);
-        int found = 1;
-        int i;
-        for (i = 0; i < 2; i++) {
-            if (p[i] != t[i]) { found = 0; break; }
+        int *t = (int*)((char*)&game_uso_D_807FF3B8 + 0xDC8);
+        int found = 0;
+        do {
+            if (*p != *t) { found = 0; break; }
+            p++;
+            t++;
+        } while (p != (int*)((char*)a0 + 0xD0) + 2);
+        if (p == (int*)((char*)a0 + 0xD0) + 2) {
+            found = 1;
         }
         if (found) {
-            gl_func_00000000(a0, *(Pair2*)((char*)a0 + 0xD0));
+            game_uso_func_0000D5BC((char*)a0, *(Pair2*)((char*)a0 + 0xD0));
         }
     }
-    (void)saved_f0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
