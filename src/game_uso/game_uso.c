@@ -5840,100 +5840,95 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
 #endif
 
 #ifdef NON_MATCHING
-/* game_uso_func_00006A30: 176-insn (0x2C0) per-frame FPU-heavy update.
- * 0xB8-byte stack frame with multiple Vec3 / matrix locals at sp+0x58,
- * sp+0x94, sp+0x9C, sp+0xA8, sp+0xB4 (clear-flag).
- *
- * ENTRY STAGE (insns 1-15 @ 0x6A30-0x6A7C):
- *   sp -= 0xB8; save ra, s0
- *   *(sp+0xB4) = 0          ; clear flag
- *   if (a0->0x80 == 0) goto end (early exit; reload a0->0x6C in delay)
- *   sub = a0->0x30
- *   sp+0x9C[0..2] = sub->{0xB4,0xB8,0xBC}  ; stage Vec3 from sub-struct
- *
- * BODY (insns 16-170): FPU-heavy update — multiplies Vec3 fields by
- * scalar a0->0xA8, accumulates into local Mat4-like region at
- * sp+0x318 (relative to sub-struct), multiple cross-USO calls.
- *
- * EPILOGUE: standard ra/s0 restore + addiu sp + jr ra.
- *
- * Multi-tick decompile in scope; this captures structural decode of the
- * entry + Vec3 staging stage. Default INCLUDE_ASM matches via the asm. */
-extern int gl_func_00000000();
-extern int game_uso_func_00007C1C();
-extern long long game_uso_func_00007538(int *, int);
+/* game_uso_func_00006A30: 176-insn per-frame FPU update. Re-decoded 2026-06-24
+ * from expected/.o. Stack-staged Vec3 layout: va@sp+0x9C (from sub+0xB4..),
+ * scaled@sp+0x58 (sub+0x318.. * a0->0xA8), copy chain sp+0x58->sp+0x6C->sp+0xA8,
+ * then va += copy; 00007ACC/00007C1C/03ED4/110A4/7538 with real arg shapes. */
 typedef struct { float x, y, z; } V3_6A30;
+extern int game_uso_func_00007ACC(int *, int *, int, int *);
+extern int game_uso_func_00007C1C(char *, char *, char *, char *, char *, f32 *);
+extern int game_uso_func_055750();
+extern long long game_uso_func_00007538(int *, int);
+extern void game_uso_func_000110A4(int *);
+extern float game_uso_func_00003ED4(Vec3 *, Vec3 *, int *);
+
 void game_uso_func_00006A30(int *a0) {
     int *s0 = a0;
-    int result = 0;
+    int clearFlag = 0;
     if (a0[0x80 / 4] != 0) {
         int *sub = (int *)a0[0x30 / 4];
         float f0 = *(float *)((char *)a0 + 0xA8);
-        V3_6A30 va, scaled, c1, c2;
-        /* va = sub->{0xB4,0xB8,0xBC} (Vec3 struct copy -> int lw/sw), then va += scaled */
+        V3_6A30 va;          /* sp+0x9C */
+        V3_6A30 scaled;      /* sp+0x58 */
+        V3_6A30 cpy;         /* sp+0x6C */
+        V3_6A30 acc;         /* sp+0xA8 */
+        int *r1;
+
         va = *(V3_6A30 *)((char *)sub + 0xB4);
         scaled.x = *(float *)((char *)sub + 0x318) * f0;
         scaled.y = *(float *)((char *)sub + 0x31C) * f0;
         scaled.z = *(float *)((char *)sub + 0x320) * f0;
-        c1 = scaled;
-        c2 = c1;
-        va.x = va.x + c2.x;
-        va.y = va.y + c2.y;
-        va.z = va.z + c2.z;
-        {
+        cpy = scaled;
+        acc = cpy;
+        va.x = va.x + acc.x;
+        va.y = va.y + acc.y;
+        va.z = va.z + acc.z;
+
+        r1 = (int *)game_uso_func_00007ACC(s0, (int *)((char *)a0 + 0), (int)&va, (int *)0);
+        if (r1 != 0) {
             char *obj = (char *)a0;
             char *w = (char *)sub;
-            float outpos[3], rec[3], pt[3];
-            char *r1, *r2;
+            V3_6A30 rec;     /* sp+0x88 */
+            V3_6A30 pt;      /* sp+0x7C */
+            int *r2;
             float yaw, val;
-            int flag = 16;
-            r1 = (char *)game_uso_func_00007ACC(s0, outpos, (int)&va, (int *)0);
-            if (r1 != 0) {
-                r2 = (char *)game_uso_func_00007C1C((int)rec, (int)obj, (int)r1, *(int *)outpos, (double *)&va);
-                pt[0] = *(float *)r2;
-                pt[1] = *(float *)(r2 + 4);
-                pt[2] = *(float *)(r2 + 8);
-                rec[0] = *(float *)(w + 0x3C8);
-                rec[2] = *(float *)(w + 0x3D0);
-                rec[1] = 0.0f;
-                yaw = game_uso_func_00003ED4((Vec3 *)rec, (Vec3 *)pt, 0);
-                w = *(char **)(obj + 0x30);
-                val = (-yaw * (1.0f + *(float *)(w + 0x348) / *(float *)(obj + 0xB0)) *
-                       *(float *)(obj + 0xAC)) /
-                      *(float *)(w + 0x708);
-                if (*(int *)(obj + 0x6C) == 0) {
-                    *(float *)(obj + 0x3C) = val;
-                    if (*(int *)outpos != 0) {
-                        if (80.0f <= *(float *)(w + 0x348)) {
-                            flag = 8;
-                        } else if (*(int *)(obj + 0x6C) != 0) {
-                            /* dead */
-                        } else {
-                            flag = 16;
-                        }
+            r2 = (int *)game_uso_func_00007C1C((char *)&pt, (char *)s0, (char *)r1,
+                                               (char *)0, (char *)&va, (f32 *)0);
+            pt.x = *(float *)((char *)r2 + 0);
+            pt.y = *(float *)((char *)r2 + 4);
+            pt.z = *(float *)((char *)r2 + 8);
+            rec.x = *(float *)(w + 0x3C8);
+            rec.z = *(float *)(w + 0x3D0);
+            rec.y = 0.0f;
+            yaw = game_uso_func_00003ED4((Vec3 *)&rec, (Vec3 *)&pt, 0);
+            w = (char *)*(int *)(obj + 0x30);
+            val = (-yaw * (1.0f + *(float *)(w + 0x348) / *(float *)(obj + 0xB0)) *
+                   *(float *)(obj + 0xAC)) /
+                  *(float *)(w + 0x708);
+            if (*(int *)(obj + 0x6C) != 0) {
+                /* skip store */
+            } else {
+                *(float *)(obj + 0x3C) = val;
+                if (*(int *)((char *)&va + 0) != 0) {
+                    if (80.0f <= *(float *)(w + 0x348)) {
+                        clearFlag = 8;
+                    } else if (*(int *)(obj + 0x6C) != 0) {
+                        /* dead */
+                    } else {
+                        clearFlag = 16;
                     }
                 }
-                w = *(char **)(obj + 0x30);
-                if (*(int *)(w + 0x938) != 0 && *(int *)(w + 0xA54) != 0) {
-                    int v0 = *(int *)(obj + 0x70);
-                    if (v0 < 60) {
-                        if (*(float *)(w + 0x348) <= 30.0f) {
-                            gl_func_00000000(*(int *)(w + 0x840));
-                            *(int *)(obj + 0x70) = 61;
-                        } else {
-                            *(int *)(obj + 0x70) = v0 + 1;
-                        }
-                    } else if (v0 == 60) {
-                        gl_func_00000000(*(int *)(w + 0x840));
-                        *(int *)(obj + 0x70) = 61;
-                    }
-                }
-                game_uso_func_00007538((int *)obj, flag);
             }
+            w = (char *)*(int *)(obj + 0x30);
+            if (*(int *)(w + 0x938) != 0 && *(int *)(w + 0xA54) != 0) {
+                int v0 = *(int *)(obj + 0x70);
+                if (v0 < 60) {
+                    if (*(float *)(w + 0x348) <= 30.0f) {
+                        game_uso_func_000110A4((int *)*(int *)(w + 0x840));
+                        *(int *)(obj + 0x70) = 61;
+                    } else {
+                        *(int *)(obj + 0x70) = v0 + 1;
+                    }
+                } else if (v0 == 60) {
+                    game_uso_func_000110A4((int *)*(int *)(w + 0x840));
+                    *(int *)(obj + 0x70) = 61;
+                }
+            }
+            game_uso_func_00007538((int *)obj, clearFlag);
         }
         (void)va;
     }
-    (void)result;
+    (void)clearFlag;
     (void)s0;
 }
 #else
@@ -9343,12 +9338,15 @@ void game_uso_func_0000B498(char *a0) {
 //   reuse.
 extern short game_uso_D_807FF2B4[];
 #ifdef NON_MATCHING
-/* Re-decoded 2026-06-01 (prior bilinear-interp body was a total fabrication,
- * 0%). Counts how many neighbor cells (offsets from the {dy,dx} short table
- * game_uso_D_807FF2B4) hold the 0xFFFC sentinel in the height/collision grid
- * (data = (D->0x240->0x148)->0xF0; dims grid->0xB8/0xBC). Returns the count. */
+/* Re-decoded 2026-06-24: prior body counted the 0xFFFC sentinel neighbours but
+ * dropped the FP tail (result = count/9, clamp-or-EMA into obj->0xCC) and used
+ * the wrong base symbol (&D_00000000 instead of import_8005C348). c comes from
+ * *(import_8005C348 + 0x240); data = (c->0x148)->0xF0. Returns the count. */
+extern char import_8005C348;
+extern char game_uso_D_807FFA68;
+#define GAME_D_807FFA68_148 (*(double *)(&game_uso_D_807FFA68 + 0x148))
 int game_uso_func_0000B4B8(char *obj) {
-    char *c = *(char **)((char *)&D_00000000 + 0x240);
+    char *c = *(char **)(&import_8005C348 + 0x240);
     char *grid = *(char **)(obj + 0xD8);
     unsigned short *data = *(unsigned short **)(*(char **)(c + 0x148) + 0xF0);
     short *tbl = game_uso_D_807FF2B4;
@@ -9359,11 +9357,21 @@ int game_uso_func_0000B4B8(char *obj) {
     int count = 0;
     int i;
     int idx;
+    float result;
+    float prev;
     for (i = 0; i < 9; i++) {
         idx = (y + tbl[2 * i]) * w + x + tbl[2 * i + 1];
         if (idx > 0 && idx < w * h && data[idx] == 0xFFFC) {
             count++;
         }
+    }
+    result = (float)count / 9.0f;
+    prev = *(float *)(obj + 0xCC);
+    if (result < prev) {
+        *(float *)(obj + 0xCC) = result;
+    } else {
+        *(float *)(obj + 0xCC) =
+            (float)((double)prev + (double)(result - prev) * GAME_D_807FFA68_148);
     }
     return count;
 }
