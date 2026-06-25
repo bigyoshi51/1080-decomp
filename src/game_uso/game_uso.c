@@ -6416,31 +6416,14 @@ void game_uso_func_00007424(void *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 70.97% NM. Inverse of game_uso_func_000074D8: pulls 4 floats from table (+0x30 deref)
- * at offsets 0x768/0x708/0x6F0/0x4A8, mirrors them into a0+0x4C8..0x4D4,
- * scales 3 of them in-place back into the table (by a0+0x33C=sx for the
- * first, a0+0x36C=sy for the other two), then does one unscaled intra-table
- * copy (table+0x4A8 = table+0x4D8).
- *
- * Match gap: IDO schedules the 4 inbound copies with a split
- * `addiu vN, v1, OFFSET` + `lwc1 fN, 0x10(vN)` pair instead of a single
- * `lwc1 fN, OFFSET+0x10(v1)` — even though the offsets fit in 16 bits and
- * table is kept in v1 across all 4 copies. Attempts with named-base
- * pointers (char *t = table + 0x758) in the C were merged by IDO back to
- * direct offsets (~27 insns produced vs target 36 insns). Target also
- * pre-computes `a3 = a0 + 0x35C` at insn 3 and uses `lwc1 f18, 0x10(a3)`
- * for the 3rd scale_y access — probably a struct-field access in source.
- * 27/36 insns match structurally; body is semantically correct.
- * 2026-06-01: struct-field form `((struct{char pad[0xA0];float f;}*)(table+OFF))->f`
- * ALSO folds to direct offset (still 27 insns) — IDO merges base+0x10 to a single
- * lwc1 regardless of C shape (named-base, struct-field, both tried). The 9-insn
- * gap (target's addiu base; lwc1 0x10(base) cursor pairs + per-access table
- * reload + the a3=a0+0x35C precompute) is an IDO base-materialization cap not
- * reachable from C. Stays NM. */
+/* reconstruction attempt: force a0+0x35C cursor precompute (a3) + base+0x10
+ * cursor forms on the tail stores to recover the IDO base-materialization shape. */
 void game_uso_func_00007448(char *a0) {
     char *table = *(char**)(a0 + 0x30);
     float sx = *(float*)(a0 + 0x33C);
+    char *fc = a0 + 0x35C;
     char *t;
+    char *a2;
 
     t = table + 0x758;
     *(float*)(a0 + 0x4C8) = *(float*)(t + 0x10);
@@ -6458,11 +6441,12 @@ void game_uso_func_00007448(char *a0) {
 
     table = *(char**)(a0 + 0x30);
     t = table + 0x6E0;
-    *(float*)(t + 0x10) = *(float*)(a0 + 0x4D0) * *(float*)(a0 + 0x36C);
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x4D0) * *(float*)(fc + 0x10);
 
     table = *(char**)(a0 + 0x30);
+    a2 = table + 0x4C8;
     t = table + 0x498;
-    *(float*)(t + 0x10) = *(float*)(table + 0x4D8);
+    *(float*)(t + 0x10) = *(float*)(a2 + 0x10);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007448);
@@ -9962,6 +9946,12 @@ void game_uso_func_0000BF7C(char *a0) {
  * selector form unless a new branch-likely suppression lever appears. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
+/* game_uso_func_0000BFDC: sign-dispatched 2-level table-lookup + indirect jalr.
+ * pair = (short*)(a0+8); v1=base. 87.0 -> 87.3125 via commuting the two
+ * `a1 = offset/e + arg` addu operands (target adds offset/e FIRST: addu a1,t6,a1
+ * and addu a1,t3,a1). Remaining residual: selector double-test emits bnezl
+ * (branch-likely, documented hard cap 2026-05-17/2026-06-01) + addu v0,t8,t0
+ * operand-order scheduling artifact. Both intractable without insn patching. */
 int game_uso_func_0000BFDC(char *a0) {
     short *pair = (short*)(a0 + 8);
     short key = pair[1];
@@ -9970,19 +9960,17 @@ int game_uso_func_0000BFDC(char *a0) {
     char *entry;
     int (*fnptr)(char *);
 
-    arg += offset;
+    arg = offset + arg;
     if (key < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
         int selector = *(int*)(pair + 2);
         a0 = (char*)selector;
-        if (selector == 0) {
-            if (pair[0] == 0) {
-                a0 = (char*)0x28;
-            }
+        if (selector == 0 && pair[0] == 0) {
+            a0 = (char*)0x28;
         }
         entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
-        arg += *(short*)entry;
+        arg = *(short*)entry + arg;
         fnptr = *(int (**)(char *))(entry + 4);
     }
     return fnptr(arg);
