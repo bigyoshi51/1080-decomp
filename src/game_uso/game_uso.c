@@ -10909,21 +10909,33 @@ extern int game_uso_func_022784();
 extern char import_800201D0;
 extern char game_uso_D_807FF7B4;
 #ifdef NON_MATCHING
+/* game_uso_func_0000D63C: ramp-down/clamp dispatch. Callees resolved from
+ * .s R_MIPS_26 relocs: import_000B8698 (indexed entry call) and
+ * game_uso_func_022784 (final notify). Indexed value from global array
+ * game_uso_D_807FF7B4[idx]; first arg of both calls is
+ * *(int*)(&import_800201D0 + 0x138). value (a3) is initialized to 0 up
+ * front and stays live across call 1 (caller-saved spill/reload).
+ * Residual: saved-vs-caller coloring on the base + folded %lo16 on the
+ * indexed global. */
+extern int import_000B8698();
+extern int game_uso_func_022784();
+extern char import_800201D0;
+extern char game_uso_D_807FF7B4;
 void game_uso_func_0000D63C(char *a0, int a1) {
     char *s0 = a0;
-    int idx = *(int*)(s0 + 0x100);
-    int value;
+    int idx = *(int*)(a0 + 0x100);
+    int value = 0;
 
     if (idx != 0 && a1 != 0) {
         if (idx > 0) {
             if (idx >= 10) {
                 idx = 10;
-                *(int*)(s0 + 0x100) = idx;
+                *(int*)(a0 + 0x100) = idx;
             }
             value = ((int*)&game_uso_D_807FF7B4)[idx];
             if (value != 0) {
                 import_000B8698(*(int*)((char*)&import_800201D0 + 0x138),
-                                *(int*)(s0 + 0xB4), value);
+                                *(int*)(s0 + 0xB4), value, value);
             }
         }
     }
@@ -12694,113 +12706,61 @@ void game_uso_func_0000F8E8(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 67-insn function. Shape:
- *
- *   call 1 (6-arg, a2=0, a3=2):
- *     gl_func(a0, a0->[0xFC], 0, 2, 1, 1)
- *
- *   call 2 (4-arg from D[0xE58/0xE5C], a3=2 — same family pattern as
- *   game_uso_func_00010E2C / 00010DC8 / 000114FC, with the lui+addiu+lw
- *   fold-inevitable cap and varargs shadow-spills):
- *     gl_func(a0, D[0xE58], D[0xE5C], 2)
- *
- *   inline Vec3 scaled-and-add at a0->[0xB4]->[0x318..0x320]:
- *     b = a0->[0xB4]
- *     scale = a0->[0x1FC]
- *     scaled.{x,y,z} = b->[0x3C8/3CC/3D0] * scale
- *     # target spills `scaled` to sp+0x48, then COPIES that to sp+0x5C,
- *     # then COPIES sp+0x5C to sp+0x74. Three 12-byte stack regions.
- *     b->[0x318] += sp[0x74]    # which equals scaled.x via the chain
- *     b->[0x31C] += sp[0x78]
- *     b->[0x320] += sp[0x7C]
- *
- * Initial decode at 16.7% match (10/60 insns). Two structural diffs
- * remain:
- *
- * 1. First 18 insns: same family fold-cap as 10E2C/10DC8/14FC. IDO
- *    collapses `lui+addiu+lw` 4-insn target form to `lui+lw` 2-insn
- *    direct form. CAP: stays NM (SUFFIX+INSN_PATCH recipe in
- *    docs/POST_CC_RECIPES.md was deprecated 2026-05-23 as match-faking
- *    per feedback_no_instruction_forcing_matches_policy).
- *
- * 2. Body: target has TWO intermediate stack copies of the scaled Vec3
- *    (sp+0x48 → sp+0x5C → sp+0x74). My C "Vec3 a/b/c" with 3 separate
- *    int[3] arrays compiles to 60 insns / 0xF0 vs target 67 insns / 0x10C
- *    (7 insns short). IDO's optimizer is consolidating my redundant
- *    copies. Target's pattern looks like a function-result-temp chain
- *    where each call returns by-value Vec3 and the result is taken by
- *    the next stage. May be `*sp_dest_a = vec3_scale(...); *sp_dest_b =
- *    *sp_dest_a; *sp_dest_c = *sp_dest_b;` or similar pass-through.
- *
- * 2026-05-07 attempt 2: switched to typed `F948_Vec3` struct + volatile
- * annotations on `a` and `vb`. Goal was to defeat IDO -O2 dead-store-
- * elim across the 3 stack-copies. Result: still 85.19% — same as
- * non-volatile array-int[3] version. Volatile DOES preserve all 3
- * copies (verified in -O2 emit: 9 lw/sw insns at 0x92a8-0x92d4) but
- * stack offsets differ from target (built sp+0x44/0x38/0x2c vs target
- * sp+0x48/0x5C/0x74). Copy semantics + count match; offset-arrangement
- * mismatch via IDO's reverse-order stack-frame allocator is the
- * remaining 14.81% diff.
- *
- * 2026-05-07 attempt 3: declared in REVERSE order with explicit char-pad
- * stuffing (vc; char[8]; vb; char[4]; a). REGRESSED to 77.52% — pad bytes
- * shifted t1=sp+0x48 correctly to match target's first addiu but added
- * extra moves elsewhere that broke the copy chain. The pad-stuffing
- * approach is a dead-end here; offsets DO move, but the surrounding
- * code structure changes too. Reverted.
- *
- * 2026-05-07 attempt 4: REVERSE order WITHOUT pads (vc; volatile vb;
- * volatile a). Same regression to 77.52%. Reverse-declaration alone
- * doesn't help; baseline-state has drifted from the doc's quoted 85.19%
- * to a current 77.52% even with the original C body unchanged. Built NM
- * is 248 bytes (62 insns) vs expected 268 bytes (67 insns) — IDO is now
- * eliminating one of the 3 Vec3 copies despite volatile. The exact
- * fuzzy% on this function is sensitive to expected/.o baseline state.
- *
- * 2026-06-21 (call-graph DFS): callees corrected from the placeholder
- * gl_func_00000000 / &D_00000000 to the resolved in-TU symbols
- * import_0010DB28 (logger) + game_uso_func_0000D5F8 (Pair2-by-value sink) and
- * the real global game_uso_D_807FF448 (+0xE58 pair). Frame deflated from -0xD0
- * to -0x80 by dropping the spurious frame_pad[128] and declaring the three Vec3
- * temps in reverse order (vc,vb,a). RESIDUAL (honest NON_MATCHING): IDO's
- * reverse-order stack-frame allocator places the a/vb/vc copy block at
- * sp+36/48/60 vs target sp+72/92/116 (the frame holds 0x80 with the block at
- * the TOP), plus the mul.s batch-vs-interleave FP schedule. Documented
- * stack-arrangement + FP-scheduler cap, not the (cleared) pair cap. */
+/* 2026-06-24 reconstruction (81.6% -> 98.15%, frame -0x80 EXACT, FP schedule
+ * EXACT, final-add section byte-exact). Levers applied:
+ *  (1) GROUPED-MUL EVAL ORDER (docs/IDO_CODEGEN.md
+ *      #feedback-ido-struct-copy-vs-field-copy-treg-order): write the three
+ *      scaled products into temp scalars mx/my/mz FIRST so IDO hoists all
+ *      three lwc1 together, muls into f2/f12/f14, then stores the block --
+ *      matching the target's all-loads-first FP schedule (was interleaved
+ *      load/mul/store at 81.6%).
+ *  (2) FRAME-SPREAD via inter-decl volatile pads: padcb[3]/padba[2] between
+ *      the three Vec3 temps reproduce the target's 0x14/0x18 inter-block gaps;
+ *      padbot[3] grows the frame to -0x80 with the a0-home at sp+0x80 (exact).
+ *  (3) FINAL-ADD RE-BASE: q = (float*)(b + 0x318) (inline a0[0xB4/4] re-deref)
+ *      makes IDO materialize the addiu v0,v0,0x318 re-base and the
+ *      8(v0)/0(v0)/4(v0)/8(v0) offset cascade of the target's add-back section
+ *      byte-for-byte.
+ * RESIDUAL (honest NON_MATCHING, 98.15%): the three Vec3 buffers color 0x1C
+ * lower than target (mine sp+0x2C/0x40/0x58 vs target sp+0x48/0x5C/0x74) and
+ * the first lw 0xB4 colors $v1/$a1 vs target $v0/$v1, plus the mid-mul dead
+ * addiu v0,v0,0x3C8 (mine nop). These are the documented frame-spread /
+ * call-spill-interleave coloring cap (same as sibling game_uso_func_0000A604,
+ * permuter-immune): unreferenced volatile pads always sink to the bottom of
+ * the named region, so the buffer block cannot be pushed up the remaining
+ * 0x1C. Genuine slot-alloc residual, not a logic/schedule diff. */
 extern char game_uso_D_807FF448;
 typedef struct { float x, y, z; } F948_Vec3;
 void game_uso_func_0000F948(int *a0) {
-    /* 2026-05-28: the family-cap pair component is now SOLVED via
-     * struct-by-value (E58/E5C homed to a1,a2 — see
-     * docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair),
-     * which cleared the same cap across all 11 E2C-family siblings. F948
-     * is the lone family member with a genuine FPU body beyond the pair:
-     * the a->vb->vc Vec3 copy chain is scheduled differently from target
-     * and the frame is -0x88 (mine) vs -0x80 (target). 64 vs 67 insns.
-     * These FPU/frame residuals are a separate multi-tick problem, NOT the
-     * (now-cleared) pair cap. */
     int *b;
+    float *q;
     float scale;
-    F948_Vec3 vc, vb, a;
+    float mx, my, mz;
+    F948_Vec3 vc;
+    volatile int padcb[3];
+    F948_Vec3 vb;
+    volatile int padba[2];
+    F948_Vec3 a;
+    volatile int padbot[3];
 
     import_0010DB28(a0, *(int*)((char*)a0 + 0xFC), 0, 2, 1, 1);
     game_uso_func_0000D5F8((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF448 + 0xE58), 2);
 
     b = (int*)a0[0xB4 / 4];
     scale = *(float*)((char*)a0 + 0x1FC);
-    /* Build scaled Vec3 in `a`, then copy a→vb→vc as struct-by-value
-     * (IDO -O2 emits 3-lw/3-sw per copy without dead-store-elim across
-     * struct boundaries). */
-    a.x = *(float*)((char*)b + 0x3C8) * scale;
-    a.y = *(float*)((char*)b + 0x3CC) * scale;
-    a.z = *(float*)((char*)b + 0x3D0) * scale;
+    mx = *(float*)((char*)b + 0x3C8) * scale;
+    my = *(float*)((char*)b + 0x3CC) * scale;
+    mz = *(float*)((char*)b + 0x3D0) * scale;
+    a.x = mx;
+    a.y = my;
+    a.z = mz;
     vb = a;
     vc = vb;
 
-    b = (int*)a0[0xB4 / 4];
-    *(float*)((char*)b + 0x318) += vc.x;
-    *(float*)((char*)b + 0x31C) += vc.y;
-    *(float*)((char*)b + 0x320) += vc.z;
+    q = (float*)((char*)(int*)a0[0xB4 / 4] + 0x318);
+    q[0] += vc.x;
+    q[1] += vc.y;
+    q[2] += vc.z;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
