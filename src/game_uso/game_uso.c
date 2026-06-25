@@ -43,35 +43,21 @@ typedef struct { int a, b; } Pair2;
 #endif
 
 #ifdef NON_MATCHING
-/* Cubic B-spline basis evaluator. Computes 4 weights for parameter t
- * (passed in $a1, moved to $f12), writes to out[0..3]. D_00000000 = 1/6.
- *   out[0] = D * (1-t)^3              ; B0(t)
- *   out[1] = D * (3t^3 - 6t^2 + 4)    ; B1(t)
- *   out[2] = D * (-3t^3 + 3t^2 + 3t + 1) ; B2(t)
- *   out[3] = D * t^3                  ; B3(t)
- *
- * 39-insn FPU leaf with constants loaded via lui+mtc1 (1.0f, 3.0f, 4.0f, 6.0f).
- *
- * ROOT CAUSE of the 57.85% cap (2026-06-02, was vaguely "FPU scheduling grind"):
- * the K&R `float t` parameter DOUBLE-PROMOTES. The target receives t as a SINGLE
- * float in $f12 directly; the K&R def instead assembles a double from the
- * a2/a3 pair and `cvt.s.d $f0,$f12` (+~9 insns), then all downstream FP regs
- * shift. The fix is an ANSI single-float proto `(float *out, float t)` — BUT
- * the symbol name `game_uso_func_00000000` is overloaded: it is ALSO the
- * generic placeholder for ~45 unresolved jals elsewhere in this file, called
- * with INT args and varying arg counts. An ANSI float proto would mis-compile
- * all those placeholder call sites. So this is gated on RESOLVING those ~45
- * placeholder callees to their real symbols (USO reloc table / Ghidra) to free
- * the name, then ANSI-typing this def. Until then it stays K&R (double-promote)
- * and capped. NOT an FPU-scheduling problem. */
-/* K&R-style def: function name is also used as a placeholder for cross-
- * USO/intra-USO unresolved jals elsewhere in the file (with various arg
- * counts). K&R `()` decl from those callers + K&R def here = no sig
- * conflict under DNM. See feedback_ido_implicit_decl_extern_conflict.md. */
-void game_uso_func_00000000(out, t)
+/* Cubic B-spline basis evaluator. Computes 4 weights for parameter t into
+ * out[0..3]. D = *(float*)&D_00000000 = 1/6.
+ *   out[0] = D*(1-t)^3, out[1] = D*(3t^3-6t^2+4),
+ *   out[2] = D*(-3t^3+3t^2+3t+1), out[3] = D*t^3.
+ * Target receives t as a SINGLE float in $a1 (mtc1 a1,$f12). The prior K&R
+ * `float t` def DOUBLE-PROMOTED (assembled a double from a2/a3 + cvt.s.d,
+ * +9 insns -> 49w vs target 40w, 57.85% cap). Here the second arg is taken
+ * as `int ti` and bit-reinterpreted to float, which makes IDO move a1
+ * directly into f12 with no double assembly -- matching the target ABI while
+ * staying K&R-`()` compatible for the overloaded placeholder call sites. */
+void game_uso_func_00000000(out, ti)
     float *out;
-    float t;
+    int ti;
 {
+    float t = *(float*)&ti;
     float D = *(float*)&D_00000000;
     float omt = 1.0f - t;
     float t2 = t * t;
@@ -8729,26 +8715,41 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 //   would land IF the frame matched; it does not. Left NM at 89.54%.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+// game_uso_func_0000A604 — per-object physics/state advance step.
+// 2026-06-24: 89.53% -> 90.01% (objdiff fuzzy) via the interleave-decl
+//   spill-slot lever (docs/IDO_CODEGEN.md): IDO assigns int/pointer spill
+//   offsets in DECLARATION ORDER. Splitting the call-crossing scalar group
+//   (rec/counter/v0/field2c/a1arg) so it is declared BETWEEN `scaled` and
+//   the {copy1,tbuf,copy2} Vec3 block recolors the frame closer to target.
+//   Brute-forced 600 decl orderings in-tree; this is the best.
+// RESIDUAL CAP (frame-spread coloring, unchanged class): build frame -0x80
+//   vs target -0x98. The target gives the v0/a1arg/a2 call-spill values
+//   FOUR distinct high slots (0x04/0x4c/0x78/0x88) interleaved among the
+//   Vec3 buffers; our build coalesces them into ONE reused slot (0x50) and
+//   packs the buffers low — a genuine stack-coloring difference IDO C can't
+//   be coaxed into here. volatile pads are elided at -O2 (frame saturated),
+//   so they do not grow the frame; pad-first/pad-group both regress (89.99).
+//   Every remaining diff is a same-opcode sp-offset shift cascading off the
+//   smaller frame, plus the early `lui %hi(D+0x548)` hoist and `move s0,a0`
+//   placement (both downstream of the same coloring). Left NM at 90.01%.
 void game_uso_func_0000A604(char *obj) {
     float s;
-    Vec3 copy2;
-    Vec3 tbuf;
-    Vec3 copy1;
-    Vec3 scaled;
-    char *w;
-    char *rec;
-    char *a1arg;
-    char *v0;
-    int counter;
-    int field2c;
     float f0;
     float *p;
     float mx, my, mz;
+    Vec3 scaled;
+    char *rec;
+    int counter;
+    char *v0;
+    int field2c;
+    char *a1arg;
+    Vec3 copy1;
+    Vec3 tbuf;
+    Vec3 copy2;
 
     tbuf = *(Vec3 *)(*(char **)(obj + 0x30) + 0xB4);
     s = *(float *)(obj + 0xA8);
-    w = *(char **)(obj + 0x30);
-    p = (float *)(w + 0x318);
+    p = (float *)(*(char **)(obj + 0x30) + 0x318);
     mx = p[0] * s;
     my = p[1] * s;
     mz = p[2] * s;
@@ -12281,30 +12282,46 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F060);
  * sp-0x28, +24) + uncached o->0x10/v1->0x938 reloads + beql/bc1fl branch-likely
  * + neg.s/mov.s abs idiom — documented EE84-family FP ceiling. INCLUDE_ASM. */
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
+/* game_uso_func_0000F13C — RECONSTRUCTION (reloc-aware, EE84/10694-family).
+ * Real callees resolved from expected/.o relocs:
+ *   f188 jal game_uso_func_0000F360(s0)         [all-bits + flag set]
+ *   f208 jal import_0010DB78(s0,0x10028,0x10029,(int)f0,0,1)   [abs > thresh]
+ *   f218 jal import_0010DB28(s0,0x10011,0,1,6,1)               [abs <= thresh]
+ *   f234 jal game_uso_func_0001001C(s0)         [v1->0x938 == 0]
+ *   f26c jal game_uso_func_0000D5BC(s0, *(Pair2*)(&D_807FF498+0xEA8))
+ * double threshold = *(double*)(&D_807FFB58 + 0x238). abs.s via neg.s/mov.s.
+ * Branch-likely (beqzl/bc1fl) + double-const abs gate + D-pair sp-args. */
+extern int import_0010DB78();
+extern int import_0010DB28();
+extern void game_uso_func_0000F360(int *);
+extern void game_uso_func_0001001C(int *);
+extern void game_uso_func_0000D5BC(char *, Pair2);
+extern char game_uso_D_807FFB58;
+extern char game_uso_D_807FF498;
 void game_uso_func_0000F13C(int *a0) {
     int *s0 = a0;
     int *v1 = (int *)s0[0xB4 / 4];
     int *o = (int *)v1[0x800 / 4];
     if ((o[0x10 / 4] & 0x100) && (o[0x10 / 4] & 0x200) && v1[0x938 / 4] != 0) {
-        gl_func_00000000(s0);
+        game_uso_func_0000F360(s0);
     } else {
         float f0 = *(float *)((char *)v1 + 0x970);
-        double af = (f0 < 0.0f) ? -f0 : f0;
-        if (af > *(double *)((char *)&D_00000000 + 0x238)) {
-            gl_func_00000000(s0, 0x10028, 0x10029, *(int *)&f0, 0, 0, 1);
+        float abs_f0 = (f0 < 0.0f) ? -f0 : f0;
+        if (*(double *)((char *)&game_uso_D_807FFB58 + 0x238) < (double)abs_f0) {
+            import_0010DB78(s0, 0x10028, 0x10029, *(int *)&f0, 0, 1);
         } else {
-            gl_func_00000000(s0, 0x10011, 0, 0, 6, 1);
+            import_0010DB28(s0, 0x10011, 0, 1, 6, 1);
         }
         if (((int *)s0[0xB4 / 4])[0x938 / 4] == 0) {
-            gl_func_00000000(s0);
+            game_uso_func_0001001C(s0);
         }
     }
     {
         short v0 = *(short *)((char *)s0 + 0xE6);
         *(short *)((char *)s0 + 0xE6) = v0 + 1;
         if (s0[0x184 / 4] < v0) {
-            gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xEA8));
+            game_uso_func_0000D5BC((char *)s0,
+                *(Pair2 *)((char *)&game_uso_D_807FF498 + 0xEA8));
         }
     }
 }
@@ -13478,58 +13495,30 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010694);
 #endif
 
 #ifdef NON_MATCHING
-/* game_uso_func_00010840: 67-insn (0x10C) state-init + 2-stage dispatch
- * sibling of 10694. 2026-05-27 extended decode (full body):
+/* game_uso_func_00010840: 67-insn (0x10C) state-init + 2-stage dispatch,
+ * sibling of 10694. State-machine: set sub->0x3DC=1, two init dispatches,
+ * reload velocity sub->0x970, abs+double-threshold compare, two-arm
+ * 6-arg logger dispatch (import_0010DB78 above-thresh / import_0010DB28
+ * below-thresh), unconditional follow-up, then a sub->0x9CC-gated pair call.
  *
- *   sub = a0->0xB4
- *   sub->0x3DC = 1
- *   gl_func(a0); gl_func(a0);              // 2 init dispatches
- *   sub = a0->0xB4 (reload after calls)
- *   saved_f0 = sub->0x970                  // velocity?
- *   if (saved_f0 < 0.0f)                   // first dispatch (early-arm)
- *       gl_func(a0, 0x00020008, 0, 1);
+ * 2026-06-24 RECONSTRUCTION 80.19% -> 87.67% (verified in-tree):
+ *   The float velocity's raw bits are passed as the a3 arg of both logger
+ *   calls (target: single `mfc1 a3,$f0`). Passing `*(int*)&saved_f0` forces
+ *   a swc1+3-reload stack round-trip (frame -48, 80.19%). Instead read the
+ *   int bits DIRECTLY from the struct slot into a HOISTED local `bits`
+ *   (`*(int*)((char*)sub + 0x970)`) BEFORE the branch: single `lw`, CSE'd
+ *   across both arms, frame -40, +7.5pp.
  *
- *   // STAGE 2 — abs+threshold compare
- *   abs_f0 = (saved_f0 < 0) ? -saved_f0 : saved_f0;
- *   if (D[0x258 double] < (double)abs_f0) {
- *       // BELOW-THRESHOLD path
- *       gl_func(a0, 0x20002, 0x20003,
- *               (int)saved_f0, 0, 1);       // bits packed
- *   } else {
- *       // ABOVE-THRESHOLD path: same args, but t0=6 stack-arg
- *       gl_func(a0, 0x20002, 0x20003,
- *               (int)saved_f0, 6, 1);
- *   }
- *   gl_func(a0);                            // unconditional follow-up
- *
- *   // STAGE 3 — sub-state gated final call
- *   sub = a0->0xB4 (reload)
- *   if (sub->0x9CC == 0)                    // not-busy gate
- *       gl_func(a0, D[0xE10], D[0xE14], ...);
- *   // epilogue
- *
- * Body is ~67 insns; the bc1fl-likely abs.s pattern + double-precision
- * threshold + 2-path 5-arg dispatch is the spine pattern.
- *
- * 2026-06-21 RECONSTRUCTION (call-graph DFS, reloc-sites): all callees +
- * globals resolved from game_uso.reloc-sites.json — 60.79% -> 80.09%:
- *   0x18 jal game_uso_func_0000D8A8(a0)
- *   0x20 jal game_uso_func_0000D8EC(a0)
- *   0x9C jal import_0010DB78(a0,0x20002,0x20003,(int)f,0,1)   [abs>thresh]
- *   0xB0 jal import_0010DB28(a0,0x20002,0x20003,(int)f,6,1)   [abs<=thresh]
- *   0xB8 jal game_uso_func_0000E1FC(a0)
- *   0xE8 jal game_uso_func_0000D5BC(a0, *(Pair2*)(&D_807FF400+0xE10))  [gated]
- *   0xF0 jal game_uso_func_00011750(a0)
- *   double threshold = *(double*)(&D_807FFB78 + 0x258)
- * NOTE: there is NO stage-1 conditional call — the a1=0x20008/a2=0/a3=1
- * setup at 0x30-0x4C is dead arg-prep overwritten before any call (the
- * bc1f only selects neg.s vs mov.s for the abs).
- *
- * RESIDUAL CAP (~80%, not landable): the two dispatch calls pass the raw
- * float bits of `saved_f0` as a3 via the target's single `mfc1 a3,$f0`.
- * IDO C cannot emit single-insn mfc1 for a float local — `*(int*)&saved_f0`
- * forces a swc1+lw stack round-trip (+1 slot, frame -48 vs -40). Documented
- * 14-variants-tried cap (docs/IDO_CODEGEN.md#feedback-ido-mfc1-from-c).
+ * RESIDUAL CAP (~88%, not landable):
+ *   (1) Target's a3 is `mfc1 a3,$f0` (float-bits-to-int-reg); IDO C cannot
+ *       emit single-insn mfc1 for a float — documented 14-variant cap
+ *       (docs/IDO_CODEGEN.md#feedback-ido-mfc1-from-c). Here it degrades to
+ *       a `lw` from the same slot (correct bytes, wrong instruction).
+ *   (2) Target has DEAD arg-prep before the abs branch (a1=0x20008, a2=0,
+ *       a3=1, move a0,s0) overwritten before any call — an -O2 hoist
+ *       artifact with NO call; reintroducing a real stage-1 call regresses
+ *       to 67% (adds a jal the target lacks).
+ * Remaining diffs are otherwise register-allocation only (same insn count).
  * Default INCLUDE_ASM. */
 extern char game_uso_D_807FFB78;
 extern int import_0010DB78();
@@ -13537,16 +13526,18 @@ void game_uso_func_00010840(int *a0) {
     int *sub = (int*)a0[0xB4/4];
     float saved_f0;
     float abs_f0;
+    int bits;
     sub[0x3DC/4] = 1;
     game_uso_func_0000D8A8((char*)a0);
     game_uso_func_0000D8EC(a0);
     sub = (int*)a0[0xB4/4];
     saved_f0 = *(float*)((char*)sub + 0x970);
+    bits = *(int*)((char*)sub + 0x970);
     abs_f0 = (saved_f0 < 0.0f) ? -saved_f0 : saved_f0;
     if ((double)abs_f0 > *(double*)((char*)&game_uso_D_807FFB78 + 0x258)) {
-        import_0010DB78(a0, 0x20002, 0x20003, *(int*)&saved_f0, 0, 1);
+        import_0010DB78(a0, 0x20002, 0x20003, bits, 0, 1);
     } else {
-        import_0010DB28(a0, 0x20002, 0x20003, *(int*)&saved_f0, 6, 1);
+        import_0010DB28(a0, 0x20002, 0x20003, bits, 6, 1);
     }
     game_uso_func_0000E1FC((char*)a0);
     sub = (int*)a0[0xB4/4];
