@@ -10534,11 +10534,28 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C48C);
  * on the `f0 < thresh` path and the child mode-mask is `& ~3` (corrected from the
  * earlier comment's `!(...)` / `~4`). Future tightening = per-block RE. */
 #ifdef NON_MATCHING
-/* game_uso_func_0000D204/D210 - reconstructed against expected .o (133w).
- * Corrections over prior 47.4% body: real callee names from R_MIPS_26 relocs
- * (07C0C0/D9CC/ECE8/076E78/0775F8 instead of gl_func_00000000); import_80020098
- * base for the +0x64 gate, child obj = import->0x138, v1=import reused;
- * D-pair arg = &game_uso_D_807FF68C+4252; table-scan loop vs D_807FF3B8+0xDC8. */
+/* game_uso_func_0000D204/D210 - logic-corrected decode, 60.98 -> 81.14% fuzzy.
+ * LOGIC FIXES over prior 47.4%/61% body:
+ *  (1) table-scan flag was INVERTED: target runs the vtable-dispatch body on
+ *      MISMATCH (the loop sets the flag=1 on the first differing word and =0
+ *      when all words match), prior C ran it on full-match. Rewrote as
+ *      do{ if(*p!=*tbl){mismatch=1;goto done;} } while(p!=end); mismatch=0; done:
+ *  (2) dispatch arm order: target branches (bgez) to the >=0 row-lookup arm and
+ *      keeps the <0 (fn=v1[1]; a0=base) arm INLINE -> write `if (cca < 0)` first.
+ *  (3) child bit-mask block: AND-path (&=~3) is physically first / shared by both
+ *      cond-true and 0x120!=0, OR-path (|=3) is the beqzl forward target. Express
+ *      with goto-shared clear_bits/set_bits so IDO emits bc1tl + beqzl, AND first.
+ *  (4) inlined the +0x1F4 threshold load (no float-top-local cache) so the obj
+ *      deref colors into f0 ahead of the thresh load (gate float-reg numbering).
+ *  (5) child store via pointer-to-field `child=(int*)(...+0xB4); *child` to emit the
+ *      target's `addiu v0,v0,0xB4; sw ...,0(v0)` base-adjust (not sw ...,180(v0)).
+ * Real callee names from R_MIPS_26 relocs (07C0C0/D9CC/ECE8/076E78/0775F8);
+ * import_80020098 base for the +0x64 gate + child obj = import->0x138; v1=import;
+ * D-pair arg = &game_uso_D_807FF68C+4252; table-scan vs D_807FF3B8+0xDC8.
+ * RESIDUAL <100 is coloring/branch-likely scheduling only: gate FP-clamp bc1fl/
+ * bc1tl + a redundant %hi(D) reload + float-reg numbering; the table-scan
+ * loop-back bnel/bnel + addi (target) vs beq/bne + addiu (build) cost-model
+ * delay-fill; dispatch-body a2-vs-t0/v1 coloring. Logic-complete. */
 extern char import_80020098;
 extern char game_uso_D_807FF68C;
 extern char game_uso_D_807FF3B8;
@@ -10553,24 +10570,27 @@ void game_uso_func_0000D204(int *a0) {
     int *child;
     int *v0;
     int *v1;
-    float thresh = *(float *)((char *)&D_00000000 + 0x1F4);
 
     if (*(int *)((char *)&import_80020098 + 0x64) == 0) {
         obj = *(int **)((char *)a3 + 0xB4);
-        if (*(float *)((char *)obj + 0xBC) < thresh) {
+        if (*(float *)((char *)obj + 0xBC) < *(float *)((char *)&D_00000000 + 0x1F4)) {
             *(int *)((char *)a3 + 0x120) = 0;
         }
         obj = *(int **)((char *)a3 + 0xB4);
-        if (*(float *)((char *)obj + 0xBC) < thresh) {
-            child = *(int **)((char *)&import_80020098 + 0x138);
-            *(int *)((char *)child + 0xB4) &= ~3;
-        } else if (*(int *)((char *)a3 + 0x120) == 0) {
-            child = *(int **)((char *)&import_80020098 + 0x138);
-            *(int *)((char *)child + 0xB4) |= 3;
-        } else {
-            child = *(int **)((char *)&import_80020098 + 0x138);
-            *(int *)((char *)child + 0xB4) &= ~3;
+        if (*(float *)((char *)obj + 0xBC) < *(float *)((char *)&D_00000000 + 0x1F4)) {
+            goto clear_bits;
         }
+        if (*(int *)((char *)a3 + 0x120) == 0) {
+            goto set_bits;
+        }
+    clear_bits:
+        child = (int *)((char *)*(int **)((char *)&import_80020098 + 0x138) + 0xB4);
+        *child &= ~3;
+        goto bits_done;
+    set_bits:
+        child = (int *)((char *)*(int **)((char *)&import_80020098 + 0x138) + 0xB4);
+        *child |= 3;
+    bits_done:;
     }
 
     v0 = *(int **)((char *)a3 + 0xB4);
@@ -10589,39 +10609,39 @@ void game_uso_func_0000D204(int *a0) {
     {
         int *tbl = (int *)((char *)&game_uso_D_807FF3B8 + 0xDC8);
         int *p = v1;
-        int found = 0;
+        int *end = v1 + 2;
+        int mismatch;
         do {
             if (*p != *tbl) {
-                found = 0;
-                break;
+                mismatch = 1;
+                goto scan_done;
             }
             p++;
             tbl++;
-        } while (p != v1 + 2);
-        if (p == v1 + 2) {
-            found = 1;
-        }
-        if (found) {
+        } while (p != end);
+        mismatch = 0;
+    scan_done:
+        if (mismatch) {
             char *base = (char *)a3 + *(short *)((char *)a3 + 0xC8);
             int (*fn)();
             int a0v;
-            if (*(short *)((char *)a3 + 0xCA) >= 0) {
-                int sel;
+            if (*(short *)((char *)a3 + 0xCA) < 0) {
+                fn = (int (*)())v1[1];
+                a0v = (int)base;
+            } else {
+                int sel = v1[1];
                 int *row;
-                if (v1[1] != 0) {
-                    sel = v1[1];
-                } else if (*(short *)((char *)v1 + 0) != 0) {
-                    sel = 0;
-                } else {
-                    sel = 40;
+                if (sel == 0) {
+                    if (*(short *)((char *)v1 + 0) != 0) {
+                        sel = 0;
+                    } else {
+                        sel = 40;
+                    }
                 }
                 row = *(int **)(base + sel);
                 row = (int *)((char *)row + (*(short *)((char *)v1 + 2) << 3));
                 fn = (int (*)())row[1];
                 a0v = (int)((char *)base + *(short *)((char *)row + 0));
-            } else {
-                fn = (int (*)())v1[1];
-                a0v = (int)base;
             }
             fn(a0v);
         }
