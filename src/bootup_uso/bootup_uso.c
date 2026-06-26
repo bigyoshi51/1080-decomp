@@ -4494,12 +4494,12 @@ block_25:
         func_00000000(*(s32 *)((char *)&D_00000000 + 0), 1, spDC);
     }
     func_00000000();
-    *(s32 *)((char *)(temp_v0) + 0xC4) = spC8;
-    *(s32 *)((char *)(temp_v0) + 0xC8) = spC4;
-    *(s32 *)((char *)(temp_v0) + 0xCC) = spC0;
-    *(s32 *)((char *)(temp_v0) + 0xD0) = spA4;
-    *(s32 *)((char *)(temp_v0) + 0xD4) = spA0;
-    *(s32 *)((char *)(temp_v0) + 0xD8) = sp9C;
+    *(f32 *)((char *)(temp_v0) + 0xC4) = spC8;
+    *(f32 *)((char *)(temp_v0) + 0xC8) = spC4;
+    *(f32 *)((char *)(temp_v0) + 0xCC) = spC0;
+    *(f32 *)((char *)(temp_v0) + 0xD0) = spA4;
+    *(f32 *)((char *)(temp_v0) + 0xD4) = spA0;
+    *(f32 *)((char *)(temp_v0) + 0xD8) = sp9C;
     temp_a1 = *(s32 *)&D_00007F58;
     spE4 = temp_a1;
     temp_v0_7 = func_00000000(*(s32 *)((char *)&D_00000000 + 0), temp_a1, 0);
@@ -4507,9 +4507,9 @@ block_25:
         *((s32 *)&sp4C + 0) = *(s32 *)((char *)(temp_v0_7) + 0x30);
         *((s32 *)&sp4C + 1) = (s32) *(s32 *)((char *)(temp_v0_7) + 0x34);
         *((s32 *)&sp4C + 2) = (s32) *(s32 *)((char *)(temp_v0_7) + 0x38);
-        *(s32 *)((char *)(temp_v0) + 0xC4) = sp4C;
-        *(s32 *)((char *)(temp_v0) + 0xC8) = sp50;
-        *(s32 *)((char *)(temp_v0) + 0xCC) = sp54;
+        *(f32 *)((char *)(temp_v0) + 0xC4) = sp4C;
+        *(f32 *)((char *)(temp_v0) + 0xC8) = sp50;
+        *(f32 *)((char *)(temp_v0) + 0xCC) = sp54;
     } else {
         func_00000000(&D_00007F5C);
     }
@@ -4520,9 +4520,9 @@ block_25:
         *((s32 *)&sp4C + 0) = *(s32 *)((char *)(temp_v0_8) + 0x30);
         *((s32 *)&sp4C + 1) = (s32) *(s32 *)((char *)(temp_v0_8) + 0x34);
         *((s32 *)&sp4C + 2) = (s32) *(s32 *)((char *)(temp_v0_8) + 0x38);
-        *(s32 *)((char *)(temp_v0) + 0xD0) = sp4C;
-        *(s32 *)((char *)(temp_v0) + 0xD4) = sp50;
-        *(s32 *)((char *)(temp_v0) + 0xD8) = sp54;
+        *(f32 *)((char *)(temp_v0) + 0xD0) = sp4C;
+        *(f32 *)((char *)(temp_v0) + 0xD4) = sp50;
+        *(f32 *)((char *)(temp_v0) + 0xD8) = sp54;
     } else {
         func_00000000(&D_00007F68);
     }
