@@ -95,6 +95,41 @@ extern void func_80009030(s32, s32);
  * schedule (lw s0 vs lw a0, sw s1 position) + t-reg renumber. All
  * remaining are RA/scheduling caps. */
 #ifdef NON_MATCHING
+/* NON_MATCHING (99.16% fuzzy, 8 register-field diffs in 68 insns — frame
+ * size + insn count now EXACT; all residual is register coloring/scheduling).
+ *
+ * 2026-06-26 BREAKTHROUGH (97.57 -> 99.16%): the +8 frame ("ghost-spill-slot")
+ * cap is GONE. Two changes:
+ *   1. masked-arg now REUSES the loop var `i` (i = p[0x27] & 0xFFF;
+ *      func_80006A50(0x04080000, i);) instead of a fresh named local. A
+ *      fresh `s32 masked` always gets a stack HOME and spills (sw t9,N(sp),
+ *      frame -0x38 -> -0x40); `register` promotes it to a SAVED reg (s2,
+ *      frame -0x48). Reusing the already-allocated counter `i` keeps the
+ *      value in a register with NO new frame slot -> frame stays -0x38 and
+ *      the andi/move pair (andi s1,s1; or a1,s1,zero) emits without a spill.
+ *   2. `i = p[3]; hdr.field_0C = i;` collapsed to inline `hdr.field_0C =
+ *      p[3];` so the p[3] load lands in a TEMP (was reusing the dead s1).
+ *
+ * RESIDUAL (8 reg-field diffs, all permuter-immune coloring/scheduling):
+ *   - prologue `sw s0`/`sw s1` emitted in opposite order (scheduler tie).
+ *   - jal-delay reload targets `a0` (dead msg-restore) vs target's `s0`
+ *     (= p): the uninitialized-`p`/s0 coloring tie.
+ *   - the 0xFFF mask: target loads p[0x27] into a1, masks into a TEMP
+ *     (andi t8,a1), then `move a1,t8`; reusing `i` colors it to the SAVED
+ *     reg s1 (andi s1,s1; move a1,s1). No C form lands the briefly-live
+ *     mask value in a pure temp (inline -> in-place `andi a1,a1`, dropping
+ *     the move; named local -> stack spill; register -> saved reg). This is
+ *     the documented AND->temp->copy-back vs AND-in-place coloring cap
+ *     (docs/IDO_CODEGEN.md "switch ... homes a small ... var in $a1"),
+ *     which shifts every following temp by one.
+ *   - tail temp renumber (lw t8/lbu t9/sb t9 vs lw t9/lbu t0/sb t0) cascades
+ *     directly from the s1-vs-t8 mask choice above.
+ *
+ * History: 2026-05-04 fresh `u32 masked` block-local -> +1 sw, frame
+ * -0x38->-0x40, WORSE. 2026-05-05 v14 `__asm__("")` scheduling barrier ->
+ * regression 94.97->87.94. 2026-06-04 plain `s32 masked` got the andi/move
+ * pair but kept the +8 ghost slot (97.57). The `i`-reuse above finally drops
+ * that slot. */
 s32 func_80009474(s32* msg) {
   register s32 *p;
   RmonHdr16 hdr;
@@ -114,14 +149,11 @@ s32 func_80009474(s32* msg) {
   func_800091F0(0);
   func_80006A50(0x04040004, ((u32 *) p)[0x24]);
   func_80006A50(0x04040000, ((u32 *) p)[0x25]);
-  {
-    s32 masked = ((u32 *) p)[0x27] & 0xFFF;
-    func_80006A50(0x04080000, masked);
-  }
+  i = ((u32 *) p)[0x27] & 0xFFF;
+  func_80006A50(0x04080000, i);
   func_80006A50(0x0404000C, ((u32 *) p)[0x28]);
   func_80006A50(0x04040010, ((u32 *) p)[0x29]);
-  i = p[3];
-  hdr.field_0C = i;
+  hdr.field_0C = p[3];
   hdr.type = ((u8 *) p)[4];
   hdr.flags = 0;
   func_800073F8(&hdr, 0x10, 1);
