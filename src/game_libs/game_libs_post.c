@@ -12597,17 +12597,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029BC8);
  * (vs target $t6). The base-pointer-as-$t6 needs the p-load to NOT pick
  * $v0; IDO's allocator preference for $v0 as the function-local pointer
  * isn't overrideable from C. Permuter-class. */
-#ifdef NON_MATCHING
+/* CRACKED 2026-06-25: base→$t6 (not $v0) + result alternation $t8/$t7/$t8
+ * achieved via a FULLY-INLINED 3-int struct block-copy whose SOURCE base
+ * pointer is computed inline inside the cast expression (NO named `int *p`
+ * local). Naming `p` (or inline-deref of the three reads) CSEs the base
+ * into $v0 (97.27% cap). The inline struct-copy form keeps the base off
+ * $v0 → IDO colors it $t6, shifting the whole body up to match; the block
+ * copy supplies the $t8/$t7/$t8 (X/Y/X reuse) alternation. Byte-exact. */
 void game_libs_func_00029C80(char *a0) {
-    int *p = *(int**)(a0 + 0x44);
+    struct S { int a, b, c; };
     *(float*)(a0 + 0x38) = 1.0f;
-    *(int*)(a0 + 0x80) = p[8];
-    *(int*)(a0 + 0x84) = p[9];
-    *(int*)(a0 + 0x88) = p[10];
+    *(struct S*)(a0 + 0x80) = *(struct S*)((char*)*(int**)(a0 + 0x44) + 0x20);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029C80);
-#endif
 
 void game_libs_func_00029CAC(char *a0, int a1, int a2) {
     *(char*)a0 = 0;
