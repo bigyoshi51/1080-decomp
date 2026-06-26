@@ -284,8 +284,8 @@ Lvt0:
     n = *(int *)w;
     *(int *)(o0 + 0x7D8) = 1;
     *(int *)(o0 + 0x7C8) = n;
-    *(float *)(o0 + 0x7AC) = 211.0f;
-    *(float *)(o0 + 0x7A8) = 192.0f - (float)(n * 2 - 2);
+    *(float *)(o0 + 0x7AC) = 210.0f;
+    *(float *)(o0 + 0x7A8) = 160.0f - (float)(n * 2 - 2);
     mgrproc_uso_func_074710(&import_802649F0 + 1568, 0);
     import_000A7ECC(&import_80020098, 0);
 
