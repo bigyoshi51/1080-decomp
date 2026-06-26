@@ -7656,131 +7656,69 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
-/* game_uso_func_000097EC (0x39C / 231w) — XZ-plane segment / closest-approach
- * predicate between two linked objects (A0E8-family geometric test).
- *
- * Reconstructed full logic from EXPECTED .o (objdump -dr at 0x97EC):
- *   v0   = *(a0+0x30)                  (object/world record)
- *   if (*(int*)(v0+0x908) == 0) return 0;   (no linked partner -> fail)
- *   sub  = *(char**)(v0+0x908)         (linked partner record)
- *
- *   xzA  = (v0->0x318, 0, v0->0x320)   (self XZ point)
- *   xzB  = (sub->0x318, 0, sub->0x320) (partner XZ point)
- *   if (!(0 < xzA.x*xzA.x + xzA.z*xzA.z)) return 0;
- *
- *   seg  = (xzA - xzB) flattened to XZ                 (segment direction)
- *   scaled = seg * (*(float*)(a0+0xD0))                (scale by param 0xD0)
- *   dir  = scaled flattened to XZ                      (vecD)
- *
- *   delta = sub->(0xB4,0xB8,0xBC) - v0->(0xB4,0xB8,0xBC)
- *   rel   = delta flattened to XZ                      (vecE)
- *
- *   mag  = func_082880( dir.x*dir.x + dir.z*dir.z )    (length of dir)
- *   if (!(0 < mag)) return 0;
- *   cross = |dir.z*rel.x - dir.x*rel.z|
- *   dot   =  dir.x*rel.x + dir.z*rel.z
- *   t     = dot / (dir.x*dir.x + dir.z*dir.z)          (param along segment)
- *   if (!(0 <= t)) return 0;
- *   if (!(t < 1.0f)) return 0;
- *   perp  = cross / mag                                (perpendicular distance)
- *   if (!(perp < *(float*)(a0+0xD4))) return 0;        (within tolerance?)
- *   return 1;
- *
- * Uses the file's dead-alloc Vec3 idiom (p = &local; if (p==NULL) alloc 0xC)
- * and Tri3i integer 3-word copy chains, matching the sibling predicate at
- * game_uso_func_00009xxx. Logic-complete; register coloring of the chained
- * scratch slots caps exact byte-match (raw-word USO).
- */
-extern int game_uso_func_055750();
 extern float game_uso_func_082880(float);
+/* A0E8-family geometric predicate (dead-alloc XZ vecs -> deltas -> normalize
+ * 082880 -> cross/dot projection -> range gates -> return 0/1). Opening +
+ * magnitude gate decoded; cross/dot tail pending (multi-tick). */
 int game_uso_func_000097EC(char *a0) {
     char *v0 = *(char **)(a0 + 0x30);
     char *sub;
-    Vec3 xzA, xzB, seg, segCp, segCp2, scaled, scCp, scCp2, dir;
-    Vec3 delta, dCp, dCp2, rel;
+    Vec3 vec1, vec2, vec3, c1, c2, scaled, s1, s2, vec4, delta2, d1, d2, vec5;
     Vec3 *p;
-    float mag2, scale, mag, cross, dot, t, perp;
-    int hit = 0;
-
-    if (*(int *)(v0 + 0x908) == 0) {
-        return hit;
-    }
-
-    p = &xzA;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
-    xzA.x = *(float *)(v0 + 0x318);
-    xzA.z = *(float *)(v0 + 0x320);
-    xzA.y = 0.0f;
-
+    float mag2, scale, mag, cross, dot, tparam, perp;
+    if (*(int *)(v0 + 0x908) == 0) return 0;
+    p = &vec1;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
+    p->x = *(float *)(v0 + 0x318);
+    p->z = *(float *)(v0 + 0x320);
+    p->y = 0.0f;
     sub = *(char **)(v0 + 0x908);
-    p = &xzB;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
-    xzB.x = *(float *)(sub + 0x318);
-    xzB.z = *(float *)(sub + 0x320);
-    xzB.y = 0.0f;
-
-    mag2 = xzA.x * xzA.x + xzA.z * xzA.z;
-    if (!(0.0f < mag2)) {
-        return hit;
-    }
-
-    p = &seg;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
-    seg.x = xzA.x - xzB.x;
-    seg.y = 0.0f;
-    seg.z = xzA.z - xzB.z;
-
-    *(Tri3i *)&segCp = *(Tri3i *)&seg;
-    *(Tri3i *)&segCp2 = *(Tri3i *)&segCp;
+    p = &vec2;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
+    p->x = *(float *)(sub + 0x318);
+    p->z = *(float *)(sub + 0x320);
+    p->y = 0.0f;
+    mag2 = vec1.x * vec1.x + vec1.z * vec1.z;
+    if (!(0.0f < mag2)) return 0;
+    p = &vec3;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
+    p->x = vec1.x - vec2.x;
+    p->y = 0.0f;
+    p->z = vec1.z - vec2.z;
+    c1 = vec3;
+    c2 = c1;
     scale = *(float *)(a0 + 0xD0);
-    scaled.x = segCp2.x * scale;
-    scaled.y = segCp2.y * scale;
-    scaled.z = segCp2.z * scale;
-    *(Tri3i *)&scCp = *(Tri3i *)&scaled;
-    *(Tri3i *)&scCp2 = *(Tri3i *)&scCp;
-
-    p = &dir;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
-    dir.x = scCp2.x;
-    dir.z = scCp2.z;
-    dir.y = 0.0f;
-
-    delta.x = *(float *)(sub + 0xB4) - *(float *)(v0 + 0xB4);
-    delta.y = *(float *)(sub + 0xB8) - *(float *)(v0 + 0xB8);
-    delta.z = *(float *)(sub + 0xBC) - *(float *)(v0 + 0xBC);
-    *(Tri3i *)&dCp = *(Tri3i *)&delta;
-    *(Tri3i *)&dCp2 = *(Tri3i *)&dCp;
-
-    p = &rel;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
-    rel.x = dCp2.x;
-    rel.z = dCp2.z;
-    rel.y = 0.0f;
-
-    mag = game_uso_func_082880(dir.x * dir.x + dir.z * dir.z);
-    if (!(0.0f < mag)) {
-        return hit;
-    }
-
-    if (dir.z * rel.x < dir.x * rel.z) {
-        cross = -(dir.z * rel.x - dir.x * rel.z);
-    } else {
-        cross = dir.z * rel.x - dir.x * rel.z;
-    }
-    dot = dir.x * rel.x + dir.z * rel.z;
-    t = dot / (dir.x * dir.x + dir.z * dir.z);
-    if (!(0.0f <= t)) {
-        return hit;
-    }
-    if (!(t < 1.0f)) {
-        return hit;
-    }
+    scaled.x = c2.x * scale;
+    scaled.y = c2.y * scale;
+    scaled.z = c2.z * scale;
+    s1 = scaled;
+    s2 = s1;
+    p = &vec4;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
+    p->x = s2.x;
+    p->z = s2.z;
+    p->y = 0.0f;
+    delta2.x = *(float *)(sub + 0xB4) - *(float *)(v0 + 0xB4);
+    delta2.y = *(float *)(sub + 0xB8) - *(float *)(v0 + 0xB8);
+    delta2.z = *(float *)(sub + 0xBC) - *(float *)(v0 + 0xBC);
+    d1 = delta2;
+    d2 = d1;
+    p = &vec5;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
+    p->x = d2.x;
+    p->z = d2.z;
+    p->y = 0.0f;
+    mag = game_uso_func_082880(vec4.x * vec4.x + vec4.z * vec4.z);
+    if (!(0.0f < mag)) return 0;
+    cross = vec4.z * vec5.x - vec4.x * vec5.z;
+    if (cross < 0.0f) cross = -cross;
+    dot = vec4.x * vec5.x + vec4.z * vec5.z;
+    tparam = dot / (vec4.x * vec4.x + vec4.z * vec4.z);
+    if (!(0.0f <= tparam)) return 0;
+    if (!(tparam < 1.0f)) return 0;
     perp = cross / mag;
-    if (!(perp < *(float *)(a0 + 0xD4))) {
-        return hit;
-    }
-    hit = 1;
-    return hit;
+    if (!(perp < *(float *)(a0 + 0xD4))) return 0;
+    return 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
