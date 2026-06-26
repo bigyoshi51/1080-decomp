@@ -346,22 +346,23 @@ S_self:
     s0[0x6A8 / 4] = (int)h;
     *(int **)((char *)&D_00000000 + 0x138) = h;
 
-    /* vtable-dispatch block */
+    /* vtable-dispatch block — target RE-READS self->0x6a8 (not the local h)
+     * for both the gl() base and the virtual-call base (asm a50/a54 lw 1704(s0)). */
     if ((s0[0x4F0 / 4] << 15) >= 0) {
         h[0xB4 / 4] = 0;
     } else {
         h[0xB4 / 4] = 11;
     }
-    gl_func_00000000(h, s0, s0[0x568 / 4], s0[0x528 / 4]);
+    gl_func_00000000(s0[0x6A8 / 4], s0, s0[0x568 / 4], s0[0x528 / 4]);
     {
-        int *vt = (int *)h[0x28 / 4];
-        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)h);
+        int *vt = (int *)((int *)s0[0x6A8 / 4])[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + s0[0x6A8 / 4]);
     }
-    gl_func_00000000((char *)s0 + 0x10, h);
-    if (h[0x14 / 4] != 0) {
-        h[0x4 / 4] = 1;
+    gl_func_00000000((char *)s0 + 0x10, s0[0x6A8 / 4]);
+    if (((int *)s0[0x6A8 / 4])[0x14 / 4] != 0) {
+        ((int *)s0[0x6A8 / 4])[0x4 / 4] = 1;
     }
-    h[0x14 / 4] = (int)s0;
+    ((int *)s0[0x6A8 / 4])[0x14 / 4] = (int)s0;
 
     /* registration block (only when self->0x4f0 bit16 set) */
     if ((s0[0x4F0 / 4] << 15) < 0) {
@@ -380,6 +381,21 @@ S_self:
             *(int *)((char *)s0[0x48 / 4] + 0x4) = 1;
         }
         *(int *)((char *)s0[0x48 / 4] + 0x14) = (int)s0;
+    } else {
+        s0[0x4F4 / 4] = a1 & 0xFFFF;
+        s0[0x48 / 4] = 0;
+    }
+
+    /* merge tail (asm c0c-c54): node = D[0x190]; register it onto self+0x10. */
+    {
+        int *node = *(int **)((char *)&D_00000000 + 0x190);
+        gl_func_00000000((char *)s0 + 0x10, node);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+        }
+        node[0x14 / 4] = (int)s0;
+        gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0);
+        gl_func_00000000();
     }
 
     return (int)s0;
