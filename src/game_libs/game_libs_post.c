@@ -3026,18 +3026,28 @@ out:
  * class.
  *
  * INCLUDE_ASM remains the build path (function not yet byte-exact). */
-#ifdef NON_MATCHING
+/* Bump/arena allocator. aligned = (n+15) & ~15; limit = arena->base(a0[0]) +
+ * arena->size(a0[2]); newcur = arena->cur(a0[1]) + aligned; if (limit < newcur)
+ * return 0 (overflow); else old = arena->cur; arena->cur = old + aligned;
+ * arena->count(a0[3])++; return old.
+ *
+ * 2026-06-25: CRACKED to byte-exact (fuzzy=100.000, 22/22 words). The residual
+ * register-allocation cascade (saved-cur landing in $t0 instead of $v1, and the
+ * limit/newcur transients in $a3/$t1 instead of $t8/$t9) was driven by the
+ * named-local form of the overflow test. Folding the comparison inline --
+ * `if ((unsigned)(a0[0]+a0[2]) >= (unsigned)(a0[1]+aligned))` -- removes the
+ * extra candidate live ranges so IDO colors the transients from the top of the
+ * temp file ($t8/$t9) and splits saved-cur's live range across the branch into
+ * the return-class register $v1 (the `move v1,a2` delay-slot fill). Keeping the
+ * sum operands in source order (a0[0] then a0[2]) reproduces `lw t6,0(a0); lw
+ * t7,8(a0)`. The dead `goto success; if (!cur) {}` tail preserves the inverted
+ * branch shape (bne + b success + separate fail jr-ra). */
 void *game_libs_func_0001FDF4(int *a0, unsigned int n) {
-  unsigned int new_var2;
   unsigned int aligned = (n + 15) & (~15);
   void *new_var;
-  unsigned int new_var3;
   unsigned int cur = a0[1];
-  unsigned int newcur = a0[1] + aligned;
-  new_var = (void *) (cur ^ 0);
-  new_var3 = (unsigned int) (a0[0] + a0[2]);
-  new_var2 = newcur;
-  if (new_var3 >= new_var2)
+  new_var = (void *) cur;
+  if ((unsigned int)(a0[0] + a0[2]) >= (unsigned int)(a0[1] + aligned))
   {
     a0[1] = cur + aligned;
     goto success;
@@ -3048,12 +3058,8 @@ void *game_libs_func_0001FDF4(int *a0, unsigned int n) {
   return 0;
   success:
   a0[3] += 1;
-
   return new_var;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FDF4);
-#endif
 
 /* 16-byte-align builder: a0[0]=a0[1]=(a1+0xF)&~0xF; a0[2]=a2-(a1&0xF); a0[3]=0.
  * LANDED fuzzy=100. The previously-documented 2-insn positional swap (and/subu
@@ -3082,21 +3088,29 @@ void game_libs_func_0001FE74(int *a0) { *(int*)((char*)(a0) + 0x10) = 0; *(int*)
  * docs/IDO_CODEGEN.md#feedback-ido-tu-context-sensitive-scheduling — the
  * surrounding TU's allocator state differs from isolated compile.
  * Permuter would need to be run in-tree to crack. */
-#ifdef NON_MATCHING
+/* 100% byte-exact. Struct init: caches v=*(a0+4), zeros 0x10/0x0, computes
+ * sum=v+*(a0+0xC) into *(a0+0x20), -1 into the two shorts, stores v at 0x8/0x14.
+ *
+ * Crack (operand-order + regalloc, 0 relocs => landable):
+ *   - INLINE-transient sum (no named `sum` local) is required to land the sum
+ *     in $t7 and the -1 const in $v1 (a named `int sum` pulls both to $v1/$a1).
+ *   - For the addu operand order, the inline binary add `v + *(a0+0xC)` emits
+ *     `addu $t7,$t6,$v0` (later-offset load $t6 becomes $rs). Target wants
+ *     `addu $t7,$v0,$t6` ($v0 first). The store-then-`+=` accumulator form
+ *     (`*(a0+0x20)=v; *(a0+0x20)+= *(a0+0xC);`) holds $v0 as the accumulator
+ *     base so CSE re-uses the just-stored $v0 as $rs -> `addu $t7,$v0,$t6`,
+ *     WHILE keeping the transient-temp ($t7) + $v1-const allocation. */
 void game_libs_func_0001FE88(short *a0) {
     int v = *(int *)((char *)a0 + 4);
-    int sum = v + *(int *)((char *)a0 + 0xC);
     *(int *)((char *)a0 + 0x10) = 0;
     *(int *)a0 = 0;
-    *(int *)((char *)a0 + 0x20) = sum;
+    *(int *)((char *)a0 + 0x20) = v;
+    *(int *)((char *)a0 + 0x20) += *(int *)((char *)a0 + 0xC);
     a0[0xF] = -1;
     a0[0x15] = -1;
     *(int *)((char *)a0 + 8) = v;
     *(int *)((char *)a0 + 0x14) = v;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FE88);
-#endif
 
 void game_libs_func_0001FEB8(int *a0) { *(int*)((char*)a0 + 4) = *(int*)a0; *(int*)((char*)a0 + 0xC) = 0; }
 
