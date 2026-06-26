@@ -8637,6 +8637,8 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
 //   placeholder offsets — see the cap note above for the true blocker.)
 //   Real-C STRUCTURAL body below. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+extern char *func_cfa0(char *, int, int, int, float, float *, float);
+#define CTX (*(char **)((char *)&func_0000023C + 0x18))
 void func_0000CFA0(char *st) {
     char *ctx;
     char *r;
@@ -8644,14 +8646,13 @@ void func_0000CFA0(char *st) {
     int changed;
     float dp[3];
     int sp30;
-    ctx = *(char **)((char *)&func_0000023C + 0x18);
-    if ((*(int *)(st + 0xA58) & 0x2000) && ctx == *(char **)(st + 0x8DC)) return;
-    r = (char *)func_00000000(*(char **)((char *)&func_0000023C + 0x18), 2,
-                              *(int *)(st + 0xB4), *(int *)(st + 0xB8),
-                              *(float *)(st + 0xBC), &out_at_sp84, 0.0f);
+    if ((*(int *)(st + 0xA58) & 0x2000) && CTX == *(char **)(st + 0x8DC)) return;
+    r = (char *)func_cfa0(CTX, 2,
+                          *(int *)(st + 0xB4), *(int *)(st + 0xB8),
+                          *(float *)(st + 0xBC), &out_at_sp84, 0.0f);
     if (!r) return;
     *(char **)(st + 0xA40) = r;
-    ctx = *(char **)((char *)&func_0000023C + 0x18);
+    ctx = CTX;
     changed = (*(float *)(ctx + 0x98) < out_at_sp84) ? 1
               : (((int)ctx ^ *(int *)(st + 0x8DC)) != 0);
     if ((*(int *)(st + 0xA58) & 0x10000) && *(short *)(st + 0x9A0) == 0x61 &&
