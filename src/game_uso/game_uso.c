@@ -9458,20 +9458,34 @@ void game_uso_func_0000B710(char *a0) {
  * first call. Knob over-corrects here (same nuance as game_uso_func_000043D8);
  * no C knob expresses "register early, reload-after-call-only". */
 #ifdef NON_MATCHING
+/* game_uso_func_0000B750 — reconstruction with real symbols + logic fixes.
+ * Real wiring recovered from objdump:
+ *   - output basis vec stored at (&import_8005C1A8 + 0xA0)[+0x30/0x34/0x38]
+ *     (== import_8005C1A8 + 0xD0/0xD4/0xD8; codegen forms the +0xA0 base addiu)
+ *   - double gate is (&game_uso_D_807FFA78 + 0x158) via ldc1
+ *   - call is game_uso_func_05B750(&import_8005C108, buf) — NOT func_00000000
+ *   - final indirect call dispatches *(s0+0x40)->[+0x1C] with a0 = (short)[+0x18] + s0
+ * Logic complete; FPU temp/reg-alloc + ldc1/%hi-%lo scheduling cap keeps it <80%. */
+extern char import_8005C108;
+extern char import_8005C1A8;
+extern char game_uso_D_807FFA78;
+extern void game_uso_func_05B750();
 void game_uso_func_0000B750(char *a0, char *s0, float *a2, float *a3, float arg4) {
     int flags = *(int *)(a0 + 0x1C);
     float f0 = *(float *)(a0 + 0x00);
+    char *dst;
     float k;
     float v;
     if (flags & 4) f0 += arg4 * 400.0f;
     k = (flags & 8) ? arg4 : 1.0f;
-    *(float *)((char *)&D_00000000 + 0xD0) = a2[0] + a3[0] * f0;
-    *(float *)((char *)&D_00000000 + 0xD4) = a2[1] + a3[1] * f0;
-    *(float *)((char *)&D_00000000 + 0xD8) = a2[2] + a3[2] * f0;
+    dst = &import_8005C1A8 + 0xA0;
+    *(float *)(dst + 0x30) = a2[0] + a3[0] * f0;
+    *(float *)(dst + 0x34) = a2[1] + a3[1] * f0;
+    *(float *)(dst + 0x38) = a2[2] + a3[2] * f0;
     *(short *)(s0 + 0xC0) = *(int *)(a0 + 0x18);
     v = *(float *)(a0 + 0x14);
     if (*(int *)(a0 + 0x1C) & 2) v *= k;
-    if ((double)v > *(double *)((char *)&D_00000000 + 0x158)) {
+    if ((double)v > *(double *)(&game_uso_D_807FFA78 + 0x158)) {
         float buf[4];
         char *vt;
         *(float *)(s0 + 0xB0) = v;
@@ -9480,7 +9494,7 @@ void game_uso_func_0000B750(char *a0, char *s0, float *a2, float *a3, float arg4
         buf[1] = *(float *)(a0 + 0x08);
         buf[2] = *(float *)(a0 + 0x0C);
         buf[3] = *(float *)(a0 + 0x10) * k;
-        func_00000000(&D_00000000, buf);
+        game_uso_func_05B750(&import_8005C108, buf);
         vt = *(char **)(s0 + 0x40);
         {
             void (*fn)(char *) = *(void (**)(char *))(vt + 0x1C);
