@@ -1888,75 +1888,91 @@ void game_uso_func_00002CA8(char *a0) {
 //   Real-C STRUCTURAL body below — entry gate + orientation copy +
 //   transform compose skeleton (sibling of game_uso_func_000028C0).
 //   Byte-match deferred. Name pre-checked: no extern reuse.
+// game_uso_func_00002CC8 — DECODE PASS (0x300 / 192 words, no episode).
+// Raw-.word USO form (single function). Per-object world-transform
+// builder, 2nd variant of the 000028C0 family (extra a1 arg). Decode
+// upgrade: the prior STRUCTURAL body kept everything in Vec3 structs
+// (IDO -O2 reg-keeps + DCEs them -> 48.6% fuzzy, too-small frame).
+// This pass groups every staged vector as a `float v[3]` array passed
+// BY ADDRESS and fans the copy chains through 3-word INTEGER struct
+// copies (Tri3i), forcing the memory-resident staging the target uses
+// (sp+0xB4 staged, sp+0xC0 vcopy, sp+0x8C cp1, sp+0x74 divv, sp+0x54
+// cp2). Byte-match still deferred (raw-word USO disasm + final
+// frame-coloring); pass raises decode fidelity / fuzzy. Name
+// pre-checked: no extern reuse.
+//
+// Struct-typing reference:
+//   obj(a0): 0x14 -> out base, 0x3C -> sub (->0x38 = s matrix/orient
+//     record, ->0xA0/A4/A8 orientation Vec3, ->0x70.. a 3x3 matrix),
+//     0x38 -> ss record, 0x40 = mode (0 skip / 1 build / 3 -z probe /
+//     else +z probe), 0x5C = inverse-scale divisor. a1 = a source Vec3
+//     (mode 1). game_uso_func_000023D4 = local-frame offset helper.
 #ifdef NON_MATCHING
 void game_uso_func_00002CC8(char *a0, char *a1) {
-    char *out;
-    int mode;
+    char *out = *(char **)(a0 + 0x14);
+    char *s = *(char **)(*(char **)(a0 + 0x3C) + 0x38);
+    int mode = *(int *)(a0 + 0x40);
     Vec3 *r;
-    Vec3 staged, tmp1, divv, cp1, cp2, scratch;
-    float invd;
-    char *s;
+    float staged[3], vcopy[3], divv[3], cp1[3], cp2[3];
+    float ssv[3], dir[3], dir2[3], res[3];
+    float invd, dirv;
 
-    out = *(char **)(a0 + 0x14);
-    s = *(char **)(*(char **)(a0 + 0x3C) + 0x38);
-    mode = *(int *)(a0 + 0x40);
-    if (mode == 0) return;
-    if (mode == 1) {
-        staged.x = *(float *)(s + 0xA0);
-        staged.y = *(float *)(s + 0xA4);
-        staged.z = *(float *)(s + 0xA8);
-        r = game_uso_func_000023D4(&scratch, *(char **)(a0 + 0x3C));
-        tmp1 = *r;
-        staged.x = staged.x + tmp1.x;
-        staged.y = staged.y + tmp1.y;
-        staged.z = staged.z + tmp1.z;
-        invd = *(float *)(a0 + 0x5C);
-        divv.x = *(float *)(a1 + 0x0) / invd;
-        divv.y = *(float *)(a1 + 0x4) / invd;
-        divv.z = *(float *)(a1 + 0x8) / invd;
-        cp1 = divv;
-        cp2 = cp1;
-        staged.x = staged.x - cp2.x;
-        staged.y = staged.y - cp2.y;
-        staged.z = staged.z - cp2.z;
-        *(float *)(out + 0x60) = staged.x;
-        *(float *)(out + 0x64) = staged.y;
-        *(float *)(out + 0x68) = staged.z;
-        *(float *)(out + 0xA0) = staged.x;
-        *(float *)(out + 0xA4) = staged.y;
-        *(float *)(out + 0xA8) = staged.z;
+    if (mode == 0) {
         return;
     }
-    /* mode >= 2: ssv = (a0->0x38)->{0xA0,0xA4,0xA8}; res = M * {0,0,±1000}
-     * (M is the 3x3 at s+0x70/0x80/0x90); out gets ssv + res. */
+    if (mode == 1) {
+        staged[0] = *(float *)(s + 0xA0);
+        staged[1] = *(float *)(s + 0xA4);
+        staged[2] = *(float *)(s + 0xA8);
+        r = game_uso_func_000023D4((Vec3 *)&vcopy[0], *(char **)(a0 + 0x3C));
+        *(Tri3i *)&vcopy[0] = *(Tri3i *)r;
+        staged[0] = staged[0] + vcopy[0];
+        staged[1] = staged[1] + vcopy[1];
+        staged[2] = staged[2] + vcopy[2];
+        invd = *(float *)(a0 + 0x5C);
+        divv[2] = *(float *)(a1 + 0x8) / invd;
+        divv[1] = *(float *)(a1 + 0x4) / invd;
+        divv[0] = *(float *)(a1 + 0x0) / invd;
+        *(Tri3i *)&cp1[0] = *(Tri3i *)&divv[0];
+        *(Tri3i *)&cp2[0] = *(Tri3i *)&cp1[0];
+        staged[0] = staged[0] - cp2[0];
+        staged[1] = staged[1] - cp2[1];
+        staged[2] = staged[2] - cp2[2];
+        *(float *)(out + 0x60) = staged[0];
+        *(float *)(out + 0x64) = staged[1];
+        *(float *)(out + 0x68) = staged[2];
+        *(float *)(out + 0xA0) = staged[0];
+        *(float *)(out + 0xA4) = staged[1];
+        *(float *)(out + 0xA8) = staged[2];
+        return;
+    }
+    /* mode != 0,1: probe = M * {0,0,±1000}; ssv = (a0->0x38)->0xA0.. + probe */
     {
         char *ss = *(char **)(a0 + 0x38);
-        Vec3 ssv, dir, dir2, res;
-        float dirv;
-        ssv.x = *(float *)(ss + 0xA0);
-        ssv.y = *(float *)(ss + 0xA4);
-        ssv.z = *(float *)(ss + 0xA8);
+        ssv[0] = *(float *)(ss + 0xA0);
+        ssv[1] = *(float *)(ss + 0xA4);
+        ssv[2] = *(float *)(ss + 0xA8);
         if (mode == 3) {
             dirv = -1000.0f;
         } else {
             dirv = 1000.0f;
         }
-        dir.x = 0.0f;
-        dir.y = 0.0f;
-        dir.z = dirv;
-        dir2 = dir;
-        res.x = *(float *)(s + 0x70) * dir2.x + *(float *)(s + 0x80) * dir2.y + *(float *)(s + 0x90) * dir2.z;
-        res.y = *(float *)(s + 0x74) * dir2.x + *(float *)(s + 0x84) * dir2.y + *(float *)(s + 0x94) * dir2.z;
-        res.z = *(float *)(s + 0x78) * dir2.x + *(float *)(s + 0x88) * dir2.y + *(float *)(s + 0x98) * dir2.z;
-        ssv.x = ssv.x + res.x;
-        ssv.y = ssv.y + res.y;
-        ssv.z = ssv.z + res.z;
-        *(float *)(out + 0x60) = ssv.x;
-        *(float *)(out + 0x64) = ssv.y;
-        *(float *)(out + 0x68) = ssv.z;
-        *(float *)(out + 0xA0) = ssv.x;
-        *(float *)(out + 0xA4) = ssv.y;
-        *(float *)(out + 0xA8) = ssv.z;
+        dir[0] = 0.0f;
+        dir[1] = 0.0f;
+        dir[2] = dirv;
+        *(Tri3i *)&dir2[0] = *(Tri3i *)&dir[0];
+        res[0] = *(float *)(s + 0x70) * dir2[0] + *(float *)(s + 0x80) * dir2[1] + *(float *)(s + 0x90) * dir2[2];
+        res[1] = *(float *)(s + 0x74) * dir2[0] + *(float *)(s + 0x84) * dir2[1] + *(float *)(s + 0x94) * dir2[2];
+        res[2] = *(float *)(s + 0x78) * dir2[0] + *(float *)(s + 0x88) * dir2[1] + *(float *)(s + 0x98) * dir2[2];
+        ssv[0] = ssv[0] + res[0];
+        ssv[1] = ssv[1] + res[1];
+        ssv[2] = ssv[2] + res[2];
+        *(float *)(out + 0x60) = ssv[0];
+        *(float *)(out + 0x64) = ssv[1];
+        *(float *)(out + 0x68) = ssv[2];
+        *(float *)(out + 0xA0) = ssv[0];
+        *(float *)(out + 0xA4) = ssv[1];
+        *(float *)(out + 0xA8) = ssv[2];
     }
 }
 #else
@@ -9018,207 +9034,221 @@ void game_uso_func_0000ADE0(int *dst) {
 }
 
 #ifdef NON_MATCHING
-/* game_uso_func_0000AE1C: 278-insn (0x458) constructor. Frame -0xA0.
- * Same family as 00003018 / spine constructor 000044F4 (alloc-cascade
- * + sub-object init).
+/* game_uso_func_0000AE1C: 278-insn (0x458) spine constructor. Frame -0xA0.
+ * Same family as the find-or-create alloc-cascade constructors
+ * (000034A4 / 00003018 / 0000C48C). Reconstructed 2026-06-26 from the
+ * resolved EXPECTED .o: the prior body used gl_func_00000000 placeholder
+ * callees + &D_00000000 bases (ALL WRONG). Real symbols wired:
+ *   allocator        game_uso_func_055750(size)
+ *   sub-obj init     game_uso_func_04C678(self, tmpl)
+ *   misc inits       game_uso_func_04D3D0(self), game_uso_func_04D3C8(self,2)
+ *   vec3 setter      game_uso_func_072EE8(self+0x30, &v3)
+ *   24-byte node init game_uso_func_04A188(node, parent, idx, flag)
+ *   tail import      import_000F5ADC(0, &game_uso_D_807FF214)
+ *   global flag word import_8005EE6C
+ *   vtable           &import_80086288, &game_uso_D_807FF24C, ...
  *
- * Stage 1 @ 0xAE1C-0xAE38 (alloc-or-passthrough for primary 0x178 buffer):
- *   if (!a0) a0 = alloc(0x178);  if (!a0) return.
+ * Find-or-create idiom (dead-sentinel cascade): each sub-object is
+ *   p = base + off;  if (base == (T)-off) { p = alloc(N); if (!p) goto skip; }
+ * where base+off==NULL iff base==-off — so the alloc arm is statically dead,
+ * but IDO emits it (li at,-off; bne base,at,skip; alloc). Several sub-objects
+ * use a TWO-LEVEL nested cascade (outer keyed on a reloaded arg0 @ sp+0xA0,
+ * inner keyed on the resulting pointer).
  *
- * Stage 2 @ 0xAE40-0xAE58 (alloc-or-passthrough for secondary 0xB4 sub-obj):
- *   if (!s0) s0 = alloc(0xB4);  if (!s0) goto stage_4_skip.
- *
- * Stage 3 @ 0xAE5C-0xAE68 (init sub-obj with table @ &D + 0xD50):
- *   init_sub(s0, &D[0xD50])
- *
- * Stage 4 @ 0xAE6C-0xAE7C (vtable-pointer set + dead-code alloc-cascade):
- *   *(s0 + 0x28) = &D
- *   sentinel-bne pattern at -0x2C/-0xDC/etc — IDO emits dead alloc(4)
- *   block (same family as 00003018 Stage 6's "always-true bne" cap).
- *
- * Stage 5 @ 0xAEAC-0xAED4 (Vec3-zero init + sub-obj alloc(0x30)):
- *   sp[0x84..0x8C] = (0.0f, 0.0f, 0.0f)
- *   t0 (orig arg0) -> [0x28] = &D
- *
- * Stage 6 @ 0xAEDC-0xAEFC (sentinel(-DC)+alloc(0x10) bundle): same shape,
- *   different alloc size + sentinel.
- *
- * Stage 7 @ 0xAF00-0xAF60: more alloc(0x10)+(0x4)+sub-obj-init chain
- *   with cross-USO `init_with_table_at_D[0x848]/[0x840]`.
- *
- * Remaining ~200 insns TBD: more alloc-cascade stages + struct-field
- * fills. Same family pattern as 00003018.
- *
- * Picked source 5 (strategy memo size-descending). Structural skeleton
- * with stages 1-7 partially decoded (~70/278 insns covered in doc;
- * encoded body covers stages 1-4). Multi-run refinement expected. */
-void* game_uso_func_0000AE1C(void* arg0) {
-    void *s0;
-    void *sub;
+ * RESIDUAL: likely a frame-spread / per-stage spill-slot coloring cap (same
+ * class as 0000C48C's -0x48-vs-0xC8 residual). Real-symbol reconstruction;
+ * NM build path = INCLUDE_ASM. */
+extern void game_uso_func_04D3D0(void *self);
+extern void game_uso_func_04D3C8(void *self, int a1);
+extern char game_uso_D_807FF340, game_uso_D_807FF24C, game_uso_D_807FEE38,
+            game_uso_D_807FEE30, game_uso_D_807FF234, game_uso_D_807FF344,
+            game_uso_D_807FF34C, game_uso_D_807FF350, game_uso_D_807FF354,
+            game_uso_D_807FF358, game_uso_D_807FEE50, game_uso_D_807FEE68,
+            game_uso_D_807FF35C, game_uso_D_807FEE80, game_uso_D_807FF214;
+extern char import_80086288, import_8005EE6C;
+extern int import_000F5ADC();
 
+void *game_uso_func_0000AE1C(void *arg0) {
+    void *s0;
+    void *p;
+    void *q;
+    char *o16;
+    char *o140;
+    char *o36;
+    Vec3 v3;
+    float v4[4];
+
+    /* Stage 1: find-or-create primary 0x178 buffer (homed at sp+0xA0). */
+    if (arg0 == NULL) {
+        arg0 = (void *)game_uso_func_055750(0x178);
+        if (arg0 == NULL) return arg0;
+    }
+
+    /* Stage 2: secondary 0xB4 sub-object into s0. */
     s0 = arg0;
     if (s0 == NULL) {
-        s0 = (void*)gl_func_00000000(0x178);
-        if (s0 == NULL) return NULL;
+        s0 = (void *)game_uso_func_055750(0xB4);
+        if (s0 == NULL) goto skip_sub;
     }
-    sub = s0;
-    if (s0 == NULL) {
-        sub = (void*)gl_func_00000000(0xB4);
-        if (sub == NULL) goto skip_init;
+    game_uso_func_04C678(s0, (char *)&game_uso_D_807FF340 + 0xD50);
+    *(int *)((char *)s0 + 0x28) = (int)&import_80086288;
+
+    /* Stage 3: zero a 4-byte node at s0+0x2C (dead-sentinel cascade). */
+    p = (char *)s0 + 0x2C;
+    if (s0 == (void *)-0x2C) {
+        p = (void *)game_uso_func_055750(4);
+        if (p == NULL) goto after_node;
     }
-    gl_func_00000000(sub, (char*)&D_00000000 + 0xD50);
-skip_init:
-    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+    q = p;
+    if (p == NULL) {
+        q = (void *)game_uso_func_055750(4);
+        if (q == NULL) goto after_node;
+    }
+    *(int *)q = 0;
+after_node:
+    game_uso_func_04D3D0(s0);
+    v3.x = 0.0f;
+    v3.y = 0.0f;
+    v3.z = 0.0f;
+    game_uso_func_072EE8((char *)s0 + 0x30, &v3);
+skip_sub:
+
+    /* Stage 4: vtable on reloaded arg0. */
+    *(int *)((char *)arg0 + 0x28) = (int)&game_uso_D_807FF24C;
+
+    /* Stage 5: o16 sub-object = arg0+0xDC, nested 2-level cascade. */
+    o16 = (char *)arg0 + 0xDC;
+    if (arg0 == (void *)-0xDC) {
+        o16 = (char *)game_uso_func_055750(0x10);
+        if (o16 == NULL) goto after_o16;
+    }
     {
-        void *sub2 = (char *)s0 + 44;
-        if (sub2 == NULL) {
-            sub2 = (void *)gl_func_00000000(4);
-            if (sub2 == NULL) goto after2;
+        char *r = o16;
+        if (o16 == NULL) {
+            r = (char *)game_uso_func_055750(0x10);
+            if (r == NULL) goto o16_set;
         }
-        *(int *)sub2 = 0;
-    }
-after2:
-    gl_func_00000000(s0);
-    {
-        float v[3];
-        char *r;
-        v[0] = 0.0f;
-        v[1] = 0.0f;
-        v[2] = 0.0f;
-        r = (char *)gl_func_00000000((char *)s0 + 48, v);
-        *(int *)(r + 0x28) = (int)&D_00000000;
         {
-            char *o16;
-            char *sub4;
-            if ((int)r != -220) {
-                o16 = r + 220;
-            } else {
-                o16 = (char *)gl_func_00000000(16);
-                if (o16 == NULL) goto end16;
-                *(int *)o16 = (int)((char *)&D_00000000 + 3140);
+            char *w = r;
+            if (r == NULL) {
+                w = (char *)game_uso_func_055750(4);
+                if (w == NULL) goto o16_fill;
             }
-            sub4 = o16;
-            if (o16 == NULL) {
-                sub4 = (char *)gl_func_00000000(4);
-                if (sub4 == NULL) goto fills;
-            }
-            *(int *)sub4 = (int)((char *)&D_00000000 + 2120);
-        fills:
-            *(int *)(o16 + 4) = (int)r;
-            *(int *)(o16 + 8) = *(int *)((char *)&D_00000000 + 2112);
-            *(int *)(o16 + 12) = *(int *)((char *)&D_00000000 + 2116);
+            *(int *)w = (int)((char *)&game_uso_D_807FEE38 + 0x848);
+        o16_fill:
+            *(int *)(r + 4) = (int)arg0;
+            *(int *)(r + 8) = *(int *)((char *)&game_uso_D_807FEE30 + 0x840);
+            *(int *)(r + 12) = *(int *)((char *)&game_uso_D_807FEE30 + 0x844);
         }
-    end16:;
-        {
-            char *o140;
-            char *sub8;
-            if ((int)r != -236) {
-                o140 = r + 236;
-            } else {
-                o140 = (char *)gl_func_00000000(140);
-                if (o140 == NULL) return s0;
-            }
-            sub8 = o140;
-            if (o140 == NULL) {
-                sub8 = (char *)gl_func_00000000(8);
-                if (sub8 == NULL) goto skip8;
-            }
-            *(int *)sub8 = (int)((char *)&D_00000000 + 3412);
-            *(int *)(sub8 + 4) = 0;
-        skip8:;
-            {
-                char *o24;
-                if ((int)o140 != -8) {
-                    o24 = o140 + 8;
-                } else {
-                    o24 = (char *)gl_func_00000000(24);
-                    if (o24 == NULL) goto after24a;
-                }
-                gl_func_00000000(o24, o140, *(int *)((char *)&D_00000000 + 3420), 1);
-                *(int *)(o24 + 12) = (int)((char *)&D_00000000 + 2144);
-                *(int *)(o24 + 20) = 0;
-                *(float *)(o24 + 16) = 0.0f;
-            }
-        after24a:
-            {
-                char *o24b;
-                if ((int)o140 != -32) {
-                    o24b = o140 + 32;
-                } else {
-                    o24b = (char *)gl_func_00000000(24);
-                    if (o24b == NULL) goto after24b;
-                }
-                gl_func_00000000(o24b, o140, *(int *)((char *)&D_00000000 + 3424), 1);
-                *(int *)(o24b + 12) = (int)((char *)&D_00000000 + 2144);
-                *(int *)(o24b + 20) = 0;
-                *(float *)(o24b + 16) = 0.0f;
-            }
-        after24b:
-            {
-                char *o24c;
-                if ((int)o140 != -56) {
-                    o24c = o140 + 56;
-                } else {
-                    o24c = (char *)gl_func_00000000(24);
-                    if (o24c == NULL) goto after24c;
-                }
-                gl_func_00000000(o24c, o140, *(int *)((char *)&D_00000000 + 3428), 1);
-                *(int *)(o24c + 12) = (int)((char *)&D_00000000 + 2144);
-                *(int *)(o24c + 20) = 0;
-                *(float *)(o24c + 16) = 2.0f;
-            }
-        after24c:
-            {
-                char *o24d;
-                if ((int)o140 != -80) {
-                    o24d = o140 + 80;
-                } else {
-                    o24d = (char *)gl_func_00000000(24);
-                    if (o24d == NULL) goto after24d;
-                }
-                gl_func_00000000(o24d, o140, *(int *)((char *)&D_00000000 + 3432), 0);
-                *(int *)(o24d + 12) = (int)((char *)&D_00000000 + 2168);
-                *(int *)(o24d + 20) = 0;
-                *(int *)(o24d + 16) = 0;
-            }
-        after24d:;
-        }
+    o16_set:
+        *(int *)o16 = (int)((char *)&game_uso_D_807FF234 + 0xC44);
+    }
+after_o16:
+
+    /* Stage 6: o140 sub-object = arg0+0xEC (alloc 140), four 24-byte child
+     * nodes via 04A188, then the o36 node. */
+    o140 = (char *)arg0 + 0xEC;
+    if (arg0 == (void *)-0xEC) {
+        o140 = (char *)game_uso_func_055750(140);
+        if (o140 == NULL) goto end_ret;
     }
     {
-        char *o36;
-        float v4[4];
-        int x36;
+        char *s = o140;
+        if (o140 == NULL) {
+            s = (char *)game_uso_func_055750(8);
+            if (s == NULL) goto after_o140hdr;
+        }
+        *(int *)s = (int)((char *)&game_uso_D_807FF344 + 0xD54);
+        *(int *)(s + 4) = 0;
+    }
+after_o140hdr:
+    {
+        int idx = *(int *)((char *)&game_uso_D_807FF34C + 0xD5C);
+        char *n = o140 + 8;
+        if (o140 == (char *)-8) {
+            n = (char *)game_uso_func_055750(24);
+            if (n == NULL) goto node1;
+        }
+        game_uso_func_04A188(n, o140, idx, 1);
+        *(int *)(n + 12) = (int)((char *)&game_uso_D_807FEE50 + 0x860);
+        *(int *)(n + 20) = 0;
+        *(float *)(n + 16) = 0.0f;
+    }
+node1:
+    {
+        int idx = *(int *)((char *)&game_uso_D_807FF350 + 0xD60);
+        char *n = o140 + 32;
+        if (o140 == (char *)-32) {
+            n = (char *)game_uso_func_055750(24);
+            if (n == NULL) goto node2;
+        }
+        game_uso_func_04A188(n, o140, idx, 1);
+        *(int *)(n + 12) = (int)((char *)&game_uso_D_807FEE50 + 0x860);
+        *(int *)(n + 20) = 0;
+        *(float *)(n + 16) = 0.0f;
+    }
+node2:
+    {
+        int idx = *(int *)((char *)&game_uso_D_807FF354 + 0xD64);
+        char *n = o140 + 56;
+        if (o140 == (char *)-56) {
+            n = (char *)game_uso_func_055750(24);
+            if (n == NULL) goto node3;
+        }
+        game_uso_func_04A188(n, o140, idx, 1);
+        *(int *)(n + 12) = (int)((char *)&game_uso_D_807FEE50 + 0x860);
+        *(int *)(n + 20) = 0;
+        *(float *)(n + 16) = 2.0f;
+    }
+node3:
+    {
+        int idx = *(int *)((char *)&game_uso_D_807FF358 + 0xD68);
+        char *n = o140 + 80;
+        if (o140 == (char *)-80) {
+            n = (char *)game_uso_func_055750(24);
+            if (n == NULL) goto node4;
+        }
+        game_uso_func_04A188(n, o140, idx, 0);
+        *(int *)(n + 12) = (int)((char *)&game_uso_D_807FEE68 + 0x878);
+        *(int *)(n + 20) = 0;
+        *(int *)(n + 16) = 0;
+    }
+node4:;
+    {
+        int idx = *(int *)((char *)&game_uso_D_807FF35C + 0xD6C);
+        char *n;
         v4[0] = 1.0f;
         v4[1] = 1.0f;
         v4[2] = 1.0f;
         v4[3] = 1.0f;
-        x36 = *(int *)((char *)&D_00000000 + 3436);
-        if ((int)s0 != -104) {
-            o36 = (char *)s0 + 104;
-        } else {
-            o36 = (char *)gl_func_00000000(36);
-            if (o36 == NULL) goto after36;
+        n = (char *)arg0 + 0x68;
+        if (arg0 == (void *)-0x68) {
+            n = (char *)game_uso_func_055750(36);
+            if (n == NULL) goto end_ret;
         }
-        gl_func_00000000(o36, s0, x36, 0);
-        *(int *)(o36 + 12) = (int)((char *)&D_00000000 + 2192);
+        o36 = n;
+        game_uso_func_04A188(o36, arg0, idx, 0);
+        *(int *)(o36 + 12) = (int)((char *)&game_uso_D_807FEE80 + 0x890);
         *(int *)(o36 + 32) = 0;
         *(float *)(o36 + 16) = v4[0];
         *(float *)(o36 + 20) = v4[1];
         *(float *)(o36 + 24) = v4[2];
         *(float *)(o36 + 28) = v4[3];
     }
-after36:
+
+    /* Tail: clear two flag bits in the global state word, set scalars. */
     {
-        int flags = *(int *)((char *)&D_00000000 + 4);
+        int flags = *(int *)((char *)&import_8005EE6C + 4);
         flags &= ~0x00080000;
         flags &= ~2;
-        *(int *)((char *)&D_00000000 + 4) = flags;
+        *(int *)((char *)&import_8005EE6C + 4) = flags;
     }
-    *(float *)((char *)s0 + 200) = 1.0f;
-    gl_func_00000000(s0, 2);
-    *(int *)((char *)s0 + 196) = gl_func_00000000(0, &D_00000000);
-    *(float *)((char *)s0 + 204) = 0.0f;
-    return s0;
+    *(float *)((char *)arg0 + 0xC8) = 1.0f;
+    game_uso_func_04D3C8(arg0, 2);
+    *(int *)((char *)arg0 + 0xC4) = import_000F5ADC(0, &game_uso_D_807FF214);
+    *(float *)((char *)arg0 + 0xCC) = 0.0f;
+end_ret:
+    return arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000AE1C);
