@@ -3662,6 +3662,13 @@ end:
  * still 0 (word-0 frame -0x180 not yet reproduced: depends on reconstructing
  * all 44 distinct globals so the 52-call spill schedule converges). */
 extern void *gRoot; /* zero-page USO-GOT global; reloaded per use (no CSE) */
+/* tail-block init globals (decode-progress 2026-06-26): the four transform-group
+ * registrations + final 0x58 block pass a distinct per-group global as arg2
+ * (D_00007E58..68), the first 0x48 node uses &D_00007E48 and func_00007E50's
+ * word value, the 2nd 0x48 uses D_00007E54, and obj+0x28 stores &D_00007600. */
+extern int D_00007E48, D_00007E54, D_00007E58, D_00007E5C, D_00007E60, D_00007E64, D_00007E68;
+extern char D_00007600;
+extern void func_00007E50(int *a0);
 #define DROOT ((int *)gRoot)
 #define DI(o) (*(int *)((char *)&D_00000000 + (o)))
 #define DF(o) (*(float *)((char *)&D_00000000 + (o)))
@@ -3842,13 +3849,13 @@ void func_000055A0(int arg0, int arg1, int arg2) {
         func_00000000(DROOT, obj, DP(0xFFFF));
     }
 
-    func_00000000(DROOT, NULL);
+    func_00000000(DROOT, DP(0));
 
     /* trailing 0x48 / 0x58 objects + transform-group registration */
-    node = (void *)func_00000000(0, NULL, NULL, NULL);
+    node = (void *)func_00000000(0, &D_00007E48, DI(0), 0);
     obj = (void *)func_00000000(0x48);
     if (obj != 0) {
-        func_00000000(obj, DROOT, node);
+        func_00000000(obj, *(int *)&func_00007E50, node);
         OI(obj, 0x28) = 0;
     }
     func_00000000(DROOT, obj, DP(0xFFFF));
@@ -3857,22 +3864,22 @@ void func_000055A0(int arg0, int arg1, int arg2) {
     if (obj != 0) {
         sub = obj;
         if ((obj != 0) || (sub = (void *)func_00000000(0x48), sub != 0)) {
-            func_00000000(sub, DROOT, DI(0));
+            func_00000000(sub, D_00007E54, DI(0));
             OI(sub, 0x28) = 0;
         }
         OI(obj, 0x28) = 0;
     }
     func_00000000(DROOT, obj, DP(0xFFFF));
 
-    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &M(0x144)), DP(0xFFFF));
-    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &M(0x114)), DP(0xFFFF));
-    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &M(0xD4)), DP(0xFFFF));
-    func_00000000(DROOT, func_00000000(0, DROOT, DI(0), &M(0xC4)), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, D_00007E58, DI(0), &M(0x144)), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, D_00007E5C, DI(0), &M(0x114)), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, D_00007E60, DI(0), &M(0xD4)), DP(0xFFFF));
+    func_00000000(DROOT, func_00000000(0, D_00007E64, DI(0), &M(0xC4)), DP(0xFFFF));
 
     obj = (void *)func_00000000(0x58);
     if (obj != 0) {
-        func_00000000(obj, DROOT, DI(0), &M(0xE4));
-        OI(obj, 0x28) = 0;
+        func_00000000(obj, D_00007E68, DI(0), &M(0xE4));
+        OI(obj, 0x28) = (int)&D_00007600;
     }
     func_00000000(DROOT, obj, DP(0xFFFF));
 }
