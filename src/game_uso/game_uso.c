@@ -6122,80 +6122,34 @@ void game_uso_func_00006F28(int *a0) {
 }
 
 #ifdef NON_MATCHING
-/* 41.5% NM wrap. 28-insn (0x70).
+/* game_uso_func_00006F38: flag-test cascade over a chain pointer.
  *
- * UPDATE 2026-05-02: re-examined target asm. NOT prologue-stolen — the
- * lui+lw prefix at offset 0 IS inside this function's own symbol (.s
- * declares glabel game_uso_func_00006F38 covering all 28 insns).
- * Tried PROLOGUE_STEALS=8 + unique-extern recipe: regressed to 17.71 %
- * because splice removed bytes that genuinely belong to this function.
- * Reverted both Makefile entry and undefined_syms_auto.txt addition.
- *
- * Target structure (28 insns, frame 0x40):
- *   lui+lw t6, 0x548(D)         — load *(D+0x548) into t6 ($s-survives)
- *   prologue (frame 0x40, save ra)
- *   a1 = *t6
- *   spill a1 to 0x3C(sp) AND 4(sp)  ← TWO dead spills, IDO bookkeeping
- *   a2 = a0->0x30
- *   jal gl_func(a0, v, a0->0x30+0xB4, [a3 garbage])
- *   addiu a2, +0xB4 in delay
- *   then sltu+beq+bnel chain to compute return = (v0!=0 && (v0->0x84&0x400 || (v0->0x2C && (v0->0x2C->0x84&0x400))))
- *
- * The 2 dead a1 spills are not reproducible from natural C — they're
- * artifacts of how IDO scheduled the load BEFORE the jal. Body logic
- * decoded; need a multi-stage variant tester or accept ~41% cap.
- * 2026-05-31: callee RESOLVED to the real game_uso_func_0000A374 (was the
- * gl_func_00000000 placeholder). The residual is its VARARGS ABI: target
- * homes the 4th arg `v` to sp+4 and allocates a -64 frame, but A374's existing
- * 3-arg prototype `(int,int,int)` blocks declaring it `(int,int,int,...)` here
- * (redeclaration conflict), and a fn-ptr varargs cast forces an indirect jalr.
- * Cracking it needs A374's def itself made varargs (risks A374's own 86.7%). */
+ * t6 = *(game_uso_D_807FEB38 + 0x548); v = *t6 (held in a local, homed to the
+ * frame); r = game_uso_func_0000A374(a0, v, a0->0x30 + 0xB4).
+ * Returns the boolean cascade as a SINGLE chained && / || return expression:
+ *   (r != 0) && ( (r->0x84 & 0x400) ||
+ *                 ( (r->0x2C != 0) && (r->0x2C->0x84 & 0x400) ) )
+ * IDO -O2 materializes each level via `sltu rd,zero,rs` with short-circuit
+ * branches. Verified 58.6% fuzzy (up from 41.8% if/return form).
+ * Residual is the register-allocation/branch-scheduling cap: target keeps the
+ * call result `r` live in v0 across the whole cascade and uses likely-branches
+ * (bnezl/beqzl) with `move v0,v1` in the delay slots, plus a -64 frame that
+ * homes `*t6` to two slots (sp+0x3C and sp+4) — neither reproducible from the
+ * straightforward C below. Logic is complete; remainder is coloring-capped. */
+extern char game_uso_D_807FEB38;
 extern int game_uso_func_0000A374();
 int game_uso_func_00006F38(int *a0) {
-    int v = **(int**)((char*)&D_00000000 + 0x548);
-    int *r = (int*)game_uso_func_0000A374(a0, v, *(int*)((char*)a0 + 0x30) + 0xB4, v);
-    int *p;
-    if (r == 0) return 0;
-    if ((*(int*)((char*)r + 0x84) & 0x400) != 0) return 1;
-    p = (int*)*(int*)((char*)r + 0x2C);
-    if (p == 0) return 0;
-    return (*(int*)((char*)p + 0x84) & 0x400) != 0;
-}
-#else
-#ifdef NON_MATCHING
-/* game_uso_func_00006F38: 28-insn (0x70) flag-test wrapper. Reads a global
- * pointer from D[0x548], dereferences to get a chain pointer, calls a
- * cross-USO callee with (chain, a0->0x30+0xB4), then tests the 0x400 bit
- * on the result and (optionally) on a sub-pointer at +0x2C.
- *
- * Anomaly: target emits the `lui t6, 0; lw t6, 0x548(t6)` pair BEFORE
- * its `addiu sp, -0x40; sw ra` prologue (insns 0/1 vs 2/3). C emit puts
- * prologue first, lui+lw second. This 2-insn schedule cap is unflippable
- * from straightforward C (IDO -O2 always emits sp-adjust first).
- *
- * Also target has 2 dead spills of `*t6` to sp+0x4 + sp+0x3C — neither
- * is reloaded post-call. Suggests original C had two locals (e.g.
- * `int v = *t6; int v2 = v;`) that GCC IDO regalloc spilled unnecessarily.
- *
- * Frame size differs (target -0x40 vs C-emit -0x18), driven by the dead
- * spills + larger local block. Multi-tick refinement target — partial
- * structural decode below; default INCLUDE_ASM remains exact. */
-int game_uso_func_00006F38(int *a0) {
-    int *p1 = *(int**)((char*)&D_00000000 + 0x548);
-    int *p2;
-    int *p3;
+    int *r;
+    int v = **(int **)((char *)&game_uso_D_807FEB38 + 0x548);
 
-    p2 = (int*)gl_func_00000000(*p1, *(int*)((char*)a0 + 0x30) + 0xB4);
-    if (p2 == 0) return 0;
-    if ((*(int*)((char*)p2 + 0x84) & 0x400) != 0) return 1;
-
-    p3 = *(int**)((char*)p2 + 0x2C);
-    if (p3 == 0) return 0;
-    return (*(int*)((char*)p3 + 0x84) & 0x400) != 0;
+    r = (int *)game_uso_func_0000A374(a0, v, *(int *)((char *)a0 + 0x30) + 0xB4);
+    return r != 0 &&
+           ((*(int *)((char *)r + 0x84) & 0x400) != 0 ||
+            (*(int *)((char *)r + 0x2C) != 0 &&
+             (*(int *)(*(int *)((char *)r + 0x2C) + 0x84) & 0x400) != 0));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
-#endif
 #endif
 
 #ifdef NON_MATCHING
