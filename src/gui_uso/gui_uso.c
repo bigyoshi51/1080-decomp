@@ -20,22 +20,47 @@ extern char D_00000000;
  * Maps punctuation to glyph indices 0x24-0x29, a-z/A-Z to 0x0A.., digits to
  * 0x0..0x9; default returns the input char. */
 #ifdef NON_MATCHING
+/* gui_func_00000000 [0x00..0x148): char->glyph-index mapper, full-cluster MERGE
+ * of 12 over-split splat fragments. Two residuals keep this NON_MATCHING:
+ *
+ *   (1) 0x00 TRAMPOLINE (2 words, the "missing 2 instructions" vs build):
+ *         0:  b 0x1cdc0   (raw 0x1000736F, NO reloc -> cross-segment, runtime-patched)
+ *         4:  sw a0,0(sp) (frame-less arg-save; this fn has no addiu sp prologue)
+ *       This is the USO entry-0 loader trampoline prepended ahead of the body.
+ *       It is NOT emittable from this function's C (the b targets a runtime-
+ *       resolved address in another segment with no reloc, and sw 0(sp) writes
+ *       a frame this function never allocates). It is the documented
+ *       feedback_uso_entry0_trampoline_95pct_cap_class cap; byte-exact landing
+ *       requires the still-allowed USO-header PREFIX_BYTES mechanism
+ *       (gui_func_00000000=0x1000736F + 0xAFA40000), not C.
+ *
+ *   (2) Body residual: 3 words of v0<->a0 register coloring on the masked
+ *       compare value (first compare wants the masked value in a0, copy in v0;
+ *       IDO colors it the other way from this C). 78/81 body words match; the
+ *       v0/a0 swap is the documented regalloc-coloring cap (C-shape iteration
+ *       across variants A-K could not flip it).
+ *
+ * Faithful C below (best decode: 78/81 body words, exact bne+move-v0 prologue
+ * and exact v0-based bnel chain). Maps punctuation to glyph indices 0x24-0x29,
+ * a-z/A-Z to 0x0A.., digits to 0x0..0x9; default returns the input char. */
 int gui_func_00000000(c)
 int c;
 {
-    c &= 0xFF;
-    if (c == 0x21) { c = 0x27; goto ret; }   /* '!' */
-    if (c == 0x2C) { c = 0x28; goto ret; }   /* ',' */
-    if (c == 0x2F) { c = 0x29; goto ret; }   /* '/' */
-    if (c == 0x5B) { c = 0x26; goto ret; }   /* '[' */
-    if (c == 0x5D) { c = 0x27; goto ret; }   /* ']' */
-    if (c == 0x2B) { c = 0x24; goto ret; }   /* '+' */
-    if (c == 0x5F) { c = 0x25; goto ret; }   /* '_' */
-    if (c == 0x2E) { c = 0x25; goto ret; }   /* '.' */
-    if (c == 0x2D) { c = 0x25; goto ret; }   /* '-' */
-    if (c >= 0x61 && c < 0x7B) { c -= 0x57; goto ret; }          /* a-z */
-    if (c >= 0x41 && c < 0x5B) { c -= 0x37; goto ret; }          /* A-Z */
-    if (c >= 0x30 && c < 0x3A) { c = (c - 0x30) & 0xFF; }        /* 0-9 */
+    int m;
+    m = c & 0xFF;
+    c = m;
+    if (m == 0x21) { c = 0x27; goto ret; }   /* '!' */
+    if (m == 0x2C) { c = 0x28; goto ret; }   /* ',' */
+    if (m == 0x2F) { c = 0x29; goto ret; }   /* '/' */
+    if (m == 0x5B) { c = 0x26; goto ret; }   /* '[' */
+    if (m == 0x5D) { c = 0x27; goto ret; }   /* ']' */
+    if (m == 0x2B) { c = 0x24; goto ret; }   /* '+' */
+    if (m == 0x5F) { c = 0x25; goto ret; }   /* '_' */
+    if (m == 0x2E) { c = 0x25; goto ret; }   /* '.' */
+    if (m == 0x2D) { c = 0x25; goto ret; }   /* '-' */
+    if (m >= 0x61 && m < 0x7B) { c = m - 0x57; goto ret; }       /* a-z */
+    if (m >= 0x41 && m < 0x5B) { c = m - 0x37; goto ret; }       /* A-Z */
+    if (m >= 0x30 && m < 0x3A) { c = (m - 0x30) & 0xFF; }        /* 0-9 */
 ret:
     return c & 0xFF;
 }
