@@ -1766,17 +1766,28 @@ void game_uso_func_000028A8(void *a0) {
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
 /* game_uso_func_070238/071028/072EE8 declared near game_uso_func_00001DDC. */
-/* 2CC8/A0E8-family builder. mode=a0->0x40 dispatch; both arms compute a
- * delta vec, normalize (070238), transform (071028), scale by a0->0x5C,
- * emit (072EE8 -> out->0x60), then mirror out->0x60.. into out->0xA0.. */
+/* 2CC8/A0E8-family per-object world-transform builder. mode=a0->0x40 dispatch.
+ * Both arms compute a position-delta Vec3 (relative to out->0xA0 origin),
+ * route it through scratch Vec3 slots (IDO emits 3-word lw/sw block copies),
+ * normalize its length (070238), normalize the vector in place (071028),
+ * scale by a0->0x5C, emit transformed point into out->0x30.. (072EE8 ->
+ * writes out->0x60..), then mirror out->0x60.. back into out->0xA0..
+ *
+ * mode 1: delta = (s->0xA0 + reloc(a0->0x3C)) - out->0xA0 (orientation vec
+ *   plus a local-frame offset from game_uso_func_000023D4).
+ * mode!=0,1: build a +/-1000 z-axis probe (sign from mode==3), rotate it by
+ *   the s 3x3 matrix at s->0x70.., add s->0x38->0xA0 origin, delta vs out. */
 void game_uso_func_000028C0(char *a0) {
     char *out = *(char **)(a0 + 0x14);
     char *s = *(char **)(*(char **)(a0 + 0x3C) + 0x38);
     int mode = *(int *)(a0 + 0x40);
     Vec3 *r;
-    Vec3 v1v, v2v, diff, dc1, dc2, scratch;
+    Vec3 v1v, v2v, rcopy, diff, dc1, dc2;
     float mag, f;
-    if (mode == 0) return;
+
+    if (mode == 0) {
+        return;
+    }
     if (mode == 1) {
         v1v.x = *(float *)(out + 0xA0);
         v1v.y = *(float *)(out + 0xA4);
@@ -1784,43 +1795,50 @@ void game_uso_func_000028C0(char *a0) {
         v2v.x = *(float *)(s + 0xA0);
         v2v.y = *(float *)(s + 0xA4);
         v2v.z = *(float *)(s + 0xA8);
-        r = game_uso_func_000023D4(&scratch, *(char **)(a0 + 0x3C));
-        v2v.x = v2v.x + r->x;
-        v2v.y = v2v.y + r->y;
-        v2v.z = v2v.z + r->z;
+        r = game_uso_func_000023D4(&dc1, *(char **)(a0 + 0x3C));
+        rcopy.x = r->x;
+        rcopy.y = r->y;
+        rcopy.z = r->z;
+        v2v.x = v2v.x + rcopy.x;
+        v2v.y = v2v.y + rcopy.y;
+        v2v.z = v2v.z + rcopy.z;
         diff.x = v2v.x - v1v.x;
         diff.y = v2v.y - v1v.y;
         diff.z = v2v.z - v1v.z;
+        dc1 = diff;
     } else {
         char *ss = *(char **)(a0 + 0x38);
-        Vec3 ssv, dir, dir2, res, refv;
+        Vec3 ssv, refv, axis, axisc, res;
         float dirv;
-        ssv.x = *(float *)(ss + 0xA0);
-        ssv.y = *(float *)(ss + 0xA4);
-        ssv.z = *(float *)(ss + 0xA8);
+
+        /* refv = out->0xA0..; ssv = (a0->0x38)->0xA0.. */
         refv.x = *(float *)(out + 0xA0);
         refv.y = *(float *)(out + 0xA4);
         refv.z = *(float *)(out + 0xA8);
+        ssv.x = *(float *)(ss + 0xA0);
+        ssv.y = *(float *)(ss + 0xA4);
+        ssv.z = *(float *)(ss + 0xA8);
         if (mode == 3) {
             dirv = -1000.0f;
         } else {
             dirv = 1000.0f;
         }
-        dir.x = 0.0f;
-        dir.y = 0.0f;
-        dir.z = dirv;
-        dir2 = dir;
-        res.x = *(float *)(s + 0x70) * dir2.x + *(float *)(s + 0x80) * dir2.y + *(float *)(s + 0x90) * dir2.z;
-        res.y = *(float *)(s + 0x74) * dir2.x + *(float *)(s + 0x84) * dir2.y + *(float *)(s + 0x94) * dir2.z;
-        res.z = *(float *)(s + 0x78) * dir2.x + *(float *)(s + 0x88) * dir2.y + *(float *)(s + 0x98) * dir2.z;
+        axis.x = 0.0f;
+        axis.y = 0.0f;
+        axis.z = dirv;
+        axisc = axis;
+        /* 3x3 matrix from out->0x70.. applied to axisc */
+        res.x = *(float *)(out + 0x70) * axisc.x + *(float *)(out + 0x80) * axisc.y + *(float *)(out + 0x90) * axisc.z;
+        res.y = *(float *)(out + 0x74) * axisc.x + *(float *)(out + 0x84) * axisc.y + *(float *)(out + 0x94) * axisc.z;
+        res.z = *(float *)(out + 0x78) * axisc.x + *(float *)(out + 0x88) * axisc.y + *(float *)(out + 0x98) * axisc.z;
         ssv.x = ssv.x + res.x;
         ssv.y = ssv.y + res.y;
         ssv.z = ssv.z + res.z;
         diff.x = ssv.x - refv.x;
         diff.y = ssv.y - refv.y;
         diff.z = ssv.z - refv.z;
+        dc1 = diff;
     }
-    dc1 = diff;
     dc2 = dc1;
     mag = game_uso_func_070238(dc2.x * dc2.x + dc2.y * dc2.y + dc2.z * dc2.z);
     game_uso_func_071028(&dc2);
@@ -7638,69 +7656,131 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00008CD8);
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
+/* game_uso_func_000097EC (0x39C / 231w) — XZ-plane segment / closest-approach
+ * predicate between two linked objects (A0E8-family geometric test).
+ *
+ * Reconstructed full logic from EXPECTED .o (objdump -dr at 0x97EC):
+ *   v0   = *(a0+0x30)                  (object/world record)
+ *   if (*(int*)(v0+0x908) == 0) return 0;   (no linked partner -> fail)
+ *   sub  = *(char**)(v0+0x908)         (linked partner record)
+ *
+ *   xzA  = (v0->0x318, 0, v0->0x320)   (self XZ point)
+ *   xzB  = (sub->0x318, 0, sub->0x320) (partner XZ point)
+ *   if (!(0 < xzA.x*xzA.x + xzA.z*xzA.z)) return 0;
+ *
+ *   seg  = (xzA - xzB) flattened to XZ                 (segment direction)
+ *   scaled = seg * (*(float*)(a0+0xD0))                (scale by param 0xD0)
+ *   dir  = scaled flattened to XZ                      (vecD)
+ *
+ *   delta = sub->(0xB4,0xB8,0xBC) - v0->(0xB4,0xB8,0xBC)
+ *   rel   = delta flattened to XZ                      (vecE)
+ *
+ *   mag  = func_082880( dir.x*dir.x + dir.z*dir.z )    (length of dir)
+ *   if (!(0 < mag)) return 0;
+ *   cross = |dir.z*rel.x - dir.x*rel.z|
+ *   dot   =  dir.x*rel.x + dir.z*rel.z
+ *   t     = dot / (dir.x*dir.x + dir.z*dir.z)          (param along segment)
+ *   if (!(0 <= t)) return 0;
+ *   if (!(t < 1.0f)) return 0;
+ *   perp  = cross / mag                                (perpendicular distance)
+ *   if (!(perp < *(float*)(a0+0xD4))) return 0;        (within tolerance?)
+ *   return 1;
+ *
+ * Uses the file's dead-alloc Vec3 idiom (p = &local; if (p==NULL) alloc 0xC)
+ * and Tri3i integer 3-word copy chains, matching the sibling predicate at
+ * game_uso_func_00009xxx. Logic-complete; register coloring of the chained
+ * scratch slots caps exact byte-match (raw-word USO).
+ */
+extern int game_uso_func_055750();
 extern float game_uso_func_082880(float);
-/* A0E8-family geometric predicate (dead-alloc XZ vecs -> deltas -> normalize
- * 082880 -> cross/dot projection -> range gates -> return 0/1). Opening +
- * magnitude gate decoded; cross/dot tail pending (multi-tick). */
 int game_uso_func_000097EC(char *a0) {
     char *v0 = *(char **)(a0 + 0x30);
     char *sub;
-    Vec3 vec1, vec2, vec3, c1, c2, scaled, s1, s2, vec4, delta2, d1, d2, vec5;
+    Vec3 xzA, xzB, seg, segCp, segCp2, scaled, scCp, scCp2, dir;
+    Vec3 delta, dCp, dCp2, rel;
     Vec3 *p;
-    float mag2, scale, mag, cross, dot, tparam, perp;
-    if (*(int *)(v0 + 0x908) == 0) return 0;
-    p = &vec1;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = *(float *)(v0 + 0x318);
-    p->z = *(float *)(v0 + 0x320);
-    p->y = 0.0f;
+    float mag2, scale, mag, cross, dot, t, perp;
+    int hit = 0;
+
+    if (*(int *)(v0 + 0x908) == 0) {
+        return hit;
+    }
+
+    p = &xzA;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
+    xzA.x = *(float *)(v0 + 0x318);
+    xzA.z = *(float *)(v0 + 0x320);
+    xzA.y = 0.0f;
+
     sub = *(char **)(v0 + 0x908);
-    p = &vec2;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = *(float *)(sub + 0x318);
-    p->z = *(float *)(sub + 0x320);
-    p->y = 0.0f;
-    mag2 = vec1.x * vec1.x + vec1.z * vec1.z;
-    if (!(0.0f < mag2)) return 0;
-    p = &vec3;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = vec1.x - vec2.x;
-    p->y = 0.0f;
-    p->z = vec1.z - vec2.z;
-    c1 = vec3;
-    c2 = c1;
+    p = &xzB;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
+    xzB.x = *(float *)(sub + 0x318);
+    xzB.z = *(float *)(sub + 0x320);
+    xzB.y = 0.0f;
+
+    mag2 = xzA.x * xzA.x + xzA.z * xzA.z;
+    if (!(0.0f < mag2)) {
+        return hit;
+    }
+
+    p = &seg;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
+    seg.x = xzA.x - xzB.x;
+    seg.y = 0.0f;
+    seg.z = xzA.z - xzB.z;
+
+    *(Tri3i *)&segCp = *(Tri3i *)&seg;
+    *(Tri3i *)&segCp2 = *(Tri3i *)&segCp;
     scale = *(float *)(a0 + 0xD0);
-    scaled.x = c2.x * scale;
-    scaled.y = c2.y * scale;
-    scaled.z = c2.z * scale;
-    s1 = scaled;
-    s2 = s1;
-    p = &vec4;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = s2.x;
-    p->z = s2.z;
-    p->y = 0.0f;
-    delta2.x = *(float *)(sub + 0xB4) - *(float *)(v0 + 0xB4);
-    delta2.y = *(float *)(sub + 0xB8) - *(float *)(v0 + 0xB8);
-    delta2.z = *(float *)(sub + 0xBC) - *(float *)(v0 + 0xBC);
-    d1 = delta2;
-    d2 = d1;
-    p = &vec5;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = d2.x;
-    p->z = d2.z;
-    p->y = 0.0f;
-    mag = game_uso_func_082880(vec4.x * vec4.x + vec4.z * vec4.z);
-    if (!(0.0f < mag)) return 0;
-    cross = vec4.z * vec5.x - vec4.x * vec5.z;
-    if (cross < 0.0f) cross = -cross;
-    dot = vec4.x * vec5.x + vec4.z * vec5.z;
-    tparam = dot / (vec4.x * vec4.x + vec4.z * vec4.z);
-    if (!(0.0f <= tparam)) return 0;
-    if (!(tparam < 1.0f)) return 0;
+    scaled.x = segCp2.x * scale;
+    scaled.y = segCp2.y * scale;
+    scaled.z = segCp2.z * scale;
+    *(Tri3i *)&scCp = *(Tri3i *)&scaled;
+    *(Tri3i *)&scCp2 = *(Tri3i *)&scCp;
+
+    p = &dir;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
+    dir.x = scCp2.x;
+    dir.z = scCp2.z;
+    dir.y = 0.0f;
+
+    delta.x = *(float *)(sub + 0xB4) - *(float *)(v0 + 0xB4);
+    delta.y = *(float *)(sub + 0xB8) - *(float *)(v0 + 0xB8);
+    delta.z = *(float *)(sub + 0xBC) - *(float *)(v0 + 0xBC);
+    *(Tri3i *)&dCp = *(Tri3i *)&delta;
+    *(Tri3i *)&dCp2 = *(Tri3i *)&dCp;
+
+    p = &rel;
+    if (p == 0) p = (Vec3 *)game_uso_func_055750(0xC);
+    rel.x = dCp2.x;
+    rel.z = dCp2.z;
+    rel.y = 0.0f;
+
+    mag = game_uso_func_082880(dir.x * dir.x + dir.z * dir.z);
+    if (!(0.0f < mag)) {
+        return hit;
+    }
+
+    if (dir.z * rel.x < dir.x * rel.z) {
+        cross = -(dir.z * rel.x - dir.x * rel.z);
+    } else {
+        cross = dir.z * rel.x - dir.x * rel.z;
+    }
+    dot = dir.x * rel.x + dir.z * rel.z;
+    t = dot / (dir.x * dir.x + dir.z * dir.z);
+    if (!(0.0f <= t)) {
+        return hit;
+    }
+    if (!(t < 1.0f)) {
+        return hit;
+    }
     perp = cross / mag;
-    if (!(perp < *(float *)(a0 + 0xD4))) return 0;
-    return 1;
+    if (!(perp < *(float *)(a0 + 0xD4))) {
+        return hit;
+    }
+    hit = 1;
+    return hit;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
