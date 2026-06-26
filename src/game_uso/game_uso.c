@@ -6658,6 +6658,7 @@ void game_uso_func_0000751C(char *a0) {
  * delay-slot-scheduled state mutations (each arm's delay slot does part of
  * the next arm's setup). Next pass: decode 0x77B8-0x7880 (bits 0x20, 0x80,
  * 0x100) and the merge block proper. */
+extern char game_uso_D_807FEC28;
 long long game_uso_func_00007538(int *a0, int a1) {
     int ret_lo = 0;
     int ret_hi = 0;
@@ -6733,12 +6734,11 @@ check_20:
     if (a1_saved & 0x02) {
         if (((int*)a0[0x30 / 4])[0x938 / 4] != 0) {
             ret_lo = 0x400;
-            if (a1_saved & 0x100) {
-                a0[0x6C / 4] = a1_saved | 0x100;
-                a0[0x44 / 4] = 0x68;
-            }
         }
-        a1 = a0[0x6C / 4];
+    } else if (a1_saved & 0x100) {
+        a0[0x6C / 4] = a1 | 0x100;
+        a0[0x44 / 4] = 0x68;
+        a1 = a1 | 0x100;
     }
 
 trunk:
@@ -6768,8 +6768,8 @@ trunk:
             ret_lo |= 0x200;
             if (cnt >= 31) {
                 int idx = a0[0x58 / 4];
-                f0 = *(float*)((char*)&D_00000000 + 0x638 + idx * 8);
-                f2 = *(float*)((char*)&D_00000000 + 0x638 + idx * 8 + 4);
+                f0 = *(float*)((char*)&game_uso_D_807FEC28 + 0x638 + idx * 8);
+                f2 = *(float*)((char*)&game_uso_D_807FEC28 + 0x638 + idx * 8 + 4);
             }
             a0[0x4C / 4] = cnt - 1;
         }
@@ -6777,9 +6777,8 @@ trunk:
             a0[0x6C / 4] &= ~0x20;
         } else {
             counter = a0[0x44 / 4] - 1;
-            if (counter != 0) {
-                a0[0x44 / 4] = counter;
-            } else {
+            a0[0x44 / 4] = counter;
+            if (counter == 0) {
                 a0[0x6C / 4] &= ~0x20;
             }
         }
@@ -6815,8 +6814,8 @@ bit80_mid:
         ret_lo |= 0x1200;
 bit80_table:
         table_idx = a0[0x58 / 4];
-        f0 = *(float*)((char*)&D_00000000 + 0x638 + table_idx * 8);
-        f2 = *(float*)((char*)&D_00000000 + 0x638 + table_idx * 8 + 4);
+        f0 = *(float*)((char*)&game_uso_D_807FEC28 + 0x638 + table_idx * 8);
+        f2 = *(float*)((char*)&game_uso_D_807FEC28 + 0x638 + table_idx * 8 + 4);
 bit80_count:
         main_cnt = a0[0x44 / 4];
         new_sub_cnt = sub_cnt + 1;
@@ -6840,8 +6839,8 @@ bit80_count:
         } else if (main_cnt >= 61) {
             ret_lo |= 0x100;
         }
-        if (new_cnt != 0) a0[0x44 / 4] = new_cnt;
-        else              a0[0x6C / 4] &= ~0x100;
+        a0[0x44 / 4] = new_cnt;
+        if (new_cnt == 0) a0[0x6C / 4] &= ~0x100;
     }
 
 ret_tail:
