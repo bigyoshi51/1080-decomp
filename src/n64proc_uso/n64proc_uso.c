@@ -15,339 +15,36 @@ void n64proc_uso_func_0000000C(void) {
 
 extern char D_00000000;
 
-#ifdef NON_MATCHING
-/* (12) TRIED 2026-05-04: INSN_PATCH eligibility check — built emits 67 insns
- * vs expected 59 (+8 insn delta from per-iteration `lui v1,0; lw v1,0x40(v1)`
- * fresh-lui+lo reload at loop_tail vs target's single `lw a1, 0x40(s3)`
- * indexed-via-$s form). Size mismatch blocks INSN_PATCH per
- * feedback_insn_patch_size_diff_blocked.md. Would need a recipe that GROWS
- * st_size + shifts symbols/relocs (not currently available). Stays at 74.49 %.
- *
- * Promoted to $s-reg allocation via `register` hints (2026-04-20).
- * Logic confirmed correct; structure matches target's do-while shape.
- *
- * Register allocation NOW (all 6 in $s-regs, just with different numbers):
- *   target:  s0=cur, s1=flag, s2=one, s3=base,  s4=base10, s5=arg0-save
- *   ours:    s0=cur, s1=flag, s2=base, s3=one, s4=arg0-save, s5=base10
- * Locally swapping $s-numbers blocks byte match. Per
- * feedback_ido_sreg_order_not_decl_driven.md: reordering decls is a no-op —
- * IDO's allocator is weight-driven (refs × live-length). Target `one` beats
- * `base` for $s2 despite our analysis giving base more "essential" uses.
- *
- * Remaining structural diff: the loop-tail reload `arg1 = base[0x40]` emits
- * as fresh lui+lo (bytes 0xB4-0xBC) instead of reusing the $s-reg holding
- * base. This is IDO's scheduler folding the load into the beq delay slot
- * rematerialization path. No straightforward C rewrite reproduces it.
- *
- * (2) TRIED 2026-04-20: eliminating `one` local and using literal 1s made
- * the diff worse (regressed to 5+ register-renumber mismatches vs the
- * current 4). `one` as a named local IS needed to keep its $s-reg
- * allocation. Allocator's refs-weight gives `one` to $s3, target gives
- * it to $s2 — decl-order is a no-op per sreg_order_not_decl_driven memo.
- *
- * (1) TRIED 2026-04-21 (parallel agent): permuter random-mode, 3 minutes,
- * ~12k iterations. Best score 1030 — per the skill's score-band rubric,
- * "1000+ means structural issues remain." Best output just hoisted
- * `base+0x40` into a `new_var` local, didn't flip any $s-reg assignments.
- * Confirms the register-renumber is not reachable from random C-level
- * variation; target was likely compiled under a slightly different IDO
- * version/flag, or with manual `register T x asm("$N")` which IDO rejects.
- *
- * (3) TRIED 2026-04-21: removing the `register` keyword from all locals
- * (base, base10, cur, flag, one) regressed from ~95% to 33%. `register`
- * is ESSENTIAL for keeping these 6 pseudos in $s-regs vs stack-spilled.
- * The 33% cap matches IDO's default -O2 allocation where most of these
- * stay in stack slots. Don't remove the keyword.
- *
- * (4) TRIED 2026-04-21: `base10 = base + 0x10` (derive from base instead
- * of `&D_0 + 0x10`) — regressed to 33%. base+0x10 forces computation at
- * runtime instead of IDO's compile-time `addiu s4, s4, 0x10` pattern.
- *
- * (5) TRIED 2026-04-21: extra `one = 1;` statement inside if branch to
- * boost ref count — no change in match %.
- *
- * (6) TRIED 2026-04-21: decl reorder `cur, flag, one, base, base10`
- * (matching target's $s0..$s5 order) — IDENTICAL allocation output.
- * Confirms decl-source-order is decoupled from pseudo-number ordering
- * in IDO's RTL build (first-encountered-pseudo tiebreaker doesn't
- * correspond to C decl order). This rules out syntactic ordering as a
- * knob for the s2/s3 tiebreak between `one` and `base`.
- *
- * (7) TRIED 2026-04-21: `flag = 1;` (literal) instead of `flag = one;`
- * at both sites — to reduce `one`'s ref count so the allocator might
- * demote it past `base` in the $s-reg priority queue. No change:
- * both the original `flag = one` body AND the `flag = 1` body now
- * compile to 33% match, not the ~95% that the earlier (1)-(6) notes
- * claim. Verified via objdump -M no-aliases of build/.o with
- * `CPPFLAGS=-DNON_MATCHING`: current output has TWO $s-reg swaps
- * vs target, not just one — (s2/s3: base/one) AND (s4/s5: base10/
- * arg0-save). The historical "register keyword promotes to ~95%"
- * claim no longer reproduces; the 6-local $s-reg allocation is no
- * longer happening even with `register` everywhere. Something in
- * IDO/asm-processor/flags changed since (1)-(6) were measured.
- * Target 7th attempt is correct in logic but can't flip either swap.
- *
- * (8) TRIED 2026-05-02: `while (1) { ... if (flag != 0) break; }` form
- * (no do-while). Marginal: 33.07 % -> 33.69 %. Different loop-back
- * branch encoding accounts for the small gain (1 extra insn aligned).
- * Adopted because it's strictly better and same logic. The 6-local
- * $s-reg allocation is still mis-numbered.
- *
- * (10) TRIED 2026-05-02 (later session): split decl-init from inline-
- * init (`register int one; ... one = 1;`). No change — confirms IDO's
- * allocator priority is purely refs/live-length-based, decl-init vs
- * later-init doesn't shift it. The s2/s3 swap is structurally fixed
- * given current IDO flag set; no C-level lever remaining.
- *
- * (11) TRIED 2026-05-02: goto-chain dispatch (per
- * feedback_ido_dispatch_goto_chain_beats_switch_and_ifelse.md, applied
- * to func_00000268 with 85→93 % gain). MASSIVE jump: 33.37 % → 74.49 %.
- * The goto-chain replaces if/else-if with explicit `if (==X) goto bodyN`
- * which lets IDO emit the target's 3-way beq dispatch with shared-arg
- * delay-slot setup (target shape `beq a1,zero,body0; or a0,base; beq
- * a1,one,body1; or a0,zero; beq zero,zero,end; lw a1,0x40(s3)`).
- *
- * Remaining 25 % is two structural diffs:
- *   (a) Same s2/s3 (one/base) and s4/s5 (base10/arg0-save) renumber as
- *       before — register allocation issue from variants (3)-(7), no
- *       reachable C-level lever per existing memos.
- *   (b) Loop-tail reload `arg1 = base[0x40]` — target uses indexed
- *       load `lw a1, 64(s3)` via base reg directly. IDO instead emits
- *       fresh `lui v1, %hi(D); lw v1, 0x40(v1)` because both ends are
- *       compile-time-constant addresses. Even though base is `register`-
- *       declared, IDO prefers a fresh constant-address load over the
- *       indexed-via-$s form. No C-level workaround found.
- *
- * (9) TRIED 2026-05-02: eliminate `flag` entirely; restructure as
- * `while (arg1 != 0 && arg1 != one) { arg1 = base->0x40; }` — REGRESSED to
- * 18.5 %. The structural change pushes IDO too far from target's do-while-
- * with-dispatch shape. The do-while + flag pattern IS load-bearing for the
- * register allocator's priority calc.
- *
- * Now at 74.49 % (variant 11). Remaining structural — see (11) note.
- *
- * (12) TRIED 2026-05-03: `register int *base = (int*)&D_00000000` + indexed
- * `arg1 = base[0x10]` — same 74.49 %, IDO still constant-folds the indexed
- * load through a fresh lui+lw rather than reusing the $s-reg holding base.
- *
- * (13) TRIED 2026-05-03: `arg1 = *(volatile int*)((char*)base + 0x40)` —
- * REGRESSED slightly to 74.24 %. Volatile defeats CSE on the load address
- * but introduces an extra $t-reg shuffle before the lw.
- *
- * (14) TRIED 2026-05-03: `register int *baseAt40 = (int*)(base + 0x40)` as
- * a separate $s-reg holding the precomputed pointer — same 74.49 %, IDO
- * either constant-folds baseAt40 (since base is constant) OR allocates it
- * to its own $s-reg without changing the loop_tail load shape.
- *
- * (15) TRIED 2026-05-03: `if ((int)base == 0) flag = 0;` no-op use of base
- * inserted at body1 tail to keep base live to loop_tail — REGRESSED to
- * 66.97 %. Adds a beq branch that throws off the dispatch arrangement.
- *
- * (16) CONFIRMED 2026-05-03: `__asm__ volatile(...)` inline asm REJECTED
- * by IDO cfe with "Syntax Error" — IDO does not parse the GCC inline-asm
- * extension at any form. Cannot use inline asm to force the loop_tail
- * load shape. Documented in feedback_ido_no_asm_barrier.md (existing) +
- * feedback_ido_constant_address_load_fold_inevitable.md (new this session).
- *
- * 16 variants total. Cap is structural per IDO -O2 constant-fold pass on
- * fixed-extern-derived pointer addresses. NM-only — accept.
- *
- * (17) 2026-05-04 RE-EVALUATED post-INSN_PATCH-infra: now that
- * scripts/patch-insn-bytes.py is wired, checked if the 74.49% fuzzy cap
- * could be patched to 100%. NO. Word-diff against expected/.o (NM build):
- * 57 of 59 instructions differ — fuzzy_match_percent overestimates
- * exactness; the actual byte-level shape diverges fundamentally from
- * insn 0x18 onward (different basic-block-fill, different jal call
- * order, even epilogue is partially shifted). INSN_PATCH is for ≤10
- * specific words, NOT structural rewrites. Confirmed cap holds.
- *
- * Other agents (b, c, e) checked: same C body, no INSN_PATCH attempt —
- * they hit the same wall. Genuine structural cap from IDO -O2 + the
- * 6-local register-allocation interaction that can't be flipped from C.
- *
- * (18) TRIED 2026-05-05: link-time-0 proxy extern hack to defeat
- * IDO -O2's constant-fold of base[0x40] back to fresh lui+lw. Approach:
- *   extern char D_n64proc_zero;  // mapped to 0x0 in undefined_syms_auto
- *   register char *base = &D_00000000 + (int)&D_n64proc_zero;
- *   register char *base10 = &D_00000000 + 0x10 + (int)&D_n64proc_zero;
- * Standalone .s confirms the structural fix WORKS: all 3 loop_tail
- * loads now emit as `lw a1, 0x40(s_base)` indexed-via-$s form — closes
- * the 8-insn delta to 5-insn (recovers 3 of 5 caps in residual diff (b)).
- * BUT: the proxy machinery (2 luis + 1 addu = 3 insns at function start)
- * shifts register allocation: base lands in $s1 instead of $s3, base10
- * in $s2 instead of $s4, etc. Net regression: 74.49 % -> 58.68 %.
- * Indexed-load gain (~5 insns) was outweighed by 6-way $s-reg renumber
- * (which scores far more diffs in objdiff).
- *
- * The proxy approach is the correct mechanism for the loop_tail load
- * but cannot be applied without paying a register-renumber penalty —
- * the proxy's addu introduces a new pseudo-source for $s1, perturbing
- * the priority queue. Variant 18 is therefore a documented dead-end:
- * the indexed-load fix CANNOT be combined with target's $s-numbering
- * via this proxy formulation. Stays at 74.49 %.
- *
- * (19) TRIED 2026-05-05: Proxy on `base` ONLY (not also `base10`) —
- * apply variant 18's link-time-0 trick to just the one local that needs
- * the indexed-load preservation, hoping the reduced perturbation (3 extra
- * insns vs 5) leaves enough register-allocation latitude for target's
- * $s-numbering. Result: 74.49 % → 69.02 %. Smaller regression than
- * variant 18 (which went to 58.68 %), but still net negative. Confirms
- * the proxy mechanism inherently disturbs the priority queue regardless
- * of which subset of locals it's applied to. The 5-pp loss from variant
- * 19 vs the 16-pp loss from variant 18 quantifies the per-proxy-extern
- * cost: each one introduces ~5pp of regression. CAP HOLDS at 74.49 %.
- *
- * (20) TRIED 2026-05-05: file-split to apply -O3 OPT_FLAGS instead of
- * default -O2. Hypothesis: maybe -O3's stronger optimization changes
- * the loop_tail load codegen or the register allocation. Sandbox-tested
- * standalone .c with `cc -O3`. Result: byte-IDENTICAL output to -O2 (67
- * insns, same 5-pp delta vs target). IDO -O3 differs from -O2 mostly in
- * inter-module opt (per cc's own warning: "-O3 ... use -j instead to get
- * inter-module"), which doesn't apply to a single-function compile. So
- * the file-split-with-OPT_FLAGS technique that worked for func_80008030
- * (-O1→-O2) doesn't help here — we're already at the ceiling for this
- * codegen problem within IDO's single-file optimization.
- *
- * (21) TRIED 2026-05-05 RE-RETEST: variant 7's `flag = 1;` literal
- * (instead of `flag = one;`) was tested AT 33% (pre-goto-chain). With
- * variant 11's goto-chain dispatch in place (current 75.02% baseline),
- * retested to see if the literal vs $s-reg-via-`one` distinction
- * matters for the post-dispatch flag store. Result: build/.o BYTES ARE
- * IDENTICAL between the two C forms (cmp = 0). Reason: `register int
- * one = 1;` IS a compile-time constant; IDO's constant-fold pass
- * propagates it through `flag = one;` and emits the same literal
- * `addiu s1, zero, 1` regardless of which C form is used. The
- * `register` keyword does NOT prevent constant folding when the
- * register's value is a known immediate. Variant doesn't help; the
- * current shape is what IDO produces in both cases.
- *
- * Score drift: doc previously said 74.49%; current build is 75.02%
- * (+0.5pp from upstream parallel-agent activity reshuffling expected/.o
- * baselines). Cap behavior unchanged.
- *
- * (22) NOT-APPLICABLE 2026-05-05: post-discovery of the PREFIX_BYTES +
- * INSN_PATCH combo (per `docs/POST_CC_RECIPES.md` [DEPRECATED 2026-05-23]
- * and feedback_prefix_bytes_plus_insn_patch_breaks_documented_caps.md, which
- * landed func_80007FC8 / 7ABC / 7A98 / func_80000568 with 4-16 byte combos
- * — all four functions were subsequently rolled back when INSN_PATCH +
- * instruction-appending PREFIX/SUFFIX were REMOVED 2026-05-23 as
- * match-faking per feedback_no_instruction_forcing_matches_policy).
- * Re-evaluated whether the combo could byte-correct THIS function.
- * Diagnosis: the combo fits when target shape is
- *   `<K leading byte-fixed insns>` + `<jr_ra_or_minimal_C>` +
- *   `<≤4 trailing patched insns>`.
- * This function is 59 insns of loop-with-dispatch; NO short minimal-C body
- * fits anywhere in the middle. Empty-void + 57-word PREFIX_BYTES + 2-word
- * INSN_PATCH would technically byte-match, but the C body becomes a pure
- * placeholder providing zero training-data information about what the
- * function does (vs the current 75 %-fuzzy meaningful decoded body). Per
- * skill's "preserve partial C" principle, keep the existing wrap. Combo
- * applicability window observed so far: ≤9 insns, where decoded C is
- * uninteresting (trampolines, infinite-loop stubs, cross-function tail-
- * shares). 59-insn loops are out of scope.
- *
- * (23) TRIED 2026-05-05: block-scope `base10` to shorten its live range.
- * Hypothesis: if priority = refs / live_length × ..., scoping `base10`
- * to body1's block (its only use site) shortens live_length, which
- * SHOULD increase its priority and shift it from $s5 → lower $s.
- * Body wrapped: `body1: { register char *base10 = &D_00000000 + 0x10;
- * ... gl_func_00000000(base10, cur); }`. Result: NO CHANGE — register
- * dispositions identical to function-top decl form ($s0=cur, $s1=flag,
- * $s2=base, $s3=one, $s4=arg0-save, $s5=base10). IDO computes
- * live_length from RTL pseudo extent, not C lexical scope.
- * Lever-not-applicable now documented in `docs/IDO_CODEGEN.md`'s
- * "confirmed-not-a-lever variants" list under the $s allocator section.
- *
- * (24) TRIED 2026-05-05: -O1 opt level (variant 20 tested -O3 = -O2
- * byte-identical; -O1 was untested). Standalone build with -O1 produces
- * DRAMATICALLY DIFFERENT shape: function frame jumps from 0x28 → 0x48
- * (arg0/arg1 always-spilled at sp+0x48/0x4C with stack reloads on every
- * dispatch branch), `base10 = base + 0x10` becomes runtime addiu instead
- * of compile-time-folded extern, and register layout is $s0=base,
- * $s1=base10, $s2=cur, $s3=flag, $s4=one (no $s5 used; arg0 spilled).
- * Worse than -O2's 75 % and structurally further from target. -O1 is
- * not the right opt level for this function.
- *
- * (25) TRIED 2026-05-05: narrow-type `register short one = 1;` (instead
- * of `register int one = 1;`) — hoping the smaller-storage hint might
- * shift `one`'s priority in IDO's allocator. Result: IDENTICAL register
- * layout ($s0=cur, $s1=flag, $s2=base, $s3=one, $s4=arg0, $s5=base10).
- * IDO promotes `short` to int width for the comparison/branch shape; the
- * pseudo's storage-class is determined by USAGE not declared type. The
- * `short` keyword is a no-op for $s allocation when the value is used as
- * int everywhere downstream (which it is — compare, store, pass-as-arg
- * all promote). Confirms: type narrowing isn't a lever for $s priority.
- *
- * (26) TRIED 2026-05-05: -g flag variants. Tested -g0 (no debug), -g2
- * (debug, IDO uopt warns "file not optimized; use -g3"), and -g3 (debug
- * + optimize). Results:
- *   - `-g0`: byte-identical to default-no-flag (0x6FC bytes). Confirms
- *     IDO's default has no debug info.
- *   - `-g2`: DIFFERS but emits 2228 bytes (vs 1788 default) and the
- *     uopt warning means optimization is DISABLED — produces -O0-style
- *     stack-spilled code. Worse than -O2 default; not a viable path.
- *   - `-g3`: DIFFERS by symbol-table/.mdebug section size (2260 vs 1788),
- *     but .text register allocation is IDENTICAL to default
- *     ($s0=cur, $s1=flag, $s2=base, $s3=one, $s4=arg0, $s5=base10).
- *     The diff is purely debug-info section content; code unchanged.
- * Confirms -g flags don't shift $s allocation in IDO -O2.
- *
- * (27) TRIED 2026-05-07: re-test of variant 4 (`base10 = base + 0x10`
- * derived form) in current goto-chain context (variant 21's strategy of
- * retesting old levers post-baseline-shift). Standalone .o disassembly:
- * IDO emits `lui s5, 0; addiu s5, s5, 16` (TWO insns at 0x1C+0x38),
- * IDENTICAL to `&D_00000000 + 0x10` form. The C-level expression
- * `base + 0x10` is constant-folded into a symbol+offset relocation pair
- * BEFORE register allocation, so it never sees `addu s5, s2, imm` form.
- * Variants 4 and 27 are byte-equivalent in IDO -O2 emit. Cap stays at
- * 75 % — the loop_tail `lw a1, 64($s_base)` indexed-load form still
- * blocked by the constant-fold pass. Confirms: any C expression that
- * could-resolve to a symbol+offset is folded; `base` register hint
- * doesn't propagate through arithmetic. CAP HOLDS.
- *
- * (28) TRIED 2026-05-07: removed `register` keyword in 5 separate
- * configurations: just `one`, just `flag`, just `cur`, just `base10`,
- * just `base`, and ALL FIVE simultaneously. Result: ALL SIX configs
- * produce IDENTICAL build/.o bytes (cmp = 0) and identical 75.01695 %
- * fuzzy. The `register` keyword on this function is COMPLETELY
- * REDUNDANT — IDO's weight-based allocator (refs/live_length × ...)
- * promotes all 5 pseudos to $s0..$s5 regardless. Variant 3's claim
- * (regressed to 33 %) was true PRE-goto-chain (pre-variant-11) but is
- * NO LONGER REPRODUCIBLE in the current shape. Removed all `register`
- * keywords — they were noise. The s2/s3 + s4/s5 swap caps remain. */
+extern char gl_d_n64p14[];
 void n64proc_uso_func_00000014(int arg0, int arg1) {
-    char *base = &D_00000000;
-    char *base10 = &D_00000000 + 0x10;
+    char *base = gl_d_n64p14;
+    char *base10 = gl_d_n64p14 + 0x10;
     int *cur;
     int flag = 0;
     int one = 1;
     int r;
 
-loop_top:
-    if (arg1 == 0) goto body0;
-    if (arg1 == one) goto body1;
-    goto loop_tail;
-body0:
-    gl_func_00000000(base, one, 0, 0);
-    flag = one;
-    r = gl_func_00000000(0);
-    gl_func_00000000(arg0, one, r);
-    goto loop_tail;
-body1:
-    cur = (int*)gl_func_00000000(0, one, 0);
-    flag = one;
-    gl_func_00000000(base10, cur);
-    if (*(int*)((char*)cur + 0x14) != 0) {
-        *(int*)((char*)cur + 0x4) = one;
-    }
-    *(int*)((char*)cur + 0x14) = (int)base;
-loop_tail:
-    arg1 = *(int*)((char*)base + 0x40);
-    if (flag == 0) goto loop_top;
+    do {
+        switch (arg1) {
+        case 0:
+            gl_func_00000000(base, one, 0, 0);
+            flag = one;
+            r = gl_func_00000000(0);
+            gl_func_00000000(arg0, one, r);
+            break;
+        case 1:
+            cur = (int*)gl_func_00000000(0, one, 0);
+            flag = one;
+            gl_func_00000000(base10, cur);
+            if (*(int*)((char*)cur + 0x14) != 0) {
+                *(int*)((char*)cur + 0x4) = one;
+            }
+            *(int*)((char*)cur + 0x14) = (int)base;
+            break;
+        }
+        arg1 = *(int*)(gl_d_n64p14 + 0x40);
+    } while (flag == 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000014);
-#endif
 
 #ifdef NON_MATCHING
 /* n64proc_uso_func_00000100: 76-insn TRIPLE-alloc-or-passthrough constructor.
