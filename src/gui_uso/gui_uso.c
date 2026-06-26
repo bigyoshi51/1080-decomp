@@ -623,7 +623,7 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
             if (ch != 0x20) {
                 float f0 = (float)s6 * arg4;
                 float f2 = (float)arg2 + (spD4 * arg4);
-                short s4 = (int)f2 * 4;
+                int s4 = (int)f2 * 4;
                 short s1 = ((int)f2 + (int)f0) * 4;
                 int f10b = (int)(((float)(s6 - 1) * 1024.0f) / f0);
                 int *glyph;
@@ -636,10 +636,12 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
                 int cnt2, cnt3, cnt4;
                 int *cmd2, *cmd3, *cmd4;
                 int a2v, a1v, a3v;
+                int gidx;
 
                 sp7C = f10b & 0xFFFF;
-                spD3 = (unsigned char)gl_func_00000000(ch);
-                glyph = (int*)(*(int*)((char*)arg0 + 0x20) + (int)spD3 * 0x14);
+                gidx = gl_func_00000000(ch);
+                spD3 = (unsigned char)gidx;
+                glyph = (int*)(*(int*)((char*)arg0 + 0x20) + gidx * 0x14);
                 s0 = glyph[2];
                 gl_func_00000000(*(int*)((char*)arg0 + 0x24), *(int*)((char*)arg0 + 0x4),
                                  *(int*)((char*)arg0 + 0x18), *(int*)((char*)arg0 + 0x1C),
@@ -657,7 +659,7 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
                 if (s1 > 0) wa0 = s1; else wa0 = 0;
                 cmd2[0] = ((wa3 & 0xFFF) << 0xC) | 0xE4000000 | (wa0 & 0xFFF);
                 if (ca1 > 0) xa3 = ca1; else xa3 = 0;
-                if (s4 > 0) xa0b = s4; else xa0b = 0;
+                if ((short)s4 > 0) xa0b = (short)s4; else xa0b = 0;
                 cmd2[1] = ((xa3 & 0xFFF) << 0xC) | (xa0b & 0xFFF);
                 a3 = *(int**)((char*)arg0 + 0x24);
                 dl = *(int**)((char*)a3 + 0xC);
@@ -681,7 +683,7 @@ void gui_func_00000F04(void *arg0, int arg1, int arg2, float arg3, float arg4, u
                     a2v = (int)(((float)(s0 - 1) * 1024.0f) / f0b);
                 }
                 if (s4 < 0) {
-                    int t = (int)(s4 * (short)f10b) >> 7;
+                    int t = (int)((short)s4 * (short)f10b) >> 7;
                     if ((short)f10b < 0) {
                         if (t > 0) a1v = t; else a1v = 0;
                     } else {

@@ -8784,13 +8784,81 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CFA0);
 //   Real-C STRUCTURAL body below — UI/scene event-flag processor
 //   skeleton. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* typed-float protos (0x0-aliases of func_00000000) so f32 args pass
+ * single-precision (mfc1/swc1) instead of K&R double-promote (cvt.d.s+sdc1). */
+extern void func_d440_f0call(int, int, float);
+extern void func_d440_final(int, int, float, float, float, float, int, int, int);
+extern float func_d440_frnd(void *);  /* float-return alias: result -> cvt.d.s */
+extern float D_00000980;
+/* Distinct folded-table action-record symbols (= func_00008A7C/AEC + N). Naming
+ * each one distinctly defeats IDO's CSE of the shared %hi(func_00008A7C) base
+ * into a spilled saved-reg — forces per-site lui+addiu rematerialization to
+ * match the target's 21 luis (vs hoisted 12 + stack reloads). */
+extern char D_00008AD0, D_00008AD8, D_00008AE0, D_00008AE8;
+extern char D_00008AF4, D_00008B00, D_00008B0C, D_00008B18, D_00008B24, D_00008B30;
+/* 3 distinct aliases of func_000000F0 so the repeated *(int*)(&F0+0x48) load is
+ * rematerialized per call (target: 3x lui %hi + lw 0x48) not CSE'd to a spill. */
+extern char D_F0a, D_F0b, D_F0c;
+#endif
+// func_0000D440 — STRUCTURAL PASS (0x4C0 / 304 insns, no episode).
+// Per-frame UI/scene event-flag processor: walks status bits on the
+// state struct, toggles a latch, fires descriptor-table actions and
+// vtable sub-updates accordingly.
+//
+//   void func_0000D440(State *st) {            // st -> s0
+//     func_00000000(&func_00008A7C+0x54);      // named action (table)
+//     int fl = st->0xA58;
+//     if (fl & 0x100) {
+//       sub = st->0x800;
+//       if (sub->0x18 & 0x20) st->0xA28 ^= 1;  // latch toggle
+//       if (st->0xA28 && (sub->0x18 & 0x10)) return;   // early-out
+//       if (sub->0x18 & 0x10) { st->0xA58 ^= 4; fl = st->0xA58; }
+//     }
+//     if (fl & 0x100) {
+//       d = st->0x800;
+//       if ((d->0x10 & 0x40) && (d->0x10 & 0x80)) {
+//         sp58 = 9;
+//         dispatch st->0x28 (vtbl: ->0x2C fn, ->0x28 s16 base, a0 = base+st);
+//         fl = st->0xA58;
+//       }
+//     }
+//     if (fl & 0x4) {
+//       st->0x800->0x3C = 1;
+//       func_00000000(&func_00008A7C+0x5C);
+//       dispatch st->0x804->0x28 (->0x24 fn, ->0x20 base);
+//       func_00000000(&func_00008A7C+0x64);
+//       fl = st->0xA58;
+//     }
+//     if (fl & 0x80) { func_00000000(st+0x808 ...); ... }
+//     // ... further fl-bit blocks (more func_00008A7C/func_00008AEC
+//     //   descriptor actions + func_000000F0+0x48 + vtable dispatches);
+//     func_00000000(&func_00008AEC+0x44);      // final action
+//   }
+//
+// Struct-typing reference:
+//   st: 0xA58 status/event flags (0x100 active, 0x4, 0x80 — toggled
+//     via xori); 0xA28 bool latch (^=1); 0x800 sub-object
+//     (->0x18 flags 0x10/0x20, ->0x10 flags 0x40/0x80, ->0x3C set 1);
+//     0x804 sub-obj w/ ->0x28 vtable (->0x24 fn, ->0x20 s16 base);
+//     0x28 own vtable (->0x2C fn, ->0x28 s16 base) — obj->0x28 dispatch
+//     idiom; 0x808 a sub-record.
+//   Folded action/desc tables (literal-pool/placeholder fold family):
+//     func_00008A7C + {0x54,0x5C,0x64,0x6C} (8-stride),
+//     func_00008AEC + {0x8,0x14,0x20,0x2C,0x38,0x44} (0xC-stride),
+//     func_000000F0 + 0x48 (x3); see
+//     docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
+// Caps (DEFERRED): 304-insn flag-walk dispatcher w/ folded tables +
+//   vtable calls — byte-match blocked by deferred pool symbolization.
+//   Real-C STRUCTURAL body below — UI/scene event-flag processor
+//   skeleton. Name pre-checked: no extern reuse.
+#ifdef NON_MATCHING
 void func_0000D440(char *st) {
     char *sub, *vt, *m, *a0_2;
     int fl, v0, t5;
     int sp58;
     float f0, f2;
     int a84;
-    func_00000000((char *)&func_00008A7C + 0x54);
+    func_00000000(&D_00008AD0);
     fl = *(int *)(st + 0xA58);
     v0 = fl & 0x100;
     if (v0 != 0) {
@@ -8817,39 +8885,39 @@ void func_0000D440(char *st) {
     block_9:
         if (v0 != 0) {
             sub = *(char **)(st + 0x800);
-            if (*(int *)(sub + 0x10) & 0x40 & (*(int *)(sub + 0x10) & 0x80)) {
+            if ((!!(*(int *)(sub + 0x10) & 0x80)) & (!!(*(int *)(sub + 0x10) & 0x40))) {
                 sp58 = 9;
                 vt = *(char **)(st + 0x28);
-                (*(void (**)(char *, int *))(vt + 0x2C))((char *)(*(int *)(vt + 0x28) + (int)st), &sp58);
+                (*(void (**)(char *, int *))(vt + 0x2C))((char *)(*(short *)(vt + 0x28) + (int)st), &sp58);
                 fl = *(int *)(st + 0xA58);
             }
         }
         if (fl & 4) {
             *(int *)(*(char **)(st + 0x800) + 0x3C) = 1;
-            func_00000000((char *)&func_00008A7C + 0x5C);
+            func_00000000(&D_00008AD8);
             sub = *(char **)(st + 0x804);
             vt = *(char **)(sub + 0x28);
             (*(void (**)(char *))(vt + 0x24))((char *)(sub + (short)*(short *)(vt + 0x20)));
-            func_00000000((char *)&func_00008A7C + 0x64);
+            func_00000000(&D_00008AE0);
             fl = *(int *)(st + 0xA58);
         }
         a0_2 = st + 0x808;
         if (fl & 0x80) {
             *(float *)(st + 0xA1C) = -*(float *)(st + 0xA1C);
         }
-        func_00000000(a0_2, *(int *)(st + 0x9A4));
+        func_00000000(a0_2, *(short *)(st + 0x9A4));
         m = *(char **)(st + 0x840);
-        *(int *)(st + 0x9A4) = 0;
+        *(short *)(st + 0x9A4) = 0;
         vt = *(char **)(m + 0x28);
         (*(void (**)(char *))(vt + 0x24))((char *)(m + (short)*(short *)(vt + 0x20)));
-        *(int *)(st + 0xA10) = 0;
+        *(short *)(st + 0xA10) = 0;
         *(float *)(st + 0xA1C) = 0.0f;
         *(float *)(st + 0xA20) = 0.0f;
         *(float *)(st + 0xA24) = 0.0f;
         if (*(int *)(st + 0xA58) & 0x800) {
-            func_00000000((char *)&func_00008A7C + 0x6C);
+            func_00000000(&D_00008AE8);
             func_00000000(st);
-            func_00000000((char *)&func_00008AEC + 8);
+            func_00000000(&D_00008AF4);
             if (*(int *)(st + 0xA58) & 0x40000) {
                 f0 = *(float *)(st + 0x31C);
                 f2 = (f0 < 0.0f) ? -f0 : f0;
@@ -8858,7 +8926,7 @@ void func_0000D440(char *st) {
                 if (a84 < 0) {
                     *(int *)(st + 0xA84) = 0;
                 }
-                func_00000000(a0_2, (short)*(int *)(st + 0xA84));
+                func_00000000(a0_2, *(int *)(st + 0xA84));
                 if (*(int *)(st + 0x8B8) & 1) {
                     *(int *)(*(char **)(st + 0x81C) + 0x94) = *(int *)(st + 0xA84);
                 }
@@ -8867,14 +8935,14 @@ void func_0000D440(char *st) {
                 }
             }
         }
-        func_00000000((char *)&func_00008AEC + 0x14);
+        func_00000000(&D_00008B00);
         *(float *)(st + 0xA38) = *(float *)(st + 0x3C8) * *(float *)(st + 0x318)
                                + *(float *)(st + 0x3CC) * *(float *)(st + 0x31C)
                                + *(float *)(st + 0x3D0) * *(float *)(st + 0x320);
         func_00000000(*(char **)(st + 0x840));
         if (*(int *)(st + 0xA5C) != 0) {
             char *p4 = *(char **)(st + 0x824);
-            double rnd = (double)func_00000000((void *)((((*(int *)(st + 0xDC) ^ *(int *)(st + 0xE4)) >> 5) ^ 0x12345678)));
+            double rnd = (double)func_d440_frnd((void *)(((((int)*(float *)(st + 0xDC) ^ (int)*(float *)(st + 0xE4)) >> 5) ^ 0x12345678)));
             float tf2 = (float)((rnd - 0.5) * 30.0 * (double)((float)*(int *)(st + 0xA5C) / 100.0f));
             double tf12;
             *(float *)(p4 + 0x64) += tf2;
@@ -8885,21 +8953,21 @@ void func_0000D440(char *st) {
             *(float *)(*(char **)(st + 0x82C) + 0x64) = (float)((double)*(float *)(*(char **)(st + 0x82C) + 0x64) + tf12);
             *(float *)(*(char **)(st + 0x838) + 0x64) = (float)((double)*(float *)(*(char **)(st + 0x838) + 0x64) - tf12);
         }
-        func_00000000((char *)&func_00008AEC + 0x20);
-        func_00000000((char *)&func_00008AEC + 0x2C);
+        func_00000000(&D_00008B0C);
+        func_00000000(&D_00008B18);
         func_00000000(st);
-        func_00000000((char *)&func_00008AEC + 0x38);
-        func_00000000(*(int *)((char *)&func_000000F0 + 0x48), (short)(int)st, *(float *)(st + 0x348) / 2.0f);
-        func_00000000(*(int *)((char *)&func_000000F0 + 0x48), (short)(int)st, *(int *)(st + 0xDC), *(int *)(st + 0xE4));
-        func_00000000(*(int *)((char *)&func_000000F0 + 0x48), (short)(int)st, *(int *)(st + 0xA14));
+        func_00000000(&D_00008B24);
+        func_d440_f0call(*(int *)((char *)&D_F0a + 0x48), (int)st, *(float *)(st + 0x348) / 2.0f);
+        func_00000000(*(int *)((char *)&D_F0b + 0x48), (int)st, *(int *)(st + 0xDC), *(int *)(st + 0xE4));
+        func_00000000(*(int *)((char *)&D_F0c + 0x48), (int)st, *(int *)(st + 0xA14));
         t5 = *(int *)(st + 0x8DC);
         if (t5 != 0) {
-            func_00000000(a0_2, (short)(int)(st + 0xDC), *(float *)(st + 0x348),
+            func_d440_final(a0_2, st + 0xDC, *(float *)(st + 0x348),
                           -*(float *)(st + 0x968), *(float *)(st + 0x970),
-                          *(float *)(st + 0x9D0) + *(float *)((char *)&D_00000000 + 0x980),
+                          *(float *)(st + 0x9D0) + D_00000980,
                           (int)*(short *)(st + 0x9A2), t5, *(int *)(st + 0xA58));
         }
-        func_00000000((char *)&func_00008AEC + 0x44);
+        func_00000000(&D_00008B30);
     }
 }
 #else
