@@ -1892,23 +1892,23 @@ char *arcproc_uso_func_0000251C(char *a0) {
         char *vt = *(char **)(v0 + 40);
         ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v0);
     }
-    gl_func_00000000(s0 + 16, *(int *)(s0 + 72));
     {
         char *a3 = *(char **)(s0 + 72);
+        gl_func_00000000(s0 + 16, a3);
         if (*(int *)(a3 + 0x14) != 0) {
             *(int *)(a3 + 0x4) = 1;
         }
         *(int *)(a3 + 0x14) = (int)s0;
     }
-    gl_func_00000000(s0 + 16, *(int *)((char *)&D_00000000 + 400));
     {
         char *a3 = *(char **)((char *)&D_00000000 + 400);
+        gl_func_00000000(s0 + 16, a3);
         if (*(int *)(a3 + 0x14) != 0) {
             *(int *)(a3 + 0x4) = 1;
         }
         *(int *)(a3 + 0x14) = (int)s0;
     }
-    gl_func_00000000(*(int *)((char *)&D_00000000 + 400));
+    gl_func_00000000(*(int *)((char *)&D_00000000 + 400), 1, 0);
     *(int *)(s0 + 80) = 0;
     *(int *)(s0 + 48) = 1;
     *(int *)(s0 + 44) = 0;

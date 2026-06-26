@@ -17,53 +17,52 @@ extern int D_0000014C;
 #define MGR_D_44 (*(int*)((char*)&D_00000000 + 0x44))
 
 #ifdef NON_MATCHING
-/* 218-insn (0x368) jump-table state-machine dispatcher; 9 cases on a1, common
- * tail reloads a1 from D[0x40] and repeats while the sp[0x48] marker stays 0.
- * Won't byte-match (USO jump-table reloc shape); full decode scores ~37.9%. */
 extern char D_a_4_x;
 extern int D_b_4_x[];
 extern char D_c_4_x;
 extern char D_8_x;
+extern char import_80020098;
+extern int import_000A5B9C();
+extern int mgrproc_uso_func_07ACE0();
 mgrproc_uso_func_0000019C(a0, a1) char * a0; int a1; {
-    volatile char *arg0 = a0;
-    volatile int state = a1;
-    volatile int loop_continue;
+    int loop_continue;
     int v0_save;
-    int s0_save;
+    int buf;
     loop_continue = 0;
     do {
-        switch (state) {
+        switch (a1) {
             case 0:
-                gl_func_00000000(arg0, 1, 0xB, 8);
+                gl_func_00000000(a0, 1, 0xB, 8);
                 MGR_D_44 = 2;
                 *(int*)((char*)&D_00000000 + 0x48) = 8;
                 loop_continue = 1;
                 break;
             case 1:
-                gl_func_00000000(arg0, 1, 7, 4);
+                gl_func_00000000(a0, 1, 7, 4);
                 MGR_D_44 = 2;
                 *(int*)((char*)&D_00000000 + 0x48) = 8;
                 loop_continue = 1;
                 break;
             case 2:
-                gl_func_00000000(arg0);
+                gl_func_00000000(a0);
                 MGR_STATE_CODE = 3;
                 break;
             case 3:
-                gl_func_00000000(arg0, *(int*)((char*)&D_00000000 + 0x68));
+                gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0x68));
                 MGR_STATE_CODE = 4;
                 break;
             case 4: {
                 int *p;
                 int *q;
+                register int s0_save;
                 gl_func_00000000(&D_a_4_x, D_b_4_x[1]);
-                p = (int*)*(int**)((char*)arg0 + 8);
-                q = p + p[1] * 1;
+                p = (int*)*(int**)((char*)a0 + 8);
+                q = p + p[1];
                 MGR_D_64 = q[3];
                 *(int*)((char*)&D_00000000 + 0x80) =
                     *(int*)((char*)&D_00000000 + 0x80) ^ 1;
-                p = (int*)*(int**)((char*)arg0 + 8);
-                q = p + p[1] * 1;
+                p = (int*)*(int**)((char*)a0 + 8);
+                q = p + p[1];
                 *((char*)&D_00000000 + 0x17D) = (char)q[9];
                 *((char*)&D_00000000 + 0x17F) =
                     (char)*(int*)((char*)&D_00000000 +
@@ -71,44 +70,47 @@ mgrproc_uso_func_0000019C(a0, a1) char * a0; int a1; {
                                   0x90);
                 gl_func_00000000(&D_c_4_x, 4, MGR_D_64, 0);
                 gl_func_00000000(&D_c_4_x, MGR_D_64);
-                v0_save = gl_func_00000000(arg0, *(int*)arg0, 1);
+                v0_save = gl_func_00000000(a0, *(int*)a0, 1);
                 s0_save = gl_func_00000000(0, 0x45000000, v0_save,
-                                           *(int*)((char*)arg0 + 8),
-                                           *(int*)arg0);
-                gl_func_00000000(arg0, 0, s0_save);
+                                           *(int*)((char*)a0 + 8),
+                                           *(int*)a0);
+                gl_func_00000000(a0, 0, s0_save);
                 loop_continue = 1;
                 break;
             }
-            case 5: {
-                int buf;
-                int v0_local = gl_func_00000000(arg0, &buf);
-                gl_func_00000000(arg0, (buf | 0x2000) | v0_local, 0x2000,
-                                 *(int*)arg0);
+            case 5:
+                v0_save = gl_func_00000000(a0, &buf);
+                gl_func_00000000(a0, (buf | 0x2000) | v0_save, 0x2000,
+                                 *(int*)a0);
                 loop_continue = 1;
                 break;
-            }
             case 6:
-                gl_func_00000000(arg0);
+                gl_func_00000000(a0);
                 MGR_STATE_CODE = 1;
                 break;
             case 7:
-                gl_func_00000000(arg0);
+                gl_func_00000000(a0);
                 MGR_STATE_CODE = 8;
                 break;
             case 8: {
-                int *s0_p = (int*)gl_func_00000000(0, 1, 0);
-                gl_func_00000000((char*)&D_00000000 + 0x10, s0_p);
+                register int *s0_p;
+                register char *base;
+                register char *p10;
+                s0_p = (int*)import_000A5B9C(0, 1, 0);
+                base = &import_80020098;
+                p10 = base + 0x10;
+                mgrproc_uso_func_07ACE0(p10, s0_p);
                 if (s0_p[0x14 / 4] != 0) {
                     s0_p[1] = 1;
                 }
-                s0_p[0x14 / 4] = (int)&D_00000000;
+                s0_p[0x14 / 4] = (int)base;
                 loop_continue = 1;
                 break;
             }
             default:
                 break;
         }
-        state = MGR_STATE_CODE;
+        a1 = MGR_STATE_CODE;
     } while (!loop_continue);
 }
 #else
