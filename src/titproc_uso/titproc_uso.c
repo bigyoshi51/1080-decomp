@@ -1995,6 +1995,13 @@ void titproc_uso_func_000026D0(int *a0) {
  * deferred-pool scheduling — a regalloc/symbolization ceiling, not structural.
  * INCLUDE_ASM remains build path. */
 #ifdef NON_MATCHING
+extern int titproc_uso_func_001BB8();
+extern int titproc_uso_func_07BA68();
+extern int titproc_uso_func_07C07C();
+extern int titproc_uso_func_01CCD4();
+extern int import_000B1BAC();
+extern char import_0001FFF8;
+
 void titproc_uso_func_000026FC(char *s0) {
     char *v1;
     int *vt;
@@ -2002,7 +2009,7 @@ void titproc_uso_func_000026FC(char *s0) {
     int a0v;
 
     if (*(int*)(s0 + 0x6C0) != 0 && *(int*)(s0 + 0x6C4) == 2) {
-        gl_func_00000000(*(int*)(s0 + 0x6B8));
+        titproc_uso_func_001BB8(*(int*)(s0 + 0x6B8));
     }
     if (*(int*)(s0 + 0x6C4) == 0) goto tail;
 
@@ -2017,24 +2024,23 @@ void titproc_uso_func_000026FC(char *s0) {
         goto final;
     }
     a1 = *(int*)(s0 + 0x4F0);
-    if ((a1 << 14) >= 0) {
-        vt = *(int**)(*(char**)(s0 + 0x6BC) + 0x28);
-        (*(void (**)(char*))((char*)vt + 0x64))(
-            (char*)((int)(short)*(short*)((char*)vt + 0x60) + (int)*(char**)(s0 + 0x6BC)));
-        goto final;
-    } else {
-        char *rc4 = *(char**)(*(char**)((char*)&D_00000000 + 0x134) + 0xC4);
+    if ((a1 << 14) < 0) {
+        char *rc4 = *(char**)(*(char**)((char*)&import_00020098 + 0x134) + 0xC4);
         int arg = *(int*)(rc4 + 0x800);
         char *o528;
-        gl_func_00000000(s0);
-        gl_func_00000000(arg, 0);
+        titproc_uso_func_01B0F8(s0);
+        titproc_uso_func_07BA68(arg, 0);
         o528 = *(char**)(s0 + 0x528);
-        gl_func_00000000(arg, *(int*)(*(char**)(o528 + 8) + 8),
+        titproc_uso_func_07C07C(arg, *(int*)(*(char**)(o528 + 8) + 8),
                          *(int*)(*(char**)(o528 + 8) + 4));
-        gl_func_00000000(s0);
+        titproc_uso_func_01CCD4(s0);
         *(int*)(s0 + 0x4F4) = *(int*)(s0 + 0x4F0) & 0xFFFF;
         goto ret;
     }
+    vt = *(int**)((char*)&import_0001FFF8 + 0x28);
+    (*(void (**)(char*))((char*)vt + 0x64))(
+        (char*)((int)(short)*(short*)((char*)vt + 0x60) + (int)&import_0001FFF8));
+    goto final;
 
 dec_path:
     v1 = *(char**)(s0 + 0x6BC);
@@ -2052,12 +2058,12 @@ tail:
     }
     a0v = *(int*)(s0 + 0x6C0);
     if (a0v != 0) {
-        gl_func_00000000(a0v);
+        import_000A53B4(a0v);
     }
-    gl_func_00000000(s0, -1, 0);
+    titproc_uso_func_00F954(s0, -1, 0);
 
 final:
-    gl_func_00000000(s0);
+    import_000B1BAC(s0);
 ret:
     ;
 }
