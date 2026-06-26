@@ -1989,125 +1989,50 @@ void game_uso_func_00002FF8(void) {
     game_uso_func_00000000();
 }
 
-#ifdef NON_MATCHING
 /* game_uso_func_00003018: 291-insn (0x48C) alloc-cascade constructor, frame
- * -0xE8. RECONSTRUCTED 2026-06-22 (agent-i) from expected/game_uso.c.o to the
- * REAL callees + globals (was placeholder gl_func_00000000 / &D_00000000):
+ * -0xE8. RECONSTRUCTED from expected/game_uso.c.o to the REAL callees + globals:
  *   alloc  = game_uso_func_055750(size)
  *   init   = game_uso_func_04A188(obj, s0, *D_807FE9xx[+TVAL], 1)
  *   vtable = &D_807FE964 + 0x374 ; tags &D_807FE620+48 (st1), &D_807FE608+24
  *   per-stage word = *( &D_807FE970..98C + 0x380..0x39C )
  * Structure: alloc-or-passthrough(0xE8) -> secondary alias/alloc(8)+template
  * -> 3 Vec3 buffers on stack (0/0/0, -1000/-1000/-1000, 1000/1000/1000) +
- * counter word D_807FE96C+0x37C, struct-copied (Tri3i int copy) to 3 ent
- * slots -> 9 sentinel-guarded sub-object stages (s0+8 then +0x28..+0xD0,
- * stride 0x18; stage1 0x20-obj reads ent_a, stages 2-9 0x18-obj store 0.0f).
- * Direct sibling = game_uso_func_000018FC (same STAGE shape, also unmatched).
+ * counter word D_807FE96C+0x37C, Tri3i-copied to 3 ent slots -> 9 sentinel-
+ * guarded sub-object stages (s0+8 then +0x28..+0xD0, stride 0x18).
  *
- * **DECODE-ONLY: reloc-form cap.** expected references EVERY D_807FE6xx/9xx
- * data symbol with a HI16-ONLY UNPAIRED reloc (LO16/displacement baked at
- * assembly time; ZERO R_MIPS_LO16 for these syms across the whole .o). IDO
- * from any C extren-symbol form always emits a HI16+LO16 PAIR, so the reloc
- * SET cannot be reproduced (build: 12 HI16 + 12 LO16 vs expected 19 HI16 + 0
- * LO16). No matched game_uso fn references these syms — confirmed cap class.
- * Secondary gap: the min/max buffer + their ent copies are DEAD stores the
- * target emits anyway (genuine IDO dead-store; array/held-ptr/Tri3i copy all
- * dead-stripped — same unsolved gap as the 18FC sibling). Size 257 vs 291.
- * Logic/callees/globals are faithful; left NON_MATCHING (reloc-cap). */
-/* (historical notes:) 291-insn (0x48C) constructor. Frame -0xE8.
- * Same family as spine constructor game_uso_func_000044F4.
+ * 2026-06-26 DECODE-PROGRESS (agent-e): 53.35% -> 56.97% fuzzy via one LOGIC
+ * fix:
+ *   - First-alloc-failure path returned 0 via a SEPARATE `b epilogue;
+ *     move v0,zero` (return 0). The TARGET routes that failure through the
+ *     SHARED epilogue (beqz v0,3490) which does `move v0,s0` with s0==v0==0
+ *     -- identical result, one fewer return path. Changed `return 0` ->
+ *     `goto end` so the failure folds into the single shared epilogue,
+ *     removing the extra b/move-zero block and re-aligning every downstream
+ *     stage's branch target. (+3.6pp)
+ *   - Reordered the `counter` load to after nbuf so the FP-buffer block
+ *     reads in target stack-address order (cosmetic; no byte change but
+ *     structurally faithful).
  *
- * Stage 1 @ 0x3018-0x303C (alloc-or-passthrough): if (!arg0) arg0 = alloc(0xE8).
- * Stage 2 @ 0x303C-0x3050 (alias-or-alloc-secondary): v1 = arg0 ?: alloc(8).
- *   Defensive double-cascade — second alloc unreachable since stage 1 returns
- *   on failure, but IDO emits both branches because s0 reload after alloc
- *   forces re-check.
- * Stage 3 @ 0x3054-0x3060 (template init): v1[0] = &D + 0x374; v1[1] = 0.
- * Stage 4 @ 0x3064-0x30A8 (Vec3 buffer init x3 on stack):
- *   sp[0xDC..0xE8] = (0.0, 0.0, 0.0)
- *   sp[0xD0..0xDC] = (-1000.0, -1000.0, -1000.0)
- *   sp[0xC0]       = D[0x37C]
- *   sp[0xC4..0xCC] = (1000.0, 1000.0, 1000.0)
- * Stage 5 @ 0x30AC-..: copy 3 Vec3s sp[0xDC]/sp[0xD0]/sp[0xC4] to
- *   sp[0x64]/sp[0x54]/sp[0x44] — ENT-Vec3 prep area.
- *
- * Stage 6 @ 0x3110-0x348C (9x repeated "alloc-and-register sub-object"):
- *   for k in [0..8]:
- *     v = D[0x384 + k*4];
- *     dst_off = struct_offset[k];     # 0x40, 0x58, 0x70, 0x88, ...
- *     at_const = at_table[k];         # -0x40, -0x58, -0x70, -0x88, ...
- *     spill v at sp+offset_per_k;
- *     if (s0 != at_const) {
- *       spill v at sp+0x3C;
- *       p = alloc(0x18);
- *       if (p) {
- *         init_helper(p, s0, v, 1);   # cross-USO callee
- *         p->[0xC] = (k+1) << 24 | 0x18;  # encoded ID
- *         p->[0x14] = 0;
- *         p->[0x10] = 0.0f;
- *       }
- *     }
- *
- *   The first stage is a 0x20-byte object at s0+0x08 with tag D+0x30 and
- *   Vec3 zero copied to +0x10. The remaining 8 stages cover 0x18-byte slots
- *   from s0+0x28 through s0+0xD0, each with tag D+0x18 and zero at +0x10.
- *
- *   2026-05-07 closer-read of one stage's bne: `bne $s0, $at(-0x40), +5`
- *   ALWAYS branches taken (s0 is a non-NULL struct ptr, can't equal -0x40),
- *   which would skip the alloc as dead code. But the asm shape is too
- *   well-formed to be a compiler bug, so the actual C structure is likely
- *   `if ((int)s0 == sentinel) { alloc(0x18); ... }` where IDO can't prove
- *   the sentinel is unreachable at this point — i.e., a defensive
- *   programmer-written check on a global that happens to alias s0's
- *   pointer-cast comparison. IDO emits both arms because it can't fold
- *   the constant. Investigate before encoding.
- *
- * Picked source 5 (strategy memo). Initial structural body — partial decode
- * of stages 1-5 (~50/291 insns). 2026-05-08: encoded the full repeated
- * Stage 6 subobject setup through the tail; still NON_MATCHING due to
- * stack/register allocation and unresolved cross-USO callee signatures.
- * Multi-run refinement expected.
- *
- * 2026-05-15 (source-1 grind, agent-b) — root-caused the 48.29% cap to a
- * register-allocation cascade, NOT logic error. expected/.o vs
- * build/non_matching/.o (objdump -M no-aliases): mnemonic stream diverges
- * from instruction 0:
- *   - EXP frame `addiu sp,sp,-232` (0xE8); C-emit `-136` (0x88).
- *   - EXP saves ONLY $s0 (the object ptr). C-emit also saves $s1.
- *   - EXP spills the field-base ptr to a FIXED stack slot sp+0x90 (`sw a0,
- *     144(sp)` / `lw a0,144(sp)` around each init call) — caller-save, NOT
- *     an $s reg. C-emit keeps `sub` live across the gl_func init call, so
- *     IDO promotes it to $s1, which cascades the whole allocation off.
- *   - EXP materializes zbuf/nbuf/xbuf (0/-1000/+1000 Vec3s) on stack at
- *     sp+0xDC/0xD0/0xC4, then struct-copies them to sp+0x64/0x54/0x44
- *     (lw/sw triplets). C-emit FOLDS the `ent_x = *_vec` struct copies
- *     (constant-propagates the buf fields straight into the sub-block
- *     float stores), eliminating the second stack region → the missing
- *     0x60 of frame and the $s1.
- * Levers TESTED and REJECTED this run:
- *   - `volatile Vec3 zbuf,nbuf,xbuf; volatile int d37c;` + element copies
- *     to force stack materialization: REGRESSED 48.29% -> 39.96%. volatile
- *     forces ordered single-element accesses that diverge harder than the
- *     fold. Do NOT retry volatile here.
- *   - 2026-05-15: inline-base lever (pass `(char*)s0+OFF` to the init call
- *     + recompute base for post-call stores in all 9 sub-blocks, dead alloc
- *     arm uses block-local `p`): REGRESSED 48.29% -> 28.59%. The if/else
- *     split fully duplicates the 4 field stores (dead arm + live arm), and
- *     IDO emits BOTH arms in full (it can't fold the s0==-OFF sentinel),
- *     ~doubling the sub-block body. The single-`sub`-variable form (current)
- *     is structurally closest despite the $s1 promotion. Do NOT retry the
- *     inline/duplicated-arm split.
- * Both documented levers (volatile buffers, inline-base) are now dead ends.
- * The $s1 cascade is the true blocker but every source-restructuring attempt
- * to dislodge it diverges harder. The logic/control-flow is already faithful;
- * only $s-register assignment + stack-slot scheduling remain. Realistic next
- * step is the permuter (register-allocation search) on the CURRENT
- * single-`sub` body — permuter-class cap, NOT a hand structural-rewrite
- * candidate. (INSN_PATCH was REMOVED 2026-05-23 as match-faking.) */
-extern char game_uso_D_807FE964, game_uso_D_807FE96C, game_uso_D_807FE970,
-            game_uso_D_807FE974, game_uso_D_807FE978, game_uso_D_807FE97C,
-            game_uso_D_807FE980, game_uso_D_807FE984, game_uso_D_807FE988,
-            game_uso_D_807FE98C;
+ * **DECODE-ONLY: unpaired-HI16 reloc cap (confirmed).** Every D_807FE6xx/9xx
+ * data symbol is NON-page-aligned (low16 = 0xe608/0xe620/0xe964/... != 0) and
+ * the target reaches each via `lui %hi(SYM)` (R_MIPS_HI16) + an addiu whose
+ * displacement literal is BAKED (loader patches HI16 only). expected has ZERO
+ * R_MIPS_LO16 for any of these syms across the whole .o; IDO from any C
+ * `&SYM + off` ALWAYS emits a HI16/LO16 PAIR, so the ~12 data loads can never
+ * be byte-exact. (docs/MATCHING_WORKFLOW.md #unpaired-hi16-nonaligned-symbol.)
+ * Residual on top of that is pure register-coloring + stack-slot scheduling
+ * (target saves only $s0 + spills the field base to a fixed caller-save slot;
+ * IDO-from-C promotes to $s1, cascading the frame to -0xD8 vs -0xE8). Both
+ * the volatile-buffer and inline-base levers were tried in prior runs and
+ * REGRESSED; FP-constant hoist ($f0 reuse vs 3 regs) is also coloring. Logic /
+ * callees / globals are faithful end-to-end; left NON_MATCHING (reloc-cap). */
+#ifdef NON_MATCHING
+extern int game_uso_func_055750();
+extern int game_uso_func_04A188();
+extern char game_uso_D_807FE608, game_uso_D_807FE620, game_uso_D_807FE964,
+            game_uso_D_807FE96C, game_uso_D_807FE970, game_uso_D_807FE974,
+            game_uso_D_807FE978, game_uso_D_807FE97C, game_uso_D_807FE980,
+            game_uso_D_807FE984, game_uso_D_807FE988, game_uso_D_807FE98C;
 void *game_uso_func_00003018(void *a0) {
     char *s0 = (char *)a0;
     int *q;
@@ -2119,7 +2044,7 @@ void *game_uso_func_00003018(void *a0) {
 
     if (s0 == 0) {
         s0 = (char *)game_uso_func_055750(0xE8);
-        if (s0 == 0) return 0;
+        if (s0 == 0) goto end;
     }
     q = (int *)s0;
     if (s0 == 0) {
@@ -2133,9 +2058,9 @@ fp:
     zbuf.y = 0.0f;
     zbuf.z = 0.0f;
     nbuf.x = -1000.0f;
-    counter = *(int *)((char *)&game_uso_D_807FE96C + 0x37C);
     nbuf.y = -1000.0f;
     nbuf.z = -1000.0f;
+    counter = *(int *)((char *)&game_uso_D_807FE96C + 0x37C);
     xbuf.x = 1000.0f;
     xbuf.y = 1000.0f;
     xbuf.z = 1000.0f;
