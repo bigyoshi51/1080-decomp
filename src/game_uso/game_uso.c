@@ -6200,85 +6200,38 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
 
 #ifdef NON_MATCHING
 /* game_uso_func_00006FA8: 127-insn (0x1FC) heavy FPU + multi-call compute.
- * Frame -0xC0. Sibling of 0x6CF0 (per-frame FPU update class).
- *
- * Structural decode (offsets in target asm):
- *
- *   ; Stage 1 (insns 1-7): prologue + first cross-USO call (callee=0).
- *   self = a0; saved to s0.
- *   gl_func_00000000(...);              ; first call (return float in f0)
- *   sp[0xBC] = 0;                       ; clear local accumulator
- *
- *   ; Stage 2 (insns 8-13): early-out if f0 < 0.
- *   if (f0 < 0.0f) goto end;
- *
- *   ; Stage 3 (insns 14-26): two consecutive cross-USO calls feeding
- *   ; values from D[0x570] and D[0x574] into temp slots.
- *   p1 = *(int**)(D + 0x570);
- *   sp[0xB8] = *p1;                     ; spill (also passed as stack-arg5)
- *   sp[0x4]  = sp[0xB8];                ; outgoing arg5
- *   gl_func_00000000(self, sp[0xB8], self->[0x30] + 0xB4);
- *
- *   p2 = *(int**)(D + 0x574);
- *   sp[0xB4] = *p2;
- *   sp[0x4]  = sp[0xB4];
- *   tmp = gl_func_00000000(self, sp[0xB4], self->[0x30] + 0xB4);
- *   if (tmp == 0) goto end;             ; bnezl-pattern early-out
- *
- *   ; Stage 4 (insns 27-50): Vec3-arithmetic with pointer-chain copies.
- *   ; Reads from self->[0x30] sub-object, copies 3 ints (Vec3-int) + computes
- *   ; FPU products. Stores to sp[0x6C..0x74] AND sp[0x34..0x3C].
- *
- *   ; Stage 5 (insns 51-90): 5-FPU arithmetic chain
- *   ; (mul.s f0,f1; mul.s f4,f1; mul.s f6,f0; sub.s f8,f0,f1; etc.) producing
- *   ; new Vec3 values stored to sp[0x90..0x98] and sp[0x9C..0xA4].
- *
- *   ; Stage 6 (insns 91-110): Vec3-int copy cascade — 3 lw/sw pairs each
- *   ; from sp+0x90..0x98 to caller-provided buffer at *(arg pointer) + 0x30.
- *
- *   ; Stage 7 (insns 111-127): final c.lt.s + branch-likely; conditional sw
- *   ; based on FPU comparison; epilogue.
- *
- *   end: return;
- *
- * Spine context: per-frame compute in the 0x6XXX FPU-heavy cluster
- * (siblings 0x6A30, 0x6CF0, 0x6F38). Reads self with sub at +0x30.
- * Field offsets used: self->{0x30}, sub->{0xB4...}, plus globals at
- * D+0x570, D+0x574.
- *
- * Multi-tick refinement target. Default INCLUDE_ASM build remains exact
- * via the asm. Skeleton kept for grep discoverability of struct field
- * offsets and the per-frame compute call-graph. */
+ * Reloc-authoritative callees/data wired 2026-06-26:
+ *   first call  -> game_uso_func_00007A98 (float return, gate < 0)
+ *   2nd/3rd     -> game_uso_func_0000A374 (a1 passed by-value as 1-int struct,
+ *                  homed to sp+4)
+ *   data bases  -> game_uso_D_807FEB60 (+0x570) and game_uso_D_807FEB64 (+0x574)
+ *                  each a pointer-table: p = *(int**)((char*)&D + off);
+ *                  a1 = *p.
+ * result = (dot2 < dot1) ? 10 : 11; squared-magnitude compare of two Vec3
+ * diffs (callee-buffer+0x30 minus self->[0x30]+0xB4). */
 typedef struct { float x, y, z; } V3_6FA8;
+typedef struct { int a; } S1_6FA8;
+extern int game_uso_D_807FEB60;
+extern int game_uso_D_807FEB64;
 int game_uso_func_00006FA8(int *a0) {
-    /* Structural decode (2026-05-31, 1.1%->53%): float gate (`<0` -> c.lt.s/bc1fl)
-     * -> 2 staged calls -> two Vec3 diffs (r1->0x30 / r2->0x30 minus s0->0x30+0xB4)
-     * each copied through a 2-deep struct-copy chain (d->c_a->c_b; IDO -O2 keeps
-     * the redundant 3-lw/3-sw copies) -> compare squared magnitudes ->
-     * result = (dot2<dot1)?10:11 (was inverted). 2026-06-02: made the fn RETURN
-     * int (result is stack-resident sp+188, loaded to v0 and returned via all exit
-     * paths) + fixed the ternary direction -> 53%%->69.7%%. REMAINING: frame -144 vs
-     * -192 (more Vec3 stack temps in the 2-deep copy chains) + FP scheduling. */
     int *s0 = a0;
     int result = 0;
     int *r1, *r2;
-    if (gl_func_00000000_f() < 0.0f) {
-        r1 = (int *)gl_func_00000000(s0, *(int *)(*(int *)((char *)&D_00000000 + 0x570)),
-                                     (char *)s0[0x30 / 4] + 0xB4);
-        r2 = (int *)gl_func_00000000(s0, *(int *)(*(int *)((char *)&D_00000000 + 0x574)),
-                                     (char *)s0[0x30 / 4] + 0xB4);
+    if (game_uso_func_00007A98(s0) < 0.0f) {
+        S1_6FA8 v1, v2;
+        v1.a = *(int *)*(int **)((char *)&game_uso_D_807FEB60 + 0x570);
+        r1 = (int *)game_uso_func_0000A374((int)s0, v1, (int)((char *)s0[0x30 / 4] + 0xB4));
+        v2.a = *(int *)*(int **)((char *)&game_uso_D_807FEB64 + 0x574);
+        r2 = (int *)game_uso_func_0000A374((int)s0, v2, (int)((char *)s0[0x30 / 4] + 0xB4));
         if (r1 != 0 && r2 != 0) {
             V3_6FA8 d1, c1a, c1b, d2, c2a, c2b;
             V3_6FA8 *q = (V3_6FA8 *)((char *)s0[0x30 / 4] + 0xB4);
             V3_6FA8 *p1 = (V3_6FA8 *)((char *)r1 + 0x30);
+            V3_6FA8 *p2 = (V3_6FA8 *)((char *)r2 + 0x30);
             float dot1, dot2;
             d1.x = p1->x - q->x; d1.y = p1->y - q->y; d1.z = p1->z - q->z;
             c1a = d1; c1b = c1a;
-            {
-                V3_6FA8 *p2 = (V3_6FA8 *)((char *)r2 + 0x30);
-                V3_6FA8 *q2 = (V3_6FA8 *)((char *)s0[0x30 / 4] + 0xB4);
-                d2.x = p2->x - q2->x; d2.y = p2->y - q2->y; d2.z = p2->z - q2->z;
-            }
+            d2.x = p2->x - q->x; d2.y = p2->y - q->y; d2.z = p2->z - q->z;
             c2a = d2; c2b = c2a;
             dot1 = c1b.x * c1b.x + c1b.y * c1b.y + c1b.z * c1b.z;
             dot2 = c2b.x * c2b.x + c2b.y * c2b.y + c2b.z * c2b.z;
@@ -8624,6 +8577,9 @@ int game_uso_func_0000A374(int a0, int a1, int a2) {
  * documented table-dispatch ceiling. Full per-slot args/indices are
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode). */
+extern char game_uso_D_807FEB38;
+extern char game_uso_D_807FEDF8;
+extern char game_uso_D_807FEE20;
 #ifdef NON_MATCHING
 typedef struct { float x, y, z; } V3_A3C4;
 void game_uso_func_0000A3C4(char *a0) {
@@ -8638,31 +8594,31 @@ void game_uso_func_0000A3C4(char *a0) {
     if (*(int *)(*(char **)(a0 + 0x30) + 0x908) == 0) return;
     /* block 1: slot at a0->0x40 */
     idx = *(int *)(a0 + 0x40);
-    ent = *(char **)((char *)&D_00000000 + 0x548 + idx * 4);
-    slot1 = (char *)func_00000000(*(int *)ent, 0,
+    ent = *(char **)((char *)&game_uso_D_807FEB38 + 0x548 + idx * 4);
+    slot1 = (char *)game_uso_func_0000A374(*(int *)ent, 0,
                                   *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
     if (slot1 == 0) {
-        func_00000000((char *)&D_00000000 + 0x7EC, (char *)&D_00000000 + 0x808, 1104);
+        game_uso_func_047B1C((char *)&game_uso_D_807FEDF8 + 0x7EC, (char *)&game_uso_D_807FEDF8 + 0x808, 1104);
     }
     if (*(int *)(slot1 + 0x84) & 0x10) slot1 = *(char **)(slot1 + 0x2C);
     /* block 2: slot at a3->0x7C */
     idx = *(int *)(a3 + 0x7C);
-    ent = *(char **)((char *)&D_00000000 + 0x548 + idx * 4);
-    slot2 = (char *)func_00000000(*(int *)ent, 0,
+    ent = *(char **)((char *)&game_uso_D_807FEB38 + 0x548 + idx * 4);
+    slot2 = (char *)game_uso_func_0000A374(*(int *)ent, 0,
                                   *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
     if (slot2 == 0) {
-        func_00000000((char *)&D_00000000 + 0x814, (char *)&D_00000000 + 0x830, 1115);
+        game_uso_func_047B1C((char *)&game_uso_D_807FEE20 + 0x814, (char *)&game_uso_D_807FEE20 + 0x830, 1115);
     }
     if (*(int *)(slot2 + 0x84) & 0x10) slot2 = *(char **)(slot2 + 0x2C);
     /* {x,0,z} vecs: reference + both slots */
     ref = (float *)(*(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
     {
         V3_A3C4 *pref = &vref, *pv1 = &v1c, *pv2 = &v2c;
-        if (pref == 0) pref = (V3_A3C4 *)func_00000000(12);
+        if (pref == 0) pref = (V3_A3C4 *)game_uso_func_055750(12);
         pref->x = ref[0]; pref->z = ref[2]; pref->y = 0.0f;
-        if (pv1 == 0) pv1 = (V3_A3C4 *)func_00000000(12);
+        if (pv1 == 0) pv1 = (V3_A3C4 *)game_uso_func_055750(12);
         pv1->x = *(float *)(slot1 + 0x30); pv1->z = *(float *)(slot1 + 0x38); pv1->y = 0.0f;
-        if (pv2 == 0) pv2 = (V3_A3C4 *)func_00000000(12);
+        if (pv2 == 0) pv2 = (V3_A3C4 *)game_uso_func_055750(12);
         pv2->x = *(float *)(slot2 + 0x30); pv2->z = *(float *)(slot2 + 0x38); pv2->y = 0.0f;
         d1x = pref->x - pv2->x; d1z = pref->z - pv2->z;
         d2x = pref->x - pv1->x; d2z = pref->z - pv1->z;
