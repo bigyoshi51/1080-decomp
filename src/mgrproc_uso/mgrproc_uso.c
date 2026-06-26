@@ -541,9 +541,9 @@ extern int mgrproc_uso_func_00000140();
 extern int mgrproc_uso_func_00000170();
 extern int mgrproc_uso_func_01FA1C();
 extern int import_000A8114();
-extern int import_800200DC;
+extern int import_800200DC[];
 extern char import_800200D8;
-extern int import_80020100;
+extern int import_80020100[];
 void mgrproc_uso_func_000013C8(int *a0) {
     int spill;          /* stack 0x24(sp) */
     int *s0 = a0;
@@ -552,9 +552,9 @@ void mgrproc_uso_func_000013C8(int *a0) {
     if (a0[0x4F8 / 4] == 0) {
         if (mgrproc_uso_func_00000140(a0[0x6A8 / 4]) != 0) {
             spill = 1;
-            *(int *)((char *)&import_800200DC + 0x44) = 7;
+            import_800200DC[0x44 / 4] = 7;
             if (*(volatile int *)0xA0000200 == (int)0xAC290000) {
-                import_000A8114(&import_80020100, *(int *)((char *)&import_80020100 + 0x68) - 1);
+                import_000A8114(&import_80020100[0], import_80020100[0x68 / 4] - 1);
                 goto term;
             } else {
                 s0[0x7C8 / 4] = 0;
@@ -565,25 +565,23 @@ void mgrproc_uso_func_000013C8(int *a0) {
     }
     /* a0[0x4F8] != 0 */
     if (mgrproc_uso_func_00000170(s0[0x6A8 / 4]) == 0) goto term;
-    *(int *)((char *)&import_800200D8 + 0x40) = *(int *)((char *)&import_800200DC + 0x44);
+    *(int *)((char *)&import_800200D8 + 0x40) = import_800200DC[0x44 / 4];
     spill = 1;
-    *(int *)((char *)&import_800200DC + 0x44) = 7;
+    import_800200DC[0x44 / 4] = 7;
 term:
     if (s0[0x7C8 / 4] != 0) {
         if (mgrproc_uso_func_00000170(s0[0x6A8 / 4]) == 0) goto storestate;
-        t5 = (int *)s0[0x6AC / 4];
-    } else {
-        t5 = (int *)s0[0x6AC / 4];
     }
-    if (mgrproc_uso_func_01FA1C(t5[0x4C / 4]) != 0) {
-        *(int *)((char *)&import_800200D8 + 0x40) = 5;
-        s0[0x7D8 / 4] = 1;
-    } else {
+    t5 = (int *)s0[0x6AC / 4];
+    if (mgrproc_uso_func_01FA1C(t5[0x4C / 4]) == 0) {
         *(int *)((char *)&import_800200D8 + 0x40) = 7;
         spill = 0;
+    } else {
+        *(int *)((char *)&import_800200D8 + 0x40) = 5;
+        s0[0x7D8 / 4] = 1;
     }
 storestate:
-    s0[0x504 / 4] = (spill == 0) ? 4 : 0;
+    s0[0x504 / 4] = (spill != 0) ? 0 : 4;
 epi:
     return;
 }

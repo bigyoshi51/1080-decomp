@@ -8508,22 +8508,18 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
 //   STRUCTURAL body below — HUD/menu layout builder skeleton.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* typed-float proto (0x0-alias): the 13 builder calls pass 3 single floats
- * (a3 + swc1 0x10/0x14); K&R func_00000000 double-promotes them. 30->52% (+22).
- * Residual ~48%: the repeated 0.0f args get CSE'd into callee-saved $f20 here,
- * but target loads 0.0f fresh from the rodata float pool per call (lwc1) — an
- * FP-constant-promotion divergence. */
+// PARTIAL-FORM corrected NM body for func_0000CCE0 (replaces lines 8516..8554)
 extern char *func_cce0(int, char *, int, float, float, float);
 void func_0000CCE0(char *st, int a1) {
     char *cont = st + 0x39C;
     char *e0, *e1, *e2, *e3;
-    e0 = (char *)func_cce0(0, st, 2, 140.0f, 0.0f, 0.0f);
+    e0 = (char *)func_cce0(0, st, 2, 140.0f, *(float *)((char *)&func_00000940 + 0x1C), -350.0f);
     func_00000000(cont, e0);
-    e1 = (char *)func_cce0(0, st, 8, -140.0f, 0.0f, 0.0f);
+    e1 = (char *)func_cce0(0, st, 8, -140.0f, *(float *)((char *)&func_00000940 + 0x20), -350.0f);
     func_00000000(cont, e1);
-    e2 = (char *)func_cce0(0, st, 1, 350.0f, 0.0f, 0.0f);
+    e2 = (char *)func_cce0(0, st, 1, 140.0f, *(float *)((char *)&func_00000940 + 0x24), 350.0f);
     func_00000000(cont, e2);
-    e3 = (char *)func_cce0(0, st, 4, -350.0f, 0.0f, 0.0f);
+    e3 = (char *)func_cce0(0, st, 4, -140.0f, *(float *)((char *)&func_00000940 + 0x28), 350.0f);
     func_00000000(cont, e3);
     func_00000000(st, e0);
     func_00000000(st, e1);
@@ -8531,25 +8527,22 @@ void func_0000CCE0(char *st, int a1) {
     func_00000000(st, e3);
     if (*(int *)(st + 0xA58) & 0x200) return;
     {
-        char *h0, *h1, *h2, *h3, *h4, *h5, *h6, *h7, *h8;
-        h0 = (char *)func_cce0(0, st, 0x00, 140.0f, 0.0f, 0.0f);
-        func_00000000(cont, h0); func_00000000(st, h0);
-        h1 = (char *)func_cce0(0, st, 0x20, -140.0f, 0.0f, 0.0f);
-        func_00000000(cont, h1); func_00000000(st, h1);
-        h2 = (char *)func_cce0(0, st, 0x80, 350.0f, 0.0f, 0.0f);
-        func_00000000(cont, h2); func_00000000(st, h2);
-        h3 = (char *)func_cce0(0, st, 0x10, -350.0f, 0.0f, 0.0f);
-        func_00000000(cont, h3); func_00000000(st, h3);
-        h4 = (char *)func_cce0(0, st, 0x40, 250.0f, 0.0f, 0.0f);
-        func_00000000(cont, h4); func_00000000(st, h4);
-        h5 = (char *)func_cce0(0, st, 0x40, -250.0f, 0.0f, 0.0f);
-        func_00000000(cont, h5); func_00000000(st, h5);
-        h6 = (char *)func_cce0(0, st, 0x40, -150.0f, 0.0f, 0.0f);
-        func_00000000(cont, h6); func_00000000(st, h6);
-        h7 = (char *)func_cce0(0, st, 0x40, -400.0f, 0.0f, 0.0f);
-        func_00000000(cont, h7); func_00000000(st, h7);
-        h8 = (char *)func_cce0(0, st, 0x40, 400.0f, 0.0f, 0.0f);
-        func_00000000(cont, h8); func_00000000(st, h8);
+        char *g0, *g1, *g2, *g3, *g4;
+        g0 = (char *)func_cce0(0, st, 0x00, 0.0f, *(float *)((char *)&func_00000940 + 0x2C), 0.0f);
+        func_00000000(cont, g0);
+        func_00000000(st, g0);
+        g1 = (char *)func_cce0(0, st, 0x20, 250.0f, -150.0f, -400.0f);
+        func_00000000(cont, g1);
+        g2 = (char *)func_cce0(0, st, 0x80, -250.0f, -150.0f, 400.0f);
+        func_00000000(cont, g2);
+        g3 = (char *)func_cce0(0, st, 0x10, 250.0f, -150.0f, 400.0f);
+        func_00000000(cont, g3);
+        g4 = (char *)func_cce0(0, st, 0x40, -250.0f, -150.0f, 400.0f);
+        func_00000000(cont, g4);
+        func_00000000(st, g1);
+        func_00000000(st, g2);
+        func_00000000(st, g3);
+        func_00000000(st, g4);
     }
 }
 #else

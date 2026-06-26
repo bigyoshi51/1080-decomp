@@ -1320,27 +1320,48 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F
  * nested-if form is correct); the bne-skip arms are NOT passthrough. Do not
  * re-try the passthrough form. */
 #ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern char D_00000000;
+extern char D_arc199C_w[];   /* &D for a0->0x28 (level-4) */
+extern char D_arc199C_x[];   /* &D for v1->0x28 (level-3) */
+extern char D_arc199C_y[];   /* &D for a2->0x28 (level-2) */
+extern char D_arc199C_z[];   /* &D for s0->0x28 (level-1/main) */
+
 char *arcproc_uso_func_0000199C(char *a0, char *a1, int a2) {
-    char *s0;
-    char *p2;
-    char *p3;
-    char *p4;
-    s0 = a0 ? a0 : (char *)gl_func_00000000(268);
-    if (!s0) return s0;
-    p2 = (char *)gl_func_00000000(212);
-    if (p2) {
-        p3 = (char *)gl_func_00000000(80);
-        if (p3) {
-            p4 = (char *)gl_func_00000000(44);
-            if (p4) {
-                gl_func_00000000(p4, (char *)&D_00000000 + 0x3DC);
-                *(char **)(p4 + 0x28) = &D_00000000;
-            }
-            *(char **)(p3 + 0x28) = &D_00000000;
-        }
-        *(char **)(p2 + 0x28) = &D_00000000;
+    char *s0;   /* level-1 main object (268) */
+    char *l2;   /* level-2 (212), reg a2 */
+    char *l3;   /* level-3 (80),  reg v1 */
+    char *l4;   /* level-4 (44),  reg a0 */
+
+    s0 = a0;
+    if (a0 == 0) {
+        s0 = (char *)gl_func_00000000(268);
+        if (s0 == 0) return s0;
     }
-    *(char **)(s0 + 0x28) = &D_00000000;
+    l2 = s0;
+    if (s0 == 0) {
+        l2 = (char *)gl_func_00000000(212);
+        if (l2 == 0) goto init1;
+    }
+    l3 = l2;
+    if (l2 == 0) {
+        l3 = (char *)gl_func_00000000(80);
+        if (l3 == 0) goto init2;
+    }
+    l4 = l3;
+    if (l3 == 0) {
+        l4 = (char *)gl_func_00000000(44);
+        if (l4 == 0) goto init3;
+        gl_func_00000000(l4, (char *)&D_00000000 + 0x3DC);
+    }
+    *(char **)(l4 + 0x28) = D_arc199C_w;
+init3:
+    *(char **)(l3 + 0x28) = D_arc199C_x;
+init2:
+    *(char **)(l2 + 0x28) = D_arc199C_y;
+init1:
+    *(char **)(s0 + 0x28) = D_arc199C_z;
+
     *(int *)(s0 + 0x60) = a2;
     *(int *)(s0 + 0xE0) = 160;
     *(int *)(s0 + 0xE4) = 29;
