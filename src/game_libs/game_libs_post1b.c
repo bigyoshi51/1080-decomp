@@ -156,11 +156,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062F8C);
  * via base = self->0x58 + 0x40 (shared a0 for both calls): self->0x44 =
  * f(base, self->0x34); self->0x48 = f(base, self->0x38). Then walks the linked
  * list at self->0x30 (node[0]=value-ptr, node[1]=next): for each node, with
- * off = ((int*)node[0])->0x10C * 14, calls f(self->0x44 + off, self->0x48 +
- * off, self->0x54, self->0xAC, self->0xA8 (float)). Finally self->0xA0 =
- * self->0xA4. % partial: exact list-walk reg/slot allocation (sp+0x2C node /
- * sp+0x30 next) not yet pinned. */
+ * off = ((int*)node[0])->0x10C * 14, calls f(node[0], self->0x44 + off,
+ * self->0x48 + off, self->0x54, self->0xAC, self->0xA8 (f32)). Finally
+ * self->0xA0 = self->0xA4. Fixed 2026-06-27 (49.7->65.67% fuzzy): the f32 5th
+ * arg was double-promoted (cvt.d.s/sdc1) via the K&R varargs call -- a
+ * prototyped float param passes it raw (swc1, slot sp+0x14); and the leading
+ * a0=node[0] (obj itself) argument was missing entirely. Residual gap = node/
+ * next list-walk kept in callee-saved regs here vs spilled to stack slots
+ * (sp+0x2C node / sp+0x30 next) in target -- regalloc-renumber cap. */
 extern int gl_func_00000000();
+extern int gl_func_00062F64f(int a0, int a1, int a2, int a3, int a4, float a5);
 void gl_func_0006337C(int *self) {
     int base;
     void **node;
@@ -184,9 +189,9 @@ void gl_func_0006337C(int *self) {
     while (val != 0) {
         int *obj = (int *)val;
         int off = obj[0x10C / 4] * 14;
-        gl_func_00000000(self[0x44 / 4] + off, self[0x48 / 4] + off,
-                         self[0x54 / 4], self[0xAC / 4],
-                         *(float *)&self[0xA8 / 4]);
+        gl_func_00062F64f((int)obj, self[0x44 / 4] + off, self[0x48 / 4] + off,
+                          self[0x54 / 4], self[0xAC / 4],
+                          *(float *)&self[0xA8 / 4]);
         node = next;
         val = 0;
         if (node != 0) {
