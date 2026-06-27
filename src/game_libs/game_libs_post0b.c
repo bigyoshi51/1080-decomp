@@ -10396,19 +10396,20 @@ void gl_func_0003FB38(int a0) {
 //   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
+extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0003FB6C(void *a0, int a1, int a2, int a3, int a4) {
-    char tag[0x10];
+    int tag;
     int n;
     int sz;
-    tag[0] = 0x25;
-    n = (int)(a3 * a4);
-    n = (n + 7) >> 3;
+    tag = 0x25;
+    n = (a1 & 0xFF) * a3 * a4;
+    n = n / 8;
     sz = n;
     if (a1 == 0x508) sz = n + 0x200;
-    gl_func_00000000(&tag[0]);
-    gl_func_00000000(&D_00000000, a2);
-    gl_func_00000000(&tag[0], sz);
+    gl_func_00000000(&tag);
+    gl_func_00000000(&D_00000000, a2, sz);
+    gl_func_00000000(&tag);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FB6C);
