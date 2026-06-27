@@ -1030,7 +1030,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00001818);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001820);
 
 #ifdef NON_MATCHING
-/* PASS-3 2026-06-22 (big-swing reconstruction, 54.5% -> 69.8% fuzzy):
+/* PASS-4 2026-06-27 (5th-arg fix, 69.8% -> 77.1% fuzzy):
+ * init() takes FIVE args, not four: init(child, arg0, id, 1, id). The target
+ * emits `sw a2,8(sp)` in every jal delay slot (the 5th stack arg = id again),
+ * which also forces the doubled id spill (rotating slot + 132/8(sp)). Passing
+ * the id twice reproduces both. +7.3pp across all 16 call blocks.
+ * PASS-3 2026-06-22 (big-swing reconstruction, 54.5% -> 69.8% fuzzy):
  * alloc-cascade constructor. 16 near-identical "register child slot" blocks:
  * read a setup id from the D_00000000+0xCC74.. table (real HI16/LO16 globals,
  * not literals), compute child = arg0+off, alloc(0x18) when arg0 is the -off
@@ -1065,7 +1070,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[0] = GL_ID(0xCC74);
         { char *c0 = arg0 + 0x8;
         if ((arg0 != (char *)-0x8) || (c0 = (char *)gl_func_00000000(0x18), (c0 != 0))) {
-            gl_func_00000000(c0, arg0, ids[0], 1);
+            gl_func_00000000(c0, arg0, ids[0], 1, ids[0]);
             *(s32 *)(c0 + 0x10) = 0x1E;
             *(s32 *)(c0 + 0xC) = GL_C764;
             *(s32 *)(c0 + 0x14) = 0;
@@ -1073,7 +1078,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[1] = GL_ID(0xCC78);
         { char *c1 = arg0 + 0x20;
         if ((arg0 != (char *)-0x20) || (c1 = (char *)gl_func_00000000(0x18), (c1 != 0))) {
-            gl_func_00000000(c1, arg0, ids[1], 1);
+            gl_func_00000000(c1, arg0, ids[1], 1, ids[1]);
             *(s32 *)(c1 + 0x10) = 0x1E;
             *(s32 *)(c1 + 0xC) = GL_C764;
             *(s32 *)(c1 + 0x14) = 0;
@@ -1081,7 +1086,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[2] = GL_ID(0xCC7C);
         { char *c2 = arg0 + 0x38;
         if ((arg0 != (char *)-0x38) || (c2 = (char *)gl_func_00000000(0x18), (c2 != 0))) {
-            gl_func_00000000(c2, arg0, ids[2], 1);
+            gl_func_00000000(c2, arg0, ids[2], 1, ids[2]);
             *(s32 *)(c2 + 0x10) = 0xA;
             *(s32 *)(c2 + 0xC) = GL_C764;
             *(s32 *)(c2 + 0x14) = 0;
@@ -1089,7 +1094,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[3] = GL_ID(0xCC80);
         { char *c3 = arg0 + 0x50;
         if ((arg0 != (char *)-0x50) || (c3 = (char *)gl_func_00000000(0x18), (c3 != 0))) {
-            gl_func_00000000(c3, arg0, ids[3], 1);
+            gl_func_00000000(c3, arg0, ids[3], 1, ids[3]);
             *(s32 *)(c3 + 0x10) = 0x73;
             *(s32 *)(c3 + 0xC) = GL_C764;
             *(s32 *)(c3 + 0x14) = 0;
@@ -1097,7 +1102,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[4] = GL_ID(0xCC84);
         { char *c4 = arg0 + 0x68;
         if ((arg0 != (char *)-0x68) || (c4 = (char *)gl_func_00000000(0x18), (c4 != 0))) {
-            gl_func_00000000(c4, arg0, ids[4], 1);
+            gl_func_00000000(c4, arg0, ids[4], 1, ids[4]);
             *(s32 *)(c4 + 0xC) = GL_C764;
             *(s32 *)(c4 + 0x14) = 0;
             *(s32 *)(c4 + 0x10) = 0;
@@ -1105,7 +1110,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[5] = GL_ID(0xCC88);
         { char *c5 = arg0 + 0x80;
         if ((arg0 != (char *)-0x80) || (c5 = (char *)gl_func_00000000(0x18), (c5 != 0))) {
-            gl_func_00000000(c5, arg0, ids[5], 1);
+            gl_func_00000000(c5, arg0, ids[5], 1, ids[5]);
             *(s32 *)(c5 + 0xC) = GL_C764;
             *(s32 *)(c5 + 0x14) = 0;
             *(s32 *)(c5 + 0x10) = 0;
@@ -1113,7 +1118,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[6] = GL_ID(0xCC8C);
         { char *c6 = arg0 + 0x98;
         if ((arg0 != (char *)-0x98) || (c6 = (char *)gl_func_00000000(0x18), (c6 != 0))) {
-            gl_func_00000000(c6, arg0, ids[6], 1);
+            gl_func_00000000(c6, arg0, ids[6], 1, ids[6]);
             *(s32 *)(c6 + 0x10) = 0xB;
             *(s32 *)(c6 + 0xC) = GL_C764;
             *(s32 *)(c6 + 0x14) = 0;
@@ -1121,7 +1126,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[7] = GL_ID(0xCC90);
         { char *c7 = arg0 + 0xB0;
         if ((arg0 != (char *)-0xB0) || (c7 = (char *)gl_func_00000000(0x18), (c7 != 0))) {
-            gl_func_00000000(c7, arg0, ids[7], 1);
+            gl_func_00000000(c7, arg0, ids[7], 1, ids[7]);
             *(s32 *)(c7 + 0x10) = 0xD;
             *(s32 *)(c7 + 0xC) = GL_C764;
             *(s32 *)(c7 + 0x14) = 0;
@@ -1129,7 +1134,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[8] = GL_ID(0xCC94);
         { char *c8 = arg0 + 0xC8;
         if ((arg0 != (char *)-0xC8) || (c8 = (char *)gl_func_00000000(0x18), (c8 != 0))) {
-            gl_func_00000000(c8, arg0, ids[8], 1);
+            gl_func_00000000(c8, arg0, ids[8], 1, ids[8]);
             *(s32 *)(c8 + 0xC) = GL_C764;
             *(s32 *)(c8 + 0x14) = 0;
             *(s32 *)(c8 + 0x10) = 0;
@@ -1137,7 +1142,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[9] = GL_ID(0xCC98);
         { char *c9 = arg0 + 0xE0;
         if ((arg0 != (char *)-0xE0) || (c9 = (char *)gl_func_00000000(0x18), (c9 != 0))) {
-            gl_func_00000000(c9, arg0, ids[9], 1);
+            gl_func_00000000(c9, arg0, ids[9], 1, ids[9]);
             *(s32 *)(c9 + 0xC) = GL_C764;
             *(s32 *)(c9 + 0x14) = 0;
             *(s32 *)(c9 + 0x10) = 0;
@@ -1145,7 +1150,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[10] = GL_ID(0xCC9C);
         { char *c10 = arg0 + 0xF8;
         if ((arg0 != (char *)-0xF8) || (c10 = (char *)gl_func_00000000(0x18), (c10 != 0))) {
-            gl_func_00000000(c10, arg0, ids[10], 1);
+            gl_func_00000000(c10, arg0, ids[10], 1, ids[10]);
             *(s32 *)(c10 + 0x10) = 0x10C;
             *(s32 *)(c10 + 0xC) = GL_C764;
             *(s32 *)(c10 + 0x14) = 0;
@@ -1153,7 +1158,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[11] = GL_ID(0xCCA0);
         { char *c11 = arg0 + 0x110;
         if ((arg0 != (char *)-0x110) || (c11 = (char *)gl_func_00000000(0x18), (c11 != 0))) {
-            gl_func_00000000(c11, arg0, ids[11], 1);
+            gl_func_00000000(c11, arg0, ids[11], 1, ids[11]);
             *(s32 *)(c11 + 0x10) = 0x50;
             *(s32 *)(c11 + 0xC) = GL_C764;
             *(s32 *)(c11 + 0x14) = 0;
@@ -1161,7 +1166,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[12] = GL_ID(0xCCA4);
         { char *c12 = arg0 + 0x128;
         if ((arg0 != (char *)-0x128) || (c12 = (char *)gl_func_00000000(0x18), (c12 != 0))) {
-            gl_func_00000000(c12, arg0, ids[12], 1);
+            gl_func_00000000(c12, arg0, ids[12], 1, ids[12]);
             *(s32 *)(c12 + 0x10) = 0xA0;
             *(s32 *)(c12 + 0xC) = GL_C764;
             *(s32 *)(c12 + 0x14) = 0;
@@ -1169,7 +1174,7 @@ void *gl_func_00001C54(char *arg0) {
         ids[13] = GL_ID(0xCCA8);
         { char *c13 = arg0 + 0x140;
         if ((arg0 != (char *)-0x140) || (c13 = (char *)gl_func_00000000(0x18), (c13 != 0))) {
-            gl_func_00000000(c13, arg0, ids[13], 1);
+            gl_func_00000000(c13, arg0, ids[13], 1, ids[13]);
             *(s32 *)(c13 + 0x10) = 0xDC;
             *(s32 *)(c13 + 0xC) = GL_C764;
             *(s32 *)(c13 + 0x14) = 0;
@@ -1195,7 +1200,7 @@ void *gl_func_00001C54(char *arg0) {
             dst20 = *(Quad4 *)srcA0;
 
             if ((arg0 != (char *)-0x158) || (cf = (char *)gl_func_00000000(0x24), (cf != 0))) {
-                gl_func_00000000(cf, arg0, id9C, 1);
+                gl_func_00000000(cf, arg0, id9C, 1, id9C);
                 *(s32 *)(cf + 0xC) = (s32)D_REF(0xCA34);
                 *(s32 *)(cf + 0x20) = 0;
                 *(s32 *)(cf + 0x10) = dst40.a;
@@ -1207,7 +1212,7 @@ void *gl_func_00001C54(char *arg0) {
         id98 = GL_ID(0xCCB0);
         { char *cz = arg0 + 0x17C;
         if ((arg0 != (char *)-0x17C) || (cz = (char *)gl_func_00000000(0x18), (cz != 0))) {
-            gl_func_00000000(cz, arg0, id98, 1);
+            gl_func_00000000(cz, arg0, id98, 1, id98);
             *(s32 *)(cz + 0xC) = GL_C764;
             *(s32 *)(cz + 0x14) = 0;
             *(s32 *)(cz + 0x10) = 0;
@@ -1215,9 +1220,6 @@ void *gl_func_00001C54(char *arg0) {
     }
     return arg0;
 }
-#undef D_REF
-#undef GL_ID
-#undef GL_C764
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001C54);
 #endif
