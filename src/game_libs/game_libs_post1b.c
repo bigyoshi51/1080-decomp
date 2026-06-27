@@ -2489,36 +2489,39 @@ void gl_func_00066810(int a0) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00066850)();
+/* Base is a global object pointer re-deref'd from &D_00000000 each time
+ * (its address is kept in a callee-saved s0 across the gl_func_00062F64
+ * calls, but the loaded object is reloaded because each call clobbers it).
+ * The format/string args and the six tail stores are relocated symbol
+ * addresses (lui;addiu), not bare immediates / zero. */
+extern int D_gl66850_h0, D_gl66850_h1, D_gl66850_h2, D_gl66850_h3, D_gl66850_h4, D_gl66850_h5;
 void gl_func_00066850(s32 arg0) {
     u32 temp_a1;
     u32 temp_a1_2;
-    char *temp_v0;
 
     gl_func_00062F64(0xFE);
-    gl_func_00062F64(0x96, 0x41688U, 0x415C0, 0x32);
+    gl_func_00062F64(0x96, (char*)&D_00000000 + 0x41688, (char*)&D_00000000 + 0x415C0, 0x32);
     gl_func_00062F64();
-    gl_func_00062F64(0xA0);
+    gl_func_00062F64((char*)&D_00000000 + 0xA0);
     gl_func_00062F64(0x42);
     gl_func_00062F64(1);
-    temp_v0 = *(int*)0;
-    temp_a1 = FW(temp_v0, 0xC);
+    temp_a1 = FW(*(int**)&D_00000000, 0xC);
     if (temp_a1 != 0) {
-        gl_func_00062F64(0x2114, temp_a1, FW(temp_v0, 0x14), FW(temp_v0, 0x1C));
+        gl_func_00062F64((char*)&D_00000000 + 0x2114, temp_a1, FW(*(int**)&D_00000000, 0x14), FW(*(int**)&D_00000000, 0x1C));
     }
-    temp_a1_2 = FW((*(int*)0), 0x8);
+    temp_a1_2 = FW(*(int**)&D_00000000, 0x8);
     if (temp_a1_2 != 0) {
-        gl_func_00062F64(0x2138, temp_a1_2, FW((*(int*)0), 0x10));
+        gl_func_00062F64((char*)&D_00000000 + 0x2138, temp_a1_2, FW(*(int**)&D_00000000, 0x10));
     }
-    gl_func_00062F64(FW((*(int*)0), 0x0), FW((*(int*)0), 0x4));
-    gl_func_00062F64(0x2154, (u32) (FW((*(int*)0), 0x0) + 0x80000000) >> 0xA);
-    FW((*(int*)0), 0x80) = 0;
-    FW((*(int*)0), 0x34) = 0;
-    FW((*(int*)0), 0x84) = 0;
-    FW((*(int*)0), 0x98) = 0;
-    FW((*(int*)0), 0x9C) = 0;
-    FW((*(int*)0), 0x94) = 0;
-    gl_func_00062F64(0x216C);
+    gl_func_00062F64(FW(*(int**)&D_00000000, 0x0), FW(*(int**)&D_00000000, 0x4));
+    gl_func_00062F64((char*)&D_00000000 + 0x2154, (u32) (FW(*(int**)&D_00000000, 0x0) + 0x80000000) >> 0xA);
+    FW(*(int**)&D_00000000, 0x80) = (int)&D_gl66850_h0;
+    FW(*(int**)&D_00000000, 0x34) = (int)&D_gl66850_h1;
+    FW(*(int**)&D_00000000, 0x84) = (int)&D_gl66850_h2;
+    FW(*(int**)&D_00000000, 0x98) = (int)&D_gl66850_h3;
+    FW(*(int**)&D_00000000, 0x9C) = (int)&D_gl66850_h4;
+    FW(*(int**)&D_00000000, 0x94) = (int)&D_gl66850_h5;
+    gl_func_00062F64((char*)&D_00000000 + 0x216C);
     gl_func_00062F64();
 }
 #else
