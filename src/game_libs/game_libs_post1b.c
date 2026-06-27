@@ -5545,12 +5545,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD78);
  * base-reg lw a3,0(a2) vs lw a3,0(a3). Volatile dummy preserved in C
  * for body-fidelity; INSN_PATCH overwrites its sw with nop. */
 #ifdef NON_MATCHING
+/* gl_func_0006AF0C: linked-list walk from head a3 looking for node a1; when
+ * found, copy *a1 into the predecessor's next-ptr slot (*a2) and stop.
+ * Found-case loads the value via *a1 (target: lw t6,0(a1), not 0(a3)) and
+ * exits through a shared epilogue (break, not early return).
+ * Residual diffs are codegen-shape caps: bnel branch-likely, shared-return
+ * b-vs-jr, CSE-folded next-load base (lw a3,0(a3) vs target 0(a2)), and the
+ * K&R first-arg spill (sw a0,0(sp)) standing in for the empty 8-byte frame. */
 void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
     if (a3 != 0) {
         do {
             if (a3 == a1) {
-                *a2 = *a3;
-                return;
+                *a2 = *a1;
+                break;
             }
             a2 = a3;
             a3 = *(int **)a3;
