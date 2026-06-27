@@ -252,9 +252,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CF68);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-int gl_func_0001CFDC(int code, int spec) {
-    short idx = (short)code;
-    short sub = (short)spec;
+int gl_func_0001CFDC(int code, int a1, int a2) {
+    short idx = (short)a1;
+    short sub = (short)a2;
     char *rec = (char *)&D_00000000 + idx * 0x158;
     unsigned char attr = *(unsigned char *)(rec + 0x1B);
     char *e = rec + attr * 0x64 + sub * 0x14 + 0x50;
@@ -262,7 +262,8 @@ int gl_func_0001CFDC(int code, int spec) {
     unsigned short w = *(unsigned short *)(e + 0xE);
     int r = gl_func_00000000(code, 0x3E0, w, h, idx);
     if (*(short *)(e + 0x12) != 0) {
-        r = gl_func_00000000(r, (*(short *)(e + 0x10) + 0x3E0) & 0xFFFF, 0, idx);
+        r = gl_func_00000000(r, (*(short *)(e + 0x10) + 0x3E0) & 0xFFFF, 0,
+                             *(short *)(e + 0x12), idx);
     }
     return r;
 }
