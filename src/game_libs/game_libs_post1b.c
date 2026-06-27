@@ -4453,37 +4453,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068990);
 /* gl_func_00068B04: 42-insn 2-guard + lazy-init + 5-dispatch (0xA8, frame 0x28).
  *
  * Decoded structure (raw-word disasm):
- *   if (*self & 1) return;                          // bnel guard 1 (LSB set → skip)
+ *   if (*self & 1) return;                          // bnel guard 1 (LSB set -> skip)
  *   if (self->[0x8] != 0) return;                   // bnel guard 2 (already cached)
  *   v0 = func1(self->[0x2C]);                       // factory call
  *   self->[0x8] = v0;                                // cache
- *   saved_dx1 = D_X[1];                              // capture early (sp+0x24 spill)
- *   func2(&D_X, 1);                                  // dispatch 1
- *   func3(&D_X, ((int*)self->[0xC])->[0x2C]);        // dispatch 2 (chained deref)
- *   func4(&D_X, 0, self->[0x28]);                    // dispatch 3
- *   func5(&D_X, v0, self->[0x2C]);                   // dispatch 4 (with cached v0)
- *   func6(&D_X, saved_dx1);                          // dispatch 5 (with pre-captured D_X[1])
+ *   saved = D_X[1];                                  // s1=&D_X; lw 0x4(s1); spilled sp+0x24
+ *   func2(D_X, 1);                                   // dispatch 1 (a0 = &D_X)
+ *   func3(D_X, ((int*)self->[0xC])->[0x2C]);         // dispatch 2 (chained deref)
+ *   func4(D_X, 0, self->[0x28]);                     // dispatch 3
+ *   func5(D_X, self->[0x8], self->[0x2C]);           // dispatch 4 (a1 reloaded from mem)
+ *   func6(D_X, saved);                               // dispatch 5 (pre-captured D_X[1])
  *
- * The early-capture of D_X[1] (spilled to sp+0x24 before any callee that
- * could modify it) ensures the LAST call sees the pre-dispatch value.
- * Common idiom for "snapshot state before mutating helpers".
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * D_X is an int[] at a fixed address: dispatchers take its ADDRESS (a0=&D_X via
+ * lui/addiu), and D_X[1] is a direct word load 0x4(&D_X) (no pointer indirection).
+ * func5's 2nd arg is reloaded from self[0x8] memory, not the SSA v0 register.
  */
 void gl_func_00068B04(int *self) {
-    extern int *D_X;
-    int v0;
+    extern int D_X[];
     int saved_dx1;
     if (*self & 1) return;
     if (self[0x8 / 4] != 0) return;
-    v0 = (int)gl_func_00000000(self[0x2C / 4]);
-    self[0x8 / 4] = v0;
+    self[0x8 / 4] = (int)gl_func_00000000(self[0x2C / 4]);
     saved_dx1 = D_X[1];
     gl_func_00000000(D_X, 1);
     gl_func_00000000(D_X, ((int*)self[0xC / 4])[0x2C / 4]);
     gl_func_00000000(D_X, 0, self[0x28 / 4]);
-    gl_func_00000000(D_X, v0, self[0x2C / 4]);
+    gl_func_00000000(D_X, self[0x8 / 4], self[0x2C / 4]);
     gl_func_00000000(D_X, saved_dx1);
 }
 #else
