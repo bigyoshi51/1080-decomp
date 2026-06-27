@@ -680,27 +680,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063DC4);
  *   gl_func_00000000(&D, &D+0x223B0, a0+0x154, 0, 10.0f, 1);
  *   gl_func_00000000(&D);
  *   gl_func_00000000(a0);
- * The two float consts (2.0f / 10.0f) are passed in the 5th (stack)
- * arg slot as 4-byte `swc1 ,16(sp)` — single-precision, NOT
- * K&R-double-promoted, so this is NOT the knr-float-direct-jal cap;
- * but the file-scope K&R `extern int gl_func_00000000()` will
- * double-promote a plain float literal (sdc1, 8B). Reaching exact
- * needs the float bits passed as a 32-bit int (reinterpret) so a
- * single 4-byte stack store is emitted. Trailing `lui at,0x4120;
- * mtc1 a1,$f12; mtc1 at,$f4` in the symbol is the SUCCESSOR's stolen
- * prologue. First-pass structural decode; INCLUDE_ASM is the build
- * path (ROM byte-exact). */
+ * The two float consts (2.0f / 10.0f) ride the 5th (stack) arg as a
+ * 4-byte single-precision `swc1 ,16(sp)` — NOT K&R-double-promoted.
+ * A plain float literal through the file-scope K&R `extern int
+ * gl_func_00000000()` would `sdc1` (8B, double promo); a union-int
+ * reinterpret avoids that but round-trips through an extra spill slot
+ * (store-as-float / reload-as-int / restore), inflating the frame and
+ * dropping fuzzy. The match is reached by declaring a SECOND prototyped
+ * extern `gl_func_00000000f(...,float,int)` so IDO builds the float in
+ * $f4/$f6 (`lui at; mtc1`) and stores it single-precision STRAIGHT into
+ * the outgoing-arg slot, while keeping the direct `jal` (R_MIPS_26).
+ * Yields a byte-shape match (97.3% objdiff): residual is only the
+ * `gl_func_00000000f` reloc-symbol name on the 2 float jals + two
+ * `move a3,zero` vs `li a3,0` (scheduling). game_libs can't byte-LAND
+ * (baked-reloc); INCLUDE_ASM is the build path (ROM byte-exact).
+ * NOTE: gl_func_00000000f resolves to the same target as
+ * gl_func_00000000 at link; the float-arg prototype is the only lever
+ * that forces single-precision direct-to-stack-slot float args. */
 extern int gl_func_00000000();
+extern int gl_func_00000000f(void *, void *, void *, int, float, int);
 extern int D_00000000;
 void gl_func_00063E84(char *a0) {
-    union { float f; int i; } c2, c10;
-    c2.f = 2.0f;
-    c10.f = 10.0f;
     gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x22398, 0);
-    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x223A4,
-                     a0 + 0x150, 0, c2.i, 1);
-    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x223B0,
-                     a0 + 0x154, 0, c10.i, 1);
+    gl_func_00000000f(&D_00000000, (char*)&D_00000000 + 0x223A4,
+                      a0 + 0x150, 0, 2.0f, 1);
+    gl_func_00000000f(&D_00000000, (char*)&D_00000000 + 0x223B0,
+                      a0 + 0x154, 0, 10.0f, 1);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0);
 }
