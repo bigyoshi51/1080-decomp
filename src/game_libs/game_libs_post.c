@@ -18334,29 +18334,31 @@ extern char gl_ref_00000368;
 void gl_func_00031608(char *a0, int a1) {
     unsigned char b22 = *(unsigned char *)(a0 + 0x22);
     unsigned char b21 = *(unsigned char *)(a0 + 0x21);
-    char *ptr;
+    int idx;
     int val;
     if (*(int *)((char *)&D_00000000 + 0) != 4) {
         return;
     }
     val = b22 - 1;
-    if (b22 < 6) {
-        if (b21 == 2) {
-            int g2 = *(int *)((char *)&D_00000000 + 0);
-            if (g2 == 1) return;
-            if (g2 == 2) return;
-            if (g2 == 3) return;
-            if (g2 == 5) return;
-        }
-    } else {
-        if (b21 != 8) {
+    if (b22 >= 6) {
+        if (b22 != 8) {
             return;
         }
         val = 5;
     }
-    ptr = &gl_ref_00000368 + b21 * 100;
-    *(short *)(ptr + 0x62) = val;
-    gl_ref_00045DC0(ptr, 1, (val << 6) + a1, 0x7F);
+    if (b21 == 2) {
+        int g = *(volatile int *)((char *)&D_00000000 + 0);
+        if (g == 1) return;
+        if (g == 2) return;
+        if (g == 3) return;
+        if (g == 5) return;
+    }
+    idx = b21;
+    if (b21 == 2) {
+        idx = 1;
+    }
+    *(short *)(&gl_ref_00000368 + idx * 100 + 0x62) = val;
+    gl_ref_00045DC0(&gl_ref_00000368 + idx * 100, 1, (val << 6) + a1, 0x7F);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031608);
