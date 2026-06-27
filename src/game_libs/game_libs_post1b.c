@@ -3488,18 +3488,23 @@ void gl_func_00067AE8(int a0, ...) {
 /* String-difference predicate. Walks both strings while bytes match;
  * returns 1 the moment a byte differs. If one string ends first, returns
  * whether the OTHER still has chars (i.e. differing lengths -> nonzero).
- * Equal strings -> 0. Leaf, byte (lbu) compares. */
+ * Equal strings -> 0. Leaf, byte (lbu) compares. Snapshot pointers p/q hold
+ * the pre-increment address so the dereference uses a separate register from
+ * the post-incremented walk pointer (matches IDO's move v1,a0 / move v0,a1
+ * loop shape). */
 s32 game_libs_func_00067B04(unsigned char *arg0, unsigned char *arg1) {
     int c0 = *arg0;
+    unsigned char *p;
+    unsigned char *q;
     int r;
 
     if ((c0 != 0) && (*arg1 != 0)) {
         do {
-            int x1 = *arg1;
-            int x0 = *arg0;
+            p = arg0;
+            q = arg1;
             arg1++;
             arg0++;
-            if (x1 != x0) {
+            if (*q != *p) {
                 return 1;
             }
             c0 = *arg0;
