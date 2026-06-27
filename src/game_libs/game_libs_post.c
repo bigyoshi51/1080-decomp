@@ -11178,19 +11178,18 @@ void gl_func_00028A18(char *a0) {
 //   calls / fields). Byte-match deferred.
 //   Name pre-checked: no extern reuse (collision-safe).
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
+extern int gl_func_0001CA10();
 extern int D_00000000;
 void gl_func_00028A68(void) {
-    int n;
+    char *tbl = (char *)&D_00000000 + 0x5378;
     int i;
-    gl_func_00000000((char *)&D_00000000 + 0x5378);
-    n = GL_COUNT_2070;
-    if (n <= 0) return;
-    for (i = 0; i < n; i++) {
-        char *rec = *(char **)0x2CFC + i * 0xD0;
-        *(int *)(rec + 8) = (int)rec;
-        *(int *)rec = 0;
-        gl_func_00000000(rec);
+    int off;
+    gl_func_0001CA10(tbl);
+    for (i = 0, off = 0; i < GL_COUNT_2070; i++, off += 0xD0) {
+        char *base = *(char **)((char *)&D_00000000 + 0x2CFC);
+        *(int *)(base + off + 8) = (int)(base + off);
+        *(int *)(*(char **)((char *)&D_00000000 + 0x2CFC) + off) = 0;
+        gl_func_0001CA10(tbl, *(char **)((char *)&D_00000000 + 0x2CFC) + off);
     }
 }
 #else
