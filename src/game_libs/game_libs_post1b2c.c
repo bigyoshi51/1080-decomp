@@ -634,40 +634,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006DBFC);
  * SRAM / EEPROM / save-data mapping) and unpacks a status word from a
  * hardware/save-header call into byte fields in the D segment.
  *
- * Decoded structure (raw-word disasm):
- *   void *save_init(void) {
- *       if ($t6 == 0xB000_0000) {           // caller-set $t6 = current SRAM ptr
- *           *(int*)(sp+0x1C) = 0;
- *           return (void*)&D_00000000 + 0;  // already initialized, return cached
- *       }
+ * PASS-3 2026-06-27: 67.6% -> 73.6% objdiff fuzzy via two register-independent
+ * fixes (game_libs is baked-reloc, cannot byte-LAND):
+ *   - WIDTH/SIGN: the save-header word `v` is UNSIGNED. The unpack shifts
+ *     `(v>>8)&0xFF`, `(v>>16)&0xF`, `(v>>20)&0xF` emit logical `srl` (+ andi)
+ *     in the target; a signed `int v` wrongly emitted arithmetic `sra` and
+ *     dropped the high-byte mask. Changing to `unsigned int v` matches all
+ *     three shift/mask insns. (+4.2pp)
+ *   - CONTROL-FLOW / RETURN-SLOT INIT: `v = 0;` is zeroed unconditionally
+ *     before the early-return guard (target stores `sw zero,0x1C(sp)` in the
+ *     bne delay slot). (+1.8pp)
  *
- *       // First-time init path:
- *       *(uint8_t*)(D+0x4)  = 0;            // status flag
- *       *(int    *)(D+0xC)  = 0xB000_0000;  // mapped SRAM base ptr (this is the
- *                                            //   "now initialized" sentinel that
- *                                            //   the caller-set $t6 will check)
- *
- *       uint32_t hdr = 0;
- *       hardware_query(0, &hdr);            // jal <func>(0, sp+0x1C)
- *
- *       // Unpack packed status word: layout looks like a date/version stamp
- *       *(uint8_t*)(D+0x5) = (hdr >>  0) & 0xFF;   // byte 0
- *       *(uint8_t*)(D+0x8) = (hdr >>  8) & 0xFF;   // byte 1
- *       *(uint8_t*)(D+0x6) = (hdr >> 16) & 0x0F;   // nibble 4
- *       *(uint8_t*)(D+0x7) = (hdr >> 20) & 0x0F;   // nibble 5
- *       *(uint8_t*)(D+0x9) = 0;
- *       *(int    *)(D+0x10) = 0;
- *
- *       init_struct((char*)D + 0x14, 0x60);       // 0x60-byte init at D+0x14
- *       int saved = alloc_or_create();             // jal <func> (no args set)
- *
- *       // Final cleanup: copy D+0 → D+0 and chain finalize-hook
- *       *(int*)(D+0) = *(int*)(D+0);              // self-copy (likely IDO peephole leftover)
- *       *(int*)(D+0) = (char*)&D_00000000 + 0;     // restore default pointer
- *       finalize_hook(saved);                       // jal <func>(saved_v0)
- *
- *       return (void*)&D_00000000 + 0;
- *   }
+ * Residual (~26%) is codegen-SHAPE only and objdiff-NEUTRAL to C edits:
+ *   - the self-copy `*(int*)g = *(int*)g` is dead-store-eliminated by IDO -O2
+ *     because the very next stmt overwrites D+0 (target keeps the lw/sw block);
+ *     tmp-local and `*(volatile int*)g` variants both still elide it.
+ *   - final return value v0 is kept in a reg (`move a0,v0`) instead of the
+ *     target's stack spill/reload (`sw v0,24(sp)` / `lw a0,24(sp)`), which
+ *     also drives the frame-size delta (0x28 vs target 0x20).
+ *   These are register-coloring/spill-shape residuals, not logic bugs.
  *
  * Notes:
  *  - 0xB000_0000 is the N64 PI bus DOM2 (cart/SRAM) virtual address. Writes
@@ -678,11 +663,6 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006DBFC);
  *    (feedback_caller_set_int_reg_cap_1080_game_libs.md).
  *  - The unpacked byte fields look like a date+time stamp (or version
  *    YYYY-MM-DD HH:MM packed into 32 bits) parsed from save-header.
- *  - The "self-copy" `*(D+0) = *(D+0)` at insns 43-47 is IDO peephole leftover
- *    where a temporary went through register allocation but the load and store
- *    pair didn't get eliminated.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 extern int gl_func_00000000();
 extern int D_00000000;
@@ -694,8 +674,9 @@ extern int D_00000000;
 // pointer-restore globals, and the finalize cb. Reloc-blind &D + caller-set t6.
 void *gl_func_0006DC0C(void *t6) {
     char *g = (char *)&D_00000000;
-    int v;
+    unsigned int v;
     void *saved;
+    v = 0;
     if (t6 == (void *)0xB0000000) {
         return (void *)&D_00000000;
     }
