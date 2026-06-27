@@ -5745,20 +5745,22 @@ void gl_func_00023284(int a0, int a1, int a2, int a3) {
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_000232E8(int idx, int a1, int a2) {
+void gl_func_000232E8(int idx, int a1, int a2, int a3) {
     char *g = (char *)&D_00000000;
     short *buf = *(short **)(g + 0x2028);
-    int cur = buf[idx];
-    int cnt = *((unsigned char *)buf + cur);
-    do {
-        unsigned char e;
-        cur++;
-        e = *((unsigned char *)buf + cur);
-        gl_func_00000000(e);
-        gl_func_00000000(1, e, a1, a2);
-        cnt--;
-    } while (cnt != 0);
-    buf[idx] = (short)cur;
+    int cur = *(unsigned short *)((char *)buf + idx * 2);
+    int count = *(unsigned char *)((char *)buf + cur);
+    cur++;
+    if (count > 0) {
+        do {
+            int e = *(unsigned char *)(*(char **)(g + 0x2028) + cur);
+            int r;
+            cur++;
+            r = gl_func_00000000(1, e);
+            gl_func_00000000(1, r, a1, a2, a3);
+            count--;
+        } while (count > 0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
