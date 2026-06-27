@@ -12932,11 +12932,21 @@ int game_libs_func_0002A8C4(void *a0) {
 //   single-symbol-merge residuals, not coloring or base-pin. gl_func_00000000
 //   = canonical USO placeholder.
 #ifdef NON_MATCHING
+// CSE-BREAK lever (agent-e): the 4 top anchor-stores use a DISTINCT base
+//   register v0=&D (offset stays 0x5368.. on the store), while the loop base
+//   var_s0 is derived from `anchor - 0x5368`. Deriving the loop base from the
+//   held anchor (s3) instead of re-materializing &D defeats IDO's CSE merge of
+//   the two identical &D materializations, so the 4 stores now emit
+//   `sw s3,21352(v0)` exactly like the target (distinct temp base) instead of
+//   folding into s0. 62.6 -> 70.65 fuzzy. RESIDUAL (~10 words): loop base emits
+//   `addiu s0,s3,-21352` (derived from anchor) vs target `lui s0; addiu s0,s0,0`
+//   (fresh &D lui), plus minor prologue addiu/sw schedule order. Both are the
+//   remaining single-symbol-merge / as-backend schedule ties.
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0002A904(void) {
     s32 anchor = (s32)((char *)&D_00000000 + 0x5368);
-    char *var_s0 = (char *)&D_00000000;
+    char *var_s0 = (char *)anchor - 0x5368;
     char *var_s1 = (char *)&D_00000000 + 0x32F0;
     char *var_s2 = (char *)&D_00000000 + 0x3280;
     char *var_s4 = (char *)&D_00000000 + 0x52F0;
