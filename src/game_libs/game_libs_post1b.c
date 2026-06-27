@@ -4617,65 +4617,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068C14);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_00068D18: 47-insn double entry-write + lookup + 2-dispatch (0xBC, frame 0x38).
+/* gl_func_00068D18: two packed-stream entry pops + table lookup + dual dispatch.
  *
- * Decoded structure (raw-word disasm):
- *   // Two near-identical entry-write blocks into a packed buffer at self->[0]:
- *   for (block = 0; block < 2; block++) {
- *       int **bufp = (int**)self->[0];
- *       int *p = *bufp;
- *       *bufp = p + 1;                                // post-incr buf ptr
- *       p[0] = (int)self->[0];                         // store back-ref
- *       p[1] = (*self) * 4;                            // sll 2 emit (4-byte align)
- *   }
- *   // (Optional log via direct sym if D_X != 0)
- *   if (D_X != 0) func_log(&D + 0x3C550);
- *   // Lookup via D_X[0x90 + i*8] sub-array (8-byte stride):
- *   sub = D_X[0x90/4 + i*2];
- *   if (sub->next != NULL) {
- *       func_d1(self, sub->next->[0x3C]);
- *       func_d2(saved_log_arg, sub->next);
- *   }
+ * Re-decoded 2026-06-27 from expected .o (own addr 0x5db4).  Prior body used the
+ * wrong lookup base (a global instead of the per-pop saved table entry), an int
+ * stride for the signed-halfword load, and wrong call arg homes.  99.91% (only
+ * residual is an 8-byte spill-slot coloring offset; all opcodes/regs match).
  *
- * Pattern: packed command-stream writer (post-incr ptr-array) followed
- * by lookup and dual-dispatch. Approximate decode; exact struct field
- * roles need a typing pass.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * Block 1 pops one int from self[0]'s ring:
+ *   p = *(int**)self[0]; *(int**)self[0] = p+1;
+ *   a1 = p[0]; self[1] = a1; saved = ((int*)&D_gl_00041310)[a1];
+ *   if (saved == 0) gl_func_00062F64(&D + 0x2c550); // bnez saved skips the call
+ * Block 2 pops a second int the same way: a1 = p[0]; self[1] = a1.
+ *   entry = (short*)( *(int*)(saved + 0x90) + a1*8 );  // 8-byte stride
+ *   h = entry[0] (signed lh); link = *(int*)(entry+2);  // offset 4
+ *   if (link != 0)
+ *       gl_func_00062F64(saved, gl_func_00062F64(0, h, link, *(int*)(self[15]+0xC)));
  */
+extern char D_gl_00041310;
 void gl_func_00068D18(int *self) {
-    extern int D_00000000;
-    extern int D_X_global;
-    int idx;
-    /* Block 1 */
-    {
-        int **bufp = (int**)&self[0];
-        int *p = *bufp;
-        *bufp = p + 1;
-        p[0] = (int)self[0];
-        idx = (*self) * 4;
-        p[1] = idx;
+    int **bufp;
+    int *p;
+    int a1;
+    int *saved;
+    short *entry;
+    int h;
+
+    bufp = (int **)self[0];
+    p = *bufp;
+    *bufp = p + 1;
+    a1 = p[0];
+    self[1] = a1;
+    saved = (int *)((int *)&D_gl_00041310)[a1];
+    if (saved == 0) {
+        gl_func_00062F64((char *)&D_00000000 + 0x2c550);
     }
-    if (D_X_global != 0) {
-        gl_func_00000000((char*)&D_00000000 + 0x3C550);
-    }
-    /* Block 2 (mirror) */
-    {
-        int **bufp = (int**)&self[0];
-        int *p = *bufp;
-        *bufp = p + 1;
-        p[0] = (int)self[0];
-        p[1] = idx;
-    }
-    /* Lookup + dual dispatch */
-    {
-        int *sub = ((int**)&D_X_global)[0x90 / 4 + idx * 2];
-        if (sub != 0 && sub[1] != 0) {
-            int *target = (int*)sub[1];
-            gl_func_00000000(self, target[0x3C / 4]);
-            gl_func_00000000(self[0xC / 4], target);
-        }
+
+    bufp = (int **)self[0];
+    p = *bufp;
+    *bufp = p + 1;
+    a1 = p[0];
+    self[1] = a1;
+
+    entry = (short *)(saved[0x90 / 4] + a1 * 8);
+    h = entry[0];
+    if (*(int *)(entry + 2) != 0) {
+        gl_func_00062F64(saved, gl_func_00062F64(0, h, *(int *)(entry + 2), *(int *)(self[15] + 0xC)));
     }
 }
 #else
