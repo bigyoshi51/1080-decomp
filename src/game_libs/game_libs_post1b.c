@@ -1530,15 +1530,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065148);
  * struct-copy+FP-load-order class — multi-run/permuter, not a clean
  * vein win. INCLUDE_ASM is the build path (no episode). */
 typedef struct Vec3_f { float x, y, z; } Vec3_f;
+/* gl_func_00065250 — Vec3-diff (a1 - a0->0x324) duplicated twice on the
+ * stack, last copy passed to gl_func_00062F64(a0+0x294, &f). 33 insns.
+ * Bugs fixed this pass: (1) WRONG-FUNCTION — was calling gl_func_00000000;
+ * the target jal is gl_func_00062F64 (K&R direct call -> jal). (2) LOAD-ORDER
+ * — the target loads all 3 subtrahend floats (a0+0x324 .x/.y/.z), then all 3
+ * a1 floats, then does the subs in z,y,x order. Snapshotting the 6 floats
+ * into scalars before the subtraction reproduces the grouped-lwc1 +
+ * reverse-order sub shape. 66.85% -> 94.38% fuzzy. Residual = struct-copy
+ * sp-slot allocation (52/68/84 vs 44/.. ; frame -88 vs -96); documented
+ * finicky struct-copy class. INCLUDE_ASM is the build path (no episode). */
 #ifdef NON_MATCHING
 void gl_func_00065250(char *a0, Vec3_f *a1) {
+    Vec3_f *sub = (Vec3_f *)(a0 + 0x324);
+    float sx = sub->x, sy = sub->y, sz = sub->z;
+    float az = a1->z, ay = a1->y, ax = a1->x;
     Vec3_f d, e, f;
-    d.x = a1->x - *(float*)(a0 + 0x324);
-    d.y = a1->y - *(float*)(a0 + 0x328);
-    d.z = a1->z - *(float*)(a0 + 0x32C);
+    d.z = az - sz;
+    d.y = ay - sy;
+    d.x = ax - sx;
     e = d;
     f = e;
-    gl_func_00000000(a0 + 0x294, &f);
+    gl_func_00062F64((int)(a0 + 0x294), &f);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
