@@ -217,10 +217,10 @@ void gl_func_00073904(Pft73904 *px, char *p, short xexp, short nsig, unsigned ch
     char *temp_s1;
     char *temp_s1_2;
 
-    
-    
-    
-    
+    xexp_ = xexp;
+    nsig_ = nsig;
+    code_ = code;
+    p_ = (u8 *)p;
     if (nsig_ <= 0) {
         p_ = (u8 *)0x2590;
         nsig_ = 1;
