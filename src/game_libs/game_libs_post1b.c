@@ -2881,15 +2881,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066D54);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00066EEC)();
 void gl_func_00066EEC(s32 **arg0) {
     s32 *sp54;
     u8 sp4F;
-    s16 var_s0;
+    s32 var_s0;
     s32 **temp_s1;
     s32 **temp_s4;
-    s32 **var_s0_2;
-    s32 **var_s1;
+    s32 var_s0_2;
+    s16 *var_s1;
     s32 temp_v1;
     s32 var_s6;
 
@@ -2923,12 +2922,12 @@ loop_1:
     if (temp_v1 == 1) {
         var_s0_2 = 0;
         if (var_s6 == 0) {
-            var_s1 = arg0;
+            var_s1 = (s16 *)arg0;
             do {
                 gl_func_00062F64(arg0, var_s0_2, *(s16*)((char*)var_s1 + 0x13E0));
                 var_s0_2 += 1;
-                var_s1 += 2;
-            } while (var_s0_2 != (s32 **)4);
+                var_s1 += 1;
+            } while (var_s0_2 != 4);
         }
         gl_func_00062F64(temp_s4);
         FW(arg0, 0x13E8) = 0;
