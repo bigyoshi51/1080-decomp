@@ -34,60 +34,57 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071130);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00071144)();
+/* gl_func_00071144: 8 independent flag-bit blocks over arg0, each toggling
+ * a bit in field 0xC of a distinct global struct (lui+lw snapshot), plus a
+ * trailing 16-bit OR into field 0x0. arg0 is re-read from its stack home
+ * before each test (taken via &arg0). Residual = branch-likely vs plain
+ * beqz+nop and s0/frame coloring (codegen-shape, register-allocation cap). */
 void gl_func_00071144(s32 arg0) {
     s32 temp_s0;
-    char *temp_t0;
-    char *temp_t0_2;
-    char *temp_t1;
-    char *temp_t3;
-    char *temp_t4;
-    char *temp_t5;
-    char *temp_t5_2;
-    char *temp_t6;
-    char *temp_t8;
-    char *temp_t8_2;
-    char *temp_t9;
+    s32 *zero = (s32 *)0;
+    s32 *ap = &arg0;
 
     temp_s0 = game_libs_func_00070FCC();
-    if (arg0 & 1) {
-        temp_t8 = *(int*)0;
-        FW(temp_t8, 0xC) = (s32) (FW(temp_t8, 0xC) | 8);
+    if (*ap & 1) {
+        void *p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) | 8;
     }
-    if (arg0 & 2) {
-        temp_t3 = *(int*)0;
-        FW(temp_t3, 0xC) = (s32) (FW(temp_t3, 0xC) & ~8);
+    if (*ap & 2) {
+        void *p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) & ~8;
     }
-    if (arg0 & 4) {
-        temp_t9 = *(int*)0;
-        FW(temp_t9, 0xC) = (s32) (FW(temp_t9, 0xC) | 4);
+    if (*ap & 4) {
+        void *p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) | 4;
     }
-    if (arg0 & 8) {
-        temp_t4 = *(int*)0;
-        FW(temp_t4, 0xC) = (s32) (FW(temp_t4, 0xC) & ~4);
+    if (*ap & 8) {
+        void *p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) & ~4;
     }
-    if (arg0 & 0x10) {
-        temp_t0 = *(int*)0;
-        FW(temp_t0, 0xC) = (s32) (FW(temp_t0, 0xC) | 0x10);
+    if (*ap & 0x10) {
+        void *p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) | 0x10;
     }
-    if (arg0 & 0x20) {
-        temp_t5 = *(int*)0;
-        FW(temp_t5, 0xC) = (s32) (FW(temp_t5, 0xC) & ~0x10);
+    if (*ap & 0x20) {
+        void *p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) & ~0x10;
     }
-    if (arg0 & 0x40) {
-        temp_t8_2 = *(int*)0;
-        FW(temp_t8_2, 0xC) = (s32) (FW(temp_t8_2, 0xC) | 0x10000);
-        temp_t1 = *(int*)0;
-        FW(temp_t1, 0xC) = (s32) (FW(temp_t1, 0xC) & ~0x300);
+    if (*ap & 0x40) {
+        void *p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) | 0x10000;
+        p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) & ~0x300;
     }
-    if (arg0 & 0x80) {
-        temp_t6 = *(int*)0;
-        FW(temp_t6, 0xC) = (s32) (FW(temp_t6, 0xC) & 0xFFFEFFFF);
-        temp_t0_2 = *(int*)0;
-        FW(temp_t0_2, 0xC) = (s32) (FW(temp_t0_2, 0xC) | (FW(FW(temp_t0_2, 0x8), 0x4) & 0x300));
+    if (*ap & 0x80) {
+        void *p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) & 0xFFFEFFFF;
+        p = (void *)*zero;
+        FW(p, 0xC) = FW(p, 0xC) | (FW(FW(p, 0x8), 0x4) & 0x300);
     }
-    temp_t5_2 = *(int*)0;
-    FW(temp_t5_2, 0x0) = (u16) (FW(temp_t5_2, 0x0) | 8);
+    {
+        void *p = (void *)*zero;
+        FW(p, 0x0) = (u16)(FW(p, 0x0) | 8);
+    }
     game_libs_func_00070FCC(temp_s0);
 }
 #else
