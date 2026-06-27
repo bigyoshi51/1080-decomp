@@ -2737,13 +2737,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066AF0);
  * INCLUDE_ASM is the build path. */
 extern int func_00000000();
 extern int D_00000000;
+/* gl_func_00066B64: 28-insn 3-call init + magic-write.
+ *   gl_func_00062F64(a0);
+ *   gl_func_00062F64(&D+0x41310, 1, &D, a0, &D+0x415C0, 1);
+ *   D[0x414C0] = 0x12345678; D[0x414C4] = 0x12345678;
+ *   gl_func_00062F64(&D + 0x41310);
+ *
+ * Callee is the intra-file gl_func_00062F64 (not func_00000000 placeholder).
+ * Data addresses materialized as `(char *)&D_00000000 + off` so IDO emits
+ * arithmetic `lui rX,0x4; addiu rX,rX,LO` (matching the target's addiu shape,
+ * incl. the `lui;addiu` form of the zero third arg). Residual: the target's
+ * two magic stores share a single `lui at,0x4` base, but the %hi/%lo reloc per
+ * access defeats CSE here (each store recomputes its HI). A constant
+ * `(char*)0x40000` base restores the store CSE but regresses the call-arg
+ * addresses to `lui;ori` (bitwise) and scores lower (81% vs 88.6%). game_libs
+ * can't byte-LAND (baked relocs); kept NM. INCLUDE_ASM is the build path. */
+extern int func_00000000();
+extern int gl_func_00062F64();
+extern int D_00000000;
 #ifdef NON_MATCHING
 void gl_func_00066B64(int *a0) {
-    func_00000000(a0);
-    func_00000000((void*)0x41310, 1, (void*)0, a0, (void*)0x415C0, 1);
-    *(int*)0x414C0 = 0x12345678;
-    *(int*)0x414C4 = 0x12345678;
-    func_00000000((void*)0x41310);
+    char *base = (char *)&D_00000000;
+    gl_func_00062F64(a0);
+    gl_func_00062F64(base + 0x41310, 1, base, a0, base + 0x415C0, 1);
+    *(int *)(base + 0x414C0) = 0x12345678;
+    *(int *)(base + 0x414C4) = 0x12345678;
+    gl_func_00062F64(base + 0x41310);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066B64);
