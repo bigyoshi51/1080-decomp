@@ -384,23 +384,26 @@ S_self:
     self[0x6A8 / 4] = (int)sub;
     *(int **)((char *)&D_00000000 + 0x138) = sub;
 
-    /* vtable-dispatch block */
+    /* vtable-dispatch block — target RE-READS self->0x6a8 (not the local sub)
+     * for both the gl() base and the virtual-call base (asm a98/ab0 lw 1704(s0)). */
     if ((self[0x4F0 / 4] << 15) >= 0) {
         sub[0xB4 / 4] = 0;
     } else {
         sub[0xB4 / 4] = 11;
     }
-    gl_func_00000000(sub, self, self[0x568 / 4], self[0x528 / 4]);
+    gl_func_00000000(self[0x6A8 / 4], self, self[0x568 / 4], self[0x528 / 4]);
     {
-        int *vt = (int *)sub[0x28 / 4];
-        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)sub);
+        int *vt = (int *)((int *)self[0x6A8 / 4])[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + self[0x6A8 / 4]);
     }
-    gl_func_00000000((char *)self + 0x10, sub);
-    if (sub[0x14 / 4] != 0) {
-        sub[0x4 / 4] = 1;
+    gl_func_00000000((char *)self + 0x10, self[0x6A8 / 4]);
+    if (((int *)self[0x6A8 / 4])[0x14 / 4] != 0) {
+        ((int *)self[0x6A8 / 4])[0x4 / 4] = 1;
     }
-    sub[0x14 / 4] = (int)self;
+    ((int *)self[0x6A8 / 4])[0x14 / 4] = (int)self;
 
+    /* registration block (only when self->0x4f0 bit16 set); else branch homes
+     * a1&0xffff into self->0x4f4 and clears self->0x48. */
     if ((self[0x4F0 / 4] << 15) < 0) {
         self[0x48 / 4] = (int)gl_func_00000000(0);
         gl_func_00000000(self[0x48 / 4], self);
@@ -417,7 +420,23 @@ S_self:
             *(int *)((char *)self[0x48 / 4] + 0x4) = 1;
         }
         *(int *)((char *)self[0x48 / 4] + 0x14) = (int)self;
+    } else {
+        self[0x4F4 / 4] = a1 & 0xFFFF;
+        self[0x48 / 4] = 0;
     }
+
+    /* merge tail (asm c50-c98): node = D[0x190]; register it onto self+0x10. */
+    {
+        int *node = *(int **)((char *)&D_00000000 + 0x190);
+        gl_func_00000000((char *)self + 0x10, node);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+        }
+        node[0x14 / 4] = (int)self;
+        gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0);
+        gl_func_00000000();
+    }
+
     return self;
 }
 #else
