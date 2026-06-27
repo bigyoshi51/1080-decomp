@@ -1913,10 +1913,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F634);
  * (=a1/a2/a3) and f0 (=D[0x24D0]) in-scope, retracting the implicit
  * caller-set-float cap; the body is decodable in a future pass. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0006F684)();
+extern f32 game_libs_func_0006C400(f32);
 void game_libs_func_0006F684(char *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7) {
     f32 sp40;
     f32 sp3C;
@@ -1937,12 +1934,12 @@ void game_libs_func_0006F684(char *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4,
     arg1 = temp_f12;
     (*(f32*)((char*)&D_00000000 + 0x44030)) = temp_f0;
     arg3 *= temp_f0;
-    temp_f20 = ((f32(*)())gl_func_00062F64)(temp_f12, temp_f14);
-    temp_f22 = ((f32(*)())gl_func_00062F64)(arg1);
-    sp40 = ((f32(*)())gl_func_00062F64)(arg2);
-    sp34 = ((f32(*)())gl_func_00062F64)(arg2);
-    sp3C = ((f32(*)())gl_func_00062F64)(arg3);
-    temp_f0_2 = ((f32(*)())gl_func_00062F64)(arg3);
+    temp_f20 = game_libs_func_0006C400(temp_f12);
+    temp_f22 = game_libs_func_0006C400(arg1);
+    sp40 = game_libs_func_0006C400(arg2);
+    sp34 = game_libs_func_0006C400(arg2);
+    sp3C = game_libs_func_0006C400(arg3);
+    temp_f0_2 = game_libs_func_0006C400(arg3);
     (*(f32*)((char*)arg0 + 0x0)) = (f32) (sp34 * temp_f0_2 * arg4);
     (*(f32*)((char*)arg0 + 0x4)) = (f32) (sp34 * sp3C * arg4);
     (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
