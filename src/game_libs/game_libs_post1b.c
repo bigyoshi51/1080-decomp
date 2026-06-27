@@ -3595,16 +3595,19 @@ int game_libs_func_00067C90(int a0) {
 #ifdef NON_MATCHING
 /* strncpy(dst, src, n): copy up to n bytes from src, stop at NUL, pad the
  * remainder of the n-byte field with zeros, return dst. Algorithm verified
- * (reloc-free). Byte-match is a multi-run target: target keeps src in saved
- * $s0 (frame 0x8) because it reuses a1 as the *dst++ store temp (move a1,a0;
- * sb;..) evicting src from a1; the C-emit path so far keeps src in a $t reg
- * (no frame, -1(a0) store form) — frame + a1-reuse scheduling pending. */
+ * (reloc-free). Byte-match is a saved-register-allocation cap: target keeps src
+ * in callee-saved $s0 (frame 0x8) and re-derives the read pointer (move a3,s0)
+ * each iteration, while reusing a1 as the *dst store temp (move a1,a0; sb;..).
+ * The store-temp form is reproducible (move t0,a0; sb a1,0(t0)) but IDO's choice
+ * of a SAVED reg ($s0) + frame for src is not C-controllable here — clean C
+ * keeps src in a $t reg (no frame). Reading src via src[i] (vs *src++) tightens
+ * the loop slightly (51.375 -> 51.69). */
 char *gl_func_00067C98(char *dst, char *src, int n) {
     char *ret = dst;
     int i = 0;
     if (n > 0) {
         do {
-            char c = *src++;
+            char c = src[i];
             *dst++ = c;
             i++;
             if (c == 0) {
