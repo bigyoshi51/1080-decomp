@@ -3631,22 +3631,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067C98);
 #endif
 
 #ifdef NON_MATCHING
-/* game_libs_func_00067D18: counts occurrences of byte a1 in the string at a0,
- * returns -count (negative running tally). Logic clear; cap: target uses
- * branch-likely (bnel) for BOTH the match-test and the loop-continue
- * (branch-likely-reorg) — clean C emits regular beq/bne. Reloc-free. */
-int game_libs_func_00067D18(unsigned char *a0, int a1) {
-    int count = 0;
+/* game_libs_func_00067D18: strrchr — returns a pointer to the LAST byte in the
+ * string at a0 equal to a1, or NULL if the string is empty / no match. Scans p
+ * across the string recording p on every match; the advancing cursor a0 = p+1
+ * snapshots into v0 each iteration (match-test bnel + loop-back bnezl, both
+ * branch-likely, reproduced). Reloc-free. Residual (71.4%): IDO preserves a1 in
+ * a2 because the advanced-pointer temp lands in a1, plus a loop-back lbu shift —
+ * register-coloring shape, not a logic bug. Prior body (negative-count) was the
+ * wrong function entirely. */
+unsigned char *game_libs_func_00067D18(unsigned char *a0, int a1) {
+    unsigned char *p;
+    unsigned char *result = (unsigned char *)0;
     if (*a0 != 0) {
+        p = a0;
         do {
-            unsigned char c = *a0;
-            a0++;
-            if ((unsigned char)a1 == c) {
-                count--;
+            a0 = p + 1;
+            if (a1 == *p) {
+                result = a0 - 1;
             }
+            p = a0;
         } while (*a0 != 0);
     }
-    return count;
+    return result;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D18);
