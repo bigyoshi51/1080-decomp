@@ -36,104 +36,89 @@ void timproc_uso_b5_func_00000050(void) {
 }
 
 
+extern int timproc_uso_b5_func_055750();
+extern int timproc_uso_b5_func_04C678();
+extern int timproc_uso_b5_func_07ACE0();
+extern int timproc_uso_b5_func_0139B0();
+extern int import_000A5D38();
+extern int import_000A5F40();
+extern int import_000A6900();
+extern int import_0024CCF4();
+extern int import_000A5FBC();
+extern char timproc_uso_b5_D_807FD908;
+extern char timproc_uso_b5_D_807FD888;
+extern char timproc_uso_b5_D_807EF230;
+extern char import_80073B18;
+extern char import_80073B80;
+extern char import_80074E78;
+extern char import_80020098;
+
 #ifdef NON_MATCHING
-/* timproc_uso_b5_func_00000058: 125-insn / 0x1F4 3-stage allocator + init.
- * Sibling shape to eddproc_uso_func_0000025C and other "alloc-cascade"
- * dispatch functions (per docs/PATTERNS.md alloc-cascade entry).
- *
- * ENTRY DECODE (0x58-0xCC, ~30 insns):
- *   if (a0 == 0) {
- *       s3 = alloc(0x50);
- *       if (s3 == 0) return 0;     // tail-fail at 0x228
- *   } else {
- *       s3 = a0;
- *   }
- *   if (s3 == 0) {                   // post-alloc-1 null check
- *       s0 = alloc(0x50);
- *       if (s0 == 0) goto skip_init; // jump to 0xE4
- *   } else {
- *       s0 = s3;
- *   }
- *   if (s0 == 0) {                   // post-alloc-2 null check
- *       s1 = alloc(0x2C);
- *       if (s1 == 0) goto skip_more; // jump to 0xD8
- *   } else {
- *       s1 = s0;
- *   }
- *   gl_func_00000000(s1, &D_00000000 + 0x98);  // initialize s1 from
- *                                                 // table at D[0x98]
- *   ... (continues: more init via the s1 result + writes to s3/s0
- *        slots, ~95 more insns, deferred for next pass).
- *
- * Saved regs: s0-s4, ra (6 saves) in 0x38 frame. Cap class similar to
- * eddproc_uso_func_0000025C (~61 % structural ceiling — multi-stage
- * alloc cascade with branched init blocks).
- *
- * Multi-pass NM-decomp; default build INCLUDE_ASM. */
-/* 2026-05-08: entry-stage decode (insns 0-30 / 0x00-0x6C). Replaces
- * empty stub with the documented 3-stage alloc-cascade body — each
- * stage either uses the input ptr or alloc()s a fresh struct, with
- * goto exits when a later alloc fails. */
-extern char D_b5_058_v0;
-extern char D_b5_058_v1;
-extern char D_b5_058_v2;
 int *timproc_uso_b5_func_00000058(int *a0) {
-    int *s3, *s0, *s1;
+    int *s3, *s0, *s1, *slot;
+    int *cfg, *node, *vt, *link;
+    int i, count;
+
+    s3 = a0;
     if (a0 == 0) {
-        s3 = (int*)gl_func_00000000(0x50);
+        s3 = (int *)timproc_uso_b5_func_055750(0x50);
         if (s3 == 0) return s3;
-    } else {
-        s3 = a0;
     }
+    s0 = s3;
     if (s3 == 0) {
-        s0 = (int*)gl_func_00000000(0x50);
-        if (s0 == 0) goto skip_init;
-    } else {
-        s0 = s3;
+        s0 = (int *)timproc_uso_b5_func_055750(0x50);
+        if (s0 == 0) goto after_sub;
     }
+    s1 = s0;
     if (s0 == 0) {
-        s1 = (int*)gl_func_00000000(0x2C);
-        if (s1 == 0) goto skip_more;
-    } else {
-        s1 = s0;
+        s1 = (int *)timproc_uso_b5_func_055750(0x2C);
+        if (s1 == 0) goto after_node;
     }
-    gl_func_00000000(s1, (char*)&D_00000000 + 0x98);
-    s1[0x28 / 4] = (int)&D_b5_058_v0;
-skip_more:
-    s0[0x28 / 4] = (int)&D_b5_058_v1;
-skip_init:
-    s3[0x28 / 4] = (int)&D_b5_058_v2;
-    s3[0x0C / 4] = (int)((char *)&D_00000000 + 0xA0);
-    s3[0x48 / 4] = (int)gl_func_00000000(0);
+    timproc_uso_b5_func_04C678(s1, &timproc_uso_b5_D_807FD908 + 0x98);
+    s1[0x28 / 4] = (int)&import_80073B18;
+after_node:
+    s0[0x28 / 4] = (int)&import_80073B80;
+after_sub:
+    s3[0x28 / 4] = (int)&timproc_uso_b5_D_807FD888;
+    s3[0x0C / 4] = (int)(&timproc_uso_b5_D_807FD888 + 0xA0);
     {
-        int *d134 = *(int **)((char *)&D_00000000 + 0x134);
-        int *node = (int *)d134[0x70 / 4];
-        int i;
-        for (i = 0; i < d134[0x78 / 4]; i++) {
-            gl_func_00000000(s3[0x48 / 4], node, -1, &D_00000000);
-            node = (int *)node[0x44 / 4];
-        }
+        int r = import_000A5D38(0);
+        s3[0x48 / 4] = r;
+        import_000A5F40(r, s3);
     }
-    *(int *)((char *)s3[0x48 / 4] + 0x30) =
-        (int)gl_func_00000000(0, (char *)&D_00000000, 0x48, 0xDD, 3, 13);
-    {
-        int *vt = (int *)((int *)s3[0x48 / 4])[0x28 / 4];
-        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + s3[0x48 / 4]);
+
+    cfg = *(int **)(&import_80020098 + 0x134);
+    node = (int *)cfg[0x70 / 4];
+    for (i = 0; i < cfg[0x78 / 4]; i++) {
+        import_000A6900(s3[0x48 / 4], node, -1, &timproc_uso_b5_D_807EF230);
+        cfg = *(int **)(&import_80020098 + 0x134);
+        node = (int *)node[0x44 / 4];
     }
-    {
-        int *n = (int *)s3[0x48 / 4];
-        if (n[0x14 / 4] != 0) {
-            n[0x4 / 4] = 1;
-        }
-        n[0x14 / 4] = (int)s3;
+
+    *(int *)(s3[0x48 / 4] + 0x30) =
+        import_0024CCF4(0, &import_80074E78, 0x48, 0xDD, 3, 13);
+
+    import_000A5FBC(s3[0x48 / 4]);
+    vt = (int *)((int *)s3[0x48 / 4])[0x28 / 4];
+    ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + s3[0x48 / 4]);
+
+    slot = (int *)((char *)s3 + 0x10);
+
+    link = (int *)s3[0x48 / 4];
+    timproc_uso_b5_func_07ACE0(slot, link);
+    if (link[0x14 / 4] != 0) {
+        link[0x04 / 4] = 1;
     }
-    {
-        int *node = *(int **)((char *)&D_00000000 + 0x190);
-        if (node[0x14 / 4] != 0) {
-            node[0x4 / 4] = 1;
-        }
-        node[0x14 / 4] = (int)s3;
+    link[0x14 / 4] = (int)s3;
+
+    link = *(int **)(&import_80020098 + 0x190);
+    timproc_uso_b5_func_07ACE0(slot, link);
+    if (link[0x14 / 4] != 0) {
+        link[0x04 / 4] = 1;
     }
+    link[0x14 / 4] = (int)s3;
+
+    timproc_uso_b5_func_0139B0(*(int *)(&import_80020098 + 0x190), 1, 0);
     s3[0x30 / 4] = 1;
     s3[0x2C / 4] = 0;
     return s3;
