@@ -12721,10 +12721,10 @@ extern int D_00000000;
 // counters/flags. Arms: pop, handler-call, push (a0->0x18 + a3), tagged push,
 // repeat-decrement, cursor-dec, and a2-keyed conditional adds (250/249/245 and
 // 243/242 gated on the sign of a1->0x19). Reloc-blind table + jal (deferred).
+// Range check folded into the switch (no separate >=0xE guard) and cases 9..13
+// listed so IDO emits a single sltiu,14 + 14-entry table matching the target
+// dispatch shape (48.25% fuzzy, up from 46.97%).
 int gl_func_0002A080(char *a0, char *a1, int a2, int a3) {
-    if ((unsigned int)a0 >= 0xE) {
-        return 0;
-    }
     switch ((unsigned int)a0) {
         case 0: {
             int n = *(unsigned char *)(a1 + 0x18);
@@ -12786,6 +12786,12 @@ int gl_func_0002A080(char *a0, char *a1, int a2, int a3) {
             }
             *(int *)a1 = *(int *)a1 + (signed char)a3;
             return 0;
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+            break;
         default:
             break;
     }
