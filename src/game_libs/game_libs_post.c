@@ -1181,11 +1181,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DCB4);
 // gl_func_0001E134 — FULL m2c DECODE (57.2% NM, no episode). Largest non-jumptable lift yet (849w); texture-tile DMA dlist builder, 22 K&R variadic emits to game_libs_func_0003443C + 1 gl_func_0001CA10 alloc, 5 nested irregular switches.
 // Reloc-form fix pass (agent-d 2026-06-22): absolute D_BASE derefs (*(s32*)0x2CFC, *(s32*)0x10) -> FW(&D_00000000, off) so HI16/LO16 relocs emit (matches target lui/lw). Reloc-filtered word-cmp vs expected: 812->790 non-reloc diffs, size gap -14->-13 words.
 // CAP: frame still -504 (m2c) vs -352 (target); m2c over-spills ~19 temps the original kept in registers, mis-aligning the entire 800-word body. Landing needs exact-structure RE of the register/spill set (multi-session). No sibling in this builder family (DCB4 57%) has matched.
+// gl_func_0001E134 — FULL m2c DECODE (57.2% NM, no episode). Largest non-jumptable lift yet (849w); texture-tile DMA dlist builder, 22 K&R variadic emits to game_libs_func_0003443C + 1 gl_func_0001CA10 alloc, 5 nested irregular switches.
+// Reloc-form fix pass (agent-d 2026-06-22): absolute D_BASE derefs (*(s32*)0x2CFC, *(s32*)0x10) -> FW(&D_00000000, off) so HI16/LO16 relocs emit (matches target lui/lw). Reloc-filtered word-cmp vs expected: 812->790 non-reloc diffs, size gap -14->-13 words.
+// Width-fix pass (agent-e 2026-06-27): sub-word struct fields were going through the int FW macro -> swl/swr unaligned stores + word loads where target uses sb/sh/lbu/lhu. Added FB/FH byte/half accessors; corrected arg2 0x2/0x3/0x4/0x5/0x6/0x10/0x12/0x1A, arg1 0x2/0x3/0x4/0x5/0x7/0xC/0xE, +0xB0 (sp9C/temp_a3) and arg2+0 flag reads. All swl/swr eliminated. objdiff fuzzy 59.61->63.40%.
+// CAP: frame still -504 (m2c) vs -352 (target); m2c over-spills ~19 temps the original kept in registers, mis-aligning the entire 800-word body. Landing needs exact-structure RE of the register/spill set (multi-session). No sibling in this builder family (DCB4 57%) has matched.
 #ifdef NON_MATCHING
 
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+#ifndef FB
+#define FB(p, o) (*(u8 *)((char *)(p) + (o)))
+#endif
+#ifndef FH
+#define FH(p, o) (*(u16 *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0001E134)();
 s32 *gl_func_0001E134(s32 arg0, u8 *arg1, u8 *arg2, int arg3, u32 arg4, s32 *arg5, s32 *arg6) {
@@ -1303,27 +1313,27 @@ s32 *gl_func_0001E134(s32 arg0, u8 *arg1, u8 *arg2, int arg3, u32 arg4, s32 *arg
     if (((u32) (temp_v1 * 2) >> 0x1F) == 1) {
         *(u8*)((char*)arg2 + 0x0) = 0;
         FW(arg2, 0x8) = 0;
-        FW(arg2, 0x6) = 0U;
-        FW(arg2, 0x10) = 0;
-        FW(arg2, 0x12) = 0;
-        FW(arg2, 0x2) = 0U;
-        FW(arg2, 0x3) = 0U;
-        FW(arg2, 0x5) = 0U;
-        FW(arg2, 0x1A) = 1U;
-        FW(arg2, 0x4) = (u8) FW(arg1, 0x5);
+        FH(arg2, 0x6) = 0U;
+        FH(arg2, 0x10) = 0;
+        FH(arg2, 0x12) = 0;
+        FB(arg2, 0x2) = 0U;
+        FB(arg2, 0x3) = 0U;
+        FB(arg2, 0x5) = 0U;
+        FB(arg2, 0x1A) = 1U;
+        FB(arg2, 0x4) = (u8) FB(arg1, 0x5);
         var_t1 = 1;
         var_t3 = 0;
-        FW(temp_a3, 0xB0) = (u8) (FW(temp_a3, 0xB0) & 0xFFDF);
+        FB(temp_a3, 0xB0) = (u8) (FB(temp_a3, 0xB0) & 0xFFDF);
     }
-    temp_t9 = FW(arg1, 0xC);
+    temp_t9 = FH(arg1, 0xC);
     sp136 = temp_t9;
     temp_a0 = ((u32) (FW(arg1, 0x0) << 0xE) >> 0x1F) + 1;
-    temp_t0 = ((temp_t9 & 0xFFFF) * arg4 * 2) + FW(arg2, 0x6);
-    FW(arg2, 0x6) = temp_t0;
-    if (FW(arg2, 0x5) == 1) {
+    temp_t0 = ((temp_t9 & 0xFFFF) * arg4 * 2) + FH(arg2, 0x6);
+    FH(arg2, 0x6) = temp_t0;
+    if (FB(arg2, 0x5) == 1) {
 
     }
-    FW(arg2, 0x5) = temp_a0;
+    FB(arg2, 0x5) = temp_a0;
     var_v1 = FW(arg1, 0x0);
     if (var_v1 & 0x40000) {
         temp_a3_2 = temp_t0 >> 0x10;
@@ -1401,7 +1411,7 @@ loop_23:
                 var_s5 = 0;
                 temp_v1_3 = sp100 - temp_a2_2;
                 temp_t0_3 = temp_a3_3 >> 0x1C;
-                if ((var_s4 == 0) && (FW(arg2, 0x0) == 0)) {
+                if ((var_s4 == 0) && (FB(arg2, 0x0) == 0)) {
                     var_s4 = 0x10;
                 }
                 temp_a1_2 = 0x10 - var_s4;
@@ -1453,11 +1463,11 @@ block_41:
                         var_t0 = var_a0_2 & 0xF;
                         FW(var_s3_2, 0x4) = (s32) ((var_a0_2 - var_t0) + 0x80000000);
                         FW(var_s3_2, 0x0) = (((var_s0 >> 4) & 0xFF) << 0x10) | 0x14000000 | ((0x940 - var_s0) & 0xFFFF);
-                        var_a1 = FW(arg2, 0x0);
+                        var_a1 = FB(arg2, 0x0);
                         var_s3_2 += 8;
                     } else {
                         var_s1 = 0;
-                        var_a1 = FW(arg2, 0x0);
+                        var_a1 = FB(arg2, 0x0);
                     }
                     temp_v0_8 = var_s3_2;
                     if (var_a1 != 0) {
@@ -1546,12 +1556,12 @@ block_41:
                     spC8 = var_t4;
                     spCC = var_t5;
                     game_libs_func_0003443C(temp_a0_4, var_s6 + 0x580, (u8 *) ((sp108 - var_t3_2) * 2));
-                    FW(sp9C, 0xB0) = (u8) (FW(sp9C, 0xB0) | 0x20);
+                    FB(sp9C, 0xB0) = (u8) (FB(sp9C, 0xB0) | 0x20);
                     game_libs_func_0003443C(arg6, (u8 *) arg0);
                     var_a0 = sp50;
                 } else {
                     if (sp13C != 0) {
-                        FW(arg2, 0x0) = 1;
+                        FB(arg2, 0x0) = 1;
                         FW(arg2, 0x8) = (s32) FW(sp14C, 0x0);
                     } else {
                         FW(arg2, 0x8) = (s32) (FW(arg2, 0x8) + spFC);
@@ -1634,7 +1644,7 @@ block_41:
         game_libs_func_0003443C(temp_a0_8, (u8 *)0x3C0, (u8 *)0x3C0, temp_s4);
     }
     temp_a0_9 = var_s3_3;
-    var_a1_2 = FW(arg1, 0x2);
+    var_a1_2 = FB(arg1, 0x2);
     if (var_a1_2 != 0) {
         var_s3_3 += 8;
         if ((s32) var_a1_2 < 0x10) {
@@ -1650,18 +1660,18 @@ block_41:
         var_s3_3 = temp_s3_4 + 8;
         game_libs_func_0003443C(temp_a0_10, (u8 *) sp138, (u8 *)0x3C0, FW(arg2, 0xC) + 0x40);
     }
-    temp_s0 = FW(arg1, 0x7);
-    temp_v1_8 = FW(arg1, 0xE);
+    temp_s0 = FB(arg1, 0x7);
+    temp_v1_8 = FH(arg1, 0xE);
     temp_s2 = FW(arg2, 0xC) + 0x800000C0;
     if ((temp_s0 != 0) && (temp_v1_8 != 0)) {
         temp_s3_5 = var_s3_3 + 8;
         game_libs_func_0003443C(var_s3_3, (u8 *)0x3C0, (u8 *)0x760, temp_s4);
         var_s1_2 = 0x760 - temp_s0;
-        if (FW(arg2, 0x1A) != 0) {
+        if (FB(arg2, 0x1A) != 0) {
             var_s1_2 = 0x760 - temp_s0;
             var_s3_4 = temp_s3_5 + 8;
             game_libs_func_0003443C(temp_s3_5, var_s1_2, (u8 *) temp_s0);
-            FW(arg2, 0x1A) = 0U;
+            FB(arg2, 0x1A) = 0U;
         } else {
             var_s3_4 = temp_s3_5 + 8;
             game_libs_func_0003443C(temp_s3_5, var_s1_2, (u8 *) temp_s0, temp_s2);
@@ -1673,518 +1683,11 @@ block_41:
         var_s3_3 = temp_s3_7 + 8;
         game_libs_func_0003443C(temp_s3_7, var_s1_2, (u8 *)0x3C0, temp_s4);
     } else {
-        FW(arg2, 0x1A) = 1U;
+        FB(arg2, 0x1A) = 1U;
     }
-    if ((FW(arg1, 0x3) != 0) || (FW(arg2, 0x2) != 0)) {
+    if ((FB(arg1, 0x3) != 0) || (FB(arg2, 0x2) != 0)) {
         var_s0_2 = 1;
-    } else if ((FW(arg1, 0x4) != 0) || (var_s0_2 = 0, (FW(arg2, 0x3) != 0))) {
-        var_s0_2 = 2;
-    }
-    var_s3 = game_libs_func_0003443C(var_s3_3, arg1, arg2, arg4, 0x3C0, var_s0_2, sp138);
-    if ((u16) FW(arg1, 0x0) & 1) {
-        if (!(sp138 & 1)) {
-            sp138 = 0;
-        }
-        var_s3 = game_libs_func_0003443C(var_s3, arg1, arg2, temp_s4, sp138, var_s0_2);
-    }
-    return var_s3;
-}
-#else
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0001E134)();
-s32 *gl_func_0001E134(s32 arg0, u8 *arg1, u8 *arg2, int arg3, u32 arg4, s32 *arg5, s32 *arg6) {
-    char *sp150;
-    char *sp14C;
-    s32 sp140;
-    s32 sp13C;
-    s32 sp138;
-    u16 sp136;
-    s32 sp120;
-    s32 sp110;
-    s32 sp108;                                      /* compiler-managed */
-    s32 sp104;
-    s32 sp100;
-    s32 spFC;
-    s32 spE4;
-    s32 spD4;
-    s32 spCC;
-    s32 spC8;
-    s32 spC0;
-    s32 spBC;
-    s32 spB0;                                       /* compiler-managed */
-    u16 spAE;
-    char *sp9C;
-    u32 sp8C;
-    u32 sp88;
-    u32 sp50;
-    s32 *temp_a0_10;
-    s32 *temp_a0_3;
-    s32 *temp_a0_4;
-    s32 *temp_a0_5;
-    s32 *temp_a0_6;
-    s32 *temp_a0_7;
-    s32 *temp_a0_8;
-    s32 *temp_a0_9;
-    s32 *temp_s3_3;
-    s32 *temp_s3_4;
-    s32 *temp_s3_5;
-    s32 *temp_s3_6;
-    s32 *temp_s3_7;
-    s32 *temp_v0;
-    s32 *temp_v0_10;
-    s32 *temp_v0_11;
-    s32 *temp_v0_12;
-    s32 *temp_v0_8;
-    s32 *temp_v1_2;
-    s32 *var_s3;
-    s32 *var_s3_2;
-    s32 *var_s3_3;
-    s32 *var_s3_4;
-    s32 temp_a0_2;
-    s32 temp_a1_2;
-    s32 temp_a2;
-    s32 temp_a2_2;
-    s32 temp_t8;
-    s32 temp_v0_3;
-    s32 temp_v0_5;
-    s32 temp_v0_6;
-    s32 temp_v0_7;
-    s32 temp_v1;
-    s32 temp_v1_3;
-    s32 temp_v1_7;
-    s32 var_a0_2;
-    s32 var_s0;
-    s32 var_s0_2;
-    s32 var_s1;
-    s32 var_s2;
-    s32 var_s4;
-    s32 var_s5;
-    s32 var_s6;
-    s32 var_s7;
-    s32 var_s8;
-    s32 var_t0;
-    s32 var_t1;
-    s32 var_t1_2;
-    s32 var_t1_3;
-    s32 var_t3_2;
-    s32 var_t4;
-    s32 var_t5;
-    s32 var_v1;
-    u16 temp_t0;
-    u16 temp_t9;
-    u16 temp_v1_8;
-    u32 temp_a3_2;
-    u32 temp_a3_3;
-    u32 temp_s2;
-    u32 temp_s4;
-    u32 temp_t0_2;
-    u32 temp_t0_3;
-    u32 temp_t6;
-    u32 temp_v0_9;
-    u32 temp_v1_4;
-    u32 var_a0;
-    u32 var_t3;
-    u8 *temp_a2_3;
-    u8 *var_s1_2;
-    u8 temp_a0;
-    u8 temp_s0;
-    u8 var_a1;
-    u8 var_a1_2;
-    char *temp_a1;
-    char *temp_a3;
-    char *temp_s3;
-    char *temp_s3_2;
-    char *temp_v0_2;
-    char *temp_v0_4;
-    char *temp_v1_5;
-    char *temp_v1_6;
-
-    temp_v1 = FW(arg1, 0x0);
-    sp8C = (u32) (temp_v1 << 0xB) >> 0x1E;
-    var_t3 = (u32) (temp_v1 * 4) >> 0x1F;
-    var_t1 = 0;
-    temp_a3 = (arg0 * 0xD0) + *(s32 *)0x2CFC;
-    if (((u32) (temp_v1 * 2) >> 0x1F) == 1) {
-        FW(arg2, 0x0) = 0;
-        FW(arg2, 0x8) = 0;
-        FW(arg2, 0x6) = 0U;
-        FW(arg2, 0x10) = 0;
-        FW(arg2, 0x12) = 0;
-        FW(arg2, 0x2) = 0U;
-        FW(arg2, 0x3) = 0U;
-        FW(arg2, 0x5) = 0U;
-        FW(arg2, 0x1A) = 1U;
-        FW(arg2, 0x4) = (u8) FW(arg1, 0x5);
-        var_t1 = 1;
-        var_t3 = 0;
-        FW(temp_a3, 0xB0) = (u8) (FW(temp_a3, 0xB0) & 0xFFDF);
-    }
-    temp_t9 = FW(arg1, 0xC);
-    sp136 = temp_t9;
-    temp_a0 = ((u32) (FW(arg1, 0x0) << 0xE) >> 0x1F) + 1;
-    temp_t0 = ((temp_t9 & 0xFFFF) * arg4 * 2) + FW(arg2, 0x6);
-    FW(arg2, 0x6) = temp_t0;
-    if (FW(arg2, 0x5) == 1) {
-
-    }
-    FW(arg2, 0x5) = temp_a0;
-    var_v1 = FW(arg1, 0x0);
-    if (var_v1 & 0x40000) {
-        temp_a3_2 = temp_t0 >> 0x10;
-        sp50 = temp_a3_2;
-        temp_v0 = game_libs_func_0003443C(arg5, arg1, arg2, temp_a3_2);
-        temp_a2 = FW(arg2, 0x8);
-        spAE = (temp_a2 * 2) + 0x580;
-        FW(arg2, 0x8) = (s32) (temp_a2 + sp50);
-        var_v1 = FW(arg1, 0x0);
-        arg5 = temp_v0;
-    } else {
-        temp_t6 = temp_t0 >> 0x10;
-        temp_v0_2 = *(int*)(FW(arg1, 0x10));
-        temp_a1 = FW(temp_v0_2, 0x8);
-        sp100 = FW(temp_a1, 0x4);
-        spB0 = 0;
-        spBC = 0;
-        sp110 = FW(temp_v0_2, 0x4);
-        if ((s32) temp_a0 > 0) {
-            spC0 = (s32) temp_a0;
-            var_a0 = temp_t6;
-            sp50 = temp_t6;
-            sp150 = temp_v0_2;
-            sp14C = temp_a1;
-            sp9C = temp_a3;
-            sp138 = var_t1;
-            sp88 = var_t3;
-            var_s7 = spD4;
-            var_s3_2 = arg5;
-            var_t5 = spCC;
-            var_t4 = spC8;
-loop_7:
-            var_t3_2 = 0;
-            var_s6 = 0;
-            temp_t0_2 = (u32) FW(sp150, 0x0) >> 0x1C;
-            if (spC0 == 1) {
-                goto block_11;
-            }
-            if (var_a0 & 1) {
-                sp108 = (var_a0 & ~1) + (spBC * 2);
-            } else {
-block_11:
-                sp108 = var_a0;
-            }
-            if ((temp_t0_2 == 0) || (temp_t0_2 == 3)) {
-                temp_v0_3 = FW(sp150, 0xC) + 8;
-                if (*(s32 *)0x10 != temp_v0_3) {
-                    switch (sp8C) {                 /* switch 1; irregular */
-                    case 1:                         /* switch 1 */
-                        *(char *)0x10 = 2;
-                        break;
-                    default:                        /* switch 1 */
-                    case 2:                         /* switch 1 */
-                    case 3:                         /* switch 1 */
-                        *(char *)0x10 = temp_v0_3;
-                        break;
-                    }
-                    temp_v0_4 = FW(sp150, 0xC);
-                    temp_v1_2 = var_s3_2;
-                    var_s3_2 += 8;
-                    FW(temp_v1_2, 0x0) = ((FW(temp_v0_4, 0x0) * 0x10 * FW(temp_v0_4, 0x4)) & 0xFFFFFF) | 0x0B000000;
-                    FW(temp_v1_2, 0x4) = (s32) (*(char *)0x10 + 0x80000000);
-                    var_a0 = sp50;
-                }
-            }
-            if (sp108 != 0) {
-loop_23:
-                sp140 = 0;
-                sp13C = 0;
-                temp_a2_2 = FW(arg2, 0x8);
-                temp_a0_2 = sp108 - var_t3_2;
-                spFC = temp_a0_2;
-                temp_a3_3 = FW(sp150, 0x0);
-                var_s4 = temp_a2_2 & 0xF;
-                var_s5 = 0;
-                temp_v1_3 = sp100 - temp_a2_2;
-                temp_t0_3 = temp_a3_3 >> 0x1C;
-                if ((var_s4 == 0) && (FW(arg2, 0x0) == 0)) {
-                    var_s4 = 0x10;
-                }
-                temp_a1_2 = 0x10 - var_s4;
-                var_s8 = temp_a1_2;
-                if (temp_a0_2 < temp_v1_3) {
-                    temp_v0_5 = (s32) ((temp_a0_2 - temp_a1_2) + 0xF) / 16;
-                    var_s1 = temp_v0_5 * 0x10;
-                    var_s2 = temp_v0_5;
-                    var_t1_2 = (temp_a1_2 + var_s1) - temp_a0_2;
-                } else {
-                    var_s1 = temp_v1_3 - temp_a1_2;
-                    var_t1_2 = 0;
-                    if (var_s1 <= 0) {
-                        var_s1 = 0;
-                        var_s8 = temp_v1_3;
-                    }
-                    var_s2 = (s32) (var_s1 + 0xF) / 16;
-                    if (FW(sp14C, 0x8) != 0) {
-                        sp13C = 1;
-                    } else {
-                        sp140 = 1;
-                    }
-                }
-                switch (temp_t0_3) {                /* switch 2; irregular */
-                case 2:                             /* switch 2 */
-                    break;
-                case 0:                             /* switch 2 */
-                    var_s7 = 9;
-                    var_t5 = 0x10;
-block_41:
-                    var_t4 = 0;
-                default:                            /* switch 2 */
-                    var_t0 = 0;
-                    if (var_s2 != 0) {
-                        temp_v0_6 = (s32) ((temp_a2_2 + var_t5) - var_s4) / 16;
-                        temp_v1_4 = (u32) (temp_a3_3 * 0x10) >> 0x1E;
-                        if (temp_v1_4 == 0) {
-                            var_a0_2 = var_t4 + (temp_v0_6 * var_s7) + sp110;
-                            var_s0 = ((var_s2 * var_s7) + 0x1F) & ~0xF;
-                        } else {
-                            spE4 = var_t1_2;
-                            sp104 = var_t3_2;
-                            spC8 = var_t4;
-                            spCC = var_t5;
-                            var_s0 = ((var_s2 * var_s7) + 0x1F) & ~0xF;
-                            temp_v0_7 = gl_func_0001CA10(var_t4 + (temp_v0_6 * var_s7) + sp110, var_s0, sp138, (int)arg2 + 1, temp_v1_4);
-                            var_a0_2 = temp_v0_7;
-                        }
-                        var_t0 = var_a0_2 & 0xF;
-                        FW(var_s3_2, 0x4) = (s32) ((var_a0_2 - var_t0) + 0x80000000);
-                        FW(var_s3_2, 0x0) = (((var_s0 >> 4) & 0xFF) << 0x10) | 0x14000000 | ((0x940 - var_s0) & 0xFFFF);
-                        var_a1 = FW(arg2, 0x0);
-                        var_s3_2 += 8;
-                    } else {
-                        var_s1 = 0;
-                        var_a1 = FW(arg2, 0x0);
-                    }
-                    temp_v0_8 = var_s3_2;
-                    if (var_a1 != 0) {
-                        FW(temp_v0_8, 0x0) = 0x0F000000;
-                        var_s3_2 += 8;
-                        FW(temp_v0_8, 0x4) = (s32) (FW(sp150, 0x8) + 0x80000010);
-                        sp138 = 2;
-                        FW(arg2, 0x0) = 0;
-                    }
-                    temp_v0_9 = (u32) FW(sp150, 0x0) >> 0x1C;
-                    if (var_t3_2 == 0) {
-                        sp120 = var_s4 * 2;
-                    } else {
-                        var_s5 = (var_s6 + 0x1F) & ~0xF;
-                    }
-                    switch (temp_v0_9) {            /* switch 3; irregular */
-                    case 0:                         /* switch 3 */
-                        temp_v0_10 = var_s3_2;
-                        temp_s3 = var_s3_2 + 8;
-                        temp_v1_5 = temp_s3;
-                        var_s3_2 = temp_s3 + 8;
-                        FW(temp_v0_10, 0x0) = (((0x940 - (((var_s2 * var_s7) + 0x1F) & 0xFFF0)) + var_t0) & 0xFFFF) | 0x08000000;
-                        FW(temp_v0_10, 0x4) = (s32) (((var_s5 + 0x580) << 0x10) | ((var_s1 * 2) & 0xFFFF));
-                        FW(temp_v1_5, 0x0) = (s32) (((sp138 & 0xFF) << 0x10) | 0x01000000);
-                        FW(temp_v1_5, 0x4) = (s32) (FW(arg2, 0xC) + 0x80000000);
-                        break;
-                    case 3:                         /* switch 3 */
-                        temp_v0_11 = var_s3_2;
-                        temp_s3_2 = var_s3_2 + 8;
-                        temp_v1_6 = temp_s3_2;
-                        var_s3_2 = temp_s3_2 + 8;
-                        FW(temp_v0_11, 0x0) = (((0x940 - (((var_s2 * var_s7) + 0x1F) & 0xFFF0)) + var_t0) & 0xFFFF) | 0x08000000;
-                        FW(temp_v0_11, 0x4) = (s32) (((var_s5 + 0x580) << 0x10) | ((var_s1 * 2) & 0xFFFF));
-                        FW(temp_v1_6, 0x0) = (s32) ((((sp138 | 4) & 0xFF) << 0x10) | 0x01000000);
-                        FW(temp_v1_6, 0x4) = (s32) (FW(arg2, 0xC) + 0x80000000);
-                        break;
-                    case 1:                         /* switch 3 */
-                        temp_s3_3 = var_s3_2 + 8;
-                        spE4 = var_t1_2;
-                        sp104 = var_t3_2;
-                        spC8 = var_t4;
-                        spCC = var_t5;
-                        game_libs_func_0003443C(var_s3_2, 0, (s16) (0x940 - (((var_s2 * var_s7) + 0x1F) & 0xFFF0)) + var_t0, var_s5 + 0x580, var_s1 * 2);
-                        temp_a0_3 = temp_s3_3;
-                        var_s3_2 = temp_s3_3 + 8;
-                        game_libs_func_0003443C(temp_a0_3, (u8 *) sp138, FW(arg2, 0xC) + 0x80000000);
-                        break;
-                    }
-                    if (var_t3_2 != 0) {
-                        FW(var_s3_2, 0x0) = ((var_s5 + (var_s4 * 2) + 0x580) & 0xFFFFFF) | 0x0A000000;
-                        FW(var_s3_2, 0x4) = (s32) (((var_s6 + 0x580) << 0x10) | ((((var_s1 + var_s8) - var_t1_2) * 2) & 0xFFFF));
-                        var_s3_2 += 8;
-                    }
-                    temp_v1_7 = (var_s1 + var_s8) - var_t1_2;
-                    var_t3_2 += temp_v1_7;
-                    if (sp138 != 1) {
-                        sp138 = 0;
-                        if (sp138 != 2) {
-                            if (var_s6 != 0) {
-                                var_s6 += temp_v1_7 * 2;
-                            } else {
-                                var_s6 = (var_s4 + temp_v1_7) * 2;
-                            }
-                        } else {
-                            var_s6 += temp_v1_7 * 2;
-                        }
-                    } else {
-                        sp120 = 0x20;
-                        var_s6 = (var_s1 * 2) + 0x20;
-                        sp138 = 0;
-                    }
-                    break;
-                case 3:                             /* switch 2 */
-                    var_s7 = 5;
-                    var_t5 = 0x10;
-                    goto block_41;
-                case 1:                             /* switch 2 */
-                    var_s7 = 0x10;
-                    var_t5 = 0x10;
-                    goto block_41;
-                }
-                if (sp140 != 0) {
-                    temp_a0_4 = var_s3_2;
-                    sp88 = 1;
-                    var_s3_2 += 8;
-                    spC8 = var_t4;
-                    spCC = var_t5;
-                    game_libs_func_0003443C(temp_a0_4, var_s6 + 0x580, (u8 *) ((sp108 - var_t3_2) * 2));
-                    FW(sp9C, 0xB0) = (u8) (FW(sp9C, 0xB0) | 0x20);
-                    game_libs_func_0003443C(arg6, (u8 *) arg0);
-                    var_a0 = sp50;
-                } else {
-                    if (sp13C != 0) {
-                        FW(arg2, 0x0) = 1;
-                        FW(arg2, 0x8) = (s32) FW(sp14C, 0x0);
-                    } else {
-                        FW(arg2, 0x8) = (s32) (FW(arg2, 0x8) + spFC);
-                    }
-                    if (var_t3_2 == sp108) {
-                        var_a0 = sp50;
-                    } else {
-                        goto loop_23;
-                    }
-                }
-            }
-            switch (spC0) {                         /* switch 4; irregular */
-            case 1:                                 /* switch 4 */
-                spAE = sp120 + 0x580;
-                break;
-            case 2:                                 /* switch 4 */
-                switch (spBC) {                     /* switch 5; irregular */
-                case 0:                             /* switch 5 */
-                    temp_a0_5 = var_s3_2;
-                    spAE = 0x3E0;
-                    var_s3_2 += 8;
-                    spC8 = var_t4;
-                    spCC = var_t5;
-                    game_libs_func_0003443C(temp_a0_5, sp120 + 0x580, (u8 *)0x3E0, (((s32) sp108 / 2) + 7) & ~7);
-                    spB0 = sp108;
-                    if (sp88 != 0) {
-                        temp_a0_6 = var_s3_2;
-                        var_s3_2 += 8;
-                        spC8 = var_t4;
-                        spCC = var_t5;
-                        game_libs_func_0003443C(temp_a0_6, sp108 + 0x3E0, sp108 + 0x10);
-                    }
-                    var_a0 = sp50;
-                    break;
-                case 1:                             /* switch 5 */
-                    temp_a0_7 = var_s3_2;
-                    var_s3_2 += 8;
-                    spC8 = var_t4;
-                    spCC = var_t5;
-                    game_libs_func_0003443C(temp_a0_7, sp120 + 0x580, spB0 + 0x3E0, (((s32) sp108 / 2) + 7) & ~7);
-                    var_a0 = sp50;
-                    break;
-                }
-                break;
-            }
-            temp_t8 = spBC + 1;
-            if (sp88 != 0) {
-                var_v1 = FW(arg1, 0x0);
-                arg5 = var_s3_2;
-            } else {
-                spBC = temp_t8;
-                if (temp_t8 == spC0) {
-                    spD4 = var_s7;
-                    spCC = var_t5;
-                    spC8 = var_t4;
-                    var_v1 = FW(arg1, 0x0);
-                    arg5 = var_s3_2;
-                } else {
-                    goto loop_7;
-                }
-            }
-        }
-    }
-    var_t1_3 = 0;
-    if (((u32) (var_v1 * 2) >> 0x1F) == 1) {
-        var_t1_3 = 1;
-        FW(arg1, 0x0) &= 0xFFBF;
-    }
-    temp_s4 = arg4 * 2;
-    sp138 = var_t1_3;
-    temp_v0_12 = game_libs_func_0003443C(arg5, arg2, (u8 *) temp_s4, (u32) sp136, (s32) spAE, var_t1_3);
-    var_s3_3 = temp_v0_12;
-    if (sp8C == 3) {
-        var_s3_3 = temp_v0_12 + 8;
-        game_libs_func_0003443C(temp_v0_12, (u8 *)0x3C0, (u8 *)0x3C0, temp_s4, 0);
-    }
-    temp_a0_8 = var_s3_3;
-    if (sp8C == 2) {
-        var_s3_3 += 8;
-        game_libs_func_0003443C(temp_a0_8, (u8 *)0x3C0, (u8 *)0x3C0, temp_s4);
-    }
-    temp_a0_9 = var_s3_3;
-    var_a1_2 = FW(arg1, 0x2);
-    if (var_a1_2 != 0) {
-        var_s3_3 += 8;
-        if ((s32) var_a1_2 < 0x10) {
-            var_a1_2 = 0x10;
-        }
-        game_libs_func_0003443C(temp_a0_9, (u8 *) var_a1_2, (u8 *)0x3C0, 0U, temp_s4 + 0x20);
-    }
-    temp_a2_3 = FW(arg1, 0x14);
-    if (temp_a2_3 != 0) {
-        temp_s3_4 = var_s3_3 + 8;
-        game_libs_func_0003443C(var_s3_3, (u8 *) temp_s4, temp_a2_3);
-        temp_a0_10 = temp_s3_4;
-        var_s3_3 = temp_s3_4 + 8;
-        game_libs_func_0003443C(temp_a0_10, (u8 *) sp138, (u8 *)0x3C0, FW(arg2, 0xC) + 0x40);
-    }
-    temp_s0 = FW(arg1, 0x7);
-    temp_v1_8 = FW(arg1, 0xE);
-    temp_s2 = FW(arg2, 0xC) + 0x800000C0;
-    if ((temp_s0 != 0) && (temp_v1_8 != 0)) {
-        temp_s3_5 = var_s3_3 + 8;
-        game_libs_func_0003443C(var_s3_3, (u8 *)0x3C0, (u8 *)0x760, temp_s4);
-        var_s1_2 = 0x760 - temp_s0;
-        if (FW(arg2, 0x1A) != 0) {
-            var_s1_2 = 0x760 - temp_s0;
-            var_s3_4 = temp_s3_5 + 8;
-            game_libs_func_0003443C(temp_s3_5, var_s1_2, (u8 *) temp_s0);
-            FW(arg2, 0x1A) = 0U;
-        } else {
-            var_s3_4 = temp_s3_5 + 8;
-            game_libs_func_0003443C(temp_s3_5, var_s1_2, (u8 *) temp_s0, temp_s2);
-        }
-        temp_s3_6 = var_s3_4 + 8;
-        game_libs_func_0003443C(var_s3_4, (temp_s4 - temp_s0) + 0x3C0, (u8 *) temp_s0, temp_s2);
-        temp_s3_7 = temp_s3_6 + 8;
-        game_libs_func_0003443C(temp_s3_6, (u8 *) ((s32) temp_s4 >> 4), (u8 *) temp_v1_8, 0x760U, (s32) var_s1_2);
-        var_s3_3 = temp_s3_7 + 8;
-        game_libs_func_0003443C(temp_s3_7, var_s1_2, (u8 *)0x3C0, temp_s4);
-    } else {
-        FW(arg2, 0x1A) = 1U;
-    }
-    if ((FW(arg1, 0x3) != 0) || (FW(arg2, 0x2) != 0)) {
-        var_s0_2 = 1;
-    } else if ((FW(arg1, 0x4) != 0) || (var_s0_2 = 0, (FW(arg2, 0x3) != 0))) {
+    } else if ((FB(arg1, 0x4) != 0) || (var_s0_2 = 0, (FB(arg2, 0x3) != 0))) {
         var_s0_2 = 2;
     }
     var_s3 = game_libs_func_0003443C(var_s3_3, arg1, arg2, arg4, 0x3C0, var_s0_2, sp138);
