@@ -2361,40 +2361,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066650);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006665C);
 
 #ifdef NON_MATCHING
-/* gl_func_00066674: 27-insn append-to-linked-list + 3-stub BUNDLE (0xAC declared,
- * real fn ends at 0x6C; 0x70-0xAC is 3 small leaf stubs bundled by splat).
- *
- * Decoded structure (real fn, raw-word disasm):
- *   node = factory(*D_X);                            // allocate via factory
- *   node->[0] = data;                                 // data field
- *   node->[0x4] = NULL;                               // next pointer
- *   if (*head == NULL) {                              // empty list
- *       *head = node;
- *   } else {
- *       cur = *head;
- *       while (cur->[0x4] != NULL) cur = cur->[0x4]; // walk to tail
- *       cur->[0x4] = node;                            // append
- *   }
- *
- * Marker said "43-insn" but the real function is 27 insns (0x6C). The
- * remaining 16 insns (0x70-0xAC) are 3 bundled leaf stubs that splat
- * couldn't separate: D_Y setter (sw a0), D_Z getter (lw return), and a
- * 3rd small fn (lui v0+addiu return). Fragment-split required for byte-
- * exact; structural decode + bundle note is the one-tick output.
- * INCLUDE_ASM remains build path.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md.
- */
+/* gl_func_00066674: append node to a singly-linked list.
+ *   node = gl_func_00000000(D_X_66674);    // factory (arg = global int by value)
+ *   node->next = NULL; node->data = data;  // next stored BEFORE data
+ *   cur = *head;
+ *   if (cur == NULL) *head = node;          // empty list
+ *   else { while (cur->next) cur = cur->next; cur->next = node; }
+ * game_libs is baked-reloc (cannot byte-LAND); objdiff-fuzzy only.
+ * Residual at 70.75% is a spill-slot/branch-likely coloring cap: target keeps
+ * the walk cursor in a register (frame 0x18, bnezl/beqzl) while IDO spills it
+ * to 0x1c(sp) here (frame 0x30, bnez+nop) — permuter-immune. */
 void gl_func_00066674(int **head, int data) {
     extern int D_X_66674;
     int *node = (int*)gl_func_00000000(D_X_66674);
-    node[0] = data;
+    int *cur;
     node[1] = 0;
-    if (*head == 0) {
+    node[0] = data;
+    cur = *head;
+    if (cur == 0) {
         *head = node;
     } else {
-        int *cur = *head;
         while (cur[1] != 0) {
             cur = (int*)cur[1];
         }
