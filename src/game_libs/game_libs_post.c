@@ -5834,24 +5834,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000233A0);
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_000233E4(int idx) {
-    char *g = (char *)&D_00000000;
-    short *buf = *(short **)(g + 0x2028);
-    int cur = buf[idx];
-    int cnt = *((unsigned char *)buf + cur);
-    do {
-        unsigned char e;
-        int r;
-        cur++;
-        e = *((unsigned char *)buf + cur);
-        gl_func_00000000(e);
-        r = gl_func_00000000(1);
-        if (r != 0) {
-            gl_func_00000000(r);
-            gl_func_00000000(0);
-        }
-        cnt--;
-    } while (cnt != 0);
-    buf[idx] = (short)cur;
+    unsigned char **g = (unsigned char **)((char *)&D_00000000 + 0x2028);
+    unsigned char *buf = *g;
+    int cur = ((unsigned short *)buf)[idx];
+    int cnt = buf[cur];
+    cur++;
+    if (cnt > 0) {
+        do {
+            unsigned char e;
+            int p;
+            cnt--;
+            e = (*g)[cur];
+            cur++;
+            p = gl_func_00000000(1, e);
+            if (gl_func_00000000(1, p) != 0) {
+                gl_func_00000000(p);
+                gl_func_00000000(p, 0);
+            }
+        } while (cnt > 0);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
