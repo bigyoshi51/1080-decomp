@@ -1977,9 +1977,12 @@ int *gl_func_0001F248(int *dst, int *a1, int *a2, int a3) {
     if (typ != 0) {
         int sz = (a3 * 2 + 0xF) & ~0xF;
         int dp = *(int *)((char *)&D_00000000 + 0x20);
-        gl_func_00000000(s0, 0x580, sz, dp + 0x80000000);
-        *(int *)((char *)&D_00000000 + 0x20) = dp + a3 * 4;
-        return s0 + 2;
+        int *old = s0;
+        s0 += 2;
+        gl_func_00000000(old, 0x580, sz, dp + 0x80000000);
+        *(int *)((char *)&D_00000000 + 0x20) =
+            *(int *)((char *)&D_00000000 + 0x20) + a3 * 4;
+        return s0;
     }
     s0[0] = 0x14080580;
     s0[1] = a1[0x10 / 4] + 0x80000000;
