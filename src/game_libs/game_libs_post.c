@@ -7956,6 +7956,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000253C4);
 // rematerializes the 0xFFFFFF mask 7x (lui/ori per &-use) and runs higher
 // register pressure (keeps n in-reg), while clean C at -O2 holds the mask in a
 // saved reg + spills n. Not forceable from C; documented coloring/remat cap.
+// gl_func_00025504 — FULL RECONSTRUCTION (&D_0-rooted), 65.58% NM (no episode).
+// Per-frame subsystem update driver. Base &D_00000000 held in s1; element-ptr
+// table @+0x430 (FIRST loop: pointer cursor p over &D_0, re-deref *(s32**)(p+0x430);
+// MAIN loop: index s5*4), record array @+0x620 (stride 0x14, indexed by state word
+// @+0x1034, reloaded + re-multu'd PER field store). Comparison keys are arg2->0x10 /
+// arg2->0x14 (NOT global). Two K&R variadic emits to game_libs_func_0003443C +
+// variadic gl_func_0001CA10. Logic verified byte-shape correct (multu pattern,
+// loop strides, field bases, call structure all match).
+// FIRST loop now uses an explicit pointer cursor p (GB..GB+n*4) re-dereffing
+// *(s32**)(p+0x430), matching the target's base-0 cursor walk (was index GW(0x430+i),
+// 65.06->65.58%).
+// CAP: residual ~25-insn gap is IDO constant-rematerialization/coloring — target
+// rematerializes the 0xFFFFFF mask 7x (lui/ori per &-use) and runs higher
+// register pressure (keeps n in-reg, beql-likely 2-arm dispatch, per-record re-multu),
+// while clean C at -O2 holds the mask in a saved reg + spills n. Not forceable from C.
 #ifdef NON_MATCHING
 #define GB ((char *)&D_00000000)
 #define GW(o) (*(s32 *)(GB + (o)))
@@ -7980,12 +7995,13 @@ void gl_func_00025504(s32 arg0, s32 arg1, char *arg2, s32 arg3) {
     game_libs_func_0003443C(arg0, arg1, arg2);
     n = GW(0x1030);
     if (n > 0) {
+        char *p = GB;
+        char *lim = GB + n * 4;
         sum = 0;
-        i = 0;
         do {
-            sum += ((*(s32 *)GW(0x430 + i) & 0xFFFFFF) + 15) & -16;
-            i += 4;
-        } while ((u32) i < (u32) (n * 4));
+            sum += ((**(s32 **)(p + 0x430) & 0xFFFFFF) + 15) & -16;
+            p += 4;
+        } while (p < lim);
     }
     if (n > 0) {
         i = 0;
