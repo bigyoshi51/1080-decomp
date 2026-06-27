@@ -542,34 +542,70 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070AE4);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00070B04)();
+#ifndef FH
+#define FH(p, o) (*(short *)((char *)(p) + (o)))
+#endif
+/* gl_func_00070B04: state-init routine. zeroes a 0x60 buffer at &D+0x2E4C0,
+ * publishes two cursor pointers (buf, buf+0x30) into two globals, seeds a
+ * halfword flag at buf+0x32, then walks a chain of (*state) struct pointers
+ * writing field_2/field_4 init values. A 3-way dispatch on a selector
+ * (0 / 2 / else) stores a distinct mode-table pointer into (*state)->field_8
+ * per arm; then field_0 = 0x20 and field_C = field_8->field_4. Finally polls
+ * SP status (0xA4400010) until the busy count drops below 11, then clears
+ * 0xA4400000. Each (*Gn) deref is modelled as a distinct global to reproduce
+ * the per-access lui/lw (the originals are separate baked-reloc data syms).
+ * Remaining divergence is the empty wait-loop tail: IDO emits a branch-likely
+ * (beqzl) where the target uses a plain load-at-top do/while (beqz) — a
+ * codegen-shape difference, not missing logic. */
+extern int gl_state_70B04_buf;     /* *G1: cursor a   */
+extern int gl_state_70B04_buf2;    /* *G2: cursor a+0x30 */
+extern int gl_p3;                  /* G3..G15: each access is a distinct global */
+extern int gl_p4;
+extern int gl_p5;
+extern int gl_p6;                  /* dispatch selector */
+extern int gl_p7;
+extern int gl_p9;                  /* selector re-read */
+extern int gl_p10;
+extern int gl_p12;
+extern int gl_p14;
+extern int gl_p15;
+extern int gl_modetab_0;           /* &G8  (arm default) */
+extern int gl_modetab_2;           /* &G11 (arm ==2) */
+extern int gl_modetab_else;        /* &G13 (arm else) */
 void gl_func_00070B04(void) {
-    char *temp_t5;
+    char *buf;
+    char *st;
 
-    gl_func_00062F64((char*)((char*)&D_00000000 + 0x2E4C0), 0x60);
-    *(int*)&D_00000000 = (char*)((char*)&D_00000000 + 0x2E4C0);
-    *(int*)&D_00000000 = (char*)((char*)&D_00000000 + 0x2E4F0);
-    FW((char*)((char*)&D_00000000 + 0x2E4C0), 0x32) = 1;
-    FW((*(int*)&D_00000000), 0x2) = 1;
-    FW((*(int*)&D_00000000), 0x4) = 0x80000000;
-    FW((*(int*)&D_00000000), 0x4) = 0x80000000;
-    if (*(int*)&D_00000000 == 0) {
-        FW((*(int*)&D_00000000), 0x8) = 0;
-    } else if (*(int*)&D_00000000 == 2) {
-        FW((*(int*)&D_00000000), 0x8) = 0;
+    buf = (char *)((char *)&D_00000000 + 0x2E4C0);
+    game_libs_func_00070314(buf, 0x60);
+
+    gl_state_70B04_buf = (int)((char *)&D_00000000 + 0x2E4C0);
+    gl_state_70B04_buf2 = (int)((char *)&D_00000000 + 0x2E4F0);
+    FH((char *)((char *)&D_00000000 + 0x2E4C0), 0x32) = 1;
+
+    FH(gl_p3, 0x2) = 1;
+    FW(gl_p4, 0x4) = 0x80000000;
+    FW(gl_p5, 0x4) = 0x80000000;
+
+    if (gl_p6 == 0) {
+        FW(gl_p7, 0x8) = (int)&gl_modetab_0;
+    } else if (gl_p9 == 2) {
+        FW(gl_p10, 0x8) = (int)&gl_modetab_2;
     } else {
-        FW((*(int*)&D_00000000), 0x8) = 0;
+        FW(gl_p12, 0x8) = (int)&gl_modetab_else;
     }
-    FW((*(int*)&D_00000000), 0x0) = 0x20;
-    temp_t5 = *(int*)&D_00000000;
-    FW(temp_t5, 0xC) = (s32) FW(FW(temp_t5, 0x8), 0x4);
-    if ((u32) *(u32 *)0xA4400010 >= 0xBU) {
-        do {
 
-        } while ((u32) *(char *)0xA4400010 >= 0xBU);
+    FH(gl_p14, 0x0) = 0x20;
+    st = (char *)gl_p15;
+    FW(st, 0xC) = FW(FW(st, 0x8), 0x4);
+
+    if (*(u32 *)0xA4400010 >= 0xBU) {
+        while (*(u32 *)0xA4400010 >= 0xBU) {
+            ;
+        }
     }
     *(s32 *)0xA4400000 = 0;
-    gl_func_00062F64();
+    game_libs_func_00070314();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070B04);
