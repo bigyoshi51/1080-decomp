@@ -7520,19 +7520,23 @@ extern int D_00000000;
  * Find a free 0x54-stride slot in [&D+0x1038, &D+0x1578); if none return 0. Init
  * s+0=1, s+4=a1, s+0xC=a1, s+0x10=a2, s+8=a0; scale s+0x14 = 4096 if a0==0 else
  * (a2/a0+255)&~0xFF floored at 256; s+1=3, s+2=a3, s+0x1C=arg6, s+0x18=arg7;
- * gl(s+0x20, s+0x38, 1); return s. */
+ * gl(s+0x20, s+0x38, 1); return s.
+ * 2026-06-27: CSE-break on the end marker (write `(char*)&D_00000000 + 0x540`
+ * inline at both the loop bound and the post-loop full-table test instead of a
+ * cached `base + 0x540`). IDO then re-materialises the end address separately
+ * for the post-loop compare, matching the expected's extra lui. 66.65 -> 67.74. */
 void *gl_func_00024F30(int a0, int a1, int a2, int a3, int arg5, int arg6, int arg7) {
     char *base = (char *)&D_00000000;
     char *v0;
     char *s = 0;
     (void)arg5;
-    for (v0 = base; v0 != base + 0x540; v0 += 0x54) {
+    for (v0 = base; v0 != (char *)&D_00000000 + 0x540; v0 += 0x54) {
         if (*(char *)(v0 + 0x1038) == 0) {
             s = v0 + 0x1038;
             break;
         }
     }
-    if (v0 == base + 0x540) {
+    if (v0 == (char *)&D_00000000 + 0x540) {
         return 0;
     }
     *(char *)(s + 0) = 1;
