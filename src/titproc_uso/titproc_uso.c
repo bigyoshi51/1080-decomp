@@ -1529,148 +1529,18 @@ void titproc_uso_func_00001E2C(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* titproc_uso_func_00001E9C: 245-insn titproc constructor for ~0x6C8-byte object.
- *
- * 2026-06-22 REAL-SYMBOL PASS: prior body used gl_func_00000000 / &D_00000000
- * placeholders + D_tit_1E9C_v0..3 fakes -> ALL jal/HI16/LO16 relocs were WRONG.
- * Remapped every callee/global from the resolved relocs in
- * expected/src/titproc_uso/titproc_uso.c.o: allocator titproc_uso_func_055750;
- * init titproc_uso_func_04C678; vtable ptrs import_00073B18/B80/745F8 +
- * titproc_uso_D_000334; node-init titproc_uso_func_07ACE0; dispatch allocs
- * 0015F4/001840/001D7C/001B10; data base titproc_uso_D_00048C
- * (+0x514/0x51C/0x52C/0x530) and import_00020098 (+0x84/0x138/0x190). Fuzzy
- * held at 73.5% (instruction shape unchanged) but relocs now resolve correctly.
- * RESIDUAL = pure register-coloring/economy cap: target binds self->s1 (mine
- * s0) and threads the dead-guard chain through v1/a0 with a single sp+0x38
- * spill, while IDO spills an extra temp here (~12-insn size gap). Same cap
- * class as NM-capped sibling titproc_uso_func_00001840 (94%). Stays NM.
- *
- * 2026-06-01 (18.67 -> 27.64): confirmed SIBLING of timproc_uso_b3_func_00000994
- * / timproc_uso_b1_func_0000097C (0x6A8-alloc constructor family). The prior
- * "multi-write to p->0x28" reading was WRONG — it's the standard cascade's 4
- * distinct vtable stores (n3/n2/n1/self ->0x28 = t6/t7/t8/t9). Ported the proven
- * cascade + field-init structure (goto-chain dead-guards + distinct externs
- * D_tit_1E9C_v0..3; self alloc 0x6C8, D-template 0x514/0x51C/0x530, self->0x6ac).
- * Removed the broken `_TODO_loop` placeholder call. TBD: titproc's tail is a
- * UNIQUE double-buffering sub-loop (NOT shared with 994) — needs per-fn decode
- * from /tmp/ttit.txt (insns ~78-245).
- *
- * Frame: -0x40, saves ra/s0/s1, spills a1/a2/a3 to caller slots at +0x44/+0x48/+0x4C.
- *
- * STRUCTURE (decoded ~120/245 insns):
- *
- *   p = a0 ?: alloc(0x6C8); if (!p) goto end;            // s1 = p
- *   q = p;  if (!q) { q = alloc(0x6A8); if (!q) goto end; }  // s0 = q (dead alloc path)
- *   r = q;  if (!r) { r = alloc(0x50);  if (!r) goto end; }  // v1 = r (dead alloc path)
- *   sub = alloc(0x2C);                                    // sp+0x38
- *   if (sub != NULL) {
- *     gl_func_00000000(sub, &D + 0x514);                  // init sub at template
- *     spill_v1 = sub  (sp+0x34)
- *     p->0x28 = &D_00000000;
- *     ((void*)p)->0x28 = &D + 0;                          // p[10] = &D
- *     p->0x28 = sub;                                      // overrides — multi-write
- *     gl_func_00000000(p + 0x50);                         // init p+0x50
- *     p->0x28 = &D + 0;
- *     p->0x568 = 0;
- *     gl_func_00000000(&D + 0x51C, *(int*)(sp+0x44)=a1, *(int*)(sp+0x48)=a2, p);
- *     p->0x528 = (gl_func ret);
- *     gl_func_00000000(&D + 0x530, 0);                    // 2nd cross-call
- *     gl_func_00000000(&D + 0,    0);                     // 3rd
- *     gl_func_00000000(0);                                // 4th
- *     p->0x6AC = (last gl_func ret val from sub-call set);
- *     D[0x138] = p->0x6AC;                                // global flag
- *     gl_func_00000000(p->0x6AC);
- *
- *     // SUB-LOOP (insns ~0x1FD8-0x2018, ~16 insns):
- *     spill_a4 = p->0x6AC + 0x10  (sp+0x2C)
- *     do {
- *       gl_func_00000000(p->0x6AC + 0x10, p);
- *       cnt = sub->0x14;
- *       if (cnt == 0) sub->0x4 = 1;                       // first-time flag
- *       sub->0x14 = s1 (= p);                             // back-pointer
- *       gl_func_00000000(*(int*)(sp+0x44)=a1);
- *       p->0x48 = a1_save;                                // 2 stores for outgoing arg
- *       p->0x4F4 = (a1 & 0xFFFF);                         // low-half of a1
- *       a1_high = (a1 >> 16) << 7                         // sll-srl shuffle
- *       if (a1_high < ?) p->0x6B4 = ?
- *       gl_func_00000000(0);
- *       p->0x6B0 = (gl_func ret val);
- *       sub2 = p->0x6B0->0x28;
- *       fn  = sub2->0x5C;
- *       arg = (int)(p->0x6B0) + (short)sub2->0x58;        // signed-short adjust
- *       fn(arg);
- *       sub3 = p->0x6B0;                                  // reload after call
- *       gl_func_00000000(p->0x6AC + 0x10, p);             // 2nd subobj init
- *       cnt = sub->0x14;
- *       if (cnt == 0) sub->0x4 = 1;
- *       sub->0x14 = p;
- *     } while (...);                                       // (TODO: terminator unclear)
- *
- *   // EPILOGUE (0x225C-0x226C):
- *   end:
- *     return s1;                                           // returns p
- *   }
- *
- * Quirks:
- *   - Multi-write to p->0x28: 3 distinct &D-derived addresses overwrite each
- *     other (looks like compiler initializing same field at different decoder
- *     stages — possibly union or struct-fill via `*(int*)(p+0x28) = ...`).
- *   - Sub-loop has 2 alloc-or-init blocks (sub at +0x10 and at base) — looks
- *     like double-buffering setup.
- *   - "(a1 & 0xFFFF) | shifted-bits-stored-at-+0x4F4" pattern is per-frame
- *     coordinate packing (sll/srl shuffle on a1 at insns 0x2010-0x202C).
- *
- * Identified field offsets (for future struct-typing):
- *   p->0x28: parent template ptr (multi-write)
- *   p->0x48: saved a1 ptr (caller-supplied parent)
- *   p->0x4F4: packed low-half of caller-arg
- *   p->0x528: gl_func return (sub-init-A)
- *   p->0x568: zeroed flag
- *   p->0x6AC: gl_func return (sub-init-B; primary inner pointer)
- *   p->0x6B0: gl_func return (sub-init-C; secondary inner pointer)
- *   p->0x6B4: conditional value
- *   p->0x6B8/0x6BC/0x6C0/0x6C4: more inner ptrs from later jal returns
- *
- * Default build INCLUDE_ASM matches. C body below covers the ~50% of insns
- * with the highest structural confidence; remaining ~120 insns of the
- * sub-loop tail are stubbed as TODO. */
-/* 2026-06-22: real-symbol pass (was placeholder gl_func/&D -> wrong relocs).
- * Callees/data mapped from resolved relocs in expected/.../titproc_uso.c.o.
- * Structure kept from the higher-fuzzy prior reconstruction. Register coloring
- * is the same ugen temploc-binding / as1-fill cap class as sibling
- * titproc_uso_func_00001840 (NM at 94%) -> stays NON_MATCHING. */
-extern int titproc_uso_func_055750();
-extern int titproc_uso_func_04C678();
-extern int titproc_uso_func_074710();
-extern int titproc_uso_func_01B0F8();
-extern int titproc_uso_func_0015F4();
-extern int titproc_uso_func_001D7C();
-extern int titproc_uso_func_001B10();
-extern int titproc_uso_func_0022BC();
-extern int titproc_uso_func_0139B0();
-extern int titproc_uso_func_074840();
-extern int import_00073B80();
-extern int import_000745F8();
-extern int import_000AE700();
-extern int import_000B0DBC();
-extern int import_000A7ECC();
-extern int import_000B6C40();
-extern int import_000B88CC();
-extern int import_000A5D38();
-extern int import_000A5F40();
-extern int import_000A5FBC();
-extern int import_0024CCF4();
-extern char titproc_uso_D_000334;
-extern char titproc_uso_D_00052C;
 void *titproc_uso_func_00001E9C(void *a0, void *a1, void *a2, void *a3) {
+extern char import_000745F8;
+extern char titproc_uso_D_000334;
     int *p = (int *)a0;
     int *n1, *n2, *n3;
+    int *nd;
     /* 5-stage get-or-create cascade (sibling of timproc_uso_b3_func_00000994 /
      * timproc_uso_b1_func_0000097C; self alloc 0x6C8 here, D-template 0x514).
      * goto-chain dead-guards + distinct-extern vtable stores (CSE-bust). */
     if (a0 == NULL) {
         p = (int *)titproc_uso_func_055750(0x6C8);
-        if (p == NULL) return (void *)p;
+        if (p == NULL) goto end;
     }
     n1 = p;
     if (p == NULL) { n1 = (int *)titproc_uso_func_055750(0x6A8); if (n1 == NULL) goto S_self; }
@@ -1697,9 +1567,10 @@ S_self:
     *(int *)((char *)&import_00020098 + 0x138) = p[0x6AC / 4];
 
     /* tail: node init + virtual dispatch (insns 78-108) */
-    import_000B88CC(p[0x6AC / 4]);
     {
-        int *node = (int *)p[0x6AC / 4];
+        int *node;
+        import_000B88CC(p[0x6AC / 4]);
+        node = (int *)p[0x6AC / 4];
         titproc_uso_func_07ACE0((char *)p + 0x10, node);
         if (node[0x14 / 4] != 0) {
             node[0x4 / 4] = 1;
@@ -1718,87 +1589,77 @@ S_self:
         p[0x6B0 / 4] = (int)r6b0;
         vt = (int *)r6b0[0x28 / 4];
         ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)r6b0);
-    }
-    titproc_uso_func_07ACE0((char *)p + 0x10, (int *)p[0x6B0 / 4]);
-    {
-        int *n = (int *)p[0x6B0 / 4];
-        if (n[0x14 / 4] != 0) {
-            n[0x4 / 4] = 1;
+        nd = (int *)p[0x6B0 / 4];
+        titproc_uso_func_07ACE0((char *)p + 0x10, nd);
+        if (nd[0x14 / 4] != 0) {
+            nd[0x4 / 4] = 1;
         }
-        n[0x14 / 4] = (int)p;
+        nd[0x14 / 4] = (int)p;
     }
-    p[0x6B4 / 4] = (int)titproc_uso_func_001840(0);
     {
-        int *n = (int *)p[0x6B4 / 4];
+        int *r = (int *)titproc_uso_func_001840(0);
         int *vt;
-        n[0x38 / 4] = 1;
-        n[0x2C / 4] = 0;
-        vt = (int *)n[0x28 / 4];
-        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)n);
+        p[0x6B4 / 4] = (int)r;
+        r[0x38 / 4] = 1;
+        ((int *)p[0x6B4 / 4])[0x2C / 4] = 0;
+        vt = (int *)((int *)p[0x6B4 / 4])[0x28 / 4];
+        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + p[0x6B4 / 4]);
     }
-    titproc_uso_func_07ACE0((char *)p + 0x10, (int *)p[0x6B4 / 4]);
-    {
-        int *n = (int *)p[0x6B4 / 4];
-        if (n[0x14 / 4] != 0) {
-            n[0x4 / 4] = 1;
-            n[0x14 / 4] = (int)p;
-        } else {
-            p[0x6B4 / 4] = 0;
-        }
+    nd = (int *)p[0x6B4 / 4];
+    titproc_uso_func_07ACE0((char *)p + 0x10, nd);
+    if (nd[0x14 / 4] != 0) {
+        nd[0x4 / 4] = 1;
+        nd[0x14 / 4] = (int)p;
+    } else {
+        p[0x6B4 / 4] = 0;
     }
-    p[0x6BC / 4] = (int)titproc_uso_func_001D7C(0);
-    titproc_uso_func_07ACE0((char *)p + 0x10, (int *)p[0x6BC / 4]);
-    {
-        int *n = (int *)p[0x6BC / 4];
-        if (n[0x14 / 4] != 0) {
-            n[0x4 / 4] = 1;
-        }
-        n[0x14 / 4] = (int)p;
+    nd = (int *)titproc_uso_func_001D7C(0);
+    p[0x6BC / 4] = (int)nd;
+    titproc_uso_func_07ACE0((char *)p + 0x10, nd);
+    if (nd[0x14 / 4] != 0) {
+        nd[0x4 / 4] = 1;
     }
+    nd[0x14 / 4] = (int)p;
     if (((int)a1 << 8) >= 0) {
         p[0x6C0 / 4] = 0;
     } else {
-        int *n6b8 = (int *)titproc_uso_func_001B10(0);
-        p[0x6B8 / 4] = (int)n6b8;
-        titproc_uso_func_07ACE0((char *)p + 0x10, n6b8);
-        if (n6b8[0x14 / 4] != 0) {
-            n6b8[0x4 / 4] = 1;
+        nd = (int *)titproc_uso_func_001B10(0);
+        p[0x6B8 / 4] = (int)nd;
+        titproc_uso_func_07ACE0((char *)p + 0x10, nd);
+        if (nd[0x14 / 4] != 0) {
+            nd[0x4 / 4] = 1;
         }
-        n6b8[0x14 / 4] = (int)p;
+        nd[0x14 / 4] = (int)p;
         p[0x6C0 / 4] = (int)import_000A5D38(0);
         import_000A5F40((int *)p[0x6C0 / 4], p);
         titproc_uso_func_0022BC(p);
-        {
-            int *n6c0 = (int *)p[0x6C0 / 4];
-            n6c0[0x30 / 4] = (int)import_0024CCF4(0, &titproc_uso_D_00052C, 0x48, 0xDD, 3, 13);
-            *(float *)((char *)n6c0 + 0x74) = 17.0f;
-        }
+        ((int *)p[0x6C0 / 4])[0x30 / 4] = (int)import_0024CCF4(0, &titproc_uso_D_00052C, 0x48, 0xDD, 3, 13);
+        *(float *)((char *)p[0x6C0 / 4] + 0x74) = 17.0f;
         import_000A5FBC((int *)p[0x6C0 / 4]);
         titproc_uso_func_00F4CC((int *)p[0x6C0 / 4]);
         *(int *)((char *)p[0x6C0 / 4] + 0x7C) = *(int *)((char *)&import_00020098 + 0x84);
-        titproc_uso_func_07ACE0((char *)p + 0x10, (int *)p[0x6C0 / 4]);
-        {
-            int *n = (int *)p[0x6C0 / 4];
-            if (n[0x14 / 4] != 0) {
-                n[0x4 / 4] = 1;
-                n[0x14 / 4] = (int)p;
-            } else {
-                p[0x6C0 / 4] = 0;
-            }
+        nd = (int *)p[0x6C0 / 4];
+        titproc_uso_func_07ACE0((char *)p + 0x10, nd);
+        if (nd[0x14 / 4] != 0) {
+            nd[0x4 / 4] = 1;
+            nd[0x14 / 4] = (int)p;
+        } else {
+            p[0x6C0 / 4] = 0;
         }
     }
     p[0x6C4 / 4] = 0;
     {
-        int *node = *(int **)((char *)&import_00020098 + 0x190);
-        titproc_uso_func_07ACE0((char *)p + 0x10, node);
-        if (node[0x14 / 4] != 0) {
-            node[0x4 / 4] = 1;
-            node[0x14 / 4] = (int)p;
+        nd = *(int **)((char *)&import_00020098 + 0x190);
+        titproc_uso_func_07ACE0((char *)p + 0x10, nd);
+        if (nd[0x14 / 4] != 0) {
+            nd[0x4 / 4] = 1;
+            nd[0x14 / 4] = (int)p;
         }
         titproc_uso_func_0139B0(*(int **)((char *)&import_00020098 + 0x190), 1, 0);
         titproc_uso_func_074840();
         import_000A7ECC(&import_00020098, 0);
     }
+end:
     return (void *)p;
 }
 #else
