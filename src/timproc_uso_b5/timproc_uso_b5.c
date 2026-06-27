@@ -9124,133 +9124,153 @@ void timproc_uso_b5_func_0000D0DC(char *a0) {
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000D14C: 257-insn / 0x404 constructor.
- * First pass structural decode from word-only USO asm (m2c cannot parse it
- * directly; decoded via assemble+objdump per docs/TOOLING_DECOMP.md).
- *
- * High-level shape:
- *   - allocate/init a 0x2C4 root object, attaching it to a0->2B8 and a0->29C
- *   - create/attach a 0x148 child at root->108 and optional 0x16C child at
- *     root->108->108
- *   - initialize render/state floats, vtable slots, a D_00000000 flag pair,
- *     then store the root in a0->3C[a0->6C++].
- *
- * This is intentionally a NON_MATCHING skeleton: default build stays
- * INCLUDE_ASM, but the major object offsets and side effects are now recorded
- * for future constructor tightening / struct typing. */
+ * Reconstructed from expected disasm with distinct named callees + data
+ * symbols (sibling-ported from timproc_uso_b5_func_0000D884, the matching
+ * twin in this TU). Each call now emits its own R_MIPS_26 reloc and each
+ * data ref its own HI16/LO16 against the real USO global. */
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+
+extern char timproc_uso_b5_D_807FEE30;
+extern char timproc_uso_b5_D_807FEE38;
+extern char timproc_uso_b5_D_807FDDEC;
+extern char timproc_uso_b5_D_807FEE48;
+extern char timproc_uso_b5_D_807FEE54;
+extern char timproc_uso_b5_D_807FDAB8;
+extern char timproc_uso_b5_D_807FDB4C;
+extern char timproc_uso_b5_D_807FDB64;
+extern char import_80807FB8;
+extern char import_80087FB8[];
+extern char import_80800078;
+extern char import_80020078;
+extern char import_8005EE6C;
+extern char import_8005EE64;
+
+#define D14C_EE6C (*(volatile int *)((char *)&import_8005EE6C + 4))
+#define D14C_EE64 (*(volatile int *)((char *)&import_8005EE64 + 0))
+
 int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, int arg3,
                                  float arg4, float arg5, float arg6) {
     char *root;
-    char *maybe_child;
+    char *obj;
     char *child;
-    char *grandchild;
-    int saved_flags;
-    int index;
+    char *gc;
+    char *obj2;
+    char *owner;
+    int savedbit;
+    int n;
 
-    root = (char*)gl_func_00000000(0x2C4);
+    root = (char *)timproc_uso_b5_func_055750((char *)0x2C4);
     if (root != 0) {
-        maybe_child = root;
-        if (maybe_child == 0) {
-            maybe_child = (char*)gl_func_00000000(0x2B8);
-            if (maybe_child != 0) {
-                gl_func_00000000(maybe_child, (char*)&D_00000000 + 0x15C0);
-                *(int*)(maybe_child + 0x28) = (int)&D_00000000;
-                gl_func_00000000(maybe_child + 0x2C);
-                gl_func_00000000(maybe_child + 0x194);
-            }
+        obj = root;
+        if (obj == 0 ||
+            (obj = (char *)timproc_uso_b5_func_055750((char *)0x2B8)) != 0) {
+            timproc_uso_b5_func_04C678(obj, &timproc_uso_b5_D_807FEE30 + 0x15C0);
+            FW(obj, 0x28) = (int)(&timproc_uso_b5_D_807FDB64 + 0);
+            timproc_uso_b5_func_00002B74(obj + 0x2C);
+            timproc_uso_b5_func_000032C8(obj + 0x194);
         }
-        *(int*)(root + 0x28) = (int)((char*)&D_00000000 + 0x5E4);
-        *(int*)(root + 0x0C) = (int)((char*)&D_00000000 + 0x15C8);
-        gl_func_00000000(root);
+        FW(root, 0x28) = (int)(&timproc_uso_b5_D_807FEE38 + 0x5E4);
+        FW(root, 0xC) = (int)(&timproc_uso_b5_D_807FEE38 + 0x15C8);
+        timproc_uso_b5_func_00003890(root);
     }
 
-    gl_func_00000000(a0 + 0x10, root);
-    if (*(int*)(root + 0x14) != 0) {
-        *(int*)(root + 0x04) = 1;
+    timproc_uso_b5_func_07ACE0(a0 + 0x10, root);
+    if (FW(root, 0x14) != 0) {
+        FW(root, 0x4) = 1;
     }
-    *(int*)(root + 0x14) = (int)a0;
-    *(float*)(root + 0x2A4) = (float)arg1;
-    *(int*)(root + 0x2B0) = arg2 - 1;
+    FW(root, 0x14) = (int)a0;
+    *(float *)(root + 0x2A4) = (float)arg1;
+    FW(root, 0x2B0) = arg2 - 1;
 
-    child = (char*)gl_func_00000000(0x148);
+    child = (char *)timproc_uso_b5_func_055750((char *)0x148);
     if (child != 0) {
-        float zero = 0.0f;
-        gl_func_00000000(child, (char*)&D_00000000 + 0x15D8, zero, zero, zero);
-        *(int*)(child + 0x28) = (int)((char*)&D_00000000 + 0x57C);
+        timproc_uso_b5_func_0546DC(child, &timproc_uso_b5_D_807FEE48 + 0x15D8,
+                                   0.0f, 0.0f);
+        FW(child, 0x28) = (int)(&timproc_uso_b5_D_807FDDEC + 0x57C);
 
-        grandchild = (char*)gl_func_00000000(0x16C);
-        if (grandchild != 0) {
-            gl_func_00000000(grandchild, (char*)&D_00000000 + 0x15E4,
-                             zero, zero, zero);
-            *(int*)(grandchild + 0x120) = 0xFFFF;
-            *(int*)(grandchild + 0x28) = (int)&D_00000000;
-            *(float*)(grandchild + 0x108) = TIMB5_F_3A0;
-            *(float*)(grandchild + 0x10C) = TIMB5_F_3A0;
-            *(float*)(grandchild + 0x110) = TIMB5_F_3A0;
-            *(float*)(grandchild + 0x124) = 1.0f;
+        gc = (char *)timproc_uso_b5_func_055750((char *)0x16C);
+        if (gc != 0) {
+            timproc_uso_b5_func_0546DC(gc, &timproc_uso_b5_D_807FEE54 + 0x15E4,
+                                       0.0f, 0.0f);
+            FW(gc, 0x120) = 0xFFFF;
+            FW(gc, 0x28) = (int)(&import_80087FB8[0]);
+            *(float *)(gc + 0x108) = *(float *)((char *)&import_80807FB8 + 0x3A0);
+            *(float *)(gc + 0x10C) = *(float *)((char *)&import_80807FB8 + 0x3A0);
+            *(float *)(gc + 0x110) = *(float *)((char *)&import_80807FB8 + 0x3A0);
+            *(float *)(gc + 0x124) = 1.0f;
         }
 
-        *(int*)(child + 0x108) = (int)grandchild;
-        gl_func_00000000(child, grandchild);
-        *(float*)(grandchild + 0xB4) = 0.0f;
-        *(float*)(grandchild + 0xBC) = 0.0f;
-        *(float*)(grandchild + 0xB8) = 100.0f;
-        *(float*)(child + 0x130) = *(float*)((char*)&D_00000000 + 0x3A4);
-
-        gl_func_00000000(0xB4, *(int*)&D_00000000, grandchild + 0xB4);
-        maybe_child = (char*)gl_func_00000000(0xB4);
-        if (maybe_child != 0) {
-            gl_func_00000000(maybe_child, *(int*)&D_00000000);
-            *(int*)(maybe_child + 0x28) = (int)((char*)&D_00000000 + 0x248);
-            *(int*)(maybe_child + 0xB0) = 0;
-            gl_func_00000000(maybe_child);
-        }
-        *(int*)(child + 0x10C) = (int)maybe_child;
-        gl_func_00000000(child, maybe_child);
-
-        saved_flags = *(int*)((char*)&D_00000000 + 0x04) & 0x00080000;
-        *(int*)((char*)&D_00000000 + 0x04) =
-            (*(int*)((char*)&D_00000000 + 0x04) & 0xFFF7FFFF) | 0x22003;
-        *(int*)&D_00000000 &= ~8;
-
-        gl_func_00000000(arg3, 0, 0x201, grandchild, child);
-        *(int*)(child + 0x140) = *(int*)((char*)&D_00000000 + arg3 * 4);
-        gl_func_00000000(grandchild, *(int*)(child + 0x140), 0, 2, 2, 1);
+        FW(child, 0x108) = (int)gc;
+        timproc_uso_b5_func_04DFFC(child, gc);
         {
-            char *vt = *(char**)(grandchild + 0x28);
-            (*(void(**)(void))(vt + 0x24))();
+            char *p = (char *)FW(child, 0x108);
+            *(float *)(p + 0xB4) = 0.0f;
+            *(float *)(p + 0xBC) = 0.0f;
+            *(float *)(p + 0xB8) = 100.0f;
+        }
+        *(float *)(child + 0x130) = *(float *)((char *)&import_80800078 + 0x3A4);
+
+        obj2 = (char *)timproc_uso_b5_func_055750((char *)0xB4);
+        if (obj2 != 0) {
+            obj2 = (char *)import_0010D33C(obj2, *(int *)&import_80020078);
+            FW(obj2, 0x28) = (int)(&timproc_uso_b5_D_807FDAB8 + 0x248);
+            FW(obj2, 0xB0) = 0;
+            timproc_uso_b5_func_077574(obj2);
+        }
+        FW(child, 0x10C) = (int)obj2;
+        timproc_uso_b5_func_04DFFC(child, obj2);
+
+        savedbit = D14C_EE6C & 0x80000;
+        D14C_EE6C = (D14C_EE6C & 0xFFF7FFFF) | 0x22003;
+        D14C_EE64 = D14C_EE64 & ~8;
+
+        timproc_uso_b5_func_00B1B4(arg2, 0, 0x201, FW(child, 0x10C), child);
+        FW(child, 0x140) = *(int *)((&timproc_uso_b5_D_807FDB4C + 0) + arg2 * 4);
+        timproc_uso_b5_func_077C44((char *)FW(child, 0x10C), FW(child, 0x140),
+                                   0, 2, 2, 1);
+        {
+            char *p = (char *)FW(child, 0x10C);
+            char *vt = (char *)FW(p, 0x28);
+            (*(void (**)())(vt + 0x24))((int)((short *)vt)[0x10] + (int)p);
         }
 
-        if (saved_flags != 0) {
-            *(int*)((char*)&D_00000000 + 0x04) |= 0x00080000;
+        if (savedbit != 0) {
+            D14C_EE6C = D14C_EE6C | 0x80000;
         } else {
-            *(int*)((char*)&D_00000000 + 0x04) &= 0xFFF7FFFF;
+            D14C_EE6C = D14C_EE6C & 0xFFF7FFFF;
         }
 
-        *(float*)(child + 0x110) = arg4;
-        *(float*)(child + 0x114) = arg5;
-        *(float*)(child + 0x118) = arg6;
-        *(float*)(child + 0x120) = 0.0f;
-        *(float*)(child + 0x124) = *(float*)((char*)&D_00000000 + 0x3A8);
-        *(float*)(child + 0x128) = *(float*)((char*)&D_00000000 + 0x3AC);
-        *(int*)(child + 0x144) = 1;
-        *(int*)(child + 0x138) = 0;
-        *(int*)(child + 0x134) = 0;
+        *(float *)(child + 0x110) = arg4;
+        *(float *)(child + 0x114) = arg5;
+        *(float *)(child + 0x118) = arg6;
+        *(float *)(child + 0x120) = 0.0f;
+        *(float *)(child + 0x124) = *(float *)((char *)&import_80807FB8 + 0x3A8);
+        *(float *)(child + 0x128) = *(float *)((char *)&import_80807FB8 + 0x3AC);
+        FW(child, 0x144) = 1;
+        FW(child, 0x138) = 0;
+        FW(child, 0x134) = 0;
     }
 
-    *(int*)(root + 0x2B8) = (int)child;
-    *(int*)(root + 0x29C) = (int)child;
-    *(float*)(root + 0x134) = *(float*)((char*)&D_00000000 + 0x3B0);
-    gl_func_00000000(*(char**)(a0 + 0x38) + 0x10, child);
-    if (*(int*)(child + 0x14) != 0) {
-        *(int*)(child + 0x04) = 1;
-    }
-    *(int*)(child + 0x14) = *(int*)(a0 + 0x38);
+    FW(root, 0x2B8) = (int)child;
+    FW(root, 0x29C) = (int)child;
+    *(float *)(root + 0x134) = *(float *)((char *)&import_80807FB8 + 0x3B0);
 
-    index = *(int*)(a0 + 0x6C);
-    *(int*)(a0 + 0x6C) = index + 1;
-    *(int*)(a0 + 0x3C + index * 4) = (int)root;
+    owner = (char *)FW(a0, 0x38);
+    timproc_uso_b5_func_07ACE0(owner + 0x10, child);
+    if (FW(child, 0x14) != 0) {
+        FW(child, 0x4) = 1;
+    }
+    FW(child, 0x14) = FW(a0, 0x38);
+
+    n = FW(a0, 0x6C);
+    FW(a0, 0x6C) = n + 1;
+    FW(a0 + n * 4, 0x3C) = (int)root;
     return (int)root;
 }
+#undef D14C_EE6C
+#undef D14C_EE64
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D14C);
 #endif
