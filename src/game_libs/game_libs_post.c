@@ -3505,7 +3505,7 @@ loop_1:
                 if (temp_a1 > 0) {
                     var_v0 = *(char **)0x2CFC;
 loop_19:
-                    if ((FW(var_v0, 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0, 0xB0) >> 0x1F) == 0)) {
+                    if ((*(u8 *)(var_v0 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0, 0xB0) >> 0x1F) == 0)) {
                         var_v1_2 += 1;
                         var_v0 += 0xD0;
                         if (var_v1_2 < temp_a1) {
@@ -3528,7 +3528,7 @@ loop_19:
                 if (temp_a1_2 > 0) {
                     var_v0_2 = *(char **)0x2CFC;
 loop_27:
-                    if ((FW(var_v0_2, 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_2, 0xB0) >> 0x1F) == 0)) {
+                    if ((*(u8 *)(var_v0_2 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_2, 0xB0) >> 0x1F) == 0)) {
                         var_v1_3 += 1;
                         var_v0_2 += 0xD0;
                         if (var_v1_3 < temp_a1_2) {
@@ -3577,7 +3577,7 @@ loop_27:
                 var_v1_4 = 0;
                 if (temp_a0_2 > 0) {
 loop_46:
-                    if ((((u32) FW(var_v0_4, 0x2D00) >> 0x1F) == 0) || (FW(var_v0_4, 0x2D04) != (*(s16 *)((char *)var_a2_2 + 0x1E)))) {
+                    if ((((u32) FW(var_v0_4, 0x2D00) >> 0x1F) == 0) || (*(u8 *)(var_v0_4 + 0x2D04) != (*(s16 *)((char *)var_a2_2 + 0x1E)))) {
                         var_v1_4 += 1;
                         var_v0_4 += 0x160;
                         if (var_v1_4 < temp_a0_2) {
@@ -3599,7 +3599,7 @@ block_51:
                 var_v1_5 = 0;
                 if (temp_a0_3 > 0) {
 loop_53:
-                    if ((((u32) FW(var_v0_5, 0x2D00) >> 0x1F) == 0) || (FW(var_v0_5, 0x2D04) != (*(s16 *)((char *)var_a2_2 + 0x2A)))) {
+                    if ((((u32) FW(var_v0_5, 0x2D00) >> 0x1F) == 0) || (*(u8 *)(var_v0_5 + 0x2D04) != (*(s16 *)((char *)var_a2_2 + 0x2A)))) {
                         var_v1_5 += 1;
                         var_v0_5 += 0x160;
                         if (var_v1_5 < temp_a0_3) {
@@ -3623,7 +3623,7 @@ loop_53:
                 if (temp_a1_3 > 0) {
                     var_v0_6 = *(char **)0x2CFC;
 loop_62:
-                    if ((FW(var_v0_6, 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0_6, 0xB0) >> 0x1F) == 0)) {
+                    if ((*(u8 *)(var_v0_6 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0_6, 0xB0) >> 0x1F) == 0)) {
                         var_v1_6 += 1;
                         var_v0_6 += 0xD0;
                         if (var_v1_6 < temp_a1_3) {
@@ -3645,7 +3645,7 @@ block_67:
                 if (temp_a1_4 > 0) {
                     var_v0_7 = *(char **)0x2CFC;
 loop_70:
-                    if ((FW(var_v0_7, 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_7, 0xB0) >> 0x1F) == 0)) {
+                    if ((*(u8 *)(var_v0_7 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_7, 0xB0) >> 0x1F) == 0)) {
                         var_v1_7 += 1;
                         var_v0_7 += 0xD0;
                         if (var_v1_7 < temp_a1_4) {
