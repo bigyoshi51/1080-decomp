@@ -431,45 +431,52 @@ void game_libs_func_00000B8C(int a0) {}
  * (body: mflo of B94's multu, prologue, sprintf-style calls, epilogue). The
  * multu(B94)/mflo(BAC) LO-register dependency proves they are one function;
  * IDO scheduled the division setup before the addiu sp prologue. */
+/* game_libs_func_00000B94: ms->time formatter (a1 / 60000 = minutes, etc.).
+ * Merged 2026-05-23: splat mis-split this at 0xBAC into game_libs_func_00000B94
+ * (head: div a1,60000; v0<<4; multu v0,60000 — no prologue/jr) + gl_func_00000BAC
+ * (body: mflo of B94's multu, prologue, sprintf-style calls, epilogue). The
+ * multu(B94)/mflo(BAC) LO-register dependency proves they are one function;
+ * IDO scheduled the division setup before the addiu sp prologue. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00000B94)();
 void game_libs_func_00000B94(char *arg0, s32 arg1, s32 arg2) {
     s32 sp24;
+    s32 qmin;
+    s32 rem;
+    s32 qsec;
+    s32 secs;
     s32 temp_a2;
-    s32 temp_a3;
-    s32 temp_lo;
     s32 temp_v0;
-    s32 temp_v1;
 
-    temp_a3 = arg1 % 60000;
+    qmin = arg1 / 60000;
+    rem = arg1 - (qmin * 60000);
     FW(arg0, 0xC8) = arg2;
-    temp_v1 = (temp_a3 / 1000) + ((arg1 / 60000) * 0x3C);
-    FW(arg0, 0xD0) = temp_v1;
-    if (temp_v1 == 0) {
-        temp_lo = (s32) ((arg1 % 60000) % 1000) / 10;
-        sp24 = temp_lo;
-        if (temp_lo != 0) {
+    qsec = rem / 1000;
+    secs = qsec + (qmin * 0x3C);
+    FW(arg0, 0xD0) = secs;
+    if (secs == 0) {
+        sp24 = (rem - (qsec * 1000)) / 10;
+        if (sp24 != 0) {
             goto block_4;
         }
         goto block_5;
     }
 block_4:
-    sp24 = (s32) ((arg1 % 60000) % 1000) / 10;
+    sp24 = (rem - (qsec * 1000)) / 10;
     if (FW(arg0, 0xC8) == 0) {
 block_5:
         FW(arg0, 0xC4) = 8;
     }
     temp_a2 = FW(arg0, 0xD0);
     if (temp_a2 >= 0x64) {
-        gl_func_00000000((int)arg0 + 0xB4, 0xCB9C, temp_a2, temp_a3);
+        gl_func_00000000((int)arg0 + 0xB4, 0xCB9C, temp_a2, rem);
     } else if (temp_a2 >= 0xA) {
-        gl_func_00000000((int)arg0 + 0xB4, 0xCBA0, temp_a2, temp_a3);
+        gl_func_00000000((int)arg0 + 0xB4, 0xCBA0, temp_a2, rem);
     } else {
         if (temp_a2 != FW(arg0, 0xCC)) {
-            gl_func_00000000((char *)0x13, temp_a2, temp_a2, temp_a3);
+            gl_func_00000000((char *)0x13, temp_a2, temp_a2, rem);
         }
         temp_v0 = FW(arg0, 0xC4);
         FW(arg0, 0xC4) = (s32) (temp_v0 + 1);
