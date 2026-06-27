@@ -6101,25 +6101,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B880);
  * Decoded structure:
  *   gl_func_00000000(a0, a1)         ; call 1 — args inherited from caller
  *   rv = gl_func_00000000(a0, a1)    ; call 2 — return saved
- *   gl_func_00000000(a0, a1)         ; call 3
+ *   gl_func_00000000()               ; call 3 — NO args (target reloads
+ *                                      neither a0 nor a1 before call 3)
  *   return rv                         ; return value of call 2
  *
- * Cap: target uses $s0 to hold rv across all 3 calls; mine uses stack
- * spill (sp+0x1C). Tried `register int rv` hint — IDO ignores for
- * single-use vars (only 1 ref + return). Other variants (more refs)
- * would need to introduce dummy uses, which would add insns. Net wash.
+ * Fixing call 3 to take no arguments (target's call 3 has no $a0/$a1
+ * setup) removed the two spurious arg-reloads and matched the call
+ * sequence exactly: 51.06% -> 72.62% fuzzy.
  *
- * Uncertain: target's call 3 has $a0 stale (clobbered by call 2, no
- * explicit reload) — suggesting the original C might have had a different
- * arg pattern. The (a0, a1) form here passes both args to all calls
- * (~equivalent semantics, different codegen).
+ * Residual cap: target holds rv in $s0 (callee-saved reg) across call 3
+ * (`move s0,v0` in call-3 delay slot, `move v0,s0` at return); mine spills
+ * rv to the stack (sw v0,28(sp) / lw v0,28(sp)). This is a pure
+ * saved-reg-vs-stack-spill regalloc choice: `register int rv` is ignored by
+ * IDO for this single-use var, and giving rv extra refs to force $s0 would
+ * add instructions. Register-renumber cap; permuter-immune.
  *
  * Default INCLUDE_ASM build matches; wrap is for grep + future-pass seed. */
 int gl_func_0006B974(int a0, int a1) {
     int rv;
     gl_func_00000000(a0, a1);
     rv = gl_func_00000000(a0, a1);
-    gl_func_00000000(a0, a1);
+    gl_func_00000000();
     return rv;
 }
 #else
