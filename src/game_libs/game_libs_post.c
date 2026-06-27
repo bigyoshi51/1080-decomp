@@ -16267,6 +16267,10 @@ extern s32 D_stateC_E354;   /* state word C (v1): 1/2/3 sub-state gate */
 extern s32 D_stateD_E354;   /* state word D (t1): ==1 -> early return */
 extern s32 D_stateF_E354;   /* state word F (t7): ==4 -> o->0x28 sub-switch */
 extern s32 D_stateE_E354;   /* state word E (t6): ==1 -> final 0x44C38 gate */
+extern s32 D_raceA_E354;    /* race-state word (t4 @123c4): ==1 gate of 0x23 block */
+extern s32 D_raceB_E354;    /* race-mode word (v0 @123d4): 4|10 gate (distinct from raceA) */
+extern s32 D_raceC_E354;    /* race word (t1 @125d8): ==0 -> increment 0x38 (switch6 case0) */
+extern s32 D_raceD_E354;    /* race word (v1 @12618): !=0,!=1,!=8 gate (distinct fresh lui) */
 void gl_func_0002E354(char *arg0, s32 arg1) {
     u8 sp7D;
     f32 sp78;
@@ -16632,7 +16636,7 @@ block_83:
                 }
             }
             if (*(u8 *)((char *)(arg0) + 0x23) != 0) {
-                if ((*(s32 *)((char *)&D_00000000 + 0) == 1) && ((temp_v0_7 = *(s32 *)((char *)&D_00000000 + 0), (temp_v0_7 == 4)) || (temp_v0_7 == 0xA)) && ((temp_v0_7 != 4) || (*(u8 *)((char *)(arg0) + 0x33) != 2))) {
+                if ((D_raceA_E354 == 1) && ((temp_v0_7 = D_raceB_E354, (temp_v0_7 == 4)) || (temp_v0_7 == 0xA)) && ((temp_v0_7 != 4) || (*(u8 *)((char *)(arg0) + 0x21) != 2))) {
                     if (*(u8 *)((char *)(arg0) + 0x14) == 0) {
                         temp_v0_8 = *(s32 *)((char *)(arg0) + 0x38);
                         if (temp_v0_8 == 0) {
@@ -16684,13 +16688,13 @@ block_83:
                 }
                 switch (*(u8 *)((char *)(arg0) + 0x14)) {              /* switch 6; irregular */
                 case 0:                             /* switch 6 */
-                    if (*(s32 *)((char *)&D_00000000 + 0) == 0) {
+                    if (D_raceC_E354 == 0) {
                         *(s32 *)((char *)(arg0) + 0x38) = (s32) (*(s32 *)((char *)(arg0) + 0x38) + 1);
                     }
                     if ((*(u8 *)((char *)(arg0) + 0x21) == 0) && (*(s32 *)((char *)(arg0) + 0x38) == 0x1E)) {
                         func_00000000(0x20, 0x12, 0);
                     }
-                    temp_v1_7 = *(s32 *)((char *)&D_00000000 + 0);
+                    temp_v1_7 = D_raceD_E354;
                     if ((temp_v1_7 != 0) && (temp_v1_7 != 1) && (temp_v1_7 != 8)) {
                         if (*(s32 *)((char *)(arg0) + 0x48) != 0) {
                             *(u8 *)((char *)(arg0) + 0x33) = 0x1AU;
