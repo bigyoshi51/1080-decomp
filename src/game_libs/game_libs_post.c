@@ -18019,15 +18019,62 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000308AC);
 //   match needs USO mnemonic disasm + FP-pool symbolization.
 //   Real-C STRUCTURAL body below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
+// gl_func_000308C8 — STRUCTURAL PASS (0xDC / 55 words, no episode).
+// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
+// bundle). A per-mode global-state initializer + command emitter.
+//
+//   void gl_func_000308C8(int mode, float farg) {
+//     ctx->f_1C = farg;                        // store FP arg to v0 base
+//     switch (mode) {
+//       case 0:                                // early-return arm
+//         g->f_14 = D_0_const_186C;            // FP literal-pool
+//         emit(0x01000800, 0);                 // jal 0 (USO callback)
+//         return;
+//       case 1:
+//         g->w_04 = 0;
+//         g->f_14 = 0.5f;                       // 0x3F000000
+//         break;
+//       case 2:
+//         g->w_04 = 8;
+//         g->f_14 = 0.5f;
+//         ctx->f_1C = D_0_const_1870;           // FP literal-pool
+//         break;
+//       default: break;                         // default falls to tail
+//     }
+//     // shared tail (modes 1, 2, default):
+//     g->f_10 = g->f_14;
+//     emit(0x06000800, (signed char)ctx->b_07); // lb a1,7(v0)
+//     emit(0x01000800, g->w_10);
+//   }
+//
+// Struct-typing reference: a per-mode state-reset + command-emit
+//   helper. The mode arg {0,1,2} (else still runs the shared emit
+//   tail) selects which global record fields to write — an int at
+//   &D_0+4 and FP fields at &D_0+0x14 — seeding either an FP literal-
+//   pool constant (&D_0+0x186C / +0x1870, two deferred FP-pool
+//   symbolization sites) or the 0.5f default (0x3F000000). The FP arg
+//   is stored to a CALLER-SET context base (v0->f_1C) up front; case 2
+//   also overwrites ctx->f_1C from the &D_0+0x1870 pool slot. The tail
+//   copies g->f_14 into g->f_10 then issues TWO USO callbacks:
+//   emit(0x06000800, ctx->b_07-as-signed-byte) and emit(0x01000800,
+//   g->w_10). Only case 0 short-circuits (single 0x01000800 emit, no
+//   tail). 0x01/0x06 banks match the gl_func_0002F9D4 emitter family.
+// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + FP
+//   literal-pool refs (&D_0+0x186C/0x1870 unsymbolized) + CALLER-SET
+//   v0 base ptr — byte-match needs USO mnemonic disasm + FP-pool
+//   symbolization + caller-set-reg modeling. Real-C STRUCTURAL body
+//   below per the analysis. Byte-match deferred. Name pre-checked.
 #ifdef NON_MATCHING
+extern char *D_ctx_base_308C8;
 void gl_func_000308C8(int mode, float farg) {
-    char *g = *(char **)((char *)&D_00000000 + 0);
-    *(float *)(g + 0x1C) = farg;
+    char *g = (char *)&D_00000000;
+    char *ctx = D_ctx_base_308C8;
+    *(float *)(ctx + 0x1C) = farg;
     switch (mode) {
         case 0:
             *(float *)(g + 0x14) = *(float *)((char *)&D_00000000 + 0x186C);
-            gl_func_00000000(0x01000800, 0);
-            break;
+            gl_func_0001CA10(0x01000800, 0);
+            return;
         case 1:
             *(int *)(g + 0x4) = 0;
             *(float *)(g + 0x14) = 0.5f;
@@ -18035,12 +18082,14 @@ void gl_func_000308C8(int mode, float farg) {
         case 2:
             *(int *)(g + 0x4) = 8;
             *(float *)(g + 0x14) = 0.5f;
-            *(float *)(g + 0x1C) = *(float *)((char *)&D_00000000 + 0x1870);
-            gl_func_00000000(0x06000800, *(float *)(g + 0x14));
+            *(float *)(ctx + 0x1C) = *(float *)((char *)&D_00000000 + 0x1870);
             break;
         default:
             break;
     }
+    *(float *)(g + 0x10) = *(float *)(g + 0x14);
+    gl_func_0001CA10(0x06000800, *(signed char *)(ctx + 0x7));
+    gl_func_0001CA10(0x01000800, *(int *)(g + 0x10));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000308C8);
