@@ -5174,35 +5174,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
 #ifdef NON_MATCHING
 /* gl_func_00069B94: 41-insn linked-list walk + per-node dispatch (0xA4, frame 0x28).
  *
- * Decoded structure (raw-word disasm):
- *   t6 = self->[0x38];                              // discriminator field
- *   if (t6 != 3) func1(&D + 0x3C5F0);               // log/setup if not = 3
+ *   if (self->0x38 == 0) gl_func_00000000(&D + 0x2C5F0);   // bnel-guarded init cb
+ *   for (node = self->0x48; node != NULL && node->0 != 0; node = node->4)
+ *       gl_func_00000000(node->0, self, self->0x3C);
  *
- *   // Two-level linked-list walk: outer at self->[0x48] via [0x4] next-ptr,
- *   // inner per-node sub-chain. NULL-terminated.
- *   for (p = self->[0x48]; p != NULL; p = p->[0x4]) {
- *       int key = p->[0x0];
- *       if (key == 0) continue;                      // sentinel skip
- *       int *result = func2(self->[0x3C], key);
- *       for (q = result; q != NULL; q = q->[0x4]) {
- *           if (q->[0x0] == 0) continue;
- *           // (inner processing — exact details omitted in this pass)
- *       }
- *   }
+ * 2026-06-27: REWROTE the plain while-loop to the prefetch-rotated form
+ * (next = node->4 and key = node->0 read at top of each iteration, body keyed
+ * on `key`). This matches the target's rotated loop where `next` is prefetched
+ * before the body and the node key is the loop test. Raises fuzzy 52.5 -> 59.95%
+ * (measured, objdiff-cli). NOTE: the earlier memo claim that the rotated form
+ * "regresses to 51.3%" was for a different shape (next=cursor->4; obj=*cursor;
+ * if(!obj)break) — THIS key-temp form improves. A bare `next=0` reset between
+ * iters regresses back to 52.5% (measured); do NOT add it.
  *
- * Standard hash-bucket-walk dispatch pattern. The inner-loop body skipped
- * in C body — full decode would require sub-pass.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- *
- * 2026-05-31: logic verified CORRECT (the cb(obj,self,self->0x3C) walk + the
- * self->0x38==0 bnel-guarded init cb are right). Residual at 52.5% is the
- * cursor/next rotated-loop saved-reg-vs-stack-spill cap (same family as
- * gl_func_00038728). RULED OUT: rewriting to the rotated-prefetch C form
- * (next=cursor->4; obj=*cursor; if(!obj)break) REGRESSES this fn to 51.3%
- * (measured) — the plain while-loop here is closer; do NOT re-try the rotated
- * form. Needs focused regalloc grinding, not a quick lever.
+ * Residual at 59.95% is the saved-reg-vs-stack-spill cap: IDO promotes
+ * node/next to s-regs (s0-s3) here, the target spills them to 32(sp)/36(sp)
+ * with only s0+ra saved. Register-allocation cap, not a logic bug.
  */
 void gl_func_00069B94(int *self) {
     extern int D_00000000;
@@ -5211,9 +5198,22 @@ void gl_func_00069B94(int *self) {
         gl_func_00000000((char*)&D_00000000 + 0x2C5F0);
     }
     node = (int*)self[0x48 / 4];
-    while (node != 0 && node[0] != 0) {
-        gl_func_00000000(node[0], self, self[0x3C / 4]);
-        node = (int*)node[1];
+    {
+        int *next = 0;
+        int key = 0;
+        if (node != 0) {
+            next = (int*)node[1];
+            key = node[0];
+        }
+        while (key != 0) {
+            gl_func_00000000(node[0], self, self[0x3C / 4]);
+            node = next;
+            key = 0;
+            if (node != 0) {
+                next = (int*)node[1];
+                key = node[0];
+            }
+        }
     }
 }
 #else
