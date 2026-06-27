@@ -1435,12 +1435,12 @@ void gui_func_00002DE0(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
     }
     hScaled = fH * arg4;
     x1 = 0;
-    lrx = ulx * 4;
+    lrx = (s16) (ulx * 4);
     uly = (s32) ((f32) arg2 + (-(fH / 2.0f) * arg4));
     if ((s16) ((uly + (s32) hScaled) * 4) > 0) {
         y0 = (uly + (s32) hScaled) * 4;
     }
-    lry = uly * 4;
+    lry = (s16) (uly * 4);
     (*(s32 *)(slot + 0x0)) = (s32) (((x0 & 0xFFF) << 0xC) | 0xE4000000 | (y0 & 0xFFF));
     if (lrx > 0) {
         x1 = lrx;
