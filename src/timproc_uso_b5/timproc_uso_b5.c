@@ -252,13 +252,37 @@ void timproc_uso_b5_func_00000470(void) {
  * timproc_uso_b5_func_00000770 leaf; this body is now a single function
  * (grep -c 03E00008 = 1).
  *
- * Initial structural decode. Applies the alloc-or-passthrough cascade from
- * docs/PATTERNS.md#feedback-alloc-or-passthrough-cascade-includes-dead-arms:
- * self = arg0-or-alloc(0x58), sub = self-or-alloc(0x50),
- * node = sub-or-alloc(0x2C), then table init and two arg1-selected init
- * arms. m2c could not parse the .word-only USO asm and the cached Ghidra
- * project was unavailable/locked, so this pass is from raw asm + sibling
- * patterns. Default build remains INCLUDE_ASM. */
+ * Symbol-resolved decode pass (reloc-authoritative from raw .s):
+ *   self = arg0-or-alloc(0x58); sub = self-or-alloc(0x50);
+ *   node = sub-or-alloc(0x2C); table init; arg1-selected init arms.
+ * Calls/data now use the real timproc_uso_b5_* / import_* symbols rather
+ * than the generic gl_func_00000000 / D_00000000 placeholders. Register
+ * lifetimes modelled on matched sibling func_00000058 (self in saved reg
+ * across the cascade). Default build remains INCLUDE_ASM. */
+extern int timproc_uso_b5_func_055750();
+extern int timproc_uso_b5_func_04C678();
+extern int timproc_uso_b5_func_074710();
+extern char *timproc_uso_b5_func_00008DB4(char *self, int a1);
+extern void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2);
+extern int timproc_uso_b5_func_07ACE0();
+extern char *timproc_uso_b5_func_000018B4(char *arg0, int arg1, int arg2, int arg3, int arg4, char *arg5, int arg6, int arg7);
+extern void timproc_uso_b5_func_00000778(char *arg0);
+extern int timproc_uso_b5_func_0139B0();
+extern int timproc_uso_b5_func_011CD8();
+extern int timproc_uso_b5_func_074840();
+extern char timproc_uso_b5_D_807FE84C;
+extern char timproc_uso_b5_D_807FD948;
+extern char timproc_uso_b5_D_807FE870;
+extern char timproc_uso_b5_D_807FE88C;
+extern char timproc_uso_b5_D_807FE8AC;
+extern char timproc_uso_b5_D_807FE8BC;
+extern char timproc_uso_b5_D_807FE8CC;
+extern char import_80073B18;
+extern char import_80073B80;
+extern char import_80800228;
+extern char import_80020228;
+extern char import_80020098;
+
 int *timproc_uso_b5_func_00000478(int *arg0, int arg1, int arg2, int arg3) {
     int *self;
     int *sub;
@@ -271,94 +295,98 @@ int *timproc_uso_b5_func_00000478(int *arg0, int arg1, int arg2, int arg3) {
 
     self = arg0;
     if (self == 0) {
-        self = (int*)gl_func_00000000(0x58);
+        self = (int *)timproc_uso_b5_func_055750(0x58);
         if (self == 0) goto done;
     }
 
     sub = self;
     if (sub == 0) {
-        sub = (int*)gl_func_00000000(0x50);
+        sub = (int *)timproc_uso_b5_func_055750(0x50);
         if (sub == 0) goto after_sub;
     }
 
     node = sub;
     if (node == 0) {
-        node = (int*)gl_func_00000000(0x2C);
+        node = (int *)timproc_uso_b5_func_055750(0x2C);
         if (node == 0) goto after_node;
     }
-    gl_func_00000000(node, (char*)&D_00000000 + 0xFDC);
-    *(int*)((char*)node + 0x28) = (int)&D_00000000;
+    timproc_uso_b5_func_04C678(node, &timproc_uso_b5_D_807FE84C + 0xFDC);
+    node[0x28 / 4] = (int)&import_80073B18;
 
 after_node:
-    *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+    sub[0x28 / 4] = (int)&import_80073B80;
 
 after_sub:
-    *(int*)((char*)self + 0x28) = (int)&D_00000000;
-    *(int*)((char*)self + 0x0C) = (int)((char*)&D_00000000 + 0xFE4);
+    self[0x28 / 4] = (int)&timproc_uso_b5_D_807FD948;
+    self[0x0C / 4] = (int)(&timproc_uso_b5_D_807FD948 + 0xFE4);
 
-    gl_func_00000000((char*)&D_00000000 + 0x1000, 0);
-    result0 = gl_func_00000000(0, arg1);
-    *(int*)((char*)self + 0x54) = 0;
+    timproc_uso_b5_func_074710(&timproc_uso_b5_D_807FE870 + 0x1000, 0);
+    result0 = (int)timproc_uso_b5_func_00008DB4(0, arg1);
+    self[0x54 / 4] = 0;
 
-    slot = (int*)((char*)self + 0x10);
+    slot = (int *)((char *)self + 0x10);
     if (arg1 == 1) {
-        *(int*)((char*)self + 0x50) = 0;
-        result1 = gl_func_00000000(0, (char*)&D_00000000 + 0x100C,
-                                   (char*)&D_00000000 + 0x101C);
-        link = (int*)gl_func_00000000(slot, result1);
-        if (*(int*)((char*)link + 0x14) != 0) {
-            *(int*)((char*)link + 0x04) = 1;
+        self[0x50 / 4] = 0;
+        result1 = (int)timproc_uso_b5_func_00008FC8(0,
+                      (int *)(&timproc_uso_b5_D_807FE88C + 0x100C),
+                      (int *)(&timproc_uso_b5_D_807FE88C + 0x101C));
+        link = (int *)timproc_uso_b5_func_07ACE0(slot, result1);
+        if (link[0x14 / 4] != 0) {
+            link[0x04 / 4] = 1;
         }
-        *(int*)((char*)link + 0x14) = (int)self;
+        link[0x14 / 4] = (int)self;
 
-        result2 = gl_func_00000000(0, self, arg1, arg2, arg3, result0,
-                                   result1, 0);
-        link = (int*)gl_func_00000000(slot, result2);
-        if (*(int*)((char*)link + 0x14) != 0) {
-            *(int*)((char*)link + 0x04) = 1;
+        result2 = (int)timproc_uso_b5_func_000018B4(0, (char *)self, arg1, arg2, arg3,
+                      (char *)result0, result1, 0);
+        link = (int *)timproc_uso_b5_func_07ACE0(slot, result2);
+        if (link[0x14 / 4] != 0) {
+            link[0x04 / 4] = 1;
         }
-        *(int*)((char*)link + 0x14) = (int)self;
-        *(int*)&D_00000000 = 0x44140000;
+        link[0x14 / 4] = (int)self;
+        *(float *)&timproc_uso_b5_D_807FE8AC = 592.0f;
     } else {
-        *(int*)((char*)self + 0x50) = 1;
-        result1 = gl_func_00000000(0, (char*)&D_00000000 + 0x102C,
-                                   (char*)&D_00000000 + 0x103C);
-        link = (int*)gl_func_00000000(slot, result1);
-        if (*(int*)((char*)link + 0x14) != 0) {
-            *(int*)((char*)link + 0x04) = 1;
+        self[0x50 / 4] = 1;
+        result1 = (int)timproc_uso_b5_func_00008FC8(0,
+                      (int *)(&timproc_uso_b5_D_807FE88C + 0x102C),
+                      (int *)(&timproc_uso_b5_D_807FE8AC + 0x103C));
+        link = (int *)timproc_uso_b5_func_07ACE0(slot, result1);
+        if (link[0x14 / 4] != 0) {
+            link[0x04 / 4] = 1;
         }
-        *(int*)((char*)link + 0x14) = (int)self;
+        link[0x14 / 4] = (int)self;
 
-        result2 = gl_func_00000000(0, (char*)&D_00000000 + 0x104C,
-                                   (char*)&D_00000000 + 0x105C);
-        link = (int*)gl_func_00000000(slot, result2);
-        if (*(int*)((char*)link + 0x14) != 0) {
-            *(int*)((char*)link + 0x04) = 1;
+        result2 = (int)timproc_uso_b5_func_00008FC8(0,
+                      (int *)(&timproc_uso_b5_D_807FE8BC + 0x104C),
+                      (int *)(&timproc_uso_b5_D_807FE8CC + 0x105C));
+        link = (int *)timproc_uso_b5_func_07ACE0(slot, result2);
+        if (link[0x14 / 4] != 0) {
+            link[0x04 / 4] = 1;
         }
-        *(int*)((char*)link + 0x14) = (int)self;
+        link[0x14 / 4] = (int)self;
 
-        result2 = gl_func_00000000(0, self, arg1, arg2, arg3, result0,
-                                   result1, result2);
-        link = (int*)gl_func_00000000(slot, result2);
-        if (*(int*)((char*)link + 0x14) != 0) {
-            *(int*)((char*)link + 0x04) = 1;
+        result2 = (int)timproc_uso_b5_func_000018B4(0, (char *)self, arg1, arg2, arg3,
+                      (char *)result0, result1, result2);
+        link = (int *)timproc_uso_b5_func_07ACE0(slot, result2);
+        if (link[0x14 / 4] != 0) {
+            link[0x04 / 4] = 1;
         }
-        *(int*)((char*)link + 0x14) = (int)self;
-        *(int*)&D_00000000 = 0x43BB0000;
+        link[0x14 / 4] = (int)self;
+        *(float *)&import_80800228 = 374.0f;
     }
 
-    gl_func_00000000(self);
-    link = (int*)gl_func_00000000(slot, *(int*)((char*)&D_00000000 + 0x190));
-    if (*(int*)((char*)link + 0x14) != 0) {
-        *(int*)((char*)link + 0x04) = 1;
+    timproc_uso_b5_func_00000778((char *)self);
+    link = (int *)timproc_uso_b5_func_07ACE0(slot,
+               *(int *)(&import_80020228 + 0x190));
+    if (link[0x14 / 4] != 0) {
+        link[0x04 / 4] = 1;
     }
-    *(int*)((char*)link + 0x14) = (int)self;
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
-    *(int*)((char*)self + 0x48) = 0;
-    *(int*)((char*)self + 0x30) = 0;
-    *(int*)((char*)self + 0x2C) = 0;
-    gl_func_00000000(&D_00000000, 0);
-    gl_func_00000000();
+    link[0x14 / 4] = (int)self;
+    timproc_uso_b5_func_0139B0(*(int *)(&import_80020228 + 0x190), 1, 0);
+    self[0x48 / 4] = 0;
+    self[0x30 / 4] = 0;
+    self[0x2C / 4] = 0;
+    timproc_uso_b5_func_011CD8(&import_80020098, 0);
+    timproc_uso_b5_func_074840();
 
 done:
     return self;
