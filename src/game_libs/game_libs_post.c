@@ -2312,17 +2312,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FA20);
 //   andi 0xff7f (not and-reg ~0x80), and a tighter s-reg allocation — codegen
 //   caps, not missing logic.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
+extern int gl_func_0001CA10();
 extern int D_00000000;
 void gl_func_0001FAE8(int a0) {
     char *g = (char *)&D_00000000;
-    int n = *(int *)(g + 0x2070);
+    char *tbl;
     int i, idx;
-    if (n <= 0) {
+    if (*(int *)(g + 0x2070) <= 0) {
         return;
     }
+    i = 0;
+    tbl = g + 0x5378;
     idx = 0;
-    for (i = 0; i < n; i++) {
+    do {
         char *rec = *(char **)(g + 0x2CFC) + idx;
         if (*(unsigned char *)(rec + 0x33) == a0 &&
             *(unsigned char *)(rec + 0x34) == 0 &&
@@ -2332,12 +2334,15 @@ void gl_func_0001FAE8(int a0) {
             *p &= ~0x80;
             p = *(char **)(rec + 0x44);
             *p |= 0x40;
-            gl_func_00000000(rec);
-            gl_func_00000000(rec);
-            gl_func_00000000((char *)&D_00000000 + 0x5378, rec);
+            gl_func_0001CA10(rec);
+            gl_func_0001CA10(rec);
+            gl_func_0001CA10(tbl, rec);
+            i++;
+        } else {
+            i++;
         }
         idx += 0xD0;
-    }
+    } while (i < *(int *)(g + 0x2070));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
