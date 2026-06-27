@@ -2707,14 +2707,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FF28);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0001FF34(int arg) {
+extern int D_00000001;
+void gl_func_0001FF34(int *arg) {
     char *D = (char *)&D_00000000;
-    int *r1, *r2;
-    *(int *)(D + 0x216C) = arg;
-    r1 = (int *)gl_func_00000000(D + 0x2168);
-    r2 = (int *)gl_func_00000000(D + 0x2198, r1[0]);
-    gl_func_00000000(D + 0x2168, r2[0xC / 4]);
-    gl_func_00000000(D + 0x21C8, arg);
+    int r;
+    *(int *)(D + 0x216C) = D_00000001;
+    r = gl_func_00000000(D + 0x2168, arg[0]);
+    r = gl_func_00000000(D + 0x2198, r, arg[0]);
+    r = gl_func_00000000(D + 0x2168, arg[3]);
+    gl_func_00000000(D + 0x21C8, r, arg[3]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FF34);
