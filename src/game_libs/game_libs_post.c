@@ -5923,24 +5923,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F60);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-int gl_func_00022FC0(int idx, int arg) {
+int gl_func_00022FC0(int idx, int *out) {
     char *g = (char *)&D_00000000;
-    short *buf;
+    char *base;
     int cur, count;
-    if (idx >= *(short *)(g + 0x202C)) {
+    int last = 0xFF;
+    int ret;
+    if (idx >= *(unsigned short *)(g + 0x202C)) {
         return 0;
     }
-    buf = *(short **)(g + 0x2028);
-    cur = buf[idx];
-    count = arg;
-    do {
-        unsigned char b = *((unsigned char *)buf + cur);
-        cur++;
-        gl_func_00000000(b);
-        count--;
-    } while (count != 0);
-    buf[idx] = (short)cur;
-    return cur;
+    base = *(char **)(g + 0x2028);
+    cur = *(unsigned short *)(base + idx * 2);
+    count = *(unsigned char *)(base + cur);
+    cur++;
+    if (count > 0) {
+        do {
+            last = *(unsigned char *)(*(char **)(g + 0x2028) + cur);
+            cur++;
+            ret = gl_func_00000000(last);
+            count--;
+        } while (count > 0);
+    }
+    *out = last;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022FC0);
