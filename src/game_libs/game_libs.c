@@ -1939,6 +1939,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000038F4);
  * (mfc1/swc1 1.0) + 2x reloc + large sentinel limit constant.
  * INCLUDE_ASM remains build path (no episode; tautology-trap rule). */
 #ifdef NON_MATCHING
+/* gl_func_00003B1C - free-slot allocator + initializer (0xF0, 60 insns).
+ * Scans table entries at v1+0x2C for a slot whose 0x94 state == 0, claims
+ * it (state=5), then fills fields: 0x9C = a3?32:0, 0x78=255, 0xA0=0,
+ * 0x98=a1, 0x80=0, 0x84=-18, 0xA8=0.0f, 0xB0=a0->0x54. Two reloc inits:
+ * gl_func_00000000(slot,161,a2+90,1.0f) and gl_func_00000000(slot+0xB4,
+ * 0x1CD00). The second init's 0x1CD00 arg was missing in the prior decode.
+ * Remaining diff: target passes 1.0f single-precision (K&R callee decl
+ * forces double-promotion here) + loop-bound reg renumber. */
 void *gl_func_00003B1C(char *a0, int a1, int a2, int a3) {
     char *v1 = a0;
     int off = 0;
@@ -1957,7 +1965,7 @@ void *gl_func_00003B1C(char *a0, int a1, int a2, int a3) {
             *(int*)(slot + 0x84) = -18;
             *(float*)(slot + 0xA8) = 0.0f;
             *(int*)(slot + 0xB0) = *(int*)(a0 + 0x54);
-            gl_func_00000000(slot + 0xB4);  /* additional args truncated in decode */
+            gl_func_00000000(slot + 0xB4, 0x1CD00);
             return slot;
         }
         v1 += 4;
