@@ -3745,6 +3745,9 @@ extern void *gRoot; /* zero-page USO-GOT global; reloaded per use (no CSE) */
 extern int D_00007E48, D_00007E54, D_00007E58, D_00007E5C, D_00007E60, D_00007E64, D_00007E68;
 extern char D_00007600;
 extern void func_00007E50(int *a0);
+extern int D_00007E20, D_00007E24; /* arg1==1 list-init globals (decode 2026-06-26) */
+extern int D_00007E34; /* actor-0 sub-init preload value (decode 2026-06-26) */
+extern char D_00007AB8; /* actor-0 obj+0x28 symbol store (decode 2026-06-26) */
 #define DROOT ((int *)gRoot)
 #define DI(o) (*(int *)((char *)&D_00000000 + (o)))
 #define DF(o) (*(float *)((char *)&D_00000000 + (o)))
@@ -3762,6 +3765,7 @@ void func_000055A0(int arg0, int arg1, int arg2) {
     float sp34, sp28, sp2C, sp30;
     int var_s0, var_s0_2, mode;
     int cnt;
+    int e34;
     void *obj, *sub, *node, *n2, *n3;
     void *iter;
 
@@ -3786,18 +3790,16 @@ void func_000055A0(int arg0, int arg1, int arg2) {
     if (arg1 == 1) {
         DI(4) = 0x28002;
         DI(0) = 0;
-        cnt = DI(0);
-        DI(0) = func_00000000(0x3F800000, NULL, NULL, NULL, 0);
-        iter = NULL;
-        if (cnt != 0) {
-            int next = DI(0);
+        DI(0) = func_00000000(0, &D_00007E20, DP(0), 0);
+        if (DI(0) != 0) {
+            iter = &D_00007E24;
+            cnt = OI(iter, 0);
             do {
-                void *cur = iter;
-                func_00000000(0, next, iter);
-                func_00000000(DI(0), cur);
-                next = OI(iter, 0xC);
+                func_00000000(&D_00007E24, cnt, iter);
+                func_00000000(DI(0), cnt);
+                cnt = OI(iter, 0xC);
                 iter = (char *)iter + 0xC;
-            } while (next != 0);
+            } while (cnt != 0);
         }
     }
 
@@ -3825,14 +3827,15 @@ void func_000055A0(int arg0, int arg1, int arg2) {
 
     if (var_s0_2 & 4) {
         /* actor 0 (0x74) */
+        e34 = D_00007E34;
         obj = (void *)func_00000000(0x74);
         if (obj != 0) {
             sub = obj;
             if ((obj != 0) || (sub = (void *)func_00000000(0x48), sub != 0)) {
-                func_00000000(sub, DROOT, NULL);
+                func_00000000(sub, e34, NULL);
                 OI(sub, 0x28) = 0;
             }
-            OI(obj, 0x28) = 0;
+            OI(obj, 0x28) = (int)&D_00007AB8;
             node = (char *)obj + 0x5C;
             if ((node != NULL) || (node = (void *)func_00000000(0x18), node != 0)) {
                 func_00000000(node);
@@ -3959,13 +3962,6 @@ void func_000055A0(int arg0, int arg1, int arg2) {
     }
     func_00000000(DROOT, obj, DP(0xFFFF));
 }
-#undef M
-#undef DROOT
-#undef DI
-#undef DF
-#undef DP
-#undef OI
-#undef OF
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000055A0);
 #endif
