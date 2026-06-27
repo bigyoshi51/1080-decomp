@@ -2752,16 +2752,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FFAC);
 //   pre-checked: no extern reuse (collision-safe). gl_func_00000000
 //   = canonical never-defined USO placeholder for the reporter.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-void gl_func_0001FFB8(int arg) {
+extern int gl_func_0001CA10();
+void gl_func_0001FFB8(int *arg) {
     char *D = (char *)&D_00000000;
-    int *r1, *r2;
-    *(int *)(D + 0x21CC) = arg;
-    r1 = (int *)gl_func_00000000(D + 0x21C8);
-    r2 = (int *)gl_func_00000000(D + 0x21D8, r1[0]);
-    gl_func_00000000(D + 0x21C8, r2[4 / 4]);
-    gl_func_00000000(D + 0x21E8, arg);
+    int v;
+    *(int *)(D + 0x21CC) = *(int *)(D + 0x21C8);
+    v = gl_func_0001CA10(D + 0x21C8, arg[0]);
+    v = gl_func_0001CA10(D + 0x21D8, v, arg[0]);
+    v = gl_func_0001CA10(D + 0x21C8, arg[1]);
+    gl_func_0001CA10(D + 0x21E8, v, arg[1]);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FFB8);
