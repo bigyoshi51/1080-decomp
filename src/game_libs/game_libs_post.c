@@ -8080,6 +8080,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00024F30);
 //   infra. Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
 #ifdef NON_MATCHING
+// gl_func_00025044 — slot-pool teardown SWEEP (game_libs, USO).
+// Gated on &D_0+0x215C (subsystem handle): if == 1 (already shut
+// down) the function is a no-op. Otherwise walks the fixed-capacity
+// slot pool at &D_0+0x1038, stride 0x54, 0x540/0x54 = 16 slots; for
+// every slot whose SIGNED byte+0 in-use flag == 1, invokes the fixed
+// per-slot destructor (USO-relocated 0x39734) with (slot, a0). The
+// shutdown/free-all counterpart to gl_func_00024F30; analogous to
+// gl_func_0002349C tearing down the &D_0+0x2030 registry.
+// Flag read is `lb` (signed char), confirmed against target
+// (0x82181038 = LB, not LBU). Byte-LAND blocked: residual is
+// register-coloring + the extra saved reg holding the literal 1
+// (target 5-reg -0x28 frame vs 6-reg -0x30), a documented game_libs
+// baked-reloc cap. gl_func_00000000 = canonical never-defined USO
+// placeholder.
 extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_00025044(int a0) {
@@ -8090,7 +8104,7 @@ void gl_func_00025044(int a0) {
         return;
     }
     for (off = 0; off != 0x540; off += 0x54) {
-        if (*(char *)(base + off) == 1) {
+        if (*(signed char *)(base + off) == 1) {
             gl_func_00000000(base + off, a0);
         }
     }
