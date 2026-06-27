@@ -1749,14 +1749,15 @@ int gl_func_0001EE78(int *dl, int *a1, int a2, int a3, int arg4, int arg5) {
     int *s0 = dl;
     if ((a3 & 0xFFFF) == 0) {
         gl_func_00000000(s0, 0x3C0);
-        return (int)(s0 + 2);
+        s0 += 2;
+    } else {
+        s0[0] = (unsigned short)a3 | 0x08000000;
+        s0[1] = (a2 & 0xFFFF) | 0x03C00000;
+        s0 += 2;
+        s0[0] = ((arg5 & 0xFF) << 16) | 0x05000000 | (a3 & 0xFFFF);
+        s0[1] = a1[3] + 0x80000020;
+        s0 += 2;
     }
-    s0[0] = ((unsigned short)arg4) | 0x08000000;
-    s0[1] = (a2 & 0xFFFF) | 0x03C00000;
-    s0 += 2;
-    s0[0] = ((arg5 & 0xFF) << 16) | 0x05000000 | (a3 & 0xFFFF);
-    s0[1] = a1[0xC / 4] + 0x80000020;
-    s0 += 2;
     return (int)s0;
 }
 #else
