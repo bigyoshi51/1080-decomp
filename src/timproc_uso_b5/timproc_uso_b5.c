@@ -7978,74 +7978,73 @@ void timproc_uso_b5_func_0000BBC8(int *a0, float a1) {
 }
 
 #ifdef NON_MATCHING
-/* timproc_uso_b5_func_0000BBDC: 113-insn unrolled loop over 5 channels.
- * Initial decode — 57.77% fuzzy. Structure understood, dual-arm bnel
- * dispatch unbridged.
- *
- * Logic:
- *   if (a0->0x2BC < 10 && --a0->0x2C0 < 0) {
- *       a0->0x2C0 = 1;
- *       a0->0x2BC += 2;
- *   }
- *   for (i = 0; i < 5; i++) {
- *       int v = a0->0x2BC;
- *       int cap = (&a0->0x1C4)[i*6];           // stride 0x18 per iter
- *       int v1 = (v < cap) ? v : cap;          // clamp
- *       int stride = a1->0x74;
- *       int *idx_ptr = (int*)a1 + 0x134/4 + i*9;  // stride 0x24 per iter
- *       gl_func_00000000(
- *           a0,
- *           a0->0xA4,
- *           (char*)a0->0xBC + i * stride,
- *           (char*)&D_00000000 + 0x40 + i * 0x18,
- *           *idx_ptr, a1+0x230, a1, v1
- *       );
- *   }
- *
- * Target emits two structurally-identical loop-body arms via `bnel
- * fp(=1), s2->0x3BC, +0x13` — branch-likely with `lw t8, 0x74(s2)` in
- * delay slot. Both arms call the same function with the same args; the
- * dispatch is IDO's branch-likely scheduling, not a real C-level if/else.
- * No straightforward C produces this shape (a `if (t2 == 1)` with both
- * arms identical optimizes to a single arm; an unconditional call also
- * emits a single arm). DEFERRED — needs sibling channel-loop match for
- * template shape, OR explicit branch-likely scheduling lever.
- *
- * Open: 8-arg call signature, arg-spill order, exact stride decode for
- * stack_a1_array (offsets 0x134/0x158/0x17C/0x1A0/0x1C4 imply +0x24
- * stride). */
+/* timproc_uso_b5_func_0000BBDC: per-channel (5x) clamp + dispatch loop.
+ * MISSING LOGIC reconstructed: real targets func_00003A4C / func_00003C8C
+ * (was gl_func_00000000 placeholder), real if/else on a1->0x3BC==1, correct
+ * reloc base timproc_uso_b5_D_807FF4C0 (was D_00000000). Cap values and idx
+ * pointers are spilled into local arrays before the loop (IDO frame -184). */
 void timproc_uso_b5_func_0000BBDC(int *a0, int *a1) {
+    int *idxp[5];
+    int caps[5];
+    int *cp;
+    int **ip;
+    char *tbl;
     int i;
     int v;
-    int cap;
     int v1;
     int stride;
-    int *idx_arr;
 
-    if (*(int*)((char*)a0 + 0x2BC) < 10) {
-        int c = *(int*)((char*)a0 + 0x2C0) - 1;
-        *(int*)((char*)a0 + 0x2C0) = c;
+    if (*(int *)((char *)a0 + 0x2BC) < 10) {
+        int c = *(int *)((char *)a0 + 0x2C0) - 1;
+        *(int *)((char *)a0 + 0x2C0) = c;
         if (c < 0) {
-            *(int*)((char*)a0 + 0x2C0) = 1;
-            *(int*)((char*)a0 + 0x2BC) = *(int*)((char*)a0 + 0x2BC) + 2;
+            *(int *)((char *)a0 + 0x2C0) = 1;
+            *(int *)((char *)a0 + 0x2BC) = *(int *)((char *)a0 + 0x2BC) + 2;
         }
     }
-    idx_arr = (int*)((char*)a1 + 0x134);
+    caps[0] = *(int *)((char *)a0 + 0x1C4);
+    caps[1] = *(int *)((char *)a0 + 0x1DC);
+    caps[2] = *(int *)((char *)a0 + 0x1F4);
+    caps[3] = *(int *)((char *)a0 + 0x20C);
+    caps[4] = *(int *)((char *)a0 + 0x224);
+    idxp[0] = (int *)((char *)a1 + 0x134);
+    idxp[1] = (int *)((char *)a1 + 0x158);
+    idxp[2] = (int *)((char *)a1 + 0x17C);
+    idxp[3] = (int *)((char *)a1 + 0x1A0);
+    idxp[4] = (int *)((char *)a1 + 0x1C4);
+
+    cp = caps;
+    ip = idxp;
+    tbl = (char *)&timproc_uso_b5_D_807FF4C0 + 0x40;
     for (i = 0; i < 5; i++) {
-        v = *(int*)((char*)a0 + 0x2BC);
-        cap = ((int*)((char*)a0 + 0x1C4))[i * 6];
-        v1 = (v < cap) ? v : cap;
-        stride = *(int*)((char*)a1 + 0x74);
-        gl_func_00000000(
-            a0,
-            *(int**)((char*)a0 + 0xA4),
-            (char*)*(int**)((char*)a0 + 0xBC) + i * stride,
-            (char*)&D_00000000 + 0x40 + i * 0x18,
-            idx_arr[i * 9],
-            (char*)a1 + 0x230,
-            a1,
-            v1
-        );
+        v = *(int *)((char *)a0 + 0x2BC);
+        v1 = (v < *cp) ? v : *cp;
+        if (*(int *)((char *)a1 + 0x3BC) == 1) {
+            stride = *(int *)((char *)a1 + 0x74);
+            timproc_uso_b5_func_00003A4C(
+                (int)a0,
+                *(int *)((char *)a0 + 0xA4),
+                *(int *)((char *)a0 + 0xBC) + i * stride,
+                (int)tbl,
+                v1,
+                (int)*ip,
+                (char *)((char *)a1 + 0x230),
+                (char *)a1);
+        } else {
+            stride = *(int *)((char *)a1 + 0x74);
+            timproc_uso_b5_func_00003C8C(
+                (int)a0,
+                *(int *)((char *)a0 + 0xA4),
+                *(int *)((char *)a0 + 0xBC) + i * stride,
+                (void *)tbl,
+                v1,
+                (int)*ip,
+                (char *)((char *)a1 + 0x230),
+                (void *)a1);
+        }
+        cp++;
+        ip++;
+        tbl += 0x18;
     }
 }
 #else
