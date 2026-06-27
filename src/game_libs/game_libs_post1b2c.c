@@ -848,30 +848,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006E20C);
 #ifdef NON_MATCHING
 /* gl_func_0006E224 - doprnt conversion-specifier dispatcher (0x670, 412 insns).
  *
- * WHOLE-BODY DECODE 2026-06-20 (replaces the broken 2026-06-10 m2c graft that
- * used an UNINITIALIZED `saved_reg_s0` and a wrong frame -> 0.53% exact-byte).
+ * WHOLE-BODY DECODE 2026-06-27 (param-layout + width fix over the 2026-06-20
+ * decode). Argument registers realigned to the target: a0 = state pointer
+ * (st), a1 = conversion char (c, read UNSIGNED via `andi 0xff`), a2 = va_list
+ * cursor (ap), a3 = output byte buffer (buf). The earlier body had c->a0,
+ * ap->a1, buf->a2, st->a3 (shifted by one), mismatching the entire arg file.
  *
- * PERMANENT CAP — CALLER-SET $s0 (state pointer). The target reads and writes
- * the format state struct exclusively through $s0, but $s0 is NEVER saved in
- * the prologue (only `sw a1,0x20(sp); sw ra,0x14(sp)`, frame = 0x18) NOR
- * restored in the epilogue (`lw ra,0x14(sp); addiu sp,sp,0x18; jr ra`) NOR
- * initialized anywhere in the body. $s0 is therefore a live-in register the
- * CALLER sets up = the documented caller-set-int-reg cap class
- * (feedback_caller_set_int_reg_cap_1080_game_libs.md; 5th+ member of the
- * $v0/$v1/$t6 family in this very file). IDO C cannot emit a function that
- * consumes a caller-provided $s0 without saving it, so byte-exact is
- * unreachable. This body models $s0 as an explicit `st` parameter for
- * correctness/readability; it is NON_MATCHING by construction.
+ * PERMANENT CAP - CALLER-SET $s0 (state pointer). The target reads/writes the
+ * format state struct exclusively through $s0, which is NEVER saved in the
+ * prologue (only `sw a1,0x20(sp); sw ra,0x14(sp)`, frame = 0x18) NOR restored
+ * NOR initialized in the body: $s0 is a live-in the CALLER sets up (the
+ * documented caller-set-int-reg cap, feedback_caller_set_int_reg_cap_1080_
+ * game_libs.md). IDO C cannot consume a caller-provided $s0 without saving it,
+ * so the ~107 `N(s0)` state accesses are modelled as `N(a0)` here and remain
+ * register-divergent by construction. The 5 flush calls also `jal 0` (baked-
+ * reloc USO) so the call target is unmatchable too.
  *
- * Real callee gl_func_0006BE14 = flush(st) (state-pointer single-arg).
- * Args: c = conversion char (a1, also stashed at sp+0x20); ap = va_list
- * cursor (a2, advanced in-place); buf = output byte buffer (a3).
+ * Real flush callee takes the state pointer in a0 (`move a0,s0` precedes each
+ * jal) and, for %s, returns the emitted length in $v0.
+ * Args: c = conversion char (a1, stashed at sp+0x20); ap = va_list (a2);
+ * buf = output buffer (a3); st = format state (a0; really $s0).
  * State offsets: 0x0/0x4 = 64-bit value hi/lo; 0x8 = end ptr; 0xC = length;
- * 0x10..0x20 init-zeroed; 0x2C = int operand (%n); 0x30 = flags
- * (bit0 space, bit1 plus, bit3 alt/'#'); 0x34 = length modifier
- * ('l'=0x6C,'h'=0x68); 0x24 = field width clamp. */
-void gl_func_0006E224(s8 c, s32 *ap, char *buf, char *st) {
-    s8 cc = c;
+ * 0x2C = int operand (%n); 0x30 = flags (bit0 space, bit1 plus, bit3 alt);
+ * 0x34 = length modifier ('l'=0x6C,'h'=0x68,'L'=0x4C); 0x24 = width clamp. */
+extern s32 gl_doprnt_flush_0006E224(char *st);
+
+void gl_func_0006E224(char *st, u8 c, s32 *ap, char *buf) {
+    s32 cc = c;
     s32 width;
     s32 hi;
     char *p;
@@ -884,9 +887,7 @@ void gl_func_0006E224(s8 c, s32 *ap, char *buf, char *st) {
     *(s32 *)(st + 0x20) = 0;
 
     if ((cc < 0x26) || ((u32)(cc - 0x45) >= 0x34U) || ((u32)(cc - 0x46) >= 0x19U)) {
-        /* literal-emit / '%' escape path (.L26AC). */
-        if (cc >= 0x26) {
-            /* outside the conversion range -> emit the raw char (or skip). */
+        if (cc < 0x26) {
             return;
         }
         if (cc == 0x25) {
@@ -899,23 +900,23 @@ void gl_func_0006E224(s8 c, s32 *ap, char *buf, char *st) {
     }
 
     switch (cc) {
-    case 0x46: /* %c-like: copy one byte from a 4-byte va slot */
+    case 0x46:
         p = (char *)((((*(s32 *)ap) + 3) & ~3) + 4);
         *(s32 *)ap = (s32)p;
         buf[*(s32 *)(st + 0xC)] = (s8) *(s32 *)(p - 4);
         *(s32 *)(st + 0xC) = *(s32 *)(st + 0xC) + 1;
         return;
 
-    case 0x47: /* signed integer family */
+    case 0x47:
     case 0x48:
     case 0x49:
-        if (*(u8 *)(st + 0x34) == 0x6C) {            /* 'l' */
+        if (*(u8 *)(st + 0x34) == 0x6C) {
             p = (char *)((((*(s32 *)ap) + 3) & ~3) + 4);
             *(s32 *)ap = (s32)p;
             hi = *(s32 *)(p - 4);
             *(s32 *)(st + 0x0) = hi >> 0x1F;
             *(s32 *)(st + 0x4) = hi;
-        } else if (*(u8 *)(st + 0x34) == 0x4C) {     /* 'L' (64-bit) */
+        } else if (*(u8 *)(st + 0x34) == 0x4C) {
             p = (char *)((((*(s32 *)ap) + 7) & ~7) + 8);
             *(s32 *)ap = (s32)p;
             *(s32 *)(st + 0x0) = *(s32 *)(p - 8);
@@ -927,30 +928,29 @@ void gl_func_0006E224(s8 c, s32 *ap, char *buf, char *st) {
             *(s32 *)(st + 0x0) = hi >> 0x1F;
             *(s32 *)(st + 0x4) = hi;
         }
-        if (*(u8 *)(st + 0x34) == 0x68) {            /* 'h' (s16) */
+        if (*(u8 *)(st + 0x34) == 0x68) {
             hi = (s16) *(s32 *)(st + 0x4);
             *(s32 *)(st + 0x0) = hi >> 0x1F;
             *(s32 *)(st + 0x4) = hi;
         }
-    /* fallthrough into sign-prefix emit (cases 0x4A/0x4B) */
     case 0x4A:
     case 0x4B:
     case 0x4C:
         if (*(s32 *)(st + 0x0) < 0) {
-            buf[*(s32 *)(st + 0xC)] = 0x2D;           /* '-' */
+            buf[*(s32 *)(st + 0xC)] = 0x2D;
             *(s32 *)(st + 0xC) = *(s32 *)(st + 0xC) + 1;
         } else if (*(s32 *)(st + 0x30) & 2) {
-            buf[*(s32 *)(st + 0xC)] = 0x2B;           /* '+' */
+            buf[*(s32 *)(st + 0xC)] = 0x2B;
             *(s32 *)(st + 0xC) = *(s32 *)(st + 0xC) + 1;
         } else if (*(s32 *)(st + 0x30) & 1) {
-            buf[*(s32 *)(st + 0xC)] = 0x20;           /* ' ' */
+            buf[*(s32 *)(st + 0xC)] = 0x20;
             *(s32 *)(st + 0xC) = *(s32 *)(st + 0xC) + 1;
         }
         *(s32 *)(st + 0x8) = *(s32 *)(st + 0xC) + (s32)buf;
-        gl_func_0006BE14();
+        gl_doprnt_flush_0006E224(st);
         return;
 
-    case 0x4D: /* unsigned integer family */
+    case 0x4D:
     case 0x4E:
     case 0x4F:
         if (*(u8 *)(st + 0x34) == 0x6C) {
@@ -972,25 +972,25 @@ void gl_func_0006E224(s8 c, s32 *ap, char *buf, char *st) {
             *(s32 *)(st + 0x4) = hi;
         }
     case 0x50:
-        if (*(u8 *)(st + 0x34) == 0x68) {            /* 'h' -> zero-extend u16 */
+        if (*(u8 *)(st + 0x34) == 0x68) {
             *(s32 *)(st + 0x0) = 0;
             *(s32 *)(st + 0x4) = *(s32 *)(st + 0x4) & 0xFFFF;
         } else {
-            *(s32 *)(st + 0x0) = 0;                  /* unsigned: clear hi */
+            *(s32 *)(st + 0x0) = 0;
         }
-        if (*(s32 *)(st + 0x30) & 8) {              /* '#' alt -> '0' prefix */
+        if (*(s32 *)(st + 0x30) & 8) {
             buf[*(s32 *)(st + 0xC)] = 0x30;
             *(s32 *)(st + 0xC) = *(s32 *)(st + 0xC) + 1;
-            if ((cc == 0x78) || (cc == 0x58)) {     /* 'x'/'X' -> emit base char */
+            if ((cc == 0x78) || (cc == 0x58)) {
                 buf[*(s32 *)(st + 0xC)] = c;
                 *(s32 *)(st + 0xC) = *(s32 *)(st + 0xC) + 1;
             }
         }
         *(s32 *)(st + 0x8) = *(s32 *)(st + 0xC) + (s32)buf;
-        gl_func_0006BE14();
+        gl_doprnt_flush_0006E224(st);
         return;
 
-    case 0x51: /* floating-point family (reads f64 via va, truncates) */
+    case 0x51:
     case 0x52:
     case 0x53:
     case 0x54:
@@ -1009,11 +1009,11 @@ void gl_func_0006E224(s8 c, s32 *ap, char *buf, char *st) {
             *(s32 *)ap = (s32)q;
             q -= 0x28;
         } else {
-            q = (char *)(((v & 0xFF) & ~7) + 8);   /* aligned 8-byte slot (approx) */
+            q = (char *)(((v & 0xFF) & ~7) + 8);
             *(s32 *)ap = (s32)q;
         }
         *(f64 *)(st + 0x0) = (f64) *(s32 *)(q - 8);
-        if (*(u16 *)(st + 0x2) & 0x8000) {          /* sign bit of packed value */
+        if (*(u16 *)(st + 0x2) & 0x8000) {
             buf[*(s32 *)(st + 0xC)] = 0x2D;
             *(s32 *)(st + 0xC) = *(s32 *)(st + 0xC) + 1;
         } else if (*(s32 *)(st + 0x30) & 2) {
@@ -1024,28 +1024,26 @@ void gl_func_0006E224(s8 c, s32 *ap, char *buf, char *st) {
             *(s32 *)(st + 0xC) = *(s32 *)(st + 0xC) + 1;
         }
         *(s32 *)(st + 0x8) = *(s32 *)(st + 0xC) + (s32)buf;
-        gl_func_0006BE14();
+        gl_doprnt_flush_0006E224(st);
         return;
     }
 
-    case 0x59: /* %n family: store length back through a pointer arg */
-        if (*(u8 *)(st + 0x34) == 0x68) {            /* short */
+    case 0x59:
+        if (*(u8 *)(st + 0x34) == 0x68) {
             p = (char *)((((*(s32 *)ap) + 3) & ~3) + 4);
             *(s32 *)ap = (s32)p;
             *(s16 *)(*(s32 *)(p - 4)) = (s16) *(s32 *)(st + 0x2C);
             return;
         }
-        /* fallthrough */
     case 0x5A:
-        if (*(u8 *)(st + 0x34) == 0x6C) {            /* long */
+        if (*(u8 *)(st + 0x34) == 0x6C) {
             p = (char *)((((*(s32 *)ap) + 3) & ~3) + 4);
             *(s32 *)ap = (s32)p;
             *(s32 *)(*(s32 *)(p - 4)) = *(s32 *)(st + 0x2C);
             return;
         }
-        /* fallthrough */
     case 0x5B:
-        if (*(u8 *)(st + 0x34) == 0x4C) {            /* L (64-bit) */
+        if (*(u8 *)(st + 0x34) == 0x4C) {
             p = (char *)((((*(s32 *)ap) + 3) & ~3) + 4);
             *(s32 *)ap = (s32)p;
             hi = *(s32 *)(p - 4);
@@ -1053,30 +1051,28 @@ void gl_func_0006E224(s8 c, s32 *ap, char *buf, char *st) {
             *(s32 *)(hi + 0x4) = *(s32 *)(st + 0x2C);
             return;
         }
-        /* fallthrough */
     case 0x5C:
         p = (char *)((((*(s32 *)ap) + 3) & ~3) + 4);
         *(s32 *)ap = (s32)p;
         *(s32 *)(*(s32 *)(p - 4)) = *(s32 *)(st + 0x2C);
         return;
 
-    case 0x5D: /* pointer %p */
+    case 0x5D:
         p = (char *)((((*(s32 *)ap) + 3) & ~3) + 4);
         *(s32 *)ap = (s32)p;
         hi = *(s32 *)(p - 4);
         *(s32 *)(st + 0x4) = hi;
         *(s32 *)(st + 0x0) = hi >> 0x1F;
         *(s32 *)(st + 0x8) = *(s32 *)(st + 0xC) + (s32)buf;
-        gl_func_0006BE14();   /* emitted with implicit 'x' (0x78) base */
+        gl_doprnt_flush_0006E224(st);
         return;
 
-    case 0x5E: { /* string %s: flush() returns the emitted length in $v0 */
+    case 0x5E: {
         s32 len;
         p = (char *)((((*(s32 *)ap) + 3) & ~3) + 4);
         *(s32 *)ap = (s32)p;
         *(s32 *)(st + 0x8) = *(s32 *)(p - 4);
-        gl_func_0006BE14();
-        len = *(s32 *)(st + 0x14);   /* modelled flush return (real: $v0) */
+        len = gl_doprnt_flush_0006E224(st);
         width = *(s32 *)(st + 0x24);
         *(s32 *)(st + 0x14) = len;
         if ((width >= 0) && (width < len)) {
