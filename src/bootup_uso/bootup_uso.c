@@ -3595,19 +3595,34 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
  * live behavior only — dead-arm artifacts not recreated. */
 extern char D_00007DFC;
 #ifdef NON_MATCHING
+/* func_000053E8 - alloc-cascade get-or-create constructor.
+ * Reconstructed missing logic: the three descriptor stores
+ * (obj->0x28 = A in the live arm; obj->0x28 = B; obj->0x4C = C in
+ * the tail) target DISTINCT registers (t9/t0/t2) -> three DISTINCT
+ * externs to defeat the &D_00000000 address-CSE that collapses them
+ * onto one base reg. The obj->0x48 store is the immediate 1. The
+ * 0x48 second-alloc arm is provably-dead (kept under -g) and is
+ * written as a get-or-create fall-through so IDO keeps it. */
+extern char D_00007DFC;
+extern char D_00000000_a;
+extern char D_00000000_b;
+extern char D_00000000_c;
 void *func_000053E8(int arg) {
     char *obj;
     func_00000000(&D_00007DFC);
-    obj = (char*)func_00000000(0x50);
-    if (obj == 0) {
-        obj = (char*)func_00000000(0x48);
-        if (obj == 0) return obj;
+    obj = (char *)func_00000000(0x50);
+    if (obj != 0) {
+        if (obj == 0) {
+            obj = (char *)func_00000000(0x48);
+        }
+        if (obj != 0) {
+            func_00000000(obj, arg, 0);
+            *(int *)(obj + 0x28) = (int)&D_00000000_a;
+        }
+        *(int *)(obj + 0x48) = 1;
+        *(int *)(obj + 0x28) = (int)&D_00000000_b;
+        *(int *)(obj + 0x4C) = (int)&D_00000000_c;
     }
-    func_00000000(obj, arg, 0);
-    *(int*)(obj + 0x28) = (int)&D_00000000;
-    *(int*)(obj + 0x48) = 1;
-    *(int*)(obj + 0x28) = (int)&D_00000000;
-    *(int*)(obj + 0x4C) = (int)&D_00000000;
     return obj;
 }
 #else
