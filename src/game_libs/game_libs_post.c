@@ -64,15 +64,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CA10);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-/* Record-copy loop over *(0x2070) entries. Addresses 0x2070/0x2CFC/0x14 are
- * &D-relative globals the target HOISTS into regs (addiu t1,zero,0x2070 ...)
- * once before the loop and reloads the *values* inside — so model them as
- * pointer locals, not inline *(s32*)0xNN derefs (which re-materialize each
- * use). Byte fields at 0xB3 / 0x3 are lbu loads (not (u8) of a word). */
+/* Record-copy loop over *(0x2070) entries. srcBase (0x2CFC) and dstBase (0x14)
+ * are reloaded inside the loop each iteration (lw t6/t1 at loop top) — model
+ * as *(s32*)0xNN derefs, NOT hoisted pointer locals. `src` points at rec+0xB0
+ * (the 0x20-byte copy block), so all word copies are FW(src, 0..0x1C). The
+ * flag fix-ups at the tail are BYTE ops: lbu/andi/sb on src+0 and dst+0, and a
+ * sb zero,6(src). */
 void game_libs_func_0001CC98(s32 arg0) {
-    s32 *pCount = (s32 *)0x2070;
-    s32 *pSrcBase = (s32 *)0x2CFC;
-    s32 *pDstBase = (s32 *)0x14;
     s32 i;
     s32 off;
     char *rec;
@@ -81,29 +79,28 @@ void game_libs_func_0001CC98(s32 arg0) {
 
     i = 0;
     off = 0;
-    if (*pCount > 0) {
+    if (*(s32 *)0x2070 > 0) {
         do {
-            rec = (char *)(*pSrcBase + off);
+            rec = (char *)(*(s32 *)0x2CFC + off);
             src = rec + 0xB0;
-            dst = (char *)(*pDstBase + (((*pCount * arg0) + i) << 5));
+            dst = (char *)(*(s32 *)0x14 + (((*(s32 *)0x2070 * arg0) + i) << 5));
             if (((u32) FW(rec, 0xB0) >> 0x1F) != 0) {
-                FW(dst, 0x0) = (u32) FW(rec, 0xB0);
-                FW(dst, 0x4) = (s32) FW(src, 0x4);
-                FW(dst, 0x8) = (s32) FW(src, 0x8);
-                FW(dst, 0xC) = (s32) FW(src, 0xC);
-                FW(dst, 0x10) = (s32) FW(src, 0x10);
-                FW(dst, 0x14) = (s32) FW(src, 0x14);
-                FW(dst, 0x18) = (s32) FW(src, 0x18);
-                FW(dst, 0x1C) = (s32) FW(src, 0x1C);
-                FW(rec, 0xB0) = (s8) (*(u8 *)(rec + 0xB3) & 0xFFBF);
+                FW(dst, 0x0) = FW(src, 0x0);
+                FW(dst, 0x4) = FW(src, 0x4);
+                FW(dst, 0x8) = FW(src, 0x8);
+                FW(dst, 0xC) = FW(src, 0xC);
+                FW(dst, 0x10) = FW(src, 0x10);
+                FW(dst, 0x14) = FW(src, 0x14);
+                FW(dst, 0x18) = FW(src, 0x18);
+                FW(dst, 0x1C) = FW(src, 0x1C);
+                *(s8 *)(src + 0x0) = (s8) (*(u8 *)(src + 0x0) & 0xFFBF);
             } else {
-                src = rec + 0xB0;
-                FW(dst, 0x0) = (s8) (*(u8 *)(dst + 0x3) & 0xFF7F);
+                *(s8 *)(dst + 0x0) = (s8) (*(u8 *)(dst + 0x0) & 0xFF7F);
             }
-            FW(src, 0x6) = 0;
+            *(s8 *)(src + 0x6) = 0;
             i += 1;
             off += 0xD0;
-        } while (i < *pCount);
+        } while (i < *(s32 *)0x2070);
     }
 }
 #else
