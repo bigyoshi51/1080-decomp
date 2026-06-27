@@ -20499,25 +20499,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034180);
 //   reuse.
 #ifdef NON_MATCHING
 void gl_func_00034188(void) {
-    char *h = (char *)&D_00000000;
+    char *h;
+    char *vt;
     int (*f)(void *);
     int v;
     char *g;
+    char *vt2;
     int (*f2)(void *);
     int r;
-    f = *(int (**)(void *))(h + 0x1C);
-    v = f(h + *(int *)(h + 0x18));
+    int flag;
+    int i;
+
+    h = *(char **)((char *)&D_00000000 + 0x240);
+    vt = *(char **)(h + 0x28);
+    f = *(int (**)(void *))(vt + 0x1C);
+    v = f(h + *(short *)(vt + 0x18));
     gl_func_00000000();
     gl_func_00000000();
     while ((u32)v < 0x1E0) {
-        gl_func_00000000();
+        v = gl_func_00000000();
     }
     g = *(char **)((char *)&D_00000000 + 0x240);
-    f2 = *(int (**)(void *))(g + 0x64);
-    r = f2(g + *(int *)(g + 0x60));
+    vt2 = *(char **)(g + 0x28);
+    f2 = *(int (**)(void *))(vt2 + 0x64);
+    r = f2(g + *(short *)(vt2 + 0x60));
     gl_func_00000000();
-    *(int *)((char *)&D_00000000 + 0x204) = 0x001E8480;
-    *(int *)(g + 0x144) = 0;
+    flag = *(int *)((char *)&D_00000000 + 0x204) ^ 1;
+    *(int *)((char *)&D_00000000 + 0x204) = flag;
+    for (i = 0; i != 0x1E8480; i += 4) {
+        *(int *)(g + 0x144) = flag;
+    }
     (void)r;
 }
 #else
