@@ -507,6 +507,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B94);
  * Caps <80: get-or-create branch + ~8 gl_func_00000000 reloc calls +
  * &D descriptor relocs + FP const + packed-id args. INCLUDE_ASM
  * remains build path (no episode; tautology-trap rule). */
+/* gl_func_00000D5C - get-or-create constructor + child wiring (0x118,
+ * 70 insns). Two nested get-or-create branches: outer allocs the main
+ * object s0 (316/0x13C bytes) when arg null; inner allocs a sub-object
+ * `sub` (268/0x10C bytes) when null, then init-calls
+ * gl_func_00000000(sub, &D+0xCBC0). sub->0x28 = &D descriptor, then
+ * gl_func_00000000(sub+0x2C). s0->0xC = &D+0xCBC8 descriptor. Two
+ * embedded children at s0+268 / s0+292 init'd with packed ids
+ * 0x050001 / 0x050007 then cross-wired via
+ * gl_func_00000000(s0, s0+292, s0+268). Field block 0xC4/0xC8/0xCC f32
+ * = global default (&D+0xC70); 0xD0 f32 = 0.0; 0xD4=0; 0xD8=255;
+ * 0xDC=130; 0xE0=a1. Final gl_func_00000000(s0,-56,-1,-13,0).
+ * Caps <80: get-or-create branches + ~8 reloc calls + &D descriptor
+ * relocs + FP const + packed-id args + sp-saved arg homes. INCLUDE_ASM
+ * remains build path (no episode; tautology-trap rule). */
 #ifdef NON_MATCHING
 void *gl_func_00000D5C(char *s0, int a1) {
     char *sub;
@@ -515,23 +529,29 @@ void *gl_func_00000D5C(char *s0, int a1) {
         s0 = (char*)gl_func_00000000(316);
         if (s0 == 0) return 0;
     }
-    sub = (char*)gl_func_00000000(0xCBC0);
+    sub = s0;
+    if (sub == 0) {
+        sub = (char*)gl_func_00000000(268);
+        if (sub == 0) goto done;
+    }
+    gl_func_00000000(sub, (int)&D_00000000 + 0xCBC0);
     *(int*)(sub + 0x28) = (int)&D_00000000;
     gl_func_00000000(sub + 0x2C);
-    *(int*)(s0 + 0xC) = (int)&D_00000000;
+    *(int*)(s0 + 0xC) = (int)&D_00000000 + 0xCBC8;
     gl_func_00000000(s0 + 268, 0x050001);
     gl_func_00000000(s0 + 292, 0x050007);
     gl_func_00000000(s0, s0 + 292, s0 + 268);
     k = *(float*)((char*)&D_00000000 + 0xC70);
+    *(int*)(s0 + 0xD4) = 0;
+    *(int*)(s0 + 0xD8) = 255;
+    *(int*)(s0 + 0xDC) = 130;
     *(float*)(s0 + 0xC4) = k;
     *(float*)(s0 + 0xC8) = k;
     *(float*)(s0 + 0xCC) = k;
     *(float*)(s0 + 0xD0) = 0.0f;
-    *(int*)(s0 + 0xD4) = 0;
-    *(int*)(s0 + 0xD8) = 255;
-    *(int*)(s0 + 0xDC) = 130;
     *(int*)(s0 + 0xE0) = a1;
-    gl_func_00000000(s0, -56, -1, -13);
+    gl_func_00000000(s0, -56, -1, -13, 0);
+done:
     return s0;
 }
 #else
