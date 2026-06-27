@@ -13029,20 +13029,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9B8);
 
 #ifdef NON_MATCHING
 /* game_libs_func_0002A9F0: 1-or-2-byte big-endian varint reader over a cursor
- * (**a0). v=*p; *a0=p+1; if high bit set: v=((v<<8)&0x7F00)|p[1]; v&=0xFFFF;
- * *a0=p+2. return v. Logic exact; near-miss (1 insn short, 15 vs 16): target
- * saves the input byte (`move a1,v1`) into the beqz delay slot before reusing
- * $v1 as the working/return register, while IDO fills the delay with the shift
- * and keeps the result in a fresh temp — a delay-slot-scheduling choice no
- * tested C form (hi-copy, reorder) flips. Reloc-free. */
+ * (**a0). v=*p; advance *a0=p+1 (cursor q); if high bit set: read the second
+ * byte THROUGH the advanced cursor (*q, i.e. lbu 0(t6)) and advance *a0=q+1
+ * (addiu t9,t6,1) — NOT re-derived from p (p[1]/p+2). v=((v<<8)&0x7F00)|*q;
+ * v&=0xFFFF. Store of *a0 sinks below the value computation. This raises fuzzy
+ * 66.19 -> 78.13 (cursor-reuse + store-order). Residual is pure regalloc/delay-
+ * slot shape: target spends the beqz delay on `move a1,v1` (save byte before
+ * reusing $v1 as the working/return reg) where IDO here fills it with the shift
+ * and threads the result through a fresh temp. No tested C form flips that
+ * scheduling choice. Reloc-free; game_libs baked-reloc => objdiff-fuzzy only. */
 int game_libs_func_0002A9F0(unsigned char **a0) {
     unsigned char *p = *a0;
     int v = *p;
-    *a0 = p + 1;
+    unsigned char *q = p + 1;
+    *a0 = q;
     if (v & 0x80) {
-        v = ((v << 8) & 0x7F00) | p[1];
-        *a0 = p + 2;
+        int b = *q;
+        v = ((v << 8) & 0x7F00) | b;
         v &= 0xFFFF;
+        *a0 = q + 1;
     }
     return v;
 }
