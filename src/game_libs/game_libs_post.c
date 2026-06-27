@@ -2535,12 +2535,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001F248);
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder for the leaf emitters.
 // gl_func_0001F3C8 — FULL m2c DECODE (56.05% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_0001F3C8 — FULL m2c DECODE (NM, no episode). game_libs F3D tile-mode
+// dispatcher + display-list builder. arg2/arg1 tile-selector fields are BYTE
+// (lbu/sb at +2/+3/+4); arg2->0xC is a WORD (lw). kind code (arg5) at sp+0x1C.
 #ifdef NON_MATCHING
 
+#ifndef FB
+#define FB(p, o) (*(u8 *)((char *)(p) + (o)))
+#endif
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0001F3C8)();
 char *gl_func_0001F3C8(char *arg0, char *arg1, char *arg2, s32 arg3, s32 arg4, s32 arg5) {
     s32 temp_t1;
     s32 temp_v0;
@@ -2557,11 +2562,11 @@ char *gl_func_0001F3C8(char *arg0, char *arg1, char *arg2, s32 arg3, s32 arg4, s
 
     switch (arg5) {                                 /* irregular */
     case 1:
-        var_v1 = FW(arg2, 0x2);
+        var_v1 = FB(arg2, 0x2);
         var_t0 = 0x940;
-        var_a1 = FW(arg1, 0x3);
-        FW(arg2, 0x3) = 0U;
-        FW(arg2, 0x2) = var_a1;
+        var_a1 = FB(arg1, 0x3);
+        FB(arg2, 0x3) = 0U;
+        FB(arg2, 0x2) = var_a1;
 block_6:
         if (arg4 != 1) {
             if (var_v1 != var_a1) {
@@ -2612,11 +2617,11 @@ block_6:
         FW(var_a0, 0x4) = (s32) ((var_t0 & 0xFFFF) | 0x05C00000);
         return var_a0 + 8;
     case 2:
-        var_a1 = FW(arg1, 0x4);
-        var_v1 = FW(arg2, 0x3);
+        var_a1 = FB(arg1, 0x4);
+        var_v1 = FB(arg2, 0x3);
         var_t0 = 0xAE0;
-        FW(arg2, 0x2) = 0U;
-        FW(arg2, 0x3) = var_a1;
+        FB(arg2, 0x2) = 0U;
+        FB(arg2, 0x3) = var_a1;
         goto block_6;
     default:
         return arg0;
