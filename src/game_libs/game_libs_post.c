@@ -17715,10 +17715,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000309AC);
 void gl_func_000309B4(int sel) {
     int p;
     if (sel == *(int *)((char *)&D_00000000 + 0x10)) return;
-    if      (sel == 0) p = 0;
-    else if (sel == 1) p = 0x46;
-    else if (sel == 2) p = 0x1E;
-    else               p = 0;
+    switch (sel) {
+        case 1:  p = 0x1E; break;
+        case 2:  p = 0x46; break;
+        case 0:
+        default: p = 0;    break;
+    }
     gl_func_00000000(&D_00000000, p);
     *(int *)((char *)&D_00000000 + 0x10) = sel;
 }
