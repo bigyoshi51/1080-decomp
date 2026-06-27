@@ -36,6 +36,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C454);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+extern int gl_vec_src0;
+extern int gl_vec_src1;
+extern int gl_vec_src2;
+extern int gl_vec_src3;
 typedef char *(*GP_0006C484)();
 void gl_func_0006C484(void) {
     u32 sp34;
@@ -46,6 +50,10 @@ void gl_func_0006C484(void) {
     u32 temp_ret_2;
     u32 temp_t1;
     u32 temp_t9;
+    int *src0 = &gl_vec_src0;
+    int *src1 = &gl_vec_src1;
+    int *src2 = &gl_vec_src2;
+    int *src3 = &gl_vec_src3;
 
     sp30 = 0;
     *(int*)0 = 1;
@@ -61,22 +69,10 @@ void gl_func_0006C484(void) {
 
         } while (gl_func_00062F64(0x1FC007FCU, (u32 *) (sp34 | 8)) != 0);
     }
-    *(u32 *)0x80000000 = *(int*)0;
-    *(u32 *)0x80000004 = *(u32 *)4;
-    *(u32 *)0x80000008 = *(u32 *)8;
-    *(u32 *)0x8000000C = *(u32 *)0xC;
-    (char *)FW(0x80000080, 0x0) = (u32) *(int*)0;
-    (char *)FW(0x80000080, 0x4) = (u32) *(char *)4;
-    (char *)FW(0x80000080, 0x8) = (u32) *(char *)8;
-    (char *)FW(0x80000080, 0xC) = (u32) *(char *)0xC;
-    (char *)FW(0x80000100, 0x0) = (u32) *(int*)0;
-    (char *)FW(0x80000100, 0x4) = (u32) *(char *)4;
-    (char *)FW(0x80000100, 0x8) = (u32) *(char *)8;
-    (char *)FW(0x80000100, 0xC) = (u32) *(char *)0xC;
-    (char *)FW(0x80000180, 0x0) = (u32) *(int*)0;
-    (char *)FW(0x80000180, 0x4) = (u32) *(char *)4;
-    (char *)FW(0x80000180, 0x8) = (u32) *(char *)8;
-    (char *)FW(0x80000180, 0xC) = (u32) *(char *)0xC;
+    *(Quad4 *)0x80000000 = *(Quad4 *)src0;
+    *(Quad4 *)0x80000080 = *(Quad4 *)src1;
+    *(Quad4 *)0x80000100 = *(Quad4 *)src2;
+    *(Quad4 *)0x80000180 = *(Quad4 *)src3;
     gl_func_00062F64(0x80000000U, (u32 *)0x190);
     gl_func_00062F64(0x80000000U, (u32 *)0x190);
     gl_func_00062F64();
@@ -85,15 +81,15 @@ void gl_func_0006C484(void) {
     sp30 = temp_t9;
     if (temp_t9 != 0) {
         *(int*)0 = 0U;
-        *(char *)4 = temp_t9;
+        *(int *)4 = temp_t9;
     }
-    temp_ret = gl_func_00062F64(*(int*)0, (u32 *) *(char *)4, 0, 3);
+    temp_ret = gl_func_00062F64(*(int*)0, (u32 *) *(int *)4, 0, 3);
     sp20 = temp_ret;
     sp24 = (u32) (u64) temp_ret;
     temp_ret_2 = gl_func_00062F64(sp20, (u32 *) sp24, 0, 4);
     temp_t1 = *(int*)0;
     *(int*)0 = temp_ret_2;
-    *(char *)4 = (u32) (u64) temp_ret_2;
+    *(int *)4 = (u32) (u64) temp_ret_2;
     if (temp_t1 == 0) {
         gl_func_00062F64(0U, (u32 *)0x40);
     }
