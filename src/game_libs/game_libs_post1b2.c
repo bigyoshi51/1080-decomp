@@ -93,36 +93,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BF34);
 #ifdef NON_MATCHING
 /* gl_func_0006C084: 38-insn one-time init w/ guarded heavy path (0x98, frame 0x20).
  *
- * Decoded structure (raw-word disasm):
- *   func1(a0);
+ * Decoded structure (expected .o disasm):
+ *   func1(a0); v0_ret = 0;                            // sw zero,28(sp) in delay
  *   if (D_lock_flag != 1) {
- *       func_at_0x80824();                          // direct-addr jal (not a sym)
- *       func3(1, &D_sym1);
- *       func4(a0, 0, 1);                            // 3-arg
+ *       gl_ref_00080824();                            // direct hardcoded jal 0x80824
+ *       v0_ret = func3(1, &D_sym1);                   // sw v0,28(sp)
+ *       func4(a0, 0, 1);                              // 3-arg, result discarded
  *   }
- *   // Always-run tail:
- *   v0_ret = func5(0, &D_sym2);
- *   func6();
- *   D_lock_flag = 1;                                 // sb 1 to lock
- *   return v0_ret;                                   // func5's result via sp+0x1C
+ *   v0_ret = func5(0, &D_sym2);                       // sw v0,28(sp)
+ *   func6();                                          // result discarded
+ *   D_lock_flag = 1;                                  // sb 1 to lock
+ *   return v0_ret;                                    // via sp+0x1C
  *
- * The `D_lock_flag` is a 1-byte (sb) global that guards re-running the
- * heavy init path on subsequent calls — classic "once" idiom.
+ * `jal 0x80824` (0x0c020209) is a direct hardcoded jal-to-absolute, modeled
+ * with the gl_ref recipe (needs `gl_ref_00080824 = 0x00080824;` in
+ * undefined_syms_auto.txt) so it emits a direct jal, not a fn-ptr-cast
+ * lui/ori/jalr triple.
  *
- * The `jal 0x80824` at offset 0x28 is a direct hardcoded jal-to-absolute,
- * not a relocated symbol — unusual for IDO; suggests inlined libc thunk.
+ * v0_ret is `volatile int` so each assignment is a genuine sp+0x1C store
+ * (matches target's per-call spill of the return slot); a plain int lets IDO
+ * coalesce and drop the zero-init + func3-result stores.
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * Residual (70.69% fuzzy): tail func5-store / func6-call / lock-store
+ * scheduling order is pure IDO instruction scheduling. INCLUDE_ASM remains
+ * build path (game_libs baked-reloc, can't byte-LAND).
  */
+extern int gl_ref_00080824();
 int gl_func_0006C084(int a0) {
     extern char D_lock_flag;
     extern int D_sym1, D_sym2;
-    int v0_ret;
+    volatile int v0_ret;
     gl_func_00000000(a0);
+    v0_ret = 0;
     if (D_lock_flag != 1) {
-        ((void(*)(void))0x80824)();
-        gl_func_00000000(1, &D_sym1);
+        gl_ref_00080824();
+        v0_ret = (int)gl_func_00000000(1, &D_sym1);
         gl_func_00000000(a0, 0, 1);
     }
     v0_ret = (int)gl_func_00000000(0, &D_sym2);
