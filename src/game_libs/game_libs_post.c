@@ -1881,18 +1881,22 @@ char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s
     var_t1 = var_t1 & 0x7F;
     *(u16 *)(arg2 + 0x10) = (u16) (sp30 + (var_a3 * var_v0));
     *(u16 *)(arg2 + 0x12) = (u16) (temp_ra + (var_t0 * var_v0));
+    var_s0 = arg0;
     if (*(s32 *)(arg1 + 0x0) & 1) {
-        temp_s0 = arg0 + 8;
+        temp_s0 = var_s0;
+        var_s0 += 8;
         sp56 = var_a3;
         sp54 = var_t0;
         sp34 = var_t1;
         sp28 = (s32) temp_ra;
         sp50 = (s16) temp_t4;
-        gl_ref_00031BC8(arg0, 0x5C0, 0x1A0, var_a3);
-        temp_s0_2 = temp_s0 + 8;
-        gl_ref_00031D00(temp_s0, var_t1 * 2, sp82, var_a3, (s32) var_t0);
-        var_s0 = temp_s0_2 + 8;
-        gl_ref_00031D8C(temp_s0_2, sp30, (s16) sp28);
+        gl_ref_00031BC8(temp_s0, 0x5C0, 0x1A0, var_a3);
+        temp_s0_2 = var_s0;
+        var_s0 += 8;
+        gl_ref_00031D00(temp_s0_2, var_t1 * 2, sp82, var_a3, (s32) var_t0);
+        temp_s0_3 = var_s0;
+        var_s0 += 8;
+        gl_ref_00031D8C(temp_s0_3, sp30, (s16) sp28);
         switch (arg5) {                             /* irregular */
         case 1:
             var_a1 = *(s32 *)0x1A2D4;
@@ -1902,12 +1906,14 @@ char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s
             break;
         }
     } else {
-        temp_s0_3 = arg0 + 8;
-        *(s32 *)(arg0 + 0x0) = ((((var_t1 * 2) & 0xFF) << 0x10) | 0x12000000 | (sp82 & 0xFFFF));
-        *(s32 *)(arg0 + 0x4) = ((var_a3 << 0x10) | (var_t0 & 0xFFFF));
-        *(s32 *)(arg0 + 0x8) = 0x16000000;
-        *(s32 *)(temp_s0_3 + 0x4) = ((temp_t5 << 0x10) | (temp_ra & 0xFFFF));
-        var_s0 = temp_s0_3 + 8;
+        temp_s0 = var_s0;
+        var_s0 += 8;
+        *(s32 *)(temp_s0 + 0x0) = ((((var_t1 * 2) & 0xFF) << 0x10) | 0x12000000 | (sp82 & 0xFFFF));
+        *(s32 *)(temp_s0 + 0x4) = ((var_a3 << 0x10) | (var_t0 & 0xFFFF));
+        temp_s0_2 = var_s0;
+        var_s0 += 8;
+        *(s32 *)(temp_s0_2 + 0x0) = 0x16000000;
+        *(s32 *)(temp_s0_2 + 0x4) = ((temp_t5 << 0x10) | (temp_ra & 0xFFFF));
         var_a1 = *(s32 *)0x1A2DC;
     }
     temp_v1_2 = *(s32 *)(arg1 + 0x0);
