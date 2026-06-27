@@ -14701,19 +14701,23 @@ extern int gl_func_00000000();
 extern int D_00000000;
 void gl_func_0002CF70(int a0) {
     int n = *(short *)((char *)&D_00000000 + 0x2048);
-    int i;
+    unsigned int i;
     char *rec;
     *(int *)((char *)&D_00000000 + 0x5364) = (-a0 - 1) * 0x160;
-    if (n == 0) return;
-    rec = (char *)&D_00000000 + 0x2D00;
-    for (i = 0; i < n; i++) {
-        if (*(int *)rec < 0) {
-            gl_func_00000000(rec);
-            gl_func_00000000(rec);
-        }
-        n = *(short *)((char *)&D_00000000 + 0x2048);
-        rec += 0x160;
+    if (n != 0) {
+        rec = (char *)&D_00000000 + 0x2D00;
+        i = 0;
+        do {
+            if (((unsigned int)*(int *)rec) >> 0x1f) {
+                gl_func_00000000(rec);
+                gl_func_00000000(rec);
+            }
+            n = *(short *)((char *)&D_00000000 + 0x2048);
+            i++;
+            rec += 0x160;
+        } while (i < (unsigned int)n);
     }
+    gl_func_00000000();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002CF70);
