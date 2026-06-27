@@ -4812,71 +4812,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_000693A4)();
 void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
     f32 sp20;
     f32 sp1C;
     f32 sp18;
-    f32 sp14;
-    f32 sp10;
-    f32 temp_f10;
-    f32 temp_f14;
-    f32 temp_f4;
-    f32 temp_f6;
-    f32 temp_f6_2;
-    s16 temp_a2;
-    s16 temp_v0_2;
+    f32 o18;
+    f32 o1C;
+    f32 o20;
+    f32 ex;
+    f32 ey;
+    f32 ez;
+    f32 scale;
+    s16 idx;
+    s16 mode;
     s32 var_a3;
-    s32 var_t9;
     s32 var_v1;
-    char *temp_a1;
-    char *temp_t0;
-    char *temp_t1;
-    char *temp_t1_2;
-    char *temp_v0;
-    char *temp_v1;
-    char *var_a1;
+    char *entry;
+    char *src;
+    char *mtx;
+    char *out;
+    char *v0p;
+    char *v1p;
 
-    temp_v1 = FW(arg1, 0x38);
-    temp_v0 = FW(arg0, 0x18);
+    v1p = FW(arg1, 0x38);
+    v0p = FW(arg0, 0x18);
+    ex = (*(f32*)((char*)v0p + 0xA0)) - (*(f32*)((char*)v1p + 0xA0));
+    ey = (*(f32*)((char*)v0p + 0xA4)) - (*(f32*)((char*)v1p + 0xA4));
+    ez = (*(f32*)((char*)v0p + 0xA8)) - (*(f32*)((char*)v1p + 0xA8));
     var_a3 = 0;
     if (FW(arg0, 0x20) > 0) {
         var_v1 = 0;
         do {
-            temp_a1 = FW(arg0, 0x1C) + var_v1;
-            temp_v0_2 = *(s16*)((char*)temp_a1 + 0x2);
-            if (temp_v0_2 > 0) {
-                temp_a2 = *(s16*)((char*)temp_a1 + 0x0);
-                temp_t0 = FW(arg0, 0x24) + (var_a3 * 6);
-                sp18 = (f32)*(s16*)((char*)temp_t0 + 0x0);
-                sp1C = (f32)*(s16*)((char*)temp_t0 + 0x2);
-                sp20 = (f32)*(s16*)((char*)temp_t0 + 0x4);
-                temp_t1 = FW(arg0, 0x18);
-                temp_t1_2 = temp_t1 + 0x70;
-                sp10 = sp18;
-                temp_f4 = sp10;
-                sp10 = sp1C;
-                sp14 = sp20;
-                temp_f10 = sp10;
-                temp_f6 = ((*(f32*)((char*)temp_t1_2 + 0x4)) * temp_f4) + ((*(f32*)((char*)temp_t1_2 + 0x14)) * temp_f10);
-                sp10 = temp_f4;
-                temp_f6_2 = ((*(f32*)((char*)temp_t1 + 0x70)) * sp18) + ((*(f32*)((char*)temp_t1 + 0x80)) * sp1C) + ((*(f32*)((char*)temp_t1_2 + 0x20)) * sp20) + ((*(f32*)((char*)temp_v0 + 0xA0)) - (*(f32*)((char*)temp_v1 + 0xA0)));
-                sp1C = temp_f6 + ((*(f32*)((char*)temp_t1_2 + 0x24)) * sp14) + ((*(f32*)((char*)temp_v0 + 0xA4)) - (*(f32*)((char*)temp_v1 + 0xA4)));
-                sp18 = temp_f6_2;
-                sp20 = ((*(f32*)((char*)temp_t1_2 + 0x8)) * sp10) + ((*(f32*)((char*)temp_t1_2 + 0x18)) * temp_f10) + ((*(f32*)((char*)temp_t1_2 + 0x28)) * sp14) + ((*(f32*)((char*)temp_v0 + 0xA8)) - (*(f32*)((char*)temp_v1 + 0xA8)));
-                if (temp_v0_2 == 0x64) {
-                    var_a1 = (int)arg2 + (temp_a2 * 6);
-                    (*(s16*)((char*)var_a1 + 0x0)) = (s16) (s32) sp18;
-                    (*(s16*)((char*)var_a1 + 0x2)) = (s16) (s32) sp1C;
-                    var_t9 = (s32) sp20;
+            entry = FW(arg0, 0x1C) + var_v1;
+            mode = *(s16*)((char*)entry + 0x2);
+            if (mode > 0) {
+                idx = *(s16*)((char*)entry + 0x0);
+                src = FW(arg0, 0x24) + (var_a3 * 6);
+                sp18 = (f32)*(s16*)((char*)src + 0x0);
+                sp1C = (f32)*(s16*)((char*)src + 0x2);
+                sp20 = (f32)*(s16*)((char*)src + 0x4);
+                mtx = FW(arg0, 0x18) + 0x70;
+                o18 = ((*(f32*)((char*)mtx + 0x0)) * sp18) + ((*(f32*)((char*)mtx + 0x10)) * sp1C) + ((*(f32*)((char*)mtx + 0x20)) * sp20) + ex;
+                o1C = ((*(f32*)((char*)mtx + 0x4)) * sp18) + ((*(f32*)((char*)mtx + 0x14)) * sp1C) + ((*(f32*)((char*)mtx + 0x24)) * sp20) + ey;
+                o20 = ((*(f32*)((char*)mtx + 0x8)) * sp18) + ((*(f32*)((char*)mtx + 0x18)) * sp1C) + ((*(f32*)((char*)mtx + 0x28)) * sp20) + ez;
+                out = (int)arg2 + (idx * 6);
+                if (mode == 0x64) {
+                    (*(s16*)((char*)out + 0x0)) = (s16) (s32) o18;
+                    (*(s16*)((char*)out + 0x2)) = (s16) (s32) o1C;
+                    (*(s16*)((char*)out + 0x4)) = (s16) (s32) o20;
                 } else {
-                    temp_f14 = (f32) temp_v0_2 * (*(f32*)((char*)&D_00000000 + 0x2240));
-                    var_a1 = (int)arg2 + (temp_a2 * 6);
-                    (*(s16*)((char*)var_a1 + 0x0)) = (s16) ((*(s16*)((char*)var_a1 + 0x0)) + (s32) (sp18 * temp_f14));
-                    (*(s16*)((char*)var_a1 + 0x2)) = (s16) ((*(s16*)((char*)var_a1 + 0x2)) + (s32) (sp1C * temp_f14));
-                    var_t9 = (*(s16*)((char*)var_a1 + 0x4)) + (s32) (sp20 * temp_f14);
+                    scale = (f32) mode * (*(f32*)((char*)&D_00000000 + 0x2240));
+                    (*(s16*)((char*)out + 0x0)) = (s16) ((*(s16*)((char*)out + 0x0)) + (s32) (o18 * scale));
+                    (*(s16*)((char*)out + 0x2)) = (s16) ((*(s16*)((char*)out + 0x2)) + (s32) (o1C * scale));
+                    (*(s16*)((char*)out + 0x4)) = (s16) ((*(s16*)((char*)out + 0x4)) + (s32) (o20 * scale));
                 }
-                (*(s16*)((char*)var_a1 + 0x4)) = (s16) var_t9;
             }
             var_a3 += 1;
             var_v1 += 4;
