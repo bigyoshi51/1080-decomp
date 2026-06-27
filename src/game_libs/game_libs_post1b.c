@@ -637,36 +637,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063964);
  *   gl_func_00000000(s0, &D+0x22390, 0.0f, 0.0f, 0.0f);  // a2/a3/sp16=0
  *   s0->[0x28] = &D_00000000;
  *   s0->[0x16C] = a1;
- *   gl_func_00000000(s0, a2, a3, <sp+0x38>);
+ *   gl_func_00000000(s0, a2, a3, a4);   // a4 = 5th (stack) arg
  *   gl_func_00000000(s0);
- *   s0->[0x164] = gl_func_00000000(a2*a2 + a3*a3 + <f>*<f>);  // jal#4
+ *   s0->[0x164] = gl_func_00000000(a2*a2 + a3*a3 + a4*a4);  // jal#4
  *   return s0;
  *
- * CAP: jal#4 passes a single float (the magnitude²) to the file-scope
- * K&R `extern int gl_func_00000000()` via DIRECT jal — provably
- * unmatchable per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call
- * (float→double promote / prototype-redecl cfe error / fn-ptr-cast
+ * CAP: jal#4 passes a single float (the magnitude squared) to the
+ * file-scope K&R `extern int gl_func_00000000()` via DIRECT jal —
+ * provably unmatchable per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call
+ * (float->double promote / prototype-redecl cfe error / fn-ptr-cast
  * yields jalr). Same cap as gl_func_0005DB58. The early float-zero
- * args (jal#1) ARE matchable (GPR-passed after the ptr, like
- * gl_func_0000BBF0) — only jal#4 is the blocker, making the whole
- * function NM. INCLUDE_ASM is the build path (ROM byte-exact). */
+ * args (jal#1) ARE matchable (GPR-passed after the ptr) — only jal#4 is
+ * the blocker, making the whole function NM. INCLUDE_ASM is the build
+ * path (ROM byte-exact). */
 extern int gl_func_00000000();
 extern int aD63DC4_5(void*, void*, float, float, float);
-extern int aD63DC4_4(void*, float, float, int);
+extern int aD63DC4_4(void*, float, float, float);
 extern float aD63DC4_1(float);
-void *gl_func_00063DC4(void *a0, int a1, float a2, float a3) {
+void *gl_func_00063DC4(void *a0, int a1, float a2, float a3, float a4) {
     void *s0 = a0;
     if (s0 == 0) {
         s0 = (void*)gl_func_00000000(368);
-        if (s0 == 0) return s0;
     }
-    aD63DC4_5(s0, (char*)&D_00000000 + 0x22390, 0.0f, 0.0f, 0.0f);
-    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
-    *(int*)((char*)s0 + 0x16C) = a1;
-    aD63DC4_4(s0, a2, a3, 0);
-    gl_func_00000000(s0);
-    *(float*)((char*)s0 + 0x164) =
-        aD63DC4_1(a2 * a2 + a3 * a3 + 0.0f);
+    if (s0 != 0) {
+        aD63DC4_5(s0, (char*)&D_00000000 + 0x22390, 0.0f, 0.0f, 0.0f);
+        *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+        *(int*)((char*)s0 + 0x16C) = a1;
+        aD63DC4_4(s0, a2, a3, a4);
+        gl_func_00000000(s0);
+        *(float*)((char*)s0 + 0x164) =
+            aD63DC4_1(a2 * a2 + a3 * a3 + a4 * a4);
+    }
     return s0;
 }
 #else
