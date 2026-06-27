@@ -3533,19 +3533,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
  * multi-pass. Correct algorithm preserved. */
 int game_libs_func_00067B78(unsigned char *a0, unsigned char *a1) {
     unsigned char *v0 = a1;
-    int cn, ch;
+    unsigned char *hp, *np;
+    int r;
     if (*a0 != 0 && *a1 != 0) {
         do {
-            cn = *a1;
-            ch = *a0;
+            hp = a0;
+            np = a1;
             a1++;
             a0++;
-            if (cn != ch) {
+            if (*hp != *np) {
                 a1 = v0;
             }
         } while (*a0 != 0 && *a1 != 0);
     }
-    return *a1 == 0;
+    r = *a1 != 0;
+    return !r;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B78);
