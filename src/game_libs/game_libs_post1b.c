@@ -4541,20 +4541,25 @@ void game_libs_func_00068BF4(int *a0) {
  *
  * 2026-05-31: body completed to full logic (40.7->47.6% fuzzy): two read-advance-
  * conditional-log blocks, 3-arg sub-init, child wiring via self->0x3C, func_d, the
- * linked-set finalizer, and the D_global[count1] indexed store. Logic now CORRECT
- * (build 63 insns vs 65 expected, same operations). RESIDUAL is purely register
- * allocation: the target SPILLS count1 to stack slot 52(sp) (frame 0x38), while
- * IDO here promotes count1 (a call-surviving value) to saved reg s1 (frame 0x40),
- * shifting every subsequent insn. Saved-reg-vs-stack-spill cap (count1 can't be
- * recomputed — it's a consumed buffer read — so the inline-recompute lever doesn't
- * apply). Permuter candidate. INCLUDE_ASM remains build path.
+ * linked-set finalizer, and the D_global[count1] indexed store. Logic CORRECT.
+ *
+ * 2026-06-26: `volatile int count1` lever (47.6->80.2% fuzzy). The target SPILLS
+ * count1 to stack slot 52(sp) (frame 0x38) rather than promoting it to a saved
+ * reg; marking count1 volatile forces the same stack residency, which (a) removes
+ * the spurious s1 save/restore + 0x40 frame, and (b) relieves register pressure so
+ * IDO schedules the linked-set finalizer as a branch-likely (beqzl, shared
+ * obj->0x14=cf store in the taken delay slot) exactly as the target does. RESIDUAL
+ * (~20%): volatile reloads count1 on every block-1 read, whereas the target holds
+ * it in a2 through the slti and spills only at the bnez delay slot — a scheduling
+ * cap volatile can't express without over-spilling. INCLUDE_ASM remains build path.
  */
 void gl_func_00068C14(int *self) {
     extern int D_00000000;
     extern int D_global_00068C14;
     int *bufstruct;
     int *p;
-    int count1, count2;
+    volatile int count1;
+    int count2;
     int *obj;
     int *child;
     int *cf;
