@@ -1589,31 +1589,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003138);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003298);
 
 #ifdef NON_MATCHING
-/* gl_func_000032B0: 77-insn FP color/material setup. Decoded algorithm:
- * normalize 4 color channels (using the stolen-prologue consts from
- * game_libs_func_00003298 above: f4=100, f6=255, f8=235) and apply them to 8
- * sub-objects pointed to by a0->0x2C..0x48, calling a placeholder per sub, then
- * zero/init a block of a0 fields. Stays NON_MATCHING (no episode): three caps
- * stack here -- (1) prologue-stolen (f4/f6/f8 live in the split-off head, so the
- * C re-materializes them = extra insns), (2) the per-sub call is caller-set-float
- * (mfc1 $a3 + swc1 stack, both 1.0f) which IDO C can't emit, (3) raw-.word
- * game_libs reloc depression on the placeholder call. Reference decode only. */
+/* gl_func_000032B0: 77-insn FP color/material setup. The four color channels are
+ * normalized at runtime via div.s using FP consts that partly live in the stolen
+ * prologue (game_libs_func_00003298 sets f4=100, f6=255, f8=235); the loop walks
+ * two distinct sub-pointer arrays a0[0x2C+i*4] and a0[0x28+i*4], zeroes
+ * sub2C->0x98 and sub28->0x94, calls a placeholder with two K&R 1.0f args (mfc1
+ * a3 + swc1 stack), then writes the 4 channels into sub2C->0x64..0x70. Trailing
+ * block zero/0xFF-inits a0 fields. Caps remain (prologue-stolen f4/f6/f8 +
+ * caller-set-float K&R call + raw-.word placeholder reloc) so no episode. */
 extern int func_00000000();
 void gl_func_000032B0(int *a0) {
-    float r = 100.0f / 255.0f;   /* f22 = f4/f6 */
+    float r = 100.0f / 255.0f;   /* f22 = f4/f6, f4 stolen from predecessor */
     float g = 235.0f / 255.0f;   /* f24 = f8/255 */
-    float b = 250.0f / 255.0f;   /* f26 */
-    float al = 0.0f / 255.0f;    /* f28 */
+    float b = 250.0f / 255.0f;   /* f26 = 250/255 */
+    float al = 0.0f / 255.0f;    /* f28 = 0/255 */
     int i;
     for (i = 0; i < 8; i++) {
         int *sub = *(int**)((char*)a0 + 0x2C + i * 4);
         *(int*)((char*)sub + 0x98) = 0;
+        sub = *(int**)((char*)a0 + 0x2C + i * 4);
         func_00000000(sub, 0xA0, 0x5A, 1.0f, 1.0f);
-        *(float*)((char*)sub + 0x64) = r;
-        *(float*)((char*)sub + 0x68) = g;
-        *(float*)((char*)sub + 0x6C) = b;
+        sub = *(int**)((char*)a0 + 0x2C + i * 4);
         *(float*)((char*)sub + 0x70) = al;
-        *(int*)((char*)sub + 0x94) = 0;
+        *(float*)((char*)sub + 0x6C) = b;
+        *(float*)((char*)sub + 0x68) = g;
+        *(float*)((char*)sub + 0x64) = r;
+        *(int*)((char*)(*(int**)((char*)a0 + 0x28 + i * 4)) + 0x94) = 0;
     }
     *(int*)((char*)a0 + 0x5C) = 0;
     *(int*)((char*)a0 + 0x9C) = 0;
