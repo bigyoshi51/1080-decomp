@@ -1114,29 +1114,32 @@ int game_libs_func_00035360(int a0) {
 //   Real-C STRUCTURAL body below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_00035370(char *o, int a1) {
+extern void *D_0003B8E8;
+int gl_func_00035370(char *o, int a1) {
     int r;
-    char *h;
-    int (*f)(void *, int);
     switch (*(int *)(o + 4)) {
         case 1:
-            h = *(char **)((char *)&D_00000000 + 0);
-            f = *(int (**)(void *, int))(h + 0x4C);
-            r = f(&D_00000000, a1);
+            r = (*(int (***)(int))&D_00000000)[0x4C / 4](a1);
             *(int *)(o + 0x20) = r;
-            if (r == 0) gl_func_00000000((char *)0x0001E578);
+            if (r == 0) {
+                gl_func_00034458(DB + 0x1E578, a1, gl_func_00034458(o));
+            }
             break;
         case 0:
-            r = gl_func_00000000(&D_00000000, a1);
+            r = gl_func_00034458(&D_00000000, a1);
             *(int *)(o + 0x20) = r;
-            if (r == 0) gl_func_00000000((char *)0x0001E590);
+            if (r == 0) {
+                gl_func_00034458(DB + 0x1E590, a1);
+            }
             break;
         case 2:
-            gl_func_00000000(&D_00000000, a1);
+            D_0003B8E8 = (void *)0x08000000;
+            *(int *)(o + 0x20) = 1;
             break;
         default:
             break;
     }
+    return *(int *)(o + 0x20);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035370);
