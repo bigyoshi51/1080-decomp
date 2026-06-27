@@ -3424,17 +3424,17 @@ int gl_func_00006A8C(char *a0, int a1) {
 #ifdef NON_MATCHING
 extern float gl_d_x, gl_d_y, gl_d_z;  /* placeholder 3 global floats zeroed by this fn */
 void gl_func_00006AAC(int *a0) {
-    int *G = *(int**)&D_00000000;
-    *(int*)((char*)a0 + 0x2C) = 0;
+    int *G = (int*)&D_00000000;
     *(int*)((char*)a0 + 0x30) = 0;
-    *(int*)((char*)a0 + 0x4DC) = 0;
+    *(int*)((char*)a0 + 0x2C) = 0;
     *(int*)((char*)a0 + 0x4E0) = 0;
+    *(int*)((char*)a0 + 0x4DC) = 0;
     *(int*)((char*)a0 + 0x4FC) = 0;
     *(int*)((char*)a0 + 0x4F4) = 0x1FFFF;
     G[0x78 / 4] = 1;
     gl_func_00000000(&D_00000000, 0);
     *(int*)((char*)a0 + 0x4E8) = 20;
-    *(int*)((char*)a0 + 0x4E4) = (*(int*)((char*)a0 + 0x4F0) & (1 << 18)) ? 0 : 120;
+    *(int*)((char*)a0 + 0x4E4) = (*(int*)((char*)a0 + 0x4F0) & (1 << 18)) ? 120 : 0;
     G[0x8C / 4] = *(int*)((char*)a0 + 0x4F0);
     *(int*)((char*)a0 + 0x540) = 255;
     *(float*)((char*)a0 + 0x534) = 1.0f;
