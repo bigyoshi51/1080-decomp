@@ -138,66 +138,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C084);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C110);
 
 #ifdef NON_MATCHING
-/* gl_func_0006C11C: 39-insn tagged-record-stream decoder loop (size 0x9C, frame 0x10).
- *
- * Decoded structure (raw-word disasm):
- *   void f(uint8_t *dst,         // $a0 — destination cursor (advanced +6 per iter)
- *          uint8_t *src,         // $t6 caller-set — source 8-byte records (advanced +8 per iter)
- *          int     count)        // $t7 caller-set — loop bound
- *   {
- *       int idx = 0;
- *       uint8_t buf[8];          // scratch on stack at sp+0x4
- *
- *       if (count <= 0) return;
- *       while (1) {
- *           // Read 8 unaligned bytes from src into buf
- *           lwl/lwr buf+0 = *(src+0..3);
- *           lwl/lwr buf+4 = *(src+4..7);
- *           uint8_t tag2 = (buf[2] & 0xC0) >> 4;  // top-2-bits → 0/4/8/0xC code
- *           dst[4] = tag2;
- *           if (tag2 == 0) {                      // case 0: full payload
- *               *(uint16_t*)(dst+0) = *(uint16_t*)(buf+4);  // [sp+0x8 = buf+4]
- *               *(int8_t  *)(dst+2) = *(int8_t  *)(buf+6);  // [sp+0xA = buf+6]
- *               *(int8_t  *)(dst+3) = *(int8_t  *)(buf+7);  // [sp+0xB = buf+7]
- *           }
- *           // (other tag codes leave dst+0..3 untouched, just dst+4 = tag2)
- *
- *           idx++;
- *           src += 8;
- *           dst += 6;
- *           if (idx >= *(uint8_t*)&D_00000000) break;   // limit byte at D+0
- *           // (note: limit reloaded from D+0 every iter — not hoisted)
- *       }
- *   }
- *
- * Notes:
- *  - $t6 and $t7 caller-set (no init in this function); both fit caller-set-int-reg
- *    cap (feedback_caller_set_int_reg_cap_1080_game_libs.md).
- *  - The 2-bit tag at top of buf[2] is interesting: a 4-way dispatch where only
- *    code 0 (no escape bits) writes the full halfword+2bytes payload to dst.
- *    Codes 1-3 just emit dst[4]=tag and leave dst+0..3 stale.
- *  - lwl/lwr unaligned-load pair indicates src may be arbitrarily aligned
- *    (asm-processor pattern; preserves IDO codegen).
- *  - Limit `*(uint8_t*)&D_00000000` is loaded every iter (no LICM by IDO -O2
- *    because it's a global volatile-equivalent access).
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
 extern int D_00000000;
-// Record decoder loop (lwl/lwr). For each of `count` records (caller-set $t7),
-// read an 8-byte record from the (caller-set $t6) cursor, decode out->4 =
-// (rec[2]&0xC0)>>4; if 0, out->0 = *(u16)(rec+4), out->2 = rec[6], out->3 =
-// rec[7]; advance out += 6, cursor += 8; loop while i < *&D. The counter is
-// volatile (forces the stack-resident reload the target uses); the cursor base +
-// count are modeled as params (volatile cursor over-reloads, so plain).
+// Record decoder loop (lwl/lwr). For each of `count` records, read an 8-byte
+// record from `cursor`, decode out[4] = (rec[2]&0xC0)>>4 (arithmetic shift);
+// if 0, out[0] = *(u16)(rec+4), out[2] = rec[6], out[3] = rec[7]; advance
+// out += 6, cursor += 8; loop while i < *&D. cursor is read through a volatile
+// view so its 8-byte record is re-read each iteration, matching the target's
+// per-iteration cursor reload.
 void gl_func_0006C11C(char *out, char *cursor, int count) {
     unsigned char rec[8];
     volatile int i;
+    volatile char *cur = cursor;
     if (count > 0) {
         i = 0;
         do {
-            *(int *)rec = *(int *)cursor;
-            *(int *)(rec + 4) = *(int *)(cursor + 4);
+            *(int *)rec = *(int *)cur;
+            *(int *)(rec + 4) = *(int *)(cur + 4);
             *(char *)(out + 4) = (rec[2] & 0xC0) >> 4;
             if (*(unsigned char *)(out + 4) == 0) {
                 *(short *)(out + 0) = *(unsigned short *)(rec + 4);
@@ -205,7 +161,7 @@ void gl_func_0006C11C(char *out, char *cursor, int count) {
                 *(char *)(out + 3) = rec[7];
             }
             out += 6;
-            cursor += 8;
+            cur += 8;
             i++;
         } while (i < *(unsigned char *)&D_00000000);
     }
