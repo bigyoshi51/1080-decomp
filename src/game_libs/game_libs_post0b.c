@@ -23647,82 +23647,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052144);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_000521F8: 73-insn (0x124) "alloc-or-init + multi-stage setup".
- * Sibling-roll source 2 candidate (post gl_func_00052144 at 98.13%).
- *
- * Entry shape (insns 1-7):
- *   addiu sp, -0x28; sw ra, 0x14(sp); sw a1, 0x2C(sp)  ; save arg1
- *   if (a0 != 0) goto have_obj
- *   v0 = gl_func_00000000(0x40);                          ; alloc 64 bytes
- *   if (v0 == 0) goto skip_rest;                          ; alloc-fail bail
- *   a2 = v0;
- *
- * Init stages (insns 8-65):
- *   gl_func_00000000(a2, a1);                              ; init call
- *   a2->0x28 = &D_t6_reloc;                                ; pointer field
- *   v1 = a2 + 0x30;
- *   if (a2 != (int*)0xFFFFFFD0) {
- *       gl_func_00000000(0x4); a2->0x30 = ret;             ; sub-alloc 1
- *   }
- *   v1 = a2 + 0x34;
- *   if (a2 != (int*)0xFFFFFFCC) {
- *       gl_func_00000000(0x8); a2->0x34 = ret;             ; sub-alloc 2
- *       /* extra init: read+copy 8 bytes from D_<reloc> *\/
- *   }
- *   /* final block: copy fields between sub-allocs, set defaults *\/
- *
- * Tail: return v0 = a2 (the object pointer).
- *
- * The signed-sentinel check (`bne a2, at, +N` where at = -0x30 etc) is
- * unusual — likely a "skip if a2 is a special tag value" guard that
- * never triggers in practice since a2 is a real pointer. May be a
- * bnel-emit artifact for the compiler's CFG.
- *
- * Stub C body — currently ~3% byte-exact / ~30% mnemonic. Deferred
- * to next iteration for full struct typing.
- *
- * 2026-05-06 deeper decode (kept as a TODO map for the next pass):
- *   sub-alloc 1 (insns 22-30): after `gl_func_00000000(0x4)`, target stores
- *     `sw zero, 4(v1); sw zero, 0(v1)` — initialises the 4-byte alloc
- *     plus 4 trailing bytes (alloc may have padding/metadata; structurally
- *     it writes 8 bytes). Add `if (p != 0) { p[0] = 0; p[1] = 0; }`.
- *   sub-alloc 2 (insns 31-50): after `gl_func_00000000(0x8)`, copies 8
- *     bytes from a global table (lui+addiu+lw 0(t8); lw 4(t8); sw to q).
- *     The global is referenced by 2 distinct lui+addiu pairs (likely
- *     different relocations, similar to 131C's volatile-pp pattern).
- *   final block (insns 51-65): writes obj[0xB]=arg1, obj[0xF]=q (cross-link),
- *     plus a zero store. Pattern looks like "register child sub-alloc
- *     with parent obj". Same 0x14/0x4 offsets as the 0x10E2C-family
- *     functions, suggesting they share this struct shape.
- *
- * For the typed-struct work: 5+ functions access offsets 0x28, 0x30,
- * 0x34, 0x3C (this fn + the 0x10E2C family). Threshold met for typing
- * per project_1080_strategy.md "type just-in-time when 5+ functions
- * access them". Future pass: decode struct first, then re-wrap.
- *
- * 2026-05-07 forward step (round 1): 2.7% → 4.1% byte-exact via:
- *   - Added second sub-alloc (obj[0x34] = gl_func(0x8))
- *   - Added tag-check `if (obj != (int*)-0x30/-0x34)` guards (matches
- *     target's `bne a2, at, +N` with `at = -0x30/-0x34` literal sentinel
- *     pattern — the C produces these 2-insn lui+addiu prep + branch)
- *   - D_521F8_reloc symbol added to undefined_syms_auto.txt for the
- *     0x28-field pointer store
- *
- * 2026-05-07 forward step (round 2): added sub-alloc body init blocks
- * (`*p4=0; p4[1]=0` and `*p8=D[0]; p8[1]=D[1]`) and final cross-link
- * block (`obj[0xB]=arg1; obj[0xF]=p8; obj[0xC]=0`). D_521F8_table8
- * symbol added. Built grows from 152 to 220 bytes (vs expected 292) —
- * but byte-exact stays at 4.1%/73 because the new insns are emitted
- * in different register-allocations than target. Structural progress
- * but not byte-exact promotion; needs typed struct + register-hint
- * grinding for a real promotion. */
+/* gl_func_000521F8: 73-insn alloc-or-init + nested sub-alloc setup.
+ * 2026-06-26: corrected the final cross-table block (target writes
+ * obj[0x30]/obj[0x34]/obj[0x38]/obj[0x3c] from D-tables and OR-sets
+ * obj[8]|=2 — it does NOT store arg1). Sub-alloc pointers p30/p34 are
+ * computed before each alloc and consumed after, matching the target's
+ * 0x1c/0x18 saved-slot pattern. game_libs is baked-reloc USO so the
+ * table symbols are fuzzy-neutral; offsets/widths/branches move objdiff. */
 extern char D_521F8_reloc;        /* offset 0x28 store target */
-extern int D_521F8_table8[2];     /* 8-byte D-table copied into obj[2] sub-alloc */
+extern int D_521F8_table8[2];     /* D-table words copied into obj fields */
 int *gl_func_000521F8(int *a0, int a1) {
     int *obj;
-    int *p4, *p8;
+    int *p30, *p34;
+    int *inner;
     if (a0 == 0) {
-        obj = (int*)gl_func_00000000(0x40);
+        obj = (int *)gl_func_00000000(0x40);
         if (obj == 0) {
             return 0;
         }
@@ -23730,23 +23669,29 @@ int *gl_func_000521F8(int *a0, int a1) {
         obj = a0;
     }
     gl_func_00000000(obj, a1);
-    *(int*)((char*)obj + 0x28) = (int)&D_521F8_reloc;
-    p4 = (int*)((char*)obj + 0x30);
-    if (obj != (int*)-0x30) {
-        *p4 = (int)gl_func_00000000(0x4);
-        *(int*)*p4 = 0;
-        ((int*)*p4)[1] = 0;
+    *(int *)((char *)obj + 0x28) = (int)&D_521F8_reloc;
+    p30 = (int *)((char *)obj + 0x30);
+    if (obj != (int *)-0x30) {
+        inner = (int *)gl_func_00000000(0x4);
+        if (inner != 0) {
+            *(int *)inner = 0;
+            *(int *)((char *)inner + 4) = 0;
+        }
     }
-    p8 = (int*)((char*)obj + 0x34);
-    if (obj != (int*)-0x34) {
-        *p8 = (int)gl_func_00000000(0x8);
-        *(int*)*p8 = D_521F8_table8[0];
-        ((int*)*p8)[1] = D_521F8_table8[1];
+    p34 = (int *)((char *)obj + 0x34);
+    if (obj != (int *)-0x34) {
+        inner = (int *)gl_func_00000000(0x8);
+        if (inner != 0) {
+            inner[1] = 0;
+            inner[0] = 0;
+        }
     }
-    /* final cross-link block: obj[0xB] = arg1; obj[0xF] = p8; obj[0xB+0x4] = 0 */
-    obj[0xB] = a1;
-    obj[0xF] = (int)p8;
-    obj[0xC] = 0;
+    *(int *)((char *)obj + 0x8) |= 2;
+    *p30 = D_521F8_table8[0];
+    *p34 = D_521F8_table8[0];
+    p34[1] = D_521F8_table8[1];
+    *(int *)((char *)obj + 0x2c) = 0;
+    *(int *)((char *)obj + 0x3c) = D_521F8_table8[0];
     return obj;
 }
 #else
