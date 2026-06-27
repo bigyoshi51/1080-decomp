@@ -713,6 +713,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
  * words into 00063F34 (0xC -> 0x1B0); dropped the 00063F40 symbol. Brings f12
  * (=a1) and f4 (=10.0) in-scope (retracts the implicit caller-set-float cap);
  * the 105-insn body is decodable in a future pass. */
+/* game_libs_func_00063F34: one 108-insn (0x1B0) function. BOUNDARY MERGED
+ * 2026-06-02: splat had split it into 00063F34 (3-insn FP-const prologue:
+ * `mtc1 a1,$f12` (input value, ARG-DERIVED) + `lui 0x4120`->$f4=10.0 — hoisted
+ * above the frame; the real entry) + gl_func_00063F40 (the prologue+body using
+ * f12 in `c.lt.s $f12,$f4`). SINGLE-entry per the dual-vs-single test (f12 is
+ * arg-derived + FP-op use, NOT mfc1-back; no callers). Absorbed 00063F40's 105
+ * words into 00063F34 (0xC -> 0x1B0); dropped the 00063F40 symbol. Brings f12
+ * (=a1) and f4 (=10.0) in-scope (retracts the implicit caller-set-float cap).
+ * 2026-06-26: fixed register-independent bugs vs target: (1) the temp_f0_3
+ * term was computed with INTEGER loads + integer multiply ((int)arg3 +
+ * (int*int)); target uses FLOAT loads + single-precision mul + single-precision
+ * add, only then promoted to double for the *D[0x20A8] scale. (2) dropped the
+ * spurious trailing `arg0` 5th argument on the final gl_func_00062F64 call
+ * (target passes only 0.0f, FW(arg0,0x16C), arg0+0x120, &sp44 — 4 args, no
+ * stack-arg spills). (3) removed the (s32) casts on the unk4/unk8 field copies
+ * (they emitted trunc.w.s/cvt.s.w; target is a plain word copy). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -734,8 +750,8 @@ void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
 
     if (arg1 < 10.0f) {
         sp44.unk0 = (*(f32*)((char*)arg0 + 0x114));
-        sp44.unk4 = (s32) (*(f32*)((char*)arg0 + 0x118));
-        sp44.unk8 = (s32) (*(f32*)((char*)arg0 + 0x11C));
+        sp44.unk4 = (*(f32*)((char*)arg0 + 0x118));
+        sp44.unk8 = (*(f32*)((char*)arg0 + 0x11C));
         temp_f2 = (*(f32*)((char*)arg2 + 0x0));
         temp_f0 = (sp44.unk0 * temp_f2) + (sp44.unk4 * (*(f32*)((char*)arg2 + 0x4))) + (sp44.unk8 * (*(f32*)((char*)arg2 + 0x8)));
         temp_f4 = (temp_f0 * temp_f2) - sp44.unk0;
@@ -748,7 +764,7 @@ void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
         if ((*(f64*)((char*)&D_00000000 + 0x20A0)) < (f64) temp_f0_2) {
             sp40 = temp_f0_2;
             gl_func_00062F64(&sp44);
-            temp_f0_3 = (f32) ((f64) ((int)arg3 + (FW(arg0, 0x150) * FW(FW(arg0, 0x16C), 0x360))) * (*(f64*)((char*)&D_00000000 + 0x20A8)));
+            temp_f0_3 = (f32) ((f64) (arg3 + ((*(f32*)((char*)arg0 + 0x150)) * (*(f32*)((char*)FW(arg0, 0x16C) + 0x360)))) * (*(f64*)((char*)&D_00000000 + 0x20A8)));
             var_f0 = temp_f0_3 * temp_f0_3;
             if ((*(f64*)((char*)&D_00000000 + 0x20B0)) < (f64) var_f0) {
                 var_f0 = (*(f32*)((char*)&D_00000000 + 0x20B8));
@@ -760,7 +776,7 @@ void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
             sp44.unk0 *= temp_f0_4;
             sp44.unk4 *= temp_f0_4;
             sp44.unk8 *= temp_f0_4;
-            gl_func_00062F64(0.0f, FW(arg0, 0x16C), (int)arg0 + 0x120, &sp44, arg0);
+            gl_func_00062F64(0.0f, FW(arg0, 0x16C), (int)arg0 + 0x120, &sp44);
         }
     }
 }
