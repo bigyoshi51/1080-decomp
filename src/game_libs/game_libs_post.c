@@ -12181,36 +12181,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029FFC);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00029B6C_pad.s")
 
 #ifdef NON_MATCHING
-/* gl_func_0002A014: 24-insn 2-way dispatch by byte-table lookup.
- *   sw a1 to caller-arg-slot; a1 &= 0xFF.
- *   v = *(byte*)(D_table + a1);
- *   if ((v & 3) == 1) {
- *       v1 = 0;
- *       if ((v & 0x80) == 0) {
- *           call func_a(); v1 = v & 0xFFFF;
- *       } else {
- *           call func_b(); v1 = v & 0xFFFF;
- *       }
- *   }
+/* gl_func_0002A014: byte-table 2-way dispatch.
+ *   v = *(u8*)(D_2A014_table + (a1 & 0xFF));
+ *   if ((v & 3) == 1)
+ *       v1 = ((v & 0x80) ? gl_func_0003F024() : gl_func_0003F010()) & 0xFFFF;
  *   return v1;
- * 2 resolved jal targets (0x3F010, 0x3F024) need INSN_PATCH for byte-exact.
- * Structural wrap only. */
-extern int func_3F010();
-extern int func_3F024();
+ * v1 takes the CALL RESULT (v0 reused), not the table byte. */
+extern int gl_func_0003F010();
+extern int gl_func_0003F024();
 extern unsigned char D_2A014_table[];
 int gl_func_0002A014(int a0, int a1) {
     int v1 = 0;
-    unsigned int v;
+    unsigned char v;
     (void)a0;
-    a1 &= 0xFF;
-    v = D_2A014_table[a1];
+    v = D_2A014_table[a1 & 0xFF];
     if ((v & 3) == 1) {
         if ((v & 0x80) == 0) {
-            gl_func_00000000();
+            v1 = gl_func_0003F010() & 0xFFFF;
         } else {
-            gl_func_00000000();
+            v1 = gl_func_0003F024() & 0xFFFF;
         }
-        v1 = v & 0xFFFF;
     }
     return v1;
 }
