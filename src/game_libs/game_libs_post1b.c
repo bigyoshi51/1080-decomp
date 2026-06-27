@@ -4873,45 +4873,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000693A4);
  *
  * Decoded structure (raw-word disasm):
  *   if (self_or_null == NULL) {
- *       obj = func1(0x98);                          // alloc 0x98 bytes
- *       if (obj == NULL) return NULL;
- *   } else {
- *       obj = self_or_null;
+ *       obj = func(0x98);                            // alloc 0x98 bytes
+ *       if (obj == NULL) return obj;                 // shared single-exit (a3=0)
  *   }
- *   func2(obj, &D_00000000 + 0x2C5A8);              // init w/ string sym
+ *   func(obj, &D_00000000 + 0x2C5A8);                // init w/ string sym
  *   obj->[0x28] = &D_sym;
- *   if (obj == (int*)-72) {                          // sentinel-pointer guard
- *       int *v1 = func3(4);
- *       if (v1 != NULL) *v1 = 0;
- *   } else {
- *       *(int*)((char*)obj + 0x48) = 0;             // normal: clear obj->[0x48]
- *   }
+ *   if (obj != (int*)-72) { v1 = obj+0x48; goto store; }   // bne; v1 in delay
+ *   v1 = func(4);
+ *   if (v1 == NULL) goto after_store;                // skip the shared store
+ * store:  *v1 = 0;                                    // single shared store
+ * after_store:
  *   obj->[0x38] = 0;
  *   obj->[0x90] = a2;
  *   return obj;
  *
- * The `bne a3, at(-72)` compares obj-pointer to magic -72 — likely a
- * sentinel "error pointer" check or IDO codegen peculiarity.
+ * v1 is one variable shared by both arms of the sentinel branch; *v1 = 0
+ * is a single shared store reached from both arms (else-arm v1 = obj+0x48;
+ * if-arm v1 = func(4), store skipped when the alloc returns NULL). The
+ * alloc-fail path returns via the same epilogue with obj still NULL.
  *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * The `bne a3, at(-72)` compares obj-pointer to magic -72 — a sentinel
+ * "error pointer" guard / IDO codegen peculiarity.
+ *
+ * Residual vs target (objdiff ~76%): IDO emits the sentinel test as
+ * beq+b instead of the target's single bne, and inflates the frame to
+ * 0x20 vs 0x18 (frame-spread/spill-slot coloring) — both codegen-shape
+ * caps, not C-level bugs. game_libs is baked-reloc so this cannot byte-LAND.
  */
 int* gl_func_000695F4(int *self_or_null, int a1, int a2) {
     extern int D_00000000;
     extern int D_sym_695F4;
     int *obj = self_or_null;
+    int *v1;
     if (self_or_null == 0) {
-        obj = (int*)gl_func_00000000(0x98);
-        if (obj == 0) return 0;
+        obj = (int*)gl_func_00062F64(0x98);
+        if (obj == 0) return obj;
     }
-    gl_func_00000000(obj, (char*)&D_00000000 + 0x2C5A8);
+    gl_func_00062F64(obj, (char*)&D_00000000 + 0x2C5A8);
     obj[0x28 / 4] = (int)&D_sym_695F4;
-    if (obj == (int*)-72) {
-        int *v1 = (int*)gl_func_00000000(4);
-        if (v1 != 0) *v1 = 0;
-    } else {
-        *(int*)((char*)obj + 0x48) = 0;
+    if (obj != (int*)-72) {
+        v1 = (int*)((char*)obj + 0x48);
+        goto store;
     }
+    {
+        int *p = (int*)gl_func_00062F64(4);
+        if (p == 0) goto after_store;
+        v1 = p;
+    }
+store:
+    *v1 = 0;
+after_store:
     obj[0x38 / 4] = 0;
     obj[0x90 / 4] = a2;
     return obj;
