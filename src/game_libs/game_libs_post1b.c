@@ -4743,45 +4743,15 @@ void gl_func_00068F64(Quad4 *dst) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_00068FBC: 59-insn nested alloc/init constructor (size 0xEC, frame 0x28).
+/* gl_func_00068FBC: nested alloc/init get-or-create constructor (size 0xEC, frame 0x28).
  *
- * Decoded structure (raw-word disasm):
- *   if (obj == NULL) {
- *       obj = alloc(0xA8);          // master record
- *       if (!obj) return NULL;
- *   }
- *   sub = obj;                       // delay-slot a1 init = s0
- *   if (sub == NULL) {
- *       sub = alloc(0x18);
- *       if (!sub) return obj;
- *   }
- *   if (sub == NULL) {                // dead branch (sub is set above)
- *       inner = alloc(0x10);
- *       if (inner) {
- *           *(int*)(inner+0)  = -1;
- *           *(int*)(inner+8)  = 0x8000;
- *           *(int*)(inner+4)  = 0;
- *       }
- *   }
- *   if (sub == (void*)0xFFFFFFF0) {   // magic-sentinel branch
- *       inner = alloc(0x4);
- *       if (inner) *(int*)inner = 0;
- *   }
- *   *((char*)sub + 0xC) = D+0x2C58C;  // sub-object vtable/info
- *   *((char*)sub + 0x14) = 0;
- *   *((char*)obj + 0xC) = D+0x2C598;  // master vtable/info
- *   *((char*)obj + 0x18) = arg3;
- *   *((char*)obj + 0x1C) = arg2;
- *   *((char*)obj + 0x20) = arg1;
- *   return obj;
- *
- * Notes:
- *  - `jal 0x0` raw-word entries are unsymbolicated callees in USO disasm
- *    (reloc resolves at link), NOT the hardcoded-libc-thunk family.
- *  - 0xFFFFFFF0 magic check is preserved from asm; appears dead in practice.
- *  - D+0x2C58C / D+0x2C598 are USO data relocs (vtable/info pointers).
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * obj = arg0; if NULL alloc(0xA8) master record (return NULL on fail).
+ * sub = obj; if NULL alloc(0x18); on fail skip the sub-init and fall to the
+ * master writes (NOT an early return). The 0x10 / 0x4 sentinel sub-allocs are
+ * dead in practice (sub is non-NULL here) but preserved from asm. The -1 /
+ * 0x8000 / 0 init writes land on `sub` whenever sub is non-NULL.
+ * D+0x2C58C / D+0x2C598 are USO data relocs (vtable/info pointers).
+ * Callee alloc() == gl_func_00062F64 (USO baked reloc; INCLUDE_ASM is build path).
  */
 extern int D_00000000;
 extern void *alloc(int size);
@@ -4791,31 +4761,37 @@ void *gl_func_00068FBC(void *obj, int arg1, int arg2, int arg3) {
 
     if (obj == NULL) {
         obj = alloc(0xA8);
-        if (obj == NULL) return obj;
+        if (obj == NULL) goto done;
     }
     sub = obj;
     if (sub == NULL) {
         sub = alloc(0x18);
-        if (sub == NULL) return obj;
+        if (sub == NULL) goto obj_writes;
     }
-    if (sub == NULL) {
+    inner = sub;
+    if (inner == NULL) {
         inner = alloc(0x10);
-        if (inner != NULL) {
-            *(int*)((char*)inner + 0x0) = -1;
-            *(int*)((char*)inner + 0x8) = 0x8000;
-            *(int*)((char*)inner + 0x4) = 0;
-        }
+        if (inner == NULL) goto sentinel;
     }
+    *(int*)((char*)inner + 0x8) = 0x8000;
+    *(int*)((char*)inner + 0x0) = -1;
+    *(int*)((char*)inner + 0x4) = 0;
+sentinel:
+    inner = (char*)sub + 0x10;
     if (sub == (void*)0xFFFFFFF0) {
         inner = alloc(0x4);
-        if (inner != NULL) *(int*)inner = 0;
+        if (inner == NULL) goto sub_writes;
     }
+    *(int*)inner = 0;
+sub_writes:
     *(int*)((char*)sub + 0xC)  = (int)((char*)&D_00000000 + 0x2C58C);
     *(int*)((char*)sub + 0x14) = 0;
-    *(int*)((char*)obj + 0xC)  = (int)((char*)&D_00000000 + 0x2C598);
-    *(int*)((char*)obj + 0x18) = arg3;
-    *(int*)((char*)obj + 0x1C) = arg2;
+obj_writes:
     *(int*)((char*)obj + 0x20) = arg1;
+    *(int*)((char*)obj + 0x1C) = arg2;
+    *(int*)((char*)obj + 0x18) = arg3;
+    *(int*)((char*)obj + 0xC)  = (int)((char*)&D_00000000 + 0x2C598);
+done:
     return obj;
 }
 #else
