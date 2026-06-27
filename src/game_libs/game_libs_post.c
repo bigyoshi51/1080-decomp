@@ -399,8 +399,10 @@ extern int gl_func_00031FB0();
  * (2-arg, wrong packing). Real fn is (a0 dl-ptr, a1 spec, a2 idx, a3 sub):
  * locate record &D[a2*0x158]+attr*100+a3*0x14, call gl_func_00031FB0 to reserve
  * DL space (twice if rec->0x62), then emit 8 packed GBI words (2 quads at
- * sV2+0x3E0 / +0x580) and return p+8. Residual ~47% is $t-reg renumber +
- * save-spill scheduling (same 139 insns, same frame). */
+ * sV2+0x3E0 / +0x580) and return p+8. Residual is $t-reg renumber +
+ * save-spill scheduling (same 139 insns, same frame).
+ * 2026-06-27 logic fixes: p[0]/p[4] mask (s2+offs)&0xFFFF; u4=(a1<<1)&0xFFFF
+ * (shift-then-mask, not &0x7FFF first); matches asm GBI word packing. */
 unsigned int *gl_func_0001D200(int a0, unsigned int a1, short a2, short a3) {
     short s1, s2;
     unsigned int *p;
@@ -417,12 +419,12 @@ unsigned int *gl_func_0001D200(int a0, unsigned int a1, short a2, short a3) {
     if (*(short *)(e + 0x62) != 0) {
         p = (unsigned int *)gl_func_00031FB0(p, t + 0x3E0 & 0xFFFF, 0, 0x1A0 - t, (int)a2);
     }
-    p[0] = (int)s2 + 0x3E0 | 0x8000000;
-    u4 = (a1 & 0x7FFF) << 1;
+    p[0] = ((int)s2 + 0x3E0 & 0xFFFF) | 0x8000000;
+    u4 = (a1 << 1) & 0xFFFF;
     p[1] = u4 | 0xC800000;
     p[2] = *(unsigned short *)(rec + 0x26) | 0x5000000 | (unsigned int)*(unsigned char *)(rec + 0x18) << 0x10;
     p[3] = *(int *)(rec + 0x40) + 0x80000000;
-    p[4] = (int)s2 + 0x580 | 0x8000000;
+    p[4] = ((int)s2 + 0x580 & 0xFFFF) | 0x8000000;
     p[5] = u4 | 0xE200000;
     p[6] = *(unsigned short *)(rec + 0x26) | 0x5000000 | (unsigned int)*(unsigned char *)(rec + 0x18) << 0x10;
     p[7] = *(int *)(rec + 0x44) + 0x80000000;
