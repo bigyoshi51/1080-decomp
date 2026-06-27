@@ -1830,7 +1830,8 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3
 void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
     int *self; int a1, a2, a3, arg5;
 {
-    float c = 192.0f / 255.0f;   /* the merged FP prologue: div.s f4(192)/f2(255) */
+    float div255 = 255.0f;
+    float c = 192.0f / div255;   /* the merged FP prologue: div.s f4(192)/f2(255) */
 
     *(int*)((char*)self + 0xC)  = (int)((char*)&D_00000000 + 0x688);
     *(int*)((char*)self + 0xBC) = a1;
@@ -1843,8 +1844,8 @@ void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
     *(int*)((char*)self + 0x4C) = arg5;
     *(float*)((char*)self + 0xCC) = c;
     *(float*)((char*)self + 0xC4) = c;
-    *(float*)((char*)self + 0xC8) = 255.0f / 255.0f;   /* f8 = f6/f2 */
-    *(float*)((char*)self + 0xD0) = 0.0f / 255.0f;     /* f10 = f10/f2 */
+    *(float*)((char*)self + 0xC8) = 255.0f / div255;   /* f8 = f6/f2 */
+    *(float*)((char*)self + 0xD0) = 0.0f / div255;     /* f10 = f10/f2 */
 
     if (*(int*)((char*)a1 + 0x4F0) & 0x10000) {
         gl_func_00000000(self, 0xE8, 0x13, *(int*)((char*)self + 0x44) + 0x10);
@@ -1870,65 +1871,6 @@ void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
                 *(int*)((char*)node + 0x14) = (int)self;
             }
         }
-    }
-}
-#else
-#ifdef NON_MATCHING
-/* 2026-06-20 RECONSTRUCT: wired the real resolved callees from the .s
- * (import_000B8BA4/8D08/8DCC/8F68 draw-list ops, import_000B4650 lookup,
- * import_000AA8BC/AAA60 object create+config, mgrproc_uso_func_013FE0/07ACE0)
- * and the &import_80264A58+0x688 vtable pointer / import_800200FC+0x64 index.
- * The prior body used a single placeholder callee (mgrproc_uso_func_00000AE0)
- * for all of them — the missing logic was the distinct callee identities and
- * the per-call argument marshaling. */
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-extern int import_000B8BA4();
-extern int import_000B8D08();
-extern int import_000B8DCC();
-extern int import_000B8F68();
-extern int import_000B4650();
-extern int import_000AA8BC();
-extern int import_000AAA60();
-extern int mgrproc_uso_func_013FE0();
-extern int mgrproc_uso_func_07ACE0();
-extern char import_80264A58;
-extern int import_800200FC;
-void mgrproc_uso_func_00002EF0(char *self, char *a1, s32 a2, s32 a3, s32 arg5) {
-    f32 c = 192.0f / 255.0f;
-    unsigned char *node;
-
-    FW(self, 0xC)  = (int)(&import_80264A58 + 0x688);
-    FW(self, 0xBC) = (int)a1;
-    FW(self, 0xB8) = a3;
-    FW(self, 0x54) = a2;
-    FW(self, 0xD4) = 0xFF;
-    FW(self, 0xD8) = 0;
-    FW(self, 0xDC) = 0;
-    FW(self, 0x30) = 0;
-    FW(self, 0x4C) = arg5;
-    FW(self, 0xCC) = c;
-    FW(self, 0xC4) = c;
-    FW(self, 0xC8) = (f32)(255.0f / 255.0f);
-    FW(self, 0xD0) = (f32)(0.0f / 255.0f);
-
-    if (FW(a1, 0x4F0) & 0x10000) {
-        import_000B8BA4(self, 0xE8, 0x13, FW(self, 0x44) + 0x10);
-        import_000B8D08(self, 0x123, 0xE1, 0xD);
-        import_000B8DCC(self, 0x47, 0x13, (int)(self + 0x30));
-        import_000B8F68(self, 0x44, 0x26, FW(self, 0x44) + 0x28);
-        node = (unsigned char *)import_000B4650(
-            *(int *)FW(self, 0x4C) + FW(&import_800200FC, 0x64) * 0x30, 0);
-        FW(self, 0xC0) = import_000AA8BC(0, FW(self, 0x60));
-        import_000AAA60((char *)FW(self, 0xC0), node[5], node[6], node[7]);
-        mgrproc_uso_func_013FE0(FW(self, 0xC0), 0x4B, 0xD6);
-        node = (unsigned char *)FW(self, 0xC0);
-        mgrproc_uso_func_07ACE0((int)(self + 0x10), node);
-        if (FW(node, 0x14) != 0) {
-            FW(node, 0x4) = 1;
-        }
-        FW(node, 0x14) = (int)self;
     }
 }
 #else

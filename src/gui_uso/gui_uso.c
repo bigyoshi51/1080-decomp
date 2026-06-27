@@ -1317,41 +1317,13 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
 #endif
 
 #ifdef NON_MATCHING
-/* gui_func_00002BB0: 140-insn / 0x230 RDP/RSP display-list builder.
- * Constructs graphics commands into a display-list buffer at *(D_xxx)[0]
- * - likely setting up scissor/viewport/texture for a GUI quad.
- *
- * ENTRY DECODE (0x2BB0-0x2C30, ~32 insns):
- *   ctx = *(int**)&D_GUI_CTX;        // s7 = &D_xxx; s2 = ctx (s7[0])
- *   ctx[12]->[4] += 1;               // bump display-list counter
- *   v1_old = pre-bump value
- *   t2 = 0x80008000                  // RDRAM segment-0 base marker
- *   t9 = v1_old << 3                 // 8-byte stride per RDP command
- *   t8 = ctx[12][0]                  // display-list base ptr
- *   t0 = t8 + t9                     // dl_ptr = base + index*8
- *   s5 = a1 (saved arg);  s4 = a3 (saved arg)
- *   s6 = sp[128] (5th stack arg)
- *   sp[120] = a2 (caller arg-spill)
- *   ... (continues writing RDP commands at dl_ptr; opcode 0xBB00_0001
- *        observed = G_SETSCISSOR or similar; full sequence ~100 more
- *        insns of dl_ptr[N] = (cmd<<24) | data assignments)
- *
- * 9 saved regs (s0-s7, s8) + ra in 0x70 frame. 5+ args (a0-a3 + at least
- * one stack arg via sp+0x80 = caller-arg slot 5).
- *
- * 100+ insns of body deferred - multi-pass NM. Default build INCLUDE_ASM. */
-/* 2026-05-08: entry-stage decode (insns 0-32 / 0x00-0x80). Replaces
- * empty stub with the documented 5-arg signature + first DL command
- * emit (RDP 0xBB000001 opcode at slot 0).
- *
- * Frame -0x70 (saves s0-s7, s8 + ra). 5th arg `a4_stack` arrives via
- * sp[0x80] (caller arg-save slot 5). a2 spilled to sp+0x78. */
 void gui_func_00002BB0(int *a0, int a1, int a2, int a3, int a4) {
     int **s7 = (int **)&D_00000000;
     int *ctx = *s7;
     int s5 = a1, s4 = a3, s1 = a4;
     int field58, s0, s8;
     int *v1, *tex;
+    int **pa0 = &a0;
     /* first DL emit: G_SETSCISSOR (BB000001 / 80008000) */
     {
         int *v0 = (int *)ctx[0xC / 4];
@@ -1364,14 +1336,14 @@ void gui_func_00002BB0(int *a0, int a1, int a2, int a3, int a4) {
         }
     }
     {
-        int *s2 = (int *)a0[0x10 / 4];
+        int *s2 = (int *)(*pa0)[0x10 / 4];
         field58 = *(short *)((char *)s2 + 0x20);
         if (a4 == 0) return;
         s0 = *(short *)((char *)s2 + 0x22);
     }
     s8 = (s0 << 10) / s0;
     do {
-        v1 = (int *)a0[0x10 / 4];
+        v1 = (int *)(*pa0)[0x10 / 4];
         if (s1 >= 33) {
             int s6 = (32 << 10) / 32;
             tex = (int *)v1[8 / 4];
