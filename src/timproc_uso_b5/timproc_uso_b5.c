@@ -855,53 +855,75 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   STRUCTURAL body below — two-widget HUD constructor. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+extern void *timproc_uso_b5_func_068D54(int, char *);
+extern float timproc_uso_b5_func_062880(char *, char *);
+extern char import_8005C108;
+extern char timproc_uso_b5_D_807FE8FC;
+extern char timproc_uso_b5_D_807FE90C;
+extern char timproc_uso_b5_D_807FE918;
 void timproc_uso_b5_func_00001460(char *arg0) {
-    char *g = (char *)&D_00000000;
     char *o, *reg;
-    float one = 255.0f / 255.0f;
+    float retA;
+
     reg = arg0 + 0x10;
-    /* widget A (id 1) */
-    o = (char *)func_00000000(0, g + 0x108C);
+
+    /* widget A (id 1) — white RGBA = 255.0f/255.0f */
+    o = (char *)timproc_uso_b5_func_068D54(0, &timproc_uso_b5_D_807FE8FC + 0x108C);
     *(char **)(arg0 + 0x38) = o;
-    *(float *)(o + 0x124) = one;
-    *(float *)(o + 0x128) = one;
-    *(float *)(o + 0x12C) = one;
-    *(float *)(o + 0x130) = one;
-    *(int *)(*(char **)(arg0 + 0x38) + 0xC4) |= 0x40;
-    *(int *)(*(char **)(arg0 + 0x38) + 0xC4) |= 0x80;
-    *(int *)(*(char **)(arg0 + 0x38) + 0xD0) = 1;
-    func_00000000(0, *(char **)(arg0 + 0x38));
+    *(float *)(o + 0x124) = 255.0f / 255.0f;
+    *(float *)(o + 0x128) = 255.0f / 255.0f;
+    *(float *)(o + 0x12C) = 255.0f / 255.0f;
+    *(float *)(o + 0x130) = 255.0f / 255.0f;
     o = *(char **)(arg0 + 0x38);
-    func_00000000(reg, o);
-    if (*(char **)(o + 0x14) != 0) *(int *)(o + 0x4) = 1;
+    *(int *)(o + 0xC4) |= 0x40;
+    o = *(char **)(arg0 + 0x38);
+    *(int *)(o + 0xC4) |= 0x80;
+    o = *(char **)(arg0 + 0x38);
+    *(int *)(o + 0xD0) = 1;
+    retA = timproc_uso_b5_func_062880(&import_8005C108, *(char **)(arg0 + 0x38));
+    o = *(char **)(arg0 + 0x38);
+    timproc_uso_b5_func_07ACE0(reg, o);
+    if (*(int *)(o + 0x14) != 0) {
+        *(int *)(o + 0x4) = 1;
+    }
     *(char **)(o + 0x14) = arg0;
-    /* widget B (id 2) */
-    o = (char *)func_00000000(0, g + 0x109C);
+
+    /* widget B (id 2) — white RGBA = 1.0f */
+    o = (char *)timproc_uso_b5_func_068D54(0, &timproc_uso_b5_D_807FE90C + 0x109C);
     *(char **)(arg0 + 0x3C) = o;
     *(float *)(o + 0x124) = 1.0f;
     *(float *)(o + 0x128) = 1.0f;
     *(float *)(o + 0x12C) = 1.0f;
     *(float *)(o + 0x130) = 1.0f;
-    *(int *)(*(char **)(arg0 + 0x3C) + 0xD0) = 2;
-    func_00000000(0, *(char **)(arg0 + 0x3C));
     o = *(char **)(arg0 + 0x3C);
-    func_00000000(reg, o);
-    if (*(char **)(o + 0x14) != 0) *(int *)(o + 0x4) = 1;
+    *(int *)(o + 0xD0) = 2;
+    timproc_uso_b5_func_062880(&import_8005C108, *(char **)(arg0 + 0x3C));
+    o = *(char **)(arg0 + 0x3C);
+    timproc_uso_b5_func_07ACE0(reg, o);
+    if (*(int *)(o + 0x14) != 0) {
+        *(int *)(o + 0x4) = 1;
+    }
     *(char **)(o + 0x14) = arg0;
-    /* widget C (id 4) */
-    o = (char *)func_00000000(0, g + 0x10A8);
+
+    /* widget C (id 4) — RGBA = 174/255, 113/255, 61/255, retA */
+    o = (char *)timproc_uso_b5_func_068D54(0, &timproc_uso_b5_D_807FE918 + 0x10A8);
     *(char **)(arg0 + 0x40) = o;
     *(float *)(o + 0x124) = 174.0f / 255.0f;
     *(float *)(o + 0x128) = 113.0f / 255.0f;
     *(float *)(o + 0x12C) = 61.0f / 255.0f;
-    *(float *)(o + 0x130) = one;
-    *(int *)(*(char **)(arg0 + 0x40) + 0xC4) |= 0x40;
-    *(int *)(*(char **)(arg0 + 0x40) + 0xC4) |= 0x80;
-    *(int *)(*(char **)(arg0 + 0x40) + 0xD0) = 4;
-    func_00000000(0, *(char **)(arg0 + 0x40));
+    *(float *)(o + 0x130) = retA;
     o = *(char **)(arg0 + 0x40);
-    func_00000000(reg, o);
-    if (*(char **)(o + 0x14) != 0) *(int *)(o + 0x4) = 1;
+    *(int *)(o + 0xC4) |= 0x40;
+    o = *(char **)(arg0 + 0x40);
+    *(int *)(o + 0xC4) |= 0x80;
+    o = *(char **)(arg0 + 0x40);
+    *(int *)(o + 0xD0) = 4;
+    timproc_uso_b5_func_062880(&import_8005C108, *(char **)(arg0 + 0x40));
+    o = *(char **)(arg0 + 0x40);
+    timproc_uso_b5_func_07ACE0(reg, o);
+    if (*(int *)(o + 0x14) != 0) {
+        *(int *)(o + 0x4) = 1;
+    }
     *(char **)(o + 0x14) = arg0;
 }
 #else
