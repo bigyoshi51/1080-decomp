@@ -267,32 +267,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CB84);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CB84_pad.s")
 
 #ifdef NON_MATCHING
-/* gl_func_0006CC14: 19-insn 2-call helper.
- *   r = gl_func(a0);       (first call)
- *   *a0 = D[0];            (copy global into *a0)
- *   gl_func(r);            (second call)
- *   D2 = a0;               (store original a0 to second global)
+/* gl_func_0006CC14: 18-insn 2-call helper.
+ *   r = gl_func(a0);          (first call; a0 homed to sp+0x20 in delay slot)
+ *   *a0 = D[0];               (copy global into *a0; a0 reloaded -> t7)
+ *   D2 = a0;                  (store original a0 to second global; a0 reloaded
+ *                              again -> t8, in the second jal's delay slot)
+ *   gl_func(r);               (second call; r reloaded from its spill slot)
  *   return 0;
  *
- * Use 'volatile int spill = (int)r;' to force the v0→stack→a0
- * round-trip that target uses (r is spilled to sp+0x18 then reloaded
- * as a0 of the second jal — without volatile, IDO uses 'or a0, v0, 0'
- * direct passthrough).
+ * Two levers got this from 65% -> 93.56%:
+ *   1. ORDER: place 'D2 = a0;' BEFORE the second gl_func() call so IDO
+ *      schedules the symbol store ('sw t8,0(at)') into the second jal's
+ *      delay slot (target does this; original ordering parked it in the
+ *      jr-ra delay slot at function end).
+ *   2. CSE-BREAK: read a0 via '*(int**)&a0' for the D2 store. The plain
+ *      'a0' folds both uses into one reload (a single a1); re-deref forces
+ *      the two independent param-home reloads the target uses (t7 then t8).
+ *   'volatile int spill = (int)r;' forces the v0->stack->a0 round-trip
+ *   (spill at sp+0x1C target / sp+0x18 built; see residual below).
  *
- * Caps remaining at the byte level:
- * 1. Stack offset: target stores v0 at sp+0x1C; built at sp+0x18
- *    (4-byte difference — built doesn't allocate a 4-byte pad slot).
- * 2. Schedule: target splits 'lui at; sw t8, 0(at)' across the jal
- *    (lui at scheduled BEFORE the *a0 store, sw t8 scheduled AFTER
- *    the second jal's epilogue). Built keeps them adjacent. IDO's
- *    natural scheduling doesn't split symbol stores across calls. */
+ * Residual (register-coloring frame cap, not C-forceable): target spills
+ * v0 at sp+0x1C and leaves sp+0x18 unused; built colors the spill at
+ * sp+0x18. A 'volatile int pad;' shifts the spill to 0x1C but grows the
+ * frame to 0x28 (a0 home + sp adjust then diverge), a net loss. Frame
+ * stays 0x20 either way; only the one spill-slot offset differs. */
 extern int D_cc14_alias2;
 int gl_func_0006CC14(int *a0) {
     int *r = (int*)gl_func_00000000(a0);
     volatile int spill = (int)r;
     *a0 = *(int*)&D_00000000;
+    *(int**)&D_cc14_alias2 = *(int**)&a0;
     gl_func_00000000((int*)spill);
-    *(int**)&D_cc14_alias2 = a0;
     return 0;
 }
 #else
