@@ -7435,8 +7435,11 @@ extern int D_00000000;
 // *(&D_0+0x1578) ^= 1 and returns 0. CROSS-FRAGMENT: t6 (the 0x202C limit) is
 // preloaded by head fragment game_libs_func_00024E28 (splat missplit) — the
 // bounds load is inlined here, so it won't byte-match until the fragment merge.
+// FUZZY LEVER: assign `g` (the &D_0 base) AFTER the two calls and reference
+// &D_00000000 directly in the pre-call bounds check, so the post-call base
+// register is materialized once and reused (66.81% -> 76.24% objdiff fuzzy).
 int gl_func_00024E34(int idx, int a1, char *a2) {
-    char *g = (char *)&D_00000000;
+    char *g;
     int j;
     char *base;
     char *src;
@@ -7444,12 +7447,13 @@ int gl_func_00024E34(int idx, int a1, char *a2) {
     char *rec;
     int n;
     int t6;
-    if (idx >= *(unsigned short *)(g + 0x202C)) {
+    if (idx >= *(unsigned short *)((char *)&D_00000000 + 0x202C)) {
         *a2 = 0;
         return -1;
     }
     j = gl_func_00000000(0, idx);
     base = (char *)gl_func_00000000(0);
+    g = (char *)&D_00000000;
     n = *(int *)(g + 0x1578);
     block = g + n * 0x64;
     rec = block + 0x157C;
