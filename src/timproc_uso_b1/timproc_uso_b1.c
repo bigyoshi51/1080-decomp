@@ -489,41 +489,38 @@ void timproc_uso_b1_func_00000EC0(int a0) {
  * future passes. Sibling of timproc_uso_b1_func_00000E40 (E40 sets the
  * D[0x40]/D[0x44] state, EE8 reads work-state and runs the orchestrator). */
 #ifdef NON_MATCHING
-/* Full structural decode 2026-06-01. State machine on obj->0x504:
- *   state 0: byte-compare scan loop over obj->0x6B0 elements (s1[5/6/7]
- *            vs result[5/6/7]); commits state=1.
- *   state 1: cascade of cross-USO gl_func calls (init/spawn chain).
- *   else:    return.
- * All cross-USO calls are gl_func_00000000 imports (reloc'd at load). */
 void timproc_uso_b1_func_00000EE8(char *obj) {
+    char *d = (char *)&D_00000000;
     int state = *(int *)(obj + 0x504);
-    int i;
+    char *work;
     char *s1;
     char *r;
+    int i;
     char *o0;
     char *o1;
 
     if (state == 0) {
-        *(int *)(obj + 0x6AC) = *(int *)(obj + 0x30);
-        *(int *)(obj + 0x6B0) = *(int *)(*(char **)(obj + 0x44) + 0x38);
-        s1 = (char *)gl_func_00000000(*(int *)(*(char **)(obj + 0x528)) + *(int *)((char *)&D_00000000 + 0x64) * 0x30);
+        work = *(char **)(obj + 0x6A8);
+        *(int *)(obj + 0x6AC) = *(int *)(work + 0x30);
+        *(int *)(obj + 0x6B0) = *(int *)(*(char **)(work + 0x44) + 0x38);
+        s1 = (char *)gl_func_00000000(*(int *)(*(char **)(obj + 0x528)) + *(int *)(d + 0x64) * 0x30);
         for (i = *(int *)(obj + 0x6B0) - 1; i >= 0; i--) {
-            r = (char *)gl_func_00000000(*(int *)(*(char **)(obj + 0x528)) + *(int *)((char *)&D_00000000 + 0x64), i);
+            r = (char *)gl_func_00000000(*(int *)(*(char **)(obj + 0x528)) + *(int *)(d + 0x64) * 0x30, i);
             if (*(unsigned char *)(s1 + 5) != *(unsigned char *)(r + 5)) break;
             if (*(unsigned char *)(s1 + 6) != *(unsigned char *)(r + 6)) break;
             if (*(unsigned char *)(s1 + 7) != *(unsigned char *)(r + 7)) break;
             *(int *)(obj + 0x6B0) = *(int *)(obj + 0x6B0) - 1;
         }
         *(int *)(obj + 0x4D8) = 1;
-        gl_func_00000000(*(int *)(obj + 0x190), 3, 1);
+        gl_func_00000000(*(int *)(d + 0x190), 3, 1);
         *(int *)(obj + 0x504) = 1;
     } else if (state == 1) {
-        gl_func_00000000(*(int *)(obj + 0x190));
+        gl_func_00000000(*(int *)(d + 0x190));
         if (gl_func_00000000() != 0) {
             gl_func_00000000(obj);
-            gl_func_00000000((char *)&D_00000000);
+            gl_func_00000000(d);
             gl_func_00000000(obj);
-            gl_func_00000000(obj, *(int *)(obj + 0x170) + 0x220000);
+            gl_func_00000000(obj, *(int *)(d + 0x170) + 0x220000);
             *(int *)(obj + 0x524) = gl_func_00000000(0, obj, 0);
             o0 = *(char **)(obj + 0x524);
             gl_func_00000000(o0, *(int *)(obj + 0x528));
@@ -533,7 +530,7 @@ void timproc_uso_b1_func_00000EE8(char *obj) {
                 *(int *)(o0 + 0x4) = 1;
             }
             *(int *)(o0 + 0x14) = (int)o1;
-            gl_func_00000000(*(int *)(obj + 0x190), 1, 1);
+            gl_func_00000000(*(int *)(d + 0x190), 1, 1);
         }
     }
 }
