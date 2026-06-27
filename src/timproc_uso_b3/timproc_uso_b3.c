@@ -896,77 +896,56 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 #endif
 
 #ifdef NON_MATCHING
-/* timproc_uso_b3_func_00001660: 90-insn (0x168) 3-stage chained
- * allocator/constructor. Same pattern as eddproc_uso_func_0000025C —
- * gets/allocs 3 differently-sized objects (0x10C, 0xD4, 0x50 here), each
- * with a vtable-pointer set at +0x28 from a unique-extern. Defensive
- * null-checks at every stage create the documented frame-size cap (~60%).
- *
- * Structure (sketch, args inferred):
- *   void f(int *a0, int a1, int a2) {
- *       int *p1 = a0 ? a0 : alloc(0x10C);   if (!p1) return;
- *       int *p2 = (alloc passthrough) ? : alloc(0xD4);
- *       if (p2) {
- *           int *p3 = alloc(0x50);
- *           if (p3) {
- *               gl_func(p3, &D_NNN_3_template);
- *               p3->0x28 = (vtable_3);
- *           }
- *           p2->0x28 = (vtable_2);
- *       }
- *       p1->0x28 = (vtable_1);
- *   }
- *
- * Per feedback_eddproc_uso_constructor_frame_cap.md (eddproc 0x025C wrap),
- * this is a known structural cap class: defensive null-checks generate
- * dead-code branches that target's IDO-emit doesn't have, plus 8-byte
- * frame-size diff (target 0x20 vs C-emit 0x28). INSN_PATCH-blocked per
- * size mismatch.
- *
- * 2026-05-31: completed the missing field-init block 38.2->56.3%. The sketch
- * had ONLY the alloc cascade + 0x28 vtable sets; added p1->0x60=a2, the
- * {0xD8:160,0xDC:130,0xE0:160,0xE4:29,0xE8:160,0xEC:105} field set, two 1.0f
- * stores (p1->0x108 and a1->0x72C), p1->0xD4=a1, the final dispatch call
- * gl_func(p1+0xF0, ((D[0]+35)<<16)|(a1->0x6B0+7)), and return p1. Logic now
- * complete. RESIDUAL (56->100) is the alloc-or-passthrough cascade dead-arm
- * form (build 70 vs 90 insns — target emits the defensive passthrough arms per
- * docs/PATTERNS.md#feedback-alloc-or-passthrough-cascade-includes-dead-arms)
- * + the 8-byte frame-size cap. INCLUDE_ASM remains build path.
- *
- * Default INCLUDE_ASM build matches; this wrap is for grep/discoverability. */
+/* timproc_uso_b3_func_00001660: 4-level get-or-create alloc cascade ctor.
+ * SIBLING of timproc_uso_b1_func_000016F8 / arcproc_uso_func_0000199C.
+ * 2026-06-26: fixed the cascade LOGIC. Prior wrap did independent
+ * allocs at each level (p2=alloc(0xD4), p3=alloc(0x50)) — WRONG. Target
+ * objdump shows passthrough-then-alloc on the PREVIOUS pointer at every
+ * level (a2=s0?:alloc, v1=a2?:alloc, a0=v1?:alloc), with each alloc-fail
+ * branching to that sub-object's +0x28 store (shared-epilogue gotos).
+ * Per docs/PATTERNS.md#feedback-alloc-or-passthrough-cascade-includes-dead-arms.
+ * Levels use temp regs (a2/v1/a0), not $s — no extra-$s-spill caveat.
+ * Four distinct externs at +0x28 (t6/t7/t8/t9 = separate luis). */
 extern int gl_func_00000000();
 extern char D_00000000;
+extern char D_00000001;
+extern char D_00000002;
+extern char D_00000003;
+extern char D_00000004;
 int *timproc_uso_b3_func_00001660(int *a0, char *a1, int a2) {
-    int *p1 = a0;
+    int *s0;
     int *p2;
     int *p3;
-    if (p1 == 0) {
-        p1 = (int*)gl_func_00000000(0x10C);
-        if (p1 == 0) return 0;
-    }
-    p2 = (int*)gl_func_00000000(0xD4, p1, a1);
-    if (p2 != 0) {
-        p3 = (int*)gl_func_00000000(0x50);
-        if (p3 != 0) {
-            gl_func_00000000(p3, (char*)&D_00000000 + 0x3DC);
-            *(int*)((char*)p3 + 0x28) = (int)&D_00000000;
-        }
-        *(int*)((char*)p2 + 0x28) = (int)&D_00000000;
-    }
-    *(int*)((char*)p1 + 0x28) = (int)&D_00000000;
-    *(int*)((char*)p1 + 0x60) = a2;
-    *(int*)((char*)p1 + 0xE0) = 160;
-    *(int*)((char*)p1 + 0xE4) = 29;
-    *(int*)((char*)p1 + 0xD8) = 160;
-    *(int*)((char*)p1 + 0xDC) = 130;
-    *(int*)((char*)p1 + 0xE8) = 160;
-    *(int*)((char*)p1 + 0xEC) = 105;
-    *(float*)((char*)p1 + 0x108) = 1.0f;
-    *(int*)((char*)p1 + 0xD4) = (int)a1;
-    *(float*)(a1 + 0x72C) = 1.0f;
-    gl_func_00000000((char*)p1 + 0xF0,
-        ((*(int*)&D_00000000 + 35) << 16) | (*(int*)(a1 + 0x6B0) + 7));
-    return p1;
+    int *p4;
+    s0 = a0 ? a0 : (int *)gl_func_00000000(0x10C);
+    if (!s0) return s0;
+    p2 = s0;
+    if (!p2) { p2 = (int *)gl_func_00000000(0xD4); if (!p2) goto L_s0; }
+    p3 = p2;
+    if (!p3) { p3 = (int *)gl_func_00000000(0x50); if (!p3) goto L_p2; }
+    p4 = p3;
+    if (!p4) { p4 = (int *)gl_func_00000000(0x2C); if (!p4) goto L_p3; }
+    gl_func_00000000(p4, (char *)&D_00000000 + 0x3DC);
+    *(int *)((char *)p4 + 0x28) = (int)&D_00000001;
+L_p3:
+    *(int *)((char *)p3 + 0x28) = (int)&D_00000002;
+L_p2:
+    *(int *)((char *)p2 + 0x28) = (int)&D_00000003;
+L_s0:
+    *(int *)((char *)s0 + 0x28) = (int)&D_00000004;
+    *(int *)((char *)s0 + 0x60) = a2;
+    *(int *)((char *)s0 + 0xE0) = 160;
+    *(int *)((char *)s0 + 0xE4) = 29;
+    *(int *)((char *)s0 + 0xD8) = 160;
+    *(int *)((char *)s0 + 0xDC) = 130;
+    *(int *)((char *)s0 + 0xE8) = 160;
+    *(int *)((char *)s0 + 0xEC) = 105;
+    *(float *)((char *)s0 + 0x108) = 1.0f;
+    *(int *)((char *)s0 + 0xD4) = (int)a1;
+    *(float *)(a1 + 0x72C) = 1.0f;
+    gl_func_00000000((char *)s0 + 0xF0,
+        ((*(int *)&D_00000000 + 35) << 16) | (*(int *)(*(char **)((char *)s0 + 0xD4) + 0x6B0) + 7));
+    return s0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001660);
