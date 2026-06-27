@@ -716,8 +716,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DC0C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006DC0C_pad.s")
 
 #ifdef NON_MATCHING
-/* PASS-1 2026-06-10 (big-swing): FULL m2c graft; one table synthesized.
- * Hardened insert (item 22). */
+/* PASS-2 2026-06-26: width fixes (lbu/lhu) on register-independent type bugs.
+ * +0x4 type tag is u8; +0x6 count, +0x4 mode, +0x1A flag are u16. */
 void gl_func_0006DD14(char *arg0) {
     char *sp44;
     s32 sp40;
@@ -742,15 +742,15 @@ void gl_func_0006DD14(char *arg0) {
 loop_1:
     func_00000000(*(s32 *)((char *)(sp34) + 0x8), &sp44, 1);
     temp_t9 = *(s32 *)((char *)(sp44) + 0x14);
-    if ((temp_t9 != 0) && (*(s32 *)((char *)(temp_t9) + 0x4) == 2) && ((temp_t1 = *(s32 *)((char *)(temp_t9) + 0x14), (temp_t1 == 0)) || (temp_t1 == 1))) {
+    if ((temp_t9 != 0) && (*(u8 *)((char *)(temp_t9) + 0x4) == 2) && ((temp_t1 = *(s32 *)((char *)(temp_t9) + 0x14), (temp_t1 == 0)) || (temp_t1 == 1))) {
         temp_t4 = *(s32 *)((char *)(sp44) + 0x14) + 0x14;
         sp28 = temp_t4;
-        sp2C = temp_t4 + (*(s32 *)((char *)(temp_t4) + 0x6) * 0x24) + 0x18;
+        sp2C = temp_t4 + (*(u16 *)((char *)(temp_t4) + 0x6) * 0x24) + 0x18;
         *(s32 *)((char *)(temp_t4) + 0x8) = -1;
-        if (*(s32 *)((char *)(sp28) + 0x4) != 3) {
+        if (*(u16 *)((char *)(sp28) + 0x4) != 3) {
             *(s32 *)((char *)(sp2C) + 0x4) = (s32) (*(s32 *)((char *)(sp2C) + 0x4) - *(s32 *)((char *)(sp2C) + 0xC));
         }
-        if ((*(s32 *)((char *)(sp28) + 0x4) == 2) && (*(s32 *)((char *)(*(s32 *)((char *)(sp44) + 0x14)) + 0x14) == 0)) {
+        if ((*(u16 *)((char *)(sp28) + 0x4) == 2) && (*(s32 *)((char *)(*(s32 *)((char *)(sp44) + 0x14)) + 0x14) == 0)) {
             sp30 = 1;
         } else {
             sp30 = 0;
@@ -762,7 +762,7 @@ loop_12:
         func_00000000(*(s32 *)((char *)(sp34) + 0xC), &sp40, 1);
         temp_t4_2 = *(s32 *)((char *)(sp44) + 0x14) + 0x14;
         sp28 = temp_t4_2;
-        temp_t3 = temp_t4_2 + (*(s32 *)((char *)(temp_t4_2) + 0x6) * 0x24);
+        temp_t3 = temp_t4_2 + (*(u16 *)((char *)(temp_t4_2) + 0x6) * 0x24);
         sp2C = temp_t3 + 0x18;
         if (*(s32 *)((char *)(temp_t3) + 0x18) == 0x1D) {
             func_00000000(*(s32 *)((char *)(sp44) + 0x14), 0x05000510, *(s32 *)((char *)(temp_t4_2) + 0x10) | 0x10000000);
@@ -781,7 +781,7 @@ loop_12:
             goto loop_12;
         }
         func_00000000(*(s32 *)((char *)(sp34) + 0x10), 0, 0);
-        if (*(s32 *)((char *)(*(s32 *)((char *)(sp44) + 0x14)) + 0x1A) == 1) {
+        if (*(u16 *)((char *)(*(s32 *)((char *)(sp44) + 0x14)) + 0x1A) == 1) {
             func_00000000();
         }
         goto loop_1;
