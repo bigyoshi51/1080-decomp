@@ -12488,24 +12488,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
 //   Real-C STRUCTURAL body below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
+extern int gl_func_0001CA10();
 extern int D_00000000;
-/* Whole-body decode 2026-06-01 (prior init was a 1-store stub). Alloc/reuse the
- * node at slot+0x50 (gl(&D+0x5368) if empty; -1 on fail). Init: node->0x50=base,
+/* Whole-body decode 2026-06-27 (structural refit toward target shape). Slot array
+ * base[idx] strided by 4; live object pointer at slot+0x50. Reuse branch passes the
+ * already-loaded slot->0x50 directly (no reload); base is referenced via its param
+ * (home-slot spill) so a3 is not separately stack-saved. Init: node->0x50=base,
  * node->0x18=base->0x8C, an 8-step flag cascade on node->0 (|0x80 then clear bits
- * 0x40..0x01 one at a time, each stored — volatile), node->0x1c=base->0x90, then
+ * 0x40..0x01 one at a time, each stored - volatile), node->0x1c=base->0x90, then
  * ~20 field clears + node->3=128, node->5=64, node->2=255, node->0x30/0x34=1.0,
  * node->0x38=0.0. */
 int gl_func_0002A3AC(char *base, int idx) {
     char *slot = base + idx * 4;
+    char *s = *(char **)(slot + 0x50);
     char *no;
     volatile unsigned char *p;
     int c;
 
-    if (*(int *)(slot + 0x50) != 0) {
-        gl_func_00000000(*(char **)(slot + 0x50));
+    if (s != 0) {
+        gl_func_0001CA10(s);
     } else {
-        no = (char *)gl_func_00000000((char *)&D_00000000 + 0x5368);
+        no = (char *)gl_func_0001CA10((char *)&D_00000000 + 0x5368);
         if (no == 0) {
             *(int *)(slot + 0x50) = 0;
             return -1;
@@ -12514,19 +12517,19 @@ int gl_func_0002A3AC(char *base, int idx) {
     }
     no = *(char **)(slot + 0x50);
     *(int *)(no + 0x50) = (int)base;
-    *(int *)(no + 0x18) = *(int *)(base + 0x8C);
     p = (volatile unsigned char *)no;
     c = *p;
     c |= 0x80;  *p = c;
     c &= ~0x40; *p = c;
+    *(int *)(no + 0x18) = *(int *)(base + 0x8C);
     c &= ~0x20; *p = c;
     c &= ~0x10; *p = c;
     c &= ~0x08; *p = c;
     c &= ~0x04; *p = c;
-    *(int *)(no + 0x1C) = *(int *)(base + 0x90);
     c &= ~0x02; *p = c;
-    *(unsigned char *)(no + 0x18) = 0;
+    *(int *)(no + 0x1C) = *(int *)(base + 0x90);
     c &= ~0x01; *p = c;
+    *(unsigned char *)(no + 0x18) = 0;
     *(unsigned char *)(no + 1) = 0;
     *(unsigned char *)(no + 0x20) = 0;
     *(unsigned char *)(no + 0x6C) = 0;
