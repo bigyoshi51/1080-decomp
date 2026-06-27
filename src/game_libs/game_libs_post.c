@@ -7216,12 +7216,13 @@ extern int gl_func_0001CA10();
 extern int gl_func_0003959C();
 extern int D_00000000;
 /* Decoded via jumptable extraction (scripts/uso-jumptable-to-m2c.py) — the
- * type-tag (e->0x19) computed jump at &D+0xEA0 is now a switch. The two
+ * type-tag (e->0x19) computed jump at &D+0xEB4 is now a switch. The two
  * fixed-addr USO thunks (jal 0x381B0 / 0x38204) stay gl_func_00000000
  * placeholders (no symbol); gl_func_0003959C / gl_func_0001CA10 are real. */
 int gl_func_000240A0(int cls, int idx, int a2, int a3, void *a4) {
     char *g = (char *)&D_00000000;
-    int h, sp34, sp44, size16, b18, typ, payload;
+    int h, sp34, sp44, size16, payload;
+    signed char b18, typ;
     char *e;
 
     if (cls == 0) {
@@ -7240,16 +7241,33 @@ int gl_func_000240A0(int cls, int idx, int a2, int a3, void *a4) {
     }
     e = (char *)(gl_func_00000000(cls) + idx * 0x10);   /* jal 0x38204 */
     size16 = (*(int *)(e + 0x14) + 0xF) & ~0xF;
-    b18 = *(unsigned char *)(e + 0x18);
-    typ = *(unsigned char *)(e + 0x19);
+    b18 = *(signed char *)(e + 0x18);
+    typ = *(signed char *)(e + 0x19);
     sp34 = 2;
     payload = *(int *)(e + 0x10);
     if ((unsigned)typ < 5) {
         switch (typ) {
-        case 0: h = gl_func_0001CA10(typ); if (h == 0) return h; sp34 = 5; sp44 = h; break;
-        case 1: h = gl_func_0001CA10(typ); sp44 = h; if (h == 0) return h; break;
-        case 2: h = gl_func_0001CA10(typ); sp44 = h; if (h == 0) return h; break;
-        case 3: h = gl_func_0001CA10(typ); if (h == 0) return h; sp44 = h; break;
+        case 0:
+            h = gl_func_0001CA10(cls, idx, size16);
+            if (h == 0) return h;
+            sp34 = 5;
+            sp44 = h;
+            break;
+        case 1:
+            h = gl_func_0001CA10(cls, size16, 1, idx);
+            sp44 = h;
+            if (h == 0) return h;
+            break;
+        case 2:
+            h = gl_func_0001CA10(cls, size16, 0, idx);
+            sp44 = h;
+            if (h == 0) return h;
+            break;
+        case 3:
+            h = gl_func_0001CA10(cls, size16, 2, idx);
+            if (h == 0) return h;
+            sp44 = h;
+            break;
         }
     }
     gl_func_0003959C(payload, sp44, size16, b18, a2, a4,
