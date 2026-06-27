@@ -1494,37 +1494,39 @@ int gl_func_0006EF08(char *a0, int a1, int a2, ...) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_0006EF64: ~52-insn dispatch helper.
- *   if (g_state == 0) return -1;
- *   a1->word_14 = a0;
- *   a1->short_0  = (a2 == 0) ? 0xF : 0x10;
- *   if (a1->byte_2 == 1) { r = FUNC_A(); return FUNC_B(r, a1, 0); }
- *   else                 { r = FUNC_C(); return FUNC_D(r, a1, 0); }
- *
- * Args saved to caller slots (sp+0x28/2C/30) at prologue, reloaded
- * before each use. Build path stays INCLUDE_ASM; this NM wrap
- * documents the structure for future struct-typing. Sibling decode
- * after gl_func_0006EF08 (string-format wrapper). */
+/* gl_func_0006EF64: VARARGS dispatch helper (frame-size/arg-home cap).
+ *   The target homes a0/a1/a2 at the TOP of a 0x28 frame (sw a0,0x28;
+ *   sw a1,0x2C; sw a2,0x30) and RELOADS each before every use — the
+ *   classic misdiagnosed-variadic arg-home shape. Fixed-arity
+ *   (int,void*,int) keeps a1 register-resident at a 0x18 frame (52.75%).
+ *   Declaring it VARARGS `(int a0, void *a1, ...)` homes+reloads every
+ *   arg slot; reading a0/a1/a2 from their homed slots (via the va base
+ *   `&a1`) forces the `lw` reloads instead of register moves.
+ *   See docs/IDO_CODEGEN.md "VARARGS declaration fixes the frame-size
+ *   shift / arg-home cap". Sibling of gl_func_0006EF08. */
 extern int D_6EF64_g;
 extern int FUNC_6EF64_a(void);
-extern int FUNC_6EF64_b(int, void*, int);
+extern int FUNC_6EF64_b(int, void *, int);
 extern int FUNC_6EF64_c(void);
-extern int FUNC_6EF64_d(int, void*, int);
-int gl_func_0006EF64(int a0, void *a1, int a2) {
+extern int FUNC_6EF64_d(int, void *, int);
+int gl_func_0006EF64(int a0, void *a1, ...) {
+    int *args = (int *)&a0;
     int s1, s0;
-    if (D_6EF64_g == 0) return -1;
-    *(int*)((char*)a1 + 0x14) = a0;
-    if (a2 == 0) {
-        *(short*)a1 = 0xF;
-    } else {
-        *(short*)a1 = 0x10;
+    if (D_6EF64_g == 0) {
+        return -1;
     }
-    if (*(unsigned char*)((char*)a1 + 2) == 1) {
+    *(int *)((char *)args[1] + 0x14) = args[0];
+    if (args[2] == 0) {
+        *(short *)args[1] = 0xF;
+    } else {
+        *(short *)args[1] = 0x10;
+    }
+    if (*(unsigned char *)((char *)args[1] + 2) == 1) {
         s1 = FUNC_6EF64_a();
-        s0 = FUNC_6EF64_b(s1, a1, 0);
+        s0 = FUNC_6EF64_b(s1, (void *)args[1], 0);
     } else {
         s1 = FUNC_6EF64_c();
-        s0 = FUNC_6EF64_d(s1, a1, 0);
+        s0 = FUNC_6EF64_d(s1, (void *)args[1], 0);
     }
     return s0;
 }
