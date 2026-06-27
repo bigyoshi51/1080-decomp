@@ -11754,20 +11754,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000291C0);
 //   Real-C STRUCTURAL body below per the analysis (placeholder calls
 //   / fields). Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
+extern int gl_func_0001CA10();
 extern int D_00000000;
+extern int D_00029000;
 void gl_func_00029494(void) {
-    int n = GL_COUNT_2070;
     int i;
+    int off;
     char *src;
     char *desc;
     float zero;
-    if (n <= 0) return;
-    src = (char *)&D_00000000;             // 8-word source block (s5)
+    if (GL_COUNT_2070 <= 0) return;
+    src = (char *)&D_00029000;             // 8-word source block (s5)
     desc = (char *)&D_00000000 + 0x2198;   // per-record descriptor (s6)
     zero = 0.0f;
-    for (i = 0; i < n; i++) {
-        char *rec = *(char **)0x2CFC + i * 0xD0;
+    off = 0;
+    for (i = 0; i < GL_COUNT_2070; i++) {
+        char *rec = *(char **)((char *)&D_00000000 + 0x2CFC) + off;
         *(int *)(rec + 0xB0) = *(int *)(src + 0x0);
         *(int *)(rec + 0xB4) = *(int *)(src + 0x4);
         *(int *)(rec + 0xB8) = *(int *)(src + 0x8);
@@ -11788,8 +11790,9 @@ void gl_func_00029494(void) {
         *(short *)(rec + 0x82) = 0;
         *(short *)(rec + 0x84) = 0;
         *(char *)(rec + 0x35) = 0;
-        *(int *)(rec + 0x1C) = gl_func_00000000(desc, 0x1C0);
+        *(int *)(rec + 0x1C) = gl_func_0001CA10(desc, 0x1C0);
         *(int *)(rec + 0xCC) = *(int *)(src + 0x1C);
+        off += 0xD0;
     }
 }
 #else
