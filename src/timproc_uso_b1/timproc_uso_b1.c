@@ -1080,19 +1080,8 @@ void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
 #ifdef NON_MATCHING
-/* timproc_uso_b1_func_00001BCC: per-frame UI step (sibling of mgrproc 3074 /
- * timproc_b3 1C68). cb(); gate arg0->0xB8 bit-16 && ->0x4DC==1 bumps 0x30. Then if
- * gated: state-2 0xDC sync from arg0->0x44->0x60->0x800->0x4C (cb on change); cb on
- * 0x44->0x34; if arg0->0x98->0xC8<=0 reset sub (0x554=192.0f, 0x544=0xFF); mod-0x33
- * counter at 0xD8 with periodic cb(0x135,0). Final block (still gated): if ->0x4DC
- * ==1 && cb(arg0): reset sub + 0x2C=0; cb(0x80, 0x44->0x30, 0); cb(0x80, v8, vC,
- * 0.0f, 0.0f) via gl_proto_1c68; state-2 blink 0x78 by (0xAC++ & 8). cb(arg0) tail.
- * Fresh decode 2026-05-29 (m2c-confirmed). 97.1% reg-blind (157/158 insns) —
- * structure near-exact; residual is 1 insn + register renames. Caps: structs +
- * cb prototypes untyped (USO-reloc). NON_MATCHING. */
 extern int gl_proto_1c68(void *, int, int, float, float);
 void timproc_uso_b1_func_00001BCC(char *arg0) {
-    char *bc;
     char *p44;
     char *p;
     int v1;
@@ -1100,14 +1089,12 @@ void timproc_uso_b1_func_00001BCC(char *arg0) {
     int t2;
 
     gl_func_00000000();
-    bc = *(char **)(arg0 + 0xB8);
-    if ((*(int *)(bc + 0x4F0) & 0x10000) && (*(int *)(bc + 0x4DC) == 1)) {
+    if ((*(int *)(*(char **)(arg0 + 0xB8) + 0x4F0) & 0x10000) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 1)) {
         *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;
     }
     gl_func_00000000(arg0);
-    bc = *(char **)(arg0 + 0xB8);
-    v1 = *(int *)(bc + 0x4F0) & 0x10000;
-    if ((v1 != 0) && (*(int *)(bc + 0x4DC) == 1)) {
+    v1 = *(int *)(*(char **)(arg0 + 0xB8) + 0x4F0) & 0x10000;
+    if ((v1 != 0) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 1)) {
         if (*(int *)(arg0 + 0x48) == 2) {
             if ((*(int *)(arg0 + 0xDC) == 1) &&
                 (*(int *)(*(char **)(*(char **)(*(char **)(arg0 + 0x44) + 0x60) + 0x800) + 0x4C) == 0)) {
@@ -1144,8 +1131,7 @@ void timproc_uso_b1_func_00001BCC(char *arg0) {
         gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 0x30), 0);
         p44 = *(char **)(arg0 + 0x44);
         gl_proto_1c68(*(int *)(arg0 + 0x80), *(int *)(p44 + 8), *(int *)(p44 + 0xC), 0.0f, 0.0f);
-        bc = *(char **)(arg0 + 0xB8);
-        if ((*(int *)(bc + 0x4DC) == 2) && (*(int *)(bc + 0x4F8) == 0)) {
+        if ((*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 2) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4F8) == 0)) {
             t2 = *(int *)(arg0 + 0xAC) + 1;
             *(int *)(arg0 + 0xAC) = t2;
             if (t2 & 8) {
