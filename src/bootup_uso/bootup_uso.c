@@ -455,6 +455,47 @@ void func_00000A94(int *a0, int a1) {
  * can't move it; duplicate-block forms leave a ghost twin, 32 insns).
  * = the documented "branch-likely vs regular branch" as1 cap class
  * (docs/IDO_CODEGEN branch-likely entry). Stays NM at 2 diffs. */
+/* func_00000A9C — best NM body (28/30 words, 97.83%). CAP CONFIRMED 2026-07-02
+ * (agent-e deep session, ~25 new C shapes + 4 phase-split configs + IDO 5.3 + -g1/2/3).
+ *
+ * The two residual words: target stages the n/s-case 8 in $v1
+ * ([0xACC] addiu v1,zero,8 in the n-beq delay) and returns it via a
+ * genuine MOVE in the jr delay ([0xB10] or v0,v1,zero); our build
+ * coalesces to v0 (li v0,8 + nop).
+ *
+ * COMPLETE MECHANISM MAP (new this session — supersedes the old
+ * "as1 branch-delay filler" theory in the previous comment):
+ *  1. The beql conversion on the s-beq is NOT triggered when the s-beq's
+ *     ORIGINAL ugen target is a label block that the n-beq EMPTIES by a
+ *     shared-block steal (li v1,8 -> n-delay); the s-beq is then
+ *     retargeted to the next block with its delay finalized as NOP.
+ *     Reproduced exactly (t11 shape: n/s -> L_ELSE{r=8} falling into
+ *     L_MERGE{return r}). Real ugen MOVEs at the retarget point do NOT
+ *     re-trigger likely-copy; ALU `or` from the `|0` lever DOES.
+ *  2. The or-in-jr-delay sink at B0C works (label moves onto jr) iff the
+ *     merge block has ONLY conditional-branch preds; any unconditional-b
+ *     pred pins it (t11 vs ternary/t13 A/B).
+ *  3. The move v0,v1 survives uopt ONLY as a >=2-def web (select/phi with
+ *     two distinct reaching values). Single-def const webs ALWAYS coalesce
+ *     (probed: named r, dead-init, r=r+6 web-chaining, if(1)-dead-edge,
+ *     a0==a0 edge, do-while-break, undef-path phi -> uopt spills to stack).
+ *  4. A 2nd def costs an insn that must be DELETED for the 30-word layout.
+ *     Only deleter is as1's b->return-block dup (ternary/t13/w1-w4), whose
+ *     window is <=9 insns / <=5 blocks: probed w1-w4 ok (3..9 insns),
+ *     w5/p10 fail (>=10-11). Target geometry needs the dup to span
+ *     5 label blocks + ELSE = 11 insns. MECHANICALLY EXCLUDED.
+ *     Routing the extra def through a label case (y3) gets uopt-threaded
+ *     into bnel at the test site. Phase splits (uopt-O2+ugen/as1-O1,
+ *     uopt-O1+ugen-O2), -g1/g2/g3, -Wb/-Wo overrides (driver -O2 wins),
+ *     and IDO 5.3 all fail identically or worse ("Binasm file dictates -O"
+ *     pins as1 to ugen's level; as1 -O2 on ugen -O1 binasm asserts).
+ *  The closest shapes: ternary `return (a1!='n'&&a1!='s')?2:8` = all
+ *  mechanism right, merge block placed 2nd instead of last (+t-steal);
+ *  t11 goto-form = layout right, [16/17] b+li v1,2 vs jr+li v0,2 and
+ *  or unsunk. No C shape reconciles both under IDO 5.3/7.1 -O2.
+ *  Target's plain-beq+nop into a shared [jr][move] tail is UNIQUE in the
+ *  entire ROM (full-asm scan) — likely an uopt pass-ordering state not
+ *  reachable from any input we can construct. Stays NM at 2 word diffs. */
 #ifdef NON_MATCHING
 int func_00000A9C(int a0, int a1) {
     if (a1 == 0)   goto L_AE4;
