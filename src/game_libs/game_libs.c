@@ -610,51 +610,38 @@ int gl_func_00000FA4(char *a0, int arg1) {
 }
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00000FD0)();
+extern int func_00000000();
+extern char gl_ref_0000CBFC;
+extern char gl_ref_0000CC04;
 char *gl_func_00000FD0(char *arg0, s32 arg1) {
-  char *sp34;
-  f32 d255 = 255.0f;
-  char *sp2C;
-  char *sp28;
-  char *temp_a0;
-  char *temp_a3;
-  char *temp_v0;
-  char *temp_v0_2;
-  char *var_a2;
+  f32 d255;
   char *var_s0;
-  arg0++;
-  arg0--;
+  char *var_a2;
+  volatile char pad[4];
+  (void)pad;
+
   var_s0 = arg0;
-  if ((arg0 != 0) || ((temp_v0 = (char *) func_00000000((char *) 0x13C), var_s0 = temp_v0, temp_v0 != 0)))
-  {
+  if ((arg0 != 0) || ((var_s0 = (char *) func_00000000((char *) 0x13C)) != 0)) {
     var_a2 = var_s0;
-    if ((var_s0 != 0) || ((temp_v0_2 = (char *) func_00000000((char *) 0x10C), var_a2 = temp_v0_2, temp_v0_2 != 0)))
-    {
-      sp34 = var_a2;
-      (char *) func_00000000(var_a2, (char *) 0xCBFC, var_a2);
-      *((int *) (((char *) var_a2) + 0x28)) = (int) (&D_00000000);
-      (char *) func_00000000(var_a2 + 0x2C);
+    if ((var_s0 != 0) || ((var_a2 = (char *) func_00000000((char *) 0x10C)) != 0)) {
+      func_00000000(var_a2, &gl_ref_0000CBFC);
+      *((int *) (var_a2 + 0x28)) = (int) (&D_00000000);
+      func_00000000(var_a2 + 0x2C);
     }
-    *((int *) (((char *) var_s0) + 0xC)) = 0xCC04;
-    temp_a0 = var_s0 + 0x10C;
-    sp2C = temp_a0;
-    (char *) func_00000000(temp_a0, (char *) 0x50002);
-    temp_a3 = var_s0 + 0x124;
-    sp28 = temp_a3;
-    (char *) func_00000000(temp_a3, (char *) 0x50008);
-    (char *) func_00000000(var_s0, sp28, sp2C);
-    *((int *) (((char *) var_s0) + 0xD4)) = 0x80;
-    *((int *) (((char *) var_s0) + 0xD8)) = 0xFF;
-    *((int *) (((char *) var_s0) + 0xDC)) = 0x82;
-    *((f32 *) (((char *) var_s0) + 0xC4)) = 250.0f / d255;
-    *((f32 *) (((char *) var_s0) + 0xC8)) = 235.0f / d255;
-    *((f32 *) (((char *) var_s0) + 0xCC)) = 100.0f / d255;
-    *((f32 *) (((char *) var_s0) + 0xD0)) = 0.0f / d255;
-    *((int *) (((char *) var_s0) + 0xE0)) = arg1;
-    (char *) func_00000000(var_s0, (char *) (-3), (char *) (-1), 0x25, 0);
+    *((int *) (var_s0 + 0xC)) = (int) (&gl_ref_0000CC04);
+    func_00000000(var_s0 + 0x10C, (char *) 0x50002);
+    func_00000000(var_s0 + 0x124, (char *) 0x50008);
+    func_00000000(var_s0, var_s0 + 0x124, var_s0 + 0x10C);
+    *((int *) (var_s0 + 0xD4)) = 0x80;
+    *((int *) (var_s0 + 0xD8)) = 0xFF;
+    *((int *) (var_s0 + 0xDC)) = 0x82;
+    d255 = 255.0f;
+    *((f32 *) (var_s0 + 0xC4)) = 250.0f / d255;
+    *((f32 *) (var_s0 + 0xC8)) = 235.0f / d255;
+    *((f32 *) (var_s0 + 0xCC)) = 100.0f / d255;
+    *((f32 *) (var_s0 + 0xD0)) = 0.0f / d255;
+    *((int *) (var_s0 + 0xE0)) = arg1;
+    func_00000000(var_s0, (char *) (-3), (char *) (-1), 0x25, 0);
   }
   return var_s0;
 }
