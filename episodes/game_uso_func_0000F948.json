@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000F948",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T01:56:21.527364+00:00",
+  "end_time": "2026-07-03T01:56:21.527384+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T01:56:21.527379+00:00",
+      "assistant_text": "Cap-disproof exact match: (1) first-block re-base through q=(float*)((char*)(int*)a0[0xB4/4]+0x3C8) \u2014 folds loads onto v0, emits the dead pointer-materialization addiu in the mul latency slot, coalesces b/q into $v0 freeing $v1; (2) decl reorder (scalars AFTER aggregates) + bottom-pad growth padbot[3]->padbot[5] to push the Vec3 block +0x18 flush to frame top at -0x80.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 67,
+  "initial_m2c_source": null,
+  "final_source": "/* EXACT 2026-07-02 (67/67 words vs asm .s, self-verified via clean\n * build/non_matching rebuild). Was the \"frame-spread / call-spill-interleave\n * coloring cap\" NM at 98.15% \u00e2\u0080\u0094 cap DISPROVEN by two levers:\n *  (1) FIRST-BLOCK RE-BASE (same lever as the final-add section): load the\n *      scaled triple through q = (float*)((char*)(int*)a0[0xB4/4] + 0x3C8)\n *      instead of a named b + per-field offsets. IDO folds the loads to\n *      0x3C8/0x3CC/0x3D0(v0) AND emits the (dead) addiu v0,v0,0x3C8 in the\n *      mul latency slot \u00e2\u0080\u0094 the missing word \u00e2\u0080\u0094 and the coloring cascade fixes\n *      itself: b/q coalesce into $v0 (was $v1), freeing $v1 for &vb (was $a1).\n *  (2) FRAME PUSH-UP FROM BELOW: target has vc flush against the frame top\n *      (sp+0x74..0x80, frame -0x80). Locals lay out in DECL ORDER top-down;\n *      scalar decls placed AFTER the aggregates get no slots; unreferenced\n *      volatile pads declared BEFORE the first Vec3 sink to the bottom (the\n *      old cap note is right about that) \u00e2\u0080\u0094 but growing the BOTTOM pad\n *      (padbot[5]) pushes the whole Vec3 block up: 0x38/0x4C/0x64 ->\n *      0x48/0x5C/0x74 with frame exactly -0x80.\n * Earlier levers retained: grouped-mul eval order (mx/my/mz temp scalars,\n * docs/IDO_CODEGEN.md#feedback-ido-struct-copy-vs-field-copy-treg-order),\n * inter-decl pads padcb[3]/padba[2] for the 0x8/0xC inter-Vec3 gaps,\n * struct-assign copies (vb = a; vc = vb;) for the int lw/sw cascade. */\nextern char game_uso_D_807FF448;\ntypedef struct { float x, y, z; } F948_Vec3;\nvoid game_uso_func_0000F948(int *a0) {\n    F948_Vec3 vc;\n    volatile int padcb[3];\n    F948_Vec3 vb;\n    volatile int padba[2];\n    F948_Vec3 a;\n    float *q;\n    float scale;\n    float mx, my, mz;\n    volatile int padbot[5];\n\n    import_0010DB28(a0, *(int*)((char*)a0 + 0xFC), 0, 2, 1, 1);\n    game_uso_func_0000D5F8((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF448 + 0xE58), 2);\n\n    q = (float*)((char*)(int*)a0[0xB4 / 4] + 0x3C8);\n    scale = *(float*)((char*)a0 + 0x1FC);\n    mx = q[0] * scale;\n    my = q[1] * scale;\n    mz = q[2] * scale;\n    a.x = mx;\n    a.y = my;\n    a.z = mz;\n    vb = a;\n    vc = vb;\n\n    q = (float*)((char*)(int*)a0[0xB4 / 4] + 0x318);\n    q[0] += vc.x;\n    q[1] += vc.y;\n    q[2] += vc.z;\n}",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_0000F948.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

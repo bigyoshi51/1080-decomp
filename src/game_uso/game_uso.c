@@ -12609,52 +12609,47 @@ void game_uso_func_0000F8E8(int *a0) {
     gl_func_00000000(a0, *(Pair2*)((char*)&D_00000000 + 0xE50), -1);
 }
 
-#ifdef NON_MATCHING
-/* 2026-06-24 reconstruction (81.6% -> 98.15%, frame -0x80 EXACT, FP schedule
- * EXACT, final-add section byte-exact). Levers applied:
- *  (1) GROUPED-MUL EVAL ORDER (docs/IDO_CODEGEN.md
- *      #feedback-ido-struct-copy-vs-field-copy-treg-order): write the three
- *      scaled products into temp scalars mx/my/mz FIRST so IDO hoists all
- *      three lwc1 together, muls into f2/f12/f14, then stores the block --
- *      matching the target's all-loads-first FP schedule (was interleaved
- *      load/mul/store at 81.6%).
- *  (2) FRAME-SPREAD via inter-decl volatile pads: padcb[3]/padba[2] between
- *      the three Vec3 temps reproduce the target's 0x14/0x18 inter-block gaps;
- *      padbot[3] grows the frame to -0x80 with the a0-home at sp+0x80 (exact).
- *  (3) FINAL-ADD RE-BASE: q = (float*)(b + 0x318) (inline a0[0xB4/4] re-deref)
- *      makes IDO materialize the addiu v0,v0,0x318 re-base and the
- *      8(v0)/0(v0)/4(v0)/8(v0) offset cascade of the target's add-back section
- *      byte-for-byte.
- * RESIDUAL (honest NON_MATCHING, 98.15%): the three Vec3 buffers color 0x1C
- * lower than target (mine sp+0x2C/0x40/0x58 vs target sp+0x48/0x5C/0x74) and
- * the first lw 0xB4 colors $v1/$a1 vs target $v0/$v1, plus the mid-mul dead
- * addiu v0,v0,0x3C8 (mine nop). These are the documented frame-spread /
- * call-spill-interleave coloring cap (same as sibling game_uso_func_0000A604,
- * permuter-immune): unreferenced volatile pads always sink to the bottom of
- * the named region, so the buffer block cannot be pushed up the remaining
- * 0x1C. Genuine slot-alloc residual, not a logic/schedule diff. */
+/* EXACT 2026-07-02 (67/67 words vs asm .s, self-verified via clean
+ * build/non_matching rebuild). Was the "frame-spread / call-spill-interleave
+ * coloring cap" NM at 98.15% — cap DISPROVEN by two levers:
+ *  (1) FIRST-BLOCK RE-BASE (same lever as the final-add section): load the
+ *      scaled triple through q = (float*)((char*)(int*)a0[0xB4/4] + 0x3C8)
+ *      instead of a named b + per-field offsets. IDO folds the loads to
+ *      0x3C8/0x3CC/0x3D0(v0) AND emits the (dead) addiu v0,v0,0x3C8 in the
+ *      mul latency slot — the missing word — and the coloring cascade fixes
+ *      itself: b/q coalesce into $v0 (was $v1), freeing $v1 for &vb (was $a1).
+ *  (2) FRAME PUSH-UP FROM BELOW: target has vc flush against the frame top
+ *      (sp+0x74..0x80, frame -0x80). Locals lay out in DECL ORDER top-down;
+ *      scalar decls placed AFTER the aggregates get no slots; unreferenced
+ *      volatile pads declared BEFORE the first Vec3 sink to the bottom (the
+ *      old cap note is right about that) — but growing the BOTTOM pad
+ *      (padbot[5]) pushes the whole Vec3 block up: 0x38/0x4C/0x64 ->
+ *      0x48/0x5C/0x74 with frame exactly -0x80.
+ * Earlier levers retained: grouped-mul eval order (mx/my/mz temp scalars,
+ * docs/IDO_CODEGEN.md#feedback-ido-struct-copy-vs-field-copy-treg-order),
+ * inter-decl pads padcb[3]/padba[2] for the 0x8/0xC inter-Vec3 gaps,
+ * struct-assign copies (vb = a; vc = vb;) for the int lw/sw cascade. */
 extern char game_uso_D_807FF448;
 typedef struct { float x, y, z; } F948_Vec3;
 void game_uso_func_0000F948(int *a0) {
-    int *b;
-    float *q;
-    float scale;
-    float mx, my, mz;
     F948_Vec3 vc;
     volatile int padcb[3];
     F948_Vec3 vb;
     volatile int padba[2];
     F948_Vec3 a;
-    volatile int padbot[3];
+    float *q;
+    float scale;
+    float mx, my, mz;
+    volatile int padbot[5];
 
     import_0010DB28(a0, *(int*)((char*)a0 + 0xFC), 0, 2, 1, 1);
     game_uso_func_0000D5F8((char*)a0, *(Pair2*)((char*)&game_uso_D_807FF448 + 0xE58), 2);
 
-    b = (int*)a0[0xB4 / 4];
+    q = (float*)((char*)(int*)a0[0xB4 / 4] + 0x3C8);
     scale = *(float*)((char*)a0 + 0x1FC);
-    mx = *(float*)((char*)b + 0x3C8) * scale;
-    my = *(float*)((char*)b + 0x3CC) * scale;
-    mz = *(float*)((char*)b + 0x3D0) * scale;
+    mx = q[0] * scale;
+    my = q[1] * scale;
+    mz = q[2] * scale;
     a.x = mx;
     a.y = my;
     a.z = mz;
@@ -12666,9 +12661,6 @@ void game_uso_func_0000F948(int *a0) {
     q[1] += vc.y;
     q[2] += vc.z;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F948);
-#endif
 
 /* MATCHED 2026-05-28: struct-by-value (E40/E44 pair). 26-insn 3-call
  * wrapper, family sibling of 10E2C/14FC/DC8 with one extra pass-through
