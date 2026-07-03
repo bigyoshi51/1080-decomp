@@ -12,51 +12,29 @@ extern char D_8C3C_root_desc;
  * Covers gl_func_00008AE4..gl_func_000093DC (offset 0x8AE4..0x949C).
  * Built at -O2 (default). */
 
-#ifdef NON_MATCHING
-/* gl_func_00008C3C: 92-insn alloc-or-passthrough cascade. The first three
- * calls configure globals, then the root/mid/child chain allocates 0xD4,
- * 0x50, and 0x2C byte nodes through dead-arm passthrough guards.
+/* gl_func_00008C3C — VERIFIED 92/92 reloc-resolved EXACT (2026-07-03, agent-e W5).
+ * Baseline was 88/92 raw = 84 byte-identical + 4 reloc-false (D_0000D138/D_0000D148
+ * HI16/LO16: syms valued 0xD138/0xD148 in undefined_syms_auto.txt resolve to the
+ * target's lui 0x1 / addiu -0x2EC8 words at link).
  *
- * 2026-05-18 deep attempt: default -O2 emits a structurally short stack-temp
- * form; scratch -O0 matches the target's 0x38 frame, s0/s1/s2 cascade, branches.
+ * CAP CRACKED: the long-documented "-O0 temp-pool artifact, NOT C-steerable"
+ * call_root home-slot residual (mine sp+0x28 vs target sp+0x34) is pure DECL ORDER.
+ * IDO -O0 assigns local frame slots top-down in declaration order, and `register`
+ * locals RESERVE slots in that same order (unused). Old form declared call_root
+ * inside an inner block AFTER register root/mid/child -> 4th slot = 0x28. Declaring
+ * `int *call_root;` FIRST (before the register decls) gives it the top slot 0x34;
+ * root/mid/child reserve 0x30/0x2C/0x28. (The old "function scope vs inner-block
+ * score-neutral" test kept it after the register decls -- that's why it never moved.)
  *
- * 2026-05-28 PRECISE DIAGNOSIS (supersedes the old "needs -O0 split" note — this
- * file is ALREADY -O0): the wrap is 99.793%, and the SOLE residual is ONE
- * stack-temp slot. `call_root`'s home is sp+0x28 (mine) vs sp+0x34 (target) —
- * everything else (ra@0x24, s0/s1/s2 saves@0x18/0x1C/0x20, a0@0x38, a1@0x3C arg
- * homes, all 3 data-ref relocs, every branch) is byte/reloc-exact. The temp
- * region is 0x28..0x34; IDO -O0 puts call_root's home at the BOTTOM (0x28),
- * target at the TOP (0x34). TESTED-NEGATIVE 2026-05-28: removing the call_root
- * indirection regresses to 96.4% (it's load-bearing); declaring call_root at
- * function scope vs inner-block is score-neutral (still 0x28). The slot is an
- * -O0 temp-allocator artifact, NOT C-steerable — same class as the
- * gl_func_0005D054 spill-slot swap. Honest cap at 99.79%; stays INCLUDE_ASM.
- * 2026-06-10: the decl-order slot lever that cracked 5D054 does NOT
- * transfer here -- adding pad locals grows the -O0 frame (every named
- * local gets a slot AND frame space; 5D054 was -O2 where pads only
- * permute existing SPILL slots). The 0x28..0x34 region neighbors are
- * COMPILER-INTERNAL temps (unnamed), so there is no decl list to
- * permute; call_root's pseudo number vs the internal temps' is fixed by
- * statement order already tested. Cap stands for -O0 units.
- * 2026-06-10 branch-nesting probe: the target's bnez/beqz pattern reads
- * as nested fail-checks (if(!p){p=alloc; if(!p) goto ...}) but the
- * nested-goto form REGRESSES to 91.5 at -O0 (gotos emit extra b/label
- * traffic).
- * 2026-06-20 BRANCH-EXACT via SHORT-CIRCUIT ||: the target's `bne +7`
- * (skip alloc AND the post-alloc null-check) is reproduced by
- * `if (p != 0 || (p = alloc()) != 0) { body }`. The `||` makes IDO -O0
- * emit `bne p,zero,body; alloc; beq p,zero,end:` -- a SINGLE beq (not the
- * bnez+b that an explicit `if(p==0)goto` produces), so the bne offset
- * spans both the alloc and the beq exactly like the target. This drops
- * the 3 branch-offset diffs (28/37/46) the flat double-check form had;
- * residual is now ONLY the call_root temp-slot (0x28 mine vs 0x34 target)
- * + the 2 D_D138/D148 reloc-addiu (FALSE, resolve to target bytes).
- * The slot stays 0x28 across every C steer tried (2026-06-20: int cast,
- * function-scope decl, explicit a0[0] temp [grows frame], block scope) --
- * confirmed IDO -O0 temp-pool artifact, same class as gl_func_0005D054.
- * Honest cap; stays INCLUDE_ASM. */
+ * VOID fn -> NOT blocked by the -O0 return-value dead-double-b toolchain gap.
+ * PROMOTABLE: replace the #ifdef NON_MATCHING wrap with this body (drop INCLUDE_ASM).
+ * No new undefined_syms needed (D_0000D138/D_0000D148/D_8C3C_* already present). */
+extern int gl_func_00000000();
+extern char D_00000000;
+extern char D_8C3C_child_desc, D_8C3C_mid_desc, D_8C3C_root_desc;
 extern char D_0000D138, D_0000D148, D_8C3C_v0;
 gl_func_00008C3C(a0, a1) int * a0; int a1; {
+    int *call_root;       /* declared FIRST -> top local slot 0x34 (-O0 slots are decl-order top-down; register vars reserve the slots below) */
     register int *root;
     register int *mid;
     register int *child;
@@ -78,17 +56,12 @@ gl_func_00008C3C(a0, a1) int * a0; int a1; {
         }
         root[0x28 / 4] = (int)&D_8C3C_root_desc;
     }
-    {
-        int *call_root = root;
-        gl_func_00000000(call_root, a0[0]);
-        gl_func_00000000(call_root);
-        root = call_root;
-    }
+    call_root = root;
+    gl_func_00000000(call_root, a0[0]);
+    gl_func_00000000(call_root);
+    root = call_root;
     gl_func_00000000(a0, 0, root);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008C3C);
-#endif
 
 /* gl_func_00008DAC: 39-insn 4-call init sequencer. -O0 island (file built
  * OPT_FLAGS := -O0: all 4 args spilled at entry, unfilled jal delays, b-to-epilogue).
@@ -107,26 +80,47 @@ void gl_func_00008DAC(int a0, int a1, int a2, int a3) {
 }
 
 #ifdef NON_MATCHING
+/* gl_func_00008E48 — VERIFIED 101/111 reloc-resolved (was 10/109 raw baseline).
+ * ALL 109 target words reproduced in order except the live `b epilogue` offset
+ * (10000003 vs 10000001) + a DEAD `b epilogue; nop` pair (build 111 vs target 109):
+ * the documented -O0 RETURN-VALUE dead-double-b TOOLCHAIN-BINARY GAP
+ * (docs/IDO_CODEGEN.md). Proven not C-fixable. HONEST CAP -> stays NM at ~98%
+ * (up from 92.98%).
+ *
+ * Levers applied (all verified in-tree):
+ * 1. sp3C/sp38/sp34 are PLAIN locals declared FIRST in that order -> slots
+ *    0x3C/0x38/0x34 top-down; register base/o/tmp reserve 0x30/0x2C/0x28.
+ *    (Old wrap had sp3C as register s1 -> `move s1,v0` instead of the target's
+ *    sw v0,0x3C / lw s1,0x3C / return-from-home, and sp38/sp34 landed 0x30/0x2C.)
+ * 2. Chain direction swapped: `sp34 = sp38 = (char *)D_0000004C;` -> target's
+ *    store order sw t6,0x38 THEN sw t6,0x34 (old `sp38 = sp34 = ...` reversed it).
+ * 3. First call arg1 via `*(int *)((char *)&D_8FFC_base + 8)` (base-0 alias,
+ *    shared with 8FFC, in undefined_syms_auto.txt) -> 3-insn lui/addiu/lw-off-8
+ *    with NO CSE against the &D_00000000 arg0 materialization.
+ * 4. Separate `register char *o` (s1) alias of sp3C for the tail derefs;
+ *    `tmp = base; FW(o,0x14) = (int)tmp;` two-step keeps the target's
+ *    `move s2,s0; sw s2,20(s1)` (direct base store folds to sw s0 — wrong).
+ * undefined_syms_auto.txt ADDITION (shared with 8FFC, line 578):
+ *   D_8FFC_base = 0x00000000;
+ */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+extern int gl_func_00008C3C();  /* placeholder callee name as in current wrap */
+extern char D_00000000;
 extern int D_0000004C, D_00000064;
 extern unsigned char D_00000181, D_00000182, D_00000183;
-/* gl_func_00008E48: -O0 alloc-cascade (sibling of 8C3C/8FFC/9100). 69.2->92.98%
- * (2026-06-23): distinct-externs D_0000004C/64/181/2/3 (valued at offset -> per-read
- * folded lui), &D+8 materialized arg, `0` call-args -> &D_00000000, base/sp3C/tmp
- * register (s0/s1/s2), sp3C[0x14]=base, chained sp38=sp34 (no temp_t6 round-trip).
- * Residual ~7% = -O0 temp-slot/reg-alloc (sp3C register `move s1,v0` vs target spill
- * `sw v0,60(sp)`+reload; sp3C-plain regresses to 89.98). Same cap class as 9100/8C3C. */
+extern char D_8FFC_base;   /* base-0 alias of D_00000000 (see gl_func_00008FFC note) */
 char *gl_func_00008E48(char **arg0, int arg1, s32 arg2) {
-    register char *base;   /* s0 */
-    register char *sp3C;   /* s1 */
-    register char *tmp;    /* s2 */
+    char *sp3C;            /* plain locals decl'd first: slots 0x3C/0x38/0x34 top-down */
     char *sp38;
     char *sp34;
+    register char *base;   /* s0 */
+    register char *o;      /* s1 */
+    register char *tmp;    /* s2 */
 
-    sp38 = sp34 = (char *)D_0000004C;
-    gl_func_00008C3C(&D_00000000, *(int *)((char *)&D_00000000 + 8));
+    sp34 = sp38 = (char *)D_0000004C;
+    gl_func_00008C3C(&D_00000000, *(int *)((char *)&D_8FFC_base + 8));
     if (FW(FW((*(int*)arg0), 0x8), 0x8) != 0) {
         D_00000181 = gl_func_00008C3C(FW((*(int*)arg0), 0x8));
         sp34 = (char *)(int)D_00000181;
@@ -135,17 +129,19 @@ char *gl_func_00008E48(char **arg0, int arg1, s32 arg2) {
     }
     gl_func_00008C3C(sp38, sp34);
     if (FW(FW((*(int*)arg0), 0x8), 0x8) != 0) {
-        sp3C = gl_func_00008C3C(&D_00000000, D_00000064, 3, arg2);
+        sp3C = (char *)gl_func_00008C3C(&D_00000000, D_00000064, 3, arg2);
     } else {
-        sp3C = gl_func_00008C3C(&D_00000000, D_00000064, 2, arg2);
+        sp3C = (char *)gl_func_00008C3C(&D_00000000, D_00000064, 2, arg2);
     }
     base = (char *)&D_00000000;
+    o = sp3C;
     tmp = base + 0x10;
-    gl_func_00008C3C(tmp, sp3C);
-    if (FW(sp3C, 0x14) != 0) {
-        FW(sp3C, 0x4) = 1;
+    gl_func_00008C3C(tmp, o);
+    if (FW(o, 0x14) != 0) {
+        FW(o, 0x4) = 1;
     }
-    FW(sp3C, 0x14) = (int)base;
+    tmp = base;
+    FW(o, 0x14) = (int)tmp;
     gl_func_00008C3C(&D_00000000, 0);
     (void)arg1;
     return sp3C;
@@ -177,27 +173,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008E48);
 extern int D_00000008, D_0000004C, D_00000050, D_00000064;
 extern unsigned char D_0000017D;
 #ifdef NON_MATCHING
+/* gl_func_00008FFC — VERIFIED 57/67 reloc-resolved (was 19/65 raw baseline).
+ * ALL 65 target words are reproduced in order except:
+ *   [56] live `b epilogue` offset 10000003 vs target 10000001, and
+ *   [58-59] a DEAD `b epilogue; nop` pair (2 extra words, build 67 vs target 65).
+ * Both artifacts are ONE root cause: the documented -O0 RETURN-VALUE dead-double-b
+ * TOOLCHAIN-BINARY GAP (docs/IDO_CODEGEN.md "-O0 RETURN-VALUE functions get a DEAD
+ * second b epilogue; nop"): our ido-static-recomp cc emits return's `b` PLUS the
+ * closing-brace `b`; the original 1080 cc folded them. Proven not C-fixable
+ * (full 7.1/5.3 flag matrix in docs). HONEST CAP -> stays NM at ~97%.
+ *
+ * Levers applied this session (all verified in-tree, non_matching build):
+ * 1. PLAIN `int obj` home + separate `register int *o` (s1) alias: target does
+ *    sw v0,0x34(sp) / lw s1,0x34(sp) / ... / lw v0,0x34(sp) (return-from-home).
+ *    The old single `register obj` gave move s1,v0 (no home). Fixed [33-37],[54].
+ *    obj declared FIRST -> top local slot 0x34 (decl-order top-down; register vars
+ *    reserve the lower slots).
+ * 2. D_8FFC_base (NEW base-0 alias of D_00000000 in undefined_syms_auto.txt):
+ *    first call's arg1 must be the 3-insn `lui t6; addiu t6; lw a1,8(t6)` form
+ *    (&D+8 read) WITHOUT CSE-sharing the &D_00000000 materialized for arg0.
+ *    Same-symbol form emitted lui t6/addiu t6/move a0,t6/lw a1,8(t6) (4 insns,
+ *    a0 stolen from t6). Distinct base-0 extern re-materializes both. This also
+ *    restores the target temp-reg phase (t6 consumed -> D_50 RMW uses t7/t8).
+ *    The old distinct-extern D_00000008 2-insn form (lui;lw 0x8) was WRONG here.
+ * undefined_syms_auto.txt ADDITION (line 578):
+ *   D_8FFC_base = 0x00000000;
+ */
+extern int gl_func_00000000();
+extern char D_00000000;
+extern int D_0000004C, D_00000050, D_00000064;
+extern unsigned char D_0000017D;
+extern char D_8FFC_base;   /* base-0 alias of D_00000000: defeats -O0 CSE of &D between arg0 and the +8 read (target re-materializes lui/addiu) */
 int gl_func_00008FFC(int a0, int a1, int a2) {
+    int obj;                 /* plain local: home slot 0x34, sw v0/lw s1/return-from-home */
     register char *base;     /* s0 */
-    register int *obj;       /* s1 */
+    register int *o;         /* s1 */
     register char *tmp;      /* s2 */
 
-    gl_func_00000000(&D_00000000, D_00000008);
+    gl_func_00000000(&D_00000000, *(int *)((char *)&D_8FFC_base + 8));
     gl_func_00000000(D_0000004C, D_0000017D);
     D_00000050 = D_00000050 & 0x20;
-    obj = (int*)gl_func_00000000(&D_00000000, D_00000064, 5, a2);
+    obj = gl_func_00000000(&D_00000000, D_00000064, 5, a2);
     base = (char*)&D_00000000;
+    o = (int*)obj;
     tmp = base + 0x10;
-    gl_func_00000000(tmp, obj);
-    if (obj[0x14 / 4] != 0) {
-        obj[0x4 / 4] = 1;
+    gl_func_00000000(tmp, o);
+    if (o[0x14 / 4] != 0) {
+        o[0x4 / 4] = 1;
     }
     tmp = base;
-    obj[0x14 / 4] = (int)tmp;
+    o[0x14 / 4] = (int)tmp;
     gl_func_00000000(&D_00000000, 0);
     (void)a0;
     (void)a1;
-    return (int)obj;
+    return obj;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008FFC);
@@ -229,28 +258,52 @@ extern int D_0000004C, D_00000064;
  * (worse); rewriting the D-relative reads as &D_00000000+offset -> 74% (adds a
  * materializing addiu, worse). Original register form stays. */
 #ifdef NON_MATCHING
+/* gl_func_00009100 — VERIFIED 57/67 reloc-resolved (was 28/66 raw baseline).
+ * ALL 65 target words reproduced in order except the live `b epilogue` offset
+ * (10000003 vs 10000001) + a DEAD `b epilogue; nop` pair (build 67 vs target 65):
+ * the documented -O0 RETURN-VALUE dead-double-b TOOLCHAIN-BINARY GAP
+ * (docs/IDO_CODEGEN.md; original 1080 cc folded the second b, ours can't).
+ * Proven not C-fixable. HONEST CAP -> stays NM at ~97% (up from 93.5%).
+ *
+ * Lever applied: PLAIN `int obj` home-slot + separate `register int *o` (s1)
+ * alias — target sw v0,0x34(sp); lui s0; addiu s0; lw s1,0x34(sp); ... and
+ * returns from the home (lw v0,0x34). Statement order matters:
+ * obj = ctor(...); base = &D; o = obj; tmp = base + 0x10;  (base materialization
+ * BETWEEN the home store and the alias reload, exactly as target).
+ * obj declared FIRST -> top local slot 0x34 (-O0 slots decl-order top-down;
+ * register vars reserve the lower slots 0x28/0x2C/0x30).
+ * The old "obj home-spill / spill-timing -O0 cap" comment is WRONG — it's the
+ * two-variable (plain + register alias) shape, same as 8FFC/8E48 siblings.
+ * No new undefined_syms needed (D_00000179..183/D_0000004C/D_00000064 present).
+ */
+extern int gl_func_00000000();
+extern char D_00000000;
+extern unsigned char D_00000179, D_0000017A, D_0000017B, D_00000181, D_00000182, D_00000183;
+extern int D_0000004C, D_00000064;
 int gl_func_00009100(int a0, int a1, int a2) {
+    int obj;                 /* plain local: home slot 0x34, sw v0/lw s1/return-from-home */
     register char *base;     /* s0 */
-    register int *obj;       /* s1 */
+    register int *o;         /* s1 */
     register char *tmp;      /* s2 */
 
     D_00000181 = D_00000179;
     D_00000182 = D_0000017A;
     D_00000183 = D_0000017B;
     gl_func_00000000(D_0000004C, D_0000004C);
-    obj = (int*)gl_func_00000000(&D_00000000, D_00000064, 4, a2);
+    obj = gl_func_00000000(&D_00000000, D_00000064, 4, a2);
     base = (char*)&D_00000000;
+    o = (int*)obj;
     tmp = base + 0x10;
-    gl_func_00000000(tmp, obj);
-    if (obj[0x14 / 4] != 0) {
-        obj[0x4 / 4] = 1;
+    gl_func_00000000(tmp, o);
+    if (o[0x14 / 4] != 0) {
+        o[0x4 / 4] = 1;
     }
     tmp = base;
-    obj[0x14 / 4] = (int)tmp;
+    o[0x14 / 4] = (int)tmp;
     gl_func_00000000(&D_00000000, 0);
     (void)a0;
     (void)a1;
-    return (int)obj;
+    return obj;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009100);

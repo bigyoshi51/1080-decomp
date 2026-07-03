@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00008C3C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:24:00.361677+00:00",
+  "end_time": "2026-07-03T20:24:00.361700+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:24:00.361694+00:00",
+      "assistant_text": "The months-documented '-O0 temp-pool artifact, NOT C-steerable' cap was pure decl order: at -O0, register locals RESERVE frame slots in decl sequence \u2014 declaring int *call_root FIRST (before the register root/mid/child) puts it at top slot 0x34. The old negative had it after the register decls. Distinct-symbol desc stores resolve to zero-value undefined_syms placeholders (baked lui 0/addiu 0).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 92,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00008C3C \u2014 VERIFIED 92/92 reloc-resolved EXACT (2026-07-03, agent-e W5).\n * Baseline was 88/92 raw = 84 byte-identical + 4 reloc-false (D_0000D138/D_0000D148\n * HI16/LO16: syms valued 0xD138/0xD148 in undefined_syms_auto.txt resolve to the\n * target's lui 0x1 / addiu -0x2EC8 words at link).\n *\n * CAP CRACKED: the long-documented \"-O0 temp-pool artifact, NOT C-steerable\"\n * call_root home-slot residual (mine sp+0x28 vs target sp+0x34) is pure DECL ORDER.\n * IDO -O0 assigns local frame slots top-down in declaration order, and `register`\n * locals RESERVE slots in that same order (unused). Old form declared call_root\n * inside an inner block AFTER register root/mid/child -> 4th slot = 0x28. Declaring\n * `int *call_root;` FIRST (before the register decls) gives it the top slot 0x34;\n * root/mid/child reserve 0x30/0x2C/0x28. (The old \"function scope vs inner-block\n * score-neutral\" test kept it after the register decls -- that's why it never moved.)\n *\n * VOID fn -> NOT blocked by the -O0 return-value dead-double-b toolchain gap.\n * PROMOTABLE: replace the #ifdef NON_MATCHING wrap with this body (drop INCLUDE_ASM).\n * No new undefined_syms needed (D_0000D138/D_0000D148/D_8C3C_* already present). */\nextern int gl_func_00000000();\nextern char D_00000000;\nextern char D_8C3C_child_desc, D_8C3C_mid_desc, D_8C3C_root_desc;\nextern char D_0000D138, D_0000D148, D_8C3C_v0;\ngl_func_00008C3C(a0, a1) int * a0; int a1; {\n    int *call_root;       /* declared FIRST -> top local slot 0x34 (-O0 slots are decl-order top-down; register vars reserve the slots below) */\n    register int *root;\n    register int *mid;\n    register int *child;\n\n    gl_func_00000000(&D_00000000, &D_0000D138);\n    gl_func_00000000(&D_00000000, *(int*)&D_8C3C_v0);\n    gl_func_00000000(&D_00000000, 7, 0, 0);\n\n    root = 0;\n    if (root != 0 || (root = (int*)gl_func_00000000(0xD4)) != 0) {\n        mid = root;\n        if (mid != 0 || (mid = (int*)gl_func_00000000(0x50)) != 0) {\n            child = mid;\n            if (child != 0 || (child = (int*)gl_func_00000000(0x2C)) != 0) {\n                gl_func_00000000(child, &D_0000D148);\n                child[0x28 / 4] = (int)&D_8C3C_child_desc;\n            }\n            mid[0x28 / 4] = (int)&D_8C3C_mid_desc;\n        }\n        root[0x28 / 4] = (int)&D_8C3C_root_desc;\n    }\n    call_root = root;\n    gl_func_00000000(call_root, a0[0]);\n    gl_func_00000000(call_root);\n    root = call_root;\n    gl_func_00000000(a0, 0, root);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_mid.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00008C3C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 (asm-processor, per-file)",
+    "verification": "92/92 word-exact (relocs resolved via undefined_syms incl zero-value desc placeholders) + make verify ROM byte-identical"
+  }
+}
