@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000E014",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:26:23.452526+00:00",
+  "end_time": "2026-07-03T03:26:23.452546+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:26:23.452540+00:00",
+      "assistant_text": "Same Tri3i struct-copy cascade lever as DDCC; dynamic *(short*)(s0+0x902/0x900) first ids kept inline.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 68,
+  "initial_m2c_source": null,
+  "final_source": "/* func_0000E014 - verified structural decode (0x110, 68 insns).\n * NEAR-SIBLING of func_0000DF04 (same Vec3 fetch-and-store fan-out,\n * same s0 struct); variant: the first id of each pair comes from a\n * signed-half field on s0 instead of a constant.\n * Struct-typing reference: same layout as func_0000DF04 -\n * s0->0xA58 (2648) u32 flags bit 7 (0x80) selector; s0->0x8F4\n * (2292) / 0x8F8 (2296) / 0x8FC (2300) Vec3i dest pointers (3x int\n * @ +0/+4/+8). NEW fields here: s0->0x902 (2306) and s0->0x900\n * (2304) = s16 dynamic source-id selectors (the first fetch id is\n * read from the object, not hardcoded), with constant ids 8 / 5 /\n * 6 for the second-slot and final fetches.\n * Caps <80: 3-5 reloc calls + &D reloc + flag branch + lh\n * dynamic-id + per-slot 3-word struct copies. INCLUDE_ASM remains\n * build path. */\nvoid func_0000E014(char *s0) {\n    if (*(unsigned int*)(s0 + 0xA58) & 0x80) {\n        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, *(short*)(s0 + 0x902));\n        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 8);\n    } else {\n        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, *(short*)(s0 + 0x900));\n        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 5);\n    }\n    **(Tri3i **)(s0 + 0x8FC) = *(Tri3i *)func_00000000(&D_00000000, 6);\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_0000E014.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00001F78",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:26:23.187617+00:00",
+  "end_time": "2026-07-03T03:26:23.187637+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:26:23.187631+00:00",
+      "assistant_text": "THE canonical 'unflippable a1-vs-a3 arg-save cap' CRACKED: pass-through precoloring \u2014 void f(void *obj,int d1,int d2) with n=callee(0,d1,d2,obj): pass-through d1/d2 coalesce with incoming a1/a2 at zero emission; obj as 4th call arg precolors to a3 and the whole spill web follows.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 20,
+  "initial_m2c_source": null,
+  "final_source": "/* func_00001E08 - verified structural decode (0x170, 92 insns,\n * get-or-create constructor + bulk property registration).\n * (reg = func_00000000(obj, &descriptor, 0).) Struct-typing\n * reference: o = 0x118-byte object. o->0x28 (40) descriptor ptr\n * (&D), o->0xC (12) type/vtable ptr (&D_00006E38), o->0x70 (112) =\n * 0, o->0x78 (120) = 0, o->0x74 (116) = &o[0x2C] (an embedded\n * sub-struct self-pointer; o+0x2C is init'd by the second reloc\n * call). D_00006E48..D_00006EC4 (and the .L00006EA8 entry) = ~10\n * property/field descriptor data blobs registered into o via the\n * reg helper (a property-table builder; arg3 = 0 default).\n * Caps <80: get-or-create + ~13 reloc calls + ~12 &D descriptor\n * relocs. INCLUDE_ASM remains build path. */\nextern char D_00006E30, D_00006E38;\nextern char D_00006E48, D_00006E54, D_00006E60, D_00006E70, D_00006E80;\nextern char D_00006E8C, D_00006E98, D_00006EA8, D_00006EB8, D_00006EC4;\n#ifdef NON_MATCHING\nvoid *func_00001E08(char *a0) {\n    char *o = a0;\n    if (o == 0) {\n        o = (char*)func_00000000(0x118);\n        if (o == 0) return 0;\n    }\n    func_00000000(o, &D_00006E30);\n    *(void**)(o + 0x28) = &D_00000000;\n    func_00000000(o + 0x2C);\n    *(void**)(o + 0xC) = &D_00006E38;\n    *(int*)(o + 0x70) = 0;\n    *(int*)(o + 0x78) = 0;\n    *(char**)(o + 0x74) = o + 0x2C;\n    func_00000000(o, &D_00006E48, 0);\n    func_00000000(o, &D_00006E54, 0);\n    func_00000000(o, &D_00006E60, 0);\n    func_00000000(o, &D_00006E70, 0);\n    func_00000000(o, &D_00006E80, 0);\n    func_00000000(o, &D_00006E8C, 0);\n    func_00000000(o, &D_00006E98, 0);\n    func_00000000(o, &D_00006EA8, 0);\n    func_00000000(o, &D_00006EB8, 0);\n    func_00000000(o, &D_00006EC4, 0);\n    return o;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00001E08);\n#endif\n\n// Linked-list insert-head: alloc node via func_00000000(0), splice after\n// obj->0x74 (head), advance head, bump obj->0x78 count. Body byte-matches at\n// 98%; the sole diff is IDO -O2 saving obj across the jal in $a1 while the\n// target uses $a3 \u00e2\u0080\u0094 documented-unflippable from C, see\n// docs/IDO_CODEGEN.md#feedback-ido-arg-save-reg-pick (this func is that\n// entry's canonical example). Permuter-only; no episode (tautology-trap rule).\nvoid func_00001F78(void *obj, int d1, int d2) {\n    void *n;\n    n = func_00000000(0, d1, d2, obj);\n    *(void **)((char *)n + 0x44) = *(void **)((char *)(*(void **)((char *)obj + 0x74)) + 0x44);\n    *(void **)((char *)(*(void **)((char *)obj + 0x74)) + 0x44) = n;\n    *(void **)((char *)obj + 0x74) = n;\n    *(int *)((char *)obj + 0x78) += 1;\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_00001F78.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

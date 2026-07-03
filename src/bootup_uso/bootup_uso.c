@@ -1518,17 +1518,14 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001E08);
 // target uses $a3 — documented-unflippable from C, see
 // docs/IDO_CODEGEN.md#feedback-ido-arg-save-reg-pick (this func is that
 // entry's canonical example). Permuter-only; no episode (tautology-trap rule).
-#ifdef NON_MATCHING
-void func_00001F78(void *obj) {
-    void *n = func_00000000(0);
+void func_00001F78(void *obj, int d1, int d2) {
+    void *n;
+    n = func_00000000(0, d1, d2, obj);
     *(void **)((char *)n + 0x44) = *(void **)((char *)(*(void **)((char *)obj + 0x74)) + 0x44);
     *(void **)((char *)(*(void **)((char *)obj + 0x74)) + 0x44) = n;
     *(void **)((char *)obj + 0x74) = n;
     *(int *)((char *)obj + 0x78) += 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00001F78);
-#endif
 
 void *func_00001FC8(char *a0, int a1) {
     void *p = *(void**)(a0 + 0x70);
@@ -9287,37 +9284,21 @@ void func_0000DDC4(int a0) {
  * as gl_func_0004E384 etc. — using distinct C locals per `d` does not move IDO off
  * the $v1 reuse (the load is post-call so $v1 is the next free caller-saved reg).
  * INCLUDE_ASM remains build path. */
-#ifdef NON_MATCHING
 void func_0000DDCC(char *s0) {
     unsigned int st = *(unsigned int*)(s0 + 0x8C4);
-    int *v;
-    int *d;
     if (st == 7 || st == 6) {
         func_00000000(s0);
         return;
     }
     if (*(unsigned int*)(s0 + 0xA58) & 0x80) {
-        v = (int*)func_00000000(&D_00000000, 0xE);
-        d = *(int**)(s0 + 0x8F4);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
-        v = (int*)func_00000000(&D_00000000, 0xF);
-        d = *(int**)(s0 + 0x8F8);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, 0xE);
+        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 0xF);
     } else {
-        v = (int*)func_00000000(&D_00000000, 0xA);
-        d = *(int**)(s0 + 0x8F4);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
-        v = (int*)func_00000000(&D_00000000, 0xB);
-        d = *(int**)(s0 + 0x8F8);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, 0xA);
+        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 0xB);
     }
-    v = (int*)func_00000000(&D_00000000, 0xC);
-    d = *(int**)(s0 + 0x8FC);
-    d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+    **(Tri3i **)(s0 + 0x8FC) = *(Tri3i *)func_00000000(&D_00000000, 0xC);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DDCC);
-#endif
 
 /* func_0000DF04 - verified structural decode (0x110, 68 insns,
  * Vec3 fetch-and-store fan-out).
@@ -9371,32 +9352,16 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DF04);
  * Caps <80: 3-5 reloc calls + &D reloc + flag branch + lh
  * dynamic-id + per-slot 3-word struct copies. INCLUDE_ASM remains
  * build path. */
-#ifdef NON_MATCHING
 void func_0000E014(char *s0) {
-    int *v;
-    int *d;
     if (*(unsigned int*)(s0 + 0xA58) & 0x80) {
-        v = (int*)func_00000000(&D_00000000, *(short*)(s0 + 0x902));
-        d = *(int**)(s0 + 0x8F4);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
-        v = (int*)func_00000000(&D_00000000, 8);
-        d = *(int**)(s0 + 0x8F8);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, *(short*)(s0 + 0x902));
+        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 8);
     } else {
-        v = (int*)func_00000000(&D_00000000, *(short*)(s0 + 0x900));
-        d = *(int**)(s0 + 0x8F4);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
-        v = (int*)func_00000000(&D_00000000, 5);
-        d = *(int**)(s0 + 0x8F8);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, *(short*)(s0 + 0x900));
+        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 5);
     }
-    v = (int*)func_00000000(&D_00000000, 6);
-    d = *(int**)(s0 + 0x8FC);
-    d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+    **(Tri3i **)(s0 + 0x8FC) = *(Tri3i *)func_00000000(&D_00000000, 6);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E014);
-#endif
 
 /* func_0000E124 - verified structural decode (0x14C, 83 insns,
  * left/right mirror-flip toggle).
@@ -9629,12 +9594,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E2D0);
  * -0x40 (8 extra bytes of IDO spill-pad between the saved-reg block and
  * the `&n` slot at sp+0x34 vs sp+0x3C). Pure allocator frame-reservation
  * (the `&n` escapes to func_000089C0); not C-reachable. Stays NM. */
-#ifdef NON_MATCHING
 void func_0000E4DC(char *a0) {
   int n;
   short *p;
   int i;
-  char *c;
   int *v;
   func_00000000(a0 + 0x540);
   func_000089C0(&n);
@@ -9646,19 +9609,14 @@ void func_0000E4DC(char *a0) {
     p += 1;
   }
 
-  c = *((char **) (a0 + 0x840));
- do { v = *((int **) (c + 0x28)); (*((void (**)(char *)) (((char *) v) + 0x4C)))((char *) (((int) ((short) (*((short *) (((char *) v) + 0x48))))) + ((int) c))); } while (0);
-  c = *((char **) (a0 + 0x804));
-  v = *((int **) (c + 0x28));
-  (*((void (**)(char *)) (((char *) v) + 0x4C)))((char *) (((int) ((short) (*((short *) (((char *) v) + 0x48))))) + ((int) c)));
+ do { v = *((int **) (*((char **) (a0 + 0x840)) + 0x28)); (*((void (**)(char *)) (((char *) v) + 0x4C)))((char *) (((int) *((char **) (a0 + 0x840))) + ((int) ((short) (*((short *) (((char *) v) + 0x48))))))); } while (0);
+  v = *((int **) (*((char **) (a0 + 0x804)) + 0x28));
+  (*((void (**)(char *)) (((char *) v) + 0x4C)))((char *) (((int) *((char **) (a0 + 0x804))) + ((int) ((short) (*((short *) (((char *) v) + 0x48)))))));
   func_00000000(a0 + 0x108);
   if (v)
   {
   }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E4DC);
-#endif
 
 void func_0000E588(char *a0) {
     int scratch;

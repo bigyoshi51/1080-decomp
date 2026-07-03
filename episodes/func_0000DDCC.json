@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000DDCC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:26:22.908498+00:00",
+  "end_time": "2026-07-03T03:26:22.908520+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:26:22.908514+00:00",
+      "assistant_text": "v1-reuse register-cascade cap disproven via struct-assignment idiom: **(Tri3i**)(s0+OFF) = *(Tri3i*)func_00000000(&D,id) \u2014 dest base becomes a fresh temp in the rotation + ping-pong copy temps reproduce the t8/t1/t4/t7/t0 cascade exactly.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 78,
+  "initial_m2c_source": null,
+  "final_source": "/* func_0000DDCC - verified structural decode (0x138, 78 insns).\n * NEAR-SIBLING of func_0000DF04 / func_0000E014 (same Vec3\n * fetch-and-store fan-out + s0 struct); variant: a leading state\n * switch on s0->0x8C4.\n * Struct-typing reference: same layout as func_0000DF04/E014 -\n * s0->0xA58 (2648) u32 flags bit 7 (0x80) selector; s0->0x8F4\n * (2292) / 0x8F8 (2296) / 0x8FC (2300) Vec3i dest pointers (3x int\n * @ +0/+4/+8). NEW: s0->0x8C4 (2244) s32 state - values 6/7 take\n * an early func_00000000(s0) delegate-and-return; other states run\n * the fan-out with id pair 0xE/0xF (flag set) or 0xA/0xB (clear)\n * plus final id 0xC. fetch = func_00000000(&D, id) -> Vec3i src.\n * 2026-05-30: now 98.08% (size-EXACT 78 insns). Residual is a pure register-\n * cascade cap: each Vec3i dest `d = *(int**)(s0+OFF)` lands in $v1 (because $v0\n * holds the just-returned func_00000000 result), while the target puts each `d`\n * in a fresh $t reg ($t8/$t1/$t4/$t7/$t0) and the copied values shift accordingly\n * ($t0/$t3/$t6/$t9/$t2 vs mine's $t8/$t9/...). Same $v0/$v1-region allocation cap\n * as gl_func_0004E384 etc. \u00e2\u0080\u0094 using distinct C locals per `d` does not move IDO off\n * the $v1 reuse (the load is post-call so $v1 is the next free caller-saved reg).\n * INCLUDE_ASM remains build path. */\nvoid func_0000DDCC(char *s0) {\n    unsigned int st = *(unsigned int*)(s0 + 0x8C4);\n    if (st == 7 || st == 6) {\n        func_00000000(s0);\n        return;\n    }\n    if (*(unsigned int*)(s0 + 0xA58) & 0x80) {\n        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, 0xE);\n        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 0xF);\n    } else {\n        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, 0xA);\n        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 0xB);\n    }\n    **(Tri3i **)(s0 + 0x8FC) = *(Tri3i *)func_00000000(&D_00000000, 0xC);\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_0000DDCC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

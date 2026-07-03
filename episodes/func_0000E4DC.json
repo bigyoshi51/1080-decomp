@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000E4DC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:25:36.697873+00:00",
+  "end_time": "2026-07-03T03:25:36.697895+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:25:36.697888+00:00",
+      "assistant_text": "remove-local-inline (eliminate char* c, re-derive *(char**)(a0+0x840/0x804) inline both uses -> one fewer local home, frame -8) + commutative-operand swap on vtable-dispatch arg ((int)base+(short)adjust base-first). do{}while(0) + trailing if(v){} are load-bearing (removal flips c/v into s0/s1).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 43,
+  "initial_m2c_source": null,
+  "final_source": "/* func_0000E4DC - verified structural decode (0xAC, 43 insns).\n * Per-frame update/teardown over a composite object a0 (= s2). Uses\n * the documented obj->0x28 vtable-dispatch idiom (PATTERNS.md\n * #feedback-1080-obj-0x28-vtable-dispatch), 0x4C/0x48 offset variant.\n * Struct-typing reference: a0 composite object; a0+0x540 / a0+0x108\n * sub-regions passed to reloc sub-init/deinit; a0+0x8C8 s16 array of\n * `n` elements (n produced by func_000089C0, per-element processed by\n * func_000089FC); a0->0x840 (2112) child A ptr, a0->0x804 (2052)\n * child B ptr; child->0x28 (40) vtable ptr with fn @0x4C (76) and\n * s16 base-adjust @0x48 (72). Caps <80: 2x reloc + 2x vtable jalr +\n * blezl branch-likely loop with per-iter reload. INCLUDE_ASM remains\n * build path (no episode; tautology-trap rule).\n * 2026-06-21 (agent-b sweep): 7->5 non-reloc diffs. Hoisting the loop\n * counter init (`i = 0;` BEFORE `p = a0+0x8C8;`) and dropping the dead\n * `if(a0){}` / `n = n;` no-ops matches the target's counter-before-base\n * schedule (`move s0,zero` ahead of `addiu s1,s2,0x8C8`). RESIDUAL 5\n * diffs are ALL the frame-layout delta: target reserves -0x38, build\n * -0x40 (8 extra bytes of IDO spill-pad between the saved-reg block and\n * the `&n` slot at sp+0x34 vs sp+0x3C). Pure allocator frame-reservation\n * (the `&n` escapes to func_000089C0); not C-reachable. Stays NM. */\nvoid func_0000E4DC(char *a0) {\n  int n;\n  short *p;\n  int i;\n  int *v;\n  func_00000000(a0 + 0x540);\n  func_000089C0(&n);\n  i = 0;\n  p = (short *) (a0 + 0x8C8);\n  for (; i < n; i++)\n  {\n    func_000089FC(p);\n    p += 1;\n  }\n\n do { v = *((int **) (*((char **) (a0 + 0x840)) + 0x28)); (*((void (**)(char *)) (((char *) v) + 0x4C)))((char *) (((int) *((char **) (a0 + 0x840))) + ((int) ((short) (*((short *) (((char *) v) + 0x48))))))); } while (0);\n  v = *((int **) (*((char **) (a0 + 0x804)) + 0x28));\n  (*((void (**)(char *)) (((char *) v) + 0x4C)))((char *) (((int) *((char **) (a0 + 0x804))) + ((int) ((short) (*((short *) (((char *) v) + 0x48)))))));\n  func_00000000(a0 + 0x108);\n  if (v)\n  {\n  }\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_0000E4DC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
