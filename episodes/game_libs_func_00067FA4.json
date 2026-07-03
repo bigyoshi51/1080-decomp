@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00067FA4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:48:30.554113+00:00",
+  "end_time": "2026-07-03T14:48:30.554135+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:48:30.554130+00:00",
+      "assistant_text": "Two-pointer-lag strlen from 0/13: p = s; s++; guard + do-while; loop order p=s; s++; n++; sets the addiu a0/v1 order; bnezl delay = the p-refresh.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 13,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00067FA4 \u2014 strlen. EXACT 13/13 (in-tree word-verified).\n * Key: two-pointer-lag idiom (p = lagging copy read via v0, s = live cursor)\n * + guard + do-while; loop statement order p=s; s++; n++ sets the\n * addiu a0 / addiu v1 order; bnezl delay slot = p=s. */\nint game_libs_func_00067FA4(char *s) {\n    int n = 0;\n    char *p;\n\n    p = s;\n    s++;\n    if (*p != 0) {\n        do {\n            p = s;\n            s++;\n            n++;\n        } while (*p != 0);\n    }\n    return n;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00067FA4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00067264",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:48:30.277862+00:00",
+  "end_time": "2026-07-03T14:48:30.277891+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:48:30.277885+00:00",
+      "assistant_text": "Three logic bugs: flags at self[0x13DC + i] (byte-indexed, not i*104); bit-clear stores 0 / rc!=0 stores nothing (was inverted); counter reset AFTER the loop, skipped by the early return. Levers: decl order (i, counter before slot_mask) homes the mask at sp+0x4F \u2014 named locals reserve frame homes in decl order even when register-resident; array-IXA ((GlRow104*)self)[i] for base-first addu.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 61,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00067264 \u2014 EXACT 61/61 words in-tree (2026-07-03), including raw\n * 0x0C000000 jal words (three gl_func_00000000 placeholder callees).\n * Was 26/61: THREE LOGIC BUGS fixed vs old NM body:\n *   1) flag bytes live at self[0x13DC + i] (byte-indexed), NOT i*104 + 0x13DC;\n *   2) bit-clear stores 0; bit-set & rc!=0 stores NOTHING (old body had else\n *      backwards); bit-set & rc==0 -> call f_c then store 1;\n *   3) counter reset (sw zero,0x13F0) is AFTER the loop; early return skips it.\n * Levers: decl order i,counter BEFORE slot_mask homes mask at sp+0x4F\n * (named locals reserve frame homes in decl order even when register-resident);\n * array-IXA spelling (GlRow104*)self)[i] emits base-first addu s1,s3,t1\n * (flat ptr-arith emits scaled-operand-first). Loop as i != 4 for bnel. */\ntypedef char GlRow104[104];\nvoid gl_func_00067264(char *self) {\n    int i;\n    int counter;\n    char slot_mask;\n\n    counter = *(int *)(self + 0x13F0);\n    *(int *)(self + 0x13F0) = counter + 1;\n    if ((unsigned int)counter < 0x1FU) {\n        return;\n    }\n    slot_mask = 0;\n    gl_func_00000000(self + 0x11B0, &slot_mask);\n    for (i = 0; i != 4; i++) {\n        if (slot_mask & (1 << i)) {\n            char *entry = (char *)&((GlRow104 *)self)[i] + 0x1228;\n            if ((int)gl_func_00000000(self + 0x11B0, entry, i) == 0) {\n                gl_func_00000000(entry);\n                (self + 0x13DC)[i] = 1;\n            }\n        } else {\n            (self + 0x13DC)[i] = 0;\n        }\n    }\n    *(int *)(self + 0x13F0) = 0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00067264.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

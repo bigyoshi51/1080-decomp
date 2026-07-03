@@ -33,62 +33,114 @@ int gl_func_00062F64(a0) int a0; {
  * a same-frame regalloc-coloring floor, NOT a structural gap. INCLUDE_ASM is
  * the build path (ROM byte-exact). */
 #ifdef NON_MATCHING
+/* gl_func_00062F8C — 252-insn list-walk animation stepper.
+ * VERIFIED IN-TREE 2026-07-03: 204/252 words positional-exact, built length
+ * EXACTLY 252 (was 262), every mnemonic/schedule/branch position aligned;
+ * ALL 48 residual diffs are pure register-NUMBER picks (zero structural).
+ * Baseline this session: 40/252 (82.7% objdiff fuzzy, built 262).
+ *
+ * STRUCTURAL FIXES FOUND (the logic-first pass):
+ *  1) 4th call returns FLOAT: direct call via a prototyped extern f32 gl_func_00000000_f()
+ *     — the old `((f32(*)())gl_func_00062F64)` fn-ptr cast emitted
+ *     lui/addiu/jalr + broke the $f0 dataflow. Result `d` (named f32) = $f0.
+ *  2) sp20 = 0 must not cross call4: name the compare call's result (f32 t2),
+ *     then sp20=0 sinks below the call -> reg-homed $v1 + single spill in
+ *     call5's delay (was eager sw zero + double spill pair).
+ *  3) arms keep FF78' in $f2 via named f32 t (t = FF78 -/+ d; FF78 = t;
+ *     compare t) — kills the reload.
+ *  4) sp28 memory-homed w/ per-arm single store: `volatile s32 sp28;` +
+ *     compute into plain temp per arm then one `sp28 = x`-equivalent via
+ *     direct `sp28 = (cond);`... (final form: volatile + bool-materialize).
+ *  5) sp34 reg-home (v1) + spill/reload across call2 + the lw-before-sw
+ *     order + whole S1 FP cascade: dead `if (sp34) {}` MID-ARM right after
+ *     sp34's def (mid-block dead-if emits ZERO code; at join positions it
+ *     emits real branches — placement matters).
+ *  6) S1 mul operand order: spell `-FF(0x94) * (call - sp34)` (neg first) —
+ *     IDO reverses the source order here; sub-result becomes fs.
+ *  7) frame gap sp2C/sp30 = named reg-resident locals (v0 flags cache, d)
+ *     declared between sp34 and sp28 (decl-order home map) — replaced the
+ *     volatile pads.
+ *  8) tail vi->$v1 / a-vs-cnt priority: dead `if (a) {} if (vi) {}` after
+ *     their defs.
+ * RESIDUAL (48 words, all reg-number cells, each resisted 3+ levers):
+ *  - FW(arg0,0x28) callback base: built $v0 vs target $v1 (x3 sites; CDDC
+ *    shows $v0 is the idiom default -> target had $v0 busy via a range shape
+ *    not reachable here; naming/dead-if/inner-scope all stayed $v0).
+ *  - tail FF78 phi-temp (load spans clamp join): built $f2 vs target $f0;
+ *    naming it triggers store-to-load forwarding (kills the target's reload,
+ *    -1 insn); pool-order cell. Downstream f-numbers + t-numbers cascade
+ *    from it (~25 words).
+ *  - a -> $a2 vs $a0; num-load t9-split; misc t-number rotation (~10 words).
+ * These are the docs' "first-temp coloring cascade" class. NM-wrap remains
+ * the build path; body below is the best verified state. */
+
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #define FH(p, o) (*(s16 *)((char *)(p) + (o)))
 typedef char *(*GP_00062F8C)();
+
+extern f32 gl_func_00000000_f();
+extern f32 gl_func_00000000_f();
 void gl_func_00062F8C(char *arg0) {
     s32 sp3C;
     char *sp38;
     s32 sp34;
-    volatile int pad0, pad1;
-    s32 sp28;
+    int v0;
+    f32 d;
+    volatile s32 sp28;
     f32 sp24;
     s32 sp20;
-    int v0 = FW(arg0, 0x98);
+    f32 t;
+    f32 t2;
+    char *cbp;
+
+    v0 = FW(arg0, 0x98);
     if (v0 != 0) {
         if (FW(arg0, 0x74) != 0) {
             if (v0 & 0x80) {
                 if (FF(arg0, 0x94) < 0.0f) {
                     FW(arg0, 0x74) = FW(arg0, 0x8C);
                     sp34 = gl_func_00062F64(arg0, FW(arg0, 0x8C), 0);
-                    FF(arg0, 0x78) = (((f32) gl_func_00062F64(arg0, FW(arg0, 0x74), 1) - (f32) sp34) * -FF(arg0, 0x94)) + (f32) sp34;
+                    if (sp34) {}
+                    FF(arg0, 0x78) = (-FF(arg0, 0x94) * ((f32) gl_func_00062F64(arg0, FW(arg0, 0x74), 1) - (f32) sp34)) + (f32) sp34;
                 } else {
                     FW(arg0, 0x74) = FW(arg0, 0x90);
                     sp34 = gl_func_00062F64(arg0, FW(arg0, 0x90), 0);
-                    FF(arg0, 0x78) = (((f32) gl_func_00062F64(arg0, FW(arg0, 0x74), 1) - (f32) sp34) * FF(arg0, 0x94)) + (f32) sp34;
+                    if (sp34) {}
+                    FF(arg0, 0x78) = (FF(arg0, 0x94) * ((f32) gl_func_00062F64(arg0, FW(arg0, 0x74), 1) - (f32) sp34)) + (f32) sp34;
                 }
             } else {
                 sp24 = (f32) gl_func_00062F64(arg0, FW(arg0, 0x74), FW(arg0, 0x80));
+                t2 = (f32) gl_func_00062F64(arg0, FW(arg0, 0x74), FW(arg0, 0x7C));
                 sp20 = 0;
-                if (sp24 < (f32) gl_func_00062F64(arg0, FW(arg0, 0x74), FW(arg0, 0x7C))) {
+                if (sp24 < t2) {
                     sp20 = 1;
                 }
-                {
-                    f32 d = ((f32 (*)()) gl_func_00062F64)(arg0, FW(arg0, 0x74), FW(arg0, 0x80));
-                    if (sp20 != 0) {
-                        sp28 = 0;
-                        FF(arg0, 0x78) -= d;
-                        if (FF(arg0, 0x78) <= sp24) {
-                            sp28 = 1;
-                        }
-                    } else {
-                        sp28 = 0;
-                        FF(arg0, 0x78) += d;
-                        if (sp24 <= FF(arg0, 0x78)) {
-                            sp28 = 1;
-                        }
-                    }
+                d = gl_func_00000000_f(arg0, FW(arg0, 0x74), FW(arg0, 0x80));
+                if (sp20 != 0) {
+                    t = FF(arg0, 0x78) - d;
+                    FF(arg0, 0x78) = t;
+                    sp28 = (t <= sp24);
+                } else {
+                    t = FF(arg0, 0x78) + d;
+                    FF(arg0, 0x78) = t;
+                    sp28 = (sp24 <= t);
                 }
                 if (FW(arg0, 0x64) != -0x3E8) {
                     if (sp20 != 0) {
                         if (FF(arg0, 0x78) <= (f32) gl_func_00062F64(arg0, FW(arg0, 0x74), FW(arg0, 0x64))) {
-                            ((GP_00062F8C)FW(FW(arg0, 0x28), 0x5C))(FH(FW(arg0, 0x28), 0x58) + (int)arg0);
+                            {
+                                int *p2 = (int *) FW(arg0, 0x28);
+                                ((GP_00062F8C)p2[0x5C / 4])(*(s16 *)((char *)p2 + 0x58) + (int)arg0);
+                            }
                         }
                     } else if ((f32) gl_func_00062F64(arg0, FW(arg0, 0x74), FW(arg0, 0x64)) <= FF(arg0, 0x78)) {
-                        ((GP_00062F8C)FW(FW(arg0, 0x28), 0x5C))(FH(FW(arg0, 0x28), 0x58) + (int)arg0);
+                        {
+                            int *p2 = (int *) FW(arg0, 0x28);
+                            ((GP_00062F8C)p2[0x5C / 4])(*(s16 *)((char *)p2 + 0x58) + (int)arg0);
+                        }
                     }
                 }
                 if (sp28 != 0) {
@@ -111,6 +163,8 @@ void gl_func_00062F8C(char *arg0) {
                 s16 cnt = FH(sp3C, 0x2);
                 int vi = (s32) FF(arg0, 0x78);
                 int a = vi + 1;
+                if (a) {}
+                if (vi) {}
                 if (a >= cnt) {
                     FF(arg0, 0x78) = (f32) (cnt - 1);
                     vi = (s32) FF(arg0, 0x78);
@@ -129,7 +183,10 @@ void gl_func_00062F8C(char *arg0) {
                     if (num >= den) {
                         FW(arg0, 0x98) = FW(arg0, 0x98) & ~0x100;
                         if (FW(arg0, 0x68) == -1) {
-                            ((GP_00062F8C)FW(FW(arg0, 0x28), 0x5C))(FH(FW(arg0, 0x28), 0x58) + (int)arg0);
+                            {
+                                int *p2 = (int *) FW(arg0, 0x28);
+                                ((GP_00062F8C)p2[0x5C / 4])(*(s16 *)((char *)p2 + 0x58) + (int)arg0);
+                            }
                         }
                     }
                 }
@@ -3125,72 +3182,43 @@ void gl_func_00067220(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067220);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00067264: 50-insn counter-gated 4-slot bit-dispatch + 2-stub BUNDLE
- * (0x10C declared, real fn ~50 insns ending at jr ra @0xCC; rest are 2 small stubs).
- *
- * Decoded fn 1 (real gl_func_00067264):
- *   self->[0x13F0]++;                                 // increment call counter
- *   if (self->[0x13F0] < 32) return;                  // skip until counter wraps
- *   self->[0x13F0] = 0;                                // reset
- *
- *   // Pre-init local 1-byte buffer at sp+0x4F, fetch active-slot bitmask:
- *   byte slot_mask;
- *   func_a(self + 0x11B0, &slot_mask);                // returns mask via &local
- *
- *   // Dispatch over 4 slots (s6=4 sentinel):
- *   for (i = 0; i < 4; i++) {
- *       if (slot_mask & (1 << i)) {                   // sllv-based bit test
- *           entry = self + i * 104 + 0x1228;          // 104-byte stride entry
- *           int rc = func_b(self + 0x11B0, entry, i);
- *           if (rc == 0) {
- *               func_c(entry);
- *               self[i*104 + 0x13DC] = 1;            // claim slot
- *           } else {
- *               self[i*104 + 0x13DC] = 0;            // clear slot
- *           }
- *       }
- *   }
- *
- * The 104-byte entry stride matches the alloc-empty-slot pattern in
- * gl_func_00062484 (also 104-byte) — same array layout. Combined with
- * a 32-call timer (`self->[0x13F0] >= 32`), this is a periodic
- * slot-refresher: every 32 calls, check the bitmask and refresh each
- * active slot's flag at +0x13DC.
- *
- * Bundled siblings @0xD0-0x10C: 2 small leaf functions (need fragment-split):
- *   - byte-array indexed lookup: `return self->[i*4 + 0x13C8]`
- *   - byte-load: `return *(byte*)(self + 0x13EC)`
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-void gl_func_00067264(int *self) {
-    char slot_mask;
+/* gl_func_00067264 — EXACT 61/61 words in-tree (2026-07-03), including raw
+ * 0x0C000000 jal words (three gl_func_00000000 placeholder callees).
+ * Was 26/61: THREE LOGIC BUGS fixed vs old NM body:
+ *   1) flag bytes live at self[0x13DC + i] (byte-indexed), NOT i*104 + 0x13DC;
+ *   2) bit-clear stores 0; bit-set & rc!=0 stores NOTHING (old body had else
+ *      backwards); bit-set & rc==0 -> call f_c then store 1;
+ *   3) counter reset (sw zero,0x13F0) is AFTER the loop; early return skips it.
+ * Levers: decl order i,counter BEFORE slot_mask homes mask at sp+0x4F
+ * (named locals reserve frame homes in decl order even when register-resident);
+ * array-IXA spelling (GlRow104*)self)[i] emits base-first addu s1,s3,t1
+ * (flat ptr-arith emits scaled-operand-first). Loop as i != 4 for bnel. */
+typedef char GlRow104[104];
+void gl_func_00067264(char *self) {
     int i;
-    int counter = self[0x13F0 / 4];
-    self[0x13F0 / 4] = counter + 1;
-    if ((u32)counter < 31U) return;                  // (sltiu < 31 → branch when not yet 31+)
-    self[0x13F0 / 4] = 0;
+    int counter;
+    char slot_mask;
+
+    counter = *(int *)(self + 0x13F0);
+    *(int *)(self + 0x13F0) = counter + 1;
+    if ((unsigned int)counter < 0x1FU) {
+        return;
+    }
     slot_mask = 0;
-    gl_func_00000000((char*)self + 0x11B0, &slot_mask);
-    for (i = 0; i < 4; i++) {
+    gl_func_00000000(self + 0x11B0, &slot_mask);
+    for (i = 0; i != 4; i++) {
         if (slot_mask & (1 << i)) {
-            char *entry = (char*)self + i * 104 + 0x1228;
-            int rc = (int)gl_func_00000000((char*)self + 0x11B0, entry, i);
-            if (rc == 0) {
+            char *entry = (char *)&((GlRow104 *)self)[i] + 0x1228;
+            if ((int)gl_func_00000000(self + 0x11B0, entry, i) == 0) {
                 gl_func_00000000(entry);
-                ((char*)self)[i * 104 + 0x13DC] = 1;
-            } else {
-                ((char*)self)[i * 104 + 0x13DC] = 0;
+                (self + 0x13DC)[i] = 1;
             }
+        } else {
+            (self + 0x13DC)[i] = 0;
         }
     }
+    *(int *)(self + 0x13F0) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067264);
-
-#endif
 
 int game_libs_func_00067358(char *a0, int a1) {
     return *(int *)((char *)a0 + a1 * 4 + 0x13C8);
@@ -3883,22 +3911,25 @@ int gl_func_00067F58(int a0) {
     return v0;
 }
 
-#ifdef NON_MATCHING
-/* strlen: count chars until NUL, return count. Recognized libc, reloc-free.
- * Byte-match multi-run: target uses the 67xxx-family two-pointer-lag idiom
- * (v0 = a0 copy per iteration, char read via v0, a0 the live cursor) + a
- * branch-likely bnezl loop that the clean `while(*s++)` C form (single cursor)
- * doesn't reproduce. Same family as 67C98 (strncpy) / 67C1C (strcat). */
+/* game_libs_func_00067FA4 — strlen. EXACT 13/13 (in-tree word-verified).
+ * Key: two-pointer-lag idiom (p = lagging copy read via v0, s = live cursor)
+ * + guard + do-while; loop statement order p=s; s++; n++ sets the
+ * addiu a0 / addiu v1 order; bnezl delay slot = p=s. */
 int game_libs_func_00067FA4(char *s) {
     int n = 0;
-    while (*s++) {
-        n++;
+    char *p;
+
+    p = s;
+    s++;
+    if (*p != 0) {
+        do {
+            p = s;
+            s++;
+            n++;
+        } while (*p != 0);
     }
     return n;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FA4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FD8);
 
