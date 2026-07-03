@@ -4461,7 +4461,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * the C below builds to 53 insns vs target 54 with the s0=self/s1=i/$f20=0.0
  * register promotion matching; residuals are prologue save/jal scheduling +
  * index-temp register-rename. NM wrap, no donor splice. */
-#ifdef NON_MATCHING
+typedef int Row1_6D30[1];
 void timproc_uso_b5_func_00006D30(int *self) {
   int i = 0;
   int new_var5;
@@ -4480,20 +4480,15 @@ void timproc_uso_b5_func_00006D30(int *self) {
     {
       do
       {
-        int idx = self[0x3C4 / 4];
-        int *p = (int *) ((((char *) self) + (idx * 4)) + new_var2);
+        int *p = (int *) (((Row1_6D30 *) self)[self[0x3C4 / 4]] + 0xF4);
         int r;
-        int idx2;
-        int *q;
         int *v;
         *p = (*p) + 1;
         r = gl_func_00000000(self);
-        idx2 = self[0x3C4 / 4];
-        q = (int *) ((((char *) self) + (idx2 * 4)) + 0x3D0);
         new_var3 = self;
-        if ((*q) >= r)
+        if (((Row1_6D30 *) self)[self[0x3C4 / 4]][0xF4] >= r)
         {
-          *q = 0;
+          ((Row1_6D30 *) self)[self[0x3C4 / 4]][0xF4] = 0;
         }
         new_var5 = gl_func_00000000(new_var3);
         v = (int *) new_var5;
@@ -4510,9 +4505,6 @@ void timproc_uso_b5_func_00006D30(int *self) {
     }
   }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006D30);
-#endif
 
 // timproc_uso_b5_func_00006E08 — STRUCTURAL PASS (0x270 / 156 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
@@ -6404,6 +6396,7 @@ void timproc_uso_b5_func_00008D90(int *a0, int a1) {
 // All logic / control-flow / frame / symbols are exact; only register
 // names + the flag two-lui encoding differ. Honest NON_MATCHING.
 #ifdef NON_MATCHING
+extern struct C2CC_8DB4 { char _a[0x1C4]; int f1C4; } import_8005C2CC;
 char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
     extern int timproc_uso_b5_func_055750();
     extern int timproc_uso_b5_func_002C94();
@@ -6411,7 +6404,6 @@ char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
     extern int timproc_uso_b5_func_002060();
     extern int timproc_uso_b5_func_07ACE0();
     extern char import_800201CC;
-    extern char import_8005C2CC;
     extern char import_8005C39C;
     extern char import_8005EBA4;
     extern char import_800200A8;
@@ -6431,7 +6423,8 @@ char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
         }
     }
     timproc_uso_b5_func_002C94(*(char **)((char *)&import_800201CC + 0x134), 2);
-    *(int *)((char *)&import_8005C2CC + 0x1C4) &= ~8;
+    import_8005C2CC.f1C4 &= ~8;
+    if (1) { }
     p39c = (char *)&import_8005C39C;
     p39c += 0x294;
     ((float *)p39c)[3] = 0.0f;
@@ -6449,6 +6442,7 @@ char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
     }
     *(char **)(B + 0x14) = A;
     timproc_uso_b5_func_07ACE0(A + 0x10, C);
+    if (1) { }
     if (*(char **)(C + 0x14) != 0) {
         *(int *)(C + 0x4) = 1;
     }
@@ -6464,8 +6458,9 @@ char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
         goto end;
     }
     *(int *)(self + 0x04) = timproc_uso_b5_func_0000283C(0, 1, 2, 0x29);
-    *(int *)(self + 0x08) = timproc_uso_b5_func_0000283C(0, 2, 3, 0x29);
-    *(int *)(*(char **)(*(char **)(self + 0x08) + 0x0C) + 0x1B8) = *(int *)(*(char **)(self + 0x04) + 0x0C);
+    p39c = (char *)timproc_uso_b5_func_0000283C(0, 2, 3, 0x29);
+    *(char **)(self + 0x08) = p39c;
+    *(int *)(*(char **)(p39c + 0x0C) + 0x1B8) = *(int *)(*(char **)(self + 0x04) + 0x0C);
 end:
     return self;
 }

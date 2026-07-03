@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00006D30",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:03:59.261936+00:00",
+  "end_time": "2026-07-03T03:03:59.261976+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:03:59.261962+00:00",
+      "assistant_text": "Composable pair: remove-local-inline the self[0x3C4/4] index loads (named idx colored v1 and slid the temp rotation) + array-IXA via typedef int Row1[1] \u2014 p=(int*)(((Row1*)self)[self[0x3C4/4]]+0xF4) keeps base-first addu AND the addiu 0x3D0 store-materialization for the jal-delay sw; second RMW as direct double-index (no q local) CSEs into v1 with offset-folded lw/sw 0x3D0(v1). Char*-form inlining alone regressed (index-first addu, 55 words).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_00006D30: 54-insn poll-loop over a record table.\n * X = timproc_uso_b5_func_00000000 (cross-USO placeholder, all 5 jals).\n * 2026-05-28 CORRECTION: this is an ORDINARY -O2 function (NOT the prior\n * \"-O0-in-Yay0, can't match at -O2\" claim \u00e2\u0080\u0094 that was wrong). At default -O2\n * the C below builds to 53 insns vs target 54 with the s0=self/s1=i/$f20=0.0\n * register promotion matching; residuals are prologue save/jal scheduling +\n * index-temp register-rename. NM wrap, no donor splice. */\ntypedef int Row1_6D30[1];\nvoid timproc_uso_b5_func_00006D30(int *self) {\n  int i = 0;\n  int new_var5;\n  char *new_var;\n  int cnt;\n  int new_var2;\n  int new_var4;\n  int *new_var3;\n  new_var4--;\n  if ((*((float *) (((char *) gl_func_00000000(self)) + 0x2A4))) == 0.0f)\n  {\n    new_var4 = i;\n    cnt = gl_func_00000000(self);\n    new_var2 = 0x3D0;\n    if (cnt > 0)\n    {\n      do\n      {\n        int *p = (int *) (((Row1_6D30 *) self)[self[0x3C4 / 4]] + 0xF4);\n        int r;\n        int *v;\n        *p = (*p) + 1;\n        r = gl_func_00000000(self);\n        new_var3 = self;\n        if (((Row1_6D30 *) self)[self[0x3C4 / 4]][0xF4] >= r)\n        {\n          ((Row1_6D30 *) self)[self[0x3C4 / 4]][0xF4] = 0;\n        }\n        new_var5 = gl_func_00000000(new_var3);\n        v = (int *) new_var5;\n        new_var = ((char *) v) + 0x2A4;\n        i++;\n        if ((*((float *) new_var)) != 0.0f)\n        {\n          break;\n        }\n        new_var4++;\n        cnt = gl_func_00000000(self);\n      }\n      while (new_var4 < cnt);\n    }\n  }\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00006D30.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
