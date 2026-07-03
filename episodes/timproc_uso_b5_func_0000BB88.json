@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000BB88",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T01:58:25.244498+00:00",
+  "end_time": "2026-07-03T01:58:25.244519+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T01:58:25.244513+00:00",
+      "assistant_text": "FP register-pool coloring rules (cap disproven): named float locals draw from pool {f0,f2,f12,f14}; single-BB locals color from pool START in def order; BB-crossing pseudos color from pool END in crossing order; an empty if(cond){} creates the BB boundary while folding to zero instructions. Body: loads a,b,c,d; store c; store d; if(!d){} store b; if(b){} store a; call \u2014 d->f0, c->f2, b->f12, a->f14.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_0000BB88/C1B4/CC74/CE6C: 4 sibling 4-float copy + tail-call\n * functions. Callee = timproc_uso_b5_func_00003F58 (real intra-module symbol,\n * matches the .s jal). EXACT 16/16 (2026-07-02) \u00e2\u0080\u0094 the old \"FP register renumber\n * cap\" was FALSE. Recipe: loads in decl order a(294),b(264),c(260),d(25C);\n * stores c,d, if(!d){}, b, if(b){}, a. Locals c,d color f2,f0 (d bumped by the\n * branch use); the empty-if BB boundaries globalize b then a, which color from\n * the pool END: b->f12, a->f14. Byte-identical body to C1B4. */\nvoid timproc_uso_b5_func_0000BB88(int *a0) {\n  int *p = (int *) a0[0x2B8 / 4];\n  float a = *((float *) (((char *) a0) + 0x294));\n  float b = *((float *) (((char *) a0) + 0x264));\n  float c = *((float *) (((char *) a0) + 0x260));\n  float d = *((float *) (((char *) a0) + 0x25C));\n  *((float *) (((char *) p) + 0x118)) = c;\n  *((float *) (((char *) p) + 0x114)) = d;\n  if (!d)\n  {\n  }\n  *((float *) (((char *) p) + 0x110)) = b;\n  if (b)\n  {\n  }\n  *((float *) (((char *) p) + 0x11C)) = a;\n  timproc_uso_b5_func_00003F58();\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000BB88.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

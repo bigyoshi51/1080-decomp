@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000C1B4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T01:58:25.525723+00:00",
+  "end_time": "2026-07-03T01:58:25.525744+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T01:58:25.525739+00:00",
+      "assistant_text": "FP register-pool coloring rules (cap disproven): named float locals draw from pool {f0,f2,f12,f14}; single-BB locals color from pool START in def order; BB-crossing pseudos color from pool END in crossing order; an empty if(cond){} creates the BB boundary while folding to zero instructions. Body: loads a,b,c,d; store c; store d; if(!d){} store b; if(b){} store a; call \u2014 d->f0, c->f2, b->f12, a->f14.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_0000C1B4: 16-insn 4-float copy + cross-USO call.\n * EXACT 16/16 (2026-07-02). The old \"FP register renumber cap\" was cracked:\n * IDO colors single-BB local FP pseudos from pool {f0,f2,f12,f14} in\n * def(load)-order (use-count breaks ties), while BB-CROSSING pseudos color\n * from the pool END in order of first crossing. Target colors\n * (25C->f0, 260->f2, 264->f12, 294->f14) are reached by keeping c,d local\n * (d bumped over c via the if(!d) branch use) and globalizing b then a\n * across two empty-if BB boundaries (if(!d){} / if(b){}). Emitted\n * load/store schedule follows load-decl order a,b,c,d regardless of source\n * store order. See docs/IDO_CODEGEN.md FP-pool coloring entry. */\nextern int func_00000000();\nextern int func_df14f(void *, void *, float, float, float);\nvoid timproc_uso_b5_func_0000C1B4(int *a0) {\n  int *p = (int *) a0[0x2B8 / 4];\n  float a = *((float *) (((char *) a0) + 0x294));\n  float b = *((float *) (((char *) a0) + 0x264));\n  float c = *((float *) (((char *) a0) + 0x260));\n  float d = *((float *) (((char *) a0) + 0x25C));\n  *((float *) (((char *) p) + 0x118)) = c;\n  *((float *) (((char *) p) + 0x114)) = d;\n  if (!d)\n  {\n  }\n  *((float *) (((char *) p) + 0x110)) = b;\n  if (b)\n  {\n  }\n  *((float *) (((char *) p) + 0x11C)) = a;\n  timproc_uso_b5_func_00003F58();\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000C1B4.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

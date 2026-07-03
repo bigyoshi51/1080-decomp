@@ -7947,28 +7947,31 @@ void timproc_uso_b5_func_0000BB78(int *a0, int unused) {
  * (right regs/reversed emit order), and call-before-last-store (d spills across
  * the call, frame grows). a-load-first-with-$f14 needs the scheduler to hoist a's
  * load while a is the last pseudo - not reachable from C. Stays NM (~97.5%). */
-#ifdef NON_MATCHING
-/* 2026-05-31: BYTE-IDENTICAL to the 98% timproc_uso_b5_func_0000C1B4; applied its body
- * (pre-load all 4 floats into locals THEN store, + func_00000000 placeholder). */
+/* timproc_uso_b5_func_0000BB88/C1B4/CC74/CE6C: 4 sibling 4-float copy + tail-call
+ * functions. Callee = timproc_uso_b5_func_00003F58 (real intra-module symbol,
+ * matches the .s jal). EXACT 16/16 (2026-07-02) — the old "FP register renumber
+ * cap" was FALSE. Recipe: loads in decl order a(294),b(264),c(260),d(25C);
+ * stores c,d, if(!d){}, b, if(b){}, a. Locals c,d color f2,f0 (d bumped by the
+ * branch use); the empty-if BB boundaries globalize b then a, which color from
+ * the pool END: b->f12, a->f14. Byte-identical body to C1B4. */
 void timproc_uso_b5_func_0000BB88(int *a0) {
   int *p = (int *) a0[0x2B8 / 4];
-  float new_var;
   float a = *((float *) (((char *) a0) + 0x294));
   float b = *((float *) (((char *) a0) + 0x264));
   float c = *((float *) (((char *) a0) + 0x260));
   float d = *((float *) (((char *) a0) + 0x25C));
-  *((float *) (((char *) p) + 0x11C)) = a;
-  *((float *) (((char *) p) + 0x118)) = (new_var = c);
-  if (1)
-  {
-    *((float *) (((char *) p) + 0x110)) = b;
-  }
+  *((float *) (((char *) p) + 0x118)) = c;
   *((float *) (((char *) p) + 0x114)) = d;
+  if (!d)
+  {
+  }
+  *((float *) (((char *) p) + 0x110)) = b;
+  if (b)
+  {
+  }
+  *((float *) (((char *) p) + 0x11C)) = a;
   timproc_uso_b5_func_00003F58();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000BB88);
-#endif
 
 /* 5-insn float store: stores a1 to a0->_2A0 and (a0->_2B8)->_120.
  * Float arg passed in $a1 (int reg), so IDO emits mtc1 to FPU first. */
@@ -8281,25 +8284,36 @@ void timproc_uso_b5_func_0000C1A4(int *a0, int a1) {
  * entry only. */
 extern int func_00000000();
 extern int func_df14f(void *, void *, float, float, float);
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000C1B4: 16-insn 4-float copy + cross-USO call.
+ * EXACT 16/16 (2026-07-02). The old "FP register renumber cap" was cracked:
+ * IDO colors single-BB local FP pseudos from pool {f0,f2,f12,f14} in
+ * def(load)-order (use-count breaks ties), while BB-CROSSING pseudos color
+ * from the pool END in order of first crossing. Target colors
+ * (25C->f0, 260->f2, 264->f12, 294->f14) are reached by keeping c,d local
+ * (d bumped over c via the if(!d) branch use) and globalizing b then a
+ * across two empty-if BB boundaries (if(!d){} / if(b){}). Emitted
+ * load/store schedule follows load-decl order a,b,c,d regardless of source
+ * store order. See docs/IDO_CODEGEN.md FP-pool coloring entry. */
+extern int func_00000000();
+extern int func_df14f(void *, void *, float, float, float);
 void timproc_uso_b5_func_0000C1B4(int *a0) {
   int *p = (int *) a0[0x2B8 / 4];
   float a = *((float *) (((char *) a0) + 0x294));
   float b = *((float *) (((char *) a0) + 0x264));
   float c = *((float *) (((char *) a0) + 0x260));
   float d = *((float *) (((char *) a0) + 0x25C));
-  *((float *) (((char *) p) + 0x110)) = b;
   *((float *) (((char *) p) + 0x118)) = c;
   *((float *) (((char *) p) + 0x114)) = d;
   if (!d)
   {
   }
+  *((float *) (((char *) p) + 0x110)) = b;
+  if (b)
+  {
+  }
   *((float *) (((char *) p) + 0x11C)) = a;
   timproc_uso_b5_func_00003F58();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C1B4);
-#endif
 
 /* timproc_uso_b5_func_0000C1F4: 5-insn float-store, RECOVERED 2026-05-28
  * from the Yay0 gap (no .s, missing from build; bytes from block_5). o32
@@ -8878,33 +8892,29 @@ void timproc_uso_b5_func_0000CC64(int *a0, int a1) {
  *
  * Recipe: same as C1B4 — INSN_PATCH 8 float-reg-rename words +
  * SUFFIX_BYTES 5 alt-entry tail words. Both in Makefile. */
-#ifdef NON_MATCHING
+/* Sibling of timproc_uso_b5_func_0000C1B4 (4-float copy + cross-USO call).
+ * Same shape, different store offsets: a->0x118, b->0x10C, c->0x114, d->0x110.
+ * EXACT 16/16 (2026-07-02) via the same FP-pool coloring recipe as C1B4:
+ * locals c,d (d bumped by if(!d) branch use) -> f2,f0; b,a globalized across
+ * empty-if BB boundaries -> f12,f14 from pool end. */
 void timproc_uso_b5_func_0000CC74(int *a0) {
   int *p = (int *) a0[0x2B8 / 4];
   float a = *((float *) (((char *) a0) + 0x294));
   float b = *((float *) (((char *) a0) + 0x264));
-  char *new_var2;
   float c = *((float *) (((char *) a0) + 0x260));
   float d = *((float *) (((char *) a0) + 0x25C));
-  float *new_var;
-  if (a0)
+  *((float *) (((char *) p) + 0x114)) = c;
+  *((float *) (((char *) p) + 0x110)) = d;
+  if (!d)
+  {
+  }
+  *((float *) (((char *) p) + 0x10C)) = b;
+  if (b)
   {
   }
   *((float *) (((char *) p) + 0x118)) = a;
-  if ((a0 && a0) && a0)
-  {
-  }
-  new_var = (float *) (((char *) p) + 0x114);
-  *((float *) (((char *) p) + 0x10C)) = b;
-  *new_var = c;
-  new_var2 = (char *) p;
-  *((float *) (new_var2 + 0x110)) = d;
- do { } while (0); if (c) { }
   timproc_uso_b5_func_00003F58();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CC74);
-#endif
 
 /* timproc_uso_b5_func_0000CCB4: sibling of 0000C1F4 (last store at 0x11C
  * instead of 0x120), RECOVERED 2026-05-28 from the Yay0 gap. */
