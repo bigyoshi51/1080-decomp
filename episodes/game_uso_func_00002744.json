@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_00002744",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:22:13.323908+00:00",
+  "end_time": "2026-07-03T03:22:13.323929+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:22:13.323923+00:00",
+      "assistant_text": "sp-offset coloring cap disproven by 4 levers: param reuse (reassign arg0 itself -> spill lands in param-home sp+0x38, frame -0x30->-0x38); decl-order slot map; two-homes-no-reload (plain int addr-taken via one-word-struct copy *(One1*)(int*)&init_arg -> forwarded reload keeps store alive, t7 reused for both sw incl bne delay; volatile blocks forwarding, plain CSE promotes wrong class); One1 struct-by-value arg (lw a2 + outgoing-arg home sw a2,8(sp) in jal delay).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 52,
+  "initial_m2c_source": null,
+  "final_source": "/* game_uso_func_00002744 \u00e2\u0080\u0094 EXACT 52/52 words (self-verified clean rebuild of\n * build/non_matching/src/game_uso/game_uso.c.o, 0 diffs vs\n * asm/nonmatchings/game_uso/game_uso/game_uso_func_00002744.s; jal words\n * 0x0C000000 both sides).\n * Levers that cracked the \"sp-offset coloring / two-homes-no-reload\" cap:\n *  (1) PARAM REUSE: drop var_a1, reassign arg0 itself -> IDO homes the spill\n *      at the PARAM HOME slot sp+0x38 (= frame+0), frame grows -0x30 -> -0x38.\n *  (2) DECL-ORDER slot map (locals decl-order TOP-DOWN from 0x34):\n *      init_arg@0x34, var_v1@0x30, pad_a@0x2C, pad_b@0x28, var_a0@0x24,\n *      pad_c@0x20, init_arg_copy(One1)@0x1C. Three volatile pads fill gaps.\n *  (3) TWO-HOMES-NO-RELOAD (docs RMW-forwarding mechanism): init_arg is a\n *      PLAIN int (NOT volatile), address-taken via the struct-cast re-read\n *      `init_arg_copy = *(One1*)(int*)&init_arg;` -> the folded reload keeps\n *      store 1 alive (sw t7,0x34) and forwards t7 into the second store\n *      (sw t7,0x1C in the bne delay). volatile here blocks forwarding (+1 lw);\n *      CSE-form (two loads of D+0x35C) promotes to a $v0 candidate (wrong reg).\n *      Single-use load also folds lw t7,860(t7) onto the address reg.\n *  (4) STRUCT-BY-VALUE ARG (One1): passing init_arg_copy (1-word struct) to\n *      K&R gl_func emits lw a2,0x1C + outgoing-arg home sw a2,8(sp) in the\n *      jal delay (int arg would drop the home store). */\nvoid *game_uso_func_00002744(void *arg0) {\n  int init_arg;\n  void *var_v1;\n  volatile int pad_a;\n  volatile int pad_b;\n  void *var_a0;\n  volatile int pad_c;\n  One1 init_arg_copy;\n  if (arg0 == ((void *) 0))\n  {\n    arg0 = (void *) gl_func_00000000(0x20);\n    if (arg0 == ((void *) 0))\n    {\n      goto done;\n    }\n  }\n  var_v1 = arg0;\n  if (arg0 == ((void *) 0))\n  {\n    var_v1 = (void *) gl_func_00000000(8);\n    if (var_v1 == ((void *) 0))\n    {\n      goto after_template;\n    }\n  }\n  ((int *) var_v1)[0] = (int) (((char *) (&D_00000000)) + 0x354);\n  ((int *) var_v1)[1] = 0;\n  after_template:\n  init_arg = *((int *) (((char *) (&D_00000000)) + 0x35C));\n  init_arg_copy = *((One1 *) (int *) &init_arg);\n  var_a0 = ((char *) arg0) + 8;\n  if (arg0 == ((void *) (-8)))\n  {\n    var_a0 = (void *) gl_func_00000000(0x18);\n    if (var_a0 == ((void *) 0))\n    {\n      goto done;\n    }\n  }\n  gl_func_00000000(var_a0, arg0, init_arg_copy, 1);\n  ((int *) var_a0)[3] = (int) (((char *) (&D_00000000)) + 0x18);\n  ((float *) var_a0)[4] = 0.0f;\n  ((int *) var_a0)[5] = 0;\n  done:\n  return arg0;\n\n}",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_00002744.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

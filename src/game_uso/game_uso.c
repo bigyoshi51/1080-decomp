@@ -1653,24 +1653,44 @@ void game_uso_func_00002714(int *a0, int a1, int a2) {
  * var_a1 spill at sp+0x38 vs sp+0x2C, plus the dead-store(0x34)/spill(0x1C)
  * two-homes-no-reload pattern that IDO only emits with the original (lost)
  * source. NATURAL CEILING ~95.40% NM; remaining gap = sp-offset coloring. */
-#ifdef NON_MATCHING
+/* game_uso_func_00002744 — EXACT 52/52 words (self-verified clean rebuild of
+ * build/non_matching/src/game_uso/game_uso.c.o, 0 diffs vs
+ * asm/nonmatchings/game_uso/game_uso/game_uso_func_00002744.s; jal words
+ * 0x0C000000 both sides).
+ * Levers that cracked the "sp-offset coloring / two-homes-no-reload" cap:
+ *  (1) PARAM REUSE: drop var_a1, reassign arg0 itself -> IDO homes the spill
+ *      at the PARAM HOME slot sp+0x38 (= frame+0), frame grows -0x30 -> -0x38.
+ *  (2) DECL-ORDER slot map (locals decl-order TOP-DOWN from 0x34):
+ *      init_arg@0x34, var_v1@0x30, pad_a@0x2C, pad_b@0x28, var_a0@0x24,
+ *      pad_c@0x20, init_arg_copy(One1)@0x1C. Three volatile pads fill gaps.
+ *  (3) TWO-HOMES-NO-RELOAD (docs RMW-forwarding mechanism): init_arg is a
+ *      PLAIN int (NOT volatile), address-taken via the struct-cast re-read
+ *      `init_arg_copy = *(One1*)(int*)&init_arg;` -> the folded reload keeps
+ *      store 1 alive (sw t7,0x34) and forwards t7 into the second store
+ *      (sw t7,0x1C in the bne delay). volatile here blocks forwarding (+1 lw);
+ *      CSE-form (two loads of D+0x35C) promotes to a $v0 candidate (wrong reg).
+ *      Single-use load also folds lw t7,860(t7) onto the address reg.
+ *  (4) STRUCT-BY-VALUE ARG (One1): passing init_arg_copy (1-word struct) to
+ *      K&R gl_func emits lw a2,0x1C + outgoing-arg home sw a2,8(sp) in the
+ *      jal delay (int arg would drop the home store). */
 void *game_uso_func_00002744(void *arg0) {
-  void *var_a1;
+  int init_arg;
   void *var_v1;
+  volatile int pad_a;
+  volatile int pad_b;
   void *var_a0;
-  volatile int init_arg;
-  volatile int init_arg_copy;
-  var_a1 = arg0;
+  volatile int pad_c;
+  One1 init_arg_copy;
   if (arg0 == ((void *) 0))
   {
-    var_a1 = (void *) gl_func_00000000(0x20);
-    if (var_a1 == ((void *) 0))
+    arg0 = (void *) gl_func_00000000(0x20);
+    if (arg0 == ((void *) 0))
     {
       goto done;
     }
   }
-  var_v1 = var_a1;
-  if (var_a1 == ((void *) 0))
+  var_v1 = arg0;
+  if (arg0 == ((void *) 0))
   {
     var_v1 = (void *) gl_func_00000000(8);
     if (var_v1 == ((void *) 0))
@@ -1681,10 +1701,10 @@ void *game_uso_func_00002744(void *arg0) {
   ((int *) var_v1)[0] = (int) (((char *) (&D_00000000)) + 0x354);
   ((int *) var_v1)[1] = 0;
   after_template:
-  init_arg_copy = *((int *) (((char *) (&D_00000000)) + 0x35C));
-  init_arg = init_arg_copy;
-  var_a0 = ((char *) var_a1) + 8;
-  if (var_a1 == ((void *) (-8)))
+  init_arg = *((int *) (((char *) (&D_00000000)) + 0x35C));
+  init_arg_copy = *((One1 *) (int *) &init_arg);
+  var_a0 = ((char *) arg0) + 8;
+  if (arg0 == ((void *) (-8)))
   {
     var_a0 = (void *) gl_func_00000000(0x18);
     if (var_a0 == ((void *) 0))
@@ -1692,17 +1712,14 @@ void *game_uso_func_00002744(void *arg0) {
       goto done;
     }
   }
-  gl_func_00000000(var_a0, var_a1, init_arg_copy, 1);
+  gl_func_00000000(var_a0, arg0, init_arg_copy, 1);
   ((int *) var_a0)[3] = (int) (((char *) (&D_00000000)) + 0x18);
   ((float *) var_a0)[4] = 0.0f;
   ((int *) var_a0)[5] = 0;
   done:
-  return var_a1;
+  return arg0;
 
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00002744);
-#endif
 
 /* Mirror of game_uso_func_00001D30 (alloc(0x64) variant; dispatch table
  * at &D_0+0x360). Lever: reuse a0 (drop the `register char *p = a0`
@@ -8421,7 +8438,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A0E8);
 extern int game_uso_func_053104();
 extern int import_8006EF48;
 typedef struct { int a; } S1A374;
-int game_uso_func_0000A374(int a0, int a1, int a2) {
+int game_uso_func_0000A374(a0, a1, a2)
+int a0, a1, a2;
+{
     int r = game_uso_func_053104(*(int *)&import_8006EF48, *(S1A374*)&a1);
     if (r == 0) return 0;
     return (int)game_uso_func_000043D8((int **)r, (int *)a2, 0);
@@ -8566,84 +8585,102 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
 //   commutative) -> genuine slot-allocation cap. .text-only ROM gate
 //   would land IF the frame matched; it does not. Left NM at 89.54%.
 //   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-// game_uso_func_0000A604 — per-object physics/state advance step.
-// 2026-06-24: 89.53% -> 90.01% (objdiff fuzzy) via the interleave-decl
-//   spill-slot lever (docs/IDO_CODEGEN.md): IDO assigns int/pointer spill
-//   offsets in DECLARATION ORDER. Splitting the call-crossing scalar group
-//   (rec/counter/v0/field2c/a1arg) so it is declared BETWEEN `scaled` and
-//   the {copy1,tbuf,copy2} Vec3 block recolors the frame closer to target.
-//   Brute-forced 600 decl orderings in-tree; this is the best.
-// RESIDUAL CAP (frame-spread coloring, unchanged class): build frame -0x80
-//   vs target -0x98. The target gives the v0/a1arg/a2 call-spill values
-//   FOUR distinct high slots (0x04/0x4c/0x78/0x88) interleaved among the
-//   Vec3 buffers; our build coalesces them into ONE reused slot (0x50) and
-//   packs the buffers low — a genuine stack-coloring difference IDO C can't
-//   be coaxed into here. volatile pads are elided at -O2 (frame saturated),
-//   so they do not grow the frame; pad-first/pad-group both regress (89.99).
-//   Every remaining diff is a same-opcode sp-offset shift cascading off the
-//   smaller frame, plus the early `lui %hi(D+0x548)` hoist and `move s0,a0`
-//   placement (both downstream of the same coloring). Left NM at 90.01%.
+/* game_uso_func_0000A604 — EXACT 117/117 words (self-verified clean rebuild of
+ * build/non_matching/src/game_uso/game_uso.c.o, 0 diffs vs
+ * asm/nonmatchings/game_uso/game_uso/game_uso_func_0000A604.s; jal words
+ * 0x0C000000 both sides). Was the "frame-spread coloring cap" NM at 90.01%.
+ *
+ * PREREQUISITE (outside this body): the game_uso_func_0000A374 DEFINITION
+ * (line ~8425) must be converted from ANSI `(int a0, int a1, int a2)` to K&R
+ * `(a0, a1, a2) int a0, a1, a2;` so no prototype is in scope at this call —
+ * otherwise cfe rejects the struct arg. A374's own 20/20 bytes verified
+ * UNCHANGED by the conversion (int params are K&R/ANSI-identical in IDO).
+ *
+ * Levers (in addition to F948's re-base + decl-order + bottom-pad pair):
+ *  (1) DECL-ORDER FRAME MAP (top-down from 0x94, frame -0x98): copy2@0x8C,
+ *      a1arg@0x88, tbuf@0x7C, v0var-spill@0x78, pad_a[2]@0x70, copy1@0x64,
+ *      pad_b[2]@0x5C, scaled@0x50, t@0x4C, pad_bot[5]+scalars fill 0x20-0x48.
+ *      NOTE: scalar decls at the bottom (s,f0,q,mx,my,mz) DO take 6 slots here
+ *      — pad_bot sized to compensate (5, not 11).
+ *  (2) a1arg is a ONE-WORD STRUCT (One1) passed by value to K&R A374 ->
+ *      emits BOTH missing words: home store sw a1,0x88(sp) (struct stores
+ *      escape DSE) and outgoing-arg home sw a1,4(sp) in the jal delay.
+ *      (Same mechanism as 2744's a2/sw a2,8(sp).)
+ *  (3) rec-chain INLINED (no named rec/counter locals) -> D-base lui/addu/lw
+ *      chain stays in temps t5/t6/t7 (named locals promote to $a3/$v1
+ *      candidates — the old 90.01% residual).
+ *  (4) t SHARED for field2c AND counter-increment -> both color to $a2
+ *      (explains the three lw a2,0x5C(s0) copies: two branch-likely delay
+ *      duplicates + join).
+ *  (5) FP tail UN-NESTED: `if (f0<0) f0 += 250*x;` then a SEPARATE
+ *      `if (0<=f0 && f0<obj->0x60)` -> uopt duplicates the c.le.s per path
+ *      (bc1fl +6 shape). Nested form branches +0x12 (wrong).
+ *  (6) &copy1 base in $v0 materialized LATE (addiu v0,sp,0x64 after q dies):
+ *      q REASSIGNED to &copy1 (one-reg-per-variable web) AND the two struct
+ *      copies wrapped in `if (1) { }` — the BB boundary blocks the copy-prop
+ *      that otherwise folds q away and hoists a fresh $a3 temp to the
+ *      prologue (the last 20-diff residual). Plain reassign without if(1)
+ *      does NOT work.
+ */
 void game_uso_func_0000A604(char *obj) {
+    Vec3 copy2;
+    One1 a1arg;
+    Vec3 tbuf;
+    char *v0var;
+    volatile int pad_a[2];
+    Vec3 copy1;
+    volatile int pad_b[2];
+    Vec3 scaled;
+    int t;
+    volatile int pad_bot[5];
     float s;
     float f0;
-    float *p;
+    float *q;
     float mx, my, mz;
-    Vec3 scaled;
-    char *rec;
-    int counter;
-    char *v0;
-    int field2c;
-    char *a1arg;
-    Vec3 copy1;
-    Vec3 tbuf;
-    Vec3 copy2;
 
     tbuf = *(Vec3 *)(*(char **)(obj + 0x30) + 0xB4);
     s = *(float *)(obj + 0xA8);
-    p = (float *)(*(char **)(obj + 0x30) + 0x318);
-    mx = p[0] * s;
-    my = p[1] * s;
-    mz = p[2] * s;
+    q = (float *)(*(char **)(obj + 0x30) + 0x318);
+    mx = q[0] * s;
+    my = q[1] * s;
+    mz = q[2] * s;
+    q = (float *)&copy1;
     scaled.x = mx;
     scaled.y = my;
     scaled.z = mz;
-    copy1 = scaled;
-    copy2 = copy1;
+    if (1) {
+        *(Vec3 *)q = scaled;
+        copy2 = *(Vec3 *)q;
+    }
     tbuf.x = tbuf.x + copy2.x;
     tbuf.y = tbuf.y + copy2.y;
     tbuf.z = tbuf.z + copy2.z;
 
-    counter = *(int *)(obj + 0x5C);
-    rec = *(char **)((char *)&D_00000000 + 0x548 + counter * 4);
-    a1arg = *(char **)rec;
-    v0 = (char *)game_uso_func_0000A374((int)obj, (int)a1arg, (int)&tbuf);
-    if (v0 != 0) {
-        field2c = *(int *)(v0 + 0x2C);
-        if (field2c != 0) {
-            if (game_uso_func_00009B88(obj, v0, field2c) != 0) {
-                if (game_uso_func_0000A0E8(obj, v0, (char *)field2c) != 0) {
-                    f0 = tbuf.z - *(float *)(v0 + 0x38);
+    a1arg.a = **(int **)((char *)&D_00000000 + 0x548 + *(int *)(obj + 0x5C) * 4);
+    v0var = (char *)game_uso_func_0000A374((int)obj, a1arg, (int)&tbuf);
+    if (v0var != 0) {
+        t = *(int *)(v0var + 0x2C);
+        if (t != 0) {
+            if (game_uso_func_00009B88(obj, v0var, t) != 0) {
+                if (game_uso_func_0000A0E8(obj, v0var, (char *)t) != 0) {
+                    f0 = tbuf.z - *(float *)(v0var + 0x38);
                     if (f0 < 0.0f) {
-                        f0 += 250.0f * *(float *)(v0 + 0x54);
-                        if (0.0f <= f0 && f0 < *(float *)(obj + 0x60)) {
-                            *(float *)(obj + 0x60) = f0;
-                            *(int *)(obj + 0x40) = *(int *)(obj + 0x5C);
-                        }
+                        f0 += 250.0f * *(float *)(v0var + 0x54);
+                    }
+                    if (0.0f <= f0 && f0 < *(float *)(obj + 0x60)) {
+                        *(float *)(obj + 0x60) = f0;
+                        *(int *)(obj + 0x40) = *(int *)(obj + 0x5C);
                     }
                 }
             }
         }
     }
-    counter = *(int *)(obj + 0x5C) + 1;
-    *(int *)(obj + 0x5C) = counter;
-    if (counter >= 0xA) {
+    t = *(int *)(obj + 0x5C) + 1;
+    *(int *)(obj + 0x5C) = t;
+    if (t >= 0xA) {
         *(int *)(obj + 0x68) &= ~2;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A604);
-#endif
 
 void game_uso_func_0000A7D8(int *a0) {
     a0[0x5C / 4] = 0;

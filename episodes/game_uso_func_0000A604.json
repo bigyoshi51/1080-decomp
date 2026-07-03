@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000A604",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:22:13.590989+00:00",
+  "end_time": "2026-07-03T03:22:13.591011+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:22:13.591005+00:00",
+      "assistant_text": "600-decl-ordering permuter-immune 'frame-spread cap' disproven: F948 lever pair + One1 struct-by-value a1arg (sw a1,0x88 home + sw a1,4(sp) arg home; REQUIRED K&R conversion of callee A374 def) + inlined rec/counter (temps not candidates) + shared t for field2c+counter++ (colors a2, explains triple lw a2,0x5C(s0) branch-likely-delay duplication) + un-nested FP tail (per-path c.le.s duplication) + q reassigned inside if(1){} (BB boundary blocks copy-prop hoisting a fresh a3 temp to prologue).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 117,
+  "initial_m2c_source": null,
+  "final_source": "/* {x,0,z} vecs: reference + both slots */\n    ref = (float *)(*(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);\n    {\n        V3_A3C4 *pref = &vref, *pv1 = &v1c, *pv2 = &v2c;\n        if (pref == 0) pref = (V3_A3C4 *)game_uso_func_055750(12);\n        pref->x = ref[0]; pref->z = ref[2]; pref->y = 0.0f;\n        if (pv1 == 0) pv1 = (V3_A3C4 *)game_uso_func_055750(12);\n        pv1->x = *(float *)(slot1 + 0x30); pv1->z = *(float *)(slot1 + 0x38); pv1->y = 0.0f;\n        if (pv2 == 0) pv2 = (V3_A3C4 *)game_uso_func_055750(12);\n        pv2->x = *(float *)(slot2 + 0x30); pv2->z = *(float *)(slot2 + 0x38); pv2->y = 0.0f;\n        d1x = pref->x - pv2->x; d1z = pref->z - pv2->z;\n        d2x = pref->x - pv1->x; d2z = pref->z - pv1->z;\n    }\n    dist2 = d1x * d1x + d1z * d1z;\n    dist1 = d2x * d2x + d2z * d2z;\n    if (dist2 < dist1) {\n        *(int *)(a3 + 0x40) = *(int *)(a3 + 0x7C);\n    }\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_uso/game_uso\", game_uso_func_0000A3C4);\n#endif\n\n// game_uso_func_0000A604 \u00e2\u0080\u0094 STRUCTURAL PASS (0x1D4 / 117 words,\n// no episode). Raw-.word USO form (single function, game_uso main\n// game-logic; boundary already split by commit 66d6c531 \u00e2\u0080\u0094 named fn\n// itself was still undecoded). Hand-decoded.\n//\n// Per-object physics/state advance step.\n//\n//   void game_uso_func_0000A604(Obj *obj) {              // obj -> s0\n//     World *w = obj->0x30;\n//     // copy obj->0xB4/0xB8/0xBC transform into sp scratch;\n//     // scale a Vec3 (w->0x318/0x31C/0x320) by w->0xA8, matrix*\n//     //   vector compose -> sp+0x50/0x7C/0x84 (mul.s/add.s chains);\n//     int r = func_00000000(w->0x548[obj->0x5C], \u00e2\u0080\u00a6);      // query/sample\n//     if (r) {\n//       if (func_00000000(obj->0x2C, \u00e2\u0080\u00a6) && \u00e2\u0080\u00a6) {\n//         // FP clamp: if (obj->0x84 ...) vs 250.0f (0x437A0000) and\n//         //   obj->0x54 / obj->0x38 thresholds, write obj->0x60/\n//         //   obj->0x40;\n//       }\n//     }\n//     if (++obj->0x5C >= 0xA) obj->0x5C = 0;               // wrap counter\n//     obj->0x68 &= ~2;                                      // clear flag\n//   }",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_0000A604.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
