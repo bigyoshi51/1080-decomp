@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00056580",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:47:12.253326+00:00",
+  "end_time": "2026-07-03T03:47:12.253347+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:47:12.253341+00:00",
+      "assistant_text": "165-insn 'irreducible frame over-allocation' cap disproven (uoptlist-diagnosed): frame = fixed + one word per named local (dead homes persist) + one per copy-prop-extended split address temp. Crack: single reused int tmp routed through struct-cast field access (copy-prop rewrites tmp into the CSE'd uadd LR, 1 dead home not 5) + one working local per block with guards testing the just-defined local + dead if(0){...=call(0);} keeps the tail section's LR call-crossing during weighting (dead-while(0) family).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 165,
+  "initial_m2c_source": null,
+  "final_source": "/* irregular */\n    case 0x0:\n        return 0x03024000;\n    case 0x3:\n        return 0x112478;\n    case 0x23:\n        return 0x112438;\n    case 0x7:\n        return 0x113078;\n    case 0x6:\n        return 0x113078;\n    case 0x1B:\n    case 0x1F:\n        return 0x20004DD8;\n    case 0xB:\n    case 0xF:\n        return 0x1045D8;\n    case 0x1:\n        return 0x112048;\n    case 0x5:\n        return 0x113048;\n    case 0x2:\n        return 0x112230;\n    case 0xA:\n        return 0x104A50;\n    case 0x4A:\n        return 0x105078;\n    case 0x4:\n        return 0x03027008;\n    case 0x8:\n        return 0x104240;\n    case 0x9:\n        return 0x1041C8;\n    default:\n        gl_func_00034458(0x218EC, temp_a1);\n        return 0;\n    }\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_0005640C);\n#endif\n\nint *gl_func_00056580(int *param_1, int param_2, int param_3, int param_4, int param_5, int param_6, int param_7) {\n  struct GL56L { int items; int count; int f8; int self; };\n  struct GL56L *puVar1;\n  int *puVar2;\n  int tmp;\n\n  if ((param_1 != 0) || ((param_1 = (int *) gl_func_00000000(0x7C)) != 0)) {\n    puVar1 = (struct GL56L *) param_1;\n    if ((puVar1 != 0) || ((puVar1 = (struct GL56L *) gl_func_00000000(0x10)) != 0)) {\n      puVar1->f8 = 0;\n      puVar1->count = 0;\n      puVar1->self = (int) puVar1;\n    }\n    puVar1 = (struct GL56L *) (param_1 + 4);\n    if ((puVar1 != 0) || ((puVar1 = (struct GL56L *) gl_func_00000000(0x10)) != 0)) {\n      puVar1->f8 = 0;\n      puVar1->count = 0;\n      puVar1->self = (int) puVar1;\n    }\n    puVar1 = (struct GL56L *) (param_1 + 8);\n    if ((puVar1 != 0) || ((puVar1 = (struct GL56L *) gl_func_00000000(0x10)) != 0)) {\n      puVar1->f8 = 0;\n      puVar1->count = 0;\n      puVar1->self = (int) puVar1;\n    }\n    puVar1 = (struct GL56L *) (param_1 + 0xC);\n    if ((puVar1 != 0) || ((puVar1 = (struct GL56L *) gl_func_00000000(0x10)) != 0)) {\n      puVar1->f8 = 0;\n      puVar1->count = 0;\n      puVar1->self = (int) puVar1;\n    }\n    puVar1 = (struct GL56L *) (param_1 + 0x10);\n    if ((puVar1 != 0) || ((puVar1 = (struct GL56L *) gl_func_00000000(0x10)) != 0)) {\n      puVar1->f8 = 0;\n      puVar1->count = 0;\n      puVar1->self = (int) puVar1;\n    }\n    puVar1 = (struct GL56L *) (param_1 + 0x14);\n    if ((puVar1 != 0) || ((puVar1 = (struct GL56L *) gl_func_00000000(0x10)) != 0)) {\n      puVar1->f8 = 0;\n      puVar1->count = 0;\n      puVar1->self = (int) puVar1;\n    }\n    puVar1 = (struct GL56L *) (param_1 + 0x1E);\n    if (((puVar1 != 0) || ((puVar1 = (struct GL56L *) gl_func_00000000(4)) != 0)) &&\n        (((puVar2 = (int *) puVar1, puVar1 != 0)) || ((puVar2 = (int *) gl_func_00000000(4)) != 0))) {\n      *puVar2 = 0;\n    }\n    param_1[0x1C] = param_2;\n    param_1[2] = param_3;\n    if (param_3 != 0) {\n      *param_1 = gl_func_00000000(param_3 * 8 + 8);\n    }\n    param_1[1] = 0;\n    param_1[3] = (int) param_1;\n    param_1[6] = param_4;\n    tmp = (int) (param_1 + 4);\n    if (param_4 != 0) {\n      ((struct GL56L *) tmp)->items = gl_func_00000000(param_4 * 0x10 + 0x10);\n    }\n    ((struct GL56L *) tmp)->count = 0;\n    ((struct GL56L *) tmp)->self = tmp;\n    param_1[10] = param_5;\n    tmp = (int) (param_1 + 8);\n    if (param_5 != 0) {\n      ((struct GL56L *) tmp)->items = gl_func_00000000(param_5 * 0x48 + 0x48);\n    }\n    ((struct GL56L *) tmp)->count = 0;\n    ((struct GL56L *) tmp)->self = tmp;\n    param_1[0xE] = param_6;\n    tmp = (int) (param_1 + 0xC);\n    if (param_6 != 0) {\n      ((struct GL56L *) tmp)->items = gl_func_00000000(param_6 * 0x40 + 0x40);\n    }\n    ((struct GL56L *) tmp)->count = 0;\n    ((struct GL56L *) tmp)->self = tmp;\n    param_1[0x12] = param_7;\n    tmp = (int) (param_1 + 0x10);\n    if (param_7 != 0) {\n      ((struct GL56L *) tmp)->items = gl_func_00000000(param_7 * 0x10 + 0x10);\n    }\n    ((struct GL56L *) tmp)->count = 0;\n    ((struct GL56L *) tmp)->self = tmp;\n    param_1[0x16] = 0;\n    tmp = (int) (param_1 + 0x14);\n    if (0) {\n      ((struct GL56L *) tmp)->items = gl_func_00000000(0);\n    }\n    ((struct GL56L *) tmp)->count = 0;\n    ((struct GL56L *) tmp)->self = tmp;\n    gl_func_00000000(param_1);\n  }\n  return param_1;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00056580.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical (real-callee jals swapped to zero-resolving placeholder per USO baked-reloc convention)"
+  }
+}

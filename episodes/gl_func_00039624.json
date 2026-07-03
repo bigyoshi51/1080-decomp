@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00039624",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:47:12.766036+00:00",
+  "end_time": "2026-07-03T03:47:12.766058+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:47:12.766052+00:00",
+      "assistant_text": "'arg-pointer store addressing unreachable' cap: the sw-to-scratch pattern is the IDO struct-copy signature \u2014 *(struct V3i*)scratch = *(struct V3i*)((char*)a1[1]+0xEC) (dst base CSEs with outgoing arg -> a1); decl order int cmd; float *src; int scratch[3]; homes scratch at 0x1C; case-6 src deref inlined.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_000393B8: 155-insn variant of gl_func_00038DC0 with extra\n * gating + D_00000000 publish step.\n *\n * Common skeleton:\n *   gl_func_00000000(root[0xC/4]);\n *   iterate root->[0x10] bundle list\n *   per-node guards: node->[0x18] & 0x8, node->[0x8] & 0x200,\n *                    node->[0x8] bit-17 set ((<<14) < 0),\n *                    !(node->[0x2C] & 0x1)\n *   if (root->[0x2C] & 0x2): gl_func(node+0x30, node+0x70)\n *   else: inline 4x4 mat-mult into sp+0x58; gl_func(sp+0x58, node+0x70)\n *   if (root->[0x2C] & 0x2): D_00000000 = root  (publish current root)\n *   reload t2 = node->[0x4]; if (t2 != 0): node->[0x14] = root\n *   vt = node->[0x28]; (vt->[0x24])(*(short*)(vt+0x20) + (int)node)\n *\n * Cap: same hand-unrolled 4x4 mat-mult as 38DC0 (clean triple-for\n * doesn't reproduce the unroll), plus the per-node gating order is\n * sensitive. Initial NM wrap with structure decoded. */\nextern int gl_func_00000000();\nint gl_func_000393B8(int *root) {\n    int **bundle = (int**)root[0x10/4];\n    int **iter;\n    int *node = NULL;\n\n    gl_func_00000000(root[0xC/4]);\n\n    if (bundle != NULL) {\n        iter = (int**)bundle[0x4/4];\n        node = (int*)bundle[0x0/4];\n    } else {\n        iter = NULL;\n    }\n    while (node != NULL) {\n        if ((node[0x18/4] & 0x8) &&\n            (node[0x8/4] & 0x200) &&\n            ((node[0x8/4] << 14) < 0) &&\n            !(node[0x2C/4] & 0x1)) {\n            float result[16];\n            if (root[0x2C/4] & 0x2) {\n                gl_func_00000000((char*)node + 0x30, (char*)node + 0x70);\n            } else {\n                float *src = (float*)((char*)node + 0x30);\n                float *world = (float*)((char*)root + 0x70);\n                int row, col, k;\n                for (row = 0; row < 4; row++) {\n                    for (col = 0; col < 4; col++) {\n                        float sum = 0.0f;\n                        for (k = 0; k < 4; k++) {\n                            sum += src[row * 4 + k] * world[k * 4 + col];\n                        }\n                        result[row * 4 + col] = sum;\n                    }\n                }\n                gl_func_00000000(result, (char*)node + 0x70);\n            }\n            if (root[0x2C/4] & 0x2) {\n                *(int**)&D_00000000 = root;\n            }\n            if (node[0x4/4] != 0) {\n                node[0x14/4] = (int)root;\n            }\n            {\n                int *vt = (int*)node[0x28/4];\n                ((void(*)(int))vt[0x24/4])(*(short*)((char*)vt + 0x20) + (int)node);\n            }\n        }\n        if (iter == NULL) break;\n        node = (int*)iter[0];\n        iter = (int**)iter[1];\n    }\n\n    gl_func_00000000();\n    return 0;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_000393B8);\n#endif\n\nextern int gl_func_00000000();\nvoid gl_func_00039624(int *a0, int *a1) {\n    struct GL396V { int a, b, c; };\n    int cmd;\n    float *src;\n    int scratch[3];\n\n    cmd = a1[0];\n    switch (cmd) {\n    case 6:\n        if (a0[0x18/4] & 0x40) {\n            *(struct GL396V *) scratch = *(struct GL396V *) ((char *) a1[0x4/4] + 0xEC);\n            gl_func_00000000((char*)a0 + 0x30, scratch);\n            gl_func_00000000((char*)a0 + 0x70, scratch);\n        }\n        break;\n    case 7:\n        src = (float*)a1[0x4/4];\n        *(float*)((char*)a0 + 0xA0) = src[0];\n        *(float*)((char*)a0 + 0xA4) = src[1];\n        *(float*)((char*)a0 + 0xA8) = src[2];\n        src = (float*)a1[0x4/4];\n        *(float*)((char*)a0 + 0x60) = src[0];\n        *(float*)((char*)a0 + 0x64) = src[1];\n        *(float*)((char*)a0 + 0x68) = src[2];\n        break;\n    default:\n        gl_func_00000000(a0, a1);\n        break;\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00039624.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical (real-callee jals swapped to zero-resolving placeholder per USO baked-reloc convention)"
+  }
+}

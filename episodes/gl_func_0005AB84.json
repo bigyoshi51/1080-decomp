@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0005AB84",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:47:12.517572+00:00",
+  "end_time": "2026-07-03T03:47:12.517592+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:47:12.517586+00:00",
+      "assistant_text": "'+0x10 frame + renumber' cap: m2c's 6 locals -> 2 named (base,q) + param-direct arg0 (kills &arg0 hack; frame 0x30->0x20); block-7 second pointer via inner-scope s32 *r = q; (named-var coloring a0 without frame cost).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 116,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0005AB84: register-with-parent constructor (8x unrolled 0x10-byte\n * node init + a 4-byte tail node). 2026-06-22 (agent-b): two real fixes drove\n * 33 -> 15 reloc-filtered word-diffs. (1) BYTE-OFFSET arithmetic: the node\n * stride was `var_a1 + 0x10` on s32* (\u00c3\u00974 -> 0x40); target wants byte +0x10, so\n * cast `(s32*)((char*)var_a1 + 0x10)` per step (removed 6 addiu-offset diffs).\n * (2) COLLAPSED m2c's 10 temp_v0_N + 7 var_v1_N pseudos into one reused\n * temp_v0 / var_v1 each -> frame 0x50 -> 0x30 and coalesced the sp1C spill\n * exactly (removed the 0x1c-vs-0x18 spill diffs). RESIDUAL (15): frame is still\n * 0x30 vs target 0x20 (a uniform +0x10 IDO frame-layout quirk: only ra + one\n * own slot sp1C@0x1c, yet IDO wastes 0x10 at 0x20-0x2f) + a +1 register\n * renumber in the tail (t7/t8 mine vs t8/t9 target at the arg0/arg2 reloads).\n * Focused permuter (700s, perm_temp_for_expr=100) stalled at score 60 (no\n * sub-15 path); the empty `if(var_a1){}` is load-bearing (removing it regresses\n * to 104). Genuine frame-layout + lowest-free-reg tie; stays INCLUDE_ASM. */\ns32 *gl_func_0005AB84(s32 *arg0, s32 *arg1, s32 *arg2) {\n  s32 *base;\n  s32 *q;\n\n  if ((arg0 != 0) || ((arg0 = (s32 *) gl_func_00000000(0x7C)) != 0)) {\n    base = arg0;\n    if ((base != 0) || ((base = (s32 *) gl_func_00000000(0x7C)) != 0)) {\n      q = base;\n      if ((q != 0) || ((q = (s32 *) gl_func_00000000(0x10)) != 0)) {\n        q[2] = 0;\n        q[1] = 0;\n        q[3] = (s32) q;\n      }\n      q = base + 4;\n      if ((q != 0) || ((q = (s32 *) gl_func_00000000(0x10)) != 0)) {\n        q[2] = 0;\n        q[1] = 0;\n        q[3] = (s32) q;\n      }\n      q = base + 8;\n      if ((q != 0) || ((q = (s32 *) gl_func_00000000(0x10)) != 0)) {\n        q[2] = 0;\n        q[1] = 0;\n        q[3] = (s32) q;\n      }\n      q = base + 0xC;\n      if ((q != 0) || ((q = (s32 *) gl_func_00000000(0x10)) != 0)) {\n        q[2] = 0;\n        q[1] = 0;\n        q[3] = (s32) q;\n      }\n      q = base + 0x10;\n      if ((q != 0) || ((q = (s32 *) gl_func_00000000(0x10)) != 0)) {\n        q[2] = 0;\n        q[1] = 0;\n        q[3] = (s32) q;\n      }\n      q = base + 0x14;\n      if ((q != 0) || ((q = (s32 *) gl_func_00000000(0x10)) != 0)) {\n        q[2] = 0;\n        q[1] = 0;\n        q[3] = (s32) q;\n      }\n      q = base + 0x1E;\n      if ((q != 0) || ((q = (s32 *) gl_func_00000000(4)) != 0)) {\n        s32 *r = q;\n        if ((q != 0) || ((r = (s32 *) gl_func_00000000(4)) != 0)) {\n          *r = 0;\n        }\n      }\n    }\n    arg0[0x1C] = gl_func_00000000(arg1, arg2[0x1C]);\n    gl_func_00000000(arg0, arg2);\n  }\n  return arg0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0005AB84.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical (real-callee jals swapped to zero-resolving placeholder per USO baked-reloc convention)"
+  }
+}
