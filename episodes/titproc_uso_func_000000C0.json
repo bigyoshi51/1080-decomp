@@ -1,0 +1,33 @@
+{
+  "function_name": "titproc_uso_func_000000C0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T02:58:07.711770+00:00",
+  "end_time": "2026-07-03T02:58:07.711805+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T02:58:07.711799+00:00",
+      "assistant_text": "Whole-function coloring rotation cracked via 3 coupled levers (diagnosed with -Wo,-zdbug:6 uoptlist): (1) copy-def entry *P=*P+1; counter=*P; un-coalesces the entry load, folded-sum candidate burns the t7 slot shifting temp pool +2; (2) dead-param arg-reuse lifts counter's priority to color FIRST into a0; (3) NEW LEVER dead while(0){idx=counter*4;} \u2014 analoop weights the dead body as a loop before controlflow deletes it (zero emission), multiplying idx's LR refs above the base's so idx colors v1, base a1.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 51,
+  "initial_m2c_source": null,
+  "final_source": "/* EXACT MATCH 2026-07-02 (agent-e): 51/51 words, size 0xCC, in-tree verified\n * (build/non_matching .o word-diff vs asm/nonmatchings .s target bytes; relocs\n * import_00020098 HI/LO x3 + R_MIPS_26 titproc_uso_func_01EEE4 x2 +\n * titproc_uso_D_0000EC/D_000100 HI/LO \u00e2\u0080\u0094 all at target offsets).\n *\n * Three coupled regalloc levers were required (residual was a whole-function\n * coloring rotation: base v1<->a1, counter a1<->a0, idx a0<->v1, temp pool -2):\n *\n * 1. COPY-DEF ENTRY (`*P = *P + 1; counter = *P;` instead of\n *    `counter = *P + 1; *P = counter;`): the CSE'd reload makes the entry load\n *    a distinct temp (lw t6, not lw a0) AND its folded sum candidate consumes\n *    the t7 rotation slot, shifting the whole temp pool +2 (RMW1 t8/t9,\n *    RMW2 t0/t1, const t2, table t3 \u00e2\u0080\u0094 all target). Same bytes as op-def form\n *    otherwise.\n * 2. ARG-REUSE (`counter = *(D+0x148) + 4; v = func(counter);`): counter is\n *    dead inside each if-block until its trailing reload, so reusing it for\n *    the call arg is emission-neutral, but the extra defs/uses raise counter's\n *    compute_save priority so it colors FIRST and takes its param home $a0\n *    (plain form left counter colored last -> $a1).\n * 3. DEAD-LOOP REF BOOST (`while (0) { idx = counter * 4; }` before the real\n *    `idx = counter * 4;`): analoop assigns the dead body loop-frequency\n *    weights before controlflow removes it (zero emission), scaling idx's LR\n *    priority above the &import_00020098 base-address LR -> idx colors before\n *    base, takes $v1 (sll v1,a0,2), base falls to $a1. Without it the base\n *    (promoted by the copy-def entry's phantom reload ref) grabbed $v1 first.\n *\n * Diagnosis via -Wo,-zdbug:6 uoptlist constrained-coloring order (colors\n * 2/3/4 = v1/a0/a1) at each step; ~65 standalone variants swept. */\nint titproc_uso_func_000000C0(counter)\n    int counter;\n{\n    int v;\n    int idx;\n\n    *(int*)((char*)&import_00020098 + 0x6C) =\n        *(int*)((char*)&import_00020098 + 0x6C) + 1;\n    counter = *(int*)((char*)&import_00020098 + 0x6C);\n    if (counter >= 5) {\n        *(int*)((char*)&import_00020098 + 0x6C) = 0;\n        counter = 0;\n    }\n\n    if (counter == 0) {\n        counter = *(int*)((char*)&import_00020098 + 0x148) + 4;\n        v = titproc_uso_func_01EEE4(counter);\n        if (v != 2) {\n            *(int*)((char*)&import_00020098 + 0x6C) =\n                *(int*)((char*)&import_00020098 + 0x6C) + 1;\n        }\n        counter = *(int*)((char*)&import_00020098 + 0x6C);\n    }\n    if (counter == 1) {\n        counter = *(int*)((char*)&import_00020098 + 0x148) + 4;\n        v = titproc_uso_func_01EEE4(counter);\n        if (v != 1) {\n            *(int*)((char*)&import_00020098 + 0x6C) =\n                *(int*)((char*)&import_00020098 + 0x6C) + 1;\n        }\n        counter = *(int*)((char*)&import_00020098 + 0x6C);\n    }\n\n    while (0) { idx = counter * 4; }\n    idx = counter * 4;\n    *(int*)((char*)&import_00020098 + 0x40) = 4;\n    *(int*)((char*)&import_00020098 + 0x44) = *(int*)((char*)titproc_uso_D_0000EC + idx);\n    return *(int*)((char*)titproc_uso_D_000100 + idx);\n}",
+  "metadata": {
+    "source_path": "src/titproc_uso/titproc_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000000C0.s",
+    "segment": "titproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

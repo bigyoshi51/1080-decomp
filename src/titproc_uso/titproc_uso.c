@@ -28,37 +28,51 @@ extern int titproc_uso_D_0000EC[]; /* t3-base table */
 extern int titproc_uso_D_000100[]; /* v0-base table (return value) */
 extern int titproc_uso_func_01EEE4();
 
-#ifdef NON_MATCHING
-/* SOURCE=1 refinement (2026-06-01): use a K&R dummy parameter for `counter`.
- * IDO colors the live state counter to $a0 through the branch-likely tests and
- * final table index, matching the target's main register choice better than a
- * plain local (which stayed in $v1).
+/* EXACT MATCH 2026-07-02 (agent-e): 51/51 words, size 0xCC, in-tree verified
+ * (build/non_matching .o word-diff vs asm/nonmatchings .s target bytes; relocs
+ * import_00020098 HI/LO x3 + R_MIPS_26 titproc_uso_func_01EEE4 x2 +
+ * titproc_uso_D_0000EC/D_000100 HI/LO — all at target offsets).
  *
- * SOURCE=1 re-audit 2026-06-01: align the NM body's symbol names with the
- * target relocs (`import_00020098`, `titproc_uso_func_01EEE4`,
- * `titproc_uso_D_0000EC`, `titproc_uso_D_000100`). Objdiff's reloc-aware
- * score remains 98.13725%, but no-alias objdump now shows the same callee/table
- * names as expected. Residual is temp-register coloring around the initial
- * load/increments and final table-base load. Negative probes: splitting the
- * initial `D+0x6C` load into `raw` moved it to `$v1` instead of target `$t6`;
- * naming the final constant `four` compiled identically; a single
- * `char *s = &import_00020098` base pointer REGRESSES (+7 insns — `s` must
- * survive the two calls so it spills, rather than the target's per-access
- * reload). Keep the inline-macro form. Still NM. */
+ * Three coupled regalloc levers were required (residual was a whole-function
+ * coloring rotation: base v1<->a1, counter a1<->a0, idx a0<->v1, temp pool -2):
+ *
+ * 1. COPY-DEF ENTRY (`*P = *P + 1; counter = *P;` instead of
+ *    `counter = *P + 1; *P = counter;`): the CSE'd reload makes the entry load
+ *    a distinct temp (lw t6, not lw a0) AND its folded sum candidate consumes
+ *    the t7 rotation slot, shifting the whole temp pool +2 (RMW1 t8/t9,
+ *    RMW2 t0/t1, const t2, table t3 — all target). Same bytes as op-def form
+ *    otherwise.
+ * 2. ARG-REUSE (`counter = *(D+0x148) + 4; v = func(counter);`): counter is
+ *    dead inside each if-block until its trailing reload, so reusing it for
+ *    the call arg is emission-neutral, but the extra defs/uses raise counter's
+ *    compute_save priority so it colors FIRST and takes its param home $a0
+ *    (plain form left counter colored last -> $a1).
+ * 3. DEAD-LOOP REF BOOST (`while (0) { idx = counter * 4; }` before the real
+ *    `idx = counter * 4;`): analoop assigns the dead body loop-frequency
+ *    weights before controlflow removes it (zero emission), scaling idx's LR
+ *    priority above the &import_00020098 base-address LR -> idx colors before
+ *    base, takes $v1 (sll v1,a0,2), base falls to $a1. Without it the base
+ *    (promoted by the copy-def entry's phantom reload ref) grabbed $v1 first.
+ *
+ * Diagnosis via -Wo,-zdbug:6 uoptlist constrained-coloring order (colors
+ * 2/3/4 = v1/a0/a1) at each step; ~65 standalone variants swept. */
 int titproc_uso_func_000000C0(counter)
     int counter;
 {
     int v;
+    int idx;
 
-    counter = *(int*)((char*)&import_00020098 + 0x6C) + 1;
-    *(int*)((char*)&import_00020098 + 0x6C) = counter;
+    *(int*)((char*)&import_00020098 + 0x6C) =
+        *(int*)((char*)&import_00020098 + 0x6C) + 1;
+    counter = *(int*)((char*)&import_00020098 + 0x6C);
     if (counter >= 5) {
         *(int*)((char*)&import_00020098 + 0x6C) = 0;
         counter = 0;
     }
 
     if (counter == 0) {
-        v = titproc_uso_func_01EEE4(*(int*)((char*)&import_00020098 + 0x148) + 4);
+        counter = *(int*)((char*)&import_00020098 + 0x148) + 4;
+        v = titproc_uso_func_01EEE4(counter);
         if (v != 2) {
             *(int*)((char*)&import_00020098 + 0x6C) =
                 *(int*)((char*)&import_00020098 + 0x6C) + 1;
@@ -66,7 +80,8 @@ int titproc_uso_func_000000C0(counter)
         counter = *(int*)((char*)&import_00020098 + 0x6C);
     }
     if (counter == 1) {
-        v = titproc_uso_func_01EEE4(*(int*)((char*)&import_00020098 + 0x148) + 4);
+        counter = *(int*)((char*)&import_00020098 + 0x148) + 4;
+        v = titproc_uso_func_01EEE4(counter);
         if (v != 1) {
             *(int*)((char*)&import_00020098 + 0x6C) =
                 *(int*)((char*)&import_00020098 + 0x6C) + 1;
@@ -74,13 +89,12 @@ int titproc_uso_func_000000C0(counter)
         counter = *(int*)((char*)&import_00020098 + 0x6C);
     }
 
+    while (0) { idx = counter * 4; }
+    idx = counter * 4;
     *(int*)((char*)&import_00020098 + 0x40) = 4;
-    *(int*)((char*)&import_00020098 + 0x44) = titproc_uso_D_0000EC[counter];
-    return titproc_uso_D_000100[counter];
+    *(int*)((char*)&import_00020098 + 0x44) = *(int*)((char*)titproc_uso_D_0000EC + idx);
+    return *(int*)((char*)titproc_uso_D_000100 + idx);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000000C0);
-#endif
 extern char D_00000194_A;
 /* State-setter sibling of 000001E4/00000230/0000028C. MATCHED via pad-sidecar
  * boundary correction (replacing the banned PROLOGUE_STEALS/SUFFIX_BYTES): the
