@@ -240,7 +240,6 @@ void game_uso_func_0000039C(Quad4 *dst) {
  * kept as the NON_MATCHING body: 4 Vec3 staging slots + temp + pads, integer
  * struct-copy to temp then float store to a0.) Was a false-match real-def +
  * a poisoned episode (deleted) that trained on the wrong 78w. */
-#ifdef NON_MATCHING
 void game_uso_func_000003F8(void *a0) {
     Vec3 zero, fwd, up, zero2;
     Vec3 pad0, pad1;
@@ -278,9 +277,6 @@ void game_uso_func_000003F8(void *a0) {
     *(float *)((char *)a0 + 0x30) = tmp.y;
     *(float *)((char *)a0 + 0x34) = tmp.z;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000003F8);
-#endif
 
 void game_uso_func_0000052C(int unused, Vec3 *a1, Vec3 *a2, int *a3, Vec3 *p4) {
     if (a3[4] == 2) {
