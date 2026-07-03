@@ -1202,29 +1202,53 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   trailing functions (0x1CF0/0x1D1C/0x1D60/0x1DB0) remain
 //   INCLUDE_ASM under their own symbols. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00001C08 — VERIFIED EXACT 58/58 (2026-07-03, agent-e)
+ * vs asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00001C08.s
+ * (in-tree word-by-word on build/non_matching .o, clean rebuild, -O2;
+ * jal words 0x0C000000 via extern callees).
+ *
+ * LOGIC BUGS fixed vs old NM body (84.4%):
+ * 1. Slot pick was INVERTED: target sets i=1 when st->0x48 != 1 (old body
+ *    had `i = (st->0x48 == 1) ? 1 : 0`).
+ * 2. Shape: nested if/else with `i = 0` in the OUTER else arm. A dominating
+ *    `i = 0;` init lets uopt prove the then-arm redundant and collapse the
+ *    inner diamond to a beql; the outer-else form emits the target's full
+ *    bne/nop + two-`b` diamond, and the else `i = 0` lands in the outer bne
+ *    delay slot. This restructure also flipped the s2/s3 coloring to the
+ *    target's (i->s2, st->s3).
+ * 3. Real callees per .s jal relocs: timproc_uso_b5_func_0002FC (dispatch,
+ *    a0=7) and timproc_uso_b5_func_000069E8 (per-slot notify). Loop is a
+ *    TWO-CALL if/else (two jal sites), not a ternary second arg.
+ * 4. Chain arithmetic: fold c/d locals into one expression, 8C1C-style
+ *    scaled-first text -> pure t0-t5 temps + addu rs=base. Site-1 (reg base)
+ *    needs base-first text `(int)st + i*4 + 0x34` for addu t9,s3,t8.
+ */
+extern int timproc_uso_b5_func_0002FC();
+extern int timproc_uso_b5_func_000069E8(char *scr, int a1);
 void timproc_uso_b5_func_00001C08(char *st) {
-    int i = 0;
+    int i;
     char *r;
-    char *c;
-    char *d;
     int s0;
-    int n;
     if (*(int *)(st + 0x30) == 2) {
-        i = (*(int *)(st + 0x48) == 1) ? 1 : 0;
+        if (*(int *)(st + 0x48) == 1) {
+            i = 0;
+        } else {
+            i = 1;
+        }
+    } else {
+        i = 0;
     }
-    r = *(char **)(st + 0x34 + i * 4);
-    c = *(char **)(r + 0x40C);
-    d = *(char **)(c + 0x48) + *(int *)(r + 0x3D8) * 4;
-    func_00000000(7, *(char **)(*(char **)(d + 0x3C) + 0x2B0));
-    (void)n;
+    r = *(char **)((int)st + i * 4 + 0x34);
+    timproc_uso_b5_func_0002FC(7,
+        *(char **)(*(int *)(*(int *)(r + 0x3D8) * 4 + *(int *)(*(char **)(r + 0x40C) + 0x48) + 0x3C) + 0x2B0));
     for (s0 = 0; s0 < *(int *)(st + 0x30); s0++) {
-        func_00000000(*(char **)((char *)st + s0 * 4 + 0x34), (s0 == i) ? 1 : 0);
+        if (s0 == i) {
+            timproc_uso_b5_func_000069E8(*(char **)(st + s0 * 4 + 0x34), 1);
+        } else {
+            timproc_uso_b5_func_000069E8(*(char **)(st + s0 * 4 + 0x34), 0);
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001C08);
-#endif
 
 #ifdef NON_MATCHING
 /* 9-insn flag-check + indexed-load with branch-to-empty-next-function as
@@ -2644,83 +2668,38 @@ void timproc_uso_b5_func_00003F18(char *a0) {
     (*(void(**)(char*))(v + 0x24))(a0 + *(short*)(v + 0x20));
 }
 
-#ifdef NON_MATCHING
-/* 19-insn (0x4C) Vec3i→Vec3 type-pun copy. NATURAL CEILING: 85.39% NM.
+/* timproc_uso_b5_func_00003F5C — VERIFIED EXACT 18/18 (2026-07-03, agent-e)
+ * vs asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00003F5C.s
+ * (in-tree word-by-word on build/non_matching/src/timproc_uso_b5/timproc_uso_b5.c.o,
+ * clean rebuild, -O2).
  *
- * The historical "3-knob recipe" (PROLOGUE_STEALS=4 + SUFFIX_BYTES alt-entry
- * stub + char pad[24] frame bump) was BANNED 2026-05-23 as match-faking
- * (per feedback_no_instruction_forcing_matches_policy). The predecessor
- * 0x3F18's SUFFIX_BYTES that fed this fn's stolen prologue is also gone.
- * Current state: plain C body at 85.39%, three structural diffs that
- * combine multiplicatively (see (A)/(B)/(C) below). Real fix needs a splat
- * boundary correction so 0x3F18's tail bytes belong to 3F5C's symbol;
- * focused-session work, not 60s-tick safe.
- *
- * Original cap notes (post-mortem) preserved below for posterity:
- *
- * Bytewise diff (post-PROLOGUE_STEALS=4 + SUFFIX_BYTES, before frame fix):
- *   Build C-emit (18 insns, frame 0x10):
- *     +00: lw t6, 0x23C(a0)   <- gets spliced by PROLOGUE_STEALS=4
- *     +04: lw v0, 0x29C(a0)
- *     +08: addiu sp, -0x10    <- prologue at insn 3 (after early load)
- *     +0C: sw t6, 4(sp)
- *     [scratch buf at sp+4..0xC, lwc1 from sp+4..0xC]
- *     +44: jr ra; +48: nop
- *   Expected (19 insns, frame 0x28):
- *     +00: addiu sp, -0x28    <- prologue FIRST
- *     +04: lw v0, 0x29C(a0)
- *     +08: addiu t6, sp, 0xC  <- $t6 = scratch base register
- *     +0C: sw t8, 0(t6)       <- $t8 INHERITED from 3F18 stolen tail
- *     [scratch buf at sp+0xC..0x14 via $t6]
- *     +3C: jr ra; +40: swc1 (delay)
- *     +44: jr ra; +48: sw a0, 0(sp)  <- trailing 8 bytes (alt-entry?)
- *
- * Three structural diffs that combine multiplicatively:
- *   (A) frame size 0x10 -> 0x28 (need char pad[24] or similar)
- *   (B) prologue-then-load order (target has prologue first; build
- *       hoists `lw v0` ahead of prologue — IDO scheduler -O2 unflippable)
- *   (C) scratch addressing via $t6 (= sp+0xC) vs sp-direct (= sp+4)
- *       — target's `addiu t6, sp, 0xC; sw $tN, 0/4/8(t6)` shape vs
- *       build's `sw $tN, 4/8/C(sp)` shape. Per
- *       feedback_typed_stack_struct_for_direct_sp_stores.md (inverse)
- *       — typed-struct picks sp-direct; we want register-based.
- *
- * Recipe sketch (DEFER — multi-blocker):
- *   Makefile:
- *     PROLOGUE_STEALS += timproc_uso_b5_func_00003F5C=4
- *     SUFFIX_BYTES += timproc_uso_b5_func_00003F5C=0x03E00008,0xAFA40000
- *   C body restructure to force frame=0x28 + $t6 scratch base.
- *
- * 2026-05-06: PROLOGUE_STEALS=4 PATH IS BLOCKED. Per
- * docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-only-splice-restriction,
- * scripts/splice-function-prefix.py only fires when the function's first
- * insn is LUI. This function starts with `addiu sp, -0x28` (opcode 0x09),
- * so the PROLOGUE_STEALS=4 line would silently no-op. To unblock either
- * (a) extend the splice-script verify to accept opcode 0x09, OR (b) drop
- * PROLOGUE_STEALS entirely and do the full SUFFIX-on-predecessor route
- * (currently blocked by predecessor 0x3F18 already using SUFFIX_BYTES for
- * its own purpose). 11.1% measured match (built 0x48 / 18 insns vs target
- * 0x4C / 19 insns).
- *
- * Predecessor 00003F18 is byte-correct (SUFFIX_BYTES applied), so 3F5C's
- * position is stable for next-pass attempt. */
-typedef struct { int a, b, c; } Tri3i_F5C;
+ * KEY (was 85.4% "natural ceiling" — false cap):
+ * 1. WHOLE-STRUCT COPY, not per-field int stores. `raw = *(Vec3*)(a0+0x23C)`
+ *    is what emits the target's block-copy signature: dest base materialized
+ *    as `addiu t6, sp, 0xC` (t6 = first temp) + alternating t8/t7/t8 copy
+ *    temps, with first load hoisted above the prologue. Per-field stores gave
+ *    sp-direct sw + v1 base (inverted shape).
+ * 2. Float-typed local (Vec3, not int-triple) so the read-back side is
+ *    direct float member reads -> sp-direct lwc1 f4/f6/f8.
+ * 3. Frame 0x28 with raw at sp+0xC via pad sandwich: pad1[16] ABOVE
+ *    (declared first -> top of frame 0x18..0x27), raw 0xC..0x17,
+ *    pad2[4] BELOW (4..7). IDO places addressed locals top-down in
+ *    declaration order.
+ */
+typedef struct { int a, b, c; } Tri3i_F5C; /* kept for context; unused now */
 typedef struct { float x, y, z; } Vec3_F5C;
 void timproc_uso_b5_func_00003F5C(int *a0) {
-    char pad[24];   /* bump frame from 0x10 → 0x28 to match target */
-    Tri3i_F5C raw;
+    char pad1[16];
+    Vec3_F5C raw;
+    char pad2[4];
     Vec3_F5C *v = (Vec3_F5C*)((char*)*(int**)((char*)a0 + 0x29C) + 0xDC);
-    (void)pad;
-    raw.a = *(int*)((char*)a0 + 0x23C);
-    raw.b = *(int*)((char*)a0 + 0x240);
-    raw.c = *(int*)((char*)a0 + 0x244);
-    v->x = *(float*)&raw.a;
-    v->y = *(float*)&raw.b;
-    v->z = *(float*)&raw.c;
+    (void)pad1;
+    (void)pad2;
+    raw = *(Vec3_F5C*)((char*)a0 + 0x23C);
+    v->x = raw.x;
+    v->y = raw.y;
+    v->z = raw.z;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003F5C);
-#endif
 
 /* Save-arg sentinel: void f(int a0){} → jr ra; sw a0, 0(sp).
  * docs/IDO_CODEGEN.md#feedback-ido-save-arg-sentinel-empty-body */
@@ -4269,32 +4248,55 @@ ret0:
  * branch-likely + repeated func_00000000 reloc count call + f20
  * sdc1/ldc1 double-save. Full body INCLUDE_ASM-preserved (.s =
  * source of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00006900 — VERIFIED EXACT 58/58 (2026-07-03, agent-e)
+ * vs asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00006900.s
+ * (in-tree word-by-word on build/non_matching .o, clean rebuild, -O2;
+ * jal words 0x0C000000 via extern callee). objdiff 100.0.
+ *
+ * LOGIC BUG fixed vs old NM body (79.3%): the group table pointer is
+ * *(s+0x40C) dereferenced FIRST and THEN indexed at idx*4+0x40 —
+ * exactly the landed 8C1C accessor chain — not indexed at 0x40C+idx*4
+ * as the old body had it. count() = timproc_uso_b5_func_00008C1C
+ * (real intra-file callee per .s jal reloc, replaces func_00000000).
+ *
+ * Shape recipe:
+ * 1. for-loop `for (i = ...; i < count(); i++)` (NOT if-guard + do-while):
+ *    IDO's for->guard+do-while conversion emits the target's
+ *    beqzl-at-zero-to-epilogue guard with `move v0,zero` in the likely
+ *    delay; the explicit if+do-while form inverts to bnezl-around (+2 insns).
+ * 2. i's init MUST be a CSE-temp expression: write `((int*)(s+0x3D0))[idx]`
+ *    INLINE in both the ==-check and the +1 init (CSE gives one lw v1).
+ *    A named `start` local splits the init into `addiu s0,v1,1` +
+ *    `move s2,s0` and the guard slt reads the copy-propped temp
+ *    (coalesce fails); the CSE form emits `addiu s2,v1,1` directly in
+ *    the bne delay slot.
+ * 3. Array-IXA `((int *)(s + 0x3D0))[*(int *)(s + 0x3C4)]` forces
+ *    addu rs=base (addu t9,s1,t8); flat `(int)s + idx*4 + 0x3D0`
+ *    arithmetic gives rs=scaled here (either text order).
+ * 4. Loop chain: 8C1C-style scaled-first all-int arithmetic
+ *    `*(int*)(idx*4 + *(int*)(s+0x40C) + 0x40)` -> pure t0-t6 temps,
+ *    addu rs=base at both levels; idx and the table base reload each
+ *    iteration (no locals). f20=0.0 hoist/sdc1 pair is automatic.
+ */
+extern int timproc_uso_b5_func_00008C1C(int *a0);
 int timproc_uso_b5_func_00006900(char *s) {
-    int idx;
-    int n0;
-    int start;
     int i;
-    char *grp;
-    char *e;
-    idx = *(int *)(s + 0x3C4);
-    if (idx == 0) return 1;
-    n0 = (int)func_00000000(s);
-    start = *(int *)(s + 0x3D0 + idx * 4);
-    if (n0 == start) return 0;
-    i = start + 1;
-    if (i >= (int)func_00000000(s)) return 0;
-    do {
-        grp = *(char **)(s + 0x40C + idx * 4);
-        e = *(char **)(*(char **)(grp + 0x40 + i * 4) + 0x3C);
-        if (*(float *)(e + 0x2A4) != 0.0f) return 1;
-        i++;
-    } while (i < (int)func_00000000(s));
+    int n0;
+    if (*(int *)(s + 0x3C4) == 0) {
+        return 1;
+    }
+    n0 = timproc_uso_b5_func_00008C1C((int *)s);
+    if (n0 == ((int *)(s + 0x3D0))[*(int *)(s + 0x3C4)]) {
+        return 0;
+    }
+    i = ((int *)(s + 0x3D0))[*(int *)(s + 0x3C4)] + 1;
+    for (; i < timproc_uso_b5_func_00008C1C((int *)s); i++) {
+        if (*(float *)(*(int *)(*(int *)(*(int *)(s + 0x3C4) * 4 + *(int *)(s + 0x40C) + 0x40) + i * 4 + 0x3C) + 0x2A4) != 0.0f) {
+            return 1;
+        }
+    }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00006900);
-#endif
 
 // timproc_uso_b5_func_000069E8 — STRUCTURAL PASS (0x218 / 134 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.

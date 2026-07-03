@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00006900",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T13:17:34.468165+00:00",
+  "end_time": "2026-07-03T13:17:34.468184+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T13:17:34.468178+00:00",
+      "assistant_text": "Data-flow bug: group table is *(s+0x40C) dereferenced FIRST then indexed idx*4+0x40 (8C1C-accessor chain), not 0x40C+idx*4. New levers: for-loop vs if+do-while picks beqzl-to-epilogue vs bnezl-around polarity; loop-var init must be a CSE-temp expression (named start local splits init into addiu+move and breaks coalesce; inline row[idx] in compare AND +1 yields addiu s2,v1,1 in the bne delay); array-IXA ((int*)(s+0x3D0))[idx] forces addu rs=base.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 58,
+  "initial_m2c_source": null,
+  "final_source": "timproc_uso_b5_func_00006900(St *s) {\n *       if (s->0x3C4 == 0) return 1;              // no group -> 1\n *       n0 = count(s);                            // func_00000000(s)\n *       start = s->0x3D0[s->0x3C4];               // lw 976(s+idx*4)\n *       if (n0 == start) return 0;\n *       i = start + 1;\n *       if (i >= count(s)) return 0;\n *       do {\n *           grp = s->0x40C[s->0x3C4];             // table[idx]\n *           e   = grp->0x40[i]->0x3C;             // entry @ +0x3C\n *           if (e->0x2A4 != 0.0f) return 1;       // active found\n *           i++;\n *       } while (i < count(s));\n *       return 0;\n *   }",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00006900.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00003F5C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T13:17:33.956257+00:00",
+  "end_time": "2026-07-03T13:17:33.956280+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T13:17:33.956274+00:00",
+      "assistant_text": "False 'natural ceiling': target is a whole-struct copy \u2014 raw=*(Vec3*)(a0+0x23C) emits IDO block-copy signature (dest addiu t6,sp,0xC + alternating t8/t7/t8, first load hoisted above prologue); float local gives sp-direct lwc1 read-back; pad sandwich char pad1[16]; Vec3 raw; char pad2[4] places raw at 0xC in frame 0x28.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 18,
+  "initial_m2c_source": null,
+  "final_source": "/* kept for context; unused now */\ntypedef struct { float x, y, z; } Vec3_F5C;\nvoid timproc_uso_b5_func_00003F5C(int *a0) {\n    char pad1[16];\n    Vec3_F5C raw;\n    char pad2[4];\n    Vec3_F5C *v = (Vec3_F5C*)((char*)*(int**)((char*)a0 + 0x29C) + 0xDC);\n    (void)pad1;\n    (void)pad2;\n    raw = *(Vec3_F5C*)((char*)a0 + 0x23C);\n    v->x = raw.x;\n    v->y = raw.y;\n    v->z = raw.z;\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00003F5C.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
