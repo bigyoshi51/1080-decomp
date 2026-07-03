@@ -1674,6 +1674,22 @@
       }
     },
     {
+      "name": "src/gui_uso/gui_uso_zcopy_0",
+      "target_path": "expected/src/gui_uso/gui_uso_zcopy_0.c.o",
+      "base_path": "build/non_matching/src/gui_uso/gui_uso_zcopy_0.c.o",
+      "metadata": {
+        "source_path": "src/gui_uso/gui_uso_zcopy_0.c",
+        "progress_categories": [
+          "gui_uso"
+        ]
+      },
+      "scratch": {
+        "platform": "n64",
+        "compiler": "ido7.1",
+        "c_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul -Wo,-zcopy:0"
+      }
+    },
+    {
       "name": "src/gui_uso/gui_uso",
       "target_path": "expected/src/gui_uso/gui_uso.c.o",
       "base_path": "build/non_matching/src/gui_uso/gui_uso.c.o",

@@ -71,8 +71,12 @@ build/src/eddproc_uso/eddproc_uso.c.o: TRUNCATE_TEXT := 0x480
 # all-zero SUFFIX_BYTES_FORCE (1-word GLOBAL_ASM pad blocks emit 2 words, +4
 # drift each — documented trap). FORCE because the payload is a zero word and
 # the fns end `jr ra; nop`, which trips the plain-SUFFIX_BYTES skip path.
+build/src/gui_uso/gui_uso_zcopy_0.c.o build/non_matching/src/gui_uso/gui_uso_zcopy_0.c.o: CC_ONLY_FLAGS := -Wo,-zcopy:0
+build/src/gui_uso/gui_uso_zcopy_0.c.o: TRUNCATE_TEXT := 0x148
+build/src/gui_uso/gui_uso_zcopy_0.c.o: PREFIX_BYTES := gui_func_00000000=0x1000736F
+build/non_matching/src/gui_uso/gui_uso_zcopy_0.c.o: NON_MATCHING_PREFIX_BYTES := gui_func_00000000=0x1000736F
 build/src/gui_uso/gui_uso.c.o: SUFFIX_BYTES_FORCE := gui_func_0000161C=0x00000000
-build/src/gui_uso/gui_uso.c.o: TRUNCATE_TEXT := 0x4880
+build/src/gui_uso/gui_uso.c.o: TRUNCATE_TEXT := 0x4738
 # Mirror the suffix onto the non_matching object so report.json/objdiff (which
 # compare build/non_matching vs expected) score the trailing alignment-nop word.
 # splat-symbol-boundary trailing-delay-nop class — see docs/MATCHING_WORKFLOW.md.

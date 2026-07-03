@@ -557,6 +557,7 @@ SECTIONS
     {
         FILL(0x00000000);
         gui_uso_TEXT_START = .;
+        build/src/gui_uso/gui_uso_zcopy_0.c.o(.text);
         build/src/gui_uso/gui_uso.c.o(.text);
         gui_uso_TEXT_END = .;
         gui_uso_TEXT_SIZE = ABSOLUTE(gui_uso_TEXT_END - gui_uso_TEXT_START);

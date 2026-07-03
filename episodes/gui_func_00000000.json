@@ -1,0 +1,33 @@
+{
+  "function_name": "gui_func_00000000",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:43:52.738526+00:00",
+  "end_time": "2026-07-03T03:43:52.738546+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:43:52.738541+00:00",
+      "assistant_text": "First -Wo,-zcopy:0 flag-carve land: the target keeps 'or v0,a0' from a plain copy whose branch uses uopt copy-prop otherwise rewrites to a0 \u2014 proven via uoptcopy.c find_replacements analysis (branch Ufjp/Utjp uses of plain copies substitute to source var; ~40 pure-C variants floor at 80/81). Per-file CC_ONLY_FLAGS := -Wo,-zcopy:0 + first-fn carve unit + PREFIX_BYTES trampoline + TRUNCATE 0x148; gui_uso.c TRUNCATE shrunk 0x4880->0x4738.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 82,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* gui_uso flag-carve unit: gui_func_00000000, the segment-entry char mapper.\n * Byte-exact ONLY with -Wo,-zcopy:0 (uopt copy-propagation kill switch, per-file\n * CC_ONLY_FLAGS override): the target keeps `or v0,a0` from a plain copy whose\n * branch uses copy-prop otherwise rewrites to a0 (see docs/IDO_CODEGEN.md\n * bnel-dispatch 2026-07-02 entry + uoptcopy.c find_replacements analysis).\n * Word 0 of the ROM unit is the 1-word USO entry trampoline `b 0x1cdc0`\n * (PREFIX_BYTES gui_func_00000000=0x1000736F, same class as boarder5_uso).\n * TRUNCATE_TEXT on gui_uso.c.o shrank 0x4880->0x4738 to compensate. */\nint gui_func_00000000(c)\nint c;\n{\n    int m;\n    unsigned char *pa = (unsigned char *)&c;\n    c = c & 0xFF;\n    m = c;\n    if (c == 0x21) { c = 0x27; goto ret; }\n    if (m == 0x2C) { c = 0x28; goto ret; }\n    if (m == 0x2F) { c = 0x29; goto ret; }\n    if (m == 0x5B) { c = 0x26; goto ret; }\n    if (m == 0x5D) { c = 0x27; goto ret; }\n    if (m == 0x2B) { c = 0x24; goto ret; }\n    if (m == 0x5F) { c = 0x25; goto ret; }\n    if (m == 0x2E) { c = 0x25; goto ret; }\n    if (m == 0x2D) { c = 0x25; goto ret; }\n    if (m >= 0x61 && m < 0x7B) { c = m - 0x57; goto ret; }\n    if (m >= 0x41 && m < 0x5B) { c = m - 0x37; goto ret; }\n    if (m >= 0x30 && m < 0x3A) { c = (m - 0x30) & 0xFF; }\nret:\n    return c & 0xFF;\n}\n",
+  "metadata": {
+    "source_path": "src/gui_uso/gui_uso_zcopy_0.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/gui_uso/gui_uso/gui_func_00000000.s",
+    "segment": "gui_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -Wo,-zcopy:0 (per-file flag carve; PREFIX_BYTES 1-word USO trampoline; TRUNCATE_TEXT 0x148)",
+    "verification": "make verify ROM byte-identical (82/82 words vs baserom at 0x58D530)"
+  }
+}
