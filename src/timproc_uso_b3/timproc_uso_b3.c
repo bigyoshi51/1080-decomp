@@ -755,13 +755,37 @@ extern float D_b3_1240_f0;
 extern float D_b3_1240_f40;
 extern float D_b3_1240_f44;
 extern char *D_b3_1240_ptr138;
+/* timproc_uso_b3_func_00001240 — IMPROVED 2026-07-03: 81/94 -> 92/94 raw words.
+ *
+ * REQUIRES undefined_syms_auto.txt edits (distinct base-alias, value 0x0):
+ *   D_b3_1240_f40    = 0x00000000;   (was 0x00000040)
+ *   D_b3_1240_f44    = 0x00000000;   (was 0x00000044)
+ *   D_b3_1240_ptr138 = 0x00000000;   (was 0x00000138)
+ * The offset is now baked in the load instruction as an addend (struct-cast-fold)
+ * so the raw .o word carries offset 0x40/0x44/0x138 with a reloc to the base
+ * (matches target C4280040/C42A0044/8D6B0138). Keeping them as DISTINCT symbols
+ * (rather than a single &D_base) is required to defeat IDO's lui-CSE — the target
+ * re-lui's the base per read; a shared symbol drops 3 luis and shifts everything.
+ *
+ * Fixes applied (all legitimate C, verified in-tree word-diff):
+ *   1. f40/f44/ptr138: struct-cast base+offset fold (idx 22/28/44).
+ *   2. ptr-temp chain FULLY INLINED (no named `tmp` local) -> target's distinct
+ *      t9->t0 register chain instead of v0-reuse (idx 75/78/80/83/86/88).
+ *   3. Removing the now-unused `char *tmp` local fixes the a0-spill slot
+ *      0x20 -> 0x24 (named-local-count frame rule) (idx 66/68).
+ *
+ * RESIDUAL CAP (2 words, idx 53/54): the `255.0f * x` multiply schedules
+ * lwc1(x)-then-mtc1(const) into f18/f4 vs target's mtc1(const)-then-lwc1(x).
+ * Same-register scheduler swap ("mtc1/lwc1 order"). Tried preload-x-local,
+ * const-float-local, double-const, operand swap — all regress. IDO scheduler
+ * cap; was formerly the INSN_PATCH item. 92/94 is the natural NM ceiling.
+ */
 #ifdef NON_MATCHING
 void timproc_uso_b3_func_00001240(char *a0) {
     float color[4];
     char pad[32];
     char *saved;
     int armed;
-    char *tmp;
 
     color[0] = 1.0f;
     color[1] = 1.0f;
@@ -772,15 +796,15 @@ void timproc_uso_b3_func_00001240(char *a0) {
 
     if (*(int*)(a0 + 0x500) != 0) {
         if (D_b3_1240_f0 <= 0.0f) {
-            if (*(float*)(a0 + 0x72C) < D_b3_1240_f40) {
-                *(float*)(a0 + 0x72C) += D_b3_1240_f44;
+            if (*(float*)(a0 + 0x72C) < *(float*)((char*)&D_b3_1240_f40 + 0x40)) {
+                *(float*)(a0 + 0x72C) += *(float*)((char*)&D_b3_1240_f44 + 0x44);
             }
 
             *(int*)(a0 + 0x508) = *(int*)(a0 + 0x508) + 1;
             armed = 0;
             if ((*(int*)(*(char**)(a0 + 0x528) + 0x14) & 2) != 0 &&
                 *(int*)(a0 + 0x4FC) != 0 &&
-                *(int*)(*(char**)(D_b3_1240_ptr138 + 0x44) + 0x3C) < 3) {
+                *(int*)(*(char**)(*(char**)((char*)&D_b3_1240_ptr138 + 0x138) + 0x44) + 0x3C) < 3) {
                 armed = 1;
             }
 
@@ -793,14 +817,10 @@ void timproc_uso_b3_func_00001240(char *a0) {
                 gl_func_00000000(saved);
                 if ((*(int*)(a0 + 0x508) & 8) != 0) {
                     gl_func_00000000(saved, 0xA0, 0xA0, 3);
-                    tmp = *(char**)(a0 + 0x6A8);
-                    tmp = *(char**)(tmp + 0x44);
-                    gl_func_00000000(a0, 0x8C, *(int*)(tmp + 0x14));
+                    gl_func_00000000(a0, 0x8C, *(int*)(*(char**)(*(char**)(a0 + 0x6A8) + 0x44) + 0x14));
                 }
             } else {
-                tmp = *(char**)(a0 + 0x6A8);
-                tmp = *(char**)(tmp + 0x44);
-                gl_func_00000000(a0, 0x8C, *(int*)(tmp + 0x14));
+                gl_func_00000000(a0, 0x8C, *(int*)(*(char**)(*(char**)(a0 + 0x6A8) + 0x44) + 0x14));
             }
         }
     }
