@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0003CB2C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:01:37.268040+00:00",
+  "end_time": "2026-07-03T03:01:37.268061+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:01:37.268055+00:00",
+      "assistant_text": "Oversized-array mid-pointer frame lever: int arr[7]; arr[4]=0x14; arr[5]=a1; pass &arr[4] \u2014 array end sits at frame top, frame=round8(0x18+size)+8 -> slots 0x34/0x38 exactly (int arr[2]+pads can never reach non-8-aligned slot). Plus arr + if(q){} regalloc nudge. 'Standalone-match-only TU-context' cap RESOLVED in full TU.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "/* EXACT 16/16 IN FULL-TU BUILD (2026-07-02, agent-e) \u00e2\u0080\u0094 the prior\n * \"TU-context stack-layout divergence / standalone-match-only\" cap is\n * RESOLVED. Data flow (sibling of the DE30 family): fn ptr is q[0x2C]\n * where q = p[0x28]; short adj = *(short*)(q+0x28); call arg = adj +\n * (int)p; 0x14 and a1 go to stack slots 0x34/0x38 and &slot(0x34) is\n * the 2nd call arg. Levers:\n * - empty if(q){} keeps the p=$v1 / q=$v0 coloring (as before);\n * - the two stack slots must be spelled as an OVERSIZED single array\n *   with a MID-POINTER: int arr[7]; arr[4]=0x14; arr[5]=a1; pass\n *   &arr[4]. Full-TU -O2 frame model (measured): the array's END sits\n *   at the frame top and frame = round8(0x18 + size) + 8, so arr[7]\n *   (28 bytes) -> frame 0x40, arr base 0x24, arr[4] @ 0x34, arr[5]\n *   @ 0x38 == target. arr[2]+volatile pads can never reach 0x34 (that\n *   path always lands the pair 8-aligned: 0x28/0x30/0x38/0x40). */\nvoid gl_func_0003CB2C(int **a0, int a1) {\n    int arr[7];\n    int *p;\n    int *q;\n    arr[4] = 0x14;\n    arr[5] = a1;\n    p = *a0;\n    q = (int *)p[0x28/4];\n    if (q) {}\n    ((void(*)(int, int*))q[0x2C/4])(\n        *(short*)((char*)q + 0x28) + (int)p, &arr[4]);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0003CB2C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

@@ -7002,27 +7002,32 @@ void game_libs_func_0003CB00(int *a0, int a1, int a2, short a3) {
  * q=p[0x28]) — INSN_PATCH REMOVED 2026-05-23 as match-faking (per
  * feedback_no_instruction_forcing_matches_policy). Default build is
  * INCLUDE_ASM. */
-#ifdef NON_MATCHING
-/* Corrected data flow (sibling of the DE30 family, which DID land): the function
- * pointer is q[0x2C] where q = p[0x28] (NOT p[0x2C]); the short adj is
- * *(short*)(q + 0x28); the call arg is adj + (int)p; a1 is stored to a stack
- * local (arr[1] @ sp+56) and &arr[0] is the 2nd call arg. With the arr[2] +
- * pad + empty-if(q) regalloc nudge this compiles BYTE-EXACT standalone (permuter
- * score 0) and the register allocation (p=$v1,q=$v0) matches — but the full-TU
- * `make` build allocates a larger frame (0x48 vs target 0x40, arr @0x24 vs 0x34):
- * a TU-context stack-layout divergence (cf. docs/IDO_CODEGEN.md isolated-vs-full-TU).
- * Standalone-match-only; keep INCLUDE_ASM. Clean readable body below. */
+/* EXACT 16/16 IN FULL-TU BUILD (2026-07-02, agent-e) — the prior
+ * "TU-context stack-layout divergence / standalone-match-only" cap is
+ * RESOLVED. Data flow (sibling of the DE30 family): fn ptr is q[0x2C]
+ * where q = p[0x28]; short adj = *(short*)(q+0x28); call arg = adj +
+ * (int)p; 0x14 and a1 go to stack slots 0x34/0x38 and &slot(0x34) is
+ * the 2nd call arg. Levers:
+ * - empty if(q){} keeps the p=$v1 / q=$v0 coloring (as before);
+ * - the two stack slots must be spelled as an OVERSIZED single array
+ *   with a MID-POINTER: int arr[7]; arr[4]=0x14; arr[5]=a1; pass
+ *   &arr[4]. Full-TU -O2 frame model (measured): the array's END sits
+ *   at the frame top and frame = round8(0x18 + size) + 8, so arr[7]
+ *   (28 bytes) -> frame 0x40, arr base 0x24, arr[4] @ 0x34, arr[5]
+ *   @ 0x38 == target. arr[2]+volatile pads can never reach 0x34 (that
+ *   path always lands the pair 8-aligned: 0x28/0x30/0x38/0x40). */
 void gl_func_0003CB2C(int **a0, int a1) {
-    int local = 0x14;
-    int *p = *a0;
-    int *q = (int *)p[0x28/4];
+    int arr[7];
+    int *p;
+    int *q;
+    arr[4] = 0x14;
+    arr[5] = a1;
+    p = *a0;
+    q = (int *)p[0x28/4];
+    if (q) {}
     ((void(*)(int, int*))q[0x2C/4])(
-        *(short*)((char*)q + 0x28) + (int)p, &local);
-    (void)a1;
+        *(short*)((char*)q + 0x28) + (int)p, &arr[4]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003CB2C);
-#endif
 
 extern int gl_func_00000000();
 
@@ -26760,36 +26765,40 @@ int *gl_func_00056580(int *param_1, int param_2, int param_3, int param_4, int p
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056580);
 #endif
 
-#ifdef NON_MATCHING
 /* Reset/reinit: clear bit0 of field 0x78, zero six fields, then set
- * 0x60/0x64 from p = a0->0xC. 2026-06-10: the "addiu-form single-RMW
- * cap" CRACKED by the role-#6 barrier (int *q; q = ...0x78; if (1) {};
- * *q &= ~1;) -- 19-wrong-structure -> 20/20. Remaining 6 diffs: the
- * p web colors v1 vs target v0 (target reuses dead q's register) plus
- * the dependent t8/t9 load-pair order. Negative sweep: block-scoped p,
- * one-variable reuse (flips q to v1), early-pseudo p (flips p/q the
- * INVERSE way), one-var+dead-init -- the pair ordering resists all
- * pseudo-order levers (the q web spans the barrier = live-across-BB,
- * coloring interplay). uoptlist queue for the pair. */
+ * 0x60/0x64 from p = a0->0xC. EXACT 20/20 (2026-07-02, agent-e).
+ * Three levers stacked:
+ * 1. role-#6 barrier (if(1){} between q def and RMW) forces addiu-form
+ *    q=v0 crosser (previously documented);
+ * 2. SECOND if(1){} barrier between the RMW and p's def isolates p's
+ *    def in its own BB -> p's web no longer BB-shares with dying q ->
+ *    global coloring reuses v0 for p (was v1). REQUIRED.
+ * 3. p typed as struct { Pair2 *data; int count; } and the tail written
+ *    as POINTER ARITHMETIC (p->data + p->count): front-end IXA gives
+ *    base-first temp numbering (t8=base, t9=count, sll t0, addu t1,
+ *    t8, t0) -- int-arithmetic p[0]+p[1]*8 always evaluates the mul
+ *    subtree first (t8=p[1], sll t9, addu t1,t9,t0) regardless of
+ *    operand order / <<3 / &((Pair2*)p[0])[p[1]] casts of loaded
+ *    values. Typed-field pointer arith is the only form that flips it.
+ * (Pair2 = existing file-scope typedef struct { int a, b; }.) */
+typedef struct { Pair2 *data; int count; } Rec56814;
 void game_libs_func_00056814(int *a0) {
     int *q;
-    int *p;
+    Rec56814 *p;
     q = (int *)((char *)a0 + 0x78);
     if (1) {}
     *q &= ~1;
-    p = (int *)a0[3];
+    if (1) {}
+    p = (Rec56814 *)a0[3];
     a0[1] = 0;
     a0[5] = 0;
     a0[9] = 0;
     a0[13] = 0;
     a0[17] = 0;
     a0[21] = 0;
-    a0[24] = p[0] + p[1] * 8;
-    a0[25] = p[1];
+    a0[24] = (int)(p->data + p->count);
+    a0[25] = p->count;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00056814);
-#endif
 
 extern int gl_func_00000000();
 
@@ -30869,35 +30878,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DF64);
 /* Copy a 3x3 float block from a0 to a1, row stride 16 bytes (4th column of
  * each 4-wide row skipped). Logic-exact; 12/19 diffs are a consistent
  * register-renumber (op-mismatch=0). INSN_PATCH 12 words + NON_MATCHING twin. */
-#ifdef NON_MATCHING
+/* Copy a 3x3 float block from a0 (src) to a1 (dest), row stride 16 bytes
+ * (4th column of each 4-wide row skipped). EXACT 19/19 (2026-07-02,
+ * agent-e) — the old "consistent register-renumber / INSN_PATCH" cap is
+ * RESOLVED by two levers:
+ * 1. PARAM-REUSE CURSORS: the inner cursors are the PARAMETERS
+ *    themselves (a0 = drow; a1 = srow; *a0 = *a1; a0++; a1++;) — their
+ *    webs re-take the a0/a1 home registers, which named locals s/d can
+ *    never color (they took a3/a1 etc.). Also fixes the mem-op words.
+ * 2. HOISTED DEAD j INIT: `int j = 0;` at top scope (before drow/srow
+ *    defs), with `j = 0;` re-set in the outer loop. uopt colors webs in
+ *    first-def order; hoisting j's first def before drow/srow rotates
+ *    the residual 3-cycle (j=a3,drow=v1,srow=a2) into the target
+ *    (j=v1, drow=a2, srow=a3). i keeps v0; const 3 keeps t0.
+ * Body statement order matters: *a0 = *a1; j++; a0++; a1++; (store is
+ * sunk into the bne delay slot as swc1 -4(a0) by the scheduler). */
 void game_libs_func_0005DFE4(float *a0, float *a1) {
   int i = 0;
+  int j = 0;
   float *drow = a1;
   float *srow = a0;
   do
   {
-    int j = 0;
-    float *s = srow;
-    float *d = drow;
+    j = 0;
+    a0 = drow;
+    a1 = srow;
     do
     {
-      *d = *s;
-      d++;
-      s++;
+      *a0 = *a1;
       j++;
+      a0++;
+      a1++;
     }
     while (j != 3);
     i++;
     drow += 4;
     srow += 4;
-    drow++;
-    drow--;
   }
   while (i != 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DFE4);
-#endif
 
 
 /* gl_func_0005E030: 33-insn 4x4 matrix add + dispatch (0x84, frame 0x70).

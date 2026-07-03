@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00056814",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:01:37.003871+00:00",
+  "end_time": "2026-07-03T03:01:37.003895+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:01:37.003888+00:00",
+      "assistant_text": "if(1){} barrier PLACEMENT rule: barrier must sit BEFORE the def (isolating it in its own BB removes BB-shared-liveness interference so coloring reuses v0); after-def does nothing. + typed-field pointer arithmetic (struct{Pair2*data;int count;}*; a0[24]=(int)(p->data+p->count)) \u2014 only real typed ptr arith gives base-first lw/lw/sll/addu.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 20,
+  "initial_m2c_source": null,
+  "final_source": "/* Reset/reinit: clear bit0 of field 0x78, zero six fields, then set\n * 0x60/0x64 from p = a0->0xC. EXACT 20/20 (2026-07-02, agent-e).\n * Three levers stacked:\n * 1. role-#6 barrier (if(1){} between q def and RMW) forces addiu-form\n *    q=v0 crosser (previously documented);\n * 2. SECOND if(1){} barrier between the RMW and p's def isolates p's\n *    def in its own BB -> p's web no longer BB-shares with dying q ->\n *    global coloring reuses v0 for p (was v1). REQUIRED.\n * 3. p typed as struct { Pair2 *data; int count; } and the tail written\n *    as POINTER ARITHMETIC (p->data + p->count): front-end IXA gives\n *    base-first temp numbering (t8=base, t9=count, sll t0, addu t1,\n *    t8, t0) -- int-arithmetic p[0]+p[1]*8 always evaluates the mul\n *    subtree first (t8=p[1], sll t9, addu t1,t9,t0) regardless of\n *    operand order / <<3 / &((Pair2*)p[0])[p[1]] casts of loaded\n *    values. Typed-field pointer arith is the only form that flips it.\n * (Pair2 = existing file-scope typedef struct { int a, b; }.) */\ntypedef struct { Pair2 *data; int count; } Rec56814;\nvoid game_libs_func_00056814(int *a0) {\n    int *q;\n    Rec56814 *p;\n    q = (int *)((char *)a0 + 0x78);\n    if (1) {}\n    *q &= ~1;\n    if (1) {}\n    p = (Rec56814 *)a0[3];\n    a0[1] = 0;\n    a0[5] = 0;\n    a0[9] = 0;\n    a0[13] = 0;\n    a0[17] = 0;\n    a0[21] = 0;\n    a0[24] = (int)(p->data + p->count);\n    a0[25] = p->count;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00056814.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

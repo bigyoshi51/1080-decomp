@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0005DFE4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:01:37.525512+00:00",
+  "end_time": "2026-07-03T03:01:37.525534+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:01:37.525528+00:00",
+      "assistant_text": "Param-reuse cursors: inner cursors ARE the parameters (a0=drow; a1=srow; *a0=*a1; a0++; a1++) \u2014 their webs re-take the a0/a1 home registers, unreachable by named locals. + hoisted dead int j=0 at top scope rotates the web-coloring 3-cycle into target (uopt colors webs in first-def order).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 19,
+  "initial_m2c_source": null,
+  "final_source": "/* Copy a 3x3 float block from a0 (src) to a1 (dest), row stride 16 bytes\n * (4th column of each 4-wide row skipped). EXACT 19/19 (2026-07-02,\n * agent-e) \u00e2\u0080\u0094 the old \"consistent register-renumber / INSN_PATCH\" cap is\n * RESOLVED by two levers:\n * 1. PARAM-REUSE CURSORS: the inner cursors are the PARAMETERS\n *    themselves (a0 = drow; a1 = srow; *a0 = *a1; a0++; a1++;) \u00e2\u0080\u0094 their\n *    webs re-take the a0/a1 home registers, which named locals s/d can\n *    never color (they took a3/a1 etc.). Also fixes the mem-op words.\n * 2. HOISTED DEAD j INIT: `int j = 0;` at top scope (before drow/srow\n *    defs), with `j = 0;` re-set in the outer loop. uopt colors webs in\n *    first-def order; hoisting j's first def before drow/srow rotates\n *    the residual 3-cycle (j=a3,drow=v1,srow=a2) into the target\n *    (j=v1, drow=a2, srow=a3). i keeps v0; const 3 keeps t0.\n * Body statement order matters: *a0 = *a1; j++; a0++; a1++; (store is\n * sunk into the bne delay slot as swc1 -4(a0) by the scheduler). */\nvoid game_libs_func_0005DFE4(float *a0, float *a1) {\n  int i = 0;\n  int j = 0;\n  float *drow = a1;\n  float *srow = a0;\n  do\n  {\n    j = 0;\n    a0 = drow;\n    a1 = srow;\n    do\n    {\n      *a0 = *a1;\n      j++;\n      a0++;\n      a1++;\n    }\n    while (j != 3);\n    i++;\n    drow += 4;\n    srow += 4;\n  }\n  while (i != 3);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_0005DFE4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
