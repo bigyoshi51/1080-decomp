@@ -1,6 +1,7 @@
-nonmatching game_uso_func_0000ECEC, 0xE0
+nonmatching game_uso_func_0000ECEC, 0xe4
 
 glabel game_uso_func_0000ECEC
+    /* 00ECE8 0000ECE8 8C82010C */  .word 0x8C82010C
     /* 00ECEC 0000ECEC 27BDFFF8 */  .word 0x27BDFFF8
     /* 00ECF0 0000ECF0 10400034 */  .word 0x10400034
     /* 00ECF4 0000ECF4 244EFFFF */  .word 0x244EFFFF

@@ -6299,38 +6299,60 @@ void game_uso_func_00007424(void *a0) {
 }
 
 #ifdef NON_MATCHING
-/* reconstruction attempt: force a0+0x35C cursor precompute (a3) + base+0x10
- * cursor forms on the tail stores to recover the IDO base-materialization shape. */
 void game_uso_func_00007448(char *a0) {
-    char *table = *(char**)(a0 + 0x30);
-    float sx = *(float*)(a0 + 0x33C);
-    char *fc = a0 + 0x35C;
     char *t;
-    char *a2;
+    char *table;
+    char *q;
+    char *fc;
 
-    t = table + 0x758;
+    t = a0;
+    while (0) { t += 1; }
+    table = *(char**)(a0 + 0x30);
+    t = table;
+    if (1) { t += 0x758; }
     *(float*)(a0 + 0x4C8) = *(float*)(t + 0x10);
-    t = table + 0x6F8;
+    t = table;
+    if (1) { t += 0x6F8; }
     *(float*)(a0 + 0x4CC) = *(float*)(t + 0x10);
-    t = table + 0x6E0;
+    t = table;
+    if (1) { t += 0x6E0; }
     *(float*)(a0 + 0x4D0) = *(float*)(t + 0x10);
-    t = table + 0x498;
+    t = table;
+    if (1) { t += 0x498; }
+    fc = a0;
+    if (1) { fc += 0x35C; }
     *(float*)(a0 + 0x4D4) = *(float*)(t + 0x10);
-    *(float*)(table + 0x768) = *(float*)(a0 + 0x4C8) * sx;
+    *(float*)(table + 0x768) = *(float*)(a0 + 0x33C) * *(float*)(a0 + 0x4C8);
+
+    t = *(char**)(a0 + 0x30) + 0x6F8;
+    *(float*)(t + 0x10) = *(float*)(a0 + 0x36C) * *(float*)(a0 + 0x4CC);
+
+    t = *(char**)(a0 + 0x30) + 0x6E0;
+    *(float*)(t + 0x10) = *(float*)(fc + 0x10) * *(float*)(a0 + 0x4D0);
 
     table = *(char**)(a0 + 0x30);
-    t = table + 0x6F8;
-    *(float*)(t + 0x10) = *(float*)(a0 + 0x4CC) * *(float*)(a0 + 0x36C);
-
-    table = *(char**)(a0 + 0x30);
-    t = table + 0x6E0;
-    *(float*)(t + 0x10) = *(float*)(a0 + 0x4D0) * *(float*)(fc + 0x10);
-
-    table = *(char**)(a0 + 0x30);
-    a2 = table + 0x4C8;
-    t = table + 0x498;
-    *(float*)(t + 0x10) = *(float*)(a2 + 0x10);
+    q = table;
+    if (1) { q += 0x4C8; }
+    t = table;
+    if (1) { t += 0x498; }
+    *(float*)(t + 0x10) = *(float*)(q + 0x10);
 }
+
+/* game_uso_func_00007448 — 24/36 exact, LENGTH-EXACT, structure fully aligned
+ * (was 73.5%; ~86% fuzzy now). NOT exact — genuine coloring cap. 2026-07-03
+ * (agent-e). Levers that landed (see also docs/IDO_CODEGEN.md):
+ *  (1) base materialization: `t = table; if (1) { t += K; }` — if(1){} blocks
+ *      the copyprop merge; emits `addiu tN,table,K` + 0x10-offset accesses
+ *      (plain `t = table + K` folds to full offsets).
+ *  (2) `t = a0; while (0) { t += 1; }` at top = candidate-order lever
+ *      (t colors v0 before table/v1).
+ *  (3) fc's def embedded between t4's def and its use = live-range overlap
+ *      with v0 => fc skips v0 AND its addiu schedules at target position.
+ *  (4) unnamed sx + mul operands textually REVERSED (second operand's load
+ *      emits first) => f18/f16 exact.
+ * RESIDUAL (12 words): target colors blocks2/3-base=a1, q=a2, fc=a3 while
+ * leaving v0/v1 free post-block1 — uopt's lowest-available-reuse picker can't
+ * produce that from any of 12 probed candidate-order permutations. */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007448);
 #endif
@@ -9878,39 +9900,41 @@ void game_uso_func_0000BF7C(char *a0) {
  * short-path register choices (fnptr moved from a2 to v1). Keep the nested
  * selector form unless a new branch-likely suppression lever appears. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
-/* game_uso_func_0000BFDC: sign-dispatched 2-level table-lookup + indirect jalr.
- * pair = (short*)(a0+8); v1=base. 87.0 -> 87.3125 via commuting the two
- * `a1 = offset/e + arg` addu operands (target adds offset/e FIRST: addu a1,t6,a1
- * and addu a1,t3,a1). Remaining residual: selector double-test emits bnezl
- * (branch-likely, documented hard cap 2026-05-17/2026-06-01) + addu v0,t8,t0
- * operand-order scheduling artifact. Both intractable without insn patching. */
+/* game_uso_func_0000BFDC — EXACT 32/32 words (verified clean rebuild of
+ * build/non_matching/src/game_uso/game_uso.c.o vs
+ * asm/nonmatchings/game_uso/game_uso/game_uso_func_0000BFDC.s).
+ * Cracked 2026-07-03 (agent-e). The old "bnezl branch-likely hard cap" was a
+ * C-shape issue, not a cap. Three coupled levers:
+ *  (1) &&-TERNARY for the selector: `idx = (sel==0 && pair[0]==0) ? 0x28 : sel;`
+ *      -> uopt keeps sel(v0)/idx(a0) as separate webs (ternary result reg is a
+ *      real phi home): as1 steals the arm's `move a0,v0` into the first bnez
+ *      delay, retargets the second bnez to the merge with nop delay (plain
+ *      branches, NO bnezl), and the 0x28 arm becomes `b merge; li a0,0x28`.
+ *      Nested-if / goto / dead-kill / while(0) forms all coalesce -> bnezl.
+ *  (2) comma-embedded arg init: `arg = (arg = *(char**)(a0+4), arg) + pair[0];`
+ *      -> emission order lh 0xA / lh 0x8 / lw 4 (single-expr order) AND the lw
+ *      lands in arg's home a1 (comma re-read avoids the v0 snapshot temp of
+ *      `(arg = load) + pair[0]`) AND addu a1,t6,a1 operand order (textual-second
+ *      operand becomes rs).
+ *  (3) entry reuses the sel variable (multi-def) so entry colors v0. */
 int game_uso_func_0000BFDC(char *a0) {
     short *pair = (short*)(a0 + 8);
-    short key = pair[1];
-    short offset = pair[0];
-    char *arg = *(char**)(a0 + 4);
-    char *entry;
+    char *arg;
+    int idx;
     int (*fnptr)(char *);
 
-    arg = offset + arg;
-    if (key < 0) {
+    arg = (arg = *(char**)(a0 + 4), arg) + pair[0];
+    if (pair[1] < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int selector = *(int*)(pair + 2);
-        a0 = (char*)selector;
-        if (selector == 0 && pair[0] == 0) {
-            a0 = (char*)0x28;
-        }
-        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
-        arg = *(short*)entry + arg;
-        fnptr = *(int (**)(char *))(entry + 4);
+        int sel = *(int*)(pair + 2);
+        idx = (sel == 0 && pair[0] == 0) ? 0x28 : sel;
+        sel = (int)((char*)(pair[1] << 3) + *(int*)(arg + idx));
+        arg = *(short*)sel + arg;
+        fnptr = *(int (**)(char *))((char*)sel + 4);
     }
     return fnptr(arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000BFDC);
-#endif
 
 void game_uso_func_0000C05C(char *dst) {
     int tmp;
@@ -11425,7 +11449,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
  * extended temp into v1; if/else (not early-return) emits the beql + dead
  * store-tail. Exact. */
 extern char game_uso_D_807FF684;
-void game_uso_func_0000E2D0(char *a0) {
+void game_uso_func_0000E2D0(a0)
+char *a0;
+{
     int frame;
     char *block;
     float *acc;
@@ -11876,23 +11902,19 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
 //   (lw 0x18(a2) / lw 8(sp)) annulled into each branch delay slot — an IDO
 //   -O2 reorg-annul scheduling choice not steerable from C (per-test re-read
 //   yields plain beq here, not beql). Same reorg-annul class as func_0000174C.
-#ifdef NON_MATCHING
-// game_uso_func_0000EAF4 — steering/lean input integrator with rate-clamping.
-// Improvement over prior 71.48% structural pass: rewrote the keep-window clamp
-// as a single `if (d >= 3 || d < -2) d = 0;` so IDO emits the target's
-// fallthrough-shared `move a1,zero` + branch-likely (beqzl) reload of 0x126
-// (eb58-eb6c), eliminating a spurious `b` merge and matching the reflection
-// clamp exactly. Verified 71.48 -> 73.12 fuzzy in-tree.
 int game_uso_func_0000EAF4(char *obj, int a1, int a2) {
-    char *ctx = *(char **)(*(char **)(obj + 0xB4) + 0x800);
-    int tgt = *(short *)(ctx + 0x7C);
-    int v0 = 0;
-    int v1 = 0;
+    int flag;
+    int result;
     int d;
-    int sval;
+    int cur;
+    int tgt;
+
+    result = 0;
+    flag = 0;
+    tgt = *(short *)(*(char **)(*(char * volatile *)(obj + 0xB4) + 0x800) + 0x7C);
     if (tgt != 0) {
-        int cur = *(short *)(obj + 0x124);
         d = 0;
+        cur = *(short *)(obj + 0x124);
         if (cur != 0) {
             d = tgt - cur;
         }
@@ -11905,57 +11927,89 @@ int game_uso_func_0000EAF4(char *obj, int a1, int a2) {
             *(int *)(obj + 0x12C) = 0;
         }
         if (d == 0) {
-            char *c2 = *(char **)(*(char **)(obj + 0xB4) + 0x800);
-            if (*(unsigned int *)(c2 + 0x18) & 0x10000) {
+            cur = (int)*(char **)(*(char * volatile *)(obj + 0xB4) + 0x800);
+            if (*(volatile unsigned int *)(cur + 0x18) & 0x10000) {
                 d = -1;
-            } else if (*(unsigned int *)(c2 + 0x18) & 0x4000) {
+            } else if (*(volatile unsigned int *)(cur + 0x18) & 0x4000) {
                 d = 1;
-            } else if (*(unsigned int *)(c2 + 0x18) & 0x2000) {
+            } else if (*(volatile unsigned int *)(cur + 0x18) & 0x2000) {
                 *(int *)(obj + 0x12C) = 5;
-            } else if (*(unsigned int *)(c2 + 0x18) & 0x8000) {
+            } else if (*(volatile unsigned int *)(cur + 0x18) & 0x8000) {
                 *(int *)(obj + 0x12C) = 6;
             }
         }
         *(short *)(obj + 0x128) = *(short *)(obj + 0x128) + d;
-        tgt = *(short *)(*(char **)(*(char **)(obj + 0xB4) + 0x800) + 0x7C);
+        tgt = *(short *)(*(char **)(*(char * volatile *)(obj + 0xB4) + 0x800) + 0x7C);
     } else {
-        v0 = 1;
+        flag = 1;
     }
+    d = *(short *)(obj + 0x126);
     *(short *)(obj + 0x124) = tgt;
-    if (*(short *)(obj + 0x126) != 0) {
-        int cnt = *(short *)(obj + 0x126);
-        if (cnt >= 6) {
-            *(short *)(obj + 0x126) = cnt + 1;
-            v0 = 1;
+    if (d != 0) {
+        *(short *)(obj + 0x126) = (short)d + 1;
+        if ((short)d >= 6) {
+            flag = 1;
         }
     }
-    if (v0 == 0) return v1;
-    if (*(short *)(obj + 0x126) == 0) return v1;
-    *(short *)(obj + 0x126) = 0;
-    if (a1 != 0) {
-        if (*(int *)(*(char **)(obj + 0xB4) + 0xA58) & 0x80) {
-            *(short *)(obj + 0x128) = -*(short *)(obj + 0x128);
+    if (flag != 0) {
+        if (*(short *)(obj + 0x126) != 0) {
+            *(short *)(obj + 0x126) = 0;
+            if (a1 != 0) {
+                if (*(int *)(*(char * volatile *)(obj + 0xB4) + 0xA58) & 0x80) {
+                    *(short *)(obj + 0x128) = -*(short *)(obj + 0x128);
+                }
+            }
+            if (a2 != 0) {
+                *(short *)(obj + 0x128) = -*(short *)(obj + 0x128);
+            }
+            flag = *(short *)(obj + 0x128);
+            if (flag >= 3) {
+                result = 4;
+            } else if (flag > 0) {
+                result = 3;
+            } else if (flag < -2) {
+                result = 2;
+            } else if (flag < 0) {
+                result = 1;
+            }
+            *(int *)(obj + 0x12C) = result;
         }
     }
-    if (a2 != 0) {
-        *(short *)(obj + 0x128) = -*(short *)(obj + 0x128);
-    }
-    sval = *(short *)(obj + 0x128);
-    if (sval >= 3) {
-        v1 = 4;
-    } else if (sval > 0) {
-        v1 = 3;
-    } else if (sval < -2) {
-        v1 = 2;
-    } else if (sval < 0) {
-        v1 = 1;
-    }
-    *(int *)(obj + 0x12C) = v1;
-    return v1;
+    return result;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000EAF4);
-#endif
+
+/* game_uso_func_0000EAF4 — 125/125 EXACT (verified clean rebuild of
+ * build/non_matching/src/game_uso/game_uso.c.o word-by-word vs target .s;
+ * leaf, no relocs). The .s's 126th word (0x1F4: lw v0,0x10C(a0)) is NOT part
+ * of this function — it is the mis-split FIRST INSTRUCTION of
+ * game_uso_func_0000ECEC (it loads the v0 that ECEC's first beqz tests;
+ * EAF4 ends at jr ra + delay = 0x1F0). Landing needs the splat boundary fix:
+ * move that word from game_uso_func_0000EAF4.s to the head of
+ * game_uso_func_0000ECEC.s (byte-neutral for the ROM).
+ *
+ * 2026-07-03 (agent-e). From 73.1%. Decisive levers:
+ *  (1) LOGIC FIX: the 0x126 counter increments EVERY call when nonzero
+ *      (sh in the plain-bnez delay); v0-flag only when (short)cnt >= 6. Old
+ *      wrap gated the store on cnt>=6.
+ *  (2) E2D0-style split sign-extension: `d = *(short*)(obj+0x126); ...
+ *      *(obj+0x126) = (short)d + 1; if ((short)d >= 6)` — raw lh test +
+ *      sll/sra re-extension.
+ *  (3) SHARED RETURN: nested ifs (no duplicated `return` epilogues).
+ *  (4) THE BIG ONE — volatile CSE/PRE breakers: all four obj->0xB4 loads as
+ *      `*(char * volatile *)(obj + 0xB4)` and the flag-word reads as
+ *      `*(volatile unsigned int *)(cur + 0x18)`. Without volatile, uopt PRE
+ *      unifies the cross-path B4 loads into ONE long-lived candidate (t0) —
+ *      dropping a reload AND phase-shifting the whole temp pool (t0,t6,t7,...
+ *      vs target t6,t7,t8,...); the else-if flag reads CSE into one andi
+ *      chain (-6 words). Volatile restores per-use loads incl. the
+ *      beqzl-annulled delay-slot reload duplicates. (Named fresh per-level
+ *      reload vars, dead kills, goto forms: all VN'd away — only volatile
+ *      breaks availability.)
+ *  (5) Variable economy mirrors target coloring: flag=v0, result=v1, d=a1
+ *      (reused as cnt), cur=a2 (reused as the d==0 ctx pointer AND implicitly
+ *      sval via flag reuse), tgt=a3. Init order `result=0; flag=0;` BEFORE
+ *      the tgt chain (emission: move v1 then move v0).
+ */
 
 // game_uso_func_0000ECEC — STRUCTURAL PASS (0xE0 / 56 words,
 // no episode). Raw-.word USO form (single function, game_uso main
@@ -12362,56 +12416,31 @@ void game_uso_func_0000F360(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F360);
 #endif
 
-#ifdef NON_MATCHING
-/* 30-insn USO function (0xF424, size 0x78). Decoded from .word-only asm:
- *   p_b4 = a0->field_B4 (loaded as int*)
- *   p_b4->field_A18 = 0       (clear an int slot)
- *   a0->field_114  = 1        (set a flag-byte/word)
- *   p_b4 reloaded; flag = p_b4->field_9A8
- *   if ((flag & 1) == 0) {
- *       float a = *(f32*)((char*)p_b4 + 0x180);   // 0x170 + 0x10
- *       float b = *(f32*)((char*)p_b4 + 0x6A8);   // 0x698 + 0x10
- *       *(f32*)((char*)p_b4 + 0x31C) += -a * b;   // accumulate -a*b
- *   }
- *   gl_func_00000000(a0);                          // first runtime-patched callee
- *   gl_func_00000000(a0, 0);                       // second with arg2=0
- *
- * 2026-06-20 reconstruction: real callees recovered from the resolved .s —
- * first call is game_uso_func_0000E2D0(q + 0x170) (NOT a0), second is
- * game_uso_func_0000E5C8(a0, 0). The prior body collapsed both into the
- * gl_func_00000000 placeholder + passed a0 to the first call. The arg5 base
- * q+0x170 also feeds the lwc1 (0x10 off it) — held as $5 = q+0x170, so the
- * first float read goes through `base` to keep $5 live for the E2D0 call.
- *
- * REMAINING CAP (~5 structural diffs, FP-reg-renumber-desynced to ~28 word
- * positions): (a) IDO allocates the float temps f0/f2/f4/f6/f8/f10; target uses
- * f4/f8/f6/f10/f16/f18 (FP-register-renumber cap, source-order-invariant — a/b
- * and b/a read order both reproduce f0-start). (b) IDO keeps a0 alive in $6
- * (`or $6,$4`) across the float block + spills $6; target instead spills the
- * param a0 to its caller-shadow 0x18(sp) in the E2D0 jal delay and reloads for
- * E5C8 (one fewer word). `&a0`/`*&a0` home levers are DCE'd. Default INCLUDE_ASM. */
+extern void game_uso_func_0000E5C8(char *, int);
 void game_uso_func_0000F424(int *a0) {
-    int *p_b4;
-    char *base;
-    int flag;
+    char *w;
+    float *pa;
+    float *pb;
+    float *pc;
 
-    p_b4 = (int*)a0[0xB4 / 4];
-    p_b4[0xA18 / 4] = 0;
+    *(int*)(*(char**)((char*)a0 + 0xB4) + 0xA18) = 0;
     a0[0x114 / 4] = 1;
-    p_b4 = (int*)a0[0xB4 / 4];
-    base = (char*)p_b4 + 0x170;
-    flag = ((int*)p_b4)[0x9A8 / 4];
-    if ((flag & 1) == 0) {
-        float a = *(float*)(base + 0x10);
-        float b = *(float*)((char*)p_b4 + 0x6A8);
-        *(float*)((char*)p_b4 + 0x31C) += -a * b;
+    w = *(char**)((char*)a0 + 0xB4);
+    pa = (float*)(w + 0x170);
+    pb = (float*)(w + 0x698);
+    pc = (float*)(w + 0x31C);
+    if ((*(int*)(w + 0x9A8) & 1) == 0) {
+        pc[0] += -pa[4] * pb[4];
+        game_uso_func_0000E2D0((char*)a0, pa, pb);
     }
-    game_uso_func_0000E2D0(base);
-    game_uso_func_0000E5C8(a0, 0);
+    game_uso_func_0000E5C8((char*)a0, 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000F424);
-#endif
+
+/* PREREQUISITE (outside this body): game_uso_func_0000E2D0's definition
+ * converted ANSI->K&R (`(a0) char *a0; {`) — verified byte-IDENTICAL vs
+ * expected/src/game_uso/game_uso.c.o — and its ANSI extern prototype
+ * (`extern void game_uso_func_0000E2D0(char *);` near func_00010128) REMOVED,
+ * so the 3-arg call above is legal (extras unchecked, materialize a1/a2). */
 
 /* game_uso_func_0000F49C: 30-insn state-init.
  * NATURAL CEILING: ~70% NM. The inlined `flags_ptr`/`sub` derefs drive
@@ -13131,7 +13160,7 @@ extern void game_uso_func_0000D5F8(char *, Pair2, int);
 extern void game_uso_func_0000D5DC(char *);
 extern void game_uso_func_0000E5C8(char *, int);
 extern int game_uso_func_0000E35C(char *);
-extern void game_uso_func_0000E2D0(char *);
+extern void game_uso_func_0000E2D0();
 extern void game_uso_func_00011750(char *);
 void game_uso_func_00010128(int *a0) {
     int *inner;

@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000BFDC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T15:06:08.525336+00:00",
+  "end_time": "2026-07-03T15:06:08.525355+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T15:06:08.525349+00:00",
+      "assistant_text": "'bnezl hard cap' was C-shape: &&-ternary idx=(sel==0 && pair[0]==0)?0x28:sel keeps the phi move a0,v0 (as1 steals it into the first bnez delay, retargets branch 2 with nop = plain branches) + comma-embedded arg init arg=(arg=*(char**)(a0+4),arg)+pair[0] fixes load order + lw-in-a1 + addu operand order simultaneously.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "/* game_uso_func_0000BFDC \u2014 EXACT 32/32 words (verified clean rebuild of\n * build/non_matching/src/game_uso/game_uso.c.o vs\n * asm/nonmatchings/game_uso/game_uso/game_uso_func_0000BFDC.s).\n * Cracked 2026-07-03 (agent-e). The old \"bnezl branch-likely hard cap\" was a\n * C-shape issue, not a cap. Three coupled levers:\n *  (1) &&-TERNARY for the selector: `idx = (sel==0 && pair[0]==0) ? 0x28 : sel;`\n *      -> uopt keeps sel(v0)/idx(a0) as separate webs (ternary result reg is a\n *      real phi home): as1 steals the arm's `move a0,v0` into the first bnez\n *      delay, retargets the second bnez to the merge with nop delay (plain\n *      branches, NO bnezl), and the 0x28 arm becomes `b merge; li a0,0x28`.\n *      Nested-if / goto / dead-kill / while(0) forms all coalesce -> bnezl.\n *  (2) comma-embedded arg init: `arg = (arg = *(char**)(a0+4), arg) + pair[0];`\n *      -> emission order lh 0xA / lh 0x8 / lw 4 (single-expr order) AND the lw\n *      lands in arg's home a1 (comma re-read avoids the v0 snapshot temp of\n *      `(arg = load) + pair[0]`) AND addu a1,t6,a1 operand order (textual-second\n *      operand becomes rs).\n *  (3) entry reuses the sel variable (multi-def) so entry colors v0. */\nint game_uso_func_0000BFDC(char *a0) {\n    short *pair = (short*)(a0 + 8);\n    char *arg;\n    int idx;\n    int (*fnptr)(char *);\n\n    arg = (arg = *(char**)(a0 + 4), arg) + pair[0];\n    if (pair[1] < 0) {\n        fnptr = *(int (**)(char *))(a0 + 0xC);\n    } else {\n        int sel = *(int*)(pair + 2);\n        idx = (sel == 0 && pair[0] == 0) ? 0x28 : sel;\n        sel = (int)((char*)(pair[1] << 3) + *(int*)(arg + idx));\n        arg = *(short*)sel + arg;\n        fnptr = *(int (**)(char *))((char*)sel + 4);\n    }\n    return fnptr(arg);\n}",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_0000BFDC.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical (EAF4 after byte-neutral boundary-word move + expected refresh)"
+  }
+}

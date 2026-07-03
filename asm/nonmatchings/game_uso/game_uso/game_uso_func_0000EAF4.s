@@ -1,4 +1,4 @@
-nonmatching game_uso_func_0000EAF4, 0x1F8
+nonmatching game_uso_func_0000EAF4, 0x1f4
 
 glabel game_uso_func_0000EAF4
     /* 00EAF4 0000EAF4 AFA50004 */  .word 0xAFA50004
@@ -126,5 +126,4 @@ glabel game_uso_func_0000EAF4
     /* 00ECDC 0000ECDC AC83012C */  .word 0xAC83012C
     /* 00ECE0 0000ECE0 03E00008 */  .word 0x03E00008
     /* 00ECE4 0000ECE4 00601025 */  .word 0x00601025
-    /* 00ECE8 0000ECE8 8C82010C */  .word 0x8C82010C
 endlabel game_uso_func_0000EAF4

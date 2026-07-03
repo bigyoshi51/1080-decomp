@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000F424",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T15:06:08.846323+00:00",
+  "end_time": "2026-07-03T15:06:08.846362+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T15:06:08.846355+00:00",
+      "assistant_text": "Two logic bugs (E2D0 called with a0 not base; FP block AND the E2D0 call inside the flag branch) + unchecked-extras arg materialization: E2D0's def converted to K&R (byte-identical verified) + ANSI prototype relaxed, so F424 passes (a0, pa, pb) -> addiu a1/a2 + lwc1 0x10(aN) for the held float* bases.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 30,
+  "initial_m2c_source": null,
+  "final_source": "/* game_uso_func_0000F360: 49-insn float-compare-gated state-mux update.\n *\n * 2026-06-24 (game_uso spine reconstruction, 70.8% -> 89.67%):\n *  (1) Arms swapped vs the prior decode. The target's `beqzl t6,f3c0`\n *      (branch-LIKELY) loads the t6==0 arm value (p+0x780) in its delay slot;\n *      the t6!=0 fallthrough loads (p+0x798):\n *        if (p->0x9CC != 0) f0 = *(p+0x798) + f2;  // t6!=0 fallthrough\n *        else               f0 = *(p+0x780) + f2;  // t6==0 beqzl-taken\n *  (2) `fv = (float)v0` as an EXPLICIT float local forces IDO to hoist the\n *      single cvt.s.w + mul.s before the branch (matches f390/f3a0). Without\n *      the named float temp IDO sinks/duplicates the conversion into both arms\n *      (the old 70.8% shape).\n *  f2 = (a0->0x1B4) * fv; scale = *(p+0x520); *(p+0x31C) += scale * f0;\n *  a0->0xF0 = 0; import_00096874(p+0x808); game_uso_func_0001001C(a0);\n *  double const at game_uso_D_807FFB60 + 0x240 (ldc1 576(at)).\n *\n * RESIDUAL (honest NON_MATCHING, ~89.67%): two coloring/scheduler artifacts.\n *  - Target keeps p in $v1 and materializes per-block `addiu` base regs\n *    (v1+1904, v1+1296, v1+1928, v1+796); our build addresses off one base\n *    with large displacements. Intermediate `char*` pointer locals const-fold\n *    back to single-base (verified: variant C = identical 89.67%).\n *  - Target's beqzl-likely delay duplicates `lwc1 f16,16(v0)` (dead at the\n *    t6!=0 merge, the +1 instruction). FP-scheduler delay-slot dup, not\n *    reproducible from the if/else C form. */\nextern char game_uso_D_807FFB60;\nextern void import_00096874(int);\nextern void game_uso_func_0001001C(int *);\nvoid game_uso_func_0000F360(int *a0) {\n    int v0 = *(short*)((char*)a0 + 0xE4);\n    int *p;\n    float f2, f0, fv;\n    if (v0 < 0) {\n        *(short*)((char*)a0 + 0xE4) = 0;\n        v0 = *(short*)((char*)a0 + 0xE4);\n    }\n    p = *(int**)((char*)a0 + 0xB4);\n    fv = (float)v0;\n    f2 = *(float*)((char*)a0 + 0x1B4) * fv;\n    if (*(int*)((char*)p + 0x9CC) != 0) {\n        f0 = *(float*)((char*)p + 0x798) + f2;\n    } else {\n        f0 = *(float*)((char*)p + 0x780) + f2;\n    }\n    if (*(short*)((char*)p + 0x9A2) == 0x62) {\n        f0 = (float)((double)f0 * *(double*)((char*)&game_uso_D_807FFB60 + 0x240));\n    }\n    *(float*)((char*)p + 0x31C) += *(float*)((char*)p + 0x520) * f0;\n    *(int*)((char*)a0 + 0xF0) = 0;\n    import_00096874((int)(*(char**)((char*)a0 + 0xB4) + 0x808));\n    game_uso_func_0001001C(a0);\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_uso/game_uso\", game_uso_func_0000F360);\n#endif\n\nextern void game_uso_func_0000E5C8(char *, int);\nvoid game_uso_func_0000F424(int *a0) {\n    char *w;\n    float *pa;\n    float *pb;\n    float *pc;\n\n    *(int*)(*(char**)((char*)a0 + 0xB4) + 0xA18) = 0;\n    a0[0x114 / 4] = 1;\n    w = *(char**)((char*)a0 + 0xB4);\n    pa = (float*)(w + 0x170);\n    pb = (float*)(w + 0x698);\n    pc = (float*)(w + 0x31C);\n    if ((*(int*)(w + 0x9A8) & 1) == 0) {\n        pc[0] += -pa[4] * pb[4];\n        game_uso_func_0000E2D0((char*)a0, pa, pb);\n    }\n    game_uso_func_0000E5C8((char*)a0, 0);\n}",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_0000F424.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical (EAF4 after byte-neutral boundary-word move + expected refresh)"
+  }
+}
