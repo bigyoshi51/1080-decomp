@@ -1,0 +1,33 @@
+{
+  "function_name": "mgrproc_uso_func_00001594",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T02:47:59.686619+00:00",
+  "end_time": "2026-07-03T02:47:59.686641+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T02:47:59.686635+00:00",
+      "assistant_text": "Candidate-elimination beats last-candidate coloring: fully inlining the vtable-address locals (p/idx/q/fn) removes competing coloring candidates so only the CSE'd stride 0x28 remains (colors v1); prior cap analysis only tried moving the stride earlier. Then commutative-operand source swap: idx*0x28 + (char*)base + 0x90 (mult first in source) flips addu to base-first. 17/32 -> 30/32 -> 32/32.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "/* mgrproc_uso_func_00001594 \u00e2\u0080\u0094 EXACT 32/32 body (verified clean-rebuild 2026-07-02, agent-e).\n *\n * Replaces the former NM body (which was a documented \"register-renumber cap\").\n * CAP CRACKED \u00e2\u0080\u0094 two levers, in order:\n *\n * 1. remove-local-inline-recompute (docs/IDO_CODEGEN.md): the old body's\n *    locals p/idx/q/fn were register-allocation CANDIDATES; idx colored $v1\n *    and fn colored $a0, pushing the shared stride constant 0x28 to $a2.\n *    In the target, only the CSE'd 0x28 is a candidate (gets low color $v1)\n *    and idx/q/fn are pure temps (t6..t9, then t0..t2, jalr t9).\n *    Inlining everything into two big expressions reproduced 30/32.\n * 2. commutative-operand source swap: residual was addu operand order\n *    (target `addu t8,v0,t7` base-first vs built mult-first). Writing the\n *    address as `idx*0x28 + (char*)base + 0x90` (mult FIRST in source)\n *    flips IDO's emitted addu to base-first. 32/32.\n *\n * Externs required (already at file scope in mgrproc_uso.c):\n *   extern int mgrproc_uso_func_013980();\n *   extern int import_80020228;\n *   extern int import_80263D60;\n */\nvoid mgrproc_uso_func_00001594(int *a0) {\n    if (mgrproc_uso_func_013980(*(int*)((char*)&import_80020228 + 0x190), a0) == 0) return;\n    if (*(int*)(*(int*)((char*)a0[0x48 / 4] + 0x7C) * 0x28 + (char*)a0[0x48 / 4] + 0x90) == 0) return;\n    *(int*)((char*)&import_80263D60 + 0x30) = (int)a0;\n    ((void(*)()) *(int*)(*(int*)((char*)a0[0x48 / 4] + 0x7C) * 0x28 + (char*)a0[0x48 / 4] + 0x90))();\n}",
+  "metadata": {
+    "source_path": "src/mgrproc_uso/mgrproc_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00001594.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

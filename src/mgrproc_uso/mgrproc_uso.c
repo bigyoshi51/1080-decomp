@@ -657,30 +657,36 @@ case_13:
  *    register-renumber cap. Default build is INCLUDE_ASM. */
 extern int gl_func_00000000();
 extern int D_mgr_1594_a, D_mgr_1594_c;
-#ifdef NON_MATCHING
-extern int mgrproc_uso_func_013980();
 extern int import_80020228;
 extern int import_80263D60;
+extern int mgrproc_uso_func_013980();
+/* mgrproc_uso_func_00001594 — EXACT 32/32 body (verified clean-rebuild 2026-07-02, agent-e).
+ *
+ * Replaces the former NM body (which was a documented "register-renumber cap").
+ * CAP CRACKED — two levers, in order:
+ *
+ * 1. remove-local-inline-recompute (docs/IDO_CODEGEN.md): the old body's
+ *    locals p/idx/q/fn were register-allocation CANDIDATES; idx colored $v1
+ *    and fn colored $a0, pushing the shared stride constant 0x28 to $a2.
+ *    In the target, only the CSE'd 0x28 is a candidate (gets low color $v1)
+ *    and idx/q/fn are pure temps (t6..t9, then t0..t2, jalr t9).
+ *    Inlining everything into two big expressions reproduced 30/32.
+ * 2. commutative-operand source swap: residual was addu operand order
+ *    (target `addu t8,v0,t7` base-first vs built mult-first). Writing the
+ *    address as `idx*0x28 + (char*)base + 0x90` (mult FIRST in source)
+ *    flips IDO's emitted addu to base-first. 32/32.
+ *
+ * Externs required (already at file scope in mgrproc_uso.c):
+ *   extern int mgrproc_uso_func_013980();
+ *   extern int import_80020228;
+ *   extern int import_80263D60;
+ */
 void mgrproc_uso_func_00001594(int *a0) {
-    int *p;
-    int idx;
-    int *q;
-    void (*fn)();
     if (mgrproc_uso_func_013980(*(int*)((char*)&import_80020228 + 0x190), a0) == 0) return;
-    p = (int*)a0[0x48 / 4];
-    idx = *(int*)((char*)p + 0x7C);
-    q = (int*)((char*)p + idx * 0x28);
-    if (q[0x90 / 4] == 0) return;
+    if (*(int*)(*(int*)((char*)a0[0x48 / 4] + 0x7C) * 0x28 + (char*)a0[0x48 / 4] + 0x90) == 0) return;
     *(int*)((char*)&import_80263D60 + 0x30) = (int)a0;
-    p = (int*)a0[0x48 / 4];
-    idx = *(int*)((char*)p + 0x7C);
-    q = (int*)((char*)p + idx * 0x28);
-    fn = (void(*)())q[0x90 / 4];
-    fn();
+    ((void(*)()) *(int*)(*(int*)((char*)a0[0x48 / 4] + 0x7C) * 0x28 + (char*)a0[0x48 / 4] + 0x90))();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001594);
-#endif
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00001614: state-machine step (switch arg0->0x504, cases 0/1/4
