@@ -715,20 +715,10 @@ int gl_func_00034C7C(void *a0, void *a1) {
 }
 
 #ifdef NON_MATCHING
-/* Flag-remap: look up a 6-byte table entry at &D[0x11FA + a1->0x34*6]; copy its
- * bytes [2],[3] to a1[8],a1[9]; then permute the entry's u16 flags word into a
- * differently-positioned output flag set (a1->0x10) via an andi/beqz/ori chain;
- * return 1 if input bit 0x4 was set. Reloc-blind (&D table).
- * 91.8% NM (2026-06-02, was 89.75%): the table entry must be read through a
- * `signed char *` so bytes [2]/[3] emit `lb` (not `lbu`) — +2pp. Residual is
- * flag-accumulation regalloc: the unused `int a0` param occupies $a0 (real ABI
- * arg, can't drop — a1 would shift to $a0), so IDO parks v0/the flags word in
- * different regs than the target ($a0/$a2 cascade + the andi/beq/ori chain
- * register-alloc, 5703C-family). Permuter-class. */
 int game_libs_func_00034CC8(int a0, char *a1) {
     signed char *t = (signed char *)((char *)&D_00000000 + 0x11FA + *(int *)(a1 + 0x34) * 6);
     int v1 = 0;
-    int v0 = 0;
+    int v0;
     int flags;
     a1[8] = t[2];
     a1[9] = t[3];
@@ -749,6 +739,8 @@ int game_libs_func_00034CC8(int a0, char *a1) {
     if (flags & 0x4) {
         v0 = 1;
         v1 |= 0x80;
+    } else {
+        v0 = (int)t;
     }
     *(int *)(a1 + 0x10) = v1;
     return v0;
