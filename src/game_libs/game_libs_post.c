@@ -18445,44 +18445,47 @@ void game_libs_func_00031754(int *a0, int a1, int a2, int a3) {
     a0[0x5C / 4] = (int)((char *)&D_00000000 + (((int)v >> 1) << 1));
 }
 
-/* game_libs_func_00031784: ring-buffer write-index advance (mask-wrap by 0xF).
- * NM (permuter-narrowed 2026-06-21, 4->2 diffs): reading the write index via a
- * reused `v0` local AND forcing the `+1` through `(long long)1` colors the
- * load/incr pair to the target's t2/t3 (was v0/t3). RESIDUAL (2 words): the
- * final `andi t5,t3,0xf; sw t5` masked-store result lands in t9 not t5 — a
- * lowest-free-register coloring residual (target skips t4->t5; permuter floored
- * at score 10 / 2 reg diffs, can't reach it). The `(long long)1` cast is
- * load-bearing (drop it -> 5 diffs, t2/t3 decolor). */
-#ifdef NON_MATCHING
-void game_libs_func_00031784(int *a0) {
-  int v0 = a0[0x54 / 4];
-  int t;
-  if (v0 != 0)
-  {
-    if (v0 != 1)
-    {
-      goto end;
-    }
-    if (a0[0x58 / 4] < a0[0x4C / 4])
-    {
-      goto end;
-    }
-    a0[0x4C / 4] = a0[0x58 / 4];
-    a0[0x48 / 4] = 0;
-    a0[0x40 / 4] = a0[0x44 / 4];
-  }
-  a0[a0[0x40 / 4]] = a0[0x5C / 4];
-  v0 = 0x10;
-  t = a0[v0] + (long long)1;
-  ((volatile int *) a0)[0x40 / 4] = t;
-  a0[0x40 / 4] = (t & 0xF) & 0xFFFFu;
-  end:
-  a0[0x5C / 4] = 0;
+/* game_libs_func_00031784 — EXACT MATCH, 27/27 words, verified in-tree
+ * (build/non_matching/src/game_libs/game_libs_post.c.o) 2026-07-02 agent-e.
+ *
+ * PROMOTION-READY: function is RELOC-FREE (no relocs in [fn, fn+0x6C) in the
+ * built .o; the D_00000000 HI16/LO16 pair nearby belongs to 31754). Replace
+ * (and the stale "RESIDUAL (2 words)" doc comment above it) with the plain
+ * definition below.
+ *
+ * What cracked it: drop the whole `(long long)1` / volatile-store / double-mask
+ * lever kit and write the tail as the NATURAL two read-modify-write statements
+ * on the field itself:
+ *     a0[0x40/4] = a0[0x40/4] + 1;
+ *     a0[0x40/4] = a0[0x40/4] & 0xF;
+ * The second statement's reload of unk40 keeps the first store live (both sw
+ * emitted) and then CSE-folds onto t3 — the folded reload candidate burns the
+ * t4 rotation slot, so the andi result colors to t5 (was t9-reuse). This also
+ * naturally yields the fresh t2/t3 load/incr pair the old (long long)1 hack
+ * was forcing. The dead `v0 = 0x10;` cursor trick is unnecessary.
+ */
 
+/* ring-buffer write-index advance (mask-wrap by 0xF) */
+void game_libs_func_00031784(int *a0) {
+    int v0 = a0[0x54 / 4];
+
+    if (v0 != 0) {
+        if (v0 != 1) {
+            goto end;
+        }
+        if (a0[0x58 / 4] < a0[0x4C / 4]) {
+            goto end;
+        }
+        a0[0x4C / 4] = a0[0x58 / 4];
+        a0[0x48 / 4] = 0;
+        a0[0x40 / 4] = a0[0x44 / 4];
+    }
+    a0[a0[0x40 / 4]] = a0[0x5C / 4];
+    a0[0x40 / 4] = a0[0x40 / 4] + 1;
+    a0[0x40 / 4] = a0[0x40 / 4] & 0xF;
+end:
+    a0[0x5C / 4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031784);
-#endif
 
 /* Timer/script-step interpreter: decrement the a0->0x48 countdown; while it
  * hasn't reached 0, return 0. On expiry, read a command halfword from the

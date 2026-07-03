@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00031784",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T02:02:04.529349+00:00",
+  "end_time": "2026-07-03T02:02:04.529369+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T02:02:04.529363+00:00",
+      "assistant_text": "Natural both-store RMW pair beats temp+volatile lever kit: a0[0x40/4]=a0[0x40/4]+1; a0[0x40/4]=a0[0x40/4]&0xF; \u2014 second statement's reload keeps the first store live (both sw emit), CSE-folds onto t3 AFTER dead-store elim, burning the t4 rotation slot so the andi colors to t5. Target keeping both stores at -O2 was the tell the original re-read the field. 96-cell sweep: only the both-store family hits 27/27.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 27,
+  "initial_m2c_source": null,
+  "final_source": "/* ring-buffer write-index advance (mask-wrap by 0xF) */\nvoid game_libs_func_00031784(int *a0) {\n    int v0 = a0[0x54 / 4];\n\n    if (v0 != 0) {\n        if (v0 != 1) {\n            goto end;\n        }\n        if (a0[0x58 / 4] < a0[0x4C / 4]) {\n            goto end;\n        }\n        a0[0x4C / 4] = a0[0x58 / 4];\n        a0[0x48 / 4] = 0;\n        a0[0x40 / 4] = a0[0x44 / 4];\n    }\n    a0[a0[0x40 / 4]] = a0[0x5C / 4];\n    a0[0x40 / 4] = a0[0x40 / 4] + 1;\n    a0[0x40 / 4] = a0[0x40 / 4] & 0xF;\nend:\n    a0[0x5C / 4] = 0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00031784.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
