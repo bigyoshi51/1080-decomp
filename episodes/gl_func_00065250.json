@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00065250",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T13:19:57.212048+00:00",
+  "end_time": "2026-07-03T13:19:57.212071+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T13:19:57.212065+00:00",
+      "assistant_text": "Five stacked levers: FP pool-coloring (dx,dy,dz defined x,y,z -> f0/f2/f12 pool-START; field loads inline stay temps); decl-order-descending frame with volatile-pad scalar reserve (d@0x34/e@0x44/f@0x54, frame 0x60); LEADING empty if(sub){} materializes base addiu v0,a0,0x324 (trailing does NOT); SECOND empty if(sub){} splits BB so param a1 avoids the call's a1 precolor (kills move aN,a1); all three z,y,x defs on ONE source line (as1 line-window grouping).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 34,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00065250 \u2014 EXACT 34/34 (2026-07-03). Levers (in order cracked):\n * 1. FP pool-coloring: named float diffs dx,dy,dz (defs x,y,z) -> f0,f2,f12\n *    from pool START; the 6 field loads stay expression temps (f4-f18) by\n *    reading a1->N / sub->N directly in the sub expressions.\n * 2. Frame/slots: layout = pure decl-order DESCENDING from\n *    T = align8(0x18 + total_local_bytes). Target d@0x34/e@0x44/f@0x54,\n *    frame 0x60 => decl f, volatile pad2, e, volatile pad1, d, then\n *    scalar reserve of 6 words (dz,dy,dx + sub + volatile pad_a,pad_b).\n * 3. Base-reg materialization (addiu v0,a0,0x324 instead of folded\n *    0x324(a0) loads): LEADING empty `if (sub) {}` (value-use BEFORE the\n *    loads). A trailing-only if does NOT materialize.\n * 4. No `move aN,a1` param copy: SECOND empty `if (sub) {}` after the\n *    d-field stores splits the BB so param a1's uses don't share a BB\n *    with the call's $a1 precolor.\n * 5. Schedule z,y,x (subs+stores+a1 loads) with temps/coloring still\n *    x,y,z: put all three defs on ONE SOURCE LINE (as1 line-window\n *    grouping); stores written z,y,x on separate lines.\n */\nvoid gl_func_00065250(int a0, Vec3_f *a1) {\n    Vec3_f f;\n    volatile int pad2;\n    Vec3_f e;\n    volatile int pad1;\n    Vec3_f d;\n    float dz, dy, dx;\n    Vec3_f *sub;\n    volatile int pad_a, pad_b;\n    sub = (Vec3_f *)(a0 + 0x324);\n    if (sub) {}\n    dx = a1->x - sub->x; dy = a1->y - sub->y; dz = a1->z - sub->z;\n    d.z = dz;\n    d.y = dy;\n    d.x = dx;\n    if (sub) {}\n    e = d;\n    f = e;\n    gl_func_00062F64(a0 + 0x294, &f);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00065250.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "make verify ROM byte-identical + objdiff fuzzy=100.0 (64170 after reverse-merge boundary fix + expected refresh)"
+  }
+}

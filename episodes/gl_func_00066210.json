@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00066210",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T13:19:56.922925+00:00",
+  "end_time": "2026-07-03T13:19:56.922949+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T13:19:56.922942+00:00",
+      "assistant_text": "'Deep IDO const-reuse CAP' was a misdecode: the 2nd jal's delay sw v0,0x18(sp) with no a0 setup = 2nd call takes ZERO args, saved = FIRST call's result (its spill fills call 2's delay). Decl order buf,saved -> saved@0x18/buf@0x1C.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00066210 \u2014 EXACT 21/21 (2026-07-03).\n * Previous \"cap\" was a misdecode: target's second jal has `sw v0,0x18(sp)` in\n * the delay slot with no a0 setup => second call takes ZERO args, and `saved`\n * is the FIRST call's result (spill scheduled into call 2's delay slot).\n * Decl order buf-then-saved puts saved@sp+0x18, buf@sp+0x1C. */\nint gl_func_00066210(int a0, int a1) {\n    int buf;\n    int saved;\n    saved = gl_func_00000000(1);\n    gl_func_00000000();\n    gl_func_00000000(&buf, 4);\n    gl_func_00000000(a1, &buf);\n    gl_func_00000000(saved);\n    return buf;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00066210.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "make verify ROM byte-identical + objdiff fuzzy=100.0 (64170 after reverse-merge boundary fix + expected refresh)"
+  }
+}

@@ -823,7 +823,7 @@ void gl_func_000640E4(int a0, int *a1) {
  *  - The 0x50 symbol's trailing `mtc1 zero,$f0` is the SUCCESSOR's
  *    stolen prologue — historically captured via SUFFIX_BYTES on this
  *    predecessor and PROLOGUE_STEALS/INSN_PATCH on the successor
- *    gl_func_00064174. All of those mechanisms were REMOVED 2026-05-23
+ *    gl_func_00064170. All of those mechanisms were REMOVED 2026-05-23
  *    as match-faking. The C-level distinct-$f4-for-0.0 lever is also
  *    missing. Multi-blocker; needs splat boundary correction (focused-
  *    session work) for the trailing-stolen-prologue piece, plus a real
@@ -855,25 +855,60 @@ void game_libs_func_00064124(char *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00064124);
 #endif
 
-/* gl_func_00064174: 26-insn 10-float zero + 3-int-to-float bit-copy.
+/* gl_func_00064170: 26-insn 10-float zero + 3-int-to-float bit-copy.
  * $f0=0.0 prologue-stolen from predecessor game_libs_func_00064124's
  * trailing `mtc1 zero,$f0`. PROLOGUE_STEALS=4 splices the C-emit's
  * duplicate leading `mtc1 zero,$f0`. Splice script extended 2026-05-16
  * to accept opcode 0x11 mtc1-zero prefixes. */
 #ifdef NON_MATCHING
-void gl_func_00064174(float *a0, int *a1) {
-    int pad[3];
-    int tmp[3];
-    (void)pad;
-    a0[0] = 0.0f; a0[1] = 0.0f; a0[2] = 0.0f; a0[3] = 0.0f; a0[4] = 0.0f;
-    a0[5] = 0.0f; a0[6] = 0.0f; a0[7] = 0.0f; a0[8] = 0.0f; a0[9] = 0.0f;
-    tmp[0] = a1[0]; tmp[1] = a1[1]; tmp[2] = a1[2];
-    a0[10] = *(float*)&tmp[0];
-    a0[11] = *(float*)&tmp[1];
-    a0[12] = *(float*)&tmp[2];
+/* gl_func_00064174 -> gl_func_00064170 — EXACT 27/27 (2026-07-03), but ONLY
+ * after a REVERSE-MERGE splat boundary fix (docs/MATCHING_WORKFLOW.md
+ * "direction 4", 4-byte variant):
+ *
+ *   The word 0x44800000 (mtc1 zero,$f0) at 0x64170 sits AFTER
+ *   game_libs_func_00064124's `jr ra` + delay slot — it is the true FIRST
+ *   instruction of this function (IDO emits the mtc1 BEFORE the sp adjust).
+ *   No symbol table entries / callers reference 0x64174, so the rename is
+ *   safe. The old "PROLOGUE_STEALS" comment on this fn was this exact
+ *   misdiagnosis. Honest C cannot emit the 26-word 0x64174 form (f0 would
+ *   be undefined; IDO homes uninit float locals as lwc1 from stack —
+ *   register/if(0)/while(0) phantom-def variants all still load).
+ *
+ * ASM SURGERY (already validated, full `make` = byte-identical ROM):
+ * 1. asm/nonmatchings/game_libs/game_libs/game_libs_func_00064124.s:
+ *    delete last .word line (`00064170 44800000`), header 0x50 -> 0x4C.
+ * 2. gl_func_00064174.s -> gl_func_00064170.s: header
+ *    "nonmatching gl_func_00064170, 0x6C"; insert
+ *    `    /+ E49248 00064170 44800000 +/  .word 0x44800000` (fix comment
+ *    delimiters) right after the renamed glabel; rename glabel/endlabel.
+ * 3. src/game_libs/game_libs_post1b.c: rename all 4 occurrences of
+ *    gl_func_00064174 -> gl_func_00064170.
+ *
+ * C levers: union (int3 struct / float[3]) gives the int struct-assign
+ * lw/sw chain via materialized t6=&tmp (t8,t7,t8 temp reuse) AND folded
+ * sp-relative lwc1 read-backs. Layout (decl-order descending from
+ * T=align8(total), leaf fn): q1@0x1C,q2@0x18, tmp@0xC, p1@8,p2@4,
+ * z-reserve@0 -> frame 0x20, tmp@0xC. z=0.0f emits the leading mtc1.
+ */
+typedef struct GlInt3_64174 { int a, b, c; } GlInt3_64174;
+void gl_func_00064170(float *a0, int *a1) {
+    volatile int q1, q2;
+    union {
+        GlInt3_64174 i;
+        float f[3];
+    } tmp;
+    volatile int p1, p2;
+    float z;
+    z = 0.0f;
+    a0[0] = z; a0[1] = z; a0[2] = z; a0[3] = z; a0[4] = z;
+    a0[5] = z; a0[6] = z; a0[7] = z; a0[8] = z; a0[9] = z;
+    tmp.i = *(GlInt3_64174 *)a1;
+    a0[10] = tmp.f[0];
+    a0[11] = tmp.f[1];
+    a0[12] = tmp.f[2];
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064174);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064170);
 #endif
 
 #ifdef NON_MATCHING
@@ -1547,17 +1582,43 @@ typedef struct Vec3_f { float x, y, z; } Vec3_f;
  * sp-slot allocation (52/68/84 vs 44/.. ; frame -88 vs -96); documented
  * finicky struct-copy class. INCLUDE_ASM is the build path (no episode). */
 #ifdef NON_MATCHING
-void gl_func_00065250(char *a0, Vec3_f *a1) {
-    Vec3_f *sub = (Vec3_f *)(a0 + 0x324);
-    float sx = sub->x, sy = sub->y, sz = sub->z;
-    float az = a1->z, ay = a1->y, ax = a1->x;
-    Vec3_f d, e, f;
-    d.z = az - sz;
-    d.y = ay - sy;
-    d.x = ax - sx;
+/* gl_func_00065250 — EXACT 34/34 (2026-07-03). Levers (in order cracked):
+ * 1. FP pool-coloring: named float diffs dx,dy,dz (defs x,y,z) -> f0,f2,f12
+ *    from pool START; the 6 field loads stay expression temps (f4-f18) by
+ *    reading a1->N / sub->N directly in the sub expressions.
+ * 2. Frame/slots: layout = pure decl-order DESCENDING from
+ *    T = align8(0x18 + total_local_bytes). Target d@0x34/e@0x44/f@0x54,
+ *    frame 0x60 => decl f, volatile pad2, e, volatile pad1, d, then
+ *    scalar reserve of 6 words (dz,dy,dx + sub + volatile pad_a,pad_b).
+ * 3. Base-reg materialization (addiu v0,a0,0x324 instead of folded
+ *    0x324(a0) loads): LEADING empty `if (sub) {}` (value-use BEFORE the
+ *    loads). A trailing-only if does NOT materialize.
+ * 4. No `move aN,a1` param copy: SECOND empty `if (sub) {}` after the
+ *    d-field stores splits the BB so param a1's uses don't share a BB
+ *    with the call's $a1 precolor.
+ * 5. Schedule z,y,x (subs+stores+a1 loads) with temps/coloring still
+ *    x,y,z: put all three defs on ONE SOURCE LINE (as1 line-window
+ *    grouping); stores written z,y,x on separate lines.
+ */
+void gl_func_00065250(int a0, Vec3_f *a1) {
+    Vec3_f f;
+    volatile int pad2;
+    Vec3_f e;
+    volatile int pad1;
+    Vec3_f d;
+    float dz, dy, dx;
+    Vec3_f *sub;
+    volatile int pad_a, pad_b;
+    sub = (Vec3_f *)(a0 + 0x324);
+    if (sub) {}
+    dx = a1->x - sub->x; dy = a1->y - sub->y; dz = a1->z - sub->z;
+    d.z = dz;
+    d.y = dy;
+    d.x = dx;
+    if (sub) {}
     e = d;
     f = e;
-    gl_func_00062F64((int)(a0 + 0x294), &f);
+    gl_func_00062F64(a0 + 0x294, &f);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
@@ -2044,26 +2105,16 @@ void gl_func_00066200(int a0) {}
 void gl_func_00066208(int a0) {}
 
 #ifdef NON_MATCHING
-/* gl_func_00066210: 21-insn 5-call sequence with buffer + chain helper.
- * Cap (2026-05-14): target doesn't reset $a0 between calls 1 and 2.
- * Built emits explicit `li a0, 1` for both = 88 vs 84 bytes.
- *
- * Typed extern (gl_proto_66210) attempted as workaround — different
- * function name AND no arg-share-across-calls optimization. The K&R-
- * float-call workaround doesn't extend to "share int arg between
- * adjacent calls" because the typed extern still produces independent
- * call sites with full arg setup.
- * 95.0% / +4 CAP (2026-05-31): build emits a SECOND `addiu a0,1` for the second
- * `gl_func(1)` call; target sets a0=1 ONCE and REUSES it across both calls (the
- * second call's a0=1 survives the first jal in target's schedule). Tried swapping
- * the two calls (saved= first) -> 16 diffs WORSE; IDO re-emits a0=1 regardless of
- * call order. Deep IDO delay-slot/const-reuse scheduling, not C-controllable here.
- * Also a saved/buf stack-slot swap (sp+24<->28). Do not re-grind the call order. */
+/* gl_func_00066210 — EXACT 21/21 (2026-07-03).
+ * Previous "cap" was a misdecode: target's second jal has `sw v0,0x18(sp)` in
+ * the delay slot with no a0 setup => second call takes ZERO args, and `saved`
+ * is the FIRST call's result (spill scheduled into call 2's delay slot).
+ * Decl order buf-then-saved puts saved@sp+0x18, buf@sp+0x1C. */
 int gl_func_00066210(int a0, int a1) {
-    int saved;
     int buf;
-    gl_func_00000000(1);
+    int saved;
     saved = gl_func_00000000(1);
+    gl_func_00000000();
     gl_func_00000000(&buf, 4);
     gl_func_00000000(a1, &buf);
     gl_func_00000000(saved);

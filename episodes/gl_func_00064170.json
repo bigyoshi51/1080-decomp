@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00064170",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T13:19:57.488604+00:00",
+  "end_time": "2026-07-03T13:19:57.488625+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T13:19:57.488619+00:00",
+      "assistant_text": "Splat boundary bug (reverse-merge -4 bytes): mtc1 zero,f0 at 0x64170 was the true first insn (misfiled in 64124; old PROLOGUE_STEALS comment was this misdiagnosis; honest C can't emit the 0x64174 form \u2014 uninit float locals home as lwc1 loads, 6 phantom-def variants proven). After surgery: union (int3/float[3]) gives the t6-based lw/sw struct-copy chain + folded sp lwc1 read-backs; z=0.0f emits the mtc1; 2+2 volatile pads set frame 0x20/tmp@0xC.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 27,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00064174 -> gl_func_00064170 \u2014 EXACT 27/27 (2026-07-03), but ONLY\n * after a REVERSE-MERGE splat boundary fix (docs/MATCHING_WORKFLOW.md\n * \"direction 4\", 4-byte variant):\n *\n *   The word 0x44800000 (mtc1 zero,$f0) at 0x64170 sits AFTER\n *   game_libs_func_00064124's `jr ra` + delay slot \u2014 it is the true FIRST\n *   instruction of this function (IDO emits the mtc1 BEFORE the sp adjust).\n *   No symbol table entries / callers reference 0x64174, so the rename is\n *   safe. The old \"PROLOGUE_STEALS\" comment on this fn was this exact\n *   misdiagnosis. Honest C cannot emit the 26-word 0x64174 form (f0 would\n *   be undefined; IDO homes uninit float locals as lwc1 from stack \u2014\n *   register/if(0)/while(0) phantom-def variants all still load).\n *\n * ASM SURGERY (already validated, full `make` = byte-identical ROM):\n * 1. asm/nonmatchings/game_libs/game_libs/game_libs_func_00064124.s:\n *    delete last .word line (`00064170 44800000`), header 0x50 -> 0x4C.\n * 2. gl_func_00064174.s -> gl_func_00064170.s: header\n *    \"nonmatching gl_func_00064170, 0x6C\"; insert\n *    `    /+ E49248 00064170 44800000 +/  .word 0x44800000` (fix comment\n *    delimiters) right after the renamed glabel; rename glabel/endlabel.\n * 3. src/game_libs/game_libs_post1b.c: rename all 4 occurrences of\n *    gl_func_00064174 -> gl_func_00064170.\n *\n * C levers: union (int3 struct / float[3]) gives the int struct-assign\n * lw/sw chain via materialized t6=&tmp (t8,t7,t8 temp reuse) AND folded\n * sp-relative lwc1 read-backs. Layout (decl-order descending from\n * T=align8(total), leaf fn): q1@0x1C,q2@0x18, tmp@0xC, p1@8,p2@4,\n * z-reserve@0 -> frame 0x20, tmp@0xC. z=0.0f emits the leading mtc1.\n */\ntypedef struct GlInt3_64174 { int a, b, c; } GlInt3_64174;\nvoid gl_func_00064170(float *a0, int *a1) {\n    volatile int q1, q2;\n    union {\n        GlInt3_64174 i;\n        float f[3];\n    } tmp;\n    volatile int p1, p2;\n    float z;\n    z = 0.0f;\n    a0[0] = z; a0[1] = z; a0[2] = z; a0[3] = z; a0[4] = z;\n    a0[5] = z; a0[6] = z; a0[7] = z; a0[8] = z; a0[9] = z;\n    tmp.i = *(GlInt3_64174 *)a1;\n    a0[10] = tmp.f[0];\n    a0[11] = tmp.f[1];\n    a0[12] = tmp.f[2];\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00064170.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "make verify ROM byte-identical + objdiff fuzzy=100.0 (64170 after reverse-merge boundary fix + expected refresh)"
+  }
+}
