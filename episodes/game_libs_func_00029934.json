@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00029934",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:11:09.996823+00:00",
+  "end_time": "2026-07-03T03:11:09.996843+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:11:09.996838+00:00",
+      "assistant_text": "Compound-assign inside the index expression keeps the accumulator an expression temp (t9, sw folded) instead of a colored local: int idx=(((unsigned)(a0[1]+=(int)*(float*)(a0+4)))>>10)&0x3F; return (short)(((short*)a0[2])[idx]>>8); \u2014 named acc colored v0 (wrong), += result stays t9, idx colors v1.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 17,
+  "initial_m2c_source": null,
+  "final_source": "/* Phase-accumulator table oscillator: advance a0[1] by (int)a0->0x10f, index\n * the 64-entry s16 table at a0[2] by (acc>>10)&0x3F, return (s16)(table[idx]>>8).\n * Structurally exact (17/17 insns, same opcodes/immediates); ~10 $t-register\n * fields differ. Straight-line + reloc-free \u00e2\u0086\u0092 permuter-crackable episode target. */\nint game_libs_func_00029934(int *a0) {\n  int idx = (((unsigned int)(a0[1] += (int)*(float *)(a0 + 4))) >> 10) & 0x3F;\n  return (short)(((short *)a0[2])[idx] >> 8);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00029934.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

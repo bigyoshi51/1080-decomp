@@ -4614,18 +4614,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000221D8);
  * intermediates renumber (allocno cap). CAP: regalloc, stays NM
  * (INSN_PATCH REMOVED 2026-05-23 per
  * feedback_no_instruction_forcing_matches_policy). */
-#ifdef NON_MATCHING
+typedef struct {
+    unsigned char hi : 4;
+    unsigned char f : 2;
+    unsigned char lo : 2;
+} B22398;
 void game_libs_func_00022398(char *a0, char *a1) {
     if (a1 != 0) {
         if (*(int *)(a0 + 8) == *(int *)(a1 + 4)) {
             *(int *)(a1 + 4) = *(int *)(a0 + 0xC);
-            *(unsigned char *)a1 = (((signed char)a0[1] << 2) & 0xC) | (*(unsigned char *)a1 & ~0xC);
+            ((B22398 *)a1)->f = (signed char)a0[1];
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022398);
-#endif
 
 // gl_func_000223DC — STRUCTURAL PASS (0x88 / 34 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -12006,23 +12007,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000298D8);
  * the 64-entry s16 table at a0[2] by (acc>>10)&0x3F, return (s16)(table[idx]>>8).
  * Structurally exact (17/17 insns, same opcodes/immediates); ~10 $t-register
  * fields differ. Straight-line + reloc-free → permuter-crackable episode target. */
-#ifdef NON_MATCHING
 int game_libs_func_00029934(int *a0) {
-  int acc = ((int) (*((float *) (((char *) a0) + 0x10)))) + a0[1];
-  int *new_var3;
-  int new_var;
-  int idx = (((unsigned int) acc) >> 10) & 0x3F;
-  int *new_var2;
-  new_var2 = a0;
-  a0[1] = acc;
-  new_var3 = new_var2;
-  new_var = new_var3[2];
- acc = new_var; goto dummy_label_501080; dummy_label_501080: ;
-  return (short) (((short *) acc)[idx] >> 8);
+  int idx = (((unsigned int)(a0[1] += (int)*(float *)(a0 + 4))) >> 10) & 0x3F;
+  return (short)(((short *)a0[2])[idx] >> 8);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029934);
-#endif
 
 
 // gl_func_00029978 — STRUCTURAL PASS (0x1F4 / 125 words, no episode).
