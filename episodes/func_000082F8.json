@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000082F8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:47:04.618812+00:00",
+  "end_time": "2026-07-03T20:47:04.618835+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:47:04.618828+00:00",
+      "assistant_text": "NEW LEVER: unused K&R int return = dead $v0 def interfering with the call-spanning rematerialized &D base (forced $v1). Distinct VOID-returning extern (func_00000000_082F8_v = 0x0) kills the def; base colors $v0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "/* func_000082F8 \u2014 EXACT (54/54 post-link) 2026-07-03 agent-e. CRACKED the\n * documented \"base $v0-vs-$v1 caller-saved renumber cap\" (header note B, 2026-06-20).\n *\n * LEVER (NEW): call-1's callee was the K&R int-returning func_00000000 \u2014 its\n * UNUSED return created a dead $v0 def at the jal. The CSE'd &D base candidate\n * (live [0]..[41], rematerialized after call-1) interfered with that dead def,\n * excluding $v0 -> uopt colored base $v1 (zdbug:6 \"R=1 reserved\"). Declaring a\n * DISTINCT VOID-RETURNING extern for call-1 (func_00000000_082F8_v, same style\n * as the existing 7-arg func_00000000_082F8) removes the dead def; base takes\n * $v0. 8 diffs -> 1 in one edit.\n *\n * .o-level residual = 1 reloc-class word [31]: lw t8,0x2C(t8) + R_MIPS_LO16\n * D_func_00000008_data (=0x8) -> links to 0x34 = target word 8F180034. All\n * lui/addiu D-words reloc-resolve to 0 (D_00000000=0); all jals zero-target.\n * WIRING REQUIRED to land: add `func_00000000_082F8_v = 0x00000000;` to\n * undefined_syms_auto.txt (next to func_00000000_082F8, line ~1038).\n */\nextern int func_00000000_082F8(int, int, int, int, float, int, float);\nextern void func_00000000_082F8_v(int, int);\nextern char D_00000000_a;\nextern char D_func_00000008_data;\nvoid func_000082F8(int *a0) {\n    float f0 = *(float*)((char*)&D_00000000 + 0x130);\n    float f2 = *(float*)((char*)*(int**)((char*)BOOT_SELF_PTR + 0x70) + 0xA8) * f0;\n    float f12 = *(float*)((char*)a0 + 0x38) * f0;\n\n    if (f12 < f2) {\n        if (*(float*)((char*)a0 + 0x54) + f12 > f2) {\n            func_00000000_082F8_v(*(int*)&D_00000000_a, *(int*)((char*)a0 + 0x6C));\n        }\n    }\n\n    if (*(int*)(&D_func_00000008_data + 0x2C) == 8) {\n        if (func_00000000_082F8(\n            *(int*)((char*)&D_00000000 + 0x254),\n            3,\n            *(int*)((char*)a0 + 0x30),\n            *(int*)((char*)a0 + 0x34),\n            *(float*)((char*)a0 + 0x38),\n            0,\n            0.0f) != 0) {\n            func_00000000(a0);\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_000082F8.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s (relocs resolve via undefined_syms) + make verify ROM byte-identical"
+  }
+}

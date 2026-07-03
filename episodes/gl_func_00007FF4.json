@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00007FF4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:47:03.787079+00:00",
+  "end_time": "2026-07-03T20:47:03.787099+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:47:03.787093+00:00",
+      "assistant_text": "'Permuter-immune spill-slot cap' (temp_lo 0x48 vs 0x3C) fell to named-scalar decl-order homes: non-addressed named scalars reserve decl-order slots and spill to their OWN named home \u2014 moving int temp_lo 3 decl positions later relocated the spill.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 222,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00007FF4 \u2014 EXACT MATCH 222/222 words (2026-07-03, agent-e w5).\n * Was 218/222: temp_lo jal-delay spill homed at sp+0x48 vs target sp+0x3C.\n * LEVER (new, cracked the documented \"regalloc-renumber\" cap): NAMED-SCALAR\n * DECL-ORDER SLOT MAP \u2014 non-addressed named scalars still reserve decl-order\n * homes (framesize-4, -8, ... after the addressed/volatile locals), and a\n * named var's caller-save spill goes to ITS OWN named home. Moving `temp_lo`\n * 3 decl positions later (after temp_a2/temp_a3/new_var) moved its home\n * 0x48->0x3C. Verified word-exact vs own .s on clean rebuild. */\n\n#ifndef FW\n#define FW(p, o) (*(int *)((char *)(p) + (o)))\n#endif\ntypedef int (*GP_00007FF4)();\nextern int gl_func_00000000();\nvoid gl_func_00007FF4(char *arg0) {\n    int *sp8C;\n    volatile int pu0, pu1, pu2, pu3, pu4, pu5, pu6, pu7, pu8;\n    f32 sp58[4];\n    volatile int pl0;\n    s32 sp3C;\n    int *temp_v0;\n    int *temp_a2;\n    int *temp_a3;\n    int *new_var;\n    int temp_lo;\n    f32 temp_f0;\n\n    if (FW(arg0, 0x4F0) & 0x01000000) {\n        sp58[0] = 0.0f;\n        sp58[1] = 0.0f;\n        sp58[2] = 0.0f;\n        sp58[3] = 0.0f;\n        gl_func_00000000(&D_00000000, 0xFF, sp58);\n        gl_func_00000000(&D_00000000, 0, 0x77, 0x13F, 0x78, 0x10001);\n    }\n    if (FW(arg0, 0x30) == 0) {\n        if (FW(arg0, 0x4F0) & 0x10000) {\n            gl_func_00000000(FW(arg0, 0x568));\n            gl_func_00000000(FW(arg0, 0x568));\n        }\n        switch (FW(arg0, 0x4E0)) {                   /* irregular */\n        case 0:\n            temp_v0 = (int *)FW(arg0, 0x28);\n            ((GP_00007FF4)FW(temp_v0, 0xF4))(*(s16 *)((char *)temp_v0 + 0xF0) + (int)arg0);\n            break;\n        case 1:\n            if ((FW(arg0, 0x4F0) & 0x10000) && (FW(arg0, 0x4F0) & 0x400000)) {\n                temp_lo = (s32)FW(arg0, 0x4E4) / (s32)FW(arg0, 0x4E8);\n                if (temp_lo < 4) {\n                    temp_f0 = *(f32 *)((char *)&D_00000000 + 0xE50);\n                    FW(arg0, 0x540) = FW(arg0, 0x540) - 4;\n                    *(f32 *)((char *)arg0 + 0x534) = *(f32 *)((char *)arg0 + 0x534) + temp_f0;\n                    *(f32 *)((char *)arg0 + 0x538) = *(f32 *)((char *)arg0 + 0x538) + temp_f0;\n                    if (temp_lo != -1) {\n                        sp8C = (int *)((int)arg0 + temp_lo * 0x18 + 0x588);\n                    } else {\n                        sp8C = (int *)((int)arg0 + 0x588);\n                    }\n                    sp3C = temp_lo;\n                    gl_func_00000000(sp8C);\n                    if ((temp_lo == 0) || (temp_lo == -1)) {\n                        temp_a2 = (int *)((int)arg0 + 0xF8);\n                        temp_a3 = (int *)((int)arg0 + 0x11C);\n                        gl_func_00000000(sp8C, FW(arg0, 0x540), temp_a2, temp_a3);\n                        gl_func_00000000(sp8C, (s32)*(f32 *)((char *)arg0 + 0x548), (s32)*(f32 *)((char *)arg0 + 0x54C), 3);\n                        if (*(s32 *)((char *)&D_00000000 + 0x34) == 2) {\n                            gl_func_00000000(sp8C, FW(arg0, 0x540), temp_a2, temp_a3);\n                            gl_func_00000000(sp8C, (s32)*(f32 *)((char *)arg0 + 0x548), (s32)(*(f32 *)((char *)arg0 + 0x54C) + 120.0f), 3);\n                        }\n                    } else {\n                        gl_func_00000000(sp8C, FW(arg0, 0x540), (int)arg0 + 0xB0, (int)arg0 + 0xD4);\n                        gl_func_00000000(sp8C, 0xA0, 0xA0, 3);\n                    }\n                    if (sp3C != 0) {\n                        gl_func_00000000((int)arg0 + 0x5E8);\n                        gl_func_00000000((int)arg0 + 0x5E8, 0xFF, (int)arg0 + 0x68, (int)arg0 + 0x8C);\n                        gl_func_00000000((int)arg0 + 0x5E8, 0xA8, 0x50, 3);\n                    }\n                }\n            }\n            break;\n        case 3:\n            new_var = &D_00000000;\n            if (!(FW(arg0, 0x4F0) & 0x04000000)) {\n                temp_v0 = (int *)FW(arg0, 0x28);\n                ((GP_00007FF4)FW(temp_v0, 0x10C))(*(s16 *)((char *)temp_v0 + 0x108) + (int)arg0, FW(arg0, 0x4F8), (s32)*(f32 *)((char *)arg0 + 0x54C));\n                if (*(s32 *)((char *)new_var + 0x34) == 2) {\n                    temp_v0 = (int *)FW(arg0, 0x28);\n                    ((GP_00007FF4)FW(temp_v0, 0x10C))(*(s16 *)((char *)temp_v0 + 0x108) + (int)arg0, ((int *)new_var)[FW(arg0, 0x4F8)], (s32)(*(f32 *)((char *)arg0 + 0x54C) + 120.0f));\n                }\n            }\n            break;\n        }\n    }\n    temp_v0 = (int *)FW(arg0, 0x28);\n    ((GP_00007FF4)FW(temp_v0, 0xEC))(*(s16 *)((char *)temp_v0 + 0xE8) + (int)arg0);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00007FF4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s (relocs resolve via undefined_syms) + make verify ROM byte-identical"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000085B0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:47:04.339840+00:00",
+  "end_time": "2026-07-03T20:47:04.339869+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:47:04.339863+00:00",
+      "assistant_text": "Single named int *q reused at all 3 reload sites (replacing 2 anonymous temps + block-scoped t) -> q=v0, state=v1, whole t-cascade snaps; q's dead colored slot between p and p2 fixes the p2 spill 0x24->0x20.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 46,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_000085B0 \u2014 EXACT MATCH 46/46 words (2026-07-03, agent-e w5).\n * Was 28/46: whole-body temp-reg cascade (+1/+2) plus p2 spill 0x24 vs 0x20.\n * ROOT: target reuses ONE named temp (v0) for the three reloaded pointers\n * (*(state+0xC4), *(state+0xCC), *(*(arg0+0x528)+8)) and homes `state` in v1.\n * FIX: single function-scope `int *q` assigned at all 3 sites (replacing two\n * anonymous temps + the block-scoped `t`). q (6 refs) outranks state at\n * coloring -> q=v0, state=v1, t6.. cascade snaps. q's decl between `p` and\n * the block-scoped `p2` also shifts p2's named home 0x24->0x20 (q's dead\n * colored slot absorbs 0x24), fixing the spill slot. First-variant match. */\nvoid gl_func_000085B0(int *arg0, int arg1) {\n    char *state;\n    char *p;\n    int *q;\n\n    gl_func_00000000(arg0);\n    state = *(char**)((char*)&D_00000000 + 0x134);\n    q = *(int**)(state + 0xC4);\n    p = *(char**)((char*)q + 0x800);\n    if (*(int**)((char*)*(int**)((char*)*(int**)((char*)arg0 + 0x528) + 0x8) + 0x8) != 0) {\n        char *p2;\n        q = *(int**)(state + 0xCC);\n        p2 = *(char**)((char*)q + 0x800);\n        gl_func_00000000(p2, *(int*)(p2 + 0x34));\n        q = *(int**)((char*)*(int**)((char*)arg0 + 0x528) + 0x8);\n        gl_func_00000000(p2, *(int*)((char*)q + 0x8), *(int*)((char*)q + 0x4));\n    }\n    gl_func_00000000(p, 0);\n    gl_func_00000000(p,\n        *(int*)((char*)&D_00000000 + 0x168),\n        *(int*)((char*)&D_00000000 + 0x170));\n    gl_func_00000000(arg0);\n    *(int*)((char*)arg0 + 0x4F4) = arg1 & 0xFFFF;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_000085B0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s (relocs resolve via undefined_syms) + make verify ROM byte-identical"
+  }
+}

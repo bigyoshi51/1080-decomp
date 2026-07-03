@@ -20,8 +20,10 @@ extern char D_00000000;
  * BOOT_SELF_PTR: pointer to the self/context struct (read into `self`/`dst`/
  * `t6` locals across wraps). bootup_uso D+0x254.
  */
-#define BOOT_SELF_PTR (*(int**)((char*)&D_00000000 + 0x254))
 #endif
+/* BOOT_SELF_PTR graduated to unconditional 2026-07-03: promoted exact bodies
+ * (func_000082F8/func_000050A0) use it in the default build. */
+#define BOOT_SELF_PTR (*(int**)((char*)&D_00000000 + 0x254))
 
 void func_00000008(int *dst) {
     int buf[2];
@@ -3411,31 +3413,47 @@ void func_00005068(int a0) {
  * reachable by reordering C (declaration-order + embedded-assign permutations
  * all regress, retested). Stays NM at 99.09%. */
 extern char D_00007DA4;
-#ifdef NON_MATCHING
+/* func_000050A0 — EXACT (33/33 post-link) 2026-07-03 agent-e. CRACKED the
+ * documented "spill-slot-coloring cap" (wrap note 2026-06-21, 8 residual diffs).
+ *
+ * TWO levers, applied on top of the old volatile-saved_a0 body:
+ *  1) SINGLE-INT STRUCT BY-VALUE ARG (PATTERNS Pair2-crack, 1-word variant):
+ *     pass the saved param as `*(S50A0*)&saved_a0` (typedef struct {int v;})
+ *     in arg position 2. This alone emitted the dead `sw a1,0x4(sp)` outgoing
+ *     arg-shadow store in the jal delay (previously faked via `new_var =
+ *     saved_a0` at a WRONG local slot 0x20), flipped the p-spill to v0@high
+ *     slot, and fixed the t7->t8 renumber: 8 real diffs -> 5 (all layout -8).
+ *  2) OVERSIZED BUFFER + &buf[1] (docs "8-byte dead slot below a stack buffer
+ *     is a &buf[N] offset"): float buf[5] zeroing buf[1..4], passing &buf[1].
+ *     Claims the 0x34 gap word; decl order buf,p,pad,saved_a0 then lands
+ *     buf@0x38(zeros 0x38-0x44), p@0x30, pad 0x20-0x2F, saved_a0@0x1C,
+ *     align@0x18 -> frame -0x48 exact. 5 -> 0.
+ *
+ * .o-level residual = 1 reloc-class word [5]: addiu a0,a0,%lo(D_00007DA4);
+ * D_00007DA4=0x7DA4 in undefined_syms_auto.txt -> links to 24847DA4 = target.
+ * All jals zero-target K&R func_00000000. No new wiring needed.
+ */
+typedef struct { int v; } S50A0;
 int func_000050A0(int a0) {
-  float buf[4];
+  float buf[5];
+  int *p;
   char pad[16];
   volatile int saved_a0;
-  volatile int new_var;
-  int *p;
   (void) pad;
   func_00000000(&D_00007DA4);
-  buf[0] = (0, 0.0f);
-  buf[1] = 0.0f;
+  buf[1] = (0, 0.0f);
   buf[2] = 0.0f;
   buf[3] = 0.0f;
+  buf[4] = 0.0f;
   saved_a0 = a0;
   p = (int *) func_00000000(0x58);
   if (p != 0)
   {
-    func_00000000(p, new_var = saved_a0, *((int *) (&D_00000000)), &buf);
+    func_00000000(p, *(S50A0*)&saved_a0, *((int *) (&D_00000000)), &buf[1]);
     *((int *) (((char *) p) + 0x28)) = (int) (&D_00000000);
   }
   return (int) p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000050A0);
-#endif
 
 /* func_00005124 - verified structural decode (0xB0, 44 insns,
  * alloc-cascade constructor with defensive-dead-check).
@@ -5595,122 +5613,35 @@ char *func_00008124(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
 #endif
 
-#ifdef NON_MATCHING
-/* func_000082F8: 54-insn (0xD8) FP-gated 3-call dispatch. Sibling of the
- * adjacent func_000083D0 family (cross-USO call orchestrators in bootup_uso).
- * SIBLING LEVER STATUS (2026-05-30): the inline-single-use-deref lever that
- * lifted THIS to 98.6% does NOT extend to the family — func_000083D0 is already
- * 100%, func_000087A4 (93.9%) residual is a ugen lui-hoist-above-branch SCHEDULE
- * diff (not coloring), func_00007288 (94.6%) has 29 diffs. Project-wide scan for
- * the "base-in-treg vs $v0 + ≤6 diffs" inline signature returns only the
- * alt-entry-jal-capped gl_func_0002D014. Inline-lever vein = this fn only.
+/* func_000082F8 — EXACT (54/54 post-link) 2026-07-03 agent-e. CRACKED the
+ * documented "base $v0-vs-$v1 caller-saved renumber cap" (header note B, 2026-06-20).
  *
- * Decoded shape:
- *   /* shared loads at entry *\/
- *   t6 = *(int**)(&D_00000000 + 0x254);   /* pointer at D[0x254] *\/
- *   f0 = *(float*)(&D_00000000 + 0x130);  /* float scale constant *\/
- *   s0 = a0;                                /* spilled across calls *\/
+ * LEVER (NEW): call-1's callee was the K&R int-returning func_00000000 — its
+ * UNUSED return created a dead $v0 def at the jal. The CSE'd &D base candidate
+ * (live [0]..[41], rematerialized after call-1) interfered with that dead def,
+ * excluding $v0 -> uopt colored base $v1 (zdbug:6 "R=1 reserved"). Declaring a
+ * DISTINCT VOID-RETURNING extern for call-1 (func_00000000_082F8_v, same style
+ * as the existing 7-arg func_00000000_082F8) removes the dead def; base takes
+ * $v0. 8 diffs -> 1 in one edit.
  *
- *   /* gate-1 (0x8330-0x8338): FP compare — guard call-1 *\/
- *   f12 = *(float*)(a0 + 0x38) * f0;
- *   f2  = *(float*)(t6 + 0xA8) * f0;
- *   if (f12 < f2) {
- *       /* gate-2 (0x834C-0x8354): refine — only call if range-bounded *\/
- *       f10 = *(float*)(a0 + 0x54) + f12;
- *       if (f10 > f2) {
- *           /* call-1 (2-arg): D[0]-loaded ptr + a0->0x6C *\/
- *           func_00000000(*(int*)&D_00000000, *(int*)((char*)a0 + 0x6C));
- *       }
- *   }
- *
- *   /* gate-3 (0x8380): integer compare on a "func_00000008+0x2C" data
- *    * field (mixed code/data alias for a global state byte). *\/
- *   t8 = *(int*)((char*)&func_00000008 + 0x2C);
- *   if (t8 == 8) {
- *       /* call-2: 7-arg call (4 register + 3 stack) *\/
- *       v0 = func_00000000(D[0x254/4], 3, a0->0x30, a0->0x34,
- *                          a0->0x38_as_float, 0_as_int, 0.0f);
- *       if (v0 != 0) {
- *           /* call-3 (1-arg): a0 *\/
- *           func_00000000(a0);
- *       }
- *   }
- *
- * 2026-05-06 measured 75.52% via two iterations:
- *   v1: 73.18% — direct float args + `func_00000008+0x2C` extern. K&R
- *     varargs promoted floats to doubles: built `cvt.d.s; sdc1` pairs,
- *     pushed frame to 0x38 (vs target 0x30).
- *   v2: 75.52% — bit-cast floats to int (`*(int*)(a0+0x38)` + 0 int)
- *     to bypass K&R double-promotion; rewrote `func_00000008+0x2C` as
- *     `&D_00000000+0x34` for single lui+lw fold. Frame back to 0x30,
- *     no cvt.d.s. Remaining diffs: target uses lwc1+swc1 (single FP
- *     loads/stores) for the `f16=a0->0x38` and `f18=0.0f` stack args,
- *     built uses lw+sw (int). Same bytes per-slot but different opcodes.
- *
- * 2026-05-21: restored the target's D[0x254]->0x70 dereference, used a
- * distinct D-base alias for call-1, folded the func_00000008+0x2C state
- * load, and applied the typed alias-extern recipe for the 7-arg float-stack
- * call. C-only fuzzy improved 75.59% -> 97.87%.
- *
- * 2026-06-20 CORRECTION: the prior "pure RELOC-NAME-COLLAPSE, bytes complete"
- * claim below is WRONG. Reloc-filtered word-compare of the built .o vs target .s
- * shows the residual is NOT zero non-reloc diffs. Two diff classes were found:
- *   (A) FP-COLORING CASCADE (6 diffs) -- FIXED THIS TICK. The gate-2 sum was a
- *       NAMED local `float f10 = a0->0x54 + f12;`. IDO -O2 reused the now-dead
- *       scale-const reg ($f0) for the sum, cascading every downstream FP reg one
- *       slot low ($f10/$f16 vs target $f16/$f18 for the call-2 stack-float args).
- *       INLINING the sum into the `if` condition (no named f10) makes IDO pick a
- *       fresh higher $f-reg, restoring the exact target FP coloring. 9->3 diffs.
- *   (B) BASE-REGISTER $v0 vs $v1 (3 diffs, REMAINING CAP). Target holds the CSE'd
- *       &D base in $v0 at 0x8300 `lw $t6,0x254($v0)`, 0x8314 `lwc1 $f0,0x130($v0)`,
- *       0x839C `lw $a0,0x254($v0)`; our build colors the same base into $v1. $v0
- *       is the constrained call-return register (both calls return into $v0); IDO
- *       routes the base off $v0 to avoid the call-return live ranges, while the
- *       target coalesces base+return into $v0. The -zdbug:6 dump confirms the base
- *       candidate (38) is assigned R=2($v1) and R=1($v0) is reserved. This is a
- *       caller-saved-temp renumber that the docs class as permuter-floors /
- *       not-C-reachable; every C lever tried (named base ptr, named first-deref
- *       int/t6 local, statement reorder, compound f2*=) either left base in $v1
- *       AND disturbed the fragile gate-3 2-insn fold, or regressed. The all-inline
- *       body is the minimum-diff reachable form. permuter not installed in worktree.
- *
- * --- (stale 2026-05-24 note retained below for archaeology; its premise is wrong) ---
- * 2026-05-24: confirmed this is a pure RELOC-NAME-COLLAPSE cap, not codegen.
- * The BYTES are complete; the 2.13% is 3 reloc names the decomp collapses to
- * placeholders. Each of the 3 aliases is LOAD-BEARING FOR THE BYTES, and the
- * canonical (collapsed) name breaks them -- verified this tick:
- *   - D_00000000_a (call-1 arg *(int*)&D): forces a FRESH `lui $a0` for the
- *     offset-0 load. Canonical &D_00000000 makes IDO -O2 CSE it with the held
- *     D base ($v0) -> `lw $a0,0($v0)` (target has a fresh lui).
- *   - D_func_00000008_data + 0x2C (gate-3): forces the FOLDED
- *     `lui %hi(sym+0x2C); lw %lo(sym+0x2C)` (2 insns, addend in the reloc).
- *     Canonical `(char*)&func_00000008 + 0x2C` -- func_00000008 is a FUNCTION
- *     symbol -- materializes the address (`lui;addiu;lw`, 3 insns, no fold).
- *   - func_00000000_082F8 (call-2, 7-arg float): forces single `swc1` stack
- *     floats + a DIRECT `jal`. Canonical K&R func_00000000 double-promotes
- *     (cvt.d.s/sdc1); a block-scoped float prototype is rejected by cfe
- *     (incompatible redecl); a fn-ptr cast turns the call into `jalr $t9`.
- * So the bytes can't be produced with the collapsed names, and the collapsed
- * names can't be avoided without distinct symbols. FIX PATH: the emu-symdump
- * symbolize rollout -- scripts/emu-symdump recovered the REAL bootup.uso
- * symbol names; symbolizing BOTH expected and base .s to those real distinct
- * names (call-1 D, gate-3 data sym, call-2 callee) makes both sides agree ->
- * 100%. Stays NM until that rollout lands. */
+ * .o-level residual = 1 reloc-class word [31]: lw t8,0x2C(t8) + R_MIPS_LO16
+ * D_func_00000008_data (=0x8) -> links to 0x34 = target word 8F180034. All
+ * lui/addiu D-words reloc-resolve to 0 (D_00000000=0); all jals zero-target.
+ * WIRING REQUIRED to land: add `func_00000000_082F8_v = 0x00000000;` to
+ * undefined_syms_auto.txt (next to func_00000000_082F8, line ~1038).
+ */
 extern int func_00000000_082F8(int, int, int, int, float, int, float);
+extern void func_00000000_082F8_v(int, int);
 extern char D_00000000_a;
 extern char D_func_00000008_data;
 void func_000082F8(int *a0) {
-    /* Keep EVERY deref inline (no named t6/t7/f10 locals): any named int/float
-     * local grabs $v0 and ALSO disturbs the gate-3 2-insn fold (regresses).
-     * Inlining the gate-2 sum (was `float f10=...`) fixes the FP-coloring cascade.
-     * Residual = &D base in $v1 vs target $v0 (caller-saved renumber; see header). */
     float f0 = *(float*)((char*)&D_00000000 + 0x130);
     float f2 = *(float*)((char*)*(int**)((char*)BOOT_SELF_PTR + 0x70) + 0xA8) * f0;
     float f12 = *(float*)((char*)a0 + 0x38) * f0;
 
     if (f12 < f2) {
         if (*(float*)((char*)a0 + 0x54) + f12 > f2) {
-            func_00000000(*(int*)&D_00000000_a, *(int*)((char*)a0 + 0x6C));
+            func_00000000_082F8_v(*(int*)&D_00000000_a, *(int*)((char*)a0 + 0x6C));
         }
     }
 
@@ -5727,9 +5658,6 @@ void func_000082F8(int *a0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000082F8);
-#endif
 
 /* func_000083D0: 30-insn (0x78) 5-call init/dispatch wrapper. Callee
  * func_00000000 is the K&R cross-USO placeholder.

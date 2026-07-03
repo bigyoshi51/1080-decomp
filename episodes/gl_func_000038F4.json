@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000038F4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:47:04.082169+00:00",
+  "end_time": "2026-07-03T20:47:04.082189+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:47:04.082183+00:00",
+      "assistant_text": "4 fixes: baked-addr externs compose to 0xCCEC/0xCCF8 (prior names ignored lo16 sign); named idx colors v0 snapping a 13-word t-cascade; named-slot budget (5 scalars above buffers + merged same-register disjoint pairs) = frame 0x168; array-IXA &((int*)arg0)[tv0] for base-first addu (commutative swap gets canonicalized, IXA doesn't).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 138,
+  "initial_m2c_source": null,
+  "final_source": "/* baked USO data addr 0xCCF8 */\nvoid gl_func_000038F4(char *arg0) {\n    int temp_s2;\n    int temp_s3;\n    char *temp_s7;\n    s32 var_s4;\n    char *var_s2;\n    char spE4[112];\n    char sp64[128];\n    int *temp_a3;\n    char *temp_v1;\n    int tv0;\n    char *s0v;\n\n    s0v = 0;\n    var_s2 = arg0;\n    do {\n        temp_v1 = (char *)FW(var_s2, 0x2C);\n        if (FW(temp_v1, 0x94) != 0) {\n            tv0 = FW(temp_v1, 0x28);\n            ((GP_000038F4)FW(tv0, 0x1C))(*(s16*)((char *)tv0 + 0x18) + temp_v1);\n        }\n        s0v += 4;\n        var_s2 += 4;\n    } while (s0v != (char *)0x20);\n    func_00000000(FW(arg0, 0x50));\n    var_s4 = 0;\n    temp_s7 = arg0 + 0xCC;\n    if (FW(arg0, 0x84) > 0) {\n        do {\n            tv0 = (FW(arg0, 0x80) + var_s4) & 3;\n            s0v = (char *)&((int *)arg0)[tv0];\n            temp_a3 = (int *)FW(s0v, 0x6C);\n            if (temp_a3 != (int *)-1) {\n                func_00000000(spE4, &D_0000CCEC, FW(s0v, 0x5C), temp_a3);\n                func_00000000(sp64, &D_0000CCF8, FW(s0v, 0x6C));\n                temp_s2 = func_00000000(FW(arg0, 0x50), FW(s0v, 0xAC), spE4);\n                temp_s3 = func_00000000(FW(arg0, 0x50), FW(s0v, 0x5C)) + temp_s2;\n                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(s0v, 0x9C)), temp_s7, 0xFF);\n                func_00000000(FW(arg0, 0x50), temp_s2, FW(s0v, 0xBC), FW(s0v, 0x5C));\n                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(s0v, 0x9C)), arg0 + 0xDC, 0xFF);\n                func_00000000(FW(arg0, 0x50), temp_s3, FW(s0v, 0xBC), sp64);\n            } else {\n                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(s0v, 0x9C)), temp_s7, 0xFF);\n                func_00000000(FW(arg0, 0x50), func_00000000(FW(arg0, 0x50), FW(s0v, 0xAC), FW(s0v, 0x5C)), FW(s0v, 0xBC), FW(s0v, 0x5C));\n            }\n            var_s4 += 1;\n        } while (var_s4 < FW(arg0, 0x84));\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_000038F4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s (relocs resolve via undefined_syms) + make verify ROM byte-identical"
+  }
+}

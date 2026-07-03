@@ -1867,23 +1867,33 @@ void gl_func_00003430(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003430);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_000038F4: render-loop over a 4-slot ring (idx = (arg0->0x80 + i) & 3).
- * Two sprintf-style format calls (&D_0001CCEC / &D_0001CCF8 into stack scratch
- * buffers spE4/sp64), then a sequence of draw calls through arg0->0x50, scaling
- * arg0->slot->0x9C (an int) by a float global (&D_00000000) via int->float +
- * mul + trunc.w.s. First a per-component init loop (16 entries, stride 4)
- * dispatches each slot's vtable fn (slot->0x28->0x1C).
- * Decode is byte-correct in logic + structure: 20/138 words differ, of which
- *   - 4 are link-resolved HI16/LO16 fills for the &D_0001CCEC/F8 format strings
- *     (immediate baked to 0 in the unlinked .o; correct after the ROM link),
- *   - 3 are stack-frame-layout slots (buffers land at sp+0xF8/0x78 vs target
- *     sp+0xE4/0x64; frame size 360 matches),
- *   - 13 are pure register-coloring (int temps t0/t1.. vs v0/t9 in the index
- *     calc + arg0->0x84 reload, and the FP $f-reg numbering in the 3 scale
- *     blocks). Documented "correct C, divergent IDO allocation" cap class.
- * The FP multiply operand order (global * converted) was already tuned to the
- * target (took residual 30->20). */
+/* gl_func_000038F4 — EXACT MATCH 138/138 words (2026-07-03, agent-e w5).
+ * Was 118/138. Fix stack, in order:
+ * 1. RELOC EXTERNS: the two format strings are baked USO data addrs. Target
+ *    words lui a1,0x1 / addiu a1,CCEC compose to 0x0000CCEC (NOT 0x1CCEC —
+ *    prior extern names D_0001CCEC/F8 mis-derived the value by ignoring lo16
+ *    sign). extern char D_0000CCEC / D_0000CCF8 + undefined_syms_auto.txt
+ *    entries `D_0000CCEC = 0x0000CCEC; D_0000CCF8 = 0x0000CCF8;` make ld bake
+ *    the exact 4 words (verified by link simulation of HI16/LO16).
+ * 2. NAMED idx LOCAL: `idx = (FW(arg0,0x80)+var_s4)&3; s0v = &((int*)arg0)[idx]`
+ *    instead of one nested expression — named int colors to v0 and reuses it
+ *    (addu v0/andi v0), snapping the ENTIRE downstream t-reg cascade
+ *    (13 words: t4/t6/t9 -> t2/t4/t6, t0 -> t9, slt operand).
+ * 3. NAMED-SLOT BUDGET (frame): every named scalar reserves a decl-order home
+ *    even when colored (dead space). Target = 5 dead words ABOVE spE4 +
+ *    9-word temp area BELOW sp64; we had 11 named scalars below. Fixed by
+ *    (a) moving 5 scalars (temp_s2,temp_s3,temp_s7,var_s4,var_s2) ABOVE the
+ *    buffer decls, (b) merging the two same-register disjoint pairs into one
+ *    name each: idx+temp_v0 -> tv0 (both v0), var_s0+temp_s0 -> s0v (both s0)
+ *    — one name = ONE named slot; disjoint ranges keep their per-range color.
+ *    Frame 0x170->0x168, buffers 0x74/0xF4 -> 0x64/0xE4, all byte-exact.
+ * 4. ARRAY-IXA for the final addu operand order: `(char*)&((int*)arg0)[tv0]`
+ *    emits addu s0,s1,t1 (base-first); `arg0 + tv0*4` emits addu s0,t1,s1
+ *    and IDO canonicalizes the source-level operand swap back.
+ * REQUIRES (report to lander): undefined_syms_auto.txt additions
+ *   D_0000CCEC = 0x0000CCEC;
+ *   D_0000CCF8 = 0x0000CCF8;
+ */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -1891,60 +1901,57 @@ typedef int (*GP_000038F4)();
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
-extern char D_0001CCEC;
-extern char D_0001CCF8;
+extern char D_0000CCEC;  /* baked USO data addr 0xCCEC (lui 1/addiu CCEC); defined in undefined_syms_auto.txt */
+extern char D_0000CCF8;  /* baked USO data addr 0xCCF8 */
 void gl_func_000038F4(char *arg0) {
-    char spE4[112];
-    char sp64[128];
-    int *temp_a3;
     int temp_s2;
     int temp_s3;
     char *temp_s7;
-    s32 var_s0;
     s32 var_s4;
-    char *temp_s0;
-    char *temp_v0;
-    char *temp_v1;
     char *var_s2;
+    char spE4[112];
+    char sp64[128];
+    int *temp_a3;
+    char *temp_v1;
+    int tv0;
+    char *s0v;
 
-    var_s0 = 0;
+    s0v = 0;
     var_s2 = arg0;
     do {
         temp_v1 = (char *)FW(var_s2, 0x2C);
         if (FW(temp_v1, 0x94) != 0) {
-            temp_v0 = (char *)FW(temp_v1, 0x28);
-            ((GP_000038F4)FW(temp_v0, 0x1C))(*(s16*)(temp_v0 + 0x18) + temp_v1);
+            tv0 = FW(temp_v1, 0x28);
+            ((GP_000038F4)FW(tv0, 0x1C))(*(s16*)((char *)tv0 + 0x18) + temp_v1);
         }
-        var_s0 += 4;
+        s0v += 4;
         var_s2 += 4;
-    } while (var_s0 != 0x20);
+    } while (s0v != (char *)0x20);
     func_00000000(FW(arg0, 0x50));
     var_s4 = 0;
     temp_s7 = arg0 + 0xCC;
     if (FW(arg0, 0x84) > 0) {
         do {
-            temp_s0 = arg0 + ((FW(arg0, 0x80) + var_s4) & 3) * 4;
-            temp_a3 = (int *)FW(temp_s0, 0x6C);
+            tv0 = (FW(arg0, 0x80) + var_s4) & 3;
+            s0v = (char *)&((int *)arg0)[tv0];
+            temp_a3 = (int *)FW(s0v, 0x6C);
             if (temp_a3 != (int *)-1) {
-                func_00000000(spE4, &D_0001CCEC, FW(temp_s0, 0x5C), temp_a3);
-                func_00000000(sp64, &D_0001CCF8, FW(temp_s0, 0x6C));
-                temp_s2 = func_00000000(FW(arg0, 0x50), FW(temp_s0, 0xAC), spE4);
-                temp_s3 = func_00000000(FW(arg0, 0x50), FW(temp_s0, 0x5C)) + temp_s2;
-                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(temp_s0, 0x9C)), temp_s7, 0xFF);
-                func_00000000(FW(arg0, 0x50), temp_s2, FW(temp_s0, 0xBC), FW(temp_s0, 0x5C));
-                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(temp_s0, 0x9C)), arg0 + 0xDC, 0xFF);
-                func_00000000(FW(arg0, 0x50), temp_s3, FW(temp_s0, 0xBC), sp64);
+                func_00000000(spE4, &D_0000CCEC, FW(s0v, 0x5C), temp_a3);
+                func_00000000(sp64, &D_0000CCF8, FW(s0v, 0x6C));
+                temp_s2 = func_00000000(FW(arg0, 0x50), FW(s0v, 0xAC), spE4);
+                temp_s3 = func_00000000(FW(arg0, 0x50), FW(s0v, 0x5C)) + temp_s2;
+                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(s0v, 0x9C)), temp_s7, 0xFF);
+                func_00000000(FW(arg0, 0x50), temp_s2, FW(s0v, 0xBC), FW(s0v, 0x5C));
+                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(s0v, 0x9C)), arg0 + 0xDC, 0xFF);
+                func_00000000(FW(arg0, 0x50), temp_s3, FW(s0v, 0xBC), sp64);
             } else {
-                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(temp_s0, 0x9C)), temp_s7, 0xFF);
-                func_00000000(FW(arg0, 0x50), func_00000000(FW(arg0, 0x50), FW(temp_s0, 0xAC), FW(temp_s0, 0x5C)), FW(temp_s0, 0xBC), FW(temp_s0, 0x5C));
+                func_00000000(FW(arg0, 0x50), (s32) (*(f32 *)&D_00000000 * (f32) FW(s0v, 0x9C)), temp_s7, 0xFF);
+                func_00000000(FW(arg0, 0x50), func_00000000(FW(arg0, 0x50), FW(s0v, 0xAC), FW(s0v, 0x5C)), FW(s0v, 0xBC), FW(s0v, 0x5C));
             }
             var_s4 += 1;
         } while (var_s4 < FW(arg0, 0x84));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000038F4);
-#endif
 
 /* gl_func_00003B1C - verified structural decode (0xF0, 60 insns,
  * free-slot allocator + initializer).
@@ -2239,6 +2246,48 @@ void gl_func_000041D4(Vec3 *dst) {
 }
 
 // gl_func_00004244 — m2c DECODE (28.62% NM, no episode). LARGEST non-jumptable lift (2479w); game_libs control-flow via scripts/decomp-uso-cf.py.
+/* gl_func_00004244 — BEST VERIFIED STATE 2363/2479 words (95.3% positional,
+ * byte-level vs own .s, 2026-07-03 agent-e w5). NOT exact; deliverable is this
+ * best state + the corrected residual map below. Source below is byte-identical
+ * to the in-tree NM wrap (no change improved it this session).
+ *
+ * RESIDUAL MAP — CORRECTION TO THE DOCUMENTED 66-WORD COUNT: the true
+ * positional word residual vs the fn's own .s is 116, not 66. agent-y's
+ * "reloc-filtered word LCS" EXCLUDED 50 real mismatch words because they carry
+ * HI16 relocs — but they are ORDER swaps of adjacent lui pairs, which mismatch
+ * positionally in the linked ROM. Full 116 = 4 classes:
+ *
+ * 1. [58w, 29 sw/lw pairs] CLASS C spill-home sharing: target spills each
+ *    unit's alloc-ptr to ONE gettemp slot 0x38(sp) (+unit1 at its named 0x8C);
+ *    any C spelling gives N names -> N slots / 1 name -> s3 promotion /
+ *    volatile-or-addressed -> extra loads-stores. RE-VERIFIED this session:
+ *    (a) per-unit BLOCK-SCOPED `char *va` (NEW axis, not in agent-y's sweep):
+ *        NO overlay — each scoped candidate got its own gettemp slot
+ *        0x3C..0xB8 ascending, frame grew 0x748->0x7C8. Rule 1 holds for
+ *        scoped names too.
+ *    (b) single fn-scope name: reconfirmed s3 promotion (2449 insns, -30).
+ *    (c) `if(0){func(&va);}` address-take: shares ONE slot AND it is exactly
+ *        0x38 with va declared last (slot placement IS reachable) but
+ *        addressed-residency adds ~96 insns (2575) — dead stores at the
+ *        pre-if def + post-call reloads. CONFIRMED CAP.
+ * 2. [50w, 25 lui pairs] LUI-ORDER (NEWLY CHARACTERIZED, previously
+ *    mis-filtered): in the 25 units whose header loads a float (D+0dxx) and
+ *    an int (D+cfxx) global, the target emits the two hi-materializations
+ *    CROSS-ordered: lui at,%hi(0dxx); lui tN,%hi(cfxx); lw tN; lwc1 —
+ *    i.e. luis in REVERSE statement order, loads/stores in statement order.
+ *    Probed: source line swap (u5) moves luis AND loads AND the two home
+ *    stores together (2w -> 4w worse); IDO tracks statement order rigidly and
+ *    canonicalizes; no C line order yields the cross-interleave. as1/ugen
+ *    micro-schedule — no C handle found. NOTE: these 50 DO count against
+ *    make verify; 4244's real ceiling with current knowledge is 2413/2479
+ *    (97.3%) + 58 + 8 no-handle words.
+ * 3. [6w] prologue as1 schedule (move s0,a0 hoisted above saves, sdc1 $f20
+ *    in bnez delay) — no-handle (documented).
+ * 4. [2w] li at,-8 vs addiu s2,sp,84 hoist order — no-handle (documented).
+ *
+ * The A-win lever of this session (decl-order named-home moves, cracked
+ * 7FF4/38F4/85B0) does NOT apply here: 4244's 58w class is gettemp-region
+ * sharing across 29 distinct webs, not a named-home position issue. */
 #ifdef NON_MATCHING
 /* PASS-O 2026-06-11 (578B4-ladder from 53.60 -> 99.76, insns 2479 exact,
  * 96.5% words byte-exact): 32 light-record units rewritten as per-unit
@@ -4226,7 +4275,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000076F0);
 // temp_lo spill lands at sp+0x48 vs target sp+0x3C — an IDO stack-spill-allocator
 // slot diff (4 lw/sw words). Resists pad relayout (pads move spill+arg-spills
 // together) AND the permuter (floored at score 130 — regalloc-renumber class).
-#ifdef NON_MATCHING
+/* gl_func_00007FF4 — EXACT MATCH 222/222 words (2026-07-03, agent-e w5).
+ * Was 218/222: temp_lo jal-delay spill homed at sp+0x48 vs target sp+0x3C.
+ * LEVER (new, cracked the documented "regalloc-renumber" cap): NAMED-SCALAR
+ * DECL-ORDER SLOT MAP — non-addressed named scalars still reserve decl-order
+ * homes (framesize-4, -8, ... after the addressed/volatile locals), and a
+ * named var's caller-save spill goes to ITS OWN named home. Moving `temp_lo`
+ * 3 decl positions later (after temp_a2/temp_a3/new_var) moved its home
+ * 0x48->0x3C. Verified word-exact vs own .s on clean rebuild. */
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -4240,10 +4296,10 @@ void gl_func_00007FF4(char *arg0) {
     volatile int pl0;
     s32 sp3C;
     int *temp_v0;
-    int temp_lo;
     int *temp_a2;
     int *temp_a3;
     int *new_var;
+    int temp_lo;
     f32 temp_f0;
 
     if (FW(arg0, 0x4F0) & 0x01000000) {
@@ -4316,9 +4372,6 @@ void gl_func_00007FF4(char *arg0) {
     temp_v0 = (int *)FW(arg0, 0x28);
     ((GP_00007FF4)FW(temp_v0, 0xEC))(*(s16 *)((char *)temp_v0 + 0xE8) + (int)arg0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00007FF4);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0000836C(int a0, int *a1) {
@@ -4445,21 +4498,31 @@ void gl_func_00008510(int *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008510);
 #endif
 
-#ifdef NON_MATCHING
+/* gl_func_000085B0 — EXACT MATCH 46/46 words (2026-07-03, agent-e w5).
+ * Was 28/46: whole-body temp-reg cascade (+1/+2) plus p2 spill 0x24 vs 0x20.
+ * ROOT: target reuses ONE named temp (v0) for the three reloaded pointers
+ * (*(state+0xC4), *(state+0xCC), *(*(arg0+0x528)+8)) and homes `state` in v1.
+ * FIX: single function-scope `int *q` assigned at all 3 sites (replacing two
+ * anonymous temps + the block-scoped `t`). q (6 refs) outranks state at
+ * coloring -> q=v0, state=v1, t6.. cascade snaps. q's decl between `p` and
+ * the block-scoped `p2` also shifts p2's named home 0x24->0x20 (q's dead
+ * colored slot absorbs 0x24), fixing the spill slot. First-variant match. */
 void gl_func_000085B0(int *arg0, int arg1) {
     char *state;
     char *p;
+    int *q;
 
     gl_func_00000000(arg0);
     state = *(char**)((char*)&D_00000000 + 0x134);
-    p = *(char**)(*(char**)(state + 0xC4) + 0x800);
+    q = *(int**)(state + 0xC4);
+    p = *(char**)((char*)q + 0x800);
     if (*(int**)((char*)*(int**)((char*)*(int**)((char*)arg0 + 0x528) + 0x8) + 0x8) != 0) {
-        char *p2 = *(char**)(*(char**)(state + 0xCC) + 0x800);
+        char *p2;
+        q = *(int**)(state + 0xCC);
+        p2 = *(char**)((char*)q + 0x800);
         gl_func_00000000(p2, *(int*)(p2 + 0x34));
-        {
-            int *t = *(int**)((char*)*(int**)((char*)arg0 + 0x528) + 0x8);
-            gl_func_00000000(p2, *(int*)((char*)t + 0x8), *(int*)((char*)t + 0x4));
-        }
+        q = *(int**)((char*)*(int**)((char*)arg0 + 0x528) + 0x8);
+        gl_func_00000000(p2, *(int*)((char*)q + 0x8), *(int*)((char*)q + 0x4));
     }
     gl_func_00000000(p, 0);
     gl_func_00000000(p,
@@ -4468,9 +4531,6 @@ void gl_func_000085B0(int *arg0, int arg1) {
     gl_func_00000000(arg0);
     *(int*)((char*)arg0 + 0x4F4) = arg1 & 0xFFFF;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000085B0);
-#endif
 
 /* Hidden-register dispatch stub — GENUINE caller-set-int-reg CAP (98.6%).
  * The real ABI hands the dispatcher pointer in $v0 and the addend in $v1

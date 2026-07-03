@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000050A0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:47:04.874154+00:00",
+  "end_time": "2026-07-03T20:47:04.874173+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:47:04.874167+00:00",
+      "assistant_text": "Width-1 struct by-value *(S50A0*)&saved_a0 emits the dead sw a1,4(sp) arg-shadow store + flips p-spill high + fixes t7->t8; float buf[5] + &buf[1] gap-claim with decl order buf/p/pad/saved_a0 = frame -0x48, all slots exact.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 33,
+  "initial_m2c_source": null,
+  "final_source": "/* func_000050A0 \u2014 EXACT (33/33 post-link) 2026-07-03 agent-e. CRACKED the\n * documented \"spill-slot-coloring cap\" (wrap note 2026-06-21, 8 residual diffs).\n *\n * TWO levers, applied on top of the old volatile-saved_a0 body:\n *  1) SINGLE-INT STRUCT BY-VALUE ARG (PATTERNS Pair2-crack, 1-word variant):\n *     pass the saved param as `*(S50A0*)&saved_a0` (typedef struct {int v;})\n *     in arg position 2. This alone emitted the dead `sw a1,0x4(sp)` outgoing\n *     arg-shadow store in the jal delay (previously faked via `new_var =\n *     saved_a0` at a WRONG local slot 0x20), flipped the p-spill to v0@high\n *     slot, and fixed the t7->t8 renumber: 8 real diffs -> 5 (all layout -8).\n *  2) OVERSIZED BUFFER + &buf[1] (docs \"8-byte dead slot below a stack buffer\n *     is a &buf[N] offset\"): float buf[5] zeroing buf[1..4], passing &buf[1].\n *     Claims the 0x34 gap word; decl order buf,p,pad,saved_a0 then lands\n *     buf@0x38(zeros 0x38-0x44), p@0x30, pad 0x20-0x2F, saved_a0@0x1C,\n *     align@0x18 -> frame -0x48 exact. 5 -> 0.\n *\n * .o-level residual = 1 reloc-class word [5]: addiu a0,a0,%lo(D_00007DA4);\n * D_00007DA4=0x7DA4 in undefined_syms_auto.txt -> links to 24847DA4 = target.\n * All jals zero-target K&R func_00000000. No new wiring needed.\n */\ntypedef struct { int v; } S50A0;\nint func_000050A0(int a0) {\n  float buf[5];\n  int *p;\n  char pad[16];\n  volatile int saved_a0;\n  (void) pad;\n  func_00000000(&D_00007DA4);\n  buf[1] = (0, 0.0f);\n  buf[2] = 0.0f;\n  buf[3] = 0.0f;\n  buf[4] = 0.0f;\n  saved_a0 = a0;\n  p = (int *) func_00000000(0x58);\n  if (p != 0)\n  {\n    func_00000000(p, *(S50A0*)&saved_a0, *((int *) (&D_00000000)), &buf[1]);\n    *((int *) (((char *) p) + 0x28)) = (int) (&D_00000000);\n  }\n  return (int) p;\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_000050A0.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s (relocs resolve via undefined_syms) + make verify ROM byte-identical"
+  }
+}
