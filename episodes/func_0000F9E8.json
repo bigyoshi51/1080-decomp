@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000F9E8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T13:04:19.867112+00:00",
+  "end_time": "2026-07-03T13:04:19.867135+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T13:04:19.867129+00:00",
+      "assistant_text": "-O0 triple: single-statement embed (assignment inside the indirect-call arg keeps self cached in t7; separate statements reload from sp) + -O0 right-operand-first addu (source self[0x48/4] + *(short*)(...+0x58) puts the lh first as rs) + decl order vt,r,flag,x (s-regs assigned in declaration order).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 64,
+  "initial_m2c_source": null,
+  "final_source": "/* func_0000F9E8 \u2014 64/64 EXACT (2026-07-03, agent-e).\n * Levers: (1) single-statement embed of the vt= assignment inside the call arg\n * so `self` stays cached in t7 across the whole expression (separate statement\n * reloaded self from sp -> +1 insn + temp shift); (2) IDO -O0 evaluates the\n * RIGHT add operand first and makes it rs of addu -> source order must be\n * self[0x48/4] + *(short*)(vt...+0x58); (3) decl order vt,r,flag,x so\n * flag=s2 / x=s3 (s-regs assigned in DECLARATION order at -O0). */\nvoid func_0000F9E8(int *self) {\n    register int *vt;\n    register int *r;\n    register int flag;\n    register int *x;\n\n    func_00000000();\n    self[0x38 / 4] = func_00000000(&D_00000000);\n    ((void(*)(int))vt[0x5C / 4])(self[0x48 / 4] + (int)*(short*)((char*)(vt = (int*)((int*)self[0x48 / 4])[0x28 / 4]) + 0x58));\n    ((int*)self[0x48 / 4])[0x7C / 4] = 0;\n    self[0x30 / 4] = 1;\n    self[0x34 / 4] = 0;\n    if (self[0x4C / 4] != 0) {\n        vt = (int*)((char*)self[0x4C / 4] + 0x18);\n        r = vt;\n        flag = 0;\n        if (flag) {\n            x = r;\n            *x |= 8;\n        } else {\n            x = r;\n            *x &= ~8;\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_F954.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_0000F9E8.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 (asm-processor, per-file override)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

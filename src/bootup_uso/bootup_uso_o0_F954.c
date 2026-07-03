@@ -22,20 +22,22 @@ void func_0000F954(int *a0, int a1, int a2) {
     func_00000000(a1, a2, 0);
 }
 
-#ifdef NON_MATCHING
-/* func_0000F9E8: -O0 init helper, sibling of FAE8 (flag=0 -> clear-bit live arm).
- * 65w vs 64w target — 1 word off: in the indirect-call arg `off + self[0x48]` the
- * -O0 target keeps self in t7 (cached from the vt computation) and reloads only aux,
- * while the build re-loads self. A pure -O0 self-caching/eval-order residual. */
+/* func_0000F9E8 — 64/64 EXACT (2026-07-03, agent-e).
+ * Levers: (1) single-statement embed of the vt= assignment inside the call arg
+ * so `self` stays cached in t7 across the whole expression (separate statement
+ * reloaded self from sp -> +1 insn + temp shift); (2) IDO -O0 evaluates the
+ * RIGHT add operand first and makes it rs of addu -> source order must be
+ * self[0x48/4] + *(short*)(vt...+0x58); (3) decl order vt,r,flag,x so
+ * flag=s2 / x=s3 (s-regs assigned in DECLARATION order at -O0). */
 void func_0000F9E8(int *self) {
     register int *vt;
-    register int *r, *x;
+    register int *r;
     register int flag;
+    register int *x;
 
     func_00000000();
     self[0x38 / 4] = func_00000000(&D_00000000);
-    vt = (int*)((int*)self[0x48 / 4])[0x28 / 4];
-    ((void(*)(int))vt[0x5C / 4])((int)*(short*)((char*)vt + 0x58) + self[0x48 / 4]);
+    ((void(*)(int))vt[0x5C / 4])(self[0x48 / 4] + (int)*(short*)((char*)(vt = (int*)((int*)self[0x48 / 4])[0x28 / 4]) + 0x58));
     ((int*)self[0x48 / 4])[0x7C / 4] = 0;
     self[0x30 / 4] = 1;
     self[0x34 / 4] = 0;
@@ -52,6 +54,3 @@ void func_0000F9E8(int *self) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F9E8);
-#endif

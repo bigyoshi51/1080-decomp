@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000126EC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T13:04:20.127748+00:00",
+  "end_time": "2026-07-03T13:04:20.127785+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T13:04:20.127779+00:00",
+      "assistant_text": "'Capped 84.95%' verdict was a LOGIC error: tail arg is lh SIGNED short at 0x30(s2) PLUS materialized &D base; s2=*(char**)(&D+0x28); a1 is or s0,s1 q-copy reusing first-declared register var. Levers: -O0 decl-order slot map (p,q,sp34,r,pad -> frame 0x40); DIRECT struct-typed global field store (extern Quad4 D_00000000; D.a=arg1 -> lui at; sw %lo \u2014 casts keep 3-insn form; needed TU extern retype); direct K&R call; single-statement embed with lh chain as RIGHT operand.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 56,
+  "initial_m2c_source": null,
+  "final_source": "/* func_000126EC \u2014 56/56 EXACT (2026-07-03, agent-e). Previous \"capped 84.95%\"\n * comment was WRONG on the logic: the tail is NOT FW(r,0x30) \u2014 it is\n * lh (SIGNED short) at 0x30(s2) PLUS the materialized &D_00000000 base, with\n * s2 = *(char**)(&D+0x28) and an `or s0,s1` q-copy passed as a1 via reusing p.\n * Levers: (1) decl order p,q,sp34,r,pad -> -O0 top-down slot map puts sp34 at\n * 0x34 with frame 0x40 (pad = 5th 4-byte slot, frame 0x3C rounds to 0x40);\n * (2) store must be a DIRECT struct-typed global field ref (extern Quad4\n * D_00000000; D_00000000.a = arg1) to fold to lui at; sw %lo \u2014 both\n * *(int*)&D and ((Quad4*)&D)->a keep the 3-insn lui/addiu/sw scalar form;\n * (3) direct K&R call (not fn-ptr cast) -> jal; (4) single-statement embed of\n * the r= assignment inside the call arg so &D stays cached in t5 (base reused\n * in addu), with the lh chain as the RIGHT operand of the add (IDO -O0\n * evaluates right operand first -> rs of addu); (5) p reused for the q copy\n * (or s0,s1) \u2014 first-declared register var = s0.\n * Requires TU-level: typedef Quad4 BEFORE `extern Quad4 D_00000000;`. */\n#ifndef FW\n#define FW(p, o) (*(int *)((char *)(p) + (o)))\n#endif\ntypedef char *(*GP_000126EC)();\nvoid func_000126EC(char *arg0, s32 arg1) {\n    register u16 *p;\n    register s32 *q;\n    s32 sp34;\n    register char *r;\n    s32 pad;\n\n    p = (u16 *)(*(char **)(arg0 + 0x154) + 4);\n    *p = *p & ~4;\n    if (arg1 != 0) {\n        p = (u16 *)(*(char **)(arg0 + 0x154) + 4);\n        *p = *p | 4;\n    }\n    D_00000000.a = arg1;\n    q = &sp34;\n    if ((q != 0) || (q = (s32 *)func_00000000(0xC), (q != 0))) {\n        *q = 0x15;\n    }\n    p = (u16 *)q;\n    ((GP_000126EC)FW(r, 0x34))((int)&D_00000000 + *(short *)((r = *(char **)((char *)&D_00000000 + 0x28)) + 0x30), p);\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail3b_bot_t.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_000126EC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 (asm-processor, per-file override)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
