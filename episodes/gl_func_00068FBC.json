@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00068FBC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:35:09.244634+00:00",
+  "end_time": "2026-07-03T20:35:09.244653+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:35:09.244648+00:00",
+      "assistant_text": "-1/0x8000 store-pair order swap: known one-line store grouping lever in the ORIGINAL statement order \u2014 flips only the sw order keeping li-t6-first (plain reorder swaps the li pair too, 5-diff regression). One-line layout is load-bearing.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 59,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00068FBC: nested alloc/init get-or-create constructor (size 0xEC, frame 0x28).\n *\n * obj = arg0; if NULL alloc(0xA8) master record (return NULL on fail).\n * sub = obj; if NULL alloc(0x18); on fail skip the sub-init and fall to the\n * master writes (NOT an early return). The 0x10 / 0x4 sentinel sub-allocs are\n * dead in practice (sub is non-NULL here) but preserved from asm. The -1 /\n * 0x8000 / 0 init writes land on `sub` whenever sub is non-NULL.\n * D+0x2C58C / D+0x2C598 are USO data relocs (vtable/info pointers).\n * Callee alloc() == gl_func_00062F64 (USO baked reloc; INCLUDE_ASM is build path).\n * 2026-07-03 EXACT (59/59, agent-e): last 2 diffs were the -1/0x8000 store-pair\n * order (target sw t7,0 before sw t6,8 with li t6,0x8000 scheduled first).\n * Statement reorder alone swaps the li pair too (5 diffs); the ONE-LINE store\n * grouping (docs/IDO_CODEGEN #feedback-one-line-stores-fix-schedule-order) in\n * the ORIGINAL statement order flips only the sw order. Line is load-bearing.\n */\nextern int D_00000000;\nextern void *alloc(int size);\nvoid *gl_func_00068FBC(void *obj, int arg1, int arg2, int arg3) {\n    void *sub;\n    void *inner;\n\n    if (obj == NULL) {\n        obj = alloc(0xA8);\n        if (obj == NULL) goto done;\n    }\n    sub = obj;\n    if (sub == NULL) {\n        sub = alloc(0x18);\n        if (sub == NULL) goto obj_writes;\n    }\n    inner = sub;\n    if (inner == NULL) {\n        inner = alloc(0x10);\n        if (inner == NULL) goto sentinel;\n    }\n    /* one-line grouping is LOAD-BEARING: flips the sw t7,0/sw t6,8 store order\n     * to match target while keeping the li t6,0x8000-first schedule */\n    *(int*)((char*)inner + 0x8) = 0x8000; *(int*)((char*)inner + 0x0) = -1; *(int*)((char*)inner + 0x4) = 0;\nsentinel:\n    inner = (char*)sub + 0x10;\n    if (sub == (void*)0xFFFFFFF0) {\n        inner = alloc(0x4);\n        if (inner == NULL) goto sub_writes;\n    }\n    *(int*)inner = 0;\nsub_writes:\n    *(int*)((char*)sub + 0xC)  = (int)((char*)&D_00000000 + 0x2C58C);\n    *(int*)((char*)sub + 0x14) = 0;\nobj_writes:\n    *(int*)((char*)obj + 0x20) = arg1;\n    *(int*)((char*)obj + 0x1C) = arg2;\n    *(int*)((char*)obj + 0x18) = arg3;\n    *(int*)((char*)obj + 0xC)  = (int)((char*)&D_00000000 + 0x2C598);\ndone:\n    return obj;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00068FBC.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s + make verify ROM byte-identical (zero-value gl_func_00000000f/alloc placeholders)"
+  }
+}

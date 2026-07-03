@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00063E84",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:35:09.503212+00:00",
+  "end_time": "2026-07-03T20:35:09.503233+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:35:09.503227+00:00",
+      "assistant_text": "'move a3,zero vs li a3,0 as1 idiom tie' verdict FALSE \u2014 mistyped prototype: 4th arg is FLOAT 0.0f (gl_func_00000000f(...,float,float,int)); IDO materializes float-zero with addiu a3,zero,0 but copy-propagates $zero for int 0. 18-cell probe: every int/pointer spelling gives move; only float-typed param gives li. Semantically better too (0-2/0-10 min/max ranges).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 44,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00063E84: 44-insn config-registration (2 float entries).\n *   gl_func_00000000(&D, &D+0x22398, 0);\n *   gl_func_00000000(&D, &D+0x223A4, a0+0x150, 0, 2.0f, 1);\n *   gl_func_00000000(&D, &D+0x223B0, a0+0x154, 0, 10.0f, 1);\n *   gl_func_00000000(&D);\n *   gl_func_00000000(a0);\n * The two float consts (2.0f / 10.0f) ride the 5th (stack) arg as a\n * 4-byte single-precision `swc1 ,16(sp)` \u2014 NOT K&R-double-promoted.\n * A plain float literal through the file-scope K&R `extern int\n * gl_func_00000000()` would `sdc1` (8B, double promo); a union-int\n * reinterpret avoids that but round-trips through an extra spill slot\n * (store-as-float / reload-as-int / restore), inflating the frame and\n * dropping fuzzy. The match is reached by declaring a SECOND prototyped\n * extern `gl_func_00000000f(...,float,int)` so IDO builds the float in\n * $f4/$f6 (`lui at; mtc1`) and stores it single-precision STRAIGHT into\n * the outgoing-arg slot, while keeping the direct `jal` (R_MIPS_26).\n * 2026-07-03 EXACT (44/44, agent-e): the last two words (target li a3,0 vs\n * build move a3,zero) were NOT an as1 scheduling tie -- the 4th arg is a\n * FLOAT 0.0f, not int 0. With the 4th param prototyped float, IDO\n * materializes the 0.0f bit pattern into $a3 with an LDI (addiu a3,zero,0)\n * instead of copy-propagating $zero (or a3,zero,zero) as it does for int 0.\n * So the two float-range calls are (id, slot-ptr, 0.0f..2.0f, flag) and\n * (id, slot-ptr, 0.0f..10.0f, flag) -- a min/max pair, which also reads\n * better semantically. Residual reloc-symbol-name on the 2 float jals is\n * gate-invisible (both bake to jal 0 placeholders).\n * NOTE: gl_func_00000000f resolves to the same target as\n * gl_func_00000000 at link; the float-arg prototype is the only lever\n * that forces single-precision direct-to-stack-slot float args. */\nextern int gl_func_00000000();\nextern int gl_func_00000000f(void *, void *, void *, float, float, int);\nextern int D_00000000;\nvoid gl_func_00063E84(char *a0) {\n    gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x22398, 0);\n    gl_func_00000000f(&D_00000000, (char*)&D_00000000 + 0x223A4,\n                      a0 + 0x150, 0.0f, 2.0f, 1);\n    gl_func_00000000f(&D_00000000, (char*)&D_00000000 + 0x223B0,\n                      a0 + 0x154, 0.0f, 10.0f, 1);\n    gl_func_00000000(&D_00000000);\n    gl_func_00000000(a0);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00063E84.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s + make verify ROM byte-identical (zero-value gl_func_00000000f/alloc placeholders)"
+  }
+}

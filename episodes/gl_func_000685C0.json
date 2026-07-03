@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000685C0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:35:08.967682+00:00",
+  "end_time": "2026-07-03T20:35:08.967701+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:35:08.967695+00:00",
+      "assistant_text": "'Phantom-slot cap' = same name-count mechanism: inline row (3 names->2; spill temps rise, rounding pad lands at 0x18 = the 'reserved unused' slot) + temp need-order follows DECL order (key_h before key_l -> key_h@0x24). The old 'unnamed temps, decl-order has nothing to grip' verdict was half-right; name-count is the grip.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 55,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_000685C0: 55-insn (0xDC) bounds-checked 2-level table lookup\n * with 3 assertion-call sites. Sibling of matched gl_func_00068524\n * (constructor for the same table).\n *\n * 2026-07-03 EXACT (55/55, agent-e): the \"phantom-slot cap\" was NAMED-LOCAL\n * COUNT (same crack as gl_func_00069688). uopt homes every named local at\n * frame top (decl order) even at -O2; anonymous spill temps stack BELOW the\n * homes (uopttemp gettemp). The old 3-name body (key_l/key_h/row) put 3\n * homes at 0x2C/0x28/0x24 pushing the 3 spill temps down to 0x20/0x1C/0x18;\n * target has TWO homes (0x2C/0x28, both unused) with temps at 0x24/0x20/0x1C\n * and the rounding pad at 0x18 (the \"reserved unused\" slot). Fix: (1) inline\n * row (drops one name; its two uses recompute from the homed a0 exactly like\n * target); (2) temp NEED-ORDER follows candidate/decl order, so declare\n * key_h BEFORE key_l to land key_h@0x24, key_l@0x20, v1(row-offset)@0x1C.\n * No pads, no decl-perm grinding: name-count first, then decl order. */\nextern int gl_func_00000000();\nvoid gl_func_000685C0(int *a0, unsigned int a1) {\n    unsigned int key_h = (a1 >> 16) & 0xFFFF;\n    unsigned int key_l = a1 & 0xFFFF;\n\n    if (!(key_h < (unsigned int)a0[0x34/4])) {\n        gl_func_00000000((char*)&D_00000000 + 0x2B3C0, key_h, key_l);\n    }\n    if (!(key_l < (unsigned int)((int*)((char*)a0[0x30/4] + key_h * 16))[2])) {\n        gl_func_00000000((char*)&D_00000000 + 0x2B3E4, key_h, key_l);\n    }\n    if (((int*)((int*)((char*)((int*)((char*)a0[0x30/4] + key_h * 16))[1] + key_l * 4))[0])[0x10/4] == 0) {\n        gl_func_00000000((char*)&D_00000000 + 0x2B404, key_h);\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_000685C0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s + make verify ROM byte-identical (zero-value gl_func_00000000f/alloc placeholders)"
+  }
+}

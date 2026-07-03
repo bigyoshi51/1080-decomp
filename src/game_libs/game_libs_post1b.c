@@ -731,7 +731,6 @@ void *gl_func_00063DC4(void *a0, int a1, float a2, float a3, float a4) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063DC4);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00063E84: 44-insn config-registration (2 float entries).
  *   gl_func_00000000(&D, &D+0x22398, 0);
  *   gl_func_00000000(&D, &D+0x223A4, a0+0x150, 0, 2.0f, 1);
@@ -748,28 +747,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063DC4);
  * extern `gl_func_00000000f(...,float,int)` so IDO builds the float in
  * $f4/$f6 (`lui at; mtc1`) and stores it single-precision STRAIGHT into
  * the outgoing-arg slot, while keeping the direct `jal` (R_MIPS_26).
- * Yields a byte-shape match (97.3% objdiff): residual is only the
- * `gl_func_00000000f` reloc-symbol name on the 2 float jals + two
- * `move a3,zero` vs `li a3,0` (scheduling). game_libs can't byte-LAND
- * (baked-reloc); INCLUDE_ASM is the build path (ROM byte-exact).
+ * 2026-07-03 EXACT (44/44, agent-e): the last two words (target li a3,0 vs
+ * build move a3,zero) were NOT an as1 scheduling tie -- the 4th arg is a
+ * FLOAT 0.0f, not int 0. With the 4th param prototyped float, IDO
+ * materializes the 0.0f bit pattern into $a3 with an LDI (addiu a3,zero,0)
+ * instead of copy-propagating $zero (or a3,zero,zero) as it does for int 0.
+ * So the two float-range calls are (id, slot-ptr, 0.0f..2.0f, flag) and
+ * (id, slot-ptr, 0.0f..10.0f, flag) -- a min/max pair, which also reads
+ * better semantically. Residual reloc-symbol-name on the 2 float jals is
+ * gate-invisible (both bake to jal 0 placeholders).
  * NOTE: gl_func_00000000f resolves to the same target as
  * gl_func_00000000 at link; the float-arg prototype is the only lever
  * that forces single-precision direct-to-stack-slot float args. */
 extern int gl_func_00000000();
-extern int gl_func_00000000f(void *, void *, void *, int, float, int);
+extern int gl_func_00000000f(void *, void *, void *, float, float, int);
 extern int D_00000000;
 void gl_func_00063E84(char *a0) {
     gl_func_00000000(&D_00000000, (char*)&D_00000000 + 0x22398, 0);
     gl_func_00000000f(&D_00000000, (char*)&D_00000000 + 0x223A4,
-                      a0 + 0x150, 0, 2.0f, 1);
+                      a0 + 0x150, 0.0f, 2.0f, 1);
     gl_func_00000000f(&D_00000000, (char*)&D_00000000 + 0x223B0,
-                      a0 + 0x154, 0, 10.0f, 1);
+                      a0 + 0x154, 0.0f, 10.0f, 1);
     gl_func_00000000(&D_00000000);
     gl_func_00000000(a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00063E84);
-#endif
 
 
 /* game_libs_func_00063F34: one 108-insn (0x1B0) function. BOUNDARY MERGED
@@ -4268,27 +4269,36 @@ void gl_func_00068524(int *a0, int a1) {
  * calls, not named vars, so the decl-order lever has nothing to grip
  * (same boundary as 8C3C's internal temps). Phantom-slot cap stands. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
+/* gl_func_000685C0: 55-insn (0xDC) bounds-checked 2-level table lookup
+ * with 3 assertion-call sites. Sibling of matched gl_func_00068524
+ * (constructor for the same table).
+ *
+ * 2026-07-03 EXACT (55/55, agent-e): the "phantom-slot cap" was NAMED-LOCAL
+ * COUNT (same crack as gl_func_00069688). uopt homes every named local at
+ * frame top (decl order) even at -O2; anonymous spill temps stack BELOW the
+ * homes (uopttemp gettemp). The old 3-name body (key_l/key_h/row) put 3
+ * homes at 0x2C/0x28/0x24 pushing the 3 spill temps down to 0x20/0x1C/0x18;
+ * target has TWO homes (0x2C/0x28, both unused) with temps at 0x24/0x20/0x1C
+ * and the rounding pad at 0x18 (the "reserved unused" slot). Fix: (1) inline
+ * row (drops one name; its two uses recompute from the homed a0 exactly like
+ * target); (2) temp NEED-ORDER follows candidate/decl order, so declare
+ * key_h BEFORE key_l to land key_h@0x24, key_l@0x20, v1(row-offset)@0x1C.
+ * No pads, no decl-perm grinding: name-count first, then decl order. */
+extern int gl_func_00000000();
 void gl_func_000685C0(int *a0, unsigned int a1) {
-    unsigned int key_l = a1 & 0xFFFF;
     unsigned int key_h = (a1 >> 16) & 0xFFFF;
-    int *row;
+    unsigned int key_l = a1 & 0xFFFF;
 
     if (!(key_h < (unsigned int)a0[0x34/4])) {
         gl_func_00000000((char*)&D_00000000 + 0x2B3C0, key_h, key_l);
     }
-    row = (int*)((char*)a0[0x30/4] + key_h * 16);
-    if (!(key_l < (unsigned int)row[2])) {
+    if (!(key_l < (unsigned int)((int*)((char*)a0[0x30/4] + key_h * 16))[2])) {
         gl_func_00000000((char*)&D_00000000 + 0x2B3E4, key_h, key_l);
     }
-    row = (int*)((char*)a0[0x30/4] + key_h * 16);
-    if (((int*)((int*)((char*)row[1] + key_l * 4))[0])[0x10/4] == 0) {
+    if (((int*)((int*)((char*)((int*)((char*)a0[0x30/4] + key_h * 16))[1] + key_l * 4))[0])[0x10/4] == 0) {
         gl_func_00000000((char*)&D_00000000 + 0x2B404, key_h);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000685C0);
-#endif
 
 extern int gl_func_00000000();
 
@@ -4860,7 +4870,6 @@ void gl_func_00068F64(Quad4 *dst) {
     *dst = scratch;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_00068FBC: nested alloc/init get-or-create constructor (size 0xEC, frame 0x28).
  *
  * obj = arg0; if NULL alloc(0xA8) master record (return NULL on fail).
@@ -4870,6 +4879,11 @@ void gl_func_00068F64(Quad4 *dst) {
  * 0x8000 / 0 init writes land on `sub` whenever sub is non-NULL.
  * D+0x2C58C / D+0x2C598 are USO data relocs (vtable/info pointers).
  * Callee alloc() == gl_func_00062F64 (USO baked reloc; INCLUDE_ASM is build path).
+ * 2026-07-03 EXACT (59/59, agent-e): last 2 diffs were the -1/0x8000 store-pair
+ * order (target sw t7,0 before sw t6,8 with li t6,0x8000 scheduled first).
+ * Statement reorder alone swaps the li pair too (5 diffs); the ONE-LINE store
+ * grouping (docs/IDO_CODEGEN #feedback-one-line-stores-fix-schedule-order) in
+ * the ORIGINAL statement order flips only the sw order. Line is load-bearing.
  */
 extern int D_00000000;
 extern void *alloc(int size);
@@ -4891,9 +4905,9 @@ void *gl_func_00068FBC(void *obj, int arg1, int arg2, int arg3) {
         inner = alloc(0x10);
         if (inner == NULL) goto sentinel;
     }
-    *(int*)((char*)inner + 0x8) = 0x8000;
-    *(int*)((char*)inner + 0x0) = -1;
-    *(int*)((char*)inner + 0x4) = 0;
+    /* one-line grouping is LOAD-BEARING: flips the sw t7,0/sw t6,8 store order
+     * to match target while keeping the li t6,0x8000-first schedule */
+    *(int*)((char*)inner + 0x8) = 0x8000; *(int*)((char*)inner + 0x0) = -1; *(int*)((char*)inner + 0x4) = 0;
 sentinel:
     inner = (char*)sub + 0x10;
     if (sub == (void*)0xFFFFFFF0) {
@@ -4912,9 +4926,6 @@ obj_writes:
 done:
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068FBC);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
 
@@ -5049,37 +5060,33 @@ after_store:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000695F4);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00069688: constructor — stores arg1 at self->0x38 (logs via cb(0x2C5B0)
  * if already set), allocates 3 buffers sized n*6/n*6/n*2 (n=arg2->0x40) into
  * self->0x3C/0x40/0x30, zeros self->0x94, then a per-element loop: writes 100 to
  * self->0x30[i] and copies a 3-short (6-byte) record from arg2->0x60 to self->0x3C;
  * stores arg2 at self->0x34, inits via cb(self), wires cb(arg1+0x70, self+0x50)
  * and back-links self->0x34->0xA8/0xAC. Returns self->0x34. Fresh decode 2026-05-29
- * (m2c-confirmed). 2026-06-21 base-pin lever applied (agent-i): 25->7 gate-diffs
- * (objcopy .text vs expected/.o, reloc-blind = the land gate). THREE cracks:
- *   (1) HELD-POINTER BASE-PIN: cb(0x2C5B0) was an INT LITERAL -> lui;ori; passing
- *       (char*)&D_00000000 + 0x2C5B0 (held pointer) -> lui 0x3;addiu -14928, which
- *       asm-processor BAKES into .text identically to expected (D_00000000 resolves
- *       to USO offset 0 + addend; surviving HI16/LO16 relocs are reloc-blind to the
- *       byte_verify gate -- verified via objcopy .text compare). Killed 2 diffs.
- *   (2) tail decl-order p-before-a1ptr -> IDO reloads arg1 into dead arg2 reg (s1)
- *       and increments in-place exactly like target (killed the structural tail diff).
- *   (3) copy-loop: compute dst BEFORE src -> src->v1, dst->v0 matching target
- *       (killed the 12-diff v0/v1 copy-loop renumber).
- * RESIDUAL (7 diffs): pure FRAME-SIZE allocator cap. Body+control-flow+regs are now
- * byte-exact; IDO allocates a 72-byte frame where target uses 56 (+16), shifting the
- * a1ptr spill 32->36 and the arg1 home slot 60->76. Tried: inline a1ptr (re-CSE'd),
- * pointer-store arg1, decl reorder, j/k loop order -- all frame-neutral. Irreducible
- * IDO stack-rounding/min-frame artifact. Caps: self/arg2 structs untyped. NON_MATCHING. */
+ * (m2c-confirmed). 2026-06-21 base-pin lever applied (agent-i): 25->7 gate-diffs.
+ * Prior cracks: (1) HELD-POINTER BASE-PIN: cb arg spelled (char*)&D_00000000 + 0x2C5B0
+ * (held pointer) -> lui 0x3;addiu -14928 baked identically to expected; (2) tail
+ * p local -> IDO reloads arg1 into dead s1 and increments in-place; (3) copy-loop
+ * dst-before-src -> src->v1, dst->v0.
+ * 2026-07-03 EXACT (79/79, agent-e): the "irreducible frame-size cap" (72 vs 56)
+ * was NAMED-LOCAL COUNT. uopt homes EVERY named local at frame top (decl order,
+ * -4,-8,...) even at -O2; temps stack below homes (gettemp: disp=-(homes+temps)).
+ * Fix: exactly FOUR names (i, src, dst, p). j/k deleted -> spelled i*2 / i*6
+ * (strength-reduction recreates the a2/a0 IVs byte-identically); a1ptr deleted ->
+ * self + 0x50 inline at all 3 tail uses (CSE keeps one value, spills it to the
+ * SECOND anonymous temp slot; 4 homes put that temp at sp+0x20 = target; with only
+ * 3 names it sat at 0x24). Frame = 0x20 fixed + 4 homes + 2 temps = 0x38 exact.
+ * Do NOT inline the copy loop bases (type-blind aliasing forces per-half reloads)
+ * and do NOT struct-copy the 6-byte record (emits lwl/lwr). Caps: none left; body,
+ * frame, regs all byte-exact. Zero-target jals = USO placeholders (fine). */
 extern int gl_func_00000000();
 void *gl_func_00069688(char *self, char *arg1, char *arg2) {
     unsigned int i;
-    int j;
-    int k;
     short *src;
     short *dst;
-    char *a1ptr;
     char *p;
 
     if (*(int *)(self + 0x38) != 0) {
@@ -5091,16 +5098,12 @@ void *gl_func_00069688(char *self, char *arg1, char *arg2) {
     *(int *)(self + 0x30) = gl_func_00000000(*(int *)(arg2 + 0x40) * 2);
     *(int *)(self + 0x94) = 0;
     i = 0;
-    j = 0;
-    k = 0;
     if (*(int *)(arg2 + 0x40) != 0) {
         do {
+            *(short *)(*(char **)(self + 0x30) + i * 2) = 100;
+            dst = (short *)(*(char **)(self + 0x3C) + i * 6);
+            src = (short *)(*(char **)(arg2 + 0x60) + i * 6);
             i += 1;
-            *(short *)(*(char **)(self + 0x30) + j) = 100;
-            j += 2;
-            dst = (short *)(*(char **)(self + 0x3C) + k);
-            src = (short *)(*(char **)(arg2 + 0x60) + k);
-            k += 6;
             dst[0] = src[0];
             dst[1] = src[1];
             dst[2] = src[2];
@@ -5109,15 +5112,11 @@ void *gl_func_00069688(char *self, char *arg1, char *arg2) {
     *(char **)(self + 0x34) = arg2;
     gl_func_00000000(self);
     p = arg1 + 0x70;
-    a1ptr = self + 0x50;
-    gl_func_00000000(p, a1ptr);
-    *(char **)(*(char **)(self + 0x34) + 0xA8) = a1ptr;
+    gl_func_00000000(p, self + 0x50);
+    *(char **)(*(char **)(self + 0x34) + 0xA8) = self + 0x50;
     *(char **)(*(char **)(self + 0x34) + 0xAC) = p;
     return *(char **)(self + 0x34);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069688);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00069688",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T20:35:08.707986+00:00",
+  "end_time": "2026-07-03T20:35:08.708008+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T20:35:08.708001+00:00",
+      "assistant_text": "'Irreducible frame-size cap' (+16) disproven by the NAMED-LOCAL-COUNT lever: uopt homes EVERY named local at frame top (decl order) even at -O2; anonymous spill temps stack below (uopttemp.c gettemp, zdbug:6-verified). Exactly FOUR names (i,src,dst,p): deleted j/k (spell i*2/i*6 \u2014 strength reduction recreates the IVs byte-identically) and a1ptr (self+0x50 inlined x3; CSE spills to the 2nd temp slot exactly when 4 homes sit above).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 79,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00069688: constructor \u2014 stores arg1 at self->0x38 (logs via cb(0x2C5B0)\n * if already set), allocates 3 buffers sized n*6/n*6/n*2 (n=arg2->0x40) into\n * self->0x3C/0x40/0x30, zeros self->0x94, then a per-element loop: writes 100 to\n * self->0x30[i] and copies a 3-short (6-byte) record from arg2->0x60 to self->0x3C;\n * stores arg2 at self->0x34, inits via cb(self), wires cb(arg1+0x70, self+0x50)\n * and back-links self->0x34->0xA8/0xAC. Returns self->0x34. Fresh decode 2026-05-29\n * (m2c-confirmed). 2026-06-21 base-pin lever applied (agent-i): 25->7 gate-diffs.\n * Prior cracks: (1) HELD-POINTER BASE-PIN: cb arg spelled (char*)&D_00000000 + 0x2C5B0\n * (held pointer) -> lui 0x3;addiu -14928 baked identically to expected; (2) tail\n * p local -> IDO reloads arg1 into dead s1 and increments in-place; (3) copy-loop\n * dst-before-src -> src->v1, dst->v0.\n * 2026-07-03 EXACT (79/79, agent-e): the \"irreducible frame-size cap\" (72 vs 56)\n * was NAMED-LOCAL COUNT. uopt homes EVERY named local at frame top (decl order,\n * -4,-8,...) even at -O2; temps stack below homes (gettemp: disp=-(homes+temps)).\n * Fix: exactly FOUR names (i, src, dst, p). j/k deleted -> spelled i*2 / i*6\n * (strength-reduction recreates the a2/a0 IVs byte-identically); a1ptr deleted ->\n * self + 0x50 inline at all 3 tail uses (CSE keeps one value, spills it to the\n * SECOND anonymous temp slot; 4 homes put that temp at sp+0x20 = target; with only\n * 3 names it sat at 0x24). Frame = 0x20 fixed + 4 homes + 2 temps = 0x38 exact.\n * Do NOT inline the copy loop bases (type-blind aliasing forces per-half reloads)\n * and do NOT struct-copy the 6-byte record (emits lwl/lwr). Caps: none left; body,\n * frame, regs all byte-exact. Zero-target jals = USO placeholders (fine). */\nextern int gl_func_00000000();\nvoid *gl_func_00069688(char *self, char *arg1, char *arg2) {\n    unsigned int i;\n    short *src;\n    short *dst;\n    char *p;\n\n    if (*(int *)(self + 0x38) != 0) {\n        gl_func_00000000((char *)&D_00000000 + 0x2C5B0);\n    }\n    *(int *)(self + 0x38) = (int)arg1;\n    *(int *)(self + 0x3C) = gl_func_00000000(*(int *)(arg2 + 0x40) * 6);\n    *(int *)(self + 0x40) = gl_func_00000000(*(int *)(arg2 + 0x40) * 6);\n    *(int *)(self + 0x30) = gl_func_00000000(*(int *)(arg2 + 0x40) * 2);\n    *(int *)(self + 0x94) = 0;\n    i = 0;\n    if (*(int *)(arg2 + 0x40) != 0) {\n        do {\n            *(short *)(*(char **)(self + 0x30) + i * 2) = 100;\n            dst = (short *)(*(char **)(self + 0x3C) + i * 6);\n            src = (short *)(*(char **)(arg2 + 0x60) + i * 6);\n            i += 1;\n            dst[0] = src[0];\n            dst[1] = src[1];\n            dst[2] = src[2];\n        } while (i < (unsigned int)*(int *)(arg2 + 0x40));\n    }\n    *(char **)(self + 0x34) = arg2;\n    gl_func_00000000(self);\n    p = arg1 + 0x70;\n    gl_func_00000000(p, self + 0x50);\n    *(char **)(*(char **)(self + 0x34) + 0xA8) = self + 0x50;\n    *(char **)(*(char **)(self + 0x34) + 0xAC) = p;\n    return *(char **)(self + 0x34);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00069688.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs own .s + make verify ROM byte-identical (zero-value gl_func_00000000f/alloc placeholders)"
+  }
+}

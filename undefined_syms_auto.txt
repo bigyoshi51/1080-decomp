@@ -2706,3 +2706,7 @@ gl_ref_0003EB78 = 0x0003EB78;  /* gl_func_0002A55C baked USO jal (0x0C00FADE) */
 D_8C3C_child_desc = 0x00000000;
 D_8C3C_mid_desc = 0x00000000;
 D_8C3C_root_desc = 0x00000000;
+D_0000CCEC = 0x0000CCEC;
+D_0000CCF8 = 0x0000CCF8;
+gl_func_00000000f = 0x00000000;
+alloc = 0x00000000;
