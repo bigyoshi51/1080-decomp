@@ -74,58 +74,48 @@ void gl_func_00000338(char *a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00000400)();
-char *gl_func_00000400(char *arg0, s32 arg1) {
-    char *sp34;
-    f32 d255 = 255.0f;
-    char *sp30;
-    char *sp2C;
-    char *sp28;
-    char *temp_a0;
-    char *temp_a3;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *var_a2;
-    char *var_s0;
-    char *var_v1;
+/* gl_func_00000400: 93-insn nested-alloc + color-normalize constructor.
+ * Alloc-cascade family (cf gl_func_000001CC / gl_func_00000A8C) with THREE
+ * nested alloc levels (obj -> sub -> sub2), each defensively initialized, plus
+ * the 250/235/100/0 RGBA-over-255 color set. Short-circuit || cascade colors
+ * sub=$v1 like the target; fixes the m2c dump bugs: 0xCB18/0xCB20 are
+ * (char*)&D_00000000 + off relocs (not integer ori); init(sub2,&ref) is 2-arg
+ * (sub2 stays $a2); denom = 255.0f forces the runtime div.s. */
+extern int gl_func_00000000();
+int gl_func_00000400(int *a0, int a1) {
+    int *obj;
+    float denom;
+    int *sub;
+    int *sub2;
 
-    var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = (char*)func_00000000((char *)0x13C), var_s0 = temp_v0, (temp_v0 != 0))) {
-        var_v1 = var_s0;
-        if ((var_s0 != 0) || (temp_v0_2 = (char*)func_00000000((char *)0x10C), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
-            var_a2 = var_v1;
-            if ((var_v1 != 0) || (sp34 = var_v1, temp_v0_3 = (char*)func_00000000((char *)0x10C), var_a2 = temp_v0_3, (temp_v0_3 != 0))) {
-                sp34 = var_v1;
-                sp30 = var_a2;
-                (char*)func_00000000(var_a2, (char *)0xCB18, var_a2);
-                *(int*)((char*)var_a2 + 0x28) = (int)&D_00000000;
-                (char*)func_00000000(var_a2 + 0x2C);
+    obj = a0;
+    if ((a0 != 0) || (obj = (int*)gl_func_00000000(0x13C), obj != 0)) {
+        sub = obj;
+        if ((obj != 0) || (sub = (int*)gl_func_00000000(0x10C), sub != 0)) {
+            sub2 = sub;
+            if ((sub != 0) || (sub2 = (int*)gl_func_00000000(0x10C), sub2 != 0)) {
+                gl_func_00000000(sub2, (char*)&D_00000000 + 0xCB18);
+                *(int*)((char*)sub2 + 0x28) = (int)&D_00000000;
+                gl_func_00000000((char*)sub2 + 0x2C);
             }
-            *(int*)((char*)var_v1 + 0x28) = (int)&D_00000000;
+            *(int*)((char*)sub + 0x28) = (int)&D_00000000;
         }
-        FW(var_s0, 0xC) = 0xCB20;
-        temp_a0 = var_s0 + 0x10C;
-        sp2C = temp_a0;
-        (char*)func_00000000(temp_a0, (char *)0x5001B);
-        temp_a3 = var_s0 + 0x124;
-        sp28 = temp_a3;
-        (char*)func_00000000(temp_a3, (char *)0x5001D);
-        (char*)func_00000000(var_s0, sp28, sp2C);
-        FW(var_s0, 0xD4) = 0;
-        FW(var_s0, 0xD8) = 0xFF;
-        FW(var_s0, 0xDC) = 0x82;
-        *(f32*)((char*)var_s0 + 0xC4) = 250.0f / d255;
-        *(f32*)((char*)var_s0 + 0xC8) = 235.0f / d255;
-        *(f32*)((char*)var_s0 + 0xCC) = 100.0f / d255;
-        *(f32*)((char*)var_s0 + 0xD0) = 0.0f / d255;
-        FW(var_s0, 0xE0) = arg1;
-        (char*)func_00000000(var_s0, (char *)-0x50, (char *)-1, -0x3D, 0);
+        *(int*)((char*)obj + 0xC) = (int)((char*)&D_00000000 + 0xCB20);
+        gl_func_00000000((char*)obj + 0x10C, 0x5001B);
+        gl_func_00000000((char*)obj + 0x124, 0x5001D);
+        gl_func_00000000(obj, (char*)obj + 0x124, (char*)obj + 0x10C);
+        *(int*)((char*)obj + 0xD4) = 0;
+        *(int*)((char*)obj + 0xD8) = 255;
+        *(int*)((char*)obj + 0xDC) = 130;
+        denom = 255.0f;
+        *(float*)((char*)obj + 0xC4) = 250.0f / denom;
+        *(float*)((char*)obj + 0xC8) = 235.0f / denom;
+        *(float*)((char*)obj + 0xCC) = 100.0f / denom;
+        *(float*)((char*)obj + 0xD0) = 0.0f / denom;
+        *(int*)((char*)obj + 0xE0) = a1;
+        gl_func_00000000(obj, -80, -1, -61, 0);
     }
-    return var_s0;
+    return (int)obj;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000400);
