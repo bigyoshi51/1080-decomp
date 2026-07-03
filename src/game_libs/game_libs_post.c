@@ -12649,20 +12649,36 @@ void gl_func_0002A50C(int **a0, int a1) {
 //   pad jal infra. STALE 2-jr-bundle comment: grep -c 03E00008 = 1
 //   (.s now single fn). Real-C STRUCTURAL body below per the
 //   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+/* gl_func_0002A55C — EXACT (2026-07-03, agent-e): 26/27 raw words in build/non_matching .o;
+ * the single word-9 "diff" is the R_MIPS_26 site jal gl_ref_0003EB78, which ld bakes to
+ * 0x0C00FADE (0x3EB78 >> 2 = 0xFADE) = the target word. objdiff fuzzy = 100.0.
+ *
+ * Levers used:
+ *  - NONZERO baked jal 0x0C00FADE -> gl_ref_0003EB78 call-side mapping (MATCHING_WORKFLOW
+ *    2026-06-22 entry). Added `gl_ref_0003EB78 = 0x0003EB78;` to undefined_syms_auto.txt.
+ *  - `i != 8` loop condition -> bnel + register-held bound (li s2,8).
+ *  - Natural both-store RMW pair on the flag byte (IDO_CODEGEN 31784 entry) gives the
+ *    andi/sb/ori/sb order + reload CSE; the subsumed `& 0xFFFF` on statement 1 burns
+ *    EXACTLY ONE ucode rotation slot, moving the whole tail temp ring +1:
+ *    t6/t8/t9 -> t6/t9/t0 (target). (LL mask = +5 quantum, too many; bitfield-clear and
+ *    compound-assign = 0.)
+ */
 extern int gl_func_00000000();
-void gl_func_0002A55C(char *obj) {
+extern int gl_ref_0003EB78();  /* baked USO jal 0x0C00FADE = real per-element init @0x3EB78 */
+
+void gl_func_0002A55C(unsigned char *obj) {
     int i;
-    for (i = 0; i < 8; i++) {
-        gl_func_00000000(obj, i);
+    for (i = 0; i != 8; i++) {
+        gl_ref_0003EB78(obj, i);
     }
-    gl_func_00000000(obj + 0x94);
-    obj[0] = obj[0] & 0xFF7F;
+    gl_func_00000000(obj + 0x94);  /* real callee: jal-0 USO placeholder (sub-block init) */
+    obj[0] = (obj[0] & 0xFF7F) & 0xFFFF;
     obj[0] = obj[0] | 0x40;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A55C);
-#endif
+
+/* Required in undefined_syms_auto.txt:
+ * gl_ref_0003EB78 = 0x0003EB78;
+ */
 
 #ifdef NON_MATCHING
 /* Bitmask scatter-copy: for each of the low 16 bits of a1, if set, copy 3 bytes
@@ -12785,8 +12801,23 @@ void gl_func_0002A6C0(char *arg0, s32 arg1) {
 //   lands in t8 (cached form: v0), target wants t9 — uniform +1 temp-ring offset
 //   invariant to every C form tried; permuter 38k iters no crack. Genuine
 //   allocno-numbering cap.
-#ifdef NON_MATCHING
+/* gl_func_0002A740 — EXACT (2026-07-03, agent-e): 37/38 raw words in build/non_matching .o;
+ * the single word-26 "diff" is the R_MIPS_26 site jal gl_ref_0003EB78, which ld bakes to
+ * 0x0C00FADE (0x3EB78 >> 2 = 0xFADE) = the target word. objdiff fuzzy = 100.0.
+ *
+ * The 2026-06-20 agent-b "uniform +1 temp-ring offset / genuine allocno-numbering cap
+ * (permuter 38k iters)" is DISPROVEN: one subsumed `& 0xFFFF` mask on the flag-byte load
+ * (byte-ranged value, so uopt range-folds it to ZERO emitted instructions) burns exactly
+ * one ucode rotation slot ahead of the lbu, shifting the whole temp ring +1:
+ * lbu t8->t9, ori t0->t1, andi t1->t2, loop lw t2->t3 (incl. beqzl operand). All other
+ * agent-b levers retained: unsigned char idx param (sw a1,44 + andi a1,0xff homes),
+ * array-index form ((char**)(base+0x38))[idx] for the addu operand order, both flag
+ * stores via `|0x80` then `&= 0xBF`.
+ * Same lever as gl_func_0002A55C's tail (subsumed-mask single-slot ring burn).
+ */
 extern int gl_func_00000000();
+extern int gl_ref_0003EB78();  /* baked USO jal 0x0C00FADE = real per-element init @0x3EB78 */
+
 void gl_func_0002A740(char *base, unsigned char idx, int a2) {
     char *o;
     char *p;
@@ -12794,20 +12825,21 @@ void gl_func_0002A740(char *base, unsigned char idx, int a2) {
     o = ((char **)(base + 0x38))[idx];
     *(unsigned char *)(o + 0x88) = 0;
     *(int *)(o + 0x70) = a2;
-    *(unsigned char *)o = *(unsigned char *)o | 0x80;
+    *(unsigned char *)o = (*(unsigned char *)o & 0xFFFF) | 0x80;
     *(unsigned char *)o &= 0xBF;
     *(short *)(o + 0x1E) = 0;
     p = o;
     for (i = 0; i < 8; i++) {
         if (*(int *)(p + 0x50) != 0) {
-            gl_func_00000000(o, i);
+            gl_ref_0003EB78(o, i);
         }
         p += 4;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A740);
-#endif
+
+/* Required in undefined_syms_auto.txt:
+ * gl_ref_0003EB78 = 0x0003EB78;
+ */
 
 // gl_func_0002A7D8 — STRUCTURAL PASS (0x12C / 75 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
@@ -14350,44 +14382,33 @@ void gl_func_0002CF70(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002CF70);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0002D014: 20-insn (0x50) "drain counter" loop with cross-function
- * jal landing 0x28 bytes INTO gl_func_00040DE8's body. Mid-function alt-entry
- * handled via `gl_ref_00040E10 = 0x00040E10;` in undefined_syms_auto.txt
- * (per docs/N64_FORENSICS.md feedback-game-libs-jal-targets recipe).
+/* gl_func_0002D014 — EXACT (2026-07-03, agent-e): 19/20 raw words in build/non_matching .o;
+ * the single word-7 "diff" is the R_MIPS_26 site jal gl_ref_00040E10, which ld bakes to
+ * 0x0C010384 (0x40E10 >> 2 = 0x10384) = the target word (mid-function alt-entry into
+ * gl_func_00040DE8's body; gl_ref_00040E10 = 0x00040E10; already in undefined_syms_auto.txt).
+ * objdiff fuzzy = 100.0.
  *
- * Decoded body:
- *   if (a0->[0xDC] > 0) {
- *       do {
- *           gl_ref_00040E10(a0);  // alt-entry into gl_func_00040DE8
- *           gl_func_00000000(a0);
- *           a0->[0xDC] -= 1;
- *       } while (a0->[0xDC] > 0);
- *   }
- *
- * 75 % byte-exact. Built has bnezl-likely → my `> 0` produces blezl which
- * is correct; remaining diff is loop-iteration register pick (built uses
- * v0 for the loop counter, target uses t7→t8). Source 1 (sibling cluster
- * of recently-promoted 0x2D6C8). 2026-05-27 retest: split into two locals
- * `loaded = *p; n = loaded - 1;` REGRESSED to 15/20 (load picked $v1, dec
- * picked $v0 — still not $t7/$t8). The $tN-vs-$vN preference is an
- * allocator-weight cap; permuter-class. */
-extern int gl_ref_00040E10();    /* mid-body alt-entry, see undefined_syms_auto.txt */
+ * Crack (old comment's "$tN-vs-$vN allocator-weight cap" DISPROVEN): the counter must be
+ * a NATURAL both-store RMW on the field, not a named local. `n = load - 1; store n;
+ * while (n > 0)` makes n a uopt candidate -> colors $v0. Writing the decrement in-place
+ * (`field = field - 1;`) and the while condition as a re-read (`while (field > 0)`)
+ * keeps load(t7)/dec(t8) as pure ucode ring temps (ring continues after entry t6), and
+ * the condition reload CSE-folds onto the stored t8 -> bgtz t8 with sw t8 in the delay.
+ * Same mechanism family as IDO_CODEGEN "natural both-store RMW pair" (31784, 2026-07-02).
+ */
+extern int gl_func_00000000();
+extern int gl_ref_00040E10();    /* mid-body alt-entry (baked jal 0x0C010384) */
+
 void gl_func_0002D014(int *a0) {
     register int *s0 = a0;
-    int n;
     if (*(int*)((char*)s0 + 0xDC) > 0) {
         do {
             gl_ref_00040E10(s0);
-            gl_func_00000000(s0);
-            n = *(int*)((char*)s0 + 0xDC) - 1;
-            *(int*)((char*)s0 + 0xDC) = n;
-        } while (n > 0);
+            gl_func_00000000(s0);   /* real callee: jal-0 USO placeholder */
+            *(int*)((char*)s0 + 0xDC) = *(int*)((char*)s0 + 0xDC) - 1;
+        } while (*(int*)((char*)s0 + 0xDC) > 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D014);
-#endif
 
 /* gl_func_0002D064: 51-insn (0xCC) per-frame init with 16-iter call loop.
  * Matched 2026-05-14 via 4-step refinement chain: ~K andi mask form,

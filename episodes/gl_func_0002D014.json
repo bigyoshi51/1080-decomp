@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0002D014",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:15:55.858250+00:00",
+  "end_time": "2026-07-03T14:15:55.858270+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:15:55.858264+00:00",
+      "assistant_text": "'tN-vs-vN allocator-weight cap' disproven: drop the named n local (candidate -> v0) for in-place decrement + condition re-read that CSE-folds onto the stored temp (lw t7/addiu t8/bgtz t8/sw t8). jal gl_ref_00040E10 links to baked 0x0C010384.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 20,
+  "initial_m2c_source": null,
+  "final_source": "/* mid-body alt-entry (baked jal 0x0C010384) */\n\nvoid gl_func_0002D014(int *a0) {\n    register int *s0 = a0;\n    if (*(int*)((char*)s0 + 0xDC) > 0) {\n        do {\n            gl_ref_00040E10(s0);\n            gl_func_00000000(s0);   /* real callee: jal-0 USO placeholder */\n            *(int*)((char*)s0 + 0xDC) = *(int*)((char*)s0 + 0xDC) - 1;\n        } while (*(int*)((char*)s0 + 0xDC) > 0);\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0002D014.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "make verify ROM byte-identical (nonzero-baked jals resolve via gl_ref_* undefined_syms) + objdiff 100 after expected refresh"
+  }
+}

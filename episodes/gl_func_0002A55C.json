@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0002A55C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:15:55.591208+00:00",
+  "end_time": "2026-07-03T14:15:55.591228+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:15:55.591222+00:00",
+      "assistant_text": "Nonzero-baked-jal wiring: extern gl_ref_0003EB78 (=0x0003EB78 in undefined_syms_auto.txt) links jal to the exact baked word 0x0C00FADE. + i!=8 bnel loop w/ register-held bound + both-store RMW tail + NEW subsumed-mask ring-slot burn: (x & 0xFF7F) & 0xFFFF = exactly ONE zero-emission ucode ring-slot, shifting tail temps t6/t8/t9 -> t6/t9/t0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 27,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0002A50C: obj-deinit helper. obj = a0[a1].field_0x50 (slot = a0 + a1*4,\n * field at +0x50); if non-NULL: gl_func(&D_0+0x5368, obj+0x70), gl_func(obj), then\n * clear the slot to NULL.\n * MATCH: indexing a0 as int** with element index (a1 + 0x14)  [0x14 = 0x50/4]\n * makes IDO pack the two pointer spills tightly (frame -0x20); the char*-pointer-\n * arithmetic form (a0 + a1*4) left a 4-byte spill gap (-0x28). Array-index vs\n * char*-arith changes spill-slot frame packing. Byte-exact (80 bytes). */\nvoid gl_func_0002A50C(int **a0, int a1) {\n    int *obj = a0[a1 + 0x14];\n    if (obj != 0) {\n        gl_func_00000000((char*)&D_00000000 + 0x5368, (char*)obj + 0x70);\n        gl_func_00000000(obj);\n        a0[a1 + 0x14] = 0;\n    }\n}\n\n// gl_func_0002A55C \u2014 STRUCTURAL PASS (0x164 / 89 words, no episode).\n// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle\n// (named fn + 1 trailing helper) \u2014 deferred USO re-split. The named\n// leading fn is an object multi-element constructor.\n//\n//   void gl_func_0002A55C(O *obj) {\n//     for (int i = 0; i < 8; i++)\n//       (*initElem)(obj, i);                            // 0x0C00FADE\n//     (*initTail)(&obj->_94);                            // jal 0 USO\n//     byte f = obj->b_0;\n//     f &= ~0x80;                                         // clear bit7\n//     obj->b_0 = f;\n//     obj->b_0 = f | 0x40;                                // set bit6\n//   }",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0002A55C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "make verify ROM byte-identical (nonzero-baked jals resolve via gl_ref_* undefined_syms) + objdiff 100 after expected refresh"
+  }
+}

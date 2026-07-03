@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0002A740",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:15:56.107541+00:00",
+  "end_time": "2026-07-03T14:15:56.107560+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:15:56.107554+00:00",
+      "assistant_text": "'Genuine allocno-numbering cap, permuter 38k iters' disproven by ONE LINE: *o = (*o & 0xFFFF) | 0x80; \u2014 the subsumed mask burns one ring slot ahead of the lbu, shifting the entire temp ring +1 (lbu t8->t9, ori t0->t1, andi t1->t2, loop lw t2->t3 incl beqzl).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 38,
+  "initial_m2c_source": null,
+  "final_source": "/* Bitmask scatter-copy: for each of the low 16 bits of a1, if set, copy 3 bytes\n * (a0[5]->p[7], a0[3]->p[3], a0[2]->p[2]) where p = *(int*)(a0 + 56 + i*4).\n * RELOC-FREE \u2192 episode target. IDO unrolls the loop by 4 (matched, 59 vs 62);\n * byte-match capped by the arg-home (sw a1 saved), the v0-step-4 unroll counter\n * vs i-step-1, and $t-renumber. 2026-05-27 retest: `unsigned short s = a1; s>>=1`\n * regressed 90.73% \u2192 80.89% (changed scratch reg from $v0 to $v0+$v1 split).\n * Re-attempt with the permuter or explicit nested-by-4 loop in a focused pass. */\nvoid game_libs_func_0002A5C8(char *a0, int a1) {\n    int i;\n    a1 &= 0xFFFF;\n    for (i = 0; i < 16; i++) {\n        if (a1 & 1) {\n            char *p = (char *)*(int *)(a0 + 56 + i * 4);\n            p[7] = a0[5];\n            p[3] = a0[3];\n            p[2] = a0[2];\n        }\n        a1 = (a1 >> 1) & 0xFFFF;\n    }\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", game_libs_func_0002A5C8);\n#endif\n\n// gl_func_0002A6C0 \u2014 STRUCTURAL PASS (0x80 / 32 words, no episode).\n// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no\n// bundle). A 0x40-slot table sweep over the &D_5280 array.\n//\n//   void gl_func_0002A6C0(S *tbl, int arg) {\n//     S *dflt = &D_5280;                                // default ptr\n//     for (int i = 0; i < 0x40; i++) {                    // 64 slots\n//       void *e = tbl->w_38;                              // slot value\n//       if (e != dflt) {                                  // non-default\n//         (*handler)(e, \u2026);                                // jal 0 USO\n//       }\n//       tbl += 4;                                          // word stride\n//     }\n//   }\n//\n// Struct-typing reference: walks a fixed 0x40 (64)-entry word-strided\n//   table, comparing each slot's pointer field (+0x38) against the\n//   shared default/sentinel &D_5280 (the same null-object sentinel\n//   gl_func_0002A260 / gl_func_0002A55C test). Every slot that has\n//   been populated (differs from the &D_5280 default) is passed to a\n//   USO-relocated per-slot handler (`jal 0` slot). The caller arg is\n//   threaded through. A bulk \"apply to all live slots\" sweep over a\n//   bounded object table in the game_libs object subsystem (the\n//   apply-all counterpart to the gl_func_0002A3AC lazy slot\n//   constructor).\n// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc per-slot handler \u2014\n//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.\n//   Real-C STRUCTURAL body below per the analysis. Byte-match\n//   deferred. Name pre-checked: no extern reuse.\n// gl_func_0002A6C0 (game_libs, -O2 USO) \u2014 BYTE-EXACT (agent-b 2026-06-21).\n//   Bulk \"apply to all live slots\" sweep: for each of 16 table entries, if the\n//   slot's +0x38 word differs from the default object (&D_0+0x5280), invoke the\n//   per-slot handler. Landed via the held-base-pointer lever + 3 codegen\n//   levers: (1) the `(x != dflt) == 1` boolean form reproduces the target's\n//   xor/sltu/bnel-against-1 idiom and 5-saved-reg/0x30 frame; (2) declaring\n//   the held base as `s32` (its integer value, used only by-value) \u2014 not a\n//   `char *` \u2014 colors it into s2 (lower) ahead of the held constant 1 (s3),\n//   matching target (char* form mis-colored: 9 diffs); (3) the `for`-loop\n//   with comma-init `(var_s0=0, var_s1=arg0; ...)` schedules the dflt-lo addiu\n//   ahead of the two zero-cost moves in the prologue, closing the last 3-word\n//   as1 scheduler tie. gl_func_00000000 = canonical USO placeholder callee.\nextern int gl_func_00000000();\nvoid gl_func_0002A6C0(char *arg0, s32 arg1) {\n    s32 dflt = (s32)((char *)&D_00000000 + 0x5280);\n    s32 var_s0;\n    char *var_s1;\n\n    for (var_s0 = 0, var_s1 = arg0; var_s0 != 0x40; var_s0 += 4, var_s1 += 4) {\n        s32 temp_a0 = *(s32 *)(var_s1 + 0x38);\n        if ((temp_a0 != dflt) == 1) {\n            gl_func_00000000(temp_a0);\n        }\n    }\n}\n\n// gl_func_0002A740 \u2014 STRUCTURAL PASS (0x98 / 38 words, no episode).\n// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no\n// bundle). A slot-object reinitializer \u2014 SIBLING of the\n// gl_func_0002A55C 8-channel constructor.\n//\n//   void gl_func_0002A740(S *base, int idx, int a2) {\n//     idx &= 0xFF;\n//     O *o = (base + idx*4)->w_38;                       // slot object\n//     byte f = o->b_0;\n//     o->b_88 = 0;\n//     o->w_70 = a2;                                       // store arg\n//     o->b_0  = (f | 0x80) & ~0x40;                        // ready mark\n//     o->h_1E = 0;\n//     for (int i = 0; i < 8; i++)\n//       (*initElem)(o, i);                                // 0x0C00FADE\n//   }",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0002A740.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "make verify ROM byte-identical (nonzero-baked jals resolve via gl_ref_* undefined_syms) + objdiff 100 after expected refresh"
+  }
+}
