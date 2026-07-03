@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00064124",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T23:24:14.607061+00:00",
+  "end_time": "2026-07-03T23:24:14.607080+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T23:24:14.607075+00:00",
+      "assistant_text": "'distinct-$f4 0.0' cap cracked with FP-CSE-break-via-cast: the final a0+0x144 store uses (float)0 while bulk zeros use 0.0f \u2014 the differing literal FORM makes IDO create a separate 0.0 pseudo -> distinct $f4 (mtc1 zero,$f4) that schedules into the jr-ra DELAY SLOT (matches swc1 $f4,0x144). The 2026-05-17 note tried same-literal 0.0f which CSE-merges. + register numbering: writing the three 1.0f stores FIRST makes 1.0 pseudo get $f0 (0.0->$f2, last->$f4).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 19,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00064124 \u2014 EXACT 19/19 (2026-07-03, agent-e).\n * LANDABLE: replace the whole #ifdef NON_MATCHING / #else INCLUDE_ASM / #endif\n * block with just this function (plain match, no wrap) + log episode.\n *\n * Two levers cracked the documented 87.05% \"distinct-$f4 0.0\" cap:\n *  (1) DEFEAT FP-CSE with a cast: the final 0x144 store uses `(float)0` while the\n *      bulk zero stores use `0.0f`. The differing literal form makes IDO create a\n *      SEPARATE 0.0 pseudo -> distinct $f4 (mtc1 zero,$f4) -> it schedules into the\n *      jr-ra DELAY SLOT (matches target's `swc1 $f4,0x144(a0)`). Plain `0.0f` (or a\n *      named `float zero2=0.0f`) CSEs to the bulk reg and hoists the store inline.\n *  (2) REGISTER NUMBERING via source order: write the three 1.0f stores FIRST so the\n *      1.0 pseudo is created first -> it gets $f0 (bulk 0.0 -> $f2, last -> $f4),\n *      matching the target's f0=1.0 / f2=0.0 assignment. IDO regroups the EMISSION by\n *      offset (0.0 group emitted first), so the final store order still matches. */\nvoid game_libs_func_00064124(char *a0) {\n    *(float*)(a0 + 0x150) = 1.0f;\n    *(float*)(a0 + 0x154) = 1.0f;\n    *(float*)(a0 + 0x148) = 1.0f;\n    *(int*)(a0 + 0x160) = 0;\n    *(int*)(a0 + 0x14C) = 0;\n    *(int*)(a0 + 0x168) = 256;\n    *(float*)(a0 + 0x12C) = 0.0f;\n    *(float*)(a0 + 0x130) = 0.0f;\n    *(float*)(a0 + 0x134) = 0.0f;\n    *(float*)(a0 + 0x108) = 0.0f;\n    *(float*)(a0 + 0x10C) = 0.0f;\n    *(float*)(a0 + 0x110) = 0.0f;\n    *(float*)(a0 + 0x144) = (float)0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00064124.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "19/19 word-exact + make verify ROM byte-identical"
+  }
+}

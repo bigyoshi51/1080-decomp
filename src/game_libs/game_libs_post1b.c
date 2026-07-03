@@ -866,35 +866,24 @@ void gl_func_000640E4(int a0, int *a1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_00064124: struct-field initializer. Zeros several
- * int/float fields, sets three 1.0f fields + an int 256.
+/* game_libs_func_00064124 — EXACT 19/19 (2026-07-03, agent-e).
+ * LANDABLE: replace the whole #ifdef NON_MATCHING / #else INCLUDE_ASM / #endif
+ * block with just this function (plain match, no wrap) + log episode.
  *
- * 87.05% — logic fully decoded, store order matches. Residual caps:
- *  - Float-reg split: target materializes THREE fp consts —
- *    $f2=0.0f (bulk zero stores), $f0=1.0f, $f4=0.0f (used ONLY for
- *    the final a0+0x144 store, emitted in the jr-ra delay slot). C
- *    CSEs all `0.0f` to one reg ($f0) so the separate $f4 + delay-slot
- *    placement is lost. No plain-C expression yields two distinct 0.0f
- *    regs; needs the source's original distinct sub-expression (likely
- *    a variable, not a literal) — unknown.
- *  - The 0x50 symbol's trailing `mtc1 zero,$f0` is the SUCCESSOR's
- *    stolen prologue — historically captured via SUFFIX_BYTES on this
- *    predecessor and PROLOGUE_STEALS/INSN_PATCH on the successor
- *    gl_func_00064170. All of those mechanisms were REMOVED 2026-05-23
- *    as match-faking. The C-level distinct-$f4-for-0.0 lever is also
- *    missing. Multi-blocker; needs splat boundary correction (focused-
- *    session work) for the trailing-stolen-prologue piece, plus a real
- *    C source for the distinct-$f4 sub-expression.
- *
- *  2026-05-17: tested `float zero2 = 0.0f;` named-local lever (per
- *  docs/IDO_CODEGEN.md#feedback-ido-named-float-const-pins-fp-reg-across-body)
- *  using zero2 only for the a0+0x144 store. No change — fuzzy stayed
- *  87.05%. IDO -O2 constant-folds the named zero into the same $f0/$f2
- *  CSE as the literal 0.0f stores. The named-FP-const lever works for
- *  NON-zero literals (4.0f case) but not for 0.0f because mtc1 $0
- *  encoding doesn't need a distinct lui+mtc1 setup. */
+ * Two levers cracked the documented 87.05% "distinct-$f4 0.0" cap:
+ *  (1) DEFEAT FP-CSE with a cast: the final 0x144 store uses `(float)0` while the
+ *      bulk zero stores use `0.0f`. The differing literal form makes IDO create a
+ *      SEPARATE 0.0 pseudo -> distinct $f4 (mtc1 zero,$f4) -> it schedules into the
+ *      jr-ra DELAY SLOT (matches target's `swc1 $f4,0x144(a0)`). Plain `0.0f` (or a
+ *      named `float zero2=0.0f`) CSEs to the bulk reg and hoists the store inline.
+ *  (2) REGISTER NUMBERING via source order: write the three 1.0f stores FIRST so the
+ *      1.0 pseudo is created first -> it gets $f0 (bulk 0.0 -> $f2, last -> $f4),
+ *      matching the target's f0=1.0 / f2=0.0 assignment. IDO regroups the EMISSION by
+ *      offset (0.0 group emitted first), so the final store order still matches. */
 void game_libs_func_00064124(char *a0) {
+    *(float*)(a0 + 0x150) = 1.0f;
+    *(float*)(a0 + 0x154) = 1.0f;
+    *(float*)(a0 + 0x148) = 1.0f;
     *(int*)(a0 + 0x160) = 0;
     *(int*)(a0 + 0x14C) = 0;
     *(int*)(a0 + 0x168) = 256;
@@ -904,14 +893,8 @@ void game_libs_func_00064124(char *a0) {
     *(float*)(a0 + 0x108) = 0.0f;
     *(float*)(a0 + 0x10C) = 0.0f;
     *(float*)(a0 + 0x110) = 0.0f;
-    *(float*)(a0 + 0x150) = 1.0f;
-    *(float*)(a0 + 0x154) = 1.0f;
-    *(float*)(a0 + 0x148) = 1.0f;
-    *(float*)(a0 + 0x144) = 0.0f;
+    *(float*)(a0 + 0x144) = (float)0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00064124);
-#endif
 
 /* gl_func_00064170: 26-insn 10-float zero + 3-int-to-float bit-copy.
  * $f0=0.0 prologue-stolen from predecessor game_libs_func_00064124's
