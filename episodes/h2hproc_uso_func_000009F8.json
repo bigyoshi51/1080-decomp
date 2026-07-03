@@ -1,0 +1,33 @@
+{
+  "function_name": "h2hproc_uso_func_000009F8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T21:48:28.437567+00:00",
+  "end_time": "2026-07-03T21:48:28.437591+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T21:48:28.437584+00:00",
+      "assistant_text": "h2hproc first exact land (salvaged from credit-limit-killed W5 agent). 34/34 words.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 34,
+  "initial_m2c_source": null,
+  "final_source": "/* h2hproc_uso_func_000009F8 \u2014 EXACT MATCH 34/34 words (2026-07-03, agent-e).\n * VERIFIED: clean rebuild of build/non_matching .o, word-diff vs own .s = 0 diffs.\n * Baseline was 19/34 (95.1% fuzzy readout).\n *\n * THE crack (v9 of 11): the indirect method call is ZERO-ARG \u2014 `li a0,0x28`\n * exists ONLY as the shared multiplier constant (k) which free-colors to $a0\n * once no arg constraint exists. The old body passed (0x28) as an arg, which\n * inserts an arg-slot copy that ALWAYS precedes the address computation\n * (uopt evaluates args first), so k's LR overlaps the precolored $a0 arg-temp\n * -> \"assigned (constrained) 4\" (=a1, proven via -Wo,-zdbug:6 uoptlist) + move.\n * No C shape un-constrains it (named fp / named p2 / op-node arg (k&0xFF) /\n * multi-def / while(0) all failed) \u2014 the arity was simply wrong.\n * Other levers used:\n *  - dead `if (k) {}` ref-boost: flips orig-a0 -> v1 and v -> v0 (whole first\n *    block coloring), zero emission.\n *  - k shared with the earlier gl(5) call arg (k=5; gl(k); k=0x28) \u2014 keeps one\n *    web shape (harmless; kept from v5).\n *  - second dispatch-table deref RE-DERIVED from a0 (not the cached v):\n *    the *(int**)&D_00000000 = a0 store aliases a0->0x48, forcing the target's\n *    reload pair (lw v0,0x48 + lw t0,0x7C).\n *  - commutative-swap + remove-named-v: `mult*k + (int)PTR + 0x90` textual\n *    order gives addu rs=v0 (pointer) rt=mflo; a NAMED v is an isvar that\n *    uopt canonicalizes to the other operand slot regardless of textual\n *    order \u2014 removing the local (CSE keeps one load) makes both operands\n *    temps so textual order controls rs/rt.\n * NOTE: zero-target jals (gl_func_00000000 placeholders) \u2014 promotion to the\n * matching path still gated by USO reloc wiring; this is the NM-wrap body. */\nvoid h2hproc_uso_func_000009F8(int *a0) {\n    extern char D_00000000;\n    int k;\n    if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) != 0) {\n        k = 5;\n        gl_func_00000000(k);\n        k = 0x28;\n        if (k) {}\n        if (*(int*)((*(int**)((char*)a0 + 0x48))[0x7C/4] * k + (int)*(int**)((char*)a0 + 0x48) + 0x90) != 0) {\n            *(int**)&D_00000000 = a0;\n            (*(void(**)())((*(int**)((char*)a0 + 0x48))[0x7C/4] * k + (int)*(int**)((char*)a0 + 0x48) + 0x90))();\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/h2hproc_uso/h2hproc_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_000009F8.s",
+    "segment": "h2hproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

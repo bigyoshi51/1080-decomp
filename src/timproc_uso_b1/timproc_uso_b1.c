@@ -993,13 +993,26 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * diffs; the gl_func/&D placeholder reloc form is already credited at 100).
  * This is the documented "2 swapped spill slots" genuine coloring tie — no
  * symbol-form change can move a stack offset. Honest NON_MATCHING. */
-#ifdef NON_MATCHING
+/* timproc_uso_b1_func_00001A64 — EXACT 90/90 vs own .s (2026-07-03, agent-e).
+ * The old "genuine coloring tie / 2 swapped spill slots" cap FELL to a 3-lever combo:
+ *  (1) REMOVE the `int *s0 = a0;` alias (use a0 directly) — under 6-local pressure the
+ *      alias itself was homing at sp+0x20 and shifting every slot (docs F284 extension);
+ *      IDO still emits `move s0,a0` for the cross-call param.
+ *  (2) decls `int *a1x; volatile int p1..p4; int r5; int r6;` — the 4 pads home at
+ *      0x24-0x30 so r5's home = 0x20 (v0 spill) and a1x tops out at 0x34.
+ *  (3) comma-assign the list-head INSIDE the call arg:
+ *      gl(((int)a0)+0x10, (int)(a1x = (int*)a0[0xBC/4])) — puts the a1 save in the
+ *      jal delay slot at 0x34 (plain `new_var = ...;` form homes it low at 0x24).
+ * Frame 0x38, all four spill words exact. All jals are the USO gl_func_00000000
+ * placeholder (zero-target) — no baked-jal issue in this fn. */
 void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
-  int *s0 = a0;
+  int *a1x;
+  volatile int p1;
+  volatile int p2;
+  volatile int p3;
+  volatile int p4;
   int r5;
   int r6;
-  int *a1x;
-  int new_var;
   a0[0xC / 4] = (int) (((char *) (&D_00000000)) + 0x40C);
   a0[0xB8 / 4] = a1;
   a0[0x50 / 4] = a1;
@@ -1018,27 +1031,22 @@ void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
   {
     return;
   }
-  gl_func_00000000(s0, 0xE8, 0x13, s0[0x44 / 4] + 0x10);
-  gl_func_00000000(s0, 0x123, 0xE1, 1);
-  gl_func_00000000(s0, 0x47, 0x13, ((int) s0) + 0x30);
-  gl_func_00000000(s0, 0x44, 0x22, s0[0x44 / 4] + 0x28);
-  r5 = gl_func_00000000(((*((int *) (((char *) (&D_00000000)) + 0x64))) * 0x30) + (*((int *) s0[0x4C / 4])), 0);
-  r6 = gl_func_00000000(0, s0[0x60 / 4]);
-  s0[0xBC / 4] = r6;
+  gl_func_00000000(a0, 0xE8, 0x13, a0[0x44 / 4] + 0x10);
+  gl_func_00000000(a0, 0x123, 0xE1, 1);
+  gl_func_00000000(a0, 0x47, 0x13, ((int) a0) + 0x30);
+  gl_func_00000000(a0, 0x44, 0x22, a0[0x44 / 4] + 0x28);
+  r5 = gl_func_00000000(((*((int *) (((char *) (&D_00000000)) + 0x64))) * 0x30) + (*((int *) a0[0x4C / 4])), 0);
+  r6 = gl_func_00000000(0, a0[0x60 / 4]);
+  a0[0xBC / 4] = r6;
   gl_func_00000000(r6, *((unsigned char *) (r5 + 5)), *((unsigned char *) (r5 + 6)), *((unsigned char *) (r5 + 7)));
-  gl_func_00000000(s0[0xBC / 4], 0x4B, 0xD6);
-  new_var = s0[0xBC / 4];
-  gl_func_00000000(((int) s0) + 0x10, new_var);
-  a1x = (int *) new_var;
+  gl_func_00000000(a0[0xBC / 4], 0x4B, 0xD6);
+  gl_func_00000000(((int) a0) + 0x10, (int) (a1x = (int *) a0[0xBC / 4]));
   if (a1x[0x14 / 4] != 0)
   {
     a1x[4 / 4] = 1;
   }
-  a1x[0x14 / 4] = (int) s0;
+  a1x[0x14 / 4] = (int) a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001A64);
-#endif
 
 /* timproc_uso_b1_func_00001BCC - verified structural decode (~158-insn
  * per-frame update state machine; 20 branches incl bnel/beql

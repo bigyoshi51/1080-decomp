@@ -552,24 +552,47 @@ void h2hproc_uso_func_0000099C(int *a0) {
  * reads `v = a0->0x48` (struct field). 2026-05-04: fixed the C, then
  * applied INSN_PATCH for register-allocation diff (a2/v1/a1 vs v1/v0/a0).
  * 83.00→100% via 15-word patch. */
-#ifdef NON_MATCHING
+/* h2hproc_uso_func_000009F8 — EXACT MATCH 34/34 words (2026-07-03, agent-e).
+ * VERIFIED: clean rebuild of build/non_matching .o, word-diff vs own .s = 0 diffs.
+ * Baseline was 19/34 (95.1% fuzzy readout).
+ *
+ * THE crack (v9 of 11): the indirect method call is ZERO-ARG — `li a0,0x28`
+ * exists ONLY as the shared multiplier constant (k) which free-colors to $a0
+ * once no arg constraint exists. The old body passed (0x28) as an arg, which
+ * inserts an arg-slot copy that ALWAYS precedes the address computation
+ * (uopt evaluates args first), so k's LR overlaps the precolored $a0 arg-temp
+ * -> "assigned (constrained) 4" (=a1, proven via -Wo,-zdbug:6 uoptlist) + move.
+ * No C shape un-constrains it (named fp / named p2 / op-node arg (k&0xFF) /
+ * multi-def / while(0) all failed) — the arity was simply wrong.
+ * Other levers used:
+ *  - dead `if (k) {}` ref-boost: flips orig-a0 -> v1 and v -> v0 (whole first
+ *    block coloring), zero emission.
+ *  - k shared with the earlier gl(5) call arg (k=5; gl(k); k=0x28) — keeps one
+ *    web shape (harmless; kept from v5).
+ *  - second dispatch-table deref RE-DERIVED from a0 (not the cached v):
+ *    the *(int**)&D_00000000 = a0 store aliases a0->0x48, forcing the target's
+ *    reload pair (lw v0,0x48 + lw t0,0x7C).
+ *  - commutative-swap + remove-named-v: `mult*k + (int)PTR + 0x90` textual
+ *    order gives addu rs=v0 (pointer) rt=mflo; a NAMED v is an isvar that
+ *    uopt canonicalizes to the other operand slot regardless of textual
+ *    order — removing the local (CSE keeps one load) makes both operands
+ *    temps so textual order controls rs/rt.
+ * NOTE: zero-target jals (gl_func_00000000 placeholders) — promotion to the
+ * matching path still gated by USO reloc wiring; this is the NM-wrap body. */
 void h2hproc_uso_func_000009F8(int *a0) {
     extern char D_00000000;
-    int *p;
-    int *v;
+    int k;
     if (gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190)) != 0) {
-        gl_func_00000000(5);
-        v = *(int**)((char*)a0 + 0x48);
-        p = (int*)((char*)v + v[0x7C/4] * 0x28);
-        if (p[0x90/4] != 0) {
+        k = 5;
+        gl_func_00000000(k);
+        k = 0x28;
+        if (k) {}
+        if (*(int*)((*(int**)((char*)a0 + 0x48))[0x7C/4] * k + (int)*(int**)((char*)a0 + 0x48) + 0x90) != 0) {
             *(int**)&D_00000000 = a0;
-            (*(void(**)(int))((char*)v + v[0x7C/4] * 0x28 + 0x90))(0x28);
+            (*(void(**)())((*(int**)((char*)a0 + 0x48))[0x7C/4] * k + (int)*(int**)((char*)a0 + 0x48) + 0x90))();
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_000009F8);
-#endif
 
 /* func_00000A80: 2-insn leaf bundled into 9F8's nonmatching SIZE by splat.
  * Simple `a0->[0x504] = 0` setter. */
@@ -1007,108 +1030,88 @@ void h2hproc_uso_func_00000F60(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* h2hproc_uso_func_00000FD0: 141-insn (0x234) alloc-cascade constructor. 93.86%.
- * 2026-06-01 (64.59→93.86): inline-recompute lever — un-hoisted `sub`
- * (=self->0x30), `packed` (=(*base+3)<<16) and `*base` so IDO re-materializes
- * them per call instead of spilling + burning a 2nd saved reg; plus goto-end
- * for the alloc-fail path. Residual ~6% = frame -0x48 vs -0x30 (regalloc cap).
- * Allocates a 0x9C (156-byte) self-struct if caller didn't supply one,
- * runs an init helper, populates 5 fields from helper-call returns, then
- * does a 5-call register-handler sequence with packed-flag args followed
- * by a 6-arg create + indirect call via sub->fnptr.
+/* h2hproc_uso_func_00000FD0 — BEST 136/141 words (96.5%), 2026-07-03 agent-e.
+ * VERIFIED via clean NM rebuild + word-diff vs own .s. Baseline was 90/142.
+ * 15 variants, all COMPILED.
  *
- * STRUCT LAYOUT (inferred from offsets):
- *   self+0x10 ... 4 child sub-objects at 0x10/0x38/0x50/0x68/0x80
- *   self+0x28 ... ptr to &D_00000000 (data base)
- *   self+0x2C ... caller-supplied a1 (config/parent ptr)
- *   self+0x30 ... sub-handle from helper(0) call #2
- *   self+0x34 ... sub-handle from helper(0) call #1
+ * FIXES THAT LANDED (+46 words):
+ *  1. LOGIC BUG: first packed member-init call target is self+0x38 (not
+ *     self+0x10 as the old C had) — packed calls go 0x38/0x50/0x68/0x80.
+ *  2. gl(self->0x30, X) arg2 is the FIELD reload self->0x2C (lw a1,0x2C(s0)),
+ *     not the saved a1 param home; and naming it into the reused `tmp` local
+ *     (def before the call stmt) puts the lw BEFORE the jal with the
+ *     move a0,v0 in the delay slot (arg-eval order fix).
+ *  3. The if-block after gl(self+0x10, tmp) reuses the PRE-CALL cached
+ *     tmp=self->0x30 (spilled 0x2C / reloaded a2) — NOT a fresh reload.
+ *  4. PARAM REUSE: no `self` local — use a0 directly (multi-def in the alloc
+ *     branch, return a0). This produces the target prologue exactly:
+ *     [sw s0 / move s0,a0 / sw ra / bnez / sw a1(delay)], frame 0x30 (was
+ *     0x38/0x48: a named self/saved_a1 cost home slots), a1 home 0x34.
+ *  5. tmp decl FIRST in decl list -> its spill temp lands 0x2C (decl-order
+ *     slot lever; declared after base it landed 0x28).
+ *  6. Indirect call: inline fnptr (jalr t9), lh-first textual addu operand
+ *     order (`*(short*)(nst+0x58) + (int)tmp2` -> addu rs=t1).
  *
- * ENTRY (insns 1-10):
- *   if (a0 == 0) { self = alloc(0x9C); if (!self) return 0; }
- *   gl_func_0(self, &D_0+0x3F4);    ; init self from template
- *
- * FIELD POPULATION (insns 11-25):
- *   self->0x28 = &D_0;
- *   self->0x2C = saved_a1;
- *   self->0x34 = gl_func_0(0);
- *   self->0x30 = gl_func_0(0);
- *   gl_func_0(self->0x30, self->0x2C);
- *
- * 5-PASS REGISTER-HANDLER (insns 26-65):
- *   packed_base = (*(int*)&D_0 + 3) << 16;
- *   for (flag in [1, 4, 3, 2, 5]):
- *     gl_func_0(self->0x30, packed_base | flag, -1, &D_0+0);
- *
- * 6-ARG CREATE + INDIRECT CALL (insns 66-100):
- *   gl_func_0(0, &D_0, 72, 221, 3, 13);   ; 6-arg create
- *   self->0x30->0x30 = v0;
- *   gl_func_0(self->0x30);                  ; init helper
- *   gl_func_0(self->0x30, 174);             ; tag/id setter
- *   sub = self->0x30->0x28;                  ; load nested ptr
- *   sub->fnptr_5C(self->0x30 + sub->halfword_58);   ; INDIRECT CALL
- *
- * 5 MEMBER INITS (insns 101-141, OR-flag pattern 0x1D/0x1E alternating):
- *   gl_func_0(self+0x10, self->0x30);
- *   if (self->0x30->[0x14] != 0) self->0x30->[0x4] = 1;
- *   self->0x30->[0x14] = self;
- *   // 4 more init calls at self+0x10/0x50/0x68/0x80 with packed
- *   //   `(*(int*)(D_0 + 0x4C/0x54/0x58/0x60)) | (0x1D or 0x1E)<<16`
- *
- * EPILOGUE: return self;
- *
- * 65.30% NM (2026-05-14). Full structural body now in C: alloc-cascade,
- * init-helper, 5-pass register-handler with packed flag, 6-arg create,
- * indirect call via nested->fnptr_5C, 5 member-inits with packed
- * (lui_class << 16) flags. Remaining ~35pp gap is regalloc + 6-arg
- * variadic spill shape (sp+0x10/0x14 outgoing-args). Default INCLUDE_ASM. */
+ * RESIDUAL 5 words (@95-100, one rotation): tmp2(self->0x30)=v1 want v0;
+ * nst(nested)=a1 want a2; addu rt=v1 want v0 (consequence). CHARACTERIZED:
+ *  - uopt free-color pick order here is [v1, a1|v0, ...]; v0+a2 unreachable
+ *    by rank shuffles: dead if(tmp2) -> v1/v0; dead if(nst) -> a1/v1;
+ *    both-ifs = if(tmp2); if AFTER the jalr extends tmp2's LR across the
+ *    call (spill, +2 frame words) — placement regression.
+ *  - nst=a2 IS reachable via a 3-ARG call form (arg-3 position precolors
+ *    a2, 1F78 pass-through mechanism) — but the middle arg has no
+ *    zero-emission value: uninit local gets HOMED (lw a1,0x2C(sp) + frame
+ *    +0x10) even with `register`; any constant re-materializes li a1 (+1).
+ *  - suspects the original really was 3-arg with a dead/garbage middle arg
+ *    resident from context IDO 7.1 can't reproduce, or an allocator-order
+ *    artifact (uoptlist class).
+ */
 void *h2hproc_uso_func_00000FD0(void *a0, int *a1) {
+    int *tmp;
     char *base = &D_00000000;
-    void *self = a0;
-    int saved_a1 = (int)a1;
+    int *tmp2, *nst;
 
-    if (self == 0) {
-        self = (void*)gl_func_00000000(0x9C);
-        if (self == 0) goto end;  /* fall through to `return self` (self==0) — the
+    if (a0 == 0) {
+        a0 = (void*)gl_func_00000000(0x9C);
+        if (a0 == 0) goto end;  /* fall through to `return self` (self==0) — the
                                      target uses beq v0,zero,end, not a separate
                                      `or v0,zero,zero` return-0 path */
     }
-    gl_func_00000000(self, base + 0x3F4);
-    *(int*)((char*)self + 0x28) = (int)base;
-    *(int*)((char*)self + 0x2C) = saved_a1;
-    *(int*)((char*)self + 0x34) = gl_func_00000000(0);
-    *(int*)((char*)self + 0x30) = gl_func_00000000(0);
+    gl_func_00000000(a0, base + 0x3F4);
+    *(int*)((char*)a0 + 0x28) = (int)base;
+    *(int*)((char*)a0 + 0x2C) = (int)a1;
+    *(int*)((char*)a0 + 0x34) = gl_func_00000000(0);
+    *(int*)((char*)a0 + 0x30) = gl_func_00000000(0);
     /* sub = self->0x30 is NOT cached and packed = (*base+3)<<16 is NOT hoisted —
      * the target re-materializes both at each call (per-call lui/lw/sll/ori +
      * lw a0,0x30(self)); a hoisted local spills (sw 60(sp)) and burns a 2nd
      * saved reg, growing the frame -0x30→-0x50. Inline-recompute lever
      * (feedback_remove_local_recompute_inline_lever). */
-    gl_func_00000000(*(int*)((char*)self + 0x30), saved_a1);
-    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x1, -1, base);
-    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x4, -1, base);
-    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x3, -1, base);
-    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x2, -1, base);
-    gl_func_00000000(*(int*)((char*)self + 0x30), ((*(int*)base + 3) << 16) | 0x5, -1, base);
-    *(int*)((char*)*(int*)((char*)self + 0x30) + 0x30) = gl_func_00000000(0, base, 72, 221, 3, 13);
-    gl_func_00000000(*(int*)((char*)self + 0x30));
-    gl_func_00000000(*(int*)((char*)self + 0x30), 174);
-    {
-        int *nested = (int*)*(int*)((char*)*(int*)((char*)self + 0x30) + 0x28);
-        void (*fn)(int) = (void(*)(int))nested[0x5C / 4];
-        short off = *(short*)((char*)nested + 0x58);
-        fn((*(int*)((char*)self + 0x30)) + off);
+    tmp = (int*)*(int*)((char*)a0 + 0x2C);
+    gl_func_00000000(*(int*)((char*)a0 + 0x30), tmp);
+    gl_func_00000000(*(int*)((char*)a0 + 0x30), ((*(int*)base + 3) << 16) | 0x1, -1, base);
+    gl_func_00000000(*(int*)((char*)a0 + 0x30), ((*(int*)base + 3) << 16) | 0x4, -1, base);
+    gl_func_00000000(*(int*)((char*)a0 + 0x30), ((*(int*)base + 3) << 16) | 0x3, -1, base);
+    gl_func_00000000(*(int*)((char*)a0 + 0x30), ((*(int*)base + 3) << 16) | 0x2, -1, base);
+    gl_func_00000000(*(int*)((char*)a0 + 0x30), ((*(int*)base + 3) << 16) | 0x5, -1, base);
+    *(int*)((char*)*(int*)((char*)a0 + 0x30) + 0x30) = gl_func_00000000(0, base, 72, 221, 3, 13);
+    gl_func_00000000(*(int*)((char*)a0 + 0x30));
+    gl_func_00000000(*(int*)((char*)a0 + 0x30), 174);
+    tmp2 = (int*)*(int*)((char*)a0 + 0x30);
+    nst = (int*)tmp2[0x28/4];
+    (**(void(**)(int))((char*)nst + 0x5C))(*(short*)((char*)nst + 0x58) + (int)tmp2);
+    tmp = (int*)*(int*)((char*)a0 + 0x30);
+    gl_func_00000000((char*)a0 + 0x10, tmp);
+    if (tmp[0x14/4] != 0) {
+        tmp[0x4/4] = 1;
     }
-    gl_func_00000000((char*)self + 0x10, *(int*)((char*)self + 0x30));
-    if (*(int*)((char*)*(int*)((char*)self + 0x30) + 0x14) != 0) {
-        *(int*)((char*)*(int*)((char*)self + 0x30) + 0x4) = 1;
-    }
-    *(int*)((char*)*(int*)((char*)self + 0x30) + 0x14) = (int)self;
-    gl_func_00000000((char*)self + 0x10, *(int*)(base + 0x4C) | (0x1D << 16));
-    gl_func_00000000((char*)self + 0x50, *(int*)(base + 0x54) | (0x1E << 16));
-    gl_func_00000000((char*)self + 0x68, *(int*)(base + 0x58) | (0x1D << 16));
-    gl_func_00000000((char*)self + 0x80, *(int*)(base + 0x60) | (0x1E << 16));
+    tmp[0x14/4] = (int)a0;
+    gl_func_00000000((char*)a0 + 0x38, *(int*)(base + 0x4C) | (0x1D << 16));
+    gl_func_00000000((char*)a0 + 0x50, *(int*)(base + 0x54) | (0x1E << 16));
+    gl_func_00000000((char*)a0 + 0x68, *(int*)(base + 0x58) | (0x1D << 16));
+    gl_func_00000000((char*)a0 + 0x80, *(int*)(base + 0x60) | (0x1E << 16));
 end:
-    return self;
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD0);

@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b1_func_00001A64",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T21:48:28.689577+00:00",
+  "end_time": "2026-07-03T21:48:28.689596+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T21:48:28.689591+00:00",
+      "assistant_text": "timproc_uso_b1 first exact land (salvaged). 90/90 words vs own .s; the false-100 circular baseline hid a real residual that this body closed.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 90,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b1_func_00001A64 \u2014 EXACT 90/90 vs own .s (2026-07-03, agent-e).\n * The old \"genuine coloring tie / 2 swapped spill slots\" cap FELL to a 3-lever combo:\n *  (1) REMOVE the `int *s0 = a0;` alias (use a0 directly) \u2014 under 6-local pressure the\n *      alias itself was homing at sp+0x20 and shifting every slot (docs F284 extension);\n *      IDO still emits `move s0,a0` for the cross-call param.\n *  (2) decls `int *a1x; volatile int p1..p4; int r5; int r6;` \u2014 the 4 pads home at\n *      0x24-0x30 so r5's home = 0x20 (v0 spill) and a1x tops out at 0x34.\n *  (3) comma-assign the list-head INSIDE the call arg:\n *      gl(((int)a0)+0x10, (int)(a1x = (int*)a0[0xBC/4])) \u2014 puts the a1 save in the\n *      jal delay slot at 0x34 (plain `new_var = ...;` form homes it low at 0x24).\n * Frame 0x38, all four spill words exact. All jals are the USO gl_func_00000000\n * placeholder (zero-target) \u2014 no baked-jal issue in this fn. */\nvoid timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {\n  int *a1x;\n  volatile int p1;\n  volatile int p2;\n  volatile int p3;\n  volatile int p4;\n  int r5;\n  int r6;\n  a0[0xC / 4] = (int) (((char *) (&D_00000000)) + 0x40C);\n  a0[0xB8 / 4] = a1;\n  a0[0x50 / 4] = a1;\n  a0[0x4C / 4] = a3;\n  a0[0xAC / 4] = 0;\n  a0[0xD8 / 4] = 0;\n  a0[0x54 / 4] = a2;\n  a0[0xD0 / 4] = 0xFF;\n  a0[0xD4 / 4] = 0;\n  a0[0xDC / 4] = 1;\n  *((float *) (((char *) a0) + 0xCC)) = 1.0f;\n  *((float *) (((char *) a0) + 0xC8)) = 1.0f;\n  *((float *) (((char *) a0) + 0xC4)) = 1.0f;\n  *((float *) (((char *) a0) - (-0xC0))) = 1.0f;\n  if (((*((int *) (((char *) a1) + 0x4F0))) << 15) >= 0)\n  {\n    return;\n  }\n  gl_func_00000000(a0, 0xE8, 0x13, a0[0x44 / 4] + 0x10);\n  gl_func_00000000(a0, 0x123, 0xE1, 1);\n  gl_func_00000000(a0, 0x47, 0x13, ((int) a0) + 0x30);\n  gl_func_00000000(a0, 0x44, 0x22, a0[0x44 / 4] + 0x28);\n  r5 = gl_func_00000000(((*((int *) (((char *) (&D_00000000)) + 0x64))) * 0x30) + (*((int *) a0[0x4C / 4])), 0);\n  r6 = gl_func_00000000(0, a0[0x60 / 4]);\n  a0[0xBC / 4] = r6;\n  gl_func_00000000(r6, *((unsigned char *) (r5 + 5)), *((unsigned char *) (r5 + 6)), *((unsigned char *) (r5 + 7)));\n  gl_func_00000000(a0[0xBC / 4], 0x4B, 0xD6);\n  gl_func_00000000(((int) a0) + 0x10, (int) (a1x = (int *) a0[0xBC / 4]));\n  if (a1x[0x14 / 4] != 0)\n  {\n    a1x[4 / 4] = 1;\n  }\n  a1x[0x14 / 4] = (int) a0;\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b1/timproc_uso_b1.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00001A64.s",
+    "segment": "timproc_uso_b1",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
