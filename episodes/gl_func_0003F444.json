@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0003F444",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:33:50.772180+00:00",
+  "end_time": "2026-07-03T14:33:50.772200+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:33:50.772194+00:00",
+      "assistant_text": "Same dead-if(a1){} unused-param-home kill + frame re-pad: buf58[38]; volatile int gap; int buf50; volatile int pad2[2] -> buf58@0x58, buf50@0x50, frame 0xF0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 43,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0003F444: 43-insn 2-buffer-setup + 4x4 nested dispatch loop\n * (0% \u2192 97.60%). Two gl_func_0001CA10 calls prime stack buffers (one\n * with int=16), then a 4-outer x 4-inner loop calls\n * gl_func_0001CA10(p, a3) walking p by +4 bytes inner, the row base by\n * +16 bytes outer (a2 = base). do-while form + (i,row,j,p) decl order\n * gets the $s-reg roles right (i\u2192s4, row\u2192s5, j\u2192s0, p\u2192s1).\n *\n * 2026-07-03 EXACT (43/43 words, jal-target-masked): the documented\n * hard cap (extra unused-a1 caller-slot spill `sw a1,0xF4(sp)`; register/\n * void-ptr/K&R/permuter-151k all failed, see git history for the list)\n * FALLS to a dead `if (a1) {}` \u2014 the empty-if ref marks a1 as used so\n * the defensive unused-leading-param homing skips it (a0 stays homed,\n * matching target), and the empty if emits nothing. Frame then fixed by\n * volatile-pad sandwich: buf58[38] / volatile gap / buf50 /\n * volatile pad2[2] \u2192 buf58@sp+0x58, buf50@sp+0x50, frame 0xF0.\n * Callee is the gl_func_00000000 placeholder (zero-target jals in ROM;\n * prior body used gl_func_0001CA10 as the presumed real callee). */\nextern int gl_func_0001CA10();\n\nvoid gl_func_0003F444(int a0, int a1, int a2, int a3) {\n    int buf58[38];\n    volatile int gap;\n    int buf50;\n    volatile int pad2[2];\n    int i;\n    int *row;\n    int j;\n    int *p;\n    (void)a0;\n    if (a1) {}\n    func_00000000(&buf58);\n    buf50 = 16;\n    func_00000000(&buf50);\n    i = 0;\n    row = (int*)a2;\n    do {\n        j = 0;\n        p = row;\n        do {\n            func_00000000(p, a3);\n            j += 4;\n            p++;\n        } while (j != 16);\n        i++;\n        row += 4;\n    } while (i != 4);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0003F444.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs .s (48/48, 43/43) + make verify ROM byte-identical + objdiff 100 after expected refresh"
+  }
+}

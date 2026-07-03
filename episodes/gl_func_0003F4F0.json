@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0003F4F0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:33:50.511156+00:00",
+  "end_time": "2026-07-03T14:33:50.511176+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:33:50.511170+00:00",
+      "assistant_text": "NEW lever kills the 'unused-a1-spill not C-flippable' cap: dead if(a1){} gives the unused leading a1 a zero-emission ref, so IDO skips its defensive caller-slot home (a0's home stays). Param-kill a1=0 does NOT work here.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 48,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0003F4F0: 48-insn 12-call dispatch. Initializes a local buffer\n * + header byte, then calls func(a2+offset, a3) for offsets\n * {0, 4, 8, 0x18, 0x1C, 0x20, 0x24, 0xC, 0x10, 0x14} (non-monotonic).\n *\n * 2026-05-27 progress: hdr-at-sp+0x20 cap CRACKED via volatile-int gap\n * between buf and hdr (per docs/IDO_CODEGEN.md volatile-pad sandwich):\n * buf (decl FIRST \u2192 highest at sp+0x28), volatile int gap (middle at\n * sp+0x24), int hdr (last \u2192 lowest at sp+0x20) matches target exactly.\n *\n * 2026-07-03 EXACT (48/48 words, jal-target-masked): the last residual\n * (unused-a1 caller-slot spill `sw a1,0xC4(sp)`, previously declared\n * \"fundamentally not C-flippable\" per the F444 unused-arg-save doc)\n * FALLS to a dead `if (a1) {}` \u2014 the empty-if ref makes a1 \"used\" so\n * IDO skips the defensive unused-leading-param home, and the if itself\n * is deleted (zero emission). `a1 = 0;` param-kill does NOT work here.\n * Callees are the func_00000000 zero-target placeholder (jals baked 0 in\n * ROM; real callee unknown/relocated). */\nextern int gl_func_00000000();\nvoid gl_func_0003F4F0(int a0, int a1, char *a2, int a3) {\n    char buf[0x98];\n    volatile int gap;\n    int hdr;\n    (void)a0;\n    if (a1) {}\n    func_00000000(buf);\n    hdr = 0x1A;\n    func_00000000(&hdr);\n    func_00000000(a2, a3);\n    func_00000000(a2 + 4, a3);\n    func_00000000(a2 + 8, a3);\n    func_00000000(a2 + 0x18, a3);\n    func_00000000(a2 + 0x1C, a3);\n    func_00000000(a2 + 0x20, a3);\n    func_00000000(a2 + 0x24, a3);\n    func_00000000(a2 + 0xC, a3);\n    func_00000000(a2 + 0x10, a3);\n    func_00000000(a2 + 0x14, a3);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0003F4F0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-exact vs .s (48/48, 43/43) + make verify ROM byte-identical + objdiff 100 after expected refresh"
+  }
+}

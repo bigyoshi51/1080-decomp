@@ -7655,31 +7655,57 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D620);
  * 26-word INSN_PATCH closes register/imm-only residuals (op-mismatch=0,
  * SAME-LEN 36) per docs/POST_CC_RECIPES.md#feedback-insn-patch-screen-by-opmismatch-count. */
 #ifdef NON_MATCHING
+/* gl_func_0003D68C — BEST: 34/36 words (94.4% raw; objdiff 99.25), 2026-07-03 agent-e.
+ * Improved from committed body (14/36 raw words at same positions).
+ * WORKING LEVERS (all required):
+ *  - struct s gets a 3rd unused int field (12 bytes) -> s@0x54, 4 unused bytes at frame top.
+ *  - volatile int i0,i1,i2: blocks copy-prop of the reads so named t/u/w survive as
+ *    CANDIDATES -> lw v0/v1 (t=i0->v0, u=i1->v1) instead of t6/t7/t8 expression temps.
+ *  - u = *((int*)&a0): param re-read as a LOAD-def unifies with u's web -> lw v1,0x60(sp)
+ *    (plain `u = (int)a0` copy-def coalesces with the param web and colors a2 instead).
+ *  - w reused as the jalr first-arg value (w = u + *(short*)(t+0x28)) -> whole web
+ *    precolored a0 (lw a0,0x48 + addu a0 in delay slot).
+ *  - volatile int pad[5] + t/u/w dead homes (16 bytes) = frame 0x60 with locals at
+ *    target offsets (f@0x3C, i2/i1/i0@0x48/4C/50, s@0x54).
+ * RESIDUAL (2 words, positions 19/22): sw t6(tag,0x54) and sw t7(pf,0x58) swapped.
+ * Target computes li t6,7 FIRST but stores pf FIRST — unreachable from statement order:
+ *  - tag-first source => stores tag,pf (positions swapped) [this body];
+ *  - pf-first source => temps swap (addiu t6/li t7) = 4 diffs;
+ *  - duplicate tag store (DSE+CSE), named const x=7 (const-props), if(1){} barriers,
+ *    do-while(0), interleaves with f[] fills, tag-before-calls (store NOT sunk),
+ *    comma-in-arg: all probed negative (18 variants).
+ * uopt store-linearization tie; possibly permuter-crackable. KEEP AS NM WRAP.
+ */
 void gl_func_0003D68C(int *a0) {
-  int i0;
-  int i1;
-  int i2;
-  float f[3];
-  struct 
+  struct
   {
     int tag;
     float *pf;
+    int unused;
   } s;
-  int v0;
+  volatile int i0;
+  volatile int i1;
+  volatile int i2;
+  float f[3];
+  volatile int pad[5];
+  int t;
+  int u;
+  int w;
   func_00000000(&i0);
   func_00000000(&i1);
   func_00000000(&i2);
-  f[0] = (float) i0;
-  f[1] = (float) i1;
-  if (!i0)
-  {
-  }
-  f[2] = (float) i2;
+  t = i0;
+  u = i1;
+  w = i2;
+  f[0] = (float) t;
+  f[1] = (float) u;
+  f[2] = (float) w;
+  u = *((int *) &a0);
   s.tag = 7;
   s.pf = &f[0];
-  f[1] = (float) i1;
-  v0 = *((int *) (((char *) a0) + 0x28));
-  (*((void (**)(int *, int *)) (v0 + 0x2C)))((int *) (((char *) a0) + (*((short *) (v0 + 0x28)))), (int *) (&s));
+  t = *((int *) (u + 0x28));
+  w = u + (*((short *) (t + 0x28)));
+  (*((void (**)(int, int *)) (t + 0x2C)))(w, (int *) (&s));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D68C);
@@ -9847,7 +9873,7 @@ void gl_func_0003F410(int a0) {
     gl_func_00000000(&local);
 }
 
-#ifdef NON_MATCHING
+/* gl_func_0003F444 — EXACT 43/43 words 2026-07-03 (jal = zero-target placeholder func_00000000; prior body presumed real callee gl_func_0001CA10). objdiff 99.65 = jal reloc-vs-baked-zero artifact only. */
 /* gl_func_0003F444: 43-insn 2-buffer-setup + 4x4 nested dispatch loop
  * (0% → 97.60%). Two gl_func_0001CA10 calls prime stack buffers (one
  * with int=16), then a 4-outer x 4-inner loop calls
@@ -9855,52 +9881,39 @@ void gl_func_0003F410(int a0) {
  * +16 bytes outer (a2 = base). do-while form + (i,row,j,p) decl order
  * gets the $s-reg roles right (i→s4, row→s5, j→s0, p→s1).
  *
- * Remaining ~2.4%: (1) IDO spills the unused `a1` param to its caller
- * home slot (`sw a1, 0xF4(sp)`) where target spills only `a0` — the
- * unused-arg-save (docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save)
- * fires for both params here, no C lever isolates a0-only; (2) the
- * extra spill shifts the two stack buffers down 8 bytes (buf @ sp+0x50
- * vs target sp+0x58). Both stem from the single a1 spill; buf58[42]
- * size-bump tested (regressed to 97.53%).
- *
- * Residual is EXACTLY one insn: build has an extra `sw a1,244(sp)` at
- * idx 12; insns 0-11 match target byte-for-byte and 12+ are identical
- * but shifted +1 by that spill. Remove it → SAME-LEN 43 → byte-exact.
- * Failed C levers (all; IDO -O2 still emits the a1 spill,
- * 44 insns / 176B — IDO spills BOTH unused leading params a0+a1,
- * target spills a0 only):
- *   - dropping `(void)a0;` (2026-05-16)
- *   - `register int a1` (2026-05-16)
- *   - `void *a1` (pointer type) — same spill (2026-05-16)
- *   - `__asm__("" : : "r"(a1))` — IDO rejects extended-asm syntax (2026-05-17)
- *   - K&R definition + `(void)a1;` — still spills both (2026-05-17)
- *   - permuter: 151k+ iterations, score flat at base (NEVER improved) —
- *     prologue arg-home spill is not body-level, permuter has no lever
- *     (see docs/IDO_CODEGEN.md#feedback-ido-unused-arg-save).
- * INSN_PATCH inapplicable (LEN-DIFF +1, not same-length). NOT permuter-
- * class. True-structural / PREFIX-SUFFIX-recipe territory only; the
- * one extra `sw a1,FRAME+4(sp)` would need a same-length post-cc
- * deletion mechanism that doesn't exist. Deferred — genuine hard cap. */
+ * 2026-07-03 EXACT (43/43 words, jal-target-masked): the documented
+ * hard cap (extra unused-a1 caller-slot spill `sw a1,0xF4(sp)`; register/
+ * void-ptr/K&R/permuter-151k all failed, see git history for the list)
+ * FALLS to a dead `if (a1) {}` — the empty-if ref marks a1 as used so
+ * the defensive unused-leading-param homing skips it (a0 stays homed,
+ * matching target), and the empty if emits nothing. Frame then fixed by
+ * volatile-pad sandwich: buf58[38] / volatile gap / buf50 /
+ * volatile pad2[2] → buf58@sp+0x58, buf50@sp+0x50, frame 0xF0.
+ * Callee is the gl_func_00000000 placeholder (zero-target jals in ROM;
+ * prior body used gl_func_0001CA10 as the presumed real callee). */
 extern int gl_func_0001CA10();
 
 void gl_func_0003F444(int a0, int a1, int a2, int a3) {
-    int buf58[40];
+    int buf58[38];
+    volatile int gap;
     int buf50;
+    volatile int pad2[2];
     int i;
     int *row;
     int j;
     int *p;
     (void)a0;
-    gl_func_0001CA10(&buf58);
+    if (a1) {}
+    func_00000000(&buf58);
     buf50 = 16;
-    gl_func_0001CA10(&buf50);
+    func_00000000(&buf50);
     i = 0;
     row = (int*)a2;
     do {
         j = 0;
         p = row;
         do {
-            gl_func_0001CA10(p, a3);
+            func_00000000(p, a3);
             j += 4;
             p++;
         } while (j != 16);
@@ -9908,11 +9921,8 @@ void gl_func_0003F444(int a0, int a1, int a2, int a3) {
         row += 4;
     } while (i != 4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F444);
-#endif
 
-#ifdef NON_MATCHING
+/* gl_func_0003F4F0 — EXACT 48/48 words 2026-07-03 (jal = zero-target placeholder func_00000000; real callees unknown/relocated). objdiff 98.75 = jal reloc-vs-baked-zero artifact only. */
 /* gl_func_0003F4F0: 48-insn 12-call dispatch. Initializes a local buffer
  * + header byte, then calls func(a2+offset, a3) for offsets
  * {0, 4, 8, 0x18, 0x1C, 0x20, 0x24, 0xC, 0x10, 0x14} (non-monotonic).
@@ -9921,33 +9931,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F444);
  * between buf and hdr (per docs/IDO_CODEGEN.md volatile-pad sandwich):
  * buf (decl FIRST → highest at sp+0x28), volatile int gap (middle at
  * sp+0x24), int hdr (last → lowest at sp+0x20) matches target exactly.
- * 97.88% → 99.94% NM (1-insn residual: the unused-a1 caller-slot spill
- * `sw a1, 0xC4(sp)` — same family as gl_func_0003F444's
- * unused-arg-save cap, fundamentally not C-flippable per F444 doc). */
+ *
+ * 2026-07-03 EXACT (48/48 words, jal-target-masked): the last residual
+ * (unused-a1 caller-slot spill `sw a1,0xC4(sp)`, previously declared
+ * "fundamentally not C-flippable" per the F444 unused-arg-save doc)
+ * FALLS to a dead `if (a1) {}` — the empty-if ref makes a1 "used" so
+ * IDO skips the defensive unused-leading-param home, and the if itself
+ * is deleted (zero emission). `a1 = 0;` param-kill does NOT work here.
+ * Callees are the func_00000000 zero-target placeholder (jals baked 0 in
+ * ROM; real callee unknown/relocated). */
 extern int gl_func_00000000();
 void gl_func_0003F4F0(int a0, int a1, char *a2, int a3) {
     char buf[0x98];
     volatile int gap;
     int hdr;
     (void)a0;
-    (void)a1;
-    gl_func_00000000(buf);
+    if (a1) {}
+    func_00000000(buf);
     hdr = 0x1A;
-    gl_func_00000000(&hdr);
-    gl_func_00000000(a2, a3);
-    gl_func_00000000(a2 + 4, a3);
-    gl_func_00000000(a2 + 8, a3);
-    gl_func_00000000(a2 + 0x18, a3);
-    gl_func_00000000(a2 + 0x1C, a3);
-    gl_func_00000000(a2 + 0x20, a3);
-    gl_func_00000000(a2 + 0x24, a3);
-    gl_func_00000000(a2 + 0xC, a3);
-    gl_func_00000000(a2 + 0x10, a3);
-    gl_func_00000000(a2 + 0x14, a3);
+    func_00000000(&hdr);
+    func_00000000(a2, a3);
+    func_00000000(a2 + 4, a3);
+    func_00000000(a2 + 8, a3);
+    func_00000000(a2 + 0x18, a3);
+    func_00000000(a2 + 0x1C, a3);
+    func_00000000(a2 + 0x20, a3);
+    func_00000000(a2 + 0x24, a3);
+    func_00000000(a2 + 0xC, a3);
+    func_00000000(a2 + 0x10, a3);
+    func_00000000(a2 + 0x14, a3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F4F0);
-#endif
 
 extern int func_00000000();
 void gl_func_0003F5B0(int *a0, int a1, short *a2, int a3) {
