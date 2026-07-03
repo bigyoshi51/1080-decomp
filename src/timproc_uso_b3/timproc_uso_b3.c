@@ -1062,23 +1062,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 #endif
 
 #ifdef NON_MATCHING
-/* timproc_uso_b3_func_000019CC: widget constructor (clone of arcproc_uso_func_
- * 00001D18). Field inits (0xC=0x3E4, 0xB8/0x50=arg1, 0x4C=arg3, 0xAC=0). Gated on
- * arg1->0x4F0 bit-16: sets 0x54=arg2, 0xD0=0xFF, 0xD4=0, 1.0f quad at 0xC0/C4/C8/
- * CC; 5 cb setup calls; allocs child 0xBC (from a 0x30-stride table indexed by
- * *(int*)(&D+0x64)) + links it; allocs child 0x94, inits its {250,235,100,0}/255
- * color quad (var-divisor div.s) + ints/ptr + float cb (gl_proto_19cc) + links it.
- * Fresh decode 2026-05-29 (m2c-confirmed). 82.8% reg-blind (148/149 insns).
- * Residual: float-call mfc1 setup + spill regalloc. Caps: structs + cb prototypes
- * untyped (USO-reloc), &D not symbolized. NON_MATCHING. */
 extern int gl_proto_19cc(void *, int, int, float, float);
+extern char D_b3_19CC_0C;
 void timproc_uso_b3_func_000019CC(char *arg0, char *arg1, int arg2, int *arg3) {
     char *sp44;
     char *o;
     char *sub;
     float denom = 255.0f;
 
-    *(int *)(arg0 + 0xC) = 0x3E4;
+    *(int *)(arg0 + 0xC) = (int)(&D_b3_19CC_0C + 0x3E4);
     *(char **)(arg0 + 0xB8) = arg1;
     *(char **)(arg0 + 0x50) = arg1;
     *(int **)(arg0 + 0x4C) = arg3;
@@ -1512,8 +1504,9 @@ char *timproc_uso_b3_func_000023E4(char *a0) {
         v0 = *(char **)(s0 + 0x48);
         vt = *(char **)(v0 + 0x28);
         ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v0);
-        gl_func_00000000(s0 + 0x10, *(int *)(s0 + 0x48));
-        a3 = *(char **)(s0 + 0x48);
+        v0 = (char *)*(int *)(s0 + 0x48);
+        gl_func_00000000(s0 + 0x10, (int)v0);
+        a3 = v0;
         if (*(int *)(a3 + 0x14) != 0) {
             *(int *)(a3 + 0x4) = 1;
         }
