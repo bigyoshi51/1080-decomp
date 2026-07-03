@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000F2EC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:17:30.292598+00:00",
+  "end_time": "2026-07-03T03:17:30.292618+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:17:30.292612+00:00",
+      "assistant_text": "-O0 frame-pack cap cracked: -O0 slot map is top-down in DECLARATION order and each register var reserves a 4-byte home slot even when colored to an s-reg. Interleaving scalar decls between aggregates (q, raw, p1, p2, tmp, src, pad_lo[2]) shifts raw->0x48 tmp->0x34 frame-neutrally; s-reg assignment follows register-decl order only so it survives the reorder.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 41,
+  "initial_m2c_source": null,
+  "final_source": "/* func_0000F2EC \u00e2\u0080\u0094 EXACT (41/41) verified 2026-07-02 on agent-e.\n * TU: src/bootup_uso/bootup_uso_o0_F1F0.c (per-file OPT_FLAGS := -O0).\n * Lever: -O0 slot allocation is TOP-DOWN in DECLARATION ORDER, and each\n * `register` var reserves a 4-byte home slot even when it gets an s-reg.\n * Interleaving the scalar decls between the aggregates places raw@sp+0x48\n * and tmp@sp+0x34 (was uniformly 12 low with all 4 reg vars declared first).\n * s-reg assignment follows register-decl order (q=s0, p1=s1, p2=s2, src=s3),\n * which is preserved because only the aggregates moved between them.\n * Slot map: q@0x54, raw@0x48, p1@0x44, p2@0x40, tmp@0x34, src@0x30, pad_lo@0x28.\n * Types (file-scope in the TU):\n *   typedef struct { int a, b, c; } Tri3i;\n *   typedef struct { float x, y, z; } Vec3;\n *   extern int func_00000000(); extern char D_00000000;\n */\nvoid func_0000F2EC(Vec3 *dst) {\n    register Vec3 *q;\n    Tri3i raw;\n    register Vec3 *p1;\n    register Vec3 *p2;\n    Tri3i tmp;\n    register float *src;\n    int pad_lo[2];\n    func_00000000(&D_00000000, &raw, 12);\n    p1 = dst;\n    tmp = raw;\n    p2 = p1;\n    src = (float*)&tmp;\n    p2->x = src[0];\n    p2->y = src[1];\n    p2->z = src[2];\n    q = p1;\n    (void)q;\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_F1F0.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_0000F2EC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 (asm-processor, per-file override)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

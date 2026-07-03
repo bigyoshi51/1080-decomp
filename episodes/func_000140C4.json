@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000140C4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:17:30.841420+00:00",
+  "end_time": "2026-07-03T03:17:30.841442+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:17:30.841436+00:00",
+      "assistant_text": "Exact twin of func_00014228 \u2014 identical body + identical if(1){} param-copy-sink barrier, matched first try.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 89,
+  "initial_m2c_source": null,
+  "final_source": "/* func_000140C4 \u00e2\u0080\u0094 EXACT (89/89) verified 2026-07-02 on agent-e.\n * TU: src/bootup_uso/bootup_uso_tail4.c (default flags, -O2).\n * EXACT TWIN of func_00014228 \u00e2\u0080\u0094 identical body, identical new lever:\n * `if (1) { }` BB-barrier after the col[] init stops uopt sinking the\n * a0->s0 param copy past the first handle load, so the handle colors into\n * $a0 (lw a0,0x104(a0); beql a0; jal delay nop) and the prologue becomes\n * sw s0 / or s0,a0 / sw ra. Fixes all 10 residual words.\n * See /tmp/body_ex14228.c for the full lever writeup. */\nvoid func_000140C4(char *s0) {\n    float col[4];\n    volatile int pad[12];\n    int n;\n    col[0] = 1.0f; col[1] = 1.0f; col[2] = 1.0f; col[3] = 1.0f;\n    if (1) { }\n    if (*(int*)(s0 + 0x104)) {\n        func_00000000(*(int*)(s0 + 0x104));\n        n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xDC));\n        func_00000000(*(int*)(s0 + 0x104), n, col, 0);\n        func_00000000(*(int*)(s0 + 0x104),\n                      *(int*)(s0 + 0x74) + *(int*)(s0 + 0x44),\n                      *(int*)(s0 + 0x8C) + *(int*)(s0 + 0x5C), 0);\n    }\n    if (*(int*)(s0 + 0x108)) {\n        func_00000000(*(int*)(s0 + 0x108));\n        n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xD8));\n        func_00000000(*(int*)(s0 + 0x108), n, col, 0);\n        func_00000000(*(int*)(s0 + 0x108),\n                      *(int*)(s0 + 0xA4) + *(int*)(s0 + 0x44),\n                      *(int*)(s0 + 0xBC) + *(int*)(s0 + 0x5C), 0);\n    }\n    func_00000000(*(int*)(s0 + 0xE0));\n    n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xD8));\n    func_00000000(*(int*)(s0 + 0xE0), n, s0 + 0xC4, *(int*)(s0 + 0xD4));\n    func_00000000(*(int*)(s0 + 0xE0), *(int*)(s0 + 0x44), *(int*)(s0 + 0x5C), s0 + 0xE4);\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_000140C4.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

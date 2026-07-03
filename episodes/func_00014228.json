@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00014228",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T03:17:30.580788+00:00",
+  "end_time": "2026-07-03T03:17:30.580811+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T03:17:30.580805+00:00",
+      "assistant_text": "if(1){} barrier stops uopt sinking the a0->s0 param copy past the first handle load \u2014 handle colors into a0 (lw a0,0x104(a0)), beql tests a0, jal delay nop, prologue sw s0/or s0,a0/sw ra. All 10 residual words fixed at once. (Param-alias local failed: copy-propagated + frame grew.)",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 89,
+  "initial_m2c_source": null,
+  "final_source": "/* func_00014228 \u00e2\u0080\u0094 EXACT (89/89) verified 2026-07-02 on agent-e.\n * TU: src/bootup_uso/bootup_uso_tail4.c (default flags, -O2).\n * NEW LEVER vs the previous 10-diff residual (documented \"as1+coloring cap\"):\n * `if (1) { }` BB-barrier inserted between the col[] init and the first\n * real condition. The barrier ends the entry basic block, which stops uopt\n * from SINKING the param a0->s0 copy past the first handle load. With the\n * copy at entry, a0 dies at the load's base use, so the loaded handle is\n * colored INTO $a0 (`lw a0,0x104(a0)`), beql tests a0, jal delay = nop,\n * and the prologue interleaves `sw s0 / or s0,a0 / sw ra` \u00e2\u0080\u0094 all 10\n * residual words fixed at once. (Previously tried held-temp / array-index\n * cond / int param / float temp all failed; param-alias local copy gets\n * copy-propagated away AND grows the frame to 0x70 \u00e2\u0080\u0094 don't use.)\n * All other levers unchanged: volatile int pad[12] AFTER col (frame\n * 0x68/col@0x58); global-first FP mul `*(f32*)&D * (float)count`;\n * high-offset-first addends; direct-deref conditions to keep beql. */\nvoid func_00014228(char *s0) {\n    float col[4];\n    volatile int pad[12];\n    int n;\n    col[0] = 1.0f; col[1] = 1.0f; col[2] = 1.0f; col[3] = 1.0f;\n    if (1) { }\n    if (*(int*)(s0 + 0x104)) {\n        func_00000000(*(int*)(s0 + 0x104));\n        n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xDC));\n        func_00000000(*(int*)(s0 + 0x104), n, col, 0);\n        func_00000000(*(int*)(s0 + 0x104),\n                      *(int*)(s0 + 0x74) + *(int*)(s0 + 0x44),\n                      *(int*)(s0 + 0x8C) + *(int*)(s0 + 0x5C), 0);\n    }\n    if (*(int*)(s0 + 0x108)) {\n        func_00000000(*(int*)(s0 + 0x108));\n        n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xD8));\n        func_00000000(*(int*)(s0 + 0x108), n, col, 0);\n        func_00000000(*(int*)(s0 + 0x108),\n                      *(int*)(s0 + 0xA4) + *(int*)(s0 + 0x44),\n                      *(int*)(s0 + 0xBC) + *(int*)(s0 + 0x5C), 0);\n    }\n    func_00000000(*(int*)(s0 + 0xE0));\n    n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xD8));\n    func_00000000(*(int*)(s0 + 0xE0), n, s0 + 0xC4, *(int*)(s0 + 0xD4));\n    func_00000000(*(int*)(s0 + 0xE0), *(int*)(s0 + 0x44), *(int*)(s0 + 0x5C), s0 + 0xE4);\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_00014228.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

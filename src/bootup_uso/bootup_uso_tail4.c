@@ -1099,12 +1099,20 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014010);
  * beql), array-index condition, int param, float temp - all 10-or-worse;
  * permuter has no regalloc randomizer (floored prior). Genuine
  * as1+coloring cap. INCLUDE_ASM remains build path (no episode). */
-#ifdef NON_MATCHING
+/* func_000140C4 — EXACT (89/89) verified 2026-07-02 on agent-e.
+ * TU: src/bootup_uso/bootup_uso_tail4.c (default flags, -O2).
+ * EXACT TWIN of func_00014228 — identical body, identical new lever:
+ * `if (1) { }` BB-barrier after the col[] init stops uopt sinking the
+ * a0->s0 param copy past the first handle load, so the handle colors into
+ * $a0 (lw a0,0x104(a0); beql a0; jal delay nop) and the prologue becomes
+ * sw s0 / or s0,a0 / sw ra. Fixes all 10 residual words.
+ * See /tmp/body_ex14228.c for the full lever writeup. */
 void func_000140C4(char *s0) {
     float col[4];
     volatile int pad[12];
     int n;
     col[0] = 1.0f; col[1] = 1.0f; col[2] = 1.0f; col[3] = 1.0f;
+    if (1) { }
     if (*(int*)(s0 + 0x104)) {
         func_00000000(*(int*)(s0 + 0x104));
         n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xDC));
@@ -1126,9 +1134,6 @@ void func_000140C4(char *s0) {
     func_00000000(*(int*)(s0 + 0xE0), n, s0 + 0xC4, *(int*)(s0 + 0xD4));
     func_00000000(*(int*)(s0 + 0xE0), *(int*)(s0 + 0x44), *(int*)(s0 + 0x5C), s0 + 0xE4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000140C4);
-#endif
 
 /* func_00014228 - 3-element draw/place dispatcher (twin of func_000140C4).
  * NM body brought to 10 non-reloc diffs (from 24) - body is byte-exact
@@ -1155,12 +1160,27 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000140C4);
  * the FIRST block diverges. Tried: held-temp (spills + downgrades beql),
  * array-index condition, int param, float temp - all 10 or worse.
  * INCLUDE_ASM build path (no episode; NM body for %-progress only). */
-#ifdef NON_MATCHING
+/* func_00014228 — EXACT (89/89) verified 2026-07-02 on agent-e.
+ * TU: src/bootup_uso/bootup_uso_tail4.c (default flags, -O2).
+ * NEW LEVER vs the previous 10-diff residual (documented "as1+coloring cap"):
+ * `if (1) { }` BB-barrier inserted between the col[] init and the first
+ * real condition. The barrier ends the entry basic block, which stops uopt
+ * from SINKING the param a0->s0 copy past the first handle load. With the
+ * copy at entry, a0 dies at the load's base use, so the loaded handle is
+ * colored INTO $a0 (`lw a0,0x104(a0)`), beql tests a0, jal delay = nop,
+ * and the prologue interleaves `sw s0 / or s0,a0 / sw ra` — all 10
+ * residual words fixed at once. (Previously tried held-temp / array-index
+ * cond / int param / float temp all failed; param-alias local copy gets
+ * copy-propagated away AND grows the frame to 0x70 — don't use.)
+ * All other levers unchanged: volatile int pad[12] AFTER col (frame
+ * 0x68/col@0x58); global-first FP mul `*(f32*)&D * (float)count`;
+ * high-offset-first addends; direct-deref conditions to keep beql. */
 void func_00014228(char *s0) {
     float col[4];
     volatile int pad[12];
     int n;
     col[0] = 1.0f; col[1] = 1.0f; col[2] = 1.0f; col[3] = 1.0f;
+    if (1) { }
     if (*(int*)(s0 + 0x104)) {
         func_00000000(*(int*)(s0 + 0x104));
         n = (int)(*(float*)&D_00000000 * (float)*(int*)(s0 + 0xDC));
@@ -1182,9 +1202,6 @@ void func_00014228(char *s0) {
     func_00000000(*(int*)(s0 + 0xE0), n, s0 + 0xC4, *(int*)(s0 + 0xD4));
     func_00000000(*(int*)(s0 + 0xE0), *(int*)(s0 + 0x44), *(int*)(s0 + 0x5C), s0 + 0xE4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00014228);
-#endif
 
 /* func_0001438C - verified structural decode (0x128, 74 insns,
  * get-or-create constructor + 2 child sub-objects).
