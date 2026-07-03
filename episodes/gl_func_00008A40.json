@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00008A40",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T15:10:05.086394+00:00",
+  "end_time": "2026-07-03T15:10:05.086415+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T15:10:05.086410+00:00",
+      "assistant_text": "The 'genuine -O0 frame-packing cap' (90-combo decl/type sweep + full compiler-axis exhaustion, 2026-05-31/06-09) fell in ONE variant to the F2EC register-home interleave: -O0 reserves a 4-byte home slot per register var IN DECLARATION ORDER even when colored to an s-reg. Moving p1/p2 register decls AFTER raw drops their home slots below it, lifting &raw sp+0x40 -> sp+0x48 frame-neutrally. The old sweep only permuted aggregates, never register decls. Also: this unit's expected/.o was a circular self-refreshed baseline (false 100.0 fuzzy) \u2014 make verify vs baserom caught it.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 41,
+  "initial_m2c_source": null,
+  "final_source": "/* EXACT 41/41 (2026-07-03). The \"genuine -O0 frame-packing cap\" (90-combo sweep +\n * compiler-axis exhaustion) fell to the F2EC register-home interleave lever:\n * -O0 reserves a 4-byte home slot per `register` var IN DECLARATION ORDER even\n * when colored to an s-reg \u2014 moving p1/p2 decls AFTER raw drops their two home\n * slots below raw, lifting &raw from sp+0x40 to sp+0x48 frame-neutrally.\n * The old sweep only permuted the aggregates, never the register decls. */\nvoid gl_func_00008A40(Vec3 *dst) {\n    register Vec3 *q;\n    Tri3i raw;\n    register Vec3 *p1;\n    register Vec3 *p2;\n    Tri3i tmp;\n    int pad_mid[2];\n    register float *src;\n    gl_func_00000000(&D_00000000, &raw, 12);\n    p1 = dst;\n    tmp = raw;\n    p2 = p1;\n    src = (float*)&tmp;\n    p2->x = src[0];\n    p2->y = src[1];\n    p2->z = src[2];\n    q = p1;\n    (void)q;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o0_8A40.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00008A40.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 (asm-processor, per-file override)",
+    "verification": "41/41 word-exact + make verify ROM byte-identical"
+  }
+}
