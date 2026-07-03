@@ -1175,41 +1175,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);
  * obj->0x14=0; obj->0=cb(arg1); obj->4=cb(obj->0x10); obj->8=cb(obj->0x10);
  * if (arg3==-1) arg3=cb(obj->8); v=cb(obj->8,arg2,arg3); if (v==0) {
  * cb(obj->8,0); obj->8->4=0; if(obj->8->8) cb(obj->8->8); obj->8->8=0; }.
- * Fresh decode 2026-05-29 (m2c-assisted): 95.05%, 58==58, structure exact.
- * Levers used: alloc-fail `goto end` (shared return), cleanup via index form
- * ((int*)obj->8)[2] for the 8(reg) addressing + re-read. RESIDUAL (11 diffs):
- * deferred `move s0,a0` save (conditional-reassign), flag spill slot sp+32 vs
- * +36, cleanup reload reg $v1 vs $v0 — reg/slot-alloc caps. */
+ * 2026-07-02 relever (agent-e): 11 -> 5 diffs (53/58). Two cracks: (1) REUSE
+ * THE PARAM (no `int *s0` local) -- param arg0 colors $s0 and its `or s0,a0`
+ * reglod emits in the SAVE region (target pos 2), freeing the bnez delay for
+ * `sw a3` (was: local copy deferred into the delay slot). (2) declare the
+ * flag local FIRST -- M-var homes map vreg-order->descending sp slots, so
+ * flag -4 -> sp+0x24 (was second/-8 -> sp+0x20). RESIDUAL (5 diffs, cap):
+ * cleanup web `(int*)obj->8` reload colored $v1, target $v0. zdbug:6 shows
+ * the web colored (adjsave 2.0) with v0 FORBIDDEN (piece live into the jal's
+ * v0-def); target's is uncolored/ugen-bound v0. Split spellings (ptr-load
+ * (int**)[2] vs cvt) DO break the web but ugen binds t8/t9, not v0; volatile,
+ * char-cast, int-arith, if(1){}, do-while, dup-store all inert or regress. Doc 13516
+ * reload-site v0/v1 class -- interferer for v1 is never emission-neutral. */
 extern int gl_func_00000000();
 int gl_func_0000B0A8(int *arg0, int arg1, int arg2, int arg3) {
-    int *s0 = arg0;
     int v1;
     if (arg0 == 0) {
-        s0 = (int *)gl_func_00000000(0x18);
-        if (s0 == 0) goto end;
+        arg0 = (int *)gl_func_00000000(0x18);
+        if (arg0 == 0) goto end;
     }
-    s0[0x10 / 4] = arg1;
-    s0[0x14 / 4] = 0;
-    s0[0] = gl_func_00000000(arg1);
-    s0[1] = gl_func_00000000(s0[0x10 / 4]);
-    s0[2] = gl_func_00000000(s0[0x10 / 4]);
+    arg0[0x10 / 4] = arg1;
+    arg0[0x14 / 4] = 0;
+    arg0[0] = gl_func_00000000(arg1);
+    arg0[1] = gl_func_00000000(arg0[0x10 / 4]);
+    arg0[2] = gl_func_00000000(arg0[0x10 / 4]);
     if (arg3 == -1) {
-        arg3 = gl_func_00000000(s0[2]);
+        arg3 = gl_func_00000000(arg0[2]);
     }
     v1 = 0;
-    if (gl_func_00000000(s0[2], arg2, arg3) != 0) {
+    if (gl_func_00000000(arg0[2], arg2, arg3) != 0) {
         v1 = 1;
     }
     if (v1 == 0) {
-        gl_func_00000000(s0[2], 0);
-        ((int *)s0[2])[1] = 0;
-        if (((int *)s0[2])[2] != 0) {
-            gl_func_00000000(((int *)s0[2])[2]);
+        gl_func_00000000(arg0[2], 0);
+        ((int *)arg0[2])[1] = 0;
+        if (((int *)arg0[2])[2] != 0) {
+            gl_func_00000000(((int *)arg0[2])[2]);
         }
-        ((int *)s0[2])[2] = 0;
+        ((int *)arg0[2])[2] = 0;
     }
 end:
-    return (int)s0;
+    return (int)arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B0A8);
