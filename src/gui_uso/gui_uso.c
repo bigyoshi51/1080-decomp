@@ -20,50 +20,109 @@ extern char D_00000000;
  * Maps punctuation to glyph indices 0x24-0x29, a-z/A-Z to 0x0A.., digits to
  * 0x0..0x9; default returns the input char. */
 #ifdef NON_MATCHING
-/* gui_func_00000000 [0x00..0x148): char->glyph-index mapper, full-cluster MERGE
- * of 12 over-split splat fragments. Two residuals keep this NON_MATCHING:
+/* gui_func_00000000 — EXACT-MATCH attempt result (2026-07-02, agent-e dispatch)
  *
- *   (1) 0x00 TRAMPOLINE (2 words, the "missing 2 instructions" vs build):
- *         0:  b 0x1cdc0   (raw 0x1000736F, NO reloc -> cross-segment, runtime-patched)
- *         4:  sw a0,0(sp) (frame-less arg-save; this fn has no addiu sp prologue)
- *       This is the USO entry-0 loader trampoline prepended ahead of the body.
- *       It is NOT emittable from this function's C (the b targets a runtime-
- *       resolved address in another segment with no reloc, and sw 0(sp) writes
- *       a frame this function never allocates). It is the documented
- *       feedback_uso_entry0_trampoline_95pct_cap_class cap; byte-exact landing
- *       requires the still-allowed USO-header PREFIX_BYTES mechanism
- *       (gui_func_00000000=0x1000736F + 0xAFA40000), not C.
+ * REFRAMED TARGET (major correction to the in-tree NM comment):
+ *   The USO entry-0 "trampoline" is ONE word, not two.
+ *     word 0: 0x1000736F  b 0x1cdc0        <- loader glue, NOT C-emittable.
+ *                                             Same 1-word PREFIX_BYTES class as
+ *                                             boarder5_uso_func_00000000 (=0x1000736F!).
+ *     word 1: 0xAFA40000  sw a0,0(sp)      <- IS C-emittable: frameless K&R param
+ *                                             home, forced by the &param lever
+ *                                             (unsigned char *pa = &c;).
+ *   True C body = 81 words starting at sw a0,0(sp). Landing needs Makefile
+ *   PREFIX_BYTES := gui_func_00000000=0x1000736F (one word) — out of scope for
+ *   this dispatch (Makefile untouchable).
  *
- *   (2) Body residual: 3 words of v0<->a0 register coloring on the masked
- *       compare value (first compare wants the masked value in a0, copy in v0;
- *       IDO colors it the other way from this C). 78/81 body words match; the
- *       v0/a0 swap is the documented regalloc-coloring cap (C-shape iteration
- *       across variants A-K could not flip it).
+ * BEST PURE-C BODY (in-tree verified 80/81 words, zero compile errors,
+ * word count exact, IDO 7.1 -O2 default flags):
+ */
+int gui_func_00000000(c)
+int c;
+{
+    unsigned char *pa = (unsigned char *)&c;  /* &param: forces sw a0,0(sp) home (word 1) */
+    c = c & 0xFF;
+    if (c == 0x21) { c = 0x27; goto ret; }   /* '!' */
+    if ((c & 0x1FF) == 0x2C) { c = 0x28; goto ret; }   /* ',' */
+    if ((c & 0x1FF) == 0x2F) { c = 0x29; goto ret; }   /* '/' */
+    if ((c & 0x1FF) == 0x5B) { c = 0x26; goto ret; }   /* '[' */
+    if ((c & 0x1FF) == 0x5D) { c = 0x27; goto ret; }   /* ']' */
+    if ((c & 0x1FF) == 0x2B) { c = 0x24; goto ret; }   /* '+' */
+    if ((c & 0x1FF) == 0x5F) { c = 0x25; goto ret; }   /* '_' */
+    if ((c & 0x1FF) == 0x2E) { c = 0x25; goto ret; }   /* '.' */
+    if ((c & 0x1FF) == 0x2D) { c = 0x25; goto ret; }   /* '-' */
+    if ((c & 0x1FF) >= 0x61 && (c & 0x1FF) < 0x7B) { c = (c & 0x1FF) - 0x57; goto ret; }  /* a-z */
+    if ((c & 0x1FF) >= 0x41 && (c & 0x1FF) < 0x5B) { c = (c & 0x1FF) - 0x37; goto ret; }  /* A-Z */
+    if ((c & 0x1FF) >= 0x30 && (c & 0x1FF) < 0x3A) { c = ((c & 0x1FF) - 0x30) & 0xFF; }   /* 0-9 */
+ret:
+    return c & 0xFF;
+}
+/*
+ * WHY (c & 0x1FF): after c &= 0xFF the value is unchanged, but the expression
+ * hash differs from the ret expr (c & 0xFF), so uopt binds ALL chain compares,
+ * slti range checks AND the case addius to ONE CSE temp (v0) that copy-prop
+ * cannot rewrite back to a0 (it's an op, not a copy) and that cannot collapse
+ * into the return-const 4-insn form.  This gets every word right EXCEPT the
+ * temp's own def:
  *
- * Faithful C below (best decode: 78/81 body words, exact bne+move-v0 prologue
- * and exact v0-based bnel chain). Maps punctuation to glyph indices 0x24-0x29,
- * a-z/A-Z to 0x0A.., digits to 0x0..0x9; default returns the input char. */
+ *   RESIDUAL (1 word): off 0x14  target 00801025 (or v0,a0,$0 = move v0,a0)
+ *                                built  308201FF (andi v0,a0,0x1FF)
+ *   Same value, different encoding: an expression temp emits its op; a plain
+ *   copy emits the move but then copy-prop rewrites all Ufjp/slti uses to a0
+ *   (17 wrong words, the documented ~95% "chain-source-register picker" cap in
+ *   docs/IDO_CODEGEN.md #feedback-ido-bnel-dispatch-modify-c-mask-return).
+ *
+ * PROOF OF MECHANISM: with -Wo,-zcopy:0 (uopt copy-prop kill switch) the plain
+ * copy form below compiles 81/81 EXACT vs the true body (verified standalone,
+ * project CFLAGS + -O2 -mips2 -32).  So the ONLY gap between honest C and the
+ * ROM bytes is one uopt copy-propagation rewrite.  A per-file/-function flag
+ * split (like the _o0_ splits) would land this exactly — Makefile change, not
+ * attempted per dispatch constraints.
+ */
+#ifdef ZCOPY0_EXACT_FORM   /* 81/81 with -Wo,-zcopy:0; 64/81 at default flags */
 int gui_func_00000000(c)
 int c;
 {
     int m;
-    m = c & 0xFF;
-    c = m;
-    if (m == 0x21) { c = 0x27; goto ret; }   /* '!' */
-    if (m == 0x2C) { c = 0x28; goto ret; }   /* ',' */
-    if (m == 0x2F) { c = 0x29; goto ret; }   /* '/' */
-    if (m == 0x5B) { c = 0x26; goto ret; }   /* '[' */
-    if (m == 0x5D) { c = 0x27; goto ret; }   /* ']' */
-    if (m == 0x2B) { c = 0x24; goto ret; }   /* '+' */
-    if (m == 0x5F) { c = 0x25; goto ret; }   /* '_' */
-    if (m == 0x2E) { c = 0x25; goto ret; }   /* '.' */
-    if (m == 0x2D) { c = 0x25; goto ret; }   /* '-' */
-    if (m >= 0x61 && m < 0x7B) { c = m - 0x57; goto ret; }       /* a-z */
-    if (m >= 0x41 && m < 0x5B) { c = m - 0x37; goto ret; }       /* A-Z */
-    if (m >= 0x30 && m < 0x3A) { c = (m - 0x30) & 0xFF; }        /* 0-9 */
+    unsigned char *pa = (unsigned char *)&c;
+    c = c & 0xFF;
+    m = c;
+    if (c == 0x21) { c = 0x27; goto ret; }
+    if (m == 0x2C) { c = 0x28; goto ret; }
+    if (m == 0x2F) { c = 0x29; goto ret; }
+    if (m == 0x5B) { c = 0x26; goto ret; }
+    if (m == 0x5D) { c = 0x27; goto ret; }
+    if (m == 0x2B) { c = 0x24; goto ret; }
+    if (m == 0x5F) { c = 0x25; goto ret; }
+    if (m == 0x2E) { c = 0x25; goto ret; }
+    if (m == 0x2D) { c = 0x25; goto ret; }
+    if (m >= 0x61 && m < 0x7B) { c = m - 0x57; goto ret; }
+    if (m >= 0x41 && m < 0x5B) { c = m - 0x37; goto ret; }
+    if (m >= 0x30 && m < 0x3A) { c = (m - 0x30) & 0xFF; }
 ret:
     return c & 0xFF;
 }
+#endif
+/*
+ * ~40 variants ground through (all at default flags unless noted):
+ *  - plain copy m=c (+decl-order, register, operand-swap, chain-assign,
+ *    dup-def, multi-def-in-arms, copy-back, if(1), while(0)-marks,
+ *    for(;;)break, do-while(x!=x)): 64/81 — branch/slti uses rewritten to a0.
+ *  - isop defs m=c|0 / 0|c / c<<0 / c>>0 / 10-var or-chain: branches keep m
+ *    but case addius rebind to a split (c|0)-temp => 82 words (+1 move).
+ *  - is_incr (param±const) suppression unreachable: cfe folds every ±0
+ *    spelling (0, 0L, 0u, -0, (0)).
+ *  - K&R unsigned char c param: emits the sw home + conversion-blocked
+ *    compares but narrows into v0 (not in-place) and coalesces carrier with m
+ *    (v1) => uniform rename + 3-word beqzl-dup shrink (78 words).
+ *  - expression compares (c&0xFF)/(c|c)/(c&c)/(c^0x100^0x100)/(c±0x100∓0x100):
+ *    fold, collapse to return-const form, or leave +1 op.
+ *  - IDO 5.3 same; -O1/-O0 completely different shape (frame+plain branches).
+ * uopt source (references/ido uoptcopy.c find_replacements) confirms the
+ * asymmetry: branch (Ufjp/Utjp) uses of a plain copy substitute to the source
+ * var unless a successor is loopfirstbb (real loops only); isop-source
+ * substitution is blocked for branches but fires for plain stores (the split).
+ */
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000000);
 #endif
