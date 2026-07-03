@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000DF04",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:58:54.542107+00:00",
+  "end_time": "2026-07-03T14:58:54.542128+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:58:54.542122+00:00",
+      "assistant_text": "Third Tri3i struct-assign cascade sibling (E014/DDCC family): **(Tri3i**)(s0+OFF) = *(Tri3i*)func_00000000(&D_00000000, id) per slot; flag bit 7 selects id pair 0x11/0x12 vs 0x14/0x15; id 0x16 always fills 0x8FC. First variant hit.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 68,
+  "initial_m2c_source": null,
+  "final_source": "/* func_0000DF04 \u2014 EXACT 68/68 (Tri3i struct-assign cascade, same form as promoted E014/DDCC) */\nvoid func_0000DF04(char *s0) {\n    if (*(unsigned int*)(s0 + 0xA58) & 0x80) {\n        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, 0x11);\n        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 0x12);\n    } else {\n        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, 0x14);\n        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 0x15);\n    }\n    **(Tri3i **)(s0 + 0x8FC) = *(Tri3i *)func_00000000(&D_00000000, 0x16);\n}",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_0000DF04.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

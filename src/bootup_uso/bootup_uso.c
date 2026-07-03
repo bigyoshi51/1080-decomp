@@ -2782,45 +2782,52 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000039D8);
  * the documented coloring-cap class for the 38C0/3734/39D8/3B78 family.
  * INCLUDE_ASM stays (honest NON_MATCHING). */
 #ifdef NON_MATCHING
-/* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats. */
 extern char *func_3b78_r(char *, int, int, int, char *, int, float, float, int, int);
-extern unsigned char CFG_3b78[];  /* global byte-config block (placeholder &D_00000000) */
+extern unsigned char CFG_3b78[];
+/* func_00003B78 — BEST 84/113 words (74.3%, count-EXACT 113/113, frame 0x60 EXACT; was ~52% w/ 2 LOGIC BUGS).
+   LOGIC FIXES (were hiding in the sub-90 band, per arity/control-flow re-derive):
+     (1) `if (o == 0) return;` was WRONG — only func(o,0) is conditional; the whole chain runs with o==0.
+     (2) `if (o2)` scope only wraps func(o2,1); big-builder + finalizer + r1->0x8DC are UNCONDITIONAL.
+   Levers kept: c182/flags folded into arg expr (t-temp chain), cfg unnamed CSE deref,
+   separate o2/big locals (recovers frame 0x60 + slot packing).
+   Residual cap (~29 words): v0-grant-between-calls — target puts the CSE'd cfg ptr in $v0 and the
+   &CFG lbu-base segment in $v1; IDO refuses $v0 for any LR born between calls here, so cfg=$v1,
+   C-base=$t0, temp chain and 4 spill slots (0x54.. vs 0x58..) cascade off-by-one/4. 11 variants
+   (zdbug-diagnosed: numsplitlu LR63, multi-def affinity, named-first, dead-if, pads, named-float)
+   all floor at 84. Uses file-scope decls: func_3b78_r typed-float proto + CFG_3b78 extern. */
 void func_00003B78(char *s1, int a1) {
-    char *o = (char*)func_00000000(0x80);
-    char *cfg;
+    char *o;
     register unsigned char *C;
-    char *r1, *b2, *b3, *f1, *o2, *row;
+    char *r1, *b2, *b3, *f1, *o2, *big;
     int v1_84;
-    int c182;
-    int flags;
-    if (o == 0) return;
-    func_00000000(o, 0);
+    o = (char*)func_00000000(0x80);
+    if (o != 0) {
+        func_00000000(o, 0);
+    }
     func_00000000(CFG_3b78, o);
     func_00000000(CFG_3b78, o, 0);
     C = CFG_3b78;
-    c182 = C[0x182];
-    cfg = *(char**)(s1 + 0x98);
-    flags = (c182 | 0x8001) | 0x10000 | 0x40000;
     r1 = func_3b78_r(s1, 0,
                      C[0x181],
                      C[0x183],
                      o, *(int*)(s1 + 0x80),
-                     *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
-                     flags, 0x1B);
+                     *(float*)(*(char**)(s1 + 0x98) + 0xC4), *(float*)(*(char**)(s1 + 0x98) + 0xCC),
+                     (C[0x182] | 0x8001) | 0x10000 | 0x40000, 0x1B);
     b2 = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), r1, o);
     b3 = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), r1, o);
-    row = (char*)&D_00000000 + a1 * 0x1C;
-    f1 = (char*)func_00000000(s1, row, b2);
+    f1 = (char*)func_00000000(s1, (char*)&D_00000000 + a1 * 0x1C, b2);
     *(float*)(b2 + 0x14C) = 85.0f;
     o2 = (char*)func_00000000(0x80);
     if (o2 != 0) {
-        char *big;
-        big = (char*)func_00000000(0, o2, r1, f1, b2, b3);
-        v1_84 = *(int*)(s1 + 0x84);
-        func_00000000(v1_84 + 0x10, big);
-        if (*(int*)(big + 0x14) != 0) *(int*)(big + 0x4) = 1;
-        *(int*)(big + 0x14) = v1_84;
+        func_00000000(o2, 1);
     }
+    big = (char*)func_00000000(0, o2, r1, f1, b2, b3);
+    v1_84 = *(int*)(s1 + 0x84);
+    func_00000000(v1_84 + 0x10, big);
+    if (*(int*)(big + 0x14) != 0) {
+        *(int*)(big + 0x4) = 1;
+    }
+    *(int*)(big + 0x14) = v1_84;
     *(char**)(r1 + 0x8DC) = f1;
 }
 #else
@@ -9311,32 +9318,20 @@ void func_0000DDCC(char *s0) {
  * clear) fill 0x8F4/0x8F8, id 0x16 always fills 0x8FC.
  * Caps <80: 3-5 reloc calls + &D reloc + flag branch + per-slot
  * 3-word struct copies. INCLUDE_ASM remains build path. */
-#ifdef NON_MATCHING
+/* func_0000DF04 — EXACT 68/68 (Tri3i struct-assign cascade, same form as promoted E014/DDCC) */
 void func_0000DF04(char *s0) {
-    int *v;
-    int *d;
     if (*(unsigned int*)(s0 + 0xA58) & 0x80) {
-        v = (int*)func_00000000(&D_00000000, 0x11);
-        d = *(int**)(s0 + 0x8F4);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
-        v = (int*)func_00000000(&D_00000000, 0x12);
-        d = *(int**)(s0 + 0x8F8);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, 0x11);
+        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 0x12);
     } else {
-        v = (int*)func_00000000(&D_00000000, 0x14);
-        d = *(int**)(s0 + 0x8F4);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
-        v = (int*)func_00000000(&D_00000000, 0x15);
-        d = *(int**)(s0 + 0x8F8);
-        d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+        **(Tri3i **)(s0 + 0x8F4) = *(Tri3i *)func_00000000(&D_00000000, 0x14);
+        **(Tri3i **)(s0 + 0x8F8) = *(Tri3i *)func_00000000(&D_00000000, 0x15);
     }
-    v = (int*)func_00000000(&D_00000000, 0x16);
-    d = *(int**)(s0 + 0x8FC);
-    d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
+    **(Tri3i **)(s0 + 0x8FC) = *(Tri3i *)func_00000000(&D_00000000, 0x16);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000DF04);
-#endif
+/* VERIFIED in-tree 68/68 EXACT on clean rebuild (was 97.8%).
+   Single lever: Tri3i struct-assign cascade (same form as promoted E014/DDCC siblings).
+   First variant hit. Ready to promote (INCLUDE_ASM -> body) + land. */
 
 /* func_0000E014 - verified structural decode (0x110, 68 insns).
  * NEAR-SIBLING of func_0000DF04 (same Vec3 fetch-and-store fan-out,
