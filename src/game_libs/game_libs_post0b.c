@@ -3714,22 +3714,31 @@ void game_libs_func_00038294(int a0) {
 //   pass only, no byte body.
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
-/* gl_func_0003829C: alloc-cascade constructor (fresh decode 2026-05-29, first
- * pass). Saves arg0->0xC, allocates a 0x10 node `a2`; if non-null builds an
- * inner node `v1` (= a2 in the common path) — sets vtable ptr &D+0x1EB10 at
- * offset 0, back-link arg0 at +4, and a 2-word blob from &D+0x1EA30 at +8/+0xC
- * — then stamps a2's vtable &D+0x1EB40 at offset 0; finally cb(&D_0, savedC, a2).
- * The pointers round-trip through stack slots (sp+0x20/0x1C) so IDO can't fold
- * the redundant null-retests, emitting (effectively dead) retry-alloc branches —
- * the alloc-cascade idiom. 98.71%, size-exact (49==49), all cascade branches +
- * control flow match. RESIDUAL: (a) frame -40 vs target -48 (8B of extra
- * pointer-spill slack the stack-juggle uses; mostly sp-normalized by objdiff);
- * (b) the &D+0x1EA30 table read: IDO folds it to a shared base &D+0x18000 +
- * 0x6A30 offset, target materializes &D+0x1EA30 directly and loads 0(t0)/4(t0)
- * — a %hi/%lo split-form diff (block-scoped base local did NOT defeat the fold;
- * likely USO-reloc-form-determined). Both regalloc/reloc-form, not logic. */
+/* gl_func_0003829C — 49 words, 8 diffs (was 14). VERIFIED vs
+ * asm/nonmatchings/game_libs/game_libs/gl_func_0003829C.s
+ *
+ * TWO DOCUMENTED RESIDUALS SOLVED:
+ *  (1) FRAME +8 (0x28 -> 0x30): `volatile int pad0, pad1;` reserves two
+ *      phantom slots. Declared AFTER `saved` so `saved` homes at 0x2C and the
+ *      pads take the 0x24/0x28 gap (named-local decl-order homing rule) — now
+ *      a0@0x30, saved@0x2C match exactly.
+ *  (2) D+0x1EA30 FOLD: the two-load base+disp CSE (build folded to base
+ *      &D+0x18000 + 0x6A30/0x6A34) is DEFEATED by reading through a distinct
+ *      extern `D_3829C_1EA30` (= 0x0001EA30) — IDO can't reassociate an opaque
+ *      symbol, so it materializes the exact base and loads at 0(t0)/4(t0),
+ *      matching target. REQUIRES undefined_syms_auto.txt:
+ *          D_3829C_1EA30 = 0x0001EA30;
+ *      (lui/addiu immediates show 0 in the .o; reloc-resolve to 2/0xEA30 at
+ *      link per project convention.)
+ *
+ * REMAINING (CAP): base-register cascade — build uses $v0 for the table base
+ * (cascading to $t0/$t1 loads and $t2 for the 0x1EB40 const); target uses $t0
+ * (cascading $t2/$t1, and $t3). Target reserves $v0/$v1 entirely; build reuses
+ * $v0 as a general temp. Tried named-local base ptr and returning the final
+ * call result — neither shifts the coloring. Pure graph-coloring residual. */
 void gl_func_0003829C(int *arg0) {
     int saved = arg0[3];
+    volatile int pad0, pad1;
     int *a2 = (int *)gl_func_00000000(0x10);
     int *v1, *a0v, *p2, *p3;
     if (a2 != 0) {
@@ -3741,9 +3750,9 @@ void gl_func_0003829C(int *arg0) {
             }
             v1[1] = (int)arg0;
             {
-                int *tbl = (int *)((char *)&D_00000000 + 0x1EA30);
-                v1[2] = tbl[0];
-                v1[3] = tbl[1];
+                extern int D_3829C_1EA30[];
+                v1[2] = D_3829C_1EA30[0];
+                v1[3] = D_3829C_1EA30[1];
             }
         }
         *a2 = (int)((char *)&D_00000000 + 0x1EB40);
@@ -25817,55 +25826,33 @@ void gl_func_00054C24(char *a0, char *a1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00054C6C: 38-insn 5-call multi-section debug printer (0x98, frame 0x20).
+/* gl_func_00054C6C — 38/38 EXACT MATCH (VERIFIED vs
+ * asm/nonmatchings/game_libs/game_libs/gl_func_00054C6C.s, 0 diffs).
  *
- * Decoded structure (raw-word disasm) — series of 5 jal calls, each with
- * different (string_sym, format_sym_at_D+0x210CC..0x210E4, ...) args:
+ * CRACKED the last word (was 37/38). The documented residual — func3's a3=0
+ * emitting `move a3,zero` (build) vs target `addiu a3,zero,0` (`li a3,0`) —
+ * was NOT an as1-internal const-0 cap. func3's 4th arg is a FLOAT 0.0f: in
+ * o32 it lands in the GPR $a3 (the FP path is disabled once the leading args
+ * are pointers), and IDO materializes a float 0.0f into a GPR as `li a3,0`,
+ * NOT `move a3,zero`. Changing the 4th param of the float-placeholder to
+ * `float` and passing 0.0f flips that one word. (func2's a3=0 stays int, so it
+ * correctly keeps `move a3,zero`.)
  *
- *   func1(&D_strA, &D_BASE + 0x210CC, 0);
- *   func2(&D_strB, &D_BASE + 0x210D8, self + 0x120, 0);
- *   func3(&D_strC, &D_BASE + 0x210E4, self + 0x124, 0,
- *         1.0f (stack +0x10), 0 (stack +0x14));
- *   func4(&D_strD);
- *   func5(self);
- *
- * Each call passes a unique format-string sym (D_strA..D), a config offset
- * from D_BASE+0x210CC..+0x210E4, and stride-incremented pointers into the
- * self struct (self+0x120, self+0x124). The 1.0f literal is set up via
- * `lui at, 0x3F80; mtc1 at, f4; swc1 f4, 0x10(sp)` for func3's stack arg.
- *
- * Structured multi-section debug-dump helper (common in 1080's game_libs
- * debug instrumentation).
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- *
- * 2026-06-20: func3 (the call with the 1.0f stack arg) re-routed through a
- * float-prototyped placeholder (gl_func_00000000f) so the 1.0f is passed as
- * single precision (swc1) instead of K&R-promoted double (sdc1). This
- * collapsed the frame (0x28->0x20) AND the float store, taking the diff from
- * ~8 words down to a SINGLE word: 37/38 match, exact same size. Remaining
- * diff is `move a3,zero` (build) vs `addiu a3,zero,0` (target) for func3's
- * a3=0 — a constant-0 materialization idiom tie (IDO emits `move` for any
- * folded constant 0 in arg position; tried int/long/uint/ptr params,
- * NULL casts, arithmetic 0-forms, shared zero var — all yield `move`).
- * as1-internal; not flippable from C.
- */
+ * NOTE: the float placeholder is renamed gl_func_00000000ff (a distinct name)
+ * because gl_func_00000000f already has an int-4th-arg proto elsewhere in the
+ * TU (redeclaration conflict otherwise). Byte-exact on the isolated .o gate;
+ * not landable via make verify (placeholder/USO jals), so stays NM. */
 void gl_func_00054C6C(int *self) {
     extern int D_00000000;
     extern int D_strA, D_strB, D_strC, D_strD;
-    extern int gl_func_00000000f(void *, void *, void *, int, float, int);
+    extern int gl_func_00000000ff(void *, void *, void *, float, float, int);
     gl_func_00000000(&D_strA, (char*)&D_00000000 + 0x210CC, 0);
     gl_func_00000000(&D_strB, (char*)&D_00000000 + 0x210D8, (char*)self + 0x120, 0);
-    gl_func_00000000f(&D_strC, (char*)&D_00000000 + 0x210E4, (char*)self + 0x124, 0,
+    gl_func_00000000ff(&D_strC, (char*)&D_00000000 + 0x210E4, (char*)self + 0x124, 0.0f,
                       1.0f, 0);
     gl_func_00000000(&D_strD);
     gl_func_00000000(self);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054C6C);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054D04);
 
