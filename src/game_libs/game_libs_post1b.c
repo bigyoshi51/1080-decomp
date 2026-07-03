@@ -3552,39 +3552,35 @@ s32 game_libs_func_00067B04(unsigned char *arg0, unsigned char *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
 #endif
 
-#ifdef NON_MATCHING
 /* game_libs_func_00067B78: naive substring search returning a bool. a0 =
- * haystack, a1 = needle. Saves the needle start (v0); compares needle char vs
- * haystack char, advancing both on match and resetting the needle (a1 = start)
- * on mismatch while the haystack keeps advancing. Returns 1 when the needle is
- * exhausted (full match) or *needle==0 at exit, else 0. Unsigned-char loads.
- * 64.8% NM (from 13.8%): the single shared `return *a1==0` epilogue + combined
- * `if(*a0&&*a1){ do{}while(*a0&&*a1) }` guard collapsed 3 separate returns into
- * one (+51pp). Residual: the target makes per-iter copies (v1=a0, a2=a1) and
- * compares through them + re-reads *a0 after the needle reset, and its epilogue
- * is `sltu;sltiu` (normalize-then-negate) vs my single sltiu — codegen detail,
- * multi-pass. Correct algorithm preserved. */
+ * haystack, a1 = needle. Saves the needle start (v0); per-iteration copies
+ * hp=a0/np=a1 are compared (needle char FIRST: `*np != *hp` -> lbu t8,0(a2);
+ * lbu t9,0(v1) — operand order sets the t8/t9 pair), advancing both on match
+ * and resetting the needle (a1 = v0) on mismatch while the haystack keeps
+ * advancing. Returns 1 when the needle is exhausted at exit, else 0.
+ * EXACT 25/25 (2026-07-02, from 98.4%): two levers — (1) compare-operand swap
+ * to needle-first fixed the t8/t9 load-destination pair; (2) epilogue as the
+ * pure expression `return (*a1 != 0) == 0;` (NO named temp) lets the whole
+ * lbu/sltu/sltiu chain coalesce into $v0. A named `int r` temp colors the
+ * intermediate into $v1 (r = *a1 != 0; return !r; => sltu v1/sltiu v0,v1);
+ * merging the bool into the v0 pointer var flips hp/v0 coloring entirely
+ * (multi-range named local demotes in candidate order). Unsigned-char loads. */
 int game_libs_func_00067B78(unsigned char *a0, unsigned char *a1) {
     unsigned char *v0 = a1;
     unsigned char *hp, *np;
-    int r;
     if (*a0 != 0 && *a1 != 0) {
         do {
             hp = a0;
             np = a1;
             a1++;
             a0++;
-            if (*hp != *np) {
+            if (*np != *hp) {
                 a1 = v0;
             }
         } while (*a0 != 0 && *a1 != 0);
     }
-    r = *a1 != 0;
-    return !r;
+    return (*a1 != 0) == 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B78);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00067BDC: strcpy returning dst+len (ptr to the copied NUL).

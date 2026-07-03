@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00067B78",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T02:14:35.304029+00:00",
+  "end_time": "2026-07-03T02:14:35.304049+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T02:14:35.304043+00:00",
+      "assistant_text": "strstr-family exact via 2 levers: (1) operand order controls temp numbering \u2014 compare *np != *hp (needle first) to color the needle load t8; (2) pure-expression epilogue return (*a1 != 0) == 0; \u2014 no named temp so the lbu/sltu/sltiu chain coalesces into $v0 (a named r colors v1). First-assignment-order rule confirmed for hp/np coloring.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 25,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00067B78: naive substring search returning a bool. a0 =\n * haystack, a1 = needle. Saves the needle start (v0); per-iteration copies\n * hp=a0/np=a1 are compared (needle char FIRST: `*np != *hp` -> lbu t8,0(a2);\n * lbu t9,0(v1) \u00e2\u0080\u0094 operand order sets the t8/t9 pair), advancing both on match\n * and resetting the needle (a1 = v0) on mismatch while the haystack keeps\n * advancing. Returns 1 when the needle is exhausted at exit, else 0.\n * EXACT 25/25 (2026-07-02, from 98.4%): two levers \u00e2\u0080\u0094 (1) compare-operand swap\n * to needle-first fixed the t8/t9 load-destination pair; (2) epilogue as the\n * pure expression `return (*a1 != 0) == 0;` (NO named temp) lets the whole\n * lbu/sltu/sltiu chain coalesce into $v0. A named `int r` temp colors the\n * intermediate into $v1 (r = *a1 != 0; return !r; => sltu v1/sltiu v0,v1);\n * merging the bool into the v0 pointer var flips hp/v0 coloring entirely\n * (multi-range named local demotes in candidate order). Unsigned-char loads. */\nint game_libs_func_00067B78(unsigned char *a0, unsigned char *a1) {\n    unsigned char *v0 = a1;\n    unsigned char *hp, *np;\n    if (*a0 != 0 && *a1 != 0) {\n        do {\n            hp = a0;\n            np = a1;\n            a1++;\n            a0++;\n            if (*np != *hp) {\n                a1 = v0;\n            }\n        } while (*a0 != 0 && *a1 != 0);\n    }\n    return (*a1 != 0) == 0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00067B78.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
