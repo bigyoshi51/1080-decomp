@@ -9035,22 +9035,36 @@ void timproc_uso_b5_func_0000CE5C(int *a0, int a1) {
  * the allocator's pick direction). 8 words -> 8 FP-reg-only diffs; frame +
  * structure now exact. Replaces a pre-2026-05-23 INSN_PATCH-era garbage
  * body of uninitialized-local no-ops. */
-#ifdef NON_MATCHING
-void timproc_uso_b5_func_0000CE6C(char *a0) {
-  char *v = *((char **) (a0 + 0x2B8));
-  float a = *((float *) (a0 + 0x294));
-  float b = *((float *) (a0 + 0x264));
-  float c = *((float *) (a0 + 0x260));
-  float d = *((float *) (a0 + 0x25C));
-  *((float *) (v + 0x118)) = a;
-  *((float *) (v + 0x10C)) = b;
-  *((float *) (v + 0x114)) = c;
-  *((float *) (v + 0x110)) = d;
+/* 4-float load-batched store + jal. EXACT 16/16 (2026-07-02, agent-e) —
+ * 4th sibling of the BB88/C1B4/CC74 trio, cracked with the same FP
+ * pool-coloring recipe (docs/IDO_CODEGEN.md "FP local-vs-global pool
+ * coloring", 2026-07-02): loads in decl order a(294),b(264),c(260),d(25C);
+ * source stores c,d, if(!d){}, b, if(b){}, a (dest offsets here:
+ * c->0x114, d->0x110, b->0x10C, a->0x118). Locals c,d stay single-BB and
+ * color f2,f0 (d bumped over c by the branch use); the empty-if BB
+ * boundaries globalize b then a, which color from the pool END: b->f12,
+ * a->f14. Scheduler re-emits stores in load order, giving the target's
+ * f14,f12,f2,f0 descending pick. Callee = timproc_uso_b5_func_00003F58
+ * (extern, jal word 0x0C000000). Replaces the "FP register renumber cap
+ * (immune)" verdict — that was FALSE. */
+void timproc_uso_b5_func_0000CE6C(int *a0) {
+  int *p = (int *) a0[0x2B8 / 4];
+  float a = *((float *) (((char *) a0) + 0x294));
+  float b = *((float *) (((char *) a0) + 0x264));
+  float c = *((float *) (((char *) a0) + 0x260));
+  float d = *((float *) (((char *) a0) + 0x25C));
+  *((float *) (((char *) p) + 0x114)) = c;
+  *((float *) (((char *) p) + 0x110)) = d;
+  if (!d)
+  {
+  }
+  *((float *) (((char *) p) + 0x10C)) = b;
+  if (b)
+  {
+  }
+  *((float *) (((char *) p) + 0x118)) = a;
   timproc_uso_b5_func_00003F58();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CE6C);
-#endif
 
 #pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000CE6C_pad.s")
 

@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000CE6C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T02:19:51.441107+00:00",
+  "end_time": "2026-07-03T02:19:51.441129+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T02:19:51.441123+00:00",
+      "assistant_text": "4th sibling of the FP pool-coloring family (BB88/C1B4/CC74): stores c(0x114), d(0x110), if(!d){}, b(0x10C), if(b){}, a(0x118) \u2014 c,d single-BB color from pool start (d bumped to f0 by branch use, c f2); empty-if boundaries globalize b->f12, a->f14 from pool end; scheduler re-emits stores in load order.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "/* 4-float load-batched store + jal. EXACT 16/16 (2026-07-02, agent-e) \u00e2\u0080\u0094\n * 4th sibling of the BB88/C1B4/CC74 trio, cracked with the same FP\n * pool-coloring recipe (docs/IDO_CODEGEN.md \"FP local-vs-global pool\n * coloring\", 2026-07-02): loads in decl order a(294),b(264),c(260),d(25C);\n * source stores c,d, if(!d){}, b, if(b){}, a (dest offsets here:\n * c->0x114, d->0x110, b->0x10C, a->0x118). Locals c,d stay single-BB and\n * color f2,f0 (d bumped over c by the branch use); the empty-if BB\n * boundaries globalize b then a, which color from the pool END: b->f12,\n * a->f14. Scheduler re-emits stores in load order, giving the target's\n * f14,f12,f2,f0 descending pick. Callee = timproc_uso_b5_func_00003F58\n * (extern, jal word 0x0C000000). Replaces the \"FP register renumber cap\n * (immune)\" verdict \u00e2\u0080\u0094 that was FALSE. */\nvoid timproc_uso_b5_func_0000CE6C(int *a0) {\n  int *p = (int *) a0[0x2B8 / 4];\n  float a = *((float *) (((char *) a0) + 0x294));\n  float b = *((float *) (((char *) a0) + 0x264));\n  float c = *((float *) (((char *) a0) + 0x260));\n  float d = *((float *) (((char *) a0) + 0x25C));\n  *((float *) (((char *) p) + 0x114)) = c;\n  *((float *) (((char *) p) + 0x110)) = d;\n  if (!d)\n  {\n  }\n  *((float *) (((char *) p) + 0x10C)) = b;\n  if (b)\n  {\n  }\n  *((float *) (((char *) p) + 0x118)) = a;\n  timproc_uso_b5_func_00003F58();\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000CE6C.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}
