@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0000AA28",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:07:18.886559+00:00",
+  "end_time": "2026-07-03T14:07:18.886579+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:07:18.886573+00:00",
+      "assistant_text": "'Scheduler cap / redundant reload' was a LOGIC bug: the 2nd call takes ONLY a0 \u2014 gl_func_00000000(a0), not (a0,a1,a2). No reloads needed. Check which arg regs are (re)loaded before each jal before accepting any scheduler-cap verdict.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0000AA28 \u2014 21/21 EXACT (2026-07-03, agent-e w4).\n * Was documented \"cap: IDO scheduling choice, redundant lw a1 reload not\n * reachable from C\". FALSE \u2014 it was a LOGIC bug. The target has NO a1/a2\n * reloads before the second jal (only `lw a0,0x18(sp)` in the delay slot),\n * so the second call takes ONLY a0: gl_func_00000000(a0), not (a0,a1,a2).\n * With three args, the compiler must reload a1/a2 before the 2nd call ->\n * the +1-insn \"redundant reload\" residual. One-arg call = byte-exact,\n * including the dead `move v0,zero` fail-block head at +0x40 (both bnels\n * retargeted past it with the v0=0 dup in their delay slots) and the\n * `b +2; li v0,1` tail. goto-fail structure unchanged.\n * Sub-94% \"scheduler cap\" verdicts can hide arg-list logic diffs: check\n * which arg regs are (re)loaded before each jal FIRST. */\nextern int gl_func_00000000();\nint gl_func_0000AA28(int a0, int a1, int a2) {\n    if (gl_func_00000000(a0, a1, a2) != a1) goto fail;\n    if (gl_func_00000000(a0) != a2) goto fail;\n    return 1;\nfail:\n    return 0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0000AA28.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

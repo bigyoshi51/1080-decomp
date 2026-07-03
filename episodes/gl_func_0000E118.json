@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0000E118",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:07:19.129505+00:00",
+  "end_time": "2026-07-03T14:07:19.129525+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:07:19.129519+00:00",
+      "assistant_text": "Two levers: (1) UNREFERENCED-param homing killed by a dead if(a1){} first statement (gives a1 a web; register does nothing); (2) v->0x24=0 duplicated into BOTH arms of the a2!=0 if/else (then-copy rides the b delay slot); only v->0x1C=0 shared at the join.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 49,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0000E118 \u2014 49/49 EXACT (2026-07-03, agent-e w4).\n * Was documented \"cap: IDO spuriously homes the UNUSED a1 placeholder param\n * (sw a1,0x2C); can't be suppressed\". CRACKED with two levers:\n *  1. UNREFERENCED-param homing rule: IDO homes a param that has NO\n *     references in the body (ugen's home store survives because uopt never\n *     builds a web for it). `register` does NOT help. An emission-free\n *     reference \u2014 dead `if (a1) {}` as the first statement \u2014 gives a1 a web\n *     and the home store disappears (0 insns emitted, 49->48).\n *  2. Store duplication is source-level, not a scheduler artifact: the target\n *     duplicates `v->0x24 = 0` into BOTH arms of the a2!=0 if/else (then-arm\n *     copy lands in the `b` delay slot; else-arm copy stays inline) while\n *     `v->0x1C = 0` is shared after the join. Writing both stores after the\n *     join emits the shared-tail form (1 insn short). Move the 0x24 store\n *     into each arm.\n */\nextern int gl_func_00000000();\nvoid gl_func_0000E118(int a0, int a1, int a2, int a3) {\n    int v0;\n    if (a1) {}\n    v0 = gl_func_00000000();\n    if (v0 != 0 && (*(int *)(v0 + 4) & 1)) {\n        if ((*(int *)(a0 + 0xB4) & 2) && *(int *)(v0 + 0x24) == 1) {\n            if (a2 != 0) {\n                gl_func_00000000(a0, *(int *)(v0 + 0x1C), a3);\n                *(int *)(v0 + 0x24) = 0;\n            } else {\n                gl_func_00000000(a0, *(int *)(v0 + 0x1C));\n                *(int *)(v0 + 0x24) = 0;\n            }\n            *(int *)(v0 + 0x1C) = 0;\n        }\n        {\n            int t = *(int *)(a0 + 0x28);\n            (*(void (**)(int, int))(t + 0x74))(*(short *)(t + 0x70) + a0, a2);\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0000E118.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

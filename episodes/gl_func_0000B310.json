@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0000B310",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:07:18.610791+00:00",
+  "end_time": "2026-07-03T14:07:18.610813+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:07:18.610807+00:00",
+      "assistant_text": "'Natural ceiling \u2014 or v0,s2 delay-slot not C-reachable' disproven, 3 coupled levers: (1) r=count; count++; a1[r]=iter; \u2014 genuine redefinition BETWEEN copy and use blocks copyprop, materializing or v0,s2,zero (a1[count++], |0, phi-web forms all FOLD); (2) VOID return \u2014 with int, as1 treats v0 live-out at jr, forbidding the fall-through or-fill (rule-3 beql +1 insn); (3) same-line tie-break on the three statements flips the addiu-vs-sw as1 tie.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 40,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0000B310 \u2014 40/40 EXACT (2026-07-03, agent-e w4).\n * Was documented \"NATURAL CEILING 92.93% \u2014 or v0,s2,zero delay-slot insertion\n * not naturally reachable\". CRACKED with three coupled levers:\n *  1. Explicit copy-then-redefine order `r = count; count++; a1[r] = iter;`\n *     \u2014 the genuine redefinition of count BETWEEN the copy's def and its use\n *     blocks copyprop (D418 lever-1 rule: \"only a genuine later redefinition\n *     sticks\"), so `or v0,s2,zero` materializes at the store-block head and\n *     as1 dups it into the bnel delay + fills the beq delay with it.\n *     (a1[count++], |0, |known-zero-var, 2-def-web idx all FOLD.)\n *  2. VOID return type \u2014 with `int` return, as1 treats $v0 as live-out at jr,\n *     which forbids the fall-through `or v0,s2,zero` fill on the taken path\n *     of the second branch -> rule-3 beql + iter++ dup (+1 insn). void ->\n *     plain beq + or-in-delay = target shape (38/40).\n *  3. Same-line tie-break: `r = count; count++; a1[r] = iter;` all on ONE\n *     line flips the final as1 tie (addiu s2,s2,1 vs sw s0,0(t9)) so the\n *     store emits first (40/40). The shared line is LOAD-BEARING.\n */\nextern int gl_func_00000000();\nvoid gl_func_0000B310(int *a0, int *a1) {\n  int count = 0;\n  int iter = 0;\n  int offset = 0;\n  int r;\n  for (; iter != 8; iter++)\n  {\n    if (gl_func_00000000(a0[0] + offset) || gl_func_00000000(a0[0] + offset))\n    {\n      r = count; count++; a1[r] = iter;\n    }\n    offset += 0x30;\n  }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0000B310.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

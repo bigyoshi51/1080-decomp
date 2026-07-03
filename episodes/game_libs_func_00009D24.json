@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00009D24",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T14:07:19.434082+00:00",
+  "end_time": "2026-07-03T14:07:19.434102+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T14:07:19.434097+00:00",
+      "assistant_text": "IDO 4x-unroll + remainder-first: natural for(i=0;i<arg3;i++) (m2c do-while doesn't unroll right) + array-IXA spelling ((s32*)(arg0+8))[i]=((s32*)arg2)[i] \u2014 char-ptr arithmetic unrolls but fails LFTR (keeps index counter); IXA form gets the pointer-vs-end-pointer main-loop test.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 37,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00009D24 \u2014 37/37 EXACT (2026-07-03, agent-e w4).\n * Target is IDO -O2's 4x-unrolled copy loop (andi rem=n&3 remainder-first\n * pre-loop + pointer-compare main loop). Two source properties required:\n *  1. Natural `for (i = 0; i < arg3; i++)` \u2014 NOT m2c's\n *     `if (arg3 > 0) do {...} while (i != arg3)` (91% shape) and NOT a\n *     guarded `!=` for-loop (emits a DOUBLE guard blez+beq and flips the\n *     sb/blez head order).\n *  2. Array-IXA spelling of the body: `((s32*)(arg0+8))[i] = ((s32*)arg2)[i]`\n *     \u2014 with char-pointer-arithmetic spelling (*(s32*)(arg0+i*4+8) = ...) the\n *     unroller fires but LFTR does NOT convert the main-loop exit test to the\n *     pointer compare (bne t0,t1 vs end-ptr a2+a3*4); it keeps the index\n *     counter (bne v0,a3 + addiu v0,v0,4 in-loop) = 36/37 + shifted. The\n *     IXA form makes uopt eliminate the index in the main loop (v0 dead\n *     after the entry beq) and test the strength-reduced source pointer.\n * Also: `sb a3` needs no mask (& 0xFFFF was harmless but pointless).\n */\nvoid game_libs_func_00009D24(char *arg0, s32 arg1, s32 arg2, s32 arg3) {\n  s32 i;\n  *((int *) (((char *) arg0) + 0x1C)) = arg1;\n  *((s8 *) (((char *) arg0) + 0x4)) = arg3;\n  for (i = 0; i < arg3; i++) {\n    ((s32 *) (arg0 + 8))[i] = ((s32 *) arg2)[i];\n  }\n  *((int *) (((char *) arg0) + 0x0)) = (s32) ((*((int *) (((char *) arg0) + 0x0))) | 0x80);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00009D24.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

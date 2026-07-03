@@ -402,29 +402,31 @@ int game_libs_func_00009D00(int *a0, int a1) {
     return 0;
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
+/* game_libs_func_00009D24 — 37/37 EXACT (2026-07-03, agent-e w4).
+ * Target is IDO -O2's 4x-unrolled copy loop (andi rem=n&3 remainder-first
+ * pre-loop + pointer-compare main loop). Two source properties required:
+ *  1. Natural `for (i = 0; i < arg3; i++)` — NOT m2c's
+ *     `if (arg3 > 0) do {...} while (i != arg3)` (91% shape) and NOT a
+ *     guarded `!=` for-loop (emits a DOUBLE guard blez+beq and flips the
+ *     sb/blez head order).
+ *  2. Array-IXA spelling of the body: `((s32*)(arg0+8))[i] = ((s32*)arg2)[i]`
+ *     — with char-pointer-arithmetic spelling (*(s32*)(arg0+i*4+8) = ...) the
+ *     unroller fires but LFTR does NOT convert the main-loop exit test to the
+ *     pointer compare (bne t0,t1 vs end-ptr a2+a3*4); it keeps the index
+ *     counter (bne v0,a3 + addiu v0,v0,4 in-loop) = 36/37 + shifted. The
+ *     IXA form makes uopt eliminate the index in the main loop (v0 dead
+ *     after the entry beq) and test the strength-reduced source pointer.
+ * Also: `sb a3` needs no mask (& 0xFFFF was harmless but pointless).
+ */
 void game_libs_func_00009D24(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
   s32 i;
   *((int *) (((char *) arg0) + 0x1C)) = arg1;
-  *((s8 *) (((char *) arg0) + 0x4)) = arg3 & 0xFFFF;
-  i = 0;
-  if (arg3 > 0)
-  {
-    do
-    {
-      *((s32 *) ((((char *) arg0) + (i * 4)) + 8)) = *((s32 *) (((char *) arg2) + (i * 4)));
-      i += 1;
-    }
-    while (i != arg3);
+  *((s8 *) (((char *) arg0) + 0x4)) = arg3;
+  for (i = 0; i < arg3; i++) {
+    ((s32 *) (arg0 + 8))[i] = ((s32 *) arg2)[i];
   }
   *((int *) (((char *) arg0) + 0x0)) = (s32) ((*((int *) (((char *) arg0) + 0x0))) | 0x80);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009D24);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00009DB8: 65-insn 3-iter batch dispatcher (size 0x104, frame 0x48, saves s0-s7).
@@ -852,29 +854,26 @@ int gl_func_0000A9F4(int a0, int a1) {
     return 0;
 }
 
-#ifdef NON_MATCHING
-/* 93.43% NM. Two-stage validation: call once, check result == a1; call
- * again, check result == a2; return 1 only if both match. Diff vs target:
- *   - Mine: spill a2 BEFORE jal, a1 IN jal delay-slot, then redundant
- *     `lw a1` reload before bnel (1 extra insn = +4 bytes).
- *   - Target: spill a1 BEFORE jal, a2 IN delay-slot, NO redundant reload
- *     (uses t6 for the 1st bnel reload, t7 for the 2nd).
- * Tried (3 variants): inline `r != a1`, named `int r = ...`, named
- * `int s_a1 = a1` — all produce same 93.4%. The redundant-reload looks
- * like an IDO scheduling choice: it spills a1 in jal delay slot rather
- * than the prologue, then must reload from the slot before bnel. Target's
- * IDO put a1's spill in the prologue (no delay-slot use needed). Cap is
- * an instruction-scheduler decision not reachable from C-level levers. */
+/* gl_func_0000AA28 — 21/21 EXACT (2026-07-03, agent-e w4).
+ * Was documented "cap: IDO scheduling choice, redundant lw a1 reload not
+ * reachable from C". FALSE — it was a LOGIC bug. The target has NO a1/a2
+ * reloads before the second jal (only `lw a0,0x18(sp)` in the delay slot),
+ * so the second call takes ONLY a0: gl_func_00000000(a0), not (a0,a1,a2).
+ * With three args, the compiler must reload a1/a2 before the 2nd call ->
+ * the +1-insn "redundant reload" residual. One-arg call = byte-exact,
+ * including the dead `move v0,zero` fail-block head at +0x40 (both bnels
+ * retargeted past it with the v0=0 dup in their delay slots) and the
+ * `b +2; li v0,1` tail. goto-fail structure unchanged.
+ * Sub-94% "scheduler cap" verdicts can hide arg-list logic diffs: check
+ * which arg regs are (re)loaded before each jal FIRST. */
+extern int gl_func_00000000();
 int gl_func_0000AA28(int a0, int a1, int a2) {
     if (gl_func_00000000(a0, a1, a2) != a1) goto fail;
-    if (gl_func_00000000(a0, a1, a2) != a2) goto fail;
+    if (gl_func_00000000(a0) != a2) goto fail;
     return 1;
 fail:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AA28);
-#endif
 
 /* 28-insn / 0x70 5-call wrapper followed by 2-field commit. Each call passes
  * the same a0 plus a different arg as a1; result of last call is ignored. */
@@ -1283,26 +1282,38 @@ int gl_func_0000B290(int *a0) {
  * match-faking (per feedback_no_instruction_forcing_matches_policy).
  * Default build is INCLUDE_ASM. */
 extern int gl_func_00000000();
-#ifdef NON_MATCHING
-int gl_func_0000B310(int *a0, int *a1) {
+/* gl_func_0000B310 — 40/40 EXACT (2026-07-03, agent-e w4).
+ * Was documented "NATURAL CEILING 92.93% — or v0,s2,zero delay-slot insertion
+ * not naturally reachable". CRACKED with three coupled levers:
+ *  1. Explicit copy-then-redefine order `r = count; count++; a1[r] = iter;`
+ *     — the genuine redefinition of count BETWEEN the copy's def and its use
+ *     blocks copyprop (D418 lever-1 rule: "only a genuine later redefinition
+ *     sticks"), so `or v0,s2,zero` materializes at the store-block head and
+ *     as1 dups it into the bnel delay + fills the beq delay with it.
+ *     (a1[count++], |0, |known-zero-var, 2-def-web idx all FOLD.)
+ *  2. VOID return type — with `int` return, as1 treats $v0 as live-out at jr,
+ *     which forbids the fall-through `or v0,s2,zero` fill on the taken path
+ *     of the second branch -> rule-3 beql + iter++ dup (+1 insn). void ->
+ *     plain beq + or-in-delay = target shape (38/40).
+ *  3. Same-line tie-break: `r = count; count++; a1[r] = iter;` all on ONE
+ *     line flips the final as1 tie (addiu s2,s2,1 vs sw s0,0(t9)) so the
+ *     store emits first (40/40). The shared line is LOAD-BEARING.
+ */
+extern int gl_func_00000000();
+void gl_func_0000B310(int *a0, int *a1) {
   int count = 0;
   int iter = 0;
   int offset = 0;
+  int r;
   for (; iter != 8; iter++)
   {
     if (gl_func_00000000(a0[0] + offset) || gl_func_00000000(a0[0] + offset))
     {
-      a1[(((((((((count & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu) & 0xFFu] = iter;
-      count++;
+      r = count; count++; a1[r] = iter;
     }
     offset += 0x30;
   }
-
-  return count;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B310);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_0000B3B0() {
@@ -3241,25 +3252,35 @@ void gl_func_0000E05C(int *self, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E05C);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0000E118: getter + flag-gated reset + vtable dispatch (m2c-decoded,
- * 90.1%). v0 = gl_func(); if (v0 && (v0->4 & 1)) { if ((a0->B4 & 2) && v0->24==1)
- * { gl_func(a0, v0->1C [, a3 if a2]); v0->24=0; v0->1C=0; } t=a0->28;
- * (*(short*)(t->70)+a0 passed to *(t->74))(.., a2); }. Residual: IDO spuriously
- * homes the UNUSED a1 placeholder param (sw a1,0x2C) alongside the live a2/a3
- * spills -> +1 insn shift; a1 must be declared to keep a2/a3 in $a2/$a3 but can't
- * be suppressed. The rest is byte-exact. t->70 is a SHORT (lh). */
+/* gl_func_0000E118 — 49/49 EXACT (2026-07-03, agent-e w4).
+ * Was documented "cap: IDO spuriously homes the UNUSED a1 placeholder param
+ * (sw a1,0x2C); can't be suppressed". CRACKED with two levers:
+ *  1. UNREFERENCED-param homing rule: IDO homes a param that has NO
+ *     references in the body (ugen's home store survives because uopt never
+ *     builds a web for it). `register` does NOT help. An emission-free
+ *     reference — dead `if (a1) {}` as the first statement — gives a1 a web
+ *     and the home store disappears (0 insns emitted, 49->48).
+ *  2. Store duplication is source-level, not a scheduler artifact: the target
+ *     duplicates `v->0x24 = 0` into BOTH arms of the a2!=0 if/else (then-arm
+ *     copy lands in the `b` delay slot; else-arm copy stays inline) while
+ *     `v->0x1C = 0` is shared after the join. Writing both stores after the
+ *     join emits the shared-tail form (1 insn short). Move the 0x24 store
+ *     into each arm.
+ */
 extern int gl_func_00000000();
 void gl_func_0000E118(int a0, int a1, int a2, int a3) {
-    int v0 = gl_func_00000000();
+    int v0;
+    if (a1) {}
+    v0 = gl_func_00000000();
     if (v0 != 0 && (*(int *)(v0 + 4) & 1)) {
         if ((*(int *)(a0 + 0xB4) & 2) && *(int *)(v0 + 0x24) == 1) {
             if (a2 != 0) {
                 gl_func_00000000(a0, *(int *)(v0 + 0x1C), a3);
+                *(int *)(v0 + 0x24) = 0;
             } else {
                 gl_func_00000000(a0, *(int *)(v0 + 0x1C));
+                *(int *)(v0 + 0x24) = 0;
             }
-            *(int *)(v0 + 0x24) = 0;
             *(int *)(v0 + 0x1C) = 0;
         }
         {
@@ -3268,9 +3289,6 @@ void gl_func_0000E118(int a0, int a1, int a2, int a3) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E118);
-#endif
 
 void gl_func_0000E1DC(int *a0, int a1, int a2) {
     int *v = (int*)gl_func_00000000(a0, a1, a2);
