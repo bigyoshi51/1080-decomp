@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0000D418",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-03T13:42:13.369143+00:00",
+  "end_time": "2026-07-03T13:42:13.369161+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-03T13:42:13.369156+00:00",
+      "assistant_text": "'Entity-ptr-in-$a2, not C-reachable' DISPROVEN via 4 zero-emission levers: (1) multi-def cur reuse blocks copyprop so tmp=cur survives (or a1,v0); (2) dead if(tmp){} after the arms' join drops alt to a0; (3) e-split of the param (e=arg0; arg0=0 const-propped away); (4) arg1 spelled (int*)((int)e | (int)arg0) with arg0 known-zero \u2014 op-node arg1 flips the ugen arg-slot copy order so the a2-slot copy is e's death point, e coalesces into a2 and the | folds to the exact per-call or a0,a2.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 76,
+  "initial_m2c_source": null,
+  "final_source": "/* Differently-named prototyped extern: resolves via R_MIPS_26 to the SAME jal-0\n * target as gl_func_00000000, but lets the trailing float args stay SINGLE with a\n * DIRECT `jal` \u2014 avoids both K&R float\u2192double promotion AND the fn-ptr-cast\n * `jalr $t9`. Per docs/IDO_CODEGEN.md#feedback-ido-knr-float-call verified workaround. */\nextern int gl_proto_D318(void*, int, int, float, float);\nvoid gl_func_0000D318(int *a0, int *a1) {\n    int *obj;\n    float denom;\n\n    if (a0[0xB4 / 4] & 8) {\n        obj = (int*)gl_func_00000000(a0[0x6C / 4], a1[0x88 / 4], 0, 1);\n        *(float*)((char*)obj + 0xAC) = 0.0f;\n        gl_proto_D318(obj, 0xDC, 0x78, 1.0f, 1.0f);\n        denom = 255.0f;\n        *(float*)((char*)obj + 0xA8) = 0.0f;\n        *(float*)((char*)obj + 0xA4) = 0.0f;\n        *(float*)((char*)obj + 0x64) = 235.0f / denom;\n        *(float*)((char*)obj + 0x68) = 80.0f / denom;\n        *(float*)((char*)obj + 0x6C) = 80.0f / denom;\n        *(float*)((char*)obj + 0x70) = 0.0f / denom;\n        gl_func_00000000(0x17, a0[0xA0 / 4] / 1000);\n        a0[0xA0 / 4] = a0[0xA0 / 4] + a1[0x88 / 4] * 1000;\n    }\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", gl_func_0000D318);\n#endif\n\nextern int gl_func_00000000();\nvoid gl_func_0000D418(int *arg0) {\n    int *e;\n    int *mgr = (int *)arg0[0x44 / 4];\n    int *cur = (int *)mgr[0x54 / 4];\n    int *tmp;\n    int *alt;\n    float f0;\n    e = arg0;\n    arg0 = 0;\n    if (cur == 0) return;\n    f0 = *(float *)((char *)mgr + 0xC);\n    if (!(*(float *)((char *)cur + 0x64) <= f0)) return;\n    {\n        alt = (int *)cur[0x84 / 4];\n        tmp = cur;\n        if (alt == 0) {\n            cur = (int *)mgr[0x58 / 4];\n            if (cur == 0) {\n                mgr[0x54 / 4] = 0;\n            } else {\n                mgr[0x54 / 4] = (int)cur;\n                ((int *)e[0x44 / 4])[0x58 / 4] = 0;\n            }\n        } else {\n            cur = (int *)mgr[0x58 / 4];\n            if ((*(float *)((char *)alt + 0x64) - f0) < (*(float *)((char *)cur + 0x64) - f0)) {\n                mgr[0x54 / 4] = (int)alt;\n            } else {\n                mgr[0x54 / 4] = (int)cur;\n                ((int *)e[0x44 / 4])[0x58 / 4] = (int)alt;\n            }\n        }\n    }\n    if (tmp) {}\n    if (tmp[0xC8 / 4] & 1) {\n        if (*(float *)((char *)e[0x44 / 4] + 8) <= *(float *)((char *)tmp + 0x5C)) {\n            gl_func_00000000((int *)((int)e | (int)arg0), tmp, e);\n            return;\n        }\n        gl_func_00000000((int *)((int)e | (int)arg0), tmp, e);\n        return;\n    }\n    if (*(float *)((char *)tmp + 0x5C) <= *(float *)((char *)e[0x44 / 4] + 8)) {\n        gl_func_00000000((int *)((int)e | (int)arg0), tmp, e);\n        return;\n    }\n    gl_func_00000000((int *)((int)e | (int)arg0), tmp, e);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0000D418.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "objdiff fuzzy=100.0 + make verify ROM byte-identical"
+  }
+}

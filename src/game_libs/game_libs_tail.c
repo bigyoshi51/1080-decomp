@@ -743,17 +743,6 @@ void gl_func_0000A768(char *a0) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0000A7B4: 8-slot loop over obj (stride 0x30). For each slot, if
- * cb(slot) || cb(slot+0x18), set bit i in *flags; then cb(slot, a1, c2, c3).
- * c2/c3 are unsigned char args (homed + zero-extended once before the loop).
- * Fresh decode 2026-05-29: size-exact (49==49), control flow + homes + hoisted
- * masks all exact. Residual = pure 3-register cyclic renumber: target puts
- * a1/c2/c3 in s3/s4/s5; IDO here gives c2/c3/a1 s3/s4/s5 because a1 is born at
- * entry (longer live range) while the char masks are born later (shorter range,
- * higher allocno priority) and grab the lower s-regs. Documented reg-renumber
- * cap. */
-extern int gl_func_00000000();
 void gl_func_0000A7B4(char *obj, int a1, unsigned char c2, unsigned char c3, unsigned char *flags) {
     char *p = obj;
     int i;
@@ -762,12 +751,24 @@ void gl_func_0000A7B4(char *obj, int a1, unsigned char c2, unsigned char c3, uns
             *flags |= (1 << i);
         }
         gl_func_00000000(p, a1, c2, c3);
+        if (a1) {}
         p += 0x30;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A7B4);
-#endif
+
+/* === EXACT MATCH 49/49 (in-tree, clean rebuild x2, 2026-07-03 agent-e) ===
+ * CRACK: 3-register cyclic s-reg renumber (a1/c2/c3 wanted s3/s4/s5, got s5/s3/s4).
+ * Root (zdbug:6): coloring priority adjsave a1=3.33 < masks=3.67 -> masks colored
+ * first. LEVER (new): dead `if (a1) {}` placed AFTER the third call, BEFORE
+ * `p += 0x30` -- the empty-if is deleted (zero emission, still 49 insns) but its
+ * BB survives to priority computation: a1 gets +10 in-loop refs (cond use) while
+ * the masks are DEAD at that point (last use = call args), so they keep span 3:
+ * a1 (10+10)/4 = 5.0 > masks 11/3 = 3.67 > bound8 10/3 = 3.33, and flags 20/3 =
+ * 6.67 stays above. Placement is EVERYTHING:
+ *   - inside flags-block: masks live-through -> span-hit -> masks fall below bound8
+ *   - pre-loop: a1 span-hit at entry weight -> a1 falls to s6 + i/obj flip
+ *   - after third call: EXACT.
+ * Multi-var conditions (a1&&c2 etc.) EMIT +4 insns; only single-var empty-if is free. */
 
 /* Bitfield getter/setter cluster — gl_func_0000A7B4's tail-extracted micros.
  * Each get returns a sub-field; each set replaces it in place. */
@@ -2552,62 +2553,74 @@ void gl_func_0000D318(int *a0, int *a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D318);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0000D418: priority-queue threshold update. mgr=arg0->0x44; cur=mgr->0x54.
- * If cur and cur->0x64 <= mgr->0xC (threshold f0): pick the next node — if
- * cur->0x84 (alt) is null, advance to mgr->0x58 (clearing it); else choose
- * whichever of alt/mgr->0x58 is closer to f0 (by ->0x64). Then dispatch
- * cb(arg0,cur,arg0), gated on cur->0xC8&1 and a cur->0x5C vs mgr->8 compare.
- * Fresh decode 2026-05-29 (m2c-assisted): 94.54%, structure exact (all FP
- * compares/branches/dispatch). RESIDUAL: the target keeps arg0 in caller-saved
- * $a2 the whole function (move a2,a0 at entry; re-reads arg0->0x44 via a2; cb
- * a0=a2) — the documented entity-ptr-in-$a2 cap (feedback-ido-game-uso-entity-
- * ptr-a2-cap); IDO C uses $a0/an $s-reg instead. Not C-reachable. */
 extern int gl_func_00000000();
 void gl_func_0000D418(int *arg0) {
-    int *v1 = (int *)arg0[0x44 / 4];
-    int *v0 = (int *)v1[0x54 / 4];
+    int *e;
+    int *mgr = (int *)arg0[0x44 / 4];
+    int *cur = (int *)mgr[0x54 / 4];
+    int *tmp;
+    int *alt;
     float f0;
-    if (v0 == 0) return;
-    f0 = *(float *)((char *)v1 + 0xC);
-    if (!(*(float *)((char *)v0 + 0x64) <= f0)) return;
+    e = arg0;
+    arg0 = 0;
+    if (cur == 0) return;
+    f0 = *(float *)((char *)mgr + 0xC);
+    if (!(*(float *)((char *)cur + 0x64) <= f0)) return;
     {
-        int *a0 = (int *)v0[0x84 / 4];
-        if (a0 == 0) {
-            int *nx = (int *)v1[0x58 / 4];
-            if (nx == 0) {
-                v1[0x54 / 4] = 0;
+        alt = (int *)cur[0x84 / 4];
+        tmp = cur;
+        if (alt == 0) {
+            cur = (int *)mgr[0x58 / 4];
+            if (cur == 0) {
+                mgr[0x54 / 4] = 0;
             } else {
-                v1[0x54 / 4] = (int)nx;
-                ((int *)arg0[0x44 / 4])[0x58 / 4] = 0;
+                mgr[0x54 / 4] = (int)cur;
+                ((int *)e[0x44 / 4])[0x58 / 4] = 0;
             }
         } else {
-            int *nx = (int *)v1[0x58 / 4];
-            if ((*(float *)((char *)a0 + 0x64) - f0) < (*(float *)((char *)nx + 0x64) - f0)) {
-                v1[0x54 / 4] = (int)a0;
+            cur = (int *)mgr[0x58 / 4];
+            if ((*(float *)((char *)alt + 0x64) - f0) < (*(float *)((char *)cur + 0x64) - f0)) {
+                mgr[0x54 / 4] = (int)alt;
             } else {
-                v1[0x54 / 4] = (int)nx;
-                ((int *)arg0[0x44 / 4])[0x58 / 4] = (int)a0;
+                mgr[0x54 / 4] = (int)cur;
+                ((int *)e[0x44 / 4])[0x58 / 4] = (int)alt;
             }
         }
     }
-    if (v0[0xC8 / 4] & 1) {
-        if (*(float *)((char *)arg0[0x44 / 4] + 8) <= *(float *)((char *)v0 + 0x5C)) {
-            gl_func_00000000(arg0, v0, arg0);
+    if (tmp) {}
+    if (tmp[0xC8 / 4] & 1) {
+        if (*(float *)((char *)e[0x44 / 4] + 8) <= *(float *)((char *)tmp + 0x5C)) {
+            gl_func_00000000((int *)((int)e | (int)arg0), tmp, e);
             return;
         }
-        gl_func_00000000(arg0, v0, arg0);
+        gl_func_00000000((int *)((int)e | (int)arg0), tmp, e);
         return;
     }
-    if (*(float *)((char *)v0 + 0x5C) <= *(float *)((char *)arg0[0x44 / 4] + 8)) {
-        gl_func_00000000(arg0, v0, arg0);
+    if (*(float *)((char *)tmp + 0x5C) <= *(float *)((char *)e[0x44 / 4] + 8)) {
+        gl_func_00000000((int *)((int)e | (int)arg0), tmp, e);
         return;
     }
-    gl_func_00000000(arg0, v0, arg0);
+    gl_func_00000000((int *)((int)e | (int)arg0), tmp, e);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000D418);
-#endif
+
+/* === EXACT MATCH 76/76 (in-tree, clean rebuild x2, 2026-07-03 agent-e) ===
+ * Was 94.5% "entity-ptr-in-$a2 cap, not C-reachable" -- FALSE: fully C-reachable.
+ * FOUR coupled levers (all zero-emission):
+ * 1. MULTI-DEF cur: reuse `cur` for the next-node load in both arms (cur = mgr[0x16])
+ *    -- the redefinition blocks copyprop, so `tmp = cur` (defined BEFORE the alt
+ *    load's use of cur) survives as a separate web -> or a1,v0 emitted; tmp carries
+ *    the dispatch arg (colors a1 via arg-2 slot), cur stays v0, mgr v1.
+ * 2. dead `if (tmp) {}` AFTER the arms' join (before the 0xC8 test): boosts tmp's
+ *    priority above alt -> tmp=a1, alt falls to a0 (same lever as A7B4).
+ * 3. e-SPLIT of the param: `e = arg0; arg0 = 0;` -- entry mgr load stays on a0
+ *    (lw v1,0x44(a0)), all later uses via e; the dead kill blocks copyprop from
+ *    re-merging e into the param web (kill itself const-propped away, 0 insns).
+ * 4. arg1 as an EXPRESSION: cb((int *)((int)e | (int)arg0), tmp, e) with arg0==0
+ *    known -- keeps position-1 an op node so the a2-slot copy becomes e's death
+ *    point -> e coalesces into $a2 (or a2,a0 emitted as entry reglod); the |-with-
+ *    known-zero folds to the exact `or a0,a2` per-call copy. Plain `cb(e,tmp,e)`
+ *    leaves e's last use at the a0-slot -> a2 forbidden -> e lands a3 (+4 words).
+ * Callees left as the standard gl_func_00000000 placeholder (jal 0). */
 
 #ifdef NON_MATCHING
 #ifndef FW
