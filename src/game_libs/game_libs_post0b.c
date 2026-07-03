@@ -23319,40 +23319,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_000519A4: name-formatting constructor + cb-registration driver
- * (sibling of gl_func_0005185C). Frame 0x140 (sp+0x40 name buffer), saves
- * ra+s0. fmtSel by self->0x38 bit-22; early-out on self->0x14==0; dual
- * field_4C-conditional sprintf into the buffer; nested 0x10/0x10/4 alloc
- * cascade with per-step null-bail (IDO emits the inner bails as complementary
- * branches → m2c's `||`-with-side-effects); installs 0x20740 vtable + the
- * 0x20630/0x20634 handler pair + 0x20D88; finalizes by name. Fresh decode
- * 2026-05-29 (m2c-assisted), upgraded from structural-comment marker.
- * 86.2 -> 97.88 (2026-05-31): the 0x20XXX data-section refs (format-string
- * addrs 0x20EEC/0x20EE8/0x20EF0/0x20F04, vtable 0x20740, handler-pair 0x20630/
- * 0x20634, 0x20D88) are ADDRESSES `&D_00000000 + 0xN`, not int literals — the
- * literal form makes GCC emit `lui+ori` (zero-extend, build) where the target's
- * address form is `lui+addiu` (sign-extend); +9.6pp. Plus the final cb's 1st arg
- * is &D_00000000 not literal 0 (+2pp).
- * 2026-06-20: fmtSel rewritten as a TERNARY (`cond ? 0x20EE8 : 0x20EEC`),
- * not pre-assign-default + if-overwrite. The if-form folds away the `else`
- * branch; the ternary forces IDO to emit the explicit branch-around
- * `b .+1` the target has (idx10 `10000001`). This realigned the entire
- * tail: 68/77 mismatching words -> 14/77 (the missing b had cascade-shifted
- * everything from idx10 on). Residual 14 words = TWO documented caps only:
- * (A) compiler caller-save spill slots at sp+0x34/0x38 vs target 0x30/0x34
- *     (anonymous templocs, first-need order, NOT M-class — decl-order
- *     brute-force + register-qualifier confirmed immovable; near-zero
- *     fuzzy weight per the FRAME-SLOT-HOME-ASSIGNMENT CAVEAT); and
- * (B) the 0x20630 handler-pair R_MIPS_LO16-placement fold: `&D_00000000+0x630`
- *     deref'd twice -> IDO ALWAYS emits form (b) `addiu base,0; lw 0x630(base)`
- *     where target uses form (a) `addiu base,0x630; lw 0(base)`. Same address
- *     after reloc, byte-different encoding — the documented not-C-controllable
- *     LO16-placement cap (IDO_CODEGEN: pointer-mutate `p+=N` only forces form
- *     (a) at the cost of a +8 frame slot; reusing an existing local re-folds).
- *     The t-register renumber (target t1/t3/t2/t4 vs mine v0/t1/t2/t3, incl.
- *     the 0xD88 store reg) cascades directly from this fold. Not reloc-fakeable.
- * Kept NON_MATCHING (14/77 word residual = caps A+B only). */
+/* gl_func_000519A4 — W5 2026-07-03: IMPROVED 63/77 -> 71/77 words (in-tree
+ * verified; wrap body updated in src/game_libs/game_libs_post0b.c).
+ *
+ * CRACKED cap (B) — the 0x20630 handler-pair LO16-placement fold + coupled
+ * t-register renumber (8 of the 14 residual words):
+ * 1. The pair copy is a genuine 8-byte STRUCT COPY, not two scalar copies:
+ *    `*(Pair*)(v1+2) = *(Pair*)(&D+0x20630)` — the copy machinery
+ *    materializes the source address (lui t1; addiu t1,0x630 — no offset
+ *    fold) and emits the target's t1-base / t3,t2 / t4 temp pattern.
+ * 2. The `v1[1] = self` store is comma-embedded in the copy's LHS:
+ *    `*(Pair*)((v1[1] = (int)self, v1) + 2) = ...` — cfe evaluates the RHS
+ *    address first, so ucode order is [lui][addiu][sw s0][lw t3...]; any
+ *    separate-statement order lets as1 hoist the sw between lui/addiu
+ *    (2-word swap). RHS-comma form works identically.
+ *
+ * REMAINING 6 words = cap (A) only: spill templocs sp+0x38/0x34 vs target
+ * 0x34/0x30. 2026-07-03 sweep (~28 variants): temploc block pinned; frame =
+ * M3+0x40 invariant; all M3 pads shift buffer/frame; condition-embedded /
+ * comma / nested alloc spellings byte-invariant; constant-size alloc locals
+ * become M3 homes; Pair-tmp intermediate emits sp-temp copies; dead-if
+ * fmtSel extension produces a REAL spill (+5 words). Zero-emission 8-byte
+ * burn above the temps not reachable. Stays NM at 71/77. */
 extern int gl_func_00000000();
+extern int D_00000000;
+typedef struct { int a, b; } Pair519A4;
 void gl_func_000519A4(char *self) {
     char name[256];
     int fmtSel;
@@ -23377,12 +23368,8 @@ void gl_func_000519A4(char *self) {
                 if ((v1 != 0) || (a0p = (int *)gl_func_00000000(4), (a0p != 0))) {
                     *a0p = (int)((char *)&D_00000000 + 0x20740);
                 }
-                v1[1] = (int)self;
-                {
-                    int *h = (int *)((char *)&D_00000000 + 0x20630);
-                    v1[2] = h[0];
-                    v1[3] = h[1];
-                }
+                *(Pair519A4 *)((v1[1] = (int)self, v1) + 2) =
+                    *(Pair519A4 *)((char *)&D_00000000 + 0x20630);
             }
             *a2 = (int)((char *)&D_00000000 + 0x20D88);
         }
