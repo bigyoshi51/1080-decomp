@@ -2109,19 +2109,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003DB8);
 #endif
 
 #ifdef NON_MATCHING
-/* Ring-buffer (4-slot, index a0->0x7C) record append + advance. Writes
- * a1/a2/0/0/200 into the current slot's fields (0x5C/0x6C/0x9C/0x8C/0xBC),
- * then sets 0xAC=160 and clamps the slot's 0xBC to prev->0xBC+16 when the
- * delta < 15; advances 0x7C/0x80 ring indices (&3), bumps 0x88 by 16 and
- * 0x84 (cap 4). First 26 insns (the 5 indexed stores + delta setup) match
- * exactly; the prev/cur/160/delta tail caps on register allocation
- * (reload/temp slot picks). Logic exact. */
 void game_libs_func_00003F08(int *a0, int a1, int a2) {
     int idx;
     int *cur;
     int *prev;
     int prevbc;
-    int next;
+    int nextbc;
     *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x5C) = a1;
     *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x6C) = a2;
     *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x9C) = 0;
@@ -2131,23 +2124,17 @@ void game_libs_func_00003F08(int *a0, int a1, int a2) {
     cur = (int *)((char *)a0 + idx * 4);
     prev = (int *)((char *)a0 + ((idx - 1) & 3) * 4);
     prevbc = prev[0xBC / 4];
-    /* NB: the cur[0xAC]=160 store is a SHARED TAIL of both arms (cur is
-     * recomputed to the same a0+idx*4 in the <15 arm), so it lives once after
-     * the if — collapsing it into both arms emits a redundant `beq zero,zero`
-     * (63 vs 60 insns). Target still beats this by 1 idiom: it folds the else
-     * store into a `beql` delay slot (90.7% residual = that beql + the prev/cur
-     * pointer register cascade $a3 vs $v1). */
+    nextbc = prevbc + 16;
     if (cur[0xBC / 4] - prevbc < 15) {
-        cur[0xBC / 4] = prevbc + 16;
-        cur = (int *)((char *)a0 + a0[0x7C / 4] * 4);
+        cur[0xBC / 4] = nextbc;
+        cur = a0 + a0[0x7C / 4];
     }
     cur[0xAC / 4] = 160;
-    next = (a0[0x7C / 4] + 1) & 3;
     a0[0x88 / 4] += 16;
-    if (a0[0x80 / 4] == next) {
+    a0[0x7C / 4] = (a0[0x7C / 4] + 1) & 3;
+    if (a0[0x80 / 4] == a0[0x7C / 4]) {
         a0[0x80 / 4] = (a0[0x80 / 4] + 1) & 3;
     }
-    a0[0x7C / 4] = next;
     if (a0[0x84 / 4] < 4) {
         a0[0x84 / 4] = a0[0x84 / 4] + 1;
     }
@@ -2157,26 +2144,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003F08);
 #endif
 
 #ifdef NON_MATCHING
-/* Clamp 4 consecutive fields (0x8C/0x90/0x94/0x98) to a minimum of 112,
- * returns a0. Logic exact; caps on register allocation — target copies
- * a0→v0 early and uses v0 as the base for fields 2-4 (a0 only for field 1),
- * and re-materializes `li 112` before each field; IDO instead parks the
- * constant 112 in v0 and emits the a0→v0 return-move at the end. Branch-
- * likely (beqzl) skip-store with the next field's load in the delay slot.
- *
- * 2026-05-23 RE-VERIFIED cap (4 levers all coalesce to the 24-insn form):
- * root cause is the delay-slot-fill scheduling class — target is 25 insns
- * (early `move v0,a0` + nop in jr-ra delay + v0-base for fields 2-4); IDO's
- * natural emit is 24 (a0-base throughout + late move-in-delay-slot). The
- * v0=a0 copy is free so IDO always picks the shorter form. See
- * docs/IDO_CODEGEN.md#feedback-ido-target-larger-preemptive-set-nop-delay
- * (return-the-pointer-arg leaf cascade instance). Permanent NM, no episode. */
 int *game_libs_func_00003FF8(int *a0) {
+    int *p;
+    p = a0;
     if (a0[0x8C / 4] < 112) a0[0x8C / 4] = 112;
-    if (a0[0x90 / 4] < 112) a0[0x90 / 4] = 112;
-    if (a0[0x94 / 4] < 112) a0[0x94 / 4] = 112;
-    if (a0[0x98 / 4] < 112) a0[0x98 / 4] = 112;
-    return a0;
+    a0 = 0;
+    if (p[0x90 / 4] < 112) p[0x90 / 4] = 112;
+    if (p[0x94 / 4] < 112) p[0x94 / 4] = 112;
+    if (p[0x98 / 4] < 112) p[0x98 / 4] = 112;
+    return p;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003FF8);
