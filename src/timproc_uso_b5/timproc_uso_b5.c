@@ -690,16 +690,37 @@ void timproc_uso_b5_func_0000117C(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000117C);
 #endif
 
-/* timproc_uso_b5_func_0000131C: 81-insn (0x144) optional-alloc + multi-link
- * constructor. NATURAL CEILING: 86.87% NM cap (structural register-allocation
- * throughout the body). The prior "SUFFIX_BYTES of 3 nops + 55-word
- * INSN_PATCH" promotion (covering ~70% of the function with register/offset
- * renames) was REMOVED 2026-05-23 as instruction-byte match-faking (see
- * feedback_no_instruction_forcing_matches_policy). Now back at honest 86.87%.
- * Future work: permuter / focused-session register-rename grind. Old NM
- * decode analysis kept below for body context.
+/* timproc_uso_b5_func_0000131C: 81-word (0x144) optional-alloc + multi-link
+ * constructor. RECONSTRUCTED 2026-07-03 with the REAL resolved symbols
+ * (func_055750/04C678/000010EC/07ACE0 x3/00001460/00001658/076D58 +
+ * import_80020098/80020078/8001FFF0 + timproc_uso_b5_D_807FE8F4). objdiff
+ * 86.87% -> 94.80%; reloc-aware word-diff = 57/81 byte-exact (fresh
+ * make RUN_CC_CHECK=0 + mips-linux-gnu-objdump -dr). No new undefined_syms.
  *
- * (Old NM analysis follows.)
+ * Levers that landed (all validated in-tree):
+ *   - struct-cast-fold for the config table: `*(int**)(&import_80020098+0x134)`
+ *     -> lui %hi + addiu(0) + lw 0x134; the 3-fold reload uses
+ *     `*(volatile char**)(...)` to defeat CSE (target reloads 0x134(v1) x3).
+ *   - `&timproc_uso_b5_D_807FE8F4 + 0x1084` -> lui %hi + addiu 0x1084 (low fold).
+ *   - block-2 back-link RE-READS self->0x5C into the reused `sub` var (target
+ *     re-reads memory + spills/reloads, does NOT keep the func-return live);
+ *     made block-2 byte-exact.
+ *   - decl order (entity, second_sub, sub) coalesces the spill slots.
+ *
+ * RESIDUAL ~24 words, ALL register-allocation / scheduling caps (C cannot force):
+ *   (1) block-1 entity/sub v1<->a2 mirror-swap (idx 27,29,31,33-41): block-1
+ *       attaches TWO objects so both `entity` (arg-base+value) and `sub`
+ *       (a1+flag-base) cross the func_07ACE0 call; IDO breaks the 2-var
+ *       coloring tie opposite the target. Block-2 (only ONE crossing var)
+ *       colors correctly -> proves it is the extra crossing var, not the C.
+ *   (2) block-3 second_sub reload a1-vs-a2 (idx 66,69,71-73) -- same class.
+ *   (3) import_80020078 read-then-write: target emits TWO luis w/ %lo folded
+ *       (idx 57-60); IDO from C always CACHES the base (one lui+addiu).
+ *       Documented not-C-controllable (see func_00008DB4 notes).
+ *   (4) frame 0x30-vs-0x28 (idx 0,80) + prologue or-s0/a1-home schedule
+ *       (idx 2,3,5) -- downstream of (1)'s extra spill slot.
+ *
+ * (Old NM decode analysis follows, for body context.)
  *
  * 2026-05-06 +12pp via two combined fixes:
  *   (1) goto-end for unified exit: changed `if (alloc fail) return 0` to
@@ -760,58 +781,45 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * to glyph/texture pool fields). */
 extern char D_00000000;
 #ifdef NON_MATCHING
+extern int timproc_uso_b5_func_000010EC();
+extern int timproc_uso_b5_func_076D58();
+extern void timproc_uso_b5_func_00001460();
+extern void timproc_uso_b5_func_00001658();
+extern char timproc_uso_b5_D_807FE8F4;
+extern char import_80020078;
+extern char import_8001FFF0;
 void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
     char *self = (char*)a0;
-    char *base;
+    char *entity;
+    char *second_sub;
     char *sub;
     if (a0 == 0) {
-        self = (char*)gl_func_00000000(0x60);
+        self = (char*)timproc_uso_b5_func_055750(0x60);
         if (self == 0) goto end;
     }
-    gl_func_00000000(self, (char*)&D_00000000 + 0x1084);
-    /* 3-fold reload of `base = *(D+0x134)` via inline volatile-cast — avoids
-     * b1/b2/b3 locals (which bloated the frame to 0x48). Target has 3 separate
-     * `lw, 0x134(v1)` reloads with no CSE; volatile defeats CSE. */
-    *(int*)(self + 0x2C) = *(int*)(*(volatile char**)((char*)&D_00000000 + 0x134) + 0x84);
-    *(int*)(self + 0x30) = *(int*)(*(volatile char**)((char*)&D_00000000 + 0x134) + 0x80);
-    *(int*)(self + 0x34) = *(int*)(*(volatile char**)((char*)&D_00000000 + 0x134) + 0x8C);
-    (void)base;
-    sub = (char*)gl_func_00000000(0);
+    timproc_uso_b5_func_04C678(self, (char*)&timproc_uso_b5_D_807FE8F4 + 0x1084);
+    *(int*)(self + 0x2C) = *(int*)(*(volatile char**)(&import_80020098 + 0x134) + 0x84);
+    *(int*)(self + 0x30) = *(int*)(*(volatile char**)(&import_80020098 + 0x134) + 0x80);
+    *(int*)(self + 0x34) = *(int*)(*(volatile char**)(&import_80020098 + 0x134) + 0x8C);
+    sub = (char*)timproc_uso_b5_func_000010EC(0);
+    entity = *(char**)(self + 0x2C);
     *(int*)(self + 0x5C) = (int)sub;
-    /* Register sub as a child of entity_field (= self->[0x2C]):
-     *   call(entity+0x10, sub); if (sub->[0x14]) sub->[0x4]=1; sub->[0x14]=entity */
-    {
-        char *entity = *(char**)(self + 0x2C);
-        gl_func_00000000(entity + 0x10, sub);
-        if (*(int*)(sub + 0x14) != 0) *(int*)(sub + 0x4) = 1;
-        *(int*)(sub + 0x14) = (int)entity;
-    }
-    /* Register self as child of sub (saved at self->[0x5C]):
-     *   call(sub+0x10, self); if (self->[0x14]) self->[0x4]=1; self->[0x14]=sub */
-    gl_func_00000000(sub + 0x10, self);
+    timproc_uso_b5_func_07ACE0(entity + 0x10, sub);
+    if (*(int*)(sub + 0x14) != 0) *(int*)(sub + 0x4) = 1;
+    *(int*)(sub + 0x14) = (int)entity;
+    sub = *(char**)(self + 0x5C);
+    timproc_uso_b5_func_07ACE0(sub + 0x10, self);
     if (*(int*)(self + 0x14) != 0) *(int*)(self + 0x4) = 1;
     *(int*)(self + 0x14) = (int)sub;
-    /* Terminal init: call(self) */
-    gl_func_00000000(self);
-    /* 0x1400-0x145C: global-zero pair + second-sub link + final call.
-     * Four DISTINCT globals (each lui+addiu/lw is a separate placeholder
-     * relocation in the asm at 0x1400/0x1404/0x1410/0x142C). All four are
-     * named with unique externs to break IDO CSE — the placeholder address
-     * 0 is shared but the symbol names are distinct so the compiler emits
-     * 4 separate lui+addiu pairs as the target asm requires. */
-    {
-        extern char D_timb5_131C_a;
-        extern char D_timb5_131C_b;
-        extern char D_timb5_131C_c;
-        extern char D_timb5_131C_d;
-        char *second_sub = *(char**)&D_timb5_131C_a;
-        *(int*)&D_timb5_131C_b = 0;
-        *(int*)&D_timb5_131C_c = 0;
-        gl_func_00000000(self + 0x10, second_sub);
-        if (*(int*)(second_sub + 0x14) != 0) *(int*)(second_sub + 0x4) = 1;
-        *(int*)(second_sub + 0x14) = (int)self;
-        gl_func_00000000(*(int*)&D_timb5_131C_d);
-    }
+    timproc_uso_b5_func_00001460(self);
+    timproc_uso_b5_func_00001658(self);
+    second_sub = *(char**)&import_80020078;
+    *(int*)&import_80020078 = 0;
+    *(int*)&import_8001FFF0 = 0;
+    timproc_uso_b5_func_07ACE0(self + 0x10, second_sub);
+    if (*(int*)(second_sub + 0x14) != 0) *(int*)(second_sub + 0x4) = 1;
+    *(int*)(second_sub + 0x14) = (int)self;
+    timproc_uso_b5_func_076D58(*(int*)&import_80020078);
     (void)a1;
 end:
     return self;
