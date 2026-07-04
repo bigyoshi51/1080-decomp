@@ -50,7 +50,7 @@ void mgrproc_uso_func_00000B20(void) {
 
 #ifdef NON_MATCHING
 extern int import_80263D60;
-extern char import_80020098;
+extern int import_80020098[];
 extern int import_000A5A1C();
 extern int import_000A5938();
 extern int mgrproc_uso_func_01FA1C();
@@ -104,39 +104,47 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000B5
  * IDO uses (no CSE across the call/if boundaries) — front + reload count + all
  * struct offsets are byte-exact except for the cap below.
  *
- * NM cap (24/44 non-reloc words; same size 0xB0): two cascading IDO
- * addressing choices that no natural C lever reproduces:
- *  (1) LO16-FOLD on the state slot — target emits `lui v1,%hi; addiu
- *      v1,v1,0x30; lw 0(v1)` (0x30 in the addiu), IDO from
- *      `*(int**)(&sym+0x30)` emits `lui v1,%hi; addiu v1,v1,%lo; lw 0x30(v1)`
- *      (0x30 folded into the load). Held-pointer / struct-index / array-index
- *      variants all CSE the address away or add an extra indirection.
- *  (2) `other` base — target keeps &import_80020098 live in $a3 across both
- *      true-arm stores (0x40/0x44) and the else-arm store; IDO rematerializes
- *      `lui at` per store. Both cascade into register renumbering. Genuine
- *      LO16-fold + address-rematerialization cap. Default build INCLUDE_ASM. */
+ * 2026-07-03 (agent-e): 40/44 raw words (was 17/44). Both prior "caps" CRACKED:
+ *  (1) LO16-FOLD on the state slot — target `lui v1,%hi; addiu v1,v1,0x30;
+ *      lw 0(v1)` (form-a, 0x30 in the addiu). At -O2 `&sym+0x30` ALWAYS folds
+ *      to form-b (`addiu %lo; lw 0x30`). FIX: pointer MUTATION in an `if(1)`
+ *      barrier — `pp=(int**)&import_80263D60; if(1){pp+=0xC;}` per region.
+ *      Mutation commits +0x30 to the addiu (form-a); the `if(1)` blocks IDO's
+ *      cross-call CSE so pp rematerializes (lui+addiu) each region instead of
+ *      spilling. (Plain mutation spills; struct/array/`&sym+K` all fold.)
+ *  (2) `other` base held in $a3 + const-7 CSE — FIX: declare import_80020098
+ *      as `extern int[]` and index it DIRECTLY (array-decay holds the base in
+ *      one reg; the scalar `int *other=&sym` form refolds `lui at` per store).
+ *  RESIDUAL (4 words = genuine as1/uopt SCHEDULING cap, coupled to form-a):
+ *  the `if(1)` barrier introduces basic-block boundaries that perturb the
+ *  scheduler in exactly 2 spots — (A) region-1 `sw ra` lands between lui/addiu
+ *  (bb-split; target puts it after the addiu); (B) the 0x7D8 state reload
+ *  (`lw t2`) schedules after the two `other` stores (target hoists it before).
+ *  The struct/natural-global form schedules BOTH perfectly but folds to form-b
+ *  (10 words + wrong baked bytes). Can't have form-a AND the natural schedule.
+ *  Default build INCLUDE_ASM. */
 extern int import_80263D60;
-extern char import_80020098;
+extern int import_80020098[];
 extern int import_000A5A1C();
 extern int import_000A5938();
 extern int mgrproc_uso_func_01FA1C();
 extern int mgrproc_uso_func_00F954();
-#define C14_STATE (*(int **)((char *)&import_80263D60 + 0x30))
 void mgrproc_uso_func_00000C14(void) {
-    int *other = (int *)&import_80020098;
+    int **pp;
     int v0;
-    import_000A5A1C(C14_STATE);
-    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)C14_STATE[0x6AC / 4] + 0x4C));
+    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
+    import_000A5A1C(*pp);
+    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
+    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)((int **)*pp)[0x6AC / 4] + 0x4C));
+    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
     if (v0 != 0) {
-        C14_STATE[0x504 / 4] = 0;
-        C14_STATE[0x4E0 / 4] = 7;
-        other[0x40 / 4] = 5;
-        other[0x44 / 4] = 7;
-        C14_STATE[0x7D8 / 4] = 1;
-        import_000A5938(C14_STATE);
+        (*pp)[0x504 / 4] = 0;
+        (*pp)[0x4E0 / 4] = 7;
+        (*pp)[0x7D8 / 4] = (import_80020098[0x40 / 4] = 5, import_80020098[0x44 / 4] = 7, 1);
+        import_000A5938(*pp);
     } else {
-        other[0x40 / 4] = 7;
-        mgrproc_uso_func_00F954(C14_STATE, 0, 0);
+        import_80020098[0x40 / 4] = 7;
+        mgrproc_uso_func_00F954(*pp, 0, 0);
     }
 }
 #else
@@ -225,7 +233,7 @@ extern char import_800745F8;
 extern char import_80264880;
 extern char import_802649E0;
 extern char import_802649F0;
-extern char import_80020098;
+extern int import_80020098[];
 extern char import_80264800;
 extern char import_800201D0;
 extern char import_8002022C;
@@ -823,7 +831,7 @@ void mgrproc_uso_func_0000181C(int a0) {}
 extern int import_000A7B90();
 extern int import_00096228();
 extern int import_000B2888();
-extern char import_80020098;
+extern int import_80020098[];
 extern char import_80020208;
 extern char import_800200D8;
 extern int mgrproc_uso_func_0002DC();
