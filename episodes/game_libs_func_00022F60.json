@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00022F60",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-04T01:50:05.586643+00:00",
+  "end_time": "2026-07-04T01:50:05.586680+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-04T01:50:05.586668+00:00",
+      "assistant_text": "Reconstruction of a list-walk field-updater. Cracked a documented a2/a3 coloring cap via do-while restructure: if(n>0){ i=0; do{...} while(i<n); } with count reloaded INSIDE the modify branch + redundant in-guard i=0 reassignment. This sinks the counter-init 'move v0,zero' into the blez delay slot, keeps the two header stores adjacent, and colors cursor=$a2 / const-2=$a3 with no anchor. Diagnosed via -Wo,-zdbug:6 uoptlist regalloc dump (assigned-N maps 1..6 -> v0,v1,a0,a1,a2,a3).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 24,
+  "initial_m2c_source": null,
+  "final_source": "/* Header at a0: a0[0]=s16 count, a0+2=s16 (set to a2), a0+4=int (set to a1).\n * For each of `count` 16-byte elements (starting at a0), if elem->0x14 != 0 AND\n * elem->0x18(s8) == 2, add a1 to elem->0x10. Reloc-free, 24 insns, BYTE-EXACT.\n *\n * MATCH KEYS: (a) 3rd param `unsigned short a2` -> IDO arg-home `sw a2,8(sp)`\n * with no sign-extension; (b) named `short n = *a0;` reloaded in the modify\n * branch -> count in $v1, counter in $v0; (c) `if (n>0){ do{}while(i<n); }`\n * form + a redundant `i = 0;` reassignment inside the guard -> IDO sinks the\n * counter init into the blez delay slot and colors cursor=$a2 (home-freed arg\n * reg) / const 2=$a3, keeping the two header stores adjacent before the guard. */\nvoid game_libs_func_00022F60(short *a0, int a1, unsigned short a2) {\n    int i = 0;\n    short n = *a0;\n    char *cursor;\n    *(short *)((char *)a0 + 2) = a2;\n    *(int *)((char *)a0 + 4) = a1;\n    if (n > 0) {\n        i = 0;\n        cursor = (char *)a0;\n        do {\n            i++;\n            if (*(int *)(cursor + 0x14) != 0 && *(signed char *)(cursor + 0x18) == 2) {\n                *(int *)(cursor + 0x10) += a1;\n                n = *a0;\n            }\n            cursor += 16;\n        } while (i < n);\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00022F60.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "24/24 word-exact (real path) + make ROM byte-identical"
+  }
+}

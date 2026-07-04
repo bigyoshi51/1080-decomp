@@ -5365,47 +5365,35 @@ void game_libs_func_00022F30(int a0, int a1) {
     }
 }
 
-#ifdef NON_MATCHING
 /* Header at a0: a0[0]=s16 count, a0+2=s16 (set to a2), a0+4=int (set to a1).
  * For each of `count` 16-byte elements (starting at a0), if elem->0x14 != 0 AND
- * elem->0x18(s8) == 2, add a1 to elem->0x10. Reloc-free, 24 insns.
+ * elem->0x18(s8) == 2, add a1 to elem->0x10. Reloc-free, 24 insns, BYTE-EXACT.
  *
- * 2026-06-22: 22/24 insns now mnemonic-exact (was "arg-home-spill cap").
- * Two levers cracked the previously-unreproducible bits:
- *   (a) The leading `sw a2, 8(sp)` arg-home (no frame) IS reproducible by
- *       declaring the 3rd param `unsigned short a2` — that triggers IDO's
- *       arg-home with NO sign-extension (plain `short a2` adds sll/sra;
- *       `int a2` emits no home at all). The header store `sh a2,2(a0)`
- *       truncates anyway, so unsigned short is value-equivalent.
- *   (b) Re-reading the count via a named `short n = *a0;` (recomputed in the
- *       loop tail) places the count in $v1 (target) instead of $a3, and the
- *       counter in $v0 — matching the target's {v0=i, v1=count} pair.
- * RESIDUAL (the only diff): a pure same-multiset 2-register swap of the
- * cursor and the loop-invariant const 2 — target colors cursor=$a2 (reusing
- * the home-freed arg reg) + const=$a3; every C ordering tried colors
- * cursor=$a3 + const=$a2. The const (loop-invariant, hoisted before the
- * loop) always wins the home-freed $a2; the cursor's defining `move` at loop
- * entry takes $a3. Same-multiset {v0,v1,a2,a3} coloring permutation =
- * documented permuter-class cap. INCLUDE_ASM remains build path (no episode). */
+ * MATCH KEYS: (a) 3rd param `unsigned short a2` -> IDO arg-home `sw a2,8(sp)`
+ * with no sign-extension; (b) named `short n = *a0;` reloaded in the modify
+ * branch -> count in $v1, counter in $v0; (c) `if (n>0){ do{}while(i<n); }`
+ * form + a redundant `i = 0;` reassignment inside the guard -> IDO sinks the
+ * counter init into the blez delay slot and colors cursor=$a2 (home-freed arg
+ * reg) / const 2=$a3, keeping the two header stores adjacent before the guard. */
 void game_libs_func_00022F60(short *a0, int a1, unsigned short a2) {
     int i = 0;
     short n = *a0;
     char *cursor;
     *(short *)((char *)a0 + 2) = a2;
     *(int *)((char *)a0 + 4) = a1;
-    cursor = (char *)a0;
-    while (i < n) {
-        i++;
-        if (*(int *)(cursor + 0x14) != 0 && *(signed char *)(cursor + 0x18) == 2) {
-            *(int *)(cursor + 0x10) += a1;
-        }
-        cursor += 16;
-        n = *a0;
+    if (n > 0) {
+        i = 0;
+        cursor = (char *)a0;
+        do {
+            i++;
+            if (*(int *)(cursor + 0x14) != 0 && *(signed char *)(cursor + 0x18) == 2) {
+                *(int *)(cursor + 0x10) += a1;
+                n = *a0;
+            }
+            cursor += 16;
+        } while (i < n);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00022F60);
-#endif
 
 // gl_func_00022FC0 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
