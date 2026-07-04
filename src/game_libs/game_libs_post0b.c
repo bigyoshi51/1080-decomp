@@ -1711,31 +1711,45 @@ void gl_func_000359C4(int a0, int a1, int a2, int a3) {
 //   needs USO mnemonic disasm + record/table structs typed. Real-C
 //   STRUCTURAL body below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
-/* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044 (same vtable-dispatch, diff address).
- * Same single-shared-jalr structure: one call site after the if/else (69.5%); residual
- * is the same regalloc cascade. See the gl_func_0003A044 note. */
+/* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044 / 0003EBDC / 0003EC5C
+ * (same vtable-dispatch, diff address) — a match here lands all four.
+ * 2026-07-03 (agent-e): RISE 69.5%->91.72% objdiff (20/32 words byte-exact,
+ * fresh make + reloc-aware objdump). Two breakthroughs vs the prior cap note:
+ *   (1) the as1 branch-LIKELY (bnezl) is GONE — the idx-select was rewritten
+ *       as the rule-1 recipe `if(a)goto L; if(b)goto L; else_val; goto M;
+ *       L: idx=selector; M:` (docs/IDO_CODEGEN as1 fill rule 1). idx=selector
+ *       is stolen into the first bne's PLAIN delay (move a0,v0), bne2 retargets
+ *       with nop, and idx=0x28 fills the b delay -> matches words 11-17 exactly.
+ *   (2) key/offset now color to $t7/$t6 (was $a3 in the doc cap) by inlining
+ *       them (no named short locals) + putting the freshly-loaded value first
+ *       in the commutative add (`offset + arg`, not `arg += offset`).
+ * RESIDUAL (still a cap, C-immune): base-ptr v1=a0+8 colors $a2 but target
+ *   wants $v1, and fnptr colors $v1 but target wants $a2 (a clean v1<->a2
+ *   swap, ~7 words); plus a ugen tail temp-rotation ($t0/$t1/$t2/$t9) and the
+ *   offset/arg load-order (words 3/4). All the documented regalloc/ugen-temp
+ *   caps. See the gl_func_0003A044 note. */
 #ifdef NON_MATCHING
 int gl_func_00035A18(char *a0) {
-    short *pair = (short*)(a0 + 8);
-    short key = pair[1];
-    short offset = pair[0];
     char *arg = *(char**)(a0 + 4);
+    char *v1 = a0 + 8;
     char *entry;
     int (*fnptr)(char *);
+    int idx;
 
-    arg += offset;
-    if (key < 0) {
+    arg = *(short*)(a0 + 8) + arg;
+    if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int selector = *(int*)(pair + 2);
-        a0 = (char*)selector;
-        if (selector == 0) {
-            if (pair[0] == 0) {
-                a0 = (char*)0x28;
-            }
-        }
-        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
-        arg += *(short*)entry;
+        int selector = *(int*)(v1 + 4);
+        if (selector != 0) goto sel_path;
+        if (*(short*)v1 != 0) goto sel_path;
+        idx = 0x28;
+        goto have_idx;
+    sel_path:
+        idx = selector;
+    have_idx:
+        entry = *(char**)(arg + idx) + (*(short*)(v1 + 2) << 3);
+        arg = *(short*)entry + arg;
         fnptr = *(int (**)(char *))(entry + 4);
     }
     return fnptr(arg);
