@@ -1865,10 +1865,18 @@ void titproc_uso_func_000026D0(int *a0) {
  * 0x4F4 = 0x4F0 & 0xffff), the dec_path (0x4F4>0 → 6BC[0x3C] -= 16, clamp ≥0),
  * and the tail (6AC->0x44->0x34 gate → func(6C0); func(s0,-1,0)) are now
  * decoded. Two merge labels: `final` (28a4 = func(s0)) vs `ret` (28ac,
- * else-branch skips the final call). Structure now byte-aligns (113/107);
- * residual is frame 0x38 vs 0x30 (extra locals) + register-renumber + &D
- * deferred-pool scheduling — a regalloc/symbolization ceiling, not structural.
- * INCLUDE_ASM remains build path. */
+ * else-branch skips the final call).
+ * 2026-07-03 STRUCTURE-EXACT (objdiff 98.77%, 84/113 words byte-exact,
+ * 113/113 length): two levers cracked the branch-likely dups — (1) compute
+ * `arg`/vtable-load AFTER the func_01B0F8 call (lazy) so as1 emits the
+ * bgezl likely-copy at #7; (2) address-register pointer `int *p3c =
+ * (int*)(v1+0x3C)` in BOTH clamp blocks forces the double-load + addiu
+ * addr shape, which also flips #6 to beql. Residual = pure regalloc:
+ * v0<->v1 coloring swap in the clamp blocks (6BC-base wants $v1, addr
+ * wants $v0; build assigns reversed), 0x4F0 temp wants $a1 (build $v0),
+ * and frame 0x30 vs 0x38 (+arg-spill 0x24 vs 0x20). Coloring is a
+ * deterministic uopt coin-flip, permuter-immune per project history.
+ * INCLUDE_ASM remains build path (not byte-exact). */
 #ifdef NON_MATCHING
 extern int titproc_uso_func_001BB8();
 extern int titproc_uso_func_07BA68();
@@ -1892,18 +1900,21 @@ void titproc_uso_func_000026FC(char *s0) {
         if (*(int*)(s0 + 0x4F4) > 0) goto dec_path;
     }
     v1 = *(char**)(s0 + 0x6BC);
-    if (*(int*)(v1 + 0x3C) < 255) {
-        *(int*)(v1 + 0x3C) += 16;
-        if (*(int*)(*(char**)(s0 + 0x6BC) + 0x3C) < 256) goto final;
-        *(int*)(*(char**)(s0 + 0x6BC) + 0x3C) = 720;
-        goto final;
+    {
+        int *p3c = (int*)(v1 + 0x3C);
+        if (*p3c < 255) {
+            *p3c += 16;
+            if (*(int*)(*(char**)(s0 + 0x6BC) + 0x3C) < 256) goto final;
+            *(int*)(*(char**)(s0 + 0x6BC) + 0x3C) = 720;
+            goto final;
+        }
     }
     a1 = *(int*)(s0 + 0x4F0);
     if ((a1 << 14) < 0) {
-        char *rc4 = *(char**)(*(char**)((char*)&import_00020098 + 0x134) + 0xC4);
-        int arg = *(int*)(rc4 + 0x800);
+        int arg;
         char *o528;
         titproc_uso_func_01B0F8(s0);
+        arg = *(int*)(*(char**)(*(char**)((char*)&import_00020098 + 0x134) + 0xC4) + 0x800);
         titproc_uso_func_07BA68(arg, 0);
         o528 = *(char**)(s0 + 0x528);
         titproc_uso_func_07C07C(arg, *(int*)(*(char**)(o528 + 8) + 8),
@@ -1919,10 +1930,13 @@ void titproc_uso_func_000026FC(char *s0) {
 
 dec_path:
     v1 = *(char**)(s0 + 0x6BC);
-    if (*(int*)(v1 + 0x3C) > 0) {
-        *(int*)(v1 + 0x3C) -= 16;
-        v1 = *(char**)(s0 + 0x6BC);
-        if (*(int*)(v1 + 0x3C) < 0) *(int*)(v1 + 0x3C) = 0;
+    {
+        int *p3c = (int*)(v1 + 0x3C);
+        if (*p3c > 0) {
+            *p3c -= 16;
+            v1 = *(char**)(s0 + 0x6BC);
+            if (*(int*)(v1 + 0x3C) < 0) *(int*)(v1 + 0x3C) = 0;
+        }
     }
     goto final;
 
