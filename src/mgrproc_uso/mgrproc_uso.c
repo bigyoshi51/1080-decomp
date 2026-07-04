@@ -60,26 +60,44 @@ extern int mgrproc_uso_func_00F954();
  * state-slot (&import_80263D60 + 0x30) and `other` base (&import_80020098),
  * different constants. True-arm: [0x504]=0; [0x4E0]=7; other[0x40]=5;
  * other[0x44]=3; [0x7D8]=1; import_000A5938(state). FALSE-arm: other[0x40]=3;
- * mgrproc_uso_func_00F954(state, state->[0x6A8]->[0xC], 4). Symbols re-derived
- * 2026-06-20 from the resolved .s (prior body's gl_func placeholders + constants
- * were WRONG). Same LO16-fold + `other`-rematerialization shape as 00C14. */
-#define B5C_STATE (*(int **)((char *)&import_80263D60 + 0x30))
+ * mgrproc_uso_func_00F954(state, 4, state->[0x6A8]->[0xC]).
+ *
+ * 2026-07-03 (agent-e): 38/46 raw words (was 45-word UNDER-decode: form-b state
+ * loads + FALSE-arm args swapped). Rewritten to the cracked 00C14 form-a shape:
+ *  - state slot via pointer-MUTATION if(1) barrier (pp=&import_80263D60;
+ *    if(1){pp+=0xC;}) → form-a `lui;addiu v1,0x30;lw 0(v1)` w/ v1 reused per
+ *    region; 4 aliasing `lw 0(v1)` reloads in the true arm.
+ *  - `other` base held in ONE reg via `extern int import_80020098[]` direct index.
+ *  - FALSE-arm state hoisted into a local (`int *st=*pp`) so `lw a0` loads BEFORE
+ *    the `other[0x40]=3` store — false arm now 13/13 EXACT; front reloc pair,
+ *    beqz/b displacements, and both call regions all EXACT.
+ *  RESIDUAL (8 words = same irreducible if(1)-barrier scheduling cap as 00C14):
+ *   (A) region-1 `sw ra` schedules between lui/addiu (target: after addiu) — 2 wds.
+ *   (B) true-arm: with correct REGISTERS (other=v0, 0x7D8-reload=t4) the `li t9,7`
+ *       and the 0x7D8 reload emit un-hoisted (li/lui swap + reload 3 slots late) —
+ *       6 wds. Hoisting via a named temp (s3=*pp) fixes the SCHEDULE perfectly but
+ *       steals v0 (other→a3, reload→v0) → still 6. Can't have form-a schedule AND
+ *       the natural coloring; the if(1) barriers that force form-a perturb as1/uopt
+ *       exactly here. Default build INCLUDE_ASM. */
 void mgrproc_uso_func_00000B5C(void) {
-    int *other = (int *)&import_80020098;
+    int **pp;
     int v0;
-    import_000A5A1C(B5C_STATE);
-    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)B5C_STATE[0x6AC / 4] + 0x4C));
+    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
+    import_000A5A1C(*pp);
+    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
+    v0 = mgrproc_uso_func_01FA1C(*(int *)((char *)((int **)*pp)[0x6AC / 4] + 0x4C));
+    pp = (int **)&import_80263D60; if (1) { pp += 0xC; }
     if (v0 != 0) {
-        B5C_STATE[0x504 / 4] = 0;
-        B5C_STATE[0x4E0 / 4] = 7;
-        other[0x40 / 4] = 5;
-        other[0x44 / 4] = 3;
-        B5C_STATE[0x7D8 / 4] = 1;
-        import_000A5938(B5C_STATE);
+        (*pp)[0x504 / 4] = 0;
+        (*pp)[0x4E0 / 4] = 7;
+        import_80020098[0x40 / 4] = 5;
+        import_80020098[0x44 / 4] = 3;
+        (*pp)[0x7D8 / 4] = 1;
+        import_000A5938(*pp);
     } else {
-        int *a0 = B5C_STATE;
-        other[0x40 / 4] = 3;
-        mgrproc_uso_func_00F954(a0, *(int *)((char *)*(int **)((char *)a0 + 0x6A8) + 0xC), 4);
+        int *st = *pp;
+        import_80020098[0x40 / 4] = 3;
+        mgrproc_uso_func_00F954(st, 4, *(int *)((char *)*(int **)((char *)st + 0x6A8) + 0xC));
     }
 }
 #else
