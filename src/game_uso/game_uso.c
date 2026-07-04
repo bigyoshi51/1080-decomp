@@ -10854,57 +10854,64 @@ void game_uso_func_0000D634(int a0) {
     (void)a0;
 }
 
-/* game_uso_func_0000D63C: ramp-down/clamp dispatch (75.62%->80.02% 2026-06-22,
- * agent-e). Resolved the two placeholder jal-0 callees from the .s R_MIPS_26
- * relocs: import_000B8698 (idx-table entry call) and game_uso_func_022784
- * (final notify); the indexed value comes from the global array
- * game_uso_D_807FF7B4[idx]; the first arg of both calls is
- * *(int*)(&import_800201D0 + 0x138). Residual: the target keeps the base in
- * $s0 (callee-saved, saved in a -40 frame) while IDO here colors it into $a3
- * (caller-saved, spilled/reloaded around both calls) -> -24 frame + 3 extra
- * insns; coupled with that, the indexed-global load emits an extra %lo16 the
- * target folds (HI-only + lw 0(reg)). Saved-vs-caller-reg coloring cap on the
- * base pointer; callee identities are now correct (was gl_func_00000000). */
+/* game_uso_func_0000D63C: ramp-down/clamp dispatch. 99.17% objdiff / 36-of-42
+ * raw words (2026-07-03 agent-e). See the NM-wrap comment below for the three
+ * levers (value=call2-arg4, `value|0` -> caller-saved $a3, `idx*0+10` -> single
+ * `li`) and the residual candidate-numbering temp-pool/spill-slot cap. */
 extern int import_000B8698();
 extern int game_uso_func_022784();
 extern char import_800201D0;
 extern char game_uso_D_807FF7B4;
 #ifdef NON_MATCHING
-/* game_uso_func_0000D63C: ramp-down/clamp dispatch. Callees resolved from
- * .s R_MIPS_26 relocs: import_000B8698 (indexed entry call) and
- * game_uso_func_022784 (final notify). Indexed value from global array
- * game_uso_D_807FF7B4[idx]; first arg of both calls is
- * *(int*)(&import_800201D0 + 0x138). value (a3) is initialized to 0 up
- * front and stays live across call 1 (caller-saved spill/reload).
- * Residual: saved-vs-caller coloring on the base + folded %lo16 on the
- * indexed global. */
+/* game_uso_func_0000D63C: ramp-down/clamp dispatch (88.38% -> 99.17% objdiff,
+ * 36/42 raw words, 2026-07-03 agent-e). KEY CORRECTIONS this pass:
+ *   (1) `value` (the D_807FF7B4[idx] table entry) is passed as the 4TH arg to
+ *       game_uso_func_022784 (call 2) — the .s reloads a3 from the 0x24 spill
+ *       AFTER call 1 and never touches it before call 2, so a3=value is call
+ *       2's arg4. This is why value is inited to 0 up front (a3=0) and spilled
+ *       /reloaded across call 1. The old wrap dropped this arg (value went
+ *       dead after call 1, s0-promoted, -0x20 frame).
+ *   (2) `value | 0` at the call-1 arg3 site (doc IDO_CODEGEN `| 0` register-
+ *       move lever) forces IDO to color value into CALLER-saved $a3 (spill
+ *       around call 1) instead of promoting it to a callee-saved $s reg — this
+ *       recovers the target's -0x28 frame + single saved reg exactly.
+ *   (3) `idx = (idx * 0) + 10` (fold-to-10) defeats the const-rematerialization
+ *       that makes a bare `idx = 10` emit a DOUBLE `li` (one for the store,
+ *       one for the sll index); the expression keeps idx in $v0 for both.
+ * RESIDUAL (genuine IDO candidate-numbering / temp-pool cap, permuter 17.5k
+ * iters immune @ base score 35): the index `sll` lands in $t7 not $t8 (a
+ * uniform -1 temp-pool phase shift cascading to the final `li $t8,1` vs
+ * `li $t9,1`), and value's spill slot colors at 0x20 not 0x24. Both stem from
+ * the target consuming one extra scratch temp / reserving the 0x20 slot before
+ * the sll, which no C-level perturbation reproduces. All relocs (%hi/%lo/jal)
+ * resolve to 0 post-link (undefined placeholders), so the reloc-form deltas are
+ * not real byte diffs. */
 extern int import_000B8698();
 extern int game_uso_func_022784();
 extern char import_800201D0;
 extern char game_uso_D_807FF7B4;
 void game_uso_func_0000D63C(char *a0, int a1) {
-    char *s0 = a0;
     int idx = *(int*)(a0 + 0x100);
     int value = 0;
 
     if (idx != 0 && a1 != 0) {
         if (idx > 0) {
             if (idx >= 10) {
-                idx = 10;
+                idx = (idx * 0) + 10;
                 *(int*)(a0 + 0x100) = idx;
             }
             value = ((int*)&game_uso_D_807FF7B4)[idx];
             if (value != 0) {
                 import_000B8698(*(int*)((char*)&import_800201D0 + 0x138),
-                                *(int*)(s0 + 0xB4), value, value);
+                                *(int*)(a0 + 0xB4), value | 0, value);
             }
         }
     }
-    *(int*)(s0 + 0xF8) = 0;
-    *(int*)(s0 + 0x100) = 0;
+    *(int*)(a0 + 0xF8) = 0;
+    *(int*)(a0 + 0x100) = 0;
     game_uso_func_022784(*(int*)((char*)&import_800201D0 + 0x138),
-                         *(int*)(s0 + 0xB4), a1);
-    *(int*)(s0 + 0x120) = 1;
+                         *(int*)(a0 + 0xB4), a1, value);
+    *(int*)(a0 + 0x120) = 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
