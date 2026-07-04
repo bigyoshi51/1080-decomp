@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00009B60",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-04T01:20:01.472860+00:00",
+  "end_time": "2026-07-04T01:20:01.472906+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-04T01:20:01.472890+00:00",
+      "assistant_text": "Reconstruction of a 14-word copy-with-bias leaf. Comma-init for-loop placed AFTER the leading store + trailing if(n==3)break: materializes li a1,3 right after sb a1,0(a0) AND keeps loop-bottom order (store before branch, s++ in delay slot). Cracked a misdiagnosed 'scheduler cap' (docs/IDO_CODEGEN for-loop comma-init pre-header schedule lever; sibling game_libs_func_000099DC same shape).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 14,
+  "initial_m2c_source": null,
+  "final_source": "/* 3-byte transform copy (a2[i]-0x61 -> a0[1..3]) + a0[0]=a1 + a0[4]=a3.\n * Byte-exact via comma-init for-loop AFTER the leading store + trailing\n * `if (n==3) break;` exit: materializes `li a1,3` right after `sb a1,0(a0)`\n * (target schedule) AND keeps the loop-bottom order (store before branch,\n * `s++` in the delay slot). See docs/IDO_CODEGEN.md \"for-loop comma-init\n * flips the loop-pre-header schedule\" (sibling game_libs_func_000099DC). */\nvoid game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {\n    int n;\n    char *d, *s;\n    a0[0] = a1;\n    for (n = 0, d = a0, s = a2; ;) {\n        n++;\n        d++;\n        *d = *s - 0x61;\n        s++;\n        if (n == 3) {\n            break;\n        }\n    }\n    *(int *)(a0 + 4) = a3;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00009B60.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "14/14 word-exact + make verify ROM byte-identical"
+  }
+}

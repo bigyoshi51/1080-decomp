@@ -278,35 +278,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
 #endif
 
 /* 3-byte transform copy (a2[i]-0x61 -> a0[1..3]) + a0[0]=a1 + a0[4]=a3.
- * Register-exact from C (counter decl first -> $v0); IDO reorders the 4 setup
- * moves vs the target (isolated-vs-full-TU scheduling). Was previously
- * closed via a 4-insn INSN_PATCH positional swap; INSN_PATCH REMOVED
- * 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Now an honest NM
- * cap (permuter-class). */
-#ifdef NON_MATCHING
-/* 4-diff residual (2026-05-31): scheduler ORDER of the loop-limit `li a1,3`
- * vs the 3 setup moves (v0=0 / v1=a0 / t0=a2). Target hoists `li a1,3` right
- * after the `sb a1,0(a0)` (a1's last use); IDO with this C emits it LAST. The
- * reuse-param-reg lever (`a1 = 3; ... while (n != a1)`) + decl-reorder REGRESS
- * (14 diffs / size grows). Same scheduler-limit-ordering class as
- * game_libs_func_00020DF4; not C-controllable. */
+ * Byte-exact via comma-init for-loop AFTER the leading store + trailing
+ * `if (n==3) break;` exit: materializes `li a1,3` right after `sb a1,0(a0)`
+ * (target schedule) AND keeps the loop-bottom order (store before branch,
+ * `s++` in the delay slot). See docs/IDO_CODEGEN.md "for-loop comma-init
+ * flips the loop-pre-header schedule" (sibling game_libs_func_000099DC). */
 void game_libs_func_00009B60(char *a0, int a1, char *a2, int a3) {
-    int n = 0;
-    char *d = a0;
-    char *s = a2;
+    int n;
+    char *d, *s;
     a0[0] = a1;
-    do {
+    for (n = 0, d = a0, s = a2; ;) {
         n++;
         d++;
         *d = *s - 0x61;
         s++;
-    } while (n != 3);
+        if (n == 3) {
+            break;
+        }
+    }
     *(int *)(a0 + 4) = a3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B60);
-#endif
 
 /* Flag/compare-test accessor family (sibling of 00009A2C): splat split each
  * return-0 tail into the following empty-stub symbol; merged each is one fn. */
