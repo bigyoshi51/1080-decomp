@@ -1025,36 +1025,15 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BE
 #endif
 
 #ifdef NON_MATCHING
-/* mgrproc_uso_func_00001C90: UI fade/draw step (gated on arg0->0x4F0 bit-16).
- * Fade counter: if arg0->0x4E4>=0xB, ramp 0x7A0/0x7A4 up toward &D+0x5CC by
- * &D+0x5D0/5D4; else ramp 0x7A0 down by &D+0x5D8. Draws several elements scaled
- * by alpha (int)(255.0f*arg0->0x7A0): a white quad (&sp50), then panels at 0x380/
- * 0x260; computes a centered layout x (sp48 = 0xA0 - (w6D8+w6F0+4)/2); and by
- * arg0->0x6A8->8 == ->4+1 chooses the draw order of the two number widgets at
- * 0x6C8/0x6E0. Fresh decode 2026-05-29 (m2c-confirmed). 88.1% -> 98.68% on
- * 2026-05-31 via THREE real fixes:
- *   (1) draw calls pass &D_00000000 (data-base draw context) as first arg, NOT
- *       literal 0 — m2c wrote 0 because reloc'd `lui a0; addiu a0` of &D+0 looks
- *       like address 0 in the relocatable USO (+2pp).
- *   (2) the sp50 white-quad is `float sp50[4]` (array), NOT 4 scalars — only
- *       &sp50[0] reaches the K&R draw cb, so GCC dead-store-eliminated sp54/58/5C
- *       (3 of 4 stores); an address-taken array blocks the DCE (+2.6pp).
- *   (3) the 0x5CC/0x5D0/0x5D4/0x5D8 ramp float-consts use distinct externs
- *       (D_flt_5CC.. in undefined_syms_auto.txt, value = the &D offset so
- *       %hi=0/%lo=offset gives identical bytes) to bust IDO's &D-base CSE — each
- *       lwc1 re-materializes its base via `lui at` matching the target (+5.9pp).
- *       Same lever the sibling 1F30 uses — the old "&D-CSE cap" note was WRONG.
- * Residuals (~1.3%): the ~0x30 frame-buffer reserve (target frame -112 vs -64,
- * shifting quad/sp48 stack offsets) + FP reg renumber ($f16/$f18) + one
- * commutative mul.s operand order + int reg renumber. The `lwc1 ...,1484(at)` vs
- * `0(at)` diffs are reloc-blind (already matched). Caps: structs + cb prototypes
- * untyped (USO-reloc). NON_MATCHING. */
 extern int gl_func_00000000();
 extern float D_flt_5CC, D_flt_5D0, D_flt_5D4, D_flt_5D8;
 void mgrproc_uso_func_00001C90(char *arg0) {
+    volatile int pt_a, pt_b, pt_c, pt_d;
     float sp50[4];
+    volatile int pmid;
     int sp48;
     char *p6a8;
+    volatile int pad_a, pad_b, pad_c, pad_d, pad_e, pad_f, pad_g;
 
     if (*(int *)(arg0 + 0x4F0) & 0x10000) {
         sp50[0] = 1.0f;
