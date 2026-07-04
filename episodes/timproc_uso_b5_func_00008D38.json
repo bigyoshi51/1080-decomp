@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00008D38",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-04T00:30:48.124392+00:00",
+  "end_time": "2026-07-04T00:30:48.124413+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-04T00:30:48.124407+00:00",
+      "assistant_text": "Reconstruction of a frameless bit-scan leaf (was ~13/22 wrong-structure NM wrap). 4 levers: (1) variable loop bound 's32 n=24' (register-held) defeats -O2 4x unroll + emits slt/bnezl single-body loop; (2) struct-cast-fold import_800201EC.ptr @0x154 (reloc to base, 0x154 folds into lw disp); (3) comma-init for(i=0,p=...;i<n;i++) counter-first for p->a0/i->v1 coloring + move v1,zero in lw delay; (4) hoist k=i>>3 so p+k is equal-complexity -> base-first addu (IXA operand-order).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_00008D38 \u2014 EXACT 22/22 words (in-tree, fresh make RUN_CC_CHECK=0 build).\n * Default -O2. Bit-scan leaf: reads a global byte table pointer at\n * import_800201EC+0x154 (struct-cast-fold: reloc to base, 0x154 folds into lw),\n * scans bits 0..23 of table[(i>>3)+6]; first CLEAR bit -> return 0, all set -> return 3.\n * Levers that made it exact:\n *   - variable bound `n=24` (register-held) -> defeats IDO -O2 4x loop unroll AND\n *     emits `slt at,i,n` (reg compare) + `bnezl` branch-likely, like target.\n *   - struct-cast-fold `import_800201EC.ptr` -> `lui %hi(base); lw 0x154(base)`.\n *   - comma-init `for (i=0, p=...; i<n; i++)` counter-first -> correct p=$a0/i=$v1\n *     coloring AND schedules the `move v1,zero` into the lw load-delay slot.\n *   - hoist `k=i>>3` to a simple var so `p+k` is equal-complexity -> base-first addu\n *     `addu t7,a0,t6` (array-IXA/Sethi-Ullman lever; the +6 folds into lbu 6(t7)).\n * No new undefined_syms; import_800201EC already = 0 in undefined_syms_auto.txt.\n */\nstruct DBlk_8D38 { char _pad[0x154]; unsigned char *ptr; };\nextern struct DBlk_8D38 import_800201EC;\ns32 timproc_uso_b5_func_00008D38(char *a0) {\n    s32 i;\n    unsigned char *p;\n    s32 k;\n    s32 n = 24;\n\n    for (i = 0, p = import_800201EC.ptr; i < n; i++) {\n        k = i >> 3;\n        if (!(*(p + k + 6) & (1 << (i & 7)))) {\n            return 0;\n        }\n    }\n    return 3;\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00008D38.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "22/22 reloc-aware word-exact + make verify ROM byte-identical"
+  }
+}

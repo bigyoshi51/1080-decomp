@@ -6330,27 +6330,36 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * everything by one (21 diffs) -- the 2-local goto form is the floor. for/
  * do-while regress to 12. Genuine 2-axis regalloc+IV-collapse cap; do NOT
  * re-run the -O matrix. */
-#ifdef NON_MATCHING
-extern char import_800201EC;
+/* timproc_uso_b5_func_00008D38 — EXACT 22/22 words (in-tree, fresh make RUN_CC_CHECK=0 build).
+ * Default -O2. Bit-scan leaf: reads a global byte table pointer at
+ * import_800201EC+0x154 (struct-cast-fold: reloc to base, 0x154 folds into lw),
+ * scans bits 0..23 of table[(i>>3)+6]; first CLEAR bit -> return 0, all set -> return 3.
+ * Levers that made it exact:
+ *   - variable bound `n=24` (register-held) -> defeats IDO -O2 4x loop unroll AND
+ *     emits `slt at,i,n` (reg compare) + `bnezl` branch-likely, like target.
+ *   - struct-cast-fold `import_800201EC.ptr` -> `lui %hi(base); lw 0x154(base)`.
+ *   - comma-init `for (i=0, p=...; i<n; i++)` counter-first -> correct p=$a0/i=$v1
+ *     coloring AND schedules the `move v1,zero` into the lw load-delay slot.
+ *   - hoist `k=i>>3` to a simple var so `p+k` is equal-complexity -> base-first addu
+ *     `addu t7,a0,t6` (array-IXA/Sethi-Ullman lever; the +6 folds into lbu 6(t7)).
+ * No new undefined_syms; import_800201EC already = 0 in undefined_syms_auto.txt.
+ */
+struct DBlk_8D38 { char _pad[0x154]; unsigned char *ptr; };
+extern struct DBlk_8D38 import_800201EC;
 s32 timproc_uso_b5_func_00008D38(char *a0) {
-    char *p;
-    s32 v1;
+    s32 i;
+    unsigned char *p;
+    s32 k;
+    s32 n = 24;
 
-    p = *(char **)(&import_800201EC + 0x154);
-    v1 = 0;
-loop:
-    if (!(*(unsigned char *)(p + (v1 >> 3) + 6) & (1 << (v1 & 7)))) {
-        return 0;
-    }
-    v1 += 1;
-    if (v1 < 24) {
-        goto loop;
+    for (i = 0, p = import_800201EC.ptr; i < n; i++) {
+        k = i >> 3;
+        if (!(*(p + k + 6) & (1 << (i & 7)))) {
+            return 0;
+        }
     }
     return 3;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008D38);
-#endif
 
 void timproc_uso_b5_func_00008D90(int *a0, int a1) {
     if (a1 == 0) {
