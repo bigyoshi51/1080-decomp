@@ -12366,51 +12366,58 @@ void game_uso_func_0000F284(int *a0) {
 #ifdef NON_MATCHING
 /* game_uso_func_0000F360: 49-insn float-compare-gated state-mux update.
  *
- * 2026-06-24 (game_uso spine reconstruction, 70.8% -> 89.67%):
- *  (1) Arms swapped vs the prior decode. The target's `beqzl t6,f3c0`
- *      (branch-LIKELY) loads the t6==0 arm value (p+0x780) in its delay slot;
- *      the t6!=0 fallthrough loads (p+0x798):
- *        if (p->0x9CC != 0) f0 = *(p+0x798) + f2;  // t6!=0 fallthrough
- *        else               f0 = *(p+0x780) + f2;  // t6==0 beqzl-taken
- *  (2) `fv = (float)v0` as an EXPLICIT float local forces IDO to hoist the
- *      single cvt.s.w + mul.s before the branch (matches f390/f3a0). Without
- *      the named float temp IDO sinks/duplicates the conversion into both arms
- *      (the old 70.8% shape).
- *  f2 = (a0->0x1B4) * fv; scale = *(p+0x520); *(p+0x31C) += scale * f0;
- *  a0->0xF0 = 0; import_00096874(p+0x808); game_uso_func_0001001C(a0);
- *  double const at game_uso_D_807FFB60 + 0x240 (ldc1 576(at)).
+ * 2026-07-03 (game_uso W4, agent-e, 89.67% -> 47/49 = 95.9%): applied the W4
+ * lever trio in-tree. Now byte-exact EVERYWHERE except 2 words (see RESIDUAL).
+ *  (1) if(1)-wrapped pointer mutation (`b=(char*)p; if(1){b+=K;}`) materializes
+ *      the per-block `addiu rd,v1,K` base regs (v1+0x770, +0x510, +0x788, +0x31C)
+ *      + small (+0x10/+0x0) offset loads exactly (was the plain-fold 89.67% shape).
+ *      This also flips the int/pointer coloring to target (int=$v0, p=$v1) and
+ *      makes the beqzl-annulled dead `lwc1 f16` dup fall out naturally off b788.
+ *  (2) `f0 *= *(b510+0x10)` (compound assign) gives the target's `mul.s f0,f0,f8`
+ *      operand order (reusing f0); the split `f0 = f0 * ...` form emits f8,f0.
+ *  Arms: if (p->0x9CC != 0) f0 = *(p+0x798)+f2; else f0 = *(p+0x780)+f2 (beqzl-taken).
+ *  double const at game_uso_D_807FFB60 + 0x240 (ldc1 576(at)); the USO unit is
+ *  HI16-only so the extra C-side LO16 reloc is byte-harmless (docs IDO_CODEGEN L23).
  *
- * RESIDUAL (honest NON_MATCHING, ~89.67%): two coloring/scheduler artifacts.
- *  - Target keeps p in $v1 and materializes per-block `addiu` base regs
- *    (v1+1904, v1+1296, v1+1928, v1+796); our build addresses off one base
- *    with large displacements. Intermediate `char*` pointer locals const-fold
- *    back to single-base (verified: variant C = identical 89.67%).
- *  - Target's beqzl-likely delay duplicates `lwc1 f16,16(v0)` (dead at the
- *    t6!=0 merge, the +1 instruction). FP-scheduler delay-slot dup, not
- *    reproducible from the if/else C form. */
+ * RESIDUAL (honest NON_MATCHING, 47/49): ONE FP-double-mul operand-register
+ * binding coloring cap (words f3d0/f3d4). The double block computes
+ * `f0 = (float)((double)f0 * D)`. Target: ldc1 f6 (D), cvt.d.s f18 ((double)f0),
+ * mul.d f4,f18,f6. Build: ldc1 f18 (D), cvt.d.s f6, mul.d f4,f18,f6 (mul.d BYTES
+ * IDENTICAL; only the two operands' temp binding f6<->f18 is swapped, same reg
+ * SET {f6,f18}, same result f4). IDO canonicalizes commutative FP mul so source
+ * operand order / (double) cast placement / implicit promotion / named-double /
+ * register-qual / downstream f0-reuse ALL leave it at 47/49; named-double forms
+ * that DO flip conv->f18 relocate the incoming float f0->f2 (adds moves, worse,
+ * 37/49). Permuter-immune whole-function FP candidate-numbering coloring cap.
+ * Surrounding FP code (words 0-27, 30-48) is byte-identical to target. */
 extern char game_uso_D_807FFB60;
 extern void import_00096874(int);
 extern void game_uso_func_0001001C(int *);
 void game_uso_func_0000F360(int *a0) {
     int v0 = *(short*)((char*)a0 + 0xE4);
     int *p;
-    float f2, f0, fv;
+    char *b770, *b510, *b788, *b31C;
+    float f2, f0;
     if (v0 < 0) {
         *(short*)((char*)a0 + 0xE4) = 0;
         v0 = *(short*)((char*)a0 + 0xE4);
     }
     p = *(int**)((char*)a0 + 0xB4);
-    fv = (float)v0;
-    f2 = *(float*)((char*)a0 + 0x1B4) * fv;
+    f2 = *(float*)((char*)a0 + 0x1B4) * (float)v0;
+    b770 = (char*)p; if (1) { b770 += 0x770; }
+    b510 = (char*)p; if (1) { b510 += 0x510; }
     if (*(int*)((char*)p + 0x9CC) != 0) {
-        f0 = *(float*)((char*)p + 0x798) + f2;
+        b788 = (char*)p; if (1) { b788 += 0x788; }
+        f0 = *(float*)(b788 + 0x10) + f2;
     } else {
-        f0 = *(float*)((char*)p + 0x780) + f2;
+        f0 = *(float*)(b770 + 0x10) + f2;
     }
     if (*(short*)((char*)p + 0x9A2) == 0x62) {
         f0 = (float)((double)f0 * *(double*)((char*)&game_uso_D_807FFB60 + 0x240));
     }
-    *(float*)((char*)p + 0x31C) += *(float*)((char*)p + 0x520) * f0;
+    b31C = (char*)p; if (1) { b31C += 0x31C; }
+    f0 *= *(float*)(b510 + 0x10);
+    *(float*)(b31C) = *(float*)(b31C) + f0;
     *(int*)((char*)a0 + 0xF0) = 0;
     import_00096874((int)(*(char**)((char*)a0 + 0xB4) + 0x808));
     game_uso_func_0001001C(a0);
