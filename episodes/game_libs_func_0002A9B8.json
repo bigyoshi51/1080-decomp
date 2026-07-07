@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0002A9B8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-07T18:43:57.800297+00:00",
+  "end_time": "2026-07-07T18:43:57.800322+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-07T18:43:57.800314+00:00",
+      "assistant_text": "Big-endian signed 16-bit stream reader over unsigned char** cursor. Keys: (1) 'short v' intermediate (not folded int) preserves IDO's redundant inner sign-extend sll8/sll16/sra16 on the first byte; (2) 'v = byte | v' (byte on LEFT, not v|=byte) gives or v1,t7,v1 operand order.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 14,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_0002A9B8: big-endian signed 16-bit reader over a byte-stream\n * cursor (**a0). Reads two bytes via *p++, storing the advanced cursor back to\n * *a0 after each byte. The intermediate `short v` keeps IDO's inner sign-extend\n * ((v<<8)<<16>>16) that a folded int expr elides, and `byte | v` (not v | byte)\n * fixes the OR operand order. Byte-exact. */\nshort game_libs_func_0002A9B8(unsigned char **a0) {\n    short v;\n    v = *(*a0)++ << 8;\n    v = *(*a0)++ | v;\n    return v;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_0002A9B8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "14/14 word-exact (real path) + make ROM byte-identical"
+  }
+}
