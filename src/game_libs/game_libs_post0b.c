@@ -5487,24 +5487,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A044);
  * j=r->8, base=r->4. If i<0: base+=j and the fn ptr is r->0xC directly. Else:
  * pick an offset (r->0xC, or 40 when both r->0xC and j are 0), load a table at
  * base+off, index by i*8, add table[idx]->0 to base and take table[idx]->4 as
- * the fn ptr. Then call fp(base, r->0x10, r->0x14). */
+ * the fn ptr. Then call fp(base, r->0x10, r->0x14).
+ *
+ * 2026-07-07 (agent-e): RISE 27/37 words byte-exact (was ~69.57% / 33-word
+ * mis-structured body). Two NEW levers over the 35A18-family template:
+ *   (1) word-count fix: reload the index halfword via a DIFFERENT addressing
+ *       (v1+2, v1=r+8) than the sign-test (r+0xA) so IDO does NOT CSE the two
+ *       reads — matches the target's twin `lh` (33->37 words).
+ *   (2) branch-likely crack: use TWO variables (selector loaded to v0, then
+ *       `else off = selector` is a plain MOVE that fills the branch delay slot)
+ *       instead of one `off` var. The move kills IDO's `bnezl` duplication that
+ *       otherwise collapses the 3-way offset select. This is what took 33->27
+ *       exact.
+ * Residual (10 words, ALL of them): a single s0<->a3 saved-vs-temp allocation
+ * swap — target parks `base` in $s0 and the record ptr `r` in temp $a3; every
+ * clean-C form parks them the other way. This is the documented "$t7 vs $a3
+ * regalloc cascade" cap for the 35A18/A044/EBDC/EC5C dispatcher family
+ * (MATCHING_WORKFLOW). Flipping it disturbs temp rotation (combined base expr
+ * -> 23/37; named j var -> 24/37; v1-routed end args -> 1/37). Allocation-order
+ * tie-break, not C-steerable here. */
 int gl_func_0003A0C4(char *r) {
-    short i = *(short *)(r + 0xA);
-    short j = *(short *)(r + 0x8);
-    char *base = *(char **)(r + 0x4);
+    char *base = *(char **)(r + 4);
+    char *v1 = r + 8;
+    char *e;
     int (*fp)(int, int, int);
-    if (i < 0) {
-        base = base + j;
+    int off;
+    base = *(short *)(r + 8) + base;
+    if (*(short *)(r + 0xA) < 0) {
         fp = *(int (**)(int, int, int))(r + 0xC);
     } else {
-        int off = *(int *)(r + 0xC);
-        char *e;
-        if (off == 0 && j == 0) {
-            off = 40;
-        }
-        e = *(char **)(base + off) + i * 8;
+        int selector = *(int *)(v1 + 4);
+        if (selector == 0 && *(short *)v1 == 0) off = 0x28; else off = selector;
+        e = (*(short *)(v1 + 2) << 3) + *(char **)(base + off);
         fp = *(int (**)(int, int, int))(e + 4);
-        base = base + *(short *)e;
+        base = *(short *)e + base;
     }
     return fp((int)base, *(int *)(r + 0x10), *(int *)(r + 0x14));
 }
