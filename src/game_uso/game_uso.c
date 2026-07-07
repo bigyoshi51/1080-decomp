@@ -11788,32 +11788,29 @@ void game_uso_func_0000E5C8(char *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E5C8);
 #endif
 
-/* game_uso_func_0000E91C — verified structural decode (EE84-family branchy
- * orchestrator, ~118 insns; switch + flag-set + D-pair calls = documented
- * sub-80 ceiling → INCLUDE_ASM build path; struct-typing reference).
+/* game_uso_func_0000E91C — EE84-family branchy orchestrator, 118 insns.
+ * NM wrap now 98.98% objdiff (102/118 words byte-exact) — up from 90.31%.
  *
- * 52.9% -> 69.63%: the four switch-case D-pairs (EF0/EF4, E40/E44) pass BY
- *   VALUE as *(Pair2*) in MEMORY order (the old reversed two-arg form was the
- *   un-homed pair; same lever as EF70). Residual: target builds each pair as a
- *   LOCAL struct copy high in a 0x48 frame (sp+56) — by-pointer (&tmp) tested
- *   WORSE (68.78); by-value 69.63 is best — plus the beql/beq switch dispatch +
- *   branch-likely. Documented EE84-family switch ceiling.
- *   docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair */
-/* game_uso_func_0000E91C — reconstruction pass (agent-e, 2026-06-24).
- * EE84-family branchy orchestrator. Reads o=s0->0xB4, v0=o->0xA58, clears
- * s0->0xB0, calls game_uso_func_0000EAF4(s0, (v0&0x20)?((v0&0x40)!=0):0,
- * v0&0x20). When o->0x800->0x10 & 0x1000, dispatches on s0->0x12C (1..4):
- * each arm ORs a literal into s0->0xB0 (from s0->0xFC), homes a Pair2 from a
- * D-table (D_807FF430+0xE40 or D_807FF4E0+0xEF0) into a stack slot, and calls
- * an import with a0 = s0->0xB4 + 0x808. Tail (when s0->0xB0 != 0): zero
- * s0->0x12C, log via import_0010DB28, then game_uso_func_0000D5F8(s0,
- * homed-pair, 1) + game_uso_func_0000D5DC(s0).
+ * Reads o=a0->0xB4, v0=o->0xA58, clears a0->0xB0, then
+ * game_uso_func_0000EAF4(a0, cond, v0&0x20) where cond=((v0&0x20)!=0) then
+ * (if set) =(v0&0x40)!=0 — an if-without-else, NOT a ternary-with-:0 (the
+ * :0 adds a spurious `move ai,zero`+`b`). When (*(a0->0xB4)->0x800)->0x10 &
+ * 0x1000, dispatches on a0->0x12C. The dispatch is TESTS-FIRST in source
+ * order 2,1,4,3 with bodies laid out likewise — a C `switch` SORTS the test
+ * chain (1,2,3,4) and an if/else-if INTERLEAVES bodies, so neither matches;
+ * it must be a goto chain (4 `if(sw==k) goto Lk`, last as `if(sw!=3) goto
+ * done; goto L3` to get the beql-toward-L3 + b-default sense). Each arm ORs a
+ * literal into a0->0xB0 (from a0->0xFC), homes a Pair2 from D_807FF430+0xE40
+ * or D_807FF4E0+0xEF0 into the shared sp+0x38 slot, calls an import with
+ * a0=a0->0xB4+0x808. Tail (a0->0xB0!=0): zero a0->0x12C, import_0010DB28,
+ * game_uso_func_0000D5F8(a0, homed, 1), game_uso_func_0000D5DC(a0).
  *
- * Fix vs prior 69.6% body: resolve real callees/D-symbols (was placeholder
- * func_00000000 / D_00000000 + Pair2 by-value mid-air); the homed pair now
- * persists from switch arm to the D5F8 tail (shared sp slot), the EAF4 arg
- * uses the correct (v0&0x20)-gated ternary, and the 0x1000 gate is the
- * branch-likely switch.
+ * RESIDUAL (16 words, all same-mnemonic register-only): the whole allocation
+ * is uniformly shifted — target keeps o->t6, v0-word->v0, mask->v1, cond->a1
+ * (with a redundant `move a2,v1` filling the EAF4 jal delay); IDO here parks
+ * o->v1 and cascades mask/cond into arg regs a2/a3 (delay = `move a1,a3`).
+ * A global register-renumber cap (coloring, permuter-immune); decl-order
+ * permutation + inline-o (o->t6 but downstream drops to 59) both tested WORSE.
  */
 #ifdef NON_MATCHING
 extern int import_00096724();
@@ -11822,48 +11819,55 @@ extern int import_0010DB28();
 extern char game_uso_D_807FF430;
 extern char game_uso_D_807FF4E0;
 
-void game_uso_func_0000E91C(char *a0, int a1) {
-    char *s0 = a0;
-    char *o = *(char **)(s0 + 0xB4);
-    unsigned int v0 = *(unsigned int *)(o + 0xA58);
+void game_uso_func_0000E91C(char *a0) {
+    char *o = *(char **)(a0 + 0xB4);
+    int v0;
+    int cond;
     Pair2 homed;
-    int x1_arg = (v0 & 0x20) ? ((v0 & 0x40) != 0) : 0;
 
-    *(int *)(s0 + 0xB0) = 0;
-    game_uso_func_0000EAF4(s0, x1_arg, v0 & 0x20);
+    *(int *)(a0 + 0xB0) = 0;
+    v0 = *(int *)(o + 0xA58);
+    cond = ((v0 & 0x20) != 0);
+    if (cond) {
+        cond = ((v0 & 0x40) != 0);
+    }
+    game_uso_func_0000EAF4(a0, cond, v0 & 0x20);
 
-    if (*(unsigned int *)(*(char **)(o + 0x800) + 0x10) & 0x1000) {
-        switch (*(int *)(s0 + 0x12C)) {
-            case 1:
-                *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x18;
-                homed = *(Pair2 *)(&game_uso_D_807FF4E0 + 0xEF0);
-                import_00096704(*(char **)(s0 + 0xB4) + 0x808);
-                break;
-            case 2:
-                *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1B;
-                homed = *(Pair2 *)(&game_uso_D_807FF430 + 0xE40);
-                import_00096724(*(char **)(s0 + 0xB4) + 0x808);
-                break;
-            case 3:
-                *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1A;
-                homed = *(Pair2 *)(&game_uso_D_807FF4E0 + 0xEF0);
-                import_00096704(*(char **)(s0 + 0xB4) + 0x808);
-                break;
-            case 4:
-                *(int *)(s0 + 0xB0) = *(int *)(s0 + 0xFC) | 0x1C;
-                homed = *(Pair2 *)(&game_uso_D_807FF430 + 0xE40);
-                import_00096724(*(char **)(s0 + 0xB4) + 0x808);
-                break;
-        }
+    if (*(unsigned int *)(*(char **)(*(char **)(a0 + 0xB4) + 0x800) + 0x10) & 0x1000) {
+        int sw = *(int *)(a0 + 0x12C);
+        if (sw == 2) goto L2;
+        if (sw == 1) goto L1;
+        if (sw == 4) goto L4;
+        if (sw != 3) goto done_switch;
+        goto L3;
+    L2:
+        *(int *)(a0 + 0xB0) = *(int *)(a0 + 0xFC) | 0x1B;
+        homed = *(Pair2 *)(&game_uso_D_807FF430 + 0xE40);
+        import_00096724(*(char **)(a0 + 0xB4) + 0x808);
+        goto done_switch;
+    L1:
+        *(int *)(a0 + 0xB0) = *(int *)(a0 + 0xFC) | 0x18;
+        homed = *(Pair2 *)(&game_uso_D_807FF4E0 + 0xEF0);
+        import_00096704(*(char **)(a0 + 0xB4) + 0x808);
+        goto done_switch;
+    L4:
+        *(int *)(a0 + 0xB0) = *(int *)(a0 + 0xFC) | 0x1C;
+        homed = *(Pair2 *)(&game_uso_D_807FF430 + 0xE40);
+        import_00096724(*(char **)(a0 + 0xB4) + 0x808);
+        goto done_switch;
+    L3:
+        *(int *)(a0 + 0xB0) = *(int *)(a0 + 0xFC) | 0x1A;
+        homed = *(Pair2 *)(&game_uso_D_807FF4E0 + 0xEF0);
+        import_00096704(*(char **)(a0 + 0xB4) + 0x808);
+    done_switch:;
     }
 
-    if (*(int *)(s0 + 0xB0) != 0) {
-        *(int *)(s0 + 0x12C) = 0;
-        import_0010DB28(s0, *(int *)(s0 + 0xB0), 0, 1, 1, 1);
-        game_uso_func_0000D5F8(s0, homed, 1);
-        game_uso_func_0000D5DC(s0);
+    if (*(int *)(a0 + 0xB0) != 0) {
+        *(int *)(a0 + 0x12C) = 0;
+        import_0010DB28(a0, *(int *)(a0 + 0xB0), 0, 1, 1, 1);
+        game_uso_func_0000D5F8(a0, homed, 1);
+        game_uso_func_0000D5DC(a0);
     }
-    (void)a1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E91C);
