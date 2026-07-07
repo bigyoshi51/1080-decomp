@@ -13038,25 +13038,30 @@ short game_libs_func_0002A9B8(unsigned char **a0) {
 
 #ifdef NON_MATCHING
 /* game_libs_func_0002A9F0: 1-or-2-byte big-endian varint reader over a cursor
- * (**a0). v=*p; advance *a0=p+1 (cursor q); if high bit set: read the second
- * byte THROUGH the advanced cursor (*q, i.e. lbu 0(t6)) and advance *a0=q+1
- * (addiu t9,t6,1) — NOT re-derived from p (p[1]/p+2). v=((v<<8)&0x7F00)|*q;
- * v&=0xFFFF. Store of *a0 sinks below the value computation. This raises fuzzy
- * 66.19 -> 78.13 (cursor-reuse + store-order). Residual is pure regalloc/delay-
- * slot shape: target spends the beqz delay on `move a1,v1` (save byte before
- * reusing $v1 as the working/return reg) where IDO here fills it with the shift
- * and threads the result through a fresh temp. No tested C form flips that
- * scheduling choice. Reloc-free; game_libs baked-reloc => objdiff-fuzzy only. */
+ * (**a0). v=*p++; store *a0=p; if high bit set: shift/mask the first byte, OR in
+ * the SECOND byte (*p++ | v, byte-first operand order) and re-store the cursor.
+ * The key lever is the *post-increment cursor* + *in-place chain* on `v`
+ * (v<<=8; v&=0x7F00; v = *p++|v; v&=0xFFFF): this makes IDO reuse $v1 for the
+ * whole accumulator (sll/andi/or/andi all v1, matching the target) AND emit the
+ * correct branch offset (+8, 16-insn body). Raises fuzzy 78.13 -> 92.81.
+ * Residual is a pure delay-slot/regalloc artifact: the target manufactures a
+ * redundant `move a1,v1` (byte save) to fill the beqz delay and then reads the
+ * saved copy in the shift (sll v1,a1,8), which also forces the cursor into $t6
+ * (not $v0). IDO here fills the delay with a `nop` instead and shifts $v1 in
+ * place, keeping the cursor in $v0. Every tested C form that names an explicit
+ * byte copy (int hi=v / int save=v) gets CSE'd away, so IDO never manufactures
+ * the delay copy. Confirmed cap. Reloc-free; game_libs baked-reloc => objdiff-
+ * fuzzy is the metric (no per-fn ROM verify). */
 int game_libs_func_0002A9F0(unsigned char **a0) {
     unsigned char *p = *a0;
-    int v = *p;
-    unsigned char *q = p + 1;
-    *a0 = q;
+    int v = *p++;
+    *a0 = p;
     if (v & 0x80) {
-        int b = *q;
-        v = ((v << 8) & 0x7F00) | b;
+        v <<= 8;
+        v &= 0x7F00;
+        v = *p++ | v;
         v &= 0xFFFF;
-        *a0 = q + 1;
+        *a0 = p;
     }
     return v;
 }
