@@ -141,52 +141,58 @@ void mgrproc_uso_func_00000504(int *a0) {
 
 #ifdef NON_MATCHING
 /* 76-insn (0x130) random-unique-ID assignment: fills 4 entries at
- * (a0->8)->[idx*4 + 0x24] with 4 unique random IDs in {0..4}. 78-diff NM
- * (was 92). Levers: float-returning import called DIRECTLY (gl_func_00000000f,
- * not a (FloatFn) cast) -> jal + f0 return; outer loop is `do{}while(count<4)`
- * (target tests count at the bottom, inner result==-1 check runs first); the
- * random result via a `float rnd` temp; inner unique-check reads the array
- * inline (`(*(int**)(a0+8))[..]`) so a0+8 reloads each iter like the target.
- * 76-diff NM, 83 insns vs target 76.
+ * (a0->8)->[idx*4 + 0x24] with 4 unique random IDs in {0..4}.
  *
- * FLOORED BY THE -O0 FLOAT-EVAL-ORDER (root cause of the residual cascade):
- * the target computes `(int)(call() * const)` as jal -> f0; load const -> f4
- * (AFTER the call); mul.s f6,f0,f4 -- f0 used directly, NO spill, -40 frame.
- * At -O0 every C form spills: `float rnd` temp round-trips rnd through a stack
- * slot (swc1;lwc1); the bare `call()*const` (either operand order) loads the
- * const BEFORE the jal so it must survive in callee-saved $f20 (sdc1). Either
- * spill adds 8 frame bytes the target lacks (-48/-56 vs -40), shifting every
- * local slot up 8 and cascading to ~70 diffs. No C form gets IDO -O0 to load
- * the const AFTER the call (the order is fixed regardless of source operand
- * order). So this fn cannot byte-match at -O0 from C; the loop body otherwise
- * reconstructs cleanly. */
+ * 23-diff NM, 76/76 insns (was 76-diff). FRAME NOW EXACT (-0x28), all stack
+ * slots exact, all 3 relocs exact (import_802600E4/import_800200E4 hi/lo +
+ * gl_func_00000000f jal), full structure exact. The float-eval-order "floor"
+ * documented previously was WRONG: the reason the old body spilled f0 (swc1;lwc1
+ * or mov->f20/sdc1, +8 frame) was the const/int loads were pointer-arith forms
+ * (`*(float*)((char*)&D+0x24)`) that IDO -O0 materializes as lui/addiu into a
+ * GPR, forcing f0 to be parked across them. Accessing them as STRUCT MEMBERS of
+ * an extern struct at the import symbol (import_802600E4.v @ +0x24,
+ * import_800200E4.v @ +0x4C) makes IDO emit the $at-fused single-lui lvalue load
+ * (lui $at,%hi; lwc1 %lo($at)) with NOTHING between the jal and the mul -> f0
+ * used directly, no spill, frame -0x28. Key structural levers: result=-1 at the
+ * TOP of the do-body (back-edge re-inits it, no bottom reset); no `arr` local
+ * (inline `*(int**)(a0+8)` in the tail store, else +1 slot/+8 frame); decl order
+ * result,count,candidate,idx -> slots 0x24,0x20,0x1C,0x18; `while(++count<4)`
+ * fuses the increment+test (no reload).
+ *
+ * RESIDUAL (23 diffs) = pure IDO -O0 temp-register renumbering in the loop body:
+ * the inner compare `candidate == elem` -- IDO evaluates the heavier `elem`
+ * subtree first (Sethi-Ullman) and loads candidate last, whereas the target
+ * holds candidate in $t5 across the elem chain. This shifts the temp-allocator
+ * rotation, renumbering scratch $t regs in the inner compare, the idx==count
+ * check, and the tail store/increment (stack slots + mnemonics all still exact).
+ * No C operand order or loop/subscript form changes it (probed >8 variants).
+ * Documented regalloc-renumber cap class -- leave INCLUDE_ASM. */
 extern float gl_func_00000000f(void);
+struct FC { float pad[9]; float v; };
+struct IC { int pad[0x13]; int v; };
+extern struct FC import_802600E4;
+extern struct IC import_800200E4;
 void mgrproc_uso_func_000005D0(char *a0) {
-    int count = 0;
-    int result = -1;
+    int result;
+    int count;
     int candidate;
     int idx;
-    int *arr;
 
+    count = 0;
     do {
+        result = -1;
         while (result == -1) {
-            {
-                float rnd = gl_func_00000000f();
-                candidate = ((int)(rnd * *(float*)((char*)&D_00000000 + 0x24))
-                             + *(int*)((char*)&D_00000000 + 0x4C) + 1) % 5;
-            }
+            candidate = ((int)(gl_func_00000000f() * import_802600E4.v)
+                         + import_800200E4.v + 1) % 5;
             for (idx = 0; idx < count; idx++) {
-                if (*(int*)((char*)*(int**)(a0 + 8) + idx * 4 + 0x24) == candidate) break;
+                if (candidate == *(int*)((char*)*(int**)(a0 + 8) + idx * 4 + 0x24)) break;
             }
             if (idx == count) {
                 result = candidate;
             }
         }
-        arr = *(int**)(a0 + 8);
-        *(int*)((char*)arr + count * 4 + 0x24) = result;
-        count++;
-        result = -1;
-    } while (count < 4);
+        *(int*)((char*)*(int**)(a0 + 8) + count * 4 + 0x24) = result;
+    } while (++count < 4);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D0);
