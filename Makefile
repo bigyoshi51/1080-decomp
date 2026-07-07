@@ -485,11 +485,13 @@ build/src/game_libs/game_libs_post2b_c.c.o build/non_matching/src/game_libs/game
 # function's bytes are link-offset-independent, so the size change doesn't break
 # downstream funcs). Avoids a 3-way file split of tail1 around a mid-file fn.
 ARCPROC_748_DONOR := build/src/arcproc_uso/arcproc_uso_o0_748.c.o
-build/src/arcproc_uso/arcproc_uso_tail1.c.o build/non_matching/src/arcproc_uso/arcproc_uso_tail1.c.o: REPLACE_FUNC_BODY := arcproc_uso_func_00000748=$(ARCPROC_748_DONOR)
+ARCPROC_688_DONOR := build/src/arcproc_uso/arcproc_uso_o0_688.c.o
+build/src/arcproc_uso/arcproc_uso_tail1.c.o build/non_matching/src/arcproc_uso/arcproc_uso_tail1.c.o: REPLACE_FUNC_BODY := arcproc_uso_func_00000688=$(ARCPROC_688_DONOR) arcproc_uso_func_00000748=$(ARCPROC_748_DONOR)
 # 0x2740 = exact len of the tail1 region (0x240..0x2980); clips IDO's
 # trailing pad word so arcproc_uso emits at its original segment length.
 build/src/arcproc_uso/arcproc_uso_tail1.c.o: TRUNCATE_TEXT := 0x2740
 build/src/arcproc_uso/arcproc_uso_o0_748.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_748.c.o: OPT_FLAGS := -O0
+build/src/arcproc_uso/arcproc_uso_o0_688.c.o build/non_matching/src/arcproc_uso/arcproc_uso_o0_688.c.o: OPT_FLAGS := -O0
 
 # mgrproc_uso (Yay0-compressed): a contiguous -O0 run at the block start
 # (func_00000000/4C/B0, 0x0..0xF8) is carved into its own sub-unit (region 0).
@@ -564,7 +566,7 @@ build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000
 build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 func_0000F1B4=0x00000000,0x00000000,0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
-C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/game_libs/game_libs_o1_6C8AC.c src/arcproc_uso/arcproc_uso_o0_748.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
+C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/game_libs/game_libs_o1_6C8AC.c src/arcproc_uso/arcproc_uso_o0_748.c src/arcproc_uso/arcproc_uso_o0_688.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 

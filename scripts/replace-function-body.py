@@ -157,8 +157,14 @@ class Elf:
             if delta and r_off >= old_limit:
                 r_off += delta
             kept += struct.pack(REL_FMT, r_off, r_info)
-        if dropped:
+        # Always write back `kept` when offsets may have changed. If nothing was
+        # dropped the length is unchanged (in-place overwrite of shifted r_off
+        # values); the earlier code only wrote back when dropped>0, which silently
+        # discarded the +delta shift for reloc-free donor bodies (dropped==0) and
+        # left downstream relocs pointing at the pre-shift byte positions.
+        if dropped or delta:
             self.data[off:off + len(kept)] = kept
+        if dropped:
             del self.data[off + len(kept):off + size]
             shrink = dropped * ent
             sec[5] -= shrink

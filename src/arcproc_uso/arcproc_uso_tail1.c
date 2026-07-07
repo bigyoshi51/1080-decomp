@@ -201,49 +201,28 @@ void arcproc_uso_func_000005C8(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000005C8);
 #endif
 
-#ifdef NON_MATCHING
-/* arcproc_uso_func_00000688: 48-insn (0xC0) struct-init + zero-loop.
- * Initializes 9 fields of *(a0->ptr_at_8) to constants, then loops
- * clearing array slots until i >= bound.
- *
- * Standalone -O0 build of this body produces BYTE-IDENTICAL bytes
- * (verified: prologue addiu sp,-0x8, no-CSE reloads of a0->[0x8]
- * each store, i spilled to sp+0x4, loop reloads bound each iter,
- * tail b+nop BBL marker). At -O2 it's 38 insns instead of 48 — IDO
- * CSEs the chain and keeps i/bound in regs.
- *
- * BLOCKED: needs -O0 file split. arcproc_uso has -O0 sub-files at
- * 0x50 and 0x12C; this function is at 0x688 and would need a new
- * arcproc_uso_o0_688.c with linker-script slot + TRUNCATE_TEXT
- * adjustments. Multi-tick infrastructure scope. */
+/* arcproc_uso_func_00000688: 48-insn (0xC0) -O0 struct-init + zero-loop.
+ * MATCHED via REPLACE_FUNC_BODY donor arcproc_uso_o0_688.c (real -O0 output;
+ * this tail1 unit is -O2, IDO CSEs the a0->[0x8] reloads to 38 insns, so the
+ * -O0 48-insn body is compiled separately and spliced in). Reloc-free.
+ * Seeds a0->[0x8]->[0x00..0x1C]+[0x34] with constants, then zeroes the int
+ * array at 0x20 over [0, a0->[8]->[2]). Body below is placeholder for the
+ * splice (its own bytes are replaced by the donor). */
 void arcproc_uso_func_00000688(int *a0) {
     int i;
-    /* The target reloads a0->0x8 before EVERY store (no CSE — IDO can't
-     * prove the through-pointer stores don't alias a0+8). A plain repeated
-     * deref gets CSE'd to one load; a volatile pointer-fetch forces the
-     * per-store reload the target emits. */
-#define P (*(int *volatile *)((char *)a0 + 8))
-    P[0] = 1;
-    P[1] = 0;
-    P[2] = 5;
-    P[3] = 2;
-    P[4] = 0;
-    P[5] = 3;
-    P[6] = 1;
-    P[7] = 4;
-    P[13] = 0;
-    i = 0;
-    if (i < P[2]) {
-        do {
-            P[8 + i] = 0;
-            i++;
-        } while (i < P[2]);
+    ((int **)a0)[2][0] = 1;
+    ((int **)a0)[2][1] = 0;
+    ((int **)a0)[2][2] = 5;
+    ((int **)a0)[2][3] = 2;
+    ((int **)a0)[2][4] = 0;
+    ((int **)a0)[2][5] = 3;
+    ((int **)a0)[2][6] = 1;
+    ((int **)a0)[2][7] = 4;
+    ((int **)a0)[2][13] = 0;
+    for (i = 0; i < ((int **)a0)[2][2]; i++) {
+        ((int **)a0)[2][8 + i] = 0;
     }
-#undef P
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000688);
-#endif
 
 /* 27-insn -O0 cleanup wrapper, byte-identical sibling of the matched
  * mgrproc_uso_func_000009A8. Matched 2026-05-30 via the -O0 REPLACE_FUNC_BODY

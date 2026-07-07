@@ -1,0 +1,33 @@
+{
+  "function_name": "arcproc_uso_func_00000688",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-07T21:33:40.185490+00:00",
+  "end_time": "2026-07-07T21:33:40.185534+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-07T21:33:40.185519+00:00",
+      "assistant_text": "-O0 struct-seeder (seeds a0->[8] block fields with consts 1,0,5,2,0,3,1,4,0 then zeroes int array at 0x20 over [0,block[8])=5). -O0 code inside an -O2 file: reused REPLACE_FUNC_BODY donor-splice infra (like sibling func_00000748) \u2014 separate -O0 donor .c spliced into the -O2 tail1 object. Donor is reloc-free so 48/48 first build. Also fixed scripts/replace-function-body.py: fix_relocations only wrote shifted reloc offsets back when dropped>0, so reloc-FREE donors (dropped==0) silently discarded the downstream reloc +delta shift -> R_MIPS_26 truncation on unrelated fns; now writes back whenever (dropped or delta).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 48,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 donor for arcproc_uso_func_00000688 (48-insn struct-init + zero-loop).\n * Spliced into the -O2 tail1 object via REPLACE_FUNC_BODY (real -O0 output).\n * a0->[0x8] holds a pointer to an int block; -O0 reloads it before every\n * store (no CSE). Fields 0x00..0x1C + 0x34 seeded, then the int array at\n * 0x20 is zeroed [0, a0->[8]->[2]). Reloc-free \u2014 no linker fixups needed. */\nvoid arcproc_uso_func_00000688(int *a0) {\n    int i;\n    ((int **)a0)[2][0] = 1;\n    ((int **)a0)[2][1] = 0;\n    ((int **)a0)[2][2] = 5;\n    ((int **)a0)[2][3] = 2;\n    ((int **)a0)[2][4] = 0;\n    ((int **)a0)[2][5] = 3;\n    ((int **)a0)[2][6] = 1;\n    ((int **)a0)[2][7] = 4;\n    ((int **)a0)[2][13] = 0;\n    for (i = 0; i < ((int **)a0)[2][2]; i++) {\n        ((int **)a0)[2][8 + i] = 0;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/arcproc_uso/arcproc_uso_o0_688.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_00000688.s",
+    "segment": "arcproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 (REPLACE_FUNC_BODY donor splice into -O2 tail1)",
+    "verification": "48/48 word-exact + make verify ROM byte-identical"
+  }
+}
