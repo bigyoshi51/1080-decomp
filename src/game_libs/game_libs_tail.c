@@ -2967,52 +2967,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0000DC90: 45-insn vtable-dispatch on indexed 96-byte entry + pair-toggle (0xB4, frame 0x40).
+/* gl_func_0000DC90: vtable-dispatch on indexed 96-byte entry + pair-toggle (0xB4, frame 0x40).
  *
- * Decoded structure (raw-word disasm):
- *   // Index into self->[0x44] array of 96-byte entries (idx * 96 stride):
- *   entry = (int*)((char*)self->[0x44] + idx * 96);
- *   v1 = *entry;
- *   vt = v1->[0x28];
- *   off = (short)vt->[0x28];                                  // signed half
- *   fn  = (int(*)(int,int,int))vt->[0x2C];
- *   fn((int)((char*)v1 + off), &sp_args[1001], self);    // 1001 as stack arg @sp+0x34
+ * FULL structural reconstruction (2026-07-07): 99.96% objdiff (was 58.8%),
+ * 43/45 words byte-exact. Doubled DE30-family dispatcher; mirrors the MATCHED
+ * twin gl_func_0000DD44 (same file) but gated by self->0x48==2 and passing self
+ * as a 3rd arg. Levers borrowed from DD44: pad_a/pad_b/pad_c arrays pin the two
+ * by-ref locals in the -0x40 frame; deferring sp1C's assignment to inside the
+ * gate defers its li+sw past the first call; empty `if (v0){}` on the 2nd
+ * dispatch is the regalloc nudge that gives entry->v1 / vtable->v0.
  *
- *   if (self->[0x48] == 2) {                                   // pair-toggle gate
- *       // Same dispatch on partner entry (idx XOR 1):
- *       entry2 = (int*)((char*)self->[0x44] + (idx ^ 1) * 96);
- *       v1_2 = *entry2;
- *       vt_2 = v1_2->[0x28];
- *       off2 = (short)vt_2->[0x28];
- *       fn_2 = (int(*)(int,int))vt_2->[0x2C];
- *       fn_2((int)((char*)v1_2 + off2), &sp_args2[1000]);  // 1000 stack arg
- *   }
+ * Residual (2 words): sp1C stack slot lands at 0x24 vs target 0x1C. Within a
+ * 0x40 frame with sp34 pinned at 0x34, IDO packs the 2nd address-taken local at
+ * 0x24 and wastes 0x18-0x23; the target instead wastes 0x20-0x33 and seats
+ * sp1C at 0x1C. Growing pad_b to spread them past 0x24 grows the frame beyond
+ * 0x40 — an irreducible frame-packing cap for two plain ints + pads (the real
+ * TU likely has an extra ~0x8 of address-taken locals in 0x1C-0x23).
+ * INCLUDE_ASM remains the build path.
  *
- * The `idx * 96` stride uses the shift-subtract-shift sequence
- * `sll t,2; subu t,a; sll t,5` (= a*3*32 = a*96). The pair-toggle via
- * `xori idx, 1` is the classic "this+partner" idiom for paired objects.
- * Magic constants 1001 (0x3E9) and 1000 (0x3E8) passed to vtable methods
- * — likely event-code or priority tags.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ * self->unk44 = base of idx*0x60 entry array; entry[0] -> obj; obj->unk28 ->
+ * vtable; (short)vtable->unk28 = ptr adjust; vtable->unk2C = method. Calls
+ * method((char*)obj + adj, &msgcode, self) with msgcode 1001, then if
+ * self->unk48 == 2 the partner entry (idx^1) with msgcode 1000.
  */
-void gl_func_0000DC90(int *self, int idx) {
-    int *entry = (int*)((char*)self[0x44 / 4] + idx * 96);
-    int *v1 = (int*)*entry;
-    int *vt = (int*)v1[0x28 / 4];
-    short off = *(short*)((char*)vt + 0x28);
-    int (*fn)(int, int *, int *) = (int(*)(int, int*, int*))vt[0x2C / 4];
-    int sp_args = 1001;
-    fn((int)((char*)v1 + off), &sp_args, self);
-    if (self[0x48 / 4] == 2) {
-        int *entry2 = (int*)((char*)self[0x44 / 4] + (idx ^ 1) * 96);
-        int *v1_2 = (int*)*entry2;
-        int *vt_2 = (int*)v1_2[0x28 / 4];
-        short off2 = *(short*)((char*)vt_2 + 0x28);
-        int (*fn2)(int, int *) = (int(*)(int, int*))vt_2[0x2C / 4];
-        int sp_args2 = 1000;
-        fn2((int)((char*)v1_2 + off2), &sp_args2);
+void gl_func_0000DC90(char *self, int idx) {
+    int pad_a[2]; int sp34 = 1001; int pad_b[3]; int sp1C; int pad_c[1];
+    char *v0, *v1;
+    v1 = *(char **)(*(char **)(self + 0x44) + idx * 0x60);
+    v0 = *(char **)(v1 + 0x28);
+    (*(void (**)(char *, int *, char *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &sp34, self);
+    if (*(int *)(self + 0x48) == 2) {
+        sp1C = 1000;
+        v1 = *(char **)(*(char **)(self + 0x44) + (idx ^ 1) * 0x60);
+        v0 = *(char **)(v1 + 0x28);
+        if (v0) {}
+        (*(void (**)(char *, int *, char *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &sp1C, self);
     }
 }
 #else
