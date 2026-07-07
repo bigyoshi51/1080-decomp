@@ -13539,29 +13539,19 @@ void gl_func_00044034(void *a0) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0004406C)();
+#define AF(p, o) (*(f32 *)((char *)(p) + (o)))
 void game_libs_func_0004406C(char *arg0, char *arg1, f32 arg2) {
-    f32 temp_f0;
-    f32 temp_f2;
-    f32 temp_f2_2;
-    f32 temp_f2_3;
-    f32 temp_f2_4;
-    f32 temp_f2_5;
-    f32 temp_f2_6;
+    s32 a10 = FW(arg0, 0x10);
+    s32 a14 = FW(arg0, 0x14);
+    f32 d;
+    f32 temp_f0 = arg2 * arg2;
 
-    temp_f2 = (*(f32*)((char*)arg0 + 0x0));
-    temp_f0 = arg2 * arg2;
-    temp_f2_2 = (*(f32*)((char*)arg0 + 0x4));
-    (*(f32*)((char*)arg0 + 0x0)) = (f32) ((((*(f32*)((char*)arg1 + 0x0)) - temp_f2) * arg2) + temp_f2);
-    temp_f2_3 = (*(f32*)((char*)arg0 + 0x8));
-    (*(f32*)((char*)arg0 + 0x4)) = (f32) ((((*(f32*)((char*)arg1 + 0x4)) - temp_f2_2) * arg2) + temp_f2_2);
-    temp_f2_4 = (*(f32*)((char*)arg0 + 0xC));
-    (*(f32*)((char*)arg0 + 0x8)) = (f32) ((((*(f32*)((char*)arg1 + 0x8)) - temp_f2_3) * arg2) + temp_f2_3);
-    temp_f2_5 = (f32) FW(arg0, 0x10);
-    (*(f32*)((char*)arg0 + 0xC)) = (f32) ((((*(f32*)((char*)arg1 + 0xC)) - temp_f2_4) * temp_f0) + temp_f2_4);
-    temp_f2_6 = (f32) FW(arg0, 0x14);
-    FW(arg0, 0x10) = (s32) ((((f32) FW(arg1, 0x10) - temp_f2_5) * temp_f0) + temp_f2_5);
-    FW(arg0, 0x14) = (s32) ((((f32) FW(arg1, 0x14) - temp_f2_6) * temp_f0) + temp_f2_6);
+    d = AF(arg0, 0x0); AF(arg0, 0x0) = (AF(arg1, 0x0) - d) * arg2 + d;
+    d = AF(arg0, 0x4); AF(arg0, 0x4) = (AF(arg1, 0x4) - d) * arg2 + d;
+    d = AF(arg0, 0x8); AF(arg0, 0x8) = (AF(arg1, 0x8) - d) * arg2 + d;
+    d = AF(arg0, 0xC); AF(arg0, 0xC) = (AF(arg1, 0xC) - d) * temp_f0 + d;
+    FW(arg0, 0x10) = (s32) ((((f32) FW(arg1, 0x10) - (f32) a10) * temp_f0) + (f32) a10);
+    FW(arg0, 0x14) = (s32) ((((f32) FW(arg1, 0x14) - (f32) a14) * temp_f0) + (f32) a14);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004406C);
