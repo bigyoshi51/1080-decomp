@@ -3723,33 +3723,22 @@ char *gl_func_00067C98(char *dst, char *src, int n) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067C98);
 #endif
 
-#ifdef NON_MATCHING
 /* game_libs_func_00067D18: strrchr — returns a pointer to the LAST byte in the
- * string at a0 equal to a1, or NULL if the string is empty / no match. Scans p
- * across the string recording p on every match; the advancing cursor a0 = p+1
- * snapshots into v0 each iteration (match-test bnel + loop-back bnezl, both
- * branch-likely, reproduced). Reloc-free. Residual (71.4%): IDO preserves a1 in
- * a2 because the advanced-pointer temp lands in a1, plus a loop-back lbu shift —
- * register-coloring shape, not a logic bug. Prior body (negative-count) was the
- * wrong function entirely. */
+ * string at a0 equal to a1, or NULL if the string is empty / no match. The
+ * while-guard's rotation lands the p=a0 preheader in the beqz delay slot; the
+ * match-test bnel + loop-back bnezl are both branch-likely. Reloc-free, byte-exact. */
 unsigned char *game_libs_func_00067D18(unsigned char *a0, int a1) {
-    unsigned char *p;
     unsigned char *result = (unsigned char *)0;
-    if (*a0 != 0) {
+    unsigned char *p;
+    while (*a0 != 0) {
         p = a0;
-        do {
-            a0 = p + 1;
-            if (a1 == *p) {
-                result = a0 - 1;
-            }
-            p = a0;
-        } while (*a0 != 0);
+        a0++;
+        if (a1 == *p) {
+            result = a0 - 1;
+        }
     }
     return result;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D18);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00067D50: byte-fill (memset) — writes a1 to a0[0..a2),

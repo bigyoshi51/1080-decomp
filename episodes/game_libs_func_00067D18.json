@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00067D18",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-07T18:47:31.439034+00:00",
+  "end_time": "2026-07-07T18:47:31.439060+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-07T18:47:31.439052+00:00",
+      "assistant_text": "strrchr reconstruction. Keys: (1) increment a0 in place (a0++) not p+1 into a temp -> direct bnel a1,t7 compare (no move a2,a1); (2) while(*a0) guard with p=a0 as loop body's FIRST statement -> IDO loop-rotation puts p=a0 preheader (move v0,a0) into the beqz delay slot, eliminating the nop. do-while/for/if-guarded forms all left the nop.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 14,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00067D18: strrchr \u2014 returns a pointer to the LAST byte in the\n * string at a0 equal to a1, or NULL if the string is empty / no match. The\n * while-guard's rotation lands the p=a0 preheader in the beqz delay slot; the\n * match-test bnel + loop-back bnezl are both branch-likely. Reloc-free, byte-exact. */\nunsigned char *game_libs_func_00067D18(unsigned char *a0, int a1) {\n    unsigned char *result = (unsigned char *)0;\n    unsigned char *p;\n    while (*a0 != 0) {\n        p = a0;\n        a0++;\n        if (a1 == *p) {\n            result = a0 - 1;\n        }\n    }\n    return result;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00067D18.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "14/14 word-exact (real path) + make ROM byte-identical"
+  }
+}
