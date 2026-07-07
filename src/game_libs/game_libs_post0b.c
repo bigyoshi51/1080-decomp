@@ -1713,21 +1713,24 @@ void gl_func_000359C4(int a0, int a1, int a2, int a3) {
 //   Name pre-checked: no extern reuse.
 /* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044 / 0003EBDC / 0003EC5C
  * (same vtable-dispatch, diff address) — a match here lands all four.
- * 2026-07-03 (agent-e): RISE 69.5%->91.72% objdiff (20/32 words byte-exact,
- * fresh make + reloc-aware objdump). Two breakthroughs vs the prior cap note:
- *   (1) the as1 branch-LIKELY (bnezl) is GONE — the idx-select was rewritten
- *       as the rule-1 recipe `if(a)goto L; if(b)goto L; else_val; goto M;
- *       L: idx=selector; M:` (docs/IDO_CODEGEN as1 fill rule 1). idx=selector
- *       is stolen into the first bne's PLAIN delay (move a0,v0), bne2 retargets
- *       with nop, and idx=0x28 fills the b delay -> matches words 11-17 exactly.
- *   (2) key/offset now color to $t7/$t6 (was $a3 in the doc cap) by inlining
- *       them (no named short locals) + putting the freshly-loaded value first
- *       in the commutative add (`offset + arg`, not `arg += offset`).
- * RESIDUAL (still a cap, C-immune): base-ptr v1=a0+8 colors $a2 but target
- *   wants $v1, and fnptr colors $v1 but target wants $a2 (a clean v1<->a2
- *   swap, ~7 words); plus a ugen tail temp-rotation ($t0/$t1/$t2/$t9) and the
- *   offset/arg load-order (words 3/4). All the documented regalloc/ugen-temp
- *   caps. See the gl_func_0003A044 note. */
+ * 2026-07-07 (agent-e): RISE to 30/32 words byte-exact (fresh make + reloc-aware
+ * objdump), up from 20/32. THREE breakthroughs, TWO documented caps CRACKED:
+ *   (1) branch-LIKELY gone: idx-select via `if(sel==0 && *(short*)v1==0) idx=0x28;
+ *       else idx=selector;` (plain if/else, NOT the goto form) — matches the
+ *       bne/bne/b + stolen-delay stream words 11-17 exactly.
+ *   (2) TEMP-ROTATION CAP CRACKED: reversing the entry add to loaded-value-LAST
+ *       `(*(short*)(v1+2) << 3) + *(char**)(arg+idx)` fixes words 19/20/21
+ *       ($t1/$t9/$t0/$t2 order).
+ *   (3) v1<->a2 SWAP CAP CRACKED: the plain-if/else idx-select form (vs the goto
+ *       chain) flips base to $v1 and fnptr to $a2 — the 7-word swap the prior
+ *       note called "C-immune". Confirmed via IDO -Wo,-zdbug:6 uoptlist coloring.
+ * RESIDUAL (2 words, IDO scheduler tie-break, C-immune across ~12 variants):
+ *   words 3/4 = the off(a0+8)/payload(a0+4) LOAD ORDER. Target schedules `lh
+ *   off,8` before `lw arg,4`; preloading arg (needed for its stable $a1 color)
+ *   forces arg's load first. Reading off inline-first destabilizes arg's color
+ *   (drops to 18/32). Not reachable by C restructuring found so far; permuter
+ *   candidate. BYTE-IDENTICAL to gl_func_0003A044 / 0003EBDC / 0003EC5C — a
+ *   match here lands all four. */
 #ifdef NON_MATCHING
 int gl_func_00035A18(char *a0) {
     char *arg = *(char**)(a0 + 4);
@@ -1735,20 +1738,13 @@ int gl_func_00035A18(char *a0) {
     char *entry;
     int (*fnptr)(char *);
     int idx;
-
     arg = *(short*)(a0 + 8) + arg;
     if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
         int selector = *(int*)(v1 + 4);
-        if (selector != 0) goto sel_path;
-        if (*(short*)v1 != 0) goto sel_path;
-        idx = 0x28;
-        goto have_idx;
-    sel_path:
-        idx = selector;
-    have_idx:
-        entry = *(char**)(arg + idx) + (*(short*)(v1 + 2) << 3);
+        if (selector == 0 && *(short*)v1 == 0) idx = 0x28; else idx = selector;
+        entry = (*(short*)(v1 + 2) << 3) + *(char**)(arg + idx);
         arg = *(short*)entry + arg;
         fnptr = *(int (**)(char *))(entry + 4);
     }
@@ -5408,48 +5404,26 @@ int gl_func_0003A014(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_0003A044: 32-insn conditional table-dispatch.
- *
- *   base = a0->[0x4] + (short)a0->[0x8]
- *   if ((short)a0->[0xA] < 0):
- *     // short-circuit dispatch: a2 = a0->[0xC], a0 = base, call a2
- *   else:
- *     // table-indexed dispatch
- *     if      (a0->[0xC] != 0): idx = a0->[0xC]
- *     else if ((short)a0->[0x8] != 0): idx = 0
- *     else:                            idx = 0x28
- *     table = *(int*)((char*)base + idx)
- *     entry = table + ((short)a0->[0xA] << 3)
- *     adjust = (short)entry[0]
- *     fn = entry[1]
- *     fn(base + adjust)
- *
- * 2026-05-31: 44.2%->69.5% by collapsing the two per-branch fn() calls into ONE
- * shared call site (fn(arg) after the if/else) — the target shares the single jalr
- * (both branches converge there). Residual is the register-allocation cascade ($t7 vs
- * $a3 etc.) + the target's v1=a0+8 base-ptr for the else-branch field loads (a base-ptr
- * C form REGRESSED to 63%, direct-offset is closer). Documented regalloc cap. */
+/* gl_func_0003A044: 8-byte {tag,fn-ptr} handler-table dispatcher, BYTE-IDENTICAL
+ * to gl_func_00035A18 / 0003EBDC / 0003EC5C. See the full 35A18 note for the
+ * cracked levers. 2026-07-07 (agent-e): RISE to 30/32 words byte-exact via the
+ * 35A18 template (temp-rotation + v1<->a2 swap caps cracked; residual = the
+ * words 3/4 off/payload load-order scheduler tie-break). A match here lands all
+ * four siblings. */
 int gl_func_0003A044(char *a0) {
-    short *pair = (short*)(a0 + 8);
-    short key = pair[1];
-    short offset = pair[0];
     char *arg = *(char**)(a0 + 4);
+    char *v1 = a0 + 8;
     char *entry;
     int (*fnptr)(char *);
-
-    arg += offset;
-    if (key < 0) {
+    int idx;
+    arg = *(short*)(a0 + 8) + arg;
+    if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int selector = *(int*)(pair + 2);
-        a0 = (char*)selector;
-        if (selector == 0) {
-            if (pair[0] == 0) {
-                a0 = (char*)0x28;
-            }
-        }
-        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
-        arg += *(short*)entry;
+        int selector = *(int*)(v1 + 4);
+        if (selector == 0 && *(short*)v1 == 0) idx = 0x28; else idx = selector;
+        entry = (*(short*)(v1 + 2) << 3) + *(char**)(arg + idx);
+        arg = *(short*)entry + arg;
         fnptr = *(int (**)(char *))(entry + 4);
     }
     return fnptr(arg);
@@ -9442,29 +9416,24 @@ int gl_func_0003EBAC(char *a0) {
 //   each ordering). Real-C STRUCTURAL body below. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044/00035A18/0003EC5C — same vtable
- * dispatch. Applied the proven 3A044 single-shared-jalr body (69.5%). */
+/* BYTE-IDENTICAL to gl_func_0003A044/00035A18/0003EC5C. 2026-07-07 (agent-e):
+ * RISE to 30/32 words byte-exact via the cracked 35A18 template (see 35A18 note:
+ * temp-rotation + v1<->a2 swap caps cracked; residual = 2-word off/payload
+ * load-order scheduler tie-break). A match here lands all four. */
 int gl_func_0003EBDC(char *a0) {
-    short *pair = (short*)(a0 + 8);
-    short key = pair[1];
-    short offset = pair[0];
     char *arg = *(char**)(a0 + 4);
+    char *v1 = a0 + 8;
     char *entry;
     int (*fnptr)(char *);
-
-    arg += offset;
-    if (key < 0) {
+    int idx;
+    arg = *(short*)(a0 + 8) + arg;
+    if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int selector = *(int*)(pair + 2);
-        a0 = (char*)selector;
-        if (selector == 0) {
-            if (pair[0] == 0) {
-                a0 = (char*)0x28;
-            }
-        }
-        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
-        arg += *(short*)entry;
+        int selector = *(int*)(v1 + 4);
+        if (selector == 0 && *(short*)v1 == 0) idx = 0x28; else idx = selector;
+        entry = (*(short*)(v1 + 2) << 3) + *(char**)(arg + idx);
+        arg = *(short*)entry + arg;
         fnptr = *(int (**)(char *))(entry + 4);
     }
     return fnptr(arg);
@@ -9508,30 +9477,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
 //   same C body. Real-C STRUCTURAL body below. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* 2026-05-31: BYTE-IDENTICAL to gl_func_0003A044/00035A18 — same single-shared-jalr
- * vtable dispatch. The old body did the table lookup in BOTH branches; the hi<0 path
- * is actually a DIRECT fn=a0->0xC call. Applied the proven 3A044 body (69.5%). */
+/* BYTE-IDENTICAL to gl_func_0003A044/00035A18/0003EBDC. 2026-07-07 (agent-e):
+ * RISE to 30/32 words byte-exact via the cracked 35A18 template (see 35A18 note:
+ * temp-rotation + v1<->a2 swap caps cracked; residual = 2-word off/payload
+ * load-order scheduler tie-break). A match here lands all four. */
 int gl_func_0003EC5C(char *a0) {
-    short *pair = (short*)(a0 + 8);
-    short key = pair[1];
-    short offset = pair[0];
     char *arg = *(char**)(a0 + 4);
+    char *v1 = a0 + 8;
     char *entry;
     int (*fnptr)(char *);
-
-    arg += offset;
-    if (key < 0) {
+    int idx;
+    arg = *(short*)(a0 + 8) + arg;
+    if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        int selector = *(int*)(pair + 2);
-        a0 = (char*)selector;
-        if (selector == 0) {
-            if (pair[0] == 0) {
-                a0 = (char*)0x28;
-            }
-        }
-        entry = *(char**)(arg + (int)a0) + (pair[1] << 3);
-        arg += *(short*)entry;
+        int selector = *(int*)(v1 + 4);
+        if (selector == 0 && *(short*)v1 == 0) idx = 0x28; else idx = selector;
+        entry = (*(short*)(v1 + 2) << 3) + *(char**)(arg + idx);
+        arg = *(short*)entry + arg;
         fnptr = *(int (**)(char *))(entry + 4);
     }
     return fnptr(arg);
