@@ -11432,23 +11432,27 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
 //   body below — threshold-gated event/effect trigger skeleton.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-typedef struct { int a, b; } E1FCPair;
+extern void game_uso_func_0000D5BC(char *, Pair2);
+extern char game_uso_D_807FF458;
+extern char game_uso_D_807FF440;
 void game_uso_func_0000E1FC(char *obj) {
     char *s = *(char **)(obj + 0xB4);
-    char *ctx;
-    float m;
-    double t;
-    if (!(*(float *)(s + 0x348) < *(float *)(s + 0x750))) return;
-    ctx = *(char **)(obj + 0x800);
-    if (!(*(int *)(ctx + 0x18) & 0x2000)) return;
-    if (*(int *)(s + 0x9CC) != 0) return;
-    m = *(float *)(s + 0x970);
-    if (m < 0.0f) m = -m;
-    t = *(double *)((char *)&D_00000000 + 0x00000E68 + 0x208);
-    if ((double)m < t) {
-        func_00000000(obj, *(E1FCPair *)((char *)&D_00000000 + 0xE50));
+    char *sub = s;
+    float raw, m;
+    double thr;
+    if(1){ sub += 0x740; }
+    if (!(*(float *)(sub + 0x10) > *(float *)(s + 0x348))) return;
+    sub = *(char **)(s + 0x800);
+    if (!(*(int *)(sub + 0x18) & 0x2000)) return;
+    if (*(int *)(s + 0x9CC) != 0) goto callA;
+    raw = *(float *)(s + 0x970);
+    m = (raw < 0.0f) ? -raw : raw;
+    thr = *(double *)((char *)&game_uso_D_807FF458 + 0x208);
+    if (thr < (double)m) {
+    callA:
+        game_uso_func_0000D5BC(obj, *(Pair2 *)((char *)&game_uso_D_807FF458 + 0xE68));
     } else {
-        func_00000000(obj, *(E1FCPair *)((char *)&D_00000000 + 0xE68));
+        game_uso_func_0000D5BC(obj, *(Pair2 *)((char *)&game_uso_D_807FF440 + 0xE50));
     }
 }
 #else
