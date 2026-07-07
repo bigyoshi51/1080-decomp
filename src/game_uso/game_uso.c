@@ -6872,15 +6872,26 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
 
 #ifdef NON_MATCHING
 /* game_uso_func_00007ACC: 0x150 (84 insns). Function-table dispatcher.
- * 90.08% fuzzy (up from 16.37% stub). Remaining ~10pp diff is purely
- * frame-layout: expected has 0x38 frame using caller-arg slots
- * (sp+0x3C/0x40/0x44) for incoming-arg spill, build has 0x28 frame
- * using local slots. Two extra emits in expected: a dead `sw a1, 0x34(sp)`
- * before the dispatch jal, and a `sw a1, 4(sp)` (outgoing-a1-slot save)
- * in the jal delay. Both result from IDO's spill-slot heuristic — neither
- * forced from C-level via local-variable ordering, char-pad locals, or
- * volatile decls (all attempted, all collapsed to no-op). Logic is correct,
- * codegen-cap remaining.
+ * ~92% fuzzy, 67/84 words EXACT, word-count now EQUAL (was 82 build / 84
+ * target). 2026-07 refinement CRACKED the frame-layout gap (0x28->0x38)
+ * that the old note called an unforced codegen-cap:
+ *   (1) The dispatch callee's 2nd arg is a 1-word struct passed BY VALUE
+ *       (`S1_7ACC av; av.a = **(...); func(a0, av, ...)`), which forces
+ *       IDO to emit BOTH the local temp-copy `sw a1,0x34(sp)` AND the
+ *       outgoing-home `sw a1,4(sp)` in the jal delay — exactly the two
+ *       "dead" stores the old note said were unreproducible. Same idiom
+ *       as the game_uso precall-spill family (docs/PATTERNS.md) but 1-word.
+ *   (2) The 0x958 store re-reads through the just-stored 0x954 slot
+ *       (`*(tbl+0x958)=((int*)*(int*)(tbl+0x954))[0x2C]`), not reusing r.
+ *   (3) Tail is `if(inner!=0){math}` (single beql-skip), not
+ *       `if(inner==0)return` (which inverts to bnezl+b).
+ *   (4) `av` declared FIRST fixes its stack slot to 0x34.
+ * RESIDUAL (17 words): a single register-coloring PERMUTATION — the
+ * saved return value r lands in a2 (build) vs t0 (target); everything
+ * downstream (tail temps t1-t3 vs t2-a1, inner a1 vs a2, r-spill slot
+ * 0x2C vs 0x30) shifts with it. IDO leaves t0 unused and colors r into
+ * arg-reg a2; no C lever found to flip it (|0, decl-order, temp-hoist,
+ * arm-swap all tried — permuter-immune coloring class). NOT exact.
  *
  * Signature: 4 register args (NOT idx — that comes from a0[0x40]):
  *   a0 = struct ptr (saved as s0 throughout)
@@ -6920,7 +6931,9 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
  * will reproduce when expressed as direct field accesses below. */
 extern void game_uso_func_047B1C();
 /* game_uso_func_071028 declared near game_uso_func_00001DDC. */
+typedef struct { int a; } S1_7ACC;
 int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
+    S1_7ACC av;
     int v;
     int *r;
     int *inner;
@@ -6933,9 +6946,8 @@ int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
     }
     /* Re-load v from a0[0x40] for the table-lookup — matches asm 0x7B1C
      * which has an independent lw v0,0x40(s0) after the assertion jal. */
-    r = (int*)game_uso_func_0000A374(a0,
-                               *(int*)(*(int*)((char*)&D_00000000 + 0x548 + a0[0x40 / 4] * 4)),
-                               arg3, arg4);
+    av.a = *(int*)(*(int*)((char*)&D_00000000 + 0x548 + a0[0x40 / 4] * 4));
+    r = (int*)game_uso_func_0000A374(a0, av, arg3, arg4);
     if (r == 0) return 0;
 
     if (r != (int*)a0[0x78 / 4]) {
@@ -6947,18 +6959,19 @@ int game_uso_func_00007ACC(int *a0, int *a1, int arg3, int *arg4) {
 
     *a1 = r[0x2C / 4];
     *(int*)((char*)a0[0x30 / 4] + 0x954) = (int)r;
-    *(int*)((char*)a0[0x30 / 4] + 0x958) = r[0x2C / 4];
+    *(int*)((char*)a0[0x30 / 4] + 0x958) =
+        *(int*)((char*)*(int*)((char*)a0[0x30 / 4] + 0x954) + 0x2C);
 
     inner = (int*)*(int*)((char*)a0[0x30 / 4] + 0x958);
-    if (inner == 0) return (int)r;
-
-    *(float*)((char*)a0[0x30 / 4] + 0x9B8) =
-        *(float*)((char*)a0[0x30 / 4] + 0xB4) - *(float*)((char*)inner + 0x30);
-    *(float*)((char*)a0[0x30 / 4] + 0x9BC) = 0.0f;
-    *(float*)((char*)a0[0x30 / 4] + 0x9C0) =
-        *(float*)((char*)a0[0x30 / 4] + 0xBC)
-        - *(float*)((char*)*(int*)((char*)a0[0x30 / 4] + 0x958) + 0x38);
-    game_uso_func_071028((char*)a0[0x30 / 4] + 0x9B8);
+    if (inner != 0) {
+        *(float*)((char*)a0[0x30 / 4] + 0x9B8) =
+            *(float*)((char*)a0[0x30 / 4] + 0xB4) - *(float*)((char*)inner + 0x30);
+        *(float*)((char*)a0[0x30 / 4] + 0x9BC) = 0.0f;
+        *(float*)((char*)a0[0x30 / 4] + 0x9C0) =
+            *(float*)((char*)a0[0x30 / 4] + 0xBC)
+            - *(float*)((char*)*(int*)((char*)a0[0x30 / 4] + 0x958) + 0x38);
+        game_uso_func_071028((char*)a0[0x30 / 4] + 0x9B8);
+    }
     return (int)r;
 }
 #else
