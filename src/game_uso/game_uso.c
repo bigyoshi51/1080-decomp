@@ -2460,19 +2460,35 @@ int *game_uso_func_00003A28(int *arg0) {
  * @ obj+0x28, register via game_uso_func_052F70(arg0, s0, -1). Body is the
  * correct C.
  *
- * HARD CAP — NOT byte-matchable from compilable C. Two irreducible diffs:
- *   (1) RELOC FORM (structural, unfixable). EXPECTED loads each global as
- *       `lui %hi(D_807FECxx)` + a RAW-WORD `lw 0x680(reg)` carrying NO
- *       R_MIPS_LO16 (splat left the lw unpaired because the HI16 symbol and
- *       the 0x680 offset don't form a clean %hi/%lo pair). IDO ALWAYS emits
- *       a HI16+LO16 *pair* for `&sym + off` (verified in standalone-cc:
- *       lui %hi -> lw %lo, both relocs). No C construct yields HI16-only +
- *       literal-offset lw. => >=12 permanent reloc diffs, one per iteration.
- *   (2) $s-promotion cascade (same as game_uso_func_00003018): EXP frame
- *       -0x70 spills the global temp to a home slot (108,104,..,64) + working
- *       slot (36) around the alloc and reloads; IDO keeps dN live across the
- *       alloc and promotes to $s1 (frame -0x58). Resists source restructuring.
- * Even solving (2) leaves (1) unmatchable. Permanent INCLUDE_ASM. */
+ * 2026-06-22 HARD-CAP verdict RETRACTED 2026-07-07 (agent-e): cap (1)
+ * "reloc form" is falsified under the reloc-free landing convention —
+ * all syms are =0 in undefined_syms, so IDO's HI16/LO16 pair vs the .s
+ * raw-word lw produce IDENTICAL BYTES at link (lui 0x0000 / lw 0x680+4k).
+ * Cap (2) "$s-promotion" cracked: the block is really TWO variables —
+ * per-block struct dN (descending home, 0x6C..0x40) + a SHARED 4-byte
+ * struct staging slot at 0x24 that feeds the K&R struct-by-value arg of
+ * game_uso_func_051E64 (hence `lw a1,0x24(sp)` + the `sw a1,4(sp)`
+ * arg-HOME store in the jal delay slot). Matching form (253/261 words):
+ *   - dN.v = *(int*)((char*)&D_807FECxx + 0x680+4k);  (scalar load —
+ *     transient tN, t6/t0/t4/t8/t2 rotation)
+ *   - curX = dN;   (4-byte STRUCT copy — forwards the tN into BOTH sw's
+ *     without creating a v0 register candidate; a scalar copy or chained
+ *     assignment here allocates $v0 instead and breaks the t-rotation)
+ *   - init(s0, curX, 0, 0)  passes curX struct-by-value.
+ *   - &D_807FEAA8 must be 12 DISTINCT zero-value extern aliases
+ *     (game_uso_D_807FEAA8, _2.._12) or uopt GCSEs the address into $s1.
+ *   - frame layout: registerized locals keep GHOST slots — `void *s0;`
+ *     declared LAST parks its ghost at 0x20, putting dN at 0x6C..0x40,
+ *     the 5 volatile pads + curB at 0x3C..0x28 and curA at 0x24 (frame
+ *     -0x70 exact).
+ * RESIDUAL (8 words, 4 blocks): uopt turns struct copies POINTER-BASED
+ * (addiu sN,sp,K base + lw/sw 0(sN)) once ONE variable participates in
+ * >=9 block copies (8 is the empirical max; 9+ flips ALL copies).
+ * Target stages all 12 blocks through slot 0x24; best compilable split
+ * is curA x8 (0x24, matches) + curB x4 (0x28, 4 blocks' 2 words off).
+ * The original construct for a 12-way shared staging temp is unknown
+ * (scoped locals get distinct slots; unions/ternary/comma/register/
+ * volatile forms all tested — see episode notes). 253/261 = 96.9%. */
 #ifdef NON_MATCHING
 extern char game_uso_D_807FEC70;
 extern char game_uso_D_807FEC74;
@@ -2487,106 +2503,122 @@ extern char game_uso_D_807FEC94;
 extern char game_uso_D_807FEC98;
 extern char game_uso_D_807FEC9C;
 extern char game_uso_D_807FEAA8;
+extern char game_uso_D_807FEAA8_2;
+extern char game_uso_D_807FEAA8_3;
+extern char game_uso_D_807FEAA8_4;
+extern char game_uso_D_807FEAA8_5;
+extern char game_uso_D_807FEAA8_6;
+extern char game_uso_D_807FEAA8_7;
+extern char game_uso_D_807FEAA8_8;
+extern char game_uso_D_807FEAA8_9;
+extern char game_uso_D_807FEAA8_10;
+extern char game_uso_D_807FEAA8_11;
+extern char game_uso_D_807FEAA8_12;
 extern int game_uso_func_055750();
 extern void game_uso_func_051E64();
 extern void game_uso_func_052F70();
+typedef struct { int v; } S3AC0;
 void game_uso_func_00003AC0(void *arg0) {
+    S3AC0 d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11;
+    volatile int pad1, pad2, pad3, pad4, pad5;
+    S3AC0 curB;
+    S3AC0 curA;
     void *s0;
-    int d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11;
 
-    d0 = *(int*)((char*)&game_uso_D_807FEC70 + 0x680);
+    d0.v = *(int*)((char*)&game_uso_D_807FEC70 + 0x680);
+    curA = d0;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d0, 0, 0);
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curA, 0, 0);
         *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d1 = *(int*)((char*)&game_uso_D_807FEC74 + 0x680);
+    d1.v = *(int*)((char*)&game_uso_D_807FEC74 + 0x684);
+    curA = d1;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d1, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curA, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_2;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d2 = *(int*)((char*)&game_uso_D_807FEC78 + 0x680);
+    d2.v = *(int*)((char*)&game_uso_D_807FEC78 + 0x688);
+    curA = d2;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d2, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curA, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_3;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d3 = *(int*)((char*)&game_uso_D_807FEC7C + 0x680);
+    d3.v = *(int*)((char*)&game_uso_D_807FEC7C + 0x68C);
+    curA = d3;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d3, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curA, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_4;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d4 = *(int*)((char*)&game_uso_D_807FEC80 + 0x680);
+    d4.v = *(int*)((char*)&game_uso_D_807FEC80 + 0x690);
+    curA = d4;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d4, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curA, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_5;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d5 = *(int*)((char*)&game_uso_D_807FEC84 + 0x680);
+    d5.v = *(int*)((char*)&game_uso_D_807FEC84 + 0x694);
+    curA = d5;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d5, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curA, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_6;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d6 = *(int*)((char*)&game_uso_D_807FEC88 + 0x680);
+    d6.v = *(int*)((char*)&game_uso_D_807FEC88 + 0x698);
+    curA = d6;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d6, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curA, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_7;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d7 = *(int*)((char*)&game_uso_D_807FEC8C + 0x680);
+    d7.v = *(int*)((char*)&game_uso_D_807FEC8C + 0x69C);
+    curA = d7;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d7, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curA, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_8;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d8 = *(int*)((char*)&game_uso_D_807FEC90 + 0x680);
+    d8.v = *(int*)((char*)&game_uso_D_807FEC90 + 0x6A0);
+    curB = d8;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d8, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curB, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_9;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d9 = *(int*)((char*)&game_uso_D_807FEC94 + 0x680);
+    d9.v = *(int*)((char*)&game_uso_D_807FEC94 + 0x6A4);
+    curB = d9;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d9, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curB, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_10;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d10 = *(int*)((char*)&game_uso_D_807FEC98 + 0x680);
+    d10.v = *(int*)((char*)&game_uso_D_807FEC98 + 0x6A8);
+    curB = d10;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d10, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curB, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_11;
     }
     game_uso_func_052F70(arg0, s0, -1);
-
-    d11 = *(int*)((char*)&game_uso_D_807FEC9C + 0x680);
+    d11.v = *(int*)((char*)&game_uso_D_807FEC9C + 0x6AC);
+    curB = d11;
     s0 = (void*)game_uso_func_055750(0x58);
-    if (s0 != NULL) {
-        game_uso_func_051E64(s0, d11, 0, 0);
-        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8;
+    if (s0 != 0) {
+        game_uso_func_051E64(s0, curB, 0, 0);
+        *(int*)((char*)s0 + 0x28) = (int)&game_uso_D_807FEAA8_12;
     }
     game_uso_func_052F70(arg0, s0, -1);
 }
