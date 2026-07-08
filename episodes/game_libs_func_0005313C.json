@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0005313C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T14:25:54.042760+00:00",
+  "end_time": "2026-07-08T14:25:54.042781+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T14:25:54.042775+00:00",
+      "assistant_text": "6-byte-record table lookup, 78.3%->exact. (1) 6-byte struct array indexing (S6{u16 h0,h1,h2}; &tbl60[...]) produces the same-register sll/subu/sll x6 IXA chains. (2) A NAMED idx local can NEVER match: interference is BB-granular so it colors $a1 ahead of the param (injects move a2,a1); the target's $t9 home means idx must stay an EXPRESSION TEMP. (3) Load-bearing spelling (permuter iter ~111, hand-minimized): (v1 + a1)->h0 flat pointer-add deref instead of v1[a1].h0 \u2014 flips outer temp order (tbl60 base lw = first temp t6, lhu -> t9, final addu base-first). Cousin of the array-IXA addu-order rule: INNER SPELLING selects the ucode shape.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 20,
+  "initial_m2c_source": null,
+  "final_source": "/* Nested 6-byte-stride table lookup: entry = tbl60[tbl70 ? tbl70[i].h0 : i].\n * Merged: the v1==0 branch was splat-split off as game_libs_func_00053174\n * (UNSHARED); merged back (0x38 -> 0x50). MATCH (2026-07-08): 6-byte struct\n * array indexing gives the IXA same-reg sll/subu/sll chains; the load-bearing\n * detail is `(v1 + a1)->h0` (pointer-add deref) instead of `v1[a1].h0` \u2014 the\n * uadd form allocates the tbl60 base load as the FIRST temp (t6) and keeps\n * the lhu in t9, where the uixa array-index form numbers the index chain\n * t6-first and swaps the final addu operands (78% plateau). */\ntypedef struct { u16 h0, h1, h2; } Ent6_5313C;\ntypedef struct { char pad[0x60]; Ent6_5313C *tbl60; char pad2[0xC]; Ent6_5313C *tbl70; } Tbls_5313C;\nEnt6_5313C *game_libs_func_0005313C(Tbls_5313C *a0, int a1) {\n    Ent6_5313C *v1 = a0->tbl70;\n    if (v1 != 0) {\n        return &a0->tbl60[(v1 + a1)->h0];\n    }\n    return &a0->tbl60[a1];\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_0005313C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "20/20 word-exact (in-tree object at 0x1ece4) + make ROM byte-identical (promoted)"
+  }
+}
