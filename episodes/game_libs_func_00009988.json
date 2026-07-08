@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00009988",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:42:00.997332+00:00",
+  "end_time": "2026-07-08T13:42:00.997350+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:42:00.997345+00:00",
+      "assistant_text": "Byte-flag-pack twin of 9C04 (d[1] store variant), EXACT on FIRST template application \u2014 'arg-home spill / frameless mutually exclusive' cap DISSOLVED by unsigned char a2,a3 params (emit both sw arg-homes AND eager andi extends) + comma-init for-loop pre-header + trailing if(n==3)break. Tail: a0[0] = ((unsigned char)a0[0] & 0xFF80) | a2 | (a3<<3) \u2014 the 0xFF80 literal survives unfolded.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "/* 4-arg string-builder: a0[2..4] = a1[0..2] (3-byte copy); then pack a flag\n * byte a0[0] = (a0[0] & 0xFF80) | a2 | (a3 << 3). EXACT 21/21 (2026-07-08):\n * the old \"modified-param home-spill cap\" dissolved via the 9C04 lever \u2014\n * unsigned char params emit BOTH the sw a2,8(sp)/sw a3,0xC(sp) arg homes AND\n * the eager andi 0xFF zero-extends; comma-init for-loop pre-header + trailing\n * if(n==3)break (99DC/9B60/9C04 recipe) gives li a1,3 + sb-in-delay. */\nvoid game_libs_func_00009988(char *a0, char *a1, unsigned char a2, unsigned char a3) {\n    int n;\n    char *d, *s;\n    for (n = 0, d = a0, s = a1; ;) {\n        n++;\n        d++;\n        d[1] = *s;\n        s++;\n        if (n == 3) {\n            break;\n        }\n    }\n    a0[0] = ((unsigned char)a0[0] & 0xFF80) | a2 | (a3 << 3);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00009988.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "21/21 word-exact (real path) + make ROM byte-identical"
+  }
+}

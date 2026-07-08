@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00009B0C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:42:01.248945+00:00",
+  "end_time": "2026-07-08T13:42:01.248963+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:42:01.248957+00:00",
+      "assistant_text": "Byte-flag-pack twin of 9C04/9988 (d[0] store variant), EXACT on first template application \u2014 same uchar-param + comma-init recipe.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 21,
+  "initial_m2c_source": null,
+  "final_source": "/* Sibling of 00009988 (copy to a0[1..3] via d[0]; same flag-pack a0[0]).\n * EXACT 21/21 (2026-07-08) via the same uchar-param + comma-init-for-loop\n * lever (see 00009988 / 00009C04). */\nvoid game_libs_func_00009B0C(char *a0, char *a1, unsigned char a2, unsigned char a3) {\n    int n;\n    char *d, *s;\n    for (n = 0, d = a0, s = a1; ;) {\n        n++;\n        d++;\n        d[0] = *s;\n        s++;\n        if (n == 3) {\n            break;\n        }\n    }\n    a0[0] = ((unsigned char)a0[0] & 0xFF80) | a2 | (a3 << 3);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00009B0C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "21/21 word-exact (real path) + make ROM byte-identical"
+  }
+}

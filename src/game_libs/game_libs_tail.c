@@ -159,31 +159,26 @@ void game_libs_func_00009978(unsigned char *arg0) {
     *arg0 &= 0x7F;
 }
 
-#ifdef NON_MATCHING
 /* 4-arg string-builder: a0[2..4] = a1[0..2] (3-byte copy); then pack a flag
- * byte a0[0] = (a0[0] & 0xFF80) | (a2 & 0xFF) | ((a3 & 0xFF) << 3). CAP:
- * target home-spills the modified params a2,a3 (sw a2,8(sp); sw a3,0xC(sp))
- * at entry — the modified-param home-spill (same class as 0002BA08) isn't
- * C-reachable, leaving the build 2 insns short + bitfield register-renumber.
- * Faithful decode for documentation; INCLUDE_ASM build path. */
-void game_libs_func_00009988(char *a0, char *a1, int a2, int a3) {
-    int n = 0;
-    char *d = a0;
-    char *s = a1;
-    a3 &= 0xFF;
-    a2 &= 0xFF;
-    do {
-        char c = *s;
+ * byte a0[0] = (a0[0] & 0xFF80) | a2 | (a3 << 3). EXACT 21/21 (2026-07-08):
+ * the old "modified-param home-spill cap" dissolved via the 9C04 lever —
+ * unsigned char params emit BOTH the sw a2,8(sp)/sw a3,0xC(sp) arg homes AND
+ * the eager andi 0xFF zero-extends; comma-init for-loop pre-header + trailing
+ * if(n==3)break (99DC/9B60/9C04 recipe) gives li a1,3 + sb-in-delay. */
+void game_libs_func_00009988(char *a0, char *a1, unsigned char a2, unsigned char a3) {
+    int n;
+    char *d, *s;
+    for (n = 0, d = a0, s = a1; ;) {
         n++;
         d++;
+        d[1] = *s;
         s++;
-        d[1] = c;
-    } while (n != 3);
-    a0[0] = ((int)(unsigned char)a0[0] & 0xFF80) | a2 | (a3 << 3);
+        if (n == 3) {
+            break;
+        }
+    }
+    a0[0] = ((unsigned char)a0[0] & 0xFF80) | a2 | (a3 << 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009988);
-#endif
 
 /* 7-arg string-builder: a0[0]=a1; a0[1]=a2; 3x copy (a3[i]-0x61)->a0[2..4];
  * a0[5..7]=stack args. MATCHED (byte-exact). The prior "loop-bound const
@@ -254,28 +249,23 @@ void game_libs_func_00009AFC(unsigned char *arg0) {
     *arg0 &= 0x7F;
 }
 
-#ifdef NON_MATCHING
 /* Sibling of 00009988 (copy to a0[1..3] via d[0]; same flag-pack a0[0]).
- * Same modified-param home-spill cap (a2,a3 spilled at entry). Faithful
- * decode; INCLUDE_ASM build path. */
-void game_libs_func_00009B0C(char *a0, char *a1, int a2, int a3) {
-    int n = 0;
-    char *d = a0;
-    char *s = a1;
-    a3 &= 0xFF;
-    a2 &= 0xFF;
-    do {
-        char c = *s;
+ * EXACT 21/21 (2026-07-08) via the same uchar-param + comma-init-for-loop
+ * lever (see 00009988 / 00009C04). */
+void game_libs_func_00009B0C(char *a0, char *a1, unsigned char a2, unsigned char a3) {
+    int n;
+    char *d, *s;
+    for (n = 0, d = a0, s = a1; ;) {
         n++;
         d++;
+        d[0] = *s;
         s++;
-        d[0] = c;
-    } while (n != 3);
-    a0[0] = ((int)(unsigned char)a0[0] & 0xFF80) | a2 | (a3 << 3);
+        if (n == 3) {
+            break;
+        }
+    }
+    a0[0] = ((unsigned char)a0[0] & 0xFF80) | a2 | (a3 << 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009B0C);
-#endif
 
 /* 3-byte transform copy (a2[i]-0x61 -> a0[1..3]) + a0[0]=a1 + a0[4]=a3.
  * Byte-exact via comma-init for-loop AFTER the leading store + trailing
