@@ -4194,97 +4194,52 @@ void gl_func_00021498(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00021498);
 #endif
 
-/* game_libs_func_00021D2C: 22-insn (0x58) table-search loop. BOUNDARY
- * MERGED 2026-06-02: splat over-split the loop tail as a separate symbol
- * (00021D70, 5-insn increment/exit whose `bne` branches backward to 0x21D48
- * inside this body; 21D2C's own `blez`/`bne` branch forward into it).
- * Absorbed 21D70's 5 words into 21D2C (0x44 -> 0x58, ends exactly at the next
- * func 0x21D84); dropped the 21D70 symbol. Scans a global 0xC-stride record
- * table (count at +9524) matching a0==rec.h0(+9536) && a2==rec.h2(+9538),
- * returns rec+9528 on hit. Reloc-blind USO; stays INCLUDE_ASM. */
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00021D2C)();
-s32 game_libs_func_00021D2C(s32 arg0, s32 arg1) {
-    s32 temp_v1;
-    s32 var_v0;
-    char *var_a1;
-
-    temp_v1 = *(s32 *)0x2534;
-    var_v0 = 0;
-    if (temp_v1 > 0) {
-        var_a1 = 0;
-loop_2:
-        var_v0 += 1;
-        if ((arg0 == *(s16 *)((char *)var_a1 + 0x2540)) && (arg1 == *(s16 *)((char *)var_a1 + 0x2542))) {
-            return FW(var_a1, 0x2538);
-        }
-        var_a1 += 0xC;
-        if (var_v0 >= temp_v1) {
-            /* Duplicate return node #6. Try simplifying control flow for better match */
-            return 0;
-        }
-        goto loop_2;
-    }
-    return 0;
-}
-#else
-/* game_libs_func_00021D2C: pair-key table search. n = D+0x2534 records
- * of 12 bytes at D+0x2538 (layout: int val; pad; short key_a; short
- * key_b); returns val of the first record matching (a0,a1), else 0.
- * Pass 1 2026-06-10, 22/22 insns at 15 register-level diffs (~72%
- * words). Load-bearing NEGATIVE findings on the way to 22/22:
- *  - short params -> sign-extension homing explosion (69 insns);
- *  - do-while form -> IDO -O2 UNROLLS the counted loop x4 with an
- *    alignment-versioning prologue (64 insns) EVEN with an aligned
- *    struct type -- only the goto-label form compiles compact (extends
- *    the 8988 sequential-loop lesson to single counted loops);
- *  - i<n exit collapses the rotation (20 insns); the i==n form keeps
- *    22 but emits bne-vs-slt (target has slt HOISTED between the key
- *    compares + bnez at bottom -- a rotated for(;;i<n) the goto form
- *    does not reproduce exactly).
- * Residual: count colors v1 (mine v0-adjacent), cursor in a1 (the
- * moved-arg register), slt placement. Regalloc/rotation hybrid. */
-#ifdef NON_MATCHING
-typedef struct Rec21D2C {
-    int val;
-    int _pad;
-    short key_a;
-    short key_b;
-} Rec21D2C;
-extern int D_21D2C_count;
-extern Rec21D2C D_21D2C_tbl[];
-
+/* game_libs_func_00021D2C: pair-key table search, EXACT MATCH (22/22 words,
+ * 2026-07-08 agent-e). BOUNDARY MERGED 2026-06-02: absorbed over-split loop
+ * tail 00021D70 (0x44 -> 0x58). n = D+0x2534 records of 12 bytes; returns
+ * rec val (+0x2538) of first record matching (a0,a1) on keys +0x2540/+0x2542
+ * (SIGNED shorts -> lh), else 0.
+ * MATCH KEYS (each verified load-bearing):
+ *  - gl_d_21d2c_n vs gl_d_21d2c_tbl DISTINCT base-0 externs: busts the
+ *    lui CSE so the n-load folds (lui;lw) while the cursor materializes
+ *    separately (lui;addiu) like the target;
+ *  - dead n-reload inside the loop: CSE'd to ZERO insns (no stores in
+ *    loop) but blocks uopt's i<n -> i!=n counted-loop conversion, keeping
+ *    the target's hoisted `slt` + bottom `bnez`;
+ *  - `while (0) { a0 += 1; }` ref-boost pins key_a in $a0 (else IDO
+ *    evicts a0 to a2 and gives a0 to the counter);
+ *  - `b = a1; a1 = 0;` e-split kill: b's copy can't coalesce with the
+ *    multi-def a1 web -> `move a2,a1` materializes, freeing $a1 for the
+ *    cursor (coloring i=v0/n=v1/cursor=a1/b=a2);
+ *  - `cursor = (i = 0) + gl_d_21d2c_tbl;` fused init: orders the guard
+ *    block [move;addiu] so as1 sinks i=0 (not the cursor addiu) into the
+ *    blez delay slot;
+ *  - do-while + the dead reload also defeats the x4 unroller (goto form
+ *    alone bne-converts; for/do-while forms without the reload unroll).
+ * (Historical negative findings from pass 1 2026-06-10 retained in git
+ * history; the "regalloc/rotation hybrid cap" verdict is RETRACTED.) */
+extern char gl_d_21d2c_tbl[];
+extern char gl_d_21d2c_n[];
 int game_libs_func_00021D2C(int a0, int a1) {
-    int n;
-    int i;
-    int a2;
-    Rec21D2C *p;
-
-    n = D_21D2C_count;
-    a2 = a1;
-    p = D_21D2C_tbl;
-    i = 0;
+    int i = 0;
+    int n = *(int *)(gl_d_21d2c_n + 0x2534);
+    char *cursor;
+    int b = a1;
+    a1 = 0;
+    while (0) { a0 += 1; }
     if (n > 0) {
-loop:
-        i += 1;
-        if (a0 == p->key_a && a2 == p->key_b) {
-            return p->val;
-        }
-        p += 1;
-        if (i == n) {
-            return 0;
-        }
-        goto loop;
+        cursor = (i = 0) + gl_d_21d2c_tbl;
+        do {
+            i++;
+            if (a0 == *(short *)(cursor + 0x2540) && b == *(short *)(cursor + 0x2542)) {
+                return *(int *)(cursor + 0x2538);
+            }
+            n = *(int *)(gl_d_21d2c_n + 0x2534);
+            cursor += 0xC;
+        } while (i < n);
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021D2C);
-#endif
-#endif
 
 /* gl_func_00021D84: 33-insn slot-register helper.
  *   count = D[0x2534];
@@ -5770,27 +5725,34 @@ void gl_func_000232E8(int idx, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000232E8);
 #endif
 
-/* Table lookup into a global at &D_00000000+0x2028: base = *(that); idx =
- * *(u16*)(base + a0*2); c = base[idx]; if c!=0 return base+idx+1 (string ptr);
- * else *a1 = 0, return 0. Merged: the non-zero return (base+idx+1) was
- * splat-split off as game_libs_func_000233D4 (UNSHARED); merged back
- * (0x34 -> 0x44). Reloc-blind (uses &D global, no episode); NOT byte-exact:
- * IDO folds the &D base into lui+lw (target uses lui+addiu+lw separate base).
- * INCLUDE_ASM is the build path. */
-#ifdef NON_MATCHING
-int game_libs_func_000233A0(int a0, char *a1) {
-    char *base = *(char**)((char*)&D_00000000 + 0x2028);
-    int idx = *(unsigned short*)(base + a0 * 2);
-    char c = base[idx];
-    if (c != 0) {
-        return (int)(base + idx + 1);
+/* game_libs_func_000233A0: string-table cursor advance, EXACT MATCH (17/17
+ * words, 2026-07-08 agent-e; retracts the "IDO folds the &D base" NM
+ * verdict). tbl = *(D+0x2028); off = ((u16*)tbl)[a0]; c = tbl[off++];
+ * *out = c; returns tbl-refetched + off on nonzero c, else 0. Includes the
+ * splat-split tail 000233D4 (merged 0x34 -> 0x44 earlier).
+ * MATCH KEYS:
+ *  - gl_d_233A0 base-0 ARRAY extern referenced DIRECTLY in both derefs ->
+ *    base materialized ONCE (lui;addiu, colored $a2) instead of per-use
+ *    scalar-fold lui;lw;
+ *  - `*out = ...; if (*out == 0)` store-to-load-forwarding form: the test
+ *    reads the just-stored value (no reload emitted) while keeping the
+ *    loaded byte a scheduler TEMP ($t9) -- naming it or testing an
+ *    assignment-expression promotes it to a candidate ($a2) and rotates
+ *    the base to $a3;
+ *  - the return re-derefs D+0x2028 fresh: the *out store (unknown alias)
+ *    legitimately blocks CSE, reproducing the target's reload ($t1);
+ *  - `off++ + (int)tbl` post-increment spelling gives the target's
+ *    addu operand order (off first). */
+extern char gl_d_233A0[];
+int game_libs_func_000233A0(int a0, int *a1) {
+    char *tbl = *(char **)(gl_d_233A0 + 0x2028);
+    int off = ((unsigned short *)tbl)[a0];
+    *a1 = *(unsigned char *)(off++ + (int)tbl);
+    if (*a1 == 0) {
+        return 0;
     }
-    *a1 = c;
-    return 0;
+    return (int)(*(char **)(gl_d_233A0 + 0x2028) + off);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000233A0);
-#endif
 
 // gl_func_000233E4 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
@@ -6344,31 +6306,42 @@ int gl_func_00023B44(int a0, int a1) {
     return 0;
 }
 
-/* game_libs_func_00023B98: 3-case dispatch returning USO data fields.
- * MERGED 2026-05-26: absorbed shared-tail fragments _00023BC0, _00023BC8,
- * _00023BD0 (each a 2-3 insn `jr ra; lw v0, OFFSET($v1)` epilogue, branch
- * target from this function's beq's). 0x28 -> 0x44 bytes.
- *
- * Semantic decode (CORRECTED 2026-05-27 — prior doc had off-by-one
- * case mapping; verified against asm at 0x28E0/0x28E8/0x28F0 dispatch
- * targets):
- *   if (idx == 0) return D[0x201C];
- *   if (idx == 1) return D[0x2020];
- *   if (idx == 2) return D[0x2024];
- *   return 0;
- *
- * NM-wrap form below produces 25% match — IDO -O2 emits `bne` early-skip
- * with inline-jr per case; target uses `beq` to SEPARATE shared-tail
- * blocks with `lui` hoisted into the beq's delay slot. Different shape;
- * not C-reproducible (the shared-tail pattern requires goto-out + label
- * which IDO can't merge at the lui-delay level). Default INCLUDE_ASM
- * is byte-exact. */
+/* game_libs_func_00023B98: 3-case dispatch returning USO data fields
+ * (idx==0 -> D[0x201C], 1 -> D[0x2020], 2 -> D[0x2024], else 0). MERGED
+ * 2026-05-26: absorbed shared-tail fragments _00023BC0/_00023BC8/_00023BD0.
+ * RISE 2026-07-08 agent-e: 25% -> 15/17 words. The old "beq-to-shared-tail
+ * not C-reproducible" verdict is WRONG -- the shape is a SWITCH with the
+ * DEFAULT CASE FIRST (default block lays out right after the compare chain
+ * = target's inline `jr;move v0,zero`) + per-case named locals off an
+ * array-decay base (`v = *(int*)(g+K); return v;` -> base rematerializes
+ * as `lui $v1` in each beq delay slot, loads go straight to $v0).
+ * RESIDUAL (2 words): target case 2 is `lw v1,0x2024(v1); jr; move v0,v1`
+ * (load into the base reg + copy in the jr delay) vs our coalesced
+ * `lw v0,0x2024(v1); jr; nop`. Every anti-coalesce lever tried (2-def
+ * webs, phi via dead-cond -- adds a branch, |0/^0/+0 identities fold,
+ * volatile regresses, decl-order inert, break-then-return, char* local,
+ * g-reuse multi-def): the single-def return copy always coalesces into
+ * $v0 (docs/IDO_CODEGEN "move v0,v1 in final jr delay" placement-cap
+ * family, rule-4 single-def coalescing). NM wrap; INCLUDE_ASM is the
+ * build path. */
 #ifdef NON_MATCHING
+extern char gl_d_23B98[];
 int game_libs_func_00023B98(int idx) {
-    if (idx == 0) return *(int*)((char*)&D_00000000 + 0x201C);
-    if (idx == 1) return *(int*)((char*)&D_00000000 + 0x2020);
-    if (idx == 2) return *(int*)((char*)&D_00000000 + 0x2024);
-    return 0;
+    char *g = gl_d_23B98;
+    int v;
+    switch (idx) {
+    default:
+        return 0;
+    case 0:
+        v = *(int *)(g + 0x201C);
+        return v;
+    case 1:
+        v = *(int *)(g + 0x2020);
+        return v;
+    case 2:
+        v = *(int *)(g + 0x2024);
+        return v;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023B98);
@@ -9935,66 +9908,90 @@ void gl_func_000275C8(void) {
     gl_func_00000000(*(void **)(g + 0x53C8), 0, 1);
 }
 
-/* game_libs_func_000275F4 (0xC4 after merging 2765C/27684/27694): a
- * region-wide out-branch census (2026-06-10) showed the four symbols'
- * cross-branches all land at +0/+4 of the next -- one shattered
- * function. Its remaining external branches enter the ADJACENT MATCHED
- * leaves 276B8(+4)/276D0(+0)/276D8(+4) = the branch-into-adjacent-leaf
- * shared-tail cap family (INCLUDE_ASM faithful). Same census found the
- * OTHER hub: 27534+8 is the shared tail of 273B8/27438/27488/274A0. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000275F4);
-
-/* 0x276xx leaf-branch-past-end cluster: 3 tiny leaves with forward
- * `beq/bne +small` branches that target at or past function-end (falling
- * into successor's first insn). Cross-fn shared-epilogue tail-merges per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Covers
- * game_libs_func_0002765C, _00027684, _00027694. CAP class. */
-/* game_libs_func_0002765C MERGED into 275F4 2026-06-10 (shattered-fn census). */
-
-/* game_libs_func_00027684 MERGED into 275F4 2026-06-10 (shattered-fn census). */
-
-/* game_libs_func_00027694 MERGED into 275F4 2026-06-10 (shattered-fn census). */
-
-#ifdef NON_MATCHING
-/* game_libs_func_000276B8: pointer-chain subtract — returns
- * (*a0)->8->4 - a3->0x18. Logic exact; near-miss: the two unused MIDDLE args
- * (a1/a2 = $5/$6) are reused as scratch for the loads, but IDO -O2 homes one
- * of them (sw a1,4(sp)) defensively even though the function has NO jal to
- * pass it through (so the feedback_ido_unused_arg_fix_pass_to_callee remedy
- * doesn't apply). Reassigning the param kills a2's home but not a1's = +1 insn.
- * Reloc-free (episode-worthy if the home were avoidable). Unused-middle-arg-
- * home-without-jal cap. */
-int game_libs_func_000276B8(int **a0, int *a1, int a2) {
-    /* 2026-06-10 decode correction: the subtrahend loads from 0x18(a1)
-     * (the SECOND arg), not a3[6] -- structure now 6/6 with both
-     * dead-arg overwrites (a2 = value, a1 = chain result). Remaining
-     * 4 word diffs: target's chain temps are t0/t1 (5th/6th temps)
-     * vs standalone t6/t7. RESOLVED 2026-06-10: 275F4's census already
-     * shows its branches enter THIS leaf at +4 -- 276B8 is an INTERIOR
-     * ENTRY of 275F4's parent function (the 6F038 two-entry class):
-     * the original TU had no standalone 276B8, callers jal into the
-     * parent's tail block, so its temps continue the parent's counter
-     * (t6..t9 consumed by the parent's head, visible in 275F4's
-     * disasm). 95.83 is therefore the standalone-C ceiling; the parent
-     * region [0x275F4..0x276E4) is INCLUDE_ASM-faithful as documented.
-     * NOT the shattered-switch class (no jr-tN dispatcher). */
-    a2 = a1[6];
-    a1 = (int *)*(int *)(*(int *)((char *)*a0 + 8) + 4);
-    return (int)a1 - a2;
+/* game_libs_func_000275F4: EXACT MATCH (60/60 words, 2026-07-08 agent-e)
+ * after the FULL reverse-merge. History: absorbed 2765C/27684/27694
+ * (2026-06-10 census), then 2026-07-08 absorbed the remaining three
+ * "adjacent leaves" 276B8/276D0/276D8 too (0xC4 -> 0xF0, ends at 276E4):
+ * 275F4's beql/bne/bnezl targets 276BC/276D0/276DC all live inside them,
+ * and the "leaves" were fragments (276B8 = bnezl likely-dup + parent tail
+ * with caller-set regs; 276D0/276D8 = its shared return-0 blocks). The
+ * "branch-into-adjacent-leaf shared-tail cap / INCLUDE_ASM faithful"
+ * verdict and 276B8's "interior entry two-entry class" analysis are
+ * RETRACTED -- it is ONE ordinary function (same pattern as the
+ * timproc 1D1C+1DA4 merge). 276D0's trivial-leaf episode retracted.
+ *
+ * Semantics: per-slot record rec = D + a0*0x160; validates a chain of
+ * flagged sub-records (bit31 = valid on rec+0x2D00, *p1, *p2; bit27 on
+ * *p2), p2 = *(p1+0x50+a2*4) with p1 = *(rec+0x2D38+a1*4), q = *(p2+0x2C)
+ * back-linked (q+0x44 == p2), r = *(q+0xC0); returns
+ * *(*(*r+8)+4) - *(q+0x18) (chain-cursor minus base), else 0.
+ * MATCH KEYS:
+ *  - the three bit31 checks spelled `!(*(u32*)X >> 31)` -> srl+beql to a
+ *    SHARED `goto ret0` tail (plain if-return emits bltzl inline, +4);
+ *  - null checks plain `if (!p) return 0;` -> bnez/bnezl with inline
+ *    [jr;move] return blocks + as1 likely-dup words (natural);
+ *  - `flags = *(int*)p2;` named local CSEs the bit31+bit27 reads into
+ *    one $v1 load (two casts re-load, 2 extra words);
+ *  - `(flags << 3 << 1)` split-shift phantom-alloc re-phases the ugen
+ *    temp FIFO (+1 pop) so the tail chain runs t8/t9/t0/t1 like target;
+ *  - q REUSED for r (`q = *(char**)(q+0xC0)`) = multi-def web; the
+ *    `q2 = q` snapshot then can't coalesce -> materializes the target's
+ *    `move v1,a0` live-range split (r loads into $a0 over the dead q);
+ *  - q44 mismatch exits via its own `goto ret0b` label AFTER the tail
+ *    (out of as1's 9-insn dup window -> plain bne+nop to a far [jr;move]);
+ *  - tail operands NAMED (`end`/`start`, end assigned first) -> color
+ *    $a1/$a2 with the target's subu order. */
+extern char gl_d_275F4[];
+int game_libs_func_000275F4(int a0, int a1, int a2) {
+    char *rec = gl_d_275F4 + a0 * 0x160;
+    char *p1;
+    char *p2;
+    char *q;
+    char *q2;
+    int flags;
+    int end;
+    int start;
+    if (!(*(unsigned int *)(rec + 0x2D00) >> 31)) {
+        goto ret0;
+    }
+    p1 = *(char **)(rec + 0x2D38 + a1 * 4);
+    if (!(*(unsigned int *)p1 >> 31)) {
+        goto ret0;
+    }
+    p2 = *(char **)(p1 + 0x50 + a2 * 4);
+    if (p2 == 0) {
+        return 0;
+    }
+    flags = *(int *)p2;
+    if (!((unsigned int)flags >> 31)) {
+        goto ret0;
+    }
+    q = *(char **)(p2 + 0x2C);
+    if (q == 0) {
+        return 0;
+    }
+    if ((flags << 3 << 1) >= 0) {
+        return 0;
+    }
+    q2 = q;
+    if (p2 != *(char **)(q + 0x44)) {
+        goto ret0b;
+    }
+    q = *(char **)(q + 0xC0);
+    if (q == 0) {
+        return 0;
+    }
+    end = *(int *)(*(int *)(*(int *)q + 8) + 4);
+    start = *(int *)(q2 + 0x18);
+    return end - start;
+ret0b:
+    return 0;
+ret0:
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276B8);
-#endif
 
-int game_libs_func_000276D0(void) { return 0; }
-
-/* game_libs_func_000276D8: 3-insn `move v0,zero; jr ra; nop` return-0 stub
- * (size 0xC, unfilled-delay form). Sibling of 000276D0 (filled-delay,
- * size 0x8, already matched as `int f(void){return 0;}`). The 0xC form
- * needs per-file -g3/-O0 split per
- * feedback_unfilled_delay_int_reader_needs_o0_split. Default INCLUDE_ASM
- * remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000276D8);
+/* game_libs_func_000276B8 / _000276D0 / _000276D8 MERGED into 275F4
+ * 2026-07-08 (reverse-merge; symbols dropped, .s absorbed). */
 
 extern int gl_func_0003B1AC();
 int gl_func_000276E4() {
@@ -16377,67 +16374,74 @@ block_83:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002E354);
 #endif
 
-/* game_libs_func_0002F1B8: 52-insn (0xD0) binary-search over a sorted float
- * array. BOUNDARY MERGED 2026-06-02: this function has THREE internal `jr ra`
- * early-returns (at 0x2F21C, 0x2F268, and the final 0x2F280), so splat
- * over-split it into 2F1B8 + 2F224 + 2F270. Both 2F224 and 2F270 branch
- * backward to 0x2F1C8 (the loop head inside 2F1B8); neither has external
- * callers. Absorbed both (0x6C -> 0xD0, ending exactly at the next func
- * gl_func_0002F288); all branches verified in-range. Reloc-blind USO;
- * stays INCLUDE_ASM. (Multi-jr-ra over-split, not a loop-tail split.) */
+/* game_libs_func_0002F1B8: 52-insn (0xD0) binary search over a sorted f32
+ * array, returning the bracketing index nearest to key. BOUNDARY MERGED
+ * 2026-06-02 (absorbed over-split 2F224 + 2F270). RISE 2026-07-08 agent-e:
+ * m2c sketch -> 41/52 words, size-exact, structure-exact. Working form:
+ * hand-rotated loop (`step >>= 1` duplicated at entry + at both descend
+ * bottoms = target's b-delay `sra`), ONE step variable updated in place
+ * (sra a0,a0,1 / addiu a0,a0,1 on the dead $a0 arg reg), shared
+ * `goto retmid` for all return-mid paths, `d = -d` in-place neg.s,
+ * float tests spelled `0.0f < d` (c.lt.s $f14,$fX + bc1f/bc1fl).
+ * RESIDUAL (4+1 words, one mechanism): the four retmid-pred exit branches
+ * build as LIKELY-with-copy (beql/bc1fl/beqzl carrying `move v0,v1`,
+ * retargeted past the block head) where the target has PLAIN beq/bc1f/beqz
+ * + nop into the [jr ra; move v0,v1] tail (+1 dead-move debris word).
+ * Probe series (probe4-8, 2026-07-08): the plain+nop/jr-sink flavor IS
+ * 7.1-reachable -- even for float loop-exit branches -- until an
+ * interleaved OTHER return (`return nxt`) exists inside the loop; then
+ * as1/uopt always steals the merge move into the exit delays (same-value
+ * merge = coalescable copy; a real multi-value phi at the merge keeps
+ * preds plain, but any second mid-def either emits a word or VN-folds).
+ * Same family as docs/IDO_CODEGEN "as1 rule-3" / "move v0,v1 in final jr
+ * delay" placement caps. Also: `&arr[mid]` addu operand order (t6,a1 vs
+ * target a1,t6) resists array-IXA respelling here. NM wrap;
+ * INCLUDE_ASM is the build path. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0002F1B8)();
-s32 game_libs_func_0002F1B8(f32 arg0, s32 arg1, s32 arg2) {
-    f32 temp_f0;
-    f32 temp_f2;
-    f32 temp_f2_2;
-    s32 temp_a0;
-    s32 temp_a3;
-    s32 var_a0;
-    s32 var_v1;
-    char *temp_v0;
-
-    var_v1 = arg2 >> 1;
-    var_a0 = var_v1 + 1;
-loop_1:
-    temp_a0 = var_a0 >> 1;
-    temp_v0 = (int)arg1 + (var_v1 * 4);
-    temp_a3 = var_v1 + 1;
-    temp_f0 = arg0 - (*(f32*)((char*)temp_v0 + 0x0));
-    if (temp_f0 > 0.0f) {
-        if (arg2 != temp_a3) {
-            temp_f2 = (*(f32*)((char*)temp_v0 + 0x4)) - arg0;
-            if (temp_f2 > 0.0f) {
-                if (temp_f2 < temp_f0) {
-                    return temp_a3;
-                }
-                /* Duplicate return node #12. Try simplifying control flow for better match */
-                return var_v1;
-            }
-            var_v1 += temp_a0;
-            var_a0 = temp_a0 + 1;
-            goto loop_1;
+s32 game_libs_func_0002F1B8(f32 key, f32 *arr, s32 n) {
+    s32 mid = n >> 1;
+    s32 step = mid + 1;
+    s32 nxt;
+    f32 d, d2, d3;
+    f32 *p;
+    step = step >> 1;
+loop:
+    p = &arr[mid];
+    nxt = mid + 1;
+    d = key - p[0];
+    if (0.0f < d) {
+        if (n == nxt) {
+            goto retmid;
         }
-        /* Duplicate return node #12. Try simplifying control flow for better match */
-        return var_v1;
-    }
-    if (var_v1 != 0) {
-        temp_f2_2 = arg0 - (*(f32*)((char*)temp_v0 - 0x4));
-        if (temp_f2_2 > 0.0f) {
-            if (temp_f2_2 < -temp_f0) {
-                return var_v1 - 1;
+        d2 = p[1] - key;
+        if (0.0f < d2) {
+            if (!(d2 < d)) {
+                goto retmid;
             }
-            /* Duplicate return node #12. Try simplifying control flow for better match */
-            return var_v1;
+            return nxt;
         }
-        var_v1 -= temp_a0;
-        var_a0 = temp_a0 + 1;
-        goto loop_1;
+        mid += step;
+        step = step + 1;
+        step = step >> 1;
+        goto loop;
     }
-    return var_v1;
+    if (mid == 0) {
+        goto retmid;
+    }
+    d = -d;
+    d3 = key - p[-1];
+    if (0.0f < d3) {
+        if (!(d3 < d)) {
+            goto retmid;
+        }
+        return mid - 1;
+    }
+    mid -= step;
+    step = step + 1;
+    step = step >> 1;
+    goto loop;
+retmid:
+    return mid;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F1B8);
@@ -18517,40 +18521,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000317F0);
 
 void game_libs_func_00031834(void) {}
 
-/* game_libs_func_0003183C: 23-insn (0x5C) circular-buffer push with a do-while
- * scan. BOUNDARY MERGED 2026-06-02: splat over-split the loop tail as a separate
- * symbol (00031880, whose `bnel v0,t5,-0x34` branches backward to 0x31860 inside
- * this body). Absorbed 31880's 6 words into 3183C (0x44 -> 0x5C); dropped the
- * 31880 symbol (no external callers). Branch-verified complete (ends at 0x31898
- * with a clean jr ra; the region after is a separate unsplit run). Reloc-blind
- * USO body stays INCLUDE_ASM. */
+/* game_libs_func_0003183C: 23-insn (0x5C) ring-buffer dequeue scan (16-entry
+ * inline ring at arg0+0, read idx 0x44, write idx 0x40; clears 0x4C, stores
+ * each entry to 0x50, sets 0x48=1 and returns on the first nonzero entry).
+ * BOUNDARY MERGED 2026-06-02 (absorbed loop-tail 00031880). RISE 2026-07-08
+ * agent-e: NEW DSE LEVER -- the target's double index store
+ * (`sw rd+1,0x44` then `sw (rd+1)&0xF,0x44`) survives IDO -O2 DSE when the
+ * FIRST store is wrapped `if (1) { ... }` (BB barrier; controlflow folds
+ * the block but DSE has already run). No volatile needed -- retracts the
+ * 2026-06-20 "only volatile keeps both" half of the cap note. Structure now
+ * 23/23 size-exact, all words structurally aligned.
+ * RESIDUAL (pure coloring, ~11 words of register fields): any DSE-defeat
+ * (if(1) or volatile) makes rd+1 and the entry value live-across-something
+ * -> uopt PROMOTES them to candidates ($a1/$v1) where the target keeps
+ * both as scheduler temps ($t0/$t9; li 1=$t4, reloads $t5). The
+ * store-to-load-forwarding demotion that cracked 233A0 doesn't compose
+ * here (forwarding re-proves same-address -> DSE returns). Genuine
+ * DSE-defeat/candidate-promotion coupling cap. NM wrap; INCLUDE_ASM is
+ * the build path. */
 #ifdef NON_MATCHING
-/* Circular-buffer scan/dequeue (16-entry inline ring at arg0+0, read idx
- * 0x44, write idx 0x40). Clears 0x4C, then advances read (wrap &0xF)
- * storing each entry to 0x50 until a non-zero entry (sets 0x48=1, returns)
- * or the ring drains. read is loaded once then reloaded each loop tail. */
 void game_libs_func_0003183C(void *arg0) {
-    int rd = *(int *)((char *)arg0 + 0x44);
+    char *p = arg0;
+    int rd = *(int *)(p + 0x44);
     int v;
-    if (rd != *(int *)((char *)arg0 + 0x40)) {
-        *(int *)((char *)arg0 + 0x4C) = 0;
+    if (rd != *(int *)(p + 0x40)) {
+        *(int *)(p + 0x4C) = 0;
         do {
-            v = *(int *)((char *)arg0 + rd * 4);
-            /* Target keeps BOTH index stores (idx=rd+1 then idx=(rd+1)&0xF).
-             * Re-derived 2026-06-20 (agent-b): IDO -O2 DSEs the first store no
-             * matter the C form (separate local, explicit memory re-read, etc).
-             * Only `*(volatile int*)` keeps both — but volatile then forces rd+1
-             * into a caller-saved reg ($a1), so all temp numbering cascades off
-             * (li-1, v-load, mask all land in wrong regs). Genuine DSE+regalloc
-             * cap: size-exact (23w) via volatile but never byte-exact. NM-wrap. */
-            *(int *)((char *)arg0 + 0x44) = (rd + 1) & 0xF;
-            *(int *)((char *)arg0 + 0x50) = v;
+            v = *(int *)(p + rd * 4);
+            if (1) { *(int *)(p + 0x44) = rd + 1; }
+            *(int *)(p + 0x44) = (rd + 1) & 0xF;
+            *(int *)(p + 0x50) = v;
             if (v != 0) {
-                *(int *)((char *)arg0 + 0x48) = 1;
+                *(int *)(p + 0x48) = 1;
                 return;
             }
-            rd = *(int *)((char *)arg0 + 0x44);
-        } while (rd != *(int *)((char *)arg0 + 0x40));
+            rd = *(int *)(p + 0x44);
+        } while (rd != *(int *)(p + 0x40));
     }
 }
 #else

@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_000275F4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:21:46.746679+00:00",
+  "end_time": "2026-07-08T13:21:46.746697+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:21:46.746692+00:00",
+      "assistant_text": "REVERSE-MERGE + match: 276B8/276D0/276D8 were 275F4's OWN mis-split tail fragments (beql/bne/bnezl land INSIDE them \u2014 bnezl-dup tail + shared return-0 blocks; retracts the 'interior-entry two-entry class' analysis + 276D0's fragment episode). Keys: !(x>>31) srl+beql to shared goto ret0; named flags local; (flags<<3<<1) split-shift FIFO re-phase; q-reuse multi-def q=*(q+0xC0) materializes the move v1,a0 range split; second goto ret0b label = out-of-window plain bne+nop; named end/start tail operands -> a1/a2.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 60,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_000275F4: EXACT MATCH (60/60 words, 2026-07-08 agent-e)\n * after the FULL reverse-merge. History: absorbed 2765C/27684/27694\n * (2026-06-10 census), then 2026-07-08 absorbed the remaining three\n * \"adjacent leaves\" 276B8/276D0/276D8 too (0xC4 -> 0xF0, ends at 276E4):\n * 275F4's beql/bne/bnezl targets 276BC/276D0/276DC all live inside them,\n * and the \"leaves\" were fragments (276B8 = bnezl likely-dup + parent tail\n * with caller-set regs; 276D0/276D8 = its shared return-0 blocks). The\n * \"branch-into-adjacent-leaf shared-tail cap / INCLUDE_ASM faithful\"\n * verdict and 276B8's \"interior entry two-entry class\" analysis are\n * RETRACTED -- it is ONE ordinary function (same pattern as the\n * timproc 1D1C+1DA4 merge). 276D0's trivial-leaf episode retracted.\n *\n * Semantics: per-slot record rec = D + a0*0x160; validates a chain of\n * flagged sub-records (bit31 = valid on rec+0x2D00, *p1, *p2; bit27 on\n * *p2), p2 = *(p1+0x50+a2*4) with p1 = *(rec+0x2D38+a1*4), q = *(p2+0x2C)\n * back-linked (q+0x44 == p2), r = *(q+0xC0); returns\n * *(*(*r+8)+4) - *(q+0x18) (chain-cursor minus base), else 0.\n * MATCH KEYS:\n *  - the three bit31 checks spelled `!(*(u32*)X >> 31)` -> srl+beql to a\n *    SHARED `goto ret0` tail (plain if-return emits bltzl inline, +4);\n *  - null checks plain `if (!p) return 0;` -> bnez/bnezl with inline\n *    [jr;move] return blocks + as1 likely-dup words (natural);\n *  - `flags = *(int*)p2;` named local CSEs the bit31+bit27 reads into\n *    one $v1 load (two casts re-load, 2 extra words);\n *  - `(flags << 3 << 1)` split-shift phantom-alloc re-phases the ugen\n *    temp FIFO (+1 pop) so the tail chain runs t8/t9/t0/t1 like target;\n *  - q REUSED for r (`q = *(char**)(q+0xC0)`) = multi-def web; the\n *    `q2 = q` snapshot then can't coalesce -> materializes the target's\n *    `move v1,a0` live-range split (r loads into $a0 over the dead q);\n *  - q44 mismatch exits via its own `goto ret0b` label AFTER the tail\n *    (out of as1's 9-insn dup window -> plain bne+nop to a far [jr;move]);\n *  - tail operands NAMED (`end`/`start`, end assigned first) -> color\n *    $a1/$a2 with the target's subu order. */\nextern char gl_d_275F4[];\nint game_libs_func_000275F4(int a0, int a1, int a2) {\n    char *rec = gl_d_275F4 + a0 * 0x160;\n    char *p1;\n    char *p2;\n    char *q;\n    char *q2;\n    int flags;\n    int end;\n    int start;\n    if (!(*(unsigned int *)(rec + 0x2D00) >> 31)) {\n        goto ret0;\n    }\n    p1 = *(char **)(rec + 0x2D38 + a1 * 4);\n    if (!(*(unsigned int *)p1 >> 31)) {\n        goto ret0;\n    }\n    p2 = *(char **)(p1 + 0x50 + a2 * 4);\n    if (p2 == 0) {\n        return 0;\n    }\n    flags = *(int *)p2;\n    if (!((unsigned int)flags >> 31)) {\n        goto ret0;\n    }\n    q = *(char **)(p2 + 0x2C);\n    if (q == 0) {\n        return 0;\n    }\n    if ((flags << 3 << 1) >= 0) {\n        return 0;\n    }\n    q2 = q;\n    if (p2 != *(char **)(q + 0x44)) {\n        goto ret0b;\n    }\n    q = *(char **)(q + 0xC0);\n    if (q == 0) {\n        return 0;\n    }\n    end = *(int *)(*(int *)(*(int *)q + 8) + 4);\n    start = *(int *)(q2 + 0x18);\n    return end - start;\nret0b:\n    return 0;\nret0:\n    return 0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_000275F4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "60/60 word-exact (post-merge .s 0xF0) + make ROM byte-identical"
+  }
+}

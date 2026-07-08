@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_000233A0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:21:47.224106+00:00",
+  "end_time": "2026-07-08T13:21:47.224126+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:21:47.224121+00:00",
+      "assistant_text": "Early-return table lookup (retracts 'IDO folds the &D base' NM verdict). Keys: base-0 ARRAY extern referenced directly (base held in a2); *a1 = load; if (*a1 == 0) store-to-load-forwarding keeps the byte in $t9 (temp, not candidate); off++ + (int)tbl addu order; the *a1 store legitimately blocks CSE -> target's fresh reload.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 17,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_000233A0: string-table cursor advance, EXACT MATCH (17/17\n * words, 2026-07-08 agent-e; retracts the \"IDO folds the &D base\" NM\n * verdict). tbl = *(D+0x2028); off = ((u16*)tbl)[a0]; c = tbl[off++];\n * *out = c; returns tbl-refetched + off on nonzero c, else 0. Includes the\n * splat-split tail 000233D4 (merged 0x34 -> 0x44 earlier).\n * MATCH KEYS:\n *  - gl_d_233A0 base-0 ARRAY extern referenced DIRECTLY in both derefs ->\n *    base materialized ONCE (lui;addiu, colored $a2) instead of per-use\n *    scalar-fold lui;lw;\n *  - `*out = ...; if (*out == 0)` store-to-load-forwarding form: the test\n *    reads the just-stored value (no reload emitted) while keeping the\n *    loaded byte a scheduler TEMP ($t9) -- naming it or testing an\n *    assignment-expression promotes it to a candidate ($a2) and rotates\n *    the base to $a3;\n *  - the return re-derefs D+0x2028 fresh: the *out store (unknown alias)\n *    legitimately blocks CSE, reproducing the target's reload ($t1);\n *  - `off++ + (int)tbl` post-increment spelling gives the target's\n *    addu operand order (off first). */\nextern char gl_d_233A0[];\nint game_libs_func_000233A0(int a0, int *a1) {\n    char *tbl = *(char **)(gl_d_233A0 + 0x2028);\n    int off = ((unsigned short *)tbl)[a0];\n    *a1 = *(unsigned char *)(off++ + (int)tbl);\n    if (*a1 == 0) {\n        return 0;\n    }\n    return (int)(*(char **)(gl_d_233A0 + 0x2028) + off);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_000233A0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "17/17 word-exact + make ROM byte-identical"
+  }
+}

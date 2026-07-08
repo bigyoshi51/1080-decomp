@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00021D2C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:21:46.976477+00:00",
+  "end_time": "2026-07-08T13:21:46.976495+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:21:46.976490+00:00",
+      "assistant_text": "Early-return search loop ('regalloc/rotation hybrid' verdict retracted). Keys: distinct base-0 externs bust lui CSE; zero-cost dead n-reload in loop keeps slt + defeats x4 unroller; b=a1; a1=0; e-split -> move a2,a1 with cursor coloring a1; while(0){a0+=1;} pins key_a; cursor = (i = 0) + tbl; FUSED INIT puts i=0 in the blez delay; signed short keys (lh not lhu).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00021D2C: pair-key table search, EXACT MATCH (22/22 words,\n * 2026-07-08 agent-e). BOUNDARY MERGED 2026-06-02: absorbed over-split loop\n * tail 00021D70 (0x44 -> 0x58). n = D+0x2534 records of 12 bytes; returns\n * rec val (+0x2538) of first record matching (a0,a1) on keys +0x2540/+0x2542\n * (SIGNED shorts -> lh), else 0.\n * MATCH KEYS (each verified load-bearing):\n *  - gl_d_21d2c_n vs gl_d_21d2c_tbl DISTINCT base-0 externs: busts the\n *    lui CSE so the n-load folds (lui;lw) while the cursor materializes\n *    separately (lui;addiu) like the target;\n *  - dead n-reload inside the loop: CSE'd to ZERO insns (no stores in\n *    loop) but blocks uopt's i<n -> i!=n counted-loop conversion, keeping\n *    the target's hoisted `slt` + bottom `bnez`;\n *  - `while (0) { a0 += 1; }` ref-boost pins key_a in $a0 (else IDO\n *    evicts a0 to a2 and gives a0 to the counter);\n *  - `b = a1; a1 = 0;` e-split kill: b's copy can't coalesce with the\n *    multi-def a1 web -> `move a2,a1` materializes, freeing $a1 for the\n *    cursor (coloring i=v0/n=v1/cursor=a1/b=a2);\n *  - `cursor = (i = 0) + gl_d_21d2c_tbl;` fused init: orders the guard\n *    block [move;addiu] so as1 sinks i=0 (not the cursor addiu) into the\n *    blez delay slot;\n *  - do-while + the dead reload also defeats the x4 unroller (goto form\n *    alone bne-converts; for/do-while forms without the reload unroll).\n * (Historical negative findings from pass 1 2026-06-10 retained in git\n * history; the \"regalloc/rotation hybrid cap\" verdict is RETRACTED.) */\nextern char gl_d_21d2c_tbl[];\nextern char gl_d_21d2c_n[];\nint game_libs_func_00021D2C(int a0, int a1) {\n    int i = 0;\n    int n = *(int *)(gl_d_21d2c_n + 0x2534);\n    char *cursor;\n    int b = a1;\n    a1 = 0;\n    while (0) { a0 += 1; }\n    if (n > 0) {\n        cursor = (i = 0) + gl_d_21d2c_tbl;\n        do {\n            i++;\n            if (a0 == *(short *)(cursor + 0x2540) && b == *(short *)(cursor + 0x2542)) {\n                return *(int *)(cursor + 0x2538);\n            }\n            n = *(int *)(gl_d_21d2c_n + 0x2534);\n            cursor += 0xC;\n        } while (i < n);\n    }\n    return 0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00021D2C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "22/22 word-exact + make ROM byte-identical"
+  }
+}
