@@ -18502,36 +18502,37 @@ end:
  * hasn't reached 0, return 0. On expiry, read a command halfword from the
  * a0->0x50 cursor (advance by 2), store it to a0->0x60, and if non-zero read a
  * following arg halfword (advance) into the countdown a0->0x48; return 1.
- * Logic decoded & correct; NOT byte-exact (1/19): target is -O1 cross-jumped —
- * the `return 0` early-exit branches FORWARD to a shared `jr ra` epilogue split
- * off as game_libs_func_00031834 (right after this fn), with `move v0,zero`
- * hoisted to insn 2 and `bnez` (vs C's beqz). Reproducing it needs an -O1
- * flag-split + merge of 31834. Tail-merge cap; INCLUDE_ASM is the build path. */
-#ifdef NON_MATCHING
+ * BYTE-EXACT 19/19 (2026-07-08): the former "func_00031834" (jr ra; nop) was a
+ * split-fragments mis-split — it is this function's own out-of-line `return 0`
+ * epilogue (bnez forward-target). Absorbed here; no external refs to 31834.
+ * Levers: ret-variable + inverted guard (`if (--c == 0) {...; return ret;}
+ * return ret;`) puts return-0 out of line with `move v0,zero` hoisted and
+ * `jr ra; nop` tail; cursor reload inside the if (store-to-load forwarding)
+ * re-bases the arg block on t9 with 0-offsets AND fills the beqz delay with
+ * `li v0,1` (kills beqzl-dup); no `arg` intermediate + counter-store-first
+ * gives *q=t0 / q+1=t1 temp numbering with scheduler store order. */
 int game_libs_func_000317F0(int *a0) {
-    int counter;
-    unsigned short *p;
-    int cmd = 0;
     int ret = 0;
-    counter = *(int*)((char*)a0 + 0x48) - 1;
-    *(int*)((char*)a0 + 0x48) = counter;
-    if (counter != 0) goto end;
-    p = *(unsigned short**)((char*)a0 + 0x50);
-    cmd = *p;
-    *(unsigned short**)((char*)a0 + 0x50) = p + 1;
-    ret = 1;
-    if (cmd == 0) goto end;
-    *(int*)((char*)a0 + 0x48) = p[1];
-    *(unsigned short**)((char*)a0 + 0x50) = p + 2;
-end:
-    *(unsigned short*)((char*)a0 + 0x60) = cmd;
+    unsigned short *p;
+    unsigned short *q;
+    int cmd;
+
+    a0[0x48 / 4] -= 1;
+    if (a0[0x48 / 4] == 0) {
+        p = *(unsigned short **)&a0[0x50 / 4];
+        cmd = *p;
+        *(unsigned short **)&a0[0x50 / 4] = p + 1;
+        ret = 1;
+        if (cmd != 0) {
+            q = *(unsigned short **)&a0[0x50 / 4];
+            a0[0x48 / 4] = *q;
+            *(unsigned short **)&a0[0x50 / 4] = q + 1;
+        }
+        *(unsigned short *)((char *)a0 + 0x60) = cmd;
+        return ret;
+    }
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000317F0);
-#endif
-
-void game_libs_func_00031834(void) {}
 
 /* game_libs_func_0003183C: 23-insn (0x5C) ring-buffer dequeue scan (16-entry
  * inline ring at arg0+0, read idx 0x44, write idx 0x40; clears 0x4C, stores

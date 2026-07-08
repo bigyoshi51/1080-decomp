@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_000317F0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T18:06:14.785871+00:00",
+  "end_time": "2026-07-08T18:06:14.785891+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T18:06:14.785885+00:00",
+      "assistant_text": "Command-block reader, 67.2%->exact. BOUNDARY FIX: the .s's bnez branches past its own jr ra into 'game_libs_func_00031834' (jr ra; nop) \u2014 a PHANTOM: no references anywhere; it is 317F0's own out-of-line return-0 epilogue split by the jr-ra-counting heuristic. Merged (real fn = 19w), phantom symbol + its empty-body stub removed, its fragment episode retracted. Levers: inverted guard + ret var (int ret=0; if(--c==0){body; return ret;} return ret; \u2014 return-0 out of line, move v0,zero hoisted); store-to-load forwarding (reload cursor inside if(cmd!=0) re-bases on t9 + fills beqz delay with li v0,1, kills beqzl dup); no arg intermediate + counter-store-first for temp numbering + store order. Old '-O1 flag-split needed' claim wrong \u2014 plain -O2.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 19,
+  "initial_m2c_source": null,
+  "final_source": "/* Timer/script-step interpreter: decrement the a0->0x48 countdown; while it\n * hasn't reached 0, return 0. On expiry, read a command halfword from the\n * a0->0x50 cursor (advance by 2), store it to a0->0x60, and if non-zero read a\n * following arg halfword (advance) into the countdown a0->0x48; return 1.\n * BYTE-EXACT 19/19 (2026-07-08): the former \"func_00031834\" (jr ra; nop) was a\n * split-fragments mis-split \u2014 it is this function's own out-of-line `return 0`\n * epilogue (bnez forward-target). Absorbed here; no external refs to 31834.\n * Levers: ret-variable + inverted guard (`if (--c == 0) {...; return ret;}\n * return ret;`) puts return-0 out of line with `move v0,zero` hoisted and\n * `jr ra; nop` tail; cursor reload inside the if (store-to-load forwarding)\n * re-bases the arg block on t9 with 0-offsets AND fills the beqz delay with\n * `li v0,1` (kills beqzl-dup); no `arg` intermediate + counter-store-first\n * gives *q=t0 / q+1=t1 temp numbering with scheduler store order. */\nint game_libs_func_000317F0(int *a0) {\n    int ret = 0;\n    unsigned short *p;\n    unsigned short *q;\n    int cmd;\n\n    a0[0x48 / 4] -= 1;\n    if (a0[0x48 / 4] == 0) {\n        p = *(unsigned short **)&a0[0x50 / 4];\n        cmd = *p;\n        *(unsigned short **)&a0[0x50 / 4] = p + 1;\n        ret = 1;\n        if (cmd != 0) {\n            q = *(unsigned short **)&a0[0x50 / 4];\n            a0[0x48 / 4] = *q;\n            *(unsigned short **)&a0[0x50 / 4] = q + 1;\n        }\n        *(unsigned short *)((char *)a0 + 0x60) = cmd;\n        return ret;\n    }\n    return ret;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "/tmp/317F0_merged.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "19/19 word-exact vs merged .s + make ROM byte-identical (promoted)"
+  }
+}
