@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00048720",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T02:56:32.384945+00:00",
+  "end_time": "2026-07-08T02:56:32.384966+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T02:56:32.384959+00:00",
+      "assistant_text": "Record-chain scan loop, 80.5% 'coloring-renumber cap' -> exact via 3 coupled levers: (1) volatile on the record-chain derefs keeps the lw reloads IN-loop (plain casts hoist to preheader); (2) embedded-assign bound end=a0[1]+(i=a0[3]); gives lw-t6-first load order + a0[1] in temp-ring + addu a3,v1,t6 operand order simultaneously; (3) dead while(0){} bodies placed BEFORE the end= statement reorder uopt's UNCONSTRAINED greedy coloring \u2014 deleted bodies still occupy ucode slots, so first-ucode-appearance order flips the assignment list to target {hdr,i,rec,IV,key,end} (hdr->v0, IV->a1, end->a3). NEW GENERALIZABLE LEVER: while(0) ucode-slot ordering controls unconstrained coloring order (distinct from the ref-multiplier use). The *(int*)a2 (not short) flavor is load-bearing (short CSEs with the loop's lh).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 59,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00048720: 16-byte-key record search -- returns matching\n * record index in [a0->0xC, a0->0xC + a0->4), else -1. EXACT 59/59\n * (2026-07-07, agent-e): three coupled levers vs the old coloring cap:\n * (1) volatile on the 2-level rec-chain derefs keeps the lw 0x1C(v0)/\n * lw 0(t7) reloads IN-loop (uopt otherwise fully hoists the chain);\n * (2) end = a0[1] + (i = a0[3]) embedded-assign form gives the t6 temp\n * for a0[1], 4-then-C load order, and addu rs=v1; (3) the three dead\n * while(0){} bodies BEFORE the end-def reorder uopt's unconstrained\n * greedy coloring (assignment follows first ucode appearance:\n * hdr-load->v0, key->a2 home, i*16 IV->a1, end->a3, k0-lh->t0).\n * Verified via -Wo,-zdbug:6 uoptlist assigned-bit list. Zero relocs\n * in range (USO-landable). */\nint gl_func_00048720(int *a0, int a1, int a2) {\n    int i;\n    int end;\n    int hdr;\n    int jk;\n    int jo;\n\n    while (0) { hdr = *a0; }\n    while (0) { jk = *(int *)a2; }\n    while (0) { jo = i * 16; }\n    end = a0[1] + (i = a0[3]);\n    if (i < end) {\n        hdr = *a0;\n        do {\n            int rec = *(volatile int *)(*(volatile int *)(hdr + 0x1C)) + (i * 16);\n            if (*(short *)a2 == *(short *)rec &&\n                *(short *)(a2 + 2) == *(short *)(rec + 2) &&\n                *(short *)(a2 + 4) == *(short *)(rec + 4) &&\n                *(short *)(a2 + 8) == *(short *)(rec + 8) &&\n                *(short *)(a2 + 0xA) == *(short *)(rec + 0xA)) {\n                if (a1 != 0) {\n                    if (*(unsigned char *)(a2 + 0xC) == *(unsigned char *)(rec + 0xC) &&\n                        *(unsigned char *)(a2 + 0xD) == *(unsigned char *)(rec + 0xD) &&\n                        *(unsigned char *)(a2 + 0xE) == *(unsigned char *)(rec + 0xE)) {\n                        return i;\n                    }\n                } else {\n                    return i;\n                }\n            }\n            i++;\n        } while (i < end);\n    }\n    return -1;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00048720.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "59/59 word-exact + make ROM byte-identical"
+  }
+}

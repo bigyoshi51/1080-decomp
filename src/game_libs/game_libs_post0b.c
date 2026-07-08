@@ -16379,66 +16379,53 @@ void gl_func_00048510(char *arg0, char *arg1, char *arg2, s32 *arg3, s32 arg4) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048510);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00048720: 16-byte-key record search — returns matching
- * record index in [a0->0xC, a0->0xC + a0->4), else -1. Decoded from
- * bare stub 2026-05-18; algorithm correct. 2026-06-21: tightened to
- * 60 vs 59 insns (80.5% fuzzy) via `if(i<end){off=i*16; do{...}while}`
- * guard form (end=a0[1]+i loads a0[1] first). RESIDUAL CAP: register
- * coloring — target keeps the key ptr live in $a2 and saves the flag
- * (a1) to $s0; IDO colors mine key->$s0, offset->$a2 vs target's
- * offset->$a1. Functionally identical, coloring-renumber cap.
- * Earlier multi-pass notes (now partly addressed):
- *  - prologue order: `t6=a0[1](0x4); v1=a0[3](0xC); a3=v1+t6;
- *    if(!(v1<a3))return -1; a1=v1<<4` with the `a1=v1*16` in the
- *    beq's DELAY slot (not a separate `int off`); a1 then `+=0x10`
- *    each iter (w58 delay). Drop the named `off` — let v1<<4 fill
- *    the guard-branch delay.
- *  - record ptr is the 3-deref chain RECOMPUTED at loop top each
- *    iter: rec = *(*(*(int*)a0 + 0x1C)) + a1.
- *  - the 8 field tests are the bnel-likely early-exit chain
- *    (docs/IDO_CODEGEN.md branch-likely): each `if(key->X!=rec->X)`
- *    emits `bnel; addiu v1,v1,1 [delay-likely]` → next-record. Full
- *    match: `if(s0==0) return v1;` then 3 lbu tests; both the
- *    s0==0 and full-match exits are `b <end>; or v0,v1,zero [delay]`
- *    (two separate b+move tails, NOT one shared).
- * Next pass: express as do-while with v1 as the index, a1=v1<<4
- * tracked in-loop (no `off`), the 5 lh + 3 lbu tests as a single
- * `if(... && ...) { if(s0==0)return v1; if(...)return v1; }`
- * chain so IDO emits the bnel ladder with v1++ in each delay.
- * Real decoded C preserved. */
+/* gl_func_00048720: 16-byte-key record search -- returns matching
+ * record index in [a0->0xC, a0->0xC + a0->4), else -1. EXACT 59/59
+ * (2026-07-07, agent-e): three coupled levers vs the old coloring cap:
+ * (1) volatile on the 2-level rec-chain derefs keeps the lw 0x1C(v0)/
+ * lw 0(t7) reloads IN-loop (uopt otherwise fully hoists the chain);
+ * (2) end = a0[1] + (i = a0[3]) embedded-assign form gives the t6 temp
+ * for a0[1], 4-then-C load order, and addu rs=v1; (3) the three dead
+ * while(0){} bodies BEFORE the end-def reorder uopt's unconstrained
+ * greedy coloring (assignment follows first ucode appearance:
+ * hdr-load->v0, key->a2 home, i*16 IV->a1, end->a3, k0-lh->t0).
+ * Verified via -Wo,-zdbug:6 uoptlist assigned-bit list. Zero relocs
+ * in range (USO-landable). */
 int gl_func_00048720(int *a0, int a1, int a2) {
-    int s0 = a1;
-    int i = a0[3];
-    int end = a0[1] + i;
-    int off;
+    int i;
+    int end;
+    int hdr;
+    int jk;
+    int jo;
+
+    while (0) { hdr = *a0; }
+    while (0) { jk = *(int *)a2; }
+    while (0) { jo = i * 16; }
+    end = a0[1] + (i = a0[3]);
     if (i < end) {
-        off = i * 16;
+        hdr = *a0;
         do {
-            int rec = *(int *)(*(int *)(*(int *)a0 + 0x1C)) + off;
-            if (*(short *)(a2 + 0) == *(short *)(rec + 0) &&
+            int rec = *(volatile int *)(*(volatile int *)(hdr + 0x1C)) + (i * 16);
+            if (*(short *)a2 == *(short *)rec &&
                 *(short *)(a2 + 2) == *(short *)(rec + 2) &&
                 *(short *)(a2 + 4) == *(short *)(rec + 4) &&
                 *(short *)(a2 + 8) == *(short *)(rec + 8) &&
                 *(short *)(a2 + 0xA) == *(short *)(rec + 0xA)) {
-                if (s0 == 0) {
-                    return i;
-                }
-                if (*(unsigned char *)(a2 + 0xC) == *(unsigned char *)(rec + 0xC) &&
-                    *(unsigned char *)(a2 + 0xD) == *(unsigned char *)(rec + 0xD) &&
-                    *(unsigned char *)(a2 + 0xE) == *(unsigned char *)(rec + 0xE)) {
+                if (a1 != 0) {
+                    if (*(unsigned char *)(a2 + 0xC) == *(unsigned char *)(rec + 0xC) &&
+                        *(unsigned char *)(a2 + 0xD) == *(unsigned char *)(rec + 0xD) &&
+                        *(unsigned char *)(a2 + 0xE) == *(unsigned char *)(rec + 0xE)) {
+                        return i;
+                    }
+                } else {
                     return i;
                 }
             }
             i++;
-            off += 16;
         } while (i < end);
     }
     return -1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00048720);
-#endif
 
 /* gl_func_0004880C: per-item cb loop over a0->0x594 entries.
  * 99.19% (2026-06-02, was 88.24%). The +4-insn count gap is FIXED by two
