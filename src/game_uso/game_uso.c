@@ -6131,35 +6131,106 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
  *   data bases  -> game_uso_D_807FEB60 (+0x570) and game_uso_D_807FEB64 (+0x574)
  *                  each a pointer-table: p = *(int**)((char*)&D + off);
  *                  a1 = *p.
- * result = (dot2 < dot1) ? 10 : 11; squared-magnitude compare of two Vec3
- * diffs (callee-buffer+0x30 minus self->[0x30]+0xB4). */
+ * result = 10 if dot1 < dot2 else 11; squared-magnitude compare of two Vec3
+ * diffs (callee-buffer+0x30 minus self->[0x30]+0xB4), each diff copied
+ * d -> cNa -> cNb before the dot products.
+ *
+ * 2026-07-08 rebuild 64.6 -> 79.7 (objdiff). Cracked: frame 0xC0 with target
+ * slot map via FLAT function-scope declarations (scalar candidates get homes
+ * interleaved with structs in decl order; inner-scope scalars sink to a bottom
+ * temp region instead -- that was the old +0x10 frame gap); nested null tests
+ * with p1 = r1+0x30 between them (beqz v0 + addiu-in-delay, needs the dx/dy/dz
+ * float locals present or IDO reverts to beqzl+lw-ra dup); per-block q via
+ * if(1)-committed pointer mutation (addiu aN,aN,180 materialized, p1/p2 color
+ * v1 both blocks as in target); struct-by-value S1 homes at 0xB8/0xB4.
+ * RESIDUAL (permuter-class): (a) uopt folds the FIRST q deref to
+ * lwc1 188(base) off the pre-mutation base (target has zero folds; resisted
+ * 10+ spellings: int-form, float* IXA, volatile pointee, barriers, single-q
+ * double-def -- single-q also flips p to a0); (b) dot2 is forwarded into the
+ * compare so dot1(c1b) muls emit first (target: dot2 materialized to f0 at
+ * its statement, c2b muls first, then c1b muls off pre-loaded f2/f12/f14
+ * candidates; ucode temp-reuse chains pin the 3 nops); volatile c1b keeps
+ * bx/by/bz as candidates (f0/f2/f12, off-by-one vs target f2/f12/f14 because
+ * our dot2 never claims f0); (c) tail is bc1fl+dup instead of bc1f+nop, and
+ * 3 words short (124/127) from the folds. Word-exact 37/127 positional,
+ * LCS 62/127; both q-fold and dot2-forwarding look cost-model driven, not
+ * C-reachable. */
 typedef struct { float x, y, z; } V3_6FA8;
 typedef struct { int a; } S1_6FA8;
 extern int game_uso_D_807FEB60;
 extern int game_uso_D_807FEB64;
 int game_uso_func_00006FA8(int *a0) {
+    int result;
+    S1_6FA8 v1;
+    S1_6FA8 v2;
+    int *r1;
+    int *r2;
+    V3_6FA8 *p1;
+    volatile V3_6FA8 c1b;
+    V3_6FA8 c2b;
+    float dot2;
+    int padh;
+    V3_6FA8 c1a;
+    V3_6FA8 *q1;
+    V3_6FA8 d1;
+    float dx;
+    float dy;
+    float dz;
+    float bx;
+    float by;
+    float bz;
+    V3_6FA8 *p2;
+    V3_6FA8 c2a;
+    V3_6FA8 *q2;
+    V3_6FA8 d2;
+    int padg[2];
     int *s0 = a0;
-    int result = 0;
-    int *r1, *r2;
+    result = 0;
     if (game_uso_func_00007A98(s0) < 0.0f) {
-        S1_6FA8 v1, v2;
         v1.a = *(int *)*(int **)((char *)&game_uso_D_807FEB60 + 0x570);
-        r1 = (int *)game_uso_func_0000A374((int)s0, v1, (int)((char *)s0[0x30 / 4] + 0xB4));
+        r1 = (int *)game_uso_func_0000A374((int)s0, v1, s0[0x30 / 4] + 0xB4);
         v2.a = *(int *)*(int **)((char *)&game_uso_D_807FEB64 + 0x574);
-        r2 = (int *)game_uso_func_0000A374((int)s0, v2, (int)((char *)s0[0x30 / 4] + 0xB4));
-        if (r1 != 0 && r2 != 0) {
-            V3_6FA8 d1, c1a, c1b, d2, c2a, c2b;
-            V3_6FA8 *q = (V3_6FA8 *)((char *)s0[0x30 / 4] + 0xB4);
-            V3_6FA8 *p1 = (V3_6FA8 *)((char *)r1 + 0x30);
-            V3_6FA8 *p2 = (V3_6FA8 *)((char *)r2 + 0x30);
-            float dot1, dot2;
-            d1.x = p1->x - q->x; d1.y = p1->y - q->y; d1.z = p1->z - q->z;
-            c1a = d1; c1b = c1a;
-            d2.x = p2->x - q->x; d2.y = p2->y - q->y; d2.z = p2->z - q->z;
-            c2a = d2; c2b = c2a;
-            dot1 = c1b.x * c1b.x + c1b.y * c1b.y + c1b.z * c1b.z;
-            dot2 = c2b.x * c2b.x + c2b.y * c2b.y + c2b.z * c2b.z;
-            result = (dot2 < dot1) ? 10 : 11;
+        r2 = (int *)game_uso_func_0000A374((int)s0, v2, s0[0x30 / 4] + 0xB4);
+        if (r1 != 0) {
+            p1 = (V3_6FA8 *)r1 + 4;
+            if (r2 != 0) {
+                q1 = (V3_6FA8 *)s0[0x30 / 4];
+                if (1) {
+                    q1 += 15;
+                }
+                dx = p1->x - q1->x;
+                dy = p1->y - q1->y;
+                dz = p1->z - q1->z;
+                d1.z = dz;
+                d1.y = dy;
+                d1.x = dx;
+                c1a = d1;
+                c1b = c1a;
+                p2 = (V3_6FA8 *)r2 + 4;
+                q2 = (V3_6FA8 *)s0[0x30 / 4];
+                if (1) {
+                    q2 += 15;
+                }
+                dx = p2->x - q2->x;
+                dy = p2->y - q2->y;
+                dz = p2->z - q2->z;
+                d2.z = dz;
+                d2.y = dy;
+                d2.x = dx;
+                c2a = d2;
+                c2b = c2a;
+                dot2 = c2b.x * c2b.x + c2b.y * c2b.y + c2b.z * c2b.z;
+                if (1) {
+                    bx = c1b.x;
+                    by = c1b.y;
+                    bz = c1b.z;
+                }
+                if (dot2 > bx * bx + by * by + bz * bz) {
+                    result = 10;
+                } else {
+                    result = 11;
+                }
+            }
         }
     }
     return result;
