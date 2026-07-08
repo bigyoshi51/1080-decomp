@@ -1341,6 +1341,7 @@ D_flt_5D4 = 0x000005D4;
 D_flt_5D8 = 0x000005D8;
 gl_proto_1f54 = 0x00000000;
 gl_proto_1c68 = 0x00000000;
+gl_proto_1c94 = 0x00000000;  /* (int,int,float) - float-0 third arg emits li a2,0 (timproc_uso_b1_func_00001BCC) */
 gl_proto_19cc = 0x00000000;
 game_uso_D_807FE770 = 0;
 game_uso_func_000003F4 = 0;

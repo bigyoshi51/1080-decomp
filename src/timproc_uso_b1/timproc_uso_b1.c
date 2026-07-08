@@ -1048,53 +1048,38 @@ void timproc_uso_b1_func_00001A64(int *a0, int a1, int a2, int a3) {
   a1x[0x14 / 4] = (int) a0;
 }
 
-/* timproc_uso_b1_func_00001BCC - verified structural decode (~158-insn
- * per-frame update state machine; 20 branches incl bnel/beql
- * branch-likely + 11 calls + deep struct chains = documented sub-80
- * ceiling -> INCLUDE_ASM build path; struct-typing reference).
- *   s0 = a0;  func_00000000(a0);                      // entry tick
- *   ctx = (int*)s0->0xB8;                              // 184
- *   if (((ctx->0x4F0 << 15) >= 0) and ctx->0x4DC == 1)
- *       s0->0x30 += 33;                                // 48: frame counter
- *   func_00000000(s0);                                 // update
- *   ctx = (int*)s0->0xB8;
- *   if ((ctx->0x4F0 & 0x10000) and ctx->0x4DC == 1) {
- *       if (s0->0x48 == 2) {                           // 72: state
- *           if (s0->0xDC != 1                          // 220: sub-state
- *               and ((int*)((int*)s0->0x44)->0x60)->0x800 -> 0x4C != 0)
- *               func_00000000(s0, 1);
- *           s0->0xDC = ((int*)((int*)s0->0x44)->0x60)->0x800 -> 0x4C;
- *       }
- *       if (((int*)s0->0x44)->0x34 == 0) func_00000000(s0->0xB8 ...);
- *       ... (continues: more state-gated func_00000000 dispatches on
- *            s0->0x44 sub-object chain + ctx flag combinations) ...
- *   }
- * Struct-typing: s0->0xB8 ctx (->0x4F0 flag word: bit-16 enable, sign
- * bit gate; ->0x4DC mode == 1), s0->0x30 frame counter (+=33),
- * s0->0x48 state (==2), s0->0xDC sub-state/cached value, s0->0x44
- * active obj whose ->0x60 -> ->0x800 -> ->0x4C is a status field and
- * ->0x34 a flag. Per-frame: tick, conditional counter advance, then
- * state-machine dispatch of func_00000000 sub-updates. Caps <80:
- * bnel/beql branch-likely throughout + 11-call spill + multi-level
- * pointer-chain reload scheduling. Full per-state dispatch is
- * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode; tautology-trap rule). */
-#ifdef NON_MATCHING
+/* timproc_uso_b1_func_00001BCC - per-frame update state machine, EXACT 158/158
+ * (2026-07-07). Levers: per-region pointer locals (pa..pf) so no single web
+ * spans a $v0-def (each colors $v0); if(1) BB-barriers on defs that follow a
+ * call in the same BB; counters as direct memory compound += (no user local ->
+ * t-temps, CSE folds the reload); tail 0x78 ptr advanced +0x18 then *p RMW
+ * (addiu materialized, sw 0(p)); third arg of the 0x80-dispatch call is
+ * FLOAT 0.0f to prototyped (int,int,float) gl_proto_1c94 -> li a2,0 (O32
+ * float-after-2-ints passes bits in $a2; int-0/K&R forms all emit move). */
 extern int gl_proto_1c68(void *, int, int, float, float);
+extern int gl_proto_1c94(int, int, float);
 void timproc_uso_b1_func_00001BCC(char *arg0) {
-    char *p44;
-    char *p;
     int v1;
-    int t0;
-    int t2;
+    char *pa;
+    char *pb;
+    char *pc;
+    char *pd;
+    char *pe;
+    char *pf;
 
     gl_func_00000000();
-    if ((*(int *)(*(char **)(arg0 + 0xB8) + 0x4F0) & 0x10000) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 1)) {
-        *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;
+    if (1) {
+        pa = *(char **)(arg0 + 0xB8);
+        if ((*(int *)(pa + 0x4F0) & 0x10000) && (*(int *)(pa + 0x4DC) == 1)) {
+            *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;
+        }
     }
     gl_func_00000000(arg0);
-    v1 = *(int *)(*(char **)(arg0 + 0xB8) + 0x4F0) & 0x10000;
-    if ((v1 != 0) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 1)) {
+    if (1) {
+        pb = *(char **)(arg0 + 0xB8);
+        v1 = *(int *)(pb + 0x4F0) & 0x10000;
+    }
+    if ((v1 != 0) && (*(int *)(pb + 0x4DC) == 1)) {
         if (*(int *)(arg0 + 0x48) == 2) {
             if ((*(int *)(arg0 + 0xDC) == 1) &&
                 (*(int *)(*(char **)(*(char **)(*(char **)(arg0 + 0x44) + 0x60) + 0x800) + 0x4C) == 0)) {
@@ -1110,44 +1095,45 @@ void timproc_uso_b1_func_00001BCC(char *arg0) {
             *(float *)(*(char **)(arg0 + 0xB8) + 0x554) = 192.0f;
             *(int *)(*(char **)(arg0 + 0xB8) + 0x544) = 0xFF;
         }
-        t0 = *(int *)(arg0 + 0xD8) + 1;
-        *(int *)(arg0 + 0xD8) = t0;
-        if (t0 >= 0x33) {
+        *(int *)(arg0 + 0xD8) += 1;
+        if (*(int *)(arg0 + 0xD8) >= 0x33) {
             *(int *)(arg0 + 0xD8) = 0;
         }
-        p = *(char **)(arg0 + 0x98);
-        if ((p != 0) && (*(int *)(p + 0xC4) >= 0xC) && (*(int *)(arg0 + 0xD8) == 0)) {
+        pc = *(char **)(arg0 + 0x98);
+        if ((pc != 0) && (*(int *)(pc + 0xC4) >= 0xC) && (*(int *)(arg0 + 0xD8) == 0)) {
             gl_func_00000000(0x135, 0);
         }
-        v1 = *(int *)(*(char **)(arg0 + 0xB8) + 0x4F0) & 0x10000;
+        pb = *(char **)(arg0 + 0xB8);
+        v1 = *(int *)(pb + 0x4F0) & 0x10000;
     }
     if (v1 != 0) {
-        if ((*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 1) && (gl_func_00000000(arg0) != 0)) {
+        if ((*(int *)(pb + 0x4DC) == 1) && (gl_func_00000000(arg0) != 0)) {
             gl_func_00000000(*(int *)(arg0 + 0xB8));
             *(float *)(*(char **)(arg0 + 0xB8) + 0x554) = 192.0f;
             *(int *)(*(char **)(arg0 + 0xB8) + 0x544) = 0xFF;
             *(int *)(arg0 + 0x2C) = 0;
         }
-        gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 0x30), 0);
-        p44 = *(char **)(arg0 + 0x44);
-        gl_proto_1c68(*(int *)(arg0 + 0x80), *(int *)(p44 + 8), *(int *)(p44 + 0xC), 0.0f, 0.0f);
-        if ((*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 2) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4F8) == 0)) {
-            t2 = *(int *)(arg0 + 0xAC) + 1;
-            *(int *)(arg0 + 0xAC) = t2;
-            if (t2 & 8) {
-                p = *(char **)(arg0 + 0x78);
-                *(int *)(p + 0x18) = *(int *)(p + 0x18) & ~4;
+        gl_proto_1c94(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 0x30), 0.0f);
+        if (1) {
+            pd = *(char **)(arg0 + 0x44);
+            gl_proto_1c68(*(int *)(arg0 + 0x80), *(int *)(pd + 8), *(int *)(pd + 0xC), 0.0f, 0.0f);
+        }
+        if (1) {
+            pe = *(char **)(arg0 + 0xB8);
+        }
+        if ((*(int *)(pe + 0x4DC) == 2) && (*(int *)(pe + 0x4F8) == 0)) {
+            *(int *)(arg0 + 0xAC) += 1;
+            if (*(int *)(arg0 + 0xAC) & 8) {
+                pf = *(char **)(arg0 + 0x78) + 0x18;
+                *(int *)pf = *(int *)pf & ~4;
             } else {
-                p = *(char **)(arg0 + 0x78);
-                *(int *)(p + 0x18) = *(int *)(p + 0x18) | 4;
+                pf = *(char **)(arg0 + 0x78) + 0x18;
+                *(int *)pf = *(int *)pf | 4;
             }
         }
     }
     gl_func_00000000(arg0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001BCC);
-#endif
 
 void timproc_uso_b1_func_00001E44(char *dst) {
     int tmp;

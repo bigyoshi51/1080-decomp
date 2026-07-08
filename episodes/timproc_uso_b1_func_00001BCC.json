@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b1_func_00001BCC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:51:07.970871+00:00",
+  "end_time": "2026-07-08T03:51:07.970890+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:51:07.970884+00:00",
+      "assistant_text": "Event-counter dispatcher, 96.2%->exact. (1) Per-region pointer locals pa..pf replacing one shared p \u2014 the single p's web was CONSTRAINED out of $v0 (uoptlist: assigned constrained 2 = v1); short call-free webs let every region color v0. 34->4 diffs. (2) if(1) BB-barriers on defs following a call in the same BB (same-BB-call v0 eviction) x4 sites. (3) Counter locals removed (direct *(int*)(arg0+0xD8) += 1) -> pure t-temps with CSE reload fold. (4) Tail pf = *(char**)(arg0+0x78) + 0x18 RMW reproduces lw/addiu/sw advance. (5) TYPE-RECOVERY SIGNAL: li a2,0 (not move a2,zero) = float 0.0f third arg to a PROTOTYPED (int,int,float) callee \u2014 O32 passes raw bits in a2; overturns the 'as1 tie not C-flippable' doc entry.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 158,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b1_func_00001BCC - per-frame update state machine, EXACT 158/158\n * (2026-07-07). Levers: per-region pointer locals (pa..pf) so no single web\n * spans a $v0-def (each colors $v0); if(1) BB-barriers on defs that follow a\n * call in the same BB; counters as direct memory compound += (no user local ->\n * t-temps, CSE folds the reload); tail 0x78 ptr advanced +0x18 then *p RMW\n * (addiu materialized, sw 0(p)); third arg of the 0x80-dispatch call is\n * FLOAT 0.0f to prototyped (int,int,float) gl_proto_1c94 -> li a2,0 (O32\n * float-after-2-ints passes bits in $a2; int-0/K&R forms all emit move). */\nextern int gl_proto_1c68(void *, int, int, float, float);\nextern int gl_proto_1c94(int, int, float);\nvoid timproc_uso_b1_func_00001BCC(char *arg0) {\n    int v1;\n    char *pa;\n    char *pb;\n    char *pc;\n    char *pd;\n    char *pe;\n    char *pf;\n\n    gl_func_00000000();\n    if (1) {\n        pa = *(char **)(arg0 + 0xB8);\n        if ((*(int *)(pa + 0x4F0) & 0x10000) && (*(int *)(pa + 0x4DC) == 1)) {\n            *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;\n        }\n    }\n    gl_func_00000000(arg0);\n    if (1) {\n        pb = *(char **)(arg0 + 0xB8);\n        v1 = *(int *)(pb + 0x4F0) & 0x10000;\n    }\n    if ((v1 != 0) && (*(int *)(pb + 0x4DC) == 1)) {\n        if (*(int *)(arg0 + 0x48) == 2) {\n            if ((*(int *)(arg0 + 0xDC) == 1) &&\n                (*(int *)(*(char **)(*(char **)(*(char **)(arg0 + 0x44) + 0x60) + 0x800) + 0x4C) == 0)) {\n                gl_func_00000000(arg0, 1);\n            }\n            *(int *)(arg0 + 0xDC) = *(int *)(*(char **)(*(char **)(*(char **)(arg0 + 0x44) + 0x60) + 0x800) + 0x4C);\n        }\n        if (*(int *)(*(char **)(arg0 + 0x44) + 0x34) != 0) {\n            gl_func_00000000(*(int *)(arg0 + 0xB8));\n        }\n        if (*(int *)(*(char **)(arg0 + 0x98) + 0xC8) <= 0) {\n            gl_func_00000000(*(int *)(arg0 + 0xB8));\n            *(float *)(*(char **)(arg0 + 0xB8) + 0x554) = 192.0f;\n            *(int *)(*(char **)(arg0 + 0xB8) + 0x544) = 0xFF;\n        }\n        *(int *)(arg0 + 0xD8) += 1;\n        if (*(int *)(arg0 + 0xD8) >= 0x33) {\n            *(int *)(arg0 + 0xD8) = 0;\n        }\n        pc = *(char **)(arg0 + 0x98);\n        if ((pc != 0) && (*(int *)(pc + 0xC4) >= 0xC) && (*(int *)(arg0 + 0xD8) == 0)) {\n            gl_func_00000000(0x135, 0);\n        }\n        pb = *(char **)(arg0 + 0xB8);\n        v1 = *(int *)(pb + 0x4F0) & 0x10000;\n    }\n    if (v1 != 0) {\n        if ((*(int *)(pb + 0x4DC) == 1) && (gl_func_00000000(arg0) != 0)) {\n            gl_func_00000000(*(int *)(arg0 + 0xB8));\n            *(float *)(*(char **)(arg0 + 0xB8) + 0x554) = 192.0f;\n            *(int *)(*(char **)(arg0 + 0xB8) + 0x544) = 0xFF;\n            *(int *)(arg0 + 0x2C) = 0;\n        }\n        gl_proto_1c94(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 0x30), 0.0f);\n        if (1) {\n            pd = *(char **)(arg0 + 0x44);\n            gl_proto_1c68(*(int *)(arg0 + 0x80), *(int *)(pd + 8), *(int *)(pd + 0xC), 0.0f, 0.0f);\n        }\n        if (1) {\n            pe = *(char **)(arg0 + 0xB8);\n        }\n        if ((*(int *)(pe + 0x4DC) == 2) && (*(int *)(pe + 0x4F8) == 0)) {\n            *(int *)(arg0 + 0xAC) += 1;\n            if (*(int *)(arg0 + 0xAC) & 8) {\n                pf = *(char **)(arg0 + 0x78) + 0x18;\n                *(int *)pf = *(int *)pf & ~4;\n            } else {\n                pf = *(char **)(arg0 + 0x78) + 0x18;\n                *(int *)pf = *(int *)pf | 4;\n            }\n        }\n    }\n    gl_func_00000000(arg0);\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b1/timproc_uso_b1.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_func_00001BCC.s",
+    "segment": "timproc_uso_b1",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "158/158 reloc-aware word-exact (11 relocs) + make ROM byte-identical"
+  }
+}
