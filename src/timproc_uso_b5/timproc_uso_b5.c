@@ -8031,25 +8031,42 @@ void timproc_uso_b5_func_0000BBC8(int *a0, float a1) {
 
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_0000BBDC: per-channel (5x) clamp + dispatch loop.
- * MISSING LOGIC reconstructed: real targets func_00003A4C / func_00003C8C
- * (was gl_func_00000000 placeholder), real if/else on a1->0x3BC==1, correct
- * reloc base timproc_uso_b5_D_807FF4C0 (was D_00000000). Cap values and idx
- * pointers are spilled into local arrays before the loop (IDO frame -184). */
+ * 2026-07-08 RISE 94.21% -> 111/113 words (98.2%, agent-e). Levers landed:
+ * volatile pad0/pad2 frame shape, decl order caps-then-idxp (idxp at sp+0x8C,
+ * caps at sp+0xA0), --pre-decrement compound test, while(0) i-anchor (pins
+ * i=s1/a1=s2 -- removing it flips them), v=v1 select-copy + else-arm v1=0
+ * (fills both branch webs), i*stride+base arg3 order, cp/tbl/ip bump order
+ * at loop tail (source-controlled; this order matches target).
+ * RESIDUAL 2 words = preheader emission tie: target has addiu s6,s2,0x230
+ * (p230) BETWEEN addiu s5,sp,0xA0 (cp) and addiu s4,sp,0x8C (ip); build
+ * emits cp, ip, p230. Root cause traced in uopt source (uoptemit.c
+ * func_0042AADC): preheader insert-set is emitted in ascending-bitpos
+ * (itab interning) order; the two IV inits (cp,ip) intern before the
+ * hoisted invariant (p230) and NO source spelling reaches the tie:
+ * NEGATIVE on 35 variants -- init/decl/bump/arg-position permutations,
+ * goto-label + mutation barriers, if(1) (scrambles i/a1/tbl coloring AND
+ * doesn't flip), comma-for-init, same-line as1 tie-break, hoisted-expr /
+ * struct-member / int-typed / merged-struct spellings, indexed caps[i] /
+ * idxp[i] (sll/addu regressions), redundant-def copy-prop blockers (folded
+ * or +3 words), dead while(0)/dead-store expr occurrences (DCE'd before
+ * interning), do-while forms, permuter 9.5min floored at base=50.
+ * Only order-flippers found cost words: (p230-(a1+0x230)) live subu (+3).
+ * Genuine uopt-tie cap unless a zero-emission interning lever is found. */
 void timproc_uso_b5_func_0000BBDC(int *a0, int *a1) {
-    int *idxp[5];
+    volatile int pad0;
     int caps[5];
+    int *idxp[5];
+    volatile int pad2[5];
     int *cp;
-    int **ip;
     char *tbl;
+    char *p230;
+    int **ip;
     int i;
     int v;
     int v1;
-    int stride;
 
     if (*(int *)((char *)a0 + 0x2BC) < 10) {
-        int c = *(int *)((char *)a0 + 0x2C0) - 1;
-        *(int *)((char *)a0 + 0x2C0) = c;
-        if (c < 0) {
+        if (--(*(int *)((char *)a0 + 0x2C0)) < 0) {
             *(int *)((char *)a0 + 0x2C0) = 1;
             *(int *)((char *)a0 + 0x2BC) = *(int *)((char *)a0 + 0x2BC) + 2;
         }
@@ -8064,39 +8081,42 @@ void timproc_uso_b5_func_0000BBDC(int *a0, int *a1) {
     idxp[2] = (int *)((char *)a1 + 0x17C);
     idxp[3] = (int *)((char *)a1 + 0x1A0);
     idxp[4] = (int *)((char *)a1 + 0x1C4);
+    p230 = (char *)a1 + 0x230;
 
+    tbl = (char *)&timproc_uso_b5_D_807FF4C0 + 0x40;
+    i = 0;
+    while (0) { i += 1; }
     cp = caps;
     ip = idxp;
-    tbl = (char *)&timproc_uso_b5_D_807FF4C0 + 0x40;
-    for (i = 0; i < 5; i++) {
+    for (; i < 5; i++) {
         v = *(int *)((char *)a0 + 0x2BC);
         v1 = (v < *cp) ? v : *cp;
+        v = v1;
         if (*(int *)((char *)a1 + 0x3BC) == 1) {
-            stride = *(int *)((char *)a1 + 0x74);
             timproc_uso_b5_func_00003A4C(
                 (int)a0,
                 *(int *)((char *)a0 + 0xA4),
-                *(int *)((char *)a0 + 0xBC) + i * stride,
+                i * *(int *)((char *)a1 + 0x74) + *(int *)((char *)a0 + 0xBC),
                 (int)tbl,
                 v1,
                 (int)*ip,
-                (char *)((char *)a1 + 0x230),
+                (int)p230,
                 (char *)a1);
         } else {
-            stride = *(int *)((char *)a1 + 0x74);
+            v1 = 0;
             timproc_uso_b5_func_00003C8C(
                 (int)a0,
                 *(int *)((char *)a0 + 0xA4),
-                *(int *)((char *)a0 + 0xBC) + i * stride,
-                (void *)tbl,
-                v1,
+                i * *(int *)((char *)a1 + 0x74) + *(int *)((char *)a0 + 0xBC),
+                (char *)tbl,
+                v,
                 (int)*ip,
-                (char *)((char *)a1 + 0x230),
-                (void *)a1);
+                (int)p230,
+                (char *)a1);
         }
         cp++;
-        ip++;
         tbl += 0x18;
+        ip++;
     }
 }
 #else
