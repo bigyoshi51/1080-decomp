@@ -2092,28 +2092,18 @@ loop_1:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003DB8);
 #endif
 
-#ifdef NON_MATCHING
 void game_libs_func_00003F08(int *a0, int a1, int a2) {
-    int idx;
-    int *cur;
-    int *prev;
-    int prevbc;
-    int nextbc;
+    int diff;
     *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x5C) = a1;
     *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x6C) = a2;
     *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x9C) = 0;
     *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0x8C) = 0;
     *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0xBC) = 200;
-    idx = a0[0x7C / 4];
-    cur = (int *)((char *)a0 + idx * 4);
-    prev = (int *)((char *)a0 + ((idx - 1) & 3) * 4);
-    prevbc = prev[0xBC / 4];
-    nextbc = prevbc + 16;
-    if (cur[0xBC / 4] - prevbc < 15) {
-        cur[0xBC / 4] = nextbc;
-        cur = a0 + a0[0x7C / 4];
+    diff = *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0xBC) - a0[((a0[0x7C / 4] - 1) & 3) + 0x2F];
+    if (diff < 15) {
+        *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0xBC) = a0[((a0[0x7C / 4] - 1) & 3) + 0x2F] + 16;
     }
-    cur[0xAC / 4] = 160;
+    *(int *)((char *)a0 + a0[0x7C / 4] * 4 + 0xAC) = 160;
     a0[0x88 / 4] += 16;
     a0[0x7C / 4] = (a0[0x7C / 4] + 1) & 3;
     if (a0[0x80 / 4] == a0[0x7C / 4]) {
@@ -2123,9 +2113,6 @@ void game_libs_func_00003F08(int *a0, int a1, int a2) {
         a0[0x84 / 4] = a0[0x84 / 4] + 1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003F08);
-#endif
 
 #ifdef NON_MATCHING
 int *game_libs_func_00003FF8(int *a0) {
