@@ -216,7 +216,7 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 # — baserom attributes that nop to alignment). objdiff per-symbol scored 90.9%=11/12.
 # Resize the non_matching symbol to 0x2c so objdiff sees the matching 11w. ROM-neutral
 # (non_matching .o only); the nop byte stays in .text. Section size unchanged (0x5530).
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5520 gl_func_0000EBC8=0x2c
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5524 gl_func_0000EBC8=0x2c
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a38
 build/src/game_libs/game_libs_g3_70FBC.c.o build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_70FBC.c.o: TRUNCATE_TEXT := 0x10
