@@ -2114,8 +2114,12 @@ void game_libs_func_00003F08(int *a0, int a1, int a2) {
     }
 }
 
-#ifdef NON_MATCHING
-int *game_libs_func_00003FF8(int *a0) {
+/* game_libs_func_00003FF8: clamp four ring-slot fields (+0x8C..+0x98) to a floor of 112.
+ * VOID return is load-bearing: as int*-returning, the return-value LR claims $v0 (3-LR
+ * coloring p=v1/R=v0 + trailing move v0,v1 — unflippable, every barrier/decl lever floored);
+ * as void, the copy candidate p itself colors $v0 first-appearance and the jr delay is a nop.
+ * The a0=0 kill after block 1 keeps p as a real second web (block 1 via a0, blocks 2-4 via p). */
+void game_libs_func_00003FF8(int *a0) {
     int *p;
     p = a0;
     if (a0[0x8C / 4] < 112) a0[0x8C / 4] = 112;
@@ -2123,11 +2127,7 @@ int *game_libs_func_00003FF8(int *a0) {
     if (p[0x90 / 4] < 112) p[0x90 / 4] = 112;
     if (p[0x94 / 4] < 112) p[0x94 / 4] = 112;
     if (p[0x98 / 4] < 112) p[0x98 / 4] = 112;
-    return p;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003FF8);
-#endif
 
 extern int gl_ref_00013C70();
 int gl_func_0000405C(char *a0) {

@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00003FF8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T14:01:50.598330+00:00",
+  "end_time": "2026-07-08T14:01:50.598356+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T14:01:50.598348+00:00",
+      "assistant_text": "Init helper, 94.4%->exact \u2014 the cap was a WRONG SIGNATURE, not coloring. Splat-guessed int*-return builds 3 LRs (p->v1, param->a0, return-copy->v0): the return-value LR ALWAYS claims $v0 with a trailing move v0,v1 in the jr delay (26w). Declared VOID: the copy candidate p itself colors v0 by first-appearance, const 112 becomes a ugen temp in the freed v1, jr delay = nop \u2014 exact. The word-1 move v0,a0 was the candidate copy, not return targeting. Load-bearing detail: a0 = 0; kill after block 1 keeps p a real second web (block-1 base a0, blocks 2-4 base v0). DIAGNOSTIC: 'v0/v1 swap + trailing move v0,v1 + target jr-delay nop' on a returns-its-arg-looking fn = return-value-LR claim; uoptlist tell = a 3rd isvar R LR assigned R1 \u2014 check void-ness before grinding coloring.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 25,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00003FF8: clamp four ring-slot fields (+0x8C..+0x98) to a floor of 112.\n * VOID return is load-bearing: as int*-returning, the return-value LR claims $v0 (3-LR\n * coloring p=v1/R=v0 + trailing move v0,v1 \u2014 unflippable, every barrier/decl lever floored);\n * as void, the copy candidate p itself colors $v0 first-appearance and the jr delay is a nop.\n * The a0=0 kill after block 1 keeps p as a real second web (block 1 via a0, blocks 2-4 via p). */\nvoid game_libs_func_00003FF8(int *a0) {\n    int *p;\n    p = a0;\n    if (a0[0x8C / 4] < 112) a0[0x8C / 4] = 112;\n    a0 = 0;\n    if (p[0x90 / 4] < 112) p[0x90 / 4] = 112;\n    if (p[0x94 / 4] < 112) p[0x94 / 4] = 112;\n    if (p[0x98 / 4] < 112) p[0x98 / 4] = 112;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00003FF8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "25/25 word-exact (real path) + make ROM byte-identical"
+  }
+}
