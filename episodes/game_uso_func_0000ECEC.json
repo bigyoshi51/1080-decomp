@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000ECEC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T14:14:21.682465+00:00",
+  "end_time": "2026-07-08T14:14:21.682487+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T14:14:21.682481+00:00",
+      "assistant_text": "Switch dispatcher, 93.3%->exact. (1) WRONG-SIGNATURE tell: idx is loaded from obj->0x10C (head lw v0,0x10C(a0)), not a parameter \u2014 signature narrowed to void f(char *obj); gave 57/57 structure immediately. (2) Commuted sum *base = ab[0] + *base (R-first rule) fixed the t1/t2 pair. (3) v0/v1 web flip by PSEUDO-CREATION ORDER: define base FIRST from the full expr *(char**)(obj+0xB4)+0x960, v SECOND from the CSE'd load -> v=v1/base=v0; CRITICAL: the threshold compare must read *(int*)(v+0x960) via v, not *base, or VN unifies it with the else-arm loads and kills the beqzl annulled dup-loads. Negative: if(1) barrier + base-first-with-*base-thr collapse the dups (20 diffs).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 57,
+  "initial_m2c_source": null,
+  "final_source": "/* Case decode: case 3 b-source = 0x3F4; case 4 b-source = 0x40C. Common\n * tail: v = a0->0xB4; if (a < v->0x960 && v->0x938) { a0->0x10C = 0;\n * a0->0x110 = 1; } else { v->0x960 += b; a0->0x110 = 0; } */\nvoid game_uso_func_0000ECEC(char *obj) {\n    int ab[2];\n    int *v;\n    int *base;\n    int idx = *(int *)(obj + 0x10C);\n    if (idx == 0) return;\n    switch (idx - 1) {\n        case 0: ab[1] = *(int *)(obj + 0x43C); ab[0] = *(int *)(obj + 0x3AC); break;\n        case 1: ab[1] = *(int *)(obj + 0x43C); ab[0] = *(int *)(obj + 0x3C4); break;\n        case 2: ab[1] = *(int *)(obj + 0x43C); ab[0] = *(int *)(obj + 0x3DC); break;\n        case 3: ab[1] = *(int *)(obj + 0x424); ab[0] = *(int *)(obj + 0x3F4); break;\n        case 4: ab[1] = *(int *)(obj + 0x424); ab[0] = *(int *)(obj + 0x40C); break;\n    }\n    /* base FIRST (full expr), v SECOND (CSE'd) \u2014 flips v0/v1 coloring\n     * (2026-07-08); thr must read via v, not *base (VN unification). */\n    base = (int *)(*(char **)(obj + 0xB4) + 0x960);\n    v = *(int **)(obj + 0xB4);\n    if ((ab[1] < *(int *)((char *)v + 0x960)) && (*(int *)((char *)v + 0x938) != 0)) {\n        *(int *)(obj + 0x10C) = 0;\n        *(int *)(obj + 0x110) = 1;\n    } else {\n        *base = ab[0] + *base;\n        *(int *)(obj + 0x110) = 0;\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_0000ECEC.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "57/57 word-exact (55 bit-equal in .o + jumptable HI16/LO16 link-resolved) + make ROM byte-identical (promoted)"
+  }
+}

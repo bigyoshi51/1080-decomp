@@ -12166,46 +12166,35 @@ int game_uso_func_0000EAF4(char *obj, int a1, int a2) {
  *      the tgt chain (emission: move v1 then move v0).
  */
 
-// game_uso_func_0000ECEC — STRUCTURAL PASS (0xE0 / 56 words,
-// no episode). Raw-.word USO form (single function, game_uso main
-// game-logic; boundary already split by commit 4d76f242 — named fn
-// still undecoded). Pure integer (no FP/calls).
+// game_uso_func_0000ECEC — EXACT 57/57 (2026-07-08 agent-e; 0xE4 incl.
+// the boundary-fix head word lw v0,0x10C(a0) from commit 4d76f242).
+// All 55 non-reloc words byte-equal; the 2 reloc words (lui $at %hi +
+// lw t6 %lo jump-table) carry R_MIPS_HI16/LO16 .rodata — resolved at
+// link (USO baked-reloc class; make verify is the landing gate).
+// Jump-table dispatched field selector over idx = obj->0x10C (1..5).
 //
-// Jump-table dispatched field selector.
-//
-//   void game_uso_func_0000ECEC(Obj *obj, int idx) {
-//     if (idx == 0) return;
-//     if ((unsigned)(idx - 1) >= 5) return;                // default
-//     switch (idx - 1) {                                    // table @
-//       case 0: a = obj->0x43C; b = obj->0x3AC; break;       //  D_0+0x210
-//       case 1: a = obj->0x43C; b = obj->0x3C4; break;
-//       case 2: a = obj->0x43C; b = obj->0x3DC; break;
-//       case 3: a = obj->0x424; … ; break;
-//       case 4: … ; break;
-//     }
-//     // common tail: stash (a,b) into sp slots, write the selected
-//     //   pair into obj->0x110 (and obj->0x114), obj->0x110 cleared
-//     //   / set; return.
-//   }
-//
-// Struct-typing reference:
-//   obj: 0x43C / 0x3AC / 0x3C4 / 0x3DC / 0x424 = candidate source
-//     fields; 0x110 / 0x114 = the selected output pair. idx = 1-based
-//     selector (0 / out-of-range = no-op). D_0 + 0x210 = the 5-entry
-//     jump table. No calls, no FP.
-// Caps (DEFERRED): raw-word USO + jump-table; per-case field map
-//   fully enumerable from .s in a future pass. Real-C STRUCTURAL
-//   body below — jump-table-dispatched field selector skeleton.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-/* 2026-05-27 corrected decode: case 3 b-source = 0x3F4 (NOT 0x3AC); case 4
- * b-source = 0x40C (NOT 0x3C4). Common tail decoded: load v = a0->0xB4,
- * compare a < v->0x960 (a > threshold check), gate on v->0x938; write
- * a0->0x110/0x10C with b stored at v+0x960. */
-void game_uso_func_0000ECEC(char *obj, int idx) {
+// Decisive levers from 93.32% (9-diff v0/v1 + t1/t2 coloring swap):
+//  (1) WRONG-SIGNATURE TELL: idx is NOT a param — it is loaded from
+//      obj->0x10C (the mis-split head word). One-arg signature.
+//  (2) COMMUTED SUM `*base = ab[0] + *base` flips the t1/t2 pair
+//      (b reload -> t2, *base -> t1, matching target).
+//  (3) v0/v1 WEB FLIP: define base FIRST from the full expression
+//      (base = *(obj+0xB4)+0x960) and v SECOND from the CSE'd load —
+//      pseudo-creation order flips coloring to v=v1/base=v0. The thr
+//      compare must then read via v (*(int*)(v+0x960)), NOT *base,
+//      or VN unifies thr with the else-arm *base loads (-2 words,
+//      kills the beqzl annulled dup-load pair).
+// Negative results: if(1) barrier around the pointer setup and
+// base-first-with-*base-thr both collapse the dup loads (20 diffs);
+// decl-order alone does nothing.
+/* Case decode: case 3 b-source = 0x3F4; case 4 b-source = 0x40C. Common
+ * tail: v = a0->0xB4; if (a < v->0x960 && v->0x938) { a0->0x10C = 0;
+ * a0->0x110 = 1; } else { v->0x960 += b; a0->0x110 = 0; } */
+void game_uso_func_0000ECEC(char *obj) {
     int ab[2];
     int *v;
     int *base;
+    int idx = *(int *)(obj + 0x10C);
     if (idx == 0) return;
     switch (idx - 1) {
         case 0: ab[1] = *(int *)(obj + 0x43C); ab[0] = *(int *)(obj + 0x3AC); break;
@@ -12214,35 +12203,18 @@ void game_uso_func_0000ECEC(char *obj, int idx) {
         case 3: ab[1] = *(int *)(obj + 0x424); ab[0] = *(int *)(obj + 0x3F4); break;
         case 4: ab[1] = *(int *)(obj + 0x424); ab[0] = *(int *)(obj + 0x40C); break;
     }
-    /* 2026-06-10 CONTROL-FLOW CORRECTION: the accumulate arm runs when
-     * (a >= thr) OR the gate is clear -- a single && condition with
-     * beqzl short-circuits (the old nested form wrongly skipped the
-     * accumulate when a >= thr). 87.04 -> 9 word diffs standalone
-     * (56/56 structure; head matches INCLUDING the v0 dispatch --
-     * IDO coalesces idx's web into v0 naturally, no caller-set cap).
-     * Residual: the v/base pair colors v0/v1 swapped vs target's
-     * v1/v0; negative sweep: early-pseudo base, un-CSE'd base-first,
-     * separate thr read (20 diffs, worse). UOPTLIST RUN 2026-06-10
-     * (the -zdbug:6 dump works; ecvt patch live): v's pseudo is
-     * created at table index 25, base's at 29 -- creation order
-     * matches my emit (v=v0 first), yet the TARGET colors v=v1/
-     * base=v0, INVERTING the early-pseudo rule. The v0/v1 rule is
-     * therefore context-dependent (likely tied to which web crosses
-     * the branchy tail); next step is diffing the dump's coloring
-     * section at higher verbosity. */
+    /* base FIRST (full expr), v SECOND (CSE'd) — flips v0/v1 coloring
+     * (2026-07-08); thr must read via v, not *base (VN unification). */
+    base = (int *)(*(char **)(obj + 0xB4) + 0x960);
     v = *(int **)(obj + 0xB4);
-    base = (int *)((char *)v + 0x960);
-    if ((ab[1] < *base) && (*(int *)((char *)v + 0x938) != 0)) {
+    if ((ab[1] < *(int *)((char *)v + 0x960)) && (*(int *)((char *)v + 0x938) != 0)) {
         *(int *)(obj + 0x10C) = 0;
         *(int *)(obj + 0x110) = 1;
     } else {
-        *base = *base + ab[0];
+        *base = ab[0] + *base;
         *(int *)(obj + 0x110) = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000ECEC);
-#endif
 
 void game_uso_func_0000EDCC(int *a0, int a1) {
     a0[0x10C / 4] = a1;
