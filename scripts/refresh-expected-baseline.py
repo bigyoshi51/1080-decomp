@@ -174,14 +174,15 @@ def strip_decomp_in_file(text, asm_funcs, seg_hint):
 def main():
     asm_funcs = func_map()
     src_c = sorted(glob.glob("src/**/*.c", recursive=True))
-    # Skip donor/carve units (*_o0_*, *_o1_*, *_ido53_*, *_g3_*): their bodies
-    # ARE the byte-exact ground truth spliced into host objects. Swapping a
-    # direct-CC donor (no asm-processor, e.g. -O1 -g3) to INCLUDE_ASM yields an
-    # empty .text and the host's REPLACE_FUNC_BODY splice dies (KeyError .text).
-    # Leaving them intact keeps the baseline truthful: the spliced bytes equal
-    # the INCLUDE_ASM emission for byte-exact donors.
-    donor_re = re.compile(r"_(o[01]|ido53|g3)_[0-9A-Fa-f]+\.c$")
-    src_c = [p for p in src_c if not donor_re.search(p)]
+    # Skip DIRECT-CC donor units (compiled without asm-processor): swapping
+    # them to INCLUDE_ASM yields an EMPTY object (no .text) and the host's
+    # REPLACE_FUNC_BODY splice dies (KeyError .text). Only list donors built
+    # by an explicit direct-CC Makefile rule; asm-processor donors MUST keep
+    # being swapped (their INCLUDE_ASM emits real bytes, and skipping them
+    # leaves donor RELOCS that cannot append to the reloc-free baseline host).
+    # These donors are byte-exact + reloc-free, so the baseline stays truthful.
+    DIRECT_CC_DONORS = {"src/game_libs/game_libs_o1_6AF0C.c"}
+    src_c = [p for p in src_c if p not in DIRECT_CC_DONORS]
     if not src_c:
         print("refresh-baseline: no src/**/*.c found", file=sys.stderr)
         sys.exit(1)
