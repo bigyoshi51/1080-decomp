@@ -8509,89 +8509,109 @@ int a0, a1, a2;
     return (int)game_uso_func_000043D8((int **)r, (int *)a2, 0);
 }
 
-/* game_uso_func_0000A3C4 - verified structural decode (~144-insn; 54->58.6% 2026-06-02
- * via the dead-alloc/stack-buffer Vec3 idiom: vref/v1c/v2c are built into stack buffers
- * (`p=&buf; if(!p) p=alloc(12); p->x/z/y=...`) before the dist compare, matching the
- * target's 3 game_uso_func_055750(12) dead-alloc sites. Residual: materialization/RA.
- * table-driven dispatch/registration; &D+0x548 entry-table + beql
- * branch-likely + sp-spilled a3 + ~7 calls = documented sub-80 ceiling
- * -> INCLUDE_ASM build path; struct-typing reference).
- *   a3 = a0;  a0->0x68 &= ~2;
- *   if (((int*)a0->0x30)->0x908 == 0) return;
- *   // repeated per-slot block (slot index = a0->0x40, then a0->0x124, ...):
- *   ent = *(int**)(&D_00000000 + 0x548 + idx*4);
- *   arg = ent[0];
- *   v0 = func_00000000(arg, arg_at_sp4, ((int*)a3->0x30)->0x908 + 0xB4);
- *   if (v0 == 0)
- *       func_00000000(&D+0x7EC, &D+0x808, 1104);     // error path
- *   slot = v0;
- *   if (((int*)slot)->0x84 & 0x10) slot = ((int*)slot)->0x2C;  // 44
- *   ... (block repeats with next index a3->0x124, same shape) ...
- * Struct-typing: a0->0x68 flag word (bit 0x2 cleared on entry),
- * a0->0x30 ctx whose ->0x908 is a base obj (+0xB4 passed to callee),
- * a0->0x40 / a0->0x124 = slot indices into the &D+0x548 entry-pointer
- * table (each entry->0 = the registration arg), result obj ->0x84 bit
- * 0x10 selects ->0x2C as the effective slot. &D+0x7EC / +0x808 = error
- * format/string args (1104). Caps <80: beql branch-likely + a3 sp-spill
- * round each call + &D %hi/%lo table-index reloc scheduling - the
- * documented table-dispatch ceiling. Full per-slot args/indices are
- * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
- * episode). */
+/* game_uso_func_0000A3C4 - MATCHED 2026-07-08 (144/144 words + ROM byte-exact;
+ * prior "sub-80 table-dispatch ceiling" note was FALSE). Picks the nearer of the
+ * two table entries (a0->0x40 vs a0->0x7C) to the ref point ctx->0x908+0xB4 by
+ * squared XZ distance and re-targets a0->0x40. Levers that cracked it:
+ * (1) a0 param used DIRECTLY (no local copy) -> uopt homes it at the incoming
+ *     slot (sp+0xB0) and shuttles via $a3 with flush/reload around every call
+ *     (NO s-regs anywhere - do not introduce a `s0 = a0` copy);
+ * (2) slot results in `int *slots[2]` (ARRAY, slots[1]=first/0x40, slots[0]=
+ *     second/0x7C) - array elements resist uopt promotion -> homed at 0x88/0x84
+ *     with `sw v0` in the bnez delay + fresh reload at each use (1-word-struct
+ *     fields get region-cached in $t regs instead - wrong);
+ * (3) only slot1 has the `->0x84 & 0x10 -> ->0x2C` re-point, via named temp w
+ *     (colors $v0);
+ * (4) alloc-fallback blocks: `if (1) { p = &buf; }` barrier keeps the
+ *     `if (p==0) p = 055750(12); if (!p) goto skip;` null test un-folded
+ *     (plain `p = &buf` folds the test + deletes the calls);
+ * (5) per-block float values through named fx/fz (color $f0/$f2 candidates;
+ *     zeros walk the fp temp FIFO f4/f6/f8), q = base+0x30 colors $v0;
+ * (6) frame layout: decl order p,v1,v2,buf2,buf3,slots,buf1,ref,w,fx,fz,q +
+ *     volatile char pad[0x4C] -> homes v1@A8,v2@A4,buf2@98,buf3@8C,slots@84/88,
+ *     buf1@78,ref@74, p's dead home takes the 0xAC slack word, pad fills the
+ *     0x18-0x63 dead region (frame 0xB0). a1 by-VALUE 1-int struct to A374
+ *     (S1_A3C4) homes to sp+4 per the A374 crack. */
 extern char game_uso_D_807FEB38;
 extern char game_uso_D_807FEDF8;
 extern char game_uso_D_807FEE20;
-#ifdef NON_MATCHING
 typedef struct { float x, y, z; } V3_A3C4;
-void game_uso_func_0000A3C4(char *a0) {
-    char *a3 = a0;
-    char *ent;
-    char *slot1, *slot2;
-    int idx;
-    V3_A3C4 vref, v1c, v2c;
+typedef struct { int a; } S1_A3C4;
+void game_uso_func_0000A3C4(int *a0) {
+    V3_A3C4 *p;
+    S1_A3C4 v1, v2;
+    V3_A3C4 buf2, buf3;
+    int *slots[2];
+    V3_A3C4 buf1;
     float *ref;
-    float d1x, d1z, d2x, d2z, dist2, dist1;
-    *(int *)(a0 + 0x68) &= ~2;
-    if (*(int *)(*(char **)(a0 + 0x30) + 0x908) == 0) return;
-    /* block 1: slot at a0->0x40 */
-    idx = *(int *)(a0 + 0x40);
-    ent = *(char **)((char *)&game_uso_D_807FEB38 + 0x548 + idx * 4);
-    slot1 = (char *)game_uso_func_0000A374(*(int *)ent, 0,
-                                  *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
-    if (slot1 == 0) {
-        game_uso_func_047B1C((char *)&game_uso_D_807FEDF8 + 0x7EC, (char *)&game_uso_D_807FEDF8 + 0x808, 1104);
+    int *w;
+    float fx, fz;
+    float *q;
+    volatile char padA3C4[0x4C];
+
+    a0[0x68 / 4] &= ~1;
+    if (*(int *)((char *)a0[0x30 / 4] + 0x908) == 0) {
+        return;
     }
-    if (*(int *)(slot1 + 0x84) & 0x10) slot1 = *(char **)(slot1 + 0x2C);
-    /* block 2: slot at a3->0x7C */
-    idx = *(int *)(a3 + 0x7C);
-    ent = *(char **)((char *)&game_uso_D_807FEB38 + 0x548 + idx * 4);
-    slot2 = (char *)game_uso_func_0000A374(*(int *)ent, 0,
-                                  *(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
-    if (slot2 == 0) {
-        game_uso_func_047B1C((char *)&game_uso_D_807FEE20 + 0x814, (char *)&game_uso_D_807FEE20 + 0x830, 1115);
+    v1.a = *(int *)(*(int **)((char *)&game_uso_D_807FEB38 + 0x548 + a0[0x40 / 4] * 4));
+    slots[1] = (int *)game_uso_func_0000A374(a0, v1,
+                (int)(*(int *)((char *)a0[0x30 / 4] + 0x908) + 0xB4));
+    if (slots[1] == 0) {
+        game_uso_func_047B1C((char *)&game_uso_D_807FEDF8 + 0x7EC,
+                             (char *)&game_uso_D_807FEDF8 + 0x808, 0x450);
     }
-    if (*(int *)(slot2 + 0x84) & 0x10) slot2 = *(char **)(slot2 + 0x2C);
-    /* {x,0,z} vecs: reference + both slots */
-    ref = (float *)(*(int *)(*(char **)(a3 + 0x30) + 0x908) + 0xB4);
-    {
-        V3_A3C4 *pref = &vref, *pv1 = &v1c, *pv2 = &v2c;
-        if (pref == 0) pref = (V3_A3C4 *)game_uso_func_055750(12);
-        pref->x = ref[0]; pref->z = ref[2]; pref->y = 0.0f;
-        if (pv1 == 0) pv1 = (V3_A3C4 *)game_uso_func_055750(12);
-        pv1->x = *(float *)(slot1 + 0x30); pv1->z = *(float *)(slot1 + 0x38); pv1->y = 0.0f;
-        if (pv2 == 0) pv2 = (V3_A3C4 *)game_uso_func_055750(12);
-        pv2->x = *(float *)(slot2 + 0x30); pv2->z = *(float *)(slot2 + 0x38); pv2->y = 0.0f;
-        d1x = pref->x - pv2->x; d1z = pref->z - pv2->z;
-        d2x = pref->x - pv1->x; d2z = pref->z - pv1->z;
+    if (slots[1][0x84 / 4] & 0x10) {
+        w = (int *)slots[1][0x2C / 4];
+        slots[1] = w;
     }
-    dist2 = d1x * d1x + d1z * d1z;
-    dist1 = d2x * d2x + d2z * d2z;
-    if (dist2 < dist1) {
-        *(int *)(a3 + 0x40) = *(int *)(a3 + 0x7C);
+    v2.a = *(int *)(*(int **)((char *)&game_uso_D_807FEB38 + 0x548 + a0[0x7C / 4] * 4));
+    slots[0] = (int *)game_uso_func_0000A374(a0, v2,
+                (int)(*(int *)((char *)a0[0x30 / 4] + 0x908) + 0xB4));
+    if (slots[0] == 0) {
+        game_uso_func_047B1C((char *)&game_uso_D_807FEE20 + 0x814,
+                             (char *)&game_uso_D_807FEE20 + 0x830, 0x45B);
+    }
+    ref = (float *)(*(int *)((char *)a0[0x30 / 4] + 0x908) + 0xB4);
+    if (1) { p = &buf1; }
+    if (p == 0) {
+        p = (V3_A3C4 *)game_uso_func_055750(12);
+        if (p == 0) goto skip1;
+    }
+    fx = ref[0];
+    fz = ref[2];
+    p->x = fx;
+    p->z = fz;
+    p->y = 0.0f;
+skip1:
+    if (1) { p = &buf2; }
+    if (p == 0) {
+        p = (V3_A3C4 *)game_uso_func_055750(12);
+        if (p == 0) goto skip2;
+    }
+    q = (float *)((char *)slots[1] + 0x30);
+    fz = q[2];
+    fx = q[0];
+    p->y = 0.0f;
+    p->z = fz;
+    p->x = fx;
+skip2:
+    if (1) { p = &buf3; }
+    if (p == 0) {
+        p = (V3_A3C4 *)game_uso_func_055750(12);
+        if (p == 0) goto skip3;
+    }
+    q = (float *)((char *)slots[0] + 0x30);
+    fz = q[2];
+    fx = q[0];
+    p->y = 0.0f;
+    p->z = fz;
+    p->x = fx;
+skip3:
+    if ((buf1.x - buf3.x) * (buf1.x - buf3.x) + (buf1.z - buf3.z) * (buf1.z - buf3.z) <
+        (buf1.x - buf2.x) * (buf1.x - buf2.x) + (buf1.z - buf2.z) * (buf1.z - buf2.z)) {
+        a0[0x40 / 4] = a0[0x7C / 4];
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000A3C4);
-#endif
 
 // game_uso_func_0000A604 — STRUCTURAL PASS (0x1D4 / 117 words,
 // no episode). Raw-.word USO form (single function, game_uso main

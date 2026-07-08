@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0000A3C4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T12:38:41.676515+00:00",
+  "end_time": "2026-07-08T12:38:41.676545+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T12:38:41.676530+00:00",
+      "assistant_text": "Distance-based retarget, 58.6%->exact (prior 'sub-80 table-dispatch ceiling' note false). Levers: (1) param used DIRECTLY (no local copy) -> a0 homed at incoming slot sp+0xB0, $a3 shuttle flush/reload around 7 calls, zero s-regs; (2) int *slots[2] ARRAY (not pointer locals/1-word structs) \u2014 array elements resist promotion: sw v0 in bnez delay + fresh reload per use; (3) if(1){p=&buf;} barrier before the null-test-alloc chain (plain assignment lets IDO fold the test + delete the alloc calls); (4) named temp w for the single 0x84&0x10 re-point (colors v0, fixes ugen FIFO phase); (5) named fx/fz per buf-block (f0/f2; zeros walk f4/f6/f8), q=base+0x30 colors v0 + materializes addiu; (6) decl-order + volatile char padA3C4[0x4C] -> frame 0xB0; S1_A3C4 by-value a1 to A374 homes at sp+4.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 144,
+  "initial_m2c_source": null,
+  "final_source": "/* game_uso_func_0000A3C4 - MATCHED 2026-07-08 (144/144 words + ROM byte-exact;\n * prior \"sub-80 table-dispatch ceiling\" note was FALSE). Picks the nearer of the\n * two table entries (a0->0x40 vs a0->0x7C) to the ref point ctx->0x908+0xB4 by\n * squared XZ distance and re-targets a0->0x40. Levers that cracked it:\n * (1) a0 param used DIRECTLY (no local copy) -> uopt homes it at the incoming\n *     slot (sp+0xB0) and shuttles via $a3 with flush/reload around every call\n *     (NO s-regs anywhere - do not introduce a `s0 = a0` copy);\n * (2) slot results in `int *slots[2]` (ARRAY, slots[1]=first/0x40, slots[0]=\n *     second/0x7C) - array elements resist uopt promotion -> homed at 0x88/0x84\n *     with `sw v0` in the bnez delay + fresh reload at each use (1-word-struct\n *     fields get region-cached in $t regs instead - wrong);\n * (3) only slot1 has the `->0x84 & 0x10 -> ->0x2C` re-point, via named temp w\n *     (colors $v0);\n * (4) alloc-fallback blocks: `if (1) { p = &buf; }` barrier keeps the\n *     `if (p==0) p = 055750(12); if (!p) goto skip;` null test un-folded\n *     (plain `p = &buf` folds the test + deletes the calls);\n * (5) per-block float values through named fx/fz (color $f0/$f2 candidates;\n *     zeros walk the fp temp FIFO f4/f6/f8), q = base+0x30 colors $v0;\n * (6) frame layout: decl order p,v1,v2,buf2,buf3,slots,buf1,ref,w,fx,fz,q +\n *     volatile char pad[0x4C] -> homes v1@A8,v2@A4,buf2@98,buf3@8C,slots@84/88,\n *     buf1@78,ref@74, p's dead home takes the 0xAC slack word, pad fills the\n *     0x18-0x63 dead region (frame 0xB0). a1 by-VALUE 1-int struct to A374\n *     (S1_A3C4) homes to sp+4 per the A374 crack. */\nextern char game_uso_D_807FEB38;\nextern char game_uso_D_807FEDF8;\nextern char game_uso_D_807FEE20;\ntypedef struct { float x, y, z; } V3_A3C4;\ntypedef struct { int a; } S1_A3C4;\nvoid game_uso_func_0000A3C4(int *a0) {\n    V3_A3C4 *p;\n    S1_A3C4 v1, v2;\n    V3_A3C4 buf2, buf3;\n    int *slots[2];\n    V3_A3C4 buf1;\n    float *ref;\n    int *w;\n    float fx, fz;\n    float *q;\n    volatile char padA3C4[0x4C];\n\n    a0[0x68 / 4] &= ~1;\n    if (*(int *)((char *)a0[0x30 / 4] + 0x908) == 0) {\n        return;\n    }\n    v1.a = *(int *)(*(int **)((char *)&game_uso_D_807FEB38 + 0x548 + a0[0x40 / 4] * 4));\n    slots[1] = (int *)game_uso_func_0000A374(a0, v1,\n                (int)(*(int *)((char *)a0[0x30 / 4] + 0x908) + 0xB4));\n    if (slots[1] == 0) {\n        game_uso_func_047B1C((char *)&game_uso_D_807FEDF8 + 0x7EC,\n                             (char *)&game_uso_D_807FEDF8 + 0x808, 0x450);\n    }\n    if (slots[1][0x84 / 4] & 0x10) {\n        w = (int *)slots[1][0x2C / 4];\n        slots[1] = w;\n    }\n    v2.a = *(int *)(*(int **)((char *)&game_uso_D_807FEB38 + 0x548 + a0[0x7C / 4] * 4));\n    slots[0] = (int *)game_uso_func_0000A374(a0, v2,\n                (int)(*(int *)((char *)a0[0x30 / 4] + 0x908) + 0xB4));\n    if (slots[0] == 0) {\n        game_uso_func_047B1C((char *)&game_uso_D_807FEE20 + 0x814,\n                             (char *)&game_uso_D_807FEE20 + 0x830, 0x45B);\n    }\n    ref = (float *)(*(int *)((char *)a0[0x30 / 4] + 0x908) + 0xB4);\n    if (1) { p = &buf1; }\n    if (p == 0) {\n        p = (V3_A3C4 *)game_uso_func_055750(12);\n        if (p == 0) goto skip1;\n    }\n    fx = ref[0];\n    fz = ref[2];\n    p->x = fx;\n    p->z = fz;\n    p->y = 0.0f;\nskip1:\n    if (1) { p = &buf2; }\n    if (p == 0) {\n        p = (V3_A3C4 *)game_uso_func_055750(12);\n        if (p == 0) goto skip2;\n    }\n    q = (float *)((char *)slots[1] + 0x30);\n    fz = q[2];\n    fx = q[0];\n    p->y = 0.0f;\n    p->z = fz;\n    p->x = fx;\nskip2:\n    if (1) { p = &buf3; }\n    if (p == 0) {\n        p = (V3_A3C4 *)game_uso_func_055750(12);\n        if (p == 0) goto skip3;\n    }\n    q = (float *)((char *)slots[0] + 0x30);\n    fz = q[2];\n    fx = q[0];\n    p->y = 0.0f;\n    p->z = fz;\n    p->x = fx;\nskip3:\n    if ((buf1.x - buf3.x) * (buf1.x - buf3.x) + (buf1.z - buf3.z) * (buf1.z - buf3.z) <\n        (buf1.x - buf2.x) * (buf1.x - buf2.x) + (buf1.z - buf2.z) * (buf1.z - buf2.z)) {\n        a0[0x40 / 4] = a0[0x7C / 4];\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_0000A3C4.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "144/144 reloc-aware word-exact (13 relocs) + make ROM byte-identical (promoted)"
+  }
+}
