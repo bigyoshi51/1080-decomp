@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00001658",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T12:39:25.350426+00:00",
+  "end_time": "2026-07-08T12:39:25.350450+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T12:39:25.350443+00:00",
+      "assistant_text": "Radial-dial HUD constructor (parent from &D_807FE938+0x10C8 factory, six cardinal-angle children at o->0x44..0x58, dirty-flag/parent-link attach idiom, two finalizers). NOVEL lever combo: (1) 'char * volatile' locals for P and ap=P+0x10 \u2014 target reloads from sp at EVERY use and never touches s2 across 9 calls; volatile local = stack home + per-use reload, explains the whole spill pattern; (2) volatile int pad[4] between decls = the 0x2C..0x38 frame gap (locals top-down in decl order); (3) 'c = P = (char*)factory(...)' combined assignment emits volatile sw BEFORE move s0,v0 (split statements emit move-first); (4) attach(ap = P + 0x10, c) assignment-expr arg: computes/stores once + uses value directly call 1, reloads calls 2-6; (5) mixed beq/beql-dup delay pattern emits NATURALLY from six identical C blocks (pure as1).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 151,
+  "initial_m2c_source": null,
+  "final_source": "/* widget C (id 4) \u2014 RGBA = 174/255, 113/255, 61/255, retA */\n    o = (char *)timproc_uso_b5_func_068D54(0, &timproc_uso_b5_D_807FE918 + 0x10A8);\n    *(char **)(arg0 + 0x40) = o;\n    *(float *)(o + 0x124) = 174.0f / 255.0f;\n    *(float *)(o + 0x128) = 113.0f / 255.0f;\n    *(float *)(o + 0x12C) = 61.0f / 255.0f;\n    *(float *)(o + 0x130) = retA;\n    o = *(char **)(arg0 + 0x40);\n    *(int *)(o + 0xC4) |= 0x40;\n    o = *(char **)(arg0 + 0x40);\n    *(int *)(o + 0xC4) |= 0x80;\n    o = *(char **)(arg0 + 0x40);\n    *(int *)(o + 0xD0) = 4;\n    timproc_uso_b5_func_062880(&import_8005C108, *(char **)(arg0 + 0x40));\n    o = *(char **)(arg0 + 0x40);\n    timproc_uso_b5_func_07ACE0(reg, o);\n    if (*(int *)(o + 0x14) != 0) {\n        *(int *)(o + 0x4) = 1;\n    }\n    *(char **)(o + 0x14) = arg0;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b5/timproc_uso_b5\", timproc_uso_b5_func_00001460);\n#endif\n\n// timproc_uso_b5_func_00001658 \u2014 STRUCTURAL PASS (0x25C / 151 words,\n// no episode). Raw-.word USO form (genuine code). Hand-decoded.\n//\n// Radial-dial HUD panel constructor (timproc_uso_b5): builds a parent\n// container plus a set of child marks at cardinal angle parameters.\n//\n//   void timproc_uso_b5_func_00001658(Owner *o) {     // o -> s1 (arg0)\n//     func_00000000(&D_000010B8, 0);                   // named setup x2\n//     func_00000000(&D_000010C0, 0);\n//     P = func_00000000(0, &D_000010C8, 1, 0x100);     // parent container\n//     func_00000000(o+0x10, P);                        // attach to owner\n//     if (!o->0x14) { o->0x4 = 1; o->0x14 = o; }       // one-time init\n//     // create child marks, each func_00000000(0,&D_0,0, ANGLE, sp10=0)\n//     //   stored into o->{0x44,0x48,0x4C,0x50,0x54,0x58}; ANGLE =\n//     //   0, 0x5A(90), 0xB4(180), 0x10E(270), -0x5A(-90), -0x10E(-270)\n//     //   -> a radial gauge / dial with cardinal tick marks.\n//     // then for each child c in o->0x44..0x58:\n//     //   func_00000000(c+0x10, P);                    // attach to P\n//     //   if (!c->0x14) c->0x4 = 1;  c->0x14 = P;       // dirty+link\n//     func_00000000(.);  func_00000000();               // finalize\n//   }",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00001658.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "151/151 reloc-aware word-exact (36 relocs) + make ROM byte-identical (promoted)"
+  }
+}

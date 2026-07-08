@@ -968,89 +968,90 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   ANGLE args 0/±90/±180/±270 (deg*1, signed) = dial tick positions.
 //   &D_000010B8 / &D_000010C0 / &D_000010C8 = USO name/desc data refs;
 //   func_00000000 = USO placeholder dispatcher (setup/factory/attach).
-// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
-//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
-//   below — radial-dial HUD panel constructor with 6 cardinal-angle
-//   children. Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-
-
-
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00001658)();
+// 2026-07-08 EXACT 151/151 (agent-e, fresh NM build, reloc-aware word
+//   diff vs .s: every word + every reloc symbol matches). Levers:
+//   (1) P and ap(=P+0x10) are `char * volatile` locals -> stack homes
+//       sp+0x3C / sp+0x28 with per-use reloads, NO s2 despite liveness
+//       across 9 calls (plain locals color s2, diverges);
+//   (2) volatile int pad[4] between the P/ap decls = the 0x2C..0x38
+//       frame gap (frame 0x40; locals top-down in decl order);
+//   (3) `c = P = (char *)factory(...)` combined assignment emits the
+//       volatile sw BEFORE `move s0,v0` (split statements emit move
+//       first — was the last 2-word diff);
+//   (4) `attach(ap = P + 0x10, c)` assignment-expr arg: compute+store
+//       once, value used directly for call 1; calls 2-6 reload ap;
+//   (5) the mixed beq (children 1-2) / beql-dup (children 3-6) forms
+//       emit NATURALLY from six identical C blocks — as1 artifact.
+extern int timproc_uso_b5_func_000CA0();
+extern int timproc_uso_b5_func_000E68();
+extern char timproc_uso_b5_D_807FE928;
+extern char timproc_uso_b5_D_807FE930;
+extern char timproc_uso_b5_D_807FE938;
+extern char timproc_uso_b5_D_807E3C60;
+extern char import_807C3820;
+extern char import_807D3A40;
+extern char import_807B3600;
+extern char import_807A33E0;
+extern char import_807931C0;
 void timproc_uso_b5_func_00001658(char *arg0) {
-    char *sp3C;
-    char *sp28;
-    char *temp_a0;
-    char *temp_s0;
-    char *temp_s0_2;
-    char *temp_s0_3;
-    char *temp_s0_4;
-    char *temp_s0_5;
-    char *temp_s0_6;
-    char *temp_v0;
+    char * volatile P;
+    volatile int pad[4];
+    char * volatile ap;
+    char *c;
 
-    timproc_uso_b5_alias((char *)0x10B8, 0);
-    timproc_uso_b5_alias((char *)0x10C0, 0);
-    temp_v0 = timproc_uso_b5_alias(0, (char *)0x10C8, 1, 0x100);
-    sp3C = temp_v0;
-    timproc_uso_b5_alias((int)arg0 + 0x10, temp_v0);
-    if (FW(temp_v0, 0x14) != 0) {
-        FW(temp_v0, 0x4) = 1;
+    timproc_uso_b5_func_074710(&timproc_uso_b5_D_807FE928 + 0x10B8, 0);
+    timproc_uso_b5_func_074710(&timproc_uso_b5_D_807FE930 + 0x10C0, 0);
+    c = P = (char *)timproc_uso_b5_func_000CA0(0, &timproc_uso_b5_D_807FE938 + 0x10C8, 1, 0x100);
+    timproc_uso_b5_func_07ACE0(arg0 + 0x10, c);
+    if (*(int *)(c + 0x14) != 0) {
+        *(int *)(c + 0x4) = 1;
     }
-    FW(temp_v0, 0x14) = arg0;
-    FW(arg0, 0x44) = timproc_uso_b5_alias(0, 0, 0, 0, 0);
-    FW(arg0, 0x48) = timproc_uso_b5_alias(0, 0, 0, 0x5A, 0);
-    FW(arg0, 0x4C) = timproc_uso_b5_alias(0, 0, 0, 0xB4, 0);
-    FW(arg0, 0x50) = timproc_uso_b5_alias(0, 0, 0, 0x10E, 0);
-    FW(arg0, 0x54) = timproc_uso_b5_alias(0, 0, -0x5A, 0, 0);
-    FW(arg0, 0x58) = timproc_uso_b5_alias(0, 0, -0x10E, 0, 0);
-    temp_s0 = FW(arg0, 0x44);
-    temp_a0 = sp3C + 0x10;
-    sp28 = temp_a0;
-    timproc_uso_b5_alias(temp_a0, temp_s0);
-    if (FW(temp_s0, 0x14) != 0) {
-        FW(temp_s0, 0x4) = 1;
+    *(char **)(c + 0x14) = arg0;
+    *(char **)(arg0 + 0x44) = (char *)timproc_uso_b5_func_000E68(0, &import_807C3820, 0, 0, 0);
+    *(char **)(arg0 + 0x48) = (char *)timproc_uso_b5_func_000E68(0, &import_807D3A40, 0, 0x5A, 0);
+    *(char **)(arg0 + 0x4C) = (char *)timproc_uso_b5_func_000E68(0, &import_807B3600, 0, 0xB4, 0);
+    *(char **)(arg0 + 0x50) = (char *)timproc_uso_b5_func_000E68(0, &timproc_uso_b5_D_807E3C60, 0, 0x10E, 0);
+    *(char **)(arg0 + 0x54) = (char *)timproc_uso_b5_func_000E68(0, &import_807A33E0, -0x5A, 0, 0);
+    *(char **)(arg0 + 0x58) = (char *)timproc_uso_b5_func_000E68(0, &import_807931C0, -0x10E, 0, 0);
+    c = *(char **)(arg0 + 0x44);
+    timproc_uso_b5_func_07ACE0(ap = P + 0x10, c);
+    if (*(int *)(c + 0x14) != 0) {
+        *(int *)(c + 0x4) = 1;
     }
-    FW(temp_s0, 0x14) = sp3C;
-    temp_s0_2 = FW(arg0, 0x48);
-    timproc_uso_b5_alias(sp28, temp_s0_2);
-    if (FW(temp_s0_2, 0x14) != 0) {
-        FW(temp_s0_2, 0x4) = 1;
+    *(char **)(c + 0x14) = P;
+    c = *(char **)(arg0 + 0x48);
+    timproc_uso_b5_func_07ACE0(ap, c);
+    if (*(int *)(c + 0x14) != 0) {
+        *(int *)(c + 0x4) = 1;
     }
-    FW(temp_s0_2, 0x14) = sp3C;
-    temp_s0_3 = FW(arg0, 0x4C);
-    timproc_uso_b5_alias(sp28, temp_s0_3);
-    if (FW(temp_s0_3, 0x14) != 0) {
-        FW(temp_s0_3, 0x4) = 1;
+    *(char **)(c + 0x14) = P;
+    c = *(char **)(arg0 + 0x4C);
+    timproc_uso_b5_func_07ACE0(ap, c);
+    if (*(int *)(c + 0x14) != 0) {
+        *(int *)(c + 0x4) = 1;
     }
-    FW(temp_s0_3, 0x14) = sp3C;
-    temp_s0_4 = FW(arg0, 0x50);
-    timproc_uso_b5_alias(sp28, temp_s0_4);
-    if (FW(temp_s0_4, 0x14) != 0) {
-        FW(temp_s0_4, 0x4) = 1;
+    *(char **)(c + 0x14) = P;
+    c = *(char **)(arg0 + 0x50);
+    timproc_uso_b5_func_07ACE0(ap, c);
+    if (*(int *)(c + 0x14) != 0) {
+        *(int *)(c + 0x4) = 1;
     }
-    FW(temp_s0_4, 0x14) = sp3C;
-    temp_s0_5 = FW(arg0, 0x54);
-    timproc_uso_b5_alias(sp28, temp_s0_5);
-    if (FW(temp_s0_5, 0x14) != 0) {
-        FW(temp_s0_5, 0x4) = 1;
+    *(char **)(c + 0x14) = P;
+    c = *(char **)(arg0 + 0x54);
+    timproc_uso_b5_func_07ACE0(ap, c);
+    if (*(int *)(c + 0x14) != 0) {
+        *(int *)(c + 0x4) = 1;
     }
-    FW(temp_s0_5, 0x14) = sp3C;
-    temp_s0_6 = FW(arg0, 0x58);
-    timproc_uso_b5_alias(sp28, temp_s0_6);
-    if (FW(temp_s0_6, 0x14) != 0) {
-        FW(temp_s0_6, 0x4) = 1;
+    *(char **)(c + 0x14) = P;
+    c = *(char **)(arg0 + 0x58);
+    timproc_uso_b5_func_07ACE0(ap, c);
+    if (*(int *)(c + 0x14) != 0) {
+        *(int *)(c + 0x4) = 1;
     }
-    FW(temp_s0_6, 0x14) = sp3C;
-    timproc_uso_b5_alias();
-    timproc_uso_b5_alias();
+    *(char **)(c + 0x14) = P;
+    timproc_uso_b5_func_074840();
+    timproc_uso_b5_func_074840();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001658);
-#endif
 
 // timproc_uso_b5_func_000018B4 — STRUCTURAL PASS (0x354 / 213 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
