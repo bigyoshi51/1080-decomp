@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_0001094C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T17:31:51.654687+00:00",
+  "end_time": "2026-07-08T17:31:51.654708+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T17:31:51.654702+00:00",
+      "assistant_text": "Pair-dispatch handler, 93.1%->exact. The prior decode's structure was right but used PLACEHOLDER syms (gl_func_00000000/D_00000000) where the .s carries fully resolved relocs \u2014 wired real symbols (import_0010DB78, game_uso_func_0000D5BC x2, E91C, D8EC, D7F4, two DISTINCT data bases game_uso_D_807FF400+0xE10 / _807FF460+0xE70) per the resolved-reloc convention. Levers: *(Pair2*) by-value D-pair calls home a1/a2 to sp+4/8; inlined 0xB4 deref (t6) + 0x9CC test (bnezl dup-load); a0[0xFC/4] inlined twice so CSE creates the v0 candidate after the 0xB4 pseudo; param used directly (no s0 local).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 48,
+  "initial_m2c_source": null,
+  "final_source": "/* game_uso_func_0001094C: 48-insn EE84-family (near-twin of 10A0C).\n * MATCHED 2026-07-08, word-diff 48/48 incl. reloc symbols (import_0010DB78,\n * game_uso_D_807FF400+0xE10, game_uso_D_807FF460+0xE70, D5BC/E91C/D8EC/D7F4):\n * (1) *(Pair2*) by-value D-pair calls (0xE10, 0xE70) home a1/a2 to sp+4/8;\n * (2) inline the first 0xB4 deref (named local colored it v0; inline -> t6)\n *     and the 0x9CC test (named t2 colored v1; inline -> $t2 temp + bnezl\n *     dup-load in the delay slot);\n * (3) the 0xFC state word must be INLINED TWICE (|4, |5) so CSE creates the\n *     v0 candidate AFTER the 0xB4 deref pseudo -- a named `int v` local is\n *     created before the s0=a0 copy point and bases its lw on $a0 not $s0\n *     (the last 47/48 residual). Param used directly, no explicit s0 local. */\nextern int import_0010DB78();\nextern void game_uso_func_0000D5BC(char *, Pair2);\nextern void game_uso_func_0000E91C(char *);\nextern void game_uso_func_0000D8EC(int *);\nextern void game_uso_func_0000D7F4(char *);\nextern char game_uso_D_807FF400;\nextern char game_uso_D_807FF460;\nvoid game_uso_func_0001094C(int *a0) {\n    int *p;\n    import_0010DB78(a0, a0[0xFC / 4] | 4, a0[0xFC / 4] | 5, ((int *)a0[0xB4 / 4])[0x970 / 4], 0, 1);\n    p = (int *)a0[0xB4 / 4];\n    if (p[0x990 / 4] == 0) {\n        game_uso_func_0000D5BC((char *)a0, *(Pair2 *)((char *)&game_uso_D_807FF400 + 0xE10));\n        p = (int *)a0[0xB4 / 4];\n    }\n    if (p[0x9CC / 4] != 0) {\n        game_uso_func_0000D5BC((char *)a0, *(Pair2 *)((char *)&game_uso_D_807FF460 + 0xE70));\n    }\n    game_uso_func_0000E91C((char *)a0);\n    game_uso_func_0000D8EC(a0);\n    game_uso_func_0000D7F4((char *)a0);\n}",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_0001094C.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "48/48 word-exact incl all jal+lui reloc symbols + make ROM byte-identical (promoted)"
+  }
+}

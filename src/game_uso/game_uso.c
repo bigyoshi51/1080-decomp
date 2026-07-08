@@ -13607,37 +13607,39 @@ void game_uso_func_00010840(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00010840);
 #endif
 
-#ifdef NON_MATCHING
-/* game_uso_func_0001094C: 47-insn EE84-family (near-twin of 10A0C).
- * Cross-USO jal-0 → gl_func_00000000. 68.1% -> 93.1%: the two conditional
- * D-pair calls (0xE10/0xE14, 0xE70/0xE74) pass the float-pair BY VALUE as
- * *(Pair2*) — the "precall arg-spill cap" was the un-homed pair (same lever
- * as twin 10A0C, docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
- * Residual is regalloc-renumber only (target sets s0=a0 early + uses
- * t6/t7/t9/t3; ours defers `or s0,a0` + uses v0/v1/t8/t1; same logic). */
-extern int gl_func_00000000();
+/* game_uso_func_0001094C: 48-insn EE84-family (near-twin of 10A0C).
+ * MATCHED 2026-07-08, word-diff 48/48 incl. reloc symbols (import_0010DB78,
+ * game_uso_D_807FF400+0xE10, game_uso_D_807FF460+0xE70, D5BC/E91C/D8EC/D7F4):
+ * (1) *(Pair2*) by-value D-pair calls (0xE10, 0xE70) home a1/a2 to sp+4/8;
+ * (2) inline the first 0xB4 deref (named local colored it v0; inline -> t6)
+ *     and the 0x9CC test (named t2 colored v1; inline -> $t2 temp + bnezl
+ *     dup-load in the delay slot);
+ * (3) the 0xFC state word must be INLINED TWICE (|4, |5) so CSE creates the
+ *     v0 candidate AFTER the 0xB4 deref pseudo -- a named `int v` local is
+ *     created before the s0=a0 copy point and bases its lw on $a0 not $s0
+ *     (the last 47/48 residual). Param used directly, no explicit s0 local. */
+extern int import_0010DB78();
+extern void game_uso_func_0000D5BC(char *, Pair2);
+extern void game_uso_func_0000E91C(char *);
+extern void game_uso_func_0000D8EC(int *);
+extern void game_uso_func_0000D7F4(char *);
+extern char game_uso_D_807FF400;
+extern char game_uso_D_807FF460;
 void game_uso_func_0001094C(int *a0) {
-    int *s0 = a0;
-    int *p = (int *)s0[0xB4 / 4];
-    int v = s0[0xFC / 4];
-    int t2;
-    gl_func_00000000(s0, v | 4, v | 5, p[0x970 / 4], 0, 1);
-    p = (int *)s0[0xB4 / 4];
+    int *p;
+    import_0010DB78(a0, a0[0xFC / 4] | 4, a0[0xFC / 4] | 5, ((int *)a0[0xB4 / 4])[0x970 / 4], 0, 1);
+    p = (int *)a0[0xB4 / 4];
     if (p[0x990 / 4] == 0) {
-        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE10));
-        p = (int *)s0[0xB4 / 4];
+        game_uso_func_0000D5BC((char *)a0, *(Pair2 *)((char *)&game_uso_D_807FF400 + 0xE10));
+        p = (int *)a0[0xB4 / 4];
     }
-    t2 = p[0x9CC / 4];
-    if (t2 != 0) {
-        gl_func_00000000(s0, *(Pair2 *)((char *)&D_00000000 + 0xE70));
+    if (p[0x9CC / 4] != 0) {
+        game_uso_func_0000D5BC((char *)a0, *(Pair2 *)((char *)&game_uso_D_807FF460 + 0xE70));
     }
-    gl_func_00000000(s0);
-    gl_func_00000000(s0);
-    gl_func_00000000(s0);
+    game_uso_func_0000E91C((char *)a0);
+    game_uso_func_0000D8EC(a0);
+    game_uso_func_0000D7F4((char *)a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0001094C);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00010A0C: 45-insn EE84-family, near-twin of 0001094C
