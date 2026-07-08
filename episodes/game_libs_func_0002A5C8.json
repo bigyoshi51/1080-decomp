@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0002A5C8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T17:33:09.894011+00:00",
+  "end_time": "2026-07-08T17:33:09.894030+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T17:33:09.894024+00:00",
+      "assistant_text": "Bit-stream walker (2A9B8/2A9F0 reader family), 90.7%->exact from a pure 3-register rotation. (1) i-init BEFORE base-init flips i to $v0 (unconstrained greedy first-ucode-appearance). (2) Explicit int chain var s = a1; if (s & 1){...} a1 = s >> 1; + dead while(0){ s = a1; } anchor before base-init \u2014 s colors $v1, int keeps sra, the s/a1 split materializes the per-step andi/move normalize chain. (3) Last 2 diffs = swapped ENTRY MOVES: dead while(0){ i = 0; } anchor + real inits reordered base-then-i \u2014 ANCHORS CONTROL COLORING, STATEMENT ORDER CONTROLS EMISSION (the clean two-knob formulation).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 62,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_0002A5C8 \u2014 EXACT 62/62 words (2026-07-08, agent-e). Reloc-free.\n * Bitmask scatter-copy: for each set bit i of the low 16 bits of a1, copy 3 bytes\n * (base[5]->p[7], base[3]->p[3], base[2]->p[2]) where p = *(int*)(base + 0x38 + i*4).\n * IDO unrolls by 4 (i steps 0,4,8,12; bound 16 register-held in a3).\n *\n * Levers (closed the 90.73% 35-diff base/i/chain rotation v0/v1/a2 -> a2/v0/v1):\n *  - Explicit int chain var `s = a1; if (s & 1) ...; a1 = s >> 1;` \u2014 int s gives sra\n *    (not srl) and materializes the per-step andi 0xFFFF / move v1 normalize chain.\n *  - Coloring = unconstrained greedy in first-ucode-appearance order: dead\n *    `while (0) { i = 0; }` + `while (0) { s = a1; }` anchors BEFORE `base = a0`\n *    put i and s ahead of base -> i=$v0, s=$v1, base=$a2 (target), zero emission.\n *  - Real inits ordered `base = a0; i = 0;` AFTER the anchors so the two entry\n *    moves EMIT in target order (move a2,a0 before move v0,zero) while the dead\n *    appearances still control coloring.\n *  - Param a0 evicted (dead after base copy) -> loaded element ptr reuses $a0.\n * The while(0) anchors are LOAD-BEARING \u2014 do not clean them up. */\nvoid game_libs_func_0002A5C8(a0, a1)\nunsigned char *a0;\nunsigned short a1;\n{\n    unsigned char *base;\n    int i;\n    int s;\n    while (0) { i = 0; }\n    while (0) { s = a1; }\n    base = a0;\n    i = 0;\n    for (; i != 16; i++) {\n        s = a1;\n        if (s & 1) {\n            a0 = (unsigned char *)*(int *)(base + 0x38 + i * 4);\n            a0[7] = base[5];\n            a0[3] = base[3];\n            a0[2] = base[2];\n        }\n        a1 = s >> 1;\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_0002A5C8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "62/62 word-exact (both build paths, reloc-free) + make ROM byte-identical (promoted)"
+  }
+}

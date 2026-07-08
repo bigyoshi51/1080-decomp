@@ -12668,30 +12668,44 @@ void gl_func_0002A55C(unsigned char *obj) {
  * gl_ref_0003EB78 = 0x0003EB78;
  */
 
-#ifdef NON_MATCHING
-/* Bitmask scatter-copy: for each of the low 16 bits of a1, if set, copy 3 bytes
- * (a0[5]->p[7], a0[3]->p[3], a0[2]->p[2]) where p = *(int*)(a0 + 56 + i*4).
- * RELOC-FREE → episode target. IDO unrolls the loop by 4 (matched, 59 vs 62);
- * byte-match capped by the arg-home (sw a1 saved), the v0-step-4 unroll counter
- * vs i-step-1, and $t-renumber. 2026-05-27 retest: `unsigned short s = a1; s>>=1`
- * regressed 90.73% → 80.89% (changed scratch reg from $v0 to $v0+$v1 split).
- * Re-attempt with the permuter or explicit nested-by-4 loop in a focused pass. */
-void game_libs_func_0002A5C8(char *a0, int a1) {
+/* game_libs_func_0002A5C8 — EXACT 62/62 words (2026-07-08, agent-e). Reloc-free.
+ * Bitmask scatter-copy: for each set bit i of the low 16 bits of a1, copy 3 bytes
+ * (base[5]->p[7], base[3]->p[3], base[2]->p[2]) where p = *(int*)(base + 0x38 + i*4).
+ * IDO unrolls by 4 (i steps 0,4,8,12; bound 16 register-held in a3).
+ *
+ * Levers (closed the 90.73% 35-diff base/i/chain rotation v0/v1/a2 -> a2/v0/v1):
+ *  - Explicit int chain var `s = a1; if (s & 1) ...; a1 = s >> 1;` — int s gives sra
+ *    (not srl) and materializes the per-step andi 0xFFFF / move v1 normalize chain.
+ *  - Coloring = unconstrained greedy in first-ucode-appearance order: dead
+ *    `while (0) { i = 0; }` + `while (0) { s = a1; }` anchors BEFORE `base = a0`
+ *    put i and s ahead of base -> i=$v0, s=$v1, base=$a2 (target), zero emission.
+ *  - Real inits ordered `base = a0; i = 0;` AFTER the anchors so the two entry
+ *    moves EMIT in target order (move a2,a0 before move v0,zero) while the dead
+ *    appearances still control coloring.
+ *  - Param a0 evicted (dead after base copy) -> loaded element ptr reuses $a0.
+ * The while(0) anchors are LOAD-BEARING — do not clean them up. */
+void game_libs_func_0002A5C8(a0, a1)
+unsigned char *a0;
+unsigned short a1;
+{
+    unsigned char *base;
     int i;
-    a1 &= 0xFFFF;
-    for (i = 0; i < 16; i++) {
-        if (a1 & 1) {
-            char *p = (char *)*(int *)(a0 + 56 + i * 4);
-            p[7] = a0[5];
-            p[3] = a0[3];
-            p[2] = a0[2];
+    int s;
+    while (0) { i = 0; }
+    while (0) { s = a1; }
+    base = a0;
+    i = 0;
+    for (; i != 16; i++) {
+        s = a1;
+        if (s & 1) {
+            a0 = (unsigned char *)*(int *)(base + 0x38 + i * 4);
+            a0[7] = base[5];
+            a0[3] = base[3];
+            a0[2] = base[2];
         }
-        a1 = (a1 >> 1) & 0xFFFF;
+        a1 = s >> 1;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A5C8);
-#endif
 
 // gl_func_0002A6C0 — STRUCTURAL PASS (0x80 / 32 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
