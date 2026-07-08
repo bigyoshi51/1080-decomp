@@ -13036,38 +13036,36 @@ short game_libs_func_0002A9B8(unsigned char **a0) {
     return v;
 }
 
-#ifdef NON_MATCHING
 /* game_libs_func_0002A9F0: 1-or-2-byte big-endian varint reader over a cursor
- * (**a0). v=*p++; store *a0=p; if high bit set: shift/mask the first byte, OR in
- * the SECOND byte (*p++ | v, byte-first operand order) and re-store the cursor.
- * The key lever is the *post-increment cursor* + *in-place chain* on `v`
- * (v<<=8; v&=0x7F00; v = *p++|v; v&=0xFFFF): this makes IDO reuse $v1 for the
- * whole accumulator (sll/andi/or/andi all v1, matching the target) AND emit the
- * correct branch offset (+8, 16-insn body). Raises fuzzy 78.13 -> 92.81.
- * Residual is a pure delay-slot/regalloc artifact: the target manufactures a
- * redundant `move a1,v1` (byte save) to fill the beqz delay and then reads the
- * saved copy in the shift (sll v1,a1,8), which also forces the cursor into $t6
- * (not $v0). IDO here fills the delay with a `nop` instead and shifts $v1 in
- * place, keeping the cursor in $v0. Every tested C form that names an explicit
- * byte copy (int hi=v / int save=v) gets CSE'd away, so IDO never manufactures
- * the delay copy. Confirmed cap. Reloc-free; game_libs baked-reloc => objdiff-
- * fuzzy is the metric (no per-fn ROM verify). */
+ * (**a0). EXACT 16/16 (2026-07-08, re-grind of the documented delay-copy cap).
+ * Recipe: (1) named p decl'd FIRST = candidate 0 -> cursor colors $v0, byte $v1;
+ * (2) pre-branch copy r = v with r read ONLY inside the if (at the shift) and
+ * v live on both paths -> copyprop can't kill it, uopt emits move a1,v1 and
+ * as1 steals it into the beqz delay (this was the old residual: post-branch
+ * copies always CSE'd; the pre-branch return-web split survives); (3) second
+ * access as bare *(*a0) -> store-to-load forwarding reuses $t6, fresh addiu $t9
+ * (never post-inc a single named p through both reads: folds to in-place addiu);
+ * (4) dead while-zero { v += 1; } anchors after v = r << 8 and v &= 0x7F00
+ * give each single-use def a second (zero-emission) ref so uopt materializes
+ * the chain in $v1 instead of folding into t9/t0 expression temps; (5) (*a0)++
+ * as its own LAST statement puts the sw $t9 after the andi 0xFFFF. Reloc-free;
+ * game_libs baked-reloc => objdiff-fuzzy is the metric (no per-fn ROM verify). */
 int game_libs_func_0002A9F0(unsigned char **a0) {
     unsigned char *p = *a0;
-    int v = *p++;
-    *a0 = p;
+    int v = *p;
+    int r = v;
+    *a0 = p + 1;
     if (v & 0x80) {
-        v <<= 8;
+        v = r << 8;
+        while (0) { v += 1; }
         v &= 0x7F00;
-        v = *p++ | v;
+        while (0) { v += 1; }
+        v = *(*a0) | v;
         v &= 0xFFFF;
-        *a0 = p;
+        (*a0)++;
     }
     return v;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A9F0);
-#endif
 
 // gl_func_0002AA30 — STRUCTURAL PASS (0x104 / 65 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no

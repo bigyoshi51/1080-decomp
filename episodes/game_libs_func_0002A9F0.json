@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0002A9F0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T14:24:27.962757+00:00",
+  "end_time": "2026-07-08T14:24:27.962778+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T14:24:27.962772+00:00",
+      "assistant_text": "1-or-2-byte BE varint reader, 92.8%->exact \u2014 the 'manufactured delay-slot copy' cap fell. (1) PRE-BRANCH RETURN-WEB SPLIT: r = v placed BEFORE the test with r read ONLY inside the if (at the shift) and v live on both paths \u2014 the interference blocks coalescing/copyprop so uopt emits move a1,v1 and as1 steals it into the beqz delay; every POST-branch copy spelling gets propagated. (2) Direct *(*a0) accesses (no post-inc local) = fresh addiu + store-to-load-forwarded t6 reuse. (3) p named+declared first = candidate 0 -> cursor v0, byte v1, copy a1. (4) Dead while(0){v+=1;} anchors after the sll and andi give single-use defs a second zero-emission ref -> chain materializes in candidate v1 (frees temp ring, addiu gets t9). (5) (*a0)++ as its own LAST statement schedules sw t9 after andi.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_0002A9F0: 1-or-2-byte big-endian varint reader over a cursor\n * (**a0). EXACT 16/16 (2026-07-08, re-grind of the documented delay-copy cap).\n * Recipe: (1) named p decl'd FIRST = candidate 0 -> cursor colors $v0, byte $v1;\n * (2) pre-branch copy r = v with r read ONLY inside the if (at the shift) and\n * v live on both paths -> copyprop can't kill it, uopt emits move a1,v1 and\n * as1 steals it into the beqz delay (this was the old residual: post-branch\n * copies always CSE'd; the pre-branch return-web split survives); (3) second\n * access as bare *(*a0) -> store-to-load forwarding reuses $t6, fresh addiu $t9\n * (never post-inc a single named p through both reads: folds to in-place addiu);\n * (4) dead while-zero { v += 1; } anchors after v = r << 8 and v &= 0x7F00\n * give each single-use def a second (zero-emission) ref so uopt materializes\n * the chain in $v1 instead of folding into t9/t0 expression temps; (5) (*a0)++\n * as its own LAST statement puts the sw $t9 after the andi 0xFFFF. Reloc-free;\n * game_libs baked-reloc => objdiff-fuzzy is the metric (no per-fn ROM verify). */\nint game_libs_func_0002A9F0(unsigned char **a0) {\n    unsigned char *p = *a0;\n    int v = *p;\n    int r = v;\n    *a0 = p + 1;\n    if (v & 0x80) {\n        v = r << 8;\n        while (0) { v += 1; }\n        v &= 0x7F00;\n        while (0) { v += 1; }\n        v = *(*a0) | v;\n        v &= 0xFFFF;\n        (*a0)++;\n    }\n    return v;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_0002A9F0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "16/16 word-exact (NM object) + make ROM byte-identical (promoted)"
+  }
+}
