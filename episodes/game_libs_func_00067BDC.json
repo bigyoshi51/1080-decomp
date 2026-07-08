@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00067BDC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T14:08:52.478967+00:00",
+  "end_time": "2026-07-08T14:08:52.478987+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T14:08:52.478980+00:00",
+      "assistant_text": "stpcpy-style strcpy (copies through NUL, returns dst-1 = pointer to copied terminator) \u2014 67xxx libc cluster, 40.6%->exact on variant 2. House cursor idiom with loads AFTER the increments: q=dst; p=src; dst++; src++; c=*p; *q=c; \u2014 load-BEFORE-increment lets IDO copy-propagate p into src (14-insn form); load-after forces both cursor copies to survive (move v1,a1 / move v0,a0 per iter). q first in appearance order colors q->v0, p->v1, c->a2 (no anchors). Peeled assign-then-while(c!=0) (NOT do-while) gives the rotated guard: first body + beq exit + duplicated body = 16 words.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00067BDC: strcpy returning dst+len (ptr to the copied NUL,\n * i.e. stpcpy). EXACT 16/16 (2026-07-08, from 40.6%). Levers: house 67xxx\n * cursor idiom with the loads placed AFTER the increments \u2014 q=dst; p=src;\n * dst++; src++; c=*p; *q=c \u2014 so neither cursor copy can be copy-propagated\n * (load-before-increment folds p into src and drops to a 7-insn loop). q\n * first in appearance order colors q->v0, p->v1, c->a2. Peeled while(c!=0)\n * form (assign-then-while, not do-while) gives the rotated guard: first body\n * + beq exit + duplicated do-while body. Reloc-free. */\nchar *game_libs_func_00067BDC(char *dst, char *src) {\n    char *q;\n    char *p;\n    char c;\n\n    q = dst;\n    p = src;\n    dst++;\n    src++;\n    c = *p;\n    *q = c;\n    while (c != 0) {\n        q = dst;\n        p = src;\n        dst++;\n        src++;\n        c = *p;\n        *q = c;\n    }\n    return dst - 1;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00067BDC.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "16/16 word-exact (both build paths) + make ROM byte-identical"
+  }
+}

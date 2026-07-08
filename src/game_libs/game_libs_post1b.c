@@ -3635,24 +3635,35 @@ int game_libs_func_00067B78(unsigned char *a0, unsigned char *a1) {
     return (*a1 != 0) == 0;
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_00067BDC: strcpy returning dst+len (ptr to the copied NUL).
- * Logic exact; near-miss: target is 16 insns (peeled first iteration + a
- * redundant per-iteration `move v1,a1; lbu 0(v1)` / `move v0,a0; sb 0(v0)` —
- * separate pre-increment pointer copies), while clean `*dst++=*src++` do-while
- * compiles to a tight 7-insn loop. The verbose -O1-ish codegen isn't
- * reproducible from clean -O2 C. Reloc-free. */
+/* game_libs_func_00067BDC: strcpy returning dst+len (ptr to the copied NUL,
+ * i.e. stpcpy). EXACT 16/16 (2026-07-08, from 40.6%). Levers: house 67xxx
+ * cursor idiom with the loads placed AFTER the increments — q=dst; p=src;
+ * dst++; src++; c=*p; *q=c — so neither cursor copy can be copy-propagated
+ * (load-before-increment folds p into src and drops to a 7-insn loop). q
+ * first in appearance order colors q->v0, p->v1, c->a2. Peeled while(c!=0)
+ * form (assign-then-while, not do-while) gives the rotated guard: first body
+ * + beq exit + duplicated do-while body. Reloc-free. */
 char *game_libs_func_00067BDC(char *dst, char *src) {
+    char *q;
+    char *p;
     char c;
-    do {
-        c = *src++;
-        *dst++ = c;
-    } while (c != 0);
+
+    q = dst;
+    p = src;
+    dst++;
+    src++;
+    c = *p;
+    *q = c;
+    while (c != 0) {
+        q = dst;
+        p = src;
+        dst++;
+        src++;
+        c = *p;
+        *q = c;
+    }
     return dst - 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067BDC);
-#endif
 
 #ifdef NON_MATCHING
 /* strcat-variant: find end of dst, append src (incl. NUL), return pointer to the
