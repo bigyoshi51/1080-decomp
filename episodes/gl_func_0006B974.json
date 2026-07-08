@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006B974",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:10:25.197286+00:00",
+  "end_time": "2026-07-08T13:10:25.197307+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:10:25.197301+00:00",
+      "assistant_text": "-O1 island (0x6A09C-0x6BAD4, zero branch-likely). Plain -O1 (no -g3 \u2014 -g3 broke delay-slot scheduling here). Lever: register int r -> s0 across call 3; plain args home/reload naturally at -O1.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 16,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for gl_func_0006B974 \u2014 16-insn call-sandwich wrapper:\n * hook(); r = work(a0, a1); unhook(); return r.\n * PROVEN EXACT 16/16 at IDO 7.1 -O1 (2026-07-08 standalone probe; plain -O1,\n * NO -g3 \u2014 -g3 pins the sw s0 out of the first jal delay slot and breaks it).\n * post1b builds -O2 where the arg home stores (sw a0/a1 into the incoming\n * slots) are dead-store-eliminated. Levers:\n *   (1) plain (non-register) a0/a1 params = -O1 early homing to sp+0x28/0x2C\n *       and reload before the second call;\n *   (2) `register int r;` = result held in $s0 across the third call\n *       (plain local homes to a stack slot instead: sw/lw v0).\n * Spliced into game_libs_post1b.c.o via REPLACE_FUNC_BODY (real -O1 compiler\n * output; only blank-extern jal relocs, imported by the splice). */\nextern int gl_func_00000000();\n\nint gl_func_0006B974(int a0, int a1) {\n    register int r;\n    gl_func_00000000();\n    r = gl_func_00000000(a0, a1);\n    gl_func_00000000();\n    return r;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6B974.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006B974.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor splice into -O2 post1b)",
+    "verification": "16/16 word-exact + linked ROM slice identical to baserom"
+  }
+}

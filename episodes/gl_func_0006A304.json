@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006A304",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:10:26.163955+00:00",
+  "end_time": "2026-07-08T13:10:26.163974+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:10:26.163968+00:00",
+      "assistant_text": "-O1 island. The old cap note's predicted fix ('needs symbol plumbing') confirmed: new sym D_00041710 = 0x41710 links the lui 4/addiu 0x1710 pair.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 71,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for gl_func_0006A304 \u2014 71-insn pointer-relocation fixup driver\n * (frame 0x20, ra only). PROVEN EXACT 71/71 at IDO 7.1 -O1 (2026-07-08\n * standalone probe: 69/71 raw with the 2 remaining words being the UNBAKED\n * HI16/LO16 of D_00041710, which link to the target's lui 0x4 / addiu 0x1710;\n * final-ROM byte gate confirms). post1b builds -O2, which constant-folds every\n * field access into absolute lui/lw (the old \"deferred: symbol plumbing\" cap\n * note). Levers:\n *   (1) real relocated symbol D_00041710 (= 0x41710 in undefined_syms_auto.txt)\n *       so the base stays a symbol address held in a reg/stack home \u2014 the\n *       0x41710 int-constant form emits lui/ori (target has lui/addiu);\n *   (2) plain -O1: obj homed at sp+0x1C and reloaded `lw tN,0x1C(sp)` before\n *       every field test/store, a0 homed+reloaded for the first call. */\nextern int gl_func_00000000();\nextern char D_00041710[];\n\nint gl_func_0006A304(int a0) {\n    char *obj;\n\n    obj = D_00041710;\n    gl_func_00000000(a0, obj, 0x40);\n    if (*(int *)(obj + 0x10)) {\n        *(int *)(obj + 0x10) = gl_func_00000000(*(int *)(obj + 0x10));\n    }\n    if (*(int *)(obj + 0x18)) {\n        *(int *)(obj + 0x18) = gl_func_00000000(*(int *)(obj + 0x18));\n    }\n    if (*(int *)(obj + 0x20)) {\n        *(int *)(obj + 0x20) = gl_func_00000000(*(int *)(obj + 0x20));\n    }\n    if (*(int *)(obj + 0x28)) {\n        *(int *)(obj + 0x28) = gl_func_00000000(*(int *)(obj + 0x28));\n    }\n    if (*(int *)(obj + 0x2C)) {\n        *(int *)(obj + 0x2C) = gl_func_00000000(*(int *)(obj + 0x2C));\n    }\n    if (*(int *)(obj + 0x30)) {\n        *(int *)(obj + 0x30) = gl_func_00000000(*(int *)(obj + 0x30));\n    }\n    if (*(int *)(obj + 0x38)) {\n        *(int *)(obj + 0x38) = gl_func_00000000(*(int *)(obj + 0x38));\n    }\n    return (int)obj;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6A304.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006A304.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor splice into -O2 post1b)",
+    "verification": "71/71 in linked ROM (69/71 standalone = the 2 unbaked HI16/LO16 of D_00041710=0x41710) + slice identical"
+  }
+}

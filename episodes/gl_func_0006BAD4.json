@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006BAD4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:10:25.928880+00:00",
+  "end_time": "2026-07-08T13:10:25.928898+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:10:25.928892+00:00",
+      "assistant_text": "-O1 island. osCreateMesgQueue/osSetTimer/osRecvMesg timer-wait shape. u64 time local + (u64)0x165A0BC; direct char global D_00000000_b for $at-fused sb (byte-globals need a char symbol \u2014 cast-through-&int materializes the address); distinct D_00000000_c/_d args defeat &D CSE; blank extern gl_func_00000000_ll (u64 return).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 92,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for gl_func_0006BAD4 \u2014 92-insn one-shot shutdown/timer-wait driver\n * (frame 0x70, no s-regs). PROVEN EXACT 92/92 at IDO 7.1 -O1 (2026-07-08\n * standalone probe; plain -O1, no -g3). Shape: guard on a state flag, flag=1,\n * time = u64_now(); if (time < 0x165A0BC) { osCreateMesgQueue(&q,&msg,1);\n * osSetTimer(&timer, 0x165A0BC - time, 0, &q, &msg); osRecvMesg(&q,&msg,1); }\n * then a byte-state=4 / callback teardown ladder, byte-state=0, final\n * register call, return ret (the osSetTimer 64-bit countdown pair (a2,a3) +\n * 0LL interval in stack slots 16/20 + &q/&msg at 24/28 match exactly).\n * Levers:\n *   (1) decl order msg/ret/time/timer[8]/q[6] = homes 0x6C/0x68/0x60/0x40/0x28;\n *   (2) u64 `time` local + (u64)0x165A0BC compare/subtract = the hi/lo\n *       bne+sltu pair and the 64-bit subu/sltu/subu countdown;\n *   (3) byte stores need the DIRECT char global D_00000000_b ($at-fused sb;\n *       *(char*)&D_00000000 materializes the address, +1 insn);\n *   (4) final call takes two DISTINCT blank syms (&D_00000000_c, &D_00000000_d)\n *       to defeat lui/addiu CSE (one sym = single materialization + or copy);\n *   (5) gl_func_00000000_ll = distinct blank extern with u64 return (v0/v1).\n * Spliced into game_libs_post1b.c.o via REPLACE_FUNC_BODY. */\nextern int gl_func_00000000();\nextern unsigned long long gl_func_00000000_ll();\nextern int D_00000000;\nextern char D_00000000_b;\nextern int D_00000000_c;\nextern int D_00000000_d;\n\nint gl_func_0006BAD4(int a0, int a1, int a2) {\n    int msg;\n    int ret;\n    unsigned long long time;\n    int timer[8];\n    int q[6];\n\n    ret = 0;\n    if (D_00000000 != 0) {\n        return 0;\n    }\n    D_00000000 = 1;\n    time = gl_func_00000000_ll();\n    if (time < (unsigned long long)0x165A0BC) {\n        gl_func_00000000(q, &msg, 1);\n        gl_func_00000000(timer, (unsigned long long)0x165A0BC - time, (unsigned long long)0, q, &msg);\n        gl_func_00000000(q, &msg, 1);\n    }\n    D_00000000_b = 4;\n    gl_func_00000000(0);\n    ret = gl_func_00000000(1, &D_00000000);\n    gl_func_00000000(a0, &msg, 1);\n    ret = gl_func_00000000(0, &D_00000000);\n    gl_func_00000000(a0, &msg, 1);\n    gl_func_00000000(a1, a2);\n    D_00000000_b = 0;\n    gl_func_00000000();\n    gl_func_00000000(&D_00000000_c, &D_00000000_d, 1);\n    return ret;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6BAD4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006BAD4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor splice into -O2 post1b)",
+    "verification": "92/92 word-exact + linked ROM slice identical"
+  }
+}

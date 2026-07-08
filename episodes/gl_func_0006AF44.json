@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006AF44",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:10:25.449264+00:00",
+  "end_time": "2026-07-08T13:10:25.449284+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:10:25.449278+00:00",
+      "assistant_text": "-O1 island. 'Stack-resident target cap' RETRACTED \u2014 at -O1 the target var stays sp-homed naturally. Levers: register prelim/curr/next -> s0/s1/s2 (register locals map to s-regs in DECL ORDER at -O1); null-arm-first if/else; direct-global D_00000000 access (LO16 fold, $at-fused sw).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 65,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for gl_func_0006AF44 \u2014 65-insn list-unlink + cleanup (frame 0x38,\n * saves s0/s1/s2). PROVEN EXACT 65/65 at IDO 7.1 -O1 (2026-07-08 standalone\n * probe; plain -O1, no -g3). post1b builds -O2, where `target` gets promoted\n * to an $s reg (57 insns) \u2014 the old \"stack-residency-vs-s-reg-promotion cap\"\n * note is RETRACTED: the target is simply -O1, where args stay sp-homed and\n * are reloaded into fresh $t regs per use. Levers:\n *   (1) `register` prelim/curr/next in decl order = s0/s1/s2;\n *   (2) NULL-arm-first `if (target == 0) {...} else {hook}` = target's\n *       bne-to-hook-block layout (fallthrough = null path, b to join);\n *   (3) DIRECT global access (D_00000000 as an int* variable, not\n *       *(int**)&D_00000000) = LO16-folded lui/lw + $at-fused sw\n *       (the &-cast form materializes the address with an extra addiu).\n * Spliced into game_libs_post1b.c.o via REPLACE_FUNC_BODY (real -O1 compiler\n * output; blank-extern relocs imported by the splice). */\nextern int gl_func_00000000();\nextern int *D_00000000;\n\nvoid gl_func_0006AF44(int *target) {\n    register int prelim;\n    register int *curr;\n    register int *next;\n\n    prelim = gl_func_00000000();\n    if (target == 0) {\n        target = D_00000000;\n    } else {\n        if (*(unsigned short *)((char *)target + 0x10) != 1) {\n            gl_func_00000000(target[2], target);\n        }\n    }\n    if (D_00000000 == target) {\n        D_00000000 = (int *)D_00000000[3];\n    } else {\n        curr = D_00000000;\n        while (curr[1] != -1) {\n            next = (int *)curr[3];\n            if (next == target) {\n                curr[3] = target[3];\n                break;\n            }\n            curr = next;\n        }\n    }\n    if (target == D_00000000) {\n        gl_func_00000000();\n    }\n    gl_func_00000000(prelim);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6AF44.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006AF44.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor splice into -O2 post1b)",
+    "verification": "65/65 word-exact + linked ROM slice identical"
+  }
+}

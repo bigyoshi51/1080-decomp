@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006B880",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:10:25.690369+00:00",
+  "end_time": "2026-07-08T13:10:25.690387+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:10:25.690382+00:00",
+      "assistant_text": "-O1 island. Levers: fused '(head = load) == 0 || count >= cap' guard keeps the load reg live across beq; NESTED-IF TAIL instead of early return (restores or a0,t6 jal-delay head reuse \u2014 early-return vs nested-if flips uopt's home-reload CSE across the guard); register res -> s0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 59,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for gl_func_0006B880 \u2014 59-insn ring-buffer append with notify\n * callback (frame 0x30, saves s0). PROVEN EXACT 59/59 at IDO 7.1 -O1\n * (2026-07-08 standalone probe; plain -O1, no -g3). post1b builds -O2 (the\n * old wrap was 38%: -O2 register-promotes head). Levers:\n *   (1) guard fused into ONE expression `(head = load) == 0 || count >= cap`\n *       = the loaded reg (t8) stays live across the beq (home store rides the\n *       delay slot) and feeds the count/cap loads directly \u2014 separate\n *       statements reload from the sp home (+1 insn);\n *   (2) NESTED-IF tail (no early return) = uopt keeps the head reload (t6)\n *       live into the call, filling the jal delay with `or a0,t6` (the\n *       early-return form re-loads a0 from the home slot instead);\n *   (3) decl order bufp/head/slot = sp+0x2C/0x28/0x24 homes;\n *       `register int res;` = $s0 across the second call. */\nextern int gl_func_00000000();\nextern int D_00000000;\n\nvoid gl_func_0006B880(void) {\n    int *bufp;\n    char *head;\n    int slot;\n    register int res;\n\n    bufp = (int *)((char *)&D_00000000 + 0x40);\n    if ((head = *(char **)((char *)&D_00000000 + 0x40)) == 0 ||\n        *(int *)(head + 8) >= *(int *)(head + 0x10)) {\n        return;\n    }\n    slot = (*(int *)(head + 0xC) + *(int *)(head + 8)) % *(int *)(head + 0x10);\n    *(int *)(*(char **)(head + 0x14) + slot * 4) = bufp[1];\n    *(int *)(head + 8) = *(int *)(head + 8) + 1;\n    if (**(int ***)head != 0) {\n        res = gl_func_00000000(head);\n        gl_func_00000000((char *)&D_00000000, res);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6B880.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006B880.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor splice into -O2 post1b)",
+    "verification": "59/59 word-exact + linked ROM slice identical"
+  }
+}

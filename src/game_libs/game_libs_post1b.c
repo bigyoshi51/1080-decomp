@@ -5467,28 +5467,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A2DC);
  * Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A2F8);
 
-#ifdef NON_MATCHING
-/* gl_func_0006A304: pointer-relocation fixup driver. Gets the fixed
- * object at segment offset 0x41710, calls the USO init/register cb
- * (a0, obj, 0x40), then for each of 7 pointer fields
- * (0x10/0x18/0x20/0x28/0x2C/0x30/0x38) if non-null replaces it with
- * cb(field) (a relocate/resolve helper), returns obj.
- *
- * Cap: target keeps the reloc base in a spilled register (sw obj,
- * 0x1C(sp); reloaded `lw tN,0x1C(sp); lw tM,OFF(tN)` base+offset
- * before every field). With `(char*)&D_00000000 + 0x41710` IDO -O2
- * constant-folds each field into an ABSOLUTE `lui;lw` (D+0x4171x),
- * never keeping a base — 67 vs 71 insns, frame 0x18 vs 0x20. The
- * base+offset form needs a DISTINCT relocated symbol `&D_00041710`
- * (its own HI/LO reloc, so offsets stay immediates and IDO holds the
- * symbol address in a reg/stack). That symbol is not in the segment
- * symbol table (link error if referenced) — needs an
- * undefined_syms_auto.txt / splat entry first. Deferred: symbol
- * plumbing, then expect a clean match with the obj[] index form. */
-extern int D_00000000;
-extern int gl_func_00000000();
+/* gl_func_0006A304: pointer-relocation fixup driver. Gets the fixed object at
+ * segment offset 0x41710, calls the init/register cb (a0, obj, 0x40), then for
+ * each of 7 pointer fields (0x10/0x18/0x20/0x28/0x2C/0x30/0x38) if non-null
+ * replaces it with cb(field), returns obj.
+ * LANDED 2026-07-08 via REPLACE_FUNC_BODY donor splice: the target is plain
+ * IDO 7.1 -O1 (0x6A09C..0x6BAD4 -O1 island) — obj sp-homed at 0x1C and
+ * reloaded per field, exactly the shape the old "-O2 constant-folds every
+ * field into absolute lui/lw" cap note described. The predicted symbol
+ * plumbing was done: D_00041710 (= 0x41710, undefined_syms_auto.txt) gives
+ * the baked lui 0x4/addiu 0x1710 base. Real C lives in the -O1 donor unit
+ * game_libs_o1_6A304.c (71/71), spliced over this -O2 stand-in. */
+extern char D_00041710[];
 int gl_func_0006A304(int a0) {
-    char *obj = (char *)&D_00000000 + 0x41710;
+    char *obj;
+
+    obj = D_00041710;
     gl_func_00000000(a0, obj, 0x40);
     if (*(int *)(obj + 0x10)) {
         *(int *)(obj + 0x10) = gl_func_00000000(*(int *)(obj + 0x10));
@@ -5513,9 +5507,6 @@ int gl_func_0006A304(int a0) {
     }
     return (int)obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006A304);
-#endif
 
 #ifdef NON_MATCHING
 extern int game_libs_func_00070FA0(f32, f32);
@@ -5682,119 +5673,49 @@ void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0006AF44: 65-insn list-unlink + cleanup helper (size 0x104, frame 0x38, saves s0/s1/s2).
- *
- * Operates on a singleton linked list at D+0:
- *   struct Node {
- *       int     _0;        // 0x0
- *       int     tag;       // 0x4 — -1 means list-end sentinel
- *       void   *sub_ptr;   // 0x8
- *       int    _C_or_next; // 0xC — next pointer (for list nodes) / data (for sentinel)
- *       u16     state;     // 0x10 — halfword: != 1 means "needs pre-unlink hook"
- *   };
- *
- * Decoded structure (raw-word disasm):
- *   void unlink_and_cleanup(Node *target) {
- *       void *prelim = setup_hook();           // jal <func> (no args set, uses caller-supplied?)
- *       int saved_target = (int)target;
- *
- *       if (target == NULL) {
- *           target = *(Node**)&D_00000000;      // load head as fallback
- *           goto search_list;
- *       }
- *
- *       // Pre-unlink hook: if state != 1, fire callback
- *       if (target->state != 1) {
- *           callback(target->sub_ptr, target);   // jal <func>(target->[0x8], target)
- *       }
- *
- *   search_list:
- *       Node *head = *(Node**)&D_00000000;
- *       if (head == target) {
- *           // Unlink at head: shift head pointer to next
- *           *(Node**)&D_00000000 = head->_C_or_next;
- *           goto post_unlink;
- *       }
- *       // Search through list for target
- *       Node *curr = *(Node**)&D_00000000;      // re-load head (separate lui/lw pair)
- *       while (curr->tag != -1) {                // -1 sentinel terminator
- *           Node *next = curr->_C_or_next;
- *           if (next == target) {
- *               curr->_C_or_next = target->_C_or_next;   // unlink middle
- *               goto post_unlink;
- *           }
- *           curr = next;
- *       }
- *       // (fell off end: target not in list — no-op for unlink)
- *
- *   post_unlink:
- *       // If target was the head: extra cleanup call
- *       Node *new_head = *(Node**)&D_00000000;
- *       if (target == new_head) {
- *           extra_cleanup();                     // jal <func> (no args)
- *       }
- *       final_cleanup(prelim);                  // jal <func>(prelim_from_first_jal)
- *   }
- *
- * Notes:
- *  - The `lui $s1, 0; lw $s1, 0($s1)` PAIR re-loads head AFTER the head==target
- *    check — slight redundancy from IDO not folding the load. Both reads return
- *    the same value when the head wasn't modified.
- *  - "tag = -1 sentinel" pattern: walking ends when curr->[0x4] == 0xFFFFFFFF.
- *    Likely a global static node placed as list terminator.
- *  - 5 jal calls total: 1 setup_hook (entry), 1 pre-unlink callback (conditional),
- *    1 extra_cleanup (if target was head), 1 final_cleanup (always), and 1
- *    in the search-not-found-target path (not shown — actually no, only 4 jal
- *    are visible in the raw asm).
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md.
- *
- * 2026-05-28: converted the comment-only bail to a real C body, 38%. call1/call3
- * are no-arg (a0 left as-is), call2(target->8, target), call4(prelim). Walk the
- * D[0] singleton list (sentinel tag==-1) to unlink target. Logic verified vs
- * disasm. RESIDUAL (~62%, regalloc): the target makes `target` STACK-RESIDENT
- * (homed at sp+0x38, reloaded into a fresh $t reg at each of its ~5 uses across
- * the 4 calls) and uses s0/s1/s2 for prelim + the list-walk curr/next; IDO instead
- * promotes `target` to a callee-save $s reg (survives the calls without reload),
- * giving a smaller frame + fewer insns (57 vs 65). This is the stack-residency-vs-
- * s-reg-promotion cap (cf. gl_func_000718C0/00070194) — not reliably C-forceable
- * (volatile over-corrects). Real compilable wrap with correct logic; stays NM. */
-extern int gl_func_00000000();
+/* gl_func_0006AF44: 65-insn list-unlink + cleanup (frame 0x38, saves
+ * s0/s1/s2). prelim = hook(); if target NULL take the head as target, else
+ * fire the pre-unlink callback when state(+0x10 halfword) != 1; unlink target
+ * from the D[0] singleton list (tag==-1 sentinel walk); if target was the
+ * head fire extra_cleanup(); final_cleanup(prelim).
+ * LANDED 2026-07-08 via REPLACE_FUNC_BODY donor splice: the old "stack-
+ * residency-vs-s-reg-promotion cap" verdict is RETRACTED — the target is
+ * plain IDO 7.1 -O1 (0x6A09C..0x6BAD4 -O1 island), where `target` stays
+ * sp-homed (reloaded per use) and register prelim/curr/next take s0/s1/s2.
+ * Real C lives in the -O1 donor unit game_libs_o1_6AF44.c (65/65 standalone),
+ * spliced over this -O2 stand-in. Donor levers: null-arm-first if/else,
+ * direct-global D access (LO16 fold), register decl order. */
 void gl_func_0006AF44(int *target) {
-    int prelim;
-    int *head;
-    int *curr;
+    register int prelim;
+    register int *curr;
+    register int *next;
 
     prelim = gl_func_00000000();
-    if (target != 0) {
-        if (*(unsigned short*)((char*)target + 0x10) != 1) {
-            gl_func_00000000(*(int*)((char*)target + 8), target);
+    if (target == 0) {
+        target = *(int **)&D_00000000;
+    } else {
+        if (*(unsigned short *)((char *)target + 0x10) != 1) {
+            gl_func_00000000(target[2], target);
         }
-    } else {
-        target = *(int**)&D_00000000;
     }
-    head = *(int**)&D_00000000;
-    if (head == target) {
-        *(int**)&D_00000000 = (int*)head[0xC / 4];
+    if (*(int **)&D_00000000 == target) {
+        *(int **)&D_00000000 = (int *)(*(int **)&D_00000000)[3];
     } else {
-        curr = *(int**)&D_00000000;
-        while (curr[0x4 / 4] != -1) {
-            if ((int*)curr[0xC / 4] == target) {
-                curr[0xC / 4] = target[0xC / 4];
+        curr = *(int **)&D_00000000;
+        while (curr[1] != -1) {
+            next = (int *)curr[3];
+            if (next == target) {
+                curr[3] = target[3];
                 break;
             }
-            curr = (int*)curr[0xC / 4];
+            curr = next;
         }
     }
-    if (target == *(int**)&D_00000000) {
+    if (target == *(int **)&D_00000000) {
         gl_func_00000000();
     }
     gl_func_00000000(prelim);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF44);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_0006B048: libc-style bzero / memset-zero (declared size 0xB4, 45 words).
@@ -6133,119 +6054,52 @@ void gl_func_0006B7A0(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B7A0);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0006B880: 59-insn ring-buffer-append with notify-list callback (size 0xEC, frame 0x30).
- *
- * Operates on a singleton ring buffer at D+0x40:
- *   struct RingBuf *head = *(struct RingBuf**)(D+0x40);
- *   struct RingBuf {
- *       struct Notify *first;  // 0x0
- *       int            _4;     // 0x4
- *       int            count;  // 0x8  — current occupied slots
- *       int            base;   // 0xC  — read cursor
- *       int            cap;    // 0x10 — capacity
- *       int           *slots;  // 0x14 — slot array (int-stride)
- *   };
- *
- * Decoded structure (raw-word disasm):
- *   void enqueue(void) {
- *       struct RingBuf *head = *(void**)(D+0x40);
- *       if (head == NULL) return;
- *       if (head->count >= head->cap) return;            // full, drop
- *
- *       // Signed-div slot index with full safety traps (break 7=div0, break 6=INT_MIN/-1)
- *       int slot = (head->base + head->count) % head->cap;
- *       head->slots[slot] = *(int*)(D+0x44);              // enqueue value
- *       head->count++;
- *
- *       // Chain callback if notify-list has any entries
- *       if (head->first && head->first->next != NULL) return;
- *       int *result = callback1(head);                    // jal <func>(head)
- *       callback2((char*)&D_00000000 + 0, result);        // jal <func>(D+0, result)
- *   }
- *
- * Notes:
- *  - The signed-div safety trap pattern (`div + mfhi + bnez/break 7 + bne $at,-1
- *    + bne $at,INT_MIN + break 6`) is the standard IDO-emitted modulo guard
- *    sequence — see reference_1080_mips3_runtime_helpers.md for the recognition.
- *    This is INLINE rather than via runtime-call because the divisor is sized
- *    at 32-bit (`div` not `ddiv`).
- *  - Ring buffer is singleton at D+0x40; the value-to-enqueue lives at D+0x44.
- *  - "notify-list" empty-check is `head->first->next == NULL` (head->first must
- *    be non-NULL for the deref) — if list has no successors, fire callbacks.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-extern int gl_func_00000000();
-extern int D_00000000;
-// Ring-buffer append (singleton at &D+0x40, value at &D+0x44). Drop if head
-// null or count>=cap; else slot = (head->0xC + count) % cap (signed-div with
-// IDO break-guards), head->slots[slot] = *(&D+0x44), count++. Then if the
-// notify list has a successor (head->first->next != 0) fire cb(head) and
-// cb(&D, result). Reloc-blind cbs/&D.
+/* gl_func_0006B880: 59-insn ring-buffer append with notify callback (frame
+ * 0x30, saves s0). Ring singleton at &D+0x40, value at &D+0x44; drop if head
+ * null or count>=cap; slot = (base + count) % cap (signed-div with IDO break
+ * guards); slots[slot] = value; count++; if head->first->next fire
+ * cb2(&D, cb1(head)).
+ * LANDED 2026-07-08 via REPLACE_FUNC_BODY donor splice: target is plain IDO
+ * 7.1 -O1 (0x6A09C..0x6BAD4 -O1 island). Real C lives in the -O1 donor unit
+ * game_libs_o1_6B880.c (59/59 standalone), spliced over this -O2 stand-in.
+ * Donor levers: fused (head = load) == 0 || count >= cap guard (keeps the
+ * load reg live across the beq), NESTED-IF tail (early return breaks the
+ * jal-delay `or a0,t6` head reuse), register res = s0. */
 void gl_func_0006B880(void) {
+    int *bufp;
     char *head;
-    int count;
     int slot;
-    char *first;
-    int s0;
-    head = *(char **)((char *)&D_00000000 + 0x40);
-    if (head == 0) {
+    register int res;
+
+    bufp = (int *)((char *)&D_00000000 + 0x40);
+    if ((head = *(char **)((char *)&D_00000000 + 0x40)) == 0 ||
+        *(int *)(head + 8) >= *(int *)(head + 0x10)) {
         return;
     }
-    count = *(int *)(head + 0x8);
-    if (count >= *(int *)(head + 0x10)) {
-        return;
+    slot = (*(int *)(head + 0xC) + *(int *)(head + 8)) % *(int *)(head + 0x10);
+    *(int *)(*(char **)(head + 0x14) + slot * 4) = bufp[1];
+    *(int *)(head + 8) = *(int *)(head + 8) + 1;
+    if (**(int ***)head != 0) {
+        res = gl_func_00000000(head);
+        gl_func_00000000((char *)&D_00000000, res);
     }
-    slot = (*(int *)(head + 0xC) + count) % *(int *)(head + 0x10);
-    *(int *)(*(char **)(head + 0x14) + slot * 4) = *(int *)((char *)&D_00000000 + 0x44);
-    *(int *)(head + 0x8) = *(int *)(head + 0x8) + 1;
-    first = *(char **)head;
-    if (*(char **)first == 0) {
-        return;
-    }
-    s0 = gl_func_00000000(head);
-    gl_func_00000000((char *)&D_00000000, s0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B880);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006B880_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_0006B974: 16-insn (0x40) 3-call wrapper that returns call-2's
- * value. Frame 0x28 includes $s0 spill (target uses $s0 for rv across the
- * 3 calls; mine uses sp+0x1C stack spill).
- *
- * Decoded structure:
- *   gl_func_00000000(a0, a1)         ; call 1 — args inherited from caller
- *   rv = gl_func_00000000(a0, a1)    ; call 2 — return saved
- *   gl_func_00000000()               ; call 3 — NO args (target reloads
- *                                      neither a0 nor a1 before call 3)
- *   return rv                         ; return value of call 2
- *
- * Fixing call 3 to take no arguments (target's call 3 has no $a0/$a1
- * setup) removed the two spurious arg-reloads and matched the call
- * sequence exactly: 51.06% -> 72.62% fuzzy.
- *
- * Residual cap: target holds rv in $s0 (callee-saved reg) across call 3
- * (`move s0,v0` in call-3 delay slot, `move v0,s0` at return); mine spills
- * rv to the stack (sw v0,28(sp) / lw v0,28(sp)). This is a pure
- * saved-reg-vs-stack-spill regalloc choice: `register int rv` is ignored by
- * IDO for this single-use var, and giving rv extra refs to force $s0 would
- * add instructions. Register-renumber cap; permuter-immune.
- *
- * Default INCLUDE_ASM build matches; wrap is for grep + future-pass seed. */
+/* gl_func_0006B974: 16-insn 3-call sandwich returning call-2's result:
+ * hook(); r = work(a0, a1); unhook(); return r.
+ * LANDED 2026-07-08 via REPLACE_FUNC_BODY donor splice: target is plain IDO
+ * 7.1 -O1 (0x6A09C..0x6BAD4 -O1 island) — a0/a1 homed to the incoming slots
+ * and reloaded for call 2, register r = s0 across call 3. Real C lives in the
+ * -O1 donor unit game_libs_o1_6B974.c (16/16 standalone), spliced over this
+ * -O2 stand-in. */
 int gl_func_0006B974(int a0, int a1) {
-    int rv;
-    gl_func_00000000(a0, a1);
-    rv = gl_func_00000000(a0, a1);
+    register int r;
     gl_func_00000000();
-    return rv;
+    r = gl_func_00000000(a0, a1);
+    gl_func_00000000();
+    return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B974);
-#endif
 
 /* gl_func_0006B9B4: byte-identical twin of matched gl_func_0006BE14 (differs
  * only in the arg2 offset, 0x42750 vs 0x42800). Same crack: the 0x42750 arg is
@@ -6306,4 +6160,49 @@ int gl_func_0006BA7C(unsigned int devAddr, unsigned int *out) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BA7C_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006BAD4);
+/* gl_func_0006BAD4: 92-insn one-shot shutdown/timer-wait driver (frame 0x70).
+ * Guard on a state flag (return 0 if already set), set flag, time = now();
+ * if time < 0x165A0BC { osCreateMesgQueue(&q,&msg,1); osSetTimer(&timer,
+ * 0x165A0BC - time, 0LL, &q, &msg); osRecvMesg(&q,&msg,1); } then byte-state=4,
+ * a teardown callback ladder (ret from the 1/&D and 0/&D calls), byte-state=0,
+ * final register call with two distinct blank syms, return ret.
+ * LANDED 2026-07-08 via REPLACE_FUNC_BODY donor splice: target is plain IDO
+ * 7.1 -O1 (0x6A09C..0x6BAD4 -O1 island). Real C lives in the -O1 donor unit
+ * game_libs_o1_6BAD4.c (92/92 standalone), spliced over this -O2 stand-in.
+ * Donor levers: u64 time local + (u64)0x165A0BC compare/subtract, direct char
+ * global D_00000000_b for the $at-fused sb, distinct D_00000000_c/_d args
+ * (defeat &D CSE), decl order msg/ret/time/timer[8]/q[6]. */
+extern unsigned long long gl_func_00000000_ll();
+extern char D_00000000_b;
+extern int D_00000000_c;
+extern int D_00000000_d;
+int gl_func_0006BAD4(int a0, int a1, int a2) {
+    int msg;
+    int ret;
+    unsigned long long time;
+    int timer[8];
+    int q[6];
+
+    ret = 0;
+    if (D_00000000 != 0) {
+        return 0;
+    }
+    D_00000000 = 1;
+    time = gl_func_00000000_ll();
+    if (time < (unsigned long long)0x165A0BC) {
+        gl_func_00000000(q, &msg, 1);
+        gl_func_00000000(timer, (unsigned long long)0x165A0BC - time, (unsigned long long)0, q, &msg);
+        gl_func_00000000(q, &msg, 1);
+    }
+    D_00000000_b = 4;
+    gl_func_00000000(0);
+    ret = gl_func_00000000(1, &D_00000000);
+    gl_func_00000000(a0, &msg, 1);
+    ret = gl_func_00000000(0, &D_00000000);
+    gl_func_00000000(a0, &msg, 1);
+    gl_func_00000000(a1, a2);
+    D_00000000_b = 0;
+    gl_func_00000000();
+    gl_func_00000000(&D_00000000_c, &D_00000000_d, 1);
+    return ret;
+}
