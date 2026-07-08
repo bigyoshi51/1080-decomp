@@ -1276,62 +1276,62 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 
 void timproc_uso_b5_func_00001D14(void) {}
 
-/* timproc_uso_b5_func_00001D1C (0x88 after merging the 1D60 fragment --
- * 1D60 read v1/at/a3/v0/a2 uninitialized at entry = pure continuation).
- * Pair-state comparator: with a0->i_30 == 2, compares the 0x3C8 counters
- * of the a1-indexed and (a1^1)-indexed pair members (a0 + idx*4 + 0x34),
- * then a 1/2/4 dispatch on the counter with 0x3CC == 5 checks deciding
- * 0 vs 1. CAP: every return-1 path branches INTO the adjacent return-1
- * leaf timproc_uso_b5_func_00001DA4 (offsets 0x88/0x8C = its li v0,1 and
- * jr ra) -- the documented branch-into-adjacent-return-leaf cap
- * (docs/IDO_CODEGEN#branch-into-adjacent-return-leaf-cap, same as
- * mgrproc 140/170): C collapses the shared tail (preset-default or
- * branch-likely forms), never the cross-fn branch. INCLUDE_ASM is the
- * faithful path; the wrap preserves the decoded logic. */
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_00001D1C (0x94 after merging the 1D60 fragment AND
+ * the 1DA4 "return-1 leaf" -- see below). Pair-state comparator: with
+ * a0->i_30 == 2, compares the 0x3C8 counters of the a1-indexed and
+ * (a1^1)-indexed pair members (a0 + idx*4 + 0x34), then a 1/2/4 switch on
+ * the counter with 0x3CC == 5 checks deciding 0 vs 1.
+ * 2026-07-07 (agent-e): BYTE-EXACT (37/37). The old
+ * branch-into-adjacent-return-leaf CAP verdict was WRONG here: the former
+ * timproc_uso_b5_func_00001DA4 (li v0,1; jr ra; nop @0x1DA4) is this
+ * function's OWN shared return-1 tail, not a separate function -- branches
+ * target BOTH 0x1DA4 and mid-"leaf" 0x1DA8 with li v0,1 carried in
+ * beql/bnel delay slots, which no cross-function branch can express, and
+ * nothing else references 1DA4. Retracted the -g3 carve-out sub-unit
+ * (timproc_uso_b5_g3_1DA4.c) and re-absorbed the 0xC tail into the main TU.
+ * Levers: fallthrough guard `if (==2){...} return 1;` = the shared end
+ * tail; switch keeps the semantically-redundant case 2/4 compares; case-1
+ * nested `if(!=5){if(!=5) break;} return 0;` shares one return-0 block;
+ * c2 as unnamed compare operand (colors t2, not a user candidate);
+ * first-def coloring order p1,c1,p2 -> v0,v1,a2 (const 2 -> a3);
+ * array-index form gives base-first addu; and the THREE defs SHARE ONE
+ * SOURCE LINE (as1 debug-line tie-break flips the p2/p1 + c2/c1 load-pair
+ * emission order -- docs/IDO_CODEGEN "as1 scheduler tie-break ... SHARE one
+ * source line"). The shared line is LOAD-BEARING; do not re-format. */
 int timproc_uso_b5_func_00001D1C(char *a0, int a1) {
     char *p1;
     char *p2;
     int c1;
-    int c2;
-    if (*(int *)(a0 + 0x30) != 2) {
-        return 1;
-    }
-    p1 = *(char **)(a0 + a1 * 4 + 0x34);
-    p2 = *(char **)(a0 + (a1 ^ 1) * 4 + 0x34);
-    c1 = *(int *)(p1 + 0x3C8);
-    c2 = *(int *)(p2 + 0x3C8);
-    if (c1 != c2) {
-        return 0;
-    }
-    if (c1 == 2) {
-        return 1;
-    }
-    if (c1 != 1 && c1 == 4) {
-        return 1;
-    }
-    if (c1 == 1) {
-        if (*(int *)(p1 + 0x3CC) == 5) {
+    if (*(int *)(a0 + 0x30) == 2) {
+        p1 = ((char **)(a0 + 0x34))[a1]; c1 = *(int *)(p1 + 0x3C8); p2 = ((char **)(a0 + 0x34))[a1 ^ 1];
+        if (c1 != *(int *)(p2 + 0x3C8)) {
             return 0;
         }
-        if (*(int *)(p2 + 0x3CC) != 5) {
-            return 1;
+        switch (c1) {
+        case 1:
+            if (*(int *)(p1 + 0x3CC) != 5) {
+                if (*(int *)(p2 + 0x3CC) != 5) {
+                    break;
+                }
+            }
+            return 0;
+        case 2:
+            break;
+        case 4:
+            break;
+        default:
+            break;
         }
-        return 0;
     }
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001D1C);
-#endif
 
 /* timproc_uso_b5_func_00001D60 MERGED into 1D1C 2026-06-10 (uninitialized-reg continuation fragment). */
 
-/* timproc_uso_b5_func_00001DA4 (`return 1`, unfilled jr-delay) is carved into
- * its own -O2 -g3 sub-unit src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c and
- * spliced back into block5 at offset 0x1DA4 — see the timproc_uso_block5_yay0
- * rule. -g3 unfills the delay slot (li/jr/nop) without -O0 bloat; can't apply
- * file-wide here (150+ filled-delay matches would regress). */
+/* timproc_uso_b5_func_00001DA4 MERGED into 1D1C 2026-07-07: it was 1D1C's
+ * own shared return-1 tail, mis-split as a standalone leaf. The former
+ * -O2 -g3 carve-out (timproc_uso_b5_g3_1DA4.c + block5 splice slot) was
+ * removed; the bytes now come from the exact 1D1C body above at plain -O2. */
 
 /* timproc_uso_b5_func_00001DB0 (0x164 after absorbing the 1EB8 fragment):
  * the bnezl at +0xF0 branches to 0x1EBC, past the declared end into the
@@ -7879,55 +7879,46 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  *   s = a0->p_2B8; if (s->i_138 != 0) target = 1.0f;
  *   if (s->f_130 < target) { s->f_130 += STEP_UP; if (target < s->f_130) s->f_130 = target; }
  *   else { s->f_130 -= STEP_DOWN; if (s->f_130 < target) s->f_130 = target; }
- * STEP_UP/STEP_DOWN are reloc'd USO globals (lwc1 +0x358/+0x35C off a
- * lui-at base). Same shape as the C0D4/C7B4/CBD0/CDC8 tail-fragment
- * family (predecessor merges pending, one per tick). NM body is
- * structural; float scheduling unverified -- INCLUDE_ASM is build path. */
-#ifdef NON_MATCHING
-/* step constants are reloc'd USO float globals; reference through the
- * file's existing int placeholder to avoid the extern-type-mismatch
- * redeclaration break (docs/MATCHING_WORKFLOW).
- * 2026-06-21 (agent-e): 93.88% -> 95.57% COUNT-EXACT (49=49). Hoisting the
- * `v = (float*)(s+0x130)` assignment ABOVE the `if (s->i_138)` check matches
- * the target's early `addiu v1,v0,0x130` materialization (the addr is computed
- * right after the `s`/`s->i_138` load, dead until recomputed per-arm). Residual
- * 14 diffs = pure address-reg coloring tie: the named persistent `v` colors
- * into $a1 + a `move v1,a1` where the target keeps it in $v1 directly, and the
- * first `*v` compare reads `0(a1)` vs target's CSE'd `0x130(v0)`. Coupled: any
- * recompute-per-arm variant CSEs the stores back to base+offset and drops the
- * count to 47/48 (tried 4 variants). uoptlist: `v`=cand14->R4($a1), lost $v1
- * (cand12) by encounter-order; unreachable from C without a persistent local.
- * Genuine first-temp/address-reg coloring cap. */
-#define B850_STEP_UP   (*(float *)((char *)&D_00000000 + 0x358))
-#define B850_STEP_DOWN (*(float *)((char *)&D_00000000 + 0x35C))
+ * STEP_UP/STEP_DOWN are reloc'd USO f32 globals D_B850_up/dn (in-USO
+ * 0x358/0x35C via undefined_syms). Same family as C710/CB40/CD24.
+ * BYTE-EXACT 2026-07-07 (agent-e), retracting the 2026-06-21 "genuine
+ * first-temp/address-reg coloring cap" verdict: the pre-gate
+ * addiu v1,v0,0x130 is NOT a hoisted shared local -- it is the ELSE
+ * arm's own pointer hoisted with its bc1fl delay-slot load. Recipe
+ * (same as CD24): compare derefs st+0x130 DIRECTLY; each arm
+ * materializes its own v via the if(1){} pointer-mutation lever; v
+ * then colors $v1 with no move, and the then-arm re-materializes at
+ * +0x58. 49/49 words + reloc sites verified vs target. */
+extern float D_B850_up;
+extern float D_B850_dn;
 void timproc_uso_b5_func_0000B850(char *a0, float target) {
-    char *s;
+    char *st;
     float *v;
     if (*(float *)(a0 + 0x2A4) == 0.0f) {
         target = 0.0f;
     }
-    s = *(char **)(a0 + 0x2B8);
-    v = (float *)(s + 0x130);
-    if (*(int *)(s + 0x138) != 0) {
+    st = *(char **)(a0 + 0x2B8);
+    if (*(int *)(st + 0x138) != 0) {
         target = 1.0f;
     }
-    if (*v < target) {
-        *v += B850_STEP_UP;
-        s = *(char **)(a0 + 0x2B8);
-        if (target < *(float *)(s + 0x130)) {
-            *(float *)(s + 0x130) = target;
+    if (*(float *)(st + 0x130) < target) {
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x130); }
+        *v += D_B850_up;
+        st = *(char **)(a0 + 0x2B8);
+        if (target < *(float *)(st + 0x130)) {
+            *(float *)(st + 0x130) = target;
         }
     } else {
-        *v -= B850_STEP_DOWN;
-        s = *(char **)(a0 + 0x2B8);
-        if (*(float *)(s + 0x130) < target) {
-            *(float *)(s + 0x130) = target;
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x130); }
+        *v -= D_B850_dn;
+        st = *(char **)(a0 + 0x2B8);
+        if (*(float *)(st + 0x130) < target) {
+            *(float *)(st + 0x130) = target;
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B850);
-#endif
 
 void timproc_uso_b5_func_0000B914(int *a0) {
     *(int*)((char*)a0 + 0x2B4) ^= 0x20000;
@@ -8584,13 +8575,11 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * distinct float externs (D_C710_dflt/up/dn) FOLD into lwc1 %lo (the
  * &D+offset cast-arith form materializes la instead); their
  * undefined_syms values are set to the in-USO offsets 0x368/36C/370 so
- * the LINKED %lo fields match (the .o shows 0+reloc -- compare linked
- * bytes or wildcard reloc positions). Best shape = v fixed pre-if:
- * 28/54 non-reloc diffs. Residual: the target materializes v1
- * (addiu v0+0x124) INSIDE each arm between the const lui and the loads,
- * with the compare deref'ing st directly AND an interleaved dflt load
- * (scheduling); f-reg numbering shifts with it. Stays INCLUDE_ASM. */
-#ifdef NON_MATCHING
+ * the LINKED %lo fields match.
+ * BYTE-EXACT 2026-07-07 (agent-e): direct sibling transfer of the CD24
+ * crack (see CD24's comment) -- compare derefs st+0x124 directly, each
+ * arm materializes its own v via the if(1){} pointer-mutation lever.
+ * 54/54 words + reloc sites verified vs target. */
 extern float D_C710_dflt;
 extern float D_C710_up;
 extern float D_C710_dn;
@@ -8605,14 +8594,17 @@ void timproc_uso_b5_func_0000C710(char *a0, float a1u) {
         target = (*(int *)(st + 0x130) != 0) ? 1.0f : D_C710_dflt;
     }
     st = *(char **)(a0 + 0x2B8);
-    v = (float *)(st + 0x124);
-    if (*v < target) {
+    if (*(float *)(st + 0x124) < target) {
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x124); }
         *v += D_C710_up;
         st = *(char **)(a0 + 0x2B8);
         if (target < *(float *)(st + 0x124)) {
             *(float *)(st + 0x124) = target;
         }
     } else {
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x124); }
         *v -= D_C710_dn;
         st = *(char **)(a0 + 0x2B8);
         if (*(float *)(st + 0x124) < target) {
@@ -8620,9 +8612,6 @@ void timproc_uso_b5_func_0000C710(char *a0, float a1u) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C710);
-#endif
 
 /* timproc_uso_b5_func_0000C7B4 MERGED into C710 2026-06-10 (bc1f tail fragment, third of the fade-helper family). */
 
@@ -8873,41 +8862,43 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * target 0); a0->0x2B8 (696) ptr to slew-state; state->0x124 (292)
  * f32 = the slewed/current value; state->0x134 (308) s32 = force-to-
  * 1.0 gate (nonzero -> target clamps to 1.0). Step magnitudes are
- * two global f32 constants (&D + 0x892 up / + 0x896 down). Per call
- * the current value moves one step toward the resolved target then
- * clamps so it never overshoots. Caps <80: FP-heavy c.eq.s/c.lt.s/
- * add.s/sub.s + bc1fl/bc1f branch-likely (x4) + 2x &D global step
- * reloc + dual jr-ra + the CBD0 tail-fragment branch-target. Stays
- * INCLUDE_ASM (no episode). */
-#ifdef NON_MATCHING
-extern char D_00000000;
-void timproc_uso_b5_func_0000CB40(char *a0, float a1) {
-    float target = a1;
-    float *st;
+ * two global f32 constants D_CB40_up/dn (in-USO 0x37C/0x380 via
+ * undefined_syms; the old &D+0x892/0x896 guesses were wrong -- linked
+ * lo16s are 0x37C/0x380). Per call the current value moves one step
+ * toward the resolved target then clamps so it never overshoots.
+ * BYTE-EXACT 2026-07-07 (agent-e): direct sibling transfer of the
+ * B850/CD24 crack -- compare derefs st+0x124 directly, per-arm if(1){}
+ * pointer materialization. 49/49 words + reloc sites verified. */
+extern float D_CB40_up;
+extern float D_CB40_dn;
+void timproc_uso_b5_func_0000CB40(char *a0, float target) {
+    char *st;
+    float *v;
     if (*(float *)(a0 + 0x2A4) == 0.0f) {
         target = 0.0f;
     }
-    st = *(float **)(a0 + 0x2B8);
-    if (*(int *)((char *)st + 0x134) != 0) {
+    st = *(char **)(a0 + 0x2B8);
+    if (*(int *)(st + 0x134) != 0) {
         target = 1.0f;
     }
-    if (*(float *)((char *)st + 0x124) < target) {
-        *(float *)((char *)st + 0x124) += *(float *)(&D_00000000 + 0x892);
-        st = *(float **)(a0 + 0x2B8);
-        if (target < *(float *)((char *)st + 0x124)) {
-            *(float *)((char *)st + 0x124) = target;
+    if (*(float *)(st + 0x124) < target) {
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x124); }
+        *v += D_CB40_up;
+        st = *(char **)(a0 + 0x2B8);
+        if (target < *(float *)(st + 0x124)) {
+            *(float *)(st + 0x124) = target;
         }
     } else {
-        *(float *)((char *)st + 0x124) -= *(float *)(&D_00000000 + 0x896);
-        st = *(float **)(a0 + 0x2B8);
-        if (*(float *)((char *)st + 0x124) < target) {
-            *(float *)((char *)st + 0x124) = target;
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x124); }
+        *v -= D_CB40_dn;
+        st = *(char **)(a0 + 0x2B8);
+        if (*(float *)(st + 0x124) < target) {
+            *(float *)(st + 0x124) = target;
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CB40);
-#endif
 
 /* timproc_uso_b5_func_0000CBD0 MERGED into CB40 2026-06-10 (bc1f tail fragment, fourth of the fade-helper family; the .s merge that the earlier nested-wrap decode described but never executed). */
 
@@ -9006,49 +8997,54 @@ void timproc_uso_b5_func_0000CCC8(int *a0, int a1, int a2, int a3) {
     gl_func_00000000(a0, a0[0x44/4], a0[0x5C/4], a2, &D_timb5_1C0 + a0[0x1AC/4] * 24, 0xFF);
 }
 
-/* timproc_uso_b5_func_0000CD24 - verified structural decode (0xD8,
- * 54 insns). INSTRUCTION-IDENTICAL SIBLING of
- * timproc_uso_b5_func_0000C710 (same FP slew-limiter; the ONLY
- * difference is the global constant offsets - &D+0x900 default /
- * +0x904 step-up / +0x908 step-down here, vs +0x872/+0x876/+0x880
- * in C710). Struct-typing reference: identical layout to C710 -
- * a0->0x2A4 (676) f32 enable, a0->0x2B8 (696) slew-state ptr,
- * state->0x124 (292) f32 slewed value, state->0x130 (304) s32
- * force-1.0 gate. This instance uses a distinct constant triple
- * (different default/step pair), i.e. a second independently-tuned
- * slew channel sharing the same state object shape. Caps <80: FP
- * c.eq.s/c.lt.s/add.s/sub.s + bc1fl/bc1f branch-likely + 3x &D
- * global const reloc + dual jr-ra. INCLUDE_ASM remains build path. */
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_0000CD24 (0xD8, 54 insns) - BYTE-EXACT 2026-07-07
+ * (agent-e). FP slew-limiter, INSTRUCTION-IDENTICAL SIBLING of
+ * timproc_uso_b5_func_0000C710; the only difference is the constant
+ * triple (D_CD24_dflt/up/dn = in-USO 0x384/0x388/0x38C vs C710's
+ * 0x368/36C/370; undefined_syms carries the linked %lo values).
+ * Struct-typing: a0->0x2A4 f32 enable, a0->0x2B8 slew-state ptr,
+ * state->0x124 f32 slewed value, state->0x130 s32 force-1.0 gate.
+ * CRACK (retracts the old "<80 FP/branch-likely/reloc cap" verdict):
+ * (1) the pre-branch addiu v1,v0,0x124 is the ELSE arm's own pointer
+ * hoisted with its bc1fl delay-slot load, NOT a shared local -- the
+ * compare derefs st+0x124 DIRECTLY, and each arm materializes its own
+ * v via the if(1){} pointer-mutation lever (docs/IDO_CODEGEN, game_uso
+ * W4 trio); the then-arm's copy lands at +0x6C (the missing insn in
+ * every previous shared-v variant). (2) distinct float externs fold
+ * into lwc1 %lo (the &D+offset form materializes la). Reloc sites and
+ * split dn HI16(+0x58)/LO16(+0xA8) pair verified against target. */
+extern float D_CD24_dflt;
+extern float D_CD24_up;
+extern float D_CD24_dn;
 void timproc_uso_b5_func_0000CD24(char *a0, float a1u) {
     float target;
-    float *st;
+    char *st;
+    float *v;
     if (*(float *)(a0 + 0x2A4) == 0.0f) {
         target = 0.0f;
     } else {
-        st = *(float **)(a0 + 0x2B8);
-        target = (*(int *)((char *)st + 0x130) != 0) ? 1.0f
-                 : *(float *)(&D_00000000 + 0x900);
+        st = *(char **)(a0 + 0x2B8);
+        target = (*(int *)(st + 0x130) != 0) ? 1.0f : D_CD24_dflt;
     }
-    st = *(float **)(a0 + 0x2B8);
-    if (*(float *)((char *)st + 0x124) < target) {
-        *(float *)((char *)st + 0x124) += *(float *)(&D_00000000 + 0x904);
-        st = *(float **)(a0 + 0x2B8);
-        if (target < *(float *)((char *)st + 0x124)) {
-            *(float *)((char *)st + 0x124) = target;
+    st = *(char **)(a0 + 0x2B8);
+    if (*(float *)(st + 0x124) < target) {
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x124); }
+        *v += D_CD24_up;
+        st = *(char **)(a0 + 0x2B8);
+        if (target < *(float *)(st + 0x124)) {
+            *(float *)(st + 0x124) = target;
         }
     } else {
-        *(float *)((char *)st + 0x124) -= *(float *)(&D_00000000 + 0x908);
-        st = *(float **)(a0 + 0x2B8);
-        if (*(float *)((char *)st + 0x124) < target) {
-            *(float *)((char *)st + 0x124) = target;
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x124); }
+        *v -= D_CD24_dn;
+        st = *(char **)(a0 + 0x2B8);
+        if (*(float *)(st + 0x124) < target) {
+            *(float *)(st + 0x124) = target;
         }
     }
-    (void)a1u;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000CD24);
-#endif
 
 /* timproc_uso_b5_func_0000CDC8 MERGED into CD24 2026-06-10 (bc1f tail fragment, fifth and FINAL fade-helper family member; nested double-wrap flattened same as CB40). */
 

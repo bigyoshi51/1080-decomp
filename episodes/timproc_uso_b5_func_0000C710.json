@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000C710",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:51:09.004453+00:00",
+  "end_time": "2026-07-08T03:51:09.004474+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:51:09.004468+00:00",
+      "assistant_text": "Fade-limiter family sibling transfer (CD24 recipe), 98.15%->exact on first try.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "timproc_uso_b5_func_0000C710(void *a0, f32 a1_unused) {\n *       f32 target;\n *       if (a0->0x2A4 == 0.0f) {\n *           target = 0.0f;\n *       } else {\n *           st = a0->0x2B8;\n *           target = (st->0x130 != 0) ? 1.0f : D_<dflt>;  // global\n *       }\n *       st = a0->0x2B8;\n *       cur = st->0x124;\n *       if (cur < target) {                       // ramp up\n *           st->0x124 += D_<step_up>;\n *           if (target < a0->0x2B8->0x124)\n *               a0->0x2B8->0x124 = target;        // clamp\n *       } else {                                  // ramp down\n *           st->0x124 -= D_<step_dn>;\n *           if (a0->0x2B8->0x124 < target)\n *               a0->0x2B8->0x124 = target;        // clamp\n *       }\n *   }",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000C710.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "54/54 word-exact + make ROM byte-identical"
+  }
+}

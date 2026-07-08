@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000CD24",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:51:08.506432+00:00",
+  "end_time": "2026-07-08T03:51:08.506452+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:51:08.506446+00:00",
+      "assistant_text": "Fade/slew-limiter, 70.6%->exact. The pre-branch addiu v1,v0,0x124 is the ELSE-ARM'S OWN pointer hoisted with its bc1fl delay-slot load: compare derefs st+0x124 DIRECTLY (no shared local \u2014 that colors a1+move), each arm materializes its own v via if(1){v=(float*)((char*)v+K);} \u2014 both arms color v1, else's addiu hoists above the bc1fl, then-arm re-materializes in-arm. Distinct float externs D_CD24_dflt/up/dn fold into lwc1 %lo (undefined_syms = linked in-USO offsets 0x384/0x388/0x38C).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 54,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_0000CD24 (0xD8, 54 insns) - BYTE-EXACT 2026-07-07\n * (agent-e). FP slew-limiter, INSTRUCTION-IDENTICAL SIBLING of\n * timproc_uso_b5_func_0000C710; the only difference is the constant\n * triple (D_CD24_dflt/up/dn = in-USO 0x384/0x388/0x38C vs C710's\n * 0x368/36C/370; undefined_syms carries the linked %lo values).\n * Struct-typing: a0->0x2A4 f32 enable, a0->0x2B8 slew-state ptr,\n * state->0x124 f32 slewed value, state->0x130 s32 force-1.0 gate.\n * CRACK (retracts the old \"<80 FP/branch-likely/reloc cap\" verdict):\n * (1) the pre-branch addiu v1,v0,0x124 is the ELSE arm's own pointer\n * hoisted with its bc1fl delay-slot load, NOT a shared local -- the\n * compare derefs st+0x124 DIRECTLY, and each arm materializes its own\n * v via the if(1){} pointer-mutation lever (docs/IDO_CODEGEN, game_uso\n * W4 trio); the then-arm's copy lands at +0x6C (the missing insn in\n * every previous shared-v variant). (2) distinct float externs fold\n * into lwc1 %lo (the &D+offset form materializes la). Reloc sites and\n * split dn HI16(+0x58)/LO16(+0xA8) pair verified against target. */\nextern float D_CD24_dflt;\nextern float D_CD24_up;\nextern float D_CD24_dn;\nvoid timproc_uso_b5_func_0000CD24(char *a0, float a1u) {\n    float target;\n    char *st;\n    float *v;\n    if (*(float *)(a0 + 0x2A4) == 0.0f) {\n        target = 0.0f;\n    } else {\n        st = *(char **)(a0 + 0x2B8);\n        target = (*(int *)(st + 0x130) != 0) ? 1.0f : D_CD24_dflt;\n    }\n    st = *(char **)(a0 + 0x2B8);\n    if (*(float *)(st + 0x124) < target) {\n        v = (float *)st;\n        if (1) { v = (float *)((char *)v + 0x124); }\n        *v += D_CD24_up;\n        st = *(char **)(a0 + 0x2B8);\n        if (target < *(float *)(st + 0x124)) {\n            *(float *)(st + 0x124) = target;\n        }\n    } else {\n        v = (float *)st;\n        if (1) { v = (float *)((char *)v + 0x124); }\n        *v -= D_CD24_dn;\n        st = *(char **)(a0 + 0x2B8);\n        if (*(float *)(st + 0x124) < target) {\n            *(float *)(st + 0x124) = target;\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000CD24.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "54/54 word-exact + make ROM byte-identical"
+  }
+}

@@ -2074,17 +2074,6 @@
       }
     },
     {
-      "name": "src/timproc_uso_b5/timproc_uso_b5_g3_1DA4",
-      "target_path": "expected/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o",
-      "base_path": "build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o",
-      "metadata": {
-        "source_path": "src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c",
-        "progress_categories": [
-          "timproc_uso"
-        ]
-      }
-    },
-    {
       "name": "src/timproc_uso_b5/timproc_uso_b5_g3_87E8",
       "target_path": "expected/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o",
       "base_path": "build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o",

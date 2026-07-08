@@ -523,9 +523,7 @@ build/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o: TRUNCATE_TEXT := 0xB0
 build/non_matching/src/timproc_uso_b3/timproc_uso_b3_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xB0
 # timproc_uso_b5: mid-block -O2 -g3 carves for tiny unfilled-jr-delay returns.
 # Each is 0xC bytes and spliced into block5 at its original offset (see block5 rule).
-build/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_8894.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_8894.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_8940.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_8940.c.o: OPT_FLAGS := -O2 -g3
-build/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o: TRUNCATE_TEXT := 0xC
-build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xC
+build/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_8894.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_8894.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_8940.c.o build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_8940.c.o: OPT_FLAGS := -O2 -g3
 build/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o: TRUNCATE_TEXT := 0xC
 build/non_matching/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xC
 build/src/timproc_uso_b5/timproc_uso_b5_g3_8894.c.o: TRUNCATE_TEXT := 0xC
@@ -726,14 +724,13 @@ build/assets/timproc_uso_block3_yay0.bin: build/src/timproc_uso_b3/timproc_uso_b
 
 # block5: tiny unfilled-jr-delay functions are carved into -O2 -g3 sub-units
 # (deleted from the main TU) and spliced back at their original offsets.
-build/assets/timproc_uso_block5_yay0.bin: build/src/timproc_uso_b5/timproc_uso_b5.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_8894.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_8940.c.o
+build/assets/timproc_uso_block5_yay0.bin: build/src/timproc_uso_b5/timproc_uso_b5.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_8894.c.o build/src/timproc_uso_b5/timproc_uso_b5_g3_8940.c.o
 	@mkdir -p $(dir $@)
 	$(OBJCOPY) -O binary --only-section=.text $(word 1,$^) $(@:.bin=.main.bin)
-	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.g3_1DA4.bin)
-	$(OBJCOPY) -O binary --only-section=.text $(word 3,$^) $(@:.bin=.g3_87E8.bin)
-	$(OBJCOPY) -O binary --only-section=.text $(word 4,$^) $(@:.bin=.g3_8894.bin)
-	$(OBJCOPY) -O binary --only-section=.text $(word 5,$^) $(@:.bin=.g3_8940.bin)
-	python3 -c "import sys; m=open(sys.argv[1],'rb').read(); g1=open(sys.argv[2],'rb').read(); g2=open(sys.argv[3],'rb').read(); g3=open(sys.argv[4],'rb').read(); g4=open(sys.argv[5],'rb').read(); n=int(sys.argv[7],0); assert len(g1)==0xC and len(g2)==0xC and len(g3)==0xC and len(g4)==0xC,(hex(len(g1)),hex(len(g2)),hex(len(g3)),hex(len(g4))); p1=0x1DA4; p2=0x87E8-0xC; p3=0x8894-0x18; p4=0x8940-0x24; out=m[:p1]+g1+m[p1:p2]+g2+m[p2:p3]+g3+m[p3:p4]+g4+m[p4:]; assert len(out)>=n,(hex(len(out)),hex(n)); assert out[n:]==b'\x00'*len(out[n:]),'discarded tail is not zero'; open(sys.argv[6],'wb').write(out[:n])" $(@:.bin=.main.bin) $(@:.bin=.g3_1DA4.bin) $(@:.bin=.g3_87E8.bin) $(@:.bin=.g3_8894.bin) $(@:.bin=.g3_8940.bin) $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
+	$(OBJCOPY) -O binary --only-section=.text $(word 2,$^) $(@:.bin=.g3_87E8.bin)
+	$(OBJCOPY) -O binary --only-section=.text $(word 3,$^) $(@:.bin=.g3_8894.bin)
+	$(OBJCOPY) -O binary --only-section=.text $(word 4,$^) $(@:.bin=.g3_8940.bin)
+	python3 -c "import sys; m=open(sys.argv[1],'rb').read(); g2=open(sys.argv[2],'rb').read(); g3=open(sys.argv[3],'rb').read(); g4=open(sys.argv[4],'rb').read(); n=int(sys.argv[6],0); assert len(g2)==0xC and len(g3)==0xC and len(g4)==0xC,(hex(len(g2)),hex(len(g3)),hex(len(g4))); p2=0x87E8; p3=0x8894-0xC; p4=0x8940-0x18; out=m[:p2]+g2+m[p2:p3]+g3+m[p3:p4]+g4+m[p4:]; assert len(out)>=n,(hex(len(out)),hex(n)); assert out[n:]==b'\x00'*len(out[n:]),'discarded tail is not zero'; open(sys.argv[5],'wb').write(out[:n])" $(@:.bin=.main.bin) $(@:.bin=.g3_87E8.bin) $(@:.bin=.g3_8894.bin) $(@:.bin=.g3_8940.bin) $(@:.bin=.text.bin) $(YAY0_TEXT_SIZE)
 	python3 -c "import sys, crunch64; open(sys.argv[2],'wb').write(crunch64.yay0.compress(open(sys.argv[1],'rb').read()))" $(@:.bin=.text.bin) $@
 
 # map4_data_uso block 2: 0xD0 bytes / 3 functions (the only code block)

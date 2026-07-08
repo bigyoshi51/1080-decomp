@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00001D1C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:51:08.233238+00:00",
+  "end_time": "2026-07-08T03:51:08.233262+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:51:08.233255+00:00",
+      "assistant_text": "BOUNDARY FIX + match: adjacent 'leaf' 1DA4 was 1D1C's OWN shared return-1 tail (5 branches land at 1DA4 AND mid-leaf 1DA8 with li v0,1 in beql/bnel delay slots \u2014 impossible cross-function). Merged .s 0x88->0x94, dismantled the -g3 carve/splice unit (deleted g3_1DA4.c + objdiff unit + expected .o, rewired Makefile block5 splice 4->3 fragments), RETRACTED 1DA4's standalone episode. Levers: fallthrough guard if(x==2){body} return 1; switch KEEPING redundant case 2/4; nested case-1 sharing one return-0 block; unnamed 2nd compare operand (t2); three defs ON ONE SOURCE LINE (same-line as1 tie-break flips both lw-pair orders).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 37,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_00001D1C (0x94 after merging the 1D60 fragment AND\n * the 1DA4 \"return-1 leaf\" -- see below). Pair-state comparator: with\n * a0->i_30 == 2, compares the 0x3C8 counters of the a1-indexed and\n * (a1^1)-indexed pair members (a0 + idx*4 + 0x34), then a 1/2/4 switch on\n * the counter with 0x3CC == 5 checks deciding 0 vs 1.\n * 2026-07-07 (agent-e): BYTE-EXACT (37/37). The old\n * branch-into-adjacent-return-leaf CAP verdict was WRONG here: the former\n * timproc_uso_b5_func_00001DA4 (li v0,1; jr ra; nop @0x1DA4) is this\n * function's OWN shared return-1 tail, not a separate function -- branches\n * target BOTH 0x1DA4 and mid-\"leaf\" 0x1DA8 with li v0,1 carried in\n * beql/bnel delay slots, which no cross-function branch can express, and\n * nothing else references 1DA4. Retracted the -g3 carve-out sub-unit\n * (timproc_uso_b5_g3_1DA4.c) and re-absorbed the 0xC tail into the main TU.\n * Levers: fallthrough guard `if (==2){...} return 1;` = the shared end\n * tail; switch keeps the semantically-redundant case 2/4 compares; case-1\n * nested `if(!=5){if(!=5) break;} return 0;` shares one return-0 block;\n * c2 as unnamed compare operand (colors t2, not a user candidate);\n * first-def coloring order p1,c1,p2 -> v0,v1,a2 (const 2 -> a3);\n * array-index form gives base-first addu; and the THREE defs SHARE ONE\n * SOURCE LINE (as1 debug-line tie-break flips the p2/p1 + c2/c1 load-pair\n * emission order -- docs/IDO_CODEGEN \"as1 scheduler tie-break ... SHARE one\n * source line\"). The shared line is LOAD-BEARING; do not re-format. */\nint timproc_uso_b5_func_00001D1C(char *a0, int a1) {\n    char *p1;\n    char *p2;\n    int c1;\n    if (*(int *)(a0 + 0x30) == 2) {\n        p1 = ((char **)(a0 + 0x34))[a1]; c1 = *(int *)(p1 + 0x3C8); p2 = ((char **)(a0 + 0x34))[a1 ^ 1];\n        if (c1 != *(int *)(p2 + 0x3C8)) {\n            return 0;\n        }\n        switch (c1) {\n        case 1:\n            if (*(int *)(p1 + 0x3CC) != 5) {\n                if (*(int *)(p2 + 0x3CC) != 5) {\n                    break;\n                }\n            }\n            return 0;\n        case 2:\n            break;\n        case 4:\n            break;\n        default:\n            break;\n        }\n    }\n    return 1;\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00001D1C.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "37/37 word-exact (post-merge .s) + make ROM byte-identical"
+  }
+}

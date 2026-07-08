@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000CB40",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:51:09.255085+00:00",
+  "end_time": "2026-07-08T03:51:09.255104+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:51:09.255098+00:00",
+      "assistant_text": "Fade-limiter family sibling transfer (CD24 recipe), 74.65%->exact. Externs D_CB40_up/dn = 0x37C/0x380 (old &D+0x892/0x896 comment was wrong).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 49,
+  "initial_m2c_source": null,
+  "final_source": "timproc_uso_b5_func_0000CB40(void *a0, f32 a1) {\n *       f32 target = a1;\n *       if (a0->0x2A4 == 0.0f) target = 0.0f;     // disabled -> 0\n *       st = a0->0x2B8;\n *       if (st->0x134 != 0) target = 1.0f;        // force-full gate\n *       cur = st->0x124;\n *       if (cur < target) {                       // ramp up\n *           st->0x124 += D_<step_up>;             // global +step\n *           st = a0->0x2B8;\n *           if (target < st->0x124)               // overshoot ->\n *               st->0x124 = target;               //   clamp\n *       } else {                                  // ramp down\n *           st->0x124 -= D_<step_dn>;             // global -step\n *           st = a0->0x2B8;\n *           if (st->0x124 < target)               // undershoot ->\n *               st->0x124 = target;               //   clamp\n *       }\n *   }",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000CB40.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "49/49 word-exact + make ROM byte-identical"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000B850",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:51:08.761651+00:00",
+  "end_time": "2026-07-08T03:51:08.761672+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:51:08.761666+00:00",
+      "assistant_text": "Fade-limiter family (CD24 recipe, offsets 0x130/0x138): per-arm if(1) pointer-mutation; retracts the documented 'genuine first-temp/address-reg coloring cap' (95.57%->exact). Externs D_B850_up/dn = 0x358/0x35C.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 49,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_0000B850 [0xB850..0xB914), 0xC4: BOUNDARY MERGE\n * 2026-06-10 of the B8E0 tail fragment (B850's bc1f branched into it).\n * Float fade-toward-target helper:\n *   target = a1 (f12); if (a0->f_2A4 == 0) target = 0;\n *   s = a0->p_2B8; if (s->i_138 != 0) target = 1.0f;\n *   if (s->f_130 < target) { s->f_130 += STEP_UP; if (target < s->f_130) s->f_130 = target; }\n *   else { s->f_130 -= STEP_DOWN; if (s->f_130 < target) s->f_130 = target; }\n * STEP_UP/STEP_DOWN are reloc'd USO f32 globals D_B850_up/dn (in-USO\n * 0x358/0x35C via undefined_syms). Same family as C710/CB40/CD24.\n * BYTE-EXACT 2026-07-07 (agent-e), retracting the 2026-06-21 \"genuine\n * first-temp/address-reg coloring cap\" verdict: the pre-gate\n * addiu v1,v0,0x130 is NOT a hoisted shared local -- it is the ELSE\n * arm's own pointer hoisted with its bc1fl delay-slot load. Recipe\n * (same as CD24): compare derefs st+0x130 DIRECTLY; each arm\n * materializes its own v via the if(1){} pointer-mutation lever; v\n * then colors $v1 with no move, and the then-arm re-materializes at\n * +0x58. 49/49 words + reloc sites verified vs target. */\nextern float D_B850_up;\nextern float D_B850_dn;\nvoid timproc_uso_b5_func_0000B850(char *a0, float target) {\n    char *st;\n    float *v;\n    if (*(float *)(a0 + 0x2A4) == 0.0f) {\n        target = 0.0f;\n    }\n    st = *(char **)(a0 + 0x2B8);\n    if (*(int *)(st + 0x138) != 0) {\n        target = 1.0f;\n    }\n    if (*(float *)(st + 0x130) < target) {\n        v = (float *)st;\n        if (1) { v = (float *)((char *)v + 0x130); }\n        *v += D_B850_up;\n        st = *(char **)(a0 + 0x2B8);\n        if (target < *(float *)(st + 0x130)) {\n            *(float *)(st + 0x130) = target;\n        }\n    } else {\n        v = (float *)st;\n        if (1) { v = (float *)((char *)v + 0x130); }\n        *v -= D_B850_dn;\n        st = *(char **)(a0 + 0x2B8);\n        if (*(float *)(st + 0x130) < target) {\n            *(float *)(st + 0x130) = target;\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000B850.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "49/49 word-exact + make ROM byte-identical"
+  }
+}
