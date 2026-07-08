@@ -24634,38 +24634,25 @@ unsigned short game_libs_func_0005330C(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005330C);
 #endif
 
-#ifdef NON_MATCHING
-/* Nested-table lookup. a0->0x70 = index table B; if null, the v1==0 path
- * tail-BRANCHES into the middle of game_libs_func_000533B8 (+4) — a shared
- * tail, not C-expressible (modeled as return 0). Main path: idx1 = u16 at
- * (a0->0x68 + a1*8 + a2*2 + 2); idx2 = u16 at (B + idx1*6); returns
- * a0->0x58 + idx2*12. Element strides 6 and 12 -> sll/subu/sll. */
+/* Nested-table lookup, MERGED with the former game_libs_func_000533B8 13-word
+ * leaf per the branch-into-adjacent-return-leaf DISCRIMINATOR: 53368's word 2
+ * `beql v1,zero,0x533BC` lands MID-BODY at 533B8+4 with the beql delay slot
+ * reconstructing 533B8's first insn (lw t7,0x68(a0)) — impossible
+ * cross-function, so 533B8 was 53368's own duplicated v1==0 arm, mis-split by
+ * splat. No external refs to 533B8 (no baked jal words / data ptrs / symbol
+ * table entries). Shape: idx = u16 at (a0->0x68 + a1*8 + a2*2 + 2); if table B
+ * (a0->0x70) non-null, idx = u16 at (B + idx*6); returns a0->0x58 + idx*12.
+ * Both arms duplicate the full computation (distinct $t numbering per arm). */
 s32 game_libs_func_00053368(void *a0, int a1, int a2) {
-    char *tabB = *(char **)((char *)a0 + 0x70);
-    if (tabB == 0) {
-        return 0; /* shared-tail inter-function branch cap */
+    int tabB = *(int *)((char *)a0 + 0x70);
+    if (tabB != 0) {
+        return *(unsigned short *)(tabB +
+                   *(unsigned short *)(*(char **)((char *)a0 + 0x68) + a1 * 8 + a2 * 2 + 2) * 6) * 12 +
+               *(int *)((char *)a0 + 0x58);
     }
-    return *(int *)((char *)a0 + 0x58) +
-           *(unsigned short *)(tabB +
-               *(unsigned short *)(*(char **)((char *)a0 + 0x68) + a1 * 8 + a2 * 2 + 2) * 6) * 12;
+    return *(unsigned short *)(*(char **)((char *)a0 + 0x68) + a1 * 8 + a2 * 2 + 2) * 12 +
+           *(int *)((char *)a0 + 0x58);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053368);
-#endif
-
-#ifdef NON_MATCHING
-/* 2D-table element-address lookup: v = *(u16*)(a0->0x68 + a1*8 + a2*2 + 2);
- * return a0->0x58 + v*12 (the *12 = (v*4 - v)*4 strength-reduce). Structurally
- * exact (13/13 same opcodes incl. sll/subu/sll *12); reloc-free. Caps: $t-renumber
- * cascade + UNFILLED jr-delay (target emits addu v0 before `jr ra; nop`; C-emit
- * fills the jr delay with the addu) — recurring game_libs unfilled-jr-delay class. */
-int game_libs_func_000533B8(int *a0, int a1, int a2) {
-    unsigned short v = *(unsigned short *)(*(int *)((char *)a0 + 0x68) + a1 * 8 + a2 * 2 + 2);
-    return *(int *)((char *)a0 + 0x58) + v * 12;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000533B8);
-#endif
 
 #ifdef NON_MATCHING
 /* Triangle vertex-color averager. arg0=mesh ctx, arg1=triangle index,

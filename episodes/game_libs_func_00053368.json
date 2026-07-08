@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00053368",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T17:26:55.934376+00:00",
+  "end_time": "2026-07-08T17:26:55.934398+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T17:26:55.934391+00:00",
+      "assistant_text": "REVERSE-MERGE + match: 533B8 (13w leaf) was 53368's OWN duplicated v1==0 arm, mis-split by splat \u2014 53368's beql lands at 533B8+4 (mid-body) with the delay slot reconstructing 533B8's first insn (the discriminator tell; no external callers). Merged .s 20w->33w, 533B8 symbol dissolved (no episode existed). Match: tabB + idx*6 6-byte-record IXA + base + a1*8 + a2*2 + 2 sum with *(u16*)(...)*12 + *(int*)(a0+0x58) order emitting base-first addus.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 33,
+  "initial_m2c_source": null,
+  "final_source": "/* Nested-table lookup, MERGED with the former game_libs_func_000533B8 13-word\n * leaf per the branch-into-adjacent-return-leaf DISCRIMINATOR: 53368's word 2\n * `beql v1,zero,0x533BC` lands MID-BODY at 533B8+4 with the beql delay slot\n * reconstructing 533B8's first insn (lw t7,0x68(a0)) \u2014 impossible\n * cross-function, so 533B8 was 53368's own duplicated v1==0 arm, mis-split by\n * splat. No external refs to 533B8 (no baked jal words / data ptrs / symbol\n * table entries). Shape: idx = u16 at (a0->0x68 + a1*8 + a2*2 + 2); if table B\n * (a0->0x70) non-null, idx = u16 at (B + idx*6); returns a0->0x58 + idx*12.\n * Both arms duplicate the full computation (distinct $t numbering per arm). */\ns32 game_libs_func_00053368(void *a0, int a1, int a2) {\n    int tabB = *(int *)((char *)a0 + 0x70);\n    if (tabB != 0) {\n        return *(unsigned short *)(tabB +\n                   *(unsigned short *)(*(char **)((char *)a0 + 0x68) + a1 * 8 + a2 * 2 + 2) * 6) * 12 +\n               *(int *)((char *)a0 + 0x58);\n    }\n    return *(unsigned short *)(*(char **)((char *)a0 + 0x68) + a1 * 8 + a2 * 2 + 2) * 12 +\n           *(int *)((char *)a0 + 0x58);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "/tmp/53368_merged.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "33/33 word-exact vs merged .s + make ROM byte-identical (promoted)"
+  }
+}
