@@ -5663,9 +5663,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD78);
  *       kills IDO -O1's unused-arg home store (sw a0,8(sp)) with ZERO
  *       emission (plain unused arg is homed; -g3 pins the prologue addiu
  *       ahead of the beq leaving the target's nop delay).
- * LANDABLE only via a per-function -O1 -g3 file split (game_libs_ido_75264
- * / g3_34448 pattern) — kept as NM wrap until that infra pass. */
-#ifdef NON_MATCHING
+ * LANDED 2026-07-08 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * -O1 -g3 donor unit game_libs_o1_6AF0C.c (reloc-free, byte-exact 14/14),
+ * spliced over this -O2 stand-in body per the gl_func_0006BA7C / 69E04
+ * precedent. */
 void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
     int pad;
     if (0) a0_unused = 0;
@@ -5680,9 +5681,6 @@ void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
         } while (a3 != 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006AF0C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006AF44: 65-insn list-unlink + cleanup helper (size 0x104, frame 0x38, saves s0/s1/s2).

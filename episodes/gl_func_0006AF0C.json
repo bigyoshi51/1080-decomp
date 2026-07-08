@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006AF0C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T12:23:07.111383+00:00",
+  "end_time": "2026-07-08T12:23:07.111403+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T12:23:07.111397+00:00",
+      "assistant_text": "List-unlink leaf (walk head a3 for node a1, store a1->next into predecessor slot *a2) \u2014 an -O1 -g3 ISLAND inside the -O2 post1b TU (3 signatures: plain bne+nop, un-copy-propagated move a2,a3;lw a3,0(a2), empty 8-byte frame). Recipe: unused 'int pad;' = the frame bracket; NOVEL zero-emission lever 'if (0) a0_unused = 0;' dead overwrite kills IDO -O1's unused-arg home store (sw a0,8(sp)) without emitting anything; -g3 pins the prologue addiu ahead of the beq. Landed via REPLACE_FUNC_BODY donor splice (asm-processor rejects -O1 -g3, so direct-CC rule; donor has no GLOBAL_ASM). DISCOVERY: whole 0x6A09C-0x6BAD4 span is an -O1 island (zero branch-likely) \u2014 6AF44/6A304/6A420/6B974/6B7A0/6B880/6BAD4 etc. are re-probe candidates; their 'stack-residency cap' notes assumed -O2.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 14,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O1 -g3 donor for gl_func_0006AF0C \u2014 14-insn singly-linked-list unlink:\n * walk from head a3 looking for node a1; when found, store a1->next into the\n * predecessor link slot *a2 (a2 trails one node behind) and stop.\n * PROVEN EXACT 14/14 at -O1 -g3 (2026-07-07 standalone IDO 7.1 probe).\n * post1b builds -O2, where this shape is the sp-8-empty-frame/bnel/copy-prop\n * cap; the target is an -O1 -g3 island inside game_libs_post1b (region survey\n * 2026-07-08: NO branch-likely anywhere in 0x6A09C..0x6BAD4). Levers:\n *   (1) `int pad;` unused local = the addiu sp,-8/+8 bracket, zero insns;\n *   (2) `if (0) a0_unused = 0;` dead overwrite kills IDO -O1's unused-arg\n *       home store (sw a0,8(sp)) with zero emission; -g3 pins the prologue\n *       addiu ahead of the beq, leaving the target's nop delay.\n * Reloc-free body \u2014 spliced into game_libs_post1b.c.o via REPLACE_FUNC_BODY\n * (real -O1 -g3 compiler output, not instruction-forcing). */\nvoid gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {\n    int pad;\n    if (0) a0_unused = 0;\n    if (a3 != 0) {\n        do {\n            if (a3 == a1) {\n                *a2 = *a1;\n                break;\n            }\n            a2 = a3;\n            a3 = *(int **)a2;\n        } while (a3 != 0);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6AF0C.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006AF0C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -g3 (REPLACE_FUNC_BODY donor splice into -O2 post1b)",
+    "verification": "14/14 word-exact (final ROM bytes at 0xE4FFE4) + make ROM byte-identical"
+  }
+}

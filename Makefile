@@ -471,7 +471,12 @@ build/src/game_libs/game_libs_ido53_732C4.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_732C4.c.o build/non_matching/src/game_libs/game_libs_ido53_732C4.c.o: OPT_FLAGS := -O1
 GAMELIBS_69E04_DONOR := build/src/game_libs/game_libs_ido53_69E04.c.o
 GAMELIBS_74C04_DONOR := build/src/game_libs/game_libs_ido53_74C04.c.o
-build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY := gl_func_0006BA7C=$(GAMELIBS_6BA7C_DONOR) gl_func_00069E04=$(GAMELIBS_69E04_DONOR)
+# gl_func_0006AF0C: 14-insn list-unlink leaf; exact only at IDO 7.1 -O1 -g3
+# (post1b is -O2). Reloc-free donor spliced in, like 6BA7C/69E04. Built by an
+# explicit direct-CC rule (below "all"): asm-processor rejects "-O1 -g3"
+# (only -O2 -g3), and the donor has no GLOBAL_ASM so it would be a no-op.
+GAMELIBS_6AF0C_DONOR := build/src/game_libs/game_libs_o1_6AF0C.c.o
+build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY := gl_func_0006BA7C=$(GAMELIBS_6BA7C_DONOR) gl_func_00069E04=$(GAMELIBS_69E04_DONOR) gl_func_0006AF0C=$(GAMELIBS_6AF0C_DONOR)
 # gl_func_00067370: -O2 body byte-exact; append the 1-word all-zero inter-fn ROM
 # pad at 0x67390 (folded into the 0x24 .s symbol). FORCE: ends jr-ra;nop.
 build/src/game_libs/game_libs_post1b.c.o: SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000
@@ -564,7 +569,7 @@ build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000
 build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 func_0000F1B4=0x00000000,0x00000000,0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
-C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/game_libs/game_libs_o1_6C8AC.c src/arcproc_uso/arcproc_uso_o0_748.c src/arcproc_uso/arcproc_uso_o0_688.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
+C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/game_libs/game_libs_o1_6C8AC.c src/game_libs/game_libs_o1_6AF0C.c src/arcproc_uso/arcproc_uso_o0_748.c src/arcproc_uso/arcproc_uso_o0_688.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 
@@ -587,6 +592,11 @@ O_FILES     := $(BIN_O_FILES) $(YAY0_O_FILES) $(C_O_FILES) $(ASM_O_FILES)
 
 # Default target
 all: verify
+
+# gl_func_0006AF0C -O1 -g3 donor: direct CC, no asm-processor (see donor block).
+build/src/game_libs/game_libs_o1_6AF0C.c.o: src/game_libs/game_libs_o1_6AF0C.c
+	@mkdir -p $(dir $@)
+	$(CC) -c $(CFLAGS) -O1 -g3 $(MIPSISET) $(CPPFLAGS) -o $@ $<
 
 # C objects only — used by CI for objdiff reports (no baserom required).
 objects: $(C_O_FILES)
