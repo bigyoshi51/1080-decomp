@@ -394,37 +394,27 @@ void gl_func_0006366C(int a0, int a1, int a2, int a3, int a4, int a5) {
     gl_func_00000000(a0, a1, a2, a3, a4, a5);
 }
 
-/* game_libs_func_000636BC: 18-insn struct-setter with 2 conditional state changes.
- *   void f(int *a0, int a1, int a2, float a3, int a4, int a5) {
- *     int old_98 = a0[0x98];
- *     a0[0x8C] = a1; a0[0x90] = a2; a0[0x94] = a3 (float);
- *     if (old_98 & 0x100)  a0[0x6C] = a5;
- *     if (!(a4 & 0x100))   a0[0x70] = 0;
- *     a0[0x98] = a4 | 0x80;
- *   }
- *
- * 2026-05-27: NM-wrap added with float-typed a3 (sig-type-fix lever).
- * 18-insn match in count but register-rename + scheduling diffs from
- * target's bnel-shared-tail pattern (TWO lw a4 reloads with branch-likely).
- * `int *p4 = &a4` lever produces the bnel form but reg cascade differs. */
-#ifdef NON_MATCHING
+/* game_libs_func_000636BC: 18-insn struct-setter. Stores a1/a2/float-a3/a5
+ * at 0x8C/0x90/0x94/0x6C (the a5 store rides the beq delay slot, so it is
+ * UNCONDITIONAL — the old 2026-05-27 NM body mis-guarded it on old&0x100),
+ * clears 0x70 unless BOTH the old 0x98 flags and a4 have bit 0x100 set,
+ * then writes 0x98 = a4|0x80.
+ * EXACT 18/18 (2026-07-07, from 63.6% NM): two fixes — (1) correct
+ * semantics per above; (2) inline the 0x98 flag read into the || condition
+ * instead of a named `old_98` local, so it stays a scheduler temp ($t7)
+ * rather than a uopt candidate ($v0), which lines up the whole
+ * t7/t8/t9/t0/t1/t2 temp chain and the bnezl a4-reload pair. Reloc-free
+ * leaf. */
 void game_libs_func_000636BC(int *a0, int a1, int a2, float a3, int a4, int a5) {
-    int old_98 = a0[0x98 / 4];
-    int *p4 = &a4;
     a0[0x8C / 4] = a1;
     a0[0x90 / 4] = a2;
-    *(float*)((char*)a0 + 0x94) = a3;
-    if (old_98 & 0x100) {
-        a0[0x6C / 4] = a5;
-    }
-    if (!((*p4) & 0x100)) {
+    *(float *)((char *)a0 + 0x94) = a3;
+    a0[0x6C / 4] = a5;
+    if (!(a0[0x98 / 4] & 0x100) || !(a4 & 0x100)) {
         a0[0x70 / 4] = 0;
     }
-    a0[0x98 / 4] = (*p4) | 0x80;
+    a0[0x98 / 4] = a4 | 0x80;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000636BC);
-#endif
 
 
 void game_libs_func_00063704(int a0) {}
@@ -5657,20 +5647,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006AD78);
  *   These last 3 diffs are IDO -O2 scheduler/encoder cascades from the
  *   bnel optimization; no obvious C lever. Would need INSN_PATCH for
  *   final 5-insn promotion. */
-/* gl_func_0006AF0C: 14-insn linked-list walk to find a1 from head a3,
- * patching predecessor's next-ptr to a1's next if found.
- * 4-insn INSN_PATCH closes the bnel→bne demotion + delay-slot nopping +
- * base-reg lw a3,0(a2) vs lw a3,0(a3). Volatile dummy preserved in C
- * for body-fidelity; INSN_PATCH overwrites its sw with nop. */
+/* gl_func_0006AF0C: 14-insn singly-linked-list unlink: walk from head a3
+ * looking for node a1; when found, store a1->next into the predecessor
+ * link slot *a2 (a2 trails one node behind) and stop.
+ * 2026-07-07: PROVEN EXACT 14/14 at `-O1 -g3` (standalone IDO 7.1 probe;
+ * this TU builds -O2, where the shape is the documented sp-8-empty-frame /
+ * bnel / copy-prop cap — see docs/IDO_CODEGEN "IDO -O2 leaf with addiu
+ * sp,-8 but no stack use"). The target is an -O1 -g3 ISLAND inside
+ * game_libs_post1b: no branch-likely, unfilled beq/bne delays, no
+ * copy-prop (lw a3,0(a2) keeps the just-moved base), and the empty 8-byte
+ * frame comes from the unused `int pad;` local (-O1 allocates it, -O2
+ * drops it). Two levers make it exact at -O1 -g3:
+ *   (1) `int pad;` unused local = the addiu sp,-8/+8 bracket, zero insns;
+ *   (2) `if (0) a0_unused = 0;` dead overwrite of the unused first param
+ *       kills IDO -O1's unused-arg home store (sw a0,8(sp)) with ZERO
+ *       emission (plain unused arg is homed; -g3 pins the prologue addiu
+ *       ahead of the beq leaving the target's nop delay).
+ * LANDABLE only via a per-function -O1 -g3 file split (game_libs_ido_75264
+ * / g3_34448 pattern) — kept as NM wrap until that infra pass. */
 #ifdef NON_MATCHING
-/* gl_func_0006AF0C: linked-list walk from head a3 looking for node a1; when
- * found, copy *a1 into the predecessor's next-ptr slot (*a2) and stop.
- * Found-case loads the value via *a1 (target: lw t6,0(a1), not 0(a3)) and
- * exits through a shared epilogue (break, not early return).
- * Residual diffs are codegen-shape caps: bnel branch-likely, shared-return
- * b-vs-jr, CSE-folded next-load base (lw a3,0(a3) vs target 0(a2)), and the
- * K&R first-arg spill (sw a0,0(sp)) standing in for the empty 8-byte frame. */
 void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
+    int pad;
+    if (0) a0_unused = 0;
     if (a3 != 0) {
         do {
             if (a3 == a1) {
@@ -5678,7 +5676,7 @@ void gl_func_0006AF0C(int a0_unused, int *a1, int *a2, int *a3) {
                 break;
             }
             a2 = a3;
-            a3 = *(int **)a3;
+            a3 = *(int **)a2;
         } while (a3 != 0);
     }
 }

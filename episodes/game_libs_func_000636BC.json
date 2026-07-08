@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_000636BC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T04:00:50.777519+00:00",
+  "end_time": "2026-07-08T04:00:50.777551+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T04:00:50.777544+00:00",
+      "assistant_text": "Flag-gated field updater, 63.6%->exact. DECODE FIX: the a0[0x6C]=a5 store rides the beq DELAY SLOT \u2014 it is UNCONDITIONAL (old wrap guarded it on old_98&0x100); the 0x70 clear is guarded by short-circuit !(old&0x100) || !(a4&0x100) (reproduces beq-store/bnezl-skip + the two lw a4 stack reloads). LEVER: inline the 0x98 flag read into the condition \u2014 a named local becomes a uopt candidate colored $v0; inlined it stays a scheduler temp $t7, aligning the whole t7..t2 chain (8/18 -> 18/18).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 18,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_000636BC: 18-insn struct-setter. Stores a1/a2/float-a3/a5\n * at 0x8C/0x90/0x94/0x6C (the a5 store rides the beq delay slot, so it is\n * UNCONDITIONAL \u2014 the old 2026-05-27 NM body mis-guarded it on old&0x100),\n * clears 0x70 unless BOTH the old 0x98 flags and a4 have bit 0x100 set,\n * then writes 0x98 = a4|0x80.\n * EXACT 18/18 (2026-07-07, from 63.6% NM): two fixes \u2014 (1) correct\n * semantics per above; (2) inline the 0x98 flag read into the || condition\n * instead of a named `old_98` local, so it stays a scheduler temp ($t7)\n * rather than a uopt candidate ($v0), which lines up the whole\n * t7/t8/t9/t0/t1/t2 temp chain and the bnezl a4-reload pair. Reloc-free\n * leaf. */\nvoid game_libs_func_000636BC(int *a0, int a1, int a2, float a3, int a4, int a5) {\n    a0[0x8C / 4] = a1;\n    a0[0x90 / 4] = a2;\n    *(float *)((char *)a0 + 0x94) = a3;\n    a0[0x6C / 4] = a5;\n    if (!(a0[0x98 / 4] & 0x100) || !(a4 & 0x100)) {\n        a0[0x70 / 4] = 0;\n    }\n    a0[0x98 / 4] = a4 | 0x80;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_000636BC.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "18/18 word-exact (real path) + make ROM byte-identical"
+  }
+}
