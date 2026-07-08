@@ -9493,143 +9493,151 @@ void game_uso_func_0000B884(char *dst) {
     game_uso_func_0000AD10((float*)(dst + 0x20));
 }
 
-/* game_uso_func_0000B8D4 - verified structural decode (~174-insn
- * elaborate alloc-cascade constructor; alloc-cascade dead-check + 18
- * sub-init calls + FP-zero + branch-likely = documented sub-80 ceiling
- * -> INCLUDE_ASM build path; struct-typing reference). SIBLING-class of
- * the alloc-cascade ctor family (arcproc_uso_func_0000199C / 251C),
- * larger/more elaborate.
- *   s2 = a0 ? a0 : gl_func_00000000(632);   if (!s2) return s2;
- *   s1 = gl_func_00000000(180);   if (!s1) goto done;
- *   gl_func_00000000(s1, &D+3440);  s1->0x28 = &D;
- *   if (s1 != (int*)-44) { ... sub = gl_func_00000000(4); ...
- *       if (!sub) sub = gl_func_00000000(4); *(int*)sub = 0; }
- *   gl_func_00000000(s1);
- *   { Vec3f z = {0,0,0}; gl_func_00000000(s1+0x30, &z); }   // sp+96
- *   ... (continues: ~18 gl_func_00000000 sub-object init calls over
- *        s1 + offsets, FP-zeroed scratch, &D-table descriptor wiring) ...
- * Struct-typing: cross-confirms the alloc-cascade ctor family - main
- * object size 632 (0x278), sub-object 180 (0xB4), leaf allocs 4;
- * sub-object ptr @0x28 = &D_00000000, s1->0x28 also = &D+0xD70 (3440)
- * descriptor; a Vec3f at s1+0x30 zero-init'd; remaining body wires ~18
- * sub-init calls over s1 + offsets. Caps <80: defensive `if(p!=0)`
- * alloc-cascade dead checks + 18-call s0-s2 spill + mtc1-zero FP +
- * beql branch-likely + &D reloc scheduling. Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode). */
-#ifdef NON_MATCHING
+/* game_uso_func_0000B8D4 — EXACT 174/174 words (2026-07-07, agent-e/w30).
+ * Alloc-cascade constructor, sibling of 0000AE1C/00003018/000044F4. Main obj
+ * 0x278 (find-or-create), sub-obj 0xB4 via 04C678(&D_807FF360+0xD70) +
+ * vtable &import_80086288 + zero-node @+0x2C + 04D3D0 + Vec3-zero 072EE8;
+ * then s2 section: vtable &D_807FF2D8, +0x220=arg2, sub-list 0x50 @+0x224
+ * with 3 24-byte nodes via 04A188 (3rd arg = 4-byte STRUCT BY VALUE ->
+ * `sw a2,8(sp)` jal-delay home, docs/IDO_CODEGEN struct-by-value-marshalling);
+ * finalize: +0xC=&D_807FF388+0xD98, +0xB4=import_000F5ADC(0,&D_807FF214),
+ * 10-iter 0x24-stride 0000B710 loop, 04C774(self,1,arg1). Key levers:
+ * ONE sp1 local for both sub-objects (wins $s1), a2v entry copy ($s0 pack),
+ * n reused as stage node + loop cursor ($s0), slot_a/b/c + marsh struct
+ * locals per marshalling recipe, D_B8D4_st2/st3 (=0) alias externs bust the
+ * &D_807FEE50+0x860 PRE hoist, decl-order pads set frame 0x80. */
+extern char game_uso_D_807FF360, game_uso_D_807FF2D8, game_uso_D_807FF368,
+            game_uso_D_807FF37C, game_uso_D_807FF380, game_uso_D_807FF384,
+            game_uso_D_807FF388, D_B8D4_st2, D_B8D4_st3;
+extern char import_80086288;
+extern char game_uso_D_807FEE50;
+extern char game_uso_D_807FF214;
+extern char game_uso_D_807FF360;
+extern char game_uso_D_807FF368;
+extern char game_uso_D_807FF388;
+extern char game_uso_D_807FF2D8;
+extern char D_B8D4_st2, D_B8D4_st3;
+void *game_uso_func_0000B8D4(void *arg0, int arg1, int arg2) {
+    typedef struct { char *p; } S0000B8D4;
+    unsigned int i;        /* @0x7C (loop-counter spill home) */
+    volatile int pad78;
+    volatile int pad74;
+    volatile int pad70;
+    volatile int pad6C;
+    Vec3 v3;               /* @0x60 */
+    volatile int pad5C;
+    volatile int pad58;
+    volatile int pad54;
+    volatile int pad50;
+    S0000B8D4 slot_a;      /* @0x4C */
+    S0000B8D4 slot_b;      /* @0x48 */
+    S0000B8D4 slot_c;      /* @0x44 */
+    char *sp1;             /* colored $s1 — dead @0x40 */
+    void *p;               /* dead @0x3C */
+    void *q;               /* dead @0x38 */
+    S0000B8D4 marsh;       /* @0x34 */
+    char *hdr;             /* dead @0x30 */
+    char *n;               /* colored $s0 (stage node + loop cursor) */
+    int a2v;
 
-
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0000B8D4)();
-s32 *game_uso_func_0000B8D4(s32 *arg0, s32 arg1, s32 arg2) {
-    u32 sp7C;
-    f32 sp68;
-    f32 sp64;
-    s32 sp60;
-    s32 sp4C;
-    s32 sp48;
-    s32 sp44;
-    s32 sp34;
-    s32 *temp_v0;
-    s32 *temp_v0_2;
-    s32 *temp_v0_3;
-    s32 *temp_v0_4;
-    s32 *temp_v0_5;
-    s32 *temp_v0_6;
-    s32 *temp_v0_7;
-    s32 *temp_v0_8;
-    s32 *temp_v0_9;
-    s32 *var_a0;
-    s32 *var_s0;
-    s32 *var_s0_2;
-    s32 *var_s0_3;
-    s32 *var_s0_4;
-    s32 *var_s1;
-    s32 *var_s1_2;
-    s32 *var_s2;
-    s32 *var_v1;
-    s32 *var_v1_2;
-    s32 temp_t3;
-    s32 temp_t7;
-    s32 temp_t9;
-    u32 var_v1_3;
-
-    var_s2 = arg0;
-    if ((arg0 != 0) || (temp_v0 = game_uso_alias((s32 *)0x278), var_s2 = temp_v0, (temp_v0 != 0))) {
-        var_s1 = var_s2;
-        if ((var_s2 != 0) || (temp_v0_2 = game_uso_alias((s32 *)0xB4), var_s1 = temp_v0_2, (temp_v0_2 != 0))) {
-            game_uso_alias(var_s1, (s32 *)0xD70);
-            FW(var_s1, 0x28) = 0;
-            var_v1 = var_s1 + 0x2C;
-            if (((var_s1 != (s32 *)-0x2C) || (temp_v0_3 = game_uso_alias((s32 *)4), var_v1 = temp_v0_3, (temp_v0_3 != 0))) && ((var_a0 = var_v1, (var_v1 != 0)) || (temp_v0_4 = game_uso_alias((s32 *)4), var_a0 = temp_v0_4, (temp_v0_4 != 0)))) {
-                *var_a0 = 0;
-            }
-            game_uso_alias(var_s1);
-            sp60 = 0;
-            sp64 = 0.0f;
-            sp68 = 0.0f;
-            game_uso_alias(var_s1 + 0x30, &sp60);
-        }
-        FW(var_s2, 0x28) = 0;
-        FW(var_s2, 0x220) = arg2;
-        var_s1_2 = var_s2 + 0x224;
-        if ((var_s2 != (s32 *)-0x224) || (temp_v0_5 = game_uso_alias((s32 *)0x50), var_s1_2 = temp_v0_5, (temp_v0_5 != 0))) {
-            var_v1_2 = var_s1_2;
-            if ((var_s1_2 != 0) || (temp_v0_6 = game_uso_alias((s32 *)8), var_v1_2 = temp_v0_6, (temp_v0_6 != 0))) {
-                FW(var_v1_2, 0x0) = 0xD78;
-                FW(var_v1_2, 0x4) = 0;
-            }
-            temp_t9 = *(s32 *)0xD8C;
-            var_s0 = var_s1_2 + 8;
-            sp4C = temp_t9;
-            sp34 = temp_t9;
-            if ((var_s1_2 != (s32 *)-8) || (temp_v0_7 = game_uso_alias((s32 *)0x18), var_s0 = temp_v0_7, (temp_v0_7 != 0))) {
-                game_uso_alias(var_s0, var_s1_2, sp34, 1);
-                FW(var_s0, 0xC) = 0x860;
-                FW(var_s0, 0x14) = 0;
-                *(f32 *)((char *)var_s0 + 0x10) = *(f32 *)0x160;
-            }
-            temp_t3 = *(s32 *)0xD90;
-            var_s0_2 = var_s1_2 + 0x20;
-            sp48 = temp_t3;
-            sp34 = temp_t3;
-            if ((var_s1_2 != (s32 *)-0x20) || (temp_v0_8 = game_uso_alias((s32 *)0x18), var_s0_2 = temp_v0_8, (temp_v0_8 != 0))) {
-                game_uso_alias(var_s0_2, var_s1_2, sp34, 1);
-                FW(var_s0_2, 0xC) = 0x860;
-                FW(var_s0_2, 0x14) = 0;
-                *(f32 *)((char *)var_s0_2 + 0x10) = *(f32 *)0x164;
-            }
-            temp_t7 = *(s32 *)0xD94;
-            var_s0_3 = var_s1_2 + 0x38;
-            sp44 = temp_t7;
-            sp34 = temp_t7;
-            if ((var_s1_2 != (s32 *)-0x38) || (temp_v0_9 = game_uso_alias((s32 *)0x18), var_s0_3 = temp_v0_9, (temp_v0_9 != 0))) {
-                game_uso_alias(var_s0_3, var_s1_2, sp34, 1);
-                FW(var_s0_3, 0xC) = 0x860;
-                FW(var_s0_3, 0x14) = 0;
-                FW(var_s0_3, 0x10) = 0.0f;
-            }
-        }
-        FW(var_s2, 0xC) = 0xD98;
-        FW(var_s2, 0xB4) = game_uso_alias(0, 0);
-        FW(var_s2, 0x274) = 0xAU;
-        var_v1_3 = 0;
-        var_s0_4 = var_s2 + 0xB8;
-        do {
-            sp7C = var_v1_3;
-            game_uso_alias(var_s0_4);
-            var_s0_4 += 0x24;
-            var_v1_3 += 1;
-        } while (var_v1_3 < (u32) FW(var_s2, 0x274));
-        game_uso_alias(var_s2, (s32 *)1, arg1);
+    a2v = arg2;
+    if (arg0 == NULL) {
+        arg0 = (void *)game_uso_func_055750(0x278);
+        if (arg0 == NULL) goto end_ret;
     }
-    return var_s2;
+
+    sp1 = arg0;
+    if (sp1 == NULL) {
+        sp1 = (char *)game_uso_func_055750(0xB4);
+        if (sp1 == NULL) goto skip_sub;
+    }
+    game_uso_func_04C678((int *)sp1, (char *)&game_uso_D_807FF360 + 0xD70);
+    *(int *)(sp1 + 0x28) = (int)&import_80086288;
+
+    p = sp1 + 0x2C;
+    if (sp1 == (char *)-0x2C) {
+        p = (void *)game_uso_func_055750(4);
+        if (p == NULL) goto after_node;
+    }
+    q = p;
+    if (p == NULL) {
+        q = (void *)game_uso_func_055750(4);
+        if (q == NULL) goto after_node;
+    }
+    *(int *)q = 0;
+after_node:
+    game_uso_func_04D3D0(sp1);
+    v3.x = 0.0f;
+    v3.y = 0.0f;
+    v3.z = 0.0f;
+    game_uso_func_072EE8(sp1 + 0x30, &v3);
+skip_sub:
+
+    *(int *)((char *)arg0 + 0x28) = (int)&game_uso_D_807FF2D8;
+    *(int *)((char *)arg0 + 0x220) = a2v;
+    sp1 = (char *)arg0 + 0x224;
+    if (arg0 == (void *)-0x224) {
+        sp1 = (char *)game_uso_func_055750(0x50);
+        if (sp1 == NULL) goto finalize;
+    }
+    hdr = sp1;
+    if (sp1 == NULL) {
+        hdr = (char *)game_uso_func_055750(8);
+        if (hdr == NULL) goto stage_a;
+    }
+    *(int *)hdr = (int)((char *)&game_uso_D_807FF368 + 0xD78);
+    *(int *)(hdr + 4) = 0;
+stage_a:
+    slot_a.p = *(char **)((char *)&game_uso_D_807FF37C + 0xD8C);
+    marsh = slot_a;
+    n = sp1 + 8;
+    if (sp1 == (char *)-8) {
+        n = (char *)game_uso_func_055750(0x18);
+        if (n == NULL) goto stage_b;
+    }
+    game_uso_func_04A188(n, sp1, marsh, 1);
+    *(int *)(n + 0xC) = (int)((char *)&game_uso_D_807FEE50 + 0x860);
+    *(int *)(n + 0x14) = 0;
+    *(float *)(n + 0x10) = *(float *)((char *)&game_uso_D_807FF380 + 0x160);
+stage_b:
+    slot_b.p = *(char **)((char *)&game_uso_D_807FF380 + 0xD90);
+    marsh = slot_b;
+    n = sp1 + 0x20;
+    if (sp1 == (char *)-0x20) {
+        n = (char *)game_uso_func_055750(0x18);
+        if (n == NULL) goto stage_c;
+    }
+    game_uso_func_04A188(n, sp1, marsh, 1);
+    *(int *)(n + 0xC) = (int)((char *)&D_B8D4_st2 + 0x860);
+    *(int *)(n + 0x14) = 0;
+    *(float *)(n + 0x10) = *(float *)((char *)&game_uso_D_807FF384 + 0x164);
+stage_c:
+    slot_c.p = *(char **)((char *)&game_uso_D_807FF384 + 0xD94);
+    marsh = slot_c;
+    n = sp1 + 0x38;
+    if (sp1 == (char *)-0x38) {
+        n = (char *)game_uso_func_055750(0x18);
+        if (n == NULL) goto finalize;
+    }
+    game_uso_func_04A188(n, sp1, marsh, 1);
+    *(int *)(n + 0xC) = (int)((char *)&D_B8D4_st3 + 0x860);
+    *(int *)(n + 0x14) = 0;
+    *(float *)(n + 0x10) = 0.0f;
+finalize:
+    *(int *)((char *)arg0 + 0xC) = (int)((char *)&game_uso_D_807FF388 + 0xD98);
+    *(int *)((char *)arg0 + 0xB4) = import_000F5ADC(0, &game_uso_D_807FF214);
+    *(int *)((char *)arg0 + 0x274) = 10;
+    i = 0;
+    n = (char *)arg0 + 0xB8;
+    do {
+        game_uso_func_0000B710(n);
+        n += 0x24;
+        i++;
+    } while (i < *(unsigned int *)((char *)arg0 + 0x274));
+    game_uso_func_04C774((int *)arg0, 1, arg1);
+end_ret:
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000B8D4);
-#endif
 
 // game_uso_func_0000BB8C — STRUCTURAL PASS (0x3F0 / 252 words,
 // no episode). Raw-.word USO form (single function, game_uso main
