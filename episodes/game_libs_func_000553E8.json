@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_000553E8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T18:46:56.388879+00:00",
+  "end_time": "2026-07-08T18:46:56.388900+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T18:46:56.388893+00:00",
+      "assistant_text": "Command-stream skipper, 74.9%->exact on variant 1 after TWO DECODE FIXES: the cursor-skip *cp += ((cmd>>16)&0xFFFF)*4 is UNCONDITIONAL (sw in a non-likely bne delay slot \u2014 not gated under op==1015), and the tail is if(op==1014){depth--; if(!depth) return;} inside while(1). The old do/while bottom-condition manufactured an or a3,t0,zero op-copy rotating the whole t0-t2 const pool.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 34,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_000553E8 \u2014 EXACT 34/34 words (2026-07-08, agent-e). Reloc-free.\n * Command-stream block-skipper with nesting depth. a0[0] points to a stream\n * cursor. Each iteration: read cmd at cursor, advance cursor by 4, store cmd to\n * a0[1]; op = cmd & 0xFFFF. Opcodes 1010-1012 push depth. The cursor skip\n * (*cp += ((cmd>>16)&0xFFFF)*4) is UNCONDITIONAL (sw in the non-likely bne\n * delay slot \u2014 the old NM body gated it under op==1015 and diverged). Tail:\n * op==1015 returns only at depth==1; op==1014 pops depth and returns at 0.\n * Key form: while(1) + `if (op==1014) { depth--; if (depth==0) return; }`\n * (the do/while bottom-condition spelling manufactured an extra\n * `or a3,t0,zero` op-copy that rotated the whole t0-t2 const pool). */\nvoid game_libs_func_000553E8(int *a0) {\n    int depth = 1;\n    int op;\n    int cmd;\n    int *cp;\n    int *cur;\n\n    while (1) {\n        cp = (int *)a0[0];\n        cur = (int *)*cp;\n        *cp = (int)(cur + 1);\n        cmd = *cur;\n        op = cmd & 0xFFFF;\n        a0[1] = cmd;\n        if (op >= 1010 && op < 1013) {\n            depth++;\n        }\n        cp = (int *)a0[0];\n        *cp = *cp + ((cmd >> 16) & 0xFFFF) * 4;\n        if (op == 1015) {\n            if (depth == 1) {\n                return;\n            }\n        }\n        if (op == 1014) {\n            depth--;\n            if (depth == 0) {\n                return;\n            }\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_000553E8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "34/34 word-exact + make ROM byte-identical (promoted)"
+  }
+}

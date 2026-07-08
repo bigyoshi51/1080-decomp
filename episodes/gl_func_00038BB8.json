@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00038BB8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T18:46:56.884778+00:00",
+  "end_time": "2026-07-08T18:46:56.884797+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T18:46:56.884791+00:00",
+      "assistant_text": "RSP-request submitter, 58.3%->exact. (1) if(0){a1=0;} dead param-kill removes the sw a1 home spill; (2) fp+offset INLINED in the call expr (naming promoted t9/t8 to candidates); (3) obj load after the req stores; (4) three scalar volatile int pads -> frame -0x40/req@0x2C; (5) req.count=14; req.buf_ptr=&req.buf; ON ONE LINE (same-line as1 tie-break) flips the li/addiu setup order.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 19,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00038BB8 \u2014 EXACT 19/19 words (2026-07-08, agent-e). Vtable dispatch\n * with a stack-built request: req{count=14, buf_ptr=&buf, return_slot=0} at\n * sp+0x2C, payload short a1 at sp+0x3C; calls (*(a0->0x28)->0x34)(a0 +\n * (short)(a0->0x28)->0x30, &req) and returns req.return_slot.\n * Levers that closed the old \"a1 caller-slot spill / multi-pass NM\" verdict:\n *  - `if (0) { a1 = 0; }` dead param-kill before the call removes the\n *    `sw a1,0x44(sp)` arg-home spill (zero emission);\n *  - fp + short offset INLINED in the call expression (naming them promotes\n *    t9/t8 to candidates a2/v1);\n *  - obj load AFTER the req stores (statement order = emission order);\n *  - THREE scalar `volatile int` pads declared AFTER req absorb the frame\n *    slack and land frame -0x40 with req at 0x2C (2 pads fit in existing\n *    slack and change nothing);\n *  - `req.count = 14; req.buf_ptr = &req.buf;` ON ONE LINE \u2014 same-line as1\n *    tie-break flips the li t6/addiu t7 setup order to addiu-first.\n * The pads and the one-line statement are LOAD-BEARING. */\ntypedef struct {\n    int count;\n    int *buf_ptr;\n    int return_slot;\n    int buf;\n    short a1_save;\n    short pad;\n} ReqStruct_38BB8;\n\nint gl_func_00038BB8(int *a0, int a1) {\n    ReqStruct_38BB8 req;\n    volatile int pad0;\n    volatile int pad1;\n    volatile int pad2;\n    int *v0;\n\n    req.a1_save = a1;\n    req.count = 14; req.buf_ptr = &req.buf;\n    req.return_slot = 0;\n    if (0) { a1 = 0; }\n    v0 = (int*)a0[0x28/4];\n    (*(int (**)(int, int *))((char *)v0 + 0x34))(*(short *)((char *)v0 + 0x30) + (int)a0, &req.count);\n    return req.return_slot;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00038BB8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "19/19 word-exact + make ROM byte-identical (promoted)"
+  }
+}

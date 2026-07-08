@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0003A164",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T18:46:56.638767+00:00",
+  "end_time": "2026-07-08T18:46:56.638786+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T18:46:56.638780+00:00",
+      "assistant_text": "Box-overlap test (8 corner-in-box tests: 4 A-corners in B, 4 B-corners in A, each a 6-way && returning 1), 266 words \u2014 was NINE mis-split fragments (3A158..3A584; every fail-branch lands INSIDE the next fragment; 'empty fn' 3A584 = the shared return-0 tail; the 'caller-set $f2 / bc1fl-chain cap' was the mis-split artifact). New symbol at the true entry 0x3A164 (3 pad nops after gl_func_0003A0C4 -> pad sidecar). Matched FIRST TRY once merged. 9 symbols dissolved (zero external refs).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_0003A164 \u2014 box-vs-box corner overlap: return 1 iff any of 8\n * corner-in-box tests holds (4 A-corners in B, then 4 B-corners in A; axes\n * checked x,z,y; boxes are {min[0..2], max[3..5]}). REVERSE-MERGE of what splat\n * split as 3A158/3A1F0/3A278/3A2FC/3A380/3A400/3A484/3A504 + the \"empty fn\"\n * 3A584 (= this function's shared return-0 tail): every bc1fl fail-branch lands\n * INSIDE the next fragment (branch-past-end discriminator), $f2/$f16 flow across\n * the printed boundaries, and the fragment head words are the classic annulled\n * delay-slot dups. The 3 nops at 3A158 are inter-function padding after\n * gl_func_0003A0C4 (pad sidecar above); real entry is 3A164. */\nint game_libs_func_0003A164(float *a0, float *a1) {\n    if (a1[0] <= a0[0] && a0[0] <= a1[3] && a1[2] <= a0[2] && a0[2] <= a1[5] && a1[1] <= a0[1] && a0[1] <= a1[4]) {\n        return 1;\n    }\n    if (a1[0] <= a0[3] && a0[3] <= a1[3] && a1[2] <= a0[2] && a0[2] <= a1[5] && a1[1] <= a0[1] && a0[1] <= a1[4]) {\n        return 1;\n    }\n    if (a1[0] <= a0[3] && a0[3] <= a1[3] && a1[2] <= a0[5] && a0[5] <= a1[5] && a1[1] <= a0[4] && a0[4] <= a1[4]) {\n        return 1;\n    }\n    if (a1[0] <= a0[0] && a0[0] <= a1[3] && a1[2] <= a0[5] && a0[5] <= a1[5] && a1[1] <= a0[4] && a0[4] <= a1[4]) {\n        return 1;\n    }\n    if (a0[0] <= a1[0] && a1[0] <= a0[3] && a0[2] <= a1[2] && a1[2] <= a0[5] && a0[1] <= a1[1] && a1[1] <= a0[4]) {\n        return 1;\n    }\n    if (a0[0] <= a1[3] && a1[3] <= a0[3] && a0[2] <= a1[2] && a1[2] <= a0[5] && a0[1] <= a1[1] && a1[1] <= a0[4]) {\n        return 1;\n    }\n    if (a0[0] <= a1[3] && a1[3] <= a0[3] && a0[2] <= a1[5] && a1[5] <= a0[5] && a0[1] <= a1[4] && a1[4] <= a0[4]) {\n        return 1;\n    }\n    if (a0[0] <= a1[0] && a1[0] <= a0[3] && a0[2] <= a1[5] && a1[5] <= a0[5] && a0[1] <= a1[4] && a1[4] <= a0[4]) {\n        return 1;\n    }\n    return 0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "/tmp/3A164_merged.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "266/266 word-exact vs 9-fragment merged .s + make ROM byte-identical (promoted)"
+  }
+}

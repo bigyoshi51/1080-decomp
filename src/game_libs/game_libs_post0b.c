@@ -4420,19 +4420,22 @@ int game_libs_func_00038BAC(void) {
     return D_38BA0;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00038BB8: 19-insn vtable-dispatch + stack-built request struct.
- * Builds a 5-field req struct on stack (count=14, buf_ptr=&buf, return_slot=0,
- * buf, a1_save) at sp+0x2C..0x3F, then dispatches via (*(a0->0x28)->0x34)
- * passing a0+vtable->0x30 short and &req. Returns req.return_slot.
- *
- * Logic byte-correct. With ReqStruct + suffix_pad[8] for frame -0x40 layout
- * gets 18/19 insns matching at correct sp offsets. ONE extra insn:
- * `sw a1, 0x44(sp)` (caller-slot spill of a1) emitted by IDO before the
- * `sh a1, 0x3C(sp)`. Expected omits this caller-slot spill — IDO -O2 always
- * pre-spills caller-args even when only the local-slot store is needed.
- * Same class as documented in feedback_ido_arg_save_reg_pick.md and the
- * a1-spill cap on bootup_uso siblings. Multi-pass NM. */
+/* gl_func_00038BB8 — EXACT 19/19 words (2026-07-08, agent-e). Vtable dispatch
+ * with a stack-built request: req{count=14, buf_ptr=&buf, return_slot=0} at
+ * sp+0x2C, payload short a1 at sp+0x3C; calls (*(a0->0x28)->0x34)(a0 +
+ * (short)(a0->0x28)->0x30, &req) and returns req.return_slot.
+ * Levers that closed the old "a1 caller-slot spill / multi-pass NM" verdict:
+ *  - `if (0) { a1 = 0; }` dead param-kill before the call removes the
+ *    `sw a1,0x44(sp)` arg-home spill (zero emission);
+ *  - fp + short offset INLINED in the call expression (naming them promotes
+ *    t9/t8 to candidates a2/v1);
+ *  - obj load AFTER the req stores (statement order = emission order);
+ *  - THREE scalar `volatile int` pads declared AFTER req absorb the frame
+ *    slack and land frame -0x40 with req at 0x2C (2 pads fit in existing
+ *    slack and change nothing);
+ *  - `req.count = 14; req.buf_ptr = &req.buf;` ON ONE LINE — same-line as1
+ *    tie-break flips the li t6/addiu t7 setup order to addiu-first.
+ * The pads and the one-line statement are LOAD-BEARING. */
 typedef struct {
     int count;
     int *buf_ptr;
@@ -4444,21 +4447,19 @@ typedef struct {
 
 int gl_func_00038BB8(int *a0, int a1) {
     ReqStruct_38BB8 req;
-    char suffix_pad[8];
-    int *v0 = (int*)a0[0x28/4];
-    int (*fn)(int, ReqStruct_38BB8*) = (int(*)(int, ReqStruct_38BB8*))v0[0x34/4];
-    short t8 = *(short*)((char*)v0 + 0x30);
-    (void)suffix_pad;
-    req.count = 14;
-    req.buf_ptr = &req.buf;
-    req.return_slot = 0;
+    volatile int pad0;
+    volatile int pad1;
+    volatile int pad2;
+    int *v0;
+
     req.a1_save = a1;
-    fn(t8 + (int)a0, &req);
+    req.count = 14; req.buf_ptr = &req.buf;
+    req.return_slot = 0;
+    if (0) { a1 = 0; }
+    v0 = (int*)a0[0x28/4];
+    (*(int (**)(int, int *))((char *)v0 + 0x34))(*(short *)((char *)v0 + 0x30) + (int)a0, &req.count);
     return req.return_slot;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038BB8);
-#endif
 
 /* gl_func_00038C04: 27-insn list-walk + vtable-dispatch loop. Matched
  * 2026-05-14 via 5-step refinement chain (see git log). The method takes
@@ -5528,57 +5529,44 @@ int gl_func_0003A0C4(char *r) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A0C4);
 #endif
 
-#ifdef NON_MATCHING
-/* Point-in-AABB test: return 1 iff point a0 (x=a0[0],y=a0[1],z=a0[2]) is inside
- * box a1 (min=a1[0..2], max=a1[3..5]) on all 3 axes (checked x,z,y order).
- * Reloc-free → episode target. Byte-match multi-run: target uses bc1fl
- * (branch-likely-false) to a shared return-0 with each next operand load in the
- * annulled delay slot; the && form emits plain bc1f (38/38 same size, arm-choice
- * cap per IDO_CODEGEN#feedback-ido-branch-likely-arm-choice). */
-int game_libs_func_0003A158(float *a0, float *a1) {
-    if (a1[0] <= a0[0] && a0[0] <= a1[3] &&
-        a1[2] <= a0[2] && a0[2] <= a1[5] &&
-        a1[1] <= a0[1] && a0[1] <= a1[4]) {
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0003A0C4_pad.s")
+
+/* game_libs_func_0003A164 — box-vs-box corner overlap: return 1 iff any of 8
+ * corner-in-box tests holds (4 A-corners in B, then 4 B-corners in A; axes
+ * checked x,z,y; boxes are {min[0..2], max[3..5]}). REVERSE-MERGE of what splat
+ * split as 3A158/3A1F0/3A278/3A2FC/3A380/3A400/3A484/3A504 + the "empty fn"
+ * 3A584 (= this function's shared return-0 tail): every bc1fl fail-branch lands
+ * INSIDE the next fragment (branch-past-end discriminator), $f2/$f16 flow across
+ * the printed boundaries, and the fragment head words are the classic annulled
+ * delay-slot dups. The 3 nops at 3A158 are inter-function padding after
+ * gl_func_0003A0C4 (pad sidecar above); real entry is 3A164. */
+int game_libs_func_0003A164(float *a0, float *a1) {
+    if (a1[0] <= a0[0] && a0[0] <= a1[3] && a1[2] <= a0[2] && a0[2] <= a1[5] && a1[1] <= a0[1] && a0[1] <= a1[4]) {
+        return 1;
+    }
+    if (a1[0] <= a0[3] && a0[3] <= a1[3] && a1[2] <= a0[2] && a0[2] <= a1[5] && a1[1] <= a0[1] && a0[1] <= a1[4]) {
+        return 1;
+    }
+    if (a1[0] <= a0[3] && a0[3] <= a1[3] && a1[2] <= a0[5] && a0[5] <= a1[5] && a1[1] <= a0[4] && a0[4] <= a1[4]) {
+        return 1;
+    }
+    if (a1[0] <= a0[0] && a0[0] <= a1[3] && a1[2] <= a0[5] && a0[5] <= a1[5] && a1[1] <= a0[4] && a0[4] <= a1[4]) {
+        return 1;
+    }
+    if (a0[0] <= a1[0] && a1[0] <= a0[3] && a0[2] <= a1[2] && a1[2] <= a0[5] && a0[1] <= a1[1] && a1[1] <= a0[4]) {
+        return 1;
+    }
+    if (a0[0] <= a1[3] && a1[3] <= a0[3] && a0[2] <= a1[2] && a1[2] <= a0[5] && a0[1] <= a1[1] && a1[1] <= a0[4]) {
+        return 1;
+    }
+    if (a0[0] <= a1[3] && a1[3] <= a0[3] && a0[2] <= a1[5] && a1[5] <= a0[5] && a0[1] <= a1[4] && a1[4] <= a0[4]) {
+        return 1;
+    }
+    if (a0[0] <= a1[0] && a1[0] <= a0[3] && a0[2] <= a1[5] && a1[5] <= a0[5] && a0[1] <= a1[4] && a1[4] <= a0[4]) {
         return 1;
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A158);
-#endif
-
-#ifdef NON_MATCHING
-/* AABB/range test variant (sibling of 3A158): return 1 iff test coord f2 and the
- * a0 point fit box a1: f2<=a0[3] && a0[3]<=a1[3] && a1[2]<=a0[2] && a0[2]<=a1[5]
- * && a1[1]<=a0[1] && a0[1]<=a1[4]. Reloc-free. CALLER-SET-FLOAT cap: f2 arrives in
- * $f2 (not a standard FP arg reg f12/f14) — IDO C can't bind a param to $f2, so
- * the body can't reproduce the calling convention. Also the bc1fl-shared-return
- * chain cap (see IDO_CODEGEN#feedback-ido-branch-likely-arm-choice). */
-int game_libs_func_0003A1F0(float *a0, float *a1, float f2) {
-    if (f2 <= a0[3] && a0[3] <= a1[3] &&
-        a1[2] <= a0[2] && a0[2] <= a1[5] &&
-        a1[1] <= a0[1] && a0[1] <= a1[4]) {
-        return 1;
-    }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A1F0);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A278);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A2FC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A380);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A400);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A484);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003A504);
-
-void game_libs_func_0003A584(void) {}
 
 /* gl_func_0003A58C graft attempt 2026-06-10: fresh m2c graft scored
  * 7.46 vs this body's 11.72 -- REVERTED (item 17; the body is closer
@@ -8568,10 +8556,9 @@ extern char D_0002FD6C, D_0002FD78, D_0002FD88, D_0002FD94, D_0002FDA4, D_0002FD
  * an init helper, zero-inits a Vec3 at field_30, then finalizes via a callback
  * loaded from arg0->field_40.
  *
- * Trailing-word artifact: the symbol size 0xC4 includes one unreachable word
- * (`lw $t6, 0x10($a0)`) at offset 0xC0, after the jr/epilogue. Likely a splat
- * boundary artifact — the next function (gl_func_0003E1B4) starts at 0xC4
- * and uses $a0 as its input. Documented for tracking; not addressed here.
+ * Trailing-word artifact RESOLVED 2026-07-08 (agent-e): the word at offset
+ * 0xC0 (`lw $t6, 0x10($a0)`) was the SUCCESSOR's first instruction; .s
+ * trimmed to 0xC0 and the successor renamed gl_func_0003E1B0 (see below).
  *
  * Conditional alloc shape (offsets 0x40..0x70): two back-to-back alloc(4)
  * tries gated by `if ((char*)obj + 0x2C != NULL)` and a follow-up null check
@@ -8630,57 +8617,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E0F0);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0003E1B4: 33-insn (0x84) linked-list search-and-fetch-vec3.
- *
- * NON-STANDARD CALLING CONVENTION (cap class): the target asm reads
- * head-pointer from $t6 at entry (offset 0x8: `sw $t6, 4($sp)`), not
- * from $a0. This is the prologue-stolen-successor pattern paired with
- * predecessor gl_func_0003E0F0, whose trailing `lw t6, 16(a0)` at
- * offset 0xC0 (after its jr/epilogue) sets up $t6. Splat boundary
- * likely incorrect — this function is really an alt-entry / continuation
- * of the predecessor, not separately ABI-callable.
- *
- * Decoded body (assuming $t6=head, $a1=searchKey, $a2=outVec):
- *   - if head != NULL: load first {data, next} pair from head
- *   - walk linked list (current = head->next) checking each node's data
- *   - on match: write out[0..2] = node->[A0..A8], return 1
- *   - on end-of-list: return 0
- *
- * IDO can't put a regular C arg into $t6 (no register-asm in IDO per
- * feedback_ido_no_gcc_register_asm.md). NM wrap below uses `int *head`
- * as $a0; expected ~30-50% fuzzy due to register-class mismatch
- * throughout. Path forward: hand-rolled inline asm OR splat-boundary
- * fix (move the predecessor's trailing lw into a PROLOGUE_STEALS=4
- * recipe). */
-void gl_func_0003E1B4(int *head, int *searchKey, float *outVec) {
-    int *current;
+/* gl_func_0003E1B0 — linked-list search-and-fetch-vec3 (34 words). REVERSE-MERGE
+ * of the old gl_func_0003E1B4 (2026-07-08, agent-e): the predecessor 3E0F0's
+ * "trailing boundary word" `lw t6,0x10(a0)` at 0x3E1B0 is this function's real
+ * FIRST instruction (IDO schedules the load above the addiu sp) — real entry
+ * 0x3E1B0, head comes from *(a0+0x10), no caller-set-$t6 convention (that cap
+ * RETRACTED; 3E0F0.s trimmed to 0xC0, merged .s here is 0x88/34 words).
+ * Walks a {elem, next} node list via a 2-slot stack iterator (it[0]=cur,
+ * it[1]=next stored BEFORE the null test = the beqz-delay-slot sw); on
+ * node==a1 copies vec3 from node+0xA0 to a2 and returns 1, else 0.
+ * RISE 61.7% -> 21/34 words length-exact. RESIDUAL (web-split cap): target
+ * splits the ternary-phi elem web (v0, incl. both return consts) from a `node`
+ * copy web (v1, `move v1,v0` in the beqz AND bnez delay slots) and demotes the
+ * cursor reload to $t0; every C spelling coalesces them (10 variants: two-var
+ * pre/post-branch copies, embedded while-assign, dead elem=0 kill, mid-arm
+ * ret-share, continue-form, reload-CSE). `-Wo,-zcopy:0` reproduces the moves
+ * exactly (mechanism = uopt copyprop) but is per-file and still leaves the
+ * cursor v0-vs-t0 5-word diff, so no flag-split either. Real redefinition
+ * between copy and uses DOES materialize the move (probe G) but forces
+ * advance-before-compare emission ordering that diverges from the target. */
+int gl_func_0003E1B0(char *a0, int *a1, float *a2) {
+    int *it[2];
     int *node;
-    int result = 0;
 
-    current = head;
-    if (head != 0) {
-        current = (int*)head[1];   /* head->next */
-        node = (int*)head[0];      /* head->data */
-        result = (int)node;
-    }
-    while (result != 0) {
-        if (node == searchKey) {
-            outVec[0] = *(float*)((char*)node + 0xA0);
-            outVec[1] = *(float*)((char*)node + 0xA4);
-            outVec[2] = *(float*)((char*)node + 0xA8);
-            return;  /* target returns 1 here */
+    it[1] = *(int **)(a0 + 0x10);
+    it[0] = it[1];
+    node = (it[0] != 0) ? (it[1] = (int *)it[0][1], (int *)it[0][0]) : 0;
+    while (node != 0) {
+        if (node == a1) {
+            a2[0] = *(float *)((char *)node + 0xA0);
+            a2[1] = *(float *)((char *)node + 0xA4);
+            a2[2] = *(float *)((char *)node + 0xA8);
+            return 1;
         }
-        if (current == 0) {
-            result = 0;
-            break;
-        }
-        node = (int*)current[0];   /* current->data */
-        current = (int*)current[1]; /* current->next */
-        result = (int)node;
+        node = ((it[0] = it[1]) != 0) ? (it[1] = (int *)it[0][1], (int *)it[0][0]) : 0;
     }
+    return 0;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E1B4);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E1B0);
 #endif
 
 /* gl_func_0003E238: 30-insn (0x78) optional-allocator + init constructor.
@@ -25076,15 +25051,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00053C04);
  * accumulates as float into a1[0..2], divides each by 3.0f. Decoded
  * algorithm is correct and verified against the .s.
  *
- * Chained-inheritance UNLOCK target: declared symbol = 51-word body
- * + 6-word post-jr-ra tail (lw t7,0x54(a0); sll/subu/sll a2*15*4;
- * addu t9; lw t1,0(t9)) that materializes $t9/$t1 as the stolen
- * prologue for fall-through successor gl_func_00054228. Prior
- * analysis: "SUFFIX_BYTES blocked because predecessor is
- * INCLUDE_ASM" — C-emit unblocks it. Plan unchanged: body-match 51w
- * then `build/src/game_libs/game_libs_post.c.o: SUFFIX_BYTES :=
- * game_libs_func_00054144=0x8C8F0054,0x0006C080,0x0306C023,
- * 0x0018C080,0x01F8C821,0x8F290000`.
+ * 2026-07-08 (agent-e): the "6-word post-jr-ra tail / $t9-$t1 stolen
+ * prologue / SUFFIX_BYTES plan" is OBSOLETE — those 6 words were the
+ * real HEAD of the successor, now merged as gl_func_00054210 (exact,
+ * plain C, no inheritance). This function is a clean 51-word body. */
+/* (historical analysis below predates that merge)
  *
  * Progress 2026-05-18: statement-order fix applied (zero a1[] BEFORE
  * loading a0->0x68/0x60) — confirmed builds ERR=0. IDO -O2 still
@@ -25139,63 +25110,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054144);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00054210);
-
-#ifdef NON_MATCHING
-/* gl_func_00054228: 15-insn function INHERITS $t9 and $t1 from predecessor
- * game_libs_func_00054144's tail (split off from gl_func_00053C04 bundle
- * 2026-05-08; the old comment referencing 53C04 is updated for the new
- * split-fragments boundary). The predecessor's last 6 insns (at 0x54210..
- * 0x54224) form the stolen-prologue setup:
- *   lw t7, 0x54(a0); sll t8, a2, 2; subu t8, t8, a2; sll t8, t8, 2;
- *   addu t9, t7, t8; lw t1, 0(t9)
- * — i.e., t9 = a0->[0x54] + (a2 * 15 * 4) and t1 = *t9.
- *
- * Body uses inherited $t1 + reads $t9[1] / $t9[2] for additional words,
- * spills 3 ints onto sp+0xC..0x14 (stack scratch), then loads back as
- * floats and stores via *a1 / *(a1+4) / *(a1+8). The pattern is a
- * generic int-to-float marshaller for a Vec3 source.
- *
- * Cap class: chained-SUFFIX register inheritance — predecessor falls
- * through into successor with $t9, $t1 set up from predecessor's
- * computation. Same family as gl_func_0005165C and gl_func_0000B5AC/B638
- * (docs/POST_CC_RECIPES.md "HI/LO register inheritance" → extended to
- * GP-register inheritance).
- *
- * Why this isn't byte-exactable from C alone:
- * - Standard PROLOGUE_STEALS recipe is gated to LUI-led prefixes (opcode
- *   0x0F) per docs/POST_CC_RECIPES.md#feedback-prologue-steals-lui-only-
- *   splice-restriction. Our function's first insn is `addiu sp, sp,
- *   -0x20` (opcode 0x09) — splice silently no-ops.
- * - SUFFIX_BYTES on predecessor is blocked because the predecessor
- *   (game_libs_func_00054144) is itself INCLUDE_ASM, not C-emit; you
- *   can't add SUFFIX_BYTES to a function whose bytes you don't own.
- * - The standalone C below extends the signature `(int *a0, int *a1,
- *   int a2)` so callers' a0/a2 land in arg-regs and the body recomputes
- *   t9. This emits the predecessor's 6-insn tail INLINE inside the
- *   successor — wrong for fall-through callers (now duplicated) but
- *   correct for explicit jal callers.
- *
- * 2026-05-08 update: promoted from `#if 0`-skipped to `#ifdef NON_MATCHING`
- * (per Tick #10 "preserve partial C") with the extended signature so the
- * body compiles and is permuter-testable. Default INCLUDE_ASM build path
- * remains byte-correct via the `#else` branch. The fuzzy reading on the
- * NON_MATCHING build will be low (~30-40%) because the C body emits the
- * redundant predecessor-tail recomputation, but the structural decode is
- * preserved for future passes. */
-void gl_func_00054228(int *a0, int *a1, int a2) {
-    int *src = (int*)*(int*)((char*)a0 + 0x54) + a2 * 15;
-    int stack[3];
-    stack[0] = *src;
-    stack[1] = src[1];
-    stack[2] = src[2];
-    *(float*)a1     = *(float*)&stack[0];
-    *(float*)((char*)a1 + 4) = *(float*)&stack[1];
-    *(float*)((char*)a1 + 8) = *(float*)&stack[2];
+/* gl_func_00054210 — EXACT 21/21 words (2026-07-08, agent-e). REVERSE-MERGE of
+ * the 6-word "orphan" game_libs_func_00054210 (no jr ra; it was this function's
+ * real head, computing src = *(a0+0x54) + a2*12 with the first lw scheduled
+ * ABOVE the addiu sp) + the old gl_func_00054228 (whose "$t9/$t1 register
+ * inheritance / chained-SUFFIX cap" is RETRACTED — no non-standard convention,
+ * just a splat mis-split; signature is a plain (a0, a1, a2)). Body = fetch
+ * Vec3f record #a2 from the a0->0x54 array via a 12-byte STRUCT COPY into a
+ * stack temp (IDO emits the addiu t6 dest-pointer + alternating t1/t0 lw/sw
+ * pairs), then per-field float stores to a1. The a2*12 spells as
+ * (a2<<2 - a2)<<2 from Vec3f* + a2 indexing. volatile pad SANDWICH (2 above,
+ * 2 below v) lands the temp at sp+0xC with frame -0x20 — pads LOAD-BEARING. */
+typedef struct { float x, y, z; } Vec3_54210;
+void gl_func_00054210(char *a0, float *a1, int a2) {
+    volatile int pad_a;
+    volatile int pad_b;
+    Vec3_54210 v;
+    volatile int pad_c;
+    volatile int pad_d;
+    v = *(*(Vec3_54210 **)(a0 + 0x54) + a2);
+    a1[0] = v.x;
+    a1[1] = v.y;
+    a1[2] = v.z;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054228);
-#endif
 
 /* gl_func_00054264: 214-insn (0x358) FPU-heavy Vec3-transform builder.
  * Structural identification (2026-05-08, no C body decoded yet):
@@ -26085,21 +26022,26 @@ void gl_func_0005534C(int **a0, int a1, int a2, int a3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005534C);
 #endif
 
-#ifdef NON_MATCHING
-/* Command-stream block-skipper with nesting depth. a0[0] points to a stream
+/* game_libs_func_000553E8 — EXACT 34/34 words (2026-07-08, agent-e). Reloc-free.
+ * Command-stream block-skipper with nesting depth. a0[0] points to a stream
  * cursor. Each iteration: read cmd at cursor, advance cursor by 4, store cmd to
- * a0[1]; op = cmd & 0xFFFF. Opcodes 1010-1012 push depth; 1015 = jump (cursor +=
- * (cmd>>16)*4, and if depth==1 return); 1014 = pop depth (return when depth hits
- * 0). Loops until the nesting balances. Reloc-free → episode target. Byte-match
- * multi-run: branch-likely loop (bnel/beqzl/bnezl) + register-alloc. */
+ * a0[1]; op = cmd & 0xFFFF. Opcodes 1010-1012 push depth. The cursor skip
+ * (*cp += ((cmd>>16)&0xFFFF)*4) is UNCONDITIONAL (sw in the non-likely bne
+ * delay slot — the old NM body gated it under op==1015 and diverged). Tail:
+ * op==1015 returns only at depth==1; op==1014 pops depth and returns at 0.
+ * Key form: while(1) + `if (op==1014) { depth--; if (depth==0) return; }`
+ * (the do/while bottom-condition spelling manufactured an extra
+ * `or a3,t0,zero` op-copy that rotated the whole t0-t2 const pool). */
 void game_libs_func_000553E8(int *a0) {
     int depth = 1;
     int op;
-    do {
-        int *cp = (int *)a0[0];
-        int *cur = (int *)*cp;
-        int cmd;
-        int *tgt;
+    int cmd;
+    int *cp;
+    int *cur;
+
+    while (1) {
+        cp = (int *)a0[0];
+        cur = (int *)*cp;
         *cp = (int)(cur + 1);
         cmd = *cur;
         op = cmd & 0xFFFF;
@@ -26108,21 +26050,20 @@ void game_libs_func_000553E8(int *a0) {
             depth++;
         }
         cp = (int *)a0[0];
-        tgt = (int *)(*cp + ((cmd >> 16) & 0xFFFF) * 4);
+        *cp = *cp + ((cmd >> 16) & 0xFFFF) * 4;
         if (op == 1015) {
-            *cp = (int)tgt;
             if (depth == 1) {
                 return;
             }
         }
         if (op == 1014) {
             depth--;
+            if (depth == 0) {
+                return;
+            }
         }
-    } while (op != 1014 || depth != 0);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000553E8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055470);
 

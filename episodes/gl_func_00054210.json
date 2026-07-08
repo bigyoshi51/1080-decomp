@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00054210",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T18:46:57.129786+00:00",
+  "end_time": "2026-07-08T18:46:57.129812+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T18:46:57.129801+00:00",
+      "assistant_text": "Vec3f fetch-copy, 54.9%->exact via REVERSE-MERGE: the 6-word orphan game_libs_func_00054210.s was this fn's real HEAD (first lw scheduled above addiu sp \u2014 the '$t9/$t1 chained-SUFFIX register-inheritance cap' was the mis-split artifact). New symbol at true entry 0x54210. Body: 12-byte Vec3f copy to stack temp (v = *(*(Vec3f**)(a0+0x54) + a2)) + per-field float stores; volatile-pad sandwich (2+2) lands temp at sp+0xC, frame -0x20.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00054210 \u2014 EXACT 21/21 words (2026-07-08, agent-e). REVERSE-MERGE of\n * the 6-word \"orphan\" game_libs_func_00054210 (no jr ra; it was this function's\n * real head, computing src = *(a0+0x54) + a2*12 with the first lw scheduled\n * ABOVE the addiu sp) + the old gl_func_00054228 (whose \"$t9/$t1 register\n * inheritance / chained-SUFFIX cap\" is RETRACTED \u2014 no non-standard convention,\n * just a splat mis-split; signature is a plain (a0, a1, a2)). Body = fetch\n * Vec3f record #a2 from the a0->0x54 array via a 12-byte STRUCT COPY into a\n * stack temp (IDO emits the addiu t6 dest-pointer + alternating t1/t0 lw/sw\n * pairs), then per-field float stores to a1. The a2*12 spells as\n * (a2<<2 - a2)<<2 from Vec3f* + a2 indexing. volatile pad SANDWICH (2 above,\n * 2 below v) lands the temp at sp+0xC with frame -0x20 \u2014 pads LOAD-BEARING. */\ntypedef struct { float x, y, z; } Vec3_54210;\nvoid gl_func_00054210(char *a0, float *a1, int a2) {\n    volatile int pad_a;\n    volatile int pad_b;\n    Vec3_54210 v;\n    volatile int pad_c;\n    volatile int pad_d;\n    v = *(*(Vec3_54210 **)(a0 + 0x54) + a2);\n    a1[0] = v.x;\n    a1[1] = v.y;\n    a1[2] = v.z;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "/tmp/54210_merged.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "21/21 word-exact vs merged .s + make ROM byte-identical (promoted)"
+  }
+}
