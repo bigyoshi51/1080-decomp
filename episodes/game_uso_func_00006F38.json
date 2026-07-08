@@ -1,0 +1,33 @@
+{
+  "function_name": "game_uso_func_00006F38",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T18:43:29.630053+00:00",
+  "end_time": "2026-07-08T18:43:29.630071+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T18:43:29.630066+00:00",
+      "assistant_text": "Query wrapper (A374 family), 58.6%->exact. (1) Struct-by-value marshalling: a1 as 1-int struct S1_6F38 to game_uso_func_0000A374 \u2014 produces BOTH the sw a1,0x3C(sp) frame home AND the sw a1,4(sp) outgoing-arg home. (2) Named boolean chain var b (not a single &&/|| return expr) colors $v1 with or v0,v1 return-copy duplicated into the bnezl/beqzl delay slots; call result stays live in v0. (3) volatile char pad[0x18] below v lifts frame 0x28->0x40 with v@0x3C.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 28,
+  "initial_m2c_source": null,
+  "final_source": "/* game_uso_func_00006F38 - MATCHED 2026-07-08 (28/28 words incl. reloc fields).\n * Flag-test cascade over a chain pointer:\n * v = **(D_807FEB38+0x548); r = A374(a0, v BY-VALUE 1-int struct, a0->0x30+0xB4).\n * Levers: (1) a1 passed by-VALUE as 1-int struct (S1_6F38) -> IDO homes it to\n * the outgoing-arg slot sp+4 AND gives it a frame home (the A374\n * struct-by-value crack); (2) boolean cascade through a named chain var `b`\n * (colors $v1, return copy or v0,v1 duplicated into the bnezl/beqzl delay\n * slots; r stays live in $v0 - NOT a single &&/|| return expression);\n * (3) volatile char pad[0x18] below v lifts the frame to 0x40 with v@0x3C. */\nextern char game_uso_D_807FEB38;\nextern int game_uso_func_0000A374();\ntypedef struct { int a; } S1_6F38;\nint game_uso_func_00006F38(int *a0) {\n    S1_6F38 v;\n    volatile char pad[0x18];\n    int *r;\n    int *q;\n    int b;\n\n    v.a = **(int **)((char *)&game_uso_D_807FEB38 + 0x548);\n    r = (int *)game_uso_func_0000A374((int)a0, v, *(int *)((char *)a0 + 0x30) + 0xB4);\n    b = (r != 0);\n    if (b) {\n        b = ((*(int *)((char *)r + 0x84) & 0x400) != 0);\n        if (!b) {\n            q = *(int **)((char *)r + 0x2C);\n            b = (q != 0);\n            if (b) {\n                b = ((*(int *)((char *)q + 0x84) & 0x400) != 0);\n            }\n        }\n    }\n    return b;\n}",
+  "metadata": {
+    "source_path": "src/game_uso/game_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_uso/game_uso/game_uso_func_00006F38.s",
+    "segment": "game_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "28/28 word-exact incl reloc fields + make ROM byte-identical (promoted)"
+  }
+}

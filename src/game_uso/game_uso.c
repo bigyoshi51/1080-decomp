@@ -4007,27 +4007,39 @@ void game_uso_func_000057B8(char *a0) {
     game_uso_func_00000000(a0 + 0xE4);
 }
 
-/* NATURAL CEILING: NM only. Reconstructed body is now structurally faithful
- * (resolved callees + real struct offsets verified vs target .s). Two literal
- * dispatchers: (1) a 7-case value selector over state->0x8C4 picking a float
- * from a0+{0x414..0x4A4} stride 0x18 (default 0x4BC), stored to sub->0x768;
- * (2) the trailing 4-way mode dispatch over a0->0x64.
- * RESIDUAL CAP = selector (1) shape. Target emits the IDO non-jumptable
- * switch-cascade (`addiu at,N; beq v0,at` with each beq delay holding the NEXT
- * `addiu at,N+1`, bodies grouped after with `b merge`). Neither C form
- * reproduces it: a real `switch` lowers to a .rodata jumptable
- * (sltiu/lui/lw/jr — discarded by 1080's linker), and the documented
- * `if(mode==N) goto cN;` chain lets IDO fill each beq delay with the case body
- * `lwc1` instead of the next compare (interleaved, +4 words). This is the
- * borderline-density (7 dense cases) jumptable-vs-cascade codegen cap
- * (docs/IDO_CODEGEN.md switch-vs-if-goto-dispatch-polarity). Default build is
- * INCLUDE_ASM. NB: SUFFIX_BYTES_FORCE/INSN_PATCH removed 2026-05-23 as
- * match-faking (feedback_no_instruction_forcing_matches_policy).
+/* NATURAL CEILING: NM only, 82.5% objdiff (was 61.4). 2026-07-08 rise via
+ * three levers; the last +2 words are a PRECISELY-CHARACTERIZED toolchain cap.
+ * Levers that landed: (1) u32-retype of the two `== 2` field compares
+ * (`*(u32*)(sub+0x848) == 2U`) — distinct dtype kills the uopt const-2 CSE
+ * with the selector/dispatch case-2 compares, so the 2 colors $v0 and dies at
+ * the mode load (target `li v0,2`; s32 form extended the candidate to $a2/$a3
+ * and shifted sub/state coloring); (2) tail store via `t = sub; if (1) { t +=
+ * 0x758; } *(f32*)(t+0x10) = value;` — the if(1)-committed pointer mutation
+ * materializes `addiu v0,a1,0x758; swc1 f0,0x10(v0)` exactly (plain named
+ * intermediate off the CACHED sub folds to swc1 0x768(a1)); (3) selector as
+ * NESTED switches 3+4 (case 1-3 + default:switch case 4-7/default) — each
+ * sub-switch is under the >=5-case jumptable threshold and chain-lowers with
+ * the target's grouped shape (li-at delays, beq-to-arm, beql+dup on case 7
+ * with orphan arm, default arm at fall-through, arms ascending).
+ * RESIDUAL CAP (+2 words, tail exact but shifted): the target selector is ONE
+ * 7-compare cascade; sub-switch junction costs `b + nop` (outer fall-through
+ * must skip arms 1-3 to reach the inner compares — uopt block placement puts
+ * each switch's arms right after its own compares regardless of source order;
+ * verified with goto-thunk arms + sequential switches, same layout). A single
+ * 7-case `switch` ALWAYS jumptables (sltiu/lui/lw/jr .rodata): threshold is
+ * ncases>=5, verified 4=chain/5=table standalone, immune to expr type (u32,
+ * u8, s16, &0xF), -KPIC, -mips1, -O1, IDO 5.3, missing default, and outlier
+ * case (ugen splits clusters + STILL tables the dense one behind an slti
+ * guard). `if(mode==K) goto cK;` chains get their single-assign arms PULLED
+ * inline by uopt (bnel inversion + li-dup + orphan, +6 words; volatile arm
+ * loads, 2-insn arms, double-jump spelling, arm source order all tested — the
+ * pull only spares an arm that physically falls into the merge block; the
+ * matched 174C 16-case goto-chain survives because its arms have STORES).
+ * Only xjp (switch) arms are pull-immune, and only <=4-case switches chain.
+ * NB: SUFFIX_BYTES_FORCE/INSN_PATCH removed 2026-05-23 as match-faking.
  * 2026-06-20: corrected call ABI — the 4 trailing mode-dispatch callees take a
- * SINGLE arg `a0` (target jal delay slots are `nop`, no arg setup). Prior body
- * passed a spurious 2nd arg, emitting `li a1,2` in each delay slot. The dispatch
- * tail now matches target word-for-word; only the 7-case selector (grouped-vs-
- * interleaved cascade) remains divergent. */
+ * SINGLE arg `a0` (target jal delay slots are `nop`); dispatch tail matches
+ * target word-for-word (shifted +2 by the junction). */
 #ifdef NON_MATCHING
 void game_uso_func_0000591C(int *a0);
 void game_uso_func_00006A30(int *a0);
@@ -4044,26 +4056,29 @@ void game_uso_func_000057D8(char *a0) {
         *(s32 *)(a0 + 0x4D8) = 0;
 
         state = *(char **)(sub + 0x908);
-        if ((state != 0) && (*(s32 *)(sub + 0x848) == 2) &&
-                (*(s32 *)(state + 0x848) != 2)) {
+        if ((state != 0) && (*(u32 *)(sub + 0x848) == 2U) &&
+                (*(u32 *)(state + 0x848) != 2U)) {
+            char *t;
             mode = *(s32 *)(state + 0x8C4);
-            if (mode == 1) goto c1;
-            if (mode == 2) goto c2;
-            if (mode == 3) goto c3;
-            if (mode == 4) goto c4;
-            if (mode == 5) goto c5;
-            if (mode == 6) goto c6;
-            if (mode == 7) goto c7;
-            value = *(f32 *)(a0 + 0x4BC); goto cdone;
-            c7: value = *(f32 *)(a0 + 0x4A4); goto cdone;
-            c6: value = *(f32 *)(a0 + 0x48C); goto cdone;
-            c5: value = *(f32 *)(a0 + 0x474); goto cdone;
-            c4: value = *(f32 *)(a0 + 0x45C); goto cdone;
-            c3: value = *(f32 *)(a0 + 0x444); goto cdone;
-            c2: value = *(f32 *)(a0 + 0x42C); goto cdone;
-            c1: value = *(f32 *)(a0 + 0x414);
-            cdone:
-            *(f32 *)(sub + 0x768) = value;
+            switch (mode) {
+            case 1: value = *(f32 *)(a0 + 0x414); break;
+            case 2: value = *(f32 *)(a0 + 0x42C); break;
+            case 3: value = *(f32 *)(a0 + 0x444); break;
+            default:
+                switch (mode) {
+                case 4: value = *(f32 *)(a0 + 0x45C); break;
+                case 5: value = *(f32 *)(a0 + 0x474); break;
+                case 6: value = *(f32 *)(a0 + 0x48C); break;
+                case 7: value = *(f32 *)(a0 + 0x4A4); break;
+                default: value = *(f32 *)(a0 + 0x4BC); break;
+                }
+                break;
+            }
+            t = sub;
+            if (1) {
+                t += 0x758;
+            }
+            *(f32 *)(t + 0x10) = value;
         }
     }
 
@@ -6091,36 +6106,40 @@ void game_uso_func_00006F28(int *a0) {
     *(int*)((char*)a0 + 0x70) = 0;
 }
 
-#ifdef NON_MATCHING
-/* game_uso_func_00006F38: flag-test cascade over a chain pointer.
- *
- * t6 = *(game_uso_D_807FEB38 + 0x548); v = *t6 (held in a local, homed to the
- * frame); r = game_uso_func_0000A374(a0, v, a0->0x30 + 0xB4).
- * Returns the boolean cascade as a SINGLE chained && / || return expression:
- *   (r != 0) && ( (r->0x84 & 0x400) ||
- *                 ( (r->0x2C != 0) && (r->0x2C->0x84 & 0x400) ) )
- * IDO -O2 materializes each level via `sltu rd,zero,rs` with short-circuit
- * branches. Verified 58.6% fuzzy (up from 41.8% if/return form).
- * Residual is the register-allocation/branch-scheduling cap: target keeps the
- * call result `r` live in v0 across the whole cascade and uses likely-branches
- * (bnezl/beqzl) with `move v0,v1` in the delay slots, plus a -64 frame that
- * homes `*t6` to two slots (sp+0x3C and sp+4) — neither reproducible from the
- * straightforward C below. Logic is complete; remainder is coloring-capped. */
+/* game_uso_func_00006F38 - MATCHED 2026-07-08 (28/28 words incl. reloc fields).
+ * Flag-test cascade over a chain pointer:
+ * v = **(D_807FEB38+0x548); r = A374(a0, v BY-VALUE 1-int struct, a0->0x30+0xB4).
+ * Levers: (1) a1 passed by-VALUE as 1-int struct (S1_6F38) -> IDO homes it to
+ * the outgoing-arg slot sp+4 AND gives it a frame home (the A374
+ * struct-by-value crack); (2) boolean cascade through a named chain var `b`
+ * (colors $v1, return copy or v0,v1 duplicated into the bnezl/beqzl delay
+ * slots; r stays live in $v0 - NOT a single &&/|| return expression);
+ * (3) volatile char pad[0x18] below v lifts the frame to 0x40 with v@0x3C. */
 extern char game_uso_D_807FEB38;
 extern int game_uso_func_0000A374();
+typedef struct { int a; } S1_6F38;
 int game_uso_func_00006F38(int *a0) {
+    S1_6F38 v;
+    volatile char pad[0x18];
     int *r;
-    int v = **(int **)((char *)&game_uso_D_807FEB38 + 0x548);
+    int *q;
+    int b;
 
-    r = (int *)game_uso_func_0000A374(a0, v, *(int *)((char *)a0 + 0x30) + 0xB4);
-    return r != 0 &&
-           ((*(int *)((char *)r + 0x84) & 0x400) != 0 ||
-            (*(int *)((char *)r + 0x2C) != 0 &&
-             (*(int *)(*(int *)((char *)r + 0x2C) + 0x84) & 0x400) != 0));
+    v.a = **(int **)((char *)&game_uso_D_807FEB38 + 0x548);
+    r = (int *)game_uso_func_0000A374((int)a0, v, *(int *)((char *)a0 + 0x30) + 0xB4);
+    b = (r != 0);
+    if (b) {
+        b = ((*(int *)((char *)r + 0x84) & 0x400) != 0);
+        if (!b) {
+            q = *(int **)((char *)r + 0x2C);
+            b = (q != 0);
+            if (b) {
+                b = ((*(int *)((char *)q + 0x84) & 0x400) != 0);
+            }
+        }
+    }
+    return b;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006F38);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00006FA8: 127-insn (0x1FC) heavy FPU + multi-call compute.
