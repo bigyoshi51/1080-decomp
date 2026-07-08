@@ -3680,38 +3680,44 @@ int game_libs_func_00067C90(int a0) {
     return a0 & 0x5F;
 }
 
-#ifdef NON_MATCHING
-/* strncpy(dst, src, n): copy up to n bytes from src, stop at NUL, pad the
- * remainder of the n-byte field with zeros, return dst. Algorithm verified
- * (reloc-free). Byte-match is a saved-register-allocation cap: target keeps src
- * in callee-saved $s0 (frame 0x8) and re-derives the read pointer (move a3,s0)
- * each iteration, while reusing a1 as the *dst store temp (move a1,a0; sb;..).
- * The store-temp form is reproducible (move t0,a0; sb a1,0(t0)) but IDO's choice
- * of a SAVED reg ($s0) + frame for src is not C-controllable here — clean C
- * keeps src in a $t reg (no frame). Reading src via src[i] (vs *src++) tightens
- * the loop slightly (51.375 -> 51.69). */
+/* gl_func_00067C98: strncpy(dst, src, n) — copy up to n bytes from src,
+ * stop at NUL, zero-pad the remainder of the n-byte field, return dst.
+ * EXACT 32/32 at file -O2. Levers:
+ * (1) five dead while(0){} appearance anchors set uopt's unconstrained
+ *     greedy coloring order (i->v0, ret->v1, dst->a0-home, q->a1, n->a2-home,
+ *     p->a3, c->t0) — with a1/a3 taken, the evicted src PARAM cannot take a
+ *     t-reg (param-live-at-entry caller-saved cost 1e20 in cupcosts) and
+ *     colors callee-saved $s0 (frame 8, sw s0 — in a LEAF);
+ * (2) cursor idiom q=dst; dst++; / p=src; src++; c=*p keeps both copies
+ *     un-propagated (q-group FIRST so addiu a0 schedules before addiu s0);
+ * (3) do{...}while(0) around the c==0 arm flips the pad-loop delay-slot
+ *     fill from sb (mine) to addiu a0 (target) — permuter-found, minimized;
+ * (4) separate `return ret` inside the arm duplicates move v0,v1 into the
+ *     break path's b-delay (shared-epilogue form). */
 char *gl_func_00067C98(char *dst, char *src, int n) {
-    char *ret = dst;
-    int i = 0;
-    if (n > 0) {
-        do {
-            char c = src[i];
-            *dst++ = c;
-            i++;
-            if (c == 0) {
-                while (i < n) {
-                    *dst++ = 0;
-                    i++;
-                }
-                break;
-            }
-        } while (i < n);
+    char *ret;
+    char *p;
+    char *q;
+    int i;
+    char c;
+
+    while (0) { i = 0; }
+    while (0) { ret = dst; }
+    while (0) { q = dst; }
+    while (0) { i = n; }
+    while (0) { p = dst; }
+    ret = dst;
+    for (i = 0; i < n; i++) {
+        q = dst;
+        dst++;
+        p = src;
+        src++;
+        c = *p;
+        *q = c;
+        do { if (c == 0) { for (i++; i < n; i++) { q = dst; dst++; *q = 0; } return ret; } } while (0);
     }
     return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00067C98);
-#endif
 
 /* game_libs_func_00067D18: strrchr — returns a pointer to the LAST byte in the
  * string at a0 equal to a1, or NULL if the string is empty / no match. The

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00067C98",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T14:00:32.502867+00:00",
+  "end_time": "2026-07-08T14:00:32.502887+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T14:00:32.502881+00:00",
+      "assistant_text": "strncpy (67xxx libc cluster: 67D18 strrchr, 67D50 memset, 67D8C strtol-lite), 51.7%->exact. (1) src->$s0 IN A LEAF ('not C-controllable' retracted): five dead while(0){} appearance anchors set greedy first-appearance coloring (i=v0,ret=v1,q=a1,p=a3,c=t0; dst/n keep a0/a2) \u2014 with a1/a3 taken, the evicted PARAM cannot take a t-reg (uoptreg2.c cupcosts: param-live-at-entry = cost 1e20 for caller-saved) so it colors callee-saved $s0 (frame 8, sw s0 in a call-free leaf). (2) Cursor idioms q=dst;dst++; before p=src;src++;c=*p keep copies unpropagated + order the addius. (3) Separate return ret inside the c==0 arm dups move v0,v1 into the b-delay. (4) do{ if(c==0){...} }while(0) wrapper around the pad arm FLIPS the sb/addiu delay-slot fill (permuter-found in 225 iters, minimized).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00067C98: strncpy(dst, src, n) \u2014 copy up to n bytes from src,\n * stop at NUL, zero-pad the remainder of the n-byte field, return dst.\n * EXACT 32/32 at file -O2. Levers:\n * (1) five dead while(0){} appearance anchors set uopt's unconstrained\n *     greedy coloring order (i->v0, ret->v1, dst->a0-home, q->a1, n->a2-home,\n *     p->a3, c->t0) \u2014 with a1/a3 taken, the evicted src PARAM cannot take a\n *     t-reg (param-live-at-entry caller-saved cost 1e20 in cupcosts) and\n *     colors callee-saved $s0 (frame 8, sw s0 \u2014 in a LEAF);\n * (2) cursor idiom q=dst; dst++; / p=src; src++; c=*p keeps both copies\n *     un-propagated (q-group FIRST so addiu a0 schedules before addiu s0);\n * (3) do{...}while(0) around the c==0 arm flips the pad-loop delay-slot\n *     fill from sb (mine) to addiu a0 (target) \u2014 permuter-found, minimized;\n * (4) separate `return ret` inside the arm duplicates move v0,v1 into the\n *     break path's b-delay (shared-epilogue form). */\nchar *gl_func_00067C98(char *dst, char *src, int n) {\n    char *ret;\n    char *p;\n    char *q;\n    int i;\n    char c;\n\n    while (0) { i = 0; }\n    while (0) { ret = dst; }\n    while (0) { q = dst; }\n    while (0) { i = n; }\n    while (0) { p = dst; }\n    ret = dst;\n    for (i = 0; i < n; i++) {\n        q = dst;\n        dst++;\n        p = src;\n        src++;\n        c = *p;\n        *q = c;\n        do { if (c == 0) { for (i++; i < n; i++) { q = dst; dst++; *q = 0; } return ret; } } while (0);\n    }\n    return ret;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00067C98.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "32/32 word-exact (reloc-free) + make ROM byte-identical (promoted)"
+  }
+}
