@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00067B04",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:26:14.663302+00:00",
+  "end_time": "2026-07-08T03:26:14.663321+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:26:14.663316+00:00",
+      "assistant_text": "List-walk guard leaf (early-return shape, NOT a bundle \u2014 branches cross the first jr ra). 2 levers: (1) dead in-guard q=arg1 reassignment flips p/q<->c0 coalescing so p->$v1, legalizing move v1,a0 in the *arg1 guard's delay (plain beq, kills beqzl+sltu dup = the extra word); (2) int r=0 dead initializer colors the epilogue bool into $v1 not $a0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 29,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00067B04: 29-insn (0x74) string-compare/prefix-match loop.\n * BOUNDARY MERGED 2026-06-02: splat over-split the loop tail as a separate\n * symbol (00067B40, 14-insn whose `bnel` branches backward to 0x67B1C inside\n * this body; 67B04's own beql/beq branch forward into it at 0x40/0x54/0x58).\n * Absorbed 67B40's 14 words into 67B04 (0x3C -> 0x74, ending exactly at the\n * next func 0x67B78); dropped the 67B40 symbol. Branch-verified complete.\n * EXACT 29/29 (2026-07-07, from 30w NM): string-difference predicate. Walks\n * both strings while bytes match; returns 1 the moment a byte differs; if one\n * ends first returns whether the other still has chars; equal -> 0. Two\n * levers: (1) dead in-guard `q = arg1;` reassignment (counter-sink-lever\n * family) flips the p/q coloring so q coalesces with c0 in $v0 and p takes\n * $v1 \u2014 which also legalizes filling the `*arg1` guard's delay with\n * `move v1,a0` (plain beq, kills the beqzl+sltu dup = the 30th word);\n * (2) `int r = 0;` dead initializer registers r early so it colors $v1\n * (sharing with the loop-dead p) instead of $a0. Reloc-free leaf. */\ns32 game_libs_func_00067B04(unsigned char *arg0, unsigned char *arg1) {\n    int c0 = *arg0;\n    unsigned char *q;\n    unsigned char *p;\n    int r = 0;\n\n    if (c0 != 0) {\n        q = arg1;\n        if (*arg1 != 0) {\n            do {\n                p = arg0;\n                q = arg1;\n                arg1++;\n                arg0++;\n                if (*q != *p) {\n                    return 1;\n                }\n                c0 = *arg0;\n            } while (!((c0 == 0) || (*arg1 == 0)));\n        }\n    }\n    r = c0 != 0;\n    if (r == 0) {\n        r = *arg1 != 0;\n    }\n    return r;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00067B04.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "29/29 word-exact (real path) + make ROM byte-identical"
+  }
+}

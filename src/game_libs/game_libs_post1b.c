@@ -3578,32 +3578,35 @@ void gl_func_00067AE8(int a0, ...) {
  * this body; 67B04's own beql/beq branch forward into it at 0x40/0x54/0x58).
  * Absorbed 67B40's 14 words into 67B04 (0x3C -> 0x74, ending exactly at the
  * next func 0x67B78); dropped the 67B40 symbol. Branch-verified complete.
- * Reloc-blind USO body stays INCLUDE_ASM. */
-#ifdef NON_MATCHING
-/* String-difference predicate. Walks both strings while bytes match;
- * returns 1 the moment a byte differs. If one string ends first, returns
- * whether the OTHER still has chars (i.e. differing lengths -> nonzero).
- * Equal strings -> 0. Leaf, byte (lbu) compares. Snapshot pointers p/q hold
- * the pre-increment address so the dereference uses a separate register from
- * the post-incremented walk pointer (matches IDO's move v1,a0 / move v0,a1
- * loop shape). */
+ * EXACT 29/29 (2026-07-07, from 30w NM): string-difference predicate. Walks
+ * both strings while bytes match; returns 1 the moment a byte differs; if one
+ * ends first returns whether the other still has chars; equal -> 0. Two
+ * levers: (1) dead in-guard `q = arg1;` reassignment (counter-sink-lever
+ * family) flips the p/q coloring so q coalesces with c0 in $v0 and p takes
+ * $v1 — which also legalizes filling the `*arg1` guard's delay with
+ * `move v1,a0` (plain beq, kills the beqzl+sltu dup = the 30th word);
+ * (2) `int r = 0;` dead initializer registers r early so it colors $v1
+ * (sharing with the loop-dead p) instead of $a0. Reloc-free leaf. */
 s32 game_libs_func_00067B04(unsigned char *arg0, unsigned char *arg1) {
     int c0 = *arg0;
-    unsigned char *p;
     unsigned char *q;
-    int r;
+    unsigned char *p;
+    int r = 0;
 
-    if ((c0 != 0) && (*arg1 != 0)) {
-        do {
-            p = arg0;
-            q = arg1;
-            arg1++;
-            arg0++;
-            if (*q != *p) {
-                return 1;
-            }
-            c0 = *arg0;
-        } while (!((c0 == 0) || (*arg1 == 0)));
+    if (c0 != 0) {
+        q = arg1;
+        if (*arg1 != 0) {
+            do {
+                p = arg0;
+                q = arg1;
+                arg1++;
+                arg0++;
+                if (*q != *p) {
+                    return 1;
+                }
+                c0 = *arg0;
+            } while (!((c0 == 0) || (*arg1 == 0)));
+        }
     }
     r = c0 != 0;
     if (r == 0) {
@@ -3611,9 +3614,6 @@ s32 game_libs_func_00067B04(unsigned char *arg0, unsigned char *arg1) {
     }
     return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067B04);
-#endif
 
 /* game_libs_func_00067B78: naive substring search returning a bool. a0 =
  * haystack, a1 = needle. Saves the needle start (v0); per-iteration copies
@@ -3769,56 +3769,106 @@ int game_libs_func_00067D80(int a0) {
     return 0;
 }
 
-/* game_libs_func_00067D8C: 51-insn (0xCC) hex-string parser. BOUNDARY MERGED
- * 2026-06-02: splat over-split the hex-digit accumulation loop tail as a
- * separate symbol (00067E28, whose `bnel` branches backward to 0x67DCC inside
- * this body; 67D8C's success paths branch forward into it). Absorbed 67E28's
- * 12 words into 67D8C (0x9C -> 0xCC, ending exactly at the next func 0x67E58);
- * dropped the 67E28 symbol (no external callers). Parses a "0x"-prefixed hex
- * string; on a non-"0x" prefix it tail-BRANCHES (PC-relative, not a call) to
- * the decimal parser game_libs_func_00067E58 — those inter-function branches
- * are intentional, not a missing fragment. Reloc-blind USO; stays INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D8C);
+/* game_libs_func_00067D8C: 92-insn (0x170) string-to-int parser (strtol-lite:
+ * "0x"-prefixed hex, else signed decimal, stops at '.'/NUL/invalid).
+ * BOUNDARY MERGED twice: 2026-06-02 absorbed the 67E28 hex-loop tail
+ * (0x9C -> 0xCC); 2026-07-07 absorbed game_libs_func_00067E58 entirely
+ * (0xCC -> 0x170, ends at next func 0x67EFC). Proof it is ONE function, not a
+ * tail-branch pair: the head initializes $v0 (sign flag, `move v0,zero` in the
+ * 0x67D98 bne delay) and $v1 (accumulator, `move v1,zero`) which the "decimal
+ * parser" at 0x67E58 READS before writing (accumulate `addu v1,v1,t3` /
+ * `multu v1,t2`) — the old standalone-67E58 NM note even flagged that
+ * "caller-set $v1" as inexpressible in C. Branches at 0x67D98/0x67DA8 into
+ * 0x67E58/0x67E5C (the bnel dups the `li t2,10` at 0x67E58, classic IDO
+ * branch-likely target-dup) are intra-function. Dropped the 00067E58 symbol
+ * (no jal callers: no 0x0C019F96 word anywhere in asm/, no symbol-file refs).
+ * Reloc-free leaf.
+ * EXACT 92/92 (2026-07-07, same session as the merge). Levers: (1) cursor
+ * idiom `p = str; str++; c = *p;` — the increment BETWEEN copy and load keeps
+ * the `move a1,a0` copy alive (defeats the lbu-offset/addiu fold at the hex
+ * head AND uopt's load-PRE that otherwise CSEs the entry char into the
+ * decimal loop with back-edge reload insertion); (2) range tests read `*p`
+ * directly while `c = *p` is ONE named var — the repeated `*p` becomes CSE
+ * temp $a2 and c colors $a3 with `move a3,a2` landing in the classify-branch
+ * delay (two vars c/c2 coalesce — wrong); (3) '-'/'.'/10 as NAMED int locals
+ * (minus/dot/ten) — named consts win the beq/multu rs slot (`beq t0,a3`) and
+ * color $t0/$t1/$t2 in first-use order; literal compares emit var-first
+ * regardless of source operand order; (4) decimal loop as a goto-loop with
+ * early `if (minus == c) { sign = 1; goto dec; }` — keeps the sign block
+ * inline and reproduces the bnel + dead `lbu a1,0(a0)` dup; if/else form
+ * loses the likely-conversion. */
+int game_libs_func_00067D8C(unsigned char *str) {
+    int sign;
+    int value;
+    unsigned char *p;
+    int c;
+    int next;
+    int digit;
+    int minus = '-';
+    int dot = '.';
+    unsigned int ten = 10;
 
-// Merged fragment: splat split this string-to-int parser at the mid-function
-// jr ra (0x67E90) into _00067E58 + _00067E98; the tail's `b` loops back into
-// the head, so it's one function (size 0xA4). Caller-set $v1 accumulator
-// (read on entry, *= 10 per digit via multu) — IDO C can't express, stays
-// INCLUDE_ASM. Boundary now correct (one symbol).
-/* Signed decimal string -> int parser (atoi-class, stops at '.'/NUL/non-digit).
- * Leading char must be a digit or '-' (else returns 0); '-' sets the sign and
- * scanning continues. Accumulates value += digit, then value *= 10 before the
- * next digit (read-ahead). Logic decoded & correct; NOT yet byte-exact: target
- * uses a single read-char/classify loop with a branch-likely (bnel) on the
- * sign test and a dead duplicate `lbu a1,0(a0)`. This goto form mirrors that
- * single-loop structure (42 insns vs target 41, 5/41 byte) — closer than the
- * earlier while+for (48 insns, 2/41). Residual: IDO's char/cursor register
- * assignment + the bnel sign-test + dead-dup-load aren't reproduced by C.
- * Reloc-free; INCLUDE_ASM is the build path. Multi-run grind. */
-#ifdef NON_MATCHING
-int game_libs_func_00067E58(char *str) {
-    int negative = 0;
-    int value = 0;
-    int c, next;
-loop:
-    c = (unsigned char)*str;
+    value = 0;
+    sign = 0;
+    if ((str[0] == '0') && (str[1] == 'x')) {
+        int hval;
+
+        str += 2;
+        p = str;
+        hval = 0;
+        str++;
+        while (*p != 0) {
+            c = *p;
+            if ((*p >= '0') && (*p < ':')) {
+                digit = *p - '0';
+            } else if ((c >= 'a') && (c < 'g')) {
+                digit = c - 'a' + 10;
+            } else if ((c >= 'A') && (c < 'G')) {
+                digit = c - 'A' + 10;
+            } else {
+                return 0;
+            }
+            hval += digit;
+            if (*str != 0) {
+                hval <<= 4;
+            }
+            p = str;
+            str++;
+        }
+        return hval;
+    }
+dec:
+    p = str;
     str++;
-    if (c < '0' || c >= ':') {
-        if (c != '-') return 0;
-        negative = 1;
-        goto loop;
+    c = *p;
+    if ((*p < '0') || (*p >= ':')) {
+        if (minus != c) {
+            return 0;
+        }
     }
-    next = (unsigned char)*str;
-    value += c - '0';
-    if (next != 0 && next != '.' && next >= '0' && next < ':') {
-        value *= 10;
-        goto loop;
+    if (minus == c) {
+        sign = 1;
+        goto dec;
     }
-    return negative ? -value : value;
+    next = *str;
+    value += (unsigned char)(c - '0');
+    if (next == 0) {
+        goto out;
+    }
+    if (dot == next) {
+        goto out;
+    }
+    if ((next < '0') || (next >= ':')) {
+        goto out;
+    }
+    value *= ten;
+    goto dec;
+out:
+    if (sign != 0) {
+        value = -value;
+    }
+    return value;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067E58);
-#endif
 
 /* 9-insn double-return wrapper (split off from 14-insn bundle 2026-05-15
  * via split-fragments.py). Target uses `cvt.d.w` (function 0x21), not
