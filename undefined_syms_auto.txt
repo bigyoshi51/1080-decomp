@@ -1960,6 +1960,7 @@ import_800200F4 = 0;
 import_8002013C = 0;
 import_80020150 = 0;
 import_8005C2CC = 0;
+import_8005C2CC_w = 0; /* alias of import_8005C2CC: distinct extern per access site (8DB4 flag-clear read/write CSE-bust) */
 import_8005C39C = 0;
 import_8005EBA4 = 0;
 import_8005EE64 = 0;

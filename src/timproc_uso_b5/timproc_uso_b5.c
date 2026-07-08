@@ -6443,19 +6443,16 @@ void timproc_uso_b5_func_00008D90(int *a0, int a1) {
 //   - import_8005EBA4 (the 0x2A0 store) and 8005C39C (the Vec4) were
 //     SWAPPED in the prior hand-decode; corrected here.
 //
-// RESIDUAL = 18 non-reloc diffs, ALL allocator/encoding caps:
-//   * flag-clear `*(C2CC+0x1C4) &= ~8`: target emits TWO luis (t6 load,
-//     at store, no addiu, %lo folded into lw/sw) + as1 schedules the
-//     Vec4 `mtc1 zero,f0` into the region; IDO from C always CACHES the
-//     base (one lui+addiu in a2) -> form(a)/(b) reloc-encoding + as1
-//     scheduler tie (idx 15-23). Not C-controllable (IDO_CODEGEN line:
-//     R_MIPS_LO16 placement for &D+const).
-//   * v0-vs-v1 coloring cascade off that base choice: C39C base, Vec4
-//     base, C dirty-attach handle (idx 26-29,67-77), publish t8-vs-t9
-//     (idx 112-114). Pure register coloring.
-// All logic / control-flow / frame / symbols are exact; only register
-// names + the flag two-lui encoding differ. Honest NON_MATCHING.
-#ifdef NON_MATCHING
+// 2026-07-08 EXACT 121/121 (word-diff, reloc-aware). The old "not
+// C-controllable" flag-clear cap FELL to the distinct-alias-extern +
+// form-a lever: read via `*(int*)((char*)&import_8005C2CC + 0x1C4)`,
+// write via same-value alias `import_8005C2CC_w` (undefined_syms_auto
+// = 0, same as the original) — distinct externs bust the read/write
+// base CSE, and the (char*)&sym+K deref shape picks form (a) (%lo
+// folded into lw/sw, no addiu), giving the target's twin-lui
+// t6-load / $at-store pair; as1 then schedules the Vec4 `mtc1
+// zero,f0` into the gap by itself. v0 C39C base coloring falls out
+// once the cached-base register is gone.
 extern struct C2CC_8DB4 { char _a[0x1C4]; int f1C4; } import_8005C2CC;
 char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
     extern int timproc_uso_b5_func_055750();
@@ -6483,7 +6480,11 @@ char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
         }
     }
     timproc_uso_b5_func_002C94(*(char **)((char *)&import_800201CC + 0x134), 2);
-    import_8005C2CC.f1C4 &= ~8;
+    {
+        extern char import_8005C2CC_w; /* same-value alias (=import_8005C2CC): distinct extern per site busts the read/write base CSE -> twin form-a luis */
+        *(int *)((char *)&import_8005C2CC_w + 0x1C4) =
+            *(int *)((char *)&import_8005C2CC + 0x1C4) & ~8;
+    }
     if (1) { }
     p39c = (char *)&import_8005C39C;
     p39c += 0x294;
@@ -6524,9 +6525,6 @@ char *timproc_uso_b5_func_00008DB4(char *self, int a1) {
 end:
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008DB4);
-#endif
 
 /* Indirect-call wrapper. Promoted 97.5%->100% via IDO load-CSE trick:
  * declare p2 FIRST with the full deref chain inline (including p1's load),
