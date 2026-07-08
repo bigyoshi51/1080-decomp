@@ -319,28 +319,28 @@ void game_libs_func_00009BE0(char *a0, int a1) { *(int*)(a0 + 4) = a1; *(unsigne
 
 void game_libs_func_00009BF4(int *a0) { *(int*)((char*)a0 + 0x0) &= 0x7F; }
 
-#ifdef NON_MATCHING
 /* Word-variant sibling of 00009988: copy to a0[5..7] via d[4]; word flag-pack
- * *(int*)a0 = (*(int*)a0 & ~0x7F) | (a2&0xFF) | ((a3&0xFF)<<3) (lw/sw, mask via
- * li -0x80). Same modified-param home-spill cap. Faithful decode; INCLUDE_ASM. */
-void game_libs_func_00009C04(int *a0, char *a1, int a2, int a3) {
-    int n = 0;
-    char *d = (char *)a0;
-    char *s = a1;
-    a3 &= 0xFF;
-    a2 &= 0xFF;
-    do {
-        char c = *s;
+ * *(int*)a0 = (*(int*)a0 & ~0x7F) | a2 | (a3<<3) (lw/sw, mask via li -0x80).
+ * EXACT 22/22 (2026-07-08): the "modified-param home-spill cap" was the
+ * unsigned-char-param lever (docs/IDO_CODEGEN.md
+ * feedback-ido-unsigned-char-param-homes-and-extends) — uchar a2/a3 emit the
+ * sw a2,8(sp)/sw a3,0xC(sp) homes + eager andi zero-extends; comma-init
+ * for-loop pre-header (sibling 99DC recipe) gives li a1,3 + sb-in-delay.
+ * Siblings 9988/9B0C should re-try the same lever. */
+void game_libs_func_00009C04(int *a0, char *a1, unsigned char a2, unsigned char a3) {
+    int n;
+    char *d, *s;
+    for (n = 0, d = (char *)a0, s = a1; ;) {
         n++;
         d++;
+        d[4] = *s;
         s++;
-        d[4] = c;
-    } while (n != 3);
+        if (n == 3) {
+            break;
+        }
+    }
     *a0 = (*a0 & ~0x7F) | a2 | (a3 << 3);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C04);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_00009C5C: a0->0 = a1&0xFF; then a 3-iter char-transform loop
