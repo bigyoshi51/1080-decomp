@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00067D8C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:26:14.898587+00:00",
+  "end_time": "2026-07-08T03:26:14.898606+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:26:14.898601+00:00",
+      "assistant_text": "strtol-lite (0x-hex else signed decimal), 92 insns. BOUNDARY FIX: 67E58 was a mis-split FRAGMENT of 67D8C (67D8C branches jump into it; it reads caller-set v0/v1 \u2014 the old 'caller-set $v1 inexpressible' cap note was the tell; zero external callers). Merged the .s (0xCC->0x170), deleted 67E58. Char-scanner kit: (1) cursor idiom p=str; str++; c=*p (increment between copy and load defeats lbu-offset fold + load-PRE); (2) range tests on repeated *p (CSE $a2) with ONE named c var ($a3); (3) '-'/'.' /10 as named int locals win beq rs slots + color t0/t1/t2 (literal *10 strength-reduces vs multu); (4) goto-loop with early if(minus==c){sign=1;goto dec;} reproduces bnel + orphaned dead lbu dup.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 92,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00067D8C: 92-insn (0x170) string-to-int parser (strtol-lite:\n * \"0x\"-prefixed hex, else signed decimal, stops at '.'/NUL/invalid).\n * BOUNDARY MERGED twice: 2026-06-02 absorbed the 67E28 hex-loop tail\n * (0x9C -> 0xCC); 2026-07-07 absorbed game_libs_func_00067E58 entirely\n * (0xCC -> 0x170, ends at next func 0x67EFC). Proof it is ONE function, not a\n * tail-branch pair: the head initializes $v0 (sign flag, `move v0,zero` in the\n * 0x67D98 bne delay) and $v1 (accumulator, `move v1,zero`) which the \"decimal\n * parser\" at 0x67E58 READS before writing (accumulate `addu v1,v1,t3` /\n * `multu v1,t2`) \u2014 the old standalone-67E58 NM note even flagged that\n * \"caller-set $v1\" as inexpressible in C. Branches at 0x67D98/0x67DA8 into\n * 0x67E58/0x67E5C (the bnel dups the `li t2,10` at 0x67E58, classic IDO\n * branch-likely target-dup) are intra-function. Dropped the 00067E58 symbol\n * (no jal callers: no 0x0C019F96 word anywhere in asm/, no symbol-file refs).\n * Reloc-free leaf.\n * EXACT 92/92 (2026-07-07, same session as the merge). Levers: (1) cursor\n * idiom `p = str; str++; c = *p;` \u2014 the increment BETWEEN copy and load keeps\n * the `move a1,a0` copy alive (defeats the lbu-offset/addiu fold at the hex\n * head AND uopt's load-PRE that otherwise CSEs the entry char into the\n * decimal loop with back-edge reload insertion); (2) range tests read `*p`\n * directly while `c = *p` is ONE named var \u2014 the repeated `*p` becomes CSE\n * temp $a2 and c colors $a3 with `move a3,a2` landing in the classify-branch\n * delay (two vars c/c2 coalesce \u2014 wrong); (3) '-'/'.'/10 as NAMED int locals\n * (minus/dot/ten) \u2014 named consts win the beq/multu rs slot (`beq t0,a3`) and\n * color $t0/$t1/$t2 in first-use order; literal compares emit var-first\n * regardless of source operand order; (4) decimal loop as a goto-loop with\n * early `if (minus == c) { sign = 1; goto dec; }` \u2014 keeps the sign block\n * inline and reproduces the bnel + dead `lbu a1,0(a0)` dup; if/else form\n * loses the likely-conversion. */\nint game_libs_func_00067D8C(unsigned char *str) {\n    int sign;\n    int value;\n    unsigned char *p;\n    int c;\n    int next;\n    int digit;\n    int minus = '-';\n    int dot = '.';\n    unsigned int ten = 10;\n\n    value = 0;\n    sign = 0;\n    if ((str[0] == '0') && (str[1] == 'x')) {\n        int hval;\n\n        str += 2;\n        p = str;\n        hval = 0;\n        str++;\n        while (*p != 0) {\n            c = *p;\n            if ((*p >= '0') && (*p < ':')) {\n                digit = *p - '0';\n            } else if ((c >= 'a') && (c < 'g')) {\n                digit = c - 'a' + 10;\n            } else if ((c >= 'A') && (c < 'G')) {\n                digit = c - 'A' + 10;\n            } else {\n                return 0;\n            }\n            hval += digit;\n            if (*str != 0) {\n                hval <<= 4;\n            }\n            p = str;\n            str++;\n        }\n        return hval;\n    }\ndec:\n    p = str;\n    str++;\n    c = *p;\n    if ((*p < '0') || (*p >= ':')) {\n        if (minus != c) {\n            return 0;\n        }\n    }\n    if (minus == c) {\n        sign = 1;\n        goto dec;\n    }\n    next = *str;\n    value += (unsigned char)(c - '0');\n    if (next == 0) {\n        goto out;\n    }\n    if (dot == next) {\n        goto out;\n    }\n    if ((next < '0') || (next >= ':')) {\n        goto out;\n    }\n    value *= ten;\n    goto dec;\nout:\n    if (sign != 0) {\n        value = -value;\n    }\n    return value;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00067D8C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "92/92 word-exact (real path, post-merge .s) + make ROM byte-identical"
+  }
+}
