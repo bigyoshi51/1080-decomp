@@ -2532,6 +2532,16 @@ void timproc_uso_b5_func_00003A28(int *a0, int *a1, int a2) {
  *
  * Multi-tick decomp; structural wrap only this tick. INCLUDE_ASM keeps
  * ROM byte-correct. */
+extern void import_0024E608();
+extern void import_0024F2C8();
+extern void import_0024F34C();
+extern void import_0024F75C();
+extern char import_8024CAF8;
+extern char timproc_uso_b5_D_807FEA20;
+extern char timproc_uso_b5_D_807FEA4C;
+extern char timproc_uso_b5_D_807FF490;
+extern char timproc_uso_b5_D_807FF4A8;
+struct B5Tbl3A4C { int w[11]; };
 #ifdef NON_MATCHING
 /* timproc_uso_b5_func_00003A4C: two-sprite HUD draw with table-indexed offsets.
  * Copies two 0x2C-byte tables from &D+0x11B0 / &D+0x11DC onto the stack (sp84/sp58
@@ -2559,16 +2569,6 @@ void timproc_uso_b5_func_00003A28(int *a0, int *a1, int a2) {
  * form reaches the a0-reuse. (2) pervasive t-register RENUMBER in both unrolled
  * 3x12-byte copy loops + body (the documented 3C8C coloring cap). (3) frame is
  * -0xA0 vs target -0xB0 (16-byte frame-size cap). NON_MATCHING. */
-extern void import_0024E608();
-extern void import_0024F2C8();
-extern void import_0024F34C();
-extern void import_0024F75C();
-extern char import_8024CAF8;
-extern char timproc_uso_b5_D_807FEA20;
-extern char timproc_uso_b5_D_807FEA4C;
-extern char timproc_uso_b5_D_807FF490;
-extern char timproc_uso_b5_D_807FF4A8;
-struct B5Tbl3A4C { int w[11]; };
 void timproc_uso_b5_func_00003A4C(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, char *arg7) {
     struct B5Tbl3A4C sp84 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA20;
     struct B5Tbl3A4C sp58 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA4C;
@@ -2625,51 +2625,75 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     spec for the build. a1(s1)/a2(s2)/a0/a3 = target/owner/params.
 //   func_00000000 = USO placeholder dispatcher (build / position /
 //     attach).
-// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
-//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
-//   below — template-instantiate skeleton (template copy + cb chain).
-//   Byte-match deferred. Name pre-checked: no extern reuse.
-// 2026-06-21 RECONSTRUCT 77.6%->86.6%: (1) merged the two 11-word template
-//   copies into a single struct-copy each (struct T11) so IDO walks ONE
-//   induction pointer (loop+2-word remainder off the walked ptr) instead of
-//   hoisting a separate absolute base for the 2 tail words; (2) the literal-0
-//   first args to the dispatch calls are &D_00000000 (reloc lui/addiu, not
-//   or zero,zero), passed as `g`; (3) field 0x20 of the 16(arg3)/g+0x20/g+0x28
-//   chained derefs is a signed halfword (lh) not lw, and the last call's base
-//   is *(int*)(arg3+0x10) not g+0x38. RESIDUAL ~13%: the struct-copy loop
-//   advances the SOURCE pointer in the target but the build advances DEST
-//   (IDO induction-var choice), driving a +32 array placement / -176-vs-152
-//   frame cascade + register renumber. Coloring/codegen-cap from here.
-#ifdef NON_MATCHING
-void timproc_uso_b5_func_00003C8C(int arg0, int arg1, int arg2, void *arg3, int arg4, int arg5, int arg6, void *arg7) {
-    struct T11 { int w[11]; };
-    char *g = (char *)&D_00000000;
-    char *a7 = (char *)arg7;
-    int T1[11], T2[11];
-    (void)arg0;
-    *(struct T11 *)T1 = *(struct T11 *)(g + 0x1208);
-    *(struct T11 *)T2 = *(struct T11 *)(g + 0x1234);
+// 2026-06-21 RECONSTRUCT 77.6%->86.6% (struct-copy merge, resolved-global
+//   call bases, lh sprite-dim derefs) — history in git.
+// 2026-07-07 EXACT 147/147 (agent-e, reloc-aware word diff vs .s; every
+//   word + reloc symbol matches). Body mirrors sibling 3A4C with 3C8C's
+//   own tables (D_807FEA78/D_807FEAA4), 0x10 constant, and the F34C
+//   width-subtracted x. Levers that closed the last ~35 words:
+//   (1) goto-label barrier (lighter than if(1)): `goto lA; lA: objA += 0x10;`
+//       defeats LO16 folding for the lw 0x10(a0) form-a deref WITHOUT the
+//       nested-BB cost that demoted arg2 from s2 (if(1) in the branch did).
+//   (2) shared dp/dw deref locals across all 3 dim-deref sites -> v0/v1
+//       coloring + pA to t0 + loop-limit temps to t1 (candidate-first-use
+//       numbering; per-web colors follow candidate priority order).
+//   (3) tail block reuses dp/dw with ROLES SWAPPED (ptr in dw=v1, width in
+//       dp=v0) keeping candidate colors consistent; sz=*pB moved inside the
+//       block fixes the sw-before-jal / addu-in-delay schedule.
+//   (4) volatile-pad not needed: dp/dw themselves supply the +8 frame.
+//   (5) candidate-first addu operand order (target addu rd,sN,load vs
+//       build load-first): spell the sum load-first in SOURCE and pin the
+//       arg with an assignment-expr into an existing dead-here local:
+//       `*(int*)(arg7+0x338) + (dw = arg1)` — comma `(0,arg1)` also works
+//       but allocates a temp slot (+8 frame); reusing existing locals
+//       (dp/dw in call1, sz/pB in call2, chosen so first-use order keeps
+//       dp before dw) costs nothing. `*pA + (mem + arg1)` outer spelling
+//       fixes the *pA-last association/load order.
+extern char timproc_uso_b5_D_807FEA78;
+extern char timproc_uso_b5_D_807FEAA4;
+void timproc_uso_b5_func_00003C8C(int arg0, int arg1, int arg2, char *arg3, int arg4, int arg5, int arg6, char *arg7) {
+    struct B5Tbl3A4C sp84 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA78;
+    struct B5Tbl3A4C sp58 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEAA4;
+    int *pA;
+    int *pB;
+    int sz;
+    char *dp;
+    int dw;
+
     if (arg4 != 0) {
-        func_00000000(g, *(int *)(a7 + 0x368), arg5);
-        func_00000000(g + 0x10);
-        func_00000000(g + 0x10, arg1 + *(int *)(a7 + 0x338), arg2 + *(int *)(a7 + 0x350), 0, T2[arg4]);
-        func_00000000(g + 0x10, arg1 + *(int *)(a7 + 0x338) + T2[arg4], arg2 + *(int *)(a7 + 0x350),
-                      *(short *)(*(int *)(g + 0x20) + 0x20) - 0x10, 0x10);
+        import_0024E608(&import_8024CAF8, *(int *)(arg7 + 0x368), arg5);
+        import_0024F2C8(&timproc_uso_b5_D_807FF490 + 0x10);
+        pA = &sp58.w[arg4];
+        import_0024F75C(&timproc_uso_b5_D_807FF490 + 0x10, *(int *)(arg7 + 0x338) + (int)(dp = (char *)arg1), *(int *)(arg7 + 0x350) + (dw = arg2), 0, *pA);
+        {
+            char *objA = &timproc_uso_b5_D_807FF490;
+            goto lA; lA: objA += 0x10;
+            dp = *(char **)(objA + 0x10);
+            dw = *(short *)(dp + 0x20);
+            import_0024F75C(objA, *pA + (*(int *)(arg7 + 0x338) + (sz = arg1)), *(int *)(arg7 + 0x350) + (int)(pB = (int *)arg2),
+                            dw - 0x10, 0x10);
+        }
     }
-    func_00000000(g, 0xFF, arg6);
-    func_00000000(arg3);
-    func_00000000(arg3, (arg1 - *(int *)(a7 + 0x308)) - *(short *)(*(int *)((char *)arg3 + 0x10) + 0x20),
-                  arg2 - *(int *)(a7 + 0x320), 0);
-    func_00000000(g, 0xFF, arg5);
-    func_00000000(g + 0x28);
-    func_00000000(g + 0x28, arg1, arg2, 0, T1[arg4]);
-    func_00000000(g, *(int *)(a7 + 0x380), arg5);
-    func_00000000(g + 0x28, arg1 + T1[arg4], arg2, T1[arg4],
-                  *(short *)(*(int *)((char *)arg3 + 0x10) + 0x20) - T1[arg4]);
+    import_0024E608(&import_8024CAF8, 0xFF, arg6);
+    import_0024F2C8(arg3);
+    dp = *(char **)(arg3 + 0x10);
+    dw = *(short *)(dp + 0x20);
+    import_0024F34C(arg3, (arg1 - *(int *)(arg7 + 0x308)) - dw,
+                    arg2 - *(int *)(arg7 + 0x320), 0);
+    import_0024E608(&import_8024CAF8, 0xFF, arg5);
+    import_0024F2C8(&timproc_uso_b5_D_807FF4A8 + 0x28);
+    pB = &sp84.w[arg4];
+    import_0024F75C(&timproc_uso_b5_D_807FF4A8 + 0x28, arg1, arg2, 0, *pB);
+    import_0024E608(&import_8024CAF8, *(int *)(arg7 + 0x380), arg5);
+    {
+        char *objB = &timproc_uso_b5_D_807FF4A8;
+        goto lB; lB: objB += 0x28;
+        dw = (int) *(char **)(objB + 0x10);
+        dp = (char *) *(short *)((char *)dw + 0x20);
+        sz = *pB;
+        import_0024F75C(objB, arg1 + sz, arg2, sz, dp - sz);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003C8C);
-#endif
 
 void timproc_uso_b5_func_00003ED8(char *a0) {
     char *v;

@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00003C8C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T02:52:17.451300+00:00",
+  "end_time": "2026-07-08T02:52:17.451321+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T02:52:17.451315+00:00",
+      "assistant_text": "Sprite-table dual-draw reconstruction (sibling of 3A4C, 77.6%->exact). Levers: (1) goto-label barrier (goto lA; lA: objA += 0x10;) defeats LO16 fold for form-a deref \u2014 lighter than if(1){} whose extra BBs demoted arg2 from s2; (2) shared dp/dw locals across all three dimension-deref sites -> v0/v1 coloring, cascading pA->t0, loop-limit->t1; (3) tail role-swap reusing the same two locals (ptr in dw/v1, width in dp/v0) + sz=*pB moved inside tail block fixes sw/jal/delay schedule; (4) candidate-first addu operand order with assignment-expression pin into an existing dead-here local: *(int*)(arg7+0x338) + (dw = arg1) \u2014 comma (0,arg1) also flips but costs +8 frame; existing-local pin is free (preserve dp-before-dw first-use order).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 147,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_00003A4C: two-sprite HUD draw with table-indexed offsets.\n * Copies two 0x2C-byte tables from &D+0x11B0 / &D+0x11DC onto the stack (sp84/sp58\n * \u2014 IDO unrolls each as a 3x12-byte loop + 2-word tail). If arg4!=0: draw sprite\n * 0x10 twice at arg1+arg7->0x338 / +sp58[arg4], y=arg2+arg7->0x350, using its\n * looked-up dimension (cb(0x10)->0x10->0x20). Then cb(0,0xFF,arg6); draw arg3 at\n * arg1-arg7->0x308 / arg2-arg7->0x320; cb(0,0xFF,arg5); draw sprite 0x28 twice at\n * arg1 / +sp84[arg4] with its dimension. Fresh decode 2026-05-29 (m2c-confirmed).\n * Caps: structs + cb prototypes untyped (USO-reloc), &D tables not symbolized,\n * sprite-dim return-deref + table-copy unroll. NON_MATCHING.\n * 2026-06-21 RECONSTRUCT 77.85%->86.99% (same fix family as sibling 3C8C/6E08):\n * (1) the call first args are the resolved globals &import_8024CAF8 (+0x10/+0x28)\n * and &timproc_uso_b5_D_807FF490/_807FF4A8, not literal 0/0x10/0x28; (2) the two\n * table sources are &D_807FEA20/_807FEA4C (single struct-copy each); (3) the\n * sprite dimension at +0x20 is a signed halfword (lh) RE-DEREFED from the global\n * base (&import_8024CAF8+0x20/+0x28), not from the call-return objA/objB.\n * 2026-07-07 RISE 86.99%->88.34% (agent-e): callees resolved to the 4 real\n * distinct imports (E608/F2C8/F34C/F75C) called directly (correct R_MIPS_26);\n * call bases fixed to their true globals \u2014 F2C8/F75C(arg4-branch) use\n * &D_807FF490+0x10, F2C8/F34C(mid) use arg3, F2C8/F75C(tail) use &D_807FF4A8+0x28;\n * sprite-dim derefs read *(int*)(base+0x10)+0x20 off those same object bases.\n * Residual ~12% (strict-byte, permuter-immune coloring caps): (1) build is +2\n * words \u2014 the call-D/L dimension deref materializes a FRESH lui for the object\n * base instead of reusing the a0 arg register (target does lw 0x10(a0)); no C\n * form reaches the a0-reuse. (2) pervasive t-register RENUMBER in both unrolled\n * 3x12-byte copy loops + body (the documented 3C8C coloring cap). (3) frame is\n * -0xA0 vs target -0xB0 (16-byte frame-size cap). NON_MATCHING. */\nvoid timproc_uso_b5_func_00003A4C(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, char *arg7) {\n    struct B5Tbl3A4C sp84 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA20;\n    struct B5Tbl3A4C sp58 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA4C;\n    int *pA;\n    int *pB;\n    int sz;\n\n    if (arg4 != 0) {\n        import_0024E608(&import_8024CAF8, *(int *)(arg7 + 0x368), arg5);\n        import_0024F2C8(&timproc_uso_b5_D_807FF490 + 0x10);\n        pA = &sp58.w[arg4];\n        import_0024F75C(&timproc_uso_b5_D_807FF490 + 0x10, arg1 + *(int *)(arg7 + 0x338), arg2 + *(int *)(arg7 + 0x350), 0, *pA);\n        import_0024F75C(&timproc_uso_b5_D_807FF490 + 0x10, arg1 + *(int *)(arg7 + 0x338) + *pA, arg2 + *(int *)(arg7 + 0x350),\n                        *(short *)(*(int *)(&timproc_uso_b5_D_807FF490 + 0x20) + 0x20) - 0x20, 0x20);\n    }\n    import_0024E608(&import_8024CAF8, 0xFF, arg6);\n    import_0024F2C8(arg3);\n    import_0024F34C(arg3, arg1 - *(int *)(arg7 + 0x308), arg2 - *(int *)(arg7 + 0x320), 0);\n    import_0024E608(&import_8024CAF8, 0xFF, arg5);\n    import_0024F2C8(&timproc_uso_b5_D_807FF4A8 + 0x28);\n    pB = &sp84.w[arg4];\n    import_0024F75C(&timproc_uso_b5_D_807FF4A8 + 0x28, arg1, arg2, 0, *pB);\n    import_0024E608(&import_8024CAF8, *(int *)(arg7 + 0x380), arg5);\n    sz = *pB;\n    import_0024F75C(&timproc_uso_b5_D_807FF4A8 + 0x28, arg1 + sz, arg2, sz,\n                    *(short *)(*(int *)(&timproc_uso_b5_D_807FF4A8 + 0x38) + 0x20) - sz);\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/timproc_uso_b5/timproc_uso_b5\", timproc_uso_b5_func_00003A4C);\n#endif\n\n// timproc_uso_b5_func_00003C8C \u2014 STRUCTURAL PASS (0x24C / 147 words,\n// no episode). Raw-.word USO form (genuine code). Hand-decoded.\n//\n// Template-instantiation routine: copies two fixed structure templates\n// from USO static data into stack scratch, then builds/configures from\n// them plus the call args.\n//\n//   void timproc_uso_b5_func_00003C8C(a0, a1, a2, a3) {  // a1->s1 a2->s2\n//     // copy template T1 = &D_00001208[0 .. 0x24)  (3 x 0xC-byte\n//     //   records, stride 0xC) into local buf @ sp+0x84;\n//     // copy template T2 = &D_00001234[...]         (0xC-stride\n//     //   records) into local buf @ sp+0x58;\n//     // ~12 func_00000000 calls building/configuring an element from\n//     //   the copied templates + (a0@sp+0xB0, s1=a1, s2=a2,\n//     //   a3@sp+0xBC) \u2014 instantiate + position + attach.\n//   }",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00003C8C.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "147/147 reloc-aware word-exact + make ROM byte-identical (promoted)"
+  }
+}
