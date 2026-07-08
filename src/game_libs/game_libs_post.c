@@ -11825,58 +11825,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029494);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000295BC)();
+typedef struct { unsigned p0:2; unsigned b29:1; unsigned rest:29; } BF_000295BC;
+#ifndef FF
+#define FF(p, o) (*(f32 *)((char *)(p) + (o)))
+#endif
 void game_libs_func_000295BC(char *arg0, s32 arg1, s32 arg2) {
     f32 var_f0;
     f32 var_f0_2;
-    s32 var_a2;
-    u8 temp_v0_2;
+    s32 b;
     char *temp_v0;
     char *temp_v1;
-    char *var_a3;
 
-    var_a3 = arg0;
-    if ((FW(arg0, 0x0) & 0x400000) || (arg1 != 0)) {
-        temp_v0 = FW(arg0, 0x4C);
-        var_f0 = (*(f32*)((char*)arg0 + 0x2C)) * (*(f32*)((char*)arg0 + 0x28)) * (*(f32*)((char*)temp_v0 + 0x30));
-        if ((FW(temp_v0, 0x0) & 0x20000000) && ((*(u8*)((char*)arg0 + 0x3)) & 0x20)) {
-            var_f0 *= (*(f32*)((char*)temp_v0 + 0x28));
+    if (((FW(arg0, 0x0) << 8 << 1) < 0) || (arg1 != 0)) {
+        temp_v0 = (char *) FW(arg0, 0x4C);
+        var_f0 = FF(temp_v0, 0x30) * (FF(arg0, 0x28) * FF(arg0, 0x2C));
+        if ((((BF_000295BC *)temp_v0)->b29) && ((*(u8*)(arg0 + 0x3)) & 0x20)) {
+            var_f0 = FF(temp_v0, 0x28) * var_f0;
         }
-        (*(f32*)((char*)arg0 + 0x34)) = (f32) (var_f0 * var_f0);
+        FF(arg0, 0x34) = var_f0 * var_f0;
     }
-    if (FW(arg0, 0x0) & 0x200000) {
-        FW(arg0, 0x30) = (s32) ((*(u8*)((char*)arg0 + 0xA)) * (*(u8*)((char*)arg0 + 0xB)));
+    if ((FW(arg0, 0x0) << 9 << 1) < 0) {
+        FW(arg0, 0x30) = (*(u8*)(arg0 + 0xB)) * (*(u8*)(arg0 + 0xA));
     }
-    var_f0_2 = (*(f32*)((char*)arg0 + 0x38));
+    var_f0_2 = FF(arg0, 0x38);
     if (arg2 != 0) {
-        (*(u8*)((char*)arg0 + 0x1)) = (u8) ((*(u8*)((char*)arg0 + 0x1)) | 0x80);
-        var_f0_2 *= (*(f32*)((char*)FW(arg0, 0x4C) + 0x34));
+        var_f0_2 *= FF((char *) FW(arg0, 0x4C), 0x34);
+        (*(u8*)(arg0 + 0x1)) = ((*(u8*)(arg0 + 0x1)) & 0xFF) | 0x80;
     }
-    var_a2 = 0;
-    do {
-        temp_v1 = FW(var_a3, 0x50);
-        var_a2 += 4;
+    for (arg2 = 0; arg2 != 0x20; arg2 += 4) {
+        temp_v1 = *(char **)(arg0 + arg2 + 0x50);
         if ((temp_v1 != 0) && (((u32) FW(temp_v1, 0x0) >> 0x1F) != 0) && (FW(temp_v1, 0x2C) != 0)) {
-            temp_v0_2 = (u8) FW(temp_v1, 0x0);
-            if (temp_v0_2 & 1) {
-                (*(f32*)((char*)temp_v1 + 0x44)) = (f32) ((*(f32*)((char*)temp_v1 + 0x30)) * var_f0_2);
-                (*(f32*)((char*)temp_v1 + 0x40)) = (f32) ((*(f32*)((char*)temp_v1 + 0x38)) * (*(f32*)((char*)arg0 + 0x34)));
-                *(s8*)((char*)temp_v1 + 0x0) = (s8) (temp_v0_2 & 0xFFFE);
-                (*(u8*)((char*)temp_v1 + 0x6)) = (s8) ((s32) (FW(arg0, 0x30) + ((*(u8*)((char*)temp_v1 + 0x5)) * (0x80 - (*(u8*)((char*)arg0 + 0xB))))) >> 7);
+            b = *(u8*)temp_v1;
+            if (b & 1) {
+                FF(temp_v1, 0x44) = FF(temp_v1, 0x30) * var_f0_2;
+                FF(temp_v1, 0x40) = FF(arg0, 0x34) * FF(temp_v1, 0x38);
+                (*(s8*)(temp_v1 + 0x6)) = (s32) (((*(u8*)(temp_v1 + 0x5)) * (0x80 - (*(u8*)(arg0 + 0xB)))) + FW(arg0, 0x30)) >> 7;
+                *(u8*)temp_v1 = b & 0xFFFE;
             } else {
-                if ((s8) (*(u8*)((char*)arg0 + 0x1)) < 0) {
-                    (*(f32*)((char*)temp_v1 + 0x44)) = (f32) ((*(f32*)((char*)temp_v1 + 0x30)) * var_f0_2);
+                if ((s8) (*(u8*)(arg0 + 0x1)) < 0) {
+                    FF(temp_v1, 0x44) = FF(temp_v1, 0x30) * var_f0_2;
                 }
-                if ((FW(arg0, 0x0) & 0x400000) || (arg1 != 0)) {
-                    (*(f32*)((char*)temp_v1 + 0x40)) = (f32) ((*(f32*)((char*)temp_v1 + 0x38)) * (*(f32*)((char*)arg0 + 0x34)));
+                if (((FW(arg0, 0x0) << 7 << 1 << 1) < 0) || (arg1 != 0)) {
+                    FF(temp_v1, 0x40) = FF(arg0, 0x34) * FF(temp_v1, 0x38);
                 }
-                if (FW(arg0, 0x0) & 0x200000) {
-                    (*(u8*)((char*)temp_v1 + 0x6)) = (s8) ((s32) (FW(arg0, 0x30) + ((*(u8*)((char*)temp_v1 + 0x5)) * (0x80 - (*(u8*)((char*)arg0 + 0xB))))) >> 7);
+                if (((FW(arg0, 0x0) << 9 << 1) < 0)) {
+                    (*(s8*)(temp_v1 + 0x6)) = (s32) (((*(u8*)(temp_v1 + 0x5)) * (0x80 - (*(u8*)(arg0 + 0xB)))) + FW(arg0, 0x30)) >> 7;
                 }
             }
         }
-        var_a3 += 4;
-    } while (var_a2 != 0x20);
-    (*(u8*)((char*)arg0 + 0x1)) = 0U;
+    }
+    (*(u8*)(arg0 + 0x1)) = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000295BC);
