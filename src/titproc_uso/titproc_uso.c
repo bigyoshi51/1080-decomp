@@ -1202,28 +1202,21 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000184
  * diffs. INSN_PATCH REMOVED 2026-05-23 as match-faking per
  * feedback_no_instruction_forcing_matches_policy; now an honest NM cap. */
 extern void import_0024E388();
-#ifdef NON_MATCHING
-/* RE-DERIVED 2026-06-22; REFINED 2026-06-23 (agent-b). Real callees are
- * import_0024F2C8 (begin), import_0024E388 (alpha+rgba), import_0024F34C
- * (coords); base import_00263D30 with +0x60/+0x78/+0x90 block offsets.
- * Twin family of titproc_uso_func_00001710 / mgrproc_uso_func_00002E3C.
- * RELOCS (paired HI16/LO16 + R_MIPS_26) + LOGIC + FRAME now byte-faithful:
- * frame -0x60, buf_a@sp+0x4c, buf_b@sp+0x28 (fixed the prior +0x50 frame
- * shift via decl-order `int v` first + pad[20]); F34C addu operand source
- * order swapped to match target load order (4C,54,50,58). 23 residual word
- * diffs, ALL one cascaded register-NUMBER offset originating at the first
- * short-lived temp: target colors the (v-4)/(v+4) decrement/increment value
- * to $t8 (a high throwaway temp, hoisted into the beqz/slti delay slot),
- * natural C colors it $v0/$v1; that pick cascades through every downstream
- * t-reg (li t9 vs t8, lw t0..t3 vs t9.., addu operands). This is the pure
- * uopt first-temp coloring tie of the timproc/titproc master-tick family
- * (see docs/IDO_CODEGEN timproc_uso_b5 7E34/7078/C8AC). PERMUTER-FLOORED
- * 2026-06-23 (-j4 ~230 iters/thread, best output ADDED insns, never < 23
- * word diffs); C-lever-immune (inline-temp, named-temp, inline-CSE-twice,
- * embedded-assign, decl-order all reproduce $v0/$v1). True coloring cap;
- * INCLUDE_ASM build path. */
+/* EXACT 106/106 words + relocs (2026-07-07, agent-e). Former "true coloring
+ * cap" CRACKED: the $v1-vs-$t8 first-temp cascade (23 diffs) came from
+ * CACHING s0->0x2C in a local at all — any cached-local spelling makes the
+ * (v-4)/(v+4) temp a uopt candidate (constrained pool -> $v1). Fix: NO local;
+ * direct field RMW (`s0[0x2C/4] -= 4;`) + join test `if (s0[0x2C/4]==0)
+ * return;` re-reads the field. uopt CSE builds the v0 phi itself (move v0,t8
+ * / move v0,zero edge copies) and the temps stay ugen FIFO temps
+ * (t6,t7,t8,t9,t0..t5 circular), matching the target exactly. `volatile int
+ * vpad;` re-occupies the removed local's frame slot (buf_a@sp+0x4C,
+ * buf_b@sp+0x28, frame -0x60). Callees import_0024F2C8 (begin),
+ * import_0024E388 (alpha+rgba), import_0024F34C (coords); base
+ * import_00263D30 +0x60/+0x78/+0x90. Twin family titproc_uso_func_00001710 /
+ * mgrproc_uso_func_00002E3C. */
 void titproc_uso_func_00001950(int *s0) {
-    int v;
+    volatile int vpad;
     float buf_a[4];
     char pad[20];
     float buf_b[4];
@@ -1231,20 +1224,14 @@ void titproc_uso_func_00001950(int *s0) {
     if (s0[0x38 / 4] == 0) {
         if (s0[0x34 / 4] != 0) {
             s0[0x34 / 4]--;
-            v = s0[0x2C / 4];
-        } else {
-            v = s0[0x2C / 4];
-            if (v != 0) {
-                v -= 4;
-                s0[0x2C / 4] = v;
-                if (v < 0) {
-                    s0[0x2C / 4] = 0;
-                    s0[0x38 / 4] = 1;
-                    v = 0;
-                }
+        } else if (s0[0x2C / 4] != 0) {
+            s0[0x2C / 4] -= 4;
+            if (s0[0x2C / 4] < 0) {
+                s0[0x2C / 4] = 0;
+                s0[0x38 / 4] = 1;
             }
         }
-        if (v == 0) {
+        if (s0[0x2C / 4] == 0) {
             return;
         }
         buf_a[0] = 1.0f;
@@ -1262,11 +1249,9 @@ void titproc_uso_func_00001950(int *s0) {
                         s0[0x64 / 4] + s0[0x4C / 4],
                         s0[0x68 / 4] + s0[0x50 / 4], 3);
     } else {
-        v = s0[0x2C / 4];
-        if (v < 0xFF) {
-            v += 4;
-            s0[0x2C / 4] = v;
-            if (v >= 0xFF) {
+        if (s0[0x2C / 4] < 0xFF) {
+            s0[0x2C / 4] += 4;
+            if (s0[0x2C / 4] >= 0xFF) {
                 s0[0x2C / 4] = 0xFF;
             }
         }
@@ -1281,9 +1266,6 @@ void titproc_uso_func_00001950(int *s0) {
     }
     (void)pad;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001950);
-#endif
 
 void titproc_uso_func_00001AF8(int *a0) {
     a0[0x38 / 4] = 0;

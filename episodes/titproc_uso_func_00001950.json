@@ -1,0 +1,33 @@
+{
+  "function_name": "titproc_uso_func_00001950",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:43:15.000500+00:00",
+  "end_time": "2026-07-08T03:43:15.000541+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:43:15.000530+00:00",
+      "assistant_text": "Counter dec/inc dispatcher, former 'true coloring cap permuter-floored'. THE CACHED LOCAL WAS THE CAP: any cached-local spelling of s0->0x2C makes the (v-4)/(v+4) temp a uopt CANDIDATE (constrained pool -> $v1); target has it in the ugen FIFO ring (t8). Fix: eliminate the local \u2014 direct field RMW s0[0x2C/4] -= 4; clamp via if(s0[0x2C/4] < 0) (CSEs with stored value); join test re-reads the field. uopt then builds the v0 phi itself (move edge copies, addiu renamed into beqz delay) and dec/inc temps stay ugen FIFO. +volatile int vpad in the removed local's decl slot keeps buf offsets (frame unchanged). uoptlist-diagnosed (cand->R2/$v1 vs const->R24/$t8).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 106,
+  "initial_m2c_source": null,
+  "final_source": "/* EXACT 106/106 words + relocs (2026-07-07, agent-e). Former \"true coloring\n * cap\" CRACKED: the $v1-vs-$t8 first-temp cascade (23 diffs) came from\n * CACHING s0->0x2C in a local at all \u2014 any cached-local spelling makes the\n * (v-4)/(v+4) temp a uopt candidate (constrained pool -> $v1). Fix: NO local;\n * direct field RMW (`s0[0x2C/4] -= 4;`) + join test `if (s0[0x2C/4]==0)\n * return;` re-reads the field. uopt CSE builds the v0 phi itself (move v0,t8\n * / move v0,zero edge copies) and the temps stay ugen FIFO temps\n * (t6,t7,t8,t9,t0..t5 circular), matching the target exactly. `volatile int\n * vpad;` re-occupies the removed local's frame slot (buf_a@sp+0x4C,\n * buf_b@sp+0x28, frame -0x60). Callees import_0024F2C8 (begin),\n * import_0024E388 (alpha+rgba), import_0024F34C (coords); base\n * import_00263D30 +0x60/+0x78/+0x90. Twin family titproc_uso_func_00001710 /\n * mgrproc_uso_func_00002E3C. */\nvoid titproc_uso_func_00001950(int *s0) {\n    volatile int vpad;\n    float buf_a[4];\n    char pad[20];\n    float buf_b[4];\n\n    if (s0[0x38 / 4] == 0) {\n        if (s0[0x34 / 4] != 0) {\n            s0[0x34 / 4]--;\n        } else if (s0[0x2C / 4] != 0) {\n            s0[0x2C / 4] -= 4;\n            if (s0[0x2C / 4] < 0) {\n                s0[0x2C / 4] = 0;\n                s0[0x38 / 4] = 1;\n            }\n        }\n        if (s0[0x2C / 4] == 0) {\n            return;\n        }\n        buf_a[0] = 1.0f;\n        buf_a[1] = 1.0f;\n        buf_a[2] = 1.0f;\n        buf_a[3] = 1.0f;\n        import_0024F2C8((char *)&import_00263D30 + 0x60);\n        import_0024E388((char *)&import_00263D30 + 0x60, s0[0x2C / 4], buf_a, 0xFF);\n        import_0024F34C((char *)&import_00263D30 + 0x60,\n                        s0[0x54 / 4] + s0[0x4C / 4],\n                        s0[0x58 / 4] + s0[0x50 / 4], 3);\n        import_0024F2C8((char *)&import_00263D30 + 0x78);\n        import_0024E388((char *)&import_00263D30 + 0x78, s0[0x2C / 4], buf_a, 0xFF);\n        import_0024F34C((char *)&import_00263D30 + 0x78,\n                        s0[0x64 / 4] + s0[0x4C / 4],\n                        s0[0x68 / 4] + s0[0x50 / 4], 3);\n    } else {\n        if (s0[0x2C / 4] < 0xFF) {\n            s0[0x2C / 4] += 4;\n            if (s0[0x2C / 4] >= 0xFF) {\n                s0[0x2C / 4] = 0xFF;\n            }\n        }\n        buf_b[0] = 1.0f;\n        buf_b[1] = 1.0f;\n        buf_b[2] = 1.0f;\n        buf_b[3] = 1.0f;\n        import_0024F2C8((char *)&import_00263D30 + 0x90);\n        import_0024E388((char *)&import_00263D30 + 0x90, s0[0x2C / 4], buf_b, 0xFF);\n        import_0024F34C((char *)&import_00263D30 + 0x90,\n                        s0[0x6C / 4], s0[0x70 / 4], 3);\n    }\n    (void)pad;\n}",
+  "metadata": {
+    "source_path": "src/titproc_uso/titproc_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_00001950.s",
+    "segment": "titproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "106/106 reloc-aware word-exact (27 relocs correct) + make ROM byte-identical"
+  }
+}
