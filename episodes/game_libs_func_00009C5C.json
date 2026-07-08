@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00009C5C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:52:56.011606+00:00",
+  "end_time": "2026-07-08T13:52:56.011628+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:52:56.011621+00:00",
+      "assistant_text": "Block-copy + byte-transform, 56.6%->exact. NEW LEVER: the li v0,1; sll v1,v0,2; addu residue is IDO -O2's LOOP-UNROLL SIGNATURE \u2014 the old straight-line pointer code was 4 insns short because there was no loop to unroll. Write the copy as a plain ROLLED loop; IDO unrolls to the target shape (iter 0 peeled with direct bases, then i=1 materialized + 4 iters at constant offsets off the shared i<<2 bases). CRITICAL: the loop must be BASE-0 \u2014 for(i=0;i<5;i++) a0[i+2]=a3[i+1] gives 32/32; the shifted-range equivalent for(i=1;i<6;i++) a0[i+1]=a3[i] materializes i=2 (23/32). Byte-transform part = the 99DC/9B60/9C04 comma-init family recipe.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00009C5C: a0->0 = a1&0xFF; 3-iter char-transform loop\n * (a0 bytes 5..7 = a2[0..2] - 0x61, family 99DC/9B60/9C04 comma-init recipe);\n * then a 5-word copy a0[2..6] = a3[1..5], a0 byte 4 = 5, a0[7] = a3[0].\n * EXACT 32/32 (2026-07-08). The old diagnosis (\"shared strength-reduced\n * offset C can't force\") was wrong: the `li v0,1; sll v1,v0,2; addu a2,a3,v1;\n * addu a1,a0,v1` residue is IDO -O2's LOOP-UNROLL signature \u2014 write the copy\n * as a plain `for (i = 0; i < 5; i++) a0[i+2] = a3[i+1];`. IDO peels iter 0\n * with direct bases (lw 4(a3)/sw 8(a0)), materializes i=1, and emits the\n * remaining 4 iters at constant offsets from the shared i<<2 bases. The loop\n * MUST be phrased base-0 (`i=0..4`, indices i+2/i+1): the equivalent\n * `for (i = 1; i < 6; i++) a0[i+1] = a3[i];` materializes i=2 instead\n * (bases +8, offsets 0..C) = 23/32. */\nvoid game_libs_func_00009C5C(int *a0, int a1, unsigned char *a2, int *a3) {\n    int n;\n    char *d;\n    unsigned char *s;\n    int i;\n    *a0 = a1 & 0xFF;\n    for (n = 0, d = (char *)a0, s = a2; ;) {\n        n++;\n        d++;\n        d[4] = *s - 0x61;\n        s++;\n        if (n == 3) {\n            break;\n        }\n    }\n    for (i = 0; i < 5; i++) {\n        a0[i + 2] = a3[i + 1];\n    }\n    *((char *)a0 + 4) = 5;\n    a0[7] = a3[0];\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00009C5C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "32/32 word-exact (real path) + make ROM byte-identical"
+  }
+}

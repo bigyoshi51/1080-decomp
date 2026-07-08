@@ -332,42 +332,39 @@ void game_libs_func_00009C04(int *a0, char *a1, unsigned char a2, unsigned char 
     *a0 = (*a0 & ~0x7F) | a2 | (a3 << 3);
 }
 
-#ifdef NON_MATCHING
-/* game_libs_func_00009C5C: a0->0 = a1&0xFF; then a 3-iter char-transform loop
- * (a0[5..7] bytes = a2[0..2] - 0x61) + a block-copy from a3 (a0->8=a3->4,
- * a0->C/0x10/0x14/0x18 = a3->8/C/0x10/0x14, a0->4 byte=5, a0->0x1C=a3->0).
- * Byte-5 store corrected 2026-05-31: was `(char*)(a0+1)+4` (byte 8, clobbering
- * a0[2] LSB) -> `(char*)a0+4` (byte 4 = a0[1] flag), matching `sb t5,4(a0)`.
- * Logic exact; near-miss (28/32): the loop's register allocation diverges AND
- * the block-copy uses a SHARED strength-reduced offset (`v0=1; v1=v0<<2;
- * a1=a0+v1; a2=a3+v1`, then constant offsets from a1/a2) that C can't force —
- * GCC -O2 folds `a3+1`/`a0+1` pointers back to direct constant offsets, so the
- * shared `1<<2` index register never materializes (4 insns short). */
+/* game_libs_func_00009C5C: a0->0 = a1&0xFF; 3-iter char-transform loop
+ * (a0 bytes 5..7 = a2[0..2] - 0x61, family 99DC/9B60/9C04 comma-init recipe);
+ * then a 5-word copy a0[2..6] = a3[1..5], a0 byte 4 = 5, a0[7] = a3[0].
+ * EXACT 32/32 (2026-07-08). The old diagnosis ("shared strength-reduced
+ * offset C can't force") was wrong: the `li v0,1; sll v1,v0,2; addu a2,a3,v1;
+ * addu a1,a0,v1` residue is IDO -O2's LOOP-UNROLL signature — write the copy
+ * as a plain `for (i = 0; i < 5; i++) a0[i+2] = a3[i+1];`. IDO peels iter 0
+ * with direct bases (lw 4(a3)/sw 8(a0)), materializes i=1, and emits the
+ * remaining 4 iters at constant offsets from the shared i<<2 bases. The loop
+ * MUST be phrased base-0 (`i=0..4`, indices i+2/i+1): the equivalent
+ * `for (i = 1; i < 6; i++) a0[i+1] = a3[i];` materializes i=2 instead
+ * (bases +8, offsets 0..C) = 23/32. */
 void game_libs_func_00009C5C(int *a0, int a1, unsigned char *a2, int *a3) {
-    unsigned char *dst = (unsigned char *)a0;
-    unsigned char *src = a2;
-    int i = 0;
-    int *q;
+    int n;
+    char *d;
+    unsigned char *s;
+    int i;
     *a0 = a1 & 0xFF;
-    do {
-        unsigned char c = *src;
-        i++;
-        dst++;
-        dst[4] = c - 0x61;
-        src++;
-    } while (i != 3);
-    a0[2] = a3[1];
-    q = a0 + 1;
-    q[2] = a3[2];
-    q[3] = a3[3];
-    q[4] = a3[4];
-    q[5] = a3[5];
+    for (n = 0, d = (char *)a0, s = a2; ;) {
+        n++;
+        d++;
+        d[4] = *s - 0x61;
+        s++;
+        if (n == 3) {
+            break;
+        }
+    }
+    for (i = 0; i < 5; i++) {
+        a0[i + 2] = a3[i + 1];
+    }
     *((char *)a0 + 4) = 5;
     a0[7] = a3[0];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009C5C);
-#endif
 
 int game_libs_func_00009CDC(int *a0) {
     if (a0[0] & 0x80) {
