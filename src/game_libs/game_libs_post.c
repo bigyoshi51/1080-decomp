@@ -9680,20 +9680,26 @@ void game_libs_func_000273AC(void) {
  * tail" was the default/epilogue). MERGED 2026-06-10 (13 -> 1, 0x18C).
  * Cases: 1/2/4 float setters (+40/+44/+56) with change-flags |=0x40/
  * 0x40/0x80 on b1; 3 s8 setter b10 flag 0x20; 5 s8 setter b4 no flag;
- * 6 indexed byte b[212+idx] idx<8; 7 bit4 insert into b0; 8 b3; 9/10
- * sh pairs (+26/+22 <<3, +24/+20 <<5); 11 b15; 12 sh32; 13/14 b224.
- * C below is STRUCTURALLY COMPLETE (99/99 insns after the idx-reuse
- * fix; jumptable emitted; case order correct). Residual 44 word-diffs
- * = a periodic temp-numbering pattern (target skips t8/t1/t5 at case
- * starts and inverts the first body's pair) -- an IDO temp-counter
- * behavior not yet steered; uoptlist/forensics queue.
- * 2026-06-10 uoptlist candidate-table read: the skips correlate with
- * the FLOAT-COMPARE cases (b1/b2/b4 skip an int temp right where
- * their lwc1 pseudos are created; the int cases b3/b5 are dense) --
- * hypothesis: in the TARGET's compile the float-load pseudos consumed
- * int-temp numbers, in ours they don't. The dump shows creation order
- * but not final numbering, so this is confirmed uoptlist-ceiling
- * class (coloring/numbering choice, not C-steerable). */
+ * 6 indexed byte b[212+idx] idx<8; 7 UNHANDLED (jtbl entry -> default,
+ * verified 2026-07-07 via extract-uso-jumptable.py: rodata roff
+ * 3980..4032, 14 entries, entry7=A918 default, entry14=A910); 8 bit4
+ * insert into b0; 9 b3; 10/11 sh pairs (+22 <<3 then +26=1, +20 <<5
+ * then +24=1 -- VALUE-STORE FIRST, =1 SECOND: that source order makes
+ * the scheduler hoist li+sh-flag into the lbu load-delay = target's
+ * exact emission lbu,li,sh,sll,sh AND numbers li after sll); 12 b15;
+ * 13 sh32; 14 b224 (each its own body, not shared).
+ * C below is STRUCTURALLY COMPLETE: 99/99 insns, every opcode+offset
+ * exact, jumptable case mapping now matches target rodata. Residual
+ * 44 word-diffs are PURE temp register numbers: c8..c14 is a uniform
+ * +5 rotation (build tN <-> target tN+5 mod 10, incl. the c11 li-
+ * displaced-after-c12 quirk which reproduces on both sides); the +5
+ * accumulates as 5 skipped slots early (2 after case1, 1 mid-case3,
+ * 1 before case5, 1 before case8) plus a {t9,t8} pair inversion in
+ * cases 1/4 (both start at counter slot t8; case2 starting at t2 is
+ * NOT inverted). Named f32/s8 locals per case: byte-identical (0
+ * effect, candidates copy-prop). Confirmed uoptlist-ceiling class
+ * (coloring/numbering choice, not C-steerable); permuter inapplicable
+ * (raw-.word USO). */
 #ifdef NON_MATCHING
 void game_libs_func_000273B8(unsigned char *a0, unsigned char *a1) {
     switch (a1[0]) {
@@ -9733,27 +9739,26 @@ void game_libs_func_000273B8(unsigned char *a0, unsigned char *a1) {
         }
         return;
     }
-    case 7:
+    case 8:
         a0[0] = (a0[0] & ~0x10) | ((*(signed char *)(a1 + 4) << 4) & 0x10);
         return;
-    case 8:
+    case 9:
         a0[3] = *(signed char *)(a1 + 4);
         return;
-    case 9:
-        *(short *)(a0 + 26) = 1;
-        *(short *)(a0 + 22) = a1[4] << 3;
-        return;
     case 10:
-        *(short *)(a0 + 24) = 1;
-        *(short *)(a0 + 20) = a1[4] << 5;
+        *(short *)(a0 + 22) = a1[4] << 3;
+        *(short *)(a0 + 26) = 1;
         return;
     case 11:
-        a0[15] = a1[4];
+        *(short *)(a0 + 20) = a1[4] << 5;
+        *(short *)(a0 + 24) = 1;
         return;
     case 12:
-        *(short *)(a0 + 32) = *(unsigned short *)(a1 + 4);
+        a0[15] = a1[4];
         return;
     case 13:
+        *(short *)(a0 + 32) = *(unsigned short *)(a1 + 4);
+        return;
     case 14:
         a0[224] = a1[4];
         return;
