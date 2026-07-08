@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0005F27C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T13:56:58.091291+00:00",
+  "end_time": "2026-07-08T13:56:58.091310+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T13:56:58.091305+00:00",
+      "assistant_text": "Matrix builder, 92.1% 'FP-coloring cap' -> exact \u2014 NOT a coloring cap: the whole 89-word diff cascaded from ONE evaluation-order rule. For every 2-term FP sum L + R, IDO -O2 computes R FIRST with its mul COMMUTED, then L as written (target = naive LTR Sethi-Ullman, FIFO temps f4,f6,f8,f10,f16,f18 in emission order). Winning spelling: -c[Y]*b[Y] + b[X]*-c[X] (right term computed first, commuted back to (-cX)*bX -> both muls neg-first lower-offset-first). 3-term nests the rule: -c2*b2 + (-c1*b1 + b0*-c0). Last diff: move d[7]=0.0f AFTER d[6] so swc1 f0 schedules into the target slot. Generalizes the right-nested-reduction entry.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 89,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_0005F0B8: one 113-insn (0x1C4) function. BOUNDARY MERGED\n * 2026-06-02: splat had split it into 0005F0B8 (3-insn FP-const prologue:\n * `mtc1 a2,$f14` (input, ARG-DERIVED) + `lwc1 $f4,D[0x2354]` \u2014 hoisted above the\n * frame; the real entry) + gl_func_0005F0C4 (the prologue+body using f14 in\n * `mul.s $f20,$f14,$f4`). SINGLE-entry per the dual-vs-single test (f14 arg-\n * derived + FP-op use; no callers). Absorbed 0005F0C4's 110 words into 0005F0B8\n * (0xC -> 0x1C4); dropped the 0005F0C4 symbol. Brings f14(=a2)/f4(=D const)\n * in-scope, retracting the implicit caller-set-float cap; body decodable later. */\n#ifdef NON_MATCHING\n#ifndef FW\n#define FW(p, o) (*(int *)((char *)(p) + (o)))\n#endif\ntypedef char *(*GP_0005F0B8)();\nvoid game_libs_func_0005F0B8(char *arg0, char *arg1, f32 arg2) {\n    f32 sp78;\n    f32 sp70;\n    f32 sp6C;\n    f32 sp64;\n    f32 sp60;\n    f32 sp5C;\n    f32 sp3C;\n    f32 sp38;\n    f32 sp34;\n    f32 sp30;\n    f32 temp_f0;\n    f32 temp_f0_2;\n    f32 temp_f12;\n    f32 temp_f14;\n    f32 temp_f14_2;\n    f32 temp_f16;\n    f32 temp_f16_2;\n    f32 temp_f16_3;\n    f32 temp_f18;\n    f32 temp_f18_2;\n    f32 temp_f20;\n    f32 temp_f20_2;\n    f32 temp_f2;\n    f32 temp_f2_2;\n    f32 temp_f4;\n    f32 temp_f6;\n\n    temp_f20 = arg2 * (*(f32*)((char*)&D_00000000 + 0x2054));\n    sp78 = ((f32(*)())gl_func_00034458)(temp_f20, arg2);\n    temp_f2 = (*(f32*)((char*)arg1 + 0x0));\n    temp_f14 = (*(f32*)((char*)arg1 + 0x4));\n    temp_f16 = (*(f32*)((char*)arg1 + 0x8));\n    temp_f20_2 = ((f32(*)())gl_func_00034458)(temp_f20);\n    temp_f0 = ((f32(*)())gl_func_00034458)((temp_f2 * temp_f2) + (temp_f14 * temp_f14) + (temp_f16 * temp_f16), temp_f14);\n    temp_f2_2 = (*(f32*)((char*)arg1 + 0x0)) / temp_f0;\n    temp_f12 = (*(f32*)((char*)arg1 + 0x4)) / temp_f0;\n    temp_f4 = temp_f2_2 * temp_f2_2;\n    sp70 = temp_f4;\n    temp_f14_2 = (*(f32*)((char*)arg1 + 0x8)) / temp_f0;\n    temp_f6 = temp_f12 * temp_f12;\n    temp_f0_2 = 1.0f - temp_f20_2;\n    sp6C = temp_f6;\n    sp64 = temp_f2_2 * temp_f12;\n    temp_f16_2 = temp_f12 * temp_f14_2;\n    temp_f18 = temp_f14_2 * temp_f2_2;\n    sp60 = temp_f16_2;\n    sp3C = temp_f16_2;\n    sp5C = temp_f18;\n    sp38 = temp_f18;\n    (*(f32*)((char*)arg0 + 0x0)) = (f32) ((temp_f0_2 * temp_f4) + temp_f20_2);\n    temp_f18_2 = temp_f0_2 * sp64;\n    temp_f16_3 = temp_f14_2 * sp78;\n    (*(f32*)((char*)arg0 + 0x10)) = (f32) (temp_f18_2 - temp_f16_3);\n    sp30 = temp_f12 * sp78;\n    (*(f32*)((char*)arg0 + 0x30)) = 0.0f;\n    (*(f32*)((char*)arg0 + 0x4)) = (f32) (temp_f18_2 + temp_f16_3);\n    (*(f32*)((char*)arg0 + 0x20)) = (f32) ((temp_f0_2 * sp5C) + sp30);\n    (*(f32*)((char*)arg0 + 0x14)) = (f32) ((temp_f0_2 * temp_f6) + temp_f20_2);\n    sp34 = temp_f2_2 * sp78;\n    (*(f32*)((char*)arg0 + 0x34)) = 0.0f;\n    (*(f32*)((char*)arg0 + 0x24)) = (f32) ((temp_f0_2 * sp60) - sp34);\n    (*(f32*)((char*)arg0 + 0x8)) = (f32) ((temp_f0_2 * sp38) - sp30);\n    (*(f32*)((char*)arg0 + 0x38)) = 0.0f;\n    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;\n    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;\n    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;\n    (*(f32*)((char*)arg0 + 0x18)) = (f32) ((temp_f0_2 * sp3C) + sp34);\n    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;\n    (*(f32*)((char*)arg0 + 0x28)) = (f32) ((temp_f0_2 * (temp_f14_2 * temp_f14_2)) + temp_f20_2);\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/game_libs/game_libs\", game_libs_func_0005F0B8);\n#endif\n\nvoid game_libs_func_0005F27C(f32 *d, f32 *b, f32 *c) {\n    d[0] = -c[2] * b[2] + b[1] * -c[1];\n    d[1] = b[1] * c[0];\n    d[2] = b[2] * c[0];\n    d[3] = 0.0f;\n    d[4] = b[0] * c[1];\n    d[5] = -c[2] * b[2] + b[0] * -c[0];\n    d[6] = b[2] * c[1];\n    d[7] = 0.0f;\n    d[8] = b[0] * c[2];\n    d[9] = b[1] * c[2];\n    d[10] = -c[1] * b[1] + b[0] * -c[0];\n    d[11] = 0.0f;\n    d[12] = b[0] * -c[3];\n    d[13] = b[1] * -c[3];\n    d[14] = b[2] * -c[3];\n    d[15] = -c[2] * b[2] + (-c[1] * b[1] + b[0] * -c[0]);\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_0005F27C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "89/89 word-exact (0 relocs in range) + make ROM byte-identical (promoted)"
+  }
+}

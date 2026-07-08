@@ -31432,32 +31432,24 @@ void game_libs_func_0005F0B8(char *arg0, char *arg1, f32 arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F0B8);
 #endif
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005F27C)();
-void game_libs_func_0005F27C(char *arg0, char *arg1, char *arg2) {
-  *((f32 *) (((char *) arg0) + 0x0)) = (f32) (((-(*((f32 *) (((char *) arg2) + 0x4)))) * (*((f32 *) (((char *) arg1) + 0x4)))) + ((-(*((f32 *) (((char *) arg2) + 0x8)))) * (*((f32 *) (((char *) arg1) + 0x8)))));
-  *((f32 *) (((char *) arg0) + 0x4)) = (f32) ((*((f32 *) (((char *) arg2) + 0x0))) * (*((f32 *) (((char *) arg1) + 0x4))));
-  *((f32 *) (((char *) arg0) + 0x8)) = (f32) ((*((f32 *) (((char *) arg2) + 0x0))) * (*((f32 *) (((char *) arg1) + 0x8))));
-  *((f32 *) (((char *) arg0) + 0xC)) = 0.0f;
-  *((f32 *) (((char *) arg0) + 0x10)) = (f32) ((*((f32 *) (((char *) arg2) + 0x4))) * (*((f32 *) (((char *) arg1) + 0x0))));
-  *((f32 *) (((char *) arg0) + 0x14)) = (f32) (((-(*((f32 *) (((char *) arg2) + 0x0)))) * (*((f32 *) (((char *) arg1) + 0x0)))) + ((-(*((f32 *) (((char *) arg2) + 0x8)))) * (*((f32 *) (((char *) arg1) + 0x8)))));
-  *((f32 *) (((char *) arg0) + (0x1C ^ 0))) = 0.0f;
-  *((f32 *) (((char *) arg0) + 0x18)) = (f32) ((*((f32 *) (((char *) arg2) + 0x4))) * (*((f32 *) (((char *) arg1) + 0x8))));
-  *((f32 *) (((char *) arg0) + 0x20)) = (f32) ((*((f32 *) (((char *) arg2) + 0x8))) * (*((f32 *) (((char *) arg1) + 0x0))));
-  *((f32 *) (((char *) arg0) + 0x24)) = (f32) ((*((f32 *) (((char *) arg2) + 0x8))) * (*((f32 *) (((char *) arg1) + 0x4))));
-  *((f32 *) (((char *) arg0) + 0x28)) = (f32) (((-(*((f32 *) (((char *) arg2) + 0x0)))) * (*((f32 *) (((char *) arg1) + 0x0)))) + ((-(*((f32 *) (((char *) arg2) + 0x4)))) * (*((f32 *) (((char *) arg1) + 0x4)))));
-  *((f32 *) (((char *) arg0) + 0x2C)) = 0.0f;
-  *((f32 *) (((char *) arg0) + 0x30)) = (f32) ((-(*((f32 *) (((char *) arg2) + 0xC)))) * (*((f32 *) (((char *) arg1) + 0x0))));
-  *((f32 *) (((char *) arg0) + 0x34)) = (f32) ((-(*((f32 *) (((char *) arg2) + 0xC)))) * (*((f32 *) (((char *) arg1) + 0x4))));
-  *((f32 *) (((char *) arg0) + 0x38)) = (f32) ((-(*((f32 *) (((char *) arg2) + 0xC)))) * (*((f32 *) (((char *) arg1) + 0x8))));
-  *((f32 *) (((char *) arg0) + 0x3C)) = (f32) ((((-(*((f32 *) (((char *) arg2) + 0x0)))) * (*((f32 *) (((char *) arg1) + 0x0)))) + ((-(*((f32 *) (((char *) arg2) + 0x4)))) * (*((f32 *) (((char *) arg1) + 0x4))))) + ((-(*((f32 *) (((char *) arg2) + 0x8)))) * (*((f32 *) (((char *) arg1) + 0x8)))));
+void game_libs_func_0005F27C(f32 *d, f32 *b, f32 *c) {
+    d[0] = -c[2] * b[2] + b[1] * -c[1];
+    d[1] = b[1] * c[0];
+    d[2] = b[2] * c[0];
+    d[3] = 0.0f;
+    d[4] = b[0] * c[1];
+    d[5] = -c[2] * b[2] + b[0] * -c[0];
+    d[6] = b[2] * c[1];
+    d[7] = 0.0f;
+    d[8] = b[0] * c[2];
+    d[9] = b[1] * c[2];
+    d[10] = -c[1] * b[1] + b[0] * -c[0];
+    d[11] = 0.0f;
+    d[12] = b[0] * -c[3];
+    d[13] = b[1] * -c[3];
+    d[14] = b[2] * -c[3];
+    d[15] = -c[2] * b[2] + (-c[1] * b[1] + b[0] * -c[0]);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F27C);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
