@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0000CB58",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T02:56:32.132141+00:00",
+  "end_time": "2026-07-08T02:56:32.132162+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T02:56:32.132156+00:00",
+      "assistant_text": "Linear-search leaf over 0x60-stride records (find by word-0 key). 3 levers: (1) goto-to-shared-return-0 tail defeats the -O2 loop unroller (every if(count>0) guard spelling triggered 4x unroll) while producing blezl-to-shared-jr with move v0,zero dup in the annulled delay; (2) decl order i before count -> i=$v0 (counter doubles as return reg), count=$v1; (3) dead empty if(a1){} before the guard (emission-free compute_save priority boost) keeps key in $a1, cursor colors $a2, kills the spurious move a2,a1.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 17,
+  "initial_m2c_source": null,
+  "final_source": "/* Linear search: scan count (a0->0x48) elements (stride 0x60) at a0->0x44 for\n * one whose first field == a1; return that element, else 0. Merged: the loop-\n * back/not-found epilogue was splat-split off as game_libs_func_0000CB88\n * (UNSHARED); merged back (0x30 -> 0x44). BYTE-EXACT 2026-07-07: goto-to-shared\n * return-0 tail (not if-guard: that trips the -O2 unroller) gives the blezl +\n * dup-in-delay shape; decl-order i-before-count colors i=v0/count=v1; the dead\n * empty if (a1) {} is an emission-free priority boost that lets the key keep\n * its a1 home so the cursor colors a2 (no move a2,a1). */\nvoid *game_libs_func_0000CB58(int *a0, int a1) {\n    int i = 0;\n    int count = a0[0x48 / 4];\n    int *p;\n    if (a1) {}\n    if (count <= 0) goto end;\n    p = (int*)a0[0x44 / 4];\n    do {\n        i++;\n        if (*p == a1) {\n            return p;\n        }\n        p = (int*)((char*)p + 0x60);\n    } while (i < count);\nend:\n    return 0;\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_0000CB58.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "17/17 word-exact (real path) + make ROM byte-identical"
+  }
+}

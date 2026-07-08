@@ -2208,18 +2208,17 @@ void game_libs_func_0000CA30(char *arg0, s32 arg1, s32 arg2) {
 /* Linear search: scan count (a0->0x48) elements (stride 0x60) at a0->0x44 for
  * one whose first field == a1; return that element, else 0. Merged: the loop-
  * back/not-found epilogue was splat-split off as game_libs_func_0000CB88
- * (UNSHARED); merged back (0x30 -> 0x44). NOT byte-exact: target keeps the key
- * in a1 + array in a2 + count in v1 with a blezl guard; IDO -O2 copies the key
- * (move a2,a1), uses a1 for the array, and emits bgtzl (register-alloc +
- * branch-likely-arm grind). INCLUDE_ASM is the build path. */
-#ifdef NON_MATCHING
+ * (UNSHARED); merged back (0x30 -> 0x44). BYTE-EXACT 2026-07-07: goto-to-shared
+ * return-0 tail (not if-guard: that trips the -O2 unroller) gives the blezl +
+ * dup-in-delay shape; decl-order i-before-count colors i=v0/count=v1; the dead
+ * empty if (a1) {} is an emission-free priority boost that lets the key keep
+ * its a1 home so the cursor colors a2 (no move a2,a1). */
 void *game_libs_func_0000CB58(int *a0, int a1) {
+    int i = 0;
     int count = a0[0x48 / 4];
     int *p;
-    int i = 0;
-    if (count <= 0) {
-        return 0;
-    }
+    if (a1) {}
+    if (count <= 0) goto end;
     p = (int*)a0[0x44 / 4];
     do {
         i++;
@@ -2228,11 +2227,9 @@ void *game_libs_func_0000CB58(int *a0, int a1) {
         }
         p = (int*)((char*)p + 0x60);
     } while (i < count);
+end:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CB58);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0000CB9C: 22-insn bounds-check + dispatch. Body:
