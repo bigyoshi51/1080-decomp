@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00003A4C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-08T03:03:37.766208+00:00",
+  "end_time": "2026-07-08T03:03:37.766228+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-08T03:03:37.766223+00:00",
+      "assistant_text": "Sibling-template transfer: mirrored the just-cracked 3C8C exact body (goto-label barrier for form-a LO16; shared dp/dw locals coloring v0/v1; tail role-swap with sz=*pB in-block; assignment-expr addu pins) onto 3A4C with 3 deltas from the .s diff: tables D_807FEA20/D_807FEA4C, second-draw constant 0x20 (not 0x10), plain arg1-*(arg7+0x308) mid-call (no width-subtract, 3 words shorter). EXACT on first mirrored build \u2014 zero iteration; register renumbers fell out for free.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 144,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_00003A4C: two-sprite HUD draw with table-indexed offsets.\n * Copies two 0x2C-byte tables from D_807FEA20/D_807FEA4C onto the stack\n * (sp84/sp58 \u2014 IDO unrolls each as a 3x12-byte loop + 2-word tail). If arg4!=0:\n * draw sprite obj &D_807FF490+0x10 twice at arg1+arg7->0x338 / +sp58[arg4],\n * y=arg2+arg7->0x350, second draw width dim-0x20/0x20. Then cb(0xFF,arg6); draw\n * arg3 at arg1-arg7->0x308 / arg2-arg7->0x320 (no width subtract); cb(0xFF,arg5);\n * draw &D_807FF4A8+0x28 twice at arg1 / +sp84[arg4] with its dimension.\n * 2026-07-07 EXACT 144/144 (agent-e, reloc-aware word diff vs .s; every word +\n * reloc symbol matches; LO16 table addends resolve at USO link, same convention\n * as sibling 3C8C 147/147). Body mirrors matched sibling 3C8C exactly with\n * 3A4C's own tables (D_807FEA20/D_807FEA4C), second-draw constant 0x20, and a\n * plain (no dim-deref) mid F34C call. Same lever kit: goto-label LO16 barrier,\n * shared dp/dw deref locals (v0/v1 coloring + the +0x10 frame to -0xB0),\n * tail role-swap with sz=*pB inside the block, assignment-expr addu operand\n * pins ((dp=arg1)/(dw=arg2)/(sz=arg1)/(pB=arg2)). See 3C8C notes below. */\nvoid timproc_uso_b5_func_00003A4C(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, char *arg7) {\n    struct B5Tbl3A4C sp84 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA20;\n    struct B5Tbl3A4C sp58 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA4C;\n    int *pA;\n    int *pB;\n    int sz;\n    char *dp;\n    int dw;\n\n    if (arg4 != 0) {\n        import_0024E608(&import_8024CAF8, *(int *)(arg7 + 0x368), arg5);\n        import_0024F2C8(&timproc_uso_b5_D_807FF490 + 0x10);\n        pA = &sp58.w[arg4];\n        import_0024F75C(&timproc_uso_b5_D_807FF490 + 0x10, *(int *)(arg7 + 0x338) + (int)(dp = (char *)arg1), *(int *)(arg7 + 0x350) + (dw = arg2), 0, *pA);\n        {\n            char *objA = &timproc_uso_b5_D_807FF490;\n            goto lA; lA: objA += 0x10;\n            dp = *(char **)(objA + 0x10);\n            dw = *(short *)(dp + 0x20);\n            import_0024F75C(objA, *pA + (*(int *)(arg7 + 0x338) + (sz = arg1)), *(int *)(arg7 + 0x350) + (int)(pB = (int *)arg2),\n                            dw - 0x20, 0x20);\n        }\n    }\n    import_0024E608(&import_8024CAF8, 0xFF, arg6);\n    import_0024F2C8(arg3);\n    import_0024F34C(arg3, arg1 - *(int *)(arg7 + 0x308), arg2 - *(int *)(arg7 + 0x320), 0);\n    import_0024E608(&import_8024CAF8, 0xFF, arg5);\n    import_0024F2C8(&timproc_uso_b5_D_807FF4A8 + 0x28);\n    pB = &sp84.w[arg4];\n    import_0024F75C(&timproc_uso_b5_D_807FF4A8 + 0x28, arg1, arg2, 0, *pB);\n    import_0024E608(&import_8024CAF8, *(int *)(arg7 + 0x380), arg5);\n    {\n        char *objB = &timproc_uso_b5_D_807FF4A8;\n        goto lB; lB: objB += 0x28;\n        dw = (int) *(char **)(objB + 0x10);\n        dp = (char *) *(short *)((char *)dw + 0x20);\n        sz = *pB;\n        import_0024F75C(objB, arg1 + sz, arg2, sz, dp - sz);\n    }\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00003A4C.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "144/144 reloc-aware word-exact (both build paths) + make ROM byte-identical"
+  }
+}

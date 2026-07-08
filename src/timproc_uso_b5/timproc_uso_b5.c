@@ -2542,47 +2542,43 @@ extern char timproc_uso_b5_D_807FEA4C;
 extern char timproc_uso_b5_D_807FF490;
 extern char timproc_uso_b5_D_807FF4A8;
 struct B5Tbl3A4C { int w[11]; };
-#ifdef NON_MATCHING
 /* timproc_uso_b5_func_00003A4C: two-sprite HUD draw with table-indexed offsets.
- * Copies two 0x2C-byte tables from &D+0x11B0 / &D+0x11DC onto the stack (sp84/sp58
- * — IDO unrolls each as a 3x12-byte loop + 2-word tail). If arg4!=0: draw sprite
- * 0x10 twice at arg1+arg7->0x338 / +sp58[arg4], y=arg2+arg7->0x350, using its
- * looked-up dimension (cb(0x10)->0x10->0x20). Then cb(0,0xFF,arg6); draw arg3 at
- * arg1-arg7->0x308 / arg2-arg7->0x320; cb(0,0xFF,arg5); draw sprite 0x28 twice at
- * arg1 / +sp84[arg4] with its dimension. Fresh decode 2026-05-29 (m2c-confirmed).
- * Caps: structs + cb prototypes untyped (USO-reloc), &D tables not symbolized,
- * sprite-dim return-deref + table-copy unroll. NON_MATCHING.
- * 2026-06-21 RECONSTRUCT 77.85%->86.99% (same fix family as sibling 3C8C/6E08):
- * (1) the call first args are the resolved globals &import_8024CAF8 (+0x10/+0x28)
- * and &timproc_uso_b5_D_807FF490/_807FF4A8, not literal 0/0x10/0x28; (2) the two
- * table sources are &D_807FEA20/_807FEA4C (single struct-copy each); (3) the
- * sprite dimension at +0x20 is a signed halfword (lh) RE-DEREFED from the global
- * base (&import_8024CAF8+0x20/+0x28), not from the call-return objA/objB.
- * 2026-07-07 RISE 86.99%->88.34% (agent-e): callees resolved to the 4 real
- * distinct imports (E608/F2C8/F34C/F75C) called directly (correct R_MIPS_26);
- * call bases fixed to their true globals — F2C8/F75C(arg4-branch) use
- * &D_807FF490+0x10, F2C8/F34C(mid) use arg3, F2C8/F75C(tail) use &D_807FF4A8+0x28;
- * sprite-dim derefs read *(int*)(base+0x10)+0x20 off those same object bases.
- * Residual ~12% (strict-byte, permuter-immune coloring caps): (1) build is +2
- * words — the call-D/L dimension deref materializes a FRESH lui for the object
- * base instead of reusing the a0 arg register (target does lw 0x10(a0)); no C
- * form reaches the a0-reuse. (2) pervasive t-register RENUMBER in both unrolled
- * 3x12-byte copy loops + body (the documented 3C8C coloring cap). (3) frame is
- * -0xA0 vs target -0xB0 (16-byte frame-size cap). NON_MATCHING. */
+ * Copies two 0x2C-byte tables from D_807FEA20/D_807FEA4C onto the stack
+ * (sp84/sp58 — IDO unrolls each as a 3x12-byte loop + 2-word tail). If arg4!=0:
+ * draw sprite obj &D_807FF490+0x10 twice at arg1+arg7->0x338 / +sp58[arg4],
+ * y=arg2+arg7->0x350, second draw width dim-0x20/0x20. Then cb(0xFF,arg6); draw
+ * arg3 at arg1-arg7->0x308 / arg2-arg7->0x320 (no width subtract); cb(0xFF,arg5);
+ * draw &D_807FF4A8+0x28 twice at arg1 / +sp84[arg4] with its dimension.
+ * 2026-07-07 EXACT 144/144 (agent-e, reloc-aware word diff vs .s; every word +
+ * reloc symbol matches; LO16 table addends resolve at USO link, same convention
+ * as sibling 3C8C 147/147). Body mirrors matched sibling 3C8C exactly with
+ * 3A4C's own tables (D_807FEA20/D_807FEA4C), second-draw constant 0x20, and a
+ * plain (no dim-deref) mid F34C call. Same lever kit: goto-label LO16 barrier,
+ * shared dp/dw deref locals (v0/v1 coloring + the +0x10 frame to -0xB0),
+ * tail role-swap with sz=*pB inside the block, assignment-expr addu operand
+ * pins ((dp=arg1)/(dw=arg2)/(sz=arg1)/(pB=arg2)). See 3C8C notes below. */
 void timproc_uso_b5_func_00003A4C(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, char *arg7) {
     struct B5Tbl3A4C sp84 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA20;
     struct B5Tbl3A4C sp58 = *(struct B5Tbl3A4C *)&timproc_uso_b5_D_807FEA4C;
     int *pA;
     int *pB;
     int sz;
+    char *dp;
+    int dw;
 
     if (arg4 != 0) {
         import_0024E608(&import_8024CAF8, *(int *)(arg7 + 0x368), arg5);
         import_0024F2C8(&timproc_uso_b5_D_807FF490 + 0x10);
         pA = &sp58.w[arg4];
-        import_0024F75C(&timproc_uso_b5_D_807FF490 + 0x10, arg1 + *(int *)(arg7 + 0x338), arg2 + *(int *)(arg7 + 0x350), 0, *pA);
-        import_0024F75C(&timproc_uso_b5_D_807FF490 + 0x10, arg1 + *(int *)(arg7 + 0x338) + *pA, arg2 + *(int *)(arg7 + 0x350),
-                        *(short *)(*(int *)(&timproc_uso_b5_D_807FF490 + 0x20) + 0x20) - 0x20, 0x20);
+        import_0024F75C(&timproc_uso_b5_D_807FF490 + 0x10, *(int *)(arg7 + 0x338) + (int)(dp = (char *)arg1), *(int *)(arg7 + 0x350) + (dw = arg2), 0, *pA);
+        {
+            char *objA = &timproc_uso_b5_D_807FF490;
+            goto lA; lA: objA += 0x10;
+            dp = *(char **)(objA + 0x10);
+            dw = *(short *)(dp + 0x20);
+            import_0024F75C(objA, *pA + (*(int *)(arg7 + 0x338) + (sz = arg1)), *(int *)(arg7 + 0x350) + (int)(pB = (int *)arg2),
+                            dw - 0x20, 0x20);
+        }
     }
     import_0024E608(&import_8024CAF8, 0xFF, arg6);
     import_0024F2C8(arg3);
@@ -2592,13 +2588,15 @@ void timproc_uso_b5_func_00003A4C(int arg0, int arg1, int arg2, int arg3, int ar
     pB = &sp84.w[arg4];
     import_0024F75C(&timproc_uso_b5_D_807FF4A8 + 0x28, arg1, arg2, 0, *pB);
     import_0024E608(&import_8024CAF8, *(int *)(arg7 + 0x380), arg5);
-    sz = *pB;
-    import_0024F75C(&timproc_uso_b5_D_807FF4A8 + 0x28, arg1 + sz, arg2, sz,
-                    *(short *)(*(int *)(&timproc_uso_b5_D_807FF4A8 + 0x38) + 0x20) - sz);
+    {
+        char *objB = &timproc_uso_b5_D_807FF4A8;
+        goto lB; lB: objB += 0x28;
+        dw = (int) *(char **)(objB + 0x10);
+        dp = (char *) *(short *)((char *)dw + 0x20);
+        sz = *pB;
+        import_0024F75C(objB, arg1 + sz, arg2, sz, dp - sz);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00003A4C);
-#endif
 
 // timproc_uso_b5_func_00003C8C — STRUCTURAL PASS (0x24C / 147 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
