@@ -707,18 +707,26 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  *     made block-2 byte-exact.
  *   - decl order (entity, second_sub, sub) coalesces the spill slots.
  *
- * RESIDUAL ~24 words, ALL register-allocation / scheduling caps (C cannot force):
- *   (1) block-1 entity/sub v1<->a2 mirror-swap (idx 27,29,31,33-41): block-1
- *       attaches TWO objects so both `entity` (arg-base+value) and `sub`
- *       (a1+flag-base) cross the func_07ACE0 call; IDO breaks the 2-var
- *       coloring tie opposite the target. Block-2 (only ONE crossing var)
- *       colors correctly -> proves it is the extra crossing var, not the C.
- *   (2) block-3 second_sub reload a1-vs-a2 (idx 66,69,71-73) -- same class.
- *   (3) import_80020078 read-then-write: target emits TWO luis w/ %lo folded
- *       (idx 57-60); IDO from C always CACHES the base (one lui+addiu).
- *       Documented not-C-controllable (see func_00008DB4 notes).
- *   (4) frame 0x30-vs-0x28 (idx 0,80) + prologue or-s0/a1-home schedule
- *       (idx 2,3,5) -- downstream of (1)'s extra spill slot.
+ * 2026-07-08 EXACT 81/81 (word-diff fully unmasked, 0 diffs; relocs align
+ * with target sym annotations). The whole 24-word "regalloc cap" residual
+ * fell to FOUR levers:
+ *   (1)+(2) [v1/a2 mirror-swap + block-3 a1-vs-a2] = VARIABLE-ROLE map:
+ *       target has exactly TWO pointer locals -- `sub`@0x24/a2 carries
+ *       block-1 alloc + block-3 import-head, `entity`@0x20/v1 carries
+ *       block-1 entity + BLOCK-2's self->0x5C reload (not `sub`!). Decl
+ *       order (sub, entity) homes sub at the higher slot; slot order then
+ *       drives the a2/v1 coloring on every reload. (Old analysis blamed an
+ *       uncontrollable 2-var coloring tie -- wrong: it was role-mapping.)
+ *   (3) import_80020078 twin-lui: write-site alias extern
+ *       `import_80020078_w` (undefined_syms_auto = 0, same value) busts the
+ *       read/write base CSE (8DB4 lever); the WRITE statement placed FIRST
+ *       gives target's lui-$at-before-lui-a2 schedule, and as1 still emits
+ *       lw (idx59) before sw (idx60), so runtime order stays
+ *       read-old-head-then-clear = original behavior.
+ *   (4) frame 0x30->0x28 + prologue schedule: PARAM-REASSIGN -- drop the
+ *       `char *self` local and reassign the a0 param itself; kills the
+ *       dead s0-colored home slot and by itself yields move-s0-early +
+ *       sw-a1-in-bnez-delay prologue.
  *
  * (Old NM decode analysis follows, for body context.)
  *
@@ -780,7 +788,6 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * struct (e.g., a render-state config table at &D + 0x134 with sub-ptr
  * to glyph/texture pool fields). */
 extern char D_00000000;
-#ifdef NON_MATCHING
 extern int timproc_uso_b5_func_000010EC();
 extern int timproc_uso_b5_func_076D58();
 extern void timproc_uso_b5_func_00001460();
@@ -788,12 +795,10 @@ extern void timproc_uso_b5_func_00001658();
 extern char timproc_uso_b5_D_807FE8F4;
 extern char import_80020078;
 extern char import_8001FFF0;
-void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
-    char *self = (char*)a0;
-    char *entity;
-    char *second_sub;
+void *timproc_uso_b5_func_0000131C(char *self, int a1) {
     char *sub;
-    if (a0 == 0) {
+    char *entity;
+    if (self == 0) {
         self = (char*)timproc_uso_b5_func_055750(0x60);
         if (self == 0) goto end;
     }
@@ -807,26 +812,26 @@ void *timproc_uso_b5_func_0000131C(void *a0, int a1) {
     timproc_uso_b5_func_07ACE0(entity + 0x10, sub);
     if (*(int*)(sub + 0x14) != 0) *(int*)(sub + 0x4) = 1;
     *(int*)(sub + 0x14) = (int)entity;
-    sub = *(char**)(self + 0x5C);
-    timproc_uso_b5_func_07ACE0(sub + 0x10, self);
+    entity = *(char**)(self + 0x5C);
+    timproc_uso_b5_func_07ACE0(entity + 0x10, self);
     if (*(int*)(self + 0x14) != 0) *(int*)(self + 0x4) = 1;
-    *(int*)(self + 0x14) = (int)sub;
+    *(int*)(self + 0x14) = (int)entity;
     timproc_uso_b5_func_00001460(self);
     timproc_uso_b5_func_00001658(self);
-    second_sub = *(char**)&import_80020078;
-    *(int*)&import_80020078 = 0;
+    {
+        extern char import_80020078_w; /* same-value alias: distinct extern write-site busts the read/write base CSE -> twin form-a luis */
+        *(int*)&import_80020078_w = 0;
+    }
+    sub = *(char**)&import_80020078;
     *(int*)&import_8001FFF0 = 0;
-    timproc_uso_b5_func_07ACE0(self + 0x10, second_sub);
-    if (*(int*)(second_sub + 0x14) != 0) *(int*)(second_sub + 0x4) = 1;
-    *(int*)(second_sub + 0x14) = (int)self;
+    timproc_uso_b5_func_07ACE0(self + 0x10, sub);
+    if (*(int*)(sub + 0x14) != 0) *(int*)(sub + 0x4) = 1;
+    *(int*)(sub + 0x14) = (int)self;
     timproc_uso_b5_func_076D58(*(int*)&import_80020078);
     (void)a1;
 end:
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000131C);
-#endif
 
 // timproc_uso_b5_func_00001460 — STRUCTURAL PASS (0x1F8 / 126 words,
 // no episode). Raw-.word USO form (genuine code; splat can't

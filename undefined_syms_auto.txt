@@ -2738,3 +2738,4 @@ gl_ref_0000CBFC = 0x0000CBFC;
 gl_ref_0000CC04 = 0x0000CC04;
 D_B8D4_st2 = 0x00000000;
 D_B8D4_st3 = 0x00000000;
+import_80020078_w = 0; /* alias of import_80020078: distinct extern write-site (131C read-then-write CSE-bust) */
