@@ -2249,97 +2249,161 @@ out:
  *   w   = { m1->[0xA0]-va.x, 0, M1->[0x38]-va.z }       (sp+0xB0)
  *   t   = game_uso_func_070238(w.x^2 + w.y^2 + w.z^2)
  *   game_uso_func_071028(&w)                            (normalize w)
- *   if (s0->[0x88] < t)      sc = t - s0->[0xA0];
- *   else if (t < s0->[0xA0]) sc = t - s0->[0xA0];
- *   else                     sc = 0.0f;   (f20 sentinel)
- *   w *= sc;
+ *   if (s0->[0x88] < t)      { sc = t - s0->[0x88];  w *= sc; }   <- 0x88, NOT 0xA0
+ *   else if (t < s0->[0xA0]) { sc = t - s0->[0xA0];  w *= sc; }
+ *   else                     { w *= 0.0f; }          (f20 sentinel, real mul.s)
  *   k   = (mag - s0->[0xB8]) * s0->[0x118];
- *   out = d*k + w; game_uso_func_072EE8(p+0x30, &out)
- * The Vec3 copies fan through stack temps via the *(Tri3i*)d=*(Tri3i*)s
- * integer-copy idiom (same family as 00001DDC) producing the interleaved
- * lw/sw fanout. Residual byte gap is IDO float-slot/regalloc scheduling across
- * the emit blocks (USO raw-word, no m2c). INCLUDE_ASM stays the build path so
- * ROM is byte-correct; this body is decode-progress only. */
+ *   e  *= k;  e += w;  game_uso_func_072EE8(p+0x30, &e)   (e = the d work vec)
+ *
+ * REWRITE 2026-07-09 (agent-e): 50 -> 67.27% objdiff. Fixed the mis-decoded
+ * clamp (branch 1 subtracts s0->0x88, not 0xA0), recovered the FULL
+ * marshalling chain (buf@0x8C -> buf2@0x4C -> e@0xD8 -> buf -> s0->0x3C..44)
+ * and solved the -0x100 FRAME LAYOUT exactly: per-vector float[3] locals in
+ * decl order (first decl = highest addr) with UNUSED pad arrays filling the
+ * gaps (padA[3]@0xCC, padB[5]@0x98, padC[6]@0x74, padD[4]@0x58, padE[2]@0x44)
+ * + `char * volatile p` (home 0xFC, sw t8 early + lw reload per 072EE8 call,
+ * kills both the s1-promotion and the p+0x30 CSE spill) + mag/t plain floats
+ * homed 0xBC/0xAC by spill-across-call. All sp offsets + frame now word-exact;
+ * copies written in z,y,x statement order (matches target load order).
+ * Residual classes (word count 240 vs 252):
+ *  (1) matrix-block fp spill JUGGLE absent (-12): target holds vb in
+ *      f14/f16/f18 across the 3x3 rows and juggles buf.x/y/z through temp
+ *      slots sp+0x28/0x2C; every C form tried (named scalars, embedded
+ *      assignments, fused per-axis, grouped adds) either skips the juggle or
+ *      homes the named temps (+frame). Emergent uopt pressure shape.
+ *  (2) else-branch w*=0.0f muls FOLD to plain f20 stores (-3): uopt folds
+ *      mul-by-const-zero once the 0.0f web is cross-call (f20). Memory-opaque
+ *      zero (int store + lwc1) restores the muls but costs sw+lwc1 and +8
+ *      frame (all offsets shift) - rejected. Isolated probe (probe6) shows the
+ *      muls CAN survive with literal 0.0f when the web is NOT cross-call-CSE'd;
+ *      the exact target combo (single mtc1 zero,$f20 + live muls) not yet
+ *      reproduced in C.
+ *  (3) temp-pool phase shifts: p's def lands v0 (candidate m) vs target t8
+ *      (pure temp), cascading the whole t-reg pool one slot; fp pool starts
+ *      f4 vs target f6. Same class as docs W4 #3.
+ * INCLUDE_ASM stays the build path so ROM is byte-correct. */
 #ifdef NON_MATCHING
 extern float game_uso_func_070238(float);
 extern void game_uso_func_071028(Vec3 *v);
 extern void game_uso_func_072EE8(char *dst, Vec3 *v);
 
 void game_uso_func_00003558(char *s0) {
-    char *p, *m0, *m1, *M, *M1;
-    Vec3 va, vb, v, acc, d, side, w, out;
-    float mag, t, sc, k;
+    char * volatile p;       /* home sp+0xFC (reloaded per use) */
+    float va[3];             /* sp+0xF0 */
+    float vb[3];             /* sp+0xE4 */
+    float e[3];              /* sp+0xD8 */
+    float padA[3];           /* sp+0xCC (unused) */
+    float stage[3];          /* sp+0xC0 */
+    float mag;               /* sp+0xBC (spilled across calls) */
+    float w[3];              /* sp+0xB0 */
+    float t;                 /* sp+0xAC (spilled across call) */
+    float padB[5];           /* sp+0x98 (unused) */
+    float buf[3];            /* sp+0x8C int-marshal hub */
+    float padC[6];           /* sp+0x74 (unused) */
+    float d[3];              /* sp+0x68 */
+    float padD[4];           /* sp+0x58 (unused) */
+    float buf2[3];           /* sp+0x4C */
+    float padE[2];           /* sp+0x44 (unused) */
+    float side[3];           /* sp+0x38 */
+    char *m;
+    float sc, k;
 
-    p = *(char **)(s0 + 0x14);
-    va.x = *(float *)(p + 0xA0);
-    va.y = *(float *)(p + 0xA4);
-    va.z = *(float *)(p + 0xA8);
+    m = *(char **)(s0 + 0x14);
+    p = m;
+    va[0] = *(float *)(m + 0xA0);
+    va[1] = *(float *)(m + 0xA4);
+    va[2] = *(float *)(m + 0xA8);
 
-    m0 = *(char **)(s0 + 0x48);
-    M  = m0 + 0x70;
-    vb.x = *(float *)(m0 + 0xA0);
-    vb.y = *(float *)(M + 0x34);
-    vb.z = *(float *)(M + 0x38);
+    m = *(char **)(s0 + 0x48);
+    vb[0] = *(float *)(m + 0xA0);
+    m += 0x70;
+    vb[1] = *(float *)(m + 0x34);
+    vb[2] = *(float *)(m + 0x38);
 
-    /* Tri3i (integer) read of the input vector, reused as float bits. */
-    *(Tri3i *)&v = *(Tri3i *)(s0 + 0x68);
+    /* Tri3i (integer) marshal of the input vector into the hub buffer. */
+    *(Tri3i *)buf = *(Tri3i *)(s0 + 0x68);
+    stage[2] = buf[2];
+    stage[1] = buf[1];
+    stage[0] = buf[0];
 
-    acc.x = *(float *)(M + 0x00) * v.x
-          + *(float *)(M + 0x10) * v.y
-          + *(float *)(M + 0x20) * v.z;
-    acc.y = *(float *)(M + 0x04) * v.x
-          + *(float *)(M + 0x14) * v.y
-          + *(float *)(M + 0x24) * v.z;
-    acc.z = *(float *)(M + 0x08) * v.x
-          + *(float *)(M + 0x18) * v.y
-          + *(float *)(M + 0x28) * v.z;
+    m = *(char **)(s0 + 0x48);
+    m += 0x70;
+    stage[0] = *(float *)(m + 0x00) * buf[0]
+             + *(float *)(m + 0x10) * buf[1]
+             + *(float *)(m + 0x20) * buf[2];
+    stage[1] = *(float *)(m + 0x04) * buf[0]
+             + *(float *)(m + 0x14) * buf[1]
+             + *(float *)(m + 0x24) * buf[2];
+    stage[2] = *(float *)(m + 0x08) * buf[0]
+             + *(float *)(m + 0x18) * buf[1]
+             + *(float *)(m + 0x28) * buf[2];
+    vb[0] = vb[0] + stage[0];
+    vb[1] = vb[1] + stage[1];
+    vb[2] = vb[2] + stage[2];
 
-    vb.x = vb.x + acc.x;
-    vb.y = vb.y + acc.y;
-    vb.z = vb.z + acc.z;
+    d[0] = vb[0] - va[0];
+    d[1] = vb[1] - va[1];
+    d[2] = vb[2] - va[2];
 
-    d.x = vb.x - va.x;
-    d.y = vb.y - va.y;
-    d.z = vb.z - va.z;
+    /* d fans through the marshalling chain: buf -> buf2 -> e -> buf. */
+    *(Tri3i *)buf = *(Tri3i *)d;
+    *(Tri3i *)buf2 = *(Tri3i *)buf;
+    e[2] = buf2[2];
+    e[1] = buf2[1];
+    e[0] = buf2[0];
+    *(Tri3i *)buf = *(Tri3i *)e;
+    *(float *)(s0 + 0x3C) = buf[0];
+    *(float *)(s0 + 0x40) = buf[1];
+    *(float *)(s0 + 0x44) = buf[2];
 
-    /* Vec3 double-buffer fanout -> s0->{0x3C,0x40,0x44}. */
-    *(Tri3i *)(s0 + 0x3C) = *(Tri3i *)&d;
+    mag = game_uso_func_070238(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
 
-    mag = game_uso_func_070238(d.x * d.x + d.y * d.y + d.z * d.z);
+    side[0] = 0.0f;
+    side[1] = e[1] * *(float *)(s0 + 0x130);
+    side[2] = 0.0f;
+    game_uso_func_072EE8(p + 0x30, (Vec3 *)side);
 
-    side.x = 0.0f;
-    side.y = d.y * *(float *)(s0 + 0x130);
-    side.z = 0.0f;
-    game_uso_func_072EE8(p + 0x30, &side);
+    game_uso_func_071028((Vec3 *)e);
 
-    game_uso_func_071028(&d);
+    m = *(char **)(s0 + 0x4C);
+    w[0] = *(float *)(m + 0xA0);
+    m += 0x70;
+    w[1] = *(float *)(m + 0x34);
+    w[2] = *(float *)(m + 0x38);
+    w[0] = w[0] - va[0];
+    w[1] = 0.0f;
+    w[2] = w[2] - va[2];
 
-    m1 = *(char **)(s0 + 0x4C);
-    M1 = m1 + 0x70;
-    w.x = *(float *)(m1 + 0xA0) - va.x;
-    w.y = 0.0f;
-    w.z = *(float *)(M1 + 0x38) - va.z;
-
-    t = game_uso_func_070238(w.x * w.x + w.y * w.y + w.z * w.z);
-    game_uso_func_071028(&w);
+    t = game_uso_func_070238(w[0] * w[0] + w[1] * w[1] + w[2] * w[2]);
+    game_uso_func_071028((Vec3 *)w);
 
     if (*(float *)(s0 + 0x88) < t) {
-        sc = t - *(float *)(s0 + 0xA0);
+        sc = t - *(float *)(s0 + 0x88);
+        w[0] = w[0] * sc;
+        w[1] = w[1] * sc;
+        w[2] = w[2] * sc;
     } else if (t < *(float *)(s0 + 0xA0)) {
         sc = t - *(float *)(s0 + 0xA0);
+        w[0] = w[0] * sc;
+        w[1] = w[1] * sc;
+        w[2] = w[2] * sc;
     } else {
-        sc = 0.0f;
+        w[0] = w[0] * 0.0f;
+        w[1] = w[1] * 0.0f;
+        w[2] = w[2] * 0.0f;
     }
-    w.x = w.x * sc;
-    w.y = w.y * sc;
-    w.z = w.z * sc;
 
     k = (mag - *(float *)(s0 + 0xB8)) * *(float *)(s0 + 0x118);
-    out.x = d.x * k + w.x;
-    out.y = d.y * k + w.y;
-    out.z = d.z * k + w.z;
-    game_uso_func_072EE8(p + 0x30, &out);
+    e[0] = e[0] * k;
+    e[1] = e[1] * k;
+    e[2] = e[2] * k;
+    e[0] = e[0] + w[0];
+    e[1] = e[1] + w[1];
+    e[2] = e[2] + w[2];
+    game_uso_func_072EE8(p + 0x30, (Vec3 *)e);
 }
+
+
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00003558);
 #endif
