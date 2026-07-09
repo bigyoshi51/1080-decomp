@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00000058",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T23:27:27.672209+00:00",
+  "end_time": "2026-07-09T23:27:27.672228+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T23:27:27.672222+00:00",
+      "assistant_text": "Registration-loop constructor, 92.7%->exact via 6 levers: goto-done shared epilogue; INLINE cfg deref (named local CSE'd both +0x134 loads -> t-cascade; inlining restores fresh loop reloads); variable-role map (s0=sub/vt/link webs, s1=node-alloc/slot, separate loop cursor n \u2014 merging all tanked Chow priority and let i steal s0); param-reassign (drop s3 local) killed the 6-word prologue cluster; goto-l2 BB barrier isolates the vt-base web from the v0-poisoned call BB; NEW LEVER \u2014 declare import_000A5F40 as returning VOID: an int-returning call before the loop preheader poisons $v0 for the cfg-base candidate (extern RETURN TYPE is a v0-coloring lever; uoptlist + cupcosts-verified).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 125,
+  "initial_m2c_source": null,
+  "final_source": "/* MATCHED 2026-07-09 (125/125 words, reloc-aware). Levers: param-reassign\n * (a0 is the working var -> entry move s3,a0 interleaved in prologue +\n * sw s0 in bnez delay); goto done shared epilogue; inline cfg deref (no\n * named cfg var -> fresh t1/t2 loop reload temps); variable-role map\n * s0 = sub/vt/link, s1 = node-alloc/slot, n = loop cursor; goto-l2 BB\n * barrier isolates tmp's web from the v0-poisoned call BB (colors v0);\n * import_000A5F40 declared VOID (an int-returning call preceding the\n * loop preheader poisons $v0 for the cfg-base candidate -> lw v1). */\nint *timproc_uso_b5_func_00000058(int *a0) {\n    int *s0, *s1, *n;\n    int i, tmp;\n\n    if (a0 == 0) {\n        a0 = (int *)timproc_uso_b5_func_055750(0x50);\n        if (a0 == 0) goto done;\n    }\n    s0 = a0;\n    if (a0 == 0) {\n        s0 = (int *)timproc_uso_b5_func_055750(0x50);\n        if (s0 == 0) goto after_sub;\n    }\n    s1 = s0;\n    if (s0 == 0) {\n        s1 = (int *)timproc_uso_b5_func_055750(0x2C);\n        if (s1 == 0) goto after_node;\n    }\n    timproc_uso_b5_func_04C678(s1, &timproc_uso_b5_D_807FD908 + 0x98);\n    s1[0x28 / 4] = (int)&import_80073B18;\nafter_node:\n    s0[0x28 / 4] = (int)&import_80073B80;\nafter_sub:\n    a0[0x28 / 4] = (int)&timproc_uso_b5_D_807FD888;\n    a0[0x0C / 4] = (int)(&timproc_uso_b5_D_807FD888 + 0xA0);\n    a0[0x48 / 4] = import_000A5D38(0);\n    import_000A5F40(a0[0x48 / 4], a0);\n\n    n = (int *)(*(int **)(&import_80020098 + 0x134))[0x70 / 4];\n    for (i = 0; i < (*(int **)(&import_80020098 + 0x134))[0x78 / 4]; i++) {\n        import_000A6900(a0[0x48 / 4], n, -1, &timproc_uso_b5_D_807EF230);\n        n = (int *)n[0x44 / 4];\n    }\n\n    *(int *)(a0[0x48 / 4] + 0x30) =\n        import_0024CCF4(0, &import_80074E78, 0x48, 0xDD, 3, 13);\n\n    import_000A5FBC(a0[0x48 / 4]);\n    goto l2; l2:\n    tmp = a0[0x48 / 4];\n    s0 = (int *)((int *)tmp)[0x28 / 4];\n    ((void (*)(int))s0[0x5C / 4])(*(short *)((char *)s0 + 0x58) + tmp);\n\n    s0 = (int *)a0[0x48 / 4];\n    s1 = (int *)((char *)a0 + 0x10);\n    timproc_uso_b5_func_07ACE0(s1, s0);\n    if (s0[0x14 / 4] != 0) {\n        s0[0x04 / 4] = 1;\n    }\n    s0[0x14 / 4] = (int)a0;\n\n    s0 = *(int **)(&import_80020098 + 0x190);\n    timproc_uso_b5_func_07ACE0(s1, s0);\n    if (s0[0x14 / 4] != 0) {\n        s0[0x04 / 4] = 1;\n    }\n    s0[0x14 / 4] = (int)a0;\n\n    timproc_uso_b5_func_0139B0(*(int *)(&import_80020098 + 0x190), 1, 0);\n    a0[0x30 / 4] = 1;\n    a0[0x2C / 4] = 0;\ndone:\n    return a0;\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00000058.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "125/125 reloc-aware word-exact (both build paths) + make ROM byte-identical (promoted)"
+  }
+}

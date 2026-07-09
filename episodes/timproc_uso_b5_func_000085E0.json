@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_000085E0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T23:27:27.922873+00:00",
+  "end_time": "2026-07-09T23:27:27.922894+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T23:27:27.922888+00:00",
+      "assistant_text": "FP threshold dispatcher, 63.4%->exact on 2 variants after a DECODE-ARM FIX: the old body misattributed the arms (the 'idx-lookup else' is func_866C's body; the vtable dispatch belongs in the f0>=f2 else arm). Two named FP locals loaded 0x480-first (bound=f0, old=f2, temps f4/f6/f8) + VOLATILE reload of 0x480 for the inner compare (defeats store-forward CSE, restores lwc1-f8 + hazard nop). Real syms (func_00008A38), no placeholders.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 35,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_000085E0 \u2014 MATCHED 2026-07-09 (35/35 words).\n * FPU clamp: decrement a0->0x480 by a0->0xEC toward bound a0->0x484; on\n * crossing the bound, snap + clear 0x3CC + reset 0x488 from 0x104. If\n * already at/past bound (else arm): snap + clear + reset, then\n * func_00008A38(a0) and vtable dispatch v0->0x28->[0x64](v0 + (short)v0->0x28->[0x60]).\n * (Old NM decode had the arms swapped \u2014 the \"idx lookup else\" belongs to 866C.)\n * Levers: NO gl placeholder; direct real syms; two named FP locals o(0x480)/b(0x484)\n * loaded 0x480-first (colors b=$f0 by priority, o=$f2; temps f4/f6/f8);\n * volatile reload of 0x480 for the inner compare (defeats store-forward CSE,\n * restores the lwc1 f8 + nop hazard shape). */\nvoid timproc_uso_b5_func_000085E0(int *a0) {\n    float o, b;\n    int *v0, *v1;\n\n    o = *(float *)((char *)a0 + 0x480);\n    b = *(float *)((char *)a0 + 0x484);\n    if (b < o) {\n        *(float *)((char *)a0 + 0x480) = o - *(float *)((char *)a0 + 0xEC);\n        if (*(volatile float *)((char *)a0 + 0x480) < b) {\n            *(float *)((char *)a0 + 0x480) = b;\n            *(int *)((char *)a0 + 0x3CC) = 0;\n            *(int *)((char *)a0 + 0x488) = *(int *)((char *)a0 + 0x104);\n        }\n    } else {\n        *(float *)((char *)a0 + 0x480) = b;\n        *(int *)((char *)a0 + 0x3CC) = 0;\n        *(int *)((char *)a0 + 0x488) = *(int *)((char *)a0 + 0x104);\n        v0 = (int *)timproc_uso_b5_func_00008A38(a0);\n        v1 = (int *)v0[0x28 / 4];\n        ((void (*)(int))v1[0x64 / 4])(*(short *)((char *)v1 + 0x60) + (int)v0);\n    }\n}",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_000085E0.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "35/35 word-exact + make ROM byte-identical (promoted)"
+  }
+}
