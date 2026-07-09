@@ -5325,76 +5325,73 @@ void gl_func_00039E24(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039E24);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00039EE4: 38-insn standalone bundle-iterator + vtable-dispatch.
- *
- * For each node in head[0] linked list (same {node*, next*} shape as
- * gl_func_00038DC0 etc.):
- *   if (node->[0x18] & 0x4):
- *     vt = node->[0x28];
- *     (vt->[0x1C])(*(short*)(vt+0x18) + (int)node);
- *
- * Cap: target spills bundle ptrs to sp+0x18/sp+0x1C (no callee-saved
- * regs used), while my emit promotes to $s0 since it survives the
- * single jalr. Frame -32 (-0x20) target vs -0x20+8 built. Standard
- * sibling-of-38DC0 iterator decoded; ~70% match. */
+/* gl_func_00039EE4: 38-insn standalone bundle-iterator + vtable-dispatch
+ * (EXACT 38/38, 2026-07-09 agent-e). For each node in head[0] list:
+ *   if (node->[0x18] & 0x4) (node->[0x28]->[0x1C])(node->[0x28]->s16[0x18] + node);
+ * Load-bearing levers (do not "clean up"):
+ *   - dead while(0){pp=&cur;pp=&next;} = address-taken cur/next -> memory
+ *     homes sp+0x18/0x1C, advance temps stay ugen t-ring (t4/t6);
+ *   - ternary-with-comma advance = collapsed-else b+1 shape;
+ *   - node reassigned at loop top (recompute via cur) + NO return stmt
+ *     (fall-off-end int) = node web colors $v0, no trailing move;
+ *   - if(0){vt=NULL;} dead multi-def = vt LR rejected -> ugen binds $v1
+ *     (single lw 0x28, no CSE-candidate $v0 steal, no ghost ring slot). */
 int gl_func_00039EE4(int **head) {
-    int **bundle = (int**)head[0];
-    int **iter;
-    int *node = NULL;
-    if (bundle != NULL) {
-        iter = (int**)bundle[1];
-        node = (int*)bundle[0];
-    } else {
-        iter = NULL;
-    }
-    while (node != NULL) {
-        if (node[0x18/4] & 0x4) {
-            int *vt = (int*)node[0x28/4];
-            ((void(*)(int))vt[0x1C/4])(*(short*)((char*)vt + 0x18) + (int)node);
-        }
-        if (iter == NULL) break;
-        node = (int*)iter[0];
-        iter = (int**)iter[1];
-    }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039EE4);
-#endif
+    int *next;
+    int *cur;
+    int *node;
+    int **pp;
 
-#ifdef NON_MATCHING
-/* gl_func_00039F7C: 38-insn standalone bundle-iterator (mask=0x8 variant).
- * Identical to gl_func_00039EE4 but:
- *   - guard is node->[0x18] & 0x8 (vs & 0x4)
- *   - dispatch via vt->[0x24] / vt->[0x20] (vs 0x1C / 0x18)
- *
- * Cap: same as 39EE4 — target spills bundle ptrs to sp+0x18/sp+0x1C,
- * built promotes to $s0. ~70% match. */
-int gl_func_00039F7C(int **head) {
-    int **bundle = (int**)head[0];
-    int **iter;
-    int *node = NULL;
-    if (bundle != NULL) {
-        iter = (int**)bundle[1];
-        node = (int*)bundle[0];
-    } else {
-        iter = NULL;
+    while (0) {
+        pp = &cur;
+        pp = &next;
     }
+    next = (int *)head[0];
+    cur = next;
+    node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;
     while (node != NULL) {
-        if (node[0x18/4] & 0x8) {
-            int *vt = (int*)node[0x28/4];
-            ((void(*)(int))vt[0x24/4])(*(short*)((char*)vt + 0x20) + (int)node);
+        node = (int *)cur[0];
+        if (node[0x18 / 4] & 0x4) {
+            int *vt = (int *)node[0x28 / 4];
+            if (0) {
+                vt = NULL;
+            }
+            ((void (*)(int))vt[0x1C / 4])(*(short *)((char *)vt + 0x18) + (int)node);
         }
-        if (iter == NULL) break;
-        node = (int*)iter[0];
-        iter = (int**)iter[1];
+        cur = next;
+        node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;
     }
-    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039F7C);
-#endif
+
+/* gl_func_00039F7C: twin of gl_func_00039EE4 (EXACT 38/38, 2026-07-09
+ * agent-e): mask 0x8 (vs 0x4), dispatch vt->[0x24]/s16[0x20] (vs
+ * 0x1C/0x18). Same load-bearing levers — see 39EE4's comment. */
+int gl_func_00039F7C(int **head) {
+    int *next;
+    int *cur;
+    int *node;
+    int **pp;
+
+    while (0) {
+        pp = &cur;
+        pp = &next;
+    }
+    next = (int *)head[0];
+    cur = next;
+    node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;
+    while (node != NULL) {
+        node = (int *)cur[0];
+        if (node[0x18 / 4] & 0x8) {
+            int *vt = (int *)node[0x28 / 4];
+            if (0) {
+                vt = NULL;
+            }
+            ((void (*)(int))vt[0x24 / 4])(*(short *)((char *)vt + 0x20) + (int)node);
+        }
+        cur = next;
+        node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;
+    }
+}
 
 extern int gl_ref_0004C470();
 extern int gl_ref_0004C4AC();
@@ -7538,44 +7535,44 @@ int game_libs_func_0003D538(int a0, int a1, int a2) {
  * current node (spilled), sp4 the next. (splat had mis-split the leading
  * `lw t6,0x10(a0)` into a 0x4 symbol; this is the merged 0x70 fn at 0x3D54C.)
  *
- * 56.4% NM (2026-06-06, bare->56%): logic verified from m2c. Residual is a
- * SPILL cap — the target keeps `next` on the stack (sp4) and reloads it
- * each loop iteration (lw t0,4(sp)) plus a dead store of the current node
- * to sp0, giving a -8 frame (28 insns); IDO keeps both in registers here
- * (24 insns, no frame). Forcing the exact spill needs higher pressure /
- * permuter; the decode itself is correct. */
+ * 64.3% NM (2026-07-09 agent-e, was 56.4%): re-decoded with the W45
+ * iterator lever kit (address-taken cur/next via dead pp anchor +
+ * ternary-comma advance + pre-branch ret=val copy). Word-count now
+ * EXACT (28w frame -8) and entry/exit match; residual 10 words are ONE
+ * coupled artifact uopt -O2 won't drop: it loop-carries `next`'s value
+ * in $v1 (`move v1,t1` + entry-only lw, vs target's fresh `lw t0,4(sp)`
+ * every iteration) and copy-props ret=val (deleting the target's twin
+ * `move v1,a0` delay-slot copies; ret==val is provable at the return, so
+ * every copy spelling merges). 14 in-tree variants + standalone
+ * do-while/goto/-O1/-g3/ido53 sweeps all byte-identical or worse —
+ * canonicalization-invariant; rejection needs a call-crossing penalty
+ * this leaf doesn't have. Permuter-class. */
 #ifdef NON_MATCHING
 int game_libs_func_0003D54C(int *arg0, int arg1) {
-    int *sp0, *sp4, *t0, *t6;
-    int v0 = 0, a0, v1;
-    t6 = (int *)arg0[0x10 / 4];
-    sp4 = t6;
-    sp0 = t6;
-    if (t6 != 0) {
-        sp4 = (int *)t6[0x4 / 4];
-        a0 = t6[0];
-    } else {
-        a0 = 0;
+    int *next;
+    int *cur;
+    int count;
+    int val;
+    int ret;
+    int **pp;
+
+    while (0) {
+        pp = &cur;
+        pp = &next;
     }
-    v1 = a0;
-    if (a0 != 0) {
-    loop:
-        t0 = sp4;
-        if (v0 != arg1) {
-            v0 += 1;
-            sp0 = t0;
-            if (t0 != 0) {
-                sp4 = (int *)t0[0x4 / 4];
-                a0 = t0[0];
-            } else {
-                a0 = 0;
-            }
-            v1 = a0;
-            if (a0 != 0) goto loop;
-        }
+    count = 0;
+    next = (int *)arg0[0x10 / 4];
+    cur = next;
+    val = (cur != NULL) ? (next = (int *)cur[1], cur[0]) : 0;
+    ret = val;
+    while (val != 0) {
+        if (count == arg1) break;
+        count += 1;
+        cur = next;
+        val = (cur != NULL) ? (next = (int *)cur[1], cur[0]) : 0;
+        ret = val;
     }
-    (void)sp0;
-    return v1;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003D54C);
@@ -24581,33 +24578,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005323C);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00053294);
 
-/* game_libs_func_0005330C: 2-branch indexed table lookup (boundary merged —
- * 00053348 was splat's beqzl-over-split v1==0 tail, folded back into this one
- * symbol). Decoded shape for a future match pass:
- *   u16 f(int *a0,int a1,int a2){ int v1=a0[0x70/4];
- *     if(v1==0) return *(u16*)((char*)a0[0x68/4]+(a1<<3)+(a2<<1)+2);
- *     u16 idx = *(u16*)((char*)a0[0x68/4]+(a1<<3)+(a2<<1)+2);
- *     return *(u16*)(v1 + idx*6); }
- * 59.7% NM (2026-06-02, was a comment-only "15 diffs"/31.7% cap). HOISTING idx
- * to a single pre-branch computation + arm-swap (`if (v1 != 0) return tbl2;
- * return idx;`) scores +28pp over the target-faithful DUPLICATED-idx form
- * (31.7%): objdiff aligns the one idx with the target's first computation. The
- * target duplicates idx in both arms under the `beql v1,zero` likely-branch
- * layout (mine is 6 insns shorter); reproducing that duplication regresses to
- * 31.7%. Residual is the branch-likely-duplication layout — permuter-class. */
-#ifdef NON_MATCHING
-unsigned short game_libs_func_0005330C(int *a0, int a1, int a2) {
-    int v1 = a0[0x70 / 4];
-    unsigned short idx =
-        *(unsigned short *)((char *)a0[0x68 / 4] + (a1 << 3) + (a2 << 1) + 2);
+/* game_libs_func_0005330C: nested table lookup, sibling of _0005313C with an
+ * extra column index (boundary merged — 00053348 was splat's beqzl-over-split
+ * v1==0 tail, folded back into this one symbol). EXACT 23/23 (2026-07-09
+ * agent-e; retracts the old "branch-likely-duplication layout — permuter
+ * class" verdict): the 5313C struct recipe does it — 8-byte row struct with
+ * h[] at offset 2 (folds the +2 into the lhu), pointer-add `(tbl68 + a1)`
+ * outer deref, expression DUPLICATED in both arms (source-faithful; the beql
+ * dup-fill and out-of-line v1==0 arm fall out), and the second lookup in
+ * array-IXA form `v1[idx].h0` — IXA flips the final addu base-first
+ * (addu t3,v1,t2); the (char*)v1+idx*6 flat form stays operand-swapped. */
+typedef struct { u16 h0; u16 h[3]; } Ent8_5330C;
+typedef struct { char pad[0x68]; Ent8_5330C *tbl68; char pad2[4]; Ent6_5313C *tbl70; } Tbls_5330C;
+unsigned short game_libs_func_0005330C(Tbls_5330C *a0, int a1, int a2) {
+    Ent6_5313C *v1 = a0->tbl70;
     if (v1 != 0) {
-        return *(unsigned short *)((char *)v1 + idx * 6);
+        return v1[(a0->tbl68 + a1)->h[a2]].h0;
     }
-    return idx;
+    return (a0->tbl68 + a1)->h[a2];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005330C);
-#endif
 
 /* Nested-table lookup, MERGED with the former game_libs_func_000533B8 13-word
  * leaf per the branch-into-adjacent-return-leaf DISCRIMINATOR: 53368's word 2

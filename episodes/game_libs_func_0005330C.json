@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0005330C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T23:44:39.072514+00:00",
+  "end_time": "2026-07-09T23:44:39.072539+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T23:44:39.072533+00:00",
+      "assistant_text": "Table lookup ('permuter-class' verdict retracted). Discriminator: the second jr ra is its OWN beql out-of-line v1==0 arm (already-merged) \u2014 no reverse-merge. 5313C sibling recipe: 8-byte row struct with u16 h[3] at offset 2 (folds +2 into lhu), pointer-add (tbl68+a1) outer deref, expr duplicated in both arms, final lookup in ARRAY-IXA form v1[idx].h0 (flips the final addu base-first; flat char*+idx*6 stays swapped at 22/23).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 23,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_0005330C: nested table lookup, sibling of _0005313C with an\n * extra column index (boundary merged \u2014 00053348 was splat's beqzl-over-split\n * v1==0 tail, folded back into this one symbol). EXACT 23/23 (2026-07-09\n * agent-e; retracts the old \"branch-likely-duplication layout \u2014 permuter\n * class\" verdict): the 5313C struct recipe does it \u2014 8-byte row struct with\n * h[] at offset 2 (folds the +2 into the lhu), pointer-add `(tbl68 + a1)`\n * outer deref, expression DUPLICATED in both arms (source-faithful; the beql\n * dup-fill and out-of-line v1==0 arm fall out), and the second lookup in\n * array-IXA form `v1[idx].h0` \u2014 IXA flips the final addu base-first\n * (addu t3,v1,t2); the (char*)v1+idx*6 flat form stays operand-swapped. */\ntypedef struct { u16 h0; u16 h[3]; } Ent8_5330C;\ntypedef struct { char pad[0x68]; Ent8_5330C *tbl68; char pad2[4]; Ent6_5313C *tbl70; } Tbls_5330C;\nunsigned short game_libs_func_0005330C(Tbls_5330C *a0, int a1, int a2) {\n    Ent6_5313C *v1 = a0->tbl70;\n    if (v1 != 0) {\n        return v1[(a0->tbl68 + a1)->h[a2]].h0;\n    }\n    return (a0->tbl68 + a1)->h[a2];\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_0005330C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "23/23 word-exact + make ROM byte-identical (promoted)"
+  }
+}

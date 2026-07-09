@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00039F7C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T23:44:38.833527+00:00",
+  "end_time": "2026-07-09T23:44:38.833547+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T23:44:38.833541+00:00",
+      "assistant_text": "Byte-twin of 39EE4 (mask 0x4->0x8, vt offsets shifted) \u2014 direct transfer, first-build exact.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 38,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00039F7C: twin of gl_func_00039EE4 (EXACT 38/38, 2026-07-09\n * agent-e): mask 0x8 (vs 0x4), dispatch vt->[0x24]/s16[0x20] (vs\n * 0x1C/0x18). Same load-bearing levers \u2014 see 39EE4's comment. */\nint gl_func_00039F7C(int **head) {\n    int *next;\n    int *cur;\n    int *node;\n    int **pp;\n\n    while (0) {\n        pp = &cur;\n        pp = &next;\n    }\n    next = (int *)head[0];\n    cur = next;\n    node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;\n    while (node != NULL) {\n        node = (int *)cur[0];\n        if (node[0x18 / 4] & 0x8) {\n            int *vt = (int *)node[0x28 / 4];\n            if (0) {\n                vt = NULL;\n            }\n            ((void (*)(int))vt[0x24 / 4])(*(short *)((char *)vt + 0x20) + (int)node);\n        }\n        cur = next;\n        node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00039F7C.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "38/38 word-exact + make ROM byte-identical (promoted)"
+  }
+}

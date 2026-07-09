@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00039EE4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T23:44:38.589871+00:00",
+  "end_time": "2026-07-09T23:44:38.589891+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T23:44:38.589885+00:00",
+      "assistant_text": "Bundle-iterator + vtable dispatch, 58.95%->exact (~31 variants). (1) Address-taken cur/next via dead while(0){pp=&cur;pp=&next;} -> memory homes sp+0x18/0x1C, advance temps stay in the ugen t-ring; (2) ternary-comma advance node=(cur!=NULL)?(next=cur[1],cur[0]):NULL -> collapsed-else b .+1 shape; (3) node reassigned at loop top + NO return statement (fall-off-end int) -> node web colors v0, no trailing move; (4) if(0){vt=NULL;} DEAD MULTI-DEF demotes vt's LR in the constrained (priority) pass -> colors v1 with one CSE'd lw (removing it regresses to 26/38). NEW MECHANISM: the constrained pass sorts by adjsave DENSITY \u2014 a dense CSE temp beats every user var and anchors can't outbid it; the dead multi-def is the demotion lever.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 38,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00039EE4: 38-insn standalone bundle-iterator + vtable-dispatch\n * (EXACT 38/38, 2026-07-09 agent-e). For each node in head[0] list:\n *   if (node->[0x18] & 0x4) (node->[0x28]->[0x1C])(node->[0x28]->s16[0x18] + node);\n * Load-bearing levers (do not \"clean up\"):\n *   - dead while(0){pp=&cur;pp=&next;} = address-taken cur/next -> memory\n *     homes sp+0x18/0x1C, advance temps stay ugen t-ring (t4/t6);\n *   - ternary-with-comma advance = collapsed-else b+1 shape;\n *   - node reassigned at loop top (recompute via cur) + NO return stmt\n *     (fall-off-end int) = node web colors $v0, no trailing move;\n *   - if(0){vt=NULL;} dead multi-def = vt LR rejected -> ugen binds $v1\n *     (single lw 0x28, no CSE-candidate $v0 steal, no ghost ring slot). */\nint gl_func_00039EE4(int **head) {\n    int *next;\n    int *cur;\n    int *node;\n    int **pp;\n\n    while (0) {\n        pp = &cur;\n        pp = &next;\n    }\n    next = (int *)head[0];\n    cur = next;\n    node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;\n    while (node != NULL) {\n        node = (int *)cur[0];\n        if (node[0x18 / 4] & 0x4) {\n            int *vt = (int *)node[0x28 / 4];\n            if (0) {\n                vt = NULL;\n            }\n            ((void (*)(int))vt[0x1C / 4])(*(short *)((char *)vt + 0x18) + (int)node);\n        }\n        cur = next;\n        node = (cur != NULL) ? (next = (int *)cur[1], (int *)cur[0]) : NULL;\n    }\n}",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00039EE4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "38/38 word-exact + make ROM byte-identical (promoted)"
+  }
+}
