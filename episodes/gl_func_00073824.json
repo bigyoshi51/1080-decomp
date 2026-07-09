@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00073824",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T22:49:04.576386+00:00",
+  "end_time": "2026-07-09T22:49:04.576407+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T22:49:04.576401+00:00",
+      "assistant_text": "-O1 island member, u64-params signature; trailing _pad.s pragma kept.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 53,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for gl_func_00073824 \u2014 53-insn 8-word record init + u64-return\n * call + conditional u64-arg call (frame 0x20, saves ra). PROVEN EXACT 53/53\n * at IDO 7.1 -O1 (2026-07-08 standalone probe; 5.3 -O1 emits the identical\n * 53 words). Signature is the load-bearing lever: params 2 and 3 are\n * unsigned long long \u2014 the 8-byte alignment makes p skip $a1 (its slot\n * 0x24 is never homed, matching the target's missing sw a1) and land in\n * a2/a3, with q on the stack at 0x30/0x34. Other levers:\n *   (1) u64 pair copies `*(u64 *)(dst+2) = q` / `(dst+4) = p|q` give the\n *       shared-dst-reload lw/lw/sw/sw quads (lo word first);\n *   (2) `if (p != 0)` on a u64 = the target's bnez-hi / beqz-lo two-branch\n *       chain, and the then-arm reuses the condition's loaded pair;\n *   (3) r = gl_func_00000000_ll(dst) homes v0/v1 at 0x18/0x1C; passing r\n *       as a u64 arg reloads them into a0/a1 (lw a1 fills the jal delay).\n * Spliced into game_libs_post2b_d.c.o via REPLACE_FUNC_BODY (real -O1\n * compiler output; blank-extern relocs imported by the splice). */\nextern unsigned long long gl_func_00000000_ll(int *);\nextern void gl_func_00000000(unsigned long long);\nextern int **D_00000000_a;\n\nint gl_func_00073824(int *dst, unsigned long long p, unsigned long long q, int g, int h) {\n    unsigned long long r;\n\n    dst[0] = 0;\n    dst[1] = 0;\n    *(unsigned long long *)(dst + 2) = q;\n    if (p != 0) {\n        *(unsigned long long *)(dst + 4) = p;\n    } else {\n        *(unsigned long long *)(dst + 4) = q;\n    }\n    dst[6] = g;\n    dst[7] = h;\n    r = gl_func_00000000_ll(dst);\n    if (*D_00000000_a == dst) {\n        gl_func_00000000(r);\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_73824.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00073824.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "53/53 word-exact + ROM byte-identical"
+  }
+}

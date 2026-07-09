@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00071708",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T22:49:04.343995+00:00",
+  "end_time": "2026-07-09T22:49:04.344014+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T22:49:04.344009+00:00",
+      "assistant_text": "-O1 island member, IDO 5.3 flavor ($at scratch). The .s's 49th trailing word (lui t6) is 717CC's STOLEN PROLOGUE \u2014 folded into gl_func_000717CC.s as a leading local label (header 0x98->0x9C; 1-word GLOBAL_ASM fragments emit +4 pad, 68C14 precedent).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 49,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_00071708 \u2014 48-insn record-stream emitter\n * with 6-byte template (frame 0x10, leaf). PROVEN EXACT 48/48 (2026-07-09\n * verify; 7.1 -O1 emits the same shape but colors the template struct-copy\n * scratch $t1/$t0 \u2014 only 5.3 uses $at, the target's register). The target\n * .s carries one TRAILING word (lui $t6 at 0x717C8) that is really\n * gl_func_000717CC's stolen prologue; it is emitted by the new 1-word\n * orphan game_libs_func_000717C8.s in the host, so this donor covers\n * exactly 0x71708..0x717C4. post2 builds -O2. Levers:\n *   (1) 6-byte struct/union template built field-by-field in the sp home,\n *       then `*(Tmpl *)cursor = tmpl` struct-copy = the target's unaligned\n *       swl/swr 4-byte pair + 2 byte stores;\n *   (2) Ctl struct with f3c at +0x3C gives the `&D + 0x3C = 1` store its\n *       own base reload (no CSE with the byte clear at &D_a);\n *   (3) plain counted for-loop zeroes the leading bytes via the cursor\n *       (per-iteration sb/addiu, guard at bottom).\n * Spliced into game_libs_post2.c.o via REPLACE_FUNC_BODY (real 5.3 -O1\n * compiler output; blank-extern relocs imported by the splice). */\ntypedef struct { unsigned char b[6]; } Rec6;\ntypedef union {\n    Rec6 r;\n    struct { unsigned char b0, b1, b2, b3, b4, b5; } f;\n} Tmpl;\ntypedef struct { int pad[15]; int f3c; } Ctl;\nextern unsigned char D_00000000_a;\nextern Ctl D_00000000_b;\nextern unsigned char D_00000000_c[];\n\nvoid gl_func_00071708(int count) {\n    unsigned char *cursor;\n    Tmpl tmpl;\n    int i;\n\n    D_00000000_a = 0;\n    D_00000000_b.f3c = 1;\n    cursor = D_00000000_c;\n    tmpl.f.b0 = 1;\n    tmpl.f.b1 = 3;\n    tmpl.f.b2 = 0;\n    tmpl.f.b3 = 0xFF;\n    tmpl.f.b4 = 0xFF;\n    tmpl.f.b5 = 0xFF;\n    for (i = 0; i < count; i++) {\n        *cursor = 0;\n        cursor++;\n    }\n    *(Tmpl *)cursor = tmpl;\n    cursor += 6;\n    *cursor = 0xFE;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_71708.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00071708.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "48/48 word-exact + ROM byte-identical"
+  }
+}

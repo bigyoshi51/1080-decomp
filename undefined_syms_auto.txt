@@ -2718,6 +2718,7 @@ D_00000000_3430_cf4 = 0x00000000;
 D_00000000_3430_cce8 = 0x00000000;
 gl_d_n64p14 = 0x0;
 gl_ref_00080824 = 0x00080824; /* direct-jal thunk for gl_func_0006C084 */
+gl_ref_0007FEEC = 0x0007FEEC;  /* gl_func_0006B7A0 baked jal 0x7FEEC (0x0C01FFBB) */
 gl_ref_0003EB78 = 0x0003EB78;  /* gl_func_0002A55C baked USO jal (0x0C00FADE) */
 D_8C3C_child_desc = 0x00000000;
 D_8C3C_mid_desc = 0x00000000;

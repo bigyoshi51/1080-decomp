@@ -140,16 +140,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C084);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C110);
-
-#ifdef NON_MATCHING
-extern int D_00000000;
-// Record decoder loop (lwl/lwr). For each of `count` records, read an 8-byte
-// record from `cursor`, decode out[4] = (rec[2]&0xC0)>>4 (arithmetic shift);
-// if 0, out[0] = *(u16)(rec+4), out[2] = rec[6], out[3] = rec[7]; advance
-// out += 6, cursor += 8; loop while i < *&D. cursor is read through a volatile
-// view so its 8-byte record is re-read each iteration, matching the target's
-// per-iteration cursor reload.
+/* gl_func_0006C11C: 8-byte-record decoder loop (42 insns incl. the absorbed
+ * 3-word orphan game_libs_func_0006C110 — its lui/lbu count-preload pair is
+ * this function's stolen prologue, so the donor's true entry is 0x6C110 and
+ * the spliced symbol covers 0x6C110..0x6C1B8; the orphan INCLUDE_ASM was
+ * removed here). For each record: out[4] = (rec[2]&0xC0)>>4; if 0, copy
+ * u16/byte fields; out += 6, cursor += 8, count reloaded per iteration.
+ * LANDED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO 5.3 -O1 donor unit game_libs_ido53_6C11C.c (42/42 — 5.3 colors the
+ * lwl/lwr struct-copy scratch $at; 7.1 uses $t1/$t0), spliced over this -O2
+ * stand-in. Body below is a placeholder for the splice (its bytes are
+ * replaced by the donor). */
 void gl_func_0006C11C(char *out, char *cursor, int count) {
     unsigned char rec[8];
     volatile int i;
@@ -168,12 +169,9 @@ void gl_func_0006C11C(char *out, char *cursor, int count) {
             out += 6;
             cur += 8;
             i++;
-        } while (i < *(unsigned char *)&D_00000000);
+        } while (i < 1);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C11C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006C1B8: 61-insn reset-sibling of gl_func_0006BD14 (size 0xF4, frame 0x10).

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006C11C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T22:49:03.862661+00:00",
+  "end_time": "2026-07-09T22:49:03.862680+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T22:49:03.862675+00:00",
+      "assistant_text": "-O1 island member, IDO 5.3 FLAVOR: 7.1 -O1 gives the same shape but colors the lwl/lwr struct-copy scratch t1/t0; only 5.3 uses $at (target regs). Absorbs orphan game_libs_func_0006C110.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 39,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006C11C \u2014 42-insn 8-byte-record decoder\n * loop (frame 0x18, leaf). PROVEN EXACT 42/42 (2026-07-09 verify; 7.1 -O1\n * emits the same shape but colors the struct-copy scratch $t1/$t0 \u2014 only\n * 5.3 uses $at as the lwl/lwr block-copy scratch, the target's registers).\n * ABSORBS the 3-word orphan game_libs_func_0006C110 (its lui/lbu pair is\n * this function's stolen count-preload prologue): the donor's true entry is\n * 0x6C110 and the splice covers 0x6C110..0x6C1B8 (orphan INCLUDE_ASM\n * removed from the host). post1b2 builds -O2. Levers:\n *   (1) struct-copy `tmp = *(Rec *)cursor` of an 8-byte struct = the\n *       target's lwl/lwr pair loads into the sp home (0x10/0x14);\n *   (2) union field view gives the byte/halfword extracts from the home\n *       (lbu 0x12(sp) / lhu 0x14(sp) / lb 0x16/0x17(sp));\n *   (3) comma-expression loop bottom `++i < ((cursor += 1), (int)D_a)`\n *       sinks the cursor advance before the guard's lbu reload of the\n *       count global (per-iteration reload, no registerization).\n * Spliced into game_libs_post1b2.c.o via REPLACE_FUNC_BODY (real 5.3 -O1\n * compiler output; blank-extern relocs imported by the splice). */\ntypedef struct { unsigned char raw[8]; } RecBytes;\ntypedef union {\n    RecBytes b;\n    struct { unsigned char b0, b1, b2, b3; unsigned short h; signed char b6, b7; } f;\n} Rec;\nextern unsigned char D_00000000_a;\nextern RecBytes D_00000000_b[];\nvoid gl_func_0006C11C(unsigned char *out) {\n    RecBytes *cursor;\n    Rec tmp;\n    int i;\n    cursor = D_00000000_b;\n    i = 0;\n    if (D_00000000_a > 0) {\n        do {\n            tmp = *(Rec *)cursor;\n            out[4] = (tmp.f.b2 & 0xC0) >> 4;\n            if (out[4] == 0) {\n                *(short *)out = tmp.f.h;\n                out[2] = tmp.f.b6;\n                out[3] = tmp.f.b7;\n            }\n            out += 6;\n        } while (++i < ((cursor += 1), (int)D_00000000_a));\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6C11C.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006C11C.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "42/42 word-exact (incl absorbed 3-word orphan 6C110) + ROM byte-identical"
+  }
+}

@@ -2064,20 +2064,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F8A4);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F8A4_pad.s")
 
-#ifdef NON_MATCHING
 /* gl_func_0006FAD4: 32-insn flag-extract + conditional bit-set/clear.
- *   v0 = gl_func_00000000(a0);
- *   flag = (v0 & 0x100) ? 1 : 0;     // test bit 8
- *   if (v0 & 0x80) {                  // test bit 7
- *     a0[1] = a0[1] | flag;           // set bit 0 if flag
- *     a0[1] = a0[1] & ~2;             // clear bit 1
- *   }
- *   return flag;
- *
- * 67.6% — volatile-v0 + volatile-flag forces stack-resident locals as
- * target does. Remaining gap: IDO emits the flag-set as beql + sw-in-
- * delay-slot, but target uses `beq+nop; addiu;beq+sw; sw` (different
- * branch shape). The bitfield rule produces correct 2 sw t->0x4 stores. */
+ *   v0 = gl_func_00000000(a0); flag = (v0 & 0x100) ? 1 : 0;
+ *   if (v0 & 0x80) { a0[1] |= flag; a0[1] &= ~2; }  return flag;
+ * LANDED 2026-07-09 via REPLACE_FUNC_BODY donor splice: the target is plain
+ * IDO 7.1 -O1 (args/locals sp-homed, if/else li/b/sw arms — the old wrap's
+ * "beql branch-shape gap" was just this unit's -O2). Real C lives in the
+ * -O1 donor unit game_libs_o1_6FAD4.c (32/32), spliced over this -O2
+ * stand-in. Body below is a placeholder for the splice (its bytes are
+ * replaced by the donor). */
 int gl_func_0006FAD4(int* a0) {
     volatile int v0 = gl_func_00000000(a0);
     volatile int flag = (v0 & 0x100) ? 1 : 0;
@@ -2087,9 +2082,6 @@ int gl_func_0006FAD4(int* a0) {
     }
     return flag;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FAD4);
-#endif
 
 /* gl_func_0006FB54: 64-bit-add-carry helper. Verified decode (m2c via disasm-func.py):
  *   r1 = helper(); r2 = helper();

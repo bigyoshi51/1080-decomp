@@ -6018,45 +6018,17 @@ s32 gl_func_0006B0FC(char *ctl /* caller-set $t6 */) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B0FC);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B798);
-
-#ifdef NON_MATCHING
-/* gl_func_0006B7A0: 56-insn hardware-register status-poll + DMA setup (0xE0, frame 0x20).
- *
- * Heavy N64 hardware access:
- *   - 0xA460xxxx (PI cluster) — status polls via lw +0x10 (PI_STATUS_REG)
- *   - 0xA500xxxx (AI cluster) — status polls via lw +0x10 (AI_STATUS_REG)
- *   - 0xA4600510 / 0xA4500510 — extended register writes (non-standard offsets,
- *     possibly devkit-specific or PIF-adjacent)
- *
- * Decoded structure (raw-word disasm):
- *   // Spin-wait for PI_STATUS_REG busy bits (& 3) to clear
- *   while ((*(volatile int*)0xA4600010 & 3) != 0) { [spin] }
- *
- *   // Write to extended PI register at 0xA4600510 with cart-mapped address:
- *   *(volatile int*)0xA4600510 = (a0 + 0x14) | 0x10000000;
- *
- *   // Spin-wait for AI_STATUS_REG busy bits to clear
- *   while ((*(volatile int*)0xA4500010 & 3) != 0) { [spin] }
- *
- *   // Write to extended AI register at 0xA4500510 with similar mapping
- *   *(volatile int*)0xA4500510 = ...;
- *
- *   // Call direct-addr jal 0x807EC (libc-family — registered in
- *   //   reference_1080_hardcoded_jal_addresses memo as 5th site)
- *   ((void(*)())0x807EC)();
- *
- *   *(volatile int*)0xA4600010 = 2;                  // PI_STATUS reset
- *   D_global_sym = D_other_sym | (some bits);         // global update
- *
- * PI + AI dual-DMA setup with status-polling — likely cart-to-AI streaming
- * audio DMA initialization. The 0xA4600510 / 0xA4500510 writes target
- * non-standard register offsets (PI/AI register blocks end ~0x1C), so
- * these are devkit-extended registers or PIF-adjacent regions.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
+/* gl_func_0006B7A0: PI status-poll + 0xA5000510 DMA-register writes + hardcoded
+ * jal 0x7FEEC (58 insns incl. the absorbed 2-word orphan
+ * game_libs_func_0006B798 — its lui/lw $t6 pair is this function's stolen
+ * prologue, so the donor's true entry is 0x6B798 and the spliced symbol
+ * covers 0x6B798..0x6B880; the orphan INCLUDE_ASM was removed here).
+ * LANDED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * -O1 donor unit game_libs_o1_6B7A0.c (58/58), spliced over this -O2
+ * stand-in. The baked `jal 0x7FEEC` links via gl_ref_0007FEEC
+ * (undefined_syms_auto.txt); the old caller-set-$t6 cap note is obsolete —
+ * the "$t6 arg" was just the orphan prologue's D-load. Body below is a
+ * placeholder for the splice (its bytes are replaced by the donor). */
 void gl_func_0006B7A0(int *a0) {
     /* Spin-wait PI not busy */
     while ((*(volatile int*)0xA4600010 & 3) != 0) { }
@@ -6067,10 +6039,6 @@ void gl_func_0006B7A0(int *a0) {
     ((void(*)(void))0x807EC)();
     *(volatile int*)0xA4600010 = 2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B7A0);
-#endif
-
 /* gl_func_0006B880: 59-insn ring-buffer append with notify callback (frame
  * 0x30, saves s0). Ring singleton at &D+0x40, value at &D+0x44; drop if head
  * null or count>=cap; slot = (base + count) % cap (signed-div with IDO break

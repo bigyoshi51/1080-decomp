@@ -1,5 +1,9 @@
-nonmatching gl_func_000717CC, 0x98
+nonmatching gl_func_000717CC, 0x9C
 
+glabel _pad_pre_717CC, local
+    /* stolen prologue: lui $t6 at 0x717C8, split off gl_func_00071708.s so its 48-word donor splice lands flush (1-word GLOBAL_ASM blocks emit +4, so folded in-block; docs/MATCHING_WORKFLOW) */
+    /* E568A0 000717C8 3C0E0000 */  .word 0x3C0E0000
+endlabel _pad_pre_717CC
 glabel gl_func_000717CC
     /* E568A4 000717CC 27BDFFF0 */  .word 0x27BDFFF0
     /* E568A8 000717D0 25CE0000 */  .word 0x25CE0000

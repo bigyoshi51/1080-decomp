@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006B7A0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T22:49:03.629191+00:00",
+  "end_time": "2026-07-09T22:49:03.629213+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T22:49:03.629206+00:00",
+      "assistant_text": "-O1 island member. The documented 'caller-set-$t6 cap' was a MISREAD: the $t6 read-at-entry was the 2-word orphan game_libs_func_0006B798's stolen lui/lw prologue \u2014 absorbed, orphan dissolved. Hardcoded jal 0x7FEEC resolves via gl_ref_0007FEEC = 0x0007FEEC (gl_ref precedent).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 56,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for gl_func_0006B7A0 \u2014 58-insn PI/AI status-poll + 0xA5000510\n * DMA-register writes + hardcoded-jal call (frame 0x20, saves ra).\n * PROVEN EXACT 58/58 at IDO 7.1 -O1 (2026-07-08 standalone probe; 57/58 in\n * isolation with only the jal word blank \u2014 gl_ref_0007FEEC resolves it at link\n * to the target's baked `jal 0x7FEEC` = 0C01FFBB; 5.3 -O1 identical).\n * ABSORBS the 2-word orphan game_libs_func_0006B798 (its lui/lw t6 pair is\n * this function's stolen prologue: p = (int *)(D_00000000_a + 0x14)); the\n * donor's true entry is 0x6B798 and the splice grows the host symbol by 8.\n * Levers: (1) volatile int stat = the homed status local \u2014 each poll is\n *   sw 0x18(sp); lw; andi; branch (plain int registerizes the guard);\n * (2) while() pre-read + loop re-read gives the guard beqz + bottom bnez;\n * (3) second 0xA5000510 write has NO |0x10000000 and its sw sinks into the\n *   jal delay slot; (4) final D_c = D_b | 0x100401 keeps distinct blank\n *   externs for the lw and sw bases (no lui CSE).\n * Spliced into game_libs_post1b.c.o via REPLACE_FUNC_BODY (real -O1\n * compiler output; blank-extern relocs imported by the splice). */\nextern int gl_ref_0007FEEC();\nextern char *D_00000000_a;   /* record base pointer */\nextern int D_00000000_b;     /* source word */\nextern int D_00000000_c;     /* dest word */\n\nvoid gl_func_0006B7A0(void) {\n    int *p;\n    volatile int stat;\n\n    p = (int *)(D_00000000_a + 0x14);\n    stat = *(volatile int *)0xA4600010;\n    while (stat & 3) {\n        stat = *(volatile int *)0xA4600010;\n    }\n    *(volatile int *)0xA5000510 = p[4] | 0x10000000;\n    stat = *(volatile int *)0xA4600010;\n    while (stat & 3) {\n        stat = *(volatile int *)0xA4600010;\n    }\n    *(volatile int *)0xA5000510 = p[4];\n    gl_ref_0007FEEC();\n    *(volatile int *)0xA4600010 = 2;\n    D_00000000_c = D_00000000_b | 0x100401;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6B7A0.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006B7A0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "58/58 word-exact (incl absorbed 2-word orphan prologue) + ROM byte-identical"
+  }
+}

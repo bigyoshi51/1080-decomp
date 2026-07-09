@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006FAD4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T22:49:04.105506+00:00",
+  "end_time": "2026-07-09T22:49:04.105527+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T22:49:04.105521+00:00",
+      "assistant_text": "-O1 island member, plain 7.1 -O1 donor.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 32,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for gl_func_0006FAD4 \u2014 32-insn flag-extract + conditional\n * bit-set/clear (frame 0x20, saves ra only). PROVEN EXACT 32/32 at IDO 7.1\n * -O1 (2026-07-08 standalone probe; plain -O1, no -g3; 5.3 -O1 emits the\n * identical 32 words). post1b2c builds -O2, where the flag if/else collapses\n * to beql/sw-in-delay \u2014 the target is simply -O1: args/locals sp-homed,\n * state reloaded per use, if/else emitted as li/b/sw + sw-zero arms, both\n * arg reloads for the two a0[1] statements kept separate.\n * Levers: (1) plain if/else (NOT ?:) for flag; (2) two separate a0[1]\n * statements (|= then &= ~2) \u2014 each reloads the homed arg; (3) return the\n * homed flag (lw v0,0x18(sp) in the epilogue).\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY (real -O1\n * compiler output; blank-extern jal reloc imported by the splice). */\nextern int gl_func_00000000();\n\nint gl_func_0006FAD4(int *arg) {\n    int state;\n    int flag;\n\n    state = gl_func_00000000();\n    if (state & 0x100) {\n        flag = 1;\n    } else {\n        flag = 0;\n    }\n    if (state & 0x80) {\n        arg[1] |= flag;\n        arg[1] &= ~2;\n    }\n    return flag;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6FAD4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006FAD4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "32/32 word-exact + ROM byte-identical"
+  }
+}
