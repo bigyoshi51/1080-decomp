@@ -1260,104 +1260,65 @@ void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000016F4);
 #endif
 
-/* arcproc_uso_func_0000199C — now 59.93%. 2026-06-02: the final region (field
- * inits 0xD8..0x108 + the gl(s0+0xF0, ((*&D+35)<<16)|(s0->0xD4->0x6B4+7)) call)
- * is byte-exact vs disasm; the residual ~10-insn gap is the alloc-cascade HEAD
- * dead-arm scheduling (regalloc cap). TESTED+REVERTED: rewriting the head to
- * the passthrough goto-merge form (p2=s0; if(!p2)alloc; Lp3/Lp2/Ls0 labels)
- * REGRESSES to 46.61% — the fresh-alloc nested-if below is correct; the gap is
- * pure dead-arm regalloc, not the head form. Don't re-grind the head.
- * verified structural decode (~9%, LEN-DIFF
- * 82/90; alloc-cascade defensive-dead-check + spill/reloc scheduling cap →
- * <80 INCLUDE_ASM build path; constructor struct-typing + alloc-sig ref).
- * int *f(int *a0, int a1, int a2){
- *   s0 = a0 ? a0 : gl_func_00000000(268);  if (!s0) return s0;
- *   p2 = gl_func_00000000(212);  if (!p2) goto init4;
- *   p3 = gl_func_00000000(80);   if (!p3) goto init3;
- *   p4 = gl_func_00000000(44);   if (!p4) goto init2;
- *   gl_func_00000000(p4, &D+0x3DC); p4->0x28 = &D;
- * init2: p3->0x28=&D; init3: p2->0x28=&D; init4: s0->0x28=&D;
- *   s0->0x60 = a2;
- *   s0->0xE0=160; s0->0xE4=29; s0->0xD8=160; s0->0xDC=130;
- *   s0->0xE8=160; s0->0xEC=105; *(float*)(s0+0x108)=1.0f;
- *   s0->0xD4 = a1; *(float*)(a1+0x77C)=1.0f;
- *   gl_func_00000000(s0+0xF0,
- *       ((*(int*)&D + 35) << 16) | (((int*)s0->0xD4)->0x6B4 + 7));
- *   return s0;
- * }
- * Struct-typing: object sizes — main 268(0x10C), subs 212/80/44; every
- * object has ptr @0x28 init &D_00000000. s0 fields: 0x60=a2-arg,
- * 0xD4=a1-arg, 0xD8/DC/E0/E4/E8/EC = {160,130,160,29,160,105} (3 pairs:
- * x@0xD8,y@0xDC … pattern), 0x108=1.0f, sub-call arg a1->0x77C=1.0f.
- * Caps <80: 4-level alloc cascade with defensive `if(ptr!=0)skip` dead
- * checks + heavy stack-spill round each gl_ call + &D %hi/%lo reloc
- * materialization scheduling. INCLUDE_ASM is the correct build path
- * (no episode; tautology-trap rule).
- * 2026-05-31 RULED OUT: converting to the dead-arm PASSTHROUGH cascade
- * (p2=s0; if(!p2) p2=alloc; ... goto init_pN) REGRESSES 59.9->46.6%. The
- * sub-objects ARE genuinely alloc'd (current `p2=alloc(212); if(p2){...}`
- * nested-if form is correct); the bne-skip arms are NOT passthrough. Do not
- * re-try the passthrough form. */
-#ifdef NON_MATCHING
+/* arcproc_uso_func_0000199C — EXACT (90/90 words incl. relocs, 2026-07-09).
+ * 4-level alloc-cascade constructor: s0 = arg0 ? arg0 : alloc(0x10C), then
+ * defensive sub-allocs 0xD4/0x50/0x2C whose skip arms are dead at runtime
+ * (s0 != 0 guaranteed) but shape the codegen. Head form = short-circuit
+ * `(x != 0) || (x = alloc(N), x != 0)` nested ifs (goto-merge/passthrough
+ * forms REGRESS — see episode). Tail packed-id call: the id chain
+ * ((D+0x23)<<16) must be ucode-created BEFORE the ptr chain (temp ring
+ * t6,t7,t8 vs t9,t0,t1 + or operand order). cfe evaluates a register-rooted
+ * cast-deref chain FIRST regardless of textual order; spelling the ptr chain
+ * as a TWO-LEVEL TYPED MEMBER CHAIN ((Arc199C_A *)arg0)->b->v flips the
+ * evaluation to textual (id first) with identical bytes — the crack lever.
+ * Twins: timproc_uso_b1_func_000016F8, timproc_uso_b3_func_00001660
+ * (offset variants), mgrproc_uso_func_00002940 (111-insn family variant,
+ * extra registration-call tail). All four EXACT 2026-07-09. */
 extern int gl_func_00000000();
-extern char D_00000000;
-extern char D_arc199C_w[];   /* &D for a0->0x28 (level-4) */
-extern char D_arc199C_x[];   /* &D for v1->0x28 (level-3) */
-extern char D_arc199C_y[];   /* &D for a2->0x28 (level-2) */
-extern char D_arc199C_z[];   /* &D for s0->0x28 (level-1/main) */
+extern char D_arc199C_v[];   /* sym3:   init-call a1 base (&sym+0x3DC) */
+extern char D_arc199C_w[];   /* sym120: a0->0x28 (level-4) */
+extern char D_arc199C_x[];   /* sym121: v1->0x28 (level-3) */
+extern char D_arc199C_y[];   /* sym164: a2->0x28 (level-2) */
+extern char D_arc199C_z[];   /* sym34:  s0->0x28 (level-1/main) */
+extern int D_arc199C_id;     /* sym133: packed-id value read */
 
-char *arcproc_uso_func_0000199C(char *a0, char *a1, int a2) {
-    char *s0;   /* level-1 main object (268) */
-    char *l2;   /* level-2 (212), reg a2 */
-    char *l3;   /* level-3 (80),  reg v1 */
-    char *l4;   /* level-4 (44),  reg a0 */
+typedef struct Arc199C_B { char pad[0x6B4]; int v; } Arc199C_B;
+typedef struct Arc199C_A { char p0[0xD4]; Arc199C_B *b; } Arc199C_A;
 
-    s0 = a0;
-    if (a0 == 0) {
-        s0 = (char *)gl_func_00000000(268);
-        if (s0 == 0) return s0;
-    }
-    l2 = s0;
-    if (s0 == 0) {
-        l2 = (char *)gl_func_00000000(212);
-        if (l2 == 0) goto init1;
-    }
-    l3 = l2;
-    if (l2 == 0) {
-        l3 = (char *)gl_func_00000000(80);
-        if (l3 == 0) goto init2;
-    }
-    l4 = l3;
-    if (l3 == 0) {
-        l4 = (char *)gl_func_00000000(44);
-        if (l4 == 0) goto init3;
-        gl_func_00000000(l4, (char *)&D_00000000 + 0x3DC);
-    }
-    *(char **)(l4 + 0x28) = D_arc199C_w;
-init3:
-    *(char **)(l3 + 0x28) = D_arc199C_x;
-init2:
-    *(char **)(l2 + 0x28) = D_arc199C_y;
-init1:
-    *(char **)(s0 + 0x28) = D_arc199C_z;
+char *arcproc_uso_func_0000199C(char *arg0, char *arg1, int arg2) {
+    char *a2;   /* level-2 (0xD4), home 0x2C(sp) */
+    char *v1;   /* level-3 (0x50), home 0x28(sp) */
+    char *a0;   /* level-4 (0x2C), home 0x24(sp) */
 
-    *(int *)(s0 + 0x60) = a2;
-    *(int *)(s0 + 0xE0) = 160;
-    *(int *)(s0 + 0xE4) = 29;
-    *(int *)(s0 + 0xD8) = 160;
-    *(int *)(s0 + 0xDC) = 130;
-    *(int *)(s0 + 0xE8) = 160;
-    *(int *)(s0 + 0xEC) = 105;
-    *(float *)(s0 + 0x108) = 1.0f;
-    *(char **)(s0 + 0xD4) = a1;
-    *(float *)(a1 + 0x77C) = 1.0f;
-    gl_func_00000000(s0 + 0xF0,
-        ((*(int *)&D_00000000 + 35) << 16) | (*(int *)(*(char **)(s0 + 0xD4) + 0x6B4) + 7));
-    return s0;
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x10C), (arg0 != 0))) {
+        a2 = arg0;
+        if ((arg0 != 0) || (a2 = (char *)gl_func_00000000(0xD4), (a2 != 0))) {
+            v1 = a2;
+            if ((a2 != 0) || (v1 = (char *)gl_func_00000000(0x50), (v1 != 0))) {
+                a0 = v1;
+                if ((v1 != 0) || (a0 = (char *)gl_func_00000000(0x2C), (a0 != 0))) {
+                    gl_func_00000000(a0, D_arc199C_v + 0x3DC); *(char **)(a0 + 0x28) = D_arc199C_w;
+                }
+                *(char **)(v1 + 0x28) = D_arc199C_x;
+            }
+            *(char **)(a2 + 0x28) = D_arc199C_y;
+        }
+        *(char **)(arg0 + 0x28) = D_arc199C_z;
+        *(int *)(arg0 + 0x60) = arg2;
+        *(char **)(arg0 + 0xD4) = arg1;
+        *(int *)(arg0 + 0xE0) = 0xA0;
+        *(int *)(arg0 + 0xE4) = 0x1D;
+        *(int *)(arg0 + 0xD8) = 0xA0;
+        *(int *)(arg0 + 0xDC) = 0x82;
+        *(int *)(arg0 + 0xE8) = 0xA0;
+        *(int *)(arg0 + 0xEC) = 0x69;
+        *(float *)(arg0 + 0x108) = 1.0f;
+        *(float *)(arg1 + 0x77C) = 1.0f;
+        gl_func_00000000(arg0 + 0xF0,
+            ((D_arc199C_id + 0x23) << 16) | (((Arc199C_A *)arg0)->b->v + 7));
+    }
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000199C);
-#endif
 
 #ifdef NON_MATCHING
 /* arcproc_uso_func_00001B04: 33-insn / 0x84 conditional-init dispatcher.

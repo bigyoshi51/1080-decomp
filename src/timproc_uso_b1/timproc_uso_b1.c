@@ -786,71 +786,58 @@ void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00001340);
 #endif
 
-/* timproc_uso_b1_func_000016F8 — verified structural decode; near-clone
- * SIBLING of arcproc_uso_func_0000199C (same 4-level alloc-cascade ctor
- * template). Documented alloc-cascade defensive-dead-check + spill/reloc
- * ceiling → <80 INCLUDE_ASM build path; struct-typing cross-confirm.
- * int *f(int *a0, int a1, int a2){
- *   s0 = a0 ? a0 : gl_func_00000000(268);  if(!s0) return s0;
- *   p2 = gl_func_00000000(212);  if(!p2) goto init4;
- *   p3 = gl_func_00000000(80);   if(!p3) goto init3;
- *   p4 = gl_func_00000000(44);   if(!p4) goto init2;
- *   gl_func_00000000(p4, &D+0x404); p4->0x28=&D;     // 199C used &D+0x3DC
- * init2: p3->0x28=&D; init3: p2->0x28=&D; init4: s0->0x28=&D;
- *   s0->0x60=a2;
- *   s0->0xE0=160; s0->0xE4=29; s0->0xD8=160; s0->0xDC=130;
- *   s0->0xE8=160; s0->0xEC=105; *(float*)(s0+0x108)=1.0f;
- *   s0->0xD4=a1; *(float*)(a1+0x72C)=1.0f;           // 199C: a1+0x77C
- *   gl_func_00000000(s0+0xF0,
- *       ((*(int*)&D + 35) << 16) | (((int*)s0->0xD4)->0x6B0 + 7)); // 199C: 0x6B4
- *   return s0;
- * }
- * Cross-confirms the 199C ctor family: object sizes 268/212/80/44, every
- * sub-object ptr @0x28=&D, s0 field block 0xD8..0xEC={160,130,160,29,160,
- * 105} + 0x60=a2 + 0xD4=a1 + 0x108=1.0f. This sibling's deltas vs 199C:
- * a1-base &D+0x404 (was 0x3DC), a1->0x72C (was 0x77C), s0->0xD4->0x6B0
- * (was 0x6B4). Caps <80: defensive `if(ptr!=0)skip` alloc-cascade dead
- * checks + per-call stack-spill + &D %hi/%lo reloc scheduling (same as
- * 199C, ~9%). INCLUDE_ASM is the correct build path (no episode). */
-#ifdef NON_MATCHING
-char *timproc_uso_b1_func_000016F8(char *a0, char *a1, int a2) {
-    char *s0;
-    char *p2;
-    char *p3;
-    char *p4;
-    s0 = a0 ? a0 : (char *)gl_func_00000000(268);
-    if (!s0) return s0;
-    p2 = (char *)gl_func_00000000(212);
-    if (p2) {
-        p3 = (char *)gl_func_00000000(80);
-        if (p3) {
-            p4 = (char *)gl_func_00000000(44);
-            if (p4) {
-                gl_func_00000000(p4, (char *)&D_00000000 + 0x404);
-                *(char **)(p4 + 0x28) = &D_00000000;
+/* timproc_uso_b1_func_000016F8 — EXACT (90/90 words incl. relocs, 2026-07-09).
+ * Twin of arcproc_uso_func_0000199C (same 4-level alloc-cascade ctor
+ * template; deltas: init-call base +0x404, a1 float @+0x72c,
+ * packed-id ptr field @+0x6b0). Crack lever: the packed-id call's id
+ * chain must be ucode-created before the ptr chain — spell the ptr chain
+ * as a two-level typed member chain ((Tim16F8_A *)arg0)->b->v (cfe then
+ * follows textual order). Siblings: arcproc 199C, timproc_b3 1660, mgrproc 2940. */
+extern int gl_func_00000000();
+extern char D_tim16F8_v[];   /* init-call a1 base (&sym+0x404) */
+extern char D_tim16F8_w[];   /* a0->0x28 (level-4) */
+extern char D_tim16F8_x[];   /* v1->0x28 (level-3) */
+extern char D_tim16F8_y[];   /* a2->0x28 (level-2) */
+extern char D_tim16F8_z[];   /* s0->0x28 (level-1/main) */
+extern int D_tim16F8_id;     /* packed-id value read */
+
+typedef struct Tim16F8_B { char pad[0x6b0]; int v; } Tim16F8_B;
+typedef struct Tim16F8_A { char p0[0xD4]; Tim16F8_B *b; } Tim16F8_A;
+
+char *timproc_uso_b1_func_000016F8(char *arg0, char *arg1, int arg2) {
+    char *a2;   /* level-2 (0xD4), home 0x2C(sp) */
+    char *v1;   /* level-3 (0x50), home 0x28(sp) */
+    char *a0;   /* level-4 (0x2C), home 0x24(sp) */
+
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x10C), (arg0 != 0))) {
+        a2 = arg0;
+        if ((arg0 != 0) || (a2 = (char *)gl_func_00000000(0xD4), (a2 != 0))) {
+            v1 = a2;
+            if ((a2 != 0) || (v1 = (char *)gl_func_00000000(0x50), (v1 != 0))) {
+                a0 = v1;
+                if ((v1 != 0) || (a0 = (char *)gl_func_00000000(0x2C), (a0 != 0))) {
+                    gl_func_00000000(a0, D_tim16F8_v + 0x404); *(char **)(a0 + 0x28) = D_tim16F8_w;
+                }
+                *(char **)(v1 + 0x28) = D_tim16F8_x;
             }
-            *(char **)(p3 + 0x28) = &D_00000000;
+            *(char **)(a2 + 0x28) = D_tim16F8_y;
         }
-        *(char **)(p2 + 0x28) = &D_00000000;
+        *(char **)(arg0 + 0x28) = D_tim16F8_z;
+        *(int *)(arg0 + 0x60) = arg2;
+        *(char **)(arg0 + 0xD4) = arg1;
+        *(int *)(arg0 + 0xE0) = 0xA0;
+        *(int *)(arg0 + 0xE4) = 0x1D;
+        *(int *)(arg0 + 0xD8) = 0xA0;
+        *(int *)(arg0 + 0xDC) = 0x82;
+        *(int *)(arg0 + 0xE8) = 0xA0;
+        *(int *)(arg0 + 0xEC) = 0x69;
+        *(float *)(arg0 + 0x108) = 1.0f;
+        *(float *)(arg1 + 0x72c) = 1.0f;
+        gl_func_00000000(arg0 + 0xF0,
+            ((D_tim16F8_id + 0x23) << 16) | (((Tim16F8_A *)arg0)->b->v + 7));
     }
-    *(char **)(s0 + 0x28) = &D_00000000;
-    *(int *)(s0 + 0x60) = a2;
-    *(int *)(s0 + 0xE0) = 160;
-    *(int *)(s0 + 0xE4) = 29;
-    *(int *)(s0 + 0xD8) = 160;
-    *(int *)(s0 + 0xDC) = 130;
-    *(int *)(s0 + 0xE8) = 160;
-    *(int *)(s0 + 0xEC) = 105;
-    *(float *)(s0 + 0x108) = 1.0f;
-    *(char **)(s0 + 0xD4) = a1;
-    *(float *)(a1 + 0x72C) = 1.0f;
-    gl_func_00000000(s0 + 0xF0,
-        ((*(int *)&D_00000000 + 35) << 16) | (*(int *)(*(char **)(s0 + 0xD4) + 0x6B0) + 7));
-    return s0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000016F8);
-#endif
 
 void timproc_uso_b1_func_00001860(int *a0) {
     if (gl_func_00000000(*(int*)(&D_00000000 + 0x190)) == 0) return;

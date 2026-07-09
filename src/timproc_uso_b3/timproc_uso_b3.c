@@ -915,61 +915,58 @@ void timproc_uso_b3_func_000013B8(char *arg0, s32 arg1, f32 *arg2) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000013B8);
 #endif
 
-#ifdef NON_MATCHING
-/* timproc_uso_b3_func_00001660: 4-level get-or-create alloc cascade ctor.
- * SIBLING of timproc_uso_b1_func_000016F8 / arcproc_uso_func_0000199C.
- * 2026-06-26: fixed the cascade LOGIC. Prior wrap did independent
- * allocs at each level (p2=alloc(0xD4), p3=alloc(0x50)) — WRONG. Target
- * objdump shows passthrough-then-alloc on the PREVIOUS pointer at every
- * level (a2=s0?:alloc, v1=a2?:alloc, a0=v1?:alloc), with each alloc-fail
- * branching to that sub-object's +0x28 store (shared-epilogue gotos).
- * Per docs/PATTERNS.md#feedback-alloc-or-passthrough-cascade-includes-dead-arms.
- * Levels use temp regs (a2/v1/a0), not $s — no extra-$s-spill caveat.
- * Four distinct externs at +0x28 (t6/t7/t8/t9 = separate luis). */
+/* timproc_uso_b3_func_00001660 — EXACT (90/90 words incl. relocs, 2026-07-09).
+ * Twin of arcproc_uso_func_0000199C (same 4-level alloc-cascade ctor
+ * template; deltas: init-call base +0x3dc, a1 float @+0x72c,
+ * packed-id ptr field @+0x6b0). Crack lever: the packed-id call's id
+ * chain must be ucode-created before the ptr chain — spell the ptr chain
+ * as a two-level typed member chain ((Tim1660_A *)arg0)->b->v (cfe then
+ * follows textual order). Siblings: arcproc 199C, timproc_b1 16F8, mgrproc 2940. */
 extern int gl_func_00000000();
-extern char D_00000000;
-extern char D_00000001;
-extern char D_00000002;
-extern char D_00000003;
-extern char D_00000004;
-int *timproc_uso_b3_func_00001660(int *a0, char *a1, int a2) {
-    int *s0;
-    int *p2;
-    int *p3;
-    int *p4;
-    s0 = a0 ? a0 : (int *)gl_func_00000000(0x10C);
-    if (!s0) return s0;
-    p2 = s0;
-    if (!p2) { p2 = (int *)gl_func_00000000(0xD4); if (!p2) goto L_s0; }
-    p3 = p2;
-    if (!p3) { p3 = (int *)gl_func_00000000(0x50); if (!p3) goto L_p2; }
-    p4 = p3;
-    if (!p4) { p4 = (int *)gl_func_00000000(0x2C); if (!p4) goto L_p3; }
-    gl_func_00000000(p4, (char *)&D_00000000 + 0x3DC);
-    *(int *)((char *)p4 + 0x28) = (int)&D_00000001;
-L_p3:
-    *(int *)((char *)p3 + 0x28) = (int)&D_00000002;
-L_p2:
-    *(int *)((char *)p2 + 0x28) = (int)&D_00000003;
-L_s0:
-    *(int *)((char *)s0 + 0x28) = (int)&D_00000004;
-    *(int *)((char *)s0 + 0x60) = a2;
-    *(int *)((char *)s0 + 0xE0) = 160;
-    *(int *)((char *)s0 + 0xE4) = 29;
-    *(int *)((char *)s0 + 0xD8) = 160;
-    *(int *)((char *)s0 + 0xDC) = 130;
-    *(int *)((char *)s0 + 0xE8) = 160;
-    *(int *)((char *)s0 + 0xEC) = 105;
-    *(float *)((char *)s0 + 0x108) = 1.0f;
-    *(int *)((char *)s0 + 0xD4) = (int)a1;
-    *(float *)(a1 + 0x72C) = 1.0f;
-    gl_func_00000000((char *)s0 + 0xF0,
-        ((*(int *)&D_00000000 + 35) << 16) | (*(int *)(*(char **)((char *)s0 + 0xD4) + 0x6B0) + 7));
-    return s0;
+extern char D_tim1660_v[];   /* init-call a1 base (&sym+0x3dc) */
+extern char D_tim1660_w[];   /* a0->0x28 (level-4) */
+extern char D_tim1660_x[];   /* v1->0x28 (level-3) */
+extern char D_tim1660_y[];   /* a2->0x28 (level-2) */
+extern char D_tim1660_z[];   /* s0->0x28 (level-1/main) */
+extern int D_tim1660_id;     /* packed-id value read */
+
+typedef struct Tim1660_B { char pad[0x6b0]; int v; } Tim1660_B;
+typedef struct Tim1660_A { char p0[0xD4]; Tim1660_B *b; } Tim1660_A;
+
+char *timproc_uso_b3_func_00001660(char *arg0, char *arg1, int arg2) {
+    char *a2;   /* level-2 (0xD4), home 0x2C(sp) */
+    char *v1;   /* level-3 (0x50), home 0x28(sp) */
+    char *a0;   /* level-4 (0x2C), home 0x24(sp) */
+
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x10C), (arg0 != 0))) {
+        a2 = arg0;
+        if ((arg0 != 0) || (a2 = (char *)gl_func_00000000(0xD4), (a2 != 0))) {
+            v1 = a2;
+            if ((a2 != 0) || (v1 = (char *)gl_func_00000000(0x50), (v1 != 0))) {
+                a0 = v1;
+                if ((v1 != 0) || (a0 = (char *)gl_func_00000000(0x2C), (a0 != 0))) {
+                    gl_func_00000000(a0, D_tim1660_v + 0x3dc); *(char **)(a0 + 0x28) = D_tim1660_w;
+                }
+                *(char **)(v1 + 0x28) = D_tim1660_x;
+            }
+            *(char **)(a2 + 0x28) = D_tim1660_y;
+        }
+        *(char **)(arg0 + 0x28) = D_tim1660_z;
+        *(int *)(arg0 + 0x60) = arg2;
+        *(char **)(arg0 + 0xD4) = arg1;
+        *(int *)(arg0 + 0xE0) = 0xA0;
+        *(int *)(arg0 + 0xE4) = 0x1D;
+        *(int *)(arg0 + 0xD8) = 0xA0;
+        *(int *)(arg0 + 0xDC) = 0x82;
+        *(int *)(arg0 + 0xE8) = 0xA0;
+        *(int *)(arg0 + 0xEC) = 0x69;
+        *(float *)(arg0 + 0x108) = 1.0f;
+        *(float *)(arg1 + 0x72c) = 1.0f;
+        gl_func_00000000(arg0 + 0xF0,
+            ((D_tim1660_id + 0x23) << 16) | (((Tim1660_A *)arg0)->b->v + 7));
+    }
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001660);
-#endif
 
 void timproc_uso_b3_func_000017C8(int *a0) {
     if (gl_func_00000000(*(int*)(&D_00000000 + 0x190)) == 0) return;

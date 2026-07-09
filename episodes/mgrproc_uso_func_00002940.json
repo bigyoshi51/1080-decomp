@@ -1,0 +1,33 @@
+{
+  "function_name": "mgrproc_uso_func_00002940",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-09T23:13:57.902305+00:00",
+  "end_time": "2026-07-09T23:13:57.902324+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-09T23:13:57.902319+00:00",
+      "assistant_text": "111-insn family VARIANT (alloc 0x174, 5-call registration tail, $f4 const, packed-id from two globals). Extra levers: arg0-reassignment head form (named s0 copy loses a word); statement-order fix (0xD4 = arg1 before the const block -> arg1 reload takes t1); RANK COROLLARY \u2014 *(int*)(D_arr+0x68) outranks a plain global load, so spell it as extern-struct member D_mgr2940_q.v.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 111,
+  "initial_m2c_source": null,
+  "final_source": "/* import_80020100: packed-id low half (.v @+0x68) */\n\nvoid *mgrproc_uso_func_00002940(char *arg0, int arg1, int arg2) {\n    char *a2;   /* level-2 (0xD4), home 0x2C(sp) */\n    char *v1;   /* level-3 (0x50), home 0x28(sp) */\n    char *a0;   /* level-4 (0x2C), home 0x24(sp) */\n\n    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x174), (arg0 != 0))) {\n        a2 = arg0;\n        if ((arg0 != 0) || (a2 = (char *)gl_func_00000000(0xD4), (a2 != 0))) {\n            v1 = a2;\n            if ((a2 != 0) || (v1 = (char *)gl_func_00000000(0x50), (v1 != 0))) {\n                a0 = v1;\n                if ((v1 != 0) || (a0 = (char *)gl_func_00000000(0x2C), (a0 != 0))) {\n                    gl_func_00000000(a0, D_mgr2940_v + 0x650); *(char **)(a0 + 0x28) = D_mgr2940_w;\n                }\n                *(char **)(v1 + 0x28) = D_mgr2940_x;\n            }\n            *(char **)(a2 + 0x28) = D_mgr2940_y;\n        }\n        *(char **)(arg0 + 0x28) = D_mgr2940_z;\n        *(int *)(arg0 + 0x60) = arg2;\n        *(int *)(arg0 + 0xD4) = arg1;\n        *(int *)(arg0 + 0xE0) = 0xA0;\n        *(int *)(arg0 + 0xE4) = 0x1D;\n        *(int *)(arg0 + 0xD8) = 0xA0;\n        *(int *)(arg0 + 0xDC) = 0x82;\n        *(int *)(arg0 + 0xE8) = 0xA0;\n        *(int *)(arg0 + 0xEC) = 0x69;\n        *(int *)(arg0 + 0x16C) = 0;\n        *(float *)(arg0 + 0x168) = 1.0f;\n        gl_func_00000000(D_mgr2940_t + 0x18, 7);\n        *(int *)(arg0 + 0x170) = 0xFA;\n        gl_func_00000000(arg0 + 0xF0, 0x230004);\n        gl_func_00000000(arg0 + 0x108, 0x230003);\n        gl_func_00000000(arg0 + 0x120, 0x230005);\n        gl_func_00000000(arg0 + 0x138, 0x230006);\n        gl_func_00000000(arg0 + 0x150,\n            ((D_mgr2940_id + 0x23) << 16) | (D_mgr2940_q.v - 1));\n    }\n    return arg0;\n}",
+  "metadata": {
+    "source_path": "src/mgrproc_uso/mgrproc_uso.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00002940.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "111/111 unmasked word-exact + make ROM byte-identical (promoted)"
+  }
+}

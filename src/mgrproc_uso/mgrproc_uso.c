@@ -1513,71 +1513,65 @@ void mgrproc_uso_func_00002924(int *a0) {
     *(float *)((char *)a0 + 0x554) = 170.0f;
 }
 
-#ifdef NON_MATCHING
-/* mgrproc_uso_func_00002940: constructor. 4-level nested alloc-if-null cascade
- * (0x174/0xD4/0x50/0x2C — IDO emits the inner bails as complementary dead blocks,
- * m2c-faithful ||/&& form preserves them); innermost cb(obj, 0x650, self) + zeroes
- * ->0x28 at each level. Then field inits (0x60=arg2, 0xE0/E4/D8/DC/E8/EC color-ish
- * consts, 0x16C=0, 0x168=1.0f, 0xD4=arg1), cb(0x18,7,self), 0x170=0xFA, four
- * cb(self+sub, 0x23000N) installs, and a final cb(self+0x150, packed &D-derived
- * id). Returns self. Fresh decode 2026-05-29 (m2c-confirmed). 83.0% -> 88.59%
- * (2026-05-31) via two fixes: (1) the innermost cb's 2nd arg 0x650 is the
- * ADDRESS `(char*)&D_00000000 + 0x650` (m2c rendered the reloc'd lui+addiu as
- * the literal 1616); (2) the packed-id's `&D+0x68` value-read uses the distinct
- * extern `D_00000068` so it no longer shares IDO's CSE'd base register with the
- * `&D+0` read — each re-materializes its own lui (the &D-CSE distinct-extern
- * lever). NOTE: the per-level ->0x28 stores are &D_00000000 (a ptr), not 0.
- * Residual (~11%): prologue eval-order (`s0=arg0` move vs `bne arg0` test
- * scheduling tie) + the 3 alloc-cascade spill slots land 4 bytes lower than
- * target (frame-layout) + color-const-init block scheduling. Caps: self struct
- * + cb prototypes untyped (USO-reloc). NON_MATCHING. */
+/* mgrproc_uso_func_00002940 — family variant of arcproc_uso_func_0000199C
+ * (4-level alloc-cascade ctor; head/cascade/field-block identical shape,
+ * sizes 0x174/0xD4/0x50/0x2C, init-call base +0x650). mgr-specific tail:
+ * 0x16C=0, 0x168=1.0f, 0x170=0xFA, cb(&sym+0x18,7), four cb(self+sub,
+ * 0x23000N) installs, final cb(self+0x150, ((id+0x23)<<16)|(q68-1)).
+ * Head lever (from the 199C crack): reassign arg0 itself in the
+ * short-circuit cascade (a named s0 copy shifts the `move s0,a0` and
+ * loses a word). Packed-id tail here is global|global — textual order
+ * already creates the id chain first (no typed-member lever needed). */
 extern int gl_func_00000000();
-extern int D_00000068;
-void *mgrproc_uso_func_00002940(char *arg0, int arg1, int arg2) {
-    char *s0 = arg0;
-    char *a2;
-    char *v1;
-    char *a0;
+extern char D_mgr2940_v[];   /* import_80264A20: init-call a1 base (+0x650) */
+extern char D_mgr2940_w[];   /* import_80073B18: a0->0x28 (level-4) */
+extern char D_mgr2940_x[];   /* import_80073B80: v1->0x28 (level-3) */
+extern char D_mgr2940_y[];   /* mgrproc_uso_D_807FFA80: a2->0x28 (level-2) */
+extern char D_mgr2940_z[];   /* import_80264508: s0->0x28 (level-1/main) */
+extern char D_mgr2940_t[];   /* import_80263D48: cb arg base (+0x18) */
+extern int D_mgr2940_id;     /* import_8002022C: packed-id value read */
+extern struct Mgr2940Q { char pad[0x68]; int v; } D_mgr2940_q; /* import_80020100: packed-id low half (.v @+0x68) */
 
-    if ((arg0 != 0) || (s0 = (char *)gl_func_00000000(0x174), (s0 != 0))) {
-        a2 = s0;
-        if ((s0 != 0) || (a2 = (char *)gl_func_00000000(0xD4), (a2 != 0))) {
+void *mgrproc_uso_func_00002940(char *arg0, int arg1, int arg2) {
+    char *a2;   /* level-2 (0xD4), home 0x2C(sp) */
+    char *v1;   /* level-3 (0x50), home 0x28(sp) */
+    char *a0;   /* level-4 (0x2C), home 0x24(sp) */
+
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(0x174), (arg0 != 0))) {
+        a2 = arg0;
+        if ((arg0 != 0) || (a2 = (char *)gl_func_00000000(0xD4), (a2 != 0))) {
             v1 = a2;
             if ((a2 != 0) || (v1 = (char *)gl_func_00000000(0x50), (v1 != 0))) {
                 a0 = v1;
                 if ((v1 != 0) || (a0 = (char *)gl_func_00000000(0x2C), (a0 != 0))) {
-                    gl_func_00000000(a0, (char *)&D_00000000 + 0x650, a2);
-                    *(char **)(a0 + 0x28) = (char *)&D_00000000;
+                    gl_func_00000000(a0, D_mgr2940_v + 0x650); *(char **)(a0 + 0x28) = D_mgr2940_w;
                 }
-                *(char **)(v1 + 0x28) = (char *)&D_00000000;
+                *(char **)(v1 + 0x28) = D_mgr2940_x;
             }
-            *(char **)(a2 + 0x28) = (char *)&D_00000000;
+            *(char **)(a2 + 0x28) = D_mgr2940_y;
         }
-        *(char **)(s0 + 0x28) = (char *)&D_00000000;
-        *(int *)(s0 + 0x60) = arg2;
-        *(int *)(s0 + 0xE0) = 0xA0;
-        *(int *)(s0 + 0xE4) = 0x1D;
-        *(int *)(s0 + 0xD8) = 0xA0;
-        *(int *)(s0 + 0xDC) = 0x82;
-        *(int *)(s0 + 0xE8) = 0xA0;
-        *(int *)(s0 + 0xEC) = 0x69;
-        *(int *)(s0 + 0x16C) = 0;
-        *(float *)(s0 + 0x168) = 1.0f;
-        *(int *)(s0 + 0xD4) = arg1;
-        gl_func_00000000(0x18, 7, a2);
-        *(int *)(s0 + 0x170) = 0xFA;
-        gl_func_00000000(s0 + 0xF0, 0x230004);
-        gl_func_00000000(s0 + 0x108, 0x230003);
-        gl_func_00000000(s0 + 0x120, 0x230005);
-        gl_func_00000000(s0 + 0x138, 0x230006);
-        gl_func_00000000(s0 + 0x150,
-                         ((*(int *)&D_00000000 + 0x23) << 16) | (D_00000068 - 1));
+        *(char **)(arg0 + 0x28) = D_mgr2940_z;
+        *(int *)(arg0 + 0x60) = arg2;
+        *(int *)(arg0 + 0xD4) = arg1;
+        *(int *)(arg0 + 0xE0) = 0xA0;
+        *(int *)(arg0 + 0xE4) = 0x1D;
+        *(int *)(arg0 + 0xD8) = 0xA0;
+        *(int *)(arg0 + 0xDC) = 0x82;
+        *(int *)(arg0 + 0xE8) = 0xA0;
+        *(int *)(arg0 + 0xEC) = 0x69;
+        *(int *)(arg0 + 0x16C) = 0;
+        *(float *)(arg0 + 0x168) = 1.0f;
+        gl_func_00000000(D_mgr2940_t + 0x18, 7);
+        *(int *)(arg0 + 0x170) = 0xFA;
+        gl_func_00000000(arg0 + 0xF0, 0x230004);
+        gl_func_00000000(arg0 + 0x108, 0x230003);
+        gl_func_00000000(arg0 + 0x120, 0x230005);
+        gl_func_00000000(arg0 + 0x138, 0x230006);
+        gl_func_00000000(arg0 + 0x150,
+            ((D_mgr2940_id + 0x23) << 16) | (D_mgr2940_q.v - 1));
     }
-    return s0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002940);
-#endif
 
 /* mgrproc_uso_func_00002AFC: 32-insn (0x80) FP step-decrement-and-notify
  * helper on a0->0x168 (float). If positive, decrement by D[0x614] and
