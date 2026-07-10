@@ -4819,48 +4819,121 @@ void func_00007288(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007288);
 #endif
 
-/* func_00007328 - verified structural decode (0x1C0, 112 insns,
- * list-search + match-dispatch).
- * Struct-typing reference: s3->0x2C (44) = head of a node list;
- * node->0x0 (0) = next/payload ptr, node->0x4 (4) = key/sub-list
- * ptr (the walk follows 0x4 when set, else 0x0). func_00005EF8 /
- * func_0000502C / func_00004FF0 = iterator/cursor helpers
- * producing the search value compared against each node's key.
- * On a match, the found node's payload (match->0x0) is dispatched:
- * func_00000000(&D_00007F90, &match[1]) then the engine-wide
- * obj->0x28 vtable call on payload->0x28. D_00007FA0 / D_00007F90
- * = dispatch datums. Caps <80: linked-list walk + 3 iterator reloc
- * callees + nested branch-likely (bnel) + obj-0x28 vtable jalr +
- * reloc dispatch. INCLUDE_ASM remains build path. */
+/* func_00007328 - FULL structural decode (0x1C0, 112 insns, node-list
+ * search + match-dispatch loop + tail state-set). fuzzy 24 -> 69 (2026-07,
+ * agent-f). Logic + all reloc callees are correct; the FP-literal-pool
+ * premise does NOT apply here (the single float 1.0f is emitted inline via
+ * lui 0x3F800000 / mtc1, no pool).
+ *
+ * Structure (verified vs .s):
+ *   while (func_00005EF8(&flag), flag != 0) {
+ *       func_0000502C(&outv);
+ *       node = s3->0x2C; cval = node ? node->0x4 : node;
+ *       for (; node && node->0x0; node = cval, cval = node->0x4)
+ *           if (flag == node->0x0->0x4) { match = node->0x0; break; }
+ *       if (match) { vt = match->0x0->0x28;                 // vtable
+ *                    (*(vt->0x4C))((char*)(match->0x0) + (short)vt->0x48); }
+ *       else { func_00000000(&D_00007FA0,&flag);
+ *              func_00000000(&D,1,outv); }
+ *   }
+ *   func_0000502C(&s3->0x38); ...flag-1 -> reg-desc; flag-2 -> free 0x30/0x34;
+ *   mode=*(int*)(0x3C); if(mode==6||mode==0xB){ *(float*)0x2A0=1.0f;
+ *       s3->0x34=0x320; s3->0x38|=2; }
+ *
+ * RESIDUAL CAP (why not EXACT, ~31% of words): correct-logic / divergent
+ * register-allocation coloring, NOT a reloc-form or pool issue. My build
+ * frame = -0x60, target = -0x58 (IDO spills the two cursor pointers
+ * cval/node to distinct 0x44/0x48 stack slots AND holds &flag(0x54) +
+ * &keybuf(0x34) in SAVED regs s0/s1 across every call — i.e. both are
+ * treated address-taken; my C keeps them in caller-temp regs so the
+ * allocator picks s2/s1 and grows the frame +8). This is the documented
+ * permuter-immune coloring cap (project_1080_cap_analysis_2026-05-28):
+ * same logic, spill-slot + saved-reg-number divergence, solvable only by
+ * per-function exact-structure RE of the original stack-buffer shape
+ * (func_00005EF8/keybuf likely wrote/compared a small stack STRUCT, not a
+ * scalar). All three folded-symbol refs (func_0000027C+0x18,
+ * func_00000008+0x34, func_0000029C+0x4) and the jal-0 callees ARE
+ * reloc-correct here. INCLUDE_ASM remains build path. */
 extern char D_00007F90;
+extern char D_00007FA0;
 /* func_00005EF8 / func_0000502C already file-scope-declared. */
+extern void func_0000027C();   /* K&R data-symbol base (0x27C) */
+extern void func_0000029C();   /* K&R data-symbol base (0x29C) */
+extern void func_00000008();   /* K&R data-symbol base (0x08)  */
 #ifdef NON_MATCHING
 void func_00007328(char *s3) {
-    int it = 0;
-    int key2;
-    char *n;
-    char *match = 0;
-    char *cur;
-    char *o;
-    int *v;
-    func_00005EF8(&it);
-    if (it == 0) return;
-    func_0000502C(&key2);
-    n = *(char**)(s3 + 0x2C);
-    while (n != 0) {
-        cur = n;
-        n = *(int*)(n + 0x4) != 0 ? *(char**)*(int**)(n + 0x4) : *(char**)n;
-        if (it == *(int*)(cur + 0x8)) {  /* key compared (placeholder offset) */
-            match = *(char**)cur;
-            break;
+    int flag;
+    int outv;
+    int keybuf;
+    int *node;
+    int *cval;
+    int *pl;
+    int *match;
+
+    while (1) {
+        func_00005EF8(&flag);
+        if (flag == 0) break;
+        match = 0;
+        func_0000502C(&outv);
+        node = *(int**)(s3 + 0x2C);
+        cval = node;
+        pl = 0;
+        if (node != 0) {
+            cval = (int*)node[1];
+            pl = (int*)node[0];
+        }
+        if (pl != 0) {
+            do {
+                keybuf = flag;
+                pl = (int*)node[0];
+                if (keybuf == pl[1]) {
+                    match = (int*)node[0];
+                    break;
+                }
+                if (cval == 0) {
+                    node = cval;
+                    pl = 0;
+                } else {
+                    node = cval;
+                    cval = (int*)cval[1];
+                    pl = (int*)node[0];
+                }
+            } while (pl != 0);
+        }
+        if (match != 0) {
+            int *o = (int*)match[0];
+            int *vt;
+            short off;
+            func_00000000(&D_00007F90, (char*)match + 4);
+            vt = *(int**)((char*)o + 0x28);
+            off = *(short*)((char*)vt + 0x48);
+            (*(void (**)(void *))((char*)vt + 0x4C))((char*)o + off);
+        } else {
+            func_00000000(&D_00007FA0, &flag);
+            func_00000000(&D_00000000, 1, outv);
+        }
+        flag = 0;
+    }
+
+    func_0000502C((int*)(s3 + 0x38));
+    {
+        int f = *(int*)(s3 + 0x38);
+        if (f & 1) {
+            func_00000000((char*)&func_0000027C + 0x18);
+            f = *(int*)(s3 + 0x38);
+        }
+        if (f & 2) {
+            func_00004FF0((int*)(s3 + 0x30));
+            func_00004FF0((int*)(s3 + 0x34));
         }
     }
-    if (match != 0) {
-        func_00000000(&D_00007F90, match + 4);
-        o = *(char**)match;
-        v = *(int**)(o + 0x28);
-        /* vtable dispatch (offset truncated in decode) */
-        (*(void (**)(char*))((char*)v + 0x14))(o);
+    {
+        int mode = *(int*)((char*)&func_00000008 + 0x34);
+        if (mode == 6 || mode == 0xB) {
+            *(float*)((char*)&func_0000029C + 0x4) = 1.0f;
+            *(int*)(s3 + 0x34) = 0x320;
+            *(int*)(s3 + 0x38) = *(int*)(s3 + 0x38) | 2;
+        }
     }
 }
 #else
