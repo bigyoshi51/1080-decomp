@@ -237,13 +237,29 @@ void timproc_uso_b5_func_00000470(void) {
  * timproc_uso_b5_func_00000770 leaf; this body is now a single function
  * (grep -c 03E00008 = 1).
  *
- * Symbol-resolved decode pass (reloc-authoritative from raw .s):
- *   self = arg0-or-alloc(0x58); sub = self-or-alloc(0x50);
- *   node = sub-or-alloc(0x2C); table init; arg1-selected init arms.
- * Calls/data now use the real timproc_uso_b5_* / import_* symbols rather
- * than the generic gl_func_00000000 / D_00000000 placeholders. Register
- * lifetimes modelled on matched sibling func_00000058 (self in saved reg
- * across the cascade). Default build remains INCLUDE_ASM. */
+ * 2026-07-10: 81.87 -> 97.52 (190/190 insns, frame + ALL stack slots +
+ * both s-regs exact). Levers (1E9C-family two-s-reg constructor):
+ *  - arg0 reused AS self (reuse-param-as-object, the 1B10 lever) -> no
+ *    local home reservation, self colors s1;
+ *  - ONE register ptr `node` reused for the sub-cascade AND every
+ *    registration node (incl. the tail import+0x190 global, which then
+ *    loads FUSED into s0) -> colors s0; the 07ACE0 result is NOT used --
+ *    the registered node itself is read back (old body's `link =
+ *    07ACE0(...)` return-use was wrong);
+ *  - registration calls pass resultN (v0-rooted copyprop -> move a1,v0)
+ *    while the flag/backlink reads go through `node`;
+ *  - per-arm block-scoped result1/result2 (distinct slots per arm) +
+ *    volatile phantom pads (pad1 fn-scope after result1; padd in the
+ *    else arm; padbot after slot) + decl order result0,node,third,
+ *    result1,pad1,slot,padbot reproduce the target's exact hole pattern
+ *    (92 result0, 88 node-phantom, 84 third, 80 r1if, 76/72/68 holes,
+ *    64/60 else r1/r2, 56 hole, 52 slot) and the 0x60 frame.
+ * RESIDUAL (4 words = 2 insn-pair swaps, 0x57C/0x580 + 0x624/0x628):
+ * target emits [sw a0,0x34 slot-spill][move s0,v0 node-copy]; IDO 7.1
+ * emits [move][sw] regardless of statement order/same-line join/if(1)
+ * barrier/+0 disguise/slot-inline/decl swaps (all probed). Pure
+ * allocator-internal spill-vs-copy emission order at the pre-call
+ * boundary -- as1-schedule cap class. Default build INCLUDE_ASM. */
 extern int timproc_uso_b5_func_055750();
 extern int timproc_uso_b5_func_04C678();
 extern int timproc_uso_b5_func_074710();
@@ -269,112 +285,115 @@ extern char import_80020228;
 extern char import_80020098;
 
 int *timproc_uso_b5_func_00000478(int *arg0, int arg1, int arg2, int arg3) {
-    int *self;
-    int *sub;
-    int *node;
-    int *slot;
-    int *link;
     int result0;
+    register int *node;   /* s0: reused sub-cascade + every registration node */
+    int *third;
     int result1;
-    int result2;
+    volatile int pad1;
+    int *slot;
+    volatile int padbot;
 
-    self = arg0;
-    if (self == 0) {
-        self = (int *)timproc_uso_b5_func_055750(0x58);
-        if (self == 0) goto done;
+    if (arg0 == 0) {
+        arg0 = (int *)timproc_uso_b5_func_055750(0x58);
+        if (arg0 == 0) goto done;
     }
 
-    sub = self;
-    if (sub == 0) {
-        sub = (int *)timproc_uso_b5_func_055750(0x50);
-        if (sub == 0) goto after_sub;
-    }
-
-    node = sub;
+    node = arg0;
     if (node == 0) {
-        node = (int *)timproc_uso_b5_func_055750(0x2C);
-        if (node == 0) goto after_node;
+        node = (int *)timproc_uso_b5_func_055750(0x50);
+        if (node == 0) goto after_sub;
     }
-    timproc_uso_b5_func_04C678(node, &timproc_uso_b5_D_807FE84C + 0xFDC);
-    node[0x28 / 4] = (int)&import_80073B18;
+
+    third = node;
+    if (third == 0) {
+        third = (int *)timproc_uso_b5_func_055750(0x2C);
+        if (third == 0) goto after_node;
+    }
+    timproc_uso_b5_func_04C678(third, &timproc_uso_b5_D_807FE84C + 0xFDC);
+    third[0x28 / 4] = (int)&import_80073B18;
 
 after_node:
-    sub[0x28 / 4] = (int)&import_80073B80;
+    node[0x28 / 4] = (int)&import_80073B80;
 
 after_sub:
-    self[0x28 / 4] = (int)&timproc_uso_b5_D_807FD948;
-    self[0x0C / 4] = (int)(&timproc_uso_b5_D_807FD948 + 0xFE4);
+    arg0[0x28 / 4] = (int)&timproc_uso_b5_D_807FD948;
+    arg0[0x0C / 4] = (int)(&timproc_uso_b5_D_807FD948 + 0xFE4);
 
     timproc_uso_b5_func_074710(&timproc_uso_b5_D_807FE870 + 0x1000, 0);
     result0 = (int)timproc_uso_b5_func_00008DB4(0, arg1);
-    self[0x54 / 4] = 0;
+    arg0[0x54 / 4] = 0;
 
-    slot = (int *)((char *)self + 0x10);
     if (arg1 == 1) {
-        self[0x50 / 4] = 0;
+        arg0[0x50 / 4] = 0;
         result1 = (int)timproc_uso_b5_func_00008FC8(0,
                       (int *)(&timproc_uso_b5_D_807FE88C + 0x100C),
                       (int *)(&timproc_uso_b5_D_807FE88C + 0x101C));
-        link = (int *)timproc_uso_b5_func_07ACE0(slot, result1);
-        if (link[0x14 / 4] != 0) {
-            link[0x04 / 4] = 1;
+        slot = (int *)((char *)arg0 + 0x10); node = (int *)result1;
+        timproc_uso_b5_func_07ACE0(slot, result1);
+        if (node[0x14 / 4] != 0) {
+            node[0x04 / 4] = 1;
         }
-        link[0x14 / 4] = (int)self;
+        node[0x14 / 4] = (int)arg0;
 
-        result2 = (int)timproc_uso_b5_func_000018B4(0, (char *)self, arg1, arg2, arg3,
+        node = (int *)timproc_uso_b5_func_000018B4(0, (char *)arg0, arg1, arg2, arg3,
                       (char *)result0, result1, 0);
-        link = (int *)timproc_uso_b5_func_07ACE0(slot, result2);
-        if (link[0x14 / 4] != 0) {
-            link[0x04 / 4] = 1;
+        timproc_uso_b5_func_07ACE0(slot, (int)node);
+        if (node[0x14 / 4] != 0) {
+            node[0x04 / 4] = 1;
         }
-        link[0x14 / 4] = (int)self;
+        node[0x14 / 4] = (int)arg0;
         *(float *)&timproc_uso_b5_D_807FE8AC = 592.0f;
     } else {
-        self[0x50 / 4] = 1;
+        int result1;
+        int result2;
+        volatile int padd;
+        arg0[0x50 / 4] = 1;
         result1 = (int)timproc_uso_b5_func_00008FC8(0,
                       (int *)(&timproc_uso_b5_D_807FE88C + 0x102C),
                       (int *)(&timproc_uso_b5_D_807FE8AC + 0x103C));
-        link = (int *)timproc_uso_b5_func_07ACE0(slot, result1);
-        if (link[0x14 / 4] != 0) {
-            link[0x04 / 4] = 1;
+        slot = (int *)((char *)arg0 + 0x10); node = (int *)result1;
+        timproc_uso_b5_func_07ACE0(slot, result1);
+        if (node[0x14 / 4] != 0) {
+            node[0x04 / 4] = 1;
         }
-        link[0x14 / 4] = (int)self;
+        node[0x14 / 4] = (int)arg0;
 
         result2 = (int)timproc_uso_b5_func_00008FC8(0,
                       (int *)(&timproc_uso_b5_D_807FE8BC + 0x104C),
                       (int *)(&timproc_uso_b5_D_807FE8CC + 0x105C));
-        link = (int *)timproc_uso_b5_func_07ACE0(slot, result2);
-        if (link[0x14 / 4] != 0) {
-            link[0x04 / 4] = 1;
+        node = (int *)result2;
+        timproc_uso_b5_func_07ACE0(slot, result2);
+        if (node[0x14 / 4] != 0) {
+            node[0x04 / 4] = 1;
         }
-        link[0x14 / 4] = (int)self;
+        node[0x14 / 4] = (int)arg0;
 
-        result2 = (int)timproc_uso_b5_func_000018B4(0, (char *)self, arg1, arg2, arg3,
+        node = (int *)timproc_uso_b5_func_000018B4(0, (char *)arg0, arg1, arg2, arg3,
                       (char *)result0, result1, result2);
-        link = (int *)timproc_uso_b5_func_07ACE0(slot, result2);
-        if (link[0x14 / 4] != 0) {
-            link[0x04 / 4] = 1;
+        timproc_uso_b5_func_07ACE0(slot, (int)node);
+        if (node[0x14 / 4] != 0) {
+            node[0x04 / 4] = 1;
         }
-        link[0x14 / 4] = (int)self;
+        node[0x14 / 4] = (int)arg0;
         *(float *)&import_80800228 = 374.0f;
     }
 
-    timproc_uso_b5_func_00000778((char *)self);
-    link = (int *)timproc_uso_b5_func_07ACE0(slot,
-               *(int *)(&import_80020228 + 0x190));
-    if (link[0x14 / 4] != 0) {
-        link[0x04 / 4] = 1;
+    timproc_uso_b5_func_00000778((char *)arg0);
+    node = (int *)*(int *)(&import_80020228 + 0x190);
+    timproc_uso_b5_func_07ACE0(slot, node);
+    if (node[0x14 / 4] != 0) {
+        node[0x04 / 4] = 1;
     }
-    link[0x14 / 4] = (int)self;
+    node[0x14 / 4] = (int)arg0;
     timproc_uso_b5_func_0139B0(*(int *)(&import_80020228 + 0x190), 1, 0);
-    self[0x48 / 4] = 0;
-    self[0x30 / 4] = 0;
-    self[0x2C / 4] = 0;
+    arg0[0x48 / 4] = 0;
+    arg0[0x30 / 4] = 0;
+    arg0[0x2C / 4] = 0;
     timproc_uso_b5_func_011CD8(&import_80020098, 0);
     timproc_uso_b5_func_074840();
 
 done:
-    return self;
+    return arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00000478);
@@ -7980,7 +7999,6 @@ void timproc_uso_b5_func_0000BBC8(int *a0, float a1) {
  * Only order-flippers found cost words: (p230-(a1+0x230)) live subu (+3).
  * Genuine uopt-tie cap unless a zero-emission interning lever is found. */
 void timproc_uso_b5_func_0000BBDC(int *a0, int *a1) {
-    volatile int pad0;
     int caps[5];
     int *idxp[5];
     volatile int pad2[5];
