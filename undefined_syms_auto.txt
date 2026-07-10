@@ -577,6 +577,7 @@ D_A0000200 = 0xA0000200;
 .L000008A8 = 0x000008A8;
 D_00000000 = 0x00000000;
 D_8FFC_base = 0x00000000;  /* gl_func_00008FFC/00008E48: base-0 alias of D_00000000 -- defeats -O0 &D CSE between call arg0 and the +8 read (target re-materializes lui/addiu per use) */
+D_bootup_scratch0 = 0x00000000;  /* func_0000FD4C: int-typed base-0 scratch word (== *(int*)&D_00000000); direct int lvalue $at-fuses the store/reload (lui/sw) vs the address-of-cast lui/addiu/sw */
 D_39094_a1 = 0x00000000;  /* gl_func_00039094: per-call-site arg0 (distinct base-0 syms defeat CSE/s-reg promotion; target re-materializes lui/addiu per use). USO load-resolved. */
 D_39094_a2a = 0x00000000;
 D_39094_a2b = 0x00000000;

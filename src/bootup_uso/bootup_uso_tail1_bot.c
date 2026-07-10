@@ -9,81 +9,61 @@
  * bootup offset 0x100F0. */
 
 extern int func_00000000();
-extern int func_00000008;       /* USO-base reloc (D_-style placeholder pointer) */
+extern struct { char _p2C[0x2C]; int f2C; char _p38[0x8]; int f38; } func_00000008; /* USO-base reloc; struct-typed for $at-fused member stores */
 extern char D_00000000;
 extern char D_0000C58C;
 extern char D_0000C594;
 extern char D_0000C5A4;
 extern char D_0000C5AC;
+extern int D_bootup_scratch0;         /* int-typed base-0 alias of D_00000000; $at-fused scratch store/reload */
 
 #ifdef NON_MATCHING
-/* func_0000FC28: 73-insn (0x124) constructor + init chain.
+/* func_0000FC28: 73-insn (0x124) constructor + init chain, returns a0.
  *
- * Decoded shape (a0 = optional preallocated buffer):
- *   if (a0 == 0) {
- *       a0 = alloc(0x50);
- *       if (a0 == 0) goto end;
- *   }
- *   s0 = a0;
- *   if (s0 == 0) {                        // dead branch (a0 known non-NULL)
- *       s0 = alloc(0x50);
- *       if (s0 == 0) goto skip_init1;
- *   }
- *   s1 = s0;
- *   if (s1 == 0) {                        // dead branch
- *       s1 = alloc(0x2C);
- *       if (s1 == 0) goto skip_init2;
- *   }
- *   init(s1, &D_0000C58C);
- *   s1->field_28 = &D_00000000;           // vtable
- * skip_init2:
- *   s0->field_28 = &D_00000000;           // vtable
- * skip_init1:
- *   a0->field_28 = &D_00000000;           // vtable
- *   a0->field_C = &D_0000C594;
- *   v0 = call(a0, 0);
- *   *(int*)&D_00000000 = v0;
- *   ptr = *(int*)&D_00000000;
- *   call(ptr, a0);
- * end:
- *   return a0;
- *
- * Dead-branch pattern (`s0 = a0; if (s0 == 0) alloc()`) suggests -O0
- * expansion of macros or inlined alloc-checks where the source had
- * `if (!a) a = alloc()` repeated. -O2 would eliminate the redundant
- * checks but -O0 keeps them.
- *
- * Likely O0-blocked like other tail1 wrappers; file-split deferred. */
-void* func_0000FC28(void *a0) {
-    void *s0, *s1;
+ * 2026-07-10: 56.23% -> 97.06% (byte-exact except the ONE documented
+ * -O0 return-value dead-double-b toolchain gap; see FD4C below for the
+ * full lever writeup — FC28 is the smaller sibling, same recipe).
+ * Levers: (1) STRUCTURED nested if(){} (NOT if()goto) so each alloc/fail
+ * check emits a single `b!cond endif` — a `goto` at -O0 always emits a
+ * 2-insn branch-over (bnez;b); the whole rest is guarded by if(a0!=0){}
+ * so the a0-alloc-fail is the beqz-to-end guard. (2) `register void*
+ * s0,s1` (callee-saved cascade temps, no home spill). (3) TAIL recycles
+ * the now-dead s0/s1: `s0=a0; s1=&D_0000C594; *(int*)(s0+0xC)=(int)s1;`
+ * reproduces `lw s0; lui s1; sw s1,0xC(s0)`, and `s0=a0; f(scratch,s0)`
+ * the final-call arg. (4) D_bootup_scratch0 (int-typed base-0 alias of
+ * D_00000000, undefined_syms) $at-fuses the *&D store/reload (lui/sw)
+ * vs the address-of-cast's lui/addiu/sw. RESIDUAL = the dead second
+ * `b epilogue` only (value-return -O0 cap, NOT C-fixable). NM stays. */
+void *func_0000FC28(void *a0) {
+    register void *s0, *s1;
 
     if (a0 == 0) {
         a0 = (void*)func_00000000(0x50);
-        if (a0 == 0) goto end;
     }
-    s0 = a0;
-    if (s0 == 0) {
-        s0 = (void*)func_00000000(0x50);
-        if (s0 == 0) goto skip_init1;
+    if (a0 != 0) {
+        s0 = a0;
+        if (s0 == 0) {
+            s0 = (void*)func_00000000(0x50);
+        }
+        if (s0 != 0) {
+            s1 = s0;
+            if (s1 == 0) {
+                s1 = (void*)func_00000000(0x2C);
+            }
+            if (s1 != 0) {
+                func_00000000(s1, &D_0000C58C);
+                *(int*)((char*)s1 + 0x28) = (int)&D_00000000;
+            }
+            *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+        }
+        *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+        s0 = a0;
+        s1 = (void*)&D_0000C594;
+        *(int*)((char*)s0 + 0x0C) = (int)s1;
+        D_bootup_scratch0 = func_00000000(a0, 0);
+        s0 = a0;
+        func_00000000(D_bootup_scratch0, s0);
     }
-    s1 = s0;
-    if (s1 == 0) {
-        s1 = (void*)func_00000000(0x2C);
-        if (s1 == 0) goto skip_init2;
-    }
-    func_00000000(s1, &D_0000C58C);
-    *(int*)((char*)s1 + 0x28) = (int)&D_00000000;
-skip_init2:
-    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
-skip_init1:
-    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
-    *(int*)((char*)a0 + 0x0C) = (int)&D_0000C594;
-    {
-        int v = func_00000000(a0, 0);
-        *(int*)&D_00000000 = v;
-    }
-    func_00000000(*(int*)&D_00000000, a0);
-end:
     return a0;
 }
 #else
@@ -91,55 +71,67 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FC28);
 #endif
 
 #ifdef NON_MATCHING
-/* func_0000FD4C: 85-insn (0x154) alloc-chain + multi-init helper.
+/* func_0000FD4C: 85-insn (0x154) alloc-chain + multi-init helper, returns a0.
+ * Larger sibling of func_0000FC28 (+ a1/a2 global stashes, 0x44/0x48 zeroing).
  *
- * Larger sibling of func_0000FC28 (73-insn alloc-chain). Same nested
- * alloc/null-check pattern (a0 -> s0 -> s1 with sizes 0x50/0x50/0x2C)
- * plus additional state writes:
- *   - a0->field_0C = &D_0000C5AC
- *   - *(int*)(func_00000008 + 0x2C) = a1   // global a1 stash
- *   - *(int*)(func_00000008 + 0x38) = a2   // global a2 stash
- *   - a0->field_44 = 0
- *   - a0->field_48 = 0
- *   - call(a0, 0) -> store result at *&D_00000000
- *   - call(*&D_00000000, a0)
+ * 2026-07-10: 58.18% -> 97.47% (byte-exact except the ONE documented -O0
+ * return-value dead-double-b toolchain gap: our cc emits `lw v0; b epi; nop;
+ * b epi(DEAD); nop`, the target has a single b — value-return -O0 cap,
+ * docs/IDO_CODEGEN.md#feedback-ido-o0-return-value-dead-double-b, NOT C-fixable).
  *
- * Same -O0 cap class as FC28. File-split deferred. */
-void func_0000FD4C(void *a0, int a1, int a2) {
-    void *s0, *s1;
+ * LEVER KIT (the reusable part — cracked all diffs except the double-b):
+ * (1) STRUCTURED-CONTROL-FLOW: IDO -O0 renders `if(E) goto L;` as a 2-insn
+ *     branch-over (`b!E over; b L`), but `if(cond){body}` as a SINGLE
+ *     `b!cond endif`. The target's alloc-cascade is all single branches, so
+ *     express it as NESTED if(){} blocks: allocs guarded by `if(x==0){x=alloc;}`,
+ *     the whole rest guarded by `if(a0!=0){...}` (that guard IS the
+ *     a0-alloc-fail `beqz t7,end`). No goto/label anywhere.
+ * (2) `register void *s0,s1;` = the callee-saved cascade temps (or s0,v0 / or
+ *     s1,s0 — no home spill; plain locals would stack-home and lose the shape).
+ * (3) TAIL RE-USE of the now-dead register vars as scratch (the target recycles
+ *     $s0/$s1 once the cascade vars die): `s0=a0; s1=&D_0000C5AC;
+ *     *(int*)(s0+0xC)=(int)s1;` -> `lw s0; lui s1; sw s1,0xC(s0)`; and
+ *     `s0=a0; f(scratch,s0)` for the last call's arg.
+ * (4) struct-typed func_00000008 (member .f2C/.f38) $at-fuses the global stashes
+ *     (lui at; sw ...(at)) vs the (char*)&sym+off cast's lui/addiu/sw.
+ * (5) D_bootup_scratch0 = int-typed base-0 alias of D_00000000 (undefined_syms)
+ *     $at-fuses the *&D scratch store + reload.
+ * RESIDUAL = the dead double-b only. NM stays. */
+void *func_0000FD4C(void *a0, int a1, int a2) {
+    register void *s0, *s1;
 
     if (a0 == 0) {
         a0 = (void*)func_00000000(0x50);
-        if (a0 == 0) goto end;
     }
-    s0 = a0;
-    if (s0 == 0) {
-        s0 = (void*)func_00000000(0x50);
-        if (s0 == 0) goto skip_init1;
+    if (a0 != 0) {
+        s0 = a0;
+        if (s0 == 0) {
+            s0 = (void*)func_00000000(0x50);
+        }
+        if (s0 != 0) {
+            s1 = s0;
+            if (s1 == 0) {
+                s1 = (void*)func_00000000(0x2C);
+            }
+            if (s1 != 0) {
+                func_00000000(s1, &D_0000C5A4);
+                *(int*)((char*)s1 + 0x28) = (int)&D_00000000;
+            }
+            *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
+        }
+        *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
+        s0 = a0;
+        s1 = (void*)&D_0000C5AC;
+        *(int*)((char*)s0 + 0x0C) = (int)s1;
+        func_00000008.f2C = a1;
+        func_00000008.f38 = a2;
+        *(int*)((char*)a0 + 0x44) = 0;
+        *(int*)((char*)a0 + 0x48) = 0;
+        D_bootup_scratch0 = func_00000000(a0, 0);
+        s0 = a0;
+        func_00000000(D_bootup_scratch0, s0);
     }
-    s1 = s0;
-    if (s1 == 0) {
-        s1 = (void*)func_00000000(0x2C);
-        if (s1 == 0) goto skip_init2;
-    }
-    func_00000000(s1, &D_0000C5A4);
-    *(int*)((char*)s1 + 0x28) = (int)&D_00000000;
-skip_init2:
-    *(int*)((char*)s0 + 0x28) = (int)&D_00000000;
-skip_init1:
-    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
-    *(int*)((char*)a0 + 0x0C) = (int)&D_0000C5AC;
-    *(int*)((char*)&func_00000008 + 0x2C) = a1;
-    *(int*)((char*)&func_00000008 + 0x38) = a2;
-    *(int*)((char*)a0 + 0x44) = 0;
-    *(int*)((char*)a0 + 0x48) = 0;
-    {
-        int v = func_00000000(a0, 0);
-        *(int*)&D_00000000 = v;
-    }
-    func_00000000(*(int*)&D_00000000, a0);
-end:
-    return;
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FD4C);
