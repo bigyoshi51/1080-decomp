@@ -2235,6 +2235,118 @@
    }
   },
   {
+   "name": "src/bootup_uso/bootup_uso_o0_1034C",
+   "target_path": "expected/src/bootup_uso/bootup_uso_o0_1034C.c.o",
+   "base_path": "build/non_matching/src/bootup_uso/bootup_uso_o0_1034C.c.o",
+   "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_1034C.c",
+    "progress_categories": [
+     "bootup_uso"
+    ]
+   },
+   "scratch": {
+    "platform": "n64",
+    "compiler": "ido7.1",
+    "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+   }
+  },
+  {
+   "name": "src/bootup_uso/bootup_uso_tail3a_10540",
+   "target_path": "expected/src/bootup_uso/bootup_uso_tail3a_10540.c.o",
+   "base_path": "build/non_matching/src/bootup_uso/bootup_uso_tail3a_10540.c.o",
+   "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail3a_10540.c",
+    "progress_categories": [
+     "bootup_uso"
+    ]
+   },
+   "scratch": {
+    "platform": "n64",
+    "compiler": "ido7.1",
+    "c_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+   }
+  },
+  {
+   "name": "src/bootup_uso/bootup_uso_o0_10AB0",
+   "target_path": "expected/src/bootup_uso/bootup_uso_o0_10AB0.c.o",
+   "base_path": "build/non_matching/src/bootup_uso/bootup_uso_o0_10AB0.c.o",
+   "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_10AB0.c",
+    "progress_categories": [
+     "bootup_uso"
+    ]
+   },
+   "scratch": {
+    "platform": "n64",
+    "compiler": "ido7.1",
+    "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+   }
+  },
+  {
+   "name": "src/bootup_uso/bootup_uso_o0_11D78",
+   "target_path": "expected/src/bootup_uso/bootup_uso_o0_11D78.c.o",
+   "base_path": "build/non_matching/src/bootup_uso/bootup_uso_o0_11D78.c.o",
+   "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_11D78.c",
+    "progress_categories": [
+     "bootup_uso"
+    ]
+   },
+   "scratch": {
+    "platform": "n64",
+    "compiler": "ido7.1",
+    "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+   }
+  },
+  {
+   "name": "src/bootup_uso/bootup_uso_tail3a_bot_11DB4",
+   "target_path": "expected/src/bootup_uso/bootup_uso_tail3a_bot_11DB4.c.o",
+   "base_path": "build/non_matching/src/bootup_uso/bootup_uso_tail3a_bot_11DB4.c.o",
+   "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail3a_bot_11DB4.c",
+    "progress_categories": [
+     "bootup_uso"
+    ]
+   },
+   "scratch": {
+    "platform": "n64",
+    "compiler": "ido7.1",
+    "c_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+   }
+  },
+  {
+   "name": "src/bootup_uso/bootup_uso_o0_11DBC",
+   "target_path": "expected/src/bootup_uso/bootup_uso_o0_11DBC.c.o",
+   "base_path": "build/non_matching/src/bootup_uso/bootup_uso_o0_11DBC.c.o",
+   "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_11DBC.c",
+    "progress_categories": [
+     "bootup_uso"
+    ]
+   },
+   "scratch": {
+    "platform": "n64",
+    "compiler": "ido7.1",
+    "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+   }
+  },
+  {
+   "name": "src/bootup_uso/bootup_uso_tail3a_bot_11DF8",
+   "target_path": "expected/src/bootup_uso/bootup_uso_tail3a_bot_11DF8.c.o",
+   "base_path": "build/non_matching/src/bootup_uso/bootup_uso_tail3a_bot_11DF8.c.o",
+   "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail3a_bot_11DF8.c",
+    "progress_categories": [
+     "bootup_uso"
+    ]
+   },
+   "scratch": {
+    "platform": "n64",
+    "compiler": "ido7.1",
+    "c_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+   }
+  },
+  {
    "name": "src/bootup_uso/bootup_uso_o0_118E4",
    "target_path": "expected/src/bootup_uso/bootup_uso_o0_118E4.c.o",
    "base_path": "build/non_matching/src/bootup_uso/bootup_uso_o0_118E4.c.o",
