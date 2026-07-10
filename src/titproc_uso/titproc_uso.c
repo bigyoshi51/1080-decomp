@@ -1525,138 +1525,162 @@ void titproc_uso_func_00001E2C(char *a0) {
 }
 
 #ifdef NON_MATCHING
-void *titproc_uso_func_00001E9C(void *a0, void *a1, void *a2, void *a3) {
+/* 2026-07-10: 81.3% -> 243/245 words (99.2%), frame + ALL slots + both s-regs
+ * exact. Two-s-reg constructor kit (docs/IDO_CODEGEN.md, timproc b5 478
+ * family) + refinements:
+ *  - arg0 reused AS self (colors s1, no phantom home); ONE register `node`
+ *    for sub-cascade + every registration node + tail import+0x190 global
+ *    (loads FUSED lui s0/lw s0);
+ *  - the old decode's "else { p[X]=0; }" registration arms were really the
+ *    (a1<<6)/(a1<<8) GUARD bodies executed in the bltzl/bgezl ANNULLED delay
+ *    slot with a dead copy left at the arm join -- registrations all use the
+ *    unconditional-backlink form, and the guards must put the zero-store arm
+ *    in the C else so the big arm is the fall-through;
+ *  - `int * volatile slot` + def folded into the first 07ACE0 call arg
+ *    (`func(slot = ..., node)`): first call uses computed a0 directly +
+ *    volatile store to its DECL-ORDER home 44(sp), later calls reload -- a
+ *    plain local instead gets a colored working temp split-spilled to a NEW
+ *    bottom slot (uoptlist cand 57);
+ *  - `func_07ACE0(slot, node = rtemp)` arg-fold emits [sw v0][lw a0,44]
+ *    [or s0,v0] in target order (a separate `node = ...;` stmt emits the
+ *    copy before the volatile slot reload);
+ *  - zero-store `arg0[0x48/4]=0` written LAST hoists into the andi reload's
+ *    load-delay gap (docs zero-store-write-last).
+ * RESIDUAL (2 words): `addiu t6,%lo(import_00073B18)` vs `lw v1,56(sp)`
+ * adjacent-pair order after the 04C678 return -- as1 tie-break between two
+ * independent fill candidates; immune to named-temp/goto-label/if(1)/
+ * volatile-store/deref-spelling probes. Same allocator-internal pair-order
+ * cap class as the b5 478 residual. Default build INCLUDE_ASM. */
+int *titproc_uso_func_00001E9C(int *arg0, int arg1, int arg2, int arg3) {
 extern char import_000745F8;
 extern char titproc_uso_D_000334;
-    int *p = (int *)a0;
-    int *n1, *n2, *n3;
-    int *nd;
-    /* 5-stage get-or-create cascade (sibling of timproc_uso_b3_func_00000994 /
-     * timproc_uso_b1_func_0000097C; self alloc 0x6C8 here, D-template 0x514).
-     * goto-chain dead-guards + distinct-extern vtable stores (CSE-bust). */
-    if (a0 == NULL) {
-        p = (int *)titproc_uso_func_055750(0x6C8);
-        if (p == NULL) goto end;
+    register int *node;   /* s0: sub-cascade + every registration node */
+    int *third;           /* home 56(sp), colors v1 */
+    int *fourth;          /* home 52(sp), colors a0 */
+    int *rtemp;           /* 48(sp) phantom: v0/v1-role temps */
+    int * volatile slot;  /* home 44(sp): def folded into first call arg, reload per use */
+
+    if (arg0 == 0) {
+        arg0 = (int *)titproc_uso_func_055750(0x6C8);
+        if (arg0 == 0) goto done;
     }
-    n1 = p;
-    if (p == NULL) { n1 = (int *)titproc_uso_func_055750(0x6A8); if (n1 == NULL) goto S_self; }
-    n2 = n1;
-    if (n1 == NULL) { n2 = (int *)titproc_uso_func_055750(0x50); if (n2 == NULL) goto S_n1; }
-    n3 = n2;
-    if (n2 == NULL) { n3 = (int *)titproc_uso_func_055750(0x2C); if (n3 == NULL) goto S_n2; }
-    titproc_uso_func_04C678(n3, (char *)&titproc_uso_D_00048C + 0x514);
-    n3[0x28 / 4] = (int)&import_00073B18;
-S_n2:
-    n2[0x28 / 4] = (int)&import_00073B80;
-S_n1:
-    n1[0x28 / 4] = (int)&import_000745F8;
-    import_000AE700((char *)n1 + 0x50);
-S_self:
-    p[0x28 / 4] = (int)&titproc_uso_D_000334;
-    p[0x568 / 4] = 0;
-    import_000B0DBC(p, a1, (char *)&titproc_uso_D_00048C + 0x51C, a2);
-    p[0x528 / 4] = (int)a3;
-    titproc_uso_func_000000(p);
+    node = arg0;
+    if (node == 0) {
+        node = (int *)titproc_uso_func_055750(0x6A8);
+        if (node == 0) goto after_node;
+    }
+    third = node;
+    if (third == 0) {
+        third = (int *)titproc_uso_func_055750(0x50);
+        if (third == 0) goto after_third;
+    }
+    fourth = third;
+    if (fourth == 0) {
+        fourth = (int *)titproc_uso_func_055750(0x2C);
+        if (fourth == 0) goto after_fourth;
+    }
+    titproc_uso_func_04C678(fourth, (char *)&titproc_uso_D_00048C + 0x514);
+    fourth[0x28 / 4] = (int)&import_00073B18;
+after_fourth:
+    third[0x28 / 4] = (int)&import_00073B80;
+after_third:
+    node[0x28 / 4] = (int)&import_000745F8;
+    import_000AE700((char *)node + 0x50);
+after_node:
+    arg0[0x28 / 4] = (int)&titproc_uso_D_000334;
+    arg0[0x568 / 4] = 0;
+    import_000B0DBC(arg0, arg1, (char *)&titproc_uso_D_00048C + 0x51C, arg2);
+    arg0[0x528 / 4] = arg3;
+    titproc_uso_func_000000();
     titproc_uso_func_074710((char *)&titproc_uso_D_00048C + 0x530, 0);
     import_000A7ECC(&import_00020098, 0);
-    p[0x6AC / 4] = (int)import_000B6C40(0);
-    *(int *)((char *)&import_00020098 + 0x138) = p[0x6AC / 4];
+    *(int *)((char *)&import_00020098 + 0x138) = arg0[0x6AC / 4] = (int)import_000B6C40(0);
+    import_000B88CC(arg0[0x6AC / 4]);
+    node = (int *)arg0[0x6AC / 4];
+    titproc_uso_func_07ACE0(slot = (int *)((char *)arg0 + 0x10), node);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
+    }
+    node[0x14 / 4] = (int)arg0;
+    titproc_uso_func_01B0F8(arg0, arg1);
+    arg0[0x4F4 / 4] = arg1 & 0xFFFF;
+    arg0[0x48 / 4] = 0;
 
-    /* tail: node init + virtual dispatch (insns 78-108) */
-    {
-        int *node;
-        import_000B88CC(p[0x6AC / 4]);
-        node = (int *)p[0x6AC / 4];
-        titproc_uso_func_07ACE0((char *)p + 0x10, node);
+    if ((arg1 << 6) >= 0) {
+        rtemp = (int *)titproc_uso_func_0015F4(0);
+        arg0[0x6B0 / 4] = (int)rtemp;
+        node = (int *)rtemp[0x28 / 4];
+        ((void (*)(int))node[0x5C / 4])(*(short *)((char *)node + 0x58) + (int)rtemp);
+        node = (int *)arg0[0x6B0 / 4];
+        titproc_uso_func_07ACE0(slot, node);
         if (node[0x14 / 4] != 0) {
             node[0x4 / 4] = 1;
         }
-        node[0x14 / 4] = (int)p;
-    }
-    titproc_uso_func_01B0F8(p, a1);
-    p[0x48 / 4] = 0;
-    p[0x4F4 / 4] = (int)a1 & 0xFFFF;
-    if (((int)a1 << 6) < 0) {
-        p[0x6B4 / 4] = 0;
-    }
-    {
-        int *r6b0 = (int *)titproc_uso_func_0015F4(0);
-        int *vt;
-        p[0x6B0 / 4] = (int)r6b0;
-        vt = (int *)r6b0[0x28 / 4];
-        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + (int)r6b0);
-        nd = (int *)p[0x6B0 / 4];
-        titproc_uso_func_07ACE0((char *)p + 0x10, nd);
-        if (nd[0x14 / 4] != 0) {
-            nd[0x4 / 4] = 1;
+        node[0x14 / 4] = (int)arg0;
+        rtemp = (int *)titproc_uso_func_001840(0);
+        arg0[0x6B4 / 4] = (int)rtemp;
+        rtemp[0x38 / 4] = 1;
+        ((int *)arg0[0x6B4 / 4])[0x2C / 4] = 0;
+        rtemp = (int *)arg0[0x6B4 / 4];
+        node = (int *)rtemp[0x28 / 4];
+        ((void (*)(int))node[0x5C / 4])(*(short *)((char *)node + 0x58) + (int)rtemp);
+        node = (int *)arg0[0x6B4 / 4];
+        titproc_uso_func_07ACE0(slot, node);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
         }
-        nd[0x14 / 4] = (int)p;
-    }
-    {
-        int *r = (int *)titproc_uso_func_001840(0);
-        int *vt;
-        p[0x6B4 / 4] = (int)r;
-        r[0x38 / 4] = 1;
-        ((int *)p[0x6B4 / 4])[0x2C / 4] = 0;
-        vt = (int *)((int *)p[0x6B4 / 4])[0x28 / 4];
-        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + p[0x6B4 / 4]);
-    }
-    nd = (int *)p[0x6B4 / 4];
-    titproc_uso_func_07ACE0((char *)p + 0x10, nd);
-    if (nd[0x14 / 4] != 0) {
-        nd[0x4 / 4] = 1;
-        nd[0x14 / 4] = (int)p;
+        node[0x14 / 4] = (int)arg0;
     } else {
-        p[0x6B4 / 4] = 0;
+        arg0[0x6B4 / 4] = 0;
     }
-    nd = (int *)titproc_uso_func_001D7C(0);
-    p[0x6BC / 4] = (int)nd;
-    titproc_uso_func_07ACE0((char *)p + 0x10, nd);
-    if (nd[0x14 / 4] != 0) {
-        nd[0x4 / 4] = 1;
+
+    rtemp = (int *)titproc_uso_func_001D7C(0);
+    arg0[0x6BC / 4] = (int)rtemp;
+    titproc_uso_func_07ACE0(slot, node = rtemp);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
     }
-    nd[0x14 / 4] = (int)p;
-    if (((int)a1 << 8) >= 0) {
-        p[0x6C0 / 4] = 0;
+    node[0x14 / 4] = (int)arg0;
+
+    if ((arg1 << 8) < 0) {
+        rtemp = (int *)titproc_uso_func_001B10(0);
+        arg0[0x6B8 / 4] = (int)rtemp;
+        titproc_uso_func_07ACE0(slot, node = rtemp);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+        }
+        node[0x14 / 4] = (int)arg0;
+        rtemp = (int *)import_000A5D38(0);
+        arg0[0x6C0 / 4] = (int)rtemp;
+        import_000A5F40(rtemp, arg0);
+        titproc_uso_func_0022BC(arg0);
+        ((int *)arg0[0x6C0 / 4])[0x30 / 4] = (int)import_0024CCF4(0, &titproc_uso_D_00052C, 0x48, 0xDD, 3, 13);
+        *(float *)((char *)arg0[0x6C0 / 4] + 0x74) = 17.0f;
+        import_000A5FBC(arg0[0x6C0 / 4]);
+        titproc_uso_func_00F4CC(arg0[0x6C0 / 4]);
+        *(int *)((char *)arg0[0x6C0 / 4] + 0x7C) = *(int *)((char *)&import_00020098 + 0x84);
+        node = (int *)arg0[0x6C0 / 4];
+        titproc_uso_func_07ACE0(slot, node);
+        if (node[0x14 / 4] != 0) {
+            node[0x4 / 4] = 1;
+        }
+        node[0x14 / 4] = (int)arg0;
     } else {
-        nd = (int *)titproc_uso_func_001B10(0);
-        p[0x6B8 / 4] = (int)nd;
-        titproc_uso_func_07ACE0((char *)p + 0x10, nd);
-        if (nd[0x14 / 4] != 0) {
-            nd[0x4 / 4] = 1;
-        }
-        nd[0x14 / 4] = (int)p;
-        p[0x6C0 / 4] = (int)import_000A5D38(0);
-        import_000A5F40((int *)p[0x6C0 / 4], p);
-        titproc_uso_func_0022BC(p);
-        ((int *)p[0x6C0 / 4])[0x30 / 4] = (int)import_0024CCF4(0, &titproc_uso_D_00052C, 0x48, 0xDD, 3, 13);
-        *(float *)((char *)p[0x6C0 / 4] + 0x74) = 17.0f;
-        import_000A5FBC((int *)p[0x6C0 / 4]);
-        titproc_uso_func_00F4CC((int *)p[0x6C0 / 4]);
-        *(int *)((char *)p[0x6C0 / 4] + 0x7C) = *(int *)((char *)&import_00020098 + 0x84);
-        nd = (int *)p[0x6C0 / 4];
-        titproc_uso_func_07ACE0((char *)p + 0x10, nd);
-        if (nd[0x14 / 4] != 0) {
-            nd[0x4 / 4] = 1;
-            nd[0x14 / 4] = (int)p;
-        } else {
-            p[0x6C0 / 4] = 0;
-        }
+        arg0[0x6C0 / 4] = 0;
     }
-    p[0x6C4 / 4] = 0;
-    {
-        nd = *(int **)((char *)&import_00020098 + 0x190);
-        titproc_uso_func_07ACE0((char *)p + 0x10, nd);
-        if (nd[0x14 / 4] != 0) {
-            nd[0x4 / 4] = 1;
-            nd[0x14 / 4] = (int)p;
-        }
-        titproc_uso_func_0139B0(*(int **)((char *)&import_00020098 + 0x190), 1, 0);
-        titproc_uso_func_074840();
-        import_000A7ECC(&import_00020098, 0);
+
+    arg0[0x6C4 / 4] = 0;
+    node = (int *)*(int *)((char *)&import_00020098 + 0x190);
+    titproc_uso_func_07ACE0(slot, node);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
     }
-end:
-    return (void *)p;
+    node[0x14 / 4] = (int)arg0;
+    titproc_uso_func_0139B0(*(int *)((char *)&import_00020098 + 0x190), 1, 0);
+    titproc_uso_func_074840();
+    import_000A7ECC(&import_00020098, 0);
+done:
+    return arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001E9C);
