@@ -1301,6 +1301,16 @@ void mgrproc_uso_func_00002324(char *a0) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+/* 2026-07-10 (78.23 -> 83.72 fuzzy): the four `255.0f * FW(arg0, 0x7A0)` alpha
+ * expressions used an INT load of field 0x7A0 followed by cvt.s.w; the target
+ * emits `lwc1 $f6,1952(s3)` (no convert) -- 0x7A0 is genuinely a FLOAT field.
+ * Switched those reads to `*(float*)(arg0 + 0x7A0)`, dropping one cvt.s.w per
+ * site and re-aligning the FP chain. RESIDUAL (~16%): the six draw calls pass
+ * &D_00000000 as arg0; the target rematerializes it per-site (`lui a0; addiu`,
+ * form a) at some calls and holds it in $s0 (`move a0,s0`, form b) at others --
+ * the address-fold-vs-CSE allocator coin-flip SKIP class (a held-`dbase` local
+ * regressed to 82.5%). Plus frame 0x120 vs 0xB8 + $f0/$f4 const numbering +
+ * beq/beql branch-likely picks -- whole-function coloring caps. Stays NM. */
 typedef char *(*GP_000023FC)();
 void mgrproc_uso_func_000023FC(char *arg0) {
     f32 sp11C;
@@ -1340,10 +1350,10 @@ void mgrproc_uso_func_000023FC(char *arg0) {
     sp11C = 1.0f;
     if (FW(arg0, 0x4F8) != 2) {
         mgrproc_uso_func_00000AE0(0);
-        mgrproc_uso_func_00000AE0(0, (s32) (255.0f * FW(arg0, 0x7A0)), &sp110);
+        mgrproc_uso_func_00000AE0(0, (s32) (255.0f * *(float*)(arg0 + 0x7A0)), &sp110);
         mgrproc_uso_func_00000AE0(0, 0xA0, (f32 *)0x8C, (char *)3);
     }
-    mgrproc_uso_func_00000AE0(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x338, (int)arg0 + 0x35C);
+    mgrproc_uso_func_00000AE0(0, (s32) (255.0f * *(float*)(arg0 + 0x7A0)), (int)arg0 + 0x338, (int)arg0 + 0x35C);
     FW(arg0, 0x508) = (s32) (FW(arg0, 0x508) + 1);
     if (FW(arg0, 0x4F8) == 0) {
         temp_s0 = (int)arg0 + 0x728;
@@ -1363,7 +1373,7 @@ void mgrproc_uso_func_000023FC(char *arg0) {
         sp60 = (s32) FW(temp_t5, 0x30) / 60000;
         sp5C = (s32) (FW(temp_t5, 0x30) % 60000) / 1000;
         temp_s0_3 = (s32) ((FW(temp_t5, 0x30) % 60000) % 1000) / 10;
-        mgrproc_uso_func_00000AE0(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
+        mgrproc_uso_func_00000AE0(0, (s32) (255.0f * *(float*)(arg0 + 0x7A0)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
         temp_a0 = (int)arg0 + 0x788;
         sp44 = temp_a0;
         mgrproc_uso_func_00000AE0(temp_a0);
@@ -1406,7 +1416,7 @@ void mgrproc_uso_func_000023FC(char *arg0) {
     if ((FW(FW(arg0, 0x528), 0x14) & 1) && (FW(arg0, 0x4FC) != 0) && (FW(FW((*(char *)0x138), 0x44), 0x38) < 3)) {
         var_s0_2 = 1;
     }
-    mgrproc_uso_func_00000AE0(0, (s32) (255.0f * FW(arg0, 0x7A0)), (int)arg0 + 0x2F0, (int)arg0 + 0x314);
+    mgrproc_uso_func_00000AE0(0, (s32) (255.0f * *(float*)(arg0 + 0x7A0)), (int)arg0 + 0x2F0, (int)arg0 + 0x314);
     temp_s0_4 = (int)arg0 + 0x758;
     if (var_s0_2 != 0) {
         mgrproc_uso_func_00000AE0(temp_s0_4);
