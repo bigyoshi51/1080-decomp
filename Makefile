@@ -123,6 +123,9 @@ build/src/bootup_uso/bootup_uso_tail1_bot.c.o build/non_matching/src/bootup_uso/
 # 2026-07-10: func_000102A4 (0x44, -O0 island) carved out of tail2 into
 # o0_1024C — region now 0x1024C..0x102E8 (0x9C); tail2 starts 0x102E8 (0x28).
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x9C
+# NM twin of the TRUNCATE above: -O0 dead jr-pair past 102A4's real 0x44 end
+# inflates the NM symbol and objdiff scores 88% on byte-identical words.
+build/non_matching/src/bootup_uso/bootup_uso_o0_1024C.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x9C func_000102A4=0x44
 build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0x28
 build/src/bootup_uso/bootup_uso_tail2.c.o build/non_matching/src/bootup_uso/bootup_uso_tail2.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
