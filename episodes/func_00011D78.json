@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00011D78",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T08:16:48.218062+00:00",
+  "end_time": "2026-07-10T08:16:48.218080+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T08:16:48.218075+00:00",
+      "assistant_text": "register param (unhomed frameless leaf) + array-form ((float**)(a0+0xE0))[idx] base-first addu + lexically-dead bare return; reproduces interior dead jr pair; trailing pairs TRUNCATE-clipped file-terminal; 15/15",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 15,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* func_00011D78: -O0 island carved out of bootup_uso_tail3a_bot.c on\n * 2026-07-10 and MATCHED at -O0 (15/15 target words = 0x3C; the 3 trailing\n * dead jr-ra pairs our -O0 emits are clipped by TRUNCATE_TEXT \u2014 o0_11D40\n * precedent, which is why this fn must terminate its file).\n *\n * Indexed-pointer-array float load with early-out: slot ptr array at\n * a0+0xE0, index at a0+0x128, gate at a0+0x18C; returns slot->x or 0.0f.\n *\n * -O0 levers (supersede the old \"-O0 inter-block dead-pair irreducible\"\n * cap note \u2014 that analysis predated the register-param + dead-bare-return\n * levers): register param (unhomed a0, frameless leaf); array-form\n * ((float**)(a0+0xE0))[idx] for base-first addu $t9,$a0,$t8 + folded 0xE0;\n * the target's interior dead jr-ra pair between the main return and the\n * zero block is a lexically-dead bare `return;` INSIDE the if arm. */\nfloat func_00011D78(register char *a0) {\n    if (*(int*)(a0 + 0x18C) == 0) {\n        return *(((float**)(a0 + 0xE0))[*(int*)(a0 + 0x128)]);\n        return;\n    }\n    return 0.0f;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/bootup_uso/bootup_uso_o0_11D78.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/bootup_uso/func_00011D78.s",
+    "segment": "bootup_uso",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0 clean rebuild; cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}
