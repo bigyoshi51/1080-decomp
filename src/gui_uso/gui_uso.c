@@ -226,27 +226,66 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000006B8);
  * ctx->0xC->4, 8-byte slots), then two G_SETPRIMCOLOR-class commands whose
  * color word is packed from three floats (R/G/B x 1.0f scale) via the
  * cvt.w.s + FCSR-overflow-clamp idiom (cfc1/ctc1, andi 0x78), each channel
- * clamped to 0..0xFF and OR'd into byte lanes 16/8/0. Multi-tick: float
- * scheduling + the clamp ladder need the f3dex2 treatment; INCLUDE_ASM is
- * the build path. */
+ * clamped to 0..0xFF and OR'd into byte lanes 16/8/0.
+ *
+ * FULL BODY 2026-07-10 (agent-g, stub-rewrite vein): the float->u8 clamp
+ * ladder IS just `(u32)(chan * 255.0f)` — IDO's float->UNSIGNED cast
+ * expansion (2^31 bias 0x4F000000 + FCSR invalid-op retry) emits the exact
+ * cfc1/ctc1/cvt.w.s/andi 0x78 sequence at -mips2 (no per-file flag needed;
+ * the -mips1 note in MATCHING_WORKFLOW is for the SIGNED (int) cast). The
+ * three DL appends re-deref a0->0x24 (ctx) and ctx->0xC (ring) each time.
+ * All 166 insns + the whole clamp ladder now match; residual is a
+ * register-coloring cap (target colors the ring ptr $v1, IDO gives $a1) +
+ * FP-const/stack-slot scheduling — objdiff fuzzy 9%->~85% (unit 76.2->79.3).
+ * INCLUDE_ASM stays the build path (not byte-exact). */
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-void gui_uso_func_000008C0(int *a0) {
-    int *ctx = (int *)a0[0x24 / 4];
-    int *dls = (int *)ctx[0xC / 4];
-    int cur;
-    unsigned int *slot;
+typedef struct GuiDLRing {
+    u32 *buf; /* +0x0 */
+    s32 idx;  /* +0x4 */
+} GuiDLRing;
+typedef struct GuiDLCtx {
+    u8 pad0[0xC];
+    GuiDLRing *ring; /* +0xC */
+} GuiDLCtx;
+#define GUI_DL_APPEND(_a0, _w0, _w1)                                            \
+    do {                                                                       \
+        GuiDLCtx *_c = ((GuiDLCtx **)(_a0))[0x24 / 4];                         \
+        s32 _i = _c->ring->idx;                                                \
+        u32 *_s;                                                                \
+        _c->ring->idx = _i + 1;                                                \
+        _s = _c->ring->buf + _i * 2;                                           \
+        _s[0] = (_w0);                                                          \
+        _s[1] = (_w1);                                                          \
+    } while (0)
+void gui_uso_func_000008C0(void *a0) {
+    f32 col[4];
+    GuiDLCtx *ctx;
+    GuiDLRing *ring;
+    s32 idx;
+    u32 *slot;
 
-    /* G_SETOTHERMODE + constant pair */
-    cur = dls[1];
-    dls[1] = cur + 1;
-    slot = (unsigned int *)(*(char **)dls + (cur << 3));
-    slot[0] = 0xB900031D;
-    slot[1] = 0x00404240;
-    /* G_SETCOMBINE pair, then two G_SETPRIMCOLOR commands with the
-     * 3-channel float->u8 FCSR-clamped color pack (see comment). */
-    /* ... full body pending the f3dex2 pass ... */
+    /* G_SETOTHERMODE pair */
+    GUI_DL_APPEND(a0, 0xB900031D, 0x00404240);
+    /* G_SETCOMBINE pair */
+    GUI_DL_APPEND(a0, 0xFC309661, 0xFF2FFFFF);
+
+    /* prim color = (1,1,1,1) scaled to u8 with FCSR overflow-clamp */
+    col[0] = 1.0f;
+    col[1] = 1.0f;
+    col[2] = 1.0f;
+    col[3] = 1.0f;
+
+    ctx = ((GuiDLCtx **)a0)[0x24 / 4];
+    ring = ctx->ring;
+    idx = ring->idx;
+    ring->idx = idx + 1;
+    slot = ctx->ring->buf + idx * 2;
+    slot[0] = 0xFA000000;
+    slot[1] = ((u32)(col[0] * 255.0f) << 0x18) |
+              (((u32)(col[1] * 255.0f) & 0xFF) << 0x10) |
+              (((u32)(col[2] * 255.0f) & 0xFF) << 8) | 0xFF;
 }
+#undef GUI_DL_APPEND
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_000008C0);
 #endif
