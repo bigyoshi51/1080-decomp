@@ -28440,28 +28440,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005A2C4);
  * and (b) downstream frame-size/regalloc fan-out from that +2 shift. */
 extern s32 gl_v0;
 void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *arg5, s32 arg6, s32 arg7, s32 arg8, s32 arg9, s32 arg10, s32 arg11) {
-    s32 spBC;
-    s32 t2;
-    s32 t3;
-    s32 word0;
-    s32 word1;
-    s32 r, g, b;
-    s32 rgba;
-    s32 cnt;
-    char *p;
-    char *base;
-    s8 spA7;
-    s8 spA6;
-    s8 spA5;
-    s8 spA4;
-    s32 sp38;
-    s32 sp34;
-    s32 sp30;
-    s32 sp2C;
-    s32 sp20;
+    s32 spBC;      /* home 0xBC */
+    s32 f;         /* dead home 0xB8; uninit caller-set $v0 read */
+    u32 g;         /* 0xB4 */
+    u32 b;         /* 0xB0 */
+    u32 a;         /* 0xAC */
+    s32 rgba;      /* 0xA8 */
+    s8 colv[4];    /* 0xA4..0xA7 */
+    s32 cnt;       /* 0xA0 (dead home) */
+    char *p;       /* 0x9C */
+    char *base;    /* 0x98 */
+    char pad1[0x5C]; /* 0x3C..0x97 */
+    s32 sp38;      /* 0x38 */
+    s32 sp34;      /* 0x34 */
+    s32 sp30;      /* 0x30 */
+    s32 sp2C;      /* 0x2C */
+    char pad2[8];  /* 0x24..0x2B */
+    u32 sp20;      /* 0x20 */
 
     spBC = 0;
-    if ((gl_v0 & 0x100) && (gl_v0 & 1)) {
+    if ((f & 0x100) && (f & 1)) {
         spBC = (&D_00000000)[func_00000000()];
     }
     func_00000000(arg0, arg1, arg10);
@@ -28470,21 +28468,19 @@ void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *
     *(s32 *)(base + 4) = cnt + 1;
     p = *(char **)(*(char **)(arg0 + 0xC) + 0) + cnt * 8;
     *(s32 *)(p + 0) = 0xED000000 | ((((s32)((f32)arg6 * 4.0f)) & 0xFFF) << 0xC) | (((s32)((f32)arg7 * 4.0f)) & 0xFFF);
-    t2 = arg6 + arg8;
-    t3 = arg7 + arg9;
-    *(s32 *)(p + 4) = ((spBC & 3) << 0x18) | ((((s32)((f32)t2 * 4.0f)) & 0xFFF) << 0xC) | (((s32)((f32)t3 * 4.0f)) & 0xFFF);
+    sp38 = arg6 + arg8;
+    sp34 = arg7 + arg9;
+    *(s32 *)(p + 4) = ((spBC & 3) << 0x18) | ((((s32)((f32)sp38 * 4.0f)) & 0xFFF) << 0xC) | (((s32)((f32)sp34 * 4.0f)) & 0xFFF);
     if (arg3 != 0) {
-        sp38 = t2;
-        sp34 = t3;
         func_00000000(arg0, arg1, arg10);
-        r = (s32)(u32)(*(f32 *)(arg5 + 0) * 255.0f);
-        spA4 = (s8) r;
-        g = (s32)(u32)(*(f32 *)(arg5 + 4) * 255.0f);
-        spA5 = (s8) g;
-        b = (s32)(u32)(*(f32 *)(arg5 + 8) * 255.0f);
-        sp20 = r;
-        spA6 = (s8) b;
-        spA7 = (s8)(s32)(u32)(*(f32 *)(arg5 + 0xC) * 255.0f);
+        sp20 = *(f32 *)(arg5 + 0) * 255.0f;
+        colv[0] = sp20;
+        g = *(f32 *)(arg5 + 4) * 255.0f;
+        colv[1] = g;
+        b = *(f32 *)(arg5 + 8) * 255.0f;
+        colv[2] = b;
+        a = *(f32 *)(arg5 + 0xC) * 255.0f;
+        colv[3] = a;
         base = *(char **)(arg0 + 0xC);
         cnt = *(s32 *)(base + 4);
         *(s32 *)(base + 4) = cnt + 1;
@@ -28502,7 +28498,7 @@ void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *
         cnt = *(s32 *)(base + 4);
         *(s32 *)(base + 4) = cnt + 1;
         p = *(char **)(*(char **)(arg0 + 0xC) + 0) + cnt * 8;
-        *(s32 *)(p + 0) = 0xF6000000 | (((t2 - 1) & 0x3FF) << 0xE) | (((t3 - 1) & 0x3FF) * 4);
+        *(s32 *)(p + 0) = 0xF6000000 | (((sp38 - 1) & 0x3FF) << 0xE) | (((sp34 - 1) & 0x3FF) * 4);
         *(s32 *)(p + 4) = ((arg6 & 0x3FF) << 0xE) | ((arg7 & 0x3FF) * 4);
         base = *(char **)(arg0 + 0xC);
         cnt = *(s32 *)(base + 4);
@@ -28518,10 +28514,8 @@ void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *
         *(s32 *)(p + 4) = 0;
     }
     if (arg4 != 0) {
-        word0 = 0xF6000000 | (((t2 - 1) & 0x3FF) << 0xE) | (((t3 - 1) & 0x3FF) * 4);
-        sp30 = word0;
-        word1 = ((arg6 & 0x3FF) << 0xE) | ((arg7 & 0x3FF) * 4);
-        sp2C = word1;
+        sp30 = 0xF6000000 | (((sp38 - 1) & 0x3FF) << 0xE) | (((sp34 - 1) & 0x3FF) * 4);
+        sp2C = ((arg6 & 0x3FF) << 0xE) | ((arg7 & 0x3FF) * 4);
         func_00000000(arg0, arg2, arg10);
         base = *(char **)(arg0 + 0xC);
         cnt = *(s32 *)(base + 4);
@@ -28545,8 +28539,8 @@ void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *
         cnt = *(s32 *)(base + 4);
         *(s32 *)(base + 4) = cnt + 1;
         p = *(char **)(*(char **)(arg0 + 0xC) + 0) + cnt * 8;
-        *(s32 *)(p + 0) = word0;
-        *(s32 *)(p + 4) = word1;
+        *(s32 *)(p + 0) = sp30;
+        *(s32 *)(p + 4) = sp2C;
         base = *(char **)(arg0 + 0xC);
         cnt = *(s32 *)(base + 4);
         *(s32 *)(base + 4) = cnt + 1;
