@@ -2231,7 +2231,7 @@
    "scratch": {
     "platform": "n64",
     "compiler": "ido7.1",
-    "c_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+    "c_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
    }
   },
   {
