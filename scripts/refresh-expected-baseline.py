@@ -181,7 +181,7 @@ def main():
     # being swapped (their INCLUDE_ASM emits real bytes, and skipping them
     # leaves donor RELOCS that cannot append to the reloc-free baseline host).
     # These donors are byte-exact + reloc-free, so the baseline stays truthful.
-    DIRECT_CC_DONORS = {"src/game_libs/game_libs_o1_6AF0C.c"}
+    DIRECT_CC_DONORS = {"src/game_libs/game_libs_o1_6AF0C.c", "src/game_libs/game_libs_o1g3_70FA4.c"}
     src_c = [p for p in src_c if p not in DIRECT_CC_DONORS]
     if not src_c:
         print("refresh-baseline: no src/**/*.c found", file=sys.stderr)
