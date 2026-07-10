@@ -1184,7 +1184,16 @@ void arcproc_uso_func_00001604(int *s0) {
  * s-regs; IDO here picks 8 saved regs (s0-s7, frame -200) and spills two
  * region pointers to stack early. Opcode sequence otherwise aligned;
  * remaining ~38-op delta is the spill-vs-move tradeoff. Permuter-class
- * coloring residual (not a logic bug). */
+ * coloring residual (not a logic bug).
+ *
+ * 2026-07-10 (78.48 -> 79.22): removed five m2c stack round-trips (sp58/sp60/
+ * sp64/sp90/sp94) that copied the region pointers temp_s1/temp_s2 and the
+ * derived ints temp_s2_2/temp_s1_2/temp_a2 out to the stack and read them back
+ * for the final two draw calls. Using the source vars directly in those calls
+ * keeps them live across the loop (closer to the target's s-reg residency).
+ * Did NOT force the 9th saved reg (s8): base still colors 8 (s0-s7) vs target's
+ * 9 (s0-s8, arg1 in s8) -- the extra region pointer stays spilled. That last
+ * s8-vs-spill coloring tie is the residual frame/coloring cap. Stays NM. */
 #ifdef NON_MATCHING
 
 
@@ -1196,12 +1205,7 @@ typedef char *(*GP_000016F4)();
 void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
     f32 sp138[4];
     u8 spB8;
-    s32 sp94;
-    s32 sp90;
     s32 sp88;
-    u8 *sp64;
-    u8 *sp60;
-    f32 *sp58;
     f32 *temp_a2;
     s32 temp_a1;
     s32 temp_s1_2;
@@ -1244,11 +1248,6 @@ void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
         temp_s2_2 = *(s16 *)(temp_t2 + 0x20) + temp_s1_2 + 4;
         temp_a1 = *(s16 *)(temp_t1 + 0x20) + temp_s2_2 + 4;
         sp88 = *(s16 *)(temp_t3 + 0x20) + temp_a1 + 8;
-        sp90 = temp_s2_2;
-        sp94 = temp_s1_2;
-        sp58 = temp_a2;
-        sp64 = temp_s1;
-        sp60 = temp_s2;
         arcproc_uso_func_00001B88(temp_s0, temp_a1, temp_a2, (char *)2);
         var_s0 = &spB8;
         if (temp_v0 > 0) {
@@ -1263,8 +1262,8 @@ void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
             } while (var_s1 != (temp_v0 * 0xD));
         }
         arcproc_uso_func_00001B88(&D_00000000, (s32) (255.0f * (*(f32 *)((char *)arg0 + 0x77C))), sp138);
-        arcproc_uso_func_00001B88(sp64, sp90, sp58, (char *)2);
-        arcproc_uso_func_00001B88(sp60, sp94, sp58, (char *)2);
+        arcproc_uso_func_00001B88(temp_s1, temp_s2_2, temp_a2, (char *)2);
+        arcproc_uso_func_00001B88(temp_s2, temp_s1_2, temp_a2, (char *)2);
     }
 }
 #else
