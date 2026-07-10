@@ -8154,65 +8154,79 @@ void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
  * third color-div + Vec-store + cb at &D+0x718, gated on the &D+0x700 dispatch
  * table indexed by a1->0x2B4 upper bits — a multi-pass structural decode) + the
  * 255.0/$f20 FP-reg allocation + an 8-byte frame reserve. Caps: structs + cb
- * prototypes untyped (USO-reloc). NON_MATCHING. */
+ * prototypes untyped (USO-reloc). NON_MATCHING.
+ *
+ * 2026-07-10 (78.32 -> 91.72): two real fixes.
+ *   (1) MISSING LEADING ARG: the center-icon draw call omitted its `arg0` first
+ *       argument (target passes gl_func(arg0, x, y, icon, alpha) with alpha on
+ *       the stack; the 4-arg form put alpha in $a3). The arrow calls already led
+ *       with arg0; the center one now matches.
+ *   (2) COLOR-VEC DCE: the {c,c,c,f2}/255 color Vec was four SEPARATE float
+ *       locals (sp54/sp58/sp5C/sp60); only &sp54 escaped, so IDO dead-code-
+ *       eliminated the sp58/sp5C/sp60 stores (~19 missing insns). Declaring a
+ *       contiguous `float col[4]` and passing `col` makes &col[0] alias all four
+ *       -> every swc1 is kept. This is the general m2c "separate-scalars-instead-
+ *       of-array => escaped-pointer DCE" trap: a Vec passed by &firstElem must be
+ *       an array, not N scalars.
+ * RESIDUAL (~8%, +3 insns): `f2 = 255.0f/denom` CSEs the numerator onto denom's
+ * $f20 (base emits `div.s $f2,$f20,$f20`; target loads a fresh 255.0 in $f16) --
+ * a float-const-CSE the C can't break (a distinct `full=255.0f` var re-CSEs);
+ * plus sp40-vs-col stack-slot placement. Stays NM. */
 extern int gl_func_00000000();
 void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
-    float sp60;
-    float sp5C;
-    float sp58;
-    float sp54;
     float sp40;
+    float col[4];
     float denom = 255.0f;
     float c;
     float f2;
     int s2;
 
     s2 = *(int *)(*(char **)(*(char **)(arg1 + 0x414) + 0xC) + 0xC4);
-    gl_func_00000000(*(int *)(arg1 + 0x8C), s2 + *(int *)(arg1 + 0xA4), (char *)&D_00000000 + 0x6E8,
+    gl_func_00000000(arg0, *(int *)(arg1 + 0x8C), s2 + *(int *)(arg1 + 0xA4), (char *)&D_00000000 + 0x6E8,
                      (int)(denom * *(float *)(arg1 + 0x4A0)));
     if (*(int *)(arg0 + 0x2B4) & 0x20000) {
         c = 192.0f / denom;
         f2 = 255.0f / denom;
-        sp54 = c;
-        sp58 = c;
-        sp5C = c;
-        sp60 = f2;
+        col[0] = c;
+        col[1] = c;
+        col[2] = c;
+        col[3] = f2;
         if (arg2 & 8) {
             sp40 = f2;
             gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) - 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
-                             &sp54, (char *)&D_00000000 + 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
+                             col, (char *)&D_00000000 + 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
             goto block_4;
         }
     } else {
         c = 64.0f / denom;
         f2 = 255.0f / denom;
-        sp54 = c;
-        sp58 = c;
-        sp5C = c;
-        sp60 = f2;
+        col[0] = c;
+        col[1] = c;
+        col[2] = c;
+        col[3] = f2;
         sp40 = f2;
         gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) - 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
-                         &sp54, (char *)&D_00000000 + 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
+                         col, (char *)&D_00000000 + 0x700, (int)(denom * *(float *)(arg1 + 0x4A0)));
     block_4:
         f2 = sp40;
     }
-    sp60 = f2;
+    col[3] = f2;
     if (!(*(int *)(arg0 + 0x2B4) & 0x20000)) {
         c = 192.0f / denom;
-        sp54 = c;
-        sp58 = c;
-        sp5C = c;
+        col[0] = c;
+        col[1] = c;
+        col[2] = c;
         if (arg2 & 8) {
             gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) + 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
-                             &sp54, (char *)&D_00000000 + 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
+                             col, (char *)&D_00000000 + 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
         }
     } else {
         c = 64.0f / denom;
-        sp54 = c;
-        sp58 = c;
-        sp5C = c;
+        col[0] = c;
+        col[1] = c;
+        col[2] = c;
         gl_func_00000000(arg0, *(int *)(arg1 + 0x8C) + 0x1E, s2 + *(int *)(arg1 + 0xA4) + 0x14,
-                         &sp54, (char *)&D_00000000 + 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
+                         col, (char *)&D_00000000 + 0x718, (int)(denom * *(float *)(arg1 + 0x4A0)));
     }
 }
 #else
