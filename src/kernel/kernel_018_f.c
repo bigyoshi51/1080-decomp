@@ -131,9 +131,14 @@ extern OSEventState __osEventStateTab[];
  * each either folds the move away or regresses the frame to -0x38). The
  * other 4 word-diffs are HI16/LO16(__rmonUtilityBuffer) + R_MIPS_26
  * (func_80009C30, func_800073F8) reloc placeholders that resolve at link.
- * INCLUDE_ASM remains the build path (NM body below; no episode). */
-extern void func_800073F8(); /* needed by NM body; split piece lost the chunk-local extern */
-#ifdef NON_MATCHING
+ * 2026-07-10 EXACT via IDO 5.3 -O1 donor splice: the sll-temp+move residual
+ * is a 7.1-only fold — IDO 5.3 -O1 emits `sll t0,a1,2; or a1,t0,zero`
+ * exactly like the target (77/77, standalone-proven vs the .s, only reloc
+ * placeholders differ). Donor: src/kernel/kernel_018_f_ido53_7564.c,
+ * spliced over the body below via REPLACE_FUNC_BODY (this unit is 7.1 -O1,
+ * which compiles the same C 1 insn short; donor bytes replace it in the
+ * .o). */
+extern void func_800073F8(); /* needed by the C body; split piece lost the chunk-local extern */
 extern char __rmonUtilityBuffer;
 extern char *func_80009C30(void);
 /* func_800073F8 is forward-declared 0-arg above (fragment stub); cast at
@@ -169,9 +174,6 @@ s32 func_80007564(char *msg) {
     func_800073F8(ub, *(unsigned short*)(ub + 0x10) * 4 + 0x14, 1);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80007564);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW

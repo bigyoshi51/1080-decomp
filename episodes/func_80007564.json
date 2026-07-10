@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80007564",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T06:33:54.384264+00:00",
+  "end_time": "2026-07-10T06:33:54.384284+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T06:33:54.384278+00:00",
+      "assistant_text": "rmon thread-list command handler (77 insns). The 2026-06-23 rebuild left a 1-insn residual at IDO 7.1 -O1: the tail's count*4+0x14 arg folds sll in place, target materializes through a temp (sll t0,a1,2; or a1,t0,zero). Re-probed at IDO 5.3 -O1: 5.3 emits the temp+move form exactly \u2014 77/77 with only reloc placeholders differing. Wired as REPLACE_FUNC_BODY donor splice (kernel_018_f_ido53_7564.c) over the 7.1 -O1 host unit.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 77,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for func_80007564 \u2014 rmon thread-list command handler\n * (__rmonListThreads family; 77 insns, frame 0x30). PROVEN EXACT 77/77\n * (2026-07-10 standalone probe vs asm/nonmatchings/kernel/func_80007564.s;\n * only HI16/LO16(__rmonUtilityBuffer) + R_MIPS_26 reloc placeholders differ,\n * resolved at link). The parent unit kernel_018_f.c is IDO 7.1 -O1, which\n * caps 1 insn short: 7.1 folds the tail's `count*4` shift in place\n * (`sll a1,a1,2`) while the target (and 5.3) materialize it through a temp\n * (`sll t0,a1,2; or a1,t0,zero`) \u2014 the documented \"clean C at -O1 never\n * re-materializes through the temp\" residual is a 7.1-only property. Same\n * 5.3 -O1 island vein as osInitialize/osCartRomInit/osCreatePiManager.\n * All other levers (frame layout, msg-vs-m reload split, direct-global\n * store in the -1 arm, pad slot before ub) carried over unchanged from the\n * 2026-06-23 kernel_018_f.c rebuild. Spliced into kernel_018_f.c.o via\n * REPLACE_FUNC_BODY (real 5.3 -O1 output; donor relocs imported by the\n * splice). */\ntypedef signed int s32;\n\nextern void func_800073F8();        /* __rmonSendHeader */\nextern char __rmonUtilityBuffer;\nextern char *func_80009C30(void);   /* __osGetActiveQueue */\n\ns32 func_80007564(char *msg) {\n    int pad;\n    char *ub = &__rmonUtilityBuffer;\n    register char *m = msg;\n    register char *t;\n    if (*(int*)(m + 0xC) == -1) {\n        *(int*)(&__rmonUtilityBuffer + 0xC) = 0x3EA;\n    } else {\n        *(int*)(ub + 0xC) = *(int*)(m + 0xC);\n    }\n    if (*(unsigned char*)(msg + 0x9) == 1) {\n        *(unsigned short*)(ub + 0x10) = 1;\n        *(int*)(ub + 0x14) = 0x3E8;\n    } else {\n        t = func_80009C30();\n        *(unsigned short*)(ub + 0x10) = 0;\n        if (*(int*)(t + 0x4) != -1) {\n            do {\n                if (*(int*)(t + 0x14) != 0) {\n                    ((int*)(ub + 0x14))[*(unsigned short*)(ub + 0x10)] = *(int*)(t + 0x14);\n                    *(unsigned short*)(ub + 0x10) += 1;\n                }\n                t = *(char**)(t + 0xC);\n            } while (*(int*)(t + 0x4) != -1);\n        }\n    }\n    *(unsigned char*)(ub + 0x4) = *(unsigned char*)(m + 0x4);\n    *(unsigned short*)(ub + 0x6) = 0;\n    func_800073F8(ub, *(unsigned short*)(ub + 0x10) * 4 + 0x14, 1);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/kernel/kernel_018_f_ido53_7564.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/kernel/func_80007564.s",
+    "segment": "kernel",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0 clean rebuild; cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}
