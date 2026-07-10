@@ -461,6 +461,9 @@ GAMELIBS_73824_DONOR := build/src/game_libs/game_libs_o1_73824.c.o
 GAMELIBS_6BF34_DONOR := build/src/game_libs/game_libs_o1_6BF34.c.o
 GAMELIBS_6C1B8_DONOR := build/src/game_libs/game_libs_ido53_6C1B8.c.o
 GAMELIBS_6D0F4_DONOR := build/src/game_libs/game_libs_ido53_6D0F4.c.o
+# func_80002530 = osInitialize: IDO 5.3 -O1 island inside the 7.1 -O2
+# kernel_000 unit (proven exact 284/284 standalone; see donor header).
+KERNEL000_2530_DONOR := build/src/kernel/kernel_000_ido53_2530.c.o
 GAMELIBS_6DA74_DONOR := build/src/game_libs/game_libs_o1_6DA74.c.o
 # -O1 island batch 4 (2026-07-09): libultra pfsisplug.c TU (6D554 =
 # osPfsIsPlug at 7.1 -O1; 6D6F4 = __osPfsRequestData + 6D7CC =
@@ -542,6 +545,12 @@ build/src/game_libs/game_libs_o1_73824.c.o build/non_matching/src/game_libs/game
 build/src/game_libs/game_libs_o1_6BF34.c.o build/non_matching/src/game_libs/game_libs_o1_6BF34.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_6C1B8.c.o build/non_matching/src/game_libs/game_libs_ido53_6C1B8.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_6C1B8.c.o build/non_matching/src/game_libs/game_libs_ido53_6C1B8.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_000_ido53_2530.c.o build/non_matching/src/kernel/kernel_000_ido53_2530.c.o: CC := $(IDO53_DIR)/cc
+build/src/kernel/kernel_000_ido53_2530.c.o build/non_matching/src/kernel/kernel_000_ido53_2530.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_000.c.o build/non_matching/src/kernel/kernel_000.c.o: REPLACE_FUNC_BODY := func_80002530=$(KERNEL000_2530_DONOR)
+# kernel_000 tail: C-body path leaves a 4-byte alignment residue after the
+# func_800029A0_pad block (.text 0x29B4 vs ROM-true 0x29B0) — trim it.
+build/src/kernel/kernel_000.c.o build/non_matching/src/kernel/kernel_000.c.o: TRUNCATE_TEXT := 0x29B0
 build/src/game_libs/game_libs_ido53_6D0F4.c.o build/non_matching/src/game_libs/game_libs_ido53_6D0F4.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_6D0F4.c.o build/non_matching/src/game_libs/game_libs_ido53_6D0F4.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_o1_6DA74.c.o build/non_matching/src/game_libs/game_libs_o1_6DA74.c.o: OPT_FLAGS := -O1
@@ -640,7 +649,7 @@ build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000
 build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 func_0000F1B4=0x00000000,0x00000000,0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
-C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b1/timproc_uso_b1_o0_B0.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/timproc_uso_b3/timproc_uso_b3_o0_B0.c src/game_libs/game_libs_o1_6C8AC.c src/game_libs/game_libs_o1_6AF0C.c src/game_libs/game_libs_o1_6A304.c src/game_libs/game_libs_o1_6AF44.c src/game_libs/game_libs_o1_6B880.c src/game_libs/game_libs_o1_6B974.c src/game_libs/game_libs_o1_6BAD4.c src/game_libs/game_libs_o1_6B7A0.c src/game_libs/game_libs_ido53_6C11C.c src/game_libs/game_libs_o1_6FAD4.c src/game_libs/game_libs_ido53_71708.c src/game_libs/game_libs_o1_73824.c src/game_libs/game_libs_o1_6BF34.c src/game_libs/game_libs_ido53_6C1B8.c src/game_libs/game_libs_ido53_6D0F4.c src/game_libs/game_libs_o1_6DA74.c src/game_libs/game_libs_o1_6D554.c src/game_libs/game_libs_ido53_6D6F4.c src/game_libs/game_libs_ido53_6D7CC.c src/game_libs/game_libs_ido53_6CDB4.c src/arcproc_uso/arcproc_uso_o0_748.c src/arcproc_uso/arcproc_uso_o0_688.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
+C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b1/timproc_uso_b1_o0_B0.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/timproc_uso_b3/timproc_uso_b3_o0_B0.c src/game_libs/game_libs_o1_6C8AC.c src/game_libs/game_libs_o1_6AF0C.c src/game_libs/game_libs_o1_6A304.c src/game_libs/game_libs_o1_6AF44.c src/game_libs/game_libs_o1_6B880.c src/game_libs/game_libs_o1_6B974.c src/game_libs/game_libs_o1_6BAD4.c src/game_libs/game_libs_o1_6B7A0.c src/game_libs/game_libs_ido53_6C11C.c src/game_libs/game_libs_o1_6FAD4.c src/game_libs/game_libs_ido53_71708.c src/game_libs/game_libs_o1_73824.c src/game_libs/game_libs_o1_6BF34.c src/game_libs/game_libs_ido53_6C1B8.c src/game_libs/game_libs_ido53_6D0F4.c src/game_libs/game_libs_o1_6DA74.c src/game_libs/game_libs_o1_6D554.c src/game_libs/game_libs_ido53_6D6F4.c src/game_libs/game_libs_ido53_6D7CC.c src/game_libs/game_libs_ido53_6CDB4.c src/arcproc_uso/arcproc_uso_o0_748.c src/arcproc_uso/arcproc_uso_o0_688.c src/kernel/kernel_000_ido53_2530.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 

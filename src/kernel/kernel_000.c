@@ -2382,82 +2382,81 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_8000235C);
 /* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800023E0);
 
-#ifdef NON_MATCHING
-extern s32 func_800031E0(void);
-extern void func_80009C40(s32);
-extern s32 func_80004EC0(s32, s32 *);
-extern s32 func_8000A040(s32, s32);
-extern void func_80009DF0(void);
-extern void func_80002DB0(s32, u32 *);
-extern s32 func_80002F78(s32, s32, s32, s32);
-extern u32 func_80002E78(s32, u32, s32, s32);
-extern void func_800030D0(void *, s32);
-typedef struct { s32 w0, w1, w2, w3; } VecHandler;
-extern VecHandler D_80003270;
-extern VecHandler func_80000000;
-extern u32 D_8000A3D0;
-extern s32 D_8000A3D4;
-extern s32 D_8000A3D8;
-extern s32 D_8000030C;
-extern s32 D_80000300;
-extern s32 D_8000031C;
+/* func_80002530 = libultra osInitialize (KMC kernel variant). EXACT via
+ * IDO 5.3 -O1 donor splice (REPLACE_FUNC_BODY, see
+ * src/kernel/kernel_000_ido53_2530.c — proven 284/284 standalone; this unit
+ * is 7.1 -O2 which caps at ~53%, so the body below compiles at the wrong
+ * opt and the donor bytes replace it in the .o). Key decode facts: enables
+ * FPU (SR |= CU1), sets FpcCsr, polls PIF status 0x1FC007FC via
+ * __osSiRawReadIo/__osSiRawWriteIo (func_80004EC0/func_8000A040), installs
+ * the 16-byte exception preamble D_80003270 at the four vectors
+ * 0x80000000/80/100/180 + writeback/inval caches, osMapTLBRdb
+ * (func_80009DF0), reads the clock via osPiRawReadIo(4,..)
+ * (func_80002DB0); D_8000A3D0 = osClockRate is a u64 (OSTime):
+ * `osClockRate = osClockRate * 3 / 4` calls the 64-bit helpers
+ * func_80002F78 (__ll_mul) / func_80002E78 (__ll_div); D_8000A3D8 =
+ * osViClock by D_80000300 = osTvType; then the KMC debugger hook: if
+ * *(u32*)0xBFF00000 == 'KMC\0', copy the 9-word stub at D_80003280 to the
+ * general-exception vector, and if the KMC flags word lacks bit 4, copy the
+ * 0x800-word KMC ROM image high and tail-call its entry(+8). */
+typedef struct {
+    u32 inst1, inst2, inst3, inst4;
+} __osExceptionVector;
+extern __osExceptionVector D_80003270;          /* __osExceptionPreamble */
+extern u64 D_8000A3D0;                          /* osClockRate (OSTime) */
+extern s32 D_8000A3D8;                          /* osViClock */
+extern s32 D_8000030C;                          /* osResetType */
+extern s32 D_80000300;                          /* osTvType */
+extern s32 D_8000031C;                          /* osAppNMIBuffer */
 extern s32 __kmc_pt_mode;
-extern s32 D_BFF00000;
-/* Kernel boot / exception-vector + KMC-debugger init. Set SR, configure caches
- * (func_80009C40), poll the PIF (0x1FC007FC), install the exception-handler stub
- * (D_80003270, 4 words) at the reset/TLB/XTLB/general vectors
- * (0x80000000 [=func_80000000] / 0x80000080 / 0x80000100 / 0x80000180) + flush,
- * size RDRAM (func_80002DB0) and set up the heap/TLB, pick the cart ID word by
- * D_80000300, then if running under KMC (D_BFF00000 == 'KMC\0') relocate its
- * handler + ROM image and jump to its entry.
- *
- * NON_MATCHING (~53%). Logic + relocs reconstructed. Residual is IDO-internal
- * and resists C expression: (1) the four 16-byte handler copies share one
- * &D_80003270 base (CSE) whereas the target re-materializes %hi/%lo per group;
- * (2) the PIF poll loops hoist 0x1FC007FC into $s0 + emit branch-likely, target
- * re-loads the literal per call with plain bnez+nop; (3) the KMC stub/ROM copies
- * are stack-resident pointer-walks (sp44/sp48 spilled+incremented per word) that
- * array/pointer-walk C does not reproduce. Documented coloring/CSE cap class. */
+extern s32 D_80003280[];                        /* KMC E_VEC stub words */
+
 void func_80002530(void) {
-    extern void func_800031D0();
-    extern s32 func_800031F0();
-    u32 sp58;
-    s32 sp5C;
-    void (*sp54)();
+    extern s32 func_800031E0(void);             /* __osGetSR */
+    extern void func_800031D0(s32);             /* __osSetSR */
+    extern void func_80009C40(s32);             /* __osSetFpcCsr */
+    extern s32 func_80004EC0(void *, u32 *);    /* __osSiRawReadIo */
+    extern s32 func_8000A040(void *, u32);      /* __osSiRawWriteIo */
+    extern void func_800031F0(void *, s32);     /* osWritebackDCache */
+    /* func_80005350 (osInvalICache) already declared (s32,s32) at file top */
+    extern void func_80009DF0(void);            /* osMapTLBRdb */
+    extern void func_80002DB0(s32, u32 *);      /* osPiRawReadIo */
+    extern void func_800030D0(void *, s32);     /* bzero */
+    u32 pifdata;
+    u32 clock = 0;
+    void (*entry)();
+    s32 pad50;
+    s32 pad4C;
+    s32 *src;
+    s32 *dst;
+    s32 sp40;
+    void *sp3C;
     s32 *sp38;
     s32 *sp34;
     s32 *sp30;
-    void *sp3C;
-    s32 sp40;
     s32 sp2C;
-    s32 sp20;
-    u32 sp24;
-    s32 *dst;
-    s32 *src;
 
-    sp58 = 0;
     func_800031D0(func_800031E0() | 0x20000000);
     func_80009C40(0x01000800);
-    while (func_80004EC0(0x1FC007FC, &sp5C) != 0) {
+    while (func_80004EC0((void *)0x1FC007FC, &pifdata)) {
+        ;
     }
-    while (func_8000A040(0x1FC007FC, sp5C | 8) != 0) {
+    while (func_8000A040((void *)0x1FC007FC, pifdata | 8)) {
+        ;
     }
-    *(VecHandler *)&func_80000000 = D_80003270;
-    *(VecHandler *)0x80000080 = D_80003270;
-    *(VecHandler *)0x80000100 = D_80003270;
-    *(VecHandler *)0x80000180 = D_80003270;
-    func_800031F0(0x80000000, 0x190);
+    *(__osExceptionVector *)0x80000000 = D_80003270;
+    *(__osExceptionVector *)0x80000080 = D_80003270;
+    *(__osExceptionVector *)0x80000100 = D_80003270;
+    *(__osExceptionVector *)0x80000180 = D_80003270;
+    func_800031F0((void *)0x80000000, 0x190);
     func_80005350(0x80000000, 0x190);
     func_80009DF0();
-    func_80002DB0(4, &sp58);
-    sp58 = sp58 & ~0xF;
-    if (sp58 != 0) {
-        D_8000A3D0 = 0;
-        D_8000A3D0 = sp58;
+    func_80002DB0(4, &clock);
+    clock &= ~0xF;
+    if (clock != 0) {
+        D_8000A3D0 = clock;
     }
-    sp20 = func_80002F78(D_8000A3D0, D_8000A3D4, 0, 3);
-    sp24 = sp20;
-    D_8000A3D0 = func_80002E78(sp20, sp24, 0, 4);
+    D_8000A3D0 = D_8000A3D0 * 3 / 4;
     if (D_8000030C == 0) {
         func_800030D0(&D_8000031C, 0x40);
     }
@@ -2471,19 +2470,24 @@ void func_80002530(void) {
     if (__kmc_pt_mode == 0) {
         sp38 = (s32 *)0xBFF08004;
         sp3C = (void *)0xBFF00000;
-        if (D_BFF00000 == 0x4B4D4300) {
+        if (*(s32 *)0xBFF00000 == 0x4B4D4300) {
+            src = D_80003280;
             dst = (s32 *)0x80000180;
-            src = (s32 *)0x80003280;
-            dst[0] = src[0];
-            dst[1] = src[1];
-            dst[2] = src[2];
-            dst[3] = src[3];
-            dst[4] = src[4];
-            dst[5] = src[5];
-            dst[6] = src[6];
-            dst[7] = src[7];
-            dst[8] = src[8];
-            func_800031F0(0x80000180, 0x24);
+            *dst = *src;
+            dst++; src++;
+            *dst = *src;
+            dst++; src++;
+            *dst = *src;
+            dst++; src++;
+            src += 2;
+            dst += 2;
+            *dst = *src;
+            dst++; src++;
+            *dst = *src;
+            dst++; src++;
+            *dst = *src;
+            dst++; src++;
+            func_800031F0((void *)0x80000180, 0x24);
             func_80005350(0x80000180, 0x24);
             __kmc_pt_mode = 1;
             if (!(*sp38 & 0x10)) {
@@ -2494,20 +2498,16 @@ void func_80002530(void) {
                     sp34 = (s32 *)0xBFF00000;
                     do {
                         *sp30 = *sp34;
+                        sp30 += 1; sp34 += 1;
                         sp2C -= 1;
-                        sp30 += 1;
-                        sp34 += 1;
                     } while (sp2C != 0);
                 }
-                sp54 = (void (*)())(sp40 + 8);
-                sp54(0x4B4D4300, 0);
+                entry = (void (*)())(sp40 + 8);
+                entry(0x4B4D4300, 0);
             }
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002530);
-#endif
 
 
 
