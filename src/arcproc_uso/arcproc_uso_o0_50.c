@@ -69,7 +69,18 @@ void arcproc_uso_func_00000050(Quad4 *dst) {
  * the increment-path pointer, needs `register int *p`) is 32 insns WITH the dead
  * BB; every 30-insn form drops the s0 save and uses t-regs (wrong). The
  * s0+merged-marker combination is not reachable — an IDO -O0 BBL-emission
- * artifact (likely original-IDO-version-specific). Genuine cap; stays NM. */
+ * artifact (likely original-IDO-version-specific). Genuine cap; stays NM.
+ *
+ * 2026-07-10 (agent-f): DEFINITIVE root cause established — see the big
+ * characterization block in arcproc_uso_o0_12C.c (this B4 is the identical
+ * class). Summary: the trailing `b epilogue; nop` is an unconditional
+ * end-of-function marker emitted by ido-static-recomp's ugen at the closing
+ * `}` (proven via `cc -S`, attributed to the '}' source line); the redundant
+ * consecutive branch is elided only by uopt, which -O0 bypasses. -O0/-O1/-O2
+ * sweep: 3/1/1 branches (raising opt removes the marker but destroys the -O0
+ * body). Leaf -O0 value-returns match (11D40/78/BC) because a leaf has no
+ * epilogue label; this non-leaf class cannot. 17+ shapes + option probes
+ * exhausted. Only a corrected cc binary can produce these bytes. */
 #ifdef NON_MATCHING
 int arcproc_uso_func_000000B4(int *a0, int a1) {
     register int *p;

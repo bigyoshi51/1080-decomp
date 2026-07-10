@@ -7,41 +7,63 @@ extern int gl_func_00000000();
  * pattern in mgrproc_uso_func_000000B0: calls gl_func_00000000(a0, a1),
  * decrements *a0, returns 1 if it hit zero else 0.
  *
- * Match: 92.86% (re-confirmed 2026-05-04 via unwrap-and-rebuild test per
- * feedback_nm_wrap_99pct_may_be_silently_exact.md — cap is REAL, not
- * stale; current emit still 92.86%, slight drift from prior 92.68%).
+ * ============================================================================
+ * DEFINITIVE ROOT CAUSE (2026-07-10, agent-f) — the "-O0 value-return extra-b"
+ * cap. Applies to the WHOLE class: arcproc B4/12C, bootup F81C/11B5C/A14/
+ * FC28/FD4C, game_libs 8E48/8FFC/9100 — every NON-LEAF, value-returning,
+ * multi-return function compiled at -O0. Do NOT re-run shape sweeps; this is
+ * a cc-binary artifact, not a C-shape cap.
  *
- * Sole structural diff: trailing dead `b +1; nop` at end of function (target
- * skips this since the natural fall-through reaches epilogue with no jump).
- * IDO -O0 emits `b epilogue` after BOTH return paths; the second one is
- * dead since PC+4 IS the epilogue. C-side cannot eliminate this without
- * shrinking the function past TRUNCATE_TEXT.
+ * DIVERGENCE (byte-exact through +0x58; sole defect is the tail):
+ *   Everything from prologue through the two return paths is byte-identical
+ *   to the target. IDO 7.1 -O0 then emits ONE EXTRA `b epilogue; nop` at the
+ *   function's closing brace that the target does not have. The target has
+ *   exactly (#returns) branch-to-epilogue insns; ido-static-recomp emits
+ *   (#returns + 1). The extra `b` also shifts the epilogue, so the two prior
+ *   branch DISPLACEMENTS diverge too — but eliminating the marker fixes all
+ *   of it at once. For 12C: 2 returns -> target 2 b's, build 3 b's.
  *
- * Cap stands at 92.86% (1-insn dead-branch trailing). Same -O0 epilogue
- * pattern as arcproc_uso_func_000000B4 sibling.
+ * PROOF (`cc -S -O0`): the third branch is attributed to the source line of
+ * the closing `}` — an unconditional end-of-function fall-through marker to
+ * the epilogue label ($33), emitted by ugen regardless of the fact that the
+ * immediately-preceding `return 0` already branched to $33:
+ *       move  $2,$0        # return 0
+ *       b     $33          # return 0's branch      <- target keeps this
+ *     # line 9  '}'
+ *       b     $33          # END-OF-FUNCTION MARKER  <- ido-static-recomp ADDS
+ *     $33: <epilogue>
+ *   It appears even for a TRIVIAL single-return non-leaf (`return 1;` -> 2
+ *   b's: the return's own + the marker). It is structural, not shape-driven.
  *
- * 2026-05-05: tested 4 more variant shapes hoping to eliminate the extra
- * 8 bytes (2 insns: the join-point `b end; nop` between the if-arm and
- * else-arm exits):
- *   (a) Explicit `else { return 0; }` — 4 dead branches (worse).
- *   (b) `register int rv; if(...) rv=1; else rv=0; return rv;` — uses $s1
- *       successfully but adds a join-point, still 3 branches (same).
- *   (c) `if (*a0 != 0) goto zero_path; return 1; zero_path: return 0;` —
- *       extra `b zero_path` from the else fall-through (worse).
- *   (d) `register int rv; rv = 0; if (...) rv = 1; return rv;` — 2 trailers
- *       (same shape as current).
- * Confirms cap is structural — IDO -O0 emits a join-point branch after
- * any if/else chain that has explicit early return inside the if-arm,
- * regardless of how the else-arm is written. The expected shape (NO
- * join-point, both arms branch directly to epilogue) requires dataflow
- * normalization that IDO -O0 doesn't perform. Historical PROLOGUE_STEALS
- * / INSN_PATCH workarounds were REMOVED 2026-05-23 as match-faking.
+ * WHY IT'S UNFIXABLE FROM C: the redundant consecutive `b $33` is elided by
+ * uopt (the optimizer), which -O0 BYPASSES entirely. Confirmed by opt-level
+ * sweep on this exact body: -O0 = 3 branches, -O1 = 1 branch (29 insns,
+ * reordered), -O2 = 1 branch (20 insns). So raising the opt level removes the
+ * marker but simultaneously destroys the -O0 body shape (fewer insns, merged
+ * tails, different regalloc) — NOT a match route. The target is unambiguously
+ * -O0 (spill-everything, reload-at-every-use, 7 stack reloads).
  *
- * 2026-05-08 5th variant: single-return shape `return *a0 == 0;` —
- * REGRESSED 92.86% -> 77.68% (-15pp). The boolean cast emits extra
- * sltu+xori sequence at -O0 (vs target's beq-conditional shape).
- * Confirms 4-variant exhaustion was not exhaustive across the boolean-
- * coercion family. Reverted. */
+ * WHY LEAF -O0 value-returns DO match (11D40/11D78/11DBC): a leaf has no
+ * epilogue label — each return is `jr $31` directly, so there is no shared
+ * epilogue for a marker to branch to. The B4/12C class are NON-leaf (they
+ * call gl_func_00000000) and MUST have the shared epilogue + marker.
+ *
+ * 17+ distinct C shapes tested (2026-07-10) — ALL non-leaf multi-return
+ * shapes emit >= (#returns + 1) branches:
+ *   if/return+return, single-goto, if/else single-return, ternary,
+ *   do{}while(0)+break, explicit-else (4 b's), inverted-cond (bne),
+ *   switch (4 b's), goto-both (4 b's), nested if/else (4 b's), comma-return,
+ *   register-retvar, else-fall (4 b's). Compiler-option probes (-Wo,-bbopt,
+ *   -g0, -non_shared) — no effect (branch-merge lives in uopt, off at -O0).
+ *   The single-return boolean form `return *a0==0;` emits sltu+xori and
+ *   regresses the body (matches memo's 77.68%).
+ *
+ * CONCLUSION: only a corrected cc binary (one whose ugen elides the trailing
+ * redundant branch, as the original 1080 IDO cc did) can produce these bytes.
+ * The whole class stays honest NON_MATCHING. Historical PROLOGUE_STEALS /
+ * INSN_PATCH workarounds were REMOVED 2026-05-23 as match-faking.
+ * Same characterization applies verbatim to arcproc_uso_func_000000B4.
+ * ============================================================================ */
 int arcproc_uso_func_0000012C(int *a0, int a1) {
     register int *p;
     gl_func_00000000(a0, a1);
