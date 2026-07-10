@@ -11338,31 +11338,48 @@ L_BC:
  * coloring and branch-LIKELY (beql/beq) FP gates that m2c/C cannot pin. Logic
  * + callees + globals are all correct; honest NON_MATCHING.
  *
- * 2026-06-22 agent-i (big-swing re-verify, fuzzy ~45%, 419 non-reloc diffs):
- * confirmed RELOC SET MATCH + size within 1 word (build 523 vs target 524).
- * Re-derived the diff roots from the live build/non_matching object vs a
- * freshly refresh-expected-baseline'd expected/.o (decisive Yay0 gate). Four
- * INTERLOCKING IDO-allocator/scheduler ties drive ~all 419 diffs (each
- * cascades branch targets, inflating the raw count):
- *   (A) FRAME SIZE -80 vs -56: target OVERLAPS the 4 named locals into the
- *       6-arg outgoing-arg region (locals at sp40/44/48/52 packed atop
- *       outgoing 0-28); build keeps them disjoint (sp44/64/68/72, 0x18 gap).
- *       IDO stack-overlap artifact; not C-controllable w/o faking.
- *   (B) FP COLORING $f0<->$f2 and $f16<->$f18 throughout: target colors the
- *       abs-source temp_f2 -> $f2 and the mtc1-zero const -> $f16; build
- *       picks $f0/$f18. Decl-order reorder tried (var_f0 group before
- *       temp_f2): ZERO movement -> floats colored by live-range, permuter-
- *       immune (matches the documented game_uso coloring cap).
- *   (C) BRANCH-LIKELY asymmetry: target uses bc1fl (likely) for FP-flag
- *       gates but plain beqz (+nop) for the integer (t8 & 0x1F0) gate; build
- *       makes the int gate beqzl. This is as1's branch-form heuristic, not a
- *       C `&&` vs nested-if choice (restructure does not flip it).
- *   (D) DELAY-SLOT FILL count tie in the cvt.d.s/c.lt.d double-compare block
- *       (the abs(0x970)>X and 0xA0C<X f64 gates) -> the lone +1-word gap.
- * No held-base / missing-deref / wrong-base C bug remains (spot-checked the
- * v0-vs-v1 base at block_24 and the temp_v0_2=v1+0x528 held base — both are
- * register-coloring choices, not deref errors). Honest NON_MATCHING; the
- * core is the documented coloring+as1-scheduler-tie cap. */
+ * 2026-07-10 agent-g BREAKTHROUGH: fuzzy 90.8 -> 98.96 (aligned-equal
+ * 276->493 of 524; size exact 524; positional-exact 432). The old (A)/(B)
+ * "not C-controllable" verdicts were WRONG — the roots were C-level:
+ *   1. sp34 was a PHANTOM local: m2c double-read var_a3's spill slot (every
+ *      `sp34=N` shadowed `var_a3=N`; target sp52 IS the a3 spill). Deleted.
+ *   2. FRAME 80->56: named-local decl ORDER drives home slots (docs
+ *      IDO_CODEGEN "NAMED-LOCAL COUNT governs frame size"). Declaring
+ *      var_a3 FIRST (then sp30/sp2C/sp28) homes its spill at 52 and packs
+ *      40/44/48 — the 4-word hole vanishes.
+ *   3. INT-not-float compares: FW(0x114)==1 (lw/li/bne, not c.eq.s 1.0f)
+ *      and FW(0x9CC)==0 (bnezl). The 1.0f<=var_f2 gate loads its constant
+ *      from the GLOBAL *(f32*)(&D_807FF68C+4248), not a literal.
+ *   4. $f0/$f2 cascade: ONE abs-result var (var_f0, target $f0) but TWO
+ *      compare-source vars (temp_f2 0xA1C / temp_f2_2 0x970) — merging
+ *      var_f0_2/_3 into var_f0 while keeping temp_f2 split flipped the
+ *      whole first-cascade coloring to target. arm2 base is var_v1 (v1),
+ *      not a temp (temp_v1 colored v0).
+ *   5. CSE-bust: the 3 chain gates re-read 16(v0) each time -> spell as
+ *      (*(volatile f32*)(temp_v0_2+0x10)) * FF(arg0,field) (volatile read
+ *      FIRST operand; field*vol order loads swapped). temp_v0_3 =
+ *      FW(0xB4)+0x2FC pointer form yields the dead addiu v0,v0,764.
+ *   6. goto after_24 (label INSIDE the outer if, arm1 does its own
+ *      var_v1 reload) duplicates the lw v1,180(s0) into arm1's b-delay
+ *      (blocks cross-jump; label outside the outer if perturbs the 0x9D0
+ *      block schedule instead — placement matters).
+ *   7. 1189C's 3rd arg is sp2C (target lw a2,44), not sp30 — m2c error.
+ *   8. Pair2 tail loads need EXPLICIT ADDENDS (USO baked-reloc spelling):
+ *      &D_807FF478+0xE88 / &D_807FF480+0xE90 / &D_807FF3B8+0xDC8.
+ *      var_a3=4 moved BEFORE the EDCC(2) call (target spills a3 pre-jal).
+ * TRUE RESIDUAL (31 insns, all documented tie classes):
+ *   (a) beqzl/bc1fl+lui-dup vs beqz/bc1f+nop at the two head gates (as1
+ *       branch-form tie; restructure does not flip) x2 sites;
+ *   (b) c.lt.d/lui adjacent-pair order swap (as1 schedule tie) x1;
+ *   (c) $f12<->$f14 coloring swap (temp_f14 vs var_f12; decl-order and
+ *       split tried, immune) ~8 insns;
+ *   (d) a3-spill vs sp30-store pre-jal order in the 0x334 arm (uopt spill
+ *       placement, statement order no effect) x2;
+ *   (e) 1.0f-vs-zeros mtc1/swc1 emission order in the temp_v0_3 block
+ *       (target allocates zeros first but emits 1.0f store first) x8;
+ *   (f) andi temp coalesced into a1 vs target's t8 (split + u16-cast
+ *       tried, coalesces anyway) + downstream t-reg numbering cascade ~8.
+ * Honest NON_MATCHING at 98.96; remaining gap is pure as1/uopt tie class. */
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
@@ -11377,18 +11394,15 @@ extern char game_uso_D_807FF68C;
 extern char game_uso_D_807FFB18;
 extern char game_uso_D_807FFB20;
 void game_uso_func_0000D9CC(char *arg0) {
-    f32 sp34;
+    s32 var_a3;
     s32 sp30;
     char *sp2C;
     s32 sp28;
     f32 temp_f0;
     f32 temp_f14;
+    f32 var_f0;
     f32 temp_f2;
     f32 temp_f2_2;
-    s32 var_a3;
-    f32 var_f0;
-    f32 var_f0_2;
-    f32 var_f0_3;
     f32 var_f0_4;
     f32 var_f12;
     f32 var_f2;
@@ -11397,7 +11411,6 @@ void game_uso_func_0000D9CC(char *arg0) {
     char *temp_v0;
     char *temp_v0_2;
     char *temp_v0_3;
-    char *temp_v1;
     char *var_v1;
 
     FW(arg0, 0x108) = 0;
@@ -11425,25 +11438,26 @@ void game_uso_func_0000D9CC(char *arg0) {
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x17);
                 sp2C = (char *)3;
             }
-            goto block_24;
+            var_v1 = FW(arg0, 0xB4);
+            goto after_24;
         }
         if (temp_f2 < 0.0f) {
-            var_f0_2 = -temp_f2;
+            var_f0 = -temp_f2;
         } else {
-            var_f0_2 = temp_f2;
+            var_f0 = temp_f2;
         }
-        if (FF(arg0, 0x22C) < var_f0_2) {
+        if (FF(arg0, 0x22C) < var_f0) {
             sp30 = 0;
             game_uso_func_0000EDCC((int *)arg0, 4);
-            temp_v1 = FW(arg0, 0xB4);
+            var_v1 = FW(arg0, 0xB4);
             var_a3 = 2;
-            temp_f2_2 = FF(temp_v1, 0x970);
+            temp_f2_2 = FF(var_v1, 0x970);
             if (temp_f2_2 < 0.0f) {
-                var_f0_3 = -temp_f2_2;
+                var_f0 = -temp_f2_2;
             } else {
-                var_f0_3 = temp_f2_2;
+                var_f0 = temp_f2_2;
             }
-            if (*(f64 *)((char *)&game_uso_D_807FFB18 + 0x1F8) < (f64) var_f0_3) {
+            if (*(f64 *)((char *)&game_uso_D_807FFB18 + 0x1F8) < (f64) var_f0) {
                 if (temp_f2_2 <= 0.0f) {
                     FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xE);
                     sp2C = (char *)3;
@@ -11451,28 +11465,27 @@ void game_uso_func_0000D9CC(char *arg0) {
                     FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xF);
                     sp2C = (char *)1;
                 }
-            } else if (FF(temp_v1, 0xA1C) > 0.0f) {
+            } else if (FF(var_v1, 0xA1C) > 0.0f) {
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xC);
                 sp2C = (char *)1;
             } else {
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xD);
                 sp2C = (char *)3;
             }
-block_24:
             var_v1 = FW(arg0, 0xB4);
         }
+after_24:;
     }
     if (FF(var_v1, 0x9D0) < 500.0f) {
         temp_v0 = var_v1 + 0xCC;
         if ((f64) FF(var_v1, 0xA0C) < *(f64 *)((char *)&game_uso_D_807FFB20 + 0x200)) {
-            FF(var_v1, 0xCC) = 0.0f;
+            FF(temp_v0, 0) = 0.0f;
             FF(temp_v0, 0x4) = 0.0f;
             FF(temp_v0, 0x8) = 0.0f;
             FF(temp_v0, 0xC) = 1.0f;
             sp28 = 2;
-            sp34 = 4;
-            game_uso_func_0000EDCC((int *)arg0, 2);
             var_a3 = 4;
+            game_uso_func_0000EDCC((int *)arg0, 2);
             if (FF(FW(arg0, 0xB4), 0x3CC) < 0.0f) {
                 FW(arg0, 0x108) = 0x1002A;
             } else {
@@ -11492,19 +11505,19 @@ block_24:
             var_f2 = 0.0f;
             var_f12 = 0.0f;
         }
-        if ((FF(arg0, 0x304) * FF(temp_v0_2, 0x10)) <= var_f2) {
+        if (((*(volatile f32 *)(temp_v0_2 + 0x10)) * FF(arg0, 0x304)) <= var_f2) {
             sp28 = 3;
             sp30 = 0;
             game_uso_func_0000EDCC((int *)arg0, 2);
             var_a3 = 5;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
-        } else if ((FF(arg0, 0x2EC) * FF(temp_v0_2, 0x10)) <= var_f2) {
+        } else if (((*(volatile f32 *)(temp_v0_2 + 0x10)) * FF(arg0, 0x2EC)) <= var_f2) {
             sp28 = 0;
             sp30 = 0;
             game_uso_func_0000EDCC((int *)arg0, 5);
             var_a3 = 1;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2D);
-        } else if ((FF(arg0, 0x2D4) * FF(temp_v0_2, 0x10)) <= var_f2) {
+        } else if (((*(volatile f32 *)(temp_v0_2 + 0x10)) * FF(arg0, 0x2D4)) <= var_f2) {
             sp28 = 0;
             sp30 = 0;
             game_uso_func_0000EDCC((int *)arg0, 4);
@@ -11517,13 +11530,11 @@ block_24:
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x15);
         } else if (FF(arg0, 0x2A4) <= var_f0_4) {
             sp28 = 3;
-            sp34 = 4;
             game_uso_func_0000EDCC((int *)arg0, 2);
             var_a3 = 4;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xB);
         } else if (FF(arg0, 0x28C) <= var_f0_4) {
             sp28 = 2;
-            sp34 = 3;
             game_uso_func_0000EDCC((int *)arg0, 1);
             var_a3 = 3;
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0xA);
@@ -11536,7 +11547,6 @@ block_24:
         } else if (var_f0_4 <= -FF(arg0, 0x334)) {
             sp28 = 2;
             sp2C = (char *)2;
-            sp34 = 3;
             sp30 = 0;
             game_uso_func_0000EDCC((int *)arg0, 5);
             var_a3 = 3;
@@ -11552,17 +11562,15 @@ block_24:
             temp_f0 = FF(arg0, 0x25C);
             if (temp_f0 <= var_f12) {
                 sp28 = 3;
-                sp34 = 2;
                 game_uso_func_0000EDCC((int *)arg0, 2);
                 var_a3 = 2;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x13);
             } else if (var_f12 <= -temp_f0) {
                 sp28 = 3;
-                sp34 = 2;
                 game_uso_func_0000EDCC((int *)arg0, 2);
                 var_a3 = 2;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x12);
-            } else if ((1.0f <= var_f2) && ((f64) temp_f14 == 1.0) && (FF(var_v1, 0x9CC) == 0)) {
+            } else if ((*(f32 *)((char *)&game_uso_D_807FF68C + 4248) <= var_f2) && ((f64) temp_f14 == 1.0) && (FW(var_v1, 0x9CC) == 0)) {
                 sp28 = 0;
                 sp30 = 0;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2F);
@@ -11571,26 +11579,26 @@ block_24:
             }
         }
     }
-    if ((FF(arg0, 0x114) == 1.0f) && (sp28 == 0)) {
+    if ((FW(arg0, 0x114) == 1) && (sp28 == 0)) {
         FW(arg0, 0x108) = 0;
     }
     if (FW(arg0, 0x108) != 0) {
-        game_uso_func_0001189C((int *)arg0, (s32) var_a3, sp30);
+        game_uso_func_0001189C((int *)arg0, (s32) var_a3, (s32) sp2C);
         FF(arg0, 0x11C) = 1.0f;
         game_uso_func_0000EDD4((int *)arg0, sp28, sp2C);
-        temp_v0_3 = FW(arg0, 0xB4);
-        FF(temp_v0_3, 0x308) = 1.0f;
-        FF(temp_v0_3, 0x2FC) = 0.0f;
-        FF(temp_v0_3, 0x300) = 0.0f;
-        FF(temp_v0_3, 0x304) = 0.0f;
+        temp_v0_3 = (char *)FW(arg0, 0xB4) + 0x2FC;
+        FF(temp_v0_3, 0) = 0.0f;
+        FF(temp_v0_3, 0x4) = 0.0f;
+        FF(temp_v0_3, 0x8) = 0.0f;
+        FF(temp_v0_3, 0xC) = 1.0f;
         game_uso_func_0000D63C(arg0, (sp28 == 0));
         FW(FW(arg0, 0xB4), 0x3DC) = 0;
         if (sp30 != 0) {
             game_uso_func_077C44(arg0, FW(arg0, 0x108), 0, 2, 1, 1);
-            game_uso_func_0000D5F8(arg0, *(Pair2 *)&game_uso_D_807FF478, 2);
+            game_uso_func_0000D5F8(arg0, *(Pair2 *)((char *)&game_uso_D_807FF478 + 0xE88), 2);
         } else {
             game_uso_func_077C44(arg0, FW(arg0, 0x108), 0, 1, 1, 1);
-            game_uso_func_0000D5F8(arg0, *(Pair2 *)&game_uso_D_807FF480, 1);
+            game_uso_func_0000D5F8(arg0, *(Pair2 *)((char *)&game_uso_D_807FF480 + 0xE90), 1);
         }
         game_uso_func_0000D5DC(arg0);
         FW(arg0, 0x114) = 0;
@@ -11602,7 +11610,7 @@ block_24:
             temp_a1 = (temp_v0_4 & 0xFFFF) | 0x60000;
             FW(arg0, 0x108) = temp_a1;
             game_uso_func_077C44(arg0, temp_a1, 0, 1, 1, 1);
-            game_uso_func_0000D5F8(arg0, *(Pair2 *)&game_uso_D_807FF3B8, 1);
+            game_uso_func_0000D5F8(arg0, *(Pair2 *)((char *)&game_uso_D_807FF3B8 + 0xDC8), 1);
         }
         FW(FW(arg0, 0xB4), 0x960) = 0x64;
         game_uso_func_0000D5DC(arg0);
