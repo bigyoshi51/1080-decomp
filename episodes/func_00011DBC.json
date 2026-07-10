@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00011DBC",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T08:16:48.452459+00:00",
+  "end_time": "2026-07-10T08:16:48.452478+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T08:16:48.452473+00:00",
+      "assistant_text": "sibling of 11D78 (p[1] instead of p[0]); same register-param + array-form + dead-bare-return levers; 15/15",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 15,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* func_00011DBC: byte-identical sibling of func_00011D78 (reads p[1] = .y\n * instead of p[0] = .x). Carved 2026-07-10, MATCHED at -O0 (15/15 target\n * words = 0x3C, trailing dead pairs clipped by TRUNCATE_TEXT). Same levers\n * as o0_11D78.c: register param, array-form index, dead bare `return;`. */\nfloat func_00011DBC(register char *a0) {\n    if (*(int*)(a0 + 0x18C) == 0) {\n        return (((float**)(a0 + 0xE0))[*(int*)(a0 + 0x128)])[1];\n        return;\n    }\n    return 0.0f;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/bootup_uso/bootup_uso_o0_11DBC.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/bootup_uso/func_00011DBC.s",
+    "segment": "bootup_uso",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0 clean rebuild; cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}
