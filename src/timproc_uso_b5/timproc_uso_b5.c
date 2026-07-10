@@ -1432,12 +1432,27 @@ extern int timproc_uso_b5_func_000087A0();
 extern void timproc_uso_b5_func_00001DB0(char *);
 extern void timproc_uso_b5_func_04CD94(char *);
 #ifdef NON_MATCHING
-/* 83.59% fuzzy (was 64.97%): logic-complete correct-C reconstruction.
- * Residual is the IDO -O2 as1 branch-likely scheduler cap: target emits
- * 21 beql/bnel (delay slots filled from the branch target); our C draws
- * only 9, the deficit cascading register homes downstream. Permuter-immune
- * per project history (branch-likely confuses live-range tracing). Build
- * path stays INCLUDE_ASM (ROM exact); C preserved for future RE. */
+/* 84.18% fuzzy (was 83.59; the old "branch-likely deficit" verdict was
+ * stale — we now draw 19/21 likelies and 551/551 words). 2026-07-10 levers:
+ * (1) `|= 1` store-forward after the sw-zero gives the ori t0,zero,1 form;
+ * (2) NO flag/sub40/anim locals — direct *(arg0+0x3C/0x40/0x48) derefs;
+ *     the load-CSE web then colors flag->v0 and gives const-first bne
+ *     operand order (locals had produced a v1+a0-copy split);
+ * (3) invisible K&R phantom 4th arg `2` on the two nested 3-arg 87A0
+ *     calls (target remats addiu a3,zero,2 mid-cluster = all four calls
+ *     pass 2; emission-neutral, extends the a3 web).
+ * RESIDUAL (single root cause): the const-2 candidate colors t0, target
+ * colors a3. uoptreg2 cupcosts: our ichain-2 splits into two LRs (compare/
+ * store web + call-arg web) so the compare web prices a3 by the GENERIC
+ * phi cost and the tie breaks to t0 (enumeration order); the target's ONE
+ * merged web carries precolored-a3 liveunits (lu->reg==a3 discount) and
+ * wins a3. No C spelling merges the webs: probed phantom-arg variants,
+ * unsigned web-splits (anim==2u -> a1, wrong: target keeps one a3 web,
+ * no addiu at,zero,2), named `two` (copy-propped, inert), register-kw,
+ * while(0)/dead-if ref boosts (deleted pre-analoop), switch shape (worse),
+ * operand flips, coloring-search depth-1 (exhausted). The t0 occupation
+ * shifts the whole t-ring +1 and misphases the call cluster — one cap,
+ * not independent diffs. Build path stays INCLUDE_ASM (ROM exact). */
 void timproc_uso_b5_func_00001F14(char *arg0) {
     s32 dst;
     f64 cf12;
@@ -1447,10 +1462,7 @@ void timproc_uso_b5_func_00001F14(char *arg0) {
     s32 frame;
     s32 frame2;
     s32 frame3;
-    s32 flag;
-    s32 sub40;
     s32 v1;
-    s32 anim;
     char *r34;
     char *r34b;
     char *r34c;
@@ -1461,21 +1473,19 @@ void timproc_uso_b5_func_00001F14(char *arg0) {
     *(s32 *)(arg0 + 0x3C) = 0;
     if (*(s32 *)(arg0 + 0x30) == 2) {
         if (*(s32 *)(*(char **)(arg0 + 0x34) + 0x3CC) == 8) {
-            *(s32 *)(arg0 + 0x3C) = 1;
+            *(s32 *)(arg0 + 0x3C) |= 1;
         }
         if (*(s32 *)(*(char **)(arg0 + 0x38) + 0x3CC) == 8) {
             *(s32 *)(arg0 + 0x3C) = *(s32 *)(arg0 + 0x3C) | 2;
         }
-        flag = *(s32 *)(arg0 + 0x3C);
-        if (flag != 0) {
-            if (flag == 3) {
+        if (*(s32 *)(arg0 + 0x3C) != 0) {
+            if (*(s32 *)(arg0 + 0x3C) == 3) {
                 if (*(s32 *)(arg0 + 0x44) == 0x78) {
-                    sub40 = *(s32 *)(arg0 + 0x40);
-                    if (sub40 == 1) {
+                    if (*(s32 *)(arg0 + 0x40) == 1) {
                         *(s32 *)(arg0 + 0x4C) = 1;
                         *(s32 *)(arg0 + 0x48) = 1;
                         *(f32 *)(arg0 + 0x54) = 0.0f;
-                    } else if (sub40 == 2) {
+                    } else if (*(s32 *)(arg0 + 0x40) == 2) {
                         *(s32 *)(arg0 + 0x4C) = 1;
                         *(s32 *)(arg0 + 0x48) = 2;
                         *(f32 *)(arg0 + 0x54) = 0.0f;
@@ -1484,15 +1494,14 @@ void timproc_uso_b5_func_00001F14(char *arg0) {
                 if (*(s32 *)(arg0 + 0x48) == 1) {
                     dst = timproc_uso_b5_func_000087A0(*(char **)(arg0 + 0x38), 4, arg0, 2);
                     *(s32 *)(*(s32 *)(arg0 + 0x38) + (dst * 4) + 0x3D0) =
-                        *(s32 *)(*(s32 *)(arg0 + 0x34) + (timproc_uso_b5_func_000087A0(*(char **)(arg0 + 0x34), 4, arg0) * 4) + 0x3D0);
+                        *(s32 *)(*(s32 *)(arg0 + 0x34) + (timproc_uso_b5_func_000087A0(*(char **)(arg0 + 0x34), 4, arg0, 2) * 4) + 0x3D0);
                 } else {
                     dst = timproc_uso_b5_func_000087A0(*(char **)(arg0 + 0x34), 4, arg0, 2);
                     *(s32 *)(*(s32 *)(arg0 + 0x34) + (dst * 4) + 0x3D0) =
-                        *(s32 *)(*(s32 *)(arg0 + 0x38) + (timproc_uso_b5_func_000087A0(*(char **)(arg0 + 0x38), 4, arg0) * 4) + 0x3D0);
+                        *(s32 *)(*(s32 *)(arg0 + 0x38) + (timproc_uso_b5_func_000087A0(*(char **)(arg0 + 0x38), 4, arg0, 2) * 4) + 0x3D0);
                 }
                 if (*(s32 *)(arg0 + 0x4C) != 0) {
-                    anim = *(s32 *)(arg0 + 0x48);
-                    if (anim == 1) {
+                    if (*(s32 *)(arg0 + 0x48) == 1) {
                         *(f32 *)(arg0 + 0x54) = *(f32 *)(arg0 + 0x54) + *(f32 *)((char *)&D_00000000 + 0xC8);
                         if (*(f32 *)(arg0 + 0x54) >= 1.0f) {
                             *(f32 *)(arg0 + 0x54) = 1.0f;
@@ -1500,9 +1509,8 @@ void timproc_uso_b5_func_00001F14(char *arg0) {
                         }
                         *(s32 *)(arg0 + 0x44) = (s32) (120.0f + (*(f32 *)(arg0 + 0x54) * 120.0f));
                         timproc_uso_b5_func_00001DB0(arg0);
-                        anim = *(s32 *)(arg0 + 0x48);
                     }
-                    if (anim == 2) {
+                    if (*(s32 *)(arg0 + 0x48) == 2) {
                         *(f32 *)(arg0 + 0x54) = *(f32 *)(arg0 + 0x54) + *(f32 *)((char *)&D_00000000 + 0xCC);
                         if (*(f32 *)(arg0 + 0x54) >= 1.0f) {
                             *(f32 *)(arg0 + 0x54) = 1.0f;
@@ -1538,7 +1546,7 @@ void timproc_uso_b5_func_00001F14(char *arg0) {
             } else {
                 v1 = *(s32 *)(arg0 + 0x44);
                 if ((v1 == 0) || (v1 == 0xF0)) {
-                    if (flag == 1) {
+                    if (*(s32 *)(arg0 + 0x3C) == 1) {
                         *(s32 *)(arg0 + 0x4C) = 1;
                         *(s32 *)(arg0 + 0x48) = 1;
                         *(f32 *)(arg0 + 0x54) = 0.0f;
