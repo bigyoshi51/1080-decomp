@@ -117,8 +117,10 @@ build/src/bootup_uso/bootup_uso_tail1.c.o: TRUNCATE_TEXT := 0x138
 build/src/bootup_uso/bootup_uso_o0_FBCC.c.o: TRUNCATE_TEXT := 0x5C
 build/src/bootup_uso/bootup_uso_tail1_bot.c.o: TRUNCATE_TEXT := 0x4C8
 build/src/bootup_uso/bootup_uso_tail1_bot.c.o build/non_matching/src/bootup_uso/bootup_uso_tail1_bot.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x58
-build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0x6C
+# 2026-07-10: func_000102A4 (0x44, -O0 island) carved out of tail2 into
+# o0_1024C — region now 0x1024C..0x102E8 (0x9C); tail2 starts 0x102E8 (0x28).
+build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x9C
+build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0x28
 build/src/bootup_uso/bootup_uso_tail2.c.o build/non_matching/src/bootup_uso/bootup_uso_tail2.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
 # 2026-07-10: tail3a re-truncated 0x14D8 -> 0x848 after carving the 0x10B6C

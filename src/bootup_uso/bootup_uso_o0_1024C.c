@@ -14,3 +14,13 @@ void func_00010260(int *a0) {
     a0[0x80/4] = 0;
     func_00000000(a0);
 }
+
+/* func_000102A4 (0x44 bytes / 17 insns at -O0) — moved from bootup_uso_tail2.c
+ * 2026-07-10 (-O0 island: mtc1 load-delay nops + unfolded div-by-2.0f + NO arg
+ * homing = register params). Levers: register PARAMS suppress -O0 arg homing;
+ * mul written float-operand-first so ugen's operand swap emits the cvt.s.w
+ * subtree first (matches target's f4/f6/f8 temp numbering). Trailing dead
+ * jr/nop pair clipped by TRUNCATE_TEXT (frameless + file-terminal). */
+void func_000102A4(register char *a0, register int a1) {
+    *(float*)(a0 + 0x70) = (float)a1 - (*(float*)(a0 + 0x74) * (float)*(int*)(a0 + 0x78)) / 2.0f;
+}
