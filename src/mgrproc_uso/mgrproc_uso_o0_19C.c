@@ -58,7 +58,7 @@ extern int mgrproc_uso_func_0120A8();
 extern int mgrproc_uso_func_00000E04();
 extern int mgrproc_uso_func_01DA48();
 void mgrproc_uso_func_00000504();
-void mgrproc_uso_func_00000700();
+int mgrproc_uso_func_00000700();
 void mgrproc_uso_func_000009A8();
 s32 mgrproc_uso_func_00000A14();
 mgrproc_uso_func_0000019C(a0, a1) char * a0; int a1; {
@@ -223,18 +223,40 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D
 #endif
 
 #ifdef NON_MATCHING
-
-
-
+/* mgrproc_uso_func_00000700: 3-case state-init dispatcher. 90.05 -> 93.31
+ * (2026-07-10): real callees wired from expected relocs (all three case
+ * calls are mgrproc_uso_func_000005D0, NOT func_0000019C as the old body
+ * had), import_800200E4.v (D+0x4C, int; old body lbu'd *(char*)0x4C),
+ * import_800201EC.v[1] u16 reads (lhu at ptr+2; old body lwl/lwr), and the
+ * case-1 dead `register char *base = &D_00000000` la (lui/addiu s0 =
+ * import_8005C6E0, the func_00000504 v3 idiom).
+ *
+ * RESIDUAL (+2 words, whole-switch t-reg renumber): the target's switch
+ * temp is t1 (plain rotation temp after the head's t6..t0, single lw
+ * 0x2C(sp), NO home store, no extra save); IDO 7.1/5.3 -O0 ALWAYS promotes
+ * a beq-chain switch temp to the lowest free callee-saved reg (here s1,
+ * +save/+restore = 172 vs 170). Probed exhaustively: +0/|0/(short)/comma/
+ * deref-of-& exprs, struct/union by-value arg, K&R vs ANSI, varargs, extra
+ * params, int return, do-while(0)/if(1)/goto-out/fallthrough wraps,
+ * register-in-case, 7 register dummies (fn+block scope: s-exhaustion
+ * spills the temp WITH a home store + frame 96 — wrong shape), volatile
+ * body access, second switch, 5.3, -g/-g2/-g3/-Olimit. All promote or
+ * distort. Same -O0 toolchain-binary gap family as the value-return
+ * double-b cap (docs/IDO_CODEGEN.md#feedback-ido-o0-return-value-dead-
+ * double-b): the original 1080 cc's -O0 kept switch temps in the t
+ * rotation. Everything else (all relocs, control flow, la, lhu forms) is
+ * exact; the s1-vs-t1 class shifts every subsequent t number. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00000700)();
-void mgrproc_uso_func_00000700(char *arg0, s32 arg1) {
+extern struct { char pad[0x154]; unsigned short *v; } import_800201EC;
+mgrproc_uso_func_00000700(arg0, arg1) char *arg0; int arg1; {
+    register char *base; /* s0; case-1 dead la of &D (import_8005C6E0) */
     *(int*)(FW(arg0, 0x8)) = 3;
     FW(FW(arg0, 0x8), 0x4) = 0;
-    switch (arg1) {                                 /* irregular */
+    switch (arg1) { /* irregular */
     case 1:
+        base = (char *)&D_00000000;
         if (*(s32 *)0xA0000284 == 0x240B17D7) {
             FW(FW(arg0, 0x8), 0x8) = 4;
         } else {
@@ -244,7 +266,7 @@ void mgrproc_uso_func_00000700(char *arg0, s32 arg1) {
         FW(FW(arg0, 0x8), 0x10) = 3;
         FW(FW(arg0, 0x8), 0x14) = 4;
         FW(FW(arg0, 0x8), 0x18) = 5;
-        mgrproc_uso_func_0000019C(arg0);
+        mgrproc_uso_func_000005D0(arg0);
         break;
     case 2:
         FW(FW(arg0, 0x8), 0x8) = 5;
@@ -253,8 +275,8 @@ void mgrproc_uso_func_00000700(char *arg0, s32 arg1) {
         FW(FW(arg0, 0x8), 0x14) = 4;
         FW(FW(arg0, 0x8), 0x18) = 5;
         FW(FW(arg0, 0x8), 0x1C) = 6;
-        mgrproc_uso_func_0000019C(arg0);
-        FW(FW(arg0, 0x8), 0x34) = (s32) *(char *)0x4C;
+        mgrproc_uso_func_000005D0(arg0);
+        FW(FW(arg0, 0x8), 0x34) = import_800200E4.v;
         break;
     case 3:
         FW(FW(arg0, 0x8), 0x8) = 6;
@@ -264,11 +286,11 @@ void mgrproc_uso_func_00000700(char *arg0, s32 arg1) {
         FW(FW(arg0, 0x8), 0x18) = 5;
         FW(FW(arg0, 0x8), 0x1C) = 6;
         FW(FW(arg0, 0x8), 0x20) = 7;
-        mgrproc_uso_func_0000019C(arg0);
-        FW(FW(arg0, 0x8), 0x34) = (s32) *(s32 *)0x4C;
-        if (FW((*(char **)0x154), 0x2) == 3) {
+        mgrproc_uso_func_000005D0(arg0);
+        FW(FW(arg0, 0x8), 0x34) = import_800200E4.v;
+        if (import_800201EC.v[1] == 3) {
             FW(FW(arg0, 0x8), 0x38) = 5;
-        } else if (FW((*(char *)0x154), 0x2) == 4) {
+        } else if (import_800201EC.v[1] == 4) {
             FW(FW(arg0, 0x8), 0x38) = 6;
         } else {
             FW(FW(arg0, 0x8), 0x38) = 7;
