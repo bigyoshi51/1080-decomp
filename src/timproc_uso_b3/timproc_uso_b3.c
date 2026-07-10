@@ -1112,71 +1112,61 @@ void timproc_uso_b3_func_00001C20(char *a0) {
  * arcproc_uso_func_00001F54 / mgrproc per-frame steps). cb(); gate arg0->0xB8
  * bit-16 && ->0x4DC==1: bump 0x30, decrement 0xA0 by 0x21 (floor 0 + cleanup that
  * sets sub->0x554=192.0f, ->0x544=0xFF). cb(arg0). Gated block: state-2 sync of
- * 0xD8 from arg0->0x44->0x60->0x800->0x4C (cb on change); optional draw block;
- * ramp 0xA8 toward 0x44->0x18 by 0xFA/0x32/0x19/1; state-1 draws (float arg via
- * gl_proto_1c68); 0x94 sub-widget enable + 0x32/5/1 ramp on 0x44->0x20 else
- * disable; state-2 (0x4F8==0) blink 0x8C by (0xAC++ & 8). cb(arg0) tail. Fresh
- * decode 2026-05-29 (m2c-confirmed). 84.02%. Caps: structs + cb prototypes
- * untyped (USO-reloc). NON_MATCHING.
+ * 0xD8; optional draw block; ramp 0xA8 toward 0x44->0x18 by 0xFA/0x32/0x19/1;
+ * state-1 draws (float arg via gl_proto_1c68); 0x94 sub-widget enable + 0x32/5/1
+ * ramp on 0x44->0x20 else disable; state-2 (0x4F8==0) blink 0x8C by (0xAC++ & 8).
  *
- * 2026-06-01 PRECISE GAP MAP (reloc-aware difflib, build 239 insns vs target
- * 253 = 14 short — but NOT one missing block; logic is all present, the deficit
- * is BRANCH-FORM, so this is regalloc/scheduling-class, not addable-logic):
- *   - insn 5+ : `bc=arg0->0xB8` colors to v0 (build) vs a0 (target) — the
- *     v0-reuse-after-void-call cap (gl_func() return frees v0; target uses a0).
- *     Cascades through bc->0x4F0/0x4DC reads. See IDO_CODEGEN v0-reuse entry.
- *   - built[67:94] vs target[66:94] (state-2 sync, the `if (v0 && bc->0x4DC==1)`
- *     + `arg0->0x48==2` block): target emits `beqz nop beqz nop` (two split
- *     branches) where the `&&` here folds differently; +1 insn.
- *   - built[173:189] vs target[176:198] (+6) and built[193:207] vs [202:219]
- *     (+3): the 0x94 sub-widget ramp (r>=0x32/5/1) — target uses a `bnezl`
- *     branch-likely and a different li/li/addiu/jal/sw arg-setup schedule per
- *     ramp stage; the plain if-elseif chain here emits the un-likely form.
- *   - float-arg setup for the two gl_proto_1c68(...,Nf,Nf) calls differs.
- * Next attack (targeted, per-region): convert the 0x94 ramp to the branch-likely
- * shared-tail goto shape (see /decompile branch-likely recipe) — that single
- * block is ~9 of the 14 missing insns. Branch-form/regalloc residual.
- * CASCADE ORDER MATTERS: the length divergence begins at the state-2 sync
- * block (built[67]/target[66]); fixing the LATER 0x94 ramp alone is
- * byte-neutral on fuzzy (verified 2026-06-01: &p44->0x20 pointer-form for the
- * +0x32/+5 stages compiled identically, 84.02% unchanged) because everything
- * after the first divergence stays mis-shifted. Must realign from the FIRST
- * length diff (state-2 sync `&&`/branch-likely forms) outward, not from the
- * tail. */
+ * 2026-07-10 95.09% fuzzy (was 84.02; 251/253 words). Levers (agent-h):
+ *  - NO bc local: direct *(char **)(arg0+0xB8) derefs everywhere; the load-CSE
+ *    web (one char** ichain) then carries the a0 precolor from the two
+ *    gl_func(*(arg0+0xB8)) call args (cupcosts lu->reg discount) -> bc web
+ *    colors a0 like target, both gates + post-call rereads + arm-4 join.
+ *  - v0b ramp arm loads are INT-typed (*(int *)(arg0+0xB8)): different ichain
+ *    from the char** web -> no CSE with the held a0 pointer, forcing the
+ *    per-arm fresh t-reg reloads the target shows. Arm 4 (join) stays char**
+ *    (it IS an a0-web reload in target).
+ *  - 0xA0/0xAC RMWs in compound deref form (no t2/t1 temp locals) =
+ *    un-coalesced two-reg lw/addiu/sw shape.
+ *  - flag RMWs (p94/p8c +0x18, p44 +0x20 arms 1-2) via held ptr assigned from
+ *    the DIRECT deref chain: fl=(int *)(*(char **)(arg0+0x94)+0x18); *fl|=4;
+ *    gives the target addiu+lw/sw-0(v0) form (a p94-local base folds to
+ *    24(reg) instead). Arm 3 (+1) is the FOLDED 32(v1) form in target - spell
+ *    it as a plain compound deref.
+ * RESIDUAL (~15 words, one family): as1/uopt adjacent-pair picks - (a) the
+ * conditional gl(arg0,1) call hoists addiu a1,1 into the cond load-delay slot
+ * where target hoists or a0,s0 (probe-immune: casts/1u/arg-splits inert);
+ * (b) arm-1's fl addiu is como-hoisted above the bnel (single-path uadd still
+ * hoists; fl2-split/cast probes inert) which steals v0, knocking r->a0 and
+ * a1-var->a2+copy (target r->v0, a1-var->a1); (c) one addiu-vs-or zero-arg
+ * materialization at the state-1 draw call (0u probe inert). Same
+ * allocator/scheduler-internal class as the Two-s-reg kit II residuals. */
 extern int gl_proto_1c68(void *, int, int, float, float);
 void timproc_uso_b3_func_00001C68(char *arg0) {
-    char *bc;
-    char *p44;
-    char *p94;
-    char *p8c;
+    int *fl;
     int v0;
     int v0b;
-    int a1;
+    register int a1;
     int rem;
     int r;
     int t1;
-    int t2;
 
     gl_func_00000000();
-    bc = *(char **)(arg0 + 0xB8);
-    if ((*(int *)(bc + 0x4F0) & 0x10000) && (*(int *)(bc + 0x4DC) == 1)) {
+    if ((*(int *)(*(char **)(arg0 + 0xB8) + 0x4F0) & 0x10000) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 1)) {
         *(int *)(arg0 + 0x30) = *(int *)(arg0 + 0x30) + 0x21;
         gl_func_00000000(arg0);
-        t2 = *(int *)(arg0 + 0xA0) - 0x21;
-        *(int *)(arg0 + 0xA0) = t2;
-        if (t2 < 0) {
+        *(int *)(arg0 + 0xA0) = *(int *)(arg0 + 0xA0) - 0x21;
+        if (*(int *)(arg0 + 0xA0) < 0) {
             *(int *)(arg0 + 0xA0) = 0;
             gl_func_00000000(*(int *)(arg0 + 0x84), 0, 0);
-            gl_func_00000000(*(int *)(arg0 + 0xB8));
+            gl_func_00000000(*(char **)(arg0 + 0xB8));
             *(float *)(*(char **)(arg0 + 0xB8) + 0x554) = 192.0f;
             *(int *)(*(char **)(arg0 + 0xB8) + 0x544) = 0xFF;
             *(int *)(arg0 + 0x2C) = 0;
         }
     }
     gl_func_00000000(arg0);
-    bc = *(char **)(arg0 + 0xB8);
-    v0 = *(int *)(bc + 0x4F0) & 0x10000;
-    if ((v0 != 0) && (*(int *)(bc + 0x4DC) == 1)) {
+    v0 = *(int *)(*(char **)(arg0 + 0xB8) + 0x4F0) & 0x10000;
+    if ((v0 != 0) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 1)) {
         if (*(int *)(arg0 + 0x48) == 2) {
             if ((*(int *)(arg0 + 0xD8) == 1) &&
                 (*(int *)(*(char **)(*(char **)(*(char **)(arg0 + 0x44) + 0x60) + 0x800) + 0x4C) == 0)) {
@@ -1191,7 +1181,7 @@ void timproc_uso_b3_func_00001C68(char *arg0) {
                 gl_func_00000000(arg0, *(int *)(arg0 + 0xA0));
                 gl_func_00000000(*(int *)(arg0 + 0x84), *(int *)(arg0 + 0xA0), 0);
             }
-            gl_func_00000000(*(int *)(arg0 + 0xB8));
+            gl_func_00000000(*(char **)(arg0 + 0xB8));
             v0 = *(int *)(*(char **)(arg0 + 0xB8) + 0x4F0) & 0x10000;
         }
     }
@@ -1200,13 +1190,13 @@ void timproc_uso_b3_func_00001C68(char *arg0) {
         rem = *(int *)(*(char **)(arg0 + 0x44) + 0x18) - t1;
         if (rem >= 0xFA) {
             *(int *)(arg0 + 0xA8) = t1 + 0xFA;
-            v0b = *(int *)(*(char **)(arg0 + 0xB8) + 0x4DC);
+            v0b = *(int *)(*(int *)(arg0 + 0xB8) + 0x4DC);
         } else if (rem >= 0x32) {
             *(int *)(arg0 + 0xA8) = t1 + 0x32;
-            v0b = *(int *)(*(char **)(arg0 + 0xB8) + 0x4DC);
+            v0b = *(int *)(*(int *)(arg0 + 0xB8) + 0x4DC);
         } else if (rem >= 0x19) {
             *(int *)(arg0 + 0xA8) = t1 + 0x19;
-            v0b = *(int *)(*(char **)(arg0 + 0xB8) + 0x4DC);
+            v0b = *(int *)(*(int *)(arg0 + 0xB8) + 0x4DC);
         } else {
             if (rem > 0) {
                 *(int *)(arg0 + 0xA8) = t1 + 1;
@@ -1216,45 +1206,43 @@ void timproc_uso_b3_func_00001C68(char *arg0) {
         if (v0b == 1) {
             gl_func_00000000(*(int *)(arg0 + 0x84), *(int *)(arg0 + 0xA0), 1);
             gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 0x30), 0);
-            p44 = *(char **)(arg0 + 0x44);
-            gl_proto_1c68(*(int *)(arg0 + 0x80), *(int *)(p44 + 8), *(int *)(p44 + 0xC), 0.0f, 0.0f);
+            gl_proto_1c68(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 8), *(int *)(*(char **)(arg0 + 0x44) + 0xC), 0.0f, 0.0f);
         }
         if (*(int *)(*(char **)(arg0 + 0x44) + 0x1C) != 0) {
             gl_proto_1c68(*(int *)(arg0 + 0x94), 0xA0, 0x46, 1.0f, 1.0f);
             *(int *)(*(char **)(arg0 + 0x94) + 0x78) = 0xFF;
-            p94 = *(char **)(arg0 + 0x94);
-            *(int *)(p94 + 0x18) = *(int *)(p94 + 0x18) | 4;
-            p44 = *(char **)(arg0 + 0x44);
-            a1 = *(int *)(p44 + 0x20);
-            r = *(int *)(p44 + 0x1C) - a1;
+            fl = (int *)(*(char **)(arg0 + 0x94) + 0x18);
+            *fl = *fl | 4;
+            a1 = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
+            r = *(int *)(*(char **)(arg0 + 0x44) + 0x1C) - a1;
             if (r >= 0x32) {
-                *(int *)(p44 + 0x20) = *(int *)(p44 + 0x20) + 0x32;
+                fl = (int *)(*(char **)(arg0 + 0x44) + 0x20);
+                *fl = *fl + 0x32;
                 gl_func_00000000(0x20, 0x32);
                 a1 = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
             } else if (r >= 5) {
-                *(int *)(p44 + 0x20) = *(int *)(p44 + 0x20) + 5;
+                fl = (int *)(*(char **)(arg0 + 0x44) + 0x20);
+                *fl = *fl + 5;
                 gl_func_00000000(0x20, 5);
                 a1 = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
             } else if (r > 0) {
-                *(int *)(p44 + 0x20) = *(int *)(p44 + 0x20) + 1;
+                *(int *)(*(char **)(arg0 + 0x44) + 0x20) = *(int *)(*(char **)(arg0 + 0x44) + 0x20) + 1;
                 gl_func_00000000(0x20, 1);
                 a1 = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
             }
             gl_func_00000000(*(int *)(arg0 + 0x94), a1);
         } else {
-            p94 = *(char **)(arg0 + 0x94);
-            *(int *)(p94 + 0x18) = *(int *)(p94 + 0x18) & ~4;
+            fl = (int *)(*(char **)(arg0 + 0x94) + 0x18);
+            *fl = *fl & ~4;
         }
-        bc = *(char **)(arg0 + 0xB8);
-        if ((*(int *)(bc + 0x4DC) == 2) && (*(int *)(bc + 0x4F8) == 0)) {
-            t1 = *(int *)(arg0 + 0xAC) + 1;
-            *(int *)(arg0 + 0xAC) = t1;
-            if (t1 & 8) {
-                p8c = *(char **)(arg0 + 0x8C);
-                *(int *)(p8c + 0x18) = *(int *)(p8c + 0x18) & ~4;
+        if ((*(int *)(*(char **)(arg0 + 0xB8) + 0x4DC) == 2) && (*(int *)(*(char **)(arg0 + 0xB8) + 0x4F8) == 0)) {
+            *(int *)(arg0 + 0xAC) = *(int *)(arg0 + 0xAC) + 1;
+            if (*(int *)(arg0 + 0xAC) & 8) {
+                fl = (int *)(*(char **)(arg0 + 0x8C) + 0x18);
+                *fl = *fl & ~4;
             } else {
-                p8c = *(char **)(arg0 + 0x8C);
-                *(int *)(p8c + 0x18) = *(int *)(p8c + 0x18) | 4;
+                fl = (int *)(*(char **)(arg0 + 0x8C) + 0x18);
+                *fl = *fl | 4;
             }
         }
     }
