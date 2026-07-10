@@ -3237,8 +3237,11 @@ void func_00004914(char *a0, int a1, char *a2) {
 //   consts (func_000003F8+0x15C=0x554, +0x160=0x558; and the K0 at
 //   D_00000000+0) are MATCHABLE addend/base-reloc memory loads
 //   (*(float*)((char*)&func_000003F8 + 0x15C)), same class PROVEN on
-//   func_00007328 (24->69 fuzzy). The case-(a) unreproducible-pool blocker
-//   (splat re-extract) is func_0000098C's region only (E270/D900/E2D0).
+//   func_00007328 (24->69 fuzzy). (UPDATE 2026-07-10, agent-f: there is NO
+//   "case-(a) unreproducible pool" — confirmed via the USO reloc table that
+//   even the func_0000098C trio E270/D900/E2D0 load genuine rodata literals
+//   (f32 π / f64 0.1 / f64 0.2) via the RoData section symbol; they are the
+//   SAME matchable class, just file-split-gated for the fold, not re-extract.)
 //   The real blocker here is full 426-insn FP-transition reconstruction
 //   accuracy (current body 15% fuzzy = structurally wrong; a full m2c
 //   graft also scored ~15%) + FP coloring ceiling. DEFERRED (multi-hour).
@@ -4259,10 +4262,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006254);
 //     a 0x10-stride basis/projection matrix; ctx->0x130 = screen scale;
 //     ctx->0x10C / 0x110 = output marker pixel X/Y (byte-clamped 0..0x7F).
 //   func_0000057C + 0x34 (lwc1) = folded f32 const at 0x5B0.
-// PREMISE CORRECTION (2026-07, agent-f): this is NOT the case-(a)
-//   splat-mis-disassembled constant pool (that blocker is func_0000098C's
-//   0x990-0x9A8 region -> func_0000E270/D900/E2D0 only, needs splat
-//   re-extract per docs/N64_FORENSICS.md). func_0000057C+0x34 is a
+// PREMISE CORRECTION (2026-07, agent-f): this is a MATCHABLE folded
+//   addend-reloc, NOT a mis-disassembled constant pool. (UPDATE 2026-07-10:
+//   there is no "case-(a) splat-mis-disassembled pool" anywhere — even the
+//   func_0000098C trio E270/D900/E2D0 was CONFIRMED via the USO reloc table to
+//   load genuine RoData-section literals, same matchable class, no re-extract;
+//   see docs/N64_FORENSICS.md RESOLVED block.) func_0000057C+0x34 is a
 //   MATCHABLE folded addend-reloc: reference it as a memory load
 //   *(float*)((char*)&func_0000057C + 0x34) (NOT as a C literal) and IDO
 //   emits a HI16/LO16 addend-reloc pair against func_0000057C that matches
@@ -9195,18 +9200,22 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000D440);
 //   m(a1): 0x0 opcode, 0x4 payload obj (->0xC f32, ->0x28 vtable
 //     (->0xC u16 type tag, ==0x74 here)); st(a3): 0xA80 busy/cooldown,
 //     0xA54 result/status (set 6 on default), 0x808 sub-record.
-//   D_00000988 = a CORRECTLY-symbolized f64 const (splat got this one).
-//   Folded refs (literal-pool/placeholder fold family): func_0000098C
-//     + 0x4 = the MIS-folded continuation of the very pool that starts
-//     at D_00000988 — splat symbolized 0x988 (D_00000988, 8 bytes) then
-//     emitted a SPURIOUS code symbol func_0000098C at 0x98C that
-//     swallows the rest of the pool. func_00008AEC + {0x4C,0x54},
-//     func_00008B44 + {0x4,0x10,0x24} = folded action/desc tables.
-//     See docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
-// Caps (DEFERRED): 305-insn opcode dispatcher w/ folded pool + tables
-//   — byte-match blocked by deferred pool symbolization. Real-C
-//   STRUCTURAL body below. Name pre-checked: no extern reuse.
-//   D_00000988 reuses pre-symbolized double const at file scope.
+//   CORRECTION (2026-07-10, agent-f, CONFIRMED via USO reloc table): the old
+//     "SPURIOUS code symbol func_0000098C swallows the pool" claim here is
+//     WRONG. func_0000098C is a GENUINE function (0x99C carries a live
+//     R_MIPS_26 jal reloc); D_00000988 is just func_00000940's tail nop. The
+//     FP loads reference symIdx=1 = the RoData SECTION base (immediate = pool
+//     offset), NOT func_0000098C. The real rodata constants: this fn's
+//     `func_0000098C + 0x4` (@0x988) = f64 0.1, `+ 0xC`-form (@0x990) = f64 0.2
+//     (rodata data @ ROM 0xD9FE44). `func_0000098C + N` is just the correct
+//     placeholder-byte reproduction, NOT a pool bug to re-extract.
+//     func_00008AEC/func_00008B44 refs are the same matchable addend-reloc
+//     class. See docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
+// Caps (DEFERRED): 305-insn opcode dispatcher — byte-match blocked by full
+//   FP-body reconstruction + FP coloring + the file-split needed to fold the
+//   pool load (func_0000098C is defined in this same .c), NOT by any pool
+//   symbolization. Real-C STRUCTURAL body below. Name pre-checked: no extern
+//   reuse. D_00000988 reuses pre-symbolized double const at file scope.
 #ifdef NON_MATCHING
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft (305 insns, 9 COP1 +
  * 2 f64 = mild; prior body replaced -- preserved in git). */
@@ -9489,26 +9498,30 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E124);
  *   func_00000000(arg0 + 0xCC, arg0 + 0x3B0, ratio);
  *   func_00000000(arg0 + 0xF4, arg0 + 0x3B0, ratio);
  *
- * INVESTIGATION DONE (2026-05-17): this is the bootup_uso FP literal pool,
- * splat-folded into func_0000098C (real code, 0x4C @ vram 0x98C) because the
- * USO segment has no rodata/literal-pool symbol. Exactly THREE mis-attributed
- * FP constants, referenced across 3 functions:
- *   func_0000098C + 0x4  -> ldc1 (f64)  @ 0x990  (func_0000D900, func_0000E2D0)
- *   func_0000098C + 0xC  -> lwc1 (f32)  @ 0x998  (func_0000E270 — this fn)
- *   func_0000098C + 0x14 -> ldc1 (f64)  @ 0x9A0  (func_0000D900)
- * Adjacent `lui 0x3FE00000` in func_0000D900 (= double 0.5) confirms an FP
- * constant region, not code. Fix is NOT a typed-extern: splat disassembled
- * 0x990-0x9A8 AS code (coincidentally-plausible prologue bytes), so the real
- * resolution is a splat-config pass that breaks out the bootup_uso literal
- * pool into D_0000098C.._9A8 symbols + re-extract, then these become proper
- * f32/f64 consts and func_0000E270/D900/E2D0 can byte-match. Multi-file
- * re-extraction = DEFERRED focused-session task (high blast radius; not a
- * /loop tick). Tracked in project_1080_o0_split_pending_candidates.md and
+ * PUZZLE RESOLVED (2026-07-10, agent-f — CONFIRMED against the USO reloc
+ * table; SUPERSEDES the 2026-05-17 "splat-folded pool / re-extract" theory
+ * that used to be here). The lwc1 load reads a GENUINE rodata literal, not
+ * code: parsing the bootup.uso module TextReloc table shows this HI16/LO16
+ * pair references symIdx=1 = the module's RoData SECTION base (used by 774
+ * loads; the 16-bit immediate IS the pool offset). It has nothing to do with
+ * func_0000098C — splat prints `func_0000098C + 0xC` only because it flat-
+ * disassembles the module at VRAM=0 and the placeholder immediate 0x998
+ * collides with text-symbol space. func_0000098C IS real code (its 0x99C word
+ * carries a live R_MIPS_26 jal reloc). The actual constant, read from RoData
+ * (data @ ROM 0xD9FE44) at pool offset 0x998, is **f32 π (3.1415927)**.
+ *   Sibling loads (same rodata pool): func_0000D900 @0x988 = f64 0.1, @0x990 =
+ *   f64 0.2; func_0000E2D0 @0x9A0 = f64 0.1.
+ * NO re-extract / splat-config break-out is needed or would help — the rodata
+ * is already a separate section, and `func_0000098C + 0xC` is the CORRECT way
+ * to reproduce the ROM's placeholder text bytes (lui 0 / lwc1 0x998). The real
+ * blocker on this trio: the fold form needs func_0000098C as `extern struct{}`,
+ * which clashes because it is DEFINED in this same .c → a FILE-SPLIT is
+ * required (the `*(f32*)((char*)&func_0000098C+0xC)` cast does NOT fold — it
+ * materializes &sym, wrong shape), plus full FP-body reconstruction. NOT a
+ * pool/symbolization blocker. See the RESOLVED block in
  * docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
  *
- * Default INCLUDE_ASM keeps ROM correct; this wrap is a structural pass for
- * the next iteration. Likely won't byte-match without proper symbol naming
- * + the typed-extern trick to bake the offset into lui/lwc1. */
+ * Default INCLUDE_ASM keeps ROM correct; this wrap is a structural pass. */
 extern void aE270(void*, void*, float); /* float-proto alias; jal bakes RAW to 0 */
 void func_0000E270(char *arg0, float arg1) {
     /* 2026-06-22: full structural reconstruction. The body below is REGISTER-
@@ -9569,10 +9582,17 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000E270);
  * passed vector and the object's vector, then their squared
  * magnitudes feed a reloc helper (sqrtf / normalize, also reads
  * a func_0000098C+off datum). a1 = an unused-here index/flag.
+ * NOTE (2026-07-10, agent-f, CONFIRMED via USO reloc table): the
+ * `func_0000098C + 0x14` datum this fn loads (ldc1 @ pool offset 0x9A0) is
+ * **f64 0.1**, read from the module's RoData literal pool (data @ ROM
+ * 0xD9FE44) — a real rodata constant, NOT code / not a "folded pool" needing
+ * re-extract. func_0000098C is genuine code; the `+ N` form just reproduces
+ * the ROM placeholder bytes. See the RESOLVED block in
+ * docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
  * Caps <80: very FP-heavy (dozens of mul.s/add.s/sub.s, two
  * dot-products, two reflections, two |.|^2) + func_00000000 reloc
- * + spilled f-temps. Full body INCLUDE_ASM-preserved (.s = source
- * of truth). INCLUDE_ASM (no episode; tautology-trap rule). */
+ * + spilled f-temps + the file-split needed to fold the pool load. Full body
+ * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
