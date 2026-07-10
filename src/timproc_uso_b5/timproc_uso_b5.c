@@ -1353,19 +1353,25 @@ int timproc_uso_b5_func_00001D1C(char *a0, int a1) {
  * ch->p_414->p_C record (C4/D4 cleared or set, BC/CC = level) plus, on
  * the ch1 active path, f_B4 = dbl_C0 + dbl_B8*(1.0f - a0->f_54) (f64
  * math, reloc'd double constants at +0xB8/+0xC0 -- offset-valued syms
- * staged) and ch1->f_49C = 41.0f + 5.0f*a0->f_54. Standalone at 7.1
- * -O2: 89/87. Pass 2: the two doubles share ONE %hi base in the target
- * (one lui at + ldc1 184/192(at)) -- array-form extern D_1DB0_dbls[23]/
- * [24] reproduces the shared base (distinct externs emit two luis).
- * Remaining +2 = the 41.0f (0x4224) / 5.0f (0x40A0) float-constant lui
- * scheduling (build hoists 0x40A0 early). Cast variants ((f64) explicit,
- * implicit promotion, double-constant subtract) all neutral or worse.
- * Residual = pure FP-constant scheduling. */
+ * staged) and ch1->f_49C = 41.0f + 5.0f*a0->f_54.
+ * 2026-07-10 (agent-h): 93.97% -> 99.55% fuzzy. CORRECTING the pass-2 read:
+ * the target does NOT share one %hi base -- it emits TWO separate `lui at`
+ * (@0x3c hoisted early + @0x84), each folding %lo into its ldc1 displacement
+ * (ldc1 184(at) / 192(at)). The array-form extern D_1DB0_dbls[23]/[24]
+ * materialized the shared base into a general reg via `lui v1; addiu v1,v1,0`
+ * (extra addiu, wrong reg) which cascaded the whole schedule. FIX: two DISTINCT
+ * scalar externs (D_dbl_1DB0_B8 / _C0) at the exact double addresses reproduce
+ * the target's two-lui-at form and realign the entire block. General lever:
+ * when the target reaches two nearby FP/data consts via SEPARATE `lui at`
+ * (each %lo-folded), use distinct scalar externs, NOT an array (array-decay
+ * forces a genreg base + addiu). RESIDUAL (4 real diffs): commutative FP
+ * operand-order canonicalization -- mul.d/add.d/mul.s emit their operands
+ * reversed vs target and the mtc1 f-reg picks $f4 not $f18; IDO canonicalizes
+ * regardless of C operand order (3 source-order variants tried, all neutral).
+ * Plus the 2 reloc-blind ldc1 offsets (0 vs 184/192, objdiff-normalized).
+ * Genuine FP-canonicalization cap; default INCLUDE_ASM. */
 #ifdef NON_MATCHING
-extern f64 D_1DB0_dbls[];  /* doubles at +0xB8/+0xC0 share ONE %hi base
-                              (target: one lui at + ldc1 184(at)/192(at));
-                              distinct externs emit two luis -- array form
-                              [23]/[24] shares the base. */
+extern f64 D_dbl_1DB0_B8, D_dbl_1DB0_C0;
 
 void timproc_uso_b5_func_00001DB0(char *a0) {
     char *t;
@@ -1381,7 +1387,7 @@ void timproc_uso_b5_func_00001DB0(char *a0) {
         *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xBC) = *(s32 *)(a0 + 0x44);
         *(s32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xCC) = *(s32 *)(a0 + 0x44);
         *(f32 *)(*(char **)(*(char **)(*(char **)(a0 + 0x34) + 0x414) + 0xC) + 0xB4) =
-            D_1DB0_dbls[24] + D_1DB0_dbls[23] * (f64)(1.0f - *(f32 *)(a0 + 0x54));
+            D_dbl_1DB0_C0 + D_dbl_1DB0_B8 * (f64)(1.0f - *(f32 *)(a0 + 0x54));
         *(f32 *)(*(char **)(a0 + 0x34) + 0x49C) = 41.0f + 5.0f * *(f32 *)(a0 + 0x54);
     }
     *(s32 *)(*(char **)(a0 + 0x38) + 0x4D8) = 0xF0 - *(s32 *)(a0 + 0x44);
