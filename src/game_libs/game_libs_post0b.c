@@ -27383,11 +27383,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00057700);
  * reconfirms pass-8); and the case-0x508 const-emit scheduling swap
  * (as1 hoists a later lui above an earlier ori, ~2 words). Next swing:
  * find the register-pressure C construct that forces the div-hazard
- * spill WITHOUT shifting the rotation phase (the remaining ~3.75%). */
+ * spill WITHOUT shifting the rotation phase (the remaining ~3.75%).
+ * PASS 12 (2026-07-10, default-arm restructure): 96.25 -> 96.34. The
+ * switch-2 default was ONE call reached by fallthrough+dispatch; the
+ * target is TWO calls (falling case owns a copy) TAIL-MERGED by uopt
+ * cross-jumping. Rewritten as: falling case ends with its own
+ * `sp34 = FW(arg1,0x24); call(0x219C4, sp34, var_a2, arg0); return;`
+ * (plain s32 sp34 + if(0){call(&sp34)} address-escape keeps the dead
+ * home store sw 52(sp) w/o volatile -- volatile sp34 was a LOAD-CSE
+ * BARRIER forcing the arg re-load; retired) and `default:` passes the
+ * SELECTOR var (temp_a1) -> coalesces into a1: dispatch-2 selector web
+ * now lw a1,36(s0) with clean nop-delay chain (was t0 + sw temploc).
+ * Constants 0x219B8/0x219C4 are addiu-form = &SYM+N addresses (docs
+ * IDO_CODEGEN lui-addiu discriminator): distinct base-0 externs
+ * gl_d_578b4_s1/s2a/s2b (undefined_syms_auto). NEW NEGATIVES:
+ * volatile-slot arg-fold (sp34=... inside call arg) promotes the
+ * selector web to s0 + frame 520 (-4pp); ANY named temp for the tail
+ * value (fresh or reused) gets a dead home store at the wrong slot --
+ * only the plain-var + address-escape form stays a scheduler temp.
+ * Arm-1 or-chain const-to-last flip = -2.9 (chains locked by pass-9).
+ * REMAINING (unchanged classes): dispatch compare ORDER (cfe sorts
+ * case values; target is source-order; goto-ladder collapse verdict
+ * stands), per-arm t0/t1 two-web scratch swap (~10w x 6 arms),
+ * addu/or operand-order (ucode-canonical), 2-word as1 pair swaps,
+ * fallthrough-tail or a1,t9 vs direct-a1 fuse (2w), div-hazard
+ * split-spills. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+extern char gl_d_578b4_s1[];   /* base-0 alias: 0x219B8 addiu-form const (switch-1 default) */
+extern char gl_d_578b4_s2a[];  /* base-0 alias: 0x219C4 addiu-form const (switch-2 falling case) */
+extern char gl_d_578b4_s2b[];  /* base-0 alias: 0x219C4 addiu-form const (switch-2 default) */
 typedef char *(*GP_000578B4)();
 void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
     s32 sp1EC;
@@ -27500,7 +27527,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
     char * temp_v1_4;
     char * temp_v1_5;
     char * temp_v1_6;
-    volatile s32 sp34;
+    s32 sp34;
     char * temp_v1_7;
     char * temp_v1_8;
     volatile s32 hybrid_pad_2;
@@ -27896,7 +27923,7 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             FW(temp_t0_19, 0x4) = (s32) ((((((temp_v0_6 + (*(s16 *)((char *)arg1 + 0x22))) - temp_v0_6) - 1) << 2) & 0xFFF) | ((((((temp_a0_6 + (*(s16 *)((char *)arg1 + 0x20))) - temp_a0_6) - 1) << 2) & 0xFFF) << 0xC));
             return;
         default:                                    /* switch 1 */
-            gl_func_00034458((int *)0x219B8, temp_a1, sp1DC, arg0);
+            gl_func_00034458((int *)(gl_d_578b4_s1 + 0x219B8), temp_a1, sp1DC, arg0);
             return;
         }
     } else {
@@ -28342,10 +28369,12 @@ void gl_func_000578B4(char *arg0, char *arg1, s32 arg2) {
             temp_v0_4 = FW(FW(arg0, 0xC), 0x0) + (temp_a1 * 8);
             FW(temp_v0_4, 0x0) = 0xF2000000;
             FW(temp_v0_4, 0x4) = (s32) (((((FW(var_a2, 0xC) - 1) << 2) & 0xFFF) << 0xC) | (((FW(var_a2, 0x10) - 1) << 2) & 0xFFF) | ((FW(arg1, 0x3C) & 7) << 0x18));
-            /* fallthrough */
-        default:                                    /* switch 2 */
+            if (0) { gl_func_00034458((s32 *)&sp34); }
             sp34 = FW(arg1, 0x24);
-            gl_func_00034458((int *)0x219C4, FW(arg1, 0x24), (int *) var_a2, arg0);
+            gl_func_00034458((int *)(gl_d_578b4_s2a + 0x219C4), sp34, (int *) var_a2, arg0);
+            return;
+        default:                                    /* switch 2 */
+            gl_func_00034458((int *)(gl_d_578b4_s2b + 0x219C4), temp_a1, (int *) var_a2, arg0);
             return;
         }
     }

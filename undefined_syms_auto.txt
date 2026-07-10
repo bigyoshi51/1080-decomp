@@ -2839,3 +2839,6 @@ gl_ref_00002520 = 0x00002520;  /* cosf fu zero */
 D_00000000_qnanf = 0x00000000;  /* __libm_qnan_f (runtime reloc) */
 __ll_mul = 0x80002F78;
 __ull_div = 0x80002E78;
+gl_d_578b4_s1 = 0x00000000;   /* gl_func_000578B4: base-0 alias -- 0x219B8 addiu-form (&sym+N) const, switch-1 default call arg0 */
+gl_d_578b4_s2a = 0x00000000;  /* gl_func_000578B4: base-0 alias -- 0x219C4 addiu-form const, switch-2 falling-case call arg0 */
+gl_d_578b4_s2b = 0x00000000;  /* gl_func_000578B4: base-0 alias -- 0x219C4 addiu-form const, switch-2 default call arg0 (distinct sym per site: busts cross-site lui CSE) */
