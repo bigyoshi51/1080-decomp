@@ -1365,7 +1365,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000029F8);
  * RESIDUAL = pure register-allocation + instruction-scheduling cap (correct
  * logic, divergent IDO coloring/scheduling; target frame -200 vs minimal -168
  * implies extra named locals in original). Permuter not installed (multi-tick
- * infra). Class: documented 1080 regalloc cap. */
+ * infra). Class: documented 1080 regalloc cap.
+ * PASS-3 PROBES (2026-07-10, all fuzzy-negative, code reverted; keep for
+ * the next serious attempt):
+ *  - FRAME/SLOT MAP SOLVED: decl relayout `...sp98; volatile char pad94[4];
+ *    sp90; sp8C; volatile char pad84[8]; f32 sp74[4]; volatile char
+ *    pad28[0x14];` gives frame -200 EXACT and 16 named slots at exact
+ *    target offsets (sp74@0x74, sp98..A4, spB8@0xB8; census-verified).
+ *    But objdiff fuzzy DROPS 83.34->83.08 (sp-displacement fixes are
+ *    underweighted vs the coloring residual they expose) -- if the reg/
+ *    order residual is ever cracked, apply this relayout FIRST.
+ *  - build spills its cross-call webs to BOTTOM templocs 0x3C-0x44; the
+ *    target instead spills sp8C(x5)/sp90(x4) at their decl homes. volatile
+ *    (-0.36) and if(0)&-escape (-0.34) both force the homes but shred
+ *    load order/CSE globally = wrong mechanism. Open: the entry-19
+ *    "volatile-slot arg-fold" def-in-call-arg form was not tried on the
+ *    sp8C=var_v0 def (needs restructure of the var_v0/var_t0 if-chain).
+ *  - target stores spA8[0..3] THROUGH the materialized call-arg reg
+ *    (sw 0/4/8/12(a2), a2=addiu sp,0xA8 hoisted early) = unrolled-loop
+ *    or held-pointer shape; UNREACHABLE from: direct array stores, held
+ *    `s32 *pa8` (copy-prop folds), for-loop 0..3 (unroller folds IXA back
+ *    to sp-direct), while(0) phantom-def fold-bar. sp-array pointer
+ *    stores resist every known fold-bar; likely needs the address to
+ *    come from a NON-sp web (e.g. arg-fold via callee?). ~4 operand
+ *    words + a2-schedule shift if cracked. */
 void gl_func_00002B94(char *arg0) {
     f32 spB8[4];
     s32 spA8[4];
