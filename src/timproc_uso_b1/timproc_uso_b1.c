@@ -250,32 +250,20 @@ void timproc_uso_b1_func_0000090C(Vec3 *dst) {
 }
 
 #ifdef NON_MATCHING
-/* timproc_uso_b1_func_0000097C — 232-insn manager get-or-create + register.
- * This is a SIBLING of timproc_uso_b3_func_00000994 (same constructor in a
- * different USO; sub-node alloc is 0xE0 here vs 0xDC there, else near-identical).
+/* timproc_uso_b1_func_0000097C: 230-insn constructor, near-twin of
+ * timproc_uso_b3_func_00000994 (3 words differ: `return 0` on self-alloc
+ * fail (994 returns a0) -> `or v0,zero` + shared-epilogue lw ra; sub-node
+ * alloc 0xE0 vs 0xDC).
  *
- * FRAME PARTIAL-FIX DOESN'T MOVE THE METRIC (2026-06-01): removing 3 dead locals
- * shrank the build frame -0x48 -> -0x40 with ZERO fuzzy change (59.71552 both).
- * NOT because sp-offsets are unscored (they ARE — cf. 8A40's scored addiu-sp
- * diff) but because -0x40 is STILL != target -0x38, so the prologue/arg-home/
- * spill insns stay diffs either way. To move the metric the frame must hit -0x38
- * EXACTLY, which needs the cascade to use one fewer spill slot (target 4 work
- * slots, build 5). That extra slot is a register-allocation artifact of the 4
- * simultaneously-live cascade pointers (self/n1/n2/n3); reducing it needs the
- * regalloc dump (-Wo,-zdbug:6) or a per-fn structure change, not dead-local
- * removal. Dead locals removed for hygiene anyway. The family's 60-74% residual
- * is this slot-count + register-renumber, the documented hard cap.
- * 2026-06-01 (31.97 -> 59.71): ported 994's corrected structure block-by-block
- * (build-gated each step per docs/MATCHING_WORKFLOW.md incremental method):
- *   cascade  37.43 (5-stage goto-chain + distinct externs D_b1_097C_v0..3)
- *   field    42.84 (gl(self,a1,&D+0x3c0,a2); self->0x528=a3; gl(self); 0x72c=0)
- *   vtable   47.40 (sub->0x28=v4; D[0x138]=sub; sub->0xb4 cond; jalr dispatch;
- *                   gl(self+0x10,sub); beql sub->0x14 dance)
- *   regcond  59.71 (reg loop wrapped in `if((self->0x4f0<<15)<0)` + preamble +
- *                   post-loop beql dance)
- * TBD (same as 994): the MERGE TAIL (self->0x4f4=arg1&0xffff; node=D[0x190]; ...)
- * regresses when added — frame -0x40 vs target -0x38 (extra cascade spill slot).
- * See timproc_uso_b3_func_00000994's note for the full blocker analysis. */
+ * 2026-07-10: 59.7% -> 225/230 words (97.8%) by porting 994's final
+ * two-s-reg-kit body verbatim (see 994's comment for the full lever list:
+ * arg0-as-self s0, cascade a2/v1/a0 homes 64/60/56, invisible-4th-arg &D
+ * a3 precolor in the six-call block, volatile-nd arg-fold + nd2 4th-arg,
+ * vt preload for the delay-slot volatile store, decl-order hole map).
+ * RESIDUAL (5 words): the same 3 as1/ugen pair-order picks as 994
+ * ([or s0,a0] vs [sw a3,84]; [addiu a0,s0,16] vs [lw a1,1704]; tail
+ * hi-temp lui a1 vs a3) — allocator-internal cap class. Default build
+ * INCLUDE_ASM. */
 extern int gl_func_00000000();
 extern char D_b1_097C_v0;
 extern char D_b1_097C_v1;
@@ -283,100 +271,105 @@ extern char D_b1_097C_v2;
 extern char D_b1_097C_v3;
 extern char D_b1_097C_v4;
 int timproc_uso_b1_func_0000097C(int *a0, int a1, int a2, int a3) {
-    int *s0 = a0;
-    int *n1, *n2, *n3;
-    int *h;
+    int *sub;             /* v0-colored node temps (phantom 68) */
+    int *n1;              /* cascade 1: colors a2, home 64 */
+    int *n2;              /* cascade 2: colors v1, home 60 */
+    int *n3;              /* cascade 3: colors a0, home 56 */
+    int *vt;              /* vtable temp: colors a1 (phantom 52) */
+    int *nd2;             /* reload of nd: a3 via 4th-arg precolor (phantom 48) */
+    int * volatile nd;    /* tail node: home 44, spilled from a1 in delay */
+    volatile int padA;    /* 40 hole */
+    int * volatile slot;  /* home 36 */
+    volatile int padB;    /* 32 hole */
 
-    /* 5-stage get-or-create cascade (ported from sibling timproc_uso_b3_func_
-     * 00000994): alloc self(0x730)/n1(0x6a8)/n2(0x50)/n3(0x2c); dead stage-guards
-     * via goto-chain; each node->0x28 = vtable via DISTINCT extern (CSE-bust). */
     if (a0 == 0) {
-        s0 = (int *)gl_func_00000000(0x730);
-        if (s0 == 0) return 0;
+        a0 = (int *)gl_func_00000000(0x730);
+        if (a0 == 0) return 0;
     }
-    n1 = s0;
-    if (s0 == 0) { n1 = (int *)gl_func_00000000(0x6A8); if (n1 == 0) goto S_self; }
+    n1 = a0;
+    if (n1 == 0) {
+        n1 = (int *)gl_func_00000000(0x6A8);
+        if (n1 == 0) goto after_n1;
+    }
     n2 = n1;
-    if (n1 == 0) { n2 = (int *)gl_func_00000000(0x50); if (n2 == 0) goto S_n1; }
+    if (n2 == 0) {
+        n2 = (int *)gl_func_00000000(0x50);
+        if (n2 == 0) goto after_n2;
+    }
     n3 = n2;
-    if (n2 == 0) { n3 = (int *)gl_func_00000000(0x2C); if (n3 == 0) goto S_n2; }
+    if (n3 == 0) {
+        n3 = (int *)gl_func_00000000(0x2C);
+        if (n3 == 0) goto after_n3;
+    }
     gl_func_00000000(n3, (char *)&D_00000000 + 0x3B8);
     n3[0x28 / 4] = (int)&D_b1_097C_v0;
-S_n2:
+after_n3:
     n2[0x28 / 4] = (int)&D_b1_097C_v1;
-S_n1:
+after_n2:
     n1[0x28 / 4] = (int)&D_b1_097C_v2;
     gl_func_00000000((char *)n1 + 0x50);
-S_self:
-    s0[0x28 / 4] = (int)&D_b1_097C_v3;
-    s0[0x568 / 4] = 0;
-    gl_func_00000000(s0, a1, (char *)&D_00000000 + 0x3C0, a2);
-    s0[0x528 / 4] = a3;
-    gl_func_00000000(s0);
-    *(float *)&s0[0x72C / 4] = 0.0f;
+after_n1:
+    a0[0x28 / 4] = (int)&D_b1_097C_v3;
+    a0[0x568 / 4] = 0;
+    gl_func_00000000(a0, a1, (char *)&D_00000000 + 0x3C0, a2);
+    a0[0x528 / 4] = a3;
+    gl_func_00000000(a0);
+    *(float *)&a0[0x72C / 4] = 0.0f;
     gl_func_00000000((char *)&D_00000000 + 0x3D0, 0);
     gl_func_00000000(&D_00000000, 0);
-
-    h = (int *)gl_func_00000000(0xE0);
-    if (h != 0) {
-        h[0x28 / 4] = (int)&D_b1_097C_v4;
+    sub = (int *)gl_func_00000000(0xE0);
+    if (sub != 0) {
+        sub[0x28 / 4] = (int)&D_b1_097C_v4;
     }
-    s0[0x6A8 / 4] = (int)h;
-    *(int **)((char *)&D_00000000 + 0x138) = h;
-
-    /* vtable-dispatch block — target RE-READS self->0x6a8 (not the local h)
-     * for both the gl() base and the virtual-call base (asm a50/a54 lw 1704(s0)). */
-    if ((s0[0x4F0 / 4] << 15) >= 0) {
-        h[0xB4 / 4] = 0;
+    a0[0x6A8 / 4] = (int)sub;
+    *(int **)((char *)&D_00000000 + 0x138) = sub;
+    if ((a0[0x4F0 / 4] << 15) >= 0) {
+        sub[0xB4 / 4] = 0;
     } else {
-        h[0xB4 / 4] = 11;
+        sub[0xB4 / 4] = 11;
     }
-    gl_func_00000000(s0[0x6A8 / 4], s0, s0[0x568 / 4], s0[0x528 / 4]);
-    {
-        int *vt = (int *)((int *)s0[0x6A8 / 4])[0x28 / 4];
-        ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + s0[0x6A8 / 4]);
+    gl_func_00000000(a0[0x6A8 / 4], a0, a0[0x568 / 4], a0[0x528 / 4]);
+    vt = (int *)((int *)a0[0x6A8 / 4])[0x28 / 4];
+    ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + a0[0x6A8 / 4]);
+    vt = (int *)a0[0x6A8 / 4];
+    gl_func_00000000(slot = (int *)((char *)a0 + 0x10), vt);
+    if (((int *)a0[0x6A8 / 4])[0x14 / 4] != 0) {
+        ((int *)a0[0x6A8 / 4])[0x4 / 4] = 1;
     }
-    gl_func_00000000((char *)s0 + 0x10, s0[0x6A8 / 4]);
-    if (((int *)s0[0x6A8 / 4])[0x14 / 4] != 0) {
-        ((int *)s0[0x6A8 / 4])[0x4 / 4] = 1;
-    }
-    ((int *)s0[0x6A8 / 4])[0x14 / 4] = (int)s0;
+    ((int *)a0[0x6A8 / 4])[0x14 / 4] = (int)a0;
 
-    /* registration block (only when self->0x4f0 bit16 set) */
-    if ((s0[0x4F0 / 4] << 15) < 0) {
-        s0[0x48 / 4] = (int)gl_func_00000000(0);
-        gl_func_00000000(s0[0x48 / 4], s0);
-        *(int *)((char *)s0[0x48 / 4] + 0x30) = s0[0x568 / 4];
-        gl_func_00000000(s0[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
-        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
-        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
-        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
-        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
-        gl_func_00000000(s0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
-        gl_func_00000000(s0[0x48 / 4]);
-        gl_func_00000000((char *)s0 + 0x10, s0[0x48 / 4]);
-        if (*(int *)((char *)s0[0x48 / 4] + 0x14) != 0) {
-            *(int *)((char *)s0[0x48 / 4] + 0x4) = 1;
+    if ((a0[0x4F0 / 4] << 15) < 0) {
+        sub = (int *)gl_func_00000000(0);
+        a0[0x48 / 4] = (int)sub;
+        gl_func_00000000(sub, a0);
+        *(int *)((char *)a0[0x48 / 4] + 0x30) = a0[0x568 / 4];
+        gl_func_00000000(a0[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4]);
+        gl_func_00000000(slot, a0[0x48 / 4]);
+        if (((int *)a0[0x48 / 4])[0x14 / 4] != 0) {
+            ((int *)a0[0x48 / 4])[0x4 / 4] = 1;
         }
-        *(int *)((char *)s0[0x48 / 4] + 0x14) = (int)s0;
+        ((int *)a0[0x48 / 4])[0x14 / 4] = (int)a0;
     } else {
-        s0[0x4F4 / 4] = a1 & 0xFFFF;
-        s0[0x48 / 4] = 0;
+        a0[0x4F4 / 4] = a1 & 0xFFFF;
+        a0[0x48 / 4] = 0;
     }
 
-    /* merge tail (asm c0c-c54): node = D[0x190]; register it onto self+0x10. */
-    {
-        int *node = *(int **)((char *)&D_00000000 + 0x190);
-        gl_func_00000000((char *)s0 + 0x10, node);
-        if (node[0x14 / 4] != 0) {
-            node[0x4 / 4] = 1;
-        }
-        node[0x14 / 4] = (int)s0;
-        gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0);
-        gl_func_00000000();
+    gl_func_00000000(slot, nd = *(int **)((char *)&D_00000000 + 0x190));
+    nd2 = nd;
+    if (nd2[0x14 / 4] != 0) {
+        nd2[0x4 / 4] = 1;
     }
-
-    return (int)s0;
+    nd2[0x14 / 4] = (int)a0;
+    gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0, nd2);
+    gl_func_00000000();
+done:
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_0000097C);
