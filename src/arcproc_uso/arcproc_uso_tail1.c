@@ -918,18 +918,30 @@ void arcproc_uso_func_00001228(int *a0) {
  * branch-likely). Same cocktail as arcproc_uso_func_000014C8. Also read the
  * 0x6E4-field before 0x6FC in the first `sum` to match the add operand order.
  *
- * RESIDUAL (~20%, coloring + frame cap, still NM): +7 insns vs target (147 vs
- * 140). (1) FRAME 0x70 vs 0x50: target reserves an extra 0x20 placing ones[4]
- * at sp+0x50 and spilling `span` at sp+0x48 / a0 at sp+0x20; mine packs ones at
- * sp+0x40. (2) FP COLORING: target materializes the 1.0f in $f0 (cascading
- * $f0/$f8/$f16/$f4 through the FP chain); mine uses $f2 ($f2/$f10/$f18). Decl-
- * order permute of ones/progress does not flip it. (3) SPAN-SPILL: target
- * computes `span = 160 - half` once (`subu t6,t5,t4`) and spills span@sp+0x48;
- * mine spills `half` and recomputes span (2x subu) in each tail arm. (4) the
- * else-arm progress reload reads $s0 in target vs $a0 in mine. All four are
- * whole-function regalloc/frame divergences (permuter can't bridge a frame-size
- * delta), not logic bugs -- logic verified insn-for-insn against expected/.o.
- * Default INCLUDE_ASM build remains ROM-exact. */
+ * 2026-07-10 (80.42 -> 90.01): three FP-scheduling/regalloc levers landed the
+ * whole FP chain byte-for-byte.
+ *   (A) FP-const $f0 reuse: moved the `progress = *(a0+0x77C)` load INSIDE each
+ *       int-branch arm (was hoisted before the `>= 11` compare). Delaying it past
+ *       the branch lets the dead 1.0f ones-const stay in $f0 and be re-used for
+ *       progress -- flips the entire cascade from $f2/$f10/$f18 to the target's
+ *       $f0/$f8/$f16/$f18.
+ *   (B) fresh-temp arith: store `progress + D34` / `progress - D38` DIRECTLY to
+ *       memory instead of `progress += D34; store progress;`. The reassign form
+ *       coalesced the add result back into $f0; the direct-store form emits the
+ *       add into a fresh $f8/$f18 like the target.
+ *   (C) SPAN-SPILL crack: compute `span = 0xA0 - (sum>>1)` DIRECTLY inside each
+ *       sum-sign branch (drop the intermediate `half` local). With no live `half`
+ *       to rematerialize from, IDO spills span (not half) and stops recomputing
+ *       `160 - half` (2x subu) in every tail arm -- exactly the target shape.
+ *
+ * RESIDUAL (~10%, frame + schedule cap, still NM): +4 insns vs target (144 vs
+ * 140). (1) FRAME 0x70 vs 0x50: target reserves an extra 0x20 placing ones[4] at
+ * sp+0x50 and spilling span@sp+0x48 / a0@sp+0x20; mine packs ones at sp+0x40 --
+ * a whole-function stack-layout delta the permuter can't bridge (oversized-
+ * volatile-array trick already regressed, see 14C8 note). (2) 255.0-mul SCHEDULE:
+ * target finishes the sum/span block before materializing 255.0f; IDO here hoists
+ * the `lui 0x437f; mtc1` and interleaves the mul earlier (as1 adjacent-pair pick).
+ * Logic verified insn-for-insn vs expected/.o. Default INCLUDE_ASM stays ROM-exact. */
 #ifdef NON_MATCHING
 extern float D_arc125C_30, D_arc125C_34, D_arc125C_38;
 void arcproc_uso_func_0000125C(char *a0) {
@@ -938,7 +950,6 @@ void arcproc_uso_func_0000125C(char *a0) {
     int alpha;
     int span;
     int sum;
-    int half;
     int *seq;
 
     if ((*(int*)(a0 + 0x4F0) & 0x10000) == 0) {
@@ -950,15 +961,16 @@ void arcproc_uso_func_0000125C(char *a0) {
     ones[2] = 1.0f;
     ones[3] = 1.0f;
 
-    progress = *(float*)(a0 + 0x77C);
     if (*(int*)(a0 + 0x4E4) >= 11) {
+        progress = *(float*)(a0 + 0x77C);
         if (progress < D_arc125C_30) {
-            progress += D_arc125C_34;
-            *(float*)(a0 + 0x77C) = progress;
+            *(float*)(a0 + 0x77C) = progress + D_arc125C_34;
         }
-    } else if (progress > 0.0f) {
-        progress -= D_arc125C_38;
-        *(float*)(a0 + 0x77C) = progress;
+    } else {
+        progress = *(float*)(a0 + 0x77C);
+        if (progress > 0.0f) {
+            *(float*)(a0 + 0x77C) = progress - D_arc125C_38;
+        }
     }
 
     progress = *(float*)(a0 + 0x77C);
@@ -971,11 +983,10 @@ void arcproc_uso_func_0000125C(char *a0) {
     sum = *(short*)(*(char**)(a0 + 0x6E4) + 0x20) +
           *(short*)(*(char**)(a0 + 0x6FC) + 0x20) + 4;
     if (sum < 0) {
-        half = (sum + 1) >> 1;
+        span = 0xA0 - ((sum + 1) >> 1);
     } else {
-        half = sum >> 1;
+        span = 0xA0 - (sum >> 1);
     }
-    span = 0xA0 - half;
 
     alpha = (int)(255.0f * *(float*)(a0 + 0x77C));
     gl_func_00000000(&D_00000000, alpha, a0 + 0x260, a0 + 0x284);
