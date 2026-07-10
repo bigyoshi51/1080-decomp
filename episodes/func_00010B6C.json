@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00010B6C",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T06:43:27.948052+00:00",
+  "end_time": "2026-07-10T06:43:27.948071+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T06:43:27.948065+00:00",
+      "assistant_text": "Split out of -O2 -g3 tail3a into a new -O0 unit (tail3a TRUNCATE 0x14D8->0x848; 0x10C8C..0x116C7 INCLUDE_ASM remainder moved to tail3a_10C8C.c). Keys: struct MEMBER-ARRAY form for the call arg (&a0->recs[a0->count].sub) is load-bearing \u2014 it emits addu a0,<base>,<idx> (base-first) where every pointer-arithmetic/cast-array spelling emits idx-first; store addresses fold either way so only the address-as-value site distinguishes. Final count+=1 goes through a register pointer var (colors s0).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 72,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 sub-file covering bootup_uso offset 0x10B6C..0x10C8B (single function,\n * 72 insns, 0x120 bytes), split from the middle of bootup_uso_tail3a.c\n * (-O2 -g3) on 2026-07-10. tail3a TRUNCATE_TEXT reduced 0x14D8 -> 0x848;\n * the 0x10C8C..0x116C7 remainder moved to bootup_uso_tail3a_10C8C.c\n * (INCLUDE_ASM, still -O2 -g3) and 0x116C8 to bootup_uso_o0_116C8.c. */\n\nextern int func_00000000();\n\n/* func_00010B6C: record-append+init, the with-sub-object sibling of\n * func_00010AB0 (same 0x28-stride record array at +0x84, counter at +0x78).\n * MATCHED 2026-07-10 (72/72, zero diffs pre-link).\n * Key -O0 shapes: (1) STRUCT MEMBER-ARRAY form is load-bearing for the call\n * arg: `&a0->recs[a0->count].sub` emits `addu a0, <base>, <idx>` (base-first,\n * matching target 0x10C2C); every pointer-arithmetic / cast-array spelling\n * of the same address emits idx-first (addu a0, t7, t2) \u2014 probed 10 variants.\n * Store addresses fold either way (offset folded into sw), so only the\n * address-as-value site distinguishes the forms. (2) cfe DAG-share inside\n * the else-arm statement `recs[count].f8C = count` reuses the count load\n * for both index and stored value (sw t9 after t9-indexed addu). (3) the\n * final `count += 1` goes through a REGISTER pointer var (p = a0; p->count\n * += 1) \u2014 that is what colors s0 (lw s0, 0x28(sp)) and forces the s0\n * save/restore at 0x18(sp). */\ntypedef struct {\n    int f84;\n    int f88;   /* in-use flag */\n    int f8C;   /* link index */\n    int f90;\n    char sub[0x18]; /* sub-init region handed to func_00000000 */\n} Rec10B6C;\n\ntypedef struct {\n    char pad[0x78];\n    int count;\n    char pad2[0x8];\n    Rec10B6C recs[1];\n} Container10B6C;\n\nvoid func_00010B6C(Container10B6C *a0, void *a1, int a2, int a3) {\n    register Container10B6C *p;\n\n    a0->recs[a0->count].f88 = 1;\n    if (a2 != -1) {\n        a0->recs[a0->count].f8C = a2;\n    } else {\n        a0->recs[a0->count].f8C = a0->count;\n    }\n    a0->recs[a0->count].f84 = 0;\n    func_00000000(&a0->recs[a0->count].sub, a1);\n    a0->recs[a0->count].f90 = a3;\n    p = a0;\n    p->count += 1;\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_10B6C.c",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/bootup_uso/func_00010B6C.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0",
+    "verification": "72/72 word-exact, zero pre-link diffs + ROM byte-identical (new -O0 split unit)"
+  }
+}

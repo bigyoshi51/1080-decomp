@@ -121,7 +121,17 @@ build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0x58
 build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0x6C
 build/src/bootup_uso/bootup_uso_tail2.c.o build/non_matching/src/bootup_uso/bootup_uso_tail2.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
-build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x14D8
+# 2026-07-10: tail3a re-truncated 0x14D8 -> 0x848 after carving the 0x10B6C
+# -O0 island into bootup_uso_o0_10B6C.c; the 0x10C8C..0x116C7 INCLUDE_ASM
+# remainder moved to bootup_uso_tail3a_10C8C.c (-O2 -g3) and the 0x116C8 -O0
+# island into bootup_uso_o0_116C8.c.
+build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x848
+build/src/bootup_uso/bootup_uso_o0_10B6C.c.o: TRUNCATE_TEXT := 0x120
+build/src/bootup_uso/bootup_uso_o0_10B6C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_10B6C.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_tail3a_10C8C.c.o: TRUNCATE_TEXT := 0xA3C
+build/src/bootup_uso/bootup_uso_tail3a_10C8C.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a_10C8C.c.o: OPT_FLAGS := -O2 -g3
+build/src/bootup_uso/bootup_uso_o0_116C8.c.o: TRUNCATE_TEXT := 0x134
+build/src/bootup_uso/bootup_uso_o0_116C8.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_116C8.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_117FC.c.o: TRUNCATE_TEXT := 0xE8
 build/src/bootup_uso/bootup_uso_o0_117FC.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_117FC.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_tail3a.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a.c.o: OPT_FLAGS := -O2 -g3

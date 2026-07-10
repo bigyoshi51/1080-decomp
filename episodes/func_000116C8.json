@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000116C8",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T06:43:28.185950+00:00",
+  "end_time": "2026-07-10T06:43:28.185970+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T06:43:28.185964+00:00",
+      "assistant_text": "Second -O0 island carved from tail3a (TRUNCATE 0x134, sits in front of o0_117FC). Keys: direct global store D=0 emits at-fused single-lui sw; the 3-arg call needs DIRECT bare-symbol reads (new undefined_syms entries D_bu_116C8_34/_40) \u2014 *(int*)(&D+0x34) spelling lets cfe DAG-share &D across all three args and loses the per-arg lui pairs; both vtable dispatches embed the register-var assignment in the CALL ARG (DAG-shares &D between the p-load and the +&D addend, callee reuses p); fused-|| alloc guard on the register var (o0_117FC lever); frame -0x30/local@0x24 = two int locals with the live one declared second.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 77,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 sub-file covering bootup_uso offset 0x116C8..0x117FB (single function,\n * 77 insns, 0x134 bytes), split from the tail of bootup_uso_tail3a.c\n * (-O2 -g3) on 2026-07-10 (tail3a TRUNCATE_TEXT reduced alongside the\n * 0x10B6C carve; see bootup_uso_o0_10B6C.c header). Sits directly in front\n * of bootup_uso_o0_117FC.c. */\n\nextern int func_00000000();\nextern int D_00000000;\nextern char D_0000C624;\nextern char D_0000C65C;\nextern char D_0000C694;\n/* Two module-external word reads whose baked LO16 fields are 0x34 / 0x40\n * (splat mislabeled them func_00000008+0x2C / +0x38). Bare-symbol reads via\n * undefined_syms_auto.txt entries, same recipe as D_8AE4_mode (= 0x34). */\nextern int D_bu_116C8_34;\nextern int D_bu_116C8_40;\n\ntypedef int (*FN116C8)();\n\n/* func_000116C8: subsystem init/teardown orchestrator (structural decode\n * retained in bootup_uso_tail3a.c history).\n * MATCHED 2026-07-10 (77/77, only link-resolved reloc fields differ pre-link).\n * Key -O0 shapes: (1) `D_00000000 = 0;` as a DIRECT global store emits the\n * $at-fused single-lui form (lui at / sw zero, 0(at)); the `*(int*)&D` cast\n * spelling emits lui/addiu/sw through a temp (+1 word). (2) the 3-arg call's\n * a1/a2 must be DIRECT bare-symbol reads (D_bu_116C8_34/_40) \u2014 spelling them\n * as *(int*)(&D+0x34) lets cfe DAG-share &D across all three args (move\n * a0,t7 + folded lws), losing the per-arg lui pairs. (3) both vtable\n * dispatches embed the register-var assignment in the CALL ARG\n * (`*(short*)((p = *(char**)((char*)&D+0x28)) + 0x10) + (int)&D`): &D is\n * DAG-shared between the p-load (folded 0x28 offset) and the trailing\n * addend (addu a0, t7, t6), and the callee expression `*(FN)*(int*)(p+0x14)`\n * reuses p; embedding the assignment in the CALLEE instead evaluates the\n * arg off the stale p first (wrong order). (4) the alloc guard is the\n * fused-|| form on the register var: `p = &local; if (p != 0 || (p =\n * alloc(0xC)) != 0) p->f0 = 8;` (same lever as o0_117FC). (5) frame -0x30 /\n * local at sp+0x24 needs TWO int locals with `local` declared SECOND\n * (first-declared sits at 0x28, unused). */\nvoid func_000116C8(void) {\n    register char *p;\n    int pad;\n    int local;\n\n    func_00000000(&D_00000000);\n    func_00000000(&D_00000000);\n    D_00000000 = 0;\n    func_00000000(1);\n    func_00000000(&D_0000C624);\n    func_00000000(&D_00000000);\n    func_00000000();\n    func_00000000(&D_0000C65C);\n    func_00000000(&D_00000000, D_bu_116C8_34, D_bu_116C8_40);\n    (*(FN116C8)*(int *)(p + 0x14))(\n        *(short *)((p = *(char **)((char *)&D_00000000 + 0x28)) + 0x10) + (int)&D_00000000);\n    p = (char *)&local;\n    if (p != 0 || (p = (char *)func_00000000(0xC)) != 0) {\n        *(int *)p = 8;\n    }\n    (*(FN116C8)*(int *)(p + 0x34))(\n        *(short *)((p = *(char **)((char *)&D_00000000 + 0x28)) + 0x30) + (int)&D_00000000,\n        &local);\n    func_00000000(&D_0000C694);\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_116C8.c",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/bootup_uso/func_000116C8.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0",
+    "verification": "77/77 word-exact (only link-resolved reloc fields differ pre-link) + ROM byte-identical (new -O0 split unit)"
+  }
+}
