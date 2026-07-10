@@ -760,6 +760,30 @@ void titproc_uso_func_0000101C(int *a0) {
  *    writing `state+1` as the literal `1`, dropped the frame 0x30->0x20
  *    (target) and removed the arg/v0 stack spill across the dispatch.
  *    84.87 -> 86.35. That is the realizable win; the head cap stands.
+ *  - PASS-11 2026-07-10 (agent-h) 86.35 -> 93.46, 284/290 words: the head
+ *    cap's CASCADE is neutralized by adding `case 4: break;` -- 5 labels
+ *    crosses IDO's jumptable threshold, emitting sltiu at,t6,5 + LOCAL
+ *    .rodata jumptable whose %lo happens to also be 0x30. Only 2 head
+ *    words differ (sltiu imm 5-vs-4 and the guard beq offset); crucially
+ *    the jumptable form consumes t6 exactly like the target, RE-SYNCING
+ *    the whole-body ugen temp ring that the compare-chain fallback had
+ *    shifted -1 (that desync was most of the old 14-word deficit). The
+ *    added case is semantically identical (state 4 exits either way).
+ *    Body levers on top: per-site vtN = *(char **)(v1+0x28) locals with
+ *    the ptr-add arg form (*(void (**)(int))(vtN+0x5C))((int)(v1+lh)) --
+ *    a SHARED vt var colors a1 with copies, per-site vars color v0 like
+ *    the target block temps, and the synced ring gives callee-first
+ *    scheduling with the addu in the jalr delay; compound RMW forms for
+ *    the 0x3C decrements and case-0's state store (which is `+= 1`, not
+ *    `= 1`); fire-block D->0x34=1 store BEFORE the gl() call (store
+ *    lands in the jal delay); (n*16-n)*2 spelled with direct derefs (no
+ *    n local); D->0x84 published from a fresh *(s0+0x5C) re-deref.
+ *    RESIDUALS (~10 words): const-40 web colors a1 vs target v0 (same
+ *    two-web cupcosts class as the 1F14 const-2/a3 cap); case-3
+ *    else-arm &D_00000000 materialization + 720 const are como-hoisted
+ *    above the counter if/else (1C68 arm-1 class); case-2's vt site
+ *    still a1; assorted adjacent-pair picks. All allocator/
+ *    scheduler-internal; body logic verified complete.
  *  - PASS-4 RECON 2026-06-10: the NM emit is 0x414 vs target 0x488 =
  *    29 insns SHORT; the gap is distributed (position diff useless at
  *    this delta -- next pass needs a mnemonic-level side-by-side to
@@ -775,24 +799,31 @@ void titproc_uso_func_0000101C(int *a0) {
  * 1 already-planned big decode = this). */
 void titproc_uso_func_0000116C(char *s0) {
     char *v1, *vt;
+    char *d3;
+    char *vt2;
+    char *vt3;
+    char *vt4;
+    char *vt5;
+    char *vt6;
+    char *vt7;
+    char *vt8;
+    void (*fn)(int);
     int n, t, v;
 
     switch (*(int *)(s0 + 0x40)) {
     case 0: {
-        t = *(int *)(s0 + 0x3C) - 1;
-        *(int *)(s0 + 0x3C) = t;
-        if (t >= 0) {
+        *(int *)(s0 + 0x3C) = *(int *)(s0 + 0x3C) - 1;
+        if (*(int *)(s0 + 0x3C) >= 0) {
             if (gl_func_00000000((char *)&D_00000000, 0x40300) == 0) {
                 return;
             }
         }
         v1 = *(char **)(s0 + 0x58);
         vt = *(char **)(v1 + 0x28);
-        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+        (*(void (**)(int))(vt + 0x5C))((int)(v1 + *(short *)(vt + 0x58)));
         gl_func_00000000(*(int *)(s0 + 0x58));
-        n = *(int *)(s0 + 0x70);
-        *(int *)(s0 + 0x40) = 1;
-        *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+        *(int *)(s0 + 0x40) = *(int *)(s0 + 0x40) + 1;
+        *(int *)(s0 + 0x3C) = (*(int *)(s0 + 0x70) * 16 - *(int *)(s0 + 0x70)) * 2;
         *(int *)(s0 + 0x68) = 40;
         gl_func_00000000(13);
         break;
@@ -805,17 +836,16 @@ void titproc_uso_func_0000116C(char *s0) {
          * t==0 path and the p-chain-nonzero path. */
         v = *(int *)(s0 + 0x68);
         if (v != 0) {
+            *(int *)(s0 + 0x68) = v - 1;
             v = v - 1;
-            *(int *)(s0 + 0x68) = v;
         }
         if (v == 0) {
             v1 = *(char **)(s0 + 0x54);
-            vt = *(char **)(v1 + 0x28);
-            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+            vt2 = *(char **)(v1 + 0x28);
+            (*(void (**)(int))(vt2 + 0x5C))((int)(v1 + *(short *)(vt2 + 0x58)));
         }
-        t = *(int *)(s0 + 0x3C) - 1;
-        *(int *)(s0 + 0x3C) = t;
-        if (t == 0) goto fire;
+        *(int *)(s0 + 0x3C) = *(int *)(s0 + 0x3C) - 1;
+        if (*(int *)(s0 + 0x3C) == 0) goto fire;
         if (*(int *)(*(char **)(*(char **)(s0 + 0x50) + 0x44) + 0x34) != 0) {
 fire:
             *(int *)((char *)&D_00000000 + 0x34) = 1;
@@ -833,17 +863,16 @@ fire:
         gl_func_00000000(*(int *)(s0 + 0x54));
         if (*(unsigned short *)(*(char **)((char *)&D_00000000 + 0x154) + 4) & 8) {
             v1 = *(char **)(s0 + 0x60);
-            vt = *(char **)(v1 + 0x28);
-            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+            vt3 = *(char **)(v1 + 0x28);
+            (*(void (**)(int))(vt3 + 0x5C))((int)(v1 + *(short *)(vt3 + 0x58)));
             *(int *)(s0 + 0x40) = 2;
             gl_func_00000000(144);
         } else {
             v1 = *(char **)(s0 + 0x5C);
-            vt = *(char **)(v1 + 0x28);
-            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
-            n = *(int *)(s0 + 0x74);
+            vt4 = *(char **)(v1 + 0x28);
+            (*(void (**)(int))(vt4 + 0x5C))((int)(v1 + *(short *)(vt4 + 0x58)));
             *(int *)(s0 + 0x40) = 3;
-            *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+            *(int *)(s0 + 0x3C) = (*(int *)(s0 + 0x74) * 16 - *(int *)(s0 + 0x74)) * 2;
             gl_func_00000000(144);
         }
         break;
@@ -857,11 +886,10 @@ fire:
             *(unsigned short *)(reg + 4) = *(unsigned short *)(reg + 4) & 0xFFF7;
             gl_func_00000000(*(int *)(s0 + 0x60));
             v1 = *(char **)(s0 + 0x5C);
-            vt = *(char **)(v1 + 0x28);
-            ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
-            n = *(int *)(s0 + 0x74);
+            vt5 = *(char **)(v1 + 0x28);
+            (*(void (**)(int))(vt5 + 0x5C))((int)(v1 + *(short *)(vt5 + 0x58)));
             *(int *)(s0 + 0x40) = 3;
-            *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+            *(int *)(s0 + 0x3C) = (*(int *)(s0 + 0x74) * 16 - *(int *)(s0 + 0x74)) * 2;
         }
         break;
     }
@@ -872,8 +900,8 @@ fire:
         int *c;
         t = *(int *)(s0 + 0x3C);
         if (t == 0) {
-            v = gl_func_00000000();
             *(int *)((char *)&D_00000000 + 0x34) = 1;
+            v = gl_func_00000000();
             gl_func_00000000(s0, v, 0);
         }
         if (*(int *)(*(char **)(*(char **)(s0 + 0x50) + 0x44) + 0x34) != 0) {
@@ -884,9 +912,9 @@ fire:
                     *(int *)(*(char **)(s0 + 0x64) + 0x3C) = 720;
                 }
             } else {
-                v1 = (char *)&D_00000000;
-                vt = *(char **)(v1 + 0x28);
-                ((void (*)(int))(*(int *)(vt + 0x64)))(*(short *)(vt + 0x60) + (int)v1);
+                d3 = (char *)&D_00000000;
+                vt6 = *(char **)(d3 + 0x28);
+                (*(void (**)(int))(vt6 + 0x64))((int)(d3 + *(short *)(vt6 + 0x60)));
             }
         } else {
             int av;
@@ -905,16 +933,15 @@ fire:
             if (av == 0) {
                 if (gl_func_00000000((char *)&D_00000000, 512) != 0) {
                     v1 = *(char **)(s0 + 0x58);
-                    vt = *(char **)(v1 + 0x28);
-                    ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+                    vt7 = *(char **)(v1 + 0x28);
+                    (*(void (**)(int))(vt7 + 0x5C))((int)(v1 + *(short *)(vt7 + 0x58)));
                     gl_func_00000000(*(int *)(s0 + 0x58));
                     v1 = *(char **)(s0 + 0x54);
-                    vt = *(char **)(v1 + 0x28);
-                    ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v1);
+                    vt8 = *(char **)(v1 + 0x28);
+                    (*(void (**)(int))(vt8 + 0x5C))((int)(v1 + *(short *)(vt8 + 0x58)));
                     gl_func_00000000(*(int *)(s0 + 0x5C));
-                    n = *(int *)(s0 + 0x70);
                     *(int *)(s0 + 0x40) = 1;
-                    *(int *)(s0 + 0x3C) = (n * 16 - n) * 2;
+                    *(int *)(s0 + 0x3C) = (*(int *)(s0 + 0x70) * 16 - *(int *)(s0 + 0x70)) * 2;
                     gl_func_00000000(2050);
                     /* 2026-06-10 pass 3: the 0x40100 gate + 40-byte-record
                      * fn-ptr table call (entry field 0x90 = callback;
@@ -926,7 +953,7 @@ fire:
                         n = *(int *)(v1 + 0x7C);
                         if (*(int *)(v1 + n * 40 + 0x90) != 0) {
                             *(char **)((char *)&D_00000000 + 0xA8) = s0;
-                            *(int *)((char *)&D_00000000 + 0x84) = *(int *)(v1 + 0x7C);
+                            *(int *)((char *)&D_00000000 + 0x84) = *(int *)(*(char **)(s0 + 0x5C) + 0x7C);
                             v1 = *(char **)(s0 + 0x5C);
                             ((void (*)(void))(*(int *)(v1 + *(int *)(v1 + 0x7C) * 40 + 0x90)))();
                         }
@@ -936,6 +963,8 @@ fire:
         }
         break;
     }
+    case 4:
+        break;
     }
 }
 #else
