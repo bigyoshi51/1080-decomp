@@ -44,7 +44,35 @@ void func_00011DF8(void) {
  * ONE `move v0,zero` return-0 reached by all early exits + computes the value
  * returns directly in v0; multi-return-no-var duplicates return-0, result-var
  * spills to stack, goto-form 62w — none exact yet). Same recipe applies to the
- * mirror siblings func_00011ED4 / func_00011FA8 (all 6.6%, identical shape). */
+ * mirror siblings func_00011ED4 / func_00011FA8 (all 6.6%, identical shape).
+ *
+ * 2026-07-10 CRACKED TO THE DOUBLE-B CAP (w50 -O0 island sweep): with
+ *   int f(register int *a0, register int a1) { int i; register int *p;
+ *     if (a0[0x18C/4] == 0) {
+ *       if (a0[0x128/4] == -1) {
+ *         i = 0;
+ *         if (a0[0x120/4] > 0) do {
+ *           p = (int*)a0[0xE0/4 + i];
+ *           if (p[0x18/4] & a1) return 1 << i;
+ *         } while (++i < a0[0x120/4]);
+ *         goto ret0;
+ *       }
+ *       p = (int*)a0[0xE0/4 + a0[0x128/4]];
+ *       if (p[0x18/4] & a1) return 1 << a0[0x128/4];
+ *     }
+ *   ret0: return 0; }
+ * every word 0x00..0xC4 is byte-exact (register params = unhomed a0/a1;
+ * leaf register local p colors $a2 = the target's lw $a2 slot loads; outer
+ * ==0 nest makes the first guard bnez straight to ret0; NO-else fallthrough
+ * check arm kills the then-skip b; goto ret0 = the single b to the shared
+ * return-0). Residual = ONE dead `b epi; nop` between ret0's b and the
+ * epilogue (6 branch-offset diffs downstream of the +2 words): the fn ends
+ * with a value return inside a frame, i.e. the documented -O0 return-value
+ * DEAD-DOUBLE-B toolchain gap (func_00011B5C / FC28 / FD4C family; see
+ * docs/IDO_CODEGEN.md -O0 island kit II). Dead-label / dead-while tails
+ * don't suppress it; the dead b sits BEFORE the epilogue so file-terminal
+ * TRUNCATE can't clip it either. Genuine cap — stays NM at 53-target-word
+ * shape vs our 55w emit. */
 int func_00011E00(int *a0, int a1) {
     int idx;
     int i;
