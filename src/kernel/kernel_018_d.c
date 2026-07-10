@@ -106,62 +106,51 @@ extern OSEventState __osEventStateTab[];
  * misaligned three-way control flow + stack-resident n/addr), not opt
  * level. Improving it needs a structural C rewrite to mirror the target's
  * exact basic-block layout — not an opt-flag or file-split. */
-#ifdef NON_MATCHING
 extern void func_80006AEC(void *dst, void *src, int n);
 extern void func_80005584(int word);
 extern void func_80008FB0(void *src, void *dst);
 extern void func_80005534(void);
 /* rmon word-streamer: write len bytes (word at a time) via func_80005584,
- * routing SP-range addresses through func_80008FB0. 2026-06-04 (49.6->84.0%,
- * -O1): two structural fixes — (1) the aligned path must be the if-BODY
- * (`if (!(addr&3))`) so IDO inlines it and emits `bnez addr&3 -> unaligned`
- * matching the target's arm order (+24pp); (2) the SP-range test needs BOTH
- * bounds `0x04000000 <= addr < 0x05000000` (the upper `lui 0x500; sltu` is
- * real).
- * 2026-06-23 (84.0->92.3%, 6/78 diffs left): frame size CRACKED to -0x38
- * (was -0x30). Three structural fixes: (1) decl order `p, n, tmp, tmp2`
- * gives the target's high->low slot numbering addr@52/n@48/tmp@44/tmp2@40
- * (IDO -O1 assigns slots in decl order, high addr first); (2) a separate
- * cursor `p` (copy of addr) keeps the arg-home slots @56/@60 distinct from
- * the loop-resident addr@52 (the +8 the old -O0 frame was missing); (3) two
- * distinct tmps (one per aligned/unaligned loop) force the target's two
- * scratch slots @44/@40; (4) the `p += 4; func(p - 4, ...)` form hoists the
- * pointer increment ABOVE the calls so addr is not reloaded post-call
- * (natural `func(p); p += 4` reloads, +2 insns, 59 diffs). Verified the
- * `p - 4` form against every structural alternative (load-first, temp-ptr,
- * do-while) — all strictly worse. Residual 6 = pure -O1 regalloc/sched ties
- * NO C shape resolves: cart `move a0,t2`(keep old-p) vs my `addiu a0,t3,-4`
- * (recompute); else `lw a0,0(t4)` vs `lw a0,-4(t5)` (pre/post-incr base);
- * and the unaligned loop-bottom delay-slot store-order tie (sw addr vs sw n).
- * Permuter (2 runs, tuned weights, 1500s) did not flip them. Coloring cap. */
+ * routing SP-range addresses through func_80008FB0. MATCHED 2026-07-10
+ * (92.3% -> 72/72 exact): the "Residual 6 = pure -O1 regalloc/sched ties NO
+ * C shape resolves" verdict was a 7.1-only property — 4th member of the
+ * IDO 5.3-vs-7.1 temp-rematerialization class (7564/8264/87B4). Exact body
+ * lives in kernel_018_d_ido53_70A0.c, compiled IDO 5.3 -O1 and spliced in
+ * via REPLACE_FUNC_BODY; key lever = `int *p` + post-increment at the use
+ * site (`func(p++)`, `*p++`), which 5.3 materializes through the old value
+ * (`move a0,t2` keep-old-p / `lw a0,0(t4)` old-base) while 7.1 folds -4 in
+ * place from any C shape. The unaligned-loop delay-slot store-order tie
+ * resolved with it (same coloring cascade). This 7.1-compiled body below is
+ * a placeholder slot for the splice (structure kept for readability).
+ * --- HISTORY ---
+ * 2026-06-04 (49.6->84.0%): aligned path as if-BODY; both SP-range bounds.
+ * 2026-06-23 (84.0->92.3%): frame -0x38 via decl order p/n/tmp/tmp2 +
+ * separate cursor p + two distinct tmps + `p += 4; func(p - 4)` hoist.
+ * NEGATIVE at 5.3: explicit `char *oldp = p; p += 4;` homes oldp (+4 insns,
+ * frame 0x40) — only the post-increment expression temp stays register-only. */
 void func_800070A0(char *addr, int len) {
-    char *p = addr;
+    int *p = (int *)addr;
     unsigned int n = ((unsigned int)len + 3) >> 2;
     int tmp;
     int tmp2;
     if (!((unsigned int)addr & 3)) {
         while (n--) {
             if ((unsigned int)p >= 0x04000000U && (unsigned int)p < 0x05000000U) {
-                p += 4;
-                func_80008FB0(p - 4, &tmp);
+                func_80008FB0(p++, &tmp);
                 func_80005584(tmp);
             } else {
-                p += 4;
-                func_80005584(*(int*)(p - 4));
+                func_80005584(*p++);
             }
         }
     } else {
         while (n--) {
             func_80006AEC(&tmp2, p, 4);
             func_80005584(tmp2);
-            p += 4;
+            p++;
         }
     }
     func_80005534();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800070A0);
-#endif
 
 extern void func_800082EC(void);
 extern void func_80008E08(void);
