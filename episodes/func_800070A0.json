@@ -1,0 +1,33 @@
+{
+  "function_name": "func_800070A0",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T07:22:51.904128+00:00",
+  "end_time": "2026-07-10T07:22:51.904150+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T07:22:51.904144+00:00",
+      "assistant_text": "72/72 exact via IDO 5.3 -O1 donor splice (kernel_018_d_ido53_70A0.c REPLACE_FUNC_BODY into 7.1 -O1 host). Lever: int* p post-increment at use site (func(p++), *p++) \u2014 5.3 materializes old-value temp; 7.1 folds -4 in place. 4th member of the 5.3-vs-7.1 temp-rematerialization class.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 72,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for func_800070A0 \u2014 rmon word-streamer (72 insns,\n * frame 0x38). PROVEN EXACT 72/72 (2026-07-10 standalone probe vs\n * asm/nonmatchings/kernel/func_800070A0.s; only R_MIPS_26 jal placeholders\n * differ, resolved at link). 4th 5.3-vs-7.1 temp-rematerialization crack\n * (7564/8264/87B4 family). Two levers on top of the 2026-06-23 7.1 rebuild:\n *   (1) `int *p` + POST-INCREMENT at the use site (`func(p++)`, `*p++`)\n *       instead of `p += 4; func(p - 4)`. 5.3 -O1 materializes the\n *       post-increment through the old value: keeps old p in t2/t4, incs\n *       into a NEW reg (addiu t3,t2,4), and passes the OLD reg\n *       (`move a0,t2` / `lw a0,0(t4)`) \u2014 the documented \"cart move a0,t2\n *       (keep old-p) vs addiu a0,t3,-4 (recompute)\" + \"lw a0,0(t4) vs\n *       lw a0,-4(t5)\" residuals that no 7.1 C shape resolves (7.1 -O1\n *       folds the -4 into the operand either way).\n *   (2) everything else (decl order p/n/tmp/tmp2 for the frame slots,\n *       aligned path as if-BODY, both SP-range bounds) carried over\n *       unchanged from the 7.1 rebuild.\n * NEGATIVE for the record: the explicit `char *oldp = p; p += 4;` temp\n * form does NOT work at 5.3 -O1 \u2014 named locals always get a stack home\n * (frame 0x38 -> 0x40, +4 insns); only the post-increment expression temp\n * stays register-only. Spliced into kernel_018_d.c.o via REPLACE_FUNC_BODY\n * (real 5.3 -O1 output; donor relocs imported by the splice). */\n\nextern void func_80006AEC(void *dst, void *src, int n);\nextern void func_80005584(int word);\nextern void func_80008FB0(void *src, void *dst);\nextern void func_80005534(void);\n\nvoid func_800070A0(char *addr, int len) {\n    int *p = (int *)addr;\n    unsigned int n = ((unsigned int)len + 3) >> 2;\n    int tmp;\n    int tmp2;\n    if (!((unsigned int)addr & 3)) {\n        while (n--) {\n            if ((unsigned int)p >= 0x04000000U && (unsigned int)p < 0x05000000U) {\n                func_80008FB0(p++, &tmp);\n                func_80005584(tmp);\n            } else {\n                func_80005584(*p++);\n            }\n        }\n    } else {\n        while (n--) {\n            func_80006AEC(&tmp2, p, 4);\n            func_80005584(tmp2);\n            p++;\n        }\n    }\n    func_80005534();\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_018_d_ido53_70A0.c",
+    "asm_path": "asm/nonmatchings/kernel/func_800070A0.s",
+    "segment": "kernel",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0 clean rebuild; cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}
