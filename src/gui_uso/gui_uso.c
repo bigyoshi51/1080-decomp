@@ -2,6 +2,12 @@
 
 extern char D_00000000;
 
+/* GfxCtx ring: a0->0xC points to {Gfx *buf @0; int idx @4}. Used by the
+ * gui_uso texture-load DL-builder family (00003F18/0000413C/00004354). Each
+ * packet reloads a0->0xC twice (once for idx read/bump, once for buf) — the
+ * store to ->idx forces IDO to reload the ctx pointer for the base. */
+struct GfxRing_413C { int *buf; int idx; };
+
 /* SOURCE=4 audit 2026-06-01: this cluster is not a missed accessor-template
  * candidate. The 0x0..0x148 char mapper is an over-split early-return chain;
  * the fragments look like leaf-branch-past-end/caller-set-register caps only
@@ -1992,49 +1998,49 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003B80);
 // (0x3F18..0x3F20) that C cannot emit, so the body aligns but the head won't.
 void gui_uso_func_00003F18(char *a0, int a1, int a2, int a3, int arg5,
                            int arg6, int arg7, int arg8, int arg9) {
-    char *buf;
+    struct GfxRing_413C *r;
     int i;
     int *p;
     int t0, a3v, a1v, t1, t3;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xFD180000 | ((a2 - 1) & 0xFFF);
     p[1] = a1;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     a3v = arg5 + arg7;
     t0 = a3v - arg5;
     t1 = ((((t0 * 2 + 7) >> 3) & 0x1FF) << 9) | 0xF5180000 | ((arg9 << 8) & 0x1FF);
     p[0] = t1;
     p[1] = 0x07020080;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     a2 = arg6;
     p[0] = 0xE6000000;
     p[1] = 0;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xF4000000 | ((((arg5 << 2) & 0xFFF) << 0xC)) | ((a2 << 2) & 0xFFF);
     a1v = a2 + arg8;
     p[1] = 0x07000000 | ((((a3v - 1) << 2) & 0xFFF) << 0xC) | (((a1v - 1) << 2) & 0xFFF);
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xE7000000;
     p[1] = 0;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = t1;
     t3 = (arg9 & 7) << 0x18;
     p[1] = t3 | 0x00020000 | 0x80;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xF2000000;
     p[1] = t3 | ((((t0 - 1) << 2) & 0xFFF) << 0xC) | ((((a1v - a2) - 1) << 2) & 0xFFF);
 }
@@ -2048,65 +2054,71 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
  * Args: f(GfxCtx **a0, a1, a2, a3, arg4@sp16, arg5@sp20, arg6@sp24,
  *         arg7@sp28, arg8@sp32). a0->0xC = ptr to {Gfx *buf @0; int idx @4}.
  * Per-packet idiom (×7): g=(ctx*)a0->0xC; i=g->idx; g->idx=i+1;
- *   slot=(int*)g->buf + i*2; slot[0]=w0; slot[1]=w1;  (a0->0xC reloaded
- *   TWICE per packet in target — once for ->idx, once for ->buf).
- * Forensics: this is a texture-load DL fragment (SETTIMG→SETTILE→LOADSYNC→
- * LOADTILE→PIPESYNC→SETTILE→SETTILESIZE). t1 is CSE'd across packets 2&6;
- * arg6=texW, arg7=texH-ish, arg8=tile fmt/palette.
- * Caps far <80: the a0->0xC double-reload GfxCtx idiom ×7 + cross-packet
- * CSE drive a regalloc cascade no first-pass C reproduces (multi-run
- * target). INCLUDE_ASM remains build path. */
+ *   slot=(int*)g->buf + i*2; slot[0]=w0; slot[1]=w1.
+ * DOUBLE-RELOAD LEVER (agent-g 2026-07): the target reloads a0->0xC TWICE per
+ * packet — once for ->idx read/bump, once for ->buf base — because the store
+ * to ->idx forces IDO to re-fetch the (possibly-aliased) ctx pointer for the
+ * base. Reproduce by dereferencing a0->0xC a SECOND time for the base AFTER
+ * the ->idx store: `r=*(GfxRing**)(a0+0xC); i=r->idx; r->idx=i+1;
+ *  slot=(*(GfxRing**)(a0+0xC))->buf + i*2;`. This took 0413C 51->68 fuzzy;
+ * packet 1 now matches byte-for-byte. Applied identically to sibling 003F18
+ * and 04354 (see struct GfxRing_413C at file top).
+ * Forensics: texture-load DL fragment (SETTIMG→SETTILE→LOADSYNC→LOADTILE→
+ * PIPESYNC→SETTILE→SETTILESIZE). t1 is CSE'd across packets 2&6; arg6=texW,
+ * arg7=texH-ish, arg8=tile fmt/palette. Residual <80: cross-packet CSE + the
+ * slot-pointer coloring (a3 vs t2) drive a regalloc/scheduling cascade no C
+ * reproduces exactly. INCLUDE_ASM remains build path (NM-wrap). */
 #ifdef NON_MATCHING
-void gui_uso_func_0000413C(char **a0, int a1, int a2, int a3,
+void gui_uso_func_0000413C(char *a0, int a1, int a2, int a3,
                             int arg4, int arg5, int arg6, int arg7, int arg8) {
-    char *g;
+    struct GfxRing_413C *r;
     int i;
     int *slot;
     int t1;
     (void)a3;
-    t1 = ((((((arg4 + arg6) - arg4) << 1) + 7) >> 3) & 0x1FF) << 9 | 0xF5100000 |
-         ((arg8 << 8) & 0x1FF);
     /* packet 1: G_SETTIMG */
-    g = *(char**)((char*)a0 + 0xC);
-    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
-    slot = (int*)(*(char**)g) + i * 2;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    i = r->idx;  r->idx = i + 1;
+    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     slot[0] = ((a2 - 1) & 0xFFF) | 0xFD100000;
     slot[1] = a1;
     /* packet 2: G_SETTILE */
-    g = *(char**)((char*)a0 + 0xC);
-    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
-    slot = (int*)(*(char**)g) + i * 2;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    i = r->idx;  r->idx = i + 1;
+    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
+    t1 = ((((((arg4 + arg6) - arg4) << 1) + 7) >> 3) & 0x1FF) << 9 | 0xF5100000 |
+         ((arg8 << 8) & 0x1FF);
     slot[0] = t1;
     slot[1] = 0x07020080;
     /* packet 3: G_RDPLOADSYNC */
-    g = *(char**)((char*)a0 + 0xC);
-    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
-    slot = (int*)(*(char**)g) + i * 2;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    i = r->idx;  r->idx = i + 1;
+    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     slot[0] = 0xE6000000;
     slot[1] = 0;
     /* packet 4: G_LOADTILE */
-    g = *(char**)((char*)a0 + 0xC);
-    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
-    slot = (int*)(*(char**)g) + i * 2;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    i = r->idx;  r->idx = i + 1;
+    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     slot[0] = (((arg4 << 2) & 0xFFF) << 12) | 0xF4000000 | ((arg5 << 2) & 0xFFF);
     slot[1] = ((((arg4 + arg6 - 1) << 2) & 0xFFF) << 12) | 0x07000000 |
               (((arg5 + arg7 - 1) << 2) & 0xFFF);
     /* packet 5: G_RDPPIPESYNC */
-    g = *(char**)((char*)a0 + 0xC);
-    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
-    slot = (int*)(*(char**)g) + i * 2;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    i = r->idx;  r->idx = i + 1;
+    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     slot[0] = 0xE7000000;
     slot[1] = 0;
     /* packet 6: G_SETTILE var */
-    g = *(char**)((char*)a0 + 0xC);
-    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
-    slot = (int*)(*(char**)g) + i * 2;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    i = r->idx;  r->idx = i + 1;
+    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     slot[0] = t1;
     slot[1] = ((arg8 & 7) << 24) | 0x00020000 | 0x80;
     /* packet 7: G_SETTILESIZE */
-    g = *(char**)((char*)a0 + 0xC);
-    i = *(int*)(g + 4);  *(int*)(g + 4) = i + 1;
-    slot = (int*)(*(char**)g) + i * 2;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    i = r->idx;  r->idx = i + 1;
+    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     slot[0] = 0xF2000000;
     slot[1] = ((arg8 & 7) << 24) | ((((arg6 - 1) << 2) & 0xFFF) << 12) |
               (((arg7 - 1) << 2) & 0xFFF);
@@ -2181,49 +2193,49 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000413C);
 // word, (arg9&7)<<24) thread across packets exactly as the target.
 void gui_uso_func_00004354(char *a0, int a1, int a2, int a3, int arg5,
                            int arg6, int arg7, int arg8, int arg9) {
-    char *buf;
+    struct GfxRing_413C *r;
     int i;
     int *p;
     int t0, a3v, a1v, t1, t3;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xFD680000 | ((a2 - 1) & 0xFFF);
     p[1] = a1;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     a3v = arg5 + arg7;
     t0 = a3v - arg5;
     t1 = ((((t0 + 7) >> 3) & 0x1FF) << 9) | 0xF5680000 | ((arg9 << 8) & 0x1FF);
     p[0] = t1;
     p[1] = 0x07020090;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     a2 = arg6;
     p[0] = 0xE6000000;
     p[1] = 0;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xF4000000 | ((((arg5 << 2) & 0xFFF) << 0xC)) | ((a2 << 2) & 0xFFF);
     a1v = a2 + arg8;
     p[1] = 0x07000000 | ((((a3v - 1) << 2) & 0xFFF) << 0xC) | (((a1v - 1) << 2) & 0xFFF);
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xE7000000;
     p[1] = 0;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = t1;
     t3 = (arg9 & 7) << 0x18;
     p[1] = t3 | 0x00020000 | 0x90;
 
-    buf = *(char **)(a0 + 0xC); i = *(int *)(buf + 4); *(int *)(buf + 4) = i + 1;
-    p = (int *)(*(int *)buf + i * 8);
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xF2000000;
     p[1] = t3 | ((((t0 - 1) << 2) & 0xFFF) << 0xC) | ((((a1v - a2) - 1) << 2) & 0xFFF);
 }
