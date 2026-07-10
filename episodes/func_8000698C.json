@@ -1,0 +1,33 @@
+{
+  "function_name": "func_8000698C",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T07:47:48.805506+00:00",
+  "end_time": "2026-07-10T07:47:48.805546+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T07:47:48.805533+00:00",
+      "assistant_text": "rmon memory-write handler: IDO 5.3 -O1 donor splice; else-if merge chain + raw-param first read (deferred or s0,t6) + register-var dead home slots in decl order (arg0 first=0x44, var_s1 last=0x20, frame 0x48) + sp28-before-sp24 init, len-first range sum, tag->zero->id tail",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 147,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for func_8000698C \u2014 rmon memory-write handler (147\n * insns, frame 0x48). PROVEN EXACT 147/147 (2026-07-10 standalone probe vs\n * asm/nonmatchings/kernel/func_8000698C.s; only R_MIPS_26 jal placeholders\n * differ, resolved at link). 5th 5.3-vs-7.1 temp-rematerialization crack\n * (7564/8264/87B4/70A0 family). The documented \"coloring + frame-layout\n * cap\" (deferred `move s0,t6` prologue + slot-offset cascade) decomposes\n * into FOUR levers, all C-reachable at 5.3 -O1:\n *   (1) STRUCTURE FIX: the byte-merge is an if/else-if/else CHAIN (the ==1\n *       and ==2 merges `b` past the low-byte merge), not three independent\n *       ifs \u2014 the old NM body's shape was wrong.\n *   (2) PROLOGUE: first byte-read through the RAW PARAM (`*(u8*)((char*)\n *       sp48 + 9)`) with `arg0 = sp48` as a separate statement \u2014 the reload\n *       CSEs to the param temp (lbu t7,9(t6)) and the s0 commit stays a\n *       distinct `or s0,t6,zero` (build otherwise folds to `lw s0,home`).\n *   (3) FRAME MAP: IDO 5.3 -O1 gives EVERY `register` var a dead 4-byte\n *       home slot allocated in strict decl order (first decl = highest),\n *       exactly like homed locals. Target layout = `register arg0`\n *       declared FIRST (dead home 0x44), then struct (0x34) / sp30 / sp2C /\n *       sp28 / sp24 (0x24), then `register var_s1` LAST (dead home 0x20)\n *       -> frame 0x48. With both register decls adjacent the two dead homes\n *       fuse at one end and every slot shifts +4/+8.\n *   (4) ORDER TIES: word-loop init `sp28 = len>>2;` BEFORE `sp24 = ptr;`\n *       (lw-first ugen numbering t4/t5/t6); SP-range sum spelled\n *       `FW(0x14) + FW(0x10)` (len-first load pair); reply tail store\n *       order tag -> zero -> id (8264 lever).\n * Spliced into kernel_018_b.c.o via REPLACE_FUNC_BODY (real 5.3 -O1\n * output; donor relocs imported by the splice). NOTE: target contains a\n * mid-function jal to 0x80006AEC (the merge-store join inside THIS\n * function) \u2014 from the compiler's view it is a plain extern call\n * (R_MIPS_26 func_80006AEC), resolved by undefined_syms_auto.txt. */\ntypedef signed int s32;\ntypedef unsigned int u32;\ntypedef unsigned char u8;\ntypedef signed short s16;\n#define FW(p, o) (*(s32 *)((char *)(p) + (o)))\nextern s32 func_80004B30(u32);\nextern s32 func_80006A98(s32);\nextern void func_80006A50(s32, s32);\nextern void func_80006AEC(s32, void *, s32);\nextern void func_800073F8(void *, s32, s32);\n\ns32 func_8000698C(void *sp48) {\n    register void *arg0;\n    struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 id; } sp34;\n    s32 sp30;\n    s32 sp2C;\n    u32 sp28;\n    s32 *sp24;\n    register s32 var_s1;\n\n    arg0 = sp48;\n    if ((*(u8 *)((char *) sp48 + 9) == 0) && (func_80004B30(FW(arg0, 0x10)) == -1)) {\n        return -5;\n    }\n    if ((u32) FW(arg0, 0x14) >= 0x401U) {\n        return -8;\n    }\n    if (((u32) FW(arg0, 0x10) < 0x04000000U) || ((u32) (FW(arg0, 0x14) + FW(arg0, 0x10)) >= 0x05000000U)) {\n        var_s1 = 0;\n    } else {\n        var_s1 = 1;\n    }\n    if (var_s1 != 0) {\n        sp30 = FW(arg0, 0x10) & 3;\n        if (sp30 != 0) {\n            if (FW(arg0, 0x14) != 1) {\n                return -5;\n            }\n            sp2C = func_80006A98(FW(arg0, 0x10) & ~3);\n            if (sp30 == 1) {\n                sp2C = (*(u8 *)((char *) arg0 + 0x18) << 0x10) | (sp2C & 0xFF00FFFF);\n            } else if (sp30 == 2) {\n                sp2C = (*(u8 *)((char *) arg0 + 0x18) << 8) | (sp2C & 0xFFFF00FF);\n            } else {\n                sp2C = *(u8 *)((char *) arg0 + 0x18) | (sp2C & ~0xFF);\n            }\n            func_80006A50(FW(arg0, 0x10) & ~3, sp2C);\n            goto block_26;\n        }\n        sp28 = (u32) FW(arg0, 0x14) >> 2;\n        sp24 = (s32 *)((char *) arg0 + 0x18);\n        if (FW(arg0, 0x14) & 3) {\n            return -5;\n        }\n        var_s1 = sp28;\n        sp28 -= 1;\n        if (var_s1 != 0) {\n            do {\n                func_80006A50(FW(arg0, 0x10), *sp24++);\n                FW(arg0, 0x10) = FW(arg0, 0x10) + 4;\n                var_s1 = sp28;\n                sp28 -= 1;\n            } while (var_s1 != 0);\n        }\n        goto block_26;\n    }\n    func_80006AEC(FW(arg0, 0x10), (char *) arg0 + 0x18, FW(arg0, 0x14));\nblock_26:\n    sp34.tag = *(u8 *)((char *) arg0 + 4);\n    sp34.zero = 0;\n    sp34.id = FW(arg0, 0xC);\n    func_800073F8(&sp34, 0x10, 1);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-f/src/kernel/kernel_018_b_ido53_698C.c",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/kernel/func_8000698C.s",
+    "segment": "kernel",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0 clean rebuild; cmp tenshoe.z64 baserom.z64 byte-identical; make non_matching_objects exit 0"
+  }
+}
