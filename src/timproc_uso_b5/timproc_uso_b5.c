@@ -854,8 +854,18 @@ end:
 //   func_00000000 = the USO placeholder dispatcher (factory / attach).
 // Caps (DEFERRED): raw-word USO + placeholder func_00000000 calls;
 //   USO mnemonic disasm limitation prevents byte-match. Real-C
-//   STRUCTURAL body below — two-widget HUD constructor. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+//   STRUCTURAL body below — three-widget HUD constructor.
+//   Name pre-checked: no extern reuse.
+// 2026-07-10 (78.22 -> 93.68 fuzzy): the widget A whites (255/255) and widget C
+//   colors (174/255, 113/255, 61/255) are RUNTIME div.s in the target; writing
+//   them as literal `N.0f / 255.0f` const-folds (A -> 1.0f literal, C -> .rodata
+//   pool loads). Divide by a `float denom = 255.0f` VARIABLE so IDO can't fold
+//   -> per-color `lui;mtc1;div.s`, matching. (Widget B whites are a genuine
+//   literal 1.0f in the target -- left as 1.0f.) Residual +5 insns: widget A's
+//   255/denom still CSEs numerator onto denom's reg ($f2/$f2 vs target $f4/$f6 --
+//   the same float-const-CSE cap as BDEC), plus the |=0x40/0x80 flag stores
+//   materialize o+0xC4 as a base (addiu + sw 0(base)) in the target vs sw
+//   0xC4(o) here (address-materialization scheduling). Stays NM.
 #ifdef NON_MATCHING
 extern void *timproc_uso_b5_func_068D54(int, char *);
 extern float timproc_uso_b5_func_062880(char *, char *);
@@ -866,16 +876,18 @@ extern char timproc_uso_b5_D_807FE918;
 void timproc_uso_b5_func_00001460(char *arg0) {
     char *o, *reg;
     float retA;
+    float denom = 255.0f;
 
     reg = arg0 + 0x10;
 
-    /* widget A (id 1) — white RGBA = 255.0f/255.0f */
+    /* widget A (id 1) — white RGBA = 255.0f/denom (runtime div, denom var
+     * defeats the 255/255 -> 1.0f const-fold that the target does NOT do) */
     o = (char *)timproc_uso_b5_func_068D54(0, &timproc_uso_b5_D_807FE8FC + 0x108C);
     *(char **)(arg0 + 0x38) = o;
-    *(float *)(o + 0x124) = 255.0f / 255.0f;
-    *(float *)(o + 0x128) = 255.0f / 255.0f;
-    *(float *)(o + 0x12C) = 255.0f / 255.0f;
-    *(float *)(o + 0x130) = 255.0f / 255.0f;
+    *(float *)(o + 0x124) = 255.0f / denom;
+    *(float *)(o + 0x128) = 255.0f / denom;
+    *(float *)(o + 0x12C) = 255.0f / denom;
+    *(float *)(o + 0x130) = 255.0f / denom;
     o = *(char **)(arg0 + 0x38);
     *(int *)(o + 0xC4) |= 0x40;
     o = *(char **)(arg0 + 0x38);
@@ -910,9 +922,9 @@ void timproc_uso_b5_func_00001460(char *arg0) {
     /* widget C (id 4) — RGBA = 174/255, 113/255, 61/255, retA */
     o = (char *)timproc_uso_b5_func_068D54(0, &timproc_uso_b5_D_807FE918 + 0x10A8);
     *(char **)(arg0 + 0x40) = o;
-    *(float *)(o + 0x124) = 174.0f / 255.0f;
-    *(float *)(o + 0x128) = 113.0f / 255.0f;
-    *(float *)(o + 0x12C) = 61.0f / 255.0f;
+    *(float *)(o + 0x124) = 174.0f / denom;
+    *(float *)(o + 0x128) = 113.0f / denom;
+    *(float *)(o + 0x12C) = 61.0f / denom;
     *(float *)(o + 0x130) = retA;
     o = *(char **)(arg0 + 0x40);
     *(int *)(o + 0xC4) |= 0x40;
