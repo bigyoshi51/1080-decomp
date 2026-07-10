@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80005520",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T04:17:53.133164+00:00",
+  "end_time": "2026-07-10T04:17:53.133184+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T04:17:53.133179+00:00",
+      "assistant_text": "Kernel osCreatePiManager (KMC 2-worker variant). The 77.43% 'not -O1-reachable / -O2 store-base CSE' cap was the TU-DEFINED-GLOBAL shared-lui-$at cluster (6DA74 lever): donor defines PiDevMgr D_8000A450 = {0};. Second lever: field ORDER f8=cmdQ before fC=&thread fixes the last t3/t4 coloring swap. Exact at both 5.3 and 7.1 -O1. TRUNCATE_TEXT 0x500 for the 4-byte splice align tail.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 115,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for func_80005520 \u2014 115-insn kernel osCreatePiManager (KMC\n * kernel variant of libultra pimgr.c; sibling of the game_libs crack\n * gl_func_0006DA74, see docs/IDO_CODEGEN \"TU-DEFINED global = shared-lui\n * $at store cluster\"). PROVEN EXACT 115/115 (2026-07-10 standalone probe vs\n * asm/nonmatchings/kernel/func_80005520.s; identical at IDO 5.3 AND 7.1\n * -O1 \u2014 built here with the default 7.1 at -O1).\n * KEY LEVERS:\n *   - TU-DEFINED PiDevMgr: `PiDevMgr D_8000A450 = {0};` (a definition, NOT\n *     extern) makes IDO emit the 4+3 store cluster with ONE `lui $at` per\n *     group + batched value materializations (extern form = one lui $at per\n *     store, the old 77% floor). The splice imports the reloc as a global\n *     UNDEF in the host; undefined_syms_auto.txt already carries\n *     D_8000A450 = 0x8000A450, and %lo(D_8000A450)+0x4/0x8/0xC/... resolve\n *     byte-identically to the .s's per-field D_8000A454/8/C/60/64/68 relocs.\n *   - Field assignment order f0,f4,f8,fC (f8=cmdQ BEFORE fC=&thread) gives\n *     the target's t3=arg-reload / t4=&pimgr_bss_17A0 temp numbering while\n *     as1 still emits the stores in the target's 0/4/C/8 order.\n * KMC-variant differences vs stock pimgr.c: TWO __osDevMgrMain workers\n * (func_80005F10 pairs with stacks pimgr_bss_01B0+0x1000 and\n * pimgr_bss_1360+0x400, second at pri-1, arg block NULL) and dma/edma\n * handlers func_80004A50 / func_800056F0 (the post-addiu alt entry).\n * Spliced into kernel_006.c.o via REPLACE_FUNC_BODY (real -O1 output;\n * donor relocs imported by the splice; C_FILES filter-out). */\ntypedef int s32;\ntypedef s32 OSPri;\nextern s32 __osPiAccessQueue;\nextern s32 D_8000A480;\nextern void func_800053D0(void *, void *, s32);\nextern void func_80005C00(void);\nextern void func_800051E0(s32, void *, void *);\nextern OSPri func_800064F0(void *);\nextern void func_80006510(void *, OSPri);\nextern unsigned int func_800066B0(void);\nextern void func_800066D0(unsigned int);\nextern void func_80005F10(void *, s32, void *, void *, void *, OSPri);\nextern void func_8000A110(void *);\ntypedef struct { s32 f0; void *f4; void *f8; void *fC; void *f10, *f14, *f18; } PiDevMgr;\nextern s32 D_80006060, D_80005AEC;\nextern void func_80004A50();\nextern void func_800056F0();\nextern unsigned char pimgr_bss_0000[], pimgr_bss_01B0[], pimgr_bss_11B0[], pimgr_bss_1360[], pimgr_bss_17A0[], pimgr_bss_17B8[];\n\nPiDevMgr D_8000A450 = {0};\n\nvoid func_80005520(OSPri pri, void *cmdQ, void *cmdBuf, s32 cmdMsgCnt) {\n    unsigned int savedMask;\n    OSPri oldPri;\n    OSPri myPri;\n\n    if (!D_8000A450.f0) {\n        func_800053D0(cmdQ, cmdBuf, cmdMsgCnt);\n        func_800053D0(pimgr_bss_17A0, pimgr_bss_17B8, 1);\n        if (!D_8000A480) {\n            func_80005C00();\n        }\n        func_800051E0(8, pimgr_bss_17A0, (void *)0x22222222);\n        oldPri = -1;\n        myPri = func_800064F0(0);\n        if (myPri < pri) {\n            oldPri = myPri;\n            func_80006510(0, pri);\n        }\n        savedMask = func_800066B0();\n        D_8000A450.f0 = 1;\n        D_8000A450.f4 = pimgr_bss_0000;\n        D_8000A450.f8 = cmdQ;\n        D_8000A450.fC = pimgr_bss_17A0;\n        D_8000A450.f10 = &__osPiAccessQueue;\n        D_8000A450.f14 = &func_80004A50;\n        D_8000A450.f18 = &func_800056F0;\n        func_80005F10(pimgr_bss_0000, 0, &D_80006060, &D_8000A450, pimgr_bss_01B0 + 0x1000, pri);\n        func_8000A110(pimgr_bss_0000);\n        func_80005F10(pimgr_bss_11B0, 0, &D_80005AEC, 0, pimgr_bss_1360 + 0x400, pri - 1);\n        func_8000A110(pimgr_bss_11B0);\n        func_800066D0(savedMask);\n        if (oldPri != -1) {\n            func_80006510(0, oldPri);\n        }\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_006_o1_5520.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/kernel/func_80005520.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "115/115 word-exact + make ROM byte-identical"
+  }
+}

@@ -174,35 +174,35 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80004030);
  *   func_80003E54 = __osPopThread, func_80003E0C = __osEnqueueThread,
  *   D_8000A418 = __osRunQueue.
  * The div/mfhi + break 7 (div-by-zero) + break 6 (INT_MIN/-1 overflow) are
- * IDO's signed `%` guards; placement AFTER the store DOES match a plain C `%`
- * at -O1 (verified standalone). Compiles at -O1 to within a few words of the
- * target; residual = whether IDO spills mq/es to stack (target reloads on each
- * use) vs keeps them live in regs (this C). Pure register-coloring residual,
- * not a logic diff. */
-#ifdef NON_MATCHING
-/* Reuses existing OSMesgQueue (mtqueue/validCount/first/msgCount/msg) and the
- * OSEventState event table declared above. __OSEventState entry = 8 bytes:
- * { OSMesgQueue *messageQueue @0x0; void *message @0x4 }. */
-typedef struct __OSEventState {
-    OSMesgQueue *messageQueue;
-    void *message;
-} __OSEventState;
-/* D_8000A418 (__osRunQueue) and func_80003E54 (__osPopThread) are declared
- * earlier in this file; func_80003E0C is __osEnqueueThread. */
+ * IDO's signed `%` guards; placement AFTER the store matches the plain C `%`
+ * at -O1.
+ * EXACT 59/59 (2026-07-09, standalone probe; 5.3 -O1 AND 7.1 -O1 both emit
+ * the target bytes -- this TU is already 7.1 -O1, so no donor split needed).
+ * The old "pure register-coloring residual" note was three missing levers:
+ *   - mq/es as members of a LOCAL STRUCT (struct locals stay sp-resident at
+ *     -O1) -> homed at 0x28/0x2C and reloaded per statement;
+ *   - `if (1) {}` BB-barrier as the first body statement -> kills the
+ *     cross-BB register forwarding of the condition's mq/es temps, forcing
+ *     the body-entry reloads (lw t1,0x28 / lw t6,0x2C);
+ *   - `last` as a PLAIN fn-scope local declared after v (homed store
+ *     sw t7,0x24 + register reuse for the index; a struct member here emits
+ *     a second store, a `register` here recolors to s-regs), `t` as
+ *     `register` (colors s0, no slot; frame 0x30 with the 0x20 hole). */
 extern void func_80003E0C(void *, void *);  /* __osEnqueueThread */
 void func_800044CC(void) {
-    __OSEventState *es = &((__OSEventState *)__osEventStateTab)[8]; /* OS_EVENT_PI */
-    OSMesgQueue *mq = es->messageQueue;
-    if (mq != 0 && mq->validCount < mq->msgCount) {
-        int last = (mq->first + mq->validCount) % mq->msgCount;
-        mq->msg[last] = (s32 *)es->message;
-        mq->validCount++;
-        if (((void **)mq->mtqueue)[0] != 0) {
-            register void *t = func_80003E54(mq);
+    struct { OSMesgQueue *mq_; OSEventState *es_; } v;
+    s32 last;
+    register void *t;
+
+    if ((v.mq_ = (OSMesgQueue *)(v.es_ = &__osEventStateTab[8])->queue) != 0 &&
+        v.mq_->validCount < v.mq_->msgCount) {
+        if (1) {}
+        last = (v.mq_->first + v.mq_->validCount) % v.mq_->msgCount;
+        v.mq_->msg[last] = (s32 *)v.es_->msg;
+        v.mq_->validCount++;
+        if (*(void **)v.mq_->mtqueue != 0) {
+            t = func_80003E54(v.mq_);
             func_80003E0C(&D_8000A418, t);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800044CC);
-#endif

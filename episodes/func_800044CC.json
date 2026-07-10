@@ -1,0 +1,33 @@
+{
+  "function_name": "func_800044CC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T04:17:52.892653+00:00",
+  "end_time": "2026-07-10T04:17:52.892679+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T04:17:52.892674+00:00",
+      "assistant_text": "Kernel PI-event send_mesg (inlined libultra: dispatch to __osEventStateTab[8]/OS_EVENT_PI + __osPopThread/__osEnqueueThread wake). No donor needed \u2014 5.3=7.1 at -O1 and the host TU is already -O1. The 'pure register-coloring residual' fell to a 4-lever -O1 kit: local-struct-member pointers (sp-resident at -O1); if(1){} FIRST-body-statement barrier (kills cross-BB forwarding, forces body-entry reloads); block-scope plain s32 last (single home store + reuse); register void *t (colors s0, no slot).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 61,
+  "initial_m2c_source": null,
+  "final_source": "/* __osEnqueueThread */\nvoid func_800044CC(void) {\n    struct { OSMesgQueue *mq_; OSEventState *es_; } v;\n    s32 last;\n    register void *t;\n\n    if ((v.mq_ = (OSMesgQueue *)(v.es_ = &__osEventStateTab[8])->queue) != 0 &&\n        v.mq_->validCount < v.mq_->msgCount) {\n        if (1) {}\n        last = (v.mq_->first + v.mq_->validCount) % v.mq_->msgCount;\n        v.mq_->msg[last] = (s32 *)v.es_->msg;\n        v.mq_->validCount++;\n        if (*(void **)v.mq_->mtqueue != 0) {\n            t = func_80003E54(v.mq_);\n            func_80003E0C(&D_8000A418, t);\n        }\n    }\n}",
+  "metadata": {
+    "source_path": "src/kernel/kernel_000_b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/kernel/func_800044CC.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (host TU already -O1)",
+    "verification": "59/59 word-exact (53 literal + 6 reloc slots) + make ROM byte-identical"
+  }
+}

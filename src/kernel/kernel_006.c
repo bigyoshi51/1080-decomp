@@ -76,18 +76,19 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80005350);
  * func_800066B0 = __osDisableInt. 2026-06-23: devmgr fields now
  * modeled as one PiDevMgr struct at D_8000A450 (offsets +0..+0x18:
  * active/cmdQueue/evtQueue/thread/acsQueue/dma/edma) — semantically
- * exact, objdiff unchanged at 77.43%. CAP (confirmed, not a bug):
- * the residual is pure IDO instruction SCHEDULING + register coloring
- * of the contiguous devmgr-store block. Expected batches all
- * address-computations then issues the stores sharing a single
- * %hi(D_8000A450) base (the -O2 store-base CSE); this file is pinned
- * -O1 (Makefile:297) which reloads `lui at` per store, so the
- * register/order shuffle diverges on ~67/114 insns despite identical
- * logic. m2c-confirmed shape; permuter import blocked by NM-wrap +
- * asm-processor two-phase. Not -O1-reachable from straight C.
- * Full body INCLUDE_ASM-preserved (.s = source of truth, ROM-exact).
- * INCLUDE_ASM (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
+ * exact, objdiff unchanged at 77.43%.
+ * 2026-07-10: the old "not -O1-reachable / -O2 store-base CSE" cap FELL —
+ * the shared-%hi store cluster is the TU-DEFINED-global codegen (the
+ * original pimgr.c DEFINES __osPiDevMgr; `extern` was the 77% floor). Same
+ * lever as the game_libs sibling gl_func_0006DA74 (docs/IDO_CODEGEN
+ * "TU-DEFINED global = shared-lui $at store cluster"). EXACT 115/115 via
+ * the -O1 donor src/kernel/kernel_006_o1_5520.c (REPLACE_FUNC_BODY splice;
+ * this TU keeps `extern D_8000A450` so the C body below compiles ~77% and
+ * the donor bytes replace it in the .o; D_8000A450 resolves via
+ * undefined_syms_auto.txt = 0x8000A450, and the donor's
+ * %lo(D_8000A450)+addend relocs resolve byte-identically to the .s's
+ * per-field D_8000A454/8/C/60/64/68 relocs). Second lever: assignment
+ * order f8=cmdQ BEFORE fC=&thread fixes the t3/t4 temp numbering. */
 extern void func_800051E0(s32, s32 *, s32);
 extern void func_800053D0(s32 *, s32 *, s32);
 extern void func_80005C00(void);
@@ -160,9 +161,7 @@ void func_80005520(s32 arg0, s32 *arg1, s32 *arg2, s32 arg3) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80005520);
-#endif
+/* (donor bytes replace the body above in the .o; see comment + Makefile) */
 
 
 
@@ -180,26 +179,38 @@ extern s32 D_8001B5D0, D_8001B5E8, D_8001B5F0, D_8001B608;
  * until it returns non-zero, block on queue B, run handler func_80005C94.
  * 2026-06-04: kernel_006 flipped to -O1 (whole-file, all funcs prefer or are
  * opt-indifferent to -O1): func_800056EC 47->91.3%, func_80005520 68->77%,
- * func_80005800 stays 100%. Residual ~9%: -O1 loop-accumulator spill detail +
- * infinite-loop dead-epilogue padding nops. */
+ * func_80005800 stays 100%.
+ * 2026-07-10 (44CC lever kit): the "loop-accumulator spill" residual FELL —
+ * the accumulator is a LOCAL-STRUCT member (`v.sum`, sp-resident at -O1,
+ * reloaded per statement incl. the post-store while-test reload lw t8,0x2C)
+ * and the call result is a `register` var (colors s0, or s0,v0). With those
+ * two levers the ENTIRE LIVE BODY is byte-exact standalone (insns 0..53 of
+ * 66, verified 5.3 AND 7.1 -O1, both identical). REMAINING CAP: the ROM has
+ * SEVEN nop words between the loop's back-branch (0x800057BC) and the dead
+ * (unreachable) epilogue at 0x800057D4; IDO emits the dead epilogue
+ * immediately after the branch with no padding under every flag combo tried
+ * (5.3/7.1 x -O0/-O1/-O2/-g/-g3). Mid-function nop block is not
+ * source-reachable -> stays NM (no episode). */
 void func_800056EC(s32 arg0) {
-    s32 sp2C;
+    struct { s32 sum; } v;
     s32 sp28;
+    register s32 r;
 
     func_800053D0(&D_8001B5D0, &D_8001B5E8, 1);
     func_800053D0(&D_8001B5F0, &D_8001B608, 1);
     func_800051E0(0x12, &D_8001B5D0, 0);
     func_800051E0(0x13, &D_8001B5F0, 0);
-loop_1:
-    func_80004FE0(&D_8001B5D0, 0, 1);
-    func_80005C50();
-    sp2C = 0;
-    do {
-        sp2C += func_800066F0(&sp28, 1, 9);
-    } while (sp2C == 0);
-    func_80004FE0(&D_8001B5F0, 0, 1);
-    func_80005C94();
-    goto loop_1;
+    for (;;) {
+        func_80004FE0(&D_8001B5D0, 0, 1);
+        func_80005C50();
+        v.sum = 0;
+        do {
+            r = func_800066F0(&sp28, 1, 9);
+            v.sum = v.sum + r;
+        } while (v.sum == 0);
+        func_80004FE0(&D_8001B5F0, 0, 1);
+        func_80005C94();
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800056EC);

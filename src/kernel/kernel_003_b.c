@@ -77,7 +77,11 @@ extern OSEventState __osEventStateTab[];
  * spill a held base reg; struct retype no-ops the share — IDO_CODEGEN.md:741);
  * permuter (2 runs, ~1.5k iters, temp/reorder/split weights) never beat the
  * baseline 1-diff. This is an IDO internal-scheduler `$at`-coalescing decision
- * not reachable from source. Leave NON_MATCHING (no episode). */
+ * not reachable from source. Leave NON_MATCHING (no episode).
+ * 2026-07-10 negative probe (w48 sweep): `extern u8 D_800195D6[];` +
+ * D6[0]/D6[1] indexing (array-decay, hoping for one %hi + %lo/%lo+1 pair)
+ * REGRESSES — IDO materializes the base in a NAMED reg (lui+addiu per
+ * access, +5 words, whole store block re-schedules). Reverted; cap stands. */
 extern u8 D_800195D4;
 extern u8 D_800195D5;
 extern u8 D_800195D6;

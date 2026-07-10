@@ -157,7 +157,15 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80004808);
 /* RSP status-bit poller. Two loops wait for SP_STATUS bit 0x2000 to be
  * SET then CLEAR around a write to 0xC000000C. The do-while form with the
  * func call in the BODY (not the while-condition) gets IDO to emit plain
- * bnez/beqz instead of branch-likely (which the empty-body form caused). */
+ * bnez/beqz instead of branch-likely (which the empty-body form caused).
+ * 2026-07-10 CAP RE-CONFIRMED (w48 sweep): residual is exactly the two
+ * loop-skip guards — target `bnez/beqz +nop`, IDO emits `bnezl/beqzl` with
+ * the post-loop `lui`/`lw ra` hoisted into the likely slot (5 words).
+ * Matrix-exhausted: 5.3/7.1 x -O1/-O2 x -g/-g3 x -mips1/-mips2, plus
+ * while-form / barrier-in-loop / barrier-after-loop / call-in-condition
+ * shapes — ALL converge to the same bnezl output (uopt canonicalizes).
+ * Same likely-slot-fill class as the documented bnezl family; the 44CC
+ * struct-home/barrier kit does not apply (no homed locals here). NM stays. */
 #ifdef NON_MATCHING
 void func_8000487C(void) {
     s32 r = func_80009EA0();
