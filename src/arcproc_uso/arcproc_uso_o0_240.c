@@ -1,0 +1,124 @@
+#include "common.h"
+
+extern int gl_func_00000000();
+extern int D_arc240_A, D_arc240_B, D_arc240_C;
+extern struct DArc {
+    char _p40[0x40];
+    int f40;
+    int f44;
+    int f48;
+    char _p4c[0x64 - 0x4c];
+    int f64;
+} D_00000000;
+
+/* -O0 donor for arcproc_uso_func_00000240 (226-insn / 0x388 11-way state-machine
+ * dispatcher). VERIFIED BYTE-EXACT: isolated -O0 build = 226/226 words, 0 raw
+ * mismatches vs the target .text (all gl_func_00000000 jals + D_arc240_A/B/C +
+ * D_00000000 relocs resolve to address 0 in the static USO image, so the linked
+ * .text bytes are identical). The .text codegen problem is SOLVED.
+ *
+ * NOT YET WIRED (blocked on infra, 2026-07-10): the 11-way switch compiles a
+ * .rodata JUMPTABLE (R_MIPS_HI16/LO16 .text->.rodata + 12x R_MIPS_32 .rodata->
+ * .text case labels). REPLACE_FUNC_BODY splices only .text, so the link fails
+ * (".rodata referenced in .text ... defined in discarded section"), AND even if
+ * imported, a linked jumptable bakes a NONZERO %hi/%lo whereas the USO ROM has
+ * the dispatch as raw `lui at,0; lw at,0(at)` (runtime-patched by the USO loader,
+ * like the INCLUDE_ASM path). Landing this needs USO-jumptable-reloc handling:
+ * the jumptable .rodata must be emitted 0-relative with the .text HI16/LO16
+ * resolving to 0 (cf. scripts/extract-uso-jumptable.py + the D_arc240_*=0 pattern).
+ * Until then func_00000240 stays INCLUDE_ASM in tail1.c; this file is a filtered
+ * (non-C_FILES) reference holding the proven-exact -O0 body. The 5C8/688/748
+ * donors splice cleanly precisely because they have NO switch/jumptable.
+ *
+ * -O0 recipe (docs/IDO_CODEGEN.md -O0 dispatcher kit, sibling 019C):
+ *  - Plain locals (v, done) declared BEFORE the register vars so the -O0 local
+ *    column bases just below arg-home (v@sp+0x44, done@sp+0x40); register-first
+ *    reserves dead words and drops the column to 0x34/0x38 (rule 1).
+ *  - THREE fn-scope register vars, decl order = s0/s1/s2: r (reused gl result in
+ *    cases 5/7/8/10), b1 (case-10 &D base), b2 (base+0x10 then base copy).
+ *  - switch(a1) with a1 used DIRECTLY (no `state` local) and NO default: the
+ *    switch emits the sltiu/beqz bound-check, out-of-range falls to the loop tail.
+ *  - All D+offset globals via the extern struct member (D_00000000.f44) so IDO
+ *    $at-fuses to lui+sw; the (char*)&D+off cast would emit lui+addiu+sw.
+ *  - case 5: `((int**)a0)[2][((int**)a0)[2][1]+3]` — the INT** cast makes IDO -O0
+ *    CSE the two identical a0[2] lvalue paths into one load (no named-q spill);
+ *    the last call passes r (the 0x450000-call result), not v. */
+void arcproc_uso_func_00000240(int a0, int a1) {
+    int v;
+    int done = 0;
+    register int r;
+    register int *b1;
+    register int *b2;
+    do {
+        switch (a1) {
+        case 0:
+            gl_func_00000000(a0, 1, 3, 1);
+            D_00000000.f44 = 3;
+            D_00000000.f48 = 10;
+            done = 1;
+            break;
+        case 1:
+            gl_func_00000000(a0, 1, 3, 1);
+            D_00000000.f44 = 4;
+            D_00000000.f48 = 9;
+            done = 1;
+            break;
+        case 2:
+            gl_func_00000000(a0, 1, 3, 2);
+            D_00000000.f44 = 4;
+            D_00000000.f48 = 9;
+            done = 1;
+            break;
+        case 3:
+            gl_func_00000000(a0);
+            D_00000000.f40 = 4;
+            break;
+        case 4:
+            gl_func_00000000(a0);
+            D_00000000.f40 = 5;
+            break;
+        case 5: {
+            gl_func_00000000(&D_arc240_A, *(int *)((char *)&D_arc240_B + 4));
+            D_00000000.f64 = ((int **)a0)[2][((int **)a0)[2][1] + 3];
+            gl_func_00000000(&D_arc240_C, 4, D_00000000.f64, 3);
+            v = gl_func_00000000(a0, ((int *)a0)[0], 1);
+            r = gl_func_00000000(0, 0x450000, v, ((int *)a0)[2], ((int *)a0)[0]);
+            gl_func_00000000(a0, 0, r);
+            done = 1;
+            break;
+        }
+        case 6:
+            gl_func_00000000(a0, *(int *)a0);
+            done = 1;
+            break;
+        case 7:
+            r = gl_func_00000000(D_00000000.f64);
+            gl_func_00000000(a0, (D_00000000.f64 | 0x8000) | r, 0x8000, ((int *)a0)[0]);
+            done = 1;
+            break;
+        case 8:
+            gl_func_00000000(&D_00000000, 7, 0, 0);
+            r = gl_func_00000000(0);
+            gl_func_00000000(a0, 1, r);
+            done = 1;
+            break;
+        case 9:
+            gl_func_00000000(a0);
+            D_00000000.f40 = 10;
+            break;
+        case 10:
+            r = gl_func_00000000(0, 1, 0);
+            b1 = (int *)&D_00000000;
+            b2 = b1 + 4;
+            gl_func_00000000(b2, r);
+            if (((int *)r)[0x14 / 4] != 0) {
+                ((int *)r)[0x4 / 4] = 1;
+            }
+            b2 = b1;
+            ((int *)r)[0x14 / 4] = (int)b2;
+            done = 1;
+            break;
+        }
+        a1 = D_00000000.f40;
+    } while (done == 0);
+}

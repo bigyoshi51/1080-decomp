@@ -68,7 +68,21 @@ typedef struct { int a, b, c, d; } Quad4;
  * REMAINING: cases 5 and 7 (complex struct-walks: case5 sets D[0x64]=q[q->4+3]
  * from a0->8, then 5 calls with 0x450000 + multiple DISTINCT D symbols needing
  * CSE-bust externs; case7 reuses D[0x64] with |0x8000 + dli 0x8000). Multi-tick
- * tail. Default build INCLUDE_ASM remains exact. */
+ * tail. Default build INCLUDE_ASM remains exact.
+ *
+ * 2026-07-10 -O0 .text FULLY CRACKED & VERIFIED BYTE-EXACT (226/226 words, 0 raw
+ * mismatches). The proven -O0 body lives in arcproc_uso_o0_240.c (a filtered
+ * reference donor). Recipe: plain locals (v,done) declared BEFORE the 3 register
+ * vars r/b1/b2 (=s0/s1/s2) so the -O0 local column bases at v@0x44/done@0x40;
+ * switch(a1) used directly with NO default (emits the sltiu/beqz bound-check);
+ * all D+off globals via extern-struct member (D.f44) for $at-fused lui+sw; case 5
+ * uses `((int**)a0)[2][((int**)a0)[2][1]+3]` so IDO -O0 CSEs a0[2] into one load
+ * (int** cast is load-bearing; (int*)((int*)a0)[2] does NOT CSE) and the last
+ * call passes r (the 0x450000-call result). NOT LANDABLE YET: the 11-way switch
+ * compiles a .rodata jumptable whose baked %hi/%lo can't reproduce the USO's
+ * runtime-patched `lui at,0; lw at,0(at)` and breaks the REPLACE_FUNC_BODY link
+ * (.text->.rodata reloc). Needs USO-jumptable-reloc infra (see the donor header).
+ * Stays INCLUDE_ASM until then. */
 void arcproc_uso_func_00000240(int a0, int a1) {
     int done = 0;
     int state;
