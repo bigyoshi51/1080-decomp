@@ -1514,11 +1514,11 @@
       }
     },
     {
-      "name": "src/game_libs/game_libs_g3_70FBC",
-      "target_path": "expected/src/game_libs/game_libs_g3_70FBC.c.o",
-      "base_path": "build/non_matching/src/game_libs/game_libs_g3_70FBC.c.o",
+      "name": "src/game_libs/game_libs_o1g3_70FA4",
+      "target_path": "expected/src/game_libs/game_libs_o1g3_70FA4.c.o",
+      "base_path": "build/non_matching/src/game_libs/game_libs_o1g3_70FA4.c.o",
       "metadata": {
-        "source_path": "src/game_libs/game_libs_g3_70FBC.c",
+        "source_path": "src/game_libs/game_libs_o1g3_70FA4.c",
         "progress_categories": [
           "game_libs"
         ]
