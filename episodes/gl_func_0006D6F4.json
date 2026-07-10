@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006D6F4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T03:10:48.439719+00:00",
+  "end_time": "2026-07-10T03:10:48.439742+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T03:10:48.439735+00:00",
+      "assistant_text": "IDENTIFIED: __osPfsRequestData (same TU as osPfsIsPlug). IDO 5.3 flavor. The old 'record-stream emit helper' decode retired \u2014 the 'D+0 blob' was three distinct blanked globals; the 'stack-cursor spill cap' was just the 5.3 flavor.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 52,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006D6F4 \u2014 52-insn __osPfsRequestData\n * (libultra pfsisplug.c TU sibling of 6D554 = osPfsIsPlug; identified\n * 2026-07-09 vs references/libreultra/src/io/pfsisplug.c). PROVEN EXACT\n * 52/52 at IDO 5.3 -O1 (7.1 -O1 = 44/52 \u2014 the 8-byte `*(fmt*)ptr =\n * requestformat` struct copy uses the $at lw/swl/swr scratch, the\n * documented 5.3-vs-7.1 discriminator).\n * Verbatim libreultra: builds __OSContRequesFormat {FF,1,3,cmd,FF,FF,FF,FF}\n * on the stack, __osContLastCmd = cmd, __osPfsPifRam.pifstatus = CONT_CMD_\n * EXE(1) (the +0x3C member store \u2014 OSPifRam {u8 ramarray[60]; s32\n * pifstatus}), copies it per channel (< __osMaxControllers), then the\n * CONT_CMD_END = 0xFE terminator (sb in the jr delay slot).\n * This retires the old \"record-stream emit helper\" NM decode: the three\n * globals are DISTINCT symbols (__osContLastCmd / __osPfsPifRam /\n * __osMaxControllers), all blanked USO reloc words -> 0, not one D+0 blob.\n * Blank externs: D_pifram = __osPfsPifRam, D_max = __osMaxControllers,\n * D_lastcmd = __osContLastCmd.\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY (real 5.3 -O1\n * compiler output; blank-extern relocs imported by the splice). */\ntypedef unsigned char u8;\ntypedef int s32;\ntypedef struct { u8 dummy; u8 txsize; u8 rxsize; u8 cmd; u8 typeh; u8 typel; u8 status; u8 dummy1; } ReqFormat;\ntypedef struct { u8 ramarray[60]; s32 pifstatus; } PifRam;\nextern PifRam D_00000000_pifram;\nextern u8 D_00000000_max;\nextern u8 D_00000000_lastcmd;\nvoid gl_func_0006D6F4(u8 cmd) {\n    u8 *ptr;\n    ReqFormat requestformat;\n    int i;\n    ptr = (u8 *)&D_00000000_pifram;\n    D_00000000_lastcmd = cmd;\n    D_00000000_pifram.pifstatus = 1;\n    requestformat.dummy = 0xff;\n    requestformat.txsize = 1;\n    requestformat.rxsize = 3;\n    requestformat.cmd = cmd;\n    requestformat.typeh = 0xff;\n    requestformat.typel = 0xff;\n    requestformat.status = 0xff;\n    requestformat.dummy1 = 0xff;\n    for (i = 0; i < D_00000000_max; i++) {\n        *(ReqFormat *)ptr = requestformat;\n        ptr += sizeof(ReqFormat);\n    }\n    *ptr = 0xfe;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6D6F4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006D6F4.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "52/52 (7.1 floors at 44) + ROM byte-identical"
+  }
+}

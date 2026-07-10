@@ -381,9 +381,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CD44);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CD44_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CDB4);
+/* gl_func_0006CDB4 / gl_func_0006CF54: word-identical 104-insn twins —
+ * Nintendo-modified __osContRamRead-family mempack transaction verifiers
+ * over an OSPfs* (queue +4, channel +8): guard word_table[channel] else
+ * PFS_ERR_INVALID(5), __osSiGetAccess, __osContLastCmd=3, OS_WRITE DMA of
+ * &bank[channel*64], recv, OS_READ DMA, recv, ptr walk, 40-byte format
+ * readback, CHNL_ERR, __osContDataCrc(global) vs datacrc else
+ * PFS_ERR_CONTRFAIL(4), __osSiRelAccess.
+ * WIRED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO 5.3 -O1 donor unit game_libs_ido53_6CDB4.c (104/104 each; one TU
+ * defines both twins, 6C740 precedent), spliced over these -O2 stand-ins.
+ * Bodies below are placeholders for the splice. */
+int gl_func_0006CDB4(int *pfs) {
+    volatile int ret = 0;
+    if (pfs[2] == 0) {
+        ret = 5;
+    }
+    return ret;
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CF54);
+int gl_func_0006CF54(int *pfs) {
+    volatile int ret = 0;
+    if (pfs[2] == 0) {
+        ret = 5;
+    }
+    return ret;
+}
 
 /* gl_func_0006D0F4: 95-insn 40-byte-record builder (count, u16 x, src,
  * out). Zeroes out[0..14], out[15]=1, builds record {0xFF,35,1,3,
@@ -404,101 +427,43 @@ void gl_func_0006D0F4(int count, unsigned short x, unsigned char *src, int *out)
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D270);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D270_pad.s")
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D554);
-
-#ifdef NON_MATCHING
-/* gl_func_0006D6F4: 54-insn record-stream emit helper (declared size 0xD8, frame 0x10).
- *
- * Decoded structure (raw-word disasm):
- *   void emit_records(int count_byte [a0, masked to u8]) {
- *       int orig_count = *(uint8_t*)&D_00000000;     // gate value (entry-skip)
- *       count_byte &= 0xFF;
- *       *(uint8_t*)&D_00000000 = count_byte;          // overwrite global counter
- *       *(int    *)((char*)&D_00000000 + 0x3C) = 1;   // flag = 1 (active)
- *
- *       // Build 8-byte template on stack at sp+0x4..sp+0xB
- *       uint8_t buf[8] = {
- *           0xFF, 0x01, 0x03, count_byte,
- *           0xFF, 0xFF, 0xFF, 0xFF
- *       };
- *
- *       // Skip if no prior records existed
- *       if (orig_count <= 0) goto write_sentinel;
- *
- *       int idx = 0;
- *       char *dst = (char*)D_global_ptr;  // saved at sp+0xC
- *       while (1) {
- *           // Unaligned 8-byte template store at *dst (swl/swr pair × 2)
- *           *(uint32_t*)(dst+0) = *(uint32_t*)(buf+0);
- *           *(uint32_t*)(dst+4) = *(uint32_t*)(buf+4);
- *           uint8_t bound = *(uint8_t*)&D_00000000;   // reloaded EVERY iter
- *           idx++;
- *           dst += 8;
- *           if (idx >= bound) break;
- *       }
- *   write_sentinel:
- *       *(uint8_t*)dst = 0xFE;                          // list-terminator byte
- *   }
- *
- * Notes:
- *  - Two D+0 byte loads (one before overwrite to capture original gate, one
- *    inside the loop as bound): the loop bound IS the NEWLY-written value
- *    while the entry gate is the OLD value. Could be deliberate (caller
- *    expects emit-when-empty semantics) or a subtle bug captured by IDO.
- *  - Template bytes `0xFF, 0x01, 0x03` suggest a packet/command record format
- *    where 0x01 = type, 0x03 = subtype, 0xFF = padding/flags.
- *  - 0xFE final-byte = list terminator (matches the "all-bytes-FF" record-not-
- *    terminator semantics).
- *  - Unaligned 8-byte writes via paired swl/swr indicate dst may not be 4-byte
- *    aligned — typical of packed binary stream emission.
- *  - Trailing 2-insn fragment (`lui $t7,0; lbu $t7,0($t7)`) post-jr+delay is
- *    incomplete — likely start of a next helper that reads D+0. Variant of
- *    feedback_splat_too_big_incomplete_fragment_tail.md.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-extern int D_00000000;
-// Record-stream emitter (swl/swr 8-byte-template family, sibling of
-// gl_func_00071708). Stores (a0 & 0xFF) to &D, sets &D+0x3C=1, inits the dst
-// cursor to &D; builds the 8-byte template {0xFF,1,3,a0,0xFF,0xFF,0xFF,0xFF},
-// emits it `count` times (count = *&D) via two unaligned 4-byte stores, then a
-// 0xFE terminator. Residual is the IDO stack-cursor spill cap.
-void gl_func_0006D6F4(int a0) {
-    unsigned char tmpl[8];
-    unsigned char *dst;
-    volatile int i;
-    a0 = a0 & 0xFF;
-    i = *(unsigned char *)&D_00000000;
-    *(char *)&D_00000000 = a0;
-    *(int *)((char *)&D_00000000 + 0x3C) = 1;
-    dst = (unsigned char *)&D_00000000;
-    tmpl[0] = 0xFF;
-    tmpl[1] = 1;
-    tmpl[2] = 3;
-    tmpl[3] = a0;
-    tmpl[4] = 0xFF;
-    tmpl[5] = 0xFF;
-    tmpl[6] = 0xFF;
-    tmpl[7] = 0xFF;
-    if (i > 0) {
-        i = 0;
-        do {
-            *(int *)dst = *(int *)tmpl;
-            *(int *)(dst + 4) = *(int *)(tmpl + 4);
-            i++;
-            dst += 8;
-        } while (i < *(unsigned char *)&D_00000000);
-    }
-    *dst = 0xFE;
+/* gl_func_0006D554: libultra osPfsIsPlug (pfsisplug.c; 1080 deltas:
+ * MAXCONTROLLERS=4, compact 4-byte OSContStatus). TU siblings 6D6F4 =
+ * __osPfsRequestData and 6D7CC = __osPfsGetInitData below.
+ * WIRED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO 7.1 -O1 donor unit game_libs_o1_6D554.c (104/104), spliced over this
+ * -O2 stand-in. Body below is a placeholder for the splice. */
+int gl_func_0006D554(void *queue, unsigned char *pattern) {
+    volatile int ret = 0;
+    *pattern = 0;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D6F4);
-#endif
 
+/* gl_func_0006D6F4: libultra __osPfsRequestData (pfsisplug.c TU, sibling
+ * of 6D554 = osPfsIsPlug above and 6D7CC = __osPfsGetInitData below).
+ * Retires the old "record-stream emit helper" decode: the template is
+ * __OSContRequesFormat {FF,1,3,cmd,FF,FF,FF,FF}, the "D+0 blob" is really
+ * three distinct blanked globals (__osContLastCmd / __osPfsPifRam /
+ * __osMaxControllers), and the "spill cap" was just the 5.3 flavor.
+ * WIRED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO 5.3 -O1 donor unit game_libs_ido53_6D6F4.c (52/52), spliced over
+ * this -O2 stand-in. Body below is a placeholder for the splice. */
+void gl_func_0006D6F4(unsigned char cmd) {
+    volatile unsigned char c = cmd;
+    (void)c;
+}
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006D7C4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D7CC);
+/* gl_func_0006D7CC: libultra __osPfsGetInitData (pfsisplug.c TU; 1080
+ * compact 4-byte OSContStatus). BOUNDARY FIX: the 2-word orphan
+ * game_libs_func_0006D7C4 (lui/lbu __osMaxControllers) was this
+ * function's first load scheduled before the prologue by IDO 5.3; its
+ * INCLUDE_ASM was removed and the spliced symbol covers 0x6D7C4..0x6D890.
+ * WIRED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO 5.3 -O1 donor unit game_libs_ido53_6D7CC.c (52/52), spliced over
+ * this -O2 stand-in. Body below is a placeholder for the splice. */
+void gl_func_0006D7CC(unsigned char *pattern, void *data) {
+    *pattern = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006D894);
 

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006D7CC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T03:10:48.687726+00:00",
+  "end_time": "2026-07-10T03:10:48.687745+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T03:10:48.687739+00:00",
+      "assistant_text": "IDENTIFIED: __osPfsGetInitData. BOUNDARY FIX: 2-word orphan game_libs_func_0006D7C4 (lui/lbu __osMaxControllers) is this fn's first load hoisted above the prologue by IDO 5.3 (41008 precedent) \u2014 absorbed; symbol spans 0x6D7C4-0x6D890.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 50,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006D7CC \u2014 52-insn __osPfsGetInitData\n * (libultra pfsisplug.c TU sibling of 6D554 = osPfsIsPlug; identified\n * 2026-07-09 vs references/libreultra/src/io/pfsisplug.c). PROVEN EXACT\n * 52/52 at IDO 5.3 -O1 against the MERGED span 0x6D7C4..0x6D890 (7.1 -O1\n * = 35/52; 8-byte lwl/lwr $at struct copy = the 5.3 discriminator).\n * BOUNDARY FIX (41008 precedent): the 2-word orphan game_libs_func_\n * 0006D7C4 (`lui t7,%hi(__osMaxControllers); lbu t7,%lo(...)`) is this\n * function's first load, scheduled BEFORE the addiu-sp prologue by 5.3;\n * splat mis-split it. Its INCLUDE_ASM is removed and the donor's 52 words\n * cover 0x6D7C4..0x6D890 (2 orphan + 50 labeled).\n * 1080 deltas vs libreultra: compact 4-byte OSContStatus {u16 type; u8\n * status; u8 errno} (data++ = addiu a1,4 in the loop-branch delay slot).\n * Everything else verbatim: per-channel 8-byte __OSContRequesFormat\n * readback, errno = CHNL_ERR = (rxsize & 0xC0) >> 4, type = typel<<8 |\n * typeh, bits |= 1<<i, *pattern = bits (sb in the jr delay).\n * Blank externs: D_pifram = __osPfsPifRam, D_max = __osMaxControllers.\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY (real 5.3 -O1\n * compiler output; blank-extern relocs imported by the splice). */\ntypedef unsigned char u8;\ntypedef unsigned short u16;\ntypedef struct { u8 dummy; u8 txsize; u8 rxsize; u8 cmd; u8 typeh; u8 typel; u8 status; u8 dummy1; } ReqFormat;\ntypedef struct { u16 type; u8 status; u8 errnum; } StatusData;\nextern u8 D_00000000_pifram[];\nextern u8 D_00000000_max;\nvoid gl_func_0006D7CC(u8 *pattern, StatusData *data) {\n    u8 *ptr;\n    ReqFormat requestformat;\n    int i;\n    u8 bits;\n    bits = 0;\n    ptr = D_00000000_pifram;\n    for (i = 0; i < D_00000000_max; i++, ptr += sizeof(ReqFormat)) {\n        requestformat = *(ReqFormat *)ptr;\n        data->errnum = (requestformat.rxsize & 0xc0) >> 4;\n        if (data->errnum == 0) {\n            data->type = (requestformat.typel << 8) | requestformat.typeh;\n            data->status = requestformat.status;\n            bits |= 1 << i;\n        }\n        data++;\n    }\n    *pattern = bits;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6D7CC.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006D7CC.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "52/52 (7.1 floors at 35) + ROM byte-identical"
+  }
+}

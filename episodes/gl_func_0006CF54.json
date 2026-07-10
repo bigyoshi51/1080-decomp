@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006CF54",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T03:10:49.173901+00:00",
+  "end_time": "2026-07-10T03:10:49.173921+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T03:10:49.173915+00:00",
+      "assistant_text": "Word-identical ROM twin of gl_func_0006CDB4 \u2014 one donor TU defines both (6C740 7-way precedent); twins differ only in the reloc table.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 104,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for the word-identical twins gl_func_0006CDB4 and\n * gl_func_0006CF54 \u2014 104-insn Nintendo-modified __osContRamRead-family\n * mempack transaction verifiers (cf. references/libreultra/src/io/\n * contramread.c). PROVEN EXACT 104/104 at IDO 5.3 -O1, first probe (7.1\n * -O1 = 81/104; the 40-byte `ramreadformat = *(fmt*)ptr` lwl/lwr $at\n * chunk-copy loop is the 5.3 discriminator). Both twins are blanked to\n * the same 104 words in ROM (relocs differ only in the USO reloc table),\n * so one donor TU defines both bodies (6C740 7-way precedent).\n * 1080 deltas vs libreultra __osContRamRead: takes an OSPfs* (queue at +4,\n * channel at +8) instead of (mq, channel, address, buffer); entry guard\n * `if (word_table[pfs->channel] == 0) return PFS_ERR_INVALID(5)`; no\n * retry loop; the write-side PIF buffer is a per-channel 64-byte array\n * (&D_bank[channel * 64], the sll-6 addu); the CRC check calls\n * __osContDataCrc on a GLOBAL buffer (not the stack copy) and just sets\n * PFS_ERR_CONTRFAIL(4) (no __osPfsGetStatus rescue); no copy-out.\n * Kept from libreultra: __osSiGetAccess / __osContLastCmd = 3 /\n * OS_WRITE-recv-OS_READ-recv DMA ladder / `if (channel != 0) for (i=0;\n * i<channel; i++) ptr++` / CHNL_ERR = (rxsize & 0xC0) >> 4 (assigned to\n * ret in the branch delay slot, both paths) / __osSiRelAccess.\n * Decl order i, ret, ptr, fmt = slots 0x4C / 0x48 / 0x44 / 0x1C (40-byte\n * fmt: dummy,tx,rx,cmd, u16 address, data[32], datacrc at +38).\n * Blank externs: fn0 = __osSiGetAccess, fn1 = __osSiRawStartDma, fn2 =\n * osRecvMesg, fn3 = __osContDataCrc, fn4 = __osSiRelAccess; D_table /\n * D_bank / D_pifram2 / D_base / D_crcbuf are distinct game_libs globals\n * (all USO reloc words blanked -> 0), D_lastcmd = __osContLastCmd.\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY (real 5.3 -O1\n * compiler output; blank-extern relocs imported by the splice). */\ntypedef unsigned char u8;\ntypedef unsigned short u16;\ntypedef int s32;\ntypedef struct { u8 dummy; u8 txsize; u8 rxsize; u8 cmd; u16 address; u8 data[32]; u8 datacrc; } RamReadFormat;\ntypedef struct { int unk0; void *queue; int channel; } PFS;\nextern u8 D_00000000_pifram[];\nextern s32 D_00000000_table[];\nextern u8 D_00000000_bank[];\nextern u8 D_00000000_pifram2[];\nextern u8 D_00000000_base[];\nextern u8 D_00000000_crcbuf[];\nextern u8 D_00000000_lastcmd;\nextern void gl_func_00000000(void);\nextern s32 gl_func_00000001(s32, void *);\nextern s32 gl_func_00000002(void *, void *, s32);\nextern u8 gl_func_00000003(u8 *);\nextern void gl_func_00000004(void);\ns32 gl_func_0006CDB4(PFS *pfs) {\n    int i;\n    s32 ret;\n    u8 *ptr;\n    RamReadFormat ramreadformat;\n    ptr = D_00000000_pifram;\n    if (D_00000000_table[pfs->channel] == 0)\n        return 5;\n    gl_func_00000000();\n    D_00000000_lastcmd = 3;\n    gl_func_00000001(1, &D_00000000_bank[pfs->channel * 64]);\n    gl_func_00000002(pfs->queue, 0, 1);\n    ret = gl_func_00000001(0, D_00000000_pifram2);\n    gl_func_00000002(pfs->queue, 0, 1);\n    ptr = D_00000000_base;\n    if (pfs->channel != 0) {\n        for (i = 0; i < pfs->channel; i++) {\n            ptr++;\n        }\n    }\n    ramreadformat = *(RamReadFormat *)ptr;\n    ret = (ramreadformat.rxsize & 0xc0) >> 4;\n    if (ret == 0) {\n        if (gl_func_00000003(D_00000000_crcbuf) != ramreadformat.datacrc)\n            ret = 4;\n    }\n    gl_func_00000004();\n    return ret;\n}\ns32 gl_func_0006CF54(PFS *pfs) {\n    int i;\n    s32 ret;\n    u8 *ptr;\n    RamReadFormat ramreadformat;\n    ptr = D_00000000_pifram;\n    if (D_00000000_table[pfs->channel] == 0)\n        return 5;\n    gl_func_00000000();\n    D_00000000_lastcmd = 3;\n    gl_func_00000001(1, &D_00000000_bank[pfs->channel * 64]);\n    gl_func_00000002(pfs->queue, 0, 1);\n    ret = gl_func_00000001(0, D_00000000_pifram2);\n    gl_func_00000002(pfs->queue, 0, 1);\n    ptr = D_00000000_base;\n    if (pfs->channel != 0) {\n        for (i = 0; i < pfs->channel; i++) {\n            ptr++;\n        }\n    }\n    ramreadformat = *(RamReadFormat *)ptr;\n    ret = (ramreadformat.rxsize & 0xc0) >> 4;\n    if (ret == 0) {\n        if (gl_func_00000003(D_00000000_crcbuf) != ramreadformat.datacrc)\n            ret = 4;\n    }\n    gl_func_00000004();\n    return ret;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6CDB4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006CF54.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "word-identical twin of 6CDB4 (same donor .o, both halves byte-identical in ROM) + ROM byte-identical"
+  }
+}

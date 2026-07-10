@@ -2784,3 +2784,14 @@ gl_func_00000006 = 0x00000000;
 gl_func_00000007 = 0x00000000;
 gl_func_00000008 = 0x00000000;
 gl_func_00000009 = 0x00000000;
+/* -O1 island batch 4 donors (2026-07-09): 6D554/6D6F4/6D7CC = libultra
+   pfsisplug.c TU; 6CDB4/6CF54 twins. All game_libs-internal globals whose
+   USO reloc words are blanked -> 0. */
+D_00000000_pifram = 0x00000000;  /* __osPfsPifRam */
+D_00000000_pifram2 = 0x00000000;  /* second DMA-read PIF buffer (6CDB4) */
+D_00000000_max = 0x00000000;  /* __osMaxControllers */
+D_00000000_lastcmd = 0x00000000;  /* __osContLastCmd */
+D_00000000_table = 0x00000000;  /* 6CDB4 per-channel validity word table */
+D_00000000_bank = 0x00000000;  /* 6CDB4 per-channel 64-byte PIF write buffers */
+D_00000000_base = 0x00000000;  /* 6CDB4 readback walk base */
+D_00000000_crcbuf = 0x00000000;  /* 6CDB4 __osContDataCrc source buffer */
