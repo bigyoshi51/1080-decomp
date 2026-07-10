@@ -159,30 +159,14 @@ void arcproc_uso_func_00000240(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000240);
 #endif
 
-/* arcproc_uso_func_000005C8: CAP (verified 2026-05-31, structure is EXACT). The C
- * below matches the target's logic insn-for-insn, but stays ~43% because the target
- * is -g3/-O0 codegen: all 6 jals have UNFILLED delay slots (nop), s0 is saved/used for
- * the alloc result, frame is 0x28 — my -O2 fills the delays, keeps the result in v0,
- * frame 0x20. Needs a per-file -g3 split (Yay0-split infra) AND the raw-word jal relocs
- * are placeholder gl_func_00000000 (USO reloc-presence). Don't re-grind at -O2. */
 extern int D_00000148, D_0000014C, D_00000068;
-#ifdef NON_MATCHING
-/* arcproc_uso_func_000005C8 [-O0 fn in the -O2 arcproc_uso_tail1.c, 43% at -O2]: target has
- * UNFILLED jal delays (jal;nop) + 48w; this file is -O2 so the build fills them and compacts
- * to 37w. The -O0 C below is VERIFIED BYTE-EXACT (2026-06-23: isolated -O0 build = 48w/48w,
- * 0 real diffs — all residual diffs are reloc-resolved jal/D-read immediates + relative
- * branches). Levers: ONE reused `saved` int (frame -40 not -48); `register` s0; valued
- * distinct-externs D_00000148/14C/68 (fold to lw/sw 328/332/104).
- * PROMOTION CAPPED (2026-06-24, multiple carve attempts, reverted clean — make verify):
- * the -O0 front-carve infra is correct (sizes confirmed, arcproc non-Yay0) and the calls
- * (gl_func_00000000) are fine (matched sibling o0_50 promotes with them). The D+offset
- * reads WERE SOLVED via STRUCT-CAST-FOLD (`extern struct{...} D_00000000; D_00000000.f148`
- * -> relocs to D_00000000+offset matching the USO reloc table AND folds to lui+lw; see
- * docs/IDO_CODEGEN.md). RESIDUAL CAP: a -O0 TEMP-SLOT mismatch — `saved`'s home is sp+0x20
- * here vs sp+0x24 in the target (4 byte diffs, the sw/lw v0 offset). Same -O0 temp-pool
- * cap class as gl_func_00008C3C (NOT C-steerable). GOTCHA: an isolated reloc-aware diff
- * that filters sw/lw immediates MASKS this stack-slot diff (stack offsets aren't reloc'd)
- * -> it falsely read 0-diffs; make verify is the only promotion gate. Stays NM. */
+/* arcproc_uso_func_000005C8: 48-insn (0xC0) -O0 alloc wrapper. MATCHED 2026-07-10
+ * via REPLACE_FUNC_BODY donor arcproc_uso_o0_5C8.c (real -O0 output). This tail1
+ * unit is -O2, so IDO fills the 6 jal delays + keeps the alloc result in v0 (37w);
+ * the -O0 donor is compiled separately (48w) and spliced in. The prior "NOT
+ * C-steerable temp-slot" cap (saved@0x20 vs target 0x24) is broken by the donor's
+ * decl-order lever (declare stack temp `saved` before `register int s0` so it takes
+ * the top -O0 local slot 0x24). Body below is placeholder for the splice. */
 void arcproc_uso_func_000005C8(int *a0) {
     register int s0;
     int saved;
@@ -197,9 +181,6 @@ void arcproc_uso_func_000005C8(int *a0) {
     *(int*)((char*)a0[0] + 0x14) = 4;
     D_00000068 = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_000005C8);
-#endif
 
 /* arcproc_uso_func_00000688: 48-insn (0xC0) -O0 struct-init + zero-loop.
  * MATCHED via REPLACE_FUNC_BODY donor arcproc_uso_o0_688.c (real -O0 output;
