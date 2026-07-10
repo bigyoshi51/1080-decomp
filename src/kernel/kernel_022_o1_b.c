@@ -46,63 +46,72 @@
  * + per-field beq compares + busy-wait loop. Full body INCLUDE_ASM-
  * preserved (.s = source of truth). INCLUDE_ASM (no episode;
  * tautology-trap rule). */
-#ifdef NON_MATCHING
-extern u32 D_A4600010;
-extern s32 D_A4600014, D_A4600018, D_A460001C, D_A4600020;
-extern s32 D_A4600024, D_A4600028, D_A460002C, D_A4600030;
-extern s32 D_A0000000;
-extern void *D_8000A470;
-/* PI raw cartridge read with BSD domain register setup. Wait for PI not-busy
- * (PI_STATUS D_A4600010 & 3), then if this handle isn't the cached one for its
- * domain (arg0->unk9, the D_8000A470[domain] slot), reprogram the domain's BSD
- * timing registers that changed (latency unk5, pagesize unk6, release unk7,
- * pulse unk8 -> dom0 D_A4600014/1C/20/18 or dom1 D_A4600024/2C/30/28) and cache
- * the handle. Finally read the cartridge word at (&D_A0000000 + base|offset).
- * Externalized MMIO symbols (vs raw 0xA46000xx) give the HI16/LO16 reloc form
- * the target uses; residual = -O1 register-coloring of domain/status only. */
-s32 func_80009850(void *arg0, s32 arg1, s32 *arg2) {
-    s32 domain;
-    void *sp4;
+/* 2026-07-10 CRACKED EXACT 101/101 (identity: libultra osEPiRawReadIo,
+ * epirawread.c). The "<80 caps" above fall to the baked-constant IO_REG
+ * form: constant-pointer MMIO derefs give the fresh-temp store/load bases
+ * (extern D_A46000xx scalars emit $at-fused stores = the old floor), with
+ * register stat/domain + plain cHandle homed at sp+4 (statement-granular
+ * reloads). Host file already -O1: plain body, no donor. Sibling
+ * func_80009AB0 (osEPiRawWriteIo, kernel_024) matched the same tick. */
+#define IO_REG(a) (*(volatile u32 *)(a))
 
-    if (D_A4600010 & 3) {
-        do {
-        } while (D_A4600010 & 3);
+typedef struct OSPiHandle_s {
+    struct OSPiHandle_s *next; /* 0x00 */
+    u8 type;        /* 0x04 */
+    u8 latency;     /* 0x05 */
+    u8 pageSize;    /* 0x06 */
+    u8 relDuration; /* 0x07 */
+    u8 pulse;       /* 0x08 */
+    u8 domain;      /* 0x09 */
+    u8 pad[2];
+    u32 baseAddress; /* 0x0C */
+} OSPiHandle;
+
+extern OSPiHandle *D_8000A470[]; /* __osCurrentHandle */
+
+s32 func_80009850(OSPiHandle *pihandle, u32 devAddr, u32 *data) {
+    register u32 stat;
+    register u32 domain;
+
+    stat = IO_REG(0xA4600010);
+    while (stat & 3) {
+        stat = IO_REG(0xA4600010);
     }
-    domain = *(u8 *)((char *) arg0 + 9);
-    if (((void **) &D_8000A470)[domain] != arg0) {
-        sp4 = ((void **) &D_8000A470)[domain];
+
+    domain = pihandle->domain;
+    if (D_8000A470[domain] != pihandle) {
+        OSPiHandle *cHandle = D_8000A470[domain];
         if (domain == 0) {
-            if (*(u8 *)((char *) sp4 + 5) != *(u8 *)((char *) arg0 + 5)) {
-                D_A4600014 = *(u8 *)((char *) arg0 + 5);
+            if (cHandle->latency != pihandle->latency) {
+                IO_REG(0xA4600014) = pihandle->latency;
             }
-            if (*(u8 *)((char *) sp4 + 6) != *(u8 *)((char *) arg0 + 6)) {
-                D_A460001C = *(u8 *)((char *) arg0 + 6);
+            if (cHandle->pageSize != pihandle->pageSize) {
+                IO_REG(0xA460001C) = pihandle->pageSize;
             }
-            if (*(u8 *)((char *) sp4 + 7) != *(u8 *)((char *) arg0 + 7)) {
-                D_A4600020 = *(u8 *)((char *) arg0 + 7);
+            if (cHandle->relDuration != pihandle->relDuration) {
+                IO_REG(0xA4600020) = pihandle->relDuration;
             }
-            if (*(u8 *)((char *) sp4 + 8) != *(u8 *)((char *) arg0 + 8)) {
-                D_A4600018 = *(u8 *)((char *) arg0 + 8);
+            if (cHandle->pulse != pihandle->pulse) {
+                IO_REG(0xA4600018) = pihandle->pulse;
             }
         } else {
-            if (*(u8 *)((char *) sp4 + 5) != *(u8 *)((char *) arg0 + 5)) {
-                D_A4600024 = *(u8 *)((char *) arg0 + 5);
+            if (cHandle->latency != pihandle->latency) {
+                IO_REG(0xA4600024) = pihandle->latency;
             }
-            if (*(u8 *)((char *) sp4 + 6) != *(u8 *)((char *) arg0 + 6)) {
-                D_A460002C = *(u8 *)((char *) arg0 + 6);
+            if (cHandle->pageSize != pihandle->pageSize) {
+                IO_REG(0xA460002C) = pihandle->pageSize;
             }
-            if (*(u8 *)((char *) sp4 + 7) != *(u8 *)((char *) arg0 + 7)) {
-                D_A4600030 = *(u8 *)((char *) arg0 + 7);
+            if (cHandle->relDuration != pihandle->relDuration) {
+                IO_REG(0xA4600030) = pihandle->relDuration;
             }
-            if (*(u8 *)((char *) sp4 + 8) != *(u8 *)((char *) arg0 + 8)) {
-                D_A4600028 = *(u8 *)((char *) arg0 + 8);
+            if (cHandle->pulse != pihandle->pulse) {
+                IO_REG(0xA4600028) = pihandle->pulse;
             }
         }
-        ((void **) &D_8000A470)[domain] = arg0;
+        D_8000A470[domain] = pihandle;
     }
-    *arg2 = *(s32 *)((char *) &D_A0000000 + (*(s32 *)((char *) arg0 + 0xC) | arg1));
+
+    *data = *(volatile u32 *)(0xA0000000 | (pihandle->baseAddress | devAddr));
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009850);
-#endif
+

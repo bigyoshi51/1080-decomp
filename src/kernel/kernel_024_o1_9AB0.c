@@ -1,25 +1,22 @@
-#include "common.h"
-
-/* func_80009AB0 = libultra osEPiRawWriteIo (epirawwrite.c).
- * 2026-07-10 CRACKED EXACT 100/100: the former func_80009AB0 +
- * func_80009B60 INCLUDE_ASM fragments were ONE function (the 9B60 label
- * was a splat fragment boundary; the symbol stays exported via
- * undefined_syms_auto.txt).
- * Match levers: PI registers as baked-constant derefs (IO_REG =
- * libreultra IO_WRITE/PHYS_TO_K1 form) giving fresh-temp store bases
- * instead of $at-fused extern-scalar stores; register stat/domain;
- * plain cHandle homed at sp+4 with statement-granular reloads.
- * Donor kernel_024_o1_9AB0.c bytes replace the body below in the .o via
- * REPLACE_FUNC_BODY (see Makefile); this -O2 host body is the semantic
- * reference.
- *
- * (Historical, former func_80009B60 note: size 0xE0, was 0xD0 — merged in
- * former func_80009C30 fragment, the 4-insn fall-through tail at
- * 0x80009C30 `or t2,t5,at; sw a2,0(t2); jr ra; or v0,0,0`. The address
- * 0x80009C30 is re-exported via undefined_syms_auto.txt for callers like
- * func_80008AD0/__rmonHitCpuBreak that jal directly into the tail.) */
-
-#define IO_REG(a) (*(volatile u32 *)(a))
+/* -O1 donor for func_80009AB0 = libultra osEPiRawWriteIo (epirawwrite.c;
+ * PROVEN EXACT 100/100 standalone 2026-07-10 vs the combined
+ * asm/nonmatchings/kernel/func_80009AB0.s + func_80009B60.s splat
+ * fragments, IDO 7.1 -O1 -mips2 — the two INCLUDE_ASMs were one function).
+ * KEY LEVERS:
+ *   - PI registers accessed as BAKED-CONSTANT derefs (IO_REG macro, the
+ *     libreultra IO_WRITE/PHYS_TO_K1 form), NOT extern D_A46000xx scalars:
+ *     constant-pointer deref materializes the base in a FRESH TEMP per
+ *     store (lui t3; sw val,0x14(t3)) where the extern-scalar form emits
+ *     the $at-fused store (lui at; sw val,%lo(at)) — 28/100 floor.
+ *     Register numbering cascades into place once the form is right.
+ *   - register stat/domain + plain cHandle: cHandle homed at 0x4(sp) and
+ *     statement-granularly reloaded before each UPDATE_REG compare.
+ *   - EPI_SYNC structure straight from libreultra piint.h.
+ * Spliced into kernel_024.c.o via REPLACE_FUNC_BODY (real -O1 output;
+ * C_FILES filter-out). */
+typedef unsigned char u8;
+typedef unsigned int u32;
+typedef int s32;
 
 typedef struct OSPiHandle_s {
     struct OSPiHandle_s *next; /* 0x00 */
@@ -33,6 +30,7 @@ typedef struct OSPiHandle_s {
     u32 baseAddress; /* 0x0C */
 } OSPiHandle;
 
+#define IO_REG(a) (*(volatile u32 *)(a))
 extern OSPiHandle *D_8000A470[]; /* __osCurrentHandle */
 
 s32 func_80009AB0(OSPiHandle *pihandle, u32 devAddr, u32 data) {
@@ -80,6 +78,3 @@ s32 func_80009AB0(OSPiHandle *pihandle, u32 devAddr, u32 data) {
     *(volatile u32 *)(0xA0000000 | (pihandle->baseAddress | devAddr)) = data;
     return 0;
 }
-/* (donor bytes replace the body above in the .o; see Makefile) */
-
-/* func_80009C40 split out to kernel_046.c (-O1) */

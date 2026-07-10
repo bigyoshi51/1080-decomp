@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80009850",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T04:48:24.315186+00:00",
+  "end_time": "2026-07-10T04:48:24.315206+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T04:48:24.315200+00:00",
+      "assistant_text": "IDENTIFIED: libultra osEPiRawReadIo (epirawread.c). Broke the '<80% MMIO-reloc cap' with the same constant-MMIO-vs-extern lever. TU-defined 2-byte struct (PgsRls D_8001B656 = {0}) for a single shared-$at pair \u2014 the precision version of the TU-defined-global lever (full struct over-batches).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 104,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor probe for func_80009850 = libultra osEPiRawReadIo\n * (epirawread.c; spans the 9AB0+9B60 splat fragments). */\ntypedef unsigned char u8;\ntypedef unsigned int u32;\ntypedef int s32;\n\ntypedef struct OSPiHandle_s {\n    struct OSPiHandle_s *next; /* 0x00 */\n    u8 type;        /* 0x04 */\n    u8 latency;     /* 0x05 */\n    u8 pageSize;    /* 0x06 */\n    u8 relDuration; /* 0x07 */\n    u8 pulse;       /* 0x08 */\n    u8 domain;      /* 0x09 */\n    u8 pad[2];\n    u32 baseAddress; /* 0x0C */\n} OSPiHandle;\n\n#define IO_REG(a) (*(volatile u32 *)(a))\nextern OSPiHandle *D_8000A470[]; /* __osCurrentHandle */\n\ns32 func_80009850(OSPiHandle *pihandle, u32 devAddr, u32 *data) {\n    register u32 stat;\n    register u32 domain;\n\n    stat = IO_REG(0xA4600010);\n    while (stat & 3) {\n        stat = IO_REG(0xA4600010);\n    }\n\n    domain = pihandle->domain;\n    if (D_8000A470[domain] != pihandle) {\n        OSPiHandle *cHandle = D_8000A470[domain];\n        if (domain == 0) {\n            if (cHandle->latency != pihandle->latency) {\n                IO_REG(0xA4600014) = pihandle->latency;\n            }\n            if (cHandle->pageSize != pihandle->pageSize) {\n                IO_REG(0xA460001C) = pihandle->pageSize;\n            }\n            if (cHandle->relDuration != pihandle->relDuration) {\n                IO_REG(0xA4600020) = pihandle->relDuration;\n            }\n            if (cHandle->pulse != pihandle->pulse) {\n                IO_REG(0xA4600018) = pihandle->pulse;\n            }\n        } else {\n            if (cHandle->latency != pihandle->latency) {\n                IO_REG(0xA4600024) = pihandle->latency;\n            }\n            if (cHandle->pageSize != pihandle->pageSize) {\n                IO_REG(0xA460002C) = pihandle->pageSize;\n            }\n            if (cHandle->relDuration != pihandle->relDuration) {\n                IO_REG(0xA4600030) = pihandle->relDuration;\n            }\n            if (cHandle->pulse != pihandle->pulse) {\n                IO_REG(0xA4600028) = pihandle->pulse;\n            }\n        }\n        D_8000A470[domain] = pihandle;\n    }\n\n    *data = *(volatile u32 *)(0xA0000000 | (pihandle->baseAddress | devAddr));\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_022_o1_b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/kernel/func_80009850.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (host TU)",
+    "verification": "101/101 word-exact + make ROM byte-identical"
+  }
+}

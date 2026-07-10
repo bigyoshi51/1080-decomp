@@ -1,0 +1,33 @@
+{
+  "function_name": "func_800058C0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T04:48:23.573278+00:00",
+  "end_time": "2026-07-10T04:48:23.573295+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T04:48:23.573290+00:00",
+      "assistant_text": "IDENTIFIED: libultra osCartRomInit (cartrominit.c). Broke the documented 'one extra lui' cap \u2014 the constant-MMIO-deref-vs-extern-scalar lever: (*(volatile u32*)0xA46...) emits a fresh-temp base per access; extern volatile u32 D_A46xx emits $at-fused stores. %hi relocs landing in non-$at regs in the .s = the source used the IO_WRITE constant form.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 64,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for func_800058C0 = libultra osCartRomInit (cartrominit.c;\n * PROVEN EXACT 60/60 standalone 2026-07-10 vs\n * asm/nonmatchings/kernel/func_800058C0.s, IDO 7.1 -O1 -mips2).\n * Breaks the 2026-06-10 documented \"one extra lui\" cap.\n * KEY LEVERS:\n *   - TU-DEFINED 2-byte struct `PgsRls D_8001B656 = {0};` (pageSize +\n *     relDuration) => the srl;srl;andi;andi;sb;sb pair emits under ONE\n *     `lui $at` (extern scalars = one lui per store = the old 60/61\n *     floor). Same shared-$at family as the 5520/6DA74 donors; the\n *     splice imports the reloc as UNDEF and undefined_syms_auto.txt\n *     carries D_8001B656 = 0x8001B656 (relDuration = %lo(D_8001B656)+1\n *     links byte-identically to the .s's D_8001B657 reloc).\n *   - CartRomHandle typed `extern void *` (the 0x00 `next` field):\n *     `CartRomHandle = D_8000A46C` emits the direct lui-$at global store\n *     (a struct/array deref form materializes a base pointer instead).\n *   - bzero arg `(u8 *)&CartRomHandle + 0x14` keeps the unfolded\n *     lui/addiu %lo/addiu +0x14 pair with the hoisted lui.\n * All other fields stay extern scalars => statement-granular own-lui\n * stores. Spliced into kernel_008.c.o via REPLACE_FUNC_BODY (real -O1\n * output; donor relocs imported; C_FILES filter-out). */\ntypedef unsigned char u8;\ntypedef unsigned int u32;\ntypedef int s32;\n\ntypedef struct {\n    u8 pageSize;     /* 0x8001B656 */\n    u8 relDuration;  /* 0x8001B657 */\n} PgsRls;\n\nextern void *CartRomHandle;         /* 0x8001B650 (next field / handle base) */\nextern u8 D_8001B654;               /* type */\nextern u8 D_8001B655;               /* latency */\nextern u8 D_8001B658;               /* pulse */\nextern u8 D_8001B659;               /* domain */\nextern volatile u32 D_8001B65C;     /* baseAddress */\nextern u32 D_8001B660;              /* speed */\nextern void *D_8000A46C;            /* __osPiTable */\nextern s32 func_80002DB0(s32, u32 *);   /* osPiRawReadIo */\nextern void func_800030D0(void *, s32); /* bzero */\nextern s32 func_800066B0(void);         /* __osDisableInt */\nextern void func_800066D0(s32);         /* __osRestoreInt */\n\nPgsRls D_8001B656 = {0};\n\nvoid *func_800058C0(void) {\n    u32 domain;\n    u32 saveMask;\n\n    domain = 0;\n    if (D_8001B65C == 0xB0000000) {\n        return &CartRomHandle;\n    }\n\n    D_8001B654 = 0;\n    D_8001B65C = 0xB0000000;\n    func_80002DB0(0, &domain);\n    D_8001B655 = domain & 0xFF;\n    D_8001B658 = (domain >> 8) & 0xFF;\n    D_8001B656.pageSize = (domain >> 0x10) & 0xF;\n    D_8001B656.relDuration = (domain >> 0x14) & 0xF;\n    D_8001B659 = 0;\n    D_8001B660 = 0;\n    func_800030D0((u8 *)&CartRomHandle + 0x14, 0x60);\n    saveMask = func_800066B0();\n    CartRomHandle = D_8000A46C;\n    D_8000A46C = &CartRomHandle;\n    func_800066D0(saveMask);\n    return &CartRomHandle;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_008_o1_58C0.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/kernel/func_800058C0.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "60/60 word-exact + make ROM byte-identical"
+  }
+}

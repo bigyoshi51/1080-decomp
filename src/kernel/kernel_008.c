@@ -19,15 +19,18 @@ extern void func_800030D0(void*, s32);
 extern s32 func_800066B0(void);
 extern void func_800066D0(s32);
 
-/* osCartRomInit
- * 2026-06-10 kernel-relayout RETRACTION: the previous C was a FALSE match —
- * it emitted 0xE0 bytes vs ROM's 0xF4 (verified pre-relayout against a
- * shifted baseline; episode deleted). The libreultra-shape body below gets
- * 60/61 insns but one extra lui: ROM pairs the pageSize/relDuration
- * computations (srl;srl;andi;andi;sb;sb sharing one $at lui) which -O1
- * won't reproduce from separate statements (one-line/comma/temp forms all
- * tried; -g/-mips1/5.3 matrices too). INCLUDE_ASM is the build path. */
-#ifdef NON_MATCHING
+/* func_800058C0 = libultra osCartRomInit (cartrominit.c).
+ * 2026-07-10 CRACKED EXACT 60/60: the documented "one extra lui" cap (the
+ * pageSize/relDuration sb pair sharing one $at lui) falls to the TU-DEFINED
+ * shared-$at lever — the -O1 donor kernel_008_o1_58C0.c defines a 2-byte
+ * struct at D_8001B656 so that pair batches under one lui; all other fields
+ * stay extern scalars (statement-granular own-lui stores). CartRomHandle is
+ * typed `extern void *` in the donor so the `next = __osPiTable` store emits
+ * the direct lui-$at global-store form. Donor bytes replace the body below
+ * in the .o via REPLACE_FUNC_BODY (see Makefile); this -O2 host body is the
+ * semantic reference.
+ * (Historical: 2026-06-10 relayout retracted an earlier FALSE match that
+ * emitted 0xE0 vs ROM's 0xF4.) */
 OSPiHandle* func_800058C0(void) {
     u32 domain;
     u32 saveMask;
@@ -53,6 +56,4 @@ OSPiHandle* func_800058C0(void) {
     func_800066D0(saveMask);
     return &CartRomHandle;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800058C0);
-#endif
+/* (donor bytes replace the body above in the .o; see Makefile) */

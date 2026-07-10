@@ -1,0 +1,33 @@
+{
+  "function_name": "func_800047B0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T04:48:23.827838+00:00",
+  "end_time": "2026-07-10T04:48:23.827857+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T04:48:23.827852+00:00",
+      "assistant_text": "Unaligned big-endian u32 byte-pack. Broke the 'register-name-only cap' (92.73% permuter-immune floor): v |= x COMPOUND assignment = or with accumulator-first operand order + fresh-temp threading of a plain local at -O1 (v = v | x canonicalizes the other way).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 22,
+  "initial_m2c_source": null,
+  "final_source": "typedef unsigned char u8; typedef unsigned int u32;\nu32 func_800047B0(u8 *a0) {\n    u32 v;\n    v = (a0[0] & 0xFF) << 24;\n    v |= (a0[1] & 0xFF) << 16;\n    v |= (a0[2] & 0xFF) << 8;\n    v |= a0[3] & 0xFF;\n    return v;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_027_b.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/kernel/func_800047B0.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (host TU)",
+    "verification": "22/22 word-exact + make ROM byte-identical"
+  }
+}

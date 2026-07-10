@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80009AB0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T04:48:24.068109+00:00",
+  "end_time": "2026-07-10T04:48:24.068129+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T04:48:24.068123+00:00",
+      "assistant_text": "IDENTIFIED: libultra osEPiRawWriteIo (epirawwrite.c). The 9AB0/9B60 INCLUDE_ASM pair was ONE function (fragment merged; 9B60 symbol retained in undefined_syms). The constant-MMIO lever took this 28/100 -> 100/100 in one change. TRUNCATE_TEXT 0x190.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 44,
+  "initial_m2c_source": null,
+  "final_source": "/* -O1 donor for func_80009AB0 = libultra osEPiRawWriteIo (epirawwrite.c;\n * PROVEN EXACT 100/100 standalone 2026-07-10 vs the combined\n * asm/nonmatchings/kernel/func_80009AB0.s + func_80009B60.s splat\n * fragments, IDO 7.1 -O1 -mips2 \u2014 the two INCLUDE_ASMs were one function).\n * KEY LEVERS:\n *   - PI registers accessed as BAKED-CONSTANT derefs (IO_REG macro, the\n *     libreultra IO_WRITE/PHYS_TO_K1 form), NOT extern D_A46000xx scalars:\n *     constant-pointer deref materializes the base in a FRESH TEMP per\n *     store (lui t3; sw val,0x14(t3)) where the extern-scalar form emits\n *     the $at-fused store (lui at; sw val,%lo(at)) \u2014 28/100 floor.\n *     Register numbering cascades into place once the form is right.\n *   - register stat/domain + plain cHandle: cHandle homed at 0x4(sp) and\n *     statement-granularly reloaded before each UPDATE_REG compare.\n *   - EPI_SYNC structure straight from libreultra piint.h.\n * Spliced into kernel_024.c.o via REPLACE_FUNC_BODY (real -O1 output;\n * C_FILES filter-out). */\ntypedef unsigned char u8;\ntypedef unsigned int u32;\ntypedef int s32;\n\ntypedef struct OSPiHandle_s {\n    struct OSPiHandle_s *next; /* 0x00 */\n    u8 type;        /* 0x04 */\n    u8 latency;     /* 0x05 */\n    u8 pageSize;    /* 0x06 */\n    u8 relDuration; /* 0x07 */\n    u8 pulse;       /* 0x08 */\n    u8 domain;      /* 0x09 */\n    u8 pad[2];\n    u32 baseAddress; /* 0x0C */\n} OSPiHandle;\n\n#define IO_REG(a) (*(volatile u32 *)(a))\nextern OSPiHandle *D_8000A470[]; /* __osCurrentHandle */\n\ns32 func_80009AB0(OSPiHandle *pihandle, u32 devAddr, u32 data) {\n    register u32 stat;\n    register u32 domain;\n\n    stat = IO_REG(0xA4600010);\n    while (stat & 3) {\n        stat = IO_REG(0xA4600010);\n    }\n\n    domain = pihandle->domain;\n    if (D_8000A470[domain] != pihandle) {\n        OSPiHandle *cHandle = D_8000A470[domain];\n        if (domain == 0) {\n            if (cHandle->latency != pihandle->latency) {\n                IO_REG(0xA4600014) = pihandle->latency;\n            }\n            if (cHandle->pageSize != pihandle->pageSize) {\n                IO_REG(0xA460001C) = pihandle->pageSize;\n            }\n            if (cHandle->relDuration != pihandle->relDuration) {\n                IO_REG(0xA4600020) = pihandle->relDuration;\n            }\n            if (cHandle->pulse != pihandle->pulse) {\n                IO_REG(0xA4600018) = pihandle->pulse;\n            }\n        } else {\n            if (cHandle->latency != pihandle->latency) {\n                IO_REG(0xA4600024) = pihandle->latency;\n            }\n            if (cHandle->pageSize != pihandle->pageSize) {\n                IO_REG(0xA460002C) = pihandle->pageSize;\n            }\n            if (cHandle->relDuration != pihandle->relDuration) {\n                IO_REG(0xA4600030) = pihandle->relDuration;\n            }\n            if (cHandle->pulse != pihandle->pulse) {\n                IO_REG(0xA4600028) = pihandle->pulse;\n            }\n        }\n        D_8000A470[domain] = pihandle;\n    }\n\n    *(volatile u32 *)(0xA0000000 | (pihandle->baseAddress | devAddr)) = data;\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_024_o1_9AB0.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/kernel/func_80009AB0.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "100/100 word-exact (two INCLUDE_ASM fragments were ONE function \u2014 9B60 absorbed) + make ROM byte-identical"
+  }
+}

@@ -5,7 +5,9 @@ extern s32 func_80005120(void*);
 /* split from kernel_027.c - 2026-06-10 kernel ROM-order relayout */
 
 
-/* func_800047B0: 22-insn unaligned-big-endian-u32 load from byte array.
+/* [RESOLVED 2026-07-10 — cap cracked via |= compound-assign; see the exact
+ * body below. Historical characterization retained:]
+ * func_800047B0: 22-insn unaligned-big-endian-u32 load from byte array.
  * Merged 2026-05-14 from 47B0 (13-insn prologue) + 47E4 (9-insn tail)
  * splat fragments. Alt-entry at 47E4 preserved via undefined_syms_auto.txt.
  *
@@ -43,30 +45,21 @@ extern s32 func_80005120(void*);
  * Verdict: genuine IDO -O1 register-allocation cap. Leave as 92.73%
  * reference wrap; INCLUDE_ASM keeps ROM byte-exact. Do NOT re-grind C
  * variants or INSN_PATCH; only a targeted long permuter run could help. */
-/* Unaligned big-endian u32 load. Register-chain accumulator with a
- * speculative volatile-sink store to sp+4 after every OR step.
- * NATURAL CEILING: 92.73% NM. Target threads the accumulator through fresh
- * regs each step ($t8 -> $t2 -> $t6 -> $t0); the C `register u32 acc`
- * pins to $a1 every step. The 19-insn register-rename diff was previously
- * documented as INSN_PATCH-promotable to EXACT — INSN_PATCH REMOVED
- * 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy; see also the contradicting
- * earlier comment block above which already flagged INSN_PATCH as invalid
- * here per the tautology trap). Default build is INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* Unaligned big-endian u32 load (byte-pack). CRACKED EXACT 22/22
+ * 2026-07-10: the "register-name-only cap" falls to the plain-local +
+ * COMPOUND-ASSIGNMENT form. `v |= expr;` builds the OR tree acc-first
+ * (rs=accumulator, rt=new bits), and a single plain (non-register,
+ * non-volatile) local at -O1 gets exactly one home slot (sp+4) with a
+ * store after each step while the accumulator threads through fresh
+ * temps ($t8 -> $t2 -> $t6 -> $t0). The old 92.73% floor came from
+ * `acc = acc | expr` (canonicalizes rs=new / rt=acc) and from
+ * register/volatile-sink hybrids (pin the accumulator). No donor needed:
+ * this file is already -O1. */
 u32 func_800047B0(u8 *a0) {
-  volatile u32 sb;
-  register u32 acc;
-  acc = (a0[0] & 0xFF) << 24;
-  sb = acc;
-  acc = acc | ((a0[1] & 0xFF) << 16);
-  sb = acc;
-  acc |= (a0[2] & 0xFF) << 8;
-  sb = acc;
-  acc = acc | (a0[3] & 0xFF);
-  sb = acc;
-  return acc;
+    u32 v;
+    v = (a0[0] & 0xFF) << 24;
+    v |= (a0[1] & 0xFF) << 16;
+    v |= (a0[2] & 0xFF) << 8;
+    v |= a0[3] & 0xFF;
+    return v;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800047B0);
-#endif
