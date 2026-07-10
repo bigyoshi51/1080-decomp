@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00010AB0",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T08:12:26.491386+00:00",
+  "end_time": "2026-07-10T08:12:26.491406+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T08:12:26.491400+00:00",
+      "assistant_text": "-O0 island: REGISTER PARAMS suppress -O0 arg homing (unhomed a0-a3); register char *s colors t0 in leaf; array-form ((RecAB0*)(a0+0x84))[cursor].fXX per-store base recompute; 47/47",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 47,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* func_00010AB0: -O0 island split out of bootup_uso_tail3a.c on 2026-07-10\n * and MATCHED at -O0 (47/47 target words; 1 trailing pad word clipped by\n * TRUNCATE_TEXT 0xBC). Record-append into the 0x28-stride ring at a0+0x84:\n * rec.f88 = 1 (in-use), rec.f8C = (a2 == -1 ? cursor : a2), rec.f84 = a1,\n * rec.f90 = a3, then a0->0x78++ (ring cursor).\n *\n * -O0 levers that produced the exact bytes:\n *  - REGISTER PARAMS (register char *a0, register int a1/a2/a3): suppresses\n *    the -O0 arg homing entirely (args used straight from a0-a3, matching\n *    the island's unhomed shape).\n *  - `register char *s` -- leaf fn, so the register local colors t0 (the\n *    `or t0, a0, zero` before the cursor increment), and as the only\n *    (register-first) local it reserves a dead home slot -> frame 0x8.\n *  - every field store recomputes the record base from scratch via the\n *    ARRAY FORM ((RecAB0*)(a0 + 0x84))[cursor].fXX: base-first addu\n *    (addu $t9, $a0, $t8) + per-field folded displacement.\n *  - `if (a2 != -1) {...} else {...}` puts the a2-store arm first with the\n *    b-over-else, matching the target block order. */\ntypedef struct { int f84, f88, f8C, f90; char pad[0x18]; } RecAB0;\n\nvoid func_00010AB0(register char *a0, register int a1, register int a2, register int a3) {\n    register char *s;\n\n    ((RecAB0*)(a0 + 0x84))[*(int*)(a0 + 0x78)].f88 = 1;\n    if (a2 != -1) {\n        ((RecAB0*)(a0 + 0x84))[*(int*)(a0 + 0x78)].f8C = a2;\n    } else {\n        ((RecAB0*)(a0 + 0x84))[*(int*)(a0 + 0x78)].f8C = *(int*)(a0 + 0x78);\n    }\n    ((RecAB0*)(a0 + 0x84))[*(int*)(a0 + 0x78)].f84 = a1;\n    ((RecAB0*)(a0 + 0x84))[*(int*)(a0 + 0x78)].f90 = a3;\n    s = a0;\n    *(int*)(s + 0x78) += 1;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/bootup_uso/bootup_uso_o0_10AB0.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/bootup_uso/func_00010AB0.s",
+    "segment": "bootup_uso",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0 clean rebuild; cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}
