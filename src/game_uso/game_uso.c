@@ -7191,13 +7191,13 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
     }
 
     if (arg3 == NULL) {
-        p = &a;
+        p = 0; if (1) { p = &a; }
         if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto sc1; }
         p->y = 0.0f;
         p->x = *(float *)(arg2 + 0x30);
         p->z = *(float *)(arg2 + 0x38);
 sc1:
-        p = &b;
+        p = 0; if (1) { p = &b; }
         if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto sc2; }
         p->y = 0.0f;
         p->x = a.x - *(float *)(arg4 + 0x0);
@@ -7211,13 +7211,13 @@ sc2:
 
     mode = 0;
 
-    p = &scratch;
+    p = 0; if (1) { p = &scratch; }
     if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto w1; }
     p->y = 0.0f;
     p->z = *(float *)(arg3 + 0x38);
     p->x = *(float *)(arg3 + 0x30);
 w1:
-    p = &a;
+    p = 0; if (1) { p = &a; }
     if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto w2; }
     p->y = 0.0f;
     p->x = scratch.x - *(float *)(arg2 + 0x30);
@@ -7241,13 +7241,13 @@ w2:
         }
         if (active == 1 && dot <= *(float *)((char *)&D_00000000 + 0xFC)) {
             char *src = (char *)(*(int *)(arg1 + 0x30) + 0x908) + 0xB4;
-            p = &c;
+            p = 0; if (1) { p = &c; }
             if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto w3; }
             p->y = 0.0f;
             p->x = *(float *)(src + 0x0);
             p->z = *(float *)(src + 0x8);
 w3:
-            p = &d;
+            p = 0; if (1) { p = &d; }
             if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto w4; }
             p->y = 0.0f;
             p->x = c.x - *(float *)(arg2 + 0x30);
@@ -7259,7 +7259,7 @@ w4:
         }
     }
 
-    p = &b;
+    p = 0; if (1) { p = &b; }
     if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto w5; }
     p->y = 0.0f;
     p->x = stage.z;
@@ -7269,13 +7269,13 @@ w5:
     *(Tri3i *)&segDir  = *(Tri3i *)&scratch;
     game_uso_func_071028(&segDir);
 
-    p = &c;
+    p = 0; if (1) { p = &c; }
     if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto w6; }
     p->y = 0.0f;
     p->z = *(float *)(arg3 + 0x38);
     p->x = *(float *)(arg3 + 0x30);
 w6:
-    p = &d;
+    p = 0; if (1) { p = &d; }
     if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto w7; }
     p->y = 0.0f;
     p->x = c.x - *(float *)(arg4 + 0x0);
@@ -7317,13 +7317,13 @@ w7:
         notFirst = (hit != 0);
         firstFlag = (notFirst == 0);
 
-        p = &a;
+        p = 0; if (1) { p = &a; }
         if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto L1; }
         p->y = 0.0f;
         p->x = *(float *)(node + 0x30);
         p->z = *(float *)(node + 0x38);
 L1:
-        p = &b;
+        p = 0; if (1) { p = &b; }
         if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto L2; }
         p->y = 0.0f;
         p->z = a.z - *(float *)(arg3 + 0x38);
@@ -7332,7 +7332,7 @@ L2:
         *(Tri3i *)&scratch = *(Tri3i *)&b;
         *(Tri3i *)&segDir  = *(Tri3i *)&scratch;
 
-        p = &c;
+        p = 0; if (1) { p = &c; }
         if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto L3; }
         p->y = 0.0f;
         p->x = segDir.z;
@@ -7342,13 +7342,13 @@ L3:
         *(Tri3i *)&d   = *(Tri3i *)&buf;
         game_uso_func_071028(&d);
 
-        p = &e;
+        p = 0; if (1) { p = &e; }
         if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto L4; }
         p->y = 0.0f;
         p->x = *(float *)(node + 0x30);
         p->z = *(float *)(node + 0x38);
 L4:
-        p = &f;
+        p = 0; if (1) { p = &f; }
         if (p == NULL) { p = (Vec3 *)game_uso_func_055750(0xC); if (p == NULL) goto L5; }
         p->y = 0.0f;
         p->x = e.x - *(float *)(arg4 + 0x0);
