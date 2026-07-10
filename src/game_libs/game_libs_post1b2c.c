@@ -2294,6 +2294,23 @@ void gl_func_0006FFE4(int mask) {
     gl_func_00000000(sr);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070030);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070040);
+/* gl_func_00070040 = libultra osAiSetFrequency (aisetfreq.c verbatim):
+ * dacRate = osViClock/(f32)freq + .5f; <132 -> -1; bitRate = dacRate/66
+ * capped 16; AI_DACRATE/BITRATE = -1'd; AI_CONTROL = DMA_ON; returns
+ * osViClock/dacRate. BOUNDARY FIX: the 3-word orphan
+ * game_libs_func_00070030 (lui/lw osViClock + mtc1 a0,$f8) was this
+ * function's hoisted head scheduled before the addiu-sp prologue by IDO
+ * 5.3; its INCLUDE_ASM was removed and the spliced symbol covers
+ * 0x70034..0x70194 (the orphan's leading 0x70030 pad nop is emitted as
+ * SUFFIX_BYTES_FORCE on gl_func_0006FFE4).
+ * WIRED 2026-07-10 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_70040.c (88/88; 7.1 -O1
+ * coalesces the u8 bitRate andi-to-temp+or pair). Body below is a
+ * placeholder for the splice. */
+int gl_func_00070040(unsigned int frequency) {
+    volatile int ret = -1;
+    if (frequency != 0) {
+        ret = 0;
+    }
+    return ret;
+}

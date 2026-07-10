@@ -505,13 +505,45 @@ build/src/game_libs/game_libs_ido53_6D7CC.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_6D7CC.c.o build/non_matching/src/game_libs/game_libs_ido53_6D7CC.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_6CDB4.c.o build/non_matching/src/game_libs/game_libs_ido53_6CDB4.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_6CDB4.c.o build/non_matching/src/game_libs/game_libs_ido53_6CDB4.c.o: OPT_FLAGS := -O1
+# -O1 island batch 6 (2026-07-10): the AI/VI/EPI libultra block, all IDO
+# 5.3 -O1 (each donor header has the proof + the 5.3-vs-7.1 discriminator).
+# 70040 = osAiSetFrequency (absorbs orphan 70030), 730CC = osEPiRawReadIo
+# (absorbs 730C4), 7369C = osEPiRawWriteIo (absorbs 73694), 70B04 =
+# __osViInit (pad.s deleted; delay nop in donor + SUFFIX word), 70C44 =
+# __osViSwapContext, 73310 = osViGetCurrentField (leading pad nop ->
+# SUFFIX on 732C4).
+GAMELIBS_70040_DONOR := build/src/game_libs/game_libs_ido53_70040.c.o
+GAMELIBS_730CC_DONOR := build/src/game_libs/game_libs_ido53_730CC.c.o
+GAMELIBS_7369C_DONOR := build/src/game_libs/game_libs_ido53_7369C.c.o
+GAMELIBS_70B04_DONOR := build/src/game_libs/game_libs_ido53_70B04.c.o
+GAMELIBS_70C44_DONOR := build/src/game_libs/game_libs_ido53_70C44.c.o
+GAMELIBS_73310_DONOR := build/src/game_libs/game_libs_ido53_73310.c.o
+build/src/game_libs/game_libs_ido53_70040.c.o build/non_matching/src/game_libs/game_libs_ido53_70040.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_70040.c.o build/non_matching/src/game_libs/game_libs_ido53_70040.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_730CC.c.o build/non_matching/src/game_libs/game_libs_ido53_730CC.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_730CC.c.o build/non_matching/src/game_libs/game_libs_ido53_730CC.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_7369C.c.o build/non_matching/src/game_libs/game_libs_ido53_7369C.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_7369C.c.o build/non_matching/src/game_libs/game_libs_ido53_7369C.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_70B04.c.o build/non_matching/src/game_libs/game_libs_ido53_70B04.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_70B04.c.o build/non_matching/src/game_libs/game_libs_ido53_70B04.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_70C44.c.o build/non_matching/src/game_libs/game_libs_ido53_70C44.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_70C44.c.o build/non_matching/src/game_libs/game_libs_ido53_70C44.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_73310.c.o build/non_matching/src/game_libs/game_libs_ido53_73310.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_73310.c.o build/non_matching/src/game_libs/game_libs_ido53_73310.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_mips3_6C740.c.o build/non_matching/src/game_libs/game_libs_mips3_6C740.c.o: MIPSISET := -mips3 -32
-build/src/game_libs/game_libs_post1b2c.c.o build/non_matching/src/game_libs/game_libs_post1b2c.c.o: REPLACE_FUNC_BODY := game_libs_func_0006C8AC=$(GAMELIBS_6C8AC_DONOR) gl_func_0006C90C=$(GAMELIBS_6C8AC_DONOR) gl_func_0006C9F4=$(GAMELIBS_6C9F4_DONOR) gl_func_0006F534=$(GAMELIBS_6F534_DONOR) gl_func_0006CCD4=$(GAMELIBS_6CCD4_DONOR) gl_func_0006E1A4=$(GAMELIBS_6E1A4_DONOR) gl_func_0006FFE4=$(GAMELIBS_6FFE4_DONOR) gl_func_0006FAD4=$(GAMELIBS_6FAD4_DONOR) game_libs_func_0006C740=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C77C=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C7B8=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C7E4=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C820=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C87C=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C9A8=$(GAMELIBS_6C740_DONOR) gl_func_0006D0F4=$(GAMELIBS_6D0F4_DONOR) gl_func_0006DA74=$(GAMELIBS_6DA74_DONOR) gl_func_0006CDB4=$(GAMELIBS_6CDB4_DONOR) gl_func_0006CF54=$(GAMELIBS_6CDB4_DONOR) gl_func_0006D554=$(GAMELIBS_6D554_DONOR) gl_func_0006D6F4=$(GAMELIBS_6D6F4_DONOR) gl_func_0006D7CC=$(GAMELIBS_6D7CC_DONOR) gl_func_0006CAD4=$(GAMELIBS_6CAD4_DONOR) gl_func_0006CB84=$(GAMELIBS_6CB84_DONOR) gl_func_0006CC64=$(GAMELIBS_6CC64_DONOR) gl_func_0006D270=$(GAMELIBS_6D270_DONOR)
+build/src/game_libs/game_libs_post1b2c.c.o build/non_matching/src/game_libs/game_libs_post1b2c.c.o: REPLACE_FUNC_BODY := game_libs_func_0006C8AC=$(GAMELIBS_6C8AC_DONOR) gl_func_0006C90C=$(GAMELIBS_6C8AC_DONOR) gl_func_0006C9F4=$(GAMELIBS_6C9F4_DONOR) gl_func_0006F534=$(GAMELIBS_6F534_DONOR) gl_func_0006CCD4=$(GAMELIBS_6CCD4_DONOR) gl_func_0006E1A4=$(GAMELIBS_6E1A4_DONOR) gl_func_0006FFE4=$(GAMELIBS_6FFE4_DONOR) gl_func_0006FAD4=$(GAMELIBS_6FAD4_DONOR) game_libs_func_0006C740=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C77C=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C7B8=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C7E4=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C820=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C87C=$(GAMELIBS_6C740_DONOR) game_libs_func_0006C9A8=$(GAMELIBS_6C740_DONOR) gl_func_0006D0F4=$(GAMELIBS_6D0F4_DONOR) gl_func_0006DA74=$(GAMELIBS_6DA74_DONOR) gl_func_0006CDB4=$(GAMELIBS_6CDB4_DONOR) gl_func_0006CF54=$(GAMELIBS_6CDB4_DONOR) gl_func_0006D554=$(GAMELIBS_6D554_DONOR) gl_func_0006D6F4=$(GAMELIBS_6D6F4_DONOR) gl_func_0006D7CC=$(GAMELIBS_6D7CC_DONOR) gl_func_0006CAD4=$(GAMELIBS_6CAD4_DONOR) gl_func_0006CB84=$(GAMELIBS_6CB84_DONOR) gl_func_0006CC64=$(GAMELIBS_6CC64_DONOR) gl_func_0006D270=$(GAMELIBS_6D270_DONOR) gl_func_00070040=$(GAMELIBS_70040_DONOR)
 # gl_func_0006EF08: -O2 body emits the 0x58 target function (jr-ra + delay nop);
 # append the 1-word all-zero alignment pad at 0x6EF60 so gl_func_0006EF64 sits at
 # +0x5C. FORCE because the function ends in the natural jr-ra;nop epilogue.
-build/src/game_libs/game_libs_post1b2c.c.o: SUFFIX_BYTES_FORCE := gl_func_0006EF08=0x00000000 gl_func_0006CAD4=0x00000000 gl_func_0006CB84=0x00000000
-build/non_matching/src/game_libs/game_libs_post1b2c.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_0006EF08=0x00000000 gl_func_0006CAD4=0x00000000 gl_func_0006CB84=0x00000000
+build/src/game_libs/game_libs_post1b2c.c.o: SUFFIX_BYTES_FORCE := gl_func_0006EF08=0x00000000 gl_func_0006CAD4=0x00000000 gl_func_0006CB84=0x00000000 gl_func_0006FFE4=0x00000000
+build/non_matching/src/game_libs/game_libs_post1b2c.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_0006EF08=0x00000000 gl_func_0006CAD4=0x00000000 gl_func_0006CB84=0x00000000 gl_func_0006FFE4=0x00000000
+# batch 6: 70B04 alignment word at 0x70C40 (donor delay nop covers 0x70C3C,
+# _pad.s sidecar deleted); 732C4 pad nop at 0x73310 (osViGetCurrentField true
+# entry = 0x73314 after the 73310 orphan-nop absorption).
+build/src/game_libs/game_libs_post1c.c.o: SUFFIX_BYTES_FORCE := gl_func_00070B04=0x00000000
+build/non_matching/src/game_libs/game_libs_post1c.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00070B04=0x00000000
+build/src/game_libs/game_libs_post2b_c.c.o: SUFFIX_BYTES_FORCE := gl_func_000732C4=0x00000000
+build/non_matching/src/game_libs/game_libs_post2b_c.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_000732C4=0x00000000
 build/src/game_libs/game_libs_o1_6C8AC.c.o build/non_matching/src/game_libs/game_libs_o1_6C8AC.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_o1_6C8AC.c.o build/non_matching/src/game_libs/game_libs_o1_6C8AC.c.o: MIPSISET := -mips3 -32
 # More masked-twin libultra helpers (other parent units), IDO 5.3 -O1.
@@ -598,9 +630,9 @@ build/src/game_libs/game_libs_post2.c.o build/non_matching/src/game_libs/game_li
 build/src/game_libs/game_libs_post1b.c.o: SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000
 build/non_matching/src/game_libs/game_libs_post1b.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000
 build/src/game_libs/game_libs_post2b_e.c.o build/non_matching/src/game_libs/game_libs_post2b_e.c.o: REPLACE_FUNC_BODY := gl_func_00074C04=$(GAMELIBS_74C04_DONOR)
-build/src/game_libs/game_libs_post1c.c.o build/non_matching/src/game_libs/game_libs_post1c.c.o: REPLACE_FUNC_BODY := gl_func_00070634=$(GAMELIBS_70634_DONOR)
-build/src/game_libs/game_libs_post2b_d.c.o build/non_matching/src/game_libs/game_libs_post2b_d.c.o: REPLACE_FUNC_BODY := gl_func_000747F4=$(GAMELIBS_747F4_DONOR) gl_func_00073824=$(GAMELIBS_73824_DONOR)
-build/src/game_libs/game_libs_post2b_c.c.o build/non_matching/src/game_libs/game_libs_post2b_c.c.o: REPLACE_FUNC_BODY := gl_func_000732C4=$(GAMELIBS_732C4_DONOR)
+build/src/game_libs/game_libs_post1c.c.o build/non_matching/src/game_libs/game_libs_post1c.c.o: REPLACE_FUNC_BODY := gl_func_00070634=$(GAMELIBS_70634_DONOR) gl_func_00070B04=$(GAMELIBS_70B04_DONOR) gl_func_00070C44=$(GAMELIBS_70C44_DONOR)
+build/src/game_libs/game_libs_post2b_d.c.o build/non_matching/src/game_libs/game_libs_post2b_d.c.o: REPLACE_FUNC_BODY := gl_func_000747F4=$(GAMELIBS_747F4_DONOR) gl_func_00073824=$(GAMELIBS_73824_DONOR) gl_func_0007369C=$(GAMELIBS_7369C_DONOR)
+build/src/game_libs/game_libs_post2b_c.c.o build/non_matching/src/game_libs/game_libs_post2b_c.c.o: REPLACE_FUNC_BODY := gl_func_000732C4=$(GAMELIBS_732C4_DONOR) gl_func_000730CC=$(GAMELIBS_730CC_DONOR) game_libs_func_00073310=$(GAMELIBS_73310_DONOR)
 # arcproc_uso_func_00000748: byte-identical sibling of mgrproc_uso_func_000009A8.
 # arcproc is non-Yay0 but the donor-splice still applies (relocatable USO: a
 # function's bytes are link-offset-independent, so the size change doesn't break
@@ -685,7 +717,7 @@ build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000
 build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 func_0000F1B4=0x00000000,0x00000000,0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
-C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b1/timproc_uso_b1_o0_B0.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/timproc_uso_b3/timproc_uso_b3_o0_B0.c src/game_libs/game_libs_o1_6C8AC.c src/game_libs/game_libs_o1_6AF0C.c src/game_libs/game_libs_o1_6A304.c src/game_libs/game_libs_o1_6AF44.c src/game_libs/game_libs_o1_6B880.c src/game_libs/game_libs_o1_6B974.c src/game_libs/game_libs_o1_6BAD4.c src/game_libs/game_libs_o1_6B7A0.c src/game_libs/game_libs_ido53_6C11C.c src/game_libs/game_libs_o1_6FAD4.c src/game_libs/game_libs_ido53_71708.c src/game_libs/game_libs_o1_73824.c src/game_libs/game_libs_o1_6BF34.c src/game_libs/game_libs_ido53_6C1B8.c src/game_libs/game_libs_ido53_6D0F4.c src/game_libs/game_libs_o1_6DA74.c src/game_libs/game_libs_o1_6D554.c src/game_libs/game_libs_ido53_6D6F4.c src/game_libs/game_libs_ido53_6D7CC.c src/game_libs/game_libs_ido53_6CDB4.c src/game_libs/game_libs_o1_6CAD4.c src/game_libs/game_libs_o1_6CB84.c src/game_libs/game_libs_o1_6CC64.c src/game_libs/game_libs_o1_6D270.c src/arcproc_uso/arcproc_uso_o0_748.c src/arcproc_uso/arcproc_uso_o0_688.c src/kernel/kernel_000_ido53_2530.c src/kernel/kernel_006_o1_5520.c src/kernel/kernel_008_o1_58C0.c src/kernel/kernel_024_o1_9AB0.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
+C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b1/timproc_uso_b1_o0_B0.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/timproc_uso_b3/timproc_uso_b3_o0_B0.c src/game_libs/game_libs_o1_6C8AC.c src/game_libs/game_libs_o1_6AF0C.c src/game_libs/game_libs_o1_6A304.c src/game_libs/game_libs_o1_6AF44.c src/game_libs/game_libs_o1_6B880.c src/game_libs/game_libs_o1_6B974.c src/game_libs/game_libs_o1_6BAD4.c src/game_libs/game_libs_o1_6B7A0.c src/game_libs/game_libs_ido53_6C11C.c src/game_libs/game_libs_o1_6FAD4.c src/game_libs/game_libs_ido53_71708.c src/game_libs/game_libs_o1_73824.c src/game_libs/game_libs_o1_6BF34.c src/game_libs/game_libs_ido53_6C1B8.c src/game_libs/game_libs_ido53_6D0F4.c src/game_libs/game_libs_o1_6DA74.c src/game_libs/game_libs_o1_6D554.c src/game_libs/game_libs_ido53_6D6F4.c src/game_libs/game_libs_ido53_6D7CC.c src/game_libs/game_libs_ido53_6CDB4.c src/game_libs/game_libs_o1_6CAD4.c src/game_libs/game_libs_o1_6CB84.c src/game_libs/game_libs_o1_6CC64.c src/game_libs/game_libs_o1_6D270.c src/game_libs/game_libs_ido53_70040.c src/game_libs/game_libs_ido53_730CC.c src/game_libs/game_libs_ido53_7369C.c src/game_libs/game_libs_ido53_70B04.c src/game_libs/game_libs_ido53_70C44.c src/game_libs/game_libs_ido53_73310.c src/arcproc_uso/arcproc_uso_o0_748.c src/arcproc_uso/arcproc_uso_o0_688.c src/kernel/kernel_000_ido53_2530.c src/kernel/kernel_006_o1_5520.c src/kernel/kernel_008_o1_58C0.c src/kernel/kernel_024_o1_9AB0.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 

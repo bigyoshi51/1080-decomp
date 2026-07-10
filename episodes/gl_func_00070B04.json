@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00070B04",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:02:41.604764+00:00",
+  "end_time": "2026-07-10T05:02:41.604785+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:02:41.604779+00:00",
+      "assistant_text": "IDENTIFIED: __osViInit (vi.c verbatim). vi[2] array = baked internal data -> ledger sym gl_ref_0002E4C0. _pad.s retired via delay-nop .s merge + SUFFIX_BYTES_FORCE. Retires the old 'state-init chain-walk/beqzl-tail' decode.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 79,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_00070B04 = libultra __osViInit\n * (vi.c verbatim). PROVEN EXACT 78/78 standalone at IDO 5.3 -O1 (donor\n * symbol 0x13C = 79 words incl. the jr-ra delay nop; the last 0x70C40\n * alignment word -> SUFFIX_BYTES_FORCE, _pad.s sidecar deleted).\n * The vi[2] context array is game_libs-internal data BAKED to 0x2E4C0\n * (lui 3 / addiu -0x1B40) -> gl_ref_0002E4C0. All other globals are\n * blanked USO reloc words: D_00000000_vicurr/vinext (__osViCurr/Next),\n * D_00000000_tvtype (osTvType), D_00000000_pal/mpal/ntsc\n * (osViModePalLan1/MpalLan1/NtscLan1). Callees (blank jal 0x0C000000):\n * gl_func_00000000 = bzero, gl_func_00000001 = __osViSwapContext\n * (= gl_func_00070C44, the next function).\n * Spliced into game_libs_post1c.c.o via REPLACE_FUNC_BODY. */\ntypedef signed int s32;\ntypedef unsigned int u32;\ntypedef unsigned short u16;\ntypedef unsigned char u8;\ntypedef float f32;\n\ntypedef struct {\n    u32 ctrl, width, burst, vSync, hSync, leap, hStart, xScale, vCurrent;\n} OSViCommonRegs;\n\ntypedef struct {\n    u32 origin, yScale, vStart, vBurst, vIntr;\n} OSViFieldRegs;\n\ntypedef struct {\n    u8 type;                /* 0x00 */\n    OSViCommonRegs comRegs; /* 0x04 */\n    OSViFieldRegs fldRegs[2]; /* 0x28 */\n} OSViMode;\n\ntypedef struct {\n    f32 factor; /* 0x0 */\n    u16 offset; /* 0x4 */\n    u32 scale;  /* 0x8 */\n} __OSViScale;\n\ntypedef struct {\n    u16 state;        /* 0x00 */\n    u16 retraceCount; /* 0x02 */\n    void *framep;     /* 0x04 */\n    OSViMode *modep;  /* 0x08 */\n    u32 control;      /* 0x0C */\n    void *msgq;       /* 0x10 */\n    void *msg;        /* 0x14 */\n    __OSViScale x;    /* 0x18 */\n    __OSViScale y;    /* 0x24 */\n} __OSViContext;      /* sizeof 0x30 */\n\nextern __OSViContext gl_ref_0002E4C0[2];    /* vi[2] (baked 0x2E4C0) */\nextern __OSViContext *D_00000000_vicurr;    /* __osViCurr */\nextern __OSViContext *D_00000000_vinext;    /* __osViNext */\nextern s32 D_00000000_tvtype;               /* osTvType */\nextern OSViMode D_00000000_pal;             /* osViModePalLan1 */\nextern OSViMode D_00000000_mpal;            /* osViModeMpalLan1 */\nextern OSViMode D_00000000_ntsc;            /* osViModeNtscLan1 */\nextern void gl_func_00000000(void *, s32);  /* bzero */\nextern void gl_func_00000001(void);         /* __osViSwapContext = gl_func_00070C44 */\n\n#define vi gl_ref_0002E4C0\n#define IO_READ(a) (*(volatile u32 *)((a) | 0xA0000000))\n#define IO_WRITE(a, v) (*(volatile u32 *)(a) = (v))\n\nvoid gl_func_00070B04(void) {\n    gl_func_00000000(vi, sizeof(vi)); /* bzero */\n    D_00000000_vicurr = &vi[0];\n    D_00000000_vinext = &vi[1];\n    D_00000000_vinext->retraceCount = 1;\n    D_00000000_vicurr->retraceCount = 1;\n    D_00000000_vinext->framep = (void *)0x80000000;\n    D_00000000_vicurr->framep = (void *)0x80000000;\n    if (D_00000000_tvtype == 0) { /* OS_TV_PAL */\n        D_00000000_vinext->modep = &D_00000000_pal;\n    } else if (D_00000000_tvtype == 2) { /* OS_TV_MPAL */\n        D_00000000_vinext->modep = &D_00000000_mpal;\n    } else {\n        D_00000000_vinext->modep = &D_00000000_ntsc;\n    }\n    D_00000000_vinext->state = 0x20; /* VI_STATE_BLACK */\n    D_00000000_vinext->control = D_00000000_vinext->modep->comRegs.ctrl;\n    while (IO_READ(0xA4400010) > 10) /* VI_CURRENT_REG */\n        ;\n    IO_WRITE(0xA4400000, 0); /* VI_CONTROL_REG */\n    gl_func_00000001();      /* __osViSwapContext */\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_70B04.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00070B04.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "79/79 word-exact + ROM byte-identical"
+  }
+}

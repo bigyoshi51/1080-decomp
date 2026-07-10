@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00070C44",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:02:41.860168+00:00",
+  "end_time": "2026-07-10T05:02:41.860189+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:02:41.860183+00:00",
+      "assistant_text": "IDENTIFIED: __osViSwapContext (viswapcontext.c verbatim) \u2014 largest of the batch; s0/s1/s2 coloring, f32->u32 ctc1 dance, 0x30-byte context-copy tail all exact at 5.3 -O1.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 215,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_00070C44 = libultra __osViSwapContext\n * (viswapcontext.c verbatim). PROVEN EXACT 215/215 standalone at IDO\n * 5.3 -O1. vc colors s1, vm s0, osVirtualToPhysical result s2; field\n * (48sp), nomValue (52sp), hStart (56sp), origin (60sp) are stack\n * locals; the f32->u32 y.scale cast is the inline cfc1/ctc1 dance and\n * the 0x30-byte *__osViNext = *__osViCurr tail is the 12-byte/iter\n * lwl-free struct-copy loop.\n * Blank externs: D_00000000_vicurr/vinext (__osViCurr/__osViNext),\n * gl_func_00000000_v2p = osVirtualToPhysical (blank jal).\n * Spliced into game_libs_post1c.c.o via REPLACE_FUNC_BODY. */\ntypedef signed int s32;\ntypedef unsigned int u32;\ntypedef unsigned short u16;\ntypedef unsigned char u8;\ntypedef float f32;\n\ntypedef struct {\n    u32 ctrl, width, burst, vSync, hSync, leap, hStart, xScale, vCurrent;\n} OSViCommonRegs;\n\ntypedef struct {\n    u32 origin, yScale, vStart, vBurst, vIntr;\n} OSViFieldRegs;\n\ntypedef struct {\n    u8 type;                  /* 0x00 */\n    OSViCommonRegs comRegs;   /* 0x04 */\n    OSViFieldRegs fldRegs[2]; /* 0x28 */\n} OSViMode;\n\ntypedef struct {\n    f32 factor; /* 0x0 */\n    u16 offset; /* 0x4 */\n    u32 scale;  /* 0x8 */\n} __OSViScale;\n\ntypedef struct {\n    u16 state;        /* 0x00 */\n    u16 retraceCount; /* 0x02 */\n    void *framep;     /* 0x04 */\n    OSViMode *modep;  /* 0x08 */\n    u32 control;      /* 0x0C */\n    void *msgq;       /* 0x10 */\n    void *msg;        /* 0x14 */\n    __OSViScale x;    /* 0x18 */\n    __OSViScale y;    /* 0x24 */\n} __OSViContext;      /* sizeof 0x30 */\n\nextern __OSViContext *D_00000000_vicurr;   /* __osViCurr */\nextern __OSViContext *D_00000000_vinext;   /* __osViNext */\nextern u32 gl_func_00000000_v2p(void *);   /* osVirtualToPhysical */\n\n#define IO_READ(a) (*(volatile u32 *)((a) | 0xA0000000))\n#define IO_WRITE(a, v) (*(volatile u32 *)(a) = (v))\n\n#define VI_STATE_XSCALE_UPDATED 0x02\n#define VI_STATE_YSCALE_UPDATED 0x04\n#define VI_STATE_BLACK 0x20\n#define VI_STATE_REPEATLINE 0x40\n#define VI_STATE_FADE 0x80\n#define VI_SCALE_MASK 0xfff\n#define VI_2_10_FPART_MASK 0x3ff\n#define VI_SUBPIXEL_SH 0x10\n\nvoid gl_func_00070C44(void) {\n    register OSViMode *vm;\n    register __OSViContext *vc;\n    u32 origin;\n    u32 hStart;\n    u32 nomValue;\n    u32 field;\n\n    field = 0;\n    vc = D_00000000_vinext;\n    vm = vc->modep;\n\n    field = IO_READ(0xA4400010) & 1; /* VI_CURRENT_REG */\n\n    origin = gl_func_00000000_v2p(vc->framep) + (vm->fldRegs[field].origin);\n    if (vc->state & VI_STATE_XSCALE_UPDATED) {\n        vc->x.scale |= (vm->comRegs.xScale & ~VI_SCALE_MASK);\n    } else {\n        vc->x.scale = vm->comRegs.xScale;\n    }\n    if (vc->state & VI_STATE_YSCALE_UPDATED) {\n        nomValue = vm->fldRegs[field].yScale & VI_SCALE_MASK;\n        vc->y.scale = vc->y.factor * nomValue;\n        vc->y.scale |= vm->fldRegs[field].yScale & ~VI_SCALE_MASK;\n    } else {\n        vc->y.scale = vm->fldRegs[field].yScale;\n    }\n    hStart = vm->comRegs.hStart;\n    if (vc->state & VI_STATE_BLACK) {\n        hStart = 0;\n    }\n    if (vc->state & VI_STATE_REPEATLINE) {\n        vc->y.scale = 0;\n        origin = gl_func_00000000_v2p(vc->framep);\n    }\n    if (vc->state & VI_STATE_FADE) {\n        vc->y.scale = (vc->y.offset << VI_SUBPIXEL_SH) & (VI_2_10_FPART_MASK << VI_SUBPIXEL_SH);\n        origin = gl_func_00000000_v2p(vc->framep);\n    }\n    IO_WRITE(0xA4400004, origin);                       /* VI_ORIGIN */\n    IO_WRITE(0xA4400008, vm->comRegs.width);            /* VI_WIDTH */\n    IO_WRITE(0xA4400014, vm->comRegs.burst);            /* VI_BURST */\n    IO_WRITE(0xA4400018, vm->comRegs.vSync);            /* VI_V_SYNC */\n    IO_WRITE(0xA440001C, vm->comRegs.hSync);            /* VI_H_SYNC */\n    IO_WRITE(0xA4400020, vm->comRegs.leap);             /* VI_LEAP */\n    IO_WRITE(0xA4400024, hStart);                       /* VI_H_START */\n    IO_WRITE(0xA4400028, vm->fldRegs[field].vStart);    /* VI_V_START */\n    IO_WRITE(0xA440002C, vm->fldRegs[field].vBurst);    /* VI_V_BURST */\n    IO_WRITE(0xA440000C, vm->fldRegs[field].vIntr);     /* VI_INTR */\n    IO_WRITE(0xA4400030, vc->x.scale);                  /* VI_X_SCALE */\n    IO_WRITE(0xA4400034, vc->y.scale);                  /* VI_Y_SCALE */\n    IO_WRITE(0xA4400000, vc->control);                  /* VI_CONTROL */\n\n    D_00000000_vinext = D_00000000_vicurr;\n    D_00000000_vicurr = vc;\n    *D_00000000_vinext = *D_00000000_vicurr;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_70C44.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_00070C44.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "215/215 word-exact + ROM byte-identical"
+  }
+}

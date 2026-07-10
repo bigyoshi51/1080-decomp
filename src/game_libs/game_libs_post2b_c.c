@@ -74,63 +74,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
 #endif
 
 
-/* game_libs_func_000730C4: same 2-word PI_STATUS_REG load stub as 73074. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000730C4);
-
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000730CC)();
-s32 gl_func_000730CC(char *arg0, s32 arg1, s32 *arg2, s32 arg3) {
-    char *sp4;
-    u8 temp_t0;
-    char *temp_t7;
-
-    if (arg3 & 3) {
-        do {
-
-        } while (*(s32 *)0xA4600010 & 3);
+/* gl_func_000730CC = libultra osEPiRawReadIo (epirawread.c verbatim,
+ * EPI_SYNC/UPDATE_REG piint.h macros): PI busy-wait, per-domain BSD
+ * timing-reg update vs __osCurrentHandle[domain], then
+ * *data = IO_READ(baseAddress | devAddr). BOUNDARY FIX: the 2-word
+ * orphan game_libs_func_000730C4 (lui/lw PI_STATUS_REG) was this
+ * function's hoisted first status read scheduled before the addiu-sp
+ * prologue by IDO 5.3; its INCLUDE_ASM was removed and the spliced
+ * symbol covers 0x730C4..0x73258.
+ * WIRED 2026-07-10 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_730CC.c (101/101). Body
+ * below is a placeholder for the splice. */
+int gl_func_000730CC(char *pihandle, unsigned int devAddr, unsigned int *data) {
+    volatile int ret = 0;
+    if (pihandle == 0) {
+        ret = -1;
     }
-    temp_t0 = FW(arg0, 0x9);
-    if (*(int*)(temp_t0 * 4) != (int)arg0) {
-        temp_t7 = *(int*)(temp_t0 * 4);
-        sp4 = temp_t7;
-        if (temp_t0 == 0) {
-            if (FW(temp_t7, 0x5) != FW(arg0, 0x5)) {
-                *(s32 *)0xA4600014 = (s32) FW(arg0, 0x5);
-            }
-            if (FW(sp4, 0x6) != FW(arg0, 0x6)) {
-                *(s32 *)0xA460001C = (s32) FW(arg0, 0x6);
-            }
-            if (FW(sp4, 0x7) != FW(arg0, 0x7)) {
-                *(s32 *)0xA4600020 = (s32) FW(arg0, 0x7);
-            }
-            if (FW(sp4, 0x8) != FW(arg0, 0x8)) {
-                *(s32 *)0xA4600018 = (s32) FW(arg0, 0x8);
-            }
-        } else {
-            if (FW(sp4, 0x5) != FW(arg0, 0x5)) {
-                *(s32 *)0xA4600024 = (s32) FW(arg0, 0x5);
-            }
-            if (FW(sp4, 0x6) != FW(arg0, 0x6)) {
-                *(s32 *)0xA460002C = (s32) FW(arg0, 0x6);
-            }
-            if (FW(sp4, 0x7) != FW(arg0, 0x7)) {
-                *(s32 *)0xA4600030 = (s32) FW(arg0, 0x7);
-            }
-            if (FW(sp4, 0x8) != FW(arg0, 0x8)) {
-                *(s32 *)0xA4600028 = (s32) FW(arg0, 0x8);
-            }
-        }
-        *(int*)(temp_t0 * 4) = arg0;
-    }
-    *arg2 = *(int*)(FW(arg0, 0xC) | arg1 | 0xA0000000);
-    return 0;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000730CC);
-#endif
 
 /* game_libs_func_00073258 = libultra osMapTLBRdb (os/maptlbrdb.s) --
  * HANDWRITTEN assembly in libreultra (LEAF macro, mfc0/mtc0/tlbwi: maps
@@ -156,21 +117,17 @@ void gl_func_000732C4(void) {
     gl_func_00000000(sr);
 }
 
-/* VI-status read leaf (VI_CURRENT/STATUS 0xA4400010 & 1). The old
- * PREFIX_BYTES + INSN_PATCH fake was removed 2026-05-23. STRUCTURE
- * 2026-06-10: the symbol = 1 misattributed leading pad nop (the 3ECDC
- * class -- split a _pad sidecar + rename body to 73314 at the relayout
- * pass) + a 5-insn body whose residual is the `andi t7,v0,1; jr ra;
- * move v0,t7` tail -- the AND lands in a TEMP with the copy in the
- * delay. Shape sweep NEGATIVE (6 forms x O1/O2/g/g3): direct expr and
- * -g3 emit andi-to-v0; named/volatile vars grow frames; nothing
- * produces the temp+move-in-delay pair. Same family as the 69F54 VI
- * reader (relayout backlog). Honest INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* game_libs_func_00073310 = libultra osViGetCurrentField (vigetfield.c
+ * verbatim: IO_READ(VI_CURRENT_REG) & 1). The 2026-06-10 "temp+move-in-
+ * delay unreachable" negative sweep was 7.1-only: IDO 5.3 -O1 emits the
+ * exact `andi t7,v0,1; jr ra; or v0,t7,zero` pair. True entry = 0x73314
+ * (5 words); the .s's leading 0x73310 pad nop is emitted as
+ * SUFFIX_BYTES_FORCE on gl_func_000732C4.
+ * WIRED 2026-07-10 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_73310.c (5/5). Body below
+ * is a placeholder for the splice. */
 u32 game_libs_func_00073310(void) {
-    return *(volatile u32 *)0xA4400010 & 1;
+    volatile u32 ret = 1;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073310);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000732C4_pad.s")

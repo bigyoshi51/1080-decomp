@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0007369C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:02:41.365882+00:00",
+  "end_time": "2026-07-10T05:02:41.365902+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:02:41.365896+00:00",
+      "assistant_text": "IDENTIFIED: osEPiRawWriteIo (game_libs copy).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 98,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0007369C = libultra osEPiRawWriteIo\n * (epirawwrite.c verbatim, EPI_SYNC/UPDATE_REG macros from piint.h).\n * PROVEN EXACT 100/100 standalone at IDO 5.3 -O1. Absorbs the 2-word\n * orphan game_libs_func_00073694 (lui/lw PI_STATUS_REG hoisted head;\n * true entry = 0x73694, span 0x73694..0x73824). Sibling of the\n * osEPiRawReadIo donor (game_libs_ido53_730CC.c) \u2014 only the tail\n * differs (IO_WRITE of data vs IO_READ into *data).\n * Blank extern: D_00000000_pihandles = __osCurrentHandle[].\n * Spliced into game_libs_post2b_d.c.o via REPLACE_FUNC_BODY. */\ntypedef signed int s32;\ntypedef unsigned int u32;\ntypedef unsigned char u8;\n\ntypedef struct OSPiHandle_s {\n    struct OSPiHandle_s *next; /* 0x00 */\n    u8 type;                   /* 0x04 */\n    u8 latency;                /* 0x05 */\n    u8 pageSize;               /* 0x06 */\n    u8 relDuration;            /* 0x07 */\n    u8 pulse;                  /* 0x08 */\n    u8 domain;                 /* 0x09 */\n    u32 baseAddress;           /* 0x0C */\n    u32 speed;                 /* 0x10 */\n} OSPiHandle;\n\nextern OSPiHandle *D_00000000_pihandles[]; /* __osCurrentHandle */\n\n#define IO_READ(a) (*(volatile u32 *)((a) | 0xA0000000))\n#define IO_WRITE(a, v) (*(volatile u32 *)(a) = (v))\n#define PI_STATUS_REG 0xA4600010\n\n#define WAIT_ON_IOBUSY(stat)       \\\n    stat = IO_READ(PI_STATUS_REG); \\\n    while (stat & 3)               \\\n        stat = IO_READ(PI_STATUS_REG);\n\n#define UPDATE_REG(reg, var)           \\\n    if (cHandle->var != pihandle->var) \\\n        IO_WRITE(reg, pihandle->var);\n\n#define EPI_SYNC(pihandle, stat, domain)                    \\\n    WAIT_ON_IOBUSY(stat)                                    \\\n    domain = pihandle->domain;                              \\\n    if (D_00000000_pihandles[domain] != pihandle) {         \\\n        OSPiHandle *cHandle = D_00000000_pihandles[domain]; \\\n        if (domain == 0) {                                  \\\n            UPDATE_REG(0xA4600014, latency);                \\\n            UPDATE_REG(0xA460001C, pageSize);               \\\n            UPDATE_REG(0xA4600020, relDuration);            \\\n            UPDATE_REG(0xA4600018, pulse);                  \\\n        } else {                                            \\\n            UPDATE_REG(0xA4600024, latency);                \\\n            UPDATE_REG(0xA460002C, pageSize);               \\\n            UPDATE_REG(0xA4600030, relDuration);            \\\n            UPDATE_REG(0xA4600028, pulse);                  \\\n        }                                                   \\\n        D_00000000_pihandles[domain] = pihandle;            \\\n    }\n\ns32 gl_func_0007369C(OSPiHandle *pihandle, u32 devAddr, u32 data) {\n    register u32 stat;\n    register u32 domain;\n\n    EPI_SYNC(pihandle, stat, domain);\n\n    IO_WRITE(pihandle->baseAddress | devAddr | 0xA0000000, data);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_7369C.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0007369C.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "100/100 word-exact (orphan 73694 absorbed) + ROM byte-identical"
+  }
+}

@@ -2805,5 +2805,17 @@ D_00000000_stopbuf = 0x00000000;  /* _motorstopbuf */
 D_00000000_startdata = 0x00000000;  /* _MotorStartData */
 D_00000000_stopdata = 0x00000000;  /* _MotorStopData */
 gl_ref_00081760 = 0x00081760;  /* _MakeMotorData — osMotorInit's baked jal 0x0C0205D8 */
+/* -O1 island batch 6 donors (2026-07-10): 70040 osAiSetFrequency /
+   730CC osEPiRawReadIo / 7369C osEPiRawWriteIo / 70B04 __osViInit /
+   70C44 __osViSwapContext / 73310 osViGetCurrentField. All 5.3 -O1. */
+gl_ref_0002E4C0 = 0x0002E4C0;  /* vi[2] __OSViContext array (game_libs-internal, baked lui 3/addiu -0x1B40) */
+D_00000000_viclock = 0x00000000;  /* osViClock */
+D_00000000_pihandles = 0x00000000;  /* __osCurrentHandle[] */
+D_00000000_vicurr = 0x00000000;  /* __osViCurr */
+D_00000000_tvtype = 0x00000000;  /* osTvType */
+D_00000000_pal = 0x00000000;  /* osViModePalLan1 */
+D_00000000_mpal = 0x00000000;  /* osViModeMpalLan1 */
+D_00000000_ntsc = 0x00000000;  /* osViModeNtscLan1 */
+gl_func_00000000_v2p = 0x00000000;  /* osVirtualToPhysical (blank jal) */
 __ll_mul = 0x80002F78;
 __ull_div = 0x80002E78;

@@ -3,64 +3,27 @@ extern int D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 typedef struct { float x, y, z; } Vec3;
 
-/* game_libs_func_00073694: same 2-word PI_STATUS_REG load stub as
- * 73074/730C4 (no jr, falls through into the successor's wait loop). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073694);
-
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0007369C)();
-s32 gl_func_0007369C(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
-    char *sp4;
-    u8 temp_t0;
-    char *temp_t7;
-
-    if (arg3 & 3) {
-        do {
-
-        } while (*(s32 *)0xA4600010 & 3);
+/* gl_func_0007369C = libultra osEPiRawWriteIo (epirawwrite.c verbatim,
+ * EPI_SYNC/UPDATE_REG piint.h macros): PI busy-wait, per-domain BSD
+ * timing-reg update vs __osCurrentHandle[domain], then
+ * IO_WRITE(baseAddress | devAddr, data). Sibling of osEPiRawReadIo =
+ * gl_func_000730CC. BOUNDARY FIX: the 2-word orphan
+ * game_libs_func_00073694 (lui/lw PI_STATUS_REG) was this function's
+ * hoisted first status read scheduled before the addiu-sp prologue by
+ * IDO 5.3; its INCLUDE_ASM was removed and the spliced symbol covers
+ * 0x73694..0x73824. (The _Genld NM bodies below still call the old
+ * game_libs_func_00073694 name from their blank-jal decode guesses --
+ * extern-only, NON_MATCHING path, revisit when those are decoded.)
+ * WIRED 2026-07-10 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_7369C.c (100/100). Body
+ * below is a placeholder for the splice. */
+int gl_func_0007369C(char *pihandle, unsigned int devAddr, unsigned int data) {
+    volatile int ret = 0;
+    if (pihandle == 0) {
+        ret = -1;
     }
-    temp_t0 = FW(arg0, 0x9);
-    if (*(int*)(temp_t0 * 4) != (int)arg0) {
-        temp_t7 = *(int*)(temp_t0 * 4);
-        sp4 = temp_t7;
-        if (temp_t0 == 0) {
-            if (FW(temp_t7, 0x5) != FW(arg0, 0x5)) {
-                *(s32 *)0xA4600014 = (s32) FW(arg0, 0x5);
-            }
-            if (FW(sp4, 0x6) != FW(arg0, 0x6)) {
-                *(s32 *)0xA460001C = (s32) FW(arg0, 0x6);
-            }
-            if (FW(sp4, 0x7) != FW(arg0, 0x7)) {
-                *(s32 *)0xA4600020 = (s32) FW(arg0, 0x7);
-            }
-            if (FW(sp4, 0x8) != FW(arg0, 0x8)) {
-                *(s32 *)0xA4600018 = (s32) FW(arg0, 0x8);
-            }
-        } else {
-            if (FW(sp4, 0x5) != FW(arg0, 0x5)) {
-                *(s32 *)0xA4600024 = (s32) FW(arg0, 0x5);
-            }
-            if (FW(sp4, 0x6) != FW(arg0, 0x6)) {
-                *(s32 *)0xA460002C = (s32) FW(arg0, 0x6);
-            }
-            if (FW(sp4, 0x7) != FW(arg0, 0x7)) {
-                *(s32 *)0xA4600030 = (s32) FW(arg0, 0x7);
-            }
-            if (FW(sp4, 0x8) != FW(arg0, 0x8)) {
-                *(s32 *)0xA4600028 = (s32) FW(arg0, 0x8);
-            }
-        }
-        *(int*)(temp_t0 * 4) = arg0;
-    }
-    *(int*)(FW(arg0, 0xC) | arg1 | 0xA0000000) = arg2;
-    return 0;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007369C);
-#endif
 
 /* gl_func_00073824: 53-insn 8-word record init + u64-return call +
  * conditional u64-arg call (frame 0x20, saves ra).
