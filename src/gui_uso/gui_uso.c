@@ -1839,7 +1839,21 @@ extern int D_3B80_f0, D_3B80_f1, D_3B80_f2;
  * into pages of (max/height) rows.
  * RESIDUAL (raw-word USO, permuter N/A): base colored into $s4 not target's $s7
  * (longest-LR coloring tie); +8 frame; switch li-hoist + a3-spill scheduler ties.
- * Logic byte-correct; 79% mnemonic / 87.3% fuzzy. */
+ * Logic byte-correct; 79% mnemonic / 87.3% fuzzy.
+ *
+ * 2026-07-10 agent-g: fuzzy 87.3 -> 89.59, insn count now EXACT (230).
+ *  - a3 PARAM reassigned as the DL cursor idx (its old value survives only
+ *    into the switch default `max = a3` -> the spill/home reload shape).
+ *    default arm sets NO frow (old `frow = 0` was m2c safety, target never
+ *    stores it) and no max li.
+ *  - `if (0) { gl_func_00000000(&a1); }` ADDRESS-ESCAPE keeps the reassigned
+ *    a1 (x cursor, `a1 += s1` in the loop) MEMORY-resident in its param home
+ *    (lw/addu/sw per iteration like target) instead of $s7-promoted (+2pp;
+ *    the promotion was also stealing the s-reg the base wanted).
+ * REMAINING RESIDUAL: s-reg permutation (base s4 vs s7, a0-copy s8 vs s5,
+ * cursor s6 vs s8 — priority-driven, encounter-order identical), +8 frame
+ * (param homes at 132/136/140 vs 124/128 + spill 116), t-numbering cascade
+ * from the s-web differences. Coloring-tie class. */
 void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
     int *s5 = a0;
     int s8 = 0;
@@ -1847,12 +1861,13 @@ void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
     int max;
     void (*frow)();
 
+    if (0) { gl_func_00000000(&a1); }
     {
         int *dlp = (int *)(*(int **)&D_00000000)[0xC / 4];
-        int idx = dlp[1];
-        dlp[1] = idx + 1;
+        a3 = dlp[1];
+        dlp[1] = a3 + 1;
         {
-            int *slot = (int *)(((int *)(*(int **)&D_00000000)[0xC / 4])[0]) + idx * 2;
+            int *slot = (int *)(((int *)(*(int **)&D_00000000)[0xC / 4])[0]) + a3 * 2;
             slot[0] = 0xBB000001;
             slot[1] = (int)0x80008000;
         }
@@ -1861,7 +1876,7 @@ void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
     case 0:  frow = (void (*)())&D_3B80_f0; max = 4096; break;
     case 1:  frow = (void (*)())&D_3B80_f1; max = 2048; break;
     case 2:  frow = (void (*)())&D_3B80_f2; max = 1024; break;
-    default: frow = 0;                      max = a3;   break;
+    default: max = a3; break;
     }
     s2 = s5[4 / 4];   /* width  */
     s0 = s5[8 / 4];   /* height */
