@@ -575,5 +575,8 @@ void gl_func_00070C44(void) {
     (void)ret;
 }
 
-/* game_libs_func_00070FA0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FA0);
+/* game_libs_func_00070FA0 moved to its own -O1 -g3 unit
+ * game_libs_o1g3_70FA4.c (2026-07-10): the "leaf-branch-past-end CAP"
+ * fragment was the head of ONE function whose tail splat carved off as
+ * game_libs_g3_70FBC.c; true entry 0x70FA4 (the 0x70FA0 pad nop is the
+ * SUFFIX_BYTES_FORCE word on gl_func_00070C44 above). */

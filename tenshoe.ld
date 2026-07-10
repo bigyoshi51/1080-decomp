@@ -1418,7 +1418,7 @@ SECTIONS
         build/src/game_libs/game_libs_post1b2c.c.o(.text);
         build/src/game_libs/game_libs_ido53_70194.c.o(.text);
         build/src/game_libs/game_libs_post1c.c.o(.text);
-        build/src/game_libs/game_libs_g3_70FBC.c.o(.text);
+        build/src/game_libs/game_libs_o1g3_70FA4.c.o(.text);
         build/src/game_libs/game_libs_post2.c.o(.text);
         build/src/game_libs/game_libs_ido53_71864.c.o(.text);
         build/src/game_libs/game_libs_ido53_718C0.c.o(.text);

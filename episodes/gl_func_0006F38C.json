@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006F38C",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:53:12.445006+00:00",
+  "end_time": "2026-07-10T05:53:12.445027+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:53:12.445021+00:00",
+      "assistant_text": "IDENTIFIED: __osSpDeviceBusy (SP_STATUS 0xA4040010, mask 0x1C) \u2014 THE fn the 2026-06-27 file-split-batch triage declared 'doesn't reproduce under any available flag combo' \u2014 it's IDO 5.3 -O1 with a hoisted head. Memo retired.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 9,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006F38C = libultra __osSpDeviceBusy\n * (sp.c verbatim). PROVEN EXACT 11/11 standalone at IDO 5.3 -O1 against\n * the concatenated 0x6F384..0x6F3AC stream. Sibling of gl_func_0006F3BC\n * = __osSiDeviceBusy (same wiring, see that donor's header): splat's\n * game_libs_func_0006F380 3-word fragment (nop + lui t6,0xA404 + lw\n * a0,0x10) was the HOISTED HEAD (`register` load scheduled before the\n * addiu-sp prologue). True entry = 0x6F384. Leading pad nop 0x6F380 ->\n * SUFFIX_BYTES_FORCE on game_libs_func_0006F35C; trailing pad 0x6F3B0\n * -> SUFFIX_BYTES_FORCE on this symbol.\n * SP_STATUS_REG = 0xA4040010; mask 0x1C = SP_STATUS_DMA_BUSY |\n * SP_STATUS_DMA_FULL | SP_STATUS_IO_FULL.\n * Constant-MMIO deref -> no externs needed.\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned int u32;\n\nint gl_func_0006F38C(void) {\n    register u32 stat = *(volatile u32 *)0xA4040010; /* SP_STATUS_REG */\n\n    if (stat & 0x1C) { /* DMA_BUSY | DMA_FULL | IO_FULL */\n        return 1;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6F38C.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006F38C.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (donor)",
+    "verification": "11/11 word-exact (absorbs the 6F380 fragment) + ROM byte-identical"
+  }
+}

@@ -8,26 +8,26 @@ typedef struct { float x, y, z; } Vec3;
 #define GL_COUNT_2070 (*(int*)((char*)&D_00000000 + 0x2070))
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070FCC);
-
-/* game_libs_func_000710F8: 7-insn double-precision polynomial leaf.
- *   f8 = f2 * $f14   ; f4 = f8 * $f16 ; f6 = f4 + f2
- *   return -(float)f6
- * CAP: $f2 (and $f16) are CALLER-SET (read at entry, never loaded). IDO C
- * can't source $f2 as input. Sibling of game_libs_func_0006A2C0 (same
- * caller-set-$f2 double polynomial shape). Permanent INCLUDE_ASM —
- * caller-set-float subclass, feedback_caller_set_int_reg_cap_1080_game_libs. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000710F8);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071114);
-
-/* game_libs_func_00071130: 3-insn `lwc1 f0, 0x2520($at); jr ra; nop`.
- * Sibling of game_libs_func_0006A2F8 — same prologue-stolen-successor
- * CAP ($at set by predecessor's `lui $at, %hi(SYM)` tail). Standalone
- * C-emit would emit its own lui+lwc1 (2 insns) → 4-insn func vs target's
- * 3-insn. Was previously PROLOGUE_STEALS-promotable, REMOVED 2026-05-23.
- * Default INCLUDE_ASM remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071130);
+/* game_libs_func_00070FCC = libultra fcos/__cosf (gu/cosf.c verbatim).
+ * BOUNDARY FIX (2026-07-10): ONE function that splat had split into
+ * FOUR fragments at interior branch targets / extra return points:
+ * 70FCC (head; 2 leading pad nops -> covered by the -g3 padding of
+ * game_libs_o1g3_70FA4.c, true entry 0x70FD4), 710F8 (the old
+ * "caller-set $f2 double polynomial CAP" = the n-odd negated-result
+ * tail), 71114 (the NaN check), 71130 (the old "prologue-stolen $at
+ * CAP" = the return zero.f tail). Those two CAP wraps are RETIRED --
+ * they were mid-function fragments, not functions.
+ * WIRED via REPLACE_FUNC_BODY donor splice: real C lives in the IDO
+ * 7.1 -O2 donor unit game_libs_o2_70FCC.c (90/90; rodata P/rpi/pihi/
+ * pilo/zero baked at gl_data 0x24E0..0x2523). Body below is a
+ * placeholder for the splice. */
+float game_libs_func_00070FCC(float x) {
+    volatile float ret = 0.0f;
+    if (x != 0.0f) {
+        ret = x;
+    }
+    return ret;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070C44_pad.s")
 
 #ifdef NON_MATCHING
@@ -44,7 +44,7 @@ void gl_func_00071144(s32 arg0) {
     s32 *zero = (s32 *)0;
     s32 *ap = &arg0;
 
-    temp_s0 = game_libs_func_00070FCC();
+    temp_s0 = gl_ph_70FCC();
     if (*ap & 1) {
         void *p = (void *)*zero;
         FW(p, 0xC) = FW(p, 0xC) | 8;
@@ -85,7 +85,7 @@ void gl_func_00071144(s32 arg0) {
         void *p = (void *)*zero;
         FW(p, 0x0) = (u16)(FW(p, 0x0) | 8);
     }
-    game_libs_func_00070FCC(temp_s0);
+    gl_ph_70FCC(temp_s0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071144);
@@ -141,7 +141,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071370);
 #endif
 typedef char *(*GP_00071384)();
 typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00071384;
-extern int game_libs_func_00070FCC();
+extern int gl_ph_70FCC();  /* legacy NM placeholder-callee (was reusing game_libs_func_00070FCC's name; renamed 2026-07-10 when the real fn = fcos landed -- feedback_placeholder_func_name_reuse_blocks_real_def) */
 extern int game_libs_func_00070F2C();
 s32 gl_func_00071384(u16 *arg0, u16 *arg1, u16 *arg2) {
     Q_00071384 sp18;
@@ -155,9 +155,9 @@ s32 gl_func_00071384(u16 *arg0, u16 *arg1, u16 *arg2) {
     s32 temp_v0;
 
     sp60 = 0;
-    game_libs_func_00070FCC();
-    sp60 = game_libs_func_00070FCC(arg0, arg2);
-    game_libs_func_00070FCC();
+    gl_ph_70FCC();
+    sp60 = gl_ph_70FCC(arg0, arg2);
+    gl_ph_70FCC();
     if (sp60 != 0) {
         return sp60;
     }
@@ -165,18 +165,18 @@ s32 gl_func_00071384(u16 *arg0, u16 *arg1, u16 *arg2) {
     FW(arg1, 0x8) = arg2;
     FW(arg1, 0x0) = 0;
     FW(arg1, 0x65) = 0;
-    sp60 = game_libs_func_00070FCC(arg1);
+    sp60 = gl_ph_70FCC(arg1);
     if (sp60 != 0) {
         return sp60;
     }
-    sp60 = game_libs_func_00070FCC(FW(arg1, 0x4), FW(arg1, 0x8), (u16 *)1, &sp3C);
+    sp60 = gl_ph_70FCC(FW(arg1, 0x4), FW(arg1, 0x8), (u16 *)1, &sp3C);
     if (sp60 != 0) {
         return sp60;
     }
-    game_libs_func_00070FCC(&sp3C, &sp5E, &sp5C);
+    gl_ph_70FCC(&sp3C, &sp5E, &sp5C);
     sp38 = &sp3C;
     if (((*(u16*)((char*)&sp3C + 0x1C)) != sp5E) || ((*(u16*)((char*)&sp3C + 0x1E)) != sp5C)) {
-        sp60 = game_libs_func_00070FCC(arg1, sp38);
+        sp60 = gl_ph_70FCC(arg1, sp38);
         if (sp60 != 0) {
             return sp60;
         }
@@ -185,7 +185,7 @@ s32 gl_func_00071384(u16 *arg0, u16 *arg1, u16 *arg2) {
         }
     }
     if (!(FW(sp38, 0x18) & 1)) {
-        sp60 = game_libs_func_00070FCC(arg1, sp38, &sp18);
+        sp60 = gl_ph_70FCC(arg1, sp38, &sp18);
         if (sp60 != 0) {
             return sp60;
         }
@@ -207,11 +207,11 @@ s32 gl_func_00071384(u16 *arg0, u16 *arg1, u16 *arg2) {
     FW(arg1, 0x54) = 8;
     FW(arg1, 0x58) = (s32) ((FW(arg1, 0x64) * 8) + 8);
     FW(arg1, 0x5C) = (s32) (FW(arg1, 0x58) + (FW(arg1, 0x64) * 8));
-    sp60 = game_libs_func_00070FCC(FW(arg1, 0x4), FW(arg1, 0x8), (u16 *)7, (int)arg1 + 0x2C);
+    sp60 = gl_ph_70FCC(FW(arg1, 0x4), FW(arg1, 0x8), (u16 *)7, (int)arg1 + 0x2C);
     if (sp60 != 0) {
         return sp60;
     }
-    temp_v0 = game_libs_func_00070FCC(arg1);
+    temp_v0 = gl_ph_70FCC(arg1);
     sp60 = temp_v0;
     FW(arg1, 0x0) = (s32) (FW(arg1, 0x0) | 1);
     return temp_v0;
@@ -237,7 +237,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071384);
  * The first (&1,&2) pair shares one non-volatile lbu, matching the target.
  * Reloc-blind cbs + &D_00000000.
  */
-extern int game_libs_func_00070FCC();
+extern int gl_ph_70FCC();  /* legacy NM placeholder-callee (was reusing game_libs_func_00070FCC's name; renamed 2026-07-10 when the real fn = fcos landed -- feedback_placeholder_func_name_reuse_blocks_real_def) */
 extern int D_00000000;
 int gl_func_00071624(char *a0, char *a1) {
     int status;
@@ -245,12 +245,12 @@ int gl_func_00071624(char *a0, char *a1) {
     int buf1C;
     unsigned char flags;
     status = 0;
-    game_libs_func_00070FCC(a1);
-    status = game_libs_func_00070FCC(1, (char *)&D_00000000);
-    game_libs_func_00070FCC(a0, &buf20, 1);
-    status = game_libs_func_00070FCC(0, (char *)&D_00000000);
-    game_libs_func_00070FCC(a0, &buf20, 1);
-    game_libs_func_00070FCC(a1, &buf1C);
+    gl_ph_70FCC(a1);
+    status = gl_ph_70FCC(1, (char *)&D_00000000);
+    gl_ph_70FCC(a0, &buf20, 1);
+    status = gl_ph_70FCC(0, (char *)&D_00000000);
+    gl_ph_70FCC(a0, &buf20, 1);
+    gl_ph_70FCC(a1, &buf1C);
     flags = ((unsigned char *)&buf1C)[2];
     if ((flags & 1) && (flags & 2)) {
         return 2;

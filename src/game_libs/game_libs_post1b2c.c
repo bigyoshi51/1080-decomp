@@ -1434,90 +1434,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF64);
 #endif
 
 
-/* game_libs_func_0006F038 (0x50, 20 insns, NO jr ra): the DOM2 device-
- * descriptor INITIALIZER that FALLS THROUGH into gl_func_0006F088 (the
- * PI DOM2 register-writer below) -- one logical init with two entry
- * points (callers can jal 0x6F088 to re-apply without re-defaulting).
- * Fills the reloc'd descriptor that 6F088 reads:
- *   D->b_4 = 2;            -- latency
- *   D->b_5 = 3;
- *   D->b_6 = 6;            -- page size (6F088 -> PI_BSD_DOM2_PGS)
- *   D->b_7 = 2;            -- release  (-> PI_BSD_DOM2_RLS)
- *   D->b_8 = 6;            -- pulse    (-> PI_BSD_DOM2_PWD)
- *   D->w_C = 0xA5000000;   -- device base = KSEG1 0x05000000 = the
- *                             N64DD (Leo) domain-2 address space!
- * i.e. an OSPiHandle-style 64DD/flash device block (osDriveRomInit
- * family). CAP: C cannot express fall-through into the next function's
- * entry; expressing the stores + a call would change the layout. The
- * pair stays INCLUDE_ASM; a future merge could make 6F088 an alt-entry
- * label inside one symbol. */
-#ifdef NON_MATCHING
-extern char D_6F038_desc;
-void game_libs_func_0006F038(void) {
-    (&D_6F038_desc)[4] = 2;
-    *(int *)((char *)&D_6F038_desc + 0xC) = 0xA5000000;
-    (&D_6F038_desc)[5] = 3;
-    (&D_6F038_desc)[8] = 6;
-    (&D_6F038_desc)[6] = 6;
-    (&D_6F038_desc)[7] = 2;
-    /* falls through into gl_func_0006F088 in the target */
+/* gl_func_0006F088 = libultra osLeoDiskInit (leodiskinit.c verbatim):
+ * LeoDiskHandle = { type DEVICE_TYPE_64DD, base PHYS_TO_K1(PI_DOM2_ADDR1)
+ * = 0xA5000000, latency 3, pulse 6, pageSize 6, relDuration 2, domain
+ * PI_DOMAIN2 }; writes PI_BSD_DOM2 LAT/PWD/PGS/RLS; speed = 0;
+ * bzero(&transferInfo, 0x60); interrupt-masked insert at the head of
+ * __osPiTable; __osDiskHandle = &LeoDiskHandle; returns the handle.
+ * BOUNDARY FIX: splat's game_libs_func_0006F038 ("descriptor initializer
+ * that falls through", 0x50 incl. 3 leading pad nops) was this function's
+ * HOISTED HEAD -- IDO 5.3 -O1 schedules the six field stores before the
+ * addiu-sp prologue and splat split at the prologue. True entry = 0x6F044;
+ * the spliced symbol covers 0x6F044..0x6F140 (the pad nops 0x6F038/3C/40
+ * are emitted as SUFFIX_BYTES_FORCE on gl_func_0006EF64).
+ * WIRED 2026-07-10 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_6F088.c (64/64; extern-
+ * struct spelling for per-store own-lui + TU-defined 2-byte PgsRls pair
+ * for the single shared-$at sb pair, osCartRomInit lever). Body below is
+ * a placeholder for the splice. */
+void *gl_func_0006F088(void) {
+    volatile int ready = 0;
+    ready = 1;
+    return (void *)ready;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F038);
-#endif
-
-#ifdef NON_MATCHING
-/* gl_func_0006F088: 47-insn N64 PI DOM2 setup + buffer-init dispatch (0xBC, frame 0x20).
- *
- * RECOGNIZED HARDWARE PATTERN: writes to PI (Peripheral Interface) BSD
- * timing registers for domain 2 (cart/disk):
- *   0xA4600024 = PI_BSD_DOM2_LAT_REG (latency, set to 3)
- *   0xA4600028 = PI_BSD_DOM2_PWD_REG (pulse width, from D_sym byte +8)
- *   0xA460002C = PI_BSD_DOM2_PGS_REG (page size, from D_sym byte +6)
- *   0xA4600030 = PI_BSD_DOM2_RLS_REG (release, from D_sym byte +7)
- *
- * Decoded structure (raw-word disasm):
- *   D_sym_a[9] = 1;                                  // flag set
- *   *(volatile int*)0xA4600024 = 3;                  // PI_BSD_DOM2_LAT
- *   *(volatile int*)0xA4600028 = D_sym_a[8];         // PI_BSD_DOM2_PWD
- *   *(volatile int*)0xA460002C = D_sym_b[6];         // PI_BSD_DOM2_PGS
- *   *(volatile int*)0xA4600030 = D_sym_c[7];         // PI_BSD_DOM2_RLS
- *   D_zero_sym = 0;
- *   func1(&D_arg_sym + 0x14, 0x60);                   // 0x60-byte buffer init
- *   func2();                                          // post-init
- *   D_other_syms = ... ;                              // additional sym writes
- *   return *(int*)&D_result;
- *
- * Cart/64DD domain-2 timing setup. Boot-time hardware init. Pairs with
- * the SI/PIF DMA helper in gl_func_0006CAD4 — both are libultra-style
- * hardware register configuration.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-int gl_func_0006F088(void) {
-    /* distinct externs to bust IDO's &D base CSE — target re-materializes the
-     * lui per buffer-byte access (separate lui;lbu each). */
-    extern unsigned char D_6F088_b9, D_6F088_b8, D_6F088_b6, D_6F088_b7;
-    extern int D_6F088_z10, D_6F088_arg, D_6F088_g, D_6F088_h, D_6F088_i, D_6F088_res;
-    int r;
-    (&D_6F088_b9)[9] = 1;
-    *(volatile int*)0xA4600024 = 3;
-    *(volatile int*)0xA4600028 = (&D_6F088_b8)[8];
-    *(volatile int*)0xA460002C = (&D_6F088_b6)[6];
-    *(volatile int*)0xA4600030 = (&D_6F088_b7)[7];
-    *(int*)((char*)&D_6F088_z10 + 0x10) = 0;
-    gl_func_00000000((char*)&D_6F088_arg + 0x14, 0x60);
-    r = gl_func_00000000();
-    D_6F088_g = D_6F088_h;
-    D_6F088_i = (int)&D_6F088_res;
-    *(int*)((char*)&D_6F088_z10 + 0x14) = (int)&D_6F088_res;
-    gl_func_00000000(r);
-    return (int)&D_6F088_res;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F088);
-#endif
 
 void gl_func_0006F144(int a0, ...) {
 }
@@ -1603,110 +1541,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F2C8);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F35C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F380);
-
-#ifdef NON_MATCHING
-/* Sibling of gl_func_0006F3BC — same `(a0 & MASK) != 0 ? 1 : 0` shape
- * with forced sp=-8 frame + unfilled delay slots. Mask = 0x1C here vs
- * 0x3 there.
- *
- * 2026-05-07 boundary fix: split off the 3 trailing insns
- * (`nop; lui t6,0xA480; lw a0,0x18(t6)` — SI status preload for the
- * next function) into game_libs_func_0006F3B0 via split-fragments.py.
- * Symbol is now 9 insns (0x24) — matches target's body size exactly.
- *
- * Cap remaining: target's specific shape is `addiu sp,-8; andi; beqz;
- * nop(delay); b; li v0,1(delay); move v0,zero; jr ra; addiu sp,8(delay)`.
- * Closest C variants:
- *   - plain `if (a0 & MASK) return 1; return 0;` at -O2: 7 insns, no frame
- *   - same at -O1: 8 insns, frame in beqz delay slot (target wants
- *     prologue insn 0 + nop in delay slot)
- *   - -O1 -g2: 12 insns with 4 extra `b epilogue` jumps (no good)
- * Target's 9-insn shape with prologue-first + nop-delay-slot doesn't
- * reproduce from straight C source variation. Likely original used a
- * per-file compile mode (-O1 -g3?) that I haven't tested, OR an
- * inline-asm sequence that IDO accepted in 1998 but not in this build.
- * Wrap stays NM at the volatile form (closest decoded body but bytes
- * diverge by ~3 insns vs the new 9-insn target). */
-int gl_func_0006F38C(int a0) {
-    volatile int x = a0 & 0x1C;
-    if (x != 0) return 1;
-    return 0;
+/* gl_func_0006F38C = libultra __osSpDeviceBusy (sp.c verbatim):
+ * return (*SP_STATUS_REG & (DMA_BUSY|DMA_FULL|IO_FULL)) ? 1 : 0.
+ * BOUNDARY FIX: splat's game_libs_func_0006F380 3-word fragment was this
+ * function's HOISTED HEAD (IDO -O1 schedules the `register` MMIO load,
+ * into a0 per the register hint, before the addiu-sp prologue; splat
+ * split at the prologue). True entry = 0x6F384; spliced symbol covers
+ * 0x6F384..0x6F3AC (pads 0x6F380 / 0x6F3B0 via SUFFIX_BYTES_FORCE on
+ * game_libs_func_0006F35C / this symbol). This RETIRES the "sp=-8 frame
+ * with no stack use has no C trigger" cap -- those sweeps probed the
+ * split fragment as a standalone int-arg fn at -O2.
+ * WIRED 2026-07-10 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_6F38C.c (11/11). Body
+ * below is a placeholder for the splice. */
+int gl_func_0006F38C(void) {
+    volatile int busy = 0;
+    return busy;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F38C);
-#endif
 
-#ifdef NON_MATCHING
-/* game_libs_func_0006F3B0: 3-insn alt-entry/preamble fragment.
- *
- * Body: `nop; lui t6, 0xA480; lw a0, 0x18(t6)` — loads the word at
- * 0xA4800018 (SI_STATUS register) into $a0 then falls through into
- * gl_func_0006F3BC. NO prologue, NO jr ra, NO frame — caller's $ra
- * survives through to gl_func_0006F3BC's epilogue.
- *
- * Was the trailing 3 insns of gl_func_0006F38C until split-fragments.py
- * (2026-05-07) extracted it so gl_func_0006F38C could match its target
- * 9-insn body size. Symbol was named `game_libs_func_*` (not gl_func_*)
- * because splat had no clean callsite to attribute it to.
- *
- * Cap class: tail-fall-through alt-entry. Standard C `return *(int*)0xA4800018;`
- * emits lui + lw + jr ra + nop = 4 insns with jr ra, not the 3-insn
- * fall-through shape. IDO doesn't accept GCC's `register asm("$a0")`
- * (per docs/IDO_CODEGEN.md feedback_ido_no_gcc_register_asm). The
- * matching path (2026-06-10 refresh; the INSN_PATCH option below was
- * banned 2026-05-23): merge back into gl_func_0006F3BC as a two-entry
- * body -- the 6F038/73074/75260 fall-through class (N64_FORENSICS) --
- * which would break 6F3BC's standalone offset, so it queues with the
- * relayout/carve session like the rest of mid-file game_libs
- *
- * Default INCLUDE_ASM build path produces correct bytes via the asm
- * file; this NM wrap exists only to document the cap. */
-int game_libs_func_0006F3B0(void) {
-    return *(volatile int*)0xA4800018;
+/* gl_func_0006F3BC = libultra __osSiDeviceBusy (si.c verbatim):
+ * return (*SI_STATUS_REG & (DMA_BUSY|RD_BUSY)) ? 1 : 0.
+ * BOUNDARY FIX: splat's game_libs_func_0006F3B0 3-word "alt-entry
+ * fragment" was this function's HOISTED HEAD (same phenomenon as
+ * gl_func_0006F38C = __osSpDeviceBusy above). True entry = 0x6F3B4;
+ * spliced symbol covers 0x6F3B4..0x6F3DC (pads 0x6F3B0 / 0x6F3E0 via
+ * SUFFIX_BYTES_FORCE on gl_func_0006F38C / this symbol).
+ * WIRED 2026-07-10 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_6F3BC.c (11/11; 7.1 -O1
+ * agrees on this shape). Body below is a placeholder for the splice. */
+int gl_func_0006F3BC(void) {
+    volatile int busy = 0;
+    return busy;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F3B0);
-#endif
-
-#ifdef NON_MATCHING
-/* return (a0 & 3) != 0 ? 1 : 0
- * 9-insn target with forced `addiu sp, -8/+8` stack frame AND NO stack
- * use, plus unfilled delay slot + explicit `b` to epilogue. IDO -O2
- * compacts most C variants to leafy output without the frame.
- *
- * Variant below uses `volatile int x = a0 & 3` — this DOES force the
- * sp=-8 frame AND produces `beqz` in the same direction as target,
- * at the cost of 2 extra insns (sw+lw for volatile materialization,
- * 11 insns total vs target's 9). Structurally closer to target than
- * the plain leafy variant; still NM. See
- * feedback_ido_sp_frame_without_stack_use.md — 30+ variants tested
- * 2026-04-20, the target's idiom (sp=-8 with no sw/lw) isn't reachable
- * from standard IDO -O2 C. Likely alloca/setjmp or per-file pragma.
- *
- * 2026-05-30 flag-matrix + frame-forcing sweep (14 new variants, all NEGATIVE):
- *  - opt/debug matrix {-O0,-O1,-O2} x {plain,-g,-g2,-g3}: EVERY combo is
- *    frameless-leaf (no addiu sp). The doc's "-O1 -g3?" speculation is FALSE
- *    (frameless). -g/-g2/-g3 only add/remove trailing alignment nops + an
- *    extra `jr ra`, never a frame.
- *  - frame-forcing tricks that avoid memory access {unused int[2], unused
- *    char[5], unused volatile int, addr-of-local sink}: ALL DCE'd by IDO -O2
- *    -> still frameless. IDO -O2 removes unused locals incl. their frame.
- *  - alloca(8) IS the only trick that forces a frame AND flips the andi dest
- *    to $t7 (target's reg!) — but it drags in `jal alloca` + a0 stack-reload
- *    (frame -24, sw ra/a0), structurally wrong. Confirms the target frame is
- *    real (not a pad) but has NO clean C trigger: sp=-8 + a0-used-direct +
- *    result-in-t7 needs a frame source IDO won't DCE yet that emits no sw/lw.
- *    None exists in standard C. Genuine cap; INCLUDE_ASM build emits correct
- *    bytes. */
-int gl_func_0006F3BC(int a0) {
-    volatile int x = a0 & 3;
-    if (x != 0) return 1;
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3BC);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW

@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00070FA0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:53:12.690971+00:00",
+  "end_time": "2026-07-10T05:53:12.690990+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:53:12.690985+00:00",
+      "assistant_text": "Guarded getter if(!flag) return 0; return buf.field8; \u2014 exact only at -O1 -g3 (unfilled bnez delay + un-hoisted %lo-folded tail). Merged the 'leaf-branch-past-end CAP' head with the old g3_70FBC tail carve (which had been FAKE-matched as a standalone INT-reader \u2014 episode retracted). truncate-elf-text 0x30 drops .text align 16->4; natural -g3 zero padding covers the 0x70FCC pads.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 7,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* game_libs_func_00070FA0 (true entry 0x70FA4): guarded VI-side getter\n * `if (!flag) return 0; return buf.field8;`. PROVEN EXACT 10/10 at IDO\n * 7.1 -O1 -g3 (5.3 agrees): -O1 -g3 is the only mode that emits the\n * unfilled bnez delay + the un-hoisted %lo-folded `lui v0; lw v0,8(v0)`\n * tail (-O2 hoists the lui above the branch; plain -O1 materializes an\n * addiu base; -O2 -g/-g2 add per-return jr-ra echoes).\n * BOUNDARY FIX: this function's splat coverage was THREE pieces --\n * game_libs_func_00070FA0 (0x1C fragment: leading pad nop 0x70FA0 +\n * insns 1-6, \"leaf-branch-past-end CAP\": its bnez targets 0x70FBC) +\n * the game_libs_g3_70FBC.c carve (the lui/lw/jr/nop tail, previously\n * \"matched\" as a standalone -g3 INT-reader) -- one function split\n * mid-body by splat. This TU replaces the g3_70FBC carve in the ld\n * script and covers 0x70FA4..0x70CC8; the 0x70FA0 pad nop moved to\n * SUFFIX_BYTES_FORCE on gl_func_00070C44 (post1c.c), and the 8 bytes\n * of natural -g3 .text zero-padding here cover the 0x70FCC/0x70FD0 pad\n * nops before game_libs_func_00070FCC (= cosf, post2.c).\n * Blank externs (runtime-reloc'd words): D_00000000_vistate (guard\n * flag), D_00000000_vibuf (+8 field read; struct-field spelling keeps\n * the %lo fold). Identity: sits between __osViSwapContext and fcos --\n * plausibly a framebuffer/VI-state getter of the game's VI wrapper. */\nextern int D_00000000_vistate;\nextern struct {\n    int a;\n    int b;\n    int c;\n} D_00000000_vibuf;\n\nint game_libs_func_00070FA0(void) {\n    if (D_00000000_vistate == 0) {\n        return 0;\n    }\n    return D_00000000_vibuf.c;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1g3_70FA4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00070FA0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -g3 (direct-CC unit)",
+    "verification": "10/10 word-exact + ROM byte-identical"
+  }
+}

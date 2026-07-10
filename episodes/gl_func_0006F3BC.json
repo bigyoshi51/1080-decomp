@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006F3BC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:53:12.193425+00:00",
+  "end_time": "2026-07-10T05:53:12.193444+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:53:12.193439+00:00",
+      "assistant_text": "IDENTIFIED: __osSiDeviceBusy (io/si.c). The 6F3B0 'alt-entry fragment' = the hoisted-head phenomenon (register MMIO load into a0 pre-prologue). RETIRES the heavily-swept 'sp=-8 frame with no stack use has no C trigger' cap \u2014 those sweeps probed the SPLIT FRAGMENT at -O2.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 10,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006F3BC = libultra __osSiDeviceBusy\n * (si.c verbatim). PROVEN EXACT 11/11 standalone (5.3 AND 7.1 -O1 agree)\n * against the concatenated 0x6F3B4..0x6F3DC stream.\n * BOUNDARY FIX: splat's game_libs_func_0006F3B0 \"3-insn alt-entry\n * fragment\" (nop + lui t6,0xA480 + lw a0,0x18) was this function's\n * HOISTED HEAD -- IDO -O1 schedules the `register u32 stat = IO_READ(\n * SI_STATUS_REG)` load (into a0, per the register hint) before the\n * addiu-sp prologue, and splat split at the prologue. True entry =\n * 0x6F3B4; spliced symbol covers 0x6F3B4..0x6F3DC. The 0x6F3B0 leading\n * pad nop is emitted as SUFFIX_BYTES_FORCE on gl_func_0006F38C; the\n * 0x6F3E0 trailing pad nop as SUFFIX_BYTES_FORCE on this symbol.\n * This RETIRES the 2026-04-20/2026-05-30 \"sp=-8 frame with no stack use\n * has no C trigger\" cap: all those sweeps probed the SPLIT fragment as a\n * standalone int-arg fn at -O2. The frame is just the -O1 non-leaf-style\n * frame of the full merged function.\n * Constant-MMIO deref (0xA4800018 = SI_STATUS_REG) -> no externs needed.\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned int u32;\n\nint gl_func_0006F3BC(void) {\n    register u32 stat = *(volatile u32 *)0xA4800018; /* SI_STATUS_REG */\n\n    if (stat & 3) { /* SI_STATUS_DMA_BUSY | SI_STATUS_RD_BUSY */\n        return 1;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6F3BC.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006F3BC.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (donor)",
+    "verification": "11/11 word-exact + ROM byte-identical"
+  }
+}

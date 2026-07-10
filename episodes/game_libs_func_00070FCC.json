@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00070FCC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:53:12.932712+00:00",
+  "end_time": "2026-07-10T05:53:12.932732+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:53:12.932726+00:00",
+      "assistant_text": "IDENTIFIED: fcos/__cosf (gu/cosf.c verbatim \u2014 the 0x70FCC+ region is the gu/ block, not osVi). Splat had split it into FOUR fragments (70FCC/710F8/71114/71130) \u2014 retiring 2 documented caps ('caller-set-$f2 double polynomial' = the n-odd tail; 'prologue-stolen-$at' = the return-zero tail). rodata P[5]/rpi/pihi/pilo/zero baked at gl_data 0x24E0..0x2523 via gl_ref syms. Also renamed 20 misattributed placeholder-callees (name-reuse collision trap).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 75,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for game_libs_func_00070FCC = libultra fcos/__cosf\n * (gu/cosf.c verbatim, Cody-Waite reduction). PROVEN EXACT 90/90\n * standalone at -O2 (5.3 -O2 agrees; -O1 is 112 insns) against the\n * concatenated 0x70FD4..0x71138 stream -- the 5 rodata addend words\n * resolve at link via the baked gl_ref_* values below.\n * BOUNDARY FIX: splat split this one function into FOUR fragments at\n * its interior branch targets / second+third return points:\n *   70FCC (2 leading pad nops + head), 710F8 (the old \"caller-set $f2\n *   double polynomial CAP\" -- it's just the n-odd negated-result tail),\n *   71114 (the NaN check), 71130 (the old \"prologue-stolen $at CAP\" --\n *   the `return zero.f` tail). All four INCLUDE_ASMs removed; spliced\n *   symbol covers 0x70FD4..0x7113B. True entry = 0x70FD4 (the 0x70FCC/\n *   0x70FD0 pads are the -g3 .text zero-padding of the preceding\n *   game_libs_o1g3_70FA4.c unit).\n * Static rodata (P[5]/rpi/pihi/pilo/zero) lives in the ROM's game_libs\n * data at segment offsets 0x24E0..0x2523 -> extern gl_ref_* with baked\n * values (gl_ref_0002E4C0 precedent); __libm_qnan_f is a runtime-reloc\n * blanked extern (D_00000000_qnanf).\n * Spliced into game_libs_post2.c.o via REPLACE_FUNC_BODY. */\ntypedef union {\n    struct {\n        unsigned int hi, lo;\n    } word;\n    double d;\n} du;\n\ntypedef union {\n    unsigned int i;\n    float f;\n} fu;\n\n#define ROUND(d) (int)(((d) >= 0.0) ? ((d) + 0.5) : ((d) - 0.5))\n#define ABS(d) ((d) > 0) ? (d) : -(d)\n\nextern const du gl_ref_000024E0[]; /* P[5]: sin poly coeffs on +/- pi/2 */\nextern const du gl_ref_00002508;   /* rpi  = 1/pi */\nextern const du gl_ref_00002510;   /* pihi */\nextern const du gl_ref_00002518;   /* pilo */\nextern const fu gl_ref_00002520;   /* zero */\nextern float D_00000000_qnanf;     /* __libm_qnan_f */\n\nfloat game_libs_func_00070FCC(float x) {\n    float absx;\n    double dx, xsq, poly;\n    double dn;\n    int n;\n    double result;\n    int ix, xpt;\n\n    ix = *(int *)&x;\n    xpt = (ix >> 22);\n    xpt &= 0x1ff;\n\n    /* xpt is exponent(x) + 1 bit of mantissa */\n\n    if (xpt < 0x136) {\n        /* |x| < 2^28 */\n        absx = ABS(x);\n        dx = absx;\n\n        dn = dx * gl_ref_00002508.d + 0.5;\n        n = ROUND(dn);\n        dn = n;\n        dn -= 0.5;\n\n        dx = dx - dn * gl_ref_00002510.d;\n        dx = dx - dn * gl_ref_00002518.d; /* dx = x - (n - 0.5)*pi */\n\n        xsq = dx * dx;\n        poly = ((gl_ref_000024E0[4].d * xsq + gl_ref_000024E0[3].d) * xsq + gl_ref_000024E0[2].d) * xsq\n               + gl_ref_000024E0[1].d;\n        result = dx + (dx * xsq) * poly;\n\n        if ((n & 1) == 0)\n            return ((float)result);\n\n        /* negate result if n is odd */\n        return (-(float)result);\n    }\n\n    if (x != x) {\n        /* x is a NaN; return a quiet NaN */\n        return (D_00000000_qnanf);\n    }\n\n    /* just give up and return 0.0 */\n    return (gl_ref_00002520.f);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_70FCC.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/game_libs_func_00070FCC.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (donor)",
+    "verification": "90/90 word-exact + ROM byte-identical"
+  }
+}

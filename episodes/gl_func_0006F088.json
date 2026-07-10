@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006F088",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:53:11.945645+00:00",
+  "end_time": "2026-07-10T05:53:11.945670+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:53:11.945664+00:00",
+      "assistant_text": "IDENTIFIED: osLeoDiskInit (io/leodiskinit.c verbatim). Splat's 'descriptor initializer' fragment 6F038 (the old CAP) was this fn's HOISTED HEAD \u2014 5.3 schedules six LeoDiskHandle stores before the addiu-sp prologue (true entry 0x6F044). Extern-struct per-store own-lui + TU-defined 2-byte PgsRls pair for the shared-$at sb pair (D_00000006_leopgs resolves %lo +6/+7).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 47,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006F088 = libultra osLeoDiskInit\n * (leodiskinit.c verbatim). PROVEN EXACT 64/64 standalone at IDO 5.3 -O1\n * against the concatenated 0x6F044..0x6F140 stream.\n * BOUNDARY FIX: splat's game_libs_func_0006F038 (0x50, \"descriptor\n * initializer, no jr ra\") was this function's HOISTED HEAD \u2014 IDO 5.3\n * schedules the first six LeoDiskHandle field stores (type/baseAddress/\n * latency/pulse/pageSize/relDuration) before the addiu-sp prologue, and\n * splat split the function at the prologue (0x6F088). True entry =\n * 0x6F044; the spliced symbol covers 0x6F044..0x6F140. The three leading\n * pad nops 0x6F038/3C/40 are emitted as SUFFIX_BYTES_FORCE on\n * gl_func_0006EF64 (natural jr-ra epilogue -> FORCE).\n * 5.3 NOTE: IO_WRITE(PI_BSD_DOM2_LAT_REG, latency) constant-folds to\n * li 3 (the latency=3 store is still emitted at +5), while the PWD/PGS/\n * RLS writes reload their bytes (lbu +8/+6/+7) \u2014 exactly the target's\n * asymmetry.\n * Blank externs: D_00000000_leodisk = LeoDiskHandle, D_00000000_pitable\n * = __osPiTable, D_00000000_diskhandle = __osDiskHandle;\n * gl_func_00000000_bzero / _disint / _resint = bzero / __osDisableInt /\n * __osRestoreInt (blank jals).\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned int u32;\ntypedef unsigned char u8;\n\ntypedef struct {\n    u8 pad[0x60];\n} __OSTranxInfo; /* sizeof = 0x60 */\n\ntypedef struct OSPiHandle_s {\n    struct OSPiHandle_s *next;  /* 0x00 */\n    u8 type;                    /* 0x04 */\n    u8 latency;                 /* 0x05 */\n    u8 pageSize;                /* 0x06 */\n    u8 relDuration;             /* 0x07 */\n    u8 pulse;                   /* 0x08 */\n    u8 domain;                  /* 0x09 */\n    u32 baseAddress;            /* 0x0C */\n    u32 speed;                  /* 0x10 */\n    __OSTranxInfo transferInfo; /* 0x14 */\n} OSPiHandle; /* sizeof = 0x74 */\n\ntypedef struct {\n    u8 pageSize;    /* LeoDiskHandle+6 */\n    u8 relDuration; /* LeoDiskHandle+7 */\n} PgsRls;\n\nextern OSPiHandle D_00000000_leodisk;       /* LeoDiskHandle */\nextern OSPiHandle *D_00000000_pitable;      /* __osPiTable */\nextern OSPiHandle *D_00000000_diskhandle;   /* __osDiskHandle */\nextern void gl_func_00000000_bzero(void *, int); /* bzero */\nextern u32 gl_func_00000000_disint(void);   /* __osDisableInt */\nextern void gl_func_00000000_resint(u32);   /* __osRestoreInt */\n\n#define IO_WRITE(a, v) (*(volatile u32 *)(a) = (v))\n\n/* TU-DEFINED 2-byte pair (pageSize/relDuration) => the li;li;sb;sb head\n * pair batches under ONE lui $at (extern spelling = one lui per store =\n * 65/64 near-miss). Splice imports the reloc as UNDEF;\n * undefined_syms_auto carries D_00000006_leopgs = 0x00000006 so\n * %lo(pair)+0/+1 link byte-identically to the blanked LeoDiskHandle+6/+7\n * words. Same lever as osCartRomInit (kernel_008_o1_58C0). */\nPgsRls D_00000006_leopgs = {0};\n\nOSPiHandle *gl_func_0006F088(void) {\n    u32 saveMask;\n\n    D_00000000_leodisk.type = 2;                 /* DEVICE_TYPE_64DD */\n    D_00000000_leodisk.baseAddress = 0xA5000000; /* PHYS_TO_K1(PI_DOM2_ADDR1) */\n    D_00000000_leodisk.latency = 3;\n    D_00000000_leodisk.pulse = 6;\n    D_00000006_leopgs.pageSize = 6;\n    D_00000006_leopgs.relDuration = 2;\n    D_00000000_leodisk.domain = 1;               /* PI_DOMAIN2 */\n    IO_WRITE(0xA4600024, D_00000000_leodisk.latency);     /* PI_BSD_DOM2_LAT */\n    IO_WRITE(0xA4600028, D_00000000_leodisk.pulse);       /* PI_BSD_DOM2_PWD */\n    IO_WRITE(0xA460002C, D_00000000_leodisk.pageSize);    /* PI_BSD_DOM2_PGS */\n    IO_WRITE(0xA4600030, D_00000000_leodisk.relDuration); /* PI_BSD_DOM2_RLS */\n    D_00000000_leodisk.speed = 0;\n    gl_func_00000000_bzero(&D_00000000_leodisk.transferInfo, sizeof(__OSTranxInfo));\n    saveMask = gl_func_00000000_disint();\n    D_00000000_leodisk.next = D_00000000_pitable;\n    D_00000000_pitable = &D_00000000_leodisk;\n    D_00000000_diskhandle = &D_00000000_leodisk;\n    gl_func_00000000_resint(saveMask);\n    return &D_00000000_leodisk;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6F088.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006F088.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "64/64 word-exact + ROM byte-identical"
+  }
+}
