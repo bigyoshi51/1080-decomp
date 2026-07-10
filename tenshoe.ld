@@ -1473,6 +1473,17 @@ SECTIONS
     game_data_ROM_END = __romPos;
     game_data_VRAM_END = .;
 
+    /* func_00010FEC (bootup_uso_tail3a_10C8C.c) is a 9-case C switch: IDO
+     * emits its jumptable into the unit's local .rodata, but the real table
+     * lives in the baked bootup.uso RoData asset at module offset 0xC20.
+     * Pin the unit's .rodata at VMA 0xC20 (NOLOAD -> zero ROM bytes) so the
+     * dispatch lui/lw HI16/LO16 fields bake %hi/%lo(0xC20) exactly. */
+    .bootup_uso_10FEC_jtbl 0xC20 (NOLOAD) :
+    {
+        build/src/bootup_uso/bootup_uso_tail3a_10C8C.c.o(.rodata);
+        build/src/bootup_uso/bootup_uso_tail3a_10C8C.c.o(.rodata.*);
+    }
+
     /DISCARD/ :
     {
         *(*);
