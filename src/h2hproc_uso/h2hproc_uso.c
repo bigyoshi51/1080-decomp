@@ -30,101 +30,98 @@ void h2hproc_uso_func_00000014(int *a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-/* 71.88 % NM. 120-insn / 0x1E0 do-while loop wrapping a 7-case switch
- * dispatcher (jumptable form, IDO -O2 with .rodata).
+/* 91.17 % NM (was 71.88). 120-insn / 0x1E0 do-while loop wrapping a 7-case
+ * switch dispatcher (jumptable form, IDO -O2 with .rodata).
  *
- * Loop shape:
+ * 2026-07-10 STRUCTURE FIX (+19pp) as part of the USO-jumptable land vein
+ * (arcproc_240 recipe): the earlier wrap mis-modelled the control flow. The
+ * TRUE shape (from the target disasm) is:
+ *   flag = 0;                     // s3 init ONCE at prologue, NOT per-iter
  *   do {
- *       flag = 0;
- *       switch (a1) {  // jumptable, cases 0-6
- *           case N: setup(); jal_chain(); flag = 1; break;
- *           default: special_path();  // doesn't set flag
+ *       switch (a1) {             // jumptable cases 0-6, NO default cleanup
+ *           case 0: gl(a0); D[0x40]=1;                 break;  // b loop
+ *           case 1..4: gl(a0,2,7,K); flag=1; D44=5; D48=6; break;
+ *           case 5: gl(&D,4,D[0x64],4); flag=1; <3-call chain>;  break;
+ *           case 6: gl(a0); flag=1; <CLEANUP inline>;  break;
  *       }
- *       common_alloc_link();
- *       a1 = D[+0x40];                // re-read for next iter
+ *       a1 = D[0x40];             // re-read for next iter
  *   } while (flag == 0);
+ * KEY corrections vs the old wrap: (a) cleanup runs ONLY for case 6 (fall-in),
+ * not shared across all cases — cases 0-5 all `b` straight to the loop check;
+ * (b) cleanup is a real if/ELSE (beqzl): t7==0 -> only 0x14=&D; else 0x4=1;
+ * 0x14=&D; (c) flag inits once before the loop. Addressing MUST stay the inline
+ * `*(int*)((char*)&D_00000000 + off)` CSE form — a named `int* base` / struct-
+ * pointer local gets const-propagated and $at-folds each store (lui $at;sw),
+ * blowing the size to 137w; the inline cast keeps &D CSE'd into ONE $s base
+ * (register+displacement), matching the target's `sw sN,off(s1)`.
  *
- * Per case sets: s3=1 (success flag), D[+0x44]=5, D[+0x48]=6.
- * Default (a1>=7) does extra alloc work, doesn't set flag → loop iterates.
- *
- * Common cleanup chain: alloc(0,1,0) → r1; alloc(&D+0x10, r1) → r2;
- *   if (r2->0x14) r2->0x4 = 1; r2->0x14 = &D.
- *
- * IDO -O2 emits this switch as a .rodata jumptable
- * (sltiu/sll/lui/addu/lw/jr). 2026-06-02 CORRECTION: the earlier note that
- * this is "unreproducible / 40-60% cap" is WRONG — objdiff scores only .text,
- * and a single-symbol C `switch` reproduces the dispatch + case bodies (the
- * generated jumptable lives in the discarded .rodata). This wrap builds to
- * 71.9% with the full switch structure matching (do-while + jumptable +
- * all 7 case bodies + cleanup/finalizer correct).
- *
- * RESIDUAL ~28% = an $s-REGISTER PERMUTATION cap. Both build and target hoist
- * the same 9 loop-invariants (two &D bases, self=a0, the loop counter=0, the
- * constants 5/6/1, 0x145<<16) to s0-s8, but assign them to DIFFERENT pseudos
- * (target {s1,s7,s8}=bases/0x145, {s4,s5,s6}={5,6,1}, s2=a0, s3=counter; build
- * shifts the constants one reg lower + a different base/counter split). The
- * encounter-order lever (reorder C refs / decl order) does NOT move it —
- * tested flag-decl-first 2026-06-02, byte-identical (IDO's weight allocator
- * ignores it). Permuter-class. INCLUDE_ASM stays the default build. */
+ * RESIDUAL ~9% = the documented $s-REGISTER PERMUTATION / -O2 allocator cap.
+ * Build is 124w vs target 122w. Divergence: target hoists the single-use
+ * 0x01450000 (case 5) to a callee reg s8 via LICM, freeing the numbering so
+ * {s4,s5,s6}={5,6,1}, {s1,s7}={&D,&D+0x10}; the build inlines `lui a1,0x145`
+ * instead, shifting constants one reg up and spending the freed slot on a
+ * redundant `move s4,s1` in the case-6 delay (li s3,1 lands in the wrong
+ * delay slot) + an inverted branch-likely (bnezl vs beqzl) in cleanup. These
+ * are pure allocator/scheduler minutiae, permuter-immune (encounter-order and
+ * struct-vs-cast levers both tested). NOT byte-exact -> cannot land via the
+ * arcproc-style jumptable NOLOAD pin (which needs exact .text). INCLUDE_ASM
+ * stays the default build. */
 void h2hproc_uso_func_0000002C(int *a0, int a1) {
     int *s0;
-    int flag;
-    int prev;
+    int t1;
+    int flag = 0;
 
     do {
-        flag = 0;
         switch (a1) {
             case 0:
                 gl_func_00000000(a0);
                 *(int*)((char*)&D_00000000 + 0x40) = 1;
-                goto cleanup;
+                break;
             case 1:
                 gl_func_00000000(a0, 2, 7, 1);
                 flag = 1;
-                H2H_D_44 = 5;
-                H2H_D_48 = 6;
+                *(int*)((char*)&D_00000000 + 0x44) = 5;
+                *(int*)((char*)&D_00000000 + 0x48) = 6;
                 break;
             case 2:
                 gl_func_00000000(a0, 2, 7, 1);
                 flag = 1;
-                H2H_D_44 = 5;
-                H2H_D_48 = 6;
+                *(int*)((char*)&D_00000000 + 0x44) = 5;
+                *(int*)((char*)&D_00000000 + 0x48) = 6;
                 break;
             case 3:
                 gl_func_00000000(a0, 2, 7, 2);
                 flag = 1;
-                H2H_D_44 = 5;
-                H2H_D_48 = 6;
+                *(int*)((char*)&D_00000000 + 0x44) = 5;
+                *(int*)((char*)&D_00000000 + 0x48) = 6;
                 break;
             case 4:
                 gl_func_00000000(a0, 2, 7, 4);
                 flag = 1;
-                H2H_D_44 = 5;
-                H2H_D_48 = 6;
+                *(int*)((char*)&D_00000000 + 0x44) = 5;
+                *(int*)((char*)&D_00000000 + 0x48) = 6;
                 break;
             case 5:
                 gl_func_00000000(&D_00000000, 4,
                                  *(int*)((char*)&D_00000000 + 0x64), 4);
                 flag = 1;
-                gl_func_00000000(a0, *a0);
-                prev = gl_func_00000000(0, 0x01450000, 0);
-                gl_func_00000000(a0, 0, prev, *(int*)((char*)a0 + 8));
+                t1 = gl_func_00000000(a0, a0[0], 2);
+                t1 = gl_func_00000000(0, 0x01450000, t1, a0[2]);
+                gl_func_00000000(a0, 0, t1);
                 break;
             case 6:
                 gl_func_00000000(a0);
                 flag = 1;
-                break;
-            default:
+                s0 = (int *)gl_func_00000000(0, 1, 0);
+                gl_func_00000000(&D_00000000 + 0x10, s0);
+                if (*(int*)((char*)s0 + 0x14) == 0) {
+                    *(int*)((char*)s0 + 0x14) = (int)&D_00000000;
+                } else {
+                    *(int*)((char*)s0 + 0x4) = 1;
+                    *(int*)((char*)s0 + 0x14) = (int)&D_00000000;
+                }
                 break;
         }
-cleanup:
-        s0 = (int*)gl_func_00000000(0, 1, 0);
-        s0 = (int*)gl_func_00000000(&D_00000000 + 0x10, s0);
-        if (*(int*)((char*)s0 + 0x14) == 0) {
-            *(int*)((char*)s0 + 0x14) = (int)&D_00000000;
-        }
-        *(int*)((char*)s0 + 0x4) = 1;
-        *(int*)((char*)s0 + 0x14) = (int)&D_00000000;
         a1 = *(int*)((char*)&D_00000000 + 0x40);
     } while (flag == 0);
 }
