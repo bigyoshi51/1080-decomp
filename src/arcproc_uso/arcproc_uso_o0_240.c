@@ -17,18 +17,20 @@ extern struct DArc {
  * D_00000000 relocs resolve to address 0 in the static USO image, so the linked
  * .text bytes are identical). The .text codegen problem is SOLVED.
  *
- * NOT YET WIRED (blocked on infra, 2026-07-10): the 11-way switch compiles a
- * .rodata JUMPTABLE (R_MIPS_HI16/LO16 .text->.rodata + 12x R_MIPS_32 .rodata->
- * .text case labels). REPLACE_FUNC_BODY splices only .text, so the link fails
- * (".rodata referenced in .text ... defined in discarded section"), AND even if
- * imported, a linked jumptable bakes a NONZERO %hi/%lo whereas the USO ROM has
- * the dispatch as raw `lui at,0; lw at,0(at)` (runtime-patched by the USO loader,
- * like the INCLUDE_ASM path). Landing this needs USO-jumptable-reloc handling:
- * the jumptable .rodata must be emitted 0-relative with the .text HI16/LO16
- * resolving to 0 (cf. scripts/extract-uso-jumptable.py + the D_arc240_*=0 pattern).
- * Until then func_00000240 stays INCLUDE_ASM in tail1.c; this file is a filtered
- * (non-C_FILES) reference holding the proven-exact -O0 body. The 5C8/688/748
- * donors splice cleanly precisely because they have NO switch/jumptable.
+ * LANDED 2026-07-10 as a normal C_FILES unit (NOT a REPLACE_FUNC_BODY splice).
+ * The 11-way switch compiles a .rodata JUMPTABLE (R_MIPS_HI16/LO16 .text->.rodata
+ * + 11x R_MIPS_32 .rodata->.text case labels). The USO ROM has the dispatch as raw
+ * `lui at,0; lw at,0(at)` (both hi/lo fields ZERO -- the real table lives in the
+ * baked arcproc.uso RoDataReloc in arcproc_uso_post, runtime-patched by the loader).
+ * INFRA: pin this unit's .rodata NOLOAD at VMA 0x0 in tenshoe.ld
+ * (.arcproc_uso_240_jtbl) so ld bakes %hi(0)=0 / %lo(0)=0 into the dispatch
+ * (byte-exact) and emits ZERO ROM bytes for the compiled table (the _post bin is
+ * untouched). This differs from bootup 10FEC, whose table offset 0xC20 is baked
+ * into the lw %lo -> that one pins at VMA 0xC20. o0_240.c.o(.text) is pulled into
+ * .arcproc_uso between o0_12C and tail1 at module offset 0x240 (TRUNCATE_TEXT
+ * 0x388); tail1's TRUNCATE dropped 0x2740->0x23b8 since func_240 left it.
+ * Verified: full make RUN_CC_CHECK=0, cmp tenshoe.z64 baserom.z64 byte-identical,
+ * 226/226 words exact at ROM 0x5A6388.
  *
  * -O0 recipe (docs/IDO_CODEGEN.md -O0 dispatcher kit, sibling 019C):
  *  - Plain locals (v, done) declared BEFORE the register vars so the -O0 local

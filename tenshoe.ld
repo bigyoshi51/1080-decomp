@@ -773,6 +773,7 @@ SECTIONS
         build/src/arcproc_uso/arcproc_uso.c.o(.text);
         build/src/arcproc_uso/arcproc_uso_o0_50.c.o(.text);
         build/src/arcproc_uso/arcproc_uso_o0_12C.c.o(.text);
+        build/src/arcproc_uso/arcproc_uso_o0_240.c.o(.text);
         build/src/arcproc_uso/arcproc_uso_tail1.c.o(.text);
         arcproc_uso_TEXT_END = .;
         arcproc_uso_TEXT_SIZE = ABSOLUTE(arcproc_uso_TEXT_END - arcproc_uso_TEXT_START);
@@ -1489,6 +1490,20 @@ SECTIONS
     {
         build/src/bootup_uso/bootup_uso_tail3a_10C8C.c.o(.rodata);
         build/src/bootup_uso/bootup_uso_tail3a_10C8C.c.o(.rodata.*);
+    }
+
+    /* arcproc_uso_func_00000240 (arcproc_uso_o0_240.c) is an 11-way -O0 C switch.
+     * IDO emits its jumptable into the unit's local .rodata; the real table lives
+     * in the baked arcproc.uso RoDataReloc (arcproc_uso_post), runtime-patched by
+     * the USO loader. Unlike bootup 10FEC (offset 0xC20 baked into the lw %lo),
+     * arcproc's dispatch is the reloc-form `lui at,0; lw at,0(at)` (both fields 0).
+     * Pin the unit's .rodata NOLOAD at VMA 0x0 so ld bakes %hi(0)=0 / %lo(0)=0 into
+     * the dispatch (matching the raw bytes) and emits zero ROM bytes for the table
+     * (the real table stays in the _post bin). */
+    .arcproc_uso_240_jtbl 0x0 (NOLOAD) :
+    {
+        build/src/arcproc_uso/arcproc_uso_o0_240.c.o(.rodata);
+        build/src/arcproc_uso/arcproc_uso_o0_240.c.o(.rodata.*);
     }
 
     /DISCARD/ :
