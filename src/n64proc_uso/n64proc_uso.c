@@ -47,151 +47,85 @@ void n64proc_uso_func_00000014(int arg0, int arg1) {
 }
 
 #ifdef NON_MATCHING
-/* n64proc_uso_func_00000100: 76-insn TRIPLE-alloc-or-passthrough constructor.
- * 0x130 size, target frame 0x28; build frame 0x30 (1 extra spill slot).
+/* n64proc_uso_func_00000100: 76-insn / 0x130 TRIPLE find-or-create cascade.
+ * Fuzzy 99.24 % (13/76 words differ). Residual is a register-renumber +
+ * spill-slot-coalescing cap — structure, schedule and CSE are all exact.
  *
- * Logic: cascade of `x = prev; if (x == 0) { x = alloc(N); if (!x) goto end; }`
- *   p = a0; if (!p) { p = alloc(0x88); if (!p) goto end; }
- *   q = p;  if (!q) { q = alloc(0x50); if (!q) goto end; }   // dead arm
- *   r = q;  if (!r) { r = alloc(0x2C); if (!r) goto end; }   // dead arm
- *   helper(r, &D + 0xB0);
- *   r[0x28] = &D;
- *   q[0x28] = &D;
- *   p[0x28] = &D + 0x18;
- *   p[0xC]  = &D + 0xB8;
- *   helper(p);
- *   p[0x50] = 0; p[0x3C] = 0x64; p[0x54] = 0xFF;
- *   z = *(int*)(&D + 0x190);
- *   helper(p + 0x10, z);
- *   if (z[0x14] != 0) z[1] = 1;
- *   z[0x14] = p;
- *   helper(*(int*)(&D + 0x190));   // fresh load
- *   helper(0xA3);
- *   p[0x48] = 0; p[0x30] = 0; p[0x2C] = 0;
- *   end: return p;
+ * Logic: cascade of `x = prev; if (!x) { x = alloc(N); if (!x) goto tail; }`
+ * over p(=a0-reuse) / q / r, then shared labeled tails Lq28/Lp28 write each
+ * sub-object's 0x28 vtable slot, then a large p-init block (see body).
  *
- * 2026-05-05 BIG PROMOTION: 73.33% -> 88.04% (+14.71pp) via THREE fixes:
+ * PROGRESS 2026-07-10 (agent-g): 95.01 -> 99.24 (+4.23pp) by porting the exact
+ * idiom that made the sibling eddproc_uso_func_0000025C BYTE-EXACT:
+ *   (1) REUSE the `a0` param as the running object p (not a fresh `void *p`
+ *       local) — p lives to `return a0`, so IDO saves it in $s0 and homes its
+ *       incoming value without a separate move. This fixed the prologue
+ *       schedule (target `move s0,a0` at 0x108 + `sw ra` sunk into the bne
+ *       delay slot at 0x110; the old nested-if wrap had these reversed).
+ *   (2) goto-chain dispatch (have0/have1/have2) instead of nested `if` blocks —
+ *       keeps the dead stage-guards as forward `bne` in target sense.
+ *   (3) statement-line-join on the `have2:` line (label + gl_func call +
+ *       vtable store on ONE source line) — flips IDO's scheduler.
+ * DISTINCT vtable externs (D_n64_100_b/c/d/e -> 0x0) already bust the &D
+ * address-CSE so the four stores re-materialize (t6/t7/t8/t9) — kept.
  *
- *   FIX 1 (+4.64pp): Triple alloc-cascade. Previous wrap had only 2 cascade
- *   steps (`p = a0; q = alloc(0x50); r = q`). Target has 3: each step is
- *   `x = prev; if (!x) { x = alloc(N); if (!x) goto end; }`. The 2nd and 3rd
- *   bnez tests are dead-arm guards but IDO emits them. See
- *   feedback_alloc_or_passthrough_cascade_includes_dead_arms.md.
- *
- *   FIX 2 (+3.30pp): Defeat IDO -O2 CSE on &D base. Target emits 4 fresh
- *   `lui+addiu` pairs for the &D-derived stores (r[0x28]=&D, q[0x28]=&D,
- *   p[0x28]=&D+0x18, p[0xC]=&D+0xB8); inline `&D_00000000` form CSEs the
- *   base into v1. Recipe per feedback_unique_extern_with_offset_cast_breaks_cse.md:
- *   declare 5 unique externs (D_n64_100_a..e) all mapped to 0x0 in
- *   undefined_syms_auto.txt, write each access as `(char*)&D_n64_100_X + N`.
- *   IDO sees them as different symbols → no CSE.
- *
- *   FIX 3 (+6.78pp): Missing args on the post-conditional helper call. Target
- *   prepares `li a1, 2; move a2, zero` BEFORE the beqzl-and-store, then uses
- *   them in the jal at 0xFC. The C had `gl_func(*(int*)(&D + 0x190))` (1 arg);
- *   should be `gl_func(*(int*)(&D + 0x190), 2, 0)` (3 args).
- *
- * Remaining 12% diff (verified 2026-05-05 via objdump):
- *   1. Frame size: 0x30 (build) vs 0x28 (target) — build has 5 spill slots,
- *      target has 4. Build can't share q-spill slot with z-spill (live ranges
- *      overlap in build's allocation, not in target's).
- *   2. Register choice for q/r passthroughs: target uses a3 for q + a0 for r;
- *      build uses v1 for q + a2 for r. Cascades through ~15 insns of register-
- *      rename diff. `register` hint on q/r had no effect (88.04% identical).
- *   3. Spill ordering at first jal helper(r, &D+0xB0) — target's spill of a3
- *      to sp+0x24 in BD slot vs build's spill of a2 to sp+0x24 BEFORE jal.
- *
- * All three remaining caps are IDO regalloc-priority choices not reachable
- * from C-source modifications.
- *
- * (4) TRIED 2026-05-05: two more variants, both byte-identical to baseline
- * (88.04 %, no shift in spill slots or register cascade):
- *   (a) Block-scope `z` (declared inside the inner block instead of top of
- *       function). Hypothesis: shorten z's RTL live range so it doesn't
- *       conflict with q/r spill slots in IDO's allocator (was hoping to
- *       collapse build's 5 spill slots → 4 like target). Result: zero
- *       byte diff. C lexical scope doesn't influence IDO's RTL pseudo
- *       extent; live range is data-flow derived. Confirms doc on variant
- *       (23) for n64proc_uso_func_00000014 (block-scope is a no-op).
- *       Kept the change for code clarity (no regression).
- *   (b) Ternary alloc-cascade form `p = a0 ? a0 : alloc(0x88);` instead
- *       of `if (p == 0) { p = alloc(0x88); ... }`. Same logic, different
- *       textual shape. Result: zero byte diff. IDO normalizes both forms
- *       to identical RTL post-front-end. Reverted to if-form because the
- *       existing doc references "x = prev; if (!x) { ... }" pattern with
- *       dead arms and other agents will look for that form.
- *
- * Both confirm the [register] cap is at IDO's RTL allocator level, not at the C
- * source-form level. No further C-textual variant will shift register
- * allocation for this function.
- *
- * 2026-05-30 — 88.04% -> 95.01% via a STRUCTURAL control-flow fix the regalloc
- * analysis above had missed: the 2nd/3rd alloc failure arms must NOT `goto end`
- * (early-return) — the target CONVERGES them into the init sequence. The 0x50-alloc
- * failure jumps to the `p->0x28 = ...` write (label Lp28, target 0x90) and the
- * 0x2C-alloc failure jumps to the `q->0x28 = ...` write (label Lq28, target 0x84),
- * because those sub-object-pointer 0x28 stores are SHARED tails reached both by the
- * success path (fall-through) and the alloc-failure path. Splitting the single
- * 0x28-writes block into Lq28/Lp28 labeled tails + retargeting the dead-arm gotos
- * fixed every branch target. Residual ~5% is now PURELY the regalloc/frame cap
- * documented above (q/r in $v1+stack-spill@0x28/0x2C vs target $a3/$a0@0x24/0x20;
- * frame 0x30 vs 0x28). Real allocator cap; structure is exact. */
+ * REMAINING CAP (13 words, agent-g 2026-07-10, confirms the prior 2026-05-05
+ * analysis): q is colored to $v1 but the target uses $a3; r/p are already
+ * correct ($a0/$s0). Because p is forced into $s0 (live across the whole
+ * post-cascade block) IDO's coloring numbers the remaining passthrough q into
+ * $a3 in the target, $v1 in the build. That cascades into the spill layout:
+ * target coalesces q's slot with the late z-pointer spill at sp+0x24 (frame
+ * 0x28); the build gives q/r/z three distinct slots (sp+0x24/0x28/0x2C, frame
+ * 0x30). This is a pure IDO RTL-allocator register-renumber + slot-coalesce
+ * choice — NOT reachable from C. Prior agent already proved `register` hints,
+ * block-scope z, ternary-cascade, and decl-order swap are all no-ops; agent-g
+ * re-confirmed the decl-order swap (r/q) is a no-op at the 99.24 form. The
+ * sibling eddproc match colored ITS q to $v1 (matching its target, which has
+ * no post-cascade block forcing $s0), so the a3 coloring here is genuinely a
+ * different, unreachable allocation. Leave NON_MATCHING. */
 extern int gl_func_00000000();
+extern char D_n64_100_a, D_n64_100_b, D_n64_100_c, D_n64_100_d, D_n64_100_e, D_n64_100_f;
 void *n64proc_uso_func_00000100(void *a0) {
-    void *p;
     void *q;
     void *r;
 
-    p = a0;
-    if (p == 0) {
-        p = (void*)gl_func_00000000(0x88);
-        if (p == 0) goto end;
-    }
-    q = p;
-    if (q == 0) {
-        q = (void*)gl_func_00000000(0x50);
-        if (q == 0) goto Lp28;
-    }
+    if (a0 != 0) goto have0;
+    a0 = (void*)gl_func_00000000(0x88);
+    if (a0 == 0) goto end;
+have0:
+    q = a0;
+    if (a0 != 0) goto have1;
+    q = (void*)gl_func_00000000(0x50);
+    if (q == 0) goto Lp28;
+have1:
     r = q;
-    if (r == 0) {
-        r = (void*)gl_func_00000000(0x2C);
-        if (r == 0) goto Lq28;
-    }
-    {
-        extern char D_n64_100_a, D_n64_100_b;
-        gl_func_00000000(r, (char*)&D_n64_100_a + 0xB0);
-        *(int*)((char*)r + 0x28) = (int)&D_n64_100_b;
-    }
+    if (q != 0) goto have2;
+    r = (void*)gl_func_00000000(0x2C);
+    if (r == 0) goto Lq28;
+have2: gl_func_00000000(r, (char*)&D_n64_100_a + 0xB0); *(int*)((char*)r + 0x28) = (int)&D_n64_100_b;
 Lq28:
-    {
-        extern char D_n64_100_c;
-        *(int*)((char*)q + 0x28) = (int)&D_n64_100_c;
-    }
+    *(int*)((char*)q + 0x28) = (int)&D_n64_100_c;
 Lp28:
-    {
-        extern char D_n64_100_d, D_n64_100_e;
-        *(int*)((char*)p + 0x28) = (int)((char*)&D_n64_100_d + 0x18);
-        *(int*)((char*)p + 0xC)  = (int)((char*)&D_n64_100_e + 0xB8);
-    }
-    gl_func_00000000(p);
+    *(int*)((char*)a0 + 0x28) = (int)((char*)&D_n64_100_d + 0x18);
+    *(int*)((char*)a0 + 0xC)  = (int)((char*)&D_n64_100_e + 0xB8);
+    gl_func_00000000(a0);
 
-    *(int*)((char*)p + 0x50) = 0;
-    *(int*)((char*)p + 0x3C) = 0x64;
-    *(int*)((char*)p + 0x54) = 0xFF;
+    *(int*)((char*)a0 + 0x50) = 0;
+    *(int*)((char*)a0 + 0x3C) = 0x64;
+    *(int*)((char*)a0 + 0x54) = 0xFF;
     {
-        extern char D_n64_100_f;
         int *z = *(int**)((char*)&D_n64_100_f + 0x190);
-        gl_func_00000000((char*)p + 0x10, z);
+        gl_func_00000000((char*)a0 + 0x10, z);
         if (z[0x14 / 4] != 0) z[1] = 1;
-        z[0x14 / 4] = (int)p;
+        z[0x14 / 4] = (int)a0;
         gl_func_00000000(*(int*)((char*)&D_n64_100_f + 0x190), 2, 0);
     }
     gl_func_00000000(0xA3);
-    *(int*)((char*)p + 0x48) = 0;
-    *(int*)((char*)p + 0x30) = 0;
-    *(int*)((char*)p + 0x2C) = 0;
+    *(int*)((char*)a0 + 0x48) = 0;
+    *(int*)((char*)a0 + 0x30) = 0;
+    *(int*)((char*)a0 + 0x2C) = 0;
 end:
-    return p;
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000100);
