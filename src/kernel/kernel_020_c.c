@@ -24,7 +24,6 @@ extern void func_80005350(void*, s32);
  * splat would emit the same glabel. There is no standalone C body here because
  * the entry has no stack frame of its own (it reuses func_8000817C's frame). */
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(s32 *)((char *)(p) + (o)))
 #endif
@@ -41,26 +40,27 @@ extern void func_800073F8(void *, s32, s32);
  * (func_800031F0/func_80005350), then record the address. Finally send a 0x18
  * reply (func_800073F8).
  *
- * STATUS (2026-06-23, agent-e): structurally exact NM. -O1 file. The `register`
- * keyword pins arg0->s0 + the 3 table pointers->s1/s2/s3 (the saved-reg pin is an
- * -O1 lever; ignored at -O2), and reversing the loop-compare operand order
- * (FW(s0,0x10) == *var_s2) fixes the commutative load-order. RESIDUAL (permuter-
- * immune coloring cap): branch-1 (free-slot, MMIO path) passes the BREAK-insn
- * value as call-arg $a1 — the target computes each op (sra/and/sll/ori) into a
- * fresh temp and copies back `move $a1,tN` (4 redundant moves), interleaving the
- * saved-insn store into the gap; IDO at -O1 folds these in place for us, so we
- * emit 4 words fewer. Those 4 missing moves renumber every downstream temp and
- * shift the reply-struct frame slots — all remaining diffs trace to this one
- * cause. No clean C form synthesizes redundant arg-reg copies at -O1; permuter
- * can't add insns to close a size shortfall (see docs/IDO_CODEGEN.md "AND->temp
- * ->copy back ... permuter-immune"). Branch-2 (cache-flush path) stores the value
- * to memory and has NO copy-back, confirming the arg-reg dataflow is the trigger. */
+ * STATUS 2026-07-10: EXACT (112/112) at IDO 5.3 -O1 — whole unit flipped to
+ * $(IDO53_DIR)/cc in the Makefile (single-function unit, no donor needed).
+ * The 2026-06-23 "permuter-immune coloring cap" (target computes each $a1
+ * arg op sra/and/sll/ori into a fresh temp + `move $a1,tN` copy-back, 4
+ * redundant moves; 7.1 -O1 folds them in place, 4 words short) is a 7.1-ONLY
+ * fold — 5.3 -O1 emits the temp+move form from the identical C (same
+ * discriminator as func_80007564; see docs/IDO_CODEGEN.md 5.3-vs-7.1
+ * residual-class entry). Two follow-up levers closed the tail: (1) the reply
+ * struct is declared AFTER the register vars (decl-order slot lever: before
+ * them, 5.3 homes it at sp+0x38 instead of the target's sp+0x28); (2) tail
+ * store order tag -> zero -> idC -> idx -> saved reproduces the target's
+ * ugen temp numbering (t0=tag, t1=idC, t2/t3=idx, t4=saved). The `register`
+ * keyword pins arg0->s0 + the 3 table pointers->s1/s2/s3, and the reversed
+ * loop-compare operand order (FW(s0,0x10) == *var_s2) fixes the commutative
+ * load-order — both carried over from the 2026-06-23 rebuild. */
 s32 func_80008264(void *arg0) {
-    struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 idC; s32 idx; s32 saved; } reply;
     register void *s0 = arg0;
     register char *var_s1;
     register char *var_s2;
     register char *var_s3;
+    struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 idC; s32 idx; s32 saved; } reply;
     if (*(u8 *)((char *)arg0 + 9) == 1) {
         var_s1 = (char *) &rmonbrk_bss_0088;
         var_s2 = (char *) &rmonbrk_bss_0088 + 8;
@@ -94,14 +94,11 @@ s32 func_80008264(void *arg0) {
         }
         *(s32 *)var_s2 = FW(s0, 0x10);
     }
-    reply.zero = 0;
     reply.tag = *(u8 *)((char *)s0 + 4);
-    reply.idx = (var_s2 - var_s1) >> 3;
+    reply.zero = 0;
     reply.idC = FW(s0, 0xC);
+    reply.idx = (var_s2 - var_s1) >> 3;
     reply.saved = *(s32 *)(var_s2 + 4);
     func_800073F8(&reply, 0x18, 1);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008264);
-#endif

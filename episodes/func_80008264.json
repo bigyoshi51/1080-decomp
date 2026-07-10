@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80008264",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T06:40:31.332299+00:00",
+  "end_time": "2026-07-10T06:40:31.332319+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T06:40:31.332313+00:00",
+      "assistant_text": "rmon set-breakpoint (__rmonSetBreak-class, 112 insns). The documented permuter-immune cap (target computes each $a1 arg op into a fresh temp + move $a1,tN copy-back x4; 7.1 -O1 folds in place, 4 words short) is a 7.1-only fold \u2014 IDO 5.3 -O1 emits the temp+move form. Follow-up levers: reply struct declared AFTER the register vars (frame slot sp+0x28 vs 0x38) and tail store order tag->zero->idC->idx->saved (target ugen temp numbering). Single-function unit flipped wholesale to 5.3 cc, no donor.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 112,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern s32 rmonbrk_bss_0000;\nextern s32 D_8001FEF4;\nextern s32 D_8001FEF0;\nextern void func_800031F0(void*, s32);\nextern void func_80005350(void*, s32);\n\n\n\n\n\n\n/* split from kernel_020.c - 2026-06-10 kernel ROM-order relayout */\n\n\n/* func_800081D0: the no-prologue CONTINUATION (second half) of the single\n * logical function __rmonClearBreak. The matching bytes for 0x800081D0..0x80008264\n * are emitted by the full C body of func_8000817C in kernel_040.c (verified\n * byte-exact, reloc-correct). kernel_040.c.o now compiles the WHOLE function\n * (TRUNCATE_TEXT=0x194) so the continuation is real compiled C, not asm.\n * The mid-function entry label func_800081D0 (jal'd from kernel_018_o2.c /\n * func_8000745C) is provided as a fixed address symbol in symbol_addrs.txt \u2014\n * splat would emit the same glabel. There is no standalone C body here because\n * the entry has no stack frame of its own (it reuses func_8000817C's frame). */\n\n#ifndef FW\n#define FW(p, o) (*(s32 *)((char *)(p) + (o)))\n#endif\nextern s32 rmonbrk_bss_0088;\nextern void func_80006A50(s32, s32);\nextern s32 func_80006A98(s32);\nextern void func_800073F8(void *, s32, s32);\n/* rmon set-breakpoint (__rmonSetBreak-class). Pick the instruction- or\n * data-breakpoint table (rmonbrk_bss_0088 / _0000 by arg0->unk9), scan its\n * 8-byte slots (offsets 0x8..0x80, addr at +0 / saved-insn at +4) for one holding the target\n * address (arg0->unk10) or a free slot; table full -> -0xA. For a fresh slot,\n * save the original word and patch in a BREAK insn (code = (slot>>3)+0x10) via\n * MMIO (func_80006A50/A98) or direct store + cache flush\n * (func_800031F0/func_80005350), then record the address. Finally send a 0x18\n * reply (func_800073F8).\n *\n * STATUS 2026-07-10: EXACT (112/112) at IDO 5.3 -O1 \u2014 whole unit flipped to\n * $(IDO53_DIR)/cc in the Makefile (single-function unit, no donor needed).\n * The 2026-06-23 \"permuter-immune coloring cap\" (target computes each $a1\n * arg op sra/and/sll/ori into a fresh temp + `move $a1,tN` copy-back, 4\n * redundant moves; 7.1 -O1 folds them in place, 4 words short) is a 7.1-ONLY\n * fold \u2014 5.3 -O1 emits the temp+move form from the identical C (same\n * discriminator as func_80007564; see docs/IDO_CODEGEN.md 5.3-vs-7.1\n * residual-class entry). Two follow-up levers closed the tail: (1) the reply\n * struct is declared AFTER the register vars (decl-order slot lever: before\n * them, 5.3 homes it at sp+0x38 instead of the target's sp+0x28); (2) tail\n * store order tag -> zero -> idC -> idx -> saved reproduces the target's\n * ugen temp numbering (t0=tag, t1=idC, t2/t3=idx, t4=saved). The `register`\n * keyword pins arg0->s0 + the 3 table pointers->s1/s2/s3, and the reversed\n * loop-compare operand order (FW(s0,0x10) == *var_s2) fixes the commutative\n * load-order \u2014 both carried over from the 2026-06-23 rebuild. */\ns32 func_80008264(void *arg0) {\n    register void *s0 = arg0;\n    register char *var_s1;\n    register char *var_s2;\n    register char *var_s3;\n    struct { s32 w0; u8 tag; u8 p5; s16 zero; s32 w8; s32 idC; s32 idx; s32 saved; } reply;\n    if (*(u8 *)((char *)arg0 + 9) == 1) {\n        var_s1 = (char *) &rmonbrk_bss_0088;\n        var_s2 = (char *) &rmonbrk_bss_0088 + 8;\n        var_s3 = (char *) &rmonbrk_bss_0088 + 0x80;\n    } else {\n        var_s1 = (char *) &rmonbrk_bss_0000;\n        var_s2 = (char *) &rmonbrk_bss_0000 + 8;\n        var_s3 = (char *) &rmonbrk_bss_0000 + 0x80;\n    }\n    while (var_s2 < var_s3) {\n        if (*(s32 *)var_s2 == 0) {\n            break;\n        }\n        if (FW(s0, 0x10) == *(s32 *)var_s2) {\n            break;\n        }\n        var_s2 += 8;\n    }\n    if (var_s2 == var_s3) {\n        return -0xA;\n    }\n    if (*(s32 *)var_s2 == 0) {\n        if (*(u8 *)((char *)arg0 + 9) == 1) {\n            *(s32 *)(var_s2 + 4) = func_80006A98(FW(s0, 0x10));\n            func_80006A50(FW(s0, 0x10), ((((var_s2 - var_s1) >> 3) + 0x10) & 0xFFFFF) << 6 | 0xD);\n        } else {\n            *(s32 *)(var_s2 + 4) = *(s32 *)FW(s0, 0x10);\n            *(s32 *)FW(s0, 0x10) = ((((var_s2 - var_s1) >> 3) + 0x10) & 0xFFFFF) << 6 | 0xD;\n            func_800031F0((void *) FW(s0, 0x10), 4);\n            func_80005350((void *) FW(s0, 0x10), 4);\n        }\n        *(s32 *)var_s2 = FW(s0, 0x10);\n    }\n    reply.tag = *(u8 *)((char *)s0 + 4);\n    reply.zero = 0;\n    reply.idC = FW(s0, 0xC);\n    reply.idx = (var_s2 - var_s1) >> 3;\n    reply.saved = *(s32 *)(var_s2 + 4);\n    func_800073F8(&reply, 0x18, 1);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/kernel/kernel_020_c.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/kernel/func_80008264.s",
+    "segment": "kernel",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0; cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}

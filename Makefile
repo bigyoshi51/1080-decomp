@@ -349,6 +349,10 @@ build/src/kernel/kernel_018_e.c.o build/non_matching/src/kernel/kernel_018_e.c.o
 build/src/kernel/kernel_018_f.c.o build/non_matching/src/kernel/kernel_018_f.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_018_g.c.o build/non_matching/src/kernel/kernel_018_g.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_020_b.c.o build/non_matching/src/kernel/kernel_020_b.c.o: OPT_FLAGS := -O1
+# kernel_020_c (func_80008264 = rmon set-breakpoint): IDO 5.3 -O1 island —
+# 5.3 emits the target's 4 temp+move $a1 arg copies that 7.1 -O1 folds in
+# place. Single-function unit, flipped wholesale (no donor).
+build/src/kernel/kernel_020_c.c.o build/non_matching/src/kernel/kernel_020_c.c.o: CC := $(IDO53_DIR)/cc
 build/src/kernel/kernel_020_c.c.o build/non_matching/src/kernel/kernel_020_c.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_022_b.c.o build/non_matching/src/kernel/kernel_022_b.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_022_c.c.o build/non_matching/src/kernel/kernel_022_c.c.o: OPT_FLAGS := -O1
