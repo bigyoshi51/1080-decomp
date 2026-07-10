@@ -1,0 +1,33 @@
+{
+  "function_name": "func_800087B4",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T06:44:11.452147+00:00",
+  "end_time": "2026-07-10T06:44:11.452166+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T06:44:11.452160+00:00",
+      "assistant_text": "MIPS instruction classifier (jump/branch-to-register detector, 37 insns). The documented permuter-immune register-renumber cap (target srl a1; andi t6,a1; or a1,t6,zero AND-into-temp-copy-back vs 7.1 -O1 andi a1,a1 in-place) is the 7.1-only copy-propagation fold: IDO 5.3 -O1 emits the temp+copy-back form from the identical switch-on-opcode C. Third crack of the 5.3-vs-7.1 temp-rematerialization class. Single-function unit flipped wholesale to 5.3 cc.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 37,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* kernel_022_o1: -O1 carve-out of the kernel_022 functions that are genuinely\n * -O1 (spill-every-local). The file is otherwise -O2 (the bitfield packers\n * func_80008C30/CB4 and the exact-match func_800092B0 REGRESS at -O1). Carved\n * here: func_80009850 (PI raw read, 45->85%) and func_800087B4 (MIPS insn\n * classifier, 44->52%). objdiff is per-function so .ld placement is cosmetic.\n * Verified 2026-06-04 via the mixed-opt diagnostic. */\n\n/* Classifies a MIPS instruction: returns 1 if it is a jump/branch-to-register\n * (opcode J=2 / JAL=3, or SPECIAL JR=8 / JALR=9), else 0.\n * EXACT 2026-07-10 (37/37) at IDO 5.3 -O1 \u2014 unit flipped wholesale to\n * $(IDO53_DIR)/cc. The old \"genuine IDO -O1 register-renumber cap\" (target\n * `srl $a1; andi $t6,$a1; or $a1,$t6,$zero` AND-into-temp-then-copy-back vs\n * 7.1's `andi $a1,$a1` AND-in-place, permuter-immune 24k iters) is the\n * 7.1-only copy-propagation fold \u2014 5.3 -O1 emits the temp+copy-back form\n * from this identical C (3rd crack of the class; see docs/IDO_CODEGEN.md\n * 5.3-vs-7.1 residual-class discriminator, func_80007564/func_80008264). */\ns32 func_800087B4(u32 inst) {\n    switch ((inst >> 26) & 0x3F) {\n    case 0:\n        if (((inst >> 5) & 0x7FFF) == 0 && (inst & 0x3F) == 8) return 1;\n        if (((inst >> 16) & 0x1F) == 0 && (inst & 0x7FF) == 9) return 1;\n        break;\n    case 2:\n    case 3:\n        return 1;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/kernel/kernel_022_o1.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/kernel/func_800087B4.s",
+    "segment": "kernel",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0; cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}

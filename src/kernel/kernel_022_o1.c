@@ -9,16 +9,13 @@
 
 /* Classifies a MIPS instruction: returns 1 if it is a jump/branch-to-register
  * (opcode J=2 / JAL=3, or SPECIAL JR=8 / JALR=9), else 0.
- * NON_MATCHING: switch-on-opcode form reproduces the TARGET register allocation
- * (opcode home = $a1, phantom -8 frame, no spill) and the EXACT control flow /
- * delay-slot layout. The decode is byte-identical to target EXCEPT the opcode
- * masking: target emits `srl $a1; andi $t6,$a1; or $a1,$t6,$zero` (AND into a
- * temp then copy back to the $a1 home), whereas IDO -O1 emits this body with
- * `srl $a1; andi $a1,$a1` (AND in place). That single allocator decision shifts
- * every temp register number by one and is permuter-immune (24k iters, base
- * score 165, no zero). Genuine IDO -O1 register-renumber cap; logic verified
- * equivalent over the 32-bit input space. */
-#ifdef NON_MATCHING
+ * EXACT 2026-07-10 (37/37) at IDO 5.3 -O1 — unit flipped wholesale to
+ * $(IDO53_DIR)/cc. The old "genuine IDO -O1 register-renumber cap" (target
+ * `srl $a1; andi $t6,$a1; or $a1,$t6,$zero` AND-into-temp-then-copy-back vs
+ * 7.1's `andi $a1,$a1` AND-in-place, permuter-immune 24k iters) is the
+ * 7.1-only copy-propagation fold — 5.3 -O1 emits the temp+copy-back form
+ * from this identical C (3rd crack of the class; see docs/IDO_CODEGEN.md
+ * 5.3-vs-7.1 residual-class discriminator, func_80007564/func_80008264). */
 s32 func_800087B4(u32 inst) {
     switch ((inst >> 26) & 0x3F) {
     case 0:
@@ -31,6 +28,3 @@ s32 func_800087B4(u32 inst) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800087B4);
-#endif

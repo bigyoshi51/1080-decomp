@@ -324,6 +324,10 @@ build/src/kernel/kernel_049.c.o build/non_matching/src/kernel/kernel_049.c.o: OP
 build/src/kernel/kernel_050.c.o build/non_matching/src/kernel/kernel_050.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_053.c.o build/non_matching/src/kernel/kernel_053.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_054.c.o build/non_matching/src/kernel/kernel_054.c.o: OPT_FLAGS := -O1
+# kernel_022_o1 (func_800087B4 = MIPS insn classifier): IDO 5.3 -O1 island —
+# 5.3 emits the target's AND-into-temp + copy-back that 7.1 -O1 folds in
+# place. Single-function unit, flipped wholesale (no donor).
+build/src/kernel/kernel_022_o1.c.o build/non_matching/src/kernel/kernel_022_o1.c.o: CC := $(IDO53_DIR)/cc
 build/src/kernel/kernel_022_o1.c.o build/non_matching/src/kernel/kernel_022_o1.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_002.c.o build/non_matching/src/kernel/kernel_002.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_018.c.o build/non_matching/src/kernel/kernel_018.c.o: OPT_FLAGS := -O1
