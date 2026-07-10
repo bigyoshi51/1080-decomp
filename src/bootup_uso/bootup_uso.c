@@ -8897,32 +8897,62 @@ extern char D_F0a, D_F0b, D_F0c;
 //   Real-C STRUCTURAL body below — UI/scene event-flag processor
 //   skeleton. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* PASS 2026-07-10 (agent-g): 89.78 -> 94.40. Levers landed this pass:
+ * (1) named-divisor locals `two=2.0f`/`four=4.0f` (INIT-AT-DECL form required;
+ *     a separate `two=2.0f;` assignment const-propagates and REFOLDS to mul.s)
+ *     -> both div.s sites now real div.s (0x348/2.0f and (f2-100)/4);
+ * (2) six wobble records rewritten via ONE mutated pointer temp r4
+ *     (lw v0; lwc1 0x64(v0); addiu v0,v0,0x64; swc1 0(v0) target shape;
+ *     `*(f*)(p+0x64) +=` emits paired 0x64 disps, no addiu);
+ * (3) volatile derefs bust duplicate-load CSE: guard (0x80)&(0x40) dual
+ *     lw 0x10, and per-arm lw 0x18 in the A28 if/else (one lands in beql delay);
+ * (4) per-arm `v0 = fl & 0x100` recompute duplicated into BOTH goto-block_9
+ *     arms (target's andi sits in the if-arm's b delay slot; a shared merge
+ *     label emitted one andi + extra b). Head region now locks rows 11-26.
+ * NEGATIVE probes: full head de-goto restructure (early-return + else-only
+ * recompute) 92.95->91.40 REVERTED (misread: target recomputes andi on both
+ * paths); dot-product named partial-sum via f0 reuse 94.40->92.77 REVERTED.
+ * REMAINING (94.40 residual): FP temp renumber cascade in the tf2 region
+ * (f6/f7 vs f16/f17 double halves, div.s placement), frame -0xA0 vs -0x70
+ * (named-local homes), int coloring (v0/v1 base swap, t-rotation offsets),
+ * final dot-product add.s operand swap — allocator/scheduler class. */
 void func_0000D440(char *st) {
     char *sub, *vt, *m, *a0_2;
     int fl, v0, t5;
     int sp58;
     float f0, f2;
     int a84;
+    float two = 2.0f;   /* named divisors: keep /2.0f and /4.0f real div.s
+                         * (IDO reciprocal-folds literal power-of-2 divisors
+                         * to mul.s; init-AT-DECL form required — a separate
+                         * `two = 2.0f;` assignment gets const-propagated and
+                         * REFOLDS. See IDO_CODEGEN div-fold) */
+    float four = 4.0f;
     func_00000000(&D_00008AD0);
     fl = *(int *)(st + 0xA58);
     v0 = fl & 0x100;
+    /* volatile on the per-arm 0x18 reads: target loads 0x18(v0) SEPARATELY in
+     * each branch arm (one lands in the beql delay); plain derefs get CSE'd
+     * into one hoisted load + two andis. */
     if (v0 != 0) {
         if (*(int *)(*(char **)(st + 0x800) + 0x18) & 0x20) {
             *(int *)(st + 0xA28) ^= 1;
         }
         if (*(int *)(st + 0xA28) != 0) {
-            if (*(int *)(*(char **)(st + 0x800) + 0x18) & 0x10) {
+            if (*(volatile int *)(*(char **)(st + 0x800) + 0x18) & 0x10) {
+                /* per-arm v0 recompute (duplicated statement, NOT a shared
+                 * merge label): target's andi lands in this path's b delay. */
                 fl = *(int *)(st + 0xA58);
-                goto block_8;
+                v0 = fl & 0x100;
+                goto block_9;
             }
         } else {
             fl = *(int *)(st + 0xA58);
             t5 = fl ^ 4;
-            if (*(int *)(*(char **)(st + 0x800) + 0x18) & 0x10) {
+            if (*(volatile int *)(*(char **)(st + 0x800) + 0x18) & 0x10) {
                 *(int *)(st + 0xA58) = t5;
                 fl = t5;
             }
-        block_8:
             v0 = fl & 0x100;
             goto block_9;
         }
@@ -8930,7 +8960,9 @@ void func_0000D440(char *st) {
     block_9:
         if (v0 != 0) {
             sub = *(char **)(st + 0x800);
-            if ((!!(*(int *)(sub + 0x10) & 0x80)) & (!!(*(int *)(sub + 0x10) & 0x40))) {
+            /* volatile busts the duplicate-load CSE: target lw's 0x10(a0) TWICE
+             * (one per bit test), plain int derefs merge to one lw. */
+            if ((!!(*(volatile int *)(sub + 0x10) & 0x80)) & (!!(*(volatile int *)(sub + 0x10) & 0x40))) {
                 sp58 = 9;
                 vt = *(char **)(st + 0x28);
                 (*(void (**)(char *, int *))(vt + 0x2C))((char *)(*(short *)(vt + 0x28) + (int)st), &sp58);
@@ -8966,7 +8998,7 @@ void func_0000D440(char *st) {
             if (*(int *)(st + 0xA58) & 0x40000) {
                 f0 = *(float *)(st + 0x31C);
                 f2 = (f0 < 0.0f) ? -f0 : f0;
-                a84 = (int)((f2 - 100.0f) / 4.0f);
+                a84 = (int)((f2 - 100.0f) / four);
                 *(int *)(st + 0xA84) = a84;
                 if (a84 < 0) {
                     *(int *)(st + 0xA84) = 0;
@@ -8986,23 +9018,46 @@ void func_0000D440(char *st) {
                                + *(float *)(st + 0x3D0) * *(float *)(st + 0x320);
         func_00000000(*(char **)(st + 0x840));
         if (*(int *)(st + 0xA5C) != 0) {
-            char *p4 = *(char **)(st + 0x824);
+            /* six wobble records, each via ONE mutated pointer temp (r4):
+             * lw v0; lwc1 0x64(v0); addiu v0,v0,0x64; add; swc1 0(v0) —
+             * the named-base `+= at offset` form instead emits paired
+             * lwc1/swc1 0x64(base) with no addiu (wrong shape). */
+            char *r4;
+            float fv;
             double rnd = (double)func_d440_frnd((void *)(((((int)*(float *)(st + 0xDC) ^ (int)*(float *)(st + 0xE4)) >> 5) ^ 0x12345678)));
             float tf2 = (float)((rnd - 0.5) * 30.0 * (double)((float)*(int *)(st + 0xA5C) / 100.0f));
             double tf12;
-            *(float *)(p4 + 0x64) += tf2;
+            r4 = *(char **)(st + 0x824);
+            fv = *(float *)(r4 + 0x64);
+            r4 += 0x64;
+            *(float *)r4 = fv + tf2;
             tf12 = (double)tf2 * 0.5;
-            *(float *)(*(char **)(st + 0x828) + 0x64) += tf2;
-            *(float *)(*(char **)(st + 0x830) + 0x64) += tf2;
-            *(float *)(*(char **)(st + 0x834) + 0x64) = (float)((double)*(float *)(*(char **)(st + 0x834) + 0x64) + tf12);
-            *(float *)(*(char **)(st + 0x82C) + 0x64) = (float)((double)*(float *)(*(char **)(st + 0x82C) + 0x64) + tf12);
-            *(float *)(*(char **)(st + 0x838) + 0x64) = (float)((double)*(float *)(*(char **)(st + 0x838) + 0x64) - tf12);
+            r4 = *(char **)(st + 0x828);
+            fv = *(float *)(r4 + 0x64);
+            r4 += 0x64;
+            *(float *)r4 = fv + tf2;
+            r4 = *(char **)(st + 0x830);
+            fv = *(float *)(r4 + 0x64);
+            r4 += 0x64;
+            *(float *)r4 = fv + tf2;
+            r4 = *(char **)(st + 0x834);
+            fv = *(float *)(r4 + 0x64);
+            r4 += 0x64;
+            *(float *)r4 = (float)((double)fv + tf12);
+            r4 = *(char **)(st + 0x82C);
+            fv = *(float *)(r4 + 0x64);
+            r4 += 0x64;
+            *(float *)r4 = (float)((double)fv + tf12);
+            r4 = *(char **)(st + 0x838);
+            fv = *(float *)(r4 + 0x64);
+            r4 += 0x64;
+            *(float *)r4 = (float)((double)fv - tf12);
         }
         func_00000000(&D_00008B0C);
         func_00000000(&D_00008B18);
         func_00000000(st);
         func_00000000(&D_00008B24);
-        func_d440_f0call(*(int *)((char *)&D_F0a + 0x48), (int)st, *(float *)(st + 0x348) / 2.0f);
+        func_d440_f0call(*(int *)((char *)&D_F0a + 0x48), (int)st, *(float *)(st + 0x348) / two);
         func_00000000(*(int *)((char *)&D_F0b + 0x48), (int)st, *(int *)(st + 0xDC), *(int *)(st + 0xE4));
         func_00000000(*(int *)((char *)&D_F0c + 0x48), (int)st, *(int *)(st + 0xA14));
         t5 = *(int *)(st + 0x8DC);
