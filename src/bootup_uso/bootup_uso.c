@@ -3233,6 +3233,16 @@ void func_00004914(char *a0, int a1, char *a2) {
 // Per-frame camera/object transition state-machine tick (bootup/title
 // scene), keyed by obj->0x158 (transition-type enum).
 //
+// PREMISE CORRECTION (2026-07, agent-f): NOT pool-blocked. Its folded FP
+//   consts (func_000003F8+0x15C=0x554, +0x160=0x558; and the K0 at
+//   D_00000000+0) are MATCHABLE addend/base-reloc memory loads
+//   (*(float*)((char*)&func_000003F8 + 0x15C)), same class PROVEN on
+//   func_00007328 (24->69 fuzzy). The case-(a) unreproducible-pool blocker
+//   (splat re-extract) is func_0000098C's region only (E270/D900/E2D0).
+//   The real blocker here is full 426-insn FP-transition reconstruction
+//   accuracy (current body 15% fuzzy = structurally wrong; a full m2c
+//   graft also scored ~15%) + FP coloring ceiling. DEFERRED (multi-hour).
+//
 //   void func_00004948(Obj *obj) {        // obj also kept in a2
 //     int st = obj->0x158;
 //     if (st == 2) {                       // .L4948: simple scaled-snap case
@@ -4248,13 +4258,22 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006254);
 //   D_0 + 0x254 = global ctx ptr; ctx->0x70 = View; View->0xB4.. =
 //     a 0x10-stride basis/projection matrix; ctx->0x130 = screen scale;
 //     ctx->0x10C / 0x110 = output marker pixel X/Y (byte-clamped 0..0x7F).
-//   func_0000057C + 0x34 (lwc1) = folded f32 const — another bootup_uso
-//   literal-pool fold target (multi-symbol; see
-//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps (DEFERRED): 224-insn matrix-projection + multi-clamp + folded
-//   literal. Real-C STRUCTURAL body below — minimap/radar marker
-//   screen projection skeleton. Byte-match deferred. Name pre-checked:
-//   no extern reuse. D_00000000 reuses file-scope extern char.
+//   func_0000057C + 0x34 (lwc1) = folded f32 const at 0x5B0.
+// PREMISE CORRECTION (2026-07, agent-f): this is NOT the case-(a)
+//   splat-mis-disassembled constant pool (that blocker is func_0000098C's
+//   0x990-0x9A8 region -> func_0000E270/D900/E2D0 only, needs splat
+//   re-extract per docs/N64_FORENSICS.md). func_0000057C+0x34 is a
+//   MATCHABLE folded addend-reloc: reference it as a memory load
+//   *(float*)((char*)&func_0000057C + 0x34) (NOT as a C literal) and IDO
+//   emits a HI16/LO16 addend-reloc pair against func_0000057C that matches
+//   the target — same mechanism PROVEN on func_00007328's folded refs
+//   (func_0000029C+0x4, func_00000008+0x34; 24->69 fuzzy). The current
+//   body below does NOT reference func_0000057C+0x34 at all (uses a bogus
+//   inv-from-call divisor) -> that's a reconstruction error, not a pool cap.
+// REAL BLOCKER: full 224-insn 3x3 matrix-projection + multi-clamp FP-math
+//   reconstruction accuracy (current body 23% fuzzy = structurally wrong)
+//   plus the FP-register coloring ceiling. Not pool-blocked. DEFERRED
+//   (multi-hour per-fn FP RE). Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void func_000063B4(char *obj) {
     float inv, u, v;
