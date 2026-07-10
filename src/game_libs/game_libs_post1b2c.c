@@ -385,7 +385,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CDB4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CF54);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D0F4);
+/* gl_func_0006D0F4: 95-insn 40-byte-record builder (count, u16 x, src,
+ * out). Zeroes out[0..14], out[15]=1, builds record {0xFF,35,1,3,
+ * h4=fn(x)|x<<5, data[32] from src, b38=0xFF}, zero-fills count bytes at
+ * the cursor, struct-copies the record (swl/swr x3 chunk loop, $at
+ * scratch), cursor += 40, 0xFE terminator.
+ * LANDED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_6D0F4.c (95/95 — FOR-loop
+ * shape for both byte loops, see donor header). Body below is a
+ * placeholder for the splice (its bytes are replaced by the donor). */
+void gl_func_0006D0F4(int count, unsigned short x, unsigned char *src, int *out) {
+    volatile int i;
+    for (i = 0; i < count; i++) {
+        out[0] = *src + x;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D270);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D270_pad.s")
@@ -580,50 +594,26 @@ int gl_func_0006D964(char *obj, int a1, int a2, int a3, int arg5, int arg6, int 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D964);
 #endif
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0006DA74)();
+/* gl_func_0006DA74: 98-insn osCreatePiManager (libultra pimgr.c —
+ * identified 2026-07-09 against references/libreultra/src/io/pimgr.c;
+ * field-for-field: creates the cmd queue, the pi event queue
+ * (piEventQueue=0x43E90/piEventBuf=0x43EA8), the access queue if needed,
+ * osSetEventMesg(OS_EVENT_PI=8, q, 0x22222222), thread-priority bracket,
+ * __osPiDevMgr{active,thread=piThread@0x42CE0,cmdQueue,evtQueue,acsQueue,
+ * dma,edma}, osCreateThread(piThread, 0, __osDevMgrMain, &__osPiDevMgr,
+ * piThreadStack@0x42E90+0x1000, pri), osStartThread, __osRestoreInt,
+ * priority restore.
+ * LANDED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the -O1 donor unit game_libs_o1_6DA74.c (98/98 at plain 7.1 -O1 — the
+ * TU-defined DevMgr produces the shared-lui $at store clusters, see donor
+ * header). Body below is a placeholder for the splice (its bytes are
+ * replaced by the donor). */
 void gl_func_0006DA74(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
-    s32 sp2C;
-    s32 sp28;
-    s32 sp24;
-    s32 temp_v0;
-
-    if (*(int*)0 == 0) {
-        gl_func_00062F64(arg1, arg2, arg3);
-        gl_func_00062F64(0x43E90, 0x43EA8, 1);
-        if (*(int*)0 == 0) {
-            gl_func_00062F64();
-        }
-        gl_func_00062F64(8, 0x43E90, 0x22222222);
-        sp28 = -1;
-        sp24 = gl_func_00062F64(0);
-        if (sp24 < arg0) {
-            sp28 = sp24;
-            gl_func_00062F64(0, arg0);
-        }
-        temp_v0 = gl_func_00062F64();
-        *(int*)0 = 1;
-        *(s32 *)4 = 0x42CE0;
-        *(s32 *)0xC = 0x43E90;
-        *(s32 *)8 = arg1;
-        sp2C = temp_v0;
-        *(s32 *)0x10 = 0;
-        *(s32 *)0x14 = 0;
-        *(s32 *)0x18 = 0;
-        gl_func_00062F64(0x42CE0, 0, 0, 0, 0x43E90, arg0);
-        gl_func_00062F64(0x42CE0);
-        gl_func_00062F64(sp2C);
-        if (sp28 != -1) {
-            gl_func_00062F64(0, sp28);
-        }
+    volatile int keep = arg0 + arg1 + arg2 + arg3;
+    while (keep) {
+        keep = 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DA74);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006DBFC);
 

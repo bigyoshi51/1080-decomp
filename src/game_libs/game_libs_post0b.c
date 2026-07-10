@@ -4243,35 +4243,47 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 //   family (node->0x2C / 0x34 here vs node->0x28+0x14 in 00038598,
 //   node->0x28+0x1C in 0003863C). A per-frame dual-pass collection
 //   driver of the game_libs object subsystem.
-// Caps (DEFERRED): raw-word USO + intrusive-list walk. 2026-05-31:
-//   body corrected 52.2->58.5%. The sketch had 2 errors, now fixed:
-//   (1) the fn-ptrs come from the HANDLER h=obj->0x28 (h->0x2C / h->0x34),
-//   NOT the node; (2) the call args are SWAPPED — asm is f(obj+(short)off,
-//   ctx), not f(ctx, off+node). Same rotated-loop prefetch shape as 38728
-//   (delay-slot obj loads). RESIDUAL: cursor/next saved-reg-vs-stack-spill
-//   (target spills cursor/next to 40/44(sp) using 3 saved regs; IDO here
-//   promotes them to s3/s2 -> 5 saved regs), same cap as gl_func_00038728.
-//   2026-05-31: the remove-local/inline-recompute lever does NOT apply here
-//   — it reduces saved-reg pressure by inlining SHORT-LIVED locals, but the
-//   saved-reg culprits are cursor/next (the loop vars that survive BOTH jalr
-//   calls), not obj/h (already body-local temps that don't reach $s regs).
-//   Inlining obj/h can't drop the 5->3 saved-reg count; cursor's loop-carried
-//   live range forces its $s promotion regardless. Genuine spill-strategy cap.
+// 2026-07-09 (agent-e, w46 batch): REBUILT on the 39EE4 recipe — while(0)
+//   {pp=&cur;pp=&next;} address-takes give cur/next their memory homes at
+//   sp+0x28/0x2c (kills the old 5-saved-reg spill cap), ternary-comma advance
+//   gives the collapsed-else b .+1 + pre-branch zero shape in BOTH head and
+//   bottom copies, single `node` var + if(0) dead def. 58.5% -> shape-exact
+//   49w/49w with 29 positionally exact; the ENTIRE residual is one cyclic reg
+//   renumber: node colors s0 everywhere (merged LR) where target wants
+//   advance-web=v0 + body-web=s1, and h gets s1 where target wants s0
+//   (uoptlist verified: constrained order [node,h,next] vs target [h,node]
+//   with a v0/s1 LR SPLIT on node). Levers exhausted (21 variants): dead
+//   multi-defs (1x and 2x, node/obj/h), separate probe/obj vars (loses the
+//   bottom-advance speculation -> else-arm zero + v0-collapse), decl order,
+//   inner scope, int fall-off-end, if(1) barriers, manual rotation, array-
+//   iterator form. Documented adjsave-order + LR-split cap.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void gl_func_00038964(char *o, void *ctx) {
-    char *cursor, *next, *obj, *h;
-    for (cursor = *(char **)(o + 0x10); cursor != 0; cursor = next) {
-        next = *(char **)(cursor + 0x04);                    /* prefetch next BEFORE body */
-        obj = *(char **)cursor;
-        if (obj == 0) {
-            break;
-        }
-        h = *(char **)(obj + 0x28);                          /* handler */
-        (*(void (**)(char *, void *))(h + 0x2C))(obj + *(short *)(h + 0x28), ctx);
-        obj = *(char **)cursor;                              /* re-read obj for 2nd call */
-        h = *(char **)(obj + 0x28);
-        (*(void (**)(char *, void *))(h + 0x34))(obj + *(short *)(h + 0x30), ctx);
+int gl_func_00038964(char *o, void *ctx) {
+    char *next;
+    char *cur;
+    char *node;
+    char **pp;
+    char *h;
+    char *obj;
+
+    while (0) {
+        pp = &cur;
+        pp = &next;
+    }
+    next = *(char **)(o + 0x10);
+    cur = next;
+    node = (cur != NULL) ? (next = *(char **)(cur + 4), *(char **)cur) : NULL;
+    while (node != NULL) {
+        node = *(char **)cur;
+        if (0) { node = NULL; }                              /* dead multi-def (39EE4 lever) — shape-load-bearing */
+        h = *(char **)(node + 0x28);                         /* handler */
+        (*(void (**)(char *, void *))(h + 0x2C))(node + *(short *)(h + 0x28), ctx);
+        node = *(char **)cur;                                /* re-read for 2nd call */
+        h = *(char **)(node + 0x28);
+        (*(void (**)(char *, void *))(h + 0x34))(node + *(short *)(h + 0x30), ctx);
+        cur = next;
+        node = (cur != NULL) ? (next = *(char **)(cur + 4), *(char **)cur) : NULL;
     }
 }
 #else
@@ -11188,27 +11200,41 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040E90);
 // these same a0->0xB4/0xC0/0xCC/0xD8 fields). Source/dest offset pairing is
 // exact; the exact group-2 overlap (a1->0xDC reused) reflects the asm.
 //
-// Caps (DEFERRED): Src/Dst structs untyped; the GPR->FPR sp+0x14
-//   bounce idiom IDO emits is not produced by plain word-copy C
-//   (recipe would need INSN_PATCH or stack-spill control). Real-C
-//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
-#ifdef NON_MATCHING
+// EXACT 42/42 (2026-07-09, w46 batch) after MIS-SPLIT FIX: the function's
+//   true first insn `lw t7,0xD0(a1)` was IDO-hoisted ABOVE `addiu sp` and
+//   splat cut at the prologue, orphaning it at the tail of
+//   gl_func_00040E90.s (moved here; sizes 0x178->0x174 / 0xA4->0xA8). So the
+//   copy is a clean contiguous a1+0xD0..0xF3 -> a0+0xB4..0xD7 through a
+//   12-byte stack bounce buffer — NO uninitialized word. Load-bearing:
+//   (1) groups are 12-byte STRUCT assignments through `ib` (gives the
+//   alternating hi/lo temp pairs t7/t6, t9/t8, t1/t0 and the v0-based sw);
+//   (2) if(0){ib=0;} multi-def blocks the buf<->ib base CSE so the float
+//   re-reads stay sp-based (lwc1 0x14/0x18/0x1C(sp)) while stores go via v0;
+//   (3) volatile pad sandwich (0x10 below + 0x10 above buf) = frame 0x30
+//   with buf at sp+0x14. Name pre-checked: no extern reuse.
+typedef struct { int w0, w1, w2; } W3;
 void gl_func_00041008(char *a0, char *a1) {
-    *(int *)(a0 + 0xB4) = *(int *)(a1 + 0xD4);
-    *(int *)(a0 + 0xB8) = *(int *)(a1 + 0xD8);
-    *(int *)(a0 + 0xBC) = *(int *)(a1 + 0xDC);
-    *(int *)(a0 + 0xC0) = *(int *)(a1 + 0xDC);
-    *(int *)(a0 + 0xC4) = *(int *)(a1 + 0xE0);
-    *(int *)(a0 + 0xC8) = *(int *)(a1 + 0xE4);
-    *(int *)(a0 + 0xCC) = *(int *)(a1 + 0xE8);
-    *(int *)(a0 + 0xD0) = *(int *)(a1 + 0xEC);
-    *(int *)(a0 + 0xD4) = *(int *)(a1 + 0xF0);
-    *(int *)(a0 + 0xD8) = *(int *)(a1 + 0xF4);
+    volatile char padA[0x10];
+    float buf[3];
+    volatile char padB[0x10];
+    W3 *ib;
+
+    ib = (W3 *)buf;
+    if (0) { ib = 0; }                                       /* multi-def: block buf<->ib base CSE (float reads stay sp-based) */
+    *ib = *(W3 *)(a1 + 0xD0);                                /* first lw is IDO-hoisted ABOVE addiu sp (was the splat mis-split) */
+    *(float *)(a0 + 0xB4) = buf[0];
+    *(float *)(a0 + 0xB8) = buf[1];
+    *(float *)(a0 + 0xBC) = buf[2];
+    *ib = *(W3 *)(a1 + 0xDC);
+    *(float *)(a0 + 0xC0) = buf[0];
+    *(float *)(a0 + 0xC4) = buf[1];
+    *(float *)(a0 + 0xC8) = buf[2];
+    *ib = *(W3 *)(a1 + 0xE8);
+    *(float *)(a0 + 0xCC) = buf[0];
+    *(float *)(a0 + 0xD0) = buf[1];
+    *(float *)(a0 + 0xD4) = buf[2];
+    *(float *)(a0 + 0xD8) = *(float *)(a1 + 0xF4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00041008);
-#endif
 
 /* gl_func_000410AC: 12-insn 2-call wrapper. Mid-function aliases
  * gl_func_00054648 (= gl_func_000545BC + 0x8C) and gl_func_00054684
@@ -24254,41 +24280,43 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00052AE8);
  * a0->0x68[row*8 + t0 + 2]; rec = a0->0x64 + idx*4; x=rec[0], y=rec[1]; when
  * (x>=lo)!=flagX AND (y>=hi)!=flagY, set lo=x, hi=y, v1=idx. Returns v1 (last idx).
  * flagX/flagY are min-vs-max direction selectors. 0%%->44.5%%: logic/sig/structure
- * exact; residual is the stack-resident-shorts spill layout (target spills lo/hi @
- * sp+16/18 + x/y scratch @ sp+12/14 and reloads per-iter via sh/lh; mine is more
- * register-efficient => fewer insns — the no-spill-shorter-than-target cap class). */
-int gl_func_00052BBC(int *a0, int a1, int a2, int a3, int a4) {
-    short sc;
-    short lo;
-    short hi;
-    int v1 = -1;
+ * exact. 2026-07-09 (w46 batch) REBUILT: x/y/lo/hi as ONE short m[4] array =
+ * the target's contiguous sp+0xC/E/10/12 sh/lh spill homes (kills the old
+ * "no-spill" cap note); volatile padA+padB[8] = frame 0x20 with m at 0xC.
+ * Now 70w/70w LENGTH-EXACT, epilogue + several spill words positional-exact.
+ * RESIDUAL (cap): IDO hoists rowN*8 slls to the preheader (target recomputes
+ * in-loop) — copy-prop defeats every de-invariant spelling tried (multi-def
+ * row var, self-assign, +=0/|=0, t0*0 phantom, array-IXA typedef, -O1 (no:
+ * target has beql/bnel = -O2), IDO 5.3, lim-var (triggers peel)); the 2-word
+ * placement shift plus the a0-vs-a2 param-eviction choice (mine evicts a0->s0,
+ * target evicts a2/row2->s0) rotates the whole t-reg ring. Genuine
+ * LICM-placement + eviction-order cap. */
+int gl_func_00052BBC(int *a0, int row1, int row2, int flagX, int flagY) {
+    volatile int padA;               /* pad pair: frame 0x20 with m[] at sp+0xC (target layout) */
+    volatile char padB[8];
+    short m[4];                      /* m[0]=x m[1]=y m[2]=lo m[3]=hi — contiguous sp homes like target */
+    int v1;
     int t0;
-    lo = 0x7530;
-    hi = 0x7530;
+    unsigned short idx;
+    short *rec;
+
+    m[2] = 0x7530;
+    m[3] = 0x7530;
+    v1 = -1;
     for (t0 = 0; t0 != 6; t0 += 2) {
-        unsigned short idx1 = *(unsigned short *)((char *)a0[0x68 / 4] + a1 * 8 + t0 + 2);
-        short *rec1 = (short *)((char *)a0[0x64 / 4] + idx1 * 4);
-        sc = rec1[0];
-        if ((sc >= lo) != a3) {
-            short scy = rec1[1];
-            if ((scy >= hi) != a4) {
-                lo = sc;
-                hi = scy;
-                v1 = idx1;
-            }
+        idx = *(unsigned short *)((char *)a0[0x68 / 4] + (row1 * 8) + t0 + 2);
+        rec = (short *)((char *)a0[0x64 / 4] + idx * 4);
+        m[0] = rec[0];
+        m[1] = rec[1];
+        if ((m[0] >= m[2]) != flagX) {
+            if ((m[1] >= m[3]) != flagY) { m[2] = m[0]; m[3] = m[1]; v1 = idx; }
         }
-        {
-            unsigned short idx2 = *(unsigned short *)((char *)a0[0x68 / 4] + a2 * 8 + t0 + 2);
-            short *rec2 = (short *)((char *)a0[0x64 / 4] + idx2 * 4);
-            sc = rec2[0];
-            if ((sc >= lo) != a3) {
-                short scy = rec2[1];
-                if ((scy >= hi) != a4) {
-                    lo = sc;
-                    hi = scy;
-                    v1 = idx2;
-                }
-            }
+        idx = *(unsigned short *)((char *)a0[0x68 / 4] + (row2 * 8) + t0 + 2);
+        rec = (short *)((char *)a0[0x64 / 4] + idx * 4);
+        m[0] = rec[0];
+        m[1] = rec[1];
+        if ((m[0] >= m[2]) != flagX) {
+            if ((m[1] >= m[3]) != flagY) { m[2] = m[0]; m[3] = m[1]; v1 = idx; }
         }
     }
     return v1;
@@ -30622,24 +30650,29 @@ void gl_func_0005DDE4(char *arg0, char *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DDE4);
 #endif
 
-#ifdef NON_MATCHING
 /* game_libs_func_0005DF64: copy 16 floats a0[] -> a1[] (e.g. a 4x4 matrix).
- * 45% NM. Correct logic; the gap is an IDO unroll-ADDRESSING variant. Both
- * `a1[i]=a0[i]` and `*a1++=*a0++` compile to a TIGHT 18-insn 4x-unroll
- * (advance dst by 16/group, -16(v1)/-12/-8/-4 offsets). The target is a
- * VERBOSE 32-insn 4x-unroll that re-copies the induction pointer to a temp
- * before each access (`or a1,v0; lwc1 0(a1); v0+=4` per element, counter by 4).
- * No clean C reaches that form: struct copy -> 25% (ldc1/sdc1), manual 4x ->
- * size blow-up (fuzzy None). Documented IDO unroll-residual addressing cap. */
+ * EXACT 32/32 (2026-07-09, w46 batch). The target is the SOURCE-hand-unrolled
+ * form (NOT an IDO unroll): 4 copy groups per iteration through marshalling
+ * temps p/q, counter i++ interleaved per group (4 multi-defs fold to one
+ * addiu a2,a2,4 but BLOCK the full-unroll of the 4-trip loop that a clean
+ * i+=4 form triggers). Load-bearing: q ASSIGNED TEXTUALLY FIRST in each
+ * group (q=dst; p=src;) colors q=a0/p=a1 (p-first colors p=a0 = 16-word
+ * renumber); pointer bumps as separate `src++; dst++;` statements. The old
+ * "unroll-residual addressing cap" note is RETRACTED — rolled forms give the
+ * tight 18-insn shape, hand-unrolled+multi-def-i gives this verbose one. */
 void game_libs_func_0005DF64(float *a0, float *a1) {
+    float *src, *dst, *p, *q;
     int i;
-    for (i = 0; i < 16; i++) {
-        a1[i] = a0[i];
+
+    src = a0;
+    dst = a1;
+    for (i = 0; i != 16;) {
+        q = dst; p = src; src++; dst++; *q = *p; i++;
+        q = dst; p = src; src++; dst++; *q = *p; i++;
+        q = dst; p = src; src++; dst++; *q = *p; i++;
+        q = dst; p = src; src++; dst++; *q = *p; i++;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005DF64);
-#endif
 
 /* Copy a 3x3 float block from a0 to a1, row stride 16 bytes (4th column of
  * each 4-wide row skipped). Logic-exact; 12/19 diffs are a consistent

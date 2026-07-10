@@ -2766,3 +2766,21 @@ D_mgr2940_z = 0x00000000;
 D_mgr2940_t = 0x00000000;
 D_mgr2940_id = 0x00000000;
 D_mgr2940_q = 0x00000000;
+/* -O1 island batch 3 donors (2026-07-09): 6BF34/6C1B8/6D0F4/6DA74 */
+D_00000000_g = 0x00000000;
+D_00000000_h = 0x00000000;
+D_00000000_main = 0x00000000;  /* __osDevMgrMain blank extern (6DA74 = osCreatePiManager) */
+gl_devmgr_6DA74 = 0x00000000;  /* __osPiDevMgr — TU-defined in donor for shared-lui $at cluster; imported as UNDEF by the splice */
+gl_ref_00042CE0 = 0x00042CE0;  /* piThread (kernel bss, baked lui 4/addiu 0x2CE0) */
+gl_ref_00042E90 = 0x00042E90;  /* piThreadStack (stack top = +0x1000 OS_PIM_STACKSIZE) */
+gl_ref_00043E90 = 0x00043E90;  /* piEventQueue */
+gl_ref_00043EA8 = 0x00043EA8;  /* piEventBuf */
+gl_func_00000001 = 0x00000000;
+gl_func_00000002 = 0x00000000;
+gl_func_00000003 = 0x00000000;
+gl_func_00000004 = 0x00000000;
+gl_func_00000005 = 0x00000000;
+gl_func_00000006 = 0x00000000;
+gl_func_00000007 = 0x00000000;
+gl_func_00000008 = 0x00000000;
+gl_func_00000009 = 0x00000000;

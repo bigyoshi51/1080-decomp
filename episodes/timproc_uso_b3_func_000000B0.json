@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b3_func_000000B0",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T02:35:06.304770+00:00",
+  "end_time": "2026-07-10T02:35:06.304790+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T02:35:06.304784+00:00",
+      "assistant_text": "Twin of timproc_uso_b1_func_000000B0 (4 immediate deltas: li a3 1->2 x2, 0x2000->0x4000 x2). Direct transfer.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 317,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* timproc_uso_b3_func_000000B0 \u2014 -O0 donor (REPLACE_FUNC_BODY into\n * timproc_uso_b3.c.o). 14-case state-machine dispatcher on arg1; loop\n * re-reads the next state from D_00000000.f40 until a case sets `done`.\n * -O0 keeps the switch jumptable in .rodata at offset 0, so the lui/lw\n * dispatch words carry in-place addend 0 \u2014 matching the target's raw\n * (pre-USO-reloc) words. All module-global accesses are extern-struct\n * member reads/writes on D_00000000 so the byte offsets bake into the\n * HI16/LO16 in-place addends. b1 twin: timproc_uso_b1_o0_B0.c \u2014 this b3\n * copy differs only in case 5 second-call a3 / case 7 first-call a3\n * (1 -> 2) and the case 12 mask/arg (0x2000 -> 0x4000). */\n\nextern int gl_func_00000000();\n\ntypedef struct {\n    /* 0x000 */ int f00;\n    /* 0x004 */ int f04;\n    /* 0x008 */ int pad08[14];\n    /* 0x040 */ int f40;\n    /* 0x044 */ int f44;\n    /* 0x048 */ int f48;\n    /* 0x04C */ int pad4C[6];\n    /* 0x064 */ int f64;\n    /* 0x068 */ int pad68[66];\n    /* 0x170 */ int f170;\n    /* 0x174 */ int pad174;\n    /* 0x178 */ unsigned char f178;\n} TimProcState;\n\nextern TimProcState D_00000000;\n/* Same module base, distinct symbol: case 5's second argument materializes\n * the base pointer into its own temp reg (lui/addiu addend 0) instead of\n * CSE-sharing the &D_00000000 already loaded into a0. */\nextern char D_00000000_raw[];\n\nvoid timproc_uso_b3_func_000000B0(int *arg0, int arg1) {\n    int v;\n    int done = 0;\n    register int s0v;\n    register char *base;\n    register char *p2;\n    register char *p3;\n\n    do {\n        switch (arg1) {\n        case 0:\n            gl_func_00000000(arg0, 1, 7, 1);\n            D_00000000.f44 = 4;\n            D_00000000.f48 = 13;\n            done = 1;\n            break;\n        case 1:\n            gl_func_00000000(arg0, 1, 7, 1);\n            D_00000000.f44 = 4;\n            D_00000000.f48 = 13;\n            done = 1;\n            break;\n        case 2:\n            gl_func_00000000(arg0, 1, 7, 2);\n            D_00000000.f44 = 4;\n            D_00000000.f48 = 13;\n            done = 1;\n            break;\n        case 3:\n            gl_func_00000000(arg0, 1, 7, 4);\n            D_00000000.f44 = 4;\n            D_00000000.f48 = 13;\n            done = 1;\n            break;\n        case 4:\n            gl_func_00000000(arg0, 1, D_00000000.f64);\n            D_00000000.f40 = 5;\n            break;\n        case 5:\n            gl_func_00000000(&D_00000000, *(int *)(D_00000000_raw + 4));\n            gl_func_00000000(&D_00000000, 4, D_00000000.f64, 2);\n            v = gl_func_00000000(arg0, *arg0, 1);\n            s0v = gl_func_00000000(0, 0x410000, v, *arg0);\n            gl_func_00000000(arg0, 0, s0v);\n            done = 1;\n            break;\n        case 6:\n            gl_func_00000000(arg0, 0, D_00000000.f178);\n            D_00000000.f40 = 7;\n            break;\n        case 7:\n            gl_func_00000000(&D_00000000, 10, D_00000000.f64, 2);\n            v = gl_func_00000000(arg0, *arg0, 1);\n            s0v = gl_func_00000000(0, D_00000000.f170 + 0x1A000F, v, *arg0);\n            gl_func_00000000(arg0, 0, s0v);\n            done = 1;\n            break;\n        case 8:\n            gl_func_00000000(arg0);\n            D_00000000.f40 = D_00000000.f44;\n            break;\n        case 9:\n            gl_func_00000000(arg0);\n            D_00000000.f40 = 10;\n            break;\n        case 10:\n            gl_func_00000000(&D_00000000, 7, 0, 0);\n            s0v = gl_func_00000000(0);\n            gl_func_00000000(arg0, 1, s0v);\n            done = 1;\n            break;\n        case 11:\n            v = gl_func_00000000(arg0, *arg0, 4);\n            s0v = gl_func_00000000(0, D_00000000.f170 + 0x20000, v, *arg0);\n            base = (char *)&D_00000000;\n            p2 = base + 0x10;\n            gl_func_00000000(p2, s0v);\n            if (*(int *)((char *)s0v + 0x14) != 0) {\n                *(int *)((char *)s0v + 4) = 1;\n            }\n            p2 = base;\n            *(int *)((char *)s0v + 0x14) = (int)p2;\n            gl_func_00000000(arg0, *arg0);\n            done = 1;\n            break;\n        case 12:\n            s0v = gl_func_00000000(D_00000000.f64);\n            gl_func_00000000(arg0, (D_00000000.f64 | 0x4000) | s0v, 0x4000, *arg0);\n            done = 1;\n            break;\n        case 13:\n            s0v = gl_func_00000000(0, 1, 0);\n            base = (char *)&D_00000000;\n            p2 = base + 0x10;\n            gl_func_00000000(p2, s0v);\n            if (*(int *)((char *)s0v + 0x14) != 0) {\n                *(int *)((char *)s0v + 4) = 1;\n            }\n            p3 = base;\n            *(int *)((char *)s0v + 0x14) = (int)p3;\n            done = 1;\n            break;\n        }\n        arg1 = D_00000000.f40;\n    } while (done == 0);\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b3/timproc_uso_b3_o0_B0.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/timproc_uso_b3/timproc_uso_b3/timproc_uso_b3_func_000000B0.s",
+    "segment": "timproc_uso_b3",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 (REPLACE_FUNC_BODY donor)",
+    "verification": "317/317 word-exact + verify-blocks OK + make ROM byte-identical"
+  }
+}

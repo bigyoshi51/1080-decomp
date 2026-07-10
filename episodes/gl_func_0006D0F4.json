@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006D0F4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T02:35:49.154875+00:00",
+  "end_time": "2026-07-10T02:35:49.154895+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T02:35:49.154890+00:00",
+      "assistant_text": "-O1 island member, IDO 5.3. Same for-loop store-order lever for both byte loops; if (count != 0) for(...) gives the beq+blez pair; 40-byte align-2 struct assign = the swl/swr chunk-copy loop.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 95,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006D0F4 \u2014 95-insn 40-byte-record builder\n * (frame 0x48, saves ra; one jal). PROVEN EXACT 95/95 (2026-07-09\n * standalone probe; 7.1 -O1 = 76/95, $at struct-copy scratch again).\n * Zeroes out[0..14], sets out[15]=1, builds a 40-byte record {0xFF,35,1,3,\n * h4 = fn(x) | x<<5, data[32] from src, b38=0xFF}, optionally zero-fills\n * `count` bytes at the cursor, then struct-copies the record to the cursor\n * (IDO's 12-byte-chunk swl/swr copy loop with $at scratch), advances 40,\n * writes 0xFE terminator.\n * Levers:\n *   (1) FOR-loop shape for BOTH byte loops (see the 6C1B8 donor note):\n *       `for (i=0;i<32;i++){ buf.data[i]=*src; src+=1; }` (constant bound\n *       folds the entry guard) and `if (count != 0) for (i=0;i<count;i++)\n *       { *cursor=0; cursor+=1; }` (the != 0 wrapper gives the extra beq\n *       before the for's blez);\n *   (2) decl order cursor, buf, i = slots 68 / 28..67 / 24;\n *   (3) u16 param x: lhu arg-home reloads; h4 = fn(x) | (x << 5);\n *   (4) `*(Buf *)cursor = buf` with align-2 Buf = the unrolled x3\n *       swl/swr copy loop + tail word.\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY (real 5.3 -O1\n * compiler output; blank-extern relocs imported by the splice). */\ntypedef struct {\n    unsigned char b0, b1, b2, b3;   /* 0-3 */\n    unsigned short h4;              /* 4-5 */\n    unsigned char data[32];         /* 6-37 */\n    unsigned char b38, b39;         /* 38-39 */\n} Buf;\nextern int gl_func_00000000(unsigned short);\nvoid gl_func_0006D0F4(int count, unsigned short x, unsigned char *src, int *out) {\n    unsigned char *cursor;\n    Buf buf;\n    int i;\n    cursor = (unsigned char *)out;\n    for (i = 0; i < 15; i++) {\n        out[i] = 0;\n    }\n    out[15] = 1;\n    buf.b0 = 255;\n    buf.b1 = 35;\n    buf.b2 = 1;\n    buf.b3 = 3;\n    buf.h4 = gl_func_00000000(x) | (x << 5);\n    buf.b38 = 255;\n    for (i = 0; i < 32; i++) {\n        buf.data[i] = *src;\n        src += 1;\n    }\n    if (count != 0) {\n        for (i = 0; i < count; i++) {\n            *cursor = 0;\n            cursor += 1;\n        }\n    }\n    *(Buf *)cursor = buf;\n    cursor += 40;\n    *cursor = 0xFE;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6D0F4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006D0F4.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "95/95 word-exact + make ROM byte-identical"
+  }
+}

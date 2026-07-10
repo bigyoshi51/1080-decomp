@@ -9,41 +9,23 @@ typedef struct { int a, b, c, d; } Quad4;
  * concatenated into the Yay0 block (region 0) before compression. See the
  * timproc_uso_block1_yay0 rule in the Makefile. */
 
-#ifdef NON_MATCHING
-/* timproc_uso_b1_func_000000B0: 0x4F4 (317 insns), 0x40-byte stack frame.
- * Untouched until 2026-05-03. Single function (grep -c 03E00008 = 1).
- *
- * 14-CASE SWITCH DISPATCH on a1 (insns 1-12):
- *   if ((u32)a1 >= 14) goto default_case;          ; sltiu+beqz
- *   t6 = jumptable[a1*4];                           ; jr t6
- *
- * Per feedback_ido_switch_rodata_jumptable.md, 1080's linker DISCARDS the
- * .rodata jumptable; matching requires if-else or if-goto chain rewrite
- * instead of the C `switch` statement. Same structural cap as the spine
- * function game_uso_func_00000B3C.
- *
- * CASE 0 (insns 13-22 @ 0xFC-0x120, decoded):
- *   gl_func_X(a0, 1, 7, 1)                          ; some 4-arg helper
- *   *(int*)(sp+0x44) = 4                            ; param? next-state?
- *   *(int*)(sp+0x48) = 0xD                          ; another param/const
- *
- * BODY (insns 23-317, ~290 insns remaining): per-case bodies for cases
- * 0..13. Each case dispatches to gl_func_00000000 with case-specific args
- * and returns. Heavy use of sp+0x44/0x48 as scratch params.
- *
- * Per feedback_partial_alloc_block_add_irreversible.md, NOT writing partial
- * body — the switch dispatch needs the FULL case-chain decoded together to
- * have any chance of matching the if-else rewrite. Default INCLUDE_ASM
- * matches via original asm. Multi-tick decompile expected. */
+/* timproc_uso_b1_func_000000B0: 317-insn (0x4F4) -O0 state-machine
+ * dispatcher: 14-case jumptable switch on arg1, loops re-reading the next
+ * state from D+0x40 until a case sets `done`. EXACT 2026-07-09 via the -O0
+ * donor timproc_uso_b1_o0_B0.c spliced in through REPLACE_FUNC_BODY (same
+ * recipe as 5A4/65C below). This in-TU body is a compile stand-in only —
+ * its bytes are replaced by the donor's in build/.../timproc_uso_b1.c.o.
+ * The old "rodata jumptable = structural cap" note applied to the -O2
+ * in-TU compile; the -O0 donor emits its jumptable at .rodata offset 0,
+ * so the lui/lw dispatch words carry in-place addend 0 = the target's raw
+ * pre-USO-reloc words. Twin: timproc_uso_b3_func_000000B0 (4 immediates
+ * differ: case5/case7 second-a3 1->2, case12 mask 0x2000->0x4000). */
 timproc_uso_b1_func_000000B0(a0, a1) int * a0; int a1; {
     char *d = (char *)&D_00000000;
     int done = 0;
-    int state;
     int v, s0v;
     do {
-        state = a1;
-        if ((unsigned int)state < 14) {
-        switch (state) {
+        switch (a1) {
         case 0:
             gl_func_00000000(a0, 1, 7, 1);
             *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
@@ -73,13 +55,13 @@ timproc_uso_b1_func_000000B0(a0, a1) int * a0; int a1; {
             done = 1;
             break;
         case 6:
-            gl_func_00000000(a0, 0, *(unsigned char *)(d + 376));
+            gl_func_00000000(a0, 0, *(unsigned char *)(d + 0x178));
             *(int *)(d + 0x40) = 7;
             break;
         case 7:
             gl_func_00000000(d, 10, *(int *)(d + 0x64), 1);
             v = gl_func_00000000(a0, *a0, 1);
-            s0v = gl_func_00000000(0, *(int *)(d + 368) + 0x1A000F, v, *a0);
+            s0v = gl_func_00000000(0, *(int *)(d + 0x170) + 0x1A000F, v, *a0);
             gl_func_00000000(a0, 0, s0v);
             done = 1;
             break;
@@ -99,11 +81,11 @@ timproc_uso_b1_func_000000B0(a0, a1) int * a0; int a1; {
             break;
         case 11:
             v = gl_func_00000000(a0, *a0, 4);
-            s0v = gl_func_00000000(0, *(int *)(d + 368) + 0x20000, v, *a0);
+            s0v = gl_func_00000000(0, *(int *)(d + 0x170) + 0x20000, v, *a0);
             {
                 char *r = (char *)s0v;
-                gl_func_00000000(d + 16, r);
-                if (*(int *)(r + 0x14) != 0) *(int *)(r + 0x4) = 1;
+                gl_func_00000000(d + 0x10, r);
+                if (*(int *)(r + 0x14) != 0) *(int *)(r + 4) = 1;
                 *(int *)(r + 0x14) = (int)d;
             }
             gl_func_00000000(a0, *a0);
@@ -111,27 +93,23 @@ timproc_uso_b1_func_000000B0(a0, a1) int * a0; int a1; {
             break;
         case 12:
             s0v = gl_func_00000000(*(int *)(d + 0x64));
-            gl_func_00000000(a0, (*(int *)(d + 0x64) | 0x2000) | s0v, 8192, *a0);
+            gl_func_00000000(a0, (*(int *)(d + 0x64) | 0x2000) | s0v, 0x2000, *a0);
             done = 1;
             break;
         case 13:
             s0v = gl_func_00000000(0, 1, 0);
             {
                 char *r = (char *)s0v;
-                gl_func_00000000(d + 16, r);
-                if (*(int *)(r + 0x14) != 0) *(int *)(r + 0x4) = 1;
+                gl_func_00000000(d + 0x10, r);
+                if (*(int *)(r + 0x14) != 0) *(int *)(r + 4) = 1;
                 *(int *)(r + 0x14) = (int)d;
             }
             done = 1;
             break;
         }
-        }
         a1 = *(int *)(d + 0x40);
     } while (done == 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000000B0);
-#endif
 
 extern int D_00000148;
 extern int D_0000014C;

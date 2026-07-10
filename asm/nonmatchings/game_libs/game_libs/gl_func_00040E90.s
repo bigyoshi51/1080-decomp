@@ -1,4 +1,4 @@
-nonmatching gl_func_00040E90, 0x178
+nonmatching gl_func_00040E90, 0x174
 
 glabel gl_func_00040E90
     /* E25F68 00040E90 27BDFF98 */  .word 0x27BDFF98
@@ -94,5 +94,4 @@ glabel gl_func_00040E90
     /* E260D0 00040FF8 8FB30020 */  .word 0x8FB30020
     /* E260D4 00040FFC 03E00008 */  .word 0x03E00008
     /* E260D8 00041000 27BD0068 */  .word 0x27BD0068
-    /* E260DC 00041004 8CAF00D0 */  .word 0x8CAF00D0
 endlabel gl_func_00040E90

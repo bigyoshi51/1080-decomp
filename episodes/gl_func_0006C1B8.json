@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006C1B8",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T02:35:48.901598+00:00",
+  "end_time": "2026-07-10T02:35:48.901624+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T02:35:48.901618+00:00",
+      "assistant_text": "-O1 island member, IDO 5.3 flavor ($at swl/swr scratch). NEW LEVER: FOR-loop shape (vs any do-while/comma spelling) puts sw i BEFORE the bne and sinks the cursor store into the delay slot \u2014 the last-2-word floor breaker. Struct-member flag for the $at-fused sw 60(at).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 59,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006C1B8 \u2014 59-insn table-reset + 8-byte\n * record emitter, reset-sibling of gl_func_0006BD14 and same family as the\n * landed gl_func_0006C11C decoder (frame 0x10, leaf). PROVEN EXACT 59/59\n * (2026-07-09 standalone probe). 5.3 required: it colors the struct-copy\n * scratch $at for the swl/swr pair (7.1 uses $t-regs \u2014 44/59 floor).\n * Levers:\n *   (1) FOR-loop shape for the emit loop \u2014 `for (i = 0; i < D_a; i++)\n *       { *(Rec*)cursor = tmp; cursor += 1; }` \u2014 is what puts sw-i before\n *       the bne and sinks the cursor store into the branch delay slot.\n *       Every do-while/comma spelling emits the two sw's swapped (57/59\n *       floor, verified exhaustively). The for-guard also provides the\n *       entry blez.\n *   (2) decl order cursor, tmp, i = slots 12 / 4..11 / 0;\n *   (3) `Zeros` struct-member flag \u2014 D_c.flag (offset 60) emits the\n *       $at-fused single-lui `sw t1,60(at)` (an int D_d extern emits its\n *       own lui; indexing D_c[15] array-decays to an addiu base \u2717);\n *   (4) union Rec view: u16 h member = the `sh 0xFFFF` middle store.\n * Spliced into game_libs_post1b2.c.o via REPLACE_FUNC_BODY (real 5.3 -O1\n * compiler output; blank-extern relocs imported by the splice). */\ntypedef struct { unsigned char raw[8]; } RecBytes;\ntypedef union {\n    RecBytes b;\n    struct { unsigned char b0, b1, b2, b3; unsigned short h; signed char b6, b7; } f;\n} Rec;\ntypedef struct { int arr[15]; int flag; } Zeros;\nextern unsigned char D_00000000_a;\nextern RecBytes D_00000000_b[];\nextern Zeros D_00000000_c;\nvoid gl_func_0006C1B8(void) {\n    RecBytes *cursor;\n    Rec tmp;\n    int i;\n    cursor = D_00000000_b;\n    for (i = 0; i < 15; i++) {\n        D_00000000_c.arr[i] = 0;\n    }\n    D_00000000_c.flag = 1;\n    tmp.f.b0 = 0xFF;\n    tmp.f.b1 = 1;\n    tmp.f.b2 = 4;\n    tmp.f.b3 = 1;\n    tmp.f.h = 0xFFFF;\n    tmp.f.b6 = -1;\n    tmp.f.b7 = -1;\n    for (i = 0; i < D_00000000_a; i++) {\n        *(Rec *)cursor = tmp;\n        cursor += 1;\n    }\n    cursor->raw[0] = 0xFE;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6C1B8.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006C1B8.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "59/59 word-exact + make ROM byte-identical"
+  }
+}

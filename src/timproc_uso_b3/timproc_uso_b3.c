@@ -32,130 +32,107 @@ typedef struct { int a, b, c, d; } Quad4;
  * concatenated into the Yay0 block (region 0) before compression. See the
  * timproc_uso_block3_yay0 rule in the Makefile. */
 
-#ifdef NON_MATCHING
-/* timproc_uso_b3_func_000000B0: 0x4F4 (317 insns), 0x40-byte stack frame.
- * Boundary-checked 2026-05-19: one jr ra plus an internal jump-table jr.
- *
- * Full state-machine decode of the 14 jump-table arms. This is still
- * NON_MATCHING because IDO's C switch emits a normal rodata jump table, while
- * this raw-word USO target has the original relocatable table shape. The
- * explicit body preserves the real call/field map for the next pass:
- * state 4/6/8/9 loop by writing D[0x40]; all other decoded arms set done.
- * Current score: 36.09% (up from 3.36%). Tried volatile stack locals
- * (regressed to 32.28%) and a forced -O0 probe (blocked by pad sidecars). */
+/* timproc_uso_b3_func_000000B0: 317-insn (0x4F4) -O0 state-machine
+ * dispatcher: 14-case jumptable switch on arg1, loops re-reading the next
+ * state from D+0x40 until a case sets `done`. EXACT 2026-07-09 via the -O0
+ * donor timproc_uso_b3_o0_B0.c spliced in through REPLACE_FUNC_BODY (same
+ * recipe as 5A4/65C below). This in-TU body is a compile stand-in only —
+ * its bytes are replaced by the donor's in build/.../timproc_uso_b3.c.o.
+ * The old "rodata jumptable = structural cap" note applied to the -O2
+ * in-TU compile; the -O0 donor emits its jumptable at .rodata offset 0,
+ * so the lui/lw dispatch words carry in-place addend 0 = the target's raw
+ * pre-USO-reloc words. Twin: timproc_uso_b1_func_000000B0 (4 immediates
+ * differ: case5/case7 second-a3 1->2, case12 mask 0x2000->0x4000). */
 timproc_uso_b3_func_000000B0(a0, a1) int * a0; int a1; {
-    int done;
-    int tmp;
-    int *node;
-    char *base;
-    char *link;
-
-    done = 0;
+    char *d = (char *)&D_00000000;
+    int done = 0;
+    int v, s0v;
     do {
-        switch ((unsigned int)a1) {
+        switch (a1) {
         case 0:
             gl_func_00000000(a0, 1, 7, 1);
-            *(int*)((char*)&D_00000000 + 0x44) = 4;
-            TIMB3_D_48 = 0xD;
-            done = 1;
+            *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
             break;
         case 1:
             gl_func_00000000(a0, 1, 7, 1);
-            *(int*)((char*)&D_00000000 + 0x44) = 4;
-            TIMB3_D_48 = 0xD;
-            done = 1;
+            *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
             break;
         case 2:
             gl_func_00000000(a0, 1, 7, 2);
-            *(int*)((char*)&D_00000000 + 0x44) = 4;
-            TIMB3_D_48 = 0xD;
-            done = 1;
+            *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
             break;
         case 3:
             gl_func_00000000(a0, 1, 7, 4);
-            *(int*)((char*)&D_00000000 + 0x44) = 4;
-            TIMB3_D_48 = 0xD;
-            done = 1;
+            *(int *)(d + 0x44) = 4; *(int *)(d + 0x48) = 13; done = 1;
             break;
         case 4:
-            gl_func_00000000(a0, 1, TIMB3_D_64);
-            *(int*)((char*)&D_00000000 + 0x40) = 5;
+            gl_func_00000000(a0, 1, *(int *)(d + 0x64));
+            *(int *)(d + 0x40) = 5;
             break;
         case 5:
-            gl_func_00000000(&D_00000000, *(int*)((char*)&D_00000000 + 4));
-            gl_func_00000000(&D_00000000, 4, TIMB3_D_64, 2);
-            tmp = gl_func_00000000(a0, *a0, 1);
-            tmp = gl_func_00000000(0, 0x410000, tmp, *a0);
-            tmp = gl_func_00000000(a0, 0, tmp);
+            gl_func_00000000(d, *(int *)(d + 4));
+            gl_func_00000000(d, 4, *(int *)(d + 0x64), 2);
+            v = gl_func_00000000(a0, *a0, 1);
+            s0v = gl_func_00000000(0, 0x410000, v, *a0);
+            gl_func_00000000(a0, 0, s0v);
             done = 1;
             break;
         case 6:
-            gl_func_00000000(a0, 0, *(unsigned char*)((char*)&D_00000000 + 0x178));
-            *(int*)((char*)&D_00000000 + 0x40) = 7;
+            gl_func_00000000(a0, 0, *(unsigned char *)(d + 0x178));
+            *(int *)(d + 0x40) = 7;
             break;
         case 7:
-            gl_func_00000000(&D_00000000, 0xA, TIMB3_D_64, 2);
-            tmp = gl_func_00000000(a0, *a0, 1);
-            tmp = gl_func_00000000(
-                0, *(int*)((char*)&D_00000000 + 0x170) + 0x1A000F, tmp, *a0);
-            tmp = gl_func_00000000(a0, 0, tmp);
+            gl_func_00000000(d, 10, *(int *)(d + 0x64), 2);
+            v = gl_func_00000000(a0, *a0, 1);
+            s0v = gl_func_00000000(0, *(int *)(d + 0x170) + 0x1A000F, v, *a0);
+            gl_func_00000000(a0, 0, s0v);
             done = 1;
             break;
         case 8:
             gl_func_00000000(a0);
-            *(int*)((char*)&D_00000000 + 0x40) =
-                *(int*)((char*)&D_00000000 + 0x44);
+            *(int *)(d + 0x40) = *(int *)(d + 0x44);
             break;
         case 9:
             gl_func_00000000(a0);
-            *(int*)((char*)&D_00000000 + 0x40) = 0xA;
+            *(int *)(d + 0x40) = 10;
             break;
         case 10:
-            gl_func_00000000(&D_00000000, 7, 0, 0);
-            tmp = gl_func_00000000(0);
-            gl_func_00000000(a0, 1, tmp);
+            gl_func_00000000(d, 7, 0, 0);
+            s0v = gl_func_00000000(0);
+            gl_func_00000000(a0, 1, s0v);
             done = 1;
             break;
         case 11:
-            tmp = gl_func_00000000(a0, *a0, 4);
-            tmp = gl_func_00000000(
-                0, *(int*)((char*)&D_00000000 + 0x170) + 0x20000, tmp, *a0);
-            node = (int*)tmp;
-            base = &D_00000000;
-            link = base + 0x10;
-            gl_func_00000000(link, node);
-            if (node[5] != 0) {
-                node[1] = 1;
+            v = gl_func_00000000(a0, *a0, 4);
+            s0v = gl_func_00000000(0, *(int *)(d + 0x170) + 0x20000, v, *a0);
+            {
+                char *r = (char *)s0v;
+                gl_func_00000000(d + 0x10, r);
+                if (*(int *)(r + 0x14) != 0) *(int *)(r + 4) = 1;
+                *(int *)(r + 0x14) = (int)d;
             }
-            node[5] = (int)base;
             gl_func_00000000(a0, *a0);
             done = 1;
             break;
         case 12:
-            tmp = gl_func_00000000(TIMB3_D_64);
-            gl_func_00000000(
-                a0, (TIMB3_D_64 | 0x4000) | tmp, 0x4000, *a0);
+            s0v = gl_func_00000000(*(int *)(d + 0x64));
+            gl_func_00000000(a0, (*(int *)(d + 0x64) | 0x4000) | s0v, 0x4000, *a0);
             done = 1;
             break;
         case 13:
-            tmp = gl_func_00000000(0, 1, 0);
-            base = &D_00000000;
-            link = base + 0x10;
-            gl_func_00000000(link, tmp);
-            node = (int*)tmp;
-            if (node[5] != 0) {
-                node[1] = 1;
+            s0v = gl_func_00000000(0, 1, 0);
+            {
+                char *r = (char *)s0v;
+                gl_func_00000000(d + 0x10, r);
+                if (*(int *)(r + 0x14) != 0) *(int *)(r + 4) = 1;
+                *(int *)(r + 0x14) = (int)d;
             }
-            node[5] = (int)base;
             done = 1;
             break;
         }
-        a1 = *(int*)((char*)&D_00000000 + 0x40);
+        a1 = *(int *)(d + 0x40);
     } while (done == 0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_000000B0);
-#endif
 
 extern int D_00000148;
 extern int D_0000014C;
