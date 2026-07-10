@@ -114,6 +114,9 @@ build/src/bootup_uso/bootup_uso_F434.c.o build/non_matching/src/bootup_uso/bootu
 build/src/bootup_uso/bootup_uso_F434.c.o: TRUNCATE_TEXT := 0xA8
 build/src/bootup_uso/bootup_uso_o0_F7F4.c.o: TRUNCATE_TEXT := 0xB0
 build/src/bootup_uso/bootup_uso_tail1.c.o: TRUNCATE_TEXT := 0x138
+# 2026-07-10: func_0000F81C is an -O0 island (arg homing above frame, unfilled
+# beqz/jal delays, b-to-epilogue return) — tail1 holds only it, so build -O0.
+build/src/bootup_uso/bootup_uso_tail1.c.o build/non_matching/src/bootup_uso/bootup_uso_tail1.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_FBCC.c.o: TRUNCATE_TEXT := 0x5C
 build/src/bootup_uso/bootup_uso_tail1_bot.c.o: TRUNCATE_TEXT := 0x4C8
 build/src/bootup_uso/bootup_uso_tail1_bot.c.o build/non_matching/src/bootup_uso/bootup_uso_tail1_bot.c.o: OPT_FLAGS := -O0

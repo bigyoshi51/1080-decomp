@@ -4,48 +4,58 @@ extern int func_00000000();
 extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
-extern int func_00000008;       /* USO-base reloc (D_-style placeholder pointer) */
-extern int func_000000F0;       /* USO-base reloc */
-extern int func_00000188;       /* USO-base reloc */
+/* USO-base absolute placeholders (undefined_syms_auto.txt): the segment links
+ * at VRAM 0, so `extern D_00000030` produces the same lui/addiu words as the
+ * target's %hi/%lo(func_00000008 + 0x28) — the F7D0 trick, addend baked in
+ * the addiu (form-a LO16-fold, unreachable via struct-member address-of). */
+extern float D_00000030[4];    /* == func_00000008 + 0x28: Vec4f zeroed slot */
+extern char D_0000002C;        /* == func_00000008 + 0x24 */
+typedef struct {
+    char pad44[0x44];
+    char *ptr44;                /* +0x44: object holder, result stored at +0x114 */
+} F0Struct;
+extern F0Struct func_000000F0; /* USO-base reloc */
+extern int func_00000188;      /* USO-base reloc */
 extern char D_0000C57C;
 extern char D_0000C58C;
 extern char D_0000C594;
 
 #ifdef NON_MATCHING
-/* func_0000F81C: 78-insn (0x138) allocator + init helper.
- *
- * Decoded structure:
- *   1. Set up local flags word = 0. If arg1 (a1) != 0, flags |= 0x6.
- *   2. Zero 4 floats at (&func_00000008 + 0x28)[0..C] (some Vec4-like slot).
- *   3. Big call gl_func_00000000(0, 0x64, &D_0000C57C, 0x6D, [stack args
- *      0x6E,0,0,0x6F,0x140,0xF0,0x70,flags|0x400,0x71,0x2,0]) — likely an
- *      object allocator with a long argument-list constructor pattern.
- *   4. result is saved to local + sp+0x80; another call:
- *      gl_func_00000000(&func_00000008+0x24, result).
- *   5. *(int*)((char*)*(int*)(&func_000000F0+0x44) + 0x114) = result.
- *   6. Return result.
- *
- * Big-constructor pattern, 13-arg call with many stack-passed args
- * (sp+0x10..sp+0x3C). First-draft, expect ~40-60% fuzzy. Multi-tick
- * refinement target. */
-void* func_0000F81C(int a0, int a1) {
-    int flags = 0;
-    void *result;
-    float *floats;
+/* func_0000F81C: 78-insn (0x138) allocator + init helper — -O0 island
+ * (arg homing above frame, unfilled beqz/jal delays, b-to-epilogue return).
+ * flags local, 16-arg constructor call, result relinked + published.
+ * NATURAL CEILING: 97%+ — every insn/reg/slot matches EXCEPT the documented
+ * -O0 return-value dead double-b toolchain gap (+2 words before epilogue;
+ * see IDO_CODEGEN #feedback-ido-o0-return-value-dead-double-b). Framed
+ * value-return tail => not truncatable. Do not fight. */
+void *func_0000F81C(int a0, int a1) {
+    int flags;
+    int result;
+    register float *p;          /* s0 */
+    register char *q;           /* s1 */
+    register float f1;          /* f20 */
+    register float f2;          /* f22 */
+    register float f3;          /* f24 */
+
+    flags = 0;
     if (a1 != 0) {
-        flags |= 6;
+        flags = flags | 6;
     }
-    floats = (float*)((char*)&func_00000008 + 0x28);
-    floats[0] = 0.0f;
-    floats[1] = 0.0f;
-    floats[2] = 0.0f;
-    floats[3] = 0.0f;
-    result = (void*)func_00000000(0, 0x64, &D_0000C57C, 0x6D,
-                                   0x6E, 0, 0, 0x6F, 0x140, 0xF0,
-                                   0x70, flags | 0x400, 0x71, 2, 0);
-    func_00000000((char*)&func_00000008 + 0x24, result);
-    *(int*)((char*)*(int*)((char*)&func_000000F0 + 0x44) + 0x114) = (int)result;
-    return result;
+    p = D_00000030;
+    f1 = 0.0f;
+    p[3] = f1;
+    f2 = f1;
+    p[2] = f2;
+    f3 = f2;
+    p[1] = f3;
+    p[0] = f3;
+    result = func_00000000(0, 0x64, &D_0000C57C, 0x6D, 0, 0x6E, 0, 0, 0x6F,
+                           0x140, 0xF0, 0x70, flags | 0x400, 0x71, 2, 0);
+    p = (float *)result;
+    q = &D_0000002C;
+    func_00000000(q, p);
+    *(int *)(func_000000F0.ptr44 + 0x114) = result;
+    return (void *)result;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F81C);
