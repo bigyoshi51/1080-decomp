@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006CC64",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T03:46:55.408580+00:00",
+  "end_time": "2026-07-10T03:46:55.408601+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T03:46:55.408596+00:00",
+      "assistant_text": "IDENTIFIED: osViBlack (io/viblack.c verbatim; VI_STATE_BLACK 0x20 under DisableInt). Retires the 'rv-in-s0 regalloc cap' note.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 28,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO -O1 donor for gl_func_0006CC64 = libultra osViBlack\n * (references/libreultra/src/io/viblack.c, verbatim: saveMask =\n * __osDisableInt(); __osViNext->state |= / &= ~VI_STATE_BLACK(0x20);\n * __osRestoreInt(saveMask)). PROVEN EXACT 28/28 standalone at BOTH IDO\n * 7.1 -O1 and 5.3 -O1 (identical output; built with 7.1). Retires the\n * old \"rv in s0 / frame -0x28 regalloc cap\" NM note: `register u32\n * saveMask` across the call at -O1 IS the s0 coloring.\n * Blank externs: fn0 = __osDisableInt, fn1 = __osRestoreInt;\n * D_00000000_vinext = __osViNext (OSViContext*, u16 state at +0).\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned char u8;\ntypedef unsigned int u32;\ntypedef struct { unsigned short state; } ViCtx;\nextern ViCtx *D_00000000_vinext;    /* __osViNext */\nextern u32 gl_func_00000000(void);  /* __osDisableInt */\nextern void gl_func_00000001(u32);  /* __osRestoreInt */\n\nvoid gl_func_0006CC64(u8 active) {\n    register u32 saveMask = gl_func_00000000();\n    if (active)\n        D_00000000_vinext->state |= 0x20;\n    else\n        D_00000000_vinext->state &= ~0x20;\n    gl_func_00000001(saveMask);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6CC64.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006CC64.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "28/28 word-exact + ROM byte-identical"
+  }
+}

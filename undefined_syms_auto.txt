@@ -2796,5 +2796,14 @@ D_00000000_table = 0x00000000;  /* 6CDB4 per-channel validity word table */
 D_00000000_bank = 0x00000000;  /* 6CDB4 per-channel 64-byte PIF write buffers */
 D_00000000_base = 0x00000000;  /* 6CDB4 readback walk base */
 D_00000000_crcbuf = 0x00000000;  /* 6CDB4 __osContDataCrc source buffer */
+/* -O1 island batch 5 donors (2026-07-09): 6CAD4 __osSiRawStartDma /
+   6CB84 __osSpRawStartDma / 6CC64 osViBlack / 6D270 osMotorInit. */
+D_00000000_vinext = 0x00000000;  /* __osViNext */
+D_00000000_motorinit = 0x00000000;  /* __osMotorinitialized */
+D_00000000_startbuf = 0x00000000;  /* _motorstartbuf */
+D_00000000_stopbuf = 0x00000000;  /* _motorstopbuf */
+D_00000000_startdata = 0x00000000;  /* _MotorStartData */
+D_00000000_stopdata = 0x00000000;  /* _MotorStopData */
+gl_ref_00081760 = 0x00081760;  /* _MakeMotorData — osMotorInit's baked jal 0x0C0205D8 */
 __ll_mul = 0x80002F78;
 __ull_div = 0x80002E78;

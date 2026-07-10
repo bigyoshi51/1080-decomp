@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006CB84",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T03:46:55.159085+00:00",
+  "end_time": "2026-07-10T03:46:55.159102+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T03:46:55.159097+00:00",
+      "assistant_text": "IDENTIFIED: __osSpRawStartDma (io/sprawdma.c verbatim; SP regs 0xA404). Same pad-.s->SUFFIX_BYTES_FORCE conversion.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 35,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO -O1 donor for gl_func_0006CB84 = libultra __osSpRawStartDma\n * (references/libreultra/src/io/sprawdma.c, verbatim: SP busy guard,\n * SP_MEM_ADDR_REG = devAddr, SP_DRAM_ADDR_REG = osVirtualToPhysical,\n * dir-selected SP_WR_LEN/RD_LEN = size - 1). PROVEN EXACT 35/35\n * standalone at BOTH IDO 7.1 -O1 and 5.3 -O1 (identical output; built\n * with 7.1). The jr-ra delay nop was carved into a _pad.s sidecar by\n * splat; merged back into gl_func_0006CB84.s (0x88 -> 0x8c) per the\n * absorption prerequisite.\n * Blank externs: fn0 = __osSpDeviceBusy, fn1 = osVirtualToPhysical.\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef int s32;\ntypedef unsigned int u32;\nextern s32 gl_func_00000000(void);   /* __osSpDeviceBusy */\nextern u32 gl_func_00000001(void *); /* osVirtualToPhysical */\n\ns32 gl_func_0006CB84(s32 direction, u32 devAddr, void *dramAddr, u32 size) {\n    if (gl_func_00000000())\n        return -1;\n    *(volatile u32 *)0xA4040000 = devAddr;\n    *(volatile u32 *)0xA4040004 = gl_func_00000001(dramAddr);\n    if (direction == 0)\n        *(volatile u32 *)0xA404000C = size - 1;\n    else\n        *(volatile u32 *)0xA4040008 = size - 1;\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6CB84.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006CB84.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "35/35 word-exact + ROM byte-identical"
+  }
+}

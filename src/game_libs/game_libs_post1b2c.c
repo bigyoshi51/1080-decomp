@@ -183,88 +183,41 @@ int gl_func_0006C9F4(int direction, unsigned int devAddr, int dramAddr, unsigned
     return 0;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0006CAD4: 43-insn PIF DMA wrapper (Serial Interface I/O) (0xAC, frame 0x18).
- *
- * RECOGNIZED HARDWARE PATTERN: writes to 0xA4800000 (SI_DRAM_ADDR_REG) and
- * 0xA4800004 (SI_PIF_ADDR_RD64B_REG) / 0xA4800010 (SI_PIF_ADDR_WR64B_REG)
- * with the value 0x1FC007C0 = PIF RAM start (K1-mapped). This is an
- * N64 PIF controller-block 64-byte DMA wrapper.
- *
- * Decoded structure (raw-word disasm):
- *   if (factory(dir, buf) != 0) return -1;            // factory init / validate
- *   dma_buf = (dir == 1) ? func_prep_wr(buf, 0x40)
- *                        : func_prep_rd(buf);          // 0x40 = 64-byte PIF block
- *   *(volatile int*)0xA4800000 = dma_buf;              // SI_DRAM_ADDR
- *   if (dir == 0) {
- *       *(volatile int*)0xA4800004 = 0x1FC007C0;       // SI_PIF_ADDR_RD64B (trigger PIF→DRAM)
- *   } else {
- *       *(volatile int*)0xA4800010 = 0x1FC007C0;       // SI_PIF_ADDR_WR64B (trigger DRAM→PIF)
- *   }
- *   if (dir == 0) {
- *       func_post_rd(buf, 0x40);                       // post-read processing
- *   }
- *   return 0;
- *
- * Register addresses match libultra `osSiRawReadIo`/`osSiRawWriteIo`-style
- * direct hardware access for controller pak / EEPROM communication.
- * 0x1FC007C0 = PIF RAM start.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-int gl_func_0006CAD4(int dir, int buf) {
-    int dma_buf;
-    if (gl_func_00000000(dir, buf) != 0) return -1;
-    if (dir == 1) {
-        dma_buf = (int)gl_func_00000000(buf, 0x40);
-    } else {
-        dma_buf = (int)gl_func_00000000(buf);
-    }
-    *(volatile int*)0xA4800000 = dma_buf;
-    if (dir == 0) {
-        *(volatile int*)0xA4800004 = 0x1FC007C0;
-    } else {
-        *(volatile int*)0xA4800010 = 0x1FC007C0;
-    }
-    if (dir == 0) {
-        gl_func_00000000(buf, 0x40);
-    }
-    return 0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CAD4);
-#endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CAD4_pad.s")
-
-#ifdef NON_MATCHING
-/* gl_func_0006CB84: 35-insn RSP DMA setup helper.
- *   r = gl_func_00000000(direction, mem_addr, dram_ptr, len);  // probably bounds-check
- *   if (r != 0) return -1;
- *   *(int*)0xA4040000 = mem_addr;                           // SP_MEM_ADDR_REG
- *   *(int*)0xA4040004 = gl_func_00000000(dram_ptr);          // SP_DRAM_ADDR_REG = osVirtualToPhysical(dram_ptr)
- *   if (direction != 0)
- *     *(int*)0xA4040008 = len - 1;                           // SP_RD_LEN_REG (DMA read)
- *   else
- *     *(int*)0xA404000C = len - 1;                           // SP_WR_LEN_REG (DMA write)
- *   return 0;
- * Hardware regs at 0xA4040000+: SP MEM/DRAM/RD_LEN/WR_LEN. */
-int gl_func_0006CB84(int direction, int mem_addr, int dram_ptr, int len) {
-    int r = gl_func_00000000(direction, mem_addr, dram_ptr, len);
-    if (r != 0) return -1;
-    *(volatile int*)0xA4040000 = mem_addr;
-    *(volatile int*)0xA4040004 = gl_func_00000000(dram_ptr);
+/* gl_func_0006CAD4 = libultra __osSiRawStartDma (sirawdma.c verbatim):
+ * SI busy guard, OS_WRITE pre-writeback, SI_DRAM_ADDR_REG =
+ * osVirtualToPhysical(dramAddr), dir-selected SI_PIF_ADDR_RD64B/WR64B =
+ * 0x1FC007C0 (PIF RAM), OS_READ post-invalidate. Retires the 2026-05-19
+ * "factory/prep" decode: the two dir-guarded calls are osWritebackDCache /
+ * osInvalDCache, and the pak block neighbors (contramread/contramwrite
+ * family) are its callers.
+ * WIRED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO -O1 donor unit game_libs_o1_6CAD4.c (43/43 at both 7.1 and 5.3 -O1),
+ * spliced over this -O2 stand-in. The jr-ra delay nop was merged from the
+ * _pad.s sidecar into gl_func_0006CAD4.s (0xa8 -> 0xac; sidecar deleted).
+ * Body below is a placeholder for the splice. */
+int gl_func_0006CAD4(int direction, void *dramAddr) {
+    volatile int ret = 0;
     if (direction == 0) {
-        *(volatile int*)0xA404000C = len - 1;
-    } else {
-        *(volatile int*)0xA4040008 = len - 1;
+        ret = -1;
     }
-    return 0;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CB84);
-#endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CB84_pad.s")
+
+/* gl_func_0006CB84 = libultra __osSpRawStartDma (sprawdma.c verbatim):
+ * SP busy guard, SP_MEM_ADDR_REG = devAddr, SP_DRAM_ADDR_REG =
+ * osVirtualToPhysical(dramAddr), dir-selected SP_WR_LEN/RD_LEN = size - 1.
+ * WIRED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO -O1 donor unit game_libs_o1_6CB84.c (35/35 at both 7.1 and 5.3 -O1),
+ * spliced over this -O2 stand-in. The jr-ra delay nop was merged from the
+ * _pad.s sidecar into gl_func_0006CB84.s (0x88 -> 0x8c; sidecar deleted).
+ * Body below is a placeholder for the splice. */
+int gl_func_0006CB84(int direction, unsigned int devAddr, void *dramAddr, unsigned int size) {
+    volatile int ret = 0;
+    if (direction == 0) {
+        ret = (int)(size - 1);
+    }
+    return ret;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_0006CC14: 18-insn 2-call helper.
@@ -305,28 +258,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC14);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CC14_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_0006CC64: rv = func(a0); p = *(u16**)&D; if ((u8)a0) *p |= 0x20;
- * else *p &= ~0x20; func(rv). The &param lever (unsigned char *pa = &a0) forces
- * the a0 stack-home + post-call lbu reload that the prior 60.7% attempt missed ->
- * 74.5%. Residual (register-alloc, not C-forceable): target keeps rv in s0
- * (callee-save) w/ frame -0x28 and homes a0 BEFORE the call; -O2 here keeps rv in
- * a0 (rv never crosses a call so `register` is ignored) w/ frame -0x18 and homes
- * a0 in the jal delay slot. */
-extern int gl_func_00000000();
-void gl_func_0006CC64(unsigned char a0) {
-    unsigned char *pa = &a0;
-    int rv = gl_func_00000000();
-    if (*pa != 0) {
-        *(unsigned short *)(*(int *)&D_00000000) |= 0x20;
-    } else {
-        *(unsigned short *)(*(int *)&D_00000000) &= ~0x20;
-    }
-    gl_func_00000000(rv);
+/* gl_func_0006CC64 = libultra osViBlack (viblack.c verbatim): saveMask =
+ * __osDisableInt(); __osViNext->state |= / &= ~VI_STATE_BLACK(0x20);
+ * __osRestoreInt(saveMask). Retires the old "rv in s0 / frame -0x28
+ * regalloc cap": `register u32 saveMask` across the call at -O1 IS the
+ * s0 coloring.
+ * WIRED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO -O1 donor unit game_libs_o1_6CC64.c (28/28 at both 7.1 and 5.3 -O1),
+ * spliced over this -O2 stand-in. Body below is a placeholder for the
+ * splice. */
+void gl_func_0006CC64(unsigned char active) {
+    volatile unsigned char a = active;
+    (void)a;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC64);
-#endif
 
 /* gl_func_0006CCD4 = libultra __osPiRawReadIo. LANDED 2026-06-21 as a
  * byte-identical TWIN-PORT of matched kernel func_80004AC0 (kernel_001). The
@@ -424,7 +368,25 @@ void gl_func_0006D0F4(int count, unsigned short x, unsigned char *src, int *out)
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D270);
+/* gl_func_0006D270 = libultra osMotorInit (motor.c verbatim): OSPfs init
+ * (queue/channel/status=0/activebank=128), 32-byte 0xFE probe write
+ * (retry on 2) + read (2 -> PFS_ERR_CONTRFAIL) to pak address 1024,
+ * temp[31]==0xFE -> PFS_ERR_DEVICE (a mempack holds the write), same
+ * probe with 0x80, then one-time _MakeMotorData(channel, 1536, buf,
+ * &_MotorData[channel]) pair guarded by __osMotorinitialized[channel].
+ * The baked `jal 0x81760` = _MakeMotorData (links via gl_ref_00081760).
+ * WIRED 2026-07-09 via REPLACE_FUNC_BODY donor splice: real C lives in the
+ * IDO -O1 donor unit game_libs_o1_6D270.c (183/183 at both 7.1 and 5.3
+ * -O1), spliced over this -O2 stand-in. The 2-word inter-function
+ * alignment pad at 0x6D54C stays in its _pad.s sidecar below. Body below
+ * is a placeholder for the splice. */
+int gl_func_0006D270(void *mq, void *pfs, int channel) {
+    volatile int ret = 0;
+    if (channel == 0) {
+        ret = 11;
+    }
+    return ret;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D270_pad.s")
 
 /* gl_func_0006D554: libultra osPfsIsPlug (pfsisplug.c; 1080 deltas:

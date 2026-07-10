@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006D270",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T03:46:55.649119+00:00",
+  "end_time": "2026-07-10T03:46:55.649139+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T03:46:55.649134+00:00",
+      "assistant_text": "IDENTIFIED: osMotorInit (io/motor.c verbatim) \u2014 NOT more pfs code; the rumble-pak init (0xFE/0x80 pak-probe at address 1024, PFS_ERR_CONTRFAIL=4/PFS_ERR_DEVICE=11). Its hard jal 0x81760 recovers NEW IDENTITY: 0x81760 = _MakeMotorData (gl_ref_00081760, 6B7A0 precedent).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 183,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO -O1 donor for gl_func_0006D270 = libultra osMotorInit\n * (references/libreultra/src/io/motor.c, verbatim: pfs init with\n * activebank = 128, 32-byte 0xFE probe write (retry on 2) + read\n * (2 -> PFS_ERR_CONTRFAIL(4)) to pak address 1024, temp[31]==0xFE ->\n * PFS_ERR_DEVICE(11) [a mempack holds the write], then the same probe\n * with 0x80, then one-time _MakeMotorData(channel, 1536, buf,\n * &_MotorData[channel]) setup pair guarded by __osMotorinitialized).\n * PROVEN EXACT 183/183 standalone at BOTH IDO 7.1 -O1 and 5.3 -O1\n * (identical output; built with 7.1).\n * Blank externs: fn0 = __osContRamWrite, fn1 = __osContRamRead;\n * D_00000000_motorinit = __osMotorinitialized (int[4]),\n * D_00000000_startbuf/_stopbuf = _motorstartbuf/_motorstopbuf (u8[32]),\n * D_00000000_startdata/_stopdata = _MotorStartData/_MotorStopData\n * (OSPifRam[4], 0x40 stride -> the sll-6 addu). gl_ref_00081760 =\n * _MakeMotorData, the target's BAKED intra-game_libs `jal 0x81760`\n * (no reloc in the .s) \u2014 resolved at link like gl_ref_0007FEEC.\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef int s32;\ntypedef unsigned char u8;\ntypedef struct {\n    int status;           /* 0x00 */\n    void *queue;          /* 0x04 */\n    int channel;          /* 0x08 */\n    u8 id[32];            /* 0x0C */\n    u8 label[32];         /* 0x2C */\n    int version;          /* 0x4C */\n    int dir_size;         /* 0x50 */\n    int inode_table;      /* 0x54 */\n    int minode_table;     /* 0x58 */\n    int dir_table;        /* 0x5C */\n    int inode_start_page; /* 0x60 */\n    u8 banks;             /* 0x64 */\n    u8 activebank;        /* 0x65 */\n} OSPfs;\nextern s32 gl_func_00000000(void *, int, int, u8 *, int); /* __osContRamWrite */\nextern s32 gl_func_00000001(void *, int, int, u8 *);      /* __osContRamRead */\nextern s32 gl_ref_00081760(int, int, u8 *, void *);       /* _MakeMotorData */\nextern int D_00000000_motorinit[]; /* __osMotorinitialized */\nextern u8 D_00000000_startbuf[];   /* _motorstartbuf */\nextern u8 D_00000000_stopbuf[];    /* _motorstopbuf */\nextern u8 D_00000000_startdata[];  /* _MotorStartData (0x40 stride) */\nextern u8 D_00000000_stopdata[];   /* _MotorStopData */\n\ns32 gl_func_0006D270(void *mq, OSPfs *pfs, int channel) {\n    int i;\n    s32 ret;\n    u8 temp[32];\n\n    pfs->queue = mq;\n    pfs->channel = channel;\n    pfs->status = 0;\n    pfs->activebank = 128;\n\n    for (i = 0; i < 32; i++)\n        temp[i] = 254;\n\n    ret = gl_func_00000000(mq, channel, 1024, temp, 0);\n    if (ret == 2)\n        ret = gl_func_00000000(mq, channel, 1024, temp, 0);\n    if (ret != 0)\n        return ret;\n\n    ret = gl_func_00000001(mq, channel, 1024, temp);\n    if (ret == 2)\n        ret = 4;\n    if (ret != 0)\n        return ret;\n    if (temp[31] == 254)\n        return 11;\n\n    for (i = 0; i < 32; i++)\n        temp[i] = 128;\n\n    ret = gl_func_00000000(mq, channel, 1024, temp, 0);\n    if (ret == 2)\n        ret = gl_func_00000000(mq, channel, 1024, temp, 0);\n    if (ret != 0)\n        return ret;\n\n    ret = gl_func_00000001(mq, channel, 1024, temp);\n    if (ret == 2)\n        ret = 4;\n    if (ret != 0)\n        return ret;\n    if (temp[31] != 128)\n        return 11;\n\n    if (!D_00000000_motorinit[channel]) {\n        for (i = 0; i < 32; i++) {\n            D_00000000_startbuf[i] = 1;\n            D_00000000_stopbuf[i] = 0;\n        }\n        gl_ref_00081760(channel, 1536, D_00000000_startbuf, &D_00000000_startdata[channel * 64]);\n        gl_ref_00081760(channel, 1536, D_00000000_stopbuf, &D_00000000_stopdata[channel * 64]);\n        D_00000000_motorinit[channel] = 1;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6D270.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006D270.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "183/183 word-exact + ROM byte-identical"
+  }
+}

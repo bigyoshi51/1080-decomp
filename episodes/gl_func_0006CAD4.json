@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006CAD4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T03:46:54.919044+00:00",
+  "end_time": "2026-07-10T03:46:54.919064+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T03:46:54.919058+00:00",
+      "assistant_text": "IDENTIFIED: __osSiRawStartDma (libreultra io/sirawdma.c verbatim; SI regs 0xA480 + PIF 0x1FC007C0 fingerprint). 7.1=5.3 identical at -O1. Retires the old 'factory/prep' decode. TRAP RELAYED: deleting the 1-word _pad.s GLOBAL_ASM leaves a 4-byte hole (asm-processor min-2-word dummy = 8 bytes in the object) \u2014 the genuine inter-fn alignment word must come back via SUFFIX_BYTES_FORCE=<fn>=0x00000000 (6EF08 precedent), plus a FORCED rebuild (Makefile-var changes don't dirty the .o).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 43,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO -O1 donor for gl_func_0006CAD4 = libultra __osSiRawStartDma\n * (references/libreultra/src/io/sirawdma.c, verbatim: SI busy guard,\n * OS_WRITE(1) pre-writeback, SI_DRAM_ADDR_REG = osVirtualToPhysical,\n * dir-selected SI_PIF_ADDR_RD64B/WR64B = 0x1FC007C0 PIF RAM start,\n * OS_READ(0) post-invalidate). PROVEN EXACT 43/43 standalone at BOTH\n * IDO 7.1 -O1 and 5.3 -O1 (identical output; built with 7.1, no CC\n * override needed). The jr-ra delay nop was carved into a _pad.s\n * sidecar by splat; merged back into gl_func_0006CAD4.s (0xa8 -> 0xac)\n * per the absorption prerequisite.\n * Blank externs: fn0 = __osSiDeviceBusy, fn1 = osWritebackDCache,\n * fn2 = osVirtualToPhysical, fn3 = osInvalDCache. IO regs are KSEG1\n * literals. Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef int s32;\ntypedef unsigned int u32;\nextern s32 gl_func_00000000(void);            /* __osSiDeviceBusy */\nextern void gl_func_00000001(void *, s32);    /* osWritebackDCache */\nextern u32 gl_func_00000002(void *);          /* osVirtualToPhysical */\nextern void gl_func_00000003(void *, s32);    /* osInvalDCache */\n\ns32 gl_func_0006CAD4(s32 direction, void *dramAddr) {\n    if (gl_func_00000000())\n        return -1;\n\n    if (direction == 1)\n        gl_func_00000001(dramAddr, 64);\n\n    *(volatile u32 *)0xA4800000 = gl_func_00000002(dramAddr);\n\n    if (direction == 0)\n        *(volatile u32 *)0xA4800004 = 0x1FC007C0;\n    else\n        *(volatile u32 *)0xA4800010 = 0x1FC007C0;\n\n    if (direction == 0)\n        gl_func_00000003(dramAddr, 64);\n\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6CAD4.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/game_libs/game_libs/gl_func_0006CAD4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "43/43 word-exact + ROM byte-identical"
+  }
+}
