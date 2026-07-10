@@ -1,0 +1,33 @@
+{
+  "function_name": "func_0000F6C4",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:54:22.591752+00:00",
+  "end_time": "2026-07-10T05:54:22.591773+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:54:22.591767+00:00",
+      "assistant_text": "Hook dispatcher, 91.3%->exact. NEW FUNDAMENTAL LEVER \u2014 -O0 cfe DAG-SHARE: cfe CSEs identical subexpressions WITHIN one expression at -O0; the dispatch must be ONE expression with the register-var assignment EMBEDDED IN THE CALL ARG so the arg's +a0 shares the assignment chain's a0 home reload (no second lw). Assignment in the fn-expr instead evaluates the arg with stale m. Retires the 'interleaved schedule not reachable at -O0' cap.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 42,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 sub-file covering bootup_uso offset 0xF6C4..0xF76B (single function,\n * 42 insns, 0xA8 bytes). Layout shim between bootup_uso_o0_F390.c and\n * bootup_uso_o0_F7F4.c -O0 clusters. The asm has -O0 hallmarks (8-byte\n * a0-spill on every use, dead `b +1; nop` BB-end marker before epilogue,\n * no register caching across statements) so the file-level OPT_FLAGS is\n * -O0 (set in the Makefile). */\n\nextern int func_00000000();\nextern struct { int a, b, c; } func_00000188;\n\n/* 42-insn -O0 method dispatcher: optionally invokes a pre-call hook\n * (vtable[0x6C] with arg = base + h_68) when state field 0x2C is zero,\n * runs the USO helper on a0, then optionally invokes a post-call hook\n * (vtable[0x64], h_60) gated by both state-nonzero AND a global-flag\n * predicate read from `func_00000188.c` (USO base 0x188 + 8 = 0x190).\n *\n * MATCHED 2026-07-10 (w50 island sweep, 42/42 words): the old \"interleaved\n * schedule not reachable at -O0\" cap was cfe DAG-sharing \u2014 the whole hook\n * dispatch must be ONE expression statement with the register-m assignment\n * EMBEDDED IN THE ARG (args evaluate first):\n *   (*(int(**)())(m + 0x6C))(*(short*)((m = *(char**)(a0+0x28)) + 0x68) + a0);\n * The arg's trailing `+ a0` then DAG-shares the assignment chain's a0 home\n * reload (t8) => `addu a0,t9,t8` with NO second lw, and the fn-ptr load\n * reads m from $s0 directly and lands in $t9 (jalr target ring slot).\n * Assignment placed in the FN expression instead evaluates the arg with\n * stale m (wrong order AND wrong bytes). Two-statement forms (the old\n * 91.31% body) always reload a0 (+1 word per block). */\nvoid func_0000F6C4(char *a0) {\n    register char *m;\n    if (*(int*)(a0 + 0x2C) == 0) {\n        (*(int(**)())(m + 0x6C))(*(short*)((m = *(char**)(a0 + 0x28)) + 0x68) + a0);\n    }\n    func_00000000(a0);\n    if (*(int*)(a0 + 0x2C) != 0) {\n        if (func_00000000(func_00000188.c)) {\n            (*(int(**)())(m + 0x64))(*(short*)((m = *(char**)(a0 + 0x28)) + 0x60) + a0);\n        }\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_F434.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_0000F6C4.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0",
+    "verification": "42/42 word-exact + ROM byte-identical (promoted)"
+  }
+}

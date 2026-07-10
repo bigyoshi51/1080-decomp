@@ -145,37 +145,22 @@ end:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FD4C);
 #endif
 
-#ifdef NON_MATCHING
-/* 18-insn indirect-call wrapper. Logic verified:
- *   p = a0->field_28; off = (short)p->field_60; (*p->field_64)(a0 + off).
- *
- * BLOCKED: function is -O0-shape (frame -0x28 with s0 spill/reload pattern,
- * dead 'b +1; nop' BB-end marker after the jalr) but lives in
- * bootup_uso_tail1.c which builds at -O2. IDO -O2 inlines my C to 11
- * insns with t-regs only — 7-insn deficit + frame-size mismatch.
- *
- * 2026-05-08: tested the narrow `register self = a0` alias. In the -O2
- * tail1 unit it still emits the 11-insn t-reg-only shape (frame -0x18, no
- * s0 spill, no dead `b +1; nop`), so the -O0 file-split blocker remains.
- *
- * 2026-05-08 (later): exhaustive -O0 standalone test of 4 C-body variants
- * (register-p, register-a0, register-p+register-off named locals, typed
- * struct accessor). All produce 19-insn frame-0x28 emit vs target's 18
- * insns. Target form has SINGLE reload of a0 reused for both
- * `lw s0, 0x28(t6)` and `addu a0, t7, t6`; my variants all emit a SECOND
- * reload `lw t8, 0x28(sp)` before the addu. IDO -O0 doesn't peephole-
- * combine adjacent uses of an already-loaded stack value.
- *
- * Even at -O0 this stays +4 bytes (19 vs 18); the double-reload is the
- * residual cap. Stays INCLUDE_ASM. */
+/* func_0000FEA0: 18-insn indirect-call wrapper:
+ *   p = a0->field_28; (*p->field_64)(a0 + (short)p->field_60).
+ * MATCHED 2026-07-10 (w50 island sweep, 18/18): the long-documented
+ * "double-reload residual cap" (19 vs 18 insns) was the cfe DAG-share
+ * lever from func_0000F6C4 — single expression statement with the
+ * register-p assignment EMBEDDED IN THE ARG:
+ *   (*(void(**)())(p + 0x64))(*(short*)((p = *(char**)(a0+0x28)) + 0x60) + a0);
+ * The arg's `+ a0` DAG-shares the assignment chain's a0 home reload
+ * (t6) -> `addu a0,t7,t6` with no second lw; fn-ptr load lands in $t9.
+ * Required flipping this file to -O0 (all other members stay INCLUDE_ASM
+ * so the flag only affects this compiled body). Old exhaustive-variant
+ * notes retired: all four 2026-05-08 variants were two-statement forms. */
 void func_0000FEA0(char *a0) {
-    register char *self = a0;
-    char *p = *(char**)(self + 0x28);
-    ((void(*)(char*))*(int*)(p + 0x64))(self + *(short*)(p + 0x60));
+    register char *p;
+    (*(void(**)())(p + 0x64))(*(short*)((p = *(char**)(a0 + 0x28)) + 0x60) + a0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEA0);
-#endif
 
 /* func_0000FEE8 - verified structural decode (0x208, 130 insns,
  * get-or-create constructor + normalized-colour init). bootup_uso

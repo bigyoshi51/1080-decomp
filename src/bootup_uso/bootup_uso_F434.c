@@ -10,43 +10,32 @@
 extern int func_00000000();
 extern struct { int a, b, c; } func_00000188;
 
-#ifdef NON_MATCHING
 /* 42-insn -O0 method dispatcher: optionally invokes a pre-call hook
  * (vtable[0x6C] with arg = base + h_68) when state field 0x2C is zero,
  * runs the USO helper on a0, then optionally invokes a post-call hook
  * (vtable[0x64], h_60) gated by both state-nonzero AND a global-flag
- * predicate read from `func_00000188 + 0x198`.
+ * predicate read from `func_00000188.c` (USO base 0x188 + 8 = 0x190).
  *
- * 2026-05-05: 63 % → 91.31 % via `register char *m;` (single register hint
- * on the vtable-base local — IDO -O0 saves s0 for it, matching target).
- * Earlier mistake: also added `register char *r = a0;` which forced 2
- * s-saves and over-cached a0 (target reloads a0 fresh each use). Removing
- * the `r` cache (target's pattern) recovered 5pp; keeping `m` as register
- * is the load-bearing piece.
- *
- * Remaining 9 % cap: 1-insn scheduling diff in the indirect-call arg
- * computation. Target reuses $t9 for both the `m+0x6C` deref load AND
- * the addu computation (single $t9 fed both); build does them sequentially
- * with an extra lw a0_spill in between. C-level expression-order tweaks
- * can't reach target's interleaved schedule at -O0.
- *
- * Earlier note retained: `&func_00000188+0x198` lui+addiu+lw (3 insns)
- * vs expected lui+lw direct (2) — 1 extra insn per arm, baked into the
- * remaining 9 %. */
+ * MATCHED 2026-07-10 (w50 island sweep, 42/42 words): the old "interleaved
+ * schedule not reachable at -O0" cap was cfe DAG-sharing — the whole hook
+ * dispatch must be ONE expression statement with the register-m assignment
+ * EMBEDDED IN THE ARG (args evaluate first):
+ *   (*(int(**)())(m + 0x6C))(*(short*)((m = *(char**)(a0+0x28)) + 0x68) + a0);
+ * The arg's trailing `+ a0` then DAG-shares the assignment chain's a0 home
+ * reload (t8) => `addu a0,t9,t8` with NO second lw, and the fn-ptr load
+ * reads m from $s0 directly and lands in $t9 (jalr target ring slot).
+ * Assignment placed in the FN expression instead evaluates the arg with
+ * stale m (wrong order AND wrong bytes). Two-statement forms (the old
+ * 91.31% body) always reload a0 (+1 word per block). */
 void func_0000F6C4(char *a0) {
     register char *m;
     if (*(int*)(a0 + 0x2C) == 0) {
-        m = *(char**)(a0 + 0x28);
-        (*(int(**)())(m + 0x6C))(*(short*)(m + 0x68) + a0);
+        (*(int(**)())(m + 0x6C))(*(short*)((m = *(char**)(a0 + 0x28)) + 0x68) + a0);
     }
     func_00000000(a0);
     if (*(int*)(a0 + 0x2C) != 0) {
         if (func_00000000(func_00000188.c)) {
-            m = *(char**)(a0 + 0x28);
-            (*(int(**)())(m + 0x64))(*(short*)(m + 0x60) + a0);
+            (*(int(**)())(m + 0x64))(*(short*)((m = *(char**)(a0 + 0x28)) + 0x60) + a0);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000F6C4);
-#endif

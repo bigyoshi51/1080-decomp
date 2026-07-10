@@ -31,39 +31,53 @@ typedef struct { int a, b, c, d; } Quad4;
  *
  * -O0 PROGRESS (2026-05-30): file at -O0 (it isolates this fn); NM body
  * rewritten for the -O0 shape -> 88.7% (was 34.4% at -O2-g3, then 69.4%).
- * Structure now EXACT (75/75 insns). Keys: (1) tbl copy is a 12-byte STRUCT
- * copy (Tbl3 tbl = D_0000C69C) so &tbl/&D materialize once; (2) all
- * st=a0->0x154 / st->2 reads inline-fresh (target reloads a0 each use);
- * (3) the gates are NESTED POSITIVE conditions if(a1==2){if(c>=4){if(c<5)
- * -- a flat if(!cond)return/goto inverts to a beq+b split; nested positive
- * gives the target's direct bne/bnez/beqz to the shared exit (see
- * docs/IDO_CODEGEN.md#ido-o0-nested-positive-gates); (4) the range
- * c>=4 && c<5 reads c ONCE via register int c (plain re-reads, +3 insns).
- * REMAINING ~11% = -O0 register cascade: target holds the range c in a TEMP
- * and the RMW st ptr in $s0, but register-c forces c into $s0 and leaves st
- * in a temp; c-in-temp-read-once AND st-in-$s0 together isn't reachable from
- * C. -O0 register-renumber cap; structure is otherwise byte-exact. */
+ *
+ * 2026-07-10 REWORK (w50 island sweep) -> 67/75 words, ONE 8-word residual.
+ * The old "register cascade cap" note above is RETRACTED — three new levers
+ * cracked all of it except one operand-rank swap:
+ * (1) cfe DAG-shares a REPEATED cast-deref chain within ONE `&&` condition
+ *     at -O0: `if (chain >= 4 && chain < 5)` (chain spelled identically twice)
+ *     emits ONE lhu into $t5 + slti/slti — no local, no home store, and the
+ *     u16 cvt phantom reserves $t4 exactly like the target (backfilled by the
+ *     next block's first load). register-int-c (old form) is WRONG (s0 + drift).
+ * (2) `register char *st;` + `st = *(char**)(a0+0x154); *(u16*)(st+2) += 1;`
+ *     puts the RMW seq ptr in $s0 in BOTH increment blocks (target shape).
+ *     TYPE MATTERS: `register unsigned short *st` flips block1's guard
+ *     operand rank (chain-first); char* does not.
+ * (3) block1 guard `a1 + 1 == ((Obj22C4*)a0)->seq->step` — the 2-level typed
+ *     member chain restores textual order at -O0 too (cast spelling made the
+ *     chain jump ahead of a1+1; docs cfe-commutative-operand-rank entry).
+ * RESIDUAL (the only diff, 8 words at 0xcc-0xe8): in the c==4 guard
+ * `score + 1 == tbl_view[step]` the target creates the SCORE chain first;
+ * every probed spelling creates the dynamic-subscript table chain first
+ * (member-view struct, 2-hop view, IXA, cast, textual swap, long/unsigned
+ * cvt phantoms, a1*0 mpy phantom, deeper &a0 root = +1 real insn). A
+ * dynamic-index stack-table chain outranks all probed operand kinds at -O0.
+ * Also +1 trailing alignment nop (built 76w vs 75w). NM stays. */
 typedef struct { int a, b, c; } Tbl3;
 extern Tbl3 D_0000C69C;
+typedef struct Seq22C4 { unsigned short h0; unsigned short step; } Seq22C4;
+typedef struct TblView22C4 { int v[3]; } TblView22C4;
+typedef struct Obj22C4 { char pad0[0x4C]; int score; char pad1[0x104]; Seq22C4 *seq; } Obj22C4;
 #ifdef NON_MATCHING
 void func_000122C4(char *a0, int a1) {
     Tbl3 tbl;
+    register char *st;
     tbl = D_0000C69C;
     if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) < 4) {
-        if (a1 + 1 == *(unsigned short*)(*(char**)(a0 + 0x154) + 2)) {
-            *(unsigned short*)(*(char**)(a0 + 0x154) + 2) += 1;
+        if (a1 + 1 == ((Obj22C4*)a0)->seq->step) {
+            st = *(char**)(a0 + 0x154);
+            *(unsigned short*)(st + 2) += 1;
             func_00000000(a0);
         }
     } else {
         if (a1 == 2) {
-            register int c = *(unsigned short*)(*(char**)(a0 + 0x154) + 2);
-            if (c >= 4) {
-                if (c < 5) {
-                    if (*(int*)(a0 + 0x4C) + 1 ==
-                        *(int*)((char*)&tbl + (*(unsigned short*)(*(char**)(a0 + 0x154) + 2)) * 4 - 0x10)) {
-                        *(unsigned short*)(*(char**)(a0 + 0x154) + 2) += 1;
-                        func_00000000(a0);
-                    }
+            if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) >= 4 &&
+                *(unsigned short*)(*(char**)(a0 + 0x154) + 2) < 5) {
+                if (((Obj22C4*)a0)->score + 1 == ((TblView22C4*)((char*)&tbl - 0x10))->v[((Obj22C4*)a0)->seq->step]) {
+                    st = *(char**)(a0 + 0x154);
+                    *(unsigned short*)(st + 2) += 1;
+                    func_00000000(a0);
                 }
             }
         }

@@ -645,49 +645,12 @@ void func_000116C8(void) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000116C8);
 #endif
 
-/* func_000117FC - verified structural decode (0xE8, 58 insns,
- * handle replace-with-validation + re-init).
- * Struct-typing reference: a0->0x2C (44) = the live handle/resource
- * slot (NULL = nothing to replace). a1 = the candidate replacement.
- * validate(a1, old) (func_00000000) gates the swap; on success the
- * old handle is freed (func_00000000(&D, old)), a fresh resource is
- * built via the reloc init sequence (two func_00000000(3) calls -
- * likely alloc/type-3 ctor - then three &D registrations with
- * args 1 / a1 / 0, then a finalize on the new handle h), and the
- * slot is updated to a1. NOTE: this file (bootup_uso_tail3a.c) is
- * the TRUNCATE_TEXT 3x-compile stitch (Makefile L85-100) - any
- * future C match must also respect that offset tuning, not just the
- * reloc caps. Caps <80: ~10x reloc calls + multiple &D relocs +
- * the tail3a TRUNCATE_TEXT stitch. INCLUDE_ASM remains build path.
- * 2026-05-31: the target has UNFILLED jal delay slots (8/8 nop) while this -O2 -g3
- * file FILLS them (compiler reorg). HOWEVER — CORRECTION: this is NOT a clean
- * -O0/-g flag fix. Standalone-cc of the C body byte-compares vs expected (232B):
- *   -O0 -> 256B (spills t7, bigger frame), -O2 -g2/-g1/-g -> 224B, -O2 -> 176B.
- * NONE match 232B. So the residual is more than delay-slot filling: the frame
- * size + ~2 insns + the C-body structure all differ, AND no standard opt/-g level
- * reproduces it. (Standalone-cc can false-cap vs full-TU, so the exact flag is not
- * proven, but -O0 over-produces, so a plain -O0 split is NOT the answer.) Genuine
- * unverified cap — needs deeper per-fn RE (exact flag + C-body match), not a quick
- * split. INCLUDE_ASM remains build path. */
-#ifdef NON_MATCHING
-void func_000117FC(char *a0, void *a1) {
-    void *old = *(void**)(a0 + 0x2C);
-    void *h;
-    if (old == 0) return;
-    if (func_00000000(a1, old) == 0) return;
-    if (*(void**)(a0 + 0x2C) != 0)
-        func_00000000(&D_00000000, *(void**)(a0 + 0x2C));
-    func_00000000(3);
-    h = (void*)func_00000000(3);
-    func_00000000(&D_00000000, 1);
-    func_00000000(&D_00000000, a1);
-    func_00000000(&D_00000000, 0);
-    func_00000000(h);
-    *(void**)(a0 + 0x2C) = a1;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000117FC);
-#endif
+/* func_000117FC (0x117FC..0x118E3) split to bootup_uso_o0_117FC.c on
+ * 2026-07-10 and MATCHED there at -O0 (58/58). The 2026-05-31 note here
+ * ("no standard opt level reproduces it, -O0 over-produces") was a
+ * standalone-cc false cap on a wrong C body (early-return locals form);
+ * the real shape is a fused-|| guard + cfe DAG-share. tail3a TRUNCATE_TEXT
+ * reduced 0x1710 -> 0x1628. */
 
 /* func_000118E4 + func_0001195C split out to bootup_uso_o0_118E4.c on
  * 2026-05-14 for -O0 build (func_000118E4 was previously NM-wrapped at

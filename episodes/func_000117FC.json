@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000117FC",
+  "project": "projects/1080-agent-e",
+  "model": "claude-manual",
+  "start_time": "2026-07-10T05:54:23.089873+00:00",
+  "end_time": "2026-07-10T05:54:23.089893+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-10T05:54:23.089887+00:00",
+      "assistant_text": "Split out of -O2 -g3 tail3a into a new -O0 unit (TRUNCATE 0xE8; tail3a TRUNCATE corrected 0x1710->0x14D8 \u2014 stale value masked 8 pad bytes). Keys: fused-|| guard wrapping the whole body (direct short-circuit branches; &&+goto adds bnez+b); DAG-share reuses the null-test load. The 'no opt level reproduces it' verdict was a standalone-cc false cap on a wrong body.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 58,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 sub-file covering bootup_uso offset 0x117FC..0x118E3 (single function,\n * 58 insns, 0xE8 bytes), split from the tail of bootup_uso_tail3a.c\n * (-O2 -g3) on 2026-07-10. The function is an -O0 island member (8 unfilled\n * jal delays, memory-homed args, dead `b .+1` closing-brace branch); the old\n * tail3a note \"no standard opt level reproduces it\" was based on a\n * standalone-cc probe of a WRONG C body (early-return locals form). */\n\nextern int func_00000000();\nextern char D_00000000;\n\n/* func_000117FC: handle replace-with-validation + re-init (structural\n * decode retained in bootup_uso_tail3a.c history).\n * MATCHED 2026-07-10 (w50 island sweep, 58/58, zero diffs pre-link).\n * Key -O0 shapes: (1) the validate guard is a FUSED-|| wrapper around the\n * whole body: `if (chain == 0 || validate(a1, chain) != 0) { ... }` \u2014 the\n * short-circuit branches emit DIRECT (beqz t7 -> body, beqz v0 -> end, no\n * materialized `b`; the &&-goto spelling adds bnez+b = +2 words), and cfe\n * DAG-shares the 0x2C load between the null test and the call arg\n * (`or a1,t7` \u2014 same DAG-share lever as F6C4/FEA0);\n * (2) the free block re-tests the slot as a SEPARATE statement (fresh t0\n * reload, no share); (3) h is the only named local (slot 0x1C). */\nvoid func_000117FC(char *a0, void *a1) {\n    int h;\n\n    if (*(void**)(a0 + 0x2C) == 0 ||\n        func_00000000(a1, *(void**)(a0 + 0x2C)) != 0) {\n        if (*(void**)(a0 + 0x2C) != 0) {\n            func_00000000(&D_00000000, *(void**)(a0 + 0x2C));\n            func_00000000(3);\n        }\n        h = func_00000000(3);\n        func_00000000(&D_00000000, 1);\n        func_00000000(&D_00000000, a1);\n        func_00000000(&D_00000000, 0);\n        func_00000000(h);\n        *(void**)(a0 + 0x2C) = a1;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_117FC.c",
+    "asm_path": "projects/1080-agent-e/asm/nonmatchings/bootup_uso/func_000117FC.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0",
+    "verification": "58/58 word-exact, zero pre-link diffs + ROM byte-identical (new -O0 split unit)"
+  }
+}
