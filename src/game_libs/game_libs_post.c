@@ -15901,7 +15901,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
  *   families into the target's reused-register set + the ||-chain beql/li-at
  *   regalloc idiom. Byte-match deferred; NM wrap (no episode). */
 extern int gl_func_000428FC();
-extern int gl_func_00043824();
+extern int gl_func_00043824(float, ...);
 extern int gl_func_000438F4();
 extern int gl_func_00044C38();
 /* Distinct global symbols (offset-0 reads). The target re-emits a fresh
@@ -16623,24 +16623,64 @@ void gl_func_0002F638(int a0, int sel, int arg3, int arg4, int stk_43) {
  * const 180.0, not o->0). Sibling of the gl_func_0002F584 quantizer; the 2 calls
  * go to the FIXED intra-USO routine jal 0x010E09 (codes 8, 0x10). Byte-match
  * deferred (raw-word USO + FP delta/commit + signed-byte clamp + table lookups). */
-extern int gl_func_00000000();
 extern int D_00000000;
+/* WHOLE-BODY DECODE 2026-07-10 (prior body was a stub: dead (void)k/(void)dlt,
+ * omitted all 3 gl_func_00043824 calls + the FP delta/commit + clamp tail).
+ * Faithful reconstruction of the 96-insn (0x180) FP value-updater from the
+ * raw .word body: nv = (float)a1 * 180.0; dlt = nv - o->0x5C; commit nv to
+ * o->0x5C; fold i into v0 (0x7F-i for i>=0x40, then -0x80-v0 clamp); write the
+ * quantized byte at o->0x60; three gl_func_00043824(nv, table, 8/0x10) emit
+ * calls interleaved with o->0x61 LUT byte + the o->0x54 = o->0x54*D[0x1740] +
+ * k*D[0x1744] accumulate; then o->0x63 nibble, o->0x62 sign bit, and the two
+ * min-clamps of o->0x58 = 1.0 - dlt*0.0625 against D[0x1748]/D[0x174C]. EXACT
+ * blocked: raw-word USO strips the %hi/%lo data relocs (the real &D offsets for
+ * the table / FP pool are unrecoverable), so all data refs use &D_00000000
+ * placeholders and byte-match is deferred. */
 void game_libs_func_0002F720(char *o, int a1, int idxb) {
     float in = *(float *)&a1;   /* mtc1 a1,$f12 in the merged prologue */
     float nv = in * 180.0f;     /* $f4 = 0x43340000 = 180.0 (entry const) */
+    float old = *(float *)(o + 0x5C);
     int i = (signed char)idxb;
-    float dlt = nv - *(float *)(o + 0x5C);
-    int q;
+    float dlt = nv - old;
+    int v0 = i;
     float k;
-    if (i < 0x40) *(float *)(o + 0x5C) = nv;
-    q = 0x7F - i;
-    if (q < -0x40) q = (-0x80 - q);
-    *(unsigned char *)(o + 0x60) = (unsigned char)(q + 0x40);
-    gl_func_00000000(8);
-    *(unsigned char *)(o + 0x61) = *(unsigned char *)((char *)&D_00000000 + q);
-    gl_func_00000000(0x10);
-    k = *(float *)((char *)&D_00000000 + q * 4);
-    (void)k; (void)dlt;
+    int t1;
+
+    *(float *)(o + 0x5C) = nv;
+    if (i >= 0x40) {
+        v0 = 0x7F - i;
+    }
+    if (v0 < -0x40) {
+        v0 = -0x80 - v0;
+    }
+    *(unsigned char *)(o + 0x60) = (unsigned char)(v0 + 0x40);
+
+    gl_func_00043824(nv, (char *)&D_00000000, 8);
+    *(unsigned char *)(o + 0x61) = *(unsigned char *)((char *)&D_00000000 + v0);
+    gl_func_00043824(nv, (char *)&D_00000000, 0x10);
+
+    k = *(float *)((char *)&D_00000000 + v0 * 4);
+    *(float *)(o + 0x54) =
+        (*(float *)(o + 0x54) * *(float *)((char *)&D_00000000 + 0x1740)) +
+        (k * *(float *)((char *)&D_00000000 + 0x1744));
+    gl_func_00043824(nv, (char *)&D_00000000, 0x10);
+
+    if (i >= 0) {
+        t1 = v0 >> 1;
+    } else {
+        t1 = (v0 + 1) >> 1;
+    }
+    *(unsigned char *)(o + 0x63) = (unsigned char)t1;
+    *(unsigned char *)(o + 0x63) = (unsigned char)(t1 << 4);
+
+    *(unsigned char *)(o + 0x62) = (unsigned char)(i & 0x80);
+    *(float *)(o + 0x58) = 1.0f - (dlt * 0.0625f);
+    if (*(float *)(o + 0x58) < *(float *)((char *)&D_00000000 + 0x1748)) {
+        *(float *)(o + 0x58) = *(float *)((char *)&D_00000000 + 0x1748);
+    }
+    if (*(float *)(o + 0x58) < *(float *)((char *)&D_00000000 + 0x174C)) {
+        *(float *)(o + 0x58) = *(float *)((char *)&D_00000000 + 0x174C);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F720);
