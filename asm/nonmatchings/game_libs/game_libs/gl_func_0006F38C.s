@@ -1,4 +1,4 @@
-nonmatching gl_func_0006F38C, 0x30
+nonmatching gl_func_0006F38C, 0x2C
 glabel gl_func_0006F38C
     .word 0x3C0EA404
     .word 0x8DC40010
@@ -11,5 +11,4 @@ glabel gl_func_0006F38C
     .word 0x00001025
     .word 0x03E00008
     .word 0x27BD0008
-    .word 0x00000000
 endlabel gl_func_0006F38C
