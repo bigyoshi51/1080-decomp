@@ -3,9 +3,10 @@
 /* Contiguous -O0 run [0x19C, 0xAE0) of the mgrproc_uso Yay0 block, carved into
  * a dedicated -O0 sub-unit (region 2) and concatenated with the -O2 objects
  * before crunch64 compression. See the mgrproc_uso_block1_yay0 rule in the
- * Makefile. func_000009A8 is byte-matched at -O0 (its D_0000014C store's %lo is
- * baked into the blob by scripts/bake-data-relocs.py); the rest are still
- * INCLUDE_ASM caps (NM bodies kept for objdiff scoring / grep). */
+ * Makefile. func_0000019C, func_00000504, func_000009A8 (+ the trailing -O0
+ * leaves) are byte-matched at -O0 (data-%lo values bake into the blob via
+ * scripts/bake-data-relocs.py); the rest are INCLUDE_ASM caps (NM bodies
+ * kept for objdiff scoring / grep). */
 
 extern int gl_func_00000000();
 extern int D_00000000;
@@ -16,106 +17,129 @@ extern int D_0000014C;
 #define MGR_STATE_CODE (*(int*)((char*)&D_00000000 + 0x40))
 #define MGR_D_44 (*(int*)((char*)&D_00000000 + 0x44))
 
-#ifdef NON_MATCHING
-extern char D_a_4_x;
-extern int D_b_4_x[];
-extern char D_c_4_x;
-extern char D_8_x;
-extern char import_80020098;
+/* State-machine dispatcher. BYTE-EXACT (218/218 words, ROM byte-identical,
+ * promoted to the plain-C build path) 2026-07-10. Levers:
+ * - every D-global is an extern STRUCT at its import_800200xx symbol with the
+ *   member at the baked %lo offset -> IDO -O0 emits the $at-fused single-lui
+ *   form (lui at; sw %lo(sym+off)(at)) matching the baked expected relocs
+ *   (see docs/IDO_CODEGEN.md $at-fused extern-struct-member entry);
+ * - case 4 field chains are single-statement DAGs (no p/q locals);
+ * - ONE function-scope register ptr (node -> s0) shared by case 4/8 + base
+ *   (s1) + p10 (s2) reproduce the 3-s-reg prologue;
+ * - plain locals DECLARED BEFORE the register vars (a register var declared
+ *   first reserves a dead home slot above the locals, shifting the whole
+ *   column down 0xC); decl order v0_save,loop_continue,buf,ret = slots
+ *   0x4C,0x48,0x44,0x40; no default: arm (jumptable default = loop tail);
+ * - import_80073CF0 read is the ARRAY form [1] (3-insn lui/addiu/lw, NOT
+ *   fused member form) — the one materialized global read in the target;
+ * - the switch jumptable's HI16/LO16 ride against local .rodata vs expected's
+ *   import_80263D90 symbol: imms are 0 both ways (USO load-time reloc), so
+ *   bytes bake identically (bake-data-relocs no-op; symbols all =0).
+ * Real callee names wired from expected relocs. */
+extern struct { char pad[0x40]; int v; } import_800200D8;   /* state code */
+extern struct { char pad[0x44]; int v; } import_800200DC;
+extern struct { char pad[0x48]; int v; } import_800200E0;
+extern struct { char pad[0x64]; int v; } import_800200FC;
+extern struct { char pad[0x68]; int v; } import_80020100;
+extern struct { char pad[0x80]; int v; } import_80020118;
+extern struct { char pad[0x90]; int arr[0x100]; } import_80020128;
+extern struct { char pad[0x17D]; unsigned char v; } import_80020215;
+extern struct { char pad[0x17F]; unsigned char v; } import_80020217;
+extern char import_80020098[];
+extern int import_80073CF0[];
+extern int import_000B2FA0();
+extern int import_000A8094();
+extern int import_000B34B8();
+extern int import_000B3268();
 extern int import_000A5B9C();
 extern int mgrproc_uso_func_07ACE0();
+extern int mgrproc_uso_func_0118E4();
+extern int mgrproc_uso_func_0120A8();
+extern int mgrproc_uso_func_00000E04();
+extern int mgrproc_uso_func_01DA48();
+void mgrproc_uso_func_00000504();
+void mgrproc_uso_func_00000700();
+void mgrproc_uso_func_000009A8();
+s32 mgrproc_uso_func_00000A14();
 mgrproc_uso_func_0000019C(a0, a1) char * a0; int a1; {
-    int loop_continue;
-    int v0_save;
-    int buf;
+    int v0_save;          /* sp+0x4C (case 4) */
+    int loop_continue;    /* sp+0x48 */
+    int buf;              /* sp+0x44 (case 5) */
+    int ret;              /* sp+0x40 (case 5) */
+    register int *node;   /* s0: case4 E04 result / case8 A5B9C node */
+    register char *base;  /* s1 */
+    register char *p10;   /* s2 */
     loop_continue = 0;
     do {
         switch (a1) {
             case 0:
-                gl_func_00000000(a0, 1, 0xB, 8);
-                MGR_D_44 = 2;
-                *(int*)((char*)&D_00000000 + 0x48) = 8;
+                import_000B2FA0(a0, 1, 0xB, 8);
+                import_800200DC.v = 2;
+                import_800200E0.v = 8;
                 loop_continue = 1;
                 break;
             case 1:
-                gl_func_00000000(a0, 1, 7, 4);
-                MGR_D_44 = 2;
-                *(int*)((char*)&D_00000000 + 0x48) = 8;
+                import_000B2FA0(a0, 1, 7, 4);
+                import_800200DC.v = 2;
+                import_800200E0.v = 8;
                 loop_continue = 1;
                 break;
             case 2:
-                gl_func_00000000(a0);
-                MGR_STATE_CODE = 3;
+                mgrproc_uso_func_00000504(a0);
+                import_800200D8.v = 3;
                 break;
             case 3:
-                gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0x68));
-                MGR_STATE_CODE = 4;
+                mgrproc_uso_func_00000700(a0, import_80020100.v);
+                import_800200D8.v = 4;
                 break;
-            case 4: {
-                int *p;
-                int *q;
-                register int s0_save;
-                gl_func_00000000(&D_a_4_x, D_b_4_x[1]);
-                p = (int*)*(int**)((char*)a0 + 8);
-                q = p + p[1];
-                MGR_D_64 = q[3];
-                *(int*)((char*)&D_00000000 + 0x80) =
-                    *(int*)((char*)&D_00000000 + 0x80) ^ 1;
-                p = (int*)*(int**)((char*)a0 + 8);
-                q = p + p[1];
-                *((char*)&D_00000000 + 0x17D) = (char)q[9];
-                *((char*)&D_00000000 + 0x17F) =
-                    (char)*(int*)((char*)&D_00000000 +
-                                  ((unsigned char)*((char*)&D_00000000 + 0x17D) * 4) +
-                                  0x90);
-                gl_func_00000000(&D_c_4_x, 4, MGR_D_64, 0);
-                gl_func_00000000(&D_c_4_x, MGR_D_64);
-                v0_save = gl_func_00000000(a0, *(int*)a0, 1);
-                s0_save = gl_func_00000000(0, 0x45000000, v0_save,
-                                           *(int*)((char*)a0 + 8),
-                                           *(int*)a0);
-                gl_func_00000000(a0, 0, s0_save);
+            case 4:
+                mgrproc_uso_func_0118E4(import_80020098, import_80073CF0[1]);
+                import_800200FC.v =
+                    (*(int**)(a0 + 8))[(*(int**)(a0 + 8))[1] + 3];
+                import_80020118.v = import_80020118.v ^ 1;
+                import_80020215.v =
+                    (*(int**)(a0 + 8))[(*(int**)(a0 + 8))[1] + 9];
+                import_80020217.v = import_80020128.arr[import_80020215.v];
+                mgrproc_uso_func_0120A8(import_80020098, 4,
+                                        import_800200FC.v, 0);
+                import_000A8094(import_80020098, import_800200FC.v);
+                v0_save = import_000B34B8(a0, *(int*)a0, 1);
+                node = (int*)mgrproc_uso_func_00000E04(0, 0x450000, v0_save,
+                                                       *(int*)(a0 + 8),
+                                                       *(int*)a0);
+                mgrproc_uso_func_01DA48(a0, 0, node);
                 loop_continue = 1;
                 break;
-            }
             case 5:
-                v0_save = gl_func_00000000(a0, &buf);
-                gl_func_00000000(a0, (buf | 0x2000) | v0_save, 0x2000,
-                                 *(int*)a0);
+                ret = mgrproc_uso_func_00000A14(a0, &buf);
+                import_000B3268(a0, (buf | 0x2000) | ret, 0x2000,
+                                *(int*)a0);
                 loop_continue = 1;
                 break;
             case 6:
-                gl_func_00000000(a0);
-                MGR_STATE_CODE = 1;
+                mgrproc_uso_func_000009A8(a0);
+                import_800200D8.v = 1;
                 break;
             case 7:
-                gl_func_00000000(a0);
-                MGR_STATE_CODE = 8;
+                mgrproc_uso_func_000009A8(a0);
+                import_800200D8.v = 8;
                 break;
-            case 8: {
-                register int *s0_p;
-                register char *base;
-                register char *p10;
-                s0_p = (int*)import_000A5B9C(0, 1, 0);
-                base = &import_80020098;
+            case 8:
+                node = (int*)import_000A5B9C(0, 1, 0);
+                base = import_80020098;
                 p10 = base + 0x10;
-                mgrproc_uso_func_07ACE0(p10, s0_p);
-                if (s0_p[0x14 / 4] != 0) {
-                    s0_p[1] = 1;
+                mgrproc_uso_func_07ACE0(p10, node);
+                if (node[0x14 / 4] != 0) {
+                    node[1] = 1;
                 }
-                s0_p[0x14 / 4] = (int)base;
+                p10 = base;
+                node[0x14 / 4] = (int)p10;
                 loop_continue = 1;
                 break;
-            }
-            default:
-                break;
         }
-        a1 = MGR_STATE_CODE;
+        a1 = import_800200D8.v;
     } while (!loop_continue);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000019C);
-#endif
 
 /* 51-insn allocator+init wrapper, byte-matched at -O0. v3 is `register` (s0,
  * the target's callee-saved result reg); the dead `v3 = (int)&D_00000000`
