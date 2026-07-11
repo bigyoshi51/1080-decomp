@@ -4956,7 +4956,90 @@ done:
     return obj;
 }
 
+#ifdef NON_MATCHING
+/* gl_func_000690A8: vertex matrix-transform (reconstructed from m2c). First loop
+ * offsets a s16 vertex table by an index list; alloc output via gl_func_00062F64;
+ * copy a 0x40-byte matrix; second loop transforms each vert through two matrices
+ * and stores the result as packed s16. Two calls are USO imports (jal 0). */
+typedef struct { int _w[16]; } Mtx690A8;
+#ifndef GF690
+#define GF690(p, o) (*(f32 *)((char *)(p) + (o)))
+#endif
+void gl_func_000690A8(char *arg0, char *arg1, char *arg2) {
+    volatile f32 sp28;
+    volatile f32 sp24;
+    volatile f32 sp20;
+    f32 temp_f10;
+    f32 temp_f14;
+    f32 temp_f18;
+    f32 temp_f2;
+    s16 *temp_v0;
+    s16 temp_t3;
+    s16 temp_t8;
+    s16 temp_t9;
+    s32 var_a0;
+    s32 var_a1;
+    s32 var_t0;
+    s32 var_t1;
+    char *temp_v1;
+    char *temp_v1_2;
+    char *temp_v0_2;
+    char *temp_v0_3;
+    char *temp_t9_2;
+
+    var_t1 = *(s32 *)(arg0 + 0x20);
+    var_t0 = 0;
+    if (var_t1 > 0) {
+        var_a0 = 0;
+        do {
+            var_t0 += 1;
+            temp_v1 = *(char **)(arg0 + 0x1C) + var_a0;
+            temp_t8 = *(s16 *)(temp_v1 + 0x0);
+            temp_t3 = *(s16 *)(temp_v1 + 0x2);
+            var_a0 += 4;
+            temp_v0 = (s16 *)(*(char **)(arg1 + 0x30) + (temp_t8 * 2));
+            *temp_v0 -= temp_t3;
+            var_t1 = *(s32 *)(arg0 + 0x20);
+        } while (var_t0 < var_t1);
+    }
+    *(char **)(arg0 + 0x24) = (char *)gl_func_00062F64(var_t1 * 6, arg0);
+    *(Mtx690A8 *)(arg0 + 0x68) = *(Mtx690A8 *)(*(char **)(arg0 + 0x18) + 0x70);
+    gl_func_00062F64(*(char **)(arg0 + 0x18) + 0x70, arg0 + 0x28);
+    var_t0 = 0;
+    var_a0 = 0;
+    var_a1 = 0;
+    if (*(s32 *)(arg0 + 0x20) > 0) {
+        do {
+            var_t0 += 1;
+            temp_t9 = *(s16 *)(*(char **)(arg0 + 0x1C) + var_a0);
+            var_a0 += 4;
+            temp_v1_2 = arg2 + (temp_t9 * 6);
+            sp20 = (f32) *(s16 *)(temp_v1_2 + 0x0);
+            sp24 = (f32) *(s16 *)(temp_v1_2 + 0x2);
+            sp28 = (f32) *(s16 *)(temp_v1_2 + 0x4);
+            temp_v0_2 = *(char **)(arg1 + 0x38);
+            temp_v0_3 = temp_v0_2 + 0x70;
+            temp_f14 = (GF690(temp_v0_3, 0x4) * sp20) + (GF690(temp_v0_3, 0x14) * sp24) + (GF690(temp_v0_3, 0x24) * sp28) + GF690(temp_v0_3, 0x34);
+            temp_f10 = (GF690(temp_v0_3, 0x8) * sp20) + (GF690(temp_v0_3, 0x18) * sp24);
+            sp20 = (GF690(temp_v0_2, 0x70) * sp20) + (GF690(temp_v0_2, 0x80) * sp24) + (GF690(temp_v0_3, 0x20) * sp28) + GF690(temp_v0_3, 0x30);
+            sp24 = temp_f14;
+            sp28 = temp_f10 + (GF690(temp_v0_3, 0x28) * sp28) + GF690(temp_v0_3, 0x38);
+            temp_f2 = (GF690(arg0, 0x2C) * sp20) + (GF690(arg0, 0x3C) * sp24) + (GF690(arg0, 0x4C) * sp28) + GF690(arg0, 0x5C);
+            temp_f18 = (GF690(arg0, 0x30) * sp20) + (GF690(arg0, 0x40) * sp24);
+            sp20 = (GF690(arg0, 0x28) * sp20) + (GF690(arg0, 0x38) * sp24) + (GF690(arg0, 0x48) * sp28) + GF690(arg0, 0x58);
+            sp24 = temp_f2;
+            sp28 = temp_f18 + (GF690(arg0, 0x50) * sp28) + GF690(arg0, 0x60);
+            temp_t9_2 = *(char **)(arg0 + 0x24) + var_a1;
+            *(s16 *)(temp_t9_2 + 0x0) = (s16) (s32) sp20;
+            *(s16 *)(temp_t9_2 + 0x2) = (s16) (s32) sp24;
+            var_a1 += 6;
+            *(s16 *)(temp_t9_2 + 0x4) = (s16) (s32) sp28;
+        } while (var_t0 < *(s32 *)(arg0 + 0x20));
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
+#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
