@@ -6468,6 +6468,12 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008FA8);
 extern char D_00008730;
 extern char D_00008738;
 extern char D_00008740;
+/* vtable draw slot (+0x5C): trailing two args are single-precision f32.
+ * Prototyping defeats the K&R float->double promotion so single swc1
+ * arg stores emit (matches target; no cvt.d.s/sdc1). */
+typedef void (*Vfn_ff)(s32, s32, s32, void *, s32, s32, f32, f32);
+extern void func_00000000_p4f(void *, s32, s32, s32, f32);
+extern void func_00000000_iipif(s32, s32, void *, s32, f32);
 /* PASS-2 2026-06-10 (big-swing): FULL 2106-insn m2c graft replacing the
  * 30-insn stub. Raw-word pipeline: .s words -> objdump blob -> label-
  * resolved .s -> m2c (1084 lines, 0 errors, 163 labels). All callees
@@ -7295,7 +7301,7 @@ block_148:
         *(s32 *)((char *)(var_s2) + 0xA58) = temp_v0_51;
         *(s32 *)((char *)(var_s2) + 0x8B8) = var_t1;
         sp174 = var_t2;
-        func_00000000(temp_s1, var_s2, 0x6D, 0x43160000, 200.0f);
+        func_00000000_p4f(temp_s1, var_s2, 0x6D, 0x43160000, 200.0f);
         if (*(s32 *)((char *)(var_s2) + 0xA58) & 8) {
             *(s32 *)((char *)(var_s2) + 0x88C) = 4;
             *(s32 *)((char *)(var_s2) + 0x88E) = 2;
@@ -7307,7 +7313,7 @@ block_148:
         sp168 = arg5;
         sp170 = arg6;
         sp16C = 0.0f;
-        func_00000000(*(s32 *)((char *)&D_00000000 + 0), 1, &sp16C, arg5, arg6);
+        func_00000000_iipif(*(s32 *)((char *)&D_00000000 + 0), 1, &sp16C, arg5, arg6);
         sp16C += D_000008B0;
         *((s32 *)&sp5C + 0) = *((s32 *)&sp168 + 0);
         *((s32 *)&sp5C + 1) = (s32) *((s32 *)&sp168 + 1);
@@ -7420,7 +7426,7 @@ block_148:
         func_00000000(0x884C, 0);
         temp_v0_61 = func_00000000(0x16C);
         if (temp_v0_61 != 0) {
-            func_00000000(temp_v0_61, 0x885C, 0, 0, 0.0f);
+            func_00000000_p4f(temp_v0_61, 0x885C, 0, 0, 0.0f);
             temp_f0 = D_000008B4;
             *(s32 *)((char *)(temp_v0_61) + 0x120) = 0xFFFF;
             *(s32 *)((char *)(temp_v0_61) + 0x28) = 0;
@@ -7524,17 +7530,17 @@ block_148:
             func_00000000(1);
             temp_s0_6 = *(s32 *)((char *)(sp164) + 0x28);
             temp_s1_12 = *(s32 *)((char *)&D_00000000 + 0x6C) + 0x70;
-            ((void (*)())*(s32 *)((char *)(temp_s0_6) + 0x5C))(*(s32 *)((char *)(temp_s0_6) + 0x58) + sp164, *(s32 *)((char *)(var_s2) + 0x870), *(s32 *)((char *)(var_s2) + 0x86C), var_s2, 0x10, temp_s1_12, D_000008B8, 100.0f);
+            ((Vfn_ff)*(s32 *)((char *)(temp_s0_6) + 0x5C))(*(s32 *)((char *)(temp_s0_6) + 0x58) + sp164, *(s32 *)((char *)(var_s2) + 0x870), *(s32 *)((char *)(var_s2) + 0x86C), var_s2, 0x10, temp_s1_12, D_000008B8, 100.0f);
             if (*(s32 *)((char *)(var_s2) + 0xA58) & 1) {
                 temp_s0_7 = *(s32 *)((char *)(sp160) + 0x28);
-                ((void (*)())*(s32 *)((char *)(temp_s0_7) + 0x5C))(*(s32 *)((char *)(temp_s0_7) + 0x58) + sp160, *(s32 *)((char *)(var_s2) + 0x870), *(s32 *)((char *)(var_s2) + 0x86C), var_s2, 0xC, temp_s1_12, D_000008BC, 100.0f);
+                ((Vfn_ff)*(s32 *)((char *)(temp_s0_7) + 0x5C))(*(s32 *)((char *)(temp_s0_7) + 0x58) + sp160, *(s32 *)((char *)(var_s2) + 0x870), *(s32 *)((char *)(var_s2) + 0x86C), var_s2, 0xC, temp_s1_12, D_000008BC, 100.0f);
                 func_00000000(sp164);
                 func_00000000(sp164);
             }
             temp_s0_8 = *(s32 *)((char *)(sp15C) + 0x28);
-            ((void (*)())*(s32 *)((char *)(temp_s0_8) + 0x5C))(*(s32 *)((char *)(temp_s0_8) + 0x58) + sp15C, *(s32 *)((char *)(var_s2) + 0x870), *(s32 *)((char *)(var_s2) + 0x86C), var_s2, 8, *(s32 *)((char *)&D_00000000 + 0x34) + 0x70, 32.0f, 74.0f);
+            ((Vfn_ff)*(s32 *)((char *)(temp_s0_8) + 0x5C))(*(s32 *)((char *)(temp_s0_8) + 0x58) + sp15C, *(s32 *)((char *)(var_s2) + 0x870), *(s32 *)((char *)(var_s2) + 0x86C), var_s2, 8, *(s32 *)((char *)&D_00000000 + 0x34) + 0x70, 32.0f, 74.0f);
             temp_s0_9 = *(s32 *)((char *)(sp158) + 0x28);
-            ((void (*)())*(s32 *)((char *)(temp_s0_9) + 0x5C))(*(s32 *)((char *)(temp_s0_9) + 0x58) + sp158, *(s32 *)((char *)(var_s2) + 0x870), *(s32 *)((char *)(var_s2) + 0x86C), var_s2, 8, *(s32 *)((char *)&D_00000000 + 0x48) + 0x70, 32.0f, 74.0f);
+            ((Vfn_ff)*(s32 *)((char *)(temp_s0_9) + 0x5C))(*(s32 *)((char *)(temp_s0_9) + 0x58) + sp158, *(s32 *)((char *)(var_s2) + 0x870), *(s32 *)((char *)(var_s2) + 0x86C), var_s2, 8, *(s32 *)((char *)&D_00000000 + 0x48) + 0x70, 32.0f, 74.0f);
             func_00000000(0xFFFF);
             func_00000000();
         }
