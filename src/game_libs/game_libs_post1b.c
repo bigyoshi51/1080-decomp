@@ -1674,15 +1674,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 void gl_func_000652D8(int *a0, float *a1) {
-    float diff[3];
-    float buf1[3];
-    float buf2[3];
-    diff[0] = a1[0] - *(float*)((char*)a0 + 0x324);
-    diff[1] = a1[1] - *(float*)((char*)a0 + 0x328);
-    diff[2] = a1[2] - *(float*)((char*)a0 + 0x32C);
-    buf1[0] = diff[0]; buf1[1] = diff[1]; buf1[2] = diff[2];
-    buf2[0] = diff[0]; buf2[1] = diff[1]; buf2[2] = diff[2];
-    gl_func_00000000((char*)a0 + 0x2C8, buf2);
+    struct { int a, b, c; } diff, buf1, buf2;
+    *(float*)&diff.a = a1[0] - *(float*)((char*)a0 + 0x324);
+    *(float*)&diff.b = a1[1] - *(float*)((char*)a0 + 0x328);
+    *(float*)&diff.c = a1[2] - *(float*)((char*)a0 + 0x32C);
+    buf1 = diff;
+    buf2 = buf1;
+    gl_func_00000000((char*)a0 + 0x2C8, &buf2);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
