@@ -1211,16 +1211,16 @@ char *gl_func_0000237C(char *arg0, s32 arg1) {
 
     var_s0 = arg0;
     if ((arg0 != 0) || (temp_v0 = (char*)func_00000000((char *)0x2FC), var_s0 = temp_v0, (temp_v0 != 0))) {
-        (char*)func_00000000(var_s0, 0xCCB4);
-        FW(var_s0, 0x28) = 0;
+        (char*)func_00000000(var_s0, (char*)&D_00000000 + 0xCCB4);
+        FW(var_s0, 0x28) = (int)&D_00000000;
         (char*)func_00000000(var_s0 + 0x2C);
-        FW(var_s0, 0xC) = 0xCCBC;
-        FW(var_s0, 0x1DC) = 0.0f;
-        FW(var_s0, 0x1D4) = 0.0f;
-        FW(var_s0, 0x1E0) = 0.0f;
-        FW(var_s0, 0x1D8) = 0.0f;
+        FW(var_s0, 0xC) = (int)((char*)&D_00000000 + 0xCCBC);
+        *(f32*)((char*)var_s0 + 0x1DC) = 0.0f;
+        *(f32*)((char*)var_s0 + 0x1D4) = 0.0f;
+        *(f32*)((char*)var_s0 + 0x1E0) = 0.0f;
+        *(f32*)((char*)var_s0 + 0x1D8) = 0.0f;
         FW(var_s0, 0x1C0) = arg1;
-        (char*)func_00000000(var_s0, *(s32 *)0x64);
+        (char*)func_00000000(var_s0, *(s32 *)((char*)&D_00000000 + 0x64));
         (char*)func_00000000(var_s0 + 0x1F4, 0x50019);
         (char*)func_00000000(var_s0 + 0x20C, 0x5001A);
         (char*)func_00000000(var_s0 + 0x224, 0x50010);
