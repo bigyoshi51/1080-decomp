@@ -1031,7 +1031,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000641DC);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_00064388)();
-typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00064388;
+typedef struct { s32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00064388;
 void gl_func_00064388(char *arg0, f32 arg1, char *arg2, f32 arg3) {
     Q_00064388 sp30;
     Q_00064388 sp44;
@@ -1063,15 +1063,15 @@ void gl_func_00064388(char *arg0, f32 arg1, char *arg2, f32 arg3) {
         *(float *)&sp60.unk8 = (*(f32*)((char*)temp_v0 + 0x8)) - (*(f32*)((char*)temp_v1 + 0x8));
         *(float *)&sp60.unk4 = (*(f32*)((char*)temp_v0 + 0x4)) - (*(f32*)((char*)temp_v1 + 0x4));
         *(float *)&sp60.unk0 = (*(f32*)((char*)arg0 + 0x4)) - (*(f32*)((char*)arg0 + 0x28));
-        *(float *)&sp6C.unk0 = (f32) sp60.unk0;
+        sp6C.unk0 = sp60.unk0;
         sp6C.unk4 = sp60.unk4;
         sp6C.unk8 = sp60.unk8;
         sp44.unk0 = sp6C.unk0;
         sp44.unk4 = sp6C.unk4;
         sp44.unk8 = sp6C.unk8;
-        sp9C = sp44.unk8;
-        sp98 = sp44.unk4;
-        sp94 = sp44.unk0;
+        sp9C = *(f32*)&sp44.unk8;
+        sp98 = *(f32*)&sp44.unk4;
+        sp94 = *(f32*)&sp44.unk0;
         temp_f0 = (*(f32*)((char*)arg0 + 0x1C));
         temp_f2_2 = (*(f32*)((char*)arg0 + 0x20));
         temp_f14 = (*(f32*)((char*)arg0 + 0x24));
@@ -1085,15 +1085,15 @@ void gl_func_00064388(char *arg0, f32 arg1, char *arg2, f32 arg3) {
         *(float *)&sp30.unk0 = (*(f32*)((char*)arg0 + 0x10)) * 1.0f;
         *(float *)&sp30.unk4 = (*(f32*)((char*)temp_v0_2 + 0x4)) * 1.0f;
         *(float *)&sp30.unk8 = (*(f32*)((char*)temp_v0_2 + 0x8)) * 1.0f;
-        *(float *)&sp6C.unk0 = (f32) sp30.unk0;
+        sp6C.unk0 = sp30.unk0;
         sp6C.unk4 = sp30.unk4;
         sp6C.unk8 = sp30.unk8;
         spA4.unk0 = sp6C.unk0;
         spA4.unk4 = sp6C.unk4;
         spA4.unk8 = sp6C.unk8;
-        (*(f32*)((char*)arg2 + 0x0)) = (f32) ((*(f32*)((char*)arg2 + 0x0)) + spA4.unk0);
-        (*(f32*)((char*)arg2 + 0x4)) = (f32) ((*(f32*)((char*)arg2 + 0x4)) + spA4.unk4);
-        (*(f32*)((char*)arg2 + 0x8)) = (f32) ((*(f32*)((char*)arg2 + 0x8)) + spA4.unk8);
+        (*(f32*)((char*)arg2 + 0x0)) = (f32) ((*(f32*)((char*)arg2 + 0x0)) + *(f32*)&spA4.unk0);
+        (*(f32*)((char*)arg2 + 0x4)) = (f32) ((*(f32*)((char*)arg2 + 0x4)) + *(f32*)&spA4.unk4);
+        (*(f32*)((char*)arg2 + 0x8)) = (f32) ((*(f32*)((char*)arg2 + 0x8)) + *(f32*)&spA4.unk8);
     }
 }
 #else
