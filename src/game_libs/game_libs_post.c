@@ -17063,21 +17063,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F934);
 //   command-submission leaf of the game_libs object subsystem
 //   (richer sibling of gl_func_0002F638 — same 0x03/0x06 banks plus
 //   the 0x01/0x04 attribute banks and the /127 normalization).
-// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks +
-//   /127.0f normalize + multi-bank command build — byte-match
-//   needs USO mnemonic disasm + reloc-pad jal infra. Real-C
-//   STRUCTURAL body below per the analysis. Byte-match deferred.
-//   Name pre-checked: no extern reuse.
+// 2026-07-11 (agent-g): the "/127.0f normalize" was NOT a cap — the residual
+//   cvt.d.s was the K&R float->double promotion of the placeholder call (same
+//   class as gl_func_0002DF68). Fixed by routing the float-arg call through the
+//   existing gl_func_00000000_f(int,float) alias (single-precision, swc1). Also
+//   inverted the opcode ternary (bne form) and inlined the /127 to drop the
+//   phantom slot: frame -56 -> -48 matches, cvt.d.s gone. 83.66 -> 89.55% fuzzy.
+//   RESIDUAL (genuine regalloc cap): target coalesces param `b` into $a3 up
+//   front (`or a3,a1,zero`, homing arg4 to 60(sp)); the sign-extend + v1 home
+//   slot (32 vs 36) shift with it. A parameter-shuffle coloring cap, not C-
+//   reachable. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_0002F9D4(int a0, int b, int arg3, int arg4,
                       int stk_43, int stk_47) {
-    int op = a0 ? 5 : 1;
+    int op = (a0 == 0) ? 1 : 5;
     int sub = (op & 0xFF) << 8;
-    float n;
     gl_func_00000000(0x06000000 | sub | 5, (signed char)b);
-    n = (float)arg3 / 127.0f;
-    gl_func_00000000(0x01000000 | sub, n);
+    gl_func_00000000_f(0x01000000 | sub, (float)arg3 / 127.0f);
     gl_func_00000000(0x04000000 | sub, arg4);
     gl_func_00000000(0x06000000 | sub, (signed char)stk_43);
     gl_func_00000000(0x03000000 | sub, (signed char)stk_47);
