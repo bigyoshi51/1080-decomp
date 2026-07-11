@@ -7531,141 +7531,102 @@ void timproc_uso_b5_func_0000AC10(int a0, int a1, int a2) {
 //   compose + cb chain skeleton only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft. The .s is UNDERSIZED
- * (true body 0x534 to block5 0xB154, from the verified asset; boundary
- * reconciliation when exact). 6% COP1, prior body replaced (git). */
+/* PASS-3 2026-07-10 (agent-g): width-fix rewrite. Target has ZERO int<->float
+ * conversions (33 words of pure lwc1/sub.s/mul.s/add.s FP) but the PASS-2 graft
+ * loaded every FP field via *(s32*) casts, emitting 24 spurious cvt.s.w/trunc.w.s
+ * and wrong call signatures. Retyped all field reads to *(f32*) and corrected
+ * every func_00000000 arg list from the verified .s decode (frame -0x100, only
+ * $s0 saved). func_00000000 = USO placeholder (transform helpers). */
+#define TB5_F(off) (*(f32 *)((char *)o + (off)))
+#define TB5_D(off) (*(f32 *)((char *)&D_00000000 + (off)))
 void timproc_uso_b5_func_0000AC20(char *arg0) {
-    f32 spF8; f32 spFC;
-    f32 spF4;
-    s32 spE4;
-    f32 spD8;
-    f32 spD4;
-    f32 spD0;
-    s32 sp7C;
-    s32 sp6C;
-    f32 sp64;
-    f32 sp60;
-    f32 sp5C;
-    f32 sp54;
-    f32 sp50;
-    f32 sp4C;
-    f32 sp44;
-    f32 sp40;
-    f32 sp3C;
-    f32 sp38;
-    f32 sp34;
-    f32 sp30;
+    char *o = arg0;
+    Vec3 spD0;
+    Vec3 spE4;
+    Vec3 spF4;
+    s32 sp7C[3];
+    s32 sp6C[3];
+    f32 sp5C, sp60, sp64;
+    f32 sp4C, sp50, sp54;
+    f32 sp3C, sp40, sp44;
+    f32 sp30, sp34, sp38;
     char *sp2C;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f0_4;
-    f32 temp_f0_5;
-    f32 temp_f0_6;
-    f32 temp_f0_7;
-    f32 temp_f12;
-    f32 temp_f12_2;
-    f32 temp_f12_3;
-    f32 temp_f12_4;
-    f32 temp_f12_5;
-    f32 temp_f12_6;
-    f32 temp_f2;
     f32 var_f12;
-    s32 temp_t7;
-    s32 temp_t8;
-    char *temp_a0;
-    char *temp_v0;
+    f32 mul;
+    f32 wrap;
+    f32 two = 2.0f;
 
-    temp_v0 = arg0 + 0xDC;
-    spD0 = *(s32 *)((char *)(arg0) + 0xDC) - *(s32 *)((char *)&D_00000000 + 0);
-    temp_f12 = *(s32 *)((char *)(temp_v0) + 0x8) - *(f32 *)8;
-    spD4 = *(s32 *)((char *)(temp_v0) + 0x4) - *(f32 *)4;
-    spD8 = temp_f12;
-    *((s32 *)&spE4 + 0) = (f32) *((s32 *)&spD0 + 0);
-    temp_t7 = *((s32 *)&spD0 + 1);
-    *((s32 *)&spE4 + 1) = temp_t7;
-    temp_t8 = *((s32 *)&spD0 + 2);
-    *((s32 *)&spF4 + 1) = temp_t7;
-    *((s32 *)&spF4 + 0) = *((s32 *)&spE4 + 0);
-    *((s32 *)&spE4 + 2) = temp_t8;
-    *((s32 *)&spF4 + 2) = temp_t8;
-    func_00000000(temp_f12, &spF4);
-    temp_a0 = arg0 + 0xF4;
-    if ((f64) ((*(s32 *)((char *)&D_00000000 + 0) * spF4) + (*(s32 *)((char *)&D_00000000 + 4) * spF8) + (*(s32 *)((char *)&D_00000000 + 8) * spFC)) < *(f64 *)0x338) {
-        *(s32 *)((char *)(arg0) + 0xF4) = 0.0f;
-        *(s32 *)((char *)(arg0) + 0xF8) = 0.0f;
-        *(s32 *)((char *)(arg0) + 0xFC) = 0.0f;
-        *(s32 *)((char *)(arg0) + 0x100) = 1.0f;
-        sp2C = temp_a0;
+    spD0.x = TB5_F(0xDC) - TB5_D(0x0);
+    spD0.y = TB5_F(0xE0) - TB5_D(0x4);
+    spD0.z = TB5_F(0xE4) - TB5_D(0x8);
+    spF4 = spE4 = spD0;
+    func_00000000(&spF4);
+    if ((f64) ((TB5_D(0x0) * spF4.x) + (TB5_D(0x4) * spF4.y) + (TB5_D(0x8) * spF4.z)) < *(f64 *)((char *)&D_00000000 + 0x338)) {
+        sp2C = o + 0xF4;
+        TB5_F(0xF4) = 0.0f;
+        TB5_F(0xF8) = 0.0f;
+        TB5_F(0xFC) = 0.0f;
+        TB5_F(0x100) = 1.0f;
         sp54 = 0.0f;
         sp50 = 0.0f;
         sp4C = 1.0f;
-        func_00000000(temp_a0, &sp4C, *(s32 *)((char *)(arg0) + 0x114));
+        func_00000000(sp2C, &sp4C, TB5_F(0x114));
         sp3C = 0.0f;
         sp40 = 0.0f;
         sp44 = 1.0f;
-        func_00000000(sp2C, &sp3C, *(s32 *)((char *)(arg0) + 0x110));
+        func_00000000(sp2C, &sp3C, TB5_F(0x110));
         sp30 = 0.0f;
         sp38 = 0.0f;
         sp34 = 1.0f;
-        func_00000000(sp2C, &sp30, *(s32 *)((char *)(arg0) + 0x118));
-        func_00000000(*(s32 *)((char *)((*(s32 *)((char *)&D_00000000 + 0))) + 0x70) + 0xB4, &sp7C);
+        func_00000000(sp2C, &sp30, TB5_F(0x118));
+        func_00000000(*(s32 *)((char *)(*(s32 *)((char *)&D_00000000 + 0)) + 0x70) + 0xB4, &sp7C);
         func_00000000(&sp7C, &sp6C);
-        temp_f2 = *(s32 *)((char *)(arg0) + 0x120);
+        mul = TB5_F(0x11C) * TB5_F(0x120);
         var_f12 = 1.0f;
-        temp_f0 = 1.0f + (*(s32 *)((char *)(arg0) + 0x11C) * temp_f2);
-        *(s32 *)((char *)(arg0) + 0xE8) = temp_f0;
-        *(s32 *)((char *)(arg0) + 0xEC) = temp_f0;
-        *(s32 *)((char *)(arg0) + 0xF0) = temp_f0;
-        if (*(s32 *)((char *)(arg0) + 0x12C) != 0) {
-            var_f12 = temp_f2;
+        TB5_F(0xE8) = 1.0f + mul;
+        TB5_F(0xEC) = 1.0f + mul;
+        TB5_F(0xF0) = 1.0f + mul;
+        if (*(s32 *)((char *)(o) + 0x12C) != 0) {
+            var_f12 = TB5_F(0x120);
         }
-        func_00000000(var_f12, sp2C, &sp6C, var_f12, 0);
-        sp5C = (*(s32 *)((char *)(arg0) + 0xF4) * *(s32 *)((char *)(arg0) + 0xFC) * 2.0f) + (*(s32 *)((char *)(arg0) + 0x100) * *(s32 *)((char *)(arg0) + 0xF8) * 2.0f);
-        sp60 = (*(s32 *)((char *)(arg0) + 0xF8) * *(s32 *)((char *)(arg0) + 0xFC) * 2.0f) - (*(s32 *)((char *)(arg0) + 0x100) * *(s32 *)((char *)(arg0) + 0xF4) * 2.0f);
-        temp_f12_2 = *(s32 *)((char *)(arg0) + 0xF4);
-        temp_f0_2 = *(s32 *)((char *)(arg0) + 0xF8);
-        sp64 = (1.0f - (temp_f12_2 * temp_f12_2 * 2.0f)) - (temp_f0_2 * temp_f0_2 * 2.0f);
-        func_00000000(temp_f12_2, sp2C, &sp5C, 0x3FC90FDB);
-        temp_f0_3 = *(s32 *)((char *)(arg0) + 0xF8);
-        temp_f12_3 = *(s32 *)((char *)(arg0) + 0xFC);
-        sp5C = (1.0f - (temp_f0_3 * temp_f0_3 * 2.0f)) - (temp_f12_3 * temp_f12_3 * 2.0f);
-        sp60 = (*(s32 *)((char *)(arg0) + 0xF4) * *(s32 *)((char *)(arg0) + 0xF8) * 2.0f) + (*(s32 *)((char *)(arg0) + 0x100) * *(s32 *)((char *)(arg0) + 0xFC) * 2.0f);
-        sp64 = (*(s32 *)((char *)(arg0) + 0xF4) * *(s32 *)((char *)(arg0) + 0xFC) * 2.0f) - (*(s32 *)((char *)(arg0) + 0x100) * *(s32 *)((char *)(arg0) + 0xF8) * 2.0f);
-        func_00000000(temp_f12_3, sp2C, &sp5C, 0x3FC90FDB);
-        if ((*(s32 *)((char *)(arg0) + 0x12C) != 0) && (*(s32 *)((char *)(arg0) + 0x130) != 0)) {
-            temp_f12_4 = *(f32 *)((char *)&D_00000000 + 0x340);
-            *(f32 *)((char *)(arg0) + 0x10C) = (f32) (*(s32 *)((char *)(arg0) + 0x10C) + *(f32 *)((char *)&D_00000000 + 0x344));
-            temp_f0_4 = *(s32 *)((char *)(arg0) + 0x10C);
-            if (temp_f12_4 <= temp_f0_4) {
-                *(f32 *)((char *)(arg0) + 0x10C) = (f32) (temp_f0_4 - temp_f12_4);
+        func_00000000(sp2C, &sp6C, var_f12, 0);
+        sp5C = (TB5_F(0xF4) * TB5_F(0xFC) * two) + (TB5_F(0x100) * TB5_F(0xF8) * two);
+        sp60 = (TB5_F(0xF8) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF4) * two);
+        sp64 = (1.0f - (TB5_F(0xF4) * TB5_F(0xF4) * two)) - (TB5_F(0xF8) * TB5_F(0xF8) * two);
+        func_00000000(sp2C, &sp5C, 0x3FC90FDB);
+        sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
+        sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
+        sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
+        func_00000000(sp2C, &sp5C, 0x3FC90FDB);
+        if ((*(s32 *)((char *)(o) + 0x12C) != 0) && (*(s32 *)((char *)(o) + 0x130) != 0)) {
+            wrap = TB5_D(0x340);
+            TB5_F(0x10C) = TB5_F(0x10C) + TB5_D(0x344);
+            if (wrap <= TB5_F(0x10C)) {
+                TB5_F(0x10C) = TB5_F(0x10C) - wrap;
             }
-            temp_f0_5 = *(s32 *)((char *)(arg0) + 0xF8);
-            temp_f12_5 = *(s32 *)((char *)(arg0) + 0xFC);
-            sp5C = (1.0f - (temp_f0_5 * temp_f0_5 * 2.0f)) - (temp_f12_5 * temp_f12_5 * 2.0f);
-            sp60 = (*(s32 *)((char *)(arg0) + 0xF4) * *(s32 *)((char *)(arg0) + 0xF8) * 2.0f) + (*(s32 *)((char *)(arg0) + 0x100) * *(s32 *)((char *)(arg0) + 0xFC) * 2.0f);
-            sp64 = (*(s32 *)((char *)(arg0) + 0xF4) * *(s32 *)((char *)(arg0) + 0xFC) * 2.0f) - (*(s32 *)((char *)(arg0) + 0x100) * *(s32 *)((char *)(arg0) + 0xF8) * 2.0f);
-            func_00000000(temp_f12_5, 0, sp2C, &sp5C, *(s32 *)((char *)(arg0) + 0x10C));
+            sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
+            sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
+            sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
+            func_00000000(sp2C, &sp5C, *(s32 *)((char *)(o) + 0x10C));
         } else {
-            temp_f0_6 = *(s32 *)((char *)(arg0) + 0x10C);
-            if (temp_f0_6 > 0.0f) {
-                *(f32 *)((char *)(arg0) + 0x10C) = (f32) (temp_f0_6 + *(f32 *)((char *)&D_00000000 + 0x34C));
-                if (*(f32 *)((char *)&D_00000000 + 0x348) <= *(s32 *)((char *)(arg0) + 0x10C)) {
-                    *(s32 *)((char *)(arg0) + 0x10C) = 0.0f;
+            if (TB5_F(0x10C) > 0.0f) {
+                TB5_F(0x10C) = TB5_F(0x10C) + TB5_D(0x34C);
+                if (TB5_D(0x348) <= TB5_F(0x10C)) {
+                    TB5_F(0x10C) = 0.0f;
                 }
-                temp_f0_7 = *(s32 *)((char *)(arg0) + 0xF8);
-                temp_f12_6 = *(s32 *)((char *)(arg0) + 0xFC);
-                sp5C = (1.0f - (temp_f0_7 * temp_f0_7 * 2.0f)) - (temp_f12_6 * temp_f12_6 * 2.0f);
-                sp60 = (*(s32 *)((char *)(arg0) + 0xF4) * *(s32 *)((char *)(arg0) + 0xF8) * 2.0f) + (*(s32 *)((char *)(arg0) + 0x100) * *(s32 *)((char *)(arg0) + 0xFC) * 2.0f);
-                sp64 = (*(s32 *)((char *)(arg0) + 0xF4) * *(s32 *)((char *)(arg0) + 0xFC) * 2.0f) - (*(s32 *)((char *)(arg0) + 0x100) * *(s32 *)((char *)(arg0) + 0xF8) * 2.0f);
-                func_00000000(temp_f12_6, 0, sp2C, &sp5C, *(s32 *)((char *)(arg0) + 0x10C));
+                sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
+                sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
+                sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
+                func_00000000(sp2C, &sp5C, *(s32 *)((char *)(o) + 0x10C));
             }
         }
-        func_00000000(*(s32 *)((char *)(arg0) + 0x108), *(s32 *)((char *)(arg0) + 0x124));
-        func_00000000(arg0);
-        *(s32 *)((char *)(arg0) + 0x128) = 1;
+        func_00000000(*(s32 *)((char *)(o) + 0x108), *(s32 *)((char *)(o) + 0x124));
+        func_00000000(o);
+        *(s32 *)((char *)(o) + 0x128) = 1;
     }
 }
+#undef TB5_F
+#undef TB5_D
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AC20);
 #endif
