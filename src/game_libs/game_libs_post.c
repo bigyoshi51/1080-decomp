@@ -19927,13 +19927,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000337AC);
 //   (likely "register kind A" vs "register kind B"; 0x0001E2EC /
 //   0x0001E308 are deferred data-segment template-symbolization
 //   sites).
-// Caps (DEFERRED): raw-word USO + USO-reloc jal-0 callbacks + &D_0
-//   record-array (0x44 stride) + fixed data-seg templates
-//   (0x0001E2EC/0x0001E308 unsymbolized) — byte-match needs USO
-//   mnemonic disasm + record struct typed. Real-C STRUCTURAL body
-//   below per the analysis (sibling of gl_func_000337AC). Byte-match
-//   deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// EXACT (2026-07-11, un-wrapped from NM): the STRUCTURAL body below IS
+//   byte-identical (48/48 words, %hi/%lo templates 0x1E2EC/0x1E308 +
+//   id*0x44 record stride + jal-0 callbacks all resolve). The old
+//   "byte-match deferred" note was wrong — the near-exact scan
+//   under-counted it (jr's delay slot is `addiu sp`, not `nop`, so a
+//   jr;nop-terminated word extractor bled into the successor and
+//   reported phantom trailing diffs). make + cmp tenshoe==baserom clean.
 void gl_func_00033880(int id, int a1, unsigned flags, int d) {
     char *rec;
     if (flags & 7) {
@@ -19948,9 +19948,6 @@ void gl_func_00033880(int id, int a1, unsigned flags, int d) {
     gl_func_00000000(rec, 0, 1, a1, flags, d, rec + 0x18);
     *(int *)(rec + 0x40) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033880);
-#endif
 
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00033940);
