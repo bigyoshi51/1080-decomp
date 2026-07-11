@@ -6230,44 +6230,61 @@ end:
 //     contact code (s16), 0xA10 merged flag bits.
 //   Consts: -30.0 max-neg clamp, 0.5 half, 50.0 light threshold,
 //     0.1f (0x3DCCCCCD) restitution; code 0x61/62/63 = skip set.
-// Caps (DEFERRED): 209-insn 2-branch physics accumulator w/ dispatcher
-//   applies — byte-match blocked by raw-word USO. Real-C STRUCTURAL
-//   body below. Name pre-checked: no extern reuse. D_00000000 reuses
-//   file-scope extern char.
+// Caps (DEFERRED, fuzzy 39.8%->64.1% 2026-07): heavy-branch Vec3 impulse
+//   modeled with by-value struct copies (BD4V imp/impA/impB, nn/nnA -> the
+//   compiler's word-by-word sp+0x74->0x84->0xA0 / 0x40->0x84/0x94 marshal),
+//   cx (b->0x170) reloaded per accumulation block, shared negamt=-amt drives
+//   both s=(double)negamt*0.5 (neg.s-then-cvt.d, not neg.d) and nn=dir*negamt.
+//   Light-branch func_8bd4_a regained its dropped cx first arg. Remaining
+//   byte-cap: target parks amt in callee-saved $f20 (sdc1/ldc1, frame 0xB8)
+//   to survive the code-check call; NM keeps it in caller-saved $f14 —
+//   an fp-regalloc/frame divergence. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 /* typed-float protos (0x0-aliases): float args (q*q; amt, 0.1f) pass single,
  * not K&R double-promote. */
-extern void func_8bd4_a(void *, void *, float *, float);
+extern void func_8bd4_a(void *, void *, void *, float *, float);
 extern void func_8bd4_b(char *, float, float *, float);
+extern void func_8bd4_heavy(void *, void *, void *, void *);
+typedef struct { float x, y, z; } BD4V;
 void func_00008BD4(char *b, float amt, float *dir, int a3) {
     unsigned short fl = *(unsigned short *)(b + 0x174);
     char *cx;
     int code;
     float s;
-    float n[3], n2[3];
+    float negamt;
+    BD4V imp, impA, impB, nn, nnA;
     float q;
     if (fl & 0x1F0) {
         if (amt < 0.0f) {
             code = (int)func_00000000(*(int *)((*(char ***)&D_00000000)[0] + 0x84), *(int *)(b + 0x14C));
             if (code != 0x61 && code != 0x62 && code != 0x63) {
-                cx = *(char **)(b + 0x170);
-                *(int *)(cx + 0x938) = *(int *)(cx + 0x938) + 1;
-                *(short *)(cx + 0x9A4) = (short)code;
+                *(int *)((*(char **)(b + 0x170)) + 0x938) += 1;
+                *(short *)((*(char **)(b + 0x170)) + 0x9A4) = (short)code;
                 if (amt < -30.0f) amt = -30.0f;
-                *(unsigned short *)(cx + 0xA10) |= fl;
-                s = (float)(-(double)amt * 0.5);
-                *(float *)(cx + 0xB4) += dir[0] * s;
-                *(float *)(cx + 0xB8) += dir[1] * s;
-                *(float *)(cx + 0xBC) += dir[2] * s;
+                negamt = -amt;
+                *(unsigned short *)((*(char **)(b + 0x170)) + 0xA10) |=
+                    *(unsigned short *)(b + 0x174);
+                s = (float)((double)negamt * 0.5);
+                imp.x = dir[0] * s;
+                imp.y = dir[1] * s;
+                imp.z = dir[2] * s;
+                impB = imp;
+                impA = impB;
+                cx = *(char **)(b + 0x170);
+                *(float *)(cx + 0xB4) += impA.x;
+                *(float *)(cx + 0xB8) += impA.y;
+                *(float *)(cx + 0xBC) += impA.z;
+                cx = *(char **)(b + 0x170);
                 *(float *)(cx + 0x93C) += dir[0];
                 *(float *)(cx + 0x940) += dir[1];
                 *(float *)(cx + 0x944) += dir[2];
-                *(float *)(cx + 0x968) += amt;
-                n[0] = dir[0] * -amt;
-                n[1] = dir[1] * -amt;
-                n[2] = dir[2] * -amt;
-                n2[0] = n[0]; n2[1] = n[1]; n2[2] = n[2];
-                func_00000000(n[1], n[2], cx, b + 0x120, n2, n);
+                *(float *)((*(char **)(b + 0x170)) + 0x968) += amt;
+                nn.x = dir[0] * negamt;
+                nn.y = dir[1] * negamt;
+                nn.z = dir[2] * negamt;
+                impB = nn;
+                nnA = nn;
+                func_8bd4_heavy(*(char **)(b + 0x170), b + 0x120, &nnA, &impB);
             }
         }
         return;
@@ -6283,7 +6300,7 @@ void func_00008BD4(char *b, float amt, float *dir, int a3) {
         *(float *)(cx + 0x944) += dir[2];
         q = *(float *)(cx + 0x970);
         if (q < 0.0f) q = -q;
-        func_8bd4_a(b + 0x120, b + 0x114, dir, q * q);
+        func_8bd4_a(cx, b + 0x120, b + 0x114, dir, q * q);
         func_8bd4_b(b, amt, dir, 0.1f);
         }
     }
