@@ -44,255 +44,151 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070314);
  * branches verified in-range; ends at 0x70628 (pre-existing 0xC align pad
  * before gl_func_00070634). Reloc-blind USO; stays INCLUDE_ASM. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00070320)();
-s32 game_libs_func_00070320(s32 arg0, s32 arg1, s32 arg2) {
-    s16 temp_v0_11;
-    s16 temp_v0_3;
-    s16 temp_v1;
-    s16 temp_v1_5;
-    s32 temp_a3;
-    s32 temp_t0;
-    s32 temp_t0_2;
-    s32 temp_t0_3;
-    s32 temp_t0_4;
-    s32 temp_t1;
-    s32 temp_t1_2;
-    s32 temp_t1_3;
-    s32 temp_t1_4;
-    s32 temp_t2;
-    s32 temp_t2_2;
-    s32 temp_t3;
-    s32 temp_t3_2;
-    s32 temp_t4;
-    s32 temp_t4_2;
-    s32 temp_t5;
-    s32 temp_t5_2;
-    s32 temp_v0;
-    s32 temp_v0_13;
-    s32 temp_v0_14;
-    s32 temp_v0_15;
-    s32 temp_v0_5;
-    s32 temp_v0_6;
-    s32 temp_v0_7;
-    s32 temp_v0_9;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 temp_v1_4;
-    s32 temp_v1_6;
-    s32 temp_v1_7;
-    s32 temp_v1_8;
-    s32 var_a0;
-    s32 var_a0_2;
-    s32 var_a1;
-    s32 *var_a1_2;
-    s32 var_a2;
-    s8 *var_a0_3;
-    s8 temp_v0_10;
-    s8 temp_v0_12;
-    s8 temp_v0_16;
-    s8 temp_v0_2;
-    s8 temp_v0_4;
-    s8 temp_v0_8;
-    char *var_a1_3;
+void *game_libs_func_00070320(void *src0, void *dst0, s32 n) {
+    char *s = src0;
+    char *d = dst0;
+    void *ret = dst0;
 
-    var_a0 = arg0;
-    var_a1 = arg1;
-    var_a2 = arg2;
-    temp_a3 = var_a1;
-    if ((var_a2 != 0) && (var_a0 != var_a1)) {
-        if ((var_a1 >= var_a0) && (var_a1 < (var_a0 + var_a2))) {
-            var_a0_2 = var_a0 + var_a2;
-            var_a1_2 = var_a1 + var_a2;
-            if (var_a2 >= 0x10) {
-                temp_v0 = var_a0_2 & 3;
-                if (temp_v0 == ((int)var_a1_2 & 3)) {
-                    switch (temp_v0) {              /* switch 2; irregular */
-                    case 0:                         /* switch 2 */
-                        break;
-                    default:                        /* switch 2 */
-                        temp_v0_2 = FW(var_a0_2, -0x1);
-                        var_a0_2 -= 1;
-                        var_a1_2 -= 1;
-                        var_a2 -= 1;
-                        *var_a1_2 = temp_v0_2;
-                        break;
-                    case 2:                         /* switch 2 */
-                        temp_v0_3 = FW(var_a0_2, -0x2);
-                        var_a0_2 -= 2;
-                        var_a1_2 -= 2;
-                        var_a2 -= 2;
-                        *var_a1_2 = temp_v0_3;
-                        break;
-                    case 3:                         /* switch 2 */
-                        temp_v0_4 = FW(var_a0_2, -0x1);
-                        temp_v1 = FW(var_a0_2, -0x3);
-                        var_a0_2 -= 3;
-                        var_a1_2 -= 3;
-                        var_a2 -= 3;
-                        FW(var_a1_2, 0x2) = temp_v0_4;
-                        FW(var_a1_2, 0x0) = temp_v1;
-                        break;
-                    }
-loop_35:
-                    if (var_a2 >= 0x20) {
-                        temp_v0_5 = FW(var_a0_2, -0x4);
-                        temp_v1_2 = FW(var_a0_2, -0x8);
-                        temp_t0 = FW(var_a0_2, -0xC);
-                        temp_t1 = FW(var_a0_2, -0x10);
-                        temp_t2 = FW(var_a0_2, -0x14);
-                        temp_t3 = FW(var_a0_2, -0x18);
-                        temp_t4 = FW(var_a0_2, -0x1C);
-                        temp_t5 = FW(var_a0_2, -0x20);
-                        var_a0_2 -= 0x20;
-                        var_a1_2 -= 0x20;
-                        var_a2 -= 0x20;
-                        FW(var_a1_2, 0x1C) = temp_v0_5;
-                        FW(var_a1_2, 0x18) = temp_v1_2;
-                        FW(var_a1_2, 0x14) = temp_t0;
-                        FW(var_a1_2, 0x10) = temp_t1;
-                        FW(var_a1_2, 0xC) = temp_t2;
-                        FW(var_a1_2, 0x8) = temp_t3;
-                        FW(var_a1_2, 0x4) = temp_t4;
-                        FW(var_a1_2, 0x0) = temp_t5;
-                        goto loop_35;
-                    }
-loop_37:
-                    if (var_a2 >= 0x10) {
-                        temp_v0_6 = FW(var_a0_2, -0x4);
-                        temp_v1_3 = FW(var_a0_2, -0x8);
-                        temp_t0_2 = FW(var_a0_2, -0xC);
-                        temp_t1_2 = FW(var_a0_2, -0x10);
-                        var_a0_2 -= 0x10;
-                        var_a1_2 -= 0x10;
-                        var_a2 -= 0x10;
-                        FW(var_a1_2, 0xC) = temp_v0_6;
-                        FW(var_a1_2, 0x8) = temp_v1_3;
-                        FW(var_a1_2, 0x4) = temp_t0_2;
-                        FW(var_a1_2, 0x0) = temp_t1_2;
-                        goto loop_37;
-                    }
-loop_39:
-                    if (var_a2 >= 4) {
-                        temp_v0_7 = FW(var_a0_2, -0x4);
-                        var_a0_2 -= 4;
-                        var_a1_2 -= 4;
-                        var_a2 -= 4;
-                        *var_a1_2 = temp_v0_7;
-                        goto loop_39;
-                    }
-                }
-            }
-            if (var_a2 != 0) {
-                var_a0_3 = var_a0_2 - 1;
-                var_a1_3 = var_a1_2 - 1;
-                temp_v1_4 = var_a0_3 - var_a2;
-                do {
-                    temp_v0_8 = *(int*)var_a0_3;
-                    var_a0_3 -= 1;
-                    var_a1_3 -= 1;
-                    FW(var_a1_3, 0x1) = temp_v0_8;
-                } while ((int)var_a0_3 != temp_v1_4);
-                return temp_a3;
-            }
-            /* Duplicate return node #10. Try simplifying control flow for better match */
-            return temp_a3;
-        }
-        if (var_a2 >= 0x10) {
-            temp_v0_9 = var_a0 & 3;
-            if (temp_v0_9 == (var_a1 & 3)) {
-                switch (temp_v0_9) {                /* switch 1; irregular */
-                case 0:                             /* switch 1 */
-                    break;
-                default:                            /* switch 1 */
-                    temp_v0_10 = FW(var_a0, 0x0);
-                    var_a0 += 1;
-                    var_a1 += 1;
-                    var_a2 -= 1;
-                    FW(var_a1, -0x1) = temp_v0_10;
-                    break;
-                case 2:                             /* switch 1 */
-                    temp_v0_11 = (s16) FW(var_a0, 0x0);
-                    var_a0 += 2;
-                    var_a1 += 2;
-                    var_a2 -= 2;
-                    FW(var_a1, -0x2) = temp_v0_11;
-                    break;
-                case 1:                             /* switch 1 */
-                    temp_v0_12 = FW(var_a0, 0x0);
-                    temp_v1_5 = FW(var_a0, 0x1);
-                    var_a0 += 3;
-                    var_a1 += 3;
-                    var_a2 -= 3;
-                    FW(var_a1, -0x3) = temp_v0_12;
-                    FW(var_a1, -0x2) = temp_v1_5;
-                    break;
-                }
-loop_17:
-                if (var_a2 >= 0x20) {
-                    temp_v0_13 = FW(var_a0, 0x0);
-                    temp_v1_6 = FW(var_a0, 0x4);
-                    temp_t0_3 = FW(var_a0, 0x8);
-                    temp_t1_3 = FW(var_a0, 0xC);
-                    temp_t2_2 = FW(var_a0, 0x10);
-                    temp_t3_2 = FW(var_a0, 0x14);
-                    temp_t4_2 = FW(var_a0, 0x18);
-                    temp_t5_2 = FW(var_a0, 0x1C);
-                    var_a0 += 0x20;
-                    var_a1 += 0x20;
-                    var_a2 -= 0x20;
-                    FW(var_a1, -0x20) = temp_v0_13;
-                    FW(var_a1, -0x1C) = temp_v1_6;
-                    FW(var_a1, -0x18) = temp_t0_3;
-                    FW(var_a1, -0x14) = temp_t1_3;
-                    FW(var_a1, -0x10) = temp_t2_2;
-                    FW(var_a1, -0xC) = temp_t3_2;
-                    FW(var_a1, -0x8) = temp_t4_2;
-                    FW(var_a1, -0x4) = temp_t5_2;
-                    goto loop_17;
-                }
-loop_19:
-                if (var_a2 >= 0x10) {
-                    temp_v0_14 = FW(var_a0, 0x0);
-                    temp_v1_7 = FW(var_a0, 0x4);
-                    temp_t0_4 = FW(var_a0, 0x8);
-                    temp_t1_4 = FW(var_a0, 0xC);
-                    var_a0 += 0x10;
-                    var_a1 += 0x10;
-                    var_a2 -= 0x10;
-                    FW(var_a1, -0x10) = temp_v0_14;
-                    FW(var_a1, -0xC) = temp_v1_7;
-                    FW(var_a1, -0x8) = temp_t0_4;
-                    FW(var_a1, -0x4) = temp_t1_4;
-                    goto loop_19;
-                }
-loop_21:
-                if (var_a2 >= 4) {
-                    temp_v0_15 = *(int*)var_a0;
-                    var_a0 += 4;
-                    var_a1 += 4;
-                    var_a2 -= 4;
-                    FW(var_a1, -0x4) = temp_v0_15;
-                    goto loop_21;
-                }
-            }
-        }
-        if (var_a2 != 0) {
-            temp_v1_8 = var_a0 + var_a2;
-            do {
-                temp_v0_16 = *(int*)var_a0;
-                var_a0 += 1;
-                var_a1 += 1;
-                FW(var_a1, -0x1) = temp_v0_16;
-            } while (var_a0 != temp_v1_8);
-        }
-        /* Duplicate return node #10. Try simplifying control flow for better match */
-        return temp_a3;
+    if (n == 0 || d == s) {
+        return ret;
     }
-    return temp_a3;
+    if ((u32)d < (u32)s || (u32)d >= (u32)s + (u32)n) {
+        /* forward copy */
+        if (n >= 0x10 && ((u32)s & 3) == ((u32)d & 3)) {
+            switch ((u32)s & 3) {
+            case 0:
+                break;
+            case 1:
+                d[0] = s[0];
+                *(s16 *)(d + 1) = *(s16 *)(s + 1);
+                s += 3; d += 3; n -= 3;
+                break;
+            case 2:
+                *(s16 *)d = *(s16 *)s;
+                s += 2; d += 2; n -= 2;
+                break;
+            case 3:
+                d[0] = s[0];
+                s += 1; d += 1; n -= 1;
+                break;
+            }
+            while (n >= 0x20) {
+                s32 w0 = ((s32 *)s)[0];
+                s32 w1 = ((s32 *)s)[1];
+                s32 w2 = ((s32 *)s)[2];
+                s32 w3 = ((s32 *)s)[3];
+                s32 w4 = ((s32 *)s)[4];
+                s32 w5 = ((s32 *)s)[5];
+                s32 w6 = ((s32 *)s)[6];
+                s32 w7 = ((s32 *)s)[7];
+                s += 0x20; d += 0x20; n -= 0x20;
+                ((s32 *)d)[-8] = w0;
+                ((s32 *)d)[-7] = w1;
+                ((s32 *)d)[-6] = w2;
+                ((s32 *)d)[-5] = w3;
+                ((s32 *)d)[-4] = w4;
+                ((s32 *)d)[-3] = w5;
+                ((s32 *)d)[-2] = w6;
+                ((s32 *)d)[-1] = w7;
+            }
+            while (n >= 0x10) {
+                s32 w0 = ((s32 *)s)[0];
+                s32 w1 = ((s32 *)s)[1];
+                s32 w2 = ((s32 *)s)[2];
+                s32 w3 = ((s32 *)s)[3];
+                s += 0x10; d += 0x10; n -= 0x10;
+                ((s32 *)d)[-4] = w0;
+                ((s32 *)d)[-3] = w1;
+                ((s32 *)d)[-2] = w2;
+                ((s32 *)d)[-1] = w3;
+            }
+            while (n >= 4) {
+                s32 w0 = *(s32 *)s;
+                s += 4; d += 4; n -= 4;
+                ((s32 *)d)[-1] = w0;
+            }
+        }
+        if (n != 0) {
+            char *end = s + n;
+            do {
+                *d++ = *s++;
+            } while (s != end);
+        }
+        return ret;
+    } else {
+        /* backward copy */
+        s += n;
+        d += n;
+        if (n >= 0x10 && ((u32)s & 3) == ((u32)d & 3)) {
+            switch ((u32)s & 3) {
+            case 0:
+                break;
+            case 3:
+                d[-1] = s[-1];
+                *(s16 *)(d - 3) = *(s16 *)(s - 3);
+                s -= 3; d -= 3; n -= 3;
+                break;
+            case 2:
+                *(s16 *)(d - 2) = *(s16 *)(s - 2);
+                s -= 2; d -= 2; n -= 2;
+                break;
+            case 1:
+                d[-1] = s[-1];
+                s -= 1; d -= 1; n -= 1;
+                break;
+            }
+            while (n >= 0x20) {
+                s32 w0 = ((s32 *)s)[-1];
+                s32 w1 = ((s32 *)s)[-2];
+                s32 w2 = ((s32 *)s)[-3];
+                s32 w3 = ((s32 *)s)[-4];
+                s32 w4 = ((s32 *)s)[-5];
+                s32 w5 = ((s32 *)s)[-6];
+                s32 w6 = ((s32 *)s)[-7];
+                s32 w7 = ((s32 *)s)[-8];
+                s -= 0x20; d -= 0x20; n -= 0x20;
+                ((s32 *)d)[7] = w0;
+                ((s32 *)d)[6] = w1;
+                ((s32 *)d)[5] = w2;
+                ((s32 *)d)[4] = w3;
+                ((s32 *)d)[3] = w4;
+                ((s32 *)d)[2] = w5;
+                ((s32 *)d)[1] = w6;
+                ((s32 *)d)[0] = w7;
+            }
+            while (n >= 0x10) {
+                s32 w0 = ((s32 *)s)[-1];
+                s32 w1 = ((s32 *)s)[-2];
+                s32 w2 = ((s32 *)s)[-3];
+                s32 w3 = ((s32 *)s)[-4];
+                s -= 0x10; d -= 0x10; n -= 0x10;
+                ((s32 *)d)[3] = w0;
+                ((s32 *)d)[2] = w1;
+                ((s32 *)d)[1] = w2;
+                ((s32 *)d)[0] = w3;
+            }
+            while (n >= 4) {
+                s32 w0 = ((s32 *)s)[-1];
+                s -= 4; d -= 4; n -= 4;
+                ((s32 *)d)[0] = w0;
+            }
+        }
+        if (n != 0) {
+            char *sentinel;
+            s -= 1;
+            d -= 1;
+            sentinel = s - n;
+            do {
+                char c = *s;
+                s -= 1;
+                d -= 1;
+                d[1] = c;
+            } while (s != sentinel);
+        }
+        return ret;
+    }
 }
+
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070320);
 #endif
