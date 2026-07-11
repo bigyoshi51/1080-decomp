@@ -19448,11 +19448,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
  * guard's common tail (n->0x14 = lst) IDO folds into a beqzl likely-delay.
  * Register allocation is now byte-identical (t6/a2/t7/t8, all sp offsets
  * 16/32/36/40/44 match). ONLY residual: frame -48 vs target -64 (16-byte
- * phantom top-pad = spill slots IDO pre-reserved for locals it later kept in
- * registers). Not source-triggerable without perturbing the now-perfect
- * coloring (tested: volatile pad[4] elided; extra params home to caller area;
- * materialized-arg locals folded; used int[4] lands at frame bottom + adds a
- * store). Landable-clean callee (all jal 0). */
+ * phantom top-pad = 4 dead M-var home slots at sp+0x30..0x3F IDO pre-reserved
+ * ABOVE the n/lst spills (0x2C/0x28), never loaded/stored). uoptlist confirms
+ * the build has exactly 2 M-vars ({1008}=n@-4, {944}=lst@-8); the target needs
+ * 6. Not source-triggerable without perturbing the now-perfect coloring. FULL
+ * frame-pad trigger sweep (2026-07-11, word-exact differ vs target .s):
+ *   (1) volatile char pad[16]        -> DCE'd by IDO (unlike GCC), no growth
+ *   (2) int pad[4] + if(0) sink(&pad)-> if(0) DCE, no growth
+ *   (3) single/aliasing block temp   -> copy-propagated, no growth
+ *   (4) named single-use fn-scope temp (container t) -> folds, no growth
+ *   (5) 4 named fn-scope temps (cont/guard/one/nn) -> no growth, coloring
+ *        drifts to 13 word-diffs (cont->a2 not t6, spill offsets shift)
+ *   (6) 4 FRESH distinct block-scope locals in a do{}while(0) (the 4B620
+ *        macro-slot lever) -> DID grow frame +8 (-56), but only 2 of 4
+ *        reserved and coloring cascaded: n->a1 (spill 0x34 not 0x2C),
+ *        container->v0 not t6, li t6 not t8 = 13 word-diffs, STRICTLY WORSE.
+ * Root cause: the 4 dead slots are named locals whose cross-call live ranges
+ * make them real uopt candidates; every reconstruction that survives copy-prop
+ * (grows the frame) also becomes a candidate that STEALS a register from
+ * n/lst/container and cascades the whole allocation off the byte-perfect
+ * baseline. Any zero-instruction growth (dead/volatile locals) is DCE'd by
+ * IDO. GENUINE CAP: byte-perfect coloring (33/35) and target frame size are
+ * mutually exclusive from C under IDO 7.1 -O2. Left NM at 99.94% (2 imm
+ * diffs). Landable-clean callee (all jal 0). */
 extern void *gl_func_00000000_f228(int, int, float, float, float);
 #ifdef NON_MATCHING
 void gl_func_00033228(char *o) {
