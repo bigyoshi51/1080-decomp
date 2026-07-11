@@ -8541,14 +8541,23 @@ void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
 //     D_0 + 0xB8 = a global sample source. a1 = incoming sample
 //     record. func_00000000 = USO placeholder dispatcher (per-slot
 //     transform / emit).
-// Caps (DEFERRED): raw-word USO + placeholder calls + 256-word
-//   FP/ring pipeline; USO mnemonic disasm limitation prevents
-//   byte-match. Real-C STRUCTURAL body below — ring push + per-slot
-//   FP loop skeleton only. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
+// RELOC-RESOLVE 2026-07-11 (agent-f): placeholder calls resolved from
+//   scripts/emu-symdump/timproc_uso_b5.reloc-sites.json. The per-slot loop
+//   if/else calls TWO distinct callees (m2c collapsed both to one
+//   placeholder): then -> func_00003A4C, else -> func_00003C8C. The 5 tail
+//   HUD-emit calls -> func_00004068. Loop float base and the 6 tail arg5
+//   data pointers bound to the real D_807FFxxx syms with folded offsets
+//   (0xB8/0x658/0x5F8/0x670/0x610/0x628/0x640). All callees + data already
+//   in TU scope (no new externs). 59.27 -> 59.87 (objdiff fuzzy); exact-set
+//   unchanged (152/152).
+// Residual cap (~40%): target spills every sub-array base to fixed stack
+//   slots (regalloc/frame-spread), keeps unpaired-HI16 for each D_ sym
+//   (my `&SYM+off` folds off into %hi), and emits the 105/155/233/247/0 over
+//   255 color channels as runtime div.s (IDO didn't const-fold; my literal
+//   quotients fold). Same cap family as the resolved D14C/D884 siblings.
+//   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C310(char *arg0, char *arg1) {
-    char *g = (char *)&D_00000000;
     s32 spC0;
     s32 spBC;
     s32 spB8;
@@ -8589,7 +8598,7 @@ void timproc_uso_b5_func_0000C310(char *arg0, char *arg1) {
     }
     spB0 = (*(s32 *)(arg0 + 0x1C4));
     spB4 = (*(s32 *)(arg0 + 0x1DC));
-    var_s3 = (f32 *)0xB8;
+    var_s3 = (f32 *)((char *)&timproc_uso_b5_D_807FF538 + 0xB8);
     spB8 = (*(s32 *)(arg0 + 0x1F4));
     var_s1 = 0;
     var_s5 = &spB0;
@@ -8610,9 +8619,9 @@ void timproc_uso_b5_func_0000C310(char *arg0, char *arg1) {
             var_v1 = temp_v0;
         }
         if ((*(s32 *)(arg1 + 0x3BC)) == 1) {
-            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xA4)), (*(s32 *)(arg0 + 0xBC)) + (var_s1 * (*(s32 *)(arg1 + 0x74))), var_s3, (void *) var_v1, *var_s4, temp_s6, arg1);
+            timproc_uso_b5_func_00003A4C((int)arg0, (*(s32 *)(arg0 + 0xA4)), (*(s32 *)(arg0 + 0xBC)) + (var_s1 * (*(s32 *)(arg1 + 0x74))), (int)var_s3, var_v1, *var_s4, temp_s6, arg1);
         } else {
-            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xA4)), (*(s32 *)(arg0 + 0xBC)) + (var_s1 * (*(s32 *)(arg1 + 0x74))), var_s3, (void *) var_v1, *var_s4, temp_s6, arg1);
+            timproc_uso_b5_func_00003C8C((int)arg0, (*(s32 *)(arg0 + 0xA4)), (*(s32 *)(arg0 + 0xBC)) + (var_s1 * (*(s32 *)(arg1 + 0x74))), (char *)var_s3, var_v1, *var_s4, temp_s6, arg1);
         }
         var_s1 += 1;
         var_s5 += 4;
@@ -8628,8 +8637,8 @@ void timproc_uso_b5_func_0000C310(char *arg0, char *arg1) {
             sp88 = 105.0f / 255.0f;
             sp90 = 155.0f / 255.0f;
             sp60 = temp_f0;
-            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), &sp88, (void *)0x658, 0xFF);
-            var_s1_2 = g + 0x5F8;
+            timproc_uso_b5_func_00004068((int)arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)((char *)&timproc_uso_b5_D_807FFAD8 + 0x658), 0xFF);
+            var_s1_2 = (char *)&timproc_uso_b5_D_807FFA78 + 0x5F8;
         } else {
             temp_f0_2 = 255.0f / 255.0f;
             sp88 = 105.0f / 255.0f;
@@ -8637,11 +8646,11 @@ void timproc_uso_b5_func_0000C310(char *arg0, char *arg1) {
             sp94 = temp_f0_2;
             sp8C = 155.0f / 255.0f;
             sp60 = temp_f0_2;
-            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), &sp88, (void *)0x670, 0xFF);
-            var_s1_2 = g + 0x610;
+            timproc_uso_b5_func_00004068((int)arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)((char *)&timproc_uso_b5_D_807FFAF0 + 0x670), 0xFF);
+            var_s1_2 = (char *)&timproc_uso_b5_D_807FFA90 + 0x610;
         }
         sp60 = sp60;
-        gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), &sp88, var_s1_2, 0xFF);
+        timproc_uso_b5_func_00004068((int)arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)var_s1_2, 0xFF);
         temp_t4 = (*(s32 *)(arg0 + 0x2C4)) + 1;
         (*(s32 *)(arg0 + 0x2C4)) = temp_t4;
         if (temp_t4 & 8) {
@@ -8650,10 +8659,10 @@ void timproc_uso_b5_func_0000C310(char *arg0, char *arg1) {
             sp8C = 247.0f / 255.0f;
             sp90 = 0.0f / 255.0f;
             if (!((*(s32 *)(arg0 + 0x2B4)) & 0x20)) {
-                gl_func_00000000(arg0, ((*(s32 *)(arg0 + 0xD4)) - ((s16) (*(s32 *)((char *)(*(s32 *)(var_s1_2 + 0x10)) + 0x20)) / 2)) - 2, (*(s32 *)(arg0 + 0xEC)), &sp88, (void *)0x628, 0xFF);
+                timproc_uso_b5_func_00004068((int)arg0, ((*(s32 *)(arg0 + 0xD4)) - ((s16) (*(s32 *)((char *)(*(s32 *)(var_s1_2 + 0x10)) + 0x20)) / 2)) - 2, (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)((char *)&timproc_uso_b5_D_807FFAA8 + 0x628), 0xFF);
                 return;
             }
-            gl_func_00000000(arg0, (*(s32 *)(arg0 + 0xD4)) + ((s16) (*(s32 *)((char *)(*(s32 *)(var_s1_2 + 0x10)) + 0x20)) / 2) + 2, (*(s32 *)(arg0 + 0xEC)), &sp88, (void *)0x640, 0xFF);
+            timproc_uso_b5_func_00004068((int)arg0, (*(s32 *)(arg0 + 0xD4)) + ((s16) (*(s32 *)((char *)(*(s32 *)(var_s1_2 + 0x10)) + 0x20)) / 2) + 2, (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)((char *)&timproc_uso_b5_D_807FFAA8 + 0x640), 0xFF);
         }
     }
 }
