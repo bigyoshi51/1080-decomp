@@ -1542,9 +1542,9 @@ char *gl_func_00003138(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
 
     var_s3 = arg0;
     if ((arg0 != 0) || (temp_v0 = (char*)func_00000000((char *)0x168), var_s3 = temp_v0, (temp_v0 != 0))) {
-        (char*)func_00000000(var_s3, 0xCCD0);
+        (char*)func_00000000(var_s3, (char*)&D_00000000 + 0xCCD0);
         *(int*)((char*)var_s3 + 0x28) = (int)&D_00000000;
-        FW(var_s3, 0xC) = 0xCCD8;
+        FW(var_s3, 0xC) = (int)((char*)&D_00000000 + 0xCCD8);
         FW(var_s3, 0x50) = arg3;
         FW(var_s3, 0x54) = arg1;
         FW(var_s3, 0x58) = arg2;
@@ -1556,12 +1556,12 @@ char *gl_func_00003138(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
         var_s0 = 0;
         var_s1 = var_s3;
         do {
-            var_s0 += 1;
             FW(var_s1, 0x2C) = (char*)func_00000000(0, arg1);
             var_s1 += 4;
+            var_s0 += 1;
         } while (var_s0 != 8);
         (char*)func_00000000(var_s3);
-        temp_f0 = 255.0f / d255;
+        temp_f0 = (f32)255 / d255;
         temp_f2 = 102.0f / d255;
         *(f32*)((char*)var_s3 + 0xCC) = temp_f0;
         *(f32*)((char*)var_s3 + 0xD8) = temp_f0;
