@@ -154,32 +154,90 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001CC98);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0001CD64(int a0, int *a1) {
+/* Whole-body decode 2026-07-10 (was 62-insn stub, 14.8% fuzzy). Batch list
+ * processor over the &D+0x2040 record count. Phase 1: drain loop counting down
+ * the live count, calling a pre-process helper each step. Phase 2: for each
+ * record, s6 (a3, a budget) is portioned as s6/count clamped into the
+ * [0x2044,0x2046] band (0x2042 = out-of-band fallback), an inner per-slot loop
+ * (stride 0x158 over &D, byte flag +25) dispatches a builder, then a finalizer
+ * advances the output cursor s8 and decrements the budget by the portion.
+ * Phase 3: a decay/toggle sweep over the same 0x158-stride slots (byte +26
+ * countdown, byte +27 flip). Returns the cursor, writes ((cursor-a0)>>3) to
+ * *a1. Reloc-blind (&D_00000000); div + branch-likely schedule (NM only). */
+int gl_func_0001CD64(int a0, int *a1, int a2, int a3) {
     char buf[0x101C];
-    short count;
-    int i;
-    short *g = (short *)((char *)&D_00000000 + 0x2040);
-    *(void **)((char *)&D_00000000 + 0x14) = buf;
-    count = g[0];
-    for (i = count; i > 0; i = (short)g[0] - (count - i)) {
-        gl_func_00000000(a0);
-        count = g[0];
+    char *g = (char *)&D_00000000;
+    short count = *(short *)(g + 0x2040);
+    int s8 = a0;
+    int s6 = a3;
+    int s7;
+    int s1, s2, s3;
+
+    *(int *)(g + 0x14) = (int)buf;
+
+    if (count > 0) {
+        int s0;
+        do {
+            s0 = count - 1;
+            gl_func_00000000(s0);
+            gl_func_00000000(*(short *)(g + 0x2040) - count);
+            count = s0;
+        } while (s0 > 0);
     }
-    count = g[0];
-    for (i = 0; i < count; i++) {
-        int lo = g[1];
-        int hi = g[2];
-        int v = g[3];
-        if (v < lo) {
-            v = lo;
-        }
-        if (v > hi) {
-            v = hi;
-        }
-        gl_func_00000000(a0, v, &buf[i * 0x158]);
-        count = g[0];
+
+    count = *(short *)(g + 0x2040);
+    s7 = a2;
+    if (count > 0) {
+        *(int *)(g + 0x10) = 0;
+        do {
+            s2 = *(short *)(g + 0x2040);
+            if (count == 1) {
+                s3 = s6;
+            } else {
+                int v = s6 / count;
+                short lo = *(short *)(g + 0x2044);
+                if (v >= lo) {
+                    s3 = lo;
+                } else {
+                    short hi = *(short *)(g + 0x2046);
+                    if (hi < v) {
+                        s3 = *(short *)(g + 0x2042);
+                    } else {
+                        s3 = hi;
+                    }
+                }
+            }
+            if (*(signed char *)(g + 1) > 0) {
+                char *p = (char *)&D_00000000;
+                for (s1 = 0; s1 < *(signed char *)(g + 1); s1++) {
+                    if (*(unsigned char *)(p + 25) != 0) {
+                        gl_func_00000000(s3, s2 - count, s1);
+                        s2 = *(short *)(g + 0x2040);
+                    }
+                    p += 0x158;
+                }
+            }
+            s8 = gl_func_00000000(s7, s3, s8, s2 - count);
+            count--;
+            s6 -= s3;
+            s7 += s3 << 2;
+        } while (count > 0);
     }
-    *a1 = (int)&buf[0];
+
+    if (*(signed char *)(g + 1) > 0) {
+        char *p = (char *)&D_00000000;
+        for (s1 = 0; s1 < *(signed char *)(g + 1); s1++) {
+            unsigned char v = *(unsigned char *)(p + 26);
+            if (v != 0) {
+                *(unsigned char *)(p + 26) = v - 1;
+            }
+            *(unsigned char *)(p + 27) = *(unsigned char *)(p + 27) ^ 1;
+            p += 0x158;
+        }
+    }
+
+    *a1 = (s8 - a0) >> 3;
+    return s8;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001CD64);
