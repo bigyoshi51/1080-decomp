@@ -8339,9 +8339,15 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000BF8C);
 //   skeleton. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft (550 insns, table-free,
- * 0 M2C_ERRORs). */
+ * 0 M2C_ERRORs).
+ * PASS-3 2026-07-11 (agent-g): width decode fixes (fuzzy 57.95->63.93%).
+ *   st->0x9A0/0x9A2 are halfword fields (target sh/lh), were s32 -> retyped
+ *   s16 (store+reads). st->0xA30..0xA33 are the u8 RGB+pad quad (target sb),
+ *   were s32 -> retyped u8. Callee-output stack halfwords spDC/spDE (0xDC/
+ *   0xDE, target lh) were f32 -> retyped s16. Remainder is fp-regalloc/
+ *   struct-copy cap. */
 void func_0000C234(char *arg0) {
-    f32 sp58; f32 sp5C; f32 sp84; f32 spB8; f32 spBC; f32 spD8; f32 spDC; f32 spDE;
+    f32 sp58; f32 sp5C; f32 sp84; f32 spB8; f32 spBC; f32 spD8; s16 spDC; s16 spDE;
     f32 spF0;
     f32 spEC;
     f32 spE8;
@@ -8404,15 +8410,15 @@ void func_0000C234(char *arg0) {
     spEC = 0.0f;
     spE4 = 0.0f;
     spE8 = 1.0f;
-    *(s32 *)((char *)(arg0) + 0x9A2) = 0;
+    *(s16 *)((char *)(arg0) + 0x9A2) = 0;
     *(f32 *)((char *)(arg0) + 0x9D0) = (f32) D_00000920;
     sp3C = temp_a1;
     if (func_00000000(*(s32 *)((char *)&D_00000000 + 0), temp_a1, 0x457A0000, &spCC) != 0) {
-        *(s32 *)((char *)(arg0) + 0x9A0) = func_00000000(*(s32 *)((char *)((*(s32 *)((char *)&D_00000000 + 0))) + 0x84), spDC);
+        *(s16 *)((char *)(arg0) + 0x9A0) = func_00000000(*(s32 *)((char *)((*(s32 *)((char *)&D_00000000 + 0))) + 0x84), spDC);
         if (spD8 < D_00000924) {
-            *(s32 *)((char *)(arg0) + 0x9A2) = (s16) *(s32 *)((char *)(arg0) + 0x9A0);
+            *(s16 *)((char *)(arg0) + 0x9A2) = *(s16 *)((char *)(arg0) + 0x9A0);
         } else {
-            *(s32 *)((char *)(arg0) + 0x9A2) = 0;
+            *(s16 *)((char *)(arg0) + 0x9A2) = 0;
         }
         *(s32 *)((char *)(arg0) + 0x9A8) = func_00000000(*(s32 *)((char *)((*(s32 *)((char *)&D_00000000 + 0))) + 0x84), spDC);
         *(f32 *)((char *)(arg0) + 0x9D0) = spD8;
@@ -8442,7 +8448,7 @@ void func_0000C234(char *arg0) {
             *(f32 *)((char *)(arg0) + 0x31C) = 10.0f;
         }
         if ((*(s32 *)((char *)(arg0) + 0x938) != 0) && (*(f32 *)((char *)(arg0) + 0x348) > 10.0f)) {
-            temp_v1 = *(s32 *)((char *)(arg0) + 0x9A0);
+            temp_v1 = *(s16 *)((char *)(arg0) + 0x9A0);
             var_v0 = 0;
             if (temp_v1 == 0x64) {
                 *(s32 *)((char *)(arg0) + 0xA5C) = 0x64;
@@ -8461,15 +8467,15 @@ void func_0000C234(char *arg0) {
                 func_00000000(*(s32 *)((char *)(arg0) + 0x800), *(s32 *)((char *)(((s32) ((f32) var_v0 + (var_f0 * 3.0f)) * 4)) + 0x81C0), 2);
             }
         }
-        temp_v0_2 = *(s32 *)((char *)(arg0) + 0x9A0);
+        temp_v0_2 = *(s16 *)((char *)(arg0) + 0x9A0);
         if (temp_v0_2 != 0x61) {
             if (temp_v0_2 != 0x62) {
                 *(f32 *)((char *)(arg0) + 0x288) = (f32) D_00000938;
                 *(f32 *)((char *)(arg0) + 0x28C) = (f32) D_0000093C;
-                *(s32 *)((char *)(arg0) + 0xA33) = 0;
-                *(s32 *)((char *)(arg0) + 0xA32) = 0;
-                *(s32 *)((char *)(arg0) + 0xA31) = 0;
-                *(s32 *)((char *)(arg0) + 0xA30) = 0;
+                *(u8 *)((char *)(arg0) + 0xA33) = 0;
+                *(u8 *)((char *)(arg0) + 0xA32) = 0;
+                *(u8 *)((char *)(arg0) + 0xA31) = 0;
+                *(u8 *)((char *)(arg0) + 0xA30) = 0;
                 *(f32 *)((char *)(arg0) + 0x910) = (f32) *(f32 *)((char *)(arg0) + 0x5A0);
                 *(f32 *)((char *)(arg0) + 0x290) = (f32) D_00000940;
             } else {
