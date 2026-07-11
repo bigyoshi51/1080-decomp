@@ -4007,7 +4007,7 @@ void gl_func_000076F0(char *arg0) {
                 temp_v0 = *(s32 *)((char *)(arg0) + 0x28);
                 *(s32 *)((char *)(arg0) + 0x4E0) = 1U;
                 *(s32 *)((char *)(arg0) + 0x4E4) = (s32) (*(s32 *)((char *)(arg0) + 0x4E8) * 4);
-                ((void (*)())*(s32 *)((char *)(temp_v0) + 0x94))(*(s32 *)((char *)(temp_v0) + 0x90) + arg0);
+                ((void (*)())*(s32 *)((char *)(temp_v0) + 0x94))(*(s16 *)((char *)(temp_v0) + 0x90) + arg0);
             }
             break;
         case 1:                                     /* switch 1 */
@@ -4051,7 +4051,7 @@ void gl_func_000076F0(char *arg0) {
                     case 4:                         /* switch 1 */
                     /* dup case 3 */
                         temp_v0_3 = *(s32 *)((char *)(arg0) + 0x28);
-                        if (((int (*)())*(s32 *)((char *)(temp_v0_3) + 0x9C))(*(s32 *)((char *)(temp_v0_3) + 0x98) + arg0) != 0) {
+                        if (((int (*)())*(s32 *)((char *)(temp_v0_3) + 0x9C))(*(s16 *)((char *)(temp_v0_3) + 0x98) + arg0) != 0) {
                             var_v0 = *(s32 *)((char *)(arg0) + 0x518);
                             if (var_v0 != 0) {
                                 temp_t2 = var_v0 - 1;
@@ -4070,7 +4070,7 @@ void gl_func_000076F0(char *arg0) {
                         if (*(s32 *)((char *)(arg0) + 0x4E4) < 0) {
                             temp_v0_4 = *(s32 *)((char *)(arg0) + 0x28);
                             *(s32 *)((char *)(arg0) + 0x4E0) = 7U;
-                            ((void (*)())*(s32 *)((char *)(temp_v0_4) + 0xB4))(*(s32 *)((char *)(temp_v0_4) + 0xB0) + arg0);
+                            ((void (*)())*(s32 *)((char *)(temp_v0_4) + 0xB4))(*(s16 *)((char *)(temp_v0_4) + 0xB0) + arg0);
                         }
                         break;
                     }
@@ -4104,7 +4104,7 @@ block_17:
             break;
         case 5:                                     /* switch 1 */
             temp_v0_5 = *(s32 *)((char *)(arg0) + 0x28);
-            if (((int (*)())*(s32 *)((char *)(temp_v0_5) + 0xA4))(*(s32 *)((char *)(temp_v0_5) + 0xA0) + arg0) != 0) {
+            if (((int (*)())*(s32 *)((char *)(temp_v0_5) + 0xA4))(*(s16 *)((char *)(temp_v0_5) + 0xA0) + arg0) != 0) {
                 var_v0_2 = *(s32 *)((char *)(arg0) + 0x518);
                 temp_t3 = var_v0_2 - 1;
                 if (var_v0_2 != 0) {
@@ -4123,7 +4123,7 @@ block_17:
             if (*(s32 *)((char *)(arg0) + 0x4E4) < 0) {
                 temp_v0_6 = *(s32 *)((char *)(arg0) + 0x28);
                 *(s32 *)((char *)(arg0) + 0x4E0) = 7U;
-                ((void (*)())*(s32 *)((char *)(temp_v0_6) + 0xCC))(*(s32 *)((char *)(temp_v0_6) + 0xC8) + arg0);
+                ((void (*)())*(s32 *)((char *)(temp_v0_6) + 0xCC))(*(s16 *)((char *)(temp_v0_6) + 0xC8) + arg0);
             }
             break;
         case 2:                                     /* switch 1 */
@@ -4131,12 +4131,12 @@ block_17:
         case 4:                                     /* switch 1 */
             break;
         }
-        if ((*(s32 *)((char *)(arg0) + 0x500) != 0) && ((temp_v0_7 = *(s32 *)((char *)(arg0) + 0x28), ((void (*)())*(s32 *)((char *)(temp_v0_7) + 0xE4))(*(s32 *)((char *)(temp_v0_7) + 0xE0) + arg0), temp_v0_8 = *(s32 *)((char *)(arg0) + 0x4F8), (temp_v0_8 == 0)) || (temp_v0_8 == 5))) {
+        if ((*(s32 *)((char *)(arg0) + 0x500) != 0) && ((temp_v0_7 = *(s32 *)((char *)(arg0) + 0x28), ((void (*)())*(s32 *)((char *)(temp_v0_7) + 0xE4))(*(s16 *)((char *)(temp_v0_7) + 0xE0) + arg0), temp_v0_8 = *(s32 *)((char *)(arg0) + 0x4F8), (temp_v0_8 == 0)) || (temp_v0_8 == 5))) {
             func_00000000(arg0);
         }
         if (*(s32 *)((char *)(arg0) + 0x4E0) == 7) {
             temp_v0_9 = *(s32 *)((char *)(arg0) + 0x28);
-            ((void (*)())*(s32 *)((char *)(temp_v0_9) + 0xAC))(*(s32 *)((char *)(temp_v0_9) + 0xA8) + arg0);
+            ((void (*)())*(s32 *)((char *)(temp_v0_9) + 0xAC))(*(s16 *)((char *)(temp_v0_9) + 0xA8) + arg0);
         }
     }
     temp_v1_2 = *(s32 *)((char *)(arg0) + 0x4DC);
@@ -4167,11 +4167,11 @@ block_17:
                 if (temp_t2_2 == 0) {
                     if (*(s32 *)((char *)(arg0) + 0x4F0) & 0x100000) {
                         temp_v0_11 = *(s32 *)((char *)(arg0) + 0x28);
-                        ((void (*)())*(s32 *)((char *)(temp_v0_11) + 0xBC))(*(s32 *)((char *)(temp_v0_11) + 0xB8) + arg0);
+                        ((void (*)())*(s32 *)((char *)(temp_v0_11) + 0xBC))(*(s16 *)((char *)(temp_v0_11) + 0xB8) + arg0);
                         func_00000000(arg0, -1, 0);
                     } else {
                         temp_v0_12 = *(s32 *)((char *)(arg0) + 0x28);
-                        ((void (*)())*(s32 *)((char *)(temp_v0_12) + 0xC4))(*(s32 *)((char *)(temp_v0_12) + 0xC0) + arg0);
+                        ((void (*)())*(s32 *)((char *)(temp_v0_12) + 0xC4))(*(s16 *)((char *)(temp_v0_12) + 0xC0) + arg0);
                     }
                 }
             }
@@ -4211,7 +4211,7 @@ block_17:
                 *(s32 *)((char *)(arg0) + 0x514) = temp_v0_13;
                 if (temp_v0_13 != 0) {
                     temp_v0_14 = *(s32 *)((char *)(arg0) + 0x28);
-                    ((void (*)())*(s32 *)((char *)(temp_v0_14) + 0x8C))(*(s32 *)((char *)(temp_v0_14) + 0x88) + arg0);
+                    ((void (*)())*(s32 *)((char *)(temp_v0_14) + 0x8C))(*(s16 *)((char *)(temp_v0_14) + 0x88) + arg0);
                     func_00000000(arg0);
                     func_00000000(*(s32 *)((char *)&D_00000000 + 0x138));
                 }
@@ -4227,7 +4227,7 @@ block_17:
                 }
             } else if (func_00000000(0, temp_v0_15) != 0) {
                 temp_v0_16 = *(s32 *)((char *)(arg0) + 0x28);
-                ((void (*)())*(s32 *)((char *)(temp_v0_16) + 0xD4))(*(s32 *)((char *)(temp_v0_16) + 0xD0) + arg0);
+                ((void (*)())*(s32 *)((char *)(temp_v0_16) + 0xD4))(*(s16 *)((char *)(temp_v0_16) + 0xD0) + arg0);
                 *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x48)) + 0x80) = 0;
             }
         }
@@ -4236,24 +4236,24 @@ block_17:
     switch (temp_t7_2) {                            /* switch 4 */
     case 0:                                         /* switch 4 */
         temp_v0_17 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_17) + 0x114))(*(s32 *)((char *)(temp_v0_17) + 0x110) + arg0);
+        ((void (*)())*(s32 *)((char *)(temp_v0_17) + 0x114))(*(s16 *)((char *)(temp_v0_17) + 0x110) + arg0);
         break;
     case 1:                                         /* switch 4 */
         temp_v0_18 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_18) + 0x11C))(*(s32 *)((char *)(temp_v0_18) + 0x118) + arg0);
+        ((void (*)())*(s32 *)((char *)(temp_v0_18) + 0x11C))(*(s16 *)((char *)(temp_v0_18) + 0x118) + arg0);
         break;
     case 2:                                         /* switch 4 */
         temp_v0_19 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_19) + 0x124))(*(s32 *)((char *)(temp_v0_19) + 0x120) + arg0);
+        ((void (*)())*(s32 *)((char *)(temp_v0_19) + 0x124))(*(s16 *)((char *)(temp_v0_19) + 0x120) + arg0);
         break;
     case 3:                                         /* switch 4 */
         temp_v0_20 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_20) + 0x12C))(*(s32 *)((char *)(temp_v0_20) + 0x128) + arg0);
+        ((void (*)())*(s32 *)((char *)(temp_v0_20) + 0x12C))(*(s16 *)((char *)(temp_v0_20) + 0x128) + arg0);
         break;
     }
     if ((*(s32 *)((char *)(arg0) + 0x4F0) & 0x80000) && ((func_00000000(0, 0x300) != 0) || (func_00000000(0, 0x40000) != 0))) {
         temp_v0_21 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_21) + 0xDC))(*(s32 *)((char *)(temp_v0_21) + 0xD8) + arg0);
+        ((void (*)())*(s32 *)((char *)(temp_v0_21) + 0xDC))(*(s16 *)((char *)(temp_v0_21) + 0xD8) + arg0);
     }
 }
 #else
