@@ -1032,6 +1032,7 @@ gl_func_00000000_e84c4 = 0x00000000;  /* (int,float,float,float,float) cb for gl
 gl_func_00000000_54a = 0x00000000;  /* (int,int,int,int,float,int) cb for gl_func_00054A14 */
 gl_func_00000000_5e190s = 0x00000000;  /* (float*)->float scale/det helper for gl_func_0005E190 */
 gl_func_00000000_f228 = 0x00000000;  /* (int,int,float,float,float) factory cb for gl_func_00033228 */
+gl_func_00000000_i3ff = 0x00000000;  /* (int,int,int,float,float) primary init cb for gl_func_00003B1C */
 D_54a_o0 = 0x00000000;  /* per-setting owner globals for gl_func_00054A14 (distinct, defeat CSE) */
 D_54a_o1 = 0x00000000;
 D_54a_o2 = 0x00000000;

@@ -1958,26 +1958,46 @@ void gl_func_000038F4(char *arg0) {
  * init (arg2 a2+90, f32 1.0). Caps <80: scan loop + FP-const
  * (mfc1/swc1 1.0) + 2x reloc + large sentinel limit constant.
  * INCLUDE_ASM remains build path (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
 /* gl_func_00003B1C - free-slot allocator + initializer (0xF0, 60 insns).
- * Scans table entries at v1+0x2C for a slot whose 0x94 state == 0, claims
- * it (state=5), then fills fields: 0x9C = a3?32:0, 0x78=255, 0xA0=0,
- * 0x98=a1, 0x80=0, 0x84=-18, 0xA8=0.0f, 0xB0=a0->0x54. Two reloc inits:
- * gl_func_00000000(slot,161,a2+90,1.0f) and gl_func_00000000(slot+0xB4,
- * 0x1CD00). The second init's 0x1CD00 arg was missing in the prior decode.
- * Remaining diff: target passes 1.0f single-precision (K&R callee decl
- * forces double-promotion here) + loop-bound reg renumber. */
+ * 53.58 -> 71.5% (near-miss, structural rewrite). Scans 8 table entries at
+ * v1+0x2C for a slot whose 0x94 state == 0, claims it (state=5), fills fields,
+ * runs two absolute-0 init callbacks, returns the slot. Three fixes landed the
+ * structure/promote:
+ *   (1) primary init takes TWO float args (1.0f, 1.0f) -> arg4 in $a3 (mfc1),
+ *       arg5 on stack (swc1) — NOT a single K&R-promoted double. Typed 5-arg
+ *       absolute-0 alias gl_func_00000000_i3ff(int,int,int,float,float). This
+ *       fixes the cvt.d.s/sdc1 asymmetry (the vein) — frame now -40 (matches),
+ *       loop induction (off=v0/table=v1) matches, beqz-a3 if/else matches.
+ *   (2) loop sentinel is 32 (off != 32, 8 entries), not 0x10000.
+ *   (3) the a3 flag is an explicit if/else (duplicated 0x94=5 store) with slot
+ *       homed to $s0 in the beqz delay, not a ?: select.
+ * TWO residual caps prevent EXACT: (a) IDO colors `slot` into $s0 for the whole
+ * loop; target keeps it in $a0 during scan and copies `move s0,a0` at the found
+ * point (a per-fn live-range-split coloring choice; the `o=slot` split-var was
+ * coalesced away). (b) the 2nd init's magic 0xCD00 is emitted by the target as
+ * lui 0x1 + addiu -13056 = the %hi/%lo of an absolute 0xCD00 USO symbol baked
+ * into the raw .word — IDO loads a plain 0xCD00 int as a single `ori`
+ * (confirmed 4 literal forms), and a symbol ref would be reloc-placeholder
+ * bytes, so the baked address can't be reproduced literally. All callees jal 0
+ * (landable). */
+extern void *gl_func_00000000_i3ff(int, int, int, float, float);
+#ifdef NON_MATCHING
 void *gl_func_00003B1C(char *a0, int a1, int a2, int a3) {
-    char *v1 = a0;
     int off = 0;
+    char *v1 = a0;
     char *slot;
     do {
-        off += 4;
         slot = *(char**)(v1 + 0x2C);
+        off += 4;
         if (*(int*)(slot + 0x94) == 0) {
-            *(int*)(slot + 0x94) = 5;
-            *(int*)(slot + 0x9C) = a3 ? 32 : 0;
-            gl_func_00000000(slot, 161, a2 + 90, 1.0f);
+            if (a3 != 0) {
+                *(int*)(slot + 0x94) = 5;
+                *(int*)(slot + 0x9C) = 32;
+            } else {
+                *(int*)(slot + 0x94) = 5;
+                *(int*)(slot + 0x9C) = 0;
+            }
+            gl_func_00000000_i3ff(slot, 161, a2 + 90, 1.0f, 1.0f);
             *(int*)(slot + 0x78) = 255;
             *(int*)(slot + 0xA0) = 0;
             *(int*)(slot + 0x98) = a1;
@@ -1985,11 +2005,11 @@ void *gl_func_00003B1C(char *a0, int a1, int a2, int a3) {
             *(int*)(slot + 0x84) = -18;
             *(float*)(slot + 0xA8) = 0.0f;
             *(int*)(slot + 0xB0) = *(int*)(a0 + 0x54);
-            gl_func_00000000(slot + 0xB4, 0x1CD00);
+            gl_func_00000000(slot + 0xB4, 0xCD00);
             return slot;
         }
         v1 += 4;
-    } while (off != 0x10000);
+    } while (off != 32);
     return 0;
 }
 #else
