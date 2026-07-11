@@ -12229,16 +12229,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029978);
 //   per the analysis. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
+// DECODE-CORRECTNESS 2026-07-11: target STORES the reset callback's float
+// return ($f0) into the phase accumulator, INSIDE the guard (swc1 $f0,56/60(a1)
+// only on the call path), and the guard is `!= 0` (beqzl), not `!= 0xFF`. Prior
+// decode stored 0.0f UNCONDITIONALLY (mtc1 zero; swc1) and mis-read the guard.
+// Callback typed float-returning + called DIRECTLY (jal, per K&R direct-call).
+extern float gl_ref_00029B6C();
 void gl_func_00029B6C(char *obj) {
-    if (*(unsigned char *)(obj + 0x80) != 0xFF) {
-        gl_func_00000000(obj + 0x80);
+    if (*(unsigned char *)(obj + 0x80) != 0) {
+        *(float *)(obj + 0x38) = gl_ref_00029B6C(obj + 0x80);
     }
-    *(float *)(obj + 0x38) = 0.0f;
-    if (*(unsigned char *)(obj + 0xA0) != 0xFF) {
-        gl_func_00000000(obj + 0x8C);
+    if (*(unsigned char *)(obj + 0xA0) != 0) {
+        *(float *)(obj + 0x3C) = gl_ref_00029B6C(obj + 0x8C);
     }
-    *(float *)(obj + 0x3C) = 0.0f;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00029B6C);
