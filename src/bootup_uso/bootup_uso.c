@@ -7918,7 +7918,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
 //   interpolation skeleton. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft (524 insns, table-free,
- * 7 f64 ops -- mild f64, tempered expectations). */
+ * 7 f64 ops -- mild f64, tempered expectations).
+ * PASS-3 2026-07-11 (agent-g): st->0xA6C is a halfword field (target 1x lh
+ * + 3x sh), was s32 -> retyped s16 (read+3 writes). Fuzzy 66.37->67.21%.
+ * Remainder is f64/fp-regalloc cap. */
 void func_0000B75C(char *arg0) {
     f32 sp74;
     f32 sp70;
@@ -8033,8 +8036,8 @@ void func_0000B75C(char *arg0) {
         *(f32 *)((char *)(arg0) + 0x304) = 0.0f;
         *(f32 *)((char *)(arg0) + 0x308) = 1.0f;
         if ((*(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x10) & 0x200) && (*(s32 *)((char *)(arg0) + 0x9A8) & 1)) {
-            temp_v0_2 = *(s32 *)((char *)(arg0) + 0xA6C);
-            *(s32 *)((char *)(arg0) + 0xA6C) = (s16) (temp_v0_2 + 1);
+            temp_v0_2 = *(s16 *)((char *)(arg0) + 0xA6C);
+            *(s16 *)((char *)(arg0) + 0xA6C) = (s16) (temp_v0_2 + 1);
             if (temp_v0_2 >= 0xB) {
                 temp_f12_2 = D_000008E0;
                 temp_f0_7 = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA70) + ((f64) *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x0) * *(f64 *)0x8E8));
@@ -8051,7 +8054,7 @@ void func_0000B75C(char *arg0) {
                 *(f32 *)((char *)(arg0) + 0xA70) = var_f2_2;
             }
         } else {
-            *(s32 *)((char *)(arg0) + 0xA6C) = 0;
+            *(s16 *)((char *)(arg0) + 0xA6C) = 0;
             if (*(s32 *)((char *)(arg0) + 0x9A8) & 1) {
                 func_00000000(var_f12_2, 0, arg0 + 0xCC, arg0 + 0x3B0, -*(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x0) * *(f32 *)((char *)(arg0) + 0x678), arg0);
             } else {
@@ -8079,7 +8082,7 @@ void func_0000B75C(char *arg0) {
         }
     } else {
         temp_f2_4 = *(f32 *)((char *)(arg0) + 0x970);
-        *(s32 *)((char *)(arg0) + 0xA6C) = 0;
+        *(s16 *)((char *)(arg0) + 0xA6C) = 0;
         *(f32 *)((char *)(arg0) + 0xA74) = 0.0f;
         *(f32 *)((char *)(arg0) + 0xA70) = 0.0f;
         if (temp_f2_4 < 0.0f) {
