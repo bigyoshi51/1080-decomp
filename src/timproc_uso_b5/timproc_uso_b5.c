@@ -7735,28 +7735,79 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   transform-built flag skeleton only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_0000B368(char *obj, int unused) {
-    char *t = obj + 0xDC;
-    float basis[12];
-    int i;
-    /* Build initial basis from t Vec3 rows + obj input fields. */
-    for (i = 0; i < 3; i++) {
-        basis[i + 0] = *(float *)(t + i * 4);
-        basis[i + 3] = *(float *)(t + 0x10 + i * 4);
-        basis[i + 6] = *(float *)(obj + 0x108 + i * 4);
+/* PASS-2 2026-07-10 (agent-g): width-fix faithful decode from the raw-.word
+ * target (173 words, 0 conversions; cross-checked disasm-func.py --m2c). Prior
+ * body was a loop paraphrase at 17.1%. Same family as func_0000AC20: obj+0xDC
+ * transform delta vs the D global vector, chained Vec3 word-copy, in-place
+ * normalize via func_00000000, three axis-vector helper calls, an optional
+ * (obj+0x13C) sub-chain, a global-scaled vector accumulated into obj+0xDC..0xE4,
+ * and the transform-built flag obj[0x12C]=1. func_00000000 = USO placeholder. */
+#define TB5_F(off) (*(f32 *)((char *)o + (off)))
+#define TB5_D(off) (*(f32 *)((char *)&D_00000000 + (off)))
+void timproc_uso_b5_func_0000B368(char *arg0) {
+    char *o = arg0;
+    Vec3 d, dE4, dF4;
+    Vec3 g, gA, gB;
+    Vec3 sc, scA, scB;
+    f32 s212, s216, s220;
+    f32 s196, s200, s204;
+    f32 s184, s188, s192;
+    s32 sp120[3], sp104[3];
+    char *sp24;
+    f32 mul, m2, t118;
+
+    d.x = TB5_F(0xDC) - TB5_D(0x0);
+    d.y = TB5_F(0xE0) - TB5_D(0x4);
+    d.z = TB5_F(0xE4) - TB5_D(0x8);
+    dF4 = dE4 = d;
+    func_00000000(&dF4);
+    if (*(s32 *)(o + 0x140) != 0) {
+        sp24 = o + 0xF4;
+        TB5_F(0xF4) = 0.0f;
+        TB5_F(0xF8) = 0.0f;
+        TB5_F(0xFC) = 0.0f;
+        TB5_F(0x100) = 1.0f;
+        s216 = 0.0f;
+        s220 = 0.0f;
+        s212 = 1.0f;
+        func_00000000(sp24, &s212, TB5_F(0x110));
+        s196 = 0.0f;
+        s200 = 0.0f;
+        s204 = 1.0f;
+        func_00000000(sp24, &s196, TB5_F(0x10C));
+        s184 = 0.0f;
+        s192 = 0.0f;
+        s188 = 1.0f;
+        func_00000000(sp24, &s184, TB5_F(0x114));
+        if (*(s32 *)(o + 0x13C) != 0) {
+            func_00000000(*(s32 *)((char *)(*(s32 *)((char *)&D_00000000 + 0)) + 0x70) + 0xB4, &sp120);
+            func_00000000(&sp120, &sp104);
+            func_00000000(sp24, &sp104, *(s32 *)(o + 0x128), 0);
+        }
+        t118 = TB5_F(0x118);
+        TB5_F(0xE8) = t118;
+        TB5_F(0xEC) = t118;
+        TB5_F(0xF0) = t118;
+        mul = TB5_D(0x0);
+        g.x = TB5_D(0x0) * mul;
+        g.y = TB5_D(0x4) * mul;
+        g.z = TB5_D(0x8) * mul;
+        gB = gA = g;
+        m2 = TB5_F(0x128);
+        sc.x = gB.x * m2;
+        sc.y = gB.y * m2;
+        sc.z = gB.z * m2;
+        scB = scA = sc;
+        TB5_F(0xDC) = TB5_F(0xDC) + scB.x;
+        TB5_F(0xE0) = TB5_F(0xE0) + scB.y;
+        TB5_F(0xE4) = TB5_F(0xE4) + scB.z;
+        func_00000000(*(s32 *)(o + 0x108), *(s32 *)(o + 0x124));
+        func_00000000(o);
+        *(s32 *)(o + 0x12C) = 1;
     }
-    /* Cross / normalize via cb helpers. */
-    func_00000000(&basis[0], &basis[6]);
-    func_00000000(&basis[3]);
-    func_00000000(&basis[0], &basis[3]);
-    /* Write resulting matrix back into the transform sub-struct. */
-    for (i = 0; i < 3; i++) {
-        *(float *)(t + i * 4)       = basis[i + 0];
-        *(float *)(t + 0x10 + i * 4) = basis[i + 3];
-        *(float *)(t + 0x20 + i * 4) = basis[i + 6];
-    }
-    *(int *)(obj + 0x12C) = 1;
 }
+#undef TB5_F
+#undef TB5_D
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B368);
 #endif
