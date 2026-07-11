@@ -1057,22 +1057,25 @@ void timproc_uso_b3_func_000019CC(char *arg0, char *arg1, int arg2, int *arg3) {
         *(char **)(arg0 + 0xBC) = o;
         gl_func_00000000(o, *(int *)(sp44 + 4));
         gl_func_00000000(*(char **)(arg0 + 0xBC), 0x35, 0xD6);
-        gl_func_00000000(arg0 + 0x10, *(char **)(arg0 + 0xBC));
-        if (*(int *)(*(char **)(arg0 + 0xBC) + 0x14) != 0) {
-            *(int *)(*(char **)(arg0 + 0xBC) + 4) = 1;
+        o = *(char **)(arg0 + 0xBC);
+        gl_func_00000000(arg0 + 0x10, o);
+        if (*(int *)(o + 0x14) != 0) {
+            *(int *)(o + 4) = 1;
         }
-        *(char **)(*(char **)(arg0 + 0xBC) + 0x14) = arg0;
-        sub = (char *)gl_func_00000000(0, *(int *)(arg0 + 0x58), *(char **)(arg0 + 0xBC));
+        *(char **)(o + 0x14) = arg0;
+        sub = (char *)gl_func_00000000(0, *(int *)(arg0 + 0x58), o);
         *(char **)(arg0 + 0x94) = sub;
         gl_func_00000000(sub, 0);
         gl_proto_19cc(*(char **)(arg0 + 0x94), 0xA0, 0x46, 1.0f, 1.0f);
         sub = *(char **)(arg0 + 0x94);
         *(int *)(sub + 0x18) = *(int *)(sub + 0x18) & ~4;
-        sub = *(char **)(arg0 + 0x94);
-        *(float *)(sub + 0x64) = 250.0f / denom;
-        *(float *)(sub + 0x68) = 235.0f / denom;
-        *(float *)(sub + 0x6C) = 100.0f / denom;
-        *(float *)(sub + 0x70) = 0.0f / denom;
+        {
+            float *fp = (float *)(*(char **)(arg0 + 0x94) + 0x64);
+            fp[0] = 250.0f / denom;
+            fp[1] = 235.0f / denom;
+            fp[2] = 100.0f / denom;
+            fp[3] = 0.0f / denom;
+        }
         *(int *)(*(char **)(arg0 + 0x94) + 0xA0) = *(int *)(arg0 + 0x6C) + 0x108;
         *(int *)(*(char **)(arg0 + 0x94) + 0x80) = 0;
         *(int *)(*(char **)(arg0 + 0x94) + 0x84) = -0x12;
