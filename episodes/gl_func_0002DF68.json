@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0002DF68",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-07-11T08:39:10.522102+00:00",
+  "end_time": "2026-07-11T08:39:10.522122+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-11T08:39:10.522116+00:00",
+      "assistant_text": "Mis-diagnosed o32 ABI cap: float a2 arrives o32-correctly in a1, homed to f12 (mtc1 a1,f12 = re-homed game_libs_func_0002DF64 leading word), read back to a1 (mfc1 a1,f12) to pass as callee float 2nd arg. Blocker was shared gl_func_00000000 K&R double-promote (cvt.d.s a2/a3); solved via existing absolute-0 float alias gl_func_00000000_f prototyped (int,float). 13/13 words exact.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 13,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000_f(int, float);\nvoid gl_func_0002DF68(int a0, float a2) {\n    gl_func_00000000_f(0x04000000 | ((a0 & 0xFF) << 8), a2);\n}\n",
+  "metadata": {
+    "source_path": "/tmp/claude-1000/-home-dan-Documents-code-decomp/24a9104a-9a16-4a13-8aa8-729de3d6dc97/scratchpad/df68_src.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0002DF68.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdiff fuzzy 100 (0->100) + full-make ROM byte-identical (cmp clean) + make non_matching_objects exit 0"
+  }
+}

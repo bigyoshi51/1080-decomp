@@ -15629,22 +15629,17 @@ void game_libs_func_0002DF30(void) {
     }
 }
 
-#ifdef NON_MATCHING
-/* NON_MATCHING — o32 ABI CAP (verified 2026-05-24). Target receives the int
- * in $a0 AND the float in $f12 simultaneously (then `mfc1 a1,$f12`). Under
- * o32 that combination is impossible from C: a float in the 2nd arg position
- * after an int goes to $a1 (integer reg), not $f12 — confirmed by standalone
- * test of both `(int,float)` (-> int $a0, float $a1) and `(float,int)`
- * (-> float $f12, int $a1). int-$a0 + float-$f12 is n32/n64 independent
- * register allocation, which -32 (o32) does not do. The single residual diff
- * is our stack-roundtrip (sw a1) vs the target's mfc1; not C-reachable. */
-extern int gl_func_00000000();
+/* MATCHED 2026-07-11 — the prior "o32 ABI cap" was MIS-DIAGNOSED. The float a2
+ * arrives o32-correctly in $a1; entry homes it to $f12 (mtc1 a1,$f12 = the
+ * re-homed game_libs_func_0002DF64 leading word), and passing it as the
+ * callee's float 2nd arg reads it back with mfc1 a1,$f12. The only real blocker
+ * was the shared gl_func_00000000 placeholder's K&R float->double promotion
+ * (cvt.d.s -> a2/a3); resolved by calling the existing absolute-0 float alias
+ * gl_func_00000000_f prototyped (int,float). 13/13 words exact. */
+extern int gl_func_00000000_f(int, float);
 void gl_func_0002DF68(int a0, float a2) {
-    gl_func_00000000(0x04000000 | ((a0 & 0xFF) << 8), *(int*)&a2);
+    gl_func_00000000_f(0x04000000 | ((a0 & 0xFF) << 8), a2);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DF68);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0002DF98: 53-insn struct-init constructor.
