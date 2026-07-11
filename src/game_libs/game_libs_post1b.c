@@ -4881,17 +4881,17 @@ void gl_func_00068DD4(char *arg0) {
     *temp_v1_2 = temp_v0_2 + 1;
     temp_a2 = *(int*)temp_v0_2;
     FW(arg0, 0x4) = temp_a2;
-    temp_v0_3 = gl_func_00062F64(0, (char *)0x2C568, temp_a2, 0);
+    temp_v0_3 = gl_func_00062F64(0, (char *)&D_00000000 + 0x2C568, temp_a2, 0);
     sp2C = temp_v0_3;
     gl_func_00062F64(FW(temp_v0_3, 0x44) * 8);
-    temp_v0_4 = gl_func_00062F64(0, (char *)0x2C574, 0, sp2C);
+    temp_v0_4 = gl_func_00062F64(0, (char *)&D_00000000 + 0x2C574, 0, sp2C);
     FW(arg0, 0x28) = temp_v0_4;
     FW(arg0, 0x10) = temp_v0_4;
     FW(temp_v0_4, 0x30) = (s32) (FW(temp_v0_4, 0x30) & ~0x400);
     temp_t0 = FW(arg0, 0x28);
     FW(temp_t0, 0x30) = (s32) (FW(temp_t0, 0x30) & ~0x800);
     if (sp30 == 0) {
-        gl_func_00062F64(0x2C580);
+        gl_func_00062F64((char *)&D_00000000 + 0x2C580);
     }
     temp_v0_5 = FW(FW(FW(arg0, 0x3C), 0x3C), 0xC);
     temp_t0_2 = FW(temp_v0_5, 0x28);
