@@ -7677,26 +7677,112 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Multi-tick decomp target — ~7 cross-USO calls, struct typing required.
  * Initial structural pass 2026-05-05. */
 #ifdef NON_MATCHING
-/* Skeleton C — captures structure only; no byte-match attempt yet. */
-extern int gl_func_00000000();
-extern char D_00000000;
+/* FULL RECONSTRUCTION 2026-07 (agent-f): every insn hand-decoded from the
+ * raw-word .s. Structure: (1) delta = self[0xDC..0xE4] - G[0..2] (G at
+ * 0x80800000, raw-word USO global — unrelocated in .text); (2) copy delta
+ * into two 3-word stack scratch vecs, cross-call func_071028; (3) reset
+ * self[0xF4..0x100] to identity quat {0,0,0,1} then 3x axis-angle rotate
+ * (func_071AE0) about X/Z/Y with angles self[0x110]/[0x10C]/[0x114];
+ * (4) self[0xE8..0xF0]=self[0x118]; func_05B750(&import_8005C108, {0,0,0,
+ * self[0x120]}); (5) func_06970C(self[0x108], 0.5f) then func_06970C(
+ * self[0x108], a-(a-b)*c) with a=self[0x128],b=self[0x12C],c=self[0x11C];
+ * (6) tail: self[0x144]++ ; if(old even) circular-advance index self[0x140]
+ * mod self[0x13C]; set bit4 on elem[0x18] of self[0x148 + idx*4], call
+ * func_054CAC(self), then clear bit4 on the (re-read) element. Angles/axes
+ * passed as O32 float-in-GPR (mfc1 a1/a2). RESIDUAL: stack-slot coloring of
+ * the FP scratch vecs (regalloc cap) — logic is exact. */
+extern char import_80800000;
+extern char import_8005C108;
+extern void timproc_uso_b5_func_071028();
+extern void timproc_uso_b5_func_071AE0(void *quat, void *axis, f32 angle);
+extern void timproc_uso_b5_func_05B750(void *arg, void *vec4);
+extern void timproc_uso_b5_func_06970C(void *obj, f32 val);
+extern void timproc_uso_b5_func_054CAC(void *obj);
+
 void timproc_uso_b5_func_0000B154(int *a0) {
     int *s0 = a0;
-    float *src = (float *)((char *)a0 + 0xDC);
-    float dx = src[0] - *(float *)&D_00000000;
-    float dy = src[1] - *(float *)((char *)&D_00000000 + 4);
-    float dz = src[2] - *(float *)((char *)&D_00000000 + 8);
-    src[0] = dx;
-    src[1] = dy;
-    src[2] = dz;
-    *(float *)((char *)s0 + 0xF4) = 0.0f;
-    *(float *)((char *)s0 + 0xF8) = 0.0f;
-    *(float *)((char *)s0 + 0xFC) = 0.0f;
-    *(float *)((char *)s0 + 0x100) = 1.0f;
-    *(float *)((char *)s0 + 0xE8) = *(float *)((char *)s0 + 0x118);
-    *(float *)((char *)s0 + 0xEC) = *(float *)((char *)s0 + 0x118);
-    *(float *)((char *)s0 + 0xF0) = *(float *)((char *)s0 + 0x118);
-    /* TODO: per-axis quaternion rotate calls + stack Vec3 scratch (insns 41+). */
+    f32 *src = (f32 *)((char *)a0 + 0xDC);
+    f32 delta[3];
+    int cpy1[3];
+    int cpy2[3];
+    f32 axisX[3];
+    f32 axisZ[3];
+    f32 axisY[3];
+    f32 vec4[4];
+
+    delta[0] = src[0] - *(f32 *)((char *)&import_80800000 + 0);
+    delta[1] = src[1] - *(f32 *)((char *)&import_80800000 + 4);
+    delta[2] = src[2] - *(f32 *)((char *)&import_80800000 + 8);
+    cpy1[0] = *(int *)&delta[0];
+    cpy1[1] = *(int *)&delta[1];
+    cpy1[2] = *(int *)&delta[2];
+    cpy2[0] = cpy1[0];
+    cpy2[1] = cpy1[1];
+    cpy2[2] = cpy1[2];
+    timproc_uso_b5_func_071028(cpy2);
+
+    axisX[0] = 1.0f;
+    axisX[1] = 0.0f;
+    axisX[2] = 0.0f;
+    *(f32 *)((char *)s0 + 0xF4) = 0.0f;
+    *(f32 *)((char *)s0 + 0xF8) = 0.0f;
+    *(f32 *)((char *)s0 + 0xFC) = 0.0f;
+    *(f32 *)((char *)s0 + 0x100) = 1.0f;
+    timproc_uso_b5_func_071AE0((char *)s0 + 0xF4, axisX,
+                               *(f32 *)((char *)s0 + 0x110));
+
+    axisZ[0] = 0.0f;
+    axisZ[1] = 0.0f;
+    axisZ[2] = 1.0f;
+    timproc_uso_b5_func_071AE0((char *)s0 + 0xF4, axisZ,
+                               *(f32 *)((char *)s0 + 0x10C));
+
+    axisY[0] = 0.0f;
+    axisY[1] = 1.0f;
+    axisY[2] = 0.0f;
+    timproc_uso_b5_func_071AE0((char *)s0 + 0xF4, axisY,
+                               *(f32 *)((char *)s0 + 0x114));
+
+    *(f32 *)((char *)s0 + 0xE8) = *(f32 *)((char *)s0 + 0x118);
+    *(f32 *)((char *)s0 + 0xEC) = *(f32 *)((char *)s0 + 0x118);
+    *(f32 *)((char *)s0 + 0xF0) = *(f32 *)((char *)s0 + 0x118);
+    vec4[0] = 0.0f;
+    vec4[1] = 0.0f;
+    vec4[2] = 0.0f;
+    vec4[3] = *(f32 *)((char *)s0 + 0x120);
+    timproc_uso_b5_func_05B750(&import_8005C108, vec4);
+
+    timproc_uso_b5_func_06970C(*(void **)((char *)s0 + 0x108), 0.5f);
+    {
+        f32 a = *(f32 *)((char *)s0 + 0x128);
+        f32 b = *(f32 *)((char *)s0 + 0x12C);
+        f32 c = *(f32 *)((char *)s0 + 0x11C);
+        timproc_uso_b5_func_06970C(*(void **)((char *)s0 + 0x108),
+                                   a - (a - b) * c);
+    }
+
+    {
+        int cnt = *(int *)((char *)s0 + 0x144);
+        *(int *)((char *)s0 + 0x144) = cnt + 1;
+        if ((cnt & 1) == 0) {
+            int idx = *(int *)((char *)s0 + 0x140) + 1;
+            *(int *)((char *)s0 + 0x140) = idx;
+            if (*(int *)((char *)s0 + 0x13C) == idx) {
+                *(int *)((char *)s0 + 0x140) = 0;
+            }
+        }
+        {
+            int i = *(int *)((char *)s0 + 0x140);
+            int *e = *(int **)((char *)s0 + 0x148 + i * 4);
+            *(int *)((char *)e + 0x18) |= 4;
+            timproc_uso_b5_func_054CAC(s0);
+        }
+        {
+            int i = *(int *)((char *)s0 + 0x140);
+            int *e = *(int **)((char *)s0 + 0x148 + i * 4);
+            *(int *)((char *)e + 0x18) &= ~4;
+        }
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B154);
