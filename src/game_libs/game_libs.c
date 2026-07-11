@@ -142,41 +142,26 @@ void gl_func_000005A4(char *a0, char a1, char a2, char a3) {
 typedef char *(*GP_000005EC)();
 char *gl_func_000005EC(char *arg0, s32 arg1) {
     f32 d255 = 255.0f;
-    char *sp34;
-    char *sp30;
-    char *sp2C;
-    char *sp28;
-    char *temp_a0;
-    char *temp_a3;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
     char *var_a2;
     char *var_s0;
     char *var_v1;
 
     var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = (char*)func_00000000((char *)0x13C), var_s0 = temp_v0, (temp_v0 != 0))) {
+    if ((arg0 != 0) || (var_s0 = (char*)func_00000000((char *)0x13C), (var_s0 != 0))) {
         var_v1 = var_s0;
-        if ((var_s0 != 0) || (temp_v0_2 = (char*)func_00000000((char *)0x10C), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+        if ((var_s0 != 0) || (var_v1 = (char*)func_00000000((char *)0x10C), (var_v1 != 0))) {
             var_a2 = var_v1;
-            if ((var_v1 != 0) || (sp34 = var_v1, temp_v0_3 = (char*)func_00000000((char *)0x10C), var_a2 = temp_v0_3, (temp_v0_3 != 0))) {
-                sp34 = var_v1;
-                sp30 = var_a2;
-                (char*)func_00000000(var_a2, (char *)0xCB40, var_a2);
-                FW(var_a2, 0x28) = 0;
+            if ((var_v1 != 0) || (var_a2 = (char*)func_00000000((char *)0x10C), (var_a2 != 0))) {
+                (char*)func_00000000(var_a2, (char*)&D_00000000 + 0xCB40, var_a2);
+                FW(var_a2, 0x28) = (int)&D_00000000;
                 (char*)func_00000000(var_a2 + 0x2C);
             }
-            FW(var_v1, 0x28) = 0;
+            FW(var_v1, 0x28) = (int)&D_00000000;
         }
-        FW(var_s0, 0xC) = 0xCB48;
-        temp_a0 = var_s0 + 0x10C;
-        sp2C = temp_a0;
-        (char*)func_00000000(temp_a0, (char *)0x5001E);
-        temp_a3 = var_s0 + 0x124;
-        sp28 = temp_a3;
-        (char*)func_00000000(temp_a3, (char *)0x5001D);
-        (char*)func_00000000(var_s0, sp28, sp2C);
+        FW(var_s0, 0xC) = (int)((char*)&D_00000000 + 0xCB48);
+        (char*)func_00000000(var_s0 + 0x10C, (char *)0x5001E);
+        (char*)func_00000000(var_s0 + 0x124, (char *)0x5001D);
+        (char*)func_00000000(var_s0, var_s0 + 0x124, var_s0 + 0x10C);
         FW(var_s0, 0xD4) = 0;
         FW(var_s0, 0xD8) = 0xFF;
         FW(var_s0, 0xDC) = 0x82;
