@@ -494,26 +494,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00000B94);
  * gl_func_00000000(s0, s0+292, s0+268). Field block 0xC4/0xC8/0xCC f32
  * = global default (&D+0xC70); 0xD0 f32 = 0.0; 0xD4=0; 0xD8=255;
  * 0xDC=130; 0xE0=a1. Final gl_func_00000000(s0,-56,-1,-13,0).
- * Caps <80: get-or-create branches + ~8 reloc calls + &D descriptor
- * relocs + FP const + packed-id args + sp-saved arg homes. INCLUDE_ASM
- * remains build path (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
+ * MATCHED 2026-07-11 (byte-exact): BASE-SYMBOLIZE (pointer-arith (char*)&D+off,
+ * not (int)&D+off which folds to a raw `ori` since D is absolute-0) recovered
+ * the lui/addiu descriptor relocs; outer alloc-fail routed to shared `done`
+ * (returns s0=0) not a separate `return 0`; inner alloc-fail skips only the
+ * sub-init block (goto skip_init) rather than the whole tail. */
 void *gl_func_00000D5C(char *s0, int a1) {
     char *sub;
     float k;
     if (s0 == 0) {
         s0 = (char*)gl_func_00000000(316);
-        if (s0 == 0) return 0;
+        if (s0 == 0) goto done;
     }
     sub = s0;
     if (sub == 0) {
         sub = (char*)gl_func_00000000(268);
-        if (sub == 0) goto done;
+        if (sub == 0) goto skip_init;
     }
-    gl_func_00000000(sub, (int)&D_00000000 + 0xCBC0);
+    gl_func_00000000(sub, (char*)&D_00000000 + 0xCBC0);
     *(int*)(sub + 0x28) = (int)&D_00000000;
     gl_func_00000000(sub + 0x2C);
-    *(int*)(s0 + 0xC) = (int)&D_00000000 + 0xCBC8;
+skip_init:
+    *(int*)(s0 + 0xC) = (int)((char*)&D_00000000 + 0xCBC8);
     gl_func_00000000(s0 + 268, 0x050001);
     gl_func_00000000(s0 + 292, 0x050007);
     gl_func_00000000(s0, s0 + 292, s0 + 268);
@@ -530,9 +532,6 @@ void *gl_func_00000D5C(char *s0, int a1) {
 done:
     return s0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00000D5C);
-#endif
 
 extern int gl_func_00000000();
 int gl_func_00000E74(char *a0) {
