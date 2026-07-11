@@ -29580,13 +29580,54 @@ void game_libs_func_0005BDC0(float *src, float *dst) {
     }
 }
 
-/* gl_func_0005BE20 GRAFT-CLASSIFIED 2026-06-10: bitwise-FP class (19
- * COP1 moves + 12 f64 ops in 281 insns). The graft emitted +0xC4
- * oversize (lw+mtc1 pairs where the target uses lwc1, plus f64
- * pairing) -- objdiff reports fuzzy=None (unalignable size gap), and
- * FP retyping inverted into cvt bloat. Stays bare INCLUDE until a
- * typed hand decode; see TOOLING_DECOMP bitwise-FP class. */
+/* gl_func_0005BE20 - 4x4 matrix ADJUGATE/cofactor builder (fresh decode
+ * 2026-07). Each output element O[c][r] = +/- det3x3(minor of arg0) via the
+ * 3x3-determinant helper gl_func_00034458, stored in the target's column-
+ * interleaved order (O[0],O[4],O[8],O[12], O[1],O[5],... ).
+ * The 2026-06-10 "bitwise-FP oversize (+0xC4 cvt.d/sdc1 bloat)" note was the
+ * K&R-int-prototype DOUBLE-PROMOTION trap: declaring the helper int() promotes
+ * every float arg to double (cvt.d.s + sdc1 pairs). FIX = the gl_func_0005C43C
+ * recipe: a float-typed alias (gl_func_00000000_5be20) whose ABI passes args
+ * 1-2 as single floats in $f12/$f14 and args 3-9 as reinterpreted float-bits
+ * in the int regs/stack, float return in $f0. All 16 lwc1/swc1 loads/stores
+ * are single-precision. The 16 elements are loaded into named float locals ONCE
+ * (not re-read through the aliasing float* each call), so the compiler keeps the
+ * hot values in callee-saved $f20-$f30 across all 16 calls exactly like target.
+ * objdiff fuzzy 0.00 -> 99.42%. Residual (frame -160 vs target -168, 8-byte /
+ * two-extra spill-home delta): IDO spill-slot numbering over the all-live 16-elem
+ * set, not source-controllable (load-order permutation drops below target size).
+ * Same instruction stream + order; only swc1/lwc1 stack offsets differ. */
+#ifdef NON_MATCHING
+extern float gl_func_00000000_5be20(float, float, float, float, float, float, float, float, float);
+void gl_func_0005BE20(void *arg0, void *arg1) {
+    float *M = (float *)arg0;
+    float *O = (float *)arg1;
+    float m0 = M[0], m1 = M[1], m2 = M[2], m3 = M[3];
+    float m4 = M[4], m5 = M[5], m6 = M[6], m7 = M[7];
+    float m8 = M[8], m9 = M[9], m10 = M[10], m11 = M[11];
+    float m12 = M[12], m13 = M[13], m14 = M[14], m15 = M[15];
+#define H gl_func_00000000_5be20
+    O[0]  =  H(m5, m9, m13, m6,  m10, m14, m7,  m11, m15);
+    O[4]  = -H(m4, m8, m12, m6,  m10, m14, m7,  m11, m15);
+    O[8]  =  H(m4, m8, m12, m5,  m9,  m13, m7,  m11, m15);
+    O[12] = -H(m4, m8, m12, m5,  m9,  m13, m6,  m10, m14);
+    O[1]  = -H(m1, m9, m13, m2,  m10, m14, m3,  m11, m15);
+    O[5]  =  H(m0, m8, m12, m2,  m10, m14, m3,  m11, m15);
+    O[9]  = -H(m0, m8, m12, m1,  m9,  m13, m3,  m11, m15);
+    O[13] =  H(m0, m8, m12, m1,  m9,  m13, m2,  m10, m14);
+    O[2]  =  H(m1, m5, m13, m2,  m6,  m14, m3,  m7,  m15);
+    O[6]  = -H(m0, m4, m12, m2,  m6,  m14, m3,  m7,  m15);
+    O[10] =  H(m0, m4, m12, m1,  m5,  m13, m3,  m7,  m15);
+    O[14] = -H(m0, m4, m12, m1,  m5,  m13, m2,  m6,  m14);
+    O[3]  = -H(m1, m5, m9,  m2,  m6,  m10, m3,  m7,  m11);
+    O[7]  =  H(m0, m4, m8,  m2,  m6,  m10, m3,  m7,  m11);
+    O[11] = -H(m0, m4, m8,  m1,  m5,  m9,  m3,  m7,  m11);
+    O[15] =  H(m0, m4, m8,  m1,  m5,  m9,  m2,  m6,  m10);
+#undef H
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BE20);
+#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C284);
 
