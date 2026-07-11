@@ -891,7 +891,6 @@ void game_libs_func_00064124(char *a0) {
  * trailing `mtc1 zero,$f0`. PROLOGUE_STEALS=4 splices the C-emit's
  * duplicate leading `mtc1 zero,$f0`. Splice script extended 2026-05-16
  * to accept opcode 0x11 mtc1-zero prefixes. */
-#ifdef NON_MATCHING
 /* gl_func_00064174 -> gl_func_00064170 — EXACT 27/27 (2026-07-03), but ONLY
  * after a REVERSE-MERGE splat boundary fix (docs/MATCHING_WORKFLOW.md
  * "direction 4", 4-byte variant):
@@ -938,9 +937,6 @@ void gl_func_00064170(float *a0, int *a1) {
     a0[11] = tmp.f[1];
     a0[12] = tmp.f[2];
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064170);
-#endif
 
 #ifdef NON_MATCHING
 /* 84.75% NM. gl_func_000641DC: 107-insn Vec3 transform/accumulator.
