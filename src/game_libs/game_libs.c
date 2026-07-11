@@ -1600,10 +1600,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003298);
  * caller-set-float K&R call + raw-.word placeholder reloc) so no episode. */
 extern int func_00000000();
 void gl_func_000032B0(int *a0) {
-    float r = 100.0f / 255.0f;   /* f22 = f4/f6, f4 stolen from predecessor */
-    float g = 235.0f / 255.0f;   /* f24 = f8/255 */
-    float b = 250.0f / 255.0f;   /* f26 = 250/255 */
-    float al = 0.0f / 255.0f;    /* f28 = 0/255 */
+    float div255 = 255.0f;       /* shared divisor blocks const/const fold -> runtime div.s */
+    float r = 100.0f / div255;   /* f22 = f4/f6, f4 stolen from predecessor */
+    float g = 235.0f / div255;   /* f24 = f8/255 */
+    float b = 250.0f / div255;   /* f26 = 250/255 */
+    float al = 0.0f / div255;    /* f28 = 0/255 */
     int i;
     for (i = 0; i < 8; i++) {
         int *sub = *(int**)((char*)a0 + 0x2C + i * 4);
