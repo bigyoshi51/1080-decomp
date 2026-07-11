@@ -19438,23 +19438,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033094);
 //   mnemonic disasm + object/list structs typed. Real-C STRUCTURAL
 //   body below per the analysis. Byte-match deferred. Name pre-
 //   checked: no extern reuse.
+/* gl_func_00033228: 33/35 words exact — cvt.d.s float-promote cap CRACKED,
+ * one residual (frame-size pad). Route the 5-arg (int,int,float,float,float)
+ * factory callback through a typed absolute-0 alias gl_func_00000000_f228 →
+ * single mfc1/swc1, no cvt.d.s/sdc1. Structural fixes vs the old body:
+ * (a) parent `o` homed into $s0 (used across all three calls) + passed to
+ * call1; (b) the intrusive-list splice tests/writes the NEW node `n`
+ * (n->0x14 / n->0x04), not `lst`, storing `lst` into n->0x14; the empty-list
+ * guard's common tail (n->0x14 = lst) IDO folds into a beqzl likely-delay.
+ * Register allocation is now byte-identical (t6/a2/t7/t8, all sp offsets
+ * 16/32/36/40/44 match). ONLY residual: frame -48 vs target -64 (16-byte
+ * phantom top-pad = spill slots IDO pre-reserved for locals it later kept in
+ * registers). Not source-triggerable without perturbing the now-perfect
+ * coloring (tested: volatile pad[4] elided; extra params home to caller area;
+ * materialized-arg locals folded; used int[4] lands at frame bottom + adds a
+ * store). Landable-clean callee (all jal 0). */
+extern void *gl_func_00000000_f228(int, int, float, float, float);
 #ifdef NON_MATCHING
 void gl_func_00033228(char *o) {
     char *n;
-    char *t;
     char *lst;
-    gl_func_00000000();
-    n = (char *)gl_func_00000000(0, 0, 0.0f, 0.0f);
+    gl_func_00000000(o);
+    n = (char *)gl_func_00000000_f228(0, 0, 0.0f, 0.0f, 0.0f);
     *(int *)(o + 0x28) = (int)n;
     *(int *)(o + 0x0C) = (int)n;
     *(int *)(o + 0x10) = (int)n;
-    t = *(char **)(o + 0x3C);
-    lst = *(char **)(t + 0x10);
+    lst = *(char **)(*(char **)(o + 0x3C) + 0x10);
     gl_func_00000000(lst + 0x10, n);
-    if (*(int *)(lst + 0x14) == 0) {
-        *(int *)(lst + 0x04) = 1;
+    if (*(int *)(n + 0x14) != 0) {
+        *(int *)(n + 0x04) = 1;
     }
-    *(int *)(lst + 0x14) = (int)n;
+    *(int *)(n + 0x14) = (int)lst;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
