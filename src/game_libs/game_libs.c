@@ -654,49 +654,54 @@ void gl_func_00001134(char *a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_000011A4: 54-insn alloc-or-given + init constructor.
- * Current fuzzy: 37.31% (216-byte function). Cap class: dead-inner-alloc
- * emission — target has a 4-insn dead `alloc(0x10C)` block at offset
- * 0x2C-0x38 that's provably unreachable (s0 always non-zero post-merge)
- * but emitted by the original C. Tried docs/PATTERNS.md feedback-
- * alloc-or-passthrough-cascade-includes-dead-arms recipe (sub = self;
- * if (sub == 0) alloc): REGRESSED to 61 insns (+7 over target) because
- * the named `sub` local forced an extra $s reg + spill pair. The
- * dead-arm in target uses ONE $s reg (s0) for both 'self' and
- * 'sub'-like role — unreachable from 2-var C without inline-asm.
- * 2026-05-17 tested goto-end form (alloc-fail jumps to shared epilogue
- * `return self;`) — REGRESSED (the long body's regalloc uses $s-regs
- * for self/intermediate values; merging via goto changes the live-range
- * across the 11-store body and IDO picks a totally different $s
- * allocation). The simple `return 0` early-exit form is actually the
- * local maximum for this function class.
- * 2026-05-27 reconfirmed: alloc-or-null sibling family's goto-out
- * lever (which landed gl_func_0001FD98 100% and improved 36E74/3D16C/
- * 37AF0/35B1C +10-34pp) does NOT apply here — the dead-inner-alloc
- * + long-body $s-reg promotion makes this function a different cap
- * class from the simpler alloc-or-null siblings.
- * Stays NM-wrap; default INCLUDE_ASM exact. */
+/* gl_func_000011A4: 54-insn get-or-create constructor. SIBLING of the now-
+ * byte-exact gl_func_00000D5C — SAME get-or-create-with-dead-inner-alloc
+ * shape. 2026-07-11 rebuilt on the D5C template (36.76 -> 89.04% fuzzy),
+ * fixing three prior-decode errors: (1) 0xC4/0xC8/0xCC f32 = *(D+0xC78) and
+ * 0xD0 = 0.0f (the prior C had these SWAPPED); (2) missing dead inner
+ * alloc(0x10C) `sub` object — modeled via `sub = self; if(sub==0){...; goto
+ * skip_init;}` exactly like D5C, so IDO emits the dead alloc block;
+ * (3) outer alloc-fail routes to shared `done` (returns self=0), inner
+ * alloc-fail to `skip_init`. Also CSE-BREAK: the two &D bare stores
+ * (sub->0x28 and self->0x28) must NOT share one spilled reg across the
+ * gl_func(sub+0x2C) call — self->0x28 uses &gl_data_00000000 (also abs-0,
+ * same bytes, distinct symbol) so IDO rematerializes fresh post-call like
+ * the target (dropped a spill pair: 57 -> 53 insns). RESIDUAL (scheduler/
+ * regalloc cap, not C-coaxable): target fills the outer bnez delay slot with
+ * `sw ra` and moves `s0=a0` ahead of the branch (we fill delay with the
+ * move); target spills `sub` at 0x24(sp), we pick 0x20(sp). Stays NM-wrap;
+ * default INCLUDE_ASM exact. */
 extern int gl_data_00000000;
 int* gl_func_000011A4(int *a0) {
     int *self = a0;
+    int *sub;
+    float f;
     if (self == 0) {
         self = (int*)gl_func_00000000(0x140);
-        if (self == 0) return 0;
+        if (self == 0) goto done;
     }
-    gl_func_00000000(self, (char*)&gl_data_00000000 + 0xCC20, self);
-    *(int*)((char*)self + 0x28) = (int)&D_00000000;
-    gl_func_00000000((char*)self + 0x2C);
-    *(int*)((char*)self + 0x28) = (int)&D_00000000;
+    sub = self;
+    if (sub == 0) {
+        sub = (int*)gl_func_00000000(0x10C);
+        if (sub == 0) goto skip_init;
+    }
+    gl_func_00000000(sub, (char*)&gl_data_00000000 + 0xCC20);
+    *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+    gl_func_00000000((char*)sub + 0x2C);
+skip_init:
+    *(int*)((char*)self + 0x28) = (int)&gl_data_00000000;
     *(int*)((char*)self + 0xC) = (int)((char*)&gl_data_00000000 + 0xCC28);
     gl_func_00000000((char*)self + 0x110,
         *(int*)((char*)&gl_data_00000000 + 0x54) | 0x001E0000);
+    f = *(float*)((char*)&D_00000000 + 0xC78);
     *(int*)((char*)self + 0xD4) = 0;
     *(int*)((char*)self + 0xD8) = 0xFF;
     *(int*)((char*)self + 0x10C) = 0;
-    *(float*)((char*)self + 0xC4) = 0.0f;
-    *(float*)((char*)self + 0xC8) = 0.0f;
-    *(float*)((char*)self + 0xCC) = 0.0f;
-    *(float*)((char*)self + 0xD0) = *(float*)((char*)&D_00000000 + 0xC78);
+    *(float*)((char*)self + 0xC4) = f;
+    *(float*)((char*)self + 0xC8) = f;
+    *(float*)((char*)self + 0xCC) = f;
+    *(float*)((char*)self + 0xD0) = 0.0f;
+done:
     return self;
 }
 #else
