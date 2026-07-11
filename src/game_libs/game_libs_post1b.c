@@ -4850,13 +4850,13 @@ void gl_func_00068DD4(char *arg0) {
     FW(FW(FW(arg0, 0x3C), 0xC), 0xB0) = 8;
     temp_v0 = FW(arg0, 0x0);
     temp_t1 = *(int*)temp_v0;
-    *temp_v0 = temp_t1 + 4;
+    *temp_v0 = temp_t1 + 1;
     temp_v1 = *(int*)temp_t1;
     FW(arg0, 0x4) = temp_v1;
     sp30 = *(int*)(temp_v1 * 4);
     temp_v1_2 = FW(arg0, 0x0);
     temp_v0_2 = *(int*)temp_v1_2;
-    *temp_v1_2 = temp_v0_2 + 4;
+    *temp_v1_2 = temp_v0_2 + 1;
     temp_a2 = *(int*)temp_v0_2;
     FW(arg0, 0x4) = temp_a2;
     temp_v0_3 = gl_func_00062F64(0, (char *)0x2C568, temp_a2, 0);
@@ -4873,7 +4873,7 @@ void gl_func_00068DD4(char *arg0) {
     }
     temp_v0_5 = FW(FW(FW(arg0, 0x3C), 0x3C), 0xC);
     temp_t0_2 = FW(temp_v0_5, 0x28);
-    ((GP_00068DD4)FW(temp_t0_2, 0x14))(FW(temp_t0_2, 0x10) + temp_v0_5);
+    ((GP_00068DD4)FW(temp_t0_2, 0x14))(*(s16*)((char*)temp_t0_2 + 0x10) + temp_v0_5);
     temp_v0_6 = gl_func_00062F64(sp30, FW(FW(arg0, 0x3C), 0xC), (s32) FW(arg0, 0x28));
     sp24 = temp_v0_6;
     gl_func_00062F64((s32) FW(FW(arg0, 0x3C), 0xC), temp_v0_6);
