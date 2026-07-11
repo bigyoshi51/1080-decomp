@@ -762,6 +762,10 @@ extern s32 D_00000004;
  *       use a separate `D_00000004` symbol so each emits its own folded
  *       2-insn load (target uses func_00000000+0x4, a distinct symbol from
  *       the dim-B reads at D_00000000+0).
+ * PASS-6 2026-07-11 (agent-g): Phase-1 grid records are 2-byte fields, not
+ *       words. The 20 stores at var_v0_2 offsets 0x0..0x3A were mis-typed
+ *       s32 (emitting sw); target has 20 `sh` (store-halfword) and 0 sw
+ *       there. Retyped s32->s16 -> the 20 sh now emit. Fuzzy 66.15->70.60.
  * PASS-5 2026-06-22 (agent-i): self->0x28 store is a RELOC'd pointer
  *       (&D_00000000, target lui+addiu+sw), not integer 0 (was sw $zero).
  *       Fixed -> emits the target's 3-insn pointer store; -12 real word diffs.
@@ -971,27 +975,27 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
                     var_v0_2 = sp1CC + (var_s6 * 0x10);
                     do {
                         temp_v1 = var_a0 + 0x20;
-                        *(s32 *)((char *)(var_v0_2) + 0x0) = temp_v1;
-                        *(s32 *)((char *)(var_v0_2) + 0x2) = temp_a3;
+                        *(s16 *)((char *)(var_v0_2) + 0x0) = temp_v1;
+                        *(s16 *)((char *)(var_v0_2) + 0x2) = temp_a3;
                         temp_a1 = var_a0 - 0x20;
-                        *(s32 *)((char *)(var_v0_2) + 0x8) = 0;
-                        *(s32 *)((char *)(var_v0_2) + 0x4) = (s16) ((s32) *(s32 *)((char *)&D_00000000 + 0) / 2);
-                        *(s32 *)((char *)(var_v0_2) + 0xA) = 0;
-                        *(s32 *)((char *)(var_v0_2) + 0x10) = temp_a1;
-                        *(s32 *)((char *)(var_v0_2) + 0x12) = temp_a3;
-                        *(s32 *)((char *)(var_v0_2) + 0x18) = 0xFC0;
-                        *(s32 *)((char *)(var_v0_2) + 0x1A) = 0;
-                        *(s32 *)((char *)(var_v0_2) + 0x14) = (s16) ((s32) *(s32 *)((char *)&D_00000000 + 0) / 2);
-                        *(s32 *)((char *)(var_v0_2) + 0x20) = temp_a1;
-                        *(s32 *)((char *)(var_v0_2) + 0x22) = temp_t0;
-                        *(s32 *)((char *)(var_v0_2) + 0x28) = 0xFC0;
-                        *(s32 *)((char *)(var_v0_2) + 0x2A) = 0x7C0;
-                        *(s32 *)((char *)(var_v0_2) + 0x24) = (s16) ((s32) *(s32 *)((char *)&D_00000000 + 0) / 2);
-                        *(s32 *)((char *)(var_v0_2) + 0x30) = temp_v1;
-                        *(s32 *)((char *)(var_v0_2) + 0x32) = temp_t0;
-                        *(s32 *)((char *)(var_v0_2) + 0x38) = 0;
-                        *(s32 *)((char *)(var_v0_2) + 0x3A) = 0x7C0;
-                        *(s32 *)((char *)(var_v0_2) + 0x34) = (s16) ((s32) *(s32 *)((char *)&D_00000000 + 0) / 2);
+                        *(s16 *)((char *)(var_v0_2) + 0x8) = 0;
+                        *(s16 *)((char *)(var_v0_2) + 0x4) = (s16) ((s32) *(s32 *)((char *)&D_00000000 + 0) / 2);
+                        *(s16 *)((char *)(var_v0_2) + 0xA) = 0;
+                        *(s16 *)((char *)(var_v0_2) + 0x10) = temp_a1;
+                        *(s16 *)((char *)(var_v0_2) + 0x12) = temp_a3;
+                        *(s16 *)((char *)(var_v0_2) + 0x18) = 0xFC0;
+                        *(s16 *)((char *)(var_v0_2) + 0x1A) = 0;
+                        *(s16 *)((char *)(var_v0_2) + 0x14) = (s16) ((s32) *(s32 *)((char *)&D_00000000 + 0) / 2);
+                        *(s16 *)((char *)(var_v0_2) + 0x20) = temp_a1;
+                        *(s16 *)((char *)(var_v0_2) + 0x22) = temp_t0;
+                        *(s16 *)((char *)(var_v0_2) + 0x28) = 0xFC0;
+                        *(s16 *)((char *)(var_v0_2) + 0x2A) = 0x7C0;
+                        *(s16 *)((char *)(var_v0_2) + 0x24) = (s16) ((s32) *(s32 *)((char *)&D_00000000 + 0) / 2);
+                        *(s16 *)((char *)(var_v0_2) + 0x30) = temp_v1;
+                        *(s16 *)((char *)(var_v0_2) + 0x32) = temp_t0;
+                        *(s16 *)((char *)(var_v0_2) + 0x38) = 0;
+                        *(s16 *)((char *)(var_v0_2) + 0x3A) = 0x7C0;
+                        *(s16 *)((char *)(var_v0_2) + 0x34) = (s16) ((s32) *(s32 *)((char *)&D_00000000 + 0) / 2);
                         var_s3 += 1;
                         var_a0 -= 0x40;
                         var_s6 += 4;
