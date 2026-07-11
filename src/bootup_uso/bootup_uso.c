@@ -2392,58 +2392,103 @@ void func_000031B8(int a0) {
 //   func_000003F8 + 0x138 / + 0x13C (lwc1) = folded f32 consts — yet
 //   another fold target in the bootup_uso literal-pool bug family
 //   (docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps (DEFERRED): 202-insn 3-mode ctor; raw-word USO + placeholder
-//   cb's + folded f32 consts at func_000003F8+0x138/+0x13C. Real-C
-//   STRUCTURAL body below. Byte-match deferred. Name pre-checked:
-//   no extern reuse.
+// Caps (DEFERRED, fuzzy 27.5%->42.0% 2026-07): full faithful body incl.
+//   3-mode switch + common re-parent/Vec3-copy tail reconstructed; typed
+//   float protos suppress K&R double-promote (swc1 not cvt.d.s/sdc1).
+//   Remaining byte-cap: target keeps `obj` in $a2 spilled/reloaded around
+//   each call (0x6C slot) vs the natural callee-saved $s0 here (regalloc
+//   divergence), plus folded f32 consts at func_000003F8+0x138/+0x13C
+//   (bootup_uso literal-pool bug). Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-void *func_000031C0(int a0, int mode, char *parent3, int a3) {
+/* Typed float prototypes: the callees take single-precision float args, so
+ * declaring them (vs untyped K&R) suppresses the double-promote (cvt.d.s/sdc1)
+ * and emits swc1/mtc1 matching the target. Distinct names → each resolves to a
+ * relocated jal (0c000000) like the target's func_00000000. */
+extern void *fn_31c0_alloc(int);
+extern void  fn_31c0_init(void *, void *);
+extern void  fn_31c0_fin(void *);
+extern void  fn_31c0_vec(void *, float *);
+extern void *fn_31c0_A1(int, void *, void *, int, float, float, int, void *);
+extern void *fn_31c0_A2(int, void *, int, void *);
+extern void  fn_31c0_A3(void *, void *);
+extern void *fn_31c0_A4(int, void *, void *, void *);
+extern void *fn_31c0_A5(void *, void *);
+extern void *fn_31c0_B1(int);
+extern void  fn_31c0_B2(void *, void *, int, int, float);
+extern void *fn_31c0_B3(int, void *, void *, void *);
+extern void  fn_31c0_B4(void *, void *);
+extern void  fn_31c0_tail(void *, void *);
+extern void  fn_31c0_tail3(void *, float *);
+
+void *func_000031C0(int a0, int mode, char *parent3, char *a3v, int p4) {
     char *obj;
     char *sub;
     char *child;
     char *e;
     char *w;
-    char *f;
-    float sp48_x, sp48_y, sp48_z;
-    obj = (char *)func_00000000(0xB8);
-    if (!obj) obj = (char *)func_00000000(0xB4);
+    char *r2;
+    char *r3;
+    char *r;
+    char *h;
+    float sp48[3];
+    float vec[3];
+    obj = (char *)fn_31c0_alloc(0xB8);
+    if (!obj) obj = (char *)fn_31c0_alloc(0xB4);
     if (obj) {
-        func_00000000(obj, (char *)&D_00000000 + 0x7460);
-        *(int *)(obj + 0x28) = 0;
+        fn_31c0_init(obj, (char *)&D_00000000 + 0x7460);
+        *(int *)(obj + 0x28) = (int)&D_00000000;
         sub = obj + 0x2C;
-        if (!sub) sub = (char *)func_00000000(4);
+        if (!sub) sub = (char *)fn_31c0_alloc(4);
         if (sub) *(int *)sub = 0;
-        func_00000000(obj);
-        sp48_x = 0.0f;
-        sp48_y = 500.0f;
-        sp48_z = 0.0f;
-        func_00000000(obj + 0x30, &sp48_x);
+        fn_31c0_fin(obj);
+        sp48[0] = 0.0f;
+        sp48[2] = 0.0f;
+        sp48[1] = 500.0f;
+        fn_31c0_vec(obj + 0x30, sp48);
     }
     if (mode == 0 || mode == 2) {
-        w = (char *)func_00000000(0, a3, obj, 0, 500.0f);
-        func_00000000(0, *(int *)(parent3 + 0x874), (char *)&D_00000000 + 0x7480);
-        func_00000000(w, (char *)&D_00000000 + 0x7490);
-        child = (char *)func_00000000(a0);
-        *(char **)(parent3 + 0xB4) = child;
+        w = (char *)fn_31c0_A1(0, a3v, obj, 0, 500.0f, 1.0e-20f, p4,
+                               (char *)&D_00000000 + 0x746C);
+        h = w;
+        r2 = (char *)fn_31c0_A2(0, a3v, *(int *)(a3v + 0x874),
+                                (char *)&D_00000000 + 0x7480);
+        fn_31c0_A3(w, r2);
+        r3 = (char *)fn_31c0_A4(0, w, r2, (char *)&D_00000000 + 0x7490);
+        *(int *)(w + 0x154) = (int)r2;
+        child = (char *)fn_31c0_A5(obj, r3);
+        *(int *)(obj + 0xB4) = (int)child;
         *(char **)(child + 0xC) = (char *)&D_00000000 + 0x74A4;
     } else if (mode == 1) {
-        e = (char *)func_00000000(0x15C);
+        e = (char *)fn_31c0_B1(0x15C);
+        h = e;
         if (e) {
-            func_00000000(e, obj, 0, 500.0f);
+            fn_31c0_B2(e, obj, 0, 0x43FA0000, 1.0e-21f);
             *(char **)(e + 0x28) = (char *)&D_00000000 + 0x7120;
             *(int *)(e + 0x158) = 0;
-            *(int *)(e + 0x154) = a3;
+            *(int *)(e + 0x154) = (int)a3v;
             *(int *)(e + 0x150) = *(int *)(e + 0x14C);
         }
-        func_00000000(0, (char *)&D_00000000 + 0x74B0, a3);
-        f = (char *)func_00000000(a0);
-        *(char **)(f + 0xC) = (char *)&D_00000000 + 0x74C4;
+        r = (char *)fn_31c0_B3(0, a3v, a3v, (char *)&D_00000000 + 0x74B0);
+        fn_31c0_B4(obj, r);
+        *(char **)(r + 0xC) = (char *)&D_00000000 + 0x74C4;
     }
-    if (*(int *)(parent3 + 0x14)) *(int *)(parent3 + 0x4) = 1;
-    *(int *)(parent3 + 0x14) = (int)parent3;
-    if (*(int *)(parent3 + 0x14)) *(int *)(parent3 + 0x4) = 1;
-    *(int *)(parent3 + 0x30) = *(int *)((char *)0 + 0x3A4);
-    return obj;
+    fn_31c0_tail(parent3 + 0x10, h);
+    if (*(int *)(h + 0x14)) *(int *)(h + 0x4) = 1;
+    *(int *)(h + 0x14) = (int)parent3;
+    fn_31c0_tail(parent3 + 0x10, obj);
+    if (*(int *)(obj + 0x14)) *(int *)(obj + 0x4) = 1;
+    *(int *)(obj + 0x14) = (int)parent3;
+    *(float *)(obj + 0x60) = *(float *)(a3v + 0x3A4);
+    *(float *)(obj + 0x64) = *(float *)(a3v + 0x3A8);
+    *(float *)(obj + 0x68) = *(float *)(a3v + 0x3AC);
+    *(float *)(h + 0x60) = *(float *)(a3v + 0x3A4);
+    *(float *)(h + 0x64) = *(float *)(a3v + 0x3A8);
+    *(float *)(h + 0x68) = *(float *)(a3v + 0x3AC);
+    vec[0] = 0.0f;
+    vec[1] = 0.0f;
+    vec[2] = -1000.0f;
+    fn_31c0_tail3(h + 0x30, vec);
+    return h;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000031C0);
