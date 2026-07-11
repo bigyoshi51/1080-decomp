@@ -4512,29 +4512,19 @@ void gl_func_000085B0(int *arg0, int arg1) {
     *(int*)((char*)arg0 + 0x4F4) = arg1 & 0xFFFF;
 }
 
-/* Hidden-register dispatch stub — GENUINE caller-set-int-reg CAP (98.6%).
- * The real ABI hands the dispatcher pointer in $v0 and the addend in $v1
- * (both caller-set, see feedback_caller_set_int_reg_cap_1080_game_libs)
- * while still spilling caller $a0. Verified 2026-05-31: 8674 has NO jal/
- * reloc/symname reference anywhere — it's reached only by an indirect
- * (function-pointer) call whose caller pre-loads v0/v1, AND it has its own
- * `addiu sp,-24` prologue (not a mergeable fallthrough fragment). The only
- * residual vs target is register naming: the build reads base/value from
- * a1/a2 (the ordinary param slots C must use) where the target reads v0/v1.
- * C cannot declare a parameter that arrives in $v0/$v1, so this is not
- * coaxable — the body below is the exact-shape reference. (Prior comment
- * claimed a Makefile INSN_PATCH rewrote a1/a2->v0/v1; INSN_PATCH was REMOVED
- * 2026-05-23 as match-faking and is BANNED — there is no patch, the function
- * honestly ships INCLUDE_ASM.) */
-#ifdef NON_MATCHING
-int gl_func_00008674(int unused, int *hidden_v0, int hidden_v1) {
+/* gl_func_00008674: RECONSTRUCTED 2026-07-11. NOT caller-set — the prior
+ * comment mis-read the prologue. The dispatcher pointer comes from a GLOBAL:
+ *   v1 = &D_00000000 (absolute base, links at 0)
+ *   v0 = *(int**)(v1 + 0x28)          (the object)
+ * then calls obj->fn64 with arg = &D_00000000 + (s16)obj->off60 (addu reuses
+ * the live base register v1). The incoming $a0 is homed to 0x18(sp) via
+ * &unused. This is a global-table indirect dispatch, coaxable in C. */
+int gl_func_00008674(int unused) {
+    int *obj = *(int**)((char*)&D_00000000 + 0x28);
     volatile int *spill = &unused;
     (void)spill;
-    return ((int (*)(int))hidden_v0[0x64/4])(*(s16*)((char*)hidden_v0 + 0x60) + hidden_v1);
+    return ((int (*)(int))obj[0x64/4])((int)((char*)&D_00000000 + *(s16*)((char*)obj + 0x60)));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00008674);
-#endif
 
 /* game_libs_func_000086A0: 31-insn FPU-only updater on two adjacent floats
  * at a0+0x550 (f550) and a0+0x54C (f54C).
