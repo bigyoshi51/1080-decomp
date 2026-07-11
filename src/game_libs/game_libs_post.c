@@ -16663,7 +16663,7 @@ void gl_func_0002F288(char *arg0) {
             var_t0 = 3;
         }
         temp_a0 = *(s32 *)4;
-        temp_f2 = ((f32) temp_a0 * *(f32 *)0x1730) + FW(arg0, 0x0);
+        temp_f2 = ((f32) temp_a0 * *(f32 *)0x1730) + *(f32 *)(arg0 + 0x0);
         if ((temp_a1 == 0) && (FW(arg0, 0x38) >= 0x15)) {
             temp_v0_2 = *(s32 *)0x10;
             switch (temp_v0_2) {                    /* irregular */
@@ -16708,8 +16708,8 @@ block_18:
         temp_v0_3 = temp_v1_2 * 4;
         var_f0 = (temp_f2 / 80.0f) + *(f32 *)0x173C;
         if (temp_v1_2 != 0) {
-            var_f0 *= FW(temp_v0_3, 0x1C330);
-            var_f12 *= FW(temp_v0_3, 0x1C3B0);
+            var_f0 *= *(f32 *)((char *)temp_v0_3 + 0x1C330);
+            var_f12 *= *(f32 *)((char *)temp_v0_3 + 0x1C3B0);
         }
         if (temp_a1 == 0xFF) {
             temp_v1_3 = (var_t0 & 0xFF) << 8;
