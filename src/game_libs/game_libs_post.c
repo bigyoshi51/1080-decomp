@@ -19698,7 +19698,14 @@ void gl_func_000334B0(int a0, int a1, int a2) {
 //   byte-match needs USO mnemonic disasm + allocator structs typed.
 //   Real-C STRUCTURAL body below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
-// gl_func_000334E8 — FULL m2c DECODE (53.45% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_000334E8 — FULL m2c DECODE (53.45% -> 60.08% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// WIDTH-BLOAT SWEEP 2026-07-11: the ring/DMA globals at +8/+0x24/+0x28/+0x2C
+//   are WORD fields (target lw/sw from a struct base), not byte absolutes —
+//   m2c mis-decoded them as *(char *)N (lbu/sb). Retyped to *(s32 *)N (drops
+//   ~17 spurious lbu, restores the target's lw:14->26). The inner copy loop is
+//   a BYTE copy (target lbu 0(v1) / sb -1(a0)); its *(int*)var_v1 + FW word
+//   ops retyped to *(u8 *). Still NON_MATCHING: the struct base is a stripped
+//   reloc (lui 0x0), so absolute-vs-based addressing + exact bytes stay deferred.
 #ifdef NON_MATCHING
 
 
@@ -19744,42 +19751,42 @@ void gl_func_000334E8(void) {
                     var_a0 = 0;
                     var_v1 = var_s5;
                     do {
-                        temp_t9 = *(int*)var_v1;
+                        temp_t9 = *(u8 *)var_v1;
                         var_v0 += 1;
                         var_v1 += 1;
                         var_a0 += 1;
-                        FW(var_a0, -0x1) = temp_t9;
+                        *(u8 *)(var_a0 - 0x1) = temp_t9;
                     } while (var_v0 < var_s2);
                 }
-                gl_func_0001CA10(0, *(char *)8, 0, var_s2);
+                gl_func_0001CA10(0, *(s32 *)8, 0, var_s2);
             } else {
-                gl_func_0001CA10(0, *(char *)8, (s32) var_s5, var_s2);
+                gl_func_0001CA10(0, *(s32 *)8, (s32) var_s5, var_s2);
             }
-            temp_a2 = *(char *)8 + var_s2;
-            *(char *)8 = temp_a2;
+            temp_a2 = *(s32 *)8 + var_s2;
+            *(s32 *)8 = temp_a2;
             gl_func_0001CA10(0, *(s32 *)0x28, temp_a2);
         }
-        temp_t3 = *(char *)8;
-        if (*(char *)0x2C == temp_t3) {
+        temp_t3 = *(s32 *)8;
+        if (*(s32 *)0x2C == temp_t3) {
             *(s32 *)0x14 = temp_t3;
-            gl_func_0001CA10(0, *(char *)0x28 + 0xC, temp_t3);
-            if (*(char *)0x2C != *(char *)8) {
+            gl_func_0001CA10(0, *(s32 *)0x28 + 0xC, temp_t3);
+            if (*(s32 *)0x2C != *(s32 *)8) {
                 gl_func_0001CA10(0, 0x1E29C);
             }
-            gl_func_0001CA10(0, *(char *)0x28 + 8, 0x12340001);
-            if (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002) {
+            gl_func_0001CA10(0, *(s32 *)0x28 + 8, 0x12340001);
+            if (gl_func_0001CA10(0, *(s32 *)0x28 + 8) != 0x12340002) {
                 do {
                     gl_func_0001CA10(0);
-                } while (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002);
+                } while (gl_func_0001CA10(0, *(s32 *)0x28 + 8) != 0x12340002);
             }
             temp_a2_2 = *(s32 *)0x24;
-            *(char *)8 = temp_a2_2;
-            gl_func_0001CA10(0, *(char *)0x28, temp_a2_2);
-            gl_func_0001CA10(0, *(char *)0x28 + 8, 0x12340003);
-            if (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002) {
+            *(s32 *)8 = temp_a2_2;
+            gl_func_0001CA10(0, *(s32 *)0x28, temp_a2_2);
+            gl_func_0001CA10(0, *(s32 *)0x28 + 8, 0x12340003);
+            if (gl_func_0001CA10(0, *(s32 *)0x28 + 8) != 0x12340002) {
                 do {
                     gl_func_0001CA10(0);
-                } while (gl_func_0001CA10(0, *(char *)0x28 + 8) != 0x12340002);
+                } while (gl_func_0001CA10(0, *(s32 *)0x28 + 8) != 0x12340002);
             }
         }
         var_s4 -= var_s2;
