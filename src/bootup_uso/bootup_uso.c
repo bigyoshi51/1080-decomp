@@ -9349,8 +9349,8 @@ void func_0000D900(char *arg0, char *arg1) {
     case 0x14:
         if (*(s32 *)((char *)(arg0) + 0xA80) == 0) {
             temp_v0_2 = *(s32 *)((char *)(arg1) + 0x4);
-            temp_f2 = *(s32 *)((char *)(temp_v0_2) + 0xC);
-            if (((f64) temp_f2 < *(f64 *)0x988) && (*(s32 *)((char *)(*(s32 *)((char *)(temp_v0_2) + 0x28)) + 0xC) == 0x74)) {
+            temp_f2 = *(f32 *)((char *)(temp_v0_2) + 0xC);
+            if (((f64) temp_f2 < *(f64 *)0x988) && (*(u16 *)((char *)(*(s32 *)((char *)(temp_v0_2) + 0x28)) + 0xC) == 0x74)) {
                 func_00000000(arg0 + 0x808, arg0);
                 return;
             }
@@ -9361,26 +9361,26 @@ void func_0000D900(char *arg0, char *arg1) {
             } else {
                 var_f2 = temp_f2;
             }
-            sp48 = *(s32 *)((char *)(temp_v0_2) + 0x0) * var_f2;
-            sp4C = *(s32 *)((char *)(temp_v0_2) + 0x4) * var_f2;
-            sp50 = *(s32 *)((char *)(temp_v0_2) + 0x8) * var_f2;
+            sp48 = *(f32 *)((char *)(temp_v0_2) + 0x0) * var_f2;
+            sp4C = *(f32 *)((char *)(temp_v0_2) + 0x4) * var_f2;
+            sp50 = *(f32 *)((char *)(temp_v0_2) + 0x8) * var_f2;
             *((s32 *)&sp54 + 0) = (f32) *((s32 *)&sp48 + 0);
             *((s32 *)&sp54 + 1) = (s32) *((s32 *)&sp48 + 1);
             *((s32 *)&sp54 + 2) = (s32) *((s32 *)&sp48 + 2);
             *((s32 *)&sp6C + 0) = *((s32 *)&sp54 + 0);
             *((s32 *)&sp6C + 1) = (s32) *((s32 *)&sp54 + 1);
             *((s32 *)&sp6C + 2) = (s32) *((s32 *)&sp54 + 2);
-            *(f32 *)((char *)(arg0) + 0xB4) = (f32) (*(s32 *)((char *)(arg0) + 0xB4) + sp6C);
-            *(f32 *)((char *)(arg0) + 0xB8) = (f32) (*(s32 *)((char *)(arg0) + 0xB8) + sp70);
-            *(f32 *)((char *)(arg0) + 0xBC) = (f32) (*(s32 *)((char *)(arg0) + 0xBC) + sp74);
-            *(f32 *)((char *)(arg0) + 0x318) = (f32) (*(s32 *)((char *)(arg0) + 0x318) + sp6C);
-            *(f32 *)((char *)(arg0) + 0x31C) = (f32) (*(s32 *)((char *)(arg0) + 0x31C) + sp70);
-            *(f32 *)((char *)(arg0) + 0x320) = (f32) (*(s32 *)((char *)(arg0) + 0x320) + sp74);
-            *(f32 *)((char *)(arg0) + 0xA1C) = (f32) ((f64) *(s32 *)((char *)(arg0) + 0xA1C) + ((f64) ((*(s32 *)((char *)(arg0) + 0x3BC) * sp6C) + (*(s32 *)((char *)(arg0) + 0x3C0) * sp70) + (*(s32 *)((char *)(arg0) + 0x3C4) * sp74)) * *(f64 *)0x990));
-            *(s32 *)((char *)(arg0) + 0xA10) = (u16) (*(s32 *)((char *)(arg0) + 0xA10) | 0x1F0);
-            *(f32 *)((char *)(arg0) + 0xA24) = (f32) ((f64) *(s32 *)((char *)(arg0) + 0xA24) + ((f64) -((*(s32 *)((char *)(arg0) + 0x3C8) * sp6C) + (*(s32 *)((char *)(arg0) + 0x3CC) * sp70) + (*(s32 *)((char *)(arg0) + 0x3D0) * sp74)) * 0.5));
+            *(f32 *)((char *)(arg0) + 0xB4) = (f32) (*(f32 *)((char *)(arg0) + 0xB4) + sp6C);
+            *(f32 *)((char *)(arg0) + 0xB8) = (f32) (*(f32 *)((char *)(arg0) + 0xB8) + sp70);
+            *(f32 *)((char *)(arg0) + 0xBC) = (f32) (*(f32 *)((char *)(arg0) + 0xBC) + sp74);
+            *(f32 *)((char *)(arg0) + 0x318) = (f32) (*(f32 *)((char *)(arg0) + 0x318) + sp6C);
+            *(f32 *)((char *)(arg0) + 0x31C) = (f32) (*(f32 *)((char *)(arg0) + 0x31C) + sp70);
+            *(f32 *)((char *)(arg0) + 0x320) = (f32) (*(f32 *)((char *)(arg0) + 0x320) + sp74);
+            *(f32 *)((char *)(arg0) + 0xA1C) = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA1C) + ((f64) ((*(f32 *)((char *)(arg0) + 0x3BC) * sp6C) + (*(f32 *)((char *)(arg0) + 0x3C0) * sp70) + (*(f32 *)((char *)(arg0) + 0x3C4) * sp74)) * *(f64 *)0x990));
+            *(u16 *)((char *)(arg0) + 0xA10) = (u16) (*(u16 *)((char *)(arg0) + 0xA10) | 0x1F0);
+            *(f32 *)((char *)(arg0) + 0xA24) = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA24) + ((f64) -((*(f32 *)((char *)(arg0) + 0x3C8) * sp6C) + (*(f32 *)((char *)(arg0) + 0x3CC) * sp70) + (*(f32 *)((char *)(arg0) + 0x3D0) * sp74)) * 0.5));
             *(s32 *)((char *)(arg0) + 0xA80) = 0xA;
-            *(s32 *)((char *)(arg0) + 0x9A4) = (u16) *(s32 *)((char *)(*(s32 *)((char *)(temp_v0_2) + 0x28)) + 0xC);
+            *(u16 *)((char *)(arg0) + 0x9A4) = (u16) *(u16 *)((char *)(*(s32 *)((char *)(temp_v0_2) + 0x28)) + 0xC);
             return;
         }
         return;
