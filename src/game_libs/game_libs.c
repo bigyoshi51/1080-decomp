@@ -3422,13 +3422,18 @@ int gl_func_00006A8C(char *a0, int a1) {
  * 0x508 (1288) / 0x510 (1296) s32 = 0; 0x534 (1332) / 0x538 (1336)
  * f32 = 1.0; 0x540 (1344) s32 = 255. Global G = *(&D): G->0x78 (120)
  * = 1, G->0x7C (124) = 0, G->0x8C (140) = a0->0x4F0; plus 3 standalone
- * global f32 zeroed. Caps <80: FP-const (1.0/0.0) loads + bgez bit
- * test + gl_func_00000000 reloc + multiple &D global relocs. INCLUDE_ASM
- * remains the build path (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
-extern float gl_d_x, gl_d_y, gl_d_z;  /* placeholder 3 global floats zeroed by this fn */
+ * global f32 zeroed.
+ * EXACT MATCH 2026-07-11 (agent-f, mis-diagnosed-cap crossing). The "caps <80"
+ * were global-CSE + store-order, not FP/reloc: target holds the &D base in ONE
+ * register across the two post-call stores (G->0x8C, G->0x7C); build re-derived
+ * it via lui $at per site. Fix: a FRESH post-call base pointer H=(int*)&D reused
+ * for both stores (persistent reg) cascades to fix the FP-const load order +
+ * jr-delay fill; swap the 0x510/0x508 zero-stores; gl_d_x/y/z = 3 distinct
+ * base-0 aliases reproduce target's 3 separate lui $at,0 (no CSE). cmp clean. */
+extern float gl_d_x, gl_d_y, gl_d_z;  /* 3 global floats zeroed by this fn */
 void gl_func_00006AAC(int *a0) {
     int *G = (int*)&D_00000000;
+    int *H;
     *(int*)((char*)a0 + 0x30) = 0;
     *(int*)((char*)a0 + 0x2C) = 0;
     *(int*)((char*)a0 + 0x4E0) = 0;
@@ -3439,7 +3444,8 @@ void gl_func_00006AAC(int *a0) {
     gl_func_00000000(&D_00000000, 0);
     *(int*)((char*)a0 + 0x4E8) = 20;
     *(int*)((char*)a0 + 0x4E4) = (*(int*)((char*)a0 + 0x4F0) & (1 << 18)) ? 120 : 0;
-    G[0x8C / 4] = *(int*)((char*)a0 + 0x4F0);
+    H = (int*)&D_00000000;
+    H[0x8C / 4] = *(int*)((char*)a0 + 0x4F0);
     *(int*)((char*)a0 + 0x540) = 255;
     *(float*)((char*)a0 + 0x534) = 1.0f;
     *(float*)((char*)a0 + 0x538) = 1.0f;
@@ -3447,13 +3453,10 @@ void gl_func_00006AAC(int *a0) {
     gl_d_y = 0.0f;
     gl_d_z = 0.0f;
     *(int*)((char*)a0 + 0x500) = 0;
-    *(int*)((char*)a0 + 0x508) = 0;
     *(int*)((char*)a0 + 0x510) = 0;
-    G[0x7C / 4] = 0;
+    *(int*)((char*)a0 + 0x508) = 0;
+    H[0x7C / 4] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00006AAC);
-#endif
 
 /* gl_func_00006B80 - object initializer (0xB8, 46 insns). MATCHED 2026-06-20.
  * Two landing levers: (1) assign a0->0x4E4 = a1 BEFORE the two zero-stores so

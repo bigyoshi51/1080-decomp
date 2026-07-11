@@ -1164,6 +1164,9 @@ gl_d_21d2c_tbl = 0x00000000;  /* game_libs_func_00021D2C: distinct base-0 alias 
 gl_d_21d2c_n = 0x00000000;    /* game_libs_func_00021D2C: see above */
 gl_d_233A0 = 0x00000000;      /* game_libs_func_000233A0: base-0 ARRAY alias of D_00000000 -- direct array refs materialize the base once (lui;addiu $a2) instead of per-use scalar fold */
 gl_d_275F4 = 0x00000000;      /* game_libs_func_000275F4: base-0 ARRAY alias of D_00000000 for rec = D + a0*0x160 */
+gl_d_x = 0x00000000;          /* gl_func_00006AAC: 3 distinct base-0 aliases -- each zeroed float global gets its own lui;swc1 (no CSE) matching target */
+gl_d_y = 0x00000000;          /* gl_func_00006AAC */
+gl_d_z = 0x00000000;          /* gl_func_00006AAC */
 D_00007FD4 = 0x00007FD4;
 D_8F18_vtable = 0x0;
 D_8F18_call_arg = 0x0;
