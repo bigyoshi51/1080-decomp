@@ -16505,28 +16505,131 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F1B8);
 //   STRUCTURAL body below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
-void gl_func_0002F288(char *o) {
-    unsigned char mode = *(unsigned char *)(o + 0x21);
-    float acc = *(float *)(o + 0);
-    unsigned char k;
-    int t;
-    float s;
-    float d;
-    if (mode == 2) return;
-    k = *(unsigned char *)(o + 0x14);
-    if (*(unsigned char *)(o + 0x1C) != 0) return;
-    t = *(int *)((char *)&D_00000000 + 4);
-    s = *(float *)((char *)&D_00000000 + 0x1730);
-    d = (float)t * s;
-    if (k == 0) acc += d;
-    if (*(int *)(o + 0x38) < 0x15) {
-        if (acc > 0.5f) acc = 0.5f;
-        if (acc < -0.5f) acc = -0.5f;
+
+
+
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+typedef char *(*GP_0002F288)();
+void gl_func_0002F288(char *arg0) {
+    s32 sp40;                                       /* compiler-managed */
+    s32 sp3C;                                       /* compiler-managed */
+    s32 sp24;
+    s32 sp20;
+    s32 sp1C;
+    f32 temp_f2;
+    f32 var_f0;
+    f32 var_f0_2;
+    f32 var_f12;
+    f32 var_f12_2;
+    s32 temp_a0;
+    s32 temp_a0_2;
+    s32 temp_a0_3;
+    s32 temp_v0_2;
+    s32 temp_v0_3;
+    s32 temp_v0_4;
+    s32 temp_v0_5;
+    s32 temp_v1_3;
+    s32 temp_v1_4;
+    s32 var_t0;
+    s32 var_v0;
+    s32 var_v0_2;
+    s32 var_v0_3;
+    s32 var_v0_4;
+    u8 temp_a1;
+    u8 temp_v0;
+    u8 temp_v1;
+    u8 temp_v1_2;
+
+    temp_v0 = FW(arg0, 0x21);
+    temp_a1 = FW(arg0, 0x14);
+    if ((temp_v0 != 2) && (FW(arg0, 0x1C) == 0)) {
+        var_t0 = 7;
+        if (temp_v0 == 0) {
+            var_t0 = 3;
+        }
+        temp_a0 = *(s32 *)4;
+        temp_f2 = ((f32) temp_a0 * *(f32 *)0x1730) + FW(arg0, 0x0);
+        if ((temp_a1 == 0) && (FW(arg0, 0x38) >= 0x15)) {
+            temp_v0_2 = *(s32 *)0x10;
+            switch (temp_v0_2) {                    /* irregular */
+            default:
+            case 0:
+                var_f12 = 1.0f;
+                var_v0 = (s32) (temp_f2 * 0.5f);
+                break;
+            case 1:
+            case 2:
+                var_f12 = *(f32 *)0x1734;
+                var_v0 = (s32) (temp_f2 / 3.5f);
+                break;
+            }
+        } else {
+            var_f12 = *(f32 *)0x1738;
+            var_v0 = (s32) (temp_f2 * 0.25f);
+        }
+        temp_v1 = FW(arg0, 0x1F);
+        var_v0_2 = ((var_v0 & 0xFF) + temp_a0) & 0xFF;
+        if (temp_v1 != 0) {
+            temp_a0_2 = *(s32 *)0x1C740 - 1;
+            *(char *)0x1C740 = temp_a0_2;
+            if (temp_a0_2 == 0) {
+                if (temp_a1 == 0) {
+                    temp_a0_3 = (s32) temp_v1 / 2;
+                    if (var_v0_2 >= temp_a0_3) {
+                        var_v0_3 = var_v0_2 - temp_a0_3;
+                        goto block_18;
+                    }
+                } else {
+                    var_v0_3 = var_v0_2 + temp_v1;
+block_18:
+                    var_v0_2 = var_v0_3 & 0xFF;
+                }
+                *(char *)0x1C740 = (s32) (3 - (*(s32 *)0x2154 & 1));
+            } else if ((temp_a1 != 0) && (var_v0_2 >= 0xA)) {
+                var_v0_2 = (var_v0_2 - 0xA) & 0xFF;
+            }
+        }
+        temp_v1_2 = FW(arg0, 0x32);
+        temp_v0_3 = temp_v1_2 * 4;
+        var_f0 = (temp_f2 / 80.0f) + *(f32 *)0x173C;
+        if (temp_v1_2 != 0) {
+            var_f0 *= FW(temp_v0_3, 0x1C330);
+            var_f12 *= FW(temp_v0_3, 0x1C3B0);
+        }
+        if (temp_a1 == 0xFF) {
+            temp_v1_3 = (var_t0 & 0xFF) << 8;
+            temp_v0_4 = temp_v1_3 | 0x06000000;
+            sp1C = temp_v0_4;
+            sp20 = temp_v1_3;
+            sp24 = var_v0_2;
+            sp3C = (s32) var_f12;
+            gl_func_0001CA10((s32) var_f12, temp_v0_4 | 6, 1, var_v0_2, arg0);
+            var_f0_2 = 1.0f;
+            var_v0_4 = temp_v0_4;
+        } else {
+            temp_v1_4 = (var_t0 & 0xFF) << 8;
+            temp_v0_5 = temp_v1_4 | 0x06000000;
+            sp1C = temp_v0_5;
+            sp20 = temp_v1_4;
+            sp24 = var_v0_2;
+            sp40 = (s32) var_f0;
+            sp3C = var_f12;
+            gl_func_0001CA10((s32) var_f12, temp_v0_5 | 6, 0, var_v0_2, arg0);
+            var_v0_4 = temp_v0_5;
+            var_f0_2 = var_f0;
+        }
+        var_f12_2 = sp3C;
+        if (FW(arg0, 0x1C) & 1) {
+            var_f12_2 = 0.0f;
+        }
+        sp40 = var_f0_2;
+        sp3C = var_f12_2;
+        gl_func_0001CA10((s32) var_f12_2, var_v0_4 | 5, (s8) var_v0_2, (s32) (s8) var_v0_2, arg0);
+        gl_func_0001CA10(sp20 | 0x04000000, (s32) var_f0_2);
+        gl_func_0001CA10((s32) var_f12_2, sp20 | 0x01000000, (s8) var_f12_2);
     }
-    if (acc > 127.0f) acc = 127.0f;
-    if (acc < -127.0f) acc = -127.0f;
-    *(float *)(o + 0) = acc;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
