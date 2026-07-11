@@ -2076,9 +2076,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003C0C);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00003DB8)();
+/* gl_func_00003DB8 - free-slot allocator variant (same family as 3B1C/3C0C).
+ * Reload-per-access shape (slot is NOT homed to $s0 — reloaded *(v1+0x2C) each
+ * field write; v1 spilled across calls). cvt.d.s asymmetry fixed via the same
+ * 5-arg two-float alias gl_func_00000000_i3ff(slot,220,120,1.0f,1.0f) — arg4 in
+ * $a3 (mfc1), arg5 on stack (swc1), no double-promote. Removed the m2c sp20
+ * spill artifacts (IDO spills v1 itself). Residual cap (blocks EXACT): the 2nd
+ * init's 0xCD08 magic is a baked absolute USO symbol (target lui 0x1 + addiu
+ * -13048); IDO loads a plain 0xCD08 int as a single ori, and a symbol ref would
+ * be reloc-placeholder bytes — not literally reproducible (see 3B1C note). Plus
+ * a 1-insn base-materialization scheduling diff on the arg1>=10 decrement. */
 char *gl_func_00003DB8(char *arg0, s32 arg1, int arg2, s32 arg3) {
-    char *sp20;
     s32 var_v0;
     char *temp_a0;
     char *temp_v0;
@@ -2086,7 +2094,7 @@ char *gl_func_00003DB8(char *arg0, s32 arg1, int arg2, s32 arg3) {
 
     var_v0 = 0;
     var_v1 = arg0;
-loop_1:
+    do {
     temp_a0 = FW(var_v1, 0x2C);
     var_v0 += 4;
     if (FW(temp_a0, 0x94) == 0) {
@@ -2099,8 +2107,7 @@ loop_1:
             FW(FW(var_v1, 0x2C), 0x9C) = 0;
             FW(FW(var_v1, 0x2C), 0x78) = 0xFF;
         }
-        sp20 = var_v1;
-        (char*)func_00000000(FW(var_v1, 0x2C), 0xDC, 0x78, (char *)0x3F800000, 1.0f);
+        gl_func_00000000_i3ff(FW(var_v1, 0x2C), 220, 120, 1.0f, 1.0f);
         FW(FW(var_v1, 0x2C), 0x98) = 0;
         FW(FW(var_v1, 0x2C), 0xA0) = (char *) ((int)arg0 + 0xF0);
         *(f32*)((char*)FW(var_v1, 0x2C) + 0xA4) = 0.0f;
@@ -2108,20 +2115,17 @@ loop_1:
         *(f32*)((char*)FW(var_v1, 0x2C) + 0xAC) = 0.0f;
         FW(FW(var_v1, 0x2C), 0x80) = 0;
         if (arg1 >= 0xA) {
-            temp_v0 = FW(var_v1, 0x2C);
-            FW(temp_v0, 0x80) = (s32) (FW(temp_v0, 0x80) - 6);
+            temp_v0 = FW(var_v1, 0x2C) + 0x80;
+            *(s32 *)temp_v0 = *(s32 *)temp_v0 - 6;
         }
         FW(FW(var_v1, 0x2C), 0x84) = 8;
         FW(FW(var_v1, 0x2C), 0xB0) = (s32) FW(arg0, 0x58);
-        sp20 = var_v1;
-        (char*)func_00000000(FW(var_v1, 0x2C) + 0xB4, 0xCD08, arg1, arg0);
+        gl_func_00000000(FW(var_v1, 0x2C) + 0xB4, 0xCD08, arg1, arg0);
         return FW(var_v1, 0x2C);
     }
     var_v1 += 4;
-    if (var_v0 == 0x20) {
-        return 0;
-    }
-    goto loop_1;
+    } while (var_v0 != 0x20);
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003DB8);
