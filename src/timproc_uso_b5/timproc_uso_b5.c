@@ -5761,7 +5761,6 @@ void timproc_uso_b5_func_00008468(char *arg0) {
     s32 temp_v0_5;
 
     if (timproc_uso_b5_alias(&import_80020098, 0x100) != 0) {
-        timproc_uso_b5_alias(arg0);
         temp_v0 = timproc_uso_b5_alias(arg0);
         temp_v1 = FW(temp_v0, 0x28);
         ((GP_00007B2C)FW(temp_v1, 0x8C))(*(s16*)((char*)temp_v1 + 0x88) + temp_v0, 0);
