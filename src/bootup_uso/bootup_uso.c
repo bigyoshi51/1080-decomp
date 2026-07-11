@@ -2151,11 +2151,20 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002C94);
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
 #ifdef NON_MATCHING
-/* func_00002DA4 - STRUCTURAL PASS (JUMPTABLE, 2026-06-02).
- * bootup_uso 11-case switch(arg1) setup. Jump table resolved via
- * scripts/extract-uso-jumptable.py (RoData reloc); the 11 case targets
- * all share jal-delay slots (duplicated for m2c). Folded D_00000000
- * refs + func_00000000 placeholder. NOT matched; INCLUDE_ASM byte-exact. */
+/* func_00002DA4 - RECONSTRUCTED SWITCH (JUMPTABLE, 2026-07-10).
+ * bootup_uso subsystem-init + 12-way jr-$t9 dispatch on (arg1-1)<0xC.
+ * Jump table @ func_000003F8+0xFC resolved via
+ * scripts/extract-uso-jumptable.py (RoData reloc, module 0xD9FE28):
+ * the case bodies are emitted in target .text-block order, which the
+ * jumptable maps as arg1 = 3,5,1,4,6,7,2,10,11,12 (source-order = block
+ * order). Nine handlers are func(arg0,arg2); the arg1==2 handler is
+ * func(arg0,0) + (*D_g)->0x18 |= 4. arg1=8,9 and out-of-range fall to
+ * the default (target func(&D_00007408); modeled as func(NULL) — the
+ * &D_00007408 form is undefined here and scores lower under objdiff).
+ * Filling the previously-empty cases + block-order raised objdiff fuzzy
+ * 37.0% -> 76.2%. Remaining gap = the rodata jumptable pool +
+ * func_00000000/D_ placeholder relocs (data-pool consumer, unmatchable
+ * exactly). NOT byte-matched; build path is INCLUDE_ASM (no episode). */
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 
 void func_00002DA4(void *arg0, s32 arg1, void *arg2) {
@@ -2180,29 +2189,37 @@ void func_00002DA4(void *arg0, s32 arg1, void *arg2) {
     (*(int*)((char*)&D_00000000+4)) = (s32) ((*(int*)((char*)&D_00000000+4)) | 0x80000 | 0x2000 | 0x20000);
     if ((u32) (arg1 - 1) < 0xCU) {
         switch (arg1) {
+        case 3:
+            func_00000000(arg0, arg2);
+            break;
+        case 5:
+            func_00000000(arg0, arg2);
+            break;
         case 1:
+            func_00000000(arg0, arg2);
+            break;
+        case 4:
+            func_00000000(arg0, arg2);
+            break;
+        case 6:
+            func_00000000(arg0, arg2);
+            break;
+        case 7:
+            func_00000000(arg0, arg2);
+            break;
+        case 2:
+            func_00000000(arg0, NULL);
             temp_a1_2 = (*(int*)&D_00000000);
             FW(temp_a1_2, 0x18) = (s32) (FW(temp_a1_2, 0x18) | 4);
             break;
-        case 2:
-            break;
-        case 3:
-            break;
-        case 4:
-            break;
-        case 5:
-            break;
-        case 6:
-            break;
-        case 7:
-            break;
-        case 8:
-            break;
-        case 9:
-            break;
         case 10:
+            func_00000000(arg0, arg2);
             break;
         case 11:
+            func_00000000(arg0, arg2);
+            break;
+        case 12:
+            func_00000000(arg0, arg2);
             break;
         }
     } else {
