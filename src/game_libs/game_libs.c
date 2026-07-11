@@ -20,6 +20,7 @@ extern char gl_ref_0000CAF4;
 extern char gl_ref_0000CAFC;
 int gl_func_000001CC(int *a0, int a1) {
     int *s0 = a0;
+    float div255 = 255.0f;
     if (a0 == 0) {
         s0 = (int*)gl_func_00000000(0x13C);
         if (s0 == 0) {
@@ -38,10 +39,10 @@ int gl_func_000001CC(int *a0, int a1) {
     gl_func_00000000((char*)s0 + 0x10C, 0x50000);
     gl_func_00000000((char*)s0 + 0x124, 0x50007);
     gl_func_00000000(s0, (char*)s0 + 0x124);
-    *(float*)((char*)s0 + 0xC4) = 250.0f / 255.0f;
-    *(float*)((char*)s0 + 0xC8) = 235.0f / 255.0f;
-    *(float*)((char*)s0 + 0xCC) = 100.0f / 255.0f;
-    *(float*)((char*)s0 + 0xD0) = 0.0f / 255.0f;
+    *(float*)((char*)s0 + 0xC4) = 250.0f / div255;
+    *(float*)((char*)s0 + 0xC8) = 235.0f / div255;
+    *(float*)((char*)s0 + 0xCC) = 100.0f / div255;
+    *(float*)((char*)s0 + 0xD0) = 0.0f / div255;
     *(int*)((char*)s0 + 0xD4) = 0;
     *(int*)((char*)s0 + 0xD8) = 255;
     *(int*)((char*)s0 + 0xDC) = 130;
