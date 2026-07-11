@@ -236,18 +236,27 @@ int gl_func_0006CB84(int direction, unsigned int devAddr, void *dramAddr, unsign
  *   2. CSE-BREAK: read a0 via '*(int**)&a0' for the D2 store. The plain
  *      'a0' folds both uses into one reload (a single a1); re-deref forces
  *      the two independent param-home reloads the target uses (t7 then t8).
- *   'volatile int spill = (int)r;' forces the v0->stack->a0 round-trip
- *   (spill at sp+0x1C target / sp+0x18 built; see residual below).
+ *   3. SPILL-SLOT CROSS (2026-07 crossing-hunt): declaring 'volatile int spill;'
+ *      UNINITIALIZED and assigning it AFTER the first call earns the spill the
+ *      first local slot sp+0x1C (matching target); the earlier initialized form
+ *      ('volatile int spill = (int)r;') colored it at sp+0x18. With this the C
+ *      BODY is byte-exact vs target (all 18 real insns + jr-ra delay nop match).
  *
- * Residual (register-coloring frame cap, not C-forceable): target spills
- * v0 at sp+0x1C and leaves sp+0x18 unused; built colors the spill at
- * sp+0x18. A 'volatile int pad;' shifts the spill to 0x1C but grows the
- * frame to 0x28 (a0 home + sp adjust then diverge), a net loss. Frame
- * stays 0x20 either way; only the one spill-slot offset differs. */
+ * WHY STILL NM (not promoted to plain C): target has a trailing pad word after
+ * the jr-ra delay nop, supplied by gl_func_0006CC14_pad.s. The .s (INCLUDE_ASM)
+ * is 18 words ending in jr ra (no delay nop); pad.s 8-byte-aligns and fills BOTH
+ * the delay nop AND the pad word -> exact. A C body already emits its own delay
+ * nop, so C(19w)+pad.s(8-aligned) overshoots by one word (next fn +4) and C(19w)
+ * with NO pad undershoots by one word. Placing exactly one trailing zero word
+ * needs a Makefile all-zero SUFFIX_BYTES entry (sanctioned padding) replacing the
+ * pad.s pragma -- outside this agent's file scope. LEAD for the Makefile owner:
+ *   build/src/game_libs/game_libs_post1b2c.c.o: SUFFIX_BYTES ... gl_func_0006CC14=0x00000000
+ *   + drop the gl_func_0006CC14_pad.s GLOBAL_ASM here, then promote to plain C. */
 extern int D_cc14_alias2;
 int gl_func_0006CC14(int *a0) {
+    volatile int spill;
     int *r = (int*)gl_func_00000000(a0);
-    volatile int spill = (int)r;
+    spill = (int)r;
     *a0 = *(int*)&D_00000000;
     *(int**)&D_cc14_alias2 = *(int**)&a0;
     gl_func_00000000((int*)spill);
