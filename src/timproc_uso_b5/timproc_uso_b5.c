@@ -9378,21 +9378,108 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   below — alloc-cascade + sub-record init + child-wire skeleton.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-char *timproc_uso_b5_func_0000D550(int a0, int a1, int a2, int a3) {
+/* PASS-2 2026-07-10 (agent-g): FULL reconstruction from the raw-.word target
+ * (205 words, cross-checked via scripts/disasm-func.py --m2c). Prior body was a
+ * ~10-line skeleton (11.2% fuzzy). Real function is a 9-arg two-stage
+ * constructor: alloc panel r(0x2C8) + in-place sub-record init, owner-attach,
+ * alloc widget w(0x138) with its own sub-widget(0x16C), flag-register
+ * (D+4, volatile) toggle, arg3..arg8 float wiring, second owner-attach, and
+ * registration into arg0's child array. The func(0x2B8) alloc branch is dead
+ * (r provably non-NULL) but present in the target — reproduced via the
+ * short-circuit `||`. func_00000000 = USO placeholder dispatcher. */
+#define TB5D_FLAG (*(volatile s32 *)((char *)&D_00000000 + 4))
+char *timproc_uso_b5_func_0000D550(void *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8) {
     char *r;
     char *s;
-    r = (char *)func_00000000(0x2C8);
-    if (r == 0) return 0;
-    s = (char *)func_00000000(0x2B8);
-    if (s != 0) {
-        func_00000000(s, (char *)&D_00000000 + 0x000015F0);
-        *(char **)(s + 0x28) = &D_00000000;
-        func_00000000(s + 0x2C);
-        func_00000000(s + 0x194, (char *)&D_00000000 + 0x000015F8);
+    char *w;
+    char *sub;
+    char *tmp;
+    s32 flagsave;
+    s32 argp1;
+    f32 cf;
+
+    r = (char *)func_00000000((void *)0x2C8);
+    if (r != 0) {
+        s = r;
+        if ((r != 0) || ((s = (char *)func_00000000((void *)0x2B8)), (s != 0))) {
+            func_00000000(s, (char *)&D_00000000 + 0x15F0);
+            *(s32 *)(s + 0x28) = (s32)((char *)&D_00000000 + 0);
+            func_00000000(s + 0x2C);
+            func_00000000(s + 0x194);
+        }
+        *(s32 *)(r + 0x28) = (s32)((char *)&D_00000000 + 0x6D4);
+        *(s32 *)(r + 0xC) = (s32)((char *)&D_00000000 + 0x15F8);
+        func_00000000(r);
+        *(s32 *)(r + 0x2C4) = 0;
+        *(s32 *)(r + 0x2B4) = 0;
     }
-    func_00000000(r, s, a0, a1, a2, a3);
+    func_00000000((char *)arg0 + 0x10, r);
+    if (*(s32 *)(r + 0x14) != 0) {
+        *(s32 *)(r + 0x4) = 1;
+    }
+    *(s32 *)(r + 0x14) = (s32)arg0;
+    *(s32 *)(r + 0x2B0) = arg2;
+    *(f32 *)(r + 0x2A4) = (f32)arg1;
+    argp1 = arg2 + 1;
+    w = (char *)func_00000000((void *)0x138);
+    if (w != 0) {
+        func_00000000(w, (char *)&D_00000000 + 0x1604, 0.0f, 0.0f, 0.0f);
+        *(s32 *)(w + 0x28) = (s32)((char *)&D_00000000 + 0x444);
+        *(s32 *)(w + 0xC) = (s32)((char *)&D_00000000 + 0x160C);
+        sub = (char *)func_00000000((void *)0x16C);
+        if (sub != 0) {
+            func_00000000(sub, (char *)&D_00000000 + 0x1614, 0.0f, 0.0f, 0.0f);
+            cf = *(f32 *)((char *)&D_00000000 + 0x3B4);
+            *(s32 *)(sub + 0x120) = 1;
+            *(s32 *)(sub + 0x28) = (s32)((char *)&D_00000000 + 0);
+            *(f32 *)(sub + 0x108) = cf;
+            *(f32 *)(sub + 0x10C) = cf;
+            *(f32 *)(sub + 0x110) = cf;
+            *(f32 *)(sub + 0x124) = 1.0f;
+        }
+        *(s32 *)(w + 0x108) = (s32)sub;
+        func_00000000(w, sub);
+        tmp = *(char **)(w + 0x108);
+        *(f32 *)(tmp + 0xBC) = 0.0f;
+        *(f32 *)(tmp + 0xB8) = 0.0f;
+        *(f32 *)(tmp + 0xB4) = 0.0f;
+        flagsave = TB5D_FLAG & 0x80000;
+        TB5D_FLAG = (TB5D_FLAG & 0xFFF7FFFF) | 0x2000;
+        func_00000000(w, func_00000000((void *)argp1));
+        if (flagsave != 0) {
+            TB5D_FLAG = TB5D_FLAG | 0x80000;
+        } else {
+            TB5D_FLAG = TB5D_FLAG & 0xFFF7FFFF;
+        }
+        *(f32 *)(w + 0xDC) = arg3;
+        *(f32 *)(w + 0xE0) = arg4;
+        *(f32 *)(w + 0x10C) = 0.0f;
+        *(f32 *)(w + 0xE4) = arg5;
+        *(f32 *)(w + 0x110) = arg6;
+        *(f32 *)(w + 0x114) = arg7;
+        *(s32 *)(w + 0x12C) = 0;
+        *(s32 *)(w + 0x130) = 0;
+        *(f32 *)(w + 0x120) = 1.0f;
+        *(f32 *)(w + 0x124) = 0.0f;
+        *(f32 *)(w + 0x118) = arg8;
+    }
+    *(s32 *)(r + 0x2B8) = (s32)w;
+    *(s32 *)(r + 0x29C) = (s32)w;
+    *(f32 *)(r + 0x134) = *(f32 *)((char *)&D_00000000 + 0x3B8);
+    tmp = *(char **)((char *)arg0 + 0x38);
+    func_00000000(tmp + 0x10, w);
+    if (*(s32 *)(w + 0x14) != 0) {
+        *(s32 *)(w + 0x4) = 1;
+    }
+    *(s32 *)(w + 0x14) = (s32)tmp;
+    {
+        s32 idx = *(s32 *)((char *)arg0 + 0x6C);
+        *(s32 *)((char *)arg0 + 0x6C) = idx + 1;
+        *(s32 *)((char *)arg0 + idx * 4 + 0x3C) = (s32)r;
+    }
     return r;
 }
+#undef TB5D_FLAG
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000D550);
 #endif
