@@ -3946,7 +3946,13 @@ void game_libs_func_000076E8(int a0) {
  * fuzzy% overstates). Residual: pervasive scattered regalloc (v0/v1 swaps,
  * a0-vs-s0 base, branch-likely delay-fill order) + switch2/switch4
  * jumptable case-data ambiguity (USO base-0 jtbl resolved at load, absent
- * from .s). Genuine regalloc/scheduling cap. */
+ * from .s). Genuine regalloc/scheduling cap.
+ * PASS-3 2026-07-11 (agent-f): WIDTH-FIX. m2c had mis-typed the float
+ * fields (arg0+0x534/0x538/0x548/0x54C/0x550, all swc1 in target) and the
+ * global camera/alpha float (&D_00000000+0, lwc1/swc1 in target) as s32,
+ * emitting li+sw and lw+cvt.s.w instead. Retyped to f32 -> swc1/lwc1 direct,
+ * removing all bogus int-to-float conversions. Fuzzy 56.97 -> 63.88%.
+ * Residual is the unresolvable USO load-time jumptables + regalloc cap. */
 void gl_func_000076F0(char *arg0) {
     s32 sp24;
     s32 sp20;
@@ -4018,28 +4024,28 @@ void gl_func_000076F0(char *arg0) {
                     switch (sp20) {                 /* switch 2 */
                     case 0:                         /* switch 2 */
                         func_00000000(0x11);
-                        *(s32 *)((char *)(arg0) + 0x534) = 1.0f;
-                        *(s32 *)((char *)(arg0) + 0x538) = 1.0f;
-                        *(s32 *)((char *)(arg0) + 0x548) = 160.0f;
-                        *(s32 *)((char *)(arg0) + 0x550) = 0.0f;
-                        *(s32 *)((char *)(arg0) + 0x54C) = 120.0f;
+                        *(f32 *)((char *)(arg0) + 0x534) = 1.0f;
+                        *(f32 *)((char *)(arg0) + 0x538) = 1.0f;
+                        *(f32 *)((char *)(arg0) + 0x548) = 160.0f;
+                        *(f32 *)((char *)(arg0) + 0x550) = 0.0f;
+                        *(f32 *)((char *)(arg0) + 0x54C) = 120.0f;
                         if (*(s32 *)((char *)&D_00000000 + 0x34) == 2) {
-                            *(s32 *)((char *)(arg0) + 0x54C) = 60.0f;
+                            *(f32 *)((char *)(arg0) + 0x54C) = 60.0f;
                         }
                         goto block_13;
                     case 2:                         /* switch 1 */
                     case 1:                         /* switch 2 */
                         *(s32 *)((char *)(arg0) + 0x540) = 0xFF;
-                        *(s32 *)((char *)(arg0) + 0x534) = 1.0f;
-                        *(s32 *)((char *)(arg0) + 0x538) = 1.0f;
+                        *(f32 *)((char *)(arg0) + 0x534) = 1.0f;
+                        *(f32 *)((char *)(arg0) + 0x538) = 1.0f;
                         func_00000000(0x12);
                         func_00000000(0x10);
                         goto block_13;
                     case 3:                         /* switch 1 */
                     /* dup case 2 */
                         *(s32 *)((char *)(arg0) + 0x540) = 0xFF;
-                        *(s32 *)((char *)(arg0) + 0x534) = 1.0f;
-                        *(s32 *)((char *)(arg0) + 0x538) = 1.0f;
+                        *(f32 *)((char *)(arg0) + 0x534) = 1.0f;
+                        *(f32 *)((char *)(arg0) + 0x538) = 1.0f;
                         func_00000000(0x12);
                         goto block_13;
                     case 4:                         /* switch 1 */
@@ -4137,18 +4143,18 @@ block_17:
     switch (temp_v1_2) {                            /* switch 3; irregular */
     case 1:                                         /* switch 3 */
         if (*(s32 *)((char *)(arg0) + 0x4F0) & 0x10000) {
-            temp_f0 = *(s32 *)((char *)&D_00000000 + 0);
+            temp_f0 = *(f32 *)((char *)&D_00000000 + 0);
             if (temp_f0 < 1.0f) {
                 *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0 + *(f32 *)((char *)&D_00000000 + 0xE2C));
             }
             temp_f2 = *(f32 *)((char *)&D_00000000 + 0xE30);
             if (*(s32 *)((char *)&D_00000000 + 0x34) != 3) {
-                temp_f0_2 = *(s32 *)((char *)&D_00000000 + 0);
+                temp_f0_2 = *(f32 *)((char *)&D_00000000 + 0);
                 if (temp_f0_2 < 1.0f) {
                     *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0_2 + temp_f2);
                 }
             }
-            temp_f0_3 = *(s32 *)((char *)&D_00000000 + 0);
+            temp_f0_3 = *(f32 *)((char *)&D_00000000 + 0);
             if (temp_f0_3 < 1.0f) {
                 *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0_3 + temp_f2);
             }
@@ -4173,24 +4179,24 @@ block_17:
         break;
     case 2:                                         /* switch 3 */
         if ((*(s32 *)((char *)(arg0) + 0x4F0) & 0x10000) && (*(s32 *)((char *)(arg0) + 0x500) != 0)) {
-            temp_f0_4 = *(s32 *)((char *)&D_00000000 + 0);
+            temp_f0_4 = *(f32 *)((char *)&D_00000000 + 0);
             if (temp_f0_4 > 0.0f) {
-                *(s32 *)((char *)&D_00000000 + 0) = temp_f0_4 - *(f32 *)((char *)&D_00000000 + 0xE34);
-                if (*(s32 *)((char *)&D_00000000 + 0) < 0.0f) {
-                    *(s32 *)((char *)&D_00000000 + 0) = 0.0f;
+                *(f32 *)((char *)&D_00000000 + 0) = temp_f0_4 - *(f32 *)((char *)&D_00000000 + 0xE34);
+                if (*(f32 *)((char *)&D_00000000 + 0) < 0.0f) {
+                    *(f32 *)((char *)&D_00000000 + 0) = 0.0f;
                 }
             }
-            if (*(s32 *)((char *)&D_00000000 + 0) <= 0.0f) {
-                temp_f0_5 = *(s32 *)((char *)&D_00000000 + 0);
+            if (*(f32 *)((char *)&D_00000000 + 0) <= 0.0f) {
+                temp_f0_5 = *(f32 *)((char *)&D_00000000 + 0);
                 if (temp_f0_5 > 0.0f) {
                     *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0_5 - *(f32 *)((char *)&D_00000000 + 0xE38));
-                    if (*(s32 *)((char *)&D_00000000 + 0) < 0.0f) {
-                        *(s32 *)((char *)&D_00000000 + 0) = 0.0f;
+                    if (*(f32 *)((char *)&D_00000000 + 0) < 0.0f) {
+                        *(f32 *)((char *)&D_00000000 + 0) = 0.0f;
                     }
                 }
             }
             if ((*(s32 *)((char *)(arg0) + 0x4F8) == 0) && (*(s32 *)((char *)&D_00000000 + 0x34) == 3)) {
-                temp_f0_6 = *(s32 *)((char *)&D_00000000 + 0);
+                temp_f0_6 = *(f32 *)((char *)&D_00000000 + 0);
                 if (temp_f0_6 < 1.0f) {
                     *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0_6 + *(f32 *)((char *)&D_00000000 + 0xE3C));
                 }
