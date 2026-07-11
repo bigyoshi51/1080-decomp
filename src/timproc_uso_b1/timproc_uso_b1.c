@@ -663,7 +663,7 @@ void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
     f32 sp148;
     f32 sp144;
     f32 sp140;
-    u8 spC0;
+    u8 spC0[108];
     s32 sp98;
     s32 sp94;
     s32 sp90;
