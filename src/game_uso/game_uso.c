@@ -1819,6 +1819,17 @@ void game_uso_func_000028C0(char *a0) {
         diff.y = v2v.y - v1v.y;
         diff.z = v2v.z - v1v.z;
         dc1 = diff;
+        dc2 = dc1;
+        mag = game_uso_func_070238(dc2.x * dc2.x + dc2.y * dc2.y + dc2.z * dc2.z);
+        game_uso_func_071028(&dc2);
+        f = mag * *(float *)(a0 + 0x5C);
+        dc2.x = dc2.x * f;
+        dc2.y = dc2.y * f;
+        dc2.z = dc2.z * f;
+        game_uso_func_072EE8(out + 0x30, &dc2);
+        *(float *)(out + 0xA0) = *(float *)(out + 0x60);
+        *(float *)(out + 0xA4) = *(float *)(out + 0x64);
+        *(float *)(out + 0xA8) = *(float *)(out + 0x68);
     } else {
         char *ss = *(char **)(a0 + 0x38);
         Vec3 ssv, refv, axis, axisc, res;
@@ -1851,18 +1862,18 @@ void game_uso_func_000028C0(char *a0) {
         diff.y = ssv.y - refv.y;
         diff.z = ssv.z - refv.z;
         dc1 = diff;
+        dc2 = dc1;
+        mag = game_uso_func_070238(dc2.x * dc2.x + dc2.y * dc2.y + dc2.z * dc2.z);
+        game_uso_func_071028(&dc2);
+        f = mag * *(float *)(a0 + 0x5C);
+        dc2.x = dc2.x * f;
+        dc2.y = dc2.y * f;
+        dc2.z = dc2.z * f;
+        game_uso_func_072EE8(out + 0x30, &dc2);
+        *(float *)(out + 0xA0) = *(float *)(out + 0x60);
+        *(float *)(out + 0xA4) = *(float *)(out + 0x64);
+        *(float *)(out + 0xA8) = *(float *)(out + 0x68);
     }
-    dc2 = dc1;
-    mag = game_uso_func_070238(dc2.x * dc2.x + dc2.y * dc2.y + dc2.z * dc2.z);
-    game_uso_func_071028(&dc2);
-    f = mag * *(float *)(a0 + 0x5C);
-    dc2.x = dc2.x * f;
-    dc2.y = dc2.y * f;
-    dc2.z = dc2.z * f;
-    game_uso_func_072EE8(out + 0x30, &dc2);
-    *(float *)(out + 0xA0) = *(float *)(out + 0x60);
-    *(float *)(out + 0xA4) = *(float *)(out + 0x64);
-    *(float *)(out + 0xA8) = *(float *)(out + 0x68);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000028C0);
