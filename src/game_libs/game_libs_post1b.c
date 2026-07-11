@@ -2948,7 +2948,7 @@ void gl_func_00066D54(char *arg0) {
 
     temp_s4 = arg0 + 0x11B0;
     gl_func_00062F64(temp_s4, (int)arg0 + 0x13EC, (int)arg0 + 0x1218);
-    msgbase = (char *)0x22570;
+    msgbase = (char *)&D_00000000 + 0x22570;
     var_s1 = 0;
     ten = 10;
     stride = 0x68;
@@ -2971,7 +2971,7 @@ void gl_func_00066D54(char *arg0) {
                         } else {
                             gl_func_00062F64(msgbase + 0x1C);
                             FW(temp_s2, 0x13C8) = 2;
-                            FW(((int)arg0 + var_s1), 0x13DC) = 1;
+                            *(u8*)((char*)arg0 + var_s1 + 0x13DC) = 1;
                         }
                     } else if (temp_v0 == 0) {
                         gl_func_00062F64(msgbase + 0x24);
