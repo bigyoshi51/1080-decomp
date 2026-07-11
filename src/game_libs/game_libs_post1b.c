@@ -3666,20 +3666,42 @@ char *game_libs_func_00067BDC(char *dst, char *src) {
 #ifdef NON_MATCHING
 /* strcat-variant: find end of dst, append src (incl. NUL), return pointer to the
  * appended NUL (= stpcpy-of-the-tail). Recognized libc function (reloc-free).
- * Byte-match deferred (multi-run): target is 29 insns vs this 20 — it uses a
- * messier IDO codegen (initial *dst peek, a v1=src dual-use lag pointer, and
- * branch-likely bnezl in the strlen loop) that the clean C form doesn't
- * reproduce. Same 67xxx libc-string family as 67C98 (strncpy). */
+ * Reconstructed against the 29-insn target (expected/): peeled *dst peek + a
+ * lag q-pointer strlen loop (v0 lags a0), plus a v1=src dual-use lag pointer
+ * that re-loads the first appended byte. Same 67xxx libc-string family as
+ * 67C98 (strncpy) / 67D18 (strrchr). */
 char *game_libs_func_00067C1C(char *dst, char *src) {
-    char *d = dst;
-    while (*d) {
-        d++;
+    char *p = src;
+    char *q;
+    char c;
+
+    q = dst;
+    c = *q;
+    dst++;
+    if (c != 0) {
+        do {
+            q = dst;
+            c = *q;
+            dst++;
+        } while (c != 0);
     }
-    while (*src) {
-        *d++ = *src++;
+    c = *src;
+    src++;
+    if (c != 0) {
+        dst--;
+        q = dst;
+        dst++;
+        *q = *p;
+        do {
+            p = src;
+            c = *p;
+            q = dst;
+            dst++;
+            src++;
+            *q = c;
+        } while (c != 0);
     }
-    *d = 0;
-    return d;
+    return dst - 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067C1C);
