@@ -18008,33 +18008,31 @@ void gl_func_0004ACD4(int *self) {
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  *
  * D_BASE→&D_00000000 fix APPLIED 2026-05-19 (offsets folded to
- * +0x200BC / +0x200E0; assert is 4-arg str,str,0xAAF,self). That
- * cleared the lui-0 reloc diffs. Re-test still 33 vs 35 (count -2):
- * residual is pure codegen-shaping — built picks v0 where target
- * uses t8 for cap (`lw t8,0x40`), recomputes idx-base differently,
- * and is 2 insns short around the base-reload-after-assert +
- * cap*10 shift chain (sll<<2;addu;sll<<1). Not a single-lever
- * land; needs a focused regalloc/shape pass. INCLUDE_ASM build
- * path. (Cross-fn pattern → memo
- * project_1080_D_BASE_placeholder_batch_2026-05-19.)
- */
+ * +0x200BC / +0x200E0; assert is 4-arg str,str,0xAAF,self).
+ * 2026-07-15 (agent-f): 83.43 -> 87.86 (35/35 words, 4-diff residual).
+ * Levers: DE-NAME cap (inline `self[0x40/4]*10` in the compare keeps
+ * cap a ring temp t8/t9 chain like target; naming it stole v0 and
+ * cascaded); tail store address DISTRIBUTED as
+ * `(char*)arr + idx*2 + (base*2)*-1` (35 words — separate scale ops).
+ * RESIDUAL: target `sll t5,base,1; negu t6,t5` (two ring-numbered uopt
+ * ops, scale-then-negate) vs our mul-by(-2) single op that as1 expands
+ * `negu at; sll` (neg-first, $at). Every add-of-negative spelling
+ * (`+-(base*2)`, `0-(base*2)`, `-(base<<1)`, ptr-sub, [-base] index)
+ * VN-folds to subu (34 words). The unfolded scale-then-negate pair is
+ * not reachable from expression C; likely original spelled the value
+ * through a shape lost to us. Neg-canonicalization cap. */
 void gl_func_0004ADB4(int *self, int val, int idx) {
     extern int D_00000000;
-    int cap = self[0x40 / 4];
-    short base = *(short*)((char*)self + 0xD4);
-    unsigned int limit = (unsigned int)cap * 10;
-    int offset = idx - base;
-    if ((unsigned int)offset >= limit) {
+    short base;
+    base = *(short*)((char*)self + 0xD4);
+    if ((unsigned int)(idx - base) >= (unsigned int)(self[0x40 / 4] * 10)) {
         gl_func_00000000((char*)&D_00000000 + 0x200BC,
                           (char*)&D_00000000 + 0x200E0,
                           0xAAF,
                           self);
         base = *(short*)((char*)self + 0xD4);  // reload after assert
     }
-    {
-        short *target = (short*)((char*)self[0xD0 / 4] + (idx - base) * 2);
-        *target = (short)val;
-    }
+    *(short*)((char*)self[0xD0 / 4] + idx * 2 + ((base * 2) * -1)) = (short)val;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004ADB4);
