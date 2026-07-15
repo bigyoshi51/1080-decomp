@@ -10139,33 +10139,28 @@ int gl_func_0003F8B0(int a0) {
 // globals (handle + ready-flag) returning a bool. Family: cb-driven
 // staged-serialize/init.
 //
-// Caps (DEFERRED): scratch-buffer layout, the two D_g* globals and cbN
-//   signatures inferred from call shape; arg-struct untyped. Real-C
-//   STRUCTURAL body below. Name pre-checked: no extern reuse.
-// 2026-05-29: 87.48% -> 96.0%. Three fixes: (1) the two module globals are
-//   DISTINCT (separate lui each) -> distinct externs D_f8e8_g1/g2 = 0x0; (2) the
-//   tag is a WORD (sw 0x1D), so `int tag` not `char tag[]` (was sb); (3) status
-//   reads from bufB+8 (sp+0x68), not bufA. RESIDUAL (~4%): exact stack-buffer
-//   offsets (tag@0x18/bufA@0x20/bufB@0x60) need layout brute-force — my locals
-//   land +8/+12 shifted — plus a 1-insn dead home of the unused a1 param the
-//   target omits. Structural/regalloc, not logic.
+// 2026-05-29: 87.48% -> 96.0% (distinct globals, int tag, bufB+8 status).
+// 2026-07-15: 96.0% -> BYTE-EXACT 33/33 via the gl_func_0003F7A8 recipe
+//   backport: (1) decl order bufB[0x58] (not 0x50; first-declared = highest
+//   slot, 0x60..0xB7), bufA[0x40] (0x20), int tag[2] 8-byte block (0x18);
+//   (2) a1 is a first-call PASS-THROUGH (cb1(&bufA, a1)) erasing the dead
+//   unused-param home; (3) de-name the status read (inline `if (*(int*)
+//   &bufB[8] == -1)`) so it stays a ring temp t7 (named local was v1) and
+//   inline r (`D_g1 = cb5(a0);`) — a named r reserved a dead frame slot
+//   (+8 frame). Stays NM: placeholder jal-0 callees + D_* placeholder globals.
 #ifdef NON_MATCHING
 extern int D_f8e8_g1, D_f8e8_g2;
 int gl_func_0003F8E8(void *a0, int a1, int a2) {
-    int tag;
+    char bufB[0x58];
     char bufA[0x40];
-    char bufB[0x50];
-    int st;
-    int r;
-    gl_func_00000000(&bufA[0]);
+    int tag[2];
+    gl_func_00000000(&bufA[0], a1);
     gl_func_00000000(&bufB[0], a2);
-    tag = 0x1D;
-    gl_func_00000000(&tag);
-    gl_func_00000000(&tag);
-    st = *(int *)&bufB[8];
-    if (st == -1) return 0;
-    r = gl_func_00000000(a0);
-    D_f8e8_g1 = r;
+    tag[0] = 0x1D;
+    gl_func_00000000(&tag[0]);
+    gl_func_00000000(&tag[0]);
+    if (*(int *)&bufB[8] == -1) return 0;
+    D_f8e8_g1 = gl_func_00000000(a0);
     D_f8e8_g2 = 1;
     return 1;
 }
