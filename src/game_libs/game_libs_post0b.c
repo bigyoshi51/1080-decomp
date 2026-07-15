@@ -3325,36 +3325,37 @@ void gl_func_00037CE0(struct gl_func_00037CE0_Six *a0) {
  *   fbuf[0..2] = (float)tmp[0..2];
  *   func(&D, fbuf, 12);
  *
- * NATURAL CEILING: 96.42% NM. The 12-insn diff covers addressing-mode +
- * tmp/fbuf slot reshuffle (build uses sp-direct + lwc1-via-$v0; target
- * uses tmp@sp+0x24 / fbuf@sp+0x38 sp-direct fp loads/stores).
- * 2026-05-27 retest: swap decl-order to `float fbuf[3]; int tmp[3]` —
- * pushes fbuf to higher sp offset BUT also changes the addressing-mode
- * from `v1 = &tmp; sw via v1` to `sw via sp+off`, breaking the int→float
- * ping-pong addressing. Regressed to 12/24. Decl-order doesn't disentangle
- * from the addressing-mode coupling for this shape.
- * Was previously documented as INSN_PATCH-promoted to EXACT; INSN_PATCH
- * REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+ * 2026-07-15 wave 3: BYTE-EXACT 24/24, retracting the 96.42% "NATURAL
+ * CEILING" verdict. Same recipe as sibling gl_func_0003D620 + one new bit:
+ * (1) the int ping-pong is a 12-byte STRUCT CAST-COPY into a FLOAT array
+ *     `*(Tri3i*)tmp = *(Tri3i*)a0;` (dst base t6 = addiu sp+0x24, src base
+ *     a0 direct, ring temps t8/t7/t8 recycled);
+ * (2) float re-reads are plain `tmp[N]` (tmp is float[3], sp-direct lwc1);
+ * (3) SAME-LINE JOIN: the three fbuf copies written ASCENDING on ONE line
+ *     emit with ascending ring temps (f4/f6/f8 = FP ring; named staging
+ *     vars would take FP CANDIDATE pool f0/f2/f12) but DESCENDING emission
+ *     (loads 0x2C/0x28/0x24 then stores 0x40/0x3C/0x38) — the as1
+ *     debug-line tie-break reorders a 3-statement FP copy BLOCK, not just
+ *     pairs. Separate ascending lines = ascending emission; descending
+ *     lines = temps follow emission (f4 first); only the one-line join
+ *     gives ascending-temps + descending-emission.
+ * (4) slots via decl-order pads: padA[1](0x44)/fbuf(0x38)/padB[2](0x30)/
+ *     tmp(0x24)/padC[3](0x18). GOTCHA: `(void)pad` on a SCALAR volatile
+ *     emits `lw zero` — pads must be arrays.
+ * Un-landable (jal-0/&D placeholders); stays as objdiff-100 NM wrap. */
 #ifdef NON_MATCHING
 void gl_func_00037D48(int *a0) {
-    volatile int pad[2];
-    int tmp[3];
+    volatile int padA[1];
     float fbuf[3];
-    int *tp = tmp;
-    float f0, f1, f2;
-    tp[0] = a0[0];
-    tp[1] = a0[1];
-    tp[2] = a0[2];
-    f2 = *(float*)&tmp[2];
-    f1 = *(float*)&tmp[1];
-    f0 = *(float*)&tmp[0];
-    fbuf[2] = f2;
-    fbuf[1] = f1;
-    fbuf[0] = f0;
+    volatile int padB[2];
+    float tmp[3];
+    volatile int padC[3];
+    *(Tri3i *)tmp = *(Tri3i *)a0;
+    fbuf[0] = tmp[0]; fbuf[1] = tmp[1]; fbuf[2] = tmp[2];
     func_00000000(&D_00000000, fbuf, 12);
-    (void)pad;
+    (void)padA;
+    (void)padB;
+    (void)padC;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037D48);
