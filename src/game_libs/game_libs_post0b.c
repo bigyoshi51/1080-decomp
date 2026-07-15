@@ -34349,15 +34349,27 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062D70);
  *   }
  *   v1[a1*4 + 0xC/4] = a2;
  *
- * Standard "magic-tag-check + assert" then field-set. */
+ * Standard "magic-tag-check + assert" then field-set.
+ * 2026-07-15 (agent-f): 83.21 -> 99+ (26/28 exact). Naming BOTH the
+ * base ptr AND the tag (two-statement destructive `tag = base[0];
+ * tag = tag & 0xFFFF;`) promotes them to candidates colored v1/v0
+ * (any de-named/joined spelling flips to v0/v1 or demotes tag to ring
+ * temps t6/t7, phase-shifting the tail reload ring by +2). RESIDUAL
+ * (2 words): `li at,0x17` vs speculated `lui a0,%hi(str)` slot swap at
+ * 0x18/0x20 — as1 scheduling tie; immune to mask spelling ((unsigned
+ * short) cast, &=, compare reversal), named-msg hoist. as1-tie cap. */
 #ifdef NON_MATCHING
 void gl_func_00062E10(int *a0, int a1, int a2) {
-    int *v1 = (int*)a0[0x48/4];
-    if ((v1[0] & 0xFFFF) != 0x17) {
+    int *base;
+    int tag;
+    base = (int *)a0[0x48/4];
+    tag = base[0];
+    tag = tag & 0xFFFF;
+    if (tag != 0x17) {
         func_00000000((char*)&D_00000000 + 0x22130, (char*)&D_00000000 + 0x22144, 0x2A1);
-        v1 = (int*)a0[0x48/4];
+        base = (int*)a0[0x48/4];
     }
-    *(int*)((char*)v1 + a1*4 + 0xC) = a2;
+    *(int*)((char*)base + a1*4 + 0xC) = a2;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062E10);
