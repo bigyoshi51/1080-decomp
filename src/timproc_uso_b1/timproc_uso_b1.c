@@ -871,14 +871,15 @@ void timproc_uso_b1_func_00001908(int *self) {
  * conditional-scale wrapper).
  *
  * Per scripts/find-byte-identical-clones.py — see arcproc_uso_func_00001C74's
- * wrap doc for full structural decode. Mirrored source=4 2026-06-01; expected
- * to inherit the same O2 residual as the canonical arcproc body (target 0x58
- * frame + incoming-$f0 stores vs C's explicit-zero smaller frame).
- * 2026-06-10 negatives: an uninitialized `float g; buf[i]=g;` and the
- * `register float g` variant BOTH emit lwc1-from-home first (IDO homes
- * even uninit register floats) -- the target's store-only swc1 $f0 x4
- * with NO prior load/set of $f0 remains C-unreachable; the value is
- * literally the incoming garbage register. Cap stands. */
+ * wrap doc for full structural decode. Mirrored source=4 2026-06-01.
+ * NOTE CORRECTED 2026-07-15: $f0 is NOT "incoming garbage" — the 2-word
+ * orphan_000019B8 GLOBAL_ASM above (lui at,0x3F80; mtc1 at,$f0) is THIS
+ * fn's own hoisted 1.0f const (buf[] = 1.0f, not 0.0f/uninit). The 1C74
+ * canonical recipe (buf=1.0f + tgt spill var + pad[0x20]) reproduces
+ * 41/43 true bytes incl. the orphan; residual = the version-independent
+ * FP pair-swap (mtc1 $f4 const vs lwc1 $f6 field) — see 1C74's wrap and
+ * docs/IDO_CODEGEN FP-const-hoist entry. Landing needs the orphan
+ * GLOBAL_ASM folded into a compiled-C body (43-insn) + expected refresh. */
 void timproc_uso_b1_func_000019C0(int *a0) {
     float buf[4];
 

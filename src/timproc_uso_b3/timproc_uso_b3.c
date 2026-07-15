@@ -1001,9 +1001,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * conditional-scale wrapper).
  *
  * Per scripts/find-byte-identical-clones.py — see arcproc_uso_func_00001C74's
- * wrap for canonical decode. Mirrored source=4 2026-06-01; expected to share
- * the canonical O2 residual (target 0x58 frame + incoming-$f0 stores vs C's
- * explicit-zero smaller frame). */
+ * wrap for canonical decode. Mirrored source=4 2026-06-01.
+ * NOTE CORRECTED 2026-07-15: the "alt-entry" func_00001920 above is NOT an
+ * entry — it is 1928's own hoisted 1.0f const materialization (stolen
+ * prologue; buf[] = 1.0f, not 0.0f). 1C74 canonical recipe reproduces
+ * 41/43 true bytes; residual = version-independent FP pair-swap. See
+ * arcproc 1C74's wrap + docs/IDO_CODEGEN FP-const-hoist entry. */
 void timproc_uso_b3_func_00001928(int *a0) {
     float buf[4];
 
