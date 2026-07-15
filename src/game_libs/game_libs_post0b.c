@@ -8721,9 +8721,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003E1B0);
  * the [0x18] read-modify-write (1 extra insn), and the lw for [0x18]
  * happens AFTER the [34] store in target, vs BEFORE in our emit. Tried
  * `int *flags = (int*)((char*)a0 + 0x18); *flags &= ~2;` and the volatile
- * variant — both DCE'd back to direct `24(a0)` addressing. INSN_PATCH
- * promotion path: 14 entries rewriting 0x3c..0x6c + SUFFIX_BYTES +4 for
- * the trailing nop. Similar shape to gl_func_0003EAE0 promotion. */
+ * variant — both DCE'd back to direct `24(a0)` addressing.
+ * 2026-07-15 UPDATE (partial retraction): the W4 lever `fl = a0;
+ * if (1) { fl += 6; }` + `*fl &= ~2;` DOES materialize the addiu v0,a0,24
+ * and the 0(v0) RMW (size 30/30, 24/30 byte-aligned) — the DCE verdict
+ * above only holds for plain/volatile spellings, not the if(1) barrier.
+ * BUT official objdiff fuzzy DROPS 88.63 -> 86.3 on that variant (metric
+ * gotcha: fuzzy weighs the 3-insn as1 permutation left over — lw-a2-hoist
+ * depth + li at,-3 slide, equal-cost scheduling ties, probed line-joins /
+ * early-copy, both no-ops) — so the direct-addressing form is kept as the
+ * build body. If the as1 tie is ever cracked, restart from the if(1) form. */
 #ifdef NON_MATCHING
 void* gl_func_0003E238(int *a0, int a1, int a2) {
     if (a0 == 0) {
