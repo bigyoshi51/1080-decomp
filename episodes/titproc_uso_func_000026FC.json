@@ -1,0 +1,33 @@
+{
+ "function_name": "titproc_uso_func_000026FC",
+ "project": "projects/1080-agent-g",
+ "model": "claude-manual",
+ "start_time": "2026-07-15T06:03:58.035812+00:00",
+ "end_time": "2026-07-15T06:03:58.035812+00:00",
+ "steps": [
+  {
+   "step_number": 1,
+   "timestamp": "2026-07-15T06:03:58.035812+00:00",
+   "assistant_text": "Cracked the 'deterministic uopt coin-flip' coloring cap with five levers: (1) NEW return-capture precolor -- capturing the unused 001BB8 return into the scratch pointer joins $v0 to its web family with zero emission, flipping the v0<->v1 clamp-family swap wholesale; (2) same-name reload naming into v1; (3) same-name a1-drag: 0x4F0 flag load shares its variable with 07C07C's a1-constrained 2nd arg; (4) de-named a0v/vt (inline CSE) to drop two dead homes, frame 0x38->0x30; (5) decl order p3c,v1,arg,a1 ranks arg spill at 0x24. 113/113 words, ROM cmp clean.",
+   "tool_calls": [],
+   "match_percent": 100.0,
+   "compiled": true,
+   "token_usage": null
+  }
+ ],
+ "outcome": "match",
+ "final_match_percent": 100.0,
+ "best_match_percent": 100.0,
+ "total_tokens": 0,
+ "instruction_count": 113,
+ "initial_m2c_source": null,
+ "final_source": "void titproc_uso_func_000026FC(char *s0) {\n    int *p3c;\n    char *v1;\n    int arg;\n    int a1;\n\n    if (*(int*)(s0 + 0x6C0) != 0 && *(int*)(s0 + 0x6C4) == 2) {\n        p3c = (int*)titproc_uso_func_001BB8(*(int*)(s0 + 0x6B8));\n    }\n    if (*(int*)(s0 + 0x6C4) == 0) goto tail;\n\n    if (*(int*)((char*)*(int**)((char*)*(int**)(s0 + 0x6AC) + 0x44) + 0x34) == 0) {\n        if (*(int*)(s0 + 0x4F4) > 0) goto dec_path;\n    }\n    v1 = *(char**)(s0 + 0x6BC);\n    {\n        p3c = (int*)(v1 + 0x3C);\n        if (*p3c < 255) {\n            *p3c += 16;\n            v1 = *(char**)(s0 + 0x6BC);\n            if (*(int*)(v1 + 0x3C) < 256) goto final;\n            *(int*)(v1 + 0x3C) = 720;\n            goto final;\n        }\n    }\n    a1 = *(int*)(s0 + 0x4F0);\n    if ((a1 << 14) < 0) {\n        titproc_uso_func_01B0F8(s0);\n        p3c = *(int**)(*(char**)((char*)&import_00020098 + 0x134) + 0xC4);\n        arg = *(int*)((char*)p3c + 0x800);\n        titproc_uso_func_07BA68(arg, 0);\n        a1 = *(int*)(*(char**)(*(char**)(s0 + 0x528) + 8) + 8);\n        titproc_uso_func_07C07C(arg, a1,\n                         *(int*)(*(char**)(*(char**)(s0 + 0x528) + 8) + 4));\n        titproc_uso_func_01CCD4(s0);\n        *(int*)(s0 + 0x4F4) = *(int*)(s0 + 0x4F0) & 0xFFFF;\n        goto ret;\n    }\n    (*(void (**)(char*))((char*)*(int**)((char*)&import_0001FFF8 + 0x28) + 0x64))(\n        (char*)((int)(short)*(short*)((char*)*(int**)((char*)&import_0001FFF8 + 0x28) + 0x60) + (int)&import_0001FFF8));\n    goto final;\n\ndec_path:\n    v1 = *(char**)(s0 + 0x6BC);\n    {\n        p3c = (int*)(v1 + 0x3C);\n        if (*p3c > 0) {\n            *p3c -= 16;\n            v1 = *(char**)(s0 + 0x6BC);\n            if (*(int*)(v1 + 0x3C) < 0) *(int*)(v1 + 0x3C) = 0;\n        }\n    }\n    goto final;\n\ntail:\n    if (*(int*)((char*)*(int**)((char*)*(int**)(s0 + 0x6AC) + 0x44) + 0x34) == 0 &&\n        *(int*)(s0 + 0x4F4) > 0) {\n        goto final;\n    }\n    if (*(int*)(s0 + 0x6C0) != 0) {\n        import_000A53B4(*(int*)(s0 + 0x6C0));\n    }\n    titproc_uso_func_00F954(s0, -1, 0);\n\nfinal:\n    import_000B1BAC(s0);\nret:\n    ;\n}",
+ "metadata": {
+  "source_path": "src/titproc_uso/titproc_uso.c",
+  "asm_path": "asm/nonmatchings/titproc_uso/titproc_uso/titproc_uso_func_000026FC.s",
+  "segment": "titproc_uso",
+  "compiler": "ido7.1",
+  "compiler_flags": "-O2 (asm-processor)",
+  "verification": "word-diff 113/113 vs raw .s + full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 clean + make non_matching_objects exit 0"
+ }
+}

@@ -1940,10 +1940,25 @@ void titproc_uso_func_000026D0(int *a0) {
  * addr shape, which also flips #6 to beql. Residual = pure regalloc:
  * v0<->v1 coloring swap in the clamp blocks (6BC-base wants $v1, addr
  * wants $v0; build assigns reversed), 0x4F0 temp wants $a1 (build $v0),
- * and frame 0x30 vs 0x38 (+arg-spill 0x24 vs 0x20). Coloring is a
- * deterministic uopt coin-flip, permuter-immune per project history.
- * INCLUDE_ASM remains build path (not byte-exact). */
-#ifdef NON_MATCHING
+ * and frame 0x30 vs 0x38 (+arg-spill 0x24 vs 0x20).
+ * BYTE-EXACT 2026-07-15 (agent-g), retracting the "deterministic uopt
+ * coin-flip, permuter-immune" verdict. Five levers, 113/113:
+ * 1. RETURN-CAPTURE PRECOLOR (new): capture the unused 001BB8 return
+ *    into the scratch ptr (`p3c = (int*)titproc_uso_func_001BB8(...)`)
+ *    -- the dead capture emits NOTHING but joins $v0 to p3c's web
+ *    family, flipping the whole v0<->v1 clamp-block swap at once
+ *    (27->7 diffs). Family also spans the 0xC4 deref (one shared
+ *    scratch var p3c for clamp addr + 0xC4 deref), which un-shifts
+ *    the t-ring so the unnamed 0x528 derefs land t0/v0.
+ * 2. Same-name web reload: name the inner clamp reloads back into v1.
+ * 3. Same-name a1-drag: name the 0x4F0 flag load with the SAME var
+ *    that carries 07C07C's 2nd argument (a1-constrained web) -> the
+ *    0x4F0 web inherits $a1 (332B4 family rule; unpassed-K&R-param
+ *    form leaks an entry home-store here, don't use it).
+ * 4. De-name a0v + vt (inline CSE derefs, identical bytes) -> two
+ *    dead homes gone, frame 0x38->0x30 (B49C zero-home rule).
+ * 5. Decl order p3c,v1,arg,a1 ranks arg's caller-save spill at 0x24
+ *    (E04 decl-order slot rank). */
 extern int titproc_uso_func_001BB8();
 extern int titproc_uso_func_07BA68();
 extern int titproc_uso_func_07C07C();
@@ -1952,13 +1967,13 @@ extern int import_000B1BAC();
 extern char import_0001FFF8;
 
 void titproc_uso_func_000026FC(char *s0) {
+    int *p3c;
     char *v1;
-    int *vt;
+    int arg;
     int a1;
-    int a0v;
 
     if (*(int*)(s0 + 0x6C0) != 0 && *(int*)(s0 + 0x6C4) == 2) {
-        titproc_uso_func_001BB8(*(int*)(s0 + 0x6B8));
+        p3c = (int*)titproc_uso_func_001BB8(*(int*)(s0 + 0x6B8));
     }
     if (*(int*)(s0 + 0x6C4) == 0) goto tail;
 
@@ -1967,37 +1982,36 @@ void titproc_uso_func_000026FC(char *s0) {
     }
     v1 = *(char**)(s0 + 0x6BC);
     {
-        int *p3c = (int*)(v1 + 0x3C);
+        p3c = (int*)(v1 + 0x3C);
         if (*p3c < 255) {
             *p3c += 16;
-            if (*(int*)(*(char**)(s0 + 0x6BC) + 0x3C) < 256) goto final;
-            *(int*)(*(char**)(s0 + 0x6BC) + 0x3C) = 720;
+            v1 = *(char**)(s0 + 0x6BC);
+            if (*(int*)(v1 + 0x3C) < 256) goto final;
+            *(int*)(v1 + 0x3C) = 720;
             goto final;
         }
     }
     a1 = *(int*)(s0 + 0x4F0);
     if ((a1 << 14) < 0) {
-        int arg;
-        char *o528;
         titproc_uso_func_01B0F8(s0);
-        arg = *(int*)(*(char**)(*(char**)((char*)&import_00020098 + 0x134) + 0xC4) + 0x800);
+        p3c = *(int**)(*(char**)((char*)&import_00020098 + 0x134) + 0xC4);
+        arg = *(int*)((char*)p3c + 0x800);
         titproc_uso_func_07BA68(arg, 0);
-        o528 = *(char**)(s0 + 0x528);
-        titproc_uso_func_07C07C(arg, *(int*)(*(char**)(o528 + 8) + 8),
-                         *(int*)(*(char**)(o528 + 8) + 4));
+        a1 = *(int*)(*(char**)(*(char**)(s0 + 0x528) + 8) + 8);
+        titproc_uso_func_07C07C(arg, a1,
+                         *(int*)(*(char**)(*(char**)(s0 + 0x528) + 8) + 4));
         titproc_uso_func_01CCD4(s0);
         *(int*)(s0 + 0x4F4) = *(int*)(s0 + 0x4F0) & 0xFFFF;
         goto ret;
     }
-    vt = *(int**)((char*)&import_0001FFF8 + 0x28);
-    (*(void (**)(char*))((char*)vt + 0x64))(
-        (char*)((int)(short)*(short*)((char*)vt + 0x60) + (int)&import_0001FFF8));
+    (*(void (**)(char*))((char*)*(int**)((char*)&import_0001FFF8 + 0x28) + 0x64))(
+        (char*)((int)(short)*(short*)((char*)*(int**)((char*)&import_0001FFF8 + 0x28) + 0x60) + (int)&import_0001FFF8));
     goto final;
 
 dec_path:
     v1 = *(char**)(s0 + 0x6BC);
     {
-        int *p3c = (int*)(v1 + 0x3C);
+        p3c = (int*)(v1 + 0x3C);
         if (*p3c > 0) {
             *p3c -= 16;
             v1 = *(char**)(s0 + 0x6BC);
@@ -2011,9 +2025,8 @@ tail:
         *(int*)(s0 + 0x4F4) > 0) {
         goto final;
     }
-    a0v = *(int*)(s0 + 0x6C0);
-    if (a0v != 0) {
-        import_000A53B4(a0v);
+    if (*(int*)(s0 + 0x6C0) != 0) {
+        import_000A53B4(*(int*)(s0 + 0x6C0));
     }
     titproc_uso_func_00F954(s0, -1, 0);
 
@@ -2022,9 +2035,6 @@ final:
 ret:
     ;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_000026FC);
-#endif
 
 void titproc_uso_func_000028C0(char *dst) {
     int tmp;
