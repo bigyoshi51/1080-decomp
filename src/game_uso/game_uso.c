@@ -6130,49 +6130,68 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
  *   - bnel->bne fell out with the web fixes; frame 0x90 (target 0x88 +
  *     one extra dead float home: 4 register floats all get dead homes, target
  *     has 3 home words + the a1 spill at 0x6C; our a1 spill sits at 0x24).
- * REMAINING (true residual, ~9pp):
- *   - the dead `addiu v0,v0,0x318` is NOT C-reachable from any of: if(1)
- *     pointer-mutation on a dead var (DCE'd), fp[i]/post-increment chain /
- *     reused-pointer-var (all fully folded by VN with no leftover def). It
- *     drives the copy-pointer coloring (target t0/t3/v0 vs ours t9/v1/t2,
- *     v0 reused from the dead web) and a +1 tail temp-pool phase.
- *   - a0/a2 web transition: target keeps a0 until after the dispatch-arg
- *     test (word 55), ours switches at the stage-2 reload (word 14); a late
- *     `self = a0` split does not move it.
+ * 2026-07-15 pass 2 (agent-g cross-pollination): 91.02 -> 97.64 (95/102
+ * aligned words; frame 0x88 exact, ALL homes/spills exact). Levers:
+ *   - DE-NAMED stage-1 sub (inline a0->0x30 deref in the struct copy) ->
+ *     ring temp t7 exactly as target; the named web starts at the volatile
+ *     stage-2 reload. This also fixed the copy-pointer coloring (t0/t3/v0)
+ *     and the tail temp-pool phase (old "dead-addiu drives them" theory
+ *     was wrong — the phase came from the named stage-1 web).
+ *   - dispatch_arg -> PLAIN named int declared between base_vec and rx:
+ *     its 0x6C decl-position home is the a1 spill slot (afa5006c).
+ *   - scale -> block-scope `register float` inside the p-block: $f0 with
+ *     NO fn-scope home (3 float homes exactly); rz/scale same-name reuse
+ *     miscolors the z-result f0 (dead-reg reuse) — keep scale separate.
+ *   - pointer decls (p, timer) moved BELOW pad[8] in the decl list: p/self
+ *     homes at decl-top were the phantom +8 ABOVE the vec block; last-decl
+ *     scalars home below it. pad[8] = 0x28-0x47.
+ *   - self ELIMINATED: target's a0/a2 pair is uopt range-splitting of the
+ *     param web itself (spill to arg slot 0x88 across the calls); a named
+ *     self copy is byte-equivalent, both split at stage-2.
+ * REMAINING (true residual, 5-7 words, one-two cells):
+ *   - param-web split POINT: target splits after the 0x6C dispatch test
+ *     (stage-2 reload + scale + 0x6C read via a0, copy a2 parked at head
+ *     word 7); ours splits at stage 1 (those 3 reads via a2) and schedules
+ *     move a2,a0 at word 4 vs 7 (the 4-insn head reorder is the same cell).
+ *     dead if(a0){} after the test = inert; if(1){self=a0;} = inert.
+ *   - the dead `addiu v0,v0,0x318` post-bump: still NOT C-reachable
+ *     (p+=0x318 DCE'd even with a zero-emission if(p){} consumer).
  * Default INCLUDE_ASM build remains exact; logic + relocs are correct. */
 void game_uso_func_00011024();
 void game_uso_func_00006CF0(int *a0) {
-    int *sub;
-    int *self;
     V3_6A30 added_vec;   /* sp+0x7C */
     V3_6A30 base_vec;    /* sp+0x70 */
-    register float rx, ry;      /* dead homes */
+    int dispatch_arg;    /* sp+0x6C (a1 spill home) */
+    register float rx;   /* dead home 0x68 */
     V3_6A30 tmp_vec;     /* sp+0x5C */
-    register float rz, scale;   /* dead homes */
+    register float ry, rz;      /* dead homes 0x58/0x54 */
     V3_6A30 scaled_vec;  /* sp+0x48 */
-    int pad[8];
-    register int dispatch_arg;
-    int timer;
+    int pad[8];          /* below the vec block */
+    register char *p;    /* one web: stage-2 sub, tmp writer, tail sub */
+    register int timer;
 
     (void)pad;
-    sub = *(int**)((char*)a0 + 0x30);
-    /* dead builder vec: base = sub->0xB4 (Vec3 struct copy -> int lw/sw),
-     * += scale(sub->0x318 * a0->0xA8) via two struct-copy intermediates. */
-    base_vec = *(V3_6A30 *)((char*)sub + 0xB4);
+    /* stage-1 sub is DE-NAMED (inline deref -> ring temp t7); the named sub
+     * web starts at the volatile stage-2 reload. */
+    base_vec = *(V3_6A30 *)(*(char**)((char*)a0 + 0x30) + 0xB4);
+    dispatch_arg = 0;    /* early: move a1,zero schedules into the stage-1 copy */
 
-    sub = *(int * volatile *)((char*)a0 + 0x30);   /* target reloads sub */
-    scale = *(float*)((char*)a0 + 0xA8);           /* -> $f0 */
+    p = *(char * volatile *)((char*)a0 + 0x30);   /* target reloads sub */
     {
-        char *p;
-        p = (char*)sub + 0x318;   /* def1: folds into the load offsets but the
-                                     multi-def web keeps the dead addiu v0,v0,0x318 */
-        rx = *(float*)p * scale;
-        ry = *(float*)(p + 4) * scale;
-        rz = *(float*)(p + 8) * scale;
+        register float scale;     /* block-scope: $f0, no home */
+        scale = *(float*)((char*)a0 + 0xA8);
+        rx = *(float*)(p + 0x318) * scale;
+        ry = *(float*)(p + 0x31C) * scale;
+        rz = *(float*)(p + 0x320) * scale;
+        p += 0x318;               /* folds away, but the bump + zero-emission
+                                     consumer below shape p's web: removing
+                                     them costs a word (build 102) and the
+                                     copy-pointer colors */
+        if (p) {}
         scaled_vec.x = rx;
         scaled_vec.y = ry;
         scaled_vec.z = rz;
-        p = (char*)&tmp_vec;      /* def2: addiu v0,sp,0x5C reuses the same reg */
+        p = (char*)&tmp_vec;      /* def3: addiu v0,sp,0x5C reuses the same reg */
         *(V3_6A30*)p = scaled_vec;
         added_vec = *(V3_6A30*)p;
     }
@@ -6181,29 +6200,26 @@ void game_uso_func_00006CF0(int *a0) {
     base_vec.y = base_vec.y + added_vec.y;
     base_vec.z = base_vec.z + added_vec.z;
 
-    dispatch_arg = 0;
     if (*(int*)((char*)a0 + 0x6C) == 0) {
         dispatch_arg = 0x10;
     }
-
-    self = a0;
-    sub = *(int**)((char*)self + 0x30);
-    if (*(int*)((char*)sub + 0x938) != 0 && *(int*)((char*)sub + 0xA54) != 0) {
-        timer = *(int*)((char*)self + 0x70);
+    p = *(char**)((char*)a0 + 0x30);
+    if (*(int*)(p + 0x938) != 0 && *(int*)(p + 0xA54) != 0) {
+        timer = *(int*)((char*)a0 + 0x70);
         if (timer < 60) {
-            if (*(float*)((char*)sub + 0x348) <= 30.0f) {
-                game_uso_func_00011024(*(int*)((char*)sub + 0x840), dispatch_arg);
-                *(int*)((char*)self + 0x70) = 61;
+            if (*(float*)(p + 0x348) <= 30.0f) {
+                game_uso_func_00011024(*(int*)(p + 0x840), dispatch_arg);
+                *(int*)((char*)a0 + 0x70) = 61;
             } else {
-                *(int*)((char*)self + 0x70) = timer + 1;
+                *(int*)((char*)a0 + 0x70) = timer + 1;
             }
         } else if (timer == 60) {
-            game_uso_func_00011024(*(int*)((char*)sub + 0x840), dispatch_arg);
-            *(int*)((char*)self + 0x70) = 61;
+            game_uso_func_00011024(*(int*)(p + 0x840), dispatch_arg);
+            *(int*)((char*)a0 + 0x70) = 61;
         }
     }
 
-    game_uso_func_00007538(self, dispatch_arg);
+    game_uso_func_00007538(a0, dispatch_arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006CF0);
