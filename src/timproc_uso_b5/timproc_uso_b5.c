@@ -5290,9 +5290,14 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // (&D_7B2C_F60)[v0] / (&D_807FE778/768/748)[idx] (not bare *4 fold); dropped
 // redundant sp24/sp20 spill locals (use temp_v0/temp_v1 directly). Residual =
 // register-renumber coloring + commutative addu operand-order ties + a 24-byte
-// over-allocated spill frame (-64 vs -40; IDO spills more live temps across the
-// calls than the original) — permuter-immune cap classes per docs cap analysis.
-#ifdef NON_MATCHING
+// over-allocated spill frame. 2026-07-15 (agent-g wave 3): -> BYTE-EXACT 194/194.
+// Levers: (1) handler-table load spelled base+0xF60-folded (*(s32**)((char*)&D_00000000
+// + 0xF60 + i*4)) not (&D_F60)[i] — lo16-folds the table offset like the 0xF18 read;
+// (2) s32* typed table ptr + IXA indexing temp_v1[idx] = addu base-first;
+// (3) compound RMW FW-=1 keeps the un-coalesced two-reg lw/addiu/sw shape;
+// (4) 7E34 family recipe: pre-scaled cluster offset + elem|0x4D4 swap + if(1) wrap;
+// (5) frame -64->-40: NAMED s32 locals each cost a dead 4-byte home once the fn
+// has real spills — de-name via inline-CSE'd (FW(arg0,0x3C4)*4) exprs (VN dedups).
 
 
 #ifndef FW
@@ -5305,77 +5310,69 @@ extern int timproc_uso_b5_D_807FE748;
 extern int timproc_uso_b5_D_807FE768;
 extern int timproc_uso_b5_D_807FE778;
 void timproc_uso_b5_func_00007B2C(char *arg0) {
-    s32 temp_t2;
     s32 temp_v0;
-    s32 temp_v0_2;
-    s32 temp_v0_5;
-    s32 temp_v0_7;
-    s32 temp_v0_9;
-    s32 temp_v1;
-    char *temp_v0_3;
-    char *temp_v1_2;
+    s32 *temp_v1;
+    char *tv0_1;
+    char *tv0_2;
+    char *tv0_3;
+    char *tv0_4;
+    char *tv0_5;
 
     if (FW(arg0, 0x3C4) == 1) {
         temp_v0 = timproc_uso_b5_alias();
         if (temp_v0 != 0) {
-            temp_v1 = (&D_7B2C_F60)[temp_v0];
-            if (timproc_uso_b5_alias(&import_80020098, *(int*)(temp_v1 + (FW(arg0, 0x4AC) * 4))) != 0) {
-                temp_v0_2 = FW(arg0, 0x4AC);
+            temp_v1 = *(s32 **)((char *)&D_00000000 + 0xF60 + (temp_v0 * 4));
+            if (timproc_uso_b5_alias(&import_80020098, temp_v1[FW(arg0, 0x4AC)]) != 0) {
                 FW(arg0, 0x4B0) = (s32) *(s32 *)((char *)&D_00000000 + 0xF18);
-                if (*(int*)(temp_v1 + (temp_v0_2 * 4)) != 0x100) {
-                    FW(arg0, 0x4AC) = (s32) (temp_v0_2 + 1);
+                if (temp_v1[FW(arg0, 0x4AC)] != 0x100) {
+                    FW(arg0, 0x4AC) = (s32) (FW(arg0, 0x4AC) + 1);
                 } else {
                     timproc_uso_b5_alias(arg0, 1);
                     FW(arg0, 0x4A8) = (s32) (temp_v0 + 1);
                     timproc_uso_b5_alias((char *)0x27, 0x3E8);
                 }
             } else {
-                if (timproc_uso_b5_alias(&import_80020098, ~*(int*)(temp_v1 + (FW(arg0, 0x4AC) * 4))) != 0) {
+                if (timproc_uso_b5_alias(&import_80020098, ~temp_v1[FW(arg0, 0x4AC)]) != 0) {
                     FW(arg0, 0x4B0) = 0;
                 }
-                temp_t2 = FW(arg0, 0x4B0) - 1;
-                FW(arg0, 0x4B0) = temp_t2;
-                if (temp_t2 < 0) {
+                FW(arg0, 0x4B0) = FW(arg0, 0x4B0) - 1;
+                if (FW(arg0, 0x4B0) < 0) {
                     timproc_uso_b5_alias(arg0, 1);
                 }
             }
         }
     }
     if (timproc_uso_b5_alias(&import_80020098, 0x100) != 0) {
-        temp_v0_3 = timproc_uso_b5_alias(arg0);
-        temp_v1_2 = FW(temp_v0_3, 0x28);
-        ((GP_00007B2C)FW(temp_v1_2, 0x8C))(*(s16*)((char*)temp_v1_2 + 0x88) + temp_v0_3, 0);
+        tv0_1 = timproc_uso_b5_alias(arg0);
+        ((GP_00007B2C)FW(FW(tv0_1, 0x28), 0x8C))(*(s16*)((char*)FW(tv0_1, 0x28) + 0x88) + tv0_1, 0);
         timproc_uso_b5_alias(arg0);
-        temp_v0_3 = timproc_uso_b5_alias(arg0);
-        temp_v1_2 = FW(temp_v0_3, 0x28);
-        ((GP_00007B2C)FW(temp_v1_2, 0x84))(*(s16*)((char*)temp_v1_2 + 0x80) + temp_v0_3, 0);
-        temp_v0_5 = FW(arg0, 0x3C4);
-        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE778)[temp_v0_5], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_5 * 4)), 0x3D0));
+        tv0_2 = timproc_uso_b5_alias(arg0);
+        ((GP_00007B2C)FW(FW(tv0_2, 0x28), 0x84))(*(s16*)((char*)FW(tv0_2, 0x28) + 0x80) + tv0_2, 0);
+        if (1) {
+            timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE778 + (FW(arg0, 0x3C4) * 4)), FW((arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0) | FW(arg0, 0x4D4));
+        }
         timproc_uso_b5_alias(arg0);
         FW(arg0, 0x3CC) = 7;
-        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], FW(arg0, 0x4D4) | (FW((timproc_uso_b5_alias(arg0)), 0x2B0) + 1));
+        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], (FW((timproc_uso_b5_alias(arg0)), 0x2B0) + 1) | FW(arg0, 0x4D4));
         *(f32 *)((char *)arg0 + 0x484) = 1.0f;
-        temp_v0_3 = timproc_uso_b5_alias(arg0);
-        temp_v1_2 = FW(temp_v0_3, 0x28);
-        ((GP_00007B2C)FW(temp_v1_2, 0x74))(*(s16*)((char*)temp_v1_2 + 0x70) + temp_v0_3);
+        tv0_3 = timproc_uso_b5_alias(arg0);
+        ((GP_00007B2C)FW(FW(tv0_3, 0x28), 0x74))(*(s16*)((char*)FW(tv0_3, 0x28) + 0x70) + tv0_3);
         return;
     }
     if (timproc_uso_b5_alias(&import_80020098, 0x200) != 0) {
         if (timproc_uso_b5_alias(arg0) == 0) {
             timproc_uso_b5_alias(arg0);
         } else {
-            temp_v0_7 = FW(arg0, 0x3C4);
-            timproc_uso_b5_alias((&timproc_uso_b5_D_807FE748)[temp_v0_7], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_7 * 4)), 0x3D0));
-            temp_v0_3 = timproc_uso_b5_alias(arg0);
-            temp_v1_2 = FW(temp_v0_3, 0x28);
-            ((GP_00007B2C)FW(temp_v1_2, 0xAC))(*(s16*)((char*)temp_v1_2 + 0xA8) + temp_v0_3);
+            timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE748 + (FW(arg0, 0x3C4) * 4)), FW((arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0) | FW(arg0, 0x4D4));
+            tv0_4 = timproc_uso_b5_alias(arg0);
+            ((GP_00007B2C)FW(FW(tv0_4, 0x28), 0xAC))(*(s16*)((char*)FW(tv0_4, 0x28) + 0xA8) + tv0_4);
             FW(arg0, 0x3CC) = 0xA;
             timproc_uso_b5_alias(arg0, 0);
             *(f32 *)((char *)arg0 + 0x484) = 0.0f;
             timproc_uso_b5_alias(arg0);
-            temp_v0_9 = timproc_uso_b5_alias(arg0);
-            FW(arg0, 0x3C8) = temp_v0_9;
-            FW(arg0, 0x3C4) = timproc_uso_b5_alias(arg0, temp_v0_9);
+            tv0_5 = timproc_uso_b5_alias(arg0);
+            FW(arg0, 0x3C8) = (s32) tv0_5;
+            FW(arg0, 0x3C4) = timproc_uso_b5_alias(arg0, tv0_5);
             timproc_uso_b5_alias(arg0);
             timproc_uso_b5_alias(arg0, 1);
         }
@@ -5384,9 +5381,7 @@ void timproc_uso_b5_func_00007B2C(char *arg0) {
         timproc_uso_b5_alias(arg0, 1);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007B2C);
-#endif
+
 
 // timproc_uso_b5_func_00007E34 — STRUCTURAL PASS (0x2C0 / 176 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.

@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00007B2C",
+  "project": "projects/1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T06:48:05.450047+00:00",
+  "end_time": "2026-07-15T06:48:05.450047+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T06:48:05.450047+00:00",
+      "assistant_text": "Wave-3: 98.58% -> 194/194 EXACT. (1) Handler-table load rewritten to base-symbol + folded 0xF60 offset (*(s32**)((char*)&D_00000000+0xF60+i*4)) matching the lui/addu/lw %lo(sym+0xF60) shape; (2) table pointer typed s32* with IXA indexing temp_v1[idx] -> addu tN,v1,tM base-first (both dispatch reads); (3) 0x4B0 decrement respelled as compound RMW (FW(arg0,0x4B0)=FW(arg0,0x4B0)-1; if(FW(...)<0)) for the un-coalesced two-reg lw t1/addiu t2/bgez/sw shape; (4) family-recipe backport from 7E34: pre-scaled cluster offsets, elem|0x4D4 |-operand swap (right-first eval), if(1){} BB-wrap on the 0x100-branch cluster, |-swap on the 768 (+1) cluster; (5) frame -64 -> -40: every NAMED s32 local costs a dead 4-byte home slot once the function has real spills \u2014 de-named the cluster offset temps via inline-CSE'd (FW(arg0,0x3C4)*4) expressions (uopt VN dedups the lw+sll) and de-named temp_v0_2/vt-bases; per-site char* tv0_N vars kept (no homes). ROM cmp clean.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 194,
+  "initial_m2c_source": null,
+  "final_source": "void timproc_uso_b5_func_00007B2C(char *arg0) {\n    s32 temp_v0;\n    s32 *temp_v1;\n    char *tv0_1;\n    char *tv0_2;\n    char *tv0_3;\n    char *tv0_4;\n    char *tv0_5;\n\n    if (FW(arg0, 0x3C4) == 1) {\n        temp_v0 = timproc_uso_b5_alias();\n        if (temp_v0 != 0) {\n            temp_v1 = *(s32 **)((char *)&D_00000000 + 0xF60 + (temp_v0 * 4));\n            if (timproc_uso_b5_alias(&import_80020098, temp_v1[FW(arg0, 0x4AC)]) != 0) {\n                FW(arg0, 0x4B0) = (s32) *(s32 *)((char *)&D_00000000 + 0xF18);\n                if (temp_v1[FW(arg0, 0x4AC)] != 0x100) {\n                    FW(arg0, 0x4AC) = (s32) (FW(arg0, 0x4AC) + 1);\n                } else {\n                    timproc_uso_b5_alias(arg0, 1);\n                    FW(arg0, 0x4A8) = (s32) (temp_v0 + 1);\n                    timproc_uso_b5_alias((char *)0x27, 0x3E8);\n                }\n            } else {\n                if (timproc_uso_b5_alias(&import_80020098, ~temp_v1[FW(arg0, 0x4AC)]) != 0) {\n                    FW(arg0, 0x4B0) = 0;\n                }\n                FW(arg0, 0x4B0) = FW(arg0, 0x4B0) - 1;\n                if (FW(arg0, 0x4B0) < 0) {\n                    timproc_uso_b5_alias(arg0, 1);\n                }\n            }\n        }\n    }\n    if (timproc_uso_b5_alias(&import_80020098, 0x100) != 0) {\n        tv0_1 = timproc_uso_b5_alias(arg0);\n        ((GP_00007B2C)FW(FW(tv0_1, 0x28), 0x8C))(*(s16*)((char*)FW(tv0_1, 0x28) + 0x88) + tv0_1, 0);\n        timproc_uso_b5_alias(arg0);\n        tv0_2 = timproc_uso_b5_alias(arg0);\n        ((GP_00007B2C)FW(FW(tv0_2, 0x28), 0x84))(*(s16*)((char*)FW(tv0_2, 0x28) + 0x80) + tv0_2, 0);\n        if (1) {\n            timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE778 + (FW(arg0, 0x3C4) * 4)), FW((arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0) | FW(arg0, 0x4D4));\n        }\n        timproc_uso_b5_alias(arg0);\n        FW(arg0, 0x3CC) = 7;\n        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], (FW((timproc_uso_b5_alias(arg0)), 0x2B0) + 1) | FW(arg0, 0x4D4));\n        *(f32 *)((char *)arg0 + 0x484) = 1.0f;\n        tv0_3 = timproc_uso_b5_alias(arg0);\n        ((GP_00007B2C)FW(FW(tv0_3, 0x28), 0x74))(*(s16*)((char*)FW(tv0_3, 0x28) + 0x70) + tv0_3);\n        return;\n    }\n    if (timproc_uso_b5_alias(&import_80020098, 0x200) != 0) {\n        if (timproc_uso_b5_alias(arg0) == 0) {\n            timproc_uso_b5_alias(arg0);\n        } else {\n            timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE748 + (FW(arg0, 0x3C4) * 4)), FW((arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0) | FW(arg0, 0x4D4));\n            tv0_4 = timproc_uso_b5_alias(arg0);\n            ((GP_00007B2C)FW(FW(tv0_4, 0x28), 0xAC))(*(s16*)((char*)FW(tv0_4, 0x28) + 0xA8) + tv0_4);\n            FW(arg0, 0x3CC) = 0xA;\n            timproc_uso_b5_alias(arg0, 0);\n            *(f32 *)((char *)arg0 + 0x484) = 0.0f;\n            timproc_uso_b5_alias(arg0);\n            tv0_5 = timproc_uso_b5_alias(arg0);\n            FW(arg0, 0x3C8) = (s32) tv0_5;\n            FW(arg0, 0x3C4) = timproc_uso_b5_alias(arg0, tv0_5);\n            timproc_uso_b5_alias(arg0);\n            timproc_uso_b5_alias(arg0, 1);\n        }\n    }\n    if (timproc_uso_b5_alias(&import_80020098, 0x14003) != 0) {\n        timproc_uso_b5_alias(arg0, 1);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00007B2C.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "byte-diff 194/194 vs expected/src/timproc_uso_b5/timproc_uso_b5.c.o + full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 clean + make non_matching_objects exit 0"
+  }
+}
