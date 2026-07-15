@@ -1114,28 +1114,47 @@ extern void import_0024F34C();
  * (import_0024E608, import_0024F2C8, import_0024F34C); the first call's a0 is
  * import_0024CAF8 in BOTH branches, only a2 (lerped &sp36 vs ones &sp96) and
  * the tgt base (+0x18 in if, +0 in else) differ. Twin of
- * mgrproc_uso_func_00002850 (loop form). RELOCS + LOGIC now byte-faithful;
- * residual is a FRAME-SIZE cap (target -0x70 frame parks the ones-vec at
- * sp+96..108 with 3 extra stack-temp stores; natural C emits a -0x60 frame,
- * 73 vs 76 insns) PLUS the FP-renumber cap (1.0f colored to $f16 in target,
- * $f0 here). Both are SKIP-class caps (no pad-forcing); INCLUDE_ASM is the
- * build path. */
+ * mgrproc_uso_func_00002850 (loop form). RELOCS + LOGIC now byte-faithful.
+ * PRIOR NOTE CORRECTED 2026-07-15 (stolen-prologue re-verify vein): the
+ * "FRAME-SIZE cap" was NOT a cap. The whole -0x70 frame + sp+96 ones-vec +
+ * sp+92 tgt-spill + 76-insn schedule is C-reproducible: (1) lerp must read
+ * ones through a pointer (`src = ones; ... src[i]`) so uopt cannot
+ * const-propagate the 1.0f stores into the lerp (that forces the
+ * lwc1 96/100/104(sp) reloads and the 3 extra insns); (2) decl order
+ * ones, tgt, pad[0xC], scalars(t/one/src), vec, out reproduces the exact
+ * frame map (homes of the 3 scalars + pad = the 0x18 gap above vec);
+ * (3) adds spelled `(vec[i+1]-src[i])*t + src[i]` (R-first commute rule)
+ * to get ones-first add operand order; (4) dc and t are ONE variable
+ * (both color $f0). Result: 77/77 mnemonics+offsets+relocs align, frame
+ * exact. TRUE RESIDUAL = FP-pseudo-numbering rotation: target numbers
+ * [t=f0, add1=f2, int=f4, cvt=f6, 255=f8, vec1=f10, add2=f12, add3=f14,
+ * const=f16, ones0=f18] (1.0f const numbered 9th, adds fresh); we emit
+ * [t=f0, const=f2, int=f4, cvt=f6, 255=f8, vec1=f10, ones0=f16, sub=f18]
+ * (const numbered 2nd, adds reuse). Probed: named var, dead-while anchor,
+ * branch-duplicated init (hoist), out-via-pointer, t-inline — all 55-word
+ * or worse. Same intractable FP-renumber class as twin mgrproc 2E3C's
+ * pair-swap. objdiff fuzzy 87.11 -> 95.39. INCLUDE_ASM is the build path. */
 void titproc_uso_func_00001710(char *s0) {
-    float f16 = 1.0f;
     float ones[4];
+    char *tgt;
+    char pad[0xC];
+    float t;
+    float one;
+    float *src;
     float vec[5];   /* vec[0]=sp48 vec[1]=sp52 vec[2]=sp56 vec[3]=sp60 vec[4]=sp64 */
     float out[3];
-    float t, dc;
-    char *tgt;
-    ones[0] = f16; ones[1] = f16; ones[2] = f16; ones[3] = f16;
+    src = ones;
+    (void)pad;
+    one = 1.0f;
+    ones[0] = one; ones[1] = one; ones[2] = one; ones[3] = one;
     if (*(int *)((char *)&import_00020098 + 0x18C) != 0) {
-        dc = *(float *)((char *)&import_00263E00 + 0x40);
-        vec[1] = f16; vec[4] = f16; vec[2] = dc; vec[3] = dc;
+        t = *(float *)((char *)&import_00263E00 + 0x40);
+        vec[1] = one; vec[4] = one; vec[2] = t; vec[3] = t;
         t = (float)*(int *)(s0 + 0x2C) / 255.0f;
-        vec[0] = f16;
-        out[0] = ones[0] + (vec[1] - ones[0]) * t;
-        out[1] = ones[1] + (vec[2] - ones[1]) * t;
-        out[2] = ones[2] + (vec[3] - ones[2]) * t;
+        vec[0] = one;
+        out[0] = (vec[1] - src[0]) * t + src[0];
+        out[1] = (vec[2] - src[1]) * t + src[1];
+        out[2] = (vec[3] - src[2]) * t + src[2];
         import_0024E608(&import_0024CAF8, *(int *)(s0 + 0x2C), out);
         tgt = (char *)&import_00263D30 + 0x18;
     } else {
