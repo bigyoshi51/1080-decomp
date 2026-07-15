@@ -16159,9 +16159,16 @@ void game_libs_func_00048104(int a0, short *a1, short *a2, short *a3, short arg5
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00048184);
 
 #ifdef NON_MATCHING
+/* gl_func_00048354: bounded queue append (ctr @+0x258, slots @+0x25C, cap 8;
+ * overflow calls placeholder(&D+0x1FF30)). BYTE-EXACT 19/19 (2026-07-15,
+ * 88.89 -> 100): SAME-LINE JOIN of the post-increment and the indexed store
+ * (as1 debug-line tie-break) slides the ctr writeback sw below the addu
+ * (target: addiu/sll/addu/sw t6/sw a1; two-line form swaps sw t6 up).
+ * NOTE the overflow compare RELOADS the ctr (post-inc one-liner keeps it;
+ * splitting idx/writeback lets CSE feed idx+1 to the compare = -2 words).
+ * Stays NM: placeholder callee + &D_00000000 data. */
 void gl_func_00048354(char *a0, int a1) {
-    int idx = (*(int*)(a0 + 0x258))++;
-    ((int*)(a0 + 0x25C))[idx] = a1;
+    int idx = (*(int*)(a0 + 0x258))++; ((int*)(a0 + 0x25C))[idx] = a1;
     if ((unsigned int)*(int*)(a0 + 0x258) >= 8) {
         gl_func_00000000((char*)&D_00000000 + 0x1FF30);
     }
