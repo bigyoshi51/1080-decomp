@@ -23280,7 +23280,19 @@ void game_libs_func_000517E4(int *a0) {
     *(float *)((char *)a0 + 0x10) = 1.0f;
 }
 
-// gl_func_0005185C — STRUCTURAL PASS (0x148 / 82 words, no episode).
+// gl_func_0005185C — OBJDIFF-100 (82/82 words byte-exact vs target,
+// 2026-07-15 agent-f; placeholder-call fn → stays NM wrap, no episode).
+// 84.06 -> 100 in one pass: (1) decode fix — the log/bind calls pass
+// (&D_0, &D+string_off, ...) RELOC-form args (lui/addiu), not (0,
+// int-literal); (2) ||-alloc-fallback chain (`o != 0 || (o = alloc(N))
+// != 0`) reproduces the dead second/third allocs + shared-epilogue
+// branches; (3) 519A4 recipe verbatim: 8-byte struct copy
+// `*(Pair2 *)((o2[1]=self, o2) + 2) = *(Pair2 *)(&D+0x20638)` gives
+// the t1-base/t3,t2 interleave with the self store between lui/addiu;
+// (4) frame 0x28 via `volatile int pad;` declared FIRST (dead home @
+// 0x24 above o1@0x20/o2@0x1C + round8 hole @0x18). GOTCHA: a volatile
+// pad declared LAST (after the slotted locals) is TRIMMED (no slot,
+// any array size) — leading position is load-bearing.
 // Raw-.word USO. realjr=1, regjr=0 → ONE clean function. Frame 0x28,
 // saves ra only. 9 jal-0 = USO-relocated callbacks. Constructor /
 // cb-registration + init driver. Shape:
@@ -23320,40 +23332,33 @@ void game_libs_func_000517E4(int *a0) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0005185C)();
 void gl_func_0005185C(char *arg0) {
-    s32 *sp20;
-    s32 *sp1C;
-    s32 *temp_v0;
-    s32 *temp_v0_2;
-    s32 *temp_v0_3;
-    s32 *var_a0;
-    s32 *var_a2;
-    s32 *var_v1;
+    volatile int pad185C;
+    s32 *o1;
+    s32 *o2;
+    s32 *o3;
 
-    gl_func_00034458(0, 0x20EC8, 0);
+    gl_func_00034458((char *)&D_00000000, (char *)&D_00000000_c + 0x20EC8, 0);
     gl_func_00034458(arg0, 0);
     if (FW(arg0, 0x38) & 0x400000) {
-        temp_v0 = gl_func_00034458((char *)0x10);
-        var_a2 = temp_v0;
-        if (temp_v0 != 0) {
-            var_v1 = temp_v0;
-            if ((temp_v0 != 0) || (sp20 = temp_v0, temp_v0_2 = gl_func_00034458((char *)0x10), var_a2 = sp20, var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
-                var_a0 = var_v1;
-                if ((var_v1 != 0) || (sp1C = var_v1, sp20 = var_a2, temp_v0_3 = gl_func_00034458((char *)4), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
-                    *var_a0 = 0x20740;
+        o1 = (s32 *)gl_func_00034458(0x10);
+        if (o1 != 0) {
+            o2 = o1;
+            if (o2 != 0 || (o2 = (s32 *)gl_func_00034458(0x10)) != 0) {
+                o3 = o2;
+                if (o3 != 0 || (o3 = (s32 *)gl_func_00034458(4)) != 0) {
+                    *o3 = (s32)((char *)&D_00000000_a[0] + 0x20740);
                 }
-                FW(var_v1, 0x4) = arg0;
-                FW(var_v1, 0x8) = (s32) (char *)FW(0x20638, 0x0);
-                FW(var_v1, 0xC) = (s32) (char *)FW(0x20638, 0x4);
+                *(Pair2 *)((o2[1] = (s32)arg0, o2) + 2) =
+                    *(Pair2 *)((char *)&D_00000000_b[0] + 0x20638);
             }
-            *var_a2 = 0x20D88;
+            *o1 = (s32)((char *)&D_00000000_d + 0x20D88);
         }
-        gl_func_00034458(0, 0x20ED0, var_a2, 1);
+        gl_func_00034458((char *)&D_00000000, (char *)&D_00000000_c + 0x20ED0, o1, 1);
     }
-    gl_func_00034458(0, 0x20ED8, (int)arg0 + 0x50, 0);
-    gl_func_00034458(0, 0x20EE0, (int)arg0 + 0x54, 0);
-    gl_func_00034458(0);
+    gl_func_00034458((char *)&D_00000000, (char *)&D_00000000_c + 0x20ED8, arg0 + 0x50, 0);
+    gl_func_00034458((char *)&D_00000000, (char *)&D_00000000_c + 0x20EE0, arg0 + 0x54, 0);
+    gl_func_00034458((char *)&D_00000000);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
