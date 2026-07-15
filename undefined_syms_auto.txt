@@ -2881,3 +2881,4 @@ gl_ref_0000C764_135C_4 = 0x0000C764;
 gl_ref_0000C764_135C_5 = 0x0000C764;
 gl_ref_0000C764_135C_6 = 0x0000C764;
 gl_data_00000000_11a4 = 0x00000000;  /* 11A4: distinct abs-0 alias busts &gl_data CSE between self->0x28 store and the 0x54 load */
+gl_data_00000000_15fc = 0x00000000;  /* 15FC: FW(0x28) abs-0 store (was mis-decoded as literal 0) */

@@ -832,59 +832,64 @@ char *gl_func_0000135C(char *self) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-/* gl_func_000015FC: NM wrap. Minimal-locals (drop redundant sp2C/sp28/temp_*)
- * shrinks frame 0x50->0x38 to match expected; distinct float-pool symbols
- * (D_00000C7C..) force per-load re-deref (lui at; lwc1 off(at)) instead of a
- * CSE'd cached base; D_0000CC58/D_0000CC60 give lui+addiu (not ori) for the
- * 0xCC58/0xCC60 absolutes. Residual = IDO swc1/lwc1 scheduling + prologue
- * move-s0 placement (coloring/scheduling cap). 69.96 -> 81.96% fuzzy. */
+/* gl_func_000015FC: NM wrap, 2026-07-15 agent-h wave re-probe: 82 -> ~90
+ * (76/103 .o words, 10 of the 27 diffs are %hi/%lo reloc fields). Applied the
+ * 7BC-kit: ||-param-reassign head fixed the prologue (move s0/sw ra/sw a1
+ * delay ALL exact now — retracts "prologue placement cap"); FW(0x28) stores
+ * &gl_data_00000000_15fc (abs-0 alias; was literal 0 = a DECODE bug, sw zero);
+ * loaded-store-FIRST statement order per FP group (108=C80; 118=1.0f; then
+ * the 0.0f fillers) lets as1 sink the loaded sw below the ready zero-stores —
+ * groups B (114/110/10C/108/118) and C (124/120/11C) now byte-exact; INLINE
+ * self+0x168 / self+0x180 call args (NOT named p1/p2) CSE across the calls
+ * and spill at temp homes 0x2C/0x28 = target (named forms sit 4 higher and
+ * +8 frame). RESIDUAL (~9 words): the D8..12C int/fp store stream — target
+ * soft-pipelines every lwc1 latency with the NEXT const (li v1,100 / li
+ * t9,130 / lui at) while keeping stores strictly source-order; ours hoists
+ * the CC/C8 int stores above E4/E0 and sinks li t9. Coupled to the 100-temp
+ * v0-vs-v1 tie (target v1, ours v0). 8 statement-order/valuation spellings
+ * probed (D0 moves, joins, E4/E0 swaps, register f32, de-named f2 — the last
+ * two REGRESS: de-named C7C double-deref does NOT CSE, self-stores may-alias
+ * the extern pool). as1 stream-interleave class. */
 extern f32 D_00000C7C, D_00000C80, D_00000C84, D_00000C88, D_00000C8C, D_00000C90, D_00000C94;
 extern char D_0000CC58[], D_0000CC60[];
-char *gl_func_000015FC(char *arg0, s32 arg1) {
-    f32 temp_f2;
-    char *var_s0;
-
-    var_s0 = arg0;
-    if ((arg0 != 0) || (var_s0 = (char*)func_00000000((char *)0x198), (var_s0 != 0))) {
-        (char*)func_00000000(var_s0, D_0000CC58);
-        FW(var_s0, 0x28) = 0;
-        (char*)func_00000000(var_s0 + 0x2C);
+extern int gl_data_00000000_15fc;
+char *gl_func_000015FC(char *self, s32 arg1) {
+    register f32 temp_f2;
+    if (self != 0 || (self = (char *)func_00000000(0x198)) != 0) {
+        func_00000000(self, D_0000CC58);
+        FW(self, 0x28) = (int)&gl_data_00000000_15fc;
+        func_00000000(self + 0x2C);
         temp_f2 = D_00000C7C;
-        FW(var_s0, 0xC) = (int)D_0000CC60;
-        *(f32*)((char*)var_s0 + 0xE8) = temp_f2;
-        *(f32*)((char*)var_s0 + 0xF8) = temp_f2;
-        *(f32*)((char*)var_s0 + 0xEC) = 0.0f;
-        *(f32*)((char*)var_s0 + 0xF0) = 0.0f;
-        *(f32*)((char*)var_s0 + 0xF4) = 0.0f;
-        *(f32*)((char*)var_s0 + 0xFC) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x100) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x104) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x114) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x110) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x10C) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x108) = D_00000C80;
-        *(f32*)((char*)var_s0 + 0x118) = 1.0f;
-        *(f32*)((char*)var_s0 + 0x124) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x120) = 0.0f;
-        *(f32*)((char*)var_s0 + 0x11C) = D_00000C84;
-        *(f32*)((char*)var_s0 + 0xD8) = D_00000C88;
-        *(f32*)((char*)var_s0 + 0xDC) = D_00000C8C;
-        *(f32*)((char*)var_s0 + 0xE4) = 0.0f;
-        *(f32*)((char*)var_s0 + 0xE0) = D_00000C90;
-        FW(var_s0, 0xCC) = 0x64;
-        FW(var_s0, 0xC8) = 0x64;
-        *(f32*)((char*)var_s0 + 0x128) = 0.0f;
-        FW(var_s0, 0xD4) = arg1;
-        FW(var_s0, 0xD0) = 0x82;
-        *(f32*)((char*)var_s0 + 0x12C) = D_00000C94;
-        (char*)func_00000000(var_s0 + 0x138, (char *)0x5000A);
-        (char*)func_00000000(var_s0 + 0x150, (char *)0x50009);
-        (char*)func_00000000(var_s0 + 0x180, (char *)0x5000B);
-        (char*)func_00000000(var_s0 + 0x168, (char *)0x5001C);
-        (char*)func_00000000(var_s0, var_s0 + 0x168, var_s0 + 0x180);
-        (char*)func_00000000(var_s0, (char *)-0x49, (char *)-2, -0x32, -1);
+        FW(self, 0xC) = (int)D_0000CC60;
+        *(f32*)(self + 0xE8) = temp_f2;
+        *(f32*)(self + 0xF8) = temp_f2;
+        *(f32*)(self + 0xEC) = 0.0f; *(f32*)(self + 0xF0) = 0.0f; *(f32*)(self + 0xF4) = 0.0f; *(f32*)(self + 0xFC) = 0.0f; *(f32*)(self + 0x100) = 0.0f; *(f32*)(self + 0x104) = 0.0f;
+        *(f32*)(self + 0x108) = D_00000C80;
+        *(f32*)(self + 0x118) = 1.0f;
+        *(f32*)(self + 0x114) = 0.0f;
+        *(f32*)(self + 0x110) = 0.0f;
+        *(f32*)(self + 0x10C) = 0.0f;
+        *(f32*)(self + 0x11C) = D_00000C84;
+        *(f32*)(self + 0x124) = 0.0f;
+        *(f32*)(self + 0x120) = 0.0f;
+        *(f32*)(self + 0xD8) = D_00000C88;
+        *(f32*)(self + 0xDC) = D_00000C8C;
+        *(f32*)(self + 0xE4) = 0.0f;
+        *(f32*)(self + 0xE0) = D_00000C90;
+        FW(self, 0xCC) = 0x64;
+        FW(self, 0xC8) = 0x64;
+        *(f32*)(self + 0x128) = 0.0f;
+        FW(self, 0xD4) = arg1;
+        FW(self, 0xD0) = 0x82;
+        *(f32*)(self + 0x12C) = D_00000C94;
+        func_00000000(self + 0x138, 0x5000A);
+        func_00000000(self + 0x150, 0x50009);
+        func_00000000(self + 0x180, 0x5000B);
+        func_00000000(self + 0x168, 0x5001C);
+        func_00000000(self, self + 0x168, self + 0x180);
+        func_00000000(self, -0x49, -2, -0x32, -1);
     }
-    return var_s0;
+    return self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000015FC);
