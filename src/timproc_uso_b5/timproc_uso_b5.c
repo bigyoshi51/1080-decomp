@@ -1369,7 +1369,11 @@ int timproc_uso_b5_func_00001D1C(char *a0, int a1) {
  * reversed vs target and the mtc1 f-reg picks $f4 not $f18; IDO canonicalizes
  * regardless of C operand order (3 source-order variants tried, all neutral).
  * Plus the 2 reloc-blind ldc1 offsets (0 vs 184/192, objdiff-normalized).
- * Genuine FP-canonicalization cap; default INCLUDE_ASM. */
+ * Genuine FP-canonicalization cap; default INCLUDE_ASM.
+ * 2026-07-15 (agent-g) re-verified against the named-local operand-order
+ * lever: naming the sub result (dm = 1.0f - f54) and/or the reloaded f54
+ * into f32 locals scrambles the whole FP pseudo pool (f0 enters, 13-14
+ * diffs) and STILL leaves mul.d operands expr-first. Cap stands. */
 #ifdef NON_MATCHING
 extern f64 D_dbl_1DB0_B8, D_dbl_1DB0_C0;
 
