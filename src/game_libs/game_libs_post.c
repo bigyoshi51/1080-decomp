@@ -20032,6 +20032,10 @@ int gl_func_00033B28(int a0, int a1, int a2) {{
 // iters, floored at base score 85, never below) AND manual decl/advance/
 // body reorderings don't flip it — the preheader address-setup ordering is a
 // deterministic IDO scheduler choice, not C-reachable. Permanent 98.67% cap.
+// 2026-07-15 re-probe: split decls + reverse init order moves the LUI group,
+// the ADDIU group AND the coloring together (coloring = first-occurrence
+// order) — the target's lui-ascend/addiu-descend split cannot be decoupled
+// from C; as1 group-scheduling tie. Cap reconfirmed.
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
 // prologue). A sweep / reset-all over the &D_0 registry table —
 // the teardown counterpart to gl_func_000337AC / gl_func_00033880.
