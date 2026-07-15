@@ -659,35 +659,33 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000FA
  *
  * 2026-06-01 source=2 sibling pass: direct-calling the vtable load
  * improves 0x1170 from 97.03% to 97.34% by keeping the final jalr target
- * in $t9. Remaining diffs are register coloring: target uses $v1 for the
- * 0x28 stride and $t6/$t0 for the two table indices; IDO still colors the
- * stride as $a0 and the indices as $v1. `register void (*fn)()` regressed
- * the call back to $a0. 2026-06-01 source=2 sibling retest: named `stride`
- * and named `offset` locals compile identically (still `$a0` stride /
- * `$v1` index), so the residual is allocator coloring rather than an
- * expression-tree issue. */
+ * in $t9. 2026-07-15 (agent-g) 12->2 diffs (30/32): the coloring residual
+ * was NAMING — target names ONLY the stride (`stride = 0x28` -> $v1 li)
+ * and leaves idx/offset/target UNNAMED (inline deref chain -> ring temps
+ * t6,t7,t8,t9 / t8,t1,t2,t9 exactly). The old body named idx/offset/target
+ * (idx stole $v1, stride fell to dead arg $a0). Unnamed-web + named-const
+ * levers, see docs. Remaining 2: addu operand order after mflo
+ * (build `addu t8,t7,v0` mul-first vs target `addu t8,v0,t7` base-first).
+ * Probed: textual swap, int-cast base (C8AC form), struct-IXA
+ * (typedef char[0x28]; emits IDENTICAL li+multu insns), swapped-term
+ * R-first form — all invariant. The 21130 array-IXA base-first escape only
+ * works for shift-scaled indexing; multu-scaled addu stays mul-first in
+ * ugen. Genuine commute-order cap; still NM. */
 extern int gl_func_00000000();
 extern char D_00000000;
 #ifdef NON_MATCHING
 void arcproc_uso_func_00001170(int *a0) {
     int *table_root = *(int**)((char*)&D_00000000 + 0x190);
     int *p;
-    int idx;
-    int offset;
-    int *target;
+    int stride;
 
     if (gl_func_00000000(table_root, a0) == 0) return;
     p = (int*)a0[0x48 / 4];
-    idx = *(int*)((char*)p + 0x7C);
-    offset = idx * 0x28;
-    target = (int*)((char*)p + offset);
-    if (target[0x90 / 4] == 0) return;
+    stride = 0x28;
+    if (*(int*)(*(int*)((char*)p + 0x7C) * stride + (int)p + 0x90) == 0) return;
     *(int*)&D_00000000 = (int)a0;
     p = (int*)a0[0x48 / 4];
-    idx = *(int*)((char*)p + 0x7C);
-    offset = idx * 0x28;
-    target = (int*)((char*)p + offset);
-    ((void(*)())target[0x90 / 4])();
+    ((void(*)())*(int*)(*(int*)((char*)p + 0x7C) * stride + (int)p + 0x90))();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001170);
