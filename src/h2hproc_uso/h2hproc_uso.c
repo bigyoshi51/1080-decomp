@@ -954,7 +954,6 @@ void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     *(unsigned int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;
 }
 
-#ifdef NON_MATCHING
 /* h2hproc_uso_func_00000EB0: 44-insn (0xB0) constructor with optional alloc.
  *
  * Two-tier alloc pattern: takes a0 (preallocated ptr or NULL), if NULL
@@ -976,46 +975,45 @@ void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
  * cascade tier: `q = p; if (q==0) q = alloc(0x2C)` (the dead arm). The fn
  * is single-arg `(int *a0)`.
  *
- * 2026-06-02 RECONSTRUCT 62.6->83.2% (+20.6pp): three fixes.
- *   (1) q is the cascade tier (q starts = a0/p), NOT a separate parameter —
- *       my old `(int*a0,int*q)` sig added 4 spurious insns.
- *   (2) shared exit: the alloc-fail path sets the ptr to 0 and falls through
- *       to a single `end: return q` (target's `beq v0,zero,<epilogue>` with
- *       `a2=v0` in the delay), not an explicit `return 0`.
- *   (3) q->0x28 uses a DISTINCT extern (D_h2h_eb0_y) so IDO materializes &D
- *       a 2nd time (target has separate t6/t7 luis); plain &D CSEs to one
- *       lui and drops to 77.6%.
- * RESIDUAL ~17%: q lands in $v1, target uses $a2 (the whole init tail is
- * structurally identical — same opcodes/offsets, base reg bumped v1<->a2 +
- * one shadow-copy at entry). Pure regalloc-renumber cap (permuter-class). */
+ * EXACT 2026-07-15 (83.2% -> 44/44, ROM byte-exact; retracts the
+ * "regalloc-renumber cap" verdict). On top of the 2026-06-02 fixes
+ * (cascade-tier q, shared exit, distinct D_h2h_eb0_y extern), four levers:
+ *   (1) DESTRUCTIVE param reuse — the returned object is the arg variable
+ *       itself (a0), so its spill lands in the a0 HOME slot 0x20(sp) and it
+ *       colors $a2; cascade tier r is the SECOND variable and colors $a0
+ *       (init-call arg0 preference), spill 0x1C. The old q/a0 role split
+ *       was backwards — that was the v1-vs-a2 "renumber".
+ *   (2) assignment-in-condition `if ((a0 = alloc(0x40)) == 0)` /
+ *       `if ((r = alloc(0x2C)) == 0)` puts each copy in the beqz delay slot.
+ *   (3) dead-arm alloc failure jumps to `tail:` (the a0 store block), NOT
+ *       to end — target's beqz lands on the lui at,0x3F80 block, still
+ *       storing the a0 fields.
+ *   (4) same-line join of `init(r, &D+0x3E0); r->0x28 = &D;` — as1
+ *       debug-line tie-break orders addiu t6 before the lw a2 reload
+ *       (LOAD-BEARING shared line; do not re-split). */
 extern char D_h2h_eb0_y;   /* q->0x28 target — distinct extern to force a 2nd
                             * &D materialization (target has separate t6/t7 luis). */
 int *h2hproc_uso_func_00000EB0(int *a0) {
-    int *q = a0;                  /* q = cascade ptr ($a2); a0 stays the p reg */
+    int *r;                       /* cascade tier ($a0-colored, spill 0x1C) */
     if (a0 == 0) {
-        a0 = (int*)gl_func_00000000(0x40);
-        q = a0;
-        if (a0 == 0) goto end;    /* shared exit: q==0 -> returns 0 */
+        if ((a0 = (int*)gl_func_00000000(0x40)) == 0) goto end;
     }
-    if (q == 0) {                 /* dead arm (q == a0 != 0) — IDO emits it anyway */
-        q = (int*)gl_func_00000000(0x2C);
-        if (q == 0) goto end;
+    r = a0;
+    if (a0 == 0) {                /* dead arm — IDO emits it anyway */
+        if ((r = (int*)gl_func_00000000(0x2C)) == 0) goto tail;
     }
-    gl_func_00000000(a0, (char*)&D_00000000 + 0x3E0);
-    *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
-    *(int*)((char*)q + 0x28) = (int)&D_h2h_eb0_y;
-    *(int*)((char*)q + 0xC) = (int)((char*)&D_00000000 + 0x3E8);
-    *(int*)((char*)q + 0x3C) = 0;
-    *(float*)((char*)q + 0x2C) = 1.0f;
-    *(float*)((char*)q + 0x30) = 1.0f;
-    *(float*)((char*)q + 0x34) = 1.0f;
-    *(float*)((char*)q + 0x38) = 1.0f;
+    gl_func_00000000(r, (char*)&D_00000000 + 0x3E0); *(int*)((char*)r + 0x28) = (int)&D_00000000;
+tail:
+    *(int*)((char*)a0 + 0x28) = (int)&D_h2h_eb0_y;
+    *(int*)((char*)a0 + 0xC) = (int)((char*)&D_00000000 + 0x3E8);
+    *(int*)((char*)a0 + 0x3C) = 0;
+    *(float*)((char*)a0 + 0x2C) = 1.0f;
+    *(float*)((char*)a0 + 0x30) = 1.0f;
+    *(float*)((char*)a0 + 0x34) = 1.0f;
+    *(float*)((char*)a0 + 0x38) = 1.0f;
 end:
-    return q;
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000EB0);
-#endif
 
 /* Cross-USO template: byte-identical to titproc_uso_func_00001E2C. Same C body
  * matches both per feedback_uso_accessor_template_reuse.md. Logic:
