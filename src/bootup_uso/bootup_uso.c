@@ -2732,36 +2732,39 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003734);
  *  (3) array-decay retype `extern int D_38c0_z[]` + indexed loads shares the
  *      Dz base in ONE lui/addiu register pair across 0x4C/0x50/0x54 (the
  *      char*-held + per-use-cast form folded per-use).
- * Residual ~9%: one coloring/temp-pool cluster — target numbers the flags
- * OR-chain through FRESH temps t7->t8->t9->t0 (ours colors the chain in-place
- * in $t0) and colors Dz=$v1/cfg=$v0 (ours cfg=$v1, Dz=$t1); frame -0x48 vs
- * -0x40 (+8, one extra local home). Statement-reorder probes don't move it
- * (uopt canonicalizes eval order). Same fresh-temp-vs-in-place-fold class as
- * the docs 5.3-vs-7.1 -O1 entries, here at -O2. */
+ * 2026-07-15 (agent-g wave 3 round 2, 91.3 -> objdiff-100 / byte-exact vs
+ * target .s): (a) DE-NAME flags + cfg (fold the OR-chain and both float loads
+ * inline into the r-call args) — expression temps number through the FRESH
+ * ring t7->t8->t9->t0 exactly and the two dead ghost homes vanish (frame
+ * -0x48 -> -0x40 exact, r-spill 0x38); (b) the reg_b call (last jal before
+ * the temp region) gets a VOID-returning alias func_00000000_38C0_v — its
+ * dead $v0 def was excluding $v0 from the CSE temps (cfg stole v1, Dz fell
+ * to ring t0); with it gone Dz=v1/cfg=v0 as in target (082F8/102CC lever).
+ * STAYS NM WRAP: all callees + data are USO placeholders (func_00000000 /
+ * D_00000000) — objdiff-100, not landable. */
 #ifdef NON_MATCHING
 /* typed-float proto (0x0-alias): args 7,8 are single floats on the stack
  * (target swc1 0x18); K&R func_00000000 double-promotes them. */
 extern char *func_38c0_r(void *, int, int, int, void *, int, float, float, int, int);
 extern int D_38c0_z[];   /* D_z global — array-typed so the base is held in ONE reg */
+/* void-returning alias for reg_b: kills the dead $v0 def so Dz/cfg color v1/v0 */
+extern void func_00000000_38C0_v(void *, void *, int);
 void func_000038C0(char *s1, int a1) {
     char *o = (char*)func_00000000(0x80);
-    char *cfg;
     char *r;
     char *r2;
     int *row;
     char *res;
-    int flags;
     if (o != 0) {
         func_00000000(o, 1);   /* alloc-fail SKIPS ONLY THIS (target beq +4) */
     }
     func_00000000(&D_00000000, o);          /* reg_a — D_x placeholder */
-    func_00000000(&D_00000000, o, 0);       /* reg_b — D_y placeholder */
-    flags = (D_38c0_z[0x50 / 4] | 1) | 0x10000 | 0x40000;
-    cfg = *(char**)(s1 + 0x98);
+    func_00000000_38C0_v(&D_00000000, o, 0); /* reg_b — D_y placeholder (void alias) */
     r = func_38c0_r(s1, 0, D_38c0_z[0x4C / 4], D_38c0_z[0x54 / 4],
                     o, *(int*)(s1 + 0x80),
-                    *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
-                    flags, 0x1B);
+                    *(float*)(*(char**)(s1 + 0x98) + 0xC4),
+                    *(float*)(*(char**)(s1 + 0x98) + 0xCC),
+                    (D_38c0_z[0x50 / 4] | 1) | 0x10000 | 0x40000, 0x1B);
     r2 = (char*)func_00000000(s1, 2, *(int*)(s1 + 0x80), r, o);
     row = (int*)((char*)&D_00000000 + a1 * 0x1C);  /* D_w placeholder */
     res = (char*)func_00000000(s1, row, r2);
