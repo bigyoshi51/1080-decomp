@@ -736,10 +736,10 @@ void mgrproc_uso_func_00001594(int *a0) {
  * name after the spilled var lowers its slot by 4); (3) case-4 dispatch arg
  * spelled (idx*4) + *(char**)(arg0+0x6A8) + 0x10 (textual-reversed, both
  * loads char**-typed) = base-first addu + CSE base in v0.
- * RESIDUAL CAP (5 words): hdr's call-crossing spilled web colors $v1, target
- * $v0. Probed 15+ spellings (register/volatile/char*/int/array-local/struct
- * fields/comma-arg-fold/return-capture/void-alias killing 07ACE0's v0 def/
- * if(1) wraps/dead-def rank boost/same-name family with case-4 base — family
+ * RESIDUAL CAP (5 words): the hdr call-crossing spilled web colors $v1, target
+ * $v0. Probed 15+ spellings (register, volatile, char-ptr, int, array-local,
+ * struct fields, comma-arg-fold, return-capture, void-alias on 07ACE0 v0 def,
+ * if(1) wraps, dead-def rank boost, same-name family with case-4 base: family
  * unites on v1) + gut-probe of the v0-owning case-4 web (hdr STAYS v1 with v0
  * completely free): uopt intrinsically avoids v0 for this spilled web class.
  * NON_MATCHING. */
