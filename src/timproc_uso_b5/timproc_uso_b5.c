@@ -4736,10 +4736,17 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   (6) the scroll-field RMW uses an explicit advancing f32* (p1/p2) so IDO
 //   emits addiu base,308 + swc1 0(base) matching the target, AND evaluate the
 //   query-call BEFORE re-reading the dest so the call result isn't spilled
-//   (drops frame -56 -> -32). RESIDUAL ~2%: int v0-vs-t1 on the 0x488
-//   countdown load + the FP-register base numbering ($f0/$f4 vs $f8/$f10) —
-//   coloring cap (permuter-immune per project cap analysis).
-#ifdef NON_MATCHING
+//   (drops frame -56 -> -32).
+// 2026-07-15 (agent-g wave 3): -> BYTE-EXACT 150/150, retracting the
+//   "first-temp coloring cascade, C-lever-immune" cap for this fn. Levers:
+//   (1) 0x488 countdown respelled as compound RMW (un-coalesced lw t1/addiu
+//   t2 pair, 7B2C recipe); (2) d1/d2 DE-NAMED (named = $f0 FP candidate;
+//   target $f8 ring) via the assignment-carrier fold
+//   `*p1 = call_deref * two + *(p1 = chain+0x134);` — + evals LEFT-first
+//   here, so the call term goes first textually and p1's def rides inside
+//   the RHS (no pre-call addiu/spill); `two` stays a named local (mul.s
+//   keeper) and remats per site; (3) elem+1|0x4D4 |-swap on both
+//   D_807FE768 dispatch clusters (7E34 right-first rule).
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -4751,7 +4758,6 @@ void timproc_uso_b5_func_00007078(char *arg0) {
     f32 *temp_v0;
     f32 *temp_v0_2;
     f32 *temp_v0_3;
-    s32 temp_t2;
     char *temp_v1;
     char *temp_v1_2;
     char *temp_v1_3;
@@ -4759,19 +4765,14 @@ void timproc_uso_b5_func_00007078(char *arg0) {
 
     if (FW(FW(FW(arg0, 0x414), 0x18), 0x130) != 0) {
         f32 two = 2.0f;
-        f32 d1 = *(f32 *)((char *)timproc_uso_b5_alias(&import_80020098, 1) + 0x4) * two;
-        f32 *p1 = (f32 *)((char *)FW(FW(arg0, 0x414), 0x18) + 0x134);
-        *p1 = *p1 + d1;
-        {
-            f32 d2 = *(f32 *)timproc_uso_b5_alias(&import_80020098, 1) * two;
-            f32 *p2 = (f32 *)((char *)FW(FW(arg0, 0x414), 0x18) + 0x138);
-            *p2 = *p2 + d2;
-        }
+        f32 *p1;
+        f32 *p2;
+        *p1 = *(f32 *)((char *)timproc_uso_b5_alias(&import_80020098, 1) + 0x4) * two + *(p1 = (f32 *)((char *)FW(FW(arg0, 0x414), 0x18) + 0x134));
+        *p2 = *(f32 *)timproc_uso_b5_alias(&import_80020098, 1) * two + *(p2 = (f32 *)((char *)FW(FW(arg0, 0x414), 0x18) + 0x138));
     } else {
-        temp_t2 = FW(arg0, 0x488) - 1;
-        FW(arg0, 0x488) = temp_t2;
-        if (temp_t2 < 0) {
-            timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], FW(arg0, 0x4D4) | (FW(timproc_uso_b5_alias(arg0), 0x2B0) + 1));
+        FW(arg0, 0x488) = FW(arg0, 0x488) - 1;
+        if (FW(arg0, 0x488) < 0) {
+            timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], (FW(timproc_uso_b5_alias(arg0), 0x2B0) + 1) | FW(arg0, 0x4D4));
             FW(arg0, 0x3CC) = 1;
             *(f32 *)((char *)arg0 + 0x484) = 1.0f;
             temp_v0 = timproc_uso_b5_alias(arg0);
@@ -4781,7 +4782,7 @@ void timproc_uso_b5_func_00007078(char *arg0) {
         timproc_uso_b5_alias(arg0, 2);
     }
     if (timproc_uso_b5_alias(&import_80020098, 0x100) != 0) {
-        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], FW(arg0, 0x4D4) | (FW(timproc_uso_b5_alias(arg0), 0x2B0) + 1));
+        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], (FW(timproc_uso_b5_alias(arg0), 0x2B0) + 1) | FW(arg0, 0x4D4));
         FW(arg0, 0x3CC) = 1;
         FW(arg0, 0x400) = 0;
         *(f32 *)((char *)arg0 + 0x484) = 1.0f;
@@ -4809,9 +4810,7 @@ void timproc_uso_b5_func_00007078(char *arg0) {
     }
     FW(arg0, 0x408) = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007078);
-#endif
+
 
 // timproc_uso_b5_func_000072D0 — STRUCTURAL PASS (no episode).
 // Raw-.word USO. BOUNDARY NOTE: this .s is a 2-function USO bundle

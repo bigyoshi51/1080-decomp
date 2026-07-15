@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_00007078",
+  "project": "projects/1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T07:39:29.435622+00:00",
+  "end_time": "2026-07-15T07:39:29.435622+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T07:39:29.435622+00:00",
+      "assistant_text": "Wave-3: 97.87% -> 150/150 EXACT, retracting the documented 'whole-function first-temp coloring cascade ($f0<->$f8), C-lever-immune, permuter-floored' cap. (1) 0x488 countdown respelled as compound RMW (FW(arg0,0x488)=FW(arg0,0x488)-1; if(FW(...)<0)) -> un-coalesced lw t1/addiu t2/bgez/sw t2 (7B2C recipe). (2) The $f0-vs-$f8 FP residual was the NAMED d1/d2 mul-result locals (named = FP candidate $f0; target = $f8 ring temp): de-named via the assignment-carrier fold `*p1 = *(f32*)((char*)alias(&import,1)+4) * two + *(p1 = (f32*)(chain+0x134));` \u2014 the + operator evaluates LEFT-first here, so the call term must be textually first and p1's def rides inside the RHS as an assignment-expr (a separate p1 def statement before the call emits a pre-call addiu + spill, frame -72); `two` stays a named f32 local (mul.s keeper, remats per site as ring mtc1). (3) (elem+1)|0x4D4 |-swap on both D_807FE768 dispatch clusters (right-first | eval, 7E34 rule). ROM cmp clean.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 150,
+  "initial_m2c_source": null,
+  "final_source": "void timproc_uso_b5_func_00007078(char *arg0) {\n    f32 *temp_v0;\n    f32 *temp_v0_2;\n    f32 *temp_v0_3;\n    char *temp_v1;\n    char *temp_v1_2;\n    char *temp_v1_3;\n    char *temp_v1_4;\n\n    if (FW(FW(FW(arg0, 0x414), 0x18), 0x130) != 0) {\n        f32 two = 2.0f;\n        f32 *p1;\n        f32 *p2;\n        *p1 = *(f32 *)((char *)timproc_uso_b5_alias(&import_80020098, 1) + 0x4) * two + *(p1 = (f32 *)((char *)FW(FW(arg0, 0x414), 0x18) + 0x134));\n        *p2 = *(f32 *)timproc_uso_b5_alias(&import_80020098, 1) * two + *(p2 = (f32 *)((char *)FW(FW(arg0, 0x414), 0x18) + 0x138));\n    } else {\n        FW(arg0, 0x488) = FW(arg0, 0x488) - 1;\n        if (FW(arg0, 0x488) < 0) {\n            timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], (FW(timproc_uso_b5_alias(arg0), 0x2B0) + 1) | FW(arg0, 0x4D4));\n            FW(arg0, 0x3CC) = 1;\n            *(f32 *)((char *)arg0 + 0x484) = 1.0f;\n            temp_v0 = timproc_uso_b5_alias(arg0);\n            temp_v1_3 = FW(temp_v0, 0x28);\n            ((GP_00007078)FW(temp_v1_3, 0xA4))(*(s16 *)((char *)temp_v1_3 + 0xA0) + (char *)temp_v0);\n        }\n        timproc_uso_b5_alias(arg0, 2);\n    }\n    if (timproc_uso_b5_alias(&import_80020098, 0x100) != 0) {\n        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE768)[FW(arg0, 0x3C4)], (FW(timproc_uso_b5_alias(arg0), 0x2B0) + 1) | FW(arg0, 0x4D4));\n        FW(arg0, 0x3CC) = 1;\n        FW(arg0, 0x400) = 0;\n        *(f32 *)((char *)arg0 + 0x484) = 1.0f;\n        temp_v0_2 = timproc_uso_b5_alias(arg0);\n        temp_v1_4 = FW(temp_v0_2, 0x28);\n        ((GP_00007078)FW(temp_v1_4, 0xA4))(*(s16 *)((char *)temp_v1_4 + 0xA0) + (char *)temp_v0_2);\n    }\n    if (timproc_uso_b5_alias(&import_80020098, 0x200) != 0) {\n        FW(arg0, 0x3CC) = 0;\n        timproc_uso_b5_alias((char *)0x802);\n        if (timproc_uso_b5_alias(arg0) == 0) {\n            timproc_uso_b5_alias(arg0);\n        } else {\n            timproc_uso_b5_alias(arg0);\n            temp_v0_3 = timproc_uso_b5_alias(arg0);\n            FW(arg0, 0x3C8) = temp_v0_3;\n            FW(arg0, 0x3C4) = timproc_uso_b5_alias(arg0, (s32) temp_v0_3);\n            FW(arg0, 0x3CC) = 2;\n            timproc_uso_b5_alias(arg0, 0);\n            *(f32 *)((char *)arg0 + 0x484) = 1.0f;\n        }\n    }\n    if ((FW(arg0, 0x3F8) != 0) && (*(f32 *)((char *)arg0 + 0x480) == 0.0f)) {\n        FW(arg0, 0x3F8) = 0;\n    }\n    FW(arg0, 0x408) = 0;\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_00007078.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "byte-diff 150/150 vs expected/src/timproc_uso_b5/timproc_uso_b5.c.o + full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 clean + make non_matching_objects exit 0"
+  }
+}
