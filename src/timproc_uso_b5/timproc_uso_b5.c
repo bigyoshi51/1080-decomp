@@ -8850,18 +8850,35 @@ void timproc_uso_b5_func_0000C89C(int *a0, int a1) {
  * clamp reloads back into `v1` (forces `move $v1,$a1` + growth -> worse).
  * IDO unifies the reloaded pointer onto $v1 and leaves the first,
  * separately-loaded pseudo on $a1; no C-level live-range edit reachable
- * here flips it. Class: first-pseudo register-coloring. Permuter-territory. */
+ * here flips it. Class: first-pseudo register-coloring. Permuter-territory.
+ *
+ * 2026-07-15 EXACT 51/51 (agent-g) — the "first-pseudo coloring cap" was
+ * FALSE. Three-piece crack:
+ *  (1) UNNAMED entry web: drop the named `v1` head local entirely; spell the
+ *      head condition + p128 def as inline derefs of a0[0x2B8/4]. The CSE'd
+ *      compiler temp colors $v1 (matching the reload webs); the NAMED local
+ *      was what forced the $a1 family (same-name family inherits one color,
+ *      docs/IDO_CODEGEN 332B4 converse).
+ *  (2) Arm-local addiu remat: re-def p128 inside the += arm via the INT-CAST
+ *      address form `(float *)((int)((int *)a0[0x2B8/4]) + 0x128)` — the
+ *      distinct expr tree defeats uopt expr-CSE against the (char*)+0x128
+ *      head def (cast-form CSE-break family), re-emitting `addiu v0,v1,296`.
+ *  (3) Same-line join of the re-def + `*p128 += D[0x374]` (as1 debug-line
+ *      tie-break) fixes the lui-at/addiu pair order AND the f4/f6 FP pseudo
+ *      numbering; the compound `+=` (not `x = x + y`) keeps *p128's pseudo
+ *      created first. */
 extern int gl_func_00000000();
 extern char D_00000000;
-#ifdef NON_MATCHING
 void timproc_uso_b5_func_0000C8AC(int *a0) {
   int *v1;
   float *p128;
-  v1 = (int *) a0[0x2B8 / 4];
-  p128 = (float *) (((char *) v1) + 0x128);
-  if ((*((int *) (((char *) v1) + 0x134))) != 0)
+  p128 = (float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128);
+  if ((*((int *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x134))) != 0)
   {
-    *p128 += *((float *) (((char *) (&D_00000000)) + 0x374));
+    /* int-cast address form: distinct expr tree from the (char*)+0x128 head
+     * def -> defeats uopt expr-CSE, remats the arm-local addiu (cast-literal
+     * CSE-break family, docs/IDO_CODEGEN DF98) */
+    p128 = (float *) (((int) ((int *) a0[0x2B8 / 4])) + 0x128); *p128 += *((float *) (((char *) (&D_00000000)) + 0x374));
     if ((*((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128))) > 1.0f)
     {
       *((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128)) = 1.0f;
@@ -8893,9 +8910,6 @@ void timproc_uso_b5_func_0000C8AC(int *a0) {
   }
   timproc_uso_b5_func_00003F58();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C8AC);
-#endif
 
 
 void timproc_uso_b5_func_0000C978(int *a0, float a1) {

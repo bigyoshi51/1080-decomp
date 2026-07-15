@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_0000C8AC",
+  "project": "projects/1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T04:50:13.320308+00:00",
+  "end_time": "2026-07-15T04:50:13.320327+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T04:50:13.320321+00:00",
+      "assistant_text": "First-pseudo register-coloring cap retracted (was 'permuter-territory' 2026-06-20). Crack: (1) unnamed entry web \u2014 drop the named v1 head local, inline-deref a0[0x2B8/4] in the head condition and p128 def; the CSE'd compiler temp colors $v1 while a NAMED local forced the $a1 family (332B4 same-name-family converse). (2) Arm-local addiu remat \u2014 re-def p128 in the += arm via the int-cast address form (float*)((int)((int*)a0[0x2B8/4]) + 0x128); distinct expr tree defeats uopt expr-CSE vs the (char*)+0x128 head def, re-emitting addiu v0,v1,296. (3) Same-line join of re-def + compound '*p128 += D[0x374]' fixes lui-at/addiu pair order and f4/f6 FP pseudo numbering; compound += (not x=x+y) keeps *p128's pseudo created first.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 51,
+  "initial_m2c_source": null,
+  "final_source": "/* timproc_uso_b5_func_0000C8AC:\n * 2026-07-15 EXACT 51/51 (agent-g) \u2014 the \"first-pseudo coloring cap\" was\n * FALSE. Three-piece crack:\n *  (1) UNNAMED entry web: drop the named `v1` head local entirely; spell the\n *      head condition + p128 def as inline derefs of a0[0x2B8/4]. The CSE'd\n *      compiler temp colors $v1 (matching the reload webs); the NAMED local\n *      was what forced the $a1 family (same-name family inherits one color,\n *      docs/IDO_CODEGEN 332B4 converse).\n *  (2) Arm-local addiu remat: re-def p128 inside the += arm via the INT-CAST\n *      address form `(float *)((int)((int *)a0[0x2B8/4]) + 0x128)` \u2014 the\n *      distinct expr tree defeats uopt expr-CSE against the (char*)+0x128\n *      head def (cast-form CSE-break family), re-emitting `addiu v0,v1,296`.\n *  (3) Same-line join of the re-def + `*p128 += D[0x374]` (as1 debug-line\n *      tie-break) fixes the lui-at/addiu pair order AND the f4/f6 FP pseudo\n *      numbering; the compound `+=` (not `x = x + y`) keeps *p128's pseudo\n *      created first. */\nextern int gl_func_00000000();\nextern char D_00000000;\nvoid timproc_uso_b5_func_0000C8AC(int *a0) {\n  int *v1;\n  float *p128;\n  p128 = (float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128);\n  if ((*((int *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x134))) != 0)\n  {\n    /* int-cast address form: distinct expr tree from the (char*)+0x128 head\n     * def -> defeats uopt expr-CSE, remats the arm-local addiu (cast-literal\n     * CSE-break family, docs/IDO_CODEGEN DF98) */\n    p128 = (float *) (((int) ((int *) a0[0x2B8 / 4])) + 0x128); *p128 += *((float *) (((char *) (&D_00000000)) + 0x374));\n    if ((*((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128))) > 1.0f)\n    {\n      *((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128)) = 1.0f;\n    }\n  }\n  else\n  {\n    *p128 -= *((float *) (((char *) (&D_00000000)) + 0x378));\n    if ((*((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128))) < 0.0f)\n    {\n      *((float *) (((char *) ((int *) a0[0x2B8 / 4])) + 0x128)) = 0.0f;\n    }\n  }\n  p128 = (int *) a0[0x2B8 / 4];\n  {\n    float a;\n    float b;\n    float c;\n    float d;\n    v1 = p128;\n    a = *((float *) (((char *) a0) + 0x25C));\n    b = *((float *) (((char *) a0) + 0x260));\n    c = *((float *) (((char *) a0) + 0x264));\n    d = *((float *) (((char *) a0) + 0x294));\n    *((float *) (((char *) v1) + 0x110)) = a;\n    *((float *) (((char *) v1) + 0x114)) = b;\n    *((float *) (((char *) v1) + 0x10C)) = c;\n    *((float *) (((char *) v1) + 0x118)) = d;\n  }\n  timproc_uso_b5_func_00003F58();\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000C8AC.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-diff 51/51 vs raw .s + full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}
