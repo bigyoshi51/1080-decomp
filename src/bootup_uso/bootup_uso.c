@@ -7730,51 +7730,41 @@ void func_0000B1B4(unsigned int cat, unsigned int idx, int a2, int a3, int a4) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);
 #endif
 
-#ifdef NON_MATCHING
-/* func_0000B49C: 33-insn (0x84) clamped-index dispatcher.
+/* func_0000B49C: 33-insn (0x84) clamped-index dispatcher. EXACT 2026-07-15.
  *
- * Decoded:
- *   if (idx >= 10) idx = 9;                              // clamp
- *   v = ((int*)&D_00000000)[idx];                        // table lookup
- *   if (gl_func(v) == 0) {                                // probe
- *       gl_func(&D_00000000, v);                          // fallback init
- *   }
- *   gl_func(0, (char*)func_00008A40 + 0x18, v, 0);        // dispatch
+ *   j = clamp(idx, 9); v = table1[j];
+ *   if (gl_func(v, j) == 0) gl_func(&table1, v);
+ *   gl_func(0, (char*)func_00008A40 + 0x18, table2[j], 0);   // dispatch
  *
  * The dispatched function ptr is `func_00008A40 + 0x18` — a code address
  * inside an existing function (alt-entry); gl_ref_00008A58 folds the +0x18.
  *
- * RECONSTRUCTED 2026-06-20: faithful body now 99.94% — EVERY instruction,
- * register, and stack offset is byte-identical to the target EXCEPT the
- * prologue/epilogue frame size (-40 here vs -32 target). Key fixes:
- *   - first call takes (table1[idx], idx)  (idx was missing before)
- *   - elem ADDRESS spilled at 0x18 + reloaded for the fallback 2nd arg
- *   - idx*4 spilled at 0x1C + reused (t7) for the 3rd-table lookup
- *   - `int j = idx` copy places the two spills at 0x18/0x1C (matches target)
- * RESIDUAL CAP: frame -40 vs -32. The elem-address spill REQUIRES elem as a
- * local (-> frame +8); inlining it (recompute) shrinks the frame to -32 but
- * eliminates the address spill (28 diffs). This is the documented
- * file-context / spill-allocator frame-size cap (docs/IDO_CODEGEN.md): the
- * 3 saves fit in 0x20 but IDO reserves an extra 8-byte home. Not C-fixable
- * without destroying the (correct) spill structure. */
+ * CROSSED 2026-07-15 (was 99.94% "frame -40 vs -32 spill-allocator cap").
+ * The +8 frame was the dead-scalar-home block for the named locals (j/elem):
+ * ANY named local scalar (int or pointer, register or not, any scope depth)
+ * costs a 4-byte home rounded to 8 — the target has ZERO in-frame homes; its
+ * two spill slots 0x18/0x1C are pad-region CSE temps. Levers that crossed it:
+ *   1. `j` as an EXTRA (unpassed) PARAM — param homes live in the CALLER's
+ *      arg area, not the frame; `j = idx` on the incoming-$a1 param emits
+ *      exactly the target's `or $a1,$a0` delay-slot copy with no home store.
+ *   2. NO named elem — spell `table[j]` twice; uopt CSEs the ADDRESS into a
+ *      pad temp (sw $v1,0x18) exactly like the target.
+ *   3. Distinct base-0 alias D_00000000_b49c for the 3rd table so it shares
+ *      only the `sll j,2` temp (sw $v0,0x1C reused via $t7) instead of
+ *      full-address CSE — matches the target's separate lui for table2.
+ * (A 3rd `int *elem` param kills the frame but leaks `sw $a2,0x28(sp)` —
+ * K&R param home-store; dead-redefinition doesn't DCE it. Named-local forms
+ * all stay -40: local/register/inner-scope/named-off variants probed.) */
 extern char gl_ref_00008A58;
-void func_0000B49C(int idx) {
-    int j = idx;
-    int *elem;
+extern int D_00000000_b49c[];  /* base-0 alias: 3rd table's separate lui (no CSE with 1st table's addr temp) */
+void func_0000B49C(int idx, int j) {
+    j = idx;
     if (j >= 10) j = 9;
-    elem = &((int*)&D_00000000)[j];
-    if (gl_func_00000000(*elem, j) == 0) {
-        gl_func_00000000(&D_00000000, *elem);
+    if (gl_func_00000000(((int*)&D_00000000)[j], j) == 0) {
+        gl_func_00000000(&D_00000000, ((int*)&D_00000000)[j]);
     }
-    /* 3rd arg: target loads *(int*)(0 + rv), rv = first call's return (spilled@28), NOT D[j].
-     * 2026-06-24 tried capturing rv + *(int*)rv: REGRESSED 99.94->69% (rv held in temp t0 +
-     * 1-insn deref vs target's home-spill + lui;addu;lw 3-insn form; frame stayed -40). Frame
-     * cap (1-word, -40 vs -32) stands; the rv-spill + literal-0-base deref isn't C-reproducible. */
-    gl_func_00000000(0, &gl_ref_00008A58, ((int*)&D_00000000)[j], 0);  /* func_00008A40+0x18 */
+    gl_func_00000000(0, &gl_ref_00008A58, D_00000000_b49c[j], 0);  /* func_00008A40+0x18 */
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B49C);
-#endif
 
 /* func_0000B520 - verified structural decode (0x23C, 143 insns,
  * FP directional-nudge / input-driven position update).
