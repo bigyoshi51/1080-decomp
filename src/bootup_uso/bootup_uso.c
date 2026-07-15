@@ -4796,50 +4796,50 @@ block_25:
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006808);
 #endif
 
-/* func_00007150 - verified structural decode (0xB4, 45 insns,
- * get-or-create constructor).
- * Struct-typing reference: object = 0x44 bytes. Field map: o->0x18
- * (24) u32 flags (bit 3 / mask 0x8 cleared here), o->0x28 (40)
- * descriptor/vtable ptr (&D runtime-patched), o->0x2C (44) sub-ptr
- * (normally &o[0x2C] inline, rare alloc(4) arm), o->0x30 (48) = 4,
- * o->0x34 (52) = 0xB00, o->0x38 (56) = 1, o->0x3C (60) = 0, o->0x40
- * (64) = 0; D_00007F84 = init datum. Caps <80: get-or-create branch
- * + defensive-dead-check (a2 vs -0x2C) + 2-3 reloc + &D-store reloc.
- * INCLUDE_ASM remains build path. NM body captures live behavior only
- * — the defensive-dead alloc(4) arm survives only under -g and is not
- * recreated here. */
+/* func_00007150 - get-or-create constructor (0xB4, 45 insns).
+ * EXACT 2026-07-15 (84.0% -> 45/45, ROM byte-exact, C is build path).
+ * Object = 0x44 bytes: ->0x18 u32 flags (bit 3 cleared), ->0x28
+ * descriptor ptr (&D runtime-patched), ->0x2C sub-ptr (inline &o+0x2C,
+ * defensive alloc(4) arm when o == -0x2C), ->0x30 = 4, ->0x34 = 0xB00,
+ * ->0x38 = 1, ->0x3C/0x40 = 0; D_00007F84 = init datum.
+ * Levers: (1) destructive a0 reuse (no local copy) -> spill goes to the
+ * a0 HOME slot 0x18(sp), frame 0x18 not 0x20; (2) the flag RMW uses the
+ * if(1)-pointer-mutation idiom `q = a0; if (1) { q += 0x18; } *(int*)q
+ * &= ~8;` to materialize `addiu v0,a2,0x18` + 0(v0) accesses (plain
+ * `*(int*)(a0+0x18) &= ~8` folds into 0x18(a2) addressing, -1 insn);
+ * (3) alloc(4) arm written `if ((v1 = r) == 0) goto after_v1;` so the
+ * or v1,v0 copy fills the beqz delay slot (reload lw a2 hoists above
+ * the branch). The if(1) braces and shared lines are LOAD-BEARING. */
 extern char D_00007F84;
-#ifdef NON_MATCHING
 void *func_00007150(char *a0) {
-    char *o = a0;
     if (a0 == 0) {
-        o = (char*)func_00000000(0x44);
-        if (o == 0) goto end;
+        a0 = (char*)func_00000000(0x44);
+        if (a0 == 0) goto end;
     }
-    func_00000000(o, &D_00007F84);
-    *(void**)(o + 0x28) = &D_00000000;
+    func_00000000(a0, &D_00007F84);
+    *(void**)(a0 + 0x28) = &D_00000000;
     {
-        int *v1 = (int *)(o + 0x2C);
+        int *v1 = (int *)(a0 + 0x2C);
         if (v1 == 0) {
             int *r = (int *)func_00000000(4);
-            if (r == 0) goto after_v1;
-            v1 = r;
+            if ((v1 = r) == 0) goto after_v1;
         }
         *v1 = 0;
     after_v1:;
     }
-    *(int*)(o + 0x18) &= ~8;
-    *(int*)(o + 0x40) = 0;
-    *(int*)(o + 0x3C) = 0;
-    *(int*)(o + 0x30) = 4;
-    *(int*)(o + 0x34) = 0xB00;
-    *(int*)(o + 0x38) = 1;
+    {
+        char *q = a0;
+        if (1) { q += 0x18; }
+        *(int *)q &= ~8;
+    }
+    *(int*)(a0 + 0x40) = 0;
+    *(int*)(a0 + 0x3C) = 0;
+    *(int*)(a0 + 0x30) = 4;
+    *(int*)(a0 + 0x34) = 0xB00;
+    *(int*)(a0 + 0x38) = 1;
 end:
-    return o;
+    return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007150);
-#endif
 
 /* func_00007204: 33-insn alloc/link helper. NATURAL CEILING: 90.15% NM.
  * Built emits 0x28 frame / 31 insns; target needs 0x30 frame / 33 insns
