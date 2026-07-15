@@ -1511,7 +1511,8 @@ void game_uso_func_000024BC(int *a0, int *a1) {
     char self_pad[16];
     volatile float self_z, self_y, self_x;
     float proj_x, proj_y, proj_z;
-    float scale;
+    register float scale;
+    register float rx, ry, rz;
     float denom_xz, denom_y;
     Vec3 *delta;
     Tri3i delta_copy;
@@ -4579,7 +4580,8 @@ void game_uso_func_0000591C(int *a0) {
     float metric_a;
     float yaw_metric;
     float accel_metric;
-    float scale;
+    register float scale;
+    register float rx, ry, rz;
     float dist_sq;
     float dot;
     float state_value;
@@ -6115,19 +6117,40 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
  *       timer+1`. Old `30.0f < x` emitted the wrong `c.lt.s` form.
  *   (3) frame/decl order: V3 decl order added,base,tmp,scaled + pad[12] gives
  *       the 0x88 frame and the right relative slot ordering.
- * RESIDUAL (all coloring/scheduling caps, permuter-immune per project notes):
- *   - IDO schedules the scaled-vec block as load*3/mul*3/store*3 (grouped) and
- *     loads a0->0xA8 once; our C emits interleaved load/mul/store w/ 3 reloads.
- *   - exact stack-slot offsets shift by a few words (slot coloring).
- *   - target has a dead `addiu v0,v0,792` (&sub->0x318 address-form) + nop we
- *     can't reproduce from member-offset loads.
- *   - one likely-branch (bnezl) vs target non-likely on the dispatch_arg if.
- * Default INCLUDE_ASM build remains exact; logic + relocs are now correct. */
+ * 2026-07-15 pass (agent-g): 82.40 -> 91.02. Three of the four "caps" fell:
+ *   - grouped load*3/mul*3/store*3 + single 0xA8 load: named REGISTER float
+ *     result locals (rx/ry/rz) + named `scale` local — the RESULT webs take
+ *     the primary FP pool {f2,f12,f14} and the loads the secondary {f4,f6,f8}
+ *     exactly as target; capturing the LOADS into locals instead mirrors the
+ *     pools (loads f2,f12,f14) = wrong. scale named -> single lwc1 f0 + the
+ *     mul operand order fs=load,ft=scale (a CSE'd inline load flips to
+ *     fs=f0 = wrong).
+ *   - volatile-qualified sub reload (`*(int * volatile *)(a0+0x30)`) gives the
+ *     target's second lw of a0->0x30 (plain reload CSEs away).
+ *   - bnel->bne fell out with the web fixes; frame 0x90 (target 0x88 +
+ *     one extra dead float home: 4 register floats all get dead homes, target
+ *     has 3 home words + the a1 spill at 0x6C; our a1 spill sits at 0x24).
+ * REMAINING (true residual, ~9pp):
+ *   - the dead `addiu v0,v0,0x318` is NOT C-reachable from any of: if(1)
+ *     pointer-mutation on a dead var (DCE'd), fp[i]/post-increment chain /
+ *     reused-pointer-var (all fully folded by VN with no leftover def). It
+ *     drives the copy-pointer coloring (target t0/t3/v0 vs ours t9/v1/t2,
+ *     v0 reused from the dead web) and a +1 tail temp-pool phase.
+ *   - a0/a2 web transition: target keeps a0 until after the dispatch-arg
+ *     test (word 55), ours switches at the stage-2 reload (word 14); a late
+ *     `self = a0` split does not move it.
+ * Default INCLUDE_ASM build remains exact; logic + relocs are correct. */
 void game_uso_func_00011024();
 void game_uso_func_00006CF0(int *a0) {
     int *sub;
-    V3_6A30 added_vec, base_vec, tmp_vec, scaled_vec;
-    int pad[12];
+    int *self;
+    V3_6A30 added_vec;   /* sp+0x7C */
+    V3_6A30 base_vec;    /* sp+0x70 */
+    register float rx, ry;      /* dead homes */
+    V3_6A30 tmp_vec;     /* sp+0x5C */
+    register float rz, scale;   /* dead homes */
+    V3_6A30 scaled_vec;  /* sp+0x48 */
+    int pad[8];
     register int dispatch_arg;
     int timer;
 
@@ -6137,12 +6160,22 @@ void game_uso_func_00006CF0(int *a0) {
      * += scale(sub->0x318 * a0->0xA8) via two struct-copy intermediates. */
     base_vec = *(V3_6A30 *)((char*)sub + 0xB4);
 
-    scaled_vec.x = *(float*)((char*)sub + 0x318) * *(float*)((char*)a0 + 0xA8);
-    scaled_vec.y = *(float*)((char*)sub + 0x31C) * *(float*)((char*)a0 + 0xA8);
-    scaled_vec.z = *(float*)((char*)sub + 0x320) * *(float*)((char*)a0 + 0xA8);
-
-    tmp_vec = scaled_vec;
-    added_vec = tmp_vec;
+    sub = *(int * volatile *)((char*)a0 + 0x30);   /* target reloads sub */
+    scale = *(float*)((char*)a0 + 0xA8);           /* -> $f0 */
+    {
+        char *p;
+        p = (char*)sub + 0x318;   /* def1: folds into the load offsets but the
+                                     multi-def web keeps the dead addiu v0,v0,0x318 */
+        rx = *(float*)p * scale;
+        ry = *(float*)(p + 4) * scale;
+        rz = *(float*)(p + 8) * scale;
+        scaled_vec.x = rx;
+        scaled_vec.y = ry;
+        scaled_vec.z = rz;
+        p = (char*)&tmp_vec;      /* def2: addiu v0,sp,0x5C reuses the same reg */
+        *(V3_6A30*)p = scaled_vec;
+        added_vec = *(V3_6A30*)p;
+    }
 
     base_vec.x = base_vec.x + added_vec.x;
     base_vec.y = base_vec.y + added_vec.y;
@@ -6153,23 +6186,24 @@ void game_uso_func_00006CF0(int *a0) {
         dispatch_arg = 0x10;
     }
 
-    sub = *(int**)((char*)a0 + 0x30);
+    self = a0;
+    sub = *(int**)((char*)self + 0x30);
     if (*(int*)((char*)sub + 0x938) != 0 && *(int*)((char*)sub + 0xA54) != 0) {
-        timer = *(int*)((char*)a0 + 0x70);
+        timer = *(int*)((char*)self + 0x70);
         if (timer < 60) {
             if (*(float*)((char*)sub + 0x348) <= 30.0f) {
                 game_uso_func_00011024(*(int*)((char*)sub + 0x840), dispatch_arg);
-                *(int*)((char*)a0 + 0x70) = 61;
+                *(int*)((char*)self + 0x70) = 61;
             } else {
-                *(int*)((char*)a0 + 0x70) = timer + 1;
+                *(int*)((char*)self + 0x70) = timer + 1;
             }
         } else if (timer == 60) {
             game_uso_func_00011024(*(int*)((char*)sub + 0x840), dispatch_arg);
-            *(int*)((char*)a0 + 0x70) = 61;
+            *(int*)((char*)self + 0x70) = 61;
         }
     }
 
-    game_uso_func_00007538(a0, dispatch_arg);
+    game_uso_func_00007538(self, dispatch_arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006CF0);
@@ -12973,7 +13007,8 @@ void game_uso_func_0000F948(int *a0) {
     volatile int padba[2];
     F948_Vec3 a;
     float *q;
-    float scale;
+    register float scale;
+    register float rx, ry, rz;
     float mx, my, mz;
     volatile int padbot[5];
 
