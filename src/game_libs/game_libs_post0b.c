@@ -7895,7 +7895,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
  * inert; a2-param destructive reuse gets ret=$a2 but leaks a1/a2 K&R
  * home stores + param-home spill slots (params spill to arg area, not
  * locals — diagnostic for "is it a param?"). Coloring-order cap.
- * USO convention: call -> func_00000000, data -> a0[off]. */
+ * 2026-07-15 agent-g cross-pollination pass: struct-by-value param
+ * (OneP wrapper) is BYTE-EQUIVALENT here (plain param already spills to
+ * its arg-area home across call 1 — the sw a0,0x20/lw t6 pair needs no
+ * carrier); decl-order swap moves homes (wrong direction), if(1) after
+ * v1 def inert, (int)v1|0 arg VN-folds. The v1->a1 arg coalesce (build)
+ * vs split $v1-piece+or-a1-copy-in-delay (target) remains the cell;
+ * no interfering web exists to block the coalesce. Cap CONFIRMED. */
 #ifdef NON_MATCHING
 int gl_func_0003D8A8(int *a0) {
     int ret;
