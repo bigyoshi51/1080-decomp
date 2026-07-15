@@ -3741,13 +3741,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020FFC);
  * range — all other regs match). char*-typed base reverts to 17; early a1=0
  * or hv-temp reorder also reverts. Irreducible single-reg coloring tie on the
  * long-lived base; not crackable via decl-order / type / init-site levers.
- * Permuter / uoptlist-renumber candidate. */
+ * Permuter / uoptlist-renumber candidate.
+ * 2026-07-15: a0's `base + v0*4` operand order FIXED via array-IXA spelling
+ * `(int)((int*)base + v0)` (plain `+` in either textual order emits the mul
+ * chain first: addu a0,t9,v1). Residual is now ONLY the uniform base-web
+ * renumber (6 words). Re-probed: register kw (regresses), split decl/init
+ * (inert), decl-last (inert), textual-swap (canonicalized). No same-name or
+ * dead-if handle exists (leaf, no a2-constrained web to inherit). Cap. */
 #ifdef NON_MATCHING
 void game_libs_func_00021130(void) {
   int v0 = *((int *) ((int) (&D_00000000) + 0x2084));
   int base = (int) (&D_00000000);
   int a1;
-  int a0 = base + (v0 * 4);
+  int a0 = (int) ((int *) base + v0);
   *((short *) ((base + (v0 * 2)) + 0x214C)) = *((short *) (base + 0x203E));
   for (a1 = 0; a1 != 0xB00; a1 += 2) {
     *((short *) ((*((int *) (a0 + 0x2140))) + a1)) = 0;
