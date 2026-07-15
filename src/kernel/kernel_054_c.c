@@ -117,7 +117,23 @@ extern void func_80009030(s32, s32);
  * insns. Needs a spelling that keeps the loaded value live past the andi with
  * zero emission — no -O1 form found (dead-if would cross the call = s-reg).
  * The -O2 coloring-lever wave (same-name web, ring burns) does not transfer:
- * -O1 has no uopt web splitting and no ugen temp-ring range folding. */
+ * -O1 has no uopt web splitting and no ugen temp-ring range folding.
+ *
+ * 2026-07-15 (agent-g, wave-3 second pass) — 6 more spellings, all negative:
+ * assignment-carrier `(i = load) & 0xFFF` -> andi sinks to the DELAY slot
+ * (andi a1,s1 in delay, -1 insn, worse); web-merge (`register u32 v` +
+ * `(v = 0x10)` in the 73F8 call to precolor v=$a1) -> -O1 one-reg-per-var
+ * spans the intervening calls, v colors $s2, frame +16; volatile inline
+ * deref `*(volatile u32*)` -> fixes lw a1 targeting but STILL collapses to
+ * in-place `andi a1,a1` (volatile does not block ugen copy-prop of the
+ * result move); carrier-into-i with volatile load -> load re-targets s1
+ * (identical to baseline); `% 0x1000u` -> cfe canonicalizes to & before
+ * ugen (byte-identical collapse); register BLOCK-scoped local -> $s2 +
+ * frame growth (register hint at -O1 = callee-saved, block scope no help).
+ * Structural verdict: target = arg-targeted inline emission (lw a1) with
+ * copy-prop suppressed; every C form either collapses in-place (unnamed)
+ * or renames the load target (named). Same cap class as game_uso D9CC's
+ * andi-into-precolored-a1. */
 s32 func_80009474(s32* volatile msg) {
   register s32 *p;
   RmonHdr16 hdr;
