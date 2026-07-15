@@ -1,0 +1,33 @@
+{
+  "function_name": "timproc_uso_b5_func_000080F4",
+  "project": "projects/1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T07:08:17.313300+00:00",
+  "end_time": "2026-07-15T07:08:17.313300+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T07:08:17.313300+00:00",
+      "assistant_text": "Wave-3: 98.57% -> 221/221 EXACT (retracts 'pure register-renumber coloring, permuter-immune'). (1) sp28 flag made a PLAIN local (was volatile): its call-crossing web spills naturally -> un-coalesced sltu t1/sltiu t2 ring pair, home store in the beq delay slot, lw reload at the far use. (2) 7E34/7B2C family recipe on the 0x200 dispatch cluster (pre-scaled offset inline-CSE de-named, elem|0x4D4 swap). (3) Loop body: swapped a1v-before-e statement order (swaps the two chains' temp trios); de-named r2 by embedding the 1CF0 call inside the a1v chain (target reads 1036(v0) directly off the return reg); if(1){} BB-wrap around the vt load + dispatch call flips the vt CSE web a2->v0. (4) Frame 64->72 exact: merged the disjoint web pairs the target shares one variable for - flags+i (both color s1) and busy+off (both s0); a separate i re-splits the s-reg coloring. v/r webs reuse e's name (kills 2 dead homes). Decl order sp28,busy,q,flags,e,r2,a1v ranks q's caller-save spill at 60. ROM cmp clean.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 221,
+  "initial_m2c_source": null,
+  "final_source": "void timproc_uso_b5_func_000080F4(char *arg0) {\n    s32 sp28;\n    register s32 busy;\n    char *q;\n    s32 flags;\n    char *e;\n    char *r2;\n    char *a1v;\n\n    if (FW(arg0, 0x3BC) == 2) {\n        busy = FW(FW(arg0, 0x41C), 0x4C);\n        e = (char *) timproc_uso_b5_func_00001CF0((int *) FW(arg0, 0x41C), FW(arg0, 0x3B8));\n        flags = (FW(arg0, 0x4B4) | FW(e, 0x4B4)) | busy;\n        q = (char *) timproc_uso_b5_func_00001D1C((char *) FW(arg0, 0x41C), FW(arg0, 0x3B8));\n    } else {\n        busy = 0;\n        flags = FW(arg0, 0x4B4);\n        q = (char *) 1;\n    }\n    if (*(f32 *)((char *)arg0 + 0x44) < *(f32 *)((char *)arg0 + 0x4BC)) {\n        e = (char *) timproc_uso_b5_func_00008A38(arg0);\n        ((GP_000080F4)FW(FW(e, 0x28), 0x7C))(*(s16*)((char *)FW(e, 0x28) + 0x78) + e);\n    }\n    sp28 = ((flags != 0) == 0);\n    if ((sp28 != 0) && (q != 0) && (timproc_uso_b5_func_011E00(&import_80020098, 0x100) != 0)) {\n        e = (char *) timproc_uso_b5_func_00008A90((int *) arg0);\n        ((GP_000080F4)FW(FW(e, 0x28), 0x8C))(*(s16*)((char *)FW(e, 0x28) + 0x88) + e, 0);\n        timproc_uso_b5_func_00008ABC((int *) arg0);\n        e = (char *) timproc_uso_b5_func_00008A90((int *) arg0);\n        ((GP_000080F4)FW(FW(e, 0x28), 0x84))(*(s16*)((char *)FW(e, 0x28) + 0x80) + e, 0);\n        if (timproc_uso_b5_func_000087F4(arg0) == 0) {\n            timproc_uso_b5_func_00001C08((char *) FW(arg0, 0x41C));\n            return;\n        }\n        timproc_uso_b5_func_0000866C((int *) arg0);\n        e = (char *) timproc_uso_b5_func_000087F4(arg0);\n        FW(arg0, 0x3C8) = (int) e;\n        FW(arg0, 0x3C4) = timproc_uso_b5_func_000087A0(arg0, e);\n        FW(arg0, 0x3CC) = 8;\n        timproc_uso_b5_func_00006D30((int *) arg0);\n        *(f32 *)((char *)arg0 + 0x484) = 1.0f;\n        timproc_uso_b5_func_00008688(arg0, 0);\n        return;\n    }\n    if ((busy == 0) && (timproc_uso_b5_func_011E00(&import_80020098, 0x14003) != 0)) {\n        timproc_uso_b5_func_00006E08(arg0, 1);\n    }\n    import_000A7ECC(&import_80020098, FW(arg0, 0x3B8));\n    if ((sp28 != 0) && (timproc_uso_b5_func_011E00(&import_80020098, 0x200) != 0)) {\n        if (timproc_uso_b5_func_000088A0(arg0) == 0) {\n            timproc_uso_b5_func_00006C00(arg0);\n            return;\n        }\n        timproc_uso_b5_func_0002FC(*(int *)((char *)&timproc_uso_b5_D_807FE748 + (FW(arg0, 0x3C4) * 4)), FW((arg0 + (FW(arg0, 0x3C4) * 4)), 0x3D0) | FW(arg0, 0x4D4));\n        if ((FW(arg0, 0x3BC) == 2) && ((FW(arg0, 0x3B8) + 1) == FW(FW(arg0, 0x41C), 0x48))) {\n            flags = 0;\n            busy = 0;\n            if (FW(FW(FW(arg0, 0x40C), 0x48), 0x6C) > 0) {\n                do {\n                    r2 = (char *) timproc_uso_b5_func_00001CF0((int *) FW(arg0, 0x41C), FW(arg0, 0x3B8));\n                    a1v = (char *) FW(FW(FW(r2, 0x40C), 0x48) + busy, 0x3C);\n                    e = (char *) FW(FW(FW(arg0, 0x40C), 0x48) + busy, 0x3C);\n                    if (1) {\n                        r2 = (char *) FW(e, 0x28);\n                        ((GP_000080F4)FW(r2, 0xB4))(*(s16*)((char *)r2 + 0xB0) + e, a1v);\n                    }\n                    flags += 1;\n                    busy += 4;\n                } while (flags < FW(FW(FW(arg0, 0x40C), 0x48), 0x6C));\n            }\n        } else {\n            e = (char *) timproc_uso_b5_func_00008A38(arg0);\n            ((GP_000080F4)FW(FW(e, 0x28), 0xAC))(*(s16*)((char *)FW(e, 0x28) + 0xA8) + e);\n            e = (char *) timproc_uso_b5_func_00008A38(arg0);\n            ((GP_000080F4)FW(FW(e, 0x28), 0x6C))(*(s16*)((char *)FW(e, 0x28) + 0x68) + e);\n        }\n        FW(arg0, 0x3CC) = 6;\n        timproc_uso_b5_func_00008D90((int *) arg0, 1);\n        timproc_uso_b5_func_0000866C((int *) arg0);\n        e = (char *) timproc_uso_b5_func_0000894C(arg0);\n        FW(arg0, 0x3C8) = (int) e;\n        FW(arg0, 0x3C4) = timproc_uso_b5_func_000087A0(arg0, e);\n        timproc_uso_b5_func_00006D30((int *) arg0);\n        timproc_uso_b5_func_00008688(arg0, 0);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+    "asm_path": "asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_000080F4.s",
+    "segment": "timproc_uso_b5",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "byte-diff 221/221 vs expected/src/timproc_uso_b5/timproc_uso_b5.c.o + full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 clean + make non_matching_objects exit 0"
+  }
+}
