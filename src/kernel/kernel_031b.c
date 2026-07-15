@@ -26,7 +26,25 @@
  * `?1:0` (emits a doubled jr + li v0 delay), and the `if(1){}` BB-boundary
  * lever in the if-body (NO change — the if already supplies the BB). The
  * unfolded OR requires IDO to not propagate v=0 into the if-body BB, which
- * -O2 always does here. Genuine register-pick + const-fold cap; permuter-only. */
+ * -O2 always does here. Genuine register-pick + const-fold cap; permuter-only.
+ *
+ * 2026-07-15 (agent-h) coloring-lever-wave re-verify — cap CONFIRMED, sharpened:
+ *  - Same-name destructive reuse (`stat = D; stat &= 3;`) DOES reproduce the
+ *    single-register load/mask chain (lui/lw/andi all one reg) — but colors it
+ *    $v0 (return-web pick), never $t0, and v then takes $v1 + li fold + tail move.
+ *  - The 0|1 fold is VN-robust: unpassed-K&R-param opaque source with v&=0 /
+ *    v-=v / v^=v all fold to `li 1`; dead-if(stat), register hint, bitfield
+ *    insert (goes to memory), u32/order permutations — all fold. The ONLY
+ *    unfolded `ori x,x,1` obtained is from a VOLATILE zero source (costs
+ *    frame+sw+lw) or -O1/-O0 `register` v (costs frame + a0 color + tail move).
+ *  - Flag matrix: -O2 -g2/-g homes v (12 insns); -O2 -g3 bnezl form; -O1/-O0
+ *    frame +8; IDO 5.3 -O1/-O2 same t6-first ring. NO IDO config yields a
+ *    t0-FIRST temp ring on this shape.
+ *  - The trio {t0-first ring, unfolded const OR, unfilled bnez delay in a
+ *    9-insn frameless leaf} matches no IDO output family we can produce;
+ *    plausibly HAND-WRITTEN ASM in the original (SP idle-check boot helper).
+ *    If so, no C will ever land it — candidate for a GLOBAL_ASM/hand-asm
+ *    disposition rather than further C grinding. */
 extern u32 D_A4040010;  /* SP_STATUS_REG */
 
 #ifdef NON_MATCHING
