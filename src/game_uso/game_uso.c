@@ -11100,37 +11100,27 @@ extern int import_000B8698();
 extern int game_uso_func_022784();
 extern char import_800201D0;
 extern char game_uso_D_807FF7B4;
-#ifdef NON_MATCHING
-/* game_uso_func_0000D63C: ramp-down/clamp dispatch (88.38% -> 99.17% objdiff,
- * 36/42 raw words, 2026-07-03 agent-e). KEY CORRECTIONS this pass:
- *   (1) `value` (the D_807FF7B4[idx] table entry) is passed as the 4TH arg to
- *       game_uso_func_022784 (call 2) — the .s reloads a3 from the 0x24 spill
- *       AFTER call 1 and never touches it before call 2, so a3=value is call
- *       2's arg4. This is why value is inited to 0 up front (a3=0) and spilled
- *       /reloaded across call 1. The old wrap dropped this arg (value went
- *       dead after call 1, s0-promoted, -0x20 frame).
- *   (2) `value | 0` at the call-1 arg3 site (doc IDO_CODEGEN `| 0` register-
- *       move lever) forces IDO to color value into CALLER-saved $a3 (spill
- *       around call 1) instead of promoting it to a callee-saved $s reg — this
- *       recovers the target's -0x28 frame + single saved reg exactly.
- *   (3) `idx = (idx * 0) + 10` (fold-to-10) defeats the const-rematerialization
- *       that makes a bare `idx = 10` emit a DOUBLE `li` (one for the store,
- *       one for the sll index); the expression keeps idx in $v0 for both.
- * RESIDUAL (genuine IDO candidate-numbering / temp-pool cap, permuter 17.5k
- * iters immune @ base score 35): the index `sll` lands in $t7 not $t8 (a
- * uniform -1 temp-pool phase shift cascading to the final `li $t8,1` vs
- * `li $t9,1`), and value's spill slot colors at 0x20 not 0x24. Both stem from
- * the target consuming one extra scratch temp / reserving the 0x20 slot before
- * the sll, which no C-level perturbation reproduces. All relocs (%hi/%lo/jal)
- * resolve to 0 post-link (undefined placeholders), so the reloc-form deltas are
- * not real byte diffs. */
 extern int import_000B8698();
 extern int game_uso_func_022784();
 extern char import_800201D0;
 extern char game_uso_D_807FF7B4;
+/* game_uso_func_0000D63C: ramp-down/clamp dispatch. EXACT 2026-07-15 (was
+ * 99.17% "candidate-numbering temp-pool / spill-slot cap"). Final two levers:
+ *   (4) value declared FIRST (before idx) -> value's spill home takes the
+ *       HIGHER local slot 0x24 (decl-order home rank, first decl = highest).
+ *   (5) `idx<<0<<1<<1` split-shift phantom for the table index: each phantom
+ *       shift consumes one ugen temp-ring slot with zero emission, advancing
+ *       the ring so the real sll lands in $t8 (not $t7) and the tail li in
+ *       $t9 -- the documented +1 temp-pool phase shift. NOTE decl-order and
+ *       ring phase INTERACT: value-first alone re-phased the ring back, so
+ *       both levers must be applied together ((idx<<1<<1) sufficed with
+ *       idx-first decls). Levers (1)-(3) from the 2026-07-03 pass retained:
+ *       value=call2-arg4, `value | 0` -> caller-saved $a3, `(idx*0)+10`. */
 void game_uso_func_0000D63C(char *a0, int a1) {
+    int value;
     int idx = *(int*)(a0 + 0x100);
-    int value = 0;
+
+    value = 0;
 
     if (idx != 0 && a1 != 0) {
         if (idx > 0) {
@@ -11138,7 +11128,7 @@ void game_uso_func_0000D63C(char *a0, int a1) {
                 idx = (idx * 0) + 10;
                 *(int*)(a0 + 0x100) = idx;
             }
-            value = ((int*)&game_uso_D_807FF7B4)[idx];
+            value = *(int*)((char*)&game_uso_D_807FF7B4 + (idx<<0<<1<<1));
             if (value != 0) {
                 import_000B8698(*(int*)((char*)&import_800201D0 + 0x138),
                                 *(int*)(a0 + 0xB4), value | 0, value);
@@ -11151,9 +11141,6 @@ void game_uso_func_0000D63C(char *a0, int a1) {
                          *(int*)(a0 + 0xB4), a1, value);
     *(int*)(a0 + 0x120) = 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D63C);
-#endif
 
 /* 26 insns. Toggle bit 0x40 in (a0->0xB4)[0xA58], call worker, test the
  * bit afterward, dispatch a0->0xFC to one of two flag values. Promoted
