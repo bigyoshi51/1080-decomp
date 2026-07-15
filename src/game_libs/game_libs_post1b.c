@@ -2692,13 +2692,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000669B8);
  * 0x12345678 magic into the canary words at 0x3F310/0x3F314 (the canary SETTER,
  * sibling of the gl_func_00066AF0 checker), logs again, calls a halt, then loops
  * forever (b .). NM (reference decode): collapsed-placeholder calls + collapsed
- * D ref + fixed absolute addresses (raw-.word game_libs reloc depression). */
+ * D ref + fixed absolute addresses (raw-.word game_libs reloc depression).
+ * WAVE-3 re-verify 2026-07-15 (agent-h): residual = SHARED-$AT CANARY CELL,
+ * confirmed cap. Target: lui at,4 ONCE + sw -3312(at)/-3308(at) (assembler
+ * $at macro merged across two absolute stores). Probed: extern struct member
+ * pair, extern int[2], one-scalar + (&sym+1), two scalars (direct sw-macro
+ * form appears but two unmergeable %hi relocs), literal-address *(int*)0x3F310
+ * (uopt lowers to its own lui t8/t9 per store, no %hi CSE), volatile, if(1)
+ * BB-break, same-line join. Every shape is either base-CSE (lui+addiu+2sw)
+ * or 2x(lui+sw): always 4 insns vs target 3. The one-lui two-%lo shape needs
+ * same-symbol HI16 merging that -O2 uopt never leaves to as1. */
 extern int D_00000000;
 void gl_func_00066A50(int a0) {
     gl_func_00062F64((char *)((char *)&D_00000000 + 0x3F160), 2, &D_00000000, 0,
                      (char *)((char *)&D_00000000 + 0x41310), 0xA);
-    *(int *)((char *)&D_00000000 + 0x3F310) = 0x12345678;
-    *(int *)((char *)&D_00000000 + 0x3F314) = 0x12345678;
+    *(int *)0x3F310 = 0x12345678;
+    *(int *)0x3F314 = 0x12345678;
     gl_func_00062F64((char *)((char *)&D_00000000 + 0x3F160));
     gl_func_00062F64(0, 0);
     for (;;) {
@@ -2798,7 +2807,11 @@ extern int D_00000000;
  * access defeats CSE here (each store recomputes its HI). A constant
  * `(char*)0x40000` base restores the store CSE but regresses the call-arg
  * addresses to `lui;ori` (bitwise) and scores lower (81% vs 88.6%). game_libs
- * can't byte-LAND (baked relocs); kept NM. INCLUDE_ASM is the build path. */
+ * can't byte-LAND (baked relocs); kept NM. INCLUDE_ASM is the build path.
+ * WAVE-3 2026-07-15 (agent-h): shared-$at cell RE-CONFIRMED as cap — same
+ * family as gl_func_00066A50 (see its note for the 8-shape probe table).
+ * The one-lui/two-%lo store pair needs same-symbol HI16 merging with unequal
+ * addends, which neither -O2 uopt nor as1 performs on reloc'd operands. */
 extern int func_00000000();
 extern int gl_func_00062F64();
 extern int D_00000000;
