@@ -1643,40 +1643,40 @@ void func_00002214(char *a0) {
     func_00001C10((int*)(a0 + 0x10));
 }
 
-/* func_00002244: mirror of func_00000C10 / func_000046EC. Was previously
- * byte-identical via the volatile-int-pp frame lever + sibling INSN_PATCH
- * transfer recipe (docs/POST_CC_RECIPES.md). INSN_PATCH REMOVED 2026-05-23
- * as match-faking per feedback_no_instruction_forcing_matches_policy;
- * docs/POST_CC_RECIPES.md DEPRECATED. Rolled back to NM-wrap with the
- * volatile-int-pp frame-match lever still in place; NATURAL CEILING
- * (register-allocator deltas stay NM). */
+/* func_00002244: byte-identical twin of func_0000EBE8 (alloc-or-fail +
+ * linked-list-prepend). EXACT 2026-07-15 (82.4% -> 36/36, ROM byte-exact)
+ * via the EBE8 recipe: ret=p + destructive p+=4 in-place advance (2nd def
+ * blocks copyprop, p colors $a0), condition-tests-expression with the
+ * assignment CSE'd inside the branch ($v0 carrier, plain beqz + or a1,v0
+ * delay), reverse-decl-order spill slots (decls ret,target,p ->
+ * p 0x1C / target 0x20 / ret 0x24). 3 trailing alignment nops restored via
+ * the standalone GLOBAL_ASM orphan block below (SUFFIX injection is unsafe
+ * this early in the file — see the orphan .s header). Retires the old
+ * volatile-int-pp NM ceiling verdict. */
 extern int func_00000000();
-#ifdef NON_MATCHING
-void *func_00002244(int *arg0) {
-    volatile int **vparg = (volatile int **)&arg0;
-    int *node;
-    int *head;
-
-    node = (int*)func_00000000(0x40);
-    if (node != 0) {
-        func_00000000(node);
-        node[10] = (int)&D_00000000;
-        node[15] = 0;
+int *func_00002244(int *caller_a0) {
+    int *ret;
+    int *target;
+    int *p;
+    if ((p = (int*)func_00000000(0x40)) != 0) {
+        func_00000000(p);
+        p[0x28/4] = (int)&D_00000000;
+        p[0x3C/4] = 0;
     }
-    head = (int*)arg0[16];
-    if (head != 0) {
-        func_00000000(node + 4, head);
-        if (head[5] != 0) {
-            head[1] = 1;
+    ret = p;
+    p += 0x10/4;
+    if (caller_a0[0x40/4] != 0) {
+        target = (int*)caller_a0[0x40/4];
+        func_00000000(p, target);
+        if (target[0x14/4] != 0) {
+            target[0x4/4] = 1;
         }
-        head[5] = (int)node;
+        target[0x14/4] = (int)ret;
     }
-    (void)vparg;
-    return node;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00002244);
-#endif
+
+#pragma GLOBAL_ASM("asm/nonmatchings/bootup_uso/bootup_orphan_000022D4.s")
 
 void func_000022E0(int *dst) {
     int buf[2];
