@@ -3179,6 +3179,17 @@ void gl_func_00037A9C(int count) {
 //   cbs + chained alloc-with-rollback + &D_0 back-link + data-seg
 //   template; 0xB4 struct untyped. Real-C STRUCTURAL body below.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
+// 2026-07-15 (agent-f): 98.97 -> 99.13. Frame cracked: tmp declared
+//   FIRST (home 0x4C, spilled to it in the jal delay slot) + padA[4]
+//   phantom slots (0x3C-0x48) push zero[] to 0x30 / frame to 0x50 —
+//   all offsets now byte-exact. Residual (11 words): pure v0<->v1 swap
+//   (target: a0-reload=v1, tmp=v0). uoptlist dump shows named tmp's
+//   web crosses the jal -> conflicts with v0 (call-return def) ->
+//   forced to v1; a0's split range then takes v0. Original tmp was
+//   likely an unnamed split-range temp (both pieces v0-eligible).
+//   Tried: inline-recompute (a0 promoted to s1, worse), s1/p2 reuse
+//   (identical or worse), if(1) BB-break (no-op), single-int-struct
+//   copy (goes through &home, +2 insns). Register-swap cap.
 #ifdef NON_MATCHING
 extern int D_00000000;
 // Object constructor. cb(a0); o = alloc(0xB4). When o!=0: init(o, template@
@@ -3188,10 +3199,12 @@ extern int D_00000000;
 // { r = cb(p->0x3C->0x10 + 16, o); if (o->0x14==0) o->0x14=r; else { o->4=1;
 // o->0x14=r; } }. Returns o. 0x1EBE4 is a deferred data-template symbol site.
 void gl_func_00037AF0(int a0) {
+    int tmp;
+    volatile int padA[4];
+    float zero[3];
     char *o;
     int *s1;
     int *p2;
-    float zero[3];
     gl_func_00000000(a0);
     o = (char *)gl_func_00000000(0xB4);
     if (o != 0) {
@@ -3218,7 +3231,6 @@ void gl_func_00037AF0(int a0) {
     *(char **)(a0 + 0xC) = o;
     *(char **)(a0 + 0x10) = o;
     if (*(int *)(a0 + 0x38) != 0) {
-        int tmp;
         gl_func_00000000((tmp = *(int *)(*(char **)(a0 + 0x3C) + 0x10)) + 0x10, o);
         if (*(int *)(o + 0x14) != 0) {
             *(int *)(o + 0x4) = 1;
