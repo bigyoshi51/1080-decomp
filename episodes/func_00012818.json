@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00012818",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T08:28:35.770166+00:00",
+  "end_time": "2026-07-15T08:28:35.770187+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T08:28:35.770181+00:00",
+      "assistant_text": "-O0 fresh-dest value-load cracked by LITERAL cast-pointer deref: the symbol read 'D_A0000200 == 0xAC290000' emits lui t5,%hi; lw t5,%lo(t5) (base-reg REUSE, version-invariant, permuter-immune 551k). Spelling the read as '*(int*)0xA0000200 == 0xAC290000' makes the address a constant expression: -O0 gives the address its own temp (lui t5,0xA000) and the VALUE a fresh temp (lw t6,0x200(t5)) with the low16 folded into the load offset - exact target bytes, reloc-free (matches the baked-USO absolute form). The 06-09/06-11 negative sweeps only probed the SYMBOL spelling (extern int / volatile / struct member / array form / zero-lo array base); the literal-address axis was untested.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 37,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Run 10 members (now covers 0x12818..0x12BF8). */\n\nextern int func_00000000();\nextern int D_00000000;\nextern int D_A0000200;\n\n/* func_00012818: 99.73% NON_MATCHING. Sole diff (0x5C/0x64): the\n * `if (D_A0000200 == 0xAC290000)` value-load. IDO -O0 emits\n *   lui $t5,%hi; lw $t5,%lo($t5); bne $t5,$at   (REUSES the %hi base $t5)\n * but the target uses a FRESH dest:\n *   lui $t5,%hi; lw $t6,%lo($t5); bne $t6,$at\n * Pure -O0 value-load reg-reuse, NOT C-reachable here. Tried:\n *  - operand swap (0xAC29... == D_A0000200): IDO canonicalizes, no change.\n *  - struct member at offset 0 (D_A0000200.v): same reuse.\n *  - array form (D_A0000200[0]): DOES give fresh $t6, but materializes the\n *    full base (lui+addiu+lw) -> +1 insn, wrong size (0x98 vs 0x94).\n * No same-size C produces fresh-dest-with-folded-%lo, so this is also\n * permuter-immune (can't flip the reg without adding an instruction).\n * (Was an INSN_PATCH target; INSN_PATCH removed 2026-05-23 as match-faking.)\n * 2026-06-09 EXTENDED NEGATIVE (do not re-try): volatile D_A0000200 at 7.1\n * AND 5.3 (reuse persists); IDO 5.3 -O0 plain (identical 2 diffs -- the\n * value-load reuse is version-invariant); chaining the unused-assignment\n * into the condition via && (+3 insns, worse) or comma operator (same 2\n * diffs -- the -O0 temp counter resets per value, not per statement).\n * Every compiler-version/qualifier/expression-chaining axis now exhausted.\n * Genuine -O0 codegen cap. */\n/* 2026-06-11 permuter CONCLUDED: base 20 (1 true diff) flat through\n * 551k iterations -- allocator-internal (-O0 temp allocator class).\n * 99.73 stands.\n * 2026-06-11 wave-2: two more axes dead \u2014 `D_A0000000[0x80]` zero-lo array\n * base gives fresh $t6 + folded 0x200 offset but -O0 keeps the `addiu\n * base,base,0` (+1 insn); switch-form adds a dispatch beq block. */\nvoid func_00012818(char *a0, char *a1) {\n    int i;\n    register int *unused;\n\n    i = 0;\n    do {\n        (*(char**)(a0 + 0x154))[i + 6] = a1[i];\n    } while (++i < 8);\n\n    unused = &D_00000000;\n\n    if (*(int*)0xA0000200 == 0xAC290000) {\n        func_00000000(a0);\n    }\n}\n\nvoid func_000128AC(char *a0, char *a1, char *a2) {\n    if (a2 != 0) {\n        *(int*)(a2 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a2,\n            ((int**)(*(char**)(a0 + 0x14C) + 0x8))[0][2],\n            ((int**)(*(char**)(a0 + 0x14C) + 0x8))[0][1]);\n    }\n    if (a1 != 0) {\n        if (*(int*)(a0 + 0x168) == 0) {\n            *(int*)(a0 + 0x168) = *(int*)(a0 + 0x160);\n        }\n        *(char*)(a0 + 0x178) = (char)*(int*)(a0 + 0x64);\n        *(char*)(a0 + 0x179) = (char)*(int*)(a0 + 0x4C);\n        *(char*)(a0 + 0x17A) = (char)*(int*)(a0 + 0x50);\n        *(char*)(a0 + 0x17B) = (char)*(int*)(a0 + 0x54);\n        *(int*)(a1 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a1, *(int*)(a0 + 0x168), *(int*)(a0 + 0x164), a0 + 0x170);\n        *(int*)(a0 + 0x184) = 0;\n    }\n}\n\nvoid func_000129A0(char *a0, char *a1, char *a2) {\n    if (a1 != 0) {\n        if (*(int*)(a0 + 0x168) == 0) {\n            *(int*)(a0 + 0x168) = *(int*)(a0 + 0x160);\n        }\n        *(char*)(a0 + 0x178) = (char)*(int*)(a0 + 0x64);\n        *(char*)(a0 + 0x179) = (char)*(int*)(a0 + 0x4C);\n        *(char*)(a0 + 0x17A) = (char)*(int*)(a0 + 0x50);\n        *(char*)(a0 + 0x17B) = (char)*(int*)(a0 + 0x54);\n        *(int*)(a1 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a1, *(int*)(a0 + 0x168), *(int*)(a0 + 0x164), a0 + 0x170);\n        *(int*)(a0 + 0x184) = 0;\n    }\n    if (a2 != 0) {\n        if (*(int*)(a0 + 0x16C) == 0) {\n            *(int*)(a0 + 0x16C) = func_00000000(*(int*)(a0 + 0x164) << 2);\n        }\n        *(int*)(a2 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a2, *(int*)(a0 + 0x16C), *(int*)(a0 + 0x164), a0 + 0x174);\n        *(int*)(a0 + 0x184) = 0;\n    }\n}\n\nvoid func_00012AC4(char *a0, char *a1, int a2) {\n    if (a1 != 0) {\n        if (*(int*)(a0 + 0x168) == 0) {\n            *(int*)(a0 + 0x168) = *(int*)(a0 + 0x160);\n        }\n        *(char*)(a0 + 0x178) = (char)*(int*)(a0 + 0x64);\n        *(char*)(a0 + 0x179) = (char)*(int*)(a0 + 0x4C);\n        *(char*)(a0 + 0x17A) = (char)*(int*)(a0 + 0x50);\n        *(char*)(a0 + 0x17B) = (char)*(int*)(a0 + 0x54);\n        *(int*)(a1 + 0x6C) = 0xFFFBFFFF;\n        func_00000000(a1, *(int*)(a0 + 0x168), *(int*)(a0 + 0x164), a0 + 0x170);\n        *(int*)(a0 + 0x184) = 0;\n    }\n}\n\nvoid func_00012B7C(char *a0, int a1, int a2) {\n    if (a1 != 0) {\n        func_00000000(a1, *(int*)(a0 + 0x168), *(int*)(a0 + 0x170));\n    }\n    if (a2 != 0) {\n        func_00000000(a2, ((int**)(*(char**)(a0 + 0x14C) + 0x8))[0][2], ((int**)(*(char**)(a0 + 0x14C) + 0x8))[0][1]);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_12B7C.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00012818.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Promoted to build path; full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 byte-identical."
+  }
+}

@@ -32,7 +32,14 @@ extern int D_A0000200;
  * 2026-06-11 wave-2: two more axes dead — `D_A0000000[0x80]` zero-lo array
  * base gives fresh $t6 + folded 0x200 offset but -O0 keeps the `addiu
  * base,base,0` (+1 insn); switch-form adds a dispatch beq block. */
-#ifdef NON_MATCHING
+/* 2026-07-15 (agent-g) CAP RETRACTED — EXACT via LITERAL cast-pointer
+ * deref `*(int*)0xA0000200`: with a CONSTANT address (not the extern
+ * symbol) -O0 gives the address its own temp (lui t5,0xA000) and the
+ * value a FRESH temp (lw t6,0x200(t5)) with the low16 folded into the
+ * load offset — the exact target words 3C0DA000/8DAE0200, reloc-free.
+ * All prior negatives had probed only SYMBOL spellings. objdiff shows
+ * 99.73 as an artifact (expected .o carries %hi/%lo relocs with zeroed
+ * fields); the linked ROM is byte-identical (cmp clean). */
 void func_00012818(char *a0, char *a1) {
     int i;
     register int *unused;
@@ -44,13 +51,10 @@ void func_00012818(char *a0, char *a1) {
 
     unused = &D_00000000;
 
-    if (D_A0000200 == 0xAC290000) {
+    if (*(int*)0xA0000200 == 0xAC290000) {
         func_00000000(a0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00012818);
-#endif
 
 void func_000128AC(char *a0, char *a1, char *a2) {
     if (a2 != 0) {
