@@ -729,11 +729,20 @@ void mgrproc_uso_func_00001594(int *a0) {
  * 2026-06-21: ALL 13 callees resolved from expected-.o relocs (gl_func_00000000
  * placeholders -> mgrproc_uso_func_0139B0/000188/013924/000148/012110/00001AD0/
  * 00002940/07ACE0/00000140/00001BD4/00F954 + imports 000B2888/007FE4E8). 96.27%
- * -> 97.65%. RESIDUAL (2 caps): (a) target frame -0x30 vs C-emit -0x28 (1 extra
- * 8-byte spill slot, cascades the jal-delay scheduling, +1 word); (b) the
- * import_80020228+0x190 reads use the inline %hi/%lo(sym+0x190) addend-fold
- * (form a) vs the base+displacement form (b) the held-base context emits
- * (docs/IDO_CODEGEN.md R_MIPS_LO16 entry). NON_MATCHING. */
+ * -> 97.65%. 2026-07-15 (agent-g wave 3) -> 99.65% (5 diff words): (1) case-1
+ * 013924 call is 2-ARG K&R — the a2=1 seen at the call is case-0's hoisted
+ * addiu leaking through (dropping the 3rd arg frees the jal delay for the a0
+ * load); (2) decl order node,hdr,state = frame 40 + spill slots 32/36 (each
+ * name after the spilled var lowers its slot by 4); (3) case-4 dispatch arg
+ * spelled (idx*4) + *(char**)(arg0+0x6A8) + 0x10 (textual-reversed, both
+ * loads char**-typed) = base-first addu + CSE base in v0.
+ * RESIDUAL CAP (5 words): hdr's call-crossing spilled web colors $v1, target
+ * $v0. Probed 15+ spellings (register/volatile/char*/int/array-local/struct
+ * fields/comma-arg-fold/return-capture/void-alias killing 07ACE0's v0 def/
+ * if(1) wraps/dead-def rank boost/same-name family with case-4 base — family
+ * unites on v1) + gut-probe of the v0-owning case-4 web (hdr STAYS v1 with v0
+ * completely free): uopt intrinsically avoids v0 for this spilled web class.
+ * NON_MATCHING. */
 extern int gl_func_00000000();
 extern int mgrproc_uso_func_0139B0();
 extern int mgrproc_uso_func_000188();
@@ -745,9 +754,9 @@ extern int mgrproc_uso_func_00F954();
 extern int mgrproc_uso_func_00001BD4();
 extern void *mgrproc_uso_func_00002940(char *, int, int);
 void mgrproc_uso_func_00001614(char *arg0) {
-    int state = *(int *)(arg0 + 0x504);
+    char *hdr;
     void *node;
-    int hdr;
+    int state = *(int *)(arg0 + 0x504);
 
     switch (state) {
     case 0:
@@ -756,7 +765,7 @@ void mgrproc_uso_func_00001614(char *arg0) {
         mgrproc_uso_func_000188(7, 0, 0);
         break;
     case 1:
-        if (mgrproc_uso_func_013924(*(int *)((char *)&import_80020228 + 0x190), state, 1) != 0) {
+        if (mgrproc_uso_func_013924(*(int *)((char *)&import_80020228 + 0x190), state) != 0) {
             *(int *)(arg0 + 0x4D8) = 1;
             mgrproc_uso_func_000148(7, 0, 0);
             mgrproc_uso_func_012110(&import_80020098);
@@ -764,13 +773,13 @@ void mgrproc_uso_func_00001614(char *arg0) {
             mgrproc_uso_func_00001AD0(arg0, *(int *)((char *)&import_80020208 + 0x170) + 0x26000F);
             *(void **)(arg0 + 0x524) = (void *)mgrproc_uso_func_00002940(0, arg0, *(int *)(arg0 + 0x7D8));
             import_007FE4E8(*(void **)(arg0 + 0x524), *(int *)(arg0 + 0x528));
-            hdr = *(int *)(arg0 + 0x56C);
+            hdr = *(char **)(arg0 + 0x56C);
             node = *(void **)(arg0 + 0x524);
             mgrproc_uso_func_07ACE0(hdr + 0x10, node);
             if (*(int *)((char *)node + 0x14) != 0) {
                 *(int *)((char *)node + 4) = 1;
             }
-            *(int *)((char *)node + 0x14) = hdr;
+            *(int *)((char *)node + 0x14) = (int) hdr;
             if (mgrproc_uso_func_00000140(*(int *)(arg0 + 0x6A8), node) != 0) {
                 *(int *)((char *)*(void **)(arg0 + 0x524) + 0x60) = 2;
                 mgrproc_uso_func_00001BD4(arg0);
@@ -779,10 +788,7 @@ void mgrproc_uso_func_00001614(char *arg0) {
         }
         break;
     case 4:
-        {
-            char *p = *(char **)(arg0 + 0x6A8);
-            mgrproc_uso_func_00F954(arg0, 4, *(int *)(p + (*(int *)(p + 4) * 4) + 0x10));
-        }
+        mgrproc_uso_func_00F954(arg0, 4, *(int *)((*(int *)(*(char **)(arg0 + 0x6A8) + 4) * 4) + *(char **)(arg0 + 0x6A8) + 0x10));
         break;
     }
 }
