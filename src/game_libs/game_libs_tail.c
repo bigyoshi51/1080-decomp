@@ -1184,7 +1184,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);
  * regs land t8/t9 not v0. Store-duplicated if/else arms split the post-call
  * reload (t8, own web) but cond web stays v1 and the else arm blocks the
  * cross-jump merge (+2 insns). Return-capture precolor N/A (capture point is
- * before the union span). Cap confirmed. */
+ * before the union span). Cap confirmed.
+ * 2026-07-15b CAP RETRACTED — 58/58 masked-exact via the void-alias
+ * dead-$v0-exclusion lever (docs #wave3-game-uso-transfer 102CC): BOTH
+ * discarded-return cleanup calls (f(obj[2],0) AND f(obj[2][2])) go through
+ * void-returning zero-alias gl_func_00000000_b0a8v, removing their jals'
+ * v0-defs; the multi-def cleanup web then colors $v0 (was v0-FORBIDDEN by
+ * "piece live into the jal's v0-def"). Aliasing only the inner call was
+ * INERT — the web's first piece is created at the FIRST call's arg
+ * evaluation (arg0[2] CSE'd between arg use and post-call reload), so every
+ * jal the web touches must shed its v0-def. Placeholder-callee (jal 0)
+ * objdiff-100: stays NM wrap, no episode. */
 extern int gl_func_00000000();
 int gl_func_0000B0A8(int *arg0, int arg1, int arg2, int arg3) {
     int v1;
@@ -1205,10 +1215,14 @@ int gl_func_0000B0A8(int *arg0, int arg1, int arg2, int arg3) {
         v1 = 1;
     }
     if (v1 == 0) {
-        gl_func_00000000(arg0[2], 0);
+        {
+            extern void gl_func_00000000_b0a8v();
+            gl_func_00000000_b0a8v(arg0[2], 0);
+        }
         ((int *)arg0[2])[1] = 0;
         if (((int *)arg0[2])[2] != 0) {
-            gl_func_00000000(((int *)arg0[2])[2]);
+            extern void gl_func_00000000_b0a8v();
+            gl_func_00000000_b0a8v(((int *)arg0[2])[2]);
         }
         ((int *)arg0[2])[2] = 0;
     }
