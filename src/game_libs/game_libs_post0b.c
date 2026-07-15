@@ -7870,8 +7870,9 @@ end:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
 #endif
 
-/* gl_func_0003D8A8: 27-insn — X1(0); v1=a0->0x40; if(v1){ ret=X2(ret+0x10,v1);
- *   if (v1->0x14 != 0) v1->0x4 = 1; v1->0x14 = ret; } return ret;
+/* gl_func_0003D8A8: 27-insn — ret=X1(0); v1=a0->0x40; if(v1){ X2(ret+0x10,v1)
+ *   [RETURN DISCARDED]; if (v1->0x14 != 0) v1->0x4 = 1; v1->0x14 = ret; }
+ *   return ret;  // ret = FIRST call's return, spilled across X2
  * v1->0x14 store is the beql speculative double-emit (delay-likely on
  * v1->0x14==0 taken + at fall-through) per
  * docs/IDO_CODEGEN.md#feedback-ido-beql-speculative-store-double-emit.
@@ -7881,24 +7882,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
  * `beq v1,zero,0x58` to the shared epilogue, inflating frame 0x20->0x28;
  * plus regalloc (target ret->a2, v1->v1; build ret->v1, v1->a1). Same
  * branch-likely/regalloc class as gl_func_0003D7F8.
- * PERMUTER-PLATEAUED 2026-05-17: ran base 740 → 200 (got ~73% of the
- * way) then stuck flat at 200 for 132k+ iterations — the residual the
- * permuter cannot close is the beql-vs-beq + frame-0x20-vs-0x28
- * structural part (it can shuffle regs but not flip the branch-likely
- * shape / collapse the early-return frame). Killed. Remaining path is
- * force-SAME-LEN-then-INSN_PATCH or true-structural, NOT more permuter.
+ * PERMUTER-PLATEAUED 2026-05-17 (132k iters) — because the DECODE was
+ * wrong: old body recaptured X2's return (`ret = X2(...)`); target
+ * spills the FIRST return across X2 (jal-delay sw v0,28(sp)) and both
+ * stores AND returns the OLD value. 2026-07-15 (agent-f) decode fix +
+ * plain if-block (no goto): 83.07 -> 94.0, 27/27 words, frame 0x20
+ * exact, homes exact (v1@0x18/ret@0x1C). RESIDUAL (10 words, one
+ * cell): coloring ORDER — target colors v1var FIRST (piece1=$v1, arg
+ * copy `or a1,v1` fills the plain-beq delay; ret then takes $a2);
+ * build colors ret first ($v1), v1var coalesces to $a1 (empty delay ->
+ * beql early-return form). Probes: trailing dead-if, register hint =
+ * inert; a2-param destructive reuse gets ret=$a2 but leaks a1/a2 K&R
+ * home stores + param-home spill slots (params spill to arg area, not
+ * locals — diagnostic for "is it a param?"). Coloring-order cap.
  * USO convention: call -> func_00000000, data -> a0[off]. */
 #ifdef NON_MATCHING
 int gl_func_0003D8A8(int *a0) {
-    int ret = func_00000000(0);
-    int *v1 = (int *)a0[0x40 / 4];
-    if (v1 == 0) goto end;
-    ret = func_00000000((char *)ret + 0x10, (int)v1);
-    if (v1[0x14 / 4] != 0) {
-        v1[0x4 / 4] = 1;
+    int ret;
+    int *v1;
+    ret = func_00000000(0);
+    v1 = (int *)a0[0x40 / 4];
+    if (v1 != 0) {
+        func_00000000((char *)ret + 0x10, (int)v1);
+        if (v1[0x14 / 4] != 0) {
+            v1[0x4 / 4] = 1;
+        }
+        v1[0x14 / 4] = ret;
     }
-    v1[0x14 / 4] = ret;
-end:
     return ret;
 }
 #else
