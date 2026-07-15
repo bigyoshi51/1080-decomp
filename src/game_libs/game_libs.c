@@ -762,123 +762,90 @@ void game_libs_func_00001354(int *a0, int a1) {
     a0[0x10C/4] = a1;
 }
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0000135C)();
-/* gl_func_0000135C: get-or-create constructor (D5C family), 168 insns, frame
- * 0x50. Reconstructed 2026-07-11 from the raw m2c body (which used WRONG raw
- * absolute addresses `*(s32*)0xCC40` / `FW(v1,0)=0xCC38`): those are &D+off
- * descriptor references, recovered via base-symbolize pointer arithmetic
- * `(char*)&D_00000000 + off` (keeps the lui %hi / addiu %lo reloc form; the
- * (int) form would fold to a raw ori). Header node + 6 get-or-create sub-object
- * blocks; the 6 seed values are stored into a dead stack array `seeds[6]`
- * (sp 0x38-0x4C) the target retains. All calls are placeholder gl_func_00000000
- * (jal 0) -> LANDABLE-class, but NOT byte-exact: RE-VERIFIED GENUINE CAP, same
- * residual as sibling gl_func_000011A4 — the single-param prologue is a
- * scheduler tie (target sinks `sw ra` into the bnez delay + hoists `move s0,a0`;
- * we fill the delay with the move), and each sub-object call's delay slot is
- * filled by an arg-home `sw a2,8(sp)` the C form can't force. NM fuzzy
- * 57.87 -> 60.20%. Base-symbolize + structure correct; INCLUDE_ASM stays the
- * build path. */
-char *gl_func_0000135C(char *arg0) {
-    char *self;
-    char *hv;
-    char *p;
-    int seeds[6];
-    int tmp;
-
-    self = arg0;
-    if (self == 0) {
-        self = gl_func_00000000(152);
-        if (self == 0) goto done;
+/* gl_func_0000135C: MATCH 2026-07-15 (agent-h) — direct transfer of the
+ * gl_func_000007BC struct-by-value ||-alloc-fallback kit (see 7BC comment /
+ * docs/IDO_CODEGEN "struct-by-value arg carrier"): 6-member get-or-create
+ * constructor, head alloc 0x98, header node CC38, member seeds CC40..CC54
+ * as gl_ref symbol loads (destructive lui/lw base reuse), 4-byte struct t2
+ * passed by value to the member ctor (sw a2,8(sp) delay store — the exact
+ * residual the old cap note said "the C form can't force"), distinct
+ * gl_ref_0000C764_135C_N aliases per expansion, volatile pads for the two
+ * phantom slots. Retracts the "genuine cap / scheduler tie" verdict — the
+ * prologue tie disappeared with this structure too. */
+extern char gl_ref_0000CC38;
+extern char gl_ref_0000C764_135C_1;
+extern char gl_ref_0000C764_135C_2;
+extern char gl_ref_0000C764_135C_3;
+extern char gl_ref_0000C764_135C_4;
+extern char gl_ref_0000C764_135C_5;
+extern char gl_ref_0000C764_135C_6;
+extern int gl_ref_0000CC40_i;
+extern int gl_ref_0000CC44_i;
+extern int gl_ref_0000CC48_i;
+extern int gl_ref_0000CC4C_i;
+extern int gl_ref_0000CC50_i;
+extern int gl_ref_0000CC54_i;
+struct SB135C { int v; };
+char *gl_func_0000135C(char *self) {
+    struct SB135C u1;
+    struct SB135C u2;
+    struct SB135C u3;
+    struct SB135C u4;
+    struct SB135C u5;
+    struct SB135C u6;
+    char *p2;
+    volatile int pad1;
+    volatile int pad2;
+    char *m2;
+    struct SB135C t2;
+    if (self != 0 || (self = (char *)gl_func_00000000(0x98)) != 0) {
+        if ((p2 = self) != 0 || (p2 = (char *)gl_func_00000000(8)) != 0) {
+            FW(p2, 0) = (int)&gl_ref_0000CC38;
+            FW(p2, 4) = 0;
+        }
+        u1.v = gl_ref_0000CC40_i;
+        t2 = u1;
+        if ((m2 = self + 8) != 0 || (m2 = (char *)gl_func_00000000(0x18)) != 0) {
+            gl_func_00000000(m2, self, t2, 1);
+            FW(m2, 0xC) = (int)&gl_ref_0000C764_135C_1; FW(m2, 0x10) = 0x1E; FW(m2, 0x14) = 0;
+        }
+        u2.v = gl_ref_0000CC44_i;
+        t2 = u2;
+        if ((m2 = self + 0x20) != 0 || (m2 = (char *)gl_func_00000000(0x18)) != 0) {
+            gl_func_00000000(m2, self, t2, 1);
+            FW(m2, 0xC) = (int)&gl_ref_0000C764_135C_2; FW(m2, 0x10) = 0x1E; FW(m2, 0x14) = 0;
+        }
+        u3.v = gl_ref_0000CC48_i;
+        t2 = u3;
+        if ((m2 = self + 0x38) != 0 || (m2 = (char *)gl_func_00000000(0x18)) != 0) {
+            gl_func_00000000(m2, self, t2, 1);
+            FW(m2, 0xC) = (int)&gl_ref_0000C764_135C_3; FW(m2, 0x10) = 2; FW(m2, 0x14) = 0;
+        }
+        u4.v = gl_ref_0000CC4C_i;
+        t2 = u4;
+        if ((m2 = self + 0x50) != 0 || (m2 = (char *)gl_func_00000000(0x18)) != 0) {
+            gl_func_00000000(m2, self, t2, 1);
+            FW(m2, 0xC) = (int)&gl_ref_0000C764_135C_4; FW(m2, 0x10) = -0xC; FW(m2, 0x14) = 0;
+        }
+        u5.v = gl_ref_0000CC50_i;
+        t2 = u5;
+        if ((m2 = self + 0x68) != 0 || (m2 = (char *)gl_func_00000000(0x18)) != 0) {
+            gl_func_00000000(m2, self, t2, 1);
+            FW(m2, 0xC) = (int)&gl_ref_0000C764_135C_5; FW(m2, 0x10) = 2; FW(m2, 0x14) = 0;
+        }
+        u6.v = gl_ref_0000CC54_i;
+        t2 = u6;
+        if ((m2 = self + 0x80) != 0 || (m2 = (char *)gl_func_00000000(0x18)) != 0) {
+            gl_func_00000000(m2, self, t2, 1);
+            FW(m2, 0xC) = (int)&gl_ref_0000C764_135C_6; FW(m2, 0x10) = -0xC; FW(m2, 0x14) = 0;
+        }
     }
-    hv = self;
-    if (self == 0) {
-        hv = gl_func_00000000(8);
-        if (hv == 0) goto L1;
-    }
-    *(int *)(hv + 0x0) = (int)((char *)&D_00000000 + 0xCC38);
-    *(int *)(hv + 0x4) = 0;
-L1:
-    tmp = *(int *)((char *)&D_00000000 + 0xCC40);
-    p = self + 0x8;
-    seeds[5] = tmp;
-    if (self == (char *)-0x8) {
-        p = gl_func_00000000(0x18);
-        if (p == 0) goto L2;
-    }
-    gl_func_00000000(p, self, tmp, 1);
-    *(int *)(p + 0x10) = 0x1E;
-    *(int *)(p + 0xC) = (int)((char *)&D_00000000 + 0xC764);
-    *(int *)(p + 0x14) = 0;
-L2:
-    tmp = *(int *)((char *)&D_00000000 + 0xCC44);
-    p = self + 0x20;
-    seeds[4] = tmp;
-    if (self == (char *)-0x20) {
-        p = gl_func_00000000(0x18);
-        if (p == 0) goto L3;
-    }
-    gl_func_00000000(p, self, tmp, 1);
-    *(int *)(p + 0x10) = 0x1E;
-    *(int *)(p + 0xC) = (int)((char *)&D_00000000 + 0xC764);
-    *(int *)(p + 0x14) = 0;
-L3:
-    tmp = *(int *)((char *)&D_00000000 + 0xCC48);
-    p = self + 0x38;
-    seeds[3] = tmp;
-    if (self == (char *)-0x38) {
-        p = gl_func_00000000(0x18);
-        if (p == 0) goto L4;
-    }
-    gl_func_00000000(p, self, tmp, 1);
-    *(int *)(p + 0x10) = 0x2;
-    *(int *)(p + 0xC) = (int)((char *)&D_00000000 + 0xC764);
-    *(int *)(p + 0x14) = 0;
-L4:
-    tmp = *(int *)((char *)&D_00000000 + 0xCC4C);
-    p = self + 0x50;
-    seeds[2] = tmp;
-    if (self == (char *)-0x50) {
-        p = gl_func_00000000(0x18);
-        if (p == 0) goto L5;
-    }
-    gl_func_00000000(p, self, tmp, 1);
-    *(int *)(p + 0x10) = -0xC;
-    *(int *)(p + 0xC) = (int)((char *)&D_00000000 + 0xC764);
-    *(int *)(p + 0x14) = 0;
-L5:
-    tmp = *(int *)((char *)&D_00000000 + 0xCC50);
-    p = self + 0x68;
-    seeds[1] = tmp;
-    if (self == (char *)-0x68) {
-        p = gl_func_00000000(0x18);
-        if (p == 0) goto L6;
-    }
-    gl_func_00000000(p, self, tmp, 1);
-    *(int *)(p + 0x10) = 0x2;
-    *(int *)(p + 0xC) = (int)((char *)&D_00000000 + 0xC764);
-    *(int *)(p + 0x14) = 0;
-L6:
-    tmp = *(int *)((char *)&D_00000000 + 0xCC54);
-    p = self + 0x80;
-    seeds[0] = tmp;
-    if (self == (char *)-0x80) {
-        p = gl_func_00000000(0x18);
-        if (p == 0) goto done;
-    }
-    gl_func_00000000(p, self, tmp, 1);
-    *(int *)(p + 0x10) = -0xC;
-    *(int *)(p + 0xC) = (int)((char *)&D_00000000 + 0xC764);
-    *(int *)(p + 0x14) = 0;
-done:
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000135C);
-#endif
+
 
 #ifdef NON_MATCHING
 #ifndef FW
