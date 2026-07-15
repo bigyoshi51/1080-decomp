@@ -11473,7 +11473,14 @@ L_BC:
  * combined swap+de-name. Numbering analysis: target burned TWO temp
  * numbers (andi=t8 kept, or-temp coalesced late into a1) where every C
  * spelling coalesces BOTH at numbering time (zero burns) - matches the
- * "no C handle" verdict. */
+ * "no C handle" verdict.
+ * 2026-07-15 round 2 (agent-g): the NEW folded-ushort ring-burn lever
+ * (2A4D0) does NOT reach this gate - 3 negatives: (unsigned short)(v &
+ * 0xFFFF) materializes `move a1,v0` (+1 word, cast temp coalesces into
+ * a1 anyway, not a phantom burn - the 2A4D0 fold only stays zero-insn at
+ * a STORE RHS, not feeding an |); (unsigned short)v | 0x60000 is
+ * byte-identical to baseline; embedded-assignment arg (FW(...)=expr as
+ * call arg) reschedules move-a0/lui-at (20 diffs). Cap confirmed. */
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
