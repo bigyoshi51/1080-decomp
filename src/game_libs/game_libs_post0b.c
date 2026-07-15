@@ -24144,85 +24144,98 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00052674);
 // representative. Caps: structs + cb prototypes untyped
 // (USO-relocated); bundle awaits re-split. Full body
 // INCLUDE_ASM-preserved (covers both bundled functions).
+// 2026-07-15 (agent-f): 76.5 -> 95.75 via 5 decode fixes: (1) param-reuse
+// arg0 as accumulator (prologue move s0,a0 at insn 3 + a2-home in bne
+// delay); (2) vtable@0x28 = &D_00000000 baked-USO symbol (was 0);
+// (3) deep-copy runs 0x00-0x14 / 0x34-0x38 / 0x84-0x94(via a1) are BLOCK
+// STRUCT COPIES (S6/S2/S5 typedefs -> alternating t8/t7 staging);
+// (4) 0x30 copy + |=0x10 through named p30 pointer, the copy spelled as a
+// 1-word struct copy (plain *p30= gets offset-folded back to 48(s0));
+// (5) 0x9C is a real float copy lwc1/swc1 (was int-convert-trunc);
+// + leading volatile pad20 for the 0x48 frame (spill home 0x24).
+// Residual 4.25%: uniform -1 temp-ring phase across the whole copy block
+// (mine t9,t0,... vs target t0,t1,...; same skip structure) + one
+// lui/addiu-vs-lw scheduling swap at the &D materialization. Probed 0-burn:
+// dup-load CSE, multi-def ptr, while(0) anchor, named vt, array-extern
+// alias, if(1) BB — all folded with zero ring advance; Quad4+S2 split of
+// the S6 run advances +2 (overshoot) and breaks 0x10/0x14 staging regs.
+// The missing +1 is likely a 2-slot &D materialization shape (target's
+// adjacent lui;addiu). Placeholder callees (gl_func_00034458) — stays NM
+// wrap regardless.
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000526D0)();
+typedef struct { int w[6]; } S6_526D0;
+typedef struct { int w[2]; } S2_526D0;
+typedef struct { int w[5]; } S5_526D0;
+typedef struct { int w; } S1_526D0;
 char *gl_func_000526D0(char *arg0, char *arg1, char *arg2, char *arg3) {
+    volatile int pad20;
     char *sp24;
     s32 temp_v1;
+    s32 *p30;
     char *temp_a1;
     char *temp_v0;
     char *temp_v0_2;
-    char *var_s0;
     char *var_v1;
 
-    var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = gl_func_00034458((char *)0xB0), var_s0 = temp_v0, (temp_v0 != 0))) {
-        gl_func_00034458(var_s0, arg1);
-        temp_a1 = var_s0 + 0x84;
+    if ((arg0 != 0) || (temp_v0 = gl_func_00034458((char *)0xB0), arg0 = temp_v0, (temp_v0 != 0))) {
+        gl_func_00034458(arg0, arg1);
+        temp_a1 = arg0 + 0x84;
         var_v1 = temp_a1;
-        FW(var_s0, 0x28) = 0;
-        if ((var_s0 != (char *)-0x84) || (sp24 = temp_a1, temp_v0_2 = gl_func_00034458((char *)0x14, temp_a1), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+        FW(arg0, 0x28) = (s32) &D_00000000;
+        if ((arg0 != (char *)-0x84) || (sp24 = temp_a1, temp_v0_2 = gl_func_00034458((char *)0x14, temp_a1), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
             FW(var_v1, 0x8) = 0;
             FW(var_v1, 0xC) = 0;
         }
         sp24 = temp_a1;
-        gl_func_00034458(var_s0, temp_a1);
+        gl_func_00034458(arg0, temp_a1);
         if (arg3 != 0) {
-            temp_v1 = FW(var_s0, 0x1C);
-            FW(var_s0, 0x0) = (s32) FW(arg3, 0x0);
-            FW(var_s0, 0x4) = (s32) FW(arg3, 0x4);
-            FW(var_s0, 0x8) = (s32) FW(arg3, 0x8);
-            FW(var_s0, 0xC) = (s32) FW(arg3, 0xC);
-            FW(var_s0, 0x10) = (s32) FW(arg3, 0x10);
-            FW(var_s0, 0x14) = (s32) FW(arg3, 0x14);
-            FW(var_s0, 0x18) = (s32) FW(arg3, 0x18);
-            FW(var_s0, 0x1C) = (s32) FW(arg3, 0x1C);
-            FW(var_s0, 0x20) = (s32) FW(arg3, 0x20);
-            FW(var_s0, 0x24) = (s32) FW(arg3, 0x24);
-            FW(var_s0, 0x2C) = (s32) FW(arg3, 0x2C);
-            FW(var_s0, 0x30) = (s32) FW(arg3, 0x30);
-            FW(var_s0, 0x34) = (s32) FW(arg3, 0x34);
-            FW(var_s0, 0x38) = (s32) FW(arg3, 0x38);
-            FW(var_s0, 0x3C) = (s32) FW(arg3, 0x3C);
-            FW(var_s0, 0x40) = (s32) FW(arg3, 0x40);
-            FW(var_s0, 0x44) = (s32) FW(arg3, 0x44);
-            FW(var_s0, 0x48) = (s32) FW(arg3, 0x48);
-            FW(var_s0, 0x4C) = (s32) FW(arg3, 0x4C);
-            FW(var_s0, 0x50) = (s32) FW(arg3, 0x50);
-            FW(var_s0, 0x54) = (s32) FW(arg3, 0x54);
-            FW(var_s0, 0x58) = (s32) FW(arg3, 0x58);
-            FW(var_s0, 0x5C) = (s32) FW(arg3, 0x5C);
-            FW(var_s0, 0x60) = (s32) FW(arg3, 0x60);
-            FW(var_s0, 0x64) = (s32) FW(arg3, 0x64);
-            FW(var_s0, 0x68) = (s32) FW(arg3, 0x68);
-            FW(var_s0, 0x6C) = (s32) FW(arg3, 0x6C);
-            FW(var_s0, 0x70) = (s32) FW(arg3, 0x70);
-            FW(var_s0, 0x74) = (s32) FW(arg3, 0x74);
-            FW(var_s0, 0x78) = (s32) FW(arg3, 0x78);
-            FW(var_s0, 0x7C) = (s32) FW(arg3, 0x7C);
-            FW(var_s0, 0x80) = (s32) FW(arg3, 0x80);
-            FW(var_s0, 0x84) = (s32) FW(arg3, 0x84);
-            FW(temp_a1, 0x4) = (s32) FW(arg3, 0x88);
-            FW(temp_a1, 0x8) = (s32) FW(arg3, 0x8C);
-            FW(temp_a1, 0xC) = (s32) FW(arg3, 0x90);
-            FW(temp_a1, 0x10) = (s32) FW(arg3, 0x94);
-            FW(var_s0, 0x98) = (s32) FW(arg3, 0x98);
-            FW(var_s0, 0x9C) = (f32) FW(arg3, 0x9C);
-            FW(var_s0, 0xA0) = (s32) FW(arg3, 0xA0);
-            FW(var_s0, 0xA4) = (s32) FW(arg3, 0xA4);
-            FW(var_s0, 0xA8) = (s32) FW(arg3, 0xA8);
-            FW(var_s0, 0xAC) = (s32) FW(arg3, 0xAC);
-            FW(var_s0, 0x30) = (s32) (FW(var_s0, 0x30) | 0x10);
-            FW(var_s0, 0x1C) = temp_v1;
+            temp_v1 = FW(arg0, 0x1C);
+            p30 = (s32 *)(arg0 + 0x30);
+            *(S6_526D0 *)arg0 = *(S6_526D0 *)arg3;
+            FW(arg0, 0x18) = (s32) FW(arg3, 0x18);
+            FW(arg0, 0x1C) = (s32) FW(arg3, 0x1C);
+            FW(arg0, 0x20) = (s32) FW(arg3, 0x20);
+            FW(arg0, 0x24) = (s32) FW(arg3, 0x24);
+            FW(arg0, 0x2C) = (s32) FW(arg3, 0x2C);
+            *(S1_526D0 *)p30 = *(S1_526D0 *)(arg3 + 0x30);
+            *(S2_526D0 *)(arg0 + 0x34) = *(S2_526D0 *)(arg3 + 0x34);
+            FW(arg0, 0x3C) = (s32) FW(arg3, 0x3C);
+            FW(arg0, 0x40) = (s32) FW(arg3, 0x40);
+            FW(arg0, 0x44) = (s32) FW(arg3, 0x44);
+            FW(arg0, 0x48) = (s32) FW(arg3, 0x48);
+            FW(arg0, 0x4C) = (s32) FW(arg3, 0x4C);
+            FW(arg0, 0x50) = (s32) FW(arg3, 0x50);
+            FW(arg0, 0x54) = (s32) FW(arg3, 0x54);
+            FW(arg0, 0x58) = (s32) FW(arg3, 0x58);
+            FW(arg0, 0x5C) = (s32) FW(arg3, 0x5C);
+            FW(arg0, 0x60) = (s32) FW(arg3, 0x60);
+            FW(arg0, 0x64) = (s32) FW(arg3, 0x64);
+            FW(arg0, 0x68) = (s32) FW(arg3, 0x68);
+            FW(arg0, 0x6C) = (s32) FW(arg3, 0x6C);
+            FW(arg0, 0x70) = (s32) FW(arg3, 0x70);
+            FW(arg0, 0x74) = (s32) FW(arg3, 0x74);
+            FW(arg0, 0x78) = (s32) FW(arg3, 0x78);
+            FW(arg0, 0x7C) = (s32) FW(arg3, 0x7C);
+            FW(arg0, 0x80) = (s32) FW(arg3, 0x80);
+            *(S5_526D0 *)temp_a1 = *(S5_526D0 *)(arg3 + 0x84);
+            FW(arg0, 0x98) = (s32) FW(arg3, 0x98);
+            *(f32 *)(arg0 + 0x9C) = *(f32 *)(arg3 + 0x9C);
+            FW(arg0, 0xA0) = (s32) FW(arg3, 0xA0);
+            FW(arg0, 0xA4) = (s32) FW(arg3, 0xA4);
+            FW(arg0, 0xA8) = (s32) FW(arg3, 0xA8);
+            FW(arg0, 0xAC) = (s32) FW(arg3, 0xAC);
+            *p30 |= 0x10;
+            FW(arg0, 0x1C) = temp_v1;
         }
         if (arg2 != 0) {
-            gl_func_00034458(var_s0, arg2);
+            gl_func_00034458(arg0, arg2);
         }
     }
-    return var_s0;
+    return arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000526D0);
