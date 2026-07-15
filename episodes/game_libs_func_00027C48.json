@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00027C48",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T04:41:40.392053+00:00",
+  "end_time": "2026-07-15T04:41:40.392073+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T04:41:40.392067+00:00",
+      "assistant_text": "Uniform +1 t-ring residual (else-arm lbu onward: lbu t8->t9, ori t9->t0, mfc1 t1->t2, bc1fl annul-dup) cracked with the subsumed-mask 1-slot ring burn ON THE LOAD: ((*p) & 0xFFFF) | 2 \u2014 the u8-ranged mask range-folds to zero insns but consumes one ring slot before the lbu pop. Position is decisive: (x|2)&0xFFFF burns between lbu and ori (partial); masking the OTHER arm's &0xFFFD statement burns before that arm's andi (regress). Also removed permuter noise (dummy label, 5x empty if(1)) \u2014 byte-neutral.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 46,
+  "initial_m2c_source": null,
+  "final_source": "void game_libs_func_00027C48(char *arg0, f32 arg1) {\n  f32 temp_f2;\n  int *new_var;\n  f32 var_f0;\n  char *temp_v0;\n  char *temp_v0_2;\n  temp_v0 = ((int) arg0) + 0xB0;\n  var_f0 = arg1;\n  if (arg1 < 2.0f)\n  {\n    temp_f2 = *((f32 *) (((char *) (&D_00000000)) + 0xFC8));\n    temp_v0_2 = ((int) arg0) + 0xB0;\n    if (1)\n    {\n      *((u8 *) (((char *) temp_v0_2) + 0x1)) = (u8) ((*((u8 *) (((char *) temp_v0_2) + 0x1))) & 0xFFFD);\n    }\n    if (temp_f2 < arg1)\n    {\n      var_f0 = temp_f2;\n    }\n    else\n    {\n      var_f0 = arg1;\n    }\n  }\n  else\n  {\n    new_var = &D_00000000;\n    *((u8 *) (((char *) temp_v0) + 0x1)) = (u8) (((*((u8 *) (((char *) temp_v0) + 0x1))) & 0xFFFF) | 2);\n    if ((*((f32 *) (((char *) new_var) + 0xFCC))) < arg1)\n    {\n      var_f0 = *((f32 *) (((char *) new_var) + 0xFD0));\n    }\n    else\n    {\n      var_f0 = arg1 * 0.5f;\n    }\n  }\n  *((s16 *) (((char *) arg0) + 0xBC)) = (s16) ((s32) (var_f0 * 32768.0f));\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_00027C48.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "byte-exact vs expected .o + full-make exit 0 + ROM byte-identical (cmp clean) + non_matching_objects exit 0"
+  }
+}

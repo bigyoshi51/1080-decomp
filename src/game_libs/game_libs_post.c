@@ -10330,11 +10330,17 @@ block_22:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027804);
 #endif
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00027C48)();
+/* game_libs_func_00027C48 — EXACT 2026-07-15 (was 99.24, uniform +1 t-ring
+ * residual from the else-arm lbu onward). Lever: subsumed-mask 1-slot ring
+ * burn ON THE LOAD — `((*p) & 0xFFFF) | 2` (u8-ranged, uopt range-folds the
+ * mask to zero insns but it consumes one ring slot BEFORE the lbu pop,
+ * shifting the lbu itself to t9 + everything after: ori t0, mfc1 t2, and the
+ * bc1fl annul-dup copy). Mask position matters: `(x | 2) & 0xFFFF` burns
+ * between lbu and ori (only fixes ori); masking arm1's `& 0xFFFD` statement
+ * burns before arm1's andi (regresses it t7->t8). */
 void game_libs_func_00027C48(char *arg0, f32 arg1) {
   f32 temp_f2;
   int *new_var;
@@ -10342,11 +10348,6 @@ void game_libs_func_00027C48(char *arg0, f32 arg1) {
   char *temp_v0;
   char *temp_v0_2;
   temp_v0 = ((int) arg0) + 0xB0;
-  dummy_label_367138:
-  ;
-
-  ;
-  ;
   var_f0 = arg1;
   if (arg1 < 2.0f)
   {
@@ -10368,22 +10369,7 @@ void game_libs_func_00027C48(char *arg0, f32 arg1) {
   else
   {
     new_var = &D_00000000;
-    *((u8 *) (((char *) temp_v0) + 0x1)) = (u8) ((*((u8 *) (((char *) temp_v0) + 0x1))) | 2);
-    if (1)
-    {
-    }
-    if (1)
-    {
-    }
-    if (1)
-    {
-    }
-    if (1)
-    {
-    }
-    if (1)
-    {
-    }
+    *((u8 *) (((char *) temp_v0) + 0x1)) = (u8) (((*((u8 *) (((char *) temp_v0) + 0x1))) & 0xFFFF) | 2);
     if ((*((f32 *) (((char *) new_var) + 0xFCC))) < arg1)
     {
       var_f0 = *((f32 *) (((char *) new_var) + 0xFD0));
@@ -10395,9 +10381,6 @@ void game_libs_func_00027C48(char *arg0, f32 arg1) {
   }
   *((s16 *) (((char *) arg0) + 0xBC)) = (s16) ((s32) (var_f0 * 32768.0f));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027C48);
-#endif
 
 // gl_func_00027D00 — STRUCTURAL PASS (0x124 / 73 words, no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
