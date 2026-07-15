@@ -1164,7 +1164,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);
  * v0-def); target's is uncolored/ugen-bound v0. Split spellings (ptr-load
  * (int**)[2] vs cvt) DO break the web but ugen binds t8/t9, not v0; volatile,
  * char-cast, int-arith, if(1){}, do-while, dup-store all inert or regress. Doc 13516
- * reload-site v0/v1 class -- interferer for v1 is never emission-neutral. */
+ * reload-site v0/v1 class -- interferer for v1 is never emission-neutral.
+ * 2026-07-15 agent-h: volatile base-load (`*(int * volatile *)(arg0+2)`) DOES
+ * split the cross-call union (t8/t9 separate ugen temps) but a volatile store
+ * can't be hoisted into the beql-likely delay (reload lands there instead) and
+ * regs land t8/t9 not v0. Store-duplicated if/else arms split the post-call
+ * reload (t8, own web) but cond web stays v1 and the else arm blocks the
+ * cross-jump merge (+2 insns). Return-capture precolor N/A (capture point is
+ * before the union span). Cap confirmed. */
 extern int gl_func_00000000();
 int gl_func_0000B0A8(int *arg0, int arg1, int arg2, int arg3) {
     int v1;

@@ -10719,7 +10719,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
  * mis-split the two later branch targets into 00028334/00028350; merged here.
  * NM at 2 diffs: target holds a0+24 in $v1 and returns via `move v0,v1`; mine
  * computes a0+24 directly into $v0. Regalloc-class — permuter floored (best 60,
- * no zero in 120s), and no C form pins the value to $v1 then moves. */
+ * no zero in 120s). 2026-07-15 agent-h partial-disproof: a TERNARY return
+ * (`return (a0[2]>=a1) ? a0+16 : ret;` with ret=a0+24 hoisted) DOES pin ret
+ * to $v1 and emits the exact `addiu v1,a0,24` + `jr; or v0,v1,zero` — but the
+ * a0+16 arm then joins the shared return (`beq zero,zero` + `addiu v1,a0,16`)
+ * instead of the target's tail-duplicated `jr; addiu v0,a0,16`. Separate-return
+ * forms always single-def-coalesce ret into $v0 (hoisted decl, dead-if
+ * interference, if(0) second def, self-assign, ret-relative folds all inert —
+ * uopt CFG liveness kills cross-arm interference). Residual = need multi-def
+ * web AND per-arm jr simultaneously; no C form found. */
 #ifdef NON_MATCHING
 char *game_libs_func_0002831C(char *a0, int a1) {
     if (a1 < *(unsigned char*)(a0 + 1)) {
