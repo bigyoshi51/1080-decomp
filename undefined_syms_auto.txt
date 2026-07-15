@@ -2884,3 +2884,4 @@ gl_ref_0000C764_135C_6 = 0x0000C764;
 gl_data_00000000_11a4 = 0x00000000;  /* 11A4: distinct abs-0 alias busts &gl_data CSE between self->0x28 store and the 0x54 load */
 gl_data_00000000_15fc = 0x00000000;  /* 15FC: FW(0x28) abs-0 store (was mis-decoded as literal 0) */
 func_00000000_38C0_v = 0x00000000;  /* void-typed reg_b alias (kills dead $v0 def; Dz/cfg -> v1/v0) in func_000038C0 */
+D_39d8_g = 0x00000000;  /* D_g placeholder alias (array-typed base held in $s0) in func_000039D8 */

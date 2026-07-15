@@ -2799,36 +2799,37 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000038C0);
 #ifdef NON_MATCHING
 /* typed-float proto (0x0-alias): 10-arg builders, args 7,8 single floats. */
 extern char *func_39d8_r(char *, int, int, int, char *, int, float, float, int, int);
+extern unsigned char D_39d8_g[];  /* D_g placeholder alias — array-typed so base lives in $s0 */
 void func_000039D8(char *s2, int a1) {
-    char *o1 = (char*)func_00000000(0x80);
+    char *o1;
     char *o2;
-    char *cfg;
-    char *Dg = &D_00000000;  /* D_g (placeholder) */
-    char *r1, *r2, *b3, *f1, *row;
-    int flags, flags2;
-    if (o1 == 0) return;
-    func_00000000(o1, 1);
+    char *r1, *r2, *b3, *f1;
+    o2 = (char*)func_00000000(0x80);  /* o2 is the MERGED $s1 web: o1-carrier, then o2 */
+    if (o2 != 0) {
+        func_00000000(o2, 1);   /* alloc-fail SKIPS ONLY THIS (target beqz +4, 38C0 recipe) */
+    }
+    if (0) { func_00000000(&o1); }  /* address-escape: o1 memory-homed at 0x4C */
+    o1 = o2;  /* carrier ($s1) -> home store at the branch join */
     o2 = (char*)func_00000000(0x80);
-    if (o2 == 0) return;
-    func_00000000(o2, 0);
-    func_00000000(Dg, o1);
-    func_00000000(Dg, o2);
-    func_00000000(Dg, o1, o2);
-    cfg = *(char**)(s2 + 0x98);
-    flags = (*(int*)(Dg + 0x50) | 1) | 0x10000 | 0x40000;
-    r1 = func_39d8_r(s2, 0, *(int*)(Dg + 0x4C), *(int*)(Dg + 0x54),
+    if (o2 != 0) {
+        func_00000000(o2, 0);
+    }
+    func_00000000(D_39d8_g, o1);
+    func_00000000(D_39d8_g, o2);
+    func_00000000(D_39d8_g, o1, o2);
+    r1 = func_39d8_r(s2, 0, *(int*)(D_39d8_g + 0x4C), *(int*)(D_39d8_g + 0x54),
                      o1, *(int*)(s2 + 0x80),
-                     *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
-                     flags, 0x1B);
-    flags2 = *(unsigned char*)(Dg + 0x182) | 0x8008;
-    r2 = func_39d8_r(s2, 0, *(unsigned char*)(Dg + 0x181), *(unsigned char*)(Dg + 0x183),
+                     *(float*)(*(char**)(s2 + 0x98) + 0xC4),
+                     *(float*)(*(char**)(s2 + 0x98) + 0xCC),
+                     (*(int*)(D_39d8_g + 0x50) | 1) | 0x10000 | 0x40000, 0x1B);
+    r2 = func_39d8_r(s2, 0, *(unsigned char*)(D_39d8_g + 0x181), *(unsigned char*)(D_39d8_g + 0x183),
                      o2, *(int*)(s2 + 0x80),
-                     *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
-                     flags2, 0x14);
+                     *(float*)(*(char**)(s2 + 0x98) + 0xC4),
+                     *(float*)(*(char**)(s2 + 0x98) + 0xCC),
+                     (*(unsigned char*)(D_39d8_g + 0x182) | 0x8) | 0x8000, 0x14);
     *(int*)(r2 + 0x38C) = 0;
     b3 = (char*)func_00000000(s2, 2, *(int*)(s2 + 0x80), r1, o1);
-    row = (char*)&D_00000000 + a1 * 0x1C;
-    f1 = (char*)func_00000000(s2, row, b3);
+    f1 = (char*)func_00000000(s2, (char*)&D_00000000 + a1 * 0x1C, b3);
     *(char**)(r1 + 0x8DC) = f1;
     *(char**)(r2 + 0x8DC) = f1;
 }
