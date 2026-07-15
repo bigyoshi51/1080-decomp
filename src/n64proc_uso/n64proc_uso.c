@@ -46,7 +46,6 @@ void n64proc_uso_func_00000014(int arg0, int arg1) {
     } while (flag == 0);
 }
 
-#ifdef NON_MATCHING
 /* n64proc_uso_func_00000100: 76-insn / 0x130 TRIPLE find-or-create cascade.
  * Fuzzy 99.24 % (13/76 words differ). Residual is a register-renumber +
  * spill-slot-coalescing cap — structure, schedule and CSE are all exact.
@@ -113,13 +112,16 @@ Lp28:
     *(int*)((char*)a0 + 0x50) = 0;
     *(int*)((char*)a0 + 0x3C) = 0x64;
     *(int*)((char*)a0 + 0x54) = 0xFF;
-    {
-        int *z = *(int**)((char*)&D_n64_100_f + 0x190);
-        gl_func_00000000((char*)a0 + 0x10, z);
-        if (z[0x14 / 4] != 0) z[1] = 1;
-        z[0x14 / 4] = (int)a0;
-        gl_func_00000000(*(int*)((char*)&D_n64_100_f + 0x190), 2, 0);
-    }
+    /* SAME-NAME destructive reuse (E9C0 lever): the late registration node is
+     * the SAME variable as the cascade's q — its a1-arg spill/a3-reload web
+     * joins q's family, coloring the whole family $a3 and COALESCING both
+     * spills into one home slot 0x24 (frame 0x30 -> 0x28). A block-scoped
+     * `int *z` gave q=$v1 + three distinct slots (the old 13-word cap). */
+    q = *(void**)((char*)&D_n64_100_f + 0x190);
+    gl_func_00000000((char*)a0 + 0x10, q);
+    if (((int*)q)[0x14 / 4] != 0) ((int*)q)[1] = 1;
+    ((int*)q)[0x14 / 4] = (int)a0;
+    gl_func_00000000(*(int*)((char*)&D_n64_100_f + 0x190), 2, 0);
     gl_func_00000000(0xA3);
     *(int*)((char*)a0 + 0x48) = 0;
     *(int*)((char*)a0 + 0x30) = 0;
@@ -127,9 +129,6 @@ Lp28:
 end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/n64proc_uso/n64proc_uso", n64proc_uso_func_00000100);
-#endif
 
 void n64proc_uso_func_00000230(char *a0) {
     gl_func_00000000(a0 + 0x58, 6);

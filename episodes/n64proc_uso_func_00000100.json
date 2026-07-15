@@ -1,0 +1,33 @@
+{
+  "function_name": "n64proc_uso_func_00000100",
+  "project": "projects/1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T05:04:13.333042+00:00",
+  "end_time": "2026-07-15T05:04:13.333062+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T05:04:13.333056+00:00",
+      "assistant_text": "13-word 'register-renumber + slot-coalesce, NOT reachable from C' cap (2026-07-10) retracted by the E9C0 same-name destructive-reuse lever (post-dates the verdict by 5 days): the late registration-node local z is really the SAME variable as the cascade passthrough q. Renaming z's block to reuse q (with int* casts) makes z's a1-arg spill / a3-reload web join q's family: whole family colors $a3 (target), both spills coalesce into one home 0x24, frame drops 0x30->0x28. Single probe, 76/76 exact. Signature to recognize: target shows one arg-reg (a3) serving an early cascade AND a later block, with one shared spill slot.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 76,
+  "initial_m2c_source": null,
+  "final_source": "void *n64proc_uso_func_00000100(void *a0) {\n    void *q;\n    void *r;\n\n    if (a0 != 0) goto have0;\n    a0 = (void*)gl_func_00000000(0x88);\n    if (a0 == 0) goto end;\nhave0:\n    q = a0;\n    if (a0 != 0) goto have1;\n    q = (void*)gl_func_00000000(0x50);\n    if (q == 0) goto Lp28;\nhave1:\n    r = q;\n    if (q != 0) goto have2;\n    r = (void*)gl_func_00000000(0x2C);\n    if (r == 0) goto Lq28;\nhave2: gl_func_00000000(r, (char*)&D_n64_100_a + 0xB0); *(int*)((char*)r + 0x28) = (int)&D_n64_100_b;\nLq28:\n    *(int*)((char*)q + 0x28) = (int)&D_n64_100_c;\nLp28:\n    *(int*)((char*)a0 + 0x28) = (int)((char*)&D_n64_100_d + 0x18);\n    *(int*)((char*)a0 + 0xC)  = (int)((char*)&D_n64_100_e + 0xB8);\n    gl_func_00000000(a0);\n\n    *(int*)((char*)a0 + 0x50) = 0;\n    *(int*)((char*)a0 + 0x3C) = 0x64;\n    *(int*)((char*)a0 + 0x54) = 0xFF;\n    /* SAME-NAME destructive reuse (E9C0 lever): the late registration node is\n     * the SAME variable as the cascade's q \u2014 its a1-arg spill/a3-reload web\n     * joins q's family, coloring the whole family $a3 and COALESCING both\n     * spills into one home slot 0x24 (frame 0x30 -> 0x28). A block-scoped\n     * `int *z` gave q=$v1 + three distinct slots (the old 13-word cap). */\n    q = *(void**)((char*)&D_n64_100_f + 0x190);\n    gl_func_00000000((char*)a0 + 0x10, q);\n    if (((int*)q)[0x14 / 4] != 0) ((int*)q)[1] = 1;\n    ((int*)q)[0x14 / 4] = (int)a0;\n    gl_func_00000000(*(int*)((char*)&D_n64_100_f + 0x190), 2, 0);\n    gl_func_00000000(0xA3);\n    *(int*)((char*)a0 + 0x48) = 0;\n    *(int*)((char*)a0 + 0x30) = 0;\n    *(int*)((char*)a0 + 0x2C) = 0;\nend:\n    return a0;\n}\n",
+  "metadata": {
+    "source_path": "src/n64proc_uso/n64proc_uso.c",
+    "asm_path": "asm/nonmatchings/n64proc_uso/n64proc_uso/n64proc_uso_func_00000100.s",
+    "segment": "n64proc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-diff 76/76 vs raw .s + full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}
