@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00068D18",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T04:13:23.765785+00:00",
+  "end_time": "2026-07-15T04:13:23.765805+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T04:13:23.765799+00:00",
+      "assistant_text": "99.91% residual was two spill homes (saved 40->48, h 32->36, frame 56 fixed). Classification: named-local decl-order slot placement (uopt homes named locals at frame top, first-declared = highest slot). Lever: reorder decls to bufp,saved,p,a1,h,entry (6 named locals -> slots 52,48,44,40,36,32). Landability: table base &D_gl_00041310 (USO-baked, upper16=0 in ROM) respelled via =0 placeholder &D_00000000; the three calls routed through =0 placeholder gl_func_00000000 so jal links to 0x0C000000.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 47,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_00068D18(int *self) {\n    int **bufp;\n    int *saved;\n    int *p;\n    int a1;\n    int h;\n    short *entry;\n\n    bufp = (int **)self[0];\n    p = *bufp;\n    *bufp = p + 1;\n    a1 = p[0];\n    self[1] = a1;\n    saved = (int *)((int *)&D_00000000)[a1];\n    if (saved == 0) {\n        gl_func_00000000((char *)&D_00000000 + 0x2c550);\n    }\n\n    bufp = (int **)self[0];\n    p = *bufp;\n    *bufp = p + 1;\n    a1 = p[0];\n    self[1] = a1;\n\n    entry = (short *)(saved[0x90 / 4] + a1 * 8);\n    h = entry[0];\n    if (*(int *)(entry + 2) != 0) {\n        gl_func_00000000(saved, gl_func_00000000(0, h, *(int *)(entry + 2), *(int *)(self[15] + 0xC)));\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post1b.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00068D18.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "byte-exact vs expected .o + full-make exit 0 + ROM byte-identical (cmp clean) + non_matching_objects exit 0"
+  }
+}

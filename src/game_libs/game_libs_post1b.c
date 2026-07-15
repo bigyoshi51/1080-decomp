@@ -4789,41 +4789,30 @@ void gl_func_00068C14(int *self) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068C14);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00068D18: two packed-stream entry pops + table lookup + dual dispatch.
- *
- * Re-decoded 2026-06-27 from expected .o (own addr 0x5db4).  Prior body used the
- * wrong lookup base (a global instead of the per-pop saved table entry), an int
- * stride for the signed-halfword load, and wrong call arg homes.  99.91% (only
- * residual is an 8-byte spill-slot coloring offset; all opcodes/regs match).
- *
- * Block 1 pops one int from self[0]'s ring:
- *   p = *(int**)self[0]; *(int**)self[0] = p+1;
- *   a1 = p[0]; self[1] = a1; saved = ((int*)&D_gl_00041310)[a1];
- *   if (saved == 0) gl_func_00062F64(&D + 0x2c550); // bnez saved skips the call
- * Block 2 pops a second int the same way: a1 = p[0]; self[1] = a1.
- *   entry = (short*)( *(int*)(saved + 0x90) + a1*8 );  // 8-byte stride
- *   h = entry[0] (signed lh); link = *(int*)(entry+2);  // offset 4
- *   if (link != 0)
- *       gl_func_00062F64(saved, gl_func_00062F64(0, h, link, *(int*)(self[15]+0xC)));
- */
-extern char D_gl_00041310;
+ * EXACT 2026-07-15. Prior 99.91% residual (spill homes 40/32 vs target 48/36)
+ * was decl-order slot placement: uopt homes named locals at frame top in decl
+ * order (first-declared = highest slot); order bufp,saved,p,a1,h,entry puts
+ * saved at 48(sp) and h at 36(sp). Table base is USO-reloc'd (upper16=0 in
+ * ROM; real table = 0x41310 per reloc data) so it is spelled via the =0
+ * placeholder &D_00000000; the calls (real targets USO-resolved at load) go
+ * through the =0 placeholder gl_func_00000000 so jal links to 0x0C000000. */
 void gl_func_00068D18(int *self) {
     int **bufp;
+    int *saved;
     int *p;
     int a1;
-    int *saved;
-    short *entry;
     int h;
+    short *entry;
 
     bufp = (int **)self[0];
     p = *bufp;
     *bufp = p + 1;
     a1 = p[0];
     self[1] = a1;
-    saved = (int *)((int *)&D_gl_00041310)[a1];
+    saved = (int *)((int *)&D_00000000)[a1];
     if (saved == 0) {
-        gl_func_00062F64((char *)&D_00000000 + 0x2c550);
+        gl_func_00000000((char *)&D_00000000 + 0x2c550);
     }
 
     bufp = (int **)self[0];
@@ -4835,12 +4824,9 @@ void gl_func_00068D18(int *self) {
     entry = (short *)(saved[0x90 / 4] + a1 * 8);
     h = entry[0];
     if (*(int *)(entry + 2) != 0) {
-        gl_func_00062F64(saved, gl_func_00062F64(0, h, *(int *)(entry + 2), *(int *)(self[15] + 0xC)));
+        gl_func_00000000(saved, gl_func_00000000(0, h, *(int *)(entry + 2), *(int *)(self[15] + 0xC)));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068D18);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
