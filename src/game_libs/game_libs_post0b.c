@@ -9280,69 +9280,33 @@ void *gl_func_0003EA98(int *a0, int a1) {
  * Sibling of just-matched gl_func_0003EA98 (volatile-pointer-to-arg
  * caller-slot trick + volatile own-frame spill).
  *
- * Caps remaining: target spills a1 to BOTH sp+0x1C (caller-slot,
- * matched via 'volatile int *p = &a1') AND sp+0x4 (own-frame, matched
- * naturally via 'volatile int spill = a1' in EA98 but introduces extra
- * spill+reads here). Adding both volatiles grows frame to 0x20 (target
- * 0x18) and shifts all sp offsets — net regression.
- *
- * Also missing: target's `goto end_zero` shape uses an extra
- * pre-epilogue `lw ra; or v0, 0; lw ra` 3-insn block (target has 2
- * lw ra at 0x44 and 0x48) — IDO's natural emit collapses this when v0
- * is zero in the early branch.
- *
- * 2026-05-08 retest #2: tried adding `(void)a1` after the alloc call (per
- * docs/IDO_CODEGEN.md feedback-ido-void-cast-arg-spill recipe) — DCE'd
- * by IDO, no extra spill emitted. Same 94.09%. Tried `volatile int
- * saved_a1 = a1;` (per feedback-ido-volatile-unused-local-forces-local-
- * slot-spill) — regressed to 75.95% (frame grew to 0x20, all sp offsets
- * shifted). Cap holds: target's 1 missing dead-spill at sp+0x4 is
- * structurally locked.
- *
- * 2026-05-10 retest #4: tried switching K&R `extern int gl_func_00000000();`
- * to explicit prototype `extern int gl_func_00000000(int, int, int, int);`
- * thinking IDO's K&R-spill behavior might trigger the extra sp+0x4 dead
- * spill. No-op: same 94.09%. K&R vs prototype on the alloc call does NOT
- * affect own-frame spill emission for incoming args. Cap remains
- * INSN_PATCH-locked. */
+ * 2026-07-15 (agent-f): BYTE-EXACT 23/23 — the "sp+0x4 dead-spill structurally
+ * locked / INSN_PATCH-locked" cap RETRACTED by the SINGLE-INT STRUCT BY-VALUE
+ * lever (docs/IDO_CODEGEN.md feedback-ido-single-int-struct-shadow-store):
+ * passing a1 as `*(struct OneInt3EAE0 *)&a1` to the K&R callee emits the dead
+ * OUTGOING arg-shadow `sw a1,4(sp)` in the jal delay slot at frame 0x18 (no
+ * frame growth — it is the arg-build area, not a local home), and &a1 keeps
+ * the caller-slot home store sw a1,28(sp) (volatile-p trick retired). The
+ * remaining 4-word a3-vs-v1 copy color + fnptr v1-vs-t9 fell to DE-NAMING the
+ * fn pointer (direct call expression -> fnptr drops to ring t9, r's copy takes
+ * v1). Stays NM wrap: the jal callee is a collapsed placeholder (raw-.word USO
+ * reloc depression, real callee unknown). */
 extern int gl_func_00000000();
 
 #ifdef NON_MATCHING
+struct OneInt3EAE0 { int v; };
 int *gl_func_0003EAE0(int a0, int a1, int a2, int a3) {
-    volatile int *p = &a1;
-    int *r = (int*)gl_func_00000000(a0, a1, a2, a3);
+    int *r = (int*)gl_func_00000000(a0, *(struct OneInt3EAE0 *)&a1, a2, a3);
     if (r == 0) goto end_zero;
     {
         int *obj = (int*)r[0x28/4];
-        int (*fn)() = (int(*)())obj[0x6C/4];
-        (void)p;
-        return (int*)fn(((short*)obj)[0x68/2] + (int)r, a2, a3);
+        return (int*)((int(*)())obj[0x6C/4])(((short*)obj)[0x68/2] + (int)r, a2, a3);
     }
 end_zero:
-    (void)p;
     return 0;
 }
 #else
-#ifdef NON_MATCHING
-/* gl_func_0003EAE0: 23-insn vtable-dispatch wrapper. v1 = cb(a0, a1); if v1==0
- * return 0; else obj = v1->0x28; tail-call obj's method pointer at obj->0x6C
- * with (obj->0x68(signed halfword) + v1, a2, a3) -- the original a2/a3 shifted
- * down into the method's a1/a2. NM (reference decode): collapsed-placeholder
- * call (raw-.word game_libs reloc depression) + indirect jalr. */
-extern int gl_func_00000000();
-int gl_func_0003EAE0(int a0, int a1, int a2, int a3) {
-    int *obj;
-    int v1 = gl_func_00000000(a0, a1);
-    if (v1 == 0) {
-        return 0;
-    }
-    obj = *(int **)((char *)v1 + 0x28);
-    return (*(int (**)(int, int, int))((char *)obj + 0x6C))(
-        *(short *)((char *)obj + 0x68) + v1, a2, a3);
-}
-#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EAE0);
-#endif
 #endif
 
 #ifdef NON_MATCHING
