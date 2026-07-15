@@ -3187,12 +3187,11 @@ extern int D_00000000;
 // Tail (always, even on alloc-fail): p=a0; p->0xC = p->0x10 = o; if (p->0x38)
 // { r = cb(p->0x3C->0x10 + 16, o); if (o->0x14==0) o->0x14=r; else { o->4=1;
 // o->0x14=r; } }. Returns o. 0x1EBE4 is a deferred data-template symbol site.
-char *gl_func_00037AF0(int a0) {
+void gl_func_00037AF0(int a0) {
     char *o;
     int *s1;
+    int *p2;
     float zero[3];
-    char *p;
-    int r;
     gl_func_00000000(a0);
     o = (char *)gl_func_00000000(0xB4);
     if (o != 0) {
@@ -3203,11 +3202,12 @@ char *gl_func_00037AF0(int a0) {
             s1 = (int *)gl_func_00000000(0x04);
             if (s1 == 0) goto vecinit;
         }
+        p2 = s1;
         if (s1 == 0) {
-            s1 = (int *)gl_func_00000000(0x04);
-            if (s1 == 0) goto vecinit;
+            p2 = (int *)gl_func_00000000(0x04);
+            if (p2 == 0) goto vecinit;
         }
-        *s1 = 0;
+        *p2 = 0;
     vecinit:
         gl_func_00000000(o);
         zero[0] = 0.0f;
@@ -3215,20 +3215,16 @@ char *gl_func_00037AF0(int a0) {
         zero[2] = 0.0f;
         gl_func_00000000(o + 0x30, zero);
     }
-    p = (char *)a0;
-    *(char **)(p + 0xC) = o;
-    *(char **)(p + 0x10) = o;
-    if (*(int *)(p + 0x38) != 0) {
-        char *q = *(char **)(p + 0x3C);
-        r = gl_func_00000000(*(int *)(q + 0x10) + 0x10, o);
-        if (*(int *)(o + 0x14) == 0) {
-            *(int *)(o + 0x14) = r;
-        } else {
+    *(char **)(a0 + 0xC) = o;
+    *(char **)(a0 + 0x10) = o;
+    if (*(int *)(a0 + 0x38) != 0) {
+        int tmp;
+        gl_func_00000000((tmp = *(int *)(*(char **)(a0 + 0x3C) + 0x10)) + 0x10, o);
+        if (*(int *)(o + 0x14) != 0) {
             *(int *)(o + 0x4) = 1;
-            *(int *)(o + 0x14) = r;
         }
+        *(int *)(o + 0x14) = tmp;
     }
-    return o;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037AF0);
