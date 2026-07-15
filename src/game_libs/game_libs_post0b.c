@@ -1530,16 +1530,21 @@ extern int D_00000000;
  *     it does not interfere with r, so it does not block r from a2.
  * So r->v1 is a LOWEST-FREE-REGISTER tie, not a split-rejection adjsave-sign
  * problem. To force a2, v1 must be FORBIDDEN for r — needs an interfering LR
- * colored to v1 living across r's reload. No such value exists naturally and
- * adding one changes the insn count. Confirmed NEUTRAL/structure-preserving:
- * register kw, unsigned cast, ret-var, extra no-call use, base-ptr local,
- * fn-ptr local, ternary-if; a1-param reuse collapses the frame; branch-invert
- * regresses structure (all verified standalone). Genuine lowest-free-reg cap;
- * residual = 3 register-name-only diffs (or v1,v0 / lw v1 / or v0,v1). NM. */
+ * colored to v1 living across r's reload.
+ * 2026-07-15 RESOLVED 24/24 byte-exact, RETRACTING the "genuine lowest-free-reg
+ * cap": r is passed as a THIRD K&R ARG to func_00000000(&D+0x1E64C, a1, r) —
+ * the call-arg constraint precolors r's web to $a2 (or a2,v0 lands in the bgez
+ * delay slot exactly as target; the a2 marshal costs ZERO extra insns because
+ * it replaces the old `or v1,v0` carrier copy). The `or a2,v0` ALWAYS executes
+ * (delay slot), i.e. it is r's carrier copy, arg-shaped — the original source
+ * really passed r (error-report callee reads (fmt, arg, code)). Lesson: an
+ * "unnatural" arg-reg carrier of a saved value = suspect an extra trailing
+ * call argument before writing an allocator-cap note.
+ * NOT LANDABLE: func_00000000 placeholder callee + baked USO %hi/%lo. NM. */
 int gl_func_00035834(int a0, int a1, int a2) {
     int r = ((int(*)(int,int))(*(int**)&D_00000000)[0x48/4])(a1, a2);
     if (r < 0) {
-        func_00000000((char*)&D_00000000 + 0x1E64C, a1);
+        func_00000000((char*)&D_00000000 + 0x1E64C, a1, r);
     }
     (void)a0;
     return r;
