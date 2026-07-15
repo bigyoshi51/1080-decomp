@@ -19642,17 +19642,33 @@ void game_libs_func_0004CFC4(int a0, int a1, int a2) {
  *  - `volatile T *p = &argN;` for both a0 and a1 forces caller-slot
  *    spill (sw a0,0x18(sp); sw a1,0x1C(sp)). Recipe in
  *    docs/IDO_CODEGEN.md#feedback-ido-arg-addr-via-volatile-ptr-forces-caller-spill.
- *  - INSN_PATCH at offsets 0x18-0x2C overrides 5 register names IDO's
- *    allocator picks differently (target uses {a3, v1, t9} for the addu
- *    results; IDO picks {t1, t9, t0} — pure register-allocation cap, no
- *    C-level lever found). All 16 instructions are structurally correct. */
+ *  - (HISTORICAL) INSN_PATCH once overrode 5 register names ({a3,v1,t9} vs
+ *    {t1,t9,t0}) — "pure register-allocation cap, no C-level lever found".
+ * 2026-07-15 RESOLVED 16/16 BYTE-EXACT, retracting that cap, via 4 coupled
+ * new-wave levers (docs/IDO_CODEGEN.md 2026-07-15 entries):
+ *  1. dead `if (p) {}` uses block copy-prop so the two address values become
+ *     COLORED CANDIDATES (a3/v1) instead of ring temps (332B4 family);
+ *  2. `pa` is an UNPASSED 4th K&R param -> natural $a3 color, zero frame
+ *     (B49C lever 1); the pre-def `if (pa) {}` consumes the incoming value so
+ *     no dead K&R home-store leaks (B49C gotcha counter);
+ *  3. de-named base: `(int*)a0[0x84/4]` spelled twice CSEs to a temp that
+ *     colors $v0 AND flips the addu operand order to base-first (naming it
+ *     `int *base` colored $v1 with index-first addus);
+ *  4. SAME-LINE JOIN `pb = ...; pa = ...;` on ONE line: as1's debug-line
+ *     tie-break emits pa's addu before pb's (C8AC lever) while keeping
+ *     pb's sll first (t8/t9 ring order).
+ * NOT LANDABLE: gl_func_00000000 placeholder callee. Stays NM. */
 extern int gl_func_00000000();
 #ifdef NON_MATCHING
-void gl_func_0004CFD4(int *a0, int a1, int a2) {
+void gl_func_0004CFD4(int *a0, int a1, int a2, int *pa) {
     volatile int **vparg0 = (volatile int **)&a0;
     volatile int *vparg1 = (volatile int *)&a1;
-    int *base = (int*)a0[0x84/4];
-    gl_func_00000000(base[a1], base[a2]);
+    int *pb;
+    if (pa) {}
+    pb = (int*)a0[0x84/4] + a1; pa = (int*)a0[0x84/4] + a2;
+    if (pb) {}
+    if (pa) {}
+    gl_func_00000000(*pb, *pa);
     (void)vparg0;
     (void)vparg1;
 }
