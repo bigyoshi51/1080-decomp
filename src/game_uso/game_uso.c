@@ -13461,20 +13461,29 @@ void game_uso_func_00010128(int *a0) {
  * the three D-pair consts (0xDE0/DE4, 0xDE8/DEC, 0xDF8/DFC) pass BY VALUE as
  * *(Pair2*) — the "sp+4/sp+8 EE84 D-pair shape cap" was the un-homed pair
  * (same lever as EF70, docs/IDO_CODEGEN.md#feedback-ido-struct-by-value-homes-arg-pair).
- * Residual (18 diffs, all regalloc-renumber): the s0->0xB4 reload lands in v1
- * here vs v0 in target (cascades); same logic, len 79=79. INCLUDE_ASM build. */
+ * 2026-07-15 (wave 3, agent-h): the old residual ("s0->0xB4 reload lands in
+ * v1 vs v0, regalloc-renumber cascade" 8 words) RETRACTED via the FD0
+ * dead-$v0-def exclusion lever (docs/IDO_CODEGEN): import_0010DB28's UNUSED
+ * int K&R return left a dead $v0 def that excluded $v0 from the immediately
+ * following v0-var web (colored v1, new_var took v0). Calling through the
+ * void alias import_0010DB28_void (=0 in undefined_syms_auto.txt, identical
+ * 0C000000 jal bytes) frees $v0 -> 79/79 objdiff-100. (26FC return-capture
+ * probed first: inert, immediate-redef web split per the 1C90 caveat.)
+ * NOT landable as C: jal game_uso_func_0000E2D0 targets a real in-TU
+ * symbol (baked jal 0 in ROM). Stays NM wrap at 100. INCLUDE_ASM build. */
 #ifdef NON_MATCHING
 extern char game_uso_D_807FF3D8;
 extern char game_uso_D_807FF3D0;
 extern char game_uso_D_807FF3E8;
 void game_uso_func_000104A4(char *a0);
 void game_uso_func_00011750(char *obj);
+extern void import_0010DB28_void();
 void game_uso_func_000102CC(int *a0) {
   int *s0 = a0;
   int *v0;
   int new_var;
   game_uso_func_0000E2D0((char *)a0);
-  import_0010DB28(s0, s0[0xFC / 4] | 0x19, 3, 4, 2, 1);
+  import_0010DB28_void(s0, s0[0xFC / 4] | 0x19, 3, 4, 2, 1);
   v0 = (int *) s0[0xB4 / 4];
   if (((*((float *) (((char *) v0) + 0x31C))) < 0.0f) && ((*((float *) (((char *) v0) + 0x9D0))) < 1000.0f))
   {

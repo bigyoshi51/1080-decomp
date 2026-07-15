@@ -1770,6 +1770,7 @@ import_000F8678 = 0;
 import_0010D33C = 0;
 import_0010D420 = 0;
 import_0010DB28 = 0;
+import_0010DB28_void = 0;
 import_0010DB78 = 0;
 import_80020098 = 0;
 import_800200CC = 0;
