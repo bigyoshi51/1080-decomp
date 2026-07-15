@@ -23619,22 +23619,36 @@ int gl_func_00052104(int *a0) {
  * of {4.0f, 2.0f, 1.0f, 0.5f} or default-arm (cross-USO call + 0.0f).
  * Sibling of gl_func_00052104.
  *
- * NATURAL CEILING: ~62% NM. Was previously documented as "Promoted via
- * 17-insn INSN_PATCH bundle" — INSN_PATCH REMOVED 2026-05-23 as
- * match-faking (per feedback_no_instruction_forcing_matches_policy).
- * Real diffs:
- *   (a) Regalloc: C-emit picks $v0 for state and $a2 for saved-a0;
- *       target uses $a2 for state, $a3 for saved-a0 (caller-set or
- *       global-allocator priority diff).
- *   (b) Switch-case order: IDO normalizes to ascending
- *       (0x110/0x120/0x304/0x308/0x408/0x508/0x608); target emits a BEQ-
- *       chain in source order 0x120/0x110/0x308/0x408/0x508/0x608/0x304.
- * Logic identical; reaching target bytes via C-only requires regalloc
- * nudge + reorder bypassing IDO's switch-normalize sort. Default build
- * is INCLUDE_ASM. */
+ * 2026-07-15 lever wave 3: 17 -> 11 word diffs (98.29 -> 99.4 fuzzy), size
+ * exact (45). FIXED (a) regalloc via UNPASSED K&R EXTRA PARAM: 3rd K&R param
+ * `state` (+ dead-if pre-def consumes incoming, kills B49C home-store) colors
+ * $a2; `self` stays a plain LOCAL (as a 4th K&R param it spills to its arg-
+ *  area home `sw a0,0x18(sp)` instead of copying) and naturally colors $a3 =
+ * `or a3,a0`. Unused 2nd param `dmy` needs its own dead-if or it leaks
+ * `sw a1,0x1C(sp)`. REMAINING 11 diffs = (b) switch-case sort ONLY (7 addiu
+ * $at values + 4 beq offsets, all position-aligned): IDO sorts case compares
+ * ascending; target chain is source order 0x120/0x110/0x308/0x408/0x508/
+ * 0x608/0x304. NEGATIVE probes (12 variants): goto-ladder gets the chain
+ * ORDER right but IDO tail-dups/inverts the final `beq;b Ldef` pair
+ * (bne + duplicated 0.5f arm, +3 insns, unfixable: if(1){}, else-goto,
+ * 1-case switch, label-pin, do-while(0)-pin, unreachable 2nd goto, dead-
+ * store block, always-true trailing goto all fold/invert; dead-if(fmt)
+ * preserves the beq but emits a real null-test since &D+off isn't provably
+ * nonzero, +3). Fallthrough-call form (no goto) keeps all beqs but hoists
+ * the call block above the arms => objdiff alignment craters (25.9%).
+ * Switch + K&R precolor is the fuzzy-optimal form; the chain sort is the
+ * residual cap. */
 #ifdef NON_MATCHING
-float gl_func_00052144(int *a0) {
-    int state = *(int*)((char*)a0 + 0x24);
+float gl_func_00052144(a0, dmy, state)
+int *a0;
+int dmy;
+int state;
+{
+    int *self;
+    if (dmy) {}
+    if (state) {}
+    state = *(int*)((char*)a0 + 0x24);
+    self = a0;
     switch (state) {
         case 0x120: return 4.0f;
         case 0x110: return 2.0f;
@@ -23644,7 +23658,7 @@ float gl_func_00052144(int *a0) {
         case 0x608: return 1.0f;
         case 0x304: return 0.5f;
     }
-    gl_func_00000000((char*)&gl_data_00000000 + 0x20F90, *(int*)((char*)a0 + 0x18));
+    gl_func_00000000((char*)&gl_data_00000000 + 0x20F90, *(int*)((char*)self + 0x18));
     return 0.0f;
 }
 #else
