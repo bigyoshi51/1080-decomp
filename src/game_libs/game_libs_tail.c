@@ -1908,7 +1908,15 @@ extern int gl_func_00000000();
  * 2026-07-03, the "+1 temp-ring offset" killer): INAPPLICABLE here -- the burn
  * needs a byte-RANGED value for uopt range-folding; this window's value is a
  * full-width int (lw arg1->a), where 32-bit/identity masks fold in cfe (0-slot)
- * and a u64 mask burns 5 slots. No 1-quantum handle. Cap confirmed. */
+ * and a u64 mask burns 5 slots. No 1-quantum handle. Cap confirmed.
+ * 2026-07-15b re-check vs the D63C split-shift-phantom + 2A4D0 folded-cast ring
+ * levers: a LONE `<<0` on the store RHS VN-folds before ugen (no burn — the
+ * D63C phantom survives only inside a live shift chain); `x*0 + x` additive
+ * phantom promotes the RHS to a uopt CANDIDATE (sw v0 + frame +8, regress);
+ * `(int)arg0*0` as the sw-zero RHS cfe-folds (no burn); int-cast address form
+ * `*(int*)((int)arg0+4)` inert. The 2A4D0 fitted narrowing cast needs a
+ * provably-ranged value — lw is unrangeable, so no fitted width exists.
+ * Phantom class exhausted; cap stands. */
 struct gl_func_0000C28C_Four { int a, b, c, d; };
 void gl_func_0000C28C(void *arg0, struct gl_func_0000C28C_Four *arg1) {
     struct gl_func_0000C28C_Four buf10;
