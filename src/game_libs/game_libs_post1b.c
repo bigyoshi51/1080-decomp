@@ -3255,29 +3255,36 @@ int gl_func_00067550(int *a0) {
 }
 
 /* gl_func_000675A4: input-debounce / flag-update routine (1048B).
- * Structural fix 2026-06-22 (agent-e): both gl_func_00062F64 calls take
- * &D_00000000 as their first arg (target emits lui/addiu HI16/LO16 against
- * D_00000000), NOT literal 0. The 0 produced `move a0,zero` and shifted the
- * whole jal arg-setup by one slot — fixing it dropped the diff from 250 to
- * 134 non-reloc words. The 134 residual are ALL register-renumbering
- * (coloring) diffs plus two scheduling ties (the lw/lh load pair at the
- * 0x74/0x78 read, and the and/sll pair in the temp_v0_2==2 store). Permuter:
- * 70k+ iterations across two seeded runs plateaued at score 1020 (base 1340);
- * no source transform reproduces IDO's coloring here. Genuine coloring cap. */
+ * WAVE-3 2026-07-15 (agent-h): word-diff 134 -> 46 (all residual are pure
+ * reg-number cells; objdiff fuzzy is register-blind so stays ~95.1). Fixed:
+ * de-named 0x10->0x14 handoff (ring t4, un-shifts head ring); temp_t0 typed
+ * char* + array-index u8 fetch; s16-first spelling in the 0xFF probe (lw
+ * before lh); RMW spelling of the 0x50 increment (ring t9 load-split); ==2
+ * arm sh via named value-temp (RHS subtree evaluated first, and-v0 shape);
+ * var_f0/var_f0_2 same-name merge (f0 phi both abs blocks); 0x10|0x40 and
+ * arm1-|= operand swaps (build canonicalizes commutative operands reversed).
+ * RESIDUAL 46 in four co-rotating zones: FP candidate triple-cycle (0.0f/
+ * temp_f14/temp_f2 = f12/f14/f2 target vs f14/f2/f12 build; decl order,
+ * named zero, RANK alias, birth order all probed inert); ==1-arm entry ring
+ * off-by-one; the +-0.5 flag-arm load/result pair-swaps (compound-assign,
+ * if(1), operand swaps inert); 0x18-web candidate a1 vs ring t6 (de-name
+ * recomputes, +20 words). Likely ONE upstream coloring-order divergence.
+ * GOTCHA logged: probe loop must check cc exit status -- a silent NM build
+ * break froze the .o and five probes measured stale (false-inert). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000675A4)();
+extern struct { char pad[0x2200]; f64 v; } gl_D_2200_thr;
 void gl_func_000675A4(char *arg0) {
+    f64 temp_f14;
     f32 temp_f0;
     f32 temp_f2;
     f32 var_f0;
-    f32 var_f0_2;
-    f64 temp_f14;
     s16 temp_v0;
     s32 temp_a0;
-    s32 temp_t0;
+    char *temp_t0;
     s32 temp_t4;
     s32 temp_t6;
     s32 temp_v0_2;
@@ -3292,20 +3299,19 @@ void gl_func_000675A4(char *arg0) {
 
     temp_v1 = FW(arg0, 0x34);
     if ((temp_v1 != 0) && (FW(arg0, 0x68) == 0)) {
-        temp_t0 = FW(arg0, 0x78);
+        temp_t0 = (char *) FW(arg0, 0x78);
         if (temp_t0 != 0) {
             temp_v0 = (*(s16*)((char*)arg0 + 0x74));
             (*(s16*)((char*)arg0 + 0x74)) = (s16) (temp_v0 + 1);
-            gl_func_00062F64(&D_00000000, temp_v1 - 1, *(u8*)(temp_t0 + temp_v0), arg0);
-            if (*(u8*)(FW(arg0, 0x78) + (*(s16*)((char*)arg0 + 0x74))) == 0xFF) {
+            gl_func_00062F64(&D_00000000, temp_v1 - 1, ((u8*)temp_t0)[temp_v0], arg0);
+            if (*(u8*)((*(s16*)((char*)arg0 + 0x74)) + FW(arg0, 0x78)) == 0xFF) {
                 FW(arg0, 0x78) = 0;
                 (*(s16*)((char*)arg0 + 0x76)) = 0;
             }
         }
     }
-    temp_t4 = FW(arg0, 0x10);
+    FW(arg0, 0x14) = FW(arg0, 0x10);
     FW(arg0, 0x10) = 0;
-    FW(arg0, 0x14) = temp_t4;
     if (FW(arg0, 0x68) == 0) {
         if (FW(arg0, 0x34) != 0) {
             gl_func_00062F64(&D_00000000, arg0);
@@ -3314,20 +3320,20 @@ void gl_func_000675A4(char *arg0) {
             (*(s8*)((char*)arg0 + 0x8)) = (s8) -(*(s8*)((char*)arg0 + 0x8));
         }
         if (FW(arg0, 0x4C) != 0) {
-            temp_t3 = FW(arg0, 0x50) + 1;
-            FW(arg0, 0x50) = temp_t3;
-            if (temp_t3 >= (u32) FW(arg0, 0x54)) {
+            FW(arg0, 0x50) = FW(arg0, 0x50) + 1;
+            if ((u32) FW(arg0, 0x50) >= (u32) FW(arg0, 0x54)) {
                 FW(arg0, 0x4C) = 0;
             }
             temp_v0_2 = FW(arg0, 0x4C);
             if (temp_v0_2 == 2) {
                 *(s8*)(FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4)) = (*(s8*)((char*)arg0 + 0x8));
                 *(s8*)((FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4)) + 0x1) = (*(s8*)((char*)arg0 + 0x9));
-                *(s16*)((FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4)) + 0x2) = FW(arg0, 0x10) & FW(arg0, 0x6C) & 0x1700;
+                temp_t4 = FW(arg0, 0x6C) & FW(arg0, 0x10) & 0x1700;
+                *(s16*)((FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4)) + 0x2) = temp_t4;
                 *(int*)(FW(arg0, 0x58)) = FW(arg0, 0x50);
             } else if (temp_v0_2 == 1) {
                 temp_v0_3 = FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4);
-                FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) | *(s16*)((char*)temp_v0_3 + 0x2));
+                FW(arg0, 0x10) = (s32) (*(s16*)((char*)temp_v0_3 + 0x2) | FW(arg0, 0x10));
                 (*(s8*)((char*)arg0 + 0x8)) = *(s8*)((char*)temp_v0_3 + 0x0);
                 (*(s8*)((char*)arg0 + 0x9)) = *(s8*)((char*)temp_v0_3 + 0x1);
             }
@@ -3340,22 +3346,22 @@ void gl_func_000675A4(char *arg0) {
         } else {
             var_f0 = (*(f32*)((char*)arg0 + 0x0));
         }
-        temp_f14 = *(f64*)((char*)&D_00000000 + 0x2200);
+        temp_f14 = gl_D_2200_thr.v;
         if ((f64) var_f0 < temp_f14) {
             (*(f32*)((char*)arg0 + 0x0)) = 0.0f;
         }
         temp_f2 = (*(f32*)((char*)arg0 + 0x4));
         if (temp_f2 < 0.0f) {
-            var_f0_2 = -temp_f2;
+            var_f0 = -temp_f2;
         } else {
-            var_f0_2 = temp_f2;
+            var_f0 = temp_f2;
         }
-        if ((f64) var_f0_2 < temp_f14) {
+        if ((f64) var_f0 < temp_f14) {
             (*(f32*)((char*)arg0 + 0x4)) = 0.0f;
         }
     }
     if (FW(arg0, 0x3C) != 0) {
-        FW(arg0, 0x10) = (s32) (FW(arg0, 0x10) | FW(arg0, 0x40));
+        FW(arg0, 0x10) = (s32) (FW(arg0, 0x40) | FW(arg0, 0x10));
         FW(arg0, 0x3C) = 0;
         (*(f32*)((char*)arg0 + 0x0)) = (f32) (*(f32*)((char*)arg0 + 0x44));
         (*(f32*)((char*)arg0 + 0x4)) = (f32) (*(f32*)((char*)arg0 + 0x48));
