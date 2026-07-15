@@ -2064,7 +2064,14 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065F08);
  * Re-derived 2026-06-20 (agent-b): the prior "caller-set $a2 cap" comment was
  * WRONG — $a2 is set in-function (`lui a2,0x1234; ori a2,2`) before the third
  * call. Callee is gl_func_00062F64 (local 2-arg K&R int fn), called directly.
- */
+ * WAVE-3 re-verify 2026-07-15 (agent-h): residual = 5-word PROLOGUE cell only
+ * (all 43 insns otherwise exact). Target hoists loop1's first-iteration
+ * `lw a1,40(a0)` ABOVE `move s0,a0` (reads the raw param; s-saves ra/s1/s0
+ * order); build homes s0 first and reads 40(s0). Probed: first-alias +
+ * if/do-while explicit rotation (alias coalesced away; while-in-if re-rotates
+ * = +6 insns), dead-if copy-prop blocker, K&R decl style, if(1) BB-wrap,
+ * head dead-if(self), volatile param (+1). All inert/worse. uopt places the
+ * param->s0 copy before the rotation-hoisted test; not source-reachable. */
 void gl_func_0006612C(int *self) {
     while (gl_func_00062F64(self, (char *)self[10] + 8) != 0x12340004) {
     }
