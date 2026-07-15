@@ -1729,21 +1729,24 @@ void gl_func_000359C4(int a0, int a1, int a2, int a3) {
  *   (3) v1<->a2 SWAP CAP CRACKED: the plain-if/else idx-select form (vs the goto
  *       chain) flips base to $v1 and fnptr to $a2 — the 7-word swap the prior
  *       note called "C-immune". Confirmed via IDO -Wo,-zdbug:6 uoptlist coloring.
- * RESIDUAL (2 words, IDO scheduler tie-break, C-immune across ~12 variants):
- *   words 3/4 = the off(a0+8)/payload(a0+4) LOAD ORDER. Target schedules `lh
- *   off,8` before `lw arg,4`; preloading arg (needed for its stable $a1 color)
- *   forces arg's load first. Reading off inline-first destabilizes arg's color
- *   (drops to 18/32). Not reachable by C restructuring found so far; permuter
- *   candidate. BYTE-IDENTICAL to gl_func_0003A044 / 0003EBDC / 0003EC5C — a
- *   match here lands all four. */
-#ifdef NON_MATCHING
+ * 2026-07-15 (agent-f): BYTE-EXACT 32/32 — the 2-word off/payload load-order
+ *   scheduler residual fell to the SAME-LINE JOIN lever (post0b wave-transfer
+ *   entry, docs/IDO_CODEGEN.md): the arg load + arg accumulate statements
+ *   joined on ONE line hoist `lh t6,8(a0)` above `lw a1,4(a0)`/`addiu v1`
+ *   (as1 debug-line tie-break) while keeping arg's $a1 candidate color and
+ *   the t6 ring burn. Statement-SPLIT forms keep the late lh; nested-assign
+ *   `arg = off + (arg = load4)` gets the schedule but flips the addu operand
+ *   order. Reloc-free (all derefs off a0, indirect jalr) → PROMOTED to plain
+ *   C. BYTE-IDENTICAL family gl_func_0003A044 / 0003EBDC / 0003EC5C matched
+ *   with the same recipe. */
 int gl_func_00035A18(char *a0) {
-    char *arg = *(char**)(a0 + 4);
-    char *v1 = a0 + 8;
+    char *arg;
+    char *v1;
     char *entry;
     int (*fnptr)(char *);
     int idx;
-    arg = *(short*)(a0 + 8) + arg;
+    v1 = a0 + 8;
+    arg = *(char**)(a0 + 4); arg = *(short*)(a0 + 8) + arg;
     if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
@@ -1755,9 +1758,6 @@ int gl_func_00035A18(char *a0) {
     }
     return fnptr(arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035A18);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00035A18_pad.s")
 
 extern int gl_func_00000000();
