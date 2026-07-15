@@ -1108,41 +1108,54 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AD9C);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+/* gl_func_0000AFC4: 57-insn joybus/controller-block init. WAVE-3 REDECODE
+ * 2026-07-15 (agent-h): old body was mis-typed m2c (int derefs at byte
+ * offsets -> swl/swr pairs, 65 insns, 32.65 fuzzy). Retyped: s16/u16 header
+ * words, byte stores, u8 call args (lbu), scalar-extern flag store ($at
+ * macro), fnptr call via *(D+0x28) vtable with lh 0x30 + &D base arg.
+ * Frame 0x48 via volatile pads split 2-above/4-below sp3C (slot 0x3C).
+ * Calls are jal 0x0 zero-alias. RESIDUAL 6 words = three adjacent-pair
+ * as1 emission-order ties (li 8/move zero preheader; lui at/lui v1; sw
+ * flag/addiu base) — probed 12 spellings (joins, statement order, decl
+ * order, if(1), loop-form): all inert. NM wrap; INCLUDE_ASM build path. */
 typedef char *(*GP_0000AFC4)();
+extern int gl_flag_AFC4_bit2;
 void gl_func_0000AFC4(char *arg0) {
+    volatile int padA_afc4[2];
     s32 sp3C;
+    volatile int padB_afc4[4];
     s32 var_v1;
     char *temp_v0;
     char *var_v0;
 
-    FW(arg0, 0x2) = 1;
-    FW(arg0, 0x0) = 0x1F;
-    FW(arg0, 0x4) = 8U;
-    FW(arg0, 0x12) = 8U;
-    FW(arg0, 0x13) = 8U;
-    FW(arg0, 0x14) = 8U;
+    *(s16 *)(arg0 + 2) = 1;
+    *(s16 *)(arg0 + 0) = 0x1F;
+    *(u16 *)(arg0 + 4) = 8;
+    arg0[18] = 8;
+    arg0[19] = 8;
+    arg0[20] = 8;
     var_v0 = arg0;
     var_v1 = 0;
     do {
         var_v1 += 4;
-        FW(var_v0, 0x6) = 0;
-        FW(var_v0, 0x7) = 0;
-        FW(var_v0, 0x8) = 0;
-        FW(var_v0, 0x9) = 0;
+        var_v0[6] = 0;
+        var_v0[7] = 0;
+        var_v0[8] = 0;
+        var_v0[9] = 0;
         var_v0 += 4;
     } while (var_v1 != 8);
-    FW(arg0, 0xE) = 0;
-    FW(arg0, 0xF) = 0;
-    FW(arg0, 0x10) = 0;
-    FW(arg0, 0x11) = 0;
-    gl_func_0000959C(FW(arg0, 0x12), 8);
-    gl_func_0000959C(FW(arg0, 0x13));
-    gl_func_0000959C(FW(arg0, 0x14));
-    gl_func_0000959C(FW(arg0, 0x4) & 3);
-    *(int*)0 = (FW(arg0, 0x4) & 4) == 4;
-    temp_v0 = *(char **)0x28;
+    arg0[14] = 0;
+    arg0[15] = 0;
+    arg0[16] = 0;
+    arg0[17] = 0;
+    gl_func_00000000(*(u8 *)(arg0 + 18));
+    gl_func_00000000(*(u8 *)(arg0 + 19));
+    gl_func_00000000(*(u8 *)(arg0 + 20));
+    gl_func_00000000(*(u16 *)(arg0 + 4) & 3);
+    gl_flag_AFC4_bit2 = (*(u16 *)(arg0 + 4) & 4) == 4;
+    temp_v0 = *(char **)((char *)&D_00000000 + 0x28);
     sp3C = 0x15;
-    ((GP_0000AFC4)FW(temp_v0, 0x34))(FW(temp_v0, 0x30), &sp3C);
+    ((GP_0000AFC4)FW(temp_v0, 0x34))(*(s16 *)(temp_v0 + 0x30) + (int)&D_00000000, &sp3C);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000AFC4);

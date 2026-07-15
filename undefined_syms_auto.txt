@@ -2856,3 +2856,4 @@ gl_d_578b4_s1 = 0x00000000;   /* gl_func_000578B4: base-0 alias -- 0x219B8 addiu
 gl_d_578b4_s2a = 0x00000000;  /* gl_func_000578B4: base-0 alias -- 0x219C4 addiu-form const, switch-2 falling-case call arg0 */
 gl_d_578b4_s2b = 0x00000000;  /* gl_func_000578B4: base-0 alias -- 0x219C4 addiu-form const, switch-2 default call arg0 (distinct sym per site: busts cross-site lui CSE) */
 gl_D_2200_thr = 0;
+gl_flag_AFC4_bit2 = 0;
