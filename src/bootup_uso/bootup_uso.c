@@ -2667,40 +2667,56 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003638);
  * on the stack (cfg->0xC4/0xCC, target swc1 0x18/0x1C) — routed through typed-
  * float proto func_3734_r1 so they don't K&R double-promote. Residual ~27% =
  * arg-home-slot + scheduling regalloc (a1 spilled to sp+0x64 vs 0x5C, cascades
- * the frame). Third double-promote-scan hit (1A44/3638/3734). INCLUDE_ASM. */
+ * the frame). Third double-promote-scan hit (1A44/3638/3734).
+ * 2026-07-15 (agent-g, 72.5 -> objdiff-100): 38C0/39D8 recipe backport, 3rd
+ * family member cracked. FOUR DECODE ERRORS + two levers:
+ *  (1) alloc-fail does NOT return — beqz +4 skips only the init call (x2);
+ *  (2) arg4 of the r1 builder is a VALUE load *(func_00000080+0x14)
+ *      (target lui/lw), not the address — D_3734_v alias;
+ *  (3)+(4) the r2 AND r3 builder calls have a FIFTH arg s0 (sw s0, 0x10(sp)
+ *      before each jal), matching sibling 39D8's b3=builder(...,o1);
+ *  (a) de-name cfg/row + merge o/sub/r5 into ONE $s0 web + void-alias the
+ *      reg call (dead $v0 def freed so cfg colors $v0) -> all 99 insns and
+ *      the whole temp ring matched at frame 0x50;
+ *  (b) target frame is 0x60 with 4 ghost home words at 0x3C-0x48 (the
+ *      original's named locals) — 4x `volatile int pad` phantom slots
+ *      restore them with zero insns. Word-exact vs target .s except the
+ *      %lo placeholder addend (reloc).
+ * STAYS NM WRAP: all callees + data are USO placeholders — not landable. */
 #ifdef NON_MATCHING
 /* typed-float proto (0x0-alias): args 7,8 are single floats on the stack
  * (target swc1 0x18/0x1C); K&R func_00000000 double-promotes them. */
-extern char *func_3734_r1(void *, int, int, void *, void *, int, float, float, int, int);
+extern char *func_3734_r1(void *, int, int, int, void *, int, float, float, int, int);
+extern int D_3734_v;  /* VALUE load at func_00000080+0x14 (target lui/lw, not lui/addiu) */
+/* void-returning alias for the reg call: kills the dead $v0 def so cfg colors $v0 (38C0 recipe) */
+extern void func_00000000_3734_v(void *, void *);
 void func_00003734(char *s1, int a1) {
     char *s0;
-    char *sub;
-    char *cfg;
-    char *r1, *r2, *r3, *r4, *r5;
-    char *row;
+    char *r1, *r2, *r3, *r4;
+    volatile int pad1, pad2, pad3, pad4;  /* 4 ghost home words 0x3C-0x48 (phantom-slot lever) */
     char *p;
     s0 = (char*)func_00000000(0x80);
-    if (s0 == 0) return;
-    func_00000000(s0, 0);
-    func_00000000(&D_00000000, s0);
-    cfg = *(char**)(s1 + 0x98);
-    r1 = func_3734_r1(s1, 2, 1, (char*)&func_00000080 + 0x14,
+    if (s0 != 0) {
+        func_00000000(s0, 0);   /* alloc-fail SKIPS ONLY THIS (target beqz +4, 38C0 recipe) */
+    }
+    func_00000000_3734_v(&D_00000000, s0);
+    r1 = func_3734_r1(s1, 2, 1, D_3734_v,
                       s0, *(int*)(s1 + 0x80),
-                      *(float*)(cfg + 0xC4), *(float*)(cfg + 0xCC),
+                      *(float*)(*(char**)(s1 + 0x98) + 0xC4),
+                      *(float*)(*(char**)(s1 + 0x98) + 0xCC),
                       0x58005, 0x1B);
-    r2 = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), r1);
-    r3 = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), r1);
-    (void)r3;
-    row = (char*)&D_00000000 + a1 * 0x1C;
-    r4 = (char*)func_00000000(s1, row, r2);
-    sub = (char*)func_00000000(0x80);
-    if (sub == 0) return;
-    func_00000000(sub, 1);
-    r5 = (char*)func_00000000(0, sub, r1, r4, r2, r3);
+    r2 = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), r1, s0);
+    r3 = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), r1, s0);
+    r4 = (char*)func_00000000(s1, (char*)&D_00000000 + a1 * 0x1C, r2);
+    s0 = (char*)func_00000000(0x80);   /* merged $s0 web: o -> sub -> r5 */
+    if (s0 != 0) {
+        func_00000000(s0, 1);
+    }
+    s0 = (char*)func_00000000(0, s0, r1, r4, r2, r3);
     p = *(char**)(s1 + 0x84);
-    func_00000000(p + 0x10, r5);
-    if (*(int*)(r5 + 0x14) != 0) *(int*)(r5 + 0x4) = 1;
-    *(char**)(r5 + 0x14) = p;
+    func_00000000(p + 0x10, s0);
+    if (*(int*)(s0 + 0x14) != 0) *(int*)(s0 + 0x4) = 1;
+    *(char**)(s0 + 0x14) = p;
     *(char**)(r1 + 0x8DC) = r4;
 }
 #else

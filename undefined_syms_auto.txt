@@ -2919,3 +2919,5 @@ gl_data_00000000_11a4 = 0x00000000;  /* 11A4: distinct abs-0 alias busts &gl_dat
 gl_data_00000000_15fc = 0x00000000;  /* 15FC: FW(0x28) abs-0 store (was mis-decoded as literal 0) */
 func_00000000_38C0_v = 0x00000000;  /* void-typed reg_b alias (kills dead $v0 def; Dz/cfg -> v1/v0) in func_000038C0 */
 D_39d8_g = 0x00000000;  /* D_g placeholder alias (array-typed base held in $s0) in func_000039D8 */
+func_00000000_3734_v = 0x00000000;  /* void-typed reg-call alias (kills dead $v0 def; cfg -> v0) in func_00003734 */
+D_3734_v = 0x00000094;  /* value load at func_00000080+0x14 in func_00003734 (lui/lw) */
