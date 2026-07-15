@@ -9093,9 +9093,22 @@ void game_libs_func_00026AF8(int a0, int a1) {
 //   the byte flags are at 0x53B8/B9/BA (not 0x53C0) and D[0x53C4] = &D+0x5400.
 //   STATUS: orphan-merge + hoist cracked the prologue-steal cap (0% -> 76%,
 //   29/38). The hoisted lui v0;addiu v0 base + v0-base block1 + all offsets/
-//   calls match. Residual 9 diffs = the three &D-pointer temps use t6/t7/t8
-//   (target) vs a0/t6/t7 (mine), plus the sw-ra schedule slot — a regalloc-
-//   renumber on the pointer temps (named-q1/q2/q3 variant didn't flip it).
+//   calls match. Residual now TWO insns (99.74): the first table pointer
+//   (&D+0x53D0, shared by the D[0x53C8] store and call-1 arg0) materializes
+//   destination-direct (lui a0; addiu a0,a0) vs target's ring-temp form
+//   (lui t6; addiu a0,t6 — t6/t7/t8 ugen ring, exprs 2/3 t7/t8 match).
+//   2026-07-15 hand sweep, all probed IN-TREE: named p (copy-propped, inert),
+//   dead-if after def (BB barrier, $at-store regress), trailing p=0 kill
+//   (inert), (unsigned)&D cast (CSEs with orphan v0 base -> addiu a0,v0,
+//   37 insns), distinct =0 alias sym plain (inert) and +unsigned (3-insn
+//   lui/addiu0/addiu regress), store-folded-into-call-arg (store reorders),
+//   if(1){} barrier (regress). Mechanism: uopt colors the shared candidate
+//   a0 (call-constrained) and ugen destination-coalesces the %hi temp;
+//   target's shape needs the hi in the ring (as1 rename-at-def of the arg
+//   copy) — no C grammar reaches ugen's temp choice. Same ugen-internal
+//   class as the gl_func_0000C28C skipped-ring-slot cap. Cap stands.
+extern int gl_func_00000000();
+extern int D_00000000;
 #ifdef NON_MATCHING
 void game_libs_func_00026B40(void) {
   char *p;
