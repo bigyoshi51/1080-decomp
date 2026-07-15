@@ -1,0 +1,33 @@
+{
+ "function_name": "timproc_uso_b5_func_0000C044",
+ "project": "projects/1080-agent-g",
+ "model": "claude-manual",
+ "start_time": "2026-07-15T05:49:30.903374+00:00",
+ "end_time": "2026-07-15T05:49:30.903374+00:00",
+ "steps": [
+  {
+   "step_number": 1,
+   "timestamp": "2026-07-15T05:49:30.903374+00:00",
+   "assistant_text": "Back-ported the B850 family recipe (same fade-toward-target shape, fields 0x124/0x12C, steps 0x360/0x364): direct st+0x124 compares, per-arm if(1){} pointer-mutation materialization of v (colors $v1, no move), per-arm st reload. Old body's named head local v=s+0x124 coalesced into dead $a1 after mtc1 a1,$f12; per-arm webs color $v1 like target. 49/49 words, ROM cmp clean.",
+   "tool_calls": [],
+   "match_percent": 100.0,
+   "compiled": true,
+   "token_usage": null
+  }
+ ],
+ "outcome": "match",
+ "final_match_percent": 100.0,
+ "best_match_percent": 100.0,
+ "total_tokens": 0,
+ "instruction_count": 49,
+ "initial_m2c_source": null,
+ "final_source": "extern float D_C044_up;\nextern float D_C044_dn;\nvoid timproc_uso_b5_func_0000C044(char *a0, float target) {\n    char *st;\n    float *v;\n    if (*(float *)(a0 + 0x2A4) == 0.0f) {\n        target = 0.0f;\n    }\n    st = *(char **)(a0 + 0x2B8);\n    if (*(int *)(st + 0x12C) != 0) {\n        target = 1.0f;\n    }\n    if (*(float *)(st + 0x124) < target) {\n        v = (float *)st;\n        if (1) { v = (float *)((char *)v + 0x124); }\n        *v += D_C044_up;\n        st = *(char **)(a0 + 0x2B8);\n        if (target < *(float *)(st + 0x124)) {\n            *(float *)(st + 0x124) = target;\n        }\n    } else {\n        v = (float *)st;\n        if (1) { v = (float *)((char *)v + 0x124); }\n        *v -= D_C044_dn;\n        st = *(char **)(a0 + 0x2B8);\n        if (*(float *)(st + 0x124) < target) {\n            *(float *)(st + 0x124) = target;\n        }\n    }\n}\n",
+ "metadata": {
+  "source_path": "src/timproc_uso_b5/timproc_uso_b5.c",
+  "asm_path": "asm/nonmatchings/timproc_uso_b5/timproc_uso_b5/timproc_uso_b5_func_0000C044.s",
+  "segment": "timproc_uso_b5",
+  "compiler": "ido7.1",
+  "compiler_flags": "-O2 (asm-processor)",
+  "verification": "word-diff 49/49 vs raw .s (LO16 addends link-resolved) + full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 clean"
+ }
+}

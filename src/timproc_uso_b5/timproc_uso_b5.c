@@ -8357,52 +8357,44 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * Second member of the B850 float fade-toward-target family -- identical
  * shape, fields s->f_124 / s->i_12C, step constants at reloc base +0x360/
  * +0x364. See B850's wrap for the decode template. Remaining family:
- * C7B4 (pred C710?), CBD0, CDC8. */
-#ifdef NON_MATCHING
-#define C044_STEP_UP   (*(float *)((char *)&D_00000000 + 0x360))
-#define C044_STEP_DOWN (*(float *)((char *)&D_00000000 + 0x364))
+ * C7B4 (pred C710?), CBD0, CDC8.
+ * BYTE-EXACT 2026-07-15 (agent-g): back-ported B850's proven recipe
+ * (direct st+0x124 compares; per-arm if(1){} pointer-mutation
+ * materialization of v -> colors $v1 with no move; per-arm st reload).
+ * The old body's named `v = s+0x124` head local coalesced into dead $a1
+ * (arg reg freed by the mtc1) -- the B850 form gives each arm its own
+ * v web which colors $v1 like the target. Steps via D_C044_up/_dn
+ * (=0x360/0x364 undefined_syms, D_B850 pattern). 49/49 words. */
+extern float D_C044_up;
+extern float D_C044_dn;
 void timproc_uso_b5_func_0000C044(char *a0, float target) {
-  char *s;
-  volatile unsigned char pad;
-  float *v;
-  float *new_var;
-  volatile int pad2;
-  if ((*((float *) (a0 + 0x2A4))) == 0.0f)
-  {
-    target = 0.0f;
-  }
-  s = *((char **) (a0 + 0x2B8));
-  if ((*((int *) (s + 0x12C))) != 0)
-  {
-    target = 1.0f;
-  }
-  v = (float *) (s + 0x124);
-  if ((*v) < target)
-  {
-    new_var = (float *) (((char *) (&D_00000000)) + 0x360);
-    *v += *new_var;
-    ;
-    if (target < (*((float *) ((*((char **) (a0 + 0x2B8))) + 0x124))))
-    {
-      *((float *) ((*((char **) (a0 + 0x2B8))) + 0x124)) = target;
+    char *st;
+    float *v;
+    if (*(float *)(a0 + 0x2A4) == 0.0f) {
+        target = 0.0f;
     }
-  }
-  else
-  {
-    *v -= *((float *) (((char *) (&D_00000000)) + 0x364));
-    if (target && target)
-    {
+    st = *(char **)(a0 + 0x2B8);
+    if (*(int *)(st + 0x12C) != 0) {
+        target = 1.0f;
     }
-    s = *((char **) (a0 + 0x2B8));
-    if ((*((float *) (s + 0x124))) < target)
-    {
-      *((float *) (s + 0x124)) = target;
+    if (*(float *)(st + 0x124) < target) {
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x124); }
+        *v += D_C044_up;
+        st = *(char **)(a0 + 0x2B8);
+        if (target < *(float *)(st + 0x124)) {
+            *(float *)(st + 0x124) = target;
+        }
+    } else {
+        v = (float *)st;
+        if (1) { v = (float *)((char *)v + 0x124); }
+        *v -= D_C044_dn;
+        st = *(char **)(a0 + 0x2B8);
+        if (*(float *)(st + 0x124) < target) {
+            *(float *)(st + 0x124) = target;
+        }
     }
-  }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000C044);
-#endif
 
 void timproc_uso_b5_func_0000C108(int a0) {
 }
