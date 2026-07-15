@@ -7444,6 +7444,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D2C8);
 //   h2=s0->0x28; (*h2->0x4C)(h2->h0x48 + s0); }. Two vtable dispatches per
 //   iteration (first on o->0x28 producing s0, second on s0->0x28). Remaining
 //   ~7% = USO reloc/regalloc. Name pre-checked: no extern reuse.
+// 2026-07-15 (agent-f): 46/47 words byte-exact (ceiling). Four levers:
+//   (1) template-init call takes count as a 3RD arg (lw a2,68(sp) in the jal
+//       delay + t6 reload — was a missing-arg word);
+//   (2) fnptr locals DE-NAMED (direct call expressions) -> fnptrs drop to
+//       ring t9 (EAE0 lever);
+//   (3) h split into h/h2 per dispatch (shared union web crossing the middle
+//       call evicted the vtable base from $v0); h2 kept NAMED for its ghost
+//       frame slot (de-naming it shrinks frame 72->64);
+//   (4) if(1){} barrier around the h2 dispatch restores $v0 eligibility
+//       (same-BB-call eviction, dispatcher-kit rule 1) — this also snapped
+//       the whole s1<->s2 saved-reg swap.
+//   RESIDUAL (1 word, PERMANENT baked-USO-symbol cap): target word 9 is a
+//   reloc-free absolute `jal 0x51630` (fixed intra-USO helper); C can only
+//   emit jal+R_MIPS_26(placeholder). Stays NM wrap at the 46/47 ceiling.
 #ifdef NON_MATCHING
 extern int D_00000000;
 void gl_func_0003D3C4(char *o) {
@@ -7451,25 +7465,24 @@ void gl_func_0003D3C4(char *o) {
     char *s3 = o + 0x2C;
     char *s0;
     char *h;
-    char *(*fp5C)(int);
-    void (*fp4C)(int);
+    char *h2;
     int s2;
     *(int *)(o + 0x10) = 0;
     gl_func_00000000(&count);
-    gl_func_00000000((char *)&D_00000000 + 0x0001F2C0, (float *)(o + 0x2C));
+    gl_func_00000000((char *)&D_00000000 + 0x0001F2C0, (float *)(o + 0x2C), count);
     if (count == 0) {
         return;
     }
     s2 = 0;
     do {
         h = *(char **)(o + 0x28);
-        fp5C = *(char *(**)(int))(h + 0x5C);
-        s0 = fp5C(*(short *)(h + 0x58) + (int)o);
+        s0 = ((char *(*)(int))*(int *)(h + 0x5C))(*(short *)(h + 0x58) + (int)o);
         gl_func_00000000(o, s0);
         *(char **)(s0 + 0x0C) = s3;
-        h = *(char **)(s0 + 0x28);
-        fp4C = *(void (**)(int))(h + 0x4C);
-        fp4C(*(short *)(h + 0x48) + (int)s0);
+        if (1) {
+            h2 = *(char **)(s0 + 0x28);
+            ((void (*)(int))*(int *)(h2 + 0x4C))(*(short *)(h2 + 0x48) + (int)s0);
+        }
         s2++;
     } while ((u32)s2 < (u32)count);
 }
