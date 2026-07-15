@@ -11365,19 +11365,37 @@ L_BC:
  *   8. Pair2 tail loads need EXPLICIT ADDENDS (USO baked-reloc spelling):
  *      &D_807FF478+0xE88 / &D_807FF480+0xE90 / &D_807FF3B8+0xDC8.
  *      var_a3=4 moved BEFORE the EDCC(2) call (target spills a3 pre-jal).
- * TRUE RESIDUAL (31 insns, all documented tie classes):
+ * 2026-07-15 wave 3 (agent-h): 493 -> 507/524. Four of the six tie classes
+ * fell to the SAME-LINE JOIN + de-naming wave:
+ *   (b) c.lt.d/lui pair + (e) 1.0f-vs-zeros mtc1/swc1 order: joining the
+ *       0/0/0/1.0f store quads on ONE source line (original statement
+ *       order) lets as1 hoist the 1.0f chain store-first as in target
+ *       (uopt still numbers zeros-first f4/f6/f8, 1.0f f10) - both the
+ *       temp_v0 and temp_v0_3 blocks;
+ *   (c) $f12<->$f14 swap: DE-NAMING temp_f14 (inline FF(arg0,0x11C) at
+ *       all 4 uses; uopt CSEs them into one pool temp numbered at first
+ *       use = f14 as in target) + textual operand swap (0x11C deref FIRST
+ *       in each mul: the CSE web outranks, so write it left to get
+ *       mul.s fd,fresh,f14);
+ *   (d) a3-spill vs sp30-store pre-jal order (0x334 arm): SAME-LINE JOIN
+ *       of `sp30 = 0;` with the EDCC call statement sinks the sw zero
+ *       into the jal delay past the a3 spill (statement reorder alone
+ *       does NOT move it).
+ * TRUE RESIDUAL (17 words, both documented cap classes):
  *   (a) beqzl/bc1fl+lui-dup vs beqz/bc1f+nop at the two head gates (as1
- *       branch-form tie; restructure does not flip) x2 sites;
- *   (b) c.lt.d/lui adjacent-pair order swap (as1 schedule tie) x1;
- *   (c) $f12<->$f14 coloring swap (temp_f14 vs var_f12; decl-order and
- *       split tried, immune) ~8 insns;
- *   (d) a3-spill vs sp30-store pre-jal order in the 0x334 arm (uopt spill
- *       placement, statement order no effect) x2;
- *   (e) 1.0f-vs-zeros mtc1/swc1 emission order in the temp_v0_3 block
- *       (target allocates zeros first but emits 1.0f store first) x8;
- *   (f) andi temp coalesced into a1 vs target's t8 (split + u16-cast
- *       tried, coalesces anyway) + downstream t-reg numbering cascade ~8.
- * Honest NON_MATCHING at 98.96; remaining gap is pure as1/uopt tie class. */
+ *       branch-form tie; if(1) barrier around the 500.0f join test is
+ *       inert; restructure does not flip) x2 sites = 4 words;
+ *   (f) andi temp coalesced into a1 vs target's t8 ring slot + downstream
+ *       +2 t-ring shift (t8,t9/t0 vs t0,t1/t2, lw t4/li t3 vs t6/t5)
+ *       = 13 words. 2026-07-15 re-probe: same-name redef (temp_a1 and
+ *       temp_v0_4 forms both re-coalesce/in-place), store-first +
+ *       FW re-read arg (byte-neutral), trailing subsumed mask &0xFFFFF
+ *       (NOT subsumed - range not tracked through |, +3 insns), <<0<<0
+ *       phantoms (cfe-folds on a plain var), x*0 mpy pair (+1 only and
+ *       recolors v0->v1). The or-into-precolored-a1 destination-coalesce
+ *       has no C handle here.
+ * Honest NON_MATCHING at ~99.4; remaining gap is as1 branch-form +
+ * or-coalesce ring cascade. */
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
@@ -11397,7 +11415,6 @@ void game_uso_func_0000D9CC(char *arg0) {
     char *sp2C;
     s32 sp28;
     f32 temp_f0;
-    f32 temp_f14;
     f32 var_f0;
     f32 temp_f2;
     f32 temp_f2_2;
@@ -11477,10 +11494,7 @@ after_24:;
     if (FF(var_v1, 0x9D0) < 500.0f) {
         temp_v0 = var_v1 + 0xCC;
         if ((f64) FF(var_v1, 0xA0C) < *(f64 *)((char *)&game_uso_D_807FFB20 + 0x200)) {
-            FF(temp_v0, 0) = 0.0f;
-            FF(temp_v0, 0x4) = 0.0f;
-            FF(temp_v0, 0x8) = 0.0f;
-            FF(temp_v0, 0xC) = 1.0f;
+            FF(temp_v0, 0) = 0.0f; FF(temp_v0, 0x4) = 0.0f; FF(temp_v0, 0x8) = 0.0f; FF(temp_v0, 0xC) = 1.0f;
             sp28 = 2;
             var_a3 = 4;
             game_uso_func_0000EDCC((int *)arg0, 2);
@@ -11494,10 +11508,9 @@ after_24:;
     }
     temp_v0_2 = var_v1 + 0x528;
     if (!(FW(var_v1, 0x9A8) & 1)) {
-        temp_f14 = FF(arg0, 0x11C);
-        var_f12 = FF(var_v1, 0xA1C) * temp_f14;
-        var_f2 = FF(var_v1, 0xA20) * temp_f14;
-        var_f0_4 = FF(var_v1, 0xA24) * temp_f14;
+        var_f12 = FF(arg0, 0x11C) * FF(var_v1, 0xA1C);
+        var_f2 = FF(arg0, 0x11C) * FF(var_v1, 0xA20);
+        var_f0_4 = FF(arg0, 0x11C) * FF(var_v1, 0xA24);
         if (!(FW(var_v1, 0xA58) & 0x4000)) {
             var_f0_4 = 0.0f;
             var_f2 = 0.0f;
@@ -11545,9 +11558,8 @@ after_24:;
         } else if (var_f0_4 <= -FF(arg0, 0x334)) {
             sp28 = 2;
             sp2C = (char *)2;
-            sp30 = 0;
-            game_uso_func_0000EDCC((int *)arg0, 5);
             var_a3 = 3;
+            sp30 = 0; game_uso_func_0000EDCC((int *)arg0, 5);
             FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x16);
         } else if (var_f0_4 <= -FF(arg0, 0x31C)) {
             sp28 = 0;
@@ -11568,7 +11580,7 @@ after_24:;
                 game_uso_func_0000EDCC((int *)arg0, 2);
                 var_a3 = 2;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x12);
-            } else if ((*(f32 *)((char *)&game_uso_D_807FF68C + 4248) <= var_f2) && ((f64) temp_f14 == 1.0) && (FW(var_v1, 0x9CC) == 0)) {
+            } else if ((*(f32 *)((char *)&game_uso_D_807FF68C + 4248) <= var_f2) && ((f64) FF(arg0, 0x11C) == 1.0) && (FW(var_v1, 0x9CC) == 0)) {
                 sp28 = 0;
                 sp30 = 0;
                 FW(arg0, 0x108) = (s32) (FW(arg0, 0xFC) | 0x2F);
@@ -11585,10 +11597,7 @@ after_24:;
         FF(arg0, 0x11C) = 1.0f;
         game_uso_func_0000EDD4((int *)arg0, sp28, sp2C);
         temp_v0_3 = (char *)FW(arg0, 0xB4) + 0x2FC;
-        FF(temp_v0_3, 0) = 0.0f;
-        FF(temp_v0_3, 0x4) = 0.0f;
-        FF(temp_v0_3, 0x8) = 0.0f;
-        FF(temp_v0_3, 0xC) = 1.0f;
+        FF(temp_v0_3, 0) = 0.0f; FF(temp_v0_3, 0x4) = 0.0f; FF(temp_v0_3, 0x8) = 0.0f; FF(temp_v0_3, 0xC) = 1.0f;
         game_uso_func_0000D63C(arg0, (sp28 == 0));
         FW(FW(arg0, 0xB4), 0x3DC) = 0;
         if (sp30 != 0) {
