@@ -29575,18 +29575,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BCCC);
  * The duplicate sin/cos calls suggest the callees are stateful or use
  * volatile globals (IDO re-emits each call to avoid CSE).
  *
+ * 2026-07-15 lever pass (89.88 -> 90.19): destructive same-name reuse of
+ * s/c across both call pairs makes the second sin spill REUSE slot 0x20
+ * (frame 0x38 -> 0x30 exact) + decl order new_x,new_y,c,s pins new_x=0x2C /
+ * s=0x20 (decl-order-float-spill-slot lever, first-declared = highest) +
+ * new_y spelled `(*a2)*s + (*a1)*c` gets the s-mul operands (mem-first) and
+ * the add order (c-term first) right. Residual = the PERMANENT caller-set-$f4
+ * head cap (2 extra words `sw a3 / lwc1 $f4` + div.s scheduling slip; C cannot
+ * receive a value in $f4 under O32) + 1 c-mul operand-order word: the c-term
+ * mul emits (mem,f0) whenever it is the textually-second add term, (f0,mem)
+ * only when textually first — but textually-first flips the add order (probed
+ * both, 1 word either way; nested-assign flip re-homes new_y to f2, worse).
+ *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  */
 void gl_func_0005BCD4(float caller_f12_angle, float *a1, float *a2, float caller_f4_div) {
     extern float gl_compute_sin(float), gl_compute_cos(float);
-    float norm = caller_f12_angle / caller_f4_div;
-    float sin1 = gl_compute_sin(norm);
-    float cos1 = gl_compute_cos(norm);
-    float new_x = cos1 * (*a1) - sin1 * (*a2);
-    float sin2 = gl_compute_sin(norm);
-    float cos2 = gl_compute_cos(norm);
-    float new_y = cos2 * (*a1) + sin2 * (*a2);
+    float new_x, new_y, c, s;
+    float norm;
+    norm = caller_f12_angle / caller_f4_div;
+    s = gl_compute_sin(norm);
+    c = gl_compute_cos(norm);
+    new_x = c * (*a1) - s * (*a2);
+    s = gl_compute_sin(norm);
+    c = gl_compute_cos(norm);
+    new_y = (*a2) * s + (*a1) * c;
     *a1 = new_x;
     *a2 = new_y;
 }
