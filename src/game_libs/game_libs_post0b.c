@@ -25580,9 +25580,121 @@ int gl_func_000546BC(char *a0) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
+/* 2026-07-15 (agent-h): full rewrite with the 7BC struct-by-value +
+ * ||-alloc-fallback kit. Levers: param-reassign || head; per-member
+ * `(m = self+OFF) != 0 || (m = alloc(N)) != 0` folds; sp24/sp80 int-struct
+ * carrier (`u1.v = <sym>; t = u1;` ring-temp copy, struct-by-value 3rd arg
+ * = sw a2,8(sp) jal-delay tell); &gl_ref+BAKED-OFFSET address forms
+ * (0x21084 / 0x2108C / 0x20758 = lui 0x2 + addiu/lw, reloc addend baked in
+ * word); per-site distinct aliases vs cross-call &sym CSE; named-local
+ * decl-order frame map with volatile pad arrays for the 0x5C-0x7C /
+ * 0xB4-0xC0 / 0xD0-0xDC dead-home holes; loaded-store-first (u1.v load
+ * before FP fill groups); named sp58/sp20 pointer homes. */
+extern char gl_ref_546E8_a;
+extern char gl_ref_546E8_b;
+extern char gl_ref_546E8_c;
+extern char gl_ref_546E8_d;
+extern char gl_ref_546E8_e;
+struct SB546E8 { int v; };
+struct V4_546E8 { f32 x, y, z, w; };
+struct V3_546E8 { f32 x, y, z; };
+struct P546E8 { char *p; };
+struct IP546E8 { int *p; };
+s32 *gl_func_000546E8(char *self, int arg1) {
+    volatile int padT[4];        /* 0xD0-0xDC */
+    struct V3_546E8 zv;          /* 0xC4-0xCC */
+    volatile int padM[4];        /* 0xB4-0xC0 */
+    struct V4_546E8 spA4;        /* 0xA4 */
+    struct V4_546E8 sp94;        /* 0x94 */
+    struct V4_546E8 sp84;        /* 0x84 */
+    struct SB546E8 u1;           /* 0x80 */
+    volatile int padL[6];        /* 0x68-0x7C */
+    char *s1;                    /* 0x64 (dead home) */
+    char *v1;                    /* 0x60 (dead home) */
+    int *sp20;                   /* 0x5C (dead home; merged web homes at fresh 0x20) */
+    char *m;                     /* 0x58 (spill home) */
+    struct V4_546E8 sp48;        /* 0x48 */
+    struct V4_546E8 sp38;        /* 0x38 */
+    struct V4_546E8 sp28;        /* 0x28 */
+    struct SB546E8 t;            /* 0x24 */
+
+    if (self != 0 || (self = (char *)gl_func_00000000(0x138)) != 0) {
+        if ((s1 = self) != 0 || (s1 = (char *)gl_func_00000000(0xB4)) != 0) {
+            gl_func_00000000(s1, arg1);
+            FW(s1, 0x28) = (int)&gl_ref_546E8_a;
+            if (((v1 = s1 + 0x2C) != 0 || (v1 = (char *)gl_func_00000000(4)) != 0) &&
+                ((m = v1) != 0 || (m = (char *)gl_func_00000000(4)) != 0)) {
+                FW(m, 0) = 0;
+            }
+            gl_func_00000000(s1);
+            zv.x = 0.0f;
+            zv.y = 0.0f;
+            zv.z = 0.0f;
+            gl_func_00000000(s1 + 0x30, &zv);
+        }
+        FW(self, 0x28) = (int)&gl_ref_546E8_b;
+        s1 = self + 0xC4;
+        sp20 = (int *)s1;
+        if ((s1 != 0 || (s1 = (char *)gl_func_00000000(4)) != 0) &&
+            ((v1 = s1) != 0 || (v1 = (char *)gl_func_00000000(4)) != 0)) {
+            FW(v1, 0) = 0;
+        }
+        if ((s1 = self + 0x10C) != 0 || (s1 = (char *)gl_func_00000000(0x2C)) != 0) {
+            if ((v1 = s1) != 0 || (v1 = (char *)gl_func_00000000(8)) != 0) {
+                FW(v1, 0) = (int)(&gl_ref_546E8_c + 0x21084);
+                FW(v1, 4) = 0;
+            }
+            u1.v = *(int *)(&gl_ref_546E8_d + 0x2108C);
+            sp94.x = 0.0f;
+            sp94.y = 0.0f;
+            sp94.z = 0.0f;
+            sp94.w = 0.0f;
+            spA4.x = 1.0f;
+            spA4.y = 1.0f;
+            spA4.z = 1.0f;
+            spA4.w = 1.0f;
+            sp84.x = 1.0f;
+            sp84.y = 1.0f;
+            sp84.z = 1.0f;
+            sp84.w = 1.0f;
+            sp48 = spA4;
+            sp38 = sp94;
+            sp28 = sp84;
+            t = u1;
+            if ((m = s1 + 8) != 0 || (m = (char *)gl_func_00000000(0x24)) != 0) {
+                gl_func_00000000(m, s1, t, 1);
+                FW(m, 0xC) = (int)(&gl_ref_546E8_e + 0x20758);
+                FW(m, 0x20) = 0;
+                *(struct V4_546E8 *)(m + 0x10) = sp48;
+            }
+        }
+        FW(self, 8) |= 0x20;
+        *(f32 *)(self + 0xB8) = 0.0f;
+        *(f32 *)(self + 0xBC) = 0.0f;
+        *(f32 *)(self + 0xC0) = 0.0f;
+        *(f32 *)(self + 0xB4) = 1.0f;
+        *sp20 |= 2;
+        *sp20 |= 8;
+        *(f32 *)(self + 0xC8) = 0.0f;
+        *(f32 *)(self + 0xCC) = 0.0f;
+        FW(self, 0xD0) = 0xFFFF;
+        FW(self, 0xD4) = 0;
+        FW(self, 0xD8) = 0;
+        FW(self, 0xDC) = 0;
+        *(f32 *)(self + 0x108) = 0.0f;
+        *(f32 *)(self + 0x104) = 0.0f;
+        *(f32 *)(self + 0x100) = 0.0f;
+        *(f32 *)(self + 0xFC) = 1.0f;
+        *(f32 *)(self + 0xEC) = (float)0.0;
+        *(f32 *)(self + 0xE4) = (float)0.0;
+        *(f32 *)(self + 0xE8) = (float)1.0;
+    }
+    return (s32 *)self;
+}
+#if 0
 typedef char *(*GP_000546E8)();
 typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_000546E8;
-s32 *gl_func_000546E8(s32 *arg0, s32 *arg1) {
+s32 *old_gl_func_000546E8(s32 *arg0, s32 *arg1) {
     Q_000546E8 sp28;
     Q_000546E8 sp38;
     Q_000546E8 sp48;
@@ -25705,6 +25817,7 @@ s32 *gl_func_000546E8(s32 *arg0, s32 *arg1) {
     }
     return var_s0;
 }
+#endif /* 0 — superseded m2c lift */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000546E8);
 #endif
