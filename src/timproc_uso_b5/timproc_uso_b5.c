@@ -5445,11 +5445,12 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 // reused as `s0 + off` (correct `addu rX,s0,vY` operand order, was `addu
 // rX,vY,s0`) and collapse the duplicate base materialization — both array
 // clusters now differ only by register NUMBER, not structure/operand order.
-// Residual 18 diffs are all pure register-renumber coloring ties (v0<->v1,
-// t1<->t2, t6<->t7 across the two array clusters + the 0x3CC=6 store + the
-// 0x4002/0x10001 0x2B4&0x20 reads). HI16-only-unpaired raw-word USO =
-// DECODE-ONLY: fuzzy=100 unreachable; correct C is the port-goal deliverable.
-#ifdef NON_MATCHING
+// 2026-07-15 (agent-g wave 3): 18 diffs -> BYTE-EXACT (176/176), retracting the
+// "fuzzy=100 unreachable / permuter-immune coloring tie" verdict. Two levers:
+// (1) | operand swap to `elem | 0x4D4` in both (&D_807FExxx)[idx] clusters —
+// IDO evals the RIGHT | operand first here, giving 0x4D4 the early temp and
+// ascending-reg or (18->4); (2) if(1){} BB-lever around cluster 1 flipped the
+// idx web v1->v0 (4->0). Unwrapped; ROM cmp clean.
 
 
 #ifndef FW
@@ -5490,8 +5491,10 @@ void timproc_uso_b5_func_00007E34(char *arg0) {
         temp_v0_2 = timproc_uso_b5_alias(arg0);
         temp_v1_2 = FW(temp_v0_2, 0x28);
         ((GP_00007E34)FW(temp_v1_2, 0x84))(*(s16*)((char*)temp_v1_2 + 0x80) + temp_v0_2, 0);
-        temp_v0_3 = FW(arg0, 0x3C4) * 4;
-        timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE778 + temp_v0_3), FW(arg0, 0x4D4) | FW((arg0 + temp_v0_3), 0x3D0));
+        if (1) {
+            temp_v0_3 = FW(arg0, 0x3C4) * 4;
+            timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE778 + temp_v0_3), FW((arg0 + temp_v0_3), 0x3D0) | FW(arg0, 0x4D4));
+        }
         if (timproc_uso_b5_alias(arg0) == 0) {
             timproc_uso_b5_alias(FW(arg0, 0x41C));
             return;
@@ -5512,7 +5515,7 @@ void timproc_uso_b5_func_00007E34(char *arg0) {
             timproc_uso_b5_alias(arg0);
         } else {
             temp_v0_5 = FW(arg0, 0x3C4) * 4;
-            timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE758 + temp_v0_5), FW(arg0, 0x4D4) | FW((arg0 + temp_v0_5), 0x3D0));
+            timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE758 + temp_v0_5), FW((arg0 + temp_v0_5), 0x3D0) | FW(arg0, 0x4D4));
             temp_v0_6 = timproc_uso_b5_alias(arg0);
             temp_v1_3 = FW(temp_v0_6, 0x28);
             ((GP_00007E34)FW(temp_v1_3, 0xAC))(*(s16*)((char*)temp_v1_3 + 0xA8) + temp_v0_6);
@@ -5536,9 +5539,7 @@ void timproc_uso_b5_func_00007E34(char *arg0) {
         ((GP_00007E34)FW(temp_v1_6, 0x94))(*(s16*)((char*)temp_v1_6 + 0x90) + temp_v0_9);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00007E34);
-#endif
+
 
 // timproc_uso_b5_func_000080F4 — STRUCTURAL PASS (0x374 / 221 words,
 // no episode). Raw-.word USO form (genuine code). Hand-decoded.
