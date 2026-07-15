@@ -1783,15 +1783,21 @@ extern void import_0024E388();
  * -O2 with FILLED delay slots and real reloc names. Three calls are distinct
  * real targets (mgrproc_uso_func_01F874, import_0024F2C8, import_0024E388,
  * import_0024F34C); a0 is saved across F2C8 (sw/lw sp+68) and reused.
- * Twin (if/else form) of titproc_uso_func_00001710. Body now logically
- * byte-faithful (97.49%): frame -0x58, rgba@sp+0x48, branch order, all 4
- * callees + args match. RESIDUAL = a single STOLEN-PROLOGUE `mtc1 zero,$f0`
- * that lives in the 8-byte splat gap at 0x2E34..0x2E38 (predecessor 2B7C ends
- * at 0x2E34; 2E3C declared from 0x2E3C) — the real fn start with the f0-init
- * is OUTSIDE the splat boundary, so the swc1 f0 stores read f0 set by that
- * orphaned insn. Natural C must emit `mtc1 zero,f0` to zero rgba (the
- * DIFF_INSERT). This is a SPLAT-BOUNDARY / stolen-prologue cap (not -O0, not
- * C-reachable without a fragment-merge of 0x2E34). INCLUDE_ASM build path. */
+ * Twin (if/else form) of titproc_uso_func_00001710. Body 97.49% fuzzy.
+ *
+ * PRIOR NOTE CORRECTED 2026-07-14 (splat-boundary vein): the orphan at
+ * 0x2E34 is `lui at,0x3F80; mtc1 at,$f0` = rgba const **1.0f** (NOT
+ * `mtc1 zero,f0`), and it IS C-reproducible: `rgba[i]=1.0f` makes IDO -O2
+ * hoist the FP-const materialization ABOVE the `addiu sp,-0x58` prologue,
+ * exactly reproducing the "stolen prologue" (+ decl order rgba,target,pad
+ * lands target@sp+0x44 / rgba@sp+0x48) -> 45/47 words aligned. So this is
+ * NOT a splat-boundary cap. BUT the 1.0f form scores LOWER on objdiff fuzzy
+ * (95.3 vs 97.5 — the metric weighs the exposed FP-PAIR-SWAP residual
+ * heavily), so the 0.0f body is kept per the monotonic-fuzzy rule.
+ * TRUE RESIDUAL = 2-word FP-register pair-swap in alpha=255.0f*val at
+ * 0x2E94/0x2E98: target `mtc1 at,$f4; lwc1 $f6,0x168(s0)`, IDO invariantly
+ * assigns the loaded value the lower reg ($f4) across 5 source forms.
+ * Documented intractable FP-reg-numbering cap. INCLUDE_ASM build path. */
 void mgrproc_uso_func_00002E3C(char *a0) {
   float rgba[4];
   char pad[0x18];
