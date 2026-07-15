@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0000E9C0",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T04:32:42.712158+00:00",
+  "end_time": "2026-07-15T04:32:42.712178+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T04:32:42.712172+00:00",
+      "assistant_text": "Retracted a documented 'not reachable from C' $a1 cap. (1) Color-base derived destructively through q itself (q=self->0x8C; q=(int*)((char*)q+0xC4)): same-name web reuse binds the base web to $a1 (q's later call-arg constraint), fixing the a1/v1 cascade and the addiu schedule swap \u2014 the old param-overwrite probe failed because reassigning a PARAM s-promotes the whole var; reusing a LOCAL splits webs cleanly. (2) volatile int pad (uninitialized, unused) as third named local homes at 36(sp) and drops the lazy-flag spilltemp to 32(sp), frame unchanged.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 59,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_0000E9C0(int *self, int a1, int a2, int a3) {\n    int *q;\n    float inv;\n    volatile int pad;\n    inv = 255.0f;\n    if (self[0x60 / 4] == 0) {\n        gl_func_00000000();\n    }\n    self[0x90 / 4] = a3;\n    self[0x8C / 4] = gl_func_00000000(0, self[0x60 / 4]);\n    gl_func_00000000((int *)self[0x8C / 4], a1, a2);\n    q = (int *)self[0x8C / 4];\n    q = (int *)((char *)q + 0xC4);\n    ((float *)q)[0] = 250.0f / inv;\n    ((float *)q)[1] = 235.0f / inv;\n    ((float *)q)[2] = 100.0f / inv;\n    ((float *)q)[3] = 0.0f / inv;\n    q = (int *)self[0x8C / 4];\n    gl_func_00000000((char *)self + 0x10, q);\n    if (q[0x14 / 4] != 0) {\n        q[0x4 / 4] = 1;\n    }\n    q[0x14 / 4] = (int)self;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_tail.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0000E9C0.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "byte-exact vs expected .o + full-make exit 0 + ROM byte-identical (cmp clean) + non_matching_objects exit 0"
+  }
+}

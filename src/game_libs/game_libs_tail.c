@@ -3754,37 +3754,39 @@ void gl_func_0000E910(int *self, int a1, int a2, int *a3_int_ptr) {
 }
 
 
-#ifdef NON_MATCHING
 /* gl_func_0000E9C0: linked-set-finalizer family member with FP color init.
  * Lazy-init self->0x60; self->0x90 = a3; obj = factory(0, self->0x60) -> 0x8C;
  * cb(obj, a1, a2); write RGBA {250,235,100,0}/255 to obj+0xC4..0xD0; cb(self+0x10,
  * obj); finalizer (if obj->0x14 set obj->4=1; obj->0x14=self). Fresh decode
  * 2026-05-29 via the gl_func_0000E84C pattern + inv-divisor runtime div.s.
- * 99.20%, 59==59. RESIDUAL (7 diffs): the color-base pointer (obj+0xC4) lands in
- * $v1 here vs target $a1 — a reg-renumber; everything else (lazy-init, factory,
- * FP color divides, finalizer) byte-exact.
- * 2026-06-10: arg-reg-coloring boundary confirmed -- the target RELOADS
- * self->0x8C directly into $a1 (the dead second arg's register) by
- * ALLOCATOR choice; the C-level dead-arg overwrite (a1 = base) regresses
- * to 48 diffs (a1 web goes live-across, s-reg churn). Same class as
- * 1130/$a0 and 3ED4/$f12: not reachable from C. uoptlist queue. */
+ * EXACT 2026-07-15 (was 99.20; the "not reachable from C" $a1 cap RETRACTED).
+ * Cracks: (1) the color-base is q ITSELF advanced destructively
+ * (q = self->0x8C; q = (int*)((char*)q + 0xC4)) — same-name web reuse binds
+ * the base web to $a1, the register q's later call-arg web is constrained to
+ * (the old a1-param overwrite regressed because the param var s-promoted;
+ * the same-name-q spelling splits webs cleanly and fixes the whole a1/v1
+ * cascade + the addiu schedule swap). (2) a third named local
+ * `volatile int pad;` (uninitialized, unused) homes at 36(sp), dropping the
+ * lazy-flag spilltemp to 32(sp) (frame 48 unchanged: q=44, inv=40, pad=36,
+ * temp=32). */
 extern int gl_func_00000000();
 void gl_func_0000E9C0(int *self, int a1, int a2, int a3) {
     int *q;
-    float inv = 255.0f;
+    float inv;
+    volatile int pad;
+    inv = 255.0f;
     if (self[0x60 / 4] == 0) {
         gl_func_00000000();
     }
     self[0x90 / 4] = a3;
     self[0x8C / 4] = gl_func_00000000(0, self[0x60 / 4]);
     gl_func_00000000((int *)self[0x8C / 4], a1, a2);
-    {
-        float *c = (float *)((char *)self[0x8C / 4] + 0xC4);
-        c[0] = 250.0f / inv;
-        c[1] = 235.0f / inv;
-        c[2] = 100.0f / inv;
-        c[3] = 0.0f / inv;
-    }
+    q = (int *)self[0x8C / 4];
+    q = (int *)((char *)q + 0xC4);
+    ((float *)q)[0] = 250.0f / inv;
+    ((float *)q)[1] = 235.0f / inv;
+    ((float *)q)[2] = 100.0f / inv;
+    ((float *)q)[3] = 0.0f / inv;
     q = (int *)self[0x8C / 4];
     gl_func_00000000((char *)self + 0x10, q);
     if (q[0x14 / 4] != 0) {
@@ -3792,9 +3794,6 @@ void gl_func_0000E9C0(int *self, int a1, int a2, int a3) {
     }
     q[0x14 / 4] = (int)self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000E9C0);
-#endif
 
 /* gl_func_0000EAAC: 35-insn 4-arg create-and-link (0x8C, frame 0x28).
  *
