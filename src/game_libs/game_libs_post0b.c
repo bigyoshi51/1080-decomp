@@ -22241,6 +22241,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
 // byte-list. The 6-byte record stride is t8*6 (sll2-sub-sll1 for recA,
 // multu-by-6 for recB/recC/recD). Caps: self struct + cb prototype +
 // gCounter are USO-relocated (untyped). Full body INCLUDE_ASM-preserved.
+//
+// 2026-07-15 agent-f 76.18 -> 91.66: (1) SIGNED-vs-UNSIGNED reg-const
+// split — target holds const 6 in TWO s-regs (li s4,6 compare bound +
+// li s2,6 multu multiplier); IDO keys its register-resident-constant
+// table on (value, signedness), so `u32 stride = 6U` for the multiplies
+// + literal signed 6 for the k==6 compare materializes both (s32+s32
+// coalesce to one). (2) recA's *6 spelled ((x<<2)-x)<<1 to keep the
+// strength-reduced form (literal *6 free-rides the resident 6 -> multu).
+// (3) out-of-line retry block (dirN+=2; if(k!=kmax) goto loop_inner)
+// placed AFTER the cb/dedup body = target's block layout; dedup loop as
+// do{...break;}while() for the bnezl backedge. RESIDUAL ~8%: ring-temp
+// coloring cascade rooted at (a) build LICM-hoists the loop-invariant
+// `lh recA[0]` out of loop_inner (target reloads per iter), (b) target
+// has per-group recB copies (move v1,a1 / move a0,a1) that copy-prop
+// deletes in any C spelling (bb=recB propagated even with candidacy
+// levers), (c) commutative-addu operand order (base-first vs off-first).
 #ifdef NON_MATCHING
 /* USO-relocated externals (raw 0x0C000000 jal / lui-addiu 0): callback
  * cb(self, idxA, idxB) -> int, and a global wrap-counter gCounter. Both
@@ -22267,7 +22283,11 @@ s32 gl_func_000500EC(char *arg0, u32 arg1) {
     u32 j;           /* s0 : dedup index */
     u8 *p;
     u8 *q;
+    s32 kmax;        /* s4 : inner-loop bound, carrier of const 6 */
+    u32 stride;      /* s2 : record stride, carrier of const 6 (multu) */
 
+    kmax = 6;
+    stride = 6U;
     count = S32F(arg0, 0x44);
     i = 0;
     if (count != 0) {
@@ -22278,10 +22298,10 @@ loop_outer:
             dirI = dir + (i * 8);
             k = 0;
             dirN = dir + (arg1 * 8);
-            recA = rec + (U16(dirI, 0x2) * 6);
+            recA = rec + (((s32)(U16(dirI, 0x2) << 2) - U16(dirI, 0x2)) << 1);
 loop_inner:
             k += 2;
-            recB = rec + (U16(dirN, 0x2) * 6);
+            recB = rec + (U16(dirN, 0x2) * stride);
             match = S16(recB, 0x0) == S16(recA, 0x0);
             if (match != 0) {
                 match = S16(recB, 0x2) == S16(recA, 0x2);
@@ -22290,7 +22310,7 @@ loop_inner:
                 }
             }
             if (match == 0) {
-                recC = rec + (U16(dirI, 0x4) * 6);
+                recC = rec + (U16(dirI, 0x4) * stride);
                 match = S16(recB, 0x0) == S16(recC, 0x0);
                 if (match != 0) {
                     match = S16(recB, 0x2) == S16(recC, 0x2);
@@ -22299,7 +22319,7 @@ loop_inner:
                     }
                 }
                 if (match == 0) {
-                    recC = rec + (U16(dirI, 0x6) * 6);
+                    recC = rec + (U16(dirI, 0x6) * stride);
                     match = S16(recB, 0x0) == S16(recC, 0x0);
                     if (match != 0) {
                         match = S16(recB, 0x2) == S16(recC, 0x2);
@@ -22307,18 +22327,11 @@ loop_inner:
                             match = S16(recB, 0x4) == S16(recC, 0x4);
                         }
                     }
-                    if (match != 0) {
-                        goto do_match;
+                    if (match == 0) {
+                        goto retry;
                     }
-                    dirN += 2;
-                    if (k == 6) {
-                        goto next_outer;
-                    }
-                    goto loop_inner;
                 }
-                goto do_match;
             }
-do_match:
             if (gl_func_000500EC_cb(arg0, i, (s32) arg1) != 0) {
                 ok = 1;
                 j = 0;
@@ -22330,27 +22343,28 @@ do_match:
                     }
                 }
                 if (S32F(arg0, 0x44) != 0) {
-loop_dedup:
-                    q = (u8 *) S32F(arg0, 0x78);
-                    if ((q[i] == q[j]) && (gl_func_000500EC_cb(arg0, j, i) == 0)) {
-                        ok = 0;
-                    } else {
-                        j += 1;
-                        if (j < (u32) S32F(arg0, 0x44)) {
-                            goto loop_dedup;
+                    do {
+                        q = (u8 *) S32F(arg0, 0x78);
+                        if ((q[i] == q[j]) && (gl_func_000500EC_cb(arg0, j, i) == 0)) {
+                            ok = 0;
+                            break;
                         }
-                    }
+                        j += 1;
+                    } while (j < (u32) S32F(arg0, 0x44));
                 }
                 if (ok != 0) {
                     q = (u8 *) S32F(arg0, 0x78);
                     q[(s32) arg1] = q[i];
                     return 1;
                 }
-                goto next_reload;
             }
-next_reload:
             count = S32F(arg0, 0x44);
             goto next_outer;
+retry:
+            dirN += 2;
+            if (k != kmax) {
+                goto loop_inner;
+            }
         }
 next_outer:
         i += 1;
