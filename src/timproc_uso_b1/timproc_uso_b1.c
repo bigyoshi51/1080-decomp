@@ -585,69 +585,75 @@ void timproc_uso_b1_func_00001130(int *self) {
  * fragment for the successor. INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D0);
 
-/* timproc_uso_b1_func_000011D8 — verified structural decode (EE84-family,
- * 90 insns, 4% LEN-DIFF; branch-likely + FPU compares + D-consts + multi-
- * call = documented sub-80 ceiling → INCLUDE_ASM build path; struct ref).
- *   if (a0->0x500 == 0) return;
- *   if (*(float*)&D <= 0.0f) return;
- *   fv = *(float*)(a0+0x72C);
- *   if (fv < *(float*)(&D+0x40)) *(float*)(a0+0x72C) = fv + *(float*)(&D+0x44);
- *   s0->0x508 += 1;
- *   v0 = (((int*)s0->0x528)->0x14 & 1) && s0->0x4FC &&
- *        ((int*)((int*)(*(int*)(&D+0x138)))->0x44)->0x38 < 3;
- *   if (v0) {
- *     saved = gl_func_00000000(s0+0x6E4);
- *     gl_func_00000000(saved, (int)(255.0f * *(float*)(s0+0x72C)),
- *                       s0+0x2F0, s0+0x314);
- *     if (s0->0x508 & 8) {
- *       gl_func_00000000(saved, 160,160,3);
- *       gl_func_00000000(s0, 140, ((int*)s0->0x6A8)->0x30); return;
- *     }
- *   }
- *   gl_func_00000000(s0, 0, ((int*)s0->0x6A8)->0x30);
- * Struct-typing: a0->0x500 enable gate, 0x72C float accumulator (clamped
- * +D[0x44] while < D[0x40]), 0x508 frame counter (bit 0x8 tested), 0x528
- * obj (->0x14 bit 0x1), 0x4FC flag, 0x6E4 sub-obj (gl arg), 0x6A8 obj
- * (->0x30), 0x2F0/0x314 out bufs. D consts: [0]/[0x40]/[0x44] floats,
- * [0x138] global ptr. The 255.0f*x trunc.w.s is a float→u8 quantize.
- * 75.88 -> 82.34 (2026-05-31): the &D FP consts (&D+0/0x40/0x44) + the +0x138
- * pointer use DISTINCT externs (D_b1_11d8_0/40/44 float + D_b1_11d8_138 int) to
- * bust the &D-base CSE; and the v0 = (a && b && c) guard is inlined into the `if`
- * (removes the sltu boolean-materialization). Same family as the now-EXACT
- * mgrproc_uso_func_00002294. DEFERRED decode corrections (identified via the
- * branch-likely bytes, but they REGRESS the metric until the whole structural set
- * is fixed together — multi-tick): (1) the D[0] gate should be the body-WRAP form
- * `if (D[0] <= 0) { ... }` (target c.le.s; bc1fl), not the early `if(<=0)return`;
- * (2) the &D+0x138 chain is `*(*(p1+0x44)+0x38)` not `*(p1)+0x7C` (target
- * lw 0x138; lw 0x44; lw 0x38); (3) a missing {?}x4 Vec color buffer at sp+0x50
- * (frame -96 vs -48, 4 swc1 $f0). Still NON_MATCHING. */
-extern float D_b1_11d8_0, D_b1_11d8_40, D_b1_11d8_44;
-extern int D_b1_11d8_138;
+/* timproc_uso_b1_func_000011D8 — 82.34 -> 98.61 (2026-07-15 agent-g): the
+ * three "deferred decode corrections" applied together, plus THREE MORE
+ * decode errors found in the bytes:
+ *  (1) D<=0 gate is the body-WRAP form (bc1fl skips body when D>0), not an
+ *      early return;
+ *  (2) &D+0x138 chain is p1=*(D+0x138); p2=*(p1+0x44); v=*(p2+0x38);
+ *  (3) dead 4-float buffer at sp+0x50 storing garbage $f0 (see cap below);
+ *  (4) `saved` = s0+0x6E4 (the CALL ARG, homed at sp+0x24) — NOT the first
+ *      call's result; all three guarded calls pass the same pointer;
+ *  (5) the guard-false call is gl(s0, 140, obj->0x30) — a1=140 SAME as the
+ *      counter&8 call (the old `0` was invented; target hoists its li a1,0x8C
+ *      to the clamp region since no call clobbers it on that path);
+ *  (6) tail structure: guard-false -> one call; guard-true & !(0x508&8) ->
+ *      NO further call (straight to epilogue).
+ * Levers: per-site alias externs D_b1_11d8_a/_b/_c/_d KEEPING the +0/0x40/
+ * 0x44/0x138 offsets in the C (target imms are baked; a bare distinct-float
+ * extern gives imm 0 = wrong bytes); s0=a0 assigned AFTER the clamp so the
+ * a0/s0 webs don't coalesce (clamp reads/writes a0, rest s0); explicit
+ * flag=0/if(&&&&)flag=1 guard (matches or-v0-zero + li-v0-1, no sltu);
+ * buf-first + volatile pad layout pins buf to sp+0x50 and saved-home to 0x24.
+ * RESIDUAL (documented HARD CAP, docs/IDO_CODEGEN "quad-store family" /
+ * timproc 19C0 2026-06-10): the target stores garbage $f0 4x with NO home
+ * load; IDO 7.1 always homes an uninitialized float (extra lwc1 $f0,40(sp)
+ * = 91 vs 90 insns, frame -0x68 vs -0x60). Plus one canonical commutative
+ * word: add.s emits fresh-load-first (f10,f0) vs target (f0,f10), both
+ * spellings tested. Floor 98.61, honest NM. */
+extern char D_b1_11d8_a, D_b1_11d8_b, D_b1_11d8_c, D_b1_11d8_d;
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_000011D8(char *a0) {
-    char *s0 = a0;
+    char *s0;
+    volatile int padtop0;
+    float buf[4];            /* dead color buffer, sp+0x50..0x5C */
+    volatile int pad0, pad1, pad2, pad3, pad4, pad5, pad6;
+    char *saved;
+    int flag;
+    register float f;        /* uninitialized -> $f0 */
     float fv;
-    int saved;
+
+    buf[0] = f;
+    buf[1] = f;
+    buf[2] = f;
+    buf[3] = f;
     if (*(int *)(a0 + 0x500) == 0) return;
-    if (D_b1_11d8_0 <= 0.0f) return;
-    fv = *(float *)(a0 + 0x72C);
-    if (fv < D_b1_11d8_40) {
-        *(float *)(a0 + 0x72C) = fv + D_b1_11d8_44;
-    }
-    *(int *)(s0 + 0x508) = *(int *)(s0 + 0x508) + 1;
-    if ((*(int *)(*(char **)(s0 + 0x528) + 0x14) & 1) &&
-        *(int *)(s0 + 0x4FC) &&
-        *(int *)(*(int *)(D_b1_11d8_138) + 0x44 + 0x38) < 3) {
-        saved = (int)gl_func_00000000(s0 + 0x6E4);
-        gl_func_00000000(saved, (int)(255.0f * *(float *)(s0 + 0x72C)),
-                         s0 + 0x2F0, s0 + 0x314);
-        if (*(int *)(s0 + 0x508) & 8) {
-            gl_func_00000000(saved, 160, 160, 3);
+    if (*(float *)&D_b1_11d8_a <= 0.0f) {
+        fv = *(float *)(a0 + 0x72C);
+        if (fv < *(float *)((char *)&D_b1_11d8_b + 0x40)) {
+            *(float *)(a0 + 0x72C) = fv + *(float *)((char *)&D_b1_11d8_c + 0x44);
+        }
+        s0 = a0;
+        *(int *)(s0 + 0x508) = *(int *)(s0 + 0x508) + 1;
+        flag = 0;
+        if ((*(int *)(*(char **)(s0 + 0x528) + 0x14) & 1) &&
+            (*(int *)(s0 + 0x4FC) != 0) &&
+            (*(int *)(*(char **)(*(char **)((char *)&D_b1_11d8_d + 0x138) + 0x44) + 0x38) < 3)) {
+            flag = 1;
+        }
+        if (flag != 0) {
+            saved = s0 + 0x6E4;
+            gl_func_00000000(saved);
+            gl_func_00000000(saved, (int)(255.0f * *(float *)(s0 + 0x72C)),
+                             s0 + 0x2F0, s0 + 0x314);
+            if (*(int *)(s0 + 0x508) & 8) {
+                gl_func_00000000(saved, 160, 160, 3);
+                gl_func_00000000(s0, 140, *(int *)(*(char **)(s0 + 0x6A8) + 0x30));
+            }
+        } else {
             gl_func_00000000(s0, 140, *(int *)(*(char **)(s0 + 0x6A8) + 0x30));
-            return;
         }
     }
-    gl_func_00000000(s0, 0, *(int *)(*(char **)(s0 + 0x6A8) + 0x30));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D8);
