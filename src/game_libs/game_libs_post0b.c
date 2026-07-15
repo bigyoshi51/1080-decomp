@@ -4178,43 +4178,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038728);
 //   lowering order (target tests 12,13,14,2 w/ beql-last; ours 2-first) + the
 //   placeholder jal. Regalloc/switch-lowering cap. Name pre-checked: no reuse.
 #ifdef NON_MATCHING
-void gl_func_00038830(char *o, char *c) {
-    char *payload;
-    switch (*(int *)c) {
-        case 0xC:
-            payload = *(char **)(c + 0x4);
-            if (*(int *)(payload + 0x4) != 0) {
-                *(int *)(o + 0x18) |= 0x80;
-            } else {
-                *(int *)(o + 0x18) &= ~0x80;
-            }
-            break;
-        case 0xD:
-            payload = *(char **)(c + 0x4);
-            if (gl_func_00000000(*(char **)(o + 0x0C), *(int *)payload) == 0) {
-                *(char **)(c + 0x8) = o;
-            }
-            break;
-        case 0xE:
-            if (*(int *)(o + 0x1C) == *(short *)(*(char **)(c + 0x4) + 0x4)) {
-                *(char **)(c + 0x8) = o;
-            }
-            break;
-        case 0x2:
-            if (*(char **)(c + 0x4) != 0) {
-                *(int *)(o + 0x18) |= 0x4;
-            } else {
-                *(int *)(o + 0x18) &= ~0x4;
-            }
-            if (*(char **)(c + 0x4) != 0) {
-                *(int *)(o + 0x18) |= 0x8;
-            } else {
-                *(int *)(o + 0x18) &= ~0x8;
-            }
-            break;
-        default:
-            break;
+void gl_func_00038830(o, c, tag)
+char *o;
+char *c;
+int tag;
+{
+    int *flags;
+    char *pl;
+    int pv;
+    tag = *(int *)c;
+    if (c) {}
+    if (tag == 0xC) goto L12;
+    if (tag == 0xD) goto L13;
+    if (tag == 0xE) goto L14;
+    if (tag == 0x2) goto L2;
+    return;
+L12:
+    pl = *(char **)(c + 0x4);
+    pv = *(int *)(pl + 0x4);
+    flags = (int *)(o + 0x18);
+    if (pv != 0) {
+        *flags |= 0x80;
+    } else {
+        *flags &= ~0x80;
     }
+    return;
+L13:
+    if (gl_func_00000000(*(char **)(o + 0x0C), **(int ***)(c + 0x4)) == 0) {
+        *(char **)(c + 0x8) = o;
+    }
+    return;
+L14:
+    if (*(int *)(o + 0x1C) == *(short *)(*(char **)(c + 0x4) + 0x4)) {
+        *(char **)(c + 0x8) = o;
+    }
+    return;
+L2:
+    pv = *(int *)(c + 0x4);
+    flags = (int *)(o + 0x18);
+    if (pv != 0) {
+        *flags |= 0x4;
+    } else {
+        *flags &= ~0x4;
+    }
+    pv = *(int *)(c + 0x4);
+    if (pv != 0) {
+        *flags |= 0x8;
+    } else {
+        *flags &= ~0x8;
+    }
+    return;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
@@ -33832,17 +33845,22 @@ void game_libs_func_00062444(int *a0) {
  */
 int gl_func_00062484(int *self) {
     extern int D_00000000;
-    int *entries = (int*)self[0];
-    int count = self[1];
+    int count;
     int i;
-    for (i = 0; i < count; i++) {
-        if (entries[0xC / 4] == 0) {
-            entries[0xC / 4] = 1;
-            return i;
-        }
-        entries = (int*)((char*)entries + 0x14);
+    count = self[1];
+    i = 0;
+    if (count <= 0) goto fail;
+    self = (int *)self[0];
+loop:
+    if (self[3] == 0) {
+        self[3] = 1;
+        return i;
     }
-    gl_func_00000000((char*)&D_00000000 + 0x20C4);
+    i++;
+    self += 5;
+    if (i < count) goto loop;
+fail:
+    gl_func_00000000((char *)&D_00000000 + 0x220C4);
     return -1;
 }
 #else
