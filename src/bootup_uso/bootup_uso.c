@@ -2616,25 +2616,35 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000034E8);
  *       call (target writes the |2 result to BOTH arg8's home slot AND the
  *       node-call outgoing slot, deferred past the first jal). Computing it at
  *       the top (or inline-only `arg8|2`) misaligned the whole schedule.
- * Residual ~6% = v0/v1-coloring + minor arg-spill scheduling — permuter-class.
- * Logic correct; stays NM (INCLUDE_ASM build path). */
+ * 2026-07-15 (agent-g, 93.7 -> 95.9): 38C0-family sweep. TWO DECODE ERRORS +
+ * one lever: (1) the link-guard operates on the NODE (reloaded into $v1 from
+ * a 0x30 spill of a `p = node` copy taken BEFORE the attach jal), not on
+ * arg5; (2) the back-link store is arg5 (parent), not arg4;
+ * (a) void-alias the init call — its dead $v0 def was excluding $v0, flags
+ * web colored $v1 (dead-$v0 exclusion, 38C0 recipe). All 63 insns + regs now
+ * match except ONE as1 delay-slot tie: target fills the first jal delay with
+ * `sw a3` (addiu %lo early), build fills it with the addiu (sw a2/a3 early).
+ * Probed if(1)-wrap / array-decay / named-address-local — all inert.
+ * AS1-TIE CAP (li-at/lui-slot class); stays NM (INCLUDE_ASM build path). */
 extern char D_000074DC;
 /* typed-float proto (0x0-alias): args 6,7 are single floats on the stack
  * (target swc1 0x14/0x18); K&R func_00000000 double-promotes them. */
 extern void *func_3638_node(int, void *, int, int, int, float, float, int, int);
-void *func_00003638(int *arg0, void *arg1, int arg2, int arg3, int arg4, int arg5,
+/* void-returning alias for the init call: kills the dead $v0 def so flags colors $v0 (38C0 recipe) */
+extern void func_00000000_3638_v(void *);
+void *func_00003638(int *arg0, void *arg1, int arg2, int arg3, int arg4, char *arg5,
                     float arg6, float arg7, int arg8, int arg9) {
     void *node;
-    int *p;
-    func_00000000(&D_000074DC);
+    char *p;
+    func_00000000_3638_v(&D_000074DC);
     arg8 |= 2;
     node = func_3638_node(0, arg1, arg2 + 1, arg3 + 1, arg4, arg6, arg7, arg8, arg9);
+    p = node;   /* copy spilled at 0x30 before the attach jal; guard reads NODE via p */
     func_00000000(arg5 + 0x10, node);
-    p = (int *)arg5;
-    if (p[0x14 / 4] != 0) {
-        p[0x4 / 4] = 1;
+    if (*(int *)(p + 0x14) != 0) {
+        *(int *)(p + 0x4) = 1;
     }
-    p[0x14 / 4] = arg4;
+    *(char **)(p + 0x14) = arg5;   /* back-link = arg5 (parent), NOT arg4 */
     if (arg8 & 0xC) {
         func_00000000(arg0, node, 0);
     } else {

@@ -2921,3 +2921,4 @@ func_00000000_38C0_v = 0x00000000;  /* void-typed reg_b alias (kills dead $v0 de
 D_39d8_g = 0x00000000;  /* D_g placeholder alias (array-typed base held in $s0) in func_000039D8 */
 func_00000000_3734_v = 0x00000000;  /* void-typed reg-call alias (kills dead $v0 def; cfg -> v0) in func_00003734 */
 D_3734_v = 0x00000094;  /* value load at func_00000080+0x14 in func_00003734 (lui/lw) */
+func_00000000_3638_v = 0x00000000;  /* void-typed init-call alias (kills dead $v0 def; flags -> v0) in func_00003638 */
