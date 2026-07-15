@@ -856,7 +856,6 @@ void h2hproc_uso_func_00000C18(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C18);
 #endif
 
-#ifdef NON_MATCHING
 /* 43-insn / 0xAC h2h dual-side update routine. Sibling-by-offset of
  * func_00000C18 (also touches D->0x134's 0xC4/0xCC sub-pointers).
  *
@@ -923,8 +922,15 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000C1
  * forcers exhausted; only an allocator-internal account (uoptlist
  * occupant trace) could name the residual mechanism. */
 void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
-    int *slotC4, *slotCC;
-    int *r1, *r2;
+    /* Decl order IS the frame map (dead-scalar-home rule): homes assign
+     * top-down in decl order -- slotC4 0x2C (dead), r1 0x28 (spill),
+     * slotCC 0x24 (dead), r2 0x20 (spill). The old slotC4,slotCC,r1,r2
+     * order put r1's spill at 0x24 (the "E6E8-class irreducible" 2-word
+     * residual, retracted 2026-07-15 -- EXACT 43/43). */
+    int *slotC4;
+    int *r1;
+    int *slotCC;
+    int *r2;
 
     gl_func_00000000(a0, a1);
 
@@ -947,9 +953,6 @@ void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {
     gl_func_00000000(a0);
     *(unsigned int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000E04);
-#endif
 
 #ifdef NON_MATCHING
 /* h2hproc_uso_func_00000EB0: 44-insn (0xB0) constructor with optional alloc.

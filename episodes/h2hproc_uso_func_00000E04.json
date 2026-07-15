@@ -1,0 +1,33 @@
+{
+  "function_name": "h2hproc_uso_func_00000E04",
+  "project": "projects/1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T04:57:39.025423+00:00",
+  "end_time": "2026-07-15T04:57:39.025443+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T04:57:39.025437+00:00",
+      "assistant_text": "Spill-slot residual (r1 caller-save spill 0x24 vs target 0x28, the 'E6E8-class irreducible inverted slot ordering' cap from 2026-06-10) retracted by the dead-scalar-home frame-map lever: named locals reserve home slots TOP-DOWN in decl order even when fully colored (dead homes). Old decl order slotC4,slotCC,r1,r2 mapped r1 to 3rd slot 0x24; interleaving to slotC4,r1,slotCC,r2 maps r1's spill to 0x28 with dead holes at 0x2C/0x24 and r2's spill at 0x20, matching the target frame exactly. Plain reorder suffices (int * volatile r1 in position 2 also exact but unnecessary). The 2026-06-10 16-variant grind only permuted pads/r1-r2 pairs, never interleaved the dead pointer homes.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 43,
+  "initial_m2c_source": null,
+  "final_source": "void h2hproc_uso_func_00000E04(int *a0, unsigned int a1) {\n    /* Decl order IS the frame map (dead-scalar-home rule): homes assign\n     * top-down in decl order -- slotC4 0x2C (dead), r1 0x28 (spill),\n     * slotCC 0x24 (dead), r2 0x20 (spill). The old slotC4,slotCC,r1,r2\n     * order put r1's spill at 0x24 (the \"E6E8-class irreducible\" 2-word\n     * residual, retracted 2026-07-15 -- EXACT 43/43). */\n    int *slotC4;\n    int *r1;\n    int *slotCC;\n    int *r2;\n\n    gl_func_00000000(a0, a1);\n\n    {\n        slotC4 = *(int**)((char*)*(int**)((char*)&D_00000000 + 0x134) + 0xC4);\n        *(int*)((char*)slotC4 + 0x8DC) = *(int*)((char*)*(int**)((char*)&D_00000000 + 0x134) + 0x108);\n        r1 = *(int**)((char*)slotC4 + 0x800);\n        gl_func_00000000(r1, 0);\n        gl_func_00000000(r1, *(int*)((char*)&D_00000000 + 0x168), *(int*)((char*)&D_00000000 + 0x170));\n    }\n\n    {\n        slotCC = *(int**)((char*)*(int**)((char*)&D_00000000 + 0x134) + 0xCC);\n        *(int*)((char*)slotCC + 0x8DC) = *(int*)((char*)*(int**)((char*)&D_00000000 + 0x134) + 0x108);\n        r2 = *(int**)((char*)slotCC + 0x800);\n        gl_func_00000000(r2, 0);\n        gl_func_00000000(r2, *(int*)((char*)&D_00000000 + 0x16C), *(int*)((char*)&D_00000000 + 0x174));\n    }\n\n    gl_func_00000000(a0);\n    *(unsigned int*)((char*)a0 + 0x4F4) = a1 & 0xFFFF;\n}\n",
+  "metadata": {
+    "source_path": "src/h2hproc_uso/h2hproc_uso.c",
+    "asm_path": "asm/nonmatchings/h2hproc_uso/h2hproc_uso/h2hproc_uso_func_00000E04.s",
+    "segment": "h2hproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "word-diff 43/43 vs raw .s + full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 byte-identical"
+  }
+}
