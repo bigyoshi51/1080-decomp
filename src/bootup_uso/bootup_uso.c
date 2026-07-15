@@ -5472,7 +5472,17 @@ extern float D_000005EC;
  * fresh 0x20 (frame 0x28). This reuse-vs-abandon of a dead spill slot is pure
  * IDO spill-slot-coalescing policy, NOT C-reachable: loading link earlier to
  * change its candidate number would hoist its `lw` before the calls, breaking
- * instruction order. Dump-confirmed intractable; leave NM. */
+ * instruction order. Dump-confirmed intractable; leave NM.
+ *
+ * 2026-07-15 re-probe with the B49C dead-scalar-home lever kit (NEGATIVE, do
+ * not repeat): the target's empty 0x18 is NOT a reproducible dead scalar home.
+ * In this dense scalar-only frame IDO -O2 elides dead homes entirely:
+ * plain `int dead;`, `volatile int dead;`, coalesced `char *tmp = ret` (+
+ * dead-if ref boost), and a live named `float f = D_000005EC` (which also
+ * parks in $f0 via user-var reuse, 1C74-style) ALL leave frame -32 with dense
+ * 0x18/0x1C spills. Dead homes materialize only in aggregate-bearing frames
+ * (titproc 1710 class). Decl order does control which spill gets the higher
+ * slot (link-first -> link above ret) but cannot skip a slot. Cap stands. */
 #ifdef NON_MATCHING
 void *func_00007C74(char *a0) {
     char *ret;
