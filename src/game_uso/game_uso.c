@@ -11415,7 +11415,15 @@ L_BC:
  *       recolors v0->v1). The or-into-precolored-a1 destination-coalesce
  *       has no C handle here.
  * Honest NON_MATCHING at ~99.4; remaining gap is as1 branch-form +
- * or-coalesce ring cascade. */
+ * or-coalesce ring cascade.
+ * 2026-07-15 (agent-g) 3 more (f) negatives, all byte-identical to
+ * baseline: inline-CSE de-name of temp_a1 (store + arg each spelled
+ * `(v & 0xFFFF) | 0x60000` - uopt CSE temp coalesces exactly like the
+ * named var); |-operand swap `0x60000 | (v & 0xFFFF)` (canonicalized);
+ * combined swap+de-name. Numbering analysis: target burned TWO temp
+ * numbers (andi=t8 kept, or-temp coalesced late into a1) where every C
+ * spelling coalesces BOTH at numbering time (zero burns) - matches the
+ * "no C handle" verdict. */
 #ifndef FF
 #define FF(p, o) (*(f32 *)((char *)(p) + (o)))
 #endif
