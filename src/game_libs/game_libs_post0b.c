@@ -10035,26 +10035,31 @@ int gl_func_0003F730(int *a0, int a1, int a2) {
 // same cb-driven staged-serialize idiom (with a local 0x23-tagged scratch
 // buffer) as the diagnostic/trace serializers elsewhere in this segment.
 //
-// Caps (DEFERRED): scratch-buffer layout + cbN signatures inferred from
-//   call shape; arg-struct untyped. Real-C STRUCTURAL body below.
-//   Name pre-checked: no extern reuse.
-// 2026-05-29: 74.67% -> 81.18%. Applied the gl_func_0003F8E8 lesson — the tag
-//   is a WORD store (sw 0x23), so `int tag` not `char tagbuf[]` (was sb).
-//   RESIDUAL: exact scratch-buffer stack offsets (tag@0x18/buf@0x20, status =
-//   buf+0x48), the a4 5th-arg early-load+spill, and a dead home of the unused
-//   a1 param — all stack-layout brute-force, deferred.
+// 2026-05-29: 74.67% -> 81.18% (int tag word-store fix).
+// 2026-07-15: 81.18% -> BYTE-EXACT 33/33. Three reconstruction fixes:
+//   (1) a4 is not cb1's 2nd arg — it is STORED into the scratch buffer
+//       (`*(int*)&buf[0x4C] = a4;`, the sw t7,0x6C(sp) in cb1's jal delay);
+//   (2) layout: buf is 0x98 (not 0x90; ends at frame top 0xB8) declared
+//       FIRST (first-declared = highest slot -> buf@0x20, tag@0x18) and tag
+//       is an 8-byte block (`int tag[2]`, only [0] written = 0x23);
+//   (3) the "dead a1 home" was a PASS-THROUGH: a1 is cb1's 2nd arg, consumed
+//       untouched in $a1 by the first call -> no home store, zero insns
+//       (an unused named int param always gets a dead `sw a1` home; only a
+//       first-call pass-through erases it).
+//   Stays NM: all 7 callees are placeholder jal 0x0 USO relocs.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 int gl_func_0003F7A8(void *a0, int a1, int a2, int a3, int a4) {
-    int tag;
-    char buf[0x90];
-    tag = 0x23;
-    gl_func_00000000(&buf[0], a4);
-    gl_func_00000000(&tag);
+    char buf[0x98];
+    int tag[2];
+    tag[0] = 0x23;
+    *(int *)&buf[0x4C] = a4;
+    gl_func_00000000(&buf[0], a1);
+    gl_func_00000000(&tag[0]);
     gl_func_00000000(&buf[0], a2);
-    gl_func_00000000(&tag);
+    gl_func_00000000(&tag[0]);
     gl_func_00000000(a0);
-    gl_func_00000000(&tag);
+    gl_func_00000000(&tag[0]);
     if (*(int *)&buf[0x48] != 0) {
         gl_func_00000000(a3, &buf[0]);
     }
