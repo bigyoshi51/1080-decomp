@@ -5502,7 +5502,6 @@ int gl_func_0003A044(char *a0) {
 //   decoded under their own symbols. Real-C STRUCTURAL body below —
 //   the named leading dispatcher only (clone of gl_func_00035A18).
 //   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
 /* Whole-body decode 2026-06-01 (prior body conflated the two paths). i=r->0xA,
  * j=r->8, base=r->4. If i<0: base+=j and the fn ptr is r->0xC directly. Else:
  * pick an offset (r->0xC, or 40 when both r->0xC and j are 0), load a table at
@@ -5527,12 +5526,14 @@ int gl_func_0003A044(char *a0) {
  * -> 23/37; named j var -> 24/37; v1-routed end args -> 1/37). Allocation-order
  * tie-break, not C-steerable here. */
 int gl_func_0003A0C4(char *r) {
-    char *base = *(char **)(r + 4);
-    char *v1 = r + 8;
+    char *base;
+    char *v1;
     char *e;
     int (*fp)(int, int, int);
     int off;
-    base = *(short *)(r + 8) + base;
+    v1 = r + 8;
+    base = *(char **)(r + 4); base = *(short *)(r + 8) + base;
+    if (r) {}
     if (*(short *)(r + 0xA) < 0) {
         fp = *(int (**)(int, int, int))(r + 0xC);
     } else {
@@ -5544,9 +5545,6 @@ int gl_func_0003A0C4(char *r) {
     }
     return fp((int)base, *(int *)(r + 0x10), *(int *)(r + 0x14));
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A0C4);
-#endif
 
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0003A0C4_pad.s")
 
