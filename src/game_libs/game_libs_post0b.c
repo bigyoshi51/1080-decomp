@@ -24594,21 +24594,29 @@ int game_libs_func_0005318C(int *a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_000531C0: element-offset computer. Calls helper(&D+0x21010, arg1, arg0);
- * then returns arg0->0x58 + idx*0xC where idx = arg0->0x70 ? *(u16*)(arg0->0x70 +
- * arg1*6) : arg1. Logic/structure exact (dup-load two-return, *6/*12 strength-reduce,
- * 3-arg call all correct, same size 0x7C). Residual = pure regalloc renumber: target
- * reloads arg1 into $a0 (and threads t6/t8/t9/t0), build picks $a1/$a5. Documented
- * regalloc-cap class; permuter 320->210 no crack (2026-05-24); not C-lever crackable. */
+/* gl_func_000531C0: element-offset computer. BYTE-EXACT 31/31 (2026-07-15,
+ * retracts the 'not C-lever crackable' regalloc-cap verdict). Four coupled levers:
+ * (1) `i = arg1; arg1 = 0;` e-split after the call -> arg1's home-slot reload
+ * becomes a FRESH web (lw $a0, not param home $a1); (2) `if (p) {}` dead-if
+ * priority boost on the table pointer flips the i/p 2-web swap (i=a0, p=v1);
+ * (3) textual add commute `idx*0xC + base` (idx chain allocated first, lw88
+ * lands in recycled $t6, addu base-second); (4) FLAT halfword deref
+ * `*(u16*)((char*)p + i*6)` not p[i*3] IXA -> the *6 is one strength-reduced
+ * in-place chain (sll t7/subu t7/sll t7), no fresh temp at the halfword scale.
+ * Stays NM: placeholder callee gl_func_00000000 (jal 0x0) + &D_00000000 data. */
 extern int gl_func_00000000();
 int gl_func_000531C0(void *arg0, int arg1) {
     unsigned short *p;
+    int i;
     gl_func_00000000((char *)&D_00000000 + 0x21010, arg1, arg0);
+    i = arg1;
+    arg1 = 0;
     p = *(unsigned short **)((char *)arg0 + 0x70);
+    if (p) {}
     if (p != 0) {
-        return *(int *)((char *)arg0 + 0x58) + p[arg1 * 3] * 0xC;
+        return *(unsigned short *)((char *)p + i * 6) * 0xC + *(int *)((char *)arg0 + 0x58);
     }
-    return *(int *)((char *)arg0 + 0x58) + arg1 * 0xC;
+    return i * 0xC + *(int *)((char *)arg0 + 0x58);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000531C0);
