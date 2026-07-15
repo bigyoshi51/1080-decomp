@@ -9430,18 +9430,18 @@ int gl_func_0003EBAC(char *a0) {
 //   order inferred from branch sense (final byte-match requires testing
 //   each ordering). Real-C STRUCTURAL body below. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-/* BYTE-IDENTICAL to gl_func_0003A044/00035A18/0003EC5C. 2026-07-07 (agent-e):
- * RISE to 30/32 words byte-exact via the cracked 35A18 template (see 35A18 note:
- * temp-rotation + v1<->a2 swap caps cracked; residual = 2-word off/payload
- * load-order scheduler tie-break). A match here lands all four. */
+/* BYTE-IDENTICAL to gl_func_00035A18/0003A044 family. 2026-07-15 (agent-f):
+ * BYTE-EXACT 32/32 via the 35A18 recipe (same-line join of arg load +
+ * accumulate kills the 2-word load-order scheduler tie — see 35A18 note).
+ * Reloc-free -> PROMOTED to plain C. */
 int gl_func_0003EBDC(char *a0) {
-    char *arg = *(char**)(a0 + 4);
-    char *v1 = a0 + 8;
+    char *arg;
+    char *v1;
     char *entry;
     int (*fnptr)(char *);
     int idx;
-    arg = *(short*)(a0 + 8) + arg;
+    v1 = a0 + 8;
+    arg = *(char**)(a0 + 4); arg = *(short*)(a0 + 8) + arg;
     if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
@@ -9453,9 +9453,6 @@ int gl_func_0003EBDC(char *a0) {
     }
     return fnptr(arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
-#endif
 
 // gl_func_0003EC5C — STRUCTURAL PASS (0x80 / 32 words, no episode). Raw-.word
 // USO. realjr=1, single prologue frame 0x18 (saves ra) → ONE clean function.
@@ -9497,12 +9494,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EBDC);
  * temp-rotation + v1<->a2 swap caps cracked; residual = 2-word off/payload
  * load-order scheduler tie-break). A match here lands all four. */
 int gl_func_0003EC5C(char *a0) {
-    char *arg = *(char**)(a0 + 4);
-    char *v1 = a0 + 8;
+    char *arg;
+    char *v1;
     char *entry;
     int (*fnptr)(char *);
     int idx;
-    arg = *(short*)(a0 + 8) + arg;
+    v1 = a0 + 8;
+    arg = *(char**)(a0 + 4); arg = *(short*)(a0 + 8) + arg;
     if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
