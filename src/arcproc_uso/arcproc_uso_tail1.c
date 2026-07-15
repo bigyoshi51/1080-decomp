@@ -1279,11 +1279,29 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001BB
  *   }
  *
  * FULL DECODE 2026-06-01: semantic body below matches the control flow and
- * call sequence. O2 residual: target has a 0x58 frame and stores incoming $f0
- * to sp+0x48..0x54 before the counter increment; straight C wants either an
- * explicit zeroing mtc1 + 0x38 frame, or worse uninitialized-local reloads.
- * Padding/local-scale probes regressed frame/offsets; keep this NM unless a
- * new IDO stack-shape lever appears.
+ * call sequence.
+ *
+ * PRIOR NOTE CORRECTED 2026-07-15 (stolen-prologue re-verify vein): the
+ * "incoming $f0" is NOT incoming — the splat gap at 1BBC's tail (0x1C6C:
+ * lui at,0x3F80; mtc1 at,$f0) is 1C74's OWN hoisted 1.0f materialization
+ * (FP-const-hoist-above-prologue, see docs/IDO_CODEGEN 2E3C/1710 entry).
+ * So buf[] = 1.0f (NOT 0.0f as the body below says). TRUE-BYTE decode
+ * verified 41/43 words exact (incl. the 2 orphan words) with:
+ *   float buf[4]; char *tgt; char pad[0x20]; (void)pad;
+ *   buf[0..3] = 1.0f;  a0->0x68 += 1;
+ *   if (call(a0->0x50)) { call(&D, (int)(field*255.0f), buf);
+ *     tgt = a0+0xF0; call(tgt); if (a0->0x68 & 8) call(tgt,0xA0,0x7C,3); }
+ * (tgt var = the sw/lw a0,0x20(sp) spill; pad 0x20 = the 0x24-0x44 gap;
+ * frame 0x58 exact.) Residual = the 2E3C-class invariant FP pair-swap:
+ * target mtc1 at,$f4(255.0); lwc1 $f6,0x108(s0) — IDO gives the LOADED
+ * value the lower reg across all probed forms (both mul spellings, named
+ * var, pointer-deref, volatile, int-literal 255, IDO 5.3 -O2 = identical).
+ * objdiff fuzzy vs expected DROPS (92.34->89.59) because expected/'s 1C74
+ * lacks the orphan (head misalignment artifact) — body kept as-is per the
+ * monotonic-fuzzy rule. TO LAND LATER: move the 2 orphan words from
+ * 1BBC.s tail into 1C74.s head + refresh this unit's expected baseline,
+ * then the 1.0f body above scores ~95 and the fn is reloc-free-landable
+ * (all jals baked 0 -> gl_func_00000000) once the pair-swap cracks.
  *
  * Per scripts/find-byte-identical-clones.py — sig=739fd8d1d3 has 3 plain
  * clones (this + b1_19C0 + b3_1928). Future runs can mirror this wrap. */
