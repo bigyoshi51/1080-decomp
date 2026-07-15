@@ -23885,17 +23885,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005231C);
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
  *
- * build/non_matching test 2026-05-19: 32 vs 33 (count -1). Residual
- * is the documented beq/beql command-dispatch shaping: target emits
- * `beq v0,0x6A,SET` then `beql v0,0x6B,CLR` (delay-likely
- * `lw v1,4(a1)`) then `b OTHER` for the default; the if/else-if
- * here emits `bnel`/`b` instead and is 1 insn short. Needs the
- * sparse-switch/ordered-if shape that yields beq-first +
- * beql-second + b-default with the va_arg load in the beql
- * delay-likely slot (see docs/IDO_CODEGEN.md branch-likely /
- * sparse-switch). Documented-hard idiom — deferred to a focused
- * pass; algorithm/structure already exact, INCLUDE_ASM build path.
- */
+ * 2026-07-15 wave 3: BYTE-EXACT 33/33 in ONE edit. The switch form already
+ * matched the beq/beql dispatch shape (the old "1 insn short / bnel" note
+ * was for a pre-switch if/else draft); the whole 14-diff residual was
+ * regalloc, killed by DESTRUCTIVE SAME-NAME REUSE: load the va_arg value
+ * into `op` itself (`op = *p; a0[0xC] |= op;`) instead of deref-inline
+ * `|= *p`. Reusing op extends its $v0 web across both arms (val = v0,
+ * target), which pushes p to $v1 and un-shifts the whole t6-t9 ring
+ * (or->t8, nor->t1/and->t2 chain). Un-landable (jal-0 placeholder
+ * callee); stays as objdiff-100 NM wrap. */
 void gl_func_0005256C(int *a0, int **a1) {
     int op = *(int*)a1;
     int *p;
@@ -23903,12 +23901,14 @@ void gl_func_0005256C(int *a0, int **a1) {
     case 0x6A:
         p = a1[1];
         a1[1] = p + 1;
-        a0[0x30 / 4] |= *p;
+        op = *p;
+        a0[0x30 / 4] |= op;
         break;
     case 0x6B:
         p = a1[1];
         a1[1] = p + 1;
-        a0[0x30 / 4] &= ~(*p);
+        op = *p;
+        a0[0x30 / 4] &= ~op;
         break;
     default:
         gl_func_00000000();
