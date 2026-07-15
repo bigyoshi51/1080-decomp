@@ -1,0 +1,32 @@
+{
+  "function_name": "gl_func_0000DC90",
+  "project": "1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T03:30:55.271988+00:00",
+  "end_time": "2026-07-15T03:30:55.272009+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T03:30:55.272002+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 45,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_0000DC90: vtable-dispatch on indexed 96-byte entry + pair-toggle (0xB4, frame 0x40).\n * MATCHED (2026-07-14, decomp-permuter --stack-diffs): decl order pins the two\n * by-ref locals in the -0x40 frame. sp34 (msgcode 1001) is declared early to\n * seat at 0x34; sp1C (msgcode 1000) sits between the v0/v1 pointer decls so IDO\n * packs it at 0x1C. pad_a/pad_b/pad_c and the empty `if (v0){}` regalloc nudge\n * were carried over from the twin gl_func_0000DD44; the sp1C decl-slot move was\n * the last-2-word residual the permuter's decl-reorder pass cracked.\n *\n * self->unk44 = base of idx*0x60 entry array; entry[0] -> obj; obj->unk28 ->\n * vtable; (short)vtable->unk28 = ptr adjust; vtable->unk2C = method. Calls\n * method((char*)obj + adj, &msgcode, self) with msgcode 1001, then if\n * self->unk48 == 2 the partner entry (idx^1) with msgcode 1000.\n */\nvoid gl_func_0000DC90(char *self, int idx) {\n    int pad_a[2]; int sp34 = 1001; int pad_b[3]; int pad_c[1];\n    char *v0; int sp1C; char *v1;\n    v1 = *(char **)(*(char **)(self + 0x44) + idx * 0x60);\n    v0 = *(char **)(v1 + 0x28);\n    (*(void (**)(char *, int *, char *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &sp34, self);\n    if (*(int *)(self + 0x48) == 2) {\n        sp1C = 1000;\n        v1 = *(char **)(*(char **)(self + 0x44) + (idx ^ 1) * 0x60);\n        v0 = *(char **)(v1 + 0x28);\n        if (v0) {}\n        (*(void (**)(char *, int *, char *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &sp1C, self);\n    }\n}\n",
+  "metadata": {
+    "source_path": "/tmp/claude-1000/-home-dan-Documents-code-decomp/24a9104a-9a16-4a13-8aa8-729de3d6dc97/scratchpad/dc90_src.c",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/game_libs/game_libs/gl_func_0000DC90.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
+  }
+}

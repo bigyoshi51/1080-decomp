@@ -2950,24 +2950,13 @@ void gl_func_0000DB80(int *a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_0000DC90: vtable-dispatch on indexed 96-byte entry + pair-toggle (0xB4, frame 0x40).
- *
- * FULL structural reconstruction (2026-07-07): 99.96% objdiff (was 58.8%),
- * 43/45 words byte-exact. Doubled DE30-family dispatcher; mirrors the MATCHED
- * twin gl_func_0000DD44 (same file) but gated by self->0x48==2 and passing self
- * as a 3rd arg. Levers borrowed from DD44: pad_a/pad_b/pad_c arrays pin the two
- * by-ref locals in the -0x40 frame; deferring sp1C's assignment to inside the
- * gate defers its li+sw past the first call; empty `if (v0){}` on the 2nd
- * dispatch is the regalloc nudge that gives entry->v1 / vtable->v0.
- *
- * Residual (2 words): sp1C stack slot lands at 0x24 vs target 0x1C. Within a
- * 0x40 frame with sp34 pinned at 0x34, IDO packs the 2nd address-taken local at
- * 0x24 and wastes 0x18-0x23; the target instead wastes 0x20-0x33 and seats
- * sp1C at 0x1C. Growing pad_b to spread them past 0x24 grows the frame beyond
- * 0x40 — an irreducible frame-packing cap for two plain ints + pads (the real
- * TU likely has an extra ~0x8 of address-taken locals in 0x1C-0x23).
- * INCLUDE_ASM remains the build path.
+ * MATCHED (2026-07-14, decomp-permuter --stack-diffs): decl order pins the two
+ * by-ref locals in the -0x40 frame. sp34 (msgcode 1001) is declared early to
+ * seat at 0x34; sp1C (msgcode 1000) sits between the v0/v1 pointer decls so IDO
+ * packs it at 0x1C. pad_a/pad_b/pad_c and the empty `if (v0){}` regalloc nudge
+ * were carried over from the twin gl_func_0000DD44; the sp1C decl-slot move was
+ * the last-2-word residual the permuter's decl-reorder pass cracked.
  *
  * self->unk44 = base of idx*0x60 entry array; entry[0] -> obj; obj->unk28 ->
  * vtable; (short)vtable->unk28 = ptr adjust; vtable->unk2C = method. Calls
@@ -2975,8 +2964,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DB80);
  * self->unk48 == 2 the partner entry (idx^1) with msgcode 1000.
  */
 void gl_func_0000DC90(char *self, int idx) {
-    int pad_a[2]; int sp34 = 1001; int pad_b[3]; int sp1C; int pad_c[1];
-    char *v0, *v1;
+    int pad_a[2]; int sp34 = 1001; int pad_b[3]; int pad_c[1];
+    char *v0; int sp1C; char *v1;
     v1 = *(char **)(*(char **)(self + 0x44) + idx * 0x60);
     v0 = *(char **)(v1 + 0x28);
     (*(void (**)(char *, int *, char *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &sp34, self);
@@ -2988,9 +2977,6 @@ void gl_func_0000DC90(char *self, int idx) {
         (*(void (**)(char *, int *, char *))(v0 + 0x2C))((char *)((int)*(short *)(v0 + 0x28) + (int)v1), &sp1C, self);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000DC90);
-#endif
 
 /* Doubled DE30-family vtable dispatcher (sibling of gl_func_0000DDE0/DE30/DE80/
  * DED0): runs the same {entry = a0->0x44[idx*0x60]; q = entry->0x28;
