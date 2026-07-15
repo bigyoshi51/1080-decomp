@@ -4266,6 +4266,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038830);
 //   bottom-advance speculation -> else-arm zero + v0-collapse), decl order,
 //   inner scope, int fall-off-end, if(1) barriers, manual rotation, array-
 //   iterator form. Documented adjsave-order + LR-split cap.
+//   2026-07-15 wave 3: two more negatives — return-capture precolor (node =
+//   f2call(...) before the advance; inert, dead capture DCE'd without joining
+//   node's family, 1C90-class) and int-returning jalr types (dead-$v0-def FD0
+//   exclusion did not move the cur-reload web off $v0). Cap reconfirmed.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 int gl_func_00038964(char *o, void *ctx) {
@@ -7621,32 +7625,38 @@ int *gl_func_0003D5BC(int *a0) {
  *     tmp[0..2] = p[0..2]; a0->[0x30..0x38] = (float)tmp[0..2];
  *   } else { func(); }
  *
- * NATURAL CEILING: 96.96% NM. The 13-insn diff covers register-alloc +
- * addressing-mode + frame-slot reshuffle (build uses $t6/$v0/sp+0x1C;
- * target uses $v0/$t7/sp+0x24-via-$t6).
- * 2026-05-27 retest: tried struct-cast lever on both halves of the
- * ping-pong (struct ThreeI tmp = *p; struct ThreeF out = struct ThreeF tmp;)
- * — IDO collapses to direct int-store-without-float-reinterpret,
- * regressing to 11/27. The int→float bit reinterpret REQUIRES the
- * explicit `*(float*)&tmp[N]` cast to preserve the stack ping-pong.
- * Was previously documented as INSN_PATCH-promoted to EXACT; INSN_PATCH
- * REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
+ * 2026-07-15 wave 3: BYTE-EXACT 27/27, retracting the 96.96% "NATURAL
+ * CEILING" verdict. Three levers:
+ * (1) NAME the tag (`tag = *a1`) -> candidate $v0 (was unnamed t-ring $t6);
+ * (2) the whole lw/sw ping-pong is ONE 12-byte STRUCT COPY
+ *     `*(Tri3i*)tmp = *(Tri3i*)a1[1];` — IDO's struct-copy expansion
+ *     materializes BOTH bases (src $t7 = one lw 4(a1); dst $t6 =
+ *     addiu sp+0x24) and recycles ring temps t9/t8/t9, exactly the target.
+ *     The 2026-05-27 struct probe failed because it copied struct-to-struct
+ *     BY VALUE (two aggregates); the cast-copy into a FLOAT array keeps the
+ *     int stores + direct float re-reads (no cvt: tmp is float[], loads are
+ *     plain lwc1 sp+0x24, no reinterpret cast needed on the load side);
+ * (3) decl-order slot shuffle: pad[2] / tmp / pad2[2] / tag puts tmp's home
+ *     at sp+0x24 (was 0x18). NEGATIVE probes: named p+q=(int*)(int)tmp gives
+ *     candidates v0/v1 (not ring); de-named q-stores int-cast break the
+ *     a1[1] CSE (3 reloads); trailing if(tag){} emits a real branch and
+ *     drags tag to $a2. Un-landable (jal-0 placeholder callee); stays as
+ *     objdiff-100 NM wrap. */
 extern int func_00000000();
 #ifdef NON_MATCHING
 void gl_func_0003D620(int *a0, int *a1) {
-    volatile int pad[4];
-    int tmp[3];
+    volatile int pad[2];
+    float tmp[3];
+    volatile int pad2[2];
+    int tag;
     (void)pad;
-    if (*a1 == 7) {
-        int *p = (int*)a1[1];
-        tmp[0] = p[0];
-        tmp[1] = p[1];
-        tmp[2] = p[2];
-        *(float*)((char*)a0 + 0x30) = *(float*)&tmp[0];
-        *(float*)((char*)a0 + 0x34) = *(float*)&tmp[1];
-        *(float*)((char*)a0 + 0x38) = *(float*)&tmp[2];
+    (void)pad2;
+    tag = *a1;
+    if (tag == 7) {
+        *(Tri3i *)tmp = *(Tri3i *)a1[1];
+        *(float*)((char*)a0 + 0x30) = tmp[0];
+        *(float*)((char*)a0 + 0x34) = tmp[1];
+        *(float*)((char*)a0 + 0x38) = tmp[2];
     } else {
         func_00000000();
     }
