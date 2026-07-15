@@ -5957,7 +5957,24 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
 /* game_uso_func_00006A30: 176-insn per-frame FPU update. Re-decoded 2026-06-24
  * from expected/.o. Stack-staged Vec3 layout: va@sp+0x9C (from sub+0xB4..),
  * scaled@sp+0x58 (sub+0x318.. * a0->0xA8), copy chain sp+0x58->sp+0x6C->sp+0xA8,
- * then va += copy; 00007ACC/00007C1C/03ED4/110A4/7538 with real arg shapes. */
+ * then va += copy; 00007ACC/00007C1C/03ED4/110A4/7538 with real arg shapes.
+ * 2026-07-15 (agent-g, 67.6 -> 85.0): FULL CONTROL-FLOW REDECODE from the raw
+ * .word target. Errors fixed: (1) the 0x938/0xA54 counter block + final 7538
+ * call are SHARED TAIL (run on BOTH sides of the a0->0x80 test; else-side also
+ * sets flag=16 when obj->0x6C==0); (2) 7ACC arg2 is &v94 (int OUT-param at
+ * sp+0x94), later 7C1C's arg4 AND the flag condition (not *(int*)&va);
+ * (3) 7C1C arg1 = &cpy (not &pt); (4) 7ACC==0 returns WITHOUT calling 7538;
+ * (5) pt block is a ||-alloc-fallback: dst=&pt; if(dst||(dst=055750(0xC)))
+ *     {dst->x=w3C8; dst->z=w3D0; dst->y=0;} (bnez-on-address kept by IDO);
+ * (6) 3ED4 args are (dst, &rv, 0) where rv@0x88 = *r2 word-copy;
+ * (7) obj->0x3C store is UNCONDITIONAL (bnez delay slot);
+ * (8) w+0x708 load goes through bumped base q=w+0x6F8, *(q+0x10);
+ * (9) flag block: if(v94==0) flag=16; else if(80<=w348) flag=8.
+ * Levers: decl-order reversed (first=highest home, acc->scaled), register
+ * float k/fx/fy/fz staging (candidate f0/f2/f12/f14, batched muls);
+ * scaled.x=fx;... then cpy=scaled; acc=cpy word-copies.
+ * Residual 15%: frame 0xA8 vs 0xB8 (home/gap layout), copy-chain interleave,
+ * arg-address staging order. Placeholder callees — NM wrap regardless. */
 typedef struct { float x, y, z; } V3_6A30;
 extern int game_uso_func_00007ACC(int *, int *, int, int *);
 extern int game_uso_func_00007C1C(char *, char *, char *, char *, char *, f32 *);
@@ -5968,82 +5985,88 @@ extern float game_uso_func_00003ED4(Vec3 *, Vec3 *, int *);
 
 void game_uso_func_00006A30(int *a0) {
     int *s0 = a0;
-    int clearFlag = 0;
+    int flag = 0;                    /* home sp+0xB4 */
+    char *w;
     if (a0[0x80 / 4] != 0) {
-        int *sub = (int *)a0[0x30 / 4];
-        float f0 = *(float *)((char *)a0 + 0xA8);
-        V3_6A30 va;          /* sp+0x9C */
-        V3_6A30 scaled;      /* sp+0x58 */
-        V3_6A30 cpy;         /* sp+0x6C */
-        V3_6A30 acc;         /* sp+0xA8 */
+        char *sub = (char *)a0[0x30 / 4];
+        V3_6A30 acc;                 /* sp+0xA8 */
+        V3_6A30 va;                  /* sp+0x9C */
+        int v94;                     /* sp+0x94 — 7ACC OUT-param, 7C1C arg4 + flag condition */
+        V3_6A30 rv;                  /* sp+0x88 */
+        V3_6A30 pt;                  /* sp+0x7C */
+        V3_6A30 cpy;                 /* sp+0x6C */
+        V3_6A30 scaled;              /* sp+0x58 */
+        register float k, fx, fy, fz;  /* FP candidates f0/f2/f12/f14, no dead homes */
         int *r1;
+        int *r2;
+        V3_6A30 *dst;
+        char *src;
+        float yaw;
 
-        va = *(V3_6A30 *)((char *)sub + 0xB4);
-        scaled.x = *(float *)((char *)sub + 0x318) * f0;
-        scaled.y = *(float *)((char *)sub + 0x31C) * f0;
-        scaled.z = *(float *)((char *)sub + 0x320) * f0;
+        va = *(V3_6A30 *)(sub + 0xB4);
+        k = *(float *)((char *)a0 + 0xA8);
+        fx = *(float *)(sub + 0x318) * k;
+        fy = *(float *)(sub + 0x31C) * k;
+        fz = *(float *)(sub + 0x320) * k;
+        scaled.x = fx;
+        scaled.y = fy;
+        scaled.z = fz;
         cpy = scaled;
         acc = cpy;
         va.x = va.x + acc.x;
         va.y = va.y + acc.y;
         va.z = va.z + acc.z;
 
-        r1 = (int *)game_uso_func_00007ACC(s0, (int *)((char *)a0 + 0), (int)&va, (int *)0);
-        if (r1 != 0) {
-            char *obj = (char *)a0;
-            char *w = (char *)sub;
-            V3_6A30 rec;     /* sp+0x88 */
-            V3_6A30 pt;      /* sp+0x7C */
-            int *r2;
-            float yaw, val;
-            r2 = (int *)game_uso_func_00007C1C((char *)&pt, (char *)s0, (char *)r1,
-                                               (char *)0, (char *)&va, (f32 *)0);
-            pt.x = *(float *)((char *)r2 + 0);
-            pt.y = *(float *)((char *)r2 + 4);
-            pt.z = *(float *)((char *)r2 + 8);
-            rec.x = *(float *)(w + 0x3C8);
-            rec.z = *(float *)(w + 0x3D0);
-            rec.y = 0.0f;
-            yaw = game_uso_func_00003ED4((Vec3 *)&rec, (Vec3 *)&pt, 0);
-            w = (char *)*(int *)(obj + 0x30);
-            val = (-yaw * (1.0f + *(float *)(w + 0x348) / *(float *)(obj + 0xB0)) *
-                   *(float *)(obj + 0xAC)) /
-                  *(float *)(w + 0x708);
-            if (*(int *)(obj + 0x6C) != 0) {
-                /* skip store */
-            } else {
-                *(float *)(obj + 0x3C) = val;
-                if (*(int *)((char *)&va + 0) != 0) {
-                    if (80.0f <= *(float *)(w + 0x348)) {
-                        clearFlag = 8;
-                    } else if (*(int *)(obj + 0x6C) != 0) {
-                        /* dead */
-                    } else {
-                        clearFlag = 16;
-                    }
-                }
-            }
-            w = (char *)*(int *)(obj + 0x30);
-            if (*(int *)(w + 0x938) != 0 && *(int *)(w + 0xA54) != 0) {
-                int v0 = *(int *)(obj + 0x70);
-                if (v0 < 60) {
-                    if (*(float *)(w + 0x348) <= 30.0f) {
-                        game_uso_func_000110A4((int *)*(int *)(w + 0x840));
-                        *(int *)(obj + 0x70) = 61;
-                    } else {
-                        *(int *)(obj + 0x70) = v0 + 1;
-                    }
-                } else if (v0 == 60) {
-                    game_uso_func_000110A4((int *)*(int *)(w + 0x840));
-                    *(int *)(obj + 0x70) = 61;
-                }
-            }
-            game_uso_func_00007538((int *)obj, clearFlag);
+        r1 = (int *)game_uso_func_00007ACC(s0, &v94, (int)&va, (int *)0);
+        if (r1 == 0) {
+            return;                  /* beqz v0 -> epilogue: 7538 NOT called */
         }
-        (void)va;
+        r2 = (int *)game_uso_func_00007C1C((char *)&cpy, (char *)s0, (char *)r1,
+                                           (char *)v94, (char *)&va, (f32 *)0);
+        rv = *(V3_6A30 *)r2;
+        dst = &pt;
+        src = (char *)s0[0x30 / 4] + 0x3C8;
+        if (dst != 0 || (dst = (V3_6A30 *)game_uso_func_055750(0xC)) != 0) {
+            dst->x = *(float *)src;
+            dst->z = *(float *)(src + 8);
+            dst->y = 0.0f;
+        }
+        yaw = game_uso_func_00003ED4((Vec3 *)dst, (Vec3 *)&rv, 0);
+        w = (char *)s0[0x30 / 4];
+        {
+            char *q = w + 0x6F8;     /* bumped base; the 0x708 load is *(q+0x10) */
+            *(float *)((char *)s0 + 0x3C) =
+                (-yaw * (1.0f + *(float *)(w + 0x348) / *(float *)((char *)s0 + 0xB0)) *
+                 *(float *)((char *)s0 + 0xAC)) / *(float *)(q + 0x10);
+        }
+        if (*(int *)((char *)s0 + 0x6C) == 0) {
+            if (v94 == 0) {
+                flag = 16;
+            } else if (80.0f <= *(float *)(w + 0x348)) {
+                flag = 8;
+            }
+        }
+    } else {
+        if (*(int *)((char *)s0 + 0x6C) == 0) {
+            flag = 16;
+        }
+        w = (char *)s0[0x30 / 4];
     }
-    (void)clearFlag;
-    (void)s0;
+    if (*(int *)(w + 0x938) != 0 && *(int *)(w + 0xA54) != 0) {
+        int c = *(int *)((char *)s0 + 0x70);
+        if (c < 60) {
+            if (*(float *)(w + 0x348) <= 30.0f) {
+                game_uso_func_000110A4((int *)*(int *)(w + 0x840));
+                *(int *)((char *)s0 + 0x70) = 61;
+            } else {
+                *(int *)((char *)s0 + 0x70) = c + 1;
+            }
+        } else if (c == 60) {
+            game_uso_func_000110A4((int *)*(int *)(w + 0x840));
+            *(int *)((char *)s0 + 0x70) = 61;
+        }
+    }
+    game_uso_func_00007538(s0, flag);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00006A30);
