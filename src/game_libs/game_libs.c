@@ -849,12 +849,21 @@ char *gl_func_0000135C(char *self) {
  * v0-vs-v1 tie (target v1, ours v0). 8 statement-order/valuation spellings
  * probed (D0 moves, joins, E4/E0 swaps, register f32, de-named f2 — the last
  * two REGRESS: de-named C7C double-deref does NOT CSE, self-stores may-alias
- * the extern pool). as1 stream-interleave class. */
+ * the extern pool). as1 stream-interleave class.
+ * 2026-07-15 round 2 (agent-g): +4 ghost-word FIX — the CSE call-arg spill
+ * homes sat at 0x2C/0x30 vs target 0x28/0x2C because temp_f2's dead decl
+ * home ranked BELOW the compiler spill temps; `volatile int pad_15fc;`
+ * declared AFTER temp_f2 claims that word (zero insns, frame unchanged
+ * -0x38) and the spills drop to 0x28/0x2C exact (27->23 diffs; `register`
+ * on temp_f2 is byte-inert). Remaining = the interleave hunk + li-100
+ * v0/v1 tie only; re-probed D4/D0 source swap (t8/t9 role swap, no gain)
+ * and D4/D0/12C same-line join (byte-inert). Cap stands. */
 extern f32 D_00000C7C, D_00000C80, D_00000C84, D_00000C88, D_00000C8C, D_00000C90, D_00000C94;
 extern char D_0000CC58[], D_0000CC60[];
 extern int gl_data_00000000_15fc;
 char *gl_func_000015FC(char *self, s32 arg1) {
-    register f32 temp_f2;
+    f32 temp_f2;
+    volatile int pad_15fc;
     if (self != 0 || (self = (char *)func_00000000(0x198)) != 0) {
         func_00000000(self, D_0000CC58);
         FW(self, 0x28) = (int)&gl_data_00000000_15fc;
