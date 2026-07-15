@@ -1869,7 +1869,12 @@ extern int gl_func_00000000();
  * vs a byte-comparator harness (named ptr, int* index, cast/cvt chains,
  * bitfield c:32, volatile, xor-zero, stmt-order swaps): all byte-neutral
  * (uopt canonicalizes before ugen) or regress. No C grammar reaches the
- * window. Cap stands -- mechanism precisely documented. */
+ * window. Cap stands -- mechanism precisely documented.
+ * 2026-07-15 re-check vs the newer subsumed-mask 1-slot ring burn (IDO_CODEGEN
+ * 2026-07-03, the "+1 temp-ring offset" killer): INAPPLICABLE here -- the burn
+ * needs a byte-RANGED value for uopt range-folding; this window's value is a
+ * full-width int (lw arg1->a), where 32-bit/identity masks fold in cfe (0-slot)
+ * and a u64 mask burns 5 slots. No 1-quantum handle. Cap confirmed. */
 struct gl_func_0000C28C_Four { int a, b, c, d; };
 void gl_func_0000C28C(void *arg0, struct gl_func_0000C28C_Four *arg1) {
     struct gl_func_0000C28C_Four buf10;
