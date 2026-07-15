@@ -32369,19 +32369,18 @@ void game_libs_func_0006024C(int a0) {
 void game_libs_func_00060258(void) {}
 
 #ifdef NON_MATCHING
-/* gl_func_00060260: r = call1(a0); if (r) return; call2(((char *)&D_00000000 + 0x00021CBC), a0);
- * call3(r).  2026-06-20 value-flow FIX: target passes call1's result r (saved
- * across call2 via stack slot 0x1C) to call3 — NOT call2's result as previously
- * decoded. Logic now exact. Residual (12/18): target fills the bnez delay with a
- * redundant `move a2,v0` (early save of r) and reloads r into a2 after call2,
- * frame -32; build collapses the redundant move (frame matches at -32 but 2 fewer
- * insns). as1-scheduler delay-fill tie on the cross-call spill — not C-flippable. */
+/* gl_func_00060260: r = call1(a0); if (r == 0) call2(&D+0x21CBC, a0); call3(r);
+ * 2026-07-15 agent-f DECODE FIX: `bnez v0,+0x30` targets the THIRD jal, not the
+ * epilogue — call3(r) runs on BOTH paths (prior "if (r) return" decode skipped
+ * it). r carried to the join in a2 (`move a2,v0` bnez delay-fill; spilled to
+ * 0x1C(sp) across call2 in the jal delay, reloaded into a2). */
 extern int gl_func_00000000();
 
 void gl_func_00060260(char *a0) {
     int r = gl_func_00000000(a0);
-    if (r != 0) return;
-    gl_func_00000000(((char *)&D_00000000 + 0x00021CBC), a0);
+    if (r == 0) {
+        gl_func_00000000(((char *)&D_00000000 + 0x00021CBC), a0);
+    }
     gl_func_00000000(r);
 }
 #else
