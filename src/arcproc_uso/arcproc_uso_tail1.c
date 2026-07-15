@@ -1175,32 +1175,34 @@ char *arcproc_uso_func_0000199C(char *arg0, char *arg1, int arg2) {
 
 #ifdef NON_MATCHING
 /* arcproc_uso_func_00001B04: 33-insn / 0x84 conditional-init dispatcher.
- *
- * Calls gl_func_00000000(&D_00000000, 0x40100) — likely an alloc/init with
- * a magic flag value. If non-zero, then makes a second call passing
- * arg->[0x50] as input. The second call's return splits into two arms:
- *   v0 != 0: arg->[0x60] = 1; D[0x40] = 8; D[0x44] = 6
- *   v0 == 0: D[0x40] = 6; gl_func_00000000(arg, 7, 0)
- *
- * Initial wrap; bytes likely won't match without unique-extern aliases for
- * the 2 distinct &D references (0x1B14+0x1B20 and 0x1B34+0x1B3C). */
+ * 81.88 -> 86.33 (2026-07-15 agent-g) via ARRAY-DECAY RETYPE (extern int
+ * sym[]; sym[16]=8) — kills the at-fused absolute stores, base held in a
+ * register per arm with the target's sw 0x40/0x44 offsets.
+ * RESIDUAL (single cross-BB cell): target materializes &D ONCE pre-branch
+ * (lui v1 before beqz, addiu v1 %lo in the beqz delay) shared by BOTH arms;
+ * IDO -O2 here always LOCALIZES the constant-address candidate per arm
+ * (2x lui/addiu, +1 word, branch-offset cascade). Probed 7 shapes, all
+ * fail to make the candidate span the branch: plain local (refolds to
+ * at-form), register local (at-form), int-typed held base (per-arm t2/v0),
+ * if(1)-barrier def (at-form), assignment-in-condition && / comma carrier
+ * (at-form), identical-arm ternary phi (folded), else-arm D-reuse multi-def
+ * web (folded). uopt rematerializes const addresses at each use BB whenever
+ * the def BB is separated by a branch; no C shape found that pins the def
+ * in the pre-branch BB. Cross-branch-shared-base cap. */
 extern int gl_func_00000000();
-extern char D_00000000;
+extern char D_arc1B04_a;
+extern int D_arc1B04_state[];
 void arcproc_uso_func_00001B04(int *arg) {
     int v0;
-    int *something;
-    int *D;
-    v0 = gl_func_00000000(&D_00000000, 0x40100);
+    v0 = gl_func_00000000(&D_arc1B04_a, 0x40100);
     if (v0 == 0) return;
-    something = (int*)*(int*)((char*)arg + 0x50);
-    v0 = gl_func_00000000(something);
-    D = (int*)&D_00000000;
+    v0 = gl_func_00000000(*(int**)((char*)arg + 0x50));
     if (v0 != 0) {
         *(int*)((char*)arg + 0x60) = 1;
-        *(int*)((char*)D + 0x40) = 8;
-        *(int*)((char*)D + 0x44) = 6;
+        D_arc1B04_state[16] = 8;
+        D_arc1B04_state[17] = 6;
     } else {
-        *(int*)((char*)D + 0x40) = 6;
+        D_arc1B04_state[16] = 6;
         gl_func_00000000(arg, 7, 0);
     }
 }
