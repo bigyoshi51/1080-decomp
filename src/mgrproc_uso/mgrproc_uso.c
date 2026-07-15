@@ -1050,6 +1050,20 @@ void mgrproc_uso_func_00001BE4(int idx, int *a2) {
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BE4);
 #endif
 
+/* 2026-07-15 (agent-g) 30->21 real diffs (word-diff; 4 more are D_flt LO16
+ * addends that link-resolve). Fixes: (1) named q/w pair for the 0x6F0/0x6D8
+ * lh sites -- target re-derives `q = ptr; w = *(short*)(q+0x20)` at all 3
+ * sites (sp48 calc + both branch arms); this fixed the sp48-block ring,
+ * the addu operand order (sp48-first), and the +4-in-jal-delay shape.
+ * (2) frame/spill map: q/w cost 2 homes; dropped pad_f/pad_g -> frame 0x70,
+ * sp48 home 0x48, a0 spill 0x20 all exact. Remaining 21: (a) q/w color
+ * swap q=v0/w=v1 vs target q=v1/w=v0 at all 3 sites (return-capture
+ * precolor + dead-if range extension both probed: inert / push q to t0);
+ * (b) t-ring phase in the p6a8 compare and the sp48 reloads (+1, mixed
+ * directions; <<0 phantom inert); (c) words 55/71-72/106-107 = the
+ * (int)(field*255.0f) mtc1-const/lwc1-field PAIR-SWAP -- the documented
+ * VERSION-INDEPENDENT arcproc-1C74/2E3C cap family (both mul spellings
+ * probed) -- so 100% is UNREACHABLE; permanent NM, best ~97%. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern float D_flt_5CC, D_flt_5D0, D_flt_5D4, D_flt_5D8;
@@ -1059,7 +1073,9 @@ void mgrproc_uso_func_00001C90(char *arg0) {
     volatile int pmid;
     int sp48;
     char *p6a8;
-    volatile int pad_a, pad_b, pad_c, pad_d, pad_e, pad_f, pad_g;
+    char *q;
+    int w;
+    volatile int pad_a, pad_b, pad_c, pad_d, pad_e;
 
     if (*(int *)(arg0 + 0x4F0) & 0x10000) {
         sp50[0] = 1.0f;
@@ -1082,23 +1098,29 @@ void mgrproc_uso_func_00001C90(char *arg0) {
         gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)(arg0 + 0x7A0)), sp50);
         gl_func_00000000(&D_00000000);
         gl_func_00000000(&D_00000000, 0xA0, 0x9C, 3);
-        gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)(arg0 + 0x7A0)), arg0 + 0x380, arg0 + 0x3A4);
+        gl_func_00000000(&D_00000000, (int)(*(float *)(arg0 + 0x7A0) * 255.0f), arg0 + 0x380, arg0 + 0x3A4);
         gl_func_00000000(arg0 + 0x6B0);
         gl_func_00000000(arg0 + 0x6B0, 0xA0, 0xB0, 3);
-        sp48 = 0xA0 - ((*(short *)(*(char **)(arg0 + 0x6D8) + 0x20) + *(short *)(*(char **)(arg0 + 0x6F0) + 0x20) + 4) / 2);
-        gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)(arg0 + 0x7A0)), arg0 + 0x260, arg0 + 0x284);
+        q = *(char **)(arg0 + 0x6F0);
+        w = *(short *)(q + 0x20);
+        sp48 = 0xA0 - ((*(short *)(*(char **)(arg0 + 0x6D8) + 0x20) + w + 4) / 2);
+        gl_func_00000000(&D_00000000, (int)(*(float *)(arg0 + 0x7A0) * 255.0f), arg0 + 0x260, arg0 + 0x284);
         p6a8 = *(char **)(arg0 + 0x6A8);
         if (*(int *)(p6a8 + 8) == (*(int *)(p6a8 + 4) + 1)) {
             gl_func_00000000(arg0 + 0x6E0);
             gl_func_00000000(arg0 + 0x6E0, sp48, 0x88, 2);
             gl_func_00000000(arg0 + 0x6C8);
-            gl_func_00000000(arg0 + 0x6C8, sp48 + *(short *)(*(char **)(arg0 + 0x6F0) + 0x20) + 4, 0x88, 2);
+            q = *(char **)(arg0 + 0x6F0);
+            w = *(short *)(q + 0x20);
+            gl_func_00000000(arg0 + 0x6C8, sp48 + w + 4, 0x88, 2);
             return;
         }
         gl_func_00000000(arg0 + 0x6C8);
         gl_func_00000000(arg0 + 0x6C8, sp48, 0x88, 2);
         gl_func_00000000(arg0 + 0x6E0);
-        gl_func_00000000(arg0 + 0x6E0, sp48 + *(short *)(*(char **)(arg0 + 0x6D8) + 0x20) + 4, 0x88, 2);
+        q = *(char **)(arg0 + 0x6D8);
+        w = *(short *)(q + 0x20);
+        gl_func_00000000(arg0 + 0x6E0, sp48 + w + 4, 0x88, 2);
     }
 }
 #else
