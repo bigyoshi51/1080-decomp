@@ -11651,7 +11651,14 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000D9CC);
 //   mnemonic disasm limitation prevents byte-match. Real-C STRUCTURAL
 //   body below — threshold-gated event/effect trigger skeleton.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+/* game_uso_func_0000E1FC: threshold-gated event trigger. EXACT 2026-07-15
+ * (was 99.62 "folded f64 / USO raw-word" deferred cap). Final lever: DE-NAME
+ * the double threshold — inline `*(double*)((char*)&D + 0x208)` directly in
+ * the compare instead of a named `double thr` local. Nameless expression =
+ * fresh FP pool temps numbered at the use point (const ldc1 -> $f10, cvt.d.s
+ * -> $f16, matching target); the named form let uopt number the load early
+ * and reuse dead low regs (ldc1 $f0 / cvt $f10, 3-word residual). Same
+ * de-naming lever as bootup B49C (int side). */
 extern void game_uso_func_0000D5BC(char *, Pair2);
 extern char game_uso_D_807FF458;
 extern char game_uso_D_807FF440;
@@ -11659,7 +11666,6 @@ void game_uso_func_0000E1FC(char *obj) {
     char *s = *(char **)(obj + 0xB4);
     char *sub = s;
     float raw, m;
-    double thr;
     if(1){ sub += 0x740; }
     if (!(*(float *)(sub + 0x10) > *(float *)(s + 0x348))) return;
     sub = *(char **)(s + 0x800);
@@ -11667,17 +11673,13 @@ void game_uso_func_0000E1FC(char *obj) {
     if (*(int *)(s + 0x9CC) != 0) goto callA;
     raw = *(float *)(s + 0x970);
     m = (raw < 0.0f) ? -raw : raw;
-    thr = *(double *)((char *)&game_uso_D_807FF458 + 0x208);
-    if (thr < (double)m) {
+    if (*(double *)((char *)&game_uso_D_807FF458 + 0x208) < (double)m) {
     callA:
         game_uso_func_0000D5BC(obj, *(Pair2 *)((char *)&game_uso_D_807FF458 + 0xE68));
     } else {
         game_uso_func_0000D5BC(obj, *(Pair2 *)((char *)&game_uso_D_807FF440 + 0xE50));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000E1FC);
-#endif
 
 /* game_uso_func_0000E2D0 - per-frame advance of a timed sub-object on game
  * object a0. Global gate at &D+0; if active (a0->0xE4 frame counter >= 0) and
