@@ -117,7 +117,12 @@ extern OSEventState __osEventStateTab[];
  * shared frame (no local addiu sp) + recursion + 2x func_800073F8
  * rmon-builder + cross-function shared-epilogue branch-likely. Full
  * body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM
- * (no episode; tautology-trap rule). */
+ * (no episode; tautology-trap rule).
+ * 2026-07-15 (agent-h): checked vs the coloring/slot lever wave — N/A.
+ * The gate here is STRUCTURAL (no-prologue alt-entry in a donated frame,
+ * cross-function epilogue labels), not register coloring; no C function
+ * can deallocate a frame it never allocated. Permanent INCLUDE_ASM unless
+ * a whole-family asm-level merge with func_800079F4 is undertaken. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80007A98);
 
 /* func_80007B3C - verified structural decode (kernel, 0x294, 165

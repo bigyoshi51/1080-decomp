@@ -165,7 +165,11 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80004808);
  * while-form / barrier-in-loop / barrier-after-loop / call-in-condition
  * shapes — ALL converge to the same bnezl output (uopt canonicalizes).
  * Same likely-slot-fill class as the documented bnezl family; the 44CC
- * struct-home/barrier kit does not apply (no homed locals here). NM stays. */
+ * struct-home/barrier kit does not apply (no homed locals here). NM stays.
+ * 2026-07-15 (agent-h): coloring/slot lever-wave check — N/A by class. The
+ * residual is likely-slot FILL policy (uopt/as1 branch-likely emission),
+ * not register coloring or frame slots; the wave's same-name-web/dead-home/
+ * ring-burn levers have no purchase. Cap stands on the 2026-07-10 matrix. */
 #ifdef NON_MATCHING
 void func_8000487C(void) {
     s32 r = func_80009EA0();
