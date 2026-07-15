@@ -13007,8 +13007,7 @@ void game_uso_func_0000F948(int *a0) {
     volatile int padba[2];
     F948_Vec3 a;
     float *q;
-    register float scale;
-    register float rx, ry, rz;
+    float scale;
     float mx, my, mz;
     volatile int padbot[5];
 
