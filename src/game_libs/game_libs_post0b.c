@@ -10499,17 +10499,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FC58);
 // node in $a1 / n in $v0 (spills sp+0x28/0x2C); mine lands node in $v1 / n in
 // $a1 (spills sp+0x30/0x2C) -> frame 0x38 vs 0x30. The reg-assignment +
 // 8-byte frame are the spill-slot nuance (cf. gl_func_0000E6E8). Stays NM.
+// 2026-07-15 lever wave: 13 -> 11 raw diffs (standalone+in-tree verified). FIXED:
+// (a) frame 0x38->0x30 via B49C DE-NAMING — `handle` was a dead 8-byte home;
+// the nameless chain-store `self[0x10/4] = (self[0xC/4] = call())` emits
+// sw 0xC before sw 0x10 exactly as target; (b) spill slots node@0x28/n@0x2C
+// via decl-order swap (n declared first). REMAINING 11 diffs = pure 2-web color
+// permutation: (node,n) = (v1,a1) build vs (a1,v0) target. NEGATIVE probes
+// (2026-07-15): E9C0 same-name fmt-ptr reuse (const web const-props away),
+// same-name h reuse for n (v0 constraint doesn't propagate across split webs),
+// int-cast store spelling (store-forwarding still fires, kills the reload),
+// all-nameless (recomputes instead of spilling), K&R unpassed node param
+// (arg-area spill 0x34 + prologue reschedule). E6E8-class coloring residual. NM.
 #ifdef NON_MATCHING
 extern int gl_proto_FF44(int, void*, float, float, float);
 void gl_func_0003FF44(int *self) {
-    int handle;
-    int *node;
     int n;
+    int *node;
 
     gl_func_00000000(self);
-    handle = gl_proto_FF44(0, (char*)&D_00000000 + 0x1F488, 0.0f, 0.0f, 0.0f);
-    self[0xC / 4] = handle;
-    self[0x10 / 4] = handle;
+    self[0x10 / 4] = (self[0xC / 4] = gl_proto_FF44(0, (char*)&D_00000000 + 0x1F488, 0.0f, 0.0f, 0.0f));
     if (self[0x38 / 4] != 0) {
         node = (int*)((volatile int*)self)[0x10 / 4];
         n = ((int*)self[0x3C / 4])[0x10 / 4];
@@ -20845,7 +20853,13 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E244);
  * plus decomp-permuter -j4 for 180s (0 candidates). So the orphan-merge (prepend
  * the 2 orphan words to this body's .s as game_libs_func_0004E37C, delete the body
  * symbol) is ready and would land the moment the $v0/$v1 is solved — but it is a
- * genuine allocator cap today. Leave both INCLUDE_ASM. */
+ * genuine allocator cap today. Leave both INCLUDE_ASM.
+ * 2026-07-15 new-lever-wave sweep NEGATIVE (all standalone-verified, idx stays $v0):
+ * ll-alias callee (dead v0+v1 defs — FD0 exclusion does NOT fire; idx web's first
+ * def precedes the call so it never interferes with the jal's dead defs), dead-if
+ * result consume `if(call()){}`, same-name destructive `v1=call(); v1=a0[3];`
+ * (DSE'd), v1 as 4th K&R param (+1 insn), de-naming both spellings (array-store-
+ * first regresses reloads; increment-first folds sll onto NEW value). Cap stands. */
 void game_libs_func_0004E37C(int *a0, int a1) {
     int v1;
     if ((*(int*)((char*)&D_00000000 + 0x1C4) & 1) == 0) {
