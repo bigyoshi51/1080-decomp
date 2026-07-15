@@ -10073,54 +10073,42 @@ void func_0000EBB8(char *a0) {
 }
 
 /* func_0000EBE8: 36-insn alloc-or-fail + linked-list-prepend wrapper.
- * Promoted from 84.47% NM with the same size-preserving INSN_PATCH recipe as
- * sibling func_00007B08: the natural C body emits a 0x20 frame and keeps the
- * return node in $a2, while target wants the 0x28-frame $v1 layout.
- *
- * Structure:
- *   p = alloc(0x40);
- *   if (p != 0) {
- *       call(p);
- *       p->0x28 = &D_00000000;
- *       p->0x3C = 0;
- *   }
- *   target = caller_a0->0x40;
- *   if (target != 0) {
- *       call(p+0x10, target);
- *       if (target->0x14 != 0) target->0x4 = 1;
- *       target->0x14 = p;
- *   }
- *   return p;
- *
- * Target uses beql delay-likely to share `target->0x14 = p` store across
- * both branches of `if (target->0x14 != 0)` — natural emit from the
- * conditional-prefix + unconditional-suffix shape.
- *
- * (Old recipe pointer: docs/POST_CC_RECIPES.md#insn_patch-for-frame-regalloc-caps;
- * DEPRECATED 2026-05-23. INSN_PATCH for frame/regalloc caps REMOVED as
- * match-faking per feedback_no_instruction_forcing_matches_policy.) */
-#ifdef NON_MATCHING
+ * EXACT 2026-07-15 (84.5% -> 36/36, ROM byte-exact with C as build path).
+ * Three coupled levers cracked the old "0x20-frame $a2" residual:
+ *  (1) `ret = p; p += 4;` — the target's `addiu a0,a0,0x10` is a DESTRUCTIVE
+ *      in-place advance of p; the second def blocks copy-propagation so
+ *      `ret = p` survives as `or v1,a0` and p's web colors $a0 (both defs
+ *      feed arg0 uses). Passing `p` (post-advance) to the second call keeps
+ *      the addiu in p's own register.
+ *  (2) `if (caller_a0[0x10] != 0) { target = caller_a0[0x10]; ... }` —
+ *      condition tests the raw expression, assignment CSE'd inside the
+ *      branch: load lands in $v0, plain beqz (not beqzl-epilogue-steal),
+ *      copy `or a1,v0` fills the delay slot.
+ *  (3) decl order ret,target,p — spill slots assigned in REVERSE decl order
+ *      (p->0x1C, target->0x20, ret->0x24).
+ * Trailing 2 alignment nops (0xEC78/EC7C) restored via all-zero
+ * SUFFIX_BYTES_FORCE in the Makefile (genuine pad, not instructions). */
 int *func_0000EBE8(int *caller_a0) {
-    int *p = (int*)func_00000000(0x40);
+    int *ret;
     int *target;
-    if (p != 0) {
+    int *p;
+    if ((p = (int*)func_00000000(0x40)) != 0) {
         func_00000000(p);
         p[0x28/4] = (int)&D_00000000;
         p[0x3C/4] = 0;
     }
-    target = (int*)caller_a0[0x40/4];
-    if (target == 0) goto end;
-    func_00000000((char*)p + 0x10, target);
-    if (target[0x14/4] != 0) {
-        target[0x4/4] = 1;
+    ret = p;
+    p += 0x10/4;
+    if (caller_a0[0x40/4] != 0) {
+        target = (int*)caller_a0[0x40/4];
+        func_00000000(p, target);
+        if (target[0x14/4] != 0) {
+            target[0x4/4] = 1;
+        }
+        target[0x14/4] = (int)ret;
     }
-    target[0x14/4] = (int)p;
-end:
-    return p;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000EBE8);
-#endif
 
 void func_0000EC80(int *dst) {
     int buf[2];

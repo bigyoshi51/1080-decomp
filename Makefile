@@ -808,14 +808,17 @@ build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES := func_0000F1B4=0x00000000,0x
 # single trailing 8-byte-alignment nop so func_0000EF20 sits at 0xEF20. Append it
 # as an all-zero (nop) word via SUFFIX_BYTES_FORCE (alignment pad, not an invented
 # instruction). FORCE because the natural epilogue trips the plain-SUFFIX skip path.
-build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000
+# func_0000EBE8 likewise (2026-07-15): byte-exact C body ends `jr ra; nop` at
+# 0xEC74; target has two trailing alignment nops (0xEC78/0xEC7C) so the next fn
+# sits at 0xEC80. All-zero pad words, FORCE for the same skip-path reason.
+build/src/bootup_uso/bootup_uso.c.o: SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 func_0000EBE8=0x00000000,0x00000000
 # Mirror onto the non_matching object so report.json/objdiff score the trailing
 # alignment-nop word (splat-symbol-boundary trailing-delay-nop class).
 # func_0000F1B4 likewise: matching build has SUFFIX_BYTES (3 all-zero pad words to
 # the next-fn boundary at 0xF1F0); mirror it so objdiff sizes the symbol 0x3C not
 # 0x30 (was scoring 80%=12/15w on a byte-identical fn). F1B4 is the LAST fn in the
 # file so the pad just extends .text (no shift / TRUNCATE needed on non_matching).
-build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 func_0000F1B4=0x00000000,0x00000000,0x00000000
+build/non_matching/src/bootup_uso/bootup_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := func_0000EE8C=0x00000000 func_0000F1B4=0x00000000,0x00000000,0x00000000 func_0000EBE8=0x00000000,0x00000000
 
 # Collect source files (kernel/, bootup_uso/, game_libs/, gui_uso/ — exclude o1/ reference)
 C_FILES   := $(filter-out src/timproc_uso_b1/timproc_uso_b1_o0_5A4.c src/timproc_uso_b1/timproc_uso_b1_o0_65C.c src/timproc_uso_b1/timproc_uso_b1_o0_B0.c src/timproc_uso_b3/timproc_uso_b3_o0_65C.c src/timproc_uso_b3/timproc_uso_b3_o0_5A4.c src/timproc_uso_b3/timproc_uso_b3_o0_B0.c src/game_libs/game_libs_o1_6C8AC.c src/game_libs/game_libs_o1_6AF0C.c src/game_libs/game_libs_o1_6A304.c src/game_libs/game_libs_o1_6AF44.c src/game_libs/game_libs_o1_6B880.c src/game_libs/game_libs_o1_6B974.c src/game_libs/game_libs_o1_6BAD4.c src/game_libs/game_libs_o1_6B7A0.c src/game_libs/game_libs_ido53_6C11C.c src/game_libs/game_libs_o1_6FAD4.c src/game_libs/game_libs_ido53_71708.c src/game_libs/game_libs_o1_73824.c src/game_libs/game_libs_o1_6BF34.c src/game_libs/game_libs_ido53_6C1B8.c src/game_libs/game_libs_ido53_6D0F4.c src/game_libs/game_libs_o1_6DA74.c src/game_libs/game_libs_o1_6D554.c src/game_libs/game_libs_ido53_6D6F4.c src/game_libs/game_libs_ido53_6D7CC.c src/game_libs/game_libs_ido53_6CDB4.c src/game_libs/game_libs_o1_6CAD4.c src/game_libs/game_libs_o1_6CB84.c src/game_libs/game_libs_o1_6CC64.c src/game_libs/game_libs_o1_6D270.c src/game_libs/game_libs_ido53_70040.c src/game_libs/game_libs_ido53_730CC.c src/game_libs/game_libs_ido53_7369C.c src/game_libs/game_libs_ido53_70B04.c src/game_libs/game_libs_ido53_70C44.c src/game_libs/game_libs_ido53_73310.c src/game_libs/game_libs_ido53_6F088.c src/game_libs/game_libs_ido53_6F38C.c src/game_libs/game_libs_ido53_6F3BC.c src/game_libs/game_libs_o2_70FCC.c src/arcproc_uso/arcproc_uso_o0_748.c src/arcproc_uso/arcproc_uso_o0_688.c src/arcproc_uso/arcproc_uso_o0_5C8.c src/kernel/kernel_000_ido53_2530.c src/kernel/kernel_018_f_ido53_7564.c src/kernel/kernel_018_d_ido53_70A0.c src/kernel/kernel_018_b_ido53_698C.c src/kernel/kernel_006_o1_5520.c src/kernel/kernel_008_o1_58C0.c src/kernel/kernel_024_o1_9AB0.c,$(shell find src/kernel src/bootup_uso src/game_libs src/gui_uso src/n64proc_uso src/eddproc_uso src/arcproc_uso src/h2hproc_uso src/titproc_uso src/boarder1_uso src/boarder2_uso src/boarder3_uso src/boarder4_uso src/boarder5_uso src/mgrproc_uso src/game_uso src/timproc_uso_b1 src/timproc_uso_b3 src/timproc_uso_b5 src/map4_data_uso_b2 -name '*.c' -type f 2>/dev/null))
