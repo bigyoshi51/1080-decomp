@@ -497,7 +497,14 @@ void func_00000A94(int *a0, int a1) {
  *  or unsunk. No C shape reconciles both under IDO 5.3/7.1 -O2.
  *  Target's plain-beq+nop into a shared [jr][move] tail is UNIQUE in the
  *  entire ROM (full-asm scan) — likely an uopt pass-ordering state not
- *  reachable from any input we can construct. Stays NM at 2 word diffs. */
+ *  reachable from any input we can construct. Stays NM at 2 word diffs.
+ *  2026-07-15 (agent-g wave-3 re-check): return-capture precolor and
+ *  void-alias FD0-exclusion CANNOT apply (leaf fn, no calls). Two new
+ *  zero-cost 2-def-web spellings probed, both byte-identical to baseline
+ *  (still li v0,8 + nop): `a1 = 8; return a1;` (live-incoming + 8 = real
+ *  2-def web) and `a0 = 8; return a0;` (dead-incoming + 8). Param webs
+ *  are dead-def-pruned/split before coloring, so the const def coalesces
+ *  exactly like a fresh local. MECHANICALLY EXCLUDED verdict stands. */
 #ifdef NON_MATCHING
 int func_00000A9C(int a0, int a1) {
     if (a1 == 0)   goto L_AE4;
