@@ -15377,19 +15377,23 @@ int gl_func_00046B44() {
 
 /* gl_func_00046B64: 24-insn toggle-bit + vtable-dispatch + 2-call.
  * Inlining a0[0x240/4] at each use (rather than caching in a local)
- * forces IDO to emit the lw a0,0x240 twice — matching target's insn
- * count. 12-insn INSN_PATCH closes pure register-rename diffs (v0/v1
- * vs t6/t7/t9, a1 vs a2 for the a0-spill). */
+ * forces IDO to emit the lw a0,0x240 twice — matching target's insn count.
+ * 2026-07-15 wave 3: BYTE-EXACT 24/24 (was 96.46 with a stale INSN_PATCH
+ * note). Two edits: (1) DE-NAME toggled via the compound-assign chain
+ * `((int*)a0[0x240/4])[0x144/4] = (a0[0x204/4] ^= 1);` — the named local
+ * was a candidate stealing $v0 and shifting every later web (second
+ * 0x240-read v1->v0, vtable a1->v1, saved-a0 a2->a1, ring t6/t7/t9);
+ * unnamed, the toggle rides ring t6/t7 like the target. (2) addu operand
+ * commute: writing `(int)a0[0x240/4] + *(short*)(vtable+0x60)` (ptr-value
+ * textually FIRST) emits the target's `addu a0,t0,v0` (short-first). */
 #ifdef NON_MATCHING
 void gl_func_00046B64(int *a0) {
-    int toggled = a0[0x204/4] ^ 1;
     int *vtable;
     int rv;
-    a0[0x204/4] = toggled;
-    ((int*)a0[0x240/4])[0x144/4] = toggled;
+    ((int*)a0[0x240/4])[0x144/4] = (a0[0x204/4] ^= 1);
     vtable = (int*)((int*)a0[0x240/4])[0x28/4];
     rv = ((int(*)(int))vtable[0x64/4])(
-        *(short*)((char*)vtable + 0x60) + (int)a0[0x240/4]);
+        (int)a0[0x240/4] + *(short*)((char*)vtable + 0x60));
     func_00000000(rv);
     func_00000000(a0);
 }
