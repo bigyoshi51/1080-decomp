@@ -34,7 +34,7 @@ extern s32 func_80002890(s32);
 extern void func_8000A0E0(void);
 extern void func_80005350(s32, s32);
 extern void func_80005400(s32, s32);
-extern s32 func_80008430(s32);
+extern s32 func_80008430();
 extern void func_80009148(s32);
 extern void func_80009030(s32, s32);
 extern void func_80008498(void);
@@ -69,35 +69,19 @@ extern OSEventState __osEventStateTab[];
 
 /* func_80009474 split out to kernel_054.c (-O1, NON_MATCHING) */
 
-/* func_80009584 - near-exact structural decode (kernel, 0x118, rmon
- * debug command handler). All logic, callees, loop structure and frame
- * layout match the target; residual is a pure IDO coloring/scheduling
- * cap (~6 diff words of 70, 0 logic diffs). REGALLOC/SCHED residual,
- * NOT a logic bug - verified with decomp-permuter (~5500 iters, base
- * score 410 -> 255, never reached 0).
- *
- * Corrected vs prior decode: the 0xA4 call is __rmonSendHeader (real
- * symbol @0x80007360), NOT func_800073F8 (@0x800073F8) - the prior
- * fn-ptr cast pointed at the wrong address. func_800074A0 is a direct
- * jal (no cast). Both now link-direct to real kernel symbols.
- *
- * Shape: arg0 = RmonMsg (s0->0x4 u8 type, s0->0xC s32 code). Stack
- * rmon header at sp+0x30 {zero0=0x210 @+0, type @+4 (u8), flags @+6
- * (u16)=0, code @+0xC (s32)}, len 0x10. A 1-word local `val`=0x210 is
- * read over by func_800066F0(&val+cnt, 4-cnt, 8) until cnt>=4 (mirrors
- * kernel_043 func_80006FF8 bounded-read idiom). Then __rmonSendHeader
- * + func_80009148(1) begin; 0x20-iter loop emits records via
- * func_800090B4(0x3A,i)/func_80008498/func_800074A0(0x04000000,0x10);
- * func_800091F0(1) ends. Large 0x200 unused stack buffer (buf[128])
- * present in the original frame (0x250) - hence the buf decl.
- *
- * Residual diffs: (1) prologue s0-save ordering; (2) target reloads s0
- * into the delay slot of the func_80008430 call while IDO here emits a
- * dead `lw a0` + separate `lw s0` (+1 insn); (3) a 4-byte stack-pad
- * placement shift on the val/cnt/p trio (target 0x244/0x248/0x24C vs
- * 0x240/0x244/0x248); (4) branch-target offsets cascade from (2).
- * INCLUDE_ASM remains build path (no episode; not byte-exact). */
-#ifdef NON_MATCHING
+/* func_80009584 (rmon debug command handler, 0x118): MATCHED 2026-07-15
+ * (agent-h), retracting the "pure IDO coloring/scheduling cap, permuter
+ * ~5500 iters never 0" verdict. Four levers:
+ *  - `char* volatile arg0` + `s0 = arg0;` BEFORE the guard: direct home
+ *    reload `lw s0,0x250(sp)` hoisted by as1 into the jal delay slot
+ *    (fixes prologue sw s0 order + kills the dead `lw a0` reload).
+ *  - zero-arg K&R call `func_80008430()` (extern decl de-prototyped):
+ *    a0 still holds arg0 from the prologue, no arg setup emitted.
+ *  - decl-order frame map: `register char* s0` reserves a DEAD HOME even
+ *    at -O1 in this aggregate-bearing frame; moving its decl below `val`
+ *    relocates the hole from 0x24C to 0x240 and snaps val/cnt/p to
+ *    0x244/0x248/0x24C (E04-class dead-home interleave).
+ *  - hdr.flags=0 store emitted in statement order: swap flags before zero0. */
 extern s32 func_800066F0(void*, s32, s32);
 extern void __rmonSendHeader(s32*, s32, s32);
 extern void func_800090B4(s32, s32);
@@ -105,24 +89,24 @@ extern void func_800074A0(s32, s32);
 
 typedef struct { s32 zero0; u8 type; char pad5; u16 flags; s32 pad8; s32 code; } RmonHdr16;
 
-s32 func_80009584(char* arg0) {
-    register char* s0;
+s32 func_80009584(char* volatile arg0) {
     char* p;
     s32 cnt;
     s32 val;
+    register char* s0;
     s32 buf[128];
     RmonHdr16 hdr;
     register s32 i;
     register s32 recv;
 
-    if (func_80008430((s32)arg0) != 0) {
+    s0 = arg0;
+    if (func_80008430() != 0) {
         return -4;
     }
-    s0 = arg0;
     hdr.code = *(s32*)(s0 + 0xC);
     hdr.type = *(u8*)(s0 + 0x4);
-    hdr.zero0 = 0x210;
     hdr.flags = 0;
+    hdr.zero0 = 0x210;
     val = 0x210;
     p = (char*)&val;
     cnt = 0;
@@ -140,6 +124,3 @@ s32 func_80009584(char* arg0) {
     func_800091F0(1);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80009584);
-#endif
