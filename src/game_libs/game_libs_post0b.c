@@ -31984,9 +31984,19 @@ int gl_func_0005FDCC(int a0, int a1, int a2) {
  * The $v1 += 0x2C base-adjust IS C-reachable: MUTATE the pointer (p += 0x2C),
  * which the compiler can't fold back to full offsets (unlike q = p + 0x2C).
  * That + the orphan hoist gives STRUCTURE EXACT (26/26 opcodes, bne not bnel).
- * Residual = a caller-saved-temp regalloc renumber (capacity $v0 mine vs $t6
- * target, cascading the $t6-$t9 chain down by one; mine reuses the $v0 return
- * reg for capacity). swap-decl/inline-cap regressed. Stays NM.
+ * 2026-07-15 wave 3: BYTE-EXACT 26/26 (0 word diffs), retracting the
+ * "caller-saved-temp regalloc renumber / $v0-vs-$t6 coloring residual" verdict.
+ * Two levers: (1) DE-NAMING — capacity's entry load was a NAMED candidate
+ * (colored $v0); the target's is an unnamed t-ring temp ($t6). Inlining the
+ * load into the comparison un-names the web and the whole t6-t9 ring cascade
+ * snaps into place. (The 2026-05-30 "inline-cap regressed" probe inlined it
+ * while KEEPING count's decl-load first — that's why it regressed.)
+ * (2) EVAL-ORDER: target loads capacity(0x34) BEFORE count(0x38); writing
+ * `if (*(int*)(p+0x8) <= (count = *(int*)(p+0xC)))` puts the unnamed capacity
+ * load in the LEFT operand (evaluated first) with count's def as an assignment
+ * expression on the right; `cap <= count` emits the identical
+ * slt at,count,cap. Un-landable (baked-USO D_/jal-0 placeholders); stays as
+ * objdiff-100 NM wrap.
  * 2026-06-21 (agent-e base-pin vein): fixed TWO real C bugs that were inflating
  * the diff — (1) capacity was read UNINITIALIZED (declared, never assigned
  * before `count >= capacity`); now `capacity = p[0x34]` read first, `count =
@@ -31998,10 +32008,10 @@ int gl_func_0005FDCC(int a0, int a1, int a2) {
 #ifdef NON_MATCHING
 char *game_libs_func_0005FE14(int a0) {
   char *p = *((char **) (&D_00000000));
-  int capacity = *((int *) (p + 0x34));
-  int count = *((int *) (p + 0x38));
+  int capacity;
+  int count;
   p += 0x2C;
-  if (count >= capacity)
+  if (*((int *) (p + 0x8)) <= (count = *((int *) (p + 0xC))))
   {
     gl_func_00000000((char *)(&D_00000000) + 0x21C40, count);
     capacity = *((int *) (p + 0x34));
