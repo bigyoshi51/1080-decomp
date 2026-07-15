@@ -524,11 +524,29 @@ int mgrproc_uso_func_00001324(char *arg0) {
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_000013C8: 75-insn (0x12C) post-init state dispatcher.
- * Real symbols re-derived 2026-06-20 from the resolved .s (the prior body
- * used gl_func_00000000 / &D_00000000 placeholders + wrong constants — ALL
- * relocs were wrong). Correct callees: mgrproc_uso_func_00000140 / _00000170
- * / _01FA1C / import_000A8114. Globals: import_800200DC (slot 0x44),
- * import_800200D8 (slot 0x40), import_80020100 (args to import_000A8114).
+ * BYTE-EXACT 75/75, objdiff 100.0 (2026-07-15 agent-g, 82.4 -> 100). The
+ * 2026-06-20 "LO16/address-remat + branch-likely tie" cap note was WRONG on
+ * all three counts; fixes were:
+ *  1. DECODE ERROR: the SI-magic *else* arm (s0[0x7C8]=0) falls through to
+ *     term: like every other arm — the early `goto epi` was invented.
+ *  2. Per-site alias externs (import_800200DC_b/_c, import_80020100_b) defeat
+ *     the cross-site &sym+K address CSE -> target's independent at-form
+ *     lui/sw per store + lui-fused lw (volatile does NOT do this — it kills
+ *     load CSE, not address-expression CSE; array-decay retype is the
+ *     OPPOSITE lever). objdiff scores 100 despite alias reloc names.
+ *  3. DE-NAME the `t5` pointer local (embed ((int**)s0)[0x6AC/4][0x4C/4] in
+ *     the call arg) — a named local colors the reload web $v0 and phase-
+ *     shifts the whole t6..t5 temp pool; the expression temp gets $t5 in
+ *     sequence. Plus `spill = 1;` moved BEFORE the D8=DC copy (ugen numbers
+ *     temps in statement order: t1=1, t2=DC load, t3=7).
+ * The branch-likely "tie" disappeared once the temp pool was in phase.
+ * NOT LANDED: USO baked-reloc class (alias syms would also need
+ * undefined_syms wiring); NM wrap, INCLUDE_ASM default keeps ROM exact.
+ *
+ * Real symbols re-derived 2026-06-20 from the resolved .s. Correct callees:
+ * mgrproc_uso_func_00000140 / _00000170 / _01FA1C / import_000A8114.
+ * Globals: import_800200DC (slot 0x44), import_800200D8 (slot 0x40),
+ * import_80020100 (args to import_000A8114).
  *
  * Flow (s0 = a0; spill = stack 0x24):
  *   spill = 0;
@@ -552,54 +570,44 @@ int mgrproc_uso_func_00001324(char *arg0) {
  *
  * 0xA0000200 = SI_DRAM_ADDR_REG; 0xAC290000 = SI command-word check.
  *
- * NM cap (logic + control-flow + all symbols byte-correct, same size 0x12C).
- * Residual is genuine IDO addressing/scheduling idiom, multi-diff:
- *  - two separate `lui import_80020100` for the a0/a1 args (IDO does not
- *    reuse the base across the two operands; C reuse/fold collapses it);
- *  - per-store `lui at,%hi` rematerialization of the import_800200D8/DC
- *    global bases (target keeps the base register live; held-pointer C
- *    variants CSE it away);
- *  - branch-likely DIRECTION on the terminal (target beql spill==0 -> store 4;
- *    C emits bnel regardless of if/else or ternary phrasing).
- * Cap class = LO16/address-rematerialization + as1 branch-likely tie.
- * Default build INCLUDE_ASM keeps the ROM byte-correct. */
+ * (Flow comment above retained; "return" in the SI-magic arm corrected to
+ * fall-through-to-term per fix 1.) */
 extern int mgrproc_uso_func_00000140();
 extern int mgrproc_uso_func_00000170();
 extern int mgrproc_uso_func_01FA1C();
 extern int import_000A8114();
-extern int import_800200DC[];
+extern char import_800200DC;
+extern char import_800200DC_b;
+extern char import_800200DC_c;
 extern char import_800200D8;
-extern int import_80020100[];
+extern char import_80020100;
+extern char import_80020100_b;
 void mgrproc_uso_func_000013C8(int *a0) {
     int spill;          /* stack 0x24(sp) */
     int *s0 = a0;
-    int *t5;
     spill = 0;
     if (a0[0x4F8 / 4] == 0) {
         if (mgrproc_uso_func_00000140(a0[0x6A8 / 4]) != 0) {
             spill = 1;
-            import_800200DC[0x44 / 4] = 7;
+            *(int *)((char *)&import_800200DC + 0x44) = 7;
             if (*(volatile int *)0xA0000200 == (int)0xAC290000) {
-                import_000A8114(&import_80020100[0], import_80020100[0x68 / 4] - 1);
-                goto term;
+                import_000A8114(&import_80020100, *(int *)((char *)&import_80020100_b + 0x68) - 1);
             } else {
                 s0[0x7C8 / 4] = 0;
-                goto epi;
             }
         }
         goto term;
     }
     /* a0[0x4F8] != 0 */
     if (mgrproc_uso_func_00000170(s0[0x6A8 / 4]) == 0) goto term;
-    *(int *)((char *)&import_800200D8 + 0x40) = import_800200DC[0x44 / 4];
     spill = 1;
-    import_800200DC[0x44 / 4] = 7;
+    *(int *)((char *)&import_800200D8 + 0x40) = *(int *)((char *)&import_800200DC_b + 0x44);
+    *(int *)((char *)&import_800200DC_c + 0x44) = 7;
 term:
     if (s0[0x7C8 / 4] != 0) {
         if (mgrproc_uso_func_00000170(s0[0x6A8 / 4]) == 0) goto storestate;
     }
-    t5 = (int *)s0[0x6AC / 4];
-    if (mgrproc_uso_func_01FA1C(t5[0x4C / 4]) == 0) {
+    if (mgrproc_uso_func_01FA1C(((int **)s0)[0x6AC / 4][0x4C / 4]) == 0) {
         *(int *)((char *)&import_800200D8 + 0x40) = 7;
         spill = 0;
     } else {
@@ -608,7 +616,6 @@ term:
     }
 storestate:
     s0[0x504 / 4] = (spill != 0) ? 0 : 4;
-epi:
     return;
 }
 #else
