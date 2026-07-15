@@ -3733,11 +3733,16 @@ void game_libs_func_00038294(int a0) {
  *      (lui/addiu immediates show 0 in the .o; reloc-resolve to 2/0xEA30 at
  *      link per project convention.)
  *
- * REMAINING (CAP): base-register cascade — build uses $v0 for the table base
- * (cascading to $t0/$t1 loads and $t2 for the 0x1EB40 const); target uses $t0
- * (cascading $t2/$t1, and $t3). Target reserves $v0/$v1 entirely; build reuses
- * $v0 as a general temp. Tried named-local base ptr and returning the final
- * call result — neither shifts the coloring. Pure graph-coloring residual. */
+ * 2026-07-15 RESOLVED (was "pure graph-coloring residual" cap, 8 diffs): the
+ * $v0-vs-$t0 base cascade fell to the 519A4 STRUCT-COPY lever — the descriptor
+ * copy is a genuine 8-byte struct copy `*(Pair*)(v1+2) = *(Pair*)D_3829C_1EA30`,
+ * whose copy machinery materializes the source base in a t-ring reg (lui t0/
+ * addiu t0) and emits the target's t2/t1 load temps + t3 for the 0x1EB40 const.
+ * Two scalar-copy statements let uopt CSE the address into $v0 instead.
+ * Raw residual = reloc-masked lui/addiu immediates only (D_3829C_1EA30 baked
+ * 0x1EA30 in target; = 0x0001EA30 via undefined_syms). objdiff 100.
+ * NOT LANDABLE: gl_func_00000000 placeholder callees + baked USO addends. */
+typedef struct { int a, b; } Pair3829C;
 void gl_func_0003829C(int *arg0) {
     int saved = arg0[3];
     volatile int pad0, pad1;
@@ -3753,8 +3758,7 @@ void gl_func_0003829C(int *arg0) {
             v1[1] = (int)arg0;
             {
                 extern int D_3829C_1EA30[];
-                v1[2] = D_3829C_1EA30[0];
-                v1[3] = D_3829C_1EA30[1];
+                *(Pair3829C *)(v1 + 2) = *(Pair3829C *)D_3829C_1EA30;
             }
         }
         *a2 = (int)((char *)&D_00000000 + 0x1EB40);
