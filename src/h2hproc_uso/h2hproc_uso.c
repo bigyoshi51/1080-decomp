@@ -1186,7 +1186,19 @@ end:
  * Makefile INSN_PATCH previously took the body to byte-exact; INSN_PATCH
  * REMOVED 2026-05-23 as match-faking per
  * feedback_no_instruction_forcing_matches_policy — fn rolled back to NM-wrap;
- * NATURAL CEILING 94.16% NM. */
+ * NATURAL CEILING 94.16% NM.
+ * 2026-07-15 (agent-g wave 3) STRUCTURE FINDING, kept un-applied: the TARGET
+ * control flow NESTS each re-clamp inside its first-clamp if (branches at
+ * +0x38/+0x7c exit past the re-clamp to +0xa0: `if (*fp < 0xFF) { *fp += 0x10;
+ * if (reload >= 0x100) = 0x2D0; }`, same for the decr arm) — the checked-in
+ * sequential clamps are a mis-decode kept ONLY because they fuzzy-score
+ * better. Applying the nesting exposes the real cap: the target holds a0 in
+ * $a2 with NO s-regs (frame 24), split-spilling to 24(sp) (= the incoming
+ * arg home) around each call — the kit-II a-reg-constrained split-out-chain
+ * shape. Probes (3rd-K&R-arg a2 precolor, named-copy web, standalone -O1)
+ * all keep the web in $s0 (frame 32) and cascade ~30 words: nested version
+ * measures 78.6 vs 94.5 sequential. Port-goal C should use the NESTED form;
+ * matching needs the a2-split lever first. */
 #ifdef NON_MATCHING
 void h2hproc_uso_func_00001204(char *a0) {
     char *p1;
