@@ -1029,7 +1029,6 @@ void h2hproc_uso_func_00000F60(char *a0) {
     gl_func_00000000(&D_00000000, 0, 0, 0x13F, 0xEF, 0x10001);
 }
 
-#ifdef NON_MATCHING
 /* h2hproc_uso_func_00000FD0 — BEST 136/141 words (96.5%), 2026-07-03 agent-e.
  * VERIFIED via clean NM rebuild + word-diff vs own .s. Baseline was 90/142.
  * 15 variants, all COMPILED.
@@ -1067,6 +1066,7 @@ void h2hproc_uso_func_00000F60(char *a0) {
  *    artifact (uoptlist class).
  */
 void *h2hproc_uso_func_00000FD0(void *a0, int *a1) {
+    extern void gl_func_00000000_void();  /* void alias (=0x0): dead-$v0-def lever */
     int *tmp;
     char *base = &D_00000000;
     int *tmp2, *nst;
@@ -1095,11 +1095,19 @@ void *h2hproc_uso_func_00000FD0(void *a0, int *a1) {
     gl_func_00000000(*(int*)((char*)a0 + 0x30), ((*(int*)base + 3) << 16) | 0x2, -1, base);
     gl_func_00000000(*(int*)((char*)a0 + 0x30), ((*(int*)base + 3) << 16) | 0x5, -1, base);
     *(int*)((char*)*(int*)((char*)a0 + 0x30) + 0x30) = gl_func_00000000(0, base, 72, 221, 3, 13);
-    gl_func_00000000(*(int*)((char*)a0 + 0x30));
-    gl_func_00000000(*(int*)((char*)a0 + 0x30), 174);
+    /* void-prototyped alias (=0x0): the unused K&R int return of these two
+     * calls left a dead $v0 def that excluded $v0 from tmp2's web (colored
+     * $v1). Void callee -> no dead def -> tmp2 colors $v0 (docs/IDO_CODEGEN
+     * void-callee-kills-dead-v0-def; alias precedent arcproc_uso_tail1). */
+    gl_func_00000000_void(*(int*)((char*)a0 + 0x30));
+    gl_func_00000000_void(*(int*)((char*)a0 + 0x30), 174);
     tmp2 = (int*)*(int*)((char*)a0 + 0x30);
-    nst = (int*)tmp2[0x28/4];
-    (**(void(**)(int))((char*)nst + 0x5C))(*(short*)((char*)nst + 0x58) + (int)tmp2);
+    /* nested ptr named into the SAME `tmp` local (332B4 same-name web reuse):
+     * tmp's later webs are a1-precolored (call arg) then a2 (post-spill
+     * reload); this web joins the family and colors a2, matching target.
+     * A separate `nst` local colored a1. Its dead decl below stays (frame map). */
+    tmp = (int*)tmp2[0x28/4];
+    (**(void(**)(int))((char*)tmp + 0x5C))(*(short*)((char*)tmp + 0x58) + (int)tmp2);
     tmp = (int*)*(int*)((char*)a0 + 0x30);
     gl_func_00000000((char*)a0 + 0x10, tmp);
     if (tmp[0x14/4] != 0) {
@@ -1113,9 +1121,6 @@ void *h2hproc_uso_func_00000FD0(void *a0, int *a1) {
 end:
     return a0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00000FD0);
-#endif
 
 /* h2hproc_uso_func_00001204: 87-insn (0x15C) state-machine + indirect call.
  * Two-path counter update on a0->[0x34]->[0x3C] gated by
