@@ -81,7 +81,15 @@ extern OSEventState __osEventStateTab[];
  * 2026-07-10 negative probe (w48 sweep): `extern u8 D_800195D6[];` +
  * D6[0]/D6[1] indexing (array-decay, hoping for one %hi + %lo/%lo+1 pair)
  * REGRESSES — IDO materializes the base in a NAMED reg (lui+addiu per
- * access, +5 words, whole store block re-schedules). Reverted; cap stands. */
+ * access, +5 words, whole store block re-schedules). Reverted; cap stands.
+ * 2026-07-15 (agent-h) lever-wave re-verify — cap CONFIRMED, exhaustively:
+ * comma-operator single statement (D6=6, D7=2) = no change; (&D6)[1]=2 =
+ * base materialization regression (as documented); struct {u8 d6,d7} pair
+ * (SAME symbol, +1 offset) still emits TWO lui $at at -O1 (7.1 AND 5.3);
+ * -O2 hoists %hi into a named reg (zero lui $at, wrong shape). No IDO
+ * config emits one shared $at across two adjacent byte stores. The target
+ * pair (both li's hoisted above both sb's, one $at) matches no compiler
+ * output family — plausibly hand-touched asm or a different tool. */
 extern u8 D_800195D4;
 extern u8 D_800195D5;
 extern u8 D_800195D6;
