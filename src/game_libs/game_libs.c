@@ -2273,17 +2273,17 @@ void gl_func_000041D4(Vec3 *dst) {
  *        0x38 with va declared last (slot placement IS reachable) but
  *        addressed-residency adds ~96 insns (2575) — dead stores at the
  *        pre-if def + post-call reloads. CONFIRMED CAP.
- * 2. [50w, 25 lui pairs] LUI-ORDER (NEWLY CHARACTERIZED, previously
- *    mis-filtered): in the 25 units whose header loads a float (D+0dxx) and
- *    an int (D+cfxx) global, the target emits the two hi-materializations
- *    CROSS-ordered: lui at,%hi(0dxx); lui tN,%hi(cfxx); lw tN; lwc1 —
- *    i.e. luis in REVERSE statement order, loads/stores in statement order.
- *    Probed: source line swap (u5) moves luis AND loads AND the two home
- *    stores together (2w -> 4w worse); IDO tracks statement order rigidly and
- *    canonicalizes; no C line order yields the cross-interleave. as1/ugen
- *    micro-schedule — no C handle found. NOTE: these 50 DO count against
- *    make verify; 4244's real ceiling with current knowledge is 2413/2479
- *    (97.3%) + 58 + 8 no-handle words.
+ * 2. [50w, 25 lui pairs] LUI-ORDER — RESOLVED 2026-07-15 agent-h via the
+ *    SAME-LINE JOIN lever (as1 debug-line tie-break, the 3D68C crack):
+ *    joining the unit's `uN_f.v = *(s32*)cfxx;` and `uN_a.z = *(f32*)0dxx;`
+ *    statements onto ONE source line lets as1 cross-schedule the two lui's
+ *    (line-number tie no longer forces statement order). Join ORDER is
+ *    shape-dependent: units whose f.v line is PRECEDED by another float
+ *    D-load (u5,7,9,11,13,15,16,17,20,21,22,23,25,26,27,28,29,31: type A)
+ *    join in original order `f.v; a.z`; units without one (u6,8,10,12,14,
+ *    18,19: type B) join REVERSED `a.z; f.v`. All 25 pairs now byte-exact.
+ *    Word residual 116 -> 66; fn now AT its documented ceiling 2413/2479
+ *    (97.3%) + the 58w class-C + 8w no-handle below.
  * 3. [6w] prologue as1 schedule (move s0,a0 hoisted above saves, sdc1 $f20
  *    in bnez delay) — no-handle (documented).
  * 4. [2w] li at,-8 vs addiu s2,sp,84 hoist order — no-handle (documented).
@@ -2716,8 +2716,7 @@ void *gl_func_00004244(char *arg0) {
         u5_c.z = 1.0f;
         u5_c.w = 1.0f;
         u5_a.y = *(f32 *)((char *)&D_00000000_0d0c + 0xD0C);
-        u5_f.v = *(s32 *)((char *)&D_00000000_cfa0 + 0xCFA0);
-        u5_a.z = *(f32 *)((char *)&D_00000000_0d10 + 0xD10);
+        u5_f.v = *(s32 *)((char *)&D_00000000_cfa0 + 0xCFA0); u5_a.z = *(f32 *)((char *)&D_00000000_0d10 + 0xD10);
         sp78 = u5_a;
         var_a0_4 = var_s0 + 0x98;
         sp68 = u5_b;
@@ -2740,8 +2739,7 @@ void *gl_func_00004244(char *arg0) {
         u6_c.y = 1.0f;
         u6_c.z = 1.0f;
         u6_c.w = 1.0f;
-        u6_f.v = *(s32 *)((char *)&D_00000000_cfa4 + 0xCFA4);
-        u6_a.z = *(f32 *)((char *)&D_00000000_0d14 + 0xD14);
+        u6_a.z = *(f32 *)((char *)&D_00000000_0d14 + 0xD14); u6_f.v = *(s32 *)((char *)&D_00000000_cfa4 + 0xCFA4);
         sp78 = u6_a;
         var_a0_6 = var_s0 + 0xBC;
         sp68 = u6_b;
@@ -2764,8 +2762,7 @@ void *gl_func_00004244(char *arg0) {
         u7_c.z = 1.0f;
         u7_c.w = 1.0f;
         u7_a.y = *(f32 *)((char *)&D_00000000_0d18 + 0xD18);
-        u7_f.v = *(s32 *)((char *)&D_00000000_cfa8 + 0xCFA8);
-        u7_a.z = *(f32 *)((char *)&D_00000000_0d1c + 0xD1C);
+        u7_f.v = *(s32 *)((char *)&D_00000000_cfa8 + 0xCFA8); u7_a.z = *(f32 *)((char *)&D_00000000_0d1c + 0xD1C);
         sp78 = u7_a;
         var_a0_6 = var_s0 + 0xE0;
         sp68 = u7_b;
@@ -2788,8 +2785,7 @@ void *gl_func_00004244(char *arg0) {
         u8_c.y = 1.0f;
         u8_c.z = 1.0f;
         u8_c.w = 1.0f;
-        u8_f.v = *(s32 *)((char *)&D_00000000_cfac + 0xCFAC);
-        u8_a.z = *(f32 *)((char *)&D_00000000_0d20 + 0xD20);
+        u8_a.z = *(f32 *)((char *)&D_00000000_0d20 + 0xD20); u8_f.v = *(s32 *)((char *)&D_00000000_cfac + 0xCFAC);
         sp78 = u8_a;
         var_a0_8 = var_s0 + 0x104;
         sp68 = u8_b;
@@ -2812,8 +2808,7 @@ void *gl_func_00004244(char *arg0) {
         u9_c.z = 1.0f;
         u9_c.w = 1.0f;
         u9_a.y = *(f32 *)((char *)&D_00000000_0d24 + 0xD24);
-        u9_f.v = *(s32 *)((char *)&D_00000000_cfb0 + 0xCFB0);
-        u9_a.z = *(f32 *)((char *)&D_00000000_0d28 + 0xD28);
+        u9_f.v = *(s32 *)((char *)&D_00000000_cfb0 + 0xCFB0); u9_a.z = *(f32 *)((char *)&D_00000000_0d28 + 0xD28);
         sp78 = u9_a;
         var_a0_8 = var_s0 + 0x128;
         sp68 = u9_b;
@@ -2836,8 +2831,7 @@ void *gl_func_00004244(char *arg0) {
         u10_c.y = 1.0f;
         u10_c.z = 1.0f;
         u10_c.w = 1.0f;
-        u10_f.v = *(s32 *)((char *)&D_00000000_cfb4 + 0xCFB4);
-        u10_a.z = *(f32 *)((char *)&D_00000000_0d2c + 0xD2C);
+        u10_a.z = *(f32 *)((char *)&D_00000000_0d2c + 0xD2C); u10_f.v = *(s32 *)((char *)&D_00000000_cfb4 + 0xCFB4);
         sp78 = u10_a;
         var_a0_10 = var_s0 + 0x14C;
         sp68 = u10_b;
@@ -2860,8 +2854,7 @@ void *gl_func_00004244(char *arg0) {
         u11_c.z = 1.0f;
         u11_c.w = 1.0f;
         u11_a.y = *(f32 *)((char *)&D_00000000_0d30 + 0xD30);
-        u11_f.v = *(s32 *)((char *)&D_00000000_cfb8 + 0xCFB8);
-        u11_a.z = *(f32 *)((char *)&D_00000000_0d34 + 0xD34);
+        u11_f.v = *(s32 *)((char *)&D_00000000_cfb8 + 0xCFB8); u11_a.z = *(f32 *)((char *)&D_00000000_0d34 + 0xD34);
         sp78 = u11_a;
         var_a0_10 = var_s0 + 0x170;
         sp68 = u11_b;
@@ -2884,8 +2877,7 @@ void *gl_func_00004244(char *arg0) {
         u12_c.y = 1.0f;
         u12_c.z = 1.0f;
         u12_c.w = 1.0f;
-        u12_f.v = *(s32 *)((char *)&D_00000000_cfbc + 0xCFBC);
-        u12_a.z = *(f32 *)((char *)&D_00000000_0d38 + 0xD38);
+        u12_a.z = *(f32 *)((char *)&D_00000000_0d38 + 0xD38); u12_f.v = *(s32 *)((char *)&D_00000000_cfbc + 0xCFBC);
         sp78 = u12_a;
         var_a0_12 = var_s0 + 0x194;
         sp68 = u12_b;
@@ -2908,8 +2900,7 @@ void *gl_func_00004244(char *arg0) {
         u13_c.z = 1.0f;
         u13_c.w = 1.0f;
         u13_a.y = *(f32 *)((char *)&D_00000000_0d3c + 0xD3C);
-        u13_f.v = *(s32 *)((char *)&D_00000000_cfc0 + 0xCFC0);
-        u13_a.z = *(f32 *)((char *)&D_00000000_0d40 + 0xD40);
+        u13_f.v = *(s32 *)((char *)&D_00000000_cfc0 + 0xCFC0); u13_a.z = *(f32 *)((char *)&D_00000000_0d40 + 0xD40);
         sp78 = u13_a;
         var_a0_12 = var_s0 + 0x1B8;
         sp68 = u13_b;
@@ -2932,8 +2923,7 @@ void *gl_func_00004244(char *arg0) {
         u14_c.y = 1.0f;
         u14_c.z = 1.0f;
         u14_c.w = 1.0f;
-        u14_f.v = *(s32 *)((char *)&D_00000000_cfc4 + 0xCFC4);
-        u14_a.z = *(f32 *)((char *)&D_00000000_0d44 + 0xD44);
+        u14_a.z = *(f32 *)((char *)&D_00000000_0d44 + 0xD44); u14_f.v = *(s32 *)((char *)&D_00000000_cfc4 + 0xCFC4);
         sp78 = u14_a;
         var_a0_14 = var_s0 + 0x1DC;
         sp68 = u14_b;
@@ -2956,8 +2946,7 @@ void *gl_func_00004244(char *arg0) {
         u15_c.z = 1.0f;
         u15_c.w = 1.0f;
         u15_a.y = *(f32 *)((char *)&D_00000000_0d48 + 0xD48);
-        u15_f.v = *(s32 *)((char *)&D_00000000_cfc8 + 0xCFC8);
-        u15_a.z = *(f32 *)((char *)&D_00000000_0d4c + 0xD4C);
+        u15_f.v = *(s32 *)((char *)&D_00000000_cfc8 + 0xCFC8); u15_a.z = *(f32 *)((char *)&D_00000000_0d4c + 0xD4C);
         sp78 = u15_a;
         var_a0_14 = var_s0 + 0x200;
         sp68 = u15_b;
@@ -2980,8 +2969,7 @@ void *gl_func_00004244(char *arg0) {
         u16_c.z = 1.0f;
         u16_c.w = 1.0f;
         u16_a.x = *(f32 *)((char *)&D_00000000_0d50 + 0xD50);
-        u16_f.v = *(s32 *)((char *)&D_00000000_cfcc + 0xCFCC);
-        u16_a.y = *(f32 *)((char *)&D_00000000_0d54 + 0xD54);
+        u16_f.v = *(s32 *)((char *)&D_00000000_cfcc + 0xCFCC); u16_a.y = *(f32 *)((char *)&D_00000000_0d54 + 0xD54);
         sp78 = u16_a;
         var_a0_16 = var_s0 + 0x224;
         sp68 = u16_b;
@@ -3004,8 +2992,7 @@ void *gl_func_00004244(char *arg0) {
         u17_c.w = 1.0f;
         u17_a.x = *(f32 *)((char *)&D_00000000_0d58 + 0xD58);
         u17_a.y = *(f32 *)((char *)&D_00000000_0d5c + 0xD5C);
-        u17_f.v = *(s32 *)((char *)&D_00000000_cfd0 + 0xCFD0);
-        u17_a.z = *(f32 *)((char *)&D_00000000_0d60 + 0xD60);
+        u17_f.v = *(s32 *)((char *)&D_00000000_cfd0 + 0xCFD0); u17_a.z = *(f32 *)((char *)&D_00000000_0d60 + 0xD60);
         sp78 = u17_a;
         var_a0_16 = var_s0 + 0x248;
         sp68 = u17_b;
@@ -3028,8 +3015,7 @@ void *gl_func_00004244(char *arg0) {
         u18_c.y = 1.0f;
         u18_c.z = 1.0f;
         u18_c.w = 1.0f;
-        u18_f.v = *(s32 *)((char *)&D_00000000_cfd4 + 0xCFD4);
-        u18_a.z = *(f32 *)((char *)&D_00000000_0d64 + 0xD64);
+        u18_a.z = *(f32 *)((char *)&D_00000000_0d64 + 0xD64); u18_f.v = *(s32 *)((char *)&D_00000000_cfd4 + 0xCFD4);
         sp78 = u18_a;
         var_a0_18 = var_s0 + 0x26C;
         sp68 = u18_b;
@@ -3052,8 +3038,7 @@ void *gl_func_00004244(char *arg0) {
         u19_c.y = 1.0f;
         u19_c.z = 1.0f;
         u19_c.w = 1.0f;
-        u19_f.v = *(s32 *)((char *)&D_00000000_cfd8 + 0xCFD8);
-        u19_a.x = *(f32 *)((char *)&D_00000000_0d68 + 0xD68);
+        u19_a.x = *(f32 *)((char *)&D_00000000_0d68 + 0xD68); u19_f.v = *(s32 *)((char *)&D_00000000_cfd8 + 0xCFD8);
         sp78 = u19_a;
         var_a0_18 = var_s0 + 0x290;
         sp68 = u19_b;
@@ -3076,8 +3061,7 @@ void *gl_func_00004244(char *arg0) {
         u20_c.z = 1.0f;
         u20_c.w = 1.0f;
         u20_a.x = *(f32 *)((char *)&D_00000000_0d6c + 0xD6C);
-        u20_f.v = *(s32 *)((char *)&D_00000000_cfdc + 0xCFDC);
-        u20_a.y = *(f32 *)((char *)&D_00000000_0d70 + 0xD70);
+        u20_f.v = *(s32 *)((char *)&D_00000000_cfdc + 0xCFDC); u20_a.y = *(f32 *)((char *)&D_00000000_0d70 + 0xD70);
         sp78 = u20_a;
         var_a0_20 = var_s0 + 0x2B4;
         sp68 = u20_b;
@@ -3100,8 +3084,7 @@ void *gl_func_00004244(char *arg0) {
         u21_c.w = 1.0f;
         u21_a.x = *(f32 *)((char *)&D_00000000_0d74 + 0xD74);
         u21_a.y = *(f32 *)((char *)&D_00000000_0d78 + 0xD78);
-        u21_f.v = *(s32 *)((char *)&D_00000000_cfe0 + 0xCFE0);
-        u21_a.z = *(f32 *)((char *)&D_00000000_0d7c + 0xD7C);
+        u21_f.v = *(s32 *)((char *)&D_00000000_cfe0 + 0xCFE0); u21_a.z = *(f32 *)((char *)&D_00000000_0d7c + 0xD7C);
         sp78 = u21_a;
         var_a0_20 = var_s0 + 0x2D8;
         sp68 = u21_b;
@@ -3124,8 +3107,7 @@ void *gl_func_00004244(char *arg0) {
         u22_c.w = 1.0f;
         u22_a.x = *(f32 *)((char *)&D_00000000_0d80 + 0xD80);
         u22_a.y = *(f32 *)((char *)&D_00000000_0d84 + 0xD84);
-        u22_f.v = *(s32 *)((char *)&D_00000000_cfe4 + 0xCFE4);
-        u22_a.z = *(f32 *)((char *)&D_00000000_0d88 + 0xD88);
+        u22_f.v = *(s32 *)((char *)&D_00000000_cfe4 + 0xCFE4); u22_a.z = *(f32 *)((char *)&D_00000000_0d88 + 0xD88);
         sp78 = u22_a;
         var_a0_22 = var_s0 + 0x2FC;
         sp68 = u22_b;
@@ -3148,8 +3130,7 @@ void *gl_func_00004244(char *arg0) {
         u23_c.z = 1.0f;
         u23_c.w = 1.0f;
         u23_a.y = *(f32 *)((char *)&D_00000000_0d8c + 0xD8C);
-        u23_f.v = *(s32 *)((char *)&D_00000000_cfe8 + 0xCFE8);
-        u23_a.z = *(f32 *)((char *)&D_00000000_0d90 + 0xD90);
+        u23_f.v = *(s32 *)((char *)&D_00000000_cfe8 + 0xCFE8); u23_a.z = *(f32 *)((char *)&D_00000000_0d90 + 0xD90);
         sp78 = u23_a;
         var_a0_22 = var_s0 + 0x320;
         sp68 = u23_b;
@@ -3197,8 +3178,7 @@ void *gl_func_00004244(char *arg0) {
         u25_c.w = 1.0f;
         u25_a.x = *(f32 *)((char *)&D_00000000_0d9c + 0xD9C);
         u25_a.y = *(f32 *)((char *)&D_00000000_0da0 + 0xDA0);
-        u25_f.v = *(s32 *)((char *)&D_00000000_cff0 + 0xCFF0);
-        u25_a.z = *(f32 *)((char *)&D_00000000_0da4 + 0xDA4);
+        u25_f.v = *(s32 *)((char *)&D_00000000_cff0 + 0xCFF0); u25_a.z = *(f32 *)((char *)&D_00000000_0da4 + 0xDA4);
         sp78 = u25_a;
         var_a0_24 = var_s0 + 0x368;
         sp68 = u25_b;
@@ -3221,8 +3201,7 @@ void *gl_func_00004244(char *arg0) {
         u26_c.w = 1.0f;
         u26_a.x = *(f32 *)((char *)&D_00000000_0da8 + 0xDA8);
         u26_a.y = *(f32 *)((char *)&D_00000000_0dac + 0xDAC);
-        u26_f.v = *(s32 *)((char *)&D_00000000_cff4 + 0xCFF4);
-        u26_a.z = *(f32 *)((char *)&D_00000000_0db0 + 0xDB0);
+        u26_f.v = *(s32 *)((char *)&D_00000000_cff4 + 0xCFF4); u26_a.z = *(f32 *)((char *)&D_00000000_0db0 + 0xDB0);
         sp78 = u26_a;
         var_a0_26 = var_s0 + 0x38C;
         sp68 = u26_b;
@@ -3245,8 +3224,7 @@ void *gl_func_00004244(char *arg0) {
         u27_c.w = 1.0f;
         u27_a.x = *(f32 *)((char *)&D_00000000_0db4 + 0xDB4);
         u27_a.y = *(f32 *)((char *)&D_00000000_0db8 + 0xDB8);
-        u27_f.v = *(s32 *)((char *)&D_00000000_cff8 + 0xCFF8);
-        u27_a.z = *(f32 *)((char *)&D_00000000_0dbc + 0xDBC);
+        u27_f.v = *(s32 *)((char *)&D_00000000_cff8 + 0xCFF8); u27_a.z = *(f32 *)((char *)&D_00000000_0dbc + 0xDBC);
         sp78 = u27_a;
         var_a0_26 = var_s0 + 0x3B0;
         sp68 = u27_b;
@@ -3269,8 +3247,7 @@ void *gl_func_00004244(char *arg0) {
         u28_c.w = 1.0f;
         u28_a.x = *(f32 *)((char *)&D_00000000_0dc0 + 0xDC0);
         u28_a.y = *(f32 *)((char *)&D_00000000_0dc4 + 0xDC4);
-        u28_f.v = *(s32 *)((char *)&D_00000000_cffc + 0xCFFC);
-        u28_a.z = *(f32 *)((char *)&D_00000000_0dc8 + 0xDC8);
+        u28_f.v = *(s32 *)((char *)&D_00000000_cffc + 0xCFFC); u28_a.z = *(f32 *)((char *)&D_00000000_0dc8 + 0xDC8);
         sp78 = u28_a;
         var_a0_26 = var_s0 + 0x3D4;
         sp68 = u28_b;
@@ -3293,8 +3270,7 @@ void *gl_func_00004244(char *arg0) {
         u29_c.z = 1.0f;
         u29_c.w = 1.0f;
         u29_a.y = *(f32 *)((char *)&D_00000000_0dcc + 0xDCC);
-        u29_f.v = *(s32 *)((char *)&D_00000000_d000 + 0xD000);
-        u29_a.z = *(f32 *)((char *)&D_00000000_0dd0 + 0xDD0);
+        u29_f.v = *(s32 *)((char *)&D_00000000_d000 + 0xD000); u29_a.z = *(f32 *)((char *)&D_00000000_0dd0 + 0xDD0);
         sp78 = u29_a;
         var_a0_26 = var_s0 + 0x3F8;
         sp68 = u29_b;
@@ -3342,8 +3318,7 @@ void *gl_func_00004244(char *arg0) {
         u31_c.w = 1.0f;
         u31_a.x = *(f32 *)((char *)&D_00000000_0ddc + 0xDDC);
         u31_a.y = *(f32 *)((char *)&D_00000000_0de0 + 0xDE0);
-        u31_f.v = *(s32 *)((char *)&D_00000000_d008 + 0xD008);
-        u31_a.z = *(f32 *)((char *)&D_00000000_0de4 + 0xDE4);
+        u31_f.v = *(s32 *)((char *)&D_00000000_d008 + 0xD008); u31_a.z = *(f32 *)((char *)&D_00000000_0de4 + 0xDE4);
         sp78 = u31_a;
         var_a0_30 = var_s0 + 0x440;
         sp68 = u31_b;
