@@ -1027,13 +1027,33 @@ void timproc_uso_b3_func_00001928(int *a0) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001928);
 #endif
 
+/* timproc_uso_b3_func_000019CC 2026-07-15 (agent-g wave 3): 94.04 -> 99.81.
+ * Levers: (1) sp44-call arg swapped to (D_64*0x30) + *(*arg3) (right-first +
+ * eval numbers the ptr chain t0/t1 like target); (2) 0x18 RMW respelled as
+ * single-mutated pointer q with if(1){} advance (B850/C044 idiom: lw 24(a2),
+ * addiu a2,a2,24, sw 0(a2)) and the fp block as a second q mutation (+0x64);
+ * both de-named loads keep ring temps; (3) the final registration call is
+ * 3-ARG with q (= sub+0x64) as arg 3 -- constrains the whole q web to $a2
+ * with ZERO emission (target a2 = leftover q, K&R); a plain 2-arg drop left
+ * q in $v1; (4) frame 64->80 + slot map via decl order o,sub,sp44,q +
+ * volatile pad1..pad4 AFTER the named ptrs (pads claim 44-56; o-spill 76,
+ * v0-spill 68 exact). RESIDUAL ~10 words: a0-spill slot 40 vs 44 (one rank
+ * below the outgoing-arg spill unreachable by pads: E6E8 compiler-spill
+ * class), sub-spill 72 vs 76 (target SHARES o's slot -- name-merge injects
+ * an or-copy at link-1 instead), tail link-block reload $v1 vs $a2
+ * (free-pick tie, if(1)/merge probed). NON_MATCHING. */
 #ifdef NON_MATCHING
 extern int gl_proto_19cc(void *, int, int, float, float);
 extern char D_b3_19CC_0C;
 void timproc_uso_b3_func_000019CC(char *arg0, char *arg1, int arg2, int *arg3) {
-    char *sp44;
     char *o;
     char *sub;
+    char *sp44;
+    char *q;
+    volatile int pad1;
+    volatile int pad2;
+    volatile int pad3;
+    volatile int pad4;
     float denom = 255.0f;
 
     *(int *)(arg0 + 0xC) = (int)(&D_b3_19CC_0C + 0x3E4);
@@ -1055,7 +1075,7 @@ void timproc_uso_b3_func_000019CC(char *arg0, char *arg1, int arg2, int *arg3) {
         gl_func_00000000(arg0, 0x123, 0xE1, 1);
         gl_func_00000000(arg0, 0x21, 0x13, arg0 + 0xA8);
         gl_func_00000000(*(int *)(arg0 + 0x8C), 0);
-        sp44 = (char *)gl_func_00000000(*(int *)(*(int **)(arg0 + 0x4C)) + (*(int *)((char *)&D_00000000 + 0x64) * 0x30), 0);
+        sp44 = (char *)gl_func_00000000((*(int *)((char *)&D_00000000 + 0x64) * 0x30) + *(int *)(*(int **)(arg0 + 0x4C)), 0);
         o = (char *)gl_func_00000000(0, *(int *)(arg0 + 0x60));
         *(char **)(arg0 + 0xBC) = o;
         gl_func_00000000(o, *(int *)(sp44 + 4));
@@ -1070,24 +1090,29 @@ void timproc_uso_b3_func_000019CC(char *arg0, char *arg1, int arg2, int *arg3) {
         *(char **)(arg0 + 0x94) = sub;
         gl_func_00000000(sub, 0);
         gl_proto_19cc(*(char **)(arg0 + 0x94), 0xA0, 0x46, 1.0f, 1.0f);
-        sub = *(char **)(arg0 + 0x94);
-        *(int *)(sub + 0x18) = *(int *)(sub + 0x18) & ~4;
         {
-            float *fp = (float *)(*(char **)(arg0 + 0x94) + 0x64);
-            fp[0] = 250.0f / denom;
-            fp[1] = 235.0f / denom;
-            fp[2] = 100.0f / denom;
-            fp[3] = 0.0f / denom;
+            q = *(char **)(arg0 + 0x94);
+            if (1) { q = q + 0x18; }
+            *(int *)q = *(int *)q & ~4;
+            q = *(char **)(arg0 + 0x94);
+            if (1) { q = q + 0x64; }
+            ((float *)q)[0] = 250.0f / denom;
+            ((float *)q)[1] = 235.0f / denom;
+            ((float *)q)[2] = 100.0f / denom;
+            ((float *)q)[3] = 0.0f / denom;
         }
         *(int *)(*(char **)(arg0 + 0x94) + 0xA0) = *(int *)(arg0 + 0x6C) + 0x108;
         *(int *)(*(char **)(arg0 + 0x94) + 0x80) = 0;
         *(int *)(*(char **)(arg0 + 0x94) + 0x84) = -0x12;
+        o = *(char **)(arg0 + 0x94);
         sub = *(char **)(arg0 + 0x94);
-        gl_func_00000000(arg0 + 0x10, sub, sub + 0x64);
-        if (*(int *)(sub + 0x14) != 0) {
-            *(int *)(sub + 4) = 1;
+        gl_func_00000000(arg0 + 0x10, sub, q);
+        if (1) {
+            if (*(int *)(sub + 0x14) != 0) {
+                *(int *)(sub + 4) = 1;
+            }
+            *(char **)(sub + 0x14) = arg0;
         }
-        *(char **)(sub + 0x14) = arg0;
     }
 }
 #else
