@@ -643,60 +643,41 @@ void gl_func_00001134(char *a0, int a1) {
     }
 }
 
-#ifdef NON_MATCHING
-/* gl_func_000011A4: 54-insn get-or-create constructor. SIBLING of the now-
- * byte-exact gl_func_00000D5C — SAME get-or-create-with-dead-inner-alloc
- * shape. 2026-07-11 rebuilt on the D5C template (36.76 -> 89.04% fuzzy),
- * fixing three prior-decode errors: (1) 0xC4/0xC8/0xCC f32 = *(D+0xC78) and
- * 0xD0 = 0.0f (the prior C had these SWAPPED); (2) missing dead inner
- * alloc(0x10C) `sub` object — modeled via `sub = self; if(sub==0){...; goto
- * skip_init;}` exactly like D5C, so IDO emits the dead alloc block;
- * (3) outer alloc-fail routes to shared `done` (returns self=0), inner
- * alloc-fail to `skip_init`. Also CSE-BREAK: the two &D bare stores
- * (sub->0x28 and self->0x28) must NOT share one spilled reg across the
- * gl_func(sub+0x2C) call — self->0x28 uses &gl_data_00000000 (also abs-0,
- * same bytes, distinct symbol) so IDO rematerializes fresh post-call like
- * the target (dropped a spill pair: 57 -> 53 insns). RESIDUAL (scheduler/
- * regalloc cap, not C-coaxable): target fills the outer bnez delay slot with
- * `sw ra` and moves `s0=a0` ahead of the branch (we fill delay with the
- * move); target spills `sub` at 0x24(sp), we pick 0x20(sp). Stays NM-wrap;
- * default INCLUDE_ASM exact. */
+/* gl_func_000011A4: MATCH 2026-07-15 (agent-h) — ||-alloc-fallback rewrite of
+ * the goto-form get-or-create body (89.7 -> 100). The documented residual
+ * ("prologue scheduler tie + sub spill 0x24 vs 0x20 — not C-coaxable") was
+ * the CONTROL-FLOW SPELLING: `if (self != 0 || (self = alloc(0x140)) != 0)`
+ * param-reassign head gives move-s0-before-bnez with sw ra in the delay, and
+ * the inner `if ((sub = self) != 0 || (sub = alloc(0x10C)) != 0)` recolors
+ * sub to $a2 with home 0x24. Distinct abs-0 alias gl_data_00000000_11a4 for
+ * the 0x54 load base busts the &gl_data CSE with the self->0x28 store
+ * (target rematerializes; shared symbol spilled a candidate). 54/54 words. */
 extern int gl_data_00000000;
-int* gl_func_000011A4(int *a0) {
-    int *self = a0;
+extern int gl_data_00000000_11a4;
+int* gl_func_000011A4(int *self) {
     int *sub;
     float f;
-    if (self == 0) {
-        self = (int*)gl_func_00000000(0x140);
-        if (self == 0) goto done;
+    if (self != 0 || (self = (int*)gl_func_00000000(0x140)) != 0) {
+        if ((sub = self) != 0 || (sub = (int*)gl_func_00000000(0x10C)) != 0) {
+            gl_func_00000000(sub, (char*)&gl_data_00000000 + 0xCC20);
+            *(int*)((char*)sub + 0x28) = (int)&D_00000000;
+            gl_func_00000000((char*)sub + 0x2C);
+        }
+        *(int*)((char*)self + 0x28) = (int)&gl_data_00000000;
+        *(int*)((char*)self + 0xC) = (int)((char*)&gl_data_00000000 + 0xCC28);
+        gl_func_00000000((char*)self + 0x110,
+            *(int*)((char*)&gl_data_00000000_11a4 + 0x54) | 0x001E0000);
+        f = *(float*)((char*)&D_00000000 + 0xC78);
+        *(int*)((char*)self + 0xD4) = 0;
+        *(int*)((char*)self + 0xD8) = 0xFF;
+        *(int*)((char*)self + 0x10C) = 0;
+        *(float*)((char*)self + 0xC4) = f;
+        *(float*)((char*)self + 0xC8) = f;
+        *(float*)((char*)self + 0xCC) = f;
+        *(float*)((char*)self + 0xD0) = 0.0f;
     }
-    sub = self;
-    if (sub == 0) {
-        sub = (int*)gl_func_00000000(0x10C);
-        if (sub == 0) goto skip_init;
-    }
-    gl_func_00000000(sub, (char*)&gl_data_00000000 + 0xCC20);
-    *(int*)((char*)sub + 0x28) = (int)&D_00000000;
-    gl_func_00000000((char*)sub + 0x2C);
-skip_init:
-    *(int*)((char*)self + 0x28) = (int)&gl_data_00000000;
-    *(int*)((char*)self + 0xC) = (int)((char*)&gl_data_00000000 + 0xCC28);
-    gl_func_00000000((char*)self + 0x110,
-        *(int*)((char*)&gl_data_00000000 + 0x54) | 0x001E0000);
-    f = *(float*)((char*)&D_00000000 + 0xC78);
-    *(int*)((char*)self + 0xD4) = 0;
-    *(int*)((char*)self + 0xD8) = 0xFF;
-    *(int*)((char*)self + 0x10C) = 0;
-    *(float*)((char*)self + 0xC4) = f;
-    *(float*)((char*)self + 0xC8) = f;
-    *(float*)((char*)self + 0xCC) = f;
-    *(float*)((char*)self + 0xD0) = 0.0f;
-done:
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000011A4);
-#endif
 
 void gl_func_0000127C(char *a0) {
     gl_func_00000000(a0 + 0x110);
