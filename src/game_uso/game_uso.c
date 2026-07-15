@@ -12594,18 +12594,25 @@ void game_uso_func_0000F284(int *a0) {
  *  double const at game_uso_D_807FFB60 + 0x240 (ldc1 576(at)); the USO unit is
  *  HI16-only so the extra C-side LO16 reloc is byte-harmless (docs IDO_CODEGEN L23).
  *
- * RESIDUAL (honest NON_MATCHING, 47/49): ONE FP-double-mul operand-register
- * binding coloring cap (words f3d0/f3d4). The double block computes
- * `f0 = (float)((double)f0 * D)`. Target: ldc1 f6 (D), cvt.d.s f18 ((double)f0),
- * mul.d f4,f18,f6. Build: ldc1 f18 (D), cvt.d.s f6, mul.d f4,f18,f6 (mul.d BYTES
- * IDENTICAL; only the two operands' temp binding f6<->f18 is swapped, same reg
- * SET {f6,f18}, same result f4). IDO canonicalizes commutative FP mul so source
- * operand order / (double) cast placement / implicit promotion / named-double /
- * register-qual / downstream f0-reuse ALL leave it at 47/49; named-double forms
- * that DO flip conv->f18 relocate the incoming float f0->f2 (adds moves, worse,
- * 37/49). Permuter-immune whole-function FP candidate-numbering coloring cap.
- * Surrounding FP code (words 0-27, 30-48) is byte-identical to target. */
+ * 2026-07-15 (wave 3, agent-h, 47/49 -> 49/49 = objdiff-100): the old "FP
+ * candidate-numbering coloring cap" (ldc1/cvt.d.s f6<->f18 temp-binding swap
+ * at words f3d0/f3d4) RETRACTED via the cfe commutative-operand RANK lever
+ * (docs/IDO_CODEGEN 199C entry): a TYPED extern-struct MEMBER load
+ * (game_uso_D_807FFB60_thr.v, base-0 alias in undefined_syms_auto.txt,
+ * struct pad puts .v at +0x240 so relocs/bytes are identical) restores
+ * TEXTUAL operand order, so writing the double const FIRST
+ * (`D.v * (double)f0`) creates its ldc1 pseudo before the cvt.d.s -> ldc1
+ * f6 / cvt f18 as in target. Cast-deref spellings of D always ranked below
+ * (double)f0 regardless of textual order (register-rooted deref reuse,
+ * int-cast address form, named double all probed: 47/49 or worse; named
+ * double recolors the whole fn f0->f2, 37/49).
+ *
+ * NOT LANDABLE as compiled C despite byte-exact object: intra-USO
+ * `jal game_uso_func_0001001C` is baked as `jal 0` in the ROM (loader
+ * patches at runtime) but would link to the real local symbol -> ROM
+ * mismatch (USO baked-reloc landability filter). Stays NM wrap at 100. */
 extern char game_uso_D_807FFB60;
+extern struct { char pad[0x240]; double v; } game_uso_D_807FFB60_thr;
 extern void import_00096874(int);
 extern void game_uso_func_0001001C(int *);
 void game_uso_func_0000F360(int *a0) {
@@ -12628,7 +12635,7 @@ void game_uso_func_0000F360(int *a0) {
         f0 = *(float*)(b770 + 0x10) + f2;
     }
     if (*(short*)((char*)p + 0x9A2) == 0x62) {
-        f0 = (float)((double)f0 * *(double*)((char*)&game_uso_D_807FFB60 + 0x240));
+        f0 = (float)(game_uso_D_807FFB60_thr.v * (double)f0);
     }
     b31C = (char*)p; if (1) { b31C += 0x31C; }
     f0 *= *(float*)(b510 + 0x10);

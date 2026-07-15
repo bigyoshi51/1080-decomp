@@ -1614,6 +1614,7 @@ game_uso_D_807FFB30 = 0;
 game_uso_D_807FFB44 = 0;
 game_uso_D_807FFB58 = 0;
 game_uso_D_807FFB60 = 0;
+game_uso_D_807FFB60_thr = 0;
 game_uso_D_807FFB68 = 0;
 game_uso_D_807FFB70 = 0;
 game_uso_D_807FFB78 = 0;
