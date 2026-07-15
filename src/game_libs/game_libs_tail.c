@@ -3550,7 +3550,12 @@ void gl_func_0000E53C(int *a0) {
  * 2026-07-15: d418 e-split probe (self=self0; self0=0;) regresses — the copy
  * becomes a REAL local (+second sw a0 home, frame +8, t-ring shift); the
  * target's reload is a spilltemp off the ARG home, so the fresh-candidate
- * route can't reproduce it. Cap reconfirmed. */
+ * route can't reproduce it. Cap reconfirmed.
+ * 2026-07-15b: dead `if (factory){}` after the second call (332B4 arg-reg
+ * range-extension lever) REGRESSES (13/39): extending a call-clobbered value
+ * across a jal is not zero-emission — factory gets a real spill home (+8
+ * frame, sw v0 in the jal delay). The dead-if lever is free only when the
+ * tested value is already memory-homed/live. Cap stands. */
 struct gl_E5D0_factory { int n; char pad[0x1c]; int *sub; };
 void gl_func_0000E5D0(int *self) {
     extern int D_A;
