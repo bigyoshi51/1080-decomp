@@ -9096,8 +9096,6 @@ void game_libs_func_00026AF8(int a0, int a1) {
 //   calls match. Residual 9 diffs = the three &D-pointer temps use t6/t7/t8
 //   (target) vs a0/t6/t7 (mine), plus the sw-ra schedule slot — a regalloc-
 //   renumber on the pointer temps (named-q1/q2/q3 variant didn't flip it).
-extern int gl_func_00000000();
-extern int D_00000000;
 #ifdef NON_MATCHING
 void game_libs_func_00026B40(void) {
   char *p;
@@ -19506,27 +19504,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033228);
 //     callback0(o);                            // shared else (tag mismatch)
 //   }
 //
-// 2026-06-22 reconstruction (signature-#2 reloc-form arg): the fixed
-//   data-seg ref 0x0001E194 is really `(char*)&D_00000000 + 0x1E194`
-//   (lui 0x2; addiu -7788 via %hi/%lo reloc — NOT lui 0x1; ori 0xe194).
-//   With that fix + corrected control flow + split-locals (idx anchors a2,
-//   val→v0), the body is BYTE-EXACT except ONE instruction: the tag load
-//   `*c` lands in $a2 (build) vs $v0 (target) — a single-register allocator
-//   tie. idx's home reg is $a2; IDO coalesces the short-lived tag value
-//   into it, whereas the target splits the live range and uses $v0.
-//   Permuter (11k+ iters, perm_temp_for_expr) plateaued at score 30 (=this
-//   one reg); two-var split flips tag→v0 but moves idx→a1 (worse). Genuine
-//   $v0-vs-$a2 coloring cap — NM-wrap. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+// EXACT 2026-07-15. The old "$v0-vs-$a2 coloring cap" fell to a 3-lever
+//   combo: (1) tag load spelled through the EXISTING `val` local (val's
+//   later table-load web already colors $v0; same-name reuse gives the tag
+//   web $v0 WITHOUT adding a 4th named local — a separate `tag` var costs
+//   +8 frame, doc 57 named-local-count rule); (2) zero-emission dead
+//   `if (c) { }` after `idx = *sp` extends param c's ($a1) live range past
+//   idx's def, forbidding the idx->a1 coalesce that the plain two-var split
+//   suffered (idx anchors $a2, restoring the `move a1,a2` arg copy);
+//   (3) prior fixes retained (reloc-form &D+0x1E194 arg, corrected control
+//   flow). Frame 32, spills 24/32(sp) match (a3 shares a0's dead arg home).
 void gl_func_000332B4(char *o, char *c) {
     int *sp;
     int idx;
     int val;
-    idx = *(int *)c;
-    if (idx == 0x69) {
+    val = *(int *)c;
+    if (val == 0x69) {
         sp = *(int **)(c + 4);
         *(int **)(c + 4) = sp + 1;
         idx = *sp;
+        if (c) { }
         if ((u32)idx >= 0x28) {
             gl_func_00000000((char *)&D_00000000 + 0x1E194, idx);
         }
@@ -19536,9 +19533,6 @@ void gl_func_000332B4(char *o, char *c) {
     }
     gl_func_00000000(o);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000332B4);
-#endif
 
 /* gl_func_00033338: 27-insn 3-call wrapper. The float-promote "cap" was
  * mis-diagnosed: route the 6-arg float call through a typed absolute-0 alias

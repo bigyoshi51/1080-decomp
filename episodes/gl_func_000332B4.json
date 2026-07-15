@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000332B4",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T04:25:41.018957+00:00",
+  "end_time": "2026-07-15T04:25:41.018977+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T04:25:41.018971+00:00",
+      "assistant_text": "Old cap 'tag load $a2 vs $v0 coloring tie' cracked by 3-lever combo: (1) spell the tag load through the EXISTING val local (same-name reuse = separate web colors $v0 without a 4th named local; a fresh tag var costs +8 frame via the named-local-count rule); (2) zero-emission dead if(c){} after idx=*sp extends param c's $a1 range past idx's def, forbidding the idx->a1 coalesce that broke the naive two-var split; (3) keep val's name on the table load (inlining it flips the load to the t8 ring). Frame 32, a2 spill 24(sp), a3 spilled into a0's dead arg home 32(sp).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 33,
+  "initial_m2c_source": null,
+  "final_source": "void gl_func_000332B4(char *o, char *c) {\n    int *sp;\n    int idx;\n    int val;\n    val = *(int *)c;\n    if (val == 0x69) {\n        sp = *(int **)(c + 4);\n        *(int **)(c + 4) = sp + 1;\n        idx = *sp;\n        if (c) { }\n        if ((u32)idx >= 0x28) {\n            gl_func_00000000((char *)&D_00000000 + 0x1E194, idx);\n        }\n        val = *(int *)((char *)&D_00000000 + idx * 4);\n        *(int *)(o + 0xF4) = val;\n        return;\n    }\n    gl_func_00000000(o);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_000332B4.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O2 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "byte-exact vs expected .o + full-make exit 0 + ROM byte-identical (cmp clean) + non_matching_objects exit 0"
+  }
+}
