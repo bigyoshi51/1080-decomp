@@ -12705,34 +12705,24 @@ int gl_func_0002A3AC(char *base, int idx) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A3AC);
 #endif
 
-/* gl_func_0002A4D0: NATURAL CEILING 97.67% NM (5 diffs). Structure now matches
- * target: it keeps the RAW load, the masked value, and val|0x40 in THREE
- * distinct registers — splitting `raw` from `val` (was one reused `val`) gets
- * the 3-register shape. Residual is a pure register-NUMBER choice: mine emits
- * $v1/$v0/$t6 (IDO prefers $v0/$v1 for post-call temps), target uses the
- * non-consecutive $t6/$t9/$t0. Permuter floored at score 40 (90s, -j4, 2026-05-28),
- * no crack — genuine post-call $v-vs-$t regalloc cap. INSN_PATCH promotion was
- * REMOVED 2026-05-23 as match-faking. */
+/* gl_func_0002A4D0: MATCH 2026-07-15 (agent-h) via DE-NAMING: no locals at
+ * all — `*a0 &= 0xFF7F; *a0 |= 0x40;` puts every value in the ugen t-ring
+ * (named raw/val forms colored to $v0/$v1 = the old "post-call $v-vs-$t
+ * regalloc cap"). Store-to-load forwarding supplies the masked value to the
+ * |= statement (ori before both sb's). Final ring slot (andi $t9 not $t8,
+ * ori $t0): the masked store needs an `(unsigned short)` cast — the folded
+ * narrowing cvt burns exactly one ring temp. 15/15 words. */
 extern int gl_func_00000000();
 
-#ifdef NON_MATCHING
-void gl_func_0002A4D0(volatile unsigned char *a0) {
-  unsigned int raw;
-  unsigned int val;
+void gl_func_0002A4D0(unsigned char *a0) {
   if (a0 == 0)
   {
     return;
   }
   gl_func_00000000((void *) a0);
-  raw = *a0;
-  val = raw & 0xFF7F;
-  *a0 = ((((val & 0xFFFFFFFFFFFFFFFF) & 0xFFFFFFFFFFFFFFFF) & 0xFFFFFFFFFFFFFFFF) & 0xFFFFFFFFFFFFFFFF) & 0xFFFFFFFFFFFFFFFF;
-  *a0 = ((unsigned char) val) | 0x40;
-  raw = raw;
+  *a0 = (unsigned short)(*a0 & 0xFF7F);
+  *a0 |= 0x40;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A4D0);
-#endif
 
 /* gl_func_0002A50C: obj-deinit helper. obj = a0[a1].field_0x50 (slot = a0 + a1*4,
  * field at +0x50); if non-NULL: gl_func(&D_0+0x5368, obj+0x70), gl_func(obj), then
