@@ -17646,23 +17646,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004A6E8);
  * bnel-delay-likely form (`lw a0,0xC(v0)` reused); two jal-0 with
  * a0=a1 in the 2nd's delay. Exact andi rs / global offsets to
  * confirm in the focused pass (hand-decode ambiguous on the andi
- * register + 0x22C/0x2003C). Real decoded C preserved. */
+ * register + 0x22C/0x2003C). Real decoded C preserved.
+ * 2026-07-15 (agent-f) lever pass, 85.59 (13-diff/34-word aligned form,
+ * fuzzy unchanged — block-shift penalty dominates): distinct base-0
+ * externs (_a/_b) fixed the 3 lui/lw folds; unpassed-K&R a1 + pre-def
+ * if(a1){} carrier gives target's `or a1,a0` delay (no or a1,a2, 34
+ * words); a0 destructively reused as idx (compare + arm re-read).
+ * TWO-CELL RESIDUAL: (1) assert-string lui/addiu speculatively hoisted
+ * ABOVE the slt/bnel (target keeps it in the arm) — if(1), goto-skip,
+ * named msg local all inert; the hoisted temp occupies $a0 through the
+ * compare so idx colors $a2 not $a0. (2) carrier spills to a1's K&R
+ * home 0x24 vs target 0x20 (a0's home) — only carrier==param-a0-var
+ * spills at 0x20, but then carrier colors $a2 (idx steals $a1) and
+ * costs +1 word. Hoist = the gate; register/slot cells are downstream. */
 extern int gl_func_00000000();
 extern int D_00000000;
-void game_libs_func_0004A7C4(int a0) {
+extern int D_00000000_a[]; /* base-0 alias: busts &D lui CSE (each access keeps its own folded lui/lw) */
+extern int D_00000000_b[];
+void game_libs_func_0004A7C4(int a0, int a1) {
     int *q;
-    int idx;
+    if (a1) {}
+    a1 = a0;
     if (*(int *)((char *)&D_00000000 + 0x1C4) & 1) {
         return;
     }
-    q = *(int **)((char *)&D_00000000 + 0x22C);
-    if (q[3] >= q[2]) {
-        gl_func_00000000((char *)&D_00000000 + 0x2003C, a0);
+    q = *(int **)((char *)&D_00000000_a[0] + 0x22C);
+    a0 = q[3];
+    if (a0 >= q[2]) {
+        gl_func_00000000((char *)&D_00000000_b[0] + 0x2003C, a1);
+        a0 = q[3];
     }
-    idx = q[3];
-    q[3] = idx + 1;
-    *(int *)(q[0] + idx * 4) = a0;
-    gl_func_00000000(a0);
+    q[3] = a0 + 1;
+    *(int *)(q[0] + a0 * 4) = a1;
+    gl_func_00000000(a1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004A7C4);
