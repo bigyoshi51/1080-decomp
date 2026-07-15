@@ -1115,7 +1115,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064388);
  *       the unique homes are never re-read = IDO regalloc spill numbering over
  *       the 0x150 frame. Not source-controllable.
  * Build: -336 frame target vs reconstructed smaller frame; 82+ insn structural
- * gap is items (2)+(3). Reloc-form fix is the only source-reproducible lever. */
+ * gap is items (2)+(3). Reloc-form fix is the only source-reproducible lever.
+ *
+ * 2026-07-15 (agent-h) CAP (3) RETRACTED as a vein: target has 15x
+ * `sw a2,8(sp)` (0xAFA60008) jal-delay stores = the 7BC/1C54 struct-by-value
+ * arg signature. The "unique descending dead-store home + shared sp[0xB4] +
+ * lw a2 join" pattern is EXACTLY the 1C54 kit: per-slot 4-byte struct u_k
+ * (rotating dead home), block-scoped { char *m; struct t; t = u_k; } per
+ * slot, ctor(m, base, t, 1) struct-by-value (see docs/IDO_CODEGEN.md
+ * #sibling-scope-no-overlay-structcopy-memcpy-flip-1c54). At 15 expansions
+ * expect the same sibling-scope slot-stacking frame residual (shapes exact,
+ * sp offsets shifted). Caps (1) ABI-float and (2) struct staging still
+ * stand. NEXT SESSION: transfer the kit. */
 #define DI(o) (*(int *)((char *)&D_00000000 + (o)))
 #define DF(o) (*(float *)((char *)&D_00000000 + (o)))
 #define DP(o) ((void *)((char *)&D_00000000 + (o)))
