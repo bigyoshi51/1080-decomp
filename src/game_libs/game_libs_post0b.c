@@ -9488,11 +9488,10 @@ int gl_func_0003EBDC(char *a0) {
 //   order inferred from branch sense. Sibling of gl_func_0003EBDC —
 //   same C body. Real-C STRUCTURAL body below. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-/* BYTE-IDENTICAL to gl_func_0003A044/00035A18/0003EBDC. 2026-07-07 (agent-e):
- * RISE to 30/32 words byte-exact via the cracked 35A18 template (see 35A18 note:
- * temp-rotation + v1<->a2 swap caps cracked; residual = 2-word off/payload
- * load-order scheduler tie-break). A match here lands all four. */
+/* BYTE-IDENTICAL to gl_func_00035A18/0003A044 family. 2026-07-15 (agent-f):
+ * BYTE-EXACT 32/32 via the 35A18 recipe (same-line join of arg load +
+ * accumulate kills the 2-word load-order scheduler tie — see 35A18 note).
+ * Reloc-free -> PROMOTED to plain C. */
 int gl_func_0003EC5C(char *a0) {
     char *arg;
     char *v1;
@@ -9512,9 +9511,6 @@ int gl_func_0003EC5C(char *a0) {
     }
     return fnptr(arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003EC5C);
-#endif
 
 /* game_libs_func_0003ECDC BOUNDARY-CORRECTED 2026-06-10: the old 0x10
  * symbol was TWO stray alignment nops (the predecessor's inter-fn pad,
