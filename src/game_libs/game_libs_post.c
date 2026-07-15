@@ -6386,8 +6386,20 @@ int gl_func_00023B44(int a0, int a1) {
  * volatile regresses, decl-order inert, break-then-return, char* local,
  * g-reuse multi-def): the single-def return copy always coalesces into
  * $v0 (docs/IDO_CODEGEN "move v0,v1 in final jr delay" placement-cap
- * family, rule-4 single-def coalescing). NM wrap; INCLUDE_ASM is the
- * build path. */
+ * family, rule-4 single-def coalescing).
+ * 2026-07-15 agent-h wave-3 re-probe (8 variants): the expression-condition
+ * carrier `if ((g = *(char**)(g+0x2024)) == 0) return (int)g; return (int)g;`
+ * DOES uncoalesce (lw v1,0x2024(v1) = target word appears) but the bnez
+ * survives via tail DUPLICATION (+4 words); every same-target form that
+ * would let as1 delete the branch (empty-then, break/break, v-capture+break)
+ * is folded by uopt BEFORE coloring -> re-coalesces. `char *r = 0;` +
+ * case-2-def phi materializes `move v1,zero` at fn top + b-to-shared-tail
+ * (no per-arm dup, 3/17). Destructive g-reuse alone re-splits into a
+ * single-def web (reaching-def split) and coalesces; dead if(g){} after
+ * the def is pruned pre-coloring here (leaf, no arg-reg to extend).
+ * Residual needs carrier-interference AND zero-branch simultaneously —
+ * confirmed disjoint in uopt phase order. Cap stands.
+ * NM wrap; INCLUDE_ASM is the build path. */
 #ifdef NON_MATCHING
 extern char gl_d_23B98[];
 int game_libs_func_00023B98(int idx) {
