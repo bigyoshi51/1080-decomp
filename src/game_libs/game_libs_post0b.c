@@ -5427,20 +5427,19 @@ int gl_func_0003A014(char *a0) {
     return gl_ref_0004C4AC(a0 + 0x10);
 }
 
-#ifdef NON_MATCHING
 /* gl_func_0003A044: 8-byte {tag,fn-ptr} handler-table dispatcher, BYTE-IDENTICAL
- * to gl_func_00035A18 / 0003EBDC / 0003EC5C. See the full 35A18 note for the
- * cracked levers. 2026-07-07 (agent-e): RISE to 30/32 words byte-exact via the
- * 35A18 template (temp-rotation + v1<->a2 swap caps cracked; residual = the
- * words 3/4 off/payload load-order scheduler tie-break). A match here lands all
- * four siblings. */
+ * to gl_func_00035A18 / 0003EBDC / 0003EC5C. 2026-07-15 (agent-f): BYTE-EXACT
+ * 32/32 via the 35A18 recipe (same-line join of arg load + accumulate kills
+ * the 2-word load-order scheduler tie — see the 35A18 note). Reloc-free →
+ * PROMOTED to plain C. */
 int gl_func_0003A044(char *a0) {
-    char *arg = *(char**)(a0 + 4);
-    char *v1 = a0 + 8;
+    char *arg;
+    char *v1;
     char *entry;
     int (*fnptr)(char *);
     int idx;
-    arg = *(short*)(a0 + 8) + arg;
+    v1 = a0 + 8;
+    arg = *(char**)(a0 + 4); arg = *(short*)(a0 + 8) + arg;
     if (*(short*)(a0 + 0xA) < 0) {
         fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
@@ -5452,9 +5451,6 @@ int gl_func_0003A044(char *a0) {
     }
     return fnptr(arg);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A044);
-#endif
 
 // gl_func_0003A0C4 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
 // (0x4C8 / 306 words, no episode). Raw-.word USO form (game_libs).
