@@ -2563,7 +2563,27 @@ int *game_uso_func_00003A28(int *arg0) {
  * is curA x8 (0x24, matches) + curB x4 (0x28, 4 blocks' 2 words off).
  * The original construct for a 12-way shared staging temp is unknown
  * (scoped locals get distinct slots; unions/ternary/comma/register/
- * volatile forms all tested — see episode notes). 253/261 = 96.9%. */
+ * volatile forms all tested — see episode notes). 253/261 = 96.9%.
+ *
+ * 2026-07-15 wave-3 re-probe (agent-h) vs the 07-15 lever taxonomy —
+ * cap RECONFIRMED, edges sharpened:
+ *  - the >=9 flip counts ANY def of the staging var incl. single-member
+ *    scalar stores (curA.v = <CSE'd load> as 9th participation flips ALL
+ *    copies fn-wide, even d0's; single-member struct member-write is
+ *    canonicalized to a struct copy) and SOURCE participation (dM = curA
+ *    inverted direction flips too). So 12 stagings through one symbol
+ *    can never stay direct.
+ *  - explicit frame-pointer arithmetic (*(S3AC0*)((char*)&pad6 - 4))
+ *    poisons alias info: EVERYTHING goes pointer-based, incl. dN homes.
+ *  - 12 block-scoped one-shot `S3AC0 cur` vars: NO flip, byte-perfect
+ *    block shape (sw home / sw cur / lw a1 cur), but -g0 -O2 IDO does
+ *    NOT overlay disjoint-scope homes even for memory-live staging
+ *    (12 distinct slots 0x50..0x24, frame -0xA0; 212/261 - worse).
+ *  - de-naming (pass dN direct / nameless CSE re-deref arg): the value
+ *    web dies at the home store and the arg reloads from dN's home (or
+ *    the load sinks past the call + dN stores DCE) - no shared 0x24.
+ * Conclusion: target needs 12 one-slot stagings with <=8 participations
+ * per symbol and no scope overlay - unreachable from C under 7.1 -O2. */
 #ifdef NON_MATCHING
 extern char game_uso_D_807FEC70;
 extern char game_uso_D_807FEC74;
