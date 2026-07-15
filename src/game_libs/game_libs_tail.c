@@ -3504,7 +3504,11 @@ void gl_func_0000E53C(int *a0) {
  * -Wo,-zdbug:6 coloring trace assigns factory->reg2($v0) and self->reg3($v1)
  * (the TARGET coloring) yet reemission lands the self spilltemp reload in $a0;
  * decl-order, register kw, named-vs-inline, and stmt-reorder all leave it.
- * Genuine spilltemp-reload coloring cap. Stays NM. */
+ * Genuine spilltemp-reload coloring cap. Stays NM.
+ * 2026-07-15: d418 e-split probe (self=self0; self0=0;) regresses — the copy
+ * becomes a REAL local (+second sw a0 home, frame +8, t-ring shift); the
+ * target's reload is a spilltemp off the ARG home, so the fresh-candidate
+ * route can't reproduce it. Cap reconfirmed. */
 struct gl_E5D0_factory { int n; char pad[0x1c]; int *sub; };
 void gl_func_0000E5D0(int *self) {
     extern int D_A;
