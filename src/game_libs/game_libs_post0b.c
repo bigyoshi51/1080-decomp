@@ -715,6 +715,14 @@ int gl_func_00034C7C(void *a0, void *a1) {
 }
 
 #ifdef NON_MATCHING
+/* 2026-07-15 (agent-f): BYTE-EXACT 61/61 (was 93.93). The old 3-word tail
+ * residual was a DECODE error, not a codegen cap: `addiu v0,zero,1` sits in
+ * the `beq t5,zero` DELAY SLOT and executes on BOTH paths — the function
+ * ALWAYS returns 1; there is no `return (int)t` else-arm (the prior body's
+ * v0=t else forced a v0->a0 shuffle + duplicated epilogue). Tail is just
+ * `if (flags & 4) v1 |= 0x80; store; return 1;`. Stays NM wrap: the table
+ * base is the collapsed placeholder data symbol &D_00000000+0x11FA (raw-.word
+ * USO reloc depression). */
 int game_libs_func_00034CC8(int a0, char *a1) {
     signed char *t = (signed char *)((char *)&D_00000000 + 0x11FA + *(int *)(a1 + 0x34) * 6);
     int v1 = 0;
@@ -736,14 +744,9 @@ int game_libs_func_00034CC8(int a0, char *a1) {
     if (flags & 0x2) v1 |= 0x10;
     if (flags & 0x1) v1 |= 0x20;
     if (flags & 0x8) v1 |= 0x40;
-    if (flags & 0x4) {
-        v0 = 1;
-        v1 |= 0x80;
-    } else {
-        v0 = (int)t;
-    }
+    if (flags & 0x4) v1 |= 0x80;
     *(int *)(a1 + 0x10) = v1;
-    return v0;
+    return 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034CC8);
