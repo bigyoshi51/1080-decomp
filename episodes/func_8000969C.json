@@ -1,0 +1,33 @@
+{
+  "function_name": "func_8000969C",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-15T05:52:03.689075+00:00",
+  "end_time": "2026-07-15T05:52:03.689094+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-15T05:52:03.689089+00:00",
+      "assistant_text": "Cracked the documented '-O1 scheduler, permuter-only' cap: volatile-qualified pointer param (s32* volatile msg) + p=msg first statement forces a direct home reload lw s0,0x38(sp) that as1 hoists into the jal delay slot; zero-arg K&R call func_80008430() leaves a0 holding msg from the prologue (no arg reload). Prologue sw s0/sw s1 order flipped to match as a side effect.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 49,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern void* func_800077DC(s32 id);\nextern void func_80006B20(void* dst, void* src, s32 n);\nextern void func_800073F8(void* hdr, s32 size, s32 flags);\nextern void func_80007A98(s32 a, s32 b, void* buf);\nextern void func_80008D0C(void* buf);\n\ntypedef struct { s32 pad0; u8 type; char pad5; s16 flags; s32 data[17]; } RmonBuf76;\n\ntypedef struct {\n    s32  pad_00;\n    u8   type;\n    char pad_05;\n    s16  flags;\n    char pad_08[0x14];\n    s32  field_1C;\n    char pad_20[4];\n    s16  field_24;\n    s16  field_26;\n    char pad_28[0x24];\n} RmonBuf76B;\n\ntypedef struct {\n    char pad_00[4];\n    u8   field_04;\n    char pad_05[4];\n    u8   field_09;\n    char pad_0A[2];\n    s32  field_0C;\n    char pad_10[0x80];\n    s32  field_90;\n} RmonMsg91FC;\n\ntypedef struct {\n    char pad_00[4];\n    u8   type;\n    char pad_05;\n    s16  flags;\n    char pad_08[4];\n    s32  field_0C;\n} RmonHdr16;\n\ntypedef struct {\n    char pad_00[4];\n    u8   type;\n    char pad_05;\n    s16  flags;\n    char pad_08[4];\n    s32  field_0C;\n    char pad_10[0x80];\n    s32  field_90;\n} RmonPkt98;\n\n/* split from kernel_054.c - 2026-06-10 kernel ROM-order relayout */\n\nextern s32 func_80008430();\nextern void func_800090B4(s32, s32);\nextern void func_80008498(void);\nextern void func_800091F0(s32);\n\n/* MATCHED 2026-07-15 (agent-h): the \"IDO -O1 scheduler, permuter-only\" verdict\n * was wrong. Two coupled levers:\n *  - `s32* volatile msg` param + `p = msg;` first statement: volatile-qualified\n *    param forces a direct home reload `lw s0,0x38(sp)` (plain `p = msg` went\n *    through a t6 temp; `*(s32* volatile*)&msg` materialized an addiu addr temp).\n *    as1 hoists the callee-saved load into the jal delay slot.\n *  - zero-arg K&R call `func_80008430()` (a0 still holds msg from the prologue):\n *    removes the redundant `lw a0,0x38(sp)` arg reload.\n * Prologue sw s0/sw s1 order flipped to match as a side effect of p's real def. */\ns32 func_8000969C(s32* volatile msg) {\n    register s32* p;\n    RmonHdr16 hdr;\n    register s32 i;\n\n    p = msg;\n    if (func_80008430() != 0) {\n        return -4;\n    }\n    func_80009148((RmonMsg91FC*)1);\n    for (i = 0; i < 0x20; i++) {\n        func_80006B20((void*)0x04000000, (char*)p + i * 4 + 0x10, 4);\n        func_800090B4(0x32, i);\n        func_80008498();\n    }\n    func_800091F0(1);\n    hdr.field_0C = p[3];\n    hdr.type = ((u8*)p)[4];\n    hdr.flags = 0;\n    func_800073F8(&hdr, 0x10, 1);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_054_d.c",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/kernel/func_8000969C.s",
+    "segment": "kernel",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "objdump byte+reloc diff vs expected/src/kernel/kernel_054_d.c.o exact; full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 clean with C compiled in"
+  }
+}
