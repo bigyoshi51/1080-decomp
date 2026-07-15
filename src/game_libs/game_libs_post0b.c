@@ -23306,22 +23306,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005185C);
  *    separate-statement order lets as1 hoist the sw between lui/addiu
  *    (2-word swap). RHS-comma form works identically.
  *
- * REMAINING 6 words = cap (A) only: spill templocs sp+0x38/0x34 vs target
- * 0x34/0x30. 2026-07-03 sweep (~28 variants): temploc block pinned; frame =
- * M3+0x40 invariant; all M3 pads shift buffer/frame; condition-embedded /
- * comma / nested alloc spellings byte-invariant; constant-size alloc locals
- * become M3 homes; Pair-tmp intermediate emits sp-temp copies; dead-if
- * fmtSel extension produces a REAL spill (+5 words). Zero-emission 8-byte
- * burn above the temps not reachable. Stays NM at 71/77. */
+ * 2026-07-15 RESOLVED 71/77 -> 77/77 byte-exact (was cap (A): spill templocs
+ * sp+0x38/0x34 vs target 0x34/0x30, "temploc block pinned"): fell to the E04
+ * DEAD-HOME DECL-ORDER INTERLEAVE (docs/IDO_CODEGEN.md h2h E04 entry). The
+ * "templocs" are the DECL-POSITION HOMES of a2/v1 (homes assign top-down in
+ * decl order below name[256]@0x40: fmtSel@0x3C, then next decls at 0x38/0x34/
+ * 0x30...). Moving the colored (never-spilled) a0p decl BEFORE a2 makes a0p's
+ * dead home take 0x38, dropping a2->0x34 and v1->0x30 as in target. The
+ * 2026-07-03 sweep added pads (shifts buffer/frame) but never REORDERED the
+ * existing decls. `o` carries no home (web coalesced with a2) so its position
+ * is inert. NOT LANDABLE: placeholder gl_func_00000000 callees. Stays NM. */
 extern int gl_func_00000000();
 extern int D_00000000;
 typedef struct { int a, b; } Pair519A4;
 void gl_func_000519A4(char *self) {
     char name[256];
     int fmtSel;
+    int *a0p; /* declared BEFORE a2: dead home @0x38 pushes a2/v1 spill homes to 0x34/0x30 (E04 interleave) */
     int *a2;
     int *v1;
-    int *a0p;
     int *o;
 
     fmtSel = (*(int *)(self + 0x38) & 0x400000) ? (int)((char *)&D_00000000 + 0x20EE8) : (int)((char *)&D_00000000 + 0x20EEC);
