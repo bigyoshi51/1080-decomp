@@ -7669,15 +7669,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D620);
  *    precolored a0 (lw a0,0x48 + addu a0 in delay slot).
  *  - volatile int pad[5] + t/u/w dead homes (16 bytes) = frame 0x60 with locals at
  *    target offsets (f@0x3C, i2/i1/i0@0x48/4C/50, s@0x54).
- * RESIDUAL (2 words, positions 19/22): sw t6(tag,0x54) and sw t7(pf,0x58) swapped.
- * Target computes li t6,7 FIRST but stores pf FIRST — unreachable from statement order:
- *  - tag-first source => stores tag,pf (positions swapped) [this body];
- *  - pf-first source => temps swap (addiu t6/li t7) = 4 diffs;
- *  - duplicate tag store (DSE+CSE), named const x=7 (const-props), if(1){} barriers,
- *    do-while(0), interleaves with f[] fills, tag-before-calls (store NOT sunk),
- *    comma-in-arg: all probed negative (18 variants).
- * uopt store-linearization tie; possibly permuter-crackable. KEEP AS NM WRAP.
- */
+ * 2026-07-15 RESOLVED to 36/36 (objdiff 100; only the 3 jal words differ raw =
+ * baked intra-USO jal 0x51708 vs reloc'd func_00000000 placeholder, reloc-masked):
+ * the old "2 words swapped (sw tag/sw pf), unreachable from statement order" residual
+ * fell to the SAME-LINE JOIN lever (docs/IDO_CODEGEN.md C8AC entry, as1 debug-line
+ * tie-break): `s.tag = 7; s.pf = &f[0];` written on ONE source line keeps the temp
+ * order (li t6,7 first) but emits sw t7(pf,0x58) BEFORE sw t6(tag,0x54) as in target.
+ * The 18-variant 2026-07-03 probe set never varied LINE placement.
+ * NOT LANDABLE: 3 intra-USO calls are func_00000000 placeholders (jal 0x51708 baked
+ * in target); stays NM wrap until the callee is symbolized. */
 void gl_func_0003D68C(int *a0) {
   struct
   {
@@ -7703,8 +7703,7 @@ void gl_func_0003D68C(int *a0) {
   f[1] = (float) u;
   f[2] = (float) w;
   u = *((int *) &a0);
-  s.tag = 7;
-  s.pf = &f[0];
+  s.tag = 7; s.pf = &f[0]; /* SAME LINE: as1 debug-line tie-break orders sw pf before sw tag (C8AC lever) */
   t = *((int *) (u + 0x28));
   w = u + (*((short *) (t + 0x28)));
   (*((void (**)(int, int *)) (t + 0x2C)))(w, (int *) (&s));
