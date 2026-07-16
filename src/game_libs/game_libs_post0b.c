@@ -10789,7 +10789,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040304);
 // INCLUDE_ASM-preserved.
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00040640);
 
-// gl_func_00040974 — DECODE PROGRESS 57->70% (0x334 / 206 words, no episode).
+// gl_func_00040974 — DECODE PROGRESS 57->70->80->91.4% (0x334 / 206 words, no
+// episode). 2026-07-15 agent-f: (a) if(1) region barriers around the d-init and
+// the post-matrix call DEMOTED the &D_00000000_40974 address promotion — the
+// store now emits the target's inline `lui at,0x0; sw self,0(at)` (was hoisted
+// lui s6 + addiu + sw 0(s6)); (b) named `end` local spelled via near-symbol
+// arith off spBC (`(f32*)((char*)&spBC - 24)`) colors s2 with END like the
+// target (was base-in-s2 + per-iteration addiu t8,s2,64); (c) volatile zero
+// store `*(volatile f32*)p = 0.0f` keeps the first accumulate's read-back
+// (plain form folded 0+x); (d) `(char*)` cast on the FIRST duplicate call arg
+// flips the head call to target's `lw a1,12(a0); jal; or a0,a1` (uncast arg
+// becomes the load, cast arg the copy). RESIDUALS: sp64 base still promotes to
+// s6 (uopt VN folds every same-value spelling incl. end-16 back to one
+// candidate; target re-materializes addiu aX,sp,100 per use — not yet
+// C-reachable); self/self+112 color s5/s3 vs target s3/s5; frame 0x128 vs 0xE8
+// (+64 = spill homes riding the s6 candidate); loop-B j/rp a0<->a1 swap;
+// node-advance var_v0/var_s1 coalesce (target keeps `or s1,v0` copy).
 // Block-A (the self->0x2C&2 struct-graft) now matches the target's int-fill /
 // float-drain-through-scratch pattern: fill spBC[0..2] via int sw, then store
 // the dest words as f32 reads of the scratch (`*(f32*)&spBC.unkN`) so IDO emits
@@ -10854,12 +10869,13 @@ void gl_func_00040974(char *arg0) {
     char *sp54[1];                               /* 84 */
     volatile char padD[28];                      /* 56..83 */
     register s32 temp_v0;
-    register s32 j;
     register f32 *d;
     register f32 *rp;
+    register s32 j;
     register f32 *p;
     register f32 *q;
     register f32 *m2;
+    register f32 *end;
     register char *temp_a1_2;
     register char *temp_s5;
     register char *t;
@@ -10867,7 +10883,7 @@ void gl_func_00040974(char *arg0) {
     register char *var_v0;
 
     spE0[1] = *(char **)(arg0 + 0x10);
-    gl_func_00034458(FW(arg0, 0xC), FW(arg0, 0xC));
+    gl_func_00034458((char *)FW(arg0, 0xC), FW(arg0, 0xC));
     temp_s5 = arg0 + 0x70;
     sp54[0] = arg0 + 0xDC;
     gl_func_00034458(sp54[0], temp_s5);
@@ -10876,6 +10892,7 @@ void gl_func_00040974(char *arg0) {
     var_v0 = (t != 0) ? (spE0[1] = *(char **)(t + 4), *(char **)(t + 0)) : 0;
     var_s1 = var_v0;
     if (var_v0 != 0) {
+        end = (f32 *)((char *)&spBC - 24);
         do {
             if (FW(var_s1, 0x18) & 8) {
                 if (FW(arg0, 0x2C) & 2) {
@@ -10913,25 +10930,27 @@ void gl_func_00040974(char *arg0) {
                         }
                     }
                 } else if (temp_v0 & 0x200) {
-                    d = (f32 *)sp64;
+                    if (1) { d = (f32 *)sp64; }
                     rp = (f32 *)(var_s1 + 0x30);
                     m2 = (f32 *)temp_s5;
                     do {
+                        j = 0;
                         p = d;
                         q = m2;
-                        for (j = 0; j != 0x10; j += 4) {
-                            *p = 0.0f;
+                        do {
+                            *(volatile f32 *)p = 0.0f;
                             *p += rp[0] * q[0];
                             *p += rp[1] * q[4];
                             *p += rp[2] * q[8];
                             *p += rp[3] * q[12];
                             p++;
                             q++;
-                        }
+                            j += 4;
+                        } while (j != 0x10);
                         d += 4;
                         rp += 4;
-                    } while (d != (f32 *)sp64 + 16);
-                    gl_func_00034458(sp64, var_s1 + 0x70);
+                    } while (d != end);
+                    if (1) { gl_func_00034458(&sp64[0], var_s1 + 0x70); }
                 }
                 temp_a1_2 = (char *)FW(var_s1, 0x28);
                 ((GP_00040974)FW(temp_a1_2, 0x24))(*(s16 *)(temp_a1_2 + 0x20) + var_s1, temp_a1_2);
