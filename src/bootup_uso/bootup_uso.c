@@ -6632,15 +6632,6 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5
     f32 temp_f0;
     f32 temp_f2;
     f32 temp_f2_2;
-    f32 var_f10;
-    f32 var_f16;
-    f32 var_f18;
-    f32 var_f18_2;
-    f32 var_f4;
-    f32 var_f6;
-    f32 var_f6_2;
-    f32 var_f8;
-    f32 var_f8_2;
     s32 *temp_v0_48;
     s32 *var_s0_3;
     s32 temp_s0_2;
@@ -6653,9 +6644,6 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5
     s32 var_v1;
     u32 temp_a2;
     u32 var_a1;
-    u8 temp_a0;
-    u8 temp_v0_50;
-    u8 temp_v1;
     char *temp_s0;
     char *temp_s0_4;
     char *temp_s0_5;
@@ -7203,72 +7191,53 @@ block_148:
             }
             if (arg2 == 7) {
                 if (var_t2 != 0) {
-                    temp_v1 = *(u8 *)((char *)&D_00000000 + 0x868C + 0x1);
-                    temp_a0 = *(u8 *)((char *)&D_00000000 + 0x868C + 0x2);
-                    var_f6 = (f32) temp_v1;
-                    *(f32 *)((char *)(var_s2) + 0x8E0) = (f32) ((f32) *(u8 *)((char *)&D_00000000 + 0x868C + 0x0) / 255.0f);
-                    if ((s32) temp_v1 < 0) {
-                        var_f6 += 4294967296.0f;
-                    }
-                    var_f18 = (f32) temp_a0;
-                    *(f32 *)((char *)(var_s2) + 0x8E4) = (f32) (var_f6 / 255.0f);
-                    if ((s32) temp_a0 < 0) {
-                        var_f18 += 4294967296.0f;
-                    }
-                    *(f32 *)((char *)(var_s2) + 0x8E8) = (f32) (var_f18 / 255.0f);
+                    register u8 *prgb;
+                    u32 cr, cg, cb;
+                    prgb = (u8 *)((char *)&D_00000000 + 0x868C);
+                    cr = prgb[0];
+                    cg = prgb[1];
+                    cb = prgb[2];
+                    *(f32 *)((char *)(var_s2) + 0x8E0) = (f32) cr / 255.0f;
+                    *(f32 *)((char *)(var_s2) + 0x8E4) = (f32) cg / 255.0f;
+                    *(f32 *)((char *)(var_s2) + 0x8E8) = (f32) cb / 255.0f;
                     *(f32 *)((char *)(var_s2) + 0x8EC) = (f32) (255.0f / 255.0f);
                 } else {
-                    temp_v1 = *(u8 *)((char *)&D_00000000 + 0x8688 + 0x1);
-                    temp_a0 = *(u8 *)((char *)&D_00000000 + 0x8688 + 0x2);
-                    var_f16 = (f32) temp_v1;
-                    *(f32 *)((char *)(var_s2) + 0x8E0) = (f32) ((f32) *(u8 *)((char *)&D_00000000 + 0x8688 + 0x0) / 255.0f);
-                    if ((s32) temp_v1 < 0) {
-                        var_f16 += 4294967296.0f;
-                    }
-                    var_f8 = (f32) temp_a0;
-                    *(f32 *)((char *)(var_s2) + 0x8E4) = (f32) (var_f16 / 255.0f);
-                    if ((s32) temp_a0 < 0) {
-                        var_f8 += 4294967296.0f;
-                    }
-                    *(f32 *)((char *)(var_s2) + 0x8E8) = (f32) (var_f8 / 255.0f);
+                    {
+                    register u8 *prgb;
+                    u32 cr, cg, cb;
+                    prgb = (u8 *)((char *)&D_00000000 + 0x8688);
+                    cr = prgb[0];
+                    cg = prgb[1];
+                    cb = prgb[2];
+                    *(f32 *)((char *)(var_s2) + 0x8E0) = (f32) cr / 255.0f;
+                    *(f32 *)((char *)(var_s2) + 0x8E4) = (f32) cg / 255.0f;
+                    *(f32 *)((char *)(var_s2) + 0x8E8) = (f32) cb / 255.0f;
                     *(f32 *)((char *)(var_s2) + 0x8EC) = (f32) (255.0f / 255.0f);
+                    }
                 }
             }
             if (arg2 == 6) {
                 if (var_t2 != 0) {
-                    temp_v0_50 = *(u8 *)((char *)&D_00000000 + 0x8694 + 0x0);
-                    temp_v1 = *(u8 *)((char *)&D_00000000 + 0x8694 + 0x1);
-                    temp_a0 = *(u8 *)((char *)&D_00000000 + 0x8694 + 0x2);
-                    var_f6_2 = (f32) temp_v0_50;
-                    if ((s32) temp_v0_50 < 0) {
-                        var_f6_2 += 4294967296.0f;
-                    }
-                    var_f18_2 = (f32) temp_v1;
-                    *(f32 *)((char *)(var_s2) + 0x8E0) = (f32) (var_f6_2 / 255.0f);
-                    if ((s32) temp_v1 < 0) {
-                        var_f18_2 += 4294967296.0f;
-                    }
-                    var_f10 = (f32) temp_a0;
-                    *(f32 *)((char *)(var_s2) + 0x8E4) = (f32) (var_f18_2 / 255.0f);
-                    if ((s32) temp_a0 < 0) {
-                        var_f10 += 4294967296.0f;
-                    }
-                    *(f32 *)((char *)(var_s2) + 0x8E8) = (f32) (var_f10 / 255.0f);
+                    register u8 *prgb;
+                    u32 cr, cg, cb;
+                    prgb = (u8 *)((char *)&D_00000000 + 0x8694);
+                    cr = prgb[0];
+                    cg = prgb[1];
+                    cb = prgb[2];
+                    *(f32 *)((char *)(var_s2) + 0x8E0) = (f32) cr / 255.0f;
+                    *(f32 *)((char *)(var_s2) + 0x8E4) = (f32) cg / 255.0f;
+                    *(f32 *)((char *)(var_s2) + 0x8E8) = (f32) cb / 255.0f;
                     *(f32 *)((char *)(var_s2) + 0x8EC) = (f32) (164.0f / 255.0f);
                 } else {
-                    temp_v1 = *(u8 *)((char *)&D_00000000 + 0x8690 + 0x1);
-                    temp_a0 = *(u8 *)((char *)&D_00000000 + 0x8690 + 0x2);
-                    var_f8_2 = (f32) temp_v1;
-                    *(f32 *)((char *)(var_s2) + 0x8E0) = (f32) ((f32) *(u8 *)((char *)&D_00000000 + 0x8690 + 0x0) / 255.0f);
-                    if ((s32) temp_v1 < 0) {
-                        var_f8_2 += 4294967296.0f;
-                    }
-                    var_f4 = (f32) temp_a0;
-                    *(f32 *)((char *)(var_s2) + 0x8E4) = (f32) (var_f8_2 / 255.0f);
-                    if ((s32) temp_a0 < 0) {
-                        var_f4 += 4294967296.0f;
-                    }
-                    *(f32 *)((char *)(var_s2) + 0x8E8) = (f32) (var_f4 / 255.0f);
+                    register u8 *prgb;
+                    u32 cr, cg, cb;
+                    prgb = (u8 *)((char *)&D_00000000 + 0x8690);
+                    cr = prgb[0];
+                    cg = prgb[1];
+                    cb = prgb[2];
+                    *(f32 *)((char *)(var_s2) + 0x8E0) = (f32) cr / 255.0f;
+                    *(f32 *)((char *)(var_s2) + 0x8E4) = (f32) cg / 255.0f;
+                    *(f32 *)((char *)(var_s2) + 0x8E8) = (f32) cb / 255.0f;
                     *(f32 *)((char *)(var_s2) + 0x8EC) = (f32) (164.0f / 255.0f);
                 }
             }
