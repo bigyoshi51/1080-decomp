@@ -8272,22 +8272,38 @@ void timproc_uso_b5_func_0000BDA0(int *a0, int a1, int a2, int a3) {
  * RESIDUAL (~8%, +3 insns): `f2 = 255.0f/denom` CSEs the numerator onto denom's
  * $f20 (base emits `div.s $f2,$f20,$f20`; target loads a fresh 255.0 in $f16) --
  * a float-const-CSE the C can't break (a distinct `full=255.0f` var re-CSEs);
- * plus sp40-vs-col stack-slot placement. Stays NM. */
+ * plus sp40-vs-col stack-slot placement. Stays NM.
+ * 2026-07-15 (agent-h, 91.72 -> 95.63): both prior residuals CRACKED with the
+ * kit: (1) `f2 = (float)255 / denom` cast-literal CSE-break (DF98 lever) defeats
+ * the numerator-onto-denom fold -> real `div.s` + fresh 255.0 const, retracting
+ * the "C can't break" line above; (2) frame map solved via decl order
+ * `volatile float padtop; col[4]; denom; c; f2; s2; sp40` -- padtop takes the
+ * dead top slot, sp40 lands at its target home 0x40(sp), col at 0x54-0x60.
+ * REMAINING RESIDUAL (~14 diff rows, all one family): FP-pseudo-numbering
+ * rotation + commutative-canonicalization -- target numbers the 192-const web
+ * before the 255 web (lui 0x4340 first, c-div -> $f0, f2-div -> $f2, col stores
+ * 0..3 order) while ours numbers 255 first (order/regs rotated, col[3] store
+ * first, sp40 reload colors $f12 + extra mov.s); and all 5 `denom*field` mul.s
+ * + 4 `s2+field` addu emit named-web-operand SECOND vs target FIRST. Source
+ * operand order and statement order are both canonicalized away (swaps = zero
+ * output change, tested); the 1710/2E3C intractable FP-renumber tie family.
+ * Stays NM. */
 extern int gl_func_00000000();
 void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
-    float sp40;
+    volatile float padtop;
     float col[4];
     float denom = 255.0f;
     float c;
     float f2;
     int s2;
+    float sp40;
 
     s2 = *(int *)(*(char **)(*(char **)(arg1 + 0x414) + 0xC) + 0xC4);
     gl_func_00000000(arg0, *(int *)(arg1 + 0x8C), s2 + *(int *)(arg1 + 0xA4), (char *)&D_00000000 + 0x6E8,
                      (int)(denom * *(float *)(arg1 + 0x4A0)));
     if (*(int *)(arg0 + 0x2B4) & 0x20000) {
         c = 192.0f / denom;
-        f2 = 255.0f / denom;
+        f2 = (float)255 / denom;
         col[0] = c;
         col[1] = c;
         col[2] = c;
@@ -8300,7 +8316,7 @@ void timproc_uso_b5_func_0000BDEC(char *arg0, char *arg1, int arg2) {
         }
     } else {
         c = 64.0f / denom;
-        f2 = 255.0f / denom;
+        f2 = (float)255 / denom;
         col[0] = c;
         col[1] = c;
         col[2] = c;
