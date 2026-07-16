@@ -25567,7 +25567,17 @@ int gl_func_000546BC(char *a0) {
  * word); per-site distinct aliases vs cross-call &sym CSE; named-local
  * decl-order frame map with volatile pad arrays for the 0x5C-0x7C /
  * 0xB4-0xC0 / 0xD0-0xDC dead-home holes; loaded-store-first (u1.v load
- * before FP fill groups); named sp58/sp20 pointer homes. */
+ * before FP fill groups); named sp58/sp20 pointer homes.
+ * 2026-07-15 r2 (agent-h): 96.49 -> 99.01. The (float)0.0 web was reusing
+ * dead $f0 (the 1.0f web) via mtc1 zero,$f0 AFTER the 0xFC store; target
+ * materializes a FRESH $f12 zero early. Lever = C STORE ORDER: put the two
+ * (float)0.0 stores (0xEC/0xE4) BEFORE the 0xFC=1.0f store so the zero web
+ * OVERLAPS the live 1.0f web (overlap forbids the dead-reg reuse; uopt's
+ * lazy materialization then lands the mtc1 zero,$f12 at the target's early
+ * point, and as1 sinks the 252 store to target position). A block-scoped
+ * `register float z0` variant FAILED (+8 frame, still $f0). Residual = ONE
+ * as1 pair-swap: sw t7,40(s0) vs the rematerialized mtc1 zero,$f2 (BB-
+ * barrier-immune scheduling tie). */
 extern char gl_ref_546E8_a;
 extern char gl_ref_546E8_b;
 extern char gl_ref_546E8_c;
@@ -25662,9 +25672,9 @@ s32 *gl_func_000546E8(char *self, int arg1) {
         *(f32 *)(self + 0x108) = 0.0f;
         *(f32 *)(self + 0x104) = 0.0f;
         *(f32 *)(self + 0x100) = 0.0f;
-        *(f32 *)(self + 0xFC) = 1.0f;
         *(f32 *)(self + 0xEC) = (float)0.0;
         *(f32 *)(self + 0xE4) = (float)0.0;
+        *(f32 *)(self + 0xFC) = 1.0f;
         *(f32 *)(self + 0xE8) = (float)1.0;
     }
     return (s32 *)self;
