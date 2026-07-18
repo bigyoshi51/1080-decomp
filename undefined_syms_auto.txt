@@ -2930,6 +2930,8 @@ func_00000000_3638_v = 0x00000000;  /* void-typed init-call alias (kills dead $v
 gl_init_0001CA10_64588 = 0x0001CA10;
 gl_ref_00000000_64588 = 0x00000000;
 gl_ref_000223C0_64588 = 0x000223C0;
+/* gl_func_00063884 per-site ANSI f32-alias (2026-07-17 agent-h) */
+gl_init_00000000_63884 = 0x0;
 gl_ref_000223D0_64588_i = 0x000223D0;
 gl_ref_000223D4_64588_i = 0x000223D4;
 gl_ref_000223D8_64588_i = 0x000223D8;

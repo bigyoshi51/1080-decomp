@@ -433,33 +433,45 @@ void gl_func_0006382C(Quad4 *dst) {
  * a2 Vec3 -> a0->[0x10C..0x114]; a3 Vec3 -> a0->[0x118..0x120] (both
  * via shared sp+0x2C int tmp); a0->[0x108]=a1.
  *
- * 73.25% CAP: the init call passes three single-precision float zeros
- * — target `mtc1 zero,$f0; mfc1 a2,$f0; mfc1 a3,$f0; swc1 $f0,16(sp)`
- * (4-byte) — but the file-scope K&R `extern int gl_func_00000000()`
- * DOUBLE-PROMOTES the C `0.0f` literals: `cvt.d.s` + `sdc1` (8-byte)
- * + extra insns (+3 length). Provably unmatchable per
- * docs/IDO_CODEGEN.md#feedback-ido-knr-float-call (same cap class as
- * gl_func_0005DB58 / gl_func_00063DC4). Logic fully decoded; the Vec3
- * copies + struct stores ARE correct. INCLUDE_ASM is the build path. */
+ * 73.25% CAP RETRACTED 2026-07-17 (agent-h): BYTE-EXACT 56/56 words vs the
+ * target .s (standalone probe; placeholder callees so objdiff-100 stays an
+ * NM wrap, no episode). Three levers:
+ * (1) K&R f32 double-promotion (cvt.d.s+sdc1) fixed by the 64588 per-site
+ *     ANSI-prototyped PLACEHOLDER ALIAS
+ *     (docs/IDO_CODEGEN.md#prototyped-per-site-callee-alias-single-float-abi-64588):
+ *     gl_init_00000000_63884 = 0x0 in undefined_syms_auto.txt -> exact
+ *     `mtc1 zero,$f0; mfc1 a2,$f0; mfc1 a3,$f0; jal; swc1 $f0,0x10(sp)`.
+ * (2) Frame 0x30->0x40 with tmp at sp+0x2C: 2+2 pad words AROUND the temp
+ *     (637BC pad-array precedent in this file).
+ * (3) `goto end` early-exit + Tri3i STRUCT COPY `tmp = *(Tri3i*)a2`
+ *     (not per-element int copies): the struct copy stores via the held
+ *     &tmp base (v1) with fresh t-reg src pointers, float reads fold to
+ *     sp — and the goto-join phi colors a0 (epilogue `move v0,a0`,
+ *     `beqz v0,end` with `move a0,v0` in the delay) instead of the
+ *     early-`return a0` v0-coalesce (bnez+b shape). */
 extern int gl_func_00000000();
+extern int gl_init_00000000_63884(void *, void *, float, float, float);
 extern int D_00000000;
 void *gl_func_00063884(void *a0, int a1, int *a2, int *a3) {
-    int tmp[3];
+    int pad_a[2];
+    Tri3i tmp;
+    int pad_b[2];
     if (a0 == 0) {
         a0 = (void*)gl_func_00000000(292);
-        if (a0 == 0) return a0;
+        if (a0 == 0) goto end;
     }
-    gl_func_00000000(a0, (char*)&D_00000000 + 0x22388, 0.0f, 0.0f, 0.0f);
+    gl_init_00000000_63884(a0, (char*)&D_00000000 + 0x22388, 0.0f, 0.0f, 0.0f);
     *(int*)((char*)a0 + 0x28) = (int)&D_00000000;
-    tmp[0] = a2[0]; tmp[1] = a2[1]; tmp[2] = a2[2];
-    *(float*)((char*)a0 + 0x10C) = *(float*)&tmp[0];
-    *(float*)((char*)a0 + 0x110) = *(float*)&tmp[1];
-    *(float*)((char*)a0 + 0x114) = *(float*)&tmp[2];
-    tmp[0] = a3[0]; tmp[1] = a3[1]; tmp[2] = a3[2];
-    *(float*)((char*)a0 + 0x118) = *(float*)&tmp[0];
-    *(float*)((char*)a0 + 0x11C) = *(float*)&tmp[1];
-    *(float*)((char*)a0 + 0x120) = *(float*)&tmp[2];
+    tmp = *(Tri3i*)a2;
+    *(float*)((char*)a0 + 0x10C) = *(float*)&tmp.a;
+    *(float*)((char*)a0 + 0x110) = *(float*)&tmp.b;
+    *(float*)((char*)a0 + 0x114) = *(float*)&tmp.c;
+    tmp = *(Tri3i*)a3;
+    *(float*)((char*)a0 + 0x118) = *(float*)&tmp.a;
+    *(float*)((char*)a0 + 0x11C) = *(float*)&tmp.b;
+    *(float*)((char*)a0 + 0x120) = *(float*)&tmp.c;
     *(int*)((char*)a0 + 0x108) = a1;
+end:
     return a0;
 }
 #else
