@@ -2985,3 +2985,4 @@ D_00000000_e5e0p = 0x00000000;  /* 3E5E0 per-site addr alias */
 D_00000000_e5e0q = 0x00000000;  /* 3E5E0 per-site addr alias */
 D_00000000_e5e0r = 0x00000000;  /* 3E5E0 per-site addr alias */
 D_00000000_e5e0s = 0x00000000;  /* 3E5E0 per-site addr alias */
+gl_func_00000000_1360v = 0x00000000;  /* void-returning alias: dead-$v0 exclusion, h2hproc_uso_func_00001360 */

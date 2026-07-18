@@ -1300,14 +1300,30 @@ INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000120
  * ternary) — target computes 0 before a plain `beq X,1` with 115 in the
  * not-equal fall-through; the ternary emitted bne+115-first. 86.93 -> 90.04%
  * (opcode diffs 26->22). Remaining ~10%: per-call jal/lw/addiu scheduling +
- * register renumber. INCLUDE_ASM stays the build path. */
+ * register renumber. INCLUDE_ASM stays the build path.
+ * 2026-07-17 (90.04 -> 95.12 objdiff): three fixes -
+ *   (1) void-alias dead-$v0 (gl_func_00000000_1360v = 0x0) on ALL 21
+ *       discarded-return calls (B0A8/3074 lever) - realigned the whole temp
+ *       ring (t8/t9->t9/t0 shift gone) and unspilled the tail seg derefs;
+ *   (2) DECODE: the two gate calls are 4-ARG - target passes the 0x6A8 deref
+ *       VALUE as arg2 (lw a2,0(t7)) and color as arg3 (or a3,v0 in the jal
+ *       delay): gl(scratch, &D+0x400/0x410, val, c);
+ *   (3) scratch is 64 bytes (target frame 0x78 = 0x38+0x40), not 80; de-named
+ *       the tail seg locals (deref inline) so the load lands AFTER the
+ *       preceding call like target (no cross-jal spill).
+ * RESIDUAL (~12 reg-diff words + frame 0x88 vs 0x78): named val/c block
+ * locals cost 8 ghost home bytes (de-naming kills the homes but regresses the
+ * ternary to direct-a3, 91.5); c coalesces into a3 (target keeps v0 + or
+ * a3,v0 copy - probed ternary both arm orders/if-else/register/function-scope
+ * color, all inert); top-of-fn v_call/vtable v0<->v1 emission swap; tail lh
+ * temps fold into a1 (target lh v0; addiu a1,v0). Coloring-tie class. NM. */
 void h2hproc_uso_func_00001360(int *self) {
+    extern void gl_func_00000000_1360v();  /* void alias (=0x0): dead-$v0 exclusion, discarded-return calls */
     int *vtable;
     int *v_call;
-    char scratch[80];
+    char scratch[64];
     int retval;
     int gate;
-    int color;
     int *sub;
 
     *(int*)((char*)self + 0x98) += 1;
@@ -1315,56 +1331,56 @@ void h2hproc_uso_func_00001360(int *self) {
     vtable = (int*)*(int*)((char*)v_call + 0x28);
     ((void(*)(int))vtable[0x1C/4])((int)v_call + *(short*)((char*)vtable + 0x18));
 
-    gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
-    gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
+    gl_func_00000000_1360v(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
+    gl_func_00000000_1360v(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568));
 
     gate = (*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6B8) == 0)
          ? *(int*)((char*)self + 0x98) : 0x10;
     if (gate & 0x10) {
-        gl_func_00000000(scratch, &D_00000000 + 0x3FC);
+        gl_func_00000000_1360v(scratch, &D_00000000 + 0x3FC);
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 80, scratch);
-        gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 30, scratch);
-        color = 0;
-        if (*(int*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) != 1) color = 115;
-        gl_func_00000000(scratch, &D_00000000 + 0x400, color);
+        gl_func_00000000_1360v(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 30, scratch);
+        {
+            register int val = *(int*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8);
+            register int c;
+            if (val != 1) c = 115; else c = 0;
+            gl_func_00000000_1360v(scratch, &D_00000000 + 0x400, val, c);
+        }
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 80, scratch);
-        gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
+        gl_func_00000000_1360v(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
     }
 
     gate = (*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6B8) == 1)
          ? *(int*)((char*)self + 0x98) : 0x10;
     if (gate & 0x10) {
-        gl_func_00000000(scratch, &D_00000000 + 0x40C);
+        gl_func_00000000_1360v(scratch, &D_00000000 + 0x40C);
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 240, scratch);
-        gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 30, scratch);
-        color = 0;
-        if (*(int*)((char*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) + 4) != 1) color = 115;
-        gl_func_00000000(scratch, &D_00000000 + 0x410, color);
+        gl_func_00000000_1360v(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 30, scratch);
+        {
+            register int val = *(int*)((char*)*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x6A8) + 4);
+            register int c;
+            if (val != 1) c = 115; else c = 0;
+            gl_func_00000000_1360v(scratch, &D_00000000 + 0x410, val, c);
+        }
         retval = gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), 240, scratch);
-        gl_func_00000000(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
+        gl_func_00000000_1360v(*(int*)((char*)*(int*)((char*)self + 0x2C) + 0x568), retval, 80, scratch);
     }
 
     /* Tail */
-    gl_func_00000000(&D_00000000);
+    gl_func_00000000_1360v(&D_00000000);
     sub = (int*)((char*)self + 0x38);
-    gl_func_00000000(sub);
-    gl_func_00000000(sub, 60, 64, 3);
-    {
-        int *seg = (int*)*(int*)((char*)self + 0x48);
-        sub = (int*)((char*)self + 0x50);
-        gl_func_00000000(sub);
-        gl_func_00000000(sub, *(short*)((char*)seg + 0x20) + 68, 64, 3);
-    }
+    gl_func_00000000_1360v(sub);
+    gl_func_00000000_1360v(sub, 60, 64, 3);
+    sub = (int*)((char*)self + 0x50);
+    gl_func_00000000_1360v(sub);
+    gl_func_00000000_1360v(sub, *(short*)((char*)*(int*)((char*)self + 0x48) + 0x20) + 68, 64, 3);
     sub = (int*)((char*)self + 0x68);
-    gl_func_00000000(sub);
-    gl_func_00000000(sub, 220, 64, 3);
-    {
-        int *seg = (int*)*(int*)((char*)self + 0x78);
-        sub = (int*)((char*)self + 0x80);
-        gl_func_00000000(sub);
-        gl_func_00000000(sub, *(short*)((char*)seg + 0x20) + 228, 64, 3);
-    }
-    gl_func_00000000(self);
+    gl_func_00000000_1360v(sub);
+    gl_func_00000000_1360v(sub, 220, 64, 3);
+    sub = (int*)((char*)self + 0x80);
+    gl_func_00000000_1360v(sub);
+    gl_func_00000000_1360v(sub, *(short*)((char*)*(int*)((char*)self + 0x78) + 0x20) + 228, 64, 3);
+    gl_func_00000000_1360v(self);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_00001360);
