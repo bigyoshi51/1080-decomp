@@ -1816,29 +1816,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065250);
 #ifdef NON_MATCHING
 /* gl_func_000652D8: 34-insn Vec3-diff + buf-copy chain + dispatch (0x88, frame 0x60).
  *
- * Decoded structure (raw-word disasm):
- *   diff[0] = a1[0] - *(float*)((char*)a0 + 0x324);
- *   diff[1] = a1[1] - *(float*)((char*)a0 + 0x328);
- *   diff[2] = a1[2] - *(float*)((char*)a0 + 0x32C);
- *   // 3 stack-resident Vec3 bufs (sp+0x34/+0x44/+0x54); int-by-int copy chain:
- *   buf1 = diff; buf2 = buf1;
- *   func((char*)a0 + 0x2C8, buf2);
- *
- * The triple-copy chain (sp+0x34 → sp+0x44 → sp+0x54 via lw/sw int pairs)
- * is IDO emit for 3 same-shape Vec3 locals all init'd from the same calc,
- * or ptr-laundering for type-aliasing safety.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-void gl_func_000652D8(int *a0, float *a1) {
-    struct { int a, b, c; } diff, buf1, buf2;
-    *(float*)&diff.a = a1[0] - *(float*)((char*)a0 + 0x324);
-    *(float*)&diff.b = a1[1] - *(float*)((char*)a0 + 0x328);
-    *(float*)&diff.c = a1[2] - *(float*)((char*)a0 + 0x32C);
-    buf1 = diff;
-    buf2 = buf1;
-    gl_func_00000000((char*)a0 + 0x2C8, &buf2);
+ * 2026-07-17 (agent-h): EXACT SIBLING of gl_func_00065250 — the two
+ * bodies are raw-word IDENTICAL except the single dispatch-base word
+ * (addiu a0,a0,0x294 vs 0x2C8); same subtrahend Vec3 a0+0x324, same
+ * 0x10-stride triple-buf frame (d@0x34/e@0x44/f@0x54, volatile pads),
+ * same z/y/x sub order, same partial store-forwarding across the double
+ * struct copy (f.y/f.z forwarded from d's temps, f.x reloaded from e),
+ * same jal-0 placeholder callee (gl_func_00062F64 per 65250's reloc).
+ * Body is a verbatim mirror of 65250's proven-exact C (all 5 levers:
+ * named-diff FP pool coloring, decl-order frame, leading/trailing empty
+ * `if (sub) {}` BB splits, one-line triple-sub grouping) with only
+ * 0x294 -> 0x2C8. 34/34 words vs .s. */
+void gl_func_000652D8(int a0, Vec3_f *a1) {
+    Vec3_f f;
+    volatile int pad2;
+    Vec3_f e;
+    volatile int pad1;
+    Vec3_f d;
+    float dz, dy, dx;
+    Vec3_f *sub;
+    volatile int pad_a, pad_b;
+    sub = (Vec3_f *)(a0 + 0x324);
+    if (sub) {}
+    dx = a1->x - sub->x; dy = a1->y - sub->y; dz = a1->z - sub->z;
+    d.z = dz;
+    d.y = dy;
+    d.x = dx;
+    if (sub) {}
+    e = d;
+    f = e;
+    gl_func_00062F64(a0 + 0x2C8, &f);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000652D8);
