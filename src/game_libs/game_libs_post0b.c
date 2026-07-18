@@ -14568,22 +14568,23 @@ void game_libs_func_00045394(int a0, int a1, int a2, int a3) {
 //   named fn (int→float trampoline) only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* 2026-06-22 STRUCTURE NAILED: the NAMED fn is only 48 bytes (12 insns) — a
- * two-call float trampoline. It moves arg1 (a float arriving in GPR a1) into
- * $f12 via `mtc1` (raw bit-move, NO cvt — proves the callee takes a SINGLE
- * float, not a promoted double), spills a0/a2, then `jal CALLEE`(a0,$f12=a1),
- * then `jal CALLEE`(a0,$f12=a2 reloaded via lwc1 from 32(sp)). Shape:
- *     void f(void *a0, float a1, float a2){ cb(a0,a1); cb(a0,a2); }
- * CAP: the callee is a USO R_MIPS_26 reloc baked to 0 in expected/ (no reloc
- * info), so its identity AND its (void*,float) prototype are unknown here.
- * Calling the only in-TU candidate (K&R `int gl_func_00034458()`) double-
- * promotes float->double (cvt.d.s + mfc1 pair, +8 insns) — wrong. Needs the
- * real callee resolved with a float prototype (deferred USO re-split). */
-void gl_func_000453A8(void *a0, int a1, float a2) {
-    float f = (float)a1;
-    gl_func_00000000(a0, f);
-    gl_func_00000000();
-    return;
+/* 2026-07-18 WORD-EXACT (12/12; was 22.4%; twin-scan lead vs exact
+ * gl_func_00024330, 3-word delta = the two float-arg moves + a2 home).
+ * The old cap verdict misread the SIGNATURE: the fn is ANSI-prototyped
+ * (int, float, float) — o32 passes both floats in GPRs a1/a2 because
+ * arg0 is int — and the CALLEE takes a single prototyped float
+ * (mtc1 a1,$f12 raw bit-move, no cvt), NOT (void*,float): a0 is never
+ * reloaded before jal2, so it can't be an argument. Body is a plain
+ * two-call float trampoline; `(void)a0` after the calls forces the a0
+ * home-store `sw a0,0x18(sp)` (same lever as sibling gl_func_0004D05C).
+ * Callee proto via blank-extern alias gl_func_00000000_f
+ * (undefined_syms_auto = 0, same mechanism as _42338/_c43c).
+ * Placeholder callee -> stays NM wrap, no episode. */
+extern void gl_func_00000000_f(float);
+void gl_func_000453A8(int a0, float b, float c) {
+    gl_func_00000000_f(b);
+    gl_func_00000000_f(c);
+    (void)a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000453A8);
