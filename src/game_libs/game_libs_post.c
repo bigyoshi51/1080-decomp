@@ -10739,16 +10739,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00027E24);
  * forms always single-def-coalesce ret into $v0 (hoisted decl, dead-if
  * interference, if(0) second def, self-assign, ret-relative folds all inert —
  * uopt CFG liveness kills cross-arm interference). Residual = need multi-def
- * web AND per-arm jr simultaneously; no C form found. */
+ * web AND per-arm jr simultaneously; no C form found.
+ * 2026-07-17 agent-h goto-end generalization probe (5 variants): the goto-end
+ * respelling (`ret=a0+24; if (a0[2]<a1) goto end; return a0+16; end: return
+ * ret;`) reproduces the target CFG EXACTLY (beql head, per-arm jr tail-dup,
+ * bnez+nop) — 13/15 words — but ret stays single-def and rule-4-coalesces
+ * into $v0 (words 8/15: addiu v0 vs v1, nop vs or v0,v1,zero). Making the
+ * web multi-def DOES pin $v1 + emit the move (2-def a0+8-goto and 2-def
+ * a0+16-fallthrough variants both show addiu v1,a0,24 + move v0,v1) but
+ * collapses the per-arm jr into a shared return (b / bnezl-filled move).
+ * Comma-carrier in the condition re-coalesces with the hoist inverted
+ * (a0+16 into v0). if(1){} BB-lever inert (identical to goto-end form).
+ * Same disjointness as 23B98: multi-def-web XOR per-arm-jr in uopt phase
+ * order. Cap stands; body below is the goto-end 13/15 form. */
 #ifdef NON_MATCHING
 char *game_libs_func_0002831C(char *a0, int a1) {
+    char *ret;
     if (a1 < *(unsigned char*)(a0 + 1)) {
         return a0 + 8;
     }
-    if (*(unsigned char*)(a0 + 2) >= a1) {
-        return a0 + 16;
+    ret = a0 + 24;
+    if (*(unsigned char*)(a0 + 2) < a1) {
+        goto end;
     }
-    return a0 + 24;
+    return a0 + 16;
+end:
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002831C);
