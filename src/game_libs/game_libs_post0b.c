@@ -14857,73 +14857,70 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000454C4);
 // that gl_func_000454C4 drives in a loop; relates to gl_func_000430E4 /
 // 00043484). Exact byte-store fan-out representative; the a1->0x04 index
 // bump, the 255.0 scale, the trunc-to-byte conversion and the stride-4
-// interleaved layout are exact. Caps: Batch/Elem/Out struct + the bias
-// constants untyped. Full body INCLUDE_ASM-preserved.
+// interleaved layout are exact. Redecoded 2026-07-18 (67.87 -> 95.86):
+// call1 args are (out+8, arg1, cmd0388) NOT (out+8, cmd, out); shared rec/idx
+// across all 4 record-append blocks; ghost-slot decl order out,rec,idx,cmd1,
+// bx,by,bz,cmd2,cmd3 reproduces frame 0x40 + spill homes 0x3C/0x20/0x1C +
+// the a0/a1 arg home-stores. Residual 45 words = bx/by/bz colored v0/a0/t1
+// vs target ring a0/t1/t2 (lane values are ring TEMPS in the target; named
+// vars claim v0, inline 4x FP exprs do NOT CSE (+12 mul/trunc), chained
+// assignment spills arg2 - all probed) + the downstream t-ring/const-lui
+// parity shift. Coloring-multiset class.
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00045CB0)();
-void gl_func_00045CB0(s32 arg0, char *arg1, char *arg2) {
-    char *sp3C;
-    char *sp20;
-    char *sp1C;
-    s32 temp_f18;
-    s32 temp_f8;
-    s32 temp_f8_2;
-    s32 temp_t0;
-    s32 temp_t0_2;
-    s32 temp_t0_3;
-    s32 temp_t0_4;
-    char *temp_a2;
-    char *temp_a3;
-    char *temp_t1;
-    char *temp_v0;
-    char *temp_v1;
-    char *temp_v1_2;
-    char *temp_v1_3;
-    char *temp_v1_4;
+void gl_func_00045CB0(s32 arg0, char *arg1, float *arg2) {
+    char *out;
+    int *rec;
+    int idx;
+    int *cmd1;
+    int bx;
+    int by;
+    int bz;
+    int *cmd2;
+    int *cmd3;
 
-    temp_v1 = (*(s16 *)((char *)arg1 + 0x2C));
-    temp_t0 = FW(temp_v1, 0x4);
-    FW(temp_v1, 0x4) = (s32) (temp_t0 + 1);
-    temp_a3 = FW((*(s16 *)((char *)arg1 + 0x2C)), 0x0) + (temp_t0 * 0x48);
-    temp_f8 = (s32) ((*(f32*)((char*)arg2 + 0x0)) * 255.0f);
-    temp_f18 = (s32) ((*(f32*)((char*)arg2 + 0x4)) * 255.0f);
-    (*(s8*)((char*)temp_a3 + 0x0)) = (s8) temp_f8;
-    (*(s8*)((char*)temp_a3 + 0x4)) = (s8) temp_f8;
-    temp_f8_2 = (s32) ((*(f32*)((char*)arg2 + 0x8)) * 255.0f);
-    (*(s8*)((char*)temp_a3 + 0x8)) = (s8) temp_f8;
-    (*(s8*)((char*)temp_a3 + 0xC)) = (s8) temp_f8;
-    (*(s8*)((char*)temp_a3 + 0x1)) = (s8) temp_f18;
-    (*(s8*)((char*)temp_a3 + 0x5)) = (s8) temp_f18;
-    (*(s8*)((char*)temp_a3 + 0x9)) = (s8) temp_f18;
-    (*(s8*)((char*)temp_a3 + 0xD)) = (s8) temp_f18;
-    (*(s8*)((char*)temp_a3 + 0x2)) = (s8) temp_f8_2;
-    (*(s8*)((char*)temp_a3 + 0x6)) = (s8) temp_f8_2;
-    (*(s8*)((char*)temp_a3 + 0xA)) = (s8) temp_f8_2;
-    (*(s8*)((char*)temp_a3 + 0xE)) = (s8) temp_f8_2;
-    temp_v1_2 = FW(arg1, 0xC);
-    temp_t0_2 = FW(temp_v1_2, 0x4);
-    FW(temp_v1_2, 0x4) = (s32) (temp_t0_2 + 1);
-    temp_v0 = FW(FW(arg1, 0xC), 0x0) + (temp_t0_2 * 8);
-    FW(temp_v0, 0x0) = 0xBC000002;
-    FW(temp_v0, 0x4) = 0x80000040;
-    temp_v1_3 = FW(arg1, 0xC);
-    temp_t0_3 = FW(temp_v1_3, 0x4);
-    FW(temp_v1_3, 0x4) = (s32) (temp_t0_3 + 1);
-    temp_a2 = FW(FW(arg1, 0xC), 0x0) + (temp_t0_3 * 8);
-    FW(temp_a2, 0x0) = 0x03880010;
-    sp3C = temp_a3;
-    sp20 = temp_a2;
-    FW(temp_a2, 0x4) = ((int(*)())gl_func_00034458)(temp_a3 + 8, temp_a2, temp_a3);
-    temp_v1_4 = FW(arg1, 0xC);
-    temp_t0_4 = FW(temp_v1_4, 0x4);
-    FW(temp_v1_4, 0x4) = (s32) (temp_t0_4 + 1);
-    temp_t1 = FW(FW(arg1, 0xC), 0x0) + (temp_t0_4 * 8);
-    FW(temp_t1, 0x0) = 0x03860010;
-    sp1C = temp_t1;
-    FW(temp_t1, 0x4) = ((int(*)())gl_func_00034458)(sp3C, arg1, temp_a2);
+    rec = *(int **)(arg1 + 0x2C);
+    idx = rec[1];
+    rec[1] = idx + 1;
+    out = (char *)((*(int **)(arg1 + 0x2C))[0] + (idx * 0x48));
+    bx = (int)(arg2[0] * 255.0f);
+    by = (int)(arg2[1] * 255.0f);
+    bz = (int)(arg2[2] * 255.0f);
+    out[0] = bx;
+    out[4] = bx;
+    out[8] = bx;
+    out[0xC] = bx;
+    out[1] = by;
+    out[5] = by;
+    out[9] = by;
+    out[0xD] = by;
+    out[2] = bz;
+    out[6] = bz;
+    out[0xA] = bz;
+    out[0xE] = bz;
+
+    rec = *(int **)(arg1 + 0xC);
+    idx = rec[1];
+    rec[1] = idx + 1;
+    cmd1 = (int *)((*(int **)(arg1 + 0xC))[0] + (idx * 8));
+    cmd1[0] = 0xBC000002;
+    cmd1[1] = 0x80000040;
+
+    rec = *(int **)(arg1 + 0xC);
+    idx = rec[1];
+    rec[1] = idx + 1;
+    cmd2 = (int *)((*(int **)(arg1 + 0xC))[0] + (idx * 8));
+    cmd2[0] = 0x03880010;
+    cmd2[1] = gl_func_00034458(out + 8, arg1, cmd2);
+
+    rec = *(int **)(arg1 + 0xC);
+    idx = rec[1];
+    rec[1] = idx + 1;
+    cmd3 = (int *)((*(int **)(arg1 + 0xC))[0] + (idx * 8));
+    cmd3[0] = 0x03860010;
+    cmd3[1] = gl_func_00034458(out, arg1, cmd2);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
