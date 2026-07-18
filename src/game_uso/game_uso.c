@@ -12335,7 +12335,21 @@ void game_uso_func_0000F6D4(char *a0) {
     if (prev == *(char **)(s0 + 0xF8)) {
         *(int *)(s0 + 0x100) = 0;
     }
-    *(char **)(s0 + 0xF8) = prev;
+    /* F8 write re-reads the just-stored F4 slot: emits a real reload web
+     * (t1) whose extra live range reproduces the target's downstream temp
+     * numbering (kills residual cluster C, the uniform +1 renumber). The
+     * target's own form — prev in $t0 + TWO `move v0,t0` (branch-delay dup
+     * + join def) — is a pure-register-copy web that copy-prop folds back
+     * from EVERY C spelling probed (2026-07-18): multi-def if/else both-arms
+     * `next=prev` (cross-jump merges + coalesces), ternary-comma value form
+     * (emits explicit `b`, 93.8), single-def-after-if(1)-barrier tail-dup
+     * spelling per the 2838 lever (folds; that lever needs an ARITHMETIC
+     * def, not a pure copy), F4-slot reload for BOTH compare and store (the
+     * dominating compare load forwards to $v0 but the join reload stays lw).
+     * Residual: that 2-insn move-dup web + the commutative addu operand
+     * order in the ceil-div block (both-order probe + pointer-base + IXA
+     * subscript all emit shift-first) + unpaired-HI16 baked-USO relocs. */
+    *(char **)(s0 + 0xF8) = *(char **)(s0 + 0xF4);
     game_uso_func_0000E564((int *)s0);
     if ((*(int *)(*(char **)(s0 + 0xB4) + 0xA58) & 0x40) &&
         (f4 = *(char **)(s0 + 0xF4), v1 = *(int *)(f4 + 0x28), (v1 != 0))) {
