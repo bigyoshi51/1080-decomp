@@ -17983,9 +17983,25 @@ extern int D_00000000;
  * Then a 3-way timer step on the g+16 float: if g+8!=0 ramp up by g+24 capped
  * at 1.0; elif g+12!=0 just decrement; else ramp down by g+28 floored at g+20.
  * Finally gl(0x1000800, bits of g+16). (reset arrives in caller-set t6 — the
- * `bne a0` here is the one unavoidable mismatch.) */
+ * `bne a0` here is the one unavoidable mismatch.)
+ * 2026-07-18 pass (67.8->83.3): probe ladder — (1) shared struct extern
+ * over-CSEs into a whole-fn lui/addiu base web (WORSE); (2) per-FIELD distinct
+ * externs pair every multi-access field; (3) winner: g+K cast form for int
+ * fields + STORES (sw/swc1 emit at-macros), one distinct extern PER LOAD SITE
+ * of the accumulator (63F34 single-access at-macro rule — volatile does NOT
+ * substitute: volatile loads still build an address pair AND re-type f32->lw).
+ * Clamp = local f single-store at join (up) / store-then-cond-restore (down);
+ * f = D_accC; call(f) routes the arg through the FP local = lwc1+mfc1 (direct
+ * global arg re-types to plain lw). Residual: caller-set t6 reset arg (cap),
+ * zero-pair shares one lui at in target vs two macros, minor %hi scheduling. */
+extern int gl_func_00000000_f(int, float);
+extern f32 D_307B0_accA; /* &D+0x10 — one distinct extern PER LOAD SITE (63F34 single-access at-macro */
+extern f32 D_307B0_accB; /* &D+0x10   rule); stores stay on the cast-*(volatile f32*)(g+16) form, which */
+extern f32 D_307B0_accC; /* &D+0x10   emits sw-macros; split kills forwarding + the load %hi pair */
 void gl_func_000307B0(int reset) {
     char *g = (char *)&D_00000000;
+    int c;
+    f32 f;
     if (reset == 0) {
         if (*(int *)g != 5) {
             return;
@@ -17993,21 +18009,27 @@ void gl_func_000307B0(int reset) {
         *(int *)(g + 12) = 0;
         *(int *)(g + 8) = 0;
     }
-    if (*(int *)(g + 8) != 0) {
-        *(int *)(g + 8) = *(int *)(g + 8) - 1;
-        *(float *)(g + 16) += *(float *)(g + 24);
-        if (1.0f < *(float *)(g + 16)) {
-            *(float *)(g + 16) = 1.0f;
+    c = *(int *)(g + 8);
+    if (c != 0) {
+        f = D_307B0_accA;
+        f += *(f32 *)(g + 24);
+        *(int *)(g + 8) = c - 1;
+        if (1.0f < f) {
+            f = 1.0f;
         }
+        *(volatile f32 *)(g + 16) = f;
     } else if (*(int *)(g + 12) != 0) {
         *(int *)(g + 12) = *(int *)(g + 12) - 1;
     } else {
-        *(float *)(g + 16) -= *(float *)(g + 28);
-        if (*(float *)(g + 16) < *(float *)(g + 20)) {
-            *(float *)(g + 16) = *(float *)(g + 20);
+        f = D_307B0_accB;
+        f -= *(f32 *)(g + 28);
+        *(volatile f32 *)(g + 16) = f;
+        if (f < *(f32 *)(g + 20)) {
+            *(volatile f32 *)(g + 16) = *(f32 *)(g + 20);
         }
     }
-    gl_func_00000000(0x1000800, *(int *)(g + 16));
+    f = D_307B0_accC; /* through the FP-local: lwc1 into f's reg + mfc1 a1 (a direct global arg re-types to a plain lw) */
+    gl_func_00000000_f(0x1000800, f);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
