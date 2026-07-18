@@ -6556,7 +6556,7 @@ typedef void (*Vfn_ff)(s32, s32, s32, void *, s32, s32, f32, f32);
 typedef struct { s32 w; } W90;
 extern char D_00008778;
 extern void func_00000000_p4f(void *, s32, s32, s32, f32);
-extern void func_00000000_iipif(s32, s32, void *, s32, f32);
+extern void func_00000000_iipif(s32, s32, void *, f32, f32);
 /* PASS-2 2026-06-10 (big-swing): FULL 2106-insn m2c graft replacing the
  * 30-insn stub. Raw-word pipeline: .s words -> objdump blob -> label-
  * resolved .s -> m2c (1084 lines, 0 errors, 163 labels). All callees
@@ -6570,11 +6570,11 @@ extern void func_00000000_iipif(s32, s32, void *, s32, f32);
  * reads) are halfword (target lh) -> s16. &D+0x17D is a byte flag (target
  * lbu) -> u8. (RGB triples at +0x8688.. already u8.) Remainder is the
  * ~198-insn m2c-collapsed callee/cascade reconstruction gap + regalloc. */
-void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, f32 arg6, s32 arg7, s32 arg8) {
+void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5, f32 arg6, s32 arg7, s32 arg8) {
     s32 sp174;
     f32 sp170;
     f32 sp16C;
-    s32 sp168;
+    f32 sp168;
     char *sp164;
     char *sp160;
     char *sp15C;
@@ -6626,7 +6626,7 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5
     char *sp8C;
     char *sp80;
     W90 sp7C;
-    s32 sp5C; s32 sp60; s32 sp64;
+    f32 sp5C; f32 sp60; f32 sp64;
     u32 sp58;
     s32 *sp40;
     f32 temp_f0;
@@ -7289,14 +7289,14 @@ block_148:
         *((s32 *)&sp5C + 0) = *((s32 *)&sp168 + 0);
         *((s32 *)&sp5C + 1) = (s32) *((s32 *)&sp168 + 1);
         *((s32 *)&sp5C + 2) = (s32) *((s32 *)&sp168 + 2);
-        *(s32 *)((char *)(var_s2) + 0x3A4) = sp5C;
-        *(s32 *)((char *)(var_s2) + 0x3A8) = sp60;
+        *(f32 *)((char *)(var_s2) + 0x3A4) = sp5C;
+        *(f32 *)((char *)(var_s2) + 0x3A8) = sp60;
         *(s32 *)((char *)(var_s2) + 0x8C0) = (s32) (1 << arg2);
         *(s32 *)((char *)(var_s2) + 0x38C) = 1;
         *(s32 *)((char *)(var_s2) + 0x870) = 0;
         *(s32 *)((char *)(var_s2) + 0x868) = 0;
         *(s32 *)((char *)(var_s2) + 0x86C) = 0;
-        *(s32 *)((char *)(var_s2) + 0x3AC) = sp64;
+        *(f32 *)((char *)(var_s2) + 0x3AC) = sp64;
         func_00000000(sp40, arg1, arg2);
         if (*(s32 *)((char *)(var_s2) + 0xA58) & 3) {
             func_00000000(&D_00008800, 0);
