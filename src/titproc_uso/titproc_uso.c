@@ -1203,16 +1203,25 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000171
  * fixed from-before delay fill, not C-reachable; (3+4) the saved-`sub`
  * arg-temp home at sp+0x24 vs our sp+0x20 (one-word spill-home delta).
  * A 1500s / ~80k-iter permuter found NO improvement past this base
- * (best score 120, no objdiff gain). Confirmed ugen temploc-binding /
- * as1-fill cap class; INSN_PATCH removed (banned 2026-05-23). Stays NM. */
+ * (best score 120, no objdiff gain).
+ *
+ * 2026-07-17 re-probe: (3+4) CRACKED — decl-order spill-slot rank
+ * (EE8C lever): declaring `sub` FIRST moves its jal-delay arg-spill
+ * temploc to the TOP local word sp+0x24, frame-neutral (all volatile-pad
+ * variants grew the frame 0x28->0x30, wrong). 94.09 -> 97.06 (66/68).
+ * (1+2) re-probed with the new (float)0 cast lever + (float)1 +
+ * register/!self/goto-restructure — all identical or worse; the 2-insn
+ * prologue tie (sw ra vs move s0,a0 fill) is the documented as1
+ * arg-save-in-bne-delay tie (IDO_CODEGEN inline-prologue-vs-bne-delay
+ * entry). Permuter-negative already on file. Stays NM. */
 #ifdef NON_MATCHING
 extern int titproc_uso_func_04C678();
 extern int titproc_uso_func_001AF8();
 extern int titproc_uso_func_00F4CC();
 extern char titproc_uso_D_0001FC;
 void *titproc_uso_func_00001840(void *a0) {
-    void *self = a0;
     void *sub;
+    void *self = a0;
     if (self == 0) {
         self = (void*)titproc_uso_func_055750(0x74);
         if (self == 0) goto end;
