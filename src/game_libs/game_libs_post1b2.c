@@ -158,9 +158,15 @@ void gl_func_0006C1B8(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C2A4);
+/* game_libs_func_0006C2A4 (0x8 orphan) was the HOISTED HEAD of
+ * gl_func_0006C2AC = osDriveRomInit — absorbed into the donor splice
+ * below (true entry 0x6C2A4, spliced symbol covers 0x6C2A4..0x6C37C). */
 
-#ifdef NON_MATCHING
+#if 0
+/* SUPERSEDED DECODE (2026-07-17): the "caller-set $t6" reading below was
+ * wrong — $t6 is DriveRomHandle.baseAddress loaded by the stolen prologue
+ * at 0x6C2A4. Real identity: libultra osDriveRomInit. See the donor unit
+ * game_libs_ido53_6C2A4.c. */
 /* gl_func_0006C2AC: 52-insn caller-set-$t6 gate + multi-byte/word global init (0xD0, frame 0x20).
  *
  * Decoded structure (raw-word disasm):
@@ -223,7 +229,21 @@ int gl_func_0006C2AC(void) {
     gl_func_00000000(saved);
     return D_result_sym_0006C2AC;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C2AC);
 #endif
+
+/* gl_func_0006C2AC = libultra osDriveRomInit (driverominit.c verbatim):
+ * gate on DriveRomHandle.baseAddress == PHYS_TO_K1(PI_DOM1_ADDR1)
+ * (0xA6000000), else init the 64DD drive-ROM PI handle (type=BULK,
+ * latency=64, pulse=7, pageSize=7, relDuration=2, domain=PI_DOMAIN1),
+ * bzero the transfer info, and link into __osPiTable under disabled
+ * interrupts. Needs IDO 5.3 -O1 (hoisted pre-prologue gate load +
+ * shared-$at pageSize/relDuration sb pair), so the real C lives in the
+ * donor unit game_libs_ido53_6C2A4.c (54/54 exact incl. the absorbed
+ * 0x8 head game_libs_func_0006C2A4). Body below is a placeholder for
+ * the REPLACE_FUNC_BODY splice (its bytes are replaced by the donor). */
+void *gl_func_0006C2AC(void) {
+    volatile int i;
+    for (i = 0; i < 15; i++) {}
+    return 0;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C2AC_pad.s")
