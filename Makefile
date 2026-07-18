@@ -87,7 +87,7 @@ build/src/gui_uso/gui_uso.c.o: TRUNCATE_TEXT := 0x4738
 build/non_matching/src/gui_uso/gui_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gui_func_0000161C=0x00000000
 build/src/h2hproc_uso/h2hproc_uso.c.o: SUFFIX_BYTES_FORCE := h2hproc_uso_func_00000274=0x00000000 h2hproc_uso_func_00001AFC=0x00000000
 build/src/h2hproc_uso/h2hproc_uso.c.o: TRUNCATE_TEXT := 0x1B30
-build/non_matching/src/h2hproc_uso/h2hproc_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := h2hproc_uso_func_00000274=0x00000000
+build/non_matching/src/h2hproc_uso/h2hproc_uso.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := h2hproc_uso_func_00000274=0x00000000 h2hproc_uso_func_00001AFC=0x00000000
 # 2026-05-27: removed instruction-appending PREFIX_BYTES for game_libs_func_0003ECDC,
 # game_libs_func_0005AFB0, kernel func_80007FC8 — all were leading-nop / self-branch
 # instruction-faking that violated the 2026-05-23 no-instruction-forcing-matches policy
