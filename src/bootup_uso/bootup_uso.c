@@ -6500,6 +6500,18 @@ extern char D_0000885C;
 extern char D_00008868;
 extern char D_00008880;
 extern char D_00008888;
+/* func_000090CC alloc-cascade +0x28 child-vtable pointers: USO relocs blanked in the
+ * .s (lui/addiu 0x0). Resolved from bootup.uso TextReloc @0xd9fe28: symIdx 545 =
+ * shared 0x174-fallback vtable (imports), 546/547/548 = per-class vtables (imports),
+ * symIdx 312 = internal data +0x207DC. All =0 in undefined_syms_auto.txt (bytes match). */
+extern char bu_90cc_vt545;
+extern char bu_90cc_vt545_b;
+extern char bu_90cc_vt545_c;
+extern char bu_90cc_vt545_d;  /* per-cascade base-0 aliases of symIdx 545 -- bust cross-cascade addr GCSE (target rematerializes per store site) */
+extern char bu_90cc_vt546;
+extern char bu_90cc_vt547;
+extern char bu_90cc_vt548;
+extern char bu_90cc_d207dc;
 /* vtable draw slot (+0x5C): trailing two args are single-precision f32.
  * Prototyping defeats the K&R float->double promotion so single swc1
  * arg stores emit (matches target; no cvt.d.s/sdc1). */
@@ -7276,11 +7288,11 @@ block_148:
             temp_v0_5 = func_00000000(0x23C);
             if (temp_v0_5 != 0) {
                 var_s1_3 = temp_v0_5;
-                if ((temp_v0_5 != 0) || (temp_v0_5 = func_00000000(0x174), var_s1_3 = temp_v0_5, (temp_v0_5 != 0))) {
+                if ((var_s1_3 != 0) || (var_s1_3 = func_00000000(0x174), (var_s1_3 != 0))) {
                     func_00000000(var_s1_3, &D_0000882C);
-                    *(s32 *)((char *)(var_s1_3) + 0x28) = 0;
+                    *(s32 *)((char *)(var_s1_3) + 0x28) = (s32) &bu_90cc_vt545;
                 }
-                *(s32 *)((char *)(temp_v0_5) + 0x28) = 0;
+                *(s32 *)((char *)(temp_v0_5) + 0x28) = (s32) &bu_90cc_vt546;
             }
             sp164 = temp_v0_5;
             temp_s1_4 = *(s32 *)((char *)(var_s2) + 0x868);
@@ -7293,12 +7305,11 @@ block_148:
                 temp_v0_5 = func_00000000(0x1F4);
                 if (temp_v0_5 != 0) {
                     var_a2 = temp_v0_5;
-                    if ((temp_v0_5 != 0) || (temp_v0_5 = func_00000000(0x174), var_a2 = temp_v0_5, (temp_v0_5 != 0))) {
-                        sp114 = var_a2;
-                        func_00000000(var_a2, &D_00008834, var_a2);
-                        *(s32 *)((char *)(var_a2) + 0x28) = 0;
+                    if ((var_a2 != 0) || (var_a2 = func_00000000(0x174), (var_a2 != 0))) {
+                        func_00000000(var_a2, &D_00008834);
+                        *(s32 *)((char *)(var_a2) + 0x28) = (s32) &bu_90cc_vt545_b;
                     }
-                    *(s32 *)((char *)(temp_v0_5) + 0x28) = 0;
+                    *(s32 *)((char *)(temp_v0_5) + 0x28) = (s32) &bu_90cc_vt547;
                 }
                 sp160 = temp_v0_5;
                 temp_s1_5 = *(s32 *)((char *)(var_s2) + 0x86C);
@@ -7311,12 +7322,11 @@ block_148:
             temp_v0_5 = func_00000000(0x174);
             if (temp_v0_5 != 0) {
                 var_a2 = temp_v0_5;
-                if ((temp_v0_5 != 0) || (temp_v0_5 = func_00000000(0x174), var_a2 = temp_v0_5, (temp_v0_5 != 0))) {
-                    sp114 = var_a2;
-                    func_00000000(var_a2, &D_0000883C, var_a2);
-                    *(s32 *)((char *)(var_a2) + 0x28) = 0;
+                if ((var_a2 != 0) || (var_a2 = func_00000000(0x174), (var_a2 != 0))) {
+                    func_00000000(var_a2, &D_0000883C);
+                    *(s32 *)((char *)(var_a2) + 0x28) = (s32) &bu_90cc_vt545_c;
                 }
-                *(s32 *)((char *)(temp_v0_5) + 0x28) = 0;
+                *(s32 *)((char *)(temp_v0_5) + 0x28) = (s32) &bu_90cc_vt548;
             }
             sp15C = temp_v0_5;
             temp_s1_6 = *(s32 *)((char *)(var_s2) + 0x868);
@@ -7328,12 +7338,11 @@ block_148:
             temp_v0_5 = func_00000000(0x174);
             if (temp_v0_5 != 0) {
                 var_a2 = temp_v0_5;
-                if ((temp_v0_5 != 0) || (temp_v0_5 = func_00000000(0x174), var_a2 = temp_v0_5, (temp_v0_5 != 0))) {
-                    sp114 = var_a2;
-                    func_00000000(var_a2, &D_00008844, var_a2);
-                    *(s32 *)((char *)(var_a2) + 0x28) = 0;
+                if ((var_a2 != 0) || (var_a2 = func_00000000(0x174), (var_a2 != 0))) {
+                    func_00000000(var_a2, &D_00008844);
+                    *(s32 *)((char *)(var_a2) + 0x28) = (s32) &bu_90cc_vt545_d;
                 }
-                *(s32 *)((char *)(temp_v0_5) + 0x28) = 0;
+                *(s32 *)((char *)(temp_v0_5) + 0x28) = (s32) &bu_90cc_vt548;
             }
             sp158 = temp_v0_5;
             temp_s1_7 = *(s32 *)((char *)(var_s2) + 0x868);
@@ -7351,7 +7360,7 @@ block_148:
             func_00000000_p4f(temp_v0_5, &D_0000885C, 0, 0, 0.0f);
             temp_f0 = D_000008B4;
             *(s32 *)((char *)(temp_v0_5) + 0x120) = 0xFFFF;
-            *(s32 *)((char *)(temp_v0_5) + 0x28) = 0;
+            *(s32 *)((char *)(temp_v0_5) + 0x28) = (s32) &bu_90cc_d207dc;
             *(s32 *)((char *)(temp_v0_5) + 0x108) = temp_f0;
             *(s32 *)((char *)(temp_v0_5) + 0x10C) = temp_f0;
             *(s32 *)((char *)(temp_v0_5) + 0x110) = temp_f0;
