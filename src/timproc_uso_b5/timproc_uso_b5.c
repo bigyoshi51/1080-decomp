@@ -9598,24 +9598,28 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * (r provably non-NULL) but present in the target — reproduced via the
  * short-circuit `||`. func_00000000 = USO placeholder dispatcher. */
 #define TB5D_FLAG (*(volatile s32 *)((char *)&D_00000000 + 4))
+extern char *timproc_uso_b5_alias_pff(char *arg0, char *arg1, f32 arg2, f32 arg3, f32 arg4);
 char *timproc_uso_b5_func_0000D550(void *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8) {
     char *r;
-    char *s;
+    volatile s32 pad58;
+    char *h;
+    volatile s32 pad50;
+    volatile s32 pad4C;
     char *w;
-    char *sub;
-    char *tmp;
+    char *t2;
     s32 flagsave;
-    s32 argp1;
     f32 cf;
+    char *sub;
 
+    if (0) { func_00000000(&arg1, &arg2, &sub, &h); }
     r = (char *)func_00000000((void *)0x2C8);
     if (r != 0) {
-        s = r;
-        if ((r != 0) || ((s = (char *)func_00000000((void *)0x2B8)), (s != 0))) {
-            func_00000000(s, (char *)&D_00000000 + 0x15F0);
-            *(s32 *)(s + 0x28) = (s32)((char *)&D_00000000 + 0);
-            func_00000000(s + 0x2C);
-            func_00000000(s + 0x194);
+        h = r;
+        if ((r != 0) || ((t2 = (char *)func_00000000((void *)0x2B8)), (h = t2), (t2 != 0))) {
+            func_00000000(h, (char *)&D_00000000 + 0x15F0);
+            *(s32 *)(h + 0x28) = (s32)((char *)&D_00000000 + 0);
+            func_00000000(h + 0x2C);
+            func_00000000(h + 0x194);
         }
         *(s32 *)(r + 0x28) = (s32)((char *)&D_00000000 + 0x6D4);
         *(s32 *)(r + 0xC) = (s32)((char *)&D_00000000 + 0x15F8);
@@ -9630,15 +9634,15 @@ char *timproc_uso_b5_func_0000D550(void *arg0, s32 arg1, s32 arg2, f32 arg3, f32
     *(s32 *)(r + 0x14) = (s32)arg0;
     *(s32 *)(r + 0x2B0) = arg2;
     *(f32 *)(r + 0x2A4) = (f32)arg1;
-    argp1 = arg2 + 1;
+    h = (char *)(arg2 + 1);
     w = (char *)func_00000000((void *)0x138);
     if (w != 0) {
-        func_00000000(w, (char *)&D_00000000 + 0x1604, 0.0f, 0.0f, 0.0f);
+        timproc_uso_b5_alias_pff(w, (char *)&D_00000000 + 0x1604, 0.0f, 0.0f, 0.0f);
         *(s32 *)(w + 0x28) = (s32)((char *)&D_00000000 + 0x444);
         *(s32 *)(w + 0xC) = (s32)((char *)&D_00000000 + 0x160C);
         sub = (char *)func_00000000((void *)0x16C);
         if (sub != 0) {
-            func_00000000(sub, (char *)&D_00000000 + 0x1614, 0.0f, 0.0f, 0.0f);
+            timproc_uso_b5_alias_pff(sub, (char *)&D_00000000 + 0x1614, (f32)0, (f32)0, (f32)0);
             cf = *(f32 *)((char *)&D_00000000 + 0x3B4);
             *(s32 *)(sub + 0x120) = 1;
             *(s32 *)(sub + 0x28) = (s32)((char *)&D_00000000 + 0);
@@ -9649,13 +9653,13 @@ char *timproc_uso_b5_func_0000D550(void *arg0, s32 arg1, s32 arg2, f32 arg3, f32
         }
         *(s32 *)(w + 0x108) = (s32)sub;
         func_00000000(w, sub);
-        tmp = *(char **)(w + 0x108);
-        *(f32 *)(tmp + 0xBC) = 0.0f;
-        *(f32 *)(tmp + 0xB8) = 0.0f;
-        *(f32 *)(tmp + 0xB4) = 0.0f;
+        t2 = *(char **)(w + 0x108);
+        *(f32 *)(t2 + 0xBC) = (f32)0;
+        *(f32 *)(t2 + 0xB8) = (f32)0;
+        *(f32 *)(t2 + 0xB4) = (f32)0;
         flagsave = TB5D_FLAG & 0x80000;
         TB5D_FLAG = (TB5D_FLAG & 0xFFF7FFFF) | 0x2000;
-        func_00000000(w, func_00000000((void *)argp1));
+        func_00000000(w, func_00000000((void *)h));
         if (flagsave != 0) {
             TB5D_FLAG = TB5D_FLAG | 0x80000;
         } else {
@@ -9663,25 +9667,25 @@ char *timproc_uso_b5_func_0000D550(void *arg0, s32 arg1, s32 arg2, f32 arg3, f32
         }
         *(f32 *)(w + 0xDC) = arg3;
         *(f32 *)(w + 0xE0) = arg4;
-        *(f32 *)(w + 0x10C) = 0.0f;
+        *(f32 *)(w + 0x10C) = (f32)0;
         *(f32 *)(w + 0xE4) = arg5;
         *(f32 *)(w + 0x110) = arg6;
         *(f32 *)(w + 0x114) = arg7;
         *(s32 *)(w + 0x12C) = 0;
         *(s32 *)(w + 0x130) = 0;
         *(f32 *)(w + 0x120) = 1.0f;
-        *(f32 *)(w + 0x124) = 0.0f;
+        *(f32 *)(w + 0x124) = (f32)0;
         *(f32 *)(w + 0x118) = arg8;
     }
     *(s32 *)(r + 0x2B8) = (s32)w;
     *(s32 *)(r + 0x29C) = (s32)w;
     *(f32 *)(r + 0x134) = *(f32 *)((char *)&D_00000000 + 0x3B8);
-    tmp = *(char **)((char *)arg0 + 0x38);
-    func_00000000(tmp + 0x10, w);
+    h = *(char **)((char *)arg0 + 0x38);
+    func_00000000(h + 0x10, w);
     if (*(s32 *)(w + 0x14) != 0) {
         *(s32 *)(w + 0x4) = 1;
     }
-    *(s32 *)(w + 0x14) = (s32)tmp;
+    *(s32 *)(w + 0x14) = (s32)h;
     {
         s32 idx = *(s32 *)((char *)arg0 + 0x6C);
         *(s32 *)((char *)arg0 + 0x6C) = idx + 1;
