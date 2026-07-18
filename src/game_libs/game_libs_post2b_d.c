@@ -556,9 +556,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000743C4);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000744C4);
+/* game_libs_func_000744C4 (0x8 orphan, no jr ra: div/mflo) was the HOISTED
+ * HEAD of gl_func_000744CC = ldiv — absorbed into the donor splice below
+ * (true entry 0x744C4, spliced symbol covers 0x744C4..0x74548). */
 
-#ifdef NON_MATCHING
+#if 0
+/* SUPERSEDED DECODE (2026-07-18): the "caller-set $v0 quotient guess"
+ * reading below was wrong — $v0 is the quotient computed by the stolen
+ * pre-prologue `div $zero,$a1,$a2; mflo $v0` head (splat orphan
+ * game_libs_func_000744C4). Real identity: libc ldiv (o32 struct return,
+ * $a0 = sret ptr). See the donor unit game_libs_ido53_744C4.c. */
 /* gl_func_000744CC: 31-insn divide-correction helper w/ IDO trap prologue (0x7C, frame 0x08).
  *
  * Decoded structure (raw-word disasm) — division codegen idioms:
@@ -602,9 +609,21 @@ void gl_func_000744CC(int *a0_out, int a1_dividend_lo, int a2_divisor) {
     a0_out[0] = v0;
     a0_out[1] = rem;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000744CC);
 #endif
+
+/* gl_func_000744CC = libc ldiv (xldiv.c verbatim): quot = numer/denom
+ * (the div/mflo hoisted above the prologue = the absorbed 0x8 orphan),
+ * rem = numer - denom*quot, then the C-rounding fixup
+ * (quot<0 && rem>0 => quot++, rem-=denom), returned as an o32 sret
+ * struct {quot, rem} through $a0. Needs IDO 5.3 -O2 (7.1 -O2 picks
+ * $t9/$t8 for the sret copy instead of the target's $at/$t0), so the
+ * real C lives in the donor unit game_libs_ido53_744C4.c (33/33 exact,
+ * zero relocs). Body below is a placeholder for the REPLACE_FUNC_BODY
+ * splice (its bytes are replaced by the donor). */
+void gl_func_000744CC(void) {
+    volatile int i;
+    for (i = 0; i < 15; i++) {}
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000744CC_pad.s")
 
 #ifdef NON_MATCHING
