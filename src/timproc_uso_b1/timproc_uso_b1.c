@@ -1248,18 +1248,41 @@ void timproc_uso_b1_func_000021C4(void) {}
 void timproc_uso_b1_func_000021CC(void) {}
 
 #ifdef NON_MATCHING
-/* Full structural decode 2026-06-01. Constructor: 3-stage find-or-create
- * cascade (sizes 0x6C/0x50/0x2C, all collapse to obj since arg!=0), vtable
- * wiring (->0x28 = &D, ->0xC = &D+0x4C0), 7 config calls (((D[0]+3)<<16)|N
- * for N in {1,6,7,4,3,2,5}), a 6-arg setup call, an indirect vtable call,
- * a PI-domain region check (0xA0000184/0x200 vs 0xAC29), and field init.
- * All cross-USO calls are the gl_func_00000000 import. */
+/* Full structural decode 2026-06-01; re-decoded 2026-07-17 (153/200 words):
+ * 3-stage find-or-create cascade (0x6C/0x50/0x2C), vtable wiring, 7 config
+ * calls (((D[0]+3)<<16)|N for N in {1,6,7,4,3,2,5}), 6-arg setup call,
+ * indirect vtable call, region check, registration flags, field init.
+ * 2026-07-17 decode FIXES (91.54 baseline): vtable offset is SIGNED lh not
+ * lhu; registration flag blocks operate on *(obj+0x48) resp. *(d+0x190)
+ * loaded as the 2nd CALL ARG (a1, spilled to home in the jal delay,
+ * reloaded a3) -- NOT on the call result; region check is
+ * `if (*(int*)(d+0x184)==0 || *(int*)0xA0000200 != 0xAC290000)` (the 0x184
+ * word is d-relative via a v0-held &D base, NOT hardcoded 0xA0000184;
+ * second comparand is VALUE-form xor+sltiu via assigned cond var c);
+ * second registration call takes (slot, node) 2 args not 1.
+ * LEVERS THAT LANDED: glv_21d4 void-alias on all unused-result callees +
+ * named cb base un-poisons $v0 (vt block 0x23C-0x250 exact: lw v0 base,
+ * lh t6, addu a0,t6,v0); `char * volatile nd` arg-fold reproduces the
+ * lw a1 / jal / sw a1(delay) / lw reload shape at both registration
+ * calls; value-form || from the 44EDC assigned-cond-var recipe.
+ * RESIDUAL (47/200 words, length exact): frame 0x50 vs 0x40 -- target
+ * overlays the nd spill slot ONTO the o1 cascade home (0x3C shared by two
+ * webs), not expressible as two homed C vars (volatile char* costs an 8B
+ * aligned home); o1 cascade/vt/flag web colors v1 vs a3 when its defs come
+ * via nd reloads (colors a3 with direct call-arg assignment defs, but that
+ * form emits a move a1,a3 the target lacks -- probed both, round log
+ * 2026-07-17); cb &D base remats per-use hi/lo folds vs target single
+ * lui/addiu v0 GCSE pair; block-1 flag emits beqzl-dup vs target beqz +
+ * lui-0xa000 delay fill. Slot-overlay family, sibling of b3 994 residual. */
+extern void glv_21d4();
 void *timproc_uso_b1_func_000021D4(char *obj) {
     char *d = (char *)&D_00000000;
-    char *o1, *o2;
-    char *rec;
-    char *vt;
-    char *d190;
+    char * volatile nd;  /* registration node: a1 arg-fold + delay-spill */
+    char *o1;            /* cascade 1 + vt + flag roles */
+    char *o2;            /* cascade 2 */
+    char *cb;            /* v0-claim temp: vt base + &d base */
+    char *slot;          /* obj+0x10 */
+    int c;               /* value-form || comparand */
 
     if (obj != 0) goto have0;
     obj = (char *)gl_func_00000000(0x6C);
@@ -1283,7 +1306,7 @@ Svt0:
     *(int *)(obj + 0x28) = (int)d;
     *(int *)(obj + 0xC) = (int)(d + 0x4C0);
 
-    gl_func_00000000(obj);
+    glv_21d4(obj);
     *(int *)(obj + 0x60) = 0x78;
     *(int *)(obj + 0x64) = 0xA1;
     *(int *)(obj + 0x68) = 0xBF;
@@ -1300,29 +1323,29 @@ Svt0:
 
     *(int *)(*(int *)(obj + 0x48) + 0x30) =
         gl_func_00000000(0, d, 0x48, 0xDD, 3, 0xD);
-    gl_func_00000000(*(int *)(obj + 0x48));
-    gl_func_00000000(*(int *)(obj + 0x48), 0x8C);
+    glv_21d4(*(int *)(obj + 0x48));
+    glv_21d4(*(int *)(obj + 0x48), 0x8C);
+    cb = *(char **)(obj + 0x48);
+    o1 = *(char **)(cb + 0x28);
+    ((void (*)(int))(*(int *)(o1 + 0x5C)))(*(short *)(o1 + 0x58) + (int)cb);
 
-    vt = *(char **)(*(char **)(obj + 0x48) + 0x28);
-    ((void (*)(int))(*(int *)(vt + 0x5C)))(*(unsigned short *)(vt + 0x58) + *(int *)(obj + 0x48));
-
-    rec = (char *)gl_func_00000000(obj + 0x10, *(int *)(obj + 0x48));
-    if (*(int *)(rec + 0x14) != 0) {
-        *(int *)(rec + 0x4) = 1;
+    glv_21d4(slot = obj + 0x10, nd = *(char **)(obj + 0x48));
+    o1 = nd;
+    cb = d;
+    if (*(int *)(o1 + 0x14) != 0) {
+        *(int *)(o1 + 0x4) = 1;
     }
-    *(int *)(rec + 0x14) = (int)obj;
-    if (*(int *)0xA0000184 != 0) {
-        if (*(int *)0xA0000200 != 0xAC290000) {
-            *(int *)(*(char **)(obj + 0x48) + 0xD8) = 0;
-        }
+    *(int *)(o1 + 0x14) = (int)obj;
+    if (*(int *)(cb + 0x184) == 0 || !(c = (*(int *)0xA0000200 == 0xAC290000))) {
+        *(int *)(*(char **)(obj + 0x48) + 0xD8) = 0;
     }
-    d190 = *(char **)(d + 0x190);
-    gl_func_00000000(d190);
-    if (*(int *)(d190 + 0x14) != 0) {
-        *(int *)(d190 + 0x4) = 1;
+    glv_21d4(slot, nd = *(char **)(cb + 0x190));
+    o1 = nd;
+    if (*(int *)(o1 + 0x14) != 0) {
+        *(int *)(o1 + 0x4) = 1;
     }
-    *(int *)(d190 + 0x14) = (int)obj;
-    gl_func_00000000(*(int *)(d + 0x190), 1, 0);
+    *(int *)(o1 + 0x14) = (int)obj;
+    glv_21d4(*(int *)(d + 0x190), 1, 0);
 
     *(int *)(obj + 0x54) = 0;
     *(int *)(obj + 0x50) = 0;
