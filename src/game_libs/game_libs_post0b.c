@@ -4904,64 +4904,71 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039094);
  *   reload t2 = node->[0x4]; if (t2 != 0): node->[0x14] = root
  *   vt = node->[0x28]; (vt->[0x24])(*(short*)(vt+0x20) + (int)node)
  *
- * Cap: same hand-unrolled 4x4 mat-mult as 38DC0 (clean triple-for
- * doesn't reproduce the unroll), plus the per-node gating order is
- * sensitive. Initial NM wrap with structure decoded. */
+ * 2026-07-18 redecode 51.2 -> 89.3: the "hand-unrolled mat-mult cap" was a
+ * decode error - target IS a clean triple-for with MEMORY compound accumulate
+ * (result[r*4+c] += ..., no float sum local: swc1/lwc1 round-trip per k step,
+ * IDO fully unrolls the trip-4 k-loop and software-pipelines the c-loop with
+ * beql/bnel peel). Iterator pair lives in memory: int *iter2[2] array (arrays
+ * never registerized; a struct gets scalar-replaced into s4/s5). Tail call
+ * result is the return value (no move v0,zero after the last jal).
+ * Residual: (a) &D_00000000 publish address hoisted to s4 (target re-forms in
+ * $at per site with the sw in the beqzl likely-slot; direct global assign
+ * doesn't stop the hoist), pulling one extra s-reg save + frame -176 vs -184
+ * (target parks 6 dead scalar homes at sp+0x98..0xAF, titproc-1710 class);
+ * (b) node/loop-bound s0/s1 coloring swap downstream of (a); (c) first call
+ * arg staged via a1 then move a0,a1 in target (carrier spelling unknown);
+ * ternary-comma advance spelling probed - regresses (+1 insn, 145 mism). */
 extern int gl_func_00000000();
 int gl_func_000393B8(int *root) {
-    int **bundle = (int**)root[0x10/4];
-    int **iter;
-    int *node = NULL;
+    int *iter2[2]; /* [0]=prev link (dead-store sp+0xB0), [1]=cur link (sp+0xB4) */
+    int *node;
 
+    iter2[1] = (int *)root[0x10/4];
     gl_func_00000000(root[0xC/4]);
-
-    if (bundle != NULL) {
-        iter = (int**)bundle[0x4/4];
-        node = (int*)bundle[0x0/4];
-    } else {
-        iter = NULL;
+    node = NULL;
+    if (iter2[1] != NULL) {
+        iter2[0] = iter2[1];
+        iter2[1] = (int *)iter2[0][1];
+        node = (int *)iter2[0][0];
     }
     while (node != NULL) {
         if ((node[0x18/4] & 0x8) &&
             (node[0x8/4] & 0x200) &&
             ((node[0x8/4] << 14) < 0) &&
             !(node[0x2C/4] & 0x1)) {
-            float result[16];
             if (root[0x2C/4] & 0x2) {
                 gl_func_00000000((char*)node + 0x30, (char*)node + 0x70);
             } else {
                 float *src = (float*)((char*)node + 0x30);
                 float *world = (float*)((char*)root + 0x70);
-                int row, col, k;
-                for (row = 0; row < 4; row++) {
-                    for (col = 0; col < 4; col++) {
-                        float sum = 0.0f;
+                int r, c, k;
+                float result[16];
+                for (r = 0; r < 4; r++) {
+                    for (c = 0; c < 4; c++) {
+                        result[r*4 + c] = 0.0f;
                         for (k = 0; k < 4; k++) {
-                            sum += src[row * 4 + k] * world[k * 4 + col];
+                            result[r*4 + c] += src[r*4 + k] * world[k*4 + c];
                         }
-                        result[row * 4 + col] = sum;
                     }
                 }
                 gl_func_00000000(result, (char*)node + 0x70);
             }
             if (root[0x2C/4] & 0x2) {
-                *(int**)&D_00000000 = root;
+                D_00000000 = (int)root;
             }
             if (node[0x4/4] != 0) {
                 node[0x14/4] = (int)root;
             }
-            {
-                int *vt = (int*)node[0x28/4];
-                ((void(*)(int))vt[0x24/4])(*(short*)((char*)vt + 0x20) + (int)node);
-            }
+            ((void(*)(int))((int*)node[0x28/4])[0x24/4])(*(short*)((char*)node[0x28/4] + 0x20) + (int)node);
         }
-        if (iter == NULL) break;
-        node = (int*)iter[0];
-        iter = (int**)iter[1];
+        node = NULL;
+        if (iter2[1] != NULL) {
+            iter2[0] = iter2[1];
+            iter2[1] = (int *)iter2[0][1];
+            node = (int *)iter2[0][0];
+        }
     }
-
-    gl_func_00000000();
-    return 0;
+    return gl_func_00000000();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000393B8);
