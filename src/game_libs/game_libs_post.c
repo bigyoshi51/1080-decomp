@@ -14918,13 +14918,25 @@ void gl_func_0002D6C8(int a0) {
  * (post-cc unused-$a1-spill rewrite + trailing successor setup word).
  * INSN_PATCH REMOVED 2026-05-23 as match-faking per
  * feedback_no_instruction_forcing_matches_policy — fn rolled back to
- * NM-wrap. NATURAL CEILING: unused-arg-save residual stays NM. */
+ * NM-wrap.
+ *
+ * 2026-07-17 WORD-EXACT (agent-h): the "unused-arg-save residual" was a
+ * DECODE ERROR from a stale boundary. The leading `or a2,a0,zero`
+ * (0x00803025, at 0x2D70C) belongs to THIS fn: the real source is a
+ * ONE-parameter function passing its arg as the 3rd call arg —
+ * `f(a0){ D_store=a0; cb(0x41010000, load[a0], a0); }`. IDO hoists the
+ * a2 arg-copy above the stack adjust and indexes off a2 via copy-prop;
+ * there never was an a1 spill. Same fix chained through siblings
+ * 2D74C/2D788 (each fn's leading move was sitting at the previous .s
+ * tail; boundary words shifted one file forward, ROM order preserved).
+ * All 15/15 words exact vs .s. Stays NM wrap (jal-0 placeholder callee
+ * gl_func_00000000 + baked USO syms) — no episode. */
 extern int D_2D710_store;
 extern int D_2D710_load;
 #ifdef NON_MATCHING
-void gl_func_0002D710(int a0, int unused_a1, int a2) {
+void gl_func_0002D710(int a0) {
     D_2D710_store = a0;
-    gl_func_00000000(0x41010000, ((int*)&D_2D710_load)[a2], a2);
+    gl_func_00000000(0x41010000, ((int*)&D_2D710_load)[a0], a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
@@ -14947,13 +14959,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D710);
  * sibling gl_func_0002D710 (call constant 0x41000000). INSN_PATCH REMOVED
  * 2026-05-23 as match-faking per
  * feedback_no_instruction_forcing_matches_policy — fn rolled back to
- * NM-wrap. NATURAL CEILING: unused-arg-save residual stays NM. */
+ * NM-wrap.
+ *
+ * 2026-07-17 WORD-EXACT (agent-h): same decode fix as 2D710 — one-param
+ * fn, arg passed as 3rd call arg; leading `or a2,a0,zero` pulled in from
+ * 2D710.s tail, own tail move pushed to 2D788.s. 15/15 words exact.
+ * Stays NM wrap (jal-0 placeholder callee) — no episode. */
 extern int D_2D74C_store;
 extern int D_2D74C_load;
 #ifdef NON_MATCHING
-void gl_func_0002D74C(int a0, int unused_a1, int a2) {
+void gl_func_0002D74C(int a0) {
     D_2D74C_store = a0;
-    gl_func_00000000(0x41000000, ((int*)&D_2D74C_load)[a2], a2);
+    gl_func_00000000(0x41000000, ((int*)&D_2D74C_load)[a0], a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D74C);
@@ -15003,12 +15020,17 @@ extern int D_2D788_b;
  * for the 3 words after the C body's natural epilogue. Both INSN_PATCH and
  * instruction-appending SUFFIX_BYTES REMOVED 2026-05-23 as match-faking per
  * feedback_no_instruction_forcing_matches_policy — fn rolled back to
- * NM-wrap. NATURAL CEILING: unused-arg-save + alt-entry stay NM. */
+ * NM-wrap.
+ *
+ * 2026-07-17 WORD-EXACT (agent-h): same decode fix as 2D710/2D74C —
+ * one-param fn, arg passed as 3rd call arg; leading `or a2,a0,zero`
+ * pulled in from 2D74C.s tail (the old "alt-entry tail" words had
+ * already been re-attributed to 2D7D0.s). 15/15 words exact. Stays NM
+ * wrap (jal-0 placeholder callee) — no episode. */
 #ifdef NON_MATCHING
-void gl_func_0002D788(int a0, int unused_a1, int a2) {
+void gl_func_0002D788(int a0) {
     D_2D788_a = a0;
-    gl_func_00000000(0x41020000, (&D_2D788_b)[a2]);
-    (void)unused_a1;
+    gl_func_00000000(0x41020000, (&D_2D788_b)[a0], a0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D788);
