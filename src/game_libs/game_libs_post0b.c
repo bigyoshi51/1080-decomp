@@ -30801,79 +30801,57 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DB58);
 #endif
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005DBB0)();
-void gl_func_0005DBB0(char *arg0, char *arg1) {
-    char *sp44;
-    s32 *sp40;
-    s32 sp3C;
-    char *sp28;
-    char *sp24;
-    s32 sp20;
-    f32 temp_f12;
-    f32 temp_f12_2;
-    f32 temp_f12_3;
-    f32 temp_f14;
-    f32 temp_f16;
-    f32 var_f0;
-    f64 temp_f0;
-    f64 temp_f2;
-    f64 temp_f2_2;
-    s32 temp_a1;
-    s32 temp_a2;
-    s32 temp_a3;
-    s32 temp_t0;
-    s32 var_a1;
-    s32 var_v0;
-    char *temp_t1;
-    char *temp_t2;
-    char *var_v1;
+/* gl_func_0005DBB0: 0x234 rotation-matrix (f32 rows, stride 0x10) ->
+ * quaternion, classic Shoemake mtx->quat with nxt[]={1,2,0} table at &D_0
+ * (lo16 addend 0, placeholder reloc). sqrtf callee = jal placeholder
+ * (typed alias per file convention). All row/col address temps
+ * (v0/v1/a3/t0/t1/t2) are uopt CSE products of 2D indexing m[i][i] etc,
+ * NOT source locals. The while(0){tr=m11+m00} dead loop is a DELIBERATE
+ * emission-free coloring lever (analoop ref-weighting): it makes the
+ * trace sum a real web colored FIRST (f2, pushing m22 to f16 and keeping
+ * m00/m11 = f12/f14 in target order); removing it rotates the whole FP
+ * candidate/ring assignment (75 words). 116/141 words exact incl. frame
+ * 0x60, all spills, both call regions. Residual 25 = one add.s fs/ft
+ * operand pick + else-path rowj/rowk web-rank swap (t1/t2 + sll t4/t5 +
+ * 5 spill-home slots + 6 post-call addu pairs, one coupled cluster);
+ * named-local (decl-order-slot) spelling of the whole cluster scored
+ * WORSE (57) — the rows/cols are provably CSE temps, rank not
+ * source-steerable from here. NM wrap kept. */
+extern float sqrtf(float);
+void gl_func_0005DBB0(f32 (*m)[4], f32 *q) {
+    s32 i, j, k;
+    f32 tr;
+    f64 s;
+    f32 t;
 
-    temp_f14 = (*(f32*)((char*)arg0 + 0x14));
-    temp_f12 = (*(f32*)((char*)arg0 + 0x0));
-    temp_f16 = (*(f32*)((char*)arg0 + 0x28));
-    temp_f0 = (f64) (temp_f12 + temp_f14 + temp_f16);
-    if (temp_f0 > 0.0) {
-        temp_f2 = (f64) gl_func_00034458((f32) (temp_f0 + 1.0), temp_f14);
-        (*(f32*)((char*)arg1 + 0xC)) = (f32) (temp_f2 * 0.5);
-        temp_f12_2 = (f32) (0.5 / temp_f2);
-        (*(f32*)((char*)arg1 + 0x0)) = (f32) (((*(f32*)((char*)arg0 + 0x18)) - (*(f32*)((char*)arg0 + 0x24))) * temp_f12_2);
-        (*(f32*)((char*)arg1 + 0x4)) = (f32) (((*(f32*)((char*)arg0 + 0x20)) - (*(f32*)((char*)arg0 + 0x8))) * temp_f12_2);
-        (*(f32*)((char*)arg1 + 0x8)) = (f32) (((*(f32*)((char*)arg0 + 0x4)) - (*(f32*)((char*)arg0 + 0x10))) * temp_f12_2);
-        return;
+    while (0) {
+        tr = m[1][1] + m[0][0];
     }
-    var_a1 = 0;
-    if (temp_f12 < temp_f14) {
-        var_a1 = 1;
+    tr = m[0][0] + m[1][1] + m[2][2];
+    if (tr > 0.0) {
+        s = sqrtf(tr + 1.0);
+        q[3] = s * 0.5;
+        t = 0.5 / s;
+        q[0] = (m[1][2] - m[2][1]) * t;
+        q[1] = (m[2][0] - m[0][2]) * t;
+        q[2] = (m[0][1] - m[1][0]) * t;
+    } else {
+        i = 0;
+        if (m[0][0] < m[1][1]) {
+            i = 1;
+        }
+        if (m[i][i] < m[2][2]) {
+            i = 2;
+        }
+        j = (&D_00000000)[i];
+        k = (&D_00000000)[j];
+        s = sqrtf((f64)(m[i][i] - (m[j][j] + m[k][k])) + 1.0);
+        q[i] = s * 0.5;
+        t = 0.5 / s;
+        q[3] = (m[j][k] - m[k][j]) * t;
+        q[j] = (m[i][j] + m[j][i]) * t;
+        q[k] = (m[i][k] + m[k][i]) * t;
     }
-    var_v1 = (int)arg0 + (var_a1 * 0x10);
-    var_v0 = var_a1 * 4;
-    var_f0 = *(f32*)(var_v1 + var_v0);
-    if (var_f0 < temp_f16) {
-        var_v1 = (int)arg0 + 0x20;
-        var_f0 = (*(f32*)((char*)var_v1 + 0x8));
-        var_v0 = 8;
-    }
-    temp_a1 = *(int*)((char*)&D_00000000 + var_v0);
-    temp_a3 = temp_a1 * 4;
-    temp_a2 = *(int*)((char*)&D_00000000 + (temp_a1 * 4));
-    temp_t1 = (int)arg0 + (temp_a1 * 0x10);
-    temp_t2 = (int)arg0 + (temp_a2 * 0x10);
-    temp_t0 = temp_a2 * 4;
-    sp24 = temp_t2;
-    sp28 = temp_t1;
-    sp20 = temp_t0;
-    sp3C = temp_a3;
-    sp44 = var_v1;
-    sp40 = (s32 *) var_v0;
-    temp_f2_2 = (f64) gl_func_00034458((f32) ((f64) (var_f0 - (*(f32*)(temp_t1 + temp_a3) + *(f32*)(temp_t2 + temp_t0))) + 1.0), temp_f14, temp_a1, temp_a2, temp_a3);
-    *(f32*)((int)arg1 + var_v0) = (f32) (temp_f2_2 * 0.5);
-    temp_f12_3 = (f32) (0.5 / temp_f2_2);
-    (*(f32*)((char*)arg1 + 0xC)) = (f32) ((*(f32*)(temp_t1 + temp_t0) - *(f32*)(temp_t2 + temp_a3)) * temp_f12_3);
-    *(f32*)((int)arg1 + temp_a3) = (*(f32*)(var_v1 + temp_a3) + *(f32*)(temp_t1 + var_v0)) * temp_f12_3;
-    *(f32*)((int)arg1 + temp_t0) = (*(f32*)(var_v1 + temp_t0) + *(f32*)(temp_t2 + var_v0)) * temp_f12_3;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005DBB0);
