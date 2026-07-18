@@ -6838,7 +6838,16 @@ end:
     return (int)a0;
 }
 
-// gl_func_0003C86C — STRUCTURAL PASS (0x234 / 141 words, no episode).
+// gl_func_0003C86C — BYTE-EXACT under NM build (objdiff 100, 2026-07-17;
+//   placeholder-typed FW/SH body so it stays an NM wrap, no episode).
+//   Decode keys: the sp+0x80/sp+0x40 scratches are ONE 0x40-byte contact
+//   struct each (normal f32[3] at +0, partner ptr at +0x28 — the 0xC0 frame
+//   tiles exactly as two of them); mask-AND operands must be spelled in
+//   REVERSE of desired emission order (IDO evaluates & right-to-left here);
+//   negation site is `other = s1` FIRST then three `n[i] *= -1.0f` (the *=
+//   spelling reproduces the f4->f6/f8->f10/f16->f18 mul webs + sll nop;
+//   explicit load temps regress to f0/f2 temp webs and grow the frame).
+// Historical structural notes below (pre-match):
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION — exactly
 // ONE 27BDFF40 prologue (saves f20); the three jr's are multiple
 // early-out / main returns (the body's `beql`-to-shared-epilogue
@@ -6873,94 +6882,87 @@ end:
 //   the circular-list variant of the gl_func_00038598 / 00038964
 //   collection processors (the o->0x30 anchor + ->0xC handler slot
 //   tie it to the device-object vtable family).
-// Caps: raw-word USO + circular intrusive-list walk + jalr through
-//   the list-owner vtable ((o->0x30)->0x0C) + halfword-mask filter
-//   + multi-return — not exact-matchable without proper USO
-//   mnemonic disasm + the list/handler structs typed; structural
-//   pass only, no byte body.
+// (Caps note RETIRED 2026-07-17: body below now compiles byte-exact; the
+//   old "not exact-matchable" claim was wrong — the blockers were the
+//   separate-f32 scratch locals letting IDO cache y/z in f22/f24, plus
+//   mask-AND operand order.)
 // Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0003C86C)();
+#define SH_3C86C(p, o) (*(s16 *)((char *)(p) + (o)))
+/* contact-result scratch: normal at +0x00, partner ptr at +0x28, 0x40 total
+   (frame math: two of these at sp+0x40/sp+0x80 tile the 0xC0 frame exactly) */
+typedef struct {
+    f32 n[3];          /* 0x00 contact normal (negated for the B->A callback) */
+    char pad_C[0x1C];  /* 0x0C */
+    char *other;       /* 0x28 partner object */
+    char pad_2C[0x14]; /* 0x2C */
+} GCol_0003C86C;       /* 0x40 */
 void gl_func_0003C86C(char *arg0) {
-    char *spA8;
-    f32 sp88;
-    f32 sp84;
-    f32 sp80;
-    char *sp68;
-    f32 sp48;
-    f32 sp44;
-    f32 sp40;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *temp_v0_7;
-    char *var_s0;
-    char *var_s0_2;
+    GCol_0003C86C sp80;
+    GCol_0003C86C sp40;
     char *var_s1;
-
-    var_s1 = FW(arg0, 0x30);
+    char *var_s0;
+    char *vt;
+    var_s1 = (char *) FW(arg0, 0x30);
     if (var_s1 != 0) {
         do {
-            temp_v0 = FW(var_s1, 0x4);
-            var_s0 = temp_v0;
-            if (temp_v0 != 0) {
+            var_s0 = (char *) FW(var_s1, 4);
+            if (var_s0 != 0) {
                 do {
                     if (var_s0 != var_s1) {
-                        temp_v0_2 = FW(var_s1, 0x30);
-                        if (((GP_0003C86C)FW(temp_v0_2, 0xC))(*(s16*)((char*)temp_v0_2 + 0x8) + var_s1, var_s0, &sp80) != 0) {
-                            if ((*(s16*)((char*)var_s1 + 0x14)) & (*(s16*)((char*)var_s0 + 0x16))) {
-                                spA8 = var_s0;
-                                temp_v0_3 = FW(var_s1, 0x30);
-                                ((GP_0003C86C)FW(temp_v0_3, 0x14))(*(s16*)((char*)temp_v0_3 + 0x10) + var_s1, &sp80);
+                        vt = (char *) FW(var_s1, 0x30);
+                        if (((GP_0003C86C) FW(vt, 0xC))(SH_3C86C(vt, 8) + var_s1, var_s0, &sp80) != 0) {
+                            if (SH_3C86C(var_s0, 0x16) & SH_3C86C(var_s1, 0x14)) {
+                                sp80.other = var_s0;
+                                vt = (char *) FW(var_s1, 0x30);
+                                ((GP_0003C86C) FW(vt, 0x14))(SH_3C86C(vt, 0x10) + var_s1, &sp80);
                             }
-                            if ((*(s16*)((char*)var_s0 + 0x14)) & (*(s16*)((char*)var_s1 + 0x16))) {
-                                spA8 = var_s1;
-                                sp80 *= -1.0f;
-                                sp84 *= -1.0f;
-                                sp88 *= -1.0f;
-                                temp_v0_4 = FW(var_s0, 0x30);
-                                ((GP_0003C86C)FW(temp_v0_4, 0x14))(*(s16*)((char*)temp_v0_4 + 0x10) + var_s0, &sp80);
+                            if (SH_3C86C(var_s1, 0x16) & SH_3C86C(var_s0, 0x14)) {
+                                sp80.other = var_s1;
+                                sp80.n[0] *= -1.0f;
+                                sp80.n[1] *= -1.0f;
+                                sp80.n[2] *= -1.0f;
+                                vt = (char *) FW(var_s0, 0x30);
+                                ((GP_0003C86C) FW(vt, 0x14))(SH_3C86C(vt, 0x10) + var_s0, &sp80);
                             }
                         }
                     }
-                    var_s0 = FW(var_s0, 0x4);
+                    var_s0 = (char *) FW(var_s0, 4);
                 } while (var_s0 != 0);
             }
-            var_s1 = FW(var_s1, 0x4);
-        } while (FW(var_s1, 0x4) != 0);
-        var_s1 = FW(arg0, 0x30);
+            var_s1 = (char *) FW(var_s1, 4);
+        } while (var_s1 != 0);
     }
+    var_s1 = (char *) FW(arg0, 0x30);
     if (var_s1 != 0) {
         do {
-            var_s0_2 = FW(arg0, 0x2C);
-            if (var_s0_2 != 0) {
+            var_s0 = (char *) FW(arg0, 0x2C);
+            if (var_s0 != 0) {
                 do {
-                    temp_v0_5 = FW(var_s1, 0x30);
-                    if (((GP_0003C86C)FW(temp_v0_5, 0xC))(*(s16*)((char*)temp_v0_5 + 0x8) + var_s1, var_s0_2, &sp40) != 0) {
-                        if ((*(s16*)((char*)var_s1 + 0x14)) & (*(s16*)((char*)var_s0_2 + 0x16))) {
-                            sp68 = var_s0_2;
-                            temp_v0_6 = FW(var_s1, 0x30);
-                            ((GP_0003C86C)FW(temp_v0_6, 0x14))(*(s16*)((char*)temp_v0_6 + 0x10) + var_s1, &sp40);
+                    vt = (char *) FW(var_s1, 0x30);
+                    if (((GP_0003C86C) FW(vt, 0xC))(SH_3C86C(vt, 8) + var_s1, var_s0, &sp40) != 0) {
+                        if (SH_3C86C(var_s0, 0x16) & SH_3C86C(var_s1, 0x14)) {
+                            sp40.other = var_s0;
+                            vt = (char *) FW(var_s1, 0x30);
+                            ((GP_0003C86C) FW(vt, 0x14))(SH_3C86C(vt, 0x10) + var_s1, &sp40);
                         }
-                        if ((*(s16*)((char*)var_s0_2 + 0x14)) & (*(s16*)((char*)var_s1 + 0x16))) {
-                            sp68 = var_s1;
-                            sp40 *= -1.0f;
-                            sp44 *= -1.0f;
-                            sp48 *= -1.0f;
-                            temp_v0_7 = FW(var_s0_2, 0x30);
-                            ((GP_0003C86C)FW(temp_v0_7, 0x14))(*(s16*)((char*)temp_v0_7 + 0x10) + var_s0_2, &sp40);
+                        if (SH_3C86C(var_s1, 0x16) & SH_3C86C(var_s0, 0x14)) {
+                            sp40.other = var_s1;
+                            sp40.n[0] *= -1.0f;
+                            sp40.n[1] *= -1.0f;
+                            sp40.n[2] *= -1.0f;
+                            vt = (char *) FW(var_s0, 0x30);
+                            ((GP_0003C86C) FW(vt, 0x14))(SH_3C86C(vt, 0x10) + var_s0, &sp40);
                         }
                     }
-                    var_s0_2 = FW(var_s0_2, 0x4);
-                } while (var_s0_2 != 0);
+                    var_s0 = (char *) FW(var_s0, 4);
+                } while (var_s0 != 0);
             }
-            var_s1 = FW(var_s1, 0x4);
+            var_s1 = (char *) FW(var_s1, 4);
         } while (var_s1 != 0);
     }
 }
