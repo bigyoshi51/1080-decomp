@@ -1597,9 +1597,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064DEC);
  *
  * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
  * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
+ *
+ * 2026-07-17 agent-h RISE 76.76 -> 93.10 (54/58 words, all 58 insns exact):
+ * (1) (float)N cast-literal CSE-break splits the FP-const webs exactly like
+ *     the target: 0.0f (f0: 0x34C-354/0x318-320) vs (float)0 (f2: 0x2FC-304/
+ *     0x330-338 + post-call rematerialized 0x348), 1.0f (f12: 0x390-398) vs
+ *     (float)1 (f4: 0x308).
+ * (2) Tri3i struct copy tmp = *(Tri3i*)(arg0+0x318) reproduces the held
+ *     addiu t9,sp,base store base + sp-folded lwc1 readbacks (63884 lever).
+ * (3) flags-pointer materialization (target addiu v0,a0,24; lw/sw 0(v0)):
+ *     plain `int *flags = (int*)(arg0+0x18); *flags |= 0x10;` copy-props
+ *     back to lw/sw 24(a0) (one insn short). `goto mid; mid:` before the
+ *     use (or do-while(0) around it) blocks the same-BB fold -> exact
+ *     addiu v0/lw/sw shape (also tried: (unsigned) cast, volatile, register,
+ *     union, struct-field, ptr-arith re-spellings -- all fold; if(cond)
+ *     materializes but adds beqz; &flags adds a dead sw).
+ * RESIDUAL (4 words): the goto/do-while cross-BB pointer is a named
+ * candidate -> IDO reserves an 8B stack home at the frame BOTTOM, pushing
+ * tmp 0x1C->0x24 (t9=sp+0x24 + three lwc1 +8). The target has tmp at
+ * sp+0x1C with NO reserved home despite its whole head being one BB (no
+ * label possible) -- unknown home-free materialization; probed phantom
+ * 2nd param (homes to arg area but emits sw a1), scope-overlay blocks
+ * (no overlay), named-float carriers (homes reserved), decl-order swaps
+ * (scalar homes always bottom). Frame 0x38 exact via pad_a[2].
  */
 void gl_func_00065060(char *arg0) {
-    int sp1C0, sp1C4, sp1C8;
+    int pad_a[2];
+    Tri3i tmp;
+    int *flags = (int *)(arg0 + 0x18);
     *(s32 *)(arg0 + 0x38C) = 0xFFFF;
     *(f32 *)(arg0 + 0x34C) = 0.0f;
     *(f32 *)(arg0 + 0x350) = 0.0f;
@@ -1607,25 +1632,25 @@ void gl_func_00065060(char *arg0) {
     *(f32 *)(arg0 + 0x318) = 0.0f;
     *(f32 *)(arg0 + 0x31C) = 0.0f;
     *(f32 *)(arg0 + 0x320) = 0.0f;
-    *(f32 *)(arg0 + 0x2FC) = 0.0f;
-    *(f32 *)(arg0 + 0x300) = 0.0f;
-    *(f32 *)(arg0 + 0x304) = 0.0f;
-    *(f32 *)(arg0 + 0x330) = 0.0f;
-    *(f32 *)(arg0 + 0x334) = 0.0f;
-    *(f32 *)(arg0 + 0x338) = 0.0f;
+    *(f32 *)(arg0 + 0x2FC) = (float)0;
+    *(f32 *)(arg0 + 0x300) = (float)0;
+    *(f32 *)(arg0 + 0x304) = (float)0;
+    *(f32 *)(arg0 + 0x330) = (float)0;
+    *(f32 *)(arg0 + 0x334) = (float)0;
+    *(f32 *)(arg0 + 0x338) = (float)0;
     *(f32 *)(arg0 + 0x390) = 1.0f;
     *(f32 *)(arg0 + 0x394) = 1.0f;
     *(f32 *)(arg0 + 0x398) = 1.0f;
-    *(f32 *)(arg0 + 0x308) = 1.0f;
-    *(s32 *)(arg0 + 0x18) |= 0x10;
-    sp1C0 = *(s32 *)(arg0 + 0x318);
-    sp1C4 = *(s32 *)(arg0 + 0x31C);
-    sp1C8 = *(s32 *)(arg0 + 0x320);
-    *(f32 *)(arg0 + 0x33C) = *(f32 *)&sp1C0;
-    *(f32 *)(arg0 + 0x340) = *(f32 *)&sp1C4;
-    *(f32 *)(arg0 + 0x344) = *(f32 *)&sp1C8;
+    *(f32 *)(arg0 + 0x308) = (float)1;
+    goto mid;
+mid:
+    *flags |= 0x10;
+    tmp = *(Tri3i *)(arg0 + 0x318);
+    *(f32 *)(arg0 + 0x33C) = *(f32 *)&tmp.a;
+    *(f32 *)(arg0 + 0x340) = *(f32 *)&tmp.b;
+    *(f32 *)(arg0 + 0x344) = *(f32 *)&tmp.c;
     gl_func_00062F64(arg0);
-    *(f32 *)(arg0 + 0x348) = 0.0f;
+    *(f32 *)(arg0 + 0x348) = (float)0;
     *(f32 *)(arg0 + 0x288) = *(f32 *)(arg0 + 0x120);
     *(f32 *)(arg0 + 0x28C) = *(f32 *)(arg0 + 0x138);
     *(f32 *)(arg0 + 0x290) = *(f32 *)(arg0 + 0x1B0);
