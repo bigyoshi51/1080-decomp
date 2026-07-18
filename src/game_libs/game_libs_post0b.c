@@ -13038,11 +13038,30 @@ int gl_func_000435FC(int *a0, int a1) {
 // a0->0x38 (via shift-left-then-bgez) gating two formatted diagnostic
 // emits — the second keyed by error-string &D_0002FD1C with numeric args
 // (0xA, 5, 0). Family: cb-pipeline + diagnostic/error-format (siblings
-// gl_func_0003E2B0 / 00041148). Per-cb identity and the exact error arg list
-// representative; the &D_0+0x214 bind, the 0x64/0x88 stores, the 5-call
-// pipeline shape and the a0->0x38 bitfield gates are exact. Caps: object/g
-// struct, &D_0+0x214 global and cb signatures untyped. Full body
-// INCLUDE_ASM-preserved.
+// gl_func_0003E2B0 / 00041148).
+//
+// FULL REDECODE 2026-07-17 (74.64 -> 98.63, 69/91 words byte-exact under NM
+// build). 4EB54-recipe levers that landed: unconditional sh of g->0xC->0x4
+// into (s16)0x88 sits in the bnez delay (store is NOT gated by the 0x48
+// test); &D_00000000+0x1FD1C for the error string (bakes lui 2/addiu -0x2E4);
+// cb6 first arg &D_00000000 not 0; a1 homed to 0x3C(sp) + per-call delay-slot
+// reloads falls out of plain arg1 call args (no s1). KEY head lever: the
+// module-global load must stay an EXPRESSION temp (t6) with var_a3 a separate
+// candidate copied from it (move a3,t6) — write ALL early reads as
+// FW(arg0,0x64) (store-forwarded CSE -> t6) and var_a3 = FW(arg0,0x64) as
+// just another consumer; naming the load directly colors it a2/a3 and
+// drops/moves the copy. Two Gfx-append tails (0x06000000/cb9-result and
+// 0xBB040000/-1 at buf[cnt++], 8-byte entries, reload of ->0xC after the
+// cnt store is the aliasing tell).
+// RESIDUAL (22 words, all reg-number-only): caller-saved candidate-rank cap
+// in the two append blocks — target colors the 0x68-reload web v0 and sp34
+// v1 (then p/idx/e = a0/a1/a2); IDO ranks the reload web above sp34 and
+// hands out v1/a2 (then v1-reuse/a0/a1), t-ring aligned t5..t9. Probes
+// tabulated (all 22-word invariant): named reload var, 3-web shared temp_v0
+// (cb7-result+reload+cb9-result), store-forwarded cb7/cb8 web elimination,
+// decl-order swap, def-order swap, var_a3-reuse (proves uopt one-color-per-
+// variable: whole var stays a3, slot moves 0x30). Same cap class as 42F4C's
+// temp-ring residual. Caps: object/g struct, cb identities untyped.
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
@@ -13050,52 +13069,46 @@ int gl_func_000435FC(int *a0, int a1) {
 typedef char *(*GP_00043654)();
 void gl_func_00043654(char *arg0, char *arg1) {
     char *sp34;
-    s32 temp_v0_3;
-    s32 var_a1;
+    char *var_a3;
+    char *temp_v0;
     char *temp_a0;
     char *temp_a0_2;
     char *temp_a1;
     char *temp_a2;
-    char *temp_t6;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v1;
-    char *var_a3;
+    s32 idx;
+    s32 idx2;
 
-    temp_t6 = *(char **)0x214;
-    FW(arg0, 0x64) = temp_t6;
-    var_a3 = temp_t6;
-    FW(arg0, 0x88) = (s16) FW(FW(temp_t6, 0xC), 0x4);
+    FW(arg0, 0x64) = (int) *(char **)((char *)&D_00000000 + 0x214);
+    var_a3 = (char *) FW(arg0, 0x64);
+    *(s16 *)(arg0 + 0x88) = FW((char *)FW((char *)FW(arg0, 0x64), 0xC), 0x4);
     if (FW(arg0, 0x48) == 0) {
-        gl_func_00034458(temp_t6, arg1, var_a3);
         gl_func_00034458(FW(arg0, 0x64), arg1);
         gl_func_00034458(FW(arg0, 0x64), arg1);
         gl_func_00034458(FW(arg0, 0x64), arg1);
-        var_a3 = FW(arg0, 0x64);
+        gl_func_00034458(FW(arg0, 0x64), arg1);
+        var_a3 = (char *) FW(arg0, 0x64);
     }
     if (FW(arg0, 0x38) & 0x400000) {
-        gl_func_00034458(0, var_a3, arg0, var_a3);
-        var_a1 = 0x1FD1C;
+        gl_func_00034458((char *)&D_00000000, var_a3, arg0);
         if (FW(arg0, 0x38) & 0x100000) {
-            temp_v0 = gl_func_00034458(0, (char *)0x1FD1C, (char *)0xA, 0, 5, 0, 0);
-            FW(arg0, 0x68) = temp_v0;
-            gl_func_00034458(temp_v0);
-            temp_v1 = FW(arg0, 0x64);
-            sp34 = temp_v1;
-            temp_v0_2 = gl_func_00034458(FW(FW(arg0, 0x68), 0x60));
-            temp_a0 = FW(temp_v1, 0xC);
-            var_a1 = FW(temp_a0, 0x4);
-            FW(temp_a0, 0x4) = (s32) (var_a1 + 1);
-            temp_a2 = FW(FW(temp_v1, 0xC), 0x0) + (var_a1 * 8);
+            FW(arg0, 0x68) = gl_func_00034458(0, (char *)&D_00000000 + 0x1FD1C, 0xA, 0, 5, 0, 0);
+            gl_func_00034458(FW(arg0, 0x68));
+            temp_v0 = (char *) FW(arg0, 0x68);
+            sp34 = (char *) FW(arg0, 0x64);
+            temp_v0 = (char *) gl_func_00034458(FW(temp_v0, 0x60));
+            temp_a0 = (char *) FW(sp34, 0xC);
+            idx = FW(temp_a0, 0x4);
+            FW(temp_a0, 0x4) = idx + 1;
+            temp_a2 = (char *) FW((char *)FW(sp34, 0xC), 0x0) + (idx * 8);
             FW(temp_a2, 0x0) = 0x06000000;
-            FW(temp_a2, 0x4) = temp_v0_2;
+            FW(temp_a2, 0x4) = (int) temp_v0;
         }
-        gl_func_00034458(FW(arg0, 0x64), (char *) var_a1);
+        gl_func_00034458(FW(arg0, 0x64));
     } else {
-        temp_a0_2 = FW(var_a3, 0xC);
-        temp_v0_3 = FW(temp_a0_2, 0x4);
-        FW(temp_a0_2, 0x4) = (s32) (temp_v0_3 + 1);
-        temp_a1 = FW(FW(var_a3, 0xC), 0x0) + (temp_v0_3 * 8);
+        temp_a0_2 = (char *) FW(var_a3, 0xC);
+        idx2 = FW(temp_a0_2, 0x4);
+        FW(temp_a0_2, 0x4) = idx2 + 1;
+        temp_a1 = (char *) FW((char *)FW(var_a3, 0xC), 0x0) + (idx2 * 8);
         FW(temp_a1, 0x0) = 0xBB040000;
         FW(temp_a1, 0x4) = -1;
     }
