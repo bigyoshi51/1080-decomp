@@ -6622,16 +6622,34 @@ extern int D_00000000;
  * DMA: n=(sz+15)&~15; gl(a1,n); then process n in 1024-byte chunks —
  * gl_38604(D+0x1DF0, 1, 0, src, dst, 1024, D+0x1DD4, a3, D+0x2ACC0) + gl(D+0x1DD4,
  * 0, 1), advancing src/dst by 1024; a final partial chunk uses count=n and
- * tag D+0x2ACCC. */
+ * tag D+0x2ACCC.
+ * 2026-07-18 pass (68.5->71.2): (a) a1-before-a0 capture order lands s2=a0/s1=a1
+ * per target; (c) missing-return drop kills or-v0 + gives jr/addiu-sp tail.
+ * RESIDUAL CAP (probed, all inert): target materializes the three lui/addiu
+ * base pairs ONCE in the entry block between jal-0 and the sltiu guard; uopt
+ * ALWAYS sinks address-const defs into the loop preheader + remats s3/s6 in
+ * the tail join block (+4 insns), regardless of def placement (above/below the
+ * first call), distinct placeholder externs (objdiff-relaxed, fuzzy-identical
+ * to folded same-sym), if(1){} BB wrap, or inline-expression spelling. Coupled
+ * residual: align expr lives in an s3 CSE-temp (guard reads temp) + or s0,s3
+ * copy; two-def split of the align expr doesn't break it. Entry-block const
+ * placement = uopt const-sink canonicalization cap. */
 extern int gl_func_00038604();
 int gl_func_00023E60(int a0, int a1, int sz, int a3) {
     char *g = (char *)&D_00000000;
-    char *s3 = g + 0x1DD4;
-    char *s4 = g + 0x2ACC0;
-    char *s6 = g + 0x1DF0;
-    int s0 = (sz + 0xF) & ~0xF;
-    int s2 = a0;
-    int s1 = a1;
+    char *s3;
+    char *s4;
+    char *s6;
+    int s0;
+    int s2;
+    int s1;
+    s3 = g + 0x1DD4;
+    s4 = g + 0x2ACC0;
+    s6 = g + 0x1DF0;
+    s0 = sz + 0xF;
+    s0 = s0 & ~0xF;
+    s1 = a1;
+    s2 = a0;
     gl_func_00000000(a1, s0);
     while ((u32)s0 >= 0x400) {
         gl_func_00038604(s6, 1, 0, s2, s1, 0x400, s3, a3, s4);
@@ -6644,7 +6662,6 @@ int gl_func_00023E60(int a0, int a1, int sz, int a3) {
         gl_func_00038604(s6, 1, 0, s2, s1, s0, s3, a3, g + 0x2ACCC);
         gl_func_00000000(s3, 0, 1);
     }
-    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023E60);
