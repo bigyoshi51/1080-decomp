@@ -21543,111 +21543,54 @@ void game_libs_func_0004EE18(int *a0, int a1) {
     }
 }
 
-// gl_func_0004EE44 — STRUCTURAL PASS + BOUNDARY NOTE (0x288 / 167 words, no
-// episode). Raw-.word USO. realjr=3, regjr=0 → MULTI-FUNCTION BUNDLE: the
-// dense tail jr cluster at 0x4F0A4 / 0x4F0B8 / 0x4F0C0 (~0x14 / 0x8 gaps,
-// no interior 27BDFF prologue) is the docs/N64_FORENSICS ADDENDUM-18b
-// no-frame-leaf signature ⇒ named fn + 2 tiny no-frame leaves. Named fn
-// ends at the jr at 0x4F0A4; the trailing two (0x4F0A8 ~5w, 0x4F0BC ~2w)
-// are a DEFERRED USO RE-SPLIT.
-//
-// Named fn = state-conditioned FP-emit/serialize (single prologue frame
-// 0xA8, saves ra, s0, s1; cb = jal 0 USO-relocated; key &D_0002 0604):
-//   void gl_func_0004EE44(void *a0) {
-//     self = a0;
-//     cb1((char*)self + 0x30);                        // init/snapshot
-//     if (self->p7C != 1) return;                      // bnel state gate
-//     float v = self->pB0;
-//     void *p = self->p70;
-//     cb2(&D_0002_0604, ...);                          // formatted emit
-//     cb3(self, ...);                                  // FP-arg emit (v ->
-//                                                      //   sp+0x10 scratch)
-//     // further reads of self->0x70 / 0xB4 / 0xAC / 0x14C feed the
-//     // serialize passes.
-//   }
-// Emits a formatted/serialized record for the object when its 0x7C state
-// equals 1: cb1 initialises off self+0x30, then cb2/cb3 emit using the
-// &D_0002 0604 string key and FP fields (self->0xB0 staged via sp+0x10) plus
-// the self->0x70/0xB4/0xAC/0x14C pointer block. Family: cb-driven
-// diagnostic / FP-formatted serialize (siblings gl_func_0003F7A8 /
-// 00041148). Trailing 2 leaves = deferred re-split. Per-emit arg detail
-// representative; the cb1(self+0x30) init, the self->0x7C==1 gate, the
-// &D_0002 0604 key and the self->0xB0 FP / sp+0x10 staging are exact. Caps:
-// self struct + cb signatures untyped; bundle re-split deferred. Full body
-// INCLUDE_ASM-preserved.
+// gl_func_0004EE44 — NEAR-EXACT decode 152/154 words (98.7, was 81.2 m2c
+// residue). State-conditioned emit: cb1(o+0x30); if o->7C==1: optional
+// keyed emit (&0x20604 abs USO key) when o->70 null, prototyped 5-arg emit
+// (5th = f32 stack arg, swc1 16(sp)), then 4x4 mat-mult src(*(o+70)+0xB4)
+// x (o+0x30) into local result[16] (393B8 memory-compound-accumulate
+// triple-for; k full-unroll + c beql pipeline) and cb(result, o+0x30);
+// else prototyped 8-arg f32 emit ((f)(-w/2),(f)(w/2),(f)(-h/2),(f)(h/2),
+// o->AC f32, o->B0 f32, 1.0f — negu-then-sra = (-w)/2 int div).
+// LEVERS: pointer-typed null test `*(char **)(o+0x70) == 0` (int-typed
+// test breaks CSE with the 0x14C chain load — different value numbers);
+// NO named world local (adds 8-byte dead home, frame -0xB0 vs -0xA8);
+// decl split `float *src; int r; float result[16]; int c, k;` places
+// result at sp+0x5C (each scalar decl before result lifts it 4).
+// RESIDUAL CAP (2 words): loop-init base load *(o+0x70) colors $v0 here
+// vs $a1 in target (lw a1,112(s0) / addiu a0,a1,180) — pure scratch-pick
+// tie; src spelled raw-char* unfolds 0xB4 from the induction (worse).
+// Trailing two no-frame leaves (0x4F0A8/0x4F0BC) were already re-split
+// out of this .s (154 words = named fn exactly).
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0004EE44)();
-extern int aEE44_a(char*, int, int, int, float);
-extern int aEE44_b(float, float, void*, void*, int, void*);
-extern int aEE44_c(char*, float, float, float, float, int, float, float);
-void gl_func_0004EE44(char *arg0) {
-    int sp9C;
-    f32 sp5C;
-    f32 *temp_s1;
-    f32 *temp_v0;
-    f32 *temp_v1;
-    f32 *var_a3;
-    f32 *var_v0;
-    f32 *var_v1;
-    f32 temp_f12;
-    f32 temp_f14;
-    f32 var_f16;
-    f32 var_f18;
-    s32 temp_v0_2;
-    s32 temp_v1_2;
-    s32 var_a1;
-    char *var_a0;
-
-    temp_s1 = (int)arg0 + 0x30;
-    gl_func_00034458(temp_s1);
-    if (FW(arg0, 0x7C) == 1) {
-        if (FW(arg0, 0x70) == 0) {
-            gl_func_00034458((char *)((char *)&D_00000000 + 0x20604), FW(arg0, 0xC));
+extern int aEE44_a(char *, int, int, int, float);
+extern int aEE44_c(char *, float, float, float, float, float, float, float);
+void gl_func_0004EE44(char *o) {
+    char *m30 = o + 0x30;
+    gl_func_00000000(m30);
+    if (*(int *)(o + 0x7C) == 1) {
+        float *src;
+        int r;
+        float result[16];
+        int c, k;
+        if (*(char **)(o + 0x70) == 0) {
+            gl_func_00000000((char *)&D_00000000 + 0x20604, *(int *)(o + 0xC));
         }
-        aEE44_a(temp_s1, FW(FW(arg0, 0x70), 0x14C), FW(arg0, 0xB4), FW(arg0, 0xAC), (*(f32*)((char*)arg0 + 0xB0)));
-        var_a3 = &sp5C;
-        var_a0 = FW(arg0, 0x70) + 0xB4;
-        do {
-            var_v0 = var_a3;
-            var_v1 = temp_s1;
-            *var_v0 = 0.0f;
-            var_a1 = 4;
-            var_f16 = *var_v0;
-            var_f18 = (*(f32*)((char*)var_a0 + 0x0)) * (*(f32*)((char*)arg0 + 0x30));
-            if (4 != 0x10) {
-                do {
-                    var_a1 += 4;
-                    var_v0 += 4;
-                    var_v1 += 4;
-                    var_v0[-1] = (f32) (var_f16 + var_f18);
-                    var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0x4)) * (*(f32*)((char*)var_v1 + 0xC))));
-                    var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0x8)) * (*(f32*)((char*)var_v1 + 0x1C))));
-                    var_v0[0] = 0.0f;
-                    var_f16 = var_v0[0];
-                    var_v0[-1] = (f32) (var_v0[-1] + ((*(f32*)((char*)var_a0 + 0xC)) * (*(f32*)((char*)var_v1 + 0x2C))));
-                    var_f18 = (*(f32*)((char*)var_a0 + 0x0)) * (*(f32*)((char*)var_v1 + 0x0));
-                } while (var_a1 != 0x10);
+        aEE44_a(m30, *(int *)(*(char **)(o + 0x70) + 0x14C), *(int *)(o + 0xB4), *(int *)(o + 0xAC), *(float *)(o + 0xB0));
+        src = (float *)(*(char **)(o + 0x70) + 0xB4);
+        for (r = 0; r < 4; r++) {
+            for (c = 0; c < 4; c++) {
+                result[r*4 + c] = 0.0f;
+                for (k = 0; k < 4; k++) {
+                    result[r*4 + c] += src[r*4 + k] * ((float *)m30)[k*4 + c];
+                }
             }
-            temp_v0 = var_v0 + 4;
-            temp_v1 = var_v1 + 4;
-            temp_v0[-1] = (f32) (var_f16 + var_f18);
-            temp_v0[-1] = (f32) (temp_v0[-1] + ((*(f32*)((char*)var_a0 + 0x4)) * (*(f32*)((char*)temp_v1 + 0xC))));
-            temp_v0[-1] = (f32) (temp_v0[-1] + ((*(f32*)((char*)var_a0 + 0x8)) * (*(f32*)((char*)temp_v1 + 0x1C))));
-            temp_f12 = temp_v0[-1];
-            temp_f14 = temp_f12 + ((*(f32*)((char*)var_a0 + 0xC)) * (*(f32*)((char*)temp_v1 + 0x2C)));
-            temp_v0[-1] = temp_f14;
-            var_a3 += 0x10;
-            var_a0 += 0x10;
-        } while ((int)var_a3 != (int)&sp9C);
-        aEE44_b(temp_f12, temp_f14, &sp5C, temp_s1, 0x10, var_a3);
-        return;
+        }
+        gl_func_00000000(result, m30);
+    } else {
+        int w = *(int *)(o + 0xB8);
+        int h = *(int *)(o + 0xBC);
+        aEE44_c(m30, (float)(-w / 2), (float)(w / 2), (float)(-h / 2), (float)(h / 2), *(float *)(o + 0xAC), *(float *)(o + 0xB0), 1.0f);
     }
-    temp_v0_2 = FW(arg0, 0xB8);
-    temp_v1_2 = FW(arg0, 0xBC);
-    aEE44_c(temp_s1, (f32) ((s32) -temp_v0_2 / 2), (f32) (temp_v0_2 / 2), (f32) ((s32) -temp_v1_2 / 2), (f32) (temp_v1_2 / 2), FW(arg0, 0xAC), (*(f32*)((char*)arg0 + 0xB0)), 1.0f);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004EE44);
