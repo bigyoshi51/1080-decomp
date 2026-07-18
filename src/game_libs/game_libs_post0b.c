@@ -31574,26 +31574,45 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005ED54);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0005EF00)();
+/* PASS 2026-07-18 (agent-f): 67.85 -> 82.94. Y-axis-angle rotation-matrix
+ * builder (len=sqrt(x^2+z^2), angle*=D+0x2050 (deg->rad slot), sin/cos, mtx
+ * ident, then fill 3x3 if len!=0). Decode-error fixes:
+ *  - fn-ptr-cast cvt.d.s fingerprint: all 4 calls were `((f32(*)())...)(..)`
+ *    -> jalr via s2 + f64 promotion. Typed per-site externs (sqrt/sin/cos
+ *    f32(f32), ident void(char*)) restore direct jal; frame 0x50 -> 0x30 and
+ *    the whole call section + prologue now byte-match.
+ *  - `arg2 *= CONST` (compound assign) matches mul.s $f12,$f12,$f8 operand
+ *    order; `arg2 = arg2 * CONST` and `CONST * arg2` both emit the flipped
+ *    mul.s $f12,$f8,$f12.
+ *  - decl-order spill-slot lever: temp_f0_2 declared FIRST pushes its phantom
+ *    slot to 0x2c so sp28/sp24/sp20 land at target 0x28/0x24/0x20.
+ *  - embedded-assign `(temp_f0_2 = 1.0f/sp28)` inside the out[0] store sinks
+ *    div.s to the target position (statement form hoists the m1/m0 loads
+ *    above the div); costs one flipped mul operand pair in out[0].
+ * RESIDUAL (~17%): FP temp-ring rotation through blocks 2-4 (f4/f8/f10
+ * permuted, sub.s operand webs mirrored, one nop filled) — same
+ * eval-order/coloring class as sibling 5CE68. */
+extern float gl_func_00000000_5ef00q(float);  /* sqrt-slot USO callee */
+extern float gl_func_00000000_5ef00s(float);  /* sin-slot USO callee */
+extern float gl_func_00000000_5ef00c(float);  /* cos-slot USO callee */
+extern void gl_func_00000000_5ef00i(char *);  /* mtx-ident-slot USO callee */
 void gl_func_0005EF00(char *arg0, char *arg1, f32 arg2) {
+    f32 temp_f0_2;
     f32 sp28;
     f32 sp24;
     f32 sp20;
     f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f12;
     f32 temp_f2;
 
     temp_f0 = (*(f32*)((char*)arg1 + 0x0));
     temp_f2 = (*(f32*)((char*)arg1 + 0x8));
-    sp28 = ((f32(*)())gl_func_00034458)((temp_f0 * temp_f0) + (temp_f2 * temp_f2));
-    temp_f12 = arg2 * (*(f32*)((char*)&D_00000000 + 0x2050));
-    arg2 = temp_f12;
-    sp20 = ((f32(*)())gl_func_00034458)(temp_f12);
-    sp24 = ((f32(*)())gl_func_00034458)(arg2);
-    ((f32(*)())gl_func_00034458)(arg0);
+    sp28 = gl_func_00000000_5ef00q((temp_f0 * temp_f0) + (temp_f2 * temp_f2));
+    arg2 *= (*(f32*)((char*)&D_00000000 + 0x2050));
+    sp20 = gl_func_00000000_5ef00s(arg2);
+    sp24 = gl_func_00000000_5ef00c(arg2);
+    gl_func_00000000_5ef00i(arg0);
     if (sp28 != 0.0f) {
-        temp_f0_2 = 1.0f / sp28;
-        (*(f32*)((char*)arg0 + 0x0)) = (f32) ((((*(f32*)((char*)arg1 + 0x8)) * sp24) - (sp20 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x0)))) * temp_f0_2);
+        (*(f32*)((char*)arg0 + 0x0)) = (f32) ((((*(f32*)((char*)arg1 + 0x8)) * sp24) - (sp20 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x0)))) * (temp_f0_2 = 1.0f / sp28));
         (*(f32*)((char*)arg0 + 0x10)) = (f32) (((-(*(f32*)((char*)arg1 + 0x8)) * sp20) - (sp24 * -(*(f32*)((char*)arg1 + 0x4)) * -(*(f32*)((char*)arg1 + 0x0)))) * temp_f0_2);
         (*(f32*)((char*)arg0 + 0x30)) = 0.0f;
         (*(f32*)((char*)arg0 + 0x4)) = (f32) (sp20 * sp28);

@@ -243,7 +243,7 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # so expected/ carries the compiled 0x30 symbol — a NM-side-only resize to 0x2c
 # just breaks parity (100 -> 91.67). The 0x2c treatment is for NM asm-pad-split
 # functions like 551E0/EBC8 where expected/ is already the clipped size.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2b728 gl_func_000551E0=0x7c
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2b708 gl_func_000551E0=0x7c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
