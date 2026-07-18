@@ -2327,28 +2327,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001F6A8);
 #endif
 
 #ifdef NON_MATCHING
-/* Reset 3 byte-arrays in the global D struct: for each entry in D+0x2C40[48],
- * D+0x2C10[48], D+0x2C70[128], if entry != 5 set it to 0 (via beql 5,entry).
- * Reloc-blind (&D_00000000). Byte-match multi-run: target unrolls the 3rd loop
- * (128 entries) by 4 and uses pointer-cursor + branch-likely (beql/bnezl) that
- * the clean for-loops don't reproduce (36 vs 50 insns). */
+/* Reset 3 byte-arrays in the global D struct: entries in D+0x2C40[48],
+ * D+0x2C10[48], D+0x2C70[128]; if entry != 5 set it to 0 (beql 5,entry).
+ * BYTE-EXACT (50/50 words) — stays an NM wrap because gl_d_1fa20_a/b/c are
+ * base-0 PLACEHOLDER externs (real symbols unknown; USO reloc-blind).
+ * Levers: distinct placeholder extern per loop busts the cross-loop base CSE
+ * (each loop re-materializes cursor AND end as independent lui/addiu pairs);
+ * loops 1-2 pointer `p < e` form keeps sltu + bnezl (no counted-conversion, no
+ * unroll); loop 3 indexed `i != 0x80` exact-trip form triggers the x4 unroller
+ * (byte offsets 0x2C70..73, addiu +4, bnel end-compare); `while (0) { e = X; }`
+ * dead e-expr claims the EARLY ucode bit so end colors v0 / cursor v1 despite
+ * cursor emitting first, and the for-comma-init `for (p = A, e = A + 0x30;...)`
+ * pins the preheader schedule luiP,luiE,addiuE,addiuP (plain defs give p,e,p,e). */
+extern u8 gl_d_1fa20_a[];
+extern u8 gl_d_1fa20_b[];
+extern u8 gl_d_1fa20_c[];
 void game_libs_func_0001FA20(void) {
-    char *p, *e;
-    for (p = (char *)&D_00000000, e = p + 48; p < e; p++) {
-        if (((unsigned char *)p)[0x2C40] != 5) {
+    unsigned char *e;
+    unsigned char *p;
+
+    while (0) { e = gl_d_1fa20_a + 0x30; }
+    for (p = gl_d_1fa20_a, e = gl_d_1fa20_a + 0x30; p < e; p++) {
+        if (5 != p[0x2C40]) {
             p[0x2C40] = 0;
         }
     }
-    for (p = (char *)&D_00000000, e = p + 48; p < e; p++) {
-        if (((unsigned char *)p)[0x2C10] != 5) {
+    while (0) { e = gl_d_1fa20_b + 0x30; }
+    for (p = gl_d_1fa20_b, e = gl_d_1fa20_b + 0x30; p < e; p++) {
+        if (5 != p[0x2C10]) {
             p[0x2C10] = 0;
         }
     }
     {
         int i;
-        for (i = 0; i < 128; i++) {
-            if (((unsigned char *)&D_00000000)[0x2C70 + i] != 5) {
-                ((char *)&D_00000000)[0x2C70 + i] = 0;
+        for (i = 0; i != 0x80; i++) {
+            if (5 != gl_d_1fa20_c[i + 0x2C70]) {
+                gl_d_1fa20_c[i + 0x2C70] = 0;
             }
         }
     }
