@@ -20338,6 +20338,30 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 //   00033BE4 alloc). Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 // gl_func_00033EB8 — FULL m2c DECODE (59.82% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// DECODE-ERROR AUDIT 2026-07-17 agent-h (target diff read, fix NOT yet applied
+// — needs the full-body rewrite below, ~30 min):
+//   (1) ALL 16 target jals are `jal 0x0` = USO placeholder -> must call
+//       gl_func_00000000, NOT gl_func_0001CA10 (the documented
+//       nonzero-immediate pitfall, see MATCHING_WORKFLOW gl_ref entry).
+//   (2) Data args 0x1E368/0x1E37C/0x1E394/0x1E3AC are BAKED USO SYMBOLS:
+//       target emits `lui a1,0x2; addiu a1,a1,-0x1C98` = %hi/%lo pairs.
+//       Pass `&gl_ref_0001E368`-style absolute syms (undefined_syms), not
+//       integer literals (ours emits lui 0x1; ori 0xe368 — wrong shape).
+//   (3) Globals +0x8/+0xC/+0x10/+0x24/+0x28/+0x2C are PER-SITE direct
+//       symbol accesses (`lui rX,0x0; lw off(rX)` fresh at every site, incl.
+//       paired `lui t7/lui t8` double-loads for the 0x2C==0xC compares) —
+//       NOT offsets off the held base. Only CALL arg0 uses the held
+//       `lui s1,0x0; addiu s1,s1,0` base (and the copy-loop src pointer is a
+//       SECOND fresh materialization into v1). Use distinct base-0 aliases
+//       per global word (gl_d_33eb8_* family) to stop base-CSE.
+//   (4) Size compares are UNSIGNED: sltu at,s3,s0 / sltu at,v0,s0 /
+//       sltu at,t0,s0 -> len/chunk vars are u32 (m2c wrote (s32) casts);
+//       the final overdraw test stays signed (bgez s3).
+//   (5) s-reg map: target s0=len, s1=base, s4=dst, s5=0x12340002 hi pair,
+//       s2=0x12340003; ours has s0/s1 swapped (follows from (3): base has
+//       fewer uses once data accesses go direct).
+//   (6) Branch shapes: plain bne+nop (not bnel) at the cursor compares —
+//       falls out of per-site double lui;lw loads in (3).
 #ifdef NON_MATCHING
 
 
