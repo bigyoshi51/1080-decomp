@@ -11234,7 +11234,11 @@ int game_uso_func_0000E35C(char *arg0) {
         if (prev == *(char **)(arg0 + 0xF8)) {
             *(int *)(arg0 + 0x100) = 0;
         }
-        *(char **)(arg0 + 0xF8) = prev;
+        /* F4-slot reload (same lever as sibling F6D4, 2026-07-18): the extra
+         * reload web reproduces the target's downstream temp numbering; the
+         * target's own 2-insn `move v0,prev` dup web is a pure-copy web that
+         * copy-prop folds from every C spelling (see F6D4 comment). */
+        *(char **)(arg0 + 0xF8) = *(char **)(arg0 + 0xF4);
         game_uso_func_0000E564((int *)arg0);
         if ((*(int *)(*(char **)(arg0 + 0xB4) + 0xA58) & 0x40) &&
             (f4 = *(char **)(arg0 + 0xF4), v1 = *(int *)(f4 + 0x28), (v1 != 0))) {
