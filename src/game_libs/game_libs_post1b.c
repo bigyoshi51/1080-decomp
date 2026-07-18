@@ -5297,32 +5297,39 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000693A4);
  * 0x20 vs 0x18 (frame-spread/spill-slot coloring) — both codegen-shape
  * caps, not C-level bugs. game_libs is baked-reloc so this cannot byte-LAND.
  */
-int* gl_func_000695F4(int *self_or_null, int a1, int a2) {
+/* 2026-07-17 agent-h: EXACT 37/37 words vs target .s (standalone probe;
+ * baked-reloc unit so stays NM wrap, no byte-land). Cap RETRACTED via the
+ * 63884 goto-end lever (docs #goto-end-phi-a0-struct-copy-63884):
+ * (1) `goto end` early-exit + PARAM REUSE (no `obj` local) -> phi colors
+ *     $a3 (`move a3,a0` entry delay, `beqz v0,end` + `move a3,v0` delay,
+ *     epilogue `move v0,a3`), frame 0x18 (no named-local homes; the a3
+ *     spill uses the a0 ARG HOME 0x18).
+ * (2) UNCONDITIONAL `v1 = a0+0x48` before the sentinel test -> single
+ *     `bne a3,at,store` with the addiu in the delay (was beq+b, +2 insns).
+ * (3) tail store order `a0[0x90]=a2; a0[0x38]=0;` -> as1 re-emits the
+ *     target order sw zero,0x38 / sw t7,0x90 but hoists the a2 home
+ *     reload to the label head (source order only moves the lw). */
+int* gl_func_000695F4(int *a0, int a1, int a2) {
     extern int D_00000000;
     extern int D_sym_695F4;
-    int *obj = self_or_null;
     int *v1;
-    if (self_or_null == 0) {
-        obj = (int*)gl_func_00062F64(0x98);
-        if (obj == 0) return obj;
+    if (a0 == 0) {
+        a0 = (int*)gl_func_00062F64(0x98);
+        if (a0 == 0) goto end;
     }
-    gl_func_00062F64(obj, (char*)&D_00000000 + 0x2C5A8);
-    obj[0x28 / 4] = (int)&D_sym_695F4;
-    if (obj != (int*)-72) {
-        v1 = (int*)((char*)obj + 0x48);
-        goto store;
-    }
-    {
-        int *p = (int*)gl_func_00062F64(4);
-        if (p == 0) goto after_store;
-        v1 = p;
-    }
+    gl_func_00062F64(a0, (char*)&D_00000000 + 0x2C5A8);
+    a0[0x28 / 4] = (int)&D_sym_695F4;
+    v1 = (int*)((char*)a0 + 0x48);
+    if (a0 != (int*)-72) goto store;
+    v1 = (int*)gl_func_00062F64(4);
+    if (v1 == 0) goto after_store;
 store:
     *v1 = 0;
 after_store:
-    obj[0x38 / 4] = 0;
-    obj[0x90 / 4] = a2;
-    return obj;
+    a0[0x90 / 4] = a2;
+    a0[0x38 / 4] = 0;
+end:
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000695F4);
