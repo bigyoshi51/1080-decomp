@@ -1619,64 +1619,71 @@ void timproc_uso_b3_func_0000294C(int *a0)
 }
 
 #ifdef NON_MATCHING
-/* timproc_uso_b3_func_00002A44: HUD draw dispatcher (near-exact clone of
- * timproc_uso_b1_func_00002838; only the middle panel ID differs 0x1C0->0x1D8).
- * switch arg0->0x50 (0/1/2); draw-target IDs are &D-relative addresses; both
- * 0x178 loads are lbu; case 2 falls through to case 0 (return). Fresh decode
- * 2026-05-29 (m2c-confirmed). Caps: structs + cb prototypes untyped (USO-reloc),
- * &D not symbolized. NON_MATCHING. */
-extern int gl_func_00000000();
+/* timproc_uso_b3_func_00002A44: HUD draw dispatcher, byte-twin of
+ * timproc_uso_b1_func_00002838 (only middle panel ID differs 0x1C0->0x1D8).
+ * 2026-07-17 agent-g: 149/149 words EXACT (was 86.64) via verbatim backport
+ * of the 2838 crack: shared obj local colors the s0 web (44EDC recipe);
+ * &D+0 first arg (not literal 0); single-def x = v0-0x27 after
+ * `if (f) { if(1){ v0 += 0xA; } }` -> beql tail-dup (rematerialize-in-delay)
+ * + x demoted to last-colored web; separate case-2 local w; decl order
+ * f,v0,a2,w,x for spill homes v0->0x2C/a2->0x28/w->0x24. Objdiff-100 stays
+ * NM wrap: callees/data are USO placeholders, no episode. */
+extern void glv_2a44();
 void timproc_uso_b3_func_00002A44(char *arg0) {
+    char *obj = arg0; /* shared obj local colors the recurring s0 web (44EDC recipe) */
+    int f;
     int v0;
     int a2;
-    int t1;
+    int w;
+    int x;
 
-    gl_func_00000000();
-    *(int *)(arg0 + 0x5C) = *(int *)(arg0 + 0x5C) - 0x10;
-    switch (*(int *)(arg0 + 0x50)) {
+    glv_2a44(obj);
+    *(int *)(obj + 0x5C) = *(int *)(obj + 0x5C) - 0x10;
+    switch (*(int *)(obj + 0x50)) {
     case 1:
-        gl_func_00000000(0);
-        gl_func_00000000((char *)&D_00000000 + 0x1F0);
-        gl_func_00000000((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
-        gl_func_00000000(arg0, 0x25);
-        gl_func_00000000(arg0, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
-        gl_func_00000000((char *)&D_00000000 + 0x1D8);
-        gl_func_00000000((char *)&D_00000000 + 0x1D8);
-        gl_func_00000000((char *)&D_00000000 + 0x1D8, 0xA0, 0x69, 3);
-        t1 = *(int *)&D_00000000;
-        v0 = *(int *)(arg0 + 0x68);
-        if (t1 != 0) {
-            v0 += 0xA;
+        glv_2a44((char *)&D_00000000);
+        glv_2a44((char *)&D_00000000 + 0x1F0);
+        glv_2a44((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
+        glv_2a44(obj, 0x25);
+        glv_2a44(obj, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
+        glv_2a44((char *)&D_00000000 + 0x1D8);
+        glv_2a44((char *)&D_00000000 + 0x1D8);
+        glv_2a44((char *)&D_00000000 + 0x1D8, 0xA0, 0x69, 3);
+        f = *(int *)&D_00000000;
+        v0 = *(int *)(obj + 0x68);
+        if (f != 0) {
+            if (1) { v0 += 0xA; }
         }
-        a2 = v0 - 0x27;
-        if (t1 != 0) {
-            a2 -= 0xE;
+        x = v0 - 0x27;
+        a2 = x;
+        if (f != 0) {
+            a2 = x - 0xE;
         }
-        gl_func_00000000((char *)&D_00000000 + 0x148);
-        gl_func_00000000((char *)&D_00000000 + 0x148);
-        gl_func_00000000((char *)&D_00000000 + 0x148, 0xA0, a2, 3);
-        gl_func_00000000(arg0, v0 - 0x14);
+        glv_2a44((char *)&D_00000000 + 0x148);
+        glv_2a44((char *)&D_00000000 + 0x148);
+        glv_2a44((char *)&D_00000000 + 0x148, 0xA0, a2, 3);
+        glv_2a44(obj, v0 - 0x14);
         return;
     case 2:
-        gl_func_00000000(0);
-        gl_func_00000000((char *)&D_00000000 + 0x1F0);
-        gl_func_00000000((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
-        gl_func_00000000(arg0, 0x25);
-        gl_func_00000000(arg0, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
-        gl_func_00000000((char *)&D_00000000 + 0x1D8);
-        gl_func_00000000((char *)&D_00000000 + 0x1D8);
-        gl_func_00000000((char *)&D_00000000 + 0x1D8, 0xA0, 0x69, 3);
-        gl_func_00000000((char *)&D_00000000 + 0x160);
-        gl_func_00000000((char *)&D_00000000 + 0x160);
-        gl_func_00000000((char *)&D_00000000 + 0x160, 0xA0, 0x8E, 3);
-        v0 = *(int *)(arg0 + 0x68);
+        glv_2a44((char *)&D_00000000);
+        glv_2a44((char *)&D_00000000 + 0x1F0);
+        glv_2a44((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
+        glv_2a44(obj, 0x25);
+        glv_2a44(obj, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
+        glv_2a44((char *)&D_00000000 + 0x1D8);
+        glv_2a44((char *)&D_00000000 + 0x1D8);
+        glv_2a44((char *)&D_00000000 + 0x1D8, 0xA0, 0x69, 3);
+        glv_2a44((char *)&D_00000000 + 0x160);
+        glv_2a44((char *)&D_00000000 + 0x160);
+        glv_2a44((char *)&D_00000000 + 0x160, 0xA0, 0x8E, 3);
+        w = *(int *)(obj + 0x68);
         if (*(int *)&D_00000000 != 0) {
-            v0 -= 8;
+            w -= 8;
         }
-        gl_func_00000000((char *)&D_00000000 + 0x178);
-        gl_func_00000000((char *)&D_00000000 + 0x178);
-        gl_func_00000000((char *)&D_00000000 + 0x178, 0xA0, v0 - 0x13, 3);
-        gl_func_00000000(arg0, v0);
+        glv_2a44((char *)&D_00000000 + 0x178);
+        glv_2a44((char *)&D_00000000 + 0x178);
+        glv_2a44((char *)&D_00000000 + 0x178, 0xA0, w - 0x13, 3);
+        glv_2a44(obj, w);
         break;
     case 0:
         break;
