@@ -182,16 +182,25 @@ void gl_func_00062F8C(char *arg0) {
  * self->0xA0 = self->0xA4. Fixed 2026-06-27 (49.7->65.67% fuzzy): the f32 5th
  * arg was double-promoted (cvt.d.s/sdc1) via the K&R varargs call -- a
  * prototyped float param passes it raw (swc1, slot sp+0x14); and the leading
- * a0=node[0] (obj itself) argument was missing entirely. Residual gap = node/
- * next list-walk kept in callee-saved regs here vs spilled to stack slots
- * (sp+0x2C node / sp+0x30 next) in target -- regalloc-renumber cap. */
+ * a0=node[0] (obj itself) argument was missing entirely.
+ * 2026-07-18 (65.67->87.45): target homes cur/next in adjacent stack slots and
+ * reloads obj from cur[0] each iteration -- reproduced with a volatile 2-field
+ * iterator struct (plain struct gets scalarized into s-regs by uopt; volatile
+ * pins the slots + exact load/store sequence incl. the bnezl-delay reload).
+ * Residual: val allocated s1 here vs v0 in target, cascading 14->s2 (target
+ * reuses dead-base s1), frame 64 vs 56, and the b-to-next if-tail shape.
+ * val's range crosses no call either way; val=0 placement swap doesn't move
+ * it -- caller-saved-vs-s-reg coloring residual. */
 extern int gl_func_00000000();
 extern int gl_func_00062F64f(int a0, int a1, int a2, int a3, int a4, float a5);
 void gl_func_0006337C(int *self) {
     int base;
-    void **node;
-    void **next;
     int val;
+    volatile struct {
+        int *cur;
+        int *next;
+    } it;
+
     if (self[0xA0 / 4] != 0) {
         return;
     }
@@ -201,23 +210,30 @@ void gl_func_0006337C(int *self) {
     base = self[0x58 / 4] + 0x40;
     self[0x44 / 4] = gl_func_00000000(base, self[0x34 / 4]);
     self[0x48 / 4] = gl_func_00000000(base, self[0x38 / 4]);
-    node = (void **)self[0x30 / 4];
-    val = 0;
-    if (node != 0) {
-        next = (void **)node[1];
-        val = (int)node[0];
+    {
+        int *node = (int *) self[0x30 / 4];
+        it.next = node;
+        val = 0;
+        it.cur = node;
+        if (node != 0) {
+            it.next = (int *) node[1];
+            val = node[0];
+        }
     }
     while (val != 0) {
-        int *obj = (int *)val;
+        int *obj = (int *) it.cur[0];
         int off = obj[0x10C / 4] * 14;
-        gl_func_00062F64f((int)obj, self[0x44 / 4] + off, self[0x48 / 4] + off,
+        gl_func_00062F64f((int) obj, self[0x44 / 4] + off, self[0x48 / 4] + off,
                           self[0x54 / 4], self[0xAC / 4],
                           *(float *)&self[0xA8 / 4]);
-        node = next;
-        val = 0;
-        if (node != 0) {
-            next = (void **)node[1];
-            val = (int)node[0];
+        {
+            int *cur2 = it.next;
+            val = 0;
+            it.cur = cur2;
+            if (cur2 != 0) {
+                it.next = (int *) cur2[1];
+                val = cur2[0];
+            }
         }
     }
     self[0xA0 / 4] = self[0xA4 / 4];
