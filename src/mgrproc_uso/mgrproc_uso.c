@@ -1353,7 +1353,12 @@ void mgrproc_uso_func_00002324(char *a0) {
  * form a) at some calls and holds it in $s0 (`move a0,s0`, form b) at others --
  * the address-fold-vs-CSE allocator coin-flip SKIP class (a held-`dbase` local
  * regressed to 82.5%). Plus frame 0x120 vs 0xB8 + $f0/$f4 const numbering +
- * beq/beql branch-likely picks -- whole-function coloring caps. Stays NM. */
+ * beq/beql branch-likely picks -- whole-function coloring caps. Stays NM.
+ * 2026-07-17: (float)0 beql-delay-fill lever (1F30 retraction) checked for
+ * applicability -- INAPPLICABLE: no FP compare feeds any likely branch here
+ * (all gates are int field/mask tests; FP is only the 255.0f * f7A0 mul
+ * chain). beql picks remain downstream of the frame-0x120-vs-0xB8 +
+ * address-fold coin-flip caps. */
 typedef char *(*GP_000023FC)();
 void mgrproc_uso_func_000023FC(char *arg0) {
     f32 sp11C;
