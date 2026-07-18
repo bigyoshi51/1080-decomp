@@ -2483,56 +2483,103 @@ end:
     return a0;
 }
 
-// gl_func_00036C08 — STRUCTURAL PASS (0x26C / 155 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
-// prologue — 0x78 FP frame). An FP position / anchor-offset
-// compute routine with a flag-bit gate.
-//
-//   void gl_func_00036C08(O *o) {
-//     Vec3 p = {0,0,0};                          // local sp+0x64
-//     S *s = o->p_38;
-//     if (o->w_10 & 0x200) {                      // flag gate (beql)
-//       p.x = s->f_D4 * -10.0f;                   // 0xC1200000
-//       p.y = s->f_D8 *  10.0f;                   // 0x41200000
-//       p.z = s->f_DC *  30.0f;                   // 0x41F00000
-//     }
-//     T *t = o->p_38->p_110;
-//     ? a1 = t->p_70;
-//     ... transform p through the chained pointer / store back ...
-//   }
-//
-// Struct-typing reference: a per-object anchor / offset-position
-//   builder. Gated on bit 0x200 of the object's flag word at
-//   o->0x10, it reaches a sub-object via o->0x38 and scales that
-//   sub-object's float triple at offsets 0xD4 / 0xD8 / 0xDC by the
-//   HARD-CODED extent factors -10.0f / 10.0f / 30.0f into a local
-//   Vec3 (stack sp+0x64), then walks a chained pointer path
-//   (o->0x38 → +0x110 → +0x70) to apply / store the computed
-//   position. The fixed -10/10/30 scales read as a fixed bounding-
-//   box / attach-point offset (e.g. a camera or label anchor
-//   relative to the sub-object's normalized position). A
-//   geometry/anchor node of the game_libs object subsystem
-//   (consumes the normalized vectors the gl_func_0003695C
-//   normalizer / gl_func_00036224 viewport family produce; the
-//   0x200 flag selects whether the offset is applied).
-// Caps (DEFERRED): raw-word USO + flag-gated FP offset build
-//   (hard-coded -10/10/30 extents) + chained-pointer transform;
-//   object/sub-object structs untyped; chained-pointer transform
-//   tail is documented but not fully decoded. Real-C STRUCTURAL body
-//   below — flag-gated offset build only. Byte-match deferred. Name
-//   pre-checked: no extern reuse.
+// gl_func_00036C08 — BYTE-EXACT decode (0x26C / 155 words, objdiff-100).
+// Stays NM-wrapped (all 7 calls are jal-0 USO placeholders -> gl_func_00000000;
+// no episode per placeholder-callee policy). Anchor/offset apply routine:
+// builds flag-gated offset vec p (bit 0x200: sub->D4/D8/DC * -10/10/30),
+// transforms it through the chained target (o->38->110->70)+B4, applies to
+// ctx(o->14)->child->pos and ctx->pos; builds nudge vec q from flag bits
+// 1/2/4/8 (+-2.0 on y/x); negates child's sub-vec (child+A0..A8) into r,
+// applies; re-reads chained B4/C4/D4 into u, applies with raw int reads of
+// q; re-negates r and applies again.
+// MATCH LEVERS (all load-bearing):
+//   - S36C08 **pc = &ctx: address-taken ctx -> homed at sp+0x74, per-site
+//     reload, kills the ctx+0x30 CSE web (which otherwise takes s1 and
+//     emits a hoisted addiu s1,s1,48 + or a0,s1 per call).
+//   - S36C08 *t; t = *pc before 5 call sites: named multi-def web spanning
+//     the calls -> colored s0, arg addiu lands in jal delay slot; pushes
+//     o into s1 (matches or s1,a0 + both s-reg saves). r-block call reads
+//     (*pc) directly -> one t9 scratch reload serves cb and the arg.
+//   - float ghost[4]: 4 dead frame slots (0x30..0x3F) -> frame -0x78.
+//   - cb += 0x70 mid-block rebase reproduces addiu v0,v0,112 with
+//     +0x34/+0x38 element offsets (nested sub-struct base shape).
+//   - p zeroed p[2],p[1],p[0] (reverse, shares mtc1 $f0); q zeroed forward.
+//   - pos as float[3] at +0x30 of S36C08; per-site addiu a0,{s0,t9},48.
 #ifdef NON_MATCHING
+typedef struct S36C08 {
+    char pad00[0x30];
+    float pos[3];                                   /* 0x30 */
+    char pad3C[0x70 - 0x3C];
+    struct { char pad[0x30]; float v[3]; } sub;     /* 0x70 (v at 0xA0) */
+    char padAC[0xF4 - 0xAC];
+    struct S36C08 *child;                           /* 0xF4 */
+} S36C08;
 void gl_func_00036C08(char *o) {
-    float p[3] = {0.0f, 0.0f, 0.0f};
-    char *s = *(char **)(o + 0x38);
-    char *t;
-    if (*(int *)(o + 0x10) & 0x200) {
-        p[0] = *(float *)(s + 0xD4) * -10.0f;
-        p[1] = *(float *)(s + 0xD8) *  10.0f;
-        p[2] = *(float *)(s + 0xDC) *  30.0f;
+    S36C08 *ctx = *(S36C08 **)(o + 0x14);
+    char *st = *(char **)(*(char **)(o + 0x38) + 0xB4);
+    float p[3];
+    float q[3];
+    float r[3];
+    float u[3];
+    float ghost[4];
+    char *cb;
+    S36C08 *t;
+    S36C08 **pc = &ctx;
+
+    p[2] = 0.0f;
+    p[1] = 0.0f;
+    p[0] = 0.0f;
+    if (*(int *)(st + 0x10) & 0x200) {
+        p[0] = *(float *)(*(char **)(o + 0x38) + 0xD4) * -10.0f;
+        p[1] = *(float *)(*(char **)(o + 0x38) + 0xD8) * 10.0f;
+        p[2] = *(float *)(*(char **)(o + 0x38) + 0xDC) * 30.0f;
     }
-    t = *(char **)(*(char **)(o + 0x38) + 0x110);
-    gl_func_00000000(*(char **)(t + 0x70), p);
+    gl_func_00000000(p, *(char **)(*(char **)(*(char **)(o + 0x38) + 0x110) + 0x70) + 0xB4);
+    t = *pc;
+    gl_func_00000000(t->child->pos, p);
+    t = *pc;
+    gl_func_00000000(t->pos, p);
+
+    q[0] = 0.0f;
+    q[1] = 0.0f;
+    q[2] = 0.0f;
+    if (*(int *)(st + 0x10) & 1) {
+        q[1] = -2.0f;
+    }
+    if (*(int *)(st + 0x10) & 2) {
+        q[1] = 2.0f;
+    }
+    if (*(int *)(st + 0x10) & 4) {
+        q[0] = -2.0f;
+    }
+    if (*(int *)(st + 0x10) & 8) {
+        q[0] = 2.0f;
+    }
+
+    cb = (char *)(*pc)->child;
+    r[0] = *(float *)(cb + 0xA0);
+    cb += 0x70;
+    r[1] = *(float *)(cb + 0x34);
+    r[2] = *(float *)(cb + 0x38);
+    r[0] = r[0] * -1.0f;
+    r[1] = r[1] * -1.0f;
+    r[2] = r[2] * -1.0f;
+    gl_func_00000000((*pc)->pos, r);
+
+    t = *pc;
+    gl_func_00000000(t->pos, 1, *(int *)&q[1], 0);
+
+    u[0] = *(float *)(*(char **)(*(char **)(*(char **)(o + 0x38) + 0x110) + 0x70) + 0xB4);
+    u[1] = *(float *)(*(char **)(*(char **)(*(char **)(o + 0x38) + 0x110) + 0x70) + 0xC4);
+    u[2] = *(float *)(*(char **)(*(char **)(*(char **)(o + 0x38) + 0x110) + 0x70) + 0xD4);
+    t = *pc;
+    gl_func_00000000(t->pos, u, *(int *)&q[0]);
+
+    r[0] = r[0] * -1.0f;
+    r[1] = r[1] * -1.0f;
+    r[2] = r[2] * -1.0f;
+    t = *pc;
+    gl_func_00000000(t->pos, r);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036C08);
