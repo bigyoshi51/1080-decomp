@@ -2408,6 +2408,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FA20);
 //   Capped ~65%: target uses regular bne/beq (not branch-likely) on conds 2/3,
 //   andi 0xff7f (not and-reg ~0x80), and a tighter s-reg allocation — codegen
 //   caps, not missing logic.
+// 2026-07-18: 67.02 -> 81.77. CONTROL-FLOW CORRECTION: conds 2/3 (b34==0 &&
+//   b30!=0) gate ONLY the status-byte toggle — the three callbacks run for
+//   EVERY b33==a0 record (bne/beq jump to the jal block at 0x90, not to the
+//   skip path). Plus: (1) `*p &= 0xFF7F` literal spelling (16-bit andi imm;
+//   `~0x80` = 0xFFFFFF7F promotes -129 to a hoisted s-reg const inside the
+//   loop, 2A260 mask-width rule); (2) count is a CACHED local n, reloaded
+//   ONLY after the calls inside the then-arm — while(i<n) reuses the stale
+//   v0 on the skip path, which kills the then-arm's beq-over-else + dup'd
+//   cond-load (target has NO join branch: then falls into slt, else jumps
+//   via bnel delay). RESIDUAL cap: base &D stays fold-per-use (lui+lw x3)
+//   vs target's s5 promotion; all g-uses are %lo-foldable loads so uopt
+//   remats (tbl gets its s3 pair because its use is a call arg = non-
+//   foldable). while(0) g-multi-def probe inert (fully DCE'd). Target's
+//   independent s3 pair despite live s5 = distinct real symbols conflated
+//   by the placeholder, 24F30-class.
 #ifdef NON_MATCHING
 extern int gl_func_0001CA10();
 extern int D_00000000;
@@ -2415,7 +2430,9 @@ void gl_func_0001FAE8(int a0) {
     char *g = (char *)&D_00000000;
     char *tbl;
     int i, idx;
-    if (*(int *)(g + 0x2070) <= 0) {
+    int n;
+    n = *(int *)(g + 0x2070);
+    if (n <= 0) {
         return;
     }
     i = 0;
@@ -2423,23 +2440,23 @@ void gl_func_0001FAE8(int a0) {
     idx = 0;
     do {
         char *rec = *(char **)(g + 0x2CFC) + idx;
-        if (*(unsigned char *)(rec + 0x33) == a0 &&
-            *(unsigned char *)(rec + 0x34) == 0 &&
-            *(unsigned char *)(rec + 0x30) != 0) {
-            char *p;
-            p = *(char **)(rec + 0x44);
-            *p &= ~0x80;
-            p = *(char **)(rec + 0x44);
-            *p |= 0x40;
+        if (*(unsigned char *)(rec + 0x33) == a0) {
+            if (*(unsigned char *)(rec + 0x34) == 0 &&
+                *(unsigned char *)(rec + 0x30) != 0) {
+                char *p;
+                p = *(char **)(rec + 0x44);
+                *p &= 0xFF7F;
+                p = *(char **)(rec + 0x44);
+                *p |= 0x40;
+            }
             gl_func_0001CA10(rec);
             gl_func_0001CA10(rec);
             gl_func_0001CA10(tbl, rec);
-            i++;
-        } else {
-            i++;
+            n = *(int *)(g + 0x2070);
         }
+        i++;
         idx += 0xD0;
-    } while (i < *(int *)(g + 0x2070));
+    } while (i < n);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
