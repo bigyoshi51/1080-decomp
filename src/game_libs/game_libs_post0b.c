@@ -21288,7 +21288,8 @@ void game_libs_func_0004EB28(int *a0) {
 /* Split off from gl_func_0004E96C bundle 2026-05-08: 2-insn save-arg sentinel. */
 void game_libs_func_0004EB4C(int a0) {}
 
-// gl_func_0004EB54 — STRUCTURAL PASS (0x18C / 100 words, no episode). Raw-.word
+// gl_func_0004EB54 — BYTE-EXACT under NM build (0x190 / 100 words; placeholder
+// callees/symbols so stays NM wrap, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
 // (saves ra, s0). Flag-gated init + diagnostic + vtable-dispatch (cbN =
 // jal 0 USO-relocated; diag strings &D_0002 05D0 / 05D4).
@@ -21320,22 +21321,26 @@ void game_libs_func_0004EB4C(int a0) {}
 // (vt = node->0x28, fnptr vt->0x64, arg (short)vt->0x60 + node) and proceeds
 // with an 85.0f (0x42AA0000) FP constant. Family: flag-gated init +
 // diagnostic + vtable-dispatch (siblings gl_func_00043654 / 000469A8).
-// Post-dispatch body representative; the self->0x78&0x20 gate, the cleared
-// 0x11C/0x120 fields, the &D_0002_05D0/05D4 diag keys, the &D_g register and
-// the node->0x28 vtable dispatch (vt->0x64 fn, (short)vt->0x60+node arg)
-// are exact. Caps: self/node/vtable struct + cb signatures untyped. Full
-// body INCLUDE_ASM-preserved.
+// Decode keys that made it exact: (short) vtable member offsets read via lh
+// (sign-extending lo16 tell); every tail cb site passes a &D symbol (NOT 0 —
+// zero-args CSE'd into move a0,zero and broke the beq/nop + per-site lui/addiu
+// remat); the register-self store uses a per-site extern alias D_g_0004EB54 so
+// the sw goes through at (macro form) instead of CSE-sharing the call-arg la;
+// the 5-lane scale is a for(i=0;i<5;i++) loop — IDO peels i=0 (constant s0
+// offsets) then 4x-unrolls with the induction base li 1/sll/addu kept
+// (word-scaled-arithmetic shape).
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0004EB54)();
+extern char *D_g_0004EB54; /* per-site alias of D_00000000 (lo16 0): register-self slot; separate name keeps the sw off the call-arg la CSE */
 void gl_func_0004EB54(char *arg0) {
     f32 temp_f0;
     char *temp_v0;
-    char *temp_v0_2;
     char *temp_v0_3;
     char *temp_v1;
+    int i;
 
     FW(arg0, 0x11C) = 0;
     FW(arg0, 0x120) = 0;
@@ -21344,30 +21349,27 @@ void gl_func_0004EB54(char *arg0) {
         gl_func_00034458(((char*)&D_00000000 + 0x205D4));
     }
     gl_func_00034458(FW(arg0, 0x108));
-    *(int*)&D_00000000 = arg0;
+    D_g_0004EB54 = arg0;
     gl_func_00034458((char*)&D_00000000);
-    temp_v1 = FW(arg0, 0x70);
+    temp_v1 = (char*)FW(arg0, 0x70);
     if (temp_v1 != 0) {
-        temp_v0 = FW(temp_v1, 0x28);
-        ((GP_0004EB54)FW(temp_v0, 0x64))(FW(temp_v0, 0x60) + temp_v1);
+        temp_v0 = (char*)FW(temp_v1, 0x28);
+        ((GP_0004EB54)FW(temp_v0, 0x64))(*(s16*)(temp_v0 + 0x60) + temp_v1);
         temp_f0 = 85.0f / *(f32*)((char*)FW(arg0, 0x70) + 0x14C);
-        temp_v0_2 = (int)arg0 + (1 * 4);
-        *(f32*)((char*)arg0 + 0x98) = *(f32*)((char*)arg0 + 0x84) * temp_f0;
-        *(f32*)((char*)temp_v0_2 + 0x98) = *(f32*)((char*)temp_v0_2 + 0x84) * temp_f0;
-        *(f32*)((char*)temp_v0_2 + 0x9C) = *(f32*)((char*)temp_v0_2 + 0x88) * temp_f0;
-        *(f32*)((char*)temp_v0_2 + 0xA0) = *(f32*)((char*)temp_v0_2 + 0x8C) * temp_f0;
-        *(f32*)((char*)temp_v0_2 + 0xA4) = *(f32*)((char*)temp_v0_2 + 0x90) * temp_f0;
+        for (i = 0; i < 5; i++) {
+            *(f32*)(arg0 + 0x98 + i * 4) = *(f32*)(arg0 + 0x84 + i * 4) * temp_f0;
+        }
     }
-    gl_func_00034458(0, 0);
-    gl_func_00034458(0);
+    gl_func_00034458((char*)&D_00000000, 0);
+    gl_func_00034458((char*)&D_00000000);
     gl_func_00034458(arg0);
-    gl_func_00034458(0, (int)arg0 + 0x30);
-    gl_func_00034458(0, (char *)1);
-    gl_func_00034458(0);
-    gl_func_00034458(0);
-    gl_func_00034458(0);
-    temp_v0_3 = FW(arg0, 0x28);
-    ((GP_0004EB54)FW(temp_v0_3, 0x6C))(FW(temp_v0_3, 0x68) + (int)arg0);
+    gl_func_00034458((char*)&D_00000000, arg0 + 0x30);
+    gl_func_00034458((char*)&D_00000000, 1);
+    gl_func_00034458((char*)&D_00000000);
+    gl_func_00034458((char*)&D_00000000);
+    gl_func_00034458((char*)&D_00000000);
+    temp_v0_3 = (char*)FW(arg0, 0x28);
+    ((GP_0004EB54)FW(temp_v0_3, 0x6C))(*(s16*)(temp_v0_3 + 0x68) + (int)arg0);
     if (FW(arg0, 0x78) & 0x20) {
         gl_func_00034458(((char*)&D_00000000 + 0x205E0));
         gl_func_00034458(((char*)&D_00000000 + 0x205E4));
