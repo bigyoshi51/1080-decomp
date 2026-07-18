@@ -4545,58 +4545,68 @@ void game_uso_func_000071A4(int *);
 int game_uso_func_00006FA8(int *);
 long long game_uso_func_00007538(int *, int);
 void game_uso_func_0000591C(int *a0) {
+    /* fresh-Vec3-fanout redecode 2026-07-17 (docs/IDO_CODEGEN.md
+     * #fresh-vec3-fanout-intcast-q-7c1c): one address-taken Vec3 per distinct
+     * addiu sp home, declared in descending-home order; anti-fold
+     * p=0;if(1){p=&X;} alloc guards; hoisted int-cast src pointers. */
+    Vec3 copy2;          /* sp+452 (0x1C4) */
+    Vec3 staged_axis;    /* sp+440 (0x1B8) */
+    int out_flags;       /* sp+436 */
+    char *helper_ptr;    /* sp+432 */
+    char *hit_parent;    /* sp+428 */
+    char *hit_obj;       /* sp+424 */
+    int state_flag;      /* sp+420 */
+    int resolved_state;  /* sp+416 */
+    float metric_a;      /* sp+412 */
+    Vec3 transform_out;  /* sp+400 (0x190) */
+    int out_w;           /* sp+392 (7C1C arg6) */
+    int hit_out;         /* sp+388 (3ED4 arg3) */
+    Vec3 scratch_xz;     /* sp+376 (0x178) */
+    float yaw_metric;    /* sp+368 */
+    float accel_metric;  /* sp+364 */
+    Vec3 stage;          /* sp+348 (0x15C, x12 shared) */
+    Vec3 scaled_axis;    /* sp+328 (0x148) */
+    Vec3 res_a;          /* sp+276 (7C1C result words) */
+    Vec3 res_b;          /* sp+264 (8CD8 result words) */
+    Vec3 res_c;          /* sp+252 (shared result copy) */
+    Vec3 pos_a;          /* sp+240 chain1 site A */
+    Vec3 pos_c;          /* sp+228 chain1 site C */
+    Vec3 delta_a;        /* sp+216 chain1 stage-out 1 */
+    Vec3 delta_b;        /* sp+204 chain1 stage-out 2 */
+    Vec3 diff_a;         /* sp+180 chain1 site B */
+    Vec3 diff_b;         /* sp+148 chain1 site D */
+    Vec3 pos_e;          /* sp+128 chain2 site E */
+    Vec3 pos_g;          /* sp+116 chain2 site G */
+    Vec3 delta_e;        /* sp+104 chain2 stage-out 1 */
+    Vec3 delta_g;        /* sp+92  chain2 stage-out 2 */
+    Vec3 diff_e;         /* sp+76  chain2 site F */
+    Vec3 diff_g;         /* sp+64  chain2 site H */
     int *self;
-    int v0;
     char *sub;
-    char *helper_ptr;
-    char *hit_obj;
-    char *hit_parent;
-    Vec3 *vec_result;
-    Vec3 staged_axis;
-    Vec3 scaled_axis;
-    Vec3 mul_axis;
-    Vec3 transform_in;
-    Vec3 transform_out;
-    Vec3 vec_tmp;
-    Vec3 vec_copy;
-    Vec3 scratch_xz;
-    Vec3 derived_vec;
-    Vec3 effect_pos;
-    Vec3 effect_delta;
-    Vec3 effect_delta2;
-    Vec3 effect_stage;
-    char pad[0x90];
-    int state_flag;
-    int active_state;
-    int resolved_state;
-    int transform_flag;
-    int state_bits;
-    int out_flags;
-    int state_counter;
-    int state_code;
-    Vec3 *effect_vec;
-    char *entity_pos;
-    float state_limit;
-    float metric_a;
-    float yaw_metric;
-    float accel_metric;
-    register float scale;
-    register float rx, ry, rz;
+    int v0;
+    int vsel;
+    int t0;
+    int active2;
+    int bits;
+    int va;
+    int sc;
+    int counter;
+    float fsel;
+    float f2v;
     float dist_sq;
     float dot;
-    float state_value;
-    float state_value2;
-    int *flag_word;
+    float f12v;
+    float yaw_raw;
+    float neg;
+    float scale;
+    Vec3 *p;
+    float *src;
 
     self = a0;
 
-    /* Two early-out guards on globals. */
     if (*(int*)((char*)&import_80020110 + 0x78) != 0) return;
     if (import_8006EF48 == 0) return;
 
-    /* 4-way bit dispatch on a0->field_68 (flag byte).  Each handler
-     * makes one gl_func_00000000 call and returns. Fall-through goes
-     * to the per-frame body at 0x5998 — not yet decoded. */
     v0 = *(int*)((char*)self + 0x68);
     if (v0 & 1) {
         game_uso_func_0000A3C4();
@@ -4611,1343 +4621,535 @@ void game_uso_func_0000591C(int *a0) {
         return;
     }
 
-    staged_axis = *(Vec3*)(*(char**)((char*)self + 0x30) + 0xB4);
+    /* head staging: V440 = (sub+0xB4) words; V328 = scaled axis floats;
+     * stage = V328 words; V452 = stage words; V440 += V452 floats. */
     sub = *(char**)((char*)self + 0x30);
-    scale = *(float*)((char*)self + 0xA8);
+    staged_axis = *(Vec3*)(sub + 0xB4);
     {
-        float ax = *(float*)(sub + 0x318);
-        float ay = *(float*)(sub + 0x31C);
-        float az = *(float*)(sub + 0x320);
-        scaled_axis.x = ax * scale;
-        scaled_axis.y = ay * scale;
-        scaled_axis.z = az * scale;
+        float *q = (float *)((int)sub + 0x318);
+        scale = *(float*)((char*)self + 0xA8);
+        scaled_axis.x = *q * scale;
+        scaled_axis.y = *(float *)((int)q + 4) * scale;
+        scaled_axis.z = *(float *)((int)q + 8) * scale;
     }
-    mul_axis = scaled_axis;
-    staged_axis.x += mul_axis.x;
-    staged_axis.y += mul_axis.y;
-    staged_axis.z += mul_axis.z;
+    stage = scaled_axis;
+    out_flags = 0;
+    copy2 = stage;
+    staged_axis.x += copy2.x;
+    staged_axis.y += copy2.y;
+    staged_axis.z += copy2.z;
 
     helper_ptr = (char*)game_uso_func_00007ACC(self, &hit_parent, &staged_axis, &hit_obj);
     if (helper_ptr == 0) return;
-
-    state_flag = *(int*)(helper_ptr + 0x84);
-    if (hit_obj != NULL) {
-        resolved_state = state_flag;
-    } else {
+    v0 = *(int*)(helper_ptr + 0x84);
+    if (hit_obj == 0) {
         resolved_state = 0;
+    } else {
+        resolved_state = v0;
     }
-
-    /* metric_a: float return of 00007A98 cached at sp+0x19C (412). */
+    state_flag = v0;
     metric_a = game_uso_func_00007A98(self);
 
-    active_state = *(int*)((char*)self + 0x74);
-    if (active_state == 0) {
-        if (*(float*)((char*)self + 0xD8) >= 0.0f) {
-            if ((state_flag == 0) && (hit_parent != NULL)
-                    && (*(int*)(hit_parent + 0x84) == 0)) {
-                sub = *(char**)((char*)self + 0x30);
-                if (*(float*)((char*)self + 0xB4) > *(float*)(sub + 0x348)) {
-                    resolved_state = 0;
-                }
-            }
-        }
-    } else if (active_state != 1) {
-        resolved_state = 0;
-    }
-
-    transform_flag = 0;
-    if (active_state == 1) {
-        active_state = *(int*)((char*)self + 0x2C);
-        if (active_state == 3) {
-            state_limit = *(float*)((char*)self + 0x3FC);
-        } else if (active_state == 2) {
-            state_limit = *(float*)((char*)self + 0x3E4);
-        } else {
-            state_limit = *(float*)((char*)self + 0x3CC);
-        }
-
-        if (state_limit >= 0.0f) {
-            if ((state_flag == 0) && (hit_parent != NULL)
+    /* first state region (0x184): vsel drives the transform dispatch and
+     * self->0x74 may be promoted/demoted. Compares are against metric_a
+     * (the live f0 of 7A98), NOT 0.0f. */
+    vsel = *(int*)((char*)self + 0x74);
+    t0 = 0;
+    if (vsel == 0) {
+        if (metric_a <= *(float*)((char*)self + 0xD8)) {
+            if ((state_flag == 0) && (hit_parent != 0)
                     && (*(int*)(hit_parent + 0x84) == 0)) {
                 sub = *(char**)((char*)self + 0x30);
                 if (*(float*)((char*)self + 0xB4) <= *(float*)(sub + 0x348)) {
+                    vsel = 1;
                     *(int*)((char*)self + 0x74) = 1;
-                    transform_flag = 1;
-                } else {
-                    *(int*)((char*)self + 0x74) = 0;
-                    resolved_state = 0;
+                    t0 = 1;
                 }
-            } else {
-                *(int*)((char*)self + 0x74) = 0;
-                resolved_state = 0;
             }
+        }
+    } else if (vsel == 1) {
+        sc = *(int*)((char*)self + 0x2C);
+        if (sc == 3) {
+            fsel = *(float*)((char*)self + 0x3FC);
+        } else if (sc == 2) {
+            fsel = *(float*)((char*)self + 0x3E4);
         } else {
+            fsel = *(float*)((char*)self + 0x3CC);
+        }
+        if (!(metric_a <= fsel)) {
             *(int*)((char*)self + 0x74) = 0;
-            resolved_state = 0;
+            vsel = 0;
+        } else if (state_flag != 0) {
+            *(int*)((char*)self + 0x74) = 0;
+            vsel = 0;
+        } else if (hit_parent == 0) {
+            *(int*)((char*)self + 0x74) = 0;
+            vsel = 0;
+        } else if (*(int*)(hit_parent + 0x84) != 0) {
+            *(int*)((char*)self + 0x74) = 0;
+            vsel = 0;
+        } else {
+            sub = *(char**)((char*)self + 0x30);
+            if (!(*(float*)((char*)self + 0xB4) <= *(float*)(sub + 0x348))) {
+                *(int*)((char*)self + 0x74) = 0;
+                vsel = 0;
+            }
         }
     }
 
-    sub = *(char**)((char*)self + 0x30);
-    if (resolved_state == 0) {
-        vec_result = (Vec3*)game_uso_func_00007C1C(sub, self, helper_ptr, hit_parent,
-            &staged_axis, &transform_out);
-        vec_tmp = *vec_result;
-        vec_copy = vec_tmp;
-        transform_in.x = vec_copy.x;
-        transform_in.y = vec_copy.y;
-        transform_in.z = vec_copy.z;
-    } else if (resolved_state == 1) {
-        vec_result = (Vec3*)game_uso_func_00008CD8(&mul_axis, self, helper_ptr,
-            hit_parent, transform_flag);
-        vec_tmp = *vec_result;
-        vec_copy = vec_tmp;
-        transform_in.x = vec_copy.x;
-        transform_in.y = vec_copy.y;
-        transform_in.z = vec_copy.z;
+    /* transform dispatch: 0 -> 7C1C(&stage,...,&out_w); 1 -> 8CD8(&stage,...,t0);
+     * result words -> fresh V276/V264 -> V252 -> transform_out floats. */
+    if (vsel == 0) {
+        v0 = game_uso_func_00007C1C(&stage, self, helper_ptr, hit_parent,
+            &staged_axis, &out_w);
+        res_a = *(Vec3*)v0;
+        res_c = res_a;
+        transform_out.x = res_c.x;
+        transform_out.y = res_c.y;
+        transform_out.z = res_c.z;
+    } else if (vsel == 1) {
+        v0 = (int)game_uso_func_00008CD8(&stage, self, helper_ptr, hit_parent, t0);
+        res_b = *(Vec3*)v0;
+        res_c = res_b;
+        transform_out.x = res_c.x;
+        transform_out.y = res_c.y;
+        transform_out.z = res_c.z;
     }
 
+    /* dead-sentinel copy-or-alloc scratch (target 0x394-0x3E8): the guard
+     * pointer stays &scratch_xz for the 3ED4 call; copy pointer may be the
+     * alloc fallback. */
+    sub = *(char**)((char*)self + 0x30);
+    p = 0;
+    if (1) { p = &scratch_xz; }
+    {
+        Vec3 *w = p;
+        src = (float *)((int)sub + 968);
+        if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+            w->x = *src;
+            w->z = *(float *)((int)src + 8);
+            w->y = 0.0f;
+        }
+    }
+    yaw_raw = game_uso_func_00003ED4(p, &transform_out, &hit_out);
+    if (yaw_raw < 0.0f) {
+        neg = -yaw_raw;
+        yaw_metric = neg;
+    } else {
+        yaw_metric = yaw_raw;
+        neg = -yaw_raw;
+    }
+
+    /* self->0x3C = (-yaw_raw * (1 + sub->348/self->B0) * self->AC) / sub->708 */
     sub = *(char**)((char*)self + 0x30);
     {
-        /* dead-sentinel copy-or-alloc of a 12-byte Vec3 scratch (target
-         * 0x5cb0-0x5cf8): a3 = &scratch_xz is never NULL, so the alloc is
-         * dead code; the live path copies (sub+0x3c8).{x,z} into the scratch
-         * with y cleared, through the held pointer. */
-        Vec3 *scratch_src = (Vec3 *)(sub + 0x3C8);
-        Vec3 *scratch_ptr = &scratch_xz;
-        if (scratch_ptr == NULL) {
-            scratch_ptr = (Vec3 *)game_uso_func_055750(0xC);
-            if (scratch_ptr == 0) goto skip_scratch;
-        }
-        scratch_ptr->x = scratch_src->x;
-        scratch_ptr->z = scratch_src->z;
-        scratch_ptr->y = 0.0f;
-skip_scratch:;
-        /* yaw_metric: fabs of 00003ED4 return cached at sp+0x170 (368). */
-        yaw_metric = game_uso_func_00003ED4(scratch_ptr, &transform_in, (int *)&transform_out);
+        float *q = (float *)((int)sub + 1784);
+        scale = 1.0f + (*(float*)(sub + 0x348) / *(float*)((char*)self + 0xB0));
+        *(float*)((char*)self + 0x3C) =
+            (neg * scale * *(float*)((char*)self + 0xAC)) / *(float *)((int)q + 16);
     }
-    if (yaw_metric < 0.0f) {
-        yaw_metric = -yaw_metric;
-    }
-
-    scale = *(float*)(sub + 0x348) / *(float*)((char*)self + 0xB0);
-    scale += 1.0f;
-    *(float*)((char*)self + 0x3C) =
-        (yaw_metric * scale * *(float*)((char*)self + 0xAC)) / *(float*)(sub + 0x708);
-
-    /* accel_metric: fabs(self->0x3C) cached at sp+0x16C (364). */
     accel_metric = *(float*)((char*)self + 0x3C);
     if (accel_metric < 0.0f) {
         accel_metric = -accel_metric;
     }
 
-    /* early-skip: if self->0x74 != 0, jump straight to the state tail
-     * (target 0x5D9C-0x5DB8: beqzl self->0x74; if ==1 -> v0=self->0x2C). */
-    active_state = *(int*)((char*)self + 0x74);
-    out_flags = 0;
-    if (active_state != 0) {
-        if (active_state == 1) {
-            active_state = *(int*)((char*)self + 0x2C);
-        }
-        out_flags = active_state;
-        goto commit_flags;
-    } else {
-        state_bits = *(int*)((char*)self + 0x6C);
-        if (state_bits & 1) {
-            if ((resolved_state & 1) && ((resolved_state & 2) == 0)) {
-                *(int*)((char*)self + 0x6C) = state_bits & ~1;
-                *(int*)((char*)self + 0x48) = 0x14;
-                if (resolved_state & 4) {
-                    out_flags = 0x20;
-                } else if (resolved_state & 0x800) {
-                    out_flags = 0x80;
-                }
-            } else if (hit_parent != NULL) {
-                if (*(int*)(hit_parent + 0x84) & 2) {
-                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
-                    if (effect_vec != NULL) {
-                        entity_pos = helper_ptr + 0x30;
-                        effect_vec->y = 0.0f;
-                        effect_vec->z = *(float*)(entity_pos + 8);
-                        effect_vec->x = *(float*)entity_pos;
-                    }
-                    entity_pos = hit_parent + 0x30;
-                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
-                    if (effect_vec != NULL) {
-                        effect_vec->y = 0.0f;
-                        effect_vec->x = scratch_xz.x - *(float*)entity_pos;
-                        effect_vec->z = scratch_xz.z - *(float*)(entity_pos + 8);
-                    }
-                    mul_axis = scratch_xz;
-                    derived_vec = mul_axis;
-                    sub = *(char**)((char*)self + 0x30);
-                    entity_pos = sub + 0xB4;
-                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
-                    if (effect_vec != NULL) {
-                        effect_vec->y = 0.0f;
-                        effect_vec->x = *(float*)entity_pos;
-                        effect_vec->z = *(float*)(entity_pos + 8);
-                    }
-                    entity_pos = hit_parent + 0x30;
-                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
-                    if (effect_vec != NULL) {
-                        effect_vec->y = 0.0f;
-                        effect_vec->x = derived_vec.x - *(float*)entity_pos;
-                        effect_vec->z = derived_vec.z - *(float*)(entity_pos + 8);
-                    }
-                    mul_axis = scratch_xz;
-                    *(int*)((char*)self + 0x48) = 0x14;
-                    *(int*)((char*)self + 0x6C) = *(int*)((char*)self + 0x6C) & ~1;
-                }
+    /* second dispatch on the (possibly updated) self->0x74 */
+    active2 = *(int*)((char*)self + 0x74);
+    if (active2 != 0) goto tail_common;
+
+    bits = *(int*)((char*)self + 0x6C);
+    if (bits & 1) {
+        if ((resolved_state & 1) && !(resolved_state & 2)) {
+            *(int*)((char*)self + 0x6C) = bits & ~1;
+            *(int*)((char*)self + 0x48) = 0x14;
+            if (resolved_state & 4) {
+                out_flags = 0x20;
+            } else if (resolved_state & 0x800) {
+                out_flags = 0x80;
             }
-        } else if ((hit_parent != NULL) && (*(int*)(hit_parent + 0x84) & 2)) {
-            helper_ptr += 0x30;
-            scratch_xz.x = *(float*)helper_ptr;
-            scratch_xz.y = 0.0f;
-            scratch_xz.z = *(float*)(helper_ptr + 8);
-
-            hit_parent += 0x30;
-            derived_vec.x = scratch_xz.x - *(float*)hit_parent;
-            derived_vec.y = 0.0f;
-            derived_vec.z = scratch_xz.z - *(float*)(hit_parent + 8);
-            out_flags = 0x40;
+            goto tail_common;
         }
-    }
+        /* chain1: 4 fresh-Vec3 alloc-fallback sites + XZ ray/dist test */
+        if (hit_parent == 0) goto tail_common;
+        if (!(*(int*)(hit_parent + 0x84) & 2)) goto tail_common;
 
-    effect_pos = transform_out;
-    effect_delta = derived_vec;
-    out_flags = 0;
-    if ((hit_parent != NULL) && (*(int*)(hit_parent + 0x84) & 1)) {
-        if ((*(int*)(hit_parent + 0x84) & 0x804) != 0) {
-            sub = *(char**)((char*)self + 0x30);
-            if (*(char**)(sub + 0x908) != NULL) {
-                if (metric_a <= -2000.0f) {
-                    effect_vec = (Vec3*)game_uso_func_055750(0xC);
-                    if (effect_vec != NULL) {
-                        entity_pos = helper_ptr + 0x30;
-                        effect_vec->x = *(float*)entity_pos;
-                        effect_vec->y = 0.0f;
-                        effect_vec->z = *(float*)(entity_pos + 8);
-                    }
-                }
+        p = 0;
+        if (1) { p = &pos_a; }
+        src = (float *)((int)helper_ptr + 48);
+        if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+            p->y = 0.0f;
+            p->z = *(float *)((int)src + 8);
+            p->x = *src;
+        }
+
+        p = 0;
+        if (1) { p = &diff_a; }
+        src = (float *)((int)hit_parent + 48);
+        {
+            Vec3 *w = p;
+            if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+                w->y = 0.0f;
+                w->x = pos_a.x - *src;
+                w->z = pos_a.z - *(float *)((int)src + 8);
             }
         }
-    }
+        stage = *p;
+        delta_a = stage;
 
-    if (hit_parent != NULL) {
-        entity_pos = hit_parent + 0x30;
-        effect_vec = (Vec3*)game_uso_func_055750(0xC);
-        if (effect_vec != NULL) {
-            effect_vec->x = transform_out.x - *(float*)entity_pos;
-            effect_vec->y = 0.0f;
-            effect_vec->z = transform_out.z - *(float*)(entity_pos + 8);
-        }
-
-        effect_stage = effect_delta;
+        p = 0;
+        if (1) { p = &pos_c; }
         sub = *(char**)((char*)self + 0x30);
-        entity_pos = sub + 0xB4;
-        effect_vec = (Vec3*)game_uso_func_055750(0xC);
-        if (effect_vec != NULL) {
-            effect_vec->x = *(float*)entity_pos;
-            effect_vec->y = 0.0f;
-            effect_vec->z = *(float*)(entity_pos + 8);
+        src = (float *)((int)sub + 180);
+        if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+            p->y = 0.0f;
+            p->x = *src;
+            p->z = *(float *)((int)src + 8);
         }
 
-        entity_pos = hit_parent + 0x30;
-        effect_vec = (Vec3*)game_uso_func_055750(0xC);
-        if (effect_vec != NULL) {
-            effect_vec->x = effect_pos.x - *(float*)entity_pos;
-            effect_vec->y = 0.0f;
-            effect_vec->z = effect_pos.z - *(float*)(entity_pos + 8);
+        p = 0;
+        if (1) { p = &diff_b; }
+        src = (float *)((int)hit_parent + 48);
+        {
+            Vec3 *w = p;
+            if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+                w->y = 0.0f;
+                w->x = pos_c.x - *src;
+                w->z = pos_c.z - *(float *)((int)src + 8);
+            }
         }
+        stage = *p;
+        delta_b = stage;
 
-        effect_delta2 = effect_stage;
         sub = *(char**)((char*)self + 0x30);
-        scale = *(float*)(sub + 0x348) * (*(float*)((char*)self + 0xC0) + 12.0f);
-        dist_sq = (effect_delta.x * effect_delta.x) + (effect_delta.z * effect_delta.z);
+        f2v = *(float*)(sub + 0x348) * *(float*)((char*)self + 0xC0);
+        dist_sq = (delta_a.x * delta_a.x) + (delta_a.z * delta_a.z);
         if (dist_sq != 0.0f) {
-            dot = (effect_delta.x * effect_delta2.x) + (effect_delta.z * effect_delta2.z);
-            dot = (dot * dot) / dist_sq;
-            if (dot <= (scale * scale)) {
-                *(int*)((char*)self + 0x48) = 0x14;
-                *(int*)((char*)self + 0x6C) &= ~1;
-            } else {
-                if (*(float*)((char*)self + 0xBC) <= yaw_metric) {
-                    if (yaw_metric < 50.0f) {
-                        out_flags |= 0x40;
-                    }
-                }
-            }
-        }
-
-        if (yaw_metric < *(float*)((char*)self + 0xB8)) {
-            if (*(char**)(sub + 0x908) != NULL) {
-                state_value = yaw_metric;
-                if (state_value < 0.0f) {
-                    if (((int*)&D_00000000)[0x1E] == 0) {
-                        out_flags |= 4;
-                    }
-                }
-                state_value = (state_value / *(float*)((char*)self + 0xB8)) * accel_metric;
-                out_flags |= 8;
-            }
-        }
-
-        if (out_flags & 8) {
-            if (*(int*)((char*)self + 0x4C4) > 0) {
-                game_uso_func_000074D8(self);
-                *(int*)((char*)self + 0x4C4) = 0;
-            }
+            dot = (delta_a.x * delta_b.x) + (delta_a.z * delta_b.z);
+            f12v = (dot * dot) / dist_sq;
         } else {
-            state_counter = *(int*)((char*)self + 0x4C4);
-            if (state_counter == 0x10000) {
-                state_code = *(int*)((char*)self + 0x2C);
-                if (state_code == 3) {
-                    state_value = *(float*)((char*)self + 0x2DC);
-                } else if (state_code == 2) {
-                    state_value = *(float*)((char*)self + 0x2AC);
-                } else {
-                    state_value = *(float*)((char*)self + 0x2C4);
-                }
-                if (metric_a < state_value) {
-                    game_uso_func_0000751C(self);
-                    state_code = *(int*)((char*)self + 0x2C);
-                    if (state_code == 3) {
-                        state_value = *(float*)((char*)self + 0x324);
-                    } else if (state_code == 2) {
-                        state_value = *(float*)((char*)self + 0x30C);
-                    } else {
-                        state_value = *(float*)((char*)self + 0x2F4);
-                    }
-                    *(int*)((char*)self + 0x4C4) = (int)state_value;
-                }
-            } else if (state_counter > 0) {
-                state_code = *(int*)((char*)self + 0x2C) - 1;
-                if (state_code == 1) {
-                    *(int*)((char*)self + 0x4C4) = state_code;
-                    game_uso_func_000074D8(self);
-                }
-            }
+            f12v = 0.0f;
+        }
+        if (f12v <= f2v * f2v) {
+            *(int*)((char*)self + 0x48) = 0x14;
+            *(int*)((char*)self + 0x6C) = *(int*)((char*)self + 0x6C) & ~1;
+        }
+        goto tail_common;
+    }
+    if (bits != 0) goto tail_common;
+
+    /* chain2: mirrored 4 fresh-Vec3 sites, gated on parent flag bit 1 */
+    if (hit_parent == 0) goto yaw_region;
+    va = *(int*)(hit_parent + 0x84);
+    if (!(va & 1)) goto yaw_region;
+    if (va & 0x804) {
+        if (*(int*)(sub + 0x908) != 0) {
+            if (!(metric_a <= -2000.0f)) goto yaw_region;
         }
     }
+
+    p = 0;
+    if (1) { p = &pos_e; }
+    src = (float *)((int)helper_ptr + 48);
+    if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+        p->y = 0.0f;
+        p->z = *(float *)((int)src + 8);
+        p->x = *src;
+    }
+
+    p = 0;
+    if (1) { p = &diff_e; }
+    src = (float *)((int)hit_parent + 48);
+    {
+        Vec3 *w = p;
+        if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+            w->y = 0.0f;
+            w->x = pos_e.x - *src;
+            w->z = pos_e.z - *(float *)((int)src + 8);
+        }
+    }
+    stage = *p;
+    delta_e = stage;
+
+    p = 0;
+    if (1) { p = &pos_g; }
+    sub = *(char**)((char*)self + 0x30);
+    src = (float *)((int)sub + 180);
+    if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+        p->y = 0.0f;
+        p->x = *src;
+        p->z = *(float *)((int)src + 8);
+    }
+
+    p = 0;
+    if (1) { p = &diff_g; }
+    src = (float *)((int)hit_parent + 48);
+    {
+        Vec3 *w = p;
+        if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+            w->y = 0.0f;
+            w->x = pos_g.x - *src;
+            w->z = pos_g.z - *(float *)((int)src + 8);
+        }
+    }
+    stage = *p;
+    delta_g = stage;
 
     sub = *(char**)((char*)self + 0x30);
-    state_code = *(int*)((char*)self + 0x2C);
-    if (state_code != 0) {
-        if (state_code == 3) {
-            state_value = *(float*)((char*)self + 0x3B4);
-        } else if (state_code == 2) {
-            state_value = *(float*)((char*)self + 0x384);
-        } else {
-            state_value = *(float*)((char*)self + 0x39C);
-        }
-
-        if (state_value < metric_a) {
-            *(int*)((char*)self + 0x4C4) = state_code - 1;
-            game_uso_func_00007448(self);
-        }
-    }
-
-    state_code = *(int*)((char*)self + 0x2C);
-    if (state_code == 3) {
-        state_value = *(float*)((char*)self + 0x12C);
-    } else if (state_code == 2) {
-        state_value = *(float*)((char*)self + 0x114);
+    f2v = *(float*)(sub + 0x348) * (*(float*)((char*)self + 0xC0) + 12.0f);
+    dist_sq = (delta_e.x * delta_e.x) + (delta_e.z * delta_e.z);
+    if (dist_sq != 0.0f) {
+        dot = (delta_e.x * delta_g.x) + (delta_e.z * delta_g.z);
+        f12v = (dot * dot) / dist_sq;
     } else {
-        state_value = *(float*)((char*)self + 0xFC);
+        f12v = 0.0f;
+    }
+    if (f12v <= f2v * f2v) {
+        out_flags = 1;
     }
 
-    if (state_value < metric_a) {
-        if (*(int*)(sub + 0x9CC) != 0) {
-            state_value2 = *(float*)((char*)self + 0xC8);
+yaw_region:
+    /* yaw/flag synthesis (0x9DC-0xAA8): compares use sub->0x348 (f0), not
+     * yaw_metric; the ==0-gate is the 3ED4 out-param hit_out; the |4 gate is
+     * (double)yaw < 0.125; |8 is conditional on product > 1.0. */
+    sub = *(char**)((char*)self + 0x30);
+    if (*(float*)((char*)self + 0xBC) <= yaw_metric) {
+        if (*(float*)(sub + 0x348) < 50.0f) {
+            out_flags |= 0x40;
+        }
+    }
+    if (*(float*)(sub + 0x348) < *(float*)((char*)self + 0xB4)) {
+        if (hit_out == 0) {
+            if ((double)yaw_metric < 0.125) {
+                if (*(int*)((char*)&import_80020110 + 0x78) == 0) {
+                    out_flags |= 4;
+                }
+            }
+        }
+    }
+    if (1.0f < (*(float*)(sub + 0x348) / *(float*)((char*)self + 0xB8)) * accel_metric) {
+        out_flags |= 8;
+    }
+
+    /* 0x4C4 counter machine (0xAA8-0xC18): keyed off state_flag&8 */
+    if (state_flag & 8) {
+        if (*(int*)((char*)self + 0x4C4) > 0) {
+            game_uso_func_000074D8(self);
+            *(int*)((char*)self + 0x4C4) = 0;
+        }
+        goto tail_common;
+    }
+    counter = *(int*)((char*)self + 0x4C4);
+    if (counter == 0x10000) {
+        sc = *(int*)((char*)self + 0x2C);
+        if (sc == 3) {
+            fsel = *(float*)((char*)self + 0x2DC);
+        } else if (sc == 2) {
+            fsel = *(float*)((char*)self + 0x2C4);
         } else {
-            state_value2 = 1.0f;
+            fsel = *(float*)((char*)self + 0x2AC);
         }
-        if (accel_metric <= state_value2 * *(float*)((char*)self + 0xC4)) {
+        if (metric_a < fsel) {
+            game_uso_func_0000751C(self);
+            sc = *(int*)((char*)self + 0x2C);
+            if (sc == 3) {
+                fsel = *(float*)((char*)self + 0x324);
+            } else if (sc == 2) {
+                fsel = *(float*)((char*)self + 0x30C);
+            } else {
+                fsel = *(float*)((char*)self + 0x2F4);
+            }
+            *(int*)((char*)self + 0x4C4) = (int)fsel;
+        }
+        goto tail_common;
+    } else if (counter > 0) {
+        counter -= 1;
+        *(int*)((char*)self + 0x4C4) = counter;
+        if (counter == 0) {
+            game_uso_func_000074D8(self);
+        }
+    } else {
+        sc = *(int*)((char*)self + 0x2C);
+        if (sc != 0) {
+            if (sc == 3) {
+                fsel = *(float*)((char*)self + 0x3B4);
+            } else if (sc == 2) {
+                fsel = *(float*)((char*)self + 0x39C);
+            } else {
+                fsel = *(float*)((char*)self + 0x384);
+            }
+            if (fsel < metric_a) {
+                *(int*)((char*)self + 0x4C4) = 0x10000;
+                game_uso_func_00007448(self);
+            }
+        }
+    }
+
+    /* proximity flag block (0xC1C-0xCD8) */
+    sc = *(int*)((char*)self + 0x2C);
+    if (sc == 3) {
+        fsel = *(float*)((char*)self + 0x12C);
+    } else if (sc == 2) {
+        fsel = *(float*)((char*)self + 0x114);
+    } else {
+        fsel = *(float*)((char*)self + 0xFC);
+    }
+    sub = *(char**)((char*)self + 0x30);
+    if (fsel < metric_a) {
+        if (*(int*)(sub + 0x9CC) != 0) {
+            f2v = *(float*)((char*)self + 0xC8);
+        } else {
+            f2v = 1.0f;
+        }
+        if (accel_metric <= f2v * *(float*)((char*)self + 0xC4)) {
             out_flags |= 2;
+            goto tail_common;
         }
-    } else if (resolved_state & 0x800) {
-        if ((*(char**)(sub + 0x908) == NULL) || (metric_a <= -2000.0f)) {
+    }
+    if (resolved_state & 0x800) {
+        if ((*(int*)(sub + 0x908) == 0) || (metric_a <= -2000.0f)) {
             out_flags |= 0x80;
         }
     }
 
-    state_code = *(int*)((char*)self + 0x2C);
-    if (state_code == 1) {
-        state_value = *(float*)((char*)self + 0x264);
-    } else if (state_code == 2) {
-        state_value = *(float*)((char*)self + 0x27C);
+tail_common:
+    /* common tail (0xCE8-0x10F8): every path lands here. */
+    sc = *(int*)((char*)self + 0x2C);
+    if (sc == 1) {
+        fsel = *(float*)((char*)self + 0x264);
+    } else if (sc == 2) {
+        fsel = *(float*)((char*)self + 0x27C);
     } else {
-        state_value = *(float*)((char*)self + 0x294);
+        fsel = *(float*)((char*)self + 0x294);
     }
-
-    flag_word = (int*)(sub + 0xA58);
-    if (metric_a < state_value) {
-        if (((int)metric_a & 3) == 0) {
-            *flag_word |= 0x4000;
+    sub = *(char**)((char*)self + 0x30);
+    {
+        int *q = (int *)((int)sub + 2648);
+        if ((metric_a < fsel) && (((int)metric_a & 3) == 0)) {
+            q = (int *)((int)sub + 2648);
+            *q |= 0x4000;
         } else {
-            *flag_word &= ~0x4000;
+            *q &= ~0x4000;
         }
-    } else {
-        *flag_word &= ~0x4000;
     }
 
     if (*(float*)(sub + 0x348) < 30.0f) {
-        state_counter = *(int*)((char*)self + 0x54) + 1;
-        if (state_counter >= 75) {
+        counter = *(int*)((char*)self + 0x54) + 1;
+        if (counter < 75) {
+            *(int*)((char*)self + 0x54) = counter;
+        } else {
             *(int*)((char*)self + 0x54) = 0;
             game_uso_func_00007424(self);
-        } else {
-            *(int*)((char*)self + 0x54) = state_counter;
         }
     } else {
         *(int*)((char*)self + 0x54) = 0;
     }
 
-    if (resolved_state & 0x20) {
+    if (state_flag & 0x20) {
         if (game_uso_func_00009B88(self, helper_ptr, hit_parent) == 0) {
             game_uso_func_0000A7D8(self);
             goto commit_flags;
         }
     }
-
-    if (resolved_state & 0x40) {
+    if (state_flag & 0x40) {
         if (game_uso_func_0000A0E8(self, helper_ptr, hit_parent) == 0) {
             game_uso_func_0000AB98(self);
             goto commit_flags;
         }
     }
 
-    if (out_flags & 0x400) {
+    if (resolved_state & 0x400) {
         game_uso_func_000071A4(self);
         *(int*)((char*)self + 0x40) = game_uso_func_00006FA8(self);
         goto commit_flags;
     }
-
-    if (out_flags & 0x10) {
-        if (helper_ptr != NULL) {
-            *(int*)((char*)self + 0x7C) = *(int*)(helper_ptr + 0x6C);
-        }
-        if ((out_flags & 0x200) != 0) {
-            state_code = *(int*)((char*)self + 0x2C);
-            if (state_code == 3) {
-                state_value = *(float*)((char*)self + 0x24C);
-            } else if (state_code == 2) {
-                state_value = *(float*)((char*)self + 0x21C);
+    if (resolved_state & 0x10) {
+        *(int*)((char*)self + 0x7C) = *(int*)(helper_ptr + 0x6C);
+        if (resolved_state & 0x200) {
+            sc = *(int*)((char*)self + 0x2C);
+            if (sc == 3) {
+                fsel = *(float*)((char*)self + 0x24C);
+            } else if (sc == 2) {
+                fsel = *(float*)((char*)self + 0x234);
             } else {
-                state_value = *(float*)((char*)self + 0x234);
+                fsel = *(float*)((char*)self + 0x21C);
             }
-            if (state_value >= metric_a) {
+            if (fsel <= metric_a) {
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
-            } else if (*(char**)(sub + 0x908) != NULL) {
-                state_value = *(float*)(*(char**)(sub + 0x908) + 0xBC);
-                if (state_value < 0.0f) {
-                    state_value = -state_value;
+            } else {
+                sub = *(char**)((char*)self + 0x30);
+                v0 = *(int*)(sub + 0x908);
+                if (v0 == 0) goto commit_flags;
+                fsel = *(float*)(v0 + 0xBC);
+                if (fsel < 0.0f) {
+                    fsel = -fsel;
                 }
-                if (((int)state_value % 5) == 0) {
-                    *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
-                }
+                if (((int)fsel % 5) != 0) goto commit_flags;
+                *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             }
-        } else if ((out_flags & 0x100) != 0) {
-            state_code = *(int*)((char*)self + 0x2C);
-            if (state_code != 0) {
-                if (state_code == 3) {
-                    state_value = *(float*)((char*)self + 0x1BC);
-                } else if (state_code == 2) {
-                    state_value = *(float*)((char*)self + 0x18C);
+        } else if (resolved_state & 0x100) {
+            sc = *(int*)((char*)self + 0x2C);
+            if (sc != 0) {
+                if (sc == 3) {
+                    fsel = *(float*)((char*)self + 0x1BC);
+                } else if (sc == 2) {
+                    fsel = *(float*)((char*)self + 0x1A4);
                 } else {
-                    state_value = *(float*)((char*)self + 0x1A4);
+                    fsel = *(float*)((char*)self + 0x18C);
                 }
-                if (metric_a <= state_value) {
-                    *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
-                }
+                if (!(metric_a <= fsel)) goto commit_flags;
+            }
+            *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+        } else if (resolved_state & 0x80) {
+            sc = *(int*)((char*)self + 0x2C);
+            if (sc == 3) {
+                fsel = *(float*)((char*)self + 0x174);
+            } else if (sc == 2) {
+                fsel = *(float*)((char*)self + 0x15C);
             } else {
-                *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
+                fsel = *(float*)((char*)self + 0x144);
             }
-        } else if ((out_flags & 0x80) != 0) {
-            state_code = *(int*)((char*)self + 0x2C);
-            if (state_code == 3) {
-                state_value = *(float*)((char*)self + 0x174);
-            } else if (state_code == 2) {
-                state_value = *(float*)((char*)self + 0x144);
-            } else {
-                state_value = *(float*)((char*)self + 0x15C);
-            }
-            if (metric_a <= state_value) {
-                *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
-            }
+            if (!(metric_a <= fsel)) goto commit_flags;
+            *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
         } else {
-            state_code = *(int*)((char*)self + 0x2C);
-            if (state_code == 3) {
-                state_value = *(float*)((char*)self + 0x204);
-            } else if (state_code == 2) {
-                state_value = *(float*)((char*)self + 0x1D4);
+            sc = *(int*)((char*)self + 0x2C);
+            if (sc == 3) {
+                fsel = *(float*)((char*)self + 0x204);
+            } else if (sc == 2) {
+                fsel = *(float*)((char*)self + 0x1EC);
             } else {
-                state_value = *(float*)((char*)self + 0x1EC);
+                fsel = *(float*)((char*)self + 0x1D4);
             }
-            if (state_value <= metric_a) {
+            if (fsel <= metric_a) {
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
-            } else if (metric_a > 0.0f) {
+            } else if (0.0f < metric_a) {
                 *(int*)((char*)self + 0x68) |= 1;
-            } else if (*(char**)(sub + 0x908) != NULL) {
-                state_value = *(float*)(*(char**)(sub + 0x908) + 0xBC);
-                if (state_value < 0.0f) {
-                    state_value = -state_value;
+            } else {
+                sub = *(char**)((char*)self + 0x30);
+                v0 = *(int*)(sub + 0x908);
+                if (v0 == 0) goto commit_flags;
+                fsel = *(float*)(v0 + 0xBC);
+                if (fsel < 0.0f) {
+                    fsel = -fsel;
                 }
-                if (((int)state_value % 5) == 0) {
-                    *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
-                }
+                if (((int)fsel % 5) != 0) goto commit_flags;
+                *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             }
         }
-    } else if (hit_parent != NULL) {
+    } else if (hit_parent != 0) {
         if (*(int*)(hit_parent + 0x2C) == 0) {
-            if (*(int*)((char*)self + 0x40) != 0) {
-                *(int*)((char*)self + 0x40) = *(int*)(hit_parent + 0x6C);
-            }
+            if (*(int*)((char*)self + 0x40) == 0) goto commit_flags;
+            *(int*)((char*)self + 0x40) = *(int*)(hit_parent + 0x6C);
         }
     } else {
-        if (*(int*)((char*)self + 0x40) != 0) {
-            *(int*)((char*)self + 0x40) = *(int*)(helper_ptr + 0x6C);
-        } else {
+        if (*(int*)((char*)self + 0x40) == 0) {
             out_flags |= 0x10;
+        } else {
+            *(int*)((char*)self + 0x40) = *(int*)(helper_ptr + 0x6C);
         }
     }
 
 commit_flags:
     game_uso_func_00007538(self, out_flags);
-
-
-    /* Body-proper start at 0x5998 (extended 2026-05-03, ~16 insns 0x5998-0x59F8):
-     *   t2 = a0->0x30;                                  // sub-struct ptr
-     *   *(int*)(sp+0x1B8) = t2->[0xB4];                  // stage Vec3 ints
-     *   *(int*)(sp+0x1BC) = t2->[0xB8];
-     *   *(int*)(sp+0x1C0) = t2->[0xBC];
-     *   v0 = a0->0x30;                                   // reload
-     *   f12 = a0->[0xA8];                                // scalar
-     *   f4 = v0->[0x318]; f6 = v0->[0x31C]; f8 = v0->[0x320];
-     *   *(float*)(sp+0x148) = f4 * f12;                  // scaled outputs
-     *   ... more scaled stores into sp+0x148.. region.
-     * Multiple stack buffers staged: sp+0x148, sp+0x158, sp+0x1A8/AC,
-     * sp+0x1B8/BC/C0/C4 — scratch space for upcoming gl_func call(s).
-     *
-     * Extended characterization 2026-05-04 (0x59F8-0x5AC0, ~50 insns):
-     *   - Float stores: sp+0x148/0x14C/0x150 get f14/f2/f0 (the scaled
-     *     Vec3 from above's mul.s chain).
-     *   - 3-word memcpy block (0x5A04-0x5A30): t5 → v0 buffer + t2 → t8
-     *     buffer, INTERLEAVED (8 lw/sw pairs total). t5/t2 are the two
-     *     Vec3 sources (likely a0->0x30 and a0->0x148 or similar).
-     *   - 0x5A34-0x5A68: element-wise Vec3 add:
-     *       sp+0x1B8 += sp+0x1C4    (x += mul.x)
-     *       sp+0x1BC += sp+0x1C8    (y += mul.y)
-     *       sp+0x1C0 += sp+0x1CC    (z += mul.z)
-     *     Plus `sp+0x1B4 = 0` (clear scalar slot). Then jal cross-USO
-     *     with delay-slot store of last result.
-     *   - 0x5A6C-0x5AC0: post-call dispatch. `if (call_result == 0) goto
-     *     far_epilogue`. Otherwise reload a0->0x1A8 prior-saved ptr,
-     *     read its 0x84 field, branch on (a0->0x74 == 1) — likely a
-     *     state field — and either continue the per-frame body or
-     *     branch to mid-function alt-path.
-     *
-     * Extended 2026-05-05 (0x5AC0-0x5B4C, ~36 more insns):
-     *   - Float compare branch (0x5ACC `c.le.s $f0, $f8`): if $f0 (zero
-     *     constant from earlier) > $f8 (= a0->0xD8) goto +0x12 (likely
-     *     skips a sub-block that runs only when a0->0xD8 >= 0).
-     *   - Three nested null-checks at 0x5ADC/0x5AE4/0x5AF0:
-     *       if (t3 [= prior sp+0x1A4 saved ptr] != 0) skip;
-     *       t4 = sp+0x1AC; if (t4 == 0) skip;
-     *       t5 = t4->0x84; if (t5 != 0) skip;  (some "active" flag)
-     *   - When all 3 null-checks pass: another float compare at 0x5B04
-     *     `c.le.s $f18, $f10` where $f18 = a0->0xB4 (sub-Vec3.x prior),
-     *     $f10 = a0->0x30->0x348 (deep field of sub-struct).
-     *   - 0x5B20: `b +0x24` to a far merge point with delay slot
-     *     `or v0, v1, zero` (return v0 = v1) — appears to be the
-     *     "fall-through with side-result" path of the dispatch.
-     *   - 0x5B28: lw v0, 0x2C(s0) (= a0->0x2C, another sub-state ptr)
-     *   - 0x5B2C: addiu at, zero, 3 (= constant 3 — likely a state code)
-     *   - 0x5B40: lwc1 $f12, 0x3FC(s0) (= a0->0x3FC float)
-     *   - 0x5B44: addiu at, zero, 2 (state code 2)
-     *   - 0x5B48: bnel at,zero,+0x4; lwc1 $f14, 0x3CC(s0) (delay)
-     *
-     * Pattern emerging: this is a STATE-MACHINE-DRIVEN per-frame update.
-     * a0 has multiple fields treated as state codes (0x2C, 0x68, 0x74),
-     * float positions (0xB4-0xC0 Vec3, 0xD8 scalar), and sub-struct
-     * pointer (0x30 → 0x148-region floats + 0x318-region floats +
-     * 0x348-region floats). Multiple per-state branches dispatch to
-     * different sub-bodies, each making 1+ cross-USO calls.
-     *
-     * Cumulative ~115/1102 insns characterized (up from 80). Body-proper
-     * has ~985 remaining insns + ~28 more cross-USO calls.
-     *
-     * 2026-05-06 EXTENDED DECODE 0x5B4C-0x5BC4 (~30 more insns):
-     * STATE-CODE FLOAT COMPARE + 3-LEVEL POINTER NULL-CHECK + V1 DISPATCH.
-     *
-     *   /* state-code dispatch on (sp+0x1A4 saved state, after the v0!=2
-     *    * bnel at 0x5B48): two arms select different a0 floats *\/
-     *   /* arm 1: state==2 fall-through reads f12 = a0->0x3FC
-     *    *        otherwise bnel-arm reads f14 = a0->0x3CC then jumps
-     *    *        ahead via b +3 to 0x5B5C *\/
-     *   f14 = (state == 2) ? a0->0x3E4 : a0->0x3CC;
-     *   f12 = f14;
-     *
-     *   /* float-compare guarded clean-state block.
-     *    * If f0 (= 0.0f scratch) > f12 (= picked float), branch likely
-     *    * to 0x5BB0 (skip clean-state, go to v0 dispatch). *\/
-     *   if (f12 >= 0.0f) {
-     *       a0->0x74 = 0;                  /* delay-likely store *\/
-     *       /* 3-level pointer-chain null-check: t8 != 0 OR
-     *        * t9 = sp[0x1AC] != 0 OR t9->0x84 != 0 — any non-null
-     *        * branches to the v0 dispatch (skips deeper compare). *\/
-     *       if (t8 != 0) goto v0_dispatch;
-     *       t9 = sp[0x1AC];
-     *       if (t9 != 0) {
-     *           a0->0x74 = 0;
-     *           t1 = t9->0x84;
-     *           if (t1 != 0) {
-     *               a0->0x74 = 0;
-     *               /* deepest level: float-compare a0->0xB4 vs
-     *                * a0->0x30->0x348 (sub-struct deep field) *\/
-     *               t2 = a0->0x30;
-     *               f6 = a0->0xB4;
-     *               f4 = t2->0x348;
-     *               if (f6 <= f4) {
-     *                   v0 = v1;            /* delay-likely *\/
-     *               } else {
-     *                   a0->0x74 = 0;
-     *                   v1 = 0;
-     *               }
-     *           }
-     *       }
-     *   }
-     *
-     *   v0_dispatch:
-     *   v0 = v1;
-     *   /* dispatch on v0: 0 → fall through to 0x5BD0 path,
-     *    *                 1 → beql goto 0x5C4C ALSO with sp+0x15C arg setup,
-     *    *                 other → fall through with sp+0x15C arg setup *\/
-     *   if (v0 == 0) goto path_5BD0;       /* a0 = sp+0x15C in delay *\/
-     *   if (v0 == 1) goto path_5C4C;       /* beql; same a0=sp+0x15C delay *\/
-     *
-     * Pattern: this whole block (0x5AB4-0x5BC4) is a STATE-MACHINE-AS-
-     * VALIDATION of a0->0x74 (state code) + a0->0x30 (sub-struct ptr) +
-     * the saved-pointer-chain at sp+0x1A4/sp+0x1AC. The 3-level null-check
-     * idiom (parent → child → grandchild) is common in 1080's scene graph
-     * traversal — likely walking a "current target" pointer. The float
-     * compare at 0x5B98 (a0->0xB4 vs sub->0x348) is comparing per-frame
-     * Vec3.x against a deep sub-struct float — possibly distance / range
-     * threshold.
-     *
-     * Cumulative ~145/1102 insns characterized (up from 115). ~960
-     * remaining + ~25 cross-USO calls.
-     *
-     * 2026-05-06 EXTENDED DECODE 0x5BC8-0x5C44 (~32 insns): 4-ARG CROSS-
-     * USO CALL + DUAL VEC3 MEMCPY CHAIN.
-     *
-     *   /* default-fall-through path (v0 == 0 from earlier dispatch) *\/
-     *   /* arg setup for cross-USO call: 4 register + 2 stack args *\/
-     *   a0 = a0->0x30;                                  ; sub-struct ptr
-     *   a1 = s0;                                         ; original a0 (saved)
-     *   a2 = sp[0x1B0];                                  ; helper-return v0 saved earlier
-     *   a3 = sp[0x1AC];                                  ; saved ptr
-     *   sp[0x10] = sp+0x1B8;                             ; out Vec3 ptr 1
-     *   sp[0x14] = sp+0x188;                             ; out Vec3 ptr 2
-     *   t9 = gl_func(...);
-     *
-     *   /* 12-byte Vec3 copy chain: v0 → sp+0x114 → sp+0xFC *\/
-     *   v1 = sp + 0x114; t7 = sp + 0xFC;
-     *   *(int*)(v1 + 0) = *(int*)(t9 + 0);
-     *   *(int*)(v1 + 4) = *(int*)(t9 + 4);
-     *   *(int*)(v1 + 8) = *(int*)(t9 + 8);
-     *   *(int*)(t7 + 0) = *(int*)(v1 + 0);
-     *   *(int*)(t7 + 4) = *(int*)(v1 + 4);
-     *   *(int*)(t7 + 8) = *(int*)(v1 + 8);
-     *
-     *   /* float-load + store: 3 floats from sp+0xFC..0x104 to sp+0x190..0x198 *\/
-     *   *(float*)(sp+0x190) = *(float*)(sp+0xFC);
-     *   *(float*)(sp+0x194) = *(float*)(sp+0x100);
-     *   *(float*)(sp+0x198) = *(float*)(sp+0x104);
-     *
-     *   b 0x5CB4   ; merge to continuation
-     *
-     * Pattern: helper returns a Vec3 ptr; double-buffer copy (likely
-     * write-protect or transformation pipeline) into stack scratch
-     * regions sp+0x114, sp+0xFC, sp+0x190. The 4-arg cross-USO call
-     * with 2 stack-args at sp+0x10/0x14 is a "transform-and-output"
-     * idiom common in 1080 (per docs/PATTERNS.md USO callee patterns).
-     *
-     * Cumulative ~177/1102 insns characterized (up from 145). ~925
-     * remaining.
-     *
-     * 2026-05-06 EXTENDED DECODE 0x5C48-0x5CB0 (~26 insns): ALT-PATH
-     * MIRROR OF PRIOR Vec3-MEMCPY BLOCK + MERGE.
-     *
-     *   /* alt path (other arm of v0 dispatch from earlier 0x5BB0) *\/
-     *   /* same 4-arg + 2-stack-arg gl_func call but a0 = sp+0x15C
-     *    * instead of a0->0x30 (different source for the transformed Vec3) *\/
-     *   a0 = sp + 0x15C;
-     *   a1 = s0;
-     *   a2 = sp[0x1B0];
-     *   a3 = sp[0x1AC];
-     *   /* sp[0x10] = sp[0x148]? — t0 from earlier prep *\/
-     *   t9 = gl_func(...);
-     *
-     *   /* same 12-byte Vec3 copy chain: t9 → sp+0x108 → sp+0xFC *\/
-     *   v1 = sp + 0x108; t3 = sp + 0xFC;
-     *   *(int*)(v1 + 0/4/8) = *(int*)(t9 + 0/4/8);
-     *   *(int*)(t3 + 0/4/8) = *(int*)(v1 + 0/4/8);
-     *
-     *   /* same 3-float load+store: sp+0xFC..0x104 -> sp+0x190..0x198 *\/
-     *
-     *   b 0x5CB4   ; merge to continuation (same target as prior path)
-     *
-     * MERGE BLOCK 0x5CB4-0x5CB0 (5 insns visible):
-     *   /* both paths arrive here with a0 reloaded from s0->0x30 *\/
-     *   a0 = s0->0x30;
-     *   a3 = sp + 0x178;
-     *   a1 = a3;
-     *   if (a3 != 0) {        // (effectively always true — sentinel guard)
-     *       v1 = a0 + 0x3C8;
-     *       /* fall through to next block at 0x5CE0 *\/
-     *   } else {
-     *       a0 = 0xC; gl_func(...); sp[0x144] = v1;
-     *       /* alloc/init then reload v1 *\/
-     *   }
-     *
-     * Pattern: alt-path duplicates the Vec3-memcpy structure with sp+0x15C
-     * as alternative source (vs sp+0x1B8 in prior path). Both feed into
-     * the same merge block at 0x5CB4 which prepares a Vec3-related
-     * comparison with sp+0x178 (likely accumulated transform output).
-     *
-     * MERGE-BLOCK CONTINUATION 0x5CB4-0x5D08 (~21 insns, decoded 2026-05-06):
-     *   /* setup: a3 = &sp[0x178]; a1 = a3; v1 = a0 + 0x3C8 *\/
-     *   a3 = sp + 0x178;
-     *   a1 = a3;                         // (cosmetic shadow — both used)
-     *   v1 = a0 + 0x3C8;                 // pointer into sub-struct
-     *   /* cross-USO size-12 op (Vec3 alloc/copy?) — saves+reloads v1 *\/
-     *   a0 = 0xC;                        // 12 = sizeof(Vec3) constant
-     *   sp[0x144] = v1;
-     *   v0 = gl_func(0xC, ...);          // jal placeholder, args via sp/regs
-     *   v1 = sp[0x144];                  // reload after call
-     *   a3 = sp + 0x178;                 // re-setup post-call
-     *   if (v0 == 0) goto skip_xz_copy;  // beq v0,zero,.+0x1C
-     *   a1 = v0;                         // result pointer (delay slot)
-     *
-     *   /* XZ-only Vec3 copy: a1.x = v1.x; a1.y = 0; a1.z = v1.z *\/
-     *   a1[0]   = v1[0];                 // x  (lwc1 f12; swc1 to a1)
-     *   a1[2/4] = v1[2];                 // z  (offset 8 from base)
-     *   a1[1/4] = 0.0f;                  // y  zeroed via mtc1 $zero
-     *
-     * skip_xz_copy:                      // 0x5CF8
-     *   /* second Vec3-math call: f(sp+0x178, sp+0x190, sp+0x184) *\/
-     *   a0 = sp + 0x178;                 // accum-Vec3 base (= a3)
-     *   a1 = sp + 0x190;
-     *   a2 = sp + 0x184;
-     *   gl_func(a0, a1, a2);             // jal placeholder (Vec3 op, dest sp+0x184/0x190)
-     *
-     * COMPARISON BLOCK 0x5D08-0x5D34 (~12 insns FPU compare/clamp):
-     *   /* float saturate-style compare on result-Vec3 with bc1tl branches *\/
-     *   f16 = 0.0f;
-     *   if (f0 < 0)  /* saturate one component to negation pair *\/
-     *       /* abs/neg sequence (neg.s + bc1tl + neg-or-abs) *\/
-     *   /* result then stored to sp+0x170 (post-saturate scalar) *\/
-     *   sp[0x170] = saturated_value;
-     *
-     * Pattern overall: this merge block stages an XZ-Vec3 transform
-     * (Y-zeroed) into sp+0x178 buffer, then computes a derived scalar
-     * (likely magnitude/length squared via the cross-USO call), saturates
-     * its sign, and stores to sp+0x170. Continues into a delta-blend at
-     * 0x5D38+ with a0->0xB0 / a0->0xAC fields (likely physics-vel state).
-     *
-     * 2026-05-08 EXTENDED DECODE 0x5D38-0x5E1C (~56 insns):
-     * NORMALIZED DELTA SCALAR + STATE/FLAG DISPATCH.
-     *
-     *   /* derive a scale from sub-struct axis/threshold fields *\/
-     *   sub = a0->0x30;
-     *   f14 = signed scalar from prior saturate block (abs/neg pair);
-     *   ratio = sub->0x348 / a0->0xB0;
-     *   factor = 1.0f + ratio;
-     *   denom = sub->0x708;              /* via sub + 0x6F8 + 0x10 *\/
-     *   a0->0x3C = (f14 * factor * a0->0xAC) / denom;
-     *
-     *   /* save absolute value of the derived scalar for later consumers *\/
-     *   sp[0x16C] = (a0->0x3C < 0.0f) ? -a0->0x3C : a0->0x3C;
-     *
-     *   /* state-gate before the large flag-dispatch body *\/
-     *   if (a0->0x74 != 0) {
-     *       if (a0->0x74 == 1) goto state_tail_6604;  /* v0=a0->0x2C delay *\/
-     *       goto state_tail_6604;
-     *   }
-     *   state_flags = a0->0x6C;
-     *   stack_flags = sp[0x1A0];
-     *   if (!(state_flags & 1)) goto path_6078;
-     *
-     *   /* when state bit 0 is set but stack bit0 is clear and bit1 is clear,
-     *    * clear state bit0 and seed a short timer/state code. *\/
-     *   if (!(stack_flags & 1) && !(stack_flags & 2)) {
-     *       a0->0x6C = state_flags & ~1;
-     *       a0->0x48 = 0x14;
-     *   }
-     *
-     *   /* stack flag 0x4 selects a 0x20 mode; otherwise 0x800 selects 0x80.
-     *    * Both store the mode at sp+0x1B4 and jump to the shared 0x65F8
-     *    * continuation with a0 reloaded from a0->0x30. *\/
-     *
-     * Pattern: this block converts the prior transform/saturate result into
-     * a normalized, positive scalar and immediately uses object state flags
-     * to choose the next update mode.  `a0->0x6C` behaves like a mutable
-     * per-frame bitfield, `a0->0x74` is a coarse state gate, and sp+0x1A0
-     * mirrors input/event flags that can clear bit0 and select a mode.
-     *
-     * Cumulative ~282/1102 insns characterized (up from 226). ~820
-     * remaining. NEXT PASS: 0x5E20+ alternate state-flag path through
-     * sp+0x1AC->0x84 bit checks and the sp+0xF0 Vec3 scratch block.
-     *
-     * 2026-05-08 EXTENDED DECODE 0x5E20-0x5E7C (~24 insns): SP+0x1AC PTR
-     * BIT-2 GUARD + ALT VEC3 ALLOC + XZ-Y0-COPY (mirror of 0x5CD0 block).
-     *
-     *   t9 = sp[0x1AC];                   ; reload saved-ptr (this is `sub`)
-     *   if (t9 == 0) goto state_tail_65F8;
-     *   t1 = t9->0x84;                     ; flag-byte (mirrors check earlier
-     *                                        in path 0x5AF0-0x5AFC, here re-tested)
-     *   v1 = sp + 0xF0;                    ; sp+0xF0 = next Vec3-scratch base
-     *   if (!(t1 & 2)) goto state_tail_65F8;
-     *
-     *   /* bnel-likely guard: t1 != 0 always since bit 1 was set —
-     *    * branch taken always; delay-slot reloads sp[0x1B0] = saved
-     *    * return-Vec3 ptr from prior cross-USO call. *\/
-     *   if (t1 != 0) {
-     *       v0 = sp[0x1B0];                 ; (delay)
-     *   } else {
-     *       v0 = gl_func(0xC);              ; alloc Vec3 (dead arm — t1 is bit-2,
-     *                                        non-zero by precondition)
-     *       f16 = 0.0f;
-     *       if (v0 == 0) goto skip_xz_copy; ; alloc-fail skip
-     *       v1 = v0;                         ; (delay) v1 = alloc result
-     *       v0 = sp[0x1B0];                  ; reload saved ptr
-     *   }
-     *
-     *   /* XZ-Y0 Vec3 copy — exact mirror of the earlier 0x5CD0 block,
-     *    * source is sp[0x1B0]+0x30 here (vs prior block's t9 helper-result):
-     *    *   v1[0] = source[0];   v1[1] = 0.0f;   v1[2] = source[2];   *\/
-     *   src = v0 + 0x30;
-     *   v1[0] = src[0];                     ; X
-     *   v1[1] = 0.0f;                       ; Y zeroed
-     *   v1[2] = src[2];                     ; Z   (source.y at +4 SKIPPED)
-     *
-     *   /* skip_xz_copy: a1 = sp[0x1AC]; a2 = sp+0xB4; ... falls through
-     *    * to a follow-up cross-USO call at 0x5E80+ with sp+0xB4 as a2. *\/
-     *   a1 = sp[0x1AC];                     ; reload sub for next call
-     *   a2 = sp + 0xB4;
-     *   /* (continues at 0x5E80+) *\/
-     *
-     * Pattern: this is the alt-source mirror of the earlier 0x5CD0 XZ-Y0
-     * Vec3 copy. Both write a Y-zeroed XZ-only Vec3 into a stack scratch,
-     * but they pull from different base ptrs (helper-return ptr vs
-     * sp[0x1B0]+0x30 = saved-ptr's sub-struct). The bit-2 (`t1 & 2`) gate
-     * + the bnel-always-true after a non-zero precondition is a defensive
-     * "abort if state changed mid-frame" + "if normal-path, skip alloc"
-     * pattern used elsewhere in the dispatch.
-     *
-     * 0x5E80-0x5ECC region (+20 insns):
-     * BNEZ-GATED ALLOC + VEC3 XZ-DIFFERENCE (saved-XZ minus a1+0x30 XZ).
-     *
-     *   v1 = a2;                          ; mirror a2 (will become out-Vec3 ptr)
-     *   a1 += 0x30;                       ; a1 = sub->[0x30] (Vec3 source pos)
-     *   if (a2 != 0) goto skip_alloc;     ; if caller passed a buffer, skip alloc
-     *   /-- a2==0 path: alloc fresh Vec3 --/
-     *   sp[0xC0] = a1;                    ; spill a1 across alloc
-     *   v0 = gl_func(0xC);                ; alloc 12-byte Vec3
-     *   $f16 = 0.0f;                       ; (delay) Y-zero const
-     *   a1 = sp[0xC0];                    ; reload a1
-     *   a2 = sp + 0xB4;                   ; reset a2 to default out-Vec3 base
-     *   if (v0 == 0) goto skip_xz_diff;   ; alloc-fail skip
-     *   v1 = v0;                           ; (delay) v1 = alloc result
-     *
-     * skip_alloc:
-     *   $f18 = sp[0xF0];                   ; $f18 = saved-Vec3.X (from 0x5DC0 block)
-     *   $f4  = a1[0];                      ; $f4  = sub->[0x30].X
-     *   $f8  = sp[0xF8];                   ; $f8  = saved-Vec3.Z
-     *   $f6  = a1[2];                      ; $f6  = sub->[0x30].Z
-     *   $f0  = $f18 - $f4;                 ; X-diff
-     *   v1[1] = 0.0f;                       ; out.Y = 0 (XZ-plane vec)
-     *   $f2  = $f8 - $f6;                  ; Z-diff
-     *   v1[0] = $f0;                        ; out.X = X-diff
-     *   v1[2] = $f2;                        ; out.Z = Z-diff
-     *
-     * Pattern: this XZ-difference Vec3 (saved.X - sub.X, 0, saved.Z - sub.Z) is
-     * the displacement vector between the saved-frame position (captured earlier
-     * at sp[0xF0..0xFC]) and the current sub-struct's position. Likely the
-     * "movement-since-last-frame XZ-only" vector, used as input to the follow-up
-     * (~0x5ED0+) operation. The bnez-gated alloc lets callers pass in their own
-     * out-buffer (a2 != 0) OR get a fresh-allocated one (a2 == 0). The XZ-only
-     * shape (Y zeroed) suggests ground-plane physics, NOT general 3D physics.
-     *
-     * 0x5ED0-0x5F18 region (+18 insns):
-     * DOUBLE 12-BYTE INT-MEMCPY (a2 → sp+0x15C → sp+0xD8) + DEAD-BRANCH GATE.
-     *
-     *   /-- first 12-byte memcpy: a2 → sp+0x15C --/
-     *   t3 = sp + 0x15C;                ; staging buffer
-     *   t8 = sp + 0x15C;                ; (alias of t3)
-     *   *t3       = a2[0];               ; first int
-     *   t6 = sp + 0xD8;                  ; final destination
-     *   v1 = sp + 0xE4;                  ; out-Vec3 scratch (used at 0x5F38+)
-     *   *(t3 + 4) = a2[1];               ; second int
-     *   *(t3 + 8) = a2[2];               ; third int
-     *
-     *   /-- second 12-byte memcpy: sp+0x15C → sp+0xD8 --/
-     *   *t6       = *t8;                 ; sp[0xD8]   = sp[0x15C]
-     *   *(t6 + 4) = *(t8 + 4);           ; sp[0xDC]   = sp[0x160]
-     *   *(t6 + 8) = *(t8 + 8);           ; sp[0xE0]   = sp[0x164]
-     *   a1 = sub->[0x30];                ; sub = s0; a1 = sub-physics-block
-     *   if (v1 != 0) goto skip_alloc_2;  ; bnez v1, +7 → 0x5F38
-     *                                      ; (v1 = sp+0xE4 — ALWAYS non-zero;
-     *                                      ;  the fall-through alloc-fallback at
-     *                                      ;  0x5F20-0x5F34 is RUNTIME-DEAD code,
-     *                                      ;  emitted by IDO due to a runtime-only
-     *                                      ;  null-test the optimizer didn't fold.)
-     *   a1 += 0xB4;                      ; (delay-slot, dead path)
-     *
-     * Pattern: the algorithm uses two stack buffers (sp+0x15C as a staging
-     * scratch + sp+0xD8 as the working buffer) to hold a copy of the XZ-diff
-     * Vec3 just computed. The double-memcpy is wasteful but consistent with
-     * IDO's emit when the C body has TWO distinct typed-stack-struct copies
-     * back-to-back. The dead bnez-gated alloc fallback is the same shape as
-     * the 0x5DC0/0x5E80 blocks above — pre-allocated buffer always wins.
-     *
-     * 0x5F38-0x5F7C region (+17 insns):
-     * THIRD XZ-Y0 VEC3 COPY (sub->[0x30] → v1) + DEAD-BRANCH ALLOC FALLBACK.
-     *
-     *   $f12 = a1[0];                    ; a1 = sub->[0x30] (Vec3 source)
-     *   $f2  = a1[2];                    ;
-     *   v1[1] = $f16 (= 0.0);            ; out.Y = 0
-     *   v1[0] = $f12;                    ; out.X = source.X (no-diff this time!)
-     *   v1[2] = $f2;                     ; out.Z = source.Z (no-diff)
-     *
-     *   v1 = sp[0x1AC];                  ; reload sub-ptr from saved-stack slot
-     *   a2 = sp + 0x94;                  ; another out-Vec3 scratch base
-     *   a1 = a2;                          ; mirror a2 into a1
-     *   if (a2 != 0) goto skip_alloc_3;  ; bnez a2 — ALWAYS taken
-     *                                      ; (same dead-fallback as 0x5DC0/0x5E80/
-     *                                      ;  0x5F18: pre-allocated buffer wins)
-     *   v1 += 0x30;                      ; (delay-slot, dead path)
-     *   v0 = gl_func(0xC);                ; (dead alloc)
-     *   sp[0x120] = v1;                   ; (delay) save v1 across alloc
-     *   $f16 = 0.0f;                     ; re-init Y-zero const
-     *   v1 = sp[0x120];                  ; reload v1
-     *   a2 = sp + 0x94;                  ; reset a2
-     *   if (alloc == 0) goto skip;       ; alloc-fail
-     *   a1 = alloc;                      ; (delay)
-     *
-     * Pattern: this is the THIRD Vec3 XZ-Y0 copy in the function. Together
-     * with the earlier 0x5CD0 (helper-result source) and 0x5E80 (saved-XZ
-     * minus sub-XZ), this builds three XZ-only Vec3s into stack scratches:
-     *   sp+0xB4 — XZ-difference output (from 0x5E80 block)
-     *   sp+0xD8 — copy-of-XZ-difference (from 0x5ED0 double-memcpy)
-     *   sp+0xE4 — sub->[0x30] Vec3 with Y zeroed (from 0x5F38 block)
-     *   sp+0x94 — yet another output buffer (next pass)
-     *
-     * Each block follows the same shape: bnez-gated alloc (dead-runtime,
-     * pre-allocated wins) + XZ-Y0 copy with optional source-difference.
-     *
-     * 0x5F80-0x5FA4 region (+10 insns) — Vec3 XZ-difference store + two
-     * 12-byte struct memcpys:
-     *   f10 = scratch_xz0[0]              ; sp+0xE4 (sub->[0x30] xz-only)
-     *   f18 = a1[0]                       ; dest xz.x
-     *   f4  = scratch_xz0[2]              ; sp+0xEC (xz.z)
-     *   f8  = a1[2]                       ; dest xz.z
-     *   f0  = f10 - f18                   ; sub.s — diff in xz.x
-     *   *a1[1] = f16                      ; swc1 (f16 carried from prior block,
-     *                                       likely zeroed in 0x5F38-0x5F7C)
-     *   f2  = f4 - f8                     ; sub.s — diff in xz.z
-     *   *a1[0] = f0                       ; xz-diff stored back into a1
-     *   *a1[2] = f2                       ; (a1 IS the dest — 0x10-byte Vec3
-     *                                       at sp+0x...something)
-     *   t3  = a2[0]; t1 = sp+0x15C; t5 = sp+0x15C
-     *
-     * 0x5FA8-0x5FE4 region (+12 insns) — TWO 12-byte (Vec3) struct copies
-     * via stack scratches sp+0x15C and sp+0xCC, both from a2 (=sp+0x94):
-     *   sp[0x15C..0x167] = a2[0..2]        ; copy 1 (3-int load/store unrolled)
-     *   sp[0xCC..0xD7]   = sp[0x15C..0x167] ; copy 2 (alias-via-stack)
-     *   t1 = 0x14
-     *   at = -2
-     * The two-step copy through sp+0x15C is unusual — likely a dead intermediate
-     * scratch left over from a -O0 → -O2 compile where IDO didn't fully fold.
-     *
-     * 0x5FE8-0x6020 region (+15 insns) — FPU norm computation:
-     *   a0  = s0->[0x30]                  ; sub object
-     *   f10 = s0->[0xC0]                  ; field-loaded float
-     *   f18 = sp[0xD8]                    ; xz-diff.x (from earlier block)
-     *   f6  = a0->[0x348]                 ; sub_field_348 (likely radius?)
-     *   f8  = sp[0xE0]                    ; xz-diff.z
-     *   f2  = f6 * f10                    ; field_348 * field_C0 (= scaled?)
-     *   f10 = sp[0xD8]                    ; reload diff.x
-     *   f4  = f18 * f18                   ; diff.x²
-     *   f18 = sp[0xCC]                    ; reload xz-copy.x
-     *   f6  = f8 * f8                     ; diff.z²
-     *   f14 = f4 + f6                     ; diff.x² + diff.z² (= dist²)
-     *   f6  = sp[0xD4]
-     *   f4  = sp[0xE0]                    ; reload diff.z
-     *   c.eq.s f14, f16                   ; compare dist² == f16 (zero?)
-     * (followed by branch on FCC, decoded in next pass)
-     *
-     * Pattern: this is a 2D (XZ-plane) distance check in the per-frame
-     * collision/proximity portion of the state machine. The two-step
-     * copy via sp+0x15C is a -O0 artifact within an otherwise -O2 function.
-     *
-     * 0x6024-0x6058 region (+14 insns) — FCC-branch + FP norm + final cmp:
-     *   if (dist² != f16_zero) {
-     *     f12 = neg.s(f0)              ; mov.s/neg.s on the diff?
-     *     f8  = f10 * f18               ; mul.s
-     *     f10 = f4 * f6                  ; (interleaved)
-     *     f0  = f8 + f10                ; add.s — sum of two products
-     *     f18 = f0 * f0                 ; mul.s — square of sum
-     *     f12 = f18 / f14               ; div.s — distance-ratio?
-     *     f4  = f2 * f2                 ; mul.s — square again
-     *     c.le.s f12, f4                ; compare
-     *     if (c.le.s f12 ≤ f4 false) skip large block (+0x167 = 359 insns)
-     *   }
-     *
-     * 0x605C-0x607C region (+8 insns) — fall-through state-update:
-     *   t1 = 0x14                     ; literal
-     *   t7 = s0->[0x6C]               ; load flag word
-     *   s0->[0x48] = t1               ; mark-as-set (= 0x14)
-     *   a0 = s0->[0x30]               ; sub object
-     *   t9 = t7 & ~1                  ; clear bit 0 (at = -2)
-     *   b +0x161 (skip into next state block, ~353 insns ahead)
-     *   s0->[0x6C] = t9               ; (delay) writeback cleared flag
-     *
-     * Pattern: 'if (distance test passes) clear sub-state-flag-bit-0,
-     * mark s0->0x48 = 0x14 (= 'distance-check-completed' code), then
-     * b to a far-skip into the next state-block'.
-     *
-     * Cumulative ~420/1102 insns characterized (up from 398, +22 insns).
-     * ~682 remaining.
-     *
-     * 0x6080-0x6100 region (+30 insns) — particle-spawn on flags+altitude:
-     *   if (t2 != 0) {                  ; beql t2,0,+0x9E skips 158 insns
-     *     v0 = t2->[0x84];              ; flag byte
-     *     if (v0 & 1) {
-     *       if (v0 & 0x804) {           ; bits 2|11 both must be checked
-     *         t5 = a0->[0x908];         ; subtree pointer
-     *         f8 = sp[0x19C];           ; cached world-Y coord
-     *         if (t5 != 0) {
-     *           if (f8 <= -2000.0f) {   ; below floor threshold (lui 0xC4FA)
-     *             v1 = sp+0x80;         ; (computed but may be unused arm)
-     *             v3 = gl_func_0(0xC);  ; alloc 12-byte (Vec3-like) record
-     *             f16 = 0.0f;
-     *             if (v3 != 0) {
-     *               v0  = sp[0x1B0];    ; cached entity pointer
-     *               vec = v0 + 0x30;
-     *               v3[0] = vec[0];     ; .x
-     *               v3[1] = 0.0f;       ; .y (zero'd)
-     *               v3[2] = vec[2];     ; .z
-     *             }
-     *           }
-     *         }
-     *       }
-     *     }
-     *   }
-     *
-     * Pattern: when entity has 2 flag bits set (0 + 2|11) AND has subtree AND
-     * is below world-Y -2000 (= -2000.0f from lui 0xC4FA), allocate a 12-byte
-     * Vec3 (X,0,Z) particle-trail record. Likely the "below-the-stage death-
-     * trigger trail" used when player falls off the course.
-     *
-     * Cumulative ~450/1102 insns characterized (up from 420, +30 insns).
-     * ~652 remaining.
-     *
-     * 0x6104-0x6164 region (+25 insns) — delta-Vec3 between entity+player:
-     *     a1 = sp[0x1AC]; a1 += 0x30;        // entity position ptr
-     *     v3 = gl_func_00000000(12);          // alloc 12-byte Vec3
-     *     if (v3 != 0) {
-     *         f10 = sp[0x80]; f18 = a1->[0]; // entity.x
-     *         f4  = sp[0x88]; f6  = a1->[2]; // entity.z
-     *         v3->x = f10 - f18;             // delta-x
-     *         v3->y = 0.0f;                  // no Y component
-     *         v3->z = f4  - f6;              // delta-z
-     *     }
-     *     // followed by another sp+0x15C ptr setup (for a Quat dest?)
-     *
-     * Pattern: building the player→trigger 2D delta vector for the
-     * death-trail particle. Player world-pos cached at sp[0x80]/sp[0x88]
-     * (X,Z from entry block); subtracting trigger entity's pos gives the
-     * trail-launch direction.
-     *
-     * Cumulative ~475/1102 insns characterized, ~627 remaining.
-     *
-     * 0x6168-0x61D8 region (+30 insns) — sp+0x15C stage + 2nd Vec3 alloc:
-     *     // Word-1 copy + self-stores at sp+0x15C (interpretation uncertain):
-     *     sp[0x15C] = sp[0x4C];          // single-word copy
-     *     sp[0x160] = sp[0x160];         // self-write (IDO emit oddity)
-     *     sp[0x164] = sp[0x164];         // self-write
-     *     // Vec3 memcpy from sp+0x15C → sp+0x68 (3 lw/sw pairs):
-     *     memcpy(&sp[0x68], &sp[0x15C], 12);
-     *
-     *     a1 = s0->[0x30] + 0xB4;        // entity offset field
-     *     v3 = gl_func_00000000(12);     // 2nd 12-byte Vec3 alloc
-     *     f16 = 0.0f;
-     *     if (v3 != NULL) {
-     *         // Vec3 from a1[0]/a1[2] (XZ-plane offset)
-     *         v3->x = a1[0];
-     *         v3->y = 0.0f;
-     *         v3->z = a1[2];
-     *     }
-     *     v1 = sp[0x1AC];                 // reload cached entity ptr
-     *
-     * Pattern: building a 2nd particle Vec3 from the entity's position
-     * field at offset 0x30+0xB4. The self-store sequence at sp+0x15C is
-     * likely from `*sp_15C_ptr = *sp_15C_ptr` C, possibly a volatile
-     * touch or a misanalyzed struct-self-assign. Worth flagging for the
-     * exact-match pass.
-     *
-     * Cumulative ~505/1102 insns characterized, ~597 remaining.
-     *
-     * 0x61DC-0x6250 region (+30 insns) — third Vec3 alloc + delta-XZ:
-     *     a2 = sp+0x40; a1 = a2;            // (always-taken bne fall-through)
-     *     v1 += 0x30;                        // (skipped: dead path)
-     *     v3 = gl_func_00000000(12);         // 3rd 12-byte Vec3 alloc
-     *     f16 = 0.0f;
-     *     v1 = sp[0x120];                    // reload entity ptr
-     *     if (v3 != NULL) {
-     *         f8  = sp[0x74]; f10 = v1[0];   // player vs entity X
-     *         f18 = sp[0x7C]; f4  = v1[2];   // player vs entity Z
-     *         v3->x = f8 - f10;              // delta-X
-     *         v3->y = 0.0f;
-     *         v3->z = f18 - f4;              // delta-Z
-     *     }
-     *     // 2nd memcpy stage at sp+0x15C ← sp+0x40 (3 lw/sw)
-     *     // and 0x4140 (12.0f) loaded — possibly upper-bound for next op
-     *
-     * Pattern: third delta-Vec3 spawn from cached player pos at sp[0x74]/
-     * sp[0x7C] minus reloaded entity pos. Third in a row of similar
-     * particle/spawn deltas. Pattern is consistent with multi-element
-     * trail/effect spawning.
-     *
-     * Cumulative ~535/1102 insns characterized, ~567 remaining.
-     *
-     * 0x6254-0x62C4 region (+30 insns) — dist² check + scale:
-     *     // Finish 3-word memcpy at sp+0x15C → sp+0x5C
-     *     sp[0x5C..0x64] = sp[0x15C..0x164];
-     *     f6  = s0->float_C0;
-     *     a0  = s0->ptr_30;                 // entity pointer
-     *     f8  = 12.0f;                       // (from earlier lui 0x4140)
-     *     f10 = s0->C0 + 12.0f;              // scale factor
-     *     f18 = a0->[0x348];                 // entity scale
-     *     f2  = a0->[0x348] * (s0->C0 + 12.0f);
-     *     // Compute squared distance in XZ plane:
-     *     dist_sq = sp[0x68]*sp[0x68] + sp[0x70]*sp[0x70];
-     *     if (dist_sq == 0.0f) {
-     *         f12 = 0.0f;                    // (b +7 path)
-     *         // skip distance-normalization block
-     *     } else {
-     *         // dist-normalization continues at 0x62C4 next
-     *     }
-     *
-     * Pattern: prepare scale factor (entity_scale * (player_state.C0+12))
-     * for the upcoming normalized direction vector. Bail to f12=0.0 if
-     * the XZ distance is zero (player exactly at entity).
-     *
-     * Cumulative ~565/1102 insns characterized, ~537 remaining.
-     *
-     * 0x62C8-0x6338 region (+30 insns) — multi-cond LOD/proximity tests:
-     *     // Compute dot² / dist² and compare vs scale²
-     *     f0  = f10*f4 + f6*f18;            // dot-product-like sum
-     *     f12 = (f0 * f0) / dist_sq;         // normalized dot²
-     *     f6  = scale * scale;
-     *     if (f12 <= f6) { ... }            // first test
-     *     // Reload f18 from sp[0x170], read s0->float_BC
-     *     if (s0->float_BC <= sp[0x170]) { ... }   // second test
-     *     // Third test: f0 < 50.0f (lui 0x4248 = 50.0f)
-     *     if (f0 < 50.0f) {
-     *         sp[0x1B4] |= 0x40;             // proximity-flag bit 6
-     *     }
-     *     // Reloads s0->float_B4 in delay slots for subsequent ops
-     *
-     * Pattern: cascade of three proximity/LOD tests with bit-flags at
-     * sp[0x1B4]. Camera/LOD selector for particle visibility — common
-     * effect-system pattern (only emit close particles).
-     *
-     * Cumulative ~595/1102 insns characterized, ~507 remaining.
-     *
-     * 0x633C-0x63B0 region (+30 insns) — more nested LOD/proximity gates:
-     *     if (f0 < s0->float_B8) {
-     *         if (t5 != 0) {  // (skip path)
-     *             f6  = sp[0x170];
-     *             f18 = (double)f6;
-     *             if ((double)sp[0x170] < 0.0) {
-     *                 t6 = *(int*)((char*)&D_0 + 0x78);
-     *                 if (t6 == 0) sp[0x1B4] |= 0x4;   // global-disabled flag
-     *             }
-     *             // f6 = (f0 / s0->B8) * sp[0x16C]
-     *             ratio = (f0 / s0->float_B8) * sp[0x16C];
-     *             sp[0x1B4] |= 0x8;                    // proximity-flag bit 3
-     *             if (1.0f < ratio) { ... }
-     *         }
-     *     }
-     *
-     * Pattern continues: another nested set of float tests with 0x4/0x8
-     * bit-flags at sp[0x1B4]. Double-precision sign check + global
-     * config gate at &D_0+0x78.
-     *
-     * Cumulative ~625/1102 insns characterized, ~477 remaining.
-     *
-     * 0x63B0-0x6420 region (+30 insns) — state-counter dispatch:
-     *     if (1.0f < ratio) sp[0x1B4] |= 0x8;
-     *     if (sp[0x1A4] & 0x8) {
-     *         if (s0->int_4C4 > 0) {
-     *             gl_func_00000000(s0);           // 1-arg call
-     *             s0->int_4C4 = 0;
-     *             // b +0x82 (skip ~130 insns ahead — fast path exit)
-     *         }
-     *         // else: fall-through (also reload a0 = s0->[0x30])
-     *     } else {
-     *         // (8 == 0 path)
-     *         if (s0->int_4C4 != 0x10000) {
-     *             // (skip large block via bne +0x27)
-     *         } else {
-     *             // (v0 == 0x10000 path)
-     *             if (s0->int_2C != 3) {
-     *                 at = 2;
-     *                 // (branch-likely)
-     *             } else {
-     *                 f12 = s0->float_2DC;
-     *                 // b +8 — continue to float work
-     *             }
-     *         }
-     *     }
-     *
-     * Pattern: state-counter dispatch on s0->int_4C4 (looks like
-     * frame-counter for a duration-gated state) and s0->int_2C
-     * (current state-machine state). The 0x10000 sentinel is a flag.
-     *
-     * Cumulative ~655/1102 insns characterized, ~447 remaining.
-     *
-     * 0x6424-0x6498 region (+30 insns) — state-dependent float lookup:
-     *     // First state-switch (s0->int_2C):
-     *     if (s0->state == 2) {
-     *         f14 = s0->float_2AC;
-     *     } else {
-     *         f14 = s0->float_2C4;
-     *     }
-     *     f12 = f14;
-     *     if (f4 < f12) {
-     *         gl_func_00000000(s0);
-     *         f16 = 0.0f;
-     *         // Second state-switch:
-     *         if (s0->state == 3) {
-     *             f12 = s0->float_324;
-     *         } else if (s0->state == 2) {
-     *             f14 = s0->float_30C;
-     *         } else {
-     *             f14 = s0->float_2F4;
-     *         }
-     *         f12 = f14;
-     *         t6 = (int)trunc(f12);          // trunc.w.s + mfc1
-     *         a0 = s0->ptr_30;
-     *         // b +0x57 — large skip (87 insns ahead)
-     *     }
-     *
-     * Pattern: per-state float-field LUT for s0->float_2AC/2C4/2F4/30C/324
-     * (likely physics constants for different player states 0/2/3).
-     *
-     * Cumulative ~685/1102 insns characterized, ~417 remaining.
-     *
-     * 0x6498-0x650C region (+30 insns) — counter-decrement + 2nd LUT:
-     *     s0->int_4C4 = (int)trunc(f12);
-     *     // ... b +0x57 over 0x158 bytes (large skip-ahead)
-     *
-     *     // Alt path (when 1.0 < ratio false): state-counter check
-     *     if (s0->int_4C4 > 0) {
-     *         state = s0->int_2C;
-     *         state -= 1;
-     *         if (state == 1) {
-     *             s0->int_4C4 = state;             // store decremented
-     *             gl_func_00000000(s0);
-     *             f16 = 0.0f;
-     *             a0 = s0->ptr_30;
-     *             // b +0x1B — skip
-     *         }
-     *     }
-     *
-     *     // Second state-switch (different offset table):
-     *     state = s0->int_2C;
-     *     f18 = sp[0x19C];
-     *     if (state == 0) { ... }            // (special-case head)
-     *     else if (state == 3) {
-     *         f12 = s0->float_3B4;
-     *     } else if (state == 2) {
-     *         f14 = s0->float_384;
-     *     } else {
-     *         f14 = s0->float_39C;
-     *     }
-     *     f12 = f14;
-     *
-     * Pattern: parallel frame-counter decrement + state-keyed
-     * float-field LUTs for a SECOND set of constants (0x384/0x39C/0x3B4),
-     * mirroring the earlier 0x2AC/0x2C4/0x2F4/0x30C/0x324 set.
-     *
-     * Cumulative ~715/1102 insns characterized.
-     *
-     * TAIL STAGE (insns ~716-1102 @ 0x6510-0x6A2C, ~387 insns):
-     *
-     *   // (5) proximity-flag bookkeeping on sp[0x1A0] / sp[0x1B4]
-     *   if (state == 0) {
-     *       f0 = s0->float_00FC; f2 = s0->float_0114; f4 = s0->float_012C;
-     *       // gather; compare; set sp[0x1A0] |= 0x800 on hit
-     *   }
-     *   // double-precision sign check on accumulated scalar:
-     *   //   cvt.d.s + c.lt.d 0.0  ->  neg.d if signed-negative (abs-value)
-     *   // followed by another sp[0x1B4] flag-OR (|= 0x2)
-     *
-     *   // (6) state-keyed float-LUT cascade #3 — offsets 0x264 / 0x27C / 0x294
-     *   //     (same dispatch shape as cascades #1 and #2 above)
-     *   //     selected float fed into jal gl_func_0(s0 + 0xA58, ...)
-     *
-     *   // (7) frame-counter increment with bound 0x4B:
-     *   if (s0->int_54 < 0x4B) s0->int_54++;
-     *   // bit-tests on sp[0x1B0]/sp[0x1A4]/sp[0x1AC]: 0x20, 0x40, 0x400, 0x10
-     *   // each toggles a corresponding sp[0x1B4] bit
-     *
-     *   // (8) state-keyed float-LUT cascade #4 — offsets 0x264/0x294/0x27C/0x24C/0x21C/0x234
-     *   //     double-precision compare of s0->float_BC vs hard-coded threshold
-     *   //     (neg.d if below)
-     *
-     *   // (9) linked-list walk #1: t9 = s0->ptr_7C; while (t9) { ... t9 = t9->next; }
-     *
-     *   // (10) state-keyed float-LUT cascades #5-#8 — additional struct-offset groups:
-     *   //      0x1BC/0x18C/0x1A4  ; cascade #5
-     *   //      0x174/0x144/0x15C  ; cascade #6
-     *   //      0x204/0x1D4/0x1EC  ; cascade #7
-     *   //      0x144/0x15C/0x174 reprise (different state arm) ; cascade #8
-     *   //   Each cascade is the SAME dispatch shape as #1-#4: 3-arm
-     *   //   state-keyed select feeding a single float into an FPU clamp /
-     *   //   indirect call.
-     *
-     *   // (11) indirect call via t9: t9 = s0->fnptr_XX; jalr t9
-     *   //      (per-state-machine method dispatch — final emit step)
-     *
-     *   // (12) final sp[0x1B4] bit-flag finalization:
-     *   //      conditional OR of 0x10 / 0x40 / 0x80 based on remaining state checks
-     *
-     *   // (13) linked-list walk #2: t8 = s0->ptr_7C; iterate; check t8 != 0
-     *
-     *   // (14) tail-call gl_func_0(s0, sp[0x1B4]) — commits the accumulated
-     *   //      bit-flags back to whatever owns the s0 instance.
-     *
-     *   // EPILOGUE (insns 1099-1102 @ 0x6A1C-0x6A2C):
-     *   //   lw $ra, 0x24(sp)
-     *   //   lw $s0, 0x20(sp)
-     *   //   addiu $sp, sp, 0x1D0
-     *   //   jr $ra
-     *
-     * The full 1102-insn body resolves to: dispatch-rich per-frame state
-     * update for a physics/animation entity. Repeated 3-arm state-keyed
-     * float-LUT pattern dominates (~8 cascades), interleaved with
-     * frame-counter and bit-flag bookkeeping on a stack-resident control
-     * block (sp[0x1A0]-sp[0x1B4]). Final step is an indirect-method call
-     * plus a gl_func_0 commit of the accumulated flags.
-     *
-     * Full structural decode complete (1102/1102 insns characterized).
-     * Default emit is still INCLUDE_ASM until C-body grind reaches >=80%.
-     * Decode doc unblocks future single-tick C-write attempts. */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000591C);
