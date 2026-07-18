@@ -2965,3 +2965,4 @@ gl_ref_000020D8_64588_f = 0x000020D8;
 gl_ref_000020DC_64588_f = 0x000020DC;
 gl_ref_000020E0_64588_f = 0x000020E0;
 D_00000000_40974 = 0x00000000;  /* 40974: per-site base alias (salvage of spend-limit-killed edit) */
+gl_func_00000000_116c_v = 0x00000000;  /* void-returning alias: dead-$v0 exclusion probe, titproc_uso_func_0000116C */

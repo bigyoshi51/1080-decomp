@@ -778,6 +778,15 @@ void titproc_uso_func_0000101C(int *a0) {
  *    `= 1`); fire-block D->0x34=1 store BEFORE the gl() call (store
  *    lands in the jal delay); (n*16-n)*2 spelled with direct derefs (no
  *    n local); D->0x84 published from a fresh *(s0+0x5C) re-deref.
+ *  - PASS-12 2026-07-17 (agent-h) 92.64 -> 93.18 (official fuzzy):
+ *    void-alias dead-$v0 (gl_func_00000000_116c_v) on all 15
+ *    return-discarded call sites. Net positive but NOT the 3074-style
+ *    full flip: the const-40 web still colors a1 (its blocker is the
+ *    0x70-deref CSE promoting to a candidate that takes the freed v0 —
+ *    target keeps that load a TEMP t3 and reuses it through the ring),
+ *    and the vt object/vt pairs flipped to obj=v0/vt=v1 (target
+ *    obj=v1/vt=v0) as a side effect. Residual class stands (two-web
+ *    cupcosts, 1F14 const-2/a3 family).
  *    RESIDUALS (~10 words): const-40 web colors a1 vs target v0 (same
  *    two-web cupcosts class as the 1F14 const-2/a3 cap); case-3
  *    else-arm &D_00000000 materialization + 720 const are como-hoisted
@@ -797,6 +806,7 @@ void titproc_uso_func_0000101C(int *a0) {
  * 5th and last cross-USO jr-tN scan candidate (scorecard: 2 exact
  * matches landed, 1 control-flow fix, 1 harness gotcha, 1 double-cap,
  * 1 already-planned big decode = this). */
+extern void gl_func_00000000_116c_v();
 void titproc_uso_func_0000116C(char *s0) {
     char *v1, *vt;
     char *d3;
@@ -821,11 +831,11 @@ void titproc_uso_func_0000116C(char *s0) {
         v1 = *(char **)(s0 + 0x58);
         vt = *(char **)(v1 + 0x28);
         (*(void (**)(int))(vt + 0x5C))((int)(v1 + *(short *)(vt + 0x58)));
-        gl_func_00000000(*(int *)(s0 + 0x58));
+        gl_func_00000000_116c_v(*(int *)(s0 + 0x58));
         *(int *)(s0 + 0x40) = *(int *)(s0 + 0x40) + 1;
         *(int *)(s0 + 0x3C) = (*(int *)(s0 + 0x70) * 16 - *(int *)(s0 + 0x70)) * 2;
         *(int *)(s0 + 0x68) = 40;
-        gl_func_00000000(13);
+        gl_func_00000000_116c_v(13);
         break;
     }
     case 1: {
@@ -850,7 +860,7 @@ void titproc_uso_func_0000116C(char *s0) {
 fire:
             *(int *)((char *)&D_00000000 + 0x34) = 1;
             v = gl_func_00000000();
-            gl_func_00000000(s0, v, 0);
+            gl_func_00000000_116c_v(s0, v, 0);
             return;
         }
         if (*(int *)(s0 + 0x68) != 0) {
@@ -859,32 +869,32 @@ fire:
         if (gl_func_00000000((char *)&D_00000000, 0x40300) == 0) {
             return;
         }
-        gl_func_00000000(*(int *)(s0 + 0x58));
-        gl_func_00000000(*(int *)(s0 + 0x54));
+        gl_func_00000000_116c_v(*(int *)(s0 + 0x58));
+        gl_func_00000000_116c_v(*(int *)(s0 + 0x54));
         if (*(unsigned short *)(*(char **)((char *)&D_00000000 + 0x154) + 4) & 8) {
             v1 = *(char **)(s0 + 0x60);
             vt3 = *(char **)(v1 + 0x28);
             (*(void (**)(int))(vt3 + 0x5C))((int)(v1 + *(short *)(vt3 + 0x58)));
             *(int *)(s0 + 0x40) = 2;
-            gl_func_00000000(144);
+            gl_func_00000000_116c_v(144);
         } else {
             v1 = *(char **)(s0 + 0x5C);
             vt4 = *(char **)(v1 + 0x28);
             (*(void (**)(int))(vt4 + 0x5C))((int)(v1 + *(short *)(vt4 + 0x58)));
             *(int *)(s0 + 0x40) = 3;
             *(int *)(s0 + 0x3C) = (*(int *)(s0 + 0x74) * 16 - *(int *)(s0 + 0x74)) * 2;
-            gl_func_00000000(144);
+            gl_func_00000000_116c_v(144);
         }
         break;
     }
     case 2: {
-        gl_func_00000000(*(int *)(s0 + 0x60));
+        gl_func_00000000_116c_v(*(int *)(s0 + 0x60));
         if (gl_func_00000000((char *)&D_00000000, 0x40100) != 0) {
             char *reg;
-            gl_func_00000000(5);
+            gl_func_00000000_116c_v(5);
             reg = *(char **)((char *)&D_00000000 + 0x154);
             *(unsigned short *)(reg + 4) = *(unsigned short *)(reg + 4) & 0xFFF7;
-            gl_func_00000000(*(int *)(s0 + 0x60));
+            gl_func_00000000_116c_v(*(int *)(s0 + 0x60));
             v1 = *(char **)(s0 + 0x5C);
             vt5 = *(char **)(v1 + 0x28);
             (*(void (**)(int))(vt5 + 0x5C))((int)(v1 + *(short *)(vt5 + 0x58)));
@@ -902,7 +912,7 @@ fire:
         if (t == 0) {
             *(int *)((char *)&D_00000000 + 0x34) = 1;
             v = gl_func_00000000();
-            gl_func_00000000(s0, v, 0);
+            gl_func_00000000_116c_v(s0, v, 0);
         }
         if (*(int *)(*(char **)(*(char **)(s0 + 0x50) + 0x44) + 0x34) != 0) {
             c = (int *)(*(char **)(s0 + 0x64) + 0x3C);
@@ -935,20 +945,20 @@ fire:
                     v1 = *(char **)(s0 + 0x58);
                     vt7 = *(char **)(v1 + 0x28);
                     (*(void (**)(int))(vt7 + 0x5C))((int)(v1 + *(short *)(vt7 + 0x58)));
-                    gl_func_00000000(*(int *)(s0 + 0x58));
+                    gl_func_00000000_116c_v(*(int *)(s0 + 0x58));
                     v1 = *(char **)(s0 + 0x54);
                     vt8 = *(char **)(v1 + 0x28);
                     (*(void (**)(int))(vt8 + 0x5C))((int)(v1 + *(short *)(vt8 + 0x58)));
-                    gl_func_00000000(*(int *)(s0 + 0x5C));
+                    gl_func_00000000_116c_v(*(int *)(s0 + 0x5C));
                     *(int *)(s0 + 0x40) = 1;
                     *(int *)(s0 + 0x3C) = (*(int *)(s0 + 0x70) * 16 - *(int *)(s0 + 0x70)) * 2;
-                    gl_func_00000000(2050);
+                    gl_func_00000000_116c_v(2050);
                     /* 2026-06-10 pass 3: the 0x40100 gate + 40-byte-record
                      * fn-ptr table call (entry field 0x90 = callback;
                      * D->0xA8 = self, D->0x84 = index published first). */
                     if (gl_func_00000000((char *)&D_00000000, 0x40100) != 0) {
-                        gl_func_00000000(*(int *)(s0 + 0x5C));
-                        gl_func_00000000(5);
+                        gl_func_00000000_116c_v(*(int *)(s0 + 0x5C));
+                        gl_func_00000000_116c_v(5);
                         v1 = *(char **)(s0 + 0x5C);
                         n = *(int *)(v1 + 0x7C);
                         if (*(int *)(v1 + n * 40 + 0x90) != 0) {
