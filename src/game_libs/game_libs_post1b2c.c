@@ -551,9 +551,18 @@ void gl_func_0006DA74(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006DBFC);
+/* game_libs_func_0006DBFC (0x10 orphan, no jr ra) was 2 alignment nops
+ * (osCreatePiManager donor-TU .text pad, kept as the pad sidecar below) +
+ * the HOISTED HEAD of gl_func_0006DC0C = osCartRomInit — absorbed into the
+ * donor splice below (true entry 0x6DC04, spliced symbol covers
+ * 0x6DC04..0x6DCF8). */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006DA74_pad.s")
 
-#ifdef NON_MATCHING
+#if 0
+/* SUPERSEDED DECODE (2026-07-18): the "caller-set $t6" reading below was
+ * wrong — $t6 is __CartRomHandle.baseAddress loaded by the stolen prologue
+ * at 0x6DC04 (splat orphan game_libs_func_0006DBFC). Real identity:
+ * libultra osCartRomInit. See the donor unit game_libs_ido53_6DC0C.c. */
 /* gl_func_0006DC0C: 59-insn save-data / SRAM init helper (size 0xEC, frame 0x20).
  *
  * Sets up the hardware-mapped 0xB000_0000 region (N64 PI bus DOM2 = cartridge
@@ -622,9 +631,24 @@ void *gl_func_0006DC0C(void *t6) {
     gl_func_00000000(saved);
     return (void *)&D_00000000;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006DC0C);
 #endif
+
+/* gl_func_0006DC0C = libultra osCartRomInit (cartrominit.c verbatim):
+ * gate on __CartRomHandle.baseAddress == PHYS_TO_K1(PI_DOM1_ADDR2)
+ * (0xB0000000), else init the cart-ROM PI handle (type=DEVICE_TYPE_CART,
+ * latency/pulse/pageSize/relDuration unpacked from the BSD DOM1 config
+ * word read via osPiRawReadIo, domain=PI_DOMAIN1), bzero the transfer
+ * info, and link into __osPiTable under disabled interrupts. Needs IDO
+ * 5.3 -O1 (hoisted pre-prologue gate load + shared-$at
+ * pageSize/relDuration sb pair), so the real C lives in the donor unit
+ * game_libs_ido53_6DC0C.c (61/61 exact incl. the absorbed head words of
+ * game_libs_func_0006DBFC). Body below is a placeholder for the
+ * REPLACE_FUNC_BODY splice (its bytes are replaced by the donor). */
+void *gl_func_0006DC0C(void) {
+    volatile int i;
+    for (i = 0; i < 15; i++) {}
+    return 0;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006DC0C_pad.s")
 
 #ifdef NON_MATCHING
