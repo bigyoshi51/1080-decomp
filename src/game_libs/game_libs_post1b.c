@@ -1620,6 +1620,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064DEC);
  * 2nd param (homes to arg area but emits sw a1), scope-overlay blocks
  * (no overlay), named-float carriers (homes reserved), decl-order swaps
  * (scalar homes always bottom). Frame 0x38 exact via pad_a[2].
+ * 2026-07-17 second pass, four more negatives: (a) de-named RMW inside
+ * do{...}while(0) -- tmp returns to sp+0x1C (home gone, frame 0x30) but
+ * the RMW folds to lw/ori/sw 0x18(a0) AND the scheduler scatters it into
+ * the store head (no addiu v0); (b) `register` on the goto-mid pointer
+ * does NOT suppress the home (identical 4-word residual); (c) pointer-as-
+ * aggregate `int *flags[1]` moves the home above tmp but the element
+ * access becomes real memory traffic (sw/lw of the slot, 91.1); (d)
+ * goto-mid label wrapped in an if(1) region: identical residual. Cap
+ * stands: named cross-BB pointer home = 8B at frame bottom, unavoidable.
  */
 void gl_func_00065060(char *arg0) {
     int pad_a[2];
