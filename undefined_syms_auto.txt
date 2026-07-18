@@ -3027,5 +3027,6 @@ gu_c48c_fv1 = 0;
 
 /* func_00006808 probe: distinct base-0 aliases for the s4/s5-held same-address globals (PASS-4 cap-2 retest w/ per-site-alias lever) */
 bu_e68_dimB = 0;
+bu_e68_mgr = 0x214;
 bu_6808_ga = 0;
 bu_6808_gb = 0;

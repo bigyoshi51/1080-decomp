@@ -751,6 +751,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000D94);
 extern char D_000066B0, D_000066B8;
 extern s32 D_00000004;
 extern s32 bu_e68_dimB;
+extern s32 bu_e68_mgr;
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft via the pipeline +
  * scripts/m2c-graft-clean.py (759 insns, no jumptables, 0 M2C_ERRORs).
  * PASS-3 2026-06-21 (agent-i): correctness fixes verified to emit the
@@ -826,6 +827,8 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
     s32 sp50;
     s32 sp4C;
     volatile int e68_pad0;
+    volatile int e68_pad1;
+    volatile int e68_pad2;
     s16 temp_a1;
     s16 temp_a3;
     s16 temp_t0;
@@ -877,6 +880,7 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
     char *gp;
     char *gw;
     s32 gk;
+    s32 g47;
 
 
     if ((arg0 != 0) || (temp_v0 = func_00000000(0x4C), arg0 = temp_v0, (temp_v0 != 0))) {
@@ -960,15 +964,16 @@ loop_12:
                 var_s3_2 = 0;
                 if (var_v1_2 > 0) {
                     var_ra = &(&sp130[0])[var_s5];
+                    sp1B0 = var_t1;
                     sp54 = ((var_t1 + 0x1F) * 4) & 0xFFF;
                     var_t5 = var_s6_2 * 2;
                     sp50 = 0x3F;
-                    sp4C = (((var_t1 * 0) + 0x1F) * 4) & 0xFFF;
+                    sp4C = (((var_t1 - sp1B0) + 0x1F) * 4) & 0xFFF;
                     var_s0 = var_t5 + 6;
                     var_s1 = var_t5 + 2;
                     var_s2 = var_t5 + 4;
-                    sp1B0 = var_t1;
                     sp1C4 = var_a0_2;
+                    g47 = 0x47;
                     do {
                         ga = *(s32 *)((char *)(temp_t0_2) + 0xC);
                         gk = *(s32 *)((char *)(ga) + 0x4);
@@ -985,7 +990,7 @@ loop_12:
                         *(s32 *)((char *)(ga) + 0x4) = (s32) (gk + 1);
                         gp = *(s32 *)((char *)(*(s32 *)((char *)(temp_t0_2) + 0xC)) + 0x0) + (gk * 8);
                         *(s32 *)((char *)(gp) + 0x0) = (s32) (((bu_e68_dimB - 1) & 0xFFF) | 0xFD480000);
-                        temp_t1 = (((0x47 >> 3) & 0x1FF) << 9) | 0xF5480000;
+                        temp_t1 = (((g47 >> 3) & 0x1FF) << 9) | 0xF5480000;
                         *(s32 *)((char *)(gp) + 0x4) = sp1D4;
                         ga = *(s32 *)((char *)(temp_t0_2) + 0xC);
                         var_ra += 4;
@@ -1066,7 +1071,7 @@ loop_12:
             } while (temp_a1_2 < ((s32) D_00000004 / 64));
             sp124 = 0;
         }
-        mgr2 = *(s32 *)((char *)&func_000001FC + 0x18);
+        mgr2 = *(s32 *)&bu_e68_mgr;
         ga = *(s32 *)((char *)(mgr2) + 0xC);
         gk = *(s32 *)((char *)(ga) + 0x4);
         *(s32 *)((char *)(ga) + 0x4) = (s32) (gk + 1);
