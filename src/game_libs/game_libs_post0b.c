@@ -30311,6 +30311,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CCF4);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0005CE68)();
+extern float gl_func_00000000_5ce68a(float); /* acos-slot USO callee */
+extern float gl_func_00000000_5ce68s(float); /* sin-slot USO callee */
+/* PASS 2026-07-18 (agent-f): 66.33 -> 84.30. Quaternion slerp (Shoemake).
+ * Decode-error fixes over the old m2c lift:
+ *  - calls were `((f32(*)())gl_func_00034458)(...)` fn-ptr casts -> jalr via
+ *    s0 + K&R f64 promotion (cvt.d.s before every call). Target uses direct
+ *    jal with SINGLE-float ANSI-prototyped callees (acos/sin slots); typed
+ *    per-site extern aliases restore jal + single-precision arg passing and
+ *    drop 7 insns (130 -> 123 = exact insn count).
+ *  - call1/call3 had a bogus 2nd arg (t): target's acos(cos) and
+ *    sin(theta - t*theta2) are single-arg.
+ *  - dot w-term now uses the spilled re-read (sp1C) + w-first sum assoc;
+ *    spin*PI and theta+spin*PI operand orders flipped (rs=second-C-operand).
+ * RESIDUAL (~16%): t (arg2, float in $a2 int reg) — target captures via
+ * `mtc1 $6,$f14` (register web + own spill slot 0x50); ours coalesces the
+ * `var_f14 = arg2` copy into the incoming arg home (sw $6 + lwc1 reloads),
+ * which shifts the FP temp ring (f16/f18 swap, f6/f10 zero-web) and frame
+ * (-104 vs -72). No C spelling found for the mtc1 capture (plain copy
+ * coalesces; volatile/register negative on sibling 4D688 class). */
 void gl_func_0005CE68(char *arg0, char *arg1, f32 arg2, s32 arg3) {
     f32 sp44;
     f32 sp40;
@@ -30339,7 +30358,7 @@ void gl_func_0005CE68(char *arg0, char *arg1, f32 arg2, s32 arg3) {
     temp_f8 = (*(f32*)((char*)arg0 + 0xC));
     var_f14 = arg2;
     sp1C = temp_f8;
-    var_f12 = (var_f16 * var_f18) + (sp24 * (*(f32*)((char*)arg1 + 0x4))) + (sp20 * (*(f32*)((char*)arg1 + 0x8))) + (temp_f8 * (*(f32*)((char*)arg1 + 0xC)));
+    var_f12 = ((*(f32*)((char*)arg1 + 0xC)) * sp1C) + ((var_f16 * var_f18) + (sp24 * (*(f32*)((char*)arg1 + 0x4))) + (sp20 * (*(f32*)((char*)arg1 + 0x8))));
     if ((f64) var_f12 < 0.0) {
         var_f12 = -var_f12;
         sp30 = 1;
@@ -30349,15 +30368,15 @@ void gl_func_0005CE68(char *arg0, char *arg1, f32 arg2, s32 arg3) {
     if ((f64) (1.0f - var_f12) < (*(f64*)((char*)&D_00000000 + 0x2038))) {
         var_f2 = 1.0f - var_f14;
     } else {
-        temp_f0 = ((f32(*)())gl_func_00034458)(var_f12, var_f14);
+        temp_f0 = gl_func_00000000_5ce68a(var_f12);
         sp40 = temp_f0;
-        sp34 = temp_f0 + ((f32) arg3 * (*(f32*)((char*)&D_00000000 + 0x2040)));
-        sp3C = ((f32(*)())gl_func_00034458)(temp_f0);
-        temp_f2 = arg2 * sp34;
+        sp34 = ((*(f32*)((char*)&D_00000000 + 0x2040)) * (f32) arg3) + temp_f0;
+        sp3C = gl_func_00000000_5ce68s(temp_f0);
+        temp_f2 = var_f14 * sp34;
         sp2C = temp_f2;
-        temp_f2_2 = ((f32(*)())gl_func_00034458)(sp40 - temp_f2, arg2) / sp3C;
+        temp_f2_2 = gl_func_00000000_5ce68s(sp40 - temp_f2) / sp3C;
         sp44 = temp_f2_2;
-        temp_f0_2 = ((f32(*)())gl_func_00034458)(sp2C);
+        temp_f0_2 = gl_func_00000000_5ce68s(sp2C);
         var_f16 = (*(f32*)((char*)arg0 + 0x0));
         var_f18 = (*(f32*)((char*)arg1 + 0x0));
         sp24 = (*(f32*)((char*)arg0 + 0x4));
