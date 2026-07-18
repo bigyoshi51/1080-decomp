@@ -33156,49 +33156,53 @@ int game_libs_func_000611E4(int a0, int a1) {
  * mode flag at &D_00000000; %f emits integer + '.' + fractional parts;
  * digits set precision/width; any other char emits a fixed glyph (&D+0x21E08)
  * and advances 10. Returns the final buffer cursor. */
-char *gl_func_0006126C(char *arg0, int arg1, f32 arg2, int arg3, u8 *fmt) {
-    int *flag = &D_00000000;
+typedef union FI_0006126C {
+    f32 f;
+    int i;
+} FI_0006126C;
+char *gl_func_0006126C(char *arg0, int arg1, FI_0006126C arg2, int arg3, u8 *fmt) {
+    int *flag = (int *) (int) &D_00000000;
+    int one = 1;
     char *out = arg0;
     u8 *p = fmt;
-    int width = 6;
-    int prec = 6;
-    int c = *p;
-    p += 1;
+    int B = 6;
+    int A = 6;
+    int c;
+    int t;
+
+    c = *p++;
     if (c != 0) {
         do {
-            if (c == 0x64) {
+            if (c == 'd') {
                 *flag = 0;
-                out = gl_func_00034458(out, *(int *)&arg2, 0x3B9ACA00);
-            } else if (c == 0x78) {
-                *flag = 1;
-                out = gl_func_00034458(out, *(int *)&arg2);
-            } else if (c == 0x66) {
-                int ipart = (int) arg2;
-                int r1 = gl_func_00034458(0xA, width);
-                int fracval;
-                int r2;
+                out = gl_func_00034458(out, arg2.i, 0x3B9ACA00);
+            } else if (c == 'x') {
+                *flag = one;
+                out = gl_func_00034458(out, arg2.i);
+            } else if (c == 'f') {
+                int Bm1 = B - 1;
+                int ip = (int) arg2.f;
+                int frac;
                 char *dot;
+
+                frac = (f32) gl_func_00034458(0xA, B) * (arg2.f - (f32) ip);
                 *flag = 0;
-                fracval = (int) ((f32) r1 * (arg2 - (f32) ipart));
-                r2 = gl_func_00034458(0xA, prec);
-                dot = gl_func_00034458(out, ipart, r2);
-                *dot = 0x2E;
+                dot = gl_func_00034458(out, ip, gl_func_00034458(0xA, A));
+                *dot = '.';
                 out = dot + 1;
-                *flag = 1;
-                out = gl_func_00034458(out, fracval, gl_func_00034458(0xA, width - 1));
-            } else if ((c >= 0x30) && (c < 0x3A)) {
-                prec = (c - 0x30) & 0xFF;
-                if (*p != 0) {
-                    p += 1;
-                    width = *p - 0x30;
-                    p += 1;
+                *flag = one;
+                out = gl_func_00034458(out, frac, gl_func_00034458(0xA, Bm1));
+            } else if ((c >= '0') && (c < ':')) {
+                A = (u8)(c - '0');
+                t = *p++;
+                if (t != 0) {
+                    B = *p++ - '0';
                 }
             } else {
-                gl_func_00034458(out, (char *)((char *)&D_00000000 + 0x21E08));
+                gl_func_00034458(out, (char *)&D_00000000 + 0x21E08);
                 out += 0xA;
             }
-            c = *p;
-            p += 1;
+            c = *p++;
         } while (c != 0);
     }
     return out;
