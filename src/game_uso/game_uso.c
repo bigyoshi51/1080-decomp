@@ -7402,7 +7402,7 @@ int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
                 active = 0;
             }
             if (active == 1 && dot <= *(f32 *)((char *)&D_00000000 + 0xFC)) {
-                char *src = (char *)(*(int *)(arg1 + 0x30) + 0x908) + 0xB4;
+                char *src = (char *)*(int *)(*(int *)(arg1 + 0x30) + 0x908) + 0xB4;
                 p = 0; if (1) { p = &mC; }
                 if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
                     p->y = 0.0f;
