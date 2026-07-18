@@ -2448,36 +2448,60 @@ void timproc_uso_b5_func_00003890(int *a0) {
  * that 038D0 used are computed in the entry from a0->{0x164,0x168,0x29C,0x2A0,..}
  * (f6=f4*f18, f8=*(v0+0xDC), ...), NOT caller-passed. The merged function reads
  * a0 fields normally and is now decodable. Same pattern for the sibling pair
- * 0000396C(entry)+0000398C-F1(cont) — still to merge. */
+ * 0000396C(entry)+0000398C-F1(cont) — still to merge.
+ *
+ * 2026-07-18 redecode 31.8->41.8: old m2c body's decode errors fixed: (a) arg3
+ * homed to 12(sp)+reload-per-use (target: single mtc1) -> snapshot copy h=arg3;
+ * (b) t/y stack slots absent -> volatile t (store+reload carrier, snapshot tv
+ * per site) + volatile y with register carrier (y = yv = expr); slot layout
+ * t@0/y@24 via 8-volatile decl ladder (slot = 28-4*decl_idx: pad0,y,pad1..5,t);
+ * (c) first store folded to 96(a1) -> if(1){} BB-wrap around store section
+ * holds the a1+0x30 base in a reg for all 3 stores; (d) compute order x,y,z
+ * (old body did y first). Residual: FP-temp-ring renumber + tail scheduling
+ * (target holds r1 in $f2 across sites 2/3; naming r1 or hoisting the c[1]/c[2]
+ * loads blows the frame to 72-80 with phantom CSE homes — negative results:
+ * named r1 (+register), de-named cz, de-named tt all regress). */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_000038B0)();
 void timproc_uso_b5_func_000038B0(char *arg0, s32 arg1, char *arg2, f32 arg3, f32 arg4) {
-    f32 sp18;
-    f32 sp0;
-    f32 temp_f10;
-    f32 temp_f18;
-    f32 temp_f18_2;
-    f32 temp_f6;
-    f32 temp_f8;
-    char *temp_v0;
-    char *temp_v0_2;
+    volatile f32 pad0;
+    volatile f32 y;
+    volatile f32 pad1;
+    volatile f32 pad2;
+    volatile f32 pad3;
+    volatile f32 pad4;
+    volatile f32 pad5;
+    volatile f32 t;
+    f32 x;
+    f32 yv;
+    f32 z;
+    f32 tv;
+    f32 tt;
+    f32 h;
+    char *B;
+    char *o;
+    f32 cz;
 
-    temp_f18 = (*(f32*)((char*)arg0 + 0x2A0));
-    temp_v0 = FW(arg0, 0x29C);
-    temp_f10 = ((*(f32*)((char*)arg0 + 0x168)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xE0)) + (arg4 * (1.0f - temp_f18));
-    sp18 = temp_f10;
-    temp_v0_2 = (int)arg1 + 0x30;
-    sp0 = (*(f32*)((char*)arg2 + 0x0));
-    temp_f8 = sp0;
-    temp_f6 = ((((*(f32*)((char*)arg0 + 0x164)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xDC))) - temp_f8) * arg3;
-    sp0 = (*(f32*)((char*)arg2 + 0x4));
-    temp_f18_2 = (*(f32*)((char*)arg2 + 0x8));
-    (*(f32*)((char*)temp_v0_2 + 0x30)) = (f32) (temp_f8 + temp_f6);
-    (*(f32*)((char*)temp_v0_2 + 0x34)) = (f32) (sp0 + ((temp_f10 - sp0) * arg3));
-    (*(f32*)((char*)temp_v0_2 + 0x38)) = (f32) (temp_f18_2 + (((((*(f32*)((char*)arg0 + 0x16C)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xE4))) - temp_f18_2) * arg3));
+    h = arg3;
+    tt = *(f32 *)((char *)arg0 + 0x2A0);
+    B = (char *) FW(arg0, 0x29C);
+    x = (*(f32 *)((char *)arg0 + 0x164) * tt) + *(f32 *)((char *)B + 0xDC);
+    y = yv = ((*(f32 *)((char *)arg0 + 0x168) * tt) + *(f32 *)((char *)B + 0xE0)) + (arg4 * (1.0f - tt));
+    z = (*(f32 *)((char *)arg0 + 0x16C) * tt) + *(f32 *)((char *)B + 0xE4);
+    o = (char *) arg1 + 0x30;
+    if (1) {
+        t = *(f32 *)((char *)arg2 + 0x0);
+        tv = t;
+        *(f32 *)((char *)o + 0x30) = tv + ((x - tv) * h);
+        t = *(f32 *)((char *)arg2 + 0x4);
+        tv = t;
+        *(f32 *)((char *)o + 0x34) = tv + ((yv - tv) * h);
+        cz = *(f32 *)((char *)arg2 + 0x8);
+        *(f32 *)((char *)o + 0x38) = cz + ((z - cz) * h);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000038B0);
@@ -2492,36 +2516,51 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * symbol. This RETRACTS the old "float-in-$f6/$f8 callee cap": those regs are
  * computed in the entry from a0->{0x184,0x188,0x29C,0x2A0}, not caller-passed.
  * (The separate 8-insn 0x3A28 piece is the stolen prologue of 00003A4C — its
- * own symbol, already handled, not part of this merge.) */
+ * own symbol, already handled, not part of this merge.)
+ * 2026-07-18 redecode 31.8->41.8 — identical transform to 038B0 (see its
+ * comment): h snapshot, volatile t/y carrier slots (pad ladder t@0/y@24),
+ * if(1){} store-base wrap, x,y,z order. Same FP-ring/scheduling residual. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 typedef char *(*GP_0000396C)();
 void timproc_uso_b5_func_0000396C(char *arg0, s32 arg1, char *arg2, f32 arg3, f32 arg4) {
-    f32 sp18;
-    f32 sp0;
-    f32 temp_f10;
-    f32 temp_f18;
-    f32 temp_f18_2;
-    f32 temp_f6;
-    f32 temp_f8;
-    char *temp_v0;
-    char *temp_v0_2;
+    volatile f32 pad0;
+    volatile f32 y;
+    volatile f32 pad1;
+    volatile f32 pad2;
+    volatile f32 pad3;
+    volatile f32 pad4;
+    volatile f32 pad5;
+    volatile f32 t;
+    f32 x;
+    f32 yv;
+    f32 z;
+    f32 tv;
+    f32 tt;
+    f32 h;
+    char *B;
+    char *o;
+    f32 cz;
 
-    temp_f18 = (*(f32*)((char*)arg0 + 0x2A0));
-    temp_v0 = FW(arg0, 0x29C);
-    temp_f10 = ((*(f32*)((char*)arg0 + 0x188)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xE0)) + (arg4 * (1.0f - temp_f18));
-    sp18 = temp_f10;
-    temp_v0_2 = (int)arg1 + 0x30;
-    sp0 = (*(f32*)((char*)arg2 + 0x0));
-    temp_f8 = sp0;
-    temp_f6 = ((((*(f32*)((char*)arg0 + 0x184)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xDC))) - temp_f8) * arg3;
-    sp0 = (*(f32*)((char*)arg2 + 0x4));
-    temp_f18_2 = (*(f32*)((char*)arg2 + 0x8));
-    (*(f32*)((char*)temp_v0_2 + 0x30)) = (f32) (temp_f8 + temp_f6);
-    (*(f32*)((char*)temp_v0_2 + 0x34)) = (f32) (sp0 + ((temp_f10 - sp0) * arg3));
-    (*(f32*)((char*)temp_v0_2 + 0x38)) = (f32) (temp_f18_2 + (((((*(f32*)((char*)arg0 + 0x18C)) * temp_f18) + (*(f32*)((char*)temp_v0 + 0xE4))) - temp_f18_2) * arg3));
+    h = arg3;
+    tt = *(f32 *)((char *)arg0 + 0x2A0);
+    B = (char *) FW(arg0, 0x29C);
+    x = (*(f32 *)((char *)arg0 + 0x184) * tt) + *(f32 *)((char *)B + 0xDC);
+    y = yv = ((*(f32 *)((char *)arg0 + 0x188) * tt) + *(f32 *)((char *)B + 0xE0)) + (arg4 * (1.0f - tt));
+    z = (*(f32 *)((char *)arg0 + 0x18C) * tt) + *(f32 *)((char *)B + 0xE4);
+    o = (char *) arg1 + 0x30;
+    if (1) {
+        t = *(f32 *)((char *)arg2 + 0x0);
+        tv = t;
+        *(f32 *)((char *)o + 0x30) = tv + ((x - tv) * h);
+        t = *(f32 *)((char *)arg2 + 0x4);
+        tv = t;
+        *(f32 *)((char *)o + 0x34) = tv + ((yv - tv) * h);
+        cz = *(f32 *)((char *)arg2 + 0x8);
+        *(f32 *)((char *)o + 0x38) = cz + ((z - cz) * h);
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000396C);
