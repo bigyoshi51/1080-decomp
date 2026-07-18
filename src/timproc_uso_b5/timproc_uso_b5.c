@@ -7542,105 +7542,162 @@ void timproc_uso_b5_func_0000AC10(int a0, int a1, int a2) {
 //   compose + cb chain skeleton only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* PASS-3 2026-07-10 (agent-g): width-fix rewrite. Target has ZERO int<->float
- * conversions (33 words of pure lwc1/sub.s/mul.s/add.s FP) but the PASS-2 graft
- * loaded every FP field via *(s32*) casts, emitting 24 spurious cvt.s.w/trunc.w.s
- * and wrong call signatures. Retyped all field reads to *(f32*) and corrected
- * every func_00000000 arg list from the verified .s decode (frame -0x100, only
- * $s0 saved). func_00000000 = USO placeholder (transform helpers). */
+/* PASS-4 2026-07-18 (agent-g): real-callee + frame-map rewrite. The raw .s
+ * carries RESOLVED jal targets (NOT func_00000000): 071028 (normalize, ret ptr),
+ * 8x 071AE0 (quat axis-angle rotate, prototyped f32 3rd arg -> mfc1/lw a2),
+ * 0727A4, import_0010806C, 0714D4 (4-arg, a3=0), 06970C, 054CAC. Frame is
+ * 0x100 with named locals at their name offsets (spF4=0xF4 .. sp30=0x30);
+ * volatile-pad ladder supplies the 0xF0/0xE0-DC/0x88-CC/0x78/0x68/0x58/0x48
+ * gaps. The o+0xF4 quat pointer is NOT s1 -- it is a stack-homed local at
+ * 0x2C (sw a0,0x2c / lw a0,0x2c per call): if(0) address-escape forces the
+ * home and kills the s1 promotion. FP-pool pairs share one lui at (gxy x/y at
+ * +0/+4; gz+thr at +8/+0x338 off one symbol) via literal-low derefs. */
 #define TB5_F(off) (*(f32 *)((char *)o + (off)))
-struct TimB5F2 { f32 x, y; };
-extern struct TimB5F2 D_timb5_AC20_gxy;
-extern f32 D_timb5_AC20_gz;
-extern char D_timb5_AC20_dot,
-    D_timb5_AC20_thr, D_timb5_AC20_root, D_timb5_AC20_w0, D_timb5_AC20_w1,
+extern char D_timb5_AC20_gxy;   /* pool A: x@+0, y@+4 */
+extern char D_timb5_AC20_gz;    /* pool B: z@+8, f64 threshold@+0x338 */
+extern char D_timb5_AC20_root, D_timb5_AC20_w0, D_timb5_AC20_w1,
     D_timb5_AC20_w2, D_timb5_AC20_w3;
+extern void *timproc_uso_b5_func_071028();
+extern void timproc_uso_b5_func_071AE0(void *quat, void *axis, f32 angle);
+extern void timproc_uso_b5_func_0727A4(void *src, void *dst);
+extern void import_0010806C(void *src, void *dst);
+extern void timproc_uso_b5_func_0714D4(void *quat, void *vec, f32 scale, s32 flag);
+extern void timproc_uso_b5_func_06970C(void *obj, f32 val);
+extern void timproc_uso_b5_func_054CAC(void *obj);
 void timproc_uso_b5_func_0000AC20(char *arg0) {
     char *o = arg0;
-    Vec3 spD0;
-    Vec3 spE4;
-    Vec3 spF4;
+    struct TimB5V3 spF4;
+    volatile s32 padF0;
+    struct TimB5V3 spE4;
+    volatile s32 padE0;
+    volatile s32 padDC;
+    struct TimB5V3 spD0;
+    volatile s32 padCC;
+    volatile s32 padC8;
+    volatile s32 padC4;
+    volatile s32 padC0;
+    volatile s32 padBC;
+    volatile s32 padB8;
+    volatile s32 padB4;
+    volatile s32 padB0;
+    volatile s32 padAC;
+    volatile s32 padA8;
+    volatile s32 padA4;
+    volatile s32 padA0;
+    volatile s32 pad9C;
+    volatile s32 pad98;
+    volatile s32 pad94;
+    volatile s32 pad90;
+    volatile s32 pad8C;
+    volatile s32 pad88;
     s32 sp7C[3];
+    volatile s32 pad78;
     s32 sp6C[3];
-    f32 sp5C, sp60, sp64;
-    f32 sp4C, sp50, sp54;
-    f32 sp3C, sp40, sp44;
-    f32 sp30, sp34, sp38;
+    volatile s32 pad68;
+    struct TimB5V3 sp5C;
+    volatile s32 pad58;
+    struct TimB5V3 sp4C;
+    volatile s32 pad48;
+    struct TimB5V3 sp3C;
+    struct TimB5V3 sp30;
+    char *ap;
     f32 *gp;
     f32 var_f12;
     f32 mul;
     f32 wrap;
+    f32 t120;
     f32 two = 2.0f;
 
-    {
-        register f32 *tp = (f32 *)(o + 0xDC);
-        spD0.x = tp[0] - D_timb5_AC20_gxy.x;
-        spD0.y = tp[1] - D_timb5_AC20_gxy.y;
-        spD0.z = tp[2] - D_timb5_AC20_gz;
+    if (0) {
+        timproc_uso_b5_func_071028(&ap);
     }
-    spF4 = spE4 = spD0;
-    func_00000000(&spF4);
-    gp = (f32 *)&D_timb5_AC20_dot;
-    if ((f64) ((gp[0] * spF4.x) + (gp[1] * spF4.y) + (gp[2] * spF4.z)) < *(f64 *)((char *)&D_timb5_AC20_thr + 0x338)) {
-        TB5_F(0xF4) = 0.0f;
-        TB5_F(0xF8) = 0.0f;
-        TB5_F(0xFC) = 0.0f;
-        TB5_F(0x100) = 1.0f;
-        sp54 = 0.0f;
-        sp50 = 0.0f;
-        sp4C = 1.0f;
-        { register char *q = o + 0xF4; func_00000000(q, &sp4C, TB5_F(0x114)); }
-        sp3C = 0.0f;
-        sp40 = 0.0f;
-        sp44 = 1.0f;
-        { register char *q = o + 0xF4; func_00000000(q, &sp3C, TB5_F(0x110)); }
-        sp30 = 0.0f;
-        sp38 = 0.0f;
-        sp34 = 1.0f;
-        { register char *q = o + 0xF4; func_00000000(q, &sp30, TB5_F(0x118)); }
-        func_00000000(*(s32 *)((char *)(*(s32 *)&D_timb5_AC20_root) + 0x70) + 0xB4, &sp7C);
-        func_00000000(&sp7C, &sp6C);
-        mul = TB5_F(0x11C) * TB5_F(0x120);
-        var_f12 = 1.0f;
-        TB5_F(0xE8) = 1.0f + mul;
-        TB5_F(0xEC) = 1.0f + mul;
-        TB5_F(0xF0) = 1.0f + mul;
-        if (*(s32 *)((char *)(o) + 0x12C) != 0) {
-            var_f12 = TB5_F(0x120);
+
+    {
+        register f32 *tp = (f32 *)(arg0 + 0xDC);
+        spD0.x = tp[0] - *(f32 *)((char *)&D_timb5_AC20_gxy + 0);
+        spD0.y = tp[1] - *(f32 *)((char *)&D_timb5_AC20_gxy + 4);
+        spD0.z = tp[2] - *(f32 *)((char *)&D_timb5_AC20_gz + 8);
+    }
+    spE4 = spD0;
+    spF4 = spE4;
+    gp = (f32 *)timproc_uso_b5_func_071028(&spF4);
+    if ((f64) ((gp[0] * spF4.x) + (gp[1] * spF4.y) + (gp[2] * spF4.z)) < *(f64 *)((char *)&D_timb5_AC20_gz + 0x338)) {
+        {
+            TB5_F(0xF4) = 0.0f;
+            TB5_F(0xF8) = 0.0f;
+            TB5_F(0xFC) = 0.0f;
+            TB5_F(0x100) = 1.0f;
+            ap = o + 0xF4;
+            sp4C.z = 0.0f;
+            sp4C.y = 0.0f;
+            sp4C.x = 1.0f;
+            timproc_uso_b5_func_071AE0(ap, &sp4C, TB5_F(0x114));
         }
-        { register char *q = o + 0xF4; func_00000000(q, &sp6C, var_f12, 0); }
-        sp5C = (TB5_F(0xF4) * TB5_F(0xFC) * two) + (TB5_F(0x100) * TB5_F(0xF8) * two);
-        sp60 = (TB5_F(0xF8) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF4) * two);
-        sp64 = (1.0f - (TB5_F(0xF4) * TB5_F(0xF4) * two)) - (TB5_F(0xF8) * TB5_F(0xF8) * two);
-        { register char *q = o + 0xF4; func_00000000(q, &sp5C, 0x3FC90FDB); }
-        sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
-        sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
-        sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
-        { register char *q = o + 0xF4; func_00000000(q, &sp5C, 0x3FC90FDB); }
-        if ((*(s32 *)((char *)(o) + 0x12C) != 0) && (*(s32 *)((char *)(o) + 0x130) != 0)) {
-            wrap = *(f32 *)((char *)&D_timb5_AC20_w0 + 0x340);
-            TB5_F(0x10C) = TB5_F(0x10C) + *(f32 *)((char *)&D_timb5_AC20_w1 + 0x344);
-            if (wrap <= TB5_F(0x10C)) {
-                TB5_F(0x10C) = TB5_F(0x10C) - wrap;
+        {
+            sp3C.x = 0.0f;
+            sp3C.y = 0.0f;
+            sp3C.z = 1.0f;
+            timproc_uso_b5_func_071AE0(ap, &sp3C, TB5_F(0x110));
+        }
+        {
+            sp30.x = 0.0f;
+            sp30.z = 0.0f;
+            sp30.y = 1.0f;
+            timproc_uso_b5_func_071AE0(ap, &sp30, TB5_F(0x118));
+        }
+        timproc_uso_b5_func_0727A4(*(char **)((char *)(*(char **)&D_timb5_AC20_root) + 0x70) + 0xB4, &sp7C);
+        import_0010806C(&sp7C, &sp6C);
+        {
+            t120 = TB5_F(0x120);
+            mul = TB5_F(0x11C) * t120;
+            var_f12 = 1.0f;
+            TB5_F(0xE8) = var_f12 + mul;
+            TB5_F(0xEC) = var_f12 + mul;
+            TB5_F(0xF0) = var_f12 + mul;
+            if (*(s32 *)((char *)(o) + 0x12C) != 0) {
+                var_f12 = t120;
             }
-            sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
-            sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
-            sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
-            { register char *q = o + 0xF4; func_00000000(q, &sp5C, *(s32 *)((char *)(o) + 0x10C)); }
-        } else {
-            if (TB5_F(0x10C) > 0.0f) {
-                TB5_F(0x10C) = TB5_F(0x10C) + *(f32 *)((char *)&D_timb5_AC20_w2 + 0x34C);
-                if (*(f32 *)((char *)&D_timb5_AC20_w3 + 0x348) <= TB5_F(0x10C)) {
-                    TB5_F(0x10C) = 0.0f;
+            timproc_uso_b5_func_0714D4(ap, &sp6C, var_f12, 0);
+        }
+        {
+            sp5C.x = (TB5_F(0xF4) * TB5_F(0xFC) * two) + (TB5_F(0x100) * TB5_F(0xF8) * two);
+            sp5C.y = (TB5_F(0xF8) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF4) * two);
+            sp5C.z = (1.0f - (TB5_F(0xF4) * TB5_F(0xF4) * two)) - (TB5_F(0xF8) * TB5_F(0xF8) * two);
+            timproc_uso_b5_func_071AE0(ap, &sp5C, 1.5707964f);
+        }
+        {
+            sp5C.x = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
+            sp5C.y = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
+            sp5C.z = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
+            timproc_uso_b5_func_071AE0(ap, &sp5C, 1.5707964f);
+        }
+        {
+            if ((*(s32 *)((char *)(o) + 0x12C) != 0) && (*(s32 *)((char *)(o) + 0x130) != 0)) {
+                    wrap = *(f32 *)((char *)&D_timb5_AC20_w0 + 0x340);
+                TB5_F(0x10C) = TB5_F(0x10C) + *(f32 *)((char *)&D_timb5_AC20_w1 + 0x344);
+                if (wrap <= TB5_F(0x10C)) {
+                    TB5_F(0x10C) = TB5_F(0x10C) - wrap;
                 }
-                sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
-                sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
-                sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
-                { register char *q = o + 0xF4; func_00000000(q, &sp5C, *(s32 *)((char *)(o) + 0x10C)); }
+                sp5C.x = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
+                sp5C.y = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
+                sp5C.z = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
+                timproc_uso_b5_func_071AE0(ap, &sp5C, *(f32 *)((char *)(o) + 0x10C));
+            } else {
+                if (TB5_F(0x10C) > 0.0f) {
+                            wrap = *(f32 *)((char *)&D_timb5_AC20_w3 + 0x348);
+                    TB5_F(0x10C) = TB5_F(0x10C) + *(f32 *)((char *)&D_timb5_AC20_w2 + 0x34C);
+                    if (wrap <= TB5_F(0x10C)) {
+                        TB5_F(0x10C) = 0.0f;
+                    }
+                    sp5C.x = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
+                    sp5C.y = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
+                    sp5C.z = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
+                    timproc_uso_b5_func_071AE0(ap, &sp5C, *(f32 *)((char *)(o) + 0x10C));
+                }
             }
         }
-        func_00000000(*(s32 *)((char *)(o) + 0x108), *(s32 *)((char *)(o) + 0x124));
-        func_00000000(o);
+        timproc_uso_b5_func_06970C(*(void **)((char *)(o) + 0x108), *(f32 *)((char *)(o) + 0x124));
+        timproc_uso_b5_func_054CAC(o);
         *(s32 *)((char *)(o) + 0x128) = 1;
     }
 }
@@ -7711,8 +7768,7 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * the FP scratch vecs (regalloc cap) — logic is exact. */
 extern char import_80800000;
 extern char import_8005C108;
-extern void timproc_uso_b5_func_071028();
-extern void timproc_uso_b5_func_071AE0(void *quat, void *axis, f32 angle);
+/* 071028 return type: void* (AC20 uses the returned pointer; B154 ignores it) */
 extern void timproc_uso_b5_func_05B750(void *arg, void *vec4);
 extern void timproc_uso_b5_func_06970C(void *obj, f32 val);
 extern void timproc_uso_b5_func_054CAC(void *obj);
