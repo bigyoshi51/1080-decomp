@@ -2219,7 +2219,6 @@ char *timproc_uso_b5_func_000032C8(char *arg0) {
     struct TimB5Nm uC0;
     struct TimB5Nm uBC;
     struct TimB5Nm uB8;
-    volatile s32 padA0;
     volatile s32 padA1;
     volatile s32 padA2;
     char *c;
@@ -7582,13 +7581,6 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
     volatile s32 padB0;
     volatile s32 padAC;
     volatile s32 padA8;
-    volatile s32 padA4;
-    volatile s32 padA0;
-    volatile s32 pad9C;
-    volatile s32 pad98;
-    volatile s32 pad94;
-    volatile s32 pad90;
-    volatile s32 pad8C;
     volatile s32 pad88;
     s32 sp7C[3];
     volatile s32 pad78;
@@ -7601,11 +7593,9 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
     struct TimB5V3 sp3C;
     struct TimB5V3 sp30;
     char *ap;
-    f32 *gp;
+    register f32 *gp;
     f32 var_f12;
-    f32 mul;
     f32 wrap;
-    f32 t120;
     f32 two = 2.0f;
 
     if (0) {
@@ -7634,23 +7624,25 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
             timproc_uso_b5_func_071AE0(ap, &sp4C, TB5_F(0x114));
         }
         {
-            sp3C.x = 0.0f;
-            sp3C.y = 0.0f;
-            sp3C.z = 1.0f;
+            sp3C.x = (float)0;
+            sp3C.y = (float)0;
+            sp3C.z = (float)1;
             timproc_uso_b5_func_071AE0(ap, &sp3C, TB5_F(0x110));
         }
         {
-            sp30.x = 0.0f;
-            sp30.z = 0.0f;
-            sp30.y = 1.0f;
+            sp30.x = (float)0;
+            sp30.z = (float)0;
+            sp30.y = (float)1;
             timproc_uso_b5_func_071AE0(ap, &sp30, TB5_F(0x118));
         }
         timproc_uso_b5_func_0727A4(*(char **)((char *)(*(char **)&D_timb5_AC20_root) + 0x70) + 0xB4, &sp7C);
         import_0010806C(&sp7C, &sp6C);
         {
+            f32 mul;
+            f32 t120;
             t120 = TB5_F(0x120);
             mul = TB5_F(0x11C) * t120;
-            var_f12 = 1.0f;
+            var_f12 = (float)1;
             TB5_F(0xE8) = var_f12 + mul;
             TB5_F(0xEC) = var_f12 + mul;
             TB5_F(0xF0) = var_f12 + mul;
@@ -7666,7 +7658,7 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
             timproc_uso_b5_func_071AE0(ap, &sp5C, 1.5707964f);
         }
         {
-            sp5C.x = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
+            sp5C.x = ((float)1 - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
             sp5C.y = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
             sp5C.z = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
             timproc_uso_b5_func_071AE0(ap, &sp5C, 1.5707964f);
@@ -7683,13 +7675,13 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
                 sp5C.z = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
                 timproc_uso_b5_func_071AE0(ap, &sp5C, *(f32 *)((char *)(o) + 0x10C));
             } else {
-                if (TB5_F(0x10C) > 0.0f) {
+                if (TB5_F(0x10C) > (float)0) {
                             wrap = *(f32 *)((char *)&D_timb5_AC20_w3 + 0x348);
                     TB5_F(0x10C) = TB5_F(0x10C) + *(f32 *)((char *)&D_timb5_AC20_w2 + 0x34C);
                     if (wrap <= TB5_F(0x10C)) {
-                        TB5_F(0x10C) = 0.0f;
+                        TB5_F(0x10C) = (float)0;
                     }
-                    sp5C.x = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
+                    sp5C.x = ((float)1 - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
                     sp5C.y = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
                     sp5C.z = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
                     timproc_uso_b5_func_071AE0(ap, &sp5C, *(f32 *)((char *)(o) + 0x10C));
