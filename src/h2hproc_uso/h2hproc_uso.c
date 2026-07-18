@@ -336,7 +336,12 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
  *   slot 0x30 for r; IDO here parks q in $a2 and spills one extra temp word.
  *   Permuter (j4, --best-only, tuned reorder/temp/split weights, ~660 iters):
  *   base score 159650, floor 158080 — local minimum, no crack. Genuine
- *   alloc-cascade spill/renumber cap; stays INCLUDE_ASM. */
+ *   alloc-cascade spill/renumber cap; stays INCLUDE_ASM.
+ * 2026-07-17 negative probe: void-alias dead-$v0 on all 18 discarded-return
+ *   calls (B0A8/3074 lever) is INERT here (80.94 -> 81.02 objdiff, reverted).
+ *   Not a post-call v-reg coloring gate: target MEMORY-HOMES the cascade var
+ *   (sw a3/sw v0/lw a0 through 0x30(sp)) where mine keeps it in v1 — an
+ *   inverted spill-strategy tie, plus frame 0x48 vs 0x38. Cap stands. */
 extern char D_h2h_620_d0, D_h2h_620_d1, D_h2h_620_d2, D_h2h_620_d3;
 extern int  D_h2h_620_e0;
 extern char D_h2h_620_e1;
