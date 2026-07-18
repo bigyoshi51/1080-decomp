@@ -12593,30 +12593,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A258);
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 extern int D_00000000;
-/* Whole-body decode 2026-06-01 (prior body had ~5 stores). Object reset: skip
- * the &D+0x5280 sentinel. 7-step clear cascade on obj->0 (drop 0x80..0x02, each
- * stored via volatile), ~30 field inits, a -1 fill at obj+0xD5..0xDB, then a
- * final obj->0 &= ~1 and gl(obj+0x94). */
+extern int D_2A260_deflt; /* distinct placeholder: the obj+0x90 default-target global is a
+                           * SEPARATE symbol from the sentinel base (target materializes two
+                           * independent lui/addiu pairs; one shared extern would CSE). */
+/* Whole-body decode 2026-06-01; redecoded 2026-07-18 (69.1 -> 87.8). Object reset:
+ * skip the &D+0x5280 sentinel (base+0x5280 arithmetic NOT reloc-folded; the 2-insn
+ * lui/addiu base pair is the game_libs_func_0002A258 stolen-prologue orphan, our
+ * build emits it byte-identically as rows 0-1). 7-step clear cascade as direct RMW
+ * statements `*p &= K` with first mask ~0x80 (andi 0xff7f) and the rest as 8-bit
+ * literals 0xBF..0xFD (local-var chain narrows or DSEs; volatile widens to 0xffXX).
+ * The &=0xFD step sits AFTER the sh 0x14/0x10/0x26 stores (sinks its sb below them,
+ * and realigns the t-temp parity of the whole downstream). obj+0x90 default ptr is a
+ * DISTINCT symbol from the sentinel base (shared extern would CSE into one lui pair).
+ * -1 fill: 0xd0 store inside the loop after v1+=4 (becomes the bne delay slot).
+ * Residual: sh 0x14/0x10 + addiu 0x800 scheduled ~10 slots earlier than target
+ * (const-block interleave), or v1,a1 copy 2 slots early, prologue-orphan boundary. */
 void gl_func_0002A260(char *obj) {
-    volatile unsigned char *p;
+    unsigned char *p;
     int c, i;
     char *v1;
 
     if (obj == (char *)&D_00000000 + 0x5280) {
         return;
     }
-    p = (volatile unsigned char *)obj;
-    c = *p;
-    c &= ~0x80; *p = c;
-    c &= ~0x40; *p = c;
-    c &= ~0x20; *p = c;
-    c &= ~0x10; *p = c;
-    c &= ~0x08; *p = c;
-    c &= ~0x04; *p = c;
+    p = (unsigned char *)obj;
+    *p &= ~0x80;
+    *p &= 0xBF;
+    *p &= 0xDF;
+    *p &= 0xEF;
+    *p &= 0xF7;
+    *p &= 0xFB;
     *(short *)(obj + 0x14) = 2048;
     *(short *)(obj + 0x10) = 2048;
     *(short *)(obj + 0x26) = 0;
-    c &= ~0x02; *p = c;
+    *p &= 0xFD;
     *(unsigned char *)(obj + 9) = 0;
     *(unsigned char *)(obj + 0xE0) = 0;
     *(unsigned char *)(obj + 1) = 255;
@@ -12632,7 +12642,7 @@ void gl_func_0002A260(char *obj) {
     *(unsigned char *)(obj + 5) = 3;
     *(unsigned char *)(obj + 6) = 1;
     *(short *)(obj + 0x1E) = 0;
-    *(int *)(obj + 0x90) = (int)&D_00000000;
+    *(int *)(obj + 0x90) = (int)&D_2A260_deflt;
     *(unsigned char *)(obj + 0x8C) = 240;
     *(unsigned char *)(obj + 0x8D) = 0;
     *(short *)(obj + 0x16) = 0;
@@ -12646,14 +12656,16 @@ void gl_func_0002A260(char *obj) {
     *(float *)(obj + 0x2C) = 1.0f;
     *(float *)(obj + 0x28) = 1.0f;
     *(float *)(obj + 0x38) = 1.0f;
+    i = 0;
     v1 = obj;
-    for (i = 0; i != 8; i += 4) {
+    do {
+        i += 4;
         *(signed char *)(v1 + 0xD5) = -1;
         *(signed char *)(v1 + 0xD6) = -1;
         *(signed char *)(v1 + 0xD7) = -1;
         v1 += 4;
-    }
-    *(signed char *)(v1 + 0xD0) = -1;
+        *(signed char *)(v1 + 0xD0) = -1;
+    } while (i != 8);
     *(unsigned char *)obj = *(unsigned char *)obj & ~1;
     gl_func_00000000(obj + 0x94);
 }
