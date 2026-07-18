@@ -7272,8 +7272,17 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ACC);
 /* game_uso_func_00007C1C: 0x10BC (1071 insns). Collision/penetration sweep:
  * builds an xz-plane "closest approach" vector by walking the arg3->0x2C
  * collider chain. Re-decoded 2026-06-24 from expected/.o via fan-out subagent.
- * Vec3 + Tri3i double-buffer + real callee symbols. Logic faithful end-to-end;
- * residual gap is IDO frame/regalloc scheduling across the fanout blocks. */
+ * 2026-07-17 (agent-g, 62.85 -> 75.75) FRESH-RING RESTRUCTURE from the raw
+ * target: every alloc-fallback/copy-stage site has its own address-taken Vec3
+ * (frame 0x3B0, ~55 homes, decl order = descending home order; shared stages
+ * scratch@852 / mid2@540 / mid3@508 only). Decode errors fixed: metric + 3FAC
+ * a2 use the result-direction copies (resDir/lRD), NOT segDir; hitB guard is
+ * hitB.x*fB.z < hitB.z*fB.x; src = *(*(arg1+0x30)+0x908)+0xB4 (double-deref).
+ * Levers: `p = 0; if (1) { p = &X; }` anti-fold guards; hoisted int-cast
+ * q = (f32*)((int)base+0x30) keeps the addiu join-CSE. Residual ~24%:
+ * per-block load-pair scheduling, y-store dup into branch delay slots,
+ * s-reg pressure (s0-s3 vs s0-s2), spill-temp homes. Placeholder callees --
+ * NM wrap regardless. See docs/IDO_CODEGEN.md #fresh-vec3-fanout-intcast-q-7c1c. */
 
 int game_uso_func_00007C1C(char *arg0, char *arg1, char *arg2, char *arg3,
                            char *arg4, f32 *arg5) {
