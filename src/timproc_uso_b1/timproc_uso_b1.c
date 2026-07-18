@@ -1494,106 +1494,79 @@ void timproc_uso_b1_func_00002740(int *a0)
 }
 
 
-/* timproc_uso_b1_func_00002838 - verified structural decode (~150-insn
- * state-dispatch registration; switch + beql branch-likely + 28 calls +
- * &D relocs = documented sub-80 ceiling -> INCLUDE_ASM build path;
- * struct-typing reference). 24F4-family but state-gated.
- *   s0 = a0;  func_00000000(a0);                  // X0 entry
- *   s0->0x5C -= 16;                                // counter decrement
- *   switch (s0->0x50) {                            // v0 = s0->0x50
- *     case 0: return;                              // -> 0x240
- *     case 1:                                      // -> 0x48
- *        func_00000000(&D+0);
- *        func_00000000(&D+496);
- *        func_00000000(&D+496, 160, 37, 3);
- *        func_00000000(s0, 37);
- *        func_00000000(s0, *(u8*)(&D+376), 80);
- *        func_00000000(&D+448);
- *        func_00000000(&D+448, 160, 105, 3);
- *        v = s0->0x68;
- *        if (*(int*)&D != 0) { v += 10; a0 = v-39; }
- *        else                  a0 = (s0->0x68)-39;
- *        a2 = (*(int*)&D == 0) ? a0 : a0-14;
- *        func_00000000(&D+328); func_00000000(&D+328,160,...); ...
- *        ... (continues: more &D+328 region registration calls)
- *        break;
- *     case 2:  // -> 0x13C : a different registration call sequence
- *        ...
- *     default: return;                             // -> 0x244
- *   }
- * Struct-typing: s0->0x50 state selector (0=idle/return, 1, 2), s0->0x5C
- * frame counter (-=16 each call), s0->0x68 a position/index (+10 when
- * D[0]!=0; offsets -39 / -14 derived for call args), &D[0] global mode
- * flag, &D+376 a u8 param. Per-state runs distinct gl_func_00000000
- * registration sequences against &D data regions (+0/+496/+448/+328 ...)
- * with const args (160,37,105,3,80). Caps <80: switch-dispatch + beql
- * branch-likely + 28-call spill + &D %hi/%lo reloc scheduling -
- * documented state-dispatch ceiling. Full per-state call lists are
- * INCLUDE_ASM-preserved (the .s is the source of truth for the exact
- * sequence). INCLUDE_ASM (no episode; tautology-trap rule). */
+/* timproc_uso_b1_func_00002838 - HUD draw dispatcher (switch arg0->0x50,
+ * cases 0/1/2). Struct-typing: s0->0x50 state selector, s0->0x5C frame
+ * counter (-=16), s0->0x68 position (+10/-8 by global flag *(int*)&D),
+ * &D+0x178 u8 digit; panel rows registered against &D+0x1F0/0x1C0/0x160/
+ * 0x148/0x178 (&D-relative ADDRESSES = lui+addiu, not literals).
+ * 2026-07-17 agent-g: 149/149 words EXACT (was 86.64). Levers that landed:
+ * shared obj local colors the recurring s0 web (44EDC recipe, jal-delay
+ * move s0,a0); case-1 first arg is &D+0 not literal 0; single-def
+ * x = v0-0x27 AFTER `if (f) { if(1){ v0 += 0xA; } }` -> IDO tail-dups the
+ * x def into the beql likely-delay (rematerialize-in-delay) AND demotes
+ * x to last-colored web (v=v0/f=v1/x=a0; two-def if/else spelling rotates
+ * the coloring); separate case-2 local w splits the spill homes
+ * (v0->0x2C, a2->0x28, w->0x24; decl order f,v0,a2,w,x with 5 decls puts
+ * f at unused 0x30 and v0 at 0x2C); a2 = x; if (f) a2 = x - 0xE (source
+ * x, not a2 -= 0xE). Objdiff-100 stays NM wrap: callees/data are USO
+ * placeholders (gl_func_00000000/D_00000000), no episode. */
 #ifdef NON_MATCHING
-/* timproc_uso_b1_func_00002838: HUD draw dispatcher (switch arg0->0x50, cases
- * 0/1/2). cb(); decrement arg0->0x5C by 0x10. Each non-0 case draws a row of
- * panels (0x1F0/0x1C0/0x160/0x148/0x178 sprites via cb(id);cb(id);cb(id,0xA0,
- * g,3) triples) and a value at arg0->0x68 adjusted by a global flag *(int*)&D
- * and the *(u8*)(&D+0x178) digit. Case 2 falls through to case 0 (return). Fresh
- * decode 2026-05-29 (m2c-confirmed; both 0x178 loads are lbu; the draw-target IDs
- * 0x1F0/1C0/160/148/178 are &D-relative ADDRESSES = lui+addiu, not literals).
- * 78.8% reg-blind (148/149 insns). Residual: target promotes arg0 to $s0 (saved
- * reg) while mine spills it to stack — allocator choice. Caps: structs + cb
- * prototypes untyped (USO-reloc), &D not symbolized. NON_MATCHING. */
-extern int gl_func_00000000();
+extern void glv_2838();
 void timproc_uso_b1_func_00002838(char *arg0) {
+    char *obj = arg0; /* shared obj local colors the recurring s0 web (44EDC recipe) */
+    int f;
     int v0;
     int a2;
-    int t1;
+    int w;
+    int x;
 
-    gl_func_00000000();
-    *(int *)(arg0 + 0x5C) = *(int *)(arg0 + 0x5C) - 0x10;
-    switch (*(int *)(arg0 + 0x50)) {
+    glv_2838(obj);
+    *(int *)(obj + 0x5C) = *(int *)(obj + 0x5C) - 0x10;
+    switch (*(int *)(obj + 0x50)) {
     case 1:
-        gl_func_00000000(0);
-        gl_func_00000000((char *)&D_00000000 + 0x1F0);
-        gl_func_00000000((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
-        gl_func_00000000(arg0, 0x25);
-        gl_func_00000000(arg0, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
-        gl_func_00000000((char *)&D_00000000 + 0x1C0);
-        gl_func_00000000((char *)&D_00000000 + 0x1C0);
-        gl_func_00000000((char *)&D_00000000 + 0x1C0, 0xA0, 0x69, 3);
-        t1 = *(int *)&D_00000000;
-        v0 = *(int *)(arg0 + 0x68);
-        if (t1 != 0) {
-            v0 += 0xA;
+        glv_2838((char *)&D_00000000);
+        glv_2838((char *)&D_00000000 + 0x1F0);
+        glv_2838((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
+        glv_2838(obj, 0x25);
+        glv_2838(obj, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
+        glv_2838((char *)&D_00000000 + 0x1C0);
+        glv_2838((char *)&D_00000000 + 0x1C0);
+        glv_2838((char *)&D_00000000 + 0x1C0, 0xA0, 0x69, 3);
+        f = *(int *)&D_00000000;
+        v0 = *(int *)(obj + 0x68);
+        if (f != 0) {
+            if (1) { v0 += 0xA; }
         }
-        a2 = v0 - 0x27;
-        if (t1 != 0) {
-            a2 -= 0xE;
+        x = v0 - 0x27;
+        a2 = x;
+        if (f != 0) {
+            a2 = x - 0xE;
         }
-        gl_func_00000000((char *)&D_00000000 + 0x148);
-        gl_func_00000000((char *)&D_00000000 + 0x148);
-        gl_func_00000000((char *)&D_00000000 + 0x148, 0xA0, a2, 3);
-        gl_func_00000000(arg0, v0 - 0x14);
+        glv_2838((char *)&D_00000000 + 0x148);
+        glv_2838((char *)&D_00000000 + 0x148);
+        glv_2838((char *)&D_00000000 + 0x148, 0xA0, a2, 3);
+        glv_2838(obj, v0 - 0x14);
         return;
     case 2:
-        gl_func_00000000(0);
-        gl_func_00000000((char *)&D_00000000 + 0x1F0);
-        gl_func_00000000((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
-        gl_func_00000000(arg0, 0x25);
-        gl_func_00000000(arg0, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
-        gl_func_00000000((char *)&D_00000000 + 0x1C0);
-        gl_func_00000000((char *)&D_00000000 + 0x1C0);
-        gl_func_00000000((char *)&D_00000000 + 0x1C0, 0xA0, 0x69, 3);
-        gl_func_00000000((char *)&D_00000000 + 0x160);
-        gl_func_00000000((char *)&D_00000000 + 0x160);
-        gl_func_00000000((char *)&D_00000000 + 0x160, 0xA0, 0x8E, 3);
-        v0 = *(int *)(arg0 + 0x68);
+        glv_2838((char *)&D_00000000);
+        glv_2838((char *)&D_00000000 + 0x1F0);
+        glv_2838((char *)&D_00000000 + 0x1F0, 0xA0, 0x25, 3);
+        glv_2838(obj, 0x25);
+        glv_2838(obj, *(unsigned char *)((char *)&D_00000000 + 0x178), 0x50);
+        glv_2838((char *)&D_00000000 + 0x1C0);
+        glv_2838((char *)&D_00000000 + 0x1C0);
+        glv_2838((char *)&D_00000000 + 0x1C0, 0xA0, 0x69, 3);
+        glv_2838((char *)&D_00000000 + 0x160);
+        glv_2838((char *)&D_00000000 + 0x160);
+        glv_2838((char *)&D_00000000 + 0x160, 0xA0, 0x8E, 3);
+        w = *(int *)(obj + 0x68);
         if (*(int *)&D_00000000 != 0) {
-            v0 -= 8;
+            w -= 8;
         }
-        gl_func_00000000((char *)&D_00000000 + 0x178);
-        gl_func_00000000((char *)&D_00000000 + 0x178);
-        gl_func_00000000((char *)&D_00000000 + 0x178, 0xA0, v0 - 0x13, 3);
-        gl_func_00000000(arg0, v0);
+        glv_2838((char *)&D_00000000 + 0x178);
+        glv_2838((char *)&D_00000000 + 0x178);
+        glv_2838((char *)&D_00000000 + 0x178, 0xA0, w - 0x13, 3);
+        glv_2838(obj, w);
         break;
     case 0:
         break;
