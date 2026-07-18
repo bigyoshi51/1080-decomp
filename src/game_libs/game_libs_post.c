@@ -7609,30 +7609,43 @@ extern int D_00000000;
  * 2026-06-27: CSE-break on the end marker (write `(char*)&D_00000000 + 0x540`
  * inline at both the loop bound and the post-loop full-table test instead of a
  * cached `base + 0x540`). IDO then re-materialises the end address separately
- * for the post-loop compare, matching the expected's extra lui. 66.65 -> 67.74. */
+ * for the post-loop compare, matching the expected's extra lui. 66.65 -> 67.74.
+ * 2026-07-18: 67.74 -> 79.45. Three levers: (1) signed flag byte — target lb not
+ * lbu -> s8 casts throughout; (2) the scale divisor is arg5 NOT a0 (target
+ * `lw a0,48(sp)` reloads arg5 into $a0; original a0 homed at 32(sp) and reloaded
+ * as t9 for s+8); (3) end-sentinel/slot-ptr DUAL-USE single variable `s` (init
+ * to &D+0x540, loop bound v0!=s, reassigned s=v0+0x1038 on break) + inline
+ * post-loop respell -> frame 40->32 exact, kills the s=0 init insn. s declared
+ * first (top-down slot order). Probed and rejected: separate uninit s + end
+ * local (frame 40, all arg homes +8); distinct placeholder externs for the two
+ * end sites (uopt loses the non-zero-trip proof -> zero-trip guard beq + loop
+ * re-rotation, much worse); do-while spelling with distinct externs (compare
+ * algebraically rearranged to addiu -1344). RESIDUAL cap: uopt materialises &D
+ * once into t0 and derives the post-test end arithmetically (addiu t7,t0,1344)
+ * vs target's three independent lui/addiu %hi/%lo pairs + `lw v1,28(sp)`
+ * exhausted-path home fill; downstream t-reg renumber cascade (t1..t5 vs
+ * t0..t4) + jal-delay swap all hang off that one web. */
 void *gl_func_00024F30(int a0, int a1, int a2, int a3, int arg5, int arg6, int arg7) {
-    char *base = (char *)&D_00000000;
-    char *v0;
-    char *s = 0;
-    (void)arg5;
-    for (v0 = base; v0 != (char *)&D_00000000 + 0x540; v0 += 0x54) {
-        if (*(char *)(v0 + 0x1038) == 0) {
+    s8 *s = (s8 *)&D_00000000 + 0x540;
+    s8 *v0;
+    for (v0 = (s8 *)&D_00000000; v0 != s; v0 += 0x54) {
+        if (*(s8 *)(v0 + 0x1038) == 0) {
             s = v0 + 0x1038;
             break;
         }
     }
-    if (v0 == (char *)&D_00000000 + 0x540) {
+    if (v0 == (s8 *)&D_00000000 + 0x540) {
         return 0;
     }
-    *(char *)(s + 0) = 1;
+    *(s8 *)(s + 0) = 1;
     *(int *)(s + 4) = a1;
     *(int *)(s + 0xC) = a1;
     *(int *)(s + 0x10) = a2;
     *(int *)(s + 8) = a0;
-    if (a0 == 0) {
+    if (arg5 == 0) {
         *(int *)(s + 0x14) = 4096;
     } else {
-        int v = ((a2 / a0) + 255) & ~0xFF;
+        int v = ((a2 / arg5) + 255) & ~0xFF;
         *(int *)(s + 0x14) = v;
         if ((u32)v < 256U) {
             *(int *)(s + 0x14) = 256;
