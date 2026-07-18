@@ -2169,257 +2169,200 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //
 // 2026-06-22 (agent-d big-swing): replaced the generic `timproc_uso_b5_alias`
 // placeholder with the real distinct callees — func_055750 (alloc-or-reuse) and
-// func_04A188 (init+attach). The R_MIPS_26 call-reloc set now matches the target
-// exactly (12x func_055750, 10x func_04A188). fuzzy holds at 48.76%.
+// func_04A188 (init+attach). The R_MIPS_26 call-reloc set matches the target
+// exactly (12x func_055750, 10x func_04A188).
 //
-// STRUCTURAL CAP (byte-exact unreachable in C): the entire timproc_uso_b5 expected
-// object carries 731 R_MIPS_HI16 and ZERO R_MIPS_LO16 relocs — every data symbol's
-// low half is a baked literal immediate (USO raw-word disasm). Any IDO-compiled C
-// reference to a named USO data symbol emits a paired HI16/LO16, which (a) cannot
-// match the literal-low target word and (b) the extra lui instructions shift the
-// instruction stream out of alignment, REGRESSING objdiff fuzzy (tested: naming the
-// class pointers DA10/D9E0/D9C8 drops 48.76 -> 40.16; full named-symbol rewrite
-// -> 42.82). So the data references are kept as immediate/single-base reads here;
-// the named-callee fix is the only correctness gain that does not cost score.
-// Real byte-match requires the deferred spimdisasm USO migration, not a C rewrite.
+// 2026-07-18: the old "STRUCTURAL CAP / named symbols regress fuzzy" note is
+// RETRACTED — the 2B74 struct-carrier kit form (&sym + literal-low deref)
+// emits the target bytes with HI16-only-compatible encodings; 48.76 -> 93.09
+// after full kit redecode (see the in-body comment below).
 #ifdef NON_MATCHING
-
-
-
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_000032C8)();
-typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_000032C8;
+/* 2026-07-18 redecode: 2B74 struct-carrier kit (see 2B74 header above).
+ * Same family/same tells: sw a2,8(sp) jal-delay = name arg is a 4-byte struct
+ * by value; unique dead stash (0x124..0x110/0xE8/0xC0/0xBC/0xB8) + shared
+ * carrier home (0xA4) via nm.v=uK.v= chain + if(0) address-escape; vec3
+ * children carry {0,0,0}/{l134,l138,l134}/{l13C,l140,l13C} stack vecs with
+ * aggregate copies cp0/cp1/cp2 + shared t re-copy; per-site FP-pool aliases
+ * bust %hi CSE; shared function-scope c targets the shared 0xA8 home of the
+ * eight 0x18-blocks, block-scoped register cv for the two 0x20 vec blocks
+ * (target homes 0x84/0x50). */
+extern char timproc_uso_b5_D_807FE9E8;
+extern char timproc_uso_b5_D_807FE9F8, timproc_uso_b5_D_807FE9FC,
+    timproc_uso_b5_D_807FEA00, timproc_uso_b5_D_807FEA04,
+    timproc_uso_b5_D_807FEA08, timproc_uso_b5_D_807FEA0C,
+    timproc_uso_b5_D_807FEA10, timproc_uso_b5_D_807FEA14,
+    timproc_uso_b5_D_807FEA18, timproc_uso_b5_D_807FEA1C;
+extern char D_timb5_32C8_vt0, D_timb5_32C8_vt1, D_timb5_32C8_vt2,
+    D_timb5_32C8_vt3, D_timb5_32C8_vt4, D_timb5_32C8_vt5;
+extern char D_timb5_32C8_vv0, D_timb5_32C8_vv1;
+extern char D_timb5_32C8_vw0, D_timb5_32C8_vw1;
+extern char D_timb5_32C8_ve0, D_timb5_32C8_ve1, D_timb5_32C8_ve2,
+    D_timb5_32C8_ve3;
+extern char D_timb5_32C8_vf0, D_timb5_32C8_vf1;
 char *timproc_uso_b5_func_000032C8(char *arg0) {
-    Q_000032C8 sp104;
-    Q_000032C8 sp3C;
-    Q_000032C8 sp54;
-    Q_000032C8 sp64;
-    Q_000032C8 sp74;
-    Q_000032C8 spC4;
-    Q_000032C8 spD0;
-    Q_000032C8 spDC;
-    Q_000032C8 spEC;
-    Q_000032C8 spF8;
-    s32 sp124;
-    s32 sp120;
-    s32 sp11C;
-    s32 sp118;
-    s32 sp114;
-    s32 sp110;
-    s32 spE8;
-    s32 spC0;
-    s32 spBC;
-    s32 spB8;
-    char *spA8;
-    s32 spA4;
-    char *sp84;
-    char *sp50;
-    s32 temp_f0;
-    s32 temp_f0_2;
-    s32 temp_f2;
-    s32 temp_f2_2;
-    s32 temp_t0;
-    s32 temp_t1;
-    s32 temp_t1_2;
-    s32 temp_t1_3;
-    s32 temp_t6;
-    s32 temp_t6_2;
-    s32 temp_t6_3;
-    s32 temp_t7;
-    char *temp_v0;
-    char *temp_v0_10;
-    char *temp_v0_11;
-    char *temp_v0_12;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *temp_v0_7;
-    char *temp_v0_8;
-    char *temp_v0_9;
-    char *var_a0;
-    char *var_a0_10;
-    char *var_a0_2;
-    char *var_a0_3;
-    char *var_a0_4;
-    char *var_a0_5;
-    char *var_a0_6;
-    char *var_a0_7;
-    char *var_a0_8;
-    char *var_a0_9;
-    char *var_s0;
-    char *var_v1;
+    struct TimB5Nm u0;
+    struct TimB5Nm u1;
+    struct TimB5Nm u2;
+    struct TimB5Nm u3;
+    struct TimB5Nm u4;
+    struct TimB5Nm u5;
+    struct TimB5V3 v104;
+    struct TimB5V3 vF8;
+    struct TimB5V3 vEC;
+    struct TimB5Nm uE8;
+    struct TimB5V3 vDC;
+    struct TimB5V3 vD0;
+    struct TimB5V3 vC4;
+    struct TimB5Nm uC0;
+    struct TimB5Nm uBC;
+    struct TimB5Nm uB8;
+    volatile s32 padA0;
+    volatile s32 padA1;
+    volatile s32 padA2;
+    char *c;
+    struct TimB5Nm nm;
+    volatile s32 padB0;
+    volatile s32 padB1;
+    volatile s32 padB2;
+    volatile s32 padB3;
+    volatile s32 padB4;
+    volatile s32 padB5;
+    volatile s32 padB6;
+    char *cA;
+    volatile s32 padC0;
+    struct TimB5V3 cp0;
+    volatile s32 padD0;
+    struct TimB5V3 cp1;
+    volatile s32 padE0;
+    struct TimB5V3 cp2;
+    char *cB;
+    volatile s32 padF0;
+    volatile s32 padF1;
+    struct TimB5V3 t;
+    volatile s32 padG0;
+    volatile s32 padG1;
+    volatile s32 padG2;
+    volatile s32 padG3;
+    volatile s32 padG4;
+    f32 fa;
 
-    var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = (char *)timproc_uso_b5_func_055750((char *)0x108), var_s0 = temp_v0, (temp_v0 != 0))) {
-        var_v1 = var_s0;
-        if ((var_s0 != 0) || (temp_v0_2 = (char *)timproc_uso_b5_func_055750((char *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
-            FW(var_v1, 0x0) = 0x1178;
-            FW(var_v1, 0x4) = 0;
+    if (0) {
+        timproc_uso_b5_func_04A188(&u0, &u1, &u2, &u3, &u4, &u5, &uE8, &uC0,
+            &uBC, &uB8);
+    }
+
+    if (arg0 != 0 || (arg0 = (char *)timproc_uso_b5_func_055750(0x108)) != 0) {
+        register char *vt;
+        vt = arg0;
+        if (vt != 0 || (vt = (char *)timproc_uso_b5_func_055750(8)) != 0) {
+            FW(vt, 0x0) = (int)((char *)&timproc_uso_b5_D_807FE9E8 + 0x1178);
+            FW(vt, 0x4) = 0;
         }
-        temp_t7 = *(s32 *)((char *)&D_00000000 + 0x1188);
-        var_a0 = var_s0 + 8;
-        sp124 = temp_t7;
-        spA4 = temp_t7;
-        if ((var_s0 != (char *)-8) || (temp_v0_3 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0 = temp_v0_3, (temp_v0_3 != 0))) {
-            spA8 = var_a0;
-            timproc_uso_b5_func_04A188(var_a0, var_s0, spA4, 1);
-            FW(var_a0, 0xC) = 0x1A0;
-            FW(var_a0, 0x14) = 0;
-            FW(var_a0, 0x10) = 0;
+        u0.v = nm.v = B5_NAME(timproc_uso_b5_D_807FE9F8, 0x1188);
+        if ((c = arg0 + 0x8) != 0 || (c = (char *)timproc_uso_b5_func_055750(0x18)) != 0) {
+            timproc_uso_b5_func_04A188(c, arg0, nm, 1);
+            (FW(c, 0xC) = (int)((char *)&D_timb5_32C8_vt0 + 0x1A0),
+             FW(c, 0x14) = 0, FW(c, 0x10) = 0);
         }
-        temp_t1 = *(s32 *)((char *)&D_00000000 + 0x118C);
-        var_a0_2 = var_s0 + 0x20;
-        sp120 = temp_t1;
-        spA4 = temp_t1;
-        if ((var_s0 != (char *)-0x20) || (temp_v0_4 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_2 = temp_v0_4, (temp_v0_4 != 0))) {
-            spA8 = var_a0_2;
-            timproc_uso_b5_func_04A188(var_a0_2, var_s0, spA4, 1);
-            FW(var_a0_2, 0x10) = 2;
-            FW(var_a0_2, 0xC) = 0x1A0;
-            FW(var_a0_2, 0x14) = 0;
+        u1.v = nm.v = B5_NAME(timproc_uso_b5_D_807FE9FC, 0x118C);
+        if ((c = arg0 + 0x20) != 0 || (c = (char *)timproc_uso_b5_func_055750(0x18)) != 0) {
+            timproc_uso_b5_func_04A188(c, arg0, nm, 1);
+            (FW(c, 0x10) = 2, FW(c, 0xC) = (int)((char *)&D_timb5_32C8_vt1 + 0x1A0),
+             FW(c, 0x14) = 0);
         }
-        temp_t6 = *(s32 *)((char *)&D_00000000 + 0x1190);
-        var_a0_3 = var_s0 + 0x38;
-        sp11C = temp_t6;
-        spA4 = temp_t6;
-        if ((var_s0 != (char *)-0x38) || (temp_v0_5 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_3 = temp_v0_5, (temp_v0_5 != 0))) {
-            spA8 = var_a0_3;
-            timproc_uso_b5_func_04A188(var_a0_3, var_s0, spA4, 1);
-            FW(var_a0_3, 0x10) = 2;
-            FW(var_a0_3, 0xC) = 0x1A0;
-            FW(var_a0_3, 0x14) = 0;
+        u2.v = nm.v = B5_NAME(timproc_uso_b5_D_807FEA00, 0x1190);
+        if ((c = arg0 + 0x38) != 0 || (c = (char *)timproc_uso_b5_func_055750(0x18)) != 0) {
+            timproc_uso_b5_func_04A188(c, arg0, nm, 1);
+            (FW(c, 0x10) = 2, FW(c, 0xC) = (int)((char *)&D_timb5_32C8_vt2 + 0x1A0),
+             FW(c, 0x14) = 0);
         }
-        temp_t1_2 = *(s32 *)((char *)&D_00000000 + 0x1194);
-        var_a0_4 = var_s0 + 0x50;
-        sp118 = temp_t1_2;
-        spA4 = temp_t1_2;
-        if ((var_s0 != (char *)-0x50) || (temp_v0_6 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_4 = temp_v0_6, (temp_v0_6 != 0))) {
-            spA8 = var_a0_4;
-            timproc_uso_b5_func_04A188(var_a0_4, var_s0, spA4, 1);
-            FW(var_a0_4, 0x10) = 2;
-            FW(var_a0_4, 0xC) = 0x1A0;
-            FW(var_a0_4, 0x14) = 0;
+        u3.v = nm.v = B5_NAME(timproc_uso_b5_D_807FEA04, 0x1194);
+        if ((c = arg0 + 0x50) != 0 || (c = (char *)timproc_uso_b5_func_055750(0x18)) != 0) {
+            timproc_uso_b5_func_04A188(c, arg0, nm, 1);
+            (FW(c, 0x10) = 2, FW(c, 0xC) = (int)((char *)&D_timb5_32C8_vt3 + 0x1A0),
+             FW(c, 0x14) = 0);
         }
-        temp_t6_2 = *(s32 *)((char *)&D_00000000 + 0x1198);
-        var_a0_5 = var_s0 + 0x68;
-        sp114 = temp_t6_2;
-        spA4 = temp_t6_2;
-        if ((var_s0 != (char *)-0x68) || (temp_v0_7 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_5 = temp_v0_7, (temp_v0_7 != 0))) {
-            spA8 = var_a0_5;
-            timproc_uso_b5_func_04A188(var_a0_5, var_s0, spA4, 1);
-            FW(var_a0_5, 0x10) = 2;
-            FW(var_a0_5, 0xC) = 0x1A0;
-            FW(var_a0_5, 0x14) = 0;
+        u4.v = nm.v = B5_NAME(timproc_uso_b5_D_807FEA08, 0x1198);
+        if ((c = arg0 + 0x68) != 0 || (c = (char *)timproc_uso_b5_func_055750(0x18)) != 0) {
+            timproc_uso_b5_func_04A188(c, arg0, nm, 1);
+            (FW(c, 0x10) = 2, FW(c, 0xC) = (int)((char *)&D_timb5_32C8_vt4 + 0x1A0),
+             FW(c, 0x14) = 0);
         }
-        temp_t1_3 = *(s32 *)((char *)&D_00000000 + 0x119C);
-        var_a0_6 = var_s0 + 0x80;
-        sp110 = temp_t1_3;
-        spA4 = temp_t1_3;
-        if ((var_s0 != (char *)-0x80) || (temp_v0_8 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_6 = temp_v0_8, (temp_v0_8 != 0))) {
-            spA8 = var_a0_6;
-            timproc_uso_b5_func_04A188(var_a0_6, var_s0, spA4, 1);
-            FW(var_a0_6, 0x10) = 2;
-            FW(var_a0_6, 0xC) = 0x1A0;
-            FW(var_a0_6, 0x14) = 0;
+        u5.v = nm.v = B5_NAME(timproc_uso_b5_D_807FEA0C, 0x119C);
+        if ((c = arg0 + 0x80) != 0 || (c = (char *)timproc_uso_b5_func_055750(0x18)) != 0) {
+            timproc_uso_b5_func_04A188(c, arg0, nm, 1);
+            (FW(c, 0x10) = 2, FW(c, 0xC) = (int)((char *)&D_timb5_32C8_vt5 + 0x1A0),
+             FW(c, 0x14) = 0);
         }
-        temp_f2 = *(s32 *)((char *)&D_00000000 + 0x134);
-        spF8.unk0 = temp_f2;
-        spF8.unk8 = temp_f2;
-        temp_f2_2 = *(s32 *)((char *)&D_00000000 + 0x13C);
-        spF8.unk4 = *(f32 *)((char *)&D_00000000 + 0x138);
-        spEC.unk0 = temp_f2_2;
-        spEC.unk8 = temp_f2_2;
-        sp104.unk0 = 0;
-        *(float *)&sp104.unk4 = 0.0f;
-        *(float *)&sp104.unk8 = 0.0f;
-        spE8 = *(s32 *)((char *)&D_00000000 + 0x11A0);
-        spEC.unk4 = *(f32 *)((char *)&D_00000000 + 0x140);
-        sp74.unk0 = (s32) sp104.unk0;
-        sp74.unk4 = (s32) sp104.unk4;
-        sp74.unk8 = (s32) sp104.unk8;
-        var_a0_7 = var_s0 + 0x98;
-        sp64.unk0 = (s32) spF8.unk0;
-        sp64.unk4 = (s32) spF8.unk4;
-        sp64.unk8 = (s32) spF8.unk8;
-        sp54.unk0 = (s32) spEC.unk0;
-        sp54.unk4 = (s32) spEC.unk4;
-        sp54.unk8 = (s32) spEC.unk8;
-        spA4 = spE8;
-        if ((var_s0 != (char *)-0x98) || (temp_v0_9 = (char *)timproc_uso_b5_func_055750((char *)0x20), var_a0_7 = temp_v0_9, (temp_v0_9 != 0))) {
-            sp84 = var_a0_7;
-            timproc_uso_b5_func_04A188(var_a0_7, var_s0, spA4, 1);
-            FW(var_a0_7, 0xC) = 0x170;
-            FW(var_a0_7, 0x1C) = 0;
-            sp3C.unk0 = sp74.unk0;
-            sp3C.unk4 = (s32) sp74.unk4;
-            sp3C.unk8 = (s32) sp74.unk8;
-            FW(var_a0_7, 0x10) = sp3C.unk0;
-            FW(var_a0_7, 0x14) = sp3C.unk4;
-            FW(var_a0_7, 0x18) = sp3C.unk8;
+        fa = *(f32 *)((char *)&D_timb5_32C8_ve0 + 0x134);
+        vF8.x = fa;
+        vF8.z = fa;
+        fa = *(f32 *)((char *)&D_timb5_32C8_ve2 + 0x13C);
+        vF8.y = *(f32 *)((char *)&D_timb5_32C8_ve1 + 0x138);
+        vEC.x = fa;
+        vEC.z = fa;
+        v104.x = 0.0f;
+        v104.y = 0.0f;
+        v104.z = 0.0f;
+        uE8.v = B5_NAME(timproc_uso_b5_D_807FEA10, 0x11A0);
+        vEC.y = *(f32 *)((char *)&D_timb5_32C8_ve3 + 0x140);
+        cp0 = v104;
+        cp1 = vF8;
+        cp2 = vEC;
+        nm = uE8;
+        if ((cA = arg0 + 0x98) != 0 || (cA = (char *)timproc_uso_b5_func_055750(0x20)) != 0) {
+            timproc_uso_b5_func_04A188(cA, arg0, nm, 1);
+            FW(cA, 0xC) = (int)((char *)&D_timb5_32C8_vv0 + 0x170);
+            FW(cA, 0x1C) = 0;
+            t = cp0;
+            *(f32 *)(cA + 0x10) = t.x;
+            *(f32 *)(cA + 0x14) = t.y;
+            *(f32 *)(cA + 0x18) = t.z;
         }
-        spDC.unk0 = 0;
-        spDC.unk4 = 0;
-        spDC.unk8 = 0;
-        temp_f0 = *(s32 *)((char *)&D_00000000 + 0x144);
-        spD0.unk0 = temp_f0;
-        spD0.unk4 = temp_f0;
-        spD0.unk8 = temp_f0;
-        temp_f0_2 = *(s32 *)((char *)&D_00000000 + 0x148);
-        spC4.unk0 = temp_f0_2;
-        spC4.unk4 = temp_f0_2;
-        spC4.unk8 = temp_f0_2;
-        spC0 = *(s32 *)((char *)&D_00000000 + 0x11A4);
-        sp74.unk0 = (s32) spDC.unk0;
-        sp74.unk4 = (s32) spDC.unk4;
-        sp74.unk8 = (s32) spDC.unk8;
-        var_a0_8 = var_s0 + 0xB8;
-        sp64.unk0 = (s32) spD0.unk0;
-        sp64.unk4 = (s32) spD0.unk4;
-        sp64.unk8 = (s32) spD0.unk8;
-        sp54.unk0 = (s32) spC4.unk0;
-        sp54.unk4 = (s32) spC4.unk4;
-        sp54.unk8 = (s32) spC4.unk8;
-        spA4 = spC0;
-        if ((var_s0 != (char *)-0xB8) || (temp_v0_10 = (char *)timproc_uso_b5_func_055750((char *)0x20), var_a0_8 = temp_v0_10, (temp_v0_10 != 0))) {
-            sp50 = var_a0_8;
-            timproc_uso_b5_func_04A188(var_a0_8, var_s0, spA4, 1);
-            FW(var_a0_8, 0xC) = 0x170;
-            FW(var_a0_8, 0x1C) = 0;
-            sp3C.unk0 = sp74.unk0;
-            sp3C.unk4 = (s32) sp74.unk4;
-            sp3C.unk8 = (s32) sp74.unk8;
-            FW(var_a0_8, 0x10) = sp3C.unk0;
-            FW(var_a0_8, 0x14) = sp3C.unk4;
-            FW(var_a0_8, 0x18) = sp3C.unk8;
+        vDC.x = 0.0f;
+        vDC.y = 0.0f;
+        vDC.z = 0.0f;
+        fa = *(f32 *)((char *)&D_timb5_32C8_vf0 + 0x144);
+        vD0.x = fa;
+        vD0.y = fa;
+        vD0.z = fa;
+        fa = *(f32 *)((char *)&D_timb5_32C8_vf1 + 0x148);
+        vC4.x = fa;
+        vC4.y = fa;
+        vC4.z = fa;
+        uC0.v = B5_NAME(timproc_uso_b5_D_807FEA14, 0x11A4);
+        cp0 = vDC;
+        cp1 = vD0;
+        cp2 = vC4;
+        nm = uC0;
+        if ((cB = arg0 + 0xB8) != 0 || (cB = (char *)timproc_uso_b5_func_055750(0x20)) != 0) {
+            timproc_uso_b5_func_04A188(cB, arg0, nm, 1);
+            FW(cB, 0xC) = (int)((char *)&D_timb5_32C8_vv1 + 0x170);
+            FW(cB, 0x1C) = 0;
+            t = cp0;
+            *(f32 *)(cB + 0x10) = t.x;
+            *(f32 *)(cB + 0x14) = t.y;
+            *(f32 *)(cB + 0x18) = t.z;
         }
-        temp_t6_3 = *(s32 *)((char *)&D_00000000 + 0x11A8);
-        var_a0_9 = var_s0 + 0xD8;
-        spBC = temp_t6_3;
-        spA4 = temp_t6_3;
-        if ((var_s0 != (char *)-0xD8) || (temp_v0_11 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_9 = temp_v0_11, (temp_v0_11 != 0))) {
-            spA8 = var_a0_9;
-            timproc_uso_b5_func_04A188(var_a0_9, var_s0, spA4, 1);
-            FW(var_a0_9, 0xC) = 0x158;
-            FW(var_a0_9, 0x14) = 0;
-            *(f32 *)((char *)var_a0_9 + 0x10) = 0.0f;
+        uBC.v = nm.v = B5_NAME(timproc_uso_b5_D_807FEA18, 0x11A8);
+        if ((c = arg0 + 0xD8) != 0 || (c = (char *)timproc_uso_b5_func_055750(0x18)) != 0) {
+            timproc_uso_b5_func_04A188(c, arg0, nm, 1);
+            FW(c, 0xC) = (int)((char *)&D_timb5_32C8_vw0 + 0x158);
+            FW(c, 0x14) = 0;
+            *(f32 *)(c + 0x10) = 0.0f;
         }
-        temp_t0 = *(s32 *)((char *)&D_00000000 + 0x11AC);
-        var_a0_10 = var_s0 + 0xF0;
-        spB8 = temp_t0;
-        spA4 = temp_t0;
-        if ((var_s0 != (char *)-0xF0) || (temp_v0_12 = (char *)timproc_uso_b5_func_055750((char *)0x18), var_a0_10 = temp_v0_12, (temp_v0_12 != 0))) {
-            spA8 = var_a0_10;
-            timproc_uso_b5_func_04A188(var_a0_10, var_s0, spA4, 1);
-            FW(var_a0_10, 0xC) = 0x158;
-            FW(var_a0_10, 0x14) = 0;
-            *(f32 *)((char *)var_a0_10 + 0x10) = 0.0f;
+        uB8.v = nm.v = B5_NAME(timproc_uso_b5_D_807FEA1C, 0x11AC);
+        if ((c = arg0 + 0xF0) != 0 || (c = (char *)timproc_uso_b5_func_055750(0x18)) != 0) {
+            timproc_uso_b5_func_04A188(c, arg0, nm, 1);
+            FW(c, 0xC) = (int)((char *)&D_timb5_32C8_vw1 + 0x158);
+            FW(c, 0x14) = 0;
+            *(f32 *)(c + 0x10) = 0.0f;
         }
     }
-    return var_s0;
+    return arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000032C8);
