@@ -16265,37 +16265,55 @@ void game_libs_func_000483A0(int *a0) {
 //   derivation representative. Real-C STRUCTURAL body below.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* Redecode 2026-07-18 (74.8 -> ~90 band): first-half chain is pp/tbl named
+ * per region and RE-SPELLED after the aliasing count-bump store (target
+ * reloads 0xC(pp)); w0 masks the OR of BOTH shifted fields ((v<<10 |
+ * (v<<4)-1) & 0xFFFF) | 0x0400_0000, not just the low field; the loop
+ * walker is the PARAM re-assigned (a0 = s0; a0 += 6 — restored from s0
+ * after call 1 as move a0,s0); loop is call-free so counter+walker stay
+ * caller-saved (bnezl rotated, lw pp in the likely slot). RESIDUAL
+ * (permuter-territory coloring tie, 56/85 word-diffs all single-reg
+ * renames + the frame 0x40-vs-0x28 cascade that follows): target colors
+ * counter->$t0/walker->$a0, we get counter->$a0/walker->$a1; decl-order
+ * perms, register decls, statement-order swaps, and removing the a0=s0
+ * reassign (worse: adds an entry move+spill) all leave the tie
+ * unchanged; identical at 5.3/7.1 -O1/-O2 (version-independent
+ * coloring per IDO_CODEGEN sweep-negative). */
 void gl_func_000483BC(char *a0) {
     char *s0 = a0;
-    char *gb;
-    int n, v, t0, base;
+    char *pp;
+    char *tbl;
+    int n, v, t0;
     unsigned int *slot;
-    char *p;
+    int base;
+
     if (*(int *)(a0 + 4) == 0) return;
-    gb = *(char **)(*(char **)a0 + 0xC);
-    n = *(int *)(gb + 4);
-    *(int *)(gb + 4) = n + 1;
+    pp = *(char **)a0;
+    tbl = *(char **)(pp + 0xC);
+    n = *(int *)(tbl + 4);
+    *(int *)(tbl + 4) = n + 1;
     v = *(int *)(a0 + 4);
-    slot = (unsigned int *)(*(char **)gb + n * 8);
-    slot[0] = 0x04000000 | ((unsigned)v << 0xA) | ((((unsigned)v << 4) - 1) & 0xFFFF);
+    slot = (unsigned int *)(*(char **)(*(char **)(pp + 0xC)) + n * 8);
+    slot[0] = 0x04000000 | ((((unsigned)v << 0xA) | (((unsigned)v << 4) - 1)) & 0xFFFF);
     slot[1] = (unsigned int)gl_func_00000000(
-        *(int *)(*(int *)((*(char **)a0) + 0x1C)) + (*(int *)(a0 + 0xC) << 4));
+        *(int *)(*(int *)(*(char **)a0 + 0x1C)) + (*(int *)(a0 + 0xC) << 4));
     *(int *)(s0 + 0x58C) += *(int *)(s0 + 4);
     t0 = 0;
-    p = s0;
+    a0 = s0;
     if (*(int *)(s0 + 8) > 0) {
         do {
             t0++;
-            p += 6;
-            gb = *(char **)(*(char **)s0 + 0xC);
-            n = *(int *)(gb + 4);
-            *(int *)(gb + 4) = n + 1;
-            slot = (unsigned int *)(*(char **)gb + n * 8);
+            a0 += 6;
+            pp = *(char **)s0;
+            tbl = *(char **)(pp + 0xC);
+            n = *(int *)(tbl + 4);
+            *(int *)(tbl + 4) = n + 1;
+            slot = (unsigned int *)(*(char **)(*(char **)(pp + 0xC)) + n * 8);
             slot[0] = 0xBF000000;
             base = *(int *)(s0 + 0xC);
-            slot[1] = ((((*(short *)(p + 0xE) - base) * 2) & 0xFF) << 0x10)
-                    | ((((*(short *)(p + 0x10) - base) * 2) & 0xFF) << 8)
-                    | (((*(short *)(p + 0x12) - base) * 2) & 0xFF);
+            slot[1] = ((((*(short *)(a0 + 0xE) - base) * 2) & 0xFF) << 0x10)
+                    | ((((*(short *)(a0 + 0x10) - base) * 2) & 0xFF) << 8)
+                    | (((*(short *)(a0 + 0x12) - base) * 2) & 0xFF);
         } while (t0 < *(int *)(s0 + 8));
     }
     gl_func_00000000(s0);
