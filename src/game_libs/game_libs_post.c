@@ -1795,28 +1795,52 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001E134);
 //   (a3&0xFFFF)==0 call helper(dl,0x3C0) and return dl+8; else emit
 //   two GBI command pairs into dl ((arg4|0x08000000)/((a2&0xFFFF)|
 //   0x03C00000), then (((arg5&0xFF)<<16)|0x05000000|(a3&0xFFFF))/
-//   (a1->0xC+0x80000020)) and return the advanced ptr. Real-C
-//   structural body below; byte-match deferred — placeholder jal
-//   (0xC6F2) is a runtime-patched USO reloc (need USO reloc infra)
-//   plus bnez/constant-build schedule. Name pre-checked: no extern
-//   reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder for the helper.
+//   (a1->0xC+0x80000020)) and return the advanced ptr.
+// 2026-07-18: 67.52 -> 83.52. Levers: (1) baked jal wired to
+//   gl_ref_00031BC8 (same helper the 1EF20 sibling uses); (2) the
+//   cursor is the PARAM dl itself, mutated (+=8 per pair) — a separate
+//   `s0 = dl` local copy-props away and the cursor stays in $a0 with a
+//   spill around the call; (3) post-increment idiom in BOTH arms
+//   (`q = dl; dl += 8; helper(q, 0x3C0);` in the call arm) is what tips
+//   uopt into the s0 promotion (or s0,a0,zero entry copy + frame 32 +
+//   addiu s0,s0,8 in the jal delay) AND keeps the or-copy cursors (v0/
+//   v1) in the emit arm; (4) K&R defn with u16 a3/arg4 — u16 stack arg
+//   reads lhu 50(sp); u16 reg arg homes (sw a3,44) + narrows + re-masks
+//   at each int-context use (the second andi t5 is use-site narrowing,
+//   NOT an explicit mask; int a3 + `a3 &= 0xFFFF` gets the in-place
+//   andi but DSEs the home store). Probed and rejected: while(0)
+//   ref-boost (inert for s-reg promotion); pair1 statement swap to
+//   chase the target's w1-before-w0 store order (57.6, temp-FIFO
+//   inversion). Residual schedule/coloring noise: bne delay sw a3 vs
+//   sw ra + andi-to-v1 vs in-place, pair1 adjacent-store swap,
+//   temp-FIFO +1 (target starts t7), pair2 inc-vs-final-sw order.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-int gl_func_0001EE78(int *dl, int *a1, int a2, int a3, int arg4, int arg5) {
-    int *s0 = dl;
-    if ((a3 & 0xFFFF) == 0) {
-        gl_func_00000000(s0, 0x3C0);
-        s0 += 2;
+extern int gl_ref_00031BC8(); /* baked USO jal 0x0C00C6F2 -> 0x31BC8 (shared with 1EF20) */
+int gl_func_0001EE78(dl, a1, a2, a3, arg4, arg5)
+char *dl;
+int *a1;
+int a2;
+u16 a3;
+u16 arg4;
+int arg5;
+{
+    if (a3 == 0) {
+        char *q;
+        q = dl;
+        dl += 8;
+        gl_ref_00031BC8(q, 0x3C0);
     } else {
-        s0[0] = (unsigned short)a3 | 0x08000000;
-        s0[1] = (a2 & 0xFFFF) | 0x03C00000;
-        s0 += 2;
-        s0[0] = ((arg5 & 0xFF) << 16) | 0x05000000 | (a3 & 0xFFFF);
-        s0[1] = a1[3] + 0x80000020;
-        s0 += 2;
+        char *p;
+        p = dl;
+        dl += 8;
+        *(int *)(p + 0) = arg4 | 0x08000000;
+        *(int *)(p + 4) = (a2 & 0xFFFF) | 0x03C00000;
+        p = dl;
+        dl += 8;
+        *(int *)(p + 0) = ((arg5 & 0xFF) << 16) | 0x05000000 | a3;
+        *(int *)(p + 4) = a1[3] + 0x80000020;
     }
-    return (int)s0;
+    return (int)dl;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
