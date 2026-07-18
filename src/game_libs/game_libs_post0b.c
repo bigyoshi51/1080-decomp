@@ -9040,7 +9040,20 @@ void gl_func_0003E594(int *a0) {
 //   one representative stage shown — actual asm has 3 stages + a
 //   retry loop. Real-C STRUCTURAL body below. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
-// gl_func_0003E5E0 — FULL m2c DECODE (64.62% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// gl_func_0003E5E0 — REDECODE 2026-07-17 agent-f (74.45 -> 75.74 NM, no episode).
+// Landed levers: per-site D_00000000_e5e0a..s aliases (kill s4=&D / s3=+0x18000 /
+// s2=lit cross-site+loop CSE; all 19 &D+K sites now remat lui/addiu like target);
+// PairE5E0 block struct copies for the 0x1EEC0/0x1EEC8/0x1EED0 double-word reads
+// (base+0/+4 form, target-exact incl. interleaved lw/sw order); single node/rec/key
+// var set reused across stages 1-2 (shared spill slot) + explicit saved/saved2
+// comma-restores in the alloc-fallback ||s (m2c's sp2C/sp20 decode is literal).
+// RESIDUAL CAP (probe-immune): uopt s-reg-promotes `node` (s1) where target
+// SPILLS it to 0x2C with a2 ugen-caching (and loop r3 takes s0 vs target v1,
+// shifting key->v1/a0 and it/n3 down one s-reg). Probed: volatile saved (70.4,
+// insn bloat), K&R dead-param node (a1/a2 homes appear), if(1) stage wraps,
+// single-member-struct saved, per-stage node1/node2 — ALL converge to identical
+// 75.04 codegen. Same divergent-regalloc class as docs/IDO_CODEGEN.md
+// spill-vs-sreg entries; needs uoptlist coloring dump to crack.
 #ifdef NON_MATCHING
 
 
@@ -9048,86 +9061,75 @@ void gl_func_0003E594(int *a0) {
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0003E5E0)();
+extern char D_00000000_e5e0a, D_00000000_e5e0b, D_00000000_e5e0c, D_00000000_e5e0d,
+    D_00000000_e5e0e, D_00000000_e5e0f, D_00000000_e5e0g, D_00000000_e5e0h,
+    D_00000000_e5e0i, D_00000000_e5e0j, D_00000000_e5e0k, D_00000000_e5e0l,
+    D_00000000_e5e0m, D_00000000_e5e0n, D_00000000_e5e0o, D_00000000_e5e0p,
+    D_00000000_e5e0q, D_00000000_e5e0r, D_00000000_e5e0s;
+typedef struct { s32 w0, w1; } PairE5E0;
 void gl_func_0003E5E0(char *arg0) {
-    s32 *sp2C;
-    s32 *sp20;
-    s32 *temp_v0;
-    s32 *temp_v0_2;
-    s32 *temp_v0_3;
-    s32 *temp_v0_4;
-    s32 *temp_v0_5;
-    s32 *temp_v0_6;
-    s32 *temp_v0_7;
-    s32 *temp_v0_8;
-    s32 *temp_v0_9;
-    s32 *var_a0;
-    s32 *var_a2;
-    s32 *var_a2_2;
-    s32 *var_s0;
-    s32 *var_s0_2;
-    s32 *var_s1;
-    s32 *var_s1_2;
-    s32 *var_v1;
-    char *var_s0_3;
+    s32 *node;
+    s32 *rec;
+    s32 *key;
+    s32 *saved;
+    s32 *n3;
+    s32 *r3;
+    s32 *k3;
+    s32 *saved2;
+    char *it;
 
-    gl_func_00034458(0, FW(arg0, 0xC), 0);
-    temp_v0 = gl_func_00034458((char *)0x10);
-    var_a2 = temp_v0;
-    if (temp_v0 != 0) {
-        var_s0 = temp_v0;
-        if ((temp_v0 != 0) || (sp2C = temp_v0, temp_v0_2 = gl_func_00034458((char *)0x10), var_a2 = sp2C, var_s0 = temp_v0_2, (temp_v0_2 != 0))) {
-            var_s1 = var_s0;
-            if ((var_s0 != 0) || (sp2C = var_a2, temp_v0_3 = gl_func_00034458((char *)4), var_s1 = temp_v0_3, (temp_v0_3 != 0))) {
-                *var_s1 = 0x1F0D8;
+    gl_func_00034458(&D_00000000_e5e0a, FW(arg0, 0xC), 0);
+    node = (s32 *)gl_func_00034458(0x10);
+    if (node != 0) {
+        rec = node;
+        if ((rec != 0) || (saved = node, rec = (s32 *)gl_func_00034458(0x10), node = saved, (rec != 0))) {
+            key = rec;
+            if ((key != 0) || (saved = node, key = (s32 *)gl_func_00034458(4), node = saved, (key != 0))) {
+                *key = (s32)(&D_00000000_e5e0b + 0x1F0D8);
             }
-            FW(var_s0, 0x4) = arg0;
-            FW(var_s0, 0x8) = (s32) (char *)FW(0x1EEC0, 0x0);
-            FW(var_s0, 0xC) = (s32) (char *)FW(0x1EEC0, 0x4);
+            FW(rec, 0x4) = (s32)arg0;
+            *(PairE5E0 *)(rec + 2) = *(PairE5E0 *)(&D_00000000_e5e0c + 0x1EEC0);
         }
-        *var_a2 = 0x1F1F8;
+        *node = (s32)(&D_00000000_e5e0d + 0x1F1F8);
     }
-    gl_func_00034458(0, 0x1F318, var_a2, 0);
-    temp_v0_4 = gl_func_00034458((char *)0x10);
-    var_a2_2 = temp_v0_4;
-    if (temp_v0_4 != 0) {
-        var_s0_2 = temp_v0_4;
-        if ((temp_v0_4 != 0) || (sp2C = temp_v0_4, temp_v0_5 = gl_func_00034458((char *)0x10), var_a2_2 = sp2C, var_s0_2 = temp_v0_5, (temp_v0_5 != 0))) {
-            var_s1_2 = var_s0_2;
-            if ((var_s0_2 != 0) || (sp2C = var_a2_2, temp_v0_6 = gl_func_00034458((char *)4), var_s1_2 = temp_v0_6, (temp_v0_6 != 0))) {
-                *var_s1_2 = 0x1F0D8;
+    gl_func_00034458(&D_00000000_e5e0e, &D_00000000_e5e0f + 0x1F318, node, 0);
+    node = (s32 *)gl_func_00034458(0x10);
+    if (node != 0) {
+        rec = node;
+        if ((rec != 0) || (saved = node, rec = (s32 *)gl_func_00034458(0x10), node = saved, (rec != 0))) {
+            key = rec;
+            if ((key != 0) || (saved = node, key = (s32 *)gl_func_00034458(4), node = saved, (key != 0))) {
+                *key = (s32)(&D_00000000_e5e0g + 0x1F0D8);
             }
-            FW(var_s0_2, 0x4) = arg0;
-            FW(var_s0_2, 0x8) = (s32) (char *)FW(0x1EEC8, 0x0);
-            FW(var_s0_2, 0xC) = (s32) (char *)FW(0x1EEC8, 0x4);
+            FW(rec, 0x4) = (s32)arg0;
+            *(PairE5E0 *)(rec + 2) = *(PairE5E0 *)(&D_00000000_e5e0h + 0x1EEC8);
         }
-        *var_a2_2 = 0x1F1F8;
+        *node = (s32)(&D_00000000_e5e0i + 0x1F1F8);
     }
-    gl_func_00034458(0, 0x1F324, var_a2_2, 1);
-    gl_func_00034458(0, 0x1F330, 0);
-    var_s0_3 = FW(arg0, 0x2C);
-    if (var_s0_3 != 0) {
+    gl_func_00034458(&D_00000000_e5e0j, &D_00000000_e5e0k + 0x1F324, node, 1);
+    gl_func_00034458(&D_00000000_e5e0l, &D_00000000_e5e0m + 0x1F330, 0);
+    it = (char *)FW(arg0, 0x2C);
+    if (it != 0) {
         do {
-            temp_v0_7 = gl_func_00034458((char *)0x10);
-            if (temp_v0_7 != 0) {
-                var_v1 = temp_v0_7;
-                if ((temp_v0_7 != 0) || (temp_v0_8 = gl_func_00034458((char *)0x10), var_v1 = temp_v0_8, (temp_v0_8 != 0))) {
-                    var_a0 = var_v1;
-                    if ((var_v1 != 0) || (sp20 = var_v1, temp_v0_9 = gl_func_00034458((char *)4), var_a0 = temp_v0_9, (temp_v0_9 != 0))) {
-                        *var_a0 = 0x1F0D8;
+            n3 = (s32 *)gl_func_00034458(0x10);
+            if (n3 != 0) {
+                r3 = n3;
+                if ((r3 != 0) || ((r3 = (s32 *)gl_func_00034458(0x10)) != 0)) {
+                    k3 = r3;
+                    if ((k3 != 0) || (saved2 = r3, k3 = (s32 *)gl_func_00034458(4), r3 = saved2, (k3 != 0))) {
+                        *k3 = (s32)(&D_00000000_e5e0n + 0x1F0D8);
                     }
-                    FW(var_v1, 0x4) = var_s0_3;
-                    FW(var_v1, 0x8) = (s32) (char *)FW(0x1EED0, 0x0);
-                    FW(var_v1, 0xC) = (s32) (char *)FW(0x1EED0, 0x4);
+                    FW(r3, 0x4) = (s32)it;
+                    *(PairE5E0 *)(r3 + 2) = *(PairE5E0 *)(&D_00000000_e5e0o + 0x1EED0);
                 }
-                *temp_v0_7 = 0x1F210;
+                *n3 = (s32)(&D_00000000_e5e0p + 0x1F210);
             }
-            gl_func_00034458(0, var_s0_3 + 0x2C, temp_v0_7);
-            var_s0_3 = FW(var_s0_3, 0x30);
-        } while (var_s0_3 != 0);
+            gl_func_00034458(&D_00000000_e5e0q, it + 0x2C, n3);
+            it = (char *)FW(it, 0x30);
+        } while (it != 0);
     }
-    gl_func_00034458(0);
-    gl_func_00034458(0);
+    gl_func_00034458(&D_00000000_e5e0r);
+    gl_func_00034458(&D_00000000_e5e0s);
     gl_func_00034458(arg0);
 }
 #else
