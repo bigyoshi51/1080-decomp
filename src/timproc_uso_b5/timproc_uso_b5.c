@@ -5735,11 +5735,19 @@ void timproc_uso_b5_func_000080F4(char *arg0) {
 //     vtable (->0x80/0x84 deactivate, ->0x88/0x8C show — obj->0x28
 //     idiom). D_0 global flags 0x100 / 0x200 / 0x4003 gate the
 //     phases. func_00000000 = USO placeholder dispatcher.
-// Caps (DEFERRED): raw-word USO + placeholder calls; USO mnemonic
-//   disasm limitation prevents byte-match. Real-C STRUCTURAL body
-//   below — 2-phase state-transition skeleton (phase-reset variant).
-//   Byte-match deferred. Name pre-checked: no extern reuse.
+// 2026-07-17 agent-g: 94/94 words EXACT (was 91.33). Levers: void
+//   fn-ptr typedef on both discarded-result vtable calls (dead-$v0
+//   poisoning blocked idx's v0 claim); idx*4 spelled inline twice so
+//   CSE reuses one reg (sll v0,v0,2 destroys idx — no separate idx
+//   var); 0x484 = 0.0f store BEFORE the final call (target folds swc1
+//   into the jal delay; mtc1 hoisted); | operands spelled REVERSED
+//   from target's or rs/rt (source elem|m -> or a1,m,elem — IDO
+//   reverses commutative or; the swap also fixed the m/sum/elem
+//   t-ring rotation t8/t0/t1). Naming m instead moved it to v1 and
+//   shifted the whole downstream t-ring (wrong). Stays NM wrap:
+//   callees are USO placeholder aliases, no episode.
 #ifdef NON_MATCHING
+typedef void (*GPv_8468)();
 void timproc_uso_b5_func_00008468(char *arg0) {
     char *temp_v0;
     char *temp_v1;
@@ -5749,13 +5757,13 @@ void timproc_uso_b5_func_00008468(char *arg0) {
     if (timproc_uso_b5_alias(&import_80020098, 0x100) != 0) {
         temp_v0 = timproc_uso_b5_alias(arg0);
         temp_v1 = FW(temp_v0, 0x28);
-        ((GP_00007B2C)FW(temp_v1, 0x8C))(*(s16*)((char*)temp_v1 + 0x88) + temp_v0, 0);
+        ((GPv_8468)FW(temp_v1, 0x8C))(*(s16*)((char*)temp_v1 + 0x88) + temp_v0, 0);
         timproc_uso_b5_alias(arg0);
         temp_v0 = timproc_uso_b5_alias(arg0);
         temp_v1 = FW(temp_v0, 0x28);
-        ((GP_00007B2C)FW(temp_v1, 0x84))(*(s16*)((char*)temp_v1 + 0x80) + temp_v0, 0);
-        temp_v0_5 = FW(arg0, 0x3C4);
-        timproc_uso_b5_alias((&timproc_uso_b5_D_807FE778)[temp_v0_5], FW(arg0, 0x4D4) | FW((arg0 + (temp_v0_5 * 4)), 0x3D0));
+        ((GPv_8468)FW(temp_v1, 0x84))(*(s16*)((char*)temp_v1 + 0x80) + temp_v0, 0);
+        timproc_uso_b5_alias(*(int *)((char *)&timproc_uso_b5_D_807FE778 + (FW(arg0, 0x3C4) * 4)),
+                             FW(arg0 + (FW(arg0, 0x3C4) * 4), 0x3D0) | FW(arg0, 0x4D4));
         if (timproc_uso_b5_alias(arg0) == 0) {
             timproc_uso_b5_alias(FW(arg0, 0x41C));
             return;
@@ -5766,8 +5774,8 @@ void timproc_uso_b5_func_00008468(char *arg0) {
         FW(arg0, 0x3C4) = timproc_uso_b5_alias(arg0, temp_v0_2);
         FW(arg0, 0x3CC) = 0xA;
         timproc_uso_b5_alias(arg0);
-        timproc_uso_b5_alias(arg0, 0);
         *(f32 *)((char *)arg0 + 0x484) = 0.0f;
+        timproc_uso_b5_alias(arg0, 0);
         return;
     }
     if (timproc_uso_b5_alias(&import_80020098, 0x200) != 0) {
