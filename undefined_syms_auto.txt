@@ -3081,3 +3081,9 @@ gl_d_33eb8_2ca = 0x0000002C;   /* gl_func_00033EB8 per-site alias */
 gl_d_33eb8_2cb = 0x0000002C;   /* gl_func_00033EB8 per-site alias */
 gl_d_33eb8_2cc = 0x0000002C;   /* gl_func_00033EB8 per-site alias */
 gl_d_33eb8_28f = 0x00000028;   /* gl_func_00033EB8 per-site alias */
+/* distinct alias externs for timproc_uso_b5_func_00002B74 redecode (bust cross-expansion &sym CSE) */
+D_timb5_2B74_vt0 = 0; D_timb5_2B74_vt1 = 0; D_timb5_2B74_vt2 = 0; D_timb5_2B74_vt3 = 0; D_timb5_2B74_vt4 = 0;
+D_timb5_2B74_vt5 = 0; D_timb5_2B74_vt6 = 0; D_timb5_2B74_vt7 = 0; D_timb5_2B74_vt8 = 0; D_timb5_2B74_vt9 = 0;
+D_timb5_2B74_vv0 = 0; D_timb5_2B74_vv1 = 0; D_timb5_2B74_vw0 = 0; D_timb5_2B74_vw1 = 0;
+D_timb5_2B74_ve0 = 0; D_timb5_2B74_ve1 = 0;
+D_timb5_2B74_vf0 = 0; D_timb5_2B74_vf1 = 0; D_timb5_2B74_vf2 = 0; D_timb5_2B74_vf3 = 0;
