@@ -784,55 +784,79 @@ void gl_func_00063E84(char *a0) {
  * spurious trailing `arg0` 5th argument on the final gl_func_00062F64 call
  * (target passes only 0.0f, FW(arg0,0x16C), arg0+0x120, &sp44 — 4 args, no
  * stack-arg spills). (3) removed the (s32) casts on the unk4/unk8 field copies
- * (they emitted trunc.w.s/cvt.s.w; target is a plain word copy). */
+ * (they emitted trunc.w.s/cvt.s.w; target is a plain word copy).
+ * 2026-07-18 REDECODE (agent-h, 68.28 -> 86.98): (1) sp44 struct is 12 BYTES
+ * (3 f32), not 8 fields — frame 120 -> 80 exact; (2) field copy-in is an INT
+ * struct copy (*(V3i*)&sp44 = *(V3i*)(arg0+0x114) — lw/sw via addiu t6,sp base,
+ * not lwc1/swc1); (3) all three jals are UNDEFINED-extern placeholders (jal 0x0;
+ * calling the file-local gl_func_00062F64 def bakes a local target). First call
+ * needs a PROTOTYPED f32 extern (gl_func_00000000_s(f32)) — unprototyped K&R
+ * promotes the float arg to double; (4) the 4 f64/f32 constants are per-symbol
+ * pad-struct externs (D_63F34_20A0.v etc.) — ONE symbol with 4 offsets gets its
+ * %hi CSEd into a reg (lui/addiu pair); distinct symbols give the assembler
+ * at-macro form (lui at; ldc1 %lo(at)) the target has; (5) sp40 IS the call
+ * result (assigned before the if; mov.s f2,f0 + home 64(sp)); var_f0 = t*t
+ * merged in place (mul.s f0,f0,f0); scale merged into var_f0; 3-temp scale
+ * block (muls before stores); (6) volatile pad pair below sp40 reproduces the
+ * phantom 8-byte slot (frame 72 -> 80, zero insns); (7) dot product split
+ * x+y then += z, a2->0 deref'd twice (named temp_f2 hoisted its load a slot
+ * early). RESIDUAL: FP-temp rotation (f4/f6/f16 vs f6/f8/f18 rings) + one
+ * z-load hoist into a mul shadow the coloring blocks (B keeps a nop at +0x58,
+ * shifting the tail by one word). Coloring cap class — honest NM. */
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00063F34)();
-typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00063F34;
+typedef struct { f32 unk0, unk4, unk8; } Q_00063F34;
+typedef struct { int a, b, c; } V3i_63F34;
+
+extern f32 gl_func_00000000_s(f32);
+extern struct { char pad[0x20A0]; f64 v; } D_63F34_20A0;
+extern struct { char pad[0x20A8]; f64 v; } D_63F34_20A8;
+extern struct { char pad[0x20B0]; f64 v; } D_63F34_20B0;
+extern struct { char pad[0x20B8]; f32 v; } D_63F34_20B8;
+
 void game_libs_func_00063F34(char *arg0, f32 arg1, char *arg2, f32 arg3) {
     Q_00063F34 sp44;
     f32 sp40;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f0_4;
-    f32 temp_f16;
+    volatile s32 pad38;
+    volatile s32 pad3C;
     f32 temp_f2;
-    f32 temp_f4;
-    f32 temp_f6;
+    f32 temp_f0;
+    f32 tx;
+    f32 ty;
+    f32 tz;
     f32 var_f0;
 
     if (arg1 < 10.0f) {
-        sp44.unk0 = (*(f32*)((char*)arg0 + 0x114));
-        sp44.unk4 = (*(f32*)((char*)arg0 + 0x118));
-        sp44.unk8 = (*(f32*)((char*)arg0 + 0x11C));
-        temp_f2 = (*(f32*)((char*)arg2 + 0x0));
-        temp_f0 = (sp44.unk0 * temp_f2) + (sp44.unk4 * (*(f32*)((char*)arg2 + 0x4))) + (sp44.unk8 * (*(f32*)((char*)arg2 + 0x8)));
-        temp_f4 = (temp_f0 * temp_f2) - sp44.unk0;
-        sp44.unk0 = temp_f4;
-        temp_f16 = (temp_f0 * (*(f32*)((char*)arg2 + 0x4))) - sp44.unk4;
-        sp44.unk4 = temp_f16;
-        temp_f6 = (temp_f0 * (*(f32*)((char*)arg2 + 0x8))) - sp44.unk8;
-        sp44.unk8 = temp_f6;
-        temp_f0_2 = ((f32(*)())gl_func_00062F64)((temp_f4 * temp_f4) + (temp_f16 * temp_f16) + (temp_f6 * temp_f6));
-        if ((*(f64*)((char*)&D_00000000 + 0x20A0)) < (f64) temp_f0_2) {
-            sp40 = temp_f0_2;
-            gl_func_00062F64(&sp44);
-            temp_f0_3 = (f32) ((f64) (arg3 + ((*(f32*)((char*)arg0 + 0x150)) * (*(f32*)((char*)FW(arg0, 0x16C) + 0x360)))) * (*(f64*)((char*)&D_00000000 + 0x20A8)));
-            var_f0 = temp_f0_3 * temp_f0_3;
-            if ((*(f64*)((char*)&D_00000000 + 0x20B0)) < (f64) var_f0) {
-                var_f0 = (*(f32*)((char*)&D_00000000 + 0x20B8));
+        *(V3i_63F34 *)&sp44 = *(V3i_63F34 *)(arg0 + 0x114);
+        temp_f0 = (sp44.unk0 * *(f32 *)(arg2 + 0x0)) + (sp44.unk4 * *(f32 *)(arg2 + 0x4));
+        temp_f0 += sp44.unk8 * *(f32 *)(arg2 + 0x8);
+        tx = (temp_f0 * *(f32 *)(arg2 + 0x0)) - sp44.unk0;
+        sp44.unk0 = tx;
+        ty = (temp_f0 * *(f32 *)(arg2 + 0x4)) - sp44.unk4;
+        sp44.unk4 = ty;
+        tz = (temp_f0 * *(f32 *)(arg2 + 0x8)) - sp44.unk8;
+        sp44.unk8 = tz;
+        sp40 = gl_func_00000000_s((tx * tx) + (ty * ty) + (tz * tz));
+        if (D_63F34_20A0.v < (f64) sp40) {
+            gl_func_00000000(&sp44);
+            var_f0 = (f32) ((f64) (arg3 + ((*(f32 *)((char *)arg0 + 0x150)) * (*(f32 *)((char *)FW(arg0, 0x16C) + 0x360)))) * D_63F34_20A8.v);
+            var_f0 = var_f0 * var_f0;
+            if (D_63F34_20B0.v < (f64) var_f0) {
+                var_f0 = D_63F34_20B8.v;
             }
             if (var_f0 < 0.0f) {
                 var_f0 = 0.0f;
             }
-            temp_f0_4 = var_f0 * sp40;
-            sp44.unk0 *= temp_f0_4;
-            sp44.unk4 *= temp_f0_4;
-            sp44.unk8 *= temp_f0_4;
-            gl_func_00062F64(0.0f, FW(arg0, 0x16C), (int)arg0 + 0x120, &sp44);
+            var_f0 = var_f0 * sp40;
+            tx = sp44.unk0 * var_f0;
+            ty = sp44.unk4 * var_f0;
+            tz = sp44.unk8 * var_f0;
+            sp44.unk0 = tx;
+            sp44.unk4 = ty;
+            sp44.unk8 = tz;
+            gl_func_00000000(FW(arg0, 0x16C), arg0 + 0x120, &sp44);
         }
     }
 }
