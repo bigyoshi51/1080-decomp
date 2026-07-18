@@ -4411,34 +4411,60 @@ int timproc_uso_b5_func_00006900(char *s) {
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 // 2026-06-21 RECONSTRUCT: cursor table -> array-base (&D_69E8_F24)[cursor]
 //   form (count-exact F24 block); store target corrected 0x4E0; single-arg
-//   alias(&D..1304). Body now structurally count-complete (133 vs 134, the
-//   -1 is an IDO g-address reload before the *g==0x17D7 compare). Residual =
-//   pure register-renumber coloring (permuter-immune cap class).
+//   alias(&D..1304). Body then 133 vs 134 (missing g-address reload).
+// 2026-07-18 NM-RISE 87.60 -> 96.01, count-exact 134/134, whole shape
+//   instruction-aligned (beql tail-dup of lw 52(g) at the a1-guard join
+//   emerges naturally). Levers: (1) g held REGISTER-RESIDENT as target =
+//   MULTI-DEF pointer with SYNTACTICALLY DIFFERENT placeholder syms
+//   (def1 &D_69E8_G1 top, def2 &D_00000000 in the cursor guard) — same-sym
+//   double-def gets copy-propped back to folded lui form; def must sit
+//   AFTER the two entry calls or the web crosses them and SPILLS (frame
+//   +8). (2) every other &D use split to its OWN extern (G0 17D7-counter,
+//   F24 table, A4/B8 arrays, 1304 arg) — shared %hi(D_00000000) CSE merges
+//   all address webs into ONE register (a1) incl. the folded at-forms.
+//   (3) elem/C cross-block m2c locals fully INLINED per store: the shared
+//   named web colored v0 and rebased every element chain; block-local
+//   expressions restore the target t-ring (blocks 41-74 exact). (4) dead
+//   `if (a4) {}` priority boost (docs entry: emission-free compute_save
+//   refs) — flips lui temp v0->v1 at def1.
+// RESIDUAL ~4% (reg fields only, count-exact): 3-web coloring rotation —
+//   target {a4=a1, g=v1 with BOTH %hi-temps coalesced} vs build {a4=v0,
+//   g=a1, def1 %hi-temp separate web stealing v1}; def2's %hi coalesces,
+//   def1's never does (embedded-def, decl-order, sym-swap, if(1) probed).
+//   Same family as docs "ugen %hi-temp destination-coalescing cap" (26B40
+//   converse). Next tool: -Wo,-zdbug:6 uoptlist constrained-order trace.
 #ifdef NON_MATCHING
 extern int D_69E8_F24;
+extern int D_69E8_G0;
+extern char D_69E8_G1;
+extern char D_69E8_1304;
+extern int D_69E8_A4[];
+extern int D_69E8_B8[];
 int timproc_uso_b5_func_000069E8(char *scr, int a1) {
-    char *g = (char *)&D_00000000;
-    char *C, *elem;
+    char *g;
+    char *C;
     int a4;
     func_00000000(scr, a1);
     func_00000000(*(char **)(scr + 0x418), -1, 0);
+    g = &D_69E8_G1;
     *(int *)(g + 0x40) = *(int *)(g + 0x44);
-    C = *(char **)(scr + 0x40C);
-    elem = *(char **)(C + 0x40) + *(int *)(scr + 0x3D0) * 4;
-    *(int *)*(char **)(scr + 0x4E0) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
+    *(int *)*(char **)(scr + 0x4E0) =
+        *(int *)(*(char **)(*(char **)(*(char **)(scr + 0x40C) + 0x40) + *(int *)(scr + 0x3D0) * 4 + 0x3C) + 0x2B0);
     a4 = *(int *)(scr + 0x4A4);
+    if (a4) {}
     if (a4 != 0 && a4 < 4) {
-        func_00000000((char *)&D_00000000 + 0x1304);
+        func_00000000(&D_69E8_1304);
+        g = (char *)&D_00000000;
         *(int *)*(char **)(scr + 0x4E0) = (&D_69E8_F24)[*(int *)(scr + 0x4A4)] - 1;
     }
-    if (*(int *)g == 0x17D7) {
-        elem = *(char **)(*(char **)(scr + 0x40C) + 0x4C) + *(int *)(scr + 0x3DC) * 4;
-        *(int *)*(char **)(scr + 0x4DC) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
+    if (D_69E8_G0 == 0x17D7) {
+        *(int *)*(char **)(scr + 0x4DC) =
+            *(int *)(*(char **)(*(char **)(*(char **)(scr + 0x40C) + 0x4C) + *(int *)(scr + 0x3DC) * 4 + 0x3C) + 0x2B0);
     } else {
         *(int *)*(char **)(scr + 0x4DC) = 1;
     }
-    elem = *(char **)(*(char **)(scr + 0x40C) + 0x44) + *(int *)(scr + 0x3D4) * 4;
-    *(int *)*(char **)(scr + 0x4E8) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
+    *(int *)*(char **)(scr + 0x4E8) =
+        *(int *)(*(char **)(*(char **)(*(char **)(scr + 0x40C) + 0x44) + *(int *)(scr + 0x3D4) * 4 + 0x3C) + 0x2B0);
     if (*(int *)(scr + 0x4A8) == 4) {
         *(int *)*(char **)(scr + 0x4E8) = 8;
     }
@@ -4447,17 +4473,17 @@ int timproc_uso_b5_func_000069E8(char *scr, int a1) {
         char *e44 = *(char **)(C + 0x44) + *(int *)(scr + 0x3D4) * 4;
         char *e40 = *(char **)(C + 0x40) + *(int *)(scr + 0x3D0) * 4;
         *(int *)*(char **)(scr + 0x4E4) =
-            *(int *)(*(char **)(e44 + 0x3C) + 0x2B4) | *(int *)(*(char **)(e40 + 0x3C) + 0x2B4);
+            *(int *)(*(char **)(e40 + 0x3C) + 0x2B4) | *(int *)(*(char **)(e44 + 0x3C) + 0x2B4);
     }
     if (a1 != 0) {
-        elem = *(char **)(*(char **)(scr + 0x40C) + 0x48) + *(int *)(scr + 0x3D8) * 4;
-        *(int *)*(char **)(scr + 0x4EC) = *(int *)(*(char **)(elem + 0x3C) + 0x2B0);
+        *(int *)*(char **)(scr + 0x4EC) =
+            *(int *)(*(char **)(*(char **)(*(char **)(scr + 0x40C) + 0x48) + *(int *)(scr + 0x3D8) * 4 + 0x3C) + 0x2B0);
     }
     if (*(int *)(g + 0x34) != 2) {
-        *(int *)((char *)&D_00000000 + *(int *)(scr + 0x3D0) * 4 + 0xA4) = *(int *)*(char **)(scr + 0x4E8);
+        D_69E8_A4[*(int *)(scr + 0x3D0)] = *(int *)*(char **)(scr + 0x4E8);
     } else {
         char *e40b = *(char **)(*(char **)(scr + 0x40C) + 0x40) + *(int *)(scr + 0x3D0) * 4;
-        *(int *)((char *)&D_00000000 + *(int *)(scr + 0x3B8) * 4 + 0xB8) =
+        D_69E8_B8[*(int *)(scr + 0x3B8)] =
             (*(int *)(*(char **)(e40b + 0x3C) + 0x2B4) & 0x20000) != 0;
     }
     return 1;
