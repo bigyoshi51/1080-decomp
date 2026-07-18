@@ -231,7 +231,12 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # gl_func_00055B10: byte-correct real-def, IDO trailing jr-delay nop -> symbol 0x30
 # vs target 0x2c (nop is baserom alignment). Resize non_matching symbol to 0x2c so
 # objdiff scores 11w not 12w. ROM-neutral (non_matching .o only). (Same class as EBC8.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2b76c gl_func_00055B10=0x2c
+# (0x2b76c -> 0x2b750 on 2026-07-18: the exact 453A8 twin-mirror body is 0x1c
+# shorter than the old 22.4% NM decode, shrinking the NM .text accordingly.)
+# gl_func_000551E0=0x7c: same jr-delay-nop class as 55B10 — compiled NM body is
+# word-exact 31/31 but carries its own trailing nop (0x80); target symbol is 0x7c
+# with the nop as baserom alignment (_pad.s).
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2b750 gl_func_00055B10=0x2c gl_func_000551E0=0x7c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
@@ -294,7 +299,10 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 # — baserom attributes that nop to alignment). objdiff per-symbol scored 90.9%=11/12.
 # Resize the non_matching symbol to 0x2c so objdiff sees the matching 11w. ROM-neutral
 # (non_matching .o only); the nop byte stays in .text. Section size unchanged (0x5530).
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5530 gl_func_0000EBC8=0x2c
+# gl_func_0000C5B0=0x8c: same class — word-exact 35/35 twin-mirror of 88B4 but the
+# compiled NM body carries its own jr-delay nop (0x90); target symbol is 0x8c with
+# the nop as baserom alignment (_pad.s).
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5530 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a38
 # 70FA4 = the merged full function (head fragment 70FA0 + the old g3_70FBC
 # tail carve); -O1 -g3 is the matching mode. .text ends with 8 bytes of

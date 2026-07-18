@@ -26194,52 +26194,39 @@ int gl_func_000551B0(char *a0) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_000551E0: indirect-dispatch (jalr through computed fn ptr).
- * Decoded from bare stub 2026-05-18; algorithm ~correct, build 35
- * vs 32 (count diff + structural). Remaining (multi-pass, defer):
- *  - `a1 = a0[1] + (s16)a0->8` is computed in the bgez DELAY slot
- *    (executes regardless of the sel<0 test) — must be a plain
- *    statement BEFORE the branch, not inside either arm.
- *  - the sel<0 short-path must CONVERGE to the SAME `jalr a2` as the
- *    main path (one shared indirect-call tail), via the `b` at
- *    insn 9 whose delay slot is `a2 = a0->0xC`. Use goto-call, NOT
- *    a separate `return fp(a1);` (that adds the extra epilogue).
- *  - the v0!=0 / a0->8!=0 / 0x5C selection is a 3-way branch chain
- *    that also falls through to the shared body; keep a0v in one
- *    var and converge.
- *  - tail: t0=*(a1+a0v); v0=t0+sel*8; fp=v0[1]; a1=(s16)*v0 + a1;
- *    jalr a2 with a0=a1 in its delay slot. Single shared jalr.
- * Next pass: hoist the a1 sum above the branch; goto-CALL label for
- * both the sel<0 and main paths; one fp(a1) at the label. Note the
- * sibling _pad.s GLOBAL_ASM stays. Real decoded C preserved. */
-/* Selector-dispatch tail call: a1 = a0[1] + (short)a0[8]; if (short)a0[0xA] < 0
- * call a0[3](a1), else index a table at (a1 + a0v) by sel*8, load fn ptr + short
- * bias, then tail-call. Single jalr convergence point. Reloc-free (indirect
- * jalr). Structurally correct but byte-% capped by IDO's delay-slot schedule
- * (addu in bgez slot, lw a2 in b slot, double-load of sel via a0 vs a0+8 base). */
-int gl_func_000551E0(int *a0) {
-    int a1 = a0[1] + *(short *)((char *)a0 + 8);
-    int sel = *(short *)((char *)a0 + 0xA);
-    int a0v;
-    int (*fp)();
-    if (sel < 0) {
-        fp = (int (*)())a0[3];
+/* gl_func_000551E0: 2026-07-18 WORD-EXACT (31/31; was 65.3%). Twin-scan
+ * +/-1-word extension: raw-word IDENTICAL to the exact gl_func_00035A18
+ * dispatcher family (35A18/3A044/3EBDC/3EC5C, agent-f 2026-07-15) except
+ * ONE word — the default-selector li is 0x5C here vs 0x28 there (the
+ * family's trailing nop delay word lives in this fn's _pad.s). Verbatim
+ * mirror of 35A18's promoted body incl. the SAME-LINE JOIN lever on the
+ * arg load+accumulate (hoists lh above lw via as1 debug-line tie-break);
+ * only the idx constant changed. Reloc-free (derefs off a0, indirect
+ * jalr). The old 2026-05-18 grind decode + 'delay-slot schedule cap'
+ * verdict is superseded — it never checked the 0x88-away exact family.
+ * PROMOTE BLOCKED by the pad.s gotcha (docs/IDO_CODEGEN CC14 entry):
+ * compiled fn emits its own delay nop (0x80) but expected region is
+ * fn+2 zeros = 0x84 with the next fn at a non-8-aligned 0x20e0c; both
+ * pad-kept (0x88) and pad-dropped (0x80) linked layouts shift the ROM.
+ * Stays NM wrap at word-exact, no episode. */
+int gl_func_000551E0(char *a0) {
+    char *arg;
+    char *v1;
+    char *entry;
+    int (*fnptr)(char *);
+    int idx;
+    v1 = a0 + 8;
+    arg = *(char**)(a0 + 4); arg = *(short*)(a0 + 8) + arg;
+    if (*(short*)(a0 + 0xA) < 0) {
+        fnptr = *(int (**)(char *))(a0 + 0xC);
     } else {
-        if (*(int *)((char *)a0 + 0xC) != 0) {
-            a0v = *(int *)((char *)a0 + 0xC);
-        } else if (*(short *)((char *)a0 + 8) != 0) {
-            a0v = 0;
-        } else {
-            a0v = 0x5C;
-        }
-        {
-            int t0 = *(int *)(a1 + a0v);
-            int *v0 = (int *)(t0 + sel * 8);
-            fp = (int (*)())v0[1];
-            a1 = *(short *)v0 + a1;
-        }
+        int selector = *(int*)(v1 + 4);
+        if (selector == 0 && *(short*)v1 == 0) idx = 0x5C; else idx = selector;
+        entry = (*(short*)(v1 + 2) << 3) + *(char**)(arg + idx);
+        arg = *(short*)entry + arg;
+        fnptr = *(int (**)(char *))(entry + 4);
     }
-    return fp(a1);
+    return fnptr(arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000551E0);
