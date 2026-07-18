@@ -20337,119 +20337,130 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 //   front-end completing the allocator trio with 000334E8 init +
 //   00033BE4 alloc). Byte-match deferred. Name pre-checked: no
 //   extern reuse.
-// gl_func_00033EB8 — FULL m2c DECODE (59.82% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
-// DECODE-ERROR AUDIT 2026-07-17 agent-h (target diff read, fix NOT yet applied
-// — needs the full-body rewrite below, ~30 min):
-//   (1) ALL 16 target jals are `jal 0x0` = USO placeholder -> must call
-//       gl_func_00000000, NOT gl_func_0001CA10 (the documented
-//       nonzero-immediate pitfall, see MATCHING_WORKFLOW gl_ref entry).
-//   (2) Data args 0x1E368/0x1E37C/0x1E394/0x1E3AC are BAKED USO SYMBOLS:
-//       target emits `lui a1,0x2; addiu a1,a1,-0x1C98` = %hi/%lo pairs.
-//       Pass `&gl_ref_0001E368`-style absolute syms (undefined_syms), not
-//       integer literals (ours emits lui 0x1; ori 0xe368 — wrong shape).
-//   (3) Globals +0x8/+0xC/+0x10/+0x24/+0x28/+0x2C are PER-SITE direct
-//       symbol accesses (`lui rX,0x0; lw off(rX)` fresh at every site, incl.
-//       paired `lui t7/lui t8` double-loads for the 0x2C==0xC compares) —
-//       NOT offsets off the held base. Only CALL arg0 uses the held
-//       `lui s1,0x0; addiu s1,s1,0` base (and the copy-loop src pointer is a
-//       SECOND fresh materialization into v1). Use distinct base-0 aliases
-//       per global word (gl_d_33eb8_* family) to stop base-CSE.
-//   (4) Size compares are UNSIGNED: sltu at,s3,s0 / sltu at,v0,s0 /
-//       sltu at,t0,s0 -> len/chunk vars are u32 (m2c wrote (s32) casts);
-//       the final overdraw test stays signed (bgez s3).
-//   (5) s-reg map: target s0=len, s1=base, s4=dst, s5=0x12340002 hi pair,
-//       s2=0x12340003; ours has s0/s1 swapped (follows from (3): base has
-//       fewer uses once data accesses go direct).
-//   (6) Branch shapes: plain bne+nop (not bnel) at the cursor compares —
-//       falls out of per-site double lui;lw loads in (3).
+// gl_func_00033EB8 — AUDIT REWRITE EXECUTED 2026-07-17 agent-h: 70.0 -> 90.3 NM.
+// All 6 audit items applied: 16x gl_func_00000000 (jal 0), &gl_ref_0001E368/37C/
+// 394/3AC baked syms, per-SITE gl_d_33eb8_* base-0 aliases (one extern per access
+// site — per-WORD aliases got their addresses CSE'd into s-regs, and volatile
+// unfolds the %lo into a separate addiu, both wrong), unsigned sltu size compares,
+// de-named copy-loop byte temp (t7 + sb -1(v0) cursor respell), de-named chunk,
+// src-before-cpdst decl order (v1/v0 map), goto-mid inner flush loop (splits the
+// two condition emissions onto 28d/28e), first-call arg0 = `base=(u8*)&D_00000000`
+// dead-assign (copy-propagates to `lui s1; addiu a0,s1,0` — probe-verified).
+// RESIDUAL CAPS (why not 100):
+//   (a) the inner flush-loop condition's symbol address (28e) is single-use inside
+//       an INNERMOST loop -> uopt invariant-hoists it into s3 (lui;addiu preamble +
+//       lw 0(s3)) where target rematerializes lui;lw in-loop. goto form, volatile
+//       cast, and -g3 all fail to suppress the hoist; the s3 occupancy renumbers
+//       rem/dst/0x12340002 to s4/s5/s6 (target s3/s4/s5) through the whole body.
+//   (b) scheduler: our loads reorder above the gl_d_33eb8_8a store after the
+//       loop-head call (target keeps store-first source order + pre-branch lui a1
+//       with nop delay). -O1 + single-struct probe reproduces the target's access
+//       shapes/order EXACTLY but stack-allocates locals — the target pairs -O1-like
+//       unhoisted per-site global access with -O2 regalloc; not reachable at any
+//       single flag setting tried (-O2, -O2 -g3, -O1, volatile variants).
 #ifdef NON_MATCHING
 
 
-extern int gl_func_0001CA10();
-#define GBE8(o) (*(s32 *)((char *)&D_00000000 + (o)))
-void gl_func_00033EB8(s32 arg0, u32 arg1) {
-    s32 sp30;
-    s32 temp_v0;
-    s32 temp_v0_2;
-    s32 var_s4;
-    s32 var_s0;
-    s32 var_s3;
-    s32 var_v0;
-    s32 var_t0;
-    u8 *var_v1;
-    u8 temp_t7;
+extern int gl_func_00000000();          /* jal 0x0 USO placeholder (all 16 call sites) */
+/* per-SITE base-0 aliases of the heap-control words (one extern per access
+ * site, 2B5F4 r1/r2 convention): single-use symbols keep IDO from CSE/loop-
+ * hoisting the lui;addiu address into spare s-regs -- target rematerializes
+ * a fresh `lui rX,0x0; lw off(rX)` at every site. */
+extern s32 gl_d_33eb8_8a, gl_d_33eb8_8b, gl_d_33eb8_8c, gl_d_33eb8_8d;      /* +0x08 end cursor */
+extern s32 gl_d_33eb8_ca, gl_d_33eb8_cb, gl_d_33eb8_cc, gl_d_33eb8_cd,
+           gl_d_33eb8_ce, gl_d_33eb8_cf, gl_d_33eb8_cg, gl_d_33eb8_ch;      /* +0x0C read cursor */
+extern s32 gl_d_33eb8_10a;                                                  /* +0x10 block magic */
+extern s32 gl_d_33eb8_24a;                                                  /* +0x24 data start */
+extern s32 gl_d_33eb8_28a, gl_d_33eb8_28b, gl_d_33eb8_28c, gl_d_33eb8_28d,
+           gl_d_33eb8_28e, gl_d_33eb8_28f;                                  /* +0x28 header ptr */
+extern s32 gl_d_33eb8_2ca, gl_d_33eb8_2cb, gl_d_33eb8_2cc;                  /* +0x2C write cursor */
+extern u8 gl_d_33eb8_src;               /* base-0 alias: copy-loop src (fresh lui/addiu into v1) */
+extern u8 gl_ref_0001E368;              /* baked USO data sym (lui 2 / addiu -0x1C98) */
+extern u8 gl_ref_0001E37C;              /* baked USO data sym */
+extern u8 gl_ref_0001E394;              /* baked USO data sym */
+extern u8 gl_ref_0001E3AC;              /* baked USO data sym */
+void gl_func_00033EB8(s32 dst, u32 flags) {
+    u8 *base;
+    u32 len;
+    s32 rem;
+    s32 tmp;
+    u32 cnt;
+    u8 *src;
+    s32 cpdst;
 
-    var_s3 = arg1;
-    var_s4 = arg0;
-    if (arg1 & 1) {
-        gl_func_0001CA10(&D_00000000, 0x1E368);
+    rem = flags;
+    if (flags & 1) {
+        base = (u8 *)&D_00000000;
+        gl_func_00000000(base, &gl_ref_0001E368);
     }
-    gl_func_0001CA10(&D_00000000);
-    if (arg1 != 0) {
+    base = (u8 *)&D_00000000;
+    gl_func_00000000(base);
+    if (flags != 0) {
         do {
-            GBE8(8) = gl_func_0001CA10(&D_00000000, GBE8(0x28));
-            if (GBE8(0x2C) == GBE8(0xC)) {
-                temp_v0 = gl_func_0001CA10(&D_00000000, GBE8(0x28) + 8);
-                GBE8(0x10) = temp_v0;
-                if (temp_v0 == 0x12340001) {
-                    if (GBE8(0x2C) != GBE8(0xC)) {
-                        gl_func_0001CA10(&D_00000000, 0x1E37C);
+            gl_d_33eb8_8a = gl_func_00000000(base, gl_d_33eb8_28a);
+            if (gl_d_33eb8_2ca == gl_d_33eb8_ca) {
+                tmp = gl_func_00000000(base, gl_d_33eb8_28b + 8);
+                gl_d_33eb8_10a = tmp;
+                if (tmp == 0x12340001) {
+                    if (gl_d_33eb8_2cb != gl_d_33eb8_cb) {
+                        gl_func_00000000(base, &gl_ref_0001E37C);
                     }
-                    if (GBE8(0x2C) != GBE8(8)) {
-                        gl_func_0001CA10(&D_00000000, 0x1E394);
+                    if (gl_d_33eb8_2cc != gl_d_33eb8_8b) {
+                        gl_func_00000000(base, &gl_ref_0001E394);
                     }
-                    gl_func_0001CA10(&D_00000000, GBE8(0x28) + 8, 0x12340002);
-                    temp_v0_2 = GBE8(0x24);
-                    GBE8(0xC) = temp_v0_2;
-                    GBE8(8) = temp_v0_2;
-                    if (gl_func_0001CA10(&D_00000000, GBE8(0x28) + 8) != 0x12340003) {
-                        do {
-                            gl_func_0001CA10(&D_00000000);
-                        } while (gl_func_0001CA10(&D_00000000, GBE8(0x28) + 8) != 0x12340003);
+                    gl_func_00000000(base, gl_d_33eb8_28c + 8, 0x12340002);
+                    tmp = gl_d_33eb8_24a;
+                    gl_d_33eb8_cc = tmp;
+                    gl_d_33eb8_8c = tmp;
+                    if (gl_func_00000000(base, gl_d_33eb8_28d + 8) == 0x12340003) {
+                        goto flushed;
                     }
-                    gl_func_0001CA10(&D_00000000, GBE8(0x28) + 8, 0x12340002);
+                flush:
+                    gl_func_00000000(base);
+                    if (gl_func_00000000(base, *(volatile s32 *)&gl_d_33eb8_28e + 8) != 0x12340003) {
+                        goto flush;
+                    }
+                flushed:
+                    gl_func_00000000(base, gl_d_33eb8_28f + 8, 0x12340002);
                 }
             }
-            var_s0 = GBE8(8) - GBE8(0xC);
-            if ((s32) var_s3 < var_s0) {
-                var_s0 = var_s3;
+            len = gl_d_33eb8_8d - gl_d_33eb8_cd;
+            if ((u32)rem < len) {
+                len = rem;
             }
-            if (var_s0 != 0) {
-                if ((var_s4 & 7) != 0) {
-                    temp_v0 = 8 - (var_s4 & 7);
-                    if (temp_v0 < var_s0) {
-                        var_s0 = temp_v0;
+            if (len != 0) {
+                if ((dst & 7) != 0) {
+                    if ((u32)(8 - (dst & 7)) < len) {
+                        len = 8 - (dst & 7);
                     }
-                    var_t0 = 0;
-                    sp30 = var_t0;
-                    gl_func_0001CA10(&D_00000000, GBE8(0xC), &D_00000000, var_s0);
-                    if (var_s0 != 0) {
-                        var_v0 = var_s4;
-                        var_v1 = (u8 *)&D_00000000;
+                    cnt = 0;
+                    gl_func_00000000(base, gl_d_33eb8_ce, base, len);
+                    if (len != 0) {
+                        src = &gl_d_33eb8_src;
+                        cpdst = dst;
                         do {
-                            temp_t7 = *var_v1;
-                            var_t0 += 1;
-                            var_v0 += 1;
-                            var_v1 += 1;
-                            *(u8 *)(var_v0 - 1) = temp_t7;
-                        } while (var_t0 < var_s0);
+                            *(u8 *)cpdst = *src;
+                            cnt += 1;
+                            cpdst += 1;
+                            src += 1;
+                        } while (cnt < len);
                     }
                 } else {
-                    gl_func_0001CA10(&D_00000000, GBE8(0xC), var_s4, var_s0);
+                    gl_func_00000000(base, gl_d_33eb8_cf, dst, len);
                 }
-                GBE8(0xC) = GBE8(0xC) + var_s0;
+                gl_d_33eb8_ch = gl_d_33eb8_cg + len;
             }
-            var_s3 -= var_s0;
-            var_s4 += var_s0;
-            if ((s32) var_s3 < 0) {
-                gl_func_0001CA10(&D_00000000, 0x1E3AC);
+            rem -= len;
+            dst += len;
+            if (rem < 0) {
+                gl_func_00000000(base, &gl_ref_0001E3AC);
             }
-            if (var_s3 != 0) {
-                gl_func_0001CA10(&D_00000000);
+            if (rem != 0) {
+                gl_func_00000000(base);
             }
-        } while (var_s3 != 0);
+        } while (rem != 0);
     }
-    gl_func_0001CA10(&D_00000000);
+    gl_func_00000000(base);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
