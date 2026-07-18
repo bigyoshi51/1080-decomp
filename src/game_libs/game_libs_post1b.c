@@ -3190,57 +3190,66 @@ void gl_func_00066EEC(s32 **arg0) {
 
     var_s6 = 0;
     temp_s4 = (int)arg0 + 0x11B0;
-loop_1:
-    gl_func_00062F64(temp_s4, &sp54, 1);
-    temp_v1 = *(int*)sp54;
-    if (temp_v1 == 0) {
-        goto loop_1;
-    }
-    if (temp_v1 == 5) {
-        sp4F = 0;
-        gl_func_00062F64(temp_s4, (s32 **) &sp4F);
-        var_s0 = 0;
-        do {
-            if (sp4F & (1 << var_s0)) {
-                temp_s1 = (int)arg0 + (var_s0 * 0x68) + 0x1228;
-                if (gl_func_00062F64(temp_s4, temp_s1, var_s0) == 0) {
-                    gl_func_00062F64(temp_s1);
-                }
-            }
-            var_s0 += 1;
-        } while (var_s0 != 4);
-        var_s6 = 1;
-        goto loop_1;
-    }
-    if (temp_v1 == 6) {
-        goto loop_1;
-    }
-    if (temp_v1 == 1) {
-        var_s0_2 = 0;
-        if (var_s6 == 0) {
-            var_s1 = (s16 *)arg0;
-            do {
-                gl_func_00062F64(arg0, var_s0_2, *(s16*)((char*)var_s1 + 0x13E0));
-                var_s0_2 += 1;
-                var_s1 += 1;
-            } while (var_s0_2 != 4);
+    while (1) {
+        gl_func_00062F64(temp_s4, &sp54, 1);
+        temp_v1 = *(int*)sp54;
+        if (temp_v1 == 0) {
+            continue;
         }
-        gl_func_00062F64(temp_s4);
-        FW(arg0, 0x13E8) = 0;
-        goto loop_1;
+        if (temp_v1 == 5) {
+            goto case_5;
+        }
+        if (temp_v1 == 6) {
+            continue;
+        }
+        if (temp_v1 == 1) {
+            goto case_1;
+        }
+        if (temp_v1 == 4) {
+            continue;
+        }
+        if (temp_v1 == 2) {
+            goto case_2;
+        }
+        continue;
+        {
+        case_5:
+            sp4F = 0;
+            gl_func_00062F64(temp_s4, (s32 **) &sp4F);
+            var_s0 = 0;
+            do {
+                if (sp4F & (1 << var_s0)) {
+                    temp_s1 = (int)arg0 + (var_s0 * 0x68) + 0x1228;
+                    if (gl_func_00062F64(temp_s4, temp_s1, var_s0) == 0) {
+                        gl_func_00062F64(temp_s1);
+                    }
+                }
+                var_s0 += 1;
+            } while (var_s0 != 4);
+            var_s6 = 1;
+            continue;
+        case_1:
+            var_s0_2 = 0;
+            if (var_s6 == 0) {
+                var_s1 = (s16 *)arg0;
+                do {
+                    gl_func_00062F64(arg0, var_s0_2, *(s16*)((char*)var_s1 + 0x13E0));
+                    var_s0_2 += 1;
+                    var_s1 += 1;
+                } while (var_s0_2 != 4);
+            }
+            gl_func_00062F64(temp_s4);
+            FW(arg0, 0x13E8) = 0;
+            continue;
+        case_2:
+            gl_func_00062F64((int)arg0 + 0x1200);
+            if (var_s6 == 0) {
+                gl_func_00062F64(arg0);
+            }
+            FW(arg0, 0x13E8) = 1;
+            continue;
+        }
     }
-    if (temp_v1 == 4) {
-        goto loop_1;
-    }
-    if (temp_v1 != 2) {
-        goto loop_1;
-    }
-    gl_func_00062F64((int)arg0 + 0x1200);
-    if (var_s6 == 0) {
-        gl_func_00062F64(arg0);
-    }
-    FW(arg0, 0x13E8) = 1;
-    goto loop_1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066EEC);
