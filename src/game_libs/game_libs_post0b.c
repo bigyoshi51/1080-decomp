@@ -32689,7 +32689,58 @@ void game_libs_func_00060574(int *a0) {
     *(int*)((char*)a0 + 0x44) = 0;
 }
 
+/* gl_func_00060584 — grid/table constructor (0x27C / 159 insns). Raw-.word decode.
+ * Allocates (or reuses) a 0x58 record; copies a 16-byte by-value struct arg to
+ * +0x48; allocates rows*(cols+1) char buffer (+4) and rows char* row table (+0);
+ * inits each row pointer and NUL-terminates each row at [cols] (IDO 4x
+ * auto-unroll reproduces the multu-per-step remainder/main loop pair). Tail:
+ * defaults 8/6/0x14/0x28/0 then registers via global-loaded callee.
+ * 626/632 bytes exact (99.05%). Residual 6 words = (a) prologue scheduler tie:
+ * target orders move s0,a0 before move s1,a3 with sw a1 home-store in the bne
+ * delay; build sinks the s0 copy into the delay (probed: decl order, register,
+ * test-p vs test-arg0, paren-assign, K&R def - all invariant); (b) CSE-temp
+ * (arg2+1) spill home sp+0x24 vs our sp+0x20 (7C74-class fresh-slot-vs-reuse
+ * spill coalescing; volatile pad + unused j + named w all grow frame instead). */
+#ifdef NON_MATCHING
+typedef struct { int a, b, c, d; } S_00060584;
+typedef struct { char *row; int pad; } R_00060584;
+void *gl_func_00060584(char *arg0, int arg1, int arg2, int arg3, int arg4, int arg5, S_00060584 s) {
+    char *p;
+    int i;
+
+    p = arg0;
+    if (p == 0) {
+        p = (char *)gl_func_00000000(0x58);
+        if (p == 0) goto end;
+    }
+    *(int *)(p + 0x40) = arg1;
+    *(S_00060584 *)(p + 0x48) = s;
+    *(int *)(p + 0x44) = gl_func_00000000();
+    *(int *)(p + 0xC) = arg3;
+    *(int *)(p + 0x8) = arg2;
+    *(int *)(p + 0x14) = arg5;
+    *(int *)(p + 0x1C) = arg4;
+    *(int *)(p + 0x18) = 0;
+    *(int *)(p + 0x10) = 0;
+    *(int *)(p + 0x4) = gl_func_00000000((arg2 + 1) * arg3);
+    *(int *)(p + 0x0) = gl_func_00000000(arg3 * 8);
+    for (i = 0; i < arg3; i++) {
+        ((R_00060584 *)*(int *)(p + 0x0))[i].row = (char *)(*(int *)(p + 0x4) + (i * (arg2 + 1)));
+        ((R_00060584 *)*(int *)(p + 0x0))[i].row[arg2] = 0;
+    }
+    gl_func_00000000(p);
+    *(int *)(p + 0x28) = 8;
+    *(int *)(p + 0x24) = 6;
+    *(int *)(p + 0x2C) = 0x14;
+    *(int *)(p + 0x30) = 0x28;
+    *(int *)(p + 0x34) = 0;
+    gl_func_00000000(D_00000000, p);
+end:
+    return p;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060584);
+#endif
 
 void game_libs_func_000607FC(int *a0) { *(int*)((char*)a0 + 0x34) ^= 0x1; }
 
