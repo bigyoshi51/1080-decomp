@@ -19073,45 +19073,35 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031A74);
 
 void game_libs_func_00031CA8(int *a0, int a1, int a2) { *(int*)((char*)a0 + 0) = a1; *(int*)((char*)a0 + 8) = a2; *(int*)((char*)a0 + 0xC) = 0; }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00031CB8)();
-void game_libs_func_00031CB8(char *arg0) {
-    s32 temp_lo;
-    s32 temp_v0;
-    s32 temp_v0_2;
-    s32 temp_v1;
-    s32 var_v0;
-    s32 var_v1;
+/* game_libs_func_00031CB8: fixed-point value stepper (8.8): while count
+ * (p[2]) is nonzero, accumulate |(target-current)<<8 / count| into the
+ * fraction accumulator p[3], and for every 0x100 of accumulated fraction
+ * step current (p[1]) by +/-1 toward target (p[0]); then decrement count.
+ * Matched 46/46 (2026-07-17): goto-loop (not while — keeps the top-test
+ * unrotated reload shape), num = (diff << 8) as un-named CSE expression
+ * (naming it flips a1/a2 for step/num), ternaries spelled else-first
+ * ((x >= 0) ? pos : neg), and arg0[1] += dir BEFORE arg0[3] -= 0x100
+ * (provably non-aliasing stores; scheduler re-orders, but the temp ring
+ * t0/t1/t2 follows source statement order). */
+void game_libs_func_00031CB8(s32 *arg0) {
+    s32 diff;
+    s32 step;
+    s32 dir;
 
-    temp_v0 = FW(arg0, 0x8);
-    if (temp_v0 != 0) {
-        temp_v1 = FW(arg0, 0x0) - FW(arg0, 0x4);
-        temp_lo = (s32) (temp_v1 << 8) / temp_v0;
-        var_v0 = -temp_lo;
-        if (temp_lo >= 0) {
-            var_v0 = temp_lo;
+    if (arg0[2] != 0) {
+        diff = arg0[0] - arg0[1];
+        step = (diff << 8) / arg0[2];
+        arg0[3] += (step >= 0) ? step : -step;
+    loop:
+        if (arg0[3] >= 0x100) {
+            dir = ((diff << 8) >= 0) ? 1 : -1;
+            arg0[1] += dir;
+            arg0[3] -= 0x100;
+            goto loop;
         }
-        FW(arg0, 0xC) = (s32) (FW(arg0, 0xC) + var_v0);
-loop_4:
-        temp_v0_2 = FW(arg0, 0xC);
-        var_v1 = -1;
-        if (temp_v0_2 >= 0x100) {
-            if (!(temp_v1 & 0x800000)) {
-                var_v1 = 1;
-            }
-            FW(arg0, 0xC) = (s32) (temp_v0_2 - 0x100);
-            FW(arg0, 0x4) = (s32) (FW(arg0, 0x4) + var_v1);
-            goto loop_4;
-        }
-        FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) - 1);
+        arg0[2]--;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031CB8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031D70);
 

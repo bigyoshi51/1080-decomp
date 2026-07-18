@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00031CB8",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-18T03:34:12.193324+00:00",
+  "end_time": "2026-07-18T03:34:12.193342+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-18T03:34:12.193337+00:00",
+      "assistant_text": "Fixed-point 8.8 value stepper. Levers: goto-loop (unrotated top-test, per-iteration reloads), (diff << 8) kept as un-named CSE expression (naming it swaps a1/a2 for step/num), else-first ternaries ((x >= 0) ? pos : neg) for the abs and dir diamonds (negu/li-first + b .+1 shape), arg0[1] += dir ordered before arg0[3] -= 0x100 (non-aliasing stores; temp ring t0/t1/t2 follows source order).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 46,
+  "initial_m2c_source": null,
+  "final_source": "typedef int s32;\nvoid game_libs_func_00031CB8(s32 *arg0) {\n    s32 diff;\n    s32 step;\n    s32 dir;\n\n    if (arg0[2] != 0) {\n        diff = arg0[0] - arg0[1];\n        step = (diff << 8) / arg0[2];\n        arg0[3] += (step >= 0) ? step : -step;\n    loop:\n        if (arg0[3] >= 0x100) {\n            dir = ((diff << 8) >= 0) ? 1 : -1;\n            arg0[1] += dir;\n            arg0[3] -= 0x100;\n\n            goto loop;\n        }\n        arg0[2]--;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/game_libs/game_libs/game_libs_func_00031CB8.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "46/46 words byte-exact standalone + in-tree full make, tenshoe.z64 cmp byte-identical to baserom; objdiff fuzzy 100.0"
+  }
+}
