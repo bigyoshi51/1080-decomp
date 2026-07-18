@@ -7549,7 +7549,12 @@ void timproc_uso_b5_func_0000AC10(int a0, int a1, int a2) {
  * every func_00000000 arg list from the verified .s decode (frame -0x100, only
  * $s0 saved). func_00000000 = USO placeholder (transform helpers). */
 #define TB5_F(off) (*(f32 *)((char *)o + (off)))
-#define TB5_D(off) (*(f32 *)((char *)&D_00000000 + (off)))
+struct TimB5F2 { f32 x, y; };
+extern struct TimB5F2 D_timb5_AC20_gxy;
+extern f32 D_timb5_AC20_gz;
+extern char D_timb5_AC20_dot,
+    D_timb5_AC20_thr, D_timb5_AC20_root, D_timb5_AC20_w0, D_timb5_AC20_w1,
+    D_timb5_AC20_w2, D_timb5_AC20_w3;
 void timproc_uso_b5_func_0000AC20(char *arg0) {
     char *o = arg0;
     Vec3 spD0;
@@ -7561,19 +7566,22 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
     f32 sp4C, sp50, sp54;
     f32 sp3C, sp40, sp44;
     f32 sp30, sp34, sp38;
-    char *sp2C;
+    f32 *gp;
     f32 var_f12;
     f32 mul;
     f32 wrap;
     f32 two = 2.0f;
 
-    spD0.x = TB5_F(0xDC) - TB5_D(0x0);
-    spD0.y = TB5_F(0xE0) - TB5_D(0x4);
-    spD0.z = TB5_F(0xE4) - TB5_D(0x8);
+    {
+        register f32 *tp = (f32 *)(o + 0xDC);
+        spD0.x = tp[0] - D_timb5_AC20_gxy.x;
+        spD0.y = tp[1] - D_timb5_AC20_gxy.y;
+        spD0.z = tp[2] - D_timb5_AC20_gz;
+    }
     spF4 = spE4 = spD0;
     func_00000000(&spF4);
-    if ((f64) ((TB5_D(0x0) * spF4.x) + (TB5_D(0x4) * spF4.y) + (TB5_D(0x8) * spF4.z)) < *(f64 *)((char *)&D_00000000 + 0x338)) {
-        sp2C = o + 0xF4;
+    gp = (f32 *)&D_timb5_AC20_dot;
+    if ((f64) ((gp[0] * spF4.x) + (gp[1] * spF4.y) + (gp[2] * spF4.z)) < *(f64 *)((char *)&D_timb5_AC20_thr + 0x338)) {
         TB5_F(0xF4) = 0.0f;
         TB5_F(0xF8) = 0.0f;
         TB5_F(0xFC) = 0.0f;
@@ -7581,16 +7589,16 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
         sp54 = 0.0f;
         sp50 = 0.0f;
         sp4C = 1.0f;
-        func_00000000(sp2C, &sp4C, TB5_F(0x114));
+        { register char *q = o + 0xF4; func_00000000(q, &sp4C, TB5_F(0x114)); }
         sp3C = 0.0f;
         sp40 = 0.0f;
         sp44 = 1.0f;
-        func_00000000(sp2C, &sp3C, TB5_F(0x110));
+        { register char *q = o + 0xF4; func_00000000(q, &sp3C, TB5_F(0x110)); }
         sp30 = 0.0f;
         sp38 = 0.0f;
         sp34 = 1.0f;
-        func_00000000(sp2C, &sp30, TB5_F(0x118));
-        func_00000000(*(s32 *)((char *)(*(s32 *)((char *)&D_00000000 + 0)) + 0x70) + 0xB4, &sp7C);
+        { register char *q = o + 0xF4; func_00000000(q, &sp30, TB5_F(0x118)); }
+        func_00000000(*(s32 *)((char *)(*(s32 *)&D_timb5_AC20_root) + 0x70) + 0xB4, &sp7C);
         func_00000000(&sp7C, &sp6C);
         mul = TB5_F(0x11C) * TB5_F(0x120);
         var_f12 = 1.0f;
@@ -7600,35 +7608,35 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
         if (*(s32 *)((char *)(o) + 0x12C) != 0) {
             var_f12 = TB5_F(0x120);
         }
-        func_00000000(sp2C, &sp6C, var_f12, 0);
+        { register char *q = o + 0xF4; func_00000000(q, &sp6C, var_f12, 0); }
         sp5C = (TB5_F(0xF4) * TB5_F(0xFC) * two) + (TB5_F(0x100) * TB5_F(0xF8) * two);
         sp60 = (TB5_F(0xF8) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF4) * two);
         sp64 = (1.0f - (TB5_F(0xF4) * TB5_F(0xF4) * two)) - (TB5_F(0xF8) * TB5_F(0xF8) * two);
-        func_00000000(sp2C, &sp5C, 0x3FC90FDB);
+        { register char *q = o + 0xF4; func_00000000(q, &sp5C, 0x3FC90FDB); }
         sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
         sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
         sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
-        func_00000000(sp2C, &sp5C, 0x3FC90FDB);
+        { register char *q = o + 0xF4; func_00000000(q, &sp5C, 0x3FC90FDB); }
         if ((*(s32 *)((char *)(o) + 0x12C) != 0) && (*(s32 *)((char *)(o) + 0x130) != 0)) {
-            wrap = TB5_D(0x340);
-            TB5_F(0x10C) = TB5_F(0x10C) + TB5_D(0x344);
+            wrap = *(f32 *)((char *)&D_timb5_AC20_w0 + 0x340);
+            TB5_F(0x10C) = TB5_F(0x10C) + *(f32 *)((char *)&D_timb5_AC20_w1 + 0x344);
             if (wrap <= TB5_F(0x10C)) {
                 TB5_F(0x10C) = TB5_F(0x10C) - wrap;
             }
             sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
             sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
             sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
-            func_00000000(sp2C, &sp5C, *(s32 *)((char *)(o) + 0x10C));
+            { register char *q = o + 0xF4; func_00000000(q, &sp5C, *(s32 *)((char *)(o) + 0x10C)); }
         } else {
             if (TB5_F(0x10C) > 0.0f) {
-                TB5_F(0x10C) = TB5_F(0x10C) + TB5_D(0x34C);
-                if (TB5_D(0x348) <= TB5_F(0x10C)) {
+                TB5_F(0x10C) = TB5_F(0x10C) + *(f32 *)((char *)&D_timb5_AC20_w2 + 0x34C);
+                if (*(f32 *)((char *)&D_timb5_AC20_w3 + 0x348) <= TB5_F(0x10C)) {
                     TB5_F(0x10C) = 0.0f;
                 }
                 sp5C = (1.0f - (TB5_F(0xF8) * TB5_F(0xF8) * two)) - (TB5_F(0xFC) * TB5_F(0xFC) * two);
                 sp60 = (TB5_F(0xF4) * TB5_F(0xF8) * two) + (TB5_F(0x100) * TB5_F(0xFC) * two);
                 sp64 = (TB5_F(0xF4) * TB5_F(0xFC) * two) - (TB5_F(0x100) * TB5_F(0xF8) * two);
-                func_00000000(sp2C, &sp5C, *(s32 *)((char *)(o) + 0x10C));
+                { register char *q = o + 0xF4; func_00000000(q, &sp5C, *(s32 *)((char *)(o) + 0x10C)); }
             }
         }
         func_00000000(*(s32 *)((char *)(o) + 0x108), *(s32 *)((char *)(o) + 0x124));
@@ -7637,7 +7645,6 @@ void timproc_uso_b5_func_0000AC20(char *arg0) {
     }
 }
 #undef TB5_F
-#undef TB5_D
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000AC20);
 #endif
