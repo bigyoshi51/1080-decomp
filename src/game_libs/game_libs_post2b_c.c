@@ -8,33 +8,24 @@ typedef struct { float x, y, z; } Vec3;
 
 
 
-/* gl_func_00073034: DECODE CORRECTED 2026-06-09 -- THREE placeholder jals,
- * not two, and there is NO stolen-prologue donation (the fn is a clean
- * 16-insn unit ending jr+delay at 0x40). Structure:
- *   call1(a0, a1?)          -- jal with `sw s0` scheduled into its delay
- *   v = call2(a0, a1)       -- a0 reloaded before, a1 in the jal delay
- *   call3()                 -- `move s0,v0` (capture call2's v0) in delay
- *   return v                -- v0 = s0 round-trip across the epilogue
- * v lives in s0 because it crosses call3 (register-class residency).
- * 5.3 -O1 with `register int v` reproduces frame 0x28 + s0 save + the
- * round-trip exactly; residual 11/16 word diffs are pure scheduling: the
- * register keyword makes cc reload a1 (and dup-reload a0) before call1
- * instead of using live args + delay-slot sw s0. Plain int spills v to
- * stack instead (17 insns). Permuter-range residual; both 5.3 and 7.1
- * emit identically. */
-#ifdef NON_MATCHING
+/* gl_func_00073034: 16-insn 3-call sandwich returning call-2's result:
+ * hook(); r = work(a0, a1); unhook(); return r.
+ * 2026-07-17 (agent-h): raw-word IDENTICAL twin (16/16) of exact
+ * gl_func_0006B974 found by the sibling scan — the old "permuter-range
+ * scheduling residual / v lives in s0" grind is RETRACTED; this is the
+ * documented -O1 island call-sandwich (0x6B7A0..0x73824 batch). Real C
+ * lives in the -O1 donor unit game_libs_o1_73034.c (mirror of the
+ * proven 6B974 donor: plain a0/a1 homing + `register int r` = $s0
+ * across call 3), spliced over this -O2 stand-in via REPLACE_FUNC_BODY. */
 extern int gl_func_00000000();
 
 int gl_func_00073034(int a0, int a1) {
-    register int v;
-    gl_func_00000000(a0, a1);
-    v = gl_func_00000000(a0, a1);
+    register int r;
     gl_func_00000000();
-    return v;
+    r = gl_func_00000000(a0, a1);
+    gl_func_00000000();
+    return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073034);
-#endif
 
 
 /* game_libs_func_00073074 (0x8 orphan, no jr ra: lui/lw PI_STATUS_REG)
