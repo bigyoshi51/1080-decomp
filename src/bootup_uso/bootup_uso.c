@@ -4460,6 +4460,20 @@ void func_00006734(char *a0) {
 //   without the deferred splat/GOT-symbolization infra pass + original cc.
 //   Fixed two m2c-unset-temp literals in the tail (sw 6 to s5 global;
 //   0xA8002 mode word) — faithful corrections, prefix still 0% (frame).
+// PASS-5 2026-07-17 (agent-g): NEGATIVE RESULT — E68 identity-split
+//   recipe probed and REVERTED (all three variants lower fuzzy from
+//   60.28: +0x1C4 RMWs -> true-identity func_00000188+0x3C form 58.82;
+//   + mode-word RMW -> func_00000000+0x4 form 57.93; + gc alias for the
+//   s5-class 0x68/0x3C reads 56.56), despite each moving insn count
+//   toward target (545->553 of 594) and matching the target's per-site
+//   %hi/%lo shapes (target: no held base for the func_00000188+0x3C
+//   |8/&~8 RMWs; s4 AND s5 both re-materialized lui0/addiu0 mid-body).
+//   At this alignment distance the fuzzy LCS is dominated by the s-reg
+//   under-coloring (built saves 5 regs vs target 9, seed a1->0x40
+//   spilled to 0x3C(sp) vs held in s1) — identity splits can't help
+//   until the register-role skeleton (obj->s7, ga->s4, gc->s5, seed->s1,
+//   idx/mask->s6) is rebuilt first, i.e. this needs the E68-style
+//   de-name/role-local pass BEFORE the alias split, not after.
 #ifdef NON_MATCHING
 extern char D_00007EC4, D_00007ECC, D_00007ED8, D_00007EE8, D_00007EEC;
 extern char D_00007EF0, D_00007EF4, D_00007EF8, D_00007EFC, D_00007F08;
