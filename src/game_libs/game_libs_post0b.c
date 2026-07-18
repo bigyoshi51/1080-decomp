@@ -12745,13 +12745,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042944);
 // plus a fixed header: arg0[0..7]=0, arg0[0x10..0x17] zeroed except the
 // two 0x80 marker bytes at 0x11 and 0x15.
 //
-// NON_MATCHING (coloring/scheduler-tie residual, ~40/99 words):
-//   * the six trunc.w.s -> mfc1 conversions land in different temp regs
-//     (target t8,t1,t4,t7,t0,t3 vs IDO's free choice here), and
-//   * IDO schedules the zero-store block vs the 6th clamp in a different
-//     (tied) order — last sb falls in the jr delay slot in the target.
-// Logic is exact; tried decl-order, int-128 hoist, last-clamp placement,
-// and ~thousands of permuter iterations — no zero. Genuine regalloc cap.
+// NON_MATCHING (temp-ring residual, 12/99 words — 87.88):
+// 2026-07-17: zero-block moved AFTER the 6th clamp in source — the scheduler
+// then interleaves it into clamp 6's trunc->mfc1 latency and sinks the last
+// sb into the jr delay slot; schedule now matches the target 100%. The ONLY
+// residual is the int temp ring for the six trunc->mfc1 pairs: target
+// t8,t1,t4,t7,t0,t3 (stride 3, start t8) vs IDO here t7,t9,t1,t3,t5,t7
+// (stride 2, start t7). Probed: named/block-scoped/register s32 temps (regress
+// to v0 +6 insns), named per-site f32 temps, de-naming t/c/f127/f128, address
+// (s32) casts, folded +0/^0/|0/>>0/*1 ghost ops, trip-3 loops (NOT unrolled by
+// IDO — stays a real loop), pointer-walk *s++/*d++ (shifts ring but adds addiu
+// insns), coalesced per-site d=arg0 copies — ring is start/stride-invariant
+// under all of them. Needs +1 ring slot before site 1 and +1 per site with
+// zero emitted insns; no C spelling found. Genuine temp-ring cap.
 void game_libs_func_00042F4C(char *arg0, char *arg1, char *arg2) {
   f32 f128 = 128.0f;
   f32 f127 = 127.0f;
@@ -12767,6 +12773,8 @@ void game_libs_func_00042F4C(char *arg0, char *arg1, char *arg2) {
   *((s8 *) (arg0 + 0x18)) = (s8) (s32) (t < f127 ? t : f127);
   t = (*((f32 *) (arg2 + 0x4))) * f128;
   *((s8 *) (arg0 + 0x19)) = (s8) (s32) (t < f127 ? t : f127);
+  t = (*((f32 *) (arg2 + 0x8))) * f128;
+  *((s8 *) (arg0 + 0x1A)) = (s8) (s32) (t < f127 ? t : f127);
   *((s8 *) (arg0 + 0x0)) = 0;
   *((s8 *) (arg0 + 0x1)) = 0;
   *((s8 *) (arg0 + 0x2)) = 0;
@@ -12783,8 +12791,6 @@ void game_libs_func_00042F4C(char *arg0, char *arg1, char *arg2) {
   *((s8 *) (arg0 + 0x15)) = c;
   *((s8 *) (arg0 + 0x16)) = 0;
   *((s8 *) (arg0 + 0x17)) = 0;
-  t = (*((f32 *) (arg2 + 0x8))) * f128;
-  *((s8 *) (arg0 + 0x1A)) = (s8) (s32) (t < f127 ? t : f127);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042F4C);
