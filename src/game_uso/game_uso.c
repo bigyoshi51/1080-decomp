@@ -9805,404 +9805,406 @@ extern int game_uso_func_055750();
 extern int game_uso_func_04A188();
 extern int import_0010D33C();
 void game_uso_func_0000D458(s32);
-void *game_uso_func_0000C48C(void *a0, int a1, int a2) {
-    char *p = (char *)a0;
+extern char gu_c48c_tf0, gu_c48c_tf1, gu_c48c_tf2, gu_c48c_tf3, gu_c48c_tf4, gu_c48c_tf5, gu_c48c_tf6, gu_c48c_tf7, gu_c48c_tf8, gu_c48c_tf9, gu_c48c_tf10, gu_c48c_tf11, gu_c48c_tf12, gu_c48c_tf13, gu_c48c_tf14, gu_c48c_tf15, gu_c48c_ti0, gu_c48c_ti1, gu_c48c_ti2, gu_c48c_ti3, gu_c48c_ti4, gu_c48c_ti5, gu_c48c_ti6, gu_c48c_ti7, gu_c48c_ti8, gu_c48c_ti9, gu_c48c_ti10, gu_c48c_ti11, gu_c48c_ti12, gu_c48c_ti13, gu_c48c_ti14, gu_c48c_ti15, gu_c48c_fv0, gu_c48c_fv1;
+struct C48CArg { int v; };
+void *game_uso_func_0000C48C(char *p, int a1, int a2) {
     int *s1, *v1, *obj;
-    volatile int vslot;
+    struct C48CArg t;
     if (p == 0) { p = (char *)game_uso_func_055750(0x444); if (p == 0) goto end; }
     import_0010D33C(p, a1);
     *(int *)(p + 0x28) = (int)&game_uso_D_807FF74C;
     s1 = (int *)(p + 0x13C);
-    if (p == (char *)-0x13C) { s1 = (int *)game_uso_func_055750(0x308); if (s1 == 0) goto end; }
+    if (p == (char *)-0x13C) { s1 = (int *)game_uso_func_055750(0x308); if (s1 == 0) goto tail; }
     v1 = s1;
     if (s1 == 0) { v1 = (int *)game_uso_func_055750(8); if (v1 == 0) goto stage0; }
     v1[0] = (int)((char *)&game_uso_D_807FF814 + 0x1224);
     v1[1] = 0;
 stage0:;
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF81C + 0x122c);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF81C + 0x122c);
+        t = u;
         obj = (int *)((char *)s1 + 0x8);
-        if (s1 == (int *)-0x8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf0 + 0xf78);
         obj[0x14 / 4] = 0;
-        *(float *)((char *)obj + 0x10) = *(float *)((char *)&game_uso_D_807FF820 + 0x1ec);
+        *(float *)((char *)obj + 0x10) = *(float *)((char *)&gu_c48c_fv0 + 0x1ec);
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF820 + 0x1230);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF820 + 0x1230);
+        t = u;
         obj = (int *)((char *)s1 + 0x20);
-        if (s1 == (int *)-0x20) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x20 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti0 + 0xfc0);
         obj[0x10 / 4] = 20;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF824 + 0x1234);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF824 + 0x1234);
+        t = u;
         obj = (int *)((char *)s1 + 0x38);
-        if (s1 == (int *)-0x38) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x38 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti1 + 0xfc0);
         obj[0x10 / 4] = 60;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF828 + 0x1238);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF828 + 0x1238);
+        t = u;
         obj = (int *)((char *)s1 + 0x50);
-        if (s1 == (int *)-0x50) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x50 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti2 + 0xfc0);
         obj[0x10 / 4] = 5;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF82C + 0x123c);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF82C + 0x123c);
+        t = u;
         obj = (int *)((char *)s1 + 0x68);
-        if (s1 == (int *)-0x68) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x68 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf1 + 0xf78);
         obj[0x14 / 4] = 0;
-        *(float *)((char *)obj + 0x10) = *(float *)((char *)&game_uso_D_807FF830 + 0x1f0);
+        *(float *)((char *)obj + 0x10) = *(float *)((char *)&gu_c48c_fv1 + 0x1f0);
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF830 + 0x1240);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF830 + 0x1240);
+        t = u;
         obj = (int *)((char *)s1 + 0x80);
-        if (s1 == (int *)-0x80) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x80 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti3 + 0xfc0);
         obj[0x10 / 4] = 20;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF834 + 0x1244);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF834 + 0x1244);
+        t = u;
         obj = (int *)((char *)s1 + 0x98);
-        if (s1 == (int *)-0x98) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x98 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf2 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 3.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF838 + 0x1248);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF838 + 0x1248);
+        t = u;
         obj = (int *)((char *)s1 + 0xb0);
-        if (s1 == (int *)-0xb0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0xb0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf3 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 7.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF83C + 0x124c);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF83C + 0x124c);
+        t = u;
         obj = (int *)((char *)s1 + 0xc8);
-        if (s1 == (int *)-0xc8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0xc8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti4 + 0xfc0);
         obj[0x10 / 4] = 3;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF840 + 0x1250);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF840 + 0x1250);
+        t = u;
         obj = (int *)((char *)s1 + 0xe0);
-        if (s1 == (int *)-0xe0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0xe0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf4 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 0.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF844 + 0x1254);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF844 + 0x1254);
+        t = u;
         obj = (int *)((char *)s1 + 0xf8);
-        if (s1 == (int *)-0xf8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0xf8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf5 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 4.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF848 + 0x1258);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF848 + 0x1258);
+        t = u;
         obj = (int *)((char *)s1 + 0x110);
-        if (s1 == (int *)-0x110) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x110 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf6 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 50.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF84C + 0x125c);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF84C + 0x125c);
+        t = u;
         obj = (int *)((char *)s1 + 0x128);
-        if (s1 == (int *)-0x128) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x128 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf7 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 25.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF850 + 0x1260);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF850 + 0x1260);
+        t = u;
         obj = (int *)((char *)s1 + 0x140);
-        if (s1 == (int *)-0x140) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x140 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf8 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 40.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF854 + 0x1264);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF854 + 0x1264);
+        t = u;
         obj = (int *)((char *)s1 + 0x158);
-        if (s1 == (int *)-0x158) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x158 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf9 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF858 + 0x1268);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF858 + 0x1268);
+        t = u;
         obj = (int *)((char *)s1 + 0x170);
-        if (s1 == (int *)-0x170) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x170 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf10 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 120.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF85C + 0x126c);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF85C + 0x126c);
+        t = u;
         obj = (int *)((char *)s1 + 0x188);
-        if (s1 == (int *)-0x188) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x188 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf11 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 80.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF860 + 0x1270);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF860 + 0x1270);
+        t = u;
         obj = (int *)((char *)s1 + 0x1a0);
-        if (s1 == (int *)-0x1a0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x1a0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf12 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF864 + 0x1274);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF864 + 0x1274);
+        t = u;
         obj = (int *)((char *)s1 + 0x1b8);
-        if (s1 == (int *)-0x1b8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x1b8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf13 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 150.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF868 + 0x1278);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF868 + 0x1278);
+        t = u;
         obj = (int *)((char *)s1 + 0x1d0);
-        if (s1 == (int *)-0x1d0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x1d0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf14 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 100.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF86C + 0x127c);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF86C + 0x127c);
+        t = u;
         obj = (int *)((char *)s1 + 0x1e8);
-        if (s1 == (int *)-0x1e8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF568+0xf78);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x1e8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_tf15 + 0xf78);
         obj[0x14 / 4] = 0;
         *(float *)((char *)obj + 0x10) = 150.0f;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF870 + 0x1280);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF870 + 0x1280);
+        t = u;
         obj = (int *)((char *)s1 + 0x200);
-        if (s1 == (int *)-0x200) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x200 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti5 + 0xfc0);
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF874 + 0x1284);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF874 + 0x1284);
+        t = u;
         obj = (int *)((char *)s1 + 0x218);
-        if (s1 == (int *)-0x218) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x218 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti6 + 0xfc0);
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF878 + 0x1288);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF878 + 0x1288);
+        t = u;
         obj = (int *)((char *)s1 + 0x230);
-        if (s1 == (int *)-0x230) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x230 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti7 + 0xfc0);
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF87C + 0x128c);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF87C + 0x128c);
+        t = u;
         obj = (int *)((char *)s1 + 0x248);
-        if (s1 == (int *)-0x248) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
+        if (s1 != (int *)-0x248 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti8 + 0xfc0);
         obj[0x14 / 4] = 0;
         obj[0x10 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF880 + 0x1290);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF880 + 0x1290);
+        t = u;
         obj = (int *)((char *)s1 + 0x260);
-        if (s1 == (int *)-0x260) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x260 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti9 + 0xfc0);
         obj[0x10 / 4] = 1;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF884 + 0x1294);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF884 + 0x1294);
+        t = u;
         obj = (int *)((char *)s1 + 0x278);
-        if (s1 == (int *)-0x278) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x278 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti10 + 0xfc0);
         obj[0x10 / 4] = 1;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF888 + 0x1298);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF888 + 0x1298);
+        t = u;
         obj = (int *)((char *)s1 + 0x290);
-        if (s1 == (int *)-0x290) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x290 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti11 + 0xfc0);
         obj[0x10 / 4] = 1;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF88C + 0x129c);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF88C + 0x129c);
+        t = u;
         obj = (int *)((char *)s1 + 0x2a8);
-        if (s1 == (int *)-0x2a8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x2a8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti12 + 0xfc0);
         obj[0x10 / 4] = 1;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF890 + 0x12a0);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF890 + 0x12a0);
+        t = u;
         obj = (int *)((char *)s1 + 0x2c0);
-        if (s1 == (int *)-0x2c0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x2c0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti13 + 0xfc0);
         obj[0x10 / 4] = 1;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF894 + 0x12a4);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF894 + 0x12a4);
+        t = u;
         obj = (int *)((char *)s1 + 0x2d8);
-        if (s1 == (int *)-0x2d8) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x2d8 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti14 + 0xfc0);
         obj[0x10 / 4] = 30;
+        obj[0x14 / 4] = 0;
+        }
     }
     {
-        volatile int val; char *tmpl;
-        val = *(int *)((char *)&game_uso_D_807FF898 + 0x12a8);
-        vslot = val;
+        struct C48CArg u;
+        u.v = *(int *)((char *)&game_uso_D_807FF898 + 0x12a8);
+        t = u;
         obj = (int *)((char *)s1 + 0x2f0);
-        if (s1 == (int *)-0x2f0) { obj = (int *)game_uso_func_055750(0x18); if (obj == 0) goto end; }
-        game_uso_func_04A188(obj, s1, vslot, 1);
-        tmpl = ((char *)&game_uso_D_807FF5B0+0xfc0);
-        obj[0xC / 4] = (int)tmpl;
-        obj[0x14 / 4] = 0;
+        if (s1 != (int *)-0x2f0 || (obj = (int *)game_uso_func_055750(0x18)) != 0) {
+        game_uso_func_04A188(obj, s1, t, 1);
+        obj[0xC / 4] = (int)((char *)&gu_c48c_ti15 + 0xfc0);
         obj[0x10 / 4] = 100;
+        obj[0x14 / 4] = 0;
+        }
     }
+tail:
     *(int *)(p + 0xB4) = a2;
     game_uso_func_0000D458(p);
 end:
