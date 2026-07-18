@@ -13377,26 +13377,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AA30);
 //   needs-redraw" marker). A state-acknowledge leaf in the game_libs
 //   object subsystem (operates on the same o->0/0x20/0x2C fields the
 //   gl_func_00028604 detach / gl_func_0002A7D8 commit use).
-// Caps (DEFERRED): raw-word USO + jal-0 USO-reloc notify — byte-
-//   match needs USO mnemonic disasm + reloc-pad jal infra. Real-C
-//   STRUCTURAL body below per the analysis. Byte-match deferred.
-//   Name pre-checked: no extern reuse.
+// 2026-07-17 AUDIT REWRITE (agent-h, 68.69% -> 27/35 words exact, all 8
+//   residual diffs pure temp-ring numbering). THREE decode errors fixed vs
+//   the old lift: (1) the self-link check is `o == PARENT->w_48` — target
+//   `lw t9,0x48(v0)` bases off the w_2C value (named local p, colored v0),
+//   not off o; (2) the two notify calls are IF / ELSE-IF arms (bltzl to the
+//   else check; taken-likely delay holds p's load) and take NO args;
+//   (3) `b_20 = 0` is guarded by st==1||st==2 but `b_0 |= 1` is
+//   UNCONDITIONAL (bnel v0,at skips only the sb zero, with the |=1 lbu
+//   hoisted into its likely-delay).
+// RESIDUAL (cap, C28C skipped-ring-slot class): target temp ring runs
+//   t6,[t7 skipped],t8,t9,[t0 skipped],t1,t2 — two 1-quantum ring burns
+//   (before the sll, and between the w_48 load and the final lbu) that no
+//   probed spelling reproduces (named s/b locals steal v0; void-alias
+//   dead-$v0, <<0 shift-chain phantom, dead st=call() capture all
+//   byte-inert). Placeholder jal-0 callees — stays NM wrap regardless.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 void gl_func_0002AB34(char *o) {
-    int s = *(int *)o;
     int st;
-    if ((s << 3) >= 0) {
-        gl_func_00000000(*(int *)(o + 0x2C));
-    }
-    if (*(int *)(o + 0x2C) != 0 && (char *)*(int *)(o + 0x48) == o) {
-        gl_func_00000000(*(int *)(o + 0x2C));
-        st = *(unsigned char *)(o + 0x20) & ~0x80;
-        if (st == 1 || st == 2) {
-            *(unsigned char *)(o + 0x20) = 0;
-            *(unsigned char *)o = *(unsigned char *)o | 0x01;
+    if ((*(int *)o << 3) >= 0) {
+        gl_func_00000000();
+    } else {
+        char *p = (char *)*(int *)(o + 0x2C);
+        if ((p != 0) && ((char *)*(int *)(p + 0x48) == o)) {
+            gl_func_00000000();
         }
     }
+    st = *(unsigned char *)(o + 0x20) & ~0x80;
+    if (st == 1 || st == 2) {
+        *(unsigned char *)(o + 0x20) = 0;
+    }
+    *(unsigned char *)o = *(unsigned char *)o | 0x01;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
