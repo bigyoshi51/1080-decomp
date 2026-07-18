@@ -1106,58 +1106,54 @@ void timproc_uso_b5_func_00001658(char *arg0) {
 #endif
 typedef char *(*GP_000018B4)();
 char *timproc_uso_b5_func_000018B4(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *arg5, s32 arg6, s32 arg7) {
+    register s32 d;
+    register char *E;
+    char *w;
     char *sp4C;
-    char *temp_a0;
-    char *temp_s1;
-    char *temp_s1_2;
-    char *temp_s1_3;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
     char *var_s0;
 
+    d = arg2;
     var_s0 = arg0;
-    if ((arg0 != 0) || (temp_v0 = timproc_uso_b5_alias((char *)0x58), var_s0 = temp_v0, (temp_v0 != 0))) {
-        timproc_uso_b5_alias(var_s0, (char *)0x10D0);
-        FW(var_s0, 0x28) = 0;
-        FW(var_s0, 0xC) = 0x10D8;
-        FW(var_s0, 0x30) = arg2;
-        FW(var_s0, 0x2C) = arg5;
-        if (arg2 == 1) {
-            temp_v0_2 = timproc_uso_b5_alias(0, var_s0, arg1, 1, 0, arg3, arg4, arg6, arg5, FW(arg5, 0x4), 0x10E8, 0);
-            FW(var_s0, 0x34) = temp_v0_2;
-            timproc_uso_b5_alias(temp_v0_2, (char *)0x68, 0x4C, 0x50, 0x54, 0x64);
-            temp_s1 = FW(var_s0, 0x34);
-            timproc_uso_b5_alias(var_s0 + 0x10, temp_s1);
-            if (FW(temp_s1, 0x14) != 0) {
-                FW(temp_s1, 0x4) = 1;
+    E = arg5;
+    if ((var_s0 != 0) || ((var_s0 = timproc_uso_b5_alias((char *)0x58)) != 0)) {
+        timproc_uso_b5_alias(var_s0, (char *)&D_00000000 + 0x10D0);
+        FW(var_s0, 0x28) = (int)&D_00000000;
+        FW(var_s0, 0xC) = (int)((char *)&D_00000000 + 0x10D8);
+        FW(var_s0, 0x30) = d;
+        FW(var_s0, 0x2C) = (int)E;
+        if (d == 1) {
+            w = timproc_uso_b5_alias(0, var_s0, arg1, 1, 0, arg3, arg4, arg6, E, FW(E, 0x4), (char *)&D_00000000 + 0x10E8, 0);
+            FW(var_s0, 0x34) = w;
+            timproc_uso_b5_alias(w, (char *)&D_00000000 + 0x68, (char *)&D_00000000 + 0x4C, (char *)&D_00000000 + 0x50, (char *)&D_00000000 + 0x54, (char *)&D_00000000 + 0x64);
+            w = FW(var_s0, 0x34);
+            timproc_uso_b5_alias(var_s0 + 0x10, w);
+            if (FW(w, 0x14) != 0) {
+                FW(w, 0x4) = 1;
             }
-            FW(temp_s1, 0x14) = var_s0;
-            FW(FW(FW(arg5, 0x0), 0x5C), 0x38) = (char *) FW(var_s0, 0x34);
+            FW(w, 0x14) = var_s0;
+            FW(FW(FW(E, 0x0), 0x5C), 0x38) = (char *) FW(var_s0, 0x34);
         } else {
-            temp_v0_3 = timproc_uso_b5_alias(0, var_s0, arg1, 2, 0, arg3, arg4, arg6, arg5, FW(arg5, 0x4), 0x10F8, 0);
-            FW(var_s0, 0x34) = temp_v0_3;
-            timproc_uso_b5_alias(temp_v0_3, (char *)0x68, 0x4C, 0x50, 0x54, 0x64);
-            temp_s1_2 = FW(var_s0, 0x34);
-            temp_a0 = var_s0 + 0x10;
-            sp4C = temp_a0;
-            timproc_uso_b5_alias(temp_a0, temp_s1_2);
-            if (FW(temp_s1_2, 0x14) != 0) {
-                FW(temp_s1_2, 0x4) = 1;
+            w = timproc_uso_b5_alias(0, var_s0, arg1, 2, 0, arg3, arg4, arg6, E, FW(E, 0x4), (char *)&D_00000000 + 0x10F8, 0);
+            FW(var_s0, 0x34) = w;
+            timproc_uso_b5_alias(w, (char *)&D_00000000 + 0x68, (char *)&D_00000000 + 0x4C, (char *)&D_00000000 + 0x50, (char *)&D_00000000 + 0x54, (char *)&D_00000000 + 0x64);
+            w = FW(var_s0, 0x34);
+            sp4C = var_s0 + 0x10;
+            timproc_uso_b5_alias(sp4C, w);
+            if (FW(w, 0x14) != 0) {
+                FW(w, 0x4) = 1;
             }
-            FW(temp_s1_2, 0x14) = var_s0;
-            FW(FW(FW(arg5, 0x0), 0x5C), 0x38) = (char *) FW(var_s0, 0x34);
-            temp_v0_4 = timproc_uso_b5_alias(0, var_s0, arg1, 2, 1, arg3, arg4, arg7, arg5, FW(arg5, 0x8), 0x110C, 0x80);
-            FW(var_s0, 0x38) = temp_v0_4;
-            timproc_uso_b5_alias(temp_v0_4, (char *)0x68, 0x58, 0x5C, 0x60, 0x64);
-            temp_s1_3 = FW(var_s0, 0x38);
-            timproc_uso_b5_alias(sp4C, temp_s1_3);
-            if (FW(temp_s1_3, 0x14) != 0) {
-                FW(temp_s1_3, 0x4) = 1;
+            FW(w, 0x14) = var_s0;
+            FW(FW(FW(E, 0x0), 0x5C), 0x38) = (char *) FW(var_s0, 0x34);
+            w = timproc_uso_b5_alias(0, var_s0, arg1, 2, 1, arg3, arg4, arg7, E, FW(E, 0x8), (char *)&D_00000000 + 0x110C, 0x80);
+            FW(var_s0, 0x38) = w;
+            timproc_uso_b5_alias(w, (char *)&D_00000000 + 0x68, (char *)&D_00000000 + 0x58, (char *)&D_00000000 + 0x5C, (char *)&D_00000000 + 0x60, (char *)&D_00000000 + 0x64);
+            w = FW(var_s0, 0x38);
+            timproc_uso_b5_alias(sp4C, w);
+            if (FW(w, 0x14) != 0) {
+                FW(w, 0x4) = 1;
             }
-            FW(temp_s1_3, 0x14) = var_s0;
-            FW(FW(FW(arg5, 0x0), 0x5C), 0x3C) = (char *) FW(var_s0, 0x38);
+            FW(w, 0x14) = var_s0;
+            FW(FW(FW(E, 0x0), 0x5C), 0x3C) = (char *) FW(var_s0, 0x38);
             if (FW(FW(var_s0, 0x34), 0x3C8) != 4) {
                 FW(var_s0, 0x3C) = 0;
                 FW(var_s0, 0x40) = 0;
