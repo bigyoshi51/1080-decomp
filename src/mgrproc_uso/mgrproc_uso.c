@@ -1945,27 +1945,27 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF
  * FIXED (016BEC prototyped with trailing `float` → swc1, no cvt.d.s/sdc1); the BC
  * pointer is CSE-reused for the final gate test (a1 reload before final v0); the
  * 0xC8 cb reuses the 0x98 pointer; the 0xDC counter is inlined (`*p += 1`) so it
- * no longer steals v0 — counter region now byte-exact. Register-BLIND structure is
- * now IDENTICAL to target. RESIDUAL (64 diffs, all derived from ONE coloring
- * decision): IDO assigns the post-call gate value + the 0x44/0x98 pointers to v1
- * here vs v0 in target — a uniform v0<->v1 global-coloring renumber. The 3-way
- * dispatch's redundant beqz-recheck and the B139C duplicate-arg move both follow
- * from that swap. PERMUTER-IMMUNE (40k iters, temp_for_expr/reorder passes: base
- * score 480 -> 360 floor, no zero; only no-op if(1){}/const-mangle "wins").
- * decl-order, if(1)-wrap, &&-reorder, nested-else, truthy-cond all 0-effect on the
- * swap. Genuine IDO post-call v-reg coloring cap. Caps: arg0/sub structs + cb
- * prototypes untyped (USO-reloc). NON_MATCHING. */
-extern int import_000B70AC();
-extern int import_000B1284();
-extern int import_000B1334();
-extern int import_000B12B4();
-extern int mgrproc_uso_func_0002FC();
-extern int import_000B139C();
+ * no longer steals v0 — counter region now byte-exact. SOLVED 2026-07-17 to
+ * objdiff-100: (1) void-alias dead-$v0 lever — declaring every unused-result
+ * callee `extern void` removes $v0 from post-call webs, which resolved the
+ * uniform v0<->v1 global-coloring renumber outright (94.76 -> 96.19); (2) the
+ * dispatch's redundant beqz-recheck is source-level `else if (v1 != 0)` — the
+ * `else` kills v1/a1 liveness across the B1284 call (no spill, frame 0x38 ->
+ * 0x28); (3) B139C is a SINGLE-arg call (a0 loaded in jal delay; the stray
+ * lw a1 is the bgtzl-taken delay slot belonging to the next region's gate
+ * reload). Stays NM wrap: USO placeholder callees (import_* / baked relocs)
+ * block byte-verify landing. NON_MATCHING. */
+extern void import_000B70AC();
+extern void import_000B1284();
+extern void import_000B1334();
+extern void import_000B12B4();
+extern void mgrproc_uso_func_0002FC();
+extern void import_000B139C();
 extern int import_000B7058();
-extern int import_000B14CC();
-extern int mgrproc_uso_func_016BB8();
-extern int mgrproc_uso_func_016BEC(int, int, int, int, float);
-extern int mgrproc_uso_func_04CD94();
+extern void import_000B14CC();
+extern void mgrproc_uso_func_016BB8();
+extern void mgrproc_uso_func_016BEC(int, int, int, int, float);
+extern void mgrproc_uso_func_04CD94();
 void mgrproc_uso_func_00003074(char *arg0) {
     char *a1;
     int v0;
@@ -1985,8 +1985,7 @@ void mgrproc_uso_func_00003074(char *arg0) {
             v1 = *(int *)(p + 0x94);
             if (v1 == 0) {
                 import_000B1284(a1);
-            }
-            if (v1 != 0) {
+            } else if (v1 != 0) {
                 if (v1 == 1) {
                     import_000B1334(a1);
                 } else {
@@ -2004,7 +2003,7 @@ void mgrproc_uso_func_00003074(char *arg0) {
         }
         p = *(char **)(arg0 + 0x98);
         if (*(int *)(p + 0xC8) <= 0) {
-            import_000B139C(*(int *)(arg0 + 0xBC), *(int * volatile *)(arg0 + 0xBC));
+            import_000B139C(*(int *)(arg0 + 0xBC));
         }
         a1 = *(char **)(arg0 + 0xBC);
         v0 = *(int *)(a1 + 0x4F0) & 0x10000;
