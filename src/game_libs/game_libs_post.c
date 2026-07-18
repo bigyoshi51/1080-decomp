@@ -10994,16 +10994,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00028510);
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). An object detach / relink manager.
 //
-// 2026-06-02 FULL DECODE 15.2->74.9% (+59.7pp): the splice operates on
-// `owner = obj->0x2C` (NOT the param); arg2 `a1` is an INT TAG (saved sp+0x36,
-// compared !=7 / &0xF==6 to gate the flag/FP paths). owner-relink (0x48/0x44/
-// 0x40 with -1 sentinel) + a sub-object copy block (dst=owner+0x4C <- obj &
-// node=obj->0x50 byte/halfword/word fields) + node->0x4C-sign & node->3-bit8
-// gate (owner+0xB0 |= 0x20) + (node->1?node->0xE0:obj->1) sb dst+3 + the
-// tag==6 (flag/FP const &D+0x2050) vs else (FP scale: (s8)node->0x8D *
-// owner->0x70 * 1/256 -> owner->0x64, table &D+0x2CF8[idx*4] -> owner->0x6C)
-// paths + final jal 0x3D414(owner->0xC + 16). Residual ~25% = regalloc + the
-// branch-likely unlink ordering (validation early-returns are approximate).
+// 2026-06-02 FULL DECODE 15.2->74.9% (+59.7pp). 2026-07-18 REDECODE
+// 74.9->93.9% (+19.0pp): fixed four decode errors vs hand-disasm —
+// (1) the validation/early-return chain is on the obj != owner->0x44
+// path (beql a0,v0 jumps to MAIN when equal; old body had it inverted);
+// (2) the &0xF==6 nibble test reads owner->0x60 (NOT tag) and jumps to
+// the CALLS block, it does not return; (3) the tail CALLS block is
+// gated on tag==6 only: placeholder(owner) then gl_func_0003D414(
+// *(owner+0xC)+0x10) — reached from BOTH the tag==7 and tag!=7 paths;
+// (4) node->0x8D is lbu (unsigned) + (float)(int) cast (plain cvt.s.w,
+// no u32 fixup). tag==7 sets 0x10|0x34=2, tag!=7 sets 0x20|0x34=1 +
+// FP table &D+0x2CF8[obj->0x18 ? obj->0x18 : node->0x8C] -> owner->0x6C
+// and owner->0x70 * (u8)node->0x8D * (1/256) -> owner->0x64.
+// Levers that landed: owner assigned from CSE'd re-read of the test
+// expression (keeps the move a1,v0 live-range copy); node2 = second
+// *(obj+0x50) load CSE'd into the a2->reg copy; volatile test read of
+// obj->1 (breaks the global CSE so the then-branch reloads, matching
+// the 3-load shape); dst hoisted above the nibble-if (defeats addiu
+// offset-folding); *obj &= ~8 compound RMW (temp regs, not a var).
+// Now 154/154 words, all opcodes+structure byte-shape exact.
+// Residual 6.1% = a single regalloc ROTATION: target colors dst=v0,
+// node2=v1, -1=a3, 6=t0; build colors dst=v1, node2=a3, -1=t0, 6=t1
+// (one slot shifted; v0 stays unused mid-body) + downstream temp
+// renumbering. decl-order, register-hint, t-var-elimination probed —
+// rotation immune. Classic coloring-search cap class; uoptlist dump
+// would be the next systematic step.
 //
 //   void gl_func_00028604(O *obj, A *a1) {
 //     if (obj == (O*)-1) return;                         // null sentinel
@@ -11041,20 +11056,18 @@ extern int gl_func_00000000();
 extern int D_00000000;
 extern int gl_func_0003D414();
 void gl_func_00028604(char *obj, int tag) {
-    char *owner, *node, *dst;
-    unsigned char fl;
+    char *owner, *node, *node2, *dst;
     int prev;
     if ((int)obj == -1) return;
-    fl = *(unsigned char *)obj;
+    *(unsigned char *)obj &= ~0x08;
+    if (*(char **)(obj + 0x2C) == 0) return;
     owner = *(char **)(obj + 0x2C);
-    *(unsigned char *)obj = fl & ~0x08;
-    if (owner == 0) return;
     if ((int)obj == *(int *)(owner + 0x48)) {
         *(int *)(owner + 0x48) = -1;
     }
     prev = *(int *)(owner + 0x44);
-    if ((int)obj == prev) {
-        if (-1 != *(int *)(owner + 0x48)) return;
+    if ((int)obj != prev) {
+        if (-1 != prev) return;
         if (-1 != *(int *)(owner + 0x48)) return;
         if ((int)obj != *(int *)(owner + 0x40)) return;
         if (tag == 6) return;
@@ -11062,36 +11075,36 @@ void gl_func_00028604(char *obj, int tag) {
         *(float *)(owner + 0x6C) = *(float *)((char *)&D_00000000 + 0x2050);
         return;
     }
-    if ((tag & 0xF) == 6) return;
     dst = owner + 0x4C;
-    *(float *)(dst + 8) = *(float *)(obj + 0x44);
-    *(float *)(dst + 0xC) = *(float *)(obj + 0x40);
-    *(unsigned char *)(dst + 2) = *(unsigned char *)(obj + 6);
-    node = *(char **)(obj + 0x50);
-    if (node != 0) {
-        *(unsigned char *)(dst + 0) = *(unsigned char *)(node + 4);
-        *(unsigned char *)(dst + 1) = *(unsigned char *)(node + 0xC);
-        *(int *)(dst + 0x10) = *(int *)(node + 0xDC);
-        *(unsigned short *)(dst + 6) = *(unsigned short *)(node + 0x20);
-        *(unsigned char *)(dst + 4) = *(unsigned char *)(node + 0xF);
-        if ((*(int *)(*(char **)(node + 0x4C)) << 2) < 0
-            && (*(unsigned char *)(node + 3) & 8)) {
-            *(unsigned char *)(owner + 0xB0) = *(unsigned char *)(owner + 0xB0) | 0x20;
-        }
-        if (*(unsigned char *)(obj + 1) == 0) {
-            *(unsigned char *)(dst + 3) = *(unsigned char *)(node + 0xE0);
+    if ((*(unsigned char *)(owner + 0x60) & 0xF) != 6) {
+        *(float *)(dst + 8) = *(float *)(obj + 0x44);
+        *(float *)(dst + 0xC) = *(float *)(obj + 0x40);
+        *(unsigned char *)(dst + 2) = *(unsigned char *)(obj + 6);
+        node = *(char **)(obj + 0x50);
+        if (node != 0) {
+            node2 = *(char **)(obj + 0x50);
+            *(unsigned char *)(dst + 0) = *(unsigned char *)(node + 4);
+            *(unsigned char *)(dst + 1) = *(unsigned char *)(node + 0xC);
+            *(int *)(dst + 0x10) = *(int *)(node + 0xDC);
+            *(unsigned short *)(dst + 6) = *(unsigned short *)(node + 0x20);
+            *(unsigned char *)(dst + 4) = *(unsigned char *)(node + 0xF);
+            if ((*(int *)(*(char **)(node + 0x4C)) << 2) < 0
+                && (*(unsigned char *)(node + 3) & 8)) {
+                *(unsigned char *)(owner + 0xB0) = *(unsigned char *)(owner + 0xB0) | 0x20;
+            }
+            if (*(volatile unsigned char *)(obj + 1) == 0) {
+                *(unsigned char *)(dst + 3) = *(unsigned char *)(node2 + 0xE0);
+            } else {
+                *(unsigned char *)(dst + 3) = *(unsigned char *)(obj + 1);
+            }
+            *(unsigned char *)(owner + 0x30) = *(unsigned char *)(node2 + 6);
         } else {
             *(unsigned char *)(dst + 3) = *(unsigned char *)(obj + 1);
+            *(unsigned char *)(owner + 0x30) = 1;
         }
-        *(unsigned char *)(owner + 0x30) = *(unsigned char *)(node + 6);
-    } else {
-        *(unsigned char *)(dst + 3) = *(unsigned char *)(obj + 1);
-        *(unsigned char *)(owner + 0x30) = 1;
-    }
-    *(int *)(owner + 0x40) = *(int *)(owner + 0x44);
-    *(int *)(owner + 0x44) = -1;
-    if (tag != 7) {
-        if ((tag & 0xF) == 6) {
+        *(int *)(owner + 0x40) = *(int *)(owner + 0x44);
+        *(int *)(owner + 0x44) = -1;
+        if (tag == 7) {
             *(unsigned char *)(owner + 0x60) = *(unsigned char *)(owner + 0x60) | 0x10;
             *(unsigned char *)(owner + 0x34) = 2;
             *(float *)(owner + 0x6C) = *(float *)((char *)&D_00000000 + 0x2050);
@@ -11099,15 +11112,16 @@ void gl_func_00028604(char *obj, int tag) {
             *(unsigned char *)(owner + 0x34) = 1;
             *(unsigned char *)(owner + 0x60) = *(unsigned char *)(owner + 0x60) | 0x20;
             if (*(unsigned char *)(obj + 0x18) == 0) {
-                node = *(char **)(obj + 0x50);
-                *(float *)(owner + 0x6C) = *(float *)(*(int *)((char *)&D_00000000 + 0x2CF8) + *(unsigned char *)(node + 0x8C) * 4);
+                *(float *)(owner + 0x6C) = *(float *)(*(int *)((char *)&D_00000000 + 0x2CF8) + *(unsigned char *)(*(char **)(obj + 0x50) + 0x8C) * 4);
             } else {
                 *(float *)(owner + 0x6C) = *(float *)(*(int *)((char *)&D_00000000 + 0x2CF8) + *(unsigned char *)(obj + 0x18) * 4);
             }
-            node = *(char **)(obj + 0x50);
-            *(float *)(owner + 0x64) = (float)*(signed char *)(node + 0x8D) * *(float *)(owner + 0x70) * (1.0f / 256.0f);
+            *(float *)(owner + 0x64) = *(float *)(owner + 0x70) * (float)(int)*(unsigned char *)(*(char **)(obj + 0x50) + 0x8D) * 0.00390625f;
         }
-        gl_func_0003D414(*(int *)(owner + 0xC) + 16);
+    }
+    if (tag == 6) {
+        gl_func_00000000(owner);
+        gl_func_0003D414(*(int *)(owner + 0xC) + 0x10);
     }
 }
 #else
