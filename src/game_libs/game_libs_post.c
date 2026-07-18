@@ -1872,12 +1872,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EE78);
 //   * three baked USO jals wired to gl_ref_00031BC8 / 00031D00 / 00031D8C
 //     (undefined_syms_auto absolutes; were placeholder game_libs_func_0003443C
 //     R_MIPS_26).
-// RESIDUAL (deferred): register-COLORING + spill-slot offsets. IDO keeps
-//   key(a2->0x10) and ra(a2->0x12) in callee-saved s2/s3 (frame -0x98) where
-//   the target spills both to stack (frame -0x68, only s0/s1 saved). This is
-//   the documented permuter-immune ugen-coloring cap class; instruction MIX
-//   now matches the target (same lhu/lbu/sh/sb/div/mflo set), only register
-//   names + sp offsets diverge. Byte-match left NON_MATCHING (honest).
+// REDECODE PASS 3 (agent-h, 66.94 -> 71.28% NM). Decode fixes:
+//   * branch test is *(u16*)arg1 & 1 (lhu), NOT lw — offset 0 is read at
+//     THREE widths (lhu for the test, lw for the v1w bitfield source,
+//     lbu for the &1<<2 term);
+//   * switch(arg5) has a DEFAULT arm (gfx = D_1A2DC, same cell the inline
+//     path loads) — prior C left gfx undefined off 1/2;
+//   * step/dm/t4 locals are s16 (sh/lh spill pairs + sll/sra-16 on the
+//     div results); keyCopy/raCopy are separate s32 copies of key/rk
+//     (target: move t1,t5 / move t3,ra) — copies feed the divs, the calls
+//     and the a2 writeback; the raw u16s feed the inline-path emit words;
+//   * cursor = arg0 homed to s0 at fn top (target move s0,a0; prior C
+//     spilled a0). Emitted body is now SIZE-EXACT (202/202 words).
+// RESIDUAL: uopt homing class. Target memory-homes 7 locals at sp
+//   40/48/52/80/82/84/86 (only s0=cursor, s1=arg1 get s-regs; rk rides
+//   $ra as scratch); our build s-regs them (frame -0x98/-0xA8). Probed
+//   2026-07-18: plain struct with target layout = scalarized to s-regs
+//   (6337C-lever inverse), volatile struct = over-pins (immediate
+//   sw/lw pairs + sh-truncated div results target lacks; 214 words).
+//   Only dm+keyCopy are volatile-consistent in the target; the rest have
+//   register phases — mixed homing not reachable by either lever.
+//   Likely original = expression-heavy source whose CSE temps (not named
+//   vars) crossed the calls; uopt memory-homes temps. NON_MATCHING.
 #ifdef NON_MATCHING
 
 extern int gl_ref_00031BC8();
@@ -1885,100 +1901,96 @@ extern int gl_ref_00031D00();
 extern int gl_ref_00031D8C();
 
 char *gl_func_0001EF20(char *arg0, char *arg1, char *arg2, s32 arg3, u16 arg4, s32 arg5) {
-    s16 sp56;
-    s16 sp54;
-    s32 sp52;
-    s16 sp50;
-    s32 sp34;
-    s32 sp30;
-    s32 sp28;
-    s16 sp82;
-    s16 var_a3;
-    s16 var_t0;
-    s32 temp_t0;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 var_a1;
-    s32 var_t1;
-    s32 var_v0;
-    u16 temp_t5;
-    u16 temp_ra;
-    u8 temp_t2;
-    u8 temp_t4;
-    char *temp_s0;
-    char *temp_s0_2;
-    char *temp_s0_3;
-    char *var_s0;
+    char *dst;
+    char *tmp;
+    s32 x0;
+    s32 x1;
+    u16 key;
+    u16 rk;
+    u8 mode;
+    s16 stepA;
+    s16 stepB;
+    s16 dm;
+    s16 t4v;
+    s32 m;
+    s32 keyCopy;
+    s32 raCopy;
+    s32 n;
+    s32 modeM;
+    s32 v1w;
+    s32 gfx;
 
-    temp_t0 = (*(u16 *)(arg1 + 0x8) << 4) & 0xFFFF;
-    temp_v1 = (*(u16 *)(arg1 + 0xA) << 4) & 0xFFFF;
-    temp_t5 = *(u16 *)(arg2 + 0x10);
-    temp_t2 = *(u8 *)(arg1 + 0x5);
-    temp_ra = *(u16 *)(arg2 + 0x12);
-    if (temp_t5 != temp_t0) {
-        var_v0 = arg3 >> 3;
-        var_a3 = (s16) ((s32) (temp_t0 - temp_t5) / var_v0);
+    dst = arg0;
+    x0 = (*(u16 *)(arg1 + 0x8) << 4) & 0xFFFF;
+    x1 = (*(u16 *)(arg1 + 0xA) << 4) & 0xFFFF;
+    key = *(u16 *)(arg2 + 0x10);
+    mode = *(u8 *)(arg1 + 0x5);
+    rk = *(u16 *)(arg2 + 0x12);
+    keyCopy = key;
+    if (key != x0) {
+        n = arg3 >> 3;
+        stepA = (x0 - keyCopy) / n;
     } else {
-        var_a3 = 0;
-        var_v0 = arg3 >> 3;
+        stepA = 0;
+        n = arg3 >> 3;
     }
-    if (temp_ra != temp_v1) {
-        var_t0 = (s16) ((s32) (temp_v1 - temp_ra) / var_v0);
+    raCopy = rk;
+    if (rk != x1) {
+        stepB = (x1 - raCopy) / n;
     } else {
-        var_t0 = 0;
+        stepB = 0;
     }
-    temp_t4 = *(u8 *)(arg2 + 0x4);
-    sp30 = (s32) temp_t5;
-    if (temp_t4 != temp_t2) {
-        var_t1 = temp_t4;
-        sp82 = (s16) ((s32) (((temp_t2 & 0x7F) - (temp_t4 & 0x7F)) << 9) / var_v0);
-        *(u8 *)(arg2 + 0x4) = temp_t2;
+    t4v = *(u8 *)(arg2 + 0x4);
+    modeM = mode & 0x7F;
+    if (t4v != mode) {
+        m = t4v & 0x7F;
+        dm = ((modeM - m) << 9) / n;
+        *(u8 *)(arg2 + 0x4) = mode;
     } else {
-        var_t1 = temp_t4;
-        sp82 = 0;
+        dm = 0;
+        m = t4v & 0x7F;
     }
-    var_t1 = var_t1 & 0x7F;
-    *(u16 *)(arg2 + 0x10) = (u16) (sp30 + (var_a3 * var_v0));
-    *(u16 *)(arg2 + 0x12) = (u16) (temp_ra + (var_t0 * var_v0));
-    var_s0 = arg0;
-    if (*(s32 *)(arg1 + 0x0) & 1) {
-        temp_s0 = var_s0;
-        var_s0 += 8;
-        sp56 = var_a3;
-        sp54 = var_t0;
-        sp34 = var_t1;
-        sp28 = (s32) temp_ra;
-        sp50 = (s16) temp_t4;
-        gl_ref_00031BC8(temp_s0, 0x5C0, 0x1A0, var_a3);
-        temp_s0_2 = var_s0;
-        var_s0 += 8;
-        gl_ref_00031D00(temp_s0_2, var_t1 * 2, sp82, var_a3, (s32) var_t0);
-        temp_s0_3 = var_s0;
-        var_s0 += 8;
-        gl_ref_00031D8C(temp_s0_3, sp30, (s16) sp28);
-        switch (arg5) {                             /* irregular */
+    *(u16 *)(arg2 + 0x10) = keyCopy + (stepA * n);
+    *(u16 *)(arg2 + 0x12) = raCopy + (stepB * n);
+    if (*(u16 *)(arg1 + 0x0) & 1) {
+        tmp = dst;
+        dst += 8;
+        gl_ref_00031BC8(tmp, 0x5C0, 0x1A0, stepA);
+        tmp = dst;
+        dst += 8;
+        gl_ref_00031D00(tmp, m * 2, dm, stepA, stepB);
+        tmp = dst;
+        dst += 8;
+        gl_ref_00031D8C(tmp, keyCopy, raCopy);
+        switch (arg5) {
         case 1:
-            var_a1 = *(s32 *)0x1A2D4;
+            gfx = *(s32 *)0x1A2D4;
             break;
         case 2:
-            var_a1 = *(s32 *)0x1A2D8;
+            gfx = *(s32 *)0x1A2D8;
+            break;
+        default:
+            gfx = *(s32 *)0x1A2DC;
             break;
         }
     } else {
-        temp_s0 = var_s0;
-        var_s0 += 8;
-        *(s32 *)(temp_s0 + 0x0) = ((((var_t1 * 2) & 0xFF) << 0x10) | 0x12000000 | (sp82 & 0xFFFF));
-        *(s32 *)(temp_s0 + 0x4) = ((var_a3 << 0x10) | (var_t0 & 0xFFFF));
-        temp_s0_2 = var_s0;
-        var_s0 += 8;
-        *(s32 *)(temp_s0_2 + 0x0) = 0x16000000;
-        *(s32 *)(temp_s0_2 + 0x4) = ((temp_t5 << 0x10) | (temp_ra & 0xFFFF));
-        var_a1 = *(s32 *)0x1A2DC;
+        *(s32 *)(dst + 0x0) = (((m * 2) & 0xFF) << 0x10) | 0x12000000 | (dm & 0xFFFF);
+        *(s32 *)(dst + 0x4) = (stepA << 0x10) | (stepB & 0xFFFF);
+        dst += 8;
+        *(s32 *)(dst + 0x0) = 0x16000000;
+        *(s32 *)(dst + 0x4) = (key << 0x10) | (rk & 0xFFFF);
+        dst += 8;
+        gfx = *(s32 *)0x1A2DC;
     }
-    temp_v1_2 = *(s32 *)(arg1 + 0x0);
-    *(s32 *)(var_s0 + 0x4) = var_a1;
-    *(s32 *)(var_s0 + 0x0) = (((((s32) arg4 >> 4) & 0xFF) << 0x10) | *(s32 *)0x1A2D0 | ((arg3 & 0xFF) << 8) | ((((s32) (temp_t4 & 0x80) >> 7) & 1) * 0x10) | ((((u32) (temp_v1_2 << 6) >> 0x1F) & 1) * 8) | ((*(u8 *)(arg1 + 0x0) & 1) * 4) | ((((u32) (temp_v1_2 * 0x10) >> 0x1F) & 1) * 2) | (((u32) (temp_v1_2 << 5) >> 0x1F) & 1));
-    return var_s0 + 8;
+    v1w = *(s32 *)(arg1 + 0x0);
+    *(s32 *)(dst + 0x4) = gfx;
+    *(s32 *)(dst + 0x0) = ((((s32) arg4 >> 4) & 0xFF) << 0x10) | *(s32 *)0x1A2D0 | ((arg3 & 0xFF) << 8)
+        | ((((t4v & 0x80) >> 7) & 1) << 4)
+        | ((((u32) (v1w << 6) >> 0x1F) & 1) << 3)
+        | ((*(u8 *)(arg1 + 0x0) & 1) << 2)
+        | ((((u32) (v1w << 4) >> 0x1F) & 1) << 1)
+        | (((u32) (v1w << 5) >> 0x1F) & 1);
+    return dst + 8;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001EF20);
