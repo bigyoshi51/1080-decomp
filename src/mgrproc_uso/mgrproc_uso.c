@@ -1985,10 +1985,13 @@ void mgrproc_uso_func_00003074(char *arg0) {
             v1 = *(int *)(p + 0x94);
             if (v1 == 0) {
                 import_000B1284(a1);
-            } else if (v1 == 1) {
-                import_000B1334(a1);
-            } else {
-                import_000B12B4(a1);
+            }
+            if (v1 != 0) {
+                if (v1 == 1) {
+                    import_000B1334(a1);
+                } else {
+                    import_000B12B4(a1);
+                }
             }
         }
         *(int *)(arg0 + 0xDC) += 1;
@@ -2001,7 +2004,7 @@ void mgrproc_uso_func_00003074(char *arg0) {
         }
         p = *(char **)(arg0 + 0x98);
         if (*(int *)(p + 0xC8) <= 0) {
-            import_000B139C(*(int *)(arg0 + 0xBC), *(int *)(arg0 + 0xBC));
+            import_000B139C(*(int *)(arg0 + 0xBC), *(int * volatile *)(arg0 + 0xBC));
         }
         a1 = *(char **)(arg0 + 0xBC);
         v0 = *(int *)(a1 + 0x4F0) & 0x10000;
