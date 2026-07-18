@@ -12517,11 +12517,23 @@ extern char D_00000000;
  * game_uso_func_0000D5BC (pair-copy, now homing via the Pair2-by-value
  * prototype flip), import_0010DB28 (logger), game_uso_func_0000D5F8 (pair-sink)
  * and the real globals game_uso_D_807FFB68/400/410. The D5BC/D5F8/logger half
- * now matches byte-for-byte. RESIDUAL (honest NON_MATCHING): the FP block holds
- * two sub-pointers (a3=base+0x770 for `lwc1 16(a3)`, v0=base+0x31C for
- * load+store) that IDO folds into direct displacements in this C shape, plus an
- * FP-reg cascade (f2/f4, f6/f8 numbering) — documented ugen FP-scheduling cap,
- * not coloring. */
+ * now matches byte-for-byte.
+ * 2026-07-18 (agent-g, 89.38->97.96): three levers landed together:
+ *   (1) do-while(0) BB-break between field_31C's def and its load+store uses
+ *       blocks the same-BB base+offset fold -> target's `addiu v0,v1,0x31C;
+ *       lwc1/swc1 0(v0)` (docs #goto-mid-ptr-fold-block, 65060 kit).
+ *   (2) de-named v + INLINED dconst deref inside the mul restores the target
+ *       expression-temp FP ring f4/f6/f8/f10/f16/f18 (named v took f2, named
+ *       dconst took f0 outside the ring).
+ *   (3) `v*dconst + *field_31C` spelling (mul FIRST) emits target
+ *       `add.d f4,f18,f10` (rs=late field-cvt, rt=mul) — commutative-operand
+ *       reversal, same family as the |-reversal entry.
+ * SOLE RESIDUAL (1 insn, 51 vs 52): target materializes the SINGLE-USE
+ * `addiu a3,v1,0x770` + `lwc1 f4,0x10(a3)`; ours folds to `lwc1 f4,0x780(v1)`.
+ * Single-use base+K fold is probe-immune here: do-while(0) around the use,
+ * if(1) around the def, two-def increment spelling, register kw, and
+ * anonymous-struct member read ALL still fold (multi-use is what saved
+ * field_31C). Honest NON_MATCHING. */
 extern char game_uso_D_807FFB68;
 extern char game_uso_D_807FF400;
 extern char game_uso_D_807FF410;
@@ -12532,12 +12544,17 @@ extern int import_0010DB28();
 void game_uso_func_0000FC34(int *a0) {
     char *base = (char*)*(int**)((char*)a0 + 0xB4);
     int *flag_loc = *(int**)(base + 0x800);
-    char *field_770 = base + 0x770;
+    char *field_770;
+    field_770 = base;
+    field_770 += 0x770;
     if ((flag_loc[0x10/4] & 0x100) == 0) {
-        float v = *(float*)(field_770 + 0x10);
-        double dconst = *(double*)((char*)&game_uso_D_807FFB68 + 0x248);
-        float *field_31C = (float*)(base + 0x31C);
-        *field_31C = (float)((double)*field_31C + (double)v * dconst);
+        float *field_31C;
+        field_31C = (float*)(base + 0x31C);
+        do {
+            *field_31C = (float)((double)*(float*)(field_770 + 0x10)
+                * *(double*)((char*)&game_uso_D_807FFB68 + 0x248)
+                + (double)*field_31C);
+        } while (0);
         game_uso_func_0000D5BC((char*)a0,
             *(Pair2*)((char*)&game_uso_D_807FF400 + 0xE10));
     }
