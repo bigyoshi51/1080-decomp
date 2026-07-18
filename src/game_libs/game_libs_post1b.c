@@ -4382,53 +4382,53 @@ void game_libs_func_000683C4(int *a0, int a1) {
  *                                     self->[4]. self->[8] is the count.
  *   3. for (i = 0; i < self->[8]; i++) {
  *        parent = self->[0xC]->[0x28];
- *        instance = (*parent->[0x5C])(parent + (lh) parent->[0x58]);
- *        self->[4][i] = instance;
- *        instance->[0xC] = self->[0xC];   // back-link to owner
- *        gl_func_0(instance);             // post-init / register hook
- *        (*instance->[0x1C]->[0x2C])(instance->[0x1C] +
- *                                    (lh) instance->[0x1C]->[0x28]);
+ *        self->[4][i] = (*parent->[0x5C])(self->[0xC] + (lh) parent->[0x58]);
+ *        self->[4][i]->[0xC] = self->[0xC];   // back-link to owner
+ *        gl_func_0(self->[4][i]);             // post-init / register hook
+ *        e = self->[4][i]; vt = e->[0x1C];
+ *        (*vt->[0x2C])(e + (lh) vt->[0x28]);  // finalize: arg = ELEMENT + off
  *      }
  *
- * Two vtable hops per iteration (parent for instance creation, then
- * instance's own [0x1C] for finalize). Both use signed-short field
- * offsets — `lh` opcode pattern requires `short` not `unsigned short`.
- *
- * Loop tail uses `bnel $at, $0` with `lw v1, 0xC(s1)` in the delay
- * slot (likely-annulled reload of self->[0xC] for the loop body's
- * first use), so the C body should keep `parent_holder = self[3]`
- * inside the loop, NOT hoisted outside.
- *
- * Multi-tick byte-matching pending. Default INCLUDE_ASM keeps ROM
- * matching while the structural decode lives here for grep
- * discoverability. */
+ * 2026-07-17 agent-h 77.46 -> 99.44 (51/54 words; 3 real word diffs).
+ * Decode fixes vs the old body: (a) ctor arg is self->[0xC] + ctor_off,
+ * NOT parent + off (target addu a0,t7,v1 adds the OWNER, the vtable is
+ * only the lookup); (b) finalize arg is the ELEMENT + off, NOT the
+ * vtable + off; (c) the element is NEVER held in an s-reg — the original
+ * re-spells self->[4][i] at every use (fresh lw t?,4(s1)+addu+lw chains
+ * across the two calls; naming `instance` produced an s3 web, wrong
+ * frame). obj=self->[0xC] must be a DE-NAMED CSE temp (colors v1, feeds
+ * the bnezl-annulled delay reload); naming it flips v0/v1 with parent.
+ * addu operand-order gotcha: `(char*)p + off` emits addu rd,OFF,p while
+ * `off + (char*)p` emits addu rd,p,OFF (inverted vs spelling).
+ * RESIDUAL (3 words): finalize vtable temp colors a1, target v0
+ * (lw v0,0x1C(v1) vs lw a1,...). Probed: named vt (both decl orders),
+ * fully de-named e[7] CSE, merging vt into parent's web (regresses head
+ * to 98.5). v0 appears blocked for the vt range in our build for an
+ * unidentified reason. Both `lh` need signed short.
+ * jal diffs are USO-placeholder convention (func_0007C860 fixed-address
+ * family + gl_func_00000000 reloc placeholders), not body divergence.
+ * Default INCLUDE_ASM keeps ROM matching. */
 extern int gl_func_00000000();
 
 void gl_func_000683D4(int *self) {
     unsigned int i;
     int *parent;
-    int *instance;
-    int (*ctor)(int *);
-    int (*finalize)(int *);
-    short ctor_off;
-    short finalize_off;
-    int *finalize_vt;
+    int *vt;
+    int *e;
 
     gl_func_00000000(self + 2);                       /* self + 8 */
     self[1] = gl_func_00000000(self[2] * 4);          /* alloc */
 
     for (i = 0; i < (unsigned int)self[2]; i++) {
         parent = (int *)((int *)self[3])[10];          /* self->[0xC]->[0x28] */
-        ctor = (int (*)(int *))parent[23];             /* parent->[0x5C] */
-        ctor_off = ((short *)parent)[44];              /* (lh) parent->[0x58] */
-        instance = (int *)ctor((int *)((char *)parent + ctor_off));
-        ((int **)self[1])[i] = instance;
-        instance[3] = self[3];                         /* instance->[0xC] = owner */
-        gl_func_00000000(instance);                    /* post-init hook */
-        finalize_vt = (int *)instance[7];              /* instance->[0x1C] */
-        finalize = (int (*)(int *))finalize_vt[11];    /* vt->[0x2C] */
-        finalize_off = ((short *)finalize_vt)[20];     /* (lh) vt->[0x28] */
-        finalize((int *)((char *)finalize_vt + finalize_off));
+        ((int **)self[1])[i] = (int *)((int (*)(int *))parent[23])(
+            (int *)((char *)self[3] + ((short *)parent)[44]));
+        ((int **)self[1])[i][3] = self[3];             /* back-link owner */
+        gl_func_00000000(((int **)self[1])[i]);        /* post-init hook */
+        e = ((int **)self[1])[i];
+        vt = (int *)e[7];
+        ((int (*)(int *))vt[11])(
+            (int *)(((short *)vt)[20] + (char *)e));
     }
 }
 #else
