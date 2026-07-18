@@ -12579,32 +12579,31 @@ void game_uso_func_0000D5DC(char *a0);
  * had `-=` which never matched. Now adds the 0x798-field to the
  * 0x31C-field. Score 78.86% (+0.26pp from prior 78.6% wrap; small
  * because the add fixes only the FPU op insn, not the surrounding
- * shape). Remaining cap:
- *   - Call#2 K&R-style spill of a1/a2 to sp+4/sp+8 (target emits
- *     these because the pair-loaded args trigger K&R home setup;
- *     IDO doesn't emit them in our shape since pair is inlined as
- *     `*(int*)(&D+N)` not via an intermediate base register).
- *   - Post-call FPU block: target uses named base+0x788 / base+0x31C
- *     pointer-arith locals; IDO inlines our `base_788`/`base_31C`
- *     locals back into the lwc1/swc1 addressing despite multiple
- *     uses. The named-pair variant (pair_e18 declared at function
- *     top) regresses to 44%/78.86% — same shape unless intervening
- *     non-call work keeps the materialization alive in a register.
- *
- * 2026-05-20 deep attempt: volatile pair0/pair1 stack-spill variant
- * moves the C path to 82.26%. It forces the D-pair args through stack
- * locals (sw/lw pair before call #2), but IDO allocates them at local
- * slots in a 0x40 frame rather than target outgoing arg homes sp+4/sp+8
- * in a 0x28 frame. Volatile pointer locals for the FPU block produced
- * target-like addiu pointer materialization but regressed to 61.3% due
- * to extra pointer stack spills. Exact C match remains blocked by the
- * documented game_uso precall-arg-spill cap in docs/PATTERNS.md. */
+ * shape).
+ * 2026-07-18 (agent-g, 90.56->97.08, FC34-kit transfer): front half now
+ * byte-exact via (1) INLINING the first base deref (expression temp t6, so the
+ * t-ring lands t6/t7/t8/t9/t0 like target — the named `base` local had shifted
+ * the whole ring by one), (2) do-while(0) BB-breaks between multi-use pointer
+ * defs (base_31C 2 uses, base_2FC 4 uses) and their uses -> target
+ * `addiu;lwc1/swc1 0(rX)` shapes, (3) DISTINCT reload locals base2/base3 (the
+ * 0xB4 reloads color v1 then v0), (4) `base_788[4] + base_31C[0]` operand
+ * order (IDO emits add.s rs=SECOND source operand, same commutative reversal
+ * as FC34's add.d).
+ * RESIDUALS (2, honest NON_MATCHING): (a) single-use `addiu a1,v1,0x788` fold
+ * (same probe-immune class as FC34's a3=+0x770); (b) the inline-1.0f
+ * `swc1 f10,0xC` store always sinks BELOW the three f0 zero stores (target has
+ * it FIRST) — sink survives same-line join, named/register-float carrier,
+ * source rotation, AND do-while(0) BB-separation (trip-1 BBs flattened before
+ * scheduling) — ugen store-scheduler tie class. */
 void game_uso_func_0000FD04(int *a0) {
     int *s0 = a0;
-    int *base = *(int**)((char*)s0 + 0xB4);
-    int *flags = *(int**)((char*)base + 0x800);
+    /* base inlined -> expression temp t6 (dies at the flags load) */
+    int *flags = *(int**)((char*)*(int**)((char*)s0 + 0xB4) + 0x800);
 
     if ((flags[0x10 / 4] & 0x100) == 0) {
+        char *base2;
+        char *base3;
+        float zero;
         float *base_788;
         float *base_31C;
         float *base_2FC;
@@ -12613,21 +12612,22 @@ void game_uso_func_0000FD04(int *a0) {
             *(Pair2 *)((char *)&game_uso_D_807FF408 + 0xE18), 3);
         game_uso_func_0000D5DC((char*)s0);
 
-        base = *(int**)((char*)s0 + 0xB4);
-        base_788 = (float*)((char*)base + 0x788);
-        base_31C = (float*)((char*)base + 0x31C);
-        {
-            float f4 = base_31C[0];
-            float f6 = base_788[0x10 / 4];
-            base_31C[0] = f4 + f6;
-        }
+        zero = 0.0f;
+        base2 = *(char**)((char*)s0 + 0xB4);
+        base_788 = (float*)(base2 + 0x788);
+        base_31C = (float*)(base2 + 0x31C);
+        do {
+            base_31C[0] = base_788[0x10 / 4] + base_31C[0];
+        } while (0);
 
-        base = *(int**)((char*)s0 + 0xB4);
-        base_2FC = (float*)((char*)base + 0x2FC);
-        base_2FC[3] = 1.0f;
-        base_2FC[2] = 0.0f;
-        base_2FC[1] = 0.0f;
-        base_2FC[0] = 0.0f;
+        base3 = *(char**)((char*)s0 + 0xB4);
+        base_2FC = (float*)(base3 + 0x2FC);
+        do { /* own BB: per-BB scheduler cannot sink this store past the zeros */
+            base_2FC[3] = 1.0f;
+        } while (0);
+        do {
+            base_2FC[2] = zero; base_2FC[1] = zero; base_2FC[0] = zero;
+        } while (0);
     }
 }
 #else
