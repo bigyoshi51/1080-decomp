@@ -37,12 +37,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073034);
 #endif
 
 
-/* game_libs_func_00073074: 2-word no-jr PI_STATUS_REG (0xA4600010) load
- * stub falling through into the successor -- the stolen leading guard
- * of the following PI-wait loop (same two-entry class as 6F038). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00073074);
+/* game_libs_func_00073074 (0x8 orphan, no jr ra: lui/lw PI_STATUS_REG)
+ * was the HOISTED HEAD of gl_func_0007307C = osPiRawWriteIo — absorbed
+ * into the donor splice below (true entry 0x73074, spliced symbol covers
+ * 0x73074..0x730C4). */
 
-#ifdef NON_MATCHING
+#if 0
+/* SUPERSEDED DECODE (2026-07-18): the "caller-set $a2" implication below
+ * was wrong — $a2 is the first PI_STATUS read, hoisted above the prologue
+ * by IDO 5.3 -O1 (splat orphan game_libs_func_00073074). Real identity:
+ * libultra osPiRawWriteIo variant, write-side twin of gl_func_0006BA7C
+ * __osPiRawReadIo. See the donor unit game_libs_ido53_73074.c. */
 /* gl_func_0007307C: 18-insn PI DMA-write helper. If (a2 & 3), spin-wait
  * for PI not busy. Then write a1 to (D_0 | a0) via KSEG1 uncached.
  * Returns 0.
@@ -69,9 +74,20 @@ int gl_func_0007307C(int a0, int a1, int a2) {
     *(int*)((D_00000000 | a0) | 0xA0000000) = a1;
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0007307C);
 #endif
+
+/* gl_func_0007307C = libultra osPiRawWriteIo variant: spin while
+ * PI_STATUS & 3 (the first read hoisted above the prologue = the absorbed
+ * 0x8 orphan), then write data to the KSEG1-uncached cart word
+ * ((cartBase | devAddr) | 0xA0000000), return 0. Needs IDO 5.3 -O1, so
+ * the real C lives in the donor unit game_libs_ido53_73074.c (20/20
+ * exact). Body below is a placeholder for the REPLACE_FUNC_BODY splice
+ * (its bytes are replaced by the donor). */
+int gl_func_0007307C(void) {
+    volatile int i;
+    for (i = 0; i < 15; i++) {}
+    return 0;
+}
 
 
 /* gl_func_000730CC = libultra osEPiRawReadIo (epirawread.c verbatim,
