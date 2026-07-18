@@ -32423,42 +32423,21 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000600A4);
 void gl_func_000601B4(int a0) {
     gl_func_00000000(a0, 1);
 }
-#ifdef NON_MATCHING
-/* gl_func_000601DC: 28-insn lazy-init + state-update + dispatch (now 0x78, frame
- * 0x20). The `lui t6; lw t6,0(t6)` load of *(&D) (a global state pointer) is THIS
- * function's real pre-prologue, mis-split into gl_func_000601B4_pad.s; boundary-
- * corrected 2026-05-30 by merging those 2 words into gl_func_000601DC.s
- * (0x70 -> 0x78, start 0x601D4), same fix as gl_func_0001FC78/FCD0. The old
- * "caller-set $t6" note was wrong — t6 is loaded here, not by the caller.
- *
- * Decoded structure:
- *   int *base = *(int**)&D;        // stolen prologue
- *   int *v1 = base[0x40/4];
- *   if (v1 == 0) func((char*)&D + 0x21CA4);
- *   v0 = func((char*)&D + 0x21CA4);
- *   v1[1] = v0;
- *   v1[2] = v1[2] + v0 - v1[0];
- *   (*(int**)&D)[0x40/4] = v1[0x20/4];   // reload base for commit
- *   return v1[2];
- * RESIDUAL: register/spill allocation around the two calls (v1 spilled to
- * 0x1C(sp)) differs from C-emit; ~partial. */
+/* gl_func_000601DC: lazy-init tracker update (entry 0x601D4 — the 2-word
+ * `lui $t6; lw $t6` pre-prologue head was boundary-merged 2026-05-30).
+ * The long-standing "register/spill allocation around the two calls"
+ * residual was the COMPILER: IDO 5.3 -O2 -mips2 emits the jal-delay v1
+ * spill/reload pair exactly (decl order Rec* before int ranks the spill
+ * at 0x1C). v1 = trk->f40; if (!v1) init(&D+0x21CA4); v0 = get();
+ * v1->f04 = v0; v1->f08 += v0 - v1->f00; trk->f40 = v1->f20; return
+ * v1->f08. Real C lives in the donor unit game_libs_ido53_601D4.c
+ * (30/30 exact). Body below is a placeholder for the REPLACE_FUNC_BODY
+ * splice (its bytes are replaced by the donor). */
 int gl_func_000601DC(void) {
-    extern int D_00000000;
-    int *base = *(int**)&D_00000000;
-    int *v1 = (int*)base[0x40 / 4];
-    int v0;
-    if (v1 == 0) {
-        gl_func_00000000((char*)&D_00000000 + 0x21CA4);
-    }
-    v0 = (int)gl_func_00000000((char*)&D_00000000 + 0x21CA4);
-    v1[0x4 / 4] = v0;
-    v1[0x8 / 4] = v1[0x8 / 4] + v0 - v1[0];
-    (*(int**)&D_00000000)[0x40 / 4] = v1[0x20 / 4];
-    return v1[0x8 / 4];
+    volatile int i;
+    for (i = 0; i < 15; i++) {}
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000601DC);
-#endif
 
 void game_libs_func_0006024C(int a0) {
     gl_data_00000000 = a0;

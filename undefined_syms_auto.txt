@@ -579,6 +579,7 @@ D_A0000200 = 0xA0000200;
 .L0000087C = 0x0000087C;
 .L000008A8 = 0x000008A8;
 D_00000000 = 0x00000000;
+D_00000000_trk601 = 0x00000000;  /* tracker-state ptr global for the gl_func_000601DC donor (USO load-resolved) */
 D_00000000_dbg669 = 0x00000000;  /* debug-state ptr global for the gl_func_000669B8 donor (USO load-resolved) */
 D_8FFC_base = 0x00000000;  /* gl_func_00008FFC/00008E48: base-0 alias of D_00000000 -- defeats -O0 &D CSE between call arg0 and the +8 read (target re-materializes lui/addiu per use) */
 D_bootup_scratch0 = 0x00000000;  /* func_0000FD4C: int-typed base-0 scratch word (== *(int*)&D_00000000); direct int lvalue $at-fuses the store/reload (lui/sw) vs the address-of-cast lui/addiu/sw */
@@ -1025,6 +1026,8 @@ D_00000FD4 = 0x00000FD4;
 D_tbl_288ac = 0x00000000;
 D_00000008 = 0x00000008;
 D_000000A8 = 0x000000A8;
+gl_func_00000000_init601 = 0x00000000;  /* blank init call for the gl_func_000601DC donor (game_libs_ido53_601D4.c) */
+gl_func_00000000_get601 = 0x00000000;  /* blank int-returning sampler for the gl_func_000601DC donor */
 gl_func_00000000_print669 = 0x00000000;  /* blank print sink for the gl_func_000669B8 donor (game_libs_ido53_669AC.c) */
 gl_func_00000000_ll = 0x00000000;  /* u64-returning (v0/v1) blank extern for gl_func_0006BAD4's time source */
 D_00041710 = 0x00041710;  /* gl_func_0006A304 fixup-object base: real USO-local symbol so the -O1 donor keeps the base in a reg/stack home (HI16/LO16 bake to lui 4/addiu 0x1710) */
