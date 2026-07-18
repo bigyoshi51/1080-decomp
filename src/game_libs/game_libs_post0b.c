@@ -13659,83 +13659,82 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004406C);
 // a0 base = g = &D_00000000 throughout.
 void gl_func_00044144(char *arg0) {
     extern int gl_func_00000000f(void *, void *, void *, int, float, int);
-    char *g = (char *)&D_00000000;
-    int sp38;
-    s32 *sp30;
+    /* per-site base-0 aliases of D_00000000: target re-materializes a fresh
+     * lui/addiu pair at EVERY use (no $s0 promotion, no saved regs at all);
+     * a single `g` local CSEs into s0 (the old 79% cap). */
+    extern char gl_d44144_k1, gl_d44144_k2, gl_d44144_k2c, gl_d44144_k3,
+        gl_d44144_k3c, gl_d44144_k4, gl_d44144_k5, gl_d44144_k5c,
+        gl_d44144_k6, gl_d44144_r1, gl_d44144_r2, gl_d44144_r3, gl_d44144_r4,
+        gl_d44144_s1a, gl_d44144_s1b, gl_d44144_s2a, gl_d44144_s2b,
+        gl_d44144_s3a, gl_d44144_s3b, gl_d44144_s4a, gl_d44144_s4b,
+        gl_d44144_gp, gl_d44144_t1, gl_d44144_t2, gl_d44144_t3, gl_d44144_t4;
+    /* per-block aliases of D_0002F730 (fresh lui 0x2/addiu per block; one
+     * extern would CSE into a saved reg) */
+    extern char gl_d44144_f730a, gl_d44144_f730b, gl_d44144_f730c, gl_d44144_f730d;
+    extern int gl_d44144_v13; /* direct int read == folded lui/lw of *(int*)&D_00000000 */
+    char sp38[0x100]; /* 0x38..0x138 message/aux buffer, drives the 0x138 frame */
+    s32 *sp30;        /* single spill slot reused by all 4 alloc blocks */
     s32 *temp_v0;
-    s32 *temp_v0_2;
-    s32 *temp_v0_3;
-    s32 *temp_v0_4;
-    s32 *temp_v0_5;
-    s32 *temp_v0_6;
-    s32 *temp_v0_7;
-    s32 *temp_v0_8;
     s32 *var_a2;
-    s32 *var_a2_2;
-    s32 *var_a2_3;
-    s32 *var_a2_4;
     s32 *var_v1;
-    s32 *var_v1_2;
-    s32 *var_v1_3;
-    s32 *var_v1_4;
     char *temp_v0_9;
 
-    gl_func_00000000(g, &D_0002FD34, 0);
-    gl_func_00000000f(g, &D_0002FD40, g + 0x24C, 0, 1.0f, 0);
-    gl_func_00000000(g, &D_0002FD50, g + 0x250);
-    gl_func_00000000(g, &D_0002FD58, &D_0002F970);
-    gl_func_00000000(g, &D_0002FD64, g + 0x0, 0x400, 0x19000, 0);
-    gl_func_00000000(g + 0x294);
+    gl_func_00000000(&gl_d44144_k1, &D_0002FD34, 0);
+    gl_func_00000000f(&gl_d44144_k2, &D_0002FD40, &gl_d44144_k2c + 0x24C, 0, 1.0f, 0);
+    gl_func_00000000(&gl_d44144_k3, &D_0002FD50, &gl_d44144_k3c + 0x250);
+    gl_func_00000000(&gl_d44144_k4, &D_0002FD58, &D_0002F970);
+    gl_func_00000000(&gl_d44144_k5, &D_0002FD64, &gl_d44144_k5c + 0x0, 0x400, 0x19000, 0);
+    gl_func_00000000(&gl_d44144_k6 + 0x294);
     temp_v0 = gl_func_00000000((int *)8);
     var_a2 = temp_v0;
     if (temp_v0 != 0) {
         var_v1 = temp_v0;
-        if ((temp_v0 != 0) || (sp30 = temp_v0, temp_v0_2 = gl_func_00000000((int *)4), var_a2 = sp30, var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
-            *var_v1 = (s32)&D_0002F730;
+        if ((temp_v0 != 0) || (sp30 = temp_v0, temp_v0 = gl_func_00000000((int *)4), var_a2 = sp30, var_v1 = temp_v0, (temp_v0 != 0))) {
+            *var_v1 = (s32)&gl_d44144_f730a;
         }
-        FW(var_a2, 0x0) = (s32)g;
-        FW(var_a2, 0x4) = (s32)g;
+        FW(var_a2, 0x0) = (s32)&gl_d44144_s1a;
+        FW(var_a2, 0x4) = (s32)&gl_d44144_s1b;
     }
-    gl_func_00000000(g, &D_0002FD6C, var_a2, 1);
-    temp_v0_3 = gl_func_00000000((int *)8);
-    var_a2_2 = temp_v0_3;
-    if (temp_v0_3 != 0) {
-        var_v1_2 = temp_v0_3;
-        if ((temp_v0_3 != 0) || (sp30 = temp_v0_3, temp_v0_4 = gl_func_00000000((int *)4), var_a2_2 = sp30, var_v1_2 = temp_v0_4, (temp_v0_4 != 0))) {
-            *var_v1_2 = (s32)&D_0002F730;
+    gl_func_00000000(&gl_d44144_r1, &D_0002FD6C, var_a2, 1);
+    temp_v0 = gl_func_00000000((int *)8);
+    var_a2 = temp_v0;
+    if (temp_v0 != 0) {
+        var_v1 = temp_v0;
+        if ((temp_v0 != 0) || (sp30 = temp_v0, temp_v0 = gl_func_00000000((int *)4), var_a2 = sp30, var_v1 = temp_v0, (temp_v0 != 0))) {
+            *var_v1 = (s32)&gl_d44144_f730b;
         }
-        FW(var_a2_2, 0x0) = (s32)g;
-        FW(var_a2_2, 0x4) = (s32)g;
+        FW(var_a2, 0x0) = (s32)&gl_d44144_s2a;
+        FW(var_a2, 0x4) = (s32)&gl_d44144_s2b;
     }
-    gl_func_00000000(g, &D_0002FD78, var_a2_2, 1);
-    temp_v0_5 = gl_func_00000000((int *)8);
-    var_a2_3 = temp_v0_5;
-    if (temp_v0_5 != 0) {
-        var_v1_3 = temp_v0_5;
-        if ((temp_v0_5 != 0) || (sp30 = temp_v0_5, temp_v0_6 = gl_func_00000000((int *)4), var_a2_3 = sp30, var_v1_3 = temp_v0_6, (temp_v0_6 != 0))) {
-            *var_v1_3 = (s32)&D_0002F730;
+    gl_func_00000000(&gl_d44144_r2, &D_0002FD78, var_a2, 1);
+    temp_v0 = gl_func_00000000((int *)8);
+    var_a2 = temp_v0;
+    if (temp_v0 != 0) {
+        var_v1 = temp_v0;
+        if ((temp_v0 != 0) || (sp30 = temp_v0, temp_v0 = gl_func_00000000((int *)4), var_a2 = sp30, var_v1 = temp_v0, (temp_v0 != 0))) {
+            *var_v1 = (s32)&gl_d44144_f730c;
         }
-        FW(var_a2_3, 0x0) = (s32)g;
-        FW(var_a2_3, 0x4) = (s32)g;
+        FW(var_a2, 0x0) = (s32)&gl_d44144_s3a;
+        FW(var_a2, 0x4) = (s32)&gl_d44144_s3b;
     }
-    gl_func_00000000(g, &D_0002FD88, var_a2_3, 0);
-    temp_v0_7 = gl_func_00000000((int *)8);
-    var_a2_4 = temp_v0_7;
-    if (temp_v0_7 != 0) {
-        var_v1_4 = temp_v0_7;
-        if ((temp_v0_7 != 0) || (sp30 = temp_v0_7, temp_v0_8 = gl_func_00000000((int *)4), var_a2_4 = sp30, var_v1_4 = temp_v0_8, (temp_v0_8 != 0))) {
-            *var_v1_4 = (s32)&D_0002F730;
+    gl_func_00000000(&gl_d44144_r3, &D_0002FD88, var_a2, 0);
+    temp_v0 = gl_func_00000000((int *)8);
+    var_a2 = temp_v0;
+    if (temp_v0 != 0) {
+        var_v1 = temp_v0;
+        if ((temp_v0 != 0) || (sp30 = temp_v0, temp_v0 = gl_func_00000000((int *)4), var_a2 = sp30, var_v1 = temp_v0, (temp_v0 != 0))) {
+            *var_v1 = (s32)&gl_d44144_f730d;
         }
-        FW(var_a2_4, 0x0) = (s32)g;
-        FW(var_a2_4, 0x4) = (s32)g;
+        FW(var_a2, 0x0) = (s32)&gl_d44144_s4a;
+        FW(var_a2, 0x4) = (s32)&gl_d44144_s4b;
     }
-    gl_func_00000000(g, &D_0002FD94, var_a2_4, 1);
-    temp_v0_9 = *(char **)(g + 0x218);
-    gl_func_00000000(&sp38, &D_0002FDA4, FW(temp_v0_9, 0x3C), FW(temp_v0_9, 0x40), FW(temp_v0_9, 0x24), FW(temp_v0_9, 0x1C), FW(temp_v0_9, 0x20), *(int *)g);
-    gl_func_00000000(g, &sp38);
-    gl_func_00000000(&sp38, &D_0002FDD4, *(int *)g);
-    gl_func_00000000(g, &sp38);
-    gl_func_00000000(g);
+    gl_func_00000000(&gl_d44144_r4, &D_0002FD94, var_a2, 1);
+    temp_v0_9 = *(char **)(&gl_d44144_gp + 0x218);
+    gl_func_00000000(sp38, &D_0002FDA4, FW(temp_v0_9, 0x3C), FW(temp_v0_9, 0x40), FW(temp_v0_9, 0x24), FW(temp_v0_9, 0x1C), FW(temp_v0_9, 0x20), *(int *)&gl_d44144_t1);
+    gl_func_00000000(&gl_d44144_t2, sp38);
+    gl_func_00000000(sp38, &D_0002FDD4, gl_d44144_v13);
+    gl_func_00000000(&gl_d44144_t3, sp38);
+    gl_func_00000000(&gl_d44144_t4);
     gl_func_00000000(arg0);
 }
 #else
