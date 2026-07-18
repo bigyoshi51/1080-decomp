@@ -236,7 +236,14 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # gl_func_000551E0=0x7c: same jr-delay-nop class as 55B10 — compiled NM body is
 # word-exact 31/31 but carries its own trailing nop (0x80); target symbol is 0x7c
 # with the nop as baserom alignment (_pad.s).
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2b750 gl_func_00055B10=0x2c gl_func_000551E0=0x7c
+# (0x2b750 -> 0x2b748 on 2026-07-18: landed-main NM text shrank another 8 bytes
+# vs the agent tree where the pin was measured; the stale pin hard-errored the
+# clip, leaving 551E0 unclipped at 0x80 -> 96.77 despite a word-exact body.
+# 55B10=0x2c resize DROPPED same day: 55B10 is a real matched C def (episode),
+# so expected/ carries the compiled 0x30 symbol — a NM-side-only resize to 0x2c
+# just breaks parity (100 -> 91.67). The 0x2c treatment is for NM asm-pad-split
+# functions like 551E0/EBC8 where expected/ is already the clipped size.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2b748 gl_func_000551E0=0x7c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
