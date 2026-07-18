@@ -1156,10 +1156,19 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001C9
  * `mtc1 zero,$f2` is the 0.0 operand for `if (f0 > 0.0f)` in the else-arm; my C DOES
  * read arg0->0x7A4 (the f0). The only diff is which insn IDO hoists into the
  * `beql v0,..` delay slot — mine the 0.0-load, target the field-load `lwc1 $f0,0x7A4`.
- * That is an instruction-SCHEDULING cap (branch-likely delay fill), not C-controllable
- * — same family as the double-conversion FP reg-alloc ($f4 vs $f10) + float &D 5F0
- * load. All caps. Structs + cb proto untyped (USO-reloc). NON_MATCHING. */
+ * SOLVED 2026-07-17 (92.80 -> 99.74, every insn shape exact): (1) spell that
+ * compare `f0 > (float)0` — the (float)0 cast-literal gives the 0.0 web its own
+ * placement so as1 fills the beql delay with the field-load like target (+4.8pp,
+ * retracts the "scheduling cap" verdict); (2) de-name the 0x560 pulse local
+ * (inline both derefs) — kills a mov.s $f0,$f2 web-copy (+0.7pp); (3) three
+ * commutative-add operand swaps (0x7B0+=, 0x55C+=, 0x7B4+= spelled addend-first)
+ * fix the lwc1 pair orders + f10/f16 numbering; (4) DECODE FIX: the 0xFF draw
+ * call's arg0 is &import_8024CAF8, not 0 (+1.3pp, also restores the bc1f+nop
+ * form). Residual 0.26% = USO placeholder reloc names only (ldc1 %lo vs baked
+ * import_802643xx words; jal placeholders) — at the placeholder ceiling.
+ * Structs + cb proto untyped (USO-reloc). NON_MATCHING. */
 extern int gl_func_00000000();
+extern char import_8024CAF8;
 extern double D_dbl_5E0, D_dbl_5E8, D_dbl_5F8, D_dbl_600;
 void mgrproc_uso_func_00001F30(char *arg0) {
     float f0;
@@ -1195,7 +1204,7 @@ void mgrproc_uso_func_00001F30(char *arg0) {
                 }
             } else {
                 f0 = *(float *)(arg0 + 0x7A4);
-                if (f0 > 0.0f) {
+                if (f0 > (float)0) {
                     *(float *)(arg0 + 0x7A4) = f0 - *(float *)((char *)&D_00000000 + 0x5F0);
                     if (*(float *)(arg0 + 0x7A4) < 0.0f) {
                         *(float *)(arg0 + 0x7A4) = 0.0f;
@@ -1205,20 +1214,19 @@ void mgrproc_uso_func_00001F30(char *arg0) {
         }
         gl_func_00000000(arg0, (int)*(float *)(arg0 + 0x7A8), (int)*(float *)(arg0 + 0x7AC), *(int *)(arg0 + 0x7C8));
         if (*(int *)(arg0 + 0x7C4) != 0) {
-            *(float *)(arg0 + 0x7B0) = *(float *)(arg0 + 0x7B0) + *(float *)(arg0 + 0x7BC);
+            *(float *)(arg0 + 0x7B0) = *(float *)(arg0 + 0x7BC) + *(float *)(arg0 + 0x7B0);
             *(float *)(arg0 + 0x7C0) = (float)((double)*(float *)(arg0 + 0x7C0) + D_dbl_5F8);
-            *(float *)(arg0 + 0x7B4) = *(float *)(arg0 + 0x7B4) + *(float *)(arg0 + 0x7C0);
+            *(float *)(arg0 + 0x7B4) = *(float *)(arg0 + 0x7C0) + *(float *)(arg0 + 0x7B4);
             if (*(float *)(arg0 + 0x7B4) > 256.0f) {
                 *(float *)(arg0 + 0x7B4) = 256.0f;
                 *(float *)(arg0 + 0x7C0) = 0.0f;
             }
             gl_func_00000000(arg0, (int)*(float *)(arg0 + 0x7B0), (int)*(float *)(arg0 + 0x7B4), 1);
             if (*(int *)(arg0 + 0x7C8) == 0) {
-                f0 = *(float *)(arg0 + 0x560);
-                if (f0 < 8.0f) {
-                    *(float *)(arg0 + 0x560) = (float)((double)f0 + D_dbl_600);
+                if (*(float *)(arg0 + 0x560) < 8.0f) {
+                    *(float *)(arg0 + 0x560) = (float)((double)*(float *)(arg0 + 0x560) + D_dbl_600);
                 }
-                *(float *)(arg0 + 0x55C) = *(float *)(arg0 + 0x55C) + *(float *)(arg0 + 0x560);
+                *(float *)(arg0 + 0x55C) = *(float *)(arg0 + 0x560) + *(float *)(arg0 + 0x55C);
                 if (*(float *)(arg0 + 0x564) < *(float *)(arg0 + 0x55C)) {
                     if (*(float *)(arg0 + 0x560) > 6.0f) {
                         gl_func_00000000(0x31);
@@ -1227,7 +1235,7 @@ void mgrproc_uso_func_00001F30(char *arg0) {
                     *(float *)(arg0 + 0x55C) = *(float *)(arg0 + 0x55C) - *(float *)(arg0 + 0x560);
                     *(float *)(arg0 + 0x560) = -(*(float *)(arg0 + 0x560) / four);
                 }
-                gl_func_00000000(0, 0xFF, arg0 + 0x3C8, arg0 + 0x3EC);
+                gl_func_00000000(&import_8024CAF8, 0xFF, arg0 + 0x3C8, arg0 + 0x3EC);
                 gl_func_00000000(arg0 + 0x690);
                 gl_func_00000000(arg0 + 0x690, (int)*(float *)(arg0 + 0x558), (int)*(float *)(arg0 + 0x55C), 3);
             }
