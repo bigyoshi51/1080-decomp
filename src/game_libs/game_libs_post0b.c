@@ -26992,165 +26992,135 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056974);
 #endif
 
 /* gl_func_00056D14: 10-case GP-command dispatch (mask = a1->4 & 0xF00), each
- * arm appends an 8-byte GFX word pair to the list at a0->C. STRUCTURAL CAP
- * (66.51->72.61 fuzzy, permuter best score 4205 @ ~12k iters, NOT coloring):
- * target packs the whole beq dispatch with delay-slot li/body loads + uses
- * beqzl for case 0, AND keeps arg0 in $a0 / mask in $a2 / append-ptr in $a1
- * (reusing dead arg1). Both `switch` (slti binary-search) and `if/goto` chain
- * leave arg0 spilled (`move a2,a0`) and emit a +6..8-insn looser dispatch with
- * nop/bnel delays — a coupled $a-class regalloc + dispatch-packing divergence
- * unreachable from C. Permuter ($a-class resist) plateaus at 72.61. Body
- * (factory permuter best) is the highest-fuzzy NM form; ROM path = INCLUDE_ASM. */
+ * arm appends an 8-byte GFX word pair to the list at a0->C. 72.61 -> 89.7
+ * (165/184 words, 2026-07-17 agent-f): prior body had DECODE ERRORS (0x600 must
+ * share the 0x200 body, target beq 56D48->56E34; 0x500 needs its own arm, was
+ * empty-if falling to default). Levers that rebuilt the dispatch: (1) if-goto
+ * chain in target test order + if(1){} around EVERY arm body defeats uopt
+ * jump-threading (bodies stay out-of-line, beq-to-body chain with li-at delay
+ * packing + beqzl case 0 restored; plain goto chain inlines to bnez/bnel skip
+ * form, switch = slti binary-search); (2) append-ptr spelled as dead param
+ * `arg1 = base + n*8` keeps p in $a1, arg0 unspilled in $a0; (3) error call is
+ * TWO-arg K&R `gl_func_00034458((char*)&D_00000000 + 0x2199C, mask)` — 3-arg
+ * double-precolor (a1+a2) pushed mask to $a3+moves; 2-arg colors mask $a2 with
+ * move a1,a2 in the jal delay, and the baked-USO-address first arg gives
+ * lui/addiu %hi/%lo (int literal gave lui/ori); (4) each 8-byte append is ONE
+ * `*(long long *)arg1 = 0x<w0><w1>LL;` store — LL emits the target's LIFO ori
+ * pair (ori hiW1 before ori loW0) + sw pair; two s32 stores emit FIFO oris (8
+ * arms byte-exact via LL). RESIDUAL 19 words: uopt flips the LAST test to
+ * bne->default + b->c300 (target: beq->c300 + b->default; if(1)-trampoline and
+ * cdef-wrap probes inert) and the c300 arms ride +1 temp-ring phase off that
+ * cluster (t0/t1 vs t9/t0, t6/t7 vs t5/t6) — coupled trace-polarity residual.
+ * ROM path = INCLUDE_ASM. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00056D14)();
 void gl_func_00056D14(char *arg0, char *arg1) {
-  s32 temp_a2;
-  s32 temp_v0;
-  s32 temp_v1;
-  s32 temp_v1_10;
-  s32 temp_v1_2;
-  s32 temp_v1_3;
-  s32 temp_v1_4;
-  s32 temp_v1_5;
-  s32 temp_v1_6;
-  s32 temp_v1_7;
-  s32 temp_v1_8;
-  s32 temp_v1_9;
-  char *temp_a1;
-  char *temp_a1_10;
-  char *temp_a1_2;
-  char *temp_a1_3;
-  char *temp_a1_4;
-  char *temp_a1_5;
-  char *temp_a1_6;
-  char *temp_a1_7;
-  char *temp_a1_8;
-  char *temp_a1_9;
-  char *temp_v0_10;
-  char *temp_v0_11;
-  char *temp_v0_2;
-  char *temp_v0_3;
-  char *temp_v0_4;
-  char *temp_v0_5;
-  char *temp_v0_6;
-  char *temp_v0_7;
-  char *temp_v0_8;
-  char *temp_v0_9;
-  temp_v0 = *((int *) (((char *) arg1) + 0x4));
-  temp_a2 = temp_v0 & 0xF00;
-  if (temp_a2 == 0x0)
-  {
-    goto c0;
-  }
-  if (temp_a2 == 0x400)
-  {
-    goto c400;
-  }
-  if (temp_a2 == 0x100)
-  {
-    goto c100;
-  }
-  if (temp_a2 == 0x200)
-  {
-    goto c200;
-  }
-  if (temp_a2 == 0x600)
-  {
-    goto c500;
-    goto c200;
-  }
-  if (temp_a2 == 0x500)
-  {
-  }
-  if (temp_a2 == 0xA00)
-  {
-    goto cA00;
-  }
-  if (temp_a2 == 0xB00)
-  {
-    goto cB00;
-  }
-  if (temp_a2 == 0x900)
-  {
-    goto c900;
-  }
-  if (temp_a2 == 0x300)
-  {
-    goto c300;
-  }
-  goto cdef;
-  c0:
-  temp_v0_2 = *((int *) (((char *) arg0) + 0xC));
+    s32 cmd = *(s32 *)(arg1 + 4);
+    s32 mask = cmd & 0xF00;
 
-  temp_v1 = *((int *) (((char *) temp_v0_2) + 0x4));
-  *((int *) (((char *) temp_v0_2) + 0x4)) = (s32) (temp_v1 + 1);
-  temp_a1 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1 * 8);
-  *((int *) (((char *) temp_a1) + 0x0)) = 0xFCFFFFFF;
-  *((int *) (((char *) temp_a1) + 0x4)) = 0xFFFE7838;
-  goto end;
-  c400:
-  temp_v0_3 = *((int *) (((char *) arg0) + 0xC));
+    if (mask == 0) goto c0;
+    if (mask == 0x400) goto c400;
+    if (mask == 0x100) goto c100;
+    if (mask == 0x200) goto c200;
+    if (mask == 0x600) goto c200;
+    if (mask == 0x500) goto c500;
+    if (mask == 0xA00) goto cA00;
+    if (mask == 0xB00) goto cB00;
+    if (mask == 0x900) goto c900;
+    if (mask == 0x300) goto c300;
+    goto cdef;
 
-  temp_v1_2 = *((int *) (((char *) temp_v0_3) + 0x4));
-  *((int *) (((char *) temp_v0_3) + 0x4)) = (s32) (temp_v1_2 + 1);
-  temp_a1_2 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_2 * 8);
-  *((int *) (((char *) temp_a1_2) + 0x0)) = 0xFCFFFFFF;
-  *((int *) (((char *) temp_a1_2) + 0x4)) = 0xFFFDF638;
-  goto end;
-  c100:
-  temp_v0_4 = *((int *) (((char *) arg0) + 0xC));
-
-  temp_v1_3 = *((int *) (((char *) temp_v0_4) + 0x4));
-  *((int *) (((char *) temp_v0_4) + 0x4)) = (s32) (temp_v1_3 + 1);
-  temp_a1_3 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_3 * 8);
-  *((int *) (((char *) temp_a1_3) + 0x0)) = 0xFCFFFFFF;
-  *((int *) (((char *) temp_a1_3) + 0x4)) = 0xFFFCF238;
-  goto end;
-  c200:
-  temp_v0_5 = *((int *) (((char *) arg0) + 0xC));
-
-  temp_v1_4 = *((int *) (((char *) temp_v0_5) + 0x4));
-  *((int *) (((char *) temp_v0_5) + 0x4)) = (s32) (temp_v1_4 + 1);
-  temp_a1_4 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_4 * 8);
-  *((int *) (((char *) temp_a1_4) + 0x0)) = 0xFC30B3FF;
-  *((int *) (((char *) temp_a1_4) + 0x4)) = 0x4FFE4838;
-  goto end;
-  c500:
-  temp_v0_6 = *((int *) (((char *) arg0) + 0xC));
-
-  temp_v1_5 = *((int *) (((char *) temp_v0_6) + 0x4));
-  *((int *) (((char *) temp_v0_6) + 0x4)) = (s32) (temp_v1_5 + 1);
-  temp_a1_5 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_5 * 8);
-  *((int *) (((char *) temp_a1_5) + 0x0)) = 0xFC30B3FF;
-  *((int *) (((char *) temp_a1_5) + 0x4)) = -0x1C8;
-  goto end;
-  cA00:
-  temp_v0_7 = *((int *) (((char *) arg0) + 0xC));
-
-  temp_v1_6 = *((int *) (((char *) temp_v0_7) + 0x4));
-  *((int *) (((char *) temp_v0_7) + 0x4)) = (s32) (temp_v1_6 + 1);
-  temp_a1_6 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_6 * 8);
-  *((int *) (((char *) temp_a1_6) + 0x0)) = 0xFC40B3FF;
-  *((int *) (((char *) temp_a1_6) + 0x4)) = 0x3FFDFE38;
-  goto end;
-  cB00:
-  temp_v0_8 = *((int *) (((char *) arg0) + 0xC));
-
-  temp_v1_7 = *((int *) (((char *) temp_v0_8) + 0x4));
-  *((int *) (((char *) temp_v0_8) + 0x4)) = (s32) (temp_v1_7 + 1);
-  temp_a1_7 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_7 * 8);
-  *((int *) (((char *) temp_a1_7) + 0x0)) = 0xFC40E3FF;
-  *((int *) (((char *) temp_a1_7) + 0x4)) = 0x3FFDCE38;
-  goto end;
-  c900:
-  temp_v0_9 = *((int *) (((char *) arg0) + 0xC));
-
- temp_v1_8 = *((int *) (((char *) temp_v0_9) + 0x4)); *((int *) (((char *) temp_v0_9) + 0x4)) = (s32) (temp_v1_8 + 1); temp_a1_8 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_8 * 8); *((int *) (((char *) temp_a1_8) + 0x0)) = 0xFC30B3FF; *((int *) (((char *) temp_a1_8) + 0x4)) = 0x5FFEFE38; goto end; c300: if (temp_v0 & 0x80000) { temp_v0_10 = *((int *) (((char *) arg0) + 0xC)); temp_v1_9 = *((int *) (((char *) temp_v0_10) + 0x4)); *((int *) (((char *) temp_v0_10) + 0x4)) = (s32) (temp_v1_9 + 1); temp_a1_9 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_9 * 8); *((int *) (((char *) temp_a1_9) + 0x0)) = 0xFC127FFF; *((int *) (((char *) temp_a1_9) + 0x4)) = -0xDC8; goto end; } temp_v0_11 = *((int *) (((char *) arg0) + 0xC)); temp_v1_10 = *((int *) (((char *) temp_v0_11) + 0x4)); *((int *) (((char *) temp_v0_11) + 0x4)) = (s32) (temp_v1_10 + 1); temp_a1_10 = (*((int *) (((char *) (*((int *) (((char *) arg0) + 0xC)))) + 0x0))) + (temp_v1_10 * 8); *((int *) (((char *) temp_a1_10) + 0x0)) = 0xFC257E04; *((int *) (((char *) temp_a1_10) + 0x4)) = 0x1FFCF3F8; goto end; cdef: gl_func_00034458(0x2199C, temp_a2, temp_a2); end: ;
-  ;
-  ;
+c0:
+if (1) {
+    char *h = *(char **)(arg0 + 0xC);
+    s32 n = *(s32 *)(h + 4);
+    *(s32 *)(h + 4) = n + 1;
+    arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+    *(long long *)arg1 = 0xFCFFFFFFFFFE7838LL;
+}
+goto end;
+c400:
+if (1) {
+    char *h = *(char **)(arg0 + 0xC);
+    s32 n = *(s32 *)(h + 4);
+    *(s32 *)(h + 4) = n + 1;
+    arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+    *(long long *)arg1 = 0xFCFFFFFFFFFDF638LL;
+}
+goto end;
+c100:
+if (1) {
+    char *h = *(char **)(arg0 + 0xC);
+    s32 n = *(s32 *)(h + 4);
+    *(s32 *)(h + 4) = n + 1;
+    arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+    *(long long *)arg1 = 0xFCFFFFFFFFFCF238LL;
+}
+goto end;
+c200:
+if (1) {
+    char *h = *(char **)(arg0 + 0xC);
+    s32 n = *(s32 *)(h + 4);
+    *(s32 *)(h + 4) = n + 1;
+    arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+    *(long long *)arg1 = 0xFC30B3FF4FFE4838LL;
+}
+goto end;
+c500:
+if (1) {
+    char *h = *(char **)(arg0 + 0xC);
+    s32 n = *(s32 *)(h + 4);
+    *(s32 *)(h + 4) = n + 1;
+    arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+    *(long long *)arg1 = 0xFC30B3FFFFFFFE38LL;
+}
+goto end;
+cA00:
+if (1) {
+    char *h = *(char **)(arg0 + 0xC);
+    s32 n = *(s32 *)(h + 4);
+    *(s32 *)(h + 4) = n + 1;
+    arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+    *(long long *)arg1 = 0xFC40B3FF3FFDFE38LL;
+}
+goto end;
+cB00:
+if (1) {
+    char *h = *(char **)(arg0 + 0xC);
+    s32 n = *(s32 *)(h + 4);
+    *(s32 *)(h + 4) = n + 1;
+    arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+    *(long long *)arg1 = 0xFC40E3FF3FFDCE38LL;
+}
+goto end;
+c900:
+if (1) {
+    char *h = *(char **)(arg0 + 0xC);
+    s32 n = *(s32 *)(h + 4);
+    *(s32 *)(h + 4) = n + 1;
+    arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+    *(long long *)arg1 = 0xFC30B3FF5FFEFE38LL;
+}
+goto end;
+c300:
+    if (cmd << 12 < 0) {
+        char *h = *(char **)(arg0 + 0xC);
+        s32 n = *(s32 *)(h + 4);
+        *(s32 *)(h + 4) = n + 1;
+        arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+        *(long long *)arg1 = 0xFC127FFFFFFFF238LL;
+    } else {
+        char *h = *(char **)(arg0 + 0xC);
+        s32 n = *(s32 *)(h + 4);
+        *(s32 *)(h + 4) = n + 1;
+        arg1 = *(char **)(*(char **)(arg0 + 0xC)) + n * 8;
+        *(long long *)arg1 = 0xFC257E041FFCF3F8LL;
+    }
+    goto end;
+cdef:
+    if (1) {
+        gl_func_00034458((char *)&D_00000000 + 0x2199C, mask);
+    }
+end:;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056D14);
