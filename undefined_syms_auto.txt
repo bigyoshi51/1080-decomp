@@ -3038,3 +3038,6 @@ bu_e68_dimB = 0;
 bu_e68_mgr = 0x214;
 bu_6808_ga = 0;
 bu_6808_gb = 0;
+gl_d_2b5f4_f = 0x00000000;    /* gl_func_0002B5F4: base-0 alias of D_00000000 -- per-site fold, 0x10AC f32 const */
+gl_d_2b5f4_r1 = 0x00000000;   /* gl_func_0002B5F4: base-0 alias -- RNG word 0x2154, ramp block */
+gl_d_2b5f4_r2 = 0x00000000;   /* gl_func_0002B5F4: base-0 alias -- RNG word 0x2154, percent block */
