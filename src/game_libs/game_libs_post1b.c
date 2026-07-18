@@ -1677,17 +1677,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065060);
 // then transforms it by the cached 3x3 matrix (rows at obj->0x70/0x74/0x78,
 // stride 0x10) + translation obj->0xA0/0xA4/0xA8, storing back to obj->0x324..
 // All FP is aligned lwc1/swc1/mul.s/add.s; reloc-blind cbs.
+// 2026-07-17 agent-h REFINEMENT (74.89 -> 75.76 fuzzy; standalone word-diff
+// 43 -> 37/66 mismatches, prologue+copy region now word-exact):
+// (1) Tri3i STRUCT COPY (not per-element int copies) reproduces the held
+//     `addiu t6,sp,0x34` store base + fresh t8/t7/t8 src temps + sp-folded
+//     lwc1 readbacks (same lever as 63884, docs #goto-end-phi-a0-struct-copy-63884).
+// (2) pad_a[4] before + pad_b[2] after the temp -> frame 0x50 with tmp@0x34
+//     exactly (prologue/copy region now word-exact vs target).
+// RESIDUAL (documented FP-pseudo-numbering skip class): build preloads M01
+// into $f18 before the first mul (fresh $f16 dst) where the target loads
+// each matrix element just-in-time and reuses dead copy temps (f4/f6/f8/f10
+// ring, row accumulators f14/f16/f18). One-slot schedule shift cascades
+// through the 3 row computations. Probed: direct-read rows (CSE fails, +3
+// insns), per-component interleaved write-then-read (inert). Byte-match
+// deferred; NM wrap.
 void gl_func_00065148(char *obj) {
-    int tmp[3];
+    int pad_a[4];
+    Tri3i tmp;
+    int pad_b[2];
     float x, y, z;
     gl_func_00000000(obj + 0x294, obj + 0xDC);
     gl_func_00000000(obj + 0x2C8, obj + 0xDC);
-    tmp[0] = *(int *)(obj + 0x1F8);
-    tmp[1] = *(int *)(obj + 0x1FC);
-    tmp[2] = *(int *)(obj + 0x200);
-    *(float *)(obj + 0x324) = *(float *)&tmp[0];
-    *(float *)(obj + 0x328) = *(float *)&tmp[1];
-    *(float *)(obj + 0x32C) = *(float *)&tmp[2];
+    tmp = *(Tri3i *)(obj + 0x1F8);
+    *(float *)(obj + 0x324) = *(float *)&tmp.a;
+    *(float *)(obj + 0x328) = *(float *)&tmp.b;
+    *(float *)(obj + 0x32C) = *(float *)&tmp.c;
     x = *(float *)(obj + 0x324);
     y = *(float *)(obj + 0x328);
     z = *(float *)(obj + 0x32C);
