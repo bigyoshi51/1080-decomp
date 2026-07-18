@@ -2298,12 +2298,21 @@ end:
  * source reproduces. Both caps stack; documented NM only. */
 extern int gl_func_00000000();
 int gl_func_0000CB9C(int *a0) {
-    if (a0[0x30/4] < a0[0x34/4]) return 0;
-    if (a0[0x78/4]) {
-        gl_func_00000000(a0[0x78/4]);
-        a0[0x30/4] = a0[0x34/4] - 8;
+    int p;
+    int n;
+
+    if (a0[0x30 / 4] < a0[0x34 / 4]) {
+        goto retzero;
+    }
+    p = a0[0x78 / 4];
+    n = a0[0x34 / 4] - 8;
+    if (p != 0) {
+        a0[0x30 / 4] = n;
+        gl_func_00000000(p, n);
     }
     return 1;
+retzero:
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CB9C);
@@ -2904,27 +2913,37 @@ void gl_func_0000D9B8(int *a0, int a1, int a2) {
  * body — would regress the 0% baseline. Captures structural decode only;
  * future passes with full body context can write all FPU sub-blocks
  * together. Multi-tick decomp expected. */
-extern int gl_func_h2hproc_8EC_pre();  /* placeholder — actual callee unknown */
+extern void gl_func_00000000_d9e4b(int *, int, int, float, float);
 void gl_func_0000D9E4(int *a0, int a1) {
-    int *sub = (int*)a0[0x6C / 4];
     int *v0;
-    if (sub == 0) return;
-    if ((a0[0xB4 / 4] & 2) == 0) return;
-    if (*(int **)((char *)&D_00000000 + 0x64) == 0) return;
-    v0 = (int *)gl_func_00000000(sub, (int)((float)a1 / 1000.0f * 100.0f), 0, 1);
-    v0[0x9C / 4] = 230;
-    v0[0x7C / 4] = 0;
-    *(float *)((char *)v0 + 0xAC) = 0.0f;
-    gl_func_00000000(v0, 160, 140, 1.0f, 1.0f);
-    *(float *)((char *)v0 + 0xA8) = 0.0f;
-    *(float *)((char *)v0 + 0xA4) = 0.0f;
-    *(float *)((char *)v0 + 0x64) = 100.0f / 255.0f;
-    *(float *)((char *)v0 + 0x6C) = 100.0f / 255.0f;
-    *(float *)((char *)v0 + 0x68) = 235.0f / 255.0f;
-    *(float *)((char *)v0 + 0x70) = 255.0f / 255.0f;
-    v0[0xA0 / 4] = (int)((char *)a0[0x6C / 4] + 0x120);
-    if (a0[0x6C / 4] != 0 && (a0[0xB4 / 4] & 1)) {
-        gl_func_00000000(a0[0x6C / 4]);
+    int *sub;
+    f32 num100;
+    f32 num235;
+    f32 num255;
+
+    sub = (int *)a0[0x6C / 4];
+    if ((sub != 0) && (a0[0xB4 / 4] & 2) && (*(int **)((char *)&D_00000000 + 0x64) != 0)) {
+        v0 = (int *)gl_func_00000000(sub, (int)((float)a1 / 1000.0f * 100.0f), 0, 1);
+        v0[0x9C / 4] = 230;
+        v0[0x7C / 4] = 0;
+        *(float *)((char *)v0 + 0xAC) = 0.0f;
+        gl_func_00000000_d9e4b(v0, 160, 140, 1.0f, 1.0f);
+        *(float *)((char *)v0 + 0xA8) = 0.0f;
+        *(float *)((char *)v0 + 0xA4) = 0.0f;
+        num100 = 100.0f;
+        num235 = 235.0f;
+        num255 = (float)255;
+        *(float *)((char *)v0 + 0x64) = num100 / 255.0f;
+        *(float *)((char *)v0 + 0x6C) = num100 / 255.0f;
+        *(float *)((char *)v0 + 0x68) = num235 / 255.0f;
+        *(float *)((char *)v0 + 0x70) = num255 / 255.0f;
+        v0[0xA0 / 4] = (int)((char *)a0[0x6C / 4] + 0x120);
+    }
+    sub = (int *)a0[0x6C / 4];
+    if (sub != 0) {
+        if (a0[0xB4 / 4] & 1) {
+            gl_func_00000000(sub);
+        }
     }
 }
 #else
