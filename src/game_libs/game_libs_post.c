@@ -9442,6 +9442,16 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026CCC);
 //   Byte-match deferred — placeholder jal-0 submit needs USO reloc
 //   infra. Name pre-checked: no extern reuse (collision-safe).
 //   gl_func_00000000 = canonical never-defined USO placeholder.
+// 2026-07-23 CAP RECLASSIFIED (expected/ .o disasm): CALLER-SET
+//   REGISTER cap, permanent for C. The true target reads $t6 (bound),
+//   $v0 (state byte source operand of the pack: andi t9,v0,0xff — NOT
+//   a2), and $v1 (state base ptr: lw a0,21452(v1)) all UNINITIALIZED
+//   = caller-set state regs (documented game_libs class, see
+//   feedback_caller_set_int_reg_cap). Also: the OOB branch RECORDS
+//   a0 (baked sw to &D+0x1B594) and FALLS THROUGH (no early return),
+//   and the real callee is the 0x1CA10/0x3443C submit family. The
+//   structural body below keeps the honest-C approximation; do not
+//   grind — bytes unreachable from C.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
