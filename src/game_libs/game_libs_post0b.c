@@ -11483,122 +11483,87 @@ void game_libs_func_00041298(int a0) {
 
 void game_libs_func_000412E0(void) {}
 
-// gl_func_000412E8 — STRUCTURAL PASS (0x238 / 143 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
-// (saves ra, s0). Lazy multi-subobject allocator/initializer (cb = jal 0
-// USO-relocated alloc).
-//
-//   void gl_func_000412E8(void) {
-//     root = *(void**)&D_reloc;                    // s0 = module root ptr
-//     if (root == 0) { root = cb(0x1E0); if(!root) return; }  // alloc root
-//
-//     // for each managed sub-slot: if it does not already hold its
-//     // expected sentinel/handle, allocate + zero-init + store back.
-//     // The 2401FExx negative immediates are the per-slot sentinel
-//     // compares (-0x138, -0x140, -0x18C, -0x1C4, ...):
-//     if (root->p138 != SENT) { p = cb(8); if(p){p->0=0;p->4=0;} root->p138=p; }
-//     if (root->p140 != SENT) { p = cb(8); if(p){p->0=0;p->4=0;} root->p140=p; }
-//     if (root->p18C != SENT) { p = cb(4); if(p) p->0=0;        root->p18C=p; }
-//     if (root->p1C4 != SENT) { p = cb(4); ...                  root->p1C4=p; }
-//     // ... further slots with the same alloc-zero-store idiom; trailing
-//     // section loads more module globals (&D_g via lui/addiu) and wires
-//     // them similarly.
-//   }
-// Idempotent lazy constructor: a single root object (allocated on first
-// call) whose sub-blocks at +0x138/+0x140/+0x18C/+0x1C4.. are each
-// allocated-on-demand (8- or 4-byte cells, zeroed) only if the slot is not
-// already populated (sentinel-guarded). Family: cb-driven lazy
-// allocator/registration (siblings gl_func_00040070 / 0003E5E0). Per-slot
-// list not exhaustively decoded (143-word initializer) — the root-alloc
-// guard, the sentinel-compare-then-alloc-zero-store idiom, slot offsets and
-// alloc sizes are exact; later-slot specifics representative. Caps: root
-// struct, &D_reloc/&D_g globals and cb signature untyped. Full body
-// INCLUDE_ASM-preserved.
+// gl_func_000412E8 — decode-errors-first pass 2 2026-07-23 (0x23C / 143
+// words, expected @0xce90 — NOTE: disasm-func.py defaults to the BUILD .o;
+// pass 1 mistakenly reverse-engineered the old build's guard-FOLDED body).
+// True target: root guard (s0 = &D_root, alloc 0x1E0 on null) wrapping four
+// slot guards off s0 (+0x138/cb8, +0x140/cb8, +0x18C/cb4, +0x1C4/cb4&&cb4),
+// then flat sections: +0x234/cb(0xC)&&cb(8), +0x294/cb(0x18)+cb(s0),
+// +0x378/cb(0x25C)+cb(s0,0x32,0xC,&D), base/cb(0x1C)&&cb4&&cb4 +
+// root->0x18=&D, at-form D.0x18=&D + base/cb(4). LEVERS: (s32) casts on
+// every &D-derived null-compare defeat IDO's address-nonnull guard fold;
+// distinct per-section extern aliases (D_412E8_a..m, = 0 in
+// undefined_syms_auto.txt) defeat cross-section &D CSE/spill. cb =
+// gl_func_00034458 (K&R, direct jal). Full body INCLUDE_ASM-preserved.
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_000412E8)();
+extern int D_412E8_a;
+extern int D_412E8_e;
+extern int D_412E8_f;
+extern int D_412E8_g;
+extern int D_412E8_h;
+extern int D_412E8_i;
+extern int D_412E8_j;
+extern int D_412E8_k;
+extern int D_412E8_l;
+extern int D_412E8_m;
 void gl_func_000412E8(void) {
     s32 *temp_v0;
-    s32 *temp_v0_10;
-    s32 *temp_v0_11;
-    s32 *temp_v0_12;
-    s32 *temp_v0_13;
-    s32 *temp_v0_14;
-    s32 *temp_v0_15;
-    s32 *temp_v0_2;
-    s32 *temp_v0_3;
-    s32 *temp_v0_4;
-    s32 *temp_v0_5;
-    s32 *temp_v0_6;
-    s32 *temp_v0_7;
-    s32 *temp_v0_8;
-    s32 *temp_v0_9;
-    s32 *var_a0;
-    s32 *var_a0_2;
     s32 *var_s0;
-    s32 *var_s0_2;
-    s32 *var_s0_3;
-    s32 *var_s0_4;
-    s32 *var_s0_5;
-    s32 *var_s0_6;
     s32 *var_v1;
-    s32 *var_v1_2;
-    s32 *var_v1_3;
-    s32 *var_v1_4;
-    s32 *var_v1_5;
-    s32 *var_v1_6;
-    s32 *var_v1_7;
+    s32 *var_a0;
 
-    char *root = (char *)&D_00000000;
-    var_s0 = (s32 *)root;
-    if ((root != 0) || (temp_v0 = gl_func_00034458((s32 *)0x1E0), var_s0 = temp_v0, (temp_v0 != 0))) {
-        root = (char *)var_s0;
-        var_v1 = (s32 *)(root + 0x138);
-        if ((var_s0 != (s32 *)-0x138) || (temp_v0_2 = gl_func_00034458((s32 *)8), var_v1 = temp_v0_2, (temp_v0_2 != 0))) {
+    var_s0 = (s32 *)&D_412E8_a;
+    if (((s32)&D_412E8_a != 0) || (temp_v0 = (s32 *)gl_func_00034458(0x1E0), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = (s32 *)((char *)var_s0 + 0x138);
+        if ((var_s0 != (s32 *)-0x138) || (temp_v0 = (s32 *)gl_func_00034458(8), var_v1 = temp_v0, (temp_v0 != 0))) {
             FW(var_v1, 0x4) = 0;
             FW(var_v1, 0x0) = 0;
         }
-        var_v1_2 = (s32 *)(root + 0x140);
-        if ((var_s0 != (s32 *)-0x140) || (temp_v0_3 = gl_func_00034458((s32 *)8), var_v1_2 = temp_v0_3, (temp_v0_3 != 0))) {
-            FW(var_v1_2, 0x4) = 0;
-            FW(var_v1_2, 0x0) = 0;
+        var_v1 = (s32 *)((char *)var_s0 + 0x140);
+        if ((var_s0 != (s32 *)-0x140) || (temp_v0 = (s32 *)gl_func_00034458(8), var_v1 = temp_v0, (temp_v0 != 0))) {
+            FW(var_v1, 0x4) = 0;
+            FW(var_v1, 0x0) = 0;
         }
-        var_v1_3 = (s32 *)(root + 0x18C);
-        if ((var_s0 != (s32 *)-0x18C) || (temp_v0_4 = gl_func_00034458((s32 *)4), var_v1_3 = temp_v0_4, (temp_v0_4 != 0))) {
-            *var_v1_3 = 0;
+        var_v1 = (s32 *)((char *)var_s0 + 0x18C);
+        if ((var_s0 != (s32 *)-0x18C) || (temp_v0 = (s32 *)gl_func_00034458(4), var_v1 = temp_v0, (temp_v0 != 0))) {
+            *var_v1 = 0;
         }
-        var_v1_4 = (s32 *)(root + 0x1C4);
-        if (((var_s0 != (s32 *)-0x1C4) || (temp_v0_5 = gl_func_00034458((s32 *)4), var_v1_4 = temp_v0_5, (temp_v0_5 != 0))) && ((var_a0 = var_v1_4, (var_v1_4 != 0)) || (temp_v0_6 = gl_func_00034458((s32 *)4), var_a0 = temp_v0_6, (temp_v0_6 != 0)))) {
+        var_v1 = (s32 *)((char *)var_s0 + 0x1C4);
+        if (((var_s0 != (s32 *)-0x1C4) || (temp_v0 = (s32 *)gl_func_00034458(4), var_v1 = temp_v0, (temp_v0 != 0))) && ((var_a0 = var_v1, (var_v1 != 0)) || (temp_v0 = (s32 *)gl_func_00034458(4), var_a0 = temp_v0, (temp_v0 != 0)))) {
             *var_a0 = 0;
         }
     }
-    var_s0_2 = (s32 *)((char *)&D_00000000 + 0x234);
-    if ((((s32 *)&D_00000000 != (s32 *)-0x234) || (temp_v0_7 = gl_func_00034458((s32 *)0xC), var_s0_2 = temp_v0_7, (temp_v0_7 != 0))) && ((var_v1_5 = var_s0_2, (var_s0_2 != 0)) || (temp_v0_8 = gl_func_00034458((s32 *)8), var_v1_5 = temp_v0_8, (temp_v0_8 != 0)))) {
-        FW(var_v1_5, 0x4) = 0;
-        FW(var_v1_5, 0x0) = 0;
+    var_s0 = (s32 *)((char *)&D_412E8_e + 0x234);
+    if ((((s32)&D_412E8_e != -0x234) || (temp_v0 = (s32 *)gl_func_00034458(0xC), var_s0 = temp_v0, (temp_v0 != 0))) && ((var_v1 = var_s0, (var_s0 != 0)) || (temp_v0 = (s32 *)gl_func_00034458(8), var_v1 = temp_v0, (temp_v0 != 0)))) {
+        FW(var_v1, 0x4) = 0;
+        FW(var_v1, 0x0) = 0;
     }
-    var_s0_3 = (s32 *)((char *)&D_00000000 + 0x294);
-    if (((s32 *)&D_00000000 != (s32 *)-0x294) || (temp_v0_9 = gl_func_00034458((s32 *)0x18), var_s0_3 = temp_v0_9, (temp_v0_9 != 0))) {
-        gl_func_00034458(var_s0_3);
+    var_s0 = (s32 *)((char *)&D_412E8_f + 0x294);
+    if (((s32)&D_412E8_f != -0x294) || (temp_v0 = (s32 *)gl_func_00034458(0x18), var_s0 = temp_v0, (temp_v0 != 0))) {
+        gl_func_00034458(var_s0);
     }
-    var_s0_4 = (s32 *)((char *)&D_00000000 + 0x378);
-    if (((s32 *)&D_00000000 != (s32 *)-0x378) || (temp_v0_10 = gl_func_00034458((s32 *)0x25C), var_s0_4 = temp_v0_10, (temp_v0_10 != 0))) {
-        gl_func_00034458(var_s0_4, 0x32, 0xC, (char *)&D_00000000);
+    var_s0 = (s32 *)((char *)&D_412E8_g + 0x378);
+    if (((s32)&D_412E8_g != -0x378) || (temp_v0 = (s32 *)gl_func_00034458(0x25C), var_s0 = temp_v0, (temp_v0 != 0))) {
+        gl_func_00034458(var_s0, 0x32, 0xC, (char *)&D_412E8_h);
     }
-    var_s0_5 = (s32 *)&D_00000000;
-    if ((var_s0_5 != 0) || (temp_v0_11 = gl_func_00034458((s32 *)0x1C), var_s0_5 = temp_v0_11, (temp_v0_11 != 0))) {
-        var_v1_6 = var_s0_5;
-        if (((var_s0_5 != 0) || (temp_v0_12 = gl_func_00034458((s32 *)4), var_v1_6 = temp_v0_12, (temp_v0_12 != 0))) && ((var_a0_2 = var_v1_6, (var_v1_6 != 0)) || (temp_v0_13 = gl_func_00034458((s32 *)4), var_a0_2 = temp_v0_13, (temp_v0_13 != 0)))) {
-            *var_a0_2 = 0;
+    var_s0 = (s32 *)&D_412E8_i;
+    if (((s32)var_s0 != 0) || (temp_v0 = (s32 *)gl_func_00034458(0x1C), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if (((var_s0 != 0) || (temp_v0 = (s32 *)gl_func_00034458(4), var_v1 = temp_v0, (temp_v0 != 0))) && ((var_a0 = var_v1, (var_v1 != 0)) || (temp_v0 = (s32 *)gl_func_00034458(4), var_a0 = temp_v0, (temp_v0 != 0)))) {
+            *var_a0 = 0;
         }
-        FW(var_s0_5, 0x18) = (s32)&D_00000000;
+        FW(var_s0, 0x18) = (s32)&D_412E8_j;
     }
-    var_s0_6 = (s32 *)&D_00000000;
-    FW((char *)&D_00000000, 0x18) = (s32)&D_00000000;
-    if (((var_s0_6 != 0) || (temp_v0_14 = gl_func_00034458((s32 *)4), var_s0_6 = temp_v0_14, (temp_v0_14 != 0))) && ((var_v1_7 = var_s0_6, (var_s0_6 != 0)) || (temp_v0_15 = gl_func_00034458((s32 *)4), var_v1_7 = temp_v0_15, (temp_v0_15 != 0)))) {
-        *var_v1_7 = 0;
+    FW((char *)&D_412E8_l, 0x18) = (s32)&D_412E8_k;
+    var_s0 = (s32 *)&D_412E8_m;
+    if (((s32)var_s0 != 0) || (temp_v0 = (s32 *)gl_func_00034458(4), var_s0 = temp_v0, (temp_v0 != 0))) {
+        var_v1 = var_s0;
+        if ((var_v1 != 0) || (temp_v0 = (s32 *)gl_func_00034458(4), var_v1 = temp_v0, (temp_v0 != 0))) {
+            *var_v1 = 0;
+        }
     }
 }
 #else
