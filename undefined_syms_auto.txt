@@ -3088,3 +3088,23 @@ D_timb5_2B74_vv0 = 0; D_timb5_2B74_vv1 = 0; D_timb5_2B74_vw0 = 0; D_timb5_2B74_v
 D_timb5_2B74_ve0 = 0; D_timb5_2B74_ve1 = 0;
 D_timb5_2B74_vf0 = 0; D_timb5_2B74_vf1 = 0; D_timb5_2B74_vf2 = 0; D_timb5_2B74_vf3 = 0;
 D_00000000_76F0 = 0x00000000;
+gl_d_42938_idx = 0x00000000;  /* game_libs_func_00042938: record-index global (base-0 alias) */
+gl_d_42938_rec = 0x00000000;  /* game_libs_func_00042938: 0x50-stride record array base (base-0 alias) */
+gl_d_42938_ia = 0x00000000;   /* game_libs_func_00042938: SetTextureImage src A (base-0 alias) */
+gl_d_42938_ib = 0x00000000;   /* game_libs_func_00042938: SetTextureImage src B (base-0 alias) */
+gl_d_42938_cb = 0x00000000;   /* game_libs_func_00042938: draw-call arg0 (base-0 alias) */
+gl_d_42938_z = 0x00000000;    /* game_libs_func_00042938: flush-call a1 (base-0 alias) */
+gl_d_42938_fa = 0x0003C890;  /* game_libs_func_00042938 prime flag A (array-typed per-site extern) */
+gl_d_42938_fb = 0x0003C894;  /* game_libs_func_00042938 prime flag B */
+gl_d_42938_fc = 0x0003C898;  /* game_libs_func_00042938 prime flag C */
+gl_d_42938_pa = 0x0003C938;  /* game_libs_func_00042938 published field A */
+gl_d_42938_pb = 0x0003C93C;  /* game_libs_func_00042938 published field B */
+gl_d_42938_pc = 0x0003C940;  /* game_libs_func_00042938 published field C */
+gl_d_42938_sa = 0x0003C930;  /* game_libs_func_00042938 blend addend A */
+gl_d_42938_sb = 0x0003C934;  /* game_libs_func_00042938 blend addend B */
+gl_d_42938_ck = 0x0001FCC8;  /* game_libs_func_00042938 skip flag */
+gl_d_42938_qa = 0x0001FCCC;  /* game_libs_func_00042938 draw arg blob A */
+gl_d_42938_qb = 0x0001FCE8;  /* game_libs_func_00042938 draw arg blob B */
+gl_d_42938_qc = 0x0001FCF0;  /* game_libs_func_00042938 draw arg blob C */
+gl_d_42938_qd = 0x0001FCF8;  /* game_libs_func_00042938 draw arg blob D */
+gl_d_42938_gb = 0x00000000;  /* game_libs_func_00042938 base-0 g array alias (held in s0) */

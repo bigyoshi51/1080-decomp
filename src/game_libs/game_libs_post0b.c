@@ -12606,8 +12606,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042778);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042938);
-
+// game_libs_func_00042938 — 0x614 MERGED (2026-07-23): the old 3-insn orphan
+// game_libs_func_00042938 (lui v0,%hi(D+0x3C890); addiu; lw t6) is the STOLEN
+// PREAMBLE of the fn below — IDO scheduled the first flag load ABOVE the
+// sp-adjust. Fragment merged into one .s (parent 42938, size 0xC+0x608).
+//
+// CAP RETRACTION: the old "caller-set $v0/$t6 register convention — permanent
+// INCLUDE_ASM" note on gl_func_00042944 was WRONG. t6/v0 are set by the merged
+// preamble (t6 = *(int*)(D+0x3C890), v0 = &D+0x3C890). No caller-set regs.
+//
 // gl_func_00042944 — 0x604 / 386 words, single fn, clean single prologue
 // (frame 0x58, saves ra+s0) and single epilogue at 0x42AEC (jr ra). The OLD
 // "2-function bundle / deferred re-split" note was WRONG: this fn ends at the
@@ -12625,171 +12632,154 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042938);
 // D[0x1FCC8]==0) writes 3 color words into a 0x50-stride record via a
 // per-channel ((hi+c)%65535<<16)|((lo+c)%65535) blend (the div/break pairs).
 //
-// STRUCTURAL CAP — NOT LANDABLE (caller-set register convention):
-//   e4f4  bnez  t6, ...        # t6 is LIVE-IN (caller-set), no prior def
-//   e51c  sw    v1, 0(v0)      # v0 is LIVE-IN (caller-set), no prior def
-// The very first basic block is `if (t6==0) { *v0 = 1; ... }` where t6 and v0
-// are caller-set non-ABI registers (not a0-a3, not a return value — there is no
-// prior call). IDO C cannot read an uninitialized v0/t6 nor pin a value to a
-// specific register without emitting materialization insns that change the
-// bytes, and this entry-block divergence cascades through v0/v1/t6 allocation
-// for the whole body. Documented cap class:
-// feedback_caller_set_int_reg_cap_1080_game_libs ("1080 game_libs uses
-// caller-set $v0/$v1/$t6 as state-ptr args; IDO C can't reproduce"). Permanent
-// INCLUDE_ASM. Best honest reconstruction = the m2c graft below (fuzzy 60.87%);
-// fuzzy=100 is unreachable, so this stays NON_MATCHING (no episode). Family:
-// gfx-list setup drivers; the &D+0x3C938.. slabs + 0x50-stride record untyped.
 #ifdef NON_MATCHING
-/* PASS-1 2026-06-10 (big-swing): FULL m2c graft (386 insns, table-free,
- * 3.6% COP1). */
-void gl_func_00042944(void) {
-    char *sp28;
-    f32 temp_f0;
-    f32 temp_f12;
-    f32 temp_f2;
-    s32 temp_a0_3;
-    s32 temp_a1_3;
-    s32 temp_a2_7;
-    s32 temp_a2_8;
-    s32 temp_a3_3;
-    s32 temp_a3_4;
-    s32 temp_t0_3;
-    s32 temp_v0_5;
-    s32 temp_v0_6;
-    s32 temp_v0_8;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 temp_v1_5;
-    s32 temp_v1_6;
-    char *temp_a0;
-    char *temp_a0_2;
-    char *temp_a1;
-    char *temp_a1_2;
-    char *temp_a2;
-    char *temp_a2_2;
-    char *temp_a2_3;
-    char *temp_a2_4;
-    char *temp_a2_5;
-    char *temp_a2_6;
-    char *temp_a3;
-    char *temp_a3_2;
-    char *temp_t0;
-    char *temp_t0_2;
-    char *temp_t4;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_7;
-    char *temp_v1_4;
-    char *temp_v1_7;
+/* PASS-2 2026-07-23: full re-decode post-merge. Registry-prime (3 flag blocks
+ * publishing record fields into 0x3C938..40), GBI emits, vtx quad, 3 blend
+ * writes back into the 0x50-stride record. Per-site typed externs (real
+ * addresses, USO-baked by objdiff reloc resolution + bake-data-relocs on the
+ * ROM path) kill the s0=0x38000 far-global pool base; base-0 aliases keep
+ * t2/t0/s0 as separate registers. */
+extern int gl_d_42938_idx;            /* record index global (base-0 sym) */
+extern char gl_d_42938_rec;           /* 0x50-stride record array base    */
+extern int gl_d_42938_ia;             /* SetTextureImage src A            */
+extern int gl_d_42938_ib;             /* SetTextureImage src B            */
+extern char gl_d_42938_cb;            /* arg0 of the three draw calls     */
+extern char gl_d_42938_z;             /* a1 of the three flush calls      */
+/* prime flags @0x3C890/94/98 -- array form materializes the address into a
+ * register (shared load+store); gb = base-0 g array alias (held in s0) */
+extern int gl_d_42938_fa[];
+extern int gl_d_42938_fb[];
+extern int gl_d_42938_fc[];
+extern char gl_d_42938_gb[];
+extern int gl_d_42938_pa;             /* published fields @0x3C938/3C/40  */
+extern int gl_d_42938_pb;
+extern int gl_d_42938_pc;
+extern int gl_d_42938_sa;             /* blend addends @0x3C930/34        */
+extern int gl_d_42938_sb;
+extern int gl_d_42938_ck;             /* skip flag @0x1FCC8               */
+extern char gl_d_42938_qa;            /* arg blobs @0x1FCCC/CE8/CF0/CF8   */
+extern char gl_d_42938_qb;
+extern char gl_d_42938_qc;
+extern char gl_d_42938_qd;
+#define FI38(p, o) (*(int *)((char *)(p) + (o)))
+#define FP38(p, o) (*(void **)((char *)(p) + (o)))
+/* cx/nd/n are FUNCTION-SCOPE role pools (target colors cx=a2, nd=v0, n=v1
+ * across every expansion); the entry ptr _e stays macro-local (rotating
+ * a0/a1/a3 webs). nd re-derefed for the entry base after the count++ store. */
+#define EM38(w0, w1) do {                                          \
+    char *_e;                                                      \
+    cx = FP38(FP38(gl_d_42938_gb, 0x254), 0x158);                  \
+    nd = FP38(cx, 0xC);                                            \
+    n = FI38(nd, 0x4);                                             \
+    FI38(nd, 0x4) = n + 1;                                         \
+    _e = (char *)FP38(FP38(cx, 0xC), 0x0) + (n * 8);               \
+    FI38(_e, 0x0) = (w0); FI38(_e, 0x4) = (w1);                    \
+} while (0)
 
-    if (0 /* M2C unset $t6 */ == 0) {
-        *(s32 *)((char *)&D_00000000 + 0) /* M2C unset $v0 */ = 1;
-        *(s32 *)((char *)&D_00000000 + 0x3C938) = *(s32 *)((char *)((*(s32 *)((char *)&D_00000000 + 0) * 0x50)) + 0x1C);
+void game_libs_func_00042938(void) {
+    char *e;
+    char *cx, *nd;
+    int n;
+    f32 w, h, z, two, four;
+    int idx, va, vb, vc, lo1, lo2;
+    char *rec;
+
+    if (gl_d_42938_fa[0] == 0) {
+        gl_d_42938_fa[0] = 1;
+        gl_d_42938_pa =
+            FI38(&gl_d_42938_rec + (u32)gl_d_42938_idx * 0x50, 0x1C);
     }
-    if (*(s32 *)((char *)&D_00000000 + 0x3C894) == 0) {
-        *(s32 *)((char *)&D_00000000 + 0x3C894) = 1;
-        *(s32 *)((char *)&D_00000000 + 0x3C93C) = *(s32 *)((char *)((*(s32 *)((char *)&D_00000000 + 0) * 0x50)) + 0x30);
+    if (gl_d_42938_fb[0] == 0) {
+        gl_d_42938_fb[0] = 1;
+        gl_d_42938_pb =
+            FI38(&gl_d_42938_rec + (u32)gl_d_42938_idx * 0x50, 0x30);
     }
-    if (*(s32 *)((char *)&D_00000000 + 0x3C898) == 0) {
-        *(s32 *)((char *)&D_00000000 + 0x3C898) = 1;
-        *(s32 *)((char *)&D_00000000 + 0x3C940) = *(s32 *)((char *)((*(s32 *)((char *)&D_00000000 + 0) * 0x50)) + 0x44);
+    if (gl_d_42938_fc[0] == 0) {
+        gl_d_42938_fc[0] = 1;
+        gl_d_42938_pc =
+            FI38(&gl_d_42938_rec + (u32)gl_d_42938_idx * 0x50, 0x44);
     }
-    temp_a2 = *(s32 *)((char *)((*(void **)0x254)) + 0x158);
-    temp_v0 = *(s32 *)((char *)(temp_a2) + 0xC);
-    temp_v1 = *(s32 *)((char *)(temp_v0) + 0x4);
-    *(s32 *)((char *)(temp_v0) + 0x4) = (s32) (temp_v1 + 1);
-    temp_a0 = *(s32 *)((char *)(*(s32 *)((char *)(temp_a2) + 0xC)) + 0x0) + (temp_v1 * 8);
-    *(s32 *)((char *)(temp_a0) + 0x0) = 0xED000000;
-    *(s32 *)((char *)(temp_a0) + 0x4) = (s32) ((((s32) ((f32) *(s32 *)((char *)&D_00000000 + 0) * 4.0f) & 0xFFF) << 0xC) | ((s32) ((f32) *(s32 *)((char *)&D_00000000 + 0) * 4.0f) & 0xFFF));
-    temp_a2_2 = *(s32 *)((char *)((*(void **)0x254)) + 0x158);
-    temp_v0_2 = *(s32 *)((char *)(temp_a2_2) + 0xC);
-    temp_v1_2 = *(s32 *)((char *)(temp_v0_2) + 0x4);
-    *(s32 *)((char *)(temp_v0_2) + 0x4) = (s32) (temp_v1_2 + 1);
-    temp_a1 = *(s32 *)((char *)(*(s32 *)((char *)(temp_a2_2) + 0xC)) + 0x0) + (temp_v1_2 * 8);
-    *(s32 *)((char *)(temp_a1) + 0x0) = 0xB6000000;
-    *(s32 *)((char *)(temp_a1) + 0x4) = -1;
-    temp_a2_3 = *(s32 *)((char *)((*(void **)0x254)) + 0x158);
-    temp_v0_3 = *(s32 *)((char *)(temp_a2_3) + 0xC);
-    temp_v1_3 = *(s32 *)((char *)(temp_v0_3) + 0x4);
-    *(s32 *)((char *)(temp_v0_3) + 0x4) = (s32) (temp_v1_3 + 1);
-    temp_a3 = *(s32 *)((char *)(*(s32 *)((char *)(temp_a2_3) + 0xC)) + 0x0) + (temp_v1_3 * 8);
-    *(s32 *)((char *)(temp_a3) + 0x0) = 0xB900031D;
-    *(s32 *)((char *)(temp_a3) + 0x4) = 0x442478;
-    temp_v1_4 = *(void **)0x254;
-    func_00000000(0x40800000, *(s32 *)((char *)(temp_v1_4) + 0x158), *(s32 *)((char *)(*(s32 *)((char *)(temp_v1_4) + 0x148)) + 0xF0), temp_a2_3, temp_a3);
-    temp_a2_4 = *(s32 *)((char *)((*(void **)0x254)) + 0x158);
-    temp_v0_4 = *(s32 *)((char *)(temp_a2_4) + 0xC);
-    temp_v1_5 = *(s32 *)((char *)(temp_v0_4) + 0x4);
-    temp_f12 = 320.0f * 2.0f;
-    *(s32 *)((char *)(temp_v0_4) + 0x4) = (s32) (temp_v1_5 + 1);
-    temp_a1_2 = *(s32 *)((char *)(*(s32 *)((char *)(temp_a2_4) + 0xC)) + 0x0) + (temp_v1_5 * 8);
-    *(s32 *)((char *)(temp_a1_2) + 0x0) = 0xB7000000;
-    *(s32 *)((char *)(temp_a1_2) + 0x4) = 1;
-    temp_f0 = 240.0f * 2.0f;
-    temp_a2_5 = *(s32 *)((char *)((*(void **)0x254)) + 0x158);
-    temp_f2 = 0.0f * 4.0f;
-    temp_t0 = *(s32 *)((char *)(temp_a2_5) + 0xC);
-    temp_v0_5 = *(s32 *)((char *)(temp_t0) + 0x4);
-    *(s32 *)((char *)(temp_t0) + 0x4) = (s32) (temp_v0_5 + 1);
-    temp_a3_2 = *(s32 *)((char *)(*(s32 *)((char *)(temp_a2_5) + 0xC)) + 0x0) + (temp_v0_5 * 8);
-    *(s32 *)((char *)(temp_a3_2) + 0x0) = 0xBA001402;
-    *(s32 *)((char *)(temp_a3_2) + 0x4) = 0;
-    temp_a2_6 = *(s32 *)((char *)((*(void **)0x254)) + 0x158);
-    temp_t0_2 = *(s32 *)((char *)(temp_a2_6) + 0x4C);
-    temp_v0_6 = *(s32 *)((char *)(temp_t0_2) + 0x4);
-    *(s32 *)((char *)(temp_t0_2) + 0x4) = (s32) (temp_v0_6 + 1);
-    temp_a0_2 = *(s32 *)((char *)(*(s32 *)((char *)(temp_a2_6) + 0x4C)) + 0x0) + (temp_v0_6 * 0x10);
-    *(s32 *)((char *)(temp_a0_2) + 0x0) = (s16) (s32) temp_f12;
-    *(s32 *)((char *)(temp_a0_2) + 0x2) = (s16) (s32) temp_f0;
-    *(s32 *)((char *)(temp_a0_2) + 0x4) = 0x1FF;
-    *(s32 *)((char *)(temp_a0_2) + 0x6) = 0;
-    *(s32 *)((char *)(temp_a0_2) + 0xC) = 0x1FF;
-    *(s32 *)((char *)(temp_a0_2) + 0xE) = 0;
-    *(s32 *)((char *)(temp_a0_2) + 0x8) = (s16) (s32) (temp_f2 + temp_f12);
-    *(s32 *)((char *)(temp_a0_2) + 0xA) = (s16) (s32) (temp_f2 + temp_f0);
-    temp_v0_7 = *(s32 *)((char *)(temp_a2_6) + 0xC);
-    temp_v1_6 = *(s32 *)((char *)(temp_v0_7) + 0x4);
-    *(s32 *)((char *)(temp_v0_7) + 0x4) = (s32) (temp_v1_6 + 1);
-    temp_t4 = *(s32 *)((char *)(*(s32 *)((char *)(temp_a2_6) + 0xC)) + 0x0) + (temp_v1_6 * 8);
-    *(s32 *)((char *)(temp_t4) + 0x0) = 0x03800010;
-    sp28 = temp_t4;
-    *(s32 *)((char *)(temp_t4) + 0x4) = func_00000000(temp_f12, 0x40800000, temp_a0_2, 0x1FF, temp_a2_6, temp_a3_2);
-    temp_v1_7 = *(void **)0x254;
-    *(void **)0x228 = (void *)8;
-    *(void **)0x224 = (void *)8;
-    *(void **)0x220 = (void *)0x50;
-    *(void **)0x21C = (void *)0x32;
-    temp_a3_3 = *(s32 *)((char *)(temp_v1_7) + 0xC4);
-    temp_a2_7 = *(s32 *)((char *)(temp_v1_7) + 0xC0);
-    func_00000000(0, 0x1FCCC, temp_a2_7, temp_a3_3, *(s32 *)((char *)(temp_v1_7) + 0xB8) + temp_a2_7, temp_a3_3 + *(s32 *)((char *)(temp_v1_7) + 0xBC));
-    func_00000000(0, 0, 0x140);
-    *(void **)0x224 = (void *)0x10;
-    *(void **)0x228 = (void *)0x10;
-    *(void **)0x21C = (void *)0x78;
-    *(void **)0x220 = (void *)0x78;
-    func_00000000(0, 0x1FCE8, *(s32 *)((char *)&D_00000000 + 0x3C930), 0x78);
-    func_00000000(0, 0, 0x140);
-    func_00000000(0, 0x1FCF0, *(s32 *)((char *)&D_00000000 + 0x3C934));
-    func_00000000(0, 0, 0x140);
-    if (*(s32 *)((char *)&D_00000000 + 0x1FCC8) != 0) {
-        func_00000000(0, 0x1FCF8, 0x140);
+
+    four = 4.0f;
+    EM38(0xED000000, ((((int)((f32)gl_d_42938_ia * four)) & 0xFFF) << 12) |
+                     (((int)((f32)gl_d_42938_ib * four)) & 0xFFF));
+    EM38(0xB6000000, -1);
+    EM38(0xB900031D, 0x442478);
+    {
+        char *cv = FP38(gl_d_42938_gb, 0x254);
+        func_00000000(FP38(cv, 0x158), FI38(FP38(cv, 0x148), 0xF0));
+    }
+    EM38(0xB7000000, 1);
+    four = 4.0f;
+    two = 2.0f;
+    w = 320.0f * two;
+    h = 240.0f * two;
+    z = (f32)0 * four;
+    EM38(0xBA001402, 0);
+    {
+        char *vn;
+        int vc;
+        char *v;
+        cx = FP38(FP38(gl_d_42938_gb, 0x254), 0x158);
+        vn = FP38(cx, 0x4C);
+        vc = FI38(vn, 0x4);
+        FI38(vn, 0x4) = vc + 1;
+        v = (char *)FP38(FP38(cx, 0x4C), 0x0) + (vc * 0x10);
+        *(s16 *)(v + 0x0) = (s16)(s32)w;
+        *(s16 *)(v + 0x2) = (s16)(s32)h;
+        *(s16 *)(v + 0x4) = 0x1FF;
+        *(s16 *)(v + 0x6) = 0;
+        *(s16 *)(v + 0xC) = 0x1FF;
+        *(s16 *)(v + 0xE) = 0;
+        *(s16 *)(v + 0x8) = (s16)(s32)(z + w);
+        *(s16 *)(v + 0xA) = (s16)(s32)(z + h);
+        nd = FP38(cx, 0xC);
+        n = FI38(nd, 0x4);
+        FI38(nd, 0x4) = n + 1;
+        e = (char *)FP38(FP38(cx, 0xC), 0x0) + (n * 8);
+        FI38(e, 0x0) = 0x03800010;
+        FI38(e, 0x4) = func_00000000();
+    }
+    FI38(gl_d_42938_gb, 0x228) = 8;
+    FI38(gl_d_42938_gb, 0x224) = 8;
+    FI38(gl_d_42938_gb, 0x220) = 0x50;
+    FI38(gl_d_42938_gb, 0x21C) = 0x32;
+    {
+        char *cv = FP38(gl_d_42938_gb, 0x254);
+        func_00000000(&gl_d_42938_cb, &gl_d_42938_qa,
+                      FI38(cv, 0xC0), FI38(cv, 0xC4),
+                      FI38(cv, 0xB8) + FI38(cv, 0xC0),
+                      FI38(cv, 0xC4) + FI38(cv, 0xBC));
+    }
+    func_00000000(gl_d_42938_gb, &gl_d_42938_z, 320);
+    FI38(gl_d_42938_gb, 0x224) = 0x10;
+    FI38(gl_d_42938_gb, 0x228) = 0x10;
+    FI38(gl_d_42938_gb, 0x21C) = 0x78;
+    FI38(gl_d_42938_gb, 0x220) = 0x78;
+    func_00000000(&gl_d_42938_cb, &gl_d_42938_qb, gl_d_42938_sa);
+    func_00000000(gl_d_42938_gb, &gl_d_42938_z, 320);
+    func_00000000(&gl_d_42938_cb, &gl_d_42938_qc, gl_d_42938_sb);
+    func_00000000(gl_d_42938_gb, &gl_d_42938_z, 320);
+    if (gl_d_42938_ck != 0) {
+        func_00000000(gl_d_42938_gb, &gl_d_42938_qd, 320);
         return;
     }
-    temp_a2_8 = *(s32 *)((char *)&D_00000000 + 0x3C938);
-    temp_a1_3 = *(s32 *)((char *)&D_00000000 + 0x3C930);
-    temp_a0_3 = *(s32 *)((char *)&D_00000000 + 0) * 0x50;
-    *(s32 *)((char *)(temp_a0_3) + 0x1C) = (s32) ((((s32) (((temp_a2_8 >> 0x10) & 0xFFFF) + temp_a1_3) % 65535) << 0x10) | ((s32) ((temp_a2_8 & 0xFFFF) + temp_a1_3) % 65535));
-    temp_a3_4 = *(s32 *)((char *)&D_00000000 + 0x3C93C);
-    temp_v0_8 = *(s32 *)((char *)&D_00000000 + 0x3C934);
-    *(s32 *)((char *)(temp_a0_3) + 0x30) = (s32) ((((s32) (((temp_a3_4 >> 0x10) & 0xFFFF) + temp_v0_8) % 65535) << 0x10) | ((s32) ((temp_a3_4 & 0xFFFF) + temp_v0_8) % 65535));
-    temp_t0_3 = *(s32 *)((char *)&D_00000000 + 0x3C940);
-    *(s32 *)((char *)(temp_a0_3) + 0x44) = (s32) ((((s32) (((temp_t0_3 >> 0x10) & 0xFFFF) + temp_v0_8) % 65535) << 0x10) | ((s32) ((temp_t0_3 & 0xFFFF) + temp_v0_8) % 65535));
+    idx = gl_d_42938_idx;
+    va = gl_d_42938_pa;
+    lo1 = gl_d_42938_sa;
+    rec = &gl_d_42938_rec + idx * 0x50;
+    FI38(rec, 0x1C) = (((((va >> 16) & 0xFFFF) + lo1) % 65535) << 16) |
+                      (((va & 0xFFFF) + lo1) % 65535);
+    vb = gl_d_42938_pb;
+    lo2 = gl_d_42938_sb;
+    FI38(rec, 0x30) = (((((vb >> 16) & 0xFFFF) + lo2) % 65535) << 16) |
+                      (((vb & 0xFFFF) + lo2) % 65535);
+    vc = gl_d_42938_pc;
+    FI38(rec, 0x44) = (((((vc >> 16) & 0xFFFF) + lo2) % 65535) << 16) |
+                      (((vc & 0xFFFF) + lo2) % 65535);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042944);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042938);
 #endif
 
 #ifdef NON_MATCHING
