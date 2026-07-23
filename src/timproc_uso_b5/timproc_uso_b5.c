@@ -7896,79 +7896,96 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //   transform-built flag skeleton only. Byte-match deferred. Name
 //   pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* PASS-2 2026-07-10 (agent-g): width-fix faithful decode from the raw-.word
- * target (173 words, 0 conversions; cross-checked disasm-func.py --m2c). Prior
- * body was a loop paraphrase at 17.1%. Same family as func_0000AC20: obj+0xDC
- * transform delta vs the D global vector, chained Vec3 word-copy, in-place
- * normalize via func_00000000, three axis-vector helper calls, an optional
- * (obj+0x13C) sub-chain, a global-scaled vector accumulated into obj+0xDC..0xE4,
- * and the transform-built flag obj[0x12C]=1. func_00000000 = USO placeholder. */
-#define TB5_F(off) (*(f32 *)((char *)o + (off)))
-#define TB5_D(off) (*(f32 *)((char *)&D_00000000 + (off)))
+/* PASS-3 2026-07-23 (agent-g): B624/B154-twin kit pass rebuilt from the
+ * expected/.o ground truth (frame 320). Same skeleton as B154 (head delta +
+ * chained union-carrier copies + 3 axis blocks w/ FP-local ang + per-load-site
+ * ref externs), plus: outer guard on obj[0x140], inner guard on obj[0x13C]
+ * (3-call sub-chain via *D_00000000->0x70 + 0xB4), ref-vector-scaled global
+ * accumulate into obj[0xDC..E4] through TWO chained copy webs (c1_292 union
+ * reused as the mid carrier of chain 1; c76 union carries chain 2), de-named
+ * 0x118/0x128 FP temps (f0), raw-int a1 06970C alias, volatile-pad ladder. */
+extern f32 timb5_B368_gscale;
+extern void timproc_uso_b5_func_06970C_r();
 void timproc_uso_b5_func_0000B368(char *arg0) {
-    char *o = arg0;
-    Vec3 d, dE4, dF4;
-    Vec3 g, gA, gB;
-    Vec3 sc, scA, scB;
-    f32 s212, s216, s220;
-    f32 s196, s200, s204;
-    f32 s184, s188, s192;
-    s32 sp120[3], sp104[3];
-    char *sp24;
-    f32 mul, m2, t118;
+    Vec154 c2_308;
+    union { Vec154 v; s32 w[4]; } c1_292;
+    volatile s32 padA[2];
+    Vec154 d_272;
+    volatile s32 padB[5];
+    Vec154 s240;
+    volatile s32 padC;
+    Vec154 s224;
+    Vec154 ax1;
+    volatile s32 padD;
+    Vec154 ax2;
+    Vec154 ax3;
+    volatile s32 padE[13];
+    Vec154 s120;
+    volatile s32 padF;
+    Vec154 s104;
+    Vec154 s92;
+    union { Vec154 v; s32 w[4]; } c76;
+    Vec154 s64;
+    volatile s32 padLow[6];
+    f32 ang;
+    f32 *sp28;
 
-    d.x = TB5_F(0xDC) - TB5_D(0x0);
-    d.y = TB5_F(0xE0) - TB5_D(0x4);
-    d.z = TB5_F(0xE4) - TB5_D(0x8);
-    dF4 = dE4 = d;
-    func_00000000(&dF4);
-    if (*(s32 *)(o + 0x140) != 0) {
-        sp24 = o + 0xF4;
-        TB5_F(0xF4) = 0.0f;
-        TB5_F(0xF8) = 0.0f;
-        TB5_F(0xFC) = 0.0f;
-        TB5_F(0x100) = 1.0f;
-        s216 = 0.0f;
-        s220 = 0.0f;
-        s212 = 1.0f;
-        func_00000000(sp24, &s212, TB5_F(0x110));
-        s196 = 0.0f;
-        s200 = 0.0f;
-        s204 = 1.0f;
-        func_00000000(sp24, &s196, TB5_F(0x10C));
-        s184 = 0.0f;
-        s192 = 0.0f;
-        s188 = 1.0f;
-        func_00000000(sp24, &s184, TB5_F(0x114));
-        if (*(s32 *)(o + 0x13C) != 0) {
-            func_00000000(*(s32 *)((char *)(*(s32 *)((char *)&D_00000000 + 0)) + 0x70) + 0xB4, &sp120);
-            func_00000000(&sp120, &sp104);
-            func_00000000(sp24, &sp104, *(s32 *)(o + 0x128), 0);
+    sp28 = (f32 *) (arg0 + 0xDC);
+    do {
+        d_272.f0 = sp28[0] - import_80800000_ld0;
+        d_272.f4 = sp28[1] - import_80800000_ld4.v;
+        d_272.f8 = sp28[2] - import_80800000_ld8.v;
+    } while (0);
+    c1_292.v = d_272;
+    c2_308 = c1_292.v;
+    timproc_uso_b5_func_071028(&c2_308);
+    if (M2C_FIELD(arg0, s32 *, 0x140) != 0) {
+        ang = M2C_FIELD(arg0, f32 *, 0x110);
+        M2C_FIELD(arg0, f32 *, 0xF4) = 0.0f;
+        M2C_FIELD(arg0, f32 *, 0xF8) = 0.0f;
+        M2C_FIELD(arg0, f32 *, 0xFC) = 0.0f;
+        M2C_FIELD(arg0, f32 *, 0x100) = 1.0f;
+        ax1.f8 = 0.0f;
+        ax1.f4 = 0.0f;
+        ax1.f0 = 1.0f;
+        timproc_uso_b5_func_071AE0(arg0 + 0xF4, &ax1, ang);
+        ang = M2C_FIELD(arg0, f32 *, 0x10C);
+        ax2.f0 = 0.0f;
+        ax2.f4 = 0.0f;
+        ax2.f8 = 1.0f;
+        timproc_uso_b5_func_071AE0(arg0 + 0xF4, &ax2, ang);
+        ang = M2C_FIELD(arg0, f32 *, 0x114);
+        ax3.f0 = 0.0f;
+        ax3.f8 = 0.0f;
+        ax3.f4 = 1.0f;
+        timproc_uso_b5_func_071AE0(arg0 + 0xF4, &ax3, ang);
+        if (M2C_FIELD(arg0, s32 *, 0x13C) != 0) {
+            func_00000000(M2C_FIELD(*(char **) &D_00000000, char **, 0x70) + 0xB4, &s120);
+            func_00000000(&s120, &s104);
+            func_00000000(arg0 + 0xF4, &s104, M2C_FIELD(arg0, s32 *, 0x128), 0);
         }
-        t118 = TB5_F(0x118);
-        TB5_F(0xE8) = t118;
-        TB5_F(0xEC) = t118;
-        TB5_F(0xF0) = t118;
-        mul = TB5_D(0x0);
-        g.x = TB5_D(0x0) * mul;
-        g.y = TB5_D(0x4) * mul;
-        g.z = TB5_D(0x8) * mul;
-        gB = gA = g;
-        m2 = TB5_F(0x128);
-        sc.x = gB.x * m2;
-        sc.y = gB.y * m2;
-        sc.z = gB.z * m2;
-        scB = scA = sc;
-        TB5_F(0xDC) = TB5_F(0xDC) + scB.x;
-        TB5_F(0xE0) = TB5_F(0xE0) + scB.y;
-        TB5_F(0xE4) = TB5_F(0xE4) + scB.z;
-        func_00000000(*(s32 *)(o + 0x108), *(s32 *)(o + 0x124));
-        func_00000000(o);
-        *(s32 *)(o + 0x12C) = 1;
+        M2C_FIELD(arg0, f32 *, 0xE8) = M2C_FIELD(arg0, f32 *, 0x118);
+        M2C_FIELD(arg0, f32 *, 0xEC) = M2C_FIELD(arg0, f32 *, 0x118);
+        M2C_FIELD(arg0, f32 *, 0xF0) = M2C_FIELD(arg0, f32 *, 0x118);
+        s92.f0 = import_80800000_ld0 * timb5_B368_gscale;
+        s92.f4 = import_80800000_ld4.v * timb5_B368_gscale;
+        s92.f8 = import_80800000_ld8.v * timb5_B368_gscale;
+        c1_292.v = s92;
+        s240 = c1_292.v;
+        ang = M2C_FIELD(arg0, f32 *, 0x128);
+        s64.f0 = ang * s240.f0;
+        s64.f4 = ang * s240.f4;
+        s64.f8 = ang * s240.f8;
+        c76.v = s64;
+        s224 = c76.v;
+        M2C_FIELD(arg0, f32 *, 0xDC) = M2C_FIELD(arg0, f32 *, 0xDC) + s224.f0;
+        M2C_FIELD(arg0, f32 *, 0xE0) = M2C_FIELD(arg0, f32 *, 0xE0) + s224.f4;
+        M2C_FIELD(arg0, f32 *, 0xE4) = M2C_FIELD(arg0, f32 *, 0xE4) + s224.f8;
+        timproc_uso_b5_func_06970C_r(M2C_FIELD(arg0, void **, 0x108), M2C_FIELD(arg0, s32 *, 0x124));
+        timproc_uso_b5_func_054CAC(arg0);
+        M2C_FIELD(arg0, s32 *, 0x12C) = 1;
     }
 }
-#undef TB5_F
-#undef TB5_D
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B368);
 #endif
