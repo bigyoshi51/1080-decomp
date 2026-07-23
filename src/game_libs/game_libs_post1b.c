@@ -3863,41 +3863,40 @@ char *game_libs_func_00067BDC(char *dst, char *src) {
 
 #ifdef NON_MATCHING
 /* strcat-variant: find end of dst, append src (incl. NUL), return pointer to the
- * appended NUL (= stpcpy-of-the-tail). Recognized libc function (reloc-free).
- * Reconstructed against the 29-insn target (expected/): peeled *dst peek + a
- * lag q-pointer strlen loop (v0 lags a0), plus a v1=src dual-use lag pointer
- * that re-loads the first appended byte. Same 67xxx libc-string family as
- * 67C98 (strncpy) / 67D18 (strrchr). */
+ * appended NUL (= stpcpy-of-the-tail). Same 67xxx libc-string family as 67BDC
+ * (stpcpy, exact above) / 67C98 (strncpy) / 67D18 (strrchr).
+ * 2026-07-23 re-decode vs expected/ (~91%, was 58.8): house 67xxx cursor idiom
+ * `qd = dst; dst++;` (load via OLD copy) for the dst-scan; copy loop needs
+ * `qs = src; src++; c = *qs;` — increment BETWEEN copy and load, else
+ * copy-prop folds the `or v1,a1` cursor copy (67BDC lesson transfers); first
+ * appended byte re-read through part-1's qs (= orig src) after `if (*src++)`.
+ * Residual 2 insns + 1 schedule slot: the first-char test temp colors v0
+ * (candidate) where target uses temp-ring t8, and the src++ addiu sits after
+ * the beq instead of before — probed named/unnamed/paren spellings (sltu trap:
+ * `!= 0` on *(src++) materializes sltu; bare `if (*src++)` doesn't). */
 char *game_libs_func_00067C1C(char *dst, char *src) {
-    char *p = src;
-    char *q;
-    char c;
+    char *qd;
+    char *qs;
+    unsigned char c;
 
-    q = dst;
-    c = *q;
-    dst++;
-    if (c != 0) {
-        do {
-            q = dst;
-            c = *q;
-            dst++;
-        } while (c != 0);
+    qd = dst; dst++;
+    qs = src;
+    while (*qd != 0) {
+        qd = dst; dst++;
     }
-    c = *src;
-    src++;
-    if (c != 0) {
+    if (*src++) {
+        c = *qs;
         dst--;
-        q = dst;
-        dst++;
-        *q = *p;
-        do {
-            p = src;
-            c = *p;
-            q = dst;
-            dst++;
+        qd = dst; dst++;
+        *qd = c;
+        while (c != 0) {
+            qs = src;
             src++;
-            *q = c;
-        } while (c != 0);
+            c = *qs;
+            qd = dst;
+            dst++;
+            *qd = c;
+        }
     }
     return dst - 1;
 }
