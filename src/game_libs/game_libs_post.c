@@ -2805,9 +2805,12 @@ void gl_func_0001FEC8(int arg) {
     *(int *)(D + 0x2178) = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FF28);
-
-// gl_func_0001FF34 — STRUCTURAL PASS (0x84 / 33 words, no episode).
+// game_libs_func_0001FF28 (MERGED 2026-07-23: orphan 1FF28 3-insn
+// lui/addiu v0 + lw t6,0x2168(v0) is this fn's own hoisted head-store
+// load, IDO hoists it above the sp adjust; was gl_func_0001FF34;
+// 0xC+0x78=0x84; hoisted-prologue mis-split family, same shape as
+// sibling 1FFB8's in-body head store) — STRUCTURAL PASS (0x84 / 33
+// words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). Sibling of gl_func_0001FEC8: a multi-step diagnostic /
 // status-print sequence.
@@ -2843,18 +2846,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FF28);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-extern int D_00000001;
-void gl_func_0001FF34(int *arg) {
+/* Post-merge body (2026-07-23): the head store's source is the merged-in
+ * hoisted load *(D+0x2168) (was extern D_00000001 pre-merge). Same
+ * formulation as sibling 1FFB8. */
+void game_libs_func_0001FF28(int *arg) {
     char *D = (char *)&D_00000000;
     int r;
-    *(int *)(D + 0x216C) = D_00000001;
+    *(int *)(D + 0x216C) = *(int *)(D + 0x2168);
     r = gl_func_00000000(D + 0x2168, arg[0]);
     r = gl_func_00000000(D + 0x2198, r, arg[0]);
     r = gl_func_00000000(D + 0x2168, arg[3]);
     gl_func_00000000(D + 0x21C8, r, arg[3]);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FF34);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FF28);
 #endif
 
 
