@@ -5194,129 +5194,132 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022760);
 //   pre-checked: no extern reuse (collision-safe). gl_func_00000000
 //   = canonical never-defined USO placeholder for the allocator.
 // gl_func_00022A9C — m2c DECODE (37.41% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// AUDIT REWRITE 2026-07 agent-h: base-pin form (21498 lever family, but the
+// CONVERSE spelling): target pins s1 = &D_0 and accesses EVERY field off(s1)
+// with no post-jal remat -- reached by direct `*(T*)((char*)&D_00000000+off)`
+// spellings and NO base local. Held pointers only for the loop/call bases:
+// desc = &D+0x2198 (s4, a0 of every alloc call), rec (s0, per-iteration).
+// Held `three = 3` (s3) keeps the lim recompute in multu (literal 3 would
+// strength-reduce). Fill loops are pointer-cursor: p = (u8*)&D + n advancing
+// to the fresh-materialized limit (u8*)&D + 0x100.
 #ifdef NON_MATCHING
-
-
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00022A9C)();
+extern int gl_func_00000000();          /* jal 0x0 USO placeholder (alloc callee) */
+#define G22(o)  (*(s32 *)((char *)&D_00000000 + (o)))
+#define GH22(o) (*(s16 *)((char *)&D_00000000 + (o)))
+#define GB22(o) (*(s8 *)((char *)&D_00000000 + (o)))
 void gl_func_00022A9C(s32 arg0) {
-    s32 temp_v0;
-    s32 temp_v0_2;
-    s32 var_s2_2;
-    s32 var_v1;
-    s32 var_v1_2;
-    s8 var_s2;
-    u32 temp_t4;
-    u32 var_a0;
-    u32 var_s2_3;
-    u32 var_v0_2;
-    u32 var_v0_3;
-    u32 var_v0_4;
-    char *temp_s0;
-    char *temp_s0_2;
-    char *var_v0;
+    char *desc;                 /* s4: allocator descriptor &D+0x2198        */
+    char *rec;                  /* s0: current 16-byte record                */
+    s32 three;                  /* s3: held 3 (keeps lim recompute in multu) */
+    s32 cnt;                    /* s2                                        */
+    u32 n;                      /* a0: live record count                     */
+    s32 off;                    /* v1: record byte offset                    */
+    u8 *p;                      /* v0: fill cursor                           */
+    s32 v;
 
-    *(s32 *)0x2068 = *(s32 *)0x2060;
-    *(s32 *)0x1E08 = gl_func_0001CA10(0x2198, (*(s32 *)0x2070 << 6) * *(s16 *)0x2034);
-    var_s2 = 0;
-    if ((*(s32 *)0x2070 * 3 * *(s16 *)0x2034) > 0) {
-loop_1:
-        temp_s0 = (*(s32 *)0x1E0C * 0x10) + *(s32 *)0x1E08;
-        temp_v0 = gl_func_0001CA10(0x2198, *(s32 *)0x2068);
-        FW(temp_s0, 0x0) = temp_v0;
-        if (temp_v0 == 0) {
-
-        } else {
-            gl_func_0001CA10(FW(temp_s0, 0x0), *(s32 *)0x2068);
-            FW(temp_s0, 0x4) = 0;
-            *(s16 *)(temp_s0 + 0x8) = 0;
-            *(s8 *)(temp_s0 + 0xC) = 0;
-            *(s8 *)(temp_s0 + 0xE) = 0;
-            *(s16 *)(temp_s0 + 0xA) = *(s32 *)0x2068;
-            var_s2 += 1;
-            *(s32 *)0x1E0C += 1;
-            if (var_s2 < (*(s32 *)0x2070 * 3 * *(s16 *)0x2034)) {
-                goto loop_1;
+    G22(0x2068) = G22(0x2060);
+    desc = (char *)&D_00000000 + 0x2198;
+    v = gl_func_00000000(desc, (G22(0x2070) << 6) * GH22(0x2034));
+    G22(0x1E08) = v;
+    if (1) {
+        three = 3;
+    }
+    cnt = 0;
+    v = G22(0x2070) * three;
+    if (v * GH22(0x2034) > 0) {
+        do {
+            rec = (char *)(G22(0x1E0C) * 0x10) + G22(0x1E08);
+            v = gl_func_00000000(desc, G22(0x2068));
+            *(s32 *)rec = v;
+            if (v == 0) {
+                break;
             }
-        }
-        var_s2 = 0;
+            gl_func_00000000(*(s32 *)rec, G22(0x2068));
+            *(s32 *)(rec + 0x4) = 0;
+            *(s16 *)(rec + 0x8) = 0;
+            *(s8 *)(rec + 0xC) = 0;
+            *(s8 *)(rec + 0xE) = 0;
+            *(s16 *)(rec + 0xA) = G22(0x2068);
+            cnt += 1;
+            G22(0x1E0C) += 1;
+            v = G22(0x2070) * three;
+        } while (cnt < v * GH22(0x2034));
+        cnt = 0;
     }
-    var_a0 = *(s32 *)0x1E0C;
-    var_v0 = 0;
-    var_v1 = 0;
-    if (var_a0 != 0) {
+    n = G22(0x1E0C);
+    p = (u8 *)&D_00000000;
+    off = 0;
+    if (n != 0) {
         do {
-            *(s8 *)(var_v0 + 0x1E18) = var_s2;
-            var_v0 += 1;
-            *(s8 *)(*(s32 *)0x1E08 + var_v1 + 0xD) = var_s2;
-            var_a0 = *(s32 *)0x1E0C;
-            var_s2 += 1;
-            var_v1 += 0x10;
-        } while ((u32) var_s2 < var_a0);
+            *(u8 *)(p + 0x1E18) = cnt;
+            p += 1;
+            *(s8 *)(G22(0x1E08) + off + 0xD) = cnt;
+            n = G22(0x1E0C);
+            cnt += 1;
+            off += 0x10;
+        } while ((u32)cnt < n);
     }
-    if ((s32) var_a0 < 0x100) {
-        var_v0_2 = var_a0;
+    if ((s32)n < 0x100) {
+        cnt = n;
+        p = (u8 *)&D_00000000 + cnt;
         do {
-            var_v0_2 += 1;
-            *(s8 *)(var_v0_2 + 0x1E17) = 0;
-        } while (var_v0_2 < 0x100U);
-        var_a0 = *(s32 *)0x1E0C;
+            p += 1;
+            *(u8 *)(p + 0x1E17) = 0;
+        } while (p < (u8 *)&D_00000000 + 0x100);
+        n = G22(0x1E0C);
     }
-    *(s8 *)0x2018 = 0;
-    *(s8 *)0x201A = var_a0;
-    *(s32 *)0x1E10 = var_a0;
-    var_s2_2 = 0;
-    *(s32 *)0x2068 = *(s32 *)0x2064;
-    if (*(s32 *)0x2070 > 0) {
-loop_12:
-        temp_s0_2 = (*(s32 *)0x1E0C * 0x10) + *(s32 *)0x1E08;
-        temp_v0_2 = gl_func_0001CA10(0x2198, *(s32 *)0x2068);
-        FW(temp_s0_2, 0x0) = temp_v0_2;
-        if (temp_v0_2 == 0) {
-            var_a0 = *(s32 *)0x1E0C;
-        } else {
-            gl_func_0001CA10(FW(temp_s0_2, 0x0), *(s32 *)0x2068);
-            FW(temp_s0_2, 0x4) = 0;
-            *(s16 *)(temp_s0_2 + 0x8) = 0;
-            *(s8 *)(temp_s0_2 + 0xC) = 0;
-            *(s8 *)(temp_s0_2 + 0xE) = 0;
-            *(s16 *)(temp_s0_2 + 0xA) = *(s32 *)0x2068;
-            var_s2_2 += 1;
-            temp_t4 = *(s32 *)0x1E0C + 1;
-            *(s32 *)0x1E0C = temp_t4;
-            if (var_s2_2 >= *(s32 *)0x2070) {
-                var_a0 = temp_t4;
-            } else {
-                goto loop_12;
+    GB22(0x2018) = 0;
+    GB22(0x201A) = n;
+    G22(0x1E10) = n;
+    cnt = 0;
+    G22(0x2068) = G22(0x2064);
+    if (G22(0x2070) > 0) {
+        do {
+            rec = (char *)(G22(0x1E0C) * 0x10) + G22(0x1E08);
+            v = gl_func_00000000(desc, G22(0x2068));
+            *(s32 *)rec = v;
+            if (v == 0) {
+                break;
             }
-        }
+            gl_func_00000000(*(s32 *)rec, G22(0x2068));
+            *(s32 *)(rec + 0x4) = 0;
+            *(s16 *)(rec + 0x8) = 0;
+            *(s8 *)(rec + 0xC) = 0;
+            *(s8 *)(rec + 0xE) = 0;
+            *(s16 *)(rec + 0xA) = G22(0x2068);
+            cnt += 1;
+            G22(0x1E0C) += 1;
+        } while (cnt < G22(0x2070));
     }
-    var_s2_3 = *(s32 *)0x1E10;
-    var_v1_2 = var_s2_3 * 0x10;
-    if (var_s2_3 < var_a0) {
-        var_v0_3 = var_s2_3;
+    n = G22(0x1E0C);
+    cnt = G22(0x1E10);
+    off = cnt << 4;
+    if ((u32)cnt < n) {
+        p = (u8 *)&D_00000000 + cnt;
         do {
-            *(s8 *)(var_v0_3 + -(s32) *(s32 *)0x1E10 + 0x1F18) = var_s2_3;
-            var_v0_3 += 1;
-            *(s8 *)(*(s32 *)0x1E08 + var_v1_2 + 0xD) = var_s2_3 - *(s32 *)0x1E10;
-            var_a0 = *(s32 *)0x1E0C;
-            var_s2_3 += 1;
-            var_v1_2 += 0x10;
-        } while (var_s2_3 < var_a0);
+            *(u8 *)(p - G22(0x1E10) + 0x1F18) = cnt;
+            p += 1;
+            *(s8 *)(G22(0x1E08) + off + 0xD) = cnt - G22(0x1E10);
+            n = G22(0x1E0C);
+            cnt += 1;
+            off += 0x10;
+        } while ((u32)cnt < n);
     }
-    if ((s32) var_a0 < 0x100) {
-        var_v0_4 = var_a0;
+    if ((s32)n < 0x100) {
+        cnt = n;
+        p = (u8 *)&D_00000000 + cnt;
         do {
-            var_v0_4 += 1;
-            *(s8 *)(var_v0_4 + 0x1F17) = *(s32 *)0x1E10;
-        } while (var_v0_4 < 0x100U);
-        var_a0 = *(s32 *)0x1E0C;
+            p += 1;
+            *(u8 *)(p + 0x1F17) = G22(0x1E10);
+        } while (p < (u8 *)&D_00000000 + 0x100);
+        n = G22(0x1E0C);
     }
-    *(s8 *)0x2019 = 0;
-    *(s8 *)0x201B = var_a0 - *(s32 *)0x1E10;
+    GB22(0x2019) = 0;
+    GB22(0x201B) = n - G22(0x1E10);
 }
+#undef G22
+#undef GH22
+#undef GB22
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022A9C);
 #endif
