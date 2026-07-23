@@ -1639,7 +1639,7 @@ void timproc_uso_b1_func_00002A8C(char *obj) {
 }
 
 #ifdef NON_MATCHING
-/* timproc_uso_b1_func_00002BE4: 0xFC (63 insns) 62/63 mnemonic-exact (2026-07-23).
+/* timproc_uso_b1_func_00002BE4: 0xFC (63 insns) BYTE-EXACT (2026-07-23).
  * 7x5 grid dispatch: copy 5 tile indices from D+0x4D0, then for each row
  * (s3=0x10..0xD0 step 0x20) x col (i=0..4) call helper(&D+0x10+vec4[i]*0x18)
  * and helper(ptr, i*0x40, s3, 0).
@@ -1652,9 +1652,11 @@ void timproc_uso_b1_func_00002A8C(char *obj) {
  *    web -> colors s4 (copy-propped const base colored s5 / swapped with
  *    the 24-const web) and bakes +0x10 in the addiu;
  *  - copy source as *(B1Vec5*)((char*)&D+0x4D0) folds 1232 into %lo.
- * Residual (1 word): addu s2,t1,s4 vs target addu s2,s4,t1 — commutative
- * operand canonicalization tie; all spellings (base+mult, mult+base, &s4[i],
- * ptr+int, char*-cast-left) emit mult-first. USO placeholder fn: stays NM. */
+ * Final word (addu s2,s4,t1 base-first) closed by COMPOUND-ASSIGN split:
+ * `s2 = (char*)s4; s2 += vec4[i]*0x18;` — the += tree puts the dest/base
+ * first in the commutative addu (single-expr spellings all emit mult-first;
+ * naming the mult temp `int off` flips order but costs +8 frame and colors
+ * mflo v0). USO placeholder callees (jal 0): stays NM wrap, no episode. */
 typedef struct { int v[5]; } B1Vec5_2BE4;
 typedef struct { char pad[0x18]; } B1S18_2BE4;
 extern int gl_func_00000000();
@@ -1673,7 +1675,8 @@ void timproc_uso_b1_func_00002BE4(int *a0) {
     s3 = 0x10;
     do {
         for (i = 0; i != 5; i++) {
-            s2 = (char *)s4 + vec4[i] * 0x18;
+            s2 = (char *)s4;
+            s2 += vec4[i] * 0x18;
             gl_func_00000000(s2);
             gl_func_00000000(s2, i * 0x40, s3, 0);
         }

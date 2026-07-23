@@ -1768,9 +1768,11 @@ void timproc_uso_b3_func_00002C98(char *obj) {
  * 2026-07-23: backported the b1 2BE4 62/63 recipe (byte-twin modulo copy
  * source 0x4A0 vs 0x4D0): struct-assign copy ping-pong, indexed vec4[i] +
  * derived i*0x40 (kills the s8-&vec4 cache), pointer-mutation s4 base
- * (if(1){s4+=0x10;}), folded copy source. Residual: commutative addu
- * operand tie + the trailing prologue-stolen sll t6,a1,2 (successor
- * donation, not emittable from this C).
+ * (if(1){s4+=0x10;}), folded copy source. 2026-07-23: addu operand tie
+ * closed by compound-assign split `s2=(char*)s4; s2+=vec4[i]*0x18;` (+= tree
+ * emits base-first addu s2,s4,t1). Full 0x100 footprint now BYTE-EXACT vs
+ * expected/ (incl. the trailing sll t6,a1,2 region). USO placeholder
+ * callees (jal 0): stays NM wrap, no episode.
  *
  * 2026-05-15 status (superseded): 61.83%. buf-copy switched to the pointer-walk form
  * (`int *src = &D+0x4A0; buf[i]=src[i]`) — that IS the target shape
@@ -1812,7 +1814,8 @@ void timproc_uso_b3_func_00002DF0(int *a0) {
     s3 = 0x10;
     do {
         for (i = 0; i != 5; i++) {
-            s2 = (char *)s4 + vec4[i] * 0x18;
+            s2 = (char *)s4;
+            s2 += vec4[i] * 0x18;
             gl_func_00000000(s2);
             gl_func_00000000(s2, i * 0x40, s3, 0);
         }
