@@ -448,9 +448,15 @@ void timproc_uso_b1_func_00000EC0(int a0) {
  *    li s3,1 remats in the bltzl/bnel likely delays);
  *  - call-arg spelled mult-first (base[0x19]*0x30 + *(int*)*(0x528 ptr))
  *    -> target ugen temp numbering (table-deref t0 after base t1).
- * Residual (2 words): lw/sw pair for work->[0x44]->[0x38] uses $t8 where
- * target uses $a1 (scratch-arg-reg pick; named `count` local shifts the
- * whole temp ring -1 = worse; 4-param K&R sig homes a1-a3 = worse).
+ * 2026-07-23 final 2 words (lw/sw a1-vs-t8) closed, BYTE-EXACT: the
+ * [0x44]->[0x38] value is ALSO the first call's SECOND ARG, spelled as a
+ * store-forward read-back `*(int*)(s2+0x6B0)` — forwarding coalesces the
+ * lw temp into a1 while its ring slot (t8) stays allocated (t9 for 0x528
+ * ptr preserved). CRITICAL: the volatile base[0x64/4] read in arg1 is a
+ * store-forward BARRIER (read-back reloads = extra insn); cast it away at
+ * this one site (`*(int*)((int)base + 0x64)`) — the loop site keeps the
+ * volatile spelling. Named-n-as-arg2 also colors a1 but FREES the ring
+ * slot (whole downstream ring shifts -1 = worse).
  * USO placeholder callees: stays NM wrap, no episode. */
 #ifdef NON_MATCHING
 void timproc_uso_b1_func_00000EE8(char *a0arg) {
@@ -476,7 +482,7 @@ state0:
     base = (volatile int *)&D_00000000;
     *(int *)(s2 + 0x6AC) = *(int *)(work + 0x30);
     *(int *)(s2 + 0x6B0) = *(int *)(*(char **)(work + 0x44) + 0x38);
-    s1 = (char *)gl_func_00000000(base[0x64 / 4] * 0x30 + *(int *)*(char **)(s2 + 0x528));
+    s1 = (char *)gl_func_00000000(*(int *)((int)base + 0x64) * 0x30 + *(int *)*(char **)(s2 + 0x528), *(int *)(s2 + 0x6B0));
     for (state = *(int *)(s2 + 0x6B0) - 1; state >= 0; state--) {
         r = (char *)gl_func_00000000(base[0x64 / 4] * 0x30 + *(int *)*(char **)(s2 + 0x528), state);
         if (*(unsigned char *)(s1 + 5) != *(unsigned char *)(r + 5)) break;
