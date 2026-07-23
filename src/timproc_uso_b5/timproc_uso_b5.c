@@ -8052,25 +8052,89 @@ void timproc_uso_b5_func_0000B61C(int a0) {}
 // verified body once an FP-schedule match is found. Name pre-checked:
 // no extern reuse.
 #ifdef NON_MATCHING
-void timproc_uso_b5_func_0000B624(char *obj, int unused) {
-    char *t = obj + 0xDC;
-    float basis[9];
-    int i;
-    for (i = 0; i < 3; i++) {
-        basis[i + 0] = *(float *)(t + i * 4);
-        basis[i + 3] = *(float *)(t + 0x10 + i * 4);
-        basis[i + 6] = *(float *)(t + 0x20 + i * 4);
+/* m2c redecode 2026-07-23 (agent-g, resolved-jal overlay pipeline): replaces the
+ * 20.7% placeholder. Verified structure above holds; 071AE0 is a prototyped
+ * (f32*,f32*,f32) callee (mfc1/a2 single-float form), 071028 takes f32*. */
+#define M2C_FIELD(ptr, type, off) (*(type)((char *)(ptr) + (off)))
+typedef struct { f32 f0; f32 f4; f32 f8; } VecF;
+extern char timproc_uso_b5_D_807FF370;
+extern char timproc_uso_b5_D_807FFBB0;
+extern int timproc_uso_b5_D_807FFBBC;
+extern int timproc_uso_b5_func_054FE0();
+extern int timproc_uso_b5_func_077C44();
+void timproc_uso_b5_func_0000B624(char *arg0) {
+    VecF sp8C;
+    s32 sp7C[4];
+    VecF sp68;
+    f32 sp48[3];
+    f32 sp38[3];
+    f32 sp2C[3];
+    f32 *sp28;
+    f32 *temp_a0;
+    s32 temp_t5;
+    s32 temp_t7;
+    s32 temp_t8;
+    s32 var_v0;
+    char *temp_a0_2;
+    char *temp_v0;
+
+    temp_v0 = arg0 + 0xDC;
+    sp68.f0 = M2C_FIELD(arg0, f32 *, 0xDC) - M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 0);
+    sp68.f4 = M2C_FIELD(temp_v0, f32 *, 4) - M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 4);
+    sp68.f8 = M2C_FIELD(temp_v0, f32 *, 8) - M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 8);
+    M2C_FIELD(&sp7C, f32 *, 0) = (f32) M2C_FIELD(&sp68, f32 *, 0);
+    temp_t7 = M2C_FIELD(&sp68, s32 *, 4);
+    M2C_FIELD(&sp7C, s32 *, 4) = temp_t7;
+    temp_t8 = M2C_FIELD(&sp68, s32 *, 8);
+    M2C_FIELD(&sp8C, s32 *, 4) = temp_t7;
+    M2C_FIELD(&sp8C, f32 *, 0) = M2C_FIELD(&sp7C, f32 *, 0);
+    M2C_FIELD(&sp7C, s32 *, 8) = temp_t8;
+    M2C_FIELD(&sp8C, s32 *, 8) = temp_t8;
+    timproc_uso_b5_func_071028(&sp8C);
+    temp_a0 = arg0 + 0xF4;
+    if ((f64) ((M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 0) * sp8C.f0) + (M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 4) * sp8C.f4) + (M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 8) * sp8C.f8)) < M2C_FIELD((&timproc_uso_b5_D_807FF370), f64 *, 0x350)) {
+        M2C_FIELD(arg0, f32 *, 0xF4) = 0.0f;
+        M2C_FIELD(arg0, f32 *, 0xF8) = 0.0f;
+        M2C_FIELD(arg0, f32 *, 0xFC) = 0.0f;
+        M2C_FIELD(arg0, f32 *, 0x100) = 1.0f;
+        sp28 = temp_a0;
+        sp48[2] = 0.0f;
+        sp48[1] = 0.0f;
+        sp48[0] = 1.0f;
+        timproc_uso_b5_func_071AE0(temp_a0, sp48, M2C_FIELD(arg0, f32 *, 0x114));
+        sp38[0] = 0.0f;
+        sp38[1] = 0.0f;
+        sp38[2] = 1.0f;
+        timproc_uso_b5_func_071AE0(sp28, sp38, M2C_FIELD(arg0, f32 *, 0x110));
+        sp2C[0] = 0.0f;
+        sp2C[2] = 0.0f;
+        sp2C[1] = 1.0f;
+        timproc_uso_b5_func_071AE0(sp28, sp2C, M2C_FIELD(arg0, f32 *, 0x118));
+        timproc_uso_b5_func_06970C(M2C_FIELD(arg0, s32 *, 0x108), M2C_FIELD(arg0, s32 *, 0x130));
+        if ((M2C_FIELD(arg0, s32 *, 0x144) != 0) || (M2C_FIELD(arg0, s32 *, 0x138) != 0)) {
+            timproc_uso_b5_func_054FE0(arg0);
+            timproc_uso_b5_D_807FFBBC += 1;
+            var_v0 = M2C_FIELD(arg0, s32 *, 0x144);
+            temp_t5 = var_v0 - 1;
+            if (var_v0 != 0) {
+                M2C_FIELD(arg0, s32 *, 0x144) = temp_t5;
+                var_v0 = temp_t5;
+            }
+            if (var_v0 == 0) {
+                temp_a0_2 = M2C_FIELD(arg0, char **, 0x10C);
+                if (M2C_FIELD(temp_a0_2, s32 *, 0xB0) != 0) {
+                    timproc_uso_b5_func_077C44(temp_a0_2, M2C_FIELD(arg0, s32 *, 0x140), 0, 2, 2, 1);
+                    M2C_FIELD(M2C_FIELD(arg0, char **, 0x10C), s32 *, 0xB0) = 0;
+                }
+            }
+        }
+        timproc_uso_b5_func_054CAC(arg0);
+        M2C_FIELD(arg0, s32 *, 0x134) = 1;
+        return;
     }
-    func_00000000(&basis[0]);
-    func_00000000(&basis[3]);
-    func_00000000(&basis[6]);
-    func_00000000(&basis[0], &basis[3], &basis[6]);
-    for (i = 0; i < 3; i++) {
-        *(float *)(t + i * 4)         = basis[i + 0];
-        *(float *)(t + 0x10 + i * 4)   = basis[i + 3];
-        *(float *)(t + 0x20 + i * 4)   = basis[i + 6];
-    }
+    M2C_FIELD(arg0, s32 *, 0x134) = 0;
 }
+#undef M2C_FIELD
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B624);
 #endif
