@@ -1635,91 +1635,46 @@ void timproc_uso_b1_func_00002A8C(char *obj) {
 }
 
 #ifdef NON_MATCHING
-/* timproc_uso_b1_func_00002BE4: 0xFC (63 insns) — sibling of the just-matched
- * 00002CE0; preceding it in the .text segment.
- *
- * Saves 8 s-regs (s0..s7) — heavy long-lived-locals function. Frame 0x68.
- *
- * Structure (decoded 2026-05-05 first pass):
- *
- *   1. Copy 5 ints from D[0x4D0..0x4E0] to local Vec4-like buf at sp+0x54
- *      (5-int copy via t6 base ptr, interleaved lw/sw).
- *   2. jal gl_func_00000000(&D_00000000)   ; cleanup/notify call
- *   3. Outer loop:  for (s3 = 0x10; s3 != 0xF0; s3 += 0x20) { ... }    7 iters
- *   4. Inner loop: for (s0 = 0;     s0 != 0x140; s0 += 0x40) { ... }   5 iters
- *      Inner body:
- *        s1 = vec4;                       ; reset on outer iter
- *        ...
- *        s2 = (char*)&D + 0x10 + s0*24    ; mult s0, 24; addu s2, s4, t1
- *        gl_func_00000000(s2);            ; first per-iter call
- *        gl_func_00000000(s2, s0, s3, 0); ; second per-iter call (4-arg)
- *        s1 += 4;                         ; advance vec4 ptr (int*)
- *      Inner-end: s0 += 0x40
- *      Outer-end: s3 += 0x20, s1 = &sp+0x54 reset (delay slot)
- *   5. Restore s0..s7, ra; addiu sp, sp, 0x68; jr ra.
- *
- * Total inner iters: 7 outer * 5 inner = 35 dispatches. Likely a per-tile
- * (or per-sub-region) init loop indexing into a 0x600-byte-stride array
- * at &D_00000000 + 0x10.
- *
- * First-pass NM — captures outer/inner structure and per-iter call shape.
- * Register allocation across the 8 s-regs is sensitive to declaration
- * order; this body is not yet tuned for fuzzy. Fuzzy expected ~10-25%. */
-/* (2) 2026-05-07: corrected inner-loop indexing — vec4[i]*24, not s0*24.
- * Vec4 entries are indices into the &D+0x10 stride-24 array; s0 is the
- * dispatch arg (0,0x40,0x80,0xC0,0x100), s3 is the outer arg (0x10..0xD0
- * step 0x20). Outer terminates with bnel (do-while-while-likely shape via
- * outer-end being s1 reset in delay slot).
- *
- * Promoted constants 0xF0/0x140/0x18 to register locals so they map to
- * $s5/$s6/$s7. Logic now correct; structure still differs in 2 places:
- *
- *   (a) IDO frame -0x78 (10 saved-regs incl $s8/$fp) vs expected -0x68
- *       (8 saved-regs s0..s7). The 9th saved-reg holds &vec4 cached as
- *       `addiu s7, sp, 0x64` then `move s1, s7` for outer-loop reset.
- *       Expected instead does `addiu s1, sp, 0x54` directly (no cache).
- *       Tried: volatile vec4, separate v0..v4 + pointer array, neither
- *       breaks IDO's CSE on the &vec4 base.
- *   (b) Vec4 init: built does all-loads-then-all-stores via t6..t0;
- *       expected interleaves `lw t9; lw t8; sw t9; sw t8; lw t9; sw t8;
- *       ...` (two-temp-reg ping-pong). IDO scheduler hoists loads.
- *
- * Net: 59 of 63 insns differ at NM build (6.3%). Logic-correct; remaining
- * diffs are IDO scheduler/CSE caps. Future passes: try forcing two-reg
- * ping-pong via barrier'd struct copy, or examine whether vec4-as-stack-
- * tail (offset 0x0) eliminates the cache. */
+/* timproc_uso_b1_func_00002BE4: 0xFC (63 insns) 62/63 mnemonic-exact (2026-07-23).
+ * 7x5 grid dispatch: copy 5 tile indices from D+0x4D0, then for each row
+ * (s3=0x10..0xD0 step 0x20) x col (i=0..4) call helper(&D+0x10+vec4[i]*0x18)
+ * and helper(ptr, i*0x40, s3, 0).
+ * Levers that cracked the s8-&vec4-cache cap (was 10 saved regs, frame 0x78):
+ *  - struct-assign copy (B1Vec5) = target's t9/t8 ping-pong interleave;
+ *  - indexed vec4[i] + derived i*0x40 arg (NO named walking ptr): uopt
+ *    strength-reduction re-creates s1 with per-outer-iter addiu s1,sp,84
+ *    remat (named ptr = s8 cache disease);
+ *  - pointer-MUTATION base (s4=&D; if(1){s4+=0x10;}) keeps s4 a variable
+ *    web -> colors s4 (copy-propped const base colored s5 / swapped with
+ *    the 24-const web) and bakes +0x10 in the addiu;
+ *  - copy source as *(B1Vec5*)((char*)&D+0x4D0) folds 1232 into %lo.
+ * Residual (1 word): addu s2,t1,s4 vs target addu s2,s4,t1 — commutative
+ * operand canonicalization tie; all spellings (base+mult, mult+base, &s4[i],
+ * ptr+int, char*-cast-left) emit mult-first. USO placeholder fn: stays NM. */
+typedef struct { int v[5]; } B1Vec5_2BE4;
+typedef struct { char pad[0x18]; } B1S18_2BE4;
 extern int gl_func_00000000();
 void timproc_uso_b1_func_00002BE4(int *a0) {
     int vec4[5];
-    register char *s4 = (char*)&D_00000000 + 0x10;
-    register int s7 = 0xF0;
-    register int s6 = 0x140;
-    register int s5 = 0x18;
-    register int *s1;
-    register char *s2;
-    register int s0, s3;
+    B1S18_2BE4 *s4;
+    char *s2;
+    int s3, i;
     (void)a0;
 
-    vec4[0] = ((int*)((char*)&D_00000000 + 0x4D0))[0];
-    vec4[1] = ((int*)((char*)&D_00000000 + 0x4D0))[1];
-    vec4[2] = ((int*)((char*)&D_00000000 + 0x4D0))[2];
-    vec4[3] = ((int*)((char*)&D_00000000 + 0x4D0))[3];
-    vec4[4] = ((int*)((char*)&D_00000000 + 0x4D0))[4];
+    *(B1Vec5_2BE4 *)vec4 = *(B1Vec5_2BE4 *)((char *)&D_00000000 + 0x4D0);
     gl_func_00000000(&D_00000000);
 
+    s4 = (B1S18_2BE4 *)&D_00000000;
+    if (1) { s4 = (B1S18_2BE4 *)((char *)s4 + 0x10); }
     s3 = 0x10;
     do {
-        s1 = vec4;
-        s0 = 0;
-        do {
-            s2 = s4 + (*s1) * s5;
+        for (i = 0; i != 5; i++) {
+            s2 = (char *)s4 + vec4[i] * 0x18;
             gl_func_00000000(s2);
-            gl_func_00000000(s2, s0, s3, 0);
-            s0 += 0x40;
-            s1 += 1;
-        } while (s0 != s6);
+            gl_func_00000000(s2, i * 0x40, s3, 0);
+        }
         s3 += 0x20;
-    } while (s3 != s7);
+    } while (s3 != 0xF0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00002BE4);

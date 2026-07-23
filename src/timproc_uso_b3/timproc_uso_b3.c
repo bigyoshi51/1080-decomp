@@ -1765,7 +1765,14 @@ void timproc_uso_b3_func_00002C98(char *obj) {
  * correction so the trailing sll belongs to func_00002EF0's symbol — not
  * tick-safe.
  *
- * 2026-05-15 status: 61.83%. buf-copy switched to the pointer-walk form
+ * 2026-07-23: backported the b1 2BE4 62/63 recipe (byte-twin modulo copy
+ * source 0x4A0 vs 0x4D0): struct-assign copy ping-pong, indexed vec4[i] +
+ * derived i*0x40 (kills the s8-&vec4 cache), pointer-mutation s4 base
+ * (if(1){s4+=0x10;}), folded copy source. Residual: commutative addu
+ * operand tie + the trailing prologue-stolen sll t6,a1,2 (successor
+ * donation, not emittable from this C).
+ *
+ * 2026-05-15 status (superseded): 61.83%. buf-copy switched to the pointer-walk form
  * (`int *src = &D+0x4A0; buf[i]=src[i]`) — that IS the target shape
  * (`addiu t7,&D+0x4A0; lw t9,0(t7); sw t9,0(sp+0x54); ...`), flat fuzzy
  * but a more faithful decode. Dominant remaining blockers, in order:
@@ -1788,36 +1795,29 @@ void timproc_uso_b3_func_00002C98(char *obj) {
  * 24-byte stride (s5 = 0x18) matches the 00002EF0 wrap's struct size.
  * Likely a sprite-grid placement: 7 rows × 5 cols of tiles, each tile
  * indexed by buf[col] selecting from a 24-byte struct table at &D+0x10. */
-void timproc_uso_b3_func_00002DF0(int a0, int a1, int a2, int a3) {
-    int buf[5];
-    int x, y;
-    int *p;
-    int idx;
-    char *entry;
+typedef struct { int v[5]; } B3Vec5_2DF0;
+typedef struct { char pad[0x18]; } B3S18_2DF0;
+void timproc_uso_b3_func_00002DF0(int *a0) {
+    int vec4[5];
+    B3S18_2DF0 *s4;
+    char *s2;
+    int s3, i;
+    (void)a0;
 
-    (void)a0;  /* a0 spilled at entry, unused in body */
+    *(B3Vec5_2DF0 *)vec4 = *(B3Vec5_2DF0 *)((char *)&D_00000000 + 0x4A0);
+    gl_func_00000000(&D_00000000);
 
-    {
-        int *src = (int*)((char*)&D_00000000 + 0x4A0);
-        buf[0] = src[0];
-        buf[1] = src[1];
-        buf[2] = src[2];
-        buf[3] = src[3];
-        buf[4] = src[4];
-    }
-
-    gl_func_00000000(&D_00000000, a1, a2, a3);
-
-    for (y = 0x10; y != 0xF0; y += 0x20) {
-        p = buf;
-        for (x = 0; x != 0x140; x += 0x40) {
-            idx = *p;
-            entry = (char*)&D_00000000 + 0x10 + idx * 0x18;
-            gl_func_00000000(entry);
-            gl_func_00000000(entry, x, y, 0);
-            p++;
+    s4 = (B3S18_2DF0 *)&D_00000000;
+    if (1) { s4 = (B3S18_2DF0 *)((char *)s4 + 0x10); }
+    s3 = 0x10;
+    do {
+        for (i = 0; i != 5; i++) {
+            s2 = (char *)s4 + vec4[i] * 0x18;
+            gl_func_00000000(s2);
+            gl_func_00000000(s2, i * 0x40, s3, 0);
         }
-    }
+        s3 += 0x20;
+    } while (s3 != 0xF0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00002DF0);
