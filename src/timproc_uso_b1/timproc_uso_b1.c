@@ -433,77 +433,81 @@ void timproc_uso_b1_func_00000EC0(int a0) {
     (void)a0;
 }
 
-/* timproc_uso_b1_func_00000EE8: 2-FUNCTION BUNDLE (0x1F4 / 125 insns).
- * Splat-bundled (USO segment); cannot be cleanly split per
- * feedback_uso_split_fragments_breaks_expected_match.md.
+/* timproc_uso_b1_func_00000EE8: 118-insn state-machine dispatcher, twin of
+ * timproc_uso_b3_func_00000E60 (same skeleton; b1 state-0 adds the 3-byte
+ * [5]/[6]/[7] compare ladder and reads work->[0x30] not [0x44]->[0x14]).
+ * Old "2-FUNCTION BUNDLE" note obsolete — splat boundary now splits 10C0.
  *
- * F1 @ 0x0EE8-0x10BC: ~117 insns — heavy state-update orchestrator.
- *   Reads a0->[0x504] (t9), spills s0=a0, t9=1.
- *   if (t9 == 1) early-exit-with-store branch
- *   else: a0->[0x6A8] is the work pointer:
- *     - if work->[0x30] (lw t9) == s3=1 goto cleanup-with-jal-chain
- *     - main loop subu s2,s2,-1: iterate 0x10..0x70 over 0x10-stride
- *       struct fields, calling cross-USO funcs per element
- *     - 3 char-byte equality-test ladder at 0x0FA4-0x0FE0 (a3->[5/6/7]
- *       vs s7->[5/6/7]) — hash/sequence compare
- *     - on full match: a0->[0x4D8] = 1; gl_func(a0->[0x190], 3); commit
- *     - else: increment s0, sub s4 -1, branch back to loop head
- *   Tail: 5 cross-USO gl_func calls with shuffled args; jr ra at 0x10B8.
- *
- * F2 @ 0x10C0-0x10D0: 5 insns — `D[0x40] = 9; sw t6 (delay)`. Mini-stub
- *   that sets the dispatcher state field.
- *
- * Trailing 4 insns @ 0x10D4-0x10D8: `lui a1, 0; lw a1, 0x170(a1)` —
- * incomplete, likely a prologue-stolen prefix for F3 (next function).
- *
- * Multi-day decomp; this comment captures structural fingerprints for
- * future passes. Sibling of timproc_uso_b1_func_00000E40 (E40 sets the
- * D[0x40]/D[0x44] state, EE8 reads work-state and runs the orchestrator). */
+ * 2026-07-23: 78.8 -> 99.92 via the b3 0E60 structural kit:
+ *  - goto dispatch (state==0 -> state0; state!=1 -> return; -> state1)
+ *    = beql/beq/b entry shape with lw v0,0x6A8 in the likely delay;
+ *  - volatile int *base = &D: s4 base held + reloaded per use (d[0x64]
+ *    per loop iter, d[0x190] per call site);
+ *  - `state` REUSED as the loop counter -> colors s0 (fresh local = v0);
+ *  - const-1 s3 web (entry compare + 0x4D8/0x504 stores + created[1]=1,
+ *    li s3,1 remats in the bltzl/bnel likely delays);
+ *  - call-arg spelled mult-first (base[0x19]*0x30 + *(int*)*(0x528 ptr))
+ *    -> target ugen temp numbering (table-deref t0 after base t1).
+ * Residual (2 words): lw/sw pair for work->[0x44]->[0x38] uses $t8 where
+ * target uses $a1 (scratch-arg-reg pick; named `count` local shifts the
+ * whole temp ring -1 = worse; 4-param K&R sig homes a1-a3 = worse).
+ * USO placeholder callees: stays NM wrap, no episode. */
 #ifdef NON_MATCHING
-void timproc_uso_b1_func_00000EE8(char *obj) {
-    char *d = (char *)&D_00000000;
-    int state = *(int *)(obj + 0x504);
+void timproc_uso_b1_func_00000EE8(char *a0arg) {
+    volatile int *base;
+    char *s2 = a0arg;
+    int state = *(int *)(a0arg + 0x504);
     char *work;
     char *s1;
     char *r;
-    int i;
-    char *o0;
-    char *o1;
+    int *created;
+    char *link;
 
     if (state == 0) {
-        work = *(char **)(obj + 0x6A8);
-        *(int *)(obj + 0x6AC) = *(int *)(work + 0x30);
-        *(int *)(obj + 0x6B0) = *(int *)(*(char **)(work + 0x44) + 0x38);
-        s1 = (char *)gl_func_00000000(*(int *)(*(char **)(obj + 0x528)) + *(int *)(d + 0x64) * 0x30);
-        for (i = *(int *)(obj + 0x6B0) - 1; i >= 0; i--) {
-            r = (char *)gl_func_00000000(*(int *)(*(char **)(obj + 0x528)) + *(int *)(d + 0x64) * 0x30, i);
-            if (*(unsigned char *)(s1 + 5) != *(unsigned char *)(r + 5)) break;
-            if (*(unsigned char *)(s1 + 6) != *(unsigned char *)(r + 6)) break;
-            if (*(unsigned char *)(s1 + 7) != *(unsigned char *)(r + 7)) break;
-            *(int *)(obj + 0x6B0) = *(int *)(obj + 0x6B0) - 1;
-        }
-        *(int *)(obj + 0x4D8) = 1;
-        gl_func_00000000(*(int *)(d + 0x190), 3, 1);
-        *(int *)(obj + 0x504) = 1;
-    } else if (state == 1) {
-        gl_func_00000000(*(int *)(d + 0x190));
-        if (gl_func_00000000() != 0) {
-            gl_func_00000000(obj);
-            gl_func_00000000(d);
-            gl_func_00000000(obj);
-            gl_func_00000000(obj, *(int *)(d + 0x170) + 0x220000);
-            *(int *)(obj + 0x524) = gl_func_00000000(0, obj, 0);
-            o0 = *(char **)(obj + 0x524);
-            gl_func_00000000(o0, *(int *)(obj + 0x528));
-            o1 = *(char **)(obj + 0x56C);
-            gl_func_00000000(o1 + 0x10, o0);
-            if (*(int *)(o0 + 0x14) != 0) {
-                *(int *)(o0 + 0x4) = 1;
-            }
-            *(int *)(o0 + 0x14) = (int)o1;
-            gl_func_00000000(*(int *)(d + 0x190), 1, 1);
-        }
+        goto state0;
     }
+    if (state != 1) {
+        return;
+    }
+    goto state1;
+
+state0:
+    work = *(char **)(s2 + 0x6A8);
+    base = (volatile int *)&D_00000000;
+    *(int *)(s2 + 0x6AC) = *(int *)(work + 0x30);
+    *(int *)(s2 + 0x6B0) = *(int *)(*(char **)(work + 0x44) + 0x38);
+    s1 = (char *)gl_func_00000000(base[0x64 / 4] * 0x30 + *(int *)*(char **)(s2 + 0x528));
+    for (state = *(int *)(s2 + 0x6B0) - 1; state >= 0; state--) {
+        r = (char *)gl_func_00000000(base[0x64 / 4] * 0x30 + *(int *)*(char **)(s2 + 0x528), state);
+        if (*(unsigned char *)(s1 + 5) != *(unsigned char *)(r + 5)) break;
+        if (*(unsigned char *)(s1 + 6) != *(unsigned char *)(r + 6)) break;
+        if (*(unsigned char *)(s1 + 7) != *(unsigned char *)(r + 7)) break;
+        *(int *)(s2 + 0x6B0) = *(int *)(s2 + 0x6B0) - 1;
+    }
+    *(int *)(s2 + 0x4D8) = 1;
+    gl_func_00000000(base[0x190 / 4], 3, 1);
+    *(int *)(s2 + 0x504) = 1;
+    return;
+
+state1:
+    base = (volatile int *)&D_00000000;
+    if (gl_func_00000000(base[0x190 / 4]) == 0) {
+        return;
+    }
+    gl_func_00000000(s2);
+    gl_func_00000000(base);
+    gl_func_00000000(s2);
+    gl_func_00000000(s2, base[0x170 / 4] + 0x00220000);
+    *(int *)(s2 + 0x524) = gl_func_00000000(0, s2, 0);
+    gl_func_00000000(*(int *)(s2 + 0x524), *(int *)(s2 + 0x528));
+    created = *(int **)(s2 + 0x524);
+    link = *(char **)(s2 + 0x56C);
+    gl_func_00000000(link + 0x10, created);
+    if (created[0x14 / 4] != 0) {
+        created[1] = 1;
+    }
+    created[0x14 / 4] = (int)link;
+    gl_func_00000000(base[0x190 / 4], 1, 1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_00000EE8);
