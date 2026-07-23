@@ -3965,178 +3965,147 @@ void game_libs_func_000076E8(int a0) {
  * global camera/alpha float (&D_00000000+0, lwc1/swc1 in target) as s32,
  * emitting li+sw and lw+cvt.s.w instead. Retyped to f32 -> swc1/lwc1 direct,
  * removing all bogus int-to-float conversions. Fuzzy 56.97 -> 63.88%.
- * Residual is the unresolvable USO load-time jumptables + regalloc cap. */
+ * Residual is the unresolvable USO load-time jumptables + regalloc cap.
+ * PASS-4 2026-07-23 (agent-h): full region-by-region redecode vs raw words.
+ * Fixes: switch2 is bounds-4 (cases 0-3; m2c had 5 labels/dup arms); case-2
+ * stores 0.0f to +0x538 (was 1.0f); case-3 arm is laid out AFTER block_17 via
+ * goto (target emits it between case-1 tail and case-5 arm); every
+ * func_00000000(0, X) actually passes &D_00000000 as arg0 (lui/addiu a0 pair);
+ * bit-16/20/19 tests: sll-form at +0x588/+0x4F4-vtable/final-0x300 sites
+ * (<<15/<<11/<<12 >>31), and-form elsewhere; per-site absolute derefs for
+ * &D+0xE2C..0xE3C/+0x34 via distinct base-0 extern D_00000000_76F0 (CSE break
+ * vs the held &D+0 float base); store-then-reread spelling for the -=1 counter
+ * copies (move tN in delays). Residual: 3 external USO jumptable dispatches
+ * (structural cap) + scattered regalloc. */
+extern char D_00000000_76F0;
+
 void gl_func_000076F0(char *arg0) {
     s32 sp24;
     s32 sp20;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f0_4;
-    f32 temp_f0_5;
-    f32 temp_f0_6;
-    f32 temp_f2;
-    s32 temp_lo;
-    s32 temp_t2;
-    s32 temp_t2_2;
-    s32 temp_t3;
-    s32 temp_t6;
-    s32 temp_t9;
-    s32 temp_v0_10;
-    s32 temp_v0_13;
-    s32 temp_v0_15;
-    s32 temp_v0_2;
-    s32 temp_v0_8;
-    s32 temp_v1;
-    s32 temp_v1_2;
     s32 var_v0;
-    s32 var_v0_2;
-    u32 temp_t7;
-    u32 temp_t7_2;
-    char *temp_v0;
-    char *temp_v0_11;
-    char *temp_v0_12;
-    char *temp_v0_14;
-    char *temp_v0_16;
-    char *temp_v0_17;
-    char *temp_v0_18;
-    char *temp_v0_19;
-    char *temp_v0_20;
-    char *temp_v0_21;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *temp_v0_7;
-    char *temp_v0_9;
+    s32 temp;
+    f32 temp_f2;
+    char *vt;
+    char *varg;
 
-    if (*(s32 *)((char *)(arg0) + 0x30) == 0) {
-        temp_t7 = *(s32 *)((char *)(arg0) + 0x4E0);
-        switch (temp_t7) {                          /* switch 1 */
+    if (*(s32 *)(arg0 + 0x30) == 0) {
+        switch (*(s32 *)(arg0 + 0x4E0)) {           /* switch 1: external USO jumptable &D+0xE04, bounds 6 */
         case 0:                                     /* switch 1 */
-            temp_t9 = *(s32 *)((char *)(arg0) + 0x4E4) - 1;
-            *(s32 *)((char *)(arg0) + 0x4E4) = temp_t9;
-            if (temp_t9 <= 0) {
-                temp_v0 = *(s32 *)((char *)(arg0) + 0x28);
-                *(s32 *)((char *)(arg0) + 0x4E0) = 1U;
-                *(s32 *)((char *)(arg0) + 0x4E4) = (s32) (*(s32 *)((char *)(arg0) + 0x4E8) * 4);
-                ((void (*)())*(s32 *)((char *)(temp_v0) + 0x94))(*(s16 *)((char *)(temp_v0) + 0x90) + arg0);
+            *(s32 *)(arg0 + 0x4E4) = *(s32 *)(arg0 + 0x4E4) - 1;
+            if (*(s32 *)(arg0 + 0x4E4) <= 0) {
+                vt = *(char **)(arg0 + 0x28);
+                *(s32 *)(arg0 + 0x4E0) = 1;
+                *(s32 *)(arg0 + 0x4E4) = *(s32 *)(arg0 + 0x4E8) * 4;
+                ((void (*)(char *))*(s32 *)(vt + 0x94))(*(s16 *)(vt + 0x90) + arg0);
             }
             break;
         case 1:                                     /* switch 1 */
-            temp_v1 = *(s32 *)((char *)(arg0) + 0x4E8);
-            temp_v0_2 = *(s32 *)((char *)(arg0) + 0x4E4);
-            temp_t6 = temp_v0_2 - 1;
-            temp_lo = temp_t6 / temp_v1;
-            sp24 = temp_v0_2 / temp_v1;
-            *(s32 *)((char *)(arg0) + 0x4E4) = temp_t6;
-            sp20 = temp_lo;
-            if (*(s32 *)((char *)(arg0) + 0x4F0) & 0x10000) {
-                if (sp24 != temp_lo) {
-                    *(s32 *)((char *)(arg0) + 0x50C) = 0;
-                    switch (sp20) {                 /* switch 2 */
+            sp24 = *(s32 *)(arg0 + 0x4E4) / *(s32 *)(arg0 + 0x4E8);
+            *(s32 *)(arg0 + 0x4E4) = *(s32 *)(arg0 + 0x4E4) - 1;
+            sp20 = *(s32 *)(arg0 + 0x4E4) / *(s32 *)(arg0 + 0x4E8);
+            if (*(s32 *)(arg0 + 0x4F0) & 0x10000) {
+                if (sp24 != sp20) {
+                    *(s32 *)(arg0 + 0x50C) = 0;
+                    switch (sp20) {                 /* switch 2: external USO jumptable &D+0xE1C, bounds 4 */
                     case 0:                         /* switch 2 */
                         func_00000000(0x11);
-                        *(f32 *)((char *)(arg0) + 0x534) = 1.0f;
-                        *(f32 *)((char *)(arg0) + 0x538) = 1.0f;
-                        *(f32 *)((char *)(arg0) + 0x548) = 160.0f;
-                        *(f32 *)((char *)(arg0) + 0x550) = 0.0f;
-                        *(f32 *)((char *)(arg0) + 0x54C) = 120.0f;
-                        if (*(s32 *)((char *)&D_00000000 + 0x34) == 2) {
-                            *(f32 *)((char *)(arg0) + 0x54C) = 60.0f;
-                        }
-                        goto block_13;
-                    case 2:                         /* switch 1 */
-                    case 1:                         /* switch 2 */
-                        *(s32 *)((char *)(arg0) + 0x540) = 0xFF;
-                        *(f32 *)((char *)(arg0) + 0x534) = 1.0f;
-                        *(f32 *)((char *)(arg0) + 0x538) = 1.0f;
-                        func_00000000(0x12);
-                        func_00000000(0x10);
-                        goto block_13;
-                    case 3:                         /* switch 1 */
-                    /* dup case 2 */
-                        *(s32 *)((char *)(arg0) + 0x540) = 0xFF;
-                        *(f32 *)((char *)(arg0) + 0x534) = 1.0f;
-                        *(f32 *)((char *)(arg0) + 0x538) = 1.0f;
-                        func_00000000(0x12);
-                        goto block_13;
-                    case 4:                         /* switch 1 */
-                    /* dup case 3 */
-                        temp_v0_3 = *(s32 *)((char *)(arg0) + 0x28);
-                        if (((int (*)())*(s32 *)((char *)(temp_v0_3) + 0x9C))(*(s16 *)((char *)(temp_v0_3) + 0x98) + arg0) != 0) {
-                            var_v0 = *(s32 *)((char *)(arg0) + 0x518);
-                            if (var_v0 != 0) {
-                                temp_t2 = var_v0 - 1;
-                                *(s32 *)((char *)(arg0) + 0x518) = temp_t2;
-                                var_v0 = temp_t2;
-                            }
-                            if (var_v0 == 0) {
-                                *(s32 *)((char *)(arg0) + 0x500) = 1;
-                            }
-                            *(s32 *)((char *)(arg0) + 0x4E4) = (s32) (*(s32 *)((char *)(arg0) + 0x4E4) - 1);
-                            *(s32 *)((char *)(arg0) + 0x4EC) = (s32) (*(s32 *)((char *)(arg0) + 0x4EC) + 1);
-                        }
-                        if ((*(s32 *)((char *)(arg0) + 0x4EC) >= 0x3D) && (func_00000000(0, 0x40100) != 0)) {
-                            *(s32 *)((char *)(arg0) + 0x4E4) = 0;
-                        }
-                        if (*(s32 *)((char *)(arg0) + 0x4E4) < 0) {
-                            temp_v0_4 = *(s32 *)((char *)(arg0) + 0x28);
-                            *(s32 *)((char *)(arg0) + 0x4E0) = 7U;
-                            ((void (*)())*(s32 *)((char *)(temp_v0_4) + 0xB4))(*(s16 *)((char *)(temp_v0_4) + 0xB0) + arg0);
+                        *(f32 *)(arg0 + 0x534) = 1.0f;
+                        *(f32 *)(arg0 + 0x538) = 1.0f;
+                        *(f32 *)(arg0 + 0x548) = 160.0f;
+                        *(f32 *)(arg0 + 0x550) = 0.0f;
+                        *(f32 *)(arg0 + 0x54C) = 120.0f;
+                        if (*(s32 *)((char *)&D_00000000_76F0 + 0x34) == 2) {
+                            *(f32 *)(arg0 + 0x54C) = 60.0f;
                         }
                         break;
+                    case 1:                         /* switch 2 */
+                        *(s32 *)(arg0 + 0x540) = 0xFF;
+                        *(f32 *)(arg0 + 0x534) = 1.0f;
+                        *(f32 *)(arg0 + 0x538) = 1.0f;
+                        func_00000000(0x12);
+                        func_00000000(0x10);
+                        break;
+                    case 2:                         /* switch 2 */
+                        *(s32 *)(arg0 + 0x540) = 0xFF;
+                        *(f32 *)(arg0 + 0x534) = 1.0f;
+                        *(f32 *)(arg0 + 0x538) = 0.0f;
+                        func_00000000(0x12);
+                        break;
+                    case 3:                         /* switch 2 */
+                        goto advance_a;
+                    case 4:                         /* switch 2: empty trailing case to force jumptable emission */
+                        break;
                     }
-                } else {
-                default:                            /* switch 2 */
-block_13:
-                    if ((sp20 == 0) && (*(s32 *)((char *)(arg0) + 0x50C) > 0)) {
-                        func_00000000(arg0 + 0x5A0);
-                        func_00000000(arg0 + 0x5B8);
-                        func_00000000(arg0 + 0x5D0);
-                        func_00000000(arg0 + 0x5E8);
-                    }
-                    *(s32 *)((char *)(arg0) + 0x50C) = (s32) (*(s32 *)((char *)(arg0) + 0x50C) + 1);
-                    goto block_17;
                 }
-            } else {
-block_17:
-                if ((sp24 == 1) && (sp20 == 0)) {
-                    func_00000000(0, 1);
-                    if (*(s32 *)((char *)(arg0) + 0x4F0) & 0x10000) {
-                        func_00000000(arg0 + 0x588);
-                    }
-                    *(s32 *)((char *)&D_00000000 + 0x78) = 0;
-                    *(s32 *)((char *)(arg0) + 0x4DC) = 1;
-                    func_00000000(*(s32 *)((char *)&D_00000000 + 0x138));
+                if ((sp20 == 0) && (*(s32 *)(arg0 + 0x50C) > 0)) {
+                    func_00000000(arg0 + 0x5A0);
+                    func_00000000(arg0 + 0x5B8);
+                    func_00000000(arg0 + 0x5D0);
+                    func_00000000(arg0 + 0x5E8);
                 }
-                if (-*(s32 *)((char *)(arg0) + 0x4E8) >= *(s32 *)((char *)(arg0) + 0x4E4)) {
-                    *(s32 *)((char *)(arg0) + 0x4E0) = 2U;
+                *(s32 *)(arg0 + 0x50C) = *(s32 *)(arg0 + 0x50C) + 1;
+            }
+            if ((sp24 == 1) && (sp20 == 0)) {
+                func_00000000((char *)&D_00000000, 1);
+                if (((u32)*(s32 *)(arg0 + 0x4F0) << 15) >> 31) {
+                    func_00000000(arg0 + 0x588);
                 }
+                *(s32 *)((char *)&D_00000000 + 0x78) = 0;
+                *(s32 *)(arg0 + 0x4DC) = 1;
+                func_00000000(*(s32 *)((char *)&D_00000000 + 0x138));
+            }
+            if (-*(s32 *)(arg0 + 0x4E8) >= *(s32 *)(arg0 + 0x4E4)) {
+                *(s32 *)(arg0 + 0x4E0) = 2;
+            }
+            break;
+        advance_a:
+            vt = *(char **)(arg0 + 0x28);
+            if (((s32 (*)(char *))*(s32 *)(vt + 0x9C))(*(s16 *)(vt + 0x98) + arg0) != 0) {
+                var_v0 = *(s32 *)(arg0 + 0x518);
+                if (var_v0 != 0) {
+                    temp = var_v0 - 1;
+                    *(s32 *)(arg0 + 0x518) = temp;
+                    var_v0 = temp;
+                }
+                if (var_v0 == 0) {
+                    *(s32 *)(arg0 + 0x500) = 1;
+                }
+                *(s32 *)(arg0 + 0x4E4) = *(s32 *)(arg0 + 0x4E4) - 1;
+                *(s32 *)(arg0 + 0x4EC) = *(s32 *)(arg0 + 0x4EC) + 1;
+            }
+            if ((*(s32 *)(arg0 + 0x4EC) >= 0x3D) && (func_00000000((char *)&D_00000000, 0x40100) != 0)) {
+                *(s32 *)(arg0 + 0x4E4) = 0;
+            }
+            if (*(s32 *)(arg0 + 0x4E4) < 0) {
+                vt = *(char **)(arg0 + 0x28);
+                *(s32 *)(arg0 + 0x4E0) = 7;
+                varg = *(s16 *)(vt + 0xB0) + arg0;
+                ((void (*)(char *))*(s32 *)(vt + 0xB4))(varg);
             }
             break;
         case 5:                                     /* switch 1 */
-            temp_v0_5 = *(s32 *)((char *)(arg0) + 0x28);
-            if (((int (*)())*(s32 *)((char *)(temp_v0_5) + 0xA4))(*(s16 *)((char *)(temp_v0_5) + 0xA0) + arg0) != 0) {
-                var_v0_2 = *(s32 *)((char *)(arg0) + 0x518);
-                temp_t3 = var_v0_2 - 1;
-                if (var_v0_2 != 0) {
-                    *(s32 *)((char *)(arg0) + 0x518) = temp_t3;
-                    var_v0_2 = temp_t3;
+            vt = *(char **)(arg0 + 0x28);
+            if (((s32 (*)(char *))*(s32 *)(vt + 0xA4))(*(s16 *)(vt + 0xA0) + arg0) != 0) {
+                var_v0 = *(s32 *)(arg0 + 0x518);
+                temp = var_v0 - 1;
+                if (var_v0 != 0) {
+                    *(s32 *)(arg0 + 0x518) = temp;
+                    var_v0 = temp;
                 }
-                if (var_v0_2 == 0) {
-                    *(s32 *)((char *)(arg0) + 0x500) = 1;
+                if (var_v0 == 0) {
+                    *(s32 *)(arg0 + 0x500) = 1;
                 }
-                *(s32 *)((char *)(arg0) + 0x4E4) = (s32) (*(s32 *)((char *)(arg0) + 0x4E4) - 1);
-                *(s32 *)((char *)(arg0) + 0x4EC) = (s32) (*(s32 *)((char *)(arg0) + 0x4EC) + 1);
+                *(s32 *)(arg0 + 0x4E4) = *(s32 *)(arg0 + 0x4E4) - 1;
+                *(s32 *)(arg0 + 0x4EC) = *(s32 *)(arg0 + 0x4EC) + 1;
             }
-            if ((*(s32 *)((char *)(arg0) + 0x4EC) >= 0x1F) && (func_00000000(0, 0x40100) != 0)) {
-                *(s32 *)((char *)(arg0) + 0x4E4) = 0;
+            if ((*(s32 *)(arg0 + 0x4EC) >= 0x1F) && (func_00000000((char *)&D_00000000, 0x40100) != 0)) {
+                *(s32 *)(arg0 + 0x4E4) = 0;
             }
-            if (*(s32 *)((char *)(arg0) + 0x4E4) < 0) {
-                temp_v0_6 = *(s32 *)((char *)(arg0) + 0x28);
-                *(s32 *)((char *)(arg0) + 0x4E0) = 7U;
-                ((void (*)())*(s32 *)((char *)(temp_v0_6) + 0xCC))(*(s16 *)((char *)(temp_v0_6) + 0xC8) + arg0);
+            if (*(s32 *)(arg0 + 0x4E4) < 0) {
+                vt = *(char **)(arg0 + 0x28);
+                *(s32 *)(arg0 + 0x4E0) = 7;
+                varg = *(s16 *)(vt + 0xC8) + arg0;
+                ((void (*)(char *))*(s32 *)(vt + 0xCC))(varg);
             }
             break;
         case 2:                                     /* switch 1 */
@@ -4144,129 +4113,125 @@ block_17:
         case 4:                                     /* switch 1 */
             break;
         }
-        if ((*(s32 *)((char *)(arg0) + 0x500) != 0) && ((temp_v0_7 = *(s32 *)((char *)(arg0) + 0x28), ((void (*)())*(s32 *)((char *)(temp_v0_7) + 0xE4))(*(s16 *)((char *)(temp_v0_7) + 0xE0) + arg0), temp_v0_8 = *(s32 *)((char *)(arg0) + 0x4F8), (temp_v0_8 == 0)) || (temp_v0_8 == 5))) {
+        if ((*(s32 *)(arg0 + 0x500) != 0)
+            && ((vt = *(char **)(arg0 + 0x28),
+                 ((void (*)(char *))*(s32 *)(vt + 0xE4))(*(s16 *)(vt + 0xE0) + arg0),
+                 temp = *(s32 *)(arg0 + 0x4F8), (temp == 0)) || (temp == 5))) {
             func_00000000(arg0);
         }
-        if (*(s32 *)((char *)(arg0) + 0x4E0) == 7) {
-            temp_v0_9 = *(s32 *)((char *)(arg0) + 0x28);
-            ((void (*)())*(s32 *)((char *)(temp_v0_9) + 0xAC))(*(s16 *)((char *)(temp_v0_9) + 0xA8) + arg0);
+        if (*(s32 *)(arg0 + 0x4E0) == 7) {
+            vt = *(char **)(arg0 + 0x28);
+            ((void (*)(char *))*(s32 *)(vt + 0xAC))(*(s16 *)(vt + 0xA8) + arg0);
         }
     }
-    temp_v1_2 = *(s32 *)((char *)(arg0) + 0x4DC);
-    switch (temp_v1_2) {                            /* switch 3; irregular */
+    switch (*(s32 *)(arg0 + 0x4DC)) {               /* switch 3; compare chain */
     case 1:                                         /* switch 3 */
-        if (*(s32 *)((char *)(arg0) + 0x4F0) & 0x10000) {
-            temp_f0 = *(f32 *)((char *)&D_00000000 + 0);
-            if (temp_f0 < 1.0f) {
-                *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0 + *(f32 *)((char *)&D_00000000 + 0xE2C));
+        if (*(s32 *)(arg0 + 0x4F0) & 0x10000) {
+            if (*(f32 *)&D_00000000 < 1.0f) {
+                *(f32 *)&D_00000000 = *(f32 *)&D_00000000 + *(f32 *)((char *)&D_00000000_76F0 + 0xE2C);
             }
-            temp_f2 = *(f32 *)((char *)&D_00000000 + 0xE30);
-            if (*(s32 *)((char *)&D_00000000 + 0x34) != 3) {
-                temp_f0_2 = *(f32 *)((char *)&D_00000000 + 0);
-                if (temp_f0_2 < 1.0f) {
-                    *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0_2 + temp_f2);
+            temp_f2 = *(f32 *)((char *)&D_00000000_76F0 + 0xE30);
+            if (*(s32 *)((char *)&D_00000000_76F0 + 0x34) != 3) {
+                if (*(f32 *)&D_00000000 < 1.0f) {
+                    *(f32 *)&D_00000000 = *(f32 *)&D_00000000 + temp_f2;
                 }
             }
-            temp_f0_3 = *(f32 *)((char *)&D_00000000 + 0);
-            if (temp_f0_3 < 1.0f) {
-                *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0_3 + temp_f2);
+            if (*(f32 *)&D_00000000 < 1.0f) {
+                *(f32 *)&D_00000000 = *(f32 *)&D_00000000 + temp_f2;
             }
         }
-        if ((*(s32 *)((char *)(arg0) + 0x4DC) != 0) && (*(s32 *)((char *)(arg0) + 0x30) == 0)) {
-            temp_v0_10 = *(s32 *)((char *)(arg0) + 0x4F4);
-            if (temp_v0_10 > 0) {
-                temp_t2_2 = temp_v0_10 - 1;
-                *(s32 *)((char *)(arg0) + 0x4F4) = temp_t2_2;
-                if (temp_t2_2 == 0) {
-                    if (*(s32 *)((char *)(arg0) + 0x4F0) & 0x100000) {
-                        temp_v0_11 = *(s32 *)((char *)(arg0) + 0x28);
-                        ((void (*)())*(s32 *)((char *)(temp_v0_11) + 0xBC))(*(s16 *)((char *)(temp_v0_11) + 0xB8) + arg0);
+        if ((*(s32 *)(arg0 + 0x4DC) != 0) && (*(s32 *)(arg0 + 0x30) == 0)) {
+            if (*(s32 *)(arg0 + 0x4F4) > 0) {
+                *(s32 *)(arg0 + 0x4F4) = *(s32 *)(arg0 + 0x4F4) - 1;
+                if (*(s32 *)(arg0 + 0x4F4) == 0) {
+                    if (((u32)*(s32 *)(arg0 + 0x4F0) << 11) >> 31) {
+                        vt = *(char **)(arg0 + 0x28);
+                        ((void (*)(char *))*(s32 *)(vt + 0xBC))(*(s16 *)(vt + 0xB8) + arg0);
                         func_00000000(arg0, -1, 0);
                     } else {
-                        temp_v0_12 = *(s32 *)((char *)(arg0) + 0x28);
-                        ((void (*)())*(s32 *)((char *)(temp_v0_12) + 0xC4))(*(s16 *)((char *)(temp_v0_12) + 0xC0) + arg0);
+                        vt = *(char **)(arg0 + 0x28);
+                        ((void (*)(char *))*(s32 *)(vt + 0xC4))(*(s16 *)(vt + 0xC0) + arg0);
                     }
                 }
             }
         }
         break;
     case 2:                                         /* switch 3 */
-        if ((*(s32 *)((char *)(arg0) + 0x4F0) & 0x10000) && (*(s32 *)((char *)(arg0) + 0x500) != 0)) {
-            temp_f0_4 = *(f32 *)((char *)&D_00000000 + 0);
-            if (temp_f0_4 > 0.0f) {
-                *(f32 *)((char *)&D_00000000 + 0) = temp_f0_4 - *(f32 *)((char *)&D_00000000 + 0xE34);
-                if (*(f32 *)((char *)&D_00000000 + 0) < 0.0f) {
-                    *(f32 *)((char *)&D_00000000 + 0) = 0.0f;
+        if ((*(s32 *)(arg0 + 0x4F0) & 0x10000) && (*(s32 *)(arg0 + 0x500) != 0)) {
+            if (*(f32 *)&D_00000000 > 0.0f) {
+                *(f32 *)&D_00000000 = *(f32 *)&D_00000000 - *(f32 *)((char *)&D_00000000_76F0 + 0xE34);
+                if (*(f32 *)&D_00000000 < 0.0f) {
+                    *(f32 *)&D_00000000 = 0.0f;
                 }
             }
-            if (*(f32 *)((char *)&D_00000000 + 0) <= 0.0f) {
-                temp_f0_5 = *(f32 *)((char *)&D_00000000 + 0);
-                if (temp_f0_5 > 0.0f) {
-                    *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0_5 - *(f32 *)((char *)&D_00000000 + 0xE38));
-                    if (*(f32 *)((char *)&D_00000000 + 0) < 0.0f) {
-                        *(f32 *)((char *)&D_00000000 + 0) = 0.0f;
+            if (*(f32 *)&D_00000000 <= 0.0f) {
+                if (*(f32 *)&D_00000000 > 0.0f) {
+                    *(f32 *)&D_00000000 = *(f32 *)&D_00000000 - *(f32 *)((char *)&D_00000000_76F0 + 0xE38);
+                    if (*(f32 *)&D_00000000 < 0.0f) {
+                        *(f32 *)&D_00000000 = 0.0f;
                     }
                 }
             }
-            if ((*(s32 *)((char *)(arg0) + 0x4F8) == 0) && (*(s32 *)((char *)&D_00000000 + 0x34) == 3)) {
-                temp_f0_6 = *(f32 *)((char *)&D_00000000 + 0);
-                if (temp_f0_6 < 1.0f) {
-                    *(f32 *)((char *)&D_00000000 + 0) = (f32) (temp_f0_6 + *(f32 *)((char *)&D_00000000 + 0xE3C));
+            if ((*(s32 *)(arg0 + 0x4F8) == 0) && (*(s32 *)((char *)&D_00000000_76F0 + 0x34) == 3)) {
+                if (*(f32 *)&D_00000000 < 1.0f) {
+                    *(f32 *)&D_00000000 = *(f32 *)&D_00000000 + *(f32 *)((char *)&D_00000000_76F0 + 0xE3C);
                 }
             }
         }
         break;
     }
-    if ((*(s32 *)((char *)(arg0) + 0x4DC) != 2) && (*(s32 *)((char *)(arg0) + 0x4D8) == 0)) {
-        if (*(s32 *)((char *)(arg0) + 0x30) == 0) {
-            if ((func_00000000(*(s32 *)((char *)&D_00000000 + 0x190)) != 0) && (*(s32 *)((char *)(arg0) + 0x48) != 0)) {
-                temp_v0_13 = func_00000000(0, 0x40000);
-                *(s32 *)((char *)(arg0) + 0x514) = temp_v0_13;
-                if (temp_v0_13 != 0) {
-                    temp_v0_14 = *(s32 *)((char *)(arg0) + 0x28);
-                    ((void (*)())*(s32 *)((char *)(temp_v0_14) + 0x8C))(*(s16 *)((char *)(temp_v0_14) + 0x88) + arg0);
+    if ((*(s32 *)(arg0 + 0x4DC) != 2) && (*(s32 *)(arg0 + 0x4D8) == 0)) {
+        if (*(s32 *)(arg0 + 0x30) == 0) {
+            if ((func_00000000(*(s32 *)((char *)&D_00000000 + 0x190)) != 0) && (*(s32 *)(arg0 + 0x48) != 0)) {
+                temp = func_00000000((char *)&D_00000000, 0x40000);
+                *(s32 *)(arg0 + 0x514) = temp;
+                if (temp != 0) {
+                    vt = *(char **)(arg0 + 0x28);
+                    ((void (*)(char *))*(s32 *)(vt + 0x8C))(*(s16 *)(vt + 0x88) + arg0);
                     func_00000000(arg0);
                     func_00000000(*(s32 *)((char *)&D_00000000 + 0x138));
                 }
             }
         } else {
-            temp_v0_15 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x48)) + 0x80);
-            if (temp_v0_15 == 0) {
-                if (func_00000000(0, 0x100) != 0) {
-                    *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x48)) + 0x80) = 0x100;
+            temp = *(s32 *)(*(char **)(arg0 + 0x48) + 0x80);
+            if (temp == 0) {
+                if (func_00000000((char *)&D_00000000, 0x100) != 0) {
+                    *(s32 *)(*(char **)(arg0 + 0x48) + 0x80) = 0x100;
                 }
-                if (func_00000000(0, 0x40000) != 0) {
-                    *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x48)) + 0x80) = 0x40000;
+                if (func_00000000((char *)&D_00000000, 0x40000) != 0) {
+                    *(s32 *)(*(char **)(arg0 + 0x48) + 0x80) = 0x40000;
                 }
-            } else if (func_00000000(0, temp_v0_15) != 0) {
-                temp_v0_16 = *(s32 *)((char *)(arg0) + 0x28);
-                ((void (*)())*(s32 *)((char *)(temp_v0_16) + 0xD4))(*(s16 *)((char *)(temp_v0_16) + 0xD0) + arg0);
-                *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x48)) + 0x80) = 0;
+            } else if (func_00000000((char *)&D_00000000, temp) != 0) {
+                vt = *(char **)(arg0 + 0x28);
+                ((void (*)(char *))*(s32 *)(vt + 0xD4))(*(s16 *)(vt + 0xD0) + arg0);
+                *(s32 *)(*(char **)(arg0 + 0x48) + 0x80) = 0;
             }
         }
     }
-    temp_t7_2 = *(s32 *)((char *)(arg0) + 0x4D8);
-    switch (temp_t7_2) {                            /* switch 4 */
+    switch (*(s32 *)(arg0 + 0x4D8)) {               /* switch 4: external USO jumptable &D+0xE40, bounds 4 */
     case 0:                                         /* switch 4 */
-        temp_v0_17 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_17) + 0x114))(*(s16 *)((char *)(temp_v0_17) + 0x110) + arg0);
+        vt = *(char **)(arg0 + 0x28);
+        ((void (*)(char *))*(s32 *)(vt + 0x114))(*(s16 *)(vt + 0x110) + arg0);
         break;
     case 1:                                         /* switch 4 */
-        temp_v0_18 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_18) + 0x11C))(*(s16 *)((char *)(temp_v0_18) + 0x118) + arg0);
+        vt = *(char **)(arg0 + 0x28);
+        ((void (*)(char *))*(s32 *)(vt + 0x11C))(*(s16 *)(vt + 0x118) + arg0);
         break;
     case 2:                                         /* switch 4 */
-        temp_v0_19 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_19) + 0x124))(*(s16 *)((char *)(temp_v0_19) + 0x120) + arg0);
+        vt = *(char **)(arg0 + 0x28);
+        ((void (*)(char *))*(s32 *)(vt + 0x124))(*(s16 *)(vt + 0x120) + arg0);
         break;
     case 3:                                         /* switch 4 */
-        temp_v0_20 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_20) + 0x12C))(*(s16 *)((char *)(temp_v0_20) + 0x128) + arg0);
+        vt = *(char **)(arg0 + 0x28);
+        ((void (*)(char *))*(s32 *)(vt + 0x12C))(*(s16 *)(vt + 0x128) + arg0);
+        break;
+    case 4:                                         /* switch 4: empty trailing case to force jumptable emission */
         break;
     }
-    if ((*(s32 *)((char *)(arg0) + 0x4F0) & 0x80000) && ((func_00000000(0, 0x300) != 0) || (func_00000000(0, 0x40000) != 0))) {
-        temp_v0_21 = *(s32 *)((char *)(arg0) + 0x28);
-        ((void (*)())*(s32 *)((char *)(temp_v0_21) + 0xDC))(*(s16 *)((char *)(temp_v0_21) + 0xD8) + arg0);
+    if ((((u32)*(s32 *)(arg0 + 0x4F0) << 12) >> 31)
+        && ((func_00000000((char *)&D_00000000, 0x300) != 0) || (func_00000000((char *)&D_00000000, 0x40000) != 0))) {
+        vt = *(char **)(arg0 + 0x28);
+        ((void (*)(char *))*(s32 *)(vt + 0xDC))(*(s16 *)(vt + 0xD8) + arg0);
     }
 }
 #else

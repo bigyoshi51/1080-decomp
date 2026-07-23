@@ -3087,3 +3087,4 @@ D_timb5_2B74_vt5 = 0; D_timb5_2B74_vt6 = 0; D_timb5_2B74_vt7 = 0; D_timb5_2B74_v
 D_timb5_2B74_vv0 = 0; D_timb5_2B74_vv1 = 0; D_timb5_2B74_vw0 = 0; D_timb5_2B74_vw1 = 0;
 D_timb5_2B74_ve0 = 0; D_timb5_2B74_ve1 = 0;
 D_timb5_2B74_vf0 = 0; D_timb5_2B74_vf1 = 0; D_timb5_2B74_vf2 = 0; D_timb5_2B74_vf3 = 0;
+D_00000000_76F0 = 0x00000000;
