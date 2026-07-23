@@ -309,7 +309,7 @@ build/src/game_libs/game_libs_tail.c.o: TRUNCATE_TEXT := 0x565c
 # gl_func_0000C5B0=0x8c: same class — word-exact 35/35 twin-mirror of 88B4 but the
 # compiled NM body carries its own jr-delay nop (0x90); target symbol is 0x8c with
 # the nop as baserom alignment (_pad.s).
-build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5530 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
+build/non_matching/src/game_libs/game_libs_tail.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x5550 gl_func_0000EBC8=0x2c gl_func_0000C5B0=0x8c
 build/src/game_libs/game_libs_post.c.o: TRUNCATE_TEXT := 0x17a38
 # 70FA4 = the merged full function (head fragment 70FA0 + the old g3_70FBC
 # tail carve); -O1 -g3 is the matching mode. .text ends with 8 bytes of

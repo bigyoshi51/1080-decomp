@@ -5592,41 +5592,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000697C4);
  *   for (node = self->0x48; node != NULL && node->0 != 0; node = node->4)
  *       gl_func_00000000(node->0, self, self->0x3C);
  *
- * 2026-06-27: REWROTE the plain while-loop to the prefetch-rotated form
- * (next = node->4 and key = node->0 read at top of each iteration, body keyed
- * on `key`). This matches the target's rotated loop where `next` is prefetched
- * before the body and the node key is the loop test. Raises fuzzy 52.5 -> 59.95%
- * (measured, objdiff-cli). NOTE: the earlier memo claim that the rotated form
- * "regresses to 51.3%" was for a different shape (next=cursor->4; obj=*cursor;
- * if(!obj)break) — THIS key-temp form improves. A bare `next=0` reset between
- * iters regresses back to 52.5% (measured); do NOT add it.
- *
- * Residual at 59.95% is the saved-reg-vs-stack-spill cap: IDO promotes
- * node/next to s-regs (s0-s3) here, the target spills them to 32(sp)/36(sp)
- * with only s0+ra saved. Register-allocation cap, not a logic bug.
+ * 2026-07-23 re-decode from expected/ .o (~90%, was 59.95): the "s-reg cap"
+ * claim was WRONG — three levers fixed it: (1) real callee is gl_func_00062F64
+ * (defined above, K&R — direct call) and the init arg is &D+0x2C5F0 (baked USO
+ * reloc, lui 0x3/addiu -0x3A10 reloc-free in expected); (2) node/next are
+ * MEMORY-resident (32/36(sp)) via the if(1){bar=&node;bar=&next;} address-taken
+ * barrier — this alone removes s1-s3; (3) `key = 0` must be the EMPTY-ELSE arm
+ * of the if (uopt hoists it above the beq leaving the b-over-empty-else
+ * `beq zero,zero` + keeps key's web off the jal so it colors v0 not s0; a
+ * key=0 statement before the if floats above the jal and forces s0). Init
+ * order `next = self->0x48; node = next;` puts the node home-store in the
+ * beq delay slot. Residual (~6 insns): in the LOOP body the reloaded `next`
+ * temp colors v0 (blocking the loop's else-hoist -> or v0,zero stays in an
+ * else block); target keeps it in t2. Probed named-temp/copy/statement-order
+ * respellings — coalescing wins every time; coloring-preference residual.
  */
 void gl_func_00069B94(int *self) {
     extern int D_00000000;
+    int *next;
     int *node;
-    if (self[0x38 / 4] == 0) {
-        gl_func_00000000((char*)&D_00000000 + 0x2C5F0);
+    int key;
+    int **bar;
+
+    if (1) {
+        bar = &node;
+        bar = &next;
     }
-    node = (int*)self[0x48 / 4];
-    {
-        int *next = 0;
-        int key = 0;
+    if (self[0x38 / 4] == 0) {
+        gl_func_00062F64((int)((char *)&D_00000000 + 0x2C5F0));
+    }
+    next = (int *)self[0x48 / 4];
+    node = next;
+    if (node != 0) {
+        next = (int *)node[1];
+        key = node[0];
+    } else {
+        key = 0;
+    }
+    while (key != 0) {
+        gl_func_00062F64(node[0], self, self[0x3C / 4]);
+        node = next;
         if (node != 0) {
-            next = (int*)node[1];
+            next = (int *)node[1];
             key = node[0];
-        }
-        while (key != 0) {
-            gl_func_00000000(node[0], self, self[0x3C / 4]);
-            node = next;
+        } else {
             key = 0;
-            if (node != 0) {
-                next = (int*)node[1];
-                key = node[0];
-            }
         }
     }
 }
