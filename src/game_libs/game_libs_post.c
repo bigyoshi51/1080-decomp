@@ -2492,15 +2492,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FAE8);
 #endif
 
 
-/* game_libs_func_0001FBCC: 2-insn non-standalone preload fragment.
- * SOURCE=3 audit 2026-06-01: no prologue and no `jr ra`
- * (`grep -c 03E00008` = 0). It loads v0 from the halfword bound at
- * D+0x2048, then falls into gl_func_0001FBD4. The successor reloads the
- * same bound in its loop at 0x1FC20 before comparing, so this entry is
- * not a clean C wrapper or accessor; keep INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FBCC);
-
-// gl_func_0001FBD4 — STRUCTURAL PASS (0x7C / 31 words, no episode).
+// game_libs_func_0001FBCC (MERGED 2026-07-23: orphan 1FBCC 2-insn
+// lui v0 + lh v0,0x2048(v0) is this fn's own hoisted loop-bound load —
+// the blez v0 entry gate reads the GLOBAL count *(s16*)(D+0x2048), not
+// arg a0; 10th retraction, hoisted-prologue family; was gl_func_0001FBD4;
+// 0x8+0x7C=0x84) — STRUCTURAL PASS (no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). Sibling of gl_func_0001FAE8: a record-array sweep firing
 // a per-record USO-reloc callback. -0x28 frame, s0-s2/ra saved.
@@ -2544,26 +2540,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FBCC);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0001FBD4(int a0) {
-    char *rec;
+extern u8 gl_d_1fbcc[];
+/* Post-merge body (2026-07-23): entry gate = the merged-in hoisted global
+ * bound *(s16*)(D+0x2048) (folded lui/lh, scalar &D spelling), NOT arg a0;
+ * byte gate polarity is == (bnel skips on !=, fires the callback on match);
+ * record base = HELD &D in s0 (gl_d_1fbcc array extern, big offsets
+ * 0x2D00/0x2D04, stride on the base) with call arg p+0x2D00; bound reloads
+ * after the call only (uopt call-clobber), i++ dup'd into the likely delays. */
+void game_libs_func_0001FBCC(int key) {
+    char *p;
     int i;
-    if (a0 <= 0) {
-        return;
-    }
-    rec = (char *)&D_00000000 + 0x2D00;
     i = 0;
-    do {
-        if ((unsigned)*(int *)rec >> 31) {
-            if (a0 != *(unsigned char *)(rec + 4)) {
-                gl_func_00000000(rec);
+    if (*(short *)((char *)&D_00000000 + 0x2048) > 0) {
+        p = (char *)gl_d_1fbcc;
+        do {
+            if (*(unsigned int *)(p + 0x2D00) >> 31) {
+                if (*(unsigned char *)(p + 0x2D04) == key) {
+                    gl_func_00000000(p + 0x2D00);
+                }
             }
-        }
-        i++;
-        rec += 0x160;
-    } while (i < *(short *)((char *)&D_00000000 + 0x2048));
+            i++;
+            p += 0x160;
+        } while (i < *(short *)((char *)&D_00000000 + 0x2048));
+    }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FBD4);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FBCC);
 #endif
 
 void gl_func_0001FC50(void) {
