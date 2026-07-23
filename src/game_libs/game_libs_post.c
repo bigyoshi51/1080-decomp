@@ -1034,33 +1034,33 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
 //   extern reuse (collision-safe). gl_func_00000000 = canonical
 //   never-defined USO placeholder for the leaf glyph draws.
 // gl_func_0001DCB4 — FULL m2c DECODE (57.35% NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
-// gl_func_0001DCB4 — FULL m2c DECODE (NM, no episode). game_libs non-jumptable via scripts/decomp-uso-cf.py.
+// PASS-2 2026-07-23 (agent-h) 62.8->63.2: s32 arg3 (target uses a3 raw, no sll/sra 0x10 narrowing);
+// real s8 buf[56] array (target buf at sp+0x84, top-of-locals); (u32) cast on *(u8*)(e+1)>>5 -> srl
+// (was sra); merged var_s1/var_s1_2 + temp_a0_2/3 into single locals (target reuses s1/a0).
+// CAP FOUND: counter var CANNOT be s32 — the x4 unroller fires on inner loops B/C (andi 0x3
+// mod-preamble, 294->365 insns, fuzzy craters to 34%); target has NEITHER unroll NOR the s8
+// sll/sra 0x18 narrowing pairs (9 in build, 0 in target). Unknown suppressor in original for an
+// int counter; s8 counter kept as the lesser divergence. Loops B/C target has a per-iteration
+// `move v0,v1` entry-copy (e=p cursor) that copy-props away in our build. 294 vs 288 insns.
 #ifdef NON_MATCHING
 
 
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-char *gl_func_0001DCB4(s32 arg0, s32 arg1, char *arg2, s16 arg3) {
-    int sp84;
+char *gl_func_0001DCB4(s32 arg0, s32 arg1, char *arg2, s32 arg3) {
+    s8 sp84[56];
     s32 sp78;
     s32 sp68;
     s32 sp60;
     s16 var_s2;
     s16 var_s3;
     s32 temp_a0;
-    s32 temp_a0_2;
-    s32 temp_a0_3;
     s32 temp_lo;
     s32 temp_t5;
     s32 temp_v1;
-    s8 *temp_t1;
-    s8 *temp_t2;
-    s8 *temp_t9;
     s8 temp_t0;
     s8 var_s1;
-    s8 var_s1_2;
-    u32 *var_v0;
     u8 *var_s0;
     u8 *var_s0_2;
     u8 temp_t6;
@@ -1070,7 +1070,7 @@ char *gl_func_0001DCB4(s32 arg0, s32 arg1, char *arg2, s16 arg3) {
     char *temp_v0_2;
     char *var_s5;
     char *var_v1;
-    char *var_v1_2;
+    char *e;
 
     temp_t0 = *(s8 *)((char *)&D_00000000 + 1);
     var_s2 = 0;
@@ -1078,15 +1078,17 @@ char *gl_func_0001DCB4(s32 arg0, s32 arg1, char *arg2, s16 arg3) {
         temp_a0 = *(int *)((char *)&D_00000000 + 0x2070);
         var_s1 = 0;
         if (temp_a0 > 0) {
-            var_v0 = (u32 *)(*(int *)((char *)&D_00000000 + 0x14) + ((temp_a0 * arg3) << 5));
+            var_v1 = (char *)(*(int *)((char *)&D_00000000 + 0x14) + ((temp_a0 * arg3) << 5));
             do {
-                temp_t2 = (s8 *)(&sp84) + var_s2;
-                if (((u32) *var_v0 >> 0x1F) != 0) {
-                    var_s2 += 1;
-                    *temp_t2 = var_s1;
+                {
+                    s8 *t = sp84 + var_s2;
+                    if (((u32) FW(var_v1, 0x0) >> 0x1F) != 0) {
+                        var_s2 += 1;
+                        *t = var_s1;
+                    }
                 }
                 var_s1 += 1;
-                var_v0 += 8;
+                var_v1 += 0x20;
             } while (var_s1 < temp_a0);
             var_s1 = 0;
         }
@@ -1094,42 +1096,42 @@ char *gl_func_0001DCB4(s32 arg0, s32 arg1, char *arg2, s16 arg3) {
     } else {
         var_s3 = 0;
         if (temp_t0 > 0) {
-            temp_a0_2 = *(int *)((char *)&D_00000000 + 0x2070);
+            temp_a0 = *(int *)((char *)&D_00000000 + 0x2070);
             do {
-                var_s1_2 = 0;
-                if (temp_a0_2 > 0) {
-                    var_v1 = (char *)(((temp_a0_2 * arg3) << 5) + *(int *)((char *)&D_00000000 + 0x14));
+                var_s1 = 0;
+                if (temp_a0 > 0) {
+                    var_v1 = (char *)(((temp_a0 * arg3) << 5) + *(int *)((char *)&D_00000000 + 0x14));
                     do {
                         if (((u32) FW(var_v1, 0x0) >> 0x1F) != 0) {
-                            temp_t1 = (s8 *)(&sp84) + var_s2;
-                            if (var_s3 == ((u8) *(u8 *)((char *)var_v1 + 0x1) >> 5)) {
+                            s8 *t = sp84 + var_s2;
+                            if (var_s3 == ((u32) *(u8 *)(var_v1 + 0x1) >> 5)) {
                                 var_s2 += 1;
-                                *temp_t1 = var_s1_2;
+                                *t = var_s1;
                             }
                         }
-                        var_s1_2 += 1;
+                        var_s1 += 1;
                         var_v1 += 0x20;
-                    } while (var_s1_2 < temp_a0_2);
+                    } while (var_s1 < temp_a0);
                 }
                 var_s3 += 1;
             } while (var_s3 < temp_t0);
             var_s3 = 0;
         }
-        temp_a0_3 = *(int *)((char *)&D_00000000 + 0x2070);
+        temp_a0 = *(int *)((char *)&D_00000000 + 0x2070);
         var_s1 = 0;
-        if (temp_a0_3 > 0) {
-            var_v1_2 = (char *)(((temp_a0_3 * arg3) << 5) + *(int *)((char *)&D_00000000 + 0x14));
+        if (temp_a0 > 0) {
+            var_v1 = (char *)(((temp_a0 * arg3) << 5) + *(int *)((char *)&D_00000000 + 0x14));
             do {
-                if (((u32) FW(var_v1_2, 0x0) >> 0x1F) != 0) {
-                    temp_t9 = (s8 *)(&sp84) + var_s2;
-                    if ((s32) ((u8) *(u8 *)((char *)var_v1_2 + 0x1) >> 5) >= temp_t0) {
+                if (((u32) FW(var_v1, 0x0) >> 0x1F) != 0) {
+                    s8 *t = sp84 + var_s2;
+                    if ((s32) ((u32) *(u8 *)(var_v1 + 0x1) >> 5) >= temp_t0) {
                         var_s2 += 1;
-                        *temp_t9 = var_s1;
+                        *t = var_s1;
                     }
                 }
                 var_s1 += 1;
-                var_v1_2 += 0x20;
-            } while (var_s1 < temp_a0_3);
+                var_v1 += 0x20;
+            } while (var_s1 < temp_a0);
             var_s1 = 0;
         }
     }
