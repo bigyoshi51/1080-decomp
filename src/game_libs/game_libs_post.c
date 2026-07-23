@@ -771,28 +771,41 @@ void game_libs_func_0001D858(int *a0, int a1, int a2) {
 //   those siblings: the blit-mode constant is 0x0C80 here instead of
 //   0x3E0 — a different blit format / layer selector for the same
 //   draw helper.
-// Caps (DEFERRED): single jr $ra (older "unsplit bundle" note is
-//   STALE; .s is 0xD4/53 words, one function). Exact twin of
-//   gl_func_0001CFDC — identical glyph-draw logic and jal target
-//   (0x31FB0), only the blit-mode constant differs (0xC80 here vs
-//   0x3E0). Real-C structural body below; byte-match deferred
-//   (resolve 0x31FB0 + index-multiply/beql codegen). Name
-//   pre-checked: no extern reuse (collision-safe). gl_func_00000000
-//   = canonical never-defined USO placeholder for the blit routine.
+// [older sketch above superseded by the 2026-07 re-decode below; the
+//  "jal 0x31FB0 placeholder" claim was wrong — real callee is
+//  game_libs_func_0003443C.]
+// 2026-07 re-decode from expected/ .o (prior body was decoded against a stale
+// BUILD object — build-vs-build trap; the real target differs materially):
+//   * real callee is game_libs_func_0003443C (proper reloc in expected .o),
+//     NOT a baked placeholder;
+//   * idx/sub do NOT come from a0/a1: a1..a3 are a 12-byte struct-by-value
+//     (homed at 44/48/52(sp)); idx = s16 field at +6 (lh 50(sp)),
+//     sub = s16 field at +10 (lh 54(sp)); a0 (code) passes straight
+//     through as call-1 arg0;
+//   * call-2 arg3 is the e+0x12 flag itself, arg4 = idx re-read from home.
+// Residual (coloring-preference class): 8/53 insns off — the middle
+//   destructive-web of e (post-attr-add) colors v1 here but t1 in the target
+//   (cascading t1/t2/t3/t4 renumber + one 2-insn schedule transposition).
+//   Probed 12 source shapes (plain/+=/self-assign/IXA-struct/named-rec/
+//   register-copy/route-through-r/decl-order): only `+=` gives the target's
+//   var-first addu operand order; no shape splits the middle web to t1
+//   without growing the frame. jal display diff vs expected is the baked-USO
+//   reloc artifact (extern reloc target 0 = symbol at .text 0), not a real diff.
+typedef struct { short h0, h1, h2, h3, h4, h5; } Spec12_1D870;
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
+extern int game_libs_func_0003443C();
 extern int D_00000000;
-int gl_func_0001D870(int code, int spec) {
-    short idx = (short)code;
-    short sub = (short)spec;
-    char *rec = (char *)&D_00000000 + idx * 0x158;
-    unsigned char attr = *(unsigned char *)(rec + 0x1B);
-    char *e = rec + attr * 0x64 + sub * 0x14 + 0x50;
-    short h = *(short *)(e + 0x10);
-    unsigned short w = *(unsigned short *)(e + 0xE);
-    int r = gl_func_00000000(code, 0xC80, w, h, idx);
+int gl_func_0001D870(int code, Spec12_1D870 spec) {
+    char *e = (char *)&D_00000000 + spec.h3 * 0x158;
+    int r;
+    e += *(unsigned char *)(e + 0x1B) * 0x64;
+    e += spec.h5 * 0x14;
+    e += 0x50;
+    r = game_libs_func_0003443C(code, 0xC80, *(unsigned short *)(e + 0xE),
+                                *(short *)(e + 0x10), spec.h3);
     if (*(short *)(e + 0x12) != 0) {
-        r = gl_func_00000000(r, (*(short *)(e + 0x10) + 0xC80) & 0xFFFF, 0, idx);
+        r = game_libs_func_0003443C(r, (*(short *)(e + 0x10) + 0xC80) & 0xFFFF,
+                                    0, *(short *)(e + 0x12), spec.h3);
     }
     return r;
 }
