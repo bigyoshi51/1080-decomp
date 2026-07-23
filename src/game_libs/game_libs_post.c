@@ -6869,68 +6869,90 @@ extern int D_00000000;
 /* Decoded via jumptable extraction (scripts/uso-jumptable-to-m2c.py) — the
  * type-tag (e->0x19) computed jump at &D+0xEB4 is now a switch. The two
  * fixed-addr USO thunks (jal 0x381B0 / 0x38204) stay gl_func_00000000
- * placeholders (no symbol); gl_func_0003959C / gl_func_0001CA10 are real. */
+ * placeholders (no symbol); gl_func_0003959C / gl_func_0001CA10 are real.
+ *
+ * 2026-07 full re-decode vs REAL target (previous pass diffed build-vs-build):
+ * 152/164 insns exact. Levers: `int c = cls` prologue copy -> s0 promotion
+ * (compares stay on a0); head + tail dispatches are 3-case switches (beq-to-
+ * out-of-line-arm layout, CSE'd const 1 in v0); `case 4: break;` empty
+ * trailing case forces the 5-entry jumptable; b18 homed as int (sw not sb);
+ * sp4C raw-then-align double store (two statements); decl order
+ * sp4C,h,sp44,b18,typ,payload,sp34 + g/c/e declared AFTER = exact frame
+ * (h/typ dead homes = target holes 0x48/0x3C, e at 0x30, frame 0x50).
+ * RESIDUAL (12 insns): 2 baked thunk jals (0x381B0/0x38204, no symbols =
+ * baked-USO-symbol cap -> exact match impossible from C), jtbl reloc word,
+ * and 6 insns of case-0/3 return-path coloring (target copies h to a1/v1 for
+ * the store path and returns raw v0; ours colors the return web to the copy;
+ * `return 0` variant shrinks fn, worse). Stays NM wrap. */
 int gl_func_000240A0(int cls, int idx, int a2, int a3, void *a4) {
-    char *g = (char *)&D_00000000;
-    int h, sp34, sp44, size16, payload;
-    signed char b18, typ;
+    int sp4C, h, sp44, b18, typ, payload, sp34; /* reverse-alloc: h/typ dead homes = target frame holes 0x48/0x3C */
     char *e;
+    char *g = (char *)&D_00000000;
+    int c = cls; /* prologue `or s0,a0` — cls promoted to s0, live across calls */
 
-    if (cls == 0) {
+    switch (cls) { /* 3-case compare chain, case bodies out-of-line */
+    case 0:
         if (*(unsigned char *)(g + 0x2C70 + idx) == 1) return 0;
-    } else if (cls == 1) {
+        break;
+    case 1:
         if (*(unsigned char *)(g + 0x2C40 + idx) == 1) return 0;
-    } else if (cls == 2) {
+        break;
+    case 2:
         if (*(unsigned char *)(g + 0x2C10 + idx) == 1) return 0;
+        break;
     }
-    h = gl_func_00000000(cls);            /* jal 0x381B0 */
-    sp44 = h;
-    if (h != 0) {
+    sp44 = gl_func_00000000(c);           /* jal 0x381B0 */
+    if (sp44 != 0) {
         sp34 = 2;
         gl_func_0001CA10(a4, a3 << 0x18, 0);
         goto block_30;
     }
-    e = (char *)(gl_func_00000000(cls) + idx * 0x10);   /* jal 0x38204 */
-    size16 = (*(int *)(e + 0x14) + 0xF) & ~0xF;
-    b18 = *(signed char *)(e + 0x18);
-    typ = *(signed char *)(e + 0x19);
-    sp34 = 2;
+    e = (char *)(gl_func_00000000(c) + idx * 0x10);   /* jal 0x38204 */
+    sp4C = *(int *)(e + 0x14);
+    sp4C = (sp4C + 0xF) & ~0xF;           /* double store to same slot */
+    b18 = *(signed char *)(e + 0x18);     /* sw (word) home, not sb */
+    typ = *(signed char *)(e + 0x19);     /* lb into a0 */
     payload = *(int *)(e + 0x10);
-    if ((unsigned)typ < 5) {
-        switch (typ) {
-        case 0:
-            h = gl_func_0001CA10(cls, idx, size16);
-            if (h == 0) return h;
-            sp34 = 5;
-            sp44 = h;
-            break;
-        case 1:
-            h = gl_func_0001CA10(cls, size16, 1, idx);
-            sp44 = h;
-            if (h == 0) return h;
-            break;
-        case 2:
-            h = gl_func_0001CA10(cls, size16, 0, idx);
-            sp44 = h;
-            if (h == 0) return h;
-            break;
-        case 3:
-            h = gl_func_0001CA10(cls, size16, 2, idx);
-            if (h == 0) return h;
-            sp44 = h;
-            break;
-        }
+    sp34 = 2;
+    switch (typ) {                        /* jtbl @ &D+0xEB4 */
+    case 0:
+        h = gl_func_0001CA10(c, idx, sp4C);
+        if (h == 0) return h;
+        sp34 = 5;
+        sp44 = h;
+        break;
+    case 1:
+        h = gl_func_0001CA10(c, sp4C, 1, idx);
+        sp44 = h;
+        if (h == 0) return h;
+        break;
+    case 2:
+        h = gl_func_0001CA10(c, sp4C, 0, idx);
+        sp44 = h;
+        if (h == 0) return h;
+        break;
+    case 3:
+        h = gl_func_0001CA10(c, sp4C, 2, idx);
+        if (h == 0) return h;
+        sp44 = h;
+        break;
+    case 4: /* empty trailing case — forces the 5-entry jumptable */
+        break;
     }
-    gl_func_0003959C(payload, sp44, size16, b18, a2, a4,
-                     (a3 << 0x18) | (cls << 0x10) | (idx << 8) | sp34);
+    gl_func_0003959C(payload, sp44, sp4C, b18, a2, a4,
+                     (a3 << 0x18) | (c << 0x10) | (idx << 8) | sp34);
     sp34 = 1;
 block_30:
-    if (cls == 0) {
+    switch (c) { /* compare chain on s0, arms out-of-line */
+    case 0:
         gl_func_0001CA10(idx, sp34);
-    } else if (cls == 1) {
+        break;
+    case 1:
         gl_func_0001CA10(idx, sp34);
-    } else if (cls == 2) {
+        break;
+    case 2:
         gl_func_0001CA10(idx, sp34);
+        break;
     }
     return sp44;
 }
