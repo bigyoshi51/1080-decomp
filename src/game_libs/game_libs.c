@@ -3967,8 +3967,8 @@ void game_libs_func_000076E8(int a0) {
  * removing all bogus int-to-float conversions. Fuzzy 56.97 -> 63.88%.
  * Residual is the unresolvable USO load-time jumptables + regalloc cap.
  * PASS-4 2026-07-23 (agent-h): full region-by-region redecode vs raw words.
- * Fixes: switch2 is bounds-4 (cases 0-3; m2c had 5 labels/dup arms); case-2
- * stores 0.0f to +0x538 (was 1.0f); case-3 arm is laid out AFTER block_17 via
+ * Fixes: switch2 is bounds-4 (cases 0-3; m2c had 5 labels/dup arms; both
+ * 1/2 arms store 1.0f/1.0f); case-3 arm is laid out AFTER block_17 via
  * goto (target emits it between case-1 tail and case-5 arm); every
  * func_00000000(0, X) actually passes &D_00000000 as arg0 (lui/addiu a0 pair);
  * bit-16/20/19 tests: sll-form at +0x588/+0x4F4-vtable/final-0x300 sites
@@ -4011,8 +4011,8 @@ void gl_func_000076F0(char *arg0) {
                         func_00000000(0x11);
                         *(f32 *)(arg0 + 0x534) = 1.0f;
                         *(f32 *)(arg0 + 0x538) = 1.0f;
-                        *(f32 *)(arg0 + 0x548) = 160.0f;
                         *(f32 *)(arg0 + 0x550) = 0.0f;
+                        *(f32 *)(arg0 + 0x548) = 160.0f;
                         *(f32 *)(arg0 + 0x54C) = 120.0f;
                         if (*(s32 *)((char *)&D_00000000_76F0 + 0x34) == 2) {
                             *(f32 *)(arg0 + 0x54C) = 60.0f;
@@ -4028,7 +4028,7 @@ void gl_func_000076F0(char *arg0) {
                     case 2:                         /* switch 2 */
                         *(s32 *)(arg0 + 0x540) = 0xFF;
                         *(f32 *)(arg0 + 0x534) = 1.0f;
-                        *(f32 *)(arg0 + 0x538) = 0.0f;
+                        *(f32 *)(arg0 + 0x538) = 1.0f;
                         func_00000000(0x12);
                         break;
                     case 3:                         /* switch 2 */
