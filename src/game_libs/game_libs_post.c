@@ -9463,12 +9463,46 @@ void game_libs_func_00026D4C(void) {
  * insns). Retyped to f32* per the expected .s lwc1/swc1 map, fixed
  * store widths (sh/sb vs sw) and the &D_0+0x2048 lh. Jumptable stays
  * IDO-synthesized (USO-baked reloc blocks exact) -- fuzzy-only. */
+/* PASS-4 2026-07-23 (agent-h): structural decode fixes, 61.2->88.1%.
+ * (1) cursor byte g+0x1B5DC: per-site absolute &D_0+0x1B5DC deref (lui
+ *     at,0x2 / %lo -18980 pairs) not g-relative arithmetic;
+ * (2) jumptable spans 0x41..0x4E (sltiu 14): empty case 0x4D/0x4E;
+ * (3) cases 0x47/0x48 convert via (s32) cast -> signed cvt.s.w, no
+ *     u32->f32 fixup branch;
+ * (4) KEY LEVER: obj computed ONCE into s2 (shift-decomposed *0x160)
+ *     only when the index is the raw memory expr *(u8*)(ent+1), NOT a
+ *     u8 local: with a `pidx` local uopt sinks/remats the multiply
+ *     into every case as multu v,s5 (12 multu, +40 insns). Typed
+ *     Obj26D64 struct keeps base+small-offset addressing (44(s2)).
+ * Remaining gap: temp-reg renumber drift + minor sched (move a1,s3
+ * hoist, lo spill slot). Insns 236 vs 230. */
+typedef struct {
+    /* 0x000 */ u8 flags;              /* bit7 = active (word-read sign test); bit0/bit2 dirty */
+    /* 0x001 */ u8 state;              /* 2 = locked */
+    /* 0x002 */ u8 pad02[6];
+    /* 0x008 */ s16 h08;
+    /* 0x00A */ s16 h0A;
+    /* 0x00C */ s16 h0C;
+    /* 0x00E */ s16 h0E;
+    /* 0x010 */ s16 h10;
+    /* 0x012 */ s16 h12;               /* lerp step count */
+    /* 0x014 */ u8 pad14[8];
+    /* 0x01C */ f32 f1C;               /* current value */
+    /* 0x020 */ f32 f20;               /* lerp delta */
+    /* 0x024 */ f32 f24;               /* saved value */
+    /* 0x028 */ u8 pad28[4];
+    /* 0x02C */ f32 f2C;
+    /* 0x030 */ u8 pad30[4];
+    /* 0x034 */ f32 f34;
+    /* 0x038 */ s32 w38[0x48];         /* handle table (sel*4 + 0x38) */
+    /* 0x158 */ s8 b158[8];
+} Obj26D64;                            /* sizeof 0x160 */
 void gl_func_00026D64(u32 arg0) {
     char *g = (char *)&D_00000000;
     s32 lo;
     u8 cur;
-    char *ent;   /* s3: queue entry  (g + cur*8 + 0x5430) */
-    char *obj;   /* s2: object slot  (g + pidx*0x160 + 0x2D00) */
+    char *ent;      /* s3: queue entry  (g + cur*8 + 0x5430) */
+    Obj26D64 *obj;  /* s2: object slot  (g + pidx*0x160 + 0x2D00) */
     s32 code;
     s32 tmp;
     u8 pidx;
@@ -9479,17 +9513,17 @@ void gl_func_00026D64(u32 arg0) {
     f32 f2;
 
     if (*(u8 *)(g + 0x53BA) == 0) {
-        *(u8 *)(g + 0x1B5DC) = (u8) (arg0 >> 8);
+        *(u8 *)((char *)&D_00000000 + 0x1B5DC) = (u8) (arg0 >> 8);
     }
     lo = arg0 & 0xFF;
     for (;;) {
-        cur = *(u8 *)(g + 0x1B5DC);
+        cur = *(u8 *)((char *)&D_00000000 + 0x1B5DC);
         if (lo == cur) {
             *(u8 *)(g + 0x53BA) = 0;
             return;
         }
         ent = g + (cur & 0xFF) * 8 + 0x5430;
-        *(u8 *)(g + 0x1B5DC) = *(u8 *)(g + 0x1B5DC) + 1;
+        *(u8 *)((char *)&D_00000000 + 0x1B5DC) = *(u8 *)((char *)&D_00000000 + 0x1B5DC) + 1;
         code = *(u8 *)ent;
         if (code == 0xF8) {
             *(u8 *)(g + 0x53BA) = 1;
@@ -9498,86 +9532,88 @@ void gl_func_00026D64(u32 arg0) {
         if ((code & 0xF0) == 0xF0) {
             gl_func_0003ADFC(ent);
         } else {
-            pidx = *(u8 *)(ent + 1);
-            if ((s32) pidx < *(s16 *)(g + 0x2048)) {
-                obj = g + pidx * 0x160 + 0x2D00;
+            if ((s32) *(u8 *)(ent + 1) < *(s16 *)(g + 0x2048)) {
+                obj = (Obj26D64 *)(g + 0x2D00) + *(u8 *)(ent + 1);
                 if (code & 0x80) {
                     gl_func_0003ADFC(ent);
                 } else if (code & 0x40) {
                     switch (code) {
                     case 0x41:
                         f0 = *(f32 *)(ent + 0x4);
-                        if (f0 != *(f32 *)(obj + 0x2C)) {
-                            *(f32 *)(obj + 0x2C) = f0;
-                            *(u8 *)obj |= 4;
+                        if (f0 != obj->f2C) {
+                            obj->f2C = f0;
+                            obj->flags |= 4;
                         }
                         break;
                     case 0x42:
-                        *(s16 *)(obj + 0x8) = *(s32 *)(ent + 0x4) * 0x30;
+                        obj->h08 = *(s32 *)(ent + 0x4) * 0x30;
                         break;
                     case 0x43:
-                        *(s16 *)(obj + 0xC) = *(s32 *)(ent + 0x4) * 0x30;
+                        obj->h0C = *(s32 *)(ent + 0x4) * 0x30;
                         break;
                     case 0x44:
-                        *(s16 *)(obj + 0xC) = *(s32 *)(ent + 0x4);
+                        obj->h0C = *(s32 *)(ent + 0x4);
                         break;
                     case 0x45:
-                        *(s16 *)(obj + 0xE) = *(s8 *)(ent + 0x4);
+                        obj->h0E = *(s8 *)(ent + 0x4);
                         break;
                     case 0x46:
-                        *(s8 *)(obj + *(u8 *)(ent + 0x3) + 0x158) = *(s8 *)(ent + 0x4);
+                        obj->b158[*(u8 *)(ent + 0x3)] = *(s8 *)(ent + 0x4);
                         break;
                     case 0x47:
-                        f2 = (f32) *(u8 *)(ent + 0x2) / 127.0f;
+                        f2 = (f32) (s32) *(u8 *)(ent + 0x2) / 127.0f;
                         goto block_24;
                     case 0x48:
-                        f2 = ((f32) *(u8 *)(ent + 0x2) / 100.0f) * *(f32 *)(obj + 0x1C);
+                        f2 = ((f32) (s32) *(u8 *)(ent + 0x2) / 100.0f) * obj->f1C;
 block_24:
-                        if (*(u8 *)(obj + 0x1) != 2) {
-                            f0 = *(f32 *)(obj + 0x1C);
-                            *(f32 *)(obj + 0x24) = f0;
+                        if (obj->state != 2) {
+                            f0 = obj->f1C;
+                            obj->f24 = f0;
                             tmp = *(s32 *)(ent + 0x4);
                             if (tmp == 0) {
-                                *(f32 *)(obj + 0x1C) = f2;
+                                obj->f1C = f2;
                             } else {
-                                *(u8 *)(obj + 0x1) = 0;
-                                *(s16 *)(obj + 0x12) = tmp;
-                                *(f32 *)(obj + 0x20) = (f2 - f0) / (f32) tmp;
+                                obj->state = 0;
+                                obj->h12 = tmp;
+                                obj->f20 = (f2 - f0) / (f32) tmp;
                             }
                         }
                         break;
                     case 0x4A:
-                        if (*(u8 *)(obj + 0x1) != 2) {
+                        if (obj->state != 2) {
                             tmp = *(s32 *)(ent + 0x4);
                             if (tmp == 0) {
-                                *(f32 *)(obj + 0x1C) = *(f32 *)(obj + 0x24);
+                                obj->f1C = obj->f24;
                             } else {
-                                *(u8 *)(obj + 0x1) = 0;
-                                *(s16 *)(obj + 0x12) = tmp;
-                                *(f32 *)(obj + 0x20) = (*(f32 *)(obj + 0x24) - *(f32 *)(obj + 0x1C)) / (f32) tmp;
+                                obj->state = 0;
+                                obj->h12 = tmp;
+                                obj->f20 = (obj->f24 - obj->f1C) / (f32) tmp;
                             }
                         }
                         break;
                     case 0x4C:
-                        *(f32 *)(obj + 0x34) = *(f32 *)(ent + 0x4);
-                        if (*(f32 *)(obj + 0x34) == 1.0f) {
-                            *(u8 *)obj &= ~1;
+                        obj->f34 = *(f32 *)(ent + 0x4);
+                        if (obj->f34 == 1.0f) {
+                            obj->flags &= ~1;
                         } else {
-                            *(u8 *)obj |= 1;
+                            obj->flags |= 1;
                         }
+                        break;
+                    case 0x4D:
+                    case 0x4E:
                         break;
                     }
                 } else {
                     if (((u32) *(s32 *)obj >> 0x1F) != 0) {
                         sel = *(u8 *)(ent + 0x2);
                         if (sel < 0x10) {
-                            gl_func_0003BA24(*(s32 *)(obj + sel * 4 + 0x38), ent);
+                            gl_func_0003BA24(obj->w38[sel], ent);
                         } else if (sel == 0xFF) {
-                            mask = *(u16 *)(g + pidx * 2 + 0x53BC);
+                            mask = *(u16 *)(g + *(u8 *)(ent + 1) * 2 + 0x53BC);
                             i = 0;
                             do {
                                 if (mask & 1) {
-                                    gl_func_0003BA24(*(s32 *)(obj + i * 4 + 0x38), ent);
+                                    gl_func_0003BA24(obj->w38[i], ent);
                                 }
                                 i += 1;
                                 mask = ((s32) mask >> 1) & 0xFFFF;
