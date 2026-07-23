@@ -8733,112 +8733,103 @@ void timproc_uso_b5_func_0000C2C0(int *a0, int a1, int a2) {
 //   quotients fold). Same cap family as the resolved D14C/D884 siblings.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+extern char timproc_uso_b5_D_807FFAA8_b;  /* same target sym as D_807FFAA8; split name kills %hi CSE (reloc-masked) */
 void timproc_uso_b5_func_0000C310(char *arg0, char *arg1) {
-    s32 spC0;
-    s32 spBC;
-    s32 spB8;
-    s32 spB4;
-    s32 spB0;
-    s32 spAC;
-    s32 spA8;
-    s32 spA4;
-    s32 spA0;
-    s32 sp9C;
-    f32 sp94;
-    f32 sp90;
-    f32 sp8C;
-    f32 sp88;
+    s32 vals[5];
+    char *ptrs[5];
+    f32 cols[4];
     f32 sp60;
-    f32 *var_s3;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    s32 *var_s4;
-    s32 *var_s5;
-    s32 temp_a0;
-    s32 temp_s6;
-    s32 temp_t4;
-    s32 temp_t8;
-    s32 temp_v0;
-    s32 var_s1;
-    s32 var_v1;
-    char *temp_v0_2;
-    char *var_s1_2;
+    f32 fone, fnum, fnum2;
+    s32 *pv;
+    char **pp;
+    f32 *fb;
+    char *hud, *e;
+    int i, m, mv, mv2;
 
-    if ((*(s32 *)(arg0 + 0x2BC)) < 0xA) {
-        temp_t8 = (*(s32 *)(arg0 + 0x2C0)) - 1;
-        (*(s32 *)(arg0 + 0x2C0)) = temp_t8;
-        if (temp_t8 < 0) {
-            (*(s32 *)(arg0 + 0x2C0)) = 1;
-            (*(s32 *)(arg0 + 0x2BC)) = (s32) ((*(s32 *)(arg0 + 0x2BC)) + 2);
+    i = 0;
+    if (*(s32 *)(arg0 + 0x2BC) < 10) {
+        if (--*(s32 *)(arg0 + 0x2C0) < 0) {
+            *(s32 *)(arg0 + 0x2C0) = 1;
+            *(s32 *)(arg0 + 0x2BC) += 2;
         }
     }
-    spB0 = (*(s32 *)(arg0 + 0x1C4));
-    spB4 = (*(s32 *)(arg0 + 0x1DC));
-    var_s3 = (f32 *)((char *)&timproc_uso_b5_D_807FF538 + 0xB8);
-    spB8 = (*(s32 *)(arg0 + 0x1F4));
-    var_s1 = 0;
-    var_s5 = &spB0;
-    spBC = (*(s32 *)(arg0 + 0x20C));
-    sp9C = arg1 + 0x134;
-    spA0 = arg1 + 0x158;
-    spA4 = arg1 + 0x17C;
-    spA8 = arg1 + 0x1A0;
-    spAC = arg1 + 0x1C4;
-    temp_s6 = arg1 + 0x230;
-    var_s4 = &sp9C;
-    spC0 = (*(s32 *)(arg0 + 0x224));
+    vals[0] = *(s32 *)(arg0 + 0x1C4);
+    vals[1] = *(s32 *)(arg0 + 0x1DC);
+    vals[2] = *(s32 *)(arg0 + 0x1F4);
+    vals[3] = *(s32 *)(arg0 + 0x20C);
+    vals[4] = *(s32 *)(arg0 + 0x224);
+    ptrs[0] = arg1 + 0x134;
+    ptrs[1] = arg1 + 0x158;
+    ptrs[2] = arg1 + 0x17C;
+    ptrs[3] = arg1 + 0x1A0;
+    ptrs[4] = arg1 + 0x1C4;
+    fb = (f32 *)(&timproc_uso_b5_D_807FF538 + 0xB8);
+    pv = vals;
+    pp = ptrs;
     do {
-        temp_v0 = (*(s32 *)(arg0 + 0x2BC));
-        temp_a0 = *var_s5;
-        var_v1 = temp_a0;
-        if (temp_v0 < temp_a0) {
-            var_v1 = temp_v0;
-        }
-        if ((*(s32 *)(arg1 + 0x3BC)) == 1) {
-            timproc_uso_b5_func_00003A4C((int)arg0, (*(s32 *)(arg0 + 0xA4)), (*(s32 *)(arg0 + 0xBC)) + (var_s1 * (*(s32 *)(arg1 + 0x74))), (int)var_s3, var_v1, *var_s4, temp_s6, arg1);
+        m = *(s32 *)(arg0 + 0x2BC);
+        if (m < *pv) {
+            mv = m;
         } else {
-            timproc_uso_b5_func_00003C8C((int)arg0, (*(s32 *)(arg0 + 0xA4)), (*(s32 *)(arg0 + 0xBC)) + (var_s1 * (*(s32 *)(arg1 + 0x74))), (char *)var_s3, var_v1, *var_s4, temp_s6, arg1);
+            mv = *pv;
         }
-        var_s1 += 1;
-        var_s5 += 4;
-        var_s3 += 0x18;
-        var_s4 += 4;
-    } while (var_s1 != 5);
-    temp_v0_2 = (*(s32 *)(arg0 + 0x2B8));
-    if (((*(s32 *)(temp_v0_2 + 0x130)) == 0) && ((*(s32 *)(temp_v0_2 + 0x10C)) == 0.0f)) {
-        if (!((*(s32 *)(arg0 + 0x2B4)) & 0x20)) {
-            temp_f0 = 255.0f / 255.0f;
-            sp8C = temp_f0;
-            sp94 = temp_f0;
-            sp88 = 105.0f / 255.0f;
-            sp90 = 155.0f / 255.0f;
-            sp60 = temp_f0;
-            timproc_uso_b5_func_00004068((int)arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)((char *)&timproc_uso_b5_D_807FFAD8 + 0x658), 0xFF);
-            var_s1_2 = (char *)&timproc_uso_b5_D_807FFA78 + 0x5F8;
+        mv2 = mv;
+        if (*(s32 *)(arg1 + 0x3BC) == 1) {
+            timproc_uso_b5_func_00003A4C((int)arg0, *(s32 *)(arg0 + 0xA4), *(s32 *)(arg0 + 0xBC) + i * *(s32 *)(arg1 + 0x74), (int)fb, mv, (s32)*pp, (s32)(arg1 + 0x230), arg1);
         } else {
-            temp_f0_2 = 255.0f / 255.0f;
-            sp88 = 105.0f / 255.0f;
-            sp90 = temp_f0_2;
-            sp94 = temp_f0_2;
-            sp8C = 155.0f / 255.0f;
-            sp60 = temp_f0_2;
-            timproc_uso_b5_func_00004068((int)arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)((char *)&timproc_uso_b5_D_807FFAF0 + 0x670), 0xFF);
-            var_s1_2 = (char *)&timproc_uso_b5_D_807FFA90 + 0x610;
+            timproc_uso_b5_func_00003C8C((int)arg0, *(s32 *)(arg0 + 0xA4), *(s32 *)(arg0 + 0xBC) + i * *(s32 *)(arg1 + 0x74), (char *)fb, mv2, (s32)*pp, (s32)(arg1 + 0x230), arg1);
         }
-        sp60 = sp60;
-        timproc_uso_b5_func_00004068((int)arg0, (*(s32 *)(arg0 + 0xD4)), (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)var_s1_2, 0xFF);
-        temp_t4 = (*(s32 *)(arg0 + 0x2C4)) + 1;
-        (*(s32 *)(arg0 + 0x2C4)) = temp_t4;
-        if (temp_t4 & 8) {
-            sp94 = sp60;
-            sp88 = 233.0f / 255.0f;
-            sp8C = 247.0f / 255.0f;
-            sp90 = 0.0f / 255.0f;
-            if (!((*(s32 *)(arg0 + 0x2B4)) & 0x20)) {
-                timproc_uso_b5_func_00004068((int)arg0, ((*(s32 *)(arg0 + 0xD4)) - ((s16) (*(s32 *)((char *)(*(s32 *)(var_s1_2 + 0x10)) + 0x20)) / 2)) - 2, (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)((char *)&timproc_uso_b5_D_807FFAA8 + 0x628), 0xFF);
-                return;
+        i++;
+        pv++;
+        fb += 6;
+        pp++;
+    } while (i != 5);
+    e = *(char **)(arg0 + 0x2B8);
+    if (*(s32 *)(e + 0x130) == 0) {
+        if (0.0f == *(f32 *)(e + 0x10C)) {
+            if (!(*(s32 *)(arg0 + 0x2B4) & 0x20)) {
+                fone = (float)255;
+                cols[1] = fone / 255.0f;
+                cols[3] = fone / 255.0f;
+                fnum = 105.0f;
+                cols[0] = fnum / 255.0f;
+                fnum2 = 155.0f;
+                cols[2] = fnum2 / 255.0f;
+                sp60 = fone / 255.0f;
+                timproc_uso_b5_func_00004068((int)arg0, *(s32 *)(arg0 + 0xD4), *(s32 *)(arg0 + 0xEC), (int)cols, (int)(&timproc_uso_b5_D_807FFAD8 + 0x658), 0xFF);
+                hud = &timproc_uso_b5_D_807FFA78 + 0x5F8;
+            } else {
+                fnum = 105.0f;
+                cols[0] = fnum / 255.0f;
+                fone = (float)255;
+                cols[2] = fone / 255.0f;
+                cols[3] = fone / 255.0f;
+                fnum2 = 155.0f;
+                cols[1] = fnum2 / 255.0f;
+                sp60 = fone / 255.0f;
+                timproc_uso_b5_func_00004068((int)arg0, *(s32 *)(arg0 + 0xD4), *(s32 *)(arg0 + 0xEC), (int)cols, (int)(&timproc_uso_b5_D_807FFAF0 + 0x670), 0xFF);
+                hud = &timproc_uso_b5_D_807FFA90 + 0x610;
             }
-            timproc_uso_b5_func_00004068((int)arg0, (*(s32 *)(arg0 + 0xD4)) + ((s16) (*(s32 *)((char *)(*(s32 *)(var_s1_2 + 0x10)) + 0x20)) / 2) + 2, (*(s32 *)(arg0 + 0xEC)), (int)&sp88, (int)((char *)&timproc_uso_b5_D_807FFAA8 + 0x640), 0xFF);
+            sp60 = sp60;
+            timproc_uso_b5_func_00004068((int)arg0, *(s32 *)(arg0 + 0xD4), *(s32 *)(arg0 + 0xEC), (int)cols, (int)hud, 0xFF);
+            if ((++*(s32 *)(arg0 + 0x2C4)) & 8) {
+                f32 fzero;
+                char *pa, *pb;
+                cols[3] = sp60;
+                fnum = 233.0f;
+                cols[0] = fnum / 255.0f;
+                fnum2 = 247.0f;
+                cols[1] = fnum2 / 255.0f;
+                fzero = 0.0f;
+                cols[2] = fzero / 255.0f;
+                pa = &timproc_uso_b5_D_807FFAA8 + 0x628;
+                pb = &timproc_uso_b5_D_807FFAA8_b + 0x640;
+                if (!(*(s32 *)(arg0 + 0x2B4) & 0x20)) {
+                    timproc_uso_b5_func_00004068((int)arg0, *(s32 *)(arg0 + 0xD4) - *(s16 *)(*(char **)(hud + 0x10) + 0x20) / 2 - 2, *(s32 *)(arg0 + 0xEC), (int)cols, (int)pa, 0xFF);
+                } else {
+                    timproc_uso_b5_func_00004068((int)arg0, *(s32 *)(arg0 + 0xD4) + *(s16 *)(*(char **)(hud + 0x10) + 0x20) / 2 + 2, *(s32 *)(arg0 + 0xEC), (int)cols, (int)pb, 0xFF);
+                }
+            }
         }
     }
 }
