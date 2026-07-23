@@ -3091,6 +3091,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000200F4);
 //       -> (char*)+0xD4 BYTE; `FW(var_a3,0xF2)` (word, lwl/lwr) -> *(s16*)
 //       (target `lh 242(a3)`); var_t3/var_t4 table reads int->u8 (target
 //       `lbu 0(tN)`); size deficit 16->-4.
+//   (3) (agent-h 2026-07-23) 10 absolute-literal derefs (*(s32*)0x2070,
+//       *(char**)0x2CFC, *(s16*)0x2048) -> &D_00000000+off reloc forms;
+//       target-verified (`lui a1;lw a1,8304(a1)` / `lw v0,11516(v0)` with
+//       HI16/LO16 relocs). Word-diffs 442->439; size -3 -> +4 (the lui
+//       pairs replace 1-insn li) so fuzzy dips ~0.7pp transiently — the
+//       reloc form is the byte-true one, keep it.
 // RESIDUAL (deferred, regalloc/control-flow): build still spills a0/a1/a3
 //   to a -200 frame (target -80, args reg-resident) and forces the case
 //   bases into a SAVED reg (s1) because the back-edge `goto loop_1` makes
@@ -3186,10 +3192,10 @@ loop_1:
         }
         if (arg0 == 1) {
             if (var_t3 == 4) {
-                temp_a1 = *(s32 *)0x2070;
+                temp_a1 = *(s32 *)((char *)&D_00000000 + 0x2070);
                 var_v1_2 = 0;
                 if (temp_a1 > 0) {
-                    var_v0 = *(char **)0x2CFC;
+                    var_v0 = *(char **)((char *)&D_00000000 + 0x2CFC);
 loop_19:
                     if ((*(u8 *)(var_v0 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0, 0xB0) >> 0x1F) == 0)) {
                         var_v1_2 += 1;
@@ -3209,10 +3215,10 @@ loop_19:
                 }
             }
             if (var_t4 == 4) {
-                temp_a1_2 = *(s32 *)0x2070;
+                temp_a1_2 = *(s32 *)((char *)&D_00000000 + 0x2070);
                 var_v1_3 = 0;
                 if (temp_a1_2 > 0) {
-                    var_v0_2 = *(char **)0x2CFC;
+                    var_v0_2 = *(char **)((char *)&D_00000000 + 0x2CFC);
 loop_27:
                     if ((*(u8 *)(var_v0_2 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_2, 0xB0) >> 0x1F) == 0)) {
                         var_v1_3 += 1;
@@ -3258,7 +3264,7 @@ loop_27:
         }
         if (arg0 == 0) {
             if (var_t3 == 2) {
-                temp_a0_2 = *(s16 *)0x2048;
+                temp_a0_2 = *(s16 *)((char *)&D_00000000 + 0x2048);
                 var_v0_4 = 0;
                 var_v1_4 = 0;
                 if (temp_a0_2 > 0) {
@@ -3280,7 +3286,7 @@ loop_46:
             }
 block_51:
             if (var_t4 == 2) {
-                temp_a0_3 = *(s16 *)0x2048;
+                temp_a0_3 = *(s16 *)((char *)&D_00000000 + 0x2048);
                 var_v0_5 = 0;
                 var_v1_5 = 0;
                 if (temp_a0_3 > 0) {
@@ -3304,10 +3310,10 @@ loop_53:
         }
         if (arg0 == 1) {
             if (var_t3 == 2) {
-                temp_a1_3 = *(s32 *)0x2070;
+                temp_a1_3 = *(s32 *)((char *)&D_00000000 + 0x2070);
                 var_v1_6 = 0;
                 if (temp_a1_3 > 0) {
-                    var_v0_6 = *(char **)0x2CFC;
+                    var_v0_6 = *(char **)((char *)&D_00000000 + 0x2CFC);
 loop_62:
                     if ((*(u8 *)(var_v0_6 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x1E))) || (((u32) FW(var_v0_6, 0xB0) >> 0x1F) == 0)) {
                         var_v1_6 += 1;
@@ -3326,10 +3332,10 @@ loop_62:
             }
 block_67:
             if (var_t4 == 2) {
-                temp_a1_4 = *(s32 *)0x2070;
+                temp_a1_4 = *(s32 *)((char *)&D_00000000 + 0x2070);
                 var_v1_7 = 0;
                 if (temp_a1_4 > 0) {
-                    var_v0_7 = *(char **)0x2CFC;
+                    var_v0_7 = *(char **)((char *)&D_00000000 + 0x2CFC);
 loop_70:
                     if ((*(u8 *)(var_v0_7 + 0x33) != (*(s16 *)((char *)var_a2_2 + 0x2A))) || (((u32) FW(var_v0_7, 0xB0) >> 0x1F) == 0)) {
                         var_v1_7 += 1;
