@@ -6764,15 +6764,17 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023E60);
 void game_libs_func_00023F84(int a0, int a1, int a2, int a3) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F98);
-
-// gl_func_00023FA4 — STRUCTURAL PASS (0xDC / 55 words, no episode).
+// game_libs_func_00023F98 (MERGED 2026-07-23: orphan 23F98 3-insn
+// lui/addiu v0 + lw t6,0x215C(v0) is this fn's own hoisted range-check
+// load — the sltiu $at,$t6,0x11 gate reads *(D+0x215C), NOT the ptr
+// arg; same mis-split family as 1FF28/1FFAC/20030/200F4; was
+// gl_func_00023FA4; 0xC+0xCC=0xD8) — STRUCTURAL PASS (no episode).
 // Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
 // (named fn + 2 trailing helpers) — deferred USO re-split. The named
 // leading fn is a slot-configure-by-mode helper.
 //
 //   int gl_func_00023FA4(int id, int a1, int mode, int size) {
-//     if ((unsigned)id >= 0x11) return -1;              // 17-slot cap
+//     if (*(u32*)(D+0x215C) >= 0x11) return -1;         // 17-slot cap (global count)
 //     Slot *s = (Slot*)id;
 //     void *buf;
 //     switch (mode) {                                    // beq 2 / 3
@@ -6803,23 +6805,38 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F98);
 //   pre-checked: no extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int D_00000000;
-// Per-slot resource binder. id is the caller-set bounds key (approximated by
-// the slot ptr `s` so only the range-check reg differs); >= 0x11 returns -1.
-// mode selects the buffer base (*(g+0x1644) for 2, *(g+0x1648) for 3, else
-// return 0). size (arg6) is rounded up to 16; the slot's fields are wired
+extern u8 gl_d_23f98[];
+// Per-slot resource binder. Post-merge body (2026-07-23): the >=0x11 gate
+// reads the global counter *(g+0x215C) — the merged-in hoisted load — not
+// the slot ptr. mode is a SWITCH (dead duplicated default branch in target
+// = IDO switch layout): *(g+0x1644) for 2, *(g+0x1648) for 3, default
+// return 0. size (arg6) is rounded up to 16; the slot's fields are wired
 // (+2=tag byte, +4=arg7, +8=arg5, +0xC=a3, +0x10=aligned size), the bound
 // buffer's +0x14 set to 2, then a global fn-ptr at *(g) is invoked as (buf, s).
-int gl_func_00023FA4(char *s, int tag, int a2, int a3, int arg5, int size, int arg7, int mode) {
-    char *g = (char *)&D_00000000;
+// gl_d_23f98 array extern = held-base lever (IDO_CODEGEN "array extern forces
+// single base materialization"): reproduces the target's hoisted lui/addiu v0
+// + lw t6,0x215C(v0) orphan bytes and the 0x1644/0x1648 case loads off v0;
+// scalar &D_00000000 keeps the fnptr load folded (lui t9; lw t9,0(t9)).
+// RESIDUAL (banked): target colors s into $s0 (frame 0x20, no a0/a2 homing);
+// ours picks the free unused-param reg $a2 (frame 0x18) — no C-visible reason
+// for the s-reg (s never live past the jalr). Probes burned: while(0) s-mutate/
+// assign/read (no liveness claim), volatile pad x3 (slot elided in this TU),
+// if(1) store barrier (const-2 CSE with the case-2 compare persists; target
+// keeps macro li at,2 + fresh li t1,2). Same probe-immune const-web/coloring
+// class as the 23E60 entry-block negative.
+int game_libs_func_00023F98(char *s, int tag, int a2, int a3, int arg5, int size, int arg7, int mode) {
     char *buf;
-    if ((unsigned int)s >= 0x11) {
+    if (*(unsigned int *)(gl_d_23f98 + 0x215C) >= 0x11U) {
         return -1;
     }
-    if (mode == 2) {
-        buf = *(char **)(g + 0x1644);
-    } else if (mode == 3) {
-        buf = *(char **)(g + 0x1648);
-    } else {
+    switch (mode) {
+    case 2:
+        buf = (char *)*(int *)(gl_d_23f98 + 0x1644);
+        break;
+    case 3:
+        buf = (char *)*(int *)(gl_d_23f98 + 0x1648);
+        break;
+    default:
         return 0;
     }
     if (size & 0xF) {
@@ -6831,11 +6848,11 @@ int gl_func_00023FA4(char *s, int tag, int a2, int a3, int arg5, int size, int a
     *(int *)(s + 0x10) = size;
     *(int *)(s + 8) = arg5;
     *(int *)(buf + 0x14) = 2;
-    (*(void (**)(char *, char *))g)(buf, s);
+    (**(void (**)(char *, char *))&D_00000000)(buf, s);
     return 0;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00023FA4);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023F98);
 #endif
 
 void game_libs_func_00024070(void) {}
