@@ -4846,59 +4846,50 @@ void timproc_uso_b5_func_00007078(char *arg0) {
 // splittable by the mnemonic split-fragments.py; deferred USO
 // re-split. Only the named leading function is decoded here.
 //
-// Named fn = FP ramp-UP animator with state transition + sound:
-//   void timproc_uso_b5_func_000072D0(Scr *scr) {        // scr -> s0
-//     if (scr->0x480 < scr->0x484) {                      // below target
-//       if (scr->0x3CC != 1) {
-//         float step = scr->0xD4 + scr->0xEC;
-//         scr->0x480 += step;
-//         if (scr->0x480 >= scr->0x484) {                 // reached
-//           scr->0x480 = scr->0x484;
-//           scr->0x3CC = (scr->0x3C8 == 3) ? 9 : 3;        // state xition
-//           if (func_00000000(&D_0, 0x10004203)) {
-//             func_00000000(1); func_00000000(scr);
-//             d = scr->0x28;  (d->0xAC)(d->0xA8 + …);      // sfx/effect
-//           }
-//           scr->0x3CC = 0xA;  scr->0x484 = 0.0f;
-//         }
-//       }
-//     }
-//     // (else / second bundled fn: symmetric ramp-DOWN of scr->0x480.)
-//   }
-//
-// Struct-typing reference:
-//   scr: 0x480 current f32 (animated), 0x484 target f32, 0xD4/0xEC
-//     f32 step components, 0x3C8 mode (==3), 0x3CC state (1 lock /
-//     3 / 9 / 0xA done), 0x28 vtable (->0xA8 s16 base, ->0xAC fn —
-//     obj->0x28 dispatch idiom, here a sound/effect). D_0 +
-//     0x10004203 global gate. func_00000000 = USO placeholder.
-// Caps (DEFERRED): raw-word USO + unsplit bundle + placeholder calls;
-//   USO mnemonic disasm limitation prevents byte-match. Real-C
-//   STRUCTURAL body below — named leading fn (ramp-UP) only;
-//   trailing 0x73C0 ramp-DOWN twin remains INCLUDE_ASM. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// Named fn = FP ramp-UP animator with state transition + sound.
+// 2026-07-23: FULL re-decode from expected/.o (real symbols) —
+// objdiff 100.0. Ramp: if (tgt(0x484) > cur(0x480)) { step = (state
+// 0x3CC==1) ? 0xD4 : 0xEC; 0x480 = step + cur; if overshoot clamp
+// 0x480=0x484 and 0x3CC = (0x3C8==1) ? 3 : 9; }. Then UNCONDITIONAL
+// gate func_011E00(&import_80020098, 0x14203): if hit ->
+// func_00006E08(scr,1); e=func_00008A38(scr); vtable e->0x28
+// (->0xAC fn, ->0xA8 s16 base) dispatch; 0x3CC=10; 0x484=0.0f.
+// Levers: 73C0's `step + (curf = cur)` add.s operand lever; same-line
+// `cur = ...; if (...)` collapse fixes the tgt/cur lwc1 as1 tie.
+// Cap: USO baked relocs (addiu a0 LO16 emission diff) — objdiff-100
+// placeholder-class, stays NM wrap, no episode, not landable.
 #ifdef NON_MATCHING
+extern int timproc_uso_b5_func_011E00();
 void timproc_uso_b5_func_000072D0(char *scr) {
-    char *d;
-    void (*fp)(int);
-    if (*(float *)(scr + 0x480) < *(float *)(scr + 0x484)) {
-        if (*(int *)(scr + 0x3CC) != 1) {
-            float step = *(float *)(scr + 0xD4) + *(float *)(scr + 0xEC);
-            *(float *)(scr + 0x480) += step;
-            if (*(float *)(scr + 0x480) >= *(float *)(scr + 0x484)) {
-                *(float *)(scr + 0x480) = *(float *)(scr + 0x484);
-                *(int *)(scr + 0x3CC) = (*(int *)(scr + 0x3C8) == 3) ? 9 : 3;
-                if (func_00000000(&D_00000000, 0x10004203)) {
-                    func_00000000(1);
-                    func_00000000(scr);
-                    d = *(char **)(scr + 0x28);
-                    fp = *(void (**)(int))(d + 0xAC);
-                    fp(*(short *)(d + 0xA8));
-                }
-                *(int *)(scr + 0x3CC) = 0xA;
-                *(float *)(scr + 0x484) = 0.0f;
+    float cur;
+    float curf;
+    int state;
+    char *e, *vt;
+
+    cur = *(float *)(scr + 0x480); if (*(float *)(scr + 0x484) > cur) {
+        state = *(int *)(scr + 0x3CC);
+        if (state == 1) goto fast_step;
+        *(float *)(scr + 0x480) = *(float *)(scr + 0xEC) + (curf = cur);
+        goto check_target;
+fast_step:
+        *(float *)(scr + 0x480) = *(float *)(scr + 0xD4) + (curf = cur);
+check_target:
+        if (*(float *)(scr + 0x484) < *(float *)(scr + 0x480)) {
+            *(float *)(scr + 0x480) = *(float *)(scr + 0x484);
+            if (*(int *)(scr + 0x3C8) == 1) {
+                *(int *)(scr + 0x3CC) = 3;
+            } else {
+                *(int *)(scr + 0x3CC) = 9;
             }
         }
+    }
+    if (timproc_uso_b5_func_011E00(&import_80020098, 0x14203) != 0) {
+        timproc_uso_b5_func_00006E08(scr, 1);
+        e = (char *)timproc_uso_b5_func_00008A38(scr);
+        vt = *(char **)(e + 0x28);
+        (*(void (**)())(vt + 0xAC))(*(short *)(vt + 0xA8) + (int)e);
+        *(int *)(scr + 0x3CC) = 10;
+        *(float *)(scr + 0x484) = 0.0f;
     }
 }
 #else
