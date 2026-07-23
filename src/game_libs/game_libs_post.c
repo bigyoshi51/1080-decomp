@@ -2909,9 +2909,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FFAC);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020030);
-
-// gl_func_0002003C — STRUCTURAL PASS (0xC4 / 49 words, no episode).
+// game_libs_func_00020030 (MERGED 2026-07-23: orphan 20030 3-insn
+// lui/addiu v0 + lw t6,0x21D8(v0) is this fn's own hoisted head-store
+// load, same mis-split family as 1FF28/1FFAC; was gl_func_0002003C;
+// 0xC+0xB8=0xC4) — STRUCTURAL PASS (0xC4 / 49 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A longer member of the gl_func_0001FF34 diagnostic-dump
 // family: a multi-field struct reporter.
@@ -2948,21 +2949,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020030);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0002003C(int *obj) {
+/* Post-merge body (2026-07-23): head store sources the merged-in hoisted
+ * load *(D+0x21D8) (was `(int)obj`); label/value call pairs chain the
+ * reporter's return value as arg1 of each value line (target's
+ * `move a1,v0` + delay-slot lw a2), exactly the 1FF28/1FFAC shape. */
+void game_libs_func_00020030(int *obj) {
     char *D = (char *)&D_00000000;
-    *(int *)(D + 0x21DC) = (int)obj;
-    gl_func_00000000(D + 0x21D8, obj[0]);
-    gl_func_00000000(D + 0x21FC, obj[0]);
-    gl_func_00000000(D + 0x21D8, obj[1]);
-    gl_func_00000000(D + 0x230C, obj[1]);
-    gl_func_00000000(D + 0x21D8, obj[2]);
-    gl_func_00000000(D + 0x241C, obj[2]);
+    int r;
+    *(int *)(D + 0x21DC) = *(int *)(D + 0x21D8);
+    r = gl_func_00000000(D + 0x21D8, obj[0]);
+    r = gl_func_00000000(D + 0x21FC, r, obj[0]);
+    r = gl_func_00000000(D + 0x21D8, obj[1]);
+    r = gl_func_00000000(D + 0x230C, r, obj[1]);
+    r = gl_func_00000000(D + 0x21D8, obj[2]);
+    r = gl_func_00000000(D + 0x241C, r, obj[2]);
     gl_func_00000000(D + 0x21F8);
     gl_func_00000000(D + 0x2308);
     gl_func_00000000(D + 0x2418);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002003C);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020030);
 #endif
 
 
