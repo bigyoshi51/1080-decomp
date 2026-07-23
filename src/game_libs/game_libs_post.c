@@ -2863,9 +2863,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FF28);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FFAC);
-
-// gl_func_0001FFB8 — STRUCTURAL PASS (0x84 / 33 words, no episode).
+// game_libs_func_0001FFAC (MERGED 2026-07-23: orphan 1FFAC 3-insn
+// lui/addiu v0 + lw t6,0x21C8(v0) is this fn's own hoisted head-store
+// load, same mis-split as sibling 1FF28+1FF34; was gl_func_0001FFB8;
+// 0xC+0x78=0x84) — STRUCTURAL PASS (0x84 / 33 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). Near-identical SIBLING of gl_func_0001FF34 — same 4-step
 // diagnostic / status-print sequence, different format descriptors.
@@ -2894,7 +2895,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FFAC);
 //   = canonical never-defined USO placeholder for the reporter.
 #ifdef NON_MATCHING
 extern int gl_func_0001CA10();
-void gl_func_0001FFB8(int *arg) {
+void game_libs_func_0001FFAC(int *arg) {
     char *D = (char *)&D_00000000;
     int v;
     *(int *)(D + 0x21CC) = *(int *)(D + 0x21C8);
@@ -2904,7 +2905,7 @@ void gl_func_0001FFB8(int *arg) {
     gl_func_0001CA10(D + 0x21E8, v, arg[1]);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001FFB8);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001FFAC);
 #endif
 
 
