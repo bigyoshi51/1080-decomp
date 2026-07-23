@@ -673,100 +673,103 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00001340)();
+/* timproc_uso_b1_func_00001340: 238-insn timer-HUD draw (min:sec.centis).
+ * 2026-07-23 redecode 44.96 -> ~70 (frame 336 EXACT, prologue 18/18, div
+ * chain + call skeleton aligned). Decode errors fixed vs old m2c body:
+ *  - first call a0 = &D_00000000 (baked USO reloc lui/addiu), was literal 0;
+ *  - format arg = (char*)&D_00000000 + 0x3F4 (reloc), was literal 0x3F4;
+ *  - time split is an ARG-MUTATION chain (min=arg2/60000; arg2-=min*60000;
+ *    sec=arg2/1000; arg2-=sec*1000; arg2/=10;) — this pins the divisions
+ *    BEFORE call 1 (move s0,a2 at entry; a named-temp chain gets
+ *    forward-substituted/sunk to the sprintf call; if(1){} does NOT stop
+ *    the sink);
+ *  - loop glyph load is lbu (u8), was *(int*);
+ *  - saved64/saved60 widget-ptr copies at the strlen call (the 100/96
+ *    stores) reloaded by the tail draws — restores frame to 336.
+ * Remaining (coloring cascade, ~40 words): w6CC/w6B4/buf want s6/s7/s8
+ * (ours spills 92/88, buf s7); count*13 emits li 13+multu (target
+ * strength-reduces sll/subu/sll/addu TWICE, no CSE); x/pos4 want s2/s4
+ * (ours ra/t5 + spill); FP temp ring f4/f6 swap (255.0f const-first,
+ * operand-order-invariant). Next levers: rank-boost the widget ptrs
+ * (dead use) or de-name count; break the const-13 CSE web. */
 void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
-    f32 sp14C;
-    f32 sp148;
-    f32 sp144;
-    f32 sp140;
-    u8 spC0[108];
-    s32 sp98;
-    s32 sp94;
-    s32 sp90;
-    u8 *sp68;
-    u8 *sp64;
-    u8 *sp60;
-    f32 *sp58;
-    f32 *temp_a2;
-    s32 temp_a1;
-    s32 temp_s2;
-    s32 temp_s3;
-    s32 temp_s4;
-    s32 temp_s4_2;
-    s32 temp_s6_2;
-    s32 temp_v0;
-    s32 var_s1;
-    s32 var_s2;
-    s32 var_t1;
-    u8 *temp_a0;
-    u8 *temp_s1;
-    u8 *temp_s6;
-    u8 *temp_s7;
-    u8 *var_s0;
-    u8 temp_v0_2;
-    char *temp_t2;
-    char *temp_t3;
-    char *temp_t4;
+    f32 one[4];
+    char buf[128];
+    char *p714;
+    char *w6CC;
+    char *w6B4;
+    char *w6FC;
+    char *saved64;
+    char *saved60;
+    char *pt4;
+    char *pt2;
+    char *pt3;
+    int min, sec;
+    int glyph;
+    int count;
+    int x, pos4, posA1, pos6;
+    int xmid;
+    char *p;
+    int i, xp, bound;
+    unsigned char c;
 
-    sp140 = 1.0f;
-    sp144 = 1.0f;
-    sp148 = 1.0f;
-    sp14C = 1.0f;
+    one[0] = 1.0f;
+    one[1] = 1.0f;
+    one[2] = 1.0f;
+    one[3] = 1.0f;
     if (FW(FW(arg0, 0x528), 0x14) & 1) {
-        timproc_uso_b1_func_000000B0(0, (s32) (255.0f * FW(arg0, 0x72C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
-        temp_a0 = (int)arg0 + 0x714;
-        sp68 = temp_a0;
-        timproc_uso_b1_func_000000B0(temp_a0);
-        temp_s6 = (int)arg0 + 0x6CC;
-        temp_s3 = (s16) FW(FW(arg0, 0x724), 0x20) / 12;
-        timproc_uso_b1_func_000000B0(temp_s6);
-        temp_s7 = (int)arg0 + 0x6B4;
-        timproc_uso_b1_func_000000B0(temp_s7);
-        temp_s1 = (int)arg0 + 0x6FC;
-        timproc_uso_b1_func_000000B0(temp_s1);
-        timproc_uso_b1_func_000000B0(&spC0, 0x3F4, (arg2 / 60000), (char *) ((s32) (arg2 % 60000) / 1000), (s32) ((arg2 % 60000) % 1000) / 10);
-        sp64 = temp_s6;
-        sp60 = temp_s7;
-        temp_v0 = timproc_uso_b1_func_000000B0(&spC0);
-        temp_t4 = FW(arg0, 0x70C);
-        temp_t2 = FW(arg0, 0x6DC);
-        temp_t3 = FW(arg0, 0x6C4);
-        temp_a2 = (int)arg1 + 0x32;
-        temp_s2 = 0xA0 - ((s32) (FW(temp_t4, 0x20) + (temp_v0 * 0xD) + FW(temp_t2, 0x20) + FW(temp_t3, 0x20) + 0x10) / 2);
-        temp_s4 = FW(temp_t3, 0x20) + temp_s2 + 4;
-        temp_a1 = FW(temp_t2, 0x20) + temp_s4 + 4;
-        temp_s6_2 = FW(temp_t4, 0x20) + temp_a1 + 8;
-        sp90 = temp_s4;
-        sp94 = temp_s2;
-        sp98 = temp_v0;
-        sp58 = temp_a2;
-        timproc_uso_b1_func_000000B0(temp_s1, temp_a1, temp_a2, (char *)2);
-        var_t1 = temp_v0;
-        var_s0 = &spC0;
-        var_s1 = 0;
-        var_s2 = temp_s6_2;
-        if (var_t1 > 0) {
-            temp_s4_2 = var_t1 * 0xD;
+        min = arg2 / 60000;
+        arg2 -= min * 60000;
+        sec = arg2 / 1000;
+        arg2 -= sec * 1000;
+        arg2 = arg2 / 10;
+        timproc_uso_b1_func_000000B0(&D_00000000, (s32)(255.0f * *(f32 *)(arg0 + 0x72C)), arg0 + 0x2A8, arg0 + 0x2CC);
+        p714 = arg0 + 0x714;
+        timproc_uso_b1_func_000000B0(p714);
+        glyph = *(s16 *)(*(char **)(arg0 + 0x724) + 0x20) / 12;
+        w6CC = arg0 + 0x6CC;
+        timproc_uso_b1_func_000000B0(w6CC);
+        w6B4 = arg0 + 0x6B4;
+        timproc_uso_b1_func_000000B0(w6B4);
+        w6FC = arg0 + 0x6FC;
+        timproc_uso_b1_func_000000B0(w6FC);
+        timproc_uso_b1_func_000000B0(buf, (char *)&D_00000000 + 0x3F4, min, sec, arg2);
+        saved64 = w6CC;
+        saved60 = w6B4;
+        count = timproc_uso_b1_func_000000B0(buf);
+        pt4 = *(char **)(arg0 + 0x70C);
+        pt2 = *(char **)(arg0 + 0x6DC);
+        pt3 = *(char **)(arg0 + 0x6C4);
+        x = 160 - ((*(s16 *)(pt4 + 0x20) + count * 13 + *(s16 *)(pt2 + 0x20) + *(s16 *)(pt3 + 0x20) + 16) / 2);
+        pos4 = *(s16 *)(pt3 + 0x20) + x + 4;
+        posA1 = *(s16 *)(pt2 + 0x20) + pos4 + 4;
+        pos6 = *(s16 *)(pt4 + 0x20) + posA1 + 8;
+        xmid = arg1 + 0x32;
+        timproc_uso_b1_func_000000B0(w6FC, posA1, xmid, 2);
+        p = buf;
+        i = 0;
+        xp = pos6;
+        if (count > 0) {
+            bound = count * 13;
             do {
-                temp_v0_2 = *(int*)var_s0;
-                if (temp_v0_2 == 0x5B) {
-                    *var_s0 = 0xA;
-                } else if (temp_v0_2 == 0x5D) {
-                    *var_s0 = 0xB;
+                c = *p;
+                if (c == 0x5B) {
+                    *p = 0xA;
+                } else if (c == 0x5D) {
+                    *p = 0xB;
                 } else {
-                    *var_s0 = temp_v0_2 - 0x30;
+                    *p = c - 0x30;
                 }
-                sp98 = var_t1;
-                timproc_uso_b1_func_000000B0(sp68, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x724), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s3), temp_s3);
-                var_s1 += 0xD;
-                var_s0 += 1;
-                var_s2 += 0xD;
-            } while (var_s1 != temp_s4_2);
+                timproc_uso_b1_func_000000B0(p714, xp, (arg1 - *(s16 *)(*(char **)(arg0 + 0x724) + 0x22) / 2) + 0x32, *p * glyph, glyph);
+                i += 0xD;
+                p += 1;
+                xp += 0xD;
+            } while (i != bound);
         }
-        timproc_uso_b1_func_000000B0(sp64, (s32) (255.0f * FW(arg0, 0x72C)), &sp140, (char *)0xFF);
-        timproc_uso_b1_func_000000B0(sp64, sp90, sp58, (char *)2);
-        timproc_uso_b1_func_000000B0(sp60, (s32) (255.0f * FW(arg0, 0x72C)), &sp140, (char *)0xFF);
-        timproc_uso_b1_func_000000B0(sp60, sp94, sp58, (char *)2);
+        timproc_uso_b1_func_000000B0(saved64, (s32)(255.0f * *(f32 *)(arg0 + 0x72C)), one, 0xFF);
+        timproc_uso_b1_func_000000B0(saved64, pos4, xmid, 2);
+        timproc_uso_b1_func_000000B0(saved60, (s32)(255.0f * *(f32 *)(arg0 + 0x72C)), one, 0xFF);
+        timproc_uso_b1_func_000000B0(saved60, x, xmid, 2);
     }
 }
 #else
