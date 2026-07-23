@@ -20554,92 +20554,124 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033B6C);
 //   * SENT  = 0x12340002 (lui 0x1234; ori 2) — block/DMA completion sentinel.
 //   * a1 templates 0x0001E330 / 0x0001E344 / 0x0001E358 are deferred-symbol
 //             rodata error/diag strings (lui 0x2; addiu -0x1Cxx).
+// AUDIT REWRITE 2026-07 agent-h: 33EB8 recipe applied (per-SITE base-0 aliases,
+// baked gl_ref_* USO data syms, goto spin loops, base dead-assign first call,
+// unsigned sltu compares, de-named copy-loop cursors). Target reg map: s5=src
+// (arg0), s4=rem, s0=flags gate copy, s3=sent 0x12340002 held, s2=chunk,
+// s1=base pin. Direction is the WRITE/upload twin of 33EB8 (copy dest = base+0,
+// copy src = arg); kick values 0x12340001/0x12340003 literal per site, polls
+// compare against held sent.
 #ifdef NON_MATCHING
-extern int   cb();                 /* USO-relocated dispatch (jal 0)        */
-extern void *gCtx;                 /* module context (a0 to every cb)       */
-extern u8    gA[];                 /* allocator state (fields at +8..+0x2C) */
-extern u8    gB[];                 /* register-block holder (ptr at +0x28)  */
-extern u8    gDst[];               /* unaligned-head copy destination       */
-#define FA(o) (*(s32 *)(gA + (o)))
-#define FB(p, o) (*(s32 *)((u8 *)(p) + (o)))
-void gl_func_00033BE4(s32 arg0, u32 arg1) {
-    s32   src = arg0;             /* s5: source cursor                      */
-    u32   remaining = arg1;       /* s4: bytes left to process              */
-    s32  *blk;                    /* s0: gB's register/DMA block pointer    */
-    s32   cur;                    /* current allocator write cursor         */
-    const s32 SENT = 0x12340002;  /* s3                                     */
+extern int gl_func_00000000();          /* jal 0x0 USO placeholder (all call sites) */
+/* per-SITE base-0 aliases (33EB8/2B5F4 r1/r2 convention): one extern per access
+ * site so IDO rematerializes a fresh `lui rX,0x0; lw off(rX)` each time. */
+extern s32 gl_d_33be4_8a, gl_d_33be4_8b, gl_d_33be4_8c, gl_d_33be4_8d,
+           gl_d_33be4_8e, gl_d_33be4_8f, gl_d_33be4_8g, gl_d_33be4_8h;      /* +0x08 write cursor */
+extern s32 gl_d_33be4_14a;                                                  /* +0x14 mark */
+extern s32 gl_d_33be4_24a;                                                  /* +0x24 data start */
+extern s32 gl_d_33be4_28a, gl_d_33be4_28b, gl_d_33be4_28c, gl_d_33be4_28d,
+           gl_d_33be4_28e, gl_d_33be4_28f, gl_d_33be4_28g, gl_d_33be4_28h,
+           gl_d_33be4_28i;                                                  /* +0x28 header ptr */
+extern s32 gl_d_33be4_2ca, gl_d_33be4_2cb, gl_d_33be4_2cc;                  /* +0x2C end cursor */
+extern u8 gl_d_33be4_dst;               /* base-0 alias: copy-loop dest (fresh lui/addiu into a0) */
+extern u8 gl_ref_0001E330;              /* baked USO data sym (lui 2 / addiu -0x1CD0) */
+extern u8 gl_ref_0001E344;              /* baked USO data sym */
+extern u8 gl_ref_0001E358;              /* baked USO data sym */
+void gl_func_00033BE4(s32 src, u32 flags) {
+    u8 *base;
+    u32 chunk;
+    s32 rem;
+    s32 mis;
+    u32 avail;
+    s32 cur;
+    u32 cnt;
+    s32 cpsrc;
+    u8 *cpdst;
+    s32 sent;
 
-    if (arg1 & 1) {
-        cb(gCtx, (void *)0x0001E330);
+    rem = flags;
+    if (flags & 1) {
+        base = (u8 *)&D_00000000;
+        gl_func_00000000(base, &gl_ref_0001E330);
     }
-    cb(gCtx);
-    if (arg1 != 0) {
-        do {
-            u32 chunk = remaining;            /* s2: this iteration's span  */
-            s32 mis   = src & 7;              /* 8-byte misalignment        */
-            u32 avail = FA(0x2C) - FA(0x8);   /* free span end - cur        */
-            if (avail < remaining) {
-                chunk = avail;
-            }
-            if (chunk != 0) {
-                if (mis != 0) {
-                    /* align head: copy (8-mis) bytes into gDst first */
-                    u32 head = 8 - mis;
-                    u32 i = 0;
-                    if (head < chunk) {
-                        chunk = head;
-                    }
-                    if (chunk != 0) {
-                        u8 *d = gDst;
-                        u8 *s = (u8 *)src;
-                        do {
-                            u8 b = *s++;
-                            i++;
-                            *d++ = b;
-                        } while (i < chunk);
-                    }
-                    cb(gCtx, FA(0x8), gDst, chunk);
-                } else {
-                    cb(gCtx, FA(0x8), src, chunk);
+    base = (u8 *)&D_00000000;
+    gl_func_00000000(base);
+    if (flags != 0) {
+        sent = 0x12340002;
+    top:
+        chunk = rem;
+        mis = src & 7;
+        avail = gl_d_33be4_2ca - gl_d_33be4_8a;
+        chunk = (avail < (u32)rem) ? avail : chunk;
+        if (chunk != 0) {
+            if (mis != 0) {
+                if ((u32)(8 - mis) < chunk) {
+                    chunk = 8 - mis;
                 }
-                cur = FA(0x8) + chunk;
-                FA(0x8) = cur;
-                cb(gCtx, FB(gB, 0x28), cur);
-            }
-            cur = FA(0x8);
-            if (FA(0x2C) == cur) {                 /* hit segment end       */
-                FA(0x14) = cur;
-                blk = (s32 *)FB(gB, 0x28);
-                cb(gCtx, FB(blk, 0xC), cur);
-                if (FA(0x2C) != FA(0x8)) {
-                    cb(gCtx, (void *)0x0001E344);
+                cnt = 0;
+                if (chunk != 0) {
+                    cpdst = &gl_d_33be4_dst;
+                    cpsrc = src;
+                    do {
+                        *cpdst = *(u8 *)cpsrc;
+                        cnt += 1;
+                        cpsrc += 1;
+                        cpdst += 1;
+                    } while (cnt < chunk);
                 }
-                cb(gCtx, FB(blk, 8), 0x12340001);  /* kick DMA */
-                while (cb(gCtx, FB(blk, 8)) != SENT) {
-                    cb(gCtx);                      /* spin until complete   */
-                }
-                cur = FA(0x24);                    /* rebase to saved start */
-                FA(0x8) = cur;
-                cb(gCtx, FB(blk, 0), cur);
-                cb(gCtx, FB(blk, 8), 0x12340003);  /* kick second DMA */
-                while (cb(gCtx, FB(blk, 8)) != SENT) {
-                    cb(gCtx);
-                }
+                gl_func_00000000(base, gl_d_33be4_8b, base, chunk);
+            } else {
+                gl_func_00000000(base, gl_d_33be4_8c, src, chunk);
             }
-            remaining -= chunk;
-            src       += chunk;
-            if ((s32)remaining < 0) {
-                cb(gCtx, (void *)0x0001E358);      /* underflow diag */
+            cur = gl_d_33be4_8d + chunk;
+            gl_d_33be4_8e = cur;
+            gl_func_00000000(base, gl_d_33be4_28a, cur);
+        }
+        cur = gl_d_33be4_8f;
+        if (gl_d_33be4_2cb == cur) {              /* hit segment end */
+            gl_d_33be4_14a = cur;
+            gl_func_00000000(base, gl_d_33be4_28b + 12, cur);
+            if (gl_d_33be4_2cc != gl_d_33be4_8g) {
+                gl_func_00000000(base, &gl_ref_0001E344);
             }
-            if (remaining != 0) {
-                cb(gCtx);
+            gl_func_00000000(base, gl_d_33be4_28c + 8, 0x12340001);   /* kick DMA */
+            if (gl_func_00000000(base, gl_d_33be4_28d + 8) == sent) {
+                goto spun1;
             }
-        } while (remaining != 0);
+        spin1:
+            gl_func_00000000(base);
+            if (gl_func_00000000(base, *(volatile s32 *)&gl_d_33be4_28e + 8) != sent) {
+                goto spin1;
+            }
+        spun1:
+            cur = gl_d_33be4_24a;                 /* rebase to saved start */
+            gl_d_33be4_8h = cur;
+            gl_func_00000000(base, gl_d_33be4_28f, cur);
+            gl_func_00000000(base, gl_d_33be4_28g + 8, 0x12340003);   /* kick second DMA */
+            if (gl_func_00000000(base, gl_d_33be4_28h + 8) == sent) {
+                goto spun2;
+            }
+        spin2:
+            gl_func_00000000(base);
+            if (gl_func_00000000(base, *(volatile s32 *)&gl_d_33be4_28e + 8) != sent) {
+                goto spin2;
+            }
+        spun2:;
+        }
+        rem -= chunk;
+        src += chunk;
+        if (rem < 0) {
+            gl_func_00000000(base, &gl_ref_0001E358);   /* underflow diag */
+        }
+        if (rem != 0) {
+            gl_func_00000000(base);
+        }
+        if (rem != 0) {
+            goto top;
+        }
     }
-    cb(gCtx);
+    gl_func_00000000(base);
 }
-#undef FA
-#undef FB
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033BE4);
 #endif

@@ -3081,6 +3081,32 @@ gl_d_33eb8_2ca = 0x0000002C;   /* gl_func_00033EB8 per-site alias */
 gl_d_33eb8_2cb = 0x0000002C;   /* gl_func_00033EB8 per-site alias */
 gl_d_33eb8_2cc = 0x0000002C;   /* gl_func_00033EB8 per-site alias */
 gl_d_33eb8_28f = 0x00000028;   /* gl_func_00033EB8 per-site alias */
+gl_ref_0001E330 = 0x0001E330; /* gl_func_00033BE4: baked USO data sym (fmt/template) */
+gl_ref_0001E344 = 0x0001E344; /* gl_func_00033BE4: baked USO data sym */
+gl_ref_0001E358 = 0x0001E358; /* gl_func_00033BE4: baked USO data sym */
+gl_d_33be4_dst = 0x00000000;  /* gl_func_00033BE4: base-0 alias -- copy-loop dest fresh lui/addiu */
+gl_d_33be4_8a = 0x00000008;   /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_8b = 0x00000008;   /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_8c = 0x00000008;   /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_8d = 0x00000008;   /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_8e = 0x00000008;   /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_8f = 0x00000008;   /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_8g = 0x00000008;   /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_8h = 0x00000008;   /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_14a = 0x00000014;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_24a = 0x00000024;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28a = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28b = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28c = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28d = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28e = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28f = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28g = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28h = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_28i = 0x00000028;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_2ca = 0x0000002C;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_2cb = 0x0000002C;  /* gl_func_00033BE4 per-site alias */
+gl_d_33be4_2cc = 0x0000002C;  /* gl_func_00033BE4 per-site alias */
 /* distinct alias externs for timproc_uso_b5_func_00002B74 redecode (bust cross-expansion &sym CSE) */
 D_timb5_2B74_vt0 = 0; D_timb5_2B74_vt1 = 0; D_timb5_2B74_vt2 = 0; D_timb5_2B74_vt3 = 0; D_timb5_2B74_vt4 = 0;
 D_timb5_2B74_vt5 = 0; D_timb5_2B74_vt6 = 0; D_timb5_2B74_vt7 = 0; D_timb5_2B74_vt8 = 0; D_timb5_2B74_vt9 = 0;
