@@ -7760,97 +7760,104 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * func_054CAC(self), then clear bit4 on the (re-read) element. Angles/axes
  * passed as O32 float-in-GPR (mfc1 a1/a2). RESIDUAL: stack-slot coloring of
  * the FP scratch vecs (regalloc cap) — logic is exact. */
+/* Kit pass 2026-07-23 (agent-g): B624 twin recipe applied verbatim
+ * (docs/IDO_CODEGEN.md#pointer-web-reuse-b624). Target is a byte-level
+ * near-clone of B624 (identical local offsets sp68/sp7C/sp8C/sp48/sp38/
+ * sp2C + a 16B vec4 at sp98 on top, frame 152->168): per-load-site
+ * pad-struct externs for the three ref reads (lui-at %lo 0/4/8),
+ * do-while(0) anti-fold around the subs off the named f32* base
+ * (addiu $2,$4,220 shape), chained union-carrier struct copies
+ * sp7C=sp68; sp8C=sp7C (interleaved lw/sw, word-0 memory re-read),
+ * volatile-pad ladder, FP-local ang routing (lwc1+mfc1 a2/a1), and
+ * pointer-bump tail stores (t=e[6]|4; e+=6; *e=t => lw 24/addiu 24/
+ * sw 0). Logic per agent-f full decode (verified insn-for-insn). */
+#define M2C_FIELD(ptr, type, off) (*(type)((char *)(ptr) + (off)))
+typedef struct { f32 f0; f32 f4; f32 f8; } Vec154;
 extern char import_80800000;
 extern char import_8005C108;
+extern f32 import_80800000_ld0;
+extern struct { char pad[4]; f32 v; } import_80800000_ld4;
+extern struct { char pad[8]; f32 v; } import_80800000_ld8;
 /* 071028 return type: void* (AC20 uses the returned pointer; B154 ignores it) */
 extern void timproc_uso_b5_func_05B750(void *arg, void *vec4);
-extern void timproc_uso_b5_func_06970C(void *obj, f32 val);
 extern void timproc_uso_b5_func_054CAC(void *obj);
 
-void timproc_uso_b5_func_0000B154(int *a0) {
-    int *s0 = a0;
-    f32 *src = (f32 *)((char *)a0 + 0xDC);
-    f32 delta[3];
-    int cpy1[3];
-    int cpy2[3];
-    f32 axisX[3];
-    f32 axisZ[3];
-    f32 axisY[3];
-    f32 vec4[4];
+void timproc_uso_b5_func_0000B154(char *arg0) {
+    struct { f32 f0; f32 f4; f32 f8; f32 fC; } sp98;
+    Vec154 sp8C;
+    union { Vec154 v; s32 w[4]; } sp7C;
+    s32 var_v0;
+    s32 temp_t5;
+    Vec154 sp68;
+    volatile s32 pad9C[4];
+    s32 *temp_a0_2;
+    Vec154 sp48;
+    f32 ang;
+    Vec154 sp38;
+    Vec154 sp2C;
+    f32 *sp28;
+    volatile s32 pad40;
 
-    delta[0] = src[0] - *(f32 *)((char *)&import_80800000 + 0);
-    delta[1] = src[1] - *(f32 *)((char *)&import_80800000 + 4);
-    delta[2] = src[2] - *(f32 *)((char *)&import_80800000 + 8);
-    cpy1[0] = *(int *)&delta[0];
-    cpy1[1] = *(int *)&delta[1];
-    cpy1[2] = *(int *)&delta[2];
-    cpy2[0] = cpy1[0];
-    cpy2[1] = cpy1[1];
-    cpy2[2] = cpy1[2];
-    timproc_uso_b5_func_071028(cpy2);
-
-    axisX[0] = 1.0f;
-    axisX[1] = 0.0f;
-    axisX[2] = 0.0f;
-    *(f32 *)((char *)s0 + 0xF4) = 0.0f;
-    *(f32 *)((char *)s0 + 0xF8) = 0.0f;
-    *(f32 *)((char *)s0 + 0xFC) = 0.0f;
-    *(f32 *)((char *)s0 + 0x100) = 1.0f;
-    timproc_uso_b5_func_071AE0((char *)s0 + 0xF4, axisX,
-                               *(f32 *)((char *)s0 + 0x110));
-
-    axisZ[0] = 0.0f;
-    axisZ[1] = 0.0f;
-    axisZ[2] = 1.0f;
-    timproc_uso_b5_func_071AE0((char *)s0 + 0xF4, axisZ,
-                               *(f32 *)((char *)s0 + 0x10C));
-
-    axisY[0] = 0.0f;
-    axisY[1] = 1.0f;
-    axisY[2] = 0.0f;
-    timproc_uso_b5_func_071AE0((char *)s0 + 0xF4, axisY,
-                               *(f32 *)((char *)s0 + 0x114));
-
-    *(f32 *)((char *)s0 + 0xE8) = *(f32 *)((char *)s0 + 0x118);
-    *(f32 *)((char *)s0 + 0xEC) = *(f32 *)((char *)s0 + 0x118);
-    *(f32 *)((char *)s0 + 0xF0) = *(f32 *)((char *)s0 + 0x118);
-    vec4[0] = 0.0f;
-    vec4[1] = 0.0f;
-    vec4[2] = 0.0f;
-    vec4[3] = *(f32 *)((char *)s0 + 0x120);
-    timproc_uso_b5_func_05B750(&import_8005C108, vec4);
-
-    timproc_uso_b5_func_06970C(*(void **)((char *)s0 + 0x108), 0.5f);
-    {
-        f32 a = *(f32 *)((char *)s0 + 0x128);
-        f32 b = *(f32 *)((char *)s0 + 0x12C);
-        f32 c = *(f32 *)((char *)s0 + 0x11C);
-        timproc_uso_b5_func_06970C(*(void **)((char *)s0 + 0x108),
-                                   a - (a - b) * c);
-    }
-
-    {
-        int cnt = *(int *)((char *)s0 + 0x144);
-        *(int *)((char *)s0 + 0x144) = cnt + 1;
-        if ((cnt & 1) == 0) {
-            int idx = *(int *)((char *)s0 + 0x140) + 1;
-            *(int *)((char *)s0 + 0x140) = idx;
-            if (*(int *)((char *)s0 + 0x13C) == idx) {
-                *(int *)((char *)s0 + 0x140) = 0;
-            }
-        }
-        {
-            int i = *(int *)((char *)s0 + 0x140);
-            int *e = *(int **)((char *)s0 + 0x148 + i * 4);
-            *(int *)((char *)e + 0x18) |= 4;
-            timproc_uso_b5_func_054CAC(s0);
-        }
-        {
-            int i = *(int *)((char *)s0 + 0x140);
-            int *e = *(int **)((char *)s0 + 0x148 + i * 4);
-            *(int *)((char *)e + 0x18) &= ~4;
+    sp28 = (f32 *) (arg0 + 0xDC);
+    do {
+        sp68.f0 = sp28[0] - import_80800000_ld0;
+        sp68.f4 = sp28[1] - import_80800000_ld4.v;
+        sp68.f8 = sp28[2] - import_80800000_ld8.v;
+    } while (0);
+    sp7C.v = sp68;
+    sp8C = sp7C.v;
+    timproc_uso_b5_func_071028(&sp8C);
+    ang = M2C_FIELD(arg0, f32 *, 0x110);
+    M2C_FIELD(arg0, f32 *, 0xF4) = 0.0f;
+    M2C_FIELD(arg0, f32 *, 0xF8) = 0.0f;
+    M2C_FIELD(arg0, f32 *, 0xFC) = 0.0f;
+    M2C_FIELD(arg0, f32 *, 0x100) = 1.0f;
+    sp48.f8 = 0.0f;
+    sp48.f4 = 0.0f;
+    sp48.f0 = 1.0f;
+    timproc_uso_b5_func_071AE0(arg0 + 0xF4, &sp48, ang);
+    ang = M2C_FIELD(arg0, f32 *, 0x10C);
+    sp38.f0 = 0.0f;
+    sp38.f4 = 0.0f;
+    sp38.f8 = 1.0f;
+    timproc_uso_b5_func_071AE0(arg0 + 0xF4, &sp38, ang);
+    ang = M2C_FIELD(arg0, f32 *, 0x114);
+    sp2C.f0 = 0.0f;
+    sp2C.f8 = 0.0f;
+    sp2C.f4 = 1.0f;
+    timproc_uso_b5_func_071AE0(arg0 + 0xF4, &sp2C, ang);
+    M2C_FIELD(arg0, f32 *, 0xE8) = M2C_FIELD(arg0, f32 *, 0x118);
+    M2C_FIELD(arg0, f32 *, 0xEC) = M2C_FIELD(arg0, f32 *, 0x118);
+    M2C_FIELD(arg0, f32 *, 0xF0) = M2C_FIELD(arg0, f32 *, 0x118);
+    sp98.f8 = (f32) 0;
+    sp98.f4 = (f32) 0;
+    sp98.f0 = (f32) 0;
+    sp98.fC = M2C_FIELD(arg0, f32 *, 0x120);
+    timproc_uso_b5_func_05B750(&import_8005C108, &sp98);
+    timproc_uso_b5_func_06970C(M2C_FIELD(arg0, void **, 0x108), 0.5f);
+    timproc_uso_b5_func_06970C(M2C_FIELD(arg0, void **, 0x108),
+        M2C_FIELD(arg0, f32 *, 0x128)
+        - (M2C_FIELD(arg0, f32 *, 0x11C)
+           * (M2C_FIELD(arg0, f32 *, 0x128) - M2C_FIELD(arg0, f32 *, 0x12C))));
+    var_v0 = M2C_FIELD(arg0, s32 *, 0x144);
+    M2C_FIELD(arg0, s32 *, 0x144) = var_v0 + 1;
+    if (!(var_v0 & 1)) {
+        var_v0 = M2C_FIELD(arg0, s32 *, 0x140);
+        temp_t5 = var_v0 + 1;
+        M2C_FIELD(arg0, s32 *, 0x140) = temp_t5;
+        if (temp_t5 == M2C_FIELD(arg0, s32 *, 0x13C)) {
+            M2C_FIELD(arg0, s32 *, 0x140) = 0;
         }
     }
+    temp_a0_2 = *(s32 **) ((M2C_FIELD(arg0, s32 *, 0x140) * 4) + arg0 + 0x148);
+    var_v0 = temp_a0_2[6] | 4;
+    temp_a0_2 += 6;
+    *temp_a0_2 = var_v0;
+    timproc_uso_b5_func_054CAC(arg0);
+    temp_a0_2 = *(s32 **) ((M2C_FIELD(arg0, s32 *, 0x140) * 4) + arg0 + 0x148);
+    var_v0 = temp_a0_2[6] & ~4;
+    temp_a0_2 += 6;
+    *temp_a0_2 = var_v0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_0000B154);
