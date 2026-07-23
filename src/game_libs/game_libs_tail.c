@@ -104,40 +104,38 @@ void gl_func_0000975C(Quad4 *dst) {
 
 /* 0x97B4..0x9DB8 gap moved here from truncated game_libs.c on 2026-05-21. */
 
-/* game_libs_func_000097B4: checksum-pair writer. out spilled to sp+0; sum the
- * len/4 words at src; out[0]=0xF251F205-sum; out[1]=a3-(out[0]-sum). IDO unrolls
- * the word-sum x4 with an (count&3) remainder pre-loop. 2026-06-06: rewrote as
- * a simple `do{sum+=*src;src++;i++}while(i!=n)` (IDO auto-unrolls it) + collapsed
- * a garbled double-#ifdef -> 49.8% to 58.9%. Residual: target SPILLS arg0 to
- * sp+0 (frame) and uses the redundant `or a0,a1` per-load pointer-copy
- * (branch-likely quirk); the clean C is frameless + tight -- permuter target. */
-#ifdef NON_MATCHING
-
+/* game_libs_func_000097B4: checksum-pair writer. Sum the len/4 words at src;
+ * out[0]=0xF251F205-sum; out[1]=key-(out[0]-sum). BYTE-EXACT 2026-07-23:
+ * the three levers were (1) `q = src; src++; ... sum += *q;` old-pointer-copy
+ * body (reproduces the per-load `or a0,a1` and frees a0, which homes `out` to
+ * 0(sp) with per-store reloads — no address-taken barrier needed); (2) NO named
+ * n — inline `len / 4` in guard + do-while condition CSEs to a SINGLE web
+ * (named n split into def+loop webs = extra `or t0,t1` that blocked the lui
+ * 0xf251 hoist into the blez delay slot); (3) destructive tail
+ * `sum = chk - sum` (reuses v0) instead of a fresh temp. IDO auto-unrolls x4
+ * with the (n&3) remainder pre-loop. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_000097B4)();
-void game_libs_func_000097B4(char *arg0, s32 *arg1, s32 arg2, s32 arg3) {
-    s32 *src = arg1;
+void game_libs_func_000097B4(s32 *out, s32 *src, s32 len, s32 key) {
     s32 sum = 0;
     s32 i = 0;
-    s32 n = arg2 / 4;
+    s32 *q;
     s32 chk;
 
-    if (n > 0) {
+    if (len / 4 > 0) {
         do {
-            sum += *src;
+            q = src;
             src++;
             i++;
-        } while (i != n);
+            sum += *q;
+        } while (i != len / 4);
     }
     chk = 0xF251F205 - sum;
-    *(s32 *)arg0 = chk;
-    *(s32 *)(arg0 + 4) = arg3 - (chk - sum);
+    out[0] = chk;
+    sum = chk - sum;
+    out[1] = key - sum;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000097B4);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
 

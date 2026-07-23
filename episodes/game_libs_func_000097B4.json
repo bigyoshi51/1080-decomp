@@ -1,0 +1,32 @@
+{
+  "function_name": "game_libs_func_000097B4",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-07-23T22:05:21.723184+00:00",
+  "end_time": "2026-07-23T22:05:21.723210+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-23T22:05:21.723202+00:00",
+      "assistant_text": "Checksum-pair writer, decoded from expected/ .o. Levers: (1) q=src;src++;...;sum+=*q old-pointer-copy loop body reproduces per-load or a0,a1 and frees a0 so out homes to 0(sp) with per-store reloads; (2) inline len/4 (no named n) so guard+bound CSE to a single web, freeing the blez delay slot for the lui 0xf251 hoist; (3) destructive tail sum=chk-sum reuses v0. IDO auto-unrolls x4 with (n&3) remainder pre-loop.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 46,
+  "initial_m2c_source": null,
+  "final_source": "void game_libs_func_000097B4(s32 *out, s32 *src, s32 len, s32 key) {\n    s32 sum = 0;\n    s32 i = 0;\n    s32 *q;\n    s32 chk;\n\n    if (len / 4 > 0) {\n        do {\n            q = src;\n            src++;\n            i++;\n            sum += *q;\n        } while (i != len / 4);\n    }\n    chk = 0xF251F205 - sum;\n    out[0] = chk;\n    sum = chk - sum;\n    out[1] = key - sum;\n}\n",
+  "metadata": {
+    "source_path": "/tmp/claude-1000/-home-dan-Documents-code-decomp/24a9104a-9a16-4a13-8aa8-729de3d6dc97/scratchpad/97B4_src.c",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2",
+    "verification": "byte-exact vs expected/src/game_libs/game_libs_tail.c.o (184/184 bytes); full make + cmp tenshoe.z64 baserom.z64 clean with C as build path"
+  }
+}
