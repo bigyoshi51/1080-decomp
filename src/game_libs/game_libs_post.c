@@ -2972,9 +2972,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020030);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000200F4);
-
-// gl_func_00020100 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
+// game_libs_func_000200F4 (MERGED 2026-07-23: orphan 200F4 3-insn
+// lui/addiu v0 + lw t6,0x21E8(v0) is this fn's own hoisted head-store
+// load, same mis-split family as 1FF28/1FFAC/20030; was
+// gl_func_00020100; 0xC+0xB8=0xC4) — STRUCTURAL PASS (0xC4 / 49
+// words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). Near-identical SIBLING of gl_func_0002003C — same multi-
 // field struct dump, different format descriptors.
@@ -3011,21 +3013,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000200F4);
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_00020100(int *obj) {
+/* Post-merge body (2026-07-23): head store sources the merged-in hoisted
+ * load *(D+0x21E8); chained r-return label/value pairs, twin of 20030. */
+void game_libs_func_000200F4(int *obj) {
     char *D = (char *)&D_00000000;
-    *(int *)(D + 0x21EC) = (int)obj;
-    gl_func_00000000(D + 0x21E8, obj[0]);
-    gl_func_00000000(D + 0x22D0, obj[0]);
-    gl_func_00000000(D + 0x21E8, obj[1]);
-    gl_func_00000000(D + 0x23E0, obj[1]);
-    gl_func_00000000(D + 0x21E8, obj[2]);
-    gl_func_00000000(D + 0x24F0, obj[2]);
+    int r;
+    *(int *)(D + 0x21EC) = *(int *)(D + 0x21E8);
+    r = gl_func_00000000(D + 0x21E8, obj[0]);
+    r = gl_func_00000000(D + 0x22D0, r, obj[0]);
+    r = gl_func_00000000(D + 0x21E8, obj[1]);
+    r = gl_func_00000000(D + 0x23E0, r, obj[1]);
+    r = gl_func_00000000(D + 0x21E8, obj[2]);
+    r = gl_func_00000000(D + 0x24F0, r, obj[2]);
     gl_func_00000000(D + 0x22CC);
     gl_func_00000000(D + 0x23DC);
     gl_func_00000000(D + 0x24EC);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020100);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000200F4);
 #endif
 
 /* gl_func_000201B8: 449-insn (0x704) multi-config slot-manager state
