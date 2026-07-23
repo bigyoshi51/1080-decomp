@@ -12705,9 +12705,10 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A080);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A258);
-
-// gl_func_0002A260 — STRUCTURAL PASS (0x14C / 83 words, no episode).
+// game_libs_func_0002A258 (MERGED 2026-07-23: orphan 2A258 2-insn lui/addiu
+// $t6 base pair is this fn's own hoisted preamble; was gl_func_0002A260,
+// merged 0x8+0x14C=0x154; 4th hoisted-prologue mis-split retraction) —
+// STRUCTURAL PASS (0x154 / 85 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). An object reset-to-defaults routine.
 //
@@ -12757,7 +12758,7 @@ extern int D_2A260_deflt; /* distinct placeholder: the obj+0x90 default-target g
  * -1 fill: 0xd0 store inside the loop after v1+=4 (becomes the bne delay slot).
  * Residual: sh 0x14/0x10 + addiu 0x800 scheduled ~10 slots earlier than target
  * (const-block interleave), or v1,a1 copy 2 slots early, prologue-orphan boundary. */
-void gl_func_0002A260(char *obj) {
+void game_libs_func_0002A258(char *obj) {
     unsigned char *p;
     int c, i;
     char *v1;
@@ -12819,7 +12820,7 @@ void gl_func_0002A260(char *obj) {
     gl_func_00000000(obj + 0x94);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A260);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002A258);
 #endif
 
 // gl_func_0002A3AC — STRUCTURAL PASS (0x124 / 73 words, no episode).
