@@ -8008,65 +8008,73 @@ void timproc_uso_b5_func_0000B61C(int a0) {}
 // verified body once an FP-schedule match is found. Name pre-checked:
 // no extern reuse.
 #ifdef NON_MATCHING
-/* m2c redecode 2026-07-23 (agent-g, resolved-jal overlay pipeline): replaces the
- * 20.7% placeholder. Verified structure above holds; 071AE0 is a prototyped
- * (f32*,f32*,f32) callee (mfc1/a2 single-float form), 071028 takes f32*. */
+/* m2c redecode 2026-07-23 (agent-g, resolved-jal overlay pipeline). Kit pass
+ * 2026-07-23 #2 (307B0/63F34 family recipe): per-LOAD-SITE pad-struct externs
+ * for the head ref reads (at-macro lwc1 form, kills the pre-call lui/addiu
+ * base pair; the post-call dot product keeps the shared &D cast form = the
+ * target's materialized base), chained struct copies sp7C=sp68; sp8C=sp7C
+ * (lw/sw word-copy web with CSE forwarding), volatile-pad ladder recreating
+ * the target's dead frame holes (8B above sp68, 20B below it, 4B below sp48
+ * — redistributes the same 32B the old layout wasted between sp28 and sp2C),
+ * FP-local `ang` routing for the 071AE0 third arg (lwc1+mfc1 a2 instead of
+ * the re-typed lw), and a K&R alias for 06970C so obj+0x130 passes as a raw
+ * int in a1 (the shared prototyped decl cvt.s.w's it). */
 #define M2C_FIELD(ptr, type, off) (*(type)((char *)(ptr) + (off)))
 typedef struct { f32 f0; f32 f4; f32 f8; } VecF;
 extern char timproc_uso_b5_D_807FF370;
 extern char timproc_uso_b5_D_807FFBB0;
+extern f32 timproc_uso_b5_D_807FFBB0_ld0;
+extern struct { char pad[4]; f32 v; } timproc_uso_b5_D_807FFBB0_ld4;
+extern struct { char pad[8]; f32 v; } timproc_uso_b5_D_807FFBB0_ld8;
 extern int timproc_uso_b5_D_807FFBBC;
 extern int timproc_uso_b5_func_054FE0();
 extern int timproc_uso_b5_func_077C44();
+extern void timproc_uso_b5_func_06970C_i();
 void timproc_uso_b5_func_0000B624(char *arg0) {
     VecF sp8C;
-    s32 sp7C[4];
-    VecF sp68;
-    f32 sp48[3];
-    f32 sp38[3];
-    f32 sp2C[3];
-    f32 *sp28;
-    f32 *temp_a0;
-    s32 temp_t5;
-    s32 temp_t7;
-    s32 temp_t8;
+    union { VecF v; s32 w[4]; } sp7C;
     s32 var_v0;
+    s32 temp_t5;
+    VecF sp68;
+    volatile s32 pad9C[3];
     char *temp_a0_2;
-    char *temp_v0;
+    VecF sp48;
+    f32 ang;
+    VecF sp38;
+    VecF sp2C;
+    f32 *sp28;
 
-    temp_v0 = arg0 + 0xDC;
-    sp68.f0 = M2C_FIELD(arg0, f32 *, 0xDC) - M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 0);
-    sp68.f4 = M2C_FIELD(temp_v0, f32 *, 4) - M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 4);
-    sp68.f8 = M2C_FIELD(temp_v0, f32 *, 8) - M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 8);
-    M2C_FIELD(&sp7C, f32 *, 0) = (f32) M2C_FIELD(&sp68, f32 *, 0);
-    temp_t7 = M2C_FIELD(&sp68, s32 *, 4);
-    M2C_FIELD(&sp7C, s32 *, 4) = temp_t7;
-    temp_t8 = M2C_FIELD(&sp68, s32 *, 8);
-    M2C_FIELD(&sp8C, s32 *, 4) = temp_t7;
-    M2C_FIELD(&sp8C, f32 *, 0) = M2C_FIELD(&sp7C, f32 *, 0);
-    M2C_FIELD(&sp7C, s32 *, 8) = temp_t8;
-    M2C_FIELD(&sp8C, s32 *, 8) = temp_t8;
+    sp28 = (f32 *) (arg0 + 0xDC);
+    do {
+        sp68.f0 = sp28[0] - timproc_uso_b5_D_807FFBB0_ld0;
+        sp68.f4 = sp28[1] - timproc_uso_b5_D_807FFBB0_ld4.v;
+        sp68.f8 = sp28[2] - timproc_uso_b5_D_807FFBB0_ld8.v;
+    } while (0);
+    sp7C.v = sp68;
+    sp8C = sp7C.v;
     timproc_uso_b5_func_071028(&sp8C);
-    temp_a0 = arg0 + 0xF4;
+    sp28 = (f32 *) (arg0 + 0xF4);
     if ((f64) ((M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 0) * sp8C.f0) + (M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 4) * sp8C.f4) + (M2C_FIELD((&timproc_uso_b5_D_807FFBB0), f32 *, 8) * sp8C.f8)) < M2C_FIELD((&timproc_uso_b5_D_807FF370), f64 *, 0x350)) {
         M2C_FIELD(arg0, f32 *, 0xF4) = 0.0f;
         M2C_FIELD(arg0, f32 *, 0xF8) = 0.0f;
         M2C_FIELD(arg0, f32 *, 0xFC) = 0.0f;
         M2C_FIELD(arg0, f32 *, 0x100) = 1.0f;
-        sp28 = temp_a0;
-        sp48[2] = 0.0f;
-        sp48[1] = 0.0f;
-        sp48[0] = 1.0f;
-        timproc_uso_b5_func_071AE0(temp_a0, sp48, M2C_FIELD(arg0, f32 *, 0x114));
-        sp38[0] = 0.0f;
-        sp38[1] = 0.0f;
-        sp38[2] = 1.0f;
-        timproc_uso_b5_func_071AE0(sp28, sp38, M2C_FIELD(arg0, f32 *, 0x110));
-        sp2C[0] = 0.0f;
-        sp2C[2] = 0.0f;
-        sp2C[1] = 1.0f;
-        timproc_uso_b5_func_071AE0(sp28, sp2C, M2C_FIELD(arg0, f32 *, 0x118));
-        timproc_uso_b5_func_06970C(M2C_FIELD(arg0, s32 *, 0x108), M2C_FIELD(arg0, s32 *, 0x130));
+        ang = M2C_FIELD(arg0, f32 *, 0x114);
+        sp48.f8 = 0.0f;
+        sp48.f4 = 0.0f;
+        sp48.f0 = 1.0f;
+        timproc_uso_b5_func_071AE0(sp28, &sp48, ang);
+        ang = M2C_FIELD(arg0, f32 *, 0x110);
+        sp38.f0 = 0.0f;
+        sp38.f4 = 0.0f;
+        sp38.f8 = 1.0f;
+        timproc_uso_b5_func_071AE0(sp28, &sp38, ang);
+        ang = M2C_FIELD(arg0, f32 *, 0x118);
+        sp2C.f0 = 0.0f;
+        sp2C.f8 = 0.0f;
+        sp2C.f4 = 1.0f;
+        timproc_uso_b5_func_071AE0(sp28, &sp2C, ang);
+        timproc_uso_b5_func_06970C_i(M2C_FIELD(arg0, s32 *, 0x108), M2C_FIELD(arg0, s32 *, 0x130));
         if ((M2C_FIELD(arg0, s32 *, 0x144) != 0) || (M2C_FIELD(arg0, s32 *, 0x138) != 0)) {
             timproc_uso_b5_func_054FE0(arg0);
             timproc_uso_b5_D_807FFBBC += 1;
