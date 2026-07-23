@@ -13634,32 +13634,63 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002AB34);
 //   mnemonic disasm. Real-C STRUCTURAL body below per the analysis.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* 2026-07 full re-decode vs real target words (old body missed the whole
+ * detach/reattach tail): block-A success FALLS INTO the shared tail via goto;
+ * a1==0 adds an extra pre-call; the classifier result is WRITTEN BACK to
+ * o->0x2C (sw in beq delay = unconditional); tail re-validates o->0x2C
+ * ownership (entry+0x44 backlink) before the final notify call. Constant-1
+ * compares are constant-first (`1 == bit`), backlink compares var-first.
+ * Size exact (87 words) via named `b` (destructive two-statement web -> v1)
+ * + named `one`. RESIDUAL (~31/87 renamed): our `one` web steals $a1
+ * (relocating the a1 param to a3, o to a2, prologue +1 rotated) where the
+ * target holds 1 in dead $a0 and o in a3; def-order swap / plain `a1 == 1`
+ * don't flip it — coloring-preference cap, stays NM wrap. */
 int gl_func_0002ABC0(char *o, int a1) {
     int w = *(int *)o;
+    char *list;
+    char *a2;
+    char *n;
+    int e0, b, one;
+
     if ((w << 2) >= 0) {
-        char *list = *(char **)(o + 0x4C);
+        list = *(char **)(o + 0x4C);
         if (list != 0) {
-            int e0 = *(int *)(*(int **)list);
-            if ((unsigned)e0 >> 28 == 2 && ((unsigned)(e0 << 4) >> 30) != 0) {
+            e0 = *(int *)(*(int **)list);
+            if (((unsigned)e0 >> 0x1C) == 2 && ((unsigned)(e0 << 4) >> 0x1E) != 0) {
                 *(unsigned char *)o = *(unsigned char *)o | 0x20;
                 return -1;
             }
         }
     }
-    if ((((unsigned)w >> 28) & 1) == 1) {
-        if ((((unsigned)(w << 6)) >> 31) == 1) {
-            return 0;
-        }
-        {
-            char *a2 = *(char **)(o + 0x2C);
-            if (a2 != 0 && (w << 4) < 0 && a1 == 1 && o == *(char **)(a2 + 0x44)) {
-                if (*(char **)(o + 0x4C) != 0) {
-                    gl_func_00000000(*(char **)(o + 0x2C), o);
-                } else {
-                    gl_func_00000000(a2, o);
-                }
+    b = w << 3;
+    one = 1;                 /* named const web -> dead a0 across all 4 compares */
+    b = (unsigned)b >> 0x1F; /* destructive two-statement web -> v1, retested */
+    if ((one == b) && (one == ((unsigned)(w << 6) >> 0x1F))) {
+        return 0;
+    }
+    if (one == b) {
+        a2 = *(char **)(o + 0x2C);
+        if ((a2 != 0) && ((w << 4) < 0) && (a1 == one) && (o == *(char **)(a2 + 0x44))) {
+            if (*(char **)(o + 0x4C) == 0) {
+                gl_func_00000000(a2, o);
             }
+            goto tail;
         }
+    }
+    if (a1 == 0) {
+        gl_func_00000000(o);
+    }
+    n = (char *)gl_func_00000000(o);
+    *(char **)(o + 0x2C) = n;
+    if (n != 0) {
+        if (o == *(char **)(n + 0x44)) {
+            gl_func_00000000(n);
+        }
+    }
+tail:
+    a2 = *(char **)(o + 0x2C);
+    if ((a2 != 0) && (o == *(char **)(a2 + 0x44))) {
+        gl_func_00000000(a2);
     }
     return 0;
 }
