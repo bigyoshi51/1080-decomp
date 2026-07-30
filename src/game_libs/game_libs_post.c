@@ -8380,22 +8380,29 @@ extern int gl_func_00000000();
 extern int gl_func_0003959C();
 extern int D_00000000;
 #define GBASE258 ((char *)&D_00000000)
+/* word0 of the descriptor: 4-bit pad | 2-bit sh | 2-bit pad | 24-bit msk */
+typedef struct Desc258 {
+    unsigned pad0 : 4;
+    unsigned sh : 2;
+    unsigned pad1 : 2;
+    unsigned msk : 24;
+    int key;
+} Desc258;
 int gl_func_000258CC(int a0, int a1) {
     int spv;
+    int spv0;
     int *v0;
-    int *v1;
-    int a0v;
+    Desc258 *d;
     int key;
-    int msk;
-    int sh;
+    unsigned msk;
+    unsigned sh;
     int cnt;
-    int cnt2;
-    int hb;
+    unsigned cnt2;
     int r;
 
     if (a1 > 0) {
         if (a0 != 0) {
-            gl_func_00000000(GBASE258 + 0x1684, &spv, 0);
+            gl_func_00000000(GBASE258 + 0x1684, &spv0, 0);
             *(int *)(GBASE258 + 0x1034) = 0;
             return 0;
         }
@@ -8403,16 +8410,14 @@ int gl_func_000258CC(int a0, int a1) {
         if (r == -1) {
             return 0;
         }
-        hb = (unsigned)spv >> 24;
-        v0 = (int *)(GBASE258 + (((hb << 2) + hb) << 2));
-        spv = hb;
+        spv = (unsigned)spv >> 24;
+        v0 = (int *)(GBASE258 + (((spv << 2) + spv) << 2));
         if (*(int *)((char *)v0 + 0x640) == 0) {
-            v1 = *(int **)((char *)v0 + 0x634);
-            a0v = v1[0];
-            key = v1[1] + (a0v & 0x00FFFFFF) + ((unsigned)(a0v << 4) >> 0x1E);
+            d = *(Desc258 **)((char *)v0 + 0x634);
+            key = d->key + d->msk + d->sh;
             if (key == *(int *)((char *)v0 + 0x630)) {
-                *(unsigned char *)v1 = *(unsigned char *)v1 & 0xFFF3;
-                v1[1] = *(int *)((char *)v0 + 0x638);
+                d->sh = 0;
+                d->key = *(int *)((char *)v0 + 0x638);
                 v0 = (int *)(GBASE258 + (((spv << 2) + spv) << 2));
             }
             *(int *)((char *)v0 + 0x640) = 1;
@@ -8423,19 +8428,16 @@ int gl_func_000258CC(int a0, int a1) {
                 *(int *)(GBASE258 + 0x1034) = cnt - 1;
                 continue;
             }
-            v1 = *(int **)((char *)v0 + 0x620);
-            a0v = v1[0];
-            msk = a0v & 0x00FFFFFF;
-            sh = (unsigned)(a0v << 4) >> 0x1E;
-            key = v1[1] + msk + sh;
-            cnt2 = ((unsigned)msk >> 0xC) + 1;
+            d = *(Desc258 **)((char *)v0 + 0x620);
+            cnt2 = (d->msk >> 0xC) + 1;
+            key = d->key + d->msk + d->sh;
             if (key != *(int *)((char *)v0 + 0x61C)) {
                 *(int *)((char *)v0 + 0x62C) = 1;
                 *(int *)(GBASE258 + 0x1034) = *(int *)(GBASE258 + 0x1034) - 1;
                 continue;
             }
-            gl_func_0003959C(v1[1], *(int *)((char *)v0 + 0x624), msk, sh,
-                             cnt2, GBASE258 + 0x1684,
+            gl_func_0003959C(d->key, *(int *)((char *)v0 + 0x624), d->msk,
+                             d->sh, cnt2, GBASE258 + 0x1684,
                              *(int *)((char *)v0 + 0x628));
             break;
         }
