@@ -518,11 +518,29 @@ void titproc_uso_func_00000C0C(int *a0) {
  *   - vtable dispatch: target keeps child in $v0 / vtable in $s0; built uses
  *     $a2 / $v0 — renumbers every downstream temp ($t0->$t1, etc).
  * Tried decl-order swap, init+store statement-join, commutative addu reorder:
- * none move the child->a0/v0 coloring. Permuter can't score this USO fn (the
- * target .s is raw `.word`; relocs baked separately) and the family is the
- * documented ugen-coloring / frame-size cap. Honest NON_MATCHING; the build
- * path is INCLUDE_ASM. Prior body's "90%" was reloc-WRONG placeholders; this
- * one is reloc-faithful at ~89.56% objdiff (coloring-sensitive metric). */
+ * none move the child->a0/v0 coloring. (2026-06-23 state: 89.56.)
+ *
+ * 2026-07-30 (89.56 -> 93.95): THREE one-local/web levers (IDO_CODEGEN
+ * one-local-v1-unification-a88 family):
+ *  (1) PARAM-REUSE for the dead-arm child: `a0 = sub; if(!sub){a0=alloc(0x2C);}`
+ *      — the param web (precolored $a0, freed after the s1 copy) coalesces with
+ *      the alloc-call arg -> dead-arm child colors $a0 exactly (move a0,s0 /
+ *      move a0,v0 / sw-lw spill shape all match). A fresh dead-arm-only local
+ *      also colors $a0 but homes one slot higher; the old shared `child` web
+ *      (spanning the later vtable blocks) was what forced $a2.
+ *  (2) vtable -> reuse `sub` (dead there): vtable holder colors $s0 like
+ *      target (`lw s0,40(v0)`); fn-scope `vtable` colored $v1, and per-site
+ *      block locals cost +8 frame each.
+ *  (3) 07ACE0 registration: embed the reload in the call arg
+ *      `func_07ACE0(list, sub = *(void**)((char*)root+K))` -> as1 orders
+ *      `lw a0,44(sp)` BEFORE `move s0,v0` (statement-form emits move first).
+ * RESIDUAL (~13 words + systematic names): frame 0x48 vs 0x40 (+8, one extra
+ * homed slot; list home 40 vs 44, dead-arm spill 64 vs 56) which drives a
+ * whole-body t-ring +1 rotation (t0..t8 vs t1..t9); last finalizer builds
+ * beqzl-compact where target has plain beqz with the next call's arg setup
+ * interleaved (documented beqzl-chain scheduler tie); entry move-s1/sw-a1
+ * two-insn permute; count<<4 tail temp-reuse (target reuses t7/t3, build
+ * fresh temps). Honest NON_MATCHING; build path is INCLUDE_ASM. */
 extern int titproc_uso_func_000000();
 extern int titproc_uso_func_000098();
 extern int titproc_uso_func_07ACE0();
@@ -550,7 +568,6 @@ void *titproc_uso_func_00000C54(void *a0, int a1) {
     void *root;
     void *child;
     void *sub;
-    void **vtable;
     void *list;
     int count;
 
@@ -564,13 +581,13 @@ void *titproc_uso_func_00000C54(void *a0, int a1) {
         sub = titproc_uso_func_055750(0x50);
         if (sub == 0) goto skip_a;
     }
-    child = sub;
+    a0 = sub;
     if (sub == 0) {
-        child = titproc_uso_func_055750(0x2C);
-        if (child == 0) goto skip_b;
+        a0 = titproc_uso_func_055750(0x2C);
+        if (a0 == 0) goto skip_b;
     }
-    titproc_uso_func_04C678(child, (char *)&titproc_uso_D_00048C + 0x4A8);
-    *(int *)((char *)child + 0x28) = (int)&import_00073B18;
+    titproc_uso_func_04C678(a0, (char *)&titproc_uso_D_00048C + 0x4A8);
+    *(int *)((char *)a0 + 0x28) = (int)&import_00073B18;
 skip_b:
     *(int *)((char *)sub + 0x28) = (int)&import_00073B80;
 skip_a:
@@ -589,32 +606,28 @@ skip_a:
     *(int *)((char *)sub + 0x14) = (int)root;
     *(void **)((char *)root + 0x54) = titproc_uso_func_0015F4(0);
 
-    sub = *(void **)((char *)root + 0x54);
-    titproc_uso_func_07ACE0(list, sub);
+    titproc_uso_func_07ACE0(list, sub = *(void **)((char *)root + 0x54));
     if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
     *(int *)((char *)sub + 0x14) = (int)root;
     if (*(int *)((char *)&import_00020098 + 0x18C) != 0) {
         child = *(void **)((char *)root + 0x54);
-        vtable = *(void ***)((char *)child + 0x28);
-        ((void (*)(int))vtable[0x5C / 4])(
-            *(short *)((char *)vtable + 0x58) + (int)child);
+        sub = *(void **)((char *)child + 0x28);
+        ((void (*)(int))((void **)sub)[0x5C / 4])(
+            *(short *)((char *)sub + 0x58) + (int)child);
     }
     *(void **)((char *)root + 0x58) = titproc_uso_func_001840(0);
 
-    sub = *(void **)((char *)root + 0x58);
-    titproc_uso_func_07ACE0(list, sub);
+    titproc_uso_func_07ACE0(list, sub = *(void **)((char *)root + 0x58));
     if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
     *(int *)((char *)sub + 0x14) = (int)root;
     *(void **)((char *)root + 0x60) = titproc_uso_func_001B10(0);
 
-    sub = *(void **)((char *)root + 0x60);
-    titproc_uso_func_07ACE0(list, sub);
+    titproc_uso_func_07ACE0(list, sub = *(void **)((char *)root + 0x60));
     if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
     *(int *)((char *)sub + 0x14) = (int)root;
     *(void **)((char *)root + 0x64) = titproc_uso_func_001D7C(0);
 
-    sub = *(void **)((char *)root + 0x64);
-    titproc_uso_func_07ACE0(list, sub);
+    titproc_uso_func_07ACE0(list, sub = *(void **)((char *)root + 0x64));
     if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
     *(int *)((char *)sub + 0x14) = (int)root;
     *(void **)((char *)root + 0x5C) = import_000A5D38(0);
@@ -629,8 +642,7 @@ skip_a:
     *(int *)((char *)*(void **)((char *)root + 0x5C) + 0x7C) =
         *(int *)((char *)&import_00020098 + 0x84);
 
-    sub = *(void **)((char *)root + 0x5C);
-    titproc_uso_func_07ACE0(list, sub);
+    titproc_uso_func_07ACE0(list, sub = *(void **)((char *)root + 0x5C));
     if (*(int *)((char *)sub + 0x14) != 0) *(int *)((char *)sub + 0x4) = 1;
     *(int *)((char *)sub + 0x14) = (int)root;
 
@@ -656,9 +668,9 @@ skip_a:
         *(int *)((char *)*(void **)((char *)root + 0x58) + 0x38) = 1;
         *(int *)((char *)*(void **)((char *)root + 0x58) + 0x2C) = 0;
         child = *(void **)((char *)root + 0x58);
-        vtable = *(void ***)((char *)child + 0x28);
-        ((void (*)(int))vtable[0x5C / 4])(
-            *(short *)((char *)vtable + 0x58) + (int)child);
+        sub = *(void **)((char *)child + 0x28);
+        ((void (*)(int))((void **)sub)[0x5C / 4])(
+            *(short *)((char *)sub + 0x58) + (int)child);
     }
 
     *(int *)((char *)&import_00020098 + 0x88) = 0;
