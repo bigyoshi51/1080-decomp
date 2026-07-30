@@ -26660,58 +26660,52 @@ s32 gl_func_000561A8(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000561A8);
 #endif
 
-#ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0005640C)();
 s32 gl_func_0005640C(char *arg0) {
     s32 temp_a1;
     s32 temp_v0;
 
     temp_a1 = FW(arg0, 0x4);
     temp_v0 = temp_a1 & 0xFF;
-    switch (temp_v0) {                              /* irregular */
-    case 0x0:
-        return 0x03024000;
-    case 0x3:
-        return 0x112478;
-    case 0x23:
-        return 0x112438;
-    case 0x7:
-        return 0x113078;
-    case 0x6:
-        return 0x113078;
-    case 0x1B:
-    case 0x1F:
-        return 0x20004DD8;
-    case 0xB:
-    case 0xF:
-        return 0x1045D8;
-    case 0x1:
-        return 0x112048;
-    case 0x5:
-        return 0x113048;
-    case 0x2:
-        return 0x112230;
-    case 0xA:
-        return 0x104A50;
-    case 0x4A:
-        return 0x105078;
-    case 0x4:
-        return 0x03027008;
-    case 0x8:
-        return 0x104240;
-    case 0x9:
-        return 0x1041C8;
-    default:
-        gl_func_00034458(0x218EC, temp_a1);
-        return 0;
-    }
+    if (temp_v0 == 0) goto c0;
+    if (temp_v0 == 3) goto c3;
+    if (temp_v0 == 0x23) goto c23;
+    if (temp_v0 == 7) goto c7;
+    if (temp_v0 == 6) goto c6;
+    if (temp_v0 == 0x1B) goto c1B;
+    if (temp_v0 == 0x1F) goto c1B;
+    if (temp_v0 == 0xB) goto cB;
+    if (temp_v0 == 0xF) goto cB;
+    if (temp_v0 == 1) goto c1;
+    if (temp_v0 == 5) goto c5;
+    if (temp_v0 == 2) goto c2;
+    if (temp_v0 == 0xA) goto cA;
+    if (temp_v0 == 0x4A) goto c4A;
+    if (temp_v0 == 4) goto c4;
+    if (temp_v0 == 8) goto c8;
+    if (temp_v0 != 9) goto def;
+    goto c9;
+c0: return 0x03024000;
+c3: return 0x112478;
+c23: return 0x112438;
+c7: return 0x113078;
+c6: return 0x113078;
+c1B: return 0x20004DD8;
+cB: return 0x1045D8;
+c1: return 0x112048;
+c5: return 0x113048;
+c2: return 0x112230;
+cA: return 0x104A50;
+c4A: return 0x105078;
+c4: return 0x03027008;
+c8: return 0x104240;
+c9: return 0x1041C8;
+def:
+    gl_func_00000000((char *)&D_00000000 + 0x218EC, temp_a1);
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005640C);
-#endif
 
 int *gl_func_00056580(int *param_1, int param_2, int param_3, int param_4, int param_5, int param_6, int param_7) {
   struct GL56L { int items; int count; int f8; int self; };
