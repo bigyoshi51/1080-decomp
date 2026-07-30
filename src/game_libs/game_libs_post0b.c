@@ -4710,52 +4710,60 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038D64);
  *   vt = node->[0x28];
  *   (vt->[0x14])(node + (short)vt->[0x10])
  *
- * Cap: 4x4 mat-mult is hand-unrolled with prologue-mul + 3 main-body iters
- * +  beql/bnel-based loop-skip + epilogue store. Standard `for (row; col; k)`
- *  triple-loop won't match the unroll/scheduling. Documented as NM until a
- *  pattern recipe lands for this unroll. */
-extern int gl_func_00000000();
+ * 2026-07-23 redecode via the 393B8 recipe (2026-07-18 sibling, 89.3%):
+ * the "hand-unrolled mat-mult cap" was a decode error — target is a clean
+ * triple-for with MEMORY compound accumulate (result[r*4+c] += ..., no
+ * float sum local; IDO fully unrolls the trip-4 k-loop and
+ * software-pipelines the c-loop with beql/bnel peel). Iterator pair lives
+ * in memory as int *iter2[2] (sp+0xB8/0xBC; arrays never registerized).
+ * SECOND decode error in the old body: the vtable dispatch is
+ * UNCONDITIONAL per node — the beqzl/bnezl guards (node[8]&0x200,
+ * !(node[0x2C]&1)) skip only the transform, branching straight to the
+ * dispatch with v0=node[0x28] loaded in the likely-slot. Real callee
+ * gl_func_00034458 (st_value 0 in post0b => jal encodes 0 as in target). */
+extern int gl_func_00034458();
 void gl_func_00038DC0(int *root) {
-    int **bundle = (int**)root[0x10/4];
-    int **iter;
+    int *iter2[2]; /* [0]=cur (sp+0xB8 dead store), [1]=next (sp+0xBC) */
+    int *nxt;      /* coalesced into node; decl steers node's web to color s0 */
     int *node;
+    int *vt;
 
-    if (bundle != NULL) {
-        iter = (int**)bundle[0x4/4];
-        node = (int*)bundle[0x0/4];
-    } else {
-        node = NULL;
-        iter = NULL;
+    iter2[1] = (int *)root[0x10/4];
+    nxt = NULL;
+    if (iter2[1] != NULL) {
+        iter2[0] = iter2[1];
+        iter2[1] = (int *)iter2[0][1];
+        nxt = (int *)iter2[0][0];
     }
-
-    while (node != NULL) {
+    while ((node = nxt) != NULL) {
         if ((node[0x8/4] & 0x200) && !(node[0x2C/4] & 0x1)) {
-            float result[16];
             if (root[0x2C/4] & 0x2) {
-                gl_func_00000000((char*)node + 0x30, (char*)node + 0x70);
+                gl_func_00034458((char*)node + 0x30, (char*)node + 0x70);
             } else {
                 float *src = (float*)((char*)node + 0x30);
                 float *world = (float*)((char*)root + 0x70);
-                int row, col, k;
-                for (row = 0; row < 4; row++) {
-                    for (col = 0; col < 4; col++) {
-                        float sum = 0.0f;
+                int r, c, k;
+                float result[16];
+                volatile int pad0, pad1; /* titproc-1710-class dead homes below result */
+                for (r = 0; r < 4; r++) {
+                    for (c = 0; c < 4; c++) {
+                        result[r*4 + c] = 0.0f;
                         for (k = 0; k < 4; k++) {
-                            sum += src[row * 4 + k] * world[k * 4 + col];
+                            result[r*4 + c] += src[r*4 + k] * world[k*4 + c];
                         }
-                        result[row * 4 + col] = sum;
                     }
                 }
-                gl_func_00000000(result, (char*)node + 0x70);
-            }
-            {
-                int *vt = (int*)node[0x28/4];
-                ((void(*)(int))vt[0x14/4])(*(short*)((char*)vt + 0x10) + (int)node);
+                gl_func_00034458(result, (char*)node + 0x70);
             }
         }
-        if (iter == NULL) break;
-        node = (int*)iter[0];
-        iter = (int**)iter[1];
+        vt = (int*)node[0x28/4];
+        ((void(*)(int))vt[0x14/4])(*(short*)((char*)vt + 0x10) + (int)node);
+        nxt = NULL;
+        if (iter2[1] != NULL) {
+            iter2[0] = iter2[1];
+            iter2[1] = (int *)iter2[0][1];
+            nxt = (int *)iter2[0][0];
+        }
     }
 }
 #else
