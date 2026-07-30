@@ -1972,22 +1972,26 @@ extern int gl_func_00062F64_d();
 extern int gl_func_00062F64_e();
 
 void gl_func_00065494(char *arg0) {
-    V3i_65494 sp78;
-    V3i_65494 sp8C;
-    V3i_65494 sp9C;
-    V3i_65494 spA8;
-    V3i_65494 spBC;
-    V3i_65494 spDC;
-    V3i_65494 spEC;
-    V3i_65494 spF8;
-    f32 sp104;
-    short sp108;
-    f32 sp128[3];
-    f32 sp134[3];
-    f32 sp168[3];
+    char *it[2];
     f32 sp174[3];
-    char **sp180;
-    char **sp184;
+    f32 sp168[3];
+    int pad140[10];
+    f32 sp134[3];
+    f32 sp128[3];
+    struct { V3i_65494 v; f32 d; s16 idx; s16 pad0; int pad1[7]; } hit;
+    V3i_65494 spEC;
+    int padE8;
+    V3i_65494 spDC;
+    int padC8[5];
+    V3i_65494 spBC;
+    int padB4[2];
+    V3i_65494 spA8;
+    V3i_65494 sp9C;
+    int pad98;
+    V3i_65494 sp8C;
+    int pad84[2];
+    V3i_65494 sp78;
+    char * volatile base2FC;
     char *var_s0;
     char *var_v0;
     char *temp_v0;
@@ -2010,10 +2014,10 @@ void gl_func_00065494(char *arg0) {
     sp174[1] = 0.0f;
     sp174[0] = 0.0f;
     temp_t6 = (char **)FW(arg0, 0x39C);
-    sp184 = temp_t6;
-    sp180 = temp_t6;
+    it[1] = (char *)temp_t6;
+    it[0] = (char *)temp_t6;
     if (temp_t6 != 0) {
-        sp184 = (char **)FW(temp_t6, 0x4);
+        it[1] = (char *)FW(temp_t6, 0x4);
         var_v0 = (char *)FW(temp_t6, 0x0);
     } else {
         var_v0 = 0;
@@ -2021,10 +2025,11 @@ void gl_func_00065494(char *arg0) {
     var_s0 = var_v0;
     if (var_v0 != 0) {
         s4 = arg0 + 0xDC;
+        base2FC = arg0 + 0x2FC;
         do {
-            sp134[0] = 0.0f;
+            sp134[0] = (f32)0;
             sp134[1] = 1.0f;
-            sp134[2] = 0.0f;
+            sp134[2] = (f32)0;
             temp_v0 = var_s0 + 0xDC;
             spEC = *(V3i_65494 *)temp_v0;
             FF(var_s0, 0x120) = *(f32 *)&spEC.a;
@@ -2038,7 +2043,7 @@ void gl_func_00065494(char *arg0) {
             sp128[2] = *(f32 *)&spBC.c;
             sp128[1] = *(f32 *)&spBC.b;
             sp128[0] = *(f32 *)&spBC.a;
-            gl_func_00062F64(arg0 + 0x2FC, sp128, var_s0 + 0x114);
+            gl_func_00062F64(base2FC, sp128, var_s0 + 0x114);
             s1 = var_s0 + 0x120;
             FF(var_s0, 0x114) = FF(var_s0, 0x114) - sp128[0];
             FF(var_s0, 0x118) = FF(var_s0, 0x118) - sp128[1];
@@ -2046,22 +2051,22 @@ void gl_func_00065494(char *arg0) {
             FF(var_s0, 0x114) = FF(var_s0, 0x114) + FF(arg0, 0x318);
             FF(var_s0, 0x118) = FF(var_s0, 0x118) + FF(arg0, 0x31C);
             FF(var_s0, 0x11C) = FF(var_s0, 0x11C) + FF(arg0, 0x320);
-            if (gl_func_00062F64_b(*(int *)&D_00000000, s1, 0x43C80000, &spF8) != 0) {
-                FW(var_s0, 0x14C) = sp108;
-                spEC = spF8;
-                var_f20 = sp104;
+            if (gl_func_00062F64_b(*(int *)&D_00000000, s1, 0x43C80000, &hit) != 0) {
+                FW(var_s0, 0x14C) = hit.idx;
+                spEC = hit.v;
+                var_f20 = hit.d;
                 sp134[2] = *(f32 *)&spEC.c;
                 sp134[1] = *(f32 *)&spEC.b;
                 sp134[0] = *(f32 *)&spEC.a;
             } else {
                 var_f20 = FF(var_s0, 0x124);
-                sp134[2] = 0.0f;
+                sp134[2] = (f32)0;
                 sp134[1] = 1.0f;
-                sp134[0] = 0.0f;
+                sp134[0] = (f32)0;
             }
             var_f20 = var_f20 - FF(arg0, 0x218);
             FF(var_s0, 0x144) = var_f20;
-            ((FP_65494)FW(FW(var_s0, 0x28), 0x64))(FW(FW(var_s0, 0x28), 0x60) + var_s0, var_f20, sp134, 0x3F800000);
+            ((FP_65494)FW(FW(var_s0, 0x28), 0x64))(var_s0 + *(s16 *)((char *)FW(var_s0, 0x28) + 0x60), var_f20, sp134, 0x3F800000);
             if (var_f20 < 0.0f) {
                 if (var_f20 < var_f30) {
                     var_f30 = var_f20;
@@ -2084,7 +2089,7 @@ void gl_func_00065494(char *arg0) {
                 if (var_f0 > 0.0f) {
                     var_f0 = 0.0f;
                 }
-                temp_f14 = (FF(arg0, 0x28C) * -var_f0) + (temp_f16 * FF(arg0, 0x290));
+                temp_f14 = (temp_f16 * FF(arg0, 0x290)) + (FF(arg0, 0x28C) * -var_f0);
                 temp_f12 = sp134[2] * temp_f14;
                 *(f32 *)&sp78.a = sp134[0] * temp_f14;
                 *(f32 *)&sp78.b = sp134[1] * temp_f14;
@@ -2093,11 +2098,11 @@ void gl_func_00065494(char *arg0) {
                 sp9C = spEC;
                 gl_func_00062F64_d(arg0, s1, &sp9C);
             }
-            temp_t4 = sp184;
-            sp180 = temp_t4;
+            temp_t4 = (char **)it[1];
+            it[0] = (char *)temp_t4;
             var_v0 = 0;
             if (temp_t4 != 0) {
-                sp184 = (char **)FW(temp_t4, 0x4);
+                it[1] = (char *)FW(temp_t4, 0x4);
                 var_v0 = (char *)FW(temp_t4, 0x0);
             }
             var_s0 = var_v0;

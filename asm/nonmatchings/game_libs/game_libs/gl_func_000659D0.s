@@ -1,6 +1,7 @@
-nonmatching gl_func_000659D0, 0x170
+nonmatching gl_func_000659D0, 0x174
 
 glabel gl_func_000659D0
+    /* E4AAA4 000659CC 8C8E039C */  .word 0x8C8E039C
     /* E4AAA8 000659D0 27BDFF98 */  .word 0x27BDFF98
     /* E4AAAC 000659D4 00001025 */  .word 0x00001025
     /* E4AAB0 000659D8 AFAE0064 */  .word 0xAFAE0064
