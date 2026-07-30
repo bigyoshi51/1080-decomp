@@ -8552,7 +8552,13 @@ void game_uso_func_0000ADE0(int *dst) {
  *
  * RESIDUAL: likely a frame-spread / per-stage spill-slot coloring cap (same
  * class as 0000C48C's -0x48-vs-0xC8 residual). Real-symbol reconstruction;
- * NM build path = INCLUDE_ASM. */
+ * NM build path = INCLUDE_ASM.
+ * 2026-07-30 agent-g probes (both NEGATIVE, do not repeat): root residual is
+ * self colored $a2 + sw/lw 132(sp) spill pairs around every call vs target's
+ * $s0 promotion (frame -0x88 vs -0xA0, build +11 insns). (1) `void **arg_home
+ * = &arg0` home-slot pin regressed 62.26->61.29; (2) `register void *s0`
+ * hint byte-inert (62.259). Needs a web-split spelling that decouples s0 from
+ * the arg0 web without memory-homing arg0, or uoptlist ordering session. */
 extern void game_uso_func_04D3D0(void *self);
 extern void game_uso_func_04D3C8(void *self, int a1);
 extern char game_uso_D_807FF340, game_uso_D_807FF24C, game_uso_D_807FEE38,
