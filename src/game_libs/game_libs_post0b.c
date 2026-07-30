@@ -31708,136 +31708,95 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005F534);
 #endif
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005F5F0)();
-void gl_func_0005F5F0(f32 *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8, f32 arg9) {
-    f32 sp9C;
-    f32 sp8C;
-    f32 sp88;
-    f32 sp84;
-    f32 sp7C;
-    f32 sp78;
-    f32 sp74;
-    f32 sp50;
-    f32 sp4C;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f0_3;
-    f32 temp_f12;
-    f32 temp_f14;
-    f32 temp_f14_2;
-    f32 temp_f14_3;
-    f32 temp_f18;
-    f32 temp_f18_2;
-    f32 temp_f18_3;
-    f32 temp_f20;
-    f32 temp_f22;
-    f32 temp_f22_2;
-    f32 temp_f24;
-    f32 temp_f24_2;
-    f32 temp_f26;
-    f32 temp_f26_2;
-    f32 temp_f28;
-    f32 temp_f2;
-    f32 temp_f2_2;
-    f32 temp_f2_3;
-    f32 temp_f30;
-    f32 temp_f8;
-    f32 var_f0;
-    f32 var_f14;
-    f32 var_f16;
-    f32 var_f18;
-    f32 var_f18_2;
-    f32 var_f20;
-    f32 var_f20_2;
-    f32 var_f28;
-    f32 var_f30;
+/* gl_func_0005F5F0 — DECODE CORRECTED (agent-f 2026-07-30): custom guLookAtF
+ * (see references/libreultra/src/gu/lookat.c) with an eye-to-at distance clamp:
+ * if dist2 > far2 threshold (D+0x205C) or dist2 < 10.0f, the look vector is
+ * normalized (external vec3-normalize callee, jal placeholder — baked USO
+ * reloc, target word 0x0C000000) and rescaled to length 10, dist2 forced to
+ * 100. sqrtf is the same baked-jal placeholder class. No guMtxIdentF — the
+ * constant row/column is stored explicitly at the end. */
+extern f32 sqrtf(f32);
+extern void gl_vec3_normalize_0005F5F0(f32 *); /* baked-USO callee, real target unknown */
+void gl_func_0005F5F0(f32 (*mf)[4], f32 xEye, f32 yEye, f32 zEye, f32 xAt, f32 yAt, f32 zAt, f32 xUp, f32 yUp, f32 zUp) {
+    f32 xLook, yLook, zLook;
+    f32 len;
+    f32 slen;
+    f32 v[3];
+    f32 dead[2];
+    f32 x, y, z;
+    f32 xRight, yRight, zRight;
+    f32 d2;
 
-    temp_f2 = arg4 - arg1;
-    temp_f12 = arg5 - arg2;
-    temp_f14 = arg6 - arg3;
-    temp_f0 = (temp_f2 * temp_f2) + (temp_f12 * temp_f12) + (temp_f14 * temp_f14);
-    var_f28 = temp_f2;
-    var_f30 = temp_f12;
-    sp8C = temp_f14;
-    var_f20 = temp_f0;
-    if (((*(f32*)((char*)&D_00000000 + 0x205C)) < temp_f0) || (temp_f0 < 10.0f)) {
-        if (var_f20 < 1.0f) {
-            var_f0 = 0.0f;
-            var_f16 = 0.0f;
-            var_f18 = 1.0f;
+    xLook = xAt - xEye;
+    yLook = yAt - yEye;
+    zLook = zAt - zEye;
+    d2 = (xLook * xLook) + (yLook * yLook) + (zLook * zLook);
+    if ((*(f32 *)((char *)&D_00000000 + 0x205C) < d2) || (d2 < 10.0f)) {
+        if (d2 < 1.0f) {
+            x = 0.0f;
+            y = 0.0f;
+            z = (f32) 1;
         } else {
-            sp74 = temp_f2;
-            sp78 = temp_f12;
-            sp7C = temp_f14;
-            ((f32(*)())gl_func_00034458)(temp_f12, temp_f14, &sp74, arg0);
-            var_f18 = sp7C;
-            var_f16 = sp78;
-            var_f0 = sp74;
+            v[0] = xLook;
+            v[1] = yLook;
+            v[2] = zLook;
+            gl_vec3_normalize_0005F5F0(v);
+            x = v[0];
+            y = v[1];
+            z = v[2];
         }
-        var_f28 = var_f0 * 10.0f;
-        var_f20 = 100.0f;
-        var_f30 = var_f16 * 10.0f;
-        temp_f18 = var_f18 * 10.0f;
-        sp74 = var_f28;
-        sp78 = var_f30;
-        sp8C = temp_f18;
-        sp7C = temp_f18;
+        xLook = x * 10.0f;
+        yLook = y * 10.0f;
+        zLook = z * 10.0f;
+        v[0] = xLook;
+        v[1] = yLook;
+        v[2] = zLook;
+        d2 = 100.0f;
     }
-    temp_f2_2 = -1.0f / ((f32(*)())gl_func_00034458)(var_f20, arg0);
-    temp_f28 = var_f28 * temp_f2_2;
-    temp_f30 = var_f30 * temp_f2_2;
-    temp_f8 = sp8C * temp_f2_2;
-    sp8C = temp_f8;
-    temp_f14_2 = (arg8 * temp_f8) - (arg9 * temp_f30);
-    sp88 = temp_f14_2;
-    temp_f18_2 = (arg9 * temp_f28) - (arg7 * temp_f8);
-    sp50 = temp_f18_2;
-    sp84 = temp_f18_2;
-    var_f20_2 = (arg7 * temp_f30) - (arg8 * temp_f28);
-    sp4C = var_f20_2;
-    temp_f0_2 = ((f32(*)())gl_func_00034458)((temp_f14_2 * temp_f14_2) + (temp_f18_2 * temp_f18_2) + (var_f20_2 * var_f20_2), temp_f14_2);
-    var_f14 = temp_f14_2;
-    var_f18_2 = temp_f18_2;
-    sp9C = temp_f0_2;
-    if (temp_f0_2 < (*(f32*)((char*)&D_00000000 + 0x2060))) {
-        var_f20_2 = 0.0f;
-        var_f14 = 1.0f;
-        var_f18_2 = 0.0f;
-        sp9C = 1.0f;
+    len = -1.0f / sqrtf(d2);
+    xLook *= len;
+    yLook *= len;
+    zLook *= len;
+    xRight = (yUp * zLook) - (zUp * yLook);
+    yRight = (zUp * xLook) - (xUp * zLook);
+    dead[1] = yRight;
+    zRight = (xUp * yLook) - (yUp * xLook);
+    dead[0] = zRight;
+    slen = sqrtf((xRight * xRight) + (yRight * yRight) + (zRight * zRight));
+    if (slen < *(f32 *)((char *)&D_00000000 + 0x2060)) {
+        zRight = 0.0f;
+        xRight = 1.0f;
+        yRight = 0.0f;
+        slen = 1.0f;
     }
-    temp_f0_3 = 1.0f / sp9C;
-    temp_f14_3 = var_f14 * temp_f0_3;
-    temp_f18_3 = var_f18_2 * temp_f0_3;
-    temp_f20 = var_f20_2 * temp_f0_3;
-    sp88 = temp_f14_3;
-    sp84 = temp_f18_3;
-    temp_f26 = (temp_f30 * temp_f20) - (sp8C * temp_f18_3);
-    temp_f22 = (sp8C * temp_f14_3) - (temp_f28 * temp_f20);
-    temp_f24 = (temp_f28 * temp_f18_3) - (temp_f30 * temp_f14_3);
-    sp4C = temp_f24;
-    temp_f2_3 = 1.0f / ((f32(*)())gl_func_00034458)((temp_f26 * temp_f26) + (temp_f22 * temp_f22) + (temp_f24 * temp_f24), temp_f14_3, arg0);
-    (*(f32*)((char*)arg0 + 0x20)) = temp_f20;
-    (*(f32*)((char*)arg0 + 0x0)) = temp_f14_3;
-    (*(f32*)((char*)arg0 + 0x10)) = temp_f18_3;
-    temp_f26_2 = temp_f26 * temp_f2_3;
-    temp_f22_2 = temp_f22 * temp_f2_3;
-    temp_f24_2 = temp_f24 * temp_f2_3;
-    (*(f32*)((char*)arg0 + 0x4)) = temp_f26_2;
-    (*(f32*)((char*)arg0 + 0x14)) = temp_f22_2;
-    (*(f32*)((char*)arg0 + 0x30)) = (f32) -((arg1 * temp_f14_3) + (arg2 * temp_f18_3) + (arg3 * temp_f20));
-    (*(f32*)((char*)arg0 + 0x24)) = temp_f24_2;
-    (*(f32*)((char*)arg0 + 0x8)) = temp_f28;
-    (*(f32*)((char*)arg0 + 0x18)) = temp_f30;
-    (*(f32*)((char*)arg0 + 0x28)) = sp8C;
-    (*(f32*)((char*)arg0 + 0x34)) = (f32) -((arg1 * temp_f26_2) + (arg2 * temp_f22_2) + (arg3 * temp_f24_2));
-    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
-    (*(f32*)((char*)arg0 + 0x38)) = (f32) -((arg1 * temp_f28) + (arg2 * temp_f30) + (arg3 * sp8C));
+    len = 1.0f / slen;
+    xRight *= len;
+    yRight *= len;
+    zRight *= len;
+    xUp = (yLook * zRight) - (zLook * yRight);
+    yUp = (zLook * xRight) - (xLook * zRight);
+    zUp = (xLook * yRight) - (yLook * xRight);
+    dead[0] = zUp;
+    len = 1.0f / sqrtf((xUp * xUp) + (yUp * yUp) + (zUp * zUp));
+    xUp *= len;
+    yUp *= len;
+    zUp *= len;
+    mf[0][0] = xRight;
+    mf[1][0] = yRight;
+    mf[2][0] = zRight;
+    mf[3][0] = -((xEye * xRight) + (yEye * yRight) + (zEye * zRight));
+    mf[0][1] = xUp;
+    mf[1][1] = yUp;
+    mf[2][1] = zUp;
+    mf[3][1] = -((xEye * xUp) + (yEye * yUp) + (zEye * zUp));
+    mf[0][2] = xLook;
+    mf[1][2] = yLook;
+    mf[2][2] = zLook;
+    mf[3][2] = -((xEye * xLook) + (yEye * yLook) + (zEye * zLook));
+    mf[0][3] = 0.0f;
+    mf[1][3] = 0.0f;
+    mf[2][3] = 0.0f;
+    mf[3][3] = 1.0f;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F5F0);
