@@ -1505,19 +1505,28 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064588);
 
 #ifdef NON_MATCHING
 /* gl_func_00064DEC: 157-insn physics-step + velocity-normalize (fresh hand decode
- * 2026-07-23, replacing raw m2c). All 5 jals are USO-reloc placeholders (jal 0x0;
- * gl_func_00000000 family, NOT the intra-TU gl_func_00062F64 whose local def
- * resolves to a non-zero jal). Shape: two setup calls on a+0x2FC / a+0xCC (CSE
- * arg temps spilled at sp+0x28/0x24, a2=a1 dup arg), 4x += accumulate, Vec3
- * sub into sp70 via pinned Vec3* bases (a+0x318 / a+0x33C), sp7C=sp70, sp54=sp7C
- * double struct-copy chain, member-wise FF stores to a+0x330.., history copies
- * (B4->DC, C0->E8, *(a+CC)->F4 with D8->100 interleaved before .z), then
- * sumsq = x^2+z^2+y^2 (source order 318,320,31C), spA4 magSq store,
- * sqrt-placeholder call + 3 divs, else all-zero (bc1tl dup-first-store form). */
+ * 2026-07-23; base-pin + named-diff-var pass 2026-07-30, 86.9->91.5, size exact
+ * 0x274 restoring 66A50's downstream parity). All 5 jals are USO-reloc
+ * placeholders (jal 0x0). Shape notes:
+ *  - pB/pC = if(1)-mutation-materialized Vec3* bases (addiu rX,s0,0x318/0x33C);
+ *    plain `arg0+K` folds to s0+imm.
+ *  - dz/dy/dx named diff locals batch the 6 lwc1 then 3 sub.s into candidate
+ *    regs; same trio REUSED for the sumsq reloads (792->f2, 800->f12, 796->f0)
+ *    and sumsq = dy*dy+dx*dx; += dz*dz gives target mul/add order.
+ *  - Stack layout tuned via decl order: spA4[1] first (0xA4), then pB,pC,
+ *    dz,dy,dx, padA[2] (locals slots), sp7C@7C sp70@70 sp54@54 sp34@34.
+ * RESIDUAL (~8.5%): (1) pB/pC color swap — build pB->v0/pC->v1, target
+ *    pB->v1/pC->v0 (target reuses freed v0 for the sp7C base; build colors it
+ *    a2); both def orders probed, always wrong pairing. (2) FP temp-ring phase
+ *    +1 from the accumulate region on (f18 where f16 expected, cascades). 
+ *    (3) c.eq.s operand order zero-first vs sum-first. Coloring-order cap. */
 extern f32 gl_func_00064DEC_sqrtf(f32);
 void gl_func_00064DEC(char *arg0) {
     f32 spA4[1];
-    f32 padA[7];
+    Vec3 *pB;
+    Vec3 *pC;
+    f32 dz, dy, dx;
+    f32 padA[2];
     Vec3 sp7C;
     Vec3 sp70;
     f32 padD[4];
@@ -1531,17 +1540,28 @@ void gl_func_00064DEC(char *arg0) {
     gl_func_00000000(arg0 + 0x2FC, arg0 + 0xCC, arg0 + 0xCC);
     FF(arg0, 0x31C) += FF(arg0, 0x180);
     FF(arg0, 0xB4) += FF(arg0, 0x318);
+    pB = (Vec3 *)arg0;
+    if (1) {
+        pB = (Vec3 *)((char *)pB + 0x318);
+    }
+    pC = (Vec3 *)arg0;
+    if (1) {
+        pC = (Vec3 *)((char *)pC + 0x33C);
+    }
     FF(arg0, 0xB8) += FF(arg0, 0x31C);
     FF(arg0, 0xBC) += FF(arg0, 0x320);
-    sp70.z = ((Vec3 *)(arg0 + 0x318))->z - ((Vec3 *)(arg0 + 0x33C))->z;
-    sp70.y = ((Vec3 *)(arg0 + 0x318))->y - ((Vec3 *)(arg0 + 0x33C))->y;
-    sp70.x = ((Vec3 *)(arg0 + 0x318))->x - ((Vec3 *)(arg0 + 0x33C))->x;
+    dz = pB->z - pC->z;
+    dy = pB->y - pC->y;
+    dx = pB->x - pC->x;
+    sp70.z = dz;
+    sp70.y = dy;
+    sp70.x = dx;
     sp7C = sp70;
     sp54 = sp7C;
     FF(arg0, 0x330) = sp54.x;
     FF(arg0, 0x334) = sp54.y;
     FF(arg0, 0x338) = sp54.z;
-    sp7C = *(Vec3 *)(arg0 + 0x318);
+    sp7C = *pB;
     FF(arg0, 0x33C) = sp7C.x;
     FF(arg0, 0x340) = sp7C.y;
     FF(arg0, 0x344) = sp7C.z;
@@ -1560,8 +1580,11 @@ void gl_func_00064DEC(char *arg0) {
     FF(arg0, 0x100) = FF(arg0, 0xD8);
     FF(arg0, 0xFC) = sp34.z;
     gl_func_00000000(arg0, arg0 + 0xCC);
-    sumsq = FF(arg0, 0x318) * FF(arg0, 0x318) + FF(arg0, 0x320) * FF(arg0, 0x320);
-    sumsq += FF(arg0, 0x31C) * FF(arg0, 0x31C);
+    dy = FF(arg0, 0x318);
+    dx = FF(arg0, 0x320);
+    dz = FF(arg0, 0x31C);
+    sumsq = dy * dy + dx * dx;
+    sumsq += dz * dz;
     spA4[0] = sumsq;
     if (sumsq != 0.0f) {
         r = gl_func_00064DEC_sqrtf(sumsq);
