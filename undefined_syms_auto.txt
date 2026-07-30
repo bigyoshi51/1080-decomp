@@ -592,6 +592,9 @@ D_412E8_m = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_000
 D_00000000_trk601 = 0x00000000;  /* tracker-state ptr global for the gl_func_000601DC donor (USO load-resolved) */
 D_00000000_dbg669 = 0x00000000;  /* debug-state ptr global for the gl_func_000669B8 donor (USO load-resolved) */
 D_8FFC_base = 0x00000000;  /* gl_func_00008FFC/00008E48: base-0 alias of D_00000000 -- defeats -O0 &D CSE between call arg0 and the +8 read (target re-materializes lui/addiu per use) */
+D_4F9E4_head = 0x00000000;  /* gl_func_0004F9E4 registry-head alias of D_00000000 (per-use lui/addiu, defeats &D CSE) */
+D_4F9E4_tab = 0x00000000;  /* gl_func_0004F9E4 u16 index-table alias of D_00000000 */
+D_4F9E4_itr = 0x00000000;  /* gl_func_0004F9E4 inner-scan iterator base alias of D_00000000 */
 D_bootup_scratch0 = 0x00000000;  /* func_0000FD4C: int-typed base-0 scratch word (== *(int*)&D_00000000); direct int lvalue $at-fuses the store/reload (lui/sw) vs the address-of-cast lui/addiu/sw */
 D_39094_a1 = 0x00000000;  /* gl_func_00039094: per-call-site arg0 (distinct base-0 syms defeat CSE/s-reg promotion; target re-materializes lui/addiu per use). USO load-resolved. */
 D_39094_a2a = 0x00000000;

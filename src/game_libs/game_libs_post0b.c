@@ -21820,98 +21820,83 @@ void gl_func_0004F9AC(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0004F9AC_pad.s")
 
-// gl_func_0004F9E4 — STRUCTURAL PASS + BOUNDARY NOTE (0x1C0 / 112 words, no
-// episode). Raw-.word USO. realjr=5, regjr=0 → MULTI-FUNCTION BUNDLE: the
-// small-gap tail jr cluster at 0x4FB2C / 0x4FB54 / 0x4FB70 / 0x4FB94 /
-// 0x4FB9C (only the named fn carries the 27BDFFD0 prologue) is the
-// docs/N64_FORENSICS ADDENDUM-18b no-frame-leaf signature ⇒ named fn + 4
-// trailing leaves. Named fn ends at the jr at 0x4FB2C; the trailing four
-// (0x4FB30 ~9w, 0x4FB58 ~6w, 0x4FB74 ~8w, 0x4FB98 ~2w) are a DEFERRED USO
-// RE-SPLIT.
-//
-// Named fn = bounded registration + record-iterate (single prologue frame
-// 0x30, saves ra, s0; cb = jal 0 USO-relocated; error string &D_0002 0E0C):
-//   void gl_func_0004F9E4(void *a0) {
-//     *(int*)&D_g = 0;                               // reset registry head
-//     int n = a0->p40;                                // element count
-//     if (n >= 0x12C) cb1(&D_0002_0E0C);              // overflow (>=300) log
-//     self = a0;
-//     n = self->p40;
-//     if (n == 0) return;
-//     for (i = 0; i < n; i++) {
-//       short *rec = (short*)(*(int*)(self->p60)) + i*3;  // 6-byte records
-//       sp_0x20 = rec[0];                              // lh -> sp scratch
-//       sp_0x22 = rec[1];
-//       // ... register the extracted name/key via &D_g2 + per-record fields
-//     }
-//   }
-// Resets the &D_g registry head, range-checks the a0->0x40 element count
-// against 300 (0x12C; cb1 error-log on overflow keyed by &D_0002 0E0C), then
-// iterates the a0->0x60 array of 6-byte records, extracting 16-bit fields
-// into an sp scratch and registering them against the &D_g2 table. Family:
-// cb-driven bounded registration + record iterate (relates to the segment's
-// registration / decode routines). Trailing 4 leaves = deferred re-split.
-// Per-record register detail representative; the *&D_g reset, the < 0x12C
-// count guard, the &D_0002 0E0C overflow key and the a0->0x60 6-byte-record
-// stride are exact. Caps: a0/record struct, &D_g/&D_g2 globals and cb
-// signature untyped; bundle re-split deferred. Full body
-// INCLUDE_ASM-preserved.
+// gl_func_0004F9E4 — dedup-register loop, 98.2% NM wrap (330/336 words; 3
+// residual scheduler-tie swaps, see below). Registry dedup: resets the
+// D_4F9E4_head counter, guards the a0->0x40 record count against 300
+// (0x12C; zero-alias error log keyed by &D+0x20E0C), then for each 6-byte
+// record (a0->0x60 array, s16 f0/f2/f4) linear-scans the already-registered
+// records via the u16 index table D_4F9E4_tab (indices into the record
+// array read through the D_4F9E4_itr view of the same table): on duplicate
+// it appends the duplicate's slot value, else appends the record index i.
+// LEVERS that got 59->98: (1) s16 cur[8] local array — arrays are never
+// register-promoted (struct WAS promoted), giving the sh/lh stack traffic;
+// [8] pads the frame to 0x30 with cur landing at sp+0x20 (locals placed
+// top-down; dead s32/f32 arrays get DELETED here, so oversize the live
+// array instead). (2) inner-loop record base as its OWN load inside
+// if(cnt) (the cur[] sh stores block the CSE with the outer load).
+// (3) q inlined into the condition (base[D_4F9E4_itr[j]].fN) so cur[0]
+// evaluates first — fixes the t6/t7/t8/t9 ring phase (VN age order).
+// (4) D_4F9E4_itr[j] indexed-global form puts the strength-reduced IV init
+// (lui/addiu v1) in the inner-loop preheader = inside the outer loop.
+// (5) head-store FIRST in both arms -> beqz delay gets the else-arm addiu
+// and the found-arm b-delay gets the sh. RESIDUAL 3 swaps (6 words, all
+// adjacent-pair order): addiu-v1/move-a0 in preheader, addu-t5/addiu-t6 in
+// found arm, sh/sw in else arm — delay-filler/scheduler tie-breaks; arm
+// store-order matrix, nh/dst temps (renumber or spill), register decls,
+// for-loop form, if(1) breaks all probed and inert-or-worse.
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_0004F9E4)();
+typedef struct GLRec4F9E4 {
+    s16 f0;
+    s16 f2;
+    s16 f4;
+} GLRec4F9E4;
+extern u32 D_4F9E4_head;
+extern u16 D_4F9E4_tab[];
+extern u16 D_4F9E4_itr[];
 void gl_func_0004F9E4(char *arg0) {
-    s16 sp24;
-    s16 sp22;
-    s16 sp20;
-    s32 var_t1;
-    u16 *var_v1;
-    u16 var_t0;
-    u32 temp_a2;
-    u32 var_a0;
-    u32 var_v0;
-    char *temp_v0;
-    char *temp_v0_2;
+    s16 cur[8];
+    GLRec4F9E4 *r;
+    GLRec4F9E4 *q;
+    GLRec4F9E4 *base;
+    u32 cnt;
+    u32 j;
+    u32 i;
 
-    *(int*)0 = 0;
-    var_v0 = FW(arg0, 0x40);
-    if (var_v0 >= 0x12CU) {
-        gl_func_00034458(0x20E0C);
-        var_v0 = FW(arg0, 0x40);
+    D_4F9E4_head = 0;
+    if ((u32)FW(arg0, 0x40) >= 0x12CU) {
+        gl_func_00000000((char *)&D_00000000 + 0x20E0C);
     }
-    var_t0 = 0;
-    if (var_v0 != 0) {
-        var_t1 = 0;
+    if (FW(arg0, 0x40) != 0) {
+        i = 0;
         do {
-            temp_a2 = *(int*)0;
-            temp_v0 = FW(arg0, 0x60) + var_t1;
-            var_v1 = 0;
-            var_a0 = 0;
-            sp20 = FW(temp_v0, 0x0);
-            sp22 = FW(temp_v0, 0x2);
-            sp24 = FW(temp_v0, 0x4);
-            if (temp_a2 != 0) {
-loop_6:
-                temp_v0_2 = FW(arg0, 0x60) + (*(int*)var_v1 * 6);
-                if ((sp20 != FW(temp_v0_2, 0x0)) || (sp22 != FW(temp_v0_2, 0x2)) || (sp24 != FW(temp_v0_2, 0x4))) {
-                    var_a0 += 1;
-                    var_v1 += 2;
-                    if (var_a0 < temp_a2) {
-                        goto loop_6;
+            r = (GLRec4F9E4 *)FW(arg0, 0x60) + i;
+            cnt = D_4F9E4_head;
+            j = 0;
+            cur[0] = r->f0;
+            cur[1] = r->f2;
+            cur[2] = r->f4;
+            if (cnt != 0) {
+                base = (GLRec4F9E4 *)FW(arg0, 0x60);
+                do {
+                    if ((cur[0] == base[D_4F9E4_itr[j]].f0) && (cur[1] == base[D_4F9E4_itr[j]].f2) &&
+                        (cur[2] == base[D_4F9E4_itr[j]].f4)) {
+                        break;
                     }
-                }
+                    j++;
+                } while (j < cnt);
             }
-            if (var_a0 < temp_a2) {
-                *(int*)0 = temp_a2 + 1;
-                *(int*)(temp_a2 * 2) = (u16) *(int*)(var_a0 * 2);
+            if (j < cnt) {
+                D_4F9E4_head = cnt + 1;
+                D_4F9E4_tab[cnt] = D_4F9E4_tab[j];
             } else {
-                *(int*)(temp_a2 * 2) = var_t0;
-                *(int*)0 = temp_a2 + 1;
+                D_4F9E4_head = cnt + 1;
+                D_4F9E4_tab[cnt] = i;
             }
-            var_t0 += 1;
-            var_t1 += 6;
-        } while (var_t0 < (u32) FW(arg0, 0x40));
+            i++;
+        } while (i < (u32)FW(arg0, 0x40));
     }
 }
 #else
