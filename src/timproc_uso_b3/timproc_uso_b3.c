@@ -799,82 +799,97 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef int (*GP_000013B8)();
+/* timproc_uso_b3_func_000013B8: 170-insn timer-HUD draw, twin of
+ * timproc_uso_b1_func_00001340 (no min:sec split — sprintf(buf, fmt, arg2)
+ * with the f32* arg passed raw; loop digit remap is plain -0x30, no [/]).
+ * 2026-07-30 redecode 65.9 -> 77.55 fixing old m2c body decode errors:
+ *  - alpha is a FLOAT load *(f32*)(arg0+0x72C) (was FW int load + cvt.s.w);
+ *  - first/tail call a0 = &D_b3_1240_base (baked USO reloc), was literal 0;
+ *  - fmt = (char*)&D_b3_1240_base + 0x3D8 (reloc), was literal 0x3D8;
+ *  - one[4] array (4 swc1 stores; scalars got 3 DCE'd) + buf[128] (was u8);
+ *  - glyph loads are *(s16*)(p+0x20) / (p+0x22) (was (s16) of int load);
+ *  - loop: compound `*p -= 0x30` (two-reg lbu/addiu/sb) + lbu RELOAD in the
+ *    call arg; u8 *p for lbu;
+ *  - saved64/saved60 copies + dead kills after strlen (the 1340
+ *    un-coalesce lever; docs/IDO_CODEGEN "dead-kill-uncoalesce-saved-copy");
+ *  - w6FC ASSIGNED first (call stays 5th) — first-assignment order put
+ *    w6FC/w6CC/w6B4 in s0/s1/s2 = target layout (+0.2).
+ * Remaining (~32 words, one-slot s-rotation): target has a BUF lda web in
+ * s3 (or $4,$19 at sprintf+strlen) that DIES and hands s3 to COUNT
+ * (or $19,$2); ours remats addiu $4,sp,168 per call, arg2 sits in s3,
+ * count falls to t5 + spill 88 -> whole tail renames + frame 312 vs 328
+ * (no s8 save; slot set differs).  Probed and FAILED to materialize the
+ * buf web: named bufp (folds), while(0) bufp/count boosts (regress),
+ * if(1){bufp=buf} barrier (folds), dead if(count){} (regress), u8 vs
+ * char buf (no-op).  Note the asymmetry vs b1 1340: SAME spelling gives
+ * buf an s8 web in b1 (5-arg sprintf, higher pressure) but remat here.
+ * Next: find what prices an lda temp into a callee-saved reg at 2 refs
+ * (uopt cupcosts?); count -> s3 should then cascade the tail exact. */
 void timproc_uso_b3_func_000013B8(char *arg0, s32 arg1, f32 *arg2) {
-    f32 sp144;
-    f32 sp140;
-    f32 sp13C;
-    f32 sp138;
-    u8 spB8;
-    s32 sp94;
-    s32 sp90;
-    s32 sp88;
-    u8 *sp64;
-    u8 *sp60;
-    f32 *sp58;
-    f32 *temp_a2;
-    s32 temp_a1;
-    s32 temp_s1_2;
-    s32 temp_s2_2;
-    s32 temp_s5;
-    s32 temp_v0;
-    s32 var_s1;
-    s32 var_s2;
-    u8 *temp_s0;
-    u8 *temp_s1;
-    u8 *temp_s2;
-    u8 *temp_s7;
-    u8 *var_s0;
-    char *temp_t1;
-    char *temp_t2;
-    char *temp_t3;
+    f32 one[4];
+    char buf[128];
+    char *p714;
+    char *w6CC;
+    char *w6B4;
+    char *w6FC;
+    char *saved64;
+    char *saved60;
+    char *pt4;
+    char *pt2;
+    char *pt3;
+    int glyph;
+    int x, pos4, posA1, pos6;
+    int xmid;
+    u8 *p;
+    int i, xp, bound;
+    int count;
 
-    sp138 = 1.0f;
-    sp13C = 1.0f;
-    sp140 = 1.0f;
-    sp144 = 1.0f;
+    one[0] = 1.0f;
+    one[1] = 1.0f;
+    one[2] = 1.0f;
+    one[3] = 1.0f;
     if (FW(FW(arg0, 0x528), 0x14) & 2) {
-        timproc_uso_b3_func_000000B0(0, (s32) (255.0f * FW(arg0, 0x72C)), (int)arg0 + 0x2A8, (int)arg0 + 0x2CC);
-        temp_s7 = (int)arg0 + 0x714;
-        timproc_uso_b3_func_000000B0(temp_s7);
-        temp_s1 = (int)arg0 + 0x6CC;
-        temp_s5 = (s16) FW(FW(arg0, 0x724), 0x20) / 12;
-        timproc_uso_b3_func_000000B0(temp_s1);
-        temp_s2 = (int)arg0 + 0x6B4;
-        timproc_uso_b3_func_000000B0(temp_s2);
-        temp_s0 = (int)arg0 + 0x6FC;
-        timproc_uso_b3_func_000000B0(temp_s0);
-        timproc_uso_b3_func_000000B0(&spB8, 0x3D8, arg2);
-        sp64 = temp_s1;
-        sp60 = temp_s2;
-        temp_v0 = timproc_uso_b3_func_000000B0(&spB8);
-        temp_t3 = FW(arg0, 0x70C);
-        temp_t1 = FW(arg0, 0x6DC);
-        temp_t2 = FW(arg0, 0x6C4);
-        temp_a2 = (int)arg1 + 0x32;
-        temp_s1_2 = 0xA0 - ((s32) (FW(temp_t3, 0x20) + (temp_v0 * 0xD) + FW(temp_t1, 0x20) + FW(temp_t2, 0x20) + 0x10) / 2);
-        temp_s2_2 = FW(temp_t2, 0x20) + temp_s1_2 + 4;
-        temp_a1 = FW(temp_t1, 0x20) + temp_s2_2 + 4;
-        sp88 = FW(temp_t3, 0x20) + temp_a1 + 8;
-        sp90 = temp_s2_2;
-        sp94 = temp_s1_2;
-        sp58 = temp_a2;
-        timproc_uso_b3_func_000000B0(temp_s0, temp_a1, temp_a2, (char *)2);
-        var_s0 = &spB8;
-        if (temp_v0 > 0) {
-            var_s1 = 0;
-            var_s2 = sp88;
+        timproc_uso_b3_func_000000B0(&D_b3_1240_base, (s32)(255.0f * *(f32 *)(arg0 + 0x72C)), arg0 + 0x2A8, arg0 + 0x2CC);
+        p714 = arg0 + 0x714;
+        timproc_uso_b3_func_000000B0(p714);
+        glyph = *(s16 *)(*(char **)(arg0 + 0x724) + 0x20) / 12;
+        w6FC = arg0 + 0x6FC;
+        w6CC = arg0 + 0x6CC;
+        timproc_uso_b3_func_000000B0(w6CC);
+        w6B4 = arg0 + 0x6B4;
+        timproc_uso_b3_func_000000B0(w6B4);
+        timproc_uso_b3_func_000000B0(w6FC);
+        timproc_uso_b3_func_000000B0(buf, (char *)&D_b3_1240_base + 0x3D8, arg2);
+        saved64 = w6CC;
+        saved60 = w6B4;
+        count = timproc_uso_b3_func_000000B0(buf);
+        w6CC = 0;
+        w6B4 = 0;
+        pt4 = *(char **)(arg0 + 0x70C);
+        pt2 = *(char **)(arg0 + 0x6DC);
+        pt3 = *(char **)(arg0 + 0x6C4);
+        x = 160 - ((*(s16 *)(pt4 + 0x20) + count * 13 + *(s16 *)(pt2 + 0x20) + *(s16 *)(pt3 + 0x20) + 16) / 2);
+        pos4 = *(s16 *)(pt3 + 0x20) + x + 4;
+        posA1 = *(s16 *)(pt2 + 0x20) + pos4 + 4;
+        pos6 = *(s16 *)(pt4 + 0x20) + posA1 + 8;
+        xmid = arg1 + 0x32;
+        timproc_uso_b3_func_000000B0(w6FC, posA1, xmid, 2);
+        p = (u8 *)buf;
+        i = 0;
+        xp = pos6;
+        if (count > 0) {
+            bound = count * 13;
             do {
-                *var_s0 -= 0x30;
-                timproc_uso_b3_func_000000B0(temp_s7, var_s2, (arg1 - ((s16) FW(FW(arg0, 0x724), 0x22) / 2)) + 0x32, (char *) (*(int*)var_s0 * temp_s5), temp_s5);
-                var_s1 += 0xD;
-                var_s0 += 1;
-                var_s2 += 0xD;
-            } while (var_s1 != (temp_v0 * 0xD));
+                *p -= 0x30;
+                timproc_uso_b3_func_000000B0(p714, xp, (arg1 - *(s16 *)(*(char **)(arg0 + 0x724) + 0x22) / 2) + 0x32, *p * glyph, glyph);
+                i += 0xD;
+                p += 1;
+                xp += 0xD;
+            } while (i != bound);
         }
-        timproc_uso_b3_func_000000B0(0, (s32) (255.0f * FW(arg0, 0x72C)), &sp138);
-        timproc_uso_b3_func_000000B0(sp64, sp90, sp58, (char *)2);
-        timproc_uso_b3_func_000000B0(sp60, sp94, sp58, (char *)2);
+        timproc_uso_b3_func_000000B0(&D_b3_1240_base, (s32)(255.0f * *(f32 *)(arg0 + 0x72C)), one);
+        timproc_uso_b3_func_000000B0(saved64, pos4, xmid, 2);
+        timproc_uso_b3_func_000000B0(saved60, x, xmid, 2);
     }
 }
 #else
