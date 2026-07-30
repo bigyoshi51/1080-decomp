@@ -1,0 +1,25 @@
+{
+ "function_name": "gl_func_0003395C",
+ "project": "projects/1080-agent-h",
+ "model": "claude-manual",
+ "start_time": "2026-07-30T23:36:35.175069+00:00",
+ "end_time": "2026-07-30T23:36:35.175069+00:00",
+ "steps": [
+  {
+   "step_number": 1,
+   "timestamp": "2026-07-30T23:36:35.175069+00:00",
+   "assistant_text": "Mis-split healed: 7-word orphan game_libs_func_00033940 is the stolen prologue (true entry 0x33940). Old 'call-result respill' cap-note misread the jal delay slots: sw v0,0x1C(sp) spills BASE before each call, lw restores it (call results discarded). 28/29 at unit-default 7.1 -O2 -mips2 first compile; final word (&local sp+0x24) via decl-order lever (local before rec). 29/29.",
+   "tool_calls": [],
+   "match_percent": 100.0,
+   "compiled": true,
+   "token_usage": null
+  }
+ ],
+ "outcome": "match",
+ "final_match_percent": 100.0,
+ "best_match_percent": 100.0,
+ "total_tokens": 0,
+ "instruction_count": 29,
+ "initial_m2c_source": null,
+ "final_source": "/* gl_func_0003395C: deactivate/stop the id*0x44 registry record (sibling\n * closer of the gl_func_00033880 register/activate pair above). EXACT\n * 29/29 (2026-07-30) at unit default 7.1 -O2 -mips2 once the mis-split\n * is healed: the former 7-word orphan game_libs_func_00033940 (v0 =\n * &D + a0*68; t8 = v0->[0x3C]) was this function's stolen prologue \u2014\n * true entry 0x33940, folded into the .s. The old \"call-result respill\n * to sp+0x1C\" cap-note misread the delay slots: `sw v0,0x1C(sp)` spills\n * BASE before each jal and `lw v0,0x1C(sp)` restores it (call results\n * are discarded) \u2014 plain IDO -O2 spill-slot coloring, reproduced\n * as-is. Residual &local slot (sp+0x24 vs 0x20) fixed by the decl-order\n * lever: declare `local` BEFORE `rec`.\n *   rec = &D + id*0x44;\n *   if (rec->[0x3C]) { cb(rec+0x18, &local, 1);\n *     if (rec->[0x40]) cb(rec->[0x34], rec->[0x38]);\n *     rec->[0x3C] = 0; }   (beqzl merges the common tail store) */\nvoid gl_func_0003395C(int idx) {\n    int local;\n    char *rec;\n    rec = (char *)&D_00000000 + idx * 0x44;\n    if (*(int *)(rec + 0x3C) != 0) {\n        gl_func_00000000(rec + 0x18, &local, 1);\n        if (*(int *)(rec + 0x40) != 0) {\n            gl_func_00000000(*(int *)(rec + 0x34), *(int *)(rec + 0x38));\n        }\n        *(int *)(rec + 0x3C) = 0;\n    }\n}\n\n"
+}
