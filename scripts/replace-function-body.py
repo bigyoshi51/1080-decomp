@@ -291,7 +291,8 @@ class Elf:
         for i, (r_off, r_info) in enumerate(new_entries):
             struct.pack_into(REL_FMT, self.data, start_abs + i * ent, r_off, r_info)
 
-    def import_donor_relocs(self, donor, donor_func_start, donor_func_size, dest_func_start):
+    def import_donor_relocs(self, donor, donor_func_start, donor_func_size, dest_func_start,
+                            func_name=None):
         """Read donor's .rel.text relocs that fall within the donor function's
         byte range, remap their symbol indices to dest's symbol table (adding
         missing symbols), remap their offsets to the destination function, and
@@ -317,6 +318,20 @@ class Elf:
             d_sym_idx = r_info >> 8
             d_sym = list(donor.iter_symtab(d_symtab_idx))[d_sym_idx][1]
             sym_name = donor.strtab_string(d_strtab_idx, d_sym[0])
+            if sym_name.startswith("."):
+                # Donor-LOCAL section symbol (e.g. an IDO switch jumptable in the
+                # donor's .rodata). Importing it verbatim as a global ".rodata"
+                # would alias every donor's local data; rename to a per-function
+                # symbol (<func><_section>) so undefined_syms_auto / the linker
+                # can pin it to the address the USO ships (e.g. the jumptable's
+                # baked %lo offset in the USO data segment). The donor's own
+                # section CONTENT is intentionally not copied — the USO ships it
+                # in its data segment already.
+                if func_name is None:
+                    raise RuntimeError(
+                        f"donor reloc against local section symbol {sym_name} "
+                        "but no func_name provided for renaming")
+                sym_name = func_name + sym_name.replace(".", "_")
             dest_sym_idx = self.find_or_add_global_undef_symbol(sym_name)
             dest_r_off = (r_off - donor_func_start) + dest_func_start
             dest_r_info = (dest_sym_idx << 8) | r_type
@@ -352,7 +367,8 @@ def main():
     delta = dest.replace_text_range(old_start, old_size, payload)
     dest.fix_symbols(args.func, old_start, old_size, len(payload), delta)
     dest.fix_relocations(old_start, old_size, delta)
-    imported = dest.import_donor_relocs(donor, donor_func_start, donor_func_size, old_start)
+    imported = dest.import_donor_relocs(donor, donor_func_start, donor_func_size, old_start,
+                                        func_name=args.func)
     dest.realign_sections()
     dest_path.write_bytes(dest.data)
     suffix = f" + imported {imported} donor reloc(s)" if imported else ""
