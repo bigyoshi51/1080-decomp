@@ -8379,56 +8379,63 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000258C0);
 extern int gl_func_00000000();
 extern int gl_func_0003959C();
 extern int D_00000000;
+#define GBASE258 ((char *)&D_00000000)
 int gl_func_000258CC(int a0, int a1) {
-    char *g = (char *)&D_00000000;
     int spv;
-    int r, hb;
-    char *cfg;
-    if (a0 == 0 || a1 <= 0) {
-        gl_func_00000000(g + 0x1684, &spv);
-        *(int *)(g + 0x1034) = 0;
-        return 0;
-    }
-    r = gl_func_00000000(g + 0x1684, &spv);
-    if (r == -1) {
-        *(int *)(g + 0x1034) = 0;
-        return 0;
-    }
-    hb = (unsigned)spv >> 24;
-    {
-        int *v0 = (int *)(g + hb * 0x14);
-        int *v1;
-        int a0v, key;
+    int *v0;
+    int *v1;
+    int a0v;
+    int key;
+    int msk;
+    int sh;
+    int cnt;
+    int cnt2;
+    int hb;
+    int r;
+
+    if (a1 > 0) {
+        if (a0 != 0) {
+            gl_func_00000000(GBASE258 + 0x1684, &spv, 0);
+            *(int *)(GBASE258 + 0x1034) = 0;
+            return 0;
+        }
+        r = gl_func_00000000(GBASE258 + 0x1684, &spv, 0);
+        if (r == -1) {
+            return 0;
+        }
+        hb = (unsigned)spv >> 24;
+        v0 = (int *)(GBASE258 + (((hb << 2) + hb) << 2));
         spv = hb;
         if (*(int *)((char *)v0 + 0x640) == 0) {
             v1 = *(int **)((char *)v0 + 0x634);
             a0v = v1[0];
             key = v1[1] + (a0v & 0x00FFFFFF) + ((unsigned)(a0v << 4) >> 0x1E);
             if (key == *(int *)((char *)v0 + 0x630)) {
-                *(unsigned char *)v1 = *(unsigned char *)v1 & 0xF3;
+                *(unsigned char *)v1 = *(unsigned char *)v1 & 0xFFF3;
                 v1[1] = *(int *)((char *)v0 + 0x638);
-                v0 = (int *)(g + spv * 0x14);
+                v0 = (int *)(GBASE258 + (((spv << 2) + spv) << 2));
             }
             *(int *)((char *)v0 + 0x640) = 1;
         }
-        while (*(int *)(g + 0x1034) > 0) {
-            int cnt = *(int *)(g + 0x1034);
-            v0 = (int *)(g + cnt * 0x14);
-            if (*(int *)((char *)v0 + 0x62C) != 1) {
-                *(int *)(g + 0x1034) = cnt - 1;
+        while ((cnt = *(int *)(GBASE258 + 0x1034)) > 0) {
+            v0 = (int *)(GBASE258 + cnt * 0x14);
+            if (*(int *)((char *)v0 + 0x62C) == 1) {
+                *(int *)(GBASE258 + 0x1034) = cnt - 1;
                 continue;
             }
             v1 = *(int **)((char *)v0 + 0x620);
             a0v = v1[0];
-            key = v1[1] + (a0v & 0x00FFFFFF) + ((unsigned)(a0v << 4) >> 0x1E);
+            msk = a0v & 0x00FFFFFF;
+            sh = (unsigned)(a0v << 4) >> 0x1E;
+            key = v1[1] + msk + sh;
+            cnt2 = ((unsigned)msk >> 0xC) + 1;
             if (key != *(int *)((char *)v0 + 0x61C)) {
                 *(int *)((char *)v0 + 0x62C) = 1;
-                *(int *)(g + 0x1034) = *(int *)(g + 0x1034) - 1;
+                *(int *)(GBASE258 + 0x1034) = *(int *)(GBASE258 + 0x1034) - 1;
                 continue;
             }
-            gl_func_0003959C(v1[1], *(int *)((char *)v0 + 0x624),
-                             ((unsigned)(a0v & 0x00FFFFFF) >> 0xC) + 1,
-                             (unsigned)(a0v << 4) >> 0x1E, g + 0x1684,
+            gl_func_0003959C(v1[1], *(int *)((char *)v0 + 0x624), msk, sh,
+                             cnt2, GBASE258 + 0x1684,
                              *(int *)((char *)v0 + 0x628));
             break;
         }
