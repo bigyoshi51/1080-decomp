@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00071384",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-07-30T15:42:14.857565+00:00",
+  "end_time": "2026-07-30T15:42:14.857583+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-30T15:42:14.857578+00:00",
+      "assistant_text": "gl_func_00071384 = libultra osPfsInitPak (io/pfsinitpak.c verbatim, 1080 2.0-era OSPfs layout verified field-by-field against the asm). All 10 jals are blank USO runtime relocs -> gl_func_00000000 placeholder; no data relocs. IDO 5.3 -O1 -mips2 byte-exact on first compile, spliced via REPLACE_FUNC_BODY into game_libs_post2.c.o.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 165,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_00071384 = libultra osPfsInitPak\n * (io/pfsinitpak.c verbatim, 1080 2.0-era OSPfs layout: status+0 /\n * queue+4 / channel+8, id[32]+0xC, label[32]+0x2C, version+0x4C ..\n * inode_start_page+0x60, banks+0x64, activebank+0x65). PROVEN EXACT\n * 165/165 vs expected gl_func_00071384 (first compile, 2026-07-30\n * probe): masked-reloc word compare 0 mismatches AND every reloc imm\n * already 0 on both sides. No data relocs at all -- the only relocs are\n * the 10 blank USO jals (= gl_func_00000000 placeholder; real callees\n * __osSiGetAccess, __osPfsGetStatus=gl_func_00071624, __osSiRelAccess,\n * __osPfsSelectBank, __osContRamRead x2, __osIdCheckSum=gl_func_000718C0,\n * __osCheckPackId=gl_func_00071D40, __osRepairPackId=gl_func_00071928,\n * osPfsChecker). post2 builds -O2 7.1; only 5.3 -O1 reproduces the\n * stack-resident ret/temp/newid locals and sequential sp-reload chains.\n * Spliced into game_libs_post2.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned int u32;\ntypedef unsigned short u16;\ntypedef unsigned char u8;\ntypedef int s32;\ntypedef unsigned long long u64;\ntypedef struct OSMesgQueue_s OSMesgQueue;\n\ntypedef struct {\n    int status;           /* 0x00 */\n    OSMesgQueue *queue;   /* 0x04 */\n    int channel;          /* 0x08 */\n    u8 id[32];            /* 0x0C */\n    u8 label[32];         /* 0x2C */\n    int version;          /* 0x4C */\n    int dir_size;         /* 0x50 */\n    int inode_table;      /* 0x54 */\n    int minode_table;     /* 0x58 */\n    int dir_table;        /* 0x5C */\n    int inode_start_page; /* 0x60 */\n    u8 banks;             /* 0x64 */\n    u8 activebank;        /* 0x65 */\n} OSPfs;\n\ntypedef struct {\n    u32 repaired;           /* 0x00 */\n    u32 random;             /* 0x04 */\n    u64 serial_mid;         /* 0x08 */\n    u64 serial_low;         /* 0x10 */\n    u16 deviceid;           /* 0x18 */\n    u8 banks;               /* 0x1A */\n    u8 version;             /* 0x1B */\n    u16 checksum;           /* 0x1C */\n    u16 inverted_checksum;  /* 0x1E */\n} __OSPackId;\n\nextern int gl_func_00000000();\n\n#define ERRCK(fn) \\\n    ret = fn;     \\\n    if (ret != 0) \\\n        return ret;\n\ns32 gl_func_00071384(OSMesgQueue *queue, OSPfs *pfs, int channel)\n{\n    int k;\n    s32 ret;\n    u16 sum;\n    u16 isum;\n    u8 temp[32];\n    __OSPackId *id;\n    __OSPackId newid;\n    ret = 0;\n    gl_func_00000000();                       /* __osSiGetAccess */\n    ret = gl_func_00000000(queue, channel);   /* __osPfsGetStatus */\n    gl_func_00000000();                       /* __osSiRelAccess */\n    if (ret != 0)\n        return ret;\n    pfs->queue = queue;\n    pfs->channel = channel;\n    pfs->status = 0;\n    pfs->activebank = 0;\n    ERRCK(gl_func_00000000(pfs));             /* __osPfsSelectBank */\n    ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 1, (u8*)temp)); /* __osContRamRead */\n    gl_func_00000000((u16*)temp, &sum, &isum); /* __osIdCheckSum */\n    id = (__OSPackId *)temp;\n    if (id->checksum != sum || id->inverted_checksum != isum)\n    {\n        ERRCK(gl_func_00000000(pfs, id));     /* __osCheckPackId */\n        if (ret != 0)\n            return ret;\n    }\n    if ((id->deviceid & 1) == 0)\n    {\n        ERRCK(gl_func_00000000(pfs, id, &newid)); /* __osRepairPackId */\n        id = &newid;\n        if ((id->deviceid & 1) == 0)\n            return 11; /* PFS_ERR_DEVICE */\n    }\n    for (k = 0; k < 32; k++)\n    {\n        pfs->id[k] = ((u8 *)id)[k];\n    }\n    pfs->version = id->version;\n    pfs->banks = id->banks;\n    pfs->inode_start_page = pfs->banks * 2 + 3;\n    pfs->dir_size = 0x10;\n    pfs->inode_table = 8;\n    pfs->minode_table = pfs->banks * 8 + 8;   /* PFS_ONE_PAGE */\n    pfs->dir_table = pfs->minode_table + pfs->banks * 8;\n    ERRCK(gl_func_00000000(pfs->queue, pfs->channel, 7, pfs->label)); /* __osContRamRead */\n    ret = gl_func_00000000(pfs);              /* osPfsChecker */\n    pfs->status |= 1; /* PFS_INITIALIZED */\n    return ret;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_71384.c",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/gl_func_00071384.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "165/165 raw-word identical vs expected/src/game_libs/game_libs_post2.c.o gl_func_00071384 (incl. reloc imms); REPLACE_FUNC_BODY splice; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0"
+  }
+}

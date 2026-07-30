@@ -135,90 +135,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071304);
  * asm; INCLUDE_ASM stays. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00071370);
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00071384)();
-typedef struct { int unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00071384;
-extern int gl_ph_70FCC();  /* legacy NM placeholder-callee (was reusing game_libs_func_00070FCC's name; renamed 2026-07-10 when the real fn = fcos landed -- feedback_placeholder_func_name_reuse_blocks_real_def) */
-extern int game_libs_func_00070F2C();
-s32 gl_func_00071384(u16 *arg0, u16 *arg1, u16 *arg2) {
-    Q_00071384 sp18;
-    Q_00071384 sp3C;
-    s32 sp64;
-    s32 sp60;
-    u16 sp5E;
-    u16 sp5C;
-    u16 *sp38;
-    s32 temp_t8;
-    s32 temp_v0;
-
-    sp60 = 0;
-    gl_ph_70FCC();
-    sp60 = gl_ph_70FCC(arg0, arg2);
-    gl_ph_70FCC();
-    if (sp60 != 0) {
-        return sp60;
+/* gl_func_00071384 = libultra osPfsInitPak (io/pfsinitpak.c verbatim,
+ * 1080 2.0-era OSPfs layout) -- the pfs-family head. The old NM body
+ * (46.3%) had the exact call/field skeleton; only IDO 5.3 -O1 reproduces
+ * the stack-resident locals + sequential sp-reload chains.
+ * LANDED 2026-07-30 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_71384.c (165/165 raw-word
+ * identical incl. reloc imms; no data relocs, 10 blank USO jals =
+ * __osSiGetAccess, __osPfsGetStatus=gl_func_00071624, __osSiRelAccess,
+ * __osPfsSelectBank, __osContRamRead x2, __osIdCheckSum=gl_func_000718C0,
+ * __osCheckPackId=gl_func_00071D40, __osRepairPackId=gl_func_00071928,
+ * osPfsChecker). Body below is a placeholder for the splice. */
+int gl_func_00071384(void *queue, void *pfs, int channel) {
+    volatile int ret = 0;
+    if (channel != 0) {
+        ret = channel;
     }
-    FW(arg1, 0x4) = arg0;
-    FW(arg1, 0x8) = arg2;
-    FW(arg1, 0x0) = 0;
-    FW(arg1, 0x65) = 0;
-    sp60 = gl_ph_70FCC(arg1);
-    if (sp60 != 0) {
-        return sp60;
-    }
-    sp60 = gl_ph_70FCC(FW(arg1, 0x4), FW(arg1, 0x8), (u16 *)1, &sp3C);
-    if (sp60 != 0) {
-        return sp60;
-    }
-    gl_ph_70FCC(&sp3C, &sp5E, &sp5C);
-    sp38 = &sp3C;
-    if (((*(u16*)((char*)&sp3C + 0x1C)) != sp5E) || ((*(u16*)((char*)&sp3C + 0x1E)) != sp5C)) {
-        sp60 = gl_ph_70FCC(arg1, sp38);
-        if (sp60 != 0) {
-            return sp60;
-        }
-        if (sp60 != 0) {
-            return sp60;
-        }
-    }
-    if (!(FW(sp38, 0x18) & 1)) {
-        sp60 = gl_ph_70FCC(arg1, sp38, &sp18);
-        if (sp60 != 0) {
-            return sp60;
-        }
-        sp38 = &sp18;
-        if (!((*(u32*)((char*)&sp18 + 0x18)) & 1)) {
-            return 0xB;
-        }
-    }
-    sp64 = 0;
-    do {
-        FW(((int)arg1 + sp64), 0xC) = (u8) *(int*)(sp38 + sp64);
-        temp_t8 = sp64 + 1;
-        sp64 = temp_t8;
-    } while (temp_t8 < 0x20);
-    FW(arg1, 0x4C) = (s32) FW(sp38, 0x1B);
-    FW(arg1, 0x64) = (u8) FW(sp38, 0x1A);
-    FW(arg1, 0x60) = (s32) ((FW(arg1, 0x64) * 2) + 3);
-    FW(arg1, 0x50) = 0x10;
-    FW(arg1, 0x54) = 8;
-    FW(arg1, 0x58) = (s32) ((FW(arg1, 0x64) * 8) + 8);
-    FW(arg1, 0x5C) = (s32) (FW(arg1, 0x58) + (FW(arg1, 0x64) * 8));
-    sp60 = gl_ph_70FCC(FW(arg1, 0x4), FW(arg1, 0x8), (u16 *)7, (int)arg1 + 0x2C);
-    if (sp60 != 0) {
-        return sp60;
-    }
-    temp_v0 = gl_ph_70FCC(arg1);
-    sp60 = temp_v0;
-    FW(arg1, 0x0) = (s32) (FW(arg1, 0x0) | 1);
-    return temp_v0;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071384);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00071384_pad.s")
 
 /* gl_func_00071624 = libultra __osPfsGetStatus (io/pfsgetstatus.c
