@@ -15059,7 +15059,27 @@ void game_libs_func_00046048(int a0) {
  *  - margin global held in a base pointer (s8), read each iter as *margin.
  *  - startx/lineh/charw/p live across calls in saved regs (plain locals).
  *  - first SetTextureImage word1 = gl_func_00034458(D_global) [a0=global!],
- *    measure call = gl_func_00034458(arg0, ch, penx, peny). */
+ *    measure call = gl_func_00034458(arg0, ch, penx, peny).
+ *
+ * 2026-07-30 agent-f rework (48.5 -> 80.1):
+ *  - EMIT as do-while(0) created 2 BBs per expansion (~34 extra BBs) ->
+ *    every loop var's Chow span denominator blew up, priorities went
+ *    negative, s0-s8 promotion lost (t-regs + spill around jals). Plain
+ *    braces macro restored the 10-reg prologue in one step.
+ *  - _c/_q/_n shared FUNCTION-scope temps (stable v1/-/a1 colors); _e
+ *    block-scope register (rotating ring temp, no frame slot). Mixed
+ *    scoping is load-bearing: all-block-scope trio -> ring rotation
+ *    everywhere (22/462); all-fn-scope -> +32 frame from named homes.
+ *  - dispatch is an if/else chain (10, then 9, then ==0x30), NOT switch:
+ *    compare literals hoist to s5/s6/s7 as loop constants; cc = ch copy
+ *    before the chain; x = pen.x local read once in the else arm.
+ *  - emit order around the jal: BA000C02, BA001301, THEN FD90+call
+ *    (prior decode had FD90 before BA001301).
+ *  - dead `if (charw) {}` priority boost flips charw->s1/lineh->s2.
+ *  - param-as-cursor: mutate arg1 directly (local p copy-propped to a3
+ *    + call spill).
+ * Residual (~20 %): early-region _q/_n color a1/a2 vs target v0/a1 with
+ * the e-ring phase shifted (a0/a3 vs v0/a0), plus downstream ring phase. */
 #define DI(o) (*(int *)((char *)&D_00000000 + (o)))
 #define FI(p, o) (*(int *)((char *)(p) + (o)))
 #define FP(p, o) (*(void **)((char *)(p) + (o)))
@@ -15068,22 +15088,29 @@ extern int D_00000000;
 
 /* held GfxCtx DL node: (arg0->0x254)->0x158, member 0xC = {head@0, count@4} */
 #define DLCTX (FP(FP(arg0, 0x254), 0x158))
-#define EMIT(w0, w1) do {                                          \
-    void *_c = DLCTX; void *_e; int _n;                            \
-    _n = FI(FP(_c, 0xC), 0x4);                                     \
-    FI(FP(_c, 0xC), 0x4) = _n + 1;                                 \
+#define EMIT(w0, w1) {                                             \
+    register void *_e;                                             \
+    _c = DLCTX;                                                    \
+    _q = FP(_c, 0xC);                                              \
+    _n = FI(_q, 0x4);                                              \
+    FI(_q, 0x4) = _n + 1;                                          \
     _e = (char *)FP(FP(_c, 0xC), 0x0) + (_n * 8);                  \
     FI(_e, 0x0) = (w0); FI(_e, 0x4) = (w1);                        \
-} while (0)
+}
 
 s32 gl_func_00046050(void *arg0, u8 *arg1, s32 arg2) {
-    s32 startx = FI(arg0, 0x21C);
-    s32 lineh = FI(arg0, 0x228);
-    s32 charw = FI(arg0, 0x224);
+    register s32 startx = FI(arg0, 0x21C);
+    register s32 charw;
+    register s32 lineh;
     int *margin = &D_00000000;
-    u8 *p;
     s32 ch;
     s32 cc;
+    void *_c;
+    void *_q;
+    int _n;
+
+    lineh = FI(arg0, 0x228);
+    charw = FI(arg0, 0x224);
 
     if (FI(arg0, 0x28C) == 0) {
         EMIT(0xE7000000, 0);
@@ -15094,11 +15121,13 @@ s32 gl_func_00046050(void *arg0, u8 *arg1, s32 arg2) {
         EMIT(0xBB000001, 0x80008000);
         EMIT(0xFCFFFFFF, 0xFFFCF279);
         EMIT(0xBA000C02, 0);
-        { void *_c = DLCTX; void *_e; int _n;
-          _n = FI(FP(_c, 0xC), 0x4); FI(FP(_c, 0xC), 0x4) = _n + 1;
+        EMIT(0xBA001301, 0);
+        { register void *_e;
+          _c = DLCTX;
+          _q = FP(_c, 0xC);
+          _n = FI(_q, 0x4); FI(_q, 0x4) = _n + 1;
           _e = (char *)FP(FP(_c, 0xC), 0x0) + (_n * 8);
           FI(_e, 0x0) = 0xFD900000; FI(_e, 0x4) = gl_func_00034458((void *)&D_00000000); }
-        EMIT(0xBA001301, 0);
         EMIT(0xF5900000, 0x07000000);
         EMIT(0xE6000000, 0);
         EMIT(0xF3000000, 0x077FF100);
@@ -15107,55 +15136,48 @@ s32 gl_func_00046050(void *arg0, u8 *arg1, s32 arg2) {
         EMIT(0xF2000000, 0x1FC0FC);
     }
 
-    p = arg1;
-    ch = *p;
-    p += 1;
+    ch = *arg1;
+    arg1 += 1;
     if (ch != 0) {
-    loop:
-        cc = ch;
-        switch (ch) {
-        case 10:
-            FI(arg0, 0x21C) = startx;
-            FI(arg0, 0x220) = FI(arg0, 0x220) + lineh;
-            break;
-        case 9:
-            ch = 0x20;
-            cc = 0x20;
-            goto block;
-        case 48:
-            ch = 0x4F;
-            cc = 0x4F;
-            /* fallthrough */
-        default:
-        block:
-            if ((*margin - 0x14) < (FI(arg0, 0x21C) + charw)) {
+        do {
+            cc = ch;
+            if (ch == 10) {
                 FI(arg0, 0x21C) = startx;
                 FI(arg0, 0x220) = FI(arg0, 0x220) + lineh;
-            }
-            if (cc < 0x80) {
-                if (FI(arg0, 0x28C) == 0) {
-                    s32 x = FI(arg0, 0x21C);
-                    s32 y = FI(arg0, 0x220);
-                    EMIT((((((x + charw) * 4) & 0xFFF) << 0xC) | 0xE4000000) | (((y + lineh) * 4) & 0xFFF),
-                         (((x * 4) & 0xFFF) << 0xC) | ((y * 4) & 0xFFF));
-                    EMIT(0xB4000000,
-                        ((cc & 0xF) << 0x18) | (((((s32) (cc & 0xF0)) >> 1) << 5) & 0xFFFF));
-                    EMIT(0xB3000000,
-                        ((0x2000 / charw) << 0x10) | ((0x2000 / lineh) & 0xFFFF));
-                } else {
-                    gl_func_00034458(arg0, ch, FI(arg0, 0x21C), FI(arg0, 0x220));
+            } else {
+                s32 x = FI(arg0, 0x21C);
+                if (charw) {}
+                if (ch == 9) {
+                    ch = 0x20;
+                    cc = 0x20;
+                } else if (ch == 0x30) {
+                    ch = 0x4F;
+                    cc = 0x4F;
                 }
+                if ((*margin - 0x14) < (x + charw)) {
+                    FI(arg0, 0x21C) = startx;
+                    FI(arg0, 0x220) = FI(arg0, 0x220) + lineh;
+                }
+                if (cc < 0x80) {
+                    if (FI(arg0, 0x28C) != 0) {
+                        gl_func_00034458(arg0, ch, FI(arg0, 0x21C), FI(arg0, 0x220));
+                    } else {
+                        EMIT((((((FI(arg0, 0x21C) + charw) * 4) & 0xFFF) << 0xC) | 0xE4000000) | (((FI(arg0, 0x220) + lineh) * 4) & 0xFFF),
+                             (((FI(arg0, 0x21C) * 4) & 0xFFF) << 0xC) | ((FI(arg0, 0x220) * 4) & 0xFFF));
+                        EMIT(0xB4000000,
+                            ((cc & 0xF) << 0x18) | (((((s32) (cc & 0xF0)) >> 1) << 5) & 0xFFFF));
+                        EMIT(0xB3000000,
+                            ((0x2000 / charw) << 0x10) | ((0x2000 / lineh) & 0xFFFF));
+                    }
+                }
+                FI(arg0, 0x21C) = FI(arg0, 0x21C) + charw;
             }
-            FI(arg0, 0x21C) = FI(arg0, 0x21C) + charw;
-            break;
-        }
-        if (FI(arg0, 0x21C) < arg2) {
-            ch = *p;
-            p += 1;
-            if (ch != 0) {
-                goto loop;
+            if (!(FI(arg0, 0x21C) < arg2)) {
+                break;
             }
-        }
+            ch = *arg1;
+            arg1 += 1;
+        } while (ch != 0);
     }
 
     if (FI(arg0, 0x28C) == 0) {
