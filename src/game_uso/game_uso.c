@@ -571,458 +571,319 @@ void game_uso_func_00000B14(void *a0) {
 }
 
 #ifdef NON_MATCHING
-/* Spline/animation node update (706w). Reconstructed 2026-06-24: the prior m2c
- * graft compiled but dropped EVERY jal (basis eval, 3 spline-evals, the
- * dot/cross helpers, the advance call) and left three unresolved constants
- * (`$t0`=1, `$f0`=0.0f, `$t6`=loop bound). This version restores the calls and
- * the constants so the non_matching object carries the real call/float bytes.
- * Callees keep their EXISTING signatures (00000940 is void → never assigned;
- * its stored field 0x264 is the re-materialized switch read, not a return). */
+/* Spline path-follow update (706w). Full reconstruction 2026-07-30 from the
+ * expected .o (0xB3C..0x1640), recipe-style (fresh-Vec3 staging + per-hop copy
+ * chains + int-cast joins). Decode fixes vs the prior m2c graft:
+ *  - 2714 calls take *(s+0x154); 2FC8 calls take *(obj+0xB4) (graft used
+ *    obj->B4 for both).
+ *  - the store `s->264 = v` precedes the 940 call (jal-delay-slot store).
+ *  - basis prep call writes a STACK float[4] (sp+0xF4), not s+0xF4; second
+ *    arg is a single float in $a1 (prototyped extern, real callee 00000000).
+ *  - segment-advance overflow path: `if (last < ncur) { ncur = 1; nseg++; }`
+ *    (graft missed the shared `nseg++` tail).
+ *  - final commit guard reads tbl->0x24 (sp+0x130), not seg->0x24.
+ *  - obj/s tail copies are 0x40-byte struct copies (IDO 3-word/iter loop). */
+typedef struct { int w[16]; } B3CBlk40;
 extern Vec3* game_uso_func_000023D4(Vec3 *out, char *a1);
 extern void game_uso_func_00002714(int *a0, int a1, int a2);
 extern void game_uso_func_00002FC8(int *a0, int a1, int a2);
+/* real callee = game_uso_func_00000000 (basis evaluator); distinct name to get
+ * the prototyped float-in-$a1 ABI (jal word is placeholder 0x0C000000 anyway) */
+extern void game_uso_func_00000000_fp(f32 *out, f32 t);
 void game_uso_func_00000B3C(char *arg0) {
-    f32 sp13C; f32 sp140; f32 spB8; f32 spBC;
-    s32 sp144;
-    f32 sp138;
-    s32 *sp134;
-    s32 sp130;
-    char **sp12C;
-    s32 *sp128;
-    f32 sp124;
-    f32 sp120;
-    s32 sp11C;
-    f32 sp118;
-    f32 sp114;
-    s32 sp110;
-    f32 sp10C;
-    f32 sp108;
-    s32 sp104;
-    s32 spF4;
-    s32 spF0;
-    s32 spEC;
-    s32 spE8;
-    f32 spE0;
-    f32 spDC;
-    s32 spD8;
-    s32 spB4;
-    s32 spA4;
-    s32 spA0;
-    s32 sp9C;
-    s32 sp98;
-    s32 sp94;
-    s32 sp90;
-    s32 sp8C;
-    s32 sp88;
-    f32 sp84;
-    f32 sp80;
-    s32 sp7C;
-    s32 *sp74;
-    s32 sp70;
-    s32 sp6C;
-    s32 sp68;
-    f32 sp64;
-    f32 sp60;
-    f32 sp5C;
-    f32 sp58;
-    s32 sp54;
-    s32 sp50;
-    s32 sp4C;
-    s32 sp48;
-    s32 sp3C;
-    f32 sp38;
-    f32 sp34;
-    f32 sp30;
-    char **var_a3;
-    char **var_a3_2;
-    char *temp_s0;
-    char *temp_t1;
-    char *temp_v0_2;
-    char *var_a0;
-    char *var_t3;
-    s32 *var_t2;
-    s32 temp_at;
-    s32 temp_t2;
-    s32 temp_t3;
-    s32 temp_t5;
-    s32 temp_v0;
-    s32 temp_v0_4;
-    s32 temp_v1_2;
-    s32 temp_v1_3;
-    s32 temp_v1_4;
-    s32 temp_v1_5;
-    s32 temp_v1_6;
-    s32 temp_v1_7;
-    s32 var_a1;
-    s32 var_a2;
-    s32 var_at;
-    s32 var_at_2;
-    s32 var_v0;
-    s32 var_v1;
-    s32 var_v1_2;
-    char *temp_a2;
-    char *temp_t4;
-    char *temp_v0_3;
-    char *temp_v1;
-    char *temp_v1_8;
-    char *temp_v1_9;
-    char *var_t1;
+    Vec3 vD;          /* 0x144 */
+    Vec3 vC;          /* 0x138 */
+    char *obj;        /* 0x134 */
+    int *tbl;         /* 0x130 */
+    char *seg;        /* 0x12C */
+    int *kf;          /* 0x128 */
+    Vec3 pos2;        /* 0x11C */
+    Vec3 pos1;        /* 0x110 */
+    Vec3 up;          /* 0x104 */
+    f32 state[4];     /* 0xF4 */
+    s32 nsub;         /* 0xF0 */
+    s32 ncur;         /* 0xEC */
+    s32 nseg;         /* 0xE8 */
+    Vec3 zv;          /* 0xD8 */
+    Vec3 stage;       /* 0xB4 */
+    Vec3 *c1[4];      /* 0x98 */
+    Vec3 *c2[4];      /* 0x88 */
+    Vec3 fresh;       /* 0x7C */
+    Vec3 *c3[4];      /* 0x68 */
+    f32 w[4];         /* 0x58 */
+    Vec3 *c4[4];      /* 0x48 */
+    Vec3 v3C;         /* 0x3C */
+    Vec3 v30;         /* 0x30 */
+    char *s;
+    char *tv;
+    f32 *q;
+    Vec3 *rv;
+    s32 cur;
+    s32 node;
+    s32 selv;
+    s32 st;
+    char *bv;
+    s32 adv;
+    s32 tmp;
+    s32 one;
+    s32 msk;
+    f32 f1;
 
-    var_a0 = arg0;
-    temp_s0 = var_a0;
-    sp134 = *(s32 *)((char *)(var_a0) + 0xF4);
-    temp_v0 = *(s32 *)((char *)(*(s32 *)((char *)(var_a0) + 0x150)) + 0xA54);
-    if (temp_v0 != *(s32 *)((char *)(var_a0) + 0x264)) {
-        game_uso_func_00000940(var_a0);
-        *(s32 *)((char *)(var_a0) + 0x264) = temp_v0;
+    s = arg0;
+    obj = *(char **)(s + 0xF4);
+    tmp = *(s32 *)(*(char **)(s + 0x150) + 0xA54);
+    if (tmp != *(s32 *)(s + 0x264)) {
+        *(s32 *)(s + 0x264) = tmp;
+        game_uso_func_00000940(s);
     }
-    temp_t2 = *(s32 *)((char *)((temp_s0 + (*(s32 *)((char *)(temp_s0) + 0x250) * 4))) + 0x158);
-    sp130 = temp_t2;
-    var_v0 = *(s32 *)((char *)(temp_s0) + 0x25C);
-    var_v1 = *(s32 *)((char *)((temp_t2 + (*(s32 *)((char *)(temp_s0) + 0x254) * 4))) + 0x4);
-    *(s32 *)((char *)(temp_s0) + 0x258) = var_v1;
-    var_a3 = *(s32 *)((char *)((temp_s0 + (var_v1 * 4))) + 0x1D4);
-    var_t1 = var_a3 + (var_v0 * 4);
-    var_t2 = *(s32 *)((char *)(var_t1) + 0x38);
-    sp128 = var_t2;
-    if (1 == var_v0) {
-        if (*(s32 *)((char *)(temp_s0) + 0x260) != 0) {
-            goto block_28;
-        }
-        var_t3 = *(s32 *)((char *)(temp_s0) + 0x268);
-        if ((s32)var_t3 != 0) {
-            *(s32 *)((char *)(temp_s0) + 0x130) = 1;
-            spE0 = 0.0f;
-            spDC = 0.0f;
-            spD8 = 0;
-            *((s32 *)&spB4 + 0) = *((s32 *)&spD8 + 0);
-            *((s32 *)&spB4 + 1) = *((s32 *)&spD8 + 1);
-            *((s32 *)&spB4 + 2) = *((s32 *)&spD8 + 2);
-            *(s32 *)((char *)(temp_s0) + 0x134) = spB4;
-            *(s32 *)((char *)(temp_s0) + 0x138) = spB8;
-            *(s32 *)((char *)(temp_s0) + 0x13C) = spBC;
-        } else {
-            var_t2 = (s32 *) ((*(s32 *)((char *)(var_a3) + 0x30) == 0) == 0);
-            *(s32 *)((char *)(temp_s0) + 0x130) = var_t2;
-        }
-        if (1 == *(s32 *)((char *)(var_a3) + 0x10)) {
-            temp_a2 = *(s32 *)((char *)(temp_s0) + 0x150);
-            var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-            game_uso_func_00002714((int *)var_a0, 1, temp_a2 + 792);
-            sp12C = var_a3;
-        } else {
-            var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-            game_uso_func_00002714((int *)var_a0, 1, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-            sp12C = var_a3;
-            var_v1 = *(s32 *)((char *)(temp_s0) + 0x150);
-        }
-        if (1 == *(s32 *)((char *)(var_a3) + 0x0)) {
-            var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-            game_uso_func_00002FC8((int *)var_a0, 1, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-        } else {
-            var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-            game_uso_func_00002FC8((int *)var_a0, 0, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-        }
-        *(s32 *)((char *)(temp_s0) + 0x270) = 0;
-        *(s32 *)((char *)(temp_s0) + 0x26C) = 0;
-        var_v1 = *(s32 *)((char *)(temp_s0) + 0x150);
-        *(s32 *)((char *)(var_v1) + 0xA58) = (s32) (*(s32 *)((char *)(var_v1) + 0xA58) & ~0x2000);
-        if (*(s32 *)((char *)(var_a3) + 0x0) != 1) {
-
-        } else {
-            var_t1 = *(s32 *)((char *)(var_a3) + 0x10);
-            goto block_25;
-        }
-    } else {
-block_25:
-        if (1 != (s32)var_t1) {
-
-        } else {
-block_28:
-            var_a0 = *(s32 *)((char *)(temp_s0) + 0x26C);
-            var_v0 = 0;
-            if ((s32)var_a0 == 3) {
-                var_t2 = *(s32 *)((char *)(*(s32 *)((char *)(temp_s0) + 0x274)) + 0x10);
-                if (!((s32) var_t2 & 0x80)) {
-                    var_v0 = 1;
-                    *(s32 *)((char *)(temp_s0) + 0x26C) = *(s32 *)((char *)(temp_s0) + 0x270);
-                }
+    one = 1;
+    tbl = ((int **)(s + 0x158))[*(s32 *)(s + 0x250)];
+    cur = *(s32 *)(s + 0x25C);
+    node = ((s32 *)((char *)tbl + 4))[*(s32 *)(s + 0x254)];
+    *(s32 *)(s + 0x258) = node;
+    seg = 0;
+    if (1) { seg = ((char **)(s + 0x1D4))[node]; }
+    kf = ((int **)(seg + 0x38))[cur];
+    if (one == cur) {
+        if (*(s32 *)(s + 0x260) == 0) {
+            if (*(char **)(s + 0x268) != 0) {
+                *(s32 *)(s + 0x130) = one;
+                zv.z = 0.0f;
+                zv.y = 0.0f;
+                zv.x = 0.0f;
+                *(Tri3i *)&stage = *(Tri3i *)&zv;
+                *(f32 *)(s + 0x134) = stage.x;
+                *(f32 *)(s + 0x138) = stage.y;
+                *(f32 *)(s + 0x13C) = stage.z;
             } else {
-                temp_v1 = *(s32 *)((char *)(temp_s0) + 0x274);
-                if ((s32) *(s32 *)((char *)(temp_v1) + 0x10) & 0x80) {
-                    *(s32 *)((char *)(temp_s0) + 0x270) = var_a0;
-                    *(s32 *)((char *)(temp_s0) + 0x26C) = 3;
-                    goto block_36;
-                }
-                if (*(s32 *)((char *)(temp_v1) + 0x18) & 0x40) {
-                    temp_v0_2 = var_a0 + 1;
-                    *(s32 *)((char *)(temp_s0) + 0x26C) = temp_v0_2;
-                    if ((s32) temp_v0_2 >= 3) {
-                        *(s32 *)((char *)(temp_s0) + 0x26C) = 0;
-                    }
-block_36:
-                    var_v0 = 1;
-                }
+                *(s32 *)(s + 0x130) = (*(s32 *)(seg + 0x30) == 0) == 0;
             }
-            if (var_v0 != 0) {
-                temp_t1 = *(s32 *)((char *)(temp_s0) + 0x26C);
-                temp_at = (u32) temp_t1 < 4U;
-                if (temp_at != 0) {
-                    switch ((s32) temp_t1) {
-                    case 0:
-                        var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-                        game_uso_func_00002714((int *)var_a0, 1, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-                        var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-                        game_uso_func_00002FC8((int *)var_a0, 1, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-                        sp12C = var_a3;
-                        var_t2 = sp134;
-                        temp_v1_2 = *(s32 *)((char *)(temp_s0) + 0x150);
-                        *(s32 *)((char *)(temp_v1_2) + 0xA58) = (s32) (*(s32 *)((char *)(temp_v1_2) + 0xA58) & ~0x2000);
-                        break;
-                    case 1:
-                        var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-                        game_uso_func_00002714((int *)var_a0, 2, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-                        var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-                        game_uso_func_00002FC8((int *)var_a0, 1, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-                        sp12C = var_a3;
-                        temp_v1_3 = *(s32 *)((char *)(temp_s0) + 0x150);
-                        *(s32 *)((char *)(temp_v1_3) + 0xA58) = (s32) (*(s32 *)((char *)(temp_v1_3) + 0xA58) & ~0x2000);
-                        break;
-                    case 2:
-                        var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-                        game_uso_func_00002714((int *)var_a0, 3, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-                        var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-                        game_uso_func_00002FC8((int *)var_a0, 2, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-                        sp12C = var_a3;
-                        temp_v1_4 = *(s32 *)((char *)(temp_s0) + 0x150);
-                        *(s32 *)((char *)(temp_v1_4) + 0xA58) = (s32) (*(s32 *)((char *)(temp_v1_4) + 0xA58) | 0x2000);
-                        break;
-                    case 3:
-                        var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-                        game_uso_func_00002714((int *)var_a0, 3, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-                        var_a0 = *(s32 *)((char *)(sp134) + 0xB4);
-                        game_uso_func_00002FC8((int *)var_a0, 3, *(s32 *)((char *)(temp_s0) + 0x150) + 792);
-                        sp12C = var_a3;
-                        var_t2 = sp134;
-                        temp_v1_5 = *(s32 *)((char *)(temp_s0) + 0x150);
-                        *(s32 *)((char *)(temp_v1_5) + 0xA58) = (s32) (*(s32 *)((char *)(temp_v1_5) + 0xA58) | 0x2000);
-                        break;
-                    }
-                    sp12C = var_a3;
-                }
-                var_a0 = &spF4;
-            }
-        }
-    }
-    {
-        f32 basis;
-        basis = (1.0f * (f32) var_v0) / (f32) *(s32 *)((char *)(sp128) + 0x28);
-        game_uso_func_00000000((char *)temp_s0 + 0xF4, basis);
-    }
-    var_a3_2 = sp12C;
-    temp_v1_6 = *(s32 *)((char *)(var_a3_2) + 0x10);
-    if (temp_v1_6 != 1) {
-        var_at = 3;
-        if ((temp_v1_6 != 2) && (temp_v1_6 != 3)) {
-            var_a0 = *(s32 *)((char *)(var_a3_2) + 0x0);
-        } else {
-            if (*(s32 *)((char *)(var_a3_2) + 0x14) == 0) {
-                *((s32 *)&spB4 + 0) = *(s32 *)((char *)(sp128) + 0xC);
-                var_t2 = *(s32 *)((char *)(sp128) + 0x10);
-                *((s32 *)&spB4 + 1) = var_t2;
-                *((s32 *)&spB4 + 2) = *(s32 *)((char *)(sp128) + 0x14);
-                sp118 = spBC;
-                sp114 = spB8;
-                sp110 = spB4;
+            if (one == *(s32 *)(seg + 0x10)) {
+                game_uso_func_00002714(*(int **)(s + 0x154), 1, *(s32 *)(s + 0x150) + 0x318);
             } else {
-                sp98 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34) + 0xC;
-                sp9C = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38) + 0xC;
-                spA0 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C) + 0xC;
-                spA4 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40) + 0xC;
-                game_uso_func_000000E0((Vec3 *)&sp110, (Vec3 **)&sp98, (float *)((char *)temp_s0 + 0xF4));
-                var_a0 = *(s32 *)((char *)(var_a3_2) + 0x0);
+                game_uso_func_00002714(*(int **)(s + 0x154), 0, *(s32 *)(s + 0x150) + 0x318);
             }
-            goto block_58;
+            if (*(s32 *)(seg + 0x0) == 1) {
+                game_uso_func_00002FC8(*(int **)(obj + 0xB4), 1, *(s32 *)(s + 0x150) + 0x318);
+            } else {
+                game_uso_func_00002FC8(*(int **)(obj + 0xB4), 0, *(s32 *)(s + 0x150) + 0x318);
+            }
+            *(s32 *)(s + 0x270) = 0;
+            *(s32 *)(s + 0x26C) = 0;
+            tv = *(char **)(s + 0x150);
+            msk = *(s32 *)(tv + 0xA58) & ~0x2000;
+            *(s32 *)(tv + 0xA58) = msk;
+            tv += 0xA58;
         }
-    } else {
-        sp110 = *(s32 *)((char *)(temp_s0) + 0xA0);
-        sp114 = *(s32 *)((char *)(temp_s0) + 0xA4);
-        sp118 = *(s32 *)((char *)(temp_s0) + 0xA8);
-block_58:
-        var_at = 1;
     }
-    var_at_2 = 2;
-    if ((s32)var_a0 != (s32)var_at) {
-        if (((s32)var_a0 != 2) && ((s32)var_a0 != 3)) {
-            goto block_69;
-        }
-        if (*(s32 *)((char *)(var_a3_2) + 0x4) == 0) {
-            *((s32 *)&spB4 + 0) = *(s32 *)((char *)(sp128) + 0x0);
-            *((s32 *)&spB4 + 1) = *(s32 *)((char *)(sp128) + 0x4);
-            *((s32 *)&spB4 + 2) = *(s32 *)((char *)(sp128) + 0x8);
-            sp124 = spBC;
-            sp120 = spB8;
-            sp11C = spB4;
+    one = 1;
+    if ((one == *(s32 *)(seg + 0x0)) && (one == *(s32 *)(seg + 0x10))) {
+        adv = 0;
+        st = *(s32 *)(s + 0x26C);
+        if (st == 3) {
+            tv = *(char **)(s + 0x274);
+            if (!(*(s32 *)(tv + 0x10) & 0x80)) {
+                adv = 1;
+                *(s32 *)(s + 0x26C) = *(s32 *)(s + 0x270);
+            }
         } else {
-            sp88 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34);
-            sp8C = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38);
-            sp90 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C);
-            sp12C = var_a3_2;
-            sp94 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40);
-            game_uso_func_000000E0((Vec3 *)&sp11C, (Vec3 **)&sp88, (float *)((char *)temp_s0 + 0xF4));
-            var_a0 = *(s32 *)((char *)(var_a3_2) + 0x0);
+            tv = *(char **)(s + 0x274);
+            if (*(s32 *)(tv + 0x10) & 0x80) {
+                *(s32 *)(s + 0x270) = st;
+                *(s32 *)(s + 0x26C) = 3;
+                adv = 1;
+            } else if (*(s32 *)(tv + 0x18) & 0x40) {
+                tmp = st + 1;
+                *(s32 *)(s + 0x26C) = tmp;
+                if (tmp >= 3) {
+                    *(s32 *)(s + 0x26C) = 0;
+                }
+                adv = 1;
+            }
         }
-        var_at_2 = 1;
-        goto block_68;
-    }
-    temp_v0_3 = *(s32 *)((char *)(temp_s0) + 0xF4);
-    var_v0 = (s32) (temp_v0_3 + 0x70);
-    sp11C = *(s32 *)((char *)(temp_v0_3) + 0xA0);
-    sp120 = *(s32 *)((char *)(var_v0) + 0x34);
-    sp124 = *(s32 *)((char *)(var_v0) + 0x38);
-    var_a0 = *(s32 *)((char *)(var_a3_2) + 0x0);
-block_68:
-    if ((s32)var_a0 == (s32)var_at_2) {
-block_69:
-        var_t2 = &sp7C;
-        if (*(s32 *)((char *)(var_a3_2) + 0x10) == 1) {
-            sp80 = 1.0f;
-            sp7C = 0;
-            sp84 = 0.0f;
-            *((s32 *)&spB4 + 0) = *(s32 *)((char *)(var_t2) + 0x0);
-            *((s32 *)&spB4 + 1) = *(s32 *)((char *)(var_t2) + 0x4);
-            *((s32 *)&spB4 + 2) = *(s32 *)((char *)(var_t2) + 0x8);
-            sp10C = spBC;
-            sp108 = spB8;
-            sp104 = spB4;
-        } else {
-            goto block_71;
-        }
-    } else {
-block_71:
-        if (*(s32 *)((char *)(var_a3_2) + 0x20) == 0) {
-            *((s32 *)&spB4 + 0) = *(s32 *)((char *)(sp128) + 0x18);
-            *((s32 *)&spB4 + 1) = *(s32 *)((char *)(sp128) + 0x1C);
-            *((s32 *)&spB4 + 2) = *(s32 *)((char *)(sp128) + 0x20);
-            sp10C = spBC;
-            sp108 = spB8;
-            sp104 = spB4;
-        } else {
-            sp68 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34) + 0x18;
-            sp6C = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38) + 0x18;
-            sp70 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C) + 0x18;
-            sp12C = var_a3_2;
-            sp74 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40) + 0x18;
-            game_uso_func_000000E0((Vec3 *)&sp104, (Vec3 **)&sp68, (float *)((char *)temp_s0 + 0xF4));
-            var_v0 = *(s32 *)((char *)(var_a3_2) + 0x28);
-        }
-    }
-    if (var_v0 == 1) {
-        *(f32 *)((char *)(temp_s0) + 0x14C) = *(f32 *)((char *)(sp128) + 0x24);
-        goto block_80;
-    }
-    if (var_v0 != 2) {
-        goto block_83;
-    }
-    sp58 = *(f32 *)((char *)(*(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34)) + 0x24);
-    sp5C = *(f32 *)((char *)(*(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38)) + 0x24);
-    sp60 = *(f32 *)((char *)(*(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C)) + 0x24);
-    sp12C = var_a3_2;
-    sp64 = *(f32 *)((char *)(*(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40)) + 0x24);
-    *(f32 *)((char *)(temp_s0) + 0x14C) = game_uso_func_000000A0((float *)&sp58, (float *)((char *)temp_s0 + 0xF4));
-    var_t2 = *(s32 *)((char *)(temp_s0) + 0x268);
-block_80:
-    if (var_t2 != 0) {
-
-    } else {
-block_83:
-        var_v0 = *(s32 *)((char *)(var_a3_2) + 0x30);
-        if (var_v0 == 1) {
-            *((s32 *)&spB4 + 0) = *(s32 *)((char *)(sp128) + 0x2C);
-            *((s32 *)&spB4 + 1) = *(s32 *)((char *)(sp128) + 0x30);
-            *((s32 *)&spB4 + 2) = *(s32 *)((char *)(sp128) + 0x34);
-            *(s32 *)((char *)(temp_s0) + 0x134) = spB4;
-            *(s32 *)((char *)(temp_s0) + 0x138) = spB8;
-            *(s32 *)((char *)(temp_s0) + 0x13C) = spBC;
-            goto block_89;
-        }
-        if (var_v0 != 2) {
-
-        } else {
-            sp48 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x34) + 0x2C;
-            sp4C = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x38) + 0x2C;
-            sp50 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x3C) + 0x2C;
-            sp12C = var_a3_2;
-            sp54 = *(s32 *)((char *)((var_a3_2 + (*(s32 *)((char *)(temp_s0) + 0x25C) * 4))) + 0x40) + 0x2C;
-            game_uso_func_000000E0((Vec3 *)((char *)temp_s0 + 0x134), (Vec3 **)&sp48, (float *)((char *)temp_s0 + 0xF4));
-block_89:
-            sp12C = var_a3_2;
-        }
-    }
-    *((s32 *)&sp138 + 0) = *(s32 *)((char *)(var_v0) + 0x0);
-    *((s32 *)&sp138 + 1) = *(s32 *)((char *)(var_v0) + 0x4);
-    *((s32 *)&sp138 + 2) = *(s32 *)((char *)(var_v0) + 0x8);
-    temp_v1_7 = *(s32 *)((char *)(temp_s0) + 0x150);
-    sp38 = *(f32 *)((char *)(temp_v1_7) + 0xBC) + sp140;
-    sp34 = *(f32 *)((char *)(temp_v1_7) + 0xB8) + sp13C;
-    sp30 = *(f32 *)((char *)(temp_v1_7) + 0xB4) + sp138;
-    *((s32 *)&sp3C + 0) = *((s32 *)&sp30 + 0);
-    temp_t3 = *((s32 *)&sp30 + 1);
-    *((s32 *)&sp3C + 1) = temp_t3;
-    temp_t5 = *((s32 *)&sp30 + 2);
-    *((s32 *)&sp144 + 1) = temp_t3;
-    *((s32 *)&sp144 + 0) = *((s32 *)&sp3C + 0);
-    *((s32 *)&sp3C + 2) = temp_t5;
-    *((s32 *)&sp144 + 2) = temp_t5;
-    game_uso_func_000023D4((Vec3 *)&sp138, (char *)&sp144);
-    game_uso_func_0000052C(0, (Vec3 *)((char *)temp_s0 + 0x138), (Vec3 *)&sp124, (int *)sp12C, (Vec3 *)&sp30);
-    if (*(s32 *)((char *)(sp12C) + 0x0) != 1) {
-        temp_v1_8 = *(s32 *)((char *)(temp_s0) + 0xF4);
-        *(s32 *)((char *)(temp_v1_8) + 0x60) = sp11C;
-        temp_v1_9 = temp_v1_8 + 0x30;
-        *(s32 *)((char *)(temp_v1_9) + 0x34) = sp120;
-        *(s32 *)((char *)(temp_v1_9) + 0x38) = sp124;
-        temp_t4 = *(s32 *)((char *)(temp_s0) + 0xF4);
-        M2C_MEMCPY_ALIGNED(temp_t4 + 0x70, temp_t4 + 0x30, 0x3C);
-        *(s32 *)((char *)(((s32)temp_t4 + (s32)0x3C)) + 0x70) = (s32) *(s32 *)((char *)(((s32)temp_t4 + (s32)0x3C)) + 0x30);
-    }
-    if (*(s32 *)((char *)(sp12C) + 0x10) != 1) {
-        *(s32 *)((char *)(temp_s0) + 0x60) = sp110;
-        *(s32 *)((char *)(temp_s0) + 0x64) = sp114;
-        *(s32 *)((char *)(temp_s0) + 0x68) = sp118;
-        M2C_MEMCPY_ALIGNED(temp_s0 + 0x70, temp_s0 + 0x30, 0x3C);
-        *(s32 *)((char *)(((s32)temp_s0 + (s32)0x3C)) + 0x70) = (s32) *(s32 *)((char *)(((s32)temp_s0 + (s32)0x3C)) + 0x30);
-    }
-    *((s32 *)&spB4 + 0) = *((s32 *)&sp104 + 0);
-    *((s32 *)&spB4 + 1) = *((s32 *)&sp104 + 1);
-    *((s32 *)&spB4 + 2) = *((s32 *)&sp104 + 2);
-    var_v1_2 = *(s32 *)((char *)(temp_s0) + 0x25C);
-    *(s32 *)((char *)(temp_s0) + 0x140) = spB4;
-    var_a1 = *(s32 *)((char *)(temp_s0) + 0x260) + 1;
-    var_a2 = *(s32 *)((char *)(temp_s0) + 0x254);
-    *(s32 *)((char *)(temp_s0) + 0x144) = spB8;
-    *(s32 *)((char *)(temp_s0) + 0x148) = spBC;
-    if (var_a1 >= *(s32 *)((char *)(sp128) + 0x28)) {
-        temp_v0_4 = *(s32 *)((char *)(sp12C) + 0x34);
-        var_v1_2 += 1;
-        var_a1 = 0;
-        if (temp_v0_4 < var_v1_2) {
-            var_v1_2 = 1;
-        } else if (var_v1_2 == temp_v0_4) {
-            spEC = var_v1_2;
-            spF0 = 0;
-            spE8 = var_a2;
-            var_a1 = spF0;
-            if (game_uso_func_00000674((int *)var_a3_2)) {
-                var_v1_2 = 1;
-                var_a2 += 1;
+        if (adv != 0) {
+            switch (*(s32 *)(s + 0x26C)) {
+            case 0:
+                game_uso_func_00002714(*(int **)(s + 0x154), 1, *(s32 *)(s + 0x150) + 0x318);
+                game_uso_func_00002FC8(*(int **)(obj + 0xB4), 1, *(s32 *)(s + 0x150) + 0x318);
+                tv = *(char **)(s + 0x150);
+                msk = *(s32 *)(tv + 0xA58) & ~0x2000;
+                tv += 0xA58;
+                *(s32 *)tv = msk;
+                break;
+            case 1:
+                game_uso_func_00002714(*(int **)(s + 0x154), 2, *(s32 *)(s + 0x150) + 0x318);
+                game_uso_func_00002FC8(*(int **)(obj + 0xB4), 1, *(s32 *)(s + 0x150) + 0x318);
+                tv = *(char **)(s + 0x150);
+                msk = *(s32 *)(tv + 0xA58) & ~0x2000;
+                tv += 0xA58;
+                *(s32 *)tv = msk;
+                break;
+            case 2:
+                game_uso_func_00002714(*(int **)(s + 0x154), 3, *(s32 *)(s + 0x150) + 0x318);
+                game_uso_func_00002FC8(*(int **)(obj + 0xB4), 2, *(s32 *)(s + 0x150) + 0x318);
+                tv = *(char **)(s + 0x150);
+                msk = *(s32 *)(tv + 0xA58) | 0x2000;
+                tv += 0xA58;
+                *(s32 *)tv = msk;
+                break;
+            case 3:
+                game_uso_func_00002714(*(int **)(s + 0x154), 3, *(s32 *)(s + 0x150) + 0x318);
+                game_uso_func_00002FC8(*(int **)(obj + 0xB4), 3, *(s32 *)(s + 0x150) + 0x318);
+                tv = *(char **)(s + 0x150);
+                msk = *(s32 *)(tv + 0xA58) | 0x2000;
+                tv += 0xA58;
+                *(s32 *)tv = msk;
+                break;
+            case 4:
+                break;
             }
         }
     }
-    if (var_a2 < *(s32 *)((char *)(sp12C) + 0x24)) {
-        *(s32 *)((char *)(temp_s0) + 0x260) = var_a1;
-        *(s32 *)((char *)(temp_s0) + 0x254) = var_a2;
-        *(s32 *)((char *)(temp_s0) + 0x25C) = var_v1_2;
+    f1 = 1.0f;
+    game_uso_func_00000000_fp(state,
+        (f1 * (f32) *(s32 *)(s + 0x260)) / (f32) *(s32 *)((char *)kf + 0x28));
+    switch (*(s32 *)(seg + 0x10)) {
+    case 1:
+        pos1.x = *(f32 *)(s + 0xA0);
+        pos1.y = *(f32 *)(s + 0xA4);
+        pos1.z = *(f32 *)(s + 0xA8);
+        break;
+    case 2:
+    case 3:
+        if (*(s32 *)(seg + 0x14) == 0) {
+            *(Tri3i *)&stage = *(Tri3i *)((char *)kf + 0xC);
+            pos1.z = stage.z;
+            pos1.y = stage.y;
+            pos1.x = stage.x;
+        } else {
+            c1[0] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x34) + 0xC);
+            c1[1] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x38) + 0xC);
+            c1[2] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x3C) + 0xC);
+            c1[3] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x40) + 0xC);
+            game_uso_func_000000E0(&pos1, c1, state);
+        }
+        break;
+    }
+    switch (*(s32 *)(seg + 0x0)) {
+    case 1:
+        bv = *(char **)(s + 0xF4);
+        pos2.x = *(f32 *)(bv + 0xA0);
+        q = (f32 *)((int)bv + 0x70);
+        pos2.y = *(f32 *)((int)q + 0x34);
+        pos2.z = *(f32 *)((int)q + 0x38);
+        break;
+    case 2:
+    case 3:
+        if (*(s32 *)(seg + 0x4) == 0) {
+            *(Tri3i *)&stage = *(Tri3i *)((char *)kf + 0x0);
+            pos2.z = stage.z;
+            pos2.y = stage.y;
+            pos2.x = stage.x;
+        } else {
+            c2[0] = (Vec3 *)*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x34);
+            c2[1] = (Vec3 *)*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x38);
+            c2[2] = (Vec3 *)*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x3C);
+            c2[3] = (Vec3 *)*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x40);
+            game_uso_func_000000E0(&pos2, c2, state);
+        }
+        break;
+    }
+    if ((*(s32 *)(seg + 0x0) == 1) && (*(s32 *)(seg + 0x10) == 1)) {
+        fresh.y = 1.0f;
+        fresh.x = 0.0f;
+        fresh.z = 0.0f;
+        *(Tri3i *)&stage = *(Tri3i *)&fresh;
+        up.z = stage.z;
+        up.y = stage.y;
+        up.x = stage.x;
+    } else if (*(s32 *)(seg + 0x20) == 0) {
+        *(Tri3i *)&stage = *(Tri3i *)((char *)kf + 0x18);
+        up.z = stage.z;
+        up.y = stage.y;
+        up.x = stage.x;
+    } else {
+        c3[0] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x34) + 0x18);
+        c3[1] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x38) + 0x18);
+        c3[2] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x3C) + 0x18);
+        c3[3] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x40) + 0x18);
+        game_uso_func_000000E0(&up, c3, state);
+    }
+    selv = *(s32 *)(seg + 0x28);
+    if (selv == 1) {
+        *(f32 *)(s + 0x14C) = *(f32 *)((char *)kf + 0x24);
+    } else if (selv == 2) {
+        w[0] = *(f32 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x34) + 0x24);
+        w[1] = *(f32 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x38) + 0x24);
+        w[2] = *(f32 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x3C) + 0x24);
+        w[3] = *(f32 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x40) + 0x24);
+        *(f32 *)(s + 0x14C) = game_uso_func_000000A0(w, state);
+    }
+    if (*(s32 *)(s + 0x268) == 0) {
+        selv = *(s32 *)(seg + 0x30);
+        if (selv == 1) {
+            *(Tri3i *)&stage = *(Tri3i *)((char *)kf + 0x2C);
+            *(f32 *)(s + 0x134) = stage.x;
+            *(f32 *)(s + 0x138) = stage.y;
+            *(f32 *)(s + 0x13C) = stage.z;
+        } else if (selv == 2) {
+            c4[0] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x34) + 0x2C);
+            c4[1] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x38) + 0x2C);
+            c4[2] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x3C) + 0x2C);
+            c4[3] = (Vec3 *)(*(s32 *)(seg + *(s32 *)(s + 0x25C) * 4 + 0x40) + 0x2C);
+            game_uso_func_000000E0((Vec3 *)(s + 0x134), c4, state);
+        }
+    }
+    rv = game_uso_func_000023D4(&stage, *(char **)(s + 0x154));
+    *(Tri3i *)&vC = *(Tri3i *)rv;
+    tv = *(char **)(s + 0x150);
+    q = (f32 *)((int)tv + 0xB4);
+    v30.z = *(f32 *)((int)q + 8) + vC.z;
+    v30.y = *(f32 *)((int)q + 4) + vC.y;
+    v30.x = *q + vC.x;
+    *(Tri3i *)&v3C = *(Tri3i *)&v30;
+    *(Tri3i *)&vD = *(Tri3i *)&v3C;
+    game_uso_func_0000052C((int)kf, &pos2, &pos1, (int *)seg, &vD);
+    if (*(s32 *)(seg + 0x0) != 1) {
+        tv = *(char **)(s + 0xF4);
+        *(f32 *)(tv + 0x60) = pos2.x;
+        q = (f32 *)((int)tv + 0x30);
+        *(f32 *)((int)q + 0x34) = pos2.y;
+        *(f32 *)((int)q + 0x38) = pos2.z;
+        tv = *(char **)(s + 0xF4);
+        *(B3CBlk40 *)(tv + 0x70) = *(B3CBlk40 *)(tv + 0x30);
+    }
+    if (*(s32 *)(seg + 0x10) != 1) {
+        *(f32 *)(s + 0x60) = pos1.x;
+        *(f32 *)(s + 0x64) = pos1.y;
+        *(f32 *)(s + 0x68) = pos1.z;
+        *(B3CBlk40 *)(s + 0x70) = *(B3CBlk40 *)(s + 0x30);
+    }
+    *(Tri3i *)&stage = *(Tri3i *)&up;
+    *(f32 *)(s + 0x140) = stage.x;
+    *(f32 *)(s + 0x144) = stage.y;
+    *(f32 *)(s + 0x148) = stage.z;
+    nsub = *(s32 *)(s + 0x260) + 1;
+    ncur = *(s32 *)(s + 0x25C);
+    nseg = *(s32 *)(s + 0x254);
+    if (!(nsub < *(s32 *)((char *)kf + 0x28))) {
+        tmp = *(s32 *)(seg + 0x34);
+        ncur += 1;
+        nsub = 0;
+        if (tmp < ncur) {
+            ncur = 1;
+            nseg += 1;
+        } else if (ncur == tmp) {
+            if (game_uso_func_00000674((int *)seg)) {
+                ncur = 1;
+                nseg += 1;
+            }
+        }
+    }
+    if (nseg < tbl[9]) {
+        *(s32 *)(s + 0x260) = nsub;
+        *(s32 *)(s + 0x254) = nseg;
+        *(s32 *)(s + 0x25C) = ncur;
     }
 }
 #else
