@@ -686,12 +686,28 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  *  - loop glyph load is lbu (u8), was *(int*);
  *  - saved64/saved60 widget-ptr copies at the strlen call (the 100/96
  *    stores) reloaded by the tail draws — restores frame to 336.
- * Remaining (coloring cascade, ~40 words): w6CC/w6B4/buf want s6/s7/s8
- * (ours spills 92/88, buf s7); count*13 emits li 13+multu (target
- * strength-reduces sll/subu/sll/addu TWICE, no CSE); x/pos4 want s2/s4
- * (ours ra/t5 + spill); FP temp ring f4/f6 swap (255.0f const-first,
- * operand-order-invariant). Next levers: rank-boost the widget ptrs
- * (dead use) or de-name count; break the const-13 CSE web. */
+ * 2026-07-30 76.5 -> 84.44: dead kills `w6CC = 0; w6B4 = 0;` right after
+ * the saved64/saved60 copies UN-COALESCE the widget-ptr webs from the
+ * frame-homed saved copies (baseline coalesced both into one memory web
+ * at 92/88 -> per-use lw $4 reloads).  Cascade recovered: 13 no longer
+ * registerized (multu 5 -> 3; both count*13 strength-reduce
+ * sll/subu/sll/addu like target), buf -> s8, count demoted off s6,
+ * size 223 -> 229 (target 238).  Kill placement is load-bearing:
+ * before-strlen == after-strlen (84.44), at tail = DCE'd early ->
+ * coalescing returns (76.3).
+ * Remaining (~35 words): s-reg ROTATION — ours s1..s8 =
+ * w6CC,w6B4,glyph,w6FC,arg0,min,sec,buf; target =
+ * w6FC,min,glyph,sec,arg0,w6CC,w6B4,buf (uoptlist: candidates
+ * 125/128 (w6CC/w6B4) color 4th/5th, need 7th/8th; min/sec are
+ * late-created webs 179/180 that must outrank glyph/arg0).  Probed
+ * and FAILED: while(0) ref-boost of w6FC/arg2/sec (re-registerizes 13,
+ * 78.9); dead if(ptr){} EMITS beq for ptr-arith vars; decl reorder,
+ * dead pre-defs at block entry = no-ops.  FP temp ring f4/f6 (+f16/f18,
+ * f8/f10) const-vs-load numbering: cast-deref rank beats textual order;
+ * one-level typed-member spelling and (f32)255 cast-literal both no-op
+ * (two-level chain unavailable — direct member).  Frame 328 vs 336
+ * (one[] sits 312-324 vs target 320-332; the 8B slot pair returns if
+ * the rotation is fixed?). */
 void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
     f32 one[4];
     char buf[128];
@@ -706,12 +722,12 @@ void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
     char *pt3;
     int min, sec;
     int glyph;
-    int count;
     int x, pos4, posA1, pos6;
     int xmid;
     char *p;
     int i, xp, bound;
     unsigned char c;
+    int count;
 
     one[0] = 1.0f;
     one[1] = 1.0f;
@@ -737,6 +753,8 @@ void timproc_uso_b1_func_00001340(char *arg0, s32 arg1, s32 arg2) {
         saved64 = w6CC;
         saved60 = w6B4;
         count = timproc_uso_b1_func_000000B0(buf);
+        w6CC = 0;
+        w6B4 = 0;
         pt4 = *(char **)(arg0 + 0x70C);
         pt2 = *(char **)(arg0 + 0x6DC);
         pt3 = *(char **)(arg0 + 0x6C4);
