@@ -4977,64 +4977,89 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00039094);
  * beql/bnel peel). Iterator pair lives in memory: int *iter2[2] array (arrays
  * never registerized; a struct gets scalar-replaced into s4/s5). Tail call
  * result is the return value (no move v0,zero after the last jal).
- * Residual: (a) &D_00000000 publish address hoisted to s4 (target re-forms in
- * $at per site with the sw in the beqzl likely-slot; direct global assign
- * doesn't stop the hoist), pulling one extra s-reg save + frame -176 vs -184
- * (target parks 6 dead scalar homes at sp+0x98..0xAF, titproc-1710 class);
- * (b) node/loop-bound s0/s1 coloring swap downstream of (a); (c) first call
- * arg staged via a1 then move a0,a1 in target (carrier spelling unknown);
- * ternary-comma advance spelling probed - regresses (+1 insn, 145 mism). */
+ * 2026-07-30 89.3 -> 96.2 (13/155 words): THREE decode errors fixed + the
+ * s4-hoist cracked. (1) STRUCTURE (38DC0 transfer): guards after &8 skip only
+ * the TRANSFORM (beqz/bltzl/bnezl all land on the publish block, 0x1e0/0x1e4)
+ * - publish+field-link+dispatch run for every &8 node; bit-17 polarity is
+ * INVERTED vs old decode (transform needs (v<<14) >= 0, bltzl SET-skips).
+ * (2) &D-PUBLISH s4-ADDR-HOIST KILLED by a dead 2nd symbol ref in another BB:
+ * `if (0) { root = *(int**)&D_00000000; }` after done: - survives to uopt,
+ * splits the symbol's occurrences across BBs, publish stays a direct macro
+ * `sw s3,D` (lui $at + %lo-folded sw) exactly like target; every single-ref
+ * spelling (direct assign / volatile store / cast form / goto-loop) HOISTS.
+ * (3) ADVANCE = hoisted `iter2[0]=iter2[1];` (unconditional -> sinks into the
+ * beqz delay) + ternary-comma WITHOUT the [0] store (gives the b .+1
+ * collapsed-else); n=node copy after (n colors s0, li-16 -> s1, snapping the
+ * (b) swap). (4) DISPATCH vt in a1 via HIDDEN 2ND ARG: (fn)(disp + (int)n, vt)
+ * - arg marshaling pins vt's web to $a1 and forces lw-t9-first (the 39EE4
+ * dead-def lever gives v0, wrong reg here). (5) first call = dup-arg
+ * f(root[0xC/4], root[0xC/4]): CSE computes one lw + copy for the other arg
+ * (still reversed: T lw a1/move a0,a1 vs B lw a0/move a1,a0, 2 words).
+ * (6) frame: 2 below-result pads + vt in a sibling BLOCK (deeper scope homes
+ * BELOW result) = frame/iter2/homes exact except result -4 (below-region 9
+ * vs 10 words; the 10th word can't be added without tripping the parity pad
+ * to 11 - every pad variant lands 0x50/0x58+frame-grow, honest residual).
+ * RESIDUAL 13 words: 2 call-staging order + 3 result-offset (s2/a2/a0 -4) +
+ * 8 node-web uncoalesced-fetch-copy (38DC0 cap class, skip on sight). */
 extern int gl_func_00000000();
 int gl_func_000393B8(int *root) {
     int *iter2[2]; /* [0]=prev link (dead-store sp+0xB0), [1]=cur link (sp+0xB4) */
     int *node;
+    int *n;
 
     iter2[1] = (int *)root[0x10/4];
-    gl_func_00000000(root[0xC/4]);
-    node = NULL;
-    if (iter2[1] != NULL) {
-        iter2[0] = iter2[1];
-        iter2[1] = (int *)iter2[0][1];
-        node = (int *)iter2[0][0];
-    }
-    while (node != NULL) {
-        if ((node[0x18/4] & 0x8) &&
-            (node[0x8/4] & 0x200) &&
-            ((node[0x8/4] << 14) < 0) &&
-            !(node[0x2C/4] & 0x1)) {
-            if (root[0x2C/4] & 0x2) {
-                gl_func_00000000((char*)node + 0x30, (char*)node + 0x70);
-            } else {
-                float *src = (float*)((char*)node + 0x30);
-                float *world = (float*)((char*)root + 0x70);
-                int r, c, k;
-                float result[16];
-                volatile int pad0, pad1, pad2; /* home fill below result */
-                for (r = 0; r < 4; r++) {
-                    for (c = 0; c < 4; c++) {
-                        result[r*4 + c] = 0.0f;
-                        for (k = 0; k < 4; k++) {
-                            result[r*4 + c] += src[r*4 + k] * world[k*4 + c];
+    gl_func_00000000(root[0xC/4], root[0xC/4]);
+    iter2[0] = iter2[1];
+    node = (iter2[1] != NULL)
+        ? (iter2[1] = (int *)iter2[0][1], (int *)iter2[0][0])
+        : NULL;
+    n = node;
+    if (node == NULL) goto done;
+top:
+    {
+        if (n[0x18/4] & 0x8) {
+            if ((n[0x8/4] & 0x200) &&
+                ((n[0x8/4] << 14) >= 0) &&
+                !(n[0x2C/4] & 0x1)) {
+                if (root[0x2C/4] & 0x2) {
+                    gl_func_00000000((char*)n + 0x30, (char*)n + 0x70);
+                } else {
+                    float *src = (float*)((char*)n + 0x30);
+                    float *world = (float*)((char*)root + 0x70);
+                    int r, c, k;
+                    float result[16];
+                    volatile int pad0, pad1; /* below-result home fill */
+                    for (r = 0; r < 4; r++) {
+                        for (c = 0; c < 4; c++) {
+                            result[r*4 + c] = 0.0f;
+                            for (k = 0; k < 4; k++) {
+                                result[r*4 + c] += src[r*4 + k] * world[k*4 + c];
+                            }
                         }
                     }
+                    gl_func_00000000(result, (char*)n + 0x70);
                 }
-                gl_func_00000000(result, (char*)node + 0x70);
             }
             if (root[0x2C/4] & 0x2) {
-                D_00000000 = (int)root;
+                *(int**)&D_00000000 = root;
             }
-            if (node[0x4/4] != 0) {
-                node[0x14/4] = (int)root;
+            if (n[0x4/4] != 0) {
+                n[0x14/4] = (int)root;
             }
-            ((void(*)(int))((int*)node[0x28/4])[0x24/4])(*(short*)((char*)node[0x28/4] + 0x20) + (int)node);
+            {
+                int *vt = (int*)n[0x28/4];
+                ((void(*)(int,int*))vt[0x24/4])(*(short*)((char*)vt + 0x20) + (int)n, vt);
+            }
         }
-        node = NULL;
-        if (iter2[1] != NULL) {
-            iter2[0] = iter2[1];
-            iter2[1] = (int *)iter2[0][1];
-            node = (int *)iter2[0][0];
-        }
+        iter2[0] = iter2[1];
+        node = (iter2[1] != NULL)
+            ? (iter2[1] = (int *)iter2[0][1], (int *)iter2[0][0])
+            : NULL;
+        n = node;
+        if (node != NULL) goto top;
     }
+done:
+    if (0) { root = *(int**)&D_00000000; } /* dead 2nd symbol ref: kills the &D s4 addr-hoist */
     return gl_func_00000000();
 }
 #else
