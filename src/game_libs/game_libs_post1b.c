@@ -5250,12 +5250,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000690A8);
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
-    f32 sp20;
-    f32 sp1C;
-    f32 sp18;
-    f32 o18;
-    f32 o1C;
-    f32 o20;
+    f32 kscale;
+    f32 v[7];
+    f32 o0;
+    f32 o1;
+    f32 o2;
     f32 ex;
     f32 ey;
     f32 ez;
@@ -5268,16 +5267,17 @@ void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
     char *src;
     char *mtx;
     char *out;
-    char *v0p;
-    char *v1p;
 
-    v1p = FW(arg1, 0x38);
-    v0p = FW(arg0, 0x18);
-    ex = (*(f32*)((char*)v0p + 0xA0)) - (*(f32*)((char*)v1p + 0xA0));
-    ey = (*(f32*)((char*)v0p + 0xA4)) - (*(f32*)((char*)v1p + 0xA4));
-    ez = (*(f32*)((char*)v0p + 0xA8)) - (*(f32*)((char*)v1p + 0xA8));
+    ex = (*(f32*)((char*)FW(arg0, 0x18) + 0xA0)) - (*(f32*)((char*)FW(arg1, 0x38) + 0xA0));
+    ey = (*(f32*)((char*)FW(arg0, 0x18) + 0xA4)) - (*(f32*)((char*)FW(arg1, 0x38) + 0xA4));
+    ez = (*(f32*)((char*)FW(arg0, 0x18) + 0xA8)) - (*(f32*)((char*)FW(arg1, 0x38) + 0xA8));
     var_a3 = 0;
     if (FW(arg0, 0x20) > 0) {
+        while (0) { mode = 0; }
+        while (0) { o0 = ex; }
+        while (0) { o1 = ey; }
+        while (0) { o2 = ez; }
+        kscale = *(f32*)((char*)&D_00000000 + 0x2240);
         var_v1 = 0;
         do {
             entry = FW(arg0, 0x1C) + var_v1;
@@ -5285,23 +5285,26 @@ void gl_func_000693A4(char *arg0, char *arg1, s32 arg2) {
             if (mode > 0) {
                 idx = *(s16*)((char*)entry + 0x0);
                 src = FW(arg0, 0x24) + (var_a3 * 6);
-                sp18 = (f32)*(s16*)((char*)src + 0x0);
-                sp1C = (f32)*(s16*)((char*)src + 0x2);
-                sp20 = (f32)*(s16*)((char*)src + 0x4);
+                v[0] = (f32)*(s16*)((char*)src + 0x0);
+                v[1] = (f32)*(s16*)((char*)src + 0x2);
+                v[2] = (f32)*(s16*)((char*)src + 0x4);
                 mtx = FW(arg0, 0x18) + 0x70;
-                o18 = ((*(f32*)((char*)mtx + 0x0)) * sp18) + ((*(f32*)((char*)mtx + 0x10)) * sp1C) + ((*(f32*)((char*)mtx + 0x20)) * sp20) + ex;
-                o1C = ((*(f32*)((char*)mtx + 0x4)) * sp18) + ((*(f32*)((char*)mtx + 0x14)) * sp1C) + ((*(f32*)((char*)mtx + 0x24)) * sp20) + ey;
-                o20 = ((*(f32*)((char*)mtx + 0x8)) * sp18) + ((*(f32*)((char*)mtx + 0x18)) * sp1C) + ((*(f32*)((char*)mtx + 0x28)) * sp20) + ez;
+                o0 = ((*(f32*)((char*)mtx + 0x0)) * v[0]) + ((*(f32*)((char*)mtx + 0x10)) * v[1]) + ((*(f32*)((char*)mtx + 0x20)) * v[2]);
+                o1 = ((*(f32*)((char*)mtx + 0x4)) * v[0]) + ((*(f32*)((char*)mtx + 0x14)) * v[1]) + ((*(f32*)((char*)mtx + 0x24)) * v[2]);
+                o2 = ((*(f32*)((char*)mtx + 0x8)) * v[0]) + ((*(f32*)((char*)mtx + 0x18)) * v[1]) + ((*(f32*)((char*)mtx + 0x28)) * v[2]);
+                v[0] = o0 + ex;
+                v[1] = o1 + ey;
+                v[2] = o2 + ez;
                 out = (int)arg2 + (idx * 6);
                 if (mode == 0x64) {
-                    (*(s16*)((char*)out + 0x0)) = (s16) (s32) o18;
-                    (*(s16*)((char*)out + 0x2)) = (s16) (s32) o1C;
-                    (*(s16*)((char*)out + 0x4)) = (s16) (s32) o20;
+                    (*(s16*)((char*)out + 0x0)) = (s16) (s32) v[0];
+                    (*(s16*)((char*)out + 0x2)) = (s16) (s32) v[1];
+                    (*(s16*)((char*)out + 0x4)) = (s16) (s32) v[2];
                 } else {
-                    scale = (f32) mode * (*(f32*)((char*)&D_00000000 + 0x2240));
-                    (*(s16*)((char*)out + 0x0)) = (s16) ((*(s16*)((char*)out + 0x0)) + (s32) (o18 * scale));
-                    (*(s16*)((char*)out + 0x2)) = (s16) ((*(s16*)((char*)out + 0x2)) + (s32) (o1C * scale));
-                    (*(s16*)((char*)out + 0x4)) = (s16) ((*(s16*)((char*)out + 0x4)) + (s32) (o20 * scale));
+                    scale = (f32) mode * kscale;
+                    (*(s16*)((char*)out + 0x0)) = (s16) ((*(s16*)((char*)out + 0x0)) + (s32) (v[0] * scale));
+                    (*(s16*)((char*)out + 0x2)) = (s16) ((*(s16*)((char*)out + 0x2)) + (s32) (v[1] * scale));
+                    (*(s16*)((char*)out + 0x4)) = (s16) ((*(s16*)((char*)out + 0x4)) + (s32) (v[2] * scale));
                 }
             }
             var_a3 += 1;
