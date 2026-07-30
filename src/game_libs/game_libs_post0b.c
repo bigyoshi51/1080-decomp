@@ -4720,31 +4720,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00038D64);
  * UNCONDITIONAL per node — the beqzl/bnezl guards (node[8]&0x200,
  * !(node[0x2C]&1)) skip only the transform, branching straight to the
  * dispatch with v0=node[0x28] loaded in the likely-slot. Real callee
- * gl_func_00034458 (st_value 0 in post0b => jal encodes 0 as in target). */
+ * gl_func_00034458 (st_value 0 in post0b => jal encodes 0 as in target).
+ *
+ * 2026-07-30 95.35 (from 89.5): dispatch cracked via 39EE4 vt dead-def
+ * lever (lw t9,20(v0) BEFORE lh t7,16(v0), jalr t9 — direct expression
+ * call, named vt + if(0){vt=NULL}); frame/homes exact via 2 lowest-slot
+ * volatile pads (frame -192, iter2 at 0xB8/0xBC, result at sp+0x60).
+ * SOLE residual (1-word shift, both fetch sites): target keeps the
+ * fetched node in $v0 with an UNCOALESCED `or s0,v0,zero` in the test's
+ * delay slot (plain bne, nop-free); every C spelling probed coalesces
+ * n/node into s0 directly (bnel + body-load delay): plain copy, dead
+ * if(0){node=n}/if(0){node=NULL} defs, fall-off-end int, explicit
+ * return node (adds trailing move), condition-embedded fetch, empty-else.
+ * ONLY same-name web reuse (node doubling as fn-ptr carrier) splits the
+ * copy out — but then the tested web colors $a2 not $v0 and pre-call
+ * guard uses ride the copy source (+1 insn, worse). Uncracked cap. */
 extern int gl_func_00034458();
-void gl_func_00038DC0(int *root) {
+int gl_func_00038DC0(int *root) {
     int *iter2[2]; /* [0]=cur (sp+0xB8 dead store), [1]=next (sp+0xBC) */
-    int *nxt;      /* coalesced into node; decl steers node's web to color s0 */
-    int *node;
+    int *node;     /* tested web; target keeps it $v0 w/ or s0,v0 delay copies (uncracked) */
+    int *n;        /* body node $s0 */
     int *vt;
+    volatile int padA, padB; /* lowest 2 slots: lifts all homes +8 to target offsets */
 
     iter2[1] = (int *)root[0x10/4];
-    nxt = NULL;
-    if (iter2[1] != NULL) {
-        iter2[0] = iter2[1];
-        iter2[1] = (int *)iter2[0][1];
-        nxt = (int *)iter2[0][0];
-    }
-    while ((node = nxt) != NULL) {
-        if ((node[0x8/4] & 0x200) && !(node[0x2C/4] & 0x1)) {
+    node = (iter2[1] != NULL)
+        ? (iter2[0] = iter2[1], iter2[1] = (int *)iter2[0][1], (int *)iter2[0][0])
+        : NULL;
+    while (node != NULL) {
+        n = node;
+        if (0) { node = n; } /* dead def: interference probe (kept: benign) */
+        if ((n[0x8/4] & 0x200) && !(n[0x2C/4] & 0x1)) {
             if (root[0x2C/4] & 0x2) {
-                gl_func_00034458((char*)node + 0x30, (char*)node + 0x70);
+                gl_func_00034458((char*)n + 0x30, (char*)n + 0x70);
             } else {
-                float *src = (float*)((char*)node + 0x30);
+                float *src = (float*)((char*)n + 0x30);
                 float *world = (float*)((char*)root + 0x70);
                 int r, c, k;
                 float result[16];
-                volatile int pad0, pad1; /* titproc-1710-class dead homes below result */
                 for (r = 0; r < 4; r++) {
                     for (c = 0; c < 4; c++) {
                         result[r*4 + c] = 0.0f;
@@ -4753,17 +4766,15 @@ void gl_func_00038DC0(int *root) {
                         }
                     }
                 }
-                gl_func_00034458(result, (char*)node + 0x70);
+                gl_func_00034458(result, (char*)n + 0x70);
             }
         }
-        vt = (int*)node[0x28/4];
-        ((void(*)(int))vt[0x14/4])(*(short*)((char*)vt + 0x10) + (int)node);
-        nxt = NULL;
-        if (iter2[1] != NULL) {
-            iter2[0] = iter2[1];
-            iter2[1] = (int *)iter2[0][1];
-            nxt = (int *)iter2[0][0];
-        }
+        vt = (int*)n[0x28/4];
+        if (0) { vt = NULL; } /* dead multi-def: vt LR rejected -> ugen temp, fn load t9 (39EE4 lever) */
+        ((void(*)(int))vt[0x14/4])(*(short*)((char*)vt + 0x10) + (int)n);
+        node = (iter2[1] != NULL)
+            ? (iter2[0] = iter2[1], iter2[1] = (int *)iter2[0][1], (int *)iter2[0][0])
+            : NULL;
     }
 }
 #else
@@ -4998,6 +5009,7 @@ int gl_func_000393B8(int *root) {
                 float *world = (float*)((char*)root + 0x70);
                 int r, c, k;
                 float result[16];
+                volatile int pad0, pad1, pad2; /* home fill below result */
                 for (r = 0; r < 4; r++) {
                     for (c = 0; c < 4; c++) {
                         result[r*4 + c] = 0.0f;
