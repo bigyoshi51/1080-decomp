@@ -15017,64 +15017,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045CB0);
 //   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
+/* DECODE CORRECTION 2026-07-30 (exact-shape pass): DL emit macro RE-READS
+ * ctx+0xC for the buffer base (target double-load lw 12(a1); ...; lw 12(a1);
+ * lw 0()), idx bump is a post-increment through the first read; `lo=1984`
+ * hoisted above the inner emit if/else lands in the bgez delay, and the
+ * else arm of the ==64 test redundantly re-assigns lo (second addiu a3);
+ * loop stores s1 post-increment via a v0 copy and advances the node BEFORE
+ * consuming the byte-size return (s2 += v / 8 signed-div shape). */
+typedef struct Dl45E20 { unsigned int *buf; int idx; } Dl45E20;
+#define EMIT45E20(ctx, W0, W1) \
+    { Dl45E20 *d_ = *(Dl45E20 **)((ctx) + 0xC); int i_ = d_->idx; d_->idx = i_ + 1; \
+      { unsigned int *p_ = (unsigned int *)((char *)((*(Dl45E20 **)((ctx) + 0xC))->buf) + i_ * 8); \
+        p_[0] = (W0); p_[1] = (W1); } }
 void gl_func_00045E20(void *a0, char *a1, char *a2) {
     int m = *(int *)(a2 + 0x38);
-    char *g;
-    int i, hi, lo;
-    (void)a0;
-    if ((m << 0xB) >= 0) goto Lcc;
-    if ((m << 0x7) >= 0) goto L70;
-    g = *(char **)(a1 + 0x0C);
-    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-    *(unsigned int *)(*(char **)g + i * 8) = 0xB7000000;
-    *(unsigned int *)(*(char **)g + i * 8 + 4) = 0x000C0000;
-    goto La0;
-L70:
-    g = *(char **)(a1 + 0x0C);
-    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-    *(unsigned int *)(*(char **)g + i * 8) = 0xB7000000;
-    *(unsigned int *)(*(char **)g + i * 8 + 4) = 0x00040000;
-La0:
-    lo = 1984;
-    *(int *)(a2 + 0x28) = *(int *)(a2 + 0x28) | 0x1100;
-    if (*(short *)(a2 + 0x20) == 64) {
-        hi = 3968;
+    int s2acc = 0;
+    int s1 = 0;
+    int hi, lo;
+
+    if ((m << 0xB) < 0) {
+        lo = 1984;
+        if ((m << 0x7) < 0) {
+            EMIT45E20(a1, 0xB7000000, 0x000C0000);
+        } else {
+            EMIT45E20(a1, 0xB7000000, 0x00040000);
+        }
+        *(int *)(a2 + 0x28) = *(int *)(a2 + 0x28) | 0x1100;
+        if (*(short *)(a2 + 0x20) == 64) {
+            hi = 3968;
+        } else {
+            hi = 1984;
+            lo = 1984; /* target has a second addiu a3,1984 here; VN-folds under every probed spelling (lo1-carrier inverts arms + evicts node to a3) */
+        }
     } else {
-        hi = 1984;
+        EMIT45E20(a1, 0xB6000000, 0x00040000);
+        hi = 0xFFFF;
+        lo = 0xFFFF;
     }
-    goto L104;
-Lcc:
-    g = *(char **)(a1 + 0x0C);
-    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-    *(unsigned int *)(*(char **)g + i * 8) = 0xB6000000;
-    *(unsigned int *)(*(char **)g + i * 8 + 4) = 0x00040000;
-    hi = 0xFFFF;
-    lo = 0xFFFF;
-L104:
-    g = *(char **)(a1 + 0x0C);
-    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-    *(unsigned int *)(*(char **)g + i * 8) = 0xBB040801;
-    *(unsigned int *)(*(char **)g + i * 8 + 4) = (hi << 16) | (lo & 0xFFFF);
-    if (a2 != 0) {
-        int s1 = 0, s2 = 0;
-        do {
-            int v;
-            *(int *)(a2 + 0x3C) = s1;
-            s1++;
-            gl_func_00034458(a1, a2, s2);
-            v = gl_func_00034458(a2);
-            if (v >= 0) {
-                s2 += v >> 3;
-            } else {
-                s2 += (v + 7) >> 3;
-            }
-            a2 = *(char **)(a2 + 0x40);
-        } while (a2 != 0);
+    EMIT45E20(a1, 0xBB040801, (hi << 16) | (lo & 0xFFFF));
+    {
+        char *node = a2;
+        if (node != 0) {
+            do {
+                int v;
+                *(int *)(node + 0x3C) = s1++;
+                gl_func_00034458(a1, node, s2acc);
+                v = gl_func_00034458(node);
+                node = *(char **)(node + 0x40);
+                s2acc += v / 8;
+            } while (node != 0);
+        }
     }
-    g = *(char **)(a1 + 0x0C);
-    i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-    *(unsigned int *)(*(char **)g + i * 8) = 0xE7000000;
-    *(unsigned int *)(*(char **)g + i * 8 + 4) = 0;
+    EMIT45E20(a1, 0xE7000000, 0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00045E20);

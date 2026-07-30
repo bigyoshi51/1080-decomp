@@ -255,7 +255,13 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # (0x2bca4 -> 0x2bdc4 on 2026-07-30: 55C34 decode-corrected NM body grew to
 # target-size 0x380 (old 4-int/single-(s32) call args were long long / double
 # pairs, +0x120); tail 62F08 keeps its full 0x50 at the new offset 0x2bd74.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2bdc4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2bdc4 -> 0x2bda4 on 2026-07-30: 45E20 decode-corrected NM body shrank
+# 0x1E4 -> 0x1CC; tail 62F08 keeps its full 0x50 at the new offset 0x2bd54.
+# GOTCHA re-learned: a pin ABOVE the real text end makes the clip script
+# SystemExit and silently skip the 551E0=0x7c/55B10=0x2c sub-resizes ->
+# sentinels drop to 96.77/90.9; always re-probe tailoff+0x50 after ANY NM
+# body size change in this TU.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2bda4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
