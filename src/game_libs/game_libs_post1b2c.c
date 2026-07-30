@@ -1672,29 +1672,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F684);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0006F834: 26-insn 2-call wrapper with float-bits-passthrough.
- * Decoded shape:
- *   void f(int x0, int x1, int x2, int x3, float a, float b, float c, float d) {
- *     char buf[0x40];
- *     gl_func_00000000(buf, x1, x2, x3, a, b, c, d);
- *     gl_func_00000000(buf, x0);
- *   }
- * Caller passes 4 int reg args + 4 floats via stack at sp+0x78..0x84.
- * Callee reads stack floats via lwc1, forwards to next callee via swc1
- * outgoing slots (sp+0x10..0x1C).
+/* gl_func_0006F834: 26-insn 2-call wrapper, frame 0x68 (agent-h re-decode).
+ * Signature is (int, float x7): args 1-3 arrive in a1-a3 (O32: int arg0
+ * forces all later floats into gp regs/stack), and IDO homes float params
+ * into their canonical FP regs at entry (mtc1 a1-a3 -> f12/f14/f16), then
+ * mfc1's them back out to pass to the next callee as singles. The old
+ * "mysterious no-op roundtrip / no standard C produces this" cap verdict is
+ * RETRACTED - typing the params float produces the roundtrip naturally.
+ * Body: build a 0x40 local record via callee 1 (8 float-ish args), then
+ * register it with callee 2 (&buf, orig int arg). Stays NM wrap: both
+ * callees are jal-0 placeholders (gl_func_00000000 family).
  *
- * Cap: target emits a mysterious mtc1 a1,f12; mtc1 a2,f14; mtc1 a3,f16
- * at entry IMMEDIATELY followed by mfc1 a1,f12; mfc1 a2,f14; mfc1 a3,f16
- * after the lwc1 reads — a net no-op round-trip through FP regs. Likely
- * an IDO emit artifact when args are typed `float` in C but arrive in
- * int regs per O32. No standard C produces this exactly. */
-void gl_func_0006F834(int x0, int x1, int x2, int x3,
-                      float a, float b, float c, float d) {
+ * 47.0 -> 87.7 (agent-h): float params + DIRECT typed zero-alias extern calls
+ * (fn-ptr casts cost lui/addiu+jalr v0 + a v0 spill slot, 64.2 -> 87.7 on the
+ * direct-call swap, per the K&R-direct-call-vs-fnptr memo). RESIDUAL: target
+ * homes the 3rd float param via mtc1 a3,$f16 / mfc1 a3,$f16 (3 FP homes);
+ * every probed mode (7.1/5.3 -O2, -mips1, -g3, -O1, -float, local-copy t3
+ * which shifts WHICH two get FP but never yields three) homes only TWO float
+ * params in f12/f14 and stack-homes the third (sw a3,0x74). K&R float-param
+ * spelling is cfe-rejected ("redeclaration of __P"). 2-FP-home budget cap. */
+extern void gl_func_00000000_fp8(char *, float, float, float, float, float, float, float);
+extern void gl_func_00000000_pi(char *, int);
+void gl_func_0006F834(int x0, float f1, float f2, float f3,
+                      float f4, float f5, float f6, float f7) {
     char buf[0x40];
-    typedef void (*Fn8)(char*, int, int, int, float, float, float, float);
-    typedef void (*Fn2)(char*, int);
-    ((Fn8)gl_func_00000000)(buf, x1, x2, x3, a, b, c, d);
-    ((Fn2)gl_func_00000000)(buf, x0);
+    gl_func_00000000_fp8(buf, f1, f2, f3, f4, f5, f6, f7);
+    gl_func_00000000_pi(buf, x0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F834);
