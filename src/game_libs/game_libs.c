@@ -1296,63 +1296,65 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000025A8);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00002840)();
+/* Redecode 2026-07-30 (42.88->89.55): the length call is a PROTOTYPED float(float)
+ * (single-prec $f12, no cvt.d.s pair) -> gl_func_00000000_sqf, direct jal (the old
+ * fn-ptr cast emitted jalr); D_00000000+0 brightness global is a FLOAT load (lwc1);
+ * a1 args are plain (s32) truncs (the (f32)(s32) form round-tripped through cvt.d);
+ * dx/dy = reg temps spilled at creation + sp3C/sp38 memory pair re-stored after the
+ * normalize if (m2c's original two-web shape was right). Residuals: frame +8 (two
+ * spill-slot pairs vs target's one), reg-number drift downstream of that. */
+extern f32 gl_func_00000000_sqf(f32);  /* prototyped: single-prec $f12, no K&R promotion */
 void gl_func_00002840(char *arg0, s32 arg1, f32 arg2, f32 arg3, s32 arg4) {
-    f32 sp6C;
-    f32 sp68;
-    f32 sp64;
-    f32 sp60;
-    f32 sp54;
-    f32 sp50;
+    f32 vec[4];
     f32 sp3C;
     f32 sp38;
-    f32 *sp28;
-    f32 *temp_a0;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f12;
-    f32 temp_f14;
-    f32 temp_f14_2;
-    f32 temp_f16;
-    f32 temp_f18;
-    f32 temp_f2;
-    f32 temp_f2_2;
-    f32 var_f14;
-    f32 var_f2;
+    f32 dx;
+    f32 dy;
+    f32 vx;
+    f32 vy;
+    f32 b4;
+    f32 d4;
+    char *p;
+    f32 len;
+    f32 f0;
+    f32 f16;
+    f32 f2;
+    f32 f18;
+    f32 lhs;
+    f32 rhs;
     char *temp_v0;
 
     temp_v0 = FW(FW(((*(s32*)((char*)&D_00000000 + 0x134)) + (arg1 * 4)), 0x108), 0x70);
-    temp_f0 = (*(f32*)((char*)temp_v0 + 0xBC));
-    temp_f16 = (*(f32*)((char*)temp_v0 + 0xA0));
-    temp_f2 = (*(f32*)((char*)temp_v0 + 0xDC));
-    temp_f18 = (*(f32*)((char*)temp_v0 + 0xA8));
-    temp_f12 = (temp_f16 * temp_f0) + (temp_f18 * temp_f2);
-    temp_f14 = (temp_f0 * arg2) + (temp_f2 * arg3);
-    if ((temp_f12 < temp_f14) && ((temp_f14 - temp_f12) < 4000.0f)) {
-        temp_f2_2 = arg2 - temp_f16;
-        sp54 = (*(f32*)((char*)temp_v0 + 0xB4));
-        temp_f14_2 = arg3 - temp_f18;
-        sp3C = temp_f2_2;
-        sp50 = (*(f32*)((char*)temp_v0 + 0xD4));
-        sp38 = temp_f14_2;
-        temp_f0_2 = ((f32(*)())gl_func_00000000)((temp_f2_2 * temp_f2_2) + (temp_f14_2 * temp_f14_2), temp_f14_2);
-        var_f2 = temp_f2_2;
-        var_f14 = temp_f14_2;
-        if (temp_f0_2 != 0.0f) {
-            var_f2 /= temp_f0_2;
-            var_f14 /= temp_f0_2;
+    f0 = (*(f32*)((char*)temp_v0 + 0xBC));
+    f16 = (*(f32*)((char*)temp_v0 + 0xA0));
+    f2 = (*(f32*)((char*)temp_v0 + 0xDC));
+    f18 = (*(f32*)((char*)temp_v0 + 0xA8));
+    lhs = (f16 * f0) + (f18 * f2);
+    rhs = (f0 * arg2) + (f2 * arg3);
+    if ((lhs < rhs) && ((rhs - lhs) < 4000.0f)) {
+        b4 = (*(f32*)((char*)temp_v0 + 0xB4));
+        dx = arg2 - f16;
+        dy = arg3 - f18;
+        sp3C = dx;
+        d4 = (*(f32*)((char*)temp_v0 + 0xD4));
+        sp38 = dy;
+        len = gl_func_00000000_sqf((dx * dx) + (dy * dy));
+        vx = sp3C;
+        vy = sp38;
+        if (len != 0.0f) {
+            vx /= len;
+            vy /= len;
         }
-        sp60 = 1.0f;
-        temp_a0 = (int)arg0 + 0x2E4;
-        sp68 = 0.0f;
-        sp6C = 0.0f;
-        sp28 = temp_a0;
-        sp3C = var_f2;
-        sp38 = var_f14;
-        sp64 = (*(f32*)((char*)&D_00000000 + 0xCB4));
-        (char*)func_00000000(0.0f, var_f14, temp_a0);
-        (char*)func_00000000(temp_a0, (f32) (s32) (255.0f * (*(int*)&D_00000000)), &sp60, 0xFF);
-        (char*)func_00000000(sp28, (f32) (s32) ((f32) (FW(arg0, 0x164) - 0xC) + (((sp54 * sp3C) + (sp50 * sp38)) * 150.0f)), arg4 - 8, 0);
+        p = arg0 + 0x2E4;
+        vec[0] = 1.0f;
+        vec[2] = 0.0f;
+        vec[3] = 0.0f;
+        sp3C = vx;
+        sp38 = vy;
+        vec[1] = (*(f32*)((char*)&D_00000000 + 0xCB4));
+        gl_func_00000000(p);
+        gl_func_00000000(p, (s32) (255.0f * (*(f32*)&D_00000000)), vec, 0xFF);
+        gl_func_00000000(p, (s32) ((f32) (FW(arg0, 0x164) - 0xC) + (((b4 * sp3C) + (d4 * sp38)) * 150.0f)), arg4 - 8, 0);
     }
 }
 #else
