@@ -3028,60 +3028,81 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00003F00);
  *      mtc1/cvt.s.w per call; fixed with `func_411c_rf` float-RETURN 0x0-alias
  *      (docs/MATCHING_WORKFLOW K&R-float-return). +6.5pp.
  *  (2) finalizer reuses s1->0x84 via single `int p84` local (was reloaded twice).
- *  RESIDUAL CAP (~30%, NOT C-fixable): the func_000003F8 const-base (idx1/idx2
- *  float consts at +0x14C/+0x150) is live across the 2nd rand call so IDO -O2
- *  PROMOTES it to callee-saved $s0; target re-materializes `at` per-use (a global
- *  is always re-loadable, IDO chose not to promote). The s0 occupation evicts
- *  o2/big to the stack -> frame -0x88/-0x90 vs target -0x70 (3 extra spill slots)
- *  + downstream reg renumber. No C syntax breaks the CSE without changing the
- *  reloc SYMBOL (objdiff scores by symbol name). bootup CSE-collapse/s-reg cap. */
+ *
+ * 2026-07-30 69.6->88.0 (agent-g structural pass; retracts most of the old
+ *  "~30% not C-fixable" verdict):
+ *  DECODE FIXES: (a) NO early returns — `if (obj) init(obj,N);` guards ONLY the
+ *  init call, flow continues with obj==0 (all three allocs); (b) r2 call a1=2
+ *  (not 1); (c) big-block is UNCONDITIONAL (only init(o3,1) guarded);
+ *  (d) descriptor table offset is func_00000080+0x10 (not +0x90).
+ *  LEVERS: o1/o2/o3/big = ONE serial temp `p` (s0, target's or-s0 beq delays);
+ *  homed locals f1/b4/b3/idx2/idx1/r1/r2/o1 = local ARRAY A[8] (IDO never
+ *  promotes array elements — struct fields DO get scalarized/promoted, plain
+ *  locals stole s-regs); frame gap filled with volatile padA[1] above / padB[2]
+ *  below A (single volatile int gets trimmed; arrays don't); per-region
+ *  `q = A[5]` temps reproduce block-granular r1 reloads + a3 reuse; E68-style
+ *  reloc-identity split (&func_0000057C-0x34 / &func_00000044+0x4C) busts the
+ *  in-TU pool/table base CSE across the 2 uses (frees s1 -> param, kills s2).
+ *  RESIDUAL (~12%, hard cap, BF8C class): expected pool/table loads are
+ *  DIRECT-form `lui at,%hi(sym+K); lwc1 %lo` — in-TU-defined-function base
+ *  means our C spells pointer arith -> addiu-form (+1 insn per use) and the
+ *  2nd-use anchors have wrong reloc name/lo16 (semantically same address);
+ *  downstream f10/f18 ring swap + mfc1 t8-vs-a2 idx-temp coloring couple to
+ *  that. Struct-cast ((P*)func)->field does NOT fold either. */
 #ifdef NON_MATCHING
 /* typed-float proto (0x0-alias): 10-arg builder, args 7,8 single floats. */
 extern char *func_411c_r(char *, int, int, int, char *, int, float, float, int, int);
 extern float func_411c_rf(void); /* 0x0-alias: rand callee returns f32 in $f0 directly */
 void func_0000411C(char *s1, int a1) {
-    char *o1 = (char*)func_00000000(0x80);
-    char *o2, *cfg, *Dg = &D_00000000;
-    char *r1, *r2, *row1, *row2, *b3, *b4, *f1, *o3, *row;
-    float r, rr;
-    int idx1, idx2;
-    if (o1 == 0) return;
-    func_00000000(o1, 0);
-    o2 = (char*)func_00000000(0x80);
-    if (o2 == 0) return;
-    func_00000000(o2, 0);
-    func_00000000(Dg, o1);
-    func_00000000(Dg, o2);
-    r = func_411c_rf();
-    idx1 = (int)(r * *(float*)((char*)&func_000003F8 + 0x14C));
-    rr = func_411c_rf();
-    idx2 = (int)(rr * *(float*)((char*)&func_000003F8 + 0x150) + (float)idx1 + 1.0f) % 3;
-    cfg = *(char**)(s1 + 0x98);
-    row1 = *(char**)((char*)&func_00000080 + idx1 * 4 + 0x90);
-    r1 = func_411c_r(s1, 0, idx1, (int)row1, o1, *(int*)(s1 + 0x80),
-                     *(float*)(cfg + 0xC4) - 500.0f, *(float*)(cfg + 0xCC), 0x58005, 0x1B);
-    row2 = *(char**)((char*)&func_00000080 + idx2 * 4 + 0x90);
-    r2 = func_411c_r(s1, 1, idx2, (int)row2, o2, *(int*)(s1 + 0x80),
-                     *(float*)(cfg + 0xC4) + 500.0f, *(float*)(cfg + 0xCC), 0x48024, 0x1B);
-    *(char**)(r1 + 0x908) = r2;
-    *(char**)(r2 + 0x908) = r1;
-    b3 = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), r1, o1);
-    b4 = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), r1, o1);
-    row = (char*)&D_00000000 + a1 * 0x1C;
-    f1 = (char*)func_00000000(s1, row, b3);
-    o3 = (char*)func_00000000(0x80);
-    if (o3 != 0) {
-        char *big;
-        int p84;
-        func_00000000(o3, 1);
-        big = (char*)func_00000000(0, o3, r1, f1, b3, b4);
-        p84 = *(int*)(s1 + 0x84);
-        func_00000000(p84 + 0x10, big);
-        if (*(int*)(big + 0x14) != 0) *(int*)(big + 0x4) = 1;
-        *(int*)(big + 0x14) = p84;
+    volatile int padA[1];
+    char *A[8]; /* [0]=f1 [1]=b4 [2]=b3 [3]=idx2 [4]=idx1 [5]=r1 [6]=r2 [7]=o1 */
+    volatile int padB[2];
+    char *p = (char*)func_00000000(0x80);
+    char *cfg;
+    int p84;
+    if (p != 0) {
+        func_00000000(p, 0);
     }
-    *(char**)(r1 + 0x8DC) = f1;
-    *(char**)(r2 + 0x8DC) = f1;
+    A[7] = p;
+    p = (char*)func_00000000(0x80);
+    if (p != 0) {
+        func_00000000(p, 0);
+    }
+    func_00000000(&D_00000000, A[7]);
+    func_00000000(&D_00000000, p);
+    A[4] = (char*)(int)(*(float*)((char*)&func_000003F8 + 0x14C) * func_411c_rf());
+    A[3] = (char*)((int)(func_411c_rf() * *(float*)((char*)&func_0000057C - 0x34) + (float)(int)A[4] + 1.0f) % 3);
+    cfg = *(char**)(s1 + 0x98);
+    A[5] = func_411c_r(s1, 0, (int)A[4],
+                     (int)*(char**)((char*)&func_00000080 + (int)A[4] * 4 + 0x10), A[7], *(int*)(s1 + 0x80),
+                     *(float*)(cfg + 0xC4) - 500.0f, *(float*)(cfg + 0xCC), 0x58005, 0x1B);
+    cfg = *(char**)(s1 + 0x98);
+    {
+        char *r2v = func_411c_r(s1, 2, (int)A[3],
+                     (int)*(char**)((char*)&func_00000044 + (int)A[3] * 4 + 0x4C), p, *(int*)(s1 + 0x80),
+                     *(float*)(cfg + 0xC4) + 500.0f, *(float*)(cfg + 0xCC), 0x48024, 0x1B);
+        char *q = A[5];
+        A[6] = r2v;
+        *(char**)(q + 0x908) = r2v;
+        *(char**)(r2v + 0x908) = q;
+        A[2] = (char*)func_00000000(s1, 0, *(int*)(s1 + 0x80), q, A[7]);
+    }
+    {
+        char *q = A[5];
+        A[1] = (char*)func_00000000(s1, 1, *(int*)(s1 + 0x80), q, A[7]);
+    }
+    A[0] = (char*)func_00000000(s1, (char*)&D_00000000 + a1 * 0x1C, A[2]);
+    p = (char*)func_00000000(0x80);
+    if (p != 0) {
+        func_00000000(p, 1);
+    }
+    p = (char*)func_00000000(0, p, A[5], A[0], A[2], A[1]);
+    p84 = *(int*)(s1 + 0x84);
+    func_00000000(p84 + 0x10, p);
+    if (*(int*)(p + 0x14) != 0) *(int*)(p + 0x4) = 1;
+    *(int*)(p + 0x14) = p84;
+    *(char**)(A[5] + 0x8DC) = A[0];
+    *(char**)(A[6] + 0x8DC) = A[0];
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000411C);
