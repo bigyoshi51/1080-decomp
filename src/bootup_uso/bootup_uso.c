@@ -8773,38 +8773,41 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
 extern char *func_cce0(int, char *, int, float, float, float);
 void func_0000CCE0(char *st, int a1) {
     char *cont = st + 0x39C;
-    char *e0, *e1, *e2, *e3;
+    /* Single decl list, slots assigned descending from frame top:
+     * g4=80 g3=76 g2=72 g1=68 pad=64 g0=60 e3=56 e2=52 e1=48 e0=44 —
+     * reproduces target's 64(sp) gap (odd-parity pad, volatile array
+     * survives trimming). */
+    char *g4, *g3, *g2, *g1;
+    volatile int pad[1];
+    char *g0, *e3, *e2, *e1, *e0;
     e0 = (char *)func_cce0(0, st, 2, 140.0f, *(float *)((char *)&func_00000940 + 0x1C), -350.0f);
     func_00000000(cont, e0);
-    e1 = (char *)func_cce0(0, st, 8, -140.0f, *(float *)((char *)&func_00000940 + 0x20), -350.0f);
+    e1 = (char *)func_cce0(0, st, 8, -140.0f, *(float *)((char *)&func_0000098C - 0x2C), -350.0f);
     func_00000000(cont, e1);
-    e2 = (char *)func_cce0(0, st, 1, 140.0f, *(float *)((char *)&func_00000940 + 0x24), 350.0f);
+    e2 = (char *)func_cce0(0, st, 1, 140.0f, *(float *)((char *)&func_000008F4 + 0x70), 350.0f);
     func_00000000(cont, e2);
-    e3 = (char *)func_cce0(0, st, 4, -140.0f, *(float *)((char *)&func_00000940 + 0x28), 350.0f);
+    e3 = (char *)func_cce0(0, st, 4, -140.0f, *(float *)((char *)&func_000008D4 + 0x94), 350.0f);
     func_00000000(cont, e3);
     func_00000000(st, e0);
     func_00000000(st, e1);
     func_00000000(st, e2);
     func_00000000(st, e3);
     if (*(int *)(st + 0xA58) & 0x200) return;
-    {
-        char *g0, *g1, *g2, *g3, *g4;
-        g0 = (char *)func_cce0(0, st, 0x00, 0.0f, *(float *)((char *)&func_00000940 + 0x2C), 0.0f);
-        func_00000000(cont, g0);
-        func_00000000(st, g0);
-        g1 = (char *)func_cce0(0, st, 0x20, 250.0f, -150.0f, -400.0f);
-        func_00000000(cont, g1);
-        g2 = (char *)func_cce0(0, st, 0x80, -250.0f, -150.0f, 400.0f);
-        func_00000000(cont, g2);
-        g3 = (char *)func_cce0(0, st, 0x10, 250.0f, -150.0f, 400.0f);
-        func_00000000(cont, g3);
-        g4 = (char *)func_cce0(0, st, 0x40, -250.0f, -150.0f, 400.0f);
-        func_00000000(cont, g4);
-        func_00000000(st, g1);
-        func_00000000(st, g2);
-        func_00000000(st, g3);
-        func_00000000(st, g4);
-    }
+    g0 = (char *)func_cce0(0, st, 0x00, 0.0f, *(float *)((char *)&func_000008B4 + 0xB8), 0.0f);
+    func_00000000(cont, g0);
+    func_00000000(st, g0);
+    g1 = (char *)func_cce0(0, st, 0x20, 250.0f, -150.0f, -400.0f);
+    func_00000000(cont, g1);
+    g2 = (char *)func_cce0(0, st, 0x80, -250.0f, -150.0f, -400.0f);
+    func_00000000(cont, g2);
+    g3 = (char *)func_cce0(0, st, 0x10, 250.0f, -150.0f, 400.0f);
+    func_00000000(cont, g3);
+    g4 = (char *)func_cce0(0, st, 0x40, -250.0f, -150.0f, 400.0f);
+    func_00000000(cont, g4);
+    func_00000000(st, g1);
+    func_00000000(st, g2);
+    func_00000000(st, g3);
+    func_00000000(st, g4);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CCE0);
