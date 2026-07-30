@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00027784",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-07-30T15:23:15.440953+00:00",
+  "end_time": "2026-07-30T15:23:15.440953+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-30T15:23:15.440953+00:00",
+      "assistant_text": "IDENTIFIED: libultra osAiSetNextBuffer (io/aisetnextbuf.c, 2.0I) compiled in-unit at IDO -O2 with __osAiDeviceBusy and OS_K0_TO_PHYSICAL inlined (no jals). The old game_libs_func_000277E0 'caller-set $t2/$t3 cap' was a MISREAD: 277E0 is the fall-through store tail of this function (bgez at 277D0 branches into it) - 4th false-split caller-set retraction. Levers: (1) static hdwrBugFlag at game_libs D+0x1B710 referenced via THREE distinct per-site externs (D_0001B710/_w1/_w0, all pinned 0x1B710 in undefined_syms_auto.txt) to kill uopt %hi-CSE and get the target's per-access at-macro lbu/sb form (single extern = lui/addiu base + 0-offset accesses); (2) named u32 status local allocates $v0 for the AI_STATUS read (expression temp colors $t1); (3) K0->phys spelled (u32)bptr + 0x80000000 (addu form; minus emits subu). 29/29 words on the standalone probe; orphan symbol absorbed by .s merge (92+24=116B).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 29,
+  "initial_m2c_source": null,
+  "final_source": "/* game_libs_func_00027784 = libultra osAiSetNextBuffer (2.0I aisetnextbuf.c\n * shape, __osAiDeviceBusy + OS_K0_TO_PHYSICAL inlined; static hdwrBugFlag at\n * game_libs D+0x1B710). The old game_libs_func_000277E0 \"caller-set $t2/$t3\n * cap\" was a MISREAD: 277E0 is the fall-through tail of this function (the\n * bgez at 277D0 branches into it) - 4th stolen-prologue/false-split\n * caller-set retraction. Symbol 277E0 absorbed. */\nextern u8 D_0001B710;    /* hdwrBugFlag (game_libs bss) */\nextern u8 D_0001B710_w1; /* same address; distinct per-site externs kill the\n                          * %hi-CSE (uopt would otherwise materialize one\n                          * lui/addiu base) and give the target's per-access\n                          * at-macro lbu/sb form. */\nextern u8 D_0001B710_w0;\ns32 game_libs_func_00027784(void *bufPtr, u32 size) {\n    char *bptr = bufPtr;\n    u32 status;\n\n    if (D_0001B710 != 0) {\n        bptr -= 0x2000;\n    }\n    if ((((u32)bufPtr + size) & 0x1FFF) == 0) {\n        D_0001B710_w1 = 1;\n    } else {\n        D_0001B710_w0 = 0;\n    }\n    status = *(volatile u32 *)0xA450000C;\n    if (status & 0x80000000) {\n        return -1;\n    }\n    *(volatile u32 *)0xA4500000 = (u32)bptr + 0x80000000;\n    *(volatile u32 *)0xA4500004 = size;\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_post.c",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/game_libs_func_00027784.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (in-unit)",
+    "verification": "29/29 words byte-identical vs expected/ .o at st_value (relocs resolved to 0x1B710) + full ROM cmp byte-identical"
+  }
+}

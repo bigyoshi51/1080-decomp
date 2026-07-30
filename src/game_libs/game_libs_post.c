@@ -10390,16 +10390,38 @@ void gl_func_00027744(int a0, int a1) {
     gl_func_00000000(r1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027784);
+/* game_libs_func_00027784 = libultra osAiSetNextBuffer (2.0I aisetnextbuf.c
+ * shape, __osAiDeviceBusy + OS_K0_TO_PHYSICAL inlined; static hdwrBugFlag at
+ * game_libs D+0x1B710). The old game_libs_func_000277E0 "caller-set $t2/$t3
+ * cap" was a MISREAD: 277E0 is the fall-through tail of this function (the
+ * bgez at 277D0 branches into it) - 4th stolen-prologue/false-split
+ * caller-set retraction. Symbol 277E0 absorbed. */
+extern u8 D_0001B710;    /* hdwrBugFlag (game_libs bss) */
+extern u8 D_0001B710_w1; /* same address; distinct per-site externs kill the
+                          * %hi-CSE (uopt would otherwise materialize one
+                          * lui/addiu base) and give the target's per-access
+                          * at-macro lbu/sb form. */
+extern u8 D_0001B710_w0;
+s32 game_libs_func_00027784(void *bufPtr, u32 size) {
+    char *bptr = bufPtr;
+    u32 status;
 
-/* game_libs_func_000277E0: 6-insn HW-register store with caller-set bases:
- *   sw t2, 0(t3); lui t4, 0xA450; sw a1, 4(t4); move v0,zero; jr ra; nop
- * The opening `sw t2, 0(t3)` uses caller-set $t2 and $t3 (neither in
- * a0..a3 calling convention). The second store is to AI_LEN_REG @ 0xA450_0004
- * (audio interface). CAP class per
- * feedback_caller_set_int_reg_cap_1080_game_libs. Default INCLUDE_ASM
- * remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000277E0);
+    if (D_0001B710 != 0) {
+        bptr -= 0x2000;
+    }
+    if ((((u32)bufPtr + size) & 0x1FFF) == 0) {
+        D_0001B710_w1 = 1;
+    } else {
+        D_0001B710_w0 = 0;
+    }
+    status = *(volatile u32 *)0xA450000C;
+    if (status & 0x80000000) {
+        return -1;
+    }
+    *(volatile u32 *)0xA4500000 = (u32)bptr + 0x80000000;
+    *(volatile u32 *)0xA4500004 = size;
+    return 0;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00027744_pad.s")
 
 // gl_func_00027804 — STRUCTURAL PASS (0x4FC / 319 words ≈ 1.3KB, no
