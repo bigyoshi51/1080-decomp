@@ -1,0 +1,25 @@
+{
+ "function_name": "gl_func_0006FB54",
+ "project": "projects/1080-agent-h",
+ "model": "claude-manual",
+ "start_time": "2026-07-30T23:29:07.426531+00:00",
+ "end_time": "2026-07-30T23:29:07.426531+00:00",
+ "steps": [
+  {
+   "step_number": 1,
+   "timestamp": "2026-07-30T23:29:07.426531+00:00",
+   "assistant_text": "IDENTIFIED: osGetTime (os/gettime.c verbatim; DisableInt/GetCount/BaseCounter/CurrentTime u64 add). 33/33 at both 7.1 -O1 and 5.3 -O1. Retires the '$s0/64-bit spill pattern' -O2 note.",
+   "tool_calls": [],
+   "match_percent": 100.0,
+   "compiled": true,
+   "token_usage": null
+  }
+ ],
+ "outcome": "match",
+ "final_match_percent": 100.0,
+ "best_match_percent": 100.0,
+ "total_tokens": 0,
+ "instruction_count": 33,
+ "initial_m2c_source": null,
+ "final_source": "/* IDO -O1 donor for gl_func_0006FB54 = libultra osGetTime\n * (references/libreultra/src/os/gettime.c, verbatim: saveMask =\n * __osDisableInt(); tmptime = osGetCount(); elapseCount = tmptime -\n * __osBaseCounter; currentCount = __osCurrentTime;\n * __osRestoreInt(saveMask); return currentCount + elapseCount).\n * PROVEN EXACT 33/33 standalone at BOTH IDO 7.1 -O1 and 5.3 -O1\n * (identical output; built with 7.1). Retires the old \"keeps r1 in $s0\n * across the calls / 64-bit spill pattern\" -O2 NM note: this is an -O1\n * libultra helper; `register u32 saveMask` across the calls at -O1 IS\n * the s0 coloring, and the u64 add is native (li t2,0 zero-extend +\n * sltu carry).\n * Blank externs: _disint = __osDisableInt, _count = osGetCount,\n * _resint = __osRestoreInt; D_00000000_basecnt = __osBaseCounter (u32),\n * D_00000000_curtime = __osCurrentTime (u64, per-half lui pair).\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned int u32;\ntypedef unsigned long long OSTime;\n\nextern u32 gl_func_00000000_disint(void);   /* __osDisableInt */\nextern u32 gl_func_00000000_count(void);    /* osGetCount */\nextern void gl_func_00000000_resint(u32);   /* __osRestoreInt */\nextern u32 D_00000000_basecnt;              /* __osBaseCounter */\nextern OSTime D_00000000_curtime;           /* __osCurrentTime */\n\nOSTime gl_func_0006FB54(void)\n{\n    u32 tmptime;\n    u32 elapseCount;\n    OSTime currentCount;\n    register u32 saveMask;\n    saveMask = gl_func_00000000_disint();\n    tmptime = gl_func_00000000_count();\n    elapseCount = tmptime - D_00000000_basecnt;\n    currentCount = D_00000000_curtime;\n    gl_func_00000000_resint(saveMask);\n    return currentCount + elapseCount;\n}\n"
+}

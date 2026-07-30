@@ -2892,6 +2892,11 @@ gl_func_0006DD14_rodata = 0x000023B0;  /* switch(hdr.type) jumptable: USO ships 
 /* 6F8A4 = osEPiRawStartDma donor (2026-07-30), IDO 5.3 -O1. */
 D_00000000_curhdl = 0x00000000;  /* __osCurrentHandle[2] (runtime reloc table) */
 gl_func_00000000_vtop = 0x00000000;  /* osVirtualToPhysical (blank jal) */
+/* -O1 island batch 7 donors (2026-07-30): 6FB54 osGetTime / 6FE5C __osInsertTimer. */
+gl_func_00000000_count = 0x00000000;  /* osGetCount (blank jal) */
+D_00000000_basecnt = 0x00000000;  /* __osBaseCounter */
+D_00000000_curtime = 0x00000000;  /* __osCurrentTime (u64, per-half lui pair) */
+D_00000000_timerlist = 0x00000000;  /* __osTimerList */
 /* 70FA4 getter + 70FCC = fcos/__cosf (2026-07-10). */
 D_00000000_vistate = 0x00000000;  /* 70FA4 guard flag (runtime reloc) */
 D_00000000_vibuf = 0x00000000;  /* 70FA4 +8 field base (runtime reloc) */

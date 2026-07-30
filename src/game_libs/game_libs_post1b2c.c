@@ -1742,37 +1742,20 @@ int gl_func_0006FAD4(int* a0) {
     return flag;
 }
 
-/* gl_func_0006FB54: 64-bit-add-carry helper. Verified decode (m2c via disasm-func.py):
- *   r1 = helper(); r2 = helper();
- *   helper(r1);
- *   sum = (r2 - D[0]) + D[1];
- *   return ((unsigned)sum < (unsigned)D[1]) + D[0];   // carry into the high word
- * (D[0]=*(int*)&D_00000000, D[1]=*(int*)(&D+4); reads D[0] twice = two luis.)
- * Logic exact but sub-80: built 25 insns vs target 34 — the target keeps r1 in $s0
- * across the calls AND spills diff/D[0]/D[1] across the 3rd call (IDO 64-bit-codegen
- * spill pattern); -O2 C optimizes the spills away. Resume: needs the spill pattern
- * (more live ranges across the 3rd call) — multi-tick / permuter. */
-#ifdef NON_MATCHING
-/* gl_func_0006FB54: 33-insn 64-bit accumulator. r0 = cb(); r1 = cb(); cb(r0);
- * returns a 64-bit global base (hi:lo from two globals) plus the 32-bit delta
- * (r1 - another global), with the manual sltu carry into the high word (long long
- * return in v0:v1). NM (reference decode): three collapsed-placeholder calls +
- * several collapsed D refs (distinct globals collapsed to D_00000000 here);
- * raw-.word game_libs reloc depression. */
-extern int gl_func_00000000();
-extern int D_00000000;
-long long gl_func_0006FB54(int a0) {
-    int r0 = gl_func_00000000(a0);
-    int r1 = gl_func_00000000(a0);
-    int delta = r1 - *(int *)&D_00000000;
-    long long base = ((long long)*(int *)&D_00000000 << 32) |
-                     (unsigned int)*(int *)((char *)&D_00000000 + 4);
-    gl_func_00000000(r0);
-    return base + (unsigned int)delta;
+/* gl_func_0006FB54 = libultra osGetTime (gettime.c verbatim): saveMask =
+ * __osDisableInt(); tmptime = osGetCount(); elapseCount = tmptime -
+ * __osBaseCounter; currentCount = __osCurrentTime;
+ * __osRestoreInt(saveMask); return currentCount + elapseCount.
+ * Retires the old "keeps r1 in $s0 / 64-bit spill pattern" -O2 note:
+ * this is an -O1 libultra helper (`register u32 saveMask` at -O1 IS the
+ * s0 coloring; the u64 add is native li-0 zero-extend + sltu carry).
+ * WIRED 2026-07-30 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO -O1 donor unit game_libs_o1_6FB54.c (33/33 at both 7.1 and
+ * 5.3 -O1), spliced over this -O2 stand-in. Body below is a placeholder
+ * for the splice. */
+long long gl_func_0006FB54(void) {
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FB54);
-#endif
 
 #ifdef NON_MATCHING
 /* STRUCTURAL first-pass 2026-05-31 (raw-.word USO decode). Straight-line
@@ -1881,147 +1864,22 @@ void gl_func_0006FDE8(int a0_hi, unsigned int a1_lo) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FDE8);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0006FE5C: 98-insn 64-bit free-list / heap-block search-and-split helper.
- * Size 0x188, frame 0x38.
- *
- * Walks a singly-linked-list of memory blocks at *(void**)&D_00000000, each
- * node holding a 64-bit free-region (offsets 0x10/0x14 = lo/hi end-pointer
- * pair, offset 0x0 = next-link, offset 0x4 = secondary link). Returns the
- * allocated block via the saved sp+0x28/0x2C pair (v0:v1 64-bit return).
- *
- * Decoded structure (raw-word disasm — high-level):
- *   struct FreeNode {
- *       FreeNode *next;        // 0x0  — list link
- *       FreeNode *secondary;   // 0x4  — secondary link (size-sorted? aux list?)
- *       uint32_t  start_lo;    // 0x10
- *       uint32_t  start_hi;    // 0x14 — alternate: end_lo
- *       // (loop reads 0x10/0x14 as 64-bit range-end pointer)
- *   };
- *
- *   uint64_t alloc_range(uint64_t size) {  // a0:a1 = size (64-bit)
- *       FreeNode *head_jal = setup_alloc(...);            // jal #1 (entry hook)
- *       FreeNode *cursor   = *(FreeNode**)&D_00000000;     // head pointer
- *       if (cursor == NULL) goto epilogue;
- *
- *       // STAGE 1: walk the list looking for a free block where
- *       //   block->[0x14]:[0x10] >= size  (64-bit unsigned compare)
- *       while (cursor != NULL) {
- *           uint64_t end   = ((u64)cursor->[0x14] << 32) | cursor->[0x10];
- *           uint64_t avail = end - cursor_base;
- *           if (avail >= size) break;
- *           cursor = cursor->next;
- *       }
- *       if (!cursor) goto epilogue;
- *
- *       // STAGE 2: split or unlink the block
- *       uint64_t new_end = (((u64)cursor->[0x14] << 32) | cursor->[0x10]) - size;
- *       // Update cursor's range: [0x10]:[0x14] = new_end (shrunk)
- *       cursor->[0x10] = (uint32_t)new_end;
- *       cursor->[0x14] = (uint32_t)(new_end >> 32);
- *
- *       // STAGE 3: chain to secondary list at offset 0x4 — propagate the shrink
- *       FreeNode *sec = cursor->[0x4];
- *       sec->[0x10] = cursor->[0x10];
- *       sec->[0x14] = cursor->[0x14];
- *       sec->[0x0]  = cursor->[0x0];    // (link rewire)
- *       cursor->[0x0]->[0x4] = sec->[0x4];
- *
- *       // STAGE 4: finalize via second jal
- *       finalize(allocated_block);                         // jal #2
- *
- *   epilogue:
- *       return v0:v1 (saved at sp+0x28:0x2C);
- *   }
- *
- * Notes:
- *  - Standard "best-fit free-list with primary+secondary links" pattern,
- *    common in N64 heap allocators. The two-link layout suggests an explicit
- *    size-sorted secondary list for fast lookup.
- *  - 64-bit comparison uses canonical `sltu/subu` chain.
- *  - 2 jal calls bookend the function (entry setup + exit finalize) — likely
- *    interrupt-mask wrap (`__osDisableInt` / `__osRestoreInt` per
- *    reference_1080_libc_export_symbols_in_game_libs.md). Heap operations
- *    must be critical-section guarded.
- *  - Return value is 64-bit v0:v1 — likely (allocated_addr_hi, allocated_addr_lo)
- *    for the K1-mapped uncached address of the new block.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-extern int gl_func_00000000();
-extern int D_00000000;
-// 64-bit free-list walk-and-insert. obj->0x10:0x14 is a 64-bit key. Walk the
-// list at *&D from *head, subtracting each block's 0x10:0x14 from the key
-// (the IDO-emitted subtract uses a borrow taken from the HI-word compare) until
-// the key fits, then write the reduced key back, shrink the chosen block, and
-// rewire links (obj->0=cur, obj->4=cur->4, *(cur->4)=obj, cur->4=obj). Bracketed
-// by entry/finalize cbs; returns the key pair v0:v1. Reloc-blind cbs/&D.
-long long gl_func_0006FE5C(char *obj) {
-    int saved;
-    char *cur;
-    char *d;
-    int key_lo, key_hi, cur_lo, cur_hi, b;
-
-    saved = gl_func_00000000(obj);
-    d = *(char **)&D_00000000;
-    cur = *(char **)d;
-    key_lo = *(int *)(obj + 0x10);
-    key_hi = *(int *)(obj + 0x14);
-    if (cur == d) {
-        goto insert;
-    }
-    cur_lo = *(int *)(cur + 0x10);
-    cur_hi = *(int *)(cur + 0x14);
-    if ((unsigned int)key_lo < (unsigned int)cur_lo) {
-        goto insert;
-    }
-    if ((unsigned int)cur_lo < (unsigned int)key_lo) {
-        goto sub;
-    }
-    if ((unsigned int)cur_hi >= (unsigned int)key_hi) {
-        goto insert;
-    }
-sub:
-    cur_lo = *(int *)(cur + 0x10);
-    cur_hi = *(int *)(cur + 0x14);
-    b = (unsigned int)key_hi < (unsigned int)cur_hi;
-    key_lo = (key_lo - cur_lo) - b;
-    key_hi = key_hi - cur_hi;
-    cur = *(char **)cur;
-    if (cur == *(char **)&D_00000000) {
-        goto insert;
-    }
-    cur_lo = *(int *)(cur + 0x10);
-    cur_hi = *(int *)(cur + 0x14);
-    if ((unsigned int)cur_lo < (unsigned int)key_lo) {
-        goto sub;
-    }
-    if ((unsigned int)key_lo < (unsigned int)cur_lo) {
-        goto insert;
-    }
-    if ((unsigned int)cur_hi < (unsigned int)key_hi) {
-        goto sub;
-    }
-insert:
-    *(int *)(obj + 0x10) = key_lo;
-    *(int *)(obj + 0x14) = key_hi;
-    if (cur != *(char **)&D_00000000) {
-        cur_lo = *(int *)(cur + 0x10);
-        cur_hi = *(int *)(cur + 0x14);
-        b = (unsigned int)cur_hi < (unsigned int)key_hi;
-        *(int *)(cur + 0x10) = (cur_lo - key_lo) - b;
-        *(int *)(cur + 0x14) = cur_hi - key_hi;
-    }
-    *(char **)(obj + 0x0) = cur;
-    *(int *)(obj + 0x4) = *(int *)(cur + 0x4);
-    *(char **)(*(int *)(cur + 0x4)) = obj;
-    *(int *)(cur + 0x4) = (int)obj;
-    gl_func_00000000(saved);
-    return ((long long)key_lo << 32) | (unsigned int)key_hi;
+/* gl_func_0006FE5C = libultra __osInsertTimer (timerintr.c verbatim):
+ * walk __osTimerList->next subtracting each timer's 64-bit value from
+ * tim until timep wraps to the list head or tim <= timep->value; store
+ * t->value = tim, decrement the successor's value, doubly-linked insert
+ * of t before timep, under __osDisableInt/__osRestoreInt; returns tim.
+ * Retires the old "64-bit free-list / heap search-and-split" decode
+ * (the 0x10/0x14 pair is OSTimer.value, the 0x0/0x4 links next/prev).
+ * WIRED 2026-07-30 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO -O1 donor unit game_libs_o1_6FE5C.c (98/98 at both 7.1 and
+ * 5.3 -O1), spliced over this -O2 stand-in. Body below is a placeholder
+ * for the splice. */
+long long gl_func_0006FE5C(void *t) {
+    volatile void *a = t;
+    (void)a;
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FE5C);
-#endif
 
 /* gl_func_0006FFE4 = libultra __osSetGlobalIntMask. LANDED 2026-06-21 as a
  * byte-identical TWIN-PORT of matched kernel func_800061F0 (kernel_011_b) --
