@@ -1517,43 +1517,22 @@ int gl_func_0006F3BC(void) {
     return busy;
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0006F3E4)();
+/* gl_func_0006F3E4 = libultra osJamMesg (jammesg.c verbatim): disable
+ * ints; while (validCount >= msgCount) either set running thread
+ * OS_STATE_WAITING(8) + __osEnqueueAndYield(&mq->fullqueue) when
+ * flag==OS_MESG_BLOCK, or restoreInt + return -1; then first = (first +
+ * msgCount - 1) % msgCount (the break7/break6 signed-div fingerprint),
+ * msg[first] = msg, validCount++, osStartThread(__osPopThread(&mq->mtqueue))
+ * if a receiver is blocked, restoreInt, return 0. Sits in the post1b2c
+ * -O1 libultra island next to 6FB54 osGetTime / 6FE5C __osInsertTimer;
+ * the old 38.75% m2c stub was an -O2 misread of the same logic.
+ * WIRED 2026-07-30 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO -O1 donor unit game_libs_o1_6F3E4.c (84/84 word-exact at 7.1
+ * -O1, first compile), spliced over this -O2 stand-in. Body below is a
+ * placeholder for the splice. */
 s32 gl_func_0006F3E4(char *arg0, s32 arg1, s32 arg2) {
-    s32 temp_t7;
-    char *temp_s0;
-
-    temp_s0 = gl_func_00062F64();
-    if (FW(arg0, 0x8) >= FW(arg0, 0x10)) {
-loop_1:
-        if (arg2 == 1) {
-            FW((*(int*)0), 0x10) = 8;
-            gl_func_00062F64((int)arg0 + 4);
-            if (FW(arg0, 0x8) < FW(arg0, 0x10)) {
-                goto block_5;
-            }
-            goto loop_1;
-        }
-        gl_func_00062F64(temp_s0);
-        return -1;
-    }
-block_5:
-    temp_t7 = FW(arg0, 0x10);
-    FW(arg0, 0xC) = (s32) ((s32) ((FW(arg0, 0xC) + temp_t7) - 1) % temp_t7);
-    *(int*)(FW(arg0, 0x14) + (FW(arg0, 0xC) * 4)) = arg1;
-    FW(arg0, 0x8) = (s32) (FW(arg0, 0x8) + 1);
-    if (*(int*)(FW(arg0, 0x0)) != 0) {
-        gl_func_00062F64(gl_func_00062F64(arg0));
-    }
-    gl_func_00062F64(temp_s0);
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F3E4);
-#endif
 
 /* gl_func_0006F534 = libultra osSetThreadPri. LANDED 2026-06-21 as a
  * byte-identical TWIN-PORT of matched kernel func_80006110 (kernel_011_b) --

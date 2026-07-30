@@ -1,0 +1,25 @@
+{
+ "function_name": "gl_func_0006F3E4",
+ "project": "projects/1080-agent-h",
+ "model": "claude-manual",
+ "start_time": "2026-07-30T23:46:13.382095+00:00",
+ "end_time": "2026-07-30T23:46:13.382095+00:00",
+ "steps": [
+  {
+   "step_number": 1,
+   "timestamp": "2026-07-30T23:46:13.382095+00:00",
+   "assistant_text": "IDENTIFIED: osJamMesg (os/jammesg.c verbatim; break7/break6 signed-div (first+msgCount-1)%msgCount fingerprint, OS_STATE_WAITING(8) sh at thread+0x10, __osEnqueueAndYield(&mq->fullqueue), __osPopThread/osStartThread tail). 84/84 word-exact at 7.1 -O1 first compile. Retires the 38.75% -O2 m2c stub misread. Sits in the post1b2c -O1 libultra island next to 6FB54 osGetTime / 6FE5C __osInsertTimer.",
+   "tool_calls": [],
+   "match_percent": 100.0,
+   "compiled": true,
+   "token_usage": null
+  }
+ ],
+ "outcome": "match",
+ "final_match_percent": 100.0,
+ "best_match_percent": 100.0,
+ "total_tokens": 0,
+ "instruction_count": 84,
+ "initial_m2c_source": null,
+ "final_source": "/* IDO -O1 donor for gl_func_0006F3E4 = libultra osJamMesg\n * (references/libreultra/src/os/jammesg.c, verbatim: disable ints;\n * while (validCount >= msgCount) either set running thread\n * OS_STATE_WAITING(8) + __osEnqueueAndYield(&mq->fullqueue) when\n * flag==OS_MESG_BLOCK, or restoreInt + return -1; then\n * first = (first + msgCount - 1) % msgCount (the break7/break6\n * signed-div fingerprint), msg[first] = msg, validCount++, pop+start\n * a blocked receiver, restoreInt, return 0).\n * Sits in the post1b2c -O1 libultra island next to 6FB54 (osGetTime)\n * and 6FE5C (__osInsertTimer) \u2014 same references-first vein; the old\n * 38.75% m2c stub was an -O2 misread.\n * Blank externs: _disint = __osDisableInt, _enqyield =\n * __osEnqueueAndYield, _resint = __osRestoreInt, _popthr =\n * __osPopThread, _startthr = osStartThread; D_00000000_runthread =\n * __osRunningThread (OSThread*, lui/lw pair).\n * Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned int u32;\ntypedef unsigned short u16;\ntypedef int s32;\ntypedef void *OSMesg;\n\ntypedef struct OSThread_s {\n    /* 0x00 */ struct OSThread_s *next;\n    /* 0x04 */ s32 priority;\n    /* 0x08 */ struct OSThread_s **queue;\n    /* 0x0C */ struct OSThread_s *tlnext;\n    /* 0x10 */ u16 state;\n    /* 0x12 */ u16 flags;\n} OSThread;\n\ntypedef struct {\n    /* 0x00 */ OSThread *mtqueue;\n    /* 0x04 */ OSThread *fullqueue;\n    /* 0x08 */ s32 validCount;\n    /* 0x0C */ s32 first;\n    /* 0x10 */ s32 msgCount;\n    /* 0x14 */ OSMesg *msg;\n} OSMesgQueue;\n\nextern u32 gl_func_00000000_disint(void);              /* __osDisableInt */\nextern void gl_func_00000000_enqyield(OSThread **);    /* __osEnqueueAndYield */\nextern void gl_func_00000000_resint(u32);              /* __osRestoreInt */\nextern OSThread *gl_func_00000000_popthr(OSThread **); /* __osPopThread */\nextern void gl_func_00000000_startthr(OSThread *);     /* osStartThread */\nextern OSThread *D_00000000_runthread;                 /* __osRunningThread */\n\ns32 gl_func_0006F3E4(OSMesgQueue *mq, OSMesg msg, s32 flag)\n{\n    register u32 saveMask = gl_func_00000000_disint();\n\n    while (mq->validCount >= mq->msgCount) {\n        if (flag == 1) {\n            D_00000000_runthread->state = 8;\n            gl_func_00000000_enqyield(&mq->fullqueue);\n        } else {\n            gl_func_00000000_resint(saveMask);\n            return -1;\n        }\n    }\n\n    mq->first = (mq->first + mq->msgCount - 1) % mq->msgCount;\n    mq->msg[mq->first] = msg;\n    mq->validCount++;\n    if (mq->mtqueue->next != 0) {\n        gl_func_00000000_startthr(gl_func_00000000_popthr(&mq->mtqueue));\n    }\n    gl_func_00000000_resint(saveMask);\n    return 0;\n}\n"
+}
