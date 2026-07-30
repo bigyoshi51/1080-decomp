@@ -968,17 +968,34 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DA7C);
 //   and the fixed blit routine 0x0C00C813 (≈0x31F4C) — same
 //   mode/target combination as the gl_func_0001D0AC sibling but with
 //   the extra two-flag conditional structure.
-// Caps (DEFERRED): single jr $ra. Glyph-draw family variant:
-//   rec = &D_00000000 + (short)a1 * 0x158; e = rec + attr/idx math
-//   + 0x50; visibility gate rec->0x1C==1; two 0x3204C blit calls
-//   (mode 0xC80, second on e->0x12!=0 with (e->0x10+0xC80)&0xFFFF);
-//   trailing 0xC759 helper (a1=0xC80,a2=0x340, arg from e->0x54);
-//   final rec->0x18 = 0 flag clear; return draw result. Real-C
-//   structural body below; byte-match deferred — placeholder jals
-//   (0xC813/0xC759) are runtime-patched USO relocs (need USO reloc
-//   infra), plus beql/index-multiply schedule. Name pre-checked: no
-//   extern reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder for the helpers.
+// Caps: single jr $ra. CORRECTED DECODE (2026-07-30 agent-h probe;
+//   body below is STALE-STRUCTURE, kept only because its fuzzy 48.6
+//   beats the correct-structure probe's 20.1 — revert-of-regressive
+//   convention). TRUE structure (verified vs expected/ .o):
+//     rec = &D_0 + (short)a1*0x158 (in t0, spilled 40(sp));
+//     attr = rec->0x1B; v0b = rec + attr*0x64 + (short)a2*0x14;
+//     e = v0b + 0x50 (v1, addiu +80, spilled 44(sp));
+//     if (rec->0x1C == 1) {                      // bne t4,1 -> ELSE
+//       r = blit3204C(a0, 0xC80, u16 e->0xE, s16 e->0x10, (short)a1);
+//       if (s16 e->0x12 != 0)
+//         r = blit3204C(r, (e->0x10+0xC80)&0xFFFF, 0, e->0x12, a1);
+//     } else {
+//       helper31D64(a0, 0xC80, 0x340, *(int*)(v0b+0x54)+0x80000000);
+//       r = a0 + 8;                              // addiu s0,s0,8
+//     }
+//     rec->0x18 = 0; return r;                   // r lives in s0
+//   PROVEN LEVERS (from the probe, re-apply): K&R short params
+//   (int a0; short a1; short a2;) -> exact sw a1,52/lh 54(sp) homing
+//   head, t6/t7/t8 chain regs exact; r = a0 copy at top -> s0=a0;
+//   else-arm read via *(int*)(e+4) -> addiu v1,+80 + 14/16(v1)
+//   offsets + 44(sp) spill all match. REMAINING CAP that made the
+//   probe score low: IDO forward-substitutes the attr*0x64+a2*0x14
+//   chain into BOTH arms (target computes once pre-branch, flag
+//   lbu LATE at word ~22) — dedup lever not found in-budget; crack
+//   that and the probe body should jump ~+30pp. jals 0x3204C/0x31D64
+//   are baked USO-LOCAL (mid-fragment targets, no in-tree symbol);
+//   gl_func_00000000 placeholder convention. Name pre-checked: no
+//   extern reuse (collision-safe).
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
