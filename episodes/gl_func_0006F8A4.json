@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006F8A4",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-07-30T14:42:56.593885+00:00",
+  "end_time": "2026-07-30T14:42:56.593905+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-30T14:42:56.593900+00:00",
+      "assistant_text": "IDENTIFIED: libultra osEPiRawStartDma (io/epirawdma.c verbatim). Old m2c wrap at 45.1% misread gl_pidma_tbl (= __osCurrentHandle) and typed the osVirtualToPhysical blank-jal as gl_func_00062F64. EPI_SYNC macro expansion (WAIT_ON_IOBUSY spin + DOM1/DOM2 UPDATE_REG latch) + PI_DRAM/CART_ADDR + WR/RD_LEN kick. IDO 5.3 -O1 donor, 137/137 exact on first compile, size-exact 0x224 (pad sidecar untouched). Same-day sibling of the 6DD14 __osDevMgrMain donor; fingerprint: ra-only-ish frame, stack-resident locals, sequential t-reg reloads = IDO 5.3 -O1 libultra \u2014 probe libreultra identity before grinding the stub.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 137,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_0006F8A4 = libultra osEPiRawStartDma\n * (io/epirawdma.c verbatim, 2.0I): EPI_SYNC (WAIT_ON_IOBUSY spin on\n * PI_STATUS_REG, then domain-latch \u2014 if __osCurrentHandle[domain] !=\n * pihandle, UPDATE_REG the four BSD DOM1/DOM2 latency/pageSize/\n * relDuration/pulse registers that differ and swap the handle in),\n * then PI_DRAM_ADDR = osVirtualToPhysical(dramAddr), PI_CART_ADDR =\n * K1_TO_PHYS(baseAddress|devAddr), and kick WR_LEN (OS_READ) /\n * RD_LEN (OS_WRITE); unknown direction returns -1. Sibling of the\n * LEO-family donors (6DD14 __osDevMgrMain etc). Blank externs:\n * D_00000000_curhdl = __osCurrentHandle[2] (lui 0/%lo 0 table),\n * gl_func_00000000_vtop = osVirtualToPhysical (blank jal). PI regs are\n * absolute 0xA460xxxx literals (no reloc). Spliced into\n * game_libs_post1b2c.c.o via REPLACE_FUNC_BODY; the trailing pad\n * sidecar gl_func_0006F8A4_pad.s is unaffected (splice is size-exact,\n * 0x224). */\ntypedef unsigned int u32;\ntypedef unsigned char u8;\ntypedef int s32;\n\ntypedef struct OSPiHandle_s {\n    struct OSPiHandle_s *next;  /* 0x00 */\n    u8 type;                    /* 0x04 */\n    u8 latency;                 /* 0x05 */\n    u8 pageSize;                /* 0x06 */\n    u8 relDuration;             /* 0x07 */\n    u8 pulse;                   /* 0x08 */\n    u8 domain;                  /* 0x09 */\n    u32 baseAddress;            /* 0x0C */\n    u32 speed;                  /* 0x10 */\n    u8 transferInfo[0x60];      /* 0x14 */\n} OSPiHandle;\n\nextern OSPiHandle *D_00000000_curhdl[2];       /* __osCurrentHandle */\nextern u32 gl_func_00000000_vtop(void *);      /* osVirtualToPhysical */\n\n#define IO_READ(a) (*(volatile u32 *)(a))\n#define IO_WRITE(a, v) (*(volatile u32 *)(a) = (v))\n\ns32 gl_func_0006F8A4(OSPiHandle *pihandle, s32 direction, u32 devAddr, void *dramAddr, u32 size)\n{\n    u32 stat;\n    u32 domain;\n\n    /* WAIT_ON_IOBUSY */\n    stat = IO_READ(0xA4600010);\n    while (stat & 3)\n        stat = IO_READ(0xA4600010);\n\n    domain = pihandle->domain;\n    if (D_00000000_curhdl[domain] != pihandle) {\n        OSPiHandle *cHandle = D_00000000_curhdl[domain];\n        if (domain == 0) {\n            if (cHandle->latency != pihandle->latency)\n                IO_WRITE(0xA4600014, pihandle->latency);\n            if (cHandle->pageSize != pihandle->pageSize)\n                IO_WRITE(0xA460001C, pihandle->pageSize);\n            if (cHandle->relDuration != pihandle->relDuration)\n                IO_WRITE(0xA4600020, pihandle->relDuration);\n            if (cHandle->pulse != pihandle->pulse)\n                IO_WRITE(0xA4600018, pihandle->pulse);\n        } else {\n            if (cHandle->latency != pihandle->latency)\n                IO_WRITE(0xA4600024, pihandle->latency);\n            if (cHandle->pageSize != pihandle->pageSize)\n                IO_WRITE(0xA460002C, pihandle->pageSize);\n            if (cHandle->relDuration != pihandle->relDuration)\n                IO_WRITE(0xA4600030, pihandle->relDuration);\n            if (cHandle->pulse != pihandle->pulse)\n                IO_WRITE(0xA4600028, pihandle->pulse);\n        }\n        D_00000000_curhdl[domain] = pihandle;\n    }\n\n    IO_WRITE(0xA4600000, gl_func_00000000_vtop(dramAddr));\n    IO_WRITE(0xA4600004, (pihandle->baseAddress | devAddr) & 0x1FFFFFFF);\n    switch (direction) {\n    case 0: /* OS_READ */\n        IO_WRITE(0xA460000C, size - 1);\n        break;\n    case 1: /* OS_WRITE */\n        IO_WRITE(0xA4600008, size - 1);\n        break;\n    default:\n        return -1;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6F8A4.c",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/gl_func_0006F8A4.s",
+    "segment": "game_libs",
+    "compiler": "ido5.3",
+    "compiler_flags": "-O1 (REPLACE_FUNC_BODY donor)",
+    "verification": "137/137 words compile-exact standalone probe + ROM byte-identical"
+  }
+}

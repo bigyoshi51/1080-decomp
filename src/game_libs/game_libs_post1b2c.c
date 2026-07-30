@@ -1701,96 +1701,23 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F834);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F834_pad.s")
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-#ifndef B
-#define B(p, o) (*(u8 *)((char *)(p) + (o)))
-#endif
-extern char *gl_pidma_tbl[];
-s32 gl_func_0006F8A4(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    volatile s32 sp2C;
-    s32 sp28;
-    char *sp24;
-    s32 temp_t7;
-    u8 temp_t4;
-    u8 temp_t5;
-    u8 temp_t5_2;
-    u8 temp_t5_3;
-    u8 temp_t5_4;
-    u8 temp_t8;
-    u8 temp_t8_2;
-    u8 temp_t8_3;
-    u8 temp_t8_4;
-    char *temp_t6;
-
-    temp_t7 = *(s32 *)0xA4600010;
-    sp2C = temp_t7;
-    if (temp_t7 & 3) {
-        do {
-            sp2C = *(s32 *)0xA4600010;
-        } while (sp2C & 3);
-    }
-    temp_t4 = B(arg0, 0x9);
-    temp_t6 = gl_pidma_tbl[temp_t4];
-    sp28 = (s32) temp_t4;
-    if (temp_t6 != arg0) {
-        sp24 = temp_t6;
-        if (temp_t4 == 0) {
-            temp_t8 = B(arg0, 0x5);
-            if (B(temp_t6, 0x5) != temp_t8) {
-                *(s32 *)0xA4600014 = (s32) temp_t8;
-            }
-            temp_t5 = B(arg0, 0x6);
-            if (B(sp24, 0x6) != temp_t5) {
-                *(s32 *)0xA460001C = (s32) temp_t5;
-            }
-            temp_t8_2 = B(arg0, 0x7);
-            if (B(sp24, 0x7) != temp_t8_2) {
-                *(s32 *)0xA4600020 = (s32) temp_t8_2;
-            }
-            temp_t5_2 = B(arg0, 0x8);
-            if (B(sp24, 0x8) != temp_t5_2) {
-                *(s32 *)0xA4600018 = (s32) temp_t5_2;
-            }
-        } else {
-            temp_t8_3 = B(arg0, 0x5);
-            if (B(sp24, 0x5) != temp_t8_3) {
-                *(s32 *)0xA4600024 = (s32) temp_t8_3;
-            }
-            temp_t5_3 = B(arg0, 0x6);
-            if (B(sp24, 0x6) != temp_t5_3) {
-                *(s32 *)0xA460002C = (s32) temp_t5_3;
-            }
-            temp_t8_4 = B(arg0, 0x7);
-            if (B(sp24, 0x7) != temp_t8_4) {
-                *(s32 *)0xA4600030 = (s32) temp_t8_4;
-            }
-            temp_t5_4 = B(arg0, 0x8);
-            if (B(sp24, 0x8) != temp_t5_4) {
-                *(s32 *)0xA4600028 = (s32) temp_t5_4;
-            }
-        }
-        gl_pidma_tbl[sp28] = arg0;
-    }
-    *(s32 *)0xA4600000 = ((int(*)())gl_func_00062F64)(arg3);
-    *(s32 *)0xA4600004 = (FW(arg0, 0xC) | arg2) & 0x1FFFFFFF;
-    switch (arg1) {                                 /* irregular */
-    case 0:
-        *(s32 *)0xA460000C = arg4 - 1;
-block_27:
-        return 0;
-    case 1:
-        *(s32 *)0xA4600008 = arg4 - 1;
-        goto block_27;
-    default:
-        return -1;
-    }
+/* gl_func_0006F8A4 = libultra osEPiRawStartDma (io/epirawdma.c verbatim):
+ * EPI_SYNC (PI_STATUS busy spin + __osCurrentHandle[domain] latch of the
+ * four BSD DOM1/DOM2 latency/pageSize/relDuration/pulse registers that
+ * differ), PI_DRAM_ADDR = osVirtualToPhysical(dramAddr), PI_CART_ADDR =
+ * K1_TO_PHYS(baseAddress|devAddr), kick WR_LEN/RD_LEN by direction,
+ * unknown direction -1. The old NM wrap's gl_pidma_tbl WAS
+ * __osCurrentHandle and its gl_func_00062F64 call is a blank jal in the
+ * ROM (osVirtualToPhysical via USO reloc), NOT the 62F64 helper. Needs
+ * IDO 5.3 -O1 (stack-resident locals, direction promoted to s0), so the
+ * real C lives in the donor unit game_libs_ido53_6F8A4.c (137/137 words
+ * compile-exact, size-exact 0x224). Body below is a placeholder for the
+ * REPLACE_FUNC_BODY splice (its bytes are replaced by the donor). */
+s32 gl_func_0006F8A4(void) {
+    volatile int i;
+    for (i = 0; i < 15; i++) {}
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F8A4);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F8A4_pad.s")
 
 /* gl_func_0006FAD4: 32-insn flag-extract + conditional bit-set/clear.
