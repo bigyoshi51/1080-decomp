@@ -1047,70 +1047,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000641DC);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00064388)();
-typedef struct { s32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00064388;
-void gl_func_00064388(char *arg0, f32 arg1, char *arg2, f32 arg3) {
-    Q_00064388 sp30;
-    Q_00064388 sp44;
-    Q_00064388 sp60;
-    Q_00064388 sp6C;
-    Q_00064388 spA4;
-    f32 sp9C;
-    f32 sp98;
-    f32 sp94;
-    f32 sp90;
-    char *sp28;
-    f32 temp_f0;
-    f32 temp_f14;
-    f32 temp_f16;
-    f32 temp_f2;
-    f32 temp_f2_2;
-    char *temp_a1;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v1;
+typedef struct { s32 x, y, z; } V3_64388;
+extern f32 gl_func_00000000_sq64388(f32);
+extern void gl_func_00000000_n64388(char *);
+extern void gl_func_00000000_p64388(char *, char *, f32);
+void gl_func_00064388(char *arg0, char *arg1, char *arg2, f32 arg3) {
+    V3_64388 m;      /* sp164 */
+    f32 g[3];        /* sp148 */
+    f32 spd;         /* sp144 */
+    V3_64388 t;      /* sp108 carrier */
+    V3_64388 d;      /* sp96 */
+    V3_64388 e;      /* sp68 */
+    V3_64388 h;      /* sp48 */
+    f32 len;
+    f32 one;
+    f32 c0, c1, c2;
+    char *pv;
+    char *qv;
+    char *pn;
+    char *pw;
 
-    temp_f2 = (*(f32*)((char*)arg0 + 0x0));
-    if (!((f64) temp_f2 < (*(f64*)((char*)&D_00000000 + 0x20C8)))) {
-        temp_v0 = (int)arg0 + 4;
-        temp_v1 = (int)arg0 + 0x28;
-        (*(f32*)((char*)arg0 + 0x4)) = (f32) ((*(f32*)((char*)arg0 + 0x4)) / temp_f2);
-        (*(f32*)((char*)arg0 + 0x8)) = (f32) ((*(f32*)((char*)arg0 + 0x8)) / temp_f2);
-        (*(f32*)((char*)arg0 + 0xC)) = (f32) ((*(f32*)((char*)arg0 + 0xC)) / temp_f2);
-        *(float *)&sp60.unk8 = (*(f32*)((char*)temp_v0 + 0x8)) - (*(f32*)((char*)temp_v1 + 0x8));
-        *(float *)&sp60.unk4 = (*(f32*)((char*)temp_v0 + 0x4)) - (*(f32*)((char*)temp_v1 + 0x4));
-        *(float *)&sp60.unk0 = (*(f32*)((char*)arg0 + 0x4)) - (*(f32*)((char*)arg0 + 0x28));
-        sp6C.unk0 = sp60.unk0;
-        sp6C.unk4 = sp60.unk4;
-        sp6C.unk8 = sp60.unk8;
-        sp44.unk0 = sp6C.unk0;
-        sp44.unk4 = sp6C.unk4;
-        sp44.unk8 = sp6C.unk8;
-        sp9C = *(f32*)&sp44.unk8;
-        sp98 = *(f32*)&sp44.unk4;
-        sp94 = *(f32*)&sp44.unk0;
-        temp_f0 = (*(f32*)((char*)arg0 + 0x1C));
-        temp_f2_2 = (*(f32*)((char*)arg0 + 0x20));
-        temp_f14 = (*(f32*)((char*)arg0 + 0x24));
-        temp_a1 = (int)arg0 + 0x1C;
-        temp_f16 = ((f32(*)())gl_func_00062F64)((temp_f0 * temp_f0) + (temp_f2_2 * temp_f2_2) + (temp_f14 * temp_f14), temp_f14) / (*(f32*)((char*)&D_00000000 + 0x20D0));
-        sp28 = temp_a1;
-        sp90 = temp_f16 * arg3;
-        gl_func_00062F64(temp_a1, temp_a1);
-        gl_func_00062F64(arg1, temp_a1, sp90);
-        temp_v0_2 = (int)arg0 + 0x10;
-        *(float *)&sp30.unk0 = (*(f32*)((char*)arg0 + 0x10)) * 1.0f;
-        *(float *)&sp30.unk4 = (*(f32*)((char*)temp_v0_2 + 0x4)) * 1.0f;
-        *(float *)&sp30.unk8 = (*(f32*)((char*)temp_v0_2 + 0x8)) * 1.0f;
-        sp6C.unk0 = sp30.unk0;
-        sp6C.unk4 = sp30.unk4;
-        sp6C.unk8 = sp30.unk8;
-        spA4.unk0 = sp6C.unk0;
-        spA4.unk4 = sp6C.unk4;
-        spA4.unk8 = sp6C.unk8;
-        (*(f32*)((char*)arg2 + 0x0)) = (f32) ((*(f32*)((char*)arg2 + 0x0)) + *(f32*)&spA4.unk0);
-        (*(f32*)((char*)arg2 + 0x4)) = (f32) ((*(f32*)((char*)arg2 + 0x4)) + *(f32*)&spA4.unk4);
-        (*(f32*)((char*)arg2 + 0x8)) = (f32) ((*(f32*)((char*)arg2 + 0x8)) + *(f32*)&spA4.unk8);
+    len = *(f32*)((char*)arg0 + 0x0);
+    if (!((f64)len < *(f64*)((char*)&D_00000000 + 0x20C8))) {
+        pv = arg0 + 4;
+        qv = arg0 + 0x28;
+        *(f32*)((char*)arg0 + 0x4) = *(f32*)((char*)arg0 + 0x4) / len;
+        *(f32*)((char*)arg0 + 0x8) = *(f32*)((char*)arg0 + 0x8) / len;
+        *(f32*)((char*)arg0 + 0xC) = *(f32*)((char*)arg0 + 0xC) / len;
+        *(f32*)&d.z = *(f32*)((char*)pv + 0x8) - *(f32*)((char*)qv + 0x8);
+        *(f32*)&d.y = *(f32*)((char*)pv + 0x4) - *(f32*)((char*)qv + 0x4);
+        *(f32*)&d.x = *(f32*)((char*)pv + 0x0) - *(f32*)((char*)qv + 0x0);
+        t = d;
+        e = t;
+        g[2] = *(f32*)&e.z;
+        g[1] = *(f32*)&e.y;
+        g[0] = *(f32*)&e.x;
+        c0 = *(f32*)((char*)arg0 + 0x1C);
+        c1 = *(f32*)((char*)arg0 + 0x20);
+        c2 = *(f32*)((char*)arg0 + 0x24);
+        pn = arg0 + 0x1C;
+        spd = (gl_func_00000000_sq64388((c0 * c0) + (c1 * c1) + (c2 * c2)) / *(f32*)((char*)&D_00000000 + 0x20D0)) * arg3;
+        gl_func_00000000_n64388(pn);
+        gl_func_00000000_p64388(arg1, pn, spd);
+        pw = arg0 + 0x10;
+        if (1) { one = 1.0f; } else { one = arg3; }
+        *(f32*)&h.x = *(f32*)((char*)pw + 0x0) * one;
+        *(f32*)&h.y = *(f32*)((char*)pw + 0x4) * one;
+        *(f32*)&h.z = *(f32*)((char*)pw + 0x8) * one;
+        t = h;
+        m = t;
+        *(f32*)((char*)arg2 + 0x0) = *(f32*)((char*)arg2 + 0x0) + *(f32*)&m.x;
+        *(f32*)((char*)arg2 + 0x4) = *(f32*)((char*)arg2 + 0x4) + *(f32*)&m.y;
+        *(f32*)((char*)arg2 + 0x8) = *(f32*)((char*)arg2 + 0x8) + *(f32*)&m.z;
     }
 }
 #else

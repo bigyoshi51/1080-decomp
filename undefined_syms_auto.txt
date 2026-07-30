@@ -3169,3 +3169,6 @@ D_0001B710_w1 = 0x0001B710;
 D_0001B710_w0 = 0x0001B710;
 D_3BE1C_128 = 0x00000128;
 D_3BE1C_1EE9C = 0x0001EE9C;
+gl_func_00000000_sq64388 = 0x00000000;  /* f32(f32) blank sqrt-family callee for gl_func_00064388 */
+gl_func_00000000_n64388 = 0x00000000;  /* void(char*) blank normalize callee for gl_func_00064388 */
+gl_func_00000000_p64388 = 0x00000000;  /* void(char*,char*,f32) blank callee for gl_func_00064388 */
