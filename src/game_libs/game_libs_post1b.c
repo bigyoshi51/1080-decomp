@@ -6092,10 +6092,12 @@ void gl_func_0006AF44(int *target) {
  *         } while (dst != end);
  *     }
  *
- * TRAILING FRAGMENT (0x6B0F0..0x6B0FC, 3 insns): nop; lui $t6, 0x0; lw $t6, 0($t6).
- *   Incomplete fragment (no prologue, no jr) — likely start of a hardcoded-
- *   address libc thunk that the linker fills in. Variant of
- *   feedback_splat_too_big_incomplete_fragment_tail.md.
+ * TRAILING FRAGMENT (0x6B0F0, was 3 insns): RESOLVED 2026-07-30. The lui/lw
+ *   $t6 pair was gl_func_0006B0FC's stolen __osDiskHandle prologue (absorbed
+ *   into its .s; see __osLeoInterrupt below); the leading alignment nop is
+ *   folded into this bzero .s tail (0xA8->0xAC) -- a lone 1-word pad
+ *   INCLUDE_ASM emits 2 words (assembler min-size), shifting layout +4.
+ *   game_libs_func_0006B0F0 no longer exists as a symbol.
  *
  * Notes:
  *  - This is the IDO-canonical bzero emission (4-align prefix, 32-byte unroll
@@ -6123,204 +6125,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B048);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006B0F0);
 
-#ifdef NON_MATCHING
-/* RECONSTRUCTED 2026-06-22 (agent-i, big-swing): faithful structure from raw
- * target words (.s, 0x69C / 423 insns, frame 0x40). Supersedes the broken
- * PASS-1 m2c graft (wrong frame 0x58, "M2C unset $t6", phantom &D+huge offsets).
- *
- * STRUCTURAL CAP -- cannot byte-match: the controller base pointer arrives in
- * CALLER-SET $t6 (no prologue load: `addiu $t7,$t6,20` / `lhu $t8,26($t6)` use
- * $t6 with no prior write; no .s caller jal'd here -> dispatched via fn-ptr that
- * pre-loads $t6). IDO C places the 1st pointer arg in $a0, never $t6, and there
- * is no standard-C construct to read $t6 as an incoming value (__asm__ extended
- * syntax is rejected by IDO cfe). Same class as gl_func ~line 2333 ($v0/$v1
- * caller-set) -- see feedback_caller_set_int_reg_cap_1080_game_libs. Build path
- * stays INCLUDE_ASM; this body documents the true control flow only.
- *
- * Layout off caller-set base `ctl` ($t6):
- *   hdr  = (Hdr*)((char*)ctl + 20)          [sp+0x30]
- *   cur  = (Cur*)((char*)ctl + 20 + hdr->idx*0x24 + 24)   [sp+0x2C]
- *     where idx = *(u16*)((char*)ctl + 26)  [lhu, unaligned-safe halfword]
- * Hdr fields: +0 state(s32) +4 type(u16) +6 flag(u16) +8 ctr(s32)
- *             +32 chk_ptr(s32*) +40 s32 +64 s32 +72 s32
- * Cur fields: +0 code(s32) +4 s32 +8 arg(s32) +12 s32 +16 n(s32)
- *             +20 row[n](s32, written at +20+n*4) +24 s32
- * MMIO: 0xA4600010 (SP status/busy), 0xA5000508 / 0xA5000510 (VI/regs).
- * &D_00000000 word: a global flags reg (RMW with 0x800 clr / 0x100401 set). */
-typedef struct {
-    s32 state;     /* +0  */
-    u16 type;      /* +4  */
-    u16 flag;      /* +6  */
-    s32 ctr;       /* +8  */
-    char pad0C[20];/* +12..+1F (cur array begins at +24-from-base) */
-    s32 *chk_ptr;  /* +32 */
-    s32 unk24[2];  /* +36, +40 */
-    char pad2C[20];/* +44..+3F */
-    s32 unk40;     /* +64 */
-    s32 unk44;     /* +68 */
-    s32 unk48;     /* +72 */
-} Hdr;
-typedef struct {
-    s32 code;      /* +0  */
-    s32 unk4;      /* +4  */
-    s32 arg;       /* +8  */
-    s32 unkC;      /* +12 */
-    s32 n;         /* +16 */
-    s32 row[2];    /* +20 (+20 + n*4) */
-} Cur;
-
-s32 gl_func_0006B0FC(char *ctl /* caller-set $t6 */) {
-    s32 flags;
-    s32 status;
-    s32 reg510;
-    Hdr *hdr;
-    Cur *cur;
-    s32 *chk;
-    u16 idx;
-    s32 *gflag = (s32 *)&D_00000000;
-
-    flags = 0;
-    idx = *(u16 *)((char *)ctl + 26);
-    hdr = (Hdr *)((char *)ctl + 20);
-    cur = (Cur *)((char *)ctl + 20 + idx * 0x24 + 24);
-
-    status = *(volatile s32 *)0xA4600010;
-    if (status & 1) {
-        *gflag = *gflag & ~0x800;
-        cur->code = 0x1D;
-        gl_func_0007FEEC();
-        return 1;
-    }
-    while (*(volatile s32 *)0xA4600010 & 3) {
-    }
-    flags = *(volatile s32 *)0xA5000508;
-    if (flags & 0x02000000) {
-        while (*(volatile s32 *)0xA4600010 & 3) {
-        }
-        *(volatile s32 *)0xA5000510 = *(s32 *)((char *)hdr + 16) | 0x01000000;
-        cur->code = 0;
-        return 0;
-    }
-    if (hdr->state == 2) {
-        return 1;
-    }
-    if (flags & 0x08000000) {
-        while (*(volatile s32 *)0xA4600010 & 3) {
-        }
-        cur->code = 0x16;
-        gl_func_0007FEEC();
-        *(volatile s32 *)0xA4600010 = 2;
-        *gflag = *gflag | 0x100401;
-        return 1;
-    }
-    if (hdr->state == 1) {
-        if (flags & 0x40000000) {
-            cur->unk4 += cur->unkC;
-            hdr->ctr += 1;
-            func_00000000(*gflag, 1, 0x05000400, cur->unk4, cur->unkC);
-        } else if (hdr->ctr + 1 != hdr->type * 0x55) {
-            cur->code = 0x18;
-            gl_func_0007FE04();
-        } else {
-            *(volatile s32 *)0xA4600010 = 2;
-            *gflag = *gflag | 0x100401;
-            cur->code = 0;
-            gl_func_0007FEEC();
-        }
-        return 1;
-    }
-    if (hdr->state != 0) {
-        cur->code = 4;
-        gl_func_0007FE04();
-        return 1;
-    }
-
-    /* hdr->state == 0 */
-    if (hdr->type == 3) {
-        if (cur->n + 0x11 < hdr->ctr) {
-            cur->code = 0;
-            gl_func_0007FE04();
-            return 1;
-        }
-        if (!(flags & 0x40000000)) {
-            cur->code = 0x17;
-            gl_func_0007FE04();
-            return 1;
-        }
-    } else {
-        cur->unk4 += cur->unkC;
-    }
-
-    reg510 = *(volatile s32 *)0xA5000510;
-    if (((reg510 & 0x200000) && (reg510 & 0x400000)) || (reg510 & 0x02000000)) {
-        if ((u32) cur->n >= 4U) {
-            if (hdr->type != 3 || hdr->ctr >= 0x53) {
-                cur->code = 0x17;
-                gl_func_0007FE04();
-                return 1;
-            }
-        } else {
-            cur->row[cur->n] = hdr->ctr + 1;
-        }
-        cur->n += 1;
-    }
-
-    if (flags & 0x10000000) {
-        if (hdr->ctr != 0x57) {
-            cur->code = 0x18;
-            gl_func_0007FE04();
-        }
-        if (hdr->type == 2 && hdr->flag == 0) {
-            hdr->flag = 1;
-            hdr->ctr = -1;
-            hdr->unk40 -= hdr->unk48;
-            cur->code = 0x16;
-        } else {
-            *(volatile s32 *)0xA4600010 = 2;
-            *gflag = *gflag | 0x100401;
-            hdr->state = 2;
-            cur->code = 0;
-        }
-        func_00000000(*gflag, 0, 0x05000000, cur->arg, cur->unkC * 4);
-        return 1;
-    }
-
-    if (hdr->ctr == -1 && hdr->type == 2 && hdr->flag == 1) {
-        chk = (s32 *)((char *)hdr + 24);
-        if (hdr->unk24[1] == 0) {
-            s32 *p = hdr->chk_ptr;
-            if ((p[3] | (p[0] | p[1] | p[2])) != 0) {
-                *(s32 *)((char *)hdr + 24) = 0x18;
-                gl_func_0007FE04();
-                return 1;
-            }
-        }
-        *chk = 0;
-        gl_func_0007FEEC();
-    }
-
-    hdr->ctr += 1;
-    if (flags & 0x40000000) {
-        if (hdr->ctr >= 0x55) {
-            cur->code = 0x18;
-            gl_func_0007FE04();
-            return 1;
-        }
-        func_00000000(*gflag, 0, 0x05000400, cur->unk4, cur->unkC);
-        cur->code = 0;
-        return 1;
-    }
-    if (hdr->ctr < 0x55) {
-        cur->code = 0x18;
-        gl_func_0007FE04();
-    }
+/* gl_func_0006B0FC = libultra __osLeoInterrupt (io/leointerrupt.c verbatim,
+ * 2.0-era layout): the 64DD LEO cart-interrupt service routine. The prior
+ * "caller-set $t6 structural cap" was a stolen-prologue misread (same as
+ * 6B7A0): the 2-word orphan at 0x6B0F4 is this function's __osDiskHandle
+ * lui/lw load, absorbed into the .s -- true entry 0x6B0F4, and the leading
+ * alignment nop at 0x6B0F0 stays as the 1-word pad INCLUDE_ASM above.
+ * PI DMA-busy => LEO_ERROR_29 (+__OSGlobalIntMask &= ~SR_IBIT4) + resume;
+ * LEO_STATUS mechanic-intr ack (LEO_BM_CTL |= 0x01000000); BM error =>
+ * LEO_ERROR_22; cmdType1 write-chain / cmdType0 read path with C1 error
+ * bookkeeping, C2 transfer (LEO_C2_BUFF, sectorSize*4), track-mode block
+ * flip, C2-buffer zero check. jal 0x7FEEC = __osLeoResume, jal 0x7FE04 =
+ * __osLeoAbnormalResume, blank jal = osEPiRawStartDma (gl_func_0006F8A4).
+ * Needs IDO 5.3 -O1 (stack-resident locals incl. volatile pi_stat, ra-only
+ * frame 0x40); real C lives in the donor unit game_libs_ido53_6B0FC.c
+ * (425/425 words compile-exact incl. the absorbed prologue), spliced via
+ * REPLACE_FUNC_BODY. Body below is a placeholder for the splice (its bytes
+ * are replaced by the donor). */
+s32 gl_func_0006B0FC(void) {
+    volatile int i;
+    for (i = 0; i < 15; i++) {}
     return 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006B0FC);
-#endif
 
 /* gl_func_0006B7A0: PI status-poll + 0xA5000510 DMA-register writes + hardcoded
  * jal 0x7FEEC (58 insns incl. the absorbed 2-word orphan

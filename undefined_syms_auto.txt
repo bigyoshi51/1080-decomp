@@ -3156,3 +3156,8 @@ gl_d_42938_qb = 0x0001FCE8;  /* game_libs_func_00042938 draw arg blob B */
 gl_d_42938_qc = 0x0001FCF0;  /* game_libs_func_00042938 draw arg blob C */
 gl_d_42938_qd = 0x0001FCF8;  /* game_libs_func_00042938 draw arg blob D */
 gl_d_42938_gb = 0x00000000;  /* game_libs_func_00042938 base-0 g array alias (held in s0) */
+/* 6B0FC = __osLeoInterrupt donor (2026-07-30), IDO 5.3 -O1 (leointerrupt.c). */
+D_00000000_ldh = 0x00000000;   /* __osDiskHandle (runtime reloc; stolen-prologue lui/lw at 0x6B0F4) */
+D_00000000_gim = 0x00000000;   /* __OSGlobalIntMask (runtime reloc) */
+gl_ref_0007FE04 = 0x0007FE04;  /* __osLeoAbnormalResume: baked jal 0x7FE04 (0x0C01FF81), sibling of gl_ref_0007FEEC */
+gl_func_00000000_edma = 0x00000000;  /* osEPiRawStartDma = gl_func_0006F8A4 (blank in-segment jal) */
