@@ -6263,15 +6263,29 @@ end:
 //     contact code (s16), 0xA10 merged flag bits.
 //   Consts: -30.0 max-neg clamp, 0.5 half, 50.0 light threshold,
 //     0.1f (0x3DCCCCCD) restitution; code 0x61/62/63 = skip set.
-// Caps (DEFERRED, fuzzy 39.8%->64.1% 2026-07): heavy-branch Vec3 impulse
-//   modeled with by-value struct copies (BD4V imp/impA/impB, nn/nnA -> the
-//   compiler's word-by-word sp+0x74->0x84->0xA0 / 0x40->0x84/0x94 marshal),
-//   cx (b->0x170) reloaded per accumulation block, shared negamt=-amt drives
-//   both s=(double)negamt*0.5 (neg.s-then-cvt.d, not neg.d) and nn=dir*negamt.
-//   Light-branch func_8bd4_a regained its dropped cx first arg. Remaining
-//   byte-cap: target parks amt in callee-saved $f20 (sdc1/ldc1, frame 0xB8)
-//   to survive the code-check call; NM keeps it in caller-saved $f14 —
-//   an fp-regalloc/frame divergence. Name pre-checked: no extern reuse.
+// Caps (64.1%->83.9% 2026-07-30 agent-g): structural residuals closed —
+//   single-deref D_0 arg (*(char**)&D_0 + 0x84, was double), value-form ||
+//   skip test (xori/sltiu chain + one bnel), de-named per-block pointer
+//   locals for each cx accumulation group (fp/ap/tp/mp + light gp/np/wp;
+//   kills the cx s-reg web -> v0/v1/a0 reloads like target), nnA = impB
+//   (second marshal reads the staging copy, not nn), light-branch flag
+//   merge re-reads *(u16*)(b+0x174) (not fl), two-var ternary fabs
+//   (t/q -> bc1fl+mov/b+neg/dead-mov shape). b->s0, dir->s1 now exact.
+//   REMAINING CAP (sole driver of every residual class): target parks amt
+//   in callee-saved $f20 from the prologue (sdc1/ldc1, mtc1 a1,f20, frame
+//   0xB8); our recomp IDO 7.1 spills the param to its arg-slot home around
+//   each call (swc1/lwc1, f14) instead. Probe battery all-negative:
+//   param copy-local (splits f12/f14 +mov.s), register kw, while(0)
+//   ref-multiplier in 5 placements (assign-amt, dead-def-dup titproc
+//   pattern), if(1)/else dead use, call-return web, multidef. Only a REAL
+//   loop (for i<1, bne kept) promotes fp params to f20 in this toolchain
+//   at depth 0 = the documented "live-across-call float in $f20" toolchain
+//   cap (docs/IDO_CODEGEN.md 19555 class). Cascade: f2/f12/f14 free in
+//   target = grouped 3-load/3-mul/3-store vec schedules, ||-ring a0-first,
+//   entry lhu v0, mfc1-before-lui tail; all pressure-coupled to f20.
+//   Frame-gap note: target locals impA@A0 nnA@94 impB@84 imp@74 nn@40
+//   (+0x28 mid-gap, +0x10 low-gap); padded-carrier-struct probe ballooned
+//   frame 0xF0 (cfe no-overlay) — offsets stay shifted, weigh light.
 #ifdef NON_MATCHING
 /* typed-float protos (0x0-aliases): float args (q*q; amt, 0.1f) pass single,
  * not K&R double-promote. */
@@ -6281,42 +6295,53 @@ extern void func_8bd4_heavy(void *, void *, void *, void *);
 typedef struct { float x, y, z; } BD4V;
 void func_00008BD4(char *b, float amt, float *dir, int a3) {
     unsigned short fl = *(unsigned short *)(b + 0x174);
-    char *cx;
     int code;
+    int skip;
     float s;
     float negamt;
-    BD4V imp, impA, impB, nn, nnA;
+    BD4V impA, nnA, impB, imp, nn;
+    float t;
     float q;
     if (fl & 0x1F0) {
         if (amt < 0.0f) {
-            code = (int)func_00000000(*(int *)((*(char ***)&D_00000000)[0] + 0x84), *(int *)(b + 0x14C));
-            if (code != 0x61 && code != 0x62 && code != 0x63) {
+            code = (int)func_00000000(*(int *)(*(char **)&D_00000000 + 0x84), *(int *)(b + 0x14C));
+            skip = (code == 0x61 || code == 0x62 || code == 0x63);
+            if (!skip) {
                 *(int *)((*(char **)(b + 0x170)) + 0x938) += 1;
                 *(short *)((*(char **)(b + 0x170)) + 0x9A4) = (short)code;
                 if (amt < -30.0f) amt = -30.0f;
                 negamt = -amt;
-                *(unsigned short *)((*(char **)(b + 0x170)) + 0xA10) |=
-                    *(unsigned short *)(b + 0x174);
+                {
+                    unsigned short *fp = (unsigned short *)(*(char **)(b + 0x170) + 0xA10);
+                    *fp |= *(unsigned short *)(b + 0x174);
+                }
                 s = (float)((double)negamt * 0.5);
                 imp.x = dir[0] * s;
                 imp.y = dir[1] * s;
                 imp.z = dir[2] * s;
                 impB = imp;
                 impA = impB;
-                cx = *(char **)(b + 0x170);
-                *(float *)(cx + 0xB4) += impA.x;
-                *(float *)(cx + 0xB8) += impA.y;
-                *(float *)(cx + 0xBC) += impA.z;
-                cx = *(char **)(b + 0x170);
-                *(float *)(cx + 0x93C) += dir[0];
-                *(float *)(cx + 0x940) += dir[1];
-                *(float *)(cx + 0x944) += dir[2];
-                *(float *)((*(char **)(b + 0x170)) + 0x968) += amt;
+                {
+                    float *ap = (float *)(*(char **)(b + 0x170) + 0xB4);
+                    ap[0] += impA.x;
+                    ap[1] += impA.y;
+                    ap[2] += impA.z;
+                }
+                {
+                    float *tp = (float *)(*(char **)(b + 0x170) + 0x93C);
+                    tp[0] += dir[0];
+                    tp[1] += dir[1];
+                    tp[2] += dir[2];
+                }
+                {
+                    float *mp = (float *)(*(char **)(b + 0x170) + 0x968);
+                    *mp += amt;
+                }
                 nn.x = dir[0] * negamt;
                 nn.y = dir[1] * negamt;
                 nn.z = dir[2] * negamt;
                 impB = nn;
-                nnA = nn;
+                nnA = impB;
                 func_8bd4_heavy(*(char **)(b + 0x170), b + 0x120, &nnA, &impB);
             }
         }
@@ -6324,17 +6349,32 @@ void func_00008BD4(char *b, float amt, float *dir, int a3) {
     }
     if (fl & 0xF) {
         if (amt < 50.0f) {
-        cx = *(char **)(b + 0x170);
-        *(int *)(cx + 0x938) = *(int *)(cx + 0x938) + 1;
-        *(unsigned short *)(cx + 0xA10) |= fl;
-        *(float *)(cx + 0x968) += amt;
-        *(float *)(cx + 0x93C) += dir[0];
-        *(float *)(cx + 0x940) += dir[1];
-        *(float *)(cx + 0x944) += dir[2];
-        q = *(float *)(cx + 0x970);
-        if (q < 0.0f) q = -q;
-        func_8bd4_a(cx, b + 0x120, b + 0x114, dir, q * q);
-        func_8bd4_b(b, amt, dir, 0.1f);
+            *(int *)(*(char **)(b + 0x170) + 0x938) += 1;
+            {
+                unsigned short *gp = (unsigned short *)(*(char **)(b + 0x170) + 0xA10);
+                *gp |= *(unsigned short *)(b + 0x174);
+            }
+            {
+                float *np = (float *)(*(char **)(b + 0x170) + 0x968);
+                *np += amt;
+            }
+            {
+                float *wp = (float *)(*(char **)(b + 0x170) + 0x93C);
+                wp[0] += dir[0];
+                wp[1] += dir[1];
+                wp[2] += dir[2];
+            }
+            {
+                char *cxa = *(char **)(b + 0x170);
+                t = *(float *)(cxa + 0x970);
+                if (t < 0.0f) {
+                    q = -t;
+                } else {
+                    q = t;
+                }
+                func_8bd4_a(cxa, b + 0x120, b + 0x114, dir, q * q);
+            }
+            func_8bd4_b(b, amt, dir, 0.1f);
         }
     }
 }
