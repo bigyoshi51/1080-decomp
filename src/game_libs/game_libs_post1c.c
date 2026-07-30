@@ -42,7 +42,19 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070314);
  * 70398/70508 branch backward to 0x70370/0x704D8 (inside this body). Absorbed
  * 70398+70508 (0x78 -> 0x308); dropped both symbols (no external callers). All
  * branches verified in-range; ends at 0x70628 (pre-existing 0xC align pad
- * before gl_func_00070634). Reloc-blind USO; stays INCLUDE_ASM. */
+ * before gl_func_00070634). Reloc-blind USO; stays INCLUDE_ASM.
+ * IDENTIFIED 2026-07-30 = libultra bcopy, HANDWRITTEN ASM
+ * (references/libreultra/src/libc/bcopy.s): structure matches line-for-line
+ * (move a3,a1 dst save; beqz/beq early rets; forwards/backwards split;
+ * blt 16 bytecopy; andi 0x3 align dispatch with forw_copy2/copy3 lh/lb
+ * prefixes; 32/16-byte lw burst loops; return a3=dst). bcopy is an
+ * ASM-ONLY file in every libultra distribution (no C source exists);
+ * the macro-expanded blt/bge with likely-swapped branches (0x54200008
+ * bnezl / 0x50200004 beqzl filling delay from target) and the multiple
+ * internal jr-ra exits are assembler output, not IDO C shape.
+ * PERMANENT C-unmatchable cap (handwritten-asm class, same as the mtc0
+ * helper above). The C body below is a faithful memmove for the NM path
+ * only; do not burn ticks trying to match it. */
 #ifdef NON_MATCHING
 void *game_libs_func_00070320(void *src0, void *dst0, s32 n) {
     char *s = src0;
