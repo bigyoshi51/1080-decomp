@@ -8198,14 +8198,19 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B75C);
  *   (2) switch default arm: target's 3rd compare is `beql` (likely) with
  *       lwc1 0x360 in delay + ldc1/add.d/cvt ordering; build differs only
  *       in as1 instruction scheduling.
- *   (3) tail: func_00008A40+0x20/+0x2C — target re-materializes the symbol
- *       address with two independent lui/addiu per call; IDO -O2 here
- *       CSE-collapses the common &func_00008A40 base into a single spill
- *       (sw v0,36(sp)), bloating the frame -32 -> -80 and cascading the
- *       register coloring. Same-symbol CSE-vs-recompute is an allocator
- *       choice, not source-reorderable (the distinct-extern bust needs a
- *       2nd defined symbol at the same addr, unavailable for an in-TU
- *       func). Also affects sibling func_0000B1B4 (same +0x8/+0x14 pattern).
+ *   (3) RESOLVED 2026-07-30 (agent-g): the func_00008A40+0x2C tail ref is
+ *       anchor-split to &func_00008A38+0x34 (same absolute 0x8A6C, distinct
+ *       in-TU anchor — E68/CCE0 lever) which kills the base CSE-collapse:
+ *       frame back to -32 (exact), spill gone. Reloc-name diff at that one
+ *       site is the accepted fuzzy residual.
+ * 2026-07-30 (agent-g) 86.9->88.3: also fixed commutative mul.s operand
+ * order at 6 sites (source A*B emits B-first; write B*A) + volatile on the
+ * per-arm *(0x508) read (defeats the cross-arm PRE hoist; target loads it
+ * in each arm) + add.d order in default arm (pool + (f64)x). Switch compare
+ * order (target tests 0x63 first, we emit 0x61 first) is NOT source-
+ * steerable: case reorder = identical output; if-chain/hybrid = worse shape
+ * (154 -> 189/171 diff lines). Remaining = t-reg-vs-v0/a1 web coloring +
+ * FP ring rotation + branch-likely shaping coupled to the direct-form cap.
  * Logic + structure are byte-faithful; INCLUDE_ASM remains the build path
  * (no episode; not 0-diff). */
 #ifdef NON_MATCHING
@@ -8233,11 +8238,11 @@ void func_0000BF8C(char *arg0) {
     if (temp_t9 != 0) {
         *(f32 *)((char *)arg0 + 0x9FC) = *(f32 *)((char *)arg0 + 0x4F0);
         *(f32 *)((char *)arg0 + 0x360) = *(f32 *)((char *)arg0 + 0x4D8);
-        *(f32 *)((char *)arg0 + 0xA00) = (f32) ((*(f32 *)((char *)arg0 + 0x6F0)) * (*(f32 *)((char *)arg0 + 0x508)));
+        *(f32 *)((char *)arg0 + 0xA00) = (f32) ((*(volatile f32 *)((char *)arg0 + 0x508)) * (*(f32 *)((char *)arg0 + 0x6F0)));
     } else {
         *(f32 *)((char *)arg0 + 0x9FC) = *(f32 *)((char *)arg0 + 0x4C0);
         *(f32 *)((char *)arg0 + 0x360) = *(f32 *)((char *)arg0 + 0x4A8);
-        *(f32 *)((char *)arg0 + 0xA00) = (f32) ((*(f32 *)((char *)arg0 + 0x708)) * (*(f32 *)((char *)arg0 + 0x508)));
+        *(f32 *)((char *)arg0 + 0xA00) = (f32) ((*(volatile f32 *)((char *)arg0 + 0x508)) * (*(f32 *)((char *)arg0 + 0x708)));
     }
     if (*(s32 *)((char *)arg0 + 0x990) != 0) {
         if (*(s32 *)((char *)arg0 + 0x9CC) != 0) {
@@ -8256,24 +8261,24 @@ void func_0000BF8C(char *arg0) {
     temp_v0_2 = *(s16 *)((char *)arg0 + 0x9A2);
     switch (temp_v0_2) {                            /* irregular */
     case 0x63:
-        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x360)) * (*(f32 *)((char *)arg0 + 0x448)));
-        *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x9FC)) * (*(f32 *)((char *)arg0 + 0x430)));
+        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x448)) * (*(f32 *)((char *)arg0 + 0x360)));
+        *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x430)) * (*(f32 *)((char *)arg0 + 0x9FC)));
         break;
     case 0x61:
         break;
     case 0x62:
-        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x360)) * (*(f32 *)((char *)arg0 + 0x478)));
-        *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x9FC)) * (*(f32 *)((char *)arg0 + 0x460)));
+        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x478)) * (*(f32 *)((char *)arg0 + 0x360)));
+        *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x460)) * (*(f32 *)((char *)arg0 + 0x9FC)));
         break;
     default:
         *(f32 *)((char *)arg0 + 0x9FC) = 0.0f;
         *(f32 *)((char *)arg0 + 0x9F8) = 0.0f;
-        *(f32 *)((char *)arg0 + 0x360) = (f32) ((f64) (*(f32 *)((char *)arg0 + 0x360)) + (*(f64 *)((char *)&func_000008F4 + 0x24)));
+        *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f64 *)((char *)&func_000008F4 + 0x24)) + (f64) (*(f32 *)((char *)arg0 + 0x360)));
         break;
     }
     temp_v0_3 = *(s32 *)((char *)arg0 + 0x960);
-    *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x9FC)) * (*(f32 *)((char *)arg0 + 0x5D0)));
-    *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x360)) * (*(f32 *)((char *)arg0 + 0x5E8)));
+    *(f32 *)((char *)arg0 + 0x9FC) = (f32) ((*(f32 *)((char *)arg0 + 0x5D0)) * (*(f32 *)((char *)arg0 + 0x9FC)));
+    *(f32 *)((char *)arg0 + 0x360) = (f32) ((*(f32 *)((char *)arg0 + 0x5E8)) * (*(f32 *)((char *)arg0 + 0x360)));
     if (temp_v0_3 != 0) {
         *(f32 *)((char *)arg0 + 0x9FC) = 0.0f;
         temp_f0_2 = 1.0f - (*(f32 *)((char *)arg0 + 0x6D8));
@@ -8285,7 +8290,11 @@ void func_0000BF8C(char *arg0) {
     func_00000000(arg0);
     func_00000000((char *)&func_00008A40 + 0x20);
     func_00000000(arg0);
-    func_00000000((char *)&func_00008A40 + 0x2C);
+    /* anchor-split (E68/CCE0 lever): same absolute addr 0x8A6C as
+     * &func_00008A40+0x2C but distinct in-TU anchor kills the base
+     * CSE-collapse (frame bloat cascade); reloc-name diff at this site
+     * is the accepted fuzzy residual. */
+    func_00000000((char *)&func_00008A38 + 0x34);
     func_00000000(arg0);
     if ((*(s32 *)((char *)arg0 + 0x960) == 0x64) && ((*(f32 *)((char *)arg0 + 0x348)) < 30.0f)) {
         *(f32 *)((char *)arg0 + 0x318) = 0.0f;
