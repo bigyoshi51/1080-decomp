@@ -7396,7 +7396,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     float src_x, src_z, dx, dz;
     float scale0;         /* screen-space transform scale: 250.0f * a1->0x54 + 50.0f */
     float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
-    char pad_frame[16];
+    char pad_frame[8];
     (void)pad_frame;
     (void)gap_150;
     (void)pad_10C;
