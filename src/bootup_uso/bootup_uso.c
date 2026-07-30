@@ -8773,9 +8773,15 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000CAE8);
 //   (now spans +0x4..+0x2C, ≥11 entries; strongly confirms the single
 //   D_base[] characterization in
 //   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C).
-// Caps (DEFERRED): 176-insn factory-loop w/ folded param table —
-//   byte-match blocked by deferred pool symbolization. Real-C
-//   STRUCTURAL body below — HUD/menu layout builder skeleton.
+// 2026-07-30 (agent-g) 84.2->90.0: pool refs are matchable addend relocs
+//   (premise corrected); anchor-split x4 (098C/08F4/08D4/08B4) kills the
+//   base CSE (frame -88 exact), single-scope reversed decl list +
+//   volatile int pad[1] lands all 9 save-slots + the 64(sp) gap exact;
+//   g2 Y-coord decode fixed (+400 -> -400). RESIDUAL: direct-form
+//   lui-at/lwc1 cap x5 (in-TU fn base emits addiu-form, +1 insn/site;
+//   4 sites also carry the wrong-anchor reloc name) + func_cce0
+//   float-prototype jal reloc names (NM-only; func_00000000 is K&R
+//   in-TU, would double-promote floats) + cap-coupled t-reg numbering.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
 // PARTIAL-FORM corrected NM body for func_0000CCE0 (replaces lines 8516..8554)
