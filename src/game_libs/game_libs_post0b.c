@@ -13977,126 +13977,80 @@ skip_body:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000445AC);
 #endif
 
-// gl_func_00044918 — STRUCTURAL PASS (0x1D0 / 117 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x38
-// (saves ra, s0). Large struct reset/init + cb pipeline (cb = jal 0
-// USO-relocated).
-//
-//   void gl_func_00044918(void *a0) {
-//     self = a0;
-//     self->p5D0 = 0;
-//     int *p = (int*)((char*)a0 + 0x2AC);            // sub-array base
-//     for (i = 0; i < 50; i++) {                       // 0x32-count clear,
-//       p[0] = 0; p[1] = 0;                            //   8-byte stride
-//       p += 2;
-//     }
-//     // a paired 0x10-stride sub-array is then zero-filled the same way
-//     // (AC40 0/4/8/C stores), plus self->...0xC8 and self->0x210 = 0:
-//     self->p210 = 0;
-//     cb1(&self->p294);                               // init sub-object A
-//     cb2(self, 0);                                    // init sub-object B
-//     // bounds-validation pass: r = self->p218;
-//     //   if ((unsigned)r->p1C < LIM && (unsigned)r->p04 < LIM &&
-//     //       (unsigned)r->p0C < LIM) cb3(...);        // sltu-gated handler
-//     //   (the sltu/bnez ladder repeats for several r-> fields, each
-//     //    short-circuiting; a passing tuple triggers a cb3 commit.)
-//   }
-// Resets a large embedded structure: clears a scalar at 0x5D0, a 50-entry
-// 8-byte array at +0x2AC and a paired 0x10-stride sub-array, zeroes 0x210,
-// initialises two sub-objects via cb1(&self->0x294) / cb2(self,0), then
-// runs an unsigned-bounds (sltu) validation ladder over self->0x218->{0x1C,
-// 0x04,0x0C} that conditionally invokes a cb3 handler. Family: cb-driven
-// struct-init/reset + validation pipeline (relates to the segment's
-// registration/init drivers). Loop trip count (0x32), the array strides
-// (8 / 0x10), the cleared offsets (0x5D0/0x2AC/0x210), the cb1/cb2 inits and
-// the sltu-gated 0x218 field ladder are exact; per-validation cb3 arg detail
-// representative. Caps: self struct + cb signatures untyped. Full body
-// INCLUDE_ASM-preserved.
+// gl_func_00044918 (0x1D4 / 117 words) — DECODE-CORRECTED PASS 2026-07-30,
+// 52.1 -> 85.8. Struct reset/re-init + busy-wait + flag-word rebuild:
+//   * 51-word zero-fill at +0x2AC written as `for(i=0;i<50;i++) p[i]=0; p[50]=0;`
+//     — IDO 4-way-unrolls it to the target peel-2 + 12x4 + tail-store shape
+//     (the old "50-entry 8-byte-stride" read was wrong). GOTCHA: hand-unrolled
+//     4-store do-while gets RE-unrolled x4 once the fn shrinks (unroll budget).
+//   * busy-wait on *(+0x218)->{0x1C,4,0xC}: sltu value-form comes from
+//     ASSIGNING the || to a cond var (busy = (a||b||c)); bare while(a||b||c)
+//     emits branch-only form. `if(0){f(&r);}` address-escape un-promotes r
+//     from s1 to a memory-homed slot (target keeps 1 s-reg + sp+0x34 spill).
+//   * FP: target swc1 f4 straight to +0x24C (float global read via lui-at,
+//     lo16 0x1B38 folded — extern char D_44918_flt[] + offset), then 0.0f
+//     stored to a float global (mtc1 zero); the old body's trunc.w.s read
+//     was a mis-decode.
+//   * flag word +0x13C: masks ~0x10000 / ~2 / ~0x1000 then |= 1,0x4000,
+//     0x8000,0x20000,0x80; Pair2* struct-ptr fl (assigned BEFORE the f(arg0)
+//     call) reproduces the addiu v0,s0,0x138 CSE-temp + sp spill/reload.
+//   * multu tail: f(&sym, *(*(+0x240)+0xFC), ga*gb*6) — u32 multu + x*6
+//     strength reduction ((x<<2-x)<<1).
+// RESIDUAL (~14pp): r colors t6/t8 vs target v1 (first-temp coloring tie,
+// cascades t-ring downstream), home-store at def vs per-iteration jal-delay
+// re-store (+1 word, 0x1D8 vs 0x1D4), frame 0x40 vs 0x38, fl slot 0x20 vs
+// 0x24, unroll-loop schedule rotation (sw 0(v0) sunk into bne delay).
+// Callee/data identities untyped (placeholder relocs) — stays NM wrap.
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00044918)();
+extern char D_44918_flt[];
+extern f32 D_44918_fzero;
+extern u32 D_44918_ma;
+extern u32 D_44918_mb;
+extern char D_44918_arg0c;
 void gl_func_00044918(char *arg0) {
-    char *sp34;
-    char *sp24;
-    s32 temp_t3;
-    s32 temp_t5;
-    s32 temp_t7;
-    s32 temp_t9;
-    s32 temp_t9_2;
-    s32 var_v0_2;
-    s32 var_v0_3;
-    s32 var_v1;
-    char *temp_a1;
-    char *temp_v0;
-    char *var_v0;
-    char *var_v1_2;
+    int *p;
+    int *q;
+    unsigned int *r;
+    Pair2 *fl;
+    int i;
+    int busy;
 
-    temp_a1 = (int)arg0 + 0x2AC;
-    FW(arg0, 0x5D0) = 0;
-    FW(temp_a1, 0x4) = 0;
-    FW(arg0, 0x2AC) = 0;
-    var_v0 = temp_a1 + 8;
-    var_v1 = 2;
-    do {
-        var_v1 += 4;
-        FW(var_v0, 0x0) = 0;
-        FW(var_v0, 0x4) = 0;
-        FW(var_v0, 0x8) = 0;
-        FW(var_v0, 0xC) = 0;
-        var_v0 += 0x10;
-    } while (var_v1 != 0x32);
-    FW(temp_a1, 0xC8) = 0;
-    FW(arg0, 0x210) = 0;
-    gl_func_00034458((int)arg0 + 0x294, temp_a1);
-    gl_func_00034458(arg0, 0);
-    var_v1_2 = FW(arg0, 0x218);
-    var_v0_2 = FW(var_v1_2, 0x1C) != 0;
-    if (var_v0_2 == 0) {
-        var_v0_2 = FW(var_v1_2, 0x4) != 0;
-        if (var_v0_2 == 0) {
-            var_v0_2 = FW(var_v1_2, 0xC) != 0;
-        }
+    p = (int *)(arg0 + 0x2AC);
+    *(int *)(arg0 + 0x5D0) = 0;
+    for (i = 0; i < 50; i++) {
+        p[i] = 0;
     }
-    if (var_v0_2 != 0) {
-        do {
-            sp34 = var_v1_2;
-            gl_func_00034458();
-            var_v0_3 = FW(var_v1_2, 0x1C) != 0;
-            if (var_v0_3 == 0) {
-                var_v0_3 = FW(var_v1_2, 0x4) != 0;
-                if (var_v0_3 == 0) {
-                    var_v0_3 = FW(var_v1_2, 0xC) != 0;
-                }
-            }
-        } while (var_v0_3 != 0);
+    p[50] = 0;
+    *(int *)(arg0 + 0x210) = 0;
+    gl_func_00000000(arg0 + 0x294);
+    gl_func_00000000(arg0, 0);
+    r = *(unsigned int **)(arg0 + 0x218);
+    if (0) { gl_func_00000000(&r); }
+    busy = (r[7] != 0 || r[1] != 0 || r[3] != 0);
+    while (busy) {
+        gl_func_00000000();
+        busy = (r[7] != 0 || r[1] != 0 || r[3] != 0);
     }
-    gl_func_00034458(arg0);
-    FW(arg0, 0x250) = 0;
-    FW(arg0, 0x230) = 0;
-    FW(arg0, 0x138) = 0;
-    FW(arg0, 0x13C) = 0;
-    temp_v0 = (int)arg0 + 0x138;
-    FW(arg0, 0x24C) = (f32) *(f32 *)0x1B38;
-    FW(temp_v0, 0x4) = (s32) (FW(temp_v0, 0x4) & 0xFFFEFFFF);
-    *(int*)0 = 0;
-    temp_t9 = FW(temp_v0, 0x4) & ~2;
-    FW(temp_v0, 0x4) = temp_t9;
-    FW(temp_v0, 0x4) = (s32) (temp_t9 & ~0x1000);
-    sp24 = temp_v0;
-    gl_func_00034458(FW(arg0, 0x214));
-    temp_t3 = FW(temp_v0, 0x4) | 1;
-    temp_t5 = temp_t3 | 0x4000;
-    temp_t7 = temp_t5 | 0x8000;
-    FW(temp_v0, 0x4) = temp_t3;
-    temp_t9_2 = temp_t7 | 0x20000;
-    FW(temp_v0, 0x4) = temp_t5;
-    FW(temp_v0, 0x4) = temp_t7;
-    FW(temp_v0, 0x4) = temp_t9_2;
-    FW(temp_v0, 0x4) = (s32) (temp_t9_2 | 0x80);
-    gl_func_00034458((char *)0x1FE70);
-    gl_func_00034458(0, FW(FW(arg0, 0x240), 0xFC), *(int*)0 * *(int*)0 * 6);
+    fl = (Pair2 *)(arg0 + 0x138);
+    gl_func_00000000(arg0);
+    *(int *)(arg0 + 0x250) = 0;
+    *(int *)(arg0 + 0x230) = 0;
+    *(int *)(arg0 + 0x138) = 0;
+    *(int *)(arg0 + 0x13C) = 0;
+    *(f32 *)(arg0 + 0x24C) = *(f32 *)(D_44918_flt + 0x1B38);
+    fl->b &= ~0x10000;
+    D_44918_fzero = 0.0f;
+    fl->b &= ~2;
+    fl->b &= ~0x1000;
+    gl_func_00000000(*(int *)(arg0 + 0x214));
+    fl->b |= 1;
+    fl->b |= 0x4000;
+    fl->b |= 0x8000;
+    fl->b |= 0x20000;
+    fl->b |= 0x80;
+    gl_func_00000000((char *)&D_00000000 + 0x1FE70);
+    gl_func_00000000(&D_44918_arg0c, *(int *)(*(int *)(arg0 + 0x240) + 0xFC),
+                     D_44918_ma * D_44918_mb * 6);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044918);
