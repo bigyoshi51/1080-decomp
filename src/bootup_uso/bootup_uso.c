@@ -5719,91 +5719,89 @@ void func_000080EC(char *a0) {
  * object, o->0x28 (40) descriptor (&D_00007878). s = 0x38-byte
  * sub; c = 8-byte aux (c->0x0 = &D_00007FC4 descriptor, c->0x4=0);
  * c2 = 0x18-byte child: c2->0xC (12) type ptr (&D_00007540),
- * c2->0x10 (16) f32 = 200.0, c2->0x14 (20) = 0. The s != -0x3C /
- * -0x8 tests are defensive impossible-pointer guards. D_00007FCC /
- * D_00007FD0 = global init values feeding the children. Caps <80:
- * get-or-create + alloc-cascade (~6 reloc) + defensive-dead
- * guards + &D descriptors + FP-200 const. Full body INCLUDE_ASM-
- * preserved (.s = source of truth). INCLUDE_ASM (no episode;
- * tautology-trap rule). */
+ * c2->0x10 (16) f32 = 200.0 / 300.0, c2->0x14 (20) = 0. The u !=
+ * -0x3C / -0x8 / -0x20 / -0x74 tests are the `c = u+k; if (c != 0
+ * || alloc)` get-or-create guards folded by IDO. D_00007FCC /
+ * D_00007FD0 = global init values feeding the children.
+ * 2026-07-30 agent-g: 13D40 recipe applied (69.5 -> 94.5,
+ * 116/117 insns, locals+frame-slot layout fully matched: p home
+ * 0x24, w(c-save) 0x2C, int A[5] dead stores 0x40/0x3C base 0x30,
+ * u caller-save spill, arg0 homed 0x50): Val8124 struct-by-value
+ * arg3, char * volatile w save slot, TWO dead ptr decls q2/q1
+ * flanking p shift locals +8 to place the 0x28 hole. NEW tail
+ * lever: o reused for the loaded child d after `v = o` copy
+ * (move v1,s0 / s0=load shape); a separate d var + o=d instead
+ * spills o off s0 entirely (-5 insns worse). Residual = 13D40
+ * allocator-web cap: 2 p.v table webs coalesce to v0 (vs t8/t2),
+ * t-cycle renumber (t9/t1 vs t1/t5), u spill 0x4C + frame 0x58 vs
+ * 0x44/0x50 (reserved spill words), [sw a0,0x2C] window rotation
+ * x2, tail lw-v0/move-s0 two-step elided (116 vs 117). Sub-100 ->
+ * NM wrap per policy. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00008124)();
+typedef struct { int v; } Val8124;
+extern char D_00007878;
+extern char D_00007FC4;
+extern int D_00007FCC;
+extern int D_00007FD0;
+extern char D_00007540;
 char *func_00008124(char *arg0) {
-    char *sp4C;
-    char *sp44;
-    s32 sp40;
-    s32 sp3C;
-    char *sp2C;
-    s32 sp24;
-    s32 temp_t2;
-    s32 temp_t8;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *temp_v0_7;
-    char *var_a0;
-    char *var_a0_2;
-    char *var_a1;
-    char *var_a1_2;
-    char *var_v1;
+    char *o;
+    char *v;
+    char *u;
+    char *s;
+    char *c;
+    int A[5];
+    char * volatile w;
+    char *q2;
+    Val8124 p;
+    char *q1;
 
-    temp_v0 = (char*)func_00000000((char *)0x90);
-    if (temp_v0 != 0) {
-        (char*)func_00000000(temp_v0);
-        FW(temp_v0, 0x28) = 0;
-        var_a1 = temp_v0 + 0x3C;
-        if ((temp_v0 != (char *)-0x3C) || (temp_v0_2 = (char*)func_00000000((char *)0x38, var_a1), var_a1 = temp_v0_2, (temp_v0_2 != 0))) {
-            var_v1 = var_a1;
-            if ((var_a1 != 0) || (sp44 = var_a1, temp_v0_3 = (char*)func_00000000((char *)8, var_a1), var_v1 = temp_v0_3, (temp_v0_3 != 0))) {
-                FW(var_v1, 0x0) = 0;
-                FW(var_v1, 0x4) = 0;
+    o = (char *)func_00000000(0x90);
+    if (o != 0) {
+        func_00000000(o);
+        *(char **)(o + 0x28) = &D_00007878;
+        u = o + 0x3C;
+        if (u != 0 || (u = (char *)func_00000000(0x38)) != 0) {
+            s = u;
+            if (s != 0 || (s = (char *)func_00000000(8)) != 0) {
+                *(char **)(s + 0) = &D_00007FC4;
+                *(int *)(s + 4) = 0;
             }
-            temp_t8 = *(int*)0;
-            var_a0 = var_a1 + 8;
-            sp40 = temp_t8;
-            sp24 = temp_t8;
-            if ((var_a1 != (char *)-8) || (sp44 = var_a1, temp_v0_4 = (char*)func_00000000((char *)0x18, var_a1), var_a0 = temp_v0_4, (temp_v0_4 != 0))) {
-                sp2C = var_a0;
-                sp44 = var_a1;
-                (char*)func_00000000(var_a0, var_a1, sp24, 1);
-                FW(var_a0, 0xC) = 0;
-                FW(var_a0, 0x14) = 0;
-                *(f32 *)((char *)var_a0 + 0x10) = 200.0f;
+            p.v = D_00007FCC; A[4] = p.v;
+            c = u + 8;
+            if (c != 0 || (c = (char *)func_00000000(0x18)) != 0) {
+                func_00000000(w = c, u, p, 1);
+                c = w;
+                *(char **)(c + 0xC) = &D_00007540;
+                *(int *)(c + 0x14) = 0;
+                *(float *)(c + 0x10) = 200.0f;
             }
-            temp_t2 = *(int*)0;
-            var_a0_2 = var_a1 + 0x20;
-            sp3C = temp_t2;
-            sp24 = temp_t2;
-            if ((var_a1 != (char *)-0x20) || (sp44 = var_a1, temp_v0_5 = (char*)func_00000000((char *)0x18, var_a1), var_a0_2 = temp_v0_5, (temp_v0_5 != 0))) {
-                sp2C = var_a0_2;
-                (char*)func_00000000(var_a0_2, var_a1, sp24, 1);
-                FW(var_a0_2, 0xC) = 0;
-                FW(var_a0_2, 0x14) = 0;
-                *(f32 *)((char *)var_a0_2 + 0x10) = 300.0f;
+            p.v = D_00007FD0; A[3] = p.v;
+            c = u + 0x20;
+            if (c != 0 || (c = (char *)func_00000000(0x18)) != 0) {
+                func_00000000(w = c, u, p, 1);
+                c = w;
+                *(char **)(c + 0xC) = &D_00007540;
+                *(int *)(c + 0x14) = 0;
+                *(float *)(c + 0x10) = 300.0f;
             }
         }
-        var_a1_2 = temp_v0 + 0x74;
-        if ((temp_v0 != (char *)-0x74) || (temp_v0_6 = (char*)func_00000000((char *)0x18, var_a1_2), var_a1_2 = temp_v0_6, (temp_v0_6 != 0))) {
-            (char*)func_00000000(var_a1_2, var_a1_2);
+        u = o + 0x74;
+        if (u != 0 || (u = (char *)func_00000000(0x18)) != 0) {
+            func_00000000(u);
         }
-        FW(temp_v0, 0x8C) = 0;
+        *(int *)(o + 0x8C) = 0;
     }
-    temp_v0_7 = FW(arg0, 0x40);
-    if (temp_v0_7 != 0) {
-        sp4C = temp_v0;
-        (char*)func_00000000(temp_v0 + 0x10, temp_v0_7);
-        if (FW(temp_v0_7, 0x14) != 0) {
-            FW(temp_v0_7, 0x4) = 1;
+    v = o;
+    o = *(char **)(arg0 + 0x40);
+    if (o != 0) {
+        func_00000000(v + 0x10, o);
+        if (*(int *)(o + 0x14) != 0) {
+            *(int *)(o + 4) = 1;
         }
-        FW(temp_v0_7, 0x14) = temp_v0;
+        *(char **)(o + 0x14) = v;
     }
-    return temp_v0;
+    return v;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00008124);
