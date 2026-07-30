@@ -968,53 +968,65 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DA7C);
 //   and the fixed blit routine 0x0C00C813 (≈0x31F4C) — same
 //   mode/target combination as the gl_func_0001D0AC sibling but with
 //   the extra two-flag conditional structure.
-// Caps: single jr $ra. CORRECTED DECODE (2026-07-30 agent-h probe;
-//   body below is STALE-STRUCTURE, kept only because its fuzzy 48.6
-//   beats the correct-structure probe's 20.1 — revert-of-regressive
-//   convention). TRUE structure (verified vs expected/ .o):
-//     rec = &D_0 + (short)a1*0x158 (in t0, spilled 40(sp));
-//     attr = rec->0x1B; v0b = rec + attr*0x64 + (short)a2*0x14;
-//     e = v0b + 0x50 (v1, addiu +80, spilled 44(sp));
-//     if (rec->0x1C == 1) {                      // bne t4,1 -> ELSE
-//       r = blit3204C(a0, 0xC80, u16 e->0xE, s16 e->0x10, (short)a1);
-//       if (s16 e->0x12 != 0)
-//         r = blit3204C(r, (e->0x10+0xC80)&0xFFFF, 0, e->0x12, a1);
-//     } else {
-//       helper31D64(a0, 0xC80, 0x340, *(int*)(v0b+0x54)+0x80000000);
-//       r = a0 + 8;                              // addiu s0,s0,8
-//     }
-//     rec->0x18 = 0; return r;                   // r lives in s0
-//   PROVEN LEVERS (from the probe, re-apply): K&R short params
-//   (int a0; short a1; short a2;) -> exact sw a1,52/lh 54(sp) homing
-//   head, t6/t7/t8 chain regs exact; r = a0 copy at top -> s0=a0;
-//   else-arm read via *(int*)(e+4) -> addiu v1,+80 + 14/16(v1)
-//   offsets + 44(sp) spill all match. REMAINING CAP that made the
-//   probe score low: IDO forward-substitutes the attr*0x64+a2*0x14
-//   chain into BOTH arms (target computes once pre-branch, flag
-//   lbu LATE at word ~22) — dedup lever not found in-budget; crack
-//   that and the probe body should jump ~+30pp. jals 0x3204C/0x31D64
-//   are baked USO-LOCAL (mid-fragment targets, no in-tree symbol);
-//   gl_func_00000000 placeholder convention. Name pre-checked: no
-//   extern reuse (collision-safe).
+// Caps: single jr $ra. CORRECTED DECODE EXECUTED 2026-07-30 agent-h:
+//   48.6 -> 78.6 fuzzy. Body below IS the correct structure; two levers
+//   cracked the banked "forward-substitution" cap:
+//   (1) MULTI-DEF ANTI-FOLD: v0b = rec+attr*0x64; v0b += a2*0x14;
+//       (two defs) pins the chain PRE-BRANCH exactly like the target
+//       (single-expression or macro-CSE spellings duplicate it into
+//       both arms / recompute per use across calls).
+//   (2) PARAM-AS-CURSOR (docs W65-70 1EE78 lever): reassigning a0
+//       itself (a0 = blit(...); ... a0 += 8; return a0;) tips uopt
+//       into the s0 promotion (or s0,a0 pre-branch, or s0,v0 per
+//       call, addiu s0,s0,8, or v0,s0) — a separate named r
+//       copy-props into $a0 + call-home spill (74 words, no s0);
+//       `register` hint is inert.
+//   VARIANT A/B fuzzy data (official objdiff, gate per docs):
+//     A: sole named local e (rec macro'd per-use, e multi-def x3 with
+//        e+=0x50 in-arm) -> frame 48 EXACT, spills t0@40/v1@44 EXACT,
+//        but then-arm loads fold to 94/96(v1) + late addiu = 77.59;
+//     B: named v0b + e (=v0b+0x50 pre-branch, rec macro'd) -> then/else
+//        shape EXACT (addiu v1,v0,80 + 14/16(v1) reads, else lw
+//        a3,84(v0)) but frame 56 (+1 named-local slot pair) = 78.6.
+//        KEPT B (higher fuzzy). A one-named-local spelling that ALSO
+//        splits the v0b/e webs into v0/v1 would merge both = ~95+.
+//   RESIDUALS (all scheduling/coloring, correct logic): a2-narrowing
+//     chain interleave + flag-lbu placement (target lbu 28(t0) LATE,
+//     join adds addu t2,t0,t1/addu v0,t2,t3, delay slot = addiu
+//     v1,v0,80; build joins swapped + join-add-in-delay); 5th-arg idx
+//     per-use lh 54(sp) reload (build CSEs prologue t6 into call1;
+//     *((short*)&a1+1) address-probe REGRESSES to 60 — address-taken
+//     kills the homing shape); else-arm addiu s0,s0,8 pre-jal hoist +
+//     lui at/sw t0 order (tie). jals 0x3204C/0x31D64 are baked
+//     USO-LOCAL (mid-fragment targets, no in-tree symbol);
+//     gl_func_00000000 placeholder convention.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-int gl_func_0001DB88(int a0, int a1, int a2) {
-    short idx = (short)a1;
-    char *rec = (char *)&D_00000000 + idx * 0x158;
-    unsigned char attr = *(unsigned char *)(rec + 0x1B);
-    char *e = rec + attr * 0x64 + (short)a2 * 0x14 + 0x50;
-    int r;
-    if (*(unsigned char *)(rec + 0x1C) != 1) {
-        return a0;
+int gl_func_0001DB88(a0, a1, a2)
+int a0;
+short a1;
+short a2;
+{
+#define REC1DB88 ((char *)&D_00000000 + a1 * 0x158)
+    char *e;
+    char *v0b;
+
+    v0b = REC1DB88 + *(unsigned char *)(REC1DB88 + 0x1B) * 0x64;
+    v0b += a2 * 0x14;
+    e = v0b + 0x50;
+    if (*(unsigned char *)(REC1DB88 + 0x1C) == 1) {
+        a0 = gl_func_00000000(a0, 0xC80, *(unsigned short *)(e + 0xE), *(short *)(e + 0x10), a1);
+        if (*(short *)(e + 0x12) != 0) {
+            a0 = gl_func_00000000(a0, (*(short *)(e + 0x10) + 0xC80) & 0xFFFF, 0, *(short *)(e + 0x12), a1);
+        }
+    } else {
+        gl_func_00000000(a0, 0xC80, 0x340, *(int *)(v0b + 0x54) + 0x80000000);
+        a0 += 8;
     }
-    r = gl_func_00000000(a0, 0xC80, *(unsigned short *)(e + 0xE), *(short *)(e + 0x10), idx);
-    if (*(short *)(e + 0x12) != 0) {
-        r = gl_func_00000000(r, (*(short *)(e + 0x10) + 0xC80) & 0xFFFF, 0, idx);
-    }
-    r = gl_func_00000000(r, 0xC80, 0x340, *(int *)(e + 0x54), idx);
-    *(char *)(rec + 0x18) = 0;
-    return r;
+    *(char *)(REC1DB88 + 0x18) = 0;
+#undef REC1DB88
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001DB88);
