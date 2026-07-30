@@ -5811,6 +5811,10 @@ void game_uso_func_0000751C(char *a0) {
  * a1_saved/counter; tried-and-pending (no natural early use — they're genuinely 0
  * until the arms). A focused regalloc session should drive this via the uoptlist
  * candidate order. Until then the spill caps it.
+ * 2026-07-30 spelling probes (all INERT, byte-identical output): anti-fold
+ * guards `x=0; if(1){x=...}` on a1_saved+counter (copy-propped, dead 0-def
+ * DCE'd); `register` hints on ret_lo/ret_hi (candidate order unchanged).
+ * Confirms this is a uoptlist-candidate-order cap, not a spelling lever.
  * Captures prelude + dispatch outline + epilogue + bit-0x80 trunk arm.
  * Many arm bodies are TODO-stubbed with correct control-flow targets but
  * no per-bit state mutations yet.
