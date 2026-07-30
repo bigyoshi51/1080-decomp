@@ -12684,19 +12684,19 @@ int gl_func_0002A014(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
 #endif
 
-// gl_func_0002A080 — STRUCTURAL PASS (46.97% in-tree; dispatcher-scan
-// candidate 5/5, audited 2026-06-10). TWO verified caps gate this fn:
+// gl_func_0002A080 — 92.03% redecode 2026-07-30 (was 48.25 structural
+// pass). Caps still gating a full match:
 // (1) CALLER-SET $t6 dispatch: the head does `sltiu at,t6,14` with t6
 // never set in-symbol while a0 stays live in the case bodies (reads
 // a0+0x18) -- so t6 cannot be a coalesced arg web; the normal-arg C
 // form emits sltiu at,a0 (tested per the ECEC diagnostic). The
 // bytecode-VM family's callers pass the opcode in $t6.
-// (2) HARDCODED `jal 0x3f05c` in case 1 (no R_MIPS_26 reloc; the
-// reference_1080_hardcoded_jal class) -- C emits a reloc'd jal or a
-// fn-ptr jalr, neither matches.
-// The per-case C below is otherwise faithful (9 of 14 bodies decoded
-// incl. the 250/249/245 and 243/242 conditional-branch opcodes).
-// Permanent INCLUDE_ASM absent a VM-caller-context mechanism.
+// (2) case 1's jal is BAKED (no R_MIPS_26 in expected/ .o) to USO-local
+// 0x3F05C = gl_func_0003F05C (0x0C00FC17); our reloc'd jal resolves at
+// link but objdiff scores the reloc'd-vs-baked word as a mismatch.
+// (3) two copy-prop-immune pure copies (`or v0,a2,zero` head /
+// `or a0,v0,zero` case 5) — 3E1B0 web-split cap class; while(0)
+// phantom defs, if(1)/else, and param-reassign spellings all fold.
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
 // bundle). A command-opcode dispatcher (single jump table) in the
 // gl_func_00026790 bytecode-interpreter family.
@@ -12726,80 +12726,85 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002A014);
 //   below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-// Command-buffer VM step. The opcode is a caller-set $t6 (cap, approximated by
-// switching on a0 so the arm bodies' $a0/$a1/$a2/$a3 usage matches and only the
-// dispatch reg differs). a1 is the buffer: byte +0x18 is the stack cursor,
-// words +(idx*4+4) the value stack, +0x0 the live value, bytes +0x13/+0x14/+0x19
-// counters/flags. Arms: pop, handler-call, push (a0->0x18 + a3), tagged push,
-// repeat-decrement, cursor-dec, and a2-keyed conditional adds (250/249/245 and
-// 243/242 gated on the sign of a1->0x19). Reloc-blind table + jal (deferred).
-// Range check folded into the switch (no separate >=0xE guard) and cases 9..13
-// listed so IDO emits a single sltiu,14 + 14-entry table matching the target
-// dispatch shape (48.25% fuzzy, up from 46.97%).
+extern int gl_func_0003F05C();
+// Command-buffer VM step. The opcode is a caller-set $t6 (the ONE remaining
+// cap, approximated by switching on a0 so the arm bodies' register usage
+// matches and only the dispatch reg differs). 2026-07-30 redecode from
+// expected/ .o (old raw-.s analysis was reloc-blind): case 1's jal IS
+// reloc'd — game_libs_func_0003443C, not a hardcoded 0x3F05C; cases 7/8
+// compare a LOCAL COPY of a2 (cmd, colored $v0 via the dispatch-delay
+// `or v0,a2,zero`), not a2 itself; arm exits are `break` (tail-merged
+// return 0 at .LD834) except the 245/242 inner returns, case 0's -1 and
+// case 2's 1; stack indexing is array-form ((int*)a1)[m+1] (addu a1,idx
+// operand order + lw/sw offset 4). a1 buffer: +0x18 stack cursor, +4
+// value stack, +0x0 live value, +0x13/+0x14/+0x19 counters/flags.
 int gl_func_0002A080(char *a0, char *a1, int a2, int a3) {
+    int cmd;
+    int m;
+    int n;
+
+    cmd = a2;
     switch ((unsigned int)a0) {
-        case 0: {
-            int n = *(unsigned char *)(a1 + 0x18);
+        case 0:
+            n = *(unsigned char *)(a1 + 0x18);
+            m = n - 1;
             if (n == 0) {
                 return -1;
             }
-            n = (n - 1) & 0xFF;
-            *(unsigned char *)(a1 + 0x18) = n;
-            *(int *)a1 = *(int *)(a1 + n * 4 + 4);
-            return 0;
-        }
+            m = m & 0xFF;
+            *(unsigned char *)(a1 + 0x18) = m;
+            *(int *)a1 = ((int *)a1)[m + 1];
+            break;
         case 1:
-            return gl_func_00000000(a1);
+            return gl_func_0003F05C(a1);
         case 2:
             return 1;
-        case 3: {
-            int n = *(unsigned char *)(a1 + 0x18);
-            *(int *)(a1 + n * 4 + 4) = *(int *)a1;
-            *(unsigned char *)(a1 + 0x18) = *(unsigned char *)(a1 + 0x18) + 1;
+        case 3:
+            n = *(unsigned char *)(a1 + 0x18);
+            ((int *)a1)[n + 1] = *(int *)a1;
+            *(unsigned char *)(a1 + 0x18) += 1;
             *(int *)a1 = *(int *)(a0 + 0x18) + (a3 & 0xFFFF);
-            return 0;
-        }
-        case 4: {
-            int n = *(unsigned char *)(a1 + 0x18);
-            *(char *)(a1 + n + 0x14) = (char)a3;
-            *(int *)(a1 + *(unsigned char *)(a1 + 0x18) * 4 + 4) = *(int *)a1;
-            *(unsigned char *)(a1 + 0x18) = *(unsigned char *)(a1 + 0x18) + 1;
-            return 0;
-        }
-        case 5: {
-            int n = *(unsigned char *)(a1 + 0x18);
-            *(char *)(a1 + n + 0x13) = *(char *)(a1 + n + 0x13) - 1;
+            break;
+        case 4:
+            n = *(unsigned char *)(a1 + 0x18);
+            *(char *)(a1 + n + 0x14) = a3;
+            ((int *)a1)[*(unsigned char *)(a1 + 0x18) + 1] = *(int *)a1;
+            *(unsigned char *)(a1 + 0x18) += 1;
+            break;
+        case 5:
+            n = *(unsigned char *)(a1 + 0x18);
+            *(unsigned char *)(a1 + n + 0x13) -= 1;
             n = *(unsigned char *)(a1 + 0x18);
             if (*(unsigned char *)(a1 + n + 0x13) != 0) {
-                *(int *)a1 = *(int *)(a1 + n * 4);
+                *(int *)a1 = ((int *)a1)[n];
             } else {
                 *(unsigned char *)(a1 + 0x18) = n - 1;
             }
-            return 0;
-        }
+            break;
         case 6:
-            *(unsigned char *)(a1 + 0x18) = *(unsigned char *)(a1 + 0x18) - 1;
-            return 0;
+            *(unsigned char *)(a1 + 0x18) -= 1;
+            break;
         case 7:
-            if (a2 == 250) {
-                if (*(signed char *)(a1 + 0x19) != 0) return 0;
-            } else if (a2 == 249) {
-                if (*(signed char *)(a1 + 0x19) >= 0) return 0;
-            } else if (a2 == 245) {
-                if (*(signed char *)(a1 + 0x19) < 0) return 0;
+            if (cmd == 250) {
+                if (*(signed char *)(a1 + 0x19) != 0) break;
+            }
+            if (cmd == 249) {
+                if (*(signed char *)(a1 + 0x19) >= 0) break;
+            }
+            if (cmd == 245) {
+                if (*(signed char *)(a1 + 0x19) < 0) break;
             }
             *(int *)a1 = *(int *)(a0 + 0x18) + (a3 & 0xFFFF);
-            return 0;
+            break;
         case 8:
-            if (a2 == 243) {
-                if (*(signed char *)(a1 + 0x19) != 0) return 0;
-            } else if (a2 == 242) {
-                if (*(signed char *)(a1 + 0x19) >= 0) return 0;
+            if (cmd == 243) {
+                if (*(signed char *)(a1 + 0x19) != 0) break;
+            }
+            if (cmd == 242) {
+                if (*(signed char *)(a1 + 0x19) >= 0) break;
             }
             *(int *)a1 = *(int *)a1 + (signed char)a3;
-            return 0;
+            break;
         case 9:
         case 10:
         case 11:
