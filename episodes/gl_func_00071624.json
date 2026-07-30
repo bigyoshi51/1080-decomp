@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00071624",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-07-30T15:40:28.555593+00:00",
+  "end_time": "2026-07-30T15:40:28.555613+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-30T15:40:28.555608+00:00",
+      "assistant_text": "Identified gl_func_00071624 = libultra __osPfsGetStatus (io/pfsgetstatus.c, 2.0I layout) via the pfs-family sweep from osPfsInitPak (gl_func_00071384). Verbatim libreultra source adapted to blank-reloc USO form (callees -> gl_func_00000000, __osPfsPifRam -> D_00000000), compiled IDO 5.3 -O1 -mips2, byte-exact on first compile, spliced via REPLACE_FUNC_BODY.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 57,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_00071624 = libultra __osPfsGetStatus\n * (io/pfsgetstatus.c verbatim, 2.0I layout) -- pfs sibling family of\n * gl_func_00071384 = osPfsInitPak (which jals this at its PFS_GET_STATUS\n * head). PROVEN EXACT 57/57 vs expected gl_func_00071624 (first compile,\n * 2026-07-30 probe): masked-reloc word compare 0 mismatches AND every\n * reloc imm field already 0 on both sides (__osPfsPifRam refs are\n * addend-0 lui/addiu pairs = blank D_00000000 extern; all 6 jals are\n * blank USO runtime relocs = gl_func_00000000 placeholder, real callees\n * __osPfsRequestOneChannel / __osSiRawStartDma x2 / osRecvMesg x2 /\n * __osPfsGetOneChannelData=gl_func_000717CC). post2 builds -O2 7.1;\n * only 5.3 -O1 reproduces the stack-resident ret/data locals.\n * Spliced into game_libs_post2.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned short u16;\ntypedef unsigned char u8;\ntypedef int s32;\ntypedef void *OSMesg;\ntypedef struct OSMesgQueue_s OSMesgQueue;\n\ntypedef struct\n{\n    u16 type;   /* 0x0 */\n    u8 status;  /* 0x2 */\n    u8 errno;   /* 0x3 */\n} OSContStatus;\n\nextern int gl_func_00000000();\nextern u8 D_00000000; /* __osPfsPifRam */\n\ns32 gl_func_00071624(OSMesgQueue *queue, int channel)\n{\n    s32 ret;\n    OSMesg dummy;\n    OSContStatus data;\n    ret = 0;\n    gl_func_00000000(channel);              /* __osPfsRequestOneChannel */\n    ret = gl_func_00000000(1, &D_00000000); /* __osSiRawStartDma(OS_WRITE, &__osPfsPifRam) */\n    gl_func_00000000(queue, &dummy, 1);     /* osRecvMesg(queue, &dummy, OS_MESG_BLOCK) */\n    ret = gl_func_00000000(0, &D_00000000); /* __osSiRawStartDma(OS_READ, &__osPfsPifRam) */\n    gl_func_00000000(queue, &dummy, 1);     /* osRecvMesg */\n    gl_func_00000000(channel, &data);       /* __osPfsGetOneChannelData */\n    if (((data.status & 1) != 0) && ((data.status & 2) != 0))\n        return 2;  /* PFS_ERR_NEW_PACK */\n    if ((data.errno != 0) || ((data.status & 1) == 0))\n        return 1;  /* PFS_ERR_NOPACK */\n    if ((data.status & 4) != 0)\n        return 4;  /* PFS_ERR_CONTRFAIL */\n    return ret;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_71624.c",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/gl_func_00071624.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "57/57 raw-word identical vs expected/src/game_libs/game_libs_post2.c.o gl_func_00071624 (incl. reloc imms); REPLACE_FUNC_BODY splice; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0"
+  }
+}

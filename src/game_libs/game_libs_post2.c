@@ -221,51 +221,24 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071384);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00071384_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_00071624: pak/save-data status query (size 0xE4, frame 0x28).
- * Hook chain over game_libs_func_00070FCC (NOT gl_func_00000000): notify(a1);
- * status=cb(1,&D); cb(a0,&buf20,1); status=cb(0,&D); cb(a0,&buf20,1);
- * cb(a1,&buf1C); then decode the flag bytes at buf1C[2] (=sp+0x1E) and
- * buf1C[3] (=sp+0x1F):
- *   (flags&1 && flags&2)            -> 2
- *   flags_1F!=0 || !(flags&1)       -> 1   (single shared return, ONE if)
- *   flags&4                         -> 4
- *   else                            -> saved status
- * The two later flag checks (&1 recheck and &4) re-read the byte FRESH each
- * time (target emits a separate lbu per block); a volatile-view re-deref
- * forces the reload (a plain inline-deref CSEs to one cached register).
- * The first (&1,&2) pair shares one non-volatile lbu, matching the target.
- * Reloc-blind cbs + &D_00000000.
- */
-extern int gl_ph_70FCC();  /* legacy NM placeholder-callee (was reusing game_libs_func_00070FCC's name; renamed 2026-07-10 when the real fn = fcos landed -- feedback_placeholder_func_name_reuse_blocks_real_def) */
-extern int D_00000000;
-int gl_func_00071624(char *a0, char *a1) {
-    int status;
-    int buf20;
-    int buf1C;
-    unsigned char flags;
-    status = 0;
-    gl_ph_70FCC(a1);
-    status = gl_ph_70FCC(1, (char *)&D_00000000);
-    gl_ph_70FCC(a0, &buf20, 1);
-    status = gl_ph_70FCC(0, (char *)&D_00000000);
-    gl_ph_70FCC(a0, &buf20, 1);
-    gl_ph_70FCC(a1, &buf1C);
-    flags = ((unsigned char *)&buf1C)[2];
-    if ((flags & 1) && (flags & 2)) {
-        return 2;
+/* gl_func_00071624 = libultra __osPfsGetStatus (io/pfsgetstatus.c
+ * verbatim, 2.0I layout) -- pfs sibling family of gl_func_00071384 =
+ * osPfsInitPak (its PFS_GET_STATUS head jals this). The old NM body had
+ * the exact semantics (status-flag decode 2/1/4) but 7.1 -O2 register
+ * shapes; only IDO 5.3 -O1 reproduces the stack-resident locals.
+ * LANDED 2026-07-30 via REPLACE_FUNC_BODY donor splice: real C lives in
+ * the IDO 5.3 -O1 donor unit game_libs_ido53_71624.c (57/57 raw-word
+ * identical incl. reloc imms; __osPfsPifRam = blank D_00000000, callees
+ * = blank USO jals: __osPfsRequestOneChannel, __osSiRawStartDma x2,
+ * osRecvMesg x2, __osPfsGetOneChannelData=gl_func_000717CC).
+ * Body below is a placeholder for the splice. */
+int gl_func_00071624(void *queue, int channel) {
+    volatile int ret = 0;
+    if (channel != 0) {
+        ret = channel;
     }
-    if (((unsigned char *)&buf1C)[3] != 0 || (((volatile unsigned char *)&buf1C)[2] & 1) == 0) {
-        return 1;
-    }
-    if (((volatile unsigned char *)&buf1C)[2] & 4) {
-        return 4;
-    }
-    return status;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071624);
-#endif
 
 /* gl_func_00071708: 48-insn record-stream emitter, 6-byte template
  * {1,3,0,0xFF,0xFF,0xFF} (swl/swr family; sibling of gl_func_0006D6F4).
