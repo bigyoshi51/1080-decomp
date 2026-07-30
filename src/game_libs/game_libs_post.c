@@ -12493,7 +12493,14 @@ int game_libs_func_00029934(int *a0) {
 //   Real-C STRUCTURAL body below per the analysis. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* Whole-body FP decode 2026-07-10 (was 34-insn timer-only stub, 18.9% fuzzy).
+/* Whole-body FP decode 2026-07-10; structural redecode 2026-07-30 (43.45->71.84):
+ * real jal = baked 0x0C00F7E8 -> gl_ref_0003DFA0 (not reloc-zero extern);
+ * if(mode!=0) first (snap block placed last, beqzl); snap reloads cfg16 twice
+ * (sh to obj->h_18 blocks CSE across cfg base); mode1 path genuinely reloads
+ * obj->h_18 for its decrement (volatile reread reproduces it; plain reread is
+ * CSEd to the original reg). Residuals: mode homed a1-vs-v0 + one copy insn,
+ * branch-likely senses flipped on the mode dispatch pair, tail 1.0f reg f12/f14.
+ * (was 34-insn timer-only stub, 18.9% fuzzy).
  * Per-object dual-channel keyframe tween. obj->h_1A (0x1A) = frame countdown;
  * while nonzero, tick down and return 1.0f. On expiry (==0), if the config ptr
  * obj->w_0 != -1, advance two symmetric interpolation channels:
@@ -12504,7 +12511,7 @@ int game_libs_func_00029934(int *a0) {
  * if obj->f_C==0 return 1.0f, else helper() indexes a rodata float curve at
  * &D+0x200 and returns (curve[i]-1)*(f_C/4096)+1. Returns float ($f0). jal +
  * curve table are reloc-blind (&D_00000000); branch-likely FP schedule. */
-extern int gl_func_00000000();
+extern int gl_ref_0003DFA0();
 float gl_func_00029978(char *obj) {
     unsigned short t = *(unsigned short *)(obj + 0x1A);
     int cfg = *(int *)(obj + 0x0);
@@ -12520,51 +12527,53 @@ float gl_func_00029978(char *obj) {
     if (cfg != -1) {
         /* channel A: obj->f_C / obj->h_18 / cfg[+22], cfg[+26] */
         mode = *(unsigned short *)(obj + 0x18);
-        if (mode == 0) {
-            unsigned short c16 = *(unsigned short *)(cfg + 22);
-            if ((int)*(float *)(obj + 0xC) != (int)c16) {
+        if (mode != 0) {
+            if (mode == 1) {
+                *(float *)(obj + 0xC) = (float)(int)*(unsigned short *)(cfg + 22);
+                *(short *)(obj + 0x18) = *(volatile unsigned short *)(obj + 0x18) - 1;
+            } else {
+                float cur = *(float *)(obj + 0xC);
+                *(float *)(obj + 0xC) =
+                    cur + ((float)(int)*(unsigned short *)(cfg + 22) - cur) / (float)(int)mode;
+                *(short *)(obj + 0x18) = mode - 1;
+            }
+        } else {
+            if ((int)*(float *)(obj + 0xC) != (int)*(unsigned short *)(cfg + 22)) {
                 unsigned short c1a = *(unsigned short *)(cfg + 26);
                 *(short *)(obj + 0x18) = c1a;
                 if (c1a == 0) {
-                    *(float *)(obj + 0xC) = (float)(int)c16;
+                    *(float *)(obj + 0xC) = (float)(int)*(unsigned short *)(cfg + 22);
                 }
             }
-        } else if (mode == 1) {
-            *(float *)(obj + 0xC) = (float)(int)*(unsigned short *)(cfg + 22);
-            *(short *)(obj + 0x18) = mode - 1;
-        } else {
-            float cur = *(float *)(obj + 0xC);
-            *(float *)(obj + 0xC) =
-                cur + ((float)(int)*(unsigned short *)(cfg + 22) - cur) / (float)(int)mode;
-            *(short *)(obj + 0x18) = mode - 1;
         }
 
         /* channel B: obj->f_10 / obj->h_16 / cfg[+20], cfg[+24] */
         mode = *(unsigned short *)(obj + 0x16);
-        if (mode == 0) {
-            unsigned short c14 = *(unsigned short *)(cfg + 20);
-            if ((int)*(float *)(obj + 0x10) != (int)c14) {
+        if (mode != 0) {
+            if (mode == 1) {
+                *(float *)(obj + 0x10) = (float)(int)*(unsigned short *)(cfg + 20);
+                *(short *)(obj + 0x16) = *(volatile unsigned short *)(obj + 0x16) - 1;
+            } else {
+                float cur = *(float *)(obj + 0x10);
+                *(float *)(obj + 0x10) =
+                    cur + ((float)(int)*(unsigned short *)(cfg + 20) - cur) / (float)(int)mode;
+                *(short *)(obj + 0x16) = mode - 1;
+            }
+        } else {
+            if ((int)*(float *)(obj + 0x10) != (int)*(unsigned short *)(cfg + 20)) {
                 unsigned short c18 = *(unsigned short *)(cfg + 24);
                 *(short *)(obj + 0x16) = c18;
                 if (c18 == 0) {
-                    *(float *)(obj + 0x10) = (float)(int)c14;
+                    *(float *)(obj + 0x10) = (float)(int)*(unsigned short *)(cfg + 20);
                 }
             }
-        } else if (mode == 1) {
-            *(float *)(obj + 0x10) = (float)(int)*(unsigned short *)(cfg + 20);
-            *(short *)(obj + 0x16) = mode - 1;
-        } else {
-            float cur = *(float *)(obj + 0x10);
-            *(float *)(obj + 0x10) =
-                cur + ((float)(int)*(unsigned short *)(cfg + 20) - cur) / (float)(int)mode;
-            *(short *)(obj + 0x16) = mode - 1;
         }
     }
 
     if (0.0f == *(float *)(obj + 0xC)) {
         return 1.0f;
     }
-    idx = gl_func_00000000(obj);
+    idx = gl_ref_0003DFA0(obj);
     fc = *(float *)(obj + 0xC);
     return (((float *)((char *)&D_00000000 + 0x200))[idx] - 1.0f) * (fc * (1.0f / 4096.0f))
            + 1.0f;

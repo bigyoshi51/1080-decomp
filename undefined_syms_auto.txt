@@ -734,6 +734,7 @@ gl_ref_0003A268 = 0x0003A268;  /* gl_func_00025C54 baked USO jal (0x0C00E89A) */
 gl_ref_0003959C = 0x0003959C;  /* gl_func_00025C54 baked USO jal (0x0C00E567) */
 gl_ref_0003A880 = 0x0003A880;
 gl_ref_0003CC70 = 0x0003CC70;
+gl_ref_0003DFA0 = 0x0003DFA0;  /* gl_func_00029978 baked USO jal (0x0C00F7E8) */
 gl_ref_00013C70 = 0x00013C70;
 gl_ref_00013CAC = 0x00013CAC;
 gl_ref_00013CE8 = 0x00013CE8;
