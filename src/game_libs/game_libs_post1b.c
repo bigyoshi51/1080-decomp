@@ -2909,54 +2909,42 @@ void gl_func_00066A50(int a0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00066A50);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066AE4);
-
 #ifdef NON_MATCHING
-/* gl_func_00066AF0: 29-insn debug-canary triple-check helper (size 0x74, frame 0x18).
+/* gl_func_00066AF0: 32-insn debug-canary quad-check helper (size 0x80 MERGED, frame 0x18).
  *
- * Decoded structure (raw-word disasm):
- *   // Pre-check: caller-set $at gates the first canary read
- *   if ((($at_caller | 0x5678) == 0x40000)) {  // gate (caller-supplied flag)
- *       t7 = *(int*)((char*)&D_00000000 + 0x3F314);  // canary slot 1
- *       if (t7 != 0x12345678)
- *           debug_print((char*)&D_00000000 + 0x21BC);  // error msg 1
- *   }
- *   t8 = *(int*)((char*)&D_00000000 + 0x414C0);      // canary slot 2
- *   if (t8 == 0x12345678) {
- *       t9 = *(int*)((char*)&D_00000000 + 0x414C4);  // canary slot 3
- *       if (t9 != 0x12345678)
- *           debug_print((char*)&D_00000000 + 0x21D8);  // error msg 2 (or 3)
- *   }
- *   return;
+ * MERGE 2026-07-30 (agent-h): the former 0xC orphan game_libs_func_00066AE4
+ * (lui t6,4; lw t6,-0xCF0(t6); lui at,0x1234 -- no jr ra) was this function's
+ * own first canary load + the first compare's $at high half, hoisted above
+ * `addiu sp` by the scheduler (hoisted-prologue mis-split class, see
+ * docs/MATCHING_WORKFLOW feedback-callerset-t6-orphan-head-is-hoisted-prologue).
+ * The old "caller-set $at cap" verdict is RETRACTED -- $at was set at 66AEC
+ * inside the real function span. Orphan is FOLDED lw form (no addiu) =>
+ * scalar &D+off spelling per the orphan-addressing-form oracle.
  *
- * Pattern: debug-assert / memory-canary check. Three 32-bit slots at
- *   D+0x3F314, D+0x414C0, D+0x414C4 each hold a magic sentinel 0x12345678.
- *   On mismatch, the helper prints an error message from D+0x21BC / D+0x21D8.
+ * Canary verifier: four 32-bit slots hold magic 0x12345678; on pair mismatch
+ * print an error string via the (collapsed jal-0) reporter:
+ *   if (*(D+0x3F310) != magic || *(D+0x3F314) != magic) report(&D+0x21BC);
+ *   if (*(D+0x414C0) != magic || *(D+0x414C4) != magic) report(&D+0x21D8);
+ * Slots 0x3F310/0x3F314 are the pair SET by the panic sibling gl_func_00066A50;
+ * 0x414C0/0x414C4 are set by gl_func_00066B64. Stays NM wrap: callees are
+ * jal-0 placeholders (gl_func_00000000) => no episode even at fuzzy-100.
  *
- * Notes:
- *  - $at is caller-set (upper bits used by `ori $at, $at, 0x5678` at insn[2]
- *    with NO prior `lui` in this function). Fits the caller-set-int-reg cap
- *    class (feedback_caller_set_int_reg_cap_1080_game_libs.md). $at-as-arg
- *    is a unusual variant beyond the previously-documented $v0/$v1/$t6/$a2.
- *  - 0x12345678 is the canary sentinel value (classic 1234-5678 marker).
- *  - The error messages at D+0x21BC and D+0x21D8 are debug strings (likely
- *    "Memory canary corrupted" or similar — verify via objdump --full-contents).
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path
- *    (caller-set $at can't be expressed in IDO C).
- */
-extern int D_00000000;
-// Canary/sentinel verifier. Checks a caller-set value + two fixed slots against
-// the magic 0x12345678, asserting (cb with an error string) on mismatch:
-// if (x != magic || *0x3F314 != magic) report(&D+0x21BC);
-// if (*0x414C0 != magic || *0x414C4 != magic) report(&D+0x21D8);
-// The magic's high half (lui 0x1234) is set by a predecessor for the first
-// compare (caller-set), so that compare won't byte-match; the rest matches.
-void gl_func_00066AF0(int x) {
-    if (x != 0x12345678 || *(int *)0x0003F314 != 0x12345678) {
+ * RESIDUAL (46.4 -> 56.8 merged, agent-h probe matrix): target re-materializes
+ * the magic per compare via the assembler $at macro (4x lui at/ori at) with
+ * same-reg macro loads (lui tN; lw tN,%lo(tN)) YET is fully scheduled (loads
+ * in branch delay slots, head hoisted above addiu sp). No probed mode emits
+ * both: 5.3/7.1 -O1 (+/- -Wb,-O2) give $at macros but unscheduled nops;
+ * 5.3/7.1 -O2 (incl. -g3, volatile, literal-address spelling) always value-CSE
+ * 0x12345678 into v0 (2 materializations, not 4). Literal *(int*)0x3F310
+ * spelling scores WORSE in objdiff (39.6) than &D+off (56.8) despite matching
+ * the per-load lui shape - reloc scoring. Keep &D+off. */
+void gl_func_00066AF0(void) {
+    if (*(int *)((char *)&D_00000000 + 0x3F310) != 0x12345678 ||
+        *(int *)((char *)&D_00000000 + 0x3F314) != 0x12345678) {
         gl_func_00000000((char *)&D_00000000 + 0x21BC);
     }
-    if (*(int *)0x000414C0 != 0x12345678 || *(int *)0x000414C4 != 0x12345678) {
+    if (*(int *)((char *)&D_00000000 + 0x414C0) != 0x12345678 ||
+        *(int *)((char *)&D_00000000 + 0x414C4) != 0x12345678) {
         gl_func_00000000((char *)&D_00000000 + 0x21D8);
     }
 }
