@@ -5926,84 +5926,88 @@ void func_00008474(char *a0) {
  * o->0x28 (40) descriptor (&D_00007968 init datum). s = 0x38-byte
  * sub-object; c = 8-byte aux (c->0x0 = &D_00007FE4 descriptor,
  * c->0x4 = 0); c2 = 0x18-byte child init'd from the global
- * D_00007FEC value. The `s != -0x3C / -0x8` tests are defensive
- * impossible-pointer guards (always true). FP const 0x43960000 =
- * 300.0f. Caps <80: global-gate + alloc-cascade (~6 reloc) +
- * defensive-dead-check guards + &D descriptors + FP-300 + cross-
- * symbol (func_00007620) ref. Full body INCLUDE_ASM-preserved
- * (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap
- * rule). */
+ * D_00007FEC value. The `u != -0x3C / -0x8 / -0x20` tests are the
+ * `c = u+k; if (c != 0 || alloc)` get-or-create guards folded by
+ * IDO. FP const 0x43960000 = 300.0f; block2 kind a3=0 and child2
+ * gets {0x10=1 (int), 0xC=&func_00007620+0x70, 0x14=0} instead of
+ * the float form.
+ * 2026-07-30 agent-g: 13D40 recipe applied (62.5 -> 93.3, 113/113
+ * structure, ALL homed slots exact via int A[6] + q2 dead decl
+ * (9-word odd parity pads 0x20, p 0x24, q2 0x28, w 0x2C, A base
+ * 0x30); v=o tail-reuse lever as 8124. Residual = 13D40
+ * allocator-web cap (p.v webs coalesce to v0, t-cycle renumber,
+ * u-spill/frame +0x10 reserved words, sw-a0 window x2, tail
+ * lw-v0/move-s0 elide) + `(char *)func_00007620 + 0x70` emits
+ * separate addiu 0x70 (addend does not fold into %lo since the
+ * symbol is a real fn in this TU, unlike the extern-array
+ * func_0000CACC form in 1438C) + head g = *(char**)&D_00000000
+ * carries HI/LO relocs where target's lui/lw pair is baked
+ * reloc-free (baked-USO-symbol cap; bytes identical). Sub-100 ->
+ * NM wrap per policy. */
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_000084A0)();
+typedef struct { int v; } Val84A0;
+extern char D_00007968;
+extern char D_00007FE4;
+extern int D_00007FEC;
+extern int D_00007FF0;
+extern char D_00007540;
 char *func_000084A0(char *arg0) {
-    char *sp4C;
-    char *sp44;
-    char *sp40;
-    char *sp3C;
-    char *sp2C;
-    char *sp24;
-    char *temp_a1;
-    char *temp_t3;
-    char *temp_t9;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *var_a0;
-    char *var_a0_2;
-    char *var_a1;
-    char *var_v1;
+    char *o;
+    char *v;
+    char *u;
+    char *s;
+    char *c;
+    char *g;
+    int A[6];
+    char * volatile w;
+    char *q2;
+    Val84A0 p;
 
-    temp_a1 = *(int*)0;
-    if (FW(temp_a1, 0x40) == 0) {
-        (char*)func_00000000(temp_a1, temp_a1);
+    g = *(char **)&D_00000000;
+    if (*(int *)(g + 0x40) == 0) {
+        func_00000000(g);
     }
-    temp_v0 = (char*)func_00000000((char *)0x74);
-    if ((temp_v0 != 0) && (((char*)func_00000000(temp_v0), FW(temp_v0, 0x28) = 0, var_a1 = temp_v0 + 0x3C, (temp_v0 != (char *)-0x3C)) || (temp_v0_2 = (char*)func_00000000((char *)0x38, var_a1), var_a1 = temp_v0_2, (temp_v0_2 != 0)))) {
-        var_v1 = var_a1;
-        if ((var_a1 != 0) || (sp44 = var_a1, temp_v0_3 = (char*)func_00000000((char *)8, var_a1), var_v1 = temp_v0_3, (temp_v0_3 != 0))) {
-            FW(var_v1, 0x0) = 0;
-            FW(var_v1, 0x4) = 0;
-        }
-        temp_t9 = *(int*)0;
-        var_a0 = var_a1 + 8;
-        sp40 = temp_t9;
-        sp24 = temp_t9;
-        if ((var_a1 != (char *)-8) || (sp44 = var_a1, temp_v0_4 = (char*)func_00000000((char *)0x18, var_a1), var_a0 = temp_v0_4, (temp_v0_4 != 0))) {
-            sp2C = var_a0;
-            sp44 = var_a1;
-            (char*)func_00000000(var_a0, var_a1, sp24, 1);
-            FW(var_a0, 0xC) = 0;
-            FW(var_a0, 0x14) = 0;
-            *(f32 *)((char *)var_a0 + 0x10) = 300.0f;
-        }
-        temp_t3 = *(int*)0;
-        var_a0_2 = var_a1 + 0x20;
-        sp3C = temp_t3;
-        sp24 = temp_t3;
-        if ((var_a1 != (char *)-0x20) || (sp44 = var_a1, temp_v0_5 = (char*)func_00000000((char *)0x18, var_a1), var_a0_2 = temp_v0_5, (temp_v0_5 != 0))) {
-            sp2C = var_a0_2;
-            (char*)func_00000000(var_a0_2, var_a1, sp24, 0);
-            FW(var_a0_2, 0x10) = 1;
-            FW(var_a0_2, 0xC) = 0x70;
-            FW(var_a0_2, 0x14) = 0;
+    o = (char *)func_00000000(0x74);
+    if (o != 0) {
+        func_00000000(o);
+        *(char **)(o + 0x28) = &D_00007968;
+        u = o + 0x3C;
+        if (u != 0 || (u = (char *)func_00000000(0x38)) != 0) {
+            s = u;
+            if (s != 0 || (s = (char *)func_00000000(8)) != 0) {
+                *(char **)(s + 0) = &D_00007FE4;
+                *(int *)(s + 4) = 0;
+            }
+            p.v = D_00007FEC; A[4] = p.v;
+            c = u + 8;
+            if (c != 0 || (c = (char *)func_00000000(0x18)) != 0) {
+                func_00000000(w = c, u, p, 1);
+                c = w;
+                *(char **)(c + 0xC) = &D_00007540;
+                *(int *)(c + 0x14) = 0;
+                *(float *)(c + 0x10) = 300.0f;
+            }
+            p.v = D_00007FF0; A[3] = p.v;
+            c = u + 0x20;
+            if (c != 0 || (c = (char *)func_00000000(0x18)) != 0) {
+                func_00000000(w = c, u, p, 0);
+                c = w;
+                *(int *)(c + 0x10) = 1;
+                *(char **)(c + 0xC) = (char *)func_00007620 + 0x70;
+                *(int *)(c + 0x14) = 0;
+            }
         }
     }
-    temp_v0_6 = FW(arg0, 0x40);
-    if (temp_v0_6 != 0) {
-        sp4C = temp_v0;
-        (char*)func_00000000(temp_v0 + 0x10, temp_v0_6);
-        if (FW(temp_v0_6, 0x14) != 0) {
-            FW(temp_v0_6, 0x4) = 1;
+    v = o;
+    o = *(char **)(arg0 + 0x40);
+    if (o != 0) {
+        func_00000000(v + 0x10, o);
+        if (*(int *)(o + 0x14) != 0) {
+            *(int *)(o + 4) = 1;
         }
-        FW(temp_v0_6, 0x14) = temp_v0;
+        *(char **)(o + 0x14) = v;
     }
-    return temp_v0;
+    return v;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000084A0);
