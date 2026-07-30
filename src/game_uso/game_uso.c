@@ -7427,8 +7427,9 @@ int game_uso_func_00009B88(a0, a1, a2)
         out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
-        src_x = *(float*)((char*)a2 + 0x30);
-        src_z = *(float*)((char*)a2 + 0x38);
+        src_vec = (float*)((char*)a2 + 0x30);
+        src_z = src_vec[2];
+        src_x = src_vec[0];
         *(float*)((char*)out + 0x4) = 0.0f;     /* y */
         *(float*)((char*)out + 0x8) = src_z;    /* z */
         *(float*)((char*)out + 0x0) = src_x;    /* x */
@@ -7441,8 +7442,9 @@ int game_uso_func_00009B88(a0, a1, a2)
         out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
-        dx = local_190[0] - *(float*)((char*)a1 + 0x30);
-        dz = local_190[2] - *(float*)((char*)a1 + 0x38);
+        src_vec = (float*)((char*)a1 + 0x30);
+        dx = local_190[0] - src_vec[0];
+        dz = local_190[2] - src_vec[2];
         *(float*)((char*)out + 0x4) = 0.0f;     /* y */
         *(float*)((char*)out + 0x8) = dz;       /* z */
         *(float*)((char*)out + 0x0) = dx;       /* x */
@@ -7838,9 +7840,10 @@ int game_uso_func_00009B88(a0, a1, a2)
         out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
-        ((float*)out)[0] = local_184[0] - *(float*)((char*)a1 + 0x30);
+        src_vec = (float*)((char*)a1 + 0x30);
+        ((float*)out)[0] = local_184[0] - src_vec[0];
         ((float*)out)[1] = 0.0f;
-        ((float*)out)[2] = local_184[2] - *(float*)((char*)a1 + 0x38);
+        ((float*)out)[2] = local_184[2] - src_vec[2];
     }
 
     /* @ 0x9E50-0x9E8C: fanout hop THROUGH local_EC (target reuses sp+0xEC
