@@ -1,10 +1,8 @@
 nonmatching gl_func_000717CC, 0x9C
 
-glabel _pad_pre_717CC, local
-    /* stolen prologue: lui $t6 at 0x717C8, split off gl_func_00071708.s so its 48-word donor splice lands flush (1-word GLOBAL_ASM blocks emit +4, so folded in-block; docs/MATCHING_WORKFLOW) */
-    /* E568A0 000717C8 3C0E0000 */  .word 0x3C0E0000
-endlabel _pad_pre_717CC
 glabel gl_func_000717CC
+    /* true entry 0x717C8: `lui $t6,%hi(__osPfsPifRam)` was the old _pad_pre_717CC stolen-prologue orphan (split off gl_func_00071708.s); folded into the symbol 2026-07-30 when 717CC = __osPfsGetOneChannelData landed (39-word donor covers 0x717C8..0x71860) */
+    /* E568A0 000717C8 3C0E0000 */  .word 0x3C0E0000
     /* E568A4 000717CC 27BDFFF0 */  .word 0x27BDFFF0
     /* E568A8 000717D0 25CE0000 */  .word 0x25CE0000
     /* E568AC 000717D4 AFAE000C */  .word 0xAFAE000C
