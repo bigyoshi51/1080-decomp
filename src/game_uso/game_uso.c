@@ -7422,8 +7422,8 @@ int game_uso_func_00009B88(a0, a1, a2)
      * force a2's home spill didn't flip it either. The branch-likely here is
      * reorg-pass-driven off the a2-reload-in-delay and isn't reachable from
      * these C shapes; needs a fresh idea or the permuter. Kept as if-form. */
-    out = (int*)local_190;
-    if (out == 0) {  /* dead arm */
+    out = (int*)(unsigned)local_190;
+    if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
@@ -7436,8 +7436,8 @@ int game_uso_func_00009B88(a0, a1, a2)
 
     /* Dispatch 2: write Vec3 (a2->XZ - a1->XZ delta) to local_DC.
      * Same ternary shape; uses local_190 (just-written) for src_x/src_z. */
-    out = (int*)local_DC;
-    if (out == 0) {  /* dead arm */
+    out = (int*)(unsigned)local_DC;
+    if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
     if (out != 0) {
@@ -7476,7 +7476,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     /* @ 0x9DD0-0x9E18: rotated Vec3 into the always-nonnull sp+0xC4 slot.
      * The alloc arm is dead for the stack destination, matching the target's
      * `bne v1,$zero` skip over the helper allocation. */
-    out = (int*)local_C4;
+    out = (int*)(unsigned)local_C4;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
@@ -7822,7 +7822,7 @@ int game_uso_func_00009B88(a0, a1, a2)
      * sp+0x184, clearing Y. This is the fourth always-stack destination,
      * matching the earlier alloc-or-fill Vec3 templates. */
     src_vec = (float*)((char*)*(int*)((char*)a0 + 0x30) + 0xB4);
-    out = (int*)local_184;
+    out = (int*)(unsigned)local_184;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
@@ -7833,7 +7833,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     }
 
     /* @ 0x9F48-0x9F9C: build the second delta vector against a1+0x30. */
-    out = (int*)local_B8;
+    out = (int*)(unsigned)local_B8;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
@@ -7843,12 +7843,17 @@ int game_uso_func_00009B88(a0, a1, a2)
         ((float*)out)[2] = local_184[2] - *(float*)((char*)a1 + 0x38);
     }
 
-    *(int*)&local_120[0] = *(int*)&local_B8[0];
-    *(int*)&local_120[1] = *(int*)&local_B8[1];
-    *(int*)&local_120[2] = *(int*)&local_B8[2];
+    /* @ 0x9E50-0x9E8C: fanout hop THROUGH local_EC (target reuses sp+0xEC
+     * as the staging buffer for this copy): B8 -> EC -> 120 interleaved. */
+    local_EC[0] = *(int*)&local_B8[0];
+    *(int*)&local_120[0] = local_EC[0];
+    local_EC[1] = *(int*)&local_B8[1];
+    *(int*)&local_120[1] = local_EC[1];
+    local_EC[2] = *(int*)&local_B8[2];
+    *(int*)&local_120[2] = local_EC[2];
 
     /* @ 0x9FF4-0xA194: four unrolled screen-space Vec3 combinations. */
-    out = (int*)local_A0;
+    out = (int*)(unsigned)local_A0;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
@@ -7857,11 +7862,15 @@ int game_uso_func_00009B88(a0, a1, a2)
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_144[2] + local_138[2];
     }
-    local_178[0] = *(int*)&local_A0[0];
-    local_178[1] = *(int*)&local_A0[1];
-    local_178[2] = *(int*)&local_A0[2];
+    /* @ 0x9ED0-0x9F0C: A0 -> EC -> 178 hop, same staging idiom. */
+    local_EC[0] = *(int*)&local_A0[0];
+    local_178[0] = local_EC[0];
+    local_EC[1] = *(int*)&local_A0[1];
+    local_178[1] = local_EC[1];
+    local_EC[2] = *(int*)&local_A0[2];
+    local_178[2] = local_EC[2];
 
-    out = (int*)local_88;
+    out = (int*)(unsigned)local_88;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
@@ -7877,7 +7886,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     local_16C[1] = local_94[1];
     local_16C[2] = local_94[2];
 
-    out = (int*)local_6C;
+    out = (int*)(unsigned)local_6C;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
@@ -7893,7 +7902,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     local_160[1] = local_7C[1];
     local_160[2] = local_7C[2];
 
-    out = (int*)local_38;
+    out = (int*)(unsigned)local_38;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
     }
