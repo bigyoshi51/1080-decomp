@@ -1162,8 +1162,23 @@ void game_uso_func_00001DC4(void *a0) {
  * The struct copies fan each scaled Vec3 through two stack temps (the
  * *(Tri3i*)d2 = *(Tri3i*)d1 = *(Tri3i*)src integer-copy idiom, same as the
  * 028C0 family) — that double-buffering is what produces the interleaved
- * lw/sw fanout in the target. Logic is faithful end-to-end; residual byte
- * gap is IDO stack-slot/regalloc scheduling across the four emit blocks. */
+ * lw/sw fanout in the target.
+ *
+ * REBUILD 2026-07-30 (55.8 -> 69.4, fresh-Vec3 fanout pass): every scaled
+ * result now has its OWN stack Vec3 and travels a TWO-hop Tri3i chain
+ * through shared hop buffers `scratch` (0xFC, also the 23D4 out-arg) and
+ * `hopB` (0xC4); *delta is int-copied into `dcopy` (0x154) before the
+ * float adds; key==3 stages through float m[3] + a homed out copy read
+ * back once (exact target shape). Decl order = expected slot ladder.
+ * RESIDUAL CAP (family-wide, twin 28C0 shows the same target shape): the
+ * target colors NO s-regs — obj lives in $a2 spilled to its own arg home
+ * 0x180(sp), &scratch re-materializes as addiu $a3,sp,0xFC per region.
+ * Our build promotes obj->$s0 and &scratch->$s1 (call-arg use makes the
+ * address web s-colorable per IDO_CODEGEN W65-70). Probed: obj=0;if(1)
+ * guard (coalesces back to s0), if(0)&param escape (prologue-home flavor,
+ * breaks bnel), volatile param (per-use reloads), float[3] scratch
+ * (fuzzy-neutral). Frame 352 vs 384 = dead named-local gaps in original
+ * (0x160-0x16F, 0xE8-0xFB, 0xD0-0xDB, 0x6C-0x73), same class as 0B3C. */
 #ifdef NON_MATCHING
 extern Vec3* game_uso_func_000023D4(Vec3 *out, char *a1);
 extern float game_uso_func_070238(float);
@@ -1177,28 +1192,63 @@ void game_uso_func_00001DDC(int *a0) {
         return;
     }
     if (key == 3) {
-        char *out = (char *)a0[0x14 / 4];
-        char *src = (char *)a0[0x3C / 4];
-        Vec3 m;
-        m.x = *(float *)(src + 0xA0);
+        /* m + out are MEMORY-homed (f32[3] staging + ptr[1] array): every
+         * read reloads through the just-written stack home. */
+        float m[3];      /* 0x174..0x17C */
+        char *outh[1];   /* 0x170: homed copy, read back once for batch 2 */
+        char *out;       /* register (t6) for batch 1 */
+        char *o2;        /* register (v0) for batch 2 */
+        char *src;
+        out = (char *)a0[0x14 / 4];
+        outh[0] = out;
+        src = (char *)a0[0x3C / 4];
+        m[0] = *(float *)(src + 0xA0);
         src += 0x70;
-        m.y = *(float *)(src + 0x34);
-        m.z = *(float *)(src + 0x38);
-        *(float *)(out + 0x60) = m.x;
-        *(float *)(out + 0x64) = m.y;
-        *(float *)(out + 0x68) = m.z;
-        *(float *)(out + 0xA0) = m.x;
-        *(float *)(out + 0xA4) = m.y;
-        *(float *)(out + 0xA8) = m.z;
+        m[1] = *(float *)(src + 0x34);
+        m[2] = *(float *)(src + 0x38);
+        *(float *)(out + 0x60) = m[0];
+        *(float *)(out + 0x64) = m[1];
+        *(float *)(out + 0x68) = m[2];
+        o2 = outh[0];
+        *(float *)(o2 + 0xA0) = m[0];
+        *(float *)(o2 + 0xA4) = m[1];
+        *(float *)(o2 + 0xA8) = m[2];
         return;
     }
 
     {
-        char *out = (char *)a0[0x14 / 4];
-        char *s   = (char *)a0[0x38 / 4];
-        Vec3 ref_v, self_v, diff, scratch, stage, buf, acc;
+        /* Fresh-Vec3 fanout (kit-IV / 0B3C recipe): every scaled result gets
+         * its OWN stack Vec3, then travels a TWO-hop Tri3i int-copy chain
+         * through the shared hop buffers `scratch` (also the 23D4 out-arg,
+         * 0xFC) and `hopB` (0xC4) before its floats are re-read.  Declaration
+         * order below reproduces the expected slot ladder 0x154..0x24. */
+        Vec3 dcopy;      /* 0x154: int-copy of *delta               */
+        Vec3 fin_c2;     /* 0x148: final hop of commit pass 2       */
+        Vec3 ref_v;      /* 0x13C                                   */
+        Vec3 self_v;     /* 0x130                                   */
+        Vec3 acc;        /* 0x120: arg to both 072EE8 calls         */
+        Vec3 diff;       /* 0x110: planar dir, reused as up-vector  */
+        float scratch[3]; /* 0xFC : 23D4 out-arg + shared hop A (array base remats) */
+        Vec3 st_p1t;     /* 0xDC : pass1-true stage                 */
+        Vec3 hopB;       /* 0xC4 : shared hop B                     */
+        Vec3 hop_p1e;    /* 0xB0 : pass1-else post-hopA landing     */
+        Vec3 st_p1e;     /* 0xA4 : pass1-else stage 1               */
+        Vec3 st_p1e2;    /* 0x94 : pass1-else stage 2 (*k)          */
+        Vec3 fin_e;      /* 0x74 : shared else-final (both passes)  */
+        Vec3 st_c1;      /* 0x60 : commit-1 stage (diff*speed)      */
+        Vec3 st_p2t;     /* 0x54 : pass2-true stage                 */
+        Vec3 hop_p2e;    /* 0x48 : pass2-else post-hopA landing     */
+        Vec3 st_p2e;     /* 0x3C : pass2-else stage 1               */
+        Vec3 st_p2e2;    /* 0x30 : pass2-else stage 2 (*k)          */
+        Vec3 st_c2;      /* 0x24 : commit-2 stage (diff*sel)        */
+        char *out;
+        char *s;
         Vec3 *delta;
         float speed, mag, excess, sel, yd, y_excess;
+
+        out = 0;
+        if (1) { out = (char *)a0[0x14 / 4]; }
+        s = (char *)a0[0x38 / 4];
 
         ref_v.x = *(float *)(out + 0xA0);
         ref_v.y = *(float *)(out + 0xA4);
@@ -1209,10 +1259,11 @@ void game_uso_func_00001DDC(int *a0) {
         self_v.y = *(float *)(s + 0x34);
         self_v.z = *(float *)(s + 0x38);
 
-        delta = game_uso_func_000023D4(&scratch, (char *)a0);
-        self_v.x = self_v.x + delta->x;
-        self_v.y = self_v.y + delta->y;
-        self_v.z = self_v.z + delta->z;
+        delta = game_uso_func_000023D4((Vec3 *)scratch, (char *)a0);
+        *(Tri3i *)&dcopy = *(Tri3i *)delta;
+        self_v.x = self_v.x + dcopy.x;
+        self_v.y = self_v.y + dcopy.y;
+        self_v.z = self_v.z + dcopy.z;
 
         speed = *(float *)((char *)a0 + 0x94);
         diff.x = self_v.x - ref_v.x;
@@ -1224,37 +1275,41 @@ void game_uso_func_00001DDC(int *a0) {
 
         if (mag < *(float *)((char *)a0 + 0x7C)) {
             excess = mag - *(float *)((char *)a0 + 0x7C);
-            stage.x = diff.x * excess;
-            stage.y = diff.y * excess;
-            stage.z = diff.z * excess;
-            *(Tri3i *)&buf = *(Tri3i *)&stage;
-            acc.x = buf.x;
-            acc.y = buf.y;
-            acc.z = buf.z;
+            st_p1t.x = diff.x * excess;
+            st_p1t.y = diff.y * excess;
+            st_p1t.z = diff.z * excess;
+            *(Tri3i *)scratch = *(Tri3i *)&st_p1t;
+            *(Tri3i *)&hopB = *(Tri3i *)scratch;
+            acc.x = hopB.x;
+            acc.y = hopB.y;
+            acc.z = hopB.z;
         } else {
             float k = *(float *)((char *)a0 + 0xAC);
             excess = mag - speed;
-            stage.x = diff.x * excess;
-            stage.y = diff.y * excess;
-            stage.z = diff.z * excess;
-            *(Tri3i *)&buf = *(Tri3i *)&stage;
-            stage.x = buf.x * k;
-            stage.y = buf.y * k;
-            stage.z = buf.z * k;
-            *(Tri3i *)&buf = *(Tri3i *)&stage;
-            acc.x = buf.x;
-            acc.y = buf.y;
-            acc.z = buf.z;
+            st_p1e.x = diff.x * excess;
+            st_p1e.y = diff.y * excess;
+            st_p1e.z = diff.z * excess;
+            *(Tri3i *)scratch = *(Tri3i *)&st_p1e;
+            *(Tri3i *)&hop_p1e = *(Tri3i *)scratch;
+            st_p1e2.x = hop_p1e.x * k;
+            st_p1e2.y = hop_p1e.y * k;
+            st_p1e2.z = hop_p1e.z * k;
+            *(Tri3i *)&hopB = *(Tri3i *)&st_p1e2;
+            *(Tri3i *)&fin_e = *(Tri3i *)&hopB;
+            acc.x = fin_e.x;
+            acc.y = fin_e.y;
+            acc.z = fin_e.z;
         }
         game_uso_func_072EE8(out + 0x30, &acc);
 
-        stage.x = diff.x * speed;
-        stage.y = diff.y * speed;
-        stage.z = diff.z * speed;
-        *(Tri3i *)&buf = *(Tri3i *)&stage;
-        *(float *)((char *)a0 + 0x2C) = buf.x;
-        *(float *)((char *)a0 + 0x30) = buf.y;
-        *(float *)((char *)a0 + 0x34) = buf.z;
+        st_c1.x = diff.x * speed;
+        st_c1.y = diff.y * speed;
+        st_c1.z = diff.z * speed;
+        *(Tri3i *)scratch = *(Tri3i *)&st_c1;
+        *(Tri3i *)&hopB = *(Tri3i *)scratch;
+        *(float *)((char *)a0 + 0x2C) = hopB.x;
+        *(float *)((char *)a0 + 0x30) = hopB.y;
+        *(float *)((char *)a0 + 0x34) = hopB.z;
 
         sel = (a0[0x40 / 4] == 2) ? *(float *)((char *)a0 + 0xF4)
                                   : *(float *)((char *)a0 + 0xDC);
@@ -1265,37 +1320,41 @@ void game_uso_func_00001DDC(int *a0) {
         yd = ref_v.y - self_v.y;
         if (yd < *(float *)((char *)a0 + 0xC4)) {
             y_excess = *(float *)((char *)a0 + 0xC4) - yd;
-            stage.x = diff.x * y_excess;
-            stage.y = diff.y * y_excess;
-            stage.z = diff.z * y_excess;
-            *(Tri3i *)&buf = *(Tri3i *)&stage;
-            acc.x = buf.x;
-            acc.y = buf.y;
-            acc.z = buf.z;
+            st_p2t.x = diff.x * y_excess;
+            st_p2t.y = diff.y * y_excess;
+            st_p2t.z = diff.z * y_excess;
+            *(Tri3i *)scratch = *(Tri3i *)&st_p2t;
+            *(Tri3i *)&hopB = *(Tri3i *)scratch;
+            acc.x = hopB.x;
+            acc.y = hopB.y;
+            acc.z = hopB.z;
         } else {
             float k = *(float *)((char *)a0 + 0x10C);
             y_excess = sel - yd;
-            stage.x = diff.x * y_excess;
-            stage.y = diff.y * y_excess;
-            stage.z = diff.z * y_excess;
-            *(Tri3i *)&buf = *(Tri3i *)&stage;
-            stage.x = buf.x * k;
-            stage.y = buf.y * k;
-            stage.z = buf.z * k;
-            *(Tri3i *)&buf = *(Tri3i *)&stage;
-            acc.x = buf.x;
-            acc.y = buf.y;
-            acc.z = buf.z;
+            st_p2e.x = diff.x * y_excess;
+            st_p2e.y = diff.y * y_excess;
+            st_p2e.z = diff.z * y_excess;
+            *(Tri3i *)scratch = *(Tri3i *)&st_p2e;
+            *(Tri3i *)&hop_p2e = *(Tri3i *)scratch;
+            st_p2e2.x = hop_p2e.x * k;
+            st_p2e2.y = hop_p2e.y * k;
+            st_p2e2.z = hop_p2e.z * k;
+            *(Tri3i *)&hopB = *(Tri3i *)&st_p2e2;
+            *(Tri3i *)&fin_e = *(Tri3i *)&hopB;
+            acc.x = fin_e.x;
+            acc.y = fin_e.y;
+            acc.z = fin_e.z;
         }
         game_uso_func_072EE8(out + 0x30, &acc);
 
-        stage.x = diff.x * sel;
-        stage.y = diff.y * sel;
-        stage.z = diff.z * sel;
-        *(Tri3i *)&buf = *(Tri3i *)&stage;
-        *(float *)((char *)a0 + 0x2C) -= buf.x;
-        *(float *)((char *)a0 + 0x30) -= buf.y;
-        *(float *)((char *)a0 + 0x34) -= buf.z;
+        st_c2.x = diff.x * sel;
+        st_c2.y = diff.y * sel;
+        st_c2.z = diff.z * sel;
+        *(Tri3i *)scratch = *(Tri3i *)&st_c2;
+        *(Tri3i *)&fin_c2 = *(Tri3i *)scratch;
+        *(float *)((char *)a0 + 0x2C) -= fin_c2.x;
+        *(float *)((char *)a0 + 0x30) -= fin_c2.y;
+        *(float *)((char *)a0 + 0x34) -= fin_c2.z;
     }
 }
 #else
