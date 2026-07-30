@@ -7918,9 +7918,13 @@ int game_uso_func_00009B88(a0, a1, a2)
     /* @ 0xA1D4-0xA230: two 2D cross products over the four derived screen
      * vectors. Return 1 when the products have opposite signs. */
     {
-        float cross1 = (*(float*)&local_154[0] * *(float*)&local_160[2]) - (*(float*)&local_154[2] * *(float*)&local_160[0]);
-        float cross2 = (*(float*)&local_16C[0] * *(float*)&local_178[2]) - (*(float*)&local_16C[2] * *(float*)&local_178[0]);
-        return (cross1 * cross2) < 0.0f;
+        /* Operand order matches ugen temp ring: first product spelled
+         * B*A (0x160[2]*0x154[0]), final product cross2*cross1, and the
+         * 0.0f is a FRESH (float)0 literal (CSE-break, fceabb6) so the
+         * target's late mtc1 zero,$f6 re-materializes. */
+        float cross1 = (*(float*)&local_160[2] * *(float*)&local_154[0]) - (*(float*)&local_154[2] * *(float*)&local_160[0]);
+        float cross2 = (*(float*)&local_178[2] * *(float*)&local_16C[0]) - (*(float*)&local_16C[2] * *(float*)&local_178[0]);
+        return (cross2 * cross1) < (float)0;
     }
 }
 #else
