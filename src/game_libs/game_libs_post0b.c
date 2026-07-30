@@ -26461,35 +26461,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055B44);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00055C34)();
+/* DECODE CORRECTION 2026-07-30: the a1-skip in every fmt call = 8-byte arg
+ * alignment. Each mid block passes THREE long longs (a2:a3 pair + two stack
+ * pairs, all lw/sw; last block two), NOT four ints at +8-off offsets; the
+ * eight tail blocks pass (fmt, long long, double) (lw pair + ldc1/sdc1).
+ * 64-bit context/register dump printf function. */
+#define FLL_55C34(p, o) (*(long long *)((char *)(p) + (o)))
+#define FD_55C34(p, o) (*(double *)((char *)(p) + (o)))
 void gl_func_00055C34(char *arg0) {
     char *temp_s0;
 
     gl_func_00034458(((char *)&D_00000000 + 0x215EC), FW(arg0, 0x14));
-    temp_s0 = (int)arg0 + 0x20;
+    temp_s0 = 0; /* multi-def anti-fold guard: keeps call 2 reading 252(s0) instead of folding to [arg0+0x11C] + extra home reload */
+    if (1) { temp_s0 = arg0 + 0x20; }
     gl_func_00034458(((char *)&D_00000000 + 0x21604), FW(temp_s0, 0xFC));
     game_libs_func_00062F08(FW(temp_s0, 0x100), ((char *)&D_00000000 + 0x21614), ((char *)&D_00000000 + 0x211E0));
     game_libs_func_00062F08(FW(temp_s0, 0xF8), ((char *)&D_00000000 + 0x2161C), ((char *)&D_00000000 + 0x21330));
     gl_func_00034458(((char *)&D_00000000 + 0x21620), FW(temp_s0, 0x104));
-    gl_func_00034458(((char *)&D_00000000 + 0x21634), FW(temp_s0, 0x8), FW(temp_s0, 0xC), FW(temp_s0, 0x10), FW(temp_s0, 0x14));
-    gl_func_00034458(((char *)&D_00000000 + 0x2165C), FW(temp_s0, 0x20), FW(temp_s0, 0x24), FW(temp_s0, 0x28), FW(temp_s0, 0x2C));
-    gl_func_00034458(((char *)&D_00000000 + 0x21684), FW(temp_s0, 0x38), FW(temp_s0, 0x3C), FW(temp_s0, 0x40), FW(temp_s0, 0x44));
-    gl_func_00034458(((char *)&D_00000000 + 0x216AC), FW(temp_s0, 0x50), FW(temp_s0, 0x54), FW(temp_s0, 0x58), FW(temp_s0, 0x5C));
-    gl_func_00034458(((char *)&D_00000000 + 0x216D4), FW(temp_s0, 0x68), FW(temp_s0, 0x6C), FW(temp_s0, 0x70), FW(temp_s0, 0x74));
-    gl_func_00034458(((char *)&D_00000000 + 0x216FC), FW(temp_s0, 0x80), FW(temp_s0, 0x84), FW(temp_s0, 0x88), FW(temp_s0, 0x8C));
-    gl_func_00034458(((char *)&D_00000000 + 0x21724), FW(temp_s0, 0x98), FW(temp_s0, 0x9C), FW(temp_s0, 0xA0), FW(temp_s0, 0xA4));
-    gl_func_00034458(((char *)&D_00000000 + 0x2174C), FW(temp_s0, 0xB0), FW(temp_s0, 0xB4), FW(temp_s0, 0xB8), FW(temp_s0, 0xBC));
-    gl_func_00034458(((char *)&D_00000000 + 0x21774), FW(temp_s0, 0xC8), FW(temp_s0, 0xCC), FW(temp_s0, 0xD0), FW(temp_s0, 0xD4));
-    gl_func_00034458(((char *)&D_00000000 + 0x2179C), FW(temp_s0, 0xE0), FW(temp_s0, 0xE4));
+    gl_func_00034458(((char *)&D_00000000 + 0x21634), FLL_55C34(temp_s0, 0x0), FLL_55C34(temp_s0, 0x8), FLL_55C34(temp_s0, 0x10));
+    gl_func_00034458(((char *)&D_00000000 + 0x2165C), FLL_55C34(temp_s0, 0x18), FLL_55C34(temp_s0, 0x20), FLL_55C34(temp_s0, 0x28));
+    gl_func_00034458(((char *)&D_00000000 + 0x21684), FLL_55C34(temp_s0, 0x30), FLL_55C34(temp_s0, 0x38), FLL_55C34(temp_s0, 0x40));
+    gl_func_00034458(((char *)&D_00000000 + 0x216AC), FLL_55C34(temp_s0, 0x48), FLL_55C34(temp_s0, 0x50), FLL_55C34(temp_s0, 0x58));
+    gl_func_00034458(((char *)&D_00000000 + 0x216D4), FLL_55C34(temp_s0, 0x60), FLL_55C34(temp_s0, 0x68), FLL_55C34(temp_s0, 0x70));
+    gl_func_00034458(((char *)&D_00000000 + 0x216FC), FLL_55C34(temp_s0, 0x78), FLL_55C34(temp_s0, 0x80), FLL_55C34(temp_s0, 0x88));
+    gl_func_00034458(((char *)&D_00000000 + 0x21724), FLL_55C34(temp_s0, 0x90), FLL_55C34(temp_s0, 0x98), FLL_55C34(temp_s0, 0xA0));
+    gl_func_00034458(((char *)&D_00000000 + 0x2174C), FLL_55C34(temp_s0, 0xA8), FLL_55C34(temp_s0, 0xB0), FLL_55C34(temp_s0, 0xB8));
+    gl_func_00034458(((char *)&D_00000000 + 0x21774), FLL_55C34(temp_s0, 0xC0), FLL_55C34(temp_s0, 0xC8), FLL_55C34(temp_s0, 0xD0));
+    gl_func_00034458(((char *)&D_00000000 + 0x2179C), FLL_55C34(temp_s0, 0xD8), FLL_55C34(temp_s0, 0xE0));
     game_libs_func_00062F08(FW(temp_s0, 0x10C), ((char *)&D_00000000 + 0x217B8), ((char *)&D_00000000 + 0x214A4));
-    gl_func_00034458(((char *)&D_00000000 + 0x217C0), (s32) FW(temp_s0, 0x118));
-    gl_func_00034458(((char *)&D_00000000 + 0x217D8), (s32) FW(temp_s0, 0x128));
-    gl_func_00034458(((char *)&D_00000000 + 0x217F0), (s32) FW(temp_s0, 0x138));
-    gl_func_00034458(((char *)&D_00000000 + 0x21808), (s32) FW(temp_s0, 0x148));
-    gl_func_00034458(((char *)&D_00000000 + 0x21820), (s32) FW(temp_s0, 0x158));
-    gl_func_00034458(((char *)&D_00000000 + 0x21838), (s32) FW(temp_s0, 0x168));
-    gl_func_00034458(((char *)&D_00000000 + 0x21850), (s32) FW(temp_s0, 0x178));
-    gl_func_00034458(((char *)&D_00000000 + 0x21868), (s32) FW(temp_s0, 0x188));
+    gl_func_00034458(((char *)&D_00000000 + 0x217C0), FLL_55C34(temp_s0, 0x110), FD_55C34(temp_s0, 0x118));
+    gl_func_00034458(((char *)&D_00000000 + 0x217D8), FLL_55C34(temp_s0, 0x120), FD_55C34(temp_s0, 0x128));
+    gl_func_00034458(((char *)&D_00000000 + 0x217F0), FLL_55C34(temp_s0, 0x130), FD_55C34(temp_s0, 0x138));
+    gl_func_00034458(((char *)&D_00000000 + 0x21808), FLL_55C34(temp_s0, 0x140), FD_55C34(temp_s0, 0x148));
+    gl_func_00034458(((char *)&D_00000000 + 0x21820), FLL_55C34(temp_s0, 0x150), FD_55C34(temp_s0, 0x158));
+    gl_func_00034458(((char *)&D_00000000 + 0x21838), FLL_55C34(temp_s0, 0x160), FD_55C34(temp_s0, 0x168));
+    gl_func_00034458(((char *)&D_00000000 + 0x21850), FLL_55C34(temp_s0, 0x170), FD_55C34(temp_s0, 0x178));
+    gl_func_00034458(((char *)&D_00000000 + 0x21868), FLL_55C34(temp_s0, 0x180), FD_55C34(temp_s0, 0x188));
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055C34);
