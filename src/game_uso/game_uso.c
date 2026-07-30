@@ -6878,117 +6878,124 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007C1C);
  * 4-entry dispatch game_uso_D_807FFA20 on (self[0x9C]+1)&3 sharing tail @0x973c.
  * FP consts: 2.0, 0.5, 250.0, -1.0. */
 void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32 arg4) {
+    Vec3 sp204;   /* sp+516 */
     Vec3 sp1F8;   /* sp+504 */
-    Vec3 sp204;   /* sp+516 (only x used as scratch chain) */
+    Vec3 dotv;    /* sp+492 */
     Vec3 sp1E0;   /* sp+480 */
-    Vec3 sp14C;   /* sp+332 */
     Vec3 sp1D4;   /* sp+468 */
-    Vec3 sp11C;   /* sp+284 */
     Vec3 sp1C8;   /* sp+456 */
     Vec3 sp1BC;   /* sp+444 */
     Vec3 sp1B0;   /* sp+432 */
+    Vec3 sp174;   /* sp+372 shared stage */
     Vec3 sp164;   /* sp+356 */
-    Vec3 sp174;   /* sp+372 working Vec3 */
-    Vec3 spE4;    /* sp+228 */
-    Vec3 spA8;    /* sp+168 */
+    Vec3 sp14C;   /* sp+332 */
+    Vec3 sp11C;   /* sp+284 */
+    Vec3 prodA;   /* sp+264 */
+    Vec3 prodB;   /* sp+252 */
     Vec3 spF0;    /* sp+240 */
-    Vec3 spCC;    /* sp+204 */
-    Vec3 sp9C;    /* sp+156 */
-    Vec3 spC0;    /* sp+192 */
+    Vec3 spE4;    /* sp+228 */
     Vec3 spD8;    /* sp+216 */
-    Vec3 sp90;    /* sp+144 */
+    Vec3 spCC;    /* sp+204 */
+    Vec3 spC0;    /* sp+192 */
     Vec3 spB4;    /* sp+180 */
-    Vec3 sp54;    /* sp+84  */
-    Vec3 sp60;    /* sp+96  */
+    Vec3 spA8;    /* sp+168 */
+    Vec3 sp9C;    /* sp+156 */
+    Vec3 sp90;    /* sp+144 */
     Vec3 sp84;    /* sp+132 */
-    Vec3 sp48;    /* sp+72  */
-    Vec3 sp6C;    /* sp+108 */
     Vec3 sp78;    /* sp+120 */
+    Vec3 sp6C;    /* sp+108 */
+    Vec3 sp60;    /* sp+96  */
+    Vec3 sp54;    /* sp+84  */
+    Vec3 sp48;    /* sp+72  */
     Vec3 sp3C;    /* sp+60  */
     Vec3 sp24;    /* sp+36  */
     Vec3 *p;
-    Vec3 *base;
+    Vec3 *w;
+    f32 *q;
+    f32 *qb;
+    f32 *basePtr;
+    f32 *basePtr2;
     f32 lenf;
     f32 dot;
+    f32 two;
     s32 idx;
     s32 idxm;
-    Vec3 *ref30;
 
     if (arg4 != 0) {
         /* --- branch A (flag set) --- */
+        q = (f32 *)((int)arg3 + 0x30);
         p = 0; if (1) { p = &sp1F8; }
-        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-        if (p != 0) {
-            p->x = *(f32 *)(arg3 + 0x30);
+        if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
             p->y = 0.0f;
-            p->z = *(f32 *)(arg3 + 0x38);
+            p->z = *(f32 *)((int)q + 8);
+            p->x = *q;
         }
-        ref30 = (Vec3 *)(arg3 + 0x30);
+        q = (f32 *)((int)arg2 + 0x30);
         p = 0; if (1) { p = &sp164; }
-        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-        if (p != 0) {
-            p->x = sp1F8.x - ref30->x;
-            p->y = 0.0f;
-            p->z = sp1F8.z - ref30->z;
+        w = p;
+        if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            w->x = sp1F8.x - *q;
+            w->y = 0.0f;
+            w->z = sp1F8.z - *(f32 *)((int)q + 8);
         }
-        sp174 = sp164;
-        sp204 = sp174;
-        sp1B0 = sp174;
+        *(Tri3i *)&sp174 = *(Tri3i *)&sp164;
+        *(Tri3i *)&sp204 = *(Tri3i *)&sp174;
+        *(Tri3i *)&sp1B0 = *(Tri3i *)&sp204;
         game_uso_func_071028(&sp1B0);
 
-        base = (Vec3 *)(*(s32 *)(arg1 + 0x30) + 0xB4);
+        basePtr = (f32 *)(*(s32 *)((int)arg1 + 0x30) + 0xB4);
         p = 0; if (1) { p = &sp1E0; }
-        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-        if (p != 0) {
-            p->x = base->x;
-            p->z = base->z;
+        if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            p->x = *basePtr;
+            p->z = *(f32 *)((int)basePtr + 8);
             p->y = 0.0f;
         }
+        q = (f32 *)((int)arg2 + 0x30);
         p = 0; if (1) { p = &sp14C; }
-        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-        if (p != 0) {
-            Vec3 *r = (Vec3 *)(arg2 + 0x30);
-            p->x = sp1E0.x - r->x;
-            p->y = 0.0f;
-            p->z = sp1E0.z - r->z;
+        w = p;
+        if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            w->x = sp1E0.x - *q;
+            w->y = 0.0f;
+            w->z = sp1E0.z - *(f32 *)((int)q + 8);
         }
-        sp174 = sp14C;
-        sp1D4 = sp174;
+        *(Tri3i *)&sp174 = *(Tri3i *)&sp14C;
+        *(Tri3i *)&dotv = *(Tri3i *)&sp174;
 
-        lenf = (sp1B0.x * sp1D4.x) + (sp1B0.z * sp1D4.z);
+        q = (f32 *)((int)arg2 + 0x30);
         p = 0; if (1) { p = &sp1D4; }
-        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-        if (p != 0) {
-            Vec3 *r = (Vec3 *)(arg2 + 0x30);
-            p->y = 0.0f;
-            p->z = r->z;
-            p->x = r->x;
+        w = p;
+        lenf = (sp1B0.x * dotv.x) + (sp1B0.z * dotv.z);
+        if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            w->y = 0.0f;
+            w->z = *(f32 *)((int)q + 8);
+            w->x = *q;
         }
-        sp174 = sp1D4;
+        *(Tri3i *)&sp174 = *(Tri3i *)&sp1D4;
         *(f32 *)(arg1 + 0x90) = sp174.x;
         *(f32 *)(arg1 + 0x94) = sp174.y;
         *(f32 *)(arg1 + 0x98) = sp174.z;
-        sp11C = sp174;
+        *(Tri3i *)&sp11C = *(Tri3i *)(arg1 + 0x90);
         *(f32 *)(arg1 + 0x84) = sp11C.x;
         *(f32 *)(arg1 + 0x88) = sp11C.y;
         *(f32 *)(arg1 + 0x8C) = sp11C.z;
 
-        dot = lenf + ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / 2.0f);
-        sp1C8.x = sp1B0.x * dot;
-        sp1C8.y = sp1B0.y * dot;
-        sp1C8.z = sp1B0.z * dot;
-        sp174 = sp1C8;
-        sp1C8 = sp174;
+        two = 2.0f;
+        dot = lenf + ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / two);
+        prodA.x = sp1B0.x * dot;
+        prodA.y = sp1B0.y * dot;
+        prodA.z = sp1B0.z * dot;
+        *(Tri3i *)&sp174 = *(Tri3i *)&prodA;
+        *(Tri3i *)&sp1C8 = *(Tri3i *)&sp174;
         *(f32 *)(arg1 + 0x84) += sp1C8.x;
         *(f32 *)(arg1 + 0x88) += sp1C8.y;
         *(f32 *)(arg1 + 0x8C) += sp1C8.z;
 
-        dot = lenf - ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / 2.0f);
-        sp1BC.x = sp1B0.x * dot;
-        sp1BC.y = sp1B0.y * dot;
-        sp1BC.z = sp1B0.z * dot;
-        sp174 = sp1BC;
-        sp1BC = sp174;
+        dot = lenf - ((*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC)) / two);
+        prodB.x = sp1B0.x * dot;
+        prodB.y = sp1B0.y * dot;
+        prodB.z = sp1B0.z * dot;
+        *(Tri3i *)&sp174 = *(Tri3i *)&prodB;
+        *(Tri3i *)&sp1BC = *(Tri3i *)&sp174;
         *(f32 *)(arg1 + 0x90) += sp1BC.x;
         *(f32 *)(arg1 + 0x94) += sp1BC.y;
         *(s32 *)(arg1 + 0x9C) = 0;
@@ -6997,114 +7004,112 @@ void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32
     }
 
     /* --- branch B (flag clear) --- */
+    q = (f32 *)((int)arg3 + 0x30);
     p = 0; if (1) { p = &spE4; }
-    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-    if (p != 0) {
+    if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
         p->y = 0.0f;
-        p->z = *(f32 *)(arg3 + 0x38);
-        p->x = *(f32 *)(arg3 + 0x30);
+        p->z = *(f32 *)((int)q + 8);
+        p->x = *q;
     }
-    ref30 = (Vec3 *)(arg3 + 0x30);
+    q = (f32 *)((int)arg2 + 0x30);
     p = 0; if (1) { p = &spA8; }
-    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-    if (p != 0) {
-        p->x = spE4.x - ref30->x;
-        p->y = 0.0f;
-        p->z = spE4.z - ref30->z;
+    w = p;
+    if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+        w->x = spE4.x - *q;
+        w->y = 0.0f;
+        w->z = spE4.z - *(f32 *)((int)q + 8);
     }
-    sp174 = spA8;
-    spF0 = spA8;
-    spCC = spF0;
+    *(Tri3i *)&sp174 = *(Tri3i *)&spA8;
+    *(Tri3i *)&spF0 = *(Tri3i *)&sp174;
+    *(Tri3i *)&spCC = *(Tri3i *)&spF0;
 
-    base = (Vec3 *)(arg1 + 0x84);
+    q = (f32 *)((int)arg1 + 0x84);
+    qb = (f32 *)((int)arg1 + 0x90);
     p = 0; if (1) { p = &sp9C; }
-    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-    if (p != 0) {
-        p->x = spF0.x - *(f32 *)(arg1 + 0x90);
-        p->y = 0.0f;
-        p->z = spF0.z - *(f32 *)(arg1 + 0x98);
+    w = p;
+    if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+        w->x = *q - *qb;
+        w->y = 0.0f;
+        w->z = *(f32 *)((int)q + 8) - *(f32 *)((int)qb + 8);
     }
-    sp174 = sp9C;
-    spC0 = sp174;
+    *(Tri3i *)&sp174 = *(Tri3i *)&sp9C;
+    *(Tri3i *)&spC0 = *(Tri3i *)&sp174;
 
-    base = (Vec3 *)(*(s32 *)(arg1 + 0x30) + 0xB4);
+    basePtr = (f32 *)(*(s32 *)((int)arg1 + 0x30) + 0xB4);
     p = 0; if (1) { p = &spD8; }
-    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-    if (p != 0) {
-        p->x = base->x;
-        p->z = base->z;
+    if (p != NULL || (p = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+        p->x = *basePtr;
+        p->z = *(f32 *)((int)basePtr + 8);
         p->y = 0.0f;
     }
+    qb = (f32 *)((int)arg1 + 0x90);
     p = 0; if (1) { p = &sp90; }
-    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-    if (p != 0) {
-        Vec3 *r = (Vec3 *)(arg1 + 0x90);
-        p->x = spD8.x - r->x;
-        p->y = 0.0f;
-        p->z = spD8.z - r->z;
+    w = p;
+    if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+        w->x = spD8.x - *qb;
+        w->y = 0.0f;
+        w->z = spD8.z - *(f32 *)((int)qb + 8);
     }
-    sp174 = sp90;
-    spB4 = sp174;
+    *(Tri3i *)&sp174 = *(Tri3i *)&sp90;
+    *(Tri3i *)&spB4 = *(Tri3i *)&sp174;
 
     if ((((spCC.x * spC0.x) + (spCC.z * spC0.z)) * 0.5f) < ((spCC.x * spB4.x) + (spCC.z * spB4.z))) {
-        sp174.x = *(f32 *)(arg1 + 0x84);
-        sp174.y = *(f32 *)(arg1 + 0x88);
-        sp174.z = *(f32 *)(arg1 + 0x8C);
-        spCC = sp174;
+        *(Tri3i *)&sp174 = *(Tri3i *)(arg1 + 0x84);
         *(f32 *)(arg1 + 0x90) = sp174.x;
         *(f32 *)(arg1 + 0x94) = sp174.y;
         *(f32 *)(arg1 + 0x98) = sp174.z;
         game_uso_func_071028(&spCC);
 
         p = 0; if (1) { p = &sp54; }
-        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-        if (p != 0) {
-            p->x = spCC.z;
-            p->z = -spCC.x;
-            p->y = 0.0f;
+        w = p;
+        if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            w->x = spCC.z;
+            w->z = -spCC.x;
+            w->y = 0.0f;
         }
-        sp174 = sp54;
-        sp60 = sp174;
+        *(Tri3i *)&sp174 = *(Tri3i *)&sp54;
+        *(Tri3i *)&sp60 = *(Tri3i *)&sp174;
 
+        q = (f32 *)((int)arg2 + 0x30);
         p = 0; if (1) { p = &sp84; }
-        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-        if (p != 0) {
-            Vec3 *r = (Vec3 *)(arg2 + 0x30);
-            p->y = 0.0f;
-            p->z = r->z;
-            p->x = r->x;
+        w = p;
+        if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            w->y = 0.0f;
+            w->z = *(f32 *)((int)q + 8);
+            w->x = *q;
         }
-        sp174 = sp84;
+        *(Tri3i *)&sp174 = *(Tri3i *)&sp84;
         *(f32 *)(arg1 + 0x84) = sp174.x;
         *(f32 *)(arg1 + 0x88) = sp174.y;
         *(f32 *)(arg1 + 0x8C) = sp174.z;
 
+        qb = (f32 *)((int)arg1 + 0x90);
+        q = (f32 *)((int)arg2 + 0x30);
         p = 0; if (1) { p = &sp48; }
-        if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-        if (p != 0) {
-            Vec3 *r = (Vec3 *)(arg2 + 0x30);
-            p->x = *(f32 *)(arg1 + 0x90) - r->x;
-            p->y = 0.0f;
-            p->z = *(f32 *)(arg1 + 0x98) - r->z;
+        w = p;
+        if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+            w->x = *qb - *q;
+            w->y = 0.0f;
+            w->z = *(f32 *)((int)qb + 8) - *(f32 *)((int)q + 8);
         }
-        sp174 = sp48;
-        sp6C = sp174;
+        *(Tri3i *)&sp174 = *(Tri3i *)&sp48;
+        *(Tri3i *)&sp6C = *(Tri3i *)&sp174;
 
         dot = (spCC.x * sp6C.x) + (spCC.z * sp6C.z)
             + (*(f32 *)(*(s32 *)(arg1 + 0x30) + 0x348) * *(f32 *)(arg1 + 0xDC));
         sp3C.x = spCC.x * dot;
         sp3C.y = spCC.y * dot;
         sp3C.z = spCC.z * dot;
-        sp11C = sp3C;
-        sp78 = sp11C;
+        *(Tri3i *)&sp11C = *(Tri3i *)&sp3C;
+        *(Tri3i *)&sp78 = *(Tri3i *)&sp11C;
         *(f32 *)(arg1 + 0x84) += sp78.x;
         *(f32 *)(arg1 + 0x88) += sp78.y;
         *(f32 *)(arg1 + 0x8C) += sp78.z;
 
         lenf = 250.0f * *(f32 *)(arg3 + 0x54) * *(f32 *)(arg1 + 0xE0);
         sp60.x *= lenf;
-        sp60.z *= lenf;
         sp60.y *= lenf;
+        sp60.z *= lenf;
 
         idx = *(s32 *)(arg1 + 0x9C) + 1;
         idxm = idx & 3;
@@ -7130,19 +7135,17 @@ void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32
     }
 
 tail:
-    base = (Vec3 *)(*(s32 *)(arg1 + 0x30) + 0xB4);
+    basePtr2 = (f32 *)(*(s32 *)((int)arg1 + 0x30) + 0xB4);
+    q = (f32 *)((int)arg1 + 0x84);
     p = 0; if (1) { p = &sp24; }
-    if (p == 0) { p = (Vec3 *)game_uso_func_055750(12); }
-    if (p != 0) {
-        Vec3 *r = (Vec3 *)(arg1 + 0x84);
-        p->x = r->x - base->x;
-        p->y = 0.0f;
-        p->z = r->z - base->z;
+    w = p;
+    if (w != NULL || (w = (Vec3 *)game_uso_func_055750(0xC)) != NULL) {
+        w->x = *q - *basePtr2;
+        w->y = 0.0f;
+        w->z = *(f32 *)((int)q + 8) - *(f32 *)((int)basePtr2 + 8);
     }
-    sp174 = sp24;
-    *(f32 *)(arg0 + 0x0) = sp174.x;
-    *(f32 *)(arg0 + 0x4) = sp174.y;
-    *(f32 *)(arg0 + 0x8) = sp174.z;
+    *(Tri3i *)&sp174 = *(Tri3i *)&sp24;
+    *(Tri3i *)arg0 = *(Tri3i *)&sp174;
     return arg0;
 }
 #else
