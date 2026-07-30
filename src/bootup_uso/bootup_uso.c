@@ -7838,11 +7838,24 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B520);
  * 7 f64 ops -- mild f64, tempered expectations).
  * PASS-3 2026-07-11 (agent-g): st->0xA6C is a halfword field (target 1x lh
  * + 3x sh), was s32 -> retyped s16 (read+3 writes). Fuzzy 66.37->67.21%.
- * Remainder is f64/fp-regalloc cap. */
+ * PASS-4 2026-07-30 (agent-g): 67.21->70.32.
+ *   (1) Pool symbolization per expected relocs -- DISTINCT base-0 undefined
+ *       externs (D_000008C8/D0/D8/E8/F8, D_00000900/908 f64; D_00008170 call
+ *       arg = func_00008124+0x4C) so each site emits the target's per-use
+ *       lui-at + %lo ldc1 (func_+off spelling CSEs the addiu-base into a
+ *       long-lived v0/v1 web: 65.5, WORSE than the old absolute loads).
+ *   (2) {0,1,0} default vec respelled as f32 sp6C[3] (array keeps the 3
+ *       prologue swc1s + sp reloads; scalars const-propped to inline mtc1).
+ *   NEGATIVE probes: if(0){f(&arg0)} address-escape (target's a3+arg-home-
+ *   spill-around-calls shape) memory-homes arg0 per-BB -> 0x998/47.9;
+ *   self-assign and staged-copy multi-defs both VN/copy-prop away (s0 stays).
+ *   Residual: arg0 s0-promotion vs target a3+home (11 calls), frame 256 vs
+ *   120 (named m2c FP-temp ghost homes), as1 const-hoist order (20.0f/30.0f),
+ *   store-forward vs reload at 0x974. */
+extern f64 D_000008C8, D_000008D0, D_000008D8, D_000008E8, D_000008F8, D_00000900, D_00000908;
+extern char D_00008170[];
 void func_0000B75C(char *arg0) {
-    f32 sp74;
-    f32 sp70;
-    f32 sp6C;
+    f32 sp6C[3];
     f32 sp60;
     f32 sp5C;
     f32 sp58;
@@ -7887,12 +7900,12 @@ void func_0000B75C(char *arg0) {
     char *temp_a1;
     char *var_a0;
 
-    sp6C = 0.0f;
-    sp74 = 0.0f;
-    sp70 = 1.0f;
+    sp6C[0] = 0.0f;
+    sp6C[2] = 0.0f;
+    sp6C[1] = 1.0f;
     temp_f0 = (f64) *(f32 *)(*(s32 *)((char *)(arg0) + 0x800));
-    var_f12 = (f32) (temp_f0 * *(f64 *)0x8C8);
-    sp60 = (f32) (temp_f0 * *(f64 *)0x8D0);
+    var_f12 = (f32) (temp_f0 * D_000008C8);
+    sp60 = (f32) (temp_f0 * D_000008D0);
     if (*(s32 *)((char *)(arg0) + 0x960) == 0x64) {
         var_f12 = 0.0f;
         sp60 = 0.0f;
@@ -7908,13 +7921,13 @@ void func_0000B75C(char *arg0) {
     } else {
         temp_f0_3 = *(f32 *)((char *)(arg0) + 0x3C4);
         sp1C = temp_f0_3;
-        sp5C = -((*(f32 *)((char *)(arg0) + 0x3BC) * sp6C) + (*(f32 *)((char *)(arg0) + 0x3C0) * sp70) + (temp_f0_3 * sp74));
+        sp5C = -((*(f32 *)((char *)(arg0) + 0x3BC) * sp6C[0]) + (*(f32 *)((char *)(arg0) + 0x3C0) * sp6C[1]) + (temp_f0_3 * sp6C[2]));
     }
     temp_f0_4 = *(f32 *)((char *)(arg0) + 0x978);
     temp_f2_2 = *(f32 *)((char *)(arg0) + 0x30C);
     temp_f12 = *(f32 *)((char *)(arg0) + 0x310);
     temp_f14 = *(f32 *)((char *)(arg0) + 0x314);
-    *(f32 *)((char *)(arg0) + 0x978) = (f32) ((f64) temp_f0_4 + ((f64) (sp5C - temp_f0_4) * *(f64 *)0x8D8));
+    *(f32 *)((char *)(arg0) + 0x978) = (f32) ((f64) temp_f0_4 + ((f64) (sp5C - temp_f0_4) * D_000008D8));
     sp58 = (*(f32 *)((char *)(arg0) + 0x3C8) * temp_f2_2) + (*(f32 *)((char *)(arg0) + 0x3CC) * temp_f12) + (*(f32 *)((char *)(arg0) + 0x3D0) * temp_f14);
     sp54 = (*(f32 *)((char *)(arg0) + 0x3BC) * temp_f2_2) + (*(f32 *)((char *)(arg0) + 0x3C0) * temp_f12) + (sp1C * temp_f14);
     if (temp_v0 != 0) {
@@ -7957,7 +7970,7 @@ void func_0000B75C(char *arg0) {
             *(s16 *)((char *)(arg0) + 0xA6C) = (s16) (temp_v0_2 + 1);
             if (temp_v0_2 >= 0xB) {
                 temp_f12_2 = D_000008E0;
-                temp_f0_7 = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA70) + ((f64) *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x0) * *(f64 *)0x8E8));
+                temp_f0_7 = (f32) ((f64) *(f32 *)((char *)(arg0) + 0xA70) + ((f64) *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x800)) + 0x0) * D_000008E8));
                 if (temp_f0_7 < temp_f12_2) {
                     var_f2_2 = temp_f12_2;
                 } else {
@@ -7979,7 +7992,7 @@ void func_0000B75C(char *arg0) {
                 temp_a1 = arg0 + 0x3C8;
                 sp28 = temp_a1;
                 sp24 = temp_a0;
-                func_00000000(var_f12_2, 0, temp_a0, temp_a1, (f32) ((f64) ((*(f32 *)((char *)(arg0) + 0x3BC) * sp6C) + (*(f32 *)((char *)(arg0) + 0x3C0) * sp70) + (*(f32 *)((char *)(arg0) + 0x3C4) * sp74)) * *(f64 *)0x8F8), arg0);
+                func_00000000(var_f12_2, 0, temp_a0, temp_a1, (f32) ((f64) ((*(f32 *)((char *)(arg0) + 0x3BC) * sp6C[0]) + (*(f32 *)((char *)(arg0) + 0x3C0) * sp6C[1]) + (*(f32 *)((char *)(arg0) + 0x3C4) * sp6C[2])) * D_000008F8), arg0);
                 if (*(s32 *)((char *)(arg0) + 0xA18) != 0) {
                     sp24 = temp_a0;
                     func_00000000(temp_a0, temp_a1, *(f32 *)(*(s32 *)((char *)(arg0) + 0x800)) * *(f32 *)((char *)(arg0) + 0x690), arg0);
@@ -7990,7 +8003,7 @@ void func_0000B75C(char *arg0) {
         }
         var_v0 = *(s32 *)((char *)(arg0) + 0x9A8) & 1;
         if (var_v0 != 0) {
-            if ((f64) *(f32 *)((char *)(arg0) + 0x3B4) < *(f64 *)0x900) {
+            if ((f64) *(f32 *)((char *)(arg0) + 0x3B4) < D_00000900) {
                 *(f32 *)((char *)(arg0) + 0x318) = 0.0f;
             }
             func_00000000(arg0 + 0xCC, arg0 + 0x3B0, -*(f32 *)((char *)(arg0) + 0xA70), arg0);
@@ -8020,7 +8033,7 @@ void func_0000B75C(char *arg0) {
                 temp_f2_6 = *(f32 *)((char *)(arg0) + 0x318);
                 *(f32 *)((char *)(arg0) + 0x318) = (f32) (temp_f2_6 + (temp_f2_6 * *(f32 *)((char *)(arg0) + 0x558) * var_f0_2));
             }
-            if ((f64) *(f32 *)((char *)(arg0) + 0x3B4) < *(f64 *)0x908) {
+            if ((f64) *(f32 *)((char *)(arg0) + 0x3B4) < D_00000908) {
                 sp60 *= 2.0f;
             }
             var_a0 = arg0 + 0xCC;
@@ -8028,7 +8041,7 @@ void func_0000B75C(char *arg0) {
             if ((sp58 < *(f32 *)((char *)(arg0) + 0x648)) && (((sp54 > 0.0f) && (sp60 < 0.0f)) || ((sp54 < 0.0f) && (sp60 > 0.0f)))) {
                 *(s32 *)((char *)(arg0) + 0xA5C) = (s32) (*(s32 *)((char *)(arg0) + 0xA5C) + 0x14);
                 sp60 = 0.0f;
-                func_00000000(0, temp_f14, *(s32 *)((char *)(arg0) + 0x800), 0x8170, 1, arg0);
+                func_00000000(0, temp_f14, *(s32 *)((char *)(arg0) + 0x800), D_00008170, 1, arg0);
             }
             temp_f2_7 = *(f32 *)((char *)(arg0) + 0xA08);
             if (temp_f2_7 < 0.0f) {
