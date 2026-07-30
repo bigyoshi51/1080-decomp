@@ -261,7 +261,12 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # SystemExit and silently skip the 551E0=0x7c/55B10=0x2c sub-resizes ->
 # sentinels drop to 96.77/90.9; always re-probe tailoff+0x50 after ANY NM
 # body size change in this TU.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2bdc4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2bdc4 -> 0x2bf44 on 2026-07-30: 48AEC PASS-4 decode-corrected NM body grew
+# ~0x5E8 -> 0x768 (guMtxCatF triple loop + ctor-with-alloc iterator idiom x3);
+# tail 62F08 keeps its full 0x50 at the new offset 0x2bef4.)
+# (0x2bf44 -> 0x2bf64 same day: 48AEC escaped-p ctor pattern grew the body
+# 0x784 -> 0x790; tail 62F08 now at 0x2bf14.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2bfa4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
