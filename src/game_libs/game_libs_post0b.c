@@ -2072,27 +2072,40 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035E5C);
 //   leading function only — bundled tail stub untouched. Byte-match
 //   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+extern int gl_func_00000000_35e6c(char *, float *, float, float *);
+typedef struct { int x, y, z; } GLW3_35E6C;
 void gl_func_00035E6C(char *o) {
     float point[3];
+    float deadA[7];
     float result[4];
-    float scaled[3];
-    float lerp;
+    float deadB[3];
+    float tmp2[3];
+    float tmp[4];
+    float scaled[4];
+    float deadC[6];
+    float w;
     float scale;
+    float lerp;
+    register float f200;
     char *ctx = *(char **)((char *)&D_00000000 + 0);
     if (ctx == 0) return;
     point[0] = *(float *)(o + 0x30);
     point[1] = *(float *)(o + 0x34);
     point[2] = *(float *)(o + 0x38);
-    if (gl_func_00000000(ctx, point, 1000.0f, result) == 0) return;
-    if (result[3] < 200.0f) {
-        scale = -(result[3] - 200.0f);
+    if (gl_func_00000000_35e6c(ctx, point, 1000.0f, result) == 0) return;
+    w = result[3];
+    f200 = 200.0f;
+    if (w < f200) {
+        scale = -(w - f200);
         scaled[0] = result[0] * scale;
         scaled[1] = result[1] * scale;
         scaled[2] = result[2] * scale;
-        point[0] = point[0] + scaled[0];
-        point[1] = point[1] + scaled[1];
-        point[2] = point[2] + scaled[2];
-        lerp = *(float *)((char *)&D_00000000 + 6624);
+        *(GLW3_35E6C *)tmp = *(GLW3_35E6C *)scaled;
+        *(GLW3_35E6C *)tmp2 = *(GLW3_35E6C *)tmp;
+        lerp = *(float *)((char *)&D_00000000 + 0x19E0);
+        point[0] = point[0] + tmp2[0];
+        point[1] = point[1] + tmp2[1];
+        point[2] = point[2] + tmp2[2];
         *(float *)(o + 0x30) = *(float *)(o + 0x30) + (point[0] - *(float *)(o + 0x30)) * lerp;
         *(float *)(o + 0x34) = *(float *)(o + 0x34) + (point[1] - *(float *)(o + 0x34)) * lerp;
         *(float *)(o + 0x38) = *(float *)(o + 0x38) + (point[2] - *(float *)(o + 0x38)) * lerp;

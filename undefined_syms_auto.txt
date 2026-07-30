@@ -3161,3 +3161,4 @@ D_00000000_ldh = 0x00000000;   /* __osDiskHandle (runtime reloc; stolen-prologue
 D_00000000_gim = 0x00000000;   /* __OSGlobalIntMask (runtime reloc) */
 gl_ref_0007FE04 = 0x0007FE04;  /* __osLeoAbnormalResume: baked jal 0x7FE04 (0x0C01FF81), sibling of gl_ref_0007FEEC */
 gl_func_00000000_edma = 0x00000000;  /* osEPiRawStartDma = gl_func_0006F8A4 (blank in-segment jal) */
+gl_func_00000000_35e6c = 0x00000000;  /* prototyped (ctx,float*,float,float*) transform cb (USO jal-0) for gl_func_00035E6C */
