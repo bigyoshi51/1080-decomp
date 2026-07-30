@@ -249,7 +249,10 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # (0x2ba84 -> 0x2bb24 on 2026-07-23: 412E8 decode-corrected NM body is now
 # target-size 0x23C (old guard-folded body was 0xA0 smaller); tail 62F08
 # keeps its full 0x50 at the new offset.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2bc48 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2bc48 -> 0x2bca4 on 2026-07-30: 3BE1C PASS-4 decode-corrected NM body
+# grew 0x58C -> 0x5E8 (s16/f32 field retyping + spV array + home-slot args);
+# tail 62F08 keeps its full 0x50 at the new offset 0x2bc54.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2bca4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0

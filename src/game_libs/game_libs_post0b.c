@@ -6630,53 +6630,71 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);
  * projection. Two jal-0 callbacks (USO-relocated; placeholder
  * func_00000000). FP coefficient pool at &D_00000000+0x128. The three
  * 3-way min/max clamps and the edge-cross loop hand-decoded (m2c aborts
- * on the bc1t.l likely branches). */
+ * on the bc1t.l likely branches).
+ * PASS-4 2026-07-30 decode-error fixes vs authoritative expected-object
+ * disasm: gate field +4 is lh (s16, was lw); grid divisors +0x10/+0x14 are
+ * f32 lwc1 (was s32+cvt); K pool via opaque extern D_3BE1C_128 (baked USO
+ * base 0x128, undefined_syms) not folded offsets; 0x1EE9C cb arg is a baked
+ * USO symbol (D_3BE1C_1EE9C) not an int literal; spBC/C0/C4 is f32 spV[3]
+ * (sp-indexed lwc1 188(t7)); min3/max3 are s16 (sll/sra assignment idiom);
+ * edge-loop vertex elements are lh s16 (was lb s8) with corrected cross-
+ * product operand pairing dx*(val2-vAy) - dy*(val-vAx); ring loop bound is
+ * an end POINTER &D_0+6 (was (u32)ptr<6); loop-invariant spV[a1c]/spV[t0c]/
+ * (f32)lb(v1e+3) hoisted. Levers: f32 *ap = &arg4 home-slot aliasing keeps
+ * the K-scaled args in 256/260/264(sp) (kills the sdc1 f20/f22 promotion);
+ * s32 cell[2] memory-homes the grid coords (forces the sw + arg0->84->A0
+ * reload chain); 2x volatile pad = frame 240 (prologue + arg slots exact).
+ * 53.5 -> 74.1. RESIDUAL (documented cap class): 8-saved-reg coloring skew
+ * (target s5=obj/s7=count/s2=6/s3=&D_0+6 vs build s3/s4/t5/ra), spurious
+ * s6=&spV / s7=&D_0 base promotions (anti-hoist probes: distinct RING
+ * syms 71.6, sp54[1] homing 71.2 - both REGRESS; coloring is coupled),
+ * and local-offset skew (cell 212 vs 128, spV 228 vs 188). */
+extern f32 D_3BE1C_128[];
+extern char D_3BE1C_1EE9C[];
 s32 gl_func_0003BE1C(char *arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4, f32 arg5, f32 arg6) {
-    f32 spC4;
-    f32 spC0;
-    f32 spBC;
-    s32 sp84;
-    s32 sp80;
+    f32 spV[3];
+    s32 cell[2];
     s32 sp54;
-    f32 *temp_t6;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f16;
-    f32 temp_f18;
-    f32 temp_f8;
-    s16 *var_a2;
-    s16 *var_s6;
+    char *temp_s1;
+    char *temp_v1;
+    char *plane;
+    char *row;
+    char *var_v1;
+    char *v1e;
+    char *pA;
+    char *pB;
+    char *pC;
+    char *pA2;
+    char *pB2;
+    char *pE;
     s16 *var_v0;
-    s16 temp_a0_2;
-    s16 temp_a2_2;
-    s16 temp_a3;
-    s16 temp_t9;
+    s16 *var_s6;
+    s16 *ring;
+    s16 *pC2;
     s16 var_s4;
+    s16 vB2;
+    s16 vA2;
+    s16 max3;
+    s16 min3;
+    s16 rt;
     s32 temp_a0;
     s32 temp_a1;
-    s32 temp_a2;
-    s32 temp_f18_2;
-    s32 temp_f6;
-    s32 temp_t1;
-    s32 temp_t4;
-    s32 temp_v0;
-    s32 temp_v0_2;
-    s32 temp_v0_4;
-    s32 temp_v0_6;
+    s32 temp_w;
     s32 var_a0;
     s32 var_s1;
     s32 var_s7;
-    s32 max3;
-    s32 min3;
-    s8 temp_a1_2;
-    s8 temp_t0;
-    char *temp_s1;
-    char *temp_s1_2;
-    char *temp_v0_3;
-    char *temp_v1;
-    char *temp_v1_5;
-    char *var_a3;
-    char *var_v1;
+    s32 ret;
+    s32 t1;
+    s32 off;
+    s8 a1c;
+    s8 t0c;
+    f32 temp_f16;
+    f32 val;
+    f32 val2;
+    f32 sgn;
+    f32 *ap;
+    volatile int pad0;
+    volatile int pad1;
 
     temp_s1 = *(char **)(arg0 + 0x84);
     var_s7 = 0;
@@ -6684,25 +6702,22 @@ s32 gl_func_0003BE1C(char *arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4, f32 arg
         return 0;
     }
     if (*(s32 *)(temp_s1 + 0xA0) == 0) {
-        func_00000000(0x1EE9C);
+        func_00000000(D_3BE1C_1EE9C);
     }
-    temp_f8 = arg4 * *(f32 *)((char *)&D_00000000 + 0x128);
+    ap = &arg4;
+    ap[0] *= D_3BE1C_128[0];
     var_a0 = -1;
-    temp_f18 = arg6 * *(f32 *)((char *)&D_00000000 + 0x130);
-    arg4 = temp_f8;
-    arg5 *= *(f32 *)((char *)&D_00000000 + 0x12C);
-    arg6 = temp_f18;
+    ap[1] *= D_3BE1C_128[1];
+    ap[2] *= D_3BE1C_128[2];
     temp_v1 = *(char **)(*(char **)(arg0 + 0x84) + 0xA0);
-    temp_f6 = (s32) ((temp_f8 - (f32) *(s32 *)(temp_v1 + 0x8)) / (f32) *(s32 *)(temp_v1 + 0x10));
-    sp84 = temp_f6;
+    cell[1] = (s32) ((arg4 - (f32) *(s32 *)(temp_v1 + 0x8)) / *(f32 *)(temp_v1 + 0x10));
     temp_v1 = *(char **)(*(char **)(arg0 + 0x84) + 0xA0);
-    temp_f18_2 = (s32) ((temp_f18 - (f32) *(s32 *)(temp_v1 + 0xC)) / (f32) *(s32 *)(temp_v1 + 0x14));
-    sp80 = temp_f18_2;
-    if (temp_f6 >= 0) {
+    cell[0] = (s32) ((arg6 - (f32) *(s32 *)(temp_v1 + 0xC)) / *(f32 *)(temp_v1 + 0x14));
+    if (cell[1] >= 0) {
         temp_v1 = *(char **)(*(char **)(arg0 + 0x84) + 0xA0);
-        temp_v0 = *(s32 *)(temp_v1 + 0x0);
-        if ((temp_f6 < temp_v0) && (temp_f18_2 >= 0) && (temp_f18_2 < *(s32 *)(temp_v1 + 0x4))) {
-            var_a0 = temp_f6 + (temp_f18_2 * temp_v0);
+        temp_w = *(s32 *)(temp_v1 + 0x0);
+        if ((cell[1] < temp_w) && (cell[0] >= 0) && (cell[0] < *(s32 *)(temp_v1 + 0x4))) {
+            var_a0 = cell[1] + (cell[0] * temp_w);
         }
     }
     if (var_a0 < 0) {
@@ -6717,110 +6732,90 @@ s32 gl_func_0003BE1C(char *arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4, f32 arg
     if (var_v0 == 0) {
         return 0;
     }
-    var_s4 = *var_v0;
-    var_s6 = var_v0 + 1;
-    if (var_s4 != -1) {
-loop_17:
-        temp_a2 = var_s4 * 0xC;
-        if (*(s32 *)(*(char **)(arg0 + 0x2C) + temp_a2 + 0x4) >= 0) {
-            temp_s1_2 = *(char **)(arg0 + 0x84);
-            temp_a0 = *(s32 *)(temp_s1_2 + 0x4C);
+    var_s6 = var_v0;
+    var_s4 = *var_s6;
+    var_s6 += 1;
+    while (var_s4 != -1) {
+        sp54 = var_s4 * 0xC;
+        if (*(s16 *)(*(char **)(arg0 + 0x2C) + sp54 + 0x4) >= 0) {
+            temp_s1 = *(char **)(arg0 + 0x84);
+            temp_a0 = *(s32 *)(temp_s1 + 0x4C);
             if (temp_a0 != 0) {
-                var_v1 = *(char **)(temp_s1_2 + 0x68) + (*(s16 *)((char *)temp_a0 + (var_s4 * 2)) * 8);
+                var_v1 = *(char **)(temp_s1 + 0x68) + (*(s16 *)(temp_a0 + (var_s4 * 2)) * 8);
             } else {
-                var_v1 = *(char **)(temp_s1_2 + 0x68) + (var_s4 * 8);
+                var_v1 = *(char **)(temp_s1 + 0x68) + (var_s4 * 8);
             }
-            sp54 = temp_a2;
-            temp_v0_2 = func_00000000(temp_s1_2, *(u16 *)(var_v1 + 0x0), temp_a2, -1);
-            if (temp_v0_2 & 0x100) {
+            ret = func_00000000(temp_s1, *(u16 *)var_v1, sp54, -1);
+            if (ret & 0x100) {
                 var_s1 = 1;
-                temp_v0_3 = (char *)(*(s32 *)(*(char **)(arg0 + 0x84) + 0x54) + temp_a2);
-                temp_f0 = *(f32 *)(temp_v0_3 + 0x0);
-                var_a3 = var_v1;
-                temp_f16 = ((arg4 * temp_f0) + (arg5 * *(f32 *)(temp_v0_3 + 0x4)) + (arg6 * *(f32 *)(temp_v0_3 + 0x8))) - *(f32 *)(*(char **)(arg0 + 0x2C) + temp_a2 + 0x8);
-                spBC = arg4 - (temp_f0 * temp_f16);
-                spC0 = arg5 - (*(f32 *)(temp_v0_3 + 0x4) * temp_f16);
-                spC4 = arg6 - (*(f32 *)(temp_v0_3 + 0x8) * temp_f16);
-                temp_v1_5 = *(char **)(arg0 + 0x2C) + temp_a2;
-                temp_a1_2 = *(s8 *)(temp_v1_5 + 0x0);
-                temp_t0 = *(s8 *)(temp_v1_5 + 0x1);
-                if (temp_v0_2 & 0x200) {
-                    temp_t1 = 2 - *(s8 *)(temp_v1_5 + 0x2);
-                    temp_v0_4 = temp_t1 * 2;
-                    temp_t4 = *(s32 *)(*(char **)(arg0 + 0x84) + 0x60);
-                    temp_a2_2 = *(s16 *)((char *)temp_t4 + (*(u16 *)(var_v1 + 0x4) * 6) + temp_v0_4);
-                    temp_a3 = *(s16 *)((char *)temp_t4 + (*(u16 *)(var_v1 + 0x2) * 6) + temp_v0_4);
-                    temp_a0_2 = *(s16 *)((char *)temp_t4 + (*(u16 *)(var_v1 + 0x6) * 6) + temp_v0_4);
-                    if (temp_a2_2 < temp_a3) {
-                        max3 = temp_a3;
-                    } else {
-                        max3 = temp_a2_2;
+                plane = (char *) (*(s32 *)(*(char **)(arg0 + 0x84) + 0x54) + sp54);
+                temp_f16 = ((arg4 * *(f32 *)(plane + 0x0)) + (arg5 * *(f32 *)(plane + 0x4)) + (arg6 * *(f32 *)(plane + 0x8))) - *(f32 *)(*(char **)(arg0 + 0x2C) + sp54 + 0x8);
+                spV[0] = arg4 - (*(f32 *)(plane + 0x0) * temp_f16);
+                spV[1] = arg5 - (*(f32 *)(plane + 0x4) * temp_f16);
+                spV[2] = arg6 - (*(f32 *)(plane + 0x8) * temp_f16);
+                v1e = *(char **)(arg0 + 0x2C) + sp54;
+                a1c = *(s8 *)(v1e + 0x0);
+                t0c = *(s8 *)(v1e + 0x1);
+                if (ret & 0x200) {
+                    t1 = 2 - *(s8 *)(v1e + 0x2);
+                    row = (char *) *(s32 *)(*(char **)(arg0 + 0x84) + 0x60);
+                    pA = row + (*(u16 *)(var_v1 + 0x2) * 6);
+                    pB = row + (*(u16 *)(var_v1 + 0x4) * 6);
+                    pC = row + (*(u16 *)(var_v1 + 0x6) * 6);
+                    vB2 = *(s16 *)(pB + (t1 * 2));
+                    vA2 = *(s16 *)(pA + (t1 * 2));
+                    pC2 = (s16 *)(pC + (t1 * 2));
+                    max3 = vB2;
+                    if (vB2 < vA2) {
+                        max3 = vA2;
                     }
-                    if (temp_a0_2 < max3) {
-                        if (temp_a2_2 < temp_a3) {
-                            max3 = temp_a3;
-                        } else {
-                            max3 = temp_a2_2;
-                        }
+                    if (*pC2 < max3) {
+                        max3 = (vB2 < vA2) ? vA2 : vB2;
                     } else {
-                        max3 = temp_a0_2;
+                        max3 = *pC2;
                     }
-                    if (temp_a3 < temp_a2_2) {
-                        min3 = temp_a3;
+                    min3 = (vA2 < vB2) ? vA2 : vB2;
+                    if (min3 < *pC2) {
+                        min3 = (vA2 < vB2) ? vA2 : vB2;
                     } else {
-                        min3 = temp_a2_2;
+                        min3 = *pC2;
                     }
-                    if (min3 < temp_a0_2) {
-                        if (temp_a3 < temp_a2_2) {
-                            min3 = temp_a3;
-                        } else {
-                            min3 = temp_a2_2;
-                        }
-                    } else {
-                        min3 = temp_a0_2;
-                    }
-                    temp_f0_2 = (&spBC)[temp_t1];
-                    if ((temp_f0_2 < (f32) min3) || ((f32) max3 < temp_f0_2)) {
+                    val = spV[t1];
+                    if ((val < (f32) min3) || ((f32) max3 < val)) {
                         var_s1 = 0;
                     }
                 } else {
-                    temp_f0_2 = (&spBC)[temp_a1_2];
-                    temp_t4 = *(s32 *)(*(char **)(arg0 + 0x84) + 0x60);
-                    var_a2 = (s16 *)&D_00000000;
-loop_40:
-                    temp_t9 = *var_a2;
-                    var_a2 += 1;
-                    temp_v0_4 = *(s32 *)((char *)temp_t4 + (*(u16 *)(var_a3 + 0x2) * 6));
-                    temp_v0_6 = *(s8 *)((char *)temp_v0_4 + (temp_a1_2 * 2));
-                    temp_t1 = *(s8 *)((char *)temp_v0_4 + (temp_t0 * 2));
-                    temp_v0 = *(s32 *)((char *)temp_t4 + (*(u16 *)((var_v1 + (temp_t9 * 2)) + 0x2) * 6));
-                    if (((((f32) (s16) (*(s8 *)((char *)temp_v0 + (temp_a1_2 * 2)) - temp_v0_6) * (f32) (s16) (s32) (temp_f0_2 - (f32) temp_t1)) - ((f32) (s16) (*(s8 *)((char *)temp_v0 + (temp_t0 * 2)) - temp_t1) * (f32) (s16) (s32) ((&spBC)[temp_t0] - (f32) temp_v0_6))) * (f32) *(s8 *)(temp_v1_5 + 0x3)) > 10.0f) {
-                        var_s1 = 0;
-                    }
-                    if (var_s1 != 0) {
-                        if ((u32) var_a2 < 6U) {
-                            var_a3 += 2;
-                            goto loop_40;
+                    val = spV[a1c];
+                    sgn = (f32) *(s8 *)(v1e + 0x3);
+                    row = (char *) *(s32 *)(*(char **)(arg0 + 0x84) + 0x60);
+                    val2 = spV[t0c];
+                    ring = (s16 *) &D_00000000;
+                    pE = var_v1;
+                    do {
+                        rt = *ring;
+                        ring += 1;
+                        pA2 = row + (*(u16 *)(pE + 0x2) * 6);
+                        pB2 = row + (*(u16 *)((var_v1 + (rt * 2)) + 0x2) * 6);
+                        if ((((f32) (s16) (*(s16 *)(pB2 + (a1c * 2)) - *(s16 *)(pA2 + (a1c * 2))) * (f32) (s16) (s32) (val2 - (f32) *(s16 *)(pA2 + (t0c * 2))))
+                           - ((f32) (s16) (*(s16 *)(pB2 + (t0c * 2)) - *(s16 *)(pA2 + (t0c * 2))) * (f32) (s16) (s32) (val - (f32) *(s16 *)(pA2 + (a1c * 2))))) * sgn > 10.0f) {
+                            var_s1 = 0;
                         }
+                        pE += 2;
+                    } while ((var_s1 != 0) && (ring < (s16 *) ((char *)&D_00000000 + 6)));
+                }
+                if (var_s1 != 0) {
+                    off = var_s7 * 4;
+                    *(f32 *)(arg2 + off) = temp_f16 / *(f32 *)((char *)&D_00000000 + 0x12C);
+                    *(s32 *)(arg3 + off) = (s32) (*(char **)(arg0 + 0x2C) + (var_s4 * 0xC));
+                    var_s7 += 1;
+                    if (var_s7 >= arg1) {
+                        return var_s7;
                     }
                 }
-                if ((var_s1 != 0) && (temp_v0_6 = var_s7 * 4, temp_t6 = (f32 *)(arg2 + temp_v0_6), var_s7 += 1, *temp_t6 = temp_f16 / *(f32 *)((char *)&D_00000000 + 0x12C), *(s32 *)(arg3 + temp_v0_6) = (s32)(*(char **)(arg0 + 0x2C) + (var_s4 * 0xC)), ((var_s7 < arg1) == 0))) {
-
-                } else {
-                    goto block_47;
-                }
-            } else {
-block_47:
-                goto block_48;
-            }
-        } else {
-block_48:
-            var_s4 = *var_s6;
-            var_s6 += 1;
-            if (var_s4 != -1) {
-                goto loop_17;
             }
         }
+        var_s4 = *var_s6;
+        var_s6 += 1;
     }
     return var_s7;
 }
