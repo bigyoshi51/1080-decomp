@@ -9934,13 +9934,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002722C);
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder.
 #ifdef NON_MATCHING
+/* 48.3 -> fuzzy-100 (agent-h): all 15 words exact vs target in standalone
+ * probe. Two levers stacked: (1) int-cast base arith `int g = (int)arr;`
+ * unfolds the absolute store ($at-macro sw sym+0x215C form -> compiler-held
+ * lui/addiu base + disp store, matching target t7/t8); (2) per-site-extern
+ * %hi-CSE-kill (27784 osAiSetNextBuffer precedent): a SECOND zero-based
+ * extern (gl_d_272c4) for the post-call store kills the cross-call value-CSE
+ * that otherwise spills the base to a frame slot (frame 0x20+spill vs target
+ * 0x18+remat). Stays NM wrap: callee is the jal-0 placeholder. */
+extern unsigned char gl_d_272c4[];
 extern int gl_func_00000000();
-extern int D_00000000;
 void gl_func_000272C4(void) {
-    char *g = (char *)&D_00000000;
+    int g = (int)gl_d_23f98;
+    int h = (int)gl_d_272c4;
     *(int *)(g + 0x215C) = 1;
     gl_func_00000000(0);
-    *(unsigned char *)(g + 0x2CF0) = 0;
+    *(unsigned char *)(h + 0x2CF0) = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
