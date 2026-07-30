@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000717CC",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-07-30T15:46:04.121851+00:00",
+  "end_time": "2026-07-30T15:46:04.121873+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-07-30T15:46:04.121867+00:00",
+      "assistant_text": "gl_func_000717CC = libultra __osPfsGetOneChannelData (io/pfsgetstatus.c, 2.0I layout). True entry 0x717C8: first insn lui $t6,%hi(__osPfsPifRam) was carried as the _pad_pre_717CC stolen-prologue orphan; folded into the symbol and expected/ refreshed. IDO 5.3 -O1 -mips2 byte-exact on first compile.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 39,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 donor for gl_func_000717CC = libultra\n * __osPfsGetOneChannelData (io/pfsgetstatus.c verbatim, 2.0I layout) --\n * pfs sibling family; __osPfsGetStatus=gl_func_00071624 jals this as its\n * last call. TRUE ENTRY 0x717C8: the compiled function's first insn is\n * `lui $t6,%hi(__osPfsPifRam)`, which the old split carried as the\n * 1-word _pad_pre_717CC stolen-prologue orphan (split off\n * gl_func_00071708.s, see that donor's comment); folded back into\n * gl_func_000717CC.s so the symbol covers all 39 words. PROVEN EXACT\n * 39/39 vs the 0x717C8..0x71860 stream (2026-07-30 probe): donor word k\n * == expected[k-1] for the old 38-word symbol, word 0 == the orphan lui;\n * the single data reloc pair (__osPfsPifRam lui/addiu) is addend-0 =\n * blank D_00000000 extern; no calls. CHNL_ERR = (rxsize & 0xC0) >> 4.\n * Spliced into game_libs_post2.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned short u16;\ntypedef unsigned char u8;\n\ntypedef struct\n{\n    u16 type;   /* 0x0 */\n    u8 status;  /* 0x2 */\n    u8 errno;   /* 0x3 */\n} OSContStatus;\n\ntypedef struct\n{\n    u8 txsize;  /* 0x0 */\n    u8 rxsize;  /* 0x1 */\n    u8 cmd;     /* 0x2 */\n    u8 typeh;   /* 0x3 */\n    u8 typel;   /* 0x4 */\n    u8 status;  /* 0x5 */\n} __OSContRequesFormatShort;\n\nextern u8 D_00000000; /* __osPfsPifRam */\n\nvoid gl_func_000717CC(int channel, OSContStatus *data)\n{\n    u8 *ptr;\n    __OSContRequesFormatShort requestformat;\n    int i;\n    ptr = &D_00000000;\n    for (i = 0; i < channel; i++)\n        ptr++;\n    requestformat = *(__OSContRequesFormatShort *)ptr;\n    data->errno = (requestformat.rxsize & 0xC0) >> 4;\n    if (data->errno == 0)\n    {\n        data->type = (requestformat.typel << 8) | (requestformat.typeh);\n        data->status = requestformat.status;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_717C8.c",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/gl_func_000717CC.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "39/39 raw-word identical vs expected/src/game_libs/game_libs_post2.c.o gl_func_000717CC (post stolen-prologue fold, incl. addend-0 __osPfsPifRam reloc imms); REPLACE_FUNC_BODY splice; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0"
+  }
+}

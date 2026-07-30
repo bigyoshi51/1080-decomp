@@ -182,8 +182,9 @@ int gl_func_00071624(void *queue, int channel) {
  * IDO 5.3 -O1 donor unit game_libs_ido53_71708.c (48/48 — 5.3 colors the
  * template struct-copy scratch $at; 7.1 uses $t1/$t0), spliced over this
  * -O2 stand-in. The old .s's 49th trailing word (lui $t6 at 0x717C8) is
- * gl_func_000717CC's stolen prologue, emitted by the 1-word orphan
- * INCLUDE_ASM below. Body is a placeholder for the splice. */
+ * gl_func_000717CC's stolen prologue -- since 2026-07-30 folded into the
+ * gl_func_000717CC symbol itself (= __osPfsGetOneChannelData, true entry
+ * 0x717C8). Body is a placeholder for the splice. */
 extern int D_00000000;
 void gl_func_00071708(int a0) {
     unsigned char tmpl[8];
@@ -210,85 +211,19 @@ void gl_func_00071708(int a0) {
 }
 
 
-#ifdef NON_MATCHING
-/* gl_func_000717CC: 38-insn single-record decode (sibling of gl_func_0006C11C).
- * Size 0x98, frame 0x10.
- *
- * Sibling decoder: where gl_func_0006C11C iterates over a stream of 8-byte
- * records, this function decodes ONE record at offset (caller-set src + a0).
- *
- * Decoded structure (raw-word disasm):
- *   void decode_single(int byte_offset [a0],
- *                      uint16_t *out      [a1],
- *                      uint8_t  *src      [$t6 caller-set])
- *   {
- *       // Stage 1: advance src by `byte_offset` bytes via counted loop
- *       // (semantically `src += byte_offset`; IDO emits a no-op increment
- *       // loop because the stack-slot `sw/lw` cycle defeats constant folding)
- *       for (int i = 0; i < byte_offset; i++) {
- *           src += 1;
- *       }
- *
- *       // Stage 2: copy 6 bytes from src into local buf at sp+0x4
- *       uint8_t buf[8];
- *       *(uint32_t*)(buf+0) = *(uint32_t*)src;   // lwl/lwr unaligned 4 bytes
- *       buf[4] = src[4];
- *       buf[5] = src[5];
- *
- *       // Stage 3: extract 2-bit tag from buf[1] top bits
- *       uint8_t tag = (buf[1] & 0xC0) >> 4;     // 0/4/8/0xC code
- *       buf[3] = tag;                            // overwrite sp+7
- *
- *       // Stage 4: write packed payload to *out if tag is zero
- *       if (tag == 0) {
- *           // Construct 16-bit value: (buf[4] << 8) | tag
- *           uint16_t packed = ((uint16_t)buf[4] << 8) | (uint16_t)tag;
- *           *out = packed;                       // sh to *a1
- *           *((uint8_t*)out + 2) = buf[5];      // tail byte
- *       }
- *       // (tag != 0: skip payload write — caller's *out unchanged)
- *   }
- *
- * Notes:
- *  - $t6 caller-set src ptr — fits caller-set-int-reg cap class
- *    (feedback_caller_set_int_reg_cap_1080_game_libs.md).
- *  - The "advance src via counted loop" is functionally equivalent to a
- *    single `addu src, src, a0` but IDO emits ~9 instructions instead. The
- *    stack-roundtrip on the loop_idx via `lw/sw` is the giveaway — looks like
- *    a compiler intrinsic for "volatile counter" semantics, or perhaps the
- *    original source has a side-effecting inner expression that we can't see
- *    in the disasm (e.g., `do_something(src); src++; i++;`).
- *  - Same 2-bit tag dispatch and bit-shifted offset stride as 0006C11C.
- *  - Reads 6 bytes from src but writes only 3 bytes (2-byte sh + 1-byte sb)
- *    to *out — outputs less than reads, so this is a "compress/decode"
- *    operation.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-// Record decoder. Advances the (caller-set) src cursor by a0 records, reads a
-// 6-byte record (lwl/lwr + 2 bytes) into a local, then decodes: out->3 =
-// (rec[1] & 0xC0) >> 4; if that is 0, out->0 = (rec[4]<<8)|rec[3] (halfword)
-// and out->2 = rec[5]. The cursor base is caller-set ($t6) — modeled as a
-// param, so only the dispatch reg differs.
-void gl_func_000717CC(int a0, char *out, char *cursor) {
-    unsigned char rec[8];
-    int i;
-    if (a0 > 0) {
-        i = 0;
-        do {
-            cursor += 1;
-            i++;
-        } while (i < a0);
-    }
-    *(int *)rec = *(int *)cursor;
-    rec[4] = cursor[4];
-    rec[5] = cursor[5];
-    *(char *)(out + 3) = (rec[1] & 0xC0) >> 4;
-    if (*(unsigned char *)(out + 3) == 0) {
-        *(short *)(out + 0) = (rec[4] << 8) | rec[3];
-        *(char *)(out + 2) = rec[5];
+/* gl_func_000717CC = libultra __osPfsGetOneChannelData (io/pfsgetstatus.c
+ * verbatim, 2.0I layout) -- pfs sibling family; gl_func_00071624 =
+ * __osPfsGetStatus jals this last. TRUE ENTRY 0x717C8: the compiled
+ * fn's first insn (lui $t6,%hi(__osPfsPifRam)) was the old
+ * _pad_pre_717CC stolen-prologue orphan inside gl_func_000717CC.s,
+ * folded into the symbol 2026-07-30 (expected/ baseline refreshed).
+ * LANDED via REPLACE_FUNC_BODY donor splice: real C lives in the IDO
+ * 5.3 -O1 donor unit game_libs_ido53_717C8.c (39/39 raw-word identical
+ * incl. the addend-0 __osPfsPifRam lui/addiu pair = blank D_00000000;
+ * leaf, no jals). Body below is a placeholder for the splice. */
+void gl_func_000717CC(int channel, void *data) {
+    volatile int ret = 0;
+    if (channel != 0) {
+        ret = channel;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000717CC);
-#endif
