@@ -632,44 +632,54 @@ void h2hproc_uso_func_00000A80(int *a0) {
  *   Default (other v1):
  *     return (just epilogue restore)
  *
- * 77.38% NM (2026-05-14 cleanup pass: char-base hoist + if-min instead
- * of ternary moved 76.87% → 77.38%, +0.51pp). Remaining cap is the
- * regalloc choice (target loads state to $v1; mine to $v0) which
- * cascades into 5+ register-name differences across the cases. Target
- * also uses 3-arm dispatch (beqz + beq + b-default) where mine emits
- * nested-if (bnez-skip + bne-skip). IDO -O2 doesn't synthesize 3-arm
- * from nested-if at this size. Path forward: permuter random-search
- * or accept the regalloc cap. */
+ * 2026-07-30 (89.12 -> 97.14 fuzzy): four levers.
+ *  (1) LOGIC FIX: the register call is 2-arg gl(a3+0x10, p) — the old 3rd
+ *      arg `1` emitted a phantom li a2,1 (+1 insn, frame +8).
+ *  (2) state/p ONE-LOCAL UNIFICATION: target colors the dispatch temp AND
+ *      the p-pointer $v1 with home 44(sp) — a single reused `int tmp`
+ *      (dispatch temp, then reassigned to the alloc result) builds the
+ *      jal-crossing named web that can never color $v0 (IDO_CODEGEN named-
+ *      web-jal-v0-conflict) -> lands $v1 both places, flipping the whole
+ *      dispatch off $v0.
+ *  (3) PAIRED-BASE via twin-indexed array extern: A88_diffpair[0x170/4] /
+ *      [0x174/4] (array-typed extern, same reloc target) %hi-CSEs into the
+ *      target's lui+addiu,0 + lw 368/372 pair (char*-base +K spelling emits
+ *      two per-site folded luis). Also reuse tmp as diff_b -> $v1.
+ *  RESIDUAL (~7 words): min/diff_a web ties to $a2 (target $v0) — the
+ *  const-call-arg web arg-discount tie (kit III NEGATIVE, probe-immune:
+ *  named/un-named/decl-order all reproduce $a2), which cascades base a0-vs-a2
+ *  + move/addu operand names; case-1 first call remats li a1,3 in the jal
+ *  delay where target PREs the dispatch-delay li a1,3 (uopt cross-BB const
+ *  PRE, no C spelling found); tmp/a3 homes 36/32 vs target 44/36. Keep NM. */
+extern unsigned A88_diffpair[];
 void h2hproc_uso_func_00000A88(int *a0) {
     int *s0 = a0;
-    int state = *(int*)((char*)s0 + 0x504);
     char *base = &D_00000000;
-    switch (state) {
+    int tmp = *(int*)((char*)a0 + 0x504);
+    switch (tmp) {
     case 0:
         gl_func_00000000(*(int*)(base + 0x190), 3, 1);
         *(int*)((char*)s0 + 0x504) = 1;
         gl_func_00000000(7, 0, 0);
         break;
     case 1: {
-        int *p;
         int a3;
-        unsigned diff_a, diff_b, min;
+        unsigned min;
         if (gl_func_00000000(*(int*)(base + 0x190), 3) == 0) return;
         gl_func_00000000(7, 0, 0);
         gl_func_00000000(s0);
-        diff_a = *(unsigned*)(base + 0x170);
-        diff_b = *(unsigned*)(base + 0x174);
-        min = diff_a;
-        if (diff_b < diff_a) min = diff_b;
+        min = A88_diffpair[0x170 / 4];
+        tmp = A88_diffpair[0x174 / 4];
+        if ((unsigned)tmp < min) min = (unsigned)tmp;
         gl_func_00000000(s0, min + 0x26000F);
-        p = (int*)gl_func_00000000(0, s0);
+        tmp = gl_func_00000000(0, s0);
         a3 = *(int*)((char*)s0 + 0x56C);
-        *(int**)((char*)s0 + 0x6AC) = p;
-        gl_func_00000000(a3 + 0x10, p, 1);
-        if (*(int*)((char*)p + 0x14) != 0) {
-            *(int*)((char*)p + 0x4) = 1;
+        *(int*)((char*)s0 + 0x6AC) = tmp;
+        gl_func_00000000(a3 + 0x10, tmp);
+        if (*(int*)(tmp + 0x14) != 0) {
+            *(int*)(tmp + 0x4) = 1;
         }
-        *(int*)((char*)p + 0x14) = a3;
+        *(int*)(tmp + 0x14) = a3;
         gl_func_00000000(*(int*)(base + 0x190), 1, 1);
         break;
     }
