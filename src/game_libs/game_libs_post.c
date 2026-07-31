@@ -3947,97 +3947,140 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00021130);
 //   = canonical never-defined USO placeholder for the handler.
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
-extern int D_00000000;
-/* Whole-body decode 2026-06-01 (was 10.96% case-0-only stub). 5-case jr-via-
- * rodata jumptable state machine on st=(*(D+0x2CF0))-1, returning state>=3.
- * md = (*(D+0x2034)==2)?2:1 drives the per-case `N/md` timer reload at D+0x2CF4.
- * Cases dispatch sub-handlers (35668/3579C/36AD0/35B04) + a record sweep over
- * D+0x2070 entries (stride 208 from *(D+0x2CFC)). Jumptable can't byte-match
- * w/o rodata but case bodies score (per jumptable-not-a-skip-reason). */
+/* Redecode 2026-07-31 (agent-h, 24378 lever kit). Target holds &D in $s1 for
+ * the WHOLE fn (2-insn lui/addiu; our proxy prelude costs ~3 insns at top but
+ * buys every body access as offset($s1)). Decode fixes vs the 2026-06-01 body:
+ *  - SINGLE bounds check: bare switch (default: end), no pre-`if(st>=5)` (the
+ *    old body double-emitted sltiu/beqz).
+ *  - case-0 record cursor is a FRESH lui/addiu with %lo 11520 baked
+ *    (&D+0x2D00 per-site extern), stride 0x160, i spilled across the K&R call.
+ *  - timer early-outs store `t-1` BEFORE the 35668 call (sw sits in the jal
+ *    delay slot -> store precedes call in C order).
+ *  - case-1 sweep reloads the 0x2070 count ONLY inside the mutate arm (old
+ *    body reloaded every iteration); flag test is `(u32)w >> 31`.
+ *  - case-4 clear is stride-8 four-sh with the *(int*)(p+0x2140) pointer
+ *    RELOADED per store (no x4/stride-32 unroll, no i/2 sra fixup): two
+ *    walking pointers p(+4)/q(+2) from fresh &D / &D+12 materializations.
+ *  - return is the BRANCHY ternary (li v0,1; cond -> move v0,zero), not
+ *    slti/xori.
+ * Jumptable itself still can't byte-match w/o rodata (documented). */
 extern int gl_func_00035668();
 extern int gl_func_0003579C();
 extern int gl_func_00036AD0();
 extern int gl_func_00035B04();
+extern u8 gl_d_2119C[];        /* held base -> $s1 (whole-fn) */
+extern char gl_d_2119C_proxy;  /* link-time-0 proxy: reloc sum defeats IDO const-fold so B stays held (docs/PATTERNS proxy-extern lever) */
+extern u8 gl_d_2119C_rec[];    /* case-0 record cursor site (&D+0x2D00) */
+extern u8 gl_d_2119C_p[];      /* case-4 clear-loop walking base (&D) */
+extern u8 gl_d_2119C_e[];      /* case-4 end sentinel (&D+12) */
+#define GL2119C_STATE (*(volatile unsigned char *)(B + 0x2CF0))
 int gl_func_0002119C(void) {
-    char *g = (char *)&D_00000000;
-    int md = (*(short *)(g + 0x2034) == 2) ? 2 : 1;
-    int st = *(unsigned char *)(g + 0x2CF0) - 1;
-    int n, i;
+    char *B;
+    int md;
+    int t;
+    int n;
+    int i;
+    int j;
     char *rec;
+    char *r;
+    char *p;
+    char *q;
+    char *e;
 
-    if ((unsigned)st >= 5) {
-        goto end;
+    B = (char *)gl_d_2119C + (int)&gl_d_2119C_proxy;
+    if (*(short *)(B + 0x2034) == 2) {
+        md = 2;
+    } else {
+        md = 1;
     }
-    switch (st) {
+    switch (GL2119C_STATE - 1) {
     case 0:
-        n = *(short *)(g + 0x2048);
-        rec = g + 0x2D00;
-        for (i = 0; i < n; i++) {
-            gl_func_00000000(rec);
-            n = *(short *)(g + 0x2048);
-            rec += 0x160;
+        n = *(short *)(B + 0x2048);
+        i = 0;
+        if (n > 0) {
+            rec = (char *)gl_d_2119C_rec + 0x2D00;
+            do {
+                gl_func_00000000(rec);
+                n = *(short *)(B + 0x2048);
+                rec += 0x160;
+                i++;
+            } while (i < n);
         }
-        *(int *)(g + 0x2CF4) = 2 / md;
-        *(unsigned char *)(g + 0x2CF0) = *(unsigned char *)(g + 0x2CF0) - 1;
+        *(int *)(B + 0x2CF4) = 2 / md;
+        GL2119C_STATE = GL2119C_STATE - 1;
         break;
     case 1:
-        if (*(int *)(g + 0x2CF4) != 0) {
+        t = *(int *)(B + 0x2CF4);
+        if (t != 0) {
+            *(int *)(B + 0x2CF4) = t - 1;
             gl_func_00035668();
-            *(int *)(g + 0x2CF4) = *(int *)(g + 0x2CF4) - 1;
-            goto end;
+            break;
         }
-        n = *(int *)(g + 0x2070);
-        for (i = 0; i < n; i++) {
-            int *r = (int *)(*(int *)(g + 0x2CFC) + i * 208);
-            if (((unsigned)r[176 / 4] >> 31) != 0 &&
-                (*(unsigned char *)((char *)r + 96) & 0xF) != 0) {
-                *(float *)((char *)r + 108) = *(float *)(g + 0x2050);
-                r = (int *)(*(int *)(g + 0x2CFC) + i * 208);
-                *(unsigned char *)((char *)r + 96) =
-                    (*(unsigned char *)((char *)r + 96) & 0xEF) | 0x10;
-            }
-            n = *(int *)(g + 0x2070);
+        n = *(int *)(B + 0x2070);
+        i = 0;
+        if (n > 0) {
+            do {
+                r = (char *)(*(int *)(B + 0x2CFC) + i * 208);
+                if ((*(unsigned int *)(r + 176) >> 31) != 0) {
+                    if ((*(unsigned char *)(r + 96) & 0xF) != 0) {
+                        *(float *)(r + 108) = *(float *)(B + 0x2050);
+                        r = (char *)(*(int *)(B + 0x2CFC) + i * 208);
+                        *(unsigned char *)(r + 96) =
+                            (*(unsigned char *)(r + 96) & 0xEF) | 0x10;
+                        n = *(int *)(B + 0x2070);
+                    }
+                }
+                i++;
+            } while (i < n);
         }
-        *(int *)(g + 0x2CF4) = 8 / md;
-        *(unsigned char *)(g + 0x2CF0) = *(unsigned char *)(g + 0x2CF0) - 1;
+        *(int *)(B + 0x2CF4) = 8 / md;
+        GL2119C_STATE = GL2119C_STATE - 1;
         break;
     case 2:
-        if (*(int *)(g + 0x2CF4) != 0) {
+        t = *(int *)(B + 0x2CF4);
+        if (t != 0) {
+            *(int *)(B + 0x2CF4) = t - 1;
             gl_func_00035668();
-            *(int *)(g + 0x2CF4) = *(int *)(g + 0x2CF4) - 1;
-            goto end;
+            break;
         }
-        *(int *)(g + 0x2CF4) = 2 / md;
-        *(unsigned char *)(g + 0x2CF0) = *(unsigned char *)(g + 0x2CF0) - 1;
+        *(int *)(B + 0x2CF4) = 2 / md;
+        GL2119C_STATE = GL2119C_STATE - 1;
         break;
     case 3:
         gl_func_0003579C();
-        if (*(int *)(g + 0x2CF4) != 0) {
-            *(int *)(g + 0x2CF4) = *(int *)(g + 0x2CF4) - 1;
+        t = *(int *)(B + 0x2CF4);
+        if (t != 0) {
+            *(int *)(B + 0x2CF4) = t - 1;
         } else {
-            *(unsigned char *)(g + 0x2CF0) = *(unsigned char *)(g + 0x2CF0) - 1;
+            GL2119C_STATE = GL2119C_STATE - 1;
             gl_func_00036AD0();
-            goto end;
         }
         break;
     case 4:
         gl_func_00035B04();
-        *(unsigned char *)(g + 0x2CF0) = 0;
-        for (i = 0; i < 12; i += 4) {
-            int v0;
-            *(short *)(g + 0x214C + i / 2) = *(short *)(g + 0x203C);
-            for (v0 = 0; v0 != 2816; v0 += 8) {
-                short *b = (short *)(*(int *)(g + 0x2140 + i) + v0);
-                b[0] = 0;
-                b[1] = 0;
-                b[2] = 0;
-                b[3] = 0;
+        p = (char *)gl_d_2119C_p;
+        GL2119C_STATE = 0;
+        e = (char *)gl_d_2119C_e + 12;
+        q = p;
+        do {
+            *(short *)(q + 0x214C) = *(short *)(B + 0x203C);
+            j = 0;
+            while (1) {
+                *(volatile short *)(*(volatile int *)(p + 0x2140) + j) = 0;
+                *(volatile short *)(*(volatile int *)(p + 0x2140) + j + 2) = 0;
+                *(volatile short *)(*(volatile int *)(p + 0x2140) + j + 4) = 0;
+                *(volatile short *)(*(volatile int *)(p + 0x2140) + j + 6) = 0;
+                j += 8;
+                if (j == 2816) {
+                    break;
+                }
             }
-        }
+            p += 4;
+            q += 2;
+        } while (p != e);
         break;
     }
-end:
-    return *(unsigned char *)(g + 0x2CF0) >= 3;
+    return (GL2119C_STATE < 3) ? 0 : 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002119C);
