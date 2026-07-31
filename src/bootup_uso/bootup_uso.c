@@ -7640,49 +7640,73 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 //   Permuter unlikely to bridge (structural, not small coloring residual).
 //   Name pre-checked. Build via INCLUDE_ASM; ROM byte-identical (NM diff only).
 #ifdef NON_MATCHING
+/* Split-NAME externs (NM-only, never linked): distinct per-site names for the
+ * same target symbols kill the %hi-CSE base collapse (see IDO_CODEGEN
+ * #split-name-hi-cse-volatile-param-b5). Real syms: flag/cnt/tbl =
+ * func_00000148(+0x14), name = func_000089FC+0x2C, vt = func_000083D0+0x70,
+ * str1/str2 = func_00008A40+0x8/+0x14. Reloc names differ — fine under
+ * reloc-masked USO fuzzy scoring; NM objects are compiled, not linked. */
+extern int B1B4_flag;
+extern int B1B4_cnt_a;
+extern int B1B4_cnt_b;
+extern int B1B4_cnt_c;
+extern char *B1B4_tbl[];
+extern char B1B4_name;
+extern char B1B4_vt;
+extern char B1B4_str1;
+extern char B1B4_str2;
+extern char *B1B4_tblA[];
+extern char *B1B4_tblB[];
 void func_0000B1B4(unsigned int cat, unsigned int idx, int a2, int a3, int a4) {
     char *r;
     char *s;
+    char *s2;
     char *t;
     char *buf;
     int n;
     char *e;
-    int sp34;
-    int lcat;
-    int lidx;
-    int la4a;
-    int la4b;
-    char *la2;
+    int o[19];             /* escaping out-block at 0x34: +0xC/+0x10 a4 copies,
+                              +0x40 cat, +0x44 idx, +0x48 a2; base passed to the
+                              finalize call (was "&sp34") */
+
     if (idx >= 0xA) idx = 9;
     if (cat >= 9)  cat = 8;
-    la2 = (char *)a2;
-    la4a = a4;
-    la4b = a4;
-    lcat = cat;
-    lidx = idx;
-    if ((lcat == 7 || lcat == 6) && *(int *)&func_00000148 == 0) {
-        func_00000000((char *)&func_000089FC + 0x2C);
-        r = (char *)func_00000000(0x90);
-        if (r != 0) {
-            if (r != 0 || (r = (char *)func_00000000(0x90)) != 0) {
-                s = r;
-                if (s != 0 || (s = (char *)func_00000000(0x60)) != 0) {
-                    *(char **)(s + 0x5C) = &D_00000000;
-                    t = s + 0x34;
-                    if (s == (char *)0xFFFFFFCC || (t = (char *)func_00000000(8)) != 0) {
-                        *(int *)(t + 4) = 0;
-                        *(int *)(t + 0) = 0;
-                    }
-                    t = s + 0x58;
-                    if (s == (char *)0xFFFFFFA8 || (t = (char *)func_00000000(4)) != 0) {
-                        *(int *)(t + 0) = 0;
-                    }
-                    func_00000000(s);
-                }
-                *(char **)(r + 0x5C) = &D_00000000;
+    o[3] = a4;
+    o[4] = a4;
+    o[18] = a2;
+    o[16] = cat;
+    o[17] = idx;
+    if (cat == 7 || cat == 6) {
+        if (B1B4_flag == 0) {
+            func_00000000(&B1B4_name);
+            r = (char *)func_00000000(0x90);
+            if (r == 0) goto reg;
+            s = r;
+            if (r == 0) {
+                s = (char *)func_00000000(0x90);
+                if (s == 0) goto rinit;
             }
+            s2 = s;
+            if (s == 0) {
+                s2 = (char *)func_00000000(0x60);
+                if (s2 == 0) goto svt;
+            }
+            *(char **)(s2 + 0x5C) = &D_00000000;
+            t = s2 + 0x34;
+            if (s2 == (char *)0xFFFFFFCC || (t = (char *)func_00000000(8)) != 0) {
+                *(int *)(t + 4) = 0;
+                *(int *)(t + 0) = 0;
+            }
+            t = s2 + 0x58;
+            if (s2 == (char *)0xFFFFFFA8 || (t = (char *)func_00000000(4)) != 0) {
+                *(int *)(t + 0) = 0;
+            }
+            func_00000000(s2);
+        svt:
+            *(char **)(s + 0x5C) = &D_00000000;
+        rinit:
             *(int *)(r + 0x24) = 0x110;
-            *(char **)(r + 0x5C) = (char *)&func_000083D0 + 0x70;
+            *(char **)(r + 0x5C) = &B1B4_vt;
             buf = (char *)func_00000000(0x1000);
             *(int *)(r + 0x28) = 0x1100;
             *(short *)(r + 0x22) = 0x20;
@@ -7691,24 +7715,24 @@ void func_0000B1B4(unsigned int cat, unsigned int idx, int a2, int a3, int a4) {
             *(char **)(r + 0x1C) = buf;
             *(int *)(r + 0x34) = 0;
             *(int *)(r + 0x18) = 0;
+        reg:
+            if (B1B4_cnt_a >= 5) func_00000000();
+            n = B1B4_cnt_b;
+            B1B4_cnt_c = n + 1;
+            B1B4_tbl[n] = r;
         }
-        if (*(int *)((char *)&func_00000148 + 0x14) >= 5) func_00000000(r);
-        n = *(int *)((char *)&func_00000148 + 0x14);
-        *(int *)((char *)&func_00000148 + 0x14) = n + 1;
-        *(char **)((char *)&func_00000148 + n * 4) = r;
     }
-    func_00000000((char *)&func_00008A40 + 0x8, 0);
-    func_00000000((char *)&func_00008A40 + 0x14, 0);
+    func_00000000(&B1B4_str1, 0);
+    func_00000000(&B1B4_str2, 0);
     if (idx != 0) {
-        e = *(char **)((char *)&D_00000000 + idx * 4);
+        e = B1B4_tblA[idx];
         if (func_00000000(*(int *)e) == 0) func_00000000(&D_00000000, *(int *)e);
     }
-    e = *(char **)((char *)&D_00000000 + cat * 4);
+    e = B1B4_tblB[cat];
     if (func_00000000(*(int *)e) == 0) func_00000000(&D_00000000, *(int *)e);
     func_00000000();
-    func_00000000(&D_00000000, a4, a3, &sp34);
+    func_00000000(&D_00000000, a4, a3, o);
     func_00000000();
-    (void)lcat; (void)lidx;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000B1B4);
