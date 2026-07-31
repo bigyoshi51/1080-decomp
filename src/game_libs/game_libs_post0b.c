@@ -2304,17 +2304,87 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
  * "bare-INCLUDE" insert nested a dead wrap inside this #else -- always
  * check for an enclosing wrap before inserting (item 22 extension). */
 #ifdef NON_MATCHING
-void gl_func_00036224(char *o) {
-    char *src = *(char **)(o + 0x1CC);
-    float tx = *(float *)(src + 0xF8);
-    float ty = *(float *)(src + 0xFC);
-    float tz = *(float *)(src + 0x100);
-    *(float *)(o + 0x00) = tx * 160.0f + -1.0f;
-    *(float *)(o + 0x04) = ty * 120.0f + -1.0f;
-    *(float *)(o + 0x08) = tz * 160.0f + -1.0f;
-    *(int *)(o + 0xBC) = *(int *)(src + 0xBC);
-    *(int *)(o + 0xC0) = *(int *)(src + 0xC0);
-    *(int *)(o + 0xC4) = *(int *)(src + 0xC4);
+void gl_func_00036224(char *o, char *arg1) {
+    Vec3 vecA;      /* sp+0xFC screen-biased eye point */
+    Vec3 vecB;      /* sp+0xF0 screen-biased look point */
+    f32 mtx[4][4];  /* sp+0xB0 camera matrix copy */
+    f32 vecC[4];    /* sp+0xA0 tail scratch vec */
+    union { Vec3 v; f32 pad[5]; } tmp; /* sp+0x8C struct-copy staging (s2) */
+    union { Vec3 v; f32 pad[8]; } rv;  /* sp+0x6C call-return copy */
+    f32 out1[3];    /* sp+0x60 */
+    f32 out2[3];    /* sp+0x54 */
+    char *src;
+    f32 x, y, z;
+
+    tmp.v = *(Vec3 *)(*(char **)(o + 0x1CC) + 0xF8);
+    vecA.z = tmp.v.z;
+    vecA.y = tmp.v.y;
+    vecA.x = tmp.v.x;
+    vecA.x = tmp.v.x - 160.0f;
+    vecA.y = tmp.v.y - 120.0f;
+    tmp.v = *(Vec3 *)(*(char **)(o + 0x1CC) + 0xBC);
+    vecB.x = tmp.v.x;
+    vecB.y = tmp.v.y;
+    vecB.x = tmp.v.x - 160.0f;
+    vecB.z = tmp.v.z;
+    vecB.y = tmp.v.y - 120.0f;
+    vecB.y = vecB.y * -1.0f;
+    vecA.y = vecA.y * -1.0f;
+    if (*(int *)(o + 0x1D8) != 0) {
+        vecB.x *= -1.0f;
+        vecB.y *= -1.0f;
+        vecB.z *= -1.0f;
+        vecA.x *= -1.0f;
+        vecA.y *= -1.0f;
+        vecA.z *= -1.0f;
+    }
+    rv.v = *(Vec3 *)gl_func_00034458(&tmp.v, o, vecA, *(Vec3 *)(o + 0x2C), *(int *)(o + 0x44));
+    *(f32 *)(o + 0xA0) = rv.v.x;
+    *(f32 *)(o + 0xA4) = rv.v.y;
+    *(f32 *)(o + 0xA8) = rv.v.z;
+    rv.v = *(Vec3 *)gl_func_00034458(&tmp.v, o, vecB, *(Vec3 *)(o + 0x2C), *(int *)(o + 0x44));
+    *(f32 *)(o + 0xAC) = rv.v.x;
+    *(f32 *)(o + 0xB0) = rv.v.y;
+    *(f32 *)(o + 0xB4) = rv.v.z;
+    gl_func_00034458(*(char **)(o + 0x1D0) + 0xB4, mtx);
+    x = *(f32 *)(o + 0xA0);
+    y = *(f32 *)(o + 0xA4);
+    z = *(f32 *)(o + 0xA8);
+    out1[0] = mtx[0][0] * x + mtx[1][0] * y + mtx[2][0] * z;
+    out1[1] = mtx[0][1] * x + mtx[1][1] * y + mtx[2][1] * z;
+    out1[2] = mtx[0][2] * x + mtx[1][2] * y + mtx[2][2] * z;
+    *(f32 *)(o + 0xA0) = out1[0];
+    *(f32 *)(o + 0xA4) = out1[1];
+    *(f32 *)(o + 0xA8) = out1[2];
+    x = *(f32 *)(o + 0xAC);
+    y = *(f32 *)(o + 0xB0);
+    z = *(f32 *)(o + 0xB4);
+    out2[0] = mtx[0][0] * x + mtx[1][0] * y + mtx[2][0] * z;
+    out2[1] = mtx[0][1] * x + mtx[1][1] * y + mtx[2][1] * z;
+    out2[2] = mtx[0][2] * x + mtx[1][2] * y + mtx[2][2] * z;
+    *(f32 *)(o + 0xAC) = out2[0];
+    *(f32 *)(o + 0xB0) = out2[1];
+    *(f32 *)(o + 0xB4) = out2[2];
+    src = *(char **)(o + 0x1CC);
+    if ((*(int *)(*(char **)(src + 0xB4) + 0x10) & *(int *)(o + 0x1D4)) && (*(int *)(src + 0x108) != 0)) {
+        gl_func_00034458(o + 0x68, o + 0xA0, o + 0xAC);
+        gl_func_00034458(o + 0x68, o + 0x58, o + 0x48);
+        gl_func_00034458(o + 0x78, o + 0xD0, o + 0xAC);
+        tmp.v = *(Vec3 *)(o + 0xAC);
+        *(f32 *)(o + 0xD0) = tmp.v.x;
+        *(f32 *)(o + 0xD4) = tmp.v.y;
+        *(f32 *)(o + 0xD8) = tmp.v.z;
+    } else {
+        gl_func_00034458(o + 0x78, o + 0x48, o + 0x48);
+        tmp.v = *(Vec3 *)(o + 0x48);
+        *(f32 *)(o + 0x58) = tmp.v.x;
+        *(f32 *)(o + 0x5C) = tmp.v.y;
+        *(f32 *)(o + 0x60) = tmp.v.z;
+        *(f32 *)(o + 0x64) = *(f32 *)(o + 0x54);
+    }
+    gl_func_00034458(o + 0x48, &vecC);
+    gl_func_00034458(arg1, &vecC);
+    gl_func_00034458(arg1, o + 0x38);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036224);

@@ -268,7 +268,9 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # 0x784 -> 0x790; tail 62F08 now at 0x2bf14.)
 # (0x2bf88 -> 0x2be28 2026-07-30: 454C4 decode-corrected rewrite shrank the
 # body 0x94C -> 0x7EC-class; re-probed full NM .text.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2be28 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2be28 -> 0x2c224 2026-07-30: 36224 stub-reconstruction grew its NM body
+# 0x64-class -> 0x460; re-probed = last-sym 62F08 @0x2c1d4 + 0x50.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c224 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
