@@ -17299,18 +17299,36 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002F288);
  * the bound as 15.0. Maps the input float to a 7-bit byte (clamp [0,127]+1,
  * optional negate by o->0x1C bit0, scale by o->0x54, trunc, saturate [0,0x7F],
  * store to o->0x33/o->0x1C). Byte-match deferred (raw-word USO + FP clamp). */
-void game_libs_func_0002F578(char *o, int a1, int a2, int a3) {
-    float v = *(float *)&a3;     /* mtc1 a3,$f12 in the merged prologue */
-    int q;
-    if (v < 0.0f) v = 0.0f;       /* $f4 = 0.0 low clamp */
-    v += 1.0f;
-    if (v > 127.0f) v = 127.0f;   /* $f6 = 0x42fe0000 = 127.0 high clamp */
-    if (*(unsigned char *)(o + 0x1C) & 1) v = -v;
-    q = (int)(v * *(float *)(o + 0x54));
-    *(unsigned char *)(o + 0x33) = (unsigned char)q;
-    if (q >= 0x80) q = 0x7F;
-    if (q < 0) q = 0;
-    *(unsigned char *)(o + 0x1C) = (unsigned char)q;
+/* WHOLE-BODY REDECODE 2026-07-31 (34.6->NM): prior body mis-read the FP chain
+ * (real: v=|v|+15.0 min-clamped to 127.0 — not [0,1,127] clamp), missed that
+ * bit0 of o->0x1C gates BOTH the o->0x54 scale AND the o->0x60 byte capture
+ * (b is the FIFTH PARAM — stack byte home 0x33(sp) = arg5 slot+3, overwritten
+ * in the if-arm, forwarded otherwise), and missed the trailing 5-arg jal-0
+ * dispatch (o->0x21 byte, a1/a2 forwarded untouched, (int)w clamped [0,127],
+ * b). w = |v|+15.0 is a separate float local (fresh $f2 web, v stays $f12). */
+void game_libs_func_0002F578(char *o, int a1, int a2, f32 v, unsigned char b) {
+    int iv;
+    float w;
+
+    if (v < 0.0f) {
+        v = -v;
+    }
+    w = v + 15.0f;
+    if (127.0f < w) {
+        w = 127.0f;
+    }
+    if (*(unsigned char *)(o + 0x1C) & 1) {
+        w = *(float *)(o + 0x54) * w;
+        b = *(unsigned char *)(o + 0x60);
+    }
+    iv = (int)w;
+    if (iv >= 0x80) {
+        iv = 0x7F;
+    }
+    if (iv < 0) {
+        iv = 0;
+    }
+    gl_func_00000000(*(unsigned char *)(o + 0x21), a1, a2, iv, b);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002F578);
