@@ -9944,31 +9944,35 @@ extern char import_00000000;
 
 char *timproc_uso_b5_func_0000D884(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8) {
     char *r;
+    char *volatile vb;
     char *obj;
     char *child;
     char *gc;
+    volatile int pad[4];
     char *p;
     s32 savedbit;
 
     if (0) { timproc_uso_b5_func_04DFFC(&arg1, &arg2); }
-    r = timproc_uso_b5_func_055750((char *)0x2BC);
-    if (r != 0) {
-        obj = r;
+    child = timproc_uso_b5_func_055750((char *)0x2BC);
+    if (child != 0) {
+        obj = child;
         if (obj != 0 || (obj = timproc_uso_b5_func_055750((char *)0x2B8)) != 0) {
             timproc_uso_b5_func_04C678(obj, &timproc_uso_b5_D_807FEE90 + 0x1620);
             FW(obj, 0x28) = (s32) (&timproc_uso_b5_D_807FDB64 + 0);
             timproc_uso_b5_func_00002B74(obj + 0x2C);
             timproc_uso_b5_func_000032C8(obj + 0x194);
         }
-        FW(r, 0x28) = (s32) (&timproc_uso_b5_D_807FEE98 + 0x7C4);
-        FW(r, 0xC) = (s32) (&timproc_uso_b5_D_807FEE98 + 0x1628);
-        timproc_uso_b5_func_00003890(r);
+        FW(child, 0x28) = (s32) (&timproc_uso_b5_D_807FEE98 + 0x7C4);
+        FW(child, 0xC) = (s32) (&timproc_uso_b5_D_807FEE98 + 0x1628);
+        timproc_uso_b5_func_00003890(child);
     }
-    timproc_uso_b5_func_07ACE0(arg0 + 0x10, r);
-    if (FW(r, 0x14) != 0) {
-        FW(r, 0x4) = 1;
+    vb = child;
+    r = vb;
+    timproc_uso_b5_func_07ACE0(arg0 + 0x10, child);
+    if (FW(child, 0x14) != 0) {
+        FW(child, 0x4) = 1;
     }
-    FW(r, 0x14) = (s32) arg0;
+    FW(child, 0x14) = (s32) arg0;
     *(f32 *)(r + 0x2A4) = (f32) arg1;
     FW(r, 0x2B0) = arg2;
     child = timproc_uso_b5_func_055750((char *)0x144);
@@ -10085,16 +10089,14 @@ char *timproc_uso_b5_func_0000D884(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
     FW(r, 0x29C) = (s32) child;
     *(f32 *)(r + 0x134) = -32.0f;
     obj = (char *)FW(arg0, 0x38);
-    timproc_uso_b5_func_07ACE0(obj + 0x10, child, obj);
+    timproc_uso_b5_func_07ACE0(obj + 0x10, child);
     if (FW(child, 0x14) != 0) {
         FW(child, 0x4) = 1;
     }
     FW(child, 0x14) = (s32) obj;
-    {
-        s32 n = FW(arg0, 0x6C);
-        FW(arg0, 0x6C) = n + 1;
-        FW(arg0 + n * 4, 0x3C) = (s32) r;
-    }
+    child = (char *)FW(arg0, 0x6C);
+    FW(arg0, 0x6C) = (s32) child + 1;
+    FW(arg0 + (s32) child * 4, 0x3C) = (s32) r;
     return r;
 }
 #undef EE6C
