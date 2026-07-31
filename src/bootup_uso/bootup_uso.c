@@ -7593,10 +7593,10 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 //     }
 //     func_00000000(&func_00008A40+0x8, 0);
 //     func_00000000(&func_00008A40+0x14, 0);
-//     if (idx) { e = tableA[idx]; if (!func_00000000(e->0x0))
-//                  func_00000000(D_x, e->0x0); }              // play by idx
-//     e = tableB[cat]; if (!func_00000000(e->0x0))
-//                  func_00000000(D_y, e->0x0);                 // play by cat
+//     if (idx) { t = tableA[idx]; if (!func_00000000(t->0x0))
+//                  func_00000000(D_x, t->0x0); }              // play by idx
+//     t = tableB[cat]; if (!func_00000000(t->0x0))
+//                  func_00000000(D_y, t->0x0);                 // play by cat
 //     func_00000000();
 //     func_00000000(D_z, a3, a2, &sp34);   func_00000000();    // finalize
 //   }
@@ -7620,7 +7620,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 //   sub-allocs (alloc(8)->s+0x34={0,0} guarded by s==-52; alloc(4)->s+0x58={0}
 //   guarded by s==-88, dead-arm passthrough form) and fixed the clamps to
 //   UNSIGNED (sltiu: (unsigned)idx>=0xA, (unsigned)cat>=9).
-//   2026-06-23 decode pass (agent-e) 161->177 insns (target 186), sim
+//   2026-06-23 decode pass (agent-t) 161->177 insns (target 186), sim
 //   35.7->37.5%: (1) CORRECTNESS FIX — replaced all D_00000000+off named-table
 //   refs with the REAL symbols the .s relocs name: func_00000148 (writable
 //   table+flag+count), func_000089FC+0x2C (name data), func_000083D0+0x70
@@ -7638,6 +7638,23 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000090CC);
 //     0x7C. Ours -0x50, fewer homes — memory-vs-register alloc divergence.
 //   * REG NUMBERING: target threads r in a2 / s in a3 where ours uses a1/a2.
 //   Permuter unlikely to bridge (structural, not small coloring residual).
+//   2026-07-31 (agent-g) 93.1->96.1: (1) FRAME CRACKED via decl order — o[19]
+//   declared FIRST claims the TOP block 0x34-0x7F, named scalars ghost-descend
+//   below (0x30..0x1C) with the CSE temp at 0x18; t/e MERGED (both color $v1,
+//   disjoint regions) to hit the target's 6-scalar count — frame -0x88->-0x80,
+//   every sp offset now exact. (2) Sentinel polarity was a DECODE FIX: target
+//   allocs on s2==-0x34 fallthrough, so the ||-form is `s2 != -0x34 || alloc`
+//   (bne emitted, not beq). (3) Tail tables CSE the element ADDRESS:
+//   e=(char*)&tbl[idx] + *(int*)e twice (full lui/addiu base, addr saved/
+//   reloaded at 0x18) — not e=tbl[idx] (extra deref level). (4) n's $a1 via
+//   dead-web reuse of s2 (last colored $a1); plain named n colored $v0.
+//   RESIDUAL (96.1->100, real bytes ~10 rows): post-call constant-group
+//   MATERIALIZATION REVERSAL — target mats the store-group constants in
+//   source order but emits the STORES reversed within the group (vt/0x110
+//   pair + 0x1100/0x20/0x40 triple + ori-t2 adjacency); ours always couples
+//   mat order = store order = source order, both spellings probed. as1/ugen
+//   pair-order class (probe-immune). Rest of diff = split-name/base-0 reloc
+//   naming only (NM-only externs, masked class).
 //   Name pre-checked. Build via INCLUDE_ASM; ROM byte-identical (NM diff only).
 #ifdef NON_MATCHING
 /* Split-NAME externs (NM-only, never linked): distinct per-site names for the
@@ -7658,16 +7675,19 @@ extern char B1B4_str2;
 extern char *B1B4_tblA[];
 extern char *B1B4_tblB[];
 void func_0000B1B4(unsigned int cat, unsigned int idx, int a2, int a3, int a4) {
+    int o[19];             /* escaping out-block at 0x34: +0xC/+0x10 a4 copies,
+                              +0x40 cat, +0x44 idx, +0x48 a2; base passed to the
+                              finalize call (was "&sp34"). Declared FIRST: named
+                              decls ghost-consume slots top-down, so o claims the
+                              TOP block (0x34-0x7F) and the 7 scalars below it
+                              descend 0x30..0x18 (t last = 0x18 CSE-temp home,
+                              r/s/s2 = the 0x2C/0x28/0x24 cross-call spills). */
+    char *t;
     char *r;
     char *s;
     char *s2;
-    char *t;
     char *buf;
     int n;
-    char *e;
-    int o[19];             /* escaping out-block at 0x34: +0xC/+0x10 a4 copies,
-                              +0x40 cat, +0x44 idx, +0x48 a2; base passed to the
-                              finalize call (was "&sp34") */
 
     if (idx >= 0xA) idx = 9;
     if (cat >= 9)  cat = 8;
@@ -7693,20 +7713,20 @@ void func_0000B1B4(unsigned int cat, unsigned int idx, int a2, int a3, int a4) {
             }
             *(char **)(s2 + 0x5C) = &D_00000000;
             t = s2 + 0x34;
-            if (s2 == (char *)0xFFFFFFCC || (t = (char *)func_00000000(8)) != 0) {
+            if (s2 != (char *)0xFFFFFFCC || (t = (char *)func_00000000(8)) != 0) {
                 *(int *)(t + 4) = 0;
                 *(int *)(t + 0) = 0;
             }
             t = s2 + 0x58;
-            if (s2 == (char *)0xFFFFFFA8 || (t = (char *)func_00000000(4)) != 0) {
+            if (s2 != (char *)0xFFFFFFA8 || (t = (char *)func_00000000(4)) != 0) {
                 *(int *)(t + 0) = 0;
             }
             func_00000000(s2);
         svt:
             *(char **)(s + 0x5C) = &D_00000000;
         rinit:
-            *(int *)(r + 0x24) = 0x110;
             *(char **)(r + 0x5C) = &B1B4_vt;
+            *(int *)(r + 0x24) = 0x110;
             buf = (char *)func_00000000(0x1000);
             *(int *)(r + 0x28) = 0x1100;
             *(short *)(r + 0x22) = 0x20;
@@ -7717,19 +7737,20 @@ void func_0000B1B4(unsigned int cat, unsigned int idx, int a2, int a3, int a4) {
             *(int *)(r + 0x18) = 0;
         reg:
             if (B1B4_cnt_a >= 5) func_00000000();
-            n = B1B4_cnt_b;
-            B1B4_cnt_c = n + 1;
-            B1B4_tbl[n] = r;
+            s2 = (char *)B1B4_cnt_b;      /* dead-web reuse: s2's last color
+                                             was $a1 -> n inherits it */
+            B1B4_cnt_c = (int)s2 + 1;
+            B1B4_tbl[(int)s2] = r;
         }
     }
     func_00000000(&B1B4_str1, 0);
     func_00000000(&B1B4_str2, 0);
     if (idx != 0) {
-        e = B1B4_tblA[idx];
-        if (func_00000000(*(int *)e) == 0) func_00000000(&D_00000000, *(int *)e);
+        t = (char *)&B1B4_tblA[idx];
+        if (func_00000000(*(int *)t) == 0) func_00000000(&D_00000000, *(int *)t);
     }
-    e = B1B4_tblB[cat];
-    if (func_00000000(*(int *)e) == 0) func_00000000(&D_00000000, *(int *)e);
+    t = (char *)&B1B4_tblB[cat];
+    if (func_00000000(*(int *)t) == 0) func_00000000(&D_00000000, *(int *)t);
     func_00000000();
     func_00000000(&D_00000000, a4, a3, o);
     func_00000000();
