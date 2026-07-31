@@ -9725,7 +9725,20 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
  * (D+4, volatile) toggle, arg3..arg8 float wiring, second owner-attach, and
  * registration into arg0's child array. The func(0x2B8) alloc branch is dead
  * (r provably non-NULL) but present in the target — reproduced via the
- * short-circuit `||`. func_00000000 = USO placeholder dispatcher. */
+ * short-circuit `||`. func_00000000 = USO placeholder dispatcher.
+ * 2026-07-31 (agent-g) NEGATIVE probe series (73.4 kept; variants scored
+ * 69.8-71.0): target's TRUE shape is a SINGLE serially-reused s0 (panel ->
+ * widget -> tail idx, `or s0,v0` reuse + `lw s0,0x6c`) with the panel homed
+ * at 0x5c and late panel uses via home-reload (sw s0,0x5c + lw v0,0x5c) —
+ * probed (a) t2=r copy + w->r serial merge (+dead volatile pads to hold the
+ * frame at -0x60: plain dead decls get trimmed in this TU), (b) t2-as-alloc
+ * + r copy + &t2 if(0) escape. All reproduce the single-s-reg prologue and
+ * the s0 reuse, but uopt HOLDS the panel web in v1 across the w-alloc call
+ * (save/reload shuffle debris) instead of the target's clean split-at-spill;
+ * split point not source-steerable (6CF0 class). Net fuzzy lower than the
+ * two-s-reg baseline, so baseline retained. A future crack likely needs the
+ * home-reload stores (0x2b0/0x2a4) decoupled from copy-prop — no spelling
+ * found that stops `t2 = r` propagating into the pre-redefinition stores. */
 #define TB5D_FLAG (*(volatile s32 *)((char *)&D_00000000 + 4))
 extern char *timproc_uso_b5_alias_pff(char *arg0, char *arg1, f32 arg2, f32 arg3, f32 arg4);
 char *timproc_uso_b5_func_0000D550(void *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8) {
