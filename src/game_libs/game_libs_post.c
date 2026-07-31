@@ -17386,62 +17386,61 @@ void gl_func_0002F638(int a0, int sel, int arg3, int arg4, int stk_43) {
  * go to the FIXED intra-USO routine jal 0x010E09 (codes 8, 0x10). Byte-match
  * deferred (raw-word USO + FP delta/commit + signed-byte clamp + table lookups). */
 extern int D_00000000;
-/* WHOLE-BODY DECODE 2026-07-10 (prior body was a stub: dead (void)k/(void)dlt,
- * omitted all 3 gl_func_00043824 calls + the FP delta/commit + clamp tail).
- * Faithful reconstruction of the 96-insn (0x180) FP value-updater from the
- * raw .word body: nv = (float)a1 * 180.0; dlt = nv - o->0x5C; commit nv to
- * o->0x5C; fold i into v0 (0x7F-i for i>=0x40, then -0x80-v0 clamp); write the
- * quantized byte at o->0x60; three gl_func_00043824(nv, table, 8/0x10) emit
- * calls interleaved with o->0x61 LUT byte + the o->0x54 = o->0x54*D[0x1740] +
- * k*D[0x1744] accumulate; then o->0x63 nibble, o->0x62 sign bit, and the two
- * min-clamps of o->0x58 = 1.0 - dlt*0.0625 against D[0x1748]/D[0x174C]. EXACT
- * blocked: raw-word USO strips the %hi/%lo data relocs (the real &D offsets for
- * the table / FP pool are unrecoverable), so all data refs use &D_00000000
- * placeholders and byte-match is deferred. */
-void game_libs_func_0002F720(char *o, int a1, int idxb) {
-    float in = *(float *)&a1;   /* mtc1 a1,$f12 in the merged prologue */
-    float nv = in * 180.0f;     /* $f4 = 0x43340000 = 180.0 (entry const) */
-    float old = *(float *)(o + 0x5C);
-    int i = (signed char)idxb;
-    float dlt = nv - old;
-    int v0 = i;
-    float k;
-    int t1;
+extern int D_2F720_t1, D_2F720_t2, D_2F720_t3; /* per-call-site table args (baked USO relocs stripped; placeholders) */
+extern int D_2F720_lut, D_2F720_flut;       /* byte LUT (+ret1) / float LUT (+ret2*4) */
+extern int D_2F720_p1740, D_2F720_p1744, D_2F720_p1748, D_2F720_p174C; /* FP pool: per-site externs kill the %hi CSE (target has one lui per access) */
+/* WHOLE-BODY REDECODE 2026-07-31 (34.9->84.3). Decode-error fixes vs the
+ * 2026-07-10 pass: all three table indices are the gl_func_00043824 CALL
+ * RESULTS (not the local fold index v); the o->0x63 nibble is ret3/2 (signed
+ * div, bgez+addiu+sra), sign chosen by ret3 not i; the o->0x58 second clamp
+ * is an UPPER bound (if (D[0x174C] < field) field = D[0x174C]) — polarity was
+ * inverted. Shape levers: ANSI f32 param + in-place `in *= 180.0f` puts the
+ * value's web in call-arg $f12 homed at a1's arg slot (frame 0x28 exact);
+ * fl/lo pre-load temps place the flut load + D[0x1748] load early; per-site
+ * pool externs kill the %hi CSE. Residual (~14 rows): t1-vs-v1 pick for the
+ * unnamed /2 temp (if(1)+CSE probes inert), sb/FP-const interleave, mul.s
+ * commutative operand order (register-var vs pool-chain cfe rank), coupled
+ * ft ring numbering. */
+void game_libs_func_0002F720(char *o, f32 in, signed char idxb) {
+    float dlt;
+    int v;
+    char *p;
+    int t;
+    float fl;
+    float lo;
 
-    *(float *)(o + 0x5C) = nv;
-    if (i >= 0x40) {
-        v0 = 0x7F - i;
+    in = in * 180.0f; /* param reuse: the value's web = call-arg $f12, homed at a1's arg slot */
+    dlt = in - *(float *)(o + 0x5C);
+    *(float *)(o + 0x5C) = in;
+    v = idxb;
+    p = o + 0x54;
+    if (idxb >= 0x40) {
+        v = 0x7F - idxb;
     }
-    if (v0 < -0x40) {
-        v0 = -0x80 - v0;
+    if (v < -0x40) {
+        v = -0x80 - v;
     }
-    *(unsigned char *)(o + 0x60) = (unsigned char)(v0 + 0x40);
+    *(unsigned char *)(p + 0xC) = v + 0x40;
 
-    gl_func_00043824(nv, (char *)&D_00000000, 8);
-    *(unsigned char *)(o + 0x61) = *(unsigned char *)((char *)&D_00000000 + v0);
-    gl_func_00043824(nv, (char *)&D_00000000, 0x10);
-
-    k = *(float *)((char *)&D_00000000 + v0 * 4);
-    *(float *)(o + 0x54) =
-        (*(float *)(o + 0x54) * *(float *)((char *)&D_00000000 + 0x1740)) +
-        (k * *(float *)((char *)&D_00000000 + 0x1744));
-    gl_func_00043824(nv, (char *)&D_00000000, 0x10);
-
-    if (i >= 0) {
-        t1 = v0 >> 1;
-    } else {
-        t1 = (v0 + 1) >> 1;
+    t = gl_func_00043824(in, (char *)&D_2F720_t1, 8);
+    *(unsigned char *)(p + 0xD) = *((unsigned char *)&D_2F720_lut + t);
+    t = gl_func_00043824(in, (char *)&D_2F720_t2, 0x10);
+    fl = *(float *)((char *)&D_2F720_flut + t * 4);
+    *(float *)(p + 0) = (*(float *)(p + 0) * *(float *)&D_2F720_p1740) + (*(float *)&D_2F720_p1744 * fl);
+    t = gl_func_00043824(in, (char *)&D_2F720_t3, 0x10);
+    lo = *(float *)&D_2F720_p1748;
+    if (1) {
+        *(unsigned char *)(p + 0xF) = t / 2;
     }
-    *(unsigned char *)(o + 0x63) = (unsigned char)t1;
-    *(unsigned char *)(o + 0x63) = (unsigned char)(t1 << 4);
+    *(unsigned char *)(p + 0xF) = (t / 2) << 4;
 
-    *(unsigned char *)(o + 0x62) = (unsigned char)(i & 0x80);
-    *(float *)(o + 0x58) = 1.0f - (dlt * 0.0625f);
-    if (*(float *)(o + 0x58) < *(float *)((char *)&D_00000000 + 0x1748)) {
-        *(float *)(o + 0x58) = *(float *)((char *)&D_00000000 + 0x1748);
+    *(unsigned char *)(p + 0xE) = idxb & 0x80;
+    *(float *)(p + 4) = 1.0f - (dlt * 0.0625f);
+    if (*(float *)(p + 4) < lo) {
+        *(float *)(p + 4) = lo;
     }
-    if (*(float *)(o + 0x58) < *(float *)((char *)&D_00000000 + 0x174C)) {
-        *(float *)(o + 0x58) = *(float *)((char *)&D_00000000 + 0x174C);
+    if (*(float *)&D_2F720_p174C < *(float *)(p + 4)) {
+        *(float *)(p + 4) = *(float *)&D_2F720_p174C;
     }
 }
 #else
