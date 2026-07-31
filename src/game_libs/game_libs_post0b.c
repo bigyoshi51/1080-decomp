@@ -2305,47 +2305,57 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036088);
  * check for an enclosing wrap before inserting (item 22 extension). */
 #ifdef NON_MATCHING
 void gl_func_00036224(char *o, char *arg1) {
-    Vec3 vecA;      /* sp+0xFC screen-biased eye point */
-    Vec3 vecB;      /* sp+0xF0 screen-biased look point */
+    union { Vec3 v; f32 p[3]; } vecA; /* sp+0xFC screen-biased eye point */
+    union { Vec3 v; f32 p[3]; } vecB; /* sp+0xF0 screen-biased look point */
     f32 mtx[4][4];  /* sp+0xB0 camera matrix copy */
     f32 vecC[4];    /* sp+0xA0 tail scratch vec */
     union { Vec3 v; f32 pad[5]; } tmp; /* sp+0x8C struct-copy staging (s2) */
-    union { Vec3 v; f32 pad[8]; } rv;  /* sp+0x6C call-return copy */
+    char *src;      /* home slots in the 0x78..0x8B band */
+    volatile int pad0; /* phantom slot: band is 20B in target */
+    f32 x, y, z;
+    Vec3 rv;        /* sp+0x6C call-return copy (12B) */
     f32 out1[3];    /* sp+0x60 */
     f32 out2[3];    /* sp+0x54 */
-    char *src;
-    f32 x, y, z;
+    Vec3 *pA, *pB;  /* alias pointers: keep the plain x/y stores live (t3/t1) */
 
+    pA = &vecA.v;
+    pB = &vecB.v;
     tmp.v = *(Vec3 *)(*(char **)(o + 0x1CC) + 0xF8);
-    vecA.z = tmp.v.z;
-    vecA.y = tmp.v.y;
-    vecA.x = tmp.v.x;
-    vecA.x = tmp.v.x - 160.0f;
-    vecA.y = tmp.v.y - 120.0f;
+    vecA.p[2] = tmp.v.z;
+    vecA.p[1] = tmp.v.y;
+    vecA.p[0] = tmp.v.x;
+    vecA.v.x = vecA.p[0] - 160.0f;
+    vecA.v.y = vecA.p[1] - 120.0f;
     tmp.v = *(Vec3 *)(*(char **)(o + 0x1CC) + 0xBC);
-    vecB.x = tmp.v.x;
-    vecB.y = tmp.v.y;
-    vecB.x = tmp.v.x - 160.0f;
-    vecB.z = tmp.v.z;
-    vecB.y = tmp.v.y - 120.0f;
-    vecB.y = vecB.y * -1.0f;
-    vecA.y = vecA.y * -1.0f;
+    vecB.p[0] = tmp.v.x;
+    vecB.p[1] = tmp.v.y;
+    vecB.v.x = vecB.p[0] - 160.0f;
+    vecB.p[2] = tmp.v.z;
+    vecB.v.y = vecB.p[1] - 120.0f;
+    vecB.v.y = vecB.v.y * -1.0f;
+    vecA.v.y = vecA.v.y * -1.0f;
     if (*(int *)(o + 0x1D8) != 0) {
-        vecB.x *= -1.0f;
-        vecB.y *= -1.0f;
-        vecB.z *= -1.0f;
-        vecA.x *= -1.0f;
-        vecA.y *= -1.0f;
-        vecA.z *= -1.0f;
+        vecB.v.x *= -1.0f;
+        vecB.v.y *= -1.0f;
+        vecB.v.z *= -1.0f;
+        vecA.v.x *= -1.0f;
+        vecA.v.y *= -1.0f;
+        vecA.v.z *= -1.0f;
     }
-    rv.v = *(Vec3 *)gl_func_00034458(&tmp.v, o, vecA, *(Vec3 *)(o + 0x2C), *(int *)(o + 0x44));
-    *(f32 *)(o + 0xA0) = rv.v.x;
-    *(f32 *)(o + 0xA4) = rv.v.y;
-    *(f32 *)(o + 0xA8) = rv.v.z;
-    rv.v = *(Vec3 *)gl_func_00034458(&tmp.v, o, vecB, *(Vec3 *)(o + 0x2C), *(int *)(o + 0x44));
-    *(f32 *)(o + 0xAC) = rv.v.x;
-    *(f32 *)(o + 0xB0) = rv.v.y;
-    *(f32 *)(o + 0xB4) = rv.v.z;
+    {
+        /* prototyped alias so the last arg passes as a single f32 word
+         * (swc1 32(sp)); NM object is compile-only, symbol unresolved is
+         * fine and target .o is reloc-free so the name doesn't score. */
+        int gl_func_00034458_p5(Vec3 *, char *, Vec3, Vec3, f32);
+        rv = *(Vec3 *)gl_func_00034458_p5(&tmp.v, o, vecA.v, *(Vec3 *)(o + 0x2C), *(f32 *)(o + 0x44));
+        *(f32 *)(o + 0xA0) = rv.x;
+        *(f32 *)(o + 0xA4) = rv.y;
+        *(f32 *)(o + 0xA8) = rv.z;
+        rv = *(Vec3 *)gl_func_00034458_p5(&tmp.v, o, vecB.v, *(Vec3 *)(o + 0x2C), *(f32 *)(o + 0x44));
+        *(f32 *)(o + 0xAC) = rv.x;
+        *(f32 *)(o + 0xB0) = rv.y;
+        *(f32 *)(o + 0xB4) = rv.z;
+    }
     gl_func_00034458(*(char **)(o + 0x1D0) + 0xB4, mtx);
     x = *(f32 *)(o + 0xA0);
     y = *(f32 *)(o + 0xA4);
