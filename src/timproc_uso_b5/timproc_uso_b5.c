@@ -9537,7 +9537,16 @@ void timproc_uso_b5_func_0000D0DC(char *a0) {
  * Reconstructed from expected disasm with distinct named callees + data
  * symbols (sibling-ported from timproc_uso_b5_func_0000D884, the matching
  * twin in this TU). Each call now emits its own R_MIPS_26 reloc and each
- * data ref its own HI16/LO16 against the real USO global. */
+ * data ref its own HI16/LO16 against the real USO global.
+ * 2026-07-31 (agent-g) 69.0->81.7: D550-map serial-s0 shape LANDED here
+ * (child reused panel->widget->tail-idx, or s0,v0 delays + lw s0,0x6c exact;
+ * volatile-bridge vb copy blocks copy-prop so r homes at 0x5C). True
+ * signature is 9-arg (tail floats are arg6/7/8 from sp+0x78..0x80, not
+ * arg4..6). Flag word here is NON-volatile per-statement (progressive
+ * or-chain, target merges to 1 store; our DSE keeps per-statement stores =
+ * main residual with frame -88 vs -96 and obj-init scheduling. Local-accum
+ * respell of the or-chain scores WORSE (79.1) - constants fold; keep
+ * per-statement global form. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
@@ -9557,42 +9566,46 @@ extern char import_80020078;
 extern char import_8005EE6C;
 extern char import_8005EE64;
 
-#define D14C_EE6C (*(volatile int *)((char *)&import_8005EE6C + 4))
-#define D14C_EE64 (*(volatile int *)((char *)&import_8005EE64 + 0))
+#define D14C_EE6C (*(int *)((char *)&import_8005EE6C + 4))
+#define D14C_EE64 (*(int *)((char *)&import_8005EE64 + 0))
 
-int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, int arg3,
-                                 float arg4, float arg5, float arg6) {
-    char *root;
+int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, float arg3,
+                                 float arg4, float arg5, float arg6,
+                                 float arg7, float arg8) {
+    char *r;
+    char *volatile vb;
     char *obj;
     char *child;
     char *gc;
-    char *obj2;
-    char *owner;
+    char *p;
+    volatile int pad[4];
     int savedbit;
     int n;
 
-    root = (char *)timproc_uso_b5_func_055750((char *)0x2C4);
-    if (root != 0) {
-        obj = root;
-        if (obj == 0 ||
+    if (0) { timproc_uso_b5_func_04DFFC(&arg1, &arg2); }
+    child = (char *)timproc_uso_b5_func_055750((char *)0x2C4);
+    if (child != 0) {
+        obj = child;
+        if (obj != 0 ||
             (obj = (char *)timproc_uso_b5_func_055750((char *)0x2B8)) != 0) {
             timproc_uso_b5_func_04C678(obj, &timproc_uso_b5_D_807FEE30 + 0x15C0);
             FW(obj, 0x28) = (int)(&timproc_uso_b5_D_807FDB64 + 0);
             timproc_uso_b5_func_00002B74(obj + 0x2C);
             timproc_uso_b5_func_000032C8(obj + 0x194);
         }
-        FW(root, 0x28) = (int)(&timproc_uso_b5_D_807FEE38 + 0x5E4);
-        FW(root, 0xC) = (int)(&timproc_uso_b5_D_807FEE38 + 0x15C8);
-        timproc_uso_b5_func_00003890(root);
+        FW(child, 0x28) = (int)(&timproc_uso_b5_D_807FEE38 + 0x5E4);
+        FW(child, 0xC) = (int)(&timproc_uso_b5_D_807FEE38 + 0x15C8);
+        timproc_uso_b5_func_00003890(child);
     }
-
-    timproc_uso_b5_func_07ACE0(a0 + 0x10, root);
-    if (FW(root, 0x14) != 0) {
-        FW(root, 0x4) = 1;
+    vb = child;
+    r = vb;
+    timproc_uso_b5_func_07ACE0(a0 + 0x10, child);
+    if (FW(child, 0x14) != 0) {
+        FW(child, 0x4) = 1;
     }
-    FW(root, 0x14) = (int)a0;
-    *(float *)(root + 0x2A4) = (float)arg1;
-    FW(root, 0x2B0) = arg2 - 1;
+    FW(child, 0x14) = (int)a0;
+    *(float *)(r + 0x2A4) = (float)arg1;
+    FW(r, 0x2B0) = arg2 - 1;
 
     child = (char *)timproc_uso_b5_func_055750((char *)0x148);
     if (child != 0) {
@@ -9602,48 +9615,55 @@ int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, int arg3,
 
         gc = (char *)timproc_uso_b5_func_055750((char *)0x16C);
         if (gc != 0) {
+            float cf;
             timproc_uso_b5_func_0546DC(gc, &timproc_uso_b5_D_807FEE54 + 0x15E4,
                                        0.0f, 0.0f, 0.0f);
+            cf = *(float *)((char *)&import_80807FB8 + 0x3A0);
             FW(gc, 0x120) = 0xFFFF;
             FW(gc, 0x28) = (int)(&import_80087FB8[0]);
-            *(float *)(gc + 0x108) = *(float *)((char *)&import_80807FB8 + 0x3A0);
-            *(float *)(gc + 0x10C) = *(float *)((char *)&import_80807FB8 + 0x3A0);
-            *(float *)(gc + 0x110) = *(float *)((char *)&import_80807FB8 + 0x3A0);
+            *(float *)(gc + 0x108) = cf;
+            *(float *)(gc + 0x10C) = cf;
+            *(float *)(gc + 0x110) = cf;
             *(float *)(gc + 0x124) = 1.0f;
         }
 
         FW(child, 0x108) = (int)gc;
         timproc_uso_b5_func_04DFFC(child, gc);
-        {
-            char *p = (char *)FW(child, 0x108);
-            *(float *)(p + 0xB4) = 0.0f;
-            *(float *)(p + 0xBC) = 0.0f;
-            *(float *)(p + 0xB8) = 100.0f;
-        }
+        p = (char *)FW(child, 0x108);
+        *(float *)(p + 0xB4) = 0.0f;
+        *(float *)(p + 0xBC) = 0.0f;
+        *(float *)(p + 0xB8) = 100.0f;
         *(float *)(child + 0x130) = *(float *)((char *)&import_80800078 + 0x3A4);
+        n = *(int *)&import_80020078;
+        p += 0xB4;
 
-        obj2 = (char *)timproc_uso_b5_func_055750((char *)0xB4);
-        if (obj2 != 0) {
-            obj2 = (char *)import_0010D33C(obj2, *(int *)&import_80020078);
-            FW(obj2, 0x28) = (int)(&timproc_uso_b5_D_807FDAB8 + 0x248);
-            FW(obj2, 0xB0) = 0;
-            timproc_uso_b5_func_077574(obj2);
+        obj = (char *)timproc_uso_b5_func_055750((char *)0xB4);
+        if (obj != 0) {
+            obj = (char *)import_0010D33C(obj, n);
+            FW(obj, 0x28) = (int)(&timproc_uso_b5_D_807FDAB8 + 0x248);
+            FW(obj, 0xB0) = 0;
+            timproc_uso_b5_func_077574(obj);
         }
-        FW(child, 0x10C) = (int)obj2;
-        timproc_uso_b5_func_04DFFC(child, obj2);
+        FW(child, 0x10C) = (int)obj;
+        timproc_uso_b5_func_04DFFC(child, obj);
 
         savedbit = D14C_EE6C & 0x80000;
-        D14C_EE6C = (D14C_EE6C & 0xFFF7FFFF) | 0x22003;
+        D14C_EE6C = D14C_EE6C & 0xFFF7FFFF;
+        D14C_EE6C = D14C_EE6C | 0x20000;
+        D14C_EE6C = D14C_EE6C | 0x2000;
+        D14C_EE6C = D14C_EE6C | 2;
+        D14C_EE6C = D14C_EE6C | 1;
         D14C_EE64 = D14C_EE64 & ~8;
 
         timproc_uso_b5_func_00B1B4(arg2, 0, 0x201, FW(child, 0x10C), child);
-        FW(child, 0x140) = *(int *)((&timproc_uso_b5_D_807FDB4C + 0) + arg2 * 4);
-        timproc_uso_b5_func_077C44((char *)FW(child, 0x10C), FW(child, 0x140),
-                                   0, 2, 2, 1);
+        n = *(int *)((&timproc_uso_b5_D_807FDB4C + 0) + arg2 * 4);
+        FW(child, 0x140) = n;
+        timproc_uso_b5_func_077C44((char *)FW(child, 0x10C), n, 0, 2, 2, 1);
         {
-            char *p = (char *)FW(child, 0x10C);
-            char *vt = (char *)FW(p, 0x28);
-            (*(void (**)())(vt + 0x24))((int)((short *)vt)[0x10] + (int)p);
+            char *p2 = (char *)FW(child, 0x10C);
+            char *vt = (char *)FW(p2, 0x28);
+            int ad = (int)((short *)vt)[0x10] + (int)p2;
+            (*(void (**)())(vt + 0x24))(ad);
         }
 
         if (savedbit != 0) {
@@ -9652,9 +9672,9 @@ int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, int arg3,
             D14C_EE6C = D14C_EE6C & 0xFFF7FFFF;
         }
 
-        *(float *)(child + 0x110) = arg4;
-        *(float *)(child + 0x114) = arg5;
-        *(float *)(child + 0x118) = arg6;
+        *(float *)(child + 0x110) = arg6;
+        *(float *)(child + 0x114) = arg7;
+        *(float *)(child + 0x118) = arg8;
         *(float *)(child + 0x120) = 0.0f;
         *(float *)(child + 0x124) = *(float *)((char *)&import_80807FB8 + 0x3A8);
         *(float *)(child + 0x128) = *(float *)((char *)&import_80807FB8 + 0x3AC);
@@ -9663,21 +9683,21 @@ int timproc_uso_b5_func_0000D14C(char *a0, int arg1, int arg2, int arg3,
         FW(child, 0x134) = 0;
     }
 
-    FW(root, 0x2B8) = (int)child;
-    FW(root, 0x29C) = (int)child;
-    *(float *)(root + 0x134) = *(float *)((char *)&import_80807FB8 + 0x3B0);
+    FW(r, 0x2B8) = (int)child;
+    FW(r, 0x29C) = (int)child;
+    *(float *)(r + 0x134) = *(float *)((char *)&import_80807FB8 + 0x3B0);
 
-    owner = (char *)FW(a0, 0x38);
-    timproc_uso_b5_func_07ACE0(owner + 0x10, child);
+    obj = (char *)FW(a0, 0x38);
+    timproc_uso_b5_func_07ACE0(obj + 0x10, child);
     if (FW(child, 0x14) != 0) {
         FW(child, 0x4) = 1;
     }
-    FW(child, 0x14) = FW(a0, 0x38);
+    FW(child, 0x14) = (int)obj;
 
-    n = FW(a0, 0x6C);
-    FW(a0, 0x6C) = n + 1;
-    FW(a0 + n * 4, 0x3C) = (int)root;
-    return (int)root;
+    child = (char *)FW(a0, 0x6C);
+    FW(a0, 0x6C) = (int)child + 1;
+    FW(a0 + (int)child * 4, 0x3C) = (int)r;
+    return (int)r;
 }
 #undef D14C_EE6C
 #undef D14C_EE64
@@ -9905,6 +9925,15 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_fun
 //     call-heavy fn); C reconstruction holds more in regs -> larger frame,
 //     instructions shifted. Intractable per the documented near-miss cap
 //     analysis. Head + tail field/callee/FP semantics are exact.
+// 2026-07-31 (agent-g) 69.0->81.4: cap #2 RETRACTED - single-s0 shape landed
+// (serial child panel->widget->tail-idx + volatile-bridge vb copy for homed r
+// + dead-escape arg homes + pad[4] ghost block: frame -96, r@0x5C obj@0x54
+// exact). Also fixed: head root/obj split was WRONG (obj != 0 || alloc
+// fallthrough polarity), every switch case was missing its
+// 04DFFC(child, 05D0E0(0,...)) wire (first arg 0, not child), 0x28 vtable
+// offset 0x514 not 0x1300, cases 0-7 third arg is a reloc-free absolute-0
+// symbol (import_00000000 extern reproduces the 2-insn lui/addiu shape;
+// reloc-name noise only). Residual = cap #1 jumptable + minor scheduling.
 #ifdef NON_MATCHING
 
 
