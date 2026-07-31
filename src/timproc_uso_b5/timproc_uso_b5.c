@@ -9937,6 +9937,7 @@ extern char import_8077EBB4;
 extern char import_8077A914;
 extern char import_80806674;
 extern char import_80776674;
+extern char import_00000000;
 
 #define EE6C (*(volatile s32 *)((char *)&import_8005EE6C + 4))
 #define MODE (*(s32 *)((char *)&import_800200CC + 0x34))
@@ -9946,18 +9947,23 @@ char *timproc_uso_b5_func_0000D884(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
     char *obj;
     char *child;
     char *gc;
+    char *p;
     s32 savedbit;
 
+    if (0) { timproc_uso_b5_func_04DFFC(&arg1, &arg2); }
     r = timproc_uso_b5_func_055750((char *)0x2BC);
-    if (r != 0 || (r = timproc_uso_b5_func_055750((char *)0x2B8)) != 0) {
-        timproc_uso_b5_func_04C678(r, &timproc_uso_b5_D_807FEE90 + 0x1620, r);
-        FW(r, 0x28) = (s32) (&timproc_uso_b5_D_807FDB64 + 0);
-        timproc_uso_b5_func_00002B74(r + 0x2C);
-        timproc_uso_b5_func_000032C8(r + 0x194);
+    if (r != 0) {
+        obj = r;
+        if (obj != 0 || (obj = timproc_uso_b5_func_055750((char *)0x2B8)) != 0) {
+            timproc_uso_b5_func_04C678(obj, &timproc_uso_b5_D_807FEE90 + 0x1620);
+            FW(obj, 0x28) = (s32) (&timproc_uso_b5_D_807FDB64 + 0);
+            timproc_uso_b5_func_00002B74(obj + 0x2C);
+            timproc_uso_b5_func_000032C8(obj + 0x194);
+        }
         FW(r, 0x28) = (s32) (&timproc_uso_b5_D_807FEE98 + 0x7C4);
         FW(r, 0xC) = (s32) (&timproc_uso_b5_D_807FEE98 + 0x1628);
+        timproc_uso_b5_func_00003890(r);
     }
-    timproc_uso_b5_func_00003890(r);
     timproc_uso_b5_func_07ACE0(arg0 + 0x10, r);
     if (FW(r, 0x14) != 0) {
         FW(r, 0x4) = 1;
@@ -9968,7 +9974,7 @@ char *timproc_uso_b5_func_0000D884(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
     child = timproc_uso_b5_func_055750((char *)0x144);
     if (child != 0) {
         timproc_uso_b5_func_0546DC(child, &timproc_uso_b5_D_807FEEA4 + 0x1634, 0.0f, 0.0f, 0.0f);
-        FW(child, 0x28) = (s32) (&timproc_uso_b5_D_807FEEAC + 0x1300);
+        FW(child, 0x28) = (s32) (&timproc_uso_b5_D_807FEEAC + 0x514);
         FW(child, 0xC) = (s32) (&timproc_uso_b5_D_807FEEAC + 0x163C);
         gc = timproc_uso_b5_func_055750((char *)0x16C);
         if (gc != 0) {
@@ -9983,12 +9989,10 @@ char *timproc_uso_b5_func_0000D884(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
         }
         FW(child, 0x108) = (s32) gc;
         timproc_uso_b5_func_04DFFC(child, gc);
-        {
-            char *p = (char *)FW(child, 0x108);
-            *(f32 *)(p + 0xBC) = 0.0f;
-            *(f32 *)(p + 0xB8) = 0.0f;
-            *(f32 *)(p + 0xB4) = 0.0f;
-        }
+        p = (char *)FW(child, 0x108);
+        *(f32 *)(p + 0xBC) = 0.0f;
+        *(f32 *)(p + 0xB8) = 0.0f;
+        *(f32 *)(p + 0xB4) = 0.0f;
         *(f32 *)(child + 0x124) = 1.0f;
         savedbit = EE6C & 0x80000;
         EE6C = EE6C & 0xFFF7FFFF;
@@ -9998,63 +10002,64 @@ char *timproc_uso_b5_func_0000D884(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
         EE6C = EE6C | 0x2000;
         FW(child, 0x140) = 1;
         FW(child, 0x13C) = 1;
+        p += 0xB4;
         switch (arg2) {
         case 11:
             if (MODE == 3) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEBB4 + 0x1654, &import_8077EBB4 + 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEBB4 + 0x1654, &import_8077EBB4 + 0, 0));
             }
             FW(child, 0x13C) = 0;
             break;
         case 12:
             if (MODE == 3) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FA914 + 0x1660, &import_8077A914 + 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FA914 + 0x1660, &import_8077A914 + 0, 0));
             }
             FW(child, 0x13C) = 0;
             break;
         case 13:
             if (MODE == 3) {
-                timproc_uso_b5_func_05D0E0(child, &import_80806674 + 0x166C, &import_80776674 + 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &import_80806674 + 0x166C, &import_80776674 + 0, 0));
             }
             FW(child, 0x13C) = 0;
             break;
         case 0:
             if (MODE != 2) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEEE8 + 0x1678, 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEEE8 + 0x1678, &import_00000000 + 0, 0));
             }
             break;
         case 1:
             if (MODE != 2) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEEF4 + 0x1684, 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEEF4 + 0x1684, &import_00000000 + 0, 0));
             }
             break;
         case 2:
             if (MODE != 3 && MODE != 5) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEF00 + 0x1690, 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEF00 + 0x1690, &import_00000000 + 0, 0));
             }
             break;
         case 3:
             if (MODE != 3 && MODE != 5) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEF0C + 0x169C, 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEF0C + 0x169C, &import_00000000 + 0, 0));
             }
             break;
         case 4:
             if (MODE != 3 && MODE != 5) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEF18 + 0x16A8, 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEF18 + 0x16A8, &import_00000000 + 0, 0));
             }
             break;
         case 5:
             if (MODE != 3 && MODE != 5) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEF24 + 0x16B4, 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEF24 + 0x16B4, &import_00000000 + 0, 0));
             }
             break;
         case 6:
             if (MODE != 3 && MODE != 5) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEF30 + 0x16C0, 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEF30 + 0x16C0, &import_00000000 + 0, 0));
             }
             break;
         case 7:
             if (MODE != 3 && MODE != 5) {
-                timproc_uso_b5_func_05D0E0(child, &timproc_uso_b5_D_807FEF3C + 0x16CC, 0, 0);
+                timproc_uso_b5_func_04DFFC(child, timproc_uso_b5_func_05D0E0(0, &timproc_uso_b5_D_807FEF3C + 0x16CC, &import_00000000 + 0, 0));
             }
             break;
         }
