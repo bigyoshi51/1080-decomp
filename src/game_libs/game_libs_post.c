@@ -4908,84 +4908,106 @@ void *gl_func_000223DC(int arg) {
     }
 }
 
-// gl_func_00022464 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
-// (named fn + 1 trailing helper) — deferred USO re-split. The named
-// leading fn is a SIBLING of gl_func_000221D8: same registry-table
-// scan, but the iterate-and-process-all-matches variant.
-//
-//   ret gl_func_00022464(K *key) {
-//     S    *g   = &D_0;
-//     int   n   = *(int*)(g + 0x2020);                // entry count
-//     int   acc = 0, cnt = 0;
-//     if (n <= 0) return 0;
-//     char *tbl = *(char**)(g + 0x2030);              // record table
-//     byte  kb  = key->b_0;
-//     for (int i = 0; i < n; i++) {
-//       char *e  = tbl + ...;
-//       byte  t2 = e->b_2, t3 = e->b_3;
-//       if (t2 == 0xFF) continue;                       // empty slot
-//       if (t3 != 3 && t2 == kb) {                       // match gate
-//         r = (*proc)(e, key);                            // jal 0 USO
-//         if (r == 0) continue;
-//         ... accumulate into acc/cnt ...
-//       }
-//     }
-//     g->w_1E14 = 0;                                     // result clr
-//     return acc;
-//   }
-//
-// Struct-typing reference: same registry table as gl_func_000221D8
-//   (count word &D_0+0x2020, base pointer &D_0+0x2030; record match
-//   bytes +2 / +3; 0xFF empty-slot, 0x7F mask sentinel). This variant
-//   does not stop at the first hit — it walks every entry, invokes a
-//   USO-relocated per-match processor (`jal 0` slot) on each record
-//   whose byte +2 equals the key and byte +3 != 3, accumulating a
-//   result, and clears the result global &D_0+0x1E14 at the end. The
-//   bulk "apply to all matching registry entries" operation paired
-//   with the gl_func_000221D8 single-slot scan.
-// Caps (DEFERRED): single jr $ra (the "2-jr bundle" note is STALE;
-//   .s is 0x2FC/130 words, ONE function). Sibling of
-//   gl_func_000221D8 — the "apply to all matching registry entries"
-//   variant. Real-C STRUCTURAL body below per the analysis (count
-//   &D_0+0x2020, table &D_0+0x2030; walk every entry, skip 0xFF
-//   empty slots, on byte+2==key && byte+3!=3 invoke a jal-0 per-
-//   match processor and accumulate; clear &D_0+0x1E14 at the end).
-//   Byte-match deferred — placeholder jal-0 processor needs USO
-//   reloc infra + scan-loop schedule. Name pre-checked: no extern
-//   reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder for the processor.
+// gl_func_00022464 — redecoded 2026-07-31 (78.5% NM wrap; the old
+// STRUCTURAL-PASS key-scan sketch here was WRONG: no key param, no
+// 0x1E14 clear, void return; see the decode comment inside the NM
+// block). Registry bulk-dispatch sibling of gl_func_000221D8.
+// Residual cap (probed, documented): uopt candidate-rank rotation of
+// the base/off/i s-reg trio (target s5/s6/s7, built s7/s5/s6) —
+// decl-order inert for the pair, proxy-extern sum spills the base
+// wholesale, mutation-base (p=&D-4; if(1){p+=4;}) holds it whole-fn
+// but ranks it BELOW the induction/index webs (all-%lo-foldable-lw
+// use web gets the cupcosts lu->reg discount). Plus coupled 255-$at
+// vs hoisted-t0 compares and continue-path n-reload delay picks.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-int gl_func_00022464(char *key) {
-    char *g = (char *)&D_00000000;
-    int n = *(int *)(g + 0x2020);
-    char *tbl;
-    unsigned char kb;
-    int i, acc;
-    if (n <= 0) {
-        return 0;
+/* Whole-body redecode 2026-07-31 (was 33.6% mis-decode: target never reads
+ * $a0 — no key param, void return). Keyless bulk-dispatch sibling of
+ * gl_func_000221D8: outer over n = **(short**)(D+0x2020) entries (stride 20
+ * in table at *(D+0x2030)); skip (FF,FF) empty slots; two jal-0 USO gates
+ * (1,3,i)/(i); then a middle k-loop over *(int*)(D+0x2948) records (stride
+ * 20 at D+0x26C8): a record participates when its byte +2 matches the
+ * entry's byte +2 or +3, or is 0; a non-matching NON-zero record byte
+ * aborts to the next outer entry (break). Per participating record, the
+ * same two sub-dispatch loops as 221D8 calling
+ * gl_func_00036A04(rec, sub->field). */
+extern u8 gl_d_22464[];       /* &D_0 held base -> $s5 (whole-fn) */
+extern u8 gl_d_22464_rec[];   /* fresh per-outer-iter materialization for the k-record walk (&D_0) */
+extern int gl_func_00036A04();
+void gl_func_00022464(void) {
+    char *sub; /* s0 */
+    char *kr;  /* s1 */
+    int j1;    /* s2 */
+    int j2;    /* s3 */
+    char *rec; /* s4 */
+    char *B;   /* s5 */
+    int i;     /* s7 */
+    int c127;  /* s8 */
+    int n;
+    int e2, e3;
+    int k;
+
+    B = (char *)gl_d_22464 - 4;
+    if (1) {
+        B += 4;
     }
-    tbl = *(char **)(g + 0x2030);
-    kb = *(unsigned char *)(key + 0);
-    acc = 0;
-    for (i = 0; i < n; i++) {
-        char *e = tbl + i * 0x14;
-        unsigned char t2 = *(unsigned char *)(e + 2);
-        unsigned char t3 = *(unsigned char *)(e + 3);
-        if (t2 == 0xFF) {
-            continue;
-        }
-        if (t3 != 3 && t2 == kb) {
-            int r = gl_func_00000000(e, key);
-            if (r != 0) {
-                acc += r;
+    n = **(short **)(B + 0x2020);
+    i = 0;
+    if (n <= 0) {
+        return;
+    }
+    c127 = 127;
+    do {
+        char *e = *(char **)(B + 0x2030) + i * 0x14;
+        e2 = *(unsigned char *)(e + 2);
+        e3 = *(unsigned char *)(e + 3);
+        if (e2 == 0xFF) {
+            if (e3 == 0xFF) {
+                continue;
             }
         }
-    }
-    *(int *)(g + 0x1E14) = 0;
-    return acc;
+        {
+            if (gl_func_00000000(1, 3, i) != 0 && gl_func_00000000(i) != 0) {
+                rec = (char *)gl_d_22464_rec;
+                for (k = 0; k < *(int *)(B + 0x2948); k++, rec += 20) {
+                    if (e2 != *(volatile signed char *)(rec + 0x26CA)) {
+                        if (e3 != *(signed char *)(rec + 0x26CA)) {
+                            if (*(signed char *)(rec + 0x26CA) != 0) {
+                                break;
+                            }
+                        }
+                    }
+                    j1 = 0;
+                    j2 = 0;
+                    if (*(unsigned char *)(*(char **)(B + 0x2030) + i * 0x14) > 0) {
+                        do {
+                            sub = (char *)gl_func_00000000(i, j1);
+                            if (sub != 0) {
+                                kr = rec + 0x26C8;
+                                if (*(unsigned char *)(sub + 1) != 0) {
+                                    gl_func_00036A04(kr, *(int *)(sub + 8));
+                                }
+                                if (*(unsigned char *)(sub + 2) != c127) {
+                                    gl_func_00036A04(kr, *(int *)(sub + 0x18));
+                                }
+                                gl_func_00036A04(kr, *(int *)(sub + 0x10));
+                            }
+                            j1++;
+                        } while (j1 < *(unsigned char *)(*(char **)(B + 0x2030) + i * 0x14));
+                    }
+                    if (*(unsigned char *)(*(char **)(B + 0x2030) + i * 0x14 + 1) > 0) {
+                        do {
+                            sub = (char *)gl_func_00000000(i, j2);
+                            if (sub != 0) {
+                                gl_func_00036A04(rec + 0x26C8, *(int *)(sub + 4));
+                            }
+                            j2++;
+                        } while (j2 < *(unsigned char *)(*(char **)(B + 0x2030) + i * 0x14 + 1));
+                    }
+                }
+            }
+        }
+        i++;
+    } while (i != n);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00022464);
