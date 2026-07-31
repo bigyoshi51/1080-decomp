@@ -462,29 +462,32 @@ void game_libs_func_00009D24(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
  * and a 7-arg hook call (out_p, grid_idx, 0, ctx, *src, *(src+1), *(src+2)) where
  * ctx = &D+0xD430. The div/break traps, the floor-adjust, the 7-arg call shape and
  * the loop bounds match.
- * RESIDUAL (~61%, regalloc): the 5 loop-carried values get SCRAMBLED s-register
- * assignments — target s0=src,s1=out_p,s2=ia,s3=ib,s4=i; mine s0=src,s1=ib,s2=i,
- * s3=ia,s4=out_p. The global allocator's allocno-priority order isn't matched, and
- * since the whole loop body addresses through these s-regs the mismatch cascades.
- * Hard loop-regalloc puzzle (correct-logic/divergent-regalloc cap); real
- * compilable/permuter-able wrap now, not a comment bail. Stays NM. */
+ * 2026-07-31 (agent-h) 38.9->92.31: (a) DECODE FIX — the "alignment adjust"
+ * ternary was wrong for ib>=0; the andi/bgez/addiu-8 cluster is plain C
+ * truncated `(ib % 8) << 3`, added unconditionally to ia%5. (b) REGALLOC
+ * CRACKED via local-copy decl order: copy ALL loop-carried params to locals
+ * declared op,va,vb,i (ctx last) — uopt colors a3->s0 first, then locals in
+ * decl order s1..s4, hoisted consts 5/36 -> s5/s7, ctx -> s6 = target exactly;
+ * inline src[k] call args give the target lw/sw arg-slot pairing; increment
+ * order op,va,vb,src puts src+=3 in the latch delay slot like target.
+ * RESIDUAL (~7.7%): 2-insn prologue schedule (sw ra/addiu s6 placement) + a
+ * dead pre-header `move v0,zero` in target (kept init of a copy-propagated
+ * z=0 third arg; a plain `int z=0` local gets DCE'd, does not reproduce).
+ * Stays NM. */
 extern int gl_func_00000000();
 void gl_func_00009DB8(int *out_p, int ia, int ib, int *src) {
-    int *ctx = (int*)((char*)&D_00000000 + 0xD430);
+    int *op = out_p;
+    int va = ia;
+    int vb = ib;
     int i;
+    int *ctx = (int*)((char*)&D_00000000 + 0xD430);
 
     for (i = 0; i != 36; i += 12) {
-        int rem = ia % 5;
-        int v0 = src[0];
-        int v1 = src[1];
-        int v2 = src[2];
-        int adj = (ib < 0 && (ib & 7) != 0) ? ((ib & 7) - 8) : 0;
-        int grid_idx = rem + (adj << 3);
-        gl_func_00000000(out_p, grid_idx, 0, ctx, v0, v1, v2);
+        gl_func_00000000(op, (va % 5) + ((vb % 8) << 3), 0, ctx, src[0], src[1], src[2]);
+        op += 2;
+        va++;
+        vb++;
         src += 3;
-        out_p += 2;
-        ia++;
-        ib++;
     }
 }
 #else
