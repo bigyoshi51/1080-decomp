@@ -26296,7 +26296,178 @@ void game_libs_func_000553E8(int *a0) {
     }
 }
 
+#ifdef NON_MATCHING
+/* gl_func_00055470: 0x430 command-stream opcode dispatcher (frame 0x130).
+ * Hand re-derivation from raw-word disasm (no FP; if/else-if chain in asm
+ * order, NOT a jumptable). Common idiom: fetch next stream word via
+ * cursor-indirect (*(int**)s[0]), advance, mirror into s[1].
+ * Cases 1017/1003 pass a 76-byte struct BY VALUE (IDO 12-byte-stride copy
+ * loops into the arg area, a0-a3 from first 16 bytes). Default path calls a
+ * helper then dispatches through a vtable: obj=s[4], cls=obj+40 ptr,
+ * fn=cls+60, off=(short)cls+56, fn(obj+off, &{s[1],cursor}), cursor written
+ * back after. Case 113 sets s[13]=1 then shares the default tail. All
+ * jal/data relocs are USO-baked (placeholder gl_func_00000000 /
+ * &D_00000000) — stays NM wrap regardless of measured %. */
+typedef struct { int w[19]; } GlCmd76;
+void gl_func_00055470(int *s) {
+    int vt[2];        /* sp+288 */
+    GlCmd76 ta;       /* sp+184 */
+    int val;          /* sp+180 */
+    GlCmd76 tb;       /* sp+104 */
+    int *cp;
+    int *cur;
+    int *p;
+    char *obj;
+    char *cls;
+    int w12, w10, w11, w16, w08, w04, w05, w06, w07, w17, w18;
+    int cmd = s[1];
+
+    if (cmd == 1014) goto Lend;
+    if (cmd == 1012) goto L1012;
+    if (cmd == 1015) goto L1015;
+    if (cmd == 1010) goto L1010;
+    if (cmd == 1011) goto L1011;
+    if (cmd == 1016) goto L1016;
+    if (cmd == 1000) goto Lend;
+    if (cmd == 1008) goto L1008;
+    if (cmd == 1019) goto Lend;
+    if (cmd == 1004) goto L1004;
+    if (cmd == 1005) goto L1005;
+    if (cmd == 1006) goto L1006;
+    if (cmd == 1007) goto L1007;
+    if (cmd == 1017) goto L1017;
+    if (cmd == 1003) goto L1003;
+    if (cmd == 113) goto L113;
+    if (cmd == 1018) goto L1018;
+    goto Ldef;
+
+L1012:
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w12 = *cur;
+    s[1] = w12;
+    if ((s[18] & w12) == 0) {
+        gl_func_00000000(s);
+    }
+    goto Lend;
+L1015:
+    gl_func_00000000(s);
+    goto Lend;
+L1010:
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w10 = *cur;
+    s[1] = w10;
+    if (w10 != s[16]) {
+        gl_func_00000000(s);
+    }
+    goto Lend;
+L1011:
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w11 = *cur;
+    s[1] = w11;
+    if (w11 != s[17]) {
+        gl_func_00000000(s);
+    }
+    goto Lend;
+L1016:
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w16 = *cur;
+    s[1] = w16;
+    s[14] = w16;
+    goto Lend;
+L1008:
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w08 = *cur;
+    s[1] = w08;
+    D_00000000 = w08;
+    goto Lend;
+L1004:
+    p = (int *)&D_00000000;
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w04 = *cur;
+    s[1] = w04;
+    p[1] = p[1] | w04;
+    goto Lend;
+L1005:
+    p = (int *)&D_00000000;
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w05 = *cur;
+    s[1] = w05;
+    p[1] = p[1] & ~w05;
+    goto Lend;
+L1006:
+    p = (int *)&D_00000000;
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w06 = *cur;
+    s[1] = w06;
+    p[0] = p[0] | w06;
+    goto Lend;
+L1007:
+    p = (int *)&D_00000000;
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w07 = *cur;
+    s[1] = w07;
+    p[0] = p[0] & ~w07;
+    goto Lend;
+L1017:
+    ta = *(GlCmd76 *)s;
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w17 = *cur;
+    s[1] = w17;
+    ta.w[0] = (int)&val;
+    val = w17;
+    gl_func_00000000(ta);
+    goto Lend;
+L1003:
+    tb = *(GlCmd76 *)s;
+    tb.w[3] = 0;
+    tb.w[4] = 0;
+    tb.w[15] = (int)s;
+    gl_func_00000000(tb);
+    goto Lend;
+L113:
+    s[13] = 1;
+Ldef:
+    gl_func_00000000(s);
+    vt[0] = s[1];
+    vt[1] = *(int *)s[0];
+    obj = (char *)s[4];
+    cls = *(char **)(obj + 40);
+    ((void (*)(char *, int *)) * (int *)(cls + 60))(obj + *(short *)(cls + 56), vt);
+    *(int *)s[0] = vt[1];
+    goto Lend;
+L1018:
+    cp = (int *)s[0];
+    cur = (int *)*cp;
+    *cp = (int)(cur + 1);
+    w18 = *cur;
+    s[1] = w18;
+    gl_func_00000000((char *)&D_00000000 + 0x211B0, w18);
+Lend:
+    return;
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00055470);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_000558A0: 31-insn va_list-walking dispatch loop (0x7C, frame 0x20).

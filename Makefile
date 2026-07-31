@@ -274,7 +274,12 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # int-typed m2c graft (every f32 load was lw not lwc1); body now 0x438 vs
 # target 0x45C, TU text -0x7C; tail 62F08 keeps its full 0x50 at the new
 # offset. Sentinels re-probed: 62F08/551E0/55B10 all 100.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c1a8 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2c1a8 -> 0x2c1c4 2026-07-31: 55470 0->39.9 NM decode (goto-ladder
+# opcode dispatcher, body 0x450 vs target 0x430); tail 62F08 keeps its full
+# 0x50 at the new offset 0x2c174. NOTE: the shape-truer nested-!= spelling of
+# the same body zeroes objdiff (fuzzy MISSING/0.0, unreproduced-in-isolation
+# metric anomaly) — kept the goto form, see MATCHING_WORKFLOW.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c1c4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
