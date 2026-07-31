@@ -3755,68 +3755,45 @@ void game_libs_func_00020E78(short *dst, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E78);
 #endif
 
-// gl_func_00020ED0 — STRUCTURAL PASS (0x2CC / 179 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 3-jr USO bundle
-// (named fn + 2 trailing helpers) — deferred USO re-split. The named
-// leading fn is an argument-presence dispatcher + table-record copy.
-//
-//   int gl_func_00020ED0(a0, a1, a2, a3) {
-//     if (a1 != 0) {
-//       r = (*h1)(a1);                              // jal 0 USO-reloc
-//     } else if (a2 != 0) {
-//       r = (*h2)(a0);                              // jal 0 USO-reloc
-//     } else if (a3 != 0) {
-//       r = (*h3)(a0, a3);                          // jal 0 USO-reloc
-//     } else {
-//       r = 0;
-//     }
-//     // fall-through table work:
-//     T *src = &D_E + a2*16;                         // index*16 entry
-//     T *dst = &D_F + a2*16;
-//     for (int i = 0; i < 8; i++)                     // 8 halfwords
-//       dst->h[i] = src->h[i];                        // record copy
-//     return r;
-//   }
-//
-// Struct-typing reference: a multi-path entry that routes to one of
-//   three USO-relocated handlers (the `jal 0` slots) depending on
-//   which of the optional args a1 / a2 / a3 is non-null (a0 passed
-//   through to the a2/a3 handlers), each yielding a result in $a1.
-//   The unconditional tail builds two parallel table pointers from
-//   index a2 scaled by 16 (sll 4) over the &D_E and &D_F globals and
-//   copies an 8-entry halfword record between them (count li 8, lh/sh
-//   stride 2). game_libs dispatch + record-shuffle helper.
-// Caps (DEFERRED): single jr $ra (the "3-jr bundle" note is STALE;
-//   .s is 0x2CC/179 words, ONE function). Arg-presence dispatcher +
-//   table-record copy. Real-C STRUCTURAL body below per the analysis
-//   (route to one of three jal-0 USO-reloc handlers by which of
-//   a1/a2/a3 is non-null, then copy an 8-halfword record between
-//   &D_E + a2*16 and &D_F + a2*16). Byte-match deferred —
-//   placeholder jal-0 handlers need USO reloc infra + copy-loop
-//   schedule. Name pre-checked: no extern reuse (collision-safe).
-//   gl_func_00000000 = canonical never-defined USO placeholder.
+// gl_func_00020ED0 — redecoded 2026-07-31 (was a wrong STRUCTURAL sketch:
+// real shape is an (x,y)-presence 3-way EXCLUSIVE dispatch with early
+// returns — not fallthrough — and the tail loop is an 8-halfword AVERAGE
+// (a+b)/2 (signed /2: bgez+addiu+sra), x4-unrolled by IDO on the
+// exact-trip != form, walking &D+y*16 twin tables; void, 3 params (K&R
+// homing: only a0/d reloaded from its home per branch arm).
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-int gl_func_00020ED0(int a0, int a1, int a2, int a3) {
-    char *D = (char *)&D_00000000;
-    short *src, *dst;
-    int r, i;
-    if (a1 != 0) {
-        r = gl_func_00000000(a1);
-    } else if (a2 != 0) {
-        r = gl_func_00000000(a0);
-    } else if (a3 != 0) {
-        r = gl_func_00000000(a0, a3);
-    } else {
-        r = 0;
+/* Decode notes: call1 = f(d,0) with a0 untouched; call2 = f(d) a0 reloaded;
+ * call3 = f(d,y); mix path: d also reloaded from home (v0), pa/pb preheader
+ * lui/addiu pairs (nesting order = docs PATTERNS preheader-pair note). */
+extern int D_20ED0_a, D_20ED0_b; /* twin halfword tables, y*16-indexed (baked USO relocs stripped) */
+void gl_func_00020ED0(d, x, y)
+short *d;
+int x;
+int y;
+{
+    short *pa;
+    short *pb;
+    int j;
+
+    if (x == 0 && y == 0) {
+        gl_func_00000000(d, 0);
+        return;
     }
-    src = (short *)(D + 0xE000 + a2 * 16);
-    dst = (short *)(D + 0xF000 + a2 * 16);
-    for (i = 0; i < 8; i++) {
-        dst[i] = src[i];
+    if (y == 0) {
+        gl_func_00000000(d);
+        return;
     }
-    return r;
+    if (x == 0) {
+        gl_func_00000000(d, y);
+        return;
+    }
+    pa = (short *)((char *)&D_20ED0_a + y * 16);
+    pb = (short *)((char *)&D_20ED0_b + y * 16);
+    for (j = 0; j != 8; j++) {
+        d[j] = (pa[j] + pb[j]) / 2;
+    }
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
