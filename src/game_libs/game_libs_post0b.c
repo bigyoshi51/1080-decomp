@@ -6508,141 +6508,135 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
 //   STRUCTURAL body below — gate + Vec3 delta + length skeleton
 //   only. Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft (279 insns; 8 f64 +
- * 13 COP1 mild-mixed; prior body replaced -- preserved in git). */
-s32 gl_func_0003B9C0(char *arg0, s32 arg1, s32 arg2, s32 arg3, char *arg4, char *arg5, s32 arg7) {
-    f32 spC0;
-    f32 spBC;
-    f32 spB8;
-    f32 spA8;
-    f32 spA4;
-    f32 spA0;
-    s32 sp80;
-    f32 temp_f0;
-    f32 temp_f12;
-    f32 temp_f16;
-    f32 temp_f18;
-    f32 temp_f20;
-    f32 temp_f22;
-    s16 *var_a2;
-    s16 temp_a0_3;
-    s16 temp_a1_2;
-    s16 temp_t8;
-    s32 temp_a0;
-    s32 temp_a1;
-    s32 temp_ra;
-    s32 temp_s0;
-    s32 temp_t5;
-    s32 temp_v0_3;
-    s32 temp_v0_4;
-    s32 temp_v1;
-    s32 temp_v1_3;
-    s32 var_a1;
-    s32 var_s1;
-    s32 var_s8;
-    s8 temp_a0_2;
-    s8 temp_v1_2;
-    u32 var_a0;
-    u32 var_s3;
-    char *temp_s5;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_5;
-    char *var_a3;
-    char *var_t4;
+/* PASS-3 2026-07-31 (hand reconstruction): segment-vs-face-set
+ * intersector. Replaces the PASS-2 m2c graft (int-typed float loads had
+ * killed every lwc1). delta = q - p; if len > eps normalize else fall to
+ * straight-down (0,-1,0); for each front-facing face (flag s16 >= 0,
+ * plane-normal dot dir <= eps2 back-face gate) compute plane hit
+ * t = -(dot(p,n) - d)/den, hit point, then 3-edge point-in-polygon test
+ * in the face's 2D projection plane (axes = face bytes 0/1, winding sign
+ * = byte 3) over s16 vertex coords (verts 6B each, per-face u16 index
+ * records 8B each, optional s16 remap at sub+0x4C, next-vertex table =
+ * base-0 s16[3]). Hits append t/face-ptr/point until nMax. jal-0
+ * placeholders: sqrtf + Vec3-normalize helper; eps doubles + next-table
+ * are baked-USO rodata (base-0 extern aliases per file convention). */
+s32 gl_func_0003B9C0(char *arg0, s32 arg1, f32 *arg2, s32 *arg3, f32 *arg4, f32 *arg5, s32 arg6, char *arg7) {
+    extern float sqrtf(float);
+    extern void gl_func_00000000_vnorm3(f32 *);  /* Vec3 normalize (jal 0) */
+    extern s16 gl_d3b9c0_next[];   /* {1,2,0} next-vertex table (base-0 alias) */
+    extern s16 gl_d3b9c0_nexta[];  /* per-site alias: in-loop rematerialized lui/addiu */
+    extern f64 gl_d3b9c0_eps1;     /* min segment length gate (USO ro 0x1AA8) */
+    extern f64 gl_d3b9c0_eps2;     /* back-face denom gate   (USO ro 0x1AB0) */
+    f32 spB8[3];
+    f32 spA0[3];
+    f32 t;
+    f32 den;
+    f32 nx, ny, nz;
+    f32 sgn;
+    f32 p0, p1;
+    f32 *nrm;
+    s16 *it;
+    s16 *end;
+    s16 *vv0;
+    s16 *vv1;
+    char *sub;
+    char *faces;
+    char *face;
+    char *vt;
+    char *a3;
+    s32 verts;
+    s32 map;
+    s32 ax0, ax1;
+    s32 c0, c1;
+    s32 i0, i1;
+    s32 nv;
+    s32 inside;
+    s32 count;
+    u32 fi;
 
-    var_s8 = 0;
-    if (*(s32 *)((char *)(arg0) + 0x84) == 0) {
+    count = 0;
+    if (*(s32 *)(arg0 + 0x84) == 0) {
         return 0;
     }
-    spA0 = *(s32 *)((char *)(arg5) + 0x0) - *(s32 *)((char *)(arg4) + 0x0);
-    spA4 = *(s32 *)((char *)(arg5) + 0x4) - *(s32 *)((char *)(arg4) + 0x4);
-    spA8 = *(s32 *)((char *)(arg5) + 0x8) - *(s32 *)((char *)(arg4) + 0x8);
-    if (*(f64 *)0x1AA8 < (f64) func_00000000((spA0 * spA0) + (spA4 * spA4) + (spA8 * spA8))) {
-        func_00000000(&spA0);
+    spA0[0] = arg5[0] - arg4[0];
+    spA0[1] = arg5[1] - arg4[1];
+    spA0[2] = arg5[2] - arg4[2];
+    if (gl_d3b9c0_eps1 < sqrtf((spA0[0] * spA0[0]) + (spA0[1] * spA0[1]) + (spA0[2] * spA0[2]))) {
+        gl_func_00000000_vnorm3(spA0);
     } else {
-        spA0 = 0.0f;
-        spA8 = 0.0f;
-        spA4 = -1.0f;
+        spA0[0] = 0.0f;
+        spA0[2] = 0.0f;
+        spA0[1] = -1.0f;
     }
-    var_a0 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0x44);
-    var_s3 = 0;
-    var_a1 = 0;
-    if (var_a0 != 0) {
-loop_7:
-        temp_v1 = *(s32 *)((char *)(arg0) + 0x2C);
-        temp_v0 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0x54) + var_a1;
-        if ((*(s32 *)((char *)((temp_v1 + var_a1)) + 0x4) >= 0) && (temp_f16 = *(s32 *)((char *)(temp_v0) + 0x0), temp_f18 = *(s32 *)((char *)(temp_v0) + 0x4), temp_f20 = *(s32 *)((char *)(temp_v0) + 0x8), var_a2 = 0, temp_f12 = (temp_f16 * spA0) + (temp_f18 * spA4) + (temp_f20 * spA8), !(*(f64 *)0x1AB0 < (f64) temp_f12))) {
-            sp80 = var_a1;
-            temp_f0 = *(s32 *)((char *)(arg4) + 0x0);
-            temp_a1 = var_s3 * 0xC;
-            var_s1 = 1;
-            temp_f22 = -(((temp_f0 * temp_f16) + (*(s32 *)((char *)(arg4) + 0x4) * temp_f18) + (*(s32 *)((char *)(arg4) + 0x8) * temp_f20)) - *(s32 *)((char *)((temp_v1 + temp_a1)) + 0x8)) / temp_f12;
-            spB8 = temp_f0 + (spA0 * temp_f22);
-            spBC = *(s32 *)((char *)(arg4) + 0x4) + (spA4 * temp_f22);
-            spC0 = *(s32 *)((char *)(arg4) + 0x8) + (spA8 * temp_f22);
-            temp_s5 = *(s32 *)((char *)(arg0) + 0x84);
-            temp_a0 = *(s32 *)((char *)(temp_s5) + 0x4C);
-            if (temp_a0 != 0) {
-                var_t4 = *(s32 *)((char *)(temp_s5) + 0x68) + (*(s16 *)(temp_a0 + (var_s3 * 2)) * 8);
-            } else {
-                var_t4 = *(s32 *)((char *)(temp_s5) + 0x68) + (var_s3 * 8);
-            }
-            temp_t5 = *(s32 *)((char *)(temp_s5) + 0x60);
-            temp_v0_2 = *(s32 *)((char *)(arg0) + 0x2C) + temp_a1;
-            temp_v1_2 = *(s32 *)((char *)(temp_v0_2) + 0x0);
-            temp_a0_2 = *(s32 *)((char *)(temp_v0_2) + 0x1);
-            var_a3 = var_t4;
-            temp_ra = temp_v1_2 * 2;
-            temp_s0 = temp_a0_2 * 2;
-loop_13:
-            temp_t8 = *var_a2;
-            var_a2 += 2;
-            temp_v0_3 = temp_t5 + (*(s32 *)((char *)(var_a3) + 0x2) * 6);
-            temp_a0_3 = *(s16 *)(temp_v0_3 + temp_ra);
-            temp_a1_2 = *(s16 *)(temp_v0_3 + temp_s0);
-            temp_v1_3 = temp_t5 + (*(s32 *)((char *)((var_t4 + (temp_t8 * 2))) + 0x2) * 6);
-            if (((((f32) (s16) (*(s16 *)(temp_v1_3 + temp_ra) - temp_a0_3) * (f32) (s16) (s32) ((&spB8)[temp_a0_2] - (f32) temp_a1_2)) - ((f32) (s16) (*(s16 *)(temp_v1_3 + temp_s0) - temp_a1_2) * (f32) (s16) (s32) ((&spB8)[temp_v1_2] - (f32) temp_a0_3))) * (f32) *(s32 *)((char *)(temp_v0_2) + 0x3)) > 0.0f) {
-                var_s1 = 0;
-            }
-            if (var_s1 != 0) {
-                var_a3 += 2;
-                if (var_a2 != (s16 *)6) {
-                    goto loop_13;
-                }
-            }
-            temp_v0_4 = var_s8 * 4;
-            if (var_s1 != 0) {
-                *(f32 *)(arg2 + temp_v0_4) = temp_f22;
-                *(s32 *)(arg3 + temp_v0_4) = *(s32 *)((char *)(arg0) + 0x2C) + (var_s3 * 0xC);
-                if (arg7 != 0) {
-                    temp_v0_5 = arg7 + (var_s8 * 0xC);
-                    *(s32 *)((char *)(temp_v0_5) + 0x0) = spB8;
-                    *(s32 *)((char *)(temp_v0_5) + 0x4) = spBC;
-                    *(s32 *)((char *)(temp_v0_5) + 0x8) = spC0;
-                }
-                var_s8 += 1;
-                if (var_s8 >= arg1) {
-
-                } else {
-                    goto block_23;
-                }
-            } else {
-block_23:
-                var_a0 = *(s32 *)((char *)(*(s32 *)((char *)(arg0) + 0x84)) + 0x44);
-                var_a1 = sp80;
-                goto block_24;
-            }
+    sub = *(char **)(arg0 + 0x84);
+    end = &gl_d3b9c0_next[3];
+    for (fi = 0; fi < *(u32 *)(*(char **)(arg0 + 0x84) + 0x44); fi++) {
+        faces = *(char **)(arg0 + 0x2C);
+        nrm = (f32 *)(*(s32 *)(sub + 0x54) + (fi * 0xC));
+        if (*(s16 *)(faces + (fi * 0xC) + 4) < 0) {
+            continue;
+        }
+        nx = nrm[0];
+        ny = nrm[1];
+        nz = nrm[2];
+        it = gl_d3b9c0_nexta;
+        den = (nx * spA0[0]) + (ny * spA0[1]) + (nz * spA0[2]);
+        if (gl_d3b9c0_eps2 < den) {
+            continue;
+        }
+        t = -(((arg4[0] * nx) + (arg4[1] * ny) + (arg4[2] * nz)) - *(f32 *)(faces + (fi * 0xC) + 8)) / den;
+        inside = 1;
+        spB8[0] = arg4[0] + (spA0[0] * t);
+        spB8[1] = arg4[1] + (spA0[1] * t);
+        spB8[2] = arg4[2] + (spA0[2] * t);
+        sub = *(char **)(arg0 + 0x84);
+        map = *(s32 *)(sub + 0x4C);
+        if (map != 0) {
+            vt = (char *)(*(s32 *)(sub + 0x68) + (*(s16 *)(map + (fi * 2)) * 8));
         } else {
-block_24:
-            var_s3 += 1;
-            var_a1 += 0xC;
-            if (var_s3 < var_a0) {
-                goto loop_7;
+            vt = (char *)(*(s32 *)(sub + 0x68) + (fi * 8));
+        }
+        verts = *(s32 *)(sub + 0x60);
+        face = *(char **)(arg0 + 0x2C) + (fi * 0xC);
+        ax0 = *(s8 *)(face + 0);
+        ax1 = *(s8 *)(face + 1);
+        sgn = *(s8 *)(face + 3);
+        p0 = spB8[ax0];
+        p1 = spB8[ax1];
+        a3 = vt;
+        do {
+            nv = *it++;
+            vv0 = (s16 *)(verts + (*(u16 *)(a3 + 2) * 6));
+            c0 = vv0[ax0];
+            c1 = vv0[ax1];
+            vv1 = (s16 *)(verts + (*(u16 *)(vt + (nv * 2) + 2) * 6));
+            i0 = (s16)(s32)(p0 - c0);
+            i1 = (s16)(s32)(p1 - c1);
+            if ((((f32)(s16)(vv1[ax0] - c0) * (f32)i1) - ((f32)(s16)(vv1[ax1] - c1) * (f32)i0)) * sgn > 0.0f) {
+                inside = 0;
+            }
+            if (inside == 0) {
+                break;
+            }
+            a3 += 2;
+        } while (it != end);
+        if (inside != 0) {
+            arg2[count] = t;
+            arg3[count] = (s32)(*(char **)(arg0 + 0x2C) + (fi * 0xC));
+            if (arg7 != 0) {
+                f32 *dst = (f32 *)(arg7 + (count * 0xC));
+                dst[0] = spB8[0];
+                dst[1] = spB8[1];
+                dst[2] = spB8[2];
+            }
+            count++;
+            if (count >= arg1) {
+                return count;
             }
         }
+        sub = *(char **)(arg0 + 0x84);
     }
-    return var_s8;
+    return count;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B9C0);

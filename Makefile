@@ -270,7 +270,11 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # body 0x94C -> 0x7EC-class; re-probed full NM .text.)
 # (0x2be28 -> 0x2c224 2026-07-30: 36224 stub-reconstruction grew its NM body
 # 0x64-class -> 0x460; re-probed = last-sym 62F08 @0x2c1d4 + 0x50.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c224 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2c224 -> 0x2c1a8 2026-07-31: 3B9C0 PASS-3 hand reconstruction replaced the
+# int-typed m2c graft (every f32 load was lw not lwc1); body now 0x438 vs
+# target 0x45C, TU text -0x7C; tail 62F08 keeps its full 0x50 at the new
+# offset. Sentinels re-probed: 62F08/551E0/55B10 all 100.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c1a8 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
