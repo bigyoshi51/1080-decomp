@@ -4907,25 +4907,47 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007204);
  * (per docs/MATCHING_WORKFLOW.md): a real D_<addr> rodata symbol was folded
  * into the preceding function. */
 #ifdef NON_MATCHING
+/* 2026-07-31 (agent-g newest-lever sweep): 94.6 -> 95.4. Levers landed:
+ * de-named self (per-use *(base+0x254) deref -> t-ring reload temps t9/t1
+ * exact, kills the old named-self $v0 web) + named per-region base local +
+ * named single-load `d` for the 4-store tail (one lw like target) + q
+ * pointer-bump RMW (lw 120(v0)/addiu v0,v0,120/ori/sw 0(v0) shape exact).
+ * Body is now insn-for-insn isomorphic to target (40 words, all opcodes
+ * + offsets aligned); RESIDUAL is a pure register-name rotation web:
+ * base colors $a2 vs target $v1, d $a1 vs t5, RMW temps $a0 vs t3/t4,
+ * data temps t3-t6 vs t8/t7 ping-pong, plus the folded-rodata src-base
+ * addend form — target addiu carries +0x18 (25ce0018 = %lo(func_0000027C)
+ * +24: the ORIGINAL had its own D_00000294 rodata symbol, splat folded it
+ * into func_0000027C) where C can only produce %lo+0 with the 0x18 folded
+ * into the load offsets (24..36); if(1) pointer-mutation does NOT bake
+ * addends on FUNCTION symbols (probed — emits a separate addiu+24, unlike
+ * the data-symbol C14/2BE4 cases). Coloring probes: if(1) BB-split flips
+ * base a2->v1 and makes region 1 + region-2 head BYTE-EXACT but costs +2
+ * insns in the tail (split addiu + d remat, net fuzzy 91.3 — rejected);
+ * def-order swap src<->RMW = 95.275; register kw inert. a-reg-vs-t-ring
+ * named-web free-pool tie class. NM. */
 void func_00007288(int *a0) {
-    int *self;
     if (a0[0x38/4] & 2) {
-        self = BOOT_SELF_PTR;
-        *(float*)((char*)self + 0xAC) = (float)(int)a0[0x30/4];
-        self = BOOT_SELF_PTR;
-        *(float*)((char*)self + 0xB0) = (float)(int)a0[0x34/4];
+        char *base = (char*)&D_00000000;
+        *(float*)(*(char**)(base + 0x254) + 0xAC) = (float)(int)a0[0x30/4];
+        *(float*)(*(char**)(base + 0x254) + 0xB0) = (float)(int)a0[0x34/4];
     }
     if (a0[0x3C/4] == 0) {
-        int *src = (int*)((char*)&func_0000027C + 0x18);
-        int *dst;
-        self = BOOT_SELF_PTR;
-        self = (int*)((char*)self + 0x78);
-        *self = *self | 4;
-        dst = BOOT_SELF_PTR;
-        *(int*)((char*)dst + 0xDC) = src[0];
-        *(int*)((char*)dst + 0xE0) = src[1];
-        *(int*)((char*)dst + 0xE4) = src[2];
-        *(int*)((char*)dst + 0xE8) = src[3];
+        char *b2 = (char*)&D_00000000;
+        int *q;
+        int *src;
+        int *d;
+        int t;
+        q = *(int**)(b2 + 0x254);
+        src = (int*)((char*)&func_0000027C + 0x18);
+        t = q[0x78/4] | 4;
+        q = (int*)((char*)q + 0x78);
+        *q = t;
+        d = *(int**)(b2 + 0x254);
+        d[0xDC/4] = src[0];
+        d[0xE0/4] = src[1];
+        d[0xE4/4] = src[2];
+        d[0xE8/4] = src[3];
     }
 }
 #else
