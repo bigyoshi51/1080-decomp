@@ -5801,47 +5801,107 @@ int game_libs_func_0003A164(float *a0, float *a1) {
     return 0;
 }
 
-/* gl_func_0003A58C graft attempt 2026-06-10: fresh m2c graft scored
- * 7.46 vs this body's 11.72 -- REVERTED (item 17; the body is closer
- * than regeneration despite the low %). Hand-refinement territory. */
+/* gl_func_0003A58C hand re-derivation 2026-07-31: sphere-vs-segment
+ * intersection writing the hit point (then the normalized (hit-c)/r
+ * vector) through *out.
+ *   dir = normalize(b-a); dot = (c-a).dir; disc = r^2 - (|c-a|^2 - dot^2)
+ *   disc < 0 -> 0; r < |b-c| -> 0; t = dot - sqrt(disc);
+ *   *out = a + dir*t; *out = (*out - c)/r; return 1.
+ * Every Vec3 result goes through the chained-copy idiom (fresh diff
+ * local -> shared tmp -> named destination); write-out goes through a
+ * q1->q2 chain. Placeholder callees (reloc-free jal-0): Vec3-normalize
+ * + float->float sqrt. */
 #ifdef NON_MATCHING
-/* gl_func_0003A58C: 264-insn FPU-heavy vec3 transform + multi-copy.
- *
- *   diff_AC = (Vec3)*a2 - (Vec3)*a0;     stored to sp+0xDC..0xE7
- *   *(Vec3*)(sp+0xEC) = diff_AC;          int-copy round-trip
- *   *(Vec3*)(sp+0x11C) = *(Vec3*)(sp+0xEC);
- *   f20 = (float)a3;                       (mtc1 raw)
- *
- *   diff_AB = (Vec3)*a1 - (Vec3)*a0;     stored to sp+0xBC..0xC7
- *   *(Vec3*)(sp+0xEC) = diff_AB;
- *   ... [240+ insns of similar reshuffle / cross-product / dot-product
- *        / matrix-vector construction; not fully traced this tick]
- *
- * Initial wrap-only commit (decoded prologue + 2 diff vectors).
- * Future ticks tighten the FPU body. */
-extern int gl_func_00000000();
-int gl_func_0003A58C(float *a0, float *a1, float *a2, int a3) {
-    float diff_AC[3];
-    float diff_AB[3];
-    int scratch_EC[3];
-    int scratch_11C[3];
-    diff_AC[0] = a2[0] - a0[0];
-    diff_AC[1] = a2[1] - a0[1];
-    diff_AC[2] = a2[2] - a0[2];
-    scratch_EC[0] = ((int*)diff_AC)[0];
-    scratch_EC[1] = ((int*)diff_AC)[1];
-    scratch_EC[2] = ((int*)diff_AC)[2];
-    scratch_11C[0] = scratch_EC[0];
-    scratch_11C[1] = scratch_EC[1];
-    scratch_11C[2] = scratch_EC[2];
-    diff_AB[0] = a1[0] - a0[0];
-    diff_AB[1] = a1[1] - a0[1];
-    diff_AB[2] = a1[2] - a0[2];
-    /* + 240 insns of vec3 normalize / cross-product / outgoing
-     *   gl_func_00000000 calls; structural body intentionally omitted */
-    (void)a3;
-    (void)diff_AB;
-    return 0;
+extern void gl_func_00000000_3a58cn(Vec3 *);   /* normalize-in-place slot */
+extern float gl_func_00000000_3a58cs(float);   /* sqrt slot */
+int gl_func_0003A58C(float *a, float *b, float *c, float r, float *out) {
+    Vec3 step;
+    Vec3 v_oc;
+    Vec3 v_ca;
+    Vec3 dir;
+    float dot;
+    float disc;
+    Vec3 v_bc;
+    float len2;
+    Vec3 tmp;
+    float t;
+    Vec3 d1;
+    volatile int pad5a[5];
+    Vec3 d2;
+    Vec3 d3;
+    Vec3 d4;
+    volatile int pad7[7];
+    Vec3 q1;
+    Vec3 pt;
+    volatile int pad5b[5];
+    Vec3 q2;
+    volatile int pad2[2];
+    Vec3 d5;
+    Vec3 sc;
+
+    d1.x = c[0] - a[0];
+    d1.y = c[1] - a[1];
+    d1.z = c[2] - a[2];
+    tmp = d1;
+    v_ca = tmp;
+
+    d2.x = b[0] - a[0];
+    d2.y = b[1] - a[1];
+    d2.z = b[2] - a[2];
+    tmp = d2;
+    dir = tmp;
+
+    gl_func_00000000_3a58cn(&dir);
+
+    dot = (v_ca.x * dir.x) + (v_ca.y * dir.y) + (v_ca.z * dir.z);
+    len2 = (v_ca.x * v_ca.x) + (v_ca.y * v_ca.y) + (v_ca.z * v_ca.z);
+    disc = (r * r) - (len2 - (dot * dot));
+    if (disc < 0.0f) {
+        return 0;
+    }
+
+    d3.x = b[0] - c[0];
+    d3.y = b[1] - c[1];
+    d3.z = b[2] - c[2];
+    tmp = d3;
+    v_bc = tmp;
+
+    if (r < gl_func_00000000_3a58cs((v_bc.x * v_bc.x) + (v_bc.y * v_bc.y) + (v_bc.z * v_bc.z))) {
+        return 0;
+    }
+
+    t = dot - gl_func_00000000_3a58cs(disc);
+
+    d4.x = dir.x * t;
+    d4.y = dir.y * t;
+    d4.z = dir.z * t;
+    tmp = d4;
+    step = tmp;
+
+    pt.x = a[0] + step.x;
+    pt.y = a[1] + step.y;
+    pt.z = a[2] + step.z;
+    q1 = pt;
+    q2 = q1;
+    out[0] = q2.x;
+    out[1] = q2.y;
+    out[2] = q2.z;
+
+    d5.x = out[0] - c[0];
+    d5.y = out[1] - c[1];
+    d5.z = out[2] - c[2];
+    tmp = d5;
+    v_oc = tmp;
+
+    sc.x = v_oc.x / r;
+    sc.y = v_oc.y / r;
+    sc.z = v_oc.z / r;
+    q1 = sc;
+    q2 = q1;
+    out[0] = q2.x;
+    out[1] = q2.y;
+    out[2] = q2.z;
+    return 1;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003A58C);

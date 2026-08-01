@@ -3184,3 +3184,5 @@ D_3BE1C_1EE9C = 0x0001EE9C;
 gl_func_00000000_sq64388 = 0x00000000;  /* f32(f32) blank sqrt-family callee for gl_func_00064388 */
 gl_func_00000000_n64388 = 0x00000000;  /* void(char*) blank normalize callee for gl_func_00064388 */
 gl_func_00000000_p64388 = 0x00000000;  /* void(char*,char*,f32) blank callee for gl_func_00064388 */
+gl_func_00000000_3a58cn = 0x00000000;  /* void(Vec3*) blank normalize callee for gl_func_0003A58C */
+gl_func_00000000_3a58cs = 0x00000000;  /* f32(f32) blank sqrt callee for gl_func_0003A58C */
