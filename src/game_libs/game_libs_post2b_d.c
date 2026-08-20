@@ -296,129 +296,140 @@ typedef struct Ldt74 {
 } Ldt74;
 extern double D_73E74_pow10[];   /* data 0x2540: 1e8^(2^k) chunk table */
 extern int game_libs_func_00074894();
+typedef struct { int quot, rem; } ldiv74_t;   /* o32 sret pair, cf. gl_func_000744CC = ldiv */
+extern ldiv74_t game_libs_ldiv_744C4();       /* placeholder name for the jal-0 ldiv callee */
+extern char D_00002588[];                     /* "NaN" */
+extern char D_0000258C[];                     /* "Inf" */
 
-void gl_func_00073E74(Ldt74 *px, unsigned char code) {
-    char buf[0x60];
-    char *s;
-    double ld;
-    short xexp;
-    int nsig;
-    int n;
-    int i;
-    int v;
+static short ldunscale74(short *pex, Ldt74 *px) {
+    unsigned short *ps = (unsigned short *)px;
+    short xchar = (ps[0] & 0x7FF0) >> 4;
+
+    if (xchar == 0x7FF) {
+        *pex = 0;
+        return (short)(ps[0] & 0xF || ps[1] || ps[2] || ps[3] ? 2 : 1);
+    } else if (0 < xchar) {
+        ps[0] = (ps[0] & 0x800F) | 0x3FF0;
+        *pex = xchar - 0x3FE;
+        return -1;
+    }
+    if (0 > xchar) {
+        return 2;
+    } else {
+        *pex = 0;
+        return 0;
+    }
+}
+
+void gl_func_00073E74(px, code)
+Ldt74 *px;
+unsigned char code;
+{
+    char buff[0x20];
+    char *ptr = buff;
+    double val = *(double *)px;
+    short err;
+    short nsig;
+    short exp;
 
     if (px->f_24 < 0) {
         px->f_24 = 6;
     } else if (px->f_24 == 0 && (code == 'g' || code == 'G')) {
         px->f_24 = 1;
     }
-    v = ((unsigned short)px->f_0 & 0x7FF0) >> 4;
-    if (v == 0x7FF) {
-        xexp = 0;
-        if ((px->f_0 & 0xF) || px->f_2 || px->f_4 || px->f_6) {
-            n = 2;     /* NaN */
-        } else {
-            n = 1;     /* Inf */
-        }
-    } else if (v > 0) {
-        px->f_0 = (px->f_0 & 0x800F) | 0x3FF0;
-        xexp = v - 0x3FE;
-        n = -1;
-    } else if (v < 0) {
-        n = 2;
-    } else {
-        n = 0;
-        xexp = 0;
-    }
-    if (n > 0) {
+    err = ldunscale74(&exp, px);   /* static, called once -> uopt inlines */
+    if (err > 0) {
         px->f_14 = 3;
-        game_libs_func_00073694(px->f_8, n == 2 ? 0x2588 : 0x258C, 3);
+        game_libs_func_00073694(px->f_8, err == 2 ? D_00002588 : D_0000258C, 3);
         return;
     }
-    if (n == 0) {
-        xexp = 0;
+    if (err == 0) {
+        nsig = 0;
+        exp = 0;
     } else {
-        ld = *(double *)&px->f_0;
-        if (ld < 0.0) {
-            ld = -ld;
+        int i;
+        int n;
+        double factor;
+        int gen;
+
+        if (val < 0) {
+            val = -val;
         }
-        xexp = (short)((xexp * 0x7597) / 100000) - 4;
-        if (xexp < 0) {
-            short e = (short)((3 - xexp) & ~3);
-            xexp = -e;
-            for (i = 0; e > 0; i++, e >>= 1) {
-                if (e & 1) {
-                    ld *= D_73E74_pow10[i];
+
+        exp = exp * 30103 / 100000 - 4;
+        if (exp < 0) {
+            n = (3 - exp) & ~3;
+            exp = -n;
+            for (i = 0; n > 0; n >>= 1, i++) {
+                if ((n & 1) != 0) {
+                    val *= D_73E74_pow10[i];
                 }
             }
-        } else if (xexp > 0) {
-            double factor = 1.0;
-            short e = xexp & 0xFFFC;
-            xexp = e;
-            for (i = 0; e > 0; i++, e >>= 1) {
-                if (e & 1) {
+        } else if (exp > 0) {
+            factor = 1;
+            exp &= ~3;
+
+            for (n = exp, i = 0; n > 0; n >>= 1, i++) {
+                if ((n & 1) != 0) {
                     factor *= D_73E74_pow10[i];
                 }
             }
-            ld /= factor;
+            val /= factor;
         }
-        nsig = (code == 'f' ? xexp + 10 : 6) + px->f_24;
-        if (nsig >= 0x14) {
-            nsig = 0x13;
+
+        gen = px->f_24 + ((code == 'f') ? exp + 10 : 6);
+        if (gen > 0x13) {
+            gen = 0x13;
         }
-        buf[0] = '0';
-        s = buf + 1;
-        if (nsig > 0) {
-            /* 8-digit chunks: take (int)ld, emit digits backward */
-            int rem = nsig;
-            while (rem > 0 && ld != 0.0) {
-                int chunk;
-                char *w;
-                v = (int)ld;
-                ld = (ld - v) * 100000000.0;
-                w = s + 8;
-                for (chunk = 8; chunk > 0 && v > 0; chunk--) {
-                    int q;
-                    game_libs_func_00073694((char *)&q, (char *)v, 10);
-                    q = v % 10; v = v / 10;
-                    *--w = (char)('0' + q);
-                }
-                while (chunk-- > 0) {
-                    *--w = '0';
-                }
-                s += 8;
-                rem -= 8;
+
+        *ptr++ = '0';
+        while (gen > 0 && 0 < val) {
+            int j;
+            int lo = val;
+
+            if ((gen -= 8) > 0) {
+                val = (val - lo) * 1.0e8;
             }
+            ptr += 8;
+
+            for (j = 8; lo > 0 && --j >= 0;) {
+                ldiv74_t qr = game_libs_ldiv_744C4(lo, 10);
+                *--ptr = qr.rem + '0';
+                lo = qr.quot;
+            }
+
+            while (--j >= 0) {
+                ptr--;
+                *ptr = '0';
+            }
+            ptr += 8;
         }
-        /* strip leading zeros */
-        n = (int)(s - buf) - 1;
-        xexp += 7;
-        s = buf + 1;
-        while (*s == '0') {
-            s++;
-            n--;
-            xexp--;
+
+        gen = ptr - &buff[1];
+        for (ptr = &buff[1], exp += 7; *ptr == '0'; ptr++) {
+            --gen, --exp;
         }
-        /* rounding at nsig digits */
-        nsig = (code == 'f' ? xexp + 1 : (code == 'e' || code == 'E')) + px->f_24;
-        if (n < nsig) {
-            nsig = n;
+
+        nsig = px->f_24 + ((code == 'f') ? exp + 1 : ((code == 'e' || code == 'E') ? 1 : 0));
+        if (gen < nsig) {
+            nsig = gen;
         }
         if (nsig > 0) {
-            char fill = (nsig < n && s[nsig] >= '5') ? '9' : '0';
-            i = nsig - 1;
-            while (i >= 0 && s[i] == fill) {
-                i--;
+            char drop = (nsig < gen && ptr[nsig] > '4') ? '9' : '0';
+            int n2;
+
+            for (n2 = nsig; ptr[--n2] == drop;) {
+                nsig--;
             }
-            if (fill == '9') {
-                s[i] += 1;
+            if (drop == '9') {
+                ptr[n2]++;
             }
-            if (i < 0) {
-                xexp += 1;
+            if (n2 < 0) {
+                --ptr, ++nsig, ++exp;
             }
         }
     }
-    game_libs_func_00074894();
+    game_libs_func_00074894(px, code, ptr, nsig, exp);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
