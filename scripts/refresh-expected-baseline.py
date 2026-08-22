@@ -181,7 +181,13 @@ def main():
     # being swapped (their INCLUDE_ASM emits real bytes, and skipping them
     # leaves donor RELOCS that cannot append to the reloc-free baseline host).
     # These donors are byte-exact + reloc-free, so the baseline stays truthful.
-    DIRECT_CC_DONORS = {"src/game_libs/game_libs_o1_6AF0C.c", "src/game_libs/game_libs_o1g3_70FA4.c"}
+    # Derived from the Makefile: every direct-CC donor has an explicit
+    # "build/<path>.c.o: <path>.c" rule (asm-processor units use pattern rules).
+    DIRECT_CC_DONORS = {
+        p
+        for p in re.findall(r"^build/(src/\S+\.c)\.o:\s*\1\s*$", Path("Makefile").read_text(), re.M)
+        if "%" not in p
+    }
     src_c = [p for p in src_c if p not in DIRECT_CC_DONORS]
     if not src_c:
         print("refresh-baseline: no src/**/*.c found", file=sys.stderr)
