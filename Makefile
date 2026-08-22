@@ -888,6 +888,16 @@ build/src/kernel/kernel_ido53_5C50.c.o build/non_matching/src/kernel/kernel_ido5
 build/src/kernel/kernel_ido53_5C50.c.o build/non_matching/src/kernel/kernel_ido53_5C50.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_ido53_5C50.c.o build/non_matching/src/kernel/kernel_ido53_5C50.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ __osDevMgrMain=func_80005C50 osRecvMesg=func_80004FE0 osSendMesg=func_80005DC0 __osSetGlobalIntMask=func_800065F0 osEPiRawWriteIo=func_80009EB0 osEPiRawReadIo=func_80009C50 osYieldThread=func_80009E50
 build/src/kernel/kernel_010.c.o build/non_matching/src/kernel/kernel_010.c.o: REPLACE_FUNC_BODY := func_80005C50=$(KERNEL010_5C50_DONOR)
+# func_80004E50 = osLeoDiskInit (leodiskinit.c verbatim, IDO 5.3 -O1):
+# 64/64 non-reloc identical; struct-spelling emits the D6/D7 shared-$at
+# pair natively (old cap retracted). Same-size splice, no boundary fix.
+KERNEL003B_4E50_DONOR := build/src/kernel/kernel_ido53_4E50.c.o
+build/src/kernel/kernel_ido53_4E50.c.o build/non_matching/src/kernel/kernel_ido53_4E50.c.o: CC := $(IDO53_DIR)/cc
+build/src/kernel/kernel_ido53_4E50.c.o build/non_matching/src/kernel/kernel_ido53_4E50.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_ido53_4E50.c.o build/non_matching/src/kernel/kernel_ido53_4E50.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ osLeoDiskInit=func_80004E50 bzero=func_800030D0 __osDisableInt=func_800066B0 __osRestoreInt=func_800066D0
+build/src/kernel/kernel_003_b.c.o build/non_matching/src/kernel/kernel_003_b.c.o: REPLACE_FUNC_BODY := func_80004E50=$(KERNEL003B_4E50_DONOR)
+build/src/kernel/kernel_003_b.c.o: TRUNCATE_TEXT := 0x100
+build/non_matching/src/kernel/kernel_003_b.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x100
 # clip the splice-grown trailing alignment nop: unit = 0x10 pad + 0x490 body
 build/src/kernel/kernel_010.c.o: TRUNCATE_TEXT := 0x4A0
 build/non_matching/src/kernel/kernel_010.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x4A0

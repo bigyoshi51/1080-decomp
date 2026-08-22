@@ -67,75 +67,22 @@ extern OSEventState __osEventStateTab[];
 
 
 
-#ifdef NON_MATCHING
-/* PI DOM2 timing + system init. Single residual diff (2026-06-23): the target
- * shares ONE `lui $at` across the two adjacent byte stores D6/D7
- * (`li t0,6; li t1,2; sb t0,%lo(D6)(at); sb t1,%lo(D7)(at)`), hoisting both
- * immediates before the pair; IDO -O1 from straight C instead reloads
- * `lui $at` for D7. Every other store (D4/D5/D8/D9) emits its own `lui $at`
- * and matches exactly. All structural levers regress (char* base / u8[] array
- * spill a held base reg; struct retype no-ops the share — IDO_CODEGEN.md:741);
- * permuter (2 runs, ~1.5k iters, temp/reorder/split weights) never beat the
- * baseline 1-diff. This is an IDO internal-scheduler `$at`-coalescing decision
- * not reachable from source. Leave NON_MATCHING (no episode).
- * 2026-07-10 negative probe (w48 sweep): `extern u8 D_800195D6[];` +
- * D6[0]/D6[1] indexing (array-decay, hoping for one %hi + %lo/%lo+1 pair)
- * REGRESSES — IDO materializes the base in a NAMED reg (lui+addiu per
- * access, +5 words, whole store block re-schedules). Reverted; cap stands.
- * 2026-07-15 (agent-h) lever-wave re-verify — cap CONFIRMED, exhaustively:
- * comma-operator single statement (D6=6, D7=2) = no change; (&D6)[1]=2 =
- * base materialization regression (as documented); struct {u8 d6,d7} pair
- * (SAME symbol, +1 offset) still emits TWO lui $at at -O1 (7.1 AND 5.3);
- * -O2 hoists %hi into a named reg (zero lui $at, wrong shape). No IDO
- * config emits one shared $at across two adjacent byte stores. The target
- * pair (both li's hoisted above both sb's, one $at) matches no compiler
- * output family — plausibly hand-touched asm or a different tool. */
-extern u8 D_800195D4;
-extern u8 D_800195D5;
-extern u8 D_800195D6;
-extern u8 D_800195D7;
-extern u8 D_800195D8;
-extern u8 D_800195D9;
-extern s32 D_800195D0;
-extern s32 D_800195DC;
-extern s32 D_800195E0;
-extern s32 D_80019644;
-extern void* D_8000A46C;
-extern s32 func_800030D0(s32*, s32);
-
-#define IO_WRITE(addr, val) (*(volatile s32*)(addr) = (val))
-
-/* func_80004E50: global-init + PI-BSD-DOM HW-reg writes. NOTES:
- * - The 4 IO_WRITE literals (0xA46000xx) link byte-identical to the expected
- *   D_A46000xx relocs (both resolve to the same final address). Do NOT convert
- *   to `extern volatile s32 D_A46000xx = v;` — that re-schedules the whole fn.
- * - func_800030D0's first arg is derived from &D_800195D0 (the returned base),
- *   NOT &D_800195E0: `&D_800195D0 + 5` == 0x800195E4 == &D_800195E0 + 1. This
- *   matters for the linked bytes (target materializes &D_800195D0 then +0x14),
- *   fixed 2026-06-23; previously baked &D_800195E0 (a real byte diff).
- * - Sole remaining diff: the D6/D7 shared-$at store pair (see comment above). */
-void* func_80004E50(void) {
-    s32 sr;
-    D_800195D4 = 2;
-    D_800195DC = 0xA5000000;
-    D_800195D5 = 3;
-    D_800195D8 = 6;
-    D_800195D6 = 6;
-    D_800195D7 = 2;
-    D_800195D9 = 1;
-    IO_WRITE(0xA4600024, 3);
-    IO_WRITE(0xA4600028, D_800195D8);
-    IO_WRITE(0xA460002C, D_800195D6);
-    IO_WRITE(0xA4600030, D_800195D7);
-    D_800195E0 = 0;
-    func_800030D0(&D_800195D0 + 5, 0x60);
-    sr = func_800066B0();
-    D_800195D0 = (s32)D_8000A46C;
-    D_8000A46C = &D_800195D0;
-    D_80019644 = (s32)&D_800195D0;
-    func_800066D0(sr);
-    return &D_800195D0;
+/* func_80004E50 = libultra osLeoDiskInit (io/leodiskinit.c verbatim,
+ * IDO 5.3 -O1 donor: kernel_ido53_4E50.c). LANDED 2026-08-22 via
+ * REPLACE_FUNC_BODY donor splice: 64/64 non-reloc words identical; the
+ * reloc fields resolve via sign-extended-lo pins LeoDiskHandle=
+ * 0x800195D0 / __osPiTable=0x8000A46C / __osDiskHandle=0x80019644 and
+ * jal renames bzero=func_800030D0, __osDisableInt=func_800066B0,
+ * __osRestoreInt=func_800066D0. RETRACTS the "D6/D7 shared-$at store
+ * pair = no compiler output family / plausibly hand-touched" cap
+ * documented above: the verbatim OSPiHandle STRUCT spelling (pageSize/
+ * relDuration at +6/+7 of the ONE LeoDiskHandle symbol, in-place
+ * addends) emits the single shared lui $at natively at 5.3 -O1 -- the
+ * cap was an artifact of the separate-extern-u8 spelling. Twin of the
+ * game_libs gl_func_0006F088 land (blank-pin USO variant). Body below
+ * is a placeholder for the splice. */
+void *func_80004E50(void) {
+    volatile int leodiskinit_spliced = 0;
+    leodiskinit_spliced = 1;
+    return (void *)leodiskinit_spliced;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80004E50);
-#endif

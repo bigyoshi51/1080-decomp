@@ -3241,3 +3241,6 @@ gl_func_00000000_ldtob6E = 0x00000000;   /* blank _Ldtob jal for the xprintf.c d
 D_00000000_crmq_mt = 0x00000000;    /* osCreateMesgQueue mtqueue &__osThreadTail blank (game_libs_ido53_6F218.c donor) */
 D_00000000_crmq_full = 0x00000000;  /* osCreateMesgQueue fullqueue &__osThreadTail blank (game_libs_ido53_6F218.c donor) */
 func_80005C50_rodata = 0x8000A770;  /* __osDevMgrMain switch jumptable (kernel .data; donor .rodata section reloc renamed by replace-function-body) */
+LeoDiskHandle = 0x800195D0;   /* osLeoDiskInit donor (kernel_ido53_4E50.c); lui 0x8002 via signed-lo wrap */
+__osPiTable = 0x8000A46C;     /* alias of D_8000A46C for the leodiskinit donor */
+__osDiskHandle = 0x80019644;  /* osLeoDiskInit donor */

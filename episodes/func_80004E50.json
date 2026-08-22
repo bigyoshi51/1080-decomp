@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80004E50",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T00:00:00.000000+00:00",
+  "end_time": "2026-08-22T00:00:00.000000+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* libreultra src/io/leodiskinit.c verbatim (see src/kernel/kernel_ido53_4E50.c: cfe -E-expanded 2.0I type block + verbatim TU incl. the LeoDiskHandle/__osDiskHandle definitions). */",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T00:00:00.000000+00:00",
+      "assistant_text": "func_80004E50 = libultra osLeoDiskInit (io/leodiskinit.c verbatim, IDO 5.3 -O1). Kernel twin of the gl_func_0006F088 game_libs land (blank-pin USO variant). Found by the same kernel/bootup sweep as 5C50: size-match + masked word-compare (76.6% masked flag), then aligned raw compare: 64/64 non-reloc words identical -- all 38 diffs are reloc fields. RETRACTS the exhaustively-documented 'D6/D7 shared-$at store pair matches no compiler output family / plausibly hand-touched asm' cap: the verbatim OSPiHandle STRUCT definition (pageSize/relDuration at +6/+7 of the ONE LeoDiskHandle symbol, in-place reloc addends) emits the single shared lui $at natively at 5.3 -O1; the cap was an artifact of the separate-extern-u8-symbol spelling used by all prior probes. Reloc resolution: LeoDiskHandle=0x800195D0, __osPiTable=0x8000A46C, __osDiskHandle=0x80019644 (all sign-extended-lo wraps: lui 0x8002/lo 0x95Dx etc.), jal renames bzero=func_800030D0, __osDisableInt=func_800066B0, __osRestoreInt=func_800066D0. Same-size splice (0x100, no lead pad); TRUNCATE_TEXT 0x100 clips the splice-grown trailing align nop (gotcha: the truncate size is the EXPECTED .text size, not text+other-sections).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 64,
+  "metadata": {
+    "source_path": "src/kernel/kernel_ido53_4E50.c",
+    "segment": "kernel",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "aligned raw word compare vs asm/nonmatchings .s: 64/64 non-reloc identical, 38 reloc fields resolved by the link (sign-extended-lo pins + jal renames); REPLACE_FUNC_BODY splice into kernel_003_b.c.o + TRUNCATE_TEXT 0x100; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/kernel/func_80004E50.s"
+  }
+}
