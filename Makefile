@@ -279,7 +279,14 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # 0x50 at the new offset 0x2c174. NOTE: the shape-truer nested-!= spelling of
 # the same body zeroes objdiff (fuzzy MISSING/0.0, unreproduced-in-isolation
 # metric anomaly) — kept the goto form, see MATCHING_WORKFLOW.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c524 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2c524 -> 0x2c504 2026-08-22: 55470 39.9->44.75 nested-!=-chain head with
+# goto arms (chain-ordered bodies), body 0x450 -> 0x438; tail 62F08 keeps its
+# full 0x50 at the new offset 0x2c4b4. Hard-zero anomaly ROOT-CAUSED: objdiff
+# scorer clamp — a moved block costs delete+insert = 200/insn against a
+# max_score of 100/left-insn, so >50% block-moved content (uopt lays inline
+# nested-!= else-arm bodies innermost-first = reversed) clamps to exact 0.0.
+# See MATCHING_WORKFLOW "objdiff fuzzy can hard-zero".)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c504 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0

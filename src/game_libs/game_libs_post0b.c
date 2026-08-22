@@ -26382,24 +26382,77 @@ void gl_func_00055470(int *s) {
     int w12, w10, w11, w16, w08, w04, w05, w06, w07, w17, w18;
     int cmd = s[1];
 
-    if (cmd == 1014) goto Lend;
-    if (cmd == 1012) goto L1012;
-    if (cmd == 1015) goto L1015;
-    if (cmd == 1010) goto L1010;
-    if (cmd == 1011) goto L1011;
-    if (cmd == 1016) goto L1016;
-    if (cmd == 1000) goto Lend;
-    if (cmd == 1008) goto L1008;
-    if (cmd == 1019) goto Lend;
-    if (cmd == 1004) goto L1004;
-    if (cmd == 1005) goto L1005;
-    if (cmd == 1006) goto L1006;
-    if (cmd == 1007) goto L1007;
-    if (cmd == 1017) goto L1017;
-    if (cmd == 1003) goto L1003;
-    if (cmd == 113) goto L113;
-    if (cmd == 1018) goto L1018;
-    goto Ldef;
+    /* Nested-!= chain head (target's beq-to-body chain shape) with goto arms
+     * so the arm bodies stay in CHAIN order (39.9 -> 44.75). Do NOT inline
+     * the bodies in the else arms: uopt lays inline nested-!= else-arm
+     * bodies innermost-first (reversed vs target), and objdiff's scorer
+     * charges moved blocks delete+insert (200/insn) against a 100/insn
+     * max_score — >50% moved content clamps the fuzzy to exactly 0.0
+     * ("MISSING"). Root-caused 2026-08-22; see MATCHING_WORKFLOW. */
+    if (cmd != 1014) {
+        if (cmd != 1012) {
+            if (cmd != 1015) {
+                if (cmd != 1010) {
+                    if (cmd != 1011) {
+                        if (cmd != 1016) {
+                            if (cmd != 1000) {
+                                if (cmd != 1008) {
+                                    if (cmd != 1019) {
+                                        if (cmd != 1004) {
+                                            if (cmd != 1005) {
+                                                if (cmd != 1006) {
+                                                    if (cmd != 1007) {
+                                                        if (cmd != 1017) {
+                                                            if (cmd != 1003) {
+                                                                if (cmd != 113) {
+                                                                    if (cmd != 1018) {
+                                                                        goto Ldef;
+                                                                    } else {
+                                                                        goto L1018;
+                                                                    }
+                                                                } else {
+                                                                    goto L113;
+                                                                }
+                                                            } else {
+                                                                goto L1003;
+                                                            }
+                                                        } else {
+                                                            goto L1017;
+                                                        }
+                                                    } else {
+                                                        goto L1007;
+                                                    }
+                                                } else {
+                                                    goto L1006;
+                                                }
+                                            } else {
+                                                goto L1005;
+                                            }
+                                        } else {
+                                            goto L1004;
+                                        }
+                                    }
+                                } else {
+                                    goto L1008;
+                                }
+                            }
+                        } else {
+                            goto L1016;
+                        }
+                    } else {
+                        goto L1011;
+                    }
+                } else {
+                    goto L1010;
+                }
+            } else {
+                goto L1015;
+            }
+        } else {
+            goto L1012;
+        }
+    }
+    goto Lend;
 
 L1012:
     cp = (int *)s[0];
