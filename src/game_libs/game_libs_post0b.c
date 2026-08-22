@@ -21729,63 +21729,108 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F2DC);
-
-// gl_func_0004F2F4 — STRUCTURAL PASS (0x40C / 260 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function (large FP builder). Single
-// prologue frame 0x1A8 (~0.4 KB stack scratch; saves ra). Per-object FP
-// transform-and-emit (cb = jal 0 USO-relocated).
+// game_libs_func_0004F2DC — MERGED 2026-08-22 (forward-merge, 26B40 precedent):
+// old game_libs_func_0004F2DC (0x18) was the stolen pre-prologue of
+// gl_func_0004F2F4 (0x410): move t6,a1 / mtc1 / lui at,0x4320(160.f) / mtc1 /
+// cvt.s.w f6=(f32)a1 / lui at,0x42F0(120.f) — all consumed by 4F2F4's first
+// words (sub.s f10,f6,f8 / mtc1 at,f10 read them live-in). Unified symbol at
+// the orphan address, size 0x428. gl_func_0004F2F4.s deleted.
 //
-//   void gl_func_0004F2F4(int a0, void *a1, int a2, float a3) {
-//     float blk[..];                                  // sp+0xC8 transform
-//                                                     //   scratch
-//     // FP transform of a1's fields: sub.s / mul.s reductions plus
-//     // cvt.s.w integer->float conversions and constants (8.0f =
-//     // 0x41000000, &D_0+0x128 FP-pool) accumulated into blk[..];
-//     blk[0] = ...; blk[1] = ...; blk[2] = ...;
-//     cb1(a1, &sp_0xB4);                               // process/dispatch A
-//     cb2(&blk);                                       // emit transformed
-//                                                      //   block
-//     // copy the sp+0xC8 scratch block out (lw/sw loop) into the
-//     // destination resolved off a1->0x70 / a1->0x74.
-//   }
-// Builds a transformed coordinate / matrix block in a large sp+0xC8 scratch
-// from the a1 source (sub/mul FP math + cvt.s.w + the 8.0f / &D_0+0x128
-// FP-pool constants), runs it through cb1/cb2 for processing/emit, then
-// copies the result block out to the a1->0x70-rooted destination.
-//
-// Caps (DEFERRED): a1 struct, FP-pool refs and cb signatures
-//   untyped; inner transform arithmetic not decoded (260-word
-//   builder). Real-C STRUCTURAL body below — transform-build +
-//   cb-emit + dest-copy skeleton only. Byte-match deferred. Name
-//   pre-checked: no extern reuse.
-/* gl_func_0004F2F4 graft attempt 2026-06-10: fresh m2c graft emitted
- * 0x810 vs target 0x410 (DOUBLE size -- m2c duplicated-tail/unroll
- * explosion) -> fuzzy=None. This 12.56 body stays. The 2x emission
- * suggests m2c re-rendered shared tails per-path; hand re-derivation
- * with explicit shared blocks needed. */
+// Screen-point -> world raycast picker. Builds ray dir {160-x, y-120, 8/K}
+// from screen coords, rotates by camera mtx (cam+0xB4), normalizes, scales to
+// far dist, start/end scaled by the collision kvec (&D+0x128 3-vec), raycasts
+// (8 max hits: dists/surfs/hit-points out-arrays), picks nearest positive
+// dist, unscales the hit, writes it to `out`, returns 1 (0 = no hit).
+// jal-0 zero-alias placeholders (USO baked relocs — not landable as exact).
 #ifdef NON_MATCHING
-extern int D_00000000;
-void gl_func_0004F2F4(int a0, char *a1, int a2, float a3) {
-    float blk[16];
-    float K = *(float *)((char *)&D_00000000 + 0x128);
-    int local[16];
+int game_libs_func_0004F2DC(char *arg0, int x, int y, float *out) {
+    float vec19C[3];
+    int count;
+    float dists[8];
+    int surfs[8];
+    float hits[8][3];
+    float vecEC[3];
+    float vecE0[3];
+    float vecD4[3];
+    float vecC8[3];
+    float vecB4[3];
+    float vecA0[3];
+    float vec84[3];
+    float vec70[3];
+    float vec54[3];
+    char *cam;
+    char *p;
+    float best;
+    float d;
+    int besti;
     int i;
-    for (i = 0; i < 3; i++) {
-        float v = *(float *)(a1 + 0x10 + i * 4)
-                - *(float *)(a1 + 0x20 + i * 4);
-        blk[i] = v * K * 8.0f;
+
+    vecC8[0] = -((float)x - 160.0f);
+    vecC8[1] = (float)y - 120.0f;
+    vecC8[2] = 8.0f / *(float *)((char *)&D_00000000 + 0x128);
+    count = 0;
+    gl_func_00000000(vecC8, *(char **)(arg0 + 0x70) + 0xB4);
+    gl_func_00000000(vecC8);
+
+    *(Tri3i *)vecB4 = *(Tri3i *)vecC8;
+    vecD4[0] = vecB4[0];
+    vecD4[1] = vecB4[1];
+    vecD4[2] = vecB4[2];
+
+    cam = *(char **)(arg0 + 0x70);
+    vecEC[0] = *(float *)(cam + 0xA0);
+    vecEC[1] = *(float *)(cam + 0xA4);
+    vecEC[2] = *(float *)(cam + 0xA8);
+    vecA0[0] = vecD4[0] * *(float *)((char *)&D_00000000 + 0x1BA8);
+    vecA0[1] = vecD4[1] * *(float *)((char *)&D_00000000 + 0x1BA8);
+    vecA0[2] = vecD4[2] * *(float *)((char *)&D_00000000 + 0x1BA8);
+    cam += 0x70;
+
+    *(Tri3i *)vecB4 = *(Tri3i *)vecA0;
+    *(Tri3i *)vec19C = *(Tri3i *)vecB4;
+    vec70[0] = vecEC[0] + vec19C[0];
+    vec70[1] = vecEC[1] + vec19C[1];
+    vec70[2] = vecEC[2] + vec19C[2];
+    *(Tri3i *)vec84 = *(Tri3i *)vec70;
+    *(Tri3i *)vec54 = *(Tri3i *)vec84;
+
+    vecEC[0] = vecEC[0] * *(float *)((char *)&D_00000000 + 0x128);
+    vecEC[1] = vecEC[1] * *(float *)((char *)&D_00000000 + 0x12C);
+    vecEC[2] = vecEC[2] * *(float *)((char *)&D_00000000 + 0x130);
+    vecE0[0] = vec54[0] * *(float *)((char *)&D_00000000 + 0x128);
+    vecE0[1] = vec54[1] * *(float *)((char *)&D_00000000 + 0x12C);
+    vecE0[2] = vec54[2] * *(float *)((char *)&D_00000000 + 0x130);
+
+    p = *(char **)&D_00000000;
+    if (p != NULL) {
+        count = gl_func_00000000(p, 8, dists, surfs, vecEC, vecE0, 0, hits);
     }
-    gl_func_00000000(a1, local);
-    gl_func_00000000(blk);
-    {
-        float *dst = *(float **)(a1 + 0x70);
-        for (i = 0; i < 3; i++) dst[i] = blk[i];
+    besti = -1;
+    if (count == 0) {
+        return 0;
     }
-    (void)a0; (void)a2; (void)a3;
+    best = *(float *)((char *)&D_00000000 + 0x1BAC);
+    for (i = 0; i < count; i++) {
+        d = dists[i];
+        if (0.0f < d && d < best) {
+            best = d;
+            besti = i;
+        }
+    }
+    if (besti < 0) {
+        return 0;
+    }
+    hits[besti][0] = hits[besti][0] / *(float *)((char *)&D_00000000 + 0x128);
+    hits[besti][1] = hits[besti][1] / *(float *)((char *)&D_00000000 + 0x12C);
+    hits[besti][2] = hits[besti][2] / *(float *)((char *)&D_00000000 + 0x130);
+    *(Tri3i *)vecB4 = *(Tri3i *)hits[besti];
+    out[0] = vecB4[0];
+    out[1] = vecB4[1];
+    out[2] = vecB4[2];
+    return 1;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F2F4);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F2DC);
 #endif
 
 // gl_func_0004F704 — STRUCTURAL PASS (0x154 / 86 words, no episode). Raw-.word
