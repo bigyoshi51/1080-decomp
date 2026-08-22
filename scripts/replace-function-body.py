@@ -275,14 +275,47 @@ class Elf:
         struct.pack_into(SYM_FMT, self.data, new_abs, name_off, 0, 0, 0x10, 0, 0)
         return new_idx
 
+    def _create_rel_text_section(self):
+        """Create an empty .rel.text section (SHT_REL, link=.symtab,
+        info=.text). Needed when the destination .o has no relocations at all
+        — e.g. the EXPECTED_BASELINE build where every function is INCLUDE_ASM
+        raw words — so import_donor_relocs has somewhere to append."""
+        name_off = self._strtab_add(self.e_shstrndx, ".rel.text")
+        # _strtab_add grew shstrtab; refresh the cached copy used by
+        # section_name/find_section before any lookup.
+        shstr = self.sections[self.e_shstrndx]
+        self.shstrtab = bytes(self.data[shstr[4]:shstr[4] + shstr[5]])
+        symtab_idx = self.find_section(".symtab")
+        text_idx = self.find_section(".text")
+        ent = struct.calcsize(REL_FMT)
+        # Insert one zeroed header slot at the end of the section-header table.
+        hdr_end = self.e_shoff + self.e_shnum * self.e_shentsize
+        self.data[hdr_end:hdr_end] = b"\x00" * self.e_shentsize
+        for sec in self.sections:
+            if sec[4] >= hdr_end:
+                sec[4] += self.e_shentsize
+        new_idx = self.e_shnum
+        self.e_shnum += 1
+        # Empty content placed at the (current) start of the shdr table;
+        # _grow_section will insert the entries there and shift e_shoff past
+        # them. Fields: name, type=SHT_REL(9), flags, addr, offset, size,
+        # link(.symtab), info(.text), addralign, entsize.
+        self.sections.append(
+            [name_off, 9, 0, 0, self.e_shoff, 0, symtab_idx, text_idx, 4, ent])
+        for i in range(self.e_shnum):
+            self.write_section_header(i)
+        self.write_elf_header()
+        return new_idx
+
     def append_text_relocs(self, new_entries):
         """Append (r_off, r_info) entries to .rel.text, creating it if needed.
         Used for import_donor_relocs."""
         if not new_entries:
             return
         if not self.has_section(".rel.text"):
-            raise RuntimeError(".rel.text section missing — cannot append relocs")
-        rel_idx = self.find_section(".rel.text")
+            rel_idx = self._create_rel_text_section()
+        else:
+            rel_idx = self.find_section(".rel.text")
         ent = self.sections[rel_idx][9]
         bytes_per_entry = struct.calcsize(REL_FMT)
         if ent != bytes_per_entry:
