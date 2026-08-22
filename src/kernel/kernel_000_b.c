@@ -126,10 +126,12 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80002E70);
 /* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80002E78);
 
-/* 2026-06-24 reference-confirmed PRIVILEGED-ASM handwritten (CP0/TLB/FPU: mtc0/mfc0/tlbwi/ctc1/cfc1 — no C form, like libreultra src/os/*.s). INCLUDE_ASM is canonical/permanent; 0.0% fuzzy is CORRECT, not a pending decode. */
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80002F78);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800030D0);
+/* func_80002F78 / func_800030D0 merged into func_80002E78.s as alabel
+ * alternative entries (2026-08-22): one contiguous handwritten exception/rdb
+ * handler stream -- 2E78 falls through into 2F78 (mfc0 tail, no jr ra), 2F78
+ * ends with a branch whose DELAY SLOT is 30D0's first insn, and both branch
+ * forward into func_800031F0's labels. jal callers (func_80002530,
+ * func_80004E50, func_800058C0) resolve via the global alabel symbols. */
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_800031D0);
 
@@ -141,20 +143,20 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_800031F0);
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80003C24);
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003D40);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E0C);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E54);
-
 /* HANDWRITTEN REGION 2026-06-10: func_80003C24..func_80004030 (through
  * 0x44CC) is one handwritten boot/PI-DMA chain, not compiler output:
- * no prologue at any symbol (3E64: or t2,t1,at first insn; 3FF0: addu
- * t3,t9,t2; 4030: bnez t9 reading the predecessor's t5/t9 loads),
- * t-reg-only dataflow, PI registers (0xA4600010, 0x510(t3)) -- the
- * continuation of the func_800031F0 handwritten handler neighborhood.
- * Permanent INCLUDE_ASM (same class as 31F0). */
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E64);
+ * no prologue past 3D40, t-reg-only dataflow, PI registers (0xA4600010,
+ * 0x510(t3)) -- the continuation of the func_800031F0 handwritten
+ * handler neighborhood. Permanent INCLUDE_ASM (same class as 31F0).
+ * Fragment merges 2026-08-22: func_80003E0C absorbed into func_80003D40.s
+ * (3D40's tail lw t9,0x3C(sp) falls through into 3E0C's and t1,t9,at --
+ * one instruction stream on 3D40's frame); func_80003E64 absorbed into
+ * func_80003E54.s (3E54 ends or v0,zero,zero, no jr ra, falls through).
+ * Both kept as global alabel alternative entries -- jal callers
+ * (func_80006110, func_800044CC -> 3E0C; func_80003C24 -> 3E64) resolve. */
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80003D40);
+
+INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E54);
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80003FF0);
 
