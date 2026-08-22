@@ -692,7 +692,26 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006E20C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006E1A4_pad.s")
 
 #ifdef NON_MATCHING
-/* gl_func_0006E224 - doprnt conversion-specifier dispatcher (0x670, 412 insns).
+/* gl_func_0006E224 = Plauger libc _Putfld (xprintf.c) -- IDENTITY OPENED
+ * 2026-08-22 (whole-TU vein probe): this is the static conversion-char
+ * dispatcher of the _Printf TU (gl_func_0006E894 = _Printf right after it,
+ * ROM order Putfld-then-Printf). Keys: six zeroed n0..nz2 fields at
+ * 0xC..0x20, '%' literal case, 25-entry 'F'..'^' jumptable (blank-HI16
+ * rodata, baked lo 9204), va_list align-then-bump pops, x->length
+ * checks 'l'/'h'/'L', strlen for %s, _Litob/_Ldtob blank jals. The
+ * "PERMANENT CAP - CALLER-SET $s0" verdict below is RETRACTED: $s0 is
+ * IDO -O3 whole-TU INTERPROCEDURAL static linkage (exactly _Genld's
+ * $s0-$s4 custom linkage in the xldtob donor game_libs_ido53_73904.c;
+ * px arrives in $s0, code in a1, pap in a2, ac in a3). Landing route =
+ * ONE 5.3 -O3 whole-TU xprintf.c donor + 6DD14 jumptable-rodata rename
+ * + pins (spaces/zeroes statics are baked absolute %hi/%lo 0x2E484/
+ * 0x2E460 -> extern pinned syms). First libreultra-verbatim probe:
+ * _Printf 1584B vs 1608 target (6 insns short -- near-verbatim);
+ * _Putfld 1356B vs 1648 (73 insns short: va_arg needs 8-byte s64
+ * align-then-bump like the target's (p+3&~3)+4 / +7&~7)+8 forms, and
+ * case bodies need the 1080 revision's extra length-modifier paths).
+ * NOT landed this session (budget); vein documented in
+ * docs/MATCHING_WORKFLOW.md.
  *
  * WHOLE-BODY DECODE 2026-06-27 (param-layout + width fix over the 2026-06-20
  * decode). Argument registers realigned to the target: a0 = state pointer
@@ -933,7 +952,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006E224);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0006E894 - DEEP STRUCTURAL PASS (reconstruction 2026-06-21).
+/* gl_func_0006E894 = Plauger libc _Printf (xprintf.c) -- IDENTITY OPENED
+ * 2026-08-22 (whole-TU vein probe; see the _Putfld header at
+ * gl_func_0006E224 above for the full landing route). Keys: prout
+ * callback in $s4 (jalr s4 at every PUT/PAD), scan-to-'%' lbu loop,
+ * s5/s7 = the TU statics zeroes[]/spaces[] as baked absolute %hi/%lo
+ * 0x2E460/0x2E484, s6 = fchar " +-#0" (blank-HI16 rodata, baked lo
+ * 9172), s8 = 10 (the ATOI radix), strchr blank jals, x at sp+160 with
+ * x.size zeroed at sp+204 (= +0x2C, printf_struct layout). First
+ * libreultra-verbatim 5.3 -O3 probe emits _Printf 1584B vs 1608 target
+ * (6 insns short) -- near-verbatim; blocked only on the _Putfld-side
+ * revision deltas. One extra baked jal 0x20A24 near the tail =
+ * pre-relocation-literal call (docs "red herring" class, pin
+ * reproducible). Older reading below kept for the struct offsets.
+ * DEEP STRUCTURAL PASS (reconstruction 2026-06-21).
  * printf/_doprnt-style formatted-string emitter (0x648, 402 insns).
  * arg0 = output callback s32(*)(s32 acc, const u8 *src, s32 n, const u8 *fmt).
  * Scans the format string; flushes literal runs via arg0; on '%' (0x25)
