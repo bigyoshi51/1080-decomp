@@ -894,6 +894,20 @@ build/src/game_libs/game_libs_ido53_74554.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_74554.c.o build/non_matching/src/game_libs/game_libs_ido53_74554.c.o: OPT_FLAGS := -O2
 build/src/game_libs/game_libs_ido53_74554.c.o build/non_matching/src/game_libs/game_libs_ido53_74554.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ __ull_rem=gl_func_00000000_ullrem74 __ull_div=gl_func_00000000_ulldiv74
 GAMELIBS_74554_DONOR := build/src/game_libs/game_libs_ido53_74554.c.o
+# 74EFC/7507C = libultra osCreateViManager/viMgrMain (vimgr.c verbatim),
+# ONE IDO 5.3 -O1 -mips2 whole-TU donor: viMgrMain is static (whole-TU
+# .bss layout = USO 0x44080..0x45292), __osViDevMgr defined in-TU (USO
+# .data offset 0; local-.data def gives the $at-shared field stores),
+# and the 6-zero gap before viMgrMain's dead epilogue is as1's 32-byte
+# alignment of the unreachable block. viMgrMain keeps no usable symtab
+# entry (forward-declared static resolves *UND*), so POST_COMPILE
+# injects the gl_func_0007507C symbol (metadata only, bytes untouched).
+# See game_libs_ido53_74EF4.c.
+build/src/game_libs/game_libs_ido53_74EF4.c.o build/non_matching/src/game_libs/game_libs_ido53_74EF4.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_74EF4.c.o build/non_matching/src/game_libs/game_libs_ido53_74EF4.c.o: OPT_FLAGS := -O1
+build/src/game_libs/game_libs_ido53_74EF4.c.o build/non_matching/src/game_libs/game_libs_ido53_74EF4.c.o: POST_COMPILE = python3 scripts/add-elf-func-symbol.py $@ gl_func_0007507C=0x188:0x1cc
+GAMELIBS_74EF4_DONOR := build/src/game_libs/game_libs_ido53_74EF4.c.o
+build/src/game_libs/game_libs_post2b_f.c.o build/non_matching/src/game_libs/game_libs_post2b_f.c.o: REPLACE_FUNC_BODY := gl_func_00074EFC=$(GAMELIBS_74EF4_DONOR) gl_func_0007507C=$(GAMELIBS_74EF4_DONOR)
 build/src/game_libs/game_libs_post2b_d.c.o build/non_matching/src/game_libs/game_libs_post2b_d.c.o: REPLACE_FUNC_BODY := gl_func_000747F4=$(GAMELIBS_747F4_DONOR) gl_func_00073824=$(GAMELIBS_73824_DONOR) gl_func_0007369C=$(GAMELIBS_7369C_DONOR) gl_func_000744CC=$(GAMELIBS_744C4_DONOR) gl_func_00073904=$(GAMELIBS_73904_DONOR) gl_func_00073E74=$(GAMELIBS_73904_DONOR) gl_func_00074554=$(GAMELIBS_74554_DONOR)
 build/src/game_libs/game_libs_post2b_c.c.o build/non_matching/src/game_libs/game_libs_post2b_c.c.o: REPLACE_FUNC_BODY := gl_func_000732C4=$(GAMELIBS_732C4_DONOR) gl_func_000730CC=$(GAMELIBS_730CC_DONOR) game_libs_func_00073310=$(GAMELIBS_73310_DONOR) gl_func_0007307C=$(GAMELIBS_73074_DONOR) gl_func_00073034=$(GAMELIBS_73034_DONOR)
 # arcproc_uso_func_00000748: byte-identical sibling of mgrproc_uso_func_000009A8.
@@ -1021,6 +1035,19 @@ build/src/game_libs/game_libs_ido53_73904.c.o: src/game_libs/game_libs_ido53_739
 	$(POST_COMPILE)
 
 build/non_matching/src/game_libs/game_libs_ido53_73904.c.o: src/game_libs/game_libs_ido53_73904.c
+	@mkdir -p $(dir $@)
+	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(MIPSISET) $(CPPFLAGS) -DNON_MATCHING -o $@ $<
+	$(POST_COMPILE)
+
+# vimgr.c -O1 whole-TU donor (74EFC/7507C): direct CC (plain-C TU, no
+# GLOBAL_ASM; keeps the donor pipeline uniform with the 73904 rule).
+# Symbol injection = the POST_COMPILE from the donor block above.
+build/src/game_libs/game_libs_ido53_74EF4.c.o: src/game_libs/game_libs_ido53_74EF4.c
+	@mkdir -p $(dir $@)
+	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(MIPSISET) $(CPPFLAGS) -o $@ $<
+	$(POST_COMPILE)
+
+build/non_matching/src/game_libs/game_libs_ido53_74EF4.c.o: src/game_libs/game_libs_ido53_74EF4.c
 	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) $(OPT_FLAGS) $(MIPSISET) $(CPPFLAGS) -DNON_MATCHING -o $@ $<
 	$(POST_COMPILE)
