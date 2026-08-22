@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80005C50",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T00:00:00.000000+00:00",
+  "end_time": "2026-08-22T00:00:00.000000+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* libreultra src/io/devmgr.c __osDevMgrMain, verbatim (see src/kernel/kernel_ido53_5C50.c: cfe -E-expanded 2.0I type block + clean macro spellings + verbatim body). */",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T00:00:00.000000+00:00",
+      "assistant_text": "func_80005C50 = libultra __osDevMgrMain (io/devmgr.c verbatim, IDO 5.3 -O1). Found by the kernel/bootup identity sweep: batch-compile libreultra io+os at 5.3 -O1/-O2, size-match, then masked word-compare -- 290/291 masked on first hit. Aligned raw compare: 292/292 words with ALL 23 diffs being pure reloc fields (22 jals over 7 callees + one %hi/%lo pair). This RETRACTS the 2026-06-10 'handwritten-class debugger command dispatcher / permanent INCLUDE_ASM' verdict: the jr-t1 dispatch is IDO's own switch on mb->hdr.type (OS_MESG_TYPE_BASE cases 10..16; addiu t1,t9,-0xA; sltiu 7), jtbl_8000A770 is that switch's rodata table (the lui 0x8001/lw 0xa770 pair is the signed-lo wrap of 0x8000A770), and the old 'ASCII at load time' table read was at a mis-derived ROM offset. Callee map (all consistent across sites): osRecvMesg=0x80004FE0, osSendMesg=0x80005DC0, __osResetGlobalIntMask=0x80006650 (already matched+named, no rename), __osSetGlobalIntMask=0x800065F0, osEPiRawWriteIo=0x80009EB0, osEPiRawReadIo=0x80009C50, osYieldThread=0x80009E50. Donor built self-contained (cfe -E on the 2.0I header chain swallows tokens after //-comment macro bodies -- LEO_CMD_TYPE_0 etc.; re-spelled clean). Lead-zero-pad recipe applied (4 words 0x5C50..0x5C5C -> _pad_pre GLOBAL_ASM; true entry 0x80005C60); TRUNCATE_TEXT 0x4A0 clips the splice-grown trailing alignment nop.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 292,
+  "metadata": {
+    "source_path": "src/kernel/kernel_ido53_5C50.c",
+    "segment": "kernel",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "aligned raw word compare vs asm/nonmatchings .s body: 292/292 non-reloc identical, 23 reloc fields resolved by the link (renames + func_80005C50_rodata=0x8000A770 pin); REPLACE_FUNC_BODY splice into kernel_010.c.o + TRUNCATE_TEXT 0x4A0; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/kernel/func_80005C50.s"
+  }
+}

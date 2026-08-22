@@ -878,6 +878,19 @@ build/src/game_libs/game_libs_ido53_6C1B8.c.o build/non_matching/src/game_libs/g
 build/src/kernel/kernel_000_ido53_2530.c.o build/non_matching/src/kernel/kernel_000_ido53_2530.c.o: CC := $(IDO53_DIR)/cc
 build/src/kernel/kernel_000_ido53_2530.c.o build/non_matching/src/kernel/kernel_000_ido53_2530.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_000.c.o build/non_matching/src/kernel/kernel_000.c.o: REPLACE_FUNC_BODY := func_80002530=$(KERNEL000_2530_DONOR)
+# func_80005C50 = __osDevMgrMain (devmgr.c verbatim, IDO 5.3 -O1): 292/292
+# non-reloc-identical; renames map the callees to kernel addresses; the
+# switch-jumptable .rodata section reloc is renamed to func_80005C50_rodata
+# by replace-function-body and pinned 0x8000A770 in undefined_syms_auto.txt.
+# 4 lead zero words re-homed to _pad_pre GLOBAL_ASM in kernel_010.c.
+KERNEL010_5C50_DONOR := build/src/kernel/kernel_ido53_5C50.c.o
+build/src/kernel/kernel_ido53_5C50.c.o build/non_matching/src/kernel/kernel_ido53_5C50.c.o: CC := $(IDO53_DIR)/cc
+build/src/kernel/kernel_ido53_5C50.c.o build/non_matching/src/kernel/kernel_ido53_5C50.c.o: OPT_FLAGS := -O1
+build/src/kernel/kernel_ido53_5C50.c.o build/non_matching/src/kernel/kernel_ido53_5C50.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ __osDevMgrMain=func_80005C50 osRecvMesg=func_80004FE0 osSendMesg=func_80005DC0 __osSetGlobalIntMask=func_800065F0 osEPiRawWriteIo=func_80009EB0 osEPiRawReadIo=func_80009C50 osYieldThread=func_80009E50
+build/src/kernel/kernel_010.c.o build/non_matching/src/kernel/kernel_010.c.o: REPLACE_FUNC_BODY := func_80005C50=$(KERNEL010_5C50_DONOR)
+# clip the splice-grown trailing alignment nop: unit = 0x10 pad + 0x490 body
+build/src/kernel/kernel_010.c.o: TRUNCATE_TEXT := 0x4A0
+build/non_matching/src/kernel/kernel_010.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x4A0
 build/src/kernel/kernel_018_f_ido53_7564.c.o build/non_matching/src/kernel/kernel_018_f_ido53_7564.c.o: CC := $(IDO53_DIR)/cc
 build/src/kernel/kernel_018_f_ido53_7564.c.o build/non_matching/src/kernel/kernel_018_f_ido53_7564.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_018_f.c.o build/non_matching/src/kernel/kernel_018_f.c.o: REPLACE_FUNC_BODY := func_80007564=$(KERNEL018F_7564_DONOR)

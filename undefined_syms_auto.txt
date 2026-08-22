@@ -3240,3 +3240,4 @@ gl_func_00000000_litob6E = 0x00000000;   /* blank _Litob jals (x3) for the xprin
 gl_func_00000000_ldtob6E = 0x00000000;   /* blank _Ldtob jal for the xprintf.c donor */
 D_00000000_crmq_mt = 0x00000000;    /* osCreateMesgQueue mtqueue &__osThreadTail blank (game_libs_ido53_6F218.c donor) */
 D_00000000_crmq_full = 0x00000000;  /* osCreateMesgQueue fullqueue &__osThreadTail blank (game_libs_ido53_6F218.c donor) */
+func_80005C50_rodata = 0x8000A770;  /* __osDevMgrMain switch jumptable (kernel .data; donor .rodata section reloc renamed by replace-function-body) */

@@ -1,11 +1,7 @@
 
-nonmatching func_80005C50, 0x4A0
+nonmatching func_80005C50, 0x490
 
 glabel func_80005C50
-    /* 6C50 80005C50 00000000 */  nop
-    /* 6C54 80005C54 00000000 */  nop
-    /* 6C58 80005C58 00000000 */  nop
-    /* 6C5C 80005C5C 00000000 */  nop
     /* 6C60 80005C60 27BDFFB8 */  addiu      $sp, $sp, -0x48
     /* 6C64 80005C64 AFA40048 */  sw         $a0, 0x48($sp)
     /* 6C68 80005C68 8FAE0048 */  lw         $t6, 0x48($sp)
