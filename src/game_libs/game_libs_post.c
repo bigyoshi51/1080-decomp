@@ -19670,43 +19670,17 @@ void gl_func_00031DD8(void) {
     gl_func_00000000();
 }
 
-/* [0x31DF8..0x32884) = the HANDWRITTEN CP0/system block, one family with
- * 32884 below (2026-06-10 graft-attempt finding): 31DF8 leads with zero
- * pad words; 31F20 + 31F4C are mfc0/mtc0 routines (0x40xxxxxx CP0 words
- * that disassemble as bogus far branches), busy-wait bne loops, fixed
- * trampolines, and 31F4C's "backwards branches" land inside 31DF8 --
- * hand-coded flow, not splat fragments. CP0 is inexpressible in IDO C
- * (reference_1080_mips3_runtime_helpers): PERMANENT INCLUDE_ASM, do not
- * graft, merge, or decode. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031DF8);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F20);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031F4C);
-
-/* game_libs_func_00032884: HANDWRITTEN system/CP0 routine (NOT a fragment —
- * the old "middle-fragment, backward branch to 0x31EF4, needs boundary
- * correction" note was wrong; 2026-06-02 re-decode shows NO before-start
- * branch). The 0xB0 block is a hand-coded sequence: `jal`/`j` trampolines to
- * fixed low offsets (0x1A68/0x1AB0/0x1AC0/…), CP0 register moves
- * (mfc0/mtc0 = 0x40xxxxxx words at 0x50-0xA8), busy-wait `bne` loops, and a
- * `jr ra`. CP0 access is not expressible in IDO C (cf.
- * reference_1080_mips3_runtime_helpers) — PERMANENT INCLUDE_ASM, do not
- * attempt a boundary merge or C decode. */
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00032884)();
-void game_libs_func_00032884(void) {
-    game_libs_func_0003443C();
-    game_libs_func_0003443C();
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032884);
-#endif
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00032934);
+/* [0x31DF8..0x32D74) = RSP MICROCODE, not CPU code (reclassified
+ * 2026-08-22). splat mis-split this 0xF7C-byte SP ucode image into five
+ * fake CPU "functions" (31DF8 / 31F20 / 31F4C / 32884 / 32934). Evidence:
+ * jal/j targets in SP IMEM (0x04001xxx), RSP COP0 moves (SP status /
+ * semaphore / DP regs — the old notes read these 0x40xxxxxx words as CPU
+ * CP0), COP2 vector ops (0x4A......: vmudn/vmadh family), and ldv/sqv
+ * (lwc2 0xC8.. / swc2 0xE8..) vector loads/stores. Never C-decompilable;
+ * emitted as one local data blob so it stays out of the function
+ * denominator. Bytes unchanged — see
+ * asm/nonmatchings/game_libs/game_libs/game_libs_rsp_ucode_31DF8.s */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_rsp_ucode_31DF8.s")
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00031DD8_pad.s")
 
 extern int gl_func_00000000();
