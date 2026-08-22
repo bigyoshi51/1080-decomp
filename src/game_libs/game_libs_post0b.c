@@ -32014,56 +32014,41 @@ void game_libs_func_0005F27C(f32 *d, f32 *b, f32 *c) {
     d[15] = -c[2] * b[2] + (-c[1] * b[1] + b[0] * -c[0]);
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-/* guOrthoF-shaped (K&R-lever sweep 2026-08-22, 52.49 -> 97.6, 83/85 words):
- * mixed signature int* dest + f32 args. a1-a3 register floats are homed and
- * RELOAD PER USE; stack floats arg4/5/6 cache into f14/f16/f18 (one load) and
- * arg7 (scale) loads once into f0 at the loop. Setup via ((f32*)arg0)[k] casts
- * (CSE'd base = single lw v0); scale loop = nested for over a *mf++ walker
- * (single candidate v0, counter v1 +1, limit li a0,4; IDO unrolls inner x4 +
- * software-pipelines the outer — guard beq / move v1,zero are pipeliner
- * artifacts, not source). TWIN gl_func_00070694 (post1c) is BYTE-EXACT from
- * this same source. Residual here = 2 words: pipeline DRAIN block emits
- * addiu v0,16 BEFORE swc1 f12,-16(v0); target has swc1 f12,0(v0) then addiu.
- * NEGATIVES: outer-inc `mf[j]..mf+=4` fixes the drain order but the surviving
- * j-IV phantom rotates all int colors +1 (ptr v1/ctr a0/lim a1 — dead-if and
- * while(0) ref-boosts don't un-rotate); manual mf[0..3] unroll flattens 16x;
- * `mf+=j` materializes sll/addu; arg0-as-walker colors ptr=a0 + mid-loop inc.
- * Inner-inc coalesces j into the pointer IV (right colors) but pins the merged
- * +16 addiu before the drain stores. as1/IR-order tie — spelling-unreachable. */
-void gl_func_0005F3E0(int *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7)
+/* guOrthoF (libreultra gu/ortho.c shape), BYTE-EXACT 85/85 2026-08-22
+ * (52.49 -> 97.6 via K&R-lever sweep, -> 100 via while-outer flip).
+ * Twin gl_func_00070694 (post1c) matches the verbatim for-outer ortho.c
+ * (IDO 5.3 -O3 donor); THIS copy's target differs from that one in
+ * exactly 2 words — the pipeline-drain swc1 f12/addiu v0,16 order
+ * (here: swc1 f12,0(v0) THEN addiu). The verbatim `for (i...)` outer
+ * loop schedules addiu first (both IDO 5.3 and 7.1, any -O2/-O3/ISA/
+ * shape of the walker — 15+ negatives); spelling the OUTER loop as
+ * `i=0; while (i<4) { inner for; i++; }` (or do-while) flips the drain
+ * tie and matches all 85 words in-TU at 7.1 -O2. Inner for unchanged.
+ * jal gl_func_00034458 (= guMtxIdentF slot) ships BLANK (USO load-time
+ * reloc): call via the pinned-zero alias gl_func_00000000_5f3e0
+ * (undefined_syms_auto.txt) so the linked jal bakes 0x0C000000. */
+extern int gl_func_00000000_5f3e0();
+void gl_func_0005F3E0(f32 mf[4][4], f32 l, f32 r, f32 b, f32 t, f32 n, f32 f, f32 scale)
 {
-    f32 *mf;
-    f32 temp_f0;
-    f32 temp_f2;
-    f32 temp_f12;
-    s32 var_v1;
-    s32 j;
+    int i, j;
 
-    gl_func_00034458();
-    temp_f0 = arg2 - arg1;
-    ((f32 *) arg0)[0] = 2.0f / temp_f0;
-    temp_f2 = arg4 - arg3;
-    ((f32 *) arg0)[5] = 2.0f / temp_f2;
-    temp_f12 = arg6 - arg5;
-    ((f32 *) arg0)[10] = -2.0f / temp_f12;
-    ((f32 *) arg0)[12] = -(arg2 + arg1) / temp_f0;
-    ((f32 *) arg0)[13] = -(arg4 + arg3) / temp_f2;
-    ((f32 *) arg0)[14] = -(arg6 + arg5) / temp_f12;
-    ((f32 *) arg0)[15] = 1.0f;
-    mf = (f32 *) arg0;
-    for (var_v1 = 0; var_v1 < 4; var_v1++) {
-        for (j = 0; j < 4; j++) {
-            *mf++ *= arg7;
-        }
+    gl_func_00000000_5f3e0();
+
+    mf[0][0] = 2/(r-l);
+    mf[1][1] = 2/(t-b);
+    mf[2][2] = -2/(f-n);
+    mf[3][0] = -(r+l)/(r-l);
+    mf[3][1] = -(t+b)/(t-b);
+    mf[3][2] = -(f+n)/(f-n);
+    mf[3][3] = 1;
+
+    i = 0;
+    while (i < 4) {
+        for (j=0; j<4; j++)
+            mf[i][j] *= scale;
+        i++;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005F3E0);
-#endif
 
 #ifdef NON_MATCHING
 /* game_libs_func_0005F534: one 47-insn (0xBC) GL frustum/perspective projection-
