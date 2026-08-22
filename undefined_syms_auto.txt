@@ -3238,3 +3238,5 @@ gl_func_00000000_strchr6E = 0x00000000;  /* blank strchr jals (x3) for the xprin
 gl_func_00000000_strlen6E = 0x00000000;  /* blank strlen jal for the xprintf.c donor */
 gl_func_00000000_litob6E = 0x00000000;   /* blank _Litob jals (x3) for the xprintf.c donor */
 gl_func_00000000_ldtob6E = 0x00000000;   /* blank _Ldtob jal for the xprintf.c donor */
+D_00000000_crmq_mt = 0x00000000;    /* osCreateMesgQueue mtqueue &__osThreadTail blank (game_libs_ido53_6F218.c donor) */
+D_00000000_crmq_full = 0x00000000;  /* osCreateMesgQueue fullqueue &__osThreadTail blank (game_libs_ido53_6F218.c donor) */

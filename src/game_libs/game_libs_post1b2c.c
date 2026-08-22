@@ -881,27 +881,23 @@ void game_libs_func_0006F1FC(int m) {
     }
 }
 
-#ifdef NON_MATCHING
-/* Constructor: a0[0]=&sym1, a0[1]=&sym2, a0[2]=0, a0[3]=0, a0[4]=a2, a0[5]=a1
- * (a1 stored in jr delay slot). The function symbol includes 3 leading nops
- * (0x6F218-0x6F220) before the body at 0x6F224 — PREFIX_BYTES inject prepends
- * them to the .o but doesn't extend the symbol to cover them in the linked elf,
- * so byte-exact requires a splat boundary fix (shift symbol to 0x6F224 / absorb
- * the 3 nops as previous-fn padding), not just PREFIX_BYTES. Reloc-blind (two
- * distinct symbols both → 0; PM10 multi-symbol). Body documented; default build
- * stays INCLUDE_ASM. */
+/* game_libs_func_0006F218 = libultra osCreateMesgQueue
+ * (os/createmesgqueue.c verbatim shape, IDO 5.3 -O1 donor:
+ * game_libs_ido53_6F218.c). LANDED 2026-08-22 via REPLACE_FUNC_BODY
+ * donor splice: 11/11 body words exact; the two blank hi/lo pairs =
+ * &__osThreadTail x2 (USO load-time relocs, donor externs pinned 0).
+ * The old "PREFIX_BYTES can't extend the symbol" blocker solved
+ * honestly: the 3 leading all-zero pad words (0x6F218/1C/20) are
+ * re-homed to the _pad_pre GLOBAL_ASM block below; true entry =
+ * 0x6F224, body 0x2C. Body below is a placeholder for the splice. */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_func_0006F218_pad.s")
+
 void game_libs_func_0006F218(int *a0, int a1, int a2) {
-    extern int gl_func_00000000();
-    a0[0] = (int)&D_00000000;
-    a0[1] = (int)&gl_func_00000000;
-    a0[2] = 0;
-    a0[3] = 0;
-    a0[4] = a2;
-    a0[5] = a1;
+    volatile int ocmq_spliced = 0;
+    if (a2 != 0) {
+        ocmq_spliced = a2;
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F218);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F250);
 

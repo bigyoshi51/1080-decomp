@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0006F218",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T00:00:00.000000+00:00",
+  "end_time": "2026-08-22T00:00:00.000000+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 -mips2 donor for game_libs_func_0006F218 = libultra osCreateMesgQueue. */\n\ntypedef struct OSThread_s { struct OSThread_s *next; } OSThread;\ntypedef void *OSMesg;\ntypedef struct OSMesgQueue_s {\n    OSThread *mtqueue;\n    OSThread *fullqueue;\n    int validCount;\n    int first;\n    int msgCount;\n    OSMesg *msg;\n} OSMesgQueue;\n\nextern OSThread D_00000000_crmq_mt;\nextern OSThread D_00000000_crmq_full;\n\nvoid osCreateMesgQueue(OSMesgQueue *mq, OSMesg *msg, int count)\n{\n    mq->mtqueue = (OSThread *)&D_00000000_crmq_mt;\n    mq->fullqueue = (OSThread *)&D_00000000_crmq_full;\n    mq->validCount = 0;\n    mq->first = 0;\n    mq->msgCount = count;\n    mq->msg = msg;\n}\n",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T00:00:00.000000+00:00",
+      "assistant_text": "game_libs_func_0006F218 = libultra osCreateMesgQueue (createmesgqueue.c shape). Identification keys: 6-field constructor writing {ptr,ptr,0,0,count,msg} into a0[0..5] with the msg store in the jr delay slot -- the exact OSMesgQueue init; sits in the os cluster right after the Plauger string fns (6F17C memcpy, 6F1B0 strlen, 6F1D8 strchr). IDO 5.3 -O1 emits 11/11 body words first compile; the two lui/addiu blank pairs are &__osThreadTail x2 (USO load-time relocs), reproduced with two distinct externs pinned 0x0 in undefined_syms_auto.txt. Lead-zero-pad blocker solved honestly: 3 all-zero words (0x6F218/1C/20) re-homed to a local _pad_pre GLOBAL_ASM block, .s shrunk to the 0x2C body at true entry 0x6F224 -- baseline and spliced layouts identical (retires the 'PREFIX_BYTES cannot extend the symbol' verdict).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 11,
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6F218.c",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "raw-word identical vs asm/nonmatchings .s body (11/11; hi/lo imms 0 both sides via pinned blank externs); POST_COMPILE rename-elf-symbol osCreateMesgQueue=game_libs_func_0006F218; REPLACE_FUNC_BODY splice into game_libs_post1b2c.c.o; lead pad via _pad_pre_game_libs_func_0006F218 GLOBAL_ASM (3 zero words); full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/game_libs/game_libs/game_libs_func_0006F218.s"
+  }
+}
