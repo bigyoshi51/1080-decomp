@@ -335,17 +335,18 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000346F0);
 //   mnemonic split/merge tooling — needs the spimdisasm-USO
 //   migration). No merge attempted (would corrupt the stubs); no
 //   episode.
-// Caps (DEFERRED): raw-word USO + bundled no-frame leaves (HANG stub
-//   + global setter at tail) + USO-reloc jal-0 printf callback +
-//   fixed string-data ref (0x00058D5C) — byte-match needs USO
-//   mnemonic disasm + boundary re-split. Real-C STRUCTURAL body
-//   below for the NAMED leading printf wrapper only — bundled tail
-//   stubs untouched. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
+// BYTE-EXACT NM BODY (2026-08-22 agent-g, 19/19 words): varargs decl
+//   `(int a0, ...)` homes all 4 arg regs at a 0x20 frame; the va
+//   cursor is the matched 4C190 idiom `(((int)((char*)&a0+4))+3)&~3`
+//   (emits `move a3,sp; addiu 0x27; and ~3`); string is baked-USO
+//   `(char*)&D_00000000 + 0x48D5C` (NOT 0x58D5C — %lo sign-extends);
+//   call is func(str, 0, a0, ap) with a0 RELOADED from its home
+//   (`lw a2,0x20(sp)`) because &a0 is address-taken. Placeholder
+//   callee gl_func_00000000 → stays NM wrap, no episode.
 #ifdef NON_MATCHING
-void gl_func_00034810(int a0, int a1, int a2, int a3) {
-    gl_func_00000000((char *)0x00058D5C, &a0);
-    (void)a1; (void)a2; (void)a3;
+void gl_func_00034810(int a0, ...) {
+    int aligned = (((int)((char *)&a0 + 4)) + 3) & ~3;
+    gl_func_00000000((char *)&D_00000000 + 0x48D5C, 0, a0, aligned);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034810);
