@@ -863,17 +863,29 @@ int game_libs_func_0006F1B0(char *a0) {
     return p - a0;
 }
 
-/* game_libs_func_0006F1D8: leaf-branch-past-end CAP per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F1D8);
+/* game_libs_func_0006F1D8 + game_libs_func_0006F1FC = libc strchr
+ * (Plauger verbatim, IDO 5.3 -O2 donor: game_libs_ido53_6F1D8.c).
+ * LANDED 2026-08-22 via REPLACE_FUNC_BODY donor splice (both keys from
+ * the one donor, offsets 0x0:0x24 / 0x24:0x1C), 16/16 words exact,
+ * ZERO relocs. splat had split the single fn at the loop-bottom label;
+ * the old "leaf-branch-past-end CAP" (6F1D8) and "caller-set $v0 tail
+ * fragment" (6F1FC) notes described the two halves of that split --
+ * both retired. Plauger string cluster: 6F17C = memcpy, 6F1B0 = strlen
+ * (matched in-unit), 6F1D8 = strchr. Bodies below are placeholders for
+ * the splice. */
+void game_libs_func_0006F1D8(int m) {
+    volatile int strchr_head_spliced = 0;
+    if (m != 0) {
+        strchr_head_spliced = m;
+    }
+}
 
-/* game_libs_func_0006F1FC: 7-insn string-walk loop-bottom tail-fragment:
- *   lbu v1,1(a0); addiu a0,a0,1; bne v0,v1,-0x1C; nop; move v0,a0;
- *   jr ra; nop
- * Caller-set $v0 + backward branch to 0x6F1EC (before .s start 0x6F1FC).
- * Splat captured loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F1FC);
+void game_libs_func_0006F1FC(int m) {
+    volatile int strchr_tail_spliced = 0;
+    if (m != 0) {
+        strchr_tail_spliced = m;
+    }
+}
 
 #ifdef NON_MATCHING
 /* Constructor: a0[0]=&sym1, a0[1]=&sym2, a0[2]=0, a0[3]=0, a0[4]=a2, a0[5]=a1

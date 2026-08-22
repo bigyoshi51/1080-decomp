@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0006F1FC",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T00:00:00.000000+00:00",
+  "end_time": "2026-08-22T00:00:00.000000+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O2 -mips2 donor for game_libs_func_0006F1D8 + game_libs_func_0006F1FC = libc strchr (Plauger, verbatim). */\n\nchar *strchr(const char *s, int c)\n{\n\tconst char ch = c;\n\n\tfor (; *s != ch; ++s)\n\t\tif (*s == '\\0')\n\t\t\treturn (0);\n\treturn ((char *)s);\n}\n",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T00:00:00.000000+00:00",
+      "assistant_text": "game_libs_func_0006F1D8 + game_libs_func_0006F1FC = libc strchr (Plauger verbatim) -- ONE function that splat split at the loop-bottom label. Identification keys: Plauger string cluster adjacency (6F17C = memcpy byte-loop shape, 6F1B0 = strlen already matched in-unit), lbu + andi 0xFF char compare with beql match-return, the 6F1FC 'tail fragment' bne branching backward before its own .s start (into the 6F1D8 head). First IDO 5.3 -O2 compile is 16/16 words identical (zero relocs), covering both splat symbols exactly (0x24 + 0x1C incl. the jr-delay nop). Old 'leaf-branch-past-end CAP' and 'caller-set $v0 tail fragment' notes retired. Both keys splice from the one donor via add-elf-func-symbol offsets 0x0:0x24 / 0x24:0x1C.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 16,
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6F1D8.c",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "raw-word identical vs asm/nonmatchings .s (16/16 = 6F1D8 9w + 6F1FC 7w, zero relocs); POST_COMPILE add-elf-func-symbol game_libs_func_0006F1D8=0x0:0x24 game_libs_func_0006F1FC=0x24:0x1C; REPLACE_FUNC_BODY splice into game_libs_post1b2c.c.o; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; report.json fuzzy 100.0 both; exact-set diff vs origin/main: 0 truly lost (6E224/6E894 'lost' are stale base-report entries, reproduce sub-100 on pristine base build), +4 total; sentinels 551E0/55B10/EBC8/C5B0/62F08 all 100",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/game_libs/game_libs/game_libs_func_0006F1FC.s"
+  }
+}
