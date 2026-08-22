@@ -21743,6 +21743,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F0E0);
 // dist, unscales the hit, writes it to `out`, returns 1 (0 = no hit).
 // jal-0 zero-alias placeholders (USO baked relocs — not landable as exact).
 #ifdef NON_MATCHING
+extern int D_00000000B;
+extern int D_00000000C;
+extern int D_00000000D;
+extern int D_00000000E;
+extern float D_00000000F[3];
 int game_libs_func_0004F2DC(char *arg0, int x, int y, float *out) {
     float vec19C[3];
     int count;
@@ -21753,10 +21758,15 @@ int game_libs_func_0004F2DC(char *arg0, int x, int y, float *out) {
     float vecE0[3];
     float vecD4[3];
     float vecC8[3];
+    volatile int padC0[2];
     float vecB4[3];
+    volatile int padAC[2];
     float vecA0[3];
+    volatile int pad90[4];
     float vec84[3];
+    volatile int pad7C[2];
     float vec70[3];
+    volatile int pad60[4];
     float vec54[3];
     char *cam;
     char *p;
@@ -21767,24 +21777,23 @@ int game_libs_func_0004F2DC(char *arg0, int x, int y, float *out) {
 
     vecC8[0] = -((float)x - 160.0f);
     vecC8[1] = (float)y - 120.0f;
-    vecC8[2] = 8.0f / *(float *)((char *)&D_00000000 + 0x128);
+    vecC8[2] = 8.0f / *(float *)((char *)&D_00000000B + 0x128);
     count = 0;
     gl_func_00000000(vecC8, *(char **)(arg0 + 0x70) + 0xB4);
     gl_func_00000000(vecC8);
 
     *(Tri3i *)vecB4 = *(Tri3i *)vecC8;
-    vecD4[0] = vecB4[0];
-    vecD4[1] = vecB4[1];
     vecD4[2] = vecB4[2];
+    vecD4[1] = vecB4[1];
+    vecD4[0] = vecB4[0];
 
     cam = *(char **)(arg0 + 0x70);
     vecEC[0] = *(float *)(cam + 0xA0);
     vecEC[1] = *(float *)(cam + 0xA4);
     vecEC[2] = *(float *)(cam + 0xA8);
-    vecA0[0] = vecD4[0] * *(float *)((char *)&D_00000000 + 0x1BA8);
-    vecA0[1] = vecD4[1] * *(float *)((char *)&D_00000000 + 0x1BA8);
-    vecA0[2] = vecD4[2] * *(float *)((char *)&D_00000000 + 0x1BA8);
-    cam += 0x70;
+    vecA0[0] = *(float *)((char *)&D_00000000C + 0x1BA8) * vecD4[0];
+    vecA0[1] = *(float *)((char *)&D_00000000C + 0x1BA8) * vecD4[1];
+    vecA0[2] = *(float *)((char *)&D_00000000C + 0x1BA8) * vecD4[2];
 
     *(Tri3i *)vecB4 = *(Tri3i *)vecA0;
     *(Tri3i *)vec19C = *(Tri3i *)vecB4;
@@ -21794,40 +21803,39 @@ int game_libs_func_0004F2DC(char *arg0, int x, int y, float *out) {
     *(Tri3i *)vec84 = *(Tri3i *)vec70;
     *(Tri3i *)vec54 = *(Tri3i *)vec84;
 
-    vecEC[0] = vecEC[0] * *(float *)((char *)&D_00000000 + 0x128);
-    vecEC[1] = vecEC[1] * *(float *)((char *)&D_00000000 + 0x12C);
-    vecEC[2] = vecEC[2] * *(float *)((char *)&D_00000000 + 0x130);
-    vecE0[0] = vec54[0] * *(float *)((char *)&D_00000000 + 0x128);
-    vecE0[1] = vec54[1] * *(float *)((char *)&D_00000000 + 0x12C);
-    vecE0[2] = vec54[2] * *(float *)((char *)&D_00000000 + 0x130);
+    vecEC[0] = vecEC[0] * D_00000000F[0];
+    vecEC[1] = vecEC[1] * D_00000000F[1];
+    vecEC[2] = vecEC[2] * D_00000000F[2];
+    vecE0[0] = vec54[0] * D_00000000F[0];
+    vecE0[1] = vec54[1] * D_00000000F[1];
+    vecE0[2] = vec54[2] * D_00000000F[2];
 
-    p = *(char **)&D_00000000;
+    p = *(char **)&D_00000000E;
     if (p != NULL) {
         count = gl_func_00000000(p, 8, dists, surfs, vecEC, vecE0, 0, hits);
     }
     besti = -1;
-    if (count == 0) {
-        return 0;
-    }
-    best = *(float *)((char *)&D_00000000 + 0x1BAC);
-    for (i = 0; i < count; i++) {
-        d = dists[i];
-        if (0.0f < d && d < best) {
-            best = d;
-            besti = i;
+    if (count != 0) {
+        best = *(float *)((char *)&D_00000000D + 0x1BAC);
+        for (i = 0; i < count; i++) {
+            d = dists[i];
+            if (0.0f < d && d < best) {
+                best = d;
+                besti = i;
+            }
+        }
+        if (besti >= 0) {
+            hits[besti][0] = hits[besti][0] / D_00000000F[0];
+            hits[besti][1] = hits[besti][1] / D_00000000F[1];
+            hits[besti][2] = hits[besti][2] / D_00000000F[2];
+            *(Tri3i *)vecB4 = *(Tri3i *)hits[besti];
+            out[0] = vecB4[0];
+            out[1] = vecB4[1];
+            out[2] = vecB4[2];
+            return 1;
         }
     }
-    if (besti < 0) {
-        return 0;
-    }
-    hits[besti][0] = hits[besti][0] / *(float *)((char *)&D_00000000 + 0x128);
-    hits[besti][1] = hits[besti][1] / *(float *)((char *)&D_00000000 + 0x12C);
-    hits[besti][2] = hits[besti][2] / *(float *)((char *)&D_00000000 + 0x130);
-    *(Tri3i *)vecB4 = *(Tri3i *)hits[besti];
-    out[0] = vecB4[0];
-    out[1] = vecB4[1];
-    out[2] = vecB4[2];
-    return 1;
+    return 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004F2DC);
