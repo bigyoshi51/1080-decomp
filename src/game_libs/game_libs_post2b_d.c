@@ -67,373 +67,46 @@ int gl_func_00073824(char *obj, int a1, int a2, int a3, int arg5, int arg6, int 
  * to hidden inter-block alignment in the unit; needs an alignment-aware
  * relayout of [0x73904..0x748A4) in one focused pass. See
  * docs/MATCHING_WORKFLOW "drift-region root cause FOUND". */
-/* gl_func_00073904 = the printf float-formatter _Genld (Plauger libc):
- * lays out the converted mantissa digits + '.' + exponent ('e'/'g'
- * handling, sign, /1000-/100-/10 exponent digits) into the _Pft state
- * (f_8=buffer, f_14=n0, f_18=nz0, f_1C=n1, f_20=nz1, f_24=precision,
- * f_28=width, f_30=flags: 8=ALT, 0x10=left-just) and computes the
- * trailing-pad split. Identified from the full m2c decode (0x30/'0',
- * 0x2E/'.', 0x2B/'+', 0x2D/'-', 0x65/'e' literals + the flag tests).
- * CAP: the original receives its FIVE args in $s0-$s4 (the prologue
- * stores the CALLER's s2/s3/s4 above its own frame, then masks them as
- * s16/s16/u8 values) -- the caller-set s-reg argument class
- * (docs/PATTERNS caller-set regs; same family as the v0/v1/t6 cases).
- * IDO C cannot receive args in s-regs; INCLUDE_ASM is the faithful
- * path. The wrap below is the m2c-derived reference body with the
- * s-regs spelled as normal parameters. Boundary note: this fn ends at
- * 0x73E6C; the ROM's bare jr-ra/nop stub at [0x73E6C..0x73E74) is the
- * dropped symbol behind the drift region (see MATCHING_WORKFLOW). */
-typedef struct Pft73904 {
-    char _pad0[8];
-    char *f_8;          /* 0x08 buffer */
-    int f_C;            /* 0x0C prefix len */
-    int f_10;           /* 0x10 trailing pad */
-    int f_14;           /* 0x14 n0 */
-    int f_18;           /* 0x18 nz0 */
-    int f_1C;           /* 0x1C n1 */
-    int f_20;           /* 0x20 nz1 */
-    int f_24;           /* 0x24 precision */
-    int f_28;           /* 0x28 width */
-    char _pad2C[4];
-    int f_30;           /* 0x30 flags */
-} Pft73904;
-
-extern void game_libs_func_00073694(char *, char *, int);
-
-#ifdef NON_MATCHING
-void gl_func_00073904(Pft73904 *px, char *p, short xexp, short nsig, unsigned char code) {
-    s16 xexp_;
-    s16 xexp__2;
-    s16 nsig_;
-    s16 nsig__2;
-    s16 nsig__3;
-    s16 var_v1;
-    s32 temp_t7;
-    s32 temp_t8;
-    s32 temp_t8_2;
-    s32 temp_v0;
-    s32 temp_v1_2;
-    s32 var_v0;
-    s32 var_v0_2;
-    char *p__2;
-    s8 temp_t8_3;
-    s8 temp_t8_4;
-    s8 temp_v1;
-    s8 code_;
-    u8 *p_;
-    char *temp_s1;
-    char *temp_s1_2;
-
-    xexp_ = xexp;
-    nsig_ = nsig;
-    code_ = code;
-    p_ = (u8 *)p;
-    if (nsig_ <= 0) {
-        p_ = (u8 *)0x2590;
-        nsig_ = 1;
-    }
-    temp_v1 = code_;
-    if ((code_ == 0x66) || (((temp_v1 == 0x67) || (temp_v1 == 0x47)) && (xexp_ >= -4) && (xexp_ < px->f_24))) {
-        xexp__2 = xexp_ + 1;
-        if (temp_v1 != 0x66) {
-            var_v0 = px->f_24;
-            if (!(px->f_30 & 8) && (nsig_ < var_v0)) {
-                px->f_24 = (s32) nsig_;
-                var_v0 = (s32) nsig_;
-            }
-            temp_t8 = var_v0 - xexp__2;
-            px->f_24 = temp_t8;
-            if (temp_t8 < 0) {
-                px->f_24 = 0;
-            }
-        }
-        if (xexp__2 <= 0) {
-            var_v1 = -xexp__2;
-            *(px->f_8 + px->f_14) = 0x30;
-            px->f_14 = (s32) (px->f_14 + 1);
-            if ((px->f_24 > 0) || (px->f_30 & 8)) {
-                *(px->f_8 + px->f_14) = 0x2E;
-                px->f_14 = (s32) (px->f_14 + 1);
-            }
-            if (px->f_24 < var_v1) {
-                xexp__2 = px->f_24 * -1;
-                var_v1 = -xexp__2;
-            }
-            temp_t8_2 = px->f_24 + xexp__2;
-            px->f_18 = (s32) var_v1;
-            px->f_24 = temp_t8_2;
-            if (temp_t8_2 < nsig_) {
-                nsig_ = (s16) temp_t8_2;
-            }
-            px->f_1C = (s32) nsig_;
-            game_libs_func_00073694(px->f_8 + px->f_14, p_, (s32) nsig_);
-            px->f_20 = (s32) (px->f_24 - nsig_);
-        } else if (nsig_ < xexp__2) {
-            game_libs_func_00073694(px->f_8 + px->f_14, p_, (s32) nsig_);
-            px->f_14 = (s32) (px->f_14 + nsig_);
-            px->f_18 = (s32) (xexp__2 - nsig_);
-            if ((px->f_24 > 0) || (px->f_30 & 8)) {
-                *(px->f_8 + px->f_14) = 0x2E;
-                px->f_1C = (s32) (px->f_1C + 1);
-            }
-            px->f_20 = px->f_24;
-        } else {
-            game_libs_func_00073694(px->f_8 + px->f_14, p_, (s32) xexp__2);
-            px->f_14 = (s32) (px->f_14 + xexp__2);
-            nsig__2 = nsig_ - xexp__2;
-            if ((px->f_24 > 0) || (px->f_30 & 8)) {
-                *(px->f_8 + px->f_14) = 0x2E;
-                px->f_14 = (s32) (px->f_14 + 1);
-            }
-            if ((s16) px->f_24 < nsig__2) {
-                nsig__2 = (s16) px->f_24;
-            }
-            game_libs_func_00073694(px->f_8 + px->f_14, &p_[xexp__2], (s32) nsig__2);
-            px->f_14 = (s32) (px->f_14 + nsig__2);
-            px->f_18 = (s32) (px->f_24 - nsig__2);
-        }
-    } else {
-        if ((temp_v1 == 0x67) || (temp_v1 == 0x47)) {
-            var_v0_2 = px->f_24;
-            code_ = 0x45;
-            if (nsig_ < var_v0_2) {
-                px->f_24 = (s32) nsig_;
-                var_v0_2 = (s32) nsig_;
-            }
-            temp_t7 = var_v0_2 - 1;
-            px->f_24 = temp_t7;
-            if (temp_t7 < 0) {
-                px->f_24 = 0;
-            }
-            if (temp_v1 == 0x67) {
-                code_ = 0x65;
-            }
-        }
-        *(px->f_8 + px->f_14) = *p_;
-        px->f_14 = (s32) (px->f_14 + 1);
-        if ((px->f_24 > 0) || (px->f_30 & 8)) {
-            *(px->f_8 + px->f_14) = 0x2E;
-            px->f_14 = (s32) (px->f_14 + 1);
-        }
-        if ((s16) px->f_24 > 0) {
-            nsig__3 = nsig_ - 1;
-            if ((s16) px->f_24 < nsig__3) {
-                nsig__3 = (s16) px->f_24;
-            }
-            game_libs_func_00073694(px->f_8 + px->f_14, p_ + 1, (s32) nsig__3);
-            px->f_14 = (s32) (px->f_14 + nsig__3);
-            px->f_18 = (s32) (px->f_24 - nsig__3);
-        }
-        temp_s1 = px->f_8 + px->f_14;
-        temp_s1_2 = temp_s1 + 1;
-        temp_s1_2[-1] = code_;
-        if (xexp_ >= 0) {
-            temp_s1[1] = 0x2B;
-            p__2 = temp_s1_2 + 1;
-        } else {
-            temp_s1[1] = 0x2D;
-            p__2 = temp_s1_2 + 1;
-            xexp_ *= -1;
-        }
-        if (xexp_ >= 0x64) {
-            if (xexp_ >= 0x3E8) {
-                temp_t8_3 = (xexp_ / 1000) + 0x30;
-                xexp_ = (s16) (xexp_ % 1000);
-                *p__2 = temp_t8_3;
-                p__2 += 1;
-            }
-            temp_t8_4 = (xexp_ / 100) + 0x30;
-            xexp_ = (s16) (xexp_ % 100);
-            *p__2 = temp_t8_4;
-            p__2 += 1;
-        }
-        p__2[0] = (xexp_ / 10) + 0x30;
-        p__2[1] = (s8) ((s16) (xexp_ % 10) + 0x30);
-        px->f_1C = (s32) (((p__2 + 2) - px->f_8) - px->f_14);
-    }
-    if ((px->f_30 & 0x14) == 0x10) {
-        temp_v1_2 = px->f_28;
-        temp_v0 = px->f_C + px->f_14 + px->f_18 + px->f_1C + px->f_20;
-        if (temp_v0 < temp_v1_2) {
-            px->f_10 = (s32) (temp_v1_2 - temp_v0);
-        }
+/* gl_func_00073904 = _Genld (Plauger libc xldtob.c verbatim) -- the
+ * printf float-formatter. LANDED 2026-08-22 via REPLACE_FUNC_BODY donor
+ * splice: real C lives in the IDO 5.3 -O3 donor unit
+ * game_libs_ido53_73904.c (346/346 raw words spliced; the donor TU also
+ * reproduces the [0x73E6C,0x73E74) jr-ra tail word-exact, which stays
+ * the separate game_libs_func_00073E6C def below.
+ * The only non-zero reloc imm is the "0" string %lo,
+ * .rodata base pinned 0x2540). The old "caller-set s-reg argument cap"
+ * was the -O3 WHOLE-TU custom linkage: _Genld is static in xldtob.c and
+ * IDO -O3 interprocedural regalloc passes its five args in $s0-$s4
+ * (px, p, xexp, nsig, code) -- no per-function compile can emit that;
+ * the -O3 TU donor does. Body below is a placeholder for the splice. */
+void gl_func_00073904(void *px, char *p, int xexp, int nsig, int code) {
+    volatile int genld_spliced = 0;
+    if (code != 0) {
+        genld_spliced = nsig + xexp;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073904);
-#endif
 
 void game_libs_func_00073E6C(void) {}
 
-/* gl_func_00073E74 = the printf float-converter _Ldtob (Plauger libc),
- * sibling of _Genld (73904, see its wrap): IEEE-754 double decompose
- * (exponent (u16&0x7FF0)>>4; 0x7FF => "Inf"/"NaN" strings at data
- * 0x2588/0x258C via the strcpy-helper 73694; mantissa renormalized to
- * 0x3FF0), base-10 exponent estimate via *0x7597/100000 (= log10(2)),
- * scaling by the powers-of-10 table at data 0x2540 in /8-digit chunks,
- * digit generation through a divmod helper (m2c labels it 73694 but
- * that is a placeholder-jal collision -- the real callee differs; the
- * wrap approximates with explicit / and %), leading-zero strip, round-at-'5' with
- * '9'-carry propagation, then the final call to game_libs_func_0007488C
- * -- which is almost certainly the S-REG MARSHALLING THUNK into _Genld
- * (73904 takes its args in $s0-$s4; 7488C is 0x14 = 5 insns, exactly a
- * load-regs-and-jump shim). NORMAL (a0,a1) args -- decompilable, unlike
- * _Genld. Pass 1 (2026-06-10): m2c-derived reference body below; the
- * three bc1f/bc1tl float-compare regions and the negative-index byte
- * scans are hand-patched approximations -- NOT yet shape-tuned. The
- * f64 pow-table chunking loops are faithful. Multi-pass target. */
-#ifdef NON_MATCHING
-typedef struct Ldt74 {
-    short f_0;          /* 0x00 top u16 of the double (exp+mantissa hi) */
-    short f_2;
-    short f_4;
-    short f_6;
-    char *f_8;          /* 0x08 out buffer */
-    char _padC[8];
-    int f_14;           /* 0x14 n0 */
-    char _pad18[12];
-    int f_24;           /* 0x24 precision */
-} Ldt74;
-extern double D_73E74_pow10[];   /* data 0x2540: 1e8^(2^k) chunk table */
-extern int game_libs_func_00074894();
-typedef struct { int quot, rem; } ldiv74_t;   /* o32 sret pair, cf. gl_func_000744CC = ldiv */
-extern ldiv74_t game_libs_ldiv_744C4();       /* placeholder name for the jal-0 ldiv callee */
-extern char D_00002588[];                     /* "NaN" */
-extern char D_0000258C[];                     /* "Inf" */
-
-static short ldunscale74(short *pex, Ldt74 *px) {
-    unsigned short *ps = (unsigned short *)px;
-    short xchar = (ps[0] & 0x7FF0) >> 4;
-
-    if (xchar == 0x7FF) {
-        *pex = 0;
-        return (short)(ps[0] & 0xF || ps[1] || ps[2] || ps[3] ? 2 : 1);
-    } else if (0 < xchar) {
-        ps[0] = (ps[0] & 0x800F) | 0x3FF0;
-        *pex = xchar - 0x3FE;
-        return -1;
-    }
-    if (0 > xchar) {
-        return 2;
-    } else {
-        *pex = 0;
-        return 0;
+/* gl_func_00073E74 = _Ldtob (Plauger libc xldtob.c verbatim) -- the
+ * printf float-converter, sibling of _Genld/73904. LANDED 2026-08-22
+ * from the same IDO 5.3 -O3 donor unit game_libs_ido53_73904.c
+ * (340/340 raw words): at -O3 the static _Ldunscale is integrated into
+ * _Ldtob (the old 74.0% "_Ldunscale-family classifier" redecode was
+ * exactly that inlined classifier head), and the final call is the
+ * s-reg-linkage jal to _Genld (target bakes jal 0x87F70 = the USO's
+ * original-link _Genld address; donor's local .text reloc renamed
+ * gl_func_00073E74_text by the splice, pinned 0x87F70). Blank jals:
+ * memcpy x1 + ldiv (= gl_func_000744CC identity, "a divmod helper" as
+ * the old wrap guessed). .rodata pins: pows[] table @0x2540, "Inf"
+ * 0x2588 / "NaN" 0x258C / 1.0e8 @0x2598 (base 0x2540).
+ * Body below is a placeholder for the splice. */
+void gl_func_00073E74(void *px, int code) {
+    volatile int ldtob_spliced = 0;
+    if (code != 0) {
+        ldtob_spliced = code;
     }
 }
-
-void gl_func_00073E74(px, code)
-Ldt74 *px;
-unsigned char code;
-{
-    char buff[0x20];
-    char *ptr = buff;
-    double val = *(double *)px;
-    short err;
-    short nsig;
-    short exp;
-
-    if (px->f_24 < 0) {
-        px->f_24 = 6;
-    } else if (px->f_24 == 0 && (code == 'g' || code == 'G')) {
-        px->f_24 = 1;
-    }
-    err = ldunscale74(&exp, px);   /* static, called once -> uopt inlines */
-    if (err > 0) {
-        px->f_14 = 3;
-        game_libs_func_00073694(px->f_8, err == 2 ? D_00002588 : D_0000258C, 3);
-        return;
-    }
-    if (err == 0) {
-        nsig = 0;
-        exp = 0;
-    } else {
-        int i;
-        int n;
-        double factor;
-        int gen;
-
-        if (val < 0) {
-            val = -val;
-        }
-
-        exp = exp * 30103 / 100000 - 4;
-        if (exp < 0) {
-            n = (3 - exp) & ~3;
-            exp = -n;
-            for (i = 0; n > 0; n >>= 1, i++) {
-                if ((n & 1) != 0) {
-                    val *= D_73E74_pow10[i];
-                }
-            }
-        } else if (exp > 0) {
-            factor = 1;
-            exp &= ~3;
-
-            for (n = exp, i = 0; n > 0; n >>= 1, i++) {
-                if ((n & 1) != 0) {
-                    factor *= D_73E74_pow10[i];
-                }
-            }
-            val /= factor;
-        }
-
-        gen = px->f_24 + ((code == 'f') ? exp + 10 : 6);
-        if (gen > 0x13) {
-            gen = 0x13;
-        }
-
-        *ptr++ = '0';
-        while (gen > 0 && 0 < val) {
-            int j;
-            int lo = val;
-
-            if ((gen -= 8) > 0) {
-                val = (val - lo) * 1.0e8;
-            }
-            ptr += 8;
-
-            for (j = 8; lo > 0 && --j >= 0;) {
-                ldiv74_t qr = game_libs_ldiv_744C4(lo, 10);
-                *--ptr = qr.rem + '0';
-                lo = qr.quot;
-            }
-
-            while (--j >= 0) {
-                ptr--;
-                *ptr = '0';
-            }
-            ptr += 8;
-        }
-
-        gen = ptr - &buff[1];
-        for (ptr = &buff[1], exp += 7; *ptr == '0'; ptr++) {
-            --gen, --exp;
-        }
-
-        nsig = px->f_24 + ((code == 'f') ? exp + 1 : ((code == 'e' || code == 'E') ? 1 : 0));
-        if (gen < nsig) {
-            nsig = gen;
-        }
-        if (nsig > 0) {
-            char drop = (nsig < gen && ptr[nsig] > '4') ? '9' : '0';
-            int n2;
-
-            for (n2 = nsig; ptr[--n2] == drop;) {
-                nsig--;
-            }
-            if (drop == '9') {
-                ptr[n2]++;
-            }
-            if (n2 < 0) {
-                --ptr, ++nsig, ++exp;
-            }
-        }
-    }
-    game_libs_func_00074894(px, code, ptr, nsig, exp);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00073E74);
-#endif
 /* 743C0 pad word merged into gl_func_00073E74.s tail (1-word GLOBAL_ASM
  * blocks emit 2 words — asm-processor 8-byte placeholder minimum — which
  * shifted links 743C4..748A0 +4; the trailing 747F4_pad then got clipped

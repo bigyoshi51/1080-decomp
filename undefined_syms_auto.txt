@@ -3186,3 +3186,8 @@ gl_func_00000000_n64388 = 0x00000000;  /* void(char*) blank normalize callee for
 gl_func_00000000_p64388 = 0x00000000;  /* void(char*,char*,f32) blank callee for gl_func_00064388 */
 gl_func_00000000_3a58cn = 0x00000000;  /* void(Vec3*) blank normalize callee for gl_func_0003A58C */
 gl_func_00000000_3a58cs = 0x00000000;  /* f32(f32) blank sqrt callee for gl_func_0003A58C */
+gl_func_00073904_rodata = 0x00002540;  /* xldtob.c donor .rodata base (pows[] table; "0" string at +0x50 -> 0x2590) -- renamed donor-local reloc, see game_libs_ido53_73904.c */
+gl_func_00073E74_rodata = 0x00002540;  /* same .rodata base for _Ldtob's refs ("Inf" +0x48, "NaN" +0x4C, 1.0e8 +0x58) */
+gl_func_00073E74_text = 0x00087F70;    /* _Ldtob's s-reg-linkage jal to _Genld: USO ships baked jal 0x87F70 (original-link address); donor-local .text reloc renamed by the splice */
+gl_func_00000000_mcpy73 = 0x00000000;  /* blank memcpy jal for the xldtob.c donor */
+gl_func_00000000_ldiv73 = 0x00000000;  /* blank ldiv jal (= gl_func_000744CC) for the xldtob.c donor */
