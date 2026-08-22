@@ -3191,3 +3191,7 @@ gl_func_00073E74_rodata = 0x00002540;  /* same .rodata base for _Ldtob's refs ("
 gl_func_00073E74_text = 0x00087F70;    /* _Ldtob's s-reg-linkage jal to _Genld: USO ships baked jal 0x87F70 (original-link address); donor-local .text reloc renamed by the splice */
 gl_func_00000000_mcpy73 = 0x00000000;  /* blank memcpy jal for the xldtob.c donor */
 gl_func_00000000_ldiv73 = 0x00000000;  /* blank ldiv jal (= gl_func_000744CC) for the xldtob.c donor */
+gl_func_00074554_data = 0x0002E620;    /* _Litob ldigs/udigs strings in the USO data segment ("0123..def" @0x2E620, "0123..DEF" @0x2E634) -- renamed donor-local .data reloc, see game_libs_ido53_74554.c */
+gl_func_00000000_ullrem74 = 0x00000000;  /* blank __ull_rem jal for the xlitob.c donor (USO reloc -> game_libs 6C740) */
+gl_func_00000000_ulldiv74 = 0x00000000;  /* blank __ull_div jal for the xlitob.c donor (USO reloc -> game_libs 6C77C) */
+gl_func_00000000_lldiv74 = 0x00000000;   /* blank lldiv jal for the xlitob.c donor */

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00074554",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T16:27:04.192732+00:00",
+  "end_time": "2026-08-22T16:27:04.192732+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T16:27:04.192732+00:00",
+      "assistant_text": "gl_func_00074554 = _Litob (Plauger libc xlitob.c verbatim), completing the printf-machinery vein (73904=_Genld, 73E74=_Ldtob, 744CC=ldiv). IDO 5.3 -O2 -mips2 exact 166/166 (7.1 -O2 diverges 77 words). ldigs/udigs .data base pinned 0x2E620; compiler-generated __ull_rem/__ull_div jals renamed to blank externs via scripts/rename-elf-symbol.py (objcopy --redefine-sym mangles local section symbols and degrades imported relocs to *ABS*).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 166,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O2 donor for gl_func_00074554 = _Litob (Plauger libc\n * xlitob.c verbatim) -- the printf integer-formatter, completing the\n * xldtob.c pair (73904=_Genld / 73E74=_Ldtob) and the ldiv identity\n * (744CC). PROVEN EXACT 2026-08-22 probe: 166/166 words vs expected\n * [0xEC0,0x1158) of game_libs_post2b_d.c.o at IDO 5.3 -O2 -mips2 (7.1\n * diverges in 77 words; -O3 identical to -O2 here). The only diff words\n * are the four ldigs/udigs .data reloc fields: target bakes hi 0x3 /\n * lo 0xE620(\"0123..def\")+0xE634(\"0123..DEF\") = .data base 0x2E620 in\n * the USO data segment; donor-local .data reloc renamed\n * gl_func_00074554_data by the splice, pinned 0x2E620.\n * Blank USO jals (field 0 both sides): __ull_rem / __ull_div\n * (compiler-generated for the u64 %/ base -- POST_COMPILE objcopy\n * redefines them to gl_func_00000000_* blanks, since __ull_div is\n * pinned to its KERNEL address 0x80002E78 for other units while the\n * USO ships this jal blank; the USO's load-time reloc table points it\n * at the game_libs copies 6C740/6C77C), lldiv, memcpy.\n * Spliced into game_libs_post2b_d.c.o via REPLACE_FUNC_BODY. */\n\ntypedef unsigned int size_t;\ntypedef int s32;\n\ntypedef struct\n{\n    union {\n        /* 00 */ long long s64;\n        double f64;\n    } value;\n    /* 08 */ char *buff;\n    /* 0c */ int n0;\n    /* 10 */ int num_leading_zeros;\n    /* 14 */ int part2_len;\n    /* 18 */ int num_mid_zeros;\n    /* 1c */ int part3_len;\n    /* 20 */ int num_trailing_zeros;\n    /* 24 */ int precision;\n    /* 28 */ int width;\n    /* 2c */ unsigned int size;\n    /* 30 */ unsigned int flags;\n    /* 34 */ char length;\n} printf_struct;\n\n#define FLAGS_SPACE 1\n#define FLAGS_PLUS 2\n#define FLAGS_MINUS 4\n#define FLAGS_HASH 8\n#define FLAGS_ZERO 16\n\ntypedef struct lldiv_t\n{\n    long long quot;\n    long long rem;\n} lldiv_t;\n\nextern void *gl_func_00000000_mcpy73(void *, const void *, size_t);\nextern lldiv_t gl_func_00000000_lldiv74(long long, long long);\n#define memcpy gl_func_00000000_mcpy73\n#define lldiv gl_func_00000000_lldiv74\n\n#define BUFF_LEN 0x18\n\nstatic char ldigs[] = \"0123456789abcdef\";\nstatic char udigs[] = \"0123456789ABCDEF\";\n\nvoid gl_func_00074554(printf_struct *args, char type)\n{\n  char buff[BUFF_LEN];\n  const char *digs;\n  s32 base;\n  s32 i;\n  unsigned long long ullval;\n\n  if (type == 'X')\n  {\n    digs = udigs;\n  }\n  else\n  {\n    digs = ldigs;\n  }\n\n  base = (type == 'o') ? 8 : ((type != 'x' && type != 'X') ? 10 : 16);\n  i = BUFF_LEN;\n  ullval = args->value.s64;\n\n  if ((type == 'd' || type == 'i') && args->value.s64 < 0)\n  {\n    ullval = -ullval;\n  }\n\n  if (ullval != 0 || args->precision != 0)\n  {\n    buff[--i] = digs[ullval % base];\n  }\n\n  args->value.s64 = ullval / base;\n\n  while (args->value.s64 > 0 && i > 0)\n  {\n\n    lldiv_t qr = lldiv(args->value.s64, base);\n    args->value.s64 = qr.quot;\n    buff[--i] = digs[qr.rem];\n  }\n\n  args->part2_len = BUFF_LEN - i;\n\n  memcpy(args->buff, buff + i, args->part2_len);\n\n  if (args->part2_len < args->precision)\n  {\n    args->num_leading_zeros = args->precision - args->part2_len;\n  }\n\n  if (args->precision < 0 && (args->flags & (FLAGS_ZERO | FLAGS_MINUS)) == FLAGS_ZERO)\n  {\n    i = args->width - args->n0 - args->num_leading_zeros - args->part2_len;\n    if (i > 0)\n    {\n      args->num_leading_zeros += i;\n    }\n  }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_74554.c",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/gl_func_00074554.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "166/166 raw-word identical vs expected/src/game_libs/game_libs_post2b_d.c.o (only the four ldigs/udigs %hi/%lo reloc fields differ, pinned gl_func_00074554_data=0x2E620); REPLACE_FUNC_BODY splice; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; exact-set diff vs origin/main 0 lost"
+  }
+}
