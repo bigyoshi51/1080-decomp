@@ -26388,7 +26388,14 @@ void gl_func_00055470(int *s) {
      * bodies innermost-first (reversed vs target), and objdiff's scorer
      * charges moved blocks delete+insert (200/insn) against a 100/insn
      * max_score — >50% moved content clamps the fuzzy to exactly 0.0
-     * ("MISSING"). Root-caused 2026-08-22; see MATCHING_WORKFLOW. */
+     * ("MISSING"). Root-caused 2026-08-22; see MATCHING_WORKFLOW.
+     * CLOSED 2026-08-22 (agent-f): goto-body emission order is INVARIANT to
+     * textual label order (uopt hoists call-free bodies ahead of
+     * call-bearing ones), and REVERSE-nest inline (1018 outermost ..
+     * 1014 innermost) lands every body block in target position but drifts
+     * every arm's registers -> objdiff still 0.0 (strict-row agreement
+     * 91/268). Layout and register agreement trade off between the goto and
+     * inline forms; 44.9 here is the scored ceiling of this shape. */
     if (cmd != 1014) {
         if (cmd != 1012) {
             if (cmd != 1015) {
