@@ -3226,3 +3226,12 @@ gl_func_00000000_f2l706 = 0x00000000;     /* blank guMtxF2L jal for the ortho.c 
 gl_func_00000000_disint711 = 0x00000000;  /* blank __osDisableInt jal for the visetspecial donor (USO load-time reloc) */
 gl_func_00000000_rstint711 = 0x00000000;  /* blank __osRestoreInt jal for the visetspecial donor (USO load-time reloc) */
 gl_func_00000000_vinext711 = 0x00000000;  /* blank __osViNext hi/lo pairs for the visetspecial donor (USO load-time reloc) */
+gl_spaces_pin6E = 0x0002E460;   /* xprintf.c donor: spaces[] TU static, baked ABSOLUTE %hi/%lo (ROM data 0xDD0850: 32 spaces THEN 32 zeros -> spaces = lower addr) */
+gl_zeroes_pin6E = 0x0002E484;   /* xprintf.c donor: zeroes[] TU static, baked absolute (spaces+0x24) */
+gl_func_0006E224_rodata = 0x000023D0;  /* xprintf.c donor .rodata base ("hlL" +0, fchar +4, fbit +0xC, _Putfld 'F'..'^' jumptable +0x24 -> baked lo 9204); renamed donor-local reloc, content ships in USO data */
+gl_func_0006E894_rodata = 0x000023D0;  /* same .rodata base for _Printf's refs (fchar lo 9172, fbit lo 9180, "hlL" lo 9168) */
+gl_func_0006E894_text = 0x00082890;    /* _Printf's intra-TU jal to static _Putfld: USO ships baked jal 0x82890 (original-link address); donor-local .text reloc renamed by the splice */
+gl_func_00000000_strchr6E = 0x00000000;  /* blank strchr jals (x3) for the xprintf.c donor (USO load-time reloc) */
+gl_func_00000000_strlen6E = 0x00000000;  /* blank strlen jal for the xprintf.c donor */
+gl_func_00000000_litob6E = 0x00000000;   /* blank _Litob jals (x3) for the xprintf.c donor */
+gl_func_00000000_ldtob6E = 0x00000000;   /* blank _Ldtob jal for the xprintf.c donor */
