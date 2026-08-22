@@ -1,0 +1,36 @@
+{
+  "function_name": "gl_func_0005F3E0",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T17:54:30.717260+00:00",
+  "end_time": "2026-08-22T17:54:30.717283+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T17:54:30.717276+00:00",
+      "assistant_text": null,
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 85,
+  "initial_m2c_source": null,
+  "final_source": "extern int gl_func_00000000_5f3e0();\nvoid gl_func_0005F3E0(f32 mf[4][4], f32 l, f32 r, f32 b, f32 t, f32 n, f32 f, f32 scale)\n{\n    int i, j;\n\n    gl_func_00000000_5f3e0();\n\n    mf[0][0] = 2/(r-l);\n    mf[1][1] = 2/(t-b);\n    mf[2][2] = -2/(f-n);\n    mf[3][0] = -(r+l)/(r-l);\n    mf[3][1] = -(t+b)/(t-b);\n    mf[3][2] = -(f+n)/(f-n);\n    mf[3][3] = 1;\n\n    i = 0;\n    while (i < 4) {\n        for (j=0; j<4; j++)\n            mf[i][j] *= scale;\n        i++;\n    }\n}\n",
+  "metadata": {
+    "identity": "guOrthoF (libreultra gu/ortho.c shape)",
+    "lever": "while-outer flip of the scale loop resolves the 2-word pipeline-drain swc1/addiu order tie; verbatim for-outer matches twin gl_func_00070694 instead",
+    "alias": "gl_func_00000000_5f3e0 pinned 0 for blank USO jal",
+    "source_path": "src/game_libs/game_libs_post0b.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0005F3E0.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "85/85 words byte-exact in build/src/game_libs/game_libs_post0b.c.o; full make ROM byte-identical (cmp clean); non_matching_objects exit 0; report.json +1 exact 0 lost"
+  }
+}
