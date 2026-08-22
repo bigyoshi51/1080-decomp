@@ -306,6 +306,14 @@ build/src/game_libs/game_libs_ido53_6C2A4.c.o build/non_matching/src/game_libs/g
 # absorbed). See game_libs_ido53_744C4.c.
 build/src/game_libs/game_libs_ido53_744C4.c.o build/non_matching/src/game_libs/game_libs_ido53_744C4.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_744C4.c.o build/non_matching/src/game_libs/game_libs_ido53_744C4.c.o: OPT_FLAGS := -O2
+# 743C4 = lldiv (libc ldiv.c, long-long sibling of 744CC=ldiv), IDO 5.3
+# -O2 donor, 64/64 words exact. POST_COMPILE renames lldiv to the splice
+# key and the __ll_div/__ll_mul intrinsic jals to blank pins (=0) so the
+# link bakes the USO's blank 0x0C000000 (__ll_mul is kernel-pinned for
+# other units). See game_libs_ido53_743C4.c.
+build/src/game_libs/game_libs_ido53_743C4.c.o build/non_matching/src/game_libs/game_libs_ido53_743C4.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_743C4.c.o build/non_matching/src/game_libs/game_libs_ido53_743C4.c.o: OPT_FLAGS := -O2
+build/src/game_libs/game_libs_ido53_743C4.c.o build/non_matching/src/game_libs/game_libs_ido53_743C4.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ lldiv=gl_func_000743C4 __ll_div=gl_func_00000000_lldivq743 __ll_mul=gl_func_00000000_llmul743
 # 7307C = osPiRawWriteIo variant, IDO 5.3 -O1 donor (true entry 0x73074:
 # splat's game_libs_func_00073074 0x8 orphan is the hoisted pre-prologue
 # PI_STATUS read, absorbed). See game_libs_ido53_73074.c.
@@ -630,6 +638,7 @@ GAMELIBS_6B0FC_DONOR := build/src/game_libs/game_libs_ido53_6B0FC.c.o
 GAMELIBS_6DD14_DONOR := build/src/game_libs/game_libs_ido53_6DD14.c.o
 GAMELIBS_6F8A4_DONOR := build/src/game_libs/game_libs_ido53_6F8A4.c.o
 GAMELIBS_744C4_DONOR := build/src/game_libs/game_libs_ido53_744C4.c.o
+GAMELIBS_743C4_DONOR := build/src/game_libs/game_libs_ido53_743C4.c.o
 GAMELIBS_73074_DONOR := build/src/game_libs/game_libs_ido53_73074.c.o
 GAMELIBS_669AC_DONOR := build/src/game_libs/game_libs_ido53_669AC.c.o
 GAMELIBS_601D4_DONOR := build/src/game_libs/game_libs_ido53_601D4.c.o
@@ -958,7 +967,7 @@ build/src/game_libs/game_libs_ido53_70A14.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_70A14.c.o build/non_matching/src/game_libs/game_libs_ido53_70A14.c.o: OPT_FLAGS := -O2
 build/src/game_libs/game_libs_ido53_70A14.c.o build/non_matching/src/game_libs/game_libs_ido53_70A14.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ guMtxL2F=gl_func_00070A14
 build/src/game_libs/game_libs_post2b_f.c.o build/non_matching/src/game_libs/game_libs_post2b_f.c.o: REPLACE_FUNC_BODY := gl_func_00074EFC=$(GAMELIBS_74EF4_DONOR) gl_func_0007507C=$(GAMELIBS_74EF4_DONOR)
-build/src/game_libs/game_libs_post2b_d.c.o build/non_matching/src/game_libs/game_libs_post2b_d.c.o: REPLACE_FUNC_BODY := gl_func_000747F4=$(GAMELIBS_747F4_DONOR) gl_func_00073824=$(GAMELIBS_73824_DONOR) gl_func_0007369C=$(GAMELIBS_7369C_DONOR) gl_func_000744CC=$(GAMELIBS_744C4_DONOR) gl_func_00073904=$(GAMELIBS_73904_DONOR) gl_func_00073E74=$(GAMELIBS_73904_DONOR) gl_func_00074554=$(GAMELIBS_74554_DONOR)
+build/src/game_libs/game_libs_post2b_d.c.o build/non_matching/src/game_libs/game_libs_post2b_d.c.o: REPLACE_FUNC_BODY := gl_func_000747F4=$(GAMELIBS_747F4_DONOR) gl_func_00073824=$(GAMELIBS_73824_DONOR) gl_func_0007369C=$(GAMELIBS_7369C_DONOR) gl_func_000744CC=$(GAMELIBS_744C4_DONOR) gl_func_000743C4=$(GAMELIBS_743C4_DONOR) gl_func_00073904=$(GAMELIBS_73904_DONOR) gl_func_00073E74=$(GAMELIBS_73904_DONOR) gl_func_00074554=$(GAMELIBS_74554_DONOR)
 build/src/game_libs/game_libs_post2b_c.c.o build/non_matching/src/game_libs/game_libs_post2b_c.c.o: REPLACE_FUNC_BODY := gl_func_000732C4=$(GAMELIBS_732C4_DONOR) gl_func_000730CC=$(GAMELIBS_730CC_DONOR) game_libs_func_00073310=$(GAMELIBS_73310_DONOR) gl_func_0007307C=$(GAMELIBS_73074_DONOR) gl_func_00073034=$(GAMELIBS_73034_DONOR)
 # arcproc_uso_func_00000748: byte-identical sibling of mgrproc_uso_func_000009A8.
 # arcproc is non-Yay0 but the donor-splice still applies (relocatable USO: a

@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000743C4",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T00:00:00.000000+00:00",
+  "end_time": "2026-08-22T00:00:00.000000+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O2 -mips2 donor for gl_func_000743C4 = libc lldiv (ldiv.c verbatim). */\n\ntypedef struct {\n    long long quot;\n    long long rem;\n} lldiv_t;\n\nlldiv_t lldiv(long long num, long long denom)\n{\n    lldiv_t ret;\n\n    ret.quot = num / denom;\n    ret.rem = num - denom * ret.quot;\n    if (ret.quot < 0 && ret.rem > 0)\n    {\n        ret.quot++;\n        ret.rem -= denom;\n    }\n\n    return ret;\n}\n",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T00:00:00.000000+00:00",
+      "assistant_text": "gl_func_000743C4 = libc lldiv (Plauger ldiv.c verbatim, long-long sibling of the already-landed gl_func_000744CC = ldiv one function later). Identification keys: adjacency (xldtob/xlitob/xldiv libc TU cluster 0x73904..0x74554), o32 sret pointer in $a0 with u64 numer ($a2,$a3) / denom (sp+0x40,0x44), two blank jal-0 calls = the compiler's __ll_div and __ll_mul intrinsics, manual 64-bit subtract (subu/sltu/subu) for rem = num - denom*quot, and the quot<0 && rem>0 sign-fix tail. First IDO 5.3 -O2 compile is 64/64 words identical. Corroboration: the xlitob.c donor (_Litob) ships a blank lldiv jal whose USO load-time reloc targets this address. The old NM wrap's 'timestamp/range helper' hand re-derivation (54.8%) and its frame/aliasing residual notes are retired.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 64,
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_743C4.c",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "raw-word identical vs asm/nonmatchings .s (64/64 FULL words; the two jal fields are the USO's blank load-time relocs, __ll_div/__ll_mul renamed to gl_func_00000000_{lldivq743,llmul743} pins=0); REPLACE_FUNC_BODY splice into game_libs_post2b_d.c.o; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; report.json fuzzy 100.0; exact-set diff vs origin/main: 0 lost, +2 (with 70A14); sentinels 551E0/55B10/EBC8/C5B0/62F08 all 100",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/game_libs/game_libs/gl_func_000743C4.s"
+  }
+}

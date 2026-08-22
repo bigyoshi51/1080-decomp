@@ -112,132 +112,23 @@ void gl_func_00073E74(void *px, int code) {
  * shifted links 743C4..748A0 +4; the trailing 747F4_pad then got clipped
  * by TRUNCATE_TEXT 0x1210). */
 
-#ifdef NON_MATCHING
-/* gl_func_000743C4: 66-insn 64-bit-arithmetic timestamp/range helper (size 0x108, frame 0x30).
- *
- * Computes a 64-bit subtraction across two function-returned values, optionally
- * applies a wrap correction, and stores 4 32-bit fields to an output Obj.
- *
- * Decoded structure (raw-word disasm):
- *   void compute_delta(int *out_obj, [a0 = destination]
- *                      int unused_a1,
- *                      uint32_t a_hi, uint32_t a_lo,  // a2:a3 = first 64-bit operand
- *                      uint32_t b_hi, uint32_t b_lo,  // sp+0x40:0x44 = second
- *                      uint32_t c_hi, uint32_t c_lo)  // sp+0x48:0x4C = third? (read later)
- *   {
- *       // STAGE 1: jal #1 (a2, a3, sp_arg40_lo, sp_arg44_hi)
- *       int64_t r1 = func1(a_hi, a_lo, sp_arg44, sp_arg40);
- *
- *       // STAGE 2: jal #2 (sp_arg40, sp_arg44, r1_v0, r1_v1) — chain
- *       int64_t r2 = func2(sp_arg40, sp_arg44, r1.lo, r1.hi);
- *
- *       // STAGE 3: 64-bit subtract  diff = saved_a2:a3 - r2_v0:v1
- *       uint64_t diff = ((uint64_t)saved_a2 << 32 | saved_a3) -
- *                       ((uint64_t)r2.hi    << 32 | r2.lo);
- *       int32_t  d_hi = (int32_t)(diff >> 32);
- *       uint32_t d_lo = (uint32_t)diff;
- *
- *       // STAGE 4: range adjustment based on sign of d_hi
- *       if (d_hi > 0) {
- *           // positive: use diff as-is
- *       } else if (d_hi < 0) {
- *           // negative: subtract sp_arg40:sp_arg44 from diff (wrap correction)
- *           int64_t adj = (uint64_t)d_hi << 32 | d_lo;
- *           adj -= ((uint64_t)sp_arg40 << 32 | sp_arg44);
- *           d_hi = (int32_t)(adj >> 32);
- *           d_lo = (uint32_t)adj;
- *           // r1 also adjusted: r1.lo++; r1.hi += (r1.lo == 0 ? 1 : 0)  (saturating)
- *       }
- *       // (d_hi == 0: use diff as-is, no adjust)
- *
- *       // STAGE 5: store 4 fields to out_obj
- *       *(int*)(out_obj + 0x0) = r1.hi;
- *       *(int*)(out_obj + 0x4) = r1.lo;
- *       *(int*)(out_obj + 0x8) = d_hi;
- *       *(int*)(out_obj + 0xC) = d_lo;
- *   }
- *
- * Notes:
- *  - Uses standard 64-bit subtract sequence:
- *      subu $hi_diff, $hi_a, $hi_b
- *      sltu $borrow, $lo_a, $lo_b
- *      subu $hi_diff, $hi_diff, $borrow
- *      subu $lo_diff, $lo_a, $lo_b
- *  - The bltzl branch-likely after bgtz/bltz forms a 3-way dispatch on signed
- *    64-bit comparison (positive / negative / zero).
- *  - 4-field store is the canonical "save 64-bit timestamp pair + 64-bit delta"
- *    pattern. Likely tracks elapsed-time / lap-time / frame-counter delta.
- *  - Trailing 2-insn fragment (`mult $a1, $a2; mflo $v0`) past epilogue —
- *    likely incomplete next function fragment. Variant of
- *    feedback_splat_too_big_incomplete_fragment_tail.md.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md.
- *
- * 2026-05-28: converted the comment-only bail into a real C body, 54.77%
- * (mnemonic disasm confirms the structure). KEY 64-bit-on-mips2 finding:
- * extracting hi/lo from a long-long call return via `(int)(r>>32)` compiles to
- * a CALL to a 64-bit-shift runtime helper (huge bloat: 0x214). Use the UNION
- * idiom instead — `union{long long ll; struct{int hi,lo;} w;}` — which stores
- * v0:v1 to the stack and reads the words back, exactly matching the target's
- * `sw v0,32(sp); sw v1,36(sp); lw ...` roundtrip (got 40%→55%). All 64-bit
- * arithmetic is manual int hi/lo (subu/sltu/subu), NOT long-long ops.
- * RESIDUAL (~45%, multi-tick): (a) frame 0x40 vs 0x30 — the two union temps
- * use extra stack; the target reuses ONE result area (sp+0x20..0x2C) that the
- * call result stores into DIRECTLY (needs aliasing result[0..1] with the call
- * return). (b) the result→out_obj copy: target uses a t0=&sp[0x20] pointer
- * loop, mine does indexed loads. (c) dispatch-branch ordering. Real wrap now
- * (compilable / permuter-able / correct logic), not a comment bail. */
-/* long-long-returning view of the jal-0 placeholder (returns 64-bit in v0:v1).
- * Used ONLY to capture the pair; all arithmetic is manual int hi/lo to emit the
- * target's subu/sltu/subu (long-long shifts emulate to bloated/MIPS3 ops on -mips2). */
-extern long long gl_ret64_743C4();
-typedef union { long long ll; struct { int hi; int lo; } w; } Pair64;
-void gl_func_000743C4(int *out_obj, int a1, int a2, int a3, int b_hi, int b_lo) {
-    int result[4];
-    Pair64 r1, r2;
-    int r1_hi, r1_lo, r2_hi, r2_lo;
-    int diff_hi, diff_lo;
-
-    r1.ll = gl_ret64_743C4(a2, a3, b_hi, b_lo);
-    r1_hi = r1.w.hi;
-    r1_lo = r1.w.lo;
-    r2.ll = gl_ret64_743C4(b_hi, b_lo, r1_lo, r1_hi);
-    r2_hi = r2.w.hi;
-    r2_lo = r2.w.lo;
-
-    /* diff = {a2:a3} - {r2_hi:r2_lo}  (manual 64-bit subtract) */
-    diff_hi = a2 - r2_hi - ((unsigned int)a3 < (unsigned int)r2_lo);
-    diff_lo = a3 - r2_lo;
-
-    result[0] = r1_hi;
-    result[1] = r1_lo;
-    result[2] = diff_hi;
-    result[3] = diff_lo;
-
-    if (r1_hi < 0) {
-        if (diff_hi > 0 || (diff_hi == 0 && diff_lo != 0)) {
-            /* saturating-increment r1 */
-            int nlo = r1_lo + 1;
-            int nhi = r1_hi + (nlo == 0);
-            /* diff -= {b_hi:b_lo} */
-            int nd_hi = diff_hi - b_hi - ((unsigned int)diff_lo < (unsigned int)b_lo);
-            int nd_lo = diff_lo - b_lo;
-            result[0] = nhi;
-            result[1] = nlo;
-            result[2] = nd_hi;
-            result[3] = nd_lo;
-        }
+/* gl_func_000743C4 = libc lldiv (ldiv.c verbatim, long-long sibling of
+ * gl_func_000744CC = ldiv; IDO 5.3 -O2 donor: game_libs_ido53_743C4.c).
+ * LANDED 2026-08-22 via REPLACE_FUNC_BODY donor splice, 64/64 words
+ * exact. The old "timestamp/range helper" re-derivation (54.8%) is
+ * retired: the two chained jal-0 "64-bit helpers" are the compiler's
+ * __ll_div / __ll_mul intrinsics (blank USO relocs, pins = 0), and the
+ * manual subu/sltu/subu + sign-fix tail is verbatim Plauger
+ * `ret.rem = num - denom*ret.quot; if (quot<0 && rem>0) {...}`.
+ * Corroboration: the xlitob.c donor (_Litob) ships a blank lldiv jal
+ * whose USO load-time reloc targets this address. Body below is a
+ * placeholder for the splice. */
+void gl_func_000743C4(int m) {
+    volatile int lldiv_spliced = 0;
+    if (m != 0) {
+        lldiv_spliced = m;
     }
-
-    out_obj[0] = result[0];
-    out_obj[1] = result[1];
-    out_obj[2] = result[2];
-    out_obj[3] = result[3];
-    (void)a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000743C4);
-#endif
 
 
 /* game_libs_func_000744C4 (0x8 orphan, no jr ra: div/mflo) was the HOISTED
