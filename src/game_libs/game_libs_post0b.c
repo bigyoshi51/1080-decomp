@@ -20545,46 +20545,65 @@ int game_libs_func_0004DB38(int a0, int a1, int a2, int a3) {
 }
 
 #ifdef NON_MATCHING
-/* gl_func_0004DB50: 3-way log dispatcher. Decoded from bare stub
- * 2026-05-19 (clean single fn, NOT a bundle). Frame 0x18,
- * 4 args spilled (a0..a3 @ sp+0x18/1C/20/24).
- *   void f(int *a0, int a1, int a2, int a3) {
- *     a0->0x28 += 1;                          // bump counter
- *     cb1(a1_orig, a2_orig);                  // args reloaded from spill
- *     cb2(a1_orig, a3_orig, ...);             // 2nd cb, more spill reloads
- *     v = a0->0x2C;                            // switch selector
- *     switch (v) {
- *       case 4: cb3(&D+0x..A, *(&D+..), *(&D+..)); break;
- *       case 3: cb3(&D+0x..B, *(&D+..), *(&D+..)); break;
- *       default: cb3(&D+0x20314, *(&D+..), *(&D+..));
- *     }
- *   }
- * Multi-idiom (defer): heavy arg-spill/reload threading for cb1/cb2
- * (a0..a3 all saved at entry, reloaded in a specific order per
- * call), the `v == 4 / v == 3 / default` li-at;beq chain, and each
- * case loads two distinct `*(int*)(&D_00000000 + N)` globals + a
- * string arg before the shared cb3, then `b` to one epilogue.
- * Exact per-case D_0 offsets/strings + the selector source (a0->
- * 0x2C vs a stack temp) need a focused pass. Real decoded C
- * preserved; INCLUDE_ASM build path. */
+/* gl_func_0004DB50: 3-way log dispatcher. RE-DECODED 2026-08-22 (agent-g,
+ * K&R-reinterpret lever): SIX int args (arg4 @sp+0x28, arg5 @sp+0x2C —
+ * old 4-arg signature was wrong; selector is ARG5, not a0->0x2C).
+ * 44.2 -> 30/46 words exact (65%), size-exact, structure fully aligned:
+ *   f(obj, a1, a2, a3, a4, sel):
+ *     obj->0x28 += 1;
+ *     cb(a1, a2);
+ *     cb(a1, a3, a4, obj->0x2C);
+ *     sel==4 -> cb(a1, Da, Db); sel==3 -> cb(a1, Dc, Dd);
+ *     else cb(&D+0x20314 string)
+ * Distinct D_4db50_a..d zero syms (undefined_syms_auto.txt) defeat the
+ * same-symbol CSE (one lw + move a2,a1 otherwise).
+ * RESIDUALS (all reg/layout, no missing insns): (1) increment scratch
+ * a2/t7 vs build t7/t8 (+t8/t9 cascade); (2) selector v0 vs v1 (switch
+ * form picks v1; if/goto forms pick v0 but break arm layout); (3) target
+ * chain = beq4->arm, beq3->arm, b->default with arms c4,c3,dflt out of
+ * line and lw a0(a1-home) hoisted ABOVE the tests.
+ * NEGATIVE FINDINGS (don't re-try): switch sorts tests ASCENDING + last
+ * test bne-inverted regardless of case textual order (both orders tried);
+ * if/else chain = inline bne-skip arms; goto-CFG with dflt textually last
+ * = uopt fuses `beq c3; b dflt` into bne->dflt + b->c3; goto-CFG with
+ * dflt inline = right tests, block order dflt,c4,c3; hoisting a1 into a
+ * pre-test local = CSEd back, inline arms; post-increment as call arg =
+ * pa0 reload + move-chain blowup. The descending-beq + b-default shape
+ * with NO inverted test is not reachable from switch/if/goto at this
+ * frame; suspect it needs the exact increment-scratch-a2 upstream state
+ * (target burns a2 on the += load) steering reorg. */
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0004DB50(int *a0, int a1, int a2, int a3) {
-    int v;
-    *(int *)((char *)a0 + 0x28) += 1;
-    gl_func_00000000(a1, a2);
-    gl_func_00000000(a1, a3);
-    v = *(int *)((char *)a0 + 0x2C);
-    if (v == 4) {
-        gl_func_00000000((char *)&D_00000000 + 0x20314,
-                         *(int *)&D_00000000, *(int *)&D_00000000);
-    } else if (v == 3) {
-        gl_func_00000000((char *)&D_00000000 + 0x20314,
-                         *(int *)&D_00000000, *(int *)&D_00000000);
-    } else {
-        gl_func_00000000((char *)&D_00000000 + 0x20314,
-                         *(int *)&D_00000000, *(int *)&D_00000000);
+extern int D_4db50_a, D_4db50_b, D_4db50_c, D_4db50_d;
+void gl_func_0004DB50(arg0, arg1, arg2, arg3, arg4, arg5)
+int arg0, arg1, arg2, arg3, arg4, arg5;
+{
+#define pa0 (*(int **)&arg0)
+#define ia1 (*(int *)&arg1)
+#define ia2 (*(int *)&arg2)
+#define ia3 (*(int *)&arg3)
+#define ia4 (*(int *)&arg4)
+#define ia5 (*(int *)&arg5)
+    pa0[0x28 / 4] += 1;
+    gl_func_00000000(ia1, ia2);
+    gl_func_00000000(ia1, ia3, ia4, pa0[0x2C / 4]);
+    switch (ia5) {
+    case 4:
+        gl_func_00000000(ia1, *(int *)&D_4db50_a, *(int *)&D_4db50_b);
+        break;
+    case 3:
+        gl_func_00000000(ia1, *(int *)&D_4db50_c, *(int *)&D_4db50_d);
+        break;
+    default:
+        gl_func_00000000((char *)&D_00000000 + 0x20314);
+        break;
     }
+#undef pa0
+#undef ia1
+#undef ia2
+#undef ia3
+#undef ia4
+#undef ia5
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004DB50);

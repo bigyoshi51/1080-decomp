@@ -3216,3 +3216,7 @@ gl_func_00000000_vigetc = 0x00000000;    /* __osViGetCurrentContext (blank jal) 
 gl_func_00000000_viswap = 0x00000000;    /* __osViSwapContext (blank jal) */
 gl_func_00000000_getcount = 0x00000000;  /* osGetCount (blank jal) */
 gl_func_00000000_tint = 0x00000000;      /* __osTimerInterrupt (blank jal) */
+D_4db50_a = 0x00000000;  /* distinct case globals for gl_func_0004DB50 (defeat CSE) */
+D_4db50_b = 0x00000000;
+D_4db50_c = 0x00000000;
+D_4db50_d = 0x00000000;
