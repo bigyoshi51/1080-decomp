@@ -26683,38 +26683,59 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000558A0);
 #endif
 
 #ifdef NON_MATCHING
-/* gl_func_0005591C: 88-insn (0x160) varargs-style printf-like dispatcher
- * with circular-buffer link-list maintenance. Sibling-roll pick post
- * recently-matched gl_func_00055B44 (grid emitter). Frame -0xB0 (176B)
- * with full a0-a3 caller-arg-save (varargs signature shape).
+/* gl_func_0005591C: 88-insn (0x160) — FULLY RE-DECODED 2026-08-22 from the
+ * expected/ .o ground truth (53.7 -> 96.7). NOT a circular-buffer walk: the
+ * "link-list" middle is TWO 0x4C-byte struct block-copies (IDO 3-word-unrolled
+ * copy loops): (1) `if (a3) s = *a3` into the local at sp+0x60, (2) the
+ * struct passed BY VALUE (copy into arg-build area sp+0, then lw a0-a3 from
+ * 0/4/8/C(sp) + jal). s.unk00 = &a0 (address-of-param forces the a0-a3
+ * home-slot saves = the "varargs shape"). Guard logic: v0=0; if (!a0) v0=1;
+ * else if (*a0 != 0x3E8) v0=1; if (v0) call(D+0x211C8) — call guarded on v0,
+ * NOT nested in the *a0 test. K&R params; `Gl5591CArg *p5591C` dead decl
+ * supplies the 8 frame bytes below s (frame 0xA8->0xB0, s at 0x60 exact).
  *
- * Decoded shape (initial pass, ~30/88 insns):
- *   gl_func_00055B44-style printf-fmt + ~5 D-base global clears at
- *   D[0], D[4], D[8], D[C], plus 1 reload from sp+0xB0 saved-a0:
- *     gl_func_00000000(D+0x211B8);                  // setup call
- *     *(int*)(D+offN) = 0; (4 globals)
- *     if (saved_a0 == 0) {
- *         v0 = 0;
- *     } else {
- *         v0 = 1;
- *         if (*(int*)saved_a0 == 0x3E8) goto skip;
- *         gl_func_00000000(D+0x211C8);
- *     }
- *   skip:
- *     // ~50 insns of circular-buffer link-list walk:
- *     // (cur->prev = cur+0xC, cur->next = next->next, etc.) — Vec3-of-
- *     // pointers manipulation across sp+0x48..0x6C range
- *     gl_func_00000000(...);   // final 4-arg call with sp+0/4/8/C
- *     gl_func_00000000();      // empty trailing call
- *     return 1;
- *
- * Initial structural NM ~30-40% expected. Multi-pass refinement for the
- * circular-buffer middle section (offsets sp+0x48, 0x60, 0x6C, 0xFFF4-FFFC)
- * which uses negative-offset addressing relative to running pointers. */
+ * RESIDUAL (3.3pp): ONE extra insn `or t2,v0,zero` — uopt refuses to use the
+ * guarded a3 home-reload destructively as the copy-loop induction base (makes
+ * a fresh copy), which cascades t-reg renumbering through both loops
+ * (t5/t6 swap, t9/t0/t2 rotation). Unguarded copy DOES coalesce (destructive
+ * lw t9, verified) — the guard branch is what blocks it. NEGATIVE probes, all
+ * no-change: top-level ptr local (copy-prop'd), (unsigned)-cast laundering
+ * (9B88 lever), `register` class, assignment-inside-guard, member-expr src
+ * (a3->inner via outer struct), same-line join, while+break spelling.
+ * Every other word matches at the target frame/offsets. */
 extern int gl_data_00000000;
-int gl_func_0005591C(int *a0, int a1, int a2, int a3) {
+typedef struct Gl5591CArg {
+    int *unk00;   /* 0x00: &first-arg (address of a0 home slot) */
+    int unk04;
+    int unk08;
+    int unk0C;    /* = a1 */
+    int unk10;    /* = a1 */
+    int unk14;    /* = a2 */
+    int unk18;    /* = 0 */
+    int unk1C;
+    int unk20;
+    int unk24;
+    int unk28;    /* = 0 */
+    int unk2C;
+    int unk30;
+    int unk34;    /* = 0 */
+    int unk38;    /* = 1 */
+    int unk3C;    /* = 0 */
+    int unk40;
+    int unk44;
+    int unk48;
+} Gl5591CArg;   /* 0x4C */
+typedef struct Gl5591COuter { Gl5591CArg inner; } Gl5591COuter;
+int gl_func_0005591C(a0, a1, a2, a3)
+int *a0;
+int a1;
+int a2;
+Gl5591COuter *a3;
+{
+    Gl5591CArg *p5591C;
+    Gl5591CArg s;
     int v0;
-    /* Setup call: printf-like fmt at D+0x211B8 */
+    /* Setup call: fmt/handle at D+0x211B8 */
     gl_func_00000000((char*)&gl_data_00000000 + 0x211B8);
     /* Clear 5 D-base globals (offsets 0/0/4/8/0xC) — the target uses a SEPARATE
      * `lui at; sw zero` per clear, so route each through a DISTINCT extern to
@@ -26727,34 +26748,30 @@ int gl_func_0005591C(int *a0, int a1, int a2, int a3) {
         *(int*)((char*)&D_5591C_z8 + 0x8) = 0;
         *(int*)((char*)&D_5591C_zc + 0xC) = 0;
     }
+    v0 = 0;
     if (a0 == 0) {
-        v0 = 0;
-    } else {
         v0 = 1;
-        if (*a0 != 0x3E8) {
-            gl_func_00000000((char*)&gl_data_00000000 + 0x211C8);
-        }
+    } else if (*a0 != 0x3E8) {
+        v0 = 1;
     }
     if (v0 != 0) {
-        int buf[18];
-        int out[18];
-        int i;
-        if (a3 != 0) {
-            for (i = 0; i < 18; i++) buf[i] = ((int *)a3)[i];
-        }
-        buf[0] = (int)&a0;
-        buf[3] = a1;
-        buf[4] = a1;
-        buf[5] = a2;
-        buf[6] = 0;
-        buf[10] = 0;
-        buf[13] = 0;
-        buf[14] = 1;
-        buf[15] = 0;
-        for (i = 0; i < 18; i++) out[i] = buf[i];
-        gl_func_00000000(out[0], out[1], out[2], out[3]);
-        gl_func_00000000();
+        gl_func_00000000((char*)&gl_data_00000000 + 0x211C8);
     }
+    while (a3 != 0) {
+        s = a3->inner;
+        break;
+    }
+    s.unk00 = (int *)&a0;
+    s.unk28 = 0;
+    s.unk18 = 0;
+    s.unk34 = 0;
+    s.unk3C = 0;
+    s.unk38 = 1;
+    s.unk0C = a1;
+    s.unk10 = a1;
+    s.unk14 = a2;
+    gl_func_00000000(s);
+    gl_func_00000000();
     return 1;
 }
 #else
