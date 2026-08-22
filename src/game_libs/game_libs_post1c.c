@@ -328,55 +328,23 @@ void gl_func_000709DC(int a0) {
     gl_func_00000000(buf, a0);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00070A14: too-big-N-function-bundle (declared 0xEC, 59 words) — 3 functions.
- * Bundle: 1 complex bit-pack routine + 2 libultra CP0 interrupt-mask helpers.
- *
- * SUB-FUNCTION 1 (0x70A14..0x70AC4, 44 insns) — bit-pack loop:
- *     // Caller passes start_ptr_1 (a0), start_ptr_2 (a1), count (a2-ish), val (a3)
- *     // Two pointer cursors advance in lockstep through paired buffers.
- *     // Inner loop body packs `(src1[i] >> 16) | (src2[j] & 0xFFFF_0000)` and
- *     // stores to dst at offsets advancing by +8 / +0x10. Includes lwc1 + fp
- *     // conversions (`cvt.s.w` / `mul.s` / `sub.s`) and swc1 stores at -8 / -4
- *     // offsets relative to the post-incremented cursor.
- *     // Pattern: likely a vertex-compression / paired-halfword packer for
- *     // RDP F3DEX2 vertex format or audio-sample blitter.
- *
- * SUB-FUNCTION 2 (0x70AC4..0x70AE4, 8 insns) — __osDisableInt:
- *     uint32_t __osDisableInt(void) {
- *         uint32_t prev;
- *         __asm("mfc0 %0, $12" : "=r"(prev));      // read Status (CP0 reg 12)
- *         __asm("mtc0 %0, $12" : : "r"(prev & ~1)); // clear IE bit
- *         return prev & 1;                          // return old IE state
- *     }
- *
- * SUB-FUNCTION 3 (0x70AE4..0x70AFC, 6 insns) — __osSetIntMask / __osRestoreInt:
- *     void __osSetIntMask(uint32_t mask) {
- *         uint32_t prev;
- *         __asm("mfc0 %0, $12" : "=r"(prev));
- *         __asm("mtc0 %0, $12" : : "r"(prev | mask));   // OR-set Status bits
- *     }
- *
- * Notes:
- *  - f2 + f3 are canonical libultra interrupt-control primitives.
- *    See libreultra `src/os/disableInt.c` and `setIntMask.c`. Could be
- *    promoted to byte-exact via libreultra source if compiled with IDO.
- *  - f1's inner pack `(a >> 16) | (b & 0xFFFF0000)` uses lui $t2, 0xFFFF as
- *    a 32-bit mask constant. The trailing `cvt.s.w` and `mul.s/sub.s` are
- *    fixed-point → float conversion (likely for vertex normalization).
- *  - 3 internal `jr $ra` confirm 3-function bundle. Splat boundary issue.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-#else
-/* gl_func_00070A14: 4x2 nested-loop packed-short→float converter. ARCHITECTURAL CAP
- * (caller-set $f0): each inner iter recombines halfwords from two src cursors (a1, a1+0x20),
- * cvt.s.w to float, and multiplies by $f0 — but $f0 is read with NO preceding load and is
- * NOT an o32 float-arg reg (f12/f14), so it is a caller-set float the C calling convention
- * can't express (cf. feedback_caller_set_int_reg / caller-set-float cap). Permanent
- * INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070A14);
-#endif
+/* gl_func_00070A14 = guMtxL2F (libultra gu/mtxutil.c verbatim, IDO 5.3
+ * -O2 single-fn carve-out donor: game_libs_ido53_70A14.c). LANDED
+ * 2026-08-22 via REPLACE_FUNC_BODY donor splice, 45/45 words exact,
+ * ZERO relocs. The .s block spans 0x70A0C..0x70AC0: the leading
+ * lui $at,0x3780 / mtc1 $at,$f0 pair is the FIX32TOF 1/65536.0f
+ * constant load and belongs to THIS function, so the old
+ * "ARCHITECTURAL CAP caller-set $f0" verdict (and the 3-fn-bundle
+ * decode note) are RETRACTED -- the $f0 producer was just across a
+ * stale splat boundary. The 4x2 loop recombines 16.16 halves from
+ * m (ints) and m+0x20 (fracs) into floats. Body below is a
+ * placeholder for the splice. */
+void gl_func_00070A14(int m) {
+    volatile int l2f_spliced = 0;
+    if (m != 0) {
+        l2f_spliced = m;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070AC0);

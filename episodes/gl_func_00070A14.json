@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00070A14",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T00:00:00.000000+00:00",
+  "end_time": "2026-08-22T00:00:00.000000+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O2 -mips2 donor for gl_func_00070A14 = guMtxL2F\n * (libreultra src/gu/mtxutil.c verbatim). PROVEN EXACT 2026-08-22:\n * 45/45 words identical at -O2 first compile, ZERO relocs. */\n\ntypedef long Mtx_t[4][4];\ntypedef union {\n    Mtx_t m;\n    long long int forc_structure_alignment;\n} Mtx;\n\n#define FIX32TOF(x) ((float)(x) * (1.0f / 65536.0f))\n\nvoid guMtxL2F(float mf[4][4], Mtx *m)\n{\n\tint\t\ti, j;\n\tunsigned int\te1,e2;\n\tunsigned int\t*ai,*af;\n\tint\t\tq1,q2;\n\n\tai=(unsigned int *) &m->m[0][0];\n\taf=(unsigned int *) &m->m[2][0];\n\n\tfor (i=0; i<4; i++)\n\tfor (j=0; j<2; j++) {\n\t\te1 = (*ai & 0xffff0000) | ((*af >> 16) & 0xffff);\n\t\te2 = ((*(ai++) << 16) & 0xffff0000) | (*(af++) & 0xffff);\n\t\tq1 = *((int *)&e1);\n\t\tq2 = *((int *)&e2);\n\n\t\tmf[i][j*2] = FIX32TOF(q1);\n\t\tmf[i][j*2+1] = FIX32TOF(q2);\n\t}\n}\n",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T00:00:00.000000+00:00",
+      "assistant_text": "gl_func_00070A14 = libultra guMtxL2F (gu/mtxutil.c verbatim). Identification keys: adjacency (70694=guOrthoF/guOrtho, 70850 F2L-shaped, 70954=guMtxIdentF -- the gu single-fn carve-out cluster), the leading lui $at,0x3780 / mtc1 $at,$f0 = 1.0f/65536.0f FIX32TOF constant, two cursors a1 / a1+0x20 (Mtx int half / frac half), lui 0xFFFF mask, 4x2 loop counters li 4 / li 2, cvt.s.w + mul.s by $f0, paired swc1 stores. First IDO 5.3 -O2 compile is 45/45 words identical (zero relocs). The old NM note called $f0 a caller-set-float ARCHITECTURAL CAP; the $f0 producer is the block's own first two words -- splat's glabel merely sits +8 into the body (block spans 0x70A0C..0x70AC0). Cap retracted.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 45,
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_70A14.c",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "raw-word identical vs asm/nonmatchings .s (45/45 FULL words, zero relocs); POST_COMPILE rename guMtxL2F=gl_func_00070A14; REPLACE_FUNC_BODY splice into game_libs_post1c.c.o; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; report.json fuzzy 100.0; exact-set diff vs origin/main: 0 lost, +1; sentinels 551E0/55B10/EBC8/C5B0/62F08 all 100",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/game_libs/game_libs/gl_func_00070A14.s"
+  }
+}
