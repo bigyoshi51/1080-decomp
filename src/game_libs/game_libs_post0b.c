@@ -8054,61 +8054,57 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D71C);
  *   end: return a0;
  *   }
  *
- * Control flow, data refs, float identity {0x48=1,0x4C=0,0x50=0,0x54=1},
- * shared epilogue (goto end) all byte-aligned. REMAINING GAP (the only
- * residual): target reloads the SPILLED PARAM a3 TWICE into separate regs
- * (`lw t8,36(sp); lw t9,36(sp)`) so it can emit an annulled branch-likely
- * `bnel t8,zero,0x80; lw t1,0(t9)` (test reg t8 ≠ copy-base reg t9 — the
- * different regs are what let GCC reorg annul-fill the delay with the
- * first copy load). C-emit reloads a3 once, tests+copies from the same
- * reg, so reorg emits a plain `bne a3,zero` (no annul) → build is exactly
- * 1 insn short (43 vs 44).
- *
- * NEGATIVE FINDINGS (do NOT re-try — verified ineffective 2026-05-16):
- *   - IDO_CODEGEN #feedback-ido-bnel-arm-swap: EQUAL case in the `if` arm
- *     (`if (a3 == 0) {...}`) — already in this shape, still plain bne.
- *   - pointer-local `int *p = a3;` then copy via p — IDO CSEs p back to
- *     a3, single reload, no change (stayed 73.0%).
- * The double-spill-reload is an IDO regalloc/reorg artifact not reachable
- * by C expression restructuring at this frame shape.
- *
- * NEXT APPROACH: (a) permuter on the 73% body (randomize spill/reg choices
- * until the t8/t9 split + bnel appears), OR (b) force SAME-LEN 44 first
- * (a second distinct spilled local for the copy base so a3-home loads
- * twice), then INSN_PATCH the bne→bnel + delay-load + register renames
- * (all same-length word overwrites; jal orphan-reloc auto-stripped).
- * USO convention: call -> func_00000000, data -> &D+off. */
+ * RESOLVED 2026-08-22 (agent-g): byte-exact via the K&R-int-args-reinterpret
+ * lever + struct-by-value call arg + struct-assignment copy — see the block
+ * comment on the NM body below. The old "double-spill-reload is an IDO
+ * regalloc artifact not reachable from C" conclusion was WRONG: the two
+ * reloads are the struct-assignment base temp + cast test load. */
 #ifdef NON_MATCHING
 /* gl_func_0003D7F8: constructor. obj = a0 ?: alloc(88); cb(obj, a1, a2);
  * obj->0x28 = &D vtable; if a3 null set default transform (0,0 / 1,1 at
  * 0x4C/0x50/0x48/0x54) else copy 4 words from a3 into 0x48..0x54; return obj.
- * Fresh decode 2026-05-29: 73%. Reassigning the `a0` param directly (no `obj`
- * local) keeps obj in $a0 spilled across the cb call (matches target; an `obj`
- * local promotes to $s0, frame -32 vs -24). RESIDUAL: target uses bnezl
- * (branch-likely) re-reading a3 twice (test + copy base) and a prologue
- * arg-home schedule mine doesn't reproduce — branch-likely/re-read caps. */
+ * BYTE-EXACT 44/44 (2026-08-22 agent-g, K&R-int-args-reinterpret lever):
+ * K&R def with `int *arg0` PLAIN (stays register-resident, homed only across
+ * the cb call) + arg1..3 declared int and accessed via reinterpret casts
+ * (memory-resident, homed at entry, reloaded per use). Three sub-levers:
+ *  - struct-by-value 2nd call arg `*(struct {int x;}*)&arg1` = the dead
+ *    `sw a1,4(sp)` outgoing-arg-slot store in the jal delay (frame stays 0x18;
+ *    an int tmp[1] array instead costs +8 frame).
+ *  - `if (pa3 == 0)` + STRUCT ASSIGNMENT else-arm = the double a3-home reload
+ *    (test t8 + base t9, both uopt TEMPS) feeding bnezl annul-fill, and the
+ *    alternating t1/t0 4-word copy. Element-wise copies via a local `int *p`
+ *    color the base to $v0 (candidate, not temp) — 8 reg diffs.
+ * Placeholder callees (gl_func_00000000/D_00000000) → stays NM wrap. */
 extern int gl_func_00000000();
 extern int D_00000000;
-int *gl_func_0003D7F8(int *a0, int a1, int a2, int *a3) {
-    if (a0 == 0) {
-        a0 = (int *)gl_func_00000000(88);
-        if (a0 == 0) goto end;
+int *gl_func_0003D7F8(arg0, arg1, arg2, arg3)
+int *arg0; int arg1, arg2, arg3;
+{
+#define pa0 (arg0)
+#define ia1 (*(int *)&arg1)
+#define ia2 (*(int *)&arg2)
+#define pa3 (*(int **)&arg3)
+    struct q3d { int a, b, c, d; };
+    if (pa0 == 0) {
+        pa0 = (int *)gl_func_00000000(88);
+        if (pa0 == 0) goto end;
     }
-    gl_func_00000000(a0, a1, a2);
-    a0[0x28 / 4] = (int)&D_00000000;
-    if (a3 == 0) {
-        *(float *)((char *)a0 + 0x4C) = 0.0f;
-        *(float *)((char *)a0 + 0x50) = 0.0f;
-        *(float *)((char *)a0 + 0x48) = 1.0f;
-        *(float *)((char *)a0 + 0x54) = 1.0f;
+    gl_func_00000000(pa0, *(struct { int x; } *)&arg1, ia2);
+    pa0[0x28 / 4] = (int)&D_00000000;
+    if (pa3 == 0) {
+        *(float *)((char *)pa0 + 0x4C) = 0.0f;
+        *(float *)((char *)pa0 + 0x50) = 0.0f;
+        *(float *)((char *)pa0 + 0x48) = 1.0f;
+        *(float *)((char *)pa0 + 0x54) = 1.0f;
     } else {
-        a0[0x48 / 4] = a3[0];
-        a0[0x4C / 4] = a3[1];
-        a0[0x50 / 4] = a3[2];
-        a0[0x54 / 4] = a3[3];
+        *(struct q3d *)((char *)pa0 + 0x48) = **(struct q3d **)&arg3;
     }
 end:
-    return a0;
+    return pa0;
+#undef pa0
+#undef ia1
+#undef ia2
+#undef pa3
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003D7F8);
