@@ -20533,7 +20533,18 @@ int game_libs_func_0004DB38(int a0, int a1, int a2, int a3) {
  * pa0 reload + move-chain blowup. The descending-beq + b-default shape
  * with NO inverted test is not reachable from switch/if/goto at this
  * frame; suspect it needs the exact increment-scratch-a2 upstream state
- * (target burns a2 on the += load) steering reorg. */
+ * (target burns a2 on the += load) steering reorg.
+ * MORE NEGATIVES (2026-08-22 agent-g, raw-.word ground truth): target inc
+ * is lw a2,40(a0); addiu t7,a2,1 = CANDIDATE load + temp add. Spelling it
+ * `n = p[10]; p[10] = n + 1;` DOES fix the t8/t9 cascade AND flips the
+ * selector to v0 (0x30/0x44/0x48 cells right), but n colors v0 not a2
+ * (v0 first in candidate preference; selector reuses v0 disjointly).
+ * Arm layout: target = beq4->c4(0x70), beq3->c3(0x88), b->dflt(0xA0),
+ * arms out-of-line in c4,c3,dflt order. goto-CFG dflt-last STILL fuses
+ * `beq c3; b dflt` into bne->dflt + b->c3 even with an if(1){goto dflt;}
+ * BB-lever wrapping the fallthrough goto (16->17/19 diffs; reverted).
+ * Remaining gates: n->a2 coloring + unfused beq/beq/b — likely uoptlist
+ * (-zdbug:6) territory, not spelling. */
 extern int gl_func_00000000();
 extern int D_00000000;
 extern int D_4db50_a, D_4db50_b, D_4db50_c, D_4db50_d;
