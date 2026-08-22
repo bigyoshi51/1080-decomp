@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_000707E8",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T17:04:12.798992+00:00",
+  "end_time": "2026-08-22T17:04:12.798992+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O3 -mips2 whole-TU donor for the libultra gu ortho pair:\n *   gl_func_00070694 = guOrthoF (donor .text [0x000,0x154))\n *   gl_func_000707E8 = guOrtho  (donor .text [0x154,0x1BC))\n * (libreultra src/gu/ortho.c verbatim.) PROVEN EXACT 2026-08-22:\n * first -O3 whole-TU compile is 111/111 FULL-word identical to the raw\n * target .s (not just masked -- the three R_MIPS_26 jal fields are\n * already the target's blank 0x0C000000, the USO ships load-time\n * relocs). -O2 diverges in guOrthoF's scale loop (20 words) and emits\n * guOrtho at 0x64; -O1 is completely differently scheduled; -O3 is the\n * class, same as the xldtob TU next door.\n * Identification keys (old NM wraps had these as anonymous float math):\n *   - 707E8 is the classic guOrtho wrapper shape: mtc1/mfc1 single-\n *     precision arg re-marshal (ANSI floats, NO K&R double promotion),\n *     Matrix mf[4][4] at sp+40 (64 bytes), two blank jals =\n *     guOrthoF(mf, l..scale) then guMtxF2L(mf, m);\n *   - 70694 opens with jal guMtxIdentF then the 2/(r-l), 2/(t-b),\n *     -2/(f-n) diagonal + row-3 translate terms + 4x4 *= scale loop.\n * Reloc story (single consistent story, all three relocs):\n *   - jal guMtxIdentF / jal guMtxF2L / internal jal guOrthoF: the USO\n *     ships all three blank (load-time reloc table, already matched as\n *     data) -> POST_COMPILE renames all three symbols to\n *     gl_func_00000000_{identf706,orthof706,f2l706} pins = 0, so the\n *     imported relocs bake the target's 0x0C000000 verbatim.\n * Renaming guOrthoF away (its internal-call reloc must stay blank)\n * removes the splice key, so POST_COMPILE re-injects a duplicate\n * gl_func_00070694=0x0:0x154 symbol (metadata only, bytes untouched);\n * guOrtho carries no relocs against it and is renamed to\n * gl_func_000707E8 directly. Spliced into game_libs_post1c.c.o via\n * REPLACE_FUNC_BODY. */\ntypedef signed short s16;\ntypedef long s32;\ntypedef unsigned long u32;\ntypedef union {\n    struct { u32 m1[8]; u32 m2[8]; } b;\n    s32 m[4][4];\n    long long forcealign;\n} Mtx;\ntypedef float Matrix[4][4];\n\nextern void guMtxIdentF(float mf[4][4]);\nextern void guMtxF2L(float mf[4][4], Mtx *m);\n\nvoid guOrthoF(float mf[4][4], float l, float r, float b, float t, float n, float f, float scale)\n{\n\tint\ti, j;\n\n\tguMtxIdentF(mf);\n\n\tmf[0][0] = 2/(r-l);\n\tmf[1][1] = 2/(t-b);\n\tmf[2][2] = -2/(f-n);\n\tmf[3][0] = -(r+l)/(r-l);\n\tmf[3][1] = -(t+b)/(t-b);\n\tmf[3][2] = -(f+n)/(f-n);\n\tmf[3][3] = 1;\n\n\tfor (i=0; i<4; i++)\n\t    for (j=0; j<4; j++)\n\t\tmf[i][j] *= scale;\n}\n\nvoid guOrtho(Mtx *m, float l, float r, float b, float t, float n, float f, float scale)\n{\n\tMatrix\tmf;\n\n\tguOrthoF(mf, l, r, b, t, n, f, scale);\n\n\tguMtxF2L(mf, m);\n}\n",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T17:04:12.798992+00:00",
+      "assistant_text": "gl_func_000707E8 = guOrtho (libultra gu/ortho.c, same whole-TU donor). Classic ANSI wrapper shape: mtc1/mfc1 single-precision arg re-marshal (NO K&R double promotion -- the old 'not byte-reproducible' verdict is retracted), Matrix mf[4][4] at sp+40, jal guOrthoF then jal guMtxF2L, both shipped blank by the USO (load-time relocs). Internal guOrthoF jal renamed to a pin-0 blank so the linker bakes 0x0C000000 verbatim; splice key re-injected via add-elf-func-symbol.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 26,
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_70694.c",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O3 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "raw-word identical vs asm/nonmatchings .s (111/111 FULL words for the whole donor TU, including the three R_MIPS_26 jal fields already blank 0x0C000000 = the USO's load-time relocs, pins gl_func_00000000_{identf706,orthof706,f2l706}=0); REPLACE_FUNC_BODY splice from the single -O3 whole-TU donor into game_libs_post1c.c.o; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; report.json fuzzy 100.0 both fns",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/gl_func_000707E8.s"
+  }
+}

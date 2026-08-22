@@ -221,86 +221,30 @@ void gl_func_00070634(int mask) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070634_pad.s")
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00070694)();
-void gl_func_00070694(char *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7) {
-    f32 temp_f0;
-    f32 temp_f10;
-    f32 temp_f12;
-    f32 temp_f2;
-    f32 temp_f4;
-    f32 temp_f6;
-    f32 var_f12;
-    f32 var_f14;
-    f32 var_f16;
-    f32 var_f18;
-    s32 var_v1;
-    char *temp_v0;
-    char *var_v0;
-
-    gl_func_00062F64();
-    temp_f0 = arg2 - arg1;
-    var_v0 = arg0;
-    temp_f12 = arg6 - arg5;
-    (*(f32*)((char*)var_v0 + 0x0)) = (f32) (2.0f / temp_f0);
-    temp_f2 = arg4 - arg3;
-    (*(f32*)((char*)var_v0 + 0x28)) = (f32) (-2.0f / temp_f12);
-    (*(f32*)((char*)var_v0 + 0x14)) = (f32) (2.0f / temp_f2);
-    (*(f32*)((char*)var_v0 + 0x30)) = (f32) (-(arg2 + arg1) / temp_f0);
-    (*(f32*)((char*)var_v0 + 0x34)) = (f32) (-(arg4 + arg3) / temp_f2);
-    (*(f32*)((char*)var_v0 + 0x3C)) = 1.0f;
-    (*(f32*)((char*)var_v0 + 0x38)) = (f32) (-(arg6 + arg5) / temp_f12);
-    var_v1 = 1;
-    var_f18 = (*(f32*)((char*)var_v0 + 0x4));
-    var_f12 = (*(f32*)((char*)var_v0 + 0x0)) * arg7;
-    var_f14 = (*(f32*)((char*)var_v0 + 0x8));
-    var_f16 = (*(f32*)((char*)var_v0 + 0xC));
-    if (1 != 4) {
-        do {
-            temp_f10 = var_f18 * arg7;
-            var_f18 = (*(f32*)((char*)var_v0 + 0x14));
-            temp_f6 = var_f14 * arg7;
-            var_f14 = (*(f32*)((char*)var_v0 + 0x18));
-            var_v1 += 1;
-            temp_f4 = var_f16 * arg7;
-            var_f16 = (*(f32*)((char*)var_v0 + 0x1C));
-            (*(f32*)((char*)var_v0 + 0x0)) = var_f12;
-            var_f12 = (*(f32*)((char*)var_v0 + 0x10)) * arg7;
-            (*(f32*)((char*)var_v0 + 0x4)) = temp_f10;
-            (*(f32*)((char*)var_v0 + 0x8)) = temp_f6;
-            var_v0 += 0x10;
-            (*(f32*)((char*)var_v0 + -0x4)) = temp_f4;
-        } while (var_v1 != 4);
+/* gl_func_00070694 = guOrthoF + gl_func_000707E8 = guOrtho (libultra
+ * gu/ortho.c verbatim, ONE IDO 5.3 -O3 -mips2 whole-TU donor:
+ * game_libs_ido53_70694.c). LANDED 2026-08-22 via REPLACE_FUNC_BODY
+ * donor splice, first-compile 111/111 FULL-word identical (the three
+ * jal fields are already the USO's blank 0x0C000000 load-time relocs;
+ * pins gl_func_00000000_{identf706,orthof706,f2l706} = 0). The old
+ * "anonymous float math / K&R promotion cap" readings are RETRACTED:
+ * 707E8 is the classic ANSI guOrtho wrapper (mtc1/mfc1 single-precision
+ * re-marshal, Matrix mf at sp+40, guOrthoF then guMtxF2L), and 70694's
+ * scale loop is -O3's software-pipelined 4x4 *= scale. Bodies below are
+ * placeholders for the splice. */
+void gl_func_00070694(int mf) {
+    volatile int orthof_spliced = 0;
+    if (mf != 0) {
+        orthof_spliced = mf;
     }
-    temp_v0 = var_v0 + 0x10;
-    (*(f32*)((char*)temp_v0 + -0x10)) = var_f12;
-    (*(f32*)((char*)temp_v0 + -0xC)) = (f32) (var_f18 * arg7);
-    (*(f32*)((char*)temp_v0 + -0x8)) = (f32) (var_f14 * arg7);
-    (*(f32*)((char*)temp_v0 + -0x4)) = (f32) (var_f16 * arg7);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00070694);
-#endif
 
-#ifdef NON_MATCHING
-/* gl_func_000707E8: 26-insn float-forwarding wrapper. Receives 7 floats (a1-a3
- * in arg regs + 4 on the stack) and a0; builds them into a stack scratch buffer
- * by calling the (collapsed) callback cb(buf, a1, a2, a3, f5, f6, f7, f8), then
- * processes it with cb(buf, a0). NM (reference decode): two collapsed-placeholder
- * calls (raw-.word game_libs reloc depression) + the mtc1/mfc1 float-arg
- * marshalling and K&R float promotion are not byte-reproducible. */
-extern int gl_func_00000000();
-void gl_func_000707E8(int a0, float a1, float a2, float a3, float a4, float a5, float a6, float a7) {
-    char buf[0x40];
-    gl_func_00000000(buf, a1, a2, a3, a4, a5, a6, a7);
-    gl_func_00000000(buf, a0);
+void gl_func_000707E8(int m) {
+    volatile int ortho_spliced = 0;
+    if (m != 0) {
+        ortho_spliced = m;
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000707E8);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW

@@ -3220,3 +3220,6 @@ D_4db50_a = 0x00000000;  /* distinct case globals for gl_func_0004DB50 (defeat C
 D_4db50_b = 0x00000000;
 D_4db50_c = 0x00000000;
 D_4db50_d = 0x00000000;
+gl_func_00000000_identf706 = 0x00000000;  /* blank guMtxIdentF jal for the ortho.c donor (USO load-time reloc) */
+gl_func_00000000_orthof706 = 0x00000000;  /* blank internal guOrthoF jal (guOrtho -> guOrthoF; USO ships it blank) */
+gl_func_00000000_f2l706 = 0x00000000;     /* blank guMtxF2L jal for the ortho.c donor (USO load-time reloc) */
