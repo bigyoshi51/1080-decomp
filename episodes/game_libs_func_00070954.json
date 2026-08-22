@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00070954",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T17:08:08.735790+00:00",
+  "end_time": "2026-08-22T17:08:08.735790+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O2 -mips2 donor for game_libs_func_00070954 = guMtxIdentF\n * (libreultra src/gu/mtxutil.c verbatim). PROVEN EXACT 2026-08-22:\n * 34/34 words identical at -O2 (and -O3; -O1 fully rescheduled), ZERO\n * relocs -- the fn is pure code (lui 0x3F80 = 1.0f, mtc1 zero, the\n * i==j diagonal selects). NOTE the gu cluster layout does NOT follow\n * mtxutil.c's TU emit order (Ident,IdentF,F2L,L2F,..): the game links\n * F2L-shaped 70850 BEFORE IdentF 70954, so these land as single-fn\n * carve-outs, not one mtxutil TU. Neighbor 70850 is F2L-shaped but\n * 64/64-word divergent from libreultra guMtxF2L at every opt level\n * (different variant/source) -- negative result, stays NM.\n * POST_COMPILE renames guMtxIdentF -> game_libs_func_00070954 for the\n * REPLACE_FUNC_BODY splice key. Spliced into game_libs_post1c.c.o. */\n\nvoid guMtxIdentF(float mf[4][4])\n{\n\tint\ti, j;\n\n\tfor (i=0; i<4; i++)\n\tfor (j=0; j<4; j++)\n\t\tif (i == j) mf[i][j] = 1.0;\n\t\telse mf[i][j] = 0.0;\n}\n",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T17:08:08.735790+00:00",
+      "assistant_text": "game_libs_func_00070954 = guMtxIdentF (libultra gu/mtxutil.c verbatim). IDO 5.3 -O2 single-fn carve-out is 34/34 words exact with ZERO relocs. The old 83% NM wrap had the correct loop nesting (runtime inner col so (row==col) can't fold) but the unit's IDO 7.1 regalloc shifted the column-constant registers; the 5.3 donor emits the target's a0..a3 consts + bnel pattern natively. Note the gu cluster does NOT follow mtxutil.c's TU emit order (F2L-shaped 70850 links BEFORE IdentF), so single-fn carve-outs, not one mtxutil TU; neighbor 70850 is 64/64-divergent from libreultra guMtxF2L at every opt level (different variant) and stays NM.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 34,
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_70954.c",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "34/34 raw words identical vs asm/nonmatchings .s (zero relocs, pure code); REPLACE_FUNC_BODY splice into game_libs_post1c.c.o; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; exact-set diff vs origin/main 0 lost; report fuzzy 100.0",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/game_libs_func_00070954.s"
+  }
+}

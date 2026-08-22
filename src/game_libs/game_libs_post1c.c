@@ -302,27 +302,21 @@ void game_libs_func_00070850(char *arg0, char *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070850);
 #endif
 
-#ifdef NON_MATCHING
-/* game_libs_func_00070954: 4x4 identity matrix init. Outer runtime row loop;
- * inner (unrolled) cols set (row == col) ? 1.0f : 0.0f. 83% NM.
- * KEY: the single-level form (`m[0]=(row==0)?..; m[1]=(row==1)?..`) lets IDO
- * fold the ternaries (row known per unrolled iter) and FULLY unroll -> 45%. The
- * NESTED form below keeps `col` a runtime inner-loop var so `(row==col)` can't
- * fold, preserving the target's outer row loop + bnel column compares (+37pp).
- * Residual = constant-register shift (mine a1..a3/t0 for col consts 1/2/3 +
- * bound 4; target a0..a3) + first-col bne-vs-bnel — regalloc/scheduling. */
-void game_libs_func_00070954(float *m) {
-    int row, col;
-    for (row = 0; row < 4; row++) {
-        for (col = 0; col < 4; col++) {
-            m[col] = (row == col) ? 1.0f : 0.0f;
-        }
-        m += 4;
+/* game_libs_func_00070954 = guMtxIdentF (libultra gu/mtxutil.c
+ * verbatim, IDO 5.3 -O2 single-fn carve-out donor:
+ * game_libs_ido53_70954.c). LANDED 2026-08-22 via REPLACE_FUNC_BODY
+ * donor splice, 34/34 words exact, ZERO relocs. The old NM wrap had
+ * the right loop nesting (runtime inner col so (row==col) can't fold)
+ * but 7.1-in-unit regalloc shifted the col-const registers; the IDO
+ * 5.3 donor emits the target's a0..a3 consts + bnel pattern natively.
+ * (The verbatim source is the if/else diagonal form, not the ternary.)
+ * Body below is a placeholder for the splice. */
+void game_libs_func_00070954(int m) {
+    volatile int identf_spliced = 0;
+    if (m != 0) {
+        identf_spliced = m;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070954);
-#endif
 
 /* 12-insn 2-call wrapper using a 0x40-byte stack buffer (0x30). LANDED
  * fuzzy=100. The 2 trailing stolen-prologue insns for the successor
