@@ -828,30 +828,24 @@ void gl_func_0006F144(int a0, ...) {
 void gl_func_0006F160(int a0, ...) {
 }
 
-#ifdef NON_MATCHING
-/* memcpy: copy a2 bytes from a1 to a0, return a0. Reloc-free. Byte-match cap:
- * the target is a tight 13-insn non-unrolled byte loop, but IDO -O2 UNROLLS the
- * C memcpy by 4 (+ remainder) to 28 insns. Same unroll cap as 1FA20/611E4 —
- * couldn't suppress the unroll from C. */
-void *game_libs_func_0006F17C(char *a0, char *a1, int a2) {
-    char *p = a0;
+/* game_libs_func_0006F17C = libc memcpy (Plauger verbatim, IDO 5.3 -O2
+ * donor: game_libs_ido53_6F17C.c). LANDED 2026-08-22 via
+ * REPLACE_FUNC_BODY donor splice: 11/11 body words exact, ZERO relocs.
+ * The old "UNROLL CAP" verdict retired -- 5.3 -O2 emits the
+ * NON-unrolled byte loop natively (7.1 -O2 unrolls by 4; compiler-
+ * revision artifact). The symbol's 2 leading all-zero pad words
+ * (0x6F17C/0x6F180) are re-homed to the _pad_pre GLOBAL_ASM block
+ * below; true entry = 0x6F184, body 0x2C. Body below is a placeholder
+ * for the splice. */
+#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/game_libs_func_0006F17C_pad.s")
+
+void *game_libs_func_0006F17C(void *a0, void *a1, unsigned int a2) {
+    volatile int memcpy_spliced = 0;
     if (a2 != 0) {
-        do {
-            char c = *a1;
-            a2--;
-            p++;
-            a1++;
-            *(p - 1) = c;
-        } while (a2 != 0);
+        memcpy_spliced = a2;
     }
     return a0;
 }
-#else
-/* game_libs_func_0006F17C = memcpy(void *dst, u8 *src, int count) -> dst. Same
- * UNROLL CAP as the memset twin 00067D50: target is the NON-unrolled byte-copy
- * loop (lower-opt build); IDO -O2 unrolls by 4. Needs a lower-opt file split. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F17C);
-#endif
 
 int game_libs_func_0006F1B0(char *a0) {
     char *p = a0;

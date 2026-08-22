@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0006F17C",
+  "project": "projects/1080-agent-f",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T00:00:00.000000+00:00",
+  "end_time": "2026-08-22T00:00:00.000000+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O2 -mips2 donor for game_libs_func_0006F17C = libc memcpy (Plauger, verbatim; size_t unsigned). */\n\ntypedef unsigned int size_t;\n\nvoid *memcpy(void *s1, const void *s2, size_t n)\n{\n\tchar *su1 = (char *)s1;\n\tconst char *su2 = (const char *)s2;\n\n\tfor (; 0 < n; ++su1, ++su2, --n)\n\t\t*su1 = *su2;\n\treturn (s1);\n}\n",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T00:00:00.000000+00:00",
+      "assistant_text": "game_libs_func_0006F17C = libc memcpy (Plauger verbatim). Identification keys: Plauger string cluster adjacency (6F1B0 = strlen matched in-unit, 6F1D8 = strchr landed), 11-word byte-copy loop returning dst in v0 from both paths. The critical C detail is the UNSIGNED count (size_t): Plauger's `0 < n` on unsigned emits beqz/bnez (target 0x10C00007/0x14C0FFFB); a signed int emits blez/bgtz and misses 2 words. The old 'UNROLL CAP' verdict was a compiler-revision artifact: IDO 7.1 -O2 unrolls memcpy by 4, IDO 5.3 -O2 emits the non-unrolled loop exactly -- 11/11 body words first compile, zero relocs. Lead-zero-pad blocker solved honestly: the splat symbol carried 2 all-zero pad words (0x6F17C/0x6F180) before the true entry 0x6F184; re-homed them to a local _pad_pre GLOBAL_ASM block (6E1A4-pad pattern) and shrank the .s to the 0x2C body, keeping baseline and spliced layouts identical.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 11,
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6F17C.c",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "raw-word identical vs asm/nonmatchings .s body (11/11, zero relocs); POST_COMPILE rename-elf-symbol memcpy=game_libs_func_0006F17C; REPLACE_FUNC_BODY splice into game_libs_post1b2c.c.o; lead pad via _pad_pre_game_libs_func_0006F17C GLOBAL_ASM (2 zero words); full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0",
+    "asm_path": "projects/1080-agent-f/asm/nonmatchings/game_libs/game_libs/game_libs_func_0006F17C.s"
+  }
+}

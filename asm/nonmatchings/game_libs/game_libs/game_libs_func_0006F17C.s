@@ -1,8 +1,6 @@
-nonmatching game_libs_func_0006F17C, 0x34
+nonmatching game_libs_func_0006F17C, 0x2C
 
 glabel game_libs_func_0006F17C
-    /* E54254 0006F17C 00000000 */  .word 0x00000000
-    /* E54258 0006F180 00000000 */  .word 0x00000000
     /* E5425C 0006F184 00801025 */  .word 0x00801025
     /* E54260 0006F188 10C00007 */  .word 0x10C00007
     /* E54264 0006F18C 00A01825 */  .word 0x00A01825
