@@ -30,66 +30,22 @@ float game_libs_func_00070FCC(float x) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070C44_pad.s")
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-/* gl_func_00071144: 8 independent flag-bit blocks over arg0, each toggling
- * a bit in field 0xC of a distinct global struct (lui+lw snapshot), plus a
- * trailing 16-bit OR into field 0x0. arg0 is re-read from its stack home
- * before each test (taken via &arg0). Residual = branch-likely vs plain
- * beqz+nop and s0/frame coloring (codegen-shape, register-allocation cap). */
+/* gl_func_00071144 = libultra osViSetSpecialFeatures (libreultra
+ * io/visetspecial.c verbatim, IDO 7.1 -O1 whole-fn donor:
+ * game_libs_o1_71144.c). LANDED 2026-08-22 via REPLACE_FUNC_BODY donor
+ * splice, first-compile 110/110 FULL-word identical (blank
+ * __osDisableInt/__osRestoreInt jals + 9x blank __osViNext hi/lo pairs
+ * are the USO's load-time relocs; pins
+ * gl_func_00000000_{disint711,rstint711,vinext711} = 0). The old
+ * "register-allocation cap" reading is RETRACTED: the per-test stack
+ * reloads/beql shape is plain IDO -O1, with `register u32 saveMask`
+ * living in $a0. Body below is a placeholder for the splice. */
 void gl_func_00071144(s32 arg0) {
-    s32 temp_s0;
-    s32 *zero = (s32 *)0;
-    s32 *ap = &arg0;
-
-    temp_s0 = gl_ph_70FCC();
-    if (*ap & 1) {
-        void *p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) | 8;
+    volatile int visetspecial_spliced = 0;
+    if (arg0 != 0) {
+        visetspecial_spliced = arg0;
     }
-    if (*ap & 2) {
-        void *p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) & ~8;
-    }
-    if (*ap & 4) {
-        void *p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) | 4;
-    }
-    if (*ap & 8) {
-        void *p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) & ~4;
-    }
-    if (*ap & 0x10) {
-        void *p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) | 0x10;
-    }
-    if (*ap & 0x20) {
-        void *p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) & ~0x10;
-    }
-    if (*ap & 0x40) {
-        void *p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) | 0x10000;
-        p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) & ~0x300;
-    }
-    if (*ap & 0x80) {
-        void *p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) & 0xFFFEFFFF;
-        p = (void *)*zero;
-        FW(p, 0xC) = FW(p, 0xC) | (FW(FW(p, 0x8), 0x4) & 0x300);
-    }
-    {
-        void *p = (void *)*zero;
-        FW(p, 0x0) = (u16)(FW(p, 0x0) | 8);
-    }
-    gl_ph_70FCC(temp_s0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071144);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00071144_pad.s")
 
 #ifdef NON_MATCHING

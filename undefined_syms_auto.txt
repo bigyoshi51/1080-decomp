@@ -3223,3 +3223,6 @@ D_4db50_d = 0x00000000;
 gl_func_00000000_identf706 = 0x00000000;  /* blank guMtxIdentF jal for the ortho.c donor (USO load-time reloc) */
 gl_func_00000000_orthof706 = 0x00000000;  /* blank internal guOrthoF jal (guOrtho -> guOrthoF; USO ships it blank) */
 gl_func_00000000_f2l706 = 0x00000000;     /* blank guMtxF2L jal for the ortho.c donor (USO load-time reloc) */
+gl_func_00000000_disint711 = 0x00000000;  /* blank __osDisableInt jal for the visetspecial donor (USO load-time reloc) */
+gl_func_00000000_rstint711 = 0x00000000;  /* blank __osRestoreInt jal for the visetspecial donor (USO load-time reloc) */
+gl_func_00000000_vinext711 = 0x00000000;  /* blank __osViNext hi/lo pairs for the visetspecial donor (USO load-time reloc) */

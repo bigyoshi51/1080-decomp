@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00071144",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-08-22T18:20:00.000000+00:00",
+  "end_time": "2026-08-22T18:20:00.000000+00:00",
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O1 whole-fn donor for gl_func_00071144 = libultra\n * osViSetSpecialFeatures (libreultra src/io/visetspecial.c verbatim).\n * PROVEN EXACT 2026-08-22: first -O1 compile is 110/110 FULL-word\n * identical to the raw target .s (5.3 -O1 identical too; -O2 CSEs the\n * __osViNext reloads and hoists the andi tests, 88-word divergence).\n * The -O1 shape is the fingerprint the old NM wrap called a\n * \"register-allocation cap\": arg re-read from its stack home before\n * every test, sequential t-reg temps, beql fallthroughs, and the\n * `register u32 saveMask` living in $a0 across the whole body.\n * Reloc story (all blank in the USO, load-time reloc table already\n * matched as data):\n *   - jal __osDisableInt / jal __osRestoreInt -> extern names\n *     gl_func_00000000_{disint711,rstint711}, pins = 0\n *     (undefined_syms_auto.txt) so the link bakes 0x0C000000 verbatim;\n *   - 9x lui/lo16 __osViNext -> gl_func_00000000_vinext711, pin = 0,\n *     baking the blank 3C0x0000/8C4x0000 pairs.\n * The 2 trailing zero words the compiler pads the TU with are NOT\n * spliced (fn symbol size 0x1B8); the unit keeps\n * gl_func_00071144_pad.s. Spliced into game_libs_post2.c.o via\n * REPLACE_FUNC_BODY. */\ntypedef unsigned short u16;\ntypedef unsigned int u32;\ntypedef unsigned char u8;\n\ntypedef struct {\n    u32 ctrl;\n    u32 width;\n    u32 burst;\n    u32 vSync;\n    u32 hSync;\n    u32 leap;\n    u32 hStart;\n    u32 xScale;\n    u32 vCurrent;\n} OSViCommonRegs;\n\ntypedef struct {\n    u32 origin;\n    u32 yScale;\n    u32 vStart;\n    u32 vBurst;\n    u32 vIntr;\n} OSViFieldRegs;\n\ntypedef struct {\n    u8 type;\n    OSViCommonRegs comRegs;\n    OSViFieldRegs fldRegs[2];\n} OSViMode;\n\ntypedef struct {\n    u16 state;\n    u16 retraceCount;\n    void *framep;\n    OSViMode *modep;\n    u32 control;\n} __OSViContext;\n\n/* __osViNext (blank USO reloc, pin = 0) */\nextern __OSViContext *gl_func_00000000_vinext711;\n/* __osDisableInt / __osRestoreInt (blank USO jal relocs, pins = 0) */\nextern u32 gl_func_00000000_disint711(void);\nextern void gl_func_00000000_rstint711(u32);\n\n#define OS_VI_GAMMA_ON          0x0001\n#define OS_VI_GAMMA_OFF         0x0002\n#define OS_VI_GAMMA_DITHER_ON   0x0004\n#define OS_VI_GAMMA_DITHER_OFF  0x0008\n#define OS_VI_DIVOT_ON          0x0010\n#define OS_VI_DIVOT_OFF         0x0020\n#define OS_VI_DITHER_FILTER_ON  0x0040\n#define OS_VI_DITHER_FILTER_OFF 0x0080\n\n#define VI_CTRL_GAMMA_ON         0x0008\n#define VI_CTRL_GAMMA_DITHER_ON  0x0004\n#define VI_CTRL_DIVOT_ON         0x0010\n#define VI_CTRL_DITHER_FILTER_ON 0x10000\n#define VI_CTRL_ANTIALIAS_MASK   0x0300\n#define VI_STATE_08              0x0008\n\n/* osViSetSpecialFeatures */\nvoid gl_func_00071144(u32 func)\n{\n    register u32 saveMask;\n    saveMask = gl_func_00000000_disint711();\n    if ((func & OS_VI_GAMMA_ON) != 0) {\n        gl_func_00000000_vinext711->control |= VI_CTRL_GAMMA_ON;\n    }\n    if ((func & OS_VI_GAMMA_OFF) != 0) {\n        gl_func_00000000_vinext711->control &= ~VI_CTRL_GAMMA_ON;\n    }\n    if ((func & OS_VI_GAMMA_DITHER_ON) != 0) {\n        gl_func_00000000_vinext711->control |= VI_CTRL_GAMMA_DITHER_ON;\n    }\n    if ((func & OS_VI_GAMMA_DITHER_OFF) != 0) {\n        gl_func_00000000_vinext711->control &= ~VI_CTRL_GAMMA_DITHER_ON;\n    }\n    if ((func & OS_VI_DIVOT_ON) != 0) {\n        gl_func_00000000_vinext711->control |= VI_CTRL_DIVOT_ON;\n    }\n    if ((func & OS_VI_DIVOT_OFF) != 0) {\n        gl_func_00000000_vinext711->control &= ~VI_CTRL_DIVOT_ON;\n    }\n    if ((func & OS_VI_DITHER_FILTER_ON) != 0) {\n        gl_func_00000000_vinext711->control |= VI_CTRL_DITHER_FILTER_ON;\n        gl_func_00000000_vinext711->control &= ~VI_CTRL_ANTIALIAS_MASK;\n    }\n    if ((func & OS_VI_DITHER_FILTER_OFF) != 0) {\n        gl_func_00000000_vinext711->control &= ~VI_CTRL_DITHER_FILTER_ON;\n        gl_func_00000000_vinext711->control |=\n            gl_func_00000000_vinext711->modep->comRegs.ctrl & VI_CTRL_ANTIALIAS_MASK;\n    }\n    gl_func_00000000_vinext711->state |= VI_STATE_08;\n\n    gl_func_00000000_rstint711(saveMask);\n}\n",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-08-22T18:20:00.000000+00:00",
+      "assistant_text": "gl_func_00071144 = libultra osViSetSpecialFeatures (io/visetspecial.c verbatim). Identification keys: __osDisableInt/__osRestoreInt call sandwich, 8 flag-bit blocks over the arg toggling gamma (|8/&~8), gamma-dither (|4/&~4), divot (|0x10/&~0x10), dither-filter (|0x10000 + &~0x300 antialias mask, and the OFF case re-ORing modep->comRegs.ctrl & 0x300 from offset 8->4), then state |= 8 through the u16 field. First IDO 7.1 -O1 compile is 110/110 full-word identical (5.3 -O1 identical; -O2 diverges 88 words by CSEing the __osViNext reloads). The old NM wrap called the per-test stack reloads a register-allocation cap; that is just IDO -O1 with register u32 saveMask in $a0.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "instruction_count": 110,
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_71144.c",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "raw-word identical vs asm/nonmatchings .s (110/110 FULL words including the blank jal/hi16/lo16 reloc fields = the USO's load-time relocs, pins gl_func_00000000_{disint711,rstint711,vinext711}=0); REPLACE_FUNC_BODY splice into game_libs_post2.c.o; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; report.json fuzzy 100.0; exact-set diff vs origin/main: 0 lost, +1",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/game_libs/game_libs/gl_func_00071144.s"
+  }
+}
