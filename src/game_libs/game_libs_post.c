@@ -13959,19 +13959,190 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002ABC0);
 //   STRUCTURAL body below per the analysis. Byte-match deferred.
 //   Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-void gl_func_0002AD1C(char *o) {
-    char *buf = *(char **)(o + 0x50);
-    int cur = *(int *)(o + 0x4C);
-    int op;
-    int r;
-    (void)buf;
+/* PASS-2 2026-08-22 (agent-g): WHOLESALE REDECODE from expected .o @0xe30c
+ * (0x380), reloc-free-expected class (see 2BB7C/C7A4/30AF4). Returns s32:
+ * the raw opcode when < 0xC1 (caller dispatches it), -1 on destroy.
+ * s1=o, s4=o->w50, s3=s4->w4C, s2=sub@o+0x54; f20 = callee-saved local
+ * copy of the extern scale float (loaded once before the loop, feeds the
+ * two a*a/sc div.s sites — multu from u32 operands). Loop: op >= 0xF2 ->
+ * 3E6E8(3E680) handler / destroy; 0xC1..0xCF -> sltiu-15 jumptable, 10
+ * stream-order bodies (several op-discriminated shared bodies: 0xC1
+ * else-arm b5 store, 0xC9/h10 pair, 196 flag toggle); 0xD0/0xE0 masked
+ * compares read s3->w94/w98 tables. */
+extern int gl_func_0003F05C();
+extern int gl_func_000400A4();
+extern f32 D_2AD1C_1058;       /* a*a scale divisor */
+extern f32 D_2AD1C_ftbl[];     /* float table, case 0xCF (v+128 biased) */
+extern int gl2AD1C_flagcb();   /* case 196-family flag callback (o) */
+extern int gl2AD1C_destroy();  /* -1 handler teardown (o) */
+
+typedef struct Gl2AD1CSub {   /* fetch context at o+0x54 (pc only used) */
+    u8 *pc;                    /* 0x00 */
+} Gl2AD1CSub;
+
+typedef struct Gl2AD1CState {  /* s4 = o->w50 */
+    u8 pad00[0x26];
+    s16 h26;                   /* 0x26 */
+    u8 pad28[0x24];
+    struct Gl2AD1CCmd *w4C;    /* 0x4C */
+} Gl2AD1CState;
+
+typedef struct Gl2AD1CCmd {    /* s3 = s4->w4C */
+    u8 pad00[0xE];
+    s16 hE;                    /* 0x0E */
+    u8 pad10[8];
+    u8 *base;                  /* 0x18 */
+    u8 pad1C[0x78];
+    u8 *w94;                   /* 0x94 */
+    u8 *w98;                   /* 0x98 */
+} Gl2AD1CCmd;
+
+typedef struct Gl2AD1C {
+    u8 b0;                     /* 0x00 flags */
+    u8 b1, b2, b3, b4, b5;
+    u8 pad06[8];
+    s16 hE;                    /* 0x0E */
+    s16 h10;                   /* 0x10 */
+    u16 h12;                   /* 0x12 */
+    u8 pad14[4];
+    u8 b18;                    /* 0x18 */
+    u8 pad19[3];
+    u8 *w1C;                   /* 0x1C */
+    u8 b20;                    /* 0x20 */
+    u8 pad21[0x13];
+    f32 f34;                   /* 0x34 */
+    u8 pad38[4];
+    f32 f3C;                   /* 0x3C */
+    u8 pad40[8];
+    s32 w48;                   /* 0x48 */
+    u8 pad4C[4];
+    Gl2AD1CState *w50;         /* 0x50 */
+    Gl2AD1CSub sub;            /* 0x54 */
+} Gl2AD1C;
+
+s32 gl_func_0002AD1C(Gl2AD1C *o) {
+    Gl2AD1CState *st;
+    Gl2AD1CCmd *cmd;
+    Gl2AD1CSub *sub;
+    f32 sc;
+    s32 op;
+    s32 r;
+    u32 a;
+    s32 v;
+
+    st = o->w50;
+    sc = D_2AD1C_1058;
+    sub = (Gl2AD1CSub *)((u8 *)o + 0x54);
+    cmd = st->w4C;
     for (;;) {
-        op = gl_func_00000000(cur) & 0xFF;
-        if (op < 0xC1 || op >= 0xF2) break;
-        gl_func_00000000(op - 0xC1);
-        r = gl_func_00000000(op);
-        if (r != 0) break;
+        r = gl_func_0003F010(sub);
+        op = r & 0xFF;
+        if (r < 0xC1) {
+            return op;
+        }
+        if (r >= 0xF2) {
+            if (gl_func_0003E6E8(cmd, sub, op, gl_func_0003E680(sub, (u8)op)) == 0) {
+                continue;
+            }
+            gl2AD1C_destroy(o);
+            return -1;
+        }
+        switch (r) {
+        case 0xC1:  /* a*a scale (else-arm: b5 store for table twin) */
+            a = *sub->pc;
+            sub->pc = sub->pc + 1;
+            if (r == 0xC1) {
+                o->f3C = (f32)(s32)(a * a) / sc;
+                continue;
+            }
+            o->b5 = a;
+            continue;
+        case 0xC2:  /* byte to b3 (0xC9) / h10 (twin) */
+            a = *sub->pc;
+            sub->pc = sub->pc + 1;
+            if (r == 0xC9) {
+                o->b3 = a;
+                continue;
+            }
+            o->h10 = a;
+            continue;
+        case 0xC3:  /* 196-discriminated flag toggle + callback */
+            if (r == 0xC4) {
+                o->b0 |= 0x10;
+            } else {
+                o->b0 &= ~0x10;
+            }
+            o->b0 &= ~2;
+            gl2AD1C_flagcb(o);
+            continue;
+        case 0xC4:
+            o->h12 = gl_func_0003F05C(sub);
+            continue;
+        case 0xC5:  /* mode byte with 126/127/255 specials */
+            r = gl_func_0003F010(sub);
+            op = r & 0xFF;
+            if (r < 126) {
+                v = gl_func_000400A4(st, (u8)op, &o->w48, &o->b18);
+                o->b2 = v;
+                if (v != 0) {
+                    continue;
+                }
+                o->b2 = 255;
+                continue;
+            }
+            if (r == 126) {
+                o->b2 = 1;
+            } else if (r == 127) {
+                o->b2 = 0;
+            } else {
+                o->b2 = r;
+            }
+            o->w48 = 0;
+            if (r == 255) {
+                o->b18 = 0;
+            }
+            continue;
+        case 0xC6:  /* phase advance */
+            o->b20 = gl_func_0003F010(sub);
+            v = (u8)(gl_func_0003F010(sub) + st->h26 + o->h10 + cmd->hE);
+            if (v >= 128) {
+                v = 0;
+            }
+            o->b4 = v;
+            if (o->b20 & 0x80) {
+                o->hE = *sub->pc;
+                sub->pc = sub->pc + 1;
+            } else {
+                o->hE = gl_func_0003F05C(sub);
+            }
+            continue;
+        case 0xC7:
+            o->b20 = 0;
+            continue;
+        case 0xC8:
+            o->w1C = cmd->base + (u16)gl_func_0003F024(sub);
+            o->b18 = gl_func_0003F010(sub);
+            continue;
+        case 0xC9:
+            o->b0 |= 4;
+            continue;
+        case 0xCA:
+            o->b1 = gl_func_0003F010(sub);
+            continue;
+        case 0xCB:
+        case 0xCF:  /* bound-setting label; table is external */
+            o->f34 = D_2AD1C_ftbl[(u8)(gl_func_0003F010(sub) + 128)];
+            continue;
+        }
+        /* 0xD0.. / 0xE0.. masked table reads */
+        v = r & 0xF0;
+        if (v == 0xD0) {
+            a = cmd->w94[r & 0xF];
+            o->f3C = (f32)(s32)(a * a) / sc;
+        } else if (v == 0xE0) {
+            o->b3 = cmd->w98[r & 0xF];
+        }
+        continue;
     }
 }
 #else
