@@ -5985,100 +5985,99 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AC50);
 
 #ifdef NON_MATCHING
 /* gl_func_0003AC5C: 127-insn (0x1FC) constructor + token-stream loop.
- * Sibling of gl_func_0003AE58 (next func, similar alloc-init pattern).
- * Initial decode 2026-05-07 — entry decoded; loop body still TBD.
- *
- * ENTRY (insns 0-25 @ 0x3AC5C-0x3ACBC):
- *   if (a0 == 0) {
- *       a0 = alloc(0x90);
- *       if (a0 == 0) goto end;
- *   }
- *   gl_func_00000000(a0, &gl_data_0001EE18);   // init #1
- *   a0->[0x34] = a1;                            // store input arg2
- *   gl_func_00000000(&gl_data_0001EE24, 0);    // init #2
- *   a0->[0x30] = 0;
- *
- * LOOP (insns 25-117 @ 0x3ACC0-0x3AE10): iterate 4-byte tokens from a1
- * (s0 ptr, advances by 4 each iter). Sentinel value 6 ends the loop.
- * Tokens 0..5 are dispatched via a jump table at &D[0x1A90] with
- * key = token - 0:
- *   token 0: ?
- *   token 1: store t6=*(int*)(s0+0x4) at s1->[0x30] (skip)
- *   token 2: load f4 from *(int*)s0+4, cvt.s.w, store at s1->[0x38]
- *   token 3: 3-float swc1 series (sub-fields 0x3C/0x40, 0x44/0x48,
- *            0x4C/0x50) — possibly Vec3 from packed shorts via
- *            lh + cvt.s.w + dotty cvt
- *   token 4: jal with arg=s0+0x4, store ret to s1->[0x84]
- *   token 5: jal, store ret to s1->[0x80]/[0x84]/[0x88]/[0x8C] +
- *            float zero to [0x54]/[0x58]/[0x5C] + zero [0x88]/[0x8C]
- *   token 6: terminate loop
- *
- * The bnel @ 0x3AE04 (5472FFB8 = bne s2=6, s2=6, -0x48 LIKELY) is the
- * loop back-edge. Sentinel check on each iter: if v1 != 6, loop;
- * otherwise fall through to tail (~10 insns).
- *
- * TAIL (insns 117-127 @ 0x3AE10-0x3AE54): unconditional FPU-zero of
- * 4 fields (s1->[0x54]/[0x58]/[0x5C], conditional on s1->[0x88]==0
- * — beql at 0x3AE10), final cross-USO call, epilogue.
- *
- * Multi-tick — full token-dispatch decode requires the jump table at
- * D[0x1A90]+token*4 (D=0x2 + 0x1A90 = relocated, runtime-resolved). */
+ * 2026-08-22 agent-g decode-corrected rework, 46.1 -> 97.5:
+ *   - plain switch(cmd) cases 0..4 + default gives the real sltiu-5 +
+ *     sll/jr jumptable (manual (unsigned)cmd<5 guard + switch was compiled
+ *     to a beql compare chain);
+ *   - token payload loads are INT loads converted to float ((f32)*q,
+ *     mtc1+cvt.s.w), not raw float copies;
+ *   - post-increment temp idiom `q = arg1; arg1 += 1; ... *q` materializes
+ *     the `move v0,s0` old-pointer copy in every case (folding traps: any
+ *     spelling that leaves arg1 un-reassigned between q= and *q gets
+ *     copy-propagated to lw 0(s0) and drops the move, -1..-3 insns);
+ *   - missing case 4 restored: skip a word, flag(s5) = next word;
+ *   - tail: if (flag==0) zero 0x88/0x8C, then 0x54/0x58/0x5C = 0.0f -> IDO
+ *     emits bnezl with the swc1 0x54 dup in the likely delay slot;
+ *   - nested-goto alloc-guard (goto ret) merges the alloc-failure return
+ *     into the shared epilogue (beqz v0 -> lw-ra block, move v0,s1 shared);
+ *   - args used directly as the persistent regs (arg1=s0 stream ptr,
+ *     arg0=s1 self) — a separate `p = arg1` local split the web (s3 bounce,
+ *     +1 insn); if(1){} around the loop flipped cmd/q from a0/v1 to the
+ *     target v1/v0 web (v0v1 BB lever).
+ * Residual 4 insns (97.48): case3 lw a2 vs addiu order swap and case4
+ * b-delay filler picks lw s5 not addiu (both pure scheduling; explicit-temp
+ * and arg1-increment-order respellings all either fold the move or keep the
+ * build order). Reloc-site lui/addiu immediates (EE18/EE24/EE3C/EE48 +
+ * jumptable base 0x1A90) are baked in the reloc-free expected .o and score
+ * as matched via relocs. Case-index -> body mapping is .text-invariant
+ * (only the rodata jumptable order encodes it; table is runtime-relocated,
+ * not statically recoverable here) — bodies laid out in stream order as
+ * cases 0..4. */
 extern int gl_func_00000000();
 extern char gl_data_0001EE18, gl_data_0001EE24, gl_data_0001EE3C, gl_data_0001EE48;
-int *gl_func_0003AC5C(int *a0, int *a1) {
-    if (a0 == 0) {
-        a0 = (int*)gl_func_00000000(0x90);
-        if (a0 == 0) return 0;
-    }
-    gl_func_00000000(a0, &gl_data_0001EE18);
-    *(int*)((char*)a0 + 0x34) = (int)a1;
-    gl_func_00000000(&gl_data_0001EE24, 0);
-    *(int*)((char*)a0 + 0x30) = 0;
-    /* 6-token jump-table dispatcher (decoded via uso-jumptable-to-m2c.py),
-     * terminates on token 6. */
-    {
-        int *p;
-        int cmd = *a1;
-        p = a1 + 1;
-        while (cmd != 6) {
-            if ((unsigned)cmd < 5) {
-                switch (cmd) {
-                case 0:
-                    *(float*)((char*)a0 + 0x3C) = *(float*)&p[0];
-                    *(float*)((char*)a0 + 0x40) = *(float*)&p[1];
-                    *(float*)((char*)a0 + 0x44) = *(float*)&p[2];
-                    *(float*)((char*)a0 + 0x48) = *(float*)&p[3];
-                    *(float*)((char*)a0 + 0x4C) = *(float*)&p[4];
-                    *(float*)((char*)a0 + 0x50) = *(float*)&p[5];
-                    p += 6;
-                    break;
-                case 1:
-                    *(float*)((char*)a0 + 0x38) = *(float*)&p[0];
-                    p += 1;
-                    break;
-                case 2:
-                    *(int*)((char*)a0 + 0x30) = p[0];
-                    p += 1;
-                    break;
-                case 3:
-                    p += 1;
-                    *(int*)((char*)a0 + 0x84) = gl_func_00000000(0, &gl_data_0001EE3C);
-                    break;
-                }
-            } else {
-                gl_func_00000000(&gl_data_0001EE48);
-            }
-            cmd = *p;
-            p += 1;
+int *gl_func_0003AC5C(int *arg0, int *arg1) {
+    int *q;    /* v0 post-increment temp */
+    int cmd;   /* v1 */
+    int flag;  /* s5 */
+
+    if (arg0 == 0) {
+        arg0 = (int *) gl_func_00000000(0x90);
+        if (arg0 == 0) {
+            goto ret;
         }
     }
-    *(int*)((char*)a0 + 0x88) = 0;
-    *(int*)((char*)a0 + 0x8C) = 0;
-    *(float*)((char*)a0 + 0x54) = 0.0f;
-    *(float*)((char*)a0 + 0x58) = 0.0f;
-    *(float*)((char*)a0 + 0x5C) = 0.0f;
+    gl_func_00000000(arg0, &gl_data_0001EE18);
+    *(int **)((char *)arg0 + 0x34) = arg1;
+    flag = 0;
+    gl_func_00000000(&gl_data_0001EE24);
+    *(int *)((char *)arg0 + 0x30) = 0;
+    if (1) {
+    q = arg1; arg1 = q + 1; cmd = *q;
+    while (cmd != 6) {
+        switch (cmd) {
+        case 0:
+            q = arg1; arg1 = q + 1;
+            *(int *)((char *)arg0 + 0x30) = *q;
+            break;
+        case 1:
+            q = arg1; arg1 = q + 1;
+            *(f32 *)((char *)arg0 + 0x38) = (f32) *q;
+            break;
+        case 2:
+            *(f32 *)((char *)arg0 + 0x3C) = (f32) arg1[0];
+            arg1 += 6;
+            *(f32 *)((char *)arg0 + 0x40) = (f32) arg1[-5];
+            *(f32 *)((char *)arg0 + 0x44) = (f32) arg1[-4];
+            *(f32 *)((char *)arg0 + 0x48) = (f32) arg1[-3];
+            *(f32 *)((char *)arg0 + 0x4C) = (f32) arg1[-2];
+            *(f32 *)((char *)arg0 + 0x50) = (f32) arg1[-1];
+            break;
+        case 3:
+            q = arg1; arg1 += 1;
+            *(int *)((char *)arg0 + 0x84) = gl_func_00000000(0, &gl_data_0001EE3C, *q, 0);
+            break;
+        case 4:
+            arg1 += 1;
+            q = arg1; arg1 += 1;
+            flag = *q;
+            break;
+        default:
+            gl_func_00000000(&gl_data_0001EE48);
+            break;
+        }
+        q = arg1; arg1 = q + 1; cmd = *q;
+    }
+    }
+    if (flag == 0) {
+        *(int *)((char *)arg0 + 0x88) = 0;
+        *(int *)((char *)arg0 + 0x8C) = 0;
+    }
+    *(f32 *)((char *)arg0 + 0x54) = 0.0f;
+    *(f32 *)((char *)arg0 + 0x58) = 0.0f;
+    *(f32 *)((char *)arg0 + 0x5C) = 0.0f;
     gl_func_00000000();
-    return a0;
+ret:
+    return arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003AC5C);

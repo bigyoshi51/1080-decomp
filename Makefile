@@ -299,7 +299,11 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # the NM body 0x1cc -> 0x21c (direct K&R jal, (f32)2 mul.s form, Vec3
 # struct-assign copies, exact 0x98 frame); tail 62F08 keeps its full 0x50 at
 # the new offset 0x2c7f4.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c844 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2c844 -> 0x2c8a4 2026-08-22: 3AC5C 46.1-> decode-corrected rework grew the
+# NM body 0x1a4 -> 0x1fc (target size; real jr jumptable switch, int->float
+# cvt token loads, flag case, goto-ret alloc guard); tail 62F08 keeps its
+# full 0x50 at the new offset 0x2c854.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c8a4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
