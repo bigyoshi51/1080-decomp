@@ -1937,16 +1937,16 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002E3
 void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
     int *self; int a1, a2, a3, arg5;
 {
+    int *node;
+    int obj;
+    unsigned char *v1;
     float div255 = 255.0f;
     float c = 192.0f / div255;   /* the merged FP prologue: div.s f4(192)/f2(255) */
-    unsigned char *v1;
-    int obj;
-    int *node;
     *(int*)((char*)self + 0xC)  = (int)((char*)&D_00000000 + 0x688);
     *(int*)((char*)self + 0xBC) = a1;
+    *(int*)((char*)self + 0x4C) = arg5;
     *(int*)((char*)self + 0xB8) = a3;
     *(int*)((char*)self + 0x54) = a2;
-    *(int*)((char*)self + 0x4C) = arg5;
     *(int*)((char*)self + 0xD4) = 0xFF;
     *(int*)((char*)self + 0xD8) = 0;
     *(int*)((char*)self + 0xDC) = 0;
@@ -1962,7 +1962,7 @@ void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
         gl_func_00000000(self, 0x47, 0x13, (int)((char*)self + 0x30));
         gl_func_00000000(self, 0x44, 0x26, *(int*)((char*)self + 0x44) + 0x28);
         v1 = (unsigned char *)gl_func_00000000(
-                 *(int*)(*(int*)((char*)self + 0x4C)) + MGR_D_64 * 48, 0);
+                 MGR_D_64 * 48 + *(int*)(*(int*)((char*)self + 0x4C)), 0);
         obj = gl_func_00000000(0, *(int*)((char*)self + 0x60));
         *(int*)((char*)self + 0xC0) = obj;
         gl_func_00000000(obj, v1[5], v1[6], v1[7]);
