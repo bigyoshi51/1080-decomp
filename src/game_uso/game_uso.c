@@ -1712,35 +1712,55 @@ void game_uso_func_000028A8(void *a0) {
  * mode!=0,1: build a +/-1000 z-axis probe (sign from mode==3), rotate it by
  *   the s 3x3 matrix at s->0x70.., add s->0x38->0xA0 origin, delta vs out. */
 void game_uso_func_000028C0(char *a0) {
-    char *out = *(char **)(a0 + 0x14);
-    char *s = *(char **)(*(char **)(a0 + 0x3C) + 0x38);
-    int mode = *(int *)(a0 + 0x40);
-    Vec3 *r;
-    Vec3 v1v, v2v, rcopy, diff, dc1, dc2;
-    float mag, f;
+    /* Fresh-Vec3 / 1DDC-family kit: descending slot ladder, dead-gap pads,
+     * two-hop diff->scratch->dc2 chain (mode 1), single-hop axis->axisc +
+     * in-place diff over the ssv home (else arm). Ground truth expected/.o:
+     * frame 0xE8, no s-regs (family a2 cap), matrix base = s (0x3C->0x38). */
+    char *out;            /* s0-promoted (target: homed 0xE4; a2-family cap) */
+    char *s;              /* s1/v1 (target: homed 0xE0) */
+    volatile s32 pad0;    /* 0xDC gap */
+    Vec3 dcopy;           /* 0xD0: int-copy of *delta */
+    Vec3 refv1;           /* 0xC4: out orientation (mode 1) */
+    float v2v[3];         /* 0xB8: s orientation + delta (array: per-use reload) */
+    Vec3 dc2;             /* 0xAC: hop B / normalize+scale buffer */
+    float mag;            /* 0xA8 */
+    volatile s32 pad1[4]; /* 0x98..0xA4 gap */
+    float scratch[3];     /* 0x8C: 23D4 out-arg + shared hop A */
+    volatile s32 pad2[2]; /* 0x84..0x88 gap */
+    Vec3 diff;            /* 0x78 */
+    volatile s32 pad3[4]; /* 0x68..0x74 gap */
+    Vec3 axis;            /* 0x5C: else-arm z probe */
+    float refv2[3];       /* 0x50: out orientation (else; array: homed) */
+    Vec3 ssv;             /* 0x44: (a0->0x38) orientation, reused as diff */
+    Vec3 axisc;           /* 0x38: axis hop, overwritten by rotated result */
+    float mag2;           /* 0x34 */
+    int mode;
+    Vec3 *delta;
+    float f, dirv, ax, ay, az, zerof;
 
+    out = *(char **)(a0 + 0x14);
+    s = *(char **)(*(char **)(a0 + 0x3C) + 0x38);
+    mode = *(int *)(a0 + 0x40);
     if (mode == 0) {
         return;
     }
     if (mode == 1) {
-        v1v.x = *(float *)(out + 0xA0);
-        v1v.y = *(float *)(out + 0xA4);
-        v1v.z = *(float *)(out + 0xA8);
-        v2v.x = *(float *)(s + 0xA0);
-        v2v.y = *(float *)(s + 0xA4);
-        v2v.z = *(float *)(s + 0xA8);
-        r = game_uso_func_000023D4(&dc1, *(char **)(a0 + 0x3C));
-        rcopy.x = r->x;
-        rcopy.y = r->y;
-        rcopy.z = r->z;
-        v2v.x = v2v.x + rcopy.x;
-        v2v.y = v2v.y + rcopy.y;
-        v2v.z = v2v.z + rcopy.z;
-        diff.x = v2v.x - v1v.x;
-        diff.y = v2v.y - v1v.y;
-        diff.z = v2v.z - v1v.z;
-        dc1 = diff;
-        dc2 = dc1;
+        refv1.x = *(float *)(out + 0xA0);
+        refv1.y = *(float *)(out + 0xA4);
+        refv1.z = *(float *)(out + 0xA8);
+        v2v[0] = *(float *)(s + 0xA0);
+        v2v[1] = *(float *)(s + 0xA4);
+        v2v[2] = *(float *)(s + 0xA8);
+        delta = game_uso_func_000023D4((Vec3 *)scratch, *(char **)(a0 + 0x3C));
+        *(Tri3i *)&dcopy = *(Tri3i *)delta;
+        v2v[0] = v2v[0] + dcopy.x;
+        v2v[1] = v2v[1] + dcopy.y;
+        v2v[2] = v2v[2] + dcopy.z;
+        diff.y = v2v[1] - refv1.y;
+        diff.z = v2v[2] - refv1.z;
+        diff.x = v2v[0] - refv1.x;
+        *(Tri3i *)scratch = *(Tri3i *)&diff;
+        *(Tri3i *)&dc2 = *(Tri3i *)scratch;
         mag = game_uso_func_070238(dc2.x * dc2.x + dc2.y * dc2.y + dc2.z * dc2.z);
         game_uso_func_071028(&dc2);
         f = mag * *(float *)(a0 + 0x5C);
@@ -1752,45 +1772,47 @@ void game_uso_func_000028C0(char *a0) {
         *(float *)(out + 0xA4) = *(float *)(out + 0x64);
         *(float *)(out + 0xA8) = *(float *)(out + 0x68);
     } else {
-        char *ss = *(char **)(a0 + 0x38);
-        Vec3 ssv, refv, axis, axisc, res;
-        float dirv;
+        char *ss;
 
-        /* refv = out->0xA0..; ssv = (a0->0x38)->0xA0.. */
-        refv.x = *(float *)(out + 0xA0);
-        refv.y = *(float *)(out + 0xA4);
-        refv.z = *(float *)(out + 0xA8);
+        refv2[0] = *(float *)(out + 0xA0);
+        refv2[1] = *(float *)(out + 0xA4);
+        refv2[2] = *(float *)(out + 0xA8);
+        ss = *(char **)(a0 + 0x38);
         ssv.x = *(float *)(ss + 0xA0);
-        ssv.y = *(float *)(ss + 0xA4);
-        ssv.z = *(float *)(ss + 0xA8);
-        if (mode == 3) {
+        ss += 0x70;
+        ssv.y = *(float *)(ss + 0x34);
+        ssv.z = *(float *)(ss + 0x38);
+        if (*(int *)(a0 + 0x40) == 3) {
             dirv = -1000.0f;
         } else {
             dirv = 1000.0f;
         }
-        axis.x = 0.0f;
-        axis.y = 0.0f;
+        zerof = 0.0f;
+        axis.x = zerof;
+        axis.y = zerof;
         axis.z = dirv;
-        axisc = axis;
-        /* 3x3 matrix from out->0x70.. applied to axisc */
-        res.x = *(float *)(out + 0x70) * axisc.x + *(float *)(out + 0x80) * axisc.y + *(float *)(out + 0x90) * axisc.z;
-        res.y = *(float *)(out + 0x74) * axisc.x + *(float *)(out + 0x84) * axisc.y + *(float *)(out + 0x94) * axisc.z;
-        res.z = *(float *)(out + 0x78) * axisc.x + *(float *)(out + 0x88) * axisc.y + *(float *)(out + 0x98) * axisc.z;
-        ssv.x = ssv.x + res.x;
-        ssv.y = ssv.y + res.y;
-        ssv.z = ssv.z + res.z;
-        diff.x = ssv.x - refv.x;
-        diff.y = ssv.y - refv.y;
-        diff.z = ssv.z - refv.z;
-        dc1 = diff;
-        dc2 = dc1;
-        mag = game_uso_func_070238(dc2.x * dc2.x + dc2.y * dc2.y + dc2.z * dc2.z);
-        game_uso_func_071028(&dc2);
-        f = mag * *(float *)(a0 + 0x5C);
-        dc2.x = dc2.x * f;
-        dc2.y = dc2.y * f;
-        dc2.z = dc2.z * f;
-        game_uso_func_072EE8(out + 0x30, &dc2);
+        *(Tri3i *)&axisc = *(Tri3i *)&axis;
+        /* 3x3 matrix rows at s+0x70.. applied to axisc; result overwrites
+         * the axisc buffer itself. */
+        ax = axisc.x;
+        ay = axisc.y;
+        az = axisc.z;
+        axisc.x = *(float *)(s + 0x70) * ax + *(float *)(s + 0x80) * ay + *(float *)(s + 0x90) * az;
+        axisc.y = *(float *)(s + 0x74) * ax + *(float *)(s + 0x84) * ay + *(float *)(s + 0x94) * az;
+        axisc.z = *(float *)(s + 0x78) * ax + *(float *)(s + 0x88) * ay + *(float *)(s + 0x98) * az;
+        ssv.x = ssv.x + axisc.x;
+        ssv.y = ssv.y + axisc.y;
+        ssv.z = ssv.z + axisc.z;
+        ssv.x = ssv.x - refv2[0];
+        ssv.y = ssv.y - refv2[1];
+        ssv.z = ssv.z - refv2[2];
+        mag2 = game_uso_func_070238(ssv.x * ssv.x + ssv.y * ssv.y + ssv.z * ssv.z);
+        game_uso_func_071028(&ssv);
+        f = mag2 * *(float *)(a0 + 0x5C);
+        ssv.x = ssv.x * f;
+        ssv.y = ssv.y * f;
+        ssv.z = ssv.z * f;
+        game_uso_func_072EE8(out + 0x30, &ssv);
         *(float *)(out + 0xA0) = *(float *)(out + 0x60);
         *(float *)(out + 0xA4) = *(float *)(out + 0x64);
         *(float *)(out + 0xA8) = *(float *)(out + 0x68);
