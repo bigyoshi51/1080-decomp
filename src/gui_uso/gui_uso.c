@@ -1391,147 +1391,171 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002BB0);
 #endif
 
 #ifdef NON_MATCHING
+/* gui_func_00002DE0: RE 2026-08-22 from target disasm. Structure: held
+ * char **dp base (lui/addiu form, 1EF4 idiom); ONE reused scratch t -> $s0
+ * (gctx/mode/x0/x1/x-scroll); if-else chain 0x408/0x120/0x110 (switch would
+ * sort ascending); reused temps dl/idx/slot1/w/lrx/u per target reg webs;
+ * Y-guard on RAW uly<<2 (not s16); multu scroll products; negu-shl combine. */
+/* gui_func_00002DE0: RE'd from target disasm 2026-08-22 (69.23->72.7).
+ * Levers that WORKED: (1) volatile-deref held base `char * volatile *dp =
+ * (char * volatile *)&D_00000000` -> the target's lui;addiu $11 held-address
+ * web incl. per-call remats (non-volatile char** ALWAYS folds %lo here, even
+ * multi-def w/ distinct pinned syms); (2) goto-chain (NOT switch: sorts
+ * ascending; NOT if-else: bnel-inline) for the beq 0x408/0x120/0x110 grouped
+ * compare chain; (3) f32 two=2.0f local forces div.s (literal /2.0f becomes
+ * *0.5f); (4) (u32)*(u32) multu scroll products; (5) negu+sll final combine;
+ * (6) Y B4-guard on RAW uly<<2, X guard on (s16). Reused temp webs mirror
+ * target ($2/$3/$5/$6/$7/$8/$9 multi-role). RESIDUAL: target holds the big
+ * scratch var in $s0 (mine $7, no s-reg; suspect pressure cascade), missing
+ * mid-region $11 remats + 2 copy insns in scroll chains. */
 void gui_func_00002DE0(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4) {
-    char *g = (char *)&D_00000000;
-    char *gctx;
-    char *dl;
-    char *slot;
-    s32 idx;
+    char * volatile *dp = (char * volatile *)&D_00000000;
+    char *t;    /* $s0: gctx / mode / x0 / x1 / x-scroll */
+    s32 dl;     /* $v0: dlring / y0t / (s16)dsdx / tmp */
+    s32 idx;    /* $v1: idx / uly / zero / (s16)dtdy */
+    s32 slot1;  /* $a3: packet1 slot / lry */
+    s32 slot2;  /* $t1: scissor slot / dsdx */
+    s32 slot3;  /* $t2: B4 slot */
+    s32 slot4;  /* packet4 slot */
+    s32 w;      /* $t0: t0 ptr / y0 / y1 / copy */
+    s32 lrx;    /* $a1: lrx / y-scroll */
+    s32 u;      /* $a2: ulx / uly<<2 raw / dtdy */
+    s32 x0t;    /* x0 test / x tmp */
     s32 sp3C;
     s32 sp38;
-    char *t0;
-    s32 mode;
-    f32 fW;
-    f32 fH;
-    f32 wScaled;
-    f32 hScaled;
-    s16 x0;
-    s16 y0;
-    s16 x1;
-    s16 y1;
-    s32 ulx;
-    s32 uly;
-    s32 lrx;
-    s32 lry;
-    s32 dsdx;
-    s32 dtdy;
-    s32 tmp;
+    f32 fv;
+    f32 ws;
+    f32 hs;
+    f32 two;
 
-    gctx = (*(char **)g);
-    dl = (*(char **)(gctx + 0xC));
-    idx = (*(s32 *)(dl + 0x4));
-    (*(s32 *)(dl + 0x4)) = idx + 1;
-    slot = (char *)((*(s32 *)((*(char **)(gctx + 0xC)) + 0x0)) + idx * 8);
-    (*(s32 *)(slot + 0x0)) = 0xBB000001;
-    (*(s32 *)(slot + 0x4)) = 0x80008000;
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot1 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)slot1 = 0xBB000001;
+    *(s32 *)(slot1 + 4) = 0x80008000;
 
-    t0 = (*(char **)(arg0 + 0x10));
-    sp3C = (*(s16 *)(t0 + 0x20));
-    sp38 = (*(s16 *)(t0 + 0x22));
-    mode = (*(s32 *)(t0 + 0x24));
-    switch (mode) {
-    case 0x408:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        gctx = (*(char **)g);
-        break;
-    case 0x120:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        gctx = (*(char **)g);
-        break;
-    case 0x110:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(t0 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        gctx = (*(char **)g);
-        break;
-    }
+    w = *(s32 *)(arg0 + 0x10);
+    sp3C = *(s16 *)(w + 0x20);
+    sp38 = *(s16 *)(w + 0x22);
+    t = *(char **)(w + 0x24);
+    if ((s32)t == 0x408) goto case_a;
+    if ((s32)t == 0x120) goto case_b;
+    if ((s32)t == 0x110) goto case_c;
+    goto merge;
+case_a:
+    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+    goto merge;
+case_b:
+    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+    goto merge;
+case_c:
+    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+merge:
+    dp = (char * volatile *)&D_00000000;
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot2 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
 
-    dl = (*(char **)(gctx + 0xC));
-    idx = (*(s32 *)(dl + 0x4));
-    (*(s32 *)(dl + 0x4)) = idx + 1;
-    fW = (f32) sp3C;
-    y0 = 0;
-    x0 = 0;
-    slot = (char *)((*(s32 *)((*(char **)(gctx + 0xC)) + 0x0)) + idx * 8);
-    ulx = (s32) ((f32) arg1 + (-(fW / 2.0f) * arg3));
-    wScaled = fW * arg3;
-    fH = (f32) sp38;
-    if ((s16) ((ulx + (s32) wScaled) * 4) > 0) {
-        x0 = (ulx + (s32) wScaled) * 4;
+    w = 0;
+    t = 0;
+    two = 2.0f;
+    fv = (f32)sp3C;
+    u = (s32)((f32)arg1 + (-(fv / two) * arg3));
+    ws = fv * arg3;
+    lrx = u;
+    lrx = (s16)(lrx << 2);
+    x0t = (s16)((u + (s32)ws) << 2);
+    if (x0t > 0) {
+        t = (char *)x0t;
     }
-    hScaled = fH * arg4;
-    x1 = 0;
-    lrx = (s16) (ulx * 4);
-    uly = (s32) ((f32) arg2 + (-(fH / 2.0f) * arg4));
-    if ((s16) ((uly + (s32) hScaled) * 4) > 0) {
-        y0 = (uly + (s32) hScaled) * 4;
+    fv = (f32)sp38;
+    idx = (s32)((f32)arg2 + (-(fv / two) * arg4));
+    hs = fv * arg4;
+    dl = (s16)((idx + (s32)hs) << 2);
+    u = idx << 2;
+    if (dl > 0) {
+        w = dl;
     }
-    lry = (s16) (uly * 4);
-    (*(s32 *)(slot + 0x0)) = (s32) (((x0 & 0xFFF) << 0xC) | 0xE4000000 | (y0 & 0xFFF));
+    *(s32 *)slot2 = ((((s32)t & 0xFFF) << 0xC) | 0xE4000000) | (w & 0xFFF);
+    t = 0;
     if (lrx > 0) {
-        x1 = lrx;
+        t = (char *)lrx;
     }
-    if (lry > 0) {
-        y1 = lry;
+    slot1 = (s16)u;
+    if (slot1 > 0) {
+        w = slot1;
     } else {
-        y1 = 0;
+        w = 0;
     }
-    (*(s32 *)(slot + 0x4)) = (s32) (((x1 & 0xFFF) << 0xC) | (y1 & 0xFFF));
+    *(s32 *)(slot2 + 4) = (((s32)t & 0xFFF) << 0xC) | (w & 0xFFF);
 
-    gctx = (*(char **)g);
-    dl = (*(char **)(gctx + 0xC));
-    idx = (*(s32 *)(dl + 0x4));
-    (*(s32 *)(dl + 0x4)) = idx + 1;
-    slot = (char *)((*(s32 *)((*(char **)(gctx + 0xC)) + 0x0)) + idx * 8);
-    (*(s32 *)(slot + 0x0)) = 0xB4000000;
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot3 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)slot3 = 0xB4000000;
     if (lrx < 0) {
-        dsdx = (s32) (((f32) (sp3C - 1) * 1024.0f) / wScaled);
-        if ((s16) dsdx < 0) {
-            tmp = (s32) (lrx * (s16) dsdx) >> 7;
-            if (tmp > 0) {
-                ulx = tmp;
+        slot2 = (s32)(((f32)(sp3C - 1) * 1024.0f) / ws);
+        dl = (s16)slot2;
+        if (dl < 0) {
+            x0t = ((s32)((u32)lrx * (u32)dl)) >> 7;
+            idx = 0;
+            if (x0t > 0) {
+                t = (char *)x0t;
             } else {
-                ulx = 0;
+                t = (char *)idx;
             }
         } else {
-            uly = 0;
-            tmp = (s32) (lrx * (s16) dsdx) >> 7;
-            if (tmp < 0) {
-                uly = tmp;
+            x0t = ((s32)((u32)lrx * (u32)dl)) >> 7;
+            dl = 0;
+            if (x0t < 0) {
+                dl = x0t;
             }
-            ulx = uly;
+            w = dl;
+            t = (char *)w;
         }
     } else {
-        ulx = 0;
-        dsdx = (s32) (((f32) (sp3C - 1) * 1024.0f) / wScaled);
+        t = 0;
+        slot2 = (s32)(((f32)(sp3C - 1) * 1024.0f) / ws);
     }
-    if (lry < 0) {
-        dtdy = (s32) (((f32) (sp38 - 1) * 1024.0f) / hScaled);
-        if ((s16) dtdy < 0) {
-            lrx = 0;
-            tmp = (s32) (lry * (s16) dtdy) >> 7;
-            if (tmp > 0) {
-                lrx = tmp;
+    if (u < 0) {
+        u = (s32)(((f32)(sp38 - 1) * 1024.0f) / hs);
+        idx = (s16)u;
+        if (idx < 0) {
+            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
+            idx = 0;
+            lrx = idx;
+            if (dl > 0) {
+                lrx = dl;
             }
         } else {
-            uly = 0;
-            tmp = (s32) (lry * (s16) dtdy) >> 7;
-            if (tmp < 0) {
-                uly = tmp;
+            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
+            idx = 0;
+            if (dl < 0) {
+                idx = dl;
             }
-            lrx = uly;
+            dl = idx;
+            lrx = dl;
         }
     } else {
         lrx = 0;
-        dtdy = (s32) (((f32) (sp38 - 1) * 1024.0f) / hScaled);
+        u = (s32)(((f32)(sp38 - 1) * 1024.0f) / hs);
     }
-    (*(s32 *)(slot + 0x4)) = (s32) ((ulx * -0x10000) | (-lrx & 0xFFFF));
+    *(s32 *)(slot3 + 4) = ((-(s32)t) << 0x10) | ((-lrx) & 0xFFFF);
 
-    gctx = (*(char **)g);
-    dl = (*(char **)(gctx + 0xC));
-    idx = (*(s32 *)(dl + 0x4));
-    (*(s32 *)(dl + 0x4)) = idx + 1;
-    slot = (char *)((*(s32 *)((*(char **)(gctx + 0xC)) + 0x0)) + idx * 8);
-    (*(s32 *)(slot + 0x4)) = (s32) ((dsdx << 0x10) | (dtdy & 0xFFFF));
-    (*(s32 *)(slot + 0x0)) = 0xB3000000;
+    dp = (char * volatile *)&D_00000000;
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot4 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)(slot4 + 4) = (slot2 << 0x10) | (u & 0xFFFF);
+    *(s32 *)slot4 = 0xB3000000;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
