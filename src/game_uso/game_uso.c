@@ -7432,6 +7432,7 @@ int game_uso_func_00009B88(a0, a1, a2)
     volatile float local_38[3]; /* sp+0x38:  local_120 + local_12C */
     volatile int local_44[3]; /* sp+0x44:  raw-word copy of local_38 */
     int *out;
+    int *p;
     float *src_vec;
     int * volatile *spill_a1 = &a1;
     float src_x, src_z, dx, dz;
@@ -7466,8 +7467,9 @@ int game_uso_func_00009B88(a0, a1, a2)
     out = (int*)(unsigned)local_190;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip1;
     }
-    if (out != 0) {
+    {
         src_vec = (float*)((char*)a2 + 0x30);
         src_z = src_vec[2];
         src_x = src_vec[0];
@@ -7475,14 +7477,17 @@ int game_uso_func_00009B88(a0, a1, a2)
         *(float*)((char*)out + 0x8) = src_z;    /* z */
         *(float*)((char*)out + 0x0) = src_x;    /* x */
     }
+skip1:;
 
     /* Dispatch 2: write Vec3 (a2->XZ - a1->XZ delta) to local_DC.
      * Same ternary shape; uses local_190 (just-written) for src_x/src_z. */
-    out = (int*)(unsigned)local_DC;
+    p = (int*)(unsigned)local_DC;
+    out = p;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip2;
     }
-    if (out != 0) {
+    {
         src_vec = (float*)((char*)a1 + 0x30);
         dx = local_190[0] - src_vec[0];
         dz = local_190[2] - src_vec[2];
@@ -7490,19 +7495,20 @@ int game_uso_func_00009B88(a0, a1, a2)
         *(float*)((char*)out + 0x8) = dz;       /* z */
         *(float*)((char*)out + 0x0) = dx;       /* x */
     }
+skip2:;
 
     /* Body-part-2 entry @ 0x9C44-0x9C98 (CORRECTED 2026-05-04 via byte-decode):
      * 1-to-4 fanout copy. local_DC's 3 words get distributed to local_EC,
      * local_19C, local_144 — interleaved IDO -O2 codegen with shared loads. */
     {
-        register int copy0 = ((int*)local_DC)[0];
-        register int copy1 = ((int*)local_DC)[1];
+        register int copy0 = p[0];
+        register int copy1 = p[1];
         register int copy2;
         register int copy3;
 
         local_EC[0] = copy0;
         copy3 = local_EC[0];
-        copy2 = ((int*)local_DC)[2];
+        copy2 = p[2];
         local_19C[0] = copy3;
         copy3 = local_19C[0];
         local_19C[1] = copy1;
@@ -7522,12 +7528,14 @@ int game_uso_func_00009B88(a0, a1, a2)
     out = (int*)(unsigned)local_C4;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip3;
     }
-    if (out != 0) {
+    {
         ((float*)out)[0] = local_144[2];   /* x = old z */
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = -local_144[0];  /* z = -old x */
     }
+skip3:;
 
     /* @ 0x9E1C-0x9E48: 3-way Vec3 fan-out from local_C4 to local_EC and
      * sp+0x138, then call helper(local_138, local_C4, local_EC). Likely a 3-Vec3
@@ -7868,24 +7876,28 @@ int game_uso_func_00009B88(a0, a1, a2)
     out = (int*)(unsigned)local_184;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip4;
     }
-    if (out != 0) {
+    {
         ((float*)out)[0] = src_vec[0];
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = src_vec[2];
     }
+skip4:;
 
     /* @ 0x9F48-0x9F9C: build the second delta vector against a1+0x30. */
     out = (int*)(unsigned)local_B8;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip5;
     }
-    if (out != 0) {
+    {
         src_vec = (float*)((char*)a1 + 0x30);
         ((float*)out)[0] = local_184[0] - src_vec[0];
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_184[2] - src_vec[2];
     }
+skip5:;
 
     /* @ 0x9E50-0x9E8C: fanout hop THROUGH local_EC (target reuses sp+0xEC
      * as the staging buffer for this copy): B8 -> EC -> 120 interleaved. */
@@ -7900,12 +7912,14 @@ int game_uso_func_00009B88(a0, a1, a2)
     out = (int*)(unsigned)local_A0;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip6;
     }
-    if (out != 0) {
+    {
         ((float*)out)[0] = local_144[0] + local_138[0];
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_144[2] + local_138[2];
     }
+skip6:;
     /* @ 0x9ED0-0x9F0C: A0 -> EC -> 178 hop, same staging idiom. */
     local_EC[0] = *(int*)&local_A0[0];
     local_178[0] = local_EC[0];
@@ -7917,12 +7931,14 @@ int game_uso_func_00009B88(a0, a1, a2)
     out = (int*)(unsigned)local_88;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip7;
     }
-    if (out != 0) {
+    {
         ((float*)out)[0] = local_120[0] - local_12C[0];
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_120[2] - local_12C[2];
     }
+skip7:;
     local_94[0] = *(int*)&local_88[0];
     local_94[1] = *(int*)&local_88[1];
     local_94[2] = *(int*)&local_88[2];
@@ -7933,12 +7949,14 @@ int game_uso_func_00009B88(a0, a1, a2)
     out = (int*)(unsigned)local_6C;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip8;
     }
-    if (out != 0) {
+    {
         ((float*)out)[0] = local_144[0] - local_138[0];
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_144[2] - local_138[2];
     }
+skip8:;
     local_7C[0] = *(int*)&local_6C[0];
     local_7C[1] = *(int*)&local_6C[1];
     local_7C[2] = *(int*)&local_6C[2];
@@ -7949,12 +7967,14 @@ int game_uso_func_00009B88(a0, a1, a2)
     out = (int*)(unsigned)local_38;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
+        if (out == 0) goto skip9;
     }
-    if (out != 0) {
+    {
         ((float*)out)[0] = local_120[0] + local_12C[0];
         ((float*)out)[1] = 0.0f;
         ((float*)out)[2] = local_120[2] + local_12C[2];
     }
+skip9:;
     local_44[0] = *(int*)&local_38[0];
     local_44[1] = *(int*)&local_38[1];
     local_44[2] = *(int*)&local_38[2];
