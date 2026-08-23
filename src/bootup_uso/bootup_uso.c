@@ -8457,6 +8457,19 @@ typedef struct {
     /* +0x24 (sp 0xF0) */ f32 f0;
 } C234Rec; /* 0x28 — stack probe record; address escapes into the probe call,
             * so post-call reads reload from memory (kills the $f20 zero web) */
+/* PASS-5 2026-08-22 (agent-f): NEGATIVE RESULT — pool-base-CSE web confirmed
+ * as the dominant residual and NOT C-fixable here. Target rematerializes
+ * every func_00000940+N / func_00008A7C+N ref as a fresh per-use lui %hi
+ * (+addend) pair — build CSEs the shared base into a reg AND spills it
+ * (0x38(sp), reloaded for the +0x28/+0x34 call args). Probed the
+ * distinct-extern respelling (D_00000940/44/48/4C + f64 D_00000950 for the
+ * five 940-pool sites): shape moves toward target but fuzzy REGRESSES
+ * 67.99->67.32 (objdiff penalizes the D_-name/addend-0 relocs vs the
+ * target's func_00000940+addend relocs more than the per-use-lui shape
+ * gains). Same splat-fold family as the 55A0/6808 reloc caps: unreachable
+ * without the spimdisasm USO-reloc migration (real per-symbol relocs in
+ * expected/). Remaining non-reloc residual (arm-order transposition at the
+ * 0x62-case + early-store scheduling) is downstream of the same web. */
 extern f64 D_00000930;
 extern s32 D_000081C0[];
 void func_0000C234(char *arg0) {
