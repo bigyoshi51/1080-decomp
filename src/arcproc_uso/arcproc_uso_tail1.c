@@ -1333,12 +1333,12 @@ INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00001C7
  * NON_MATCHING. */
 extern int gl_proto_1d18(void *, int, int, float, float);
 void arcproc_uso_func_00001D18(char *arg0, char *arg1, int arg2, char *arg3, int arg4) {
+    char *sub;
     float denom = 255.0f;
     float r192 = 192.0f / denom;
     float r0;
-    char *sub;
 
-    *(int *)(arg0 + 0xC) = 0x3E4;
+    *(int *)(arg0 + 0xC) = (int)((char *)&D_00000000 + 0x3E4);
     *(char **)(arg0 + 0xBC) = arg1;
     *(char **)(arg0 + 0xB8) = arg3;
     *(int *)(arg0 + 0x54) = arg2;
@@ -1348,7 +1348,7 @@ void arcproc_uso_func_00001D18(char *arg0, char *arg1, int arg2, char *arg3, int
     *(float *)(arg0 + 0xC8) = r192;
     *(float *)(arg0 + 0xC0) = r192;
     r0 = 0.0f / denom;
-    *(float *)(arg0 + 0xC4) = 255.0f / denom;
+    *(float *)(arg0 + 0xC4) = (float)255 / denom;
     *(float *)(arg0 + 0xCC) = r0;
     if (*(int *)(arg1 + 0x4F0) & 0x10000) {
         gl_func_00000000();
@@ -1360,13 +1360,19 @@ void arcproc_uso_func_00001D18(char *arg0, char *arg1, int arg2, char *arg3, int
         *(char **)(arg0 + 0x94) = (char *)gl_func_00000000(0, *(int *)(arg0 + 0x58));
         gl_func_00000000(*(char **)(arg0 + 0x94), 0);
         gl_proto_1d18(*(char **)(arg0 + 0x94), 0xA0, 0x46, 1.0f, 1.0f);
-        sub = *(char **)(arg0 + 0x94);
-        *(int *)(sub + 0x18) = *(int *)(sub + 0x18) & ~4;
-        sub = *(char **)(arg0 + 0x94);
-        *(float *)(sub + 0x64) = 250.0f / denom;
-        *(float *)(sub + 0x68) = 235.0f / denom;
-        *(float *)(sub + 0x6C) = 100.0f / denom;
-        *(float *)(sub + 0x70) = r0;
+        {
+            int tv;
+            sub = *(char **)(arg0 + 0x94);
+            tv = *(int *)(sub + 0x18);
+            if (1) { sub += 0x18; }
+            *(int *)sub = tv & ~4;
+            sub = *(char **)(arg0 + 0x94);
+            if (1) { sub += 0x64; }
+            *(float *)(sub + 0x0) = 250.0f / denom;
+            *(float *)(sub + 0x4) = 235.0f / denom;
+            *(float *)(sub + 0x8) = 100.0f / denom;
+            *(float *)(sub + 0xC) = r0;
+        }
         *(int *)(*(char **)(arg0 + 0x94) + 0xA0) = *(int *)(arg0 + 0x6C) + 0x108;
         *(int *)(*(char **)(arg0 + 0x94) + 0x80) = 0;
         *(int *)(*(char **)(arg0 + 0x94) + 0x84) = -0x12;
