@@ -15732,27 +15732,50 @@ void gl_func_0002D8D8(void) {
  *     (`lui at; sw -159xx(at)`); IDO only does that for NAMED EXTERN symbols
  *     (`*(int*)LITERAL` allocates a GPR and GCSE-merges the address into
  *     `lui 0x1; ori`). So the macros now alias named externs D_0001C1xx.
- * RESIDUAL = IDO register-coloring / scheduling cap (SAME -24 frame):
- *   the constant 1 colors to a held $v1 (CSE'd across every `== 1` compare)
- *   vs scattered temps; beq operand order; per-return bnel ra-reload in the
- *   annulled delay slot (211 vs 217 insns). Permuter not useful here: its
- *   target.o (assembled .word, no relocs) fights the reloc-vs-baked immediate
- *   mismatch and scores noise. Needs exact-structure RE of the temp/$v1
- *   coloring (multi-session). Default emit remains INCLUDE_ASM (ROM exact). */
+ * 2026-08 agent-g pass (59.58 -> 86.72 fuzzy): three real levers landed:
+ *   (1) PER-ACCESS-SITE ALIAS EXTERNS (docs/IDO_CODEGEN band-sweep-2026-07-15):
+ *       target NEVER address-CSEs the D_1C1xx slots — every access is a fresh
+ *       lui/$at-macro. One shared extern let uopt cache 3 addresses in GPRs
+ *       (lui/addiu + 0(reg)). 42 per-site aliases restored per-site macro form.
+ *       (volatile is WRONG here: it materializes lui/addiu per access.)
+ *   (2) casts are (signed char), not (char) — target sll/sra 24; plain (char)
+ *       compiles unsigned here (lbu/andi). Direct (signed char)GLOBAL as a call
+ *       arg gets load-NARROWED to lb — hoist into `int c8 = GLOBAL;` then pass
+ *       (signed char)c8 to keep the full lw + sll/sra pair.
+ *   (3) compare operand order: IDO emits ==/!= operands REVERSED from source
+ *       (`a0 != D` -> beq D,a0; `1 == D` -> bne D,v1).
+ * RESIDUAL (~13%, mostly register renames riding two webs):
+ *   - the -1 constant GCSEs into a held $a2 web (stores share it, compares emit
+ *     `bne a2,tX`); target materializes -1 PER SITE (fresh addiu temp per store,
+ *     $at-macro `addiu at,-1; bne tX,at` per compare). Same cap class as the
+ *     66AF0 per-compare $at-macro entry (value-CSE with call-clobber remat).
+ *   - `(signed char)` of a value VN'd to const 1 folds to `or a1,v1` (target
+ *     keeps sll/sra of $v1); int-local/signed-char-local spellings all fold.
+ *   - arm-1 exit `beq zero,zero` jump-delay filling (a0-reload vs v1-remat).
+ * Default emit remains INCLUDE_ASM (ROM exact). */
 /* Reloc-blind globals: the target's D+0x1C1xx slots emit the `lui $at;
  * sw -159xx($at)` assembler-macro form, which IDO produces only for NAMED
  * EXTERN symbols (HI16/LO16 relocs), NOT for `*(int*)LITERAL` (that takes a
  * GPR and GCSE-merges the address into `lui 0x1; ori`). D_00000000/+4 are two
  * separate symbols (target re-loads each at offset 0). */
+/* Per-access-site alias externs (all same address, resolved identically at
+ * link): the target NEVER address-CSEs these BSS slots — every access is a
+ * fresh lui/$at-macro form. One shared extern lets uopt cache &sym in a GPR
+ * (lui/addiu + 0(reg) accesses); distinct per-site symbols defeat that
+ * byte-honestly (docs/IDO_CODEGEN.md band-sweep-2026-07-15 / write-site-alias
+ * entries). Suffix letters follow target instruction order. */
 extern int D_00000004;
-extern int D_0001C1BC, D_0001C1C0, D_0001C1C4, D_0001C1C8, D_0001C1CC, D_0001C1D0, D_0001C1D4;
-#define D_2C1BC D_0001C1BC
-#define D_2C1C0 D_0001C1C0
-#define D_2C1C4 D_0001C1C4
-#define D_2C1C8 D_0001C1C8
-#define D_2C1CC D_0001C1CC
-#define D_2C1D0 D_0001C1D0
-#define D_2C1D4 D_0001C1D4
+extern int D_0001C1BC, D_0001C1BC_b;
+extern int D_0001C1C0, D_0001C1C0_b;
+extern int D_0001C1C4, D_0001C1C4_b, D_0001C1C4_c, D_0001C1C4_d, D_0001C1C4_e,
+    D_0001C1C4_f, D_0001C1C4_g, D_0001C1C4_h, D_0001C1C4_i, D_0001C1C4_j;
+extern int D_0001C1C8, D_0001C1C8_b, D_0001C1C8_c;
+extern int D_0001C1CC, D_0001C1CC_b, D_0001C1CC_c, D_0001C1CC_d, D_0001C1CC_e,
+    D_0001C1CC_f, D_0001C1CC_g, D_0001C1CC_h, D_0001C1CC_i, D_0001C1CC_j, D_0001C1CC_k;
+extern int D_0001C1D0, D_0001C1D0_b, D_0001C1D0_c, D_0001C1D0_d, D_0001C1D0_e,
+    D_0001C1D0_f, D_0001C1D0_g, D_0001C1D0_h;
+extern int D_0001C1D4, D_0001C1D4_b, D_0001C1D4_c, D_0001C1D4_d, D_0001C1D4_e,
+    D_0001C1D4_f, D_0001C1D4_g;
 
 void gl_func_0002D910(int a0, int a1, int a2, int a3) {
     int v0;
@@ -15762,73 +15785,76 @@ void gl_func_0002D910(int a0, int a1, int a2, int a3) {
     if (D_00000004 != 1) {
         return;
     }
-    if (D_2C1BC != a0) {
-        if (D_2C1CC == 0 && a0 == 0) {
+    if (a0 != D_0001C1BC) {
+        if (D_0001C1CC == 0 && a0 == 0) {
             gl_func_0001CA10(0x06010F00, 2);
-            D_2C1CC = -1;
+            D_0001C1CC_b = -1;
         } else if (a0 == 1) {
             gl_func_0001CA10(0x06010F00, 0);
-            D_2C1CC = 0;
+            D_0001C1CC_c = 0;
         }
-    } else if (D_2C1C0 != a1) {
-        if (D_2C1CC == 1 && a1 == 0) {
+    } else if (a1 != D_0001C1C0) {
+        if (1 == D_0001C1CC_d && a1 == 0) {
             gl_func_0001CA10(0x06010F00, 2);
-            D_2C1CC = -1;
+            D_0001C1CC_e = -1;
         } else if (a1 == 1) {
             gl_func_0001CA10(0x06010F00, 1);
-            D_2C1CC = 1;
+            D_0001C1CC_f = 1;
         }
     }
-    D_2C1BC = a0;
-    D_2C1C0 = a1;
-    v0 = (D_2C1C4 + a2) / 2;
-    D_2C1C8 = (D_2C1C8 + a3) / 2;
-    if (D_2C1D4 == 0) {
-        D_2C1CC = -1;
+    D_0001C1BC_b = a0;
+    D_0001C1C0_b = a1;
+    v0 = (D_0001C1C4 + a2) / 2;
+    D_0001C1C8_b = (D_0001C1C8 + a3) / 2;
+    if (D_0001C1D4 == 0) {
+        D_0001C1CC_g = -1;
         if (v0 < -8) {
-            D_2C1D4 = -1;
-            D_2C1D0 = v0;
+            D_0001C1D4_b = -1;
+            D_0001C1D0 = v0;
         }
-        D_2C1C4 = v0;
+        D_0001C1C4_b = v0;
         if (v0 >= 9) {
-            D_2C1D4 = 1;
-            D_2C1D0 = v0;
-            D_2C1C4 = v0;
+            D_0001C1D4_c = 1;
+            D_0001C1D0_b = v0;
+            D_0001C1C4_c = v0;
         }
-        gl_func_0001CA10(0x06010F02, (char)D_2C1C8);
-        v0 = D_2C1C4;
+        {
+            int c8 = D_0001C1C8_c;
+            gl_func_0001CA10(0x06010F02, (signed char)c8);
+        }
+        v0 = D_0001C1C4_d;
     }
-    if (D_2C1D4 == 1) {
-        if (v0 < D_2C1D0) {
-            if (D_2C1CC == -1) {
-                D_2C1C4 = v0;
+    if (1 == D_0001C1D4_d) {
+        if (v0 < D_0001C1D0_c) {
+            if (D_0001C1CC_h == -1) {
+                D_0001C1C4_e = v0;
                 gl_func_0001CA10(0x06010F00, 1);
-                gl_func_0001CA10(0x06010F02, (char)((D_2C1D0 * 4) - 0x40));
-                D_2C1CC = 1;
-                v0 = D_2C1C4;
+                gl_func_0001CA10(0x06010F02, (signed char)((D_0001C1D0_d * 4) - 0x40));
+                D_0001C1CC_i = 1;
+                v0 = D_0001C1C4_f;
             }
             if (v0 < 0x10) {
-                D_2C1D4 = 0;
+                D_0001C1D4_e = 0;
             }
         } else {
-            D_2C1D0 = v0;
+            D_0001C1D0_e = v0;
         }
     }
-    D_2C1C4 = v0;
-    if (D_2C1D4 == -1) {
-        if (D_2C1D0 < v0) {
-            D_2C1C4 = v0;
-            if (D_2C1CC == -1) {
+    D_0001C1C4_g = v0;
+    if (D_0001C1D4_f == -1) {
+        if (D_0001C1D0_f < v0) {
+            D_0001C1C4_h = v0;
+            if (D_0001C1CC_j == -1) {
                 gl_func_0001CA10(0x06010F00, 0);
-                gl_func_0001CA10(0x06010F02, (char)((D_2C1D0 * -4) - 0x40));
-                D_2C1CC = 0;
+                gl_func_0001CA10(0x06010F02, (signed char)(-D_0001C1D0_g * 4 - 0x40));
+                D_0001C1CC_k = 0;
             }
-            if (D_2C1C4 >= -0xF) {
-                D_2C1D4 = 0;
+            if (D_0001C1C4_i >= -0xF) {
+                D_0001C1D4_g = 0;
             }
         } else {
-            D_2C1D0 = v0;
-            D_2C1C4 = v0;
+            D_0001C1D0_h = v0;
+            D_0001C1C4_j = v0;
         }
     }
 }
