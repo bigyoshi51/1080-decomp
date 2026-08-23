@@ -749,7 +749,7 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00000D94);
 //   no extern reuse.
 #ifdef NON_MATCHING
 extern char D_000066B0, D_000066B8;
-extern s32 D_00000004;
+extern volatile s32 D_00000004;  /* volatile re-read lever: target re-loads at each of its 3 sites; plain extern gets coloring-hoisted into a saved reg */
 extern s32 bu_e68_dimB;
 extern s32 bu_e68_mgr;
 /* PASS-2 2026-06-10 (big-swing): FULL m2c graft via the pipeline +
@@ -846,6 +846,7 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
     s32 var_a0;
     s32 var_a0_2;
     s32 var_a3;
+    s32 boundA;
     s32 var_s0;
     s32 var_s0_2;
     s32 var_s1;
@@ -954,7 +955,8 @@ void *func_00000E68(char *arg0, char *arg1, s32 arg2, s32 arg3, s32 arg4) {
         var_a2 = 0;
         var_t1 = 0;
         sp124 = 0;
-        if ((var_a3 / 64) > 0) {
+        boundA = var_a3 / 64;
+        if (boundA > 0) {
             var_v1_2 = (s32) bu_e68_dimB / 64;
             do {
                 var_s6_2 = 0;
@@ -1068,7 +1070,7 @@ loop_12:
                 }
                 temp_a1_2 = sp124 + 1;
                 sp124 = temp_a1_2;
-            } while (temp_a1_2 < ((s32) D_00000004 / 64));
+            } while (temp_a1_2 < boundA);
             sp124 = 0;
         }
         mgr2 = *(s32 *)&bu_e68_mgr;
@@ -1166,8 +1168,8 @@ loop_12:
         var_s5_2 = sp1CC;
         temp_s3 = (s32) bu_e68_dimB / 32;
         temp_v0_9 = temp_s3 * 4;
-        if (((s32) D_00000004 / 64) > 0) {
-            dimA2 = D_00000004;
+        dimA2 = D_00000004;
+        if ((dimA2 / 64) > 0) {
             temp_s7 = (((temp_v0_9 << 0xA) | ((temp_v0_9 * 0x10) - 1)) & 0xFFFF) | 0x04000000;
             var_s6_3 = sp124;
             do {
