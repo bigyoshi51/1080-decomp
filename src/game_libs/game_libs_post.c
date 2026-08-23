@@ -15142,26 +15142,323 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
  * TOOLING_DECOMP item 16): loader-RE-gated. Do not graft until the
  * kernel game_libs loader RE yields true table extraction. */
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-void gl_func_0002C7A4(char *o) {
-    int w = *(int *)o;
-    char *t;
-    short n;
-    int m;
-    int idx;
-    if (w >= 0) return;
-    if (gl_func_00000000(*(unsigned char *)(o + 4))) {
-        gl_func_00000000(*(unsigned char *)(o + 5));
-        gl_func_00000000(*(unsigned char *)(o + 4), 2);
-        gl_func_00000000(*(unsigned char *)(o + 5));
+/* PASS-2 2026-08-22 (agent-g): WHOLESALE REDECODE from expected .o @0xfd94
+ * (0x7BC), reloc-free-expected class (see 2BB7C/30AF4). The old "no
+ * block-walk-discoverable case heads" verdict was an artifact of the
+ * external runtime-relocated tables; the .text case bodies are perfectly
+ * enumerable in stream order. Real decode: the second command-VM tick
+ * (frame -0x68, only s0-s2 saved: s2=o, s1=sub@o+0x78, s0=op).
+ * Entry: bit31 gate; two probe calls (b4/b5) with teardown path; bit29+
+ * b3&0x80 skip; hA += h8; wE0++; hA += hC; threshold D_2074 test with
+ * subtract + bit25 return; h10 timer tick. Loop: op >= 242 -> 3E6E8
+ * handler via 3E680 result; 192 <= op < 242 -> switch1 (24 real bodies,
+ * labels 0xC5..0xDC stream order + 0xF1 bound tag, sltiu-45); op < 192
+ * -> hybrid switch on op&0xF0: case 0 slot-status read, empty 0x10/0x20,
+ * dense 0x40..0xB0 table (7 bodies + 0xB0 tag, sltiu-113), n = op&0xF is
+ * a u8 local that crosses calls with only 3 s-regs -> stack-homed
+ * (sb/lbu 102(sp), reproduced naturally). Cleanup: 16-slot sweep over
+ * w38[] calling 401E8 on bit31 slots (v0-held cursor spills at 44(sp)). */
+extern int gl_func_0003E680();
+extern int gl_func_0003EC34();
+extern int gl_func_000401E8();
+extern s16 D_2C7A4_2074;       /* speed clamp threshold */
+extern u32 D_2C7A4_2154;
+extern f32 D_2C7A4_f127a, D_2C7A4_f127b, D_2C7A4_f127c, D_2C7A4_f127d;       /* random source (>>2), case 0xD4 */
+/* relocated (jal-0-baked) intra-USO callees — distinct per site */
+extern int gl2C7A4_probe_a();  /* entry probe (o->b4) */
+extern int gl2C7A4_probe_b();  /* entry probe (o->b5) */
+extern int gl2C7A4_stop_c();   /* teardown (o->b4, 2) */
+extern int gl2C7A4_stop_d();   /* teardown (o->b5) */
+extern int gl2C7A4_stop_e();   /* teardown (o) */
+extern int gl2C7A4_go_f();     /* running path (o->b5, 2) */
+extern int gl2C7A4_destroy();  /* -1 handler teardown (o) */
+extern int gl2C7A4_call_a();   /* case 0xC5 first call (o+0x9C) */
+extern int gl2C7A4_call_b();   /* case 0xC5 second call (o+0x9C, v) */
+extern int gl2C7A4_call_c();   /* case 0xC7 (o+0x9C) */
+extern int gl2C7A4_call_d();   /* low 0x70 (o->w38[op&0xF]) */
+extern int gl2C7A4_call_e();   /* low 0xA0 (x, base+imm16, chan+n) */
+
+typedef struct Gl2C7A4 {
+    u8 b0;                     /* 0x00 (w0 via *(s32 *) cast) */
+    u8 b1, b2, b3, b4, b5, b6, b7;
+    u16 h8;                    /* 0x08 step */
+    u16 hA;                    /* 0x0A accum */
+    s16 hC;                    /* 0x0C bias */
+    s16 hE;                    /* 0x0E */
+    u16 h10;                   /* 0x10 timer */
+    u16 h12;                   /* 0x12 */
+    u16 h14;                   /* 0x14 */
+    u8 pad16[2];
+    u8 *base;                  /* 0x18 */
+    f32 f1C;                   /* 0x1C */
+    f32 f20;                   /* 0x20 */
+    u8 pad24[4];
+    f32 f28;                   /* 0x28 */
+    f32 f2C;                   /* 0x2C */
+    u8 pad30[8];
+    s32 *w38[16];              /* 0x38 slot words (bit31 = live) */
+    Gl2BB7CSub sub;            /* 0x78 */
+    u8 pad92[2];
+    s32 w94;                   /* 0x94 */
+    s32 w98;                   /* 0x98 */
+    u8 x9C[0x44];              /* 0x9C embedded sub-object */
+    s32 wE0;                   /* 0xE0 tick counter */
+    u8 padE4[0x74];
+    s8 chan158[16];            /* 0x158 */
+} Gl2C7A4;
+
+void gl_func_0002C7A4(Gl2C7A4 *o) {
+    volatile s32 padc[14];     /* dead frame band to -0x68 */
+    Gl2BB7CSub *sub;
+    s32 r;
+    s32 op;
+    s32 v;
+    s32 v2;
+    u16 h;
+    s32 c;
+    u8 n;
+    u8 *q;
+    s32 i;
+
+    if (!((u32)*(s32 *)o >> 31)) {
+        return;
     }
-    idx = *(int *)o;
-    t = (char *)&D_00000000 + ((idx << 2) & 0x3FFC);
-    (void)t;
-    n = *(short *)((char *)&D_00000000 + 0x2040);
-    m = GL_COUNT_2070;
-    (void)n; (void)m;
+    if (gl2C7A4_probe_a(o->b4) == 0 || gl2C7A4_probe_b(o->b5) == 0) {
+        gl2C7A4_stop_c(o->b4, 2);
+        gl2C7A4_stop_d(o->b5);
+        gl2C7A4_stop_e(o);
+        return;
+    }
+    gl2C7A4_go_f(o->b5, 2);
+    if (*(s32 *)o & 0x20000000) {
+        if (o->b3 & 0x80) {
+            return;
+        }
+    }
+    o->hA = o->hA + o->h8;
+    o->wE0 += 1;
+    o->hA = o->hA + o->hC;
+    if (o->hA < D_2C7A4_2074) {
+        return;
+    }
+    o->hA = o->hA - D_2C7A4_2074;
+    if (((u32)(*(s32 *)o << 6) >> 31) == 1) {
+        return;
+    }
+    r = o->h10;
+    if (r >= 2) {
+        o->h10 = r - 1;
+        goto cleanup;
+    }
+    o->b0 |= 4;
+    sub = (Gl2BB7CSub *)((u8 *)o + 0x78);
+    for (;;) {
+        r = gl_func_0003F010(sub);
+        op = r & 0xFF;
+        if (r >= 0xF2) {
+            r = gl_func_0003E6E8(o, sub, op, gl_func_0003E680(sub, (u8)op));
+            if (r == 0) {
+                continue;
+            }
+            if (r == -1) {
+                gl2C7A4_destroy(o);
+                goto cleanup;
+            }
+            o->h10 = r;
+            goto cleanup;
+        }
+        if ((r & 0xFF) >= 0xC0) {
+            switch (r & 0xFF) {
+            case 0xC5:
+                q = (u8 *)o + 0x9C;
+                gl2C7A4_call_a(q);
+                gl2C7A4_call_b(q, gl_func_0003F010(sub));
+                continue;
+            case 0xC6:
+                continue;
+            case 0xC7:
+                gl2C7A4_call_c((u8 *)o + 0x9C);
+                continue;
+            case 0xC8:  /* hE accumulate */
+                o->hE = 0;
+                o->hE = o->hE + (s8)gl_func_0003F010(sub);
+                continue;
+            case 0xC9:  /* h8 = v*48, clamp to D_2074, min 1 */
+                h = gl_func_0003F010(sub) * 48;
+                o->h8 = h;
+                if (D_2C7A4_2074 < h) {
+                    o->h8 = D_2C7A4_2074;
+                    h = D_2C7A4_2074;
+                }
+                if ((s16)h > 0) {
+                    continue;
+                }
+                o->h8 = 1;
+                continue;
+            case 0xCA:
+                o->hC = (s8)gl_func_0003F010(sub) * 48;
+                continue;
+            case 0xCB:  /* fade mode setup */
+                op = gl_func_0003F010(sub) & 0xFF;
+                v2 = gl_func_0003F024(sub);
+                if (op == 0 || op == 1) {
+                    if (o->b1 != 2) {
+                        o->h14 = v2;
+                        o->b1 = op;
+                    }
+                } else if (op == 2) {
+                    o->h12 = v2;
+                    o->b1 = op;
+                    o->f20 = (0.0f - o->f1C) / (f32)(u16)v2;
+                }
+                continue;
+            case 0xCC:  /* fade target */
+                v = gl_func_0003F010(sub);
+                c = o->b1;
+                if (c != 0) {
+                    if (c == 1) {
+                        o->b1 = 0;
+                        o->f1C = 0.0f;
+                    } else if (c == 2) {
+                        continue;
+                    } else {
+                        continue;
+                    }
+                }
+                h = o->h14;
+                o->h12 = h;
+                if (h != 0) {
+                    o->f20 = ((f32)v / D_2C7A4_f127a - o->f1C) / (f32)(u16)h;
+                } else {
+                    o->f1C = (f32)v / D_2C7A4_f127b;
+                }
+                continue;
+            case 0xCD:
+                o->f2C = (f32)(s8)gl_func_0003F010(sub) / D_2C7A4_f127c;
+                continue;
+            case 0xCE:
+                gl_func_0003EC34(o, (u16)gl_func_0003F024(sub));
+                continue;
+            case 0xCF:
+                gl_func_0003F024(sub);
+                continue;
+            case 0xD0:
+                o->f28 = (f32)(s8)gl_func_0003F010(sub) / D_2C7A4_f127d;
+                continue;
+            case 0xD1:
+                o->b0 |= 0x20;
+                continue;
+            case 0xD2:
+                o->b3 = gl_func_0003F010(sub);
+                continue;
+            case 0xD3:  /* pointer store, op-discriminated */
+                v2 = gl_func_0003F024(sub);
+                if (op == 0xD2) {
+                    o->w94 = (s32)(o->base + (u16)v2);
+                } else {
+                    o->w98 = (s32)(o->base + (u16)v2);
+                }
+                continue;
+            case 0xD4:
+                o->b2 = gl_func_0003F010(sub);
+                continue;
+            case 0xD5:  /* ch = random */
+                v = gl_func_0003F010(sub);
+                if (v == 0) {
+                    sub->ch = D_2C7A4_2154 >> 2;
+                } else {
+                    sub->ch = (D_2C7A4_2154 >> 2) % (u8)v;
+                }
+                continue;
+            case 0xD6:  /* call push via ch-indexed table */
+                v2 = gl_func_0003F024(sub);
+                if (sub->ch == -1) {
+                    continue;
+                }
+                if (sub->sp == 3) {
+                    continue;
+                }
+                sub->stk[sub->sp] = sub->pc;
+                sub->sp++;
+                q = o->base + ((u16)v2 + sub->ch * 2);
+                sub->pc = o->base + (u16)(q[1] + (q[0] << 8));
+                continue;
+            case 0xD7:
+                sub->ch = gl_func_0003F010(sub);
+                continue;
+            case 0xD8:
+                sub->ch = sub->ch & gl_func_0003F010(sub);
+                continue;
+            case 0xD9:
+                sub->ch = sub->ch - gl_func_0003F010(sub);
+                continue;
+            case 0xDA:  /* byte poke: base[imm16] = ch + x */
+                op = gl_func_0003F010(sub) & 0xFF;
+                v2 = gl_func_0003F024(sub);
+                o->base[(u16)v2] = SUB_CHU(sub) + op;
+                continue;
+            case 0xDB:
+                o->b0 |= 2;
+                return;
+            case 0xDC:
+            case 0xF1:  /* bound-setting label; table is external */
+                o->wE0 = (u16)gl_func_0003F024(sub);
+                continue;
+            }
+            continue;
+        }
+        n = r & 0xF;
+        switch (r & 0xF0) {
+        case 0x00:  /* ch = slot live bit */
+            sub->ch = (u32)(*o->w38[n] >> 31) ^ 1;
+            continue;
+        case 0x10:
+            continue;
+        case 0x20:
+            continue;
+        case 0x40:
+            sub->ch = sub->ch - o->chan158[n];
+            continue;
+        case 0x50:
+            o->chan158[n] = sub->ch;
+            continue;
+        case 0x60:  /* ch = chan (+consume if n<2) */
+            sub->ch = o->chan158[n];
+            if (n < 2) {
+                o->chan158[n] = -1;
+            }
+            continue;
+        case 0x70:
+            gl2C7A4_call_d(o->w38[op & 0xF]);
+            continue;
+        case 0x80:  /* forward to cmd processor, abs */
+            v2 = gl_func_0003F024(sub);
+            gl_func_0003EDAC(o, op & 0xF, o->base + (u16)v2);
+            continue;
+        case 0x90:  /* forward to cmd processor, pc-rel */
+            v2 = gl_func_0003F024(sub);
+            gl_func_0003EDAC(o, op & 0xF, sub->pc + v2);
+            continue;
+        case 0xA0:
+        case 0xB0:  /* bound-setting label; table is external */
+            op = gl_func_0003F010(sub) & 0xFF;
+            v2 = gl_func_0003F024(sub);
+            gl2C7A4_call_e(op, o->base + (u16)v2, (u8 *)o + n + 0x158);
+            continue;
+        }
+    }
+cleanup:
+    /* release sweep over the 16 slot words */
+    i = 0;
+    q = (u8 *)o;
+    do {
+        s32 *sl = *(s32 **)(q + 0x38);
+        if ((u32)*sl >> 31) {
+            gl_func_000401E8(sl);
+        }
+        i += 4;
+        q += 4;
+    } while (i != 64);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
