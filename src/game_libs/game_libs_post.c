@@ -14533,340 +14533,565 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002BB58);
 //   structure). Byte-match deferred. Name pre-checked: no extern
 //   reuse.
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft; THREE dense jumptables
- * (bounds 66/41/97 -- interpreter/dispatch shape) synthesized by block-
- * walk with heavily-shared case heads; case ORDER approximate. TABLE
- * EXTRACTION BLOCKED 2026-06-10: the lw lo16 offsets exceed post.bin
- * and match no asset under any base convention -- the hi16 resolves
- * via the boot-time loader only; RE the kernel game_libs loader to
- * unlock (docs/TOOLING_DECOMP). Checklist 1-15. */
+/* PASS-3 2026-08-22 (agent-g): WHOLESALE REDECODE from expected .o @0xf16c
+ * (0xC28), exploiting the 3AC5C/30AF4 reloc-free-expected finding
+ * (docs/IDO_CODEGEN.md): game_libs_post.c.o expected is reloc-free, so
+ * every lui 0x0 / baked lo16 / jal word / jumptable load sits at a reloc
+ * site in OUR build and objdiff scores it matched — the old "external USO
+ * jumptable = permanent cap" verdict is retracted for %. The PASS-2 m2c
+ * sketch invented case structure; real decode:
+ *   command-VM tick. Loop: op = fetch8(sub@o+0x70); ops >= 0xB0 pull 0-3
+ *   inline args (per-op count/size byte table D_argtbl, top bits = 16-bit
+ *   flags, shifted left per arg); ops >= 0xF2 go to the external handler
+ *   3E6E8 (0 = continue, -1 = destroy+stop, else = new timer + stop).
+ *   switch1: 56 REAL case bodies, bound 66 (labels 0xB0..0xE7 in stream
+ *   order + 0xF1 attached for the sltiu-66 bound; case->body mapping lives
+ *   only in the runtime-relocated table, .text-invariant).
+ *   ops 0x70..0xAF: switch2 on op&0xF8, 6 bodies at 0x70/78/80/88/90/98
+ *   (bound 41), slot ops indexed by op&7.
+ *   ops < 0x70: switch3 on op&0xF0, 7 bodies at 0x00..0x60 (bound 97),
+ *   channel ops indexed by op&0xF.
+ *   Levers: m1 = named -1 const web (s8); sel = int copy of op for the
+ *   handler arg + switch selector (s0); s32 op web with explicit &0xFF
+ *   (s2); post-inc pointer chains (case 0xD6) fold to one addiu +
+ *   negative offsets. Residual: uopt s-reg NUMBERING (o/sub/cmd/m1 land
+ *   one reg lower than target's s4/s6/s7/s8) + ~64B frame-slot excess
+ *   from named-temp homes — coloring class, not structure. */
 extern int gl_func_0003E6E8();
 extern int gl_func_0003F010();
 extern int gl_func_0003F024();
 extern int gl_func_0003F09C();
-void gl_func_0002BB7C(char *arg0) {
-    s32 sp60[16]; f32 sp63;
-    s32 *temp_s3;
-    s32 *temp_s7;
-    s32 *temp_v0_3;
-    s32 *var_s0;
-    s32 temp_a0;
-    s32 temp_a1;
-    s32 temp_a1_2;
-    s32 temp_s2;
-    s32 temp_v0;
-    s32 temp_v1_2;
-    s32 var_s0_2;
-    s32 var_s5;
-    s32 var_v0;
-    u16 temp_v0_2;
-    u16 temp_v1;
-    u32 temp_t3;
-    u8 var_v1;
-    char *temp_s0;
-    char *temp_s6;
-    char *temp_v0_4;
-    char *var_s1;
+extern int gl_func_0003EA18();
+extern int gl_func_0003EB78();
+extern int gl_func_0003EDAC();
+extern int gl_func_00040074();
+extern int gl_func_00040118();
+/* relocated (jal-0-baked) intra-USO callees — distinct per site */
+extern int gl2BB7C_destroy();  /* the -1 teardown (jal 0, a0=o) */
+extern int gl2BB7C_call_a();   /* case 0xB1 first call  (o+0x94) */
+extern int gl2BB7C_call_b();   /* case 0xB1 second call (o+0x94, arg) */
+extern int gl2BB7C_call_c();   /* case 0xB2 (o+0x94) */
+extern int gl2BB7C_call_d();   /* cases 0xB5/0xC7: (1, 2, x) query */
+extern int gl2BB7C_call_e();   /* case 0xB8 (o, arg) */
+extern int gl2BB7C_call_f();   /* case 0xCA (cmd->tbl38[x]) */
+extern int gl2BB7C_call_g();   /* case 0xDC (pDC, hi, lo) */
+extern int gl2BB7C_call_h();   /* switch3 0x10 (b7, ch, chan*) */
 
-    if (*(s32 *)((char *)(arg0) + 0x0) & 0x20000000) {
-        goto block_128;
+extern u8 D_2BB7C_argtbl[];    /* per-op arg count/size byte table */
+extern f32 D_2BB7C_ftbl[];     /* float table, cases 0xBC/0xBD */
+extern u8 *D_2BB7C_2028;       /* remap table base, cases 0xB5/0xC7 */
+extern u32 D_2BB7C_2154;       /* modulo source, cases 0xE2/0xE3 */
+
+typedef struct Gl2BB7CSlot {
+    s32 w0;                    /* 0x00: sign<<1 status word */
+    u8 pad04[0x50];
+    u8 *w54;                   /* 0x54 */
+} Gl2BB7CSlot;
+
+typedef struct Gl2BB7CSub {    /* at o+0x70 */
+    u8 *pc;                    /* 0x00 */
+    u8 *stk[5];                /* 0x04 */
+    u8 sp;                     /* 0x18 */
+    s8 ch;                     /* 0x19 */
+} Gl2BB7CSub;
+
+typedef struct Gl2BB7CCmd {    /* at o->0x4C */
+    u32 w0;                    /* 0x00 */
+    u8 b4;                     /* 0x04 */
+    u8 b5;                     /* 0x05 */
+    u8 pad06[0x12];
+    u8 *base;                  /* 0x18 */
+    u8 pad1C[0x1C];
+    u8 *tbl38[16];             /* 0x38 */
+} Gl2BB7CCmd;
+
+typedef struct Gl2BB7C {
+    u8 b0;                     /* 0x00 (w0 read via *(s32 *) cast) */
+    u8 b1;                     /* 0x01 */
+    u8 b2, b3, b4, b5, b6, b7; /* 0x02.. */
+    u8 b8, b9, bA, bB, bC, bD, bE, bF;
+    u16 h10, h12, h14, h16, h18, h1A, h1C, h1E;
+    u16 h20, h22;
+    u8 pad24[2];
+    s16 h26;
+    f32 f28;
+    u8 pad2C[0xC];
+    f32 f38;
+    u8 *p3C;
+    u8 pad40[0xC];
+    Gl2BB7CCmd *cmd;           /* 0x4C */
+    Gl2BB7CSlot *slots[8];     /* 0x50 */
+    Gl2BB7CSub sub;            /* 0x70 */
+    u8 pad8A[2];
+    u8 b8C, b8D;
+    u8 pad8E[2];
+    u8 *p90;                   /* 0x90 */
+    u8 x94[0x40];              /* 0x94: embedded sub-object */
+    s8 chanD4[8];              /* 0xD4 */
+    u8 padD8[0];
+} Gl2BB7C;
+
+#define O_FLAGS0(o)  ((o)->b0)
+#define O_CHAN(o, i) (*((s8 *)(o) + 0xD4 + (i)))
+#define O_PDC(o)     (*(u8 **)((u8 *)(o) + 0xDC))
+#define O_BE0(o)     (*((u8 *)(o) + 0xE0))
+#define SUB_CHU(s)   (*((u8 *)(s) + 0x19))
+
+void gl_func_0002BB7C(Gl2BB7C *o) {
+    s32 args[10];
+    Gl2BB7CCmd *cmd;
+    Gl2BB7CSub *sub;
+    s32 m1;
+    s32 r;
+    s32 sel;
+    s32 op;
+    s32 t;
+    s32 i;
+    u8 *cp;
+    s32 b;
+    s32 *p;
+    s32 *end;
+    s32 v;
+    u8 x;
+    u8 n;
+    u8 *q;
+    u8 *bp;
+    u16 h;
+    s32 c;
+    Gl2BB7CSlot *sl;
+
+    if (*(s32 *)o & 0x20000000) {
+        goto cleanup;
     }
-    temp_s7 = *(s32 *)((char *)(arg0) + 0x4C);
-    if (!(*temp_s7 & 0x20000000) || !(*(s32 *)((char *)(arg0) + 0x3) & 0x80)) {
-        temp_v1 = *(s32 *)((char *)(arg0) + 0x1E);
-        temp_s6 = arg0 + 0x70;
-        if ((s32) temp_v1 >= 2) {
-            *(s32 *)((char *)(arg0) + 0x1E) = (u16) (temp_v1 - 1);
-        } else {
-        /* default (switch 3, flattened) */
-loop_7:
-            temp_v0 = gl_func_0003F010(temp_s6);
-            temp_s2 = temp_v0 & 0xFF;
-            if (temp_v0 >= 0xB0) {
-                var_v1 = *(s32 *)((char *)(temp_v0) - 0xB0);
-                var_s0 = &sp60[0];
-                temp_a1 = var_v1 & 3;
-                if ((temp_a1 & 0xFF) > 0) {
-                    temp_s3 = &var_s0[temp_a1 & 0xFF];
-                    do {
-                        if (!(var_v1 & 0x80)) {
-                            var_v0 = gl_func_0003F010(temp_s6);
-                        } else {
-                            var_v0 = gl_func_0003F024(temp_s6);
-                        }
-                        *var_s0 = var_v0;
-                        var_s0 += 4;
-                        var_v1 = (var_v1 * 2) & 0xFF;
-                    } while ((u32) var_s0 < (u32) temp_s3);
-                }
-                switch (temp_s2) {                  /* switch 1; irregular */
-                /* default (switch 1, flattened) */
-                    temp_v0_2 = gl_func_0003E6E8(temp_s7, temp_s6, temp_s2, sp60[0]);
-                    if (temp_v0_2 != 0) {
-                        if (temp_v0_2 == -1U) {
-                            func_00000000(arg0);
-                        } else {
-                            *(s32 *)((char *)(arg0) + 0x1E) = temp_v0_2;
-                        }
-                    } else {
-                        goto loop_7;
-                    }
-                    break;
-                case 0xB0:                          /* switch 1 */
-                    *(s32 *)((char *)(arg0) + 0x0) = (s8) ((u8) *(s32 *)((char *)(arg0) + 0x0) | 0x20);
-                    break;
-                case 0xB1:                          /* switch 1 */
-                case 0xB2:                          /* switch 1 */
-                case 0xB3:                          /* switch 1 */
-                case 0xB4:                          /* switch 1 */
-                case 0xB5:                          /* switch 1 */
-                case 0xB6:                          /* switch 1 */
-                case 0xB7:                          /* switch 1 */
-                case 0xB8:                          /* switch 1 */
-                case 0xB9:                          /* switch 1 */
-                case 0xBA:                          /* switch 1 */
-                case 0xBB:                          /* switch 1 */
-                case 0xBC:                          /* switch 1 */
-                case 0xBD:                          /* switch 1 */
-                case 0xBE:                          /* switch 1 */
-                case 0xBF:                          /* switch 1 */
-                case 0xC0:                          /* switch 1 */
-                case 0xC1:                          /* switch 1 */
-                case 0xC2:                          /* switch 1 */
-                case 0xC3:                          /* switch 1 */
-                case 0xC4:                          /* switch 1 */
-                case 0xC5:                          /* switch 1 */
-                case 0xC6:                          /* switch 1 */
-                case 0xC7:                          /* switch 1 */
-                case 0xC8:                          /* switch 1 */
-                case 0xC9:                          /* switch 1 */
-                case 0xCA:                          /* switch 1 */
-                case 0xCB:                          /* switch 1 */
-                case 0xCC:                          /* switch 1 */
-                case 0xCD:                          /* switch 1 */
-                case 0xCE:                          /* switch 1 */
-                case 0xCF:                          /* switch 1 */
-                case 0xD0:                          /* switch 1 */
-                case 0xD1:                          /* switch 1 */
-                case 0xD2:                          /* switch 1 */
-                case 0xD3:                          /* switch 1 */
-                case 0xD4:                          /* switch 1 */
-                case 0xD5:                          /* switch 1 */
-                case 0xD6:                          /* switch 1 */
-                case 0xD7:                          /* switch 1 */
-                case 0xD8:                          /* switch 1 */
-                case 0xD9:                          /* switch 1 */
-                case 0xDA:                          /* switch 1 */
-                case 0xDB:                          /* switch 1 */
-                case 0xDC:                          /* switch 1 */
-                case 0xDD:                          /* switch 1 */
-                case 0xDE:                          /* switch 1 */
-                case 0xDF:                          /* switch 1 */
-                case 0xE0:                          /* switch 1 */
-                case 0xE1:                          /* switch 1 */
-                case 0xE2:                          /* switch 1 */
-                case 0xE3:                          /* switch 1 */
-                case 0xE4:                          /* switch 1 */
-                case 0xE5:                          /* switch 1 */
-                case 0xE6:                          /* switch 1 */
-                case 0xE7:                          /* switch 1 */
-                case 0xE8:                          /* switch 1 */
-                case 0xE9:                          /* switch 1 */
-                case 0xEA:                          /* switch 1 */
-                case 0xEB:                          /* switch 1 */
-                case 0xEC:                          /* switch 1 */
-                case 0xED:                          /* switch 1 */
-                case 0xEE:                          /* switch 1 */
-                case 0xEF:                          /* switch 1 */
-                case 0xF0:                          /* switch 1 */
-                case 0xF1:                          /* switch 1 */
-                    temp_s0 = arg0 + 0x94;
-                    func_00000000(temp_s0);
-                    func_00000000(temp_s0, sp63);
-                    goto loop_7;
-                }
-            } else {
-                if (temp_v0 >= 0x70) {
-                    temp_a1_2 = temp_v0 & 7;
-                    temp_v1_2 = temp_v0 & 0xF8;
-                    var_s5 = temp_a1_2 & 0xFF;
-                    if ((temp_v1_2 != 0x70) && ((temp_a1_2 & 0xFF) >= 8)) {
-                        var_s5 = 0;
-                    }
-                    switch (temp_v1_2) {            /* switch 2 */
-                    case 0x70:                      /* switch 2 */
-                    case 0x71:                      /* switch 2 */
-                    case 0x72:                      /* switch 2 */
-                    case 0x73:                      /* switch 2 */
-                    case 0x74:                      /* switch 2 */
-                    case 0x75:                      /* switch 2 */
-                    case 0x76:                      /* switch 2 */
-                    case 0x77:                      /* switch 2 */
-                    case 0x78:                      /* switch 2 */
-                    case 0x79:                      /* switch 2 */
-                    case 0x7A:                      /* switch 2 */
-                    case 0x7B:                      /* switch 2 */
-                    case 0x7C:                      /* switch 2 */
-                    case 0x7D:                      /* switch 2 */
-                    case 0x7E:                      /* switch 2 */
-                    case 0x7F:                      /* switch 2 */
-                    case 0x80:                      /* switch 2 */
-                    case 0x81:                      /* switch 2 */
-                    case 0x82:                      /* switch 2 */
-                    case 0x83:                      /* switch 2 */
-                    case 0x84:                      /* switch 2 */
-                    case 0x85:                      /* switch 2 */
-                    case 0x86:                      /* switch 2 */
-                    case 0x87:                      /* switch 2 */
-                    case 0x88:                      /* switch 2 */
-                    case 0x89:                      /* switch 2 */
-                    case 0x8A:                      /* switch 2 */
-                    case 0x8B:                      /* switch 2 */
-                    case 0x8C:                      /* switch 2 */
-                    case 0x8D:                      /* switch 2 */
-                    case 0x8E:                      /* switch 2 */
-                    case 0x8F:                      /* switch 2 */
-                    case 0x90:                      /* switch 2 */
-                    case 0x91:                      /* switch 2 */
-                    case 0x92:                      /* switch 2 */
-                    case 0x93:                      /* switch 2 */
-                    case 0x94:                      /* switch 2 */
-                    case 0x95:                      /* switch 2 */
-                    case 0x96:                      /* switch 2 */
-                    case 0x97:                      /* switch 2 */
-                    case 0x98:                      /* switch 2 */
-                        temp_v0_3 = *(s32 *)((char *)((arg0 + (var_s5 * 4))) + 0x50);
-                        if (temp_v0_3 != 0) {
-                            *(s32 *)((char *)(temp_s6) + 0x19) = (u8) ((u32) (*temp_v0_3 * 2) >> 0x1F);
-                        } else {
-                            *(s32 *)((char *)(temp_s6) + 0x19) = -1U;
-                        }
-                        break;
-                    }
-                    goto loop_7;
-                }
-                temp_t3 = temp_v0 & 0xF0;
-                switch (temp_t3) {                  /* switch 3 */
-                case 0x0:                           /* switch 3 */
-                    *(s32 *)((char *)(arg0) + 0x1E) = (u16) (temp_v0 & 0xF & 0xFF);
-                    break;
-                case 0x1:                           /* switch 3 */
-                case 0x2:                           /* switch 3 */
-                case 0x3:                           /* switch 3 */
-                case 0x4:                           /* switch 3 */
-                case 0x5:                           /* switch 3 */
-                case 0x6:                           /* switch 3 */
-                case 0x7:                           /* switch 3 */
-                case 0x8:                           /* switch 3 */
-                case 0x9:                           /* switch 3 */
-                case 0xA:                           /* switch 3 */
-                case 0xB:                           /* switch 3 */
-                case 0xC:                           /* switch 3 */
-                case 0xD:                           /* switch 3 */
-                case 0xE:                           /* switch 3 */
-                case 0xF:                           /* switch 3 */
-                case 0x10:                          /* switch 3 */
-                case 0x11:                          /* switch 3 */
-                case 0x12:                          /* switch 3 */
-                case 0x13:                          /* switch 3 */
-                case 0x14:                          /* switch 3 */
-                case 0x15:                          /* switch 3 */
-                case 0x16:                          /* switch 3 */
-                case 0x17:                          /* switch 3 */
-                case 0x18:                          /* switch 3 */
-                case 0x19:                          /* switch 3 */
-                case 0x1A:                          /* switch 3 */
-                case 0x1B:                          /* switch 3 */
-                case 0x1C:                          /* switch 3 */
-                case 0x1D:                          /* switch 3 */
-                case 0x1E:                          /* switch 3 */
-                case 0x1F:                          /* switch 3 */
-                case 0x20:                          /* switch 3 */
-                case 0x21:                          /* switch 3 */
-                case 0x22:                          /* switch 3 */
-                case 0x23:                          /* switch 3 */
-                case 0x24:                          /* switch 3 */
-                case 0x25:                          /* switch 3 */
-                case 0x26:                          /* switch 3 */
-                case 0x27:                          /* switch 3 */
-                case 0x28:                          /* switch 3 */
-                case 0x29:                          /* switch 3 */
-                case 0x2A:                          /* switch 3 */
-                case 0x2B:                          /* switch 3 */
-                case 0x2C:                          /* switch 3 */
-                case 0x2D:                          /* switch 3 */
-                case 0x2E:                          /* switch 3 */
-                case 0x2F:                          /* switch 3 */
-                case 0x30:                          /* switch 3 */
-                case 0x31:                          /* switch 3 */
-                case 0x32:                          /* switch 3 */
-                case 0x33:                          /* switch 3 */
-                case 0x34:                          /* switch 3 */
-                case 0x35:                          /* switch 3 */
-                case 0x36:                          /* switch 3 */
-                case 0x37:                          /* switch 3 */
-                case 0x38:                          /* switch 3 */
-                case 0x39:                          /* switch 3 */
-                case 0x3A:                          /* switch 3 */
-                case 0x3B:                          /* switch 3 */
-                case 0x3C:                          /* switch 3 */
-                case 0x3D:                          /* switch 3 */
-                case 0x3E:                          /* switch 3 */
-                case 0x3F:                          /* switch 3 */
-                case 0x40:                          /* switch 3 */
-                case 0x41:                          /* switch 3 */
-                case 0x42:                          /* switch 3 */
-                case 0x43:                          /* switch 3 */
-                case 0x44:                          /* switch 3 */
-                case 0x45:                          /* switch 3 */
-                case 0x46:                          /* switch 3 */
-                case 0x47:                          /* switch 3 */
-                case 0x48:                          /* switch 3 */
-                case 0x49:                          /* switch 3 */
-                case 0x4A:                          /* switch 3 */
-                case 0x4B:                          /* switch 3 */
-                case 0x4C:                          /* switch 3 */
-                case 0x4D:                          /* switch 3 */
-                case 0x4E:                          /* switch 3 */
-                case 0x4F:                          /* switch 3 */
-                case 0x50:                          /* switch 3 */
-                case 0x51:                          /* switch 3 */
-                case 0x52:                          /* switch 3 */
-                case 0x53:                          /* switch 3 */
-                case 0x54:                          /* switch 3 */
-                case 0x55:                          /* switch 3 */
-                case 0x56:                          /* switch 3 */
-                case 0x57:                          /* switch 3 */
-                case 0x58:                          /* switch 3 */
-                case 0x59:                          /* switch 3 */
-                case 0x5A:                          /* switch 3 */
-                case 0x5B:                          /* switch 3 */
-                case 0x5C:                          /* switch 3 */
-                case 0x5D:                          /* switch 3 */
-                case 0x5E:                          /* switch 3 */
-                case 0x5F:                          /* switch 3 */
-                case 0x60:                          /* switch 3 */
-                    temp_v0_4 = arg0 + (temp_s2 & 0xF);
-                    *(s32 *)((char *)(temp_v0_4) + 0xD4) = -1;
-                    if (func_00000000(*(s32 *)((char *)(arg0) + 0x7), *(s32 *)((char *)(temp_s6) + 0x19), temp_v0_4 + 0xD4) == -1) {
-
-                    }
-                    goto loop_7;
-                }
-            }
+    cmd = o->cmd;
+    if (cmd->w0 & 0x20000000) {
+        if (o->b3 & 0x80) {
+            return;
         }
-block_128:
-        var_s0_2 = 0;
-        var_s1 = arg0;
-        do {
-            temp_a0 = *(s32 *)((char *)(var_s1) + 0x50);
-            if (temp_a0 != 0) {
-                gl_func_0003F09C(temp_a0);
-            }
-            var_s0_2 += 4;
-            var_s1 += 4;
-        } while (var_s0_2 != 0x20);
     }
+    t = o->h1E;
+    sub = (Gl2BB7CSub *)((u8 *)o + 0x70);
+    if (t >= 2) {
+        o->h1E = t - 1;
+        goto cleanup;
+    }
+    m1 = -1;
+    for (;;) {
+                r = gl_func_0003F010(sub);
+                op = r & 0xFF;
+                if (r >= 0xB0) {
+                    b = D_2BB7C_argtbl[r - 0xB0];
+                    p = args;
+                    n = b & 3;
+                    if (n > 0) {
+                        end = p + n;
+                        do {
+                            if (!(b & 0x80)) {
+                                v = gl_func_0003F010(sub);
+                            } else {
+                                v = gl_func_0003F024(sub);
+                            }
+                            *p = v;
+                            p++;
+                            b = (b << 1) & 0xFF;
+                        } while ((u32)p < (u32)end);
+                    }
+                    sel = op;
+                    if (op >= 0xF2) {
+                        r = gl_func_0003E6E8(cmd, sub, sel, args[0]);
+                        if (r == 0) {
+                            continue;
+                        }
+                        if (r == m1) {
+                            gl2BB7C_destroy(o);
+                            goto done;
+                        }
+                        o->h1E = r;
+                        goto done;
+                    }
+                    switch (sel) {
+                    case 0xB0:  /* set stop flag */
+                        O_FLAGS0(o) |= 0x20;
+                        goto done;
+                    case 0xB1:
+                        cp = (u8 *)o + 0x94;
+                        gl2BB7C_call_a(cp);
+                        gl2BB7C_call_b(cp, (u8)args[0]);
+                        continue;
+                    case 0xB2:
+                        gl2BB7C_call_c((u8 *)o + 0x94);
+                        continue;
+                    case 0xB3:  /* jump abs16 */
+                        o->p3C = cmd->base + (u16)args[0];
+                        continue;
+                    case 0xB4: /* jump via ch-indexed table */
+                        c = sub->ch;
+                        if (c == m1) {
+                            continue;
+                        }
+                        q = o->p3C + c * 2;
+                        o->p3C = cmd->base + (u16)(q[1] + (q[0] << 8));
+                        continue;
+                    case 0xB5: /* remapped set + notify */
+                        x = (u8)args[0];
+                        if (cmd->b5 != 0xFF) {
+                            bp = D_2BB7C_2028;
+                            h = *(u16 *)(bp + cmd->b4 * 2);
+                            x = bp[h + bp[h] - (u8)args[0]];
+                        }
+                        if (gl2BB7C_call_d(1, 2, x) != 0) {
+                            o->b7 = x;
+                        }
+                        args[0] = args[1];
+                        gl_func_00040118(o, (u8)args[0]);
+                        continue;
+                    case 0xB6:
+                        O_FLAGS0(o) &= ~2;
+                        continue;
+                    case 0xB7:
+                        O_FLAGS0(o) |= 2;
+                        continue;
+                    case 0xB8:
+                        gl2BB7C_call_e(o, (u8)args[0]);
+                        o->b1 |= 0x40;
+                        continue;
+                    case 0xB9:
+                        x = (u8)args[0];
+                        o->b1 |= 0x40;
+                        o->f28 = (f32)x * 0.0078125f;
+                        continue;
+                    case 0xBA:
+                        h = (u16)args[0];
+                        o->b1 |= 0x80;
+                        o->f38 = (f32)h / 32768.0f;
+                        continue;
+                    case 0xBB:
+                        x = (u8)args[0];
+                        x = x + 128;
+                        o->b1 |= 0x80;
+                        o->f38 = D_2BB7C_ftbl[x];
+                        continue;
+                    case 0xBC:
+                        x = (u8)args[0];
+                        x = x + 128;
+                        o->b1 |= 0x80;
+                        o->f38 = D_2BB7C_ftbl[x];
+                        continue;
+                    case 0xBD:
+                        o->b1 |= 0x20;
+                        o->bA = (u8)args[0];
+                        continue;
+                    case 0xBE:
+                        o->b1 |= 0x20;
+                        o->bB = (u8)args[0];
+                        continue;
+                    case 0xBF:
+                        o->h26 = (s8)args[0];
+                        continue;
+                    case 0xC0:
+                        o->p90 = cmd->base + (u16)args[0];
+                        continue;
+                    case 0xC1:
+                        o->b8C = (u8)args[0];
+                        continue;
+                    case 0xC2:
+                        x = (u8)args[0];
+                        o->h12 = 0;
+                        o->h1A = 0;
+                        o->h16 = x << 3;
+                        continue;
+                    case 0xC3:
+                        x = (u8)args[0];
+                        o->h18 = 0;
+                        o->h10 = o->h14 = x << 5;
+                        continue;
+                    case 0xC4:
+                        o->h12 = (u8)args[0] << 3;
+                        o->h16 = (u8)args[1] << 3;
+                        o->h1A = (u8)args[2] << 4;
+                        continue;
+                    case 0xC5:
+                        o->h10 = (u8)args[0] << 5;
+                        o->h14 = (u8)args[1] << 5;
+                        o->h18 = (u8)args[2] << 4;
+                        continue;
+                    case 0xC6:
+                        o->h1C = (u8)args[0] << 4;
+                        continue;
+                    case 0xC7:
+                        o->b4 = (u8)args[0];
+                        continue;
+                    case 0xC8: /* remapped set (no notify) */
+                        x = (u8)args[0];
+                        if (cmd->b5 != 0xFF) {
+                            bp = D_2BB7C_2028;
+                            h = *(u16 *)(bp + cmd->b4 * 2);
+                            x = bp[h + bp[h] - (u8)args[0]];
+                        }
+                        if (gl2BB7C_call_d(1, 2, x) != 0) {
+                            o->b7 = x;
+                        }
+                        continue;
+                    case 0xC9:
+                        cmd->base[(u16)args[1]] = SUB_CHU(sub) + (u8)args[0];
+                        continue;
+                    case 0xCA: /* ch arithmetic on op value */
+                        c = (s8)args[0];
+                        if (sel == 0xC8) {
+                            sub->ch = sub->ch - c;
+                        } else if (sel == 0xCC) {
+                            sub->ch = c;
+                        } else {
+                            sub->ch = sub->ch & c;
+                        }
+                        continue;
+                    case 0xCB:
+                        gl2BB7C_call_f(cmd->tbl38[(u8)args[0]]);
+                        continue;
+                    case 0xCC:
+                        o->b1 |= 0x40;
+                        o->b3 = (u8)args[0];
+                        continue;
+                    case 0xCD:
+                        sub->ch = cmd->base[(u16)args[0] + sub->ch];
+                        continue;
+                    case 0xCE:
+                        o->h22 = (u16)args[0];
+                        continue;
+                    case 0xCF:
+                        q = cmd->base + (u16)args[0];
+                        q[0] = o->h22 >> 8;
+                        q[1] = o->h22;
+                        continue;
+                    case 0xD0:
+                        c = (u8)args[0];
+                        if (c & 0x80) {
+                            O_FLAGS0(o) |= 4;
+                        } else {
+                            O_FLAGS0(o) &= ~4;
+                        }
+                        O_BE0(o) = c & 0x7F;
+                        continue;
+                    case 0xD1:
+                        o->b2 = (u8)args[0];
+                        continue;
+                    case 0xD2:
+                        o->b8D = (u8)args[0];
+                        continue;
+                    case 0xD3:
+                        o->b8 = (u8)args[0];
+                        continue;
+                    case 0xD4: /* call push via ch-indexed table */
+                        c = sub->ch;
+                        if (c == m1) {
+                            continue;
+                        }
+                        sub->stk[sub->sp] = sub->pc;
+                        sub->sp++;
+                        q = o->p3C + c * 2;
+                        sub->pc = cmd->base + (u16)(q[1] + (q[0] << 8));
+                        continue;
+                    case 0xD5:
+                        o->b9 = (u8)args[0];
+                        continue;
+                    case 0xD6: /* bulk param load from stream table */
+                        q = cmd->base + (u16)args[0];
+                        o->b3 = *q++;
+                        o->b2 = *q++;
+                        gl_func_00040074(o, *q++);
+                        o->h26 = (s8)*q++;
+                        o->bA = *q++;
+                        o->bB = *q++;
+                        o->b4 = *q++;
+                        o->b8 = *q++;
+                        o->b1 |= 0x20;
+                        continue;
+                    case 0xD7:  /* bulk param load from inline args */
+                        o->b3 = args[0];
+                        o->b2 = args[1];
+                        gl_func_00040074(o, (u8)args[2]);
+                        o->h26 = (s8)gl_func_0003F010(sub);
+                        o->bA = gl_func_0003F010(sub);
+                        o->bB = gl_func_0003F010(sub);
+                        o->b4 = gl_func_0003F010(sub);
+                        o->b8 = gl_func_0003F010(sub);
+                        o->b1 |= 0x20;
+                        continue;
+                    case 0xD8:  /* reset sweep */
+                        o->h16 = 0;
+                        o->h12 = 0;
+                        o->h1A = 0;
+                        o->h14 = 0;
+                        o->h10 = 0;
+                        o->h18 = 0;
+                        O_PDC(o) = 0;
+                        o->bC = 0;
+                        o->b8D = 0;
+                        o->bD = 0;
+                        o->bE = 0;
+                        o->bF = 0;
+                        o->h20 = 0;
+                        o->b9 = 0;
+                        o->f38 = 1.0f;
+                        continue;
+                    case 0xD9:
+                        gl_func_00040074(o, (u8)args[0]);
+                        continue;
+                    case 0xDA:
+                        o->bC = (u8)args[0];
+                        continue;
+                    case 0xDB:
+                        O_PDC(o) = cmd->base + (u16)args[0];
+                        continue;
+                    case 0xDC:
+                        O_PDC(o) = 0;
+                        continue;
+                    case 0xDD:
+                        q = O_PDC(o);
+                        x = (u8)args[0];
+                        if (q == 0) {
+                            continue;
+                        }
+                        c = (x >> 4) & 0xF;
+                        x = x & 0xF;
+                        gl2BB7C_call_g(q, (u8)c, x);
+                        continue;
+                    case 0xDE:
+                        o->h22 = *(u16 *)&cmd->base[(u16)args[0] + sub->ch * 2];
+                        continue;
+                    case 0xDF:
+                        o->p3C = cmd->base + o->h22;
+                        continue;
+                    case 0xE0:
+                        o->h22 = *(u16 *)(o->p3C + sub->ch * 2);
+                        continue;
+                    case 0xE1:
+                        sub->ch = o->p3C[sub->ch];
+                        continue;
+                    case 0xE2:
+                        if (args[0] != 0) {
+                            o->h22 = D_2BB7C_2154 % (u32)args[0];
+                        } else {
+                            o->h22 = D_2BB7C_2154;
+                        }
+                        continue;
+                    case 0xE3:
+                        if (args[0] != 0) {
+                            sub->ch = D_2BB7C_2154 % (u32)args[0];
+                        } else {
+                            sub->ch = D_2BB7C_2154;
+                        }
+                        continue;
+                    case 0xE4:
+                        o->bD = args[0];
+                        continue;
+                    case 0xE5:
+                        o->bE = args[0];
+                        continue;
+                    case 0xE6:
+                        o->bF = args[0];
+                        o->h20 = args[1];
+                        continue;
+                    case 0xE7:
+                    case 0xF1:  /* bound-setting label; table is external */
+                        o->h22 = o->h22 + args[0];
+                        continue;
+                    }
+                } else if (r >= 0x70) {
+                    n = r & 7;
+                    if ((r & 0xF8) != 0x70) {
+                        if (n >= 8) {
+                            n = 0;
+                        }
+                    }
+                    switch (r & 0xF8) {
+                    case 0x70: /* ch = slot status bit */
+                        sl = o->slots[n];
+                        if (sl != 0) {
+                            sub->ch = (u32)(sl->w0 << 1) >> 31;
+                        } else {
+                            sub->ch = m1;
+                        }
+                        continue;
+                    case 0x78: /* slot target = base + imm16 */
+                        h = gl_func_0003F024(sub);
+                        if (gl_func_0003EA18(o, n) != 0) {
+                            continue;
+                        }
+                        o->slots[n]->w54 = cmd->base + h;
+                        continue;
+                    case 0x80:
+                        gl_func_0003EB78(o, n);
+                        continue;
+                    case 0x88: /* slot target via ch-indexed table */
+                        if (sub->ch == m1) {
+                            continue;
+                        }
+                        if (gl_func_0003EA18(o, n) == m1) {
+                            continue;
+                        }
+                        q = o->p3C + sub->ch * 2;
+                        h = q[1] + (q[0] << 8);
+                        o->slots[n]->w54 = cmd->base + h;
+                        continue;
+                    case 0x90:
+                        O_CHAN(o, n) = sub->ch;
+                        continue;
+                    case 0x98: /* slot target = pc-relative */
+                        c = (s16)gl_func_0003F024(sub);
+                        if (gl_func_0003EA18(o, n) != 0) {
+                            continue;
+                        }
+                        o->slots[n]->w54 = sub->pc + c;
+                        continue;
+                    }
+                } else {
+                    n = r & 0xF;
+                    switch (r & 0xF0) {
+                    case 0x00:  /* short wait */
+                        o->h1E = n;
+                        goto done;
+                    case 0x10: /* fire channel */
+                        q = (u8 *)&O_CHAN(o, op & 0xF);
+                        *(s8 *)q = m1;
+                        if (gl2BB7C_call_h(o->b7, SUB_CHU(sub), q) == m1) {
+                        }
+                        continue;
+                    case 0x20:  /* ch = chan (+consume if n<2) */
+                        sub->ch = O_CHAN(o, n);
+                        if (n < 2) {
+                            O_CHAN(o, n) = m1;
+                        }
+                        continue;
+                    case 0x30:
+                        sub->ch = sub->ch - O_CHAN(o, n);
+                        continue;
+                    case 0x40: /* forward to cmd processor */
+                        h = gl_func_0003F024(sub);
+                        gl_func_0003EDAC(cmd, op & 0xF, cmd->base + h);
+                        continue;
+                    case 0x50:  /* store ch into peer chan */
+                        *((s8 *)cmd->tbl38[n] + gl_func_0003F010(sub) + 0xD4) = sub->ch;
+                        continue;
+                    case 0x60:  /* load ch from peer chan */
+                        sub->ch = *((s8 *)cmd->tbl38[n] + gl_func_0003F010(sub) + 0xD4);
+                        continue;
+                    }
+                }
+            }
+done:;
+cleanup:
+    /* release sweep over the 8 slot pointers */
+    i = 0;
+    cp = (u8 *)o;
+    do {
+        sl = *(Gl2BB7CSlot **)(cp + 0x50);
+        if (sl != 0) {
+            gl_func_0003F09C(sl);
+        }
+        i += 4;
+        cp += 4;
+    } while (i != 0x20);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002BB7C);
