@@ -1874,6 +1874,12 @@ void game_uso_func_00002CA8(char *a0) {
 //     0x38 -> ss record, 0x40 = mode (0 skip / 1 build / 3 -z probe /
 //     else +z probe), 0x5C = inverse-scale divisor. a1 = a source Vec3
 //     (mode 1). game_uso_func_000023D4 = local-frame offset helper.
+// ANCHOR 2026-08-22 (agent-h, from FIXED disasm-raw — pinned jal 23D4 now
+//   visible at target 0x60): target frame 216 (0xD8) / 192 insns vs build
+//   160 / 181. Gap = 56 bytes: several staging arrays (likely dir/dir2/res
+//   and one of cp1/cp2) are still reg-kept/DCE'd despite the Tri3i copies.
+//   Next lever: force memory residency for the mode!=0,1 branch's vectors
+//   (per-array volatile pads or address-taken fan-out), THEN chase regs.
 #ifdef NON_MATCHING
 void game_uso_func_00002CC8(char *a0, char *a1) {
     char *out = *(char **)(a0 + 0x14);
