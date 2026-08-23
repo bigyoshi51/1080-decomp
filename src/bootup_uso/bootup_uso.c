@@ -6611,6 +6611,8 @@ extern char D_00008018_s36;
 extern char D_00008018_s37;
 extern char D_00008018_s38;
 extern char D_00008060;
+extern char D_00008060_s2;
+extern char D_00008060_s3;
 extern char D_00008108;
 extern char D_00008800;
 extern char D_00008808;
@@ -7222,7 +7224,7 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5
                 sp80 = var_a0_39;
                 func_00000000(sp80, var_s0_2, sp7C, 1);
                 *(s32 *)((char *)(sp80) + 0x10) = 0xA;
-                *(s32 *)((char *)(sp80) + 0xC) = (s32) &D_00008060;
+                *(s32 *)((char *)(sp80) + 0xC) = (s32) &D_00008060_s2;
                 *(s32 *)((char *)(sp80) + 0x14) = 0;
             }
             sp94.w = *(s32 *)((char *)&D_00000000 + 0x87F8);
@@ -7232,7 +7234,7 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5
                 sp80 = var_a0_40;
                 func_00000000(sp80, var_s0_2, sp7C, 1);
                 *(s32 *)((char *)(sp80) + 0x10) = 0xF;
-                *(s32 *)((char *)(sp80) + 0xC) = (s32) &D_00008060;
+                *(s32 *)((char *)(sp80) + 0xC) = (s32) &D_00008060_s3;
                 *(s32 *)((char *)(sp80) + 0x14) = 0;
             }
             sp90.w = *(s32 *)((char *)&D_00000000 + 0x87FC);
