@@ -1422,8 +1422,19 @@ void arcproc_uso_func_00001F0C(char *a0) {
  * cc (standalone always caches+offset-stores) -> full-TU regalloc/CSE tie, not a
  * C lever. Permuter (200-insn, no perm macros, dup .NON_MATCHING obj symbol)
  * floored at base score, no productive moves. Caps: structs + cb prototypes
- * untyped (USO-reloc). NON_MATCHING. */
+ * untyped (USO-reloc). NON_MATCHING.
+ * 2026-08-23 (agent-h) 88.77 -> 93.62: (1) 0x80/0x30/0 draw call's zero arg is
+ * FLOAT 0.0f via (int,int,float) proto (li a2,0 type-recovery signal, reused
+ * gl_proto_1c94); (2) C14-style if(1) pointer-mutation barrier (q=(int*)p44;
+ * if(1){q+=8;}) in the >=0x32 / >=5 ramp arms defeats the full-TU offset-form
+ * CSE -> computed-addr lw/sw 0(v0) per target (the documented "not a C lever"
+ * conclusion was wrong — the barrier IS the lever). Arm3 stays offset-form.
+ * Dropping the cached `a` local entirely (join arg re-derived) regressed to
+ * 91.1 (PRE shares one lw at join + or v1 copy) — per-arm `a` reassign is the
+ * target shape. Residual: initial a colored a2-with-copy vs direct-a1, arm3
+ * stale-a2 CSE (addiu from a2 vs reload lw 32(v1)), t-reg renumber cascade. */
 extern int gl_proto_1f54(void *, int, int, float, float);
+extern int gl_proto_1c94(int, int, float);
 void arcproc_uso_func_00001F54(char *arg0) {
     char *bc;
     char *p44;
@@ -1482,7 +1493,7 @@ void arcproc_uso_func_00001F54(char *arg0) {
         v0 = *(int *)(*(char **)(arg0 + 0xBC) + 0x4DC);
         if ((v0 == 1) || (v0 == 0)) {
             gl_func_00000000(*(int *)(arg0 + 0x84), *(int *)(arg0 + 0xA0), 1);
-            gl_func_00000000(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 0x30), 0);
+            gl_proto_1c94(*(int *)(arg0 + 0x80), *(int *)(*(char **)(arg0 + 0x44) + 0x30), 0.0f);
             p44 = *(char **)(arg0 + 0x44);
             gl_proto_1f54(*(int *)(arg0 + 0x80), *(int *)(p44 + 8), *(int *)(p44 + 0xC), 0.0f, 0.0f);
         }
@@ -1495,12 +1506,12 @@ void arcproc_uso_func_00001F54(char *arg0) {
             a = *(int *)(p44 + 0x20);
             r = *(int *)(p44 + 0x1C) - a;
             if (r >= 0x32) {
-                q = (int *)(p44 + 0x20);
+                q = (int *)p44; if (1) { q += 8; }
                 *q = *q + 0x32;
                 gl_func_00000000(0x20, 0x32);
                 a = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
             } else if (r >= 5) {
-                q = (int *)(p44 + 0x20);
+                q = (int *)p44; if (1) { q += 8; }
                 *q = *q + 5;
                 gl_func_00000000(0x20, 5);
                 a = *(int *)(*(char **)(arg0 + 0x44) + 0x20);
