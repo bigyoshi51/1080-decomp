@@ -8419,7 +8419,8 @@ void game_uso_func_0000A7F8(char *obj) {
     Vec3 blockA, scaled, c1, c2;
     Vec3 b1, b2, b3, b4, b5, b6;
     Vec3 *p1, *p2, *p4, *p5;
-    Vec3 *volatile vp;
+    float *q;
+    float mx, my, mz;
     float s, d, magsq, cross, result;
     int idx, cnt;
     char *node;
@@ -8430,12 +8431,20 @@ void game_uso_func_0000A7F8(char *obj) {
      * The intermediate buffers must be addressed (&) to survive as distinct
      * scratch slots — see docs/IDO_CODEGEN.md float-Vec3 fanout. */
     *(Tri3i *)&blockA = *(Tri3i *)(w + 0xB4);
+    w = *(char **)(obj + 0x30);
     s = *(float *)(obj + 0xA8);
-    scaled.x = *(float *)(w + 0x318) * s;
-    scaled.y = *(float *)(w + 0x31C) * s;
-    scaled.z = *(float *)(w + 0x320) * s;
-    *(Tri3i *)&c1 = *(Tri3i *)&scaled;
-    *(Tri3i *)&c2 = *(Tri3i *)&c1;
+    q = (float *)(w + 0x318);
+    mx = q[0] * s;
+    my = q[1] * s;
+    mz = q[2] * s;
+    q = (float *)&c1;
+    scaled.x = mx;
+    scaled.y = my;
+    scaled.z = mz;
+    if (1) {
+        *(Vec3 *)q = scaled;
+        c2 = *(Vec3 *)q;
+    }
     blockA.x = blockA.x + c2.x;
     blockA.y = blockA.y + c2.y;
     blockA.z = blockA.z + c2.z;
@@ -8456,21 +8465,41 @@ void game_uso_func_0000A7F8(char *obj) {
     if (d < 0.0f) d += 250.0f * *(float *)(r1 + 0x54);
     if (d >= 0.0f) {
         /* b1 = m's XZ vec; b2 = b1 - r1's XZ vec; b3 = b2. Each Vec3 slot is a
-         * conditionally-allocated node: p = &slot; if (!p) p = alloc(12). The
-         * target emits the bnez + jal game_uso_func_055750 guard even though
-         * &slot is non-null, so the &-of-stack pointer is routed through a
-         * volatile temp to stop the optimizer proving it non-zero (preserves
-         * the dead allocator branch — see docs/IDO_CODEGEN.md). */
-        vp = &b1; p1 = vp; if (p1 == 0) p1 = (Vec3 *)game_uso_func_055750(12);
-        p1->x = *(float *)(m + 0x30); p1->z = *(float *)(m + 0x38); p1->y = 0.0f;
-        vp = &b2; p2 = vp; if (p2 == 0) p2 = (Vec3 *)game_uso_func_055750(12);
-        p2->z = p1->z - *(float *)(r1 + 0x38); p2->x = p1->x - *(float *)(r1 + 0x30); p2->y = 0.0f;
+         * conditionally-allocated node using the NESTED-goto alloc-guard shape
+         * (docs/IDO_CODEGEN.md #nested-goto-alloc-guard-bnezl-9b88): the
+         * (unsigned) launder keeps IDO from folding the guard, and the nested
+         * form emits the target's `bne ptr,zero,BODY` + jal alloc +
+         * `beq v0,zero,SKIP` with `or out,v0,zero` in the delay. */
+        p1 = (Vec3 *)(unsigned)&b1;
+        if (p1 == 0) {
+            p1 = (Vec3 *)game_uso_func_055750(12);
+            if (p1 == 0) goto skipb1;
+        }
+        { p1->x = *(float *)(m + 0x30); p1->z = *(float *)(m + 0x38); p1->y = 0.0f; }
+skipb1:;
+        p2 = (Vec3 *)(unsigned)&b2;
+        if (p2 == 0) {
+            p2 = (Vec3 *)game_uso_func_055750(12);
+            if (p2 == 0) goto skipb2;
+        }
+        { p2->z = p1->z - *(float *)(r1 + 0x38); p2->x = p1->x - *(float *)(r1 + 0x30); p2->y = 0.0f; }
+skipb2:;
         *(Tri3i *)&b3 = *(Tri3i *)&b2;
         /* b4 = blockA XZ; b5 = b4 - r1's XZ vec; b6 = b5 */
-        vp = &b4; p4 = vp; if (p4 == 0) p4 = (Vec3 *)game_uso_func_055750(12);
-        p4->x = blockA.x; p4->z = blockA.z; p4->y = 0.0f;
-        vp = &b5; p5 = vp; if (p5 == 0) p5 = (Vec3 *)game_uso_func_055750(12);
-        p5->z = p4->z - *(float *)(r1 + 0x38); p5->x = p4->x - *(float *)(r1 + 0x30); p5->y = 0.0f;
+        p4 = (Vec3 *)(unsigned)&b4;
+        if (p4 == 0) {
+            p4 = (Vec3 *)game_uso_func_055750(12);
+            if (p4 == 0) goto skipb4;
+        }
+        { p4->x = blockA.x; p4->z = blockA.z; p4->y = 0.0f; }
+skipb4:;
+        p5 = (Vec3 *)(unsigned)&b5;
+        if (p5 == 0) {
+            p5 = (Vec3 *)game_uso_func_055750(12);
+            if (p5 == 0) goto skipb5;
+        }
+        { p5->z = p4->z - *(float *)(r1 + 0x38); p5->x = p4->x - *(float *)(r1 + 0x30); p5->y = 0.0f; }
+skipb5:;
         *(Tri3i *)&b6 = *(Tri3i *)&b5;
         /* result = cross(b3,b6)^2 / |b3|^2 in the XZ plane */
         magsq = b3.x * b3.x + b3.z * b3.z;
