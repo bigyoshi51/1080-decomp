@@ -2341,11 +2341,14 @@ void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) 
     int *st, *slot, idx;
 
     if (a1 >= 0 && a2 >= 0) {
+        int rawxm;
+
         st = (int *)s0[0xC / 4];
+        rawxm = (a1 + a3) << 2;
         idx = st[1];
         st[1] = idx + 1;
         slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
-        slot[0] = 0xE4000000 | ((((a1 + a3) << 2) & 0xFFF) << 12) | (((a2 + a4) << 2) & 0xFFF);
+        slot[0] = 0xE4000000 | ((rawxm & 0xFFF) << 12) | (((a2 + a4) << 2) & 0xFFF);
         slot[1] = (((a1 << 2) & 0xFFF) << 12) | ((a2 << 2) & 0xFFF);
 
         st = (int *)s0[0xC / 4];
@@ -2362,35 +2365,69 @@ void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) 
         slot[0] = 0xB3000000;
         slot[1] = (a5 << 16) | (a6 & 0xFFFF);
     } else {
-        int x0r = (short)(a1 << 2);          /* raw, reused by the 0xB4 scale */
-        int y0r = (short)(a2 << 2);
-        int sx = 0, sy = 0;
+        int rawx, rawy;                      /* pre-clamp fields (t0 / v0) */
+        int cx, cy;                          /* clamped fields, reused per word (a0 / t0) */
+        int x0r;                             /* (short)(a1<<2), or-copy + sll-18 (t2) */
+        int y2;                              /* a2<<2 full-width, y-scale guard (a3 scratch) */
+        int y0r;                             /* (short)y2 (t3) */
+        int sx, sy;
 
         st = (int *)s0[0xC / 4];
+        rawx = (a1 + a3) << 2;               /* early: a3 dies at top */
         idx = st[1];
+        rawx = (short)rawx;
         st[1] = idx + 1;
+        rawy = a2 + a4;
         slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
-        slot[0] = 0xE4000000 |
-                  (((((short)((a1 + a3) << 2)) > 0 ? (short)((a1 + a3) << 2) : 0) & 0xFFF) << 12) |
-                  ((((short)((a2 + a4) << 2)) > 0 ? (short)((a2 + a4) << 2) : 0) & 0xFFF);
-        slot[1] = (((x0r > 0 ? x0r : 0) & 0xFFF) << 12) | ((y0r > 0 ? y0r : 0) & 0xFFF);
-
-        if (x0r < 0) {
-            short m = (short)a5;
-            int p = (int)((u32)x0r * (u32)m) >> 7;
-            sx = (m < 0) ? (p > 0 ? p : 0) : (p < 0 ? p : 0);
+        rawy <<= 2;
+        cx = (rawx > 0) ? rawx : 0;
+        rawy = (short)rawy;
+        cy = (rawy > 0) ? rawy : 0;
+        x0r = a1;
+        if (1) {
+            x0r = x0r << 0x12;
         }
-        if (y0r < 0) {
-            short m = (short)a6;
-            int p = (int)((u32)y0r * (u32)m) >> 7;
-            sy = (m < 0) ? (p > 0 ? p : 0) : (p < 0 ? p : 0);
-        }
+        x0r = x0r >> 0x10;
+        slot[0] = 0xE4000000 | ((cx & 0xFFF) << 12) | (cy & 0xFFF);
+        cx = (x0r > 0) ? x0r : 0;
+        y2 = a2 << 2;
+        y0r = (short)y2;
+        cy = (y0r > 0) ? y0r : 0;
+        slot[1] = ((cx & 0xFFF) << 12) | (cy & 0xFFF);
 
         st = (int *)s0[0xC / 4];
+        sx = 0;
         idx = st[1];
+        sy = 0;
         st[1] = idx + 1;
         slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
         slot[0] = 0xB4000000;
+        if (x0r < 0) {
+            short m = a5;
+            if (m < 0) {
+                idx = 0;
+                sx = (int)((u32)x0r * (u32)m) >> 7;
+                sx = (sx > 0) ? sx : idx;
+            } else {
+                sx = (int)((u32)x0r * (u32)m) >> 7;
+                rawy = (sx < 0) ? sx : 0;
+                cy = rawy;
+                sx = cy;
+            }
+        }
+        if (y2 < 0) {
+            short m = a6;
+            if (m < 0) {
+                rawy = 0;
+                idx = (int)((u32)y0r * (u32)m) >> 7;
+                sy = (idx > 0) ? idx : rawy;
+            } else {
+                idx = (int)((u32)y0r * (u32)m) >> 7;
+                rawy = (idx < 0) ? idx : 0;
+                idx = rawy;
+                sy = idx;
+            }
+        }
         slot[1] = ((-sx) << 16) | ((-sy) & 0xFFFF);
 
         st = (int *)s0[0xC / 4];
