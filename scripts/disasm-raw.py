@@ -28,11 +28,32 @@ import re, struct, subprocess, sys, glob, tempfile, os
 
 
 def load_words(name):
+    """Return (words, annots) where annots maps 0-based byte offset -> symbol.
+
+    Raw USO .s files contain TWO kinds of instruction lines:
+      * plain:  `/* OFF ADDR WORD */  .word 0xWORD`
+      * pinned reloc alias (jal / lui %hi):
+                `jal sym   /* OFF WORD -> sym */`
+                `lui $r, %hi(sym)   /* OFF WORD -> sym */`
+    A naive `.word`-only regex scan silently DROPS the pinned lines (calls
+    vanish; every later offset shifts -4). Parse line-by-line instead, taking
+    the word from the comment on pinned lines, and remember the symbol so the
+    disassembly can show it.
+    """
     fs = glob.glob("asm/nonmatchings/**/%s.s" % name, recursive=True)
     if not fs:
         sys.exit("no .s found for %s under asm/nonmatchings/" % name)
-    return [int(m, 16) for m in
-            re.findall(r"\.word 0x([0-9A-Fa-f]{8})", open(fs[0]).read())]
+    words, annots = [], {}
+    for ln in open(fs[0]).read().splitlines():
+        m = re.search(r"\.word 0x([0-9A-Fa-f]{8})", ln)
+        if m:
+            words.append(int(m.group(1), 16))
+            continue
+        m = re.search(r"/\*\s*[0-9A-Fa-f]+\s+([0-9A-Fa-f]{8})\s*->\s*(\S+)\s*\*/", ln)
+        if m:
+            annots[len(words) * 4] = m.group(2)
+            words.append(int(m.group(1), 16))
+    return words, annots
 
 
 def objdump_blob(words):
@@ -52,6 +73,24 @@ def objdump_blob(words):
         if m:
             body.append((int(m.group(1), 16), m.group(2).strip()))
     return body
+
+
+def annotate(body, annots):
+    """Rewrite reloc-blanked insns to show their pinned symbol.
+
+    jal 0x0 -> `jal sym`; lui with a blanked %hi gets a trailing comment.
+    """
+    out = []
+    for addr, insn in body:
+        sym = annots.get(addr)
+        if sym:
+            mnem = insn.split()[0] if insn else ""
+            if mnem in ("jal", "j"):
+                insn = "%s %s" % (mnem, sym)
+            else:
+                insn = "%s  /* -> %s */" % (insn, sym)
+        out.append((addr, insn))
+    return out
 
 
 def to_m2c_asm(name, body):
@@ -89,12 +128,53 @@ def to_m2c_asm(name, body):
     return "\n".join(lines) + "\n"
 
 
+SELFTEST_S = """nonmatching selftest_func, 0x1C
+
+glabel selftest_func
+    /* 000000 00000000 27BDFFE8 */  .word 0x27BDFFE8
+    /* 000004 00000004 AFBF0014 */  .word 0xAFBF0014
+    jal some_callee   /* 000008 0C000000 -> some_callee */
+    /* 00000C 0000000C 00000000 */  .word 0x00000000
+    lui $v0, %hi(import_80020000)   /* 000010 3C020000 -> import_80020000 */
+    /* 000014 00000014 8FBF0014 */  .word 0x8FBF0014
+    /* 000018 00000018 03E00008 */  .word 0x03E00008
+"""
+
+
+def selftest():
+    """Regression check: a raw .s with pinned `jal`/`lui %hi` alias lines
+    round-trips with the correct instruction count and offsets (the pre-fix
+    regex scan dropped pinned lines, shifting every later offset -4)."""
+    d = tempfile.mkdtemp()
+    os.makedirs(os.path.join(d, "asm/nonmatchings/selftest"))
+    with open(os.path.join(d, "asm/nonmatchings/selftest/selftest_func.s"), "w") as f:
+        f.write(SELFTEST_S)
+    old = os.getcwd()
+    os.chdir(d)
+    try:
+        words, annots = load_words("selftest_func")
+        assert len(words) == 7, "expected 7 insns, got %d (pinned lines dropped?)" % len(words)
+        assert words[2] == 0x0C000000 and annots.get(8) == "some_callee", annots
+        assert words[4] == 0x3C020000 and annots.get(0x10) == "import_80020000", annots
+        body = annotate(objdump_blob(words), annots)
+        assert len(body) == 7, "objdump returned %d insns" % len(body)
+        assert body[2] == (8, "jal some_callee"), body[2]
+        assert body[-1][0] == 0x18, "last offset %#x != 0x18 (offsets shifted)" % body[-1][0]
+        assert "import_80020000" in body[4][1], body[4]
+    finally:
+        os.chdir(old)
+    print("selftest OK: 7/7 insns, pinned jal + lui aliases preserved at correct offsets")
+
+
 def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     name = sys.argv[1]
+    if name == "--selftest":
+        return selftest()
     m2c = "--m2c" in sys.argv[2:]
-    body = objdump_blob(load_words(name))
+    words, annots = load_words(name)
+    body = annotate(objdump_blob(words), annots)
     if not m2c:
         sys.stdout.write("glabel %s\n" % name)
         for addr, insn in body:
