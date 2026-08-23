@@ -1346,47 +1346,68 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_000027A0);
 #endif
 
 #ifdef NON_MATCHING
+/* 2026-08-22 agent-f rewrite from target disasm: 70.56 -> 93.91. Levers:
+ * ctx rides the s2 reused-temp web (ctx -> info -> tex, one variable);
+ * DIRECT-SYMBOL *(int **)&D_00000000 at every call site (held-pointer
+ * s7 local was folding to per-use lui/lw instead of the $s7 LICM
+ * promotion); tile width 32 held in VARIABLE s3 so the then-arm
+ * (s3<<10)/s3 emits the real div + break7/6 guards (literal 32
+ * const-folded them away, -20 insns); assignment ORDER s4=a3 before
+ * s5=a1 is what maps the copies to target regs (decl order of the two
+ * is a no-op; target emits or s5,a1 first — 2-insn schedule tie);
+ * then-arm `int *dead = a0[4]` re-deref (target has dead or v0,v1) —
+ * uopt DCEs the copy but the probe still moved loop-top load shape +3pp.
+ * NEGATIVES banked: if(1){s1=s6;} pin = 90.76 (no copy, perturbs);
+ * s1=s6 vs s1=a4 both coalesce the counter into one web (target keeps
+ * lw s6,128 + or s1,s6 uncoalesced — the missing 2 insns).
+ * RESIDUAL: +8 frame (120 vs 112); s-permutation from the coalesced
+ * a4-web (counter s0 vs s1, height s2 vs s0, ctx-web s1 vs s2); a0
+ * spill-store placement; prologue ori/or schedule ties. Or-copy/
+ * coloring class (same as 4568). */
 void gui_func_00002BB0(int *a0, int a1, int a2, int a3, int a4) {
-    int **s7 = (int **)&D_00000000;
-    int *ctx = *s7;
-    int s5 = a1, s4 = a3, s1 = a4;
-    int field58, s0, s8;
-    int *v1, *tex;
-    int **pa0 = &a0;
-    /* first DL emit: G_SETSCISSOR (BB000001 / 80008000) */
+    int s5, s4, s3, s1, s6, s0, s8, field58;
+    int *s2, *v1;
+
+    /* first DL emit: G_SETSCISSOR (BB000001 / 80008000); ctx rides the s2 web */
+    s2 = *(int **)&D_00000000;
     {
-        int *v0 = (int *)ctx[0xC / 4];
+        int *v0 = (int *)s2[0xC / 4];
         int idx = v0[1];
         v0[1] = idx + 1;
         {
-            int *slot = (int *)(((int *)ctx[0xC / 4])[0]) + idx * 2;
+            int *slot = (int *)(((int *)s2[0xC / 4])[0]) + idx * 2;
             slot[0] = 0xBB000001;
             slot[1] = (int)0x80008000;
         }
     }
-    {
-        int *s2 = (int *)(*pa0)[0x10 / 4];
-        field58 = *(short *)((char *)s2 + 0x20);
-        if (a4 == 0) return;
-        s0 = *(short *)((char *)s2 + 0x22);
-    }
+    s4 = a3;
+    s5 = a1;
+    s2 = (int *)a0[0x10 / 4];
+    s3 = 32;
+    s6 = a4;
+    s1 = a4;
+    field58 = *(short *)((char *)s2 + 0x20);
+    if (s6 == 0) return;
+    s0 = *(short *)((char *)s2 + 0x22);
     s8 = (s0 << 10) / s0;
     do {
-        v1 = (int *)(*pa0)[0x10 / 4];
+        v1 = (int *)a0[0x10 / 4];
         if (s1 >= 33) {
-            int s6 = (32 << 10) / 32;
-            tex = (int *)v1[8 / 4];
-            gl_func_00000000((*s7), tex, field58, s0, s4, 0, 32, s0, 0);
-            gl_func_00000000((*s7), s5, a2, 32, s0, s6, s8);
+            int *dead = (int *)a0[0x10 / 4];
+            s6 = (s3 << 10) / s3;
+            s2 = (int *)v1[8 / 4];
+            gl_func_00000000(*(int **)&D_00000000, s2, field58, s0, s4, 0, s3, s0, 0);
+            gl_func_00000000(*(int **)&D_00000000, s5, a2, s3, s0, s6, s8);
             s5 += 32;
             s4 += 32;
             s1 -= 32;
         } else {
-            int s3div;
-            tex = (int *)v1[8 / 4];
-            gl_func_00000000((*s7), tex, field58, s0, s4, 0, s1, s0, 0);
-            s3div = (s1 << 10) / s1;
-            gl_func_00000000((*s7), s5, a2, s1, s0, s3div, s8);
+            int t7;
+            s2 = (int *)v1[8 / 4];
+            s3 = s1;
+            gl_func_00000000(*(int **)&D_00000000, s2, field58, s0, s4, 0, s1, s0, 0);
+            t7 = (s1 << 10) / s1;
+            gl_func_00000000(*(int **)&D_00000000, s5, a2, s1, s0, t7, s8);
             s1 = 0;
         }
     } while (s1 != 0);
