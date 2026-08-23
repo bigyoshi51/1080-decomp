@@ -303,7 +303,10 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # NM body 0x1a4 -> 0x1fc (target size; real jr jumptable switch, int->float
 # cvt token loads, flag case, goto-ret alloc guard); tail 62F08 keeps its
 # full 0x50 at the new offset 0x2c854.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c8a4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2c8a4 -> 0x2c948 2026-08-23: 4FD18 5.3->44.8 redecode pass grew the NM
+# body (true head = orphan 4FD00 hoist: s16-triple sums, midpoint/2, plane
+# dots); tail 62F08 keeps its full 0x50 at the new offset 0x2c8f4.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c948 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0

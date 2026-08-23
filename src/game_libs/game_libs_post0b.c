@@ -22186,144 +22186,103 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004FD00);
 //   accumulate skeleton only. Byte-match deferred. Name pre-checked:
 //   no extern reuse.
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft (245 insns, 3% COP1;
- * prior 4.56 body replaced -- preserved in git). */
+/* PASS-3 2026-08-23 REDECODE (was broken m2c graft w/ M2C-unset zeros, 5.3%).
+ * True head = orphan game_libs_func_0004FD00 (caller-hoisted 6 insns: rec
+ * table +0x68, v1=a1*8, six=6, idx=lhu+2, base +0x60). Semantics: sum the 3
+ * s16 vertex triples of edge arg1 and of edge arg2 (vertex indices at
+ * rectab[edge]+2/4/6, 6-byte s16[3] vertices at +0x60), convert to float,
+ * midpoint=(A+B)/2, deltas mid-A / mid-B, dot vs plane rows at +0x54
+ * (stride 12); return 1 iff both dots >= 0. */
 s32 gl_func_0004FD18(char *arg0, s32 arg1, s32 arg2) {
-    f32 sp18; f32 sp1C;
-    f32 sp84;
-    f32 sp80;
-    f32 sp7C;
-    f32 sp78;
-    f32 sp74;
-    f32 sp70;
-    f32 sp6C;
-    f32 sp68;
-    f32 sp64;
-    f32 sp60;
-    f32 sp5C;
-    f32 sp58;
-    f32 sp54;
-    f32 sp50;
-    f32 sp4C;
-    s16 sp48;
-    s16 sp46;
-    s16 sp44;
-    f32 sp14;
-    f32 temp_f10;
-    f32 temp_f10_2;
-    f32 temp_f10_3;
-    f32 temp_f16;
-    f32 temp_f18;
-    f32 temp_f18_2;
-    f32 temp_f6;
-    s16 temp_t5;
-    s16 temp_t5_2;
-    s16 temp_t6;
-    s16 temp_t6_2;
-    s16 temp_t7;
-    s16 temp_t7_2;
-    s16 temp_t8;
-    s16 temp_t8_2;
-    s16 temp_t8_3;
-    s16 temp_t8_4;
-    s16 temp_t9;
-    s16 temp_t9_2;
-    s32 temp_a3;
-    s32 temp_t0;
-    s32 var_v0;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_4;
-    char *temp_v0_5;
-    char *temp_v0_6;
-    char *temp_v1;
-    char *temp_v1_2;
+    Vec3 fA;    /* sp+0x7C */
+    Vec3 fB;    /* sp+0x70 */
+    Vec3 mid;   /* sp+0x64 */
+    Vec3 d1;    /* sp+0x58 */
+    Vec3 d2;    /* sp+0x4C */
+    s16 sum[3]; /* sp+0x44 */
+    Vec3 tmp;   /* sp+0x14 */
+    s16 *rec;
+    f32 *pl;
+    f32 dot1, dot2;
+    s32 w0, w1, w2;
+    s32 ret;
+    f32 two = 2.0f;
+    Vec3 *tp = &tmp;
+    Vec3 *mp = &mid;
+    Vec3 *ap = &fA;
+    Vec3 *bp = &fB;
 
-    temp_a3 = arg2 * 8;
-    temp_v0 = 0 /* M2C unset $t6 */ + (0 /* M2C unset $t9 */ * 0 /* M2C unset $t1 */);
-    sp44 = *(s32 *)((char *)(temp_v0) + 0x0);
-    sp46 = *(s32 *)((char *)(temp_v0) + 0x2);
-    sp48 = *(s32 *)((char *)(temp_v0) + 0x4);
-    temp_v0_2 = *(s32 *)((char *)(arg0) + 0x60) + (*(s32 *)((char *)((*(s32 *)((char *)(arg0) + 0x68) + 0 /* M2C unset $v1 */)) + 0x4) * 0 /* M2C unset $t1 */);
-    temp_t8 = sp44 + *(s32 *)((char *)(temp_v0_2) + 0x0);
-    sp44 = temp_t8;
-    temp_t5 = sp46 + *(s32 *)((char *)(temp_v0_2) + 0x2);
-    sp46 = temp_t5;
-    temp_t9 = sp48 + *(s32 *)((char *)(temp_v0_2) + 0x4);
-    sp48 = temp_t9;
-    temp_v0_3 = *(s32 *)((char *)(arg0) + 0x60) + (*(s32 *)((char *)((*(s32 *)((char *)(arg0) + 0x68) + 0 /* M2C unset $v1 */)) + 0x6) * 0 /* M2C unset $t1 */);
-    temp_t6 = temp_t8 + *(s32 *)((char *)(temp_v0_3) + 0x0);
-    sp44 = temp_t6;
-    temp_t7 = temp_t5 + *(s32 *)((char *)(temp_v0_3) + 0x2);
-    sp46 = temp_t7;
-    temp_t8_2 = temp_t9 + *(s32 *)((char *)(temp_v0_3) + 0x4);
-    temp_f6 = (f32) temp_t6;
-    sp48 = temp_t8_2;
-    temp_f10 = (f32) temp_t7;
-    sp7C = temp_f6;
-    sp80 = temp_f10;
-    sp84 = (f32) temp_t8_2;
-    temp_v0_4 = *(s32 *)((char *)(arg0) + 0x60) + (*(s32 *)((char *)((*(s32 *)((char *)(arg0) + 0x68) + temp_a3)) + 0x2) * 0 /* M2C unset $t1 */);
-    sp44 = *(s32 *)((char *)(temp_v0_4) + 0x0);
-    sp46 = *(s32 *)((char *)(temp_v0_4) + 0x2);
-    sp48 = *(s32 *)((char *)(temp_v0_4) + 0x4);
-    temp_v0_5 = *(s32 *)((char *)(arg0) + 0x60) + (*(s32 *)((char *)((*(s32 *)((char *)(arg0) + 0x68) + temp_a3)) + 0x4) * 0 /* M2C unset $t1 */);
-    temp_t8_3 = sp44 + *(s32 *)((char *)(temp_v0_5) + 0x0);
-    sp44 = temp_t8_3;
-    temp_t7_2 = sp46 + *(s32 *)((char *)(temp_v0_5) + 0x2);
-    sp46 = temp_t7_2;
-    temp_t5_2 = sp48 + *(s32 *)((char *)(temp_v0_5) + 0x4);
-    sp48 = temp_t5_2;
-    temp_v0_6 = *(s32 *)((char *)(arg0) + 0x60) + (*(s32 *)((char *)((*(s32 *)((char *)(arg0) + 0x68) + temp_a3)) + 0x6) * 0 /* M2C unset $t1 */);
-    temp_t6_2 = temp_t8_3 + *(s32 *)((char *)(temp_v0_6) + 0x0);
-    sp44 = temp_t6_2;
-    temp_t9_2 = temp_t7_2 + *(s32 *)((char *)(temp_v0_6) + 0x2);
-    sp46 = temp_t9_2;
-    temp_t8_4 = temp_t5_2 + *(s32 *)((char *)(temp_v0_6) + 0x4);
-    sp48 = temp_t8_4;
-    var_v0 = 0;
-    sp70 = (f32) temp_t6_2;
-    sp74 = (f32) temp_t9_2;
-    sp78 = (f32) temp_t8_4;
-    *((s32 *)&sp14 + 0) = *((s32 *)&sp7C + 0);
-    *((s32 *)&sp14 + 1) = (s32) *((s32 *)&sp7C + 1);
-    *((s32 *)&sp14 + 2) = (s32) *((s32 *)&sp7C + 2);
-    sp64 = sp14;
-    temp_f10_2 = sp14 + sp70;
-    sp68 = sp18;
-    sp64 = temp_f10_2;
-    temp_f18 = sp18 + sp74;
-    sp68 = temp_f18;
-    sp64 = temp_f10_2 / 2.0f;
-    sp68 = temp_f18 / 2.0f;
-    sp6C = (sp1C + sp78) / 2.0f;
-    *((s32 *)&sp14 + 0) = *((s32 *)&sp64 + 0);
-    *((s32 *)&sp14 + 1) = (s32) *((s32 *)&sp64 + 1);
-    *((s32 *)&sp14 + 2) = (s32) *((s32 *)&sp64 + 2);
-    sp58 = sp14;
-    sp58 = sp14 - temp_f6;
-    sp5C = sp18;
-    sp60 = sp1C - sp84;
-    sp5C = sp18 - temp_f10;
-    *((s32 *)&sp14 + 0) = *((s32 *)&sp64 + 0);
-    *((s32 *)&sp14 + 1) = (s32) *((s32 *)&sp64 + 1);
-    *((s32 *)&sp14 + 2) = (s32) *((s32 *)&sp64 + 2);
-    temp_f18_2 = sp14 - sp70;
-    sp4C = sp14;
-    temp_f16 = sp18 - sp74;
-    sp50 = sp18;
-    sp4C = temp_f18_2;
-    temp_f10_3 = sp1C - sp78;
-    sp50 = temp_f16;
-    sp54 = temp_f10_3;
-    temp_t0 = *(s32 *)((char *)(arg0) + 0x54);
-    temp_v1 = temp_t0 + (arg1 * 0xC);
-    temp_v1_2 = temp_t0 + (arg2 * 0xC);
-    if ((((sp58 * *(s32 *)((char *)(temp_v1) + 0x0)) + (sp5C * *(s32 *)((char *)(temp_v1) + 0x4)) + (sp60 * *(s32 *)((char *)(temp_v1) + 0x8))) >= 0.0f) && (((temp_f18_2 * *(s32 *)((char *)(temp_v1_2) + 0x0)) + (temp_f16 * *(s32 *)((char *)(temp_v1_2) + 0x4)) + (temp_f10_3 * *(s32 *)((char *)(temp_v1_2) + 0x8))) >= 0.0f)) {
-        var_v0 = 1;
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 2) * 6);
+    sum[0] = rec[0];
+    sum[1] = rec[1];
+    sum[2] = rec[2];
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 4) * 6);
+    w0 = sum[0] + rec[0];
+    sum[0] = w0;
+    w1 = sum[1] + rec[1];
+    sum[1] = w1;
+    w2 = sum[2] + rec[2];
+    sum[2] = w2;
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg1 * 8) + 6) * 6);
+    w0 = w0 + rec[0];
+    sum[0] = w0;
+    w1 = w1 + rec[1];
+    sum[1] = w1;
+    w2 = w2 + rec[2];
+    sum[2] = w2;
+    ap->x = (s16) w0;
+    ap->y = (s16) w1;
+    ap->z = (s16) w2;
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 2) * 6);
+    sum[0] = rec[0];
+    sum[1] = rec[1];
+    sum[2] = rec[2];
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 4) * 6);
+    w0 = sum[0] + rec[0];
+    sum[0] = w0;
+    w1 = sum[1] + rec[1];
+    sum[1] = w1;
+    w2 = sum[2] + rec[2];
+    sum[2] = w2;
+    rec = (s16 *) (*(s32 *)(arg0 + 0x60) + *(u16 *)(*(s32 *)(arg0 + 0x68) + (arg2 * 8) + 6) * 6);
+    w0 = w0 + rec[0];
+    sum[0] = w0;
+    w1 = w1 + rec[1];
+    sum[1] = w1;
+    w2 = w2 + rec[2];
+    sum[2] = w2;
+    bp->x = (s16) w0;
+    bp->y = (s16) w1;
+    bp->z = (s16) w2;
+    ret = 0;
+    *tp = *ap;
+    mp->x = tp->x;
+    mp->y = tp->y;
+    mp->x = tp->x + bp->x;
+    mp->y = tp->y + bp->y;
+    mp->x = mp->x / two;
+    mp->y = mp->y / two;
+    mp->z = (tp->z + bp->z) / two;
+    *tp = *mp;
+    d1.x = tp->x;
+    d1.x = tp->x - ap->x;
+    d1.y = tp->y;
+    d1.y = tp->y - ap->y;
+    d1.z = tp->z - ap->z;
+    *tp = *mp;
+    d2.x = tp->x;
+    d2.x = tp->x - bp->x;
+    d2.y = tp->y;
+    d2.y = tp->y - bp->y;
+    d2.z = tp->z - bp->z;
+    pl = (f32 *) (*(s32 *)(arg0 + 0x54) + (arg1 * 12));
+    dot1 = (d1.x * pl[0]) + (d1.y * pl[1]) + (d1.z * pl[2]);
+    pl = (f32 *) (*(s32 *)(arg0 + 0x54) + (arg2 * 12));
+    dot2 = (d2.x * pl[0]) + (d2.y * pl[1]) + (d2.z * pl[2]);
+    if ((dot1 >= 0.0f) && (dot2 >= 0.0f)) {
+        ret = 1;
     }
-    return var_v0;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004FD18);
