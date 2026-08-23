@@ -262,7 +262,9 @@ extern char import_802656A4;
 extern int import_80020228;
 extern char import_800200D8;
 void mgrproc_uso_func_00000E04(char *obj, int a1, int a2, int a3, int arg5) {
-    char *o0, *o1, *o2, *o3;
+    char *o0, *o1, *o3;
+    char * volatile o2;
+    char *tmp;
     char *w;
     float f0 = 0.0f;
     int n;
@@ -279,11 +281,12 @@ void mgrproc_uso_func_00000E04(char *obj, int a1, int a2, int a3, int arg5) {
     }
     o2 = o1;
     if (o1 == 0) {
-        o2 = (char *)mgrproc_uso_func_055750(80);
-        if (o2 == 0) goto Lvt1;
+        tmp = (char *)mgrproc_uso_func_055750(80);
+        o2 = tmp;
+        if (tmp == 0) goto Lvt1;
     }
     o3 = o2;
-    if (o2 == 0) {
+    if (o3 == 0) {
         o3 = (char *)mgrproc_uso_func_055750(44);
         if (o3 == 0) goto Lvt2;
     }
@@ -302,7 +305,7 @@ Lvt0:
     *(int *)(o0 + 0x7D4) = 0;
     mgrproc_uso_func_0000119C(o0);
     *(int *)(o0 + 0x6A8) = a3;
-    w = *(char **)(o0 + 0x6A8);
+    w = *(char * volatile *)(o0 + 0x6A8);
     *(int *)(o0 + 0x7C4) = 0;
     *(float *)(o0 + 0x7A0) = f0;
     *(float *)(o0 + 0x7A4) = f0;
@@ -310,8 +313,8 @@ Lvt0:
     n = *(int *)w;
     *(int *)(o0 + 0x7D8) = 1;
     *(int *)(o0 + 0x7C8) = n;
-    *(float *)(o0 + 0x7AC) = 210.0f;
     *(float *)(o0 + 0x7A8) = 160.0f - (float)(n * 2 - 2);
+    *(float *)(o0 + 0x7AC) = 210.0f;
     mgrproc_uso_func_074710(&import_802649F0 + 1568, 0);
     import_000A7ECC(&import_80020098, 0);
 
@@ -334,7 +337,7 @@ Lvt0:
         vt = *(char **)(rec + 0x28);
         ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)rec);
 
-        rec = (char *)mgrproc_uso_func_07ACE0(o0 + 16, *(int *)(o0 + 0x6AC));
+        rec = (char *)mgrproc_uso_func_07ACE0(o0 + 16, *(volatile int *)(o0 + 0x6AC));
         if (*(int *)(rec + 0x14) != 0) {
             *(int *)(rec + 0x4) = 1;
         }
