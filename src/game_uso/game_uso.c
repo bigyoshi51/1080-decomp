@@ -5679,7 +5679,20 @@ void game_uso_func_000071E0(int *a0) {
     /* Full structural decode 2026-06-01. Per-frame compute: flag-gate ->
      * float-gate counter (reset at 30) -> if state(0x64)==3 do the
      * scale-Vec3 + transform-compose (A604 family) + 3 cross-USO calls +
-     * conditional yaw store. All cross-USO calls are gl_func_00000000. */
+     * conditional yaw store. All cross-USO calls are gl_func_00000000.
+     *
+     * 2026-08-22 pinned-jal audit fix (agent-h): 63.14 -> 84.54%. The old
+     * decode DROPPED the game_uso_func_055750 call at 0x7390 (pinned-jal
+     * line the broken disasm-raw omitted): target has an alloc-or-stack-
+     * buffer idiom `dst=rec; if(!dst){dst=055750(12); if(!dst) skip;}` —
+     * the &stack-local null test survives ONLY via the (u32)dst>0U
+     * unsigned-compare anti-fold (docs/IDO_CODEGEN #memory-pinned-
+     * iterator-4b0a8). Also: pt copy is a Tri3i int copy (not float),
+     * src/0x938 re-deref *(obj+0x30) fresh per post-call use (target
+     * reloads lw 48(s0), no w spill), counter stored unconditionally then
+     * conditionally reset, 3ED4 gets rec (not dst). Residual: frame -168
+     * vs -176 (+8 target temp area), scaled/c1/c2 copy-chain layout +
+     * grouped mul scheduling, t/f pool phases. */
     char *obj = (char *)a0;
     char *w;
     int counter;
@@ -5697,9 +5710,8 @@ void game_uso_func_000071E0(int *a0) {
     w = *(char **)(obj + 0x30);
     if (30.0f <= *(float *)(w + 0x348)) {
         counter = *(int *)(obj + 0x54) + 1;
-        if (counter < 30) {
-            *(int *)(obj + 0x54) = counter;
-        } else {
+        *(int *)(obj + 0x54) = counter;
+        if (counter >= 30) {
             *(int *)(obj + 0x64) = 0;
             *(int *)(obj + 0x54) = 0;
         }
@@ -5724,18 +5736,25 @@ void game_uso_func_000071E0(int *a0) {
 
     r1 = (char *)game_uso_func_00007ACC(obj, outpos, &xf, 0);
     if (r1 != 0) {
+        float *dst;
+        char *src;
         r2 = (char *)game_uso_func_00007C1C(&c1, obj, r1, *(int *)outpos, &xf, 0);
-        pt[0] = *(float *)r2;
-        pt[1] = *(float *)(r2 + 4);
-        pt[2] = *(float *)(r2 + 8);
-        rec[0] = *(float *)(w + 0x3C8);
-        rec[2] = *(float *)(w + 0x3D0);
-        rec[1] = 0.0f;
+        *(Tri3i *)pt = *(Tri3i *)r2;
+        dst = rec;
+        src = *(char **)(obj + 0x30) + 0x3C8;
+        if (!((unsigned)dst > 0U)) {
+            dst = (float *)game_uso_func_055750(12);
+            if (dst == 0) goto skipfill;
+        }
+        dst[0] = *(float *)src;
+        dst[2] = *(float *)(src + 8);
+        dst[1] = 0.0f;
+skipfill:
         yaw = game_uso_func_00003ED4((Vec3 *)rec, (Vec3 *)pt, 0);
         fr = -yaw * 6.0f;
         *(float *)(obj + 0x3C) = fr;
         if (*(int *)(obj + 0x6C) == 0) {
-            if (*(int *)(w + 0x938) != 0) {
+            if (*(int *)(*(char **)(obj + 0x30) + 0x938) != 0) {
                 flag256 = 256;
             }
         }
