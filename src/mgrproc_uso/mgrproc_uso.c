@@ -78,7 +78,11 @@ extern int mgrproc_uso_func_00F954();
  *       6 wds. Hoisting via a named temp (s3=*pp) fixes the SCHEDULE perfectly but
  *       steals v0 (other→a3, reload→v0) → still 6. Can't have form-a schedule AND
  *       the natural coloring; the if(1) barriers that force form-a perturb as1/uopt
- *       exactly here. Default build INCLUDE_ASM. */
+ *       exactly here. Default build INCLUDE_ASM.
+ * 2026-08-23 (agent-h) NEGATIVES: (int)&import held-base cast spelling regresses
+ * to form-b (offset folds into lw, v1 CSE'd + spilled across regions, +16 frame);
+ * do-while(0) barrier instead of if(1) = bit-identical output (same 8-word
+ * residual) — the barrier's BB shape is not the scheduling perturber. */
 void mgrproc_uso_func_00000B5C(void) {
     int **pp;
     int v0;
