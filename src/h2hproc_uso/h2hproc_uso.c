@@ -1474,10 +1474,14 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
  * shared tail) and recoded the v->0x34 branch as the correct lazy-p148 shape:
  * v1=v->0x34; if(v1){ p148=v->0x148; if(p148==0) gl(parent,0); else { gl(parent);
  * self->B8->6B8=-1; } } else { p148=v->0x148; if(p148) gl(parent,1); }. Logic
- * now verified exact vs TARGET. Residual (all caps):
- *   - SLL-vs-AND idiom on the 2nd/late gate: TARGET keeps v0 = x & 0x10000 live
- *     and tail-merges the early-gate-fail INTO the late beqz v0 (one shared exit
- *     at 0x1944); IDO branch-chaining, not forceable from straight C.
+ * now verified exact vs TARGET.
+ * 2026-08-22 (83.16->84.5+, agent-f): TWO real fixes — (1) p148 loads were
+ *   0x148 but target offset is DECIMAL 148 (=0x94): v[0x94/4]; (2) the 2nd
+ *   bit-16 gate spelled as a held local `gate = parent[0x4F0/4] & 0x10000;
+ *   if (gate)` emits the target's lui/and/beqz value-form (bare `if (x &
+ *   0x10000)` folds to sll/bgez) — the old "SLL-vs-AND not forceable" note
+ *   was wrong; holding the mask in a named local forces it.
+ * Residual (all caps):
  *   - v->0x34 block: TARGET emits beqzl branch-likely with VESTIGIAL dead v1
  *     re-tests (0x1840 beqzl v1, 0x186c bnez v1) — IDO cross-jump/tail-merge of
  *     the shared gl_func(parent,..) tails; correct nested C does not reproduce.
@@ -1544,19 +1548,21 @@ void h2hproc_uso_func_000017A0(int *self) {
     int *v;
     int v1;
     int p148;
+    int gate;
     int counter;
     if ((((unsigned)parent[0x4F0/4] << 15) >> 31) && parent[0x4DC/4] == 1) {
         *(int*)((char*)self + 0x30) += 0x21;
     }
     gl_func_00000000(self);
     parent = (int*)*(int*)((char*)self + 0xB8);
-    if (parent[0x4F0/4] & 0x10000) {
+    gate = parent[0x4F0/4] & 0x10000;
+    if (gate != 0) {
     if (parent[0x4DC/4] == 1) {
 
     v = (int*)*(int*)((char*)self + 0x44);
     v1 = v[0x34/4];
     if (v1 != 0) {
-        p148 = v[0x148/4];
+        p148 = v[0x94/4];
         if (p148 == 0) {
             gl_func_00000000(parent, 0);
         } else {
@@ -1564,7 +1570,7 @@ void h2hproc_uso_func_000017A0(int *self) {
             *(int*)(((char*)*(int*)((char*)self + 0xB8)) + 0x6B8) = -1;
         }
     } else {
-        p148 = v[0x148/4];
+        p148 = v[0x94/4];
         if (p148 != 0) {
             gl_func_00000000(parent, 1);
         }
