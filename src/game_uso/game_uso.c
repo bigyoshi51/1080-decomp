@@ -6810,10 +6810,37 @@ void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32
     Vec3 sp1C8;   /* sp+456 */
     Vec3 sp1BC;   /* sp+444 */
     Vec3 sp1B0;   /* sp+432 */
+    f32 lenf;             /* sp+428 ghost home / f-spill */
+    s32 idx;              /* sp+424 */
+    Vec3 *p;              /* sp+420 ghost home / spill */
+    Vec3 *w;              /* sp+416 ghost home / spill */
+    volatile s32 padA0;   /* 412 */
+    volatile s32 padA1;   /* 408 */
+    volatile s32 padA2;   /* 404 */
+    volatile s32 padA3;   /* 400 */
+    volatile s32 padA4;   /* 396 */
+    volatile s32 padA5;   /* 392 */
+    volatile s32 padA6;   /* 388 */
+    volatile s32 padA7;   /* 384 */
     Vec3 sp174;   /* sp+372 shared stage */
+    f32 dot;              /* sp+368 */
     Vec3 sp164;   /* sp+356 */
+    f32 two;              /* sp+344 */
+    s32 idxm;             /* sp+340 */
+    f32 *q;               /* sp+336 */
     Vec3 sp14C;   /* sp+332 */
+    f32 *qb;              /* sp+328 */
+    f32 *basePtr;         /* sp+324 */
+    f32 *basePtr2;        /* sp+320 */
+    volatile s32 padB0;   /* 316 */
+    volatile s32 padB1;   /* 312 */
+    volatile s32 padB2;   /* 308 */
+    volatile s32 padB3;   /* 304 */
+    volatile s32 padB4;   /* 300 */
+    volatile s32 padB5;   /* 296 */
     Vec3 sp11C;   /* sp+284 */
+    volatile s32 padC0;   /* 280 */
+    volatile s32 padC1;   /* 276 */
     Vec3 prodA;   /* sp+264 */
     Vec3 prodB;   /* sp+252 */
     Vec3 spF0;    /* sp+240 */
@@ -6832,18 +6859,10 @@ void *game_uso_func_00008CD8(char *arg0, char *arg1, char *arg2, char *arg3, s32
     Vec3 sp54;    /* sp+84  */
     Vec3 sp48;    /* sp+72  */
     Vec3 sp3C;    /* sp+60  */
+    volatile s32 padD0;   /* 56 */
+    volatile s32 padD1;   /* 52 */
+    volatile s32 padD2;   /* 48 */
     Vec3 sp24;    /* sp+36  */
-    Vec3 *p;
-    Vec3 *w;
-    f32 *q;
-    f32 *qb;
-    f32 *basePtr;
-    f32 *basePtr2;
-    f32 lenf;
-    f32 dot;
-    f32 two;
-    s32 idx;
-    s32 idxm;
 
     if (arg4 != 0) {
         /* --- branch A (flag set) --- */
