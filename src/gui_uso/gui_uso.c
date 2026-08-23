@@ -2325,17 +2325,22 @@ extern int gl_func_00000000();
  * regalloc/scheduling, multi-pass. Default INCLUDE_ASM keeps ROM exact.
  * 2026-08-22 agent-f probe (stub-else build): the a1/a2 entry homing is
  * PRESSURE-DRIVEN BY THE ALT PATH — with the else-arm stubbed only a3 homes.
- * So the lever is restructuring the else-arm to fewer simultaneous webs, in
- * target shape: (1) t0=(short)((a1+a3)<<2) / v0=(short)((a2+a4)<<2) computed
- * EARLY, interleaved with the packet-1 st derefs (a3 dies at top -> unhomed);
- * (2) x0r spelled as copy+combined shift `t2=a1; sll t2,0x12; sra 0x10`
- * (3714 sll-18 family) and y0r's `sll a3,a2,0x2` REUSES dead a3 as scratch;
- * (3) each clamp is blez/or-zero branch pairs (plain ternary emits this);
- * (4) scale blocks: bgez x0r skip; lh 30(sp)=(short)a5; sign-of-scale branch
- * picks clamp arm with a SEPARATE multu t2,v0 + sra 7 in EACH arm (current
- * single-multu C is wrong shape); frame -8 s0=a0 held but packet-1 slot base
- * read via a0 (mixed s0/a0 per-site web). Next pass: rewrite else-arm to this
- * plan, then main path should self-align (its diffs are all reload-driven). */
+ * 2026-08-22 pass 2: plan executed, 54.2 -> 85.8. Landed levers: early
+ * (short) hoists (homing gone, frame -8 s0-only matches), per-arm separate
+ * multu scale blocks, dead-var zero routing (idx/rawy as ternary else
+ * operands), rawy shift split across the cx clamp, and sx/sy zero-inits in
+ * the ELSE of the scale guards (a dominating =0 init fed uopt's
+ * ternary-else-0 fold -> bgtz/blezl collapse; guarded init unfolds the arms
+ * and uopt speculatively hoists the reg-only zero like target).
+ * RESIDUAL ~14%: (a) x-arm1 still folds to bgtz+or-$zero (target: blez +
+ * `or a0,v1` with v1=0 preload; every `idx=0` else-operand spelling
+ * const-props); (b) x0r `or t2,a1` copy uncoalesceable from C (copy-prop
+ * merges x0r=a1 into the sll18 even across an if(1) BB boundary);
+ * (c) downstream coloring rotation (target a0/t0/t1 webs vs build a3/t0/a0)
+ * + scheduling drift (andi-in-delay-slot placements). DON'T re-try:
+ * param-var reuse for slot/sy webs (a1=slot cast, a2=sy) -> IDO homes a3 and
+ * drops s0, net negative; xs/yt whole-arm web merges -> same homing cascade.
+ * Both probed and reverted this pass. */
 void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) {
     int *s0 = a0;
     int *st, *slot, idx;
