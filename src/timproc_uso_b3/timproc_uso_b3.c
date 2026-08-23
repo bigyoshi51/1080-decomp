@@ -812,7 +812,10 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_fun
  * (no s8 save; slot set differs).  Probed and FAILED to materialize the
  * buf web: named bufp (folds), while(0) bufp/count boosts (regress),
  * if(1){bufp=buf} barrier (folds), dead if(count){} (regress), u8 vs
- * char buf (no-op).  Note the asymmetry vs b1 1340: SAME spelling gives
+ * char buf (no-op); 2026-08-22 agent-h: named bufp WITH a copy use
+ * (p = bufp; the docs' "non-foldable use (call arg/copy) prices an
+ * s-reg" rule) ALSO folds/remats byte-identically (648) — rule does
+ * not fire for sp-lda webs here.  Note the asymmetry vs b1 1340: SAME spelling gives
  * buf an s8 web in b1 (5-arg sprintf, higher pressure) but remat here.
  * Next: find what prices an lda temp into a callee-saved reg at 2 refs
  * (uopt cupcosts?); count -> s3 should then cascade the tail exact. */
