@@ -1709,25 +1709,35 @@ void mgrproc_uso_func_00002AFC(int *a0) {
  * import_8025CAF8 glyph-ptr table, import_80264A28/3C label strings,
  * import_80263D48 panel object) symbolized.
  *
- * RESIDUAL CAPS (DECODE-ONLY, not landable from C):
- *  (1) HI16-PAIR: every data base (import_8024CAF8/8025CAF8/80264A28/80264A3C/
- *      80263D48) is reached in the TARGET by an *unpaired* R_MIPS_HI16 lui plus a
- *      baked, un-relocated addiu immediate (the symbols are NOT page-aligned:
- *      low16 != 0, so this is the USO link-direct form where the loader patches
- *      only HI16). Standard C `&import_X + off` always emits a HI16/LO16 *pair*
- *      (objdump shows R_MIPS_LO16 on our addiu's), which cannot be suppressed.
- *  (2) 5-SAVED-REG / FRAME COLORING: the target pins arg0 to s4 (5 saved regs
- *      s0..s4, frame -0xB8) and keeps the sub-object ptr in saved s3 spilled/
- *      reloaded at 0xA0(sp) live across the loop (`lw s3,0xA0` pre-loop on an
- *      uninit value, `sw s3,0xA0` post-loop). Our C only needs 4 saved regs
- *      (arg0->s3, frame -0xA8); a `sub=sub` self-assign is DCE'd. The s3-vs-s4
- *      base-register difference cascades through every `lw ...,0xD4(sX)`.
- *  (3) LOOP STRENGTH-REDUCTION: target keeps the 0..15 index in s0 and recomputes
- *      `(field+i)<<2` each iter; IDO instead strength-reduces our index into a
- *      byte-offset counter (+=4, compare !=0x40). Coloring/IV tie.
- * What IS now correct vs the prior 73.91% placeholder body: all six DISTINCT
- * R_MIPS_26 callees, the full case-1/3/4 control flow, the inner digit switch,
- * and the data symbols are right. Best-effort correct-C decode; NON_MATCHING. */
+ * 2026-08-22 agent-h 85.38->92.95: caps (2)+(3) of the old note RESOLVED from C:
+ *  - NO-DEFAULT inner switch (default arm leaves sub STALE = loop-carried,
+ *    conditionally-assigned) => sub becomes memory-homed at 0xA0(sp) with the
+ *    uninit `lw s3,0xA0` pre-loop + `sw s3,0xA0` post-loop promotion syncs,
+ *    s3 coloring, and the 5th saved reg (arg0->s4, frame -0xB8) all fall out.
+ *    The unreachable `addiu s3,a3,0x4A0` at +0x194 is IDO's leftover case-2
+ *    block after beql conversion - proof the original had case 2 LAST, no
+ *    default. (The old `case 2: default:` spelling was the whole 4-reg cap.)
+ *  - NAMED `idx = field + i` subscript temp blocks the (field+i)<<2
+ *    distribution/strength-reduction into a byte IV: keeps the plain 0..0x10
+ *    counter + per-iter addu/sll, matching the target loop shape.
+ *  - volatile int pad FIRST decl claims the top frame word (0xB4) so the four
+ *    1.0f ghost slots land 0xA4-0xB0 and sub's home lands 0xA0 (target map).
+ * RESIDUAL (still NM):
+ *  (1) HI16-PAIR reloc-form cap unchanged (baked un-relocated addiu low16 vs
+ *      our R_MIPS_LO16 pairs) - not landable from C regardless of insn match.
+ *  (2) prologue schedule: target defers `move s4,a0` after the first raw-a0
+ *      read + saves ra first + all swc1 after saves; ours interleaves (self
+ *      copy-var probe coalesced away, inert).
+ *  (3) case-1 `held = a3+0x490` CSE temp: target computes addiu v0 pre-call,
+ *      spills v0 0x5C across D108, reloads, addiu a2,v0,0x10. Every C spelling
+ *      (plain def / multi-def / if(1) barrier / volatile / while(0) 2nd use)
+ *      either folds held+0x10 back to a3+0x4A0 (spilling a3 instead) or hoists
+ *      into an s-reg pre-switch. 4-word residual.
+ *  (4) counter/glyph s0<->s1 coloring swap in the loop (pure rename cascade);
+ *      while(0) ref-boost probes inert or harmful (s2/sub swap).
+ *  (5) case-3/4 tail: reusing one `a3` var for the tail h fixes the v1->a3
+ *      base but flips sub/s2 coloring (net worse, reverted); the target's
+ *      un-CSE'd second `lw a3,0xD4(s4)` after the sw remains unmatched. */
 extern char import_8025CAF8;
 extern char import_80264A28;
 extern char import_80264A3C;
@@ -1737,10 +1747,12 @@ extern int import_0024E060();
 extern int import_0024D704();
 extern int mgrproc_uso_func_083574();
 void mgrproc_uso_func_00002B7C(char *arg0) {
+    volatile int pad;
     volatile float spB0;
     volatile float spAC;
     volatile float spA8;
     volatile float spA4;
+    char *sub;
     char *panel;
     char sp60[68];
     char *a3;
@@ -1749,7 +1761,8 @@ void mgrproc_uso_func_00002B7C(char *arg0) {
     int s2;
     char *s1;
     int digit;
-    char *sub;
+    char *held;
+    int idx;
 
     spA4 = 1.0f;
     spA8 = 1.0f;
@@ -1758,8 +1771,9 @@ void mgrproc_uso_func_00002B7C(char *arg0) {
     a3 = *(char **)(arg0 + 0xD4);
     switch (*(int *)(a3 + 0x7E4)) {
     case 1:
+        held = a3 + 0x490;
         import_0024D108(*(int *)(a3 + 0x568));
-        import_0024E608(&import_8024CAF8, 0xFF, a3 + 0x4A0);
+        import_0024E608(&import_8024CAF8, 0xFF, held + 0x10);
         mgrproc_uso_func_083574(&sp60, &import_80264A28 + 0x658);
         import_0024D704(*(int *)(*(char **)(arg0 + 0xD4) + 0x568),
                         import_0024E060(*(int *)(*(char **)(arg0 + 0xD4) + 0x568), 0xA0, &sp60),
@@ -1775,7 +1789,8 @@ void mgrproc_uso_func_00002B7C(char *arg0) {
         s0 = 0;
         do {
             a3 = *(char **)(arg0 + 0xD4);
-            s1 = ((char **)&import_8025CAF8)[*(int *)(a3 + 0x7DC) + s0];
+            idx = *(int *)(a3 + 0x7DC) + s0;
+            s1 = ((char **)&import_8025CAF8)[idx];
             digit = *s1 - 0x30;
             s1++;
             switch (digit) {
@@ -1786,7 +1801,6 @@ void mgrproc_uso_func_00002B7C(char *arg0) {
                 sub = a3 + 0x47C;
                 break;
             case 2:
-            default:
                 sub = a3 + 0x4A0;
                 break;
             }
