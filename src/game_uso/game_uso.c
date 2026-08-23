@@ -5141,6 +5141,7 @@ void game_uso_func_00006A30(int *a0) {
         V3_6A30 cpy;                 /* sp+0x6C */
         V3_6A30 scaled;              /* sp+0x58 */
         register float k, fx, fy, fz;  /* FP candidates f0/f2/f12/f14, no dead homes */
+        float *q3;
         int *r1;
         int *r2;
         V3_6A30 *dst;
@@ -5148,15 +5149,20 @@ void game_uso_func_00006A30(int *a0) {
         float yaw;
 
         va = *(V3_6A30 *)(sub + 0xB4);
+        sub = (char *)a0[0x30 / 4];
         k = *(float *)((char *)a0 + 0xA8);
-        fx = *(float *)(sub + 0x318) * k;
-        fy = *(float *)(sub + 0x31C) * k;
-        fz = *(float *)(sub + 0x320) * k;
+        q3 = (float *)(sub + 0x318);
+        fx = q3[0] * k;
+        fy = q3[1] * k;
+        fz = q3[2] * k;
+        q3 = (float *)&cpy;
         scaled.x = fx;
         scaled.y = fy;
         scaled.z = fz;
-        cpy = scaled;
-        acc = cpy;
+        if (1) {
+            *(V3_6A30 *)q3 = scaled;
+            acc = *(V3_6A30 *)q3;
+        }
         va.x = va.x + acc.x;
         va.y = va.y + acc.y;
         va.z = va.z + acc.z;
@@ -5168,14 +5174,25 @@ void game_uso_func_00006A30(int *a0) {
         r2 = (int *)game_uso_func_00007C1C((char *)&cpy, (char *)s0, (char *)r1,
                                            (char *)v94, (char *)&va, (f32 *)0);
         rv = *(V3_6A30 *)r2;
-        dst = &pt;
-        src = (char *)s0[0x30 / 4] + 0x3C8;
-        if (dst != 0 || (dst = (V3_6A30 *)game_uso_func_055750(0xC)) != 0) {
-            dst->x = *(float *)src;
-            dst->z = *(float *)(src + 8);
-            dst->y = 0.0f;
+        /* nested-goto alloc-guard (docs/IDO_CODEGEN.md
+         * #nested-goto-alloc-guard-bnezl-9b88), named-p variant: a3=&pt stays
+         * live for the 3ED4 call; q=w+0x3C8 laundered, spilled across jal. */
+        {
+            V3_6A30 *pa = (V3_6A30 *)(unsigned)&pt;
+            src = (char *)(unsigned)((char *)s0[0x30 / 4] + 0x3C8);
+            dst = pa;
+            if (dst == 0) {
+                dst = (V3_6A30 *)game_uso_func_055750(0xC);
+                if (dst == 0) goto skpt;
+            }
+            {
+                dst->x = *(float *)src;
+                dst->z = *(float *)(src + 8);
+                dst->y = 0.0f;
+            }
+skpt:;
+            yaw = game_uso_func_00003ED4((Vec3 *)pa, (Vec3 *)&rv, 0);
         }
-        yaw = game_uso_func_00003ED4((Vec3 *)dst, (Vec3 *)&rv, 0);
         w = (char *)s0[0x30 / 4];
         {
             char *q = w + 0x6F8;     /* bumped base; the 0x708 load is *(q+0x10) */
