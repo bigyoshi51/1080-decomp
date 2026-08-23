@@ -1939,19 +1939,21 @@ void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
 {
     float div255 = 255.0f;
     float c = 192.0f / div255;   /* the merged FP prologue: div.s f4(192)/f2(255) */
-
+    unsigned char *v1;
+    int obj;
+    int *node;
     *(int*)((char*)self + 0xC)  = (int)((char*)&D_00000000 + 0x688);
     *(int*)((char*)self + 0xBC) = a1;
     *(int*)((char*)self + 0xB8) = a3;
     *(int*)((char*)self + 0x54) = a2;
+    *(int*)((char*)self + 0x4C) = arg5;
     *(int*)((char*)self + 0xD4) = 0xFF;
     *(int*)((char*)self + 0xD8) = 0;
     *(int*)((char*)self + 0xDC) = 0;
     *(int*)((char*)self + 0x30) = 0;
-    *(int*)((char*)self + 0x4C) = arg5;
     *(float*)((char*)self + 0xCC) = c;
     *(float*)((char*)self + 0xC4) = c;
-    *(float*)((char*)self + 0xC8) = 255.0f / div255;   /* f8 = f6/f2 */
+    *(float*)((char*)self + 0xC8) = (float)255 / div255;   /* f8 = f6/f2; (float)N cast-literal breaks CSE with div255 */
     *(float*)((char*)self + 0xD0) = 0.0f / div255;     /* f10 = f10/f2 */
 
     if (*(int*)((char*)a1 + 0x4F0) & 0x10000) {
@@ -1959,25 +1961,18 @@ void mgrproc_uso_func_00002EF0(self, a1, a2, a3, arg5)
         gl_func_00000000(self, 0x123, 0xE1, 0xD);
         gl_func_00000000(self, 0x47, 0x13, (int)((char*)self + 0x30));
         gl_func_00000000(self, 0x44, 0x26, *(int*)((char*)self + 0x44) + 0x28);
-        {
-            int t3 = MGR_D_64;
-            int p  = *(int*)((char*)self + 0x4C);
-            unsigned char *v1 =
-                (unsigned char *)gl_func_00000000(*(int*)p + t3 * 48, 0);
-            int obj = gl_func_00000000(0, *(int*)((char*)self + 0x60));
-            int *node;
-            *(int*)((char*)self + 0xC0) = obj;
-            gl_func_00000000(obj, v1[5], v1[6], v1[7]);
-            gl_func_00000000(*(int*)((char*)self + 0xC0), 0x4B, 0xD6);
-            node = (int *)*(int*)((char*)self + 0xC0);
-            gl_func_00000000((int)((char*)self + 0x10), (int)node);
-            if (*(int*)((char*)node + 0x14) == 0) {
-                *(int*)((char*)node + 0x14) = (int)self;
-            } else {
-                *(int*)((char*)node + 4) = 1;
-                *(int*)((char*)node + 0x14) = (int)self;
-            }
+        v1 = (unsigned char *)gl_func_00000000(
+                 *(int*)(*(int*)((char*)self + 0x4C)) + MGR_D_64 * 48, 0);
+        obj = gl_func_00000000(0, *(int*)((char*)self + 0x60));
+        *(int*)((char*)self + 0xC0) = obj;
+        gl_func_00000000(obj, v1[5], v1[6], v1[7]);
+        gl_func_00000000(*(int*)((char*)self + 0xC0), 0x4B, 0xD6);
+        node = (int *)*(int*)((char*)self + 0xC0);
+        gl_func_00000000((int)((char*)self + 0x10), (int)node);
+        if (*(int*)((char*)node + 0x14) != 0) {
+            *(int*)((char*)node + 4) = 1;
         }
+        *(int*)((char*)node + 0x14) = (int)self;
     }
 }
 #else
