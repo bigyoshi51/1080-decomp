@@ -228,99 +228,95 @@ extern char D_arc_A3C_v1;
 extern char D_arc_A3C_v2;
 extern char D_arc_A3C_v3;
 extern char D_arc_A3C_v4;
-void *arcproc_uso_func_00000A3C(int *a0, int a1, int a2, int a3, int a4) {
-    int *s1 = a0;
-    int *n1, *n2, *n3;
-    /* get-or-create cascade. Each stage TESTS ITS INPUT (non-zero => skip alloc),
-     * allocs into a reused slot, and field-init stores happen in reverse at the
-     * merge labels (CSE-bust -> target t7/t8/t0/t1). n1 lives in s0; n2/n3 are
-     * stack temps reloaded at the merge points. */
-    if (a0 == 0) {
-        s1 = (int*)gl_func_00000000(0x780);
-        if (s1 == 0) return (void*)s1;
+void *arcproc_uso_func_00000A3C(int *arg0, int arg1, int arg2, int arg3, int arg4) {
+    register int *node;   /* s0: sub-cascade + every registration node */
+    int * volatile third; /* home 0x38(sp); REUSED for the 0xD8 sub-alloc */
+    int *fourth;          /* home 0x34(sp) */
+    int *rtemp;           /* 0x30(sp) phantom: v0-role temps */
+    int * volatile slot;  /* home 0x2C(sp): def folded into first reg call */
+
+    if (arg0 == 0) {
+        arg0 = (int *)gl_func_00000000(0x780);
+        if (arg0 == 0) goto done;
     }
-    n1 = s1;
-    if (s1 == 0) { n1 = (int*)gl_func_00000000(0x6A8); if (n1 == 0) goto S_self; }
-    n2 = n1;
-    if (n1 == 0) { n2 = (int*)gl_func_00000000(0x50); if (n2 == 0) goto S_n1; }
-    n3 = n2;
-    if (n2 == 0) {
-        n3 = (int*)gl_func_00000000(0x2C); if (n3 == 0) goto S_n2;
-        gl_func_00000000(n3, (char*)&D_00000000 + 0x3B8);
+    node = arg0;
+    if (node == 0) {
+        node = (int *)gl_func_00000000(0x6A8);
+        if (node == 0) goto after_node;
     }
-    n3[0x28 / 4] = (int)&D_arc_A3C_v0;
-S_n2:
-    n2[0x28 / 4] = (int)&D_arc_A3C_v1;
-S_n1:
-    n1[0x28 / 4] = (int)&D_arc_A3C_v2;
-    gl_func_00000000((char*)n1 + 0x50);
-S_self:
-    s1[0x28 / 4] = (int)&D_arc_A3C_v3;
-    s1[0x568 / 4] = 0;
-    gl_func_00000000(s1, a1, (char*)&D_00000000 + 0x3C0, a2);
-    s1[0x528 / 4] = a4;
-    s1[0x6B8 / 4] = 0;
-    s1[0x6A8 / 4] = a3;
-    gl_func_00000000(s1);
-    *(float *)&s1[0x77C / 4] = 0.0f;
-    gl_func_00000000((char*)&D_00000000 + 0x3D0, 0);
+    third = node;
+    if (node == 0) {
+        if ((third = (int *)gl_func_00000000(0x50)) == 0) goto after_third;
+    }
+    fourth = third;
+    if (fourth == 0) {
+        fourth = (int *)gl_func_00000000(0x2C);
+        if (fourth == 0) goto after_fourth;
+    }
+    gl_func_00000000(fourth, (char *)&D_00000000 + 0x3B8);
+    fourth[0x28 / 4] = (int)&D_arc_A3C_v0;
+after_fourth:
+    third[0x28 / 4] = (int)&D_arc_A3C_v1;
+after_third:
+    node[0x28 / 4] = (int)&D_arc_A3C_v2;
+    gl_func_00000000((char *)node + 0x50);
+after_node:
+    arg0[0x28 / 4] = (int)&D_arc_A3C_v3;
+    arg0[0x568 / 4] = 0;
+    gl_func_00000000(arg0, arg1, (char *)&D_00000000 + 0x3C0, arg2);
+    arg0[0x528 / 4] = arg4;
+    arg0[0x6B8 / 4] = 0;
+    arg0[0x6A8 / 4] = arg3;
+    gl_func_00000000(arg0);
+    *(float *)&arg0[0x77C / 4] = 0.0f;
+    gl_func_00000000((char *)&D_00000000 + 0x3D0, 0);
     gl_func_00000000(&D_00000000, 0);
-    {
-        int *sub = (int*)gl_func_00000000(0xD8);
-        if (sub != 0) {
-            gl_func_00000000(sub);
-            sub[0x28 / 4] = (int)&D_arc_A3C_v4;
-            s1[0x6AC / 4] = (int)sub;
-            *(int**)((char*)&D_00000000 + 0x138) = sub;
-            sub[0xB4 / 4] = 7;
-            gl_func_00000000(sub, s1, s1[0x568 / 4], s1[0x6A8 / 4], s1[0x528 / 4]);
-            {
-                int *vt = (int*)sub[0x28 / 4];
-                ((void(*)(int))vt[0x5C / 4])(*(short*)((char*)vt + 0x58) + (int)sub);
-            }
-        }
+    if ((fourth = (int *)(third = (int *)gl_func_00000000(0xD8))) != 0) {
+        gl_func_00000000(fourth);
+        third[0x28 / 4] = (int)&D_arc_A3C_v4;
     }
-    {
-        int *q = (int *)((int *)s1[0x6AC / 4])[0x44 / 4];
-        q[0x18 / 4] = *(int *)((char *)s1[0x6A8 / 4] + 0x34);
-        q[0x14 / 4] = *(int *)((char *)s1[0x6A8 / 4] + 0x34);
+    arg0[0x6AC / 4] = (int)third;
+    *(int **)((char *)&D_00000000 + 0x138) = third;
+    node = (int *)arg0[0x6AC / 4];
+    node[0xB4 / 4] = 7;
+    gl_func_00000000(arg0[0x6AC / 4], arg0, arg0[0x568 / 4], arg0[0x6A8 / 4], arg0[0x528 / 4]);
+    rtemp = (int *)arg0[0x6AC / 4];
+    node = (int *)rtemp[0x28 / 4];
+    ((void (*)(int))node[0x5C / 4])(*(short *)((char *)node + 0x58) + (int)rtemp);
+    ((int *)((int *)arg0[0x6AC / 4])[0x44 / 4])[0x18 / 4] = *(int *)((char *)arg0[0x6A8 / 4] + 0x34);
+    ((int *)((int *)arg0[0x6AC / 4])[0x44 / 4])[0x14 / 4] = *(int *)((char *)arg0[0x6A8 / 4] + 0x34);
+    node = (int *)arg0[0x6AC / 4];
+    gl_func_00000000(slot = (int *)((char *)arg0 + 0x10), node);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
     }
-    gl_func_00000000((char *)s1 + 0x10, (int *)s1[0x6AC / 4]);
-    {
-        int *sub = (int *)s1[0x6AC / 4];
-        if (sub[0x14 / 4] != 0) {
-            sub[0x4 / 4] = 1;
-            sub[0x14 / 4] = (int)s1;
-        }
+    node[0x14 / 4] = (int)arg0;
+    gl_func_00000000(arg0, arg1);
+    rtemp = (int *)gl_func_00000000(0);
+    arg0[0x48 / 4] = (int)rtemp;
+    gl_func_00000000(rtemp, arg0);
+    node = (int *)&D_00000000;
+    gl_func_00000000(arg0[0x48 / 4], (node[0] + 3) << 16, -1, &D_arc_table_3D0);
+    gl_func_00000000(arg0[0x48 / 4], ((node[0] + 3) << 16) | 9, -1, &D_arc_table_3D0);
+    gl_func_00000000(arg0[0x48 / 4], ((node[0] + 3) << 16) | 5, -1, &D_arc_table_3D0);
+    *(int *)((char *)arg0[0x48 / 4] + 0x30) = arg0[0x568 / 4];
+    gl_func_00000000(arg0[0x48 / 4]);
+    gl_func_00000000(slot, node = (int *)arg0[0x48 / 4]);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
     }
-    gl_func_00000000(s1, a1);
-    s1[0x48 / 4] = (int)gl_func_00000000(0);
-    gl_func_00000000(s1[0x48 / 4], s1);
-    gl_func_00000000(s1[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
-    gl_func_00000000(s1[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 9, -1, &D_00000000);
-    gl_func_00000000(s1[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
-    *(int *)((char *)s1[0x48 / 4] + 0x30) = s1[0x568 / 4];
-    gl_func_00000000(s1[0x48 / 4]);
-    gl_func_00000000((char *)s1 + 0x10, (int *)s1[0x48 / 4]);
-    {
-        int *n = (int *)s1[0x48 / 4];
-        if (n[0x14 / 4] != 0) {
-            n[0x4 / 4] = 1;
-        }
-        n[0x14 / 4] = (int)s1;
+    node[0x14 / 4] = (int)arg0;
+    node = (int *)*(int *)((char *)&D_00000000 + 0x190);
+    gl_func_00000000(slot, node);
+    if (node[0x14 / 4] != 0) {
+        node[0x4 / 4] = 1;
     }
-    {
-        int *node = *(int **)((char *)&D_00000000 + 0x190);
-        gl_func_00000000((char *)s1 + 0x10, node);
-        if (node[0x14 / 4] != 0) {
-            node[0x4 / 4] = 1;
-            node[0x14 / 4] = (int)s1;
-        }
-        gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0);
-        gl_func_00000000();
-    }
+    node[0x14 / 4] = (int)arg0;
+    gl_func_00000000(*(int *)((char *)&D_00000000 + 0x190), 1, 0);
+    gl_func_00000000();
     *(int *)((char *)&D_00000000 + 0x40) = 5;
-    return (void*)s1;
+done:
+    return (void *)arg0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000A3C);
