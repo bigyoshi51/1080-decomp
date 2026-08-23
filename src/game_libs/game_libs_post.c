@@ -18503,10 +18503,10 @@ typedef struct Gl2FB74Bank {
 extern Gl2FB74Bank D_2FB74_bank;
 
 void gl_func_0002FB74(s32 sel, s32 v) {
+    s32 t;
     s32 cmd;
     s32 c;
     s32 b;
-    s32 t;
     s32 n;
     Gl2FB74Chan *p;
 
