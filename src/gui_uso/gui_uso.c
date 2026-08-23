@@ -2151,65 +2151,62 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
  * slot-pointer coloring (a3 vs t2) drive a regalloc/scheduling cascade no C
  * reproduces exactly. INCLUDE_ASM remains build path (NM-wrap). */
 #ifdef NON_MATCHING
-void gui_uso_func_0000413C(char *a0, int a1, int a2, int a3,
-                            int arg4, int arg5, int arg6, int arg7, int arg8) {
+void gui_uso_func_0000413C(char *a0, int a1, int a2, int a3, int arg4,
+                           int arg5, int arg6, int arg7, int arg8) {
     struct GfxRing_413C *r;
     int i;
-    int *slot;
-    int t1;
-    (void)a3;
-    /* packet 1: G_SETTIMG */
+    int *p;
+    int t0, t1, t3, m;
+    int *ap5 = &arg4;
+    int *ap9 = &arg8;
+
     r = *(struct GfxRing_413C **)(a0 + 0xC);
-    i = r->idx;  r->idx = i + 1;
-    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    slot[0] = ((a2 - 1) & 0xFFF) | 0xFD100000;
-    slot[1] = a1;
-    /* packet 2: G_SETTILE */
-    r = *(struct GfxRing_413C **)(a0 + 0xC);
-    i = r->idx;  r->idx = i + 1;
-    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    t1 = ((((((arg4 + arg6) - arg4) << 1) + 7) >> 3) & 0x1FF) << 9 | 0xF5100000 |
-         ((arg8 << 8) & 0x1FF);
-    slot[0] = t1;
-    slot[1] = 0x07020080;
-    /* packet 3: G_RDPLOADSYNC */
-    r = *(struct GfxRing_413C **)(a0 + 0xC);
-    i = r->idx;  r->idx = i + 1;
-    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    slot[0] = 0xE6000000;
-    slot[1] = 0;
-    /* packet 4: G_LOADTILE */
-    r = *(struct GfxRing_413C **)(a0 + 0xC);
-    i = r->idx;  r->idx = i + 1;
-    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    slot[0] = (((arg4 << 2) & 0xFFF) << 12) | 0xF4000000 | ((arg5 << 2) & 0xFFF);
-    slot[1] = ((((arg4 + arg6 - 1) << 2) & 0xFFF) << 12) | 0x07000000 |
-              (((arg5 + arg7 - 1) << 2) & 0xFFF);
-    /* packet 5: G_RDPPIPESYNC */
-    r = *(struct GfxRing_413C **)(a0 + 0xC);
-    i = r->idx;  r->idx = i + 1;
-    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    slot[0] = 0xE7000000;
-    slot[1] = 0;
-    /* packet 6: G_SETTILE var */
-    r = *(struct GfxRing_413C **)(a0 + 0xC);
-    i = r->idx;  r->idx = i + 1;
-    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    slot[0] = t1;
-    slot[1] = ((arg8 & 7) << 24) | 0x00020000 | 0x80;
-    /* packet 7: G_SETTILESIZE */
-    r = *(struct GfxRing_413C **)(a0 + 0xC);
-    i = r->idx;  r->idx = i + 1;
-    slot = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    slot[0] = 0xF2000000;
-    slot[1] = ((arg8 & 7) << 24) | ((((arg6 - 1) << 2) & 0xFFF) << 12) |
-              (((arg7 - 1) << 2) & 0xFFF);
+    m = (a2 - 1) & 0xFFF;
+    i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
+    p[0] = 0xFD100000 | m;
+    p[1] = a1;
+
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
+    a3 = arg4 + arg6;
+    t0 = a3 - arg4;
+    t1 = ((((t0 * 2 + 7) >> 3) & 0x1FF) << 9) | 0xF5100000 | ((arg8 << 8) & 0x1FF);
+    p[0] = t1;
+    p[1] = 0x07020080;
+
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
+    a2 = arg5;
+    p[0] = 0xE6000000;
+    p[1] = 0;
+
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
+    p[0] = 0xF4000000 | ((((arg4 << 2) & 0xFFF) << 0xC)) | ((a2 << 2) & 0xFFF);
+    a1 = a2 + arg7;
+    p[1] = 0x07000000 | ((((a3 - 1) << 2) & 0xFFF) << 0xC) | (((a1 - 1) << 2) & 0xFFF);
+
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
+    p[0] = 0xE7000000;
+    p[1] = 0;
+
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
+    p[0] = t1;
+    t3 = (arg8 & 7) << 0x18;
+    p[1] = t3 | 0x00020000 | 0x80;
+
+    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
+    p[0] = 0xF2000000;
+    p[1] = t3 | ((((t0 - 1) << 2) & 0xFFF) << 0xC) | ((((a1 - a2) - 1) << 2) & 0xFFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000413C);
 #endif
 
-#ifdef NON_MATCHING
 /* gui_uso_func_00004354: 133-insn (0x214) Gfx-display-list builder.
  * Leaf function (no stack frame, only caller-slot a3 spill at sp+0xC)
  * that writes ~6 RDP commands into a display list buffer at a0->[0xC].
@@ -2249,46 +2246,27 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_0000413C);
  * fields) recurs across gui_uso_func_*413C, *4354, *4568, *4774 —
  * worth typing as `GfxBuf { Gfx **dlist; int count; }` in a future
  * pass once decoded for one of them. */
-#if 0
-/* Pseudo-shape for future ticks:
- *   void gui_uso_func_00004354(GuiState *a0, u32 imgaddr, int w,
- *                              int unused_a3, int p5, int p6, int p7,
- *                              int p8) {
- *       Gfx *dl = a0->gfxBuf->dlist;
- *       int *count = &a0->gfxBuf->count;
- *       (*count)++;
- *       gDPPipeSync(dl);                       // 0xE700 hi
- *       gDPSetTextureImage(dl++, ...);         // 0xFD68 hi
- *       gDPLoadSync(dl++);                     // 0xE600 hi
- *       gDPLoadTile(dl++, ...);                // 0xF400 hi
- *       gDPSetTile(dl++, ...);
- *       gDPSetTileSize(dl++, 0, 0, w-1, h-1);  // 0xF200 hi
- *       gSPTextureRectangle(dl++, ...);
- *   }
- */
-#endif
-// GBI texture-load display list: 7 command packets via the cursor idiom
-// (buf=a0->0xC; i=buf->4; buf->4=i+1; p=*buf+i*8; p[0]=cmd; p[1]=arg).
-// SetTextureImage(0xFD68), SetTile(0xF568), LoadSync(0xE600), LoadTile(0xF400),
-// PipeSync(0xE700), a second SetTile (reused word), SetTileSize(0xF200).
-// Pure-linear; reused intermediates (arg7, arg5+arg7, arg6+arg8, the F568
-// word, (arg9&7)<<24) thread across packets exactly as the target.
+#ifdef NON_MATCHING
 void gui_uso_func_00004354(char *a0, int a1, int a2, int a3, int arg5,
                            int arg6, int arg7, int arg8, int arg9) {
     struct GfxRing_413C *r;
     int i;
     int *p;
-    int t0, a3v, a1v, t1, t3;
+    int t0, t1, t3, m;
+    int *ap5 = &arg5;
+    int *ap9 = &arg9;
 
-    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    m = (a2 - 1) & 0xFFF;
+    i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    p[0] = 0xFD680000 | ((a2 - 1) & 0xFFF);
+    p[0] = 0xFD680000 | m;
     p[1] = a1;
 
     r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    a3v = arg5 + arg7;
-    t0 = a3v - arg5;
+    a3 = arg5 + arg7;
+    t0 = a3 - arg5;
     t1 = ((((t0 + 7) >> 3) & 0x1FF) << 9) | 0xF5680000 | ((arg9 << 8) & 0x1FF);
     p[0] = t1;
     p[1] = 0x07020090;
@@ -2302,8 +2280,8 @@ void gui_uso_func_00004354(char *a0, int a1, int a2, int a3, int arg5,
     r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xF4000000 | ((((arg5 << 2) & 0xFFF) << 0xC)) | ((a2 << 2) & 0xFFF);
-    a1v = a2 + arg8;
-    p[1] = 0x07000000 | ((((a3v - 1) << 2) & 0xFFF) << 0xC) | (((a1v - 1) << 2) & 0xFFF);
+    a1 = a2 + arg8;
+    p[1] = 0x07000000 | ((((a3 - 1) << 2) & 0xFFF) << 0xC) | (((a1 - 1) << 2) & 0xFFF);
 
     r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
@@ -2319,7 +2297,7 @@ void gui_uso_func_00004354(char *a0, int a1, int a2, int a3, int arg5,
     r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xF2000000;
-    p[1] = t3 | ((((t0 - 1) << 2) & 0xFFF) << 0xC) | ((((a1v - a2) - 1) << 2) & 0xFFF);
+    p[1] = t3 | ((((t0 - 1) << 2) & 0xFFF) << 0xC) | ((((a1 - a2) - 1) << 2) & 0xFFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00004354);
