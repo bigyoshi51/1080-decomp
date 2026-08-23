@@ -7154,31 +7154,49 @@ extern float game_uso_func_082880(float);
  * 082880 -> cross/dot projection -> range gates -> return 0/1). Opening +
  * magnitude gate decoded; cross/dot tail pending (multi-tick). */
 int game_uso_func_000097EC(char *a0) {
+    int ret = 0;
     char *v0 = *(char **)(a0 + 0x30);
     char *sub;
+    char *w2, *sub2;
     Vec3 vec1, vec2, vec3, c1, c2, scaled, s1, s2, vec4, delta2, d1, d2, vec5;
     Vec3 *p;
-    float mag2, scale, mag, cross, dot, tparam, perp;
-    if (*(int *)(v0 + 0x908) == 0) return 0;
-    p = &vec1;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = *(float *)(v0 + 0x318);
-    p->z = *(float *)(v0 + 0x320);
-    p->y = 0.0f;
-    sub = *(char **)(v0 + 0x908);
-    p = &vec2;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = *(float *)(sub + 0x318);
-    p->z = *(float *)(sub + 0x320);
-    p->y = 0.0f;
+    float *q;
+    float mag2, scale, mag, cross, dot, tparam, perp, t1, t2, mag2b;
+
+    /* Nested-goto alloc-guard shape throughout (docs/IDO_CODEGEN.md
+     * #nested-goto-alloc-guard-bnezl-9b88); single-exit via homed `ret`
+     * (target: sw zero,268(sp) at prologue, sw 1 at tail, lw v0,268(sp)). */
+    if (*(int *)(v0 + 0x908) == 0) goto done;
+    q = (float *)(unsigned)(v0 + 0x318);
+    p = (Vec3 *)(unsigned)&vec1;
+    if (p == 0) {
+        p = (Vec3 *)game_uso_func_055750(12);
+        if (p == 0) goto sk1;
+    }
+    { p->x = q[0]; p->z = q[2]; p->y = 0.0f; }
+sk1:;
+    sub = *(char **)(*(char **)(a0 + 0x30) + 0x908);
+    q = (float *)(unsigned)(sub + 0x318);
+    p = (Vec3 *)(unsigned)&vec2;
+    if (p == 0) {
+        p = (Vec3 *)game_uso_func_055750(12);
+        if (p == 0) goto sk2;
+    }
+    { p->x = q[0]; p->z = q[2]; p->y = 0.0f; }
+sk2:;
     mag2 = vec1.x * vec1.x + vec1.z * vec1.z;
-    if (!(0.0f < mag2)) return 0;
-    p = &vec3;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = vec1.x - vec2.x;
-    p->y = 0.0f;
-    p->z = vec1.z - vec2.z;
-    c1 = vec3;
+    if (!(0.0f < mag2)) goto done;
+    {
+        Vec3 *pa = (Vec3 *)(unsigned)&vec3;
+        p = pa;
+        if (p == 0) {
+            p = (Vec3 *)game_uso_func_055750(12);
+            if (p == 0) goto sk3;
+        }
+        { p->x = vec1.x - vec2.x; p->y = 0.0f; p->z = vec1.z - vec2.z; }
+sk3:;
+        c1 = *pa;
+    }
     c2 = c1;
     scale = *(float *)(a0 + 0xD0);
     scaled.x = c2.x * scale;
@@ -7186,32 +7204,48 @@ int game_uso_func_000097EC(char *a0) {
     scaled.z = c2.z * scale;
     s1 = scaled;
     s2 = s1;
-    p = &vec4;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = s2.x;
-    p->z = s2.z;
-    p->y = 0.0f;
-    delta2.x = *(float *)(sub + 0xB4) - *(float *)(v0 + 0xB4);
-    delta2.y = *(float *)(sub + 0xB8) - *(float *)(v0 + 0xB8);
-    delta2.z = *(float *)(sub + 0xBC) - *(float *)(v0 + 0xBC);
+    p = (Vec3 *)(unsigned)&vec4;
+    if (p == 0) {
+        p = (Vec3 *)game_uso_func_055750(12);
+        if (p == 0) goto sk4;
+    }
+    { p->x = s2.x; p->z = s2.z; p->y = 0.0f; }
+sk4:;
+    w2 = *(char **)(a0 + 0x30);
+    sub2 = *(char **)(w2 + 0x908);
+    q = (float *)(w2 + 0xB4);
+    delta2.x = *(float *)(sub2 + 0xB4) - q[0];
+    delta2.y = *(float *)(sub2 + 0xB8) - q[1];
+    delta2.z = *(float *)(sub2 + 0xBC) - q[2];
+    q = (float *)(sub2 + 0xB4);
     d1 = delta2;
     d2 = d1;
-    p = &vec5;
-    if (p == 0) p = (Vec3 *)game_uso_func_055750(12);
-    p->x = d2.x;
-    p->z = d2.z;
-    p->y = 0.0f;
+    p = (Vec3 *)(unsigned)&vec5;
+    if (p == 0) {
+        p = (Vec3 *)game_uso_func_055750(12);
+        if (p == 0) goto sk5;
+    }
+    { p->x = d2.x; p->z = d2.z; p->y = 0.0f; }
+sk5:;
     mag = game_uso_func_082880(vec4.x * vec4.x + vec4.z * vec4.z);
-    if (!(0.0f < mag)) return 0;
-    cross = vec4.z * vec5.x - vec4.x * vec5.z;
-    if (cross < 0.0f) cross = -cross;
+    if (!(0.0f < mag)) goto done;
+    t1 = vec4.z * vec5.x;
+    t2 = vec4.x * vec5.z;
     dot = vec4.x * vec5.x + vec4.z * vec5.z;
-    tparam = dot / (vec4.x * vec4.x + vec4.z * vec4.z);
-    if (!(0.0f <= tparam)) return 0;
-    if (!(tparam < 1.0f)) return 0;
+    mag2b = vec4.x * vec4.x + vec4.z * vec4.z;
+    if (t1 < t2) {
+        cross = -(t1 - t2);
+    } else {
+        cross = t1 - t2;
+    }
+    tparam = dot / mag2b;
+    if (!(0.0f <= tparam)) goto done;
+    if (!(tparam < 1.0f)) goto done;
     perp = cross / mag;
-    if (!(perp < *(float *)(a0 + 0xD4))) return 0;
-    return 1;
+    if (!(perp < *(float *)(a0 + 0xD4))) goto done;
+    ret = 1;
+done:;
+    return ret;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
