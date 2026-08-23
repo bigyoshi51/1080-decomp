@@ -1928,27 +1928,39 @@ extern int D_3B80_f0, D_3B80_f1, D_3B80_f2;
  * cursor s6 vs s8 — priority-driven, encounter-order identical), +8 frame
  * (param homes at 132/136/140 vs 124/128 + spill 116), t-numbering cascade
  * from the s-web differences. Coloring-tie class.
- * 2026-08-22 agent-f probe: target default arm is `lw v0,116(sp)` = read of
- * an UNINITIALIZED local (slot never written; target also has NO sw a3 home
- * and frame 120 with frow@92, 96-112 unwritten). `int junk; max = junk;`
- * reproduces the lw-from-slot shape but costs +8 frame (junk slots at 100,
- * frame 136) -> net 89.47 < 89.7 baseline, reverted. 3-param signature moves
- * idx to $v1 (target uses $a3 scratch) and does NOT drop the frame. The
- * missing piece is getting junk INTO the existing 88-116 spill band. */
+ * 2026-08-22 agent-f: 89.7 -> 91.66.
+ *  - HELD-CTX CSE (the real lever, +2pp): `int *ctx = *(int **)&D_00000000;`
+ *    for the TWO dlp derefs in the header block — direct-symbol deref twice
+ *    was reloading `lw 0(base)` per use; target loads *base ONCE into v0 and
+ *    does both `lw 12(v0)` off it. Outer loop-body derefs stay direct-symbol
+ *    (LICM base promotion still wanted there).
+ *  - default arm `max = s6;` (uninitialized read) + s6 DECLARED FIRST puts
+ *    the junk read at frame-4 (`lw v0,124(sp)` vs target `lw v0,116(sp)`,
+ *    relative match) with NO frame growth and kills the a3 home reload.
+ *  NEGATIVES banked: `int junk;` decl (any position) = +8 frame, 89.47;
+ *  fresh `int cur` for the cursor instead of reassigning a3 = identical
+ *  91.66 (sw a3,140 home persists — &a1 escape homes the param tail);
+ *  3-param signature = 91.48 (drops sw a3 but cursor stays $a0, frame 128).
+ * REMAINING RESIDUAL: +8 frame (128 vs 120, param homes 132/136/140 vs
+ * 124/128); s-reg permutation (base s5 vs s7, a0-copy s8 vs s5, cursor s6
+ * vs s8); cursor scratch $a0 vs target $a3; switch li-hoist into compare
+ * delay slots (target keeps li's in the arms). Coloring/scheduler-tie class. */
 void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
+    int s6;
     int *s5 = a0;
     int s8 = 0;
-    int s2, s0, s3, s1, s4, s6;
+    int s2, s0, s3, s1, s4;
     int max;
     void (*frow)();
 
     if (0) { gl_func_00000000(&a1); }
     {
-        int *dlp = (int *)(*(int **)&D_00000000)[0xC / 4];
+        int *ctx = *(int **)&D_00000000;
+        int *dlp = (int *)ctx[0xC / 4];
         a3 = dlp[1];
         dlp[1] = a3 + 1;
         {
-            int *slot = (int *)(((int *)(*(int **)&D_00000000)[0xC / 4])[0]) + a3 * 2;
+            int *slot = (int *)(((int *)ctx[0xC / 4])[0]) + a3 * 2;
             slot[0] = 0xBB000001;
             slot[1] = (int)0x80008000;
         }
@@ -1957,7 +1969,7 @@ void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
     case 0:  frow = (void (*)())&D_3B80_f0; max = 4096; break;
     case 1:  frow = (void (*)())&D_3B80_f1; max = 2048; break;
     case 2:  frow = (void (*)())&D_3B80_f2; max = 1024; break;
-    default: max = a3; break;
+    default: max = s6; break;
     }
     s2 = s5[4 / 4];   /* width  */
     s0 = s5[8 / 4];   /* height */
