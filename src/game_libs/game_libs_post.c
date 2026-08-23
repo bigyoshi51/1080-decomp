@@ -18470,8 +18470,14 @@ extern s32 D_2FB74_gA, D_2FB74_gB, D_2FB74_gC, D_2FB74_gD, D_2FB74_gF;
 extern s32 D_2FB74_gG, D_2FB74_gH, D_2FB74_gI, D_2FB74_gJ, D_2FB74_gK;
 extern s32 D_2FB74_gL, D_2FB74_gN, D_2FB74_gO, D_2FB74_gP, D_2FB74_gQ;
 extern s32 D_2FB74_gS, D_2FB74_gT, D_2FB74_gV, D_2FB74_gW, D_2FB74_gX;
-extern s32 D_2FB74_cnt;                     /* abs 0x1C908 in expected */
-extern s32 D_2FB74_tgl;                     /* abs 0x1C90C in expected */
+/* abs 0x1C908/0x1C90C baked in expected (reloc-free USO). Per-site distinct
+ * extern names break address-CSE so every access is its own lui/%lo pair,
+ * matching the baked shape (imm bytes remain the documented USO-reloc residual). */
+extern s32 D_2FB74_cnt;                     /* case 39 = 0 */
+extern s32 D_2FB74_cnt2;                    /* case 34 = 0 */
+extern s32 D_2FB74_cnt3, D_2FB74_cnt3w;     /* case 32 ++ (read/write split) */
+extern s32 D_2FB74_cnt4;                    /* case 17 = 0 */
+extern s32 D_2FB74_tgl, D_2FB74_tglw;       /* case 36 read / write split */
 
 typedef struct Gl2FB74St {
     s32 w0;
@@ -18559,10 +18565,10 @@ void gl_func_0002FB74(s32 sel, s32 v) {
     case 4:
     case 8:
     case 258:
-        if (v & 0x80) {
-            b = 1;
-        } else {
+        if ((v & 0x80) == 0) {
             b = 0;
+        } else {
+            b = 1;
         }
         if (sel == 258) {
             t = D_2FB74_bank.arr[b];
@@ -18574,14 +18580,19 @@ void gl_func_0002FB74(s32 sel, s32 v) {
             D_2FB74_bank.arr[b] = t;
         }
         gl2FB74_snd(0x6000003, (s8) b);
-        if (sel == 2) {
+        switch (sel) {
+        case 258:
             c = 28;
-        } else if (sel == 4) {
-            c = 22;
-        } else if (sel == 8) {
+            break;
+        case 8:
             c = 16;
-        } else if (sel == 258) {
+            break;
+        case 4:
+            c = 22;
+            break;
+        case 2:
             c = 28;
+            break;
         }
         gl2FB74_snd(0x6020304, 50);
         gl2FB74_snd(0x6020302, (s8) (t + c));
@@ -18600,8 +18611,9 @@ void gl_func_0002FB74(s32 sel, s32 v) {
         if (b != 4) {
             return;
         }
-        sel = D_2FB74_tgl + 186;
-        D_2FB74_tgl ^= 1;
+        n = D_2FB74_tgl;
+        sel = n + 186;
+        D_2FB74_tglw = n ^ 1;
         cmd = D_2FB74_cmdsrc;
         break;
     case 39:
@@ -18630,12 +18642,17 @@ void gl_func_0002FB74(s32 sel, s32 v) {
         if (D_2FB74_gP != 4) {
             return;
         }
-        if (sel == 0 || sel == 1) {
+        switch (sel) {
+        case 0:
+        case 1:
             D_2FB74_st.w10 = 20;
-        } else if (sel == 2) {
+            break;
+        case 2:
             D_2FB74_st.w10 = 30;
-        } else if (sel == 3) {
+            break;
+        case 3:
             D_2FB74_st.w10 = 40;
+            break;
         }
         cmd = D_2FB74_cmdsrc;
         break;
@@ -18645,7 +18662,7 @@ void gl_func_0002FB74(s32 sel, s32 v) {
         } else {
             gl2FB74_snd(8, 8, 1);
         }
-        D_2FB74_cnt = 0;
+        D_2FB74_cnt2 = 0;
         n = D_2FB74_gG;
         D_2FB74_gH = 0;
         if (n != 4) {
@@ -18654,7 +18671,7 @@ void gl_func_0002FB74(s32 sel, s32 v) {
         cmd = D_2FB74_cmdsrc;
         break;
     case 32:
-        D_2FB74_cnt += 1;
+        D_2FB74_cnt3w = D_2FB74_cnt3 + 1;
         if (v != 1) {
             sel += 1;
         }
@@ -18682,7 +18699,7 @@ void gl_func_0002FB74(s32 sel, s32 v) {
             gl2FB74_snd(240, 220, 9);
         }
         gl2FB74_snd(0x6020300, 8);
-        D_2FB74_cnt = 0;
+        D_2FB74_cnt4 = 0;
         cmd = D_2FB74_cmdsrc;
         break;
     case 16:
@@ -18702,8 +18719,7 @@ void gl_func_0002FB74(s32 sel, s32 v) {
             goto L_lad6;
         }
         if (D_2FB74_g9 >= 5) {
-            c += 1;
-            goto L_lad5;
+            goto L_lad6;
         }
         gl2FB74_snd(D_2FB74_g9 + 9);
         cmd = D_2FB74_cmdsrc;
