@@ -1043,7 +1043,7 @@ void arcproc_uso_func_00001604(int *s0) {
 typedef char *(*GP_000016F4)();
 void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
     f32 sp138[4];
-    u8 spB8;
+    u8 spB8[0x80];
     s32 sp88;
     f32 *temp_a2;
     s32 temp_a1;
@@ -1077,8 +1077,8 @@ void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
         arcproc_uso_func_00001B88(temp_s2);
         temp_s0 = (int)arg0 + 0x734;
         arcproc_uso_func_00001B88(temp_s0);
-        arcproc_uso_func_00001B88(&spB8, (char *)&D_00000000 + 0x3D8, arg2);
-        temp_v0 = arcproc_uso_func_00001B88(&spB8);
+        arcproc_uso_func_00001B88(spB8, (char *)&D_00000000 + 0x3D8, arg2);
+        temp_v0 = arcproc_uso_func_00001B88(spB8);
         temp_t3 = FW(arg0, 0x744);
         temp_t1 = FW(arg0, 0x714);
         temp_t2 = FW(arg0, 0x72C);
@@ -1088,7 +1088,7 @@ void arcproc_uso_func_000016F4(char *arg0, s32 arg1, f32 *arg2) {
         temp_a1 = *(s16 *)(temp_t1 + 0x20) + temp_s2_2 + 4;
         sp88 = *(s16 *)(temp_t3 + 0x20) + temp_a1 + 8;
         arcproc_uso_func_00001B88(temp_s0, temp_a1, temp_a2, (char *)2);
-        var_s0 = &spB8;
+        var_s0 = spB8;
         if (temp_v0 > 0) {
             var_s1 = 0;
             var_s2 = sp88;
