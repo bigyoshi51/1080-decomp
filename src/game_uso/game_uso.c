@@ -9458,6 +9458,16 @@ end_ret:
 //   reuse. Two distinct vectors feed the loop's 0000B750: `world` (sp+260,
 //   raw transform2 output) and `norm` (sp+248, the obj-relative diff after
 //   071028 normalize) — m2c had collapsed them.
+// NEGATIVES 2026-08-22 (agent-h, all objdiff-gated and reverted; baseline 64.50):
+//   (1) chained struct copies `tmp = tmp2 = scaled;` + `tmp = tmp2 = diff;` w/
+//       matching 6-Vec3 decl order (target's 192->204->164 / 144->204->164
+//       interleaved lw/sw chains at 0xD0-0xF8 / 0x18C-0x1B0): frame 296->344,
+//       252->279 insns, fuzzy 58.91. IDO emits FULL copies per link; the
+//       target's chains must come from a different source form (ptr-mediated?).
+//   (2) same-variable ptr bump `temp_a2 += 0x70` (target's addiu a2,a2,112 at
+//       0x3C) with loads-before-zeros q order: 63.98; with zeros-first: 62.50.
+//       The separate temp_a2_2 + folded offsets score HIGHER despite the
+//       target's visible bump — downstream regalloc dominates the entry shape.
 #ifdef NON_MATCHING
 
 
