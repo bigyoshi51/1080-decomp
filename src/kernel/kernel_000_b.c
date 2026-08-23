@@ -152,15 +152,17 @@ INCLUDE_ASM("asm/nonmatchings/kernel", func_80003C24);
  * (3D40's tail lw t9,0x3C(sp) falls through into 3E0C's and t1,t9,at --
  * one instruction stream on 3D40's frame); func_80003E64 absorbed into
  * func_80003E54.s (3E54 ends or v0,zero,zero, no jr ra, falls through).
- * Both kept as global alabel alternative entries -- jal callers
- * (func_80006110, func_800044CC -> 3E0C; func_80003C24 -> 3E64) resolve. */
+ * Chain merge 2026-08-22 (second pass): func_80003E54 + func_80003FF0 +
+ * func_80004030 absorbed into func_80003D40.s -- one contiguous stream
+ * [0x3D40,0x44CC): 3D40 owns the ONLY full prologue (sp -0x40, ra@0x1C),
+ * every fragment branches to the shared exit .L800043D4 (lw ra,0x1C;
+ * addiu sp,sp,0x40; jr ra) and runs on 3D40's frame; 3E54/3FF0/4030 are
+ * register-convention jal entries (live-in t-regs, no prologue), kept as
+ * GLOBAL alabel alternative entries -- jal callers (44CC/4BE0/59C0/31F0/
+ * 9D10 -> 3E54; 3C24/6110/7DD0 -> 3FF0; 31F0 -> 4030) resolve. The
+ * embedded second prologue at 0x43E4 (sp -0x20) was already unnamed
+ * inside 4030.s and stays so. */
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80003D40);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003E54);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80003FF0);
-
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80004030);
 
 /* func_800044CC - kernel PI-event message dispatch (inlined send_mesg from
  * libultra exceptasm.s). Sends __osEventStateTab[OS_EVENT_PI].message to the
