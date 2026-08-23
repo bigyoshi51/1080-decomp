@@ -6597,6 +6597,7 @@ extern char bu_90cc_vt546;
 extern char bu_90cc_vt547;
 extern char bu_90cc_vt548;
 extern char bu_90cc_d207dc;
+extern char bu_90cc_vt_self;  /* self +0x28 vtable (was decoded as literal 0; expected has lui/addiu reloc pair) */
 /* vtable draw slot (+0x5C): trailing two args are single-precision f32.
  * Prototyping defeats the K&R float->double promotion so single swc1
  * arg stores emit (matches target; no cvt.d.s/sdc1). */
@@ -6766,7 +6767,7 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5
     var_s2 = arg0;
     if ((arg0 != 0) || (temp_v0_5 = func_00000000(0xA8C), var_s2 = temp_v0_5, (temp_v0_5 != 0))) {
         func_00000000(var_s2, &D_00008730);
-        *(s32 *)((char *)(var_s2) + 0x28) = 0;
+        *(s32 *)((char *)(var_s2) + 0x28) = (s32) &bu_90cc_vt_self;
         var_s0 = var_s2 + 0x3EC;
         if (((var_s2 != (void *)-0x3EC) || (temp_v0_5 = func_00000000(0x154), var_s0 = temp_v0_5, (temp_v0_5 != 0))) && ((func_00000000(var_s0, &D_00008738), *(s32 *)((char *)(var_s0) + 0x28) = (s32) &D_00008108, var_s1 = var_s0 + 0x2C, (var_s0 != (void *)-0x2C)) || (temp_v0_5 = func_00000000(0x128), var_s1 = temp_v0_5, (temp_v0_5 != 0)))) {
             var_a2 = var_s1;
@@ -7299,16 +7300,16 @@ block_148:
             if (var_t0 & 8) {
                 f32 inv = 255.0f;
                 temp_f2 = (f32) 255 / inv;
-                *(s32 *)((char *)(var_s2) + 0x8E0) = temp_f2;
-                *(s32 *)((char *)(var_s2) + 0x8E4) = temp_f2;
-                *(s32 *)((char *)(var_s2) + 0x8E8) = temp_f2;
+                *(f32 *)((char *)(var_s2) + 0x8E0) = temp_f2;
+                *(f32 *)((char *)(var_s2) + 0x8E4) = temp_f2;
+                *(f32 *)((char *)(var_s2) + 0x8E8) = temp_f2;
                 *(f32 *)((char *)(var_s2) + 0x8EC) = 117.0f / inv;
             } else {
                 f32 inv = 255.0f;
                 temp_f2_2 = (f32) 255 / inv;
-                *(s32 *)((char *)(var_s2) + 0x8E0) = temp_f2_2;
-                *(s32 *)((char *)(var_s2) + 0x8E4) = temp_f2_2;
-                *(s32 *)((char *)(var_s2) + 0x8E8) = temp_f2_2;
+                *(f32 *)((char *)(var_s2) + 0x8E0) = temp_f2_2;
+                *(f32 *)((char *)(var_s2) + 0x8E4) = temp_f2_2;
+                *(f32 *)((char *)(var_s2) + 0x8E8) = temp_f2_2;
                 *(f32 *)((char *)(var_s2) + 0x8EC) = 70.0f / inv;
                 if (*(s32 *)((char *)&D_00000000 + 0x34) != 2) {
                     var_t0 |= 0x1000;
@@ -7446,17 +7447,17 @@ block_148:
             temp_f0 = D_000008B4;
             *(s32 *)((char *)(temp_v0_5) + 0x120) = 0xFFFF;
             *(s32 *)((char *)(temp_v0_5) + 0x28) = (s32) &bu_90cc_d207dc;
-            *(s32 *)((char *)(temp_v0_5) + 0x108) = temp_f0;
-            *(s32 *)((char *)(temp_v0_5) + 0x10C) = temp_f0;
-            *(s32 *)((char *)(temp_v0_5) + 0x110) = temp_f0;
-            *(s32 *)((char *)(temp_v0_5) + 0x124) = 1.0f;
+            *(f32 *)((char *)(temp_v0_5) + 0x108) = temp_f0;
+            *(f32 *)((char *)(temp_v0_5) + 0x10C) = temp_f0;
+            *(f32 *)((char *)(temp_v0_5) + 0x110) = temp_f0;
+            *(f32 *)((char *)(temp_v0_5) + 0x124) = 1.0f;
         }
         *(s32 *)((char *)(var_s2) + 0x850) = temp_v0_5;
         func_00000000(var_s2, temp_v0_5);
         temp_s0_4 = *(s32 *)((char *)(var_s2) + 0x850);
-        *(s32 *)((char *)(temp_s0_4) + 0xB4) = 0.0f;
-        *(s32 *)((char *)(temp_s0_4) + 0xBC) = 0.0f;
-        *(s32 *)((char *)(temp_s0_4) + 0xB8) = 100.0f;
+        *(f32 *)((char *)(temp_s0_4) + 0xB4) = 0.0f;
+        *(f32 *)((char *)(temp_s0_4) + 0xBC) = 0.0f;
+        *(f32 *)((char *)(temp_s0_4) + 0xB8) = 100.0f;
         *(s32 *)((char *)(var_s2) + 0x840) = func_00000000(0, *(s32 *)((char *)&D_00000000 + 0), var_s2);
         func_00000000();
         *(s32 *)((char *)(var_s2) + 0x800) = arg4;
