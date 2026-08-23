@@ -26112,7 +26112,11 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054D04);
 /* 2026-08-22 agent-g rework: direct K&R jal (no fn-ptr cast), two=(f32)2
  * INT-cast literal keeps mul.s-by-2.0 (D9E4/329C lever, defeats x+x fold),
  * 12-byte Vec3 struct-assign chain sp50->sp64->sp2C = integer lw/sw copy
- * blocks, member float copies to sp88/8C/90. */
+ * blocks, member float copies to sp88/8C/90.
+ * NEGATIVE (2026-08-22 probe): assignment-pin `(t = two) * (prod)` on all 9
+ * row muls does NOT flip mul.s fs-operand order (still fs=prod, ft=two) and
+ * costs +8 frame (t homed at a real slot, 0xA0 vs 0x98) — cfe deref-chain
+ * rank reorders past the assignment temp. Lever dead for this shape. */
 typedef struct { f32 x, y, z; } V3_54E78;
 typedef struct { V3_54E78 v; s32 pad[6]; } V3P24_54E78;
 typedef struct { s32 pad0; V3_54E78 v; s32 pad[6]; } V3LP_54E78;
