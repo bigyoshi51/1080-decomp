@@ -1720,160 +1720,148 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
 #endif
 
 #ifdef NON_MATCHING
-/* gui_func_00003714: 256-insn / 0x400 RDP DL builder, same D_GUI_CTX family as
- * gui_func_0000329C. Double-deref base = *(int*)g; cursor q = *(base+0xC); bump
- * q[1]; emit at *q + n*8. Reconstructed from expected m2c (2026-06-22): true
- * double-deref + `/two` named divisor (forces div.s 2.0f, target form) +
- * per-block base capture -> 64.5% -> 68.5% fuzzy. Residual is a register-
- * coloring / &D-rematerialization cap (target holds &D in t4 across blocks
- * 3-4; IDO here rematerializes lui/addiu) + frame -88 vs -96 + sp30 sh-vs-sw
- * home. Default INCLUDE_ASM keeps ROM byte-exact. */
+/* gui_func_00003714: f-scroll sibling of gui_func_0000329C, rebuilt 2026-08-22
+ * in the 2DE0 kit shape 68.5 -> 83.0. Levers: volatile-deref held base (t4 web
+ * + post-call remat, matches ALL packet loads incl. final); two = (f32)2
+ * INT-CAST literal keeps div.s-by-2.0f (plain 2.0f local folds to *0.5f here —
+ * no goto-join like 2DE0 to shield it); if(1){ lrx=u; lrx<<=0x12; } pins the
+ * split sll-18 early with sra-16 sunk to the join (target splits them across
+ * the x-clamp BB); reused webs slot1=packet1+`(s16)(by<<2)`+y-multu,
+ * slot2=structptr+packet2+dsdx, w=x0t+clamp-lo+final slot, lrx=+y-result,
+ * u=bx/by<<2/dtdy; frame -96 EXACT. Residual: t-var a1-vs-t0 coloring (target
+ * reuses homed arg1's reg for the gctx/clamp web), bx a3-vs-a2 cascade, sp30
+ * home 48-vs-52, beq-to-next then-arm artifacts. */
 void gui_func_00003714(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5, f32 arg6) {
-    char *g = (char *)&D_00000000;
-    f32 two = 2.0f;
+    char * volatile *dp = (char * volatile *)&D_00000000;
+    char *t;    /* $a1: gctx / x-clamp accumulator */
+    s32 dl;     /* $v0: dlring / (s16)dsdx */
+    s32 idx;    /* $v1: idx / by / (s16)dtdy */
+    s32 slot1;  /* $t0: packet1 slot / (s16)(by<<2) */
+    s32 slot2;  /* $t1: mode struct ptr / packet2 slot / dsdx */
+    s32 slot3;  /* $t2: B4 slot */
+    s32 w;      /* $a0: x test / clamp lo / mult tmp / final slot */
+    s32 lrx;    /* $a2: (s16)(bx<<2) / y result */
+    s32 u;      /* $a3: bx / by<<2 raw / dtdy */
     s32 sp30;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f12;
-    f32 temp_f14;
-    s16 temp_a1;
-    s16 temp_a1_2;
-    s16 temp_t0_2;
-    s16 temp_t3;
-    s16 temp_v1_3;
-    s16 var_a0;
-    s16 var_a0_2;
-    s16 var_a3;
-    s16 var_a3_2;
-    s32 temp_f10;
-    s32 temp_f10_2;
-    s32 temp_v0_4;
-    s32 temp_v0_5;
-    s32 temp_v0_6;
-    s32 temp_v0_7;
-    s32 temp_v1;
-    s32 temp_v1_2;
-    s32 temp_v1_4;
-    s32 temp_v1_5;
-    s32 var_a1;
-    s32 var_a2;
-    s32 var_a3_3;
-    s32 var_t4;
-    char *temp_t0;
-    char *temp_t1;
-    char *temp_t1_2;
-    char *temp_t1_3;
-    char *temp_t1_4;
-    char *temp_v0;
-    char *temp_v0_2;
-    char *temp_v0_3;
-    char *temp_v0_8;
-    char *temp_s0;
-    char *temp_s0_2;
-    char *temp_s0_3;
-    char *temp_s0_4;
+    f32 fv;     /* $f0: (f32)arg4 then (f32)sp30 */
+    f32 ws;     /* $f12 */
+    f32 hs;     /* $f14 */
+    f32 two;    /* $f16 */
 
-    temp_s0 = (*(s32 *)g);
-    temp_v0 = (*(s32 *)(temp_s0 + 0xC));
-    temp_v1 = (*(s32 *)(temp_v0 + 0x4));
-    (*(s32 *)(temp_v0 + 0x4)) = (s32) (temp_v1 + 1);
-    temp_t1 = (*(s32 *)((char *)(*(s32 *)(temp_s0 + 0xC)) + 0x0)) + (temp_v1 * 8);
-    (*(s32 *)(temp_t1 + 0x0)) = 0xBB000001;
-    (*(s32 *)(temp_t1 + 0x4)) = 0x80008000;
-    temp_t0 = (*(s32 *)(arg0 + 0x10));
-    temp_t3 = (*(s16 *)(temp_t0 + 0x22));
-    sp30 = (s32) temp_t3;
-    gui_func_00000000((*(s32 *)g), (*(s32 *)(temp_t0 + 0x8)), (*(s16 *)(temp_t0 + 0x20)), temp_t3, arg3, 0, arg4, (s32) temp_t3, 0);
-    temp_s0_2 = (*(s32 *)g);
-    temp_v0_2 = (*(s32 *)(temp_s0_2 + 0xC));
-    temp_f0 = (f32) arg4;
-    temp_v1_2 = (*(s32 *)(temp_v0_2 + 0x4));
-    temp_f12 = temp_f0 * arg5;
-    (*(s32 *)(temp_v0_2 + 0x4)) = (s32) (temp_v1_2 + 1);
-    temp_t1_2 = (*(s32 *)((char *)(*(s32 *)(temp_s0_2 + 0xC)) + 0x0)) + (temp_v1_2 * 8);
-    var_a3 = 0;
-    temp_f10 = (s32) ((f32) arg1 + (-(temp_f0 / two) * arg5));
-    temp_a1 = ((s32) temp_f12 + temp_f10) * 4;
-    if (temp_a1 > 0) {
-        var_a3 = temp_a1;
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot1 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)slot1 = 0xBB000001;
+    *(s32 *)(slot1 + 4) = 0x80008000;
+
+    slot2 = *(s32 *)(arg0 + 0x10);
+    sp30 = *(s16 *)(slot2 + 0x22);
+    gui_func_00000000(*dp, *(s32 *)(slot2 + 8), *(s16 *)(slot2 + 0x20), sp30, arg3, 0, arg4, sp30, 0);
+
+    two = (f32)2;
+    fv = (f32)arg4;
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot2 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+
+    t = 0;
+    u = (s32)((f32)arg1 + (-(fv / two) * arg5));
+    ws = fv * arg5;
+    if (1) { lrx = u; lrx = lrx << 0x12; }
+    w = (s16)((u + (s32)ws) << 2);
+    if (w > 0) {
+        t = (char *)w;
     }
-    temp_f0_2 = (f32) temp_t3;
-    temp_f14 = temp_f0_2 * arg6;
-    temp_a1_2 = temp_f10 * 4;
-    var_a0 = 0;
-    var_a3_2 = 0;
-    temp_f10_2 = (s32) ((f32) arg2 + (-(temp_f0_2 / two) * arg6));
-    temp_v1_3 = ((s32) temp_f14 + temp_f10_2) * 4;
-    if (temp_v1_3 > 0) {
-        var_a0 = temp_v1_3;
+    lrx = lrx >> 0x10;
+    fv = (f32)sp30;
+    idx = (s32)((f32)arg2 + (-(fv / two) * arg6));
+    hs = fv * arg6;
+    w = 0;
+    dl = (s16)((idx + (s32)hs) << 2);
+    u = idx << 2;
+    if (dl > 0) {
+        w = dl;
     }
-    temp_t0_2 = temp_f10_2 * 4;
-    (*(s32 *)(temp_t1_2 + 0x0)) = (s32) (((var_a3 & 0xFFF) << 0xC) | 0xE4000000 | (var_a0 & 0xFFF));
-    if (temp_a1_2 > 0) {
-        var_a3_2 = temp_a1_2;
+    *(s32 *)slot2 = ((((s32)t & 0xFFF) << 0xC) | 0xE4000000) | (w & 0xFFF);
+    t = 0;
+    if (lrx > 0) {
+        t = (char *)lrx;
     }
-    if (temp_t0_2 > 0) {
-        var_a0_2 = temp_t0_2;
+    slot1 = (s16)u;
+    if (slot1 > 0) {
+        w = slot1;
     } else {
-        var_a0_2 = 0;
+        w = 0;
     }
-    (*(s32 *)(temp_t1_2 + 0x4)) = (s32) (((var_a3_2 & 0xFFF) << 0xC) | (var_a0_2 & 0xFFF));
-    temp_s0_3 = (*(s32 *)g);
-    temp_v0_3 = (*(s32 *)(temp_s0_3 + 0xC));
-    temp_v1_4 = (*(s32 *)(temp_v0_3 + 0x4));
-    (*(s32 *)(temp_v0_3 + 0x4)) = (s32) (temp_v1_4 + 1);
-    temp_t1_3 = (*(s32 *)((char *)(*(s32 *)(temp_s0_3 + 0xC)) + 0x0)) + (temp_v1_4 * 8);
-    (*(s32 *)(temp_t1_3 + 0x0)) = 0xB4000000;
-    if (temp_a1_2 < 0) {
-        var_t4 = (s32) (((f32) (arg4 - 1) * 1024.0f) / temp_f12);
-        if ((s16) var_t4 < 0) {
-            temp_v0_4 = (s32) ((s16) var_t4 * temp_a1_2) >> 7;
-            if (temp_v0_4 > 0) {
-                var_a1 = temp_v0_4;
+    *(s32 *)(slot2 + 4) = (((s32)t & 0xFFF) << 0xC) | (w & 0xFFF);
+
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot3 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)slot3 = 0xB4000000;
+    if (lrx < 0) {
+        slot2 = (s32)(((f32)(arg4 - 1) * 1024.0f) / ws);
+        dl = (s16)slot2;
+        if (dl < 0) {
+            w = ((s32)((u32)lrx * (u32)dl)) >> 7;
+            idx = 0;
+            if (w > 0) {
+                t = (char *)w;
             } else {
-                var_a1 = 0;
+                t = (char *)idx;
             }
         } else {
-            temp_v0_5 = (s32) ((s16) var_t4 * temp_a1_2) >> 7;
-            if (temp_v0_5 < 0) {
-                var_a1 = temp_v0_5;
-            } else {
-                var_a1 = 0;
+            w = ((s32)((u32)lrx * (u32)dl)) >> 7;
+            dl = 0;
+            if (w < 0) {
+                dl = w;
             }
+            w = dl;
+            t = (char *)w;
         }
     } else {
-        var_a1 = 0;
-        var_t4 = (s32) (((f32) (arg4 - 1) * 1024.0f) / temp_f12);
+        t = 0;
+        slot2 = (s32)(((f32)(arg4 - 1) * 1024.0f) / ws);
     }
-    if (temp_t0_2 < 0) {
-        var_a3_3 = (s32) (((f32) (temp_t3 - 1) * 1024.0f) / temp_f14);
-        if ((s16) var_a3_3 < 0) {
-            temp_v0_6 = (s32) ((s16) var_a3_3 * temp_t0_2) >> 7;
-            if (temp_v0_6 > 0) {
-                var_a2 = temp_v0_6;
+    if (u < 0) {
+        u = (s32)(((f32)(sp30 - 1) * 1024.0f) / hs);
+        idx = (s16)u;
+        if (idx < 0) {
+            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
+            idx = 0;
+            if (dl > 0) {
+                lrx = dl;
             } else {
-                var_a2 = 0;
+                lrx = idx;
             }
         } else {
-            temp_v0_7 = (s32) ((s16) var_a3_3 * temp_t0_2) >> 7;
-            if (temp_v0_7 < 0) {
-                var_a2 = temp_v0_7;
-            } else {
-                var_a2 = 0;
+            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
+            idx = 0;
+            if (dl < 0) {
+                idx = dl;
             }
+            dl = idx;
+            lrx = dl;
         }
     } else {
-        var_a2 = 0;
-        var_a3_3 = (s32) (((f32) (temp_t3 - 1) * 1024.0f) / temp_f14);
+        lrx = 0;
+        u = (s32)(((f32)(sp30 - 1) * 1024.0f) / hs);
     }
-    (*(s32 *)(temp_t1_3 + 0x4)) = (s32) ((var_a1 * -0x10000) | (-var_a2 & 0xFFFF));
-    temp_s0_4 = (*(s32 *)g);
-    temp_v0_8 = (*(s32 *)(temp_s0_4 + 0xC));
-    temp_v1_5 = (*(s32 *)(temp_v0_8 + 0x4));
-    temp_t1_4 = (*(s32 *)((char *)(*(s32 *)(temp_s0_4 + 0xC)) + 0x0)) + (temp_v1_5 * 8);
-    (*(s32 *)(temp_v0_8 + 0x4)) = (s32) (temp_v1_5 + 1);
-    (*(s32 *)(temp_t1_4 + 0x0)) = 0xB3000000;
-    (*(s32 *)(temp_t1_4 + 0x4)) = (s32) ((var_t4 << 0x10) | (var_a3_3 & 0xFFFF));
+    *(s32 *)(slot3 + 4) = ((-(s32)t) << 0x10) | ((-lrx) & 0xFFFF);
+
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    w = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)w = 0xB3000000;
+    *(s32 *)(w + 4) = (slot2 << 0x10) | (u & 0xFFFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003714);
