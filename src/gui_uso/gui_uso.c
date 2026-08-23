@@ -2065,22 +2065,35 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00003B80);
 // 0xFD18/0xF518/0x07020080/0x20080 + a *2 in the SetTile size calc). 7 command
 // packets via the cursor idiom. NOTE: the function .s has 3 leading nops
 // (0x3F18..0x3F20) that C cannot emit, so the body aligns but the head won't.
+// 2026-08-22 65.3->83.9 levers: (1) unused int* locals ap5=&arg5/ap9=&arg9
+// force per-packet stack reloads of arg5/arg9 (target reloads, plain params
+// get CSE-held in regs); (2) hoist m=(a2-1)&0xFFF before the ring bump
+// (packet-1 head now byte-exact); (3) reuse params a3/a2/a1 for the
+// arg5+arg7 / arg6 / arg6+arg8 webs. Residual: slot-ptr web coalesces to
+// one a3-colored web (target alternates t2/t3/a3 per packet) which evicts
+// a3-web to t1 + write-through at 12(sp); block-scoped or multi-var slot
+// pointers renumber ALL temps and regress (tested 8/135 vs 31/135) —
+// per-packet-web coloring with a3v priority is the remaining coloring cap.
 void gui_uso_func_00003F18(char *a0, int a1, int a2, int a3, int arg5,
                            int arg6, int arg7, int arg8, int arg9) {
     struct GfxRing_413C *r;
     int i;
     int *p;
-    int t0, a3v, a1v, t1, t3;
+    int t0, t1, t3, m;
+    int *ap5 = &arg5;
+    int *ap9 = &arg9;
 
-    r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
+    r = *(struct GfxRing_413C **)(a0 + 0xC);
+    m = (a2 - 1) & 0xFFF;
+    i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    p[0] = 0xFD180000 | ((a2 - 1) & 0xFFF);
+    p[0] = 0xFD180000 | m;
     p[1] = a1;
 
     r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
-    a3v = arg5 + arg7;
-    t0 = a3v - arg5;
+    a3 = arg5 + arg7;
+    t0 = a3 - arg5;
     t1 = ((((t0 * 2 + 7) >> 3) & 0x1FF) << 9) | 0xF5180000 | ((arg9 << 8) & 0x1FF);
     p[0] = t1;
     p[1] = 0x07020080;
@@ -2094,8 +2107,8 @@ void gui_uso_func_00003F18(char *a0, int a1, int a2, int a3, int arg5,
     r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xF4000000 | ((((arg5 << 2) & 0xFFF) << 0xC)) | ((a2 << 2) & 0xFFF);
-    a1v = a2 + arg8;
-    p[1] = 0x07000000 | ((((a3v - 1) << 2) & 0xFFF) << 0xC) | (((a1v - 1) << 2) & 0xFFF);
+    a1 = a2 + arg8;
+    p[1] = 0x07000000 | ((((a3 - 1) << 2) & 0xFFF) << 0xC) | (((a1 - 1) << 2) & 0xFFF);
 
     r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
@@ -2111,7 +2124,7 @@ void gui_uso_func_00003F18(char *a0, int a1, int a2, int a3, int arg5,
     r = *(struct GfxRing_413C **)(a0 + 0xC); i = r->idx; r->idx = i + 1;
     p = (*(struct GfxRing_413C **)(a0 + 0xC))->buf + i * 2;
     p[0] = 0xF2000000;
-    p[1] = t3 | ((((t0 - 1) << 2) & 0xFFF) << 0xC) | ((((a1v - a2) - 1) << 2) & 0xFFF);
+    p[1] = t3 | ((((t0 - 1) << 2) & 0xFFF) << 0xC) | ((((a1 - a2) - 1) << 2) & 0xFFF);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_uso_func_00003F18);
