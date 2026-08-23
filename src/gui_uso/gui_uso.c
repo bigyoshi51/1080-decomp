@@ -1574,134 +1574,146 @@ INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00002DE0);
  * can't score this (USO-relocatable raw-.word target). Default INCLUDE_ASM
  * keeps ROM byte-exact. */
 void gui_func_0000329C(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    char *g = (char *)&D_00000000;
-    char *base;
-    char *dl;
-    char *slot;
-    s32 idx;
+    char * volatile *dp = (char * volatile *)&D_00000000;
+    char *t;    /* $s0: gctx / mode / clamp accumulator */
+    s32 dl;     /* $v0: dlring / (s16)dsdx tmp */
+    s32 idx;    /* $v1: idx / (s16)dtdy tmp */
+    s32 slot1;  /* $a3: (s16)(by<<2) */
+    s32 slot2;  /* $t0: packet1+2 slot / dsdx */
+    s32 slot3;  /* $t1: B4 slot */
+    s32 w;      /* $t2: mode struct ptr / clamp var */
+    s32 lrx;    /* $a1: (s16)(bx<<2) / y result */
+    s32 u;      /* $a2: bx / by<<2 raw / dtdy */
+    s32 x0t;    /* $a0: x test / mult tmp / final packet slot */
     s32 sp3C;
     s32 sp38;
-    char *t2;
-    s32 mode;
-    f32 fW;
-    f32 fH;
-    s32 bx;
-    s32 by;
-    s16 x0;
-    s16 y0;
-    s16 x1;
-    s16 y1;
-    s32 dsdx;
-    s32 dtdy;
-    s32 tmp;
+    f32 ws;     /* $f0: (f32)(arg3-arg1) */
+    f32 hs;     /* $f2: (f32)(arg4-arg2) */
 
-    base = (*(char **)g);
-    dl = (*(char **)(base + 0xC));
-    idx = (*(s32 *)(dl + 0x4));
-    (*(s32 *)(dl + 0x4)) = idx + 1;
-    slot = (char *)((*(s32 *)((*(char **)(base + 0xC)) + 0x0)) + idx * 8);
-    (*(s32 *)(slot + 0x0)) = 0xBB000001;
-    (*(s32 *)(slot + 0x4)) = 0x80008000;
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot2 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)slot2 = 0xBB000001;
+    *(s32 *)(slot2 + 4) = 0x80008000;
 
-    t2 = (*(char **)(arg0 + 0x10));
-    sp3C = (*(s16 *)(t2 + 0x20));
-    sp38 = (*(s16 *)(t2 + 0x22));
-    mode = (*(s32 *)(t2 + 0x24));
-    switch (mode) {
-    case 0x408:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        break;
-    case 0x120:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        break;
-    case 0x110:
-        gui_func_00000000((*(s32 *)g), (*(s32 *)(t2 + 0x8)), sp3C, sp38, 0, 0, sp3C, sp38, 0);
-        break;
+    w = *(s32 *)(arg0 + 0x10);
+    sp3C = *(s16 *)(w + 0x20);
+    sp38 = *(s16 *)(w + 0x22);
+    t = *(char **)(w + 0x24);
+    if ((s32)t == 0x408) goto case_a;
+    if ((s32)t == 0x120) goto case_b;
+    if ((s32)t == 0x110) goto case_c;
+    goto merge;
+case_a:
+    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+    goto merge;
+case_b:
+    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+    goto merge;
+case_c:
+    gui_func_00000000(*dp, *(s32 *)(w + 8), sp3C, sp38, 0, 0, sp3C, sp38, 0);
+merge:
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot2 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+
+    w = 0;
+    t = 0;
+    u = (s32)(f32)arg1;
+    ws = (f32)(arg3 - arg1);
+    lrx = u;
+    lrx = (s16)(lrx << 2);
+    x0t = (s16)((u + (s32)ws) << 2);
+    if (x0t > 0) {
+        t = (char *)x0t;
     }
-    base = (*(char **)g);
-    y0 = 0;
-    dl = (*(char **)(base + 0xC));
-    idx = (*(s32 *)(dl + 0x4));
-    (*(s32 *)(dl + 0x4)) = idx + 1;
-    slot = (char *)((*(s32 *)((*(char **)(base + 0xC)) + 0x0)) + idx * 8);
-    fW = (f32) (arg3 - arg1);
-    x0 = 0;
-    bx = (s32) (f32) arg1;
-    fH = (f32) (arg4 - arg2);
-    if ((s16) ((bx + (s32) fW) * 4) > 0) {
-        x0 = (bx + (s32) fW) * 4;
+    idx = (s32)(f32)arg2;
+    hs = (f32)(arg4 - arg2);
+    dl = (s16)((idx + (s32)hs) << 2);
+    u = idx << 2;
+    if (dl > 0) {
+        w = dl;
     }
-    by = (s32) (f32) arg2;
-    x1 = 0;
-    if ((s16) ((by + (s32) fH) * 4) > 0) {
-        y0 = (by + (s32) fH) * 4;
+    *(s32 *)slot2 = ((((s32)t & 0xFFF) << 0xC) | 0xE4000000) | (w & 0xFFF);
+    t = 0;
+    if (lrx > 0) {
+        t = (char *)lrx;
     }
-    (*(s32 *)(slot + 0x0)) = (s32) (((x0 & 0xFFF) << 0xC) | 0xE4000000 | (y0 & 0xFFF));
-    if ((s16) (bx * 4) > 0) {
-        x1 = bx * 4;
-    }
-    if ((s16) (by * 4) > 0) {
-        y1 = by * 4;
+    slot1 = (s16)u;
+    if (slot1 > 0) {
+        w = slot1;
     } else {
-        y1 = 0;
+        w = 0;
     }
-    (*(s32 *)(slot + 0x4)) = (s32) (((x1 & 0xFFF) << 0xC) | (y1 & 0xFFF));
-    base = (*(char **)g);
-    dl = (*(char **)(base + 0xC));
-    idx = (*(s32 *)(dl + 0x4));
-    (*(s32 *)(dl + 0x4)) = idx + 1;
-    slot = (char *)((*(s32 *)((*(char **)(base + 0xC)) + 0x0)) + idx * 8);
-    (*(s32 *)(slot + 0x0)) = 0xB4000000;
-    if ((s16) (bx * 4) < 0) {
-        dsdx = (s32) (((f32) (sp3C - 1) * 1024.0f) / fW);
-        if ((s16) dsdx < 0) {
-            tmp = (s32) ((s16) (bx * 4) * (s16) dsdx) >> 7;
-            if (tmp > 0) {
-                x0 = tmp;
+    *(s32 *)(slot2 + 4) = (((s32)t & 0xFFF) << 0xC) | (w & 0xFFF);
+
+    t = *dp;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    slot3 = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)slot3 = 0xB4000000;
+    if (lrx < 0) {
+        slot2 = (s32)(((f32)(sp3C - 1) * 1024.0f) / ws);
+        dl = (s16)slot2;
+        if (dl < 0) {
+            x0t = ((s32)((u32)lrx * (u32)dl)) >> 7;
+            idx = 0;
+            if (x0t > 0) {
+                t = (char *)x0t;
             } else {
-                x0 = 0;
+                t = (char *)idx;
             }
         } else {
-            y0 = 0;
-            tmp = (s32) ((s16) (bx * 4) * (s16) dsdx) >> 7;
-            if (tmp < 0) {
-                y0 = tmp;
+            x0t = ((s32)((u32)lrx * (u32)dl)) >> 7;
+            dl = 0;
+            if (x0t < 0) {
+                dl = x0t;
             }
-            x0 = y0;
+            w = dl;
+            t = (char *)w;
         }
     } else {
-        x0 = 0;
-        dsdx = (s32) (((f32) (sp3C - 1) * 1024.0f) / fW);
+        t = 0;
+        slot2 = (s32)(((f32)(sp3C - 1) * 1024.0f) / ws);
     }
-    if ((s16) (by * 4) < 0) {
-        dtdy = (s32) (((f32) (sp38 - 1) * 1024.0f) / fH);
-        if ((s16) dtdy < 0) {
-            tmp = (s32) ((s16) (by * 4) * (s16) dtdy) >> 7;
-            if (tmp > 0) {
-                y1 = tmp;
+    if (u < 0) {
+        u = (s32)(((f32)(sp38 - 1) * 1024.0f) / hs);
+        idx = (s16)u;
+        if (idx < 0) {
+            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
+            idx = 0;
+            if (dl > 0) {
+                lrx = dl;
             } else {
-                y1 = 0;
+                lrx = idx;
             }
         } else {
-            x1 = 0;
-            tmp = (s32) ((s16) (by * 4) * (s16) dtdy) >> 7;
-            if (tmp < 0) {
-                x1 = tmp;
+            dl = ((s32)((u32)slot1 * (u32)idx)) >> 7;
+            idx = 0;
+            if (dl < 0) {
+                idx = dl;
             }
-            y1 = x1;
+            dl = idx;
+            lrx = dl;
         }
     } else {
-        y1 = 0;
-        dtdy = (s32) (((f32) (sp38 - 1) * 1024.0f) / fH);
+        lrx = 0;
+        u = (s32)(((f32)(sp38 - 1) * 1024.0f) / hs);
     }
-    (*(s32 *)(slot + 0x4)) = (s32) ((x0 * -0x10000) | (-y1 & 0xFFFF));
-    base = (*(char **)g);
-    dl = (*(char **)(base + 0xC));
-    idx = (*(s32 *)(dl + 0x4));
-    (*(s32 *)(dl + 0x4)) = idx + 1;
-    slot = (char *)((*(s32 *)((*(char **)(base + 0xC)) + 0x0)) + idx * 8);
-    (*(s32 *)(slot + 0x4)) = (s32) ((dsdx << 0x10) | (dtdy & 0xFFFF));
-    (*(s32 *)(slot + 0x0)) = 0xB3000000;
+    *(s32 *)(slot3 + 4) = ((-(s32)t) << 0x10) | ((-lrx) & 0xFFFF);
+
+    t = *(char **)&D_00000000;
+    dl = *(s32 *)(t + 0xC);
+    idx = *(s32 *)(dl + 4);
+    *(s32 *)(dl + 4) = idx + 1;
+    x0t = *(s32 *)(*(s32 *)(t + 0xC)) + idx * 8;
+    *(s32 *)(x0t + 4) = (slot2 << 0x10) | (u & 0xFFFF);
+    *(s32 *)x0t = 0xB3000000;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_0000329C);
