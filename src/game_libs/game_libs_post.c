@@ -18443,440 +18443,365 @@ int gl_func_0002FB54(int a0) {
 //   Name pre-checked: no extern reuse (only "externalized" word
 //   matches in cross-ref comments).
 #ifdef NON_MATCHING
-/* PASS-2 2026-06-10 (big-swing): FULL m2c graft. TWO jumptables
- * synthesized with near-complete head coverage (21-bound/22 heads,
- * 49-bound/40 heads -- mostly distinct case bodies; order approximate
- * pending loader-RE table extraction). */
-void gl_func_0002FB74(s32 arg0, s32 arg1) {
-    s32 sp24;                                       /* compiler-managed */
-    s32 sp1C;
-    s32 *var_t0;
-    s32 temp_t6;
-    s32 temp_v0;
-    s32 temp_v0_2;
-    s32 temp_v0_3;
-    s32 temp_v0_4;
-    s32 temp_v0_5;
-    s32 temp_v1;
-    s32 var_a0;
-    s32 var_a1;
-    s32 var_a2_2;
-    s32 var_a3;
-    s32 var_t0_2;
-    s32 var_t4;
-    s32 var_t5;
-    s32 var_t7;
-    s32 var_t9;
-    s32 var_v0;
-    s32 var_v1;
-    s32 var_v1_2;
-    s32 var_v1_3;
-    s32 var_v1_4;
-    s8 var_a2;
-    u32 temp_t5;
-    u32 temp_t7;
+/* PASS-3 2026-08-23 (agent-g): WHOLESALE REDECODE from expected .o @0x13164
+ * (0x990), reloc-free-expected class (2BB7C/2C7A4/2AD1C/30AF4 family). The
+ * old "69 lwc1 FP interpreter / two ~50-case synthesized jumptables" analysis
+ * was invented (zero lwc1 in ground truth). Real decode: an EVENT->SOUND
+ * command dispatcher (sel, v). TWO REAL switches: (1) a 21-entry table
+ * (sel 19..39, 5 return labels) gated on st.w10; (2) the main switch with a
+ * 49-entry dense cluster [2..50] + 10 sparse values (160/256/258/260/309/
+ * 405/512/523/934/1190) lowered as slti-pivot tree (310/257/161/51). The
+ * 49th table entry (case 50 -> the orphan 0x894 block, 42428(14,30,2000,
+ * 0.7f-bits)) has no reloc in the USO RoDataReloc run -- recovered from the
+ * raw rodata word 0x44A74. cmd (v0 web) starts 10 (st.w4 = cmd), real cases
+ * end cmd = D_2FB74_cmdsrc, empty in-range values are table DEFAULT entries
+ * (+0x94C), tail remaps sel 14/21 -> 52 only when cmd == 0. c (a2 web, init
+ * 0 in the prologue delay) is the shared case-2 bias / case-13..15 ladder
+ * counter with case-16 gotos into the ladder and case 1190 entering at the
+ * emit point. */
+extern void gl2FB74_snd();                  /* USO-relocated submit (jal 0) */
+void gl_func_00030504(int a0);              /* fixed tail call (0x44B70) */
+void game_libs_func_0002DD38(int a0);       /* fixed call (0x423A4), case 512 */
 
-    var_a0 = arg0;
-    var_a1 = arg1;
-    var_v0 = 0x13;
-    var_a3 = var_a1;
-    var_a2 = 0;
-    if ((var_a0 == 0x13) && (*(s32 *)((char *)&D_00000000 + 0) == 1) && (var_a1 == 8)) {
-        *(s32 *)((char *)&D_00000000 + 0x18) = 0x7F;
-    }
-    var_t0 = 0;
-    var_t9 = *(s32 *)((char *)&D_00000000 + 0x10);
-    if ((var_t9 != 0) && (var_t4 = arg0, temp_t5 = var_t4 - 0x13, ((temp_t5 < 0x15U) != 0))) {
-        var_t5 = (s32)temp_t5; /* jtbl_0 read collapsed */
-        switch (var_t4) {                           /* switch 1 */
-        case 21:                                    /* switch 1 */
-            var_t5 = arg0;
-            if (var_t4 >= 0xA1) {
-                var_a0 = 0x06020000;
-                if (var_t4 != 0x100) {
-                    goto block_140;
-                }
-                goto block_116;
-                goto block_141;
-            }
-        case 22:                                    /* switch 1 */
-            if (var_t5 >= 0x33) {
-                var_v0 = 0;
-                if (var_t5 != 0xA0) {
-                    goto block_140;
-                }
-                goto block_137;
-                goto block_141;
-            }
-        case 23:                                    /* switch 1 */
-            temp_t7 = 0 /* M2C unset $t6 */ - 2;
-            if (temp_t7 < 0x31U) {
-                var_t7 = (s32)temp_t7; /* jtbl_1 read collapsed */
-                switch (0 /* M2C unset $t6 */) { /* switch 4 */
-                case 2:                             /* switch 4 */
-                    if ((var_a3 == 5) && (*(s32 *)8 == 0)) {
-                        func_00000000(3, 0, var_a3);
-                        *(s32 *)((char *)&D_00000000 + 8) = 0x12C;
-                    }
-                    var_v0 = 0;
-                    if (var_a3 < 4) {
-                        arg0 = 0x2D;
-                    }
-                    goto block_141;
-                case 24:                            /* switch 1 */
-                case 3:                             /* switch 4 */
-                    if (var_a3 < 2) {
-                        func_00000000(2, 0, var_a3);
-                    } else {
-                    case 25:                        /* switch 1 */
-                    case 4:                         /* switch 4 */
-                        func_00000000(1, 0, var_a3);
-                    }
-                    *(s32 *)((char *)&D_00000000 + 0x10) = 0x28;
-                    var_v0 = 0;
-                    goto block_141;
-                case 26:                            /* switch 1 */
-                case 5:                             /* switch 4 */
-                    temp_v0 = *(s32 *)((char *)&D_00000000 + 0);
-                    if ((temp_v0 == 1) || (temp_v0 == 2) || (var_a1 = 0x32, (temp_v0 == 4))) {
-                        func_00000000(0x06020301, (s8) (var_a3 + 0x2A), 0, var_a3);
-                    } else {
-                    case 27:                        /* switch 1 */
-                    case 6:                         /* switch 4 */
-                        func_00000000(0x06020301, var_a1, 0, var_a3);
-                    }
-                    var_v0 = 0;
-                    goto block_141;
-                case 34:                            /* switch 1 */
-                case 13:                            /* switch 4 */
-                    var_v1 = *(s32 *)((char *)&D_00000000 + 0);
-                    *(s32 *)((char *)&D_00000000 + 0) = 0x20;
-                    if (var_v1 == 4) {
-                        temp_v0_2 = *(s32 *)((char *)&D_00000000 + 0);
-                        if ((temp_v0_2 == 1) || (temp_v0_2 == 0) || (temp_v0_2 == 8) || (*(s32 *)((char *)&D_00000000 + 0) == 2)) {
-                            func_00000000(var_a3 + 0x10, 0, var_a3);
-                            var_v1 = *(s32 *)((char *)&D_00000000 + 0);
-                        }
-                        if (var_v1 == 4) {
-                            temp_v1 = *(s32 *)((char *)&D_00000000 + 0x1C90C);
-                            var_v0 = *(s32 *)((char *)&D_00000000 + 0);
-                            arg0 = temp_v1 + 0xBA;
-                            *(s32 *)((char *)&D_00000000 + 0x1C90C) = (s32) (temp_v1 ^ 1);
-                            goto block_142;
-                        }
-                    }
-                    break;
-                case 35:                            /* switch 1 */
-                case 14:                            /* switch 4 */
-                    var_v1_2 = 0;
-                    var_v0 = *(s32 *)((char *)&D_00000000 + 0);
-                    if (var_a3 < 0x3E8) {
-                        arg0 += 2;
-                    } else {
-                    case 36:                        /* switch 1 */
-                    case 15:                        /* switch 4 */
-                        var_v1_2 = 1;
-                        if (var_a3 >= 0x7D0) {
-                            var_v1_2 = 2;
-                            arg0 += 1;
-                        }
-                        if (var_a3 >= 0xFA0) {
-                            arg0 += 2;
-                        }
-                    }
-                    *(s32 *)((char *)&D_00000000 + 0) = (s32) ((var_v1_2 * 0x10) + 0x20);
-                    var_a0 = 8;
-                    var_a1 = 0x30;
-                    *(s32 *)((char *)&D_00000000 + 0x14) += 0x20;
-                    if (var_v0 == 0) {
-                        func_00000000(8, 0x168, 0xB, var_a3);
-                    } else {
-                    case 37:                        /* switch 1 */
-                    case 16:                        /* switch 4 */
-                        func_00000000(var_a0, var_a1, 0 /* M2C unset $v1 */ + 3, var_a3);
-                    }
-                    *(s32 *)((char *)&D_00000000 + 0x1C908) = 0;
-                    if (*(s32 *)((char *)&D_00000000 + 0) == 4) {
-                        var_v0 = 0;
-                        if ((arg0 != 0) && (arg0 != 1)) {
-                            var_t9 = 0x1E;
-                            if (arg0 != 2) {
-                                var_t4 = 0x28;
-                                if (arg0 != 3) {
+extern s32 D_2FB74_mode;                    /* t2 web (==0/1/8 state) */
+extern s32 D_2FB74_cmdsrc;                  /* per-case cmd reload */
+extern s32 D_2FB74_g7, D_2FB74_g8, D_2FB74_g9;
+extern s32 D_2FB74_gA, D_2FB74_gB, D_2FB74_gC, D_2FB74_gD, D_2FB74_gF;
+extern s32 D_2FB74_gG, D_2FB74_gH, D_2FB74_gI, D_2FB74_gJ, D_2FB74_gK;
+extern s32 D_2FB74_gL, D_2FB74_gN, D_2FB74_gO, D_2FB74_gP, D_2FB74_gQ;
+extern s32 D_2FB74_gS, D_2FB74_gT, D_2FB74_gV, D_2FB74_gW, D_2FB74_gX;
+extern s32 D_2FB74_cnt;                     /* abs 0x1C908 in expected */
+extern s32 D_2FB74_tgl;                     /* abs 0x1C90C in expected */
 
-                                } else {
-                                case 19:            /* switch 4 */
-                                    *(s32 *)((char *)&D_00000000 + 0x10) = var_t4;
-                                }
-                            } else {
-                            case 39:                /* switch 1 */
-                            case 18:                /* switch 4 */
-                                *(s32 *)((char *)&D_00000000 + 0x10) = var_t9;
-                            }
-                        } else {
-                        case 38:                    /* switch 1 */
-                        case 17:                    /* switch 4 */
-                            *(s32 *)((char *)&D_00000000 + 0x10) = 0x14;
-                        }
-                        goto block_141;
-                    }
-                    break;
-                case 20:                            /* switch 4 */
-                    var_a0 = 8;
-                    var_a1 = 8;
-                    if (*(s32 *)((char *)&D_00000000 + 0) == 0) {
-                        func_00000000(8, 0x78, 0xA, var_a3);
-                    } else {
-                    case 21:                        /* switch 4 */
-                        func_00000000(var_a0, var_a1, 1, var_a3);
-                    }
-                    *(s32 *)((char *)&D_00000000 + 0x1C908) = 0;
-                    temp_t6 = *(s32 *)((char *)&D_00000000 + 0);
-                    *(s32 *)((char *)&D_00000000 + 0) = 0;
-                    var_v0 = 0;
-                    if (temp_t6 == 4) {
-                        goto block_141;
-                    }
-                    break;
-                case 22:                            /* switch 4 */
-                    *(s32 *)((char *)&D_00000000 + 0x1C908) = (s32) (*(s32 *)((char *)&D_00000000 + 0x1C908) + 1);
-                    if (var_a3 != 1) {
-                        arg0 += 1;
-                    }
-                    func_00000000(0x28, 0x1E, 0, var_a3);
-                    var_v0 = 0;
-                    goto block_141;
-                case 23:                            /* switch 4 */
-                    *(s32 *)((char *)&D_00000000 + 0) = var_a3;
-                    func_00000000(0x06020301, (s8) (var_a3 + 9), 0, var_a3);
-                    var_v0 = 0;
-                    goto block_141;
-                /* dup case 24 (head-padding artifact) */
-                    func_00000000(0x06020301, 0xF, 0, var_a3);
-                    var_v0 = 0;
-                    goto block_141;
-                /* dup case 25 (head-padding artifact) */
-                    if ((*(s32 *)((char *)&D_00000000 + 0) == 4) && (*(s32 *)((char *)&D_00000000 + 0) == 0)) {
-                        func_00000000(*(u8 *)3, 0x16, 0, var_a3);
-                        *(s32 *)((char *)&D_00000000 + 0) = 1;
-                    }
-                    if (*(s32 *)((char *)&D_00000000 + 0) == 0) {
-                        func_00000000(0xF0, 0xDC, 9);
-                    }
-                    func_00000000(0x06020300, 8);
-                    var_v0 = 0;
-                    *(s32 *)((char *)&D_00000000 + 0x1C908) = 0;
-                    goto block_141;
-                /* dup case 26 (head-padding artifact) */
-                    temp_v0_3 = *(s32 *)((char *)&D_00000000 + 0);
-                    if (temp_v0_3 == 0) {
-                        *(s32 *)((char *)&D_00000000 + 0) = 0;
-                    }
-                    if (temp_v0_3 == 1) {
-                        func_00000000(0x01010300, 0, 0, var_a3);
-                        *(s32 *)((char *)&D_00000000 + 0x18) = 0;
-                    }
-                    var_v0 = *(s32 *)((char *)&D_00000000 + 0);
-                    var_a2 = 1;
-                    if (var_v0 == 4) {
-                        arg0 = 0xA;
-                        goto block_114;
-                    }
-                /* dup case 27 (head-padding artifact) */
-                    if ((var_v0 == 2) && (temp_v0_4 = *(s32 *)((char *)&D_00000000 + 0), ((temp_v0_4 < 5) != 0))) {
-                        func_00000000(temp_v0_4 + 9);
-                        var_v0 = 0;
-                    } else {
-                    case 28:                        /* switch 4 */
-block_114:
-                        var_a2 = var_a2 + 1 + 1 + 1 + 1 + 1 + 1;
-                        goto block_115;
-                    }
-                    goto block_141;
-                case 29:                            /* switch 4 */
-block_116:
-                    func_00000000(var_a0 | 0x300, 9, 0, var_a3);
-                    *(s32 *)((char *)&D_00000000 + 0x10) = 0x3C;
-                    var_v0 = 0;
-                    goto block_141;
-                /* dup case 36 (head-padding artifact) */
-                    gl_func_00042428(0xE, 0x1E, 0x7D0, 0x3F333333);
-                    var_v0 = 0;
-                    goto block_141;
-                /* dup case 37 (head-padding artifact) */
-                    temp_v0_5 = *(s32 *)((char *)&D_00000000 + 0);
-                    if (temp_v0_5 < 5) {
-                        func_00000000(0x06020301, (s8) (temp_v0_5 + 0x22), 0, var_a3);
-                        return;
-                    }
-                    break;
-                case 40:                            /* switch 4 */
-block_137:
-                    if (*(s32 *)(var_v0) == 0xF) {
-                        func_00000000(0x08030900, 1, 0, var_a3);
-                    }
-                    var_v0 = 0;
-                    goto block_141;
-                }
-            } else {
-                goto block_140;
-            }
-            break;
+typedef struct Gl2FB74St {
+    s32 w0;
+    s32 w4;                                 /* busy/refresh (10) */
+    s32 w8;                                 /* cooldown (300) */
+    s32 wC;
+    s32 w10;                                /* timer (20/30/40/60) */
+    s32 w14;                                /* accum (+= 32) */
+    s32 w18;                                /* level (0x7F) */
+} Gl2FB74St;
+extern Gl2FB74St D_2FB74_st;
+
+typedef union Gl2FB74Chan {
+    s32 w;
+    u8 b[4];
+} Gl2FB74Chan;
+extern Gl2FB74Chan D_2FB74_chan;
+
+typedef struct Gl2FB74Bank {
+    u8 pad[0x2F0];
+    s32 arr[2];                             /* lw/sw 0x2F0(base + i*4) */
+} Gl2FB74Bank;
+extern Gl2FB74Bank D_2FB74_bank;
+
+void gl_func_0002FB74(s32 sel, s32 v) {
+    s32 cmd;
+    s32 c;
+    s32 b;
+    s32 t;
+    s32 n;
+    Gl2FB74Chan *p;
+
+    c = 0;
+    if (sel == 0x13) {
+        if (D_2FB74_mode == 1 && v == 8) {
+            D_2FB74_st.w18 = 0x7F;
         }
-    } else {
-    /* dup case 19 (head-padding artifact) */
-        if ((arg0 != 0x13) || (*(s32 *)4 == 0)) {
-            var_v0 = 0xA;
-            *(s32 *)4 = 0xA;
-            var_t9 = arg0;
-            if (arg0 >= 0x136) {
-                if (arg0 != 0x195) {
-                    var_t9 = 0;
-                    if (arg0 != 0x200) {
-                        var_a0 = 0x06020000;
-                        switch (arg0) {             /* switch 2; irregular */
-                        case 0x4A6:                 /* switch 2 */
-block_115:
-                            func_00000000(0x06020300, var_a2, var_a2);
-                            *(s32 *)((char *)&D_00000000 + 0x10) = 0x3C;
-                            var_v0 = 0;
-                            break;
-                        case 0x20B:                 /* switch 2 */
-                        case 30:                    /* switch 4 */
-                            func_00000000(var_a0 | 0x300, 0xA, 0, var_a3);
-                            *(s32 *)((char *)&D_00000000 + 0x10) = 0x3C;
-                            var_v0 = 0;
-                            break;
-                        case 0x3A6:                 /* switch 2 */
-                        case 32:                    /* switch 4 */
-                            var_a0 = 0x06020301;
-                            if ((*(s32 *)((char *)&D_00000000 + 0) /* M2C unset $t6 */ == 8) && (var_v0 == *(s32 *)((char *)&D_00000000 + 0)) && (*(s32 *)((char *)&D_00000000 + 0) == 2)) {
-                                func_00000000(0x06020301, 0x39, 0, var_a3);
-                            } else {
-                            case 33:                /* switch 4 */
-                                func_00000000(var_a0, 0x33, 0, var_a3);
-                            }
-                            var_v0 = 0;
-                            break;
-                        }
-                    } else {
-                    /* case 34 (flattened) */
-                        var_a0 = 0x06020301;
-                        if (*(s32 *)(var_t9) == 2) {
-                            var_v1_3 = 1;
-                        } else {
-                        /* case 35 (flattened) */
-                            var_v1_3 = 0;
-                        }
-                        func_00000000(var_a0, (s8) (var_v1_3 + 0x3D), 0, var_a3);
-                        *(s32 *)((char *)&D_00000000 + 0) = 0xF;
-                        gl_func_000423A4(*(s32 *)((char *)&D_00000000 + 3));
-                        func_00000000(0x83010000, 0xC80);
-                        var_v0 = 0;
-                    }
-                } else {
-                /* case 31 (flattened) */
-                    func_00000000(0x06020300, 0xB, 0, var_a3);
-                    var_v0 = 0;
-                }
-                goto block_141;
-            }
-        /* case 20 (flattened) */
-            var_t4 = arg0;
-            switch (var_t9) {                       /* switch 3; irregular */
-            default:                                /* switch 3 */
-                var_v0 = 0;
-                if (var_t9 != 0x135) {
-                case 41:                            /* switch 4 */
-                case 42:                            /* switch 4 */
-                case 43:                            /* switch 4 */
-                case 44:                            /* switch 4 */
-                case 45:                            /* switch 4 */
-                case 46:                            /* switch 4 */
-                case 47:                            /* switch 4 */
-                case 48:                            /* switch 4 */
-                case 49:                            /* switch 4 */
-                case 50:                            /* switch 4 */
-block_140:
-                    var_v0 = 0;
-block_141:
-                    var_v0 = *(s32 *)(var_v0);
-                } else {
-                case 38:                            /* switch 4 */
-                    var_v0 = *(s32 *)(var_v0);
-                    var_t7 = 0x37;
-                    if (var_v0 == 4) {
-                        if (var_a3 >= 2) {
-                            var_a3 = 1;
-                        }
-                        arg0 += var_a3;
-                    } else {
-                    case 39:                        /* switch 4 */
-                        arg0 = var_t7;
-                    }
-                }
-block_142:
-                if ((var_v0 == 0) && ((arg0 == 0xE) || (arg0 == 0x15))) {
-                    arg0 = 0x34;
-                }
-                gl_func_00044B70(arg0);
-                break;
-            case 0x102:                             /* switch 3 */
-            case 28:                                /* switch 1 */
-            case 7:                                 /* switch 4 */
-                if (!(var_a3 & 0x80)) {
-                    var_v1_4 = 0;
-                } else {
-                case 29:                            /* switch 1 */
-                case 8:                             /* switch 4 */
-                    var_v1_4 = 1;
-                }
-                var_a0 = 0x06000000;
-                if (0 /* M2C unset $t7 */ == 0x102) {
-                    var_t0_2 = *(s32 *)((char *)((var_v1_4 * 4)) + 0x2F0);
-                } else {
-                case 30:                            /* switch 1 */
-                case 9:                             /* switch 4 */
-                    var_t0_2 = (var_a3 & 0xF) - 1;
-                    if (var_t0_2 < 0) {
-                        var_t0_2 = 0;
-                    }
-                    *(s32 *)((char *)((0 /* M2C unset $v1 */ * 4)) + 0x2F0) = var_t0_2;
-                }
-                sp1C = 0;
-                sp24 = var_t0_2;
-                func_00000000(var_a0 | 3, (s8) 0 /* M2C unset $v1 */, 0, var_a3);
-                var_a2_2 = 0;
-                var_t0 = (s32 *) var_t0_2;
-                switch (arg0) {                     /* switch 5; irregular */
-                case 0x8:                           /* switch 5 */
-                case 31:                            /* switch 1 */
-                case 10:                            /* switch 4 */
-                    var_a2_2 = 0x10;
-                    break;
-                case 0x4:                           /* switch 5 */
-                case 32:                            /* switch 1 */
-                case 11:                            /* switch 4 */
-                    var_a2_2 = 0x16;
-                    break;
-                case 0x2:                           /* switch 5 */
-                case 0x102:                         /* switch 5 */
-                case 33:                            /* switch 1 */
-                case 12:                            /* switch 4 */
-                    var_a2_2 = 0x1C;
-                    break;
-                }
-                sp1C = var_a2_2;
-                sp24 = var_t0;
-                func_00000000(0x06020304, 0x32, var_a2_2);
-                func_00000000(0x06020302, (s8) (var_t0 + var_a2_2), var_a2_2);
-                var_v0 = 0;
-                goto block_141;
-            }
+    }
+    if (D_2FB74_st.w10 != 0) {
+        switch (sel) {
+        case 19:
+        case 32:
+        case 34:
+        case 36:
+        case 39:
+            return;
+        }
+    }
+    if (sel == 0x13) {
+        if (D_2FB74_st.w4 != 0) {
+            return;
+        }
+    }
+    cmd = 10;
+    D_2FB74_st.w4 = cmd;
+    switch (sel) {
+    case 19:
+        if (v == 5 && D_2FB74_st.w8 == 0) {
+            gl2FB74_snd(3);
+            D_2FB74_st.w8 = 300;
+        }
+        if (v < 4) {
+            sel = 45;
+        }
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 23:
+        if (v < 2) {
+            gl2FB74_snd(2);
         } else {
-        /* case 0x104 (flattened); break -> fallthrough to the loop end */
+            gl2FB74_snd(1);
+        }
+        D_2FB74_st.w10 = 40;
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 7:
+        if (D_2FB74_gA == 1 || D_2FB74_gA == 2 || D_2FB74_gA == 4) {
+            gl2FB74_snd(0x6020301, (s8) (v + 42));
+        } else {
+            gl2FB74_snd(0x6020301, 50);
+        }
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 2:
+    case 4:
+    case 8:
+    case 258:
+        if (v & 0x80) {
+            b = 1;
+        } else {
+            b = 0;
+        }
+        if (sel == 258) {
+            t = D_2FB74_bank.arr[b];
+        } else {
+            t = (v & 0xF) - 1;
+            if (t < 0) {
+                t = 0;
+            }
+            D_2FB74_bank.arr[b] = t;
+        }
+        gl2FB74_snd(0x6000003, (s8) b);
+        if (sel == 2) {
+            c = 28;
+        } else if (sel == 4) {
+            c = 22;
+        } else if (sel == 8) {
+            c = 16;
+        } else if (sel == 258) {
+            c = 28;
+        }
+        gl2FB74_snd(0x6020304, 50);
+        gl2FB74_snd(0x6020302, (s8) (t + c));
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 36:
+        b = D_2FB74_gI;
+        D_2FB74_gJ = 32;
+        if (b != 4) {
+            return;
+        }
+        if (D_2FB74_mode == 1 || D_2FB74_mode == 0 || D_2FB74_mode == 8 || D_2FB74_gK == 2) {
+            gl2FB74_snd(v + 16);
+            b = D_2FB74_gL;
+        }
+        if (b != 4) {
+            return;
+        }
+        sel = D_2FB74_tgl + 186;
+        D_2FB74_tgl ^= 1;
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 39:
+        n = D_2FB74_gN;
+        b = 0;
+        if (v < 1000) {
+            sel += 2;
+        } else {
+            b = 1;
+            if (v >= 2000) {
+                b = b + 1;
+                sel += 1;
+            }
+            if (v >= 4000) {
+                sel += 2;
+            }
+        }
+        D_2FB74_gO = b * 16 + 32;
+        D_2FB74_st.w14 += 32;
+        if (n == 0) {
+            gl2FB74_snd(8, 360, 11);
+        } else {
+            gl2FB74_snd(8, 48, b + 3);
+        }
+        D_2FB74_cnt = 0;
+        if (D_2FB74_gP != 4) {
+            return;
+        }
+        if (sel == 0 || sel == 1) {
+            D_2FB74_st.w10 = 20;
+        } else if (sel == 2) {
+            D_2FB74_st.w10 = 30;
+        } else if (sel == 3) {
+            D_2FB74_st.w10 = 40;
+        }
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 34:
+        if (D_2FB74_mode == 0) {
+            gl2FB74_snd(8, 120, 10);
+        } else {
+            gl2FB74_snd(8, 8, 1);
+        }
+        D_2FB74_cnt = 0;
+        n = D_2FB74_gG;
+        D_2FB74_gH = 0;
+        if (n != 4) {
+            return;
+        }
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 32:
+        D_2FB74_cnt += 1;
+        if (v != 1) {
+            sel += 1;
+        }
+        gl2FB74_snd(40, 30, 0);
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 12:
+        D_2FB74_gB = v;
+        gl2FB74_snd(0x6020301, (s8) (v + 9));
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 9:
+        gl2FB74_snd(0x6020301, 15);
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 17:
+        if (D_2FB74_gC == 4) {
+            p = &D_2FB74_chan;
+            if (D_2FB74_gD == 0) {
+                gl2FB74_snd(p->b[3], 22);
+                D_2FB74_gF = 1;
+            }
+        }
+        if (D_2FB74_mode == 0) {
+            gl2FB74_snd(240, 220, 9);
+        }
+        gl2FB74_snd(0x6020300, 8);
+        D_2FB74_cnt = 0;
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 16:
+        if (D_2FB74_mode == 0) {
+            D_2FB74_g7 = 0;
+        }
+        if (D_2FB74_mode == 1) {
+            gl2FB74_snd(0x1010300, 0);
+            D_2FB74_st.w18 = 0;
+        }
+        c = 1;
+        if (D_2FB74_g8 == 4) {
+            sel = 10;
+            goto L_lad6;
+        }
+        if (D_2FB74_g8 != 2) {
+            goto L_lad6;
+        }
+        if (D_2FB74_g9 >= 5) {
+            c += 1;
+            goto L_lad5;
+        }
+        gl2FB74_snd(D_2FB74_g9 + 9);
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 13:
+L_lad6:
+        c += 1;
+    case 20:
+L_lad5:
+        c += 1;
+    case 22:
+        c += 1;
+    case 21:
+        c += 1;
+    case 14:
+        c += 1;
+    case 15:
+        c += 1;
+    case 1190:
+        gl2FB74_snd(0x6020300, (s8) c);
+        D_2FB74_st.w10 = 60;
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 256:
+        gl2FB74_snd(0x6020300, 9);
+        D_2FB74_st.w10 = 60;
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 523:
+        gl2FB74_snd(0x6020300, 10);
+        D_2FB74_st.w10 = 60;
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 405:
+        gl2FB74_snd(0x6020300, 11);
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 934:
+        if (D_2FB74_gV == 8 && D_2FB74_gW == 10 && D_2FB74_gX == 2) {
+            gl2FB74_snd(0x6020301, 57);
+        } else {
+            gl2FB74_snd(0x6020301, 51);
+        }
+        cmd = D_2FB74_cmdsrc;
+        break;
+
+    case 512:
+        if (D_2FB74_gT == 2) {
+            b = 1;
+        } else {
+            b = 0;
+        }
+        gl2FB74_snd(0x6020301, (s8) (b + 61));
+        p = &D_2FB74_chan;
+        p->w = 15;
+        game_libs_func_0002DD38(p->b[3]);
+        gl2FB74_snd(0x83010000, 3200);
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 50:
+        gl_func_00042428(14, 30, 2000, 0x3F333333);
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 49:
+        if (D_2FB74_gQ < 5) {
+            gl2FB74_snd(0x6020301, (s8) (D_2FB74_gQ + 34));
+        }
+        return;
+    case 309:
+        cmd = D_2FB74_gS;
+        if (cmd == 4) {
+            if (v >= 2) {
+                v = 1;
+            }
+            sel = sel + v;
+        } else {
+            sel = 55;
+        }
+        break;
+    case 160:
+        p = &D_2FB74_chan;
+        if (p->w == 15) {
+            gl2FB74_snd(0x8030900, 1);
+        }
+        cmd = D_2FB74_cmdsrc;
+        break;
+    case 260:
+        return;
+    default:
+        cmd = D_2FB74_cmdsrc;
+        break;
+    }
+    if (cmd == 0) {
+        if (sel == 14 || sel == 21) {
+            sel = 52;
         }
     }
+    gl_func_00030504(sel);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002FB74);
