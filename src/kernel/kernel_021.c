@@ -102,12 +102,13 @@ s32 func_80008424(s32 arg0) {
  *   }
  *
  * Likely __rmonSetBrkpt or __rmonGetBrkPC (sets/gets a hardware breakpoint).
- * MERGE BLOCKED: func_80008498 is externally-callable (alt-entry pattern,
- * not pure fragment) per `extern void func_80008498(void)` in kernel_054.c.
- * Standard merge-fragments removes the alt-entry symbol and breaks callers.
- * Resolution path: keep INCLUDE_ASM with no merge; document the chain for
- * future Ghidra-assisted decode (the rmon family has full struct types in
- * Ghidra). Same class as func_80006698 / func_800047E4 cross-file blockers.
+ * 2026-08-22: func_80008454 MERGED into func_80008430.s as a global alabel
+ * alt-entry (move-then-merge: kernel_021.c.o and kernel_022.c.o are adjacent
+ * in tenshoe.ld, so absorbing 022's leading 0x44 bytes is layout-neutral).
+ * The old "MERGE BLOCKED" note conflated 8454 with 8498: 8498 IS externally
+ * callable and stays a separate symbol in kernel_022.c; 8454's jal caller
+ * (func_800079F4) resolves via the alabel. Remaining chain past 0x80008498
+ * left as-is.
  *
  * Stub body documents the fragment relationship for grep discoverability per
  * feedback_orphan_include_asm_after_split_function_decomp.md. */

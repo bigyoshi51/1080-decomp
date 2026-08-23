@@ -564,8 +564,9 @@ build/src/kernel/kernel_030.c.o build/non_matching/src/kernel/kernel_030.c.o: TR
 build/src/kernel/kernel_020.c.o build/non_matching/src/kernel/kernel_020.c.o: TRUNCATE_TEXT := 0x20
 build/src/kernel/kernel_020_b.c.o build/non_matching/src/kernel/kernel_020_b.c.o: TRUNCATE_TEXT := 0x7C
 build/src/kernel/kernel_020_c.c.o build/non_matching/src/kernel/kernel_020_c.c.o: TRUNCATE_TEXT := 0x254
-build/src/kernel/kernel_021.c.o build/non_matching/src/kernel/kernel_021.c.o: TRUNCATE_TEXT := 0x30
-build/src/kernel/kernel_022.c.o build/non_matching/src/kernel/kernel_022.c.o: TRUNCATE_TEXT := 0x360
+# 2026-08-22 func_80008454 (0x44) moved from kernel_022.c into kernel_021.c (merge into func_80008430.s): 0x30+0x44 / 0x360-0x44
+build/src/kernel/kernel_021.c.o build/non_matching/src/kernel/kernel_021.c.o: TRUNCATE_TEXT := 0x74
+build/src/kernel/kernel_022.c.o build/non_matching/src/kernel/kernel_022.c.o: TRUNCATE_TEXT := 0x31C
 build/src/kernel/kernel_022_o1.c.o build/non_matching/src/kernel/kernel_022_o1.c.o: TRUNCATE_TEXT := 0x94
 build/src/kernel/kernel_041.c.o build/non_matching/src/kernel/kernel_041.c.o: TRUNCATE_TEXT := 0x104
 build/src/kernel/kernel_054.c.o build/non_matching/src/kernel/kernel_054.c.o: TRUNCATE_TEXT := 0xBC

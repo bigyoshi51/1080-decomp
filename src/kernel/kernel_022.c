@@ -64,7 +64,12 @@ extern OSEventState __osEventStateTab[];
 
 
 
-INCLUDE_ASM("asm/nonmatchings/kernel", func_80008454);
+/* func_80008454 merged into func_80008430.s (kernel_021.c) 2026-08-22 --
+ * contiguous fragment of the same __rmon breakpoint function (8454's first
+ * insn is the delay-slot nop of 8430's bnez; frame/regs owned by 8430's
+ * prologue). Kept as global alabel alt-entry for the jal from func_800079F4.
+ * Cross-.o label refs (.L8000849C/.L800084D8/.L80008578 into this unit)
+ * resolved via undefined_syms_auto.txt. */
 
 INCLUDE_ASM("asm/nonmatchings/kernel", func_80008498);
 
