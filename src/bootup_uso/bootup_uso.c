@@ -6603,9 +6603,9 @@ extern char bu_90cc_imp30;  /* +0x30 import ptr in the 0x878 cascade (target 0xA
 /* target 0xAC34-0xAD3C per-site blank globals (each site = own symbol; busts base GCSE).
  * Scalar/array form (not cast-arith) so the lo16 folds into the load offset (lui rd; lw rd,4(rd))
  * and stores go through $at -- matches target's direct-global access shape. */
-extern s32 bu_90cc_g8;
-extern s32 bu_90cc_gcfg[2];
-extern s32 bu_90cc_gcfg_b[2];
+extern char bu_90cc_g8_ld, bu_90cc_g8_st;      /* load/store alias pair: same address, distinct syms kill the addr CSE (lui rd/lw + lui at/sw shape) */
+extern char bu_90cc_gcfg_ld, bu_90cc_gcfg_st;
+extern char bu_90cc_gcfg_b_ld, bu_90cc_gcfg_b_st;
 extern s32 bu_90cc_gown;
 extern char bu_90cc_gtbl;
 extern char bu_90cc_gpair;
@@ -7487,9 +7487,9 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5
         /* target 0xAC34-0xAC98: each global access is its own symbol (fresh lui per
          * site, reload between the |= and &= statements) -- per-site blank aliases
          * bust the m2c &D_00000000 base GCSE that had cached one addiu base reg. */
-        bu_90cc_g8 = bu_90cc_g8 | 8;
-        bu_90cc_gcfg[1] = bu_90cc_gcfg[1] | 0x20000;
-        bu_90cc_gcfg_b[1] = bu_90cc_gcfg_b[1] & 0xFFF7FFFF & ~2;
+        *(s32 *)&bu_90cc_g8_st = *(s32 *)&bu_90cc_g8_ld | 8;
+        *(s32 *)((char *)&bu_90cc_gcfg_st + 4) = *(s32 *)((char *)&bu_90cc_gcfg_ld + 4) | 0x20000;
+        *(s32 *)((char *)&bu_90cc_gcfg_b_st + 4) = *(s32 *)((char *)&bu_90cc_gcfg_b_ld + 4) & 0xFFF7FFFF & ~2;
         bu_90cc_gown = (s32) var_s2;
         while (var_a1 != 0x23) {
             temp_a2 = var_a1;
