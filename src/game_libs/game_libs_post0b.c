@@ -22736,9 +22736,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00050444);
  * Both are coloring/frame-layout outcomes. No C-level lever found that
  * recovers the 16-byte frame without regressing the metric. Leaving
  * NON_MATCHING at the improved 66.52%. */
+/* PASS-5 2026-08-22 (agent-g): 66.52 -> 67.24. The three leading callback
+ * output buffers (sp1B4/sp1A8/sp19C) and the top-of-frame div-input buffer
+ * (sp244) are REAL 12-byte Vec3s, not independent f32 scalars — converted to
+ * f32[3] arrays. Fixes: (a) the callback a2 outputs now get true 12-byte
+ * slots (build had packed them 4 bytes apart, so the [1]/[2] component reads
+ * hit unrelated locals); (b) div.s 12 -> 14 (aggregates resist result-CSE);
+ * (c) NM body grew +0x20 -> post0b clip re-probed 0x2c7a4 -> 0x2c7c4
+ * (Makefile), sentinels 62F08/551E0/55B10 re-verified 100. Residual is still
+ * the PASS-4 frame-coloring cap: frame -576 vs -592 (sp244[3] as an aggregate
+ * still gets packed low, not at the target's top-of-frame 580..588), offset
+ * cascade kills line-level match; 5 more div.s CSE'd. */
 s32 gl_func_0005062C(volatile s32 arg0, volatile s32 arg1, volatile s32 arg2, volatile s32 arg3, volatile s32 arg4, volatile s32 arg5, volatile s32 arg6, f32 arg7, f32 arg8, f32 arg9, f32 arg10, f32 arg11, f32 arg12, f32 arg13, f32 arg14, f32 arg15, f32 arg16, f32 arg17, f32 arg18, f32 arg19, f32 arg20, f32 arg21, f32 arg22, f32 arg23, f32 arg24) {
-    f32 sp108; f32 sp10C; f32 sp1A0; f32 sp1A4; f32 sp1AC; f32 sp1B0; f32 sp1B8; f32 sp1BC; f32 sp20C; f32 sp210; f32 sp218; f32 sp21C; f32 sp224; f32 sp228; f32 sp230; f32 sp234; f32 sp23C; f32 sp240; f32 sp248; f32 sp24C;
-    f32 sp244;
+    f32 sp108; f32 sp10C; f32 sp20C; f32 sp210; f32 sp218; f32 sp21C; f32 sp224; f32 sp228; f32 sp230; f32 sp234; f32 sp23C; f32 sp240;
+    f32 sp244[3];
     f32 sp238;
     f32 sp22C;
     f32 sp220;
@@ -22762,9 +22773,9 @@ s32 gl_func_0005062C(volatile s32 arg0, volatile s32 arg1, volatile s32 arg2, vo
     f32 sp1C8;
     f32 sp1C4;
     f32 sp1C0;
-    f32 sp1B4;
-    f32 sp1A8;
-    f32 sp19C;
+    f32 sp1B4[3];
+    f32 sp1A8[3];
+    f32 sp19C[3];
     s32 sp18C;
     s32 sp188;
     s32 sp184;
@@ -22834,22 +22845,22 @@ s32 gl_func_0005062C(volatile s32 arg0, volatile s32 arg1, volatile s32 arg2, vo
 
     f32 two = 2.0f;
 
-    func_00000000(&arg7, &arg10, &sp1B4);
-    func_00000000(&arg10, &arg13, &sp1A8);
-    func_00000000(&arg13, &arg7, &sp19C);
-    temp_f0 = sp1B4 + sp1A8 + sp19C;
+    func_00000000(&arg7, &arg10, sp1B4);
+    func_00000000(&arg10, &arg13, sp1A8);
+    func_00000000(&arg13, &arg7, sp19C);
+    temp_f0 = sp1B4[0] + sp1A8[0] + sp19C[0];
     if (temp_f0 < 0.0f) {
         var_f12 = -temp_f0;
     } else {
         var_f12 = temp_f0;
     }
-    temp_f0_2 = sp1B8 + sp1AC + sp1A0;
+    temp_f0_2 = sp1B4[1] + sp1A8[1] + sp19C[1];
     if (temp_f0_2 < 0.0f) {
         var_f12_2 = -temp_f0_2;
     } else {
         var_f12_2 = temp_f0_2;
     }
-    temp_f0_3 = sp1BC + sp1B0 + sp1A4;
+    temp_f0_3 = sp1B4[2] + sp1A8[2] + sp19C[2];
     if (temp_f0_3 < 0.0f) {
         var_f12_3 = -temp_f0_3;
     } else {
@@ -22865,13 +22876,13 @@ s32 gl_func_0005062C(volatile s32 arg0, volatile s32 arg1, volatile s32 arg2, vo
     temp_t5 = *((s32 *)&sp150 + 1);
     *((s32 *)&sp164 + 1) = temp_t5;
     temp_t6 = *((s32 *)&sp150 + 2);
-    *((s32 *)&sp244 + 1) = temp_t5;
-    *((s32 *)&sp244 + 0) = *((s32 *)&sp164 + 0);
+    *((s32 *)sp244 + 1) = temp_t5;
+    *((s32 *)sp244 + 0) = *((s32 *)&sp164 + 0);
     *((s32 *)&sp164 + 2) = temp_t6;
-    *((s32 *)&sp244 + 2) = temp_t6;
-    sp12C = sp24C / two;
-    sp128 = sp248 / two;
-    sp124 = sp244 / two;
+    *((s32 *)sp244 + 2) = temp_t6;
+    sp12C = sp244[2] / two;
+    sp128 = sp244[1] / two;
+    sp124 = sp244[0] / two;
     *((s32 *)&sp134 + 0) = *((s32 *)&sp124 + 0);
     temp_t5 = *((s32 *)&sp124 + 1);
     *((s32 *)&sp134 + 1) = temp_t5;
