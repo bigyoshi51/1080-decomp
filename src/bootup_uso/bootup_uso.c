@@ -6599,6 +6599,17 @@ extern char bu_90cc_vt546;
 extern char bu_90cc_vt547;
 extern char bu_90cc_vt548;
 extern char bu_90cc_d207dc;
+extern char bu_90cc_imp30;  /* +0x30 import ptr in the 0x878 cascade (target 0xA2F8 lui/addiu/sw pair; was decoded as literal 0) */
+/* target 0xAC34-0xAD3C per-site blank globals (each site = own symbol; busts base GCSE).
+ * Scalar/array form (not cast-arith) so the lo16 folds into the load offset (lui rd; lw rd,4(rd))
+ * and stores go through $at -- matches target's direct-global access shape. */
+extern s32 bu_90cc_g8;
+extern s32 bu_90cc_gcfg[2];
+extern s32 bu_90cc_gcfg_b[2];
+extern s32 bu_90cc_gown;
+extern char bu_90cc_gtbl;
+extern char bu_90cc_gpair;
+extern char bu_90cc_gdev;
 extern char bu_90cc_vt_self;  /* self +0x28 vtable (was decoded as literal 0; expected has lui/addiu reloc pair) */
 /* vtable draw slot (+0x5C): trailing two args are single-precision f32.
  * Prototyping defeats the K&R float->double promotion so single swc1
@@ -6681,6 +6692,7 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5
     u32 sp58;
     s32 *sp40;
     f32 temp_f0;
+    f32 temp_fz;
     f32 temp_f2;
     f32 temp_f2_2;
     s32 *temp_v0_48;
@@ -7205,28 +7217,32 @@ void *func_000090CC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, f32 arg5
         var_s0_4 = temp_s1;
         if ((var_s2 != (void *)-0x878) || (temp_v0_5 = func_00000000(0x40), var_s0_4 = temp_v0_5, (temp_v0_5 != 0))) {
             func_00000000(var_s0_4);
-            *(s32 *)((char *)(var_s0_4) + 0x30) = 0;
+            *(s32 *)((char *)(var_s0_4) + 0x30) = (s32) &bu_90cc_imp30;
         }
         *(s32 *)((char *)(var_s2) + 0x908) = 0;
         *(s32 *)((char *)(var_s2) + 0x848) = arg1;
         *(s32 *)((char *)(var_s2) + 0x8C4) = arg2;
         *(s32 *)((char *)(var_s2) + 0x18) = (s32) (*(s32 *)((char *)(var_s2) + 0x18) & ~2);
         *(s32 *)((char *)(var_s2) + 0x8DC) = 0;
-        if (arg2 != 7) {
-            if (arg2 != 6) {
-                *(s16 *)((char *)(var_s2) + 0x900) = 4;
-                *(s16 *)((char *)(var_s2) + 0x902) = 7;
-                var_t1 = arg8;
-            } else {
-                *(s16 *)((char *)(var_s2) + 0x902) = 0x18;
-                *(s16 *)((char *)(var_s2) + 0x900) = 0x17;
-                goto block_148;
-            }
-        } else {
+        /* target 0xA330-0xA388: beq-chain to out-of-line cases (default inline first,
+         * case 7, then case 6 falling through) with per-case var_t1 = arg8|1 -- switch shape.
+         * (goto-layout variant re-normalized by IDO and scored worse; keep switch) */
+        switch (arg2) {
+        case 7:
             *(s16 *)((char *)(var_s2) + 0x902) = 0x1A;
             *(s16 *)((char *)(var_s2) + 0x900) = 0x19;
-block_148:
             var_t1 = arg8 | 1;
+            break;
+        case 6:
+            *(s16 *)((char *)(var_s2) + 0x902) = 0x18;
+            *(s16 *)((char *)(var_s2) + 0x900) = 0x17;
+            var_t1 = arg8 | 1;
+            break;
+        default:
+            *(s16 *)((char *)(var_s2) + 0x900) = 4;
+            *(s16 *)((char *)(var_s2) + 0x902) = 7;
+            var_t1 = arg8;
+            break;
         }
         var_t2 = 0;
         if ((arg1 == 1) && (*(s32 *)((char *)&D_00000000 + 0x58) == *(s32 *)((char *)&D_00000000 + 0x4C))) {
@@ -7457,8 +7473,9 @@ block_148:
         *(s32 *)((char *)(var_s2) + 0x850) = temp_v0_5;
         func_00000000(var_s2, temp_v0_5);
         temp_s0_4 = *(s32 *)((char *)(var_s2) + 0x850);
-        *(f32 *)((char *)(temp_s0_4) + 0xB4) = 0.0f;
-        *(f32 *)((char *)(temp_s0_4) + 0xBC) = 0.0f;
+        temp_fz = 0.0f;
+        *(f32 *)((char *)(temp_s0_4) + 0xB4) = temp_fz;
+        *(f32 *)((char *)(temp_s0_4) + 0xBC) = temp_fz;
         *(f32 *)((char *)(temp_s0_4) + 0xB8) = 100.0f;
         *(s32 *)((char *)(var_s2) + 0x840) = func_00000000(0, *(s32 *)((char *)&D_00000000 + 0), var_s2);
         func_00000000();
@@ -7467,25 +7484,28 @@ block_148:
         temp_s0_5 = *(s32 *)((char *)(var_s2) + 0x840);
         var_a1 = 0;
         *(s32 *)((char *)(temp_s0_5) + 0x18) = (s32) (*(s32 *)((char *)(temp_s0_5) + 0x18) & ~8);
-        *(s32 *)((char *)&D_00000000 + 0) = (s32) (*(s32 *)((char *)&D_00000000 + 0) | 8);
-        *(s32 *)((char *)&D_00000000 + 4) = (s32) (*(s32 *)((char *)&D_00000000 + 4) | 0x20000);
-        *(s32 *)((char *)&D_00000000 + 4) = (s32) (*(s32 *)((char *)&D_00000000 + 4) & 0xFFF7FFFF & ~2);
-        *(s32 *)((char *)&D_00000000 + 0) = (s32) var_s2;
-        do {
+        /* target 0xAC34-0xAC98: each global access is its own symbol (fresh lui per
+         * site, reload between the |= and &= statements) -- per-site blank aliases
+         * bust the m2c &D_00000000 base GCSE that had cached one addiu base reg. */
+        bu_90cc_g8 = bu_90cc_g8 | 8;
+        bu_90cc_gcfg[1] = bu_90cc_gcfg[1] | 0x20000;
+        bu_90cc_gcfg_b[1] = bu_90cc_gcfg_b[1] & 0xFFF7FFFF & ~2;
+        bu_90cc_gown = (s32) var_s2;
+        while (var_a1 != 0x23) {
             temp_a2 = var_a1;
             if (var_a1 >= 0x28U) {
                 sp58 = var_a1;
                 sp114 = temp_a2;
                 func_00000000(&D_00008868, var_a1, temp_a2);
             }
-            *(s32 *)((char *)&D_00000000 + temp_a2 * 4) = 0;
+            *(s32 *)((char *)&bu_90cc_gtbl + temp_a2 * 4) = 0;
             var_a1 += 1;
-        } while (var_a1 != 0x23);
-        *(s32 *)((char *)&D_00000000 + 4) = 0x2A003;
-        *(s32 *)((char *)&D_00000000 + 0) = 0;
-        *(s32 *)((char *)(var_s2) + 0x8F4) = func_00000000(0, 1, 0);
-        *(s32 *)((char *)(var_s2) + 0x8F8) = func_00000000(0, 2, 0);
-        *(s32 *)((char *)(var_s2) + 0x8FC) = func_00000000(0, 3, 0);
+        }
+        *(s32 *)((char *)&bu_90cc_gpair + 4) = 0x2A003;
+        *(s32 *)&bu_90cc_gpair = 0;
+        *(s32 *)((char *)(var_s2) + 0x8F4) = func_00000000(&bu_90cc_gdev, 1, 0);
+        *(s32 *)((char *)(var_s2) + 0x8F8) = func_00000000(&bu_90cc_gdev, 2, 0);
+        *(s32 *)((char *)(var_s2) + 0x8FC) = func_00000000(&bu_90cc_gdev, 3, 0);
         if (sp174 != 0) {
             var_v0 = 0;
             if (*(s32 *)((char *)&D_00000000 + 0) != 0) {
