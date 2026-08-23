@@ -268,69 +268,55 @@ void timproc_uso_b3_func_00000924(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-/* timproc_uso_b3_func_00000994: 230-insn constructor (sibling of titproc
+/* timproc_uso_b3_func_00000994: 243-insn constructor (sibling of titproc
  * 1E9C / timproc_b1 97C / timproc_b5 478). jal-0 = cross-USO placeholder
- * gl_func_00000000 (disasm mislabels as func_000000B0).
+ * gl_func_00000000.
  *
- * 2026-07-10: 65.7% -> 225/230 words (97.8%), frame -72 + all named homes
- * exact, via the two-s-reg constructor kit (docs/IDO_CODEGEN.md) minus the
- * register-node (this sibling has only s0=self):
- *  - arg0-as-self (param reassign) colors s0; alloc-fail exits via its own
- *    `b .Lepilogue; lw ra` (write `return (void *)a0;` inside the guard);
- *  - 4-level cascade n1/n2/n3 colors a2/v1/a0, homes 64/60/56 (decl order);
- *  - SIX-CALL registration block: each call passes &D_00000000 as an
- *    INVISIBLE 4TH ARG -> lui a3/addiu a3 materialization + lw a1,0(a3)
- *    (every held-pointer/if(1)/goto/array-decay/volatile spelling folds or
- *    lands in t-ring; the arg-precolor is what makes it a3);
- *  - tail node: `int * volatile nd` + arg-fold `gl(slot, nd = *(...+0x190))`
- *    loads straight to a1 + spills to its decl home 44 in the jal delay;
- *    single reload into plain nd2, and nd2 passed as invisible 4th arg to
- *    the 0139B0-equiv call -> a3 precolor for the whole flag block;
- *  - registration flag blocks re-read the object field per use (fresh
- *    derefs; the [0x4/4]=1 store forces the target's if-arm reload while
- *    the beql-annulled else path reuses the old reg);
- *  - decl order sub,n1,n2,n3,vt,nd2,nd,padA,slot(volatile),padB lays the
- *    exact 10-word hole map (68/52/48/40/32 holes);
- *  - vt PRELOADED as a statement (`vt = ...; gl(slot = ..., vt)`) sinks the
- *    volatile slot store into the jal delay (folding vt into arg2 makes as1
- *    pick the lw for the delay instead).
- * RESIDUAL (5 words, as1/ugen-internal pair-order class): [or s0,a0] vs
- * [sw a3,84] prologue delay-fill pick; [addiu a0,s0,16] vs [lw a1,1704]
- * adjacent order at the slot call; tail hi-temp lui a1 vs lui a3. Same
- * cap family as titproc 1E9C / b5 478 residuals. Default build INCLUDE_ASM. */
+ * 2026-08-22 RETRACTION + redecode: the old "225/230 (97.8%)" claim was a
+ * target-vs-target measurement artifact (see b1 097C comment +
+ * MATCHING_WORKFLOW #nm-claim-target-vs-target-artifact). True baseline
+ * 72.3%; this pass 72.3 -> 96.8 via the corrected b1-097C skeleton with
+ * b3 deltas: sub is a PLAIN a2-colored web (b1's is volatile/memory-only),
+ * alloc 0xDC not 0xE0, the sub[0xB4] 11/0 bgezl block IS real here
+ * (per-arm m = (int*)self[0x6A8] reload spelling gives the a3 arm loads),
+ * return (void *)a0 via shared epilogue. D_b3_994_g/_r aliases defeat the
+ * &D lui CSE (six-call read base + 0x138 store).
+ * RESIDUAL (~21 words): same family as b1 097C — registration-1 def
+ * a3+copy vs direct a1, vt CSE temp v1-vs-v0 + commutative addu order,
+ * t-ring renames downstream, 1-word addiu schedule swap in after_n3.
+ * Default build INCLUDE_ASM. */
 #ifdef NON_MATCHING
 extern char D_b3_994_v0;
 extern char D_b3_994_v1;
 extern char D_b3_994_v2;
 extern char D_b3_994_v3;
 extern char D_b3_994_v4;
+extern char D_b3_994_g;
+extern char D_b3_994_r;
 void *timproc_uso_b3_func_00000994(int *a0, int a1, int a2, int a3) {
-    int *sub;             /* v0-colored node temps (phantom 68) */
-    int *n1;              /* cascade 1: colors a2, home 64 */
-    int *n2;              /* cascade 2: colors v1, home 60 */
-    int *n3;              /* cascade 3: colors a0, home 56 */
-    int *vt;              /* vtable temp: colors a1 (phantom 52) */
-    int *nd2;             /* reload of nd: a3 via 4th-arg precolor (phantom 48) */
-    int * volatile nd;    /* tail node: home 44, spilled from a1 in delay */
-    volatile int padA;    /* 40 hole */
+    int *n;               /* a3-colored web, spill home 52 */
+    int *sub;             /* a2-colored web, spill home 48 */
+    int *n3;              /* home 44 */
+    volatile int padA;    /* hole */
     int * volatile slot;  /* home 36 */
-    volatile int padB;    /* 32 hole */
+    int *p;               /* v0 temp */
+    int *m;               /* a3 reload temp for registration blocks */
 
     if (a0 == 0) {
         a0 = (int *)gl_func_00000000(0x730);
-        if (a0 == 0) return (void *)a0;
+        if (a0 == 0) goto done;
     }
-    n1 = a0;
-    if (n1 == 0) {
-        n1 = (int *)gl_func_00000000(0x6A8);
-        if (n1 == 0) goto after_n1;
+    n = a0;
+    if (n == 0) {
+        n = (int *)gl_func_00000000(0x6A8);
+        if (n == 0) goto after_n1;
     }
-    n2 = n1;
-    if (n2 == 0) {
-        n2 = (int *)gl_func_00000000(0x50);
-        if (n2 == 0) goto after_n2;
+    sub = n;
+    if (n == 0) {
+        sub = (int *)gl_func_00000000(0x50);
+        if (sub == 0) goto after_n2;
     }
-    n3 = n2;
+    n3 = sub;
     if (n3 == 0) {
         n3 = (int *)gl_func_00000000(0x2C);
         if (n3 == 0) goto after_n3;
@@ -338,10 +324,10 @@ void *timproc_uso_b3_func_00000994(int *a0, int a1, int a2, int a3) {
     gl_func_00000000(n3, (char *)&D_00000000 + 0x3B8);
     n3[0x28 / 4] = (int)&D_b3_994_v0;
 after_n3:
-    n2[0x28 / 4] = (int)&D_b3_994_v1;
+    sub[0x28 / 4] = (int)&D_b3_994_v1;
 after_n2:
-    n1[0x28 / 4] = (int)&D_b3_994_v2;
-    gl_func_00000000((char *)n1 + 0x50);
+    n[0x28 / 4] = (int)&D_b3_994_v2;
+    gl_func_00000000((char *)n + 0x50);
 after_n1:
     a0[0x28 / 4] = (int)&D_b3_994_v3;
     a0[0x568 / 4] = 0;
@@ -352,58 +338,63 @@ after_n1:
     gl_func_00000000((char *)&D_00000000 + 0x3D0, 0);
     gl_func_00000000(&D_00000000, 0);
     sub = (int *)gl_func_00000000(0xDC);
-    if (sub != 0) {
-        sub[0x28 / 4] = (int)&D_b3_994_v4;
-    }
+    if (sub == 0) goto skip_sub;
+    gl_func_00000000(sub);
+    sub[0x28 / 4] = (int)&D_b3_994_v4;
+skip_sub:
     a0[0x6A8 / 4] = (int)sub;
-    *(int **)((char *)&D_00000000 + 0x138) = sub;
-    if ((a0[0x4F0 / 4] << 15) >= 0) {
-        sub[0xB4 / 4] = 0;
+    *(int **)((char *)&D_b3_994_g + 0x138) = sub;
+    if ((a0[0x4F0 / 4] << 15) < 0) {
+        m = (int *)a0[0x6A8 / 4];
+        m[0xB4 / 4] = 11;
     } else {
-        sub[0xB4 / 4] = 11;
+        m = (int *)a0[0x6A8 / 4];
+        m[0xB4 / 4] = 0;
     }
     gl_func_00000000(a0[0x6A8 / 4], a0, a0[0x568 / 4], a0[0x528 / 4]);
-    vt = (int *)((int *)a0[0x6A8 / 4])[0x28 / 4];
-    ((void (*)(int))vt[0x5C / 4])(*(short *)((char *)vt + 0x58) + a0[0x6A8 / 4]);
-    vt = (int *)a0[0x6A8 / 4];
-    gl_func_00000000(slot = (int *)((char *)a0 + 0x10), vt);
-    if (((int *)a0[0x6A8 / 4])[0x14 / 4] != 0) {
-        ((int *)a0[0x6A8 / 4])[0x4 / 4] = 1;
+    n = (int *)((int *)a0[0x6A8 / 4])[0x28 / 4];
+    ((void (*)(int))n[0x5C / 4])(*(short *)((char *)n + 0x58) + a0[0x6A8 / 4]);
+    gl_func_00000000(slot = (int *)((char *)a0 + 0x10), n = (int *)a0[0x6A8 / 4]);
+    m = n;
+    if (m[0x14 / 4] != 0) {
+        m[0x4 / 4] = 1;
     }
-    ((int *)a0[0x6A8 / 4])[0x14 / 4] = (int)a0;
+    m[0x14 / 4] = (int)a0;
+    gl_func_00000000(a0, a1);
 
     if ((a0[0x4F0 / 4] << 15) < 0) {
-        sub = (int *)gl_func_00000000(0);
-        a0[0x48 / 4] = (int)sub;
-        gl_func_00000000(sub, a0);
+        p = (int *)gl_func_00000000(0);
+        a0[0x48 / 4] = (int)p;
+        gl_func_00000000(p, a0);
         *(int *)((char *)a0[0x48 / 4] + 0x30) = a0[0x568 / 4];
-        gl_func_00000000(a0[0x48 / 4], (*(int *)&D_00000000 + 3) << 16, -1, &D_00000000);
-        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
-        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 4, -1, &D_00000000);
-        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
-        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
-        gl_func_00000000(a0[0x48 / 4], ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], (*(int *)&D_b3_994_r + 3) << 16, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], (((*(int *)&D_b3_994_r + 3) << 16)) | 1, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], (((*(int *)&D_b3_994_r + 3) << 16)) | 4, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], (((*(int *)&D_b3_994_r + 3) << 16)) | 3, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], (((*(int *)&D_b3_994_r + 3) << 16)) | 2, -1, &D_00000000);
+        gl_func_00000000(a0[0x48 / 4], (((*(int *)&D_b3_994_r + 3) << 16)) | 5, -1, &D_00000000);
         gl_func_00000000(a0[0x48 / 4]);
-        gl_func_00000000(slot, a0[0x48 / 4]);
-        if (((int *)a0[0x48 / 4])[0x14 / 4] != 0) {
-            ((int *)a0[0x48 / 4])[0x4 / 4] = 1;
+        gl_func_00000000(slot, n = (int *)a0[0x48 / 4]);
+        m = n;
+        if (m[0x14 / 4] != 0) {
+            m[0x4 / 4] = 1;
         }
-        ((int *)a0[0x48 / 4])[0x14 / 4] = (int)a0;
+        m[0x14 / 4] = (int)a0;
     } else {
         a0[0x4F4 / 4] = a1 & 0xFFFF;
         a0[0x48 / 4] = 0;
     }
 
-    gl_func_00000000(slot, nd = *(int **)((char *)&D_00000000 + 0x190));
-    nd2 = nd;
-    if (nd2[0x14 / 4] != 0) {
-        nd2[0x4 / 4] = 1;
+    gl_func_00000000(slot, n = *(int **)((char *)&D_00000000 + 0x190));
+    m = n;
+    if (m[0x14 / 4] != 0) {
+        m[0x4 / 4] = 1;
     }
-    nd2[0x14 / 4] = (int)a0;
-    gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0, nd2);
+    m[0x14 / 4] = (int)a0;
+    gl_func_00000000(*(int **)((char *)&D_00000000 + 0x190), 1, 0);
     gl_func_00000000();
 done:
-    return a0;
+    return (void *)a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00000994);
