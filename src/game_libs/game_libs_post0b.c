@@ -18330,91 +18330,101 @@ void gl_func_0004B040(int *a0) {
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
 extern int D_00000000;
-typedef struct { int unk0, unk4, unk8; } Q_0004B0A8;
+extern u8 gl_d_4b0a8_tbl;  /* base-0 alias: handler-table bind at self->0x28 */
+extern u8 gl_d_4b0a8_vt;   /* absolute alias @0x140: 2-word vtable copy source */
+extern u8 gl_d_4b0a8_w214; /* absolute alias @0x214: word arg of sub-registration */
+typedef struct { char *src; s32 idx; s32 end; } Q_0004B0A8;
+typedef struct { int a, b; } P2_0004B0A8;
 int *gl_func_0004B0A8(int *arg0, char *arg1) {
-    Q_0004B0A8 sp78;
-    Q_0004B0A8 sp84;
+    int spA0[2];
     Q_0004B0A8 sp94;
-    Q_0004B0A8 spA0;
-    int *temp_a1;
-    int *temp_s0;
-    int *temp_v0;
-    int *temp_v0_2;
-    int *temp_v0_3;
-    int *temp_v0_5;
-    int *var_a3;
-    int *var_s2;
-    s16 temp_a2;
-    s32 temp_a0;
-    s32 temp_t0;
-    s32 temp_t2;
-    s32 temp_v0_6;
-    s32 temp_v1;
-    s32 var_a0;
-    s32 var_v1;
-    char *temp_a1_2;
-    char *temp_v0_4;
-    char *temp_v1_2;
+    s32 pad90;
+    Q_0004B0A8 sp84;
+    Q_0004B0A8 sp78;
+    int *self;
+    int *ps;
+    int *res;
+    int **cur;
+    int **nxt;
+    int *vp;
+    Q_0004B0A8 *qa;
+    Q_0004B0A8 *qb;
+    Q_0004B0A8 *qc;
+    char *tmp;
+    s32 iv;
+    s32 ni;
+    int *cbres;
+    char *rec;
+    s32 cnt;
+    char *slot;
+    s32 a2v;
+    char *base2;
+    char *e1;
+    char *e2;
+    char *a1v;
 
-    var_s2 = arg0;
-    if ((arg0 != 0) || (temp_v0 = gl_func_00034458(0x44), var_s2 = temp_v0, (temp_v0 != 0))) {
-        gl_func_00034458(var_s2, (int *)((char *)&D_00000000 + 0x200EC));
-        FW(var_s2, 0x28) = (int)&D_00000000;
-        spA0.unk0 = *(s32 *)((char *)&D_00000000 + 0x140);
-        spA0.unk4 = *(s32 *)((char *)&D_00000000 + 0x144);
-        FW(var_s2, 0x0) = 2;
-        temp_v0_2 = gl_func_00034458(0, (int *)((char *)&D_00000000 + 0x200F4), *(s32 *)((char *)&D_00000000 + 0x214));
-        FW(var_s2, 0x40) = temp_v0_2;
-        gl_func_00034458(temp_v0_2, &spA0);
-        gl_func_00034458(FW(var_s2, 0x40), &spA0);
-        gl_func_00034458(FW(var_s2, 0x40), &spA0);
-        gl_func_00034458(FW(var_s2, 0x40), &spA0);
-        var_a3 = &sp78;
-        if ((&sp78 != 0) || (temp_v0_3 = gl_func_00034458(0xC), var_a3 = temp_v0_3, (temp_v0_3 != 0))) {
-            temp_v0_4 = (int)arg1 + 0x84;
-            FW(var_a3, 0x4) = -1;
-            FW(var_a3, 0x0) = temp_v0_4;
-            FW(var_a3, 0x8) = (s32) (FW(temp_v0_4, 0xC) - 1);
+    self = arg0;
+    if ((arg0 != 0) || (res = (int *)gl_func_00034458(0x44), self = res, (res != 0))) {
+        gl_func_00034458(self, (char *)&D_00000000 + 0x200EC);
+        FW(self, 0x28) = (int)&gl_d_4b0a8_tbl;
+        ps = spA0;
+        *(P2_0004B0A8 *)ps = *(P2_0004B0A8 *)((char *)&gl_d_4b0a8_vt + 0x140);
+        self[0] = 2;
+        res = (int *)gl_func_00034458(0, (char *)&D_00000000 + 0x200F4, *(s32 *)((char *)&gl_d_4b0a8_w214 + 0x214));
+        FW(self, 0x40) = (int)res;
+        gl_func_00034458(res, ps);
+        gl_func_00034458(FW(self, 0x40), ps);
+        gl_func_00034458(FW(self, 0x40), ps);
+        gl_func_00034458(FW(self, 0x40), ps);
+        ps = (int *)&sp78;
+        qa = (Q_0004B0A8 *)ps;
+        if (((u32)ps > 0U) || (qa = (Q_0004B0A8 *)gl_func_00034458(0xC), (qa != 0))) {
+            tmp = arg1 + 0x84;
+            ((volatile Q_0004B0A8 *)qa)->idx = -1;
+            ((volatile Q_0004B0A8 *)qa)->src = tmp;
+            ((volatile Q_0004B0A8 *)qa)->end = FW(tmp, 0xC) - 1;
         }
-        sp84.unk0 = (s32 *) sp78.unk0;
-        sp84.unk4 = (s32) sp78.unk4;
-        sp84.unk8 = (s32) sp78.unk8;
-        sp94.unk0 = sp84.unk0;
-        var_v1 = 0;
-        sp94.unk4 = (s32) sp84.unk4;
-        sp94.unk8 = (s32) sp84.unk8;
-        if (sp94.unk4 < sp94.unk8) {
-            temp_t0 = sp94.unk4 + 1;
-            sp94.unk4 = temp_t0;
-            var_v1 = *(int*)sp94.unk0 + (temp_t0 * 4);
+        qb = &sp84;
+        *qb = *(Q_0004B0A8 *)ps;
+        qc = &sp94;
+        *qc = *qb;
+        if (sp94.idx < sp94.end) {
+            ni = sp94.idx + 1;
+            sp94.idx = ni;
+            cur = (int **)*(int **)sp94.src + ni;
+        } else {
+            cur = 0;
         }
-        if (var_v1 != 0) {
+        if (cur != 0) {
             do {
-                temp_v1 = sp94.unk4 * 4;
-                if (FW((*(int*)(*(int*)sp94.unk0 + temp_v1)), 0x6C) != 0) {
-                    temp_t2 = *(int*)sp94.unk0;
-                    temp_s0 = FW(var_s2, 0x40);
-                    temp_a1 = FW((*(int*)(temp_t2 + temp_v1)), 0x6C);
-                    temp_a2 = FW((*(int*)(temp_t2 + temp_v1)), 0x8A);
-                    temp_v0_5 = gl_func_00034458(*(int*)(FW(temp_a1, 0xC)) + (temp_a2 * 8), temp_a1, (s32) temp_a2);
-                    temp_v1_2 = FW(temp_s0, 0xC);
-                    temp_a0 = FW(temp_v1_2, 0x4);
-                    FW(temp_v1_2, 0x4) = (s32) (temp_a0 + 1);
-                    temp_a1_2 = FW(FW(temp_s0, 0xC), 0x0) + (temp_a0 * 8);
-                    FW(temp_a1_2, 0x0) = 0x06000000;
-                    FW(temp_a1_2, 0x4) = temp_v0_5;
+                iv = sp94.idx * 4;
+                if (FW(*(int **)((char *)*(int **)sp94.src + iv), 0x6C) != 0) {
+                    base2 = *(char *volatile *)sp94.src;
+                    ps = (int *)FW(self, 0x40);
+                    e1 = (char *)*(int **)(base2 + iv);
+                    e2 = *(char *volatile *)((int)base2 + iv);
+                    a1v = (char *)FW(e1, 0x6C);
+                    a2v = *(s16 *)(e2 + 0x8A);
+                    cbres = (int *)gl_func_00034458(*(int *)FW(a1v, 0xC) + (a2v * 8), a1v, a2v);
+                    vp = (int *)FW(ps, 0xC);
+                    cnt = vp[1];
+                    vp[1] = cnt + 1;
+                    tmp = (char *)(FW(FW(ps, 0xC), 0x0) + (cnt * 8));
+                    FW(tmp, 0x0) = 0x06000000;
+                    FW(tmp, 0x4) = (int)cbres;
                 }
-                var_a0 = 0;
-                if (sp94.unk4 < sp94.unk8) {
-                    temp_v0_6 = sp94.unk4 + 1;
-                    sp94.unk4 = temp_v0_6;
-                    var_a0 = *(int*)sp94.unk0 + (temp_v0_6 * 4);
+                if (sp94.idx < sp94.end) {
+                    ni = sp94.idx + 1;
+                    sp94.idx = ni;
+                    nxt = (int **)*(int **)sp94.src + ni;
+                } else {
+                    nxt = 0;
                 }
-            } while (var_a0 != 0);
+            } while (nxt != 0);
         }
-        gl_func_00034458(FW(var_s2, 0x40));
+        gl_func_00034458(FW(self, 0x40));
     }
-    return var_s2;
+    return self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);

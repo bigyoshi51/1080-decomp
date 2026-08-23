@@ -3252,3 +3252,6 @@ gl_d_4c5e4_word = 0x00000000;  /* gl_func_0004C5E4: base-0 alias -- flag-2 call 
 gl_d_4c5e4_reg = 0x00000000;  /* gl_func_0004C5E4: base-0 alias -- +0x294 registration arg */
 gl_d_4c5e4_arg = 0x00000000;  /* gl_func_0004C5E4: base-0 alias -- tail-call base arg */
 gl_d_4c5e4_clr = 0x00000000;  /* gl_func_0004C5E4: base-0 alias -- final 0x254 clear */
+gl_d_4b0a8_tbl = 0x00000000;  /* gl_func_0004B0A8: base-0 alias -- handler-table bind self->0x28 */
+gl_d_4b0a8_vt = 0x00000000;  /* gl_func_0004B0A8: base-0 alias -- +0x140 2-word vtable copy source */
+gl_d_4b0a8_w214 = 0x00000000;  /* gl_func_0004B0A8: base-0 alias -- +0x214 word arg of sub-registration */

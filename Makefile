@@ -292,7 +292,10 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # (0x2c7c4 -> 0x2c74c 2026-08-22: 4C5E4 42.67->reconstruction pass shrank the
 # NM body 224 -> 212 insns (alias externs + f32[4] buf + s1v web merge);
 # tail 62F08 keeps its full 0x50 at the new offset 0x2c734 (post-601DC-splice).)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c784 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2c784 -> 0x2c804 2026-08-22: 4B0A8 44.7-> reconstruction pass grew the
+# NM body 0x1dc -> 0x270 (memory-pinned iterator + restored alloc branch);
+# tail 62F08 keeps its full 0x50 at the new offset 0x2c7b4 (splice-aware probe).)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2c804 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
