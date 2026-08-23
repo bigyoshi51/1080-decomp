@@ -26109,27 +26109,68 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054D04);
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00054E78)();
-typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_00054E78;
+/* 2026-08-22 agent-g rework: direct K&R jal (no fn-ptr cast), two=(f32)2
+ * INT-cast literal keeps mul.s-by-2.0 (D9E4/329C lever, defeats x+x fold),
+ * 12-byte Vec3 struct-assign chain sp50->sp64->sp2C = integer lw/sw copy
+ * blocks, member float copies to sp88/8C/90. */
+typedef struct { f32 x, y, z; } V3_54E78;
+typedef struct { V3_54E78 v; s32 pad[6]; } V3P24_54E78;
+typedef struct { s32 pad0; V3_54E78 v; s32 pad[6]; } V3LP_54E78;
+typedef struct { V3_54E78 v; s32 pad[5]; } V3P20_54E78;
+typedef struct { V3_54E78 v; s32 pad[2]; } V3P8_54E78;
+#define QF54(o) (*(f32 *)((char *)arg1 + (o)))
+#define MF54(o) (*(f32 *)((char *)arg0 + (o)))
 void gl_func_00054E78(char *arg0, char *arg1) {
-    Q_00054E78 sp2C;
-    Q_00054E78 sp50;
-    Q_00054E78 sp64;
-    f32 sp90;
-    f32 sp8C;
-    f32 sp88;
-    s32 sp20;
-    f32 temp_f0;
-    f32 temp_f12;
-    f32 temp_f12_2;
-    f32 temp_f14;
-    f32 temp_f16;
-    f32 temp_f18;
-    s32 temp_a0;
+    f32 w;
+    volatile f32 sp90;
+    volatile f32 sp8C;
+    volatile f32 sp88;
+    V3P24_54E78 sp64;
+    V3P8_54E78 sp50;
+    V3P24_54E78 sp2C;
+    char *temp;
+    f32 two;
+    f32 d;
 
-    temp_a0 = (int)arg0 + 0x12C;
-    sp20 = temp_a0;
-    ((int(*)())gl_func_00034458)(temp_a0, arg0);
+    temp = arg0 + 0x12C;
+    gl_func_00034458(temp);
+    two = (f32)2;
+    d = (f32)0;
+    MF54(0x12C) = 1.0f - (QF54(0) * QF54(0)) * two;
+    MF54(0x130) = d - (QF54(0) * QF54(4)) * two;
+    MF54(0x138) = d;
+    MF54(0x134) = d - (QF54(0) * QF54(8)) * two;
+    MF54(0x13C) = d - (QF54(4) * QF54(0)) * two;
+    MF54(0x140) = 1.0f - (QF54(4) * QF54(4)) * two;
+    MF54(0x148) = d;
+    MF54(0x144) = d - (QF54(4) * QF54(8)) * two;
+    MF54(0x14C) = d - (QF54(8) * QF54(0)) * two;
+    MF54(0x150) = d - (QF54(8) * QF54(4)) * two;
+    MF54(0x158) = d;
+    MF54(0x154) = 1.0f - (QF54(8) * QF54(8)) * two;
+    w = QF54(0xC);
+    sp50.v.x = QF54(0) * w;
+    sp50.v.y = QF54(4) * w;
+    sp50.v.z = QF54(8) * w;
+    sp64.v = sp50.v;
+    sp2C.v = sp64.v;
+    sp90 = sp2C.v.z;
+    sp8C = sp2C.v.y;
+    sp88 = sp2C.v.x;
+    d = (sp2C.v.x * QF54(0) + sp2C.v.y * QF54(4) + sp2C.v.z * QF54(8)) * two;
+    MF54(0x15C) = d * QF54(0);
+    MF54(0x160) = d * QF54(4);
+    MF54(0x168) = 1.0f;
+    MF54(0x164) = d * QF54(8);
+    FW(&D_00000000, 0xE4) = (int)temp;
+}
+#if 0
+void gl_func_00054E78_old(char *arg0, char *arg1) {
+    f32 temp_f12;
+    f32 temp_f14, temp_f16, temp_f18, temp_f0, temp_f12_2;
+    s32 temp_a0;
+    struct { f32 unk0,unk4,unk8; } sp50, sp64, sp2C;
+    f32 sp90, sp8C, sp88;
     temp_f12 = (*(f32*)((char*)arg1 + 0x0));
     (*(f32*)((char*)arg0 + 0x12C)) = (f32) (1.0f - (2.0f * (temp_f12 * temp_f12)));
     (*(f32*)((char*)arg0 + 0x130)) = (f32) (0.0f - (2.0f * ((*(f32*)((char*)arg1 + 0x0)) * (*(f32*)((char*)arg1 + 0x4)))));
@@ -26166,6 +26207,7 @@ void gl_func_00054E78(char *arg0, char *arg1) {
     (*(f32*)((char*)arg0 + 0x164)) = (f32) (temp_f0 * (*(f32*)((char*)arg1 + 0x8)));
     (*(s32*)((char*)&D_00000000 + 0xE4)) = temp_a0;
 }
+#endif /* 0 (old body) */
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00054E78);
 #endif
