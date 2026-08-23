@@ -1927,7 +1927,14 @@ extern int D_3B80_f0, D_3B80_f1, D_3B80_f2;
  * REMAINING RESIDUAL: s-reg permutation (base s4 vs s7, a0-copy s8 vs s5,
  * cursor s6 vs s8 — priority-driven, encounter-order identical), +8 frame
  * (param homes at 132/136/140 vs 124/128 + spill 116), t-numbering cascade
- * from the s-web differences. Coloring-tie class. */
+ * from the s-web differences. Coloring-tie class.
+ * 2026-08-22 agent-f probe: target default arm is `lw v0,116(sp)` = read of
+ * an UNINITIALIZED local (slot never written; target also has NO sw a3 home
+ * and frame 120 with frow@92, 96-112 unwritten). `int junk; max = junk;`
+ * reproduces the lw-from-slot shape but costs +8 frame (junk slots at 100,
+ * frame 136) -> net 89.47 < 89.7 baseline, reverted. 3-param signature moves
+ * idx to $v1 (target uses $a3 scratch) and does NOT drop the frame. The
+ * missing piece is getting junk INTO the existing 88-116 spill band. */
 void gui_func_00003B80(int *a0, int a1, int a2, int a3) {
     int *s5 = a0;
     int s8 = 0;
@@ -2315,7 +2322,20 @@ extern int gl_func_00000000();
  * lh sp+0x22), then slot[1] = (-sx << 16) | (-sy & 0xffff). Cmd-emit idiom:
  * st=ctx->0xc; slot=(ctx->0xc->0)+idx*8; bump st->4. RESIDUAL ~46%: target
  * keeps a1/a2/a3 register-resident (frame -8); this C homes them (arg spill) —
- * regalloc/scheduling, multi-pass. Default INCLUDE_ASM keeps ROM exact. */
+ * regalloc/scheduling, multi-pass. Default INCLUDE_ASM keeps ROM exact.
+ * 2026-08-22 agent-f probe (stub-else build): the a1/a2 entry homing is
+ * PRESSURE-DRIVEN BY THE ALT PATH — with the else-arm stubbed only a3 homes.
+ * So the lever is restructuring the else-arm to fewer simultaneous webs, in
+ * target shape: (1) t0=(short)((a1+a3)<<2) / v0=(short)((a2+a4)<<2) computed
+ * EARLY, interleaved with the packet-1 st derefs (a3 dies at top -> unhomed);
+ * (2) x0r spelled as copy+combined shift `t2=a1; sll t2,0x12; sra 0x10`
+ * (3714 sll-18 family) and y0r's `sll a3,a2,0x2` REUSES dead a3 as scratch;
+ * (3) each clamp is blez/or-zero branch pairs (plain ternary emits this);
+ * (4) scale blocks: bgez x0r skip; lh 30(sp)=(short)a5; sign-of-scale branch
+ * picks clamp arm with a SEPARATE multu t2,v0 + sra 7 in EACH arm (current
+ * single-multu C is wrong shape); frame -8 s0=a0 held but packet-1 slot base
+ * read via a0 (mixed s0/a0 per-site web). Next pass: rewrite else-arm to this
+ * plan, then main path should self-align (its diffs are all reload-driven). */
 void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) {
     int *s0 = a0;
     int *st, *slot, idx;
