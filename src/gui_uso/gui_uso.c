@@ -2396,9 +2396,7 @@ void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) 
         slot[1] = ((cx & 0xFFF) << 12) | (cy & 0xFFF);
 
         st = (int *)s0[0xC / 4];
-        sx = 0;
         idx = st[1];
-        sy = 0;
         st[1] = idx + 1;
         slot = (int *)(((int *)s0[0xC / 4])[0]) + idx * 2;
         slot[0] = 0xB4000000;
@@ -2414,6 +2412,8 @@ void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) 
                 cy = rawy;
                 sx = cy;
             }
+        } else {
+            sx = 0;
         }
         if (y2 < 0) {
             short m = a6;
@@ -2427,6 +2427,8 @@ void gui_func_00004568(int *a0, int a1, int a2, int a3, int a4, int a5, int a6) 
                 idx = rawy;
                 sy = idx;
             }
+        } else {
+            sy = 0;
         }
         slot[1] = ((-sx) << 16) | ((-sy) & 0xFFFF);
 
