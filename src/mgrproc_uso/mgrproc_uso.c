@@ -1372,9 +1372,24 @@ void mgrproc_uso_func_00002324(char *a0) {
  * 0x138), fmt = &import_80264A10 + 0x640. Time decomposition uses real div+break
  * with SUBTRACT-form remainder (t -= q*d -> multu/subu), not `%` (mfhi).
  * sp90 is a char[0x80] buffer (old u8 collapse explains frame 0xB8 vs 0x120);
- * the four 1.0f floats are one f32[4] array (address-taken). Loop bound is
- * `i != n * 13` recomputed spelling so n (t2) stays live/spilled around the
- * F75C call. */
+ * the four 1.0f floats are one f32[4] array (address-taken).
+ * 2026-08-22 pt2 (agent-h, 140->131 word-diffs): frame 0x120 EXACT via 4
+ * volatile s32 pads after p770 (ghost slots; one[]/buf/a2=sp+0x110 offsets
+ * now byte-exact). RESIDUAL (~131 words, mostly t-ring renames cascading):
+ * (a) n-live-in-loop spill (target sw/lw t2,84(sp) around in-loop F75C):
+ * UNREACHABLE from bound spelling -- `i != n*13` do-while, in-test `lim=`
+ * assignment, post-loop dead use all CSE/DCE to n-dead (uopt liveness is
+ * post-CSE); for-loop spelling gets insn parity 277/277 but via a WRONG
+ * zero-trip beqzl guard (non-zero-trip proof lost), rejected. Volatile read
+ * of n restructures (164 diffs). (b) named-scalar home block sits +0x18:
+ * ours reserves THREE uopt temp slots at frame bottom vs target's ONE
+ * (0x30 lim only) -- with 3 temps min can never reach 0x60 while keeping
+ * 11 below-min ghost slots; temp-count not C-steerable (probed decl
+ * reorders, tim address-pin via char**tp -- pin works, homes tim at its
+ * ghost, but temp reservation stays 3). (c) FP const-vs-mem f-numbering
+ * (const f4 < mem f6 at 4 alpha sites): operand order + block-scoped
+ * k=255.0f + const-before-mem statement split all inert (umpy const-second
+ * canonicalization); 2 words x 4 sites. */
 extern void import_0024E608();
 extern void import_0024F2C8();
 extern void import_0024F34C();
@@ -1386,6 +1401,10 @@ void mgrproc_uso_func_000023FC(char *arg0) {
     f32 one[4];
     u8 buf[0x80];
     char *p770;
+    volatile s32 pad0;
+    volatile s32 pad1;
+    volatile s32 pad2;
+    volatile s32 pad3;
     s32 min;
     s32 sec;
     s32 n;
