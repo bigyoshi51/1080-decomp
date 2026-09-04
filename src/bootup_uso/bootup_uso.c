@@ -3367,51 +3367,136 @@ void func_00004914(char *a0, int a1, char *a2) {
  * hand-refinement territory despite the low %, suggesting its tail/
  * shape divergence is structural (m2c saw the same skeleton). */
 #ifdef NON_MATCHING
+typedef struct { float lo, hi, v, w; } Bu4948E16;
+typedef struct { float a, b; } Bu4948E8;
+extern Bu4948E16 bu_4948_t16[];                 /* 16B table, lui 0/addiu 0 placeholder */
+extern Bu4948E8 bu_4948_t8[];                   /* 8B table */
+extern float bu_4948_k0;                        /* folded consts: lui 0 / lwc1 0(at) placeholders */
+extern float bu_4948_k1;
+extern float bu_4948_klo;
+extern float bu_4948_khi;
+extern u8 bu_4948_c3f8[];                       /* data alias of func_000003F8 (const pool +0x15C/+0x160) */
+extern float func_00000000_4948_ff(float);      /* f12 -> f0 (sqrt / sin / cos / asin-ish) */
+extern void func_00000000_4948_pv(void *, Vec3 *);
+extern void func_00000000_4948_p(void *);
+typedef struct {
+    Vec3 A13;      /* 0x2C */
+    Vec3 B13;      /* 0x38 */
+    float pad44;
+    Vec3 DB;       /* 0x48 */
+    float pad54, pad58;
+    float ang;     /* 0x5C */
+    float pad60;
+    float dist;    /* 0x64 */
+    Vec3 EB;       /* 0x68 */
+    Vec3 CB;       /* 0x74 */
+    Vec3 FB;       /* 0x80 */
+    Vec3 A12;      /* 0x8C */
+    Vec3 B12;      /* 0x98 */
+    float padA4;
+    Vec3 DA;       /* 0xA8 */
+    Vec3 EA;       /* 0xBC */
+    Vec3 CA;       /* 0xC8 */
+    Vec3 FA;       /* 0xD4 */
+    float padE0, padE4;
+    float sinv;    /* 0xE8 */
+    float padEC, padF0;
+    Vec3 A1;       /* 0xF4 */
+    Vec3 tmp;      /* 0x104 */
+    float pad110;
+    Vec3 B1;       /* 0x114 */
+} Bu4948F;
+#define BU4948_SNAP(A, B, s)                                                 \
+    {                                                                        \
+        fr.A.x = *(float *)((s) + 0x318) * bu_4948_k0;                       \
+        fr.A.y = *(float *)((s) + 0x31C) * bu_4948_k0;                       \
+        fr.A.z = *(float *)((s) + 0x320) * bu_4948_k0;                       \
+        fr.tmp = fr.A;                                                       \
+        fr.B = fr.tmp;                                                       \
+        fr.B.y *= bu_4948_k1;                                                \
+        func_00000000_4948_pv(obj + 0x30, &fr.B);                            \
+    }
+#define BU4948_DELTA(C, E, D, F, p)                                          \
+    {                                                                        \
+        fr.C.x = *(float *)((p) + 0xA0);                                     \
+        fr.C.y = *(float *)((p) + 0xA4);                                     \
+        fr.C.z = *(float *)((p) + 0xA8);                                     \
+        fr.E.x = *(float *)(obj + 0xA0);                                     \
+        fr.E.y = *(float *)(obj + 0xA4);                                     \
+        fr.E.z = *(float *)(obj + 0xA8);                                     \
+        fr.D.x = fr.C.x - fr.E.x;                                            \
+        fr.D.y = fr.C.y - fr.E.y;                                            \
+        fr.D.z = fr.C.z - fr.E.z;                                            \
+        fr.tmp = fr.D;                                                       \
+        fr.F = fr.tmp;                                                       \
+    }
 void func_00004948(char *obj) {
-    int st = *(int *)(obj + 0x158);
+    Bu4948F fr;
+    int st;
+    int idx;
+    float dist;
+    Bu4948E16 *e;
+    Bu4948E8 *e8;
+    float ang, r, t;
     char *s;
-    float K0;
-    float sx, sy, sz;
-    float dx, dy, dz;
-    float lenSq, dist;
-    K0 = *(float *)&D_00000000;
+
+    st = *(int *)(obj + 0x158);
     if (st == 2) {
         s = *(char **)(obj + 0x154);
-        sx = *(float *)(s + 0x318) * K0;
-        sy = *(float *)(s + 0x31C) * K0;
-        sz = *(float *)(s + 0x320) * K0;
-        *(float *)(obj + 0x30) = sx;
-        *(float *)(obj + 0x34) = sy;
-        *(float *)(obj + 0x38) = sz;
-        *(int *)(obj + 0x14C) = *(int *)(obj + 0x150);
-    } else {
-        s = *(char **)(obj + 0x154);
-        dx = *(float *)(obj + 0xA0) - *(float *)(s + 0x318);
-        dy = *(float *)(obj + 0xA4) - *(float *)(s + 0x31C);
-        dz = *(float *)(obj + 0xA8) - *(float *)(s + 0x320);
-        lenSq = dx * dx + dy * dy + dz * dz;
-        dist = (float)func_00000000(lenSq);
-        if (dist != 0.0f) {
-            dx /= dist; dy /= dist; dz /= dist;
-        }
-        if (st < 0x13) {
-            *(float *)(obj + 0x30) = dx * K0;
-            *(float *)(obj + 0x34) = dy * K0;
-            *(float *)(obj + 0x38) = dz * K0;
-        } else if (st < 0x18) {
-            *(float *)(obj + 0x30) = dx;
-            *(float *)(obj + 0x34) = dy;
-            *(float *)(obj + 0x38) = dz;
-        } else if (st < 0x1D) {
-            *(float *)(obj + 0x30) += dx * K0;
-            *(float *)(obj + 0x34) += dy * K0;
-            *(float *)(obj + 0x38) += dz * K0;
+        BU4948_SNAP(A1, B1, s);
+        *(float *)(obj + 0x14C) = *(float *)(obj + 0x150);
+    } else if ((st >= 0x13 && st < 0x18) || (st >= 0x18 && st < 0x1D)) {
+        s = *(char **)(obj + 0xF4);
+        BU4948_DELTA(CA, EA, DA, FA, s);
+        dist = func_00000000_4948_ff(fr.FA.x * fr.FA.x + fr.FA.y * fr.FA.y + fr.FA.z * fr.FA.z);
+        st = *(int *)(obj + 0x158);
+        idx = 0;
+        if (st == 0x13 || st == 0x18) idx = 0;
+        else if (st == 0x14 || st == 0x19) idx = 1;
+        else if (st == 0x15 || st == 0x1A) idx = 2;
+        else if (st == 0x16 || st == 0x1B) idx = 3;
+        else if (st == 0x17 || st == 0x1C) idx = 4;
+        e = &bu_4948_t16[idx];
+        if (e->lo < dist) {
+            *(float *)(obj + 0x14C) = e->w;
+        } else if (dist < e->hi) {
+            *(float *)(obj + 0x14C) = e->v;
         } else {
-            *(int *)(obj + 0x14C) = *(int *)(obj + 0x150);
+            *(float *)(obj + 0x14C) = e->w + (e->v - e->w) / (e->lo - e->hi) * (e->lo - dist);
         }
+        st = *(int *)(obj + 0x158);
+        if (st >= 0x18 && st < 0x1D) {
+            s = *(char **)(obj + 0x154);
+            BU4948_SNAP(A12, B12, s);
+        }
+    } else if ((st >= 0x1D && st < 0x22) || (st >= 0x22 && st < 0x27)) {
+        s = *(char **)(obj + 0xF4);
+        BU4948_DELTA(CB, EB, DB, FB, s);
+        dist = func_00000000_4948_ff(fr.FB.x * fr.FB.x + fr.FB.y * fr.FB.y + fr.FB.z * fr.FB.z);
+        st = *(int *)(obj + 0x158);
+        idx = 0;
+        if (st == 0x1D || st == 0x22) idx = 0;
+        else if (st == 0x1E || st == 0x23) idx = 1;
+        else if (st == 0x1F || st == 0x24) idx = 2;
+        else if (st == 0x20 || st == 0x25) idx = 3;
+        else if (st == 0x21 || st == 0x26) idx = 4;
+        e8 = &bu_4948_t8[idx];
+        ang = e8->b / 2.0f * *(float *)(bu_4948_c3f8 + 0x15C) / 180.0f;
+        fr.sinv = func_00000000_4948_ff(ang);
+        r = func_00000000_4948_ff(ang) * e8->a / fr.sinv;
+        t = func_00000000_4948_ff(dist * dist + r * r);
+        t = func_00000000_4948_ff(dist / t) * 2.0f / *(float *)(bu_4948_c3f8 + 0x160) * 180.0f;
+        *(float *)(obj + 0x14C) = (t < bu_4948_klo) ? bu_4948_klo : ((bu_4948_khi < t) ? bu_4948_khi : t);
+        st = *(int *)(obj + 0x158);
+        if (st >= 0x22 && st < 0x27) {
+            s = *(char **)(obj + 0x154);
+            BU4948_SNAP(A13, B13, s);
+        }
+    } else {
+        *(float *)(obj + 0x14C) = *(float *)(obj + 0x150);
     }
-    func_00000000(obj);
-    func_00000000(obj);
+    func_00000000_4948_p(obj + 0x30);
+    func_00000000_4948_p(obj);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00004948);
