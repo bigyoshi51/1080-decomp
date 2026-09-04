@@ -9770,22 +9770,44 @@ extern char timproc_uso_b5_D_807FEE68;
 extern char timproc_uso_b5_D_807FEE74;
 extern char timproc_uso_b5_D_807FEE7C;
 extern char timproc_uso_b5_D_807FEE84;
-#define D550_FLAG (*(volatile s32 *)((char *)&import_8005EE6C + 4))
-char *timproc_uso_b5_func_0000D550(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8) {
-    char *r;
-    char *volatile vb;
-    char *obj;
+/* PASS-4 2026-09-04 (agent-h): 620/17A0/90CC kit — `char * volatile` for r (store
+ * in place, reload-per-cluster via block temps) replaces the vb bridge (+2 debris
+ * gone); `char * volatile obj` replaces the if(0)-&obj escape (target's obj@0x54 is
+ * a volatile-shaped home: sw v0 in the alloc-beq delay, addiu+sw in the jal delay,
+ * lw-per-use); per-site NON-volatile cast-alias pairs for the EE6C flag word
+ * (90CC #blank-global-ldst-alias-pairs-90cc) restore lui;lw 4(rd) / lui at;sw
+ * per access. p reused as the short v0 temps (alloc-2 result, a0->0x38), and as
+ * the flag RMW value carrier (target colors that web v0 = p's color; a fresh `iv`
+ * local colors a1). `if (1) {}` barrier before the p=child->0x108 block flips the
+ * p/rr v0<->v1 placement swap. `volatile s32 arg1/arg2` params (instead of the
+ * if(0) &arg escape) make the arg2 read a v1 candidate (target `lw v1,104(sp)` +
+ * addiu-off-same-load); the arg0 store sits between rr=r and a2v=arg2 so the
+ * volatile-ordered loads schedule as the target. 82.4 -> 91.9 (205/205 insns).
+ * RESIDUAL: (1) `addiu a0,zero,0x138` hoisted to the block top (target fills the
+ * mtc1->cvt hazard with it; our nop stays) - scheduler tie; (2) EE68/EE7C vtable
+ * pair addiu order (lui A,lui B,addiu B,addiu A in target); (3) g2 cluster temp
+ * folds to t7 (target v1 candidate) - q-merge/gc-volatile probed, both worse;
+ * (4) FP tail temp ring (zero#1 f4 / 1.0 f16 vs f18/f10), store-order permutations
+ * probed; (5) dead `p += 0xB4` addiu DCE'd; (6) savedbit spill sw ordered before
+ * the s1 store (target after). */
+extern char d550_ee6c_l1, d550_ee6c_l2, d550_ee6c_l3, d550_ee6c_l4;
+extern char d550_ee6c_s1, d550_ee6c_s2, d550_ee6c_s3;
+#define D550_FLAG(s) (*(s32 *)((char *)&s + 4))
+char *timproc_uso_b5_func_0000D550(char *arg0, volatile s32 arg1, volatile s32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8) {
+    char *volatile r;
+    volatile int pad0;
+    char *volatile obj;
     char *child;
     volatile int pad[7];
     s32 savedbit;
     char *p;
     char *gc;
 
-    if (0) { timproc_uso_b5_func_04DFFC(&arg1, &arg2, &obj, &gc); }
+    if (0) { timproc_uso_b5_func_04DFFC(&gc); }
     child = (char *)timproc_uso_b5_func_055750((char *)0x2C8);
     if (child != 0) {
         obj = child;
-        if (obj != 0 || (obj = (char *)timproc_uso_b5_func_055750((char *)0x2B8)) != 0) {
+        if (child != 0 || (p = (char *)timproc_uso_b5_func_055750((char *)0x2B8), obj = p, p != 0)) {
             timproc_uso_b5_func_04C678(obj, &timproc_uso_b5_D_807FEE60 + 0x15F0);
             {
                 char *o2 = obj;
@@ -9800,19 +9822,20 @@ char *timproc_uso_b5_func_0000D550(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
         FW(child, 0x2C4) = 0;
         FW(child, 0x2B4) = 0;
     }
-    vb = child;
-    r = vb;
+    r = child;
     timproc_uso_b5_func_07ACE0(arg0 + 0x10, child);
     if (FW(child, 0x14) != 0) {
         FW(child, 0x4) = 1;
     }
-    FW(child, 0x14) = (s32) arg0;
     {
+        char *rr = r;
+        FW(child, 0x14) = (s32) arg0;
+        {
         s32 a2v = arg2;
-        FW(r, 0x2B0) = a2v;
+        FW(rr, 0x2B0) = a2v;
+        *(f32 *)(rr + 0x2A4) = (f32) arg1;
         obj = (char *)(a2v + 1);
-    }
-    *(f32 *)(r + 0x2A4) = (f32) arg1;
+    }}
     child = (char *)timproc_uso_b5_func_055750((char *)0x138);
     if (child != 0) {
         timproc_uso_b5_func_0546DC(child, &timproc_uso_b5_D_807FEE74 + 0x1604, 0.0f, 0.0f, 0.0f);
@@ -9834,18 +9857,22 @@ char *timproc_uso_b5_func_0000D550(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
         }
         FW(child, 0x108) = (s32) gc;
         timproc_uso_b5_func_04DFFC(child, gc);
+        if (1) {}
         p = (char *)FW(child, 0x108);
         *(f32 *)(p + 0xBC) = (f32) 0;
         *(f32 *)(p + 0xB8) = (f32) 0;
         *(f32 *)(p + 0xB4) = (f32) 0;
-        savedbit = D550_FLAG & 0x80000;
+        savedbit = D550_FLAG(d550_ee6c_l1) & 0x80000;
         p += 0xB4;
-        D550_FLAG = (D550_FLAG & 0xFFF7FFFF) | 0x2000;
+        p = (char *)((D550_FLAG(d550_ee6c_l2) & 0xFFF7FFFF) | 0x2000);
+        D550_FLAG(d550_ee6c_s1) = (s32) p;
         timproc_uso_b5_func_04DFFC(child, (char *)import_000A12EC(obj));
         if (savedbit != 0) {
-            D550_FLAG = D550_FLAG | 0x80000;
+            p = (char *)(D550_FLAG(d550_ee6c_l3) | 0x80000);
+            D550_FLAG(d550_ee6c_s2) = (s32) p;
         } else {
-            D550_FLAG = D550_FLAG & 0xFFF7FFFF;
+            p = (char *)(D550_FLAG(d550_ee6c_l4) & 0xFFF7FFFF);
+            D550_FLAG(d550_ee6c_s3) = (s32) p;
         }
         *(f32 *)(child + 0xDC) = arg3;
         *(f32 *)(child + 0xE0) = arg4;
@@ -9859,11 +9886,15 @@ char *timproc_uso_b5_func_0000D550(char *arg0, s32 arg1, s32 arg2, f32 arg3, f32
         *(f32 *)(child + 0x124) = (f32) 0;
         *(f32 *)(child + 0x118) = arg8;
     }
-    FW(r, 0x2B8) = (s32) child;
-    FW(r, 0x29C) = (s32) child;
-    *(f32 *)(r + 0x134) = *(f32 *)((char *)&import_80807FB8 + 0x3B8);
-    obj = (char *)FW(arg0, 0x38);
-    timproc_uso_b5_func_07ACE0(obj + 0x10, child);
+    {
+        char *rr = r;
+        FW(rr, 0x2B8) = (s32) child;
+        FW(rr, 0x29C) = (s32) child;
+        *(f32 *)(rr + 0x134) = *(f32 *)((char *)&import_80807FB8 + 0x3B8);
+    }
+    p = (char *)FW(arg0, 0x38);
+    obj = p;
+    timproc_uso_b5_func_07ACE0(p + 0x10, child);
     if (FW(child, 0x14) != 0) {
         FW(child, 0x4) = 1;
     }
