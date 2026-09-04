@@ -15,6 +15,8 @@ extern char D_0000C58C;
 extern char D_0000C594;
 extern char D_0000C5A4;
 extern char D_0000C5AC;
+extern char D_0000C5BC;
+extern char D_0000C5C4;
 extern int D_bootup_scratch0;         /* int-typed base-0 alias of D_00000000; $at-fused scratch store/reload */
 
 #ifdef NON_MATCHING
@@ -184,36 +186,42 @@ void func_0000FEA0(char *a0) {
  * INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no
  * episode; tautology-trap rule). */
 #ifdef NON_MATCHING
-/* 2026-06-04 EXTEND via Ghidra 24.5% -> 27.8%: added the 2nd color quad
- * (0x5c-0x68 = 0xC0/0xC2/0xE5/1.0 over 255), 0x80=0, the dead-arm 2nd alloc
- * cascade, and the tail init call. (Ghidra mis-shows the /255 colors as folded
- * word constants 0x3eeeeeef — the asm computes them via mtc1+cvt.s.w+div.s.)
- * Residual: get-or-create cascade keeps the object in $a2 (regalloc). */
+/* 2026-09-04 REBUILD 43.3 -> cap (128/130 words, 2 = the -O0 value-return
+ * dead-double-b toolchain gap shared with FC28/FD4C above; everything else
+ * byte-exact incl. relocs). Levers: fused-|| get-or-create cascades (outer
+ * on the a0 home, inner on register s -> s0); second register d -> s1 for
+ * the 0xC descriptor store; s re-based to a0+0x4C / a0+0x5C for the two
+ * colour quads; and the /255 channels spelled `(float)(0, N) / 255.0f` --
+ * the COMMA expression is the only spelling found that stops cfe folding
+ * an int/float constant quotient at -O0 (li N; mtc1; cvt.s.w; lui 0x437f;
+ * div.s, incl. the 255/255 = 1.0 one). All plain casts/pointer casts/
+ * sizeof/char literals fold to a .rodata lwc1. */
 void *func_0000FEE8(char *a0) {
-    char *o;
-    char *q;
-    float *c;
-    o = a0 ? a0 : (char *)func_00000000(0x304);
-    if (!o) return 0;
-    q = o;
-    if (o != 0 || (q = (char *)func_00000000(0x2C)) != 0) {
-        func_00000000(q, (char *)&D_00000000 + 0xC5BC);
-        *(char **)(q + 0x28) = &D_00000000;
+    register char *s;
+    register char *d;
+    if (a0 != 0 || (a0 = (char *)func_00000000(0x304)) != 0) {
+        if ((s = a0) != 0 || (s = (char *)func_00000000(0x2C)) != 0) {
+            func_00000000(s, &D_0000C5BC);
+            *(char **)(s + 0x28) = &D_00000000;
+        }
+        *(char **)(a0 + 0x28) = &D_00000000;
+        s = a0;
+        d = &D_0000C5C4;
+        *(char **)(s + 0xC) = d;
+        s = a0 + 0x4C;
+        *(float *)(s + 0) = (float)(0, 119) / 255.0f;
+        *(float *)(s + 4) = (float)(0, 117) / 255.0f;
+        *(float *)(s + 8) = (float)(0, 229) / 255.0f;
+        *(float *)(s + 12) = (float)(0, 255) / 255.0f;
+        s = a0 + 0x5C;
+        *(float *)(s + 0) = (float)(0, 192) / 255.0f;
+        *(float *)(s + 4) = (float)(0, 194) / 255.0f;
+        *(float *)(s + 8) = (float)(0, 229) / 255.0f;
+        *(float *)(s + 12) = (float)(0, 255) / 255.0f;
+        *(int *)(a0 + 0x80) = 0;
+        func_00000000(a0);
     }
-    *(char **)(o + 0x28) = &D_00000000;
-    *(char **)(o + 0xC) = (char *)&D_00000000 + 0xC5C4;
-    c = (float *)(o + 0x4C);
-    c[0] = (float)0x77 / 255.0f;
-    c[1] = (float)0x75 / 255.0f;
-    c[2] = (float)0xE5 / 255.0f;
-    c[3] = 1.0f;
-    c[4] = (float)0xC0 / 255.0f;
-    c[5] = (float)0xC2 / 255.0f;
-    c[6] = (float)0xE5 / 255.0f;
-    c[7] = 1.0f;
-    *(int *)(o + 0x80) = 0;
-    func_00000000(o);
-    return o;
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FEE8);
