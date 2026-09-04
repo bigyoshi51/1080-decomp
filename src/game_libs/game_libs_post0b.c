@@ -3350,38 +3350,62 @@ int *gl_func_000378D0(int *a0, int a1, float a2) {
 //   STRUCTURAL body below — Vec3 add/sub compose + block-copy
 //   skeleton only. Byte-match deferred. Name pre-checked: no extern
 //   reuse.
+// 2026-09-04 agent-g: 46.8 -> 82.4 (86/86 insns, every frame slot exact except
+//   a +0x10 bottom offset: frame 0xE8 vs 0xD8). Levers: Vec3 struct temps
+//   (memberwise float builds = lwc1/swc1; `c1 = d` struct copies = lw/sw
+//   through hoisted address regs); a mid-body `if (0) f(&s,&a,&b)` escape
+//   point = s/a/b memory-homed AND reloaded after it (an escape at the top
+//   homes but still store-forwards a); pad char arrays (20/24/4/20) between the
+//   decl-order structs reproduce the target's gaps; k local = one lwc1 48(a0);
+//   arg built z,y,x. RESIDUAL: mid-body escape adds 0x10 of bottom frame (the
+//   top-placed escape keeps 0xD8 but loses the a reloads); `addiu v0,v0,112`
+//   for the t+0x70 sub-block base (folded into the lwc1 offsets here);
+//   pointer-reg naming for the copy chain (t7/t0/t3/t6 + late v0 vs t8/t1..).
 #ifdef NON_MATCHING
-/* Whole-body decode 2026-06-01 (prior body had wrong math + wrong call). s=o->
- * 0x14, t=o->0x2C. a={s->0xA0,0xA4,0xA8}, b={t->0xA0,(t+0x70)->0x34,0x38}.
- * diff = b - a (all 3); scaled = diff * o->0x30; gl(s+0x30, scaled). */
+/* s=o->0x14, t=o->0x2C. a={s->0xA0,0xA4,0xA8}, b={t->0xA0,(t+0x70)->0x34,0x38}.
+ * d = b - a; sc = d * o->0x30; gl_func_00034458(s+0x30, &sc). Every Vec3 step
+ * goes through struct temps (memberwise float build -> two lw/sw struct copies
+ * -> memberwise compute), i.e. macro-style (tmp = (v), out.x = f(tmp.x), ..., out). */
 void gl_func_00037938(char *o) {
+    Vec3 c2;
     char *s = *(char **)(o + 0x14);
-    char *t = *(char **)(o + 0x2C);
-    float a[3], b[3], diff[3], dcopy[3], scaled[3], scopy[3], arg[3];
+    Vec3 a, b, arg;
+    char pad1[20];
+    Vec3 c1, d;
+    char pad2[24];
+    Vec3 c3;
+    char pad2b[4];
+    Vec3 sc;
+    char pad3[20];
+    Vec3 c4;
+    char *t, *t2;
+    Vec3 *pa, *pb, *pd;
+    f32 k;
 
-    a[0] = *(float *)(s + 0xA0);
-    a[1] = *(float *)(s + 0xA4);
-    a[2] = *(float *)(s + 0xA8);
-    b[0] = *(float *)(t + 0xA0);
-    b[1] = *(float *)(t + 0x70 + 0x34);
-    b[2] = *(float *)(t + 0x70 + 0x38);
-    diff[0] = b[0] - a[0];
-    diff[1] = b[1] - a[1];
-    diff[2] = b[2] - a[2];
-    /* diff is copied (int/lw-sw) through two slots before scaling. */
-    *(int *)&dcopy[0] = *(int *)&diff[0];
-    *(int *)&dcopy[1] = *(int *)&diff[1];
-    *(int *)&dcopy[2] = *(int *)&diff[2];
-    scaled[0] = dcopy[0] * *(float *)(o + 0x30);
-    scaled[1] = dcopy[1] * *(float *)(o + 0x30);
-    scaled[2] = dcopy[2] * *(float *)(o + 0x30);
-    *(int *)&scopy[0] = *(int *)&scaled[0];
-    *(int *)&scopy[1] = *(int *)&scaled[1];
-    *(int *)&scopy[2] = *(int *)&scaled[2];
-    *(int *)&arg[0] = *(int *)&scopy[0];
-    *(int *)&arg[1] = *(int *)&scopy[1];
-    *(int *)&arg[2] = *(int *)&scopy[2];
-    gl_func_00000000(s + 0x30, arg);
+    a.x = *(f32 *)(s + 0xA0);
+    a.y = *(f32 *)(s + 0xA4);
+    a.z = *(f32 *)(s + 0xA8);
+    t = *(char **)(o + 0x2C);
+    b.x = *(f32 *)(t + 0xA0);
+    t2 = t + 0x70;
+    b.y = *(f32 *)(t2 + 0x34);
+    b.z = *(f32 *)(t2 + 0x38);
+    if (0) { gl_func_00034458(&s, &a, &b); }   /* escape point: s/a/b memory-homed + reloaded after it */
+    d.x = b.x - a.x;
+    d.y = b.y - a.y;
+    d.z = b.z - a.z;
+    c1 = d;
+    c2 = c1;
+    k = *(f32 *)(o + 0x30);
+    sc.x = c2.x * k;
+    sc.y = c2.y * k;
+    sc.z = c2.z * k;
+    c3 = sc;
+    c4 = c3;
+    arg.z = c4.z;
+    arg.y = c4.y;
+    arg.x = c4.x;
+    gl_func_00034458(s + 0x30, &arg);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037938);
