@@ -341,100 +341,98 @@ void h2hproc_uso_func_000005B0(Vec3 *dst) {
  *   calls (B0A8/3074 lever) is INERT here (80.94 -> 81.02 objdiff, reverted).
  *   Not a post-call v-reg coloring gate: target MEMORY-HOMES the cascade var
  *   (sw a3/sw v0/lw a0 through 0x30(sp)) where mine keeps it in v1 — an
- *   inverted spill-strategy tie, plus frame 0x48 vs 0x38. Cap stands. */
+ *   inverted spill-strategy tie, plus frame 0x48 vs 0x38. Cap stands.
+ * 2026-09-04 (81.7 -> 94.2, 177/177 insns, frame 0x38 EXACT): 251C kit
+ *   transfer. (1) short-circuit cascade `(x!=0)||(x=alloc(N),x!=0)` per
+ *   level, param reused as self (s0); (2) `char * volatile r` for level-3
+ *   (store-in-delay `sw a3,48(sp)` + reload-every-use `lw a0/t9,48(sp)`),
+ *   which is ALSO the grandchild's home (`sw v0,48(sp)` in the jal delay);
+ *   (3) ONE `a3` web for level-2 + grandchild + vt + all three registration
+ *   nodes = the shared 0x34(sp) spill home — but merged it promotes to s1;
+ *   a single `if (1) {}` BB barrier before a node block keeps it
+ *   caller-saved (spill-around-calls) with the shared home; (4) decode fixes
+ *   vs raw words: init call is gl(p, a1, &D+0x3C8, a2) (a2=&D, a3=arg2),
+ *   `p->0x6A8 = a3arg` sits BEFORE gl(p) (its sw fills that jal's delay).
+ *   Residual: whole t-ring is +1 in the target (t7-first, A3C signature),
+ *   grandchild block sources `sw/or` from v0 (mine a3: a v0-colored
+ *   separate temp is forbidden — it goes to a1 when live into the call),
+ *   p+16 temp at 0x24 vs mine 0x20, lw a3arg hoisted above sw zero. */
 extern char D_h2h_620_d0, D_h2h_620_d1, D_h2h_620_d2, D_h2h_620_d3;
 extern int  D_h2h_620_e0;
 extern char D_h2h_620_e1;
 
-void *h2hproc_uso_func_00000620(void *a0, int a1, int a2, int a3) {
-    void *p, *q, *r, *child;
-    int *z;
+void *h2hproc_uso_func_00000620(char *p, int a1, int a2, int a3arg) {
+    char *a3;            /* level-2 (0x6A8) + grandchild + vt + node: ONE web / one home 0x34 */
+    char * volatile r;   /* level-3 (0x50) + grandchild: volatile-homed (store-in-delay, reload-every-use) */
+    char *child;         /* level-4 (0x2C) */
+    char *v0;            /* alloc temp / dispatch base */
 
-    p = a0;
-    if (p == 0) {
-        p = (void*)gl_func_00000000(0x6BC);
-        if (p == 0) goto end;
-    }
-    q = p;
-    if (q == 0) {
-        q = (void*)gl_func_00000000(0x6A8);
-        if (q == 0) goto Lp;
-    }
-    r = q;
-    if (r == 0) {
-        r = (void*)gl_func_00000000(0x50);
-        if (r == 0) goto Lq;
-    }
-    child = r;
-    if (child == 0) {
-        child = (void*)gl_func_00000000(0x2C);
-        if (child == 0) goto Lr;
-    }
-    gl_func_00000000(child, &D_00000000 + 0x3C0);
-    *(int*)((char*)child + 0x28) = (int)&D_h2h_620_d0;
-Lr:
-    *(int*)((char*)r + 0x28)     = (int)&D_h2h_620_d1;
-Lq:
-    *(int*)((char*)q + 0x28)     = (int)&D_h2h_620_d2;
-    gl_func_00000000((char*)q + 0x50);
-Lp:
-    *(int*)((char*)p + 0x28)     = (int)&D_h2h_620_d3;
-    *(int*)((char*)p + 0x568)    = 0;
-
-    gl_func_00000000(p, &D_00000000 + 0x3C8, a1, a2);
-    *(int*)((char*)p + 0x528) = 0;
-    gl_func_00000000(p);
-    *(int*)((char*)p + 0x6A8) = a3;
-    gl_func_00000000(&D_00000000 + 0x3D8, 0);
-    {
-        void *grandchild = (void*)gl_func_00000000(0xF0);
-        if (grandchild != 0) {
-            gl_func_00000000(grandchild);
-            *(int*)((char*)grandchild + 0x28) = (int)&D_00000000;
+    if ((p != 0) || (p = (char *)gl_func_00000000(0x6BC), (p != 0))) {
+        a3 = p;
+        if ((p != 0) || (a3 = (char *)gl_func_00000000(0x6A8), (a3 != 0))) {
+            r = a3;
+            if ((a3 != 0) || ((r = (char *)gl_func_00000000(0x50)) != 0)) {
+                child = r;
+                if ((child != 0) || ((child = (char *)gl_func_00000000(0x2C)) != 0)) {
+                    gl_func_00000000(child, &D_00000000 + 0x3C0);
+                    *(int *)(child + 0x28) = (int)&D_h2h_620_d0;
+                }
+                *(int *)(r + 0x28) = (int)&D_h2h_620_d1;
+            }
+            *(int *)(a3 + 0x28) = (int)&D_h2h_620_d2;
+            gl_func_00000000(a3 + 0x50);
         }
-        *(int*)((char*)p + 0x6B0) = (int)grandchild;
-        *(int*)((char*)&D_00000000 + 0x138) = (int)grandchild;
+        *(int *)(p + 0x28) = (int)&D_h2h_620_d3;
+        *(int *)(p + 0x568) = 0;
+        gl_func_00000000(p, a1, &D_00000000 + 0x3C8, a2);
+        *(int *)(p + 0x528) = 0;
+        *(int *)(p + 0x6A8) = a3arg;
+        gl_func_00000000(p);
+        gl_func_00000000(&D_00000000 + 0x3D8, 0);
+        if ((a3 = (char *)gl_func_00000000(0xF0)) != 0) {
+            r = a3;
+            gl_func_00000000(a3);
+            *(int *)(r + 0x28) = (int)&D_00000000;
+            a3 = r;
+        }
+        *(int *)(p + 0x6B0) = (int)a3;
+        *(int *)((char *)&D_00000000 + 0x138) = (int)a3;
+        gl_func_00000000(*(int *)(p + 0x6B0), p, *(int *)(p + 0x568));
+        if (1) {}
+        v0 = *(char **)(p + 0x6B0);
+        a3 = *(char **)(v0 + 0x28);
+        ((void (*)(int))(*(int *)(a3 + 0x5C)))(*(short *)(a3 + 0x58) + (int)v0);
+        if (1) {}
+        a3 = *(char **)(p + 0x6B0);
+        gl_func_00000000(p + 0x10, a3);
+        if (*(int *)(a3 + 0x14) != 0) {
+            *(int *)(a3 + 0x4) = 1;
+        }
+        *(int *)(a3 + 0x14) = (int)p;
+        gl_func_00000000(p, a1);
+        *(int *)(p + 0x48) = gl_func_00000000(0);
+        gl_func_00000000(*(int *)(p + 0x48), p);
+        gl_func_00000000(*(int *)(p + 0x48),
+                         (D_h2h_620_e0 + 3) << 16, -1, &D_h2h_620_e1);
+        gl_func_00000000(*(int *)(p + 0x48),
+                         ((D_h2h_620_e0 + 3) << 16) | 8, -1, &D_h2h_620_e1);
+        *(int *)(*(char **)(p + 0x48) + 0x30) = *(int *)(p + 0x568);
+        gl_func_00000000(*(int *)(p + 0x48));
+        a3 = *(char **)(p + 0x48);
+        gl_func_00000000(p + 0x10, a3);
+        if (*(int *)(a3 + 0x14) != 0) {
+            *(int *)(a3 + 0x4) = 1;
+        }
+        *(int *)(a3 + 0x14) = (int)p;
+        a3 = *(char **)((char *)&D_00000000 + 0x190);
+        gl_func_00000000(p + 0x10, a3);
+        if (*(int *)(a3 + 0x14) != 0) {
+            *(int *)(a3 + 0x4) = 1;
+        }
+        *(int *)(a3 + 0x14) = (int)p;
+        gl_func_00000000(*(int *)((char *)&D_00000000 + 0x190), 1, 0);
+        gl_func_00000000();
     }
-    gl_func_00000000(*(int*)((char*)p + 0x6B0), p,
-                     *(int*)((char*)p + 0x568));
-    /* virtual call via vtable: vt[0x5C]( (short)vt[0x58] + p->0x6B0 ) */
-    {
-        int gc = *(int*)((char*)p + 0x6B0);
-        int *vt = *(int**)((char*)gc + 0x28);
-        ((void(*)(int))vt[0x5C/4])(*(short*)((char*)vt + 0x58) + gc);
-    }
-    gl_func_00000000((char*)p + 0x10, *(int*)((char*)p + 0x6B0));
-    z = *(int**)((char*)p + 0x6B0);
-    if (z[0x14/4] != 0) z[1] = 1;
-    z[0x14/4] = (int)p;
-    gl_func_00000000(p, a1);
-    {
-        void *sub = (void*)gl_func_00000000(0);
-        *(int*)((char*)p + 0x48) = (int)sub;
-        gl_func_00000000(sub, p);
-        gl_func_00000000(*(int*)((char*)p + 0x48),
-                         (*(int*)&D_h2h_620_e0 + 3) << 16, -1, &D_h2h_620_e1);
-        gl_func_00000000(*(int*)((char*)p + 0x48),
-                         ((*(int*)&D_h2h_620_e0 + 3) << 16) | 8, -1, &D_h2h_620_e1);
-        *(int*)((char*)*(int**)((char*)p + 0x48) + 0x30) =
-            *(int*)((char*)p + 0x568);
-        gl_func_00000000(*(int*)((char*)p + 0x48));
-        gl_func_00000000((char*)p + 0x10, *(int*)((char*)p + 0x48));
-    }
-
-    /* linked-set finalizer on p->0x48 (mirror of the D[0x190] block below). */
-    z = *(int**)((char*)p + 0x48);
-    if (z[0x14/4] != 0) z[1] = 1;
-    z[0x14/4] = (int)p;
-
-    /* z = D[0x190]; helper(p+0x10, z); if (z[0x14]) z[1]=1; z[0x14]=p; */
-    gl_func_00000000((char*)p + 0x10, *(int*)((char*)&D_00000000 + 0x190));
-    z = *(int**)((char*)&D_00000000 + 0x190);
-    if (z[0x14/4] != 0) z[1] = 1;
-    z[0x14/4] = (int)p;
-    gl_func_00000000(*(int*)((char*)&D_00000000 + 0x190), 1, 0);
-    gl_func_00000000();
-end:
     return p;
 }
 #else
