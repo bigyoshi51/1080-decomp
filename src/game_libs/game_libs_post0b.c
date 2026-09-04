@@ -8965,57 +8965,54 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DE48);
 //   extremal-search) only. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
-/* Whole-body decode 2026-06-01 (prior body had one-level walk + wrong cond/update).
- * Two passes over the a0->0x38 list of {node@0, next@4} entries. Pass 1 (only if
- * the list is non-empty): track the node with max 0x64 value in (lim1, ref1).
- * Pass 2: track min 0x64 in (ref2, lim2). Both update lim (not ref). Returns the
- * shared best. ref = a1->0x64 or a &D default; the four &D bounds differ per pass. */
+/* Whole-body decode 2026-06-01; 2026-09-04 agent-g: if/else (NOT sequential) two
+ * passes selected by a0->0x38 != 0; memory-homed 2-word iterator struct
+ * {cur@4(sp), next@8(sp)} whose .next is seeded from an UNINITIALIZED scalar
+ * (target: sw t6,8(sp) with t6 undefined — original bug, the a0->0x38 head is
+ * only tested, never walked). Pass 1 (a0->0x38 != 0): max-tracking below ref
+ * (v < ref && lim < v). Pass 2: min-tracking above ref (ref < v && v < lim).
+ * Per-site FP-pool aliases = fresh lui at per load. */
+typedef struct Link3DF5C { char *data; struct Link3DF5C *next; } Link3DF5C;
+typedef struct { Link3DF5C *cur; Link3DF5C *next; } Iter3DF5C;
+extern f32 D_3DF5C_1AD0[], D_3DF5C_1AD4[], D_3DF5C_1AD8[], D_3DF5C_1ADC[];
+#define ITER3DF5C_STEP(p, nx, node) \
+    nx = (p)->next; if (nx != 0) { (p)->cur = nx; (p)->next = (p)->next->next; (node) = nx->data; } else { (node) = 0; }
 char *gl_func_0003DF5C(char *a0, char *a1) {
-    char *best = 0;
-    char *iter, *node;
+    char *best;
+    Iter3DF5C it;
+    Iter3DF5C *p;
+    Link3DF5C *nx;
+    char *node;
     float ref, lim, v;
 
-    iter = *(char **)(a0 + 0x38);
-    if (iter != 0) {
-        ref = a1 ? *(float *)(a1 + 0x64) : *(float *)((char *)&D_00000000 + 0x1AD0);
-        lim = *(float *)((char *)&D_00000000 + 0x1AD4);
-        node = *(char **)iter;
-        iter = *(char **)(iter + 4);
+    best = 0;
+    p = &it;
+    p->next = (Link3DF5C *)node;        /* uninitialized read = target's undefined t6 store (original bug) */
+    if (*(int *)(a0 + 0x38) != 0) {
+        ref = a1 ? *(float *)(a1 + 0x64) : D_3DF5C_1AD0[0x1AD0 / 4];
+        lim = D_3DF5C_1AD4[0x1AD4 / 4];
+        ITER3DF5C_STEP(p, nx, node);
         while (node != 0) {
             v = *(float *)(node + 0x64);
             if (v < ref && lim < v) {
                 best = node;
                 lim = v;
             }
-            if (iter != 0) {
-                node = *(char **)iter;
-                iter = *(char **)(iter + 4);
-            } else {
-                node = 0;
-            }
+            nx = p->next;
+            node = 0;                   /* pass-1 loop step: default-then-if form (target hoists or a1,zero,zero) */
+            if (nx != 0) { p->cur = nx; p->next = p->next->next; node = nx->data; }
         }
-    }
-    ref = a1 ? *(float *)(a1 + 0x64) : *(float *)((char *)&D_00000000 + 0x1AD8);
-    lim = *(float *)((char *)&D_00000000 + 0x1ADC);
-    iter = *(char **)(a0 + 0x38);
-    if (iter != 0) {
-        node = *(char **)iter;
-        iter = *(char **)(iter + 4);
     } else {
-        node = 0;
-    }
-    while (node != 0) {
-        v = *(float *)(node + 0x64);
-        if (ref < v && v < lim) {
-            best = node;
-            lim = v;
-        }
-        if (iter != 0) {
-            node = *(char **)iter;
-            iter = *(char **)(iter + 4);
-        } else {
-            node = 0;
+        ref = a1 ? *(float *)(a1 + 0x64) : D_3DF5C_1AD8[0x1AD8 / 4];
+        lim = D_3DF5C_1ADC[0x1ADC / 4];
+        ITER3DF5C_STEP(p, nx, node);
+        while (node != 0) {
+            v = *(float *)(node + 0x64);
+            if (ref < v && v < lim) {
+                best = node;
+                lim = v;
+            }
+            ITER3DF5C_STEP(p, nx, node);
         }
     }
     return best;
