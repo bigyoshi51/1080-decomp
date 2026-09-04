@@ -144,7 +144,15 @@ build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x28
 build/src/bootup_uso/bootup_uso_o0_1034C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_1034C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_1034C.c.o: TRUNCATE_TEXT := 0x1F4
 build/non_matching/src/bootup_uso/bootup_uso_o0_1034C.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x1F4
+# 2026-09-04 carve: func_00010540 out of tail3a_10540 into o0_10540 (-O0,
+# MATCHED 343/343, TRUNCATE 0x55C clips the -O0 trailing pad word);
+# tail3a_10540 keeps {10A9C, 10AA8} at -O2 -g3 (0x14 content, TRUNCATE 0x14).
+build/src/bootup_uso/bootup_uso_o0_10540.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_10540.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_10540.c.o: TRUNCATE_TEXT := 0x55C
+build/non_matching/src/bootup_uso/bootup_uso_o0_10540.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x55C
 build/src/bootup_uso/bootup_uso_tail3a_10540.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a_10540.c.o: OPT_FLAGS := -O2 -g3
+build/src/bootup_uso/bootup_uso_tail3a_10540.c.o: TRUNCATE_TEXT := 0x14
+build/non_matching/src/bootup_uso/bootup_uso_tail3a_10540.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x14
 build/src/bootup_uso/bootup_uso_o0_10AB0.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_10AB0.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_10AB0.c.o: TRUNCATE_TEXT := 0xBC
 build/non_matching/src/bootup_uso/bootup_uso_o0_10AB0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xBC

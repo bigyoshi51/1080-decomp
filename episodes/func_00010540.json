@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00010540",
+  "project": "1080",
+  "model": "claude-manual",
+  "start_time": "2026-09-04T14:05:30.274870+00:00",
+  "end_time": "2026-09-04T14:05:30.274895+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-04T14:05:30.274887+00:00",
+      "assistant_text": "-O0 island carved from -O2 -g3 tail3a_10540; typed container w/ member array el[] at +0x84 (base-first addu, folded disp), struct-assign quad copies, one register char *s for the /=2.0f RMW sites + cross-call v0 home, (unsigned)i != a0->cur7C to raise the local's cfe rank so i loads first; 343/343",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 343,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\n\n/* func_00010540: -O0 island carved out of bootup_uso_tail3a_10540.c on\n * 2026-09-04 and MATCHED at -O0 (343/343 target words; the 1 trailing pad\n * word is clipped by TRUNCATE_TEXT 0x55C). Same carve recipe as o0_1034C /\n * o0_10AB0.\n *\n * Element/sprite render loop: for each of a0->n78 ring records (skipping\n * the cursor a0->cur7C) compute an x-position from (int)f70 + i*f74, copy\n * the 16-byte int quad q5C -> q3C, halve the first three (float RGB) when\n * the record's f88 flag is 0, then draw via the placeholder callee (path A\n * through a0->n30 when the record has a p84 payload, else path B on the\n * record's own sub94 object). After the loop the cursor record is drawn\n * once the same way from q4C, gated by a0->flags38 & 8, with flags38\n * passed as the 4th arg of the 2nd call.\n *\n * -O0 levers that produced the exact bytes (all prior \"deferred / typed-\n * struct refactor + regalloc grind\" notes on this fn were wrong):\n *  - TYPED container struct with a member array `el[]` at +0x84 (stride\n *    0x28): gives base-first `addu tN, <a0>, <idx*0x28>` + folded 0x88 /\n *    0x84 / 0x94 displacements (the FI/EL char-arith macros of the old NM\n *    body emit offset-first addu and a 250-line temp cascade).\n *  - the 4-int copies are single STRUCT assignments (one base reload).\n *  - one `register char *s` colors s0 for BOTH the three RMW `/= 2.0f`\n *    sites (s = &field; *(float*)s /= 2.0f -> addiu s0 + 0(s0) lwc1/swc1)\n *    and the cross-call callee-return home (`or s0,v0` -> `or a1,s0`).\n *  - ONLY remaining diff was the loop-head compare `i != a0->cur7C`: cfe\n *    ranks the 2-load struct member above the 1-load local and emits it\n *    first regardless of operand order (`cur7C != i` identical). Casting\n *    the LOCAL to unsigned (`(unsigned)i != a0->cur7C`) raises its rank so\n *    i loads first -> beq i,cur7C. (The equivalent `i != (unsigned)cur7C`\n *    also works; `i - cur7C`, `!(i == cur)`, `(i != cur) != 0` do not.)\n *  - f6C is a FLOAT truncated per call ((int)a0->f6C), not an int field.\n *  - `pos - a0->n30->w / 2` shares the a0->n30 reload with the call's\n *    first arg within the one call expression (-O0 cfe DAG share). */\ntypedef struct { int a, b, c, d; } Quad540;\ntypedef struct { char pad[0x10]; int w; } Node540;\ntypedef struct { void *p84; int f88; char pad[8]; char sub94[0x18]; } Elem540;\ntypedef struct {\n    char pad0[0x30];\n    Node540 *n30;\n    void *p34;\n    int flags38;\n    Quad540 q3C;\n    Quad540 q4C;\n    Quad540 q5C;\n    float f6C;\n    float f70;\n    float f74;\n    int n78;\n    int cur7C;\n    int pad80;\n    Elem540 el[1];\n} Obj540;\n\nvoid func_00010540(Obj540 *arg0) {\n    int i;\n    int pos;\n    register char *s;\n\n    if (arg0->p34 != NULL) {\n        for (i = 0; i < arg0->n78; i++) {\n            if ((unsigned)i != arg0->cur7C) {\n                pos = (float)(int)arg0->f70 + (float)i * arg0->f74;\n                arg0->q3C = arg0->q5C;\n                if (arg0->el[i].f88 == 0) {\n                    s = (char *)&arg0->q3C.a; *(float *)s /= 2.0f;\n                    s = (char *)&arg0->q3C.b; *(float *)s /= 2.0f;\n                    s = (char *)&arg0->q3C.c; *(float *)s /= 2.0f;\n                }\n                if (arg0->el[i].p84 != NULL) {\n                    func_00000000(arg0->n30);\n                    func_00000000(arg0->n30, arg0->p34, &arg0->q3C, 0);\n                    s = (char *)func_00000000(arg0->n30, (int)arg0->f6C, arg0->el[i].p84);\n                    func_00000000(arg0->n30, s, pos - arg0->n30->w / 2, arg0->el[i].p84);\n                } else {\n                    func_00000000(arg0->el[i].sub94);\n                    func_00000000(arg0->el[i].sub94, arg0->p34, &arg0->q3C, 0);\n                    func_00000000(arg0->el[i].sub94, (int)arg0->f6C, pos, 3);\n                }\n            }\n        }\n        pos = (float)(int)arg0->f70 + (float)arg0->cur7C * arg0->f74;\n        arg0->q3C = arg0->q4C;\n        if (arg0->el[i].f88 == 0) {\n            s = (char *)&arg0->q3C.a; *(float *)s /= 2.0f;\n            s = (char *)&arg0->q3C.b; *(float *)s /= 2.0f;\n            s = (char *)&arg0->q3C.c; *(float *)s /= 2.0f;\n        }\n        if (arg0->flags38 & 8) {\n            if (arg0->el[arg0->cur7C].p84 != NULL) {\n                func_00000000(arg0->n30);\n                func_00000000(arg0->n30, arg0->p34, &arg0->q3C, arg0->flags38);\n                s = (char *)func_00000000(arg0->n30, (int)arg0->f6C, arg0->el[arg0->cur7C].p84);\n                func_00000000(arg0->n30, s, pos - arg0->n30->w / 2, arg0->el[arg0->cur7C].p84);\n            } else {\n                i = arg0->cur7C;\n                func_00000000(arg0->el[i].sub94);\n                func_00000000(arg0->el[i].sub94, arg0->p34, &arg0->q3C, arg0->flags38);\n                func_00000000(arg0->el[i].sub94, (int)arg0->f6C, pos, 3);\n            }\n        }\n    }\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-f/src/bootup_uso/bootup_uso_o0_10540.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00010540.s",
+    "segment": "bootup_uso",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "full make RUN_CC_CHECK=0 + cmp tenshoe.z64 baserom.z64 byte-identical; make non_matching_objects exit 0; objdiff report 100.0 in o0_10540 unit"
+  }
+}
