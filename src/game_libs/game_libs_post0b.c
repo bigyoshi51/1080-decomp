@@ -2401,51 +2401,104 @@ void gl_func_00036224(char *o, char *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036224);
 #endif
 
-// gl_func_00036694 — STRUCTURAL PASS (0x2C8 / 178 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
-// prologue — large 0xF0 FP frame). A 3D matrix / vector
-// composition (cross-product / matrix-multiply) helper.
-//
-//   void gl_func_00036694(M *out, V *a, V *b, V *c) {
-//     // args partly reinterpreted as floats (sw then lwc1 round-trip)
-//     float r0 = b.y * a.x;                     // mul.s chains
-//     float r1 = c.z * a.z;
-//     ... cross-product / row-by-row matrix-multiply FP chain ...
-//     // results assembled into stack matrix buffers
-//     //   sp+0x78 / sp+0xAC / sp+0xBC / sp+0xE4
-//     // then a matrix block is copied out (word loop:
-//     //   *out = *tmp ; out++ ; tmp++ ...)
-//   }
-//
-// Struct-typing reference: a linear-algebra helper of the
-//   game_libs object subsystem — the integer arguments are
-//   round-tripped through the stack and reloaded as floats
-//   (`sw aN,X(sp); lwc1 fM,X(sp)`, the IDO int-in-FP-reg idiom),
-//   then a dense sequence of `mul.s` / `add.s` / `sub.s` builds
-//   what is structurally a cross product or a row-by-row 3×3 / 4×4
-//   matrix product into several stack scratch matrices (sp+0x78,
-//   sp+0xAC, sp+0xBC, sp+0xE4) before a final word-copy loop emits
-//   the composed matrix to the output pointer. A companion of the
-//   gl_func_00036224 viewport/projection-matrix builder and the
-//   gl_func_00033094 / gl_func_00035E6C transform/project leaves —
-//   this is the matrix-concat / basis-build primitive those nodes
-//   rely on (no &D_0 / no callbacks — a pure math leaf).
-// Caps (DEFERRED): 0x2C8 raw-word USO + heavy FP matrix/cross-product
-//   math + int↔float stack round-trip idiom; matrix/vector structs
-//   untyped; full ~178-word mul/add/sub lattice not decoded here.
-//   Real-C STRUCTURAL body below — the leading cross-product /
-//   matrix-build seed only. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
+// gl_func_00036694 — full hand re-derivation 15.6 -> 83.2 (2026-09-04 agent-g,
+// 704/712 sized; frame 0xC0 vs target 0xF0 = the residual).
+//   V3 *f(V3 *out, int unused, V3 p, V3 n)   -- p, n passed BY VALUE (a2/a3 +
+//   stack, homed with sw and re-read as floats = the "int->float round-trip").
+//   d = n.p ; vE4 = n*d (via tmp vBC) ; v5C = p - vE4 (via v8C) ; len2 = |v5C|^2
+//   if (len2 > 0) { flip sign if z<0 (mul by -1.0 const); vD8 = v5C; v3C = vD8*1.0;
+//                   v48 = v3C (via vBC); len = sqrt(len2) [USO cb, f32 arg in f12];
+//                   v30 = v48/len ; v8C = v30 ; res = &v8C }
+//   else { vD8 = (n.z == 1.0) ? (1,0,0) : normalize(-n.y, n.x, 0) [USO cb]; res = &vD8 }
+//   *out = *res ; return out.   => "project p onto the plane with normal n and
+//   normalize; degenerate p -> pick any unit vector perpendicular to n".
+// Levers that landed: struct-by-value V3 params (74.5 -> 83.2: sw a2/a3 homing +
+//   lwc1 reloads from the arg area); chained struct assigns X = tmp-copy (int
+//   lw/sw 3-word blocks reading the intermediate back); (f32)-1 / (f32)1 named
+//   consts keep mul.s by -1.0/1.0 (no neg.s / no fold); distinct prototyped
+//   externs for the two callbacks (f32 sqrt returns f0; V3* normalize).
+// RESIDUAL: target re-loads n.x/n.y/n.z from the arg area for vAC (no CSE of
+//   the d-product loads; build CSEs into a 24(sp) spill) and reserves 12 more
+//   frame words (gaps at 28-48/84-92/132-140/152-172/200-212 = extra scalar
+//   homes); negative probes: `volatile V3 p, n` params (81.2, reloads
+//   everywhere), `V3 *np = &n` alias for the vAC reads (no change).
 #ifdef NON_MATCHING
-void gl_func_00036694(float *out, float *a, float *b, float *c) {
-    float r0 = b[1] * a[0];
-    float r1 = c[2] * a[2];
-    out[0] = r0 - r1;
-    out[1] = c[0] * a[2] - b[2] * a[0];
-    out[2] = b[2] * a[1] - c[1] * a[2];
-    out[3] = a[0];
-    out[4] = a[1];
-    out[5] = a[2];
+typedef struct { f32 x, y, z; } V3_36694;
+extern f32 gl_sqrtf_36694(f32);            /* USO callback (jal reloc-masked): sqrtf */
+extern void gl_normalize_36694(V3_36694 *); /* USO callback: normalize in place */
+V3_36694 *gl_func_00036694(V3_36694 *out, s32 unused, V3_36694 p, V3_36694 n) {
+    V3_36694 vE4;
+    V3_36694 vD8;
+    f32 len2;
+    V3_36694 vBC;
+    V3_36694 vAC;
+    V3_36694 v8C;
+    V3_36694 v78;
+    V3_36694 v5C;
+    V3_36694 v48;
+    V3_36694 v3C;
+    V3_36694 v30;
+    f32 px;
+    f32 py;
+    f32 pz;
+    f32 d;
+    f32 one;
+    f32 m1;
+    f32 len;
+    V3_36694 *res;
+
+    d = n.x * p.x + n.y * p.y + n.z * p.z;
+    vAC.x = n.x * d;
+    vAC.y = n.y * d;
+    vAC.z = n.z * d;
+    vBC = vAC;
+    vE4 = vBC;
+    v78.x = p.x - vE4.x;
+    v78.y = p.y - vE4.y;
+    v78.z = p.z - vE4.z;
+    v8C = v78;
+    v5C = v8C;
+    px = v5C.x;
+    py = v5C.y;
+    pz = v5C.z;
+    len2 = px * px + py * py + pz * pz;
+    if (0.0f < len2) {
+        if (pz < 0.0f) {
+            m1 = (f32)-1;
+            px = px * m1;
+            py = py * m1;
+            pz = pz * m1;
+        }
+        one = (f32)1;
+        vD8.z = pz;
+        vD8.x = px;
+        vD8.y = py;
+        v3C.x = vD8.x * one;
+        v3C.y = vD8.y * one;
+        v3C.z = vD8.z * one;
+        vBC = v3C;
+        v48 = vBC;
+        len = gl_sqrtf_36694(len2);
+        v30.x = v48.x / len;
+        v30.y = v48.y / len;
+        v30.z = v48.z / len;
+        v8C = v30;
+        res = &v8C;
+    } else {
+        if (n.z == 1.0f) {
+            vD8.z = 0.0f;
+            vD8.x = 1.0f;
+            vD8.y = 0.0f;
+        } else {
+            vD8.z = 0.0f;
+            vD8.x = -n.y;
+            vD8.y = n.x;
+            gl_normalize_36694(&vD8);
+        }
+        res = &vD8;
+    }
+    *out = *res;
+    return out;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00036694);
@@ -3085,8 +3138,9 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
 //   (3) if(0)-escape of &r reproduces the reload-after-every-store home idiom
 //   (target: sw t6,96(sp) at def, `lw v0,96(sp)` before each store through r);
 //   (4) decl order g, volatile pad, a, r, b, ab, v, L3, arg(V3), tmp(40B) = frame
-//   0xC0 with homes 0x68/0x64/0x60 + 0x44 + 0x1C exact; (5) mul operand order
-//   is REVERSED by cfe (second operand becomes fs) — write `scale * v[k]`.
+//   0xC0 with homes 0x68/0x64/0x60 + 0x44 + 0x1C exact. (mul.s operand order
+//   probe: swapping `v[k] * scale` <-> `scale * v[k]` was a NO-OP — IDO orders
+//   fs/ft by load schedule, not source order; the fs/ft skew is a coloring residual.)
 // RESIDUAL: FP coloring (target zero=f14/product=f16/abs=f0, build f0/f2/f12)
 //   and the r-reload web colored v0 in target vs t7/t8/t9 (escaped-local temp
 //   loads); negative probes: `char * volatile r` (reloads per READ, 3x too
