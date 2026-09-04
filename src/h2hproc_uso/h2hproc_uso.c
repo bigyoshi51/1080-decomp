@@ -779,7 +779,22 @@ void h2hproc_uso_func_00000BAC(int *a0) {
  *   }
  *   a0->0x4F0 &= 0xFEFFFFFF;
  * Also: the first flag-set is on root->0xC4->0xA58 (a0->0xC4), and root->0xCC->0xA58;
- * register residual is s2=slot promotion. Complex 6-arg cross-USO calls = focused-RE. */
+ * register residual is s2=slot promotion. Complex 6-arg cross-USO calls = focused-RE.
+ *
+ * 2026-09-04 (agent-h) 80.9 -> 86.3, TWO DECODE FIXES (both raw-word verified):
+ *   (1) 6-arg call's 4th arg is a RE-READ of a0->0x51C (`lw a3,1308(s1)`), not the
+ *       retbind local -> retbind dies at its store, no stack home; and this is what
+ *       FLIPS the s1/s2 tie (param=s1, slot=s2 now exact) — the "permuter-floored"
+ *       coloring cap above was a decode artifact, not a coloring cap.
+ *   (2) root->0x108 store is `sw v0,264(t7)` in the alloc(0x80) jal DELAY slot, i.e.
+ *       the pre-call v0 = retbind. alloc2 is only spilled (sw v0,60(sp)) and never
+ *       stored to root->0x108.
+ * RESIDUAL (484 vs 492 bytes, frame -80 vs -88): (a) elem = root->0x84 is spilled
+ *   across the gl(elem+0x10, r2) call in the target (sw a2,52(sp) jal-delay + lw
+ *   reload) while uopt here hands it the freed s2; `int * volatile` / `volatile int`
+ *   overshoot (+2-3 insns, reload per use); (b) -9/-5 masks are uopt candidates in
+ *   a0/a1 in the target (blocking the `lui a1` &D+0x1C hoist), t-ring temps here;
+ *   (c) first 0x108 clear is symmetric `addiu v1,t7,24` off the loaded temp. */
 void h2hproc_uso_func_00000C18(int *a0) {
     int idx;
     int *slot;
@@ -847,13 +862,13 @@ void h2hproc_uso_func_00000C18(int *a0) {
 
     retbind = (int*)gl_func_00000000(RT, &D_00000000 + 0x1C, s518_ret);
     *(int*)((char*)a0 + 0x51C) = (int)retbind;
+    *(int*)((char*)RT + 0x108) = (int)retbind;   /* jal-delay sw v0,264(t7): the PRE-call v0 = retbind, not alloc2 */
     alloc2 = (int*)gl_func_00000000(0x80);
-    *(int*)((char*)RT + 0x108) = (int)alloc2;
     if (alloc2 != 0) {
         gl_func_00000000(alloc2, 1);
     }
     /* The 6-arg call + finalizer run UNCONDITIONALLY (only func1 is gated). */
-    r2 = (int*)gl_func_00000000(0, alloc2, slot, retbind, s518_ret, bound);
+    r2 = (int*)gl_func_00000000(0, alloc2, slot, *(int**)((char*)a0 + 0x51C), s518_ret, bound);
     b84 = *(int*)((char*)RT + 0x84);
     gl_func_00000000(b84 + 0x10, r2);
     /* linked-set finalizer on r2. */
