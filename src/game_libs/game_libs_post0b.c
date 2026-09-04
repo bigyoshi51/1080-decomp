@@ -27463,24 +27463,32 @@ void gl_func_00056864(char *a0) {
    then stored to 0x10..0x34 in IDO's specific reorder (see asm: the
    0x7C/0x74/0x6C/0x64 save-reload dance precedes the outgoing stores).
    frame 0xA8, $s0=self held across the dispatch. */
+/* 2026-09-04 agent-g: 48.5 -> 99.8 (56/56 insns, frame 0xA8 exact, every spill
+ * slot exact). Levers: the 12 sub-object words are NAMED LOCALS evaluated before
+ * the call (7 of them spill to their decl-order homes 0x7C..0x4C, a2/a3/t4/t5/ra
+ * hold the rest); a `volatile int` pad after EVERY value = the target's pitch-8
+ * home spacing (named-local dead-home rule); sub-object pointers re-derived
+ * inline per use (a cached `int *pXX` hoists all six lw early). RESIDUAL: the
+ * `lw v1,28(a0)` / `lw v0,12(a0)` pair is swapped (scheduler tie; decl-order
+ * swap of the a/b pairs flips the regs with it). */
 extern int gl_func_00000000();
 extern int D_00000000;
+#define SUB_56898(o) (*(int **)((self) + (o)))
 void gl_func_00056898(char *self) {
-    int *p0C = *(int **)(self + 0xC);
-    int *p1C = *(int **)(self + 0x1C);
-    int *p2C = *(int **)(self + 0x2C);
-    int *p3C = *(int **)(self + 0x3C);
-    int *p4C = *(int **)(self + 0x4C);
-    int *p5C = *(int **)(self + 0x5C);
-    gl_func_00000000(
-        (char *)&D_00000000 + 0x21934,
-        *(int *)(self + 0x70),
-        p0C[1], p0C[2],
-        p1C[1], p1C[2],
-        p2C[1], p2C[2],
-        p3C[1], p3C[2],
-        p4C[1], p4C[2],
-        p5C[1], p5C[2]);
+    int a0_ = SUB_56898(0xC)[1]; volatile int x0;
+    int a1_ = SUB_56898(0xC)[2]; volatile int x1;
+    int b0 = SUB_56898(0x1C)[1]; volatile int x2;
+    int b1 = SUB_56898(0x1C)[2]; volatile int x3;
+    int c0 = SUB_56898(0x2C)[1]; volatile int x4;
+    int c1 = SUB_56898(0x2C)[2]; volatile int x5;
+    int d0 = SUB_56898(0x3C)[1]; volatile int x6;
+    int d1 = SUB_56898(0x3C)[2]; volatile int x7;
+    int e0 = SUB_56898(0x4C)[1]; volatile int x8;
+    int e1 = SUB_56898(0x4C)[2]; volatile int x9;
+    int f0 = SUB_56898(0x5C)[1]; volatile int x10;
+    int f1 = SUB_56898(0x5C)[2]; volatile int x11;
+    gl_func_00034458((char *)&D_00000000 + 0x21934, *(int *)(self + 0x70),
+                     a0_, a1_, b0, b1, c0, c1, d0, d1, e0, e1, f0, f1);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00056898);
