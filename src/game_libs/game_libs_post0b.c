@@ -8516,38 +8516,46 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003DA14);
 //   (&D_0+0x1AC4/0x1AC8 unsymbolized). Real-C STRUCTURAL body below.
 //   Byte-match deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
-/* Whole-body decode 2026-06-01. best=a1->0x38 (the D+0x1AC4 load is dead code
- * branched over), bound=D+0x1AC8. Two-level list walk over o->0x10: each entry
- * has node ptr at +0, next at +4; pick the node with the smallest 0x38 value in
- * (best, bound). */
+/* Whole-body decode 2026-06-01; 2026-09-04 agent-g: same pointer-form memory-homed
+ * iterator {cur@4(sp), next@8(sp)} as 3DF5C (step macro: nx = p->next; p->cur = nx;
+ * if (nx) { p->next = p->next->next (re-read -> reload after the cur store);
+ * node = nx->data; } else node = 0). ref = a1->0x38 with a DEAD else-arm
+ * (D+0x1AC4) branched over by beq zero,zero in the target; lim = D+0x1AC8.
+ * Picks the node with the smallest 0x38 value in (ref, lim). Residuals: the
+ * target's dead else-arm (every constant-true form folds) and a loop-var copy
+ * `or v0,a0` (target: node in a0, body copy in v0, plain bne; build coalesces
+ * into beql/bnel rotation). */
+typedef struct Link3DB3C { char *data; struct Link3DB3C *next; } Link3DB3C;
+typedef struct { Link3DB3C *cur; Link3DB3C *next; } Iter3DB3C;
+extern f32 D_3DB3C_1AC4[], D_3DB3C_1AC8[];
+#define ITER3DB3C_STEP(p, nx, node) \
+    nx = (p)->next; (p)->cur = nx; \
+    if (nx != 0) { (p)->next = (p)->next->next; (node) = nx->data; } else { (node) = 0; }
 char *gl_func_0003DB3C(char *o, char *a1) {
-    float best = *(float *)(a1 + 0x38);
-    float bound = *(float *)((char *)&D_00000000 + 0x1AC8);
-    char *r = 0;
-    char *iter = *(char **)(o + 0x10);
+    char *best;
+    Iter3DB3C it;
+    Iter3DB3C *p;
     char *node;
+    char *n;
+    Link3DB3C *nx;
+    float ref, lim, v;
 
-    if (iter != 0) {
-        node = *(char **)iter;
-        iter = *(char **)(iter + 4);
-    } else {
-        node = 0;
-    }
+    p = &it;
+    if (1) { ref = *(float *)(a1 + 0x38); } else { ref = D_3DB3C_1AC4[0x1AC4 / 4]; }
+    p->next = *(Link3DB3C **)(o + 0x10);
+    lim = D_3DB3C_1AC8[0x1AC8 / 4];
+    best = 0;
+    ITER3DB3C_STEP(p, nx, node);
     while (node != 0) {
-        float v = *(float *)(node + 0x38);
-        if (best < v && v < bound) {
-            r = node;
-            bound = v;
+        n = node;
+        v = *(float *)(n + 0x38);
+        if (ref < v && v < lim) {
+            best = n;
+            lim = v;
         }
-        if (iter != 0) {
-            node = *(char **)iter;
-            iter = *(char **)(iter + 4);
-        } else {
-            node = 0;
-        }
+        ITER3DB3C_STEP(p, nx, node);
     }
-    return r;
+    return best;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003DB3C);
