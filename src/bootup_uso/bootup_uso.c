@@ -3369,6 +3369,7 @@ void func_00004914(char *a0, int a1, char *a2) {
 #ifdef NON_MATCHING
 typedef struct { float lo, hi, v, w; } Bu4948E16;
 typedef struct { float a, b; } Bu4948E8;
+typedef struct { char pad[0x30]; Vec3 pos; char pad2[0x34]; } Bu4948Sub;   /* 0x70-stride record, pos at +0x30 */
 extern Bu4948E16 bu_4948_t16[];                 /* 16B table, lui 0/addiu 0 placeholder */
 extern Bu4948E8 bu_4948_t8[];                   /* 8B table */
 extern float bu_4948_k0;                        /* folded consts: lui 0 / lwc1 0(at) placeholders */
@@ -3379,83 +3380,83 @@ extern u8 bu_4948_c3f8[];                       /* data alias of func_000003F8 (
 extern float func_00000000_4948_ff(float);      /* f12 -> f0 (sqrt / sin / cos / asin-ish) */
 extern void func_00000000_4948_pv(void *, Vec3 *);
 extern void func_00000000_4948_p(void *);
-typedef struct {
-    Vec3 A13;      /* 0x2C */
-    Vec3 B13;      /* 0x38 */
-    float pad44;
-    Vec3 DB;       /* 0x48 */
-    float pad54, pad58;
-    float ang;     /* 0x5C */
-    float pad60;
-    float dist;    /* 0x64 */
-    Vec3 EB;       /* 0x68 */
-    Vec3 CB;       /* 0x74 */
-    Vec3 FB;       /* 0x80 */
-    Vec3 A12;      /* 0x8C */
-    Vec3 B12;      /* 0x98 */
-    float padA4;
-    Vec3 DA;       /* 0xA8 */
-    Vec3 EA;       /* 0xBC */
-    Vec3 CA;       /* 0xC8 */
-    Vec3 FA;       /* 0xD4 */
-    float padE0, padE4;
-    float sinv;    /* 0xE8 */
-    float padEC, padF0;
-    Vec3 A1;       /* 0xF4 */
-    Vec3 tmp;      /* 0x104 */
-    float pad110;
-    Vec3 B1;       /* 0x114 */
-} Bu4948F;
-#define BU4948_SNAP(A, B, s)                                                 \
+/* pointer-form vector macros: the pointer derefs keep C/E/D memory vars and stop uopt
+ * folding the named x/y/z temps (they stay held candidates, stores follow the 3 ops) */
+#define BU4948_VSET(d, a)                                                    \
     {                                                                        \
-        fr.A.x = *(float *)((s) + 0x318) * bu_4948_k0;                       \
-        fr.A.y = *(float *)((s) + 0x31C) * bu_4948_k0;                       \
-        fr.A.z = *(float *)((s) + 0x320) * bu_4948_k0;                       \
-        fr.tmp = fr.A;                                                       \
-        fr.B = fr.tmp;                                                       \
-        fr.B.y *= bu_4948_k1;                                                \
-        func_00000000_4948_pv(obj + 0x30, &fr.B);                            \
+        (d)->x = (a)->x;                                                     \
+        (d)->y = (a)->y;                                                     \
+        (d)->z = (a)->z;                                                     \
     }
-#define BU4948_DELTA(C, E, D, F, p)                                          \
+#define BU4948_VSCALE(d, a, k)                                               \
     {                                                                        \
-        fr.C.x = *(float *)((p) + 0xA0);                                     \
-        fr.C.y = *(float *)((p) + 0xA4);                                     \
-        fr.C.z = *(float *)((p) + 0xA8);                                     \
-        fr.E.x = *(float *)(obj + 0xA0);                                     \
-        fr.E.y = *(float *)(obj + 0xA4);                                     \
-        fr.E.z = *(float *)(obj + 0xA8);                                     \
-        fr.D.x = fr.C.x - fr.E.x;                                            \
-        fr.D.y = fr.C.y - fr.E.y;                                            \
-        fr.D.z = fr.C.z - fr.E.z;                                            \
-        fr.tmp = fr.D;                                                       \
-        fr.F = fr.tmp;                                                       \
+        rx_ = (a)->x * (k);                                                  \
+        ry_ = (a)->y * (k);                                                  \
+        rz_ = (a)->z * (k);                                                  \
+        (d)->x = rx_;                                                        \
+        (d)->y = ry_;                                                        \
+        (d)->z = rz_;                                                        \
+    }
+#define BU4948_VSUB(d, a, b)                                                 \
+    {                                                                        \
+        rx_ = (a)->x - (b)->x;                                               \
+        ry_ = (a)->y - (b)->y;                                               \
+        rz_ = (a)->z - (b)->z;                                               \
+        (d)->x = rx_;                                                        \
+        (d)->y = ry_;                                                        \
+        (d)->z = rz_;                                                        \
+    }
+#define BU4948_SNAP()                                                        \
+    {                                                                        \
+        Vec3 B, A;                                                           \
+        Vec3 *sv = (Vec3 *)(*(char **)(obj + 0x154) + 0x318);                \
+        Vec3 *pa = &A;                                                       \
+        BU4948_VSCALE(pa, sv, bu_4948_k0);                                   \
+        tmp = A;                                                             \
+        B = tmp;                                                             \
+        B.y *= bu_4948_k1;                                                   \
+        func_00000000_4948_pv(obj + 0x30, &B);                               \
+    }
+#define BU4948_DELTA(F)                                                      \
+    {                                                                        \
+        Vec3 C, E, D;                                                        \
+        Vec3 *pc = &C, *pe = &E, *pd = &D;                                   \
+        Bu4948Sub *q = (Bu4948Sub *)(*(char **)(obj + 0xF4) + 0x70);         \
+        BU4948_VSET(pc, &q->pos);                                            \
+        BU4948_VSET(pe, (Vec3 *)(obj + 0xA0));                               \
+        BU4948_VSUB(pd, pc, pe);                                             \
+        tmp = D;                                                             \
+        F = tmp;                                                             \
     }
 void func_00004948(char *obj) {
-    Bu4948F fr;
-    int st;
+    Vec3 tmp;
+    unsigned int st;
     int idx;
     float dist;
     Bu4948E16 *e;
     Bu4948E8 *e8;
     float ang, r, t;
-    char *s;
+    float ry_, rz_, rx_;
 
     st = *(int *)(obj + 0x158);
     if (st == 2) {
-        s = *(char **)(obj + 0x154);
-        BU4948_SNAP(A1, B1, s);
+        BU4948_SNAP();
         *(float *)(obj + 0x14C) = *(float *)(obj + 0x150);
     } else if ((st >= 0x13 && st < 0x18) || (st >= 0x18 && st < 0x1D)) {
-        s = *(char **)(obj + 0xF4);
-        BU4948_DELTA(CA, EA, DA, FA, s);
-        dist = func_00000000_4948_ff(fr.FA.x * fr.FA.x + fr.FA.y * fr.FA.y + fr.FA.z * fr.FA.z);
+        Vec3 F;
+        BU4948_DELTA(F);
+        dist = func_00000000_4948_ff(F.x * F.x + F.y * F.y + F.z * F.z);
         st = *(int *)(obj + 0x158);
         idx = 0;
-        if (st == 0x13 || st == 0x18) idx = 0;
-        else if (st == 0x14 || st == 0x19) idx = 1;
-        else if (st == 0x15 || st == 0x1A) idx = 2;
-        else if (st == 0x16 || st == 0x1B) idx = 3;
-        else if (st == 0x17 || st == 0x1C) idx = 4;
+        if (st != 0x13 && st != 0x18) {
+            if (st != 0x14 && st != 0x19) {
+                if (st != 0x15 && st != 0x1A) {
+                    if (st != 0x16 && st != 0x1B) {
+                        if (st == 0x17 || st == 0x1C) idx = 4;
+                    } else idx = 3;
+                } else idx = 2;
+            } else idx = 1;
+        }
         e = &bu_4948_t16[idx];
         if (e->lo < dist) {
             *(float *)(obj + 0x14C) = e->w;
@@ -3466,31 +3467,34 @@ void func_00004948(char *obj) {
         }
         st = *(int *)(obj + 0x158);
         if (st >= 0x18 && st < 0x1D) {
-            s = *(char **)(obj + 0x154);
-            BU4948_SNAP(A12, B12, s);
+            BU4948_SNAP();
         }
     } else if ((st >= 0x1D && st < 0x22) || (st >= 0x22 && st < 0x27)) {
-        s = *(char **)(obj + 0xF4);
-        BU4948_DELTA(CB, EB, DB, FB, s);
-        dist = func_00000000_4948_ff(fr.FB.x * fr.FB.x + fr.FB.y * fr.FB.y + fr.FB.z * fr.FB.z);
+        Vec3 F;
+        float sinv;
+        BU4948_DELTA(F);
+        dist = func_00000000_4948_ff(F.x * F.x + F.y * F.y + F.z * F.z);
         st = *(int *)(obj + 0x158);
         idx = 0;
-        if (st == 0x1D || st == 0x22) idx = 0;
-        else if (st == 0x1E || st == 0x23) idx = 1;
-        else if (st == 0x1F || st == 0x24) idx = 2;
-        else if (st == 0x20 || st == 0x25) idx = 3;
-        else if (st == 0x21 || st == 0x26) idx = 4;
+        if (st != 0x1D && st != 0x22) {
+            if (st != 0x1E && st != 0x23) {
+                if (st != 0x1F && st != 0x24) {
+                    if (st != 0x20 && st != 0x25) {
+                        if (st == 0x21 || st == 0x26) idx = 4;
+                    } else idx = 3;
+                } else idx = 2;
+            } else idx = 1;
+        }
         e8 = &bu_4948_t8[idx];
         ang = e8->b / 2.0f * *(float *)(bu_4948_c3f8 + 0x15C) / 180.0f;
-        fr.sinv = func_00000000_4948_ff(ang);
-        r = func_00000000_4948_ff(ang) * e8->a / fr.sinv;
+        sinv = func_00000000_4948_ff(ang);
+        r = func_00000000_4948_ff(ang) * e8->a / sinv;
         t = func_00000000_4948_ff(dist * dist + r * r);
         t = func_00000000_4948_ff(dist / t) * 2.0f / *(float *)(bu_4948_c3f8 + 0x160) * 180.0f;
         *(float *)(obj + 0x14C) = (t < bu_4948_klo) ? bu_4948_klo : ((bu_4948_khi < t) ? bu_4948_khi : t);
         st = *(int *)(obj + 0x158);
         if (st >= 0x22 && st < 0x27) {
-            s = *(char **)(obj + 0x154);
-            BU4948_SNAP(A13, B13, s);
+            BU4948_SNAP();
         }
     } else {
         *(float *)(obj + 0x14C) = *(float *)(obj + 0x150);
