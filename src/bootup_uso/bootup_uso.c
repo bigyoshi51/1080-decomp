@@ -3305,67 +3305,48 @@ void func_00004914(char *a0, int a1, char *a2) {
     *(float*)(a0 + 0x64) += 100.0f;
 }
 
-// func_00004948 — STRUCTURAL PASS (0x6A4 / 426 insns, no episode).
-// Per-frame camera/object transition state-machine tick (bootup/title
-// scene), keyed by obj->0x158 (transition-type enum).
-//
-// PREMISE CORRECTION (2026-07, agent-f): NOT pool-blocked. Its folded FP
-//   consts (func_000003F8+0x15C=0x554, +0x160=0x558; and the K0 at
-//   D_00000000+0) are MATCHABLE addend/base-reloc memory loads
-//   (*(float*)((char*)&func_000003F8 + 0x15C)), same class PROVEN on
-//   func_00007328 (24->69 fuzzy). (UPDATE 2026-07-10, agent-f: there is NO
-//   "case-(a) unreproducible pool" — confirmed via the USO reloc table that
-//   even the func_0000098C trio E270/D900/E2D0 load genuine rodata literals
-//   (f32 π / f64 0.1 / f64 0.2) via the RoData section symbol; they are the
-//   SAME matchable class, just file-split-gated for the fold, not re-extract.)
-//   The real blocker here is full 426-insn FP-transition reconstruction
-//   accuracy (current body 15% fuzzy = structurally wrong; a full m2c
-//   graft also scored ~15%) + FP coloring ceiling. DEFERRED (multi-hour).
-//
-//   void func_00004948(Obj *obj) {        // obj also kept in a2
-//     int st = obj->0x158;
-//     if (st == 2) {                       // .L4948: simple scaled-snap case
-//       Src *s = obj->0x154;               // s->0x318/31C/320 = a Vec3
-//       float k = K0;                      // folded literal (lui 0; lwc1 0)
-//       sp.vec = {s->0x318*k, s->0x31C*k, s->0x320*k};   // -> sp+0xF4
-//       copy 3-word blocks between sp scratch + obj+0x30;
-//       sp[0x118] *= K0;  func_00000000(obj+0x30, ...);
-//       obj->0x14C = obj->0x150;  goto commit;
-//     }
-//     // else range-dispatch on st: (<0x13) (0x13..0x17) (0x18..0x1C)
-//     //   (0x1D..) — each builds eye-relative delta Vec3s:
-//     //     d = {a2->0xA0 - s->.., a2->0xA4 - .., a2->0xA8 - ..};
-//     //     lenSq = d.x*d.x + d.y*d.y + d.z*d.z;
-//     //     dist  = func_00000000(lenSq);            // = sqrtf
-//     //   then normalize / lerp the transform, each axis scaled by a
-//     //   folded literal time const (lui 0; lwc1 0(at) — same
-//     //   func_00000000+0 / D_0 folded-zero-symbol family), writing
-//     //   3-word Vec3 blocks into sp scratch + obj+0x30 and back.
-//   commit:                                 // .L4FCC common tail
-//     // (some paths first: obj->0x14C = obj->0x150  at .L4FC0/.FC4)
-//     func_00000000(obj);                   // commit transform
-//     func_00000000(obj);                   // apply / notify
-//   }
-//
+// func_00004948 — 0x6A4 / 426 insns. Camera transition tick keyed by
+// obj->0x158 (unsigned state). 14.8 -> 94.1 (agent-f 2026-09-04, hand
+// reconstruction from the target .s; the old 105-insn body was a structural
+// stub — the "deferred FP pool" notes were fiction, all the lui 0/lwc1 0(at)
+// loads are plain placeholder externs, byte-identical).
+// Shape recovered:
+//   st == 2            : SNAP (scaled copy of src->0x318 Vec3 -> tmp -> B,
+//                        B.y *= k1, call(obj+0x30, &B)); obj->0x14C = obj->0x150
+//   0x13<=st<0x18 || 0x18<=st<0x1D : DELTA (C = (rec+0x70)->pos, E = obj->0xA0,
+//                        D = C-E via fn-scope x/y/z temps, tmp = D, F = tmp),
+//                        dist = sqrt(|F|^2); idx from a nested-!= pair ladder
+//                        (19/24 -> 0 .. 23/28 -> 4); 16B table {lo,hi,v,w}:
+//                        far -> w, near -> v, else lerp; 0x18..0x1C also SNAP
+//   0x1D<=st<0x22 || 0x22<=st<0x27 : same DELTA + ladder into an 8B table
+//                        {a,b}; ang = b/2*c15c/180; sinv = f(ang); r = f(ang)*a
+//                        /sinv; t = f(dist/sqrt(dist^2+r^2))*2/c160*180 clamped
+//                        [klo,khi] (nested ternary); 0x22..0x26 also SNAP
+//   else               : obj->0x14C = obj->0x150
+//   tail: call(obj+0x30); call(obj)
+// Levers that mattered: unsigned st (sltiu); nested-!= ladder with the default
+// innermost (beq-to-out-of-line arms); POINTER-FORM Vec3 macros (pc/pe/pd
+// aliases + fn-scope shared x/y/z float temps): the derefs keep C/E/D memory
+// vars AND stop uopt folding the temps, so all three ops are computed into
+// held candidates before the stores (split per-macro or block-scope temps
+// drop to 87); tmp as a SEPARATE fn-scope Vec3 (not a member of the frame
+// struct) = the forwarded lw/sw copy ladder; pointer var built from the
+// UNNAMED load (`(Sub*)(*(char**)(obj+0xF4)+0x70)`) = target's addiu
+// base+0x70 fold after the first access; int `/ 2`, `* 2` = real div.s/mul.s
+// by 2.0 (float 2.0f folds to *0.5 / x+x).
+// Residual (~6%): FP temp coloring x/y/z = f14/f2/f12 in the target vs
+// f2/f14/f16 here (decl-order permutations, register, temps-first all inert);
+// ladder arm bodies laid out 1..4 ascending in the target (nested-!= emits
+// them innermost-first) + last arm beql-with-li vs bnel; dead `addiu
+// v0,v0,0x318` sv def in SNAP (uopt DCEs ours); &tmp colored v0 late in the
+// block vs v1 hoisted; frame 0x148 vs 0x120 (block-scope Vec3 homes; sp
+// offsets weigh light in fuzzy).
 // Struct-typing reference:
-//   obj->0x158 = transition-type/state enum (switch key; ranges
-//     ==2, <0x13, <0x18, <0x1D partition the behaviors);
-//   obj->0x154 = Src record, ->0x318/0x31C/0x320 a source Vec3;
-//   obj->0x30 = the live transform block (3-word Vec3 groups);
-//   obj->0x14C / 0x150 = an f32 pair (current / target — snapped equal);
-//   a2(=obj)->0xA0/0xA4/0xA8 = an eye/anchor Vec3 for delta math.
-//   Folded scale const: lui $at,0 + lwc1 0x0($at) = the JAL-target-0 /
-//   D_0 folded-zero literal family — see
-//   docs/N64_FORENSICS.md#bootup-uso-fp-literal-pool-folded-into-func-0000098C.
-// Caps (DEFERRED): 426-insn FP state machine w/ folded-literal scales
-//   + sqrt dispatcher — byte-match blocked by deferred pool
-//   symbolization. Real-C STRUCTURAL body below — camera/object
-//   transition tick skeleton. Name pre-checked: no extern reuse.
-/* func_00004948 graft attempt 2026-06-10: full m2c graft scored 14.60
- * vs this body's 14.79 -- REVERTED (monotonic rule). The existing
- * partial body already captures the aligned structure; this fn is in
- * hand-refinement territory despite the low %, suggesting its tail/
- * shape divergence is structural (m2c saw the same skeleton). */
+//   obj->0x158 = transition state (unsigned; ranges 2 / 0x13..0x1C / 0x1D..0x26);
+//   obj->0x154 = source record, ->0x318 Vec3;  obj->0xF4 = record with a
+//   0x70-stride sub-record whose Vec3 sits at +0x30 (abs 0xA0);
+//   obj->0x30 = live transform Vec3 (call arg); obj->0xA0 = eye Vec3;
+//   obj->0x14C / 0x150 = current / target f32.
 #ifdef NON_MATCHING
 typedef struct { float lo, hi, v, w; } Bu4948E16;
 typedef struct { float a, b; } Bu4948E8;
@@ -3486,11 +3467,11 @@ void func_00004948(char *obj) {
             } else idx = 1;
         }
         e8 = &bu_4948_t8[idx];
-        ang = e8->b / 2.0f * *(float *)(bu_4948_c3f8 + 0x15C) / 180.0f;
+        ang = e8->b / 2 * *(float *)(bu_4948_c3f8 + 0x15C) / 180.0f;
         sinv = func_00000000_4948_ff(ang);
         r = func_00000000_4948_ff(ang) * e8->a / sinv;
         t = func_00000000_4948_ff(dist * dist + r * r);
-        t = func_00000000_4948_ff(dist / t) * 2.0f / *(float *)(bu_4948_c3f8 + 0x160) * 180.0f;
+        t = func_00000000_4948_ff(dist / t) * 2 / *(float *)(bu_4948_c3f8 + 0x160) * 180.0f;
         *(float *)(obj + 0x14C) = (t < bu_4948_klo) ? bu_4948_klo : ((bu_4948_khi < t) ? bu_4948_khi : t);
         st = *(int *)(obj + 0x158);
         if (st >= 0x22 && st < 0x27) {
