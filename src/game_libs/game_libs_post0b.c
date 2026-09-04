@@ -6476,54 +6476,112 @@ loop_22:
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B2EC);
 #endif
 
-// gl_func_0003B6A0 — STRUCTURAL PASS (0x320 / 200 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
-// prologue — large 0x80 frame, saves s0-s8). A large flag-gated FP
-// geometry / transform routine. One of the bigger nodes in this
-// vein.
-//
-//   void gl_func_0003B6A0(O *o, ...) {
-//     S *s = o->p_84;
-//     if (s == 0) return;                         // active gate
-//     X *x = s->p_44;
-//     if (x == 0) return;                          // sub gate
-//     float K = -50.0f;                            // 0xC2480000
-//     for (int i = 0; i < 6; i++) {                // 6-element loop
-//       // chained-pointer transform: s->0x44 -> 0x4C -> 0x2C
-//       // FP multiply/add pipeline using K, object fields,
-//       // spilling through sp scratch (sp+0x30 / 0x38 ...)
-//     }
-//   }
-//
-// Struct-typing reference: a sizable per-object FP transform leaf.
-//   It bails unless the object's o->0x84 sub-object is present and
-//   that sub-object's 0x44 pointer is non-null, then runs a
-//   6-iteration FP pipeline (loop count s4 = 6) over a chained
-//   pointer path (o->0x84 → +0x44 → +0x4C → +0x2C) using the
-//   constant -50.0f (0xC2480000) and saved arguments (spilled at
-//   sp+0x80..0x8C). The 6-count loop over a chained structure reads
-//   as a per-bone / per-segment skeletal or multi-part transform
-//   pass. A geometry/animation node of the game_libs object
-//   subsystem (companion of the gl_func_0003B2EC blend node, the
-//   gl_func_0003B1AC matrix-apply and the gl_func_00036694 /
-//   00037938 matrix family — the 6-part transform stage).
-// Caps (DEFERRED): 0x320 raw-word USO + flag-gated chained-pointer
-//   FP pipeline + 6-element loop + -50.0f constant; chained structs
-//   untyped; per-iteration FP lattice not decoded here. Real-C
-//   STRUCTURAL body below — gate + 6-iteration skeleton only.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
+// gl_func_0003B6A0 — PASS-2 hand re-derivation 2026-09-04 (agent-g): 12.4 -> 66.6
+// (target 0x320 / build 0x314; single clean function). Semantics below in the
+// body comment. Residual: target homes o (sw a0,128) and reloads it per
+// iteration while using $ra as the found-counter and s-regs for tri/face/verts
+// (build promotes o to $ra, count to s8); target keeps count in sp+56 and the
+// 12-byte offset in sp+48 as spilled homes (build sp+48 only); table walk
+// uses a2 (&D_0) with s5 = &D_0+6 end pointer. Superseded the 2026-06
+// STRUCTURAL "6-iteration FP pipeline" skeleton (the 6 is the s16 vertex
+// stride, not a trip count).
 #ifdef NON_MATCHING
-void gl_func_0003B6A0(char *o) {
-    char *s = *(char **)(o + 0x84);
-    char *x;
+/* PASS-2 2026-09-04 (agent-g): full hand re-derivation from expected/ .o.
+ * Point-in-triangle-prism query: for each 12-byte tri record of o->p2C
+ * (b0/b1 = projection axes, b3 = winding sign, f8 = plane offset), take the
+ * face (s8->p68[remap ? remap[i] : i], 8B, s16 vertex idx at +2/+4/+6) and
+ * its s16 vertex triples (s8->p60, 6B stride), project the query point pt
+ * onto the two axes and run the 3-edge cross-product test through the
+ * static next-vertex table (&D_0 .. +6 = {1,2,0}); if inside, plane distance
+ * d = dot(pt, s8->p54[i]) - tri->f8 in (-50, 0) is recorded to outd/outp
+ * (capped at max -> returns -1). Returns the number found. */
+extern short D_00000000_3b6a0tbl[3];
+int gl_func_0003B6A0(char *o, int max, float *outd, char **outp, float *pt) {
+    char *s8;
     int i;
-    if (s == 0) return;
-    x = *(char **)(s + 0x44);
-    if (x == 0) return;
-    for (i = 0; i < 6; i++) {
-        char *t = *(char **)(*(char **)(x + 0x4C) + 0x2C);
-        *(float *)(t + i * 4) *= -50.0f;
+    int off;
+    unsigned int count;
+    int nfound;
+    int inside;
+    short *rem;
+    char *tri;
+    char *face;
+    char *verts;
+    char *fp;
+    short *tp;
+    int a, b;
+    int ax, ay;
+    short ex, ey, px, py;
+    float dir;
+    float qa, qb;
+    float cross;
+    float d;
+    char *v;
+    char *w;
+    float fzero;
+    float lim;
+
+    nfound = 0;
+    s8 = *(char **)(o + 0x84);
+    if (s8 == 0) {
+        return 0;
     }
+    count = *(int *)(s8 + 0x44);
+    if (count != 0) {
+        lim = -50.0f;
+        fzero = 0.0f;
+        off = 0;
+        for (i = 0; i < count; i++) {
+            rem = *(short **)(s8 + 0x4C);
+            tri = *(char **)(o + 0x2C) + off;
+            inside = 1;
+            verts = *(char **)(s8 + 0x60);
+            if (rem != 0) {
+                face = *(char **)(s8 + 0x68) + rem[i] * 8;
+            } else {
+                face = *(char **)(s8 + 0x68) + i * 8;
+            }
+            dir = (float)*(signed char *)(tri + 3);
+            a = *(signed char *)(tri + 0);
+            b = *(signed char *)(tri + 1);
+            qa = pt[a];
+            qb = pt[b];
+            tp = D_00000000_3b6a0tbl;
+            fp = face;
+            do {
+                v = verts + *(unsigned short *)(fp + 2) * 6;
+                w = verts + *(unsigned short *)(face + *tp * 2 + 2) * 6;
+                tp++;
+                ax = *(short *)(v + a * 2);
+                ay = *(short *)(v + b * 2);
+                ex = *(short *)(w + a * 2) - ax;
+                ey = *(short *)(w + b * 2) - ay;
+                px = (int)(qa - (float)ax);
+                py = (int)(qb - (float)ay);
+                cross = (float)ex * (float)py - (float)ey * (float)px;
+                if (fzero < cross * dir) {
+                    inside = 0;
+                }
+                fp += 2;
+            } while (inside && tp != D_00000000_3b6a0tbl + 3);
+            if (inside) {
+                float *nrm = (float *)(*(char **)(s8 + 0x54) + off);
+                d = pt[0] * nrm[0] + pt[1] * nrm[1] + pt[2] * nrm[2] - *(float *)(tri + 8);
+                if (d < fzero && lim < d) {
+                    if (nfound < max) {
+                        outd[nfound] = d;
+                        outp[nfound++] = *(char **)(o + 0x2C) + i * 12;
+                        s8 = *(char **)(o + 0x84);
+                        count = *(int *)(s8 + 0x44);
+                    } else {
+                        return -1;
+                    }
+                }
+            }
+            off += 12;
+        }
+    }
+    return nfound;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003B6A0);
