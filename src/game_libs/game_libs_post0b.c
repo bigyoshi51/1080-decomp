@@ -6998,23 +6998,77 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
 //   store skeleton only. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
+/* PASS-2 2026-09-04 (agent-g): full hand re-derivation from expected/ .o.
+ * Nearest-hit picker: K&R query callback fills dist[8]/hits[8] (8 args:
+ * o, 8, dist, hits, r->w0, r->w4, r->w8, 0), returns n (stored to
+ * a3->h14). Scan for the smallest |dist[i]| under the FP-pool limit
+ * (&D_0+0x1AB8) with dist[i] > -600.0f and dist[i] > -s (IDO unrolls the
+ * loop x2 with a parity peel). On a hit: vertex row = o->p84->p54 +
+ * hit->h4*12 (Vec3), accumulate into a zero Vec3, copy row to a3->v24,
+ * a3->f36 = hit->f8, a3->h16 = o->p84->p68[h4*8].hu0, a3->h18 = hit->h4,
+ * a3->v0 = acc, a3->f12 = 0.0f + dist[best]. Returns n, or 0 if no hit. */
+#define ABS3(x) (((x) < 0.0f) ? -(x) : (x))
+/* 0x28-byte hit record (a3's type; the two staging locals are the same type). */
+typedef struct {
+    Vec3 pos;           /* 0x00 */
+    float dist;         /* 0x0C */
+    unsigned short h10; /* 0x10 */
+    short idx;          /* 0x12 */
+    short count;        /* 0x14 */
+    Vec3 vtx;           /* 0x18 */
+    float f24;          /* 0x24 */
+} GLHit3C43C;
 extern int D_00000000;
-int gl_func_0003C43C(char *o, char *r, float s, char *a3) {
-    int req[3];
-    float outA[3];
-    float outB[3];
+int gl_func_0003C43C(char *o, int *r, float s, GLHit3C43C *a3) {
+    float dist[8];
+    char *hitbuf[8];
+    Vec3 acc;
+    GLHit3C43C tmp;
+    GLHit3C43C tmp2;
     int n;
-    req[0] = *(int *)(r + 0x00);
-    req[1] = *(int *)(r + 0x04);
-    req[2] = *(int *)(r + 0x08);
-    n = gl_func_00000000(o, 8, outB, outA, req);
-    if (n <= 0) return 0;
-    *(short *)(a3 + 0x14) = (short)n;
-    if (n & 1) {
-        gl_func_00000000(a3, outA, outB, n);
+    int i;
+    int best;
+    float lim;
+    Vec3 *row;
+
+    acc.x = 0.0f;
+    acc.y = 0.0f;
+    acc.z = 0.0f;
+    n = gl_func_00000000(o, 8, dist, hitbuf, r[0], r[1], r[2], 0);
+    lim = *(float *)((char *)&D_00000000 + 0x1AB8);
+    best = -1;
+    a3->count = n;
+    if (n > 0) {
+        for (i = 0; i < n; i++) {
+            if (ABS3(dist[i]) < lim && dist[i] > -600.0f && dist[i] > -s) {
+                best = i;
+                lim = ABS3(dist[i]);
+            }
+        }
+        if (best >= 0) {
+            row = (Vec3 *)(*(char **)(*(char **)(o + 0x84) + 0x54) + *(short *)(hitbuf[best] + 4) * 12);
+            acc.x += row->x;
+            acc.y += row->y;
+            acc.z += row->z;
+            tmp.pos.x = row->x;
+            tmp.pos.y = row->y;
+            tmp.pos.z = row->z;
+            tmp2.pos = tmp.pos;
+            a3->vtx.x = tmp2.pos.x;
+            a3->vtx.y = tmp2.pos.y;
+            a3->vtx.z = tmp2.pos.z;
+            a3->f24 = *(float *)(hitbuf[best] + 8);
+            a3->h10 = *(unsigned short *)(*(char **)(*(char **)(o + 0x84) + 0x68) + *(short *)(hitbuf[best] + 4) * 8);
+            a3->idx = *(short *)(hitbuf[best] + 4);
+            tmp2.pos = acc;
+            a3->pos.x = tmp2.pos.x;
+            a3->pos.y = tmp2.pos.y;
+            a3->pos.z = tmp2.pos.z;
+            a3->dist = 0.0f + dist[best];
+        } else {
+            n = 0;
+        }
     }
-    (void)s;
-    (void)*(float *)((char *)&D_00000000 + 0x1AB8);
     return n;
 }
 #else
