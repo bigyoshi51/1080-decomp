@@ -4307,92 +4307,109 @@ void *func_00006254(char *a0, int a1, int a2, int a3, int a4) {
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00006254);
 #endif
 
-// func_000063B4 — STRUCTURAL PASS (0x380 / 224 insns, no episode).
-// Minimap/radar marker screen-projection: turns obj grid indices into a
-// world point, projects through the view matrix, clamps to 0..127 pixel
-// coords, stores into the view ctx, then issues the draw.
-//
-//   void func_000063B4(Obj *obj) {
-//     float inv = func_00000000(...);                    // 1/range helper
-//     float u =  (float)obj->0xBC / Kfold;               // Kfold =
-//     float v = -(float)obj->0xB8 / inv;                 //   func_0000057C+0x34
-//     // build two basis input vecs in sp scratch:
-//     //   A = { 0, 0, u }  (sp+0x84/88/8C),  B = { -v, 0, u } (sp+0x78/7C/80)
-//     Ctx *cx = *(Ctx**)(D_0 + 0x254);   View *vw = cx->0x70;
-//     Mat *m = &vw->0xB4;                                 // 0x10-stride rows
-//     // p = m * A  (full 3x3-ish mul.s/add.s expansion, then m * B)
-//     // screen scale/bias from cx->0x130 + v1->0xC/0x14 (int->float):
-//     int sx = (int)((p.x*cx->0x130 - (float)v1->0xC) / v1->0x14);
-//     // clamp helper-run: trunc, c.lt.s pick-min/max against bounds,
-//     //   subu v0=obj->0xC0 offset, then byte clamp:
-//     //   if (v1 < 0) v1 = 0;  if (v1 >= 0x80) v1 = 0x7F;  (same for a0)
-//     cx->0x10C = clampedX;  cx->0x110 = clampedY;        // marker pixel
-//     // emit: vec {0,0,0,1.0f} at sp+0x5C; func_00000000(cx, &sp5C);
-//     func_00000000(obj);                                 // draw / finalize
-//   }
-//
+// func_000063B4 — 0x380 / 224 insns. Minimap marker projection. 23.4 -> 76.0
+// (agent-f 2026-09-04, hand reconstruction from the target .s; old body was
+// a 78-insn stub that dropped the whole 3x3 transform + clamp cascade).
+// Shape recovered: obj homed at 0x90(sp) (no s-regs); K = folded const
+// func_0000057C+0x34 read via DATA ALIAS bu_63b4_c57c (fn-typed base never
+// folds %lo addends); call 1 = float f(float) -> f0; call 2 = (float, &A.x,
+// &A.z); A/B/q live in ONE escaping frame struct Bu63b4F (0x5C..0x8F, passed
+// to call 3 as &fr) — this is what keeps B's x/y transform alive (as plain
+// locals uopt DCEs B.x/B.y since only B.z is read) and makes every field a
+// memory var (per-use lwc1/swc1); XFORM = in-place M*v with named x_/y_/z_
+// input temps + rx_/ry_/rz_ result temps (Vec3 temp + struct copy = memcpy
+// form, wrong); MIN/MAX = ternary into a FLOAT temp then (int) cast (cast on
+// the ternary duplicates trunc into both arms); fn = (float)(int)(...).
+// Frame: 0x98 vs 0x90 — one float-home over (floats cost 8B homes here; the
+// x_,y_,z_,rx_,ry_ + z-direct/y,x,z-store-order variant lands the frame
+// EXACT and materializes the D_00000000 base (lui/addiu + lw 0x254(base))
+// but re-colors base->a0 / obj->v0 and scores 63 — coloring cascade, open).
+// Residual: target reloads ctx (*(D+0x254)) 3x via a held a2 base (kills =
+// pointer-ish stores; fn-typed &func_00000000 base blocks the CSE but demotes
+// obj to per-use home reloads), bc1fl-form ternaries (target: bc1fl + else
+// in delay + dead mov after b), A.z store sunk into the MAX arms vs stored
+// immediately + reloaded (f14) in the target.
 // Struct-typing reference:
-//   obj->0xB8 / 0xBC = grid/index counts (numerator inputs);
-//   obj->0xC0 = a pixel origin offset; obj->0xB4 = a record ptr (->0xA0).
-//   D_0 + 0x254 = global ctx ptr; ctx->0x70 = View; View->0xB4.. =
-//     a 0x10-stride basis/projection matrix; ctx->0x130 = screen scale;
-//     ctx->0x10C / 0x110 = output marker pixel X/Y (byte-clamped 0..0x7F).
-//   func_0000057C + 0x34 (lwc1) = folded f32 const at 0x5B0.
-// PREMISE CORRECTION (2026-07, agent-f): this is a MATCHABLE folded
-//   addend-reloc, NOT a mis-disassembled constant pool. (UPDATE 2026-07-10:
-//   there is no "case-(a) splat-mis-disassembled pool" anywhere — even the
-//   func_0000098C trio E270/D900/E2D0 was CONFIRMED via the USO reloc table to
-//   load genuine RoData-section literals, same matchable class, no re-extract;
-//   see docs/N64_FORENSICS.md RESOLVED block.) func_0000057C+0x34 is a
-//   MATCHABLE folded addend-reloc: reference it as a memory load
-//   *(float*)((char*)&func_0000057C + 0x34) (NOT as a C literal) and IDO
-//   emits a HI16/LO16 addend-reloc pair against func_0000057C that matches
-//   the target — same mechanism PROVEN on func_00007328's folded refs
-//   (func_0000029C+0x4, func_00000008+0x34; 24->69 fuzzy). The current
-//   body below does NOT reference func_0000057C+0x34 at all (uses a bogus
-//   inv-from-call divisor) -> that's a reconstruction error, not a pool cap.
-// REAL BLOCKER: full 224-insn 3x3 matrix-projection + multi-clamp FP-math
-//   reconstruction accuracy (current body 23% fuzzy = structurally wrong)
-//   plus the FP-register coloring ceiling. Not pool-blocked. DEFERRED
-//   (multi-hour per-fn FP RE). Name pre-checked: no extern reuse.
+//   obj->0xB8 / 0xBC = grid/index counts; obj->0xC0 = pixel origin offset;
+//   obj->0xB4 = record ptr (->0xA0 -> {0xC int, 0x14 float});
+//   D_0 + 0x254 = ctx; ctx->0x70 = View; View+0xB4 = 3x3 (0x10 stride),
+//   View->0xA8 float; D_0 + 0x130 = screen scale;
+//   ctx->0x10C / 0x110 = marker pixel X/Y (clamped 0..0x7F).
 #ifdef NON_MATCHING
+extern u8 bu_63b4_c57c[];                                   /* data alias of func_0000057C (const pool) */
+extern float func_00000000_63b4_ff(float);                  /* range helper: f12 -> f0 */
+extern void func_00000000_63b4_fpp(float, float *, float *); /* sincos-like: (ang, &x, &z) */
+typedef struct { float q[4]; float pad[3]; Vec3 B; Vec3 A; } Bu63b4F; /* 0x5C..0x8F frame block, escapes via call 3 */
+extern void func_00000000_63b4_pq(void *, Bu63b4F *);
+extern void func_00000000_63b4_p(void *);
+#define BU63B4_CTX() (*(char **)((char *)&D_00000000 + 0x254))
+#define BU63B4_M() ((float (*)[4])(*(char **)(BU63B4_CTX() + 0x70) + 0xB4))
+#define BU63B4_MC(c) ((float (*)[4])(*(char **)((c) + 0x70) + 0xB4))
+#define BU63B4_MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define BU63B4_MAX(a, b) (((b) < (a)) ? (a) : (b))
+#define BU63B4_XFORM(m, v)                                                   \
+    {                                                                          \
+        x_ = (v).x; y_ = (v).y; z_ = (v).z;                                    \
+        rx_ = (m)[0][0] * x_ + (m)[1][0] * y_ + (m)[2][0] * z_;               \
+        ry_ = (m)[0][1] * x_ + (m)[1][1] * y_ + (m)[2][1] * z_;               \
+        rz_ = (m)[0][2] * x_ + (m)[1][2] * y_ + (m)[2][2] * z_;               \
+        (v).x = rx_;                                                           \
+        (v).y = ry_;                                                           \
+        (v).z = rz_;                                                           \
+    }
 void func_000063B4(char *obj) {
-    float inv, u, v;
-    char *cx, *vw, *m;
+    Bu63b4F fr;
+    float inv;
+    float fn, t;
+    int ix, iy;
+    float (*m)[4];
+    char *ctx;
     char *v1;
-    float px, py;
-    int sx, sy;
-    float A_x, A_y, A_z;
-    float B_x, B_y, B_z;
-    float sp5C_a, sp5C_b, sp5C_c, sp5C_d;
-    inv = (float)func_00000000();
-    u = (float)*(int *)(obj + 0xBC) / inv;
-    v = -(float)*(int *)(obj + 0xB8) / inv;
-    A_x = 0.0f; A_y = 0.0f; A_z = u;
-    B_x = -v;   B_y = 0.0f; B_z = u;
-    cx = *(char **)((char *)&D_00000000 + 0x254);
-    vw = *(char **)(cx + 0x70);
-    m = vw + 0xB4;
-    v1 = *(char **)(obj + 0xB4);
-    px = (*(float *)(m + 0x0)  * A_x +
-          *(float *)(m + 0x4)  * A_y +
-          *(float *)(m + 0x8)  * A_z);
-    py = (*(float *)(m + 0x10) * B_x +
-          *(float *)(m + 0x14) * B_y +
-          *(float *)(m + 0x18) * B_z);
-    sx = (int)((px * *(float *)(cx + 0x130) - (float)*(int *)(v1 + 0xC)) /
-               (float)*(int *)(v1 + 0x14)) - *(int *)(obj + 0xC0);
-    sy = (int)((py * *(float *)(cx + 0x130) - (float)*(int *)(v1 + 0xC)) /
-               (float)*(int *)(v1 + 0x14));
-    if (sx < 0)     sx = 0;
-    if (sx >= 0x80) sx = 0x7F;
-    if (sy < 0)     sy = 0;
-    if (sy >= 0x80) sy = 0x7F;
-    *(int *)(cx + 0x10C) = sx;
-    *(int *)(cx + 0x110) = sy;
-    sp5C_a = 0.0f; sp5C_b = 0.0f; sp5C_c = 0.0f; sp5C_d = 1.0f;
-    func_00000000(cx, &sp5C_a);
-    func_00000000(obj);
+    float x_, y_, z_, rx_, ry_, rz_;
+    char *base;
+
+    inv = func_00000000_63b4_ff((float)*(int *)(obj + 0xBC) / *(float *)(bu_63b4_c57c + 0x34));
+    fr.A.y = 0.0f;
+    fr.A.x = 0.0f;
+    fr.A.z = (float)(-*(int *)(obj + 0xB8)) / inv;
+    func_00000000_63b4_fpp((float)*(int *)(obj + 0xBC), &fr.A.x, &fr.A.z);
+    base = (char *)&D_00000000;
+    ctx = *(char **)(base + 0x254);
+    fr.B.y = 0.0f;
+    fr.B.x = -fr.A.x;
+    fr.B.z = fr.A.z;
+    m = BU63B4_MC(ctx);
+    BU63B4_XFORM(m, fr.A);
+    m = BU63B4_MC(ctx);
+    ctx = *(char **)(base + 0x254);
+    BU63B4_XFORM(m, fr.B);
+    v1 = *(char **)(*(char **)(obj + 0xB4) + 0xA0);
+    fn = (float)(int)((*(float *)(*(char **)(ctx + 0x70) + 0xA8) * *(float *)(base + 0x130) -
+                       (float)*(int *)(v1 + 0xC)) / *(float *)(v1 + 0x14));
+    fr.A.z += fn;
+    fr.B.z += fn;
+    t = BU63B4_MIN(fr.A.z, fn);
+    ix = (int)t;
+    t = BU63B4_MIN((float)ix, fr.B.z);
+    ix = (int)t;
+    t = BU63B4_MAX(fr.A.z, fn);
+    iy = (int)t;
+    t = BU63B4_MAX((float)iy, fr.B.z);
+    iy = (int)t;
+    ix -= *(int *)(obj + 0xC0);
+    iy += *(int *)(obj + 0xC0);
+    if (ix < 0) ix = 0;
+    if (ix >= 0x80) ix = 0x7F;
+    if (iy < 0) iy = 0;
+    if (iy >= 0x80) iy = 0x7F;
+    *(int *)(ctx + 0x10C) = ix;
+    *(int *)(*(char **)(base + 0x254) + 0x110) = iy;
+    fr.q[2] = 0.0f;
+    fr.q[1] = 0.0f;
+    fr.q[0] = 0.0f;
+    fr.q[3] = 1.0f;
+    func_00000000_63b4_pq(base, &fr);
+    func_00000000_63b4_p(obj);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000063B4);
