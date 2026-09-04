@@ -1555,14 +1555,31 @@ void h2hproc_uso_func_000015F0(int *a0, int *a1, int a2) {
  *   gl_func(self);                         ; tail helper
  *
  * Initial structural pass; default INCLUDE_ASM keeps ROM exact.
- * Repeated regalloc+structural caps expected (similar to 15F0's 94%). */
+ * Repeated regalloc+structural caps expected (similar to 15F0's 94%).
+ * 2026-09-04 (84.5 -> 95.7, 144/143 insns, frame 0x28 exact; agent-h): the
+ *   "beqzl/vestigial re-test cap" was FOUR decode errors + a CFG error, all
+ *   re-read off the raw words: (1) the 2nd 309-call is gl(309, 1) and the two
+ *   ->0xC8<=0 calls are gl(self->B8, 1) / gl(self->B8, 0) (a1 was dropped);
+ *   (2) the v->0x34 block is `if (x) { p=v[0x94]; if (p==0) gl(parent,0);
+ *   else if (p!=0) {gl(parent); ..=-1;} } else { p=v[0x94]; if (p!=0 && x==0)
+ *   gl(parent,1); }` -- the redundant `else if (p != 0)` and `&& x == 0` ARE
+ *   the target's re-tests (IDO keeps them; 0x1860 orphan lw = beql-dup
+ *   leftover); (3) the re-init block is NOT nested in the two gates: `gate`
+ *   is re-assigned from self->B8->4F0 at the end of the inner block and a
+ *   single `if (gate)` after both ifs is the shared .L1944 value-form join;
+ *   (4) counter is `self->D4 += 1; if (self->D4 >= 51) self->D4 = 0;` (store
+ *   then conditional zero-store); (5) one `q` local serves both E8/EC tests
+ *   (v0 reuse), first two re-init `v` reads are inline (t7/t8 temps).
+ *   Residual: whole-fn register renumber (gate/v/q v1<->v0, x a0 vs v1,
+ *   t-ring +1: mine skips t7) -- coloring, not structure. */
 void h2hproc_uso_func_000017A0(int *self) {
     int *parent = (int*)*(int*)((char*)self + 0xB8);
     int *v;
-    int v1;
+    int x;
     int p148;
     int gate;
-    int counter;
+    int *q;
+
     if ((((unsigned)parent[0x4F0/4] << 15) >> 31) && parent[0x4DC/4] == 1) {
         *(int*)((char*)self + 0x30) += 0x21;
     }
@@ -1570,63 +1587,45 @@ void h2hproc_uso_func_000017A0(int *self) {
     parent = (int*)*(int*)((char*)self + 0xB8);
     gate = parent[0x4F0/4] & 0x10000;
     if (gate != 0) {
-    if (parent[0x4DC/4] == 1) {
+        if (parent[0x4DC/4] == 1) {
+            v = (int*)*(int*)((char*)self + 0x44);
+            x = v[0x34/4];
+            if (x != 0) {
+                p148 = v[0x94/4];
+                if (p148 == 0) gl_func_00000000(parent, 0);
+                else if (p148 != 0) {
+                    gl_func_00000000(parent);
+                    *(int*)((char*)*(int*)((char*)self + 0xB8) + 0x6B8) = -1;
+                }
+            } else {
+                p148 = v[0x94/4];
+                if (p148 != 0 && x == 0) gl_func_00000000(parent, 1);
+            }
 
-    v = (int*)*(int*)((char*)self + 0x44);
-    v1 = v[0x34/4];
-    if (v1 != 0) {
-        p148 = v[0x94/4];
-        if (p148 == 0) {
-            gl_func_00000000(parent, 0);
-        } else {
-            gl_func_00000000(parent);
-            *(int*)(((char*)*(int*)((char*)self + 0xB8)) + 0x6B8) = -1;
+            *(int*)((char*)self + 0xD4) += 1;
+            if (*(int*)((char*)self + 0xD4) >= 51) *(int*)((char*)self + 0xD4) = 0;
+
+            q = (int*)*(int*)((char*)self + 0xE8);
+            if (q != 0 && q[0xC4/4] >= 12 && *(int*)((char*)self + 0xD4) == 0) gl_func_00000000(309, 0);
+            q = (int*)*(int*)((char*)self + 0xEC);
+            if (q != 0 && q[0xC4/4] >= 12 && *(int*)((char*)self + 0xD4) == 0) gl_func_00000000(309, 1);
+            if (*(int*)((char*)*(int*)((char*)self + 0xE8) + 0xC8) <= 0) gl_func_00000000(*(int*)((char*)self + 0xB8), 1);
+            if (*(int*)((char*)*(int*)((char*)self + 0xEC) + 0xC8) <= 0) gl_func_00000000(*(int*)((char*)self + 0xB8), 0);
+            gate = *(int*)((char*)*(int*)((char*)self + 0xB8) + 0x4F0) & 0x10000;
         }
-    } else {
-        p148 = v[0x94/4];
-        if (p148 != 0) {
-            gl_func_00000000(parent, 1);
-        }
     }
-
-    counter = *(int*)((char*)self + 0xD4) + 1;
-    if (counter >= 51) counter = 0;
-    *(int*)((char*)self + 0xD4) = counter;
-
-    if (*(int*)((char*)self + 0xE8) != 0 &&
-        *(int*)((char*)*(int*)((char*)self + 0xE8) + 0xC4) >= 12 &&
-        *(int*)((char*)self + 0xD4) == 0) {
-        gl_func_00000000(309, 0);
-    }
-    if (*(int*)((char*)self + 0xEC) != 0 &&
-        *(int*)((char*)*(int*)((char*)self + 0xEC) + 0xC4) >= 12 &&
-        *(int*)((char*)self + 0xD4) == 0) {
-        gl_func_00000000(309, 0);
-    }
-    if (*(int*)((char*)*(int*)((char*)self + 0xE8) + 0xC8) <= 0) {
-        gl_func_00000000(*(int*)((char*)self + 0xB8));
-    }
-    if (*(int*)((char*)*(int*)((char*)self + 0xEC) + 0xC8) <= 0) {
-        gl_func_00000000(*(int*)((char*)self + 0xB8));
-    }
-
-    parent = (int*)*(int*)((char*)self + 0xB8);
-    if (parent[0x4F0/4] & 0x10000) {
+    if (gate != 0) {
         if (gl_func_00000000(self) != 0) {
             gl_func_00000000(*(int*)((char*)self + 0xB8));
             gl_func_00000000(self);
         }
-        v = (int*)*(int*)((char*)self + 0x44);
-        gl_func_00000000(*(int*)((char*)self + 0xE8), v[0x28/4]);
-        v = (int*)*(int*)((char*)self + 0x44);
-        gl_func_00000000(*(int*)((char*)self + 0xEC), v[0x88/4]);
+        gl_func_00000000(*(int*)((char*)self + 0xE8), (*(int**)((char*)self + 0x44))[0x28/4]);
+        gl_func_00000000(*(int*)((char*)self + 0xEC), (*(int**)((char*)self + 0x44))[0x88/4]);
         v = (int*)*(int*)((char*)self + 0x44);
         gl_func_00000000(*(int*)((char*)self + 0x80), v[0x30/4], v[0x90/4]);
         v = (int*)*(int*)((char*)self + 0x44);
         gl_func_15f0((void*)*(int*)((char*)self + 0x80), v[0x8/4], v[0xC/4],
                      v[0x68/4], *(float*)((char*)v + 0x6C));
-    }
-    }
     }
     gl_func_00000000(self);
 }
