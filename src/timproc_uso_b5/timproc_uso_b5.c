@@ -3566,6 +3566,21 @@ extern char import_80020150;
 s32 timproc_uso_b5_func_00008988(char *arg0, s32 arg1, s32 arg2);
 int timproc_uso_b5_func_00008A38();
 void timproc_uso_b5_func_00008688(char *scr, int mode);
+/* 2026-09-04 (agent-h) 88.67 (244/244, difflines 80) FP-block study: the
+ * target holds the 255.0f DIVISOR as a multi-use candidate in $f2 and the
+ * numerators as distinct temps materialized 255,90,255(num),145,58,13,161,91,
+ * 35,70 with the div order = current source order (already correct). In-tree
+ * the divisor colors $f14 (temp ring). Probed: divisor as a named var `fdiv`
+ * (copy-propped, inert); 9 distinct numerator vars in target lui order (inert
+ * unless the 255 numerator is spelled `255.0f` -- then it MERGES with the
+ * divisor: `div.s $f0,$f2,$f2`, 242 insns, wrong). Standalone: `fone=(float)255`
+ * numerator + literal `255.0f` divisor (= the current spelling) AND int-literal
+ * numerators `145 / fd` with `fd = 255.0f` both give the exact target shape
+ * (f2 candidate divisor, f0 = 255/255 web, f4/f8/f10/f18 temps) -- the in-tree
+ * divergence is therefore pressure/context from the surrounding jalr cluster,
+ * not the expression spelling. Other residuals: loop-2 counter/row v0<->v1
+ * swap (target `move v1,zero` after `lw v0,68(a0)`), n(0x3E0)->a2 vs e->a3
+ * in the 3 vtable dispatches. Body unchanged. */
 void timproc_uso_b5_func_00005BF0(char *arg0, int *arg1, int *arg2, int *arg3, int *arg4, int *arg5) {
     char *row, *e, *vt;
     int *tbl;
@@ -6603,6 +6618,21 @@ extern f32 DF_320;
  * loop counter vs loop-ptr rank (target: i in s0, ptr spilled 76(sp); build: ptr
  * s0, i spilled) which also frees s1 for the loop-3 `-5` hoist; the three 0xB4/B8/BC
  * zero stores use fresh `mtc1 zero` in target (NOT f20) after 04DFFC; +24 frame. */
+/* 2026-09-04 (agent-h) NEGATIVES banked, 81.32 unchanged (1581/1624, frame -376):
+ * loop counter-vs-ptr rank: index-form base[i] is strength-reduced by uopt back
+ * into the same ptr walk (1581, difflines 1364->1356 but frame +8); explicit
+ * `if (n>0) do..while` = identical to `for` (guard folded); `if(0) esc(&pl)`
+ * address-pin homes pl (lw/sw 272(sp) every access, 1612 insns, difflines 1916)
+ * and only THEN the target's `blez` guard appears -- because the count load can
+ * no longer be forwarded; mixed pl-walk + base[i] (ivboost) 1564/-392 worse.
+ * Standalone guard study (17 spellings: for/while/do-while, i from stored
+ * field, n copy, short/param count, comma-for, index ptr): the `blez tN` guard
+ * survives ONLY when the count is not a compile-time constant at the guard
+ * (param, or short-typed field) -- but the target's guard tests the forwarded
+ * `li t8,8` register itself with `lw 316(s1)` at the bottom, so the count IS
+ * the just-stored literal; no C spelling found that forwards-but-doesn't-fold.
+ * 0xB4/B8/BC zero stores: three distinct `f32 z1,z2,z3 = 0.0f` locals are
+ * const-propagated into the f20 web (frame -392, no per-site mtc1 zero). */
 extern char f8fc8_e304_1[], f8fc8_e304_2[], f8fc8_e304_3[], f8fc8_e304_4[], f8fc8_e3d04_2[], f8fc8_ee6c_sb1[], f8fc8_ee6c_sb2[], f8fc8_ee6c_sb3[];
 void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
     VecH sp154;
