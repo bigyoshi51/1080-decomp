@@ -5258,31 +5258,37 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000074E8);
  * disable); substate->0x48 (72) = bound handle (= a1 on enable);
  * substate->0x4C (76) f32 = D_000005E8 on enable / 0.0 on disable;
  * substate->0xBC (188) = a gate that forces the enable path even
- * when a1==0. D_000005E8 = f32 constant (default value). Caps <80:
+ * when a1==0. D_000005E8 = f32 constant (default value). [Caps note below RETRACTED 2026-09-04 — matched, see body.] Caps <80:
  * beql/bnel branch-likely + mtc1/swc1 FP + D_000005E8 f32 reloc +
  * reloc notify call. INCLUDE_ASM remains build path. */
 extern float D_000005E8;
-#ifdef NON_MATCHING
+/* 2026-09-04 MATCHED 53/53 (agent-f): the old body merged `a1 != 0 ||
+ * st->0xBC != 0` into one enable test; the target gates only the two
+ * flag-CLEARs on 0xBC and always writes 0.0f + handle on the a1==0 path.
+ * Levers: substate ptr reloaded per access (no cached local); each flag RMW
+ * through an explicit `int *f = st + 0x18; *f op= k` (materializes the
+ * addiu + lw/sw 0(v0) pairs, direct `*(int*)(st+0x18) |= k` folds the
+ * displacement); enable-path swc1 base = the same `f` var re-pointed at st
+ * with the 0x4C folded into the store (colors v0). */
+#define ST_7620 (*(char**)(a0 + 0x40))
 void func_00007620(char *a0, int a1) {
-    char *st = *(char**)(a0 + 0x40);
-    if (st == 0) return;
+    int *f;
+    if (ST_7620 == 0) return;
     func_00000000(a1);
-    if (a1 != 0 || *(int*)(st + 0xBC) != 0) {
-        st = *(char**)(a0 + 0x40);
-        *(int*)(st + 0x18) |= 0x8;
-        *(int*)(st + 0x18) |= 0x4;
-        *(float*)(st + 0x4C) = D_000005E8;
-        *(int*)(st + 0x48) = a1;
+    if (a1 == 0) {
+        if (*(int*)(ST_7620 + 0xBC) == 0) {
+            f = (int*)(ST_7620 + 0x18); *f &= ~0x8;
+            f = (int*)(ST_7620 + 0x18); *f &= ~0x4;
+        }
+        *(float*)(ST_7620 + 0x4C) = 0.0f;
     } else {
-        st = *(char**)(a0 + 0x40);
-        *(int*)(st + 0x18) &= ~0x8;
-        *(int*)(st + 0x18) &= ~0x4;
-        *(float*)(st + 0x4C) = 0.0f;
+        f = (int*)(ST_7620 + 0x18); *f |= 0x8;
+        f = (int*)(ST_7620 + 0x18); *f |= 0x4;
+        f = (int*)ST_7620; *(float*)((char*)f + 0x4C) = D_000005E8;
     }
+    *(int*)(ST_7620 + 0x48) = a1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00007620);
-#endif
+#undef ST_7620
 
 /* func_000076F4 - verified structural decode (0xDC, 55 insns).
  * Same FP transform/draw family as func_0000485C (shared globals:
