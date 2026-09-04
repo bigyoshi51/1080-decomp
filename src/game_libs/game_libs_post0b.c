@@ -3066,61 +3066,127 @@ void gl_func_00037348(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
 #endif
 
-// gl_func_00037540 — STRUCTURAL PASS (0x2FC / 191 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
-// prologue — 0xC0 frame). The larger SIBLING of gl_func_00037348 —
-// a multi-axis FP clamp / range-limit (deadzone) routine.
-//
-//   void gl_func_00037540(O *o) {
-//     V *v = o->p_2C;
-//     float s = o->f_3C;                          // per-call scale
-//     float a = v->f_4 * s;
-//     a = (a < 0.0f) ? -a : a;                     // abs idiom
-//     if (a < D_0_fp_19F8) ... else clamp ...      // FP-pool bound
-//     float b = v->f_0 * D_0_fp_19F8;
-//     b = fabsf(b);
-//     if (b < D_0_fp_19FC) ... else clamp ...      // 2nd pool bound
-//     ... more components, factor 2.0f (0x40000000) ...
-//   }
-//
-// Struct-typing reference: a multi-axis clamp / deadzone / range-
-//   limiter, the larger counterpart of gl_func_00037348. Same core
-//   idiom — read a vector from o->0x2C, scale by a per-call factor
-//   (o->0x3C) and/or FP-pool constants, take the absolute value
-//   (`c.lt.s f,0 ; bc1fl ; neg.s`), and saturate each component
-//   against an FP-LITERAL-POOL bound — but it covers more
-//   components / branches and uses the NEXT pool slots
-//   &D_0+0x19F8 and &D_0+0x19FC (immediately after
-//   gl_func_00037348's &D_0+0x19F0 / 0x19F4), plus a 2.0f factor
-//   (0x40000000). This confirms a CONTIGUOUS FP clamp-constant
-//   table based at &D_0+0x19F0 (0x19F0/0x19F4 used by 00037348,
-//   0x19F8/0x19FC by 00037540 — a per-axis {scale, limit} array;
-//   deferred FP-pool symbolization per docs/N64_FORENSICS.md, same
-//   class as the &D_0+0x186C/0x1868/0x1730 sites). The
-//   00037348 / 00037540 pair is the input/signal-conditioning
-//   stage of the game_libs object subsystem (companion of the
-//   gl_func_0003695C normalizer; feeds the geometry/command
-//   pipeline with clamped vectors).
-// Caps (DEFERRED): 0x2FC raw-word USO + FP abs/clamp + contiguous
-//   FP-literal-pool constant table (&D_0+0x19F0.. unsymbolized).
-//   Real-C STRUCTURAL body below — two representative axes only.
-//   Byte-match deferred. Name pre-checked: no extern reuse.
+// gl_func_00037540 — full hand re-derivation 12.7 -> 72.3 (2026-09-04 agent-g,
+// 764/764 sized, frame 0xC0 exact, every local offset exact). Sibling of
+// gl_func_00037348 (same r-home reload idiom, same 34458 callback triple).
+//   r = o->0x14 (physics record), v = o->0x2C (input record).
+//   a = o->0x3C * v->f4  ; deadzone |a| < 2.0f -> 0   (y-axis, per-call scale)
+//   b = POOL[0x19F8] * v->f0 ; deadzone |b| < POOL[0x19FC] -> 0
+//   saved = r->0x60..0x68 (Vec3); r->0x60.. = 0; 34458(r+0x30, &{0,-b,0}, o)
+//   vB4 = r->0x50..0x58 * a ; r->0x60.. = saved
+//   o->0x34 = 0 / +10 (v->0x10 & 4) / -10 (v->0x10 & 8)
+//   v6C = vB4 (via 40-byte tmp record) ; v9C = r->0xA0.. + v6C ; 34458(r+0x30, o+0x30, o)
+//   v90 = v9C + o->0x30.. + v6C (dead but kept: same escaped aggregate as vB4)
+//   o->0x30 *= POOL[0x1A00]; o->0x38 *= POOL[0x1A00]; 34458(r+0x30, &vB4, o)
+// Levers that landed: (1) ONE 84-byte escaped aggregate {v6C,pad24,v90,v9C,
+//   saved,vB4} keeps the never-read v90 stores alive (&vB4 escapes to call 3);
+//   (2) per-site array-extern pool aliases D_37540_19F8[0x19F8/4] etc = fresh
+//   `lui at; lwc1 K(at)` (a shared alias/`&D_0+K` CSEs the base into a3);
+//   (3) if(0)-escape of &r reproduces the reload-after-every-store home idiom
+//   (target: sw t6,96(sp) at def, `lw v0,96(sp)` before each store through r);
+//   (4) decl order g, volatile pad, a, r, b, ab, v, L3, arg(V3), tmp(40B) = frame
+//   0xC0 with homes 0x68/0x64/0x60 + 0x44 + 0x1C exact; (5) mul operand order
+//   is REVERSED by cfe (second operand becomes fs) — write `scale * v[k]`.
+// RESIDUAL: FP coloring (target zero=f14/product=f16/abs=f0, build f0/f2/f12)
+//   and the r-reload web colored v0 in target vs t7/t8/t9 (escaped-local temp
+//   loads); negative probes: `char * volatile r` (reloads per READ, 3x too
+//   many), `(void)&r` (no reload at all), `if(0) r=&r`, `register` (no change),
+//   r/a as members of the arg record (a-store moves to source position, +16
+//   frame). Semantics complete; honest NM.
 #ifdef NON_MATCHING
-extern int D_00000000;
+#ifndef FW
+#define FW(p, o) (*(int *)((char *)(p) + (o)))
+#endif
+#define FF37540(p, o) (*(f32 *)((char *)(p) + (o)))
+typedef struct { f32 x, y, z; } V3_37540;
+typedef struct { V3_37540 v6C; s32 pad78[6]; V3_37540 v90; V3_37540 v9C; V3_37540 saved; V3_37540 vB4; } Big_37540;
+/* 0x28-byte staging record: Vec3 at +0, owner ptr at +0x1C, scale at +0x20 */
+typedef struct { V3_37540 v; s32 padC[7]; } Tmp_37540;
+extern f32 D_37540_19F8[], D_37540_19FC[], D_37540_1A00[];   /* FP literal pool &D_0+0x19F8: b-scale, b-deadzone, xz-damp (one alias per site = fresh lui at) */
 void gl_func_00037540(char *o) {
-    float *v = *(float **)(o + 0x2C);
-    float s = *(float *)(o + 0x3C);
-    float L1 = *(float *)((char *)&D_00000000 + 0x19F8);
-    float L2 = *(float *)((char *)&D_00000000 + 0x19FC);
-    float a, b;
-    a = v[1] * s;
-    if (a < 0.0f) a = -a;
-    if (a >= L1) a = L1;
-    b = v[0] * L1;
-    if (b < 0.0f) b = -b;
-    if (b >= L2) b = L2;
-    v[0] = b * 2.0f;
-    v[1] = a * 2.0f;
+    Big_37540 g;
+    volatile s32 pad68;
+    f32 a;
+    char *r;
+    f32 b;
+    f32 ab;
+    char *v;
+    f32 L3;
+    V3_37540 arg;
+    Tmp_37540 tmp;
+
+    r = (char *)FW(o, 0x14);
+    if (0) { gl_func_00034458(&r); }
+    v = (char *)FW(o, 0x2C);
+    a = FF37540(o, 0x3C) * FF37540(v, 4);
+    if (a < 0.0f) {
+        ab = -a;
+    } else {
+        ab = a;
+    }
+    if (ab < 2.0f) {
+        a = 0.0f;
+    }
+    b = D_37540_19F8[0x19F8 / 4] * FF37540(v, 0);
+    if (b < 0.0f) {
+        ab = -b;
+    } else {
+        ab = b;
+    }
+    if (ab < D_37540_19FC[0x19FC / 4]) {
+        b = 0.0f;
+    }
+    g.saved.x = FF37540(r, 0x60);
+    g.saved.y = FF37540(r, 0x64);
+    g.saved.z = FF37540(r, 0x68);
+    FF37540(r, 0x60) = 0.0f;
+    FF37540(r, 0x64) = 0.0f;
+    FF37540(r, 0x68) = 0.0f;
+    arg.z = 0.0f;
+    arg.y = -b;
+    arg.x = 0.0f;
+    gl_func_00034458(r + 0x30, &arg, o);
+    g.vB4.x = FF37540(r, 0x50);
+    g.vB4.y = FF37540(r, 0x54);
+    g.vB4.z = FF37540(r, 0x58);
+    g.vB4.x = g.vB4.x * a;
+    g.vB4.y = g.vB4.y * a;
+    g.vB4.z = g.vB4.z * a;
+    FF37540(r, 0x60) = g.saved.x;
+    FF37540(r, 0x64) = g.saved.y;
+    FF37540(r, 0x68) = g.saved.z;
+    FF37540(o, 0x34) = 0.0f;
+    if (FW(FW(o, 0x2C), 0x10) & 4) {
+        FF37540(o, 0x34) = 10.0f;
+    }
+    if (FW(FW(o, 0x2C), 0x10) & 8) {
+        FF37540(o, 0x34) = -10.0f;
+    }
+    tmp.v = g.vB4;
+    g.v6C.z = tmp.v.z;
+    g.v6C.y = tmp.v.y;
+    g.v6C.x = tmp.v.x;
+    g.v9C.x = FF37540(r, 0xA0);
+    g.v9C.y = FF37540(r, 0xA4);
+    g.v9C.z = FF37540(r, 0xA8);
+    g.v9C.x = g.v9C.x + g.v6C.x;
+    g.v9C.y = g.v9C.y + g.v6C.y;
+    g.v9C.z = g.v9C.z + g.v6C.z;
+    gl_func_00034458(r + 0x30, o + 0x30, o);
+    L3 = D_37540_1A00[0x1A00 / 4];
+    tmp.v = g.v9C;
+    g.v90.z = tmp.v.z;
+    g.v90.y = tmp.v.y;
+    g.v90.x = tmp.v.x;
+    g.v90.x = g.v90.x + FF37540(o, 0x30);
+    g.v90.y = g.v90.y + FF37540(o, 0x34);
+    g.v90.z = g.v90.z + FF37540(o, 0x38);
+    g.v90.x = g.v90.x + g.v6C.x;
+    g.v90.y = g.v90.y + g.v6C.y;
+    g.v90.z = g.v90.z + g.v6C.z;
+    FF37540(o, 0x30) = FF37540(o, 0x30) * L3;
+    FF37540(o, 0x38) = FF37540(o, 0x38) * L3;
+    gl_func_00034458(r + 0x30, &g.vB4, o);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037540);
