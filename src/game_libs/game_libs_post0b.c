@@ -6957,46 +6957,16 @@ s32 gl_func_0003BE1C(char *arg0, s32 arg1, s32 arg2, s32 arg3, f32 arg4, f32 arg
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003BE1C);
 #endif
 
-// gl_func_0003C43C — STRUCTURAL PASS (0x3D8 / 246 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION — exactly
-// ONE 27BDFF20 prologue (large 0xE0 FP frame, saves f20); the two
-// jr's are an early-out return and the main return (not a bundle).
-// A large geometry QUERY + result-process node.
-//
-//   ? gl_func_0003C43C(O *o, R *r, float s, A *a3) {
-//     int req[..];                                // sp+0x10..0x1C
-//     req[0]=r->w_0; req[1]=r->w_4; req[2]=r->w_8;
-//     Vec3 outA, outB;                            // sp+0xA0 / sp+0xC0
-//     int n = callback(o, 8, &outB, &outA, req);  // jal 0 (USO cb)
-//     float lim = *(float*)(&D_0 + 0x1AB8);       // FP literal pool
-//     if (n <= 0) return ...;                      // empty result
-//     a3->h_14 = (short)n;                          // store count
-//     if (n & 1) { ... }                            // parity branch
-//     // clamp/abs the result vs lim, process the n entries ...
-//   }
-//
-// Struct-typing reference: a geometry/collision QUERY wrapper. It
-//   marshals a request block from the second argument's fields
-//   (r->0x00 / 0x04 / 0x08) onto the stack, hands it plus two
-//   output-buffer pointers (sp+0xA0, sp+0xC0) and a fixed count of
-//   8 to a USO-relocated callback (jal 0 → resolved at load — the
-//   actual query/intersection routine), then post-processes the
-//   returned count: early-outs on n <= 0, stores the count as a
-//   halfword into a3->0x14, branches on the low bit (n & 1) and
-//   clamps/abs-compares results against an FP-literal-pool limit
-//   constant at &D_0+0x1AB8 (the recurring FP-pool fold of this
-//   segment — deferred symbolization per docs/N64_FORENSICS.md,
-//   same class as the &D_0+0x19F0 clamp table and &D_0+0x128
-//   coefficient pool). A spatial-query / visibility / collision
-//   node of the game_libs object subsystem (the higher-level
-//   consumer of the gl_func_0003B9C0 distance solver and the
-//   matrix/transform geometry leaves).
-// Caps (DEFERRED): 0x3D8 raw-word USO + USO-relocated jal-0 query
-//   callback + FP-literal-pool limit (&D_0+0x1AB8 unsymbolized) +
-//   multi-return result post-process; FP-pool/struct symbolization
-//   deferred. Real-C STRUCTURAL body below — query marshal + count
-//   store skeleton only. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
+// gl_func_0003C43C — PASS-2 hand re-derivation 2026-09-04 (agent-g): 12.0 -> 91.2
+// (target 0x368 / build 0x380; single clean function, one 27BDFF20 prologue).
+// Residual: 4 extra 4B scalar homes (frame 0xF0 vs 0xE0 -- every sp-relative
+// immediate shifts), lim's `mov.s f12,f2` ternary-temp copy (direct-to-f12 here;
+// `ad` temp folds away), dist[best] load not hoisted above the h10 store, and
+// f0/f14 pre-call zero coloring. Probed negative: inlining the row expression
+// (IXA or char* form) re-derives it per use with multu after each acc store
+// (row local is required); (float)0 for fzero remats the zero per region;
+// a named fzero local costs +8 frame with no codegen change (literal 0.0f is
+// the same single post-jal mtc1 web). Clip re-pinned 0x2c948->0x2cc04.
 #ifdef NON_MATCHING
 /* PASS-2 2026-09-04 (agent-g): full hand re-derivation from expected/ .o.
  * Nearest-hit picker: K&R query callback fills dist[8]/hits[8] (8 args:
