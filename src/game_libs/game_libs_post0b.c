@@ -3028,92 +3028,96 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000372D4);
 //   subsystem (companion of the gl_func_0003695C normalizer and the
 //   gl_func_0002F584 quantizer — the input-clamp stage feeding the
 //   geometry/command pipeline).
-// Caps: raw-word USO + FP abs/clamp + FP-literal-pool constants
-//   (&D_0+0x19F0/0x19F4 unsymbolized) — not exact-matchable without
-//   proper USO mnemonic disasm + FP-pool symbolization; structural
-//   pass only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
+// 2026-09-04 agent-g: 49.9 -> 93.1 (126/126 insns, frame 0x70 exact).
+//   Levers: (1) `o = FW(arg0,0x14)` escaped via `if (0) f(&o)` = target's
+//   top-slot home 0x6C with reload-after-every-store-through-o (not volatile:
+//   the 3 saved-loads + first store share ONE reload); (2) per-site FP pool
+//   array-extern aliases D_37348_19F0/19F4 = fresh `lui at; lwc1 K(at)` per
+//   site (a shared `&D+K` CSEs the base into a reg); (3) the six input-flag
+//   tests read a VOLATILE struct member (`Flg_37348.flags`, offset folds
+//   into lw 16(v0) — a `*(volatile int*)(p+0x10)` cast does NOT fold the
+//   lo16) = flag word reloaded per test while the `arg0->0x2C` pointer is
+//   still CSE'd across the beql; (4) one shared `ab` abs temp; (5) decl order
+//   o, k, lim (two promoted-scalar ghost homes 0x64/0x68), saved[3]@0x58,
+//   v2[3]@0x4C, v1[8]@0x2C (8-float first vector fills the 0x2C..0x4B gap),
+//   x/y/ab bottom scalars = every slot exact. Call = direct K&R
+//   `gl_func_00034458(o+0x30, vec, arg0)` (3 args, no cvt.d.s).
+// RESIDUAL: the o-reload web colors ugen t-temps (t7/t8/t9/a0..) vs the
+//   target's single v0 candidate (same t-vs-v0 residual as sibling 37540);
+//   post-call `mtc1 zero` f0 vs f2 (FP zero web) follows from it.
 #ifdef NON_MATCHING
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
-typedef char *(*GP_00037348)();
+typedef struct { s32 pad[4]; volatile s32 flags; } Flg_37348;
+extern f32 D_37348_19F0[], D_37348_19F4[];   /* FP literal pool &D_0+0x19F0: scale, deadzone (one alias per site = fresh lui at) */
 void gl_func_00037348(char *arg0) {
-    char *sp6C;
-    f32 sp60;
-    f32 sp5C;
-    f32 sp58;
-    f32 sp54;
-    f32 sp50;
-    f32 sp4C;
-    f32 sp34;
-    f32 sp30;
-    f32 sp2C;
-    f32 temp_f0;
-    f32 temp_f16;
-    f32 var_f0;
-    f32 var_f0_2;
-    f32 var_f12;
-    f32 var_f14;
-    char *temp_v0;
+    char *o = FW(arg0, 0x14);
+    f32 k;
+    f32 lim;
+    f32 saved[3];
+    f32 v2[3];
+    f32 v1[8];
+    f32 x;
+    f32 y;
+    f32 ab;
 
-    temp_f0 = (*(f32*)((char*)&D_00000000 + 0x19F0));
-    sp6C = FW(arg0, 0x14);
-    temp_v0 = FW(arg0, 0x2C);
-    var_f12 = (*(f32*)((char*)temp_v0 + 0x0)) * temp_f0;
-    var_f14 = (*(f32*)((char*)temp_v0 + 0x4)) * temp_f0;
-    if (var_f12 < 0.0f) {
-        var_f0 = -var_f12;
+    if (0) { gl_func_00034458(&o); }
+    k = D_37348_19F0[0x19F0 / 4];
+    x = *(f32 *)(FW(arg0, 0x2C) + 0x0) * k;
+    y = *(f32 *)(FW(arg0, 0x2C) + 0x4) * k;
+    if (x < 0.0f) {
+        ab = -x;
     } else {
-        var_f0 = var_f12;
+        ab = x;
     }
-    temp_f16 = (*(f32*)((char*)&D_00000000 + 0x19F4));
-    if (var_f0 < temp_f16) {
-        var_f12 = 0.0f;
+    lim = D_37348_19F4[0x19F4 / 4];
+    if (ab < lim) {
+        x = 0.0f;
     }
-    if (var_f14 < 0.0f) {
-        var_f0_2 = -var_f14;
+    if (y < 0.0f) {
+        ab = -y;
     } else {
-        var_f0_2 = var_f14;
+        ab = y;
     }
-    if (var_f0_2 < temp_f16) {
-        var_f14 = 0.0f;
+    if (ab < lim) {
+        y = 0.0f;
     }
-    sp58 = (*(f32*)((char*)sp6C + 0x60));
-    sp5C = (*(f32*)((char*)sp6C + 0x64));
-    sp60 = (*(f32*)((char*)sp6C + 0x68));
-    (*(f32*)((char*)sp6C + 0x60)) = 0.0f;
-    (*(f32*)((char*)sp6C + 0x64)) = 0.0f;
-    (*(f32*)((char*)sp6C + 0x68)) = 0.0f;
-    sp34 = 0.0f;
-    sp30 = var_f12;
-    sp2C = var_f14;
-    gl_func_00034458(var_f12, var_f14, sp6C + 0x30, &sp2C, arg0);
-    (*(f32*)((char*)sp6C + 0x60)) = sp58;
-    (*(f32*)((char*)sp6C + 0x64)) = sp5C;
-    (*(f32*)((char*)sp6C + 0x68)) = sp60;
-    sp54 = 0.0f;
-    sp50 = 0.0f;
-    sp4C = 0.0f;
-    if (FW(FW(arg0, 0x2C), 0x10) & 4) {
-        sp50 = 10.0f;
+    saved[0] = *(f32 *)(o + 0x60);
+    saved[1] = *(f32 *)(o + 0x64);
+    saved[2] = *(f32 *)(o + 0x68);
+    *(f32 *)(o + 0x60) = 0.0f;
+    *(f32 *)(o + 0x64) = 0.0f;
+    *(f32 *)(o + 0x68) = 0.0f;
+    v1[2] = 0.0f;
+    v1[1] = x;
+    v1[0] = y;
+    gl_func_00034458(o + 0x30, v1, arg0);
+    *(f32 *)(o + 0x60) = saved[0];
+    *(f32 *)(o + 0x64) = saved[1];
+    *(f32 *)(o + 0x68) = saved[2];
+    v2[2] = 0.0f;
+    v2[1] = 0.0f;
+    v2[0] = 0.0f;
+    if (((Flg_37348 *)FW(arg0, 0x2C))->flags & 4) {
+        v2[1] = 10.0f;
     }
-    if (FW(FW(arg0, 0x2C), 0x10) & 8) {
-        sp50 = -10.0f;
+    if (((Flg_37348 *)FW(arg0, 0x2C))->flags & 8) {
+        v2[1] = -10.0f;
     }
-    if (FW(FW(arg0, 0x2C), 0x10) & 1) {
-        sp4C = -10.0f;
+    if (((Flg_37348 *)FW(arg0, 0x2C))->flags & 1) {
+        v2[0] = -10.0f;
     }
-    if (FW(FW(arg0, 0x2C), 0x10) & 2) {
-        sp4C = 10.0f;
+    if (((Flg_37348 *)FW(arg0, 0x2C))->flags & 2) {
+        v2[0] = 10.0f;
     }
-    if (FW(FW(arg0, 0x2C), 0x10) & 0x40) {
-        sp54 = 10.0f;
+    if (((Flg_37348 *)FW(arg0, 0x2C))->flags & 0x40) {
+        v2[2] = 10.0f;
     }
-    if (FW(FW(arg0, 0x2C), 0x10) & 0x80) {
-        sp54 = -10.0f;
+    if (((Flg_37348 *)FW(arg0, 0x2C))->flags & 0x80) {
+        v2[2] = -10.0f;
     }
-    gl_func_00034458(sp6C + 0x30, &sp4C, arg0);
+    gl_func_00034458(o + 0x30, v2, arg0);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00037348);
