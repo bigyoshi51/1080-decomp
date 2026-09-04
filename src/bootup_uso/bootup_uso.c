@@ -3645,20 +3645,34 @@ extern char D_00007DB4;
 extern char D_00000000_a;
 extern char D_00000000_b;
 extern char D_00000000_c;
-void *func_00005124(int arg) {
+/* 2026-09-04 SHAPE FOUND (agent-f): the sp+0x2C/0x1C/0x4 arg chain is a
+ * STRUCT-BY-VALUE arg (4-byte Box) copied through two Box locals and passed
+ * by value to the init call (IDO homes the by-value a1 at 4(sp) in the jal
+ * delay); obj/o2 are memory-homed plain pointers. Standalone -O2: 44/44
+ * words, structure exact; residual = frame 0x38 vs 0x28 slot layout (target
+ * Box/ptr homes at 28/36/44/48 = 8-byte-strided, mine 24/28/32/36) + the
+ * a1-home / beqz-vs-move schedule. Next: find the 8-byte-stride local type
+ * (an 8-byte Box with a dead pad field copies 2 words; try aligned union /
+ * extra dead struct locals) then port to the 51D4/5284/5334/53E8 siblings. */
+typedef struct { int v; } Box5124;
+void *func_00005124(Box5124 arg) {
+    Box5124 b1;
+    Box5124 b2;
     char *obj;
+    char *o2;
     func_00000000(&D_00007DB4);
+    b1 = arg;
     obj = (char *)func_00000000(0x4C);
     if (obj != 0) {
-        if (obj == 0) {
-            obj = (char *)func_00000000(0x48);
+        b2 = b1;
+        o2 = obj;
+        if (o2 == 0) { o2 = (char *)func_00000000(0x48); }
+        if (o2 != 0) {
+            func_00000000(o2, b2, 0);
+            *(char **)(o2 + 0x28) = &D_00000000_a;
         }
-        if (obj != 0) {
-            func_00000000(obj, arg, 0);
-            *(int *)(obj + 0x28) = (int)&D_00000000_a;
-        }
-        *(int *)(obj + 0x28) = (int)&D_00000000_b;
-        *(int *)(obj + 0x48) = (int)&D_00000000_c;
+        *(char **)(obj + 0x28) = &D_00000000_b;
+        *(char **)(obj + 0x48) = &D_00000000_c;
     }
     return obj;
 }
@@ -3690,17 +3704,23 @@ extern char D_00007DC4;
 extern char D_00000000_a;
 extern char D_00000000_b;
 extern char D_00000000_c;
-void *func_000051D4(int arg) {
+/* 2026-09-04: struct-by-value shape ported from func_00005124 (see its note). */
+typedef struct { int v; } Box51D4;
+void *func_000051D4(Box51D4 arg) {
+    Box51D4 b1;
+    Box51D4 b2;
     char *obj;
+    char *o2;
     func_00000000(&D_00007DC4);
+    b1 = arg;
     obj = (char *)func_00000000(0x4C);
     if (obj != 0) {
-        if (obj == 0) {
-            obj = (char *)func_00000000(0x48);
-        }
-        if (obj != 0) {
-            func_00000000(obj, arg, 0);
-            *(int *)(obj + 0x28) = (int)&D_00000000_a;
+        b2 = b1;
+        o2 = obj;
+        if (o2 == 0) { o2 = (char *)func_00000000(0x48); }
+        if (o2 != 0) {
+            func_00000000(o2, b2, 0);
+            *(char **)(o2 + 0x28) = &D_00000000_a;
         }
         *(int *)(obj + 0x28) = (int)&D_00000000_b;
         *(int *)(obj + 0x48) = (int)&D_00000000_c;
