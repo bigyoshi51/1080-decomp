@@ -6718,6 +6718,27 @@ extern f32 DF_310;
 extern f32 DF_314;
 extern f32 DF_318;
 extern f32 DF_320;
+/* 2026-09-04 (agent-h) TRIAGE 78.17->78.21 (1559/1624 insns, frame -368 vs -352):
+ * per-site aliases f8fc8_e304_1..4 for the 4 D_807FE304+0xA94 vtable stores (the
+ * shared symbol was GCSE'd into an s2 web: lui s2/addiu s2,2708 hoisted + reloaded
+ * around the child allocs; target = per-site lui tN/addiu tN). Histogram/segment
+ * triage for the next pass: target uses ONLY s0/s1/s2 (+f20) — s2 = self (move
+ * s2,a0 at insn 2, prologue `sw s2; move s2,a0; sw ra; sw s1; sw s0; sdc1 f20`),
+ * s0/s1 = serial child temps; build burns s3=child/s4=self and colors s1/s2 for
+ * (a) the three savedbit `& 0x80000` webs (target spills them: sw t7,192(sp)),
+ * (b) `li s2,-5`/`li s1,-5` = the loop-invariant `& ~4` mask hoisted out of the
+ * two 1-iteration do-while loops (target: `li at,-5` inline per site), (c)
+ * `lui s0,0x443b` = the int 0x443B8000 4th arg hoisted across 3 jalr sites
+ * (target: `lui a3,0x443b` per site), (d) vtable temps `lw s1,40(vN)` match.
+ * f20 in the target is ONE function-scope FP zero candidate (`mtc1 zero,$f20`
+ * once at insn 124, then `mfc1 a2/a3,$f20`, `swc1 $f20,..` at every zero site
+ * incl. the jalr 4th arg `mfc1 a3,$f20` where the build passes int 0 =
+ * `move a3,zero` -> 4th param is f32, pass 0.0f; the build has the same f20 zero
+ * candidate for the 0546DC arg triples). The flag RMW is a
+ * single unfolded and/and/and/ori/and chain on v0 with one lw + one `lui at; sw`
+ * (kit II #4 block-scope int x). The `if (8 > 0)` / `if (1 > 0)` m2c loop guards
+ * and the `pat = &EE6C + 4; *pat = iv` join-store are m2c artifacts to rewrite. */
+extern char f8fc8_e304_1[], f8fc8_e304_2[], f8fc8_e304_3[], f8fc8_e304_4[];
 void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
     VecH sp154;
     VecH sp148;
@@ -6937,7 +6958,7 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                 spE0 = pv1;
                 timproc_uso_b5_func_04C678(ps1, timproc_uso_b5_D_807FEC90 + 0x1420);
                 pw1 = pv1;
-                M2C_FIELD(ps1, s8 **, 0x28) = (s8 *) (timproc_uso_b5_D_807FE304 + 0xA94);
+                M2C_FIELD(ps1, s8 **, 0x28) = (s8 *) (f8fc8_e304_1 + 0xA94);
             }
             M2C_FIELD(pv0, s8 **, 0x28) = (s8 *) (timproc_uso_b5_D_807FEC98 + 0xB04);
             M2C_FIELD(pv0, s8 **, 0xC) = (s8 *) (timproc_uso_b5_D_807FEC98 + 0x1428);
@@ -6963,7 +6984,7 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                 spE0 = pv1;
                 timproc_uso_b5_func_04C678(ps1, timproc_uso_b5_D_807FECA8 + 0x1438);
                 pw1 = pv1;
-                M2C_FIELD(ps1, s8 **, 0x28) = (s8 *) (timproc_uso_b5_D_807FE304 + 0xA94);
+                M2C_FIELD(ps1, s8 **, 0x28) = (s8 *) (f8fc8_e304_2 + 0xA94);
             }
             M2C_FIELD(pv0, s8 **, 0x28) = (s8 *) (timproc_uso_b5_D_807FECB0 + 0xB74);
             M2C_FIELD(pv0, s8 **, 0xC) = (s8 *) (timproc_uso_b5_D_807FECB0 + 0x1440);
@@ -6989,7 +7010,7 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                 spE0 = pv1;
                 timproc_uso_b5_func_04C678(ps1, timproc_uso_b5_D_807FECBC + 0x144C);
                 pw1 = pv1;
-                M2C_FIELD(ps1, s8 **, 0x28) = (s8 *) (timproc_uso_b5_D_807FE304 + 0xA94);
+                M2C_FIELD(ps1, s8 **, 0x28) = (s8 *) (f8fc8_e304_3 + 0xA94);
             }
             M2C_FIELD(pv0, s8 **, 0x28) = (s8 *) (timproc_uso_b5_D_807FECC4 + 0xBE4);
             M2C_FIELD(pv0, s8 **, 0xC) = (s8 *) (timproc_uso_b5_D_807FECC4 + 0x1454);
@@ -7015,7 +7036,7 @@ void **timproc_uso_b5_func_00008FC8(void **arg0, int *arg1, int *arg2) {
                 spE0 = pv1;
                 timproc_uso_b5_func_04C678(ps1, timproc_uso_b5_D_807FECD0 + 0x1460);
                 pw1 = pv1;
-                M2C_FIELD(ps1, s8 **, 0x28) = (s8 *) (timproc_uso_b5_D_807FE304 + 0xA94);
+                M2C_FIELD(ps1, s8 **, 0x28) = (s8 *) (f8fc8_e304_4 + 0xA94);
             }
             M2C_FIELD(pv0, s8 **, 0x28) = (s8 *) (timproc_uso_b5_D_807FECD8 + 0xC54);
             M2C_FIELD(pv0, s8 **, 0xC) = (s8 *) (timproc_uso_b5_D_807FECD8 + 0x1468);
