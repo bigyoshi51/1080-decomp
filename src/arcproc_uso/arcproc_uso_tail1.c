@@ -1679,91 +1679,84 @@ void arcproc_uso_func_00002504(void) {}
 void arcproc_uso_func_0000250C(void) {}
 void arcproc_uso_func_00002514(void) {}
 
-/* arcproc_uso_func_0000251C - verified structural decode; SIBLING of the
- * alloc-cascade ctor family (arcproc_uso_func_0000199C /
- * timproc_uso_b1_func_000016F8) + 24F4-style registration tail.
- * Documented alloc-cascade dead-check + registration sub-80 ceiling ->
- * INCLUDE_ASM build path; struct-typing reference.
- *   s0 = a0 ? a0 : gl_func_00000000(84);   if (!s0) return s0;
- *   p2 = gl_func_00000000(80);   if (!p2) goto init;
- *   p3 = gl_func_00000000(44);   if (!p3) goto init2;
- *   gl_func_00000000(p3, &D+1160);  p3->0x28 = &D;
- * init2: p2->0x28 = &D;  init: s0->0x28 = &D;
- *   s0->0xC = &D+1168;
- *   // 24F4-style registration sequence:
- *   gl_func_00000000(&D+16,  0x280000);
- *   gl_func_00000000(&D+40,  0x280001);
- *   ... (more gl_func_00000000(&D+OFF, 0x28xxxx | k) registrations) ...
- * Struct-typing: cross-confirms the alloc-cascade ctor family - object
- * sizes 84/80/44, every sub-object ptr @0x28 = &D_00000000, main
- * s0->0xC = &D+0x490 (1168) descriptor; tail registers slots into &D
- * data regions via the 0x28-prefixed packed args (same shape as
- * timproc_uso_b1_func_000024F4). Caps <80: defensive `if(p!=0)`
- * alloc-cascade dead checks + per-call spill + &D %hi/%lo reloc
- * scheduling. Full per-slot args INCLUDE_ASM-preserved (.s = source of
- * truth). INCLUDE_ASM (no episode; tautology-trap rule). */
-#ifdef NON_MATCHING
-char *arcproc_uso_func_0000251C(char *a0) {
-    char *s0;
-    char *p2;
-    char *p3;
-    s0 = a0 ? a0 : (char *)gl_func_00000000(84);
-    if (!s0) return s0;
-    p2 = (char *)gl_func_00000000(80);
-    if (p2) {
-        p3 = (char *)gl_func_00000000(44);
-        if (p3) {
-            gl_func_00000000(p3, (char *)&D_00000000 + 1160);
-            *(char **)(p3 + 0x28) = &D_00000000;
+/* arcproc_uso_func_0000251C — EXACT (168/168 words, frame -64, ROM
+ * byte-identical, 2026-09-04). 3-level alloc-cascade constructor
+ * (84/80/44) in the 199C short-circuit head form
+ * `(x != 0) || (x = alloc(N), x != 0)`, then a 4-slot registration tail
+ * (&reg+16/40/64/88 with 0x28000k packed ids), 4 packed-id calls
+ * ((id+3)<<16 | k), 6-arg create, vtable dispatch and two linked-set
+ * finalizers. Levers beyond the 199C head: (1) ONE `a3` web for the
+ * level-2 pointer, the vtable ptr AND both registration nodes — target
+ * shares home 0x3C(sp) across all three roles (separate `node` var
+ * split it to 0x34 and re-colored level-2 to v1); (2) `if (1) {}`
+ * barrier before the dispatch-base load colors it into dead $v0 (same
+ * lever as timproc 2A8C); (3) unused `volatile int pad` = the +8 frame
+ * (0x38 -> 0x40) with zero insns, which also lifts the arg0+16 spill
+ * from 0x28 to 0x2C. Previous 73.1 body used a non-equivalent
+ * `if (p2) { if (p3) ... }` cascade (dead skip arms shape the codegen). */
+extern char D_arc251C_a[];  /* level-3 init-call a1 base (&sym+0x488) */
+extern char D_arc251C_b[];  /* a0->0x28 (level-3) */
+extern char D_arc251C_c[];  /* a3->0x28 (level-2) */
+extern char D_arc251C_d[];  /* s0->0x28 (level-1) */
+extern char D_arc251C_e[];  /* s0->0xC (&sym+0x490) */
+extern char D_arc251C_reg[];/* registration slot base */
+extern int D_arc251C_id;    /* packed-id read */
+extern char D_arc251C_f[];  /* packed-id call a3 */
+extern char D_arc251C_g[];  /* 6-arg call a1 */
+extern char D_arc251C_h[];  /* *(&sym+400) linked-set parent */
+char *arcproc_uso_func_0000251C(char *arg0) {
+    char *a3;   /* level-2 (80) + vt + registration node (shared home) */
+    char *a0;   /* level-3 (44) */
+    char *v0;   /* dispatch base */
+    volatile int pad;
+
+    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(84), (arg0 != 0))) {
+        a3 = arg0;
+        if ((arg0 != 0) || (a3 = (char *)gl_func_00000000(80), (a3 != 0))) {
+            a0 = a3;
+            if ((a3 != 0) || (a0 = (char *)gl_func_00000000(44), (a0 != 0))) {
+                gl_func_00000000(a0, D_arc251C_a + 0x488); *(char **)(a0 + 0x28) = D_arc251C_b;
+            }
+            *(char **)(a3 + 0x28) = D_arc251C_c;
         }
-        *(char **)(p2 + 0x28) = &D_00000000;
-    }
-    *(char **)(s0 + 0x28) = &D_00000000;
-    *(char **)(s0 + 0xC) = (char *)&D_00000000 + 1168;
-    gl_func_00000000((char *)&D_00000000 + 16, 0x280000);
-    gl_func_00000000((char *)&D_00000000 + 40, 0x280001);
-    gl_func_00000000((char *)&D_00000000 + 64, 0x280002);
-    gl_func_00000000((char *)&D_00000000 + 88, 0x280003);
-    *(int *)(s0 + 72) = gl_func_00000000(0);
-    gl_func_00000000(*(int *)(s0 + 72), s0);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 1, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 3, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 2, -1, &D_00000000);
-    gl_func_00000000(*(int *)(s0 + 72), ((*(int *)&D_00000000 + 3) << 16) | 5, -1, &D_00000000);
-    *(int *)(*(int *)(s0 + 72) + 48) =
-        gl_func_00000000(0, &D_00000000, 72, 221, 3, 13);
-    gl_func_00000000(*(int *)(s0 + 72));
-    gl_func_00000000(*(int *)(s0 + 72), 120);
-    {
-        char *v0 = *(char **)(s0 + 72);
-        char *vt = *(char **)(v0 + 40);
-        ((void (*)(int))(*(int *)(vt + 0x5C)))(*(short *)(vt + 0x58) + (int)v0);
-    }
-    {
-        char *a3 = *(char **)(s0 + 72);
-        gl_func_00000000(s0 + 16, a3);
+        *(char **)(arg0 + 0x28) = D_arc251C_d;
+        *(char **)(arg0 + 0xC) = D_arc251C_e + 0x490;
+        gl_func_00000000(D_arc251C_reg + 16, 0x280000);
+        gl_func_00000000(D_arc251C_reg + 40, 0x280001);
+        gl_func_00000000(D_arc251C_reg + 64, 0x280002);
+        gl_func_00000000(D_arc251C_reg + 88, 0x280003);
+        *(int *)(arg0 + 72) = gl_func_00000000(0);
+        gl_func_00000000(*(int *)(arg0 + 72), arg0);
+        gl_func_00000000(*(int *)(arg0 + 72), ((D_arc251C_id + 3) << 16) | 1, -1, D_arc251C_f);
+        gl_func_00000000(*(int *)(arg0 + 72), ((D_arc251C_id + 3) << 16) | 3, -1, D_arc251C_f);
+        gl_func_00000000(*(int *)(arg0 + 72), ((D_arc251C_id + 3) << 16) | 2, -1, D_arc251C_f);
+        gl_func_00000000(*(int *)(arg0 + 72), ((D_arc251C_id + 3) << 16) | 5, -1, D_arc251C_f);
+        *(int *)(*(int *)(arg0 + 72) + 48) = gl_func_00000000(0, D_arc251C_g, 72, 221, 3, 13);
+        gl_func_00000000(*(int *)(arg0 + 72));
+        gl_func_00000000(*(int *)(arg0 + 72), 120);
+        if (1) {}
+        v0 = *(char **)(arg0 + 72);
+        a3 = *(char **)(v0 + 40);
+        ((void (*)(int))(*(int *)(a3 + 0x5C)))(*(short *)(a3 + 0x58) + (int)v0);
+        a3 = *(char **)(arg0 + 72);
+        gl_func_00000000(arg0 + 16, a3);
         if (*(int *)(a3 + 0x14) != 0) {
             *(int *)(a3 + 0x4) = 1;
         }
-        *(int *)(a3 + 0x14) = (int)s0;
-    }
-    {
-        char *a3 = *(char **)((char *)&D_00000000 + 400);
-        gl_func_00000000(s0 + 16, a3);
+        *(int *)(a3 + 0x14) = (int)arg0;
+        a3 = *(char **)(D_arc251C_h + 400);
+        gl_func_00000000(arg0 + 16, a3);
         if (*(int *)(a3 + 0x14) != 0) {
             *(int *)(a3 + 0x4) = 1;
         }
-        *(int *)(a3 + 0x14) = (int)s0;
+        *(int *)(a3 + 0x14) = (int)arg0;
+        gl_func_00000000(*(int *)(D_arc251C_h + 400), 1, 0);
+        *(int *)(arg0 + 80) = 0;
+        *(int *)(arg0 + 48) = 1;
+        *(int *)(arg0 + 44) = 0;
     }
-    gl_func_00000000(*(int *)((char *)&D_00000000 + 400), 1, 0);
-    *(int *)(s0 + 80) = 0;
-    *(int *)(s0 + 48) = 1;
-    *(int *)(s0 + 44) = 0;
-    return s0;
+    return arg0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_0000251C);
-#endif
 
 /* arcproc_uso_func_000027BC: 42-insn string-match + vtable-dispatch.
  *

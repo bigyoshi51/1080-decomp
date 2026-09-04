@@ -1,0 +1,33 @@
+{
+  "function_name": "arcproc_uso_func_0000251C",
+  "project": "projects/1080-agent-h",
+  "model": "claude-manual",
+  "start_time": "2026-09-04T12:39:03.376022+00:00",
+  "end_time": "2026-09-04T12:39:03.376048+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-04T12:39:03.376040+00:00",
+      "assistant_text": "3-level alloc-cascade ctor (84/80/44) in the 199C short-circuit head form; ONE a3 web shared by level-2 ptr + vtable ptr + both registration nodes (target overlays all three on home 0x3C); if(1){} barrier before dispatch-base load colors it into dead v0; unused volatile int pad supplies the +8 frame (0x38->0x40) and lifts the arg0+16 spill to 0x2C. Predecessor's frame -72 reading came from disassembling the NM build; raw words say -64.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 168,
+  "initial_m2c_source": null,
+  "final_source": "extern char D_arc251C_a[];  /* level-3 init-call a1 base (&sym+0x488) */\nextern char D_arc251C_b[];  /* a0->0x28 (level-3) */\nextern char D_arc251C_c[];  /* a3->0x28 (level-2) */\nextern char D_arc251C_d[];  /* s0->0x28 (level-1) */\nextern char D_arc251C_e[];  /* s0->0xC (&sym+0x490) */\nextern char D_arc251C_reg[];/* registration slot base */\nextern int D_arc251C_id;    /* packed-id read */\nextern char D_arc251C_f[];  /* packed-id call a3 */\nextern char D_arc251C_g[];  /* 6-arg call a1 */\nextern char D_arc251C_h[];  /* *(&sym+400) linked-set parent */\nchar *arcproc_uso_func_0000251C(char *arg0) {\n    char *a3;   /* level-2 (80) + vt + registration node (shared home) */\n    char *a0;   /* level-3 (44) */\n    char *v0;   /* dispatch base */\n    volatile int pad;\n\n    if ((arg0 != 0) || (arg0 = (char *)gl_func_00000000(84), (arg0 != 0))) {\n        a3 = arg0;\n        if ((arg0 != 0) || (a3 = (char *)gl_func_00000000(80), (a3 != 0))) {\n            a0 = a3;\n            if ((a3 != 0) || (a0 = (char *)gl_func_00000000(44), (a0 != 0))) {\n                gl_func_00000000(a0, D_arc251C_a + 0x488); *(char **)(a0 + 0x28) = D_arc251C_b;\n            }\n            *(char **)(a3 + 0x28) = D_arc251C_c;\n        }\n        *(char **)(arg0 + 0x28) = D_arc251C_d;\n        *(char **)(arg0 + 0xC) = D_arc251C_e + 0x490;\n        gl_func_00000000(D_arc251C_reg + 16, 0x280000);\n        gl_func_00000000(D_arc251C_reg + 40, 0x280001);\n        gl_func_00000000(D_arc251C_reg + 64, 0x280002);\n        gl_func_00000000(D_arc251C_reg + 88, 0x280003);\n        *(int *)(arg0 + 72) = gl_func_00000000(0);\n        gl_func_00000000(*(int *)(arg0 + 72), arg0);\n        gl_func_00000000(*(int *)(arg0 + 72), ((D_arc251C_id + 3) << 16) | 1, -1, D_arc251C_f);\n        gl_func_00000000(*(int *)(arg0 + 72), ((D_arc251C_id + 3) << 16) | 3, -1, D_arc251C_f);\n        gl_func_00000000(*(int *)(arg0 + 72), ((D_arc251C_id + 3) << 16) | 2, -1, D_arc251C_f);\n        gl_func_00000000(*(int *)(arg0 + 72), ((D_arc251C_id + 3) << 16) | 5, -1, D_arc251C_f);\n        *(int *)(*(int *)(arg0 + 72) + 48) = gl_func_00000000(0, D_arc251C_g, 72, 221, 3, 13);\n        gl_func_00000000(*(int *)(arg0 + 72));\n        gl_func_00000000(*(int *)(arg0 + 72), 120);\n        if (1) {}\n        v0 = *(char **)(arg0 + 72);\n        a3 = *(char **)(v0 + 40);\n        ((void (*)(int))(*(int *)(a3 + 0x5C)))(*(short *)(a3 + 0x58) + (int)v0);\n        a3 = *(char **)(arg0 + 72);\n        gl_func_00000000(arg0 + 16, a3);\n        if (*(int *)(a3 + 0x14) != 0) {\n            *(int *)(a3 + 0x4) = 1;\n        }\n        *(int *)(a3 + 0x14) = (int)arg0;\n        a3 = *(char **)(D_arc251C_h + 400);\n        gl_func_00000000(arg0 + 16, a3);\n        if (*(int *)(a3 + 0x14) != 0) {\n            *(int *)(a3 + 0x4) = 1;\n        }\n        *(int *)(a3 + 0x14) = (int)arg0;\n        gl_func_00000000(*(int *)(D_arc251C_h + 400), 1, 0);\n        *(int *)(arg0 + 80) = 0;\n        *(int *)(arg0 + 48) = 1;\n        *(int *)(arg0 + 44) = 0;\n    }\n    return arg0;\n}\n",
+  "metadata": {
+    "source_path": "src/arcproc_uso/arcproc_uso_tail1.c",
+    "asm_path": "projects/1080-agent-h/asm/nonmatchings/arcproc_uso/arcproc_uso/arcproc_uso_func_0000251C.s",
+    "segment": "arcproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 (asm-processor)",
+    "verification": "168/168 words byte-exact vs expected .o in matching build path + make ROM byte-identical (cmp clean); frame -64 exact"
+  }
+}
