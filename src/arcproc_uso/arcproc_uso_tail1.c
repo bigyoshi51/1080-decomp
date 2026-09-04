@@ -1032,7 +1032,20 @@ void arcproc_uso_func_00001604(int *s0) {
  * keeps them live across the loop (closer to the target's s-reg residency).
  * Did NOT force the 9th saved reg (s8): base still colors 8 (s0-s7) vs target's
  * 9 (s0-s8, arg1 in s8) -- the extra region pointer stays spilled. That last
- * s8-vs-spill coloring tie is the residual frame/coloring cap. Stays NM. */
+ * s8-vs-spill coloring tie is the residual frame/coloring cap. Stays NM.
+ *
+ * 2026-09-04 (agent-h, 15-min time-box, all NEGATIVE, 8 s-regs / frame -312
+ * unchanged): register temp_v0; register temp_s1/temp_s2; all three
+ * register; temp_v0 declared first; if(1){} barrier before the temp_v0
+ * call; if(1){} barrier before the final two region-draw calls;
+ * `while (var_s1 < bound)` (+1 insn, worse); hoisted `bound = temp_v0*13`
+ * local (+0.35pp = sp-slot shuffle only, still spills temp_v0 to a t-reg
+ * home across the temp_s0 draw call instead of holding it in s3). The
+ * target's 9th s-reg comes from uopt SPLITTING the region-pointer webs
+ * (s1/s2 held through four calls, stored 0x64/0x60 in a jal delay, reloaded
+ * at the tail) so that temp_v0 (s3), arg2 (s4) and arg1 (s8) all stay in
+ * s-regs; IDO here spills the region pointers at birth and temp_v0 across
+ * one call instead. No C spelling found that flips the split decision. */
 #ifdef NON_MATCHING
 
 
