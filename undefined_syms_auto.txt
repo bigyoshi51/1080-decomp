@@ -3386,3 +3386,5 @@ D_b5_4118_s31 = 0x00000000;  /* per-site vtable-address alias (timproc_uso_b5_fu
 timproc_uso_b5_alias_pf1 = 0x00000000;  /* (int,float) typed alias: lui a1,0x3f00 per site (timproc_uso_b5_func_00004118) */
 timproc_uso_b5_alias_pf2 = 0x00000000;  /* (int,float) typed alias: lui a1,0x3f00 per site (timproc_uso_b5_func_00004118) */
 timproc_uso_b5_alias_pf3 = 0x00000000;  /* (int,float) typed alias: lui a1,0x3f00 per site (timproc_uso_b5_func_00004118) */
+D_4F85C_a = 0x00000000;  /* gl_func_0004F85C sub2 vtable alias of D_00000000 (per-site, defeats &D CSE) */
+D_4F85C_b = 0x00000000;  /* gl_func_0004F85C sub vtable alias of D_00000000 */

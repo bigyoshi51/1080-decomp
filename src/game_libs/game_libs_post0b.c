@@ -22175,31 +22175,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F704);
 //   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
 //   extern reuse.
 #ifdef NON_MATCHING
-extern int D_00000000;
-char *gl_func_0004F85C(char *a0, char *a1, char *a2, char *a3) {
-    char *o0 = a0;
-    char *o1 = a2;
-    char *o2 = a3;
-    if (o0 == 0) {
-        o0 = (char *)gl_func_00000000(0x90);
-        if (!o0) return 0;
+/* Real-C decode (2026-09-04 agent-g): inline-expanded 3-deep base-ctor
+ * chain on ONE object (each level re-tests the same pointer: `s = self`,
+ * `s2 = s` — the or-copies in the bne delays — with its own sizeof
+ * 0x90/0x90/0x60 alloc fallback). Each level's alloc failure falls through
+ * to the OUTER level's tail (no early return). a2/a3 are NOT params (the old
+ * body's sub/sub2 args + cross-link stores were invented); self is a
+ * reassigned param homed at its arg slot. Innermost level installs vtable
+ * &D_a, owns member sub-objects at +0x34 (8B zeroed pair) and +0x58 (4B
+ * zeroed) and gets a post-init call; middle level installs &D_b; outer
+ * inits the 0x1C/0x20/0x22/0x24 fields from spec (halfwords via lw+sh). */
+extern int D_4F85C_a;
+extern int D_4F85C_b;
+char *gl_func_0004F85C(char *self, char *spec) {
+    char *s;
+    char *s2;
+    char *m;
+
+    if (self != 0 || (self = (char *)gl_func_00034458(0x90)) != 0) {
+        if ((s = self) != 0 || (s = (char *)gl_func_00034458(0x90)) != 0) {
+            if ((s2 = s) != 0 || (s2 = (char *)gl_func_00034458(0x60)) != 0) {
+                *(char **)(s2 + 0x5C) = (char *)&D_4F85C_a;
+                if ((m = s2 + 0x34) != 0 || (m = (char *)gl_func_00034458(8)) != 0) {
+                    *(int *)(m + 4) = 0;
+                    *(int *)(m + 0) = 0;
+                }
+                if ((m = s2 + 0x58) != 0 || (m = (char *)gl_func_00034458(4)) != 0) {
+                    *(int *)(m + 0) = 0;
+                }
+                gl_func_00034458(s2);
+            }
+            *(char **)(s + 0x5C) = (char *)&D_4F85C_b;
+        }
+        *(int *)(self + 0x24) = 0x110;
+        *(int *)(self + 0x1C) = *(int *)(spec + 0xF4);
+        *(short *)(self + 0x20) = *(int *)(spec + 0xB8);
+        *(short *)(self + 0x22) = *(int *)(spec + 0xBC);
     }
-    if (o1 == 0) {
-        o1 = (char *)gl_func_00000000(0x90);
-        if (!o1) return 0;
-    }
-    if (o2 == 0) {
-        o2 = (char *)gl_func_00000000(0x60);
-        if (!o2) return 0;
-    }
-    *(char **)(o1 + 0x5C) = (char *)&D_00000000;
-    *(char **)(o1 + 0x34) = o2;
-    *(char **)(o0 + 0x34) = o1;
-    *(int *)(o0 + 0x24) = 0x110;
-    *(int *)(o0 + 0x1C) = *(int *)(a1 + 0xF4);
-    *(short *)(o0 + 0x20) = *(short *)(a1 + 0xB8);
-    *(short *)(o0 + 0x22) = *(short *)(a1 + 0xBC);
-    return o0;
+    return self;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F85C);

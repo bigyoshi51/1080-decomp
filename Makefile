@@ -325,7 +325,10 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # (0x2d4a4 -> 0x2d504 2026-09-04 agent-g: 5CB68 51.6->100 (plane-from-3-points,
 # 5 Vec3 struct locals + pointer-homed v1/v2 + volatile pad arrays) grew the NM
 # body 0xF8 -> 0x15C (target size); 62F08 tail keeps 0x50 at 0x2d4b4.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2d504 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# (0x2d504 -> 0x2d544 2026-09-04 agent-g: 4F85C 51.1->100 (3-deep same-object
+# base-ctor chain) grew the NM body 0x110 -> 0x150 (target size); 62F08 tail
+# keeps 0x50 at 0x2d4f4.)
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2d544 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
