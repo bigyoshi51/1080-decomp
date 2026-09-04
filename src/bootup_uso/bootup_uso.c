@@ -3628,10 +3628,11 @@ int func_000050A0(int a0) {
  * names live only in the USO reloc sidecar, not recoverable from the .s
  * alone; (b) the redundant-goto + dead-0x48-arm written out so -g -O2
  * keeps it; (c) the obj->0x28 double-write (&D_x then &D_y) kept (no
- * dead-store elim under -g). Blocked on (a). INCLUDE_ASM remains build
- * path (no episode; tautology-trap rule). NM body below captures the
- * live behavior only — the provably-dead 0x48 arm and the double-write
- * dead-store survive only under -g and are not recreated here. */
+ * dead-store elim under -g).
+ * 2026-09-04 RETRACTED: MATCHED at plain -O2 (100, ROM byte-identical) —
+ * the "dead arm" is a get-or-create fallback on a memory-homed copy, the
+ * descriptor stores are base-0 placeholder externs (same bytes), see
+ * docs/IDO_CODEGEN.md#alloc-cascade-ctor-family-kit-5124. */
 extern char D_00007DB4;
 /* func_00005124 - alloc-cascade get-or-create constructor.
  * Reconstructed missing logic: the three descriptor stores
@@ -3681,7 +3682,7 @@ void *func_00005124(Box5124 arg) {
  * Struct-typing reference: identical to func_00005124 - object 0x4C
  * bytes, obj->0x28 (40) / obj->0x48 (72) descriptor/vtable ptrs (&D
  * runtime-patched). Caps <80: alloc-cascade + defensive-dead-check +
- * 3-4 reloc calls + 3x &D-store reloc. INCLUDE_ASM remains build path.
+ * 3-4 reloc calls + 3x &D-store reloc. MATCHED 2026-09-04 (100, ROM-exact; kit in docs/IDO_CODEGEN.md#alloc-cascade-ctor-family-kit-5124).
  * NM body captures live behavior only — dead-arm artifacts not
  * recreated (same convention as func_00005124). */
 extern char D_00007DC4;
@@ -3736,7 +3737,7 @@ void *func_000051D4(Box51D4 arg) {
  * bytes, obj->0x28 (40) / obj->0x48 (72) descriptor ptrs (&D runtime-
  * patched). D_00007DD4 = named init datum (family: D_00007DB4/DC4/DD4
  * at +0x10 stride). Caps <80: alloc-cascade + defensive-dead-check +
- * 3-4 reloc calls + 3x &D-store reloc. INCLUDE_ASM remains build path.
+ * 3-4 reloc calls + 3x &D-store reloc. MATCHED 2026-09-04 (100, ROM-exact; kit in docs/IDO_CODEGEN.md#alloc-cascade-ctor-family-kit-5124).
  * NM body captures live behavior only — dead-arm artifacts not
  * recreated. */
 extern char D_00007DD4;
@@ -3788,7 +3789,7 @@ void *func_00005284(Box5284 arg) {
  * Struct-typing reference: object = 0x50 bytes (this variant);
  * obj->0x28 (40) / obj->0x48 (72) descriptor ptrs (&D runtime-
  * patched). Caps <80: alloc-cascade + defensive-dead-check + 3-4
- * reloc + 3x &D-store reloc. INCLUDE_ASM remains build path. NM body
+ * reloc + 3x &D-store reloc. MATCHED 2026-09-04 (100, ROM-exact; kit in docs/IDO_CODEGEN.md#alloc-cascade-ctor-family-kit-5124). NM body
  * captures live behavior only — dead-arm artifacts not recreated. */
 extern char D_00007DE8;
 /* func_00005334 - alloc-cascade get-or-create constructor (0x50 variant).
@@ -3842,7 +3843,7 @@ void *func_00005334(Box5334 arg) {
  * obj->0x48 (72) descriptor ptrs (&D runtime-patched); D_00007DFC =
  * named init datum (family data run D_00007DB4/DC4/DD4/DE8/DFC).
  * Caps <80: alloc-cascade + defensive-dead-check + 3-4 reloc calls +
- * &D-store reloc. INCLUDE_ASM remains build path. NM body captures
+ * &D-store reloc. MATCHED 2026-09-04 (100, ROM-exact; kit in docs/IDO_CODEGEN.md#alloc-cascade-ctor-family-kit-5124). NM body captures
  * live behavior only — dead-arm artifacts not recreated. */
 extern char D_00007DFC;
 /* func_000053E8 - alloc-cascade get-or-create constructor.
