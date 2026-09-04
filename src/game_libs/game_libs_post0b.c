@@ -30776,44 +30776,42 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CAEC);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CB5C);
 
 #ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_0005CB68)();
-typedef struct { f32 unk0,unk4,unk8,unkC,unk10,unk14,unk18,unk1C; } Q_0005CB68;
-void gl_func_0005CB68(char *arg0, char *arg1, char *arg2, char *arg3) {
-    Q_0005CB68 sp24;
-    Q_0005CB68 sp38;
-    Q_0005CB68 sp4C;
-    f32 sp7C;
-    f32 sp78;
-    f32 sp74;
-    f32 sp70;
-    f32 sp6C;
-    f32 sp68;
-    f32 temp_f18;
+/* gl_func_0005CB68: plane from 3 points. out[0..2] = normalize(cross(b-a, c-a))
+ * (normalize = USO-relocated jal 0, spelled gl_func_00034458), out[3] = dot(n, a).
+ * Vec3 struct locals stay memory-homed (IDO never registerizes aggregates):
+ * v1@0x74 v2@0x68, cross result n@0x38, then two whole-struct copies
+ * n->t1@0x4C->t2@0x24 (int lw/sw) and a memberwise float store-out. */
+typedef struct { f32 x, y, z; } Vec3_5CB68;
+typedef struct { Vec3_5CB68 n; f32 d; } Plane_5CB68;
+void gl_func_0005CB68(Plane_5CB68 *pl, Vec3_5CB68 *a, Vec3_5CB68 *b, Vec3_5CB68 *c) {
+    Vec3_5CB68 v1;
+    Vec3_5CB68 v2;
+    volatile char pad0[16];
+    Vec3_5CB68 t1;
+    volatile char pad1[8];
+    Vec3_5CB68 n;
+    volatile char pad2[8];
+    Vec3_5CB68 t2;
+    volatile char pad3[4];
+    Vec3_5CB68 *p1 = &v1;
+    Vec3_5CB68 *p2 = &v2;
 
-    sp74 = (*(f32*)((char*)arg2 + 0x0)) - (*(f32*)((char*)arg1 + 0x0));
-    sp78 = (*(f32*)((char*)arg2 + 0x4)) - (*(f32*)((char*)arg1 + 0x4));
-    sp7C = (*(f32*)((char*)arg2 + 0x8)) - (*(f32*)((char*)arg1 + 0x8));
-    temp_f18 = (*(f32*)((char*)arg3 + 0x0)) - (*(f32*)((char*)arg1 + 0x0));
-    sp68 = temp_f18;
-    sp6C = (*(f32*)((char*)arg3 + 0x4)) - (*(f32*)((char*)arg1 + 0x4));
-    sp70 = (*(f32*)((char*)arg3 + 0x8)) - (*(f32*)((char*)arg1 + 0x8));
-    sp38.unk0 = (sp78 * sp70) - (sp7C * sp6C);
-    sp38.unk4 = (sp7C * temp_f18) - (sp74 * sp70);
-    sp38.unk8 = (sp74 * sp6C) - (sp78 * temp_f18);
-    sp4C.unk0 = (f32) sp38.unk0;
-    sp4C.unk4 = sp38.unk4;
-    sp4C.unk8 = sp38.unk8;
-    sp24.unk0 = sp4C.unk0;
-    sp24.unk4 = sp4C.unk4;
-    sp24.unk8 = sp4C.unk8;
-    (*(f32*)((char*)arg0 + 0x0)) = sp24.unk0;
-    (*(f32*)((char*)arg0 + 0x4)) = sp24.unk4;
-    (*(f32*)((char*)arg0 + 0x8)) = sp24.unk8;
-    gl_func_00034458();
-    (*(f32*)((char*)arg0 + 0xC)) = (f32) (((*(f32*)((char*)arg0 + 0x0)) * (*(f32*)((char*)arg1 + 0x0))) + ((*(f32*)((char*)arg0 + 0x4)) * (*(f32*)((char*)arg1 + 0x4))) + ((*(f32*)((char*)arg0 + 0x8)) * (*(f32*)((char*)arg1 + 0x8))));
+    p1->x = b->x - a->x;
+    p1->y = b->y - a->y;
+    p1->z = b->z - a->z;
+    p2->x = c->x - a->x;
+    p2->y = c->y - a->y;
+    p2->z = c->z - a->z;
+    n.x = p1->y * p2->z - p1->z * p2->y;
+    n.y = p1->z * p2->x - p1->x * p2->z;
+    n.z = p1->x * p2->y - p1->y * p2->x;
+    t1 = n;
+    t2 = t1;
+    pl->n.x = t2.x;
+    pl->n.y = t2.y;
+    pl->n.z = t2.z;
+    gl_func_00034458(pl);
+    pl->d = pl->n.x * a->x + pl->n.y * a->y + pl->n.z * a->z;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005CB68);
