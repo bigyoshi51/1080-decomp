@@ -20394,66 +20394,98 @@ void game_libs_func_00031A64(void) {
     *(int*)((char*)&D_00000000 + 0x1CAA8) = -1;
 }
 
-// gl_func_00031A74 — STRUCTURAL PASS (0x304 / 193 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION — exactly
-// ONE prologue; the three jr $ra are multiple RETURN points (early
-// exits), NOT a multi-fn bundle (boundary-checked: no interior
-// prologue between the returns). A state-gated FP integrator.
-//
-//   void gl_func_00031A74(int a0, float v, signed char sel) {
-//     if (sel != 1) { ... alternate path / return ... }
-//     int st = *(int*)&D_0;                   // global state word
-//     if (st == 4)  { ... }
-//     else if (st == 0xB) { ... }
-//     else {
-//       float acc = G_fp_2CAC0;               // global accumulator
-//       float lim = *(float*)(&D_0 + 0x1968);
-//       if (acc > lim) acc = 0.0f;            // clamp / reset
-//       acc *= *(float*)(&D_0 + 0x196C);      // scale
-//       ... mix with v (f12) ...
-//       G_fp_2CAC0 = acc;                     // store back
-//     }
-//     if (*(int*)&D_0 == 0) { ... }           // state==0 branch
-//     ...                                     // (3 return points)
-//   }
-//
-// Struct-typing reference: a per-call FP state integrator gated on
-//   a signed-byte selector (only sel==1 runs the main body). It
-//   reads the global state word at &D_0 and, by state value
-//   {4 / 0xB / other}, advances a global float accumulator located
-//   in the USO data segment (referenced as -0x3540(0x0002....),
-//   i.e. a fixed data-segment FP global, addr ~0x0002CAC0),
-//   clamping it against the limit float &D_0+0x1968, scaling by
-//   &D_0+0x196C, and mixing in the float argument (f12). Has three
-//   return points (selector miss, state-specific early exits, and
-//   the main update fallthrough). A physics/value-ramp state node
-//   of the game_libs object subsystem (the global-accumulator
-//   counterpart to the per-object gl_func_0002F288 / 0002F584
-//   integrators; driven each frame by the gl_func_0002FB74
-//   interpreter through the &D_0 state word).
-// Caps (DEFERRED): raw-word USO + data-segment FP global (-0x3540
-//   base unsymbolized) + &D_0 state gate + multi-return — byte-
-//   match needs USO mnemonic disasm + data-seg FP global symbolized.
-//   Real-C STRUCTURAL body below per the analysis (top-level sel
-//   gate + state-arms sketch — full body's three return points
-//   summarised in the in-comment analysis above). Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// gl_func_00031A74 — full hand re-derivation from ground truth (2026-09-04
+// agent-g). Audio/ramp level driver: (mode, f32 v, s8 sel) prototyped (v in
+// a1 -> mtc1 f12; sel char-homed at 32(sp)+3).
+//   mode==1: st=G_st; if st not in {4,11}: acc=D+0x1CAC0; acc = (pool[1968]<acc)
+//     ? acc*pool[196C] : 0; store; cb(0x1000A00, acc); return.  st==4 && G2: return.
+//   if (G3!=4 && mode==3) return.  cur=D+0x1CAA8: if (mode!=cur) {cur=mode;
+//     cb(0x6000A00,(s8)mode)}.  mode==255: cb(0x6000A02,(s8)mode); return.
+//   sel += 63 (char); dv = v - pool[1970]; r = dv<0 ? 1 : (dv<tbl[mode] ?
+//     (tbl-dv)/tbl : 0); r *= pool[1974]; clamp r to [0,1]; clamp sel to
+//     [0,127]; D+0x1CAC0 = r; cb(0x1000A00, r); cb(0x3000A00, sel).
+// Levers: v reassigned in place (v -= pool) = f12 candidate w/ 28(sp) spill;
+//   per-site ACC aliases (fused lui at/lwc1 -13632); compound `*=` = dest-first
+//   mul operand order; inline D_st derefs = const-first beq; hoisted
+//   `lp = &tbl[mode]` = lui at/addu at above the bc1f.
+// RESIDUAL (15.8 -> 86.3): cur word is a real USO symbol at 0x1CAA8 (target
+//   lui 2/addiu -13656 exact base, +0 offsets) — base-0 alias + 0x1CAA8 cast
+//   CSEs as the 32K-aligned base 0x18000 (+0x4AA8 offsets); a 0x1CAA8-valued
+//   alias fuses (lui/lw) and its inline addend can't be scored by objdiff.
+//   mfc1 a1 duplicated into both arms (join-block first insn) vs ours after
+//   the join; `addiu a2,63` delay-slot fill vs `lui a0`; tail reload `lb a2`
+//   + sll/sra re-extension vs our folded `lb a1` (dead-if on sel = no-op).
 #ifdef NON_MATCHING
-void gl_func_00031A74(int sel, float v) {
-    int st;
-    float acc;
-    float lim;
-    if ((signed char)sel != 1) return;
-    st = *(int *)((char *)&D_00000000 + 0);
-    if (st == 0) return;
-    if (st == 4 || st == 0xB) {
-        acc = *(float *)((char *)&D_00000000 + 0x2CAC0);
-        lim = *(float *)((char *)&D_00000000 + 0x1968);
-        if (acc > lim) acc = 0.0f;
-        acc *= *(float *)((char *)&D_00000000 + 0x196C);
-        acc += v;
-        *(float *)((char *)&D_00000000 + 0x2CAC0) = acc;
+extern int gl_func_00000000_f(int, float);
+extern int D_31A74_st, D_31A74_g2, D_31A74_g3, D_31A74_accl, D_31A74_accs1, D_31A74_accs2, D_31A74_cur;
+extern f32 D_31A74_1968[], D_31A74_196C[], D_31A74_1970[], D_31A74_1974[];   /* per-site pool aliases (fresh lui at) */
+extern f32 D_31A74_tbl[];   /* base-0 f32 table indexed by mode (lui at; addu at,idx; lwc1 0(at)) */
+#define ACCL_31A74 (*(f32 *)((char *)&D_31A74_accl + 0x1CAC0))
+#define ACCS1_31A74 (*(f32 *)((char *)&D_31A74_accs1 + 0x1CAC0))
+#define ACCS2_31A74 (*(f32 *)((char *)&D_31A74_accs2 + 0x1CAC0))
+#define CUR_31A74 (*(int *)((char *)&D_31A74_cur + 0x1CAA8))
+void gl_func_00031A74(int mode, f32 v, s8 sel) {
+    f32 acc;
+    f32 r;
+    f32 lim;
+    f32 *lp;
+
+    if (mode == 1) {
+        if (D_31A74_st != 4 && D_31A74_st != 11) {
+            acc = ACCL_31A74;
+            if (D_31A74_1968[0x1968 / 4] < acc) {
+                acc *= D_31A74_196C[0x196C / 4];
+            } else {
+                acc = 0.0f;
+            }
+            gl_func_00000000_f(0x1000A00, ACCS1_31A74 = acc);
+            return;
+        }
+        if (D_31A74_st == 4) {
+            if (D_31A74_g2 != 0) {
+                return;
+            }
+        }
     }
+    if (D_31A74_g3 != 4 && mode == 3) {
+        return;
+    }
+    if (mode != CUR_31A74) {
+        CUR_31A74 = mode;
+        gl_func_00000000(0x6000A00, (s8)mode);
+    }
+    if (mode == 255) {
+        gl_func_00000000(0x6000A02, (s8)mode);
+        return;
+    }
+    sel += 63;
+    v = v - D_31A74_1970[0x1970 / 4];
+    lp = &D_31A74_tbl[mode];
+    if (v < 0.0f) {
+        r = 1.0f;
+    } else {
+        lim = *lp;
+        if (v < lim) {
+            r = (lim - v) / lim;
+        } else {
+            r = 0.0f;
+        }
+    }
+    r *= D_31A74_1974[0x1974 / 4];
+    if (r < 0.0f) {
+        r = 0.0f;
+    }
+    if (1.0f < r) {
+        r = 1.0f;
+    }
+    if (sel >= 127) {
+        sel = 127;
+    }
+    if (sel < 0) {
+        sel = 0;
+    }
+    gl_func_00000000_f(0x1000A00, ACCS2_31A74 = r);
+    gl_func_00000000(0x3000A00, sel);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00031A74);
