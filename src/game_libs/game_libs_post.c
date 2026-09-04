@@ -15917,64 +15917,108 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D2F4);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D36C);
 
-// gl_func_0002D37C — STRUCTURAL PASS (0x2A4 / 169 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A subsystem timer / sequence-step tick.
-//
-//   void gl_func_0002D37C(a0, a1, a2, int a3) {
-//     if (a3 != 1) return;
-//     if (!(*precond)()) { *(int*)(&D_xxx) = 0; return; } // jal 0 USO
-//     int *ctr = (int*)(&D_0 + 0);                        // global ctr
-//     if (*ctr == 0) return;
-//     if (--(*ctr) != 0) return;                           // not expired
-//     int st = *(int*)(&D_yyy);
-//     if (st == 0xF) {
-//       jal 0x4423C(arg & 0xFF);                           // 0x0C0108F1
-//       jal 0x41E9C(arg & 0xFF);                           // 0x0C0107A7
-//     } else {
-//       jal 0x44490(...);                                  // 0x0C010924
-//       jal 0x41ED4(...);                                  // 0x0C0107B5
-//     }
-//   }
-//
-// Struct-typing reference: a gated countdown sequencer. Runs only
-//   when the a3 selector equals 1 and a USO-relocated precondition
-//   (`jal 0` slot) passes (otherwise it zeroes a global and bails).
-//   A global counter at &D_0+0 is decremented each call; when it
-//   reaches zero the function fires a fixed USO-relocated routine
-//   pipeline — 0x0C0108F1 (≈0x4423C) / 0x0C0107A7 (≈0x41E9C) on the
-//   state==0xF path, 0x0C010924 (≈0x44490) / 0x0C0107B5 (≈0x41ED4)
-//   otherwise — to advance the next phase. A subsystem
-//   tick/scheduler step in the game_libs subsystem (peer to the
-//   gl_func_00026214 ring scheduler).
-// Caps (DEFERRED): raw-word USO + gated countdown + fixed-target
-//   sequence pipeline (0x4423C / 0x41E9C / 0x44490 / 0x41ED4) —
-//   byte-match needs USO mnemonic disasm + reloc-pad jal infra.
-//   Real-C STRUCTURAL body below per the analysis. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
+// gl_func_0002D37C — full hand re-derivation from ground truth (2026-09-04
+// agent-g). Countdown-timer tick: six down-counters in a global record S
+// (+0 phase timer, +4/+8/+10 plain, +18 fade (127-n)/127 -> 1010300 cb,
+// +C 256-step ramp: at 256 snapshot u16 raw -> fp[358] (float)(u32)raw,
+// fp[360] = (raw>>1)/256, fp[35C]=0; each step fp[35C] -= fp[360],
+// 4E010000 cb with trunc, 4D010000 cb with (i+fp358)/fp358). Phase timer
+// expiry fires the 423C4/41E9C pair (state==15) or 42490/41ED4 pair plus
+// the 5/13/0 -> cb(51) and 1 -> {4,10} -> cb(1010300,0) chains. Tail:
+// if rec[2] 46324(rec); 44E14(); cb(). Mode==1 pre-empts: if cb() flag=0.
+// Note the true prologue `lui t6; lw t6` (D_2D37C_mode read) lives in the
+// 2-word orphan game_libs_func_0002D36C (splat mis-split, same shape as
+// gl_func_0002D620's orphan) — build[2:] is the comparable body.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-void gl_func_0002D37C(int a0, int a1, int a2, int a3) {
-    int *ctr;
+extern int gl_func_00000000_f(int, float);
+extern int gl_ref_000423C4(), gl_ref_00041E9C(), gl_ref_00042490(), gl_ref_00041ED4(), gl_ref_00046324(), gl_ref_00044E14();
+extern int D_2D37C_mode, D_2D37C_flag, D_2D37C_st, D_2D37C_arg, D_2D37C_g5, D_2D37C_g13, D_2D37C_gz, D_2D37C_g1, D_2D37C_g4;
+extern int D_2D37C_tmr;
+#define TW_2D37C(o) (*(int *)((char *)&D_2D37C_tmr + (o)))
+extern int D_2D37C_rec[];
+extern u16 D_2D37C_raw[];
+extern f32 D_2D37C_f358s[], D_2D37C_f358l[], D_2D37C_f35Cs[], D_2D37C_f35Cl[], D_2D37C_f35Cw[], D_2D37C_f360s[], D_2D37C_f360l[];   /* per-site pool aliases of &D_0+0x358/35C/360 (fresh lui at per access) */
+void gl_func_0002D37C(void) {
     int st;
-    (void)a1; (void)a2;
-    if (a3 != 1) return;
-    if (!gl_func_00000000()) {
-        *(int *)((char *)&D_00000000 + 0) = 0;
+    int v;
+    int i;
+    int n;
+    int c;
+    int half;
+    unsigned raw;
+    f32 fr;
+    f32 z;
+    f32 d;
+
+    if (D_2D37C_mode == 1) {
+        if (gl_func_00000000()) {
+            D_2D37C_flag = 0;
+        }
         return;
     }
-    ctr = (int *)((char *)&D_00000000 + 0);
-    if (*ctr == 0) return;
-    if (--(*ctr) != 0) return;
-    st = *(int *)((char *)&D_00000000 + 4);
-    if (st == 0xF) {
-        gl_func_00000000(a0 & 0xFF);
-        gl_func_00000000(a0 & 0xFF);
-    } else {
-        gl_func_00000000(a0);
-        gl_func_00000000(a0);
+    if (TW_2D37C(0) != 0) {
+        TW_2D37C(0)--;
+        if (TW_2D37C(0) == 0) {
+            st = D_2D37C_st;
+            if (st == 15) {
+                gl_ref_000423C4((u8)st);
+                gl_ref_00041E9C();
+            } else {
+                gl_ref_00042490((u8)st, D_2D37C_arg);
+                gl_ref_00041ED4();
+                if (D_2D37C_g5 == 5 && D_2D37C_g13 == 13 && D_2D37C_gz == 0) {
+                    gl_func_00000000(51);
+                }
+                if (D_2D37C_g1 == 1) {
+                    v = D_2D37C_g4;
+                    if (v == 4 || v == 10) {
+                        gl_func_00000000_f(0x1010300, 0.0f);
+                    }
+                }
+            }
+        }
     }
+    if (TW_2D37C(4) != 0) {
+        TW_2D37C(4)--;
+    }
+    if (TW_2D37C(8) != 0) {
+        TW_2D37C(8)--;
+    }
+    if (TW_2D37C(0x10) != 0) {
+        TW_2D37C(0x10)--;
+    }
+    if (TW_2D37C(0x18) != 0) {
+        TW_2D37C(0x18)--;
+        gl_func_00000000_f(0x1010300, (f32)(127 - TW_2D37C(0x18)) / 127.0f);
+    }
+    c = TW_2D37C(0xC);
+    if (c != 0) {
+        n = c - 1;
+        if (c == 256) {
+            raw = D_2D37C_raw[0x2E68 / 2];
+            z = 0.0f;
+            fr = (f32)raw;
+            half = (int)raw >> 1;
+            if (z) {}
+            if (fr) {}
+            if (half) {}
+            D_2D37C_f360s[0x360 / 4] = (f32)half * (1.0f / 256.0f);
+            D_2D37C_f35Cs[0x35C / 4] = z;
+            D_2D37C_f358s[0x358 / 4] = fr;
+        }
+        TW_2D37C(0xC) = n;
+        d = D_2D37C_f35Cl[0x35C / 4] - D_2D37C_f360l[0x360 / 4];
+        D_2D37C_f35Cw[0x35C / 4] = d;
+        i = (int)d;
+        if (0) { gl_func_00000000(&i); }
+        gl_func_00000000(0x4E010000, i);
+        gl_func_00000000_f(0x4D010000, ((f32)i + D_2D37C_f358l[0x358 / 4]) / D_2D37C_f358l[0x358 / 4]);
+    }
+    if (D_2D37C_rec[2] != 0) {
+        gl_ref_00046324(D_2D37C_rec);
+    }
+    gl_ref_00044E14();
+    gl_func_00000000();
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D37C);
