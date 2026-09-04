@@ -3633,7 +3633,6 @@ int func_000050A0(int a0) {
  * live behavior only — the provably-dead 0x48 arm and the double-write
  * dead-store survive only under -g and are not recreated here. */
 extern char D_00007DB4;
-#ifdef NON_MATCHING
 /* func_00005124 - alloc-cascade get-or-create constructor.
  * Reconstructed missing logic: the three descriptor stores
  * (obj->0x28 = A; obj->0x28 = B; obj->0x48 = C) target DISTINCT
@@ -3645,40 +3644,35 @@ extern char D_00007DB4;
 extern char D_00000000_a;
 extern char D_00000000_b;
 extern char D_00000000_c;
-/* 2026-09-04 SHAPE FOUND (agent-f): the sp+0x2C/0x1C/0x4 arg chain is a
- * STRUCT-BY-VALUE arg (4-byte Box) copied through two Box locals and passed
- * by value to the init call (IDO homes the by-value a1 at 4(sp) in the jal
- * delay); obj/o2 are memory-homed plain pointers. Standalone -O2: 44/44
- * words, structure exact; residual = frame 0x38 vs 0x28 slot layout (target
- * Box/ptr homes at 28/36/44/48 = 8-byte-strided, mine 24/28/32/36) + the
- * a1-home / beqz-vs-move schedule. Next: find the 8-byte-stride local type
- * (an 8-byte Box with a dead pad field copies 2 words; try aligned union /
- * extra dead struct locals) then port to the 51D4/5284/5334/53E8 siblings. */
+/* 2026-09-04 (agent-f, pass 2): frame 0x38 slot layout = three `volatile int`
+ * pads interleaved in decl order (pad,obj,b1,pad,o2,pad,b2 -> homes
+ * 0x30/0x2C/0x24/0x1C); the beqz-on-v0 + delay-slot `sw a1,4(sp)` schedule
+ * comes from folding the get-or-create into one condition
+ * (`o2 != 0 || (o2 = alloc(0x48)) != 0`); tail addiu order = temp-first `t = &c`;
+ * obj-reload placement = call+store on ONE source line. Standalone -O2 44/44 exact. */
 typedef struct { int v; } Box5124;
 void *func_00005124(Box5124 arg) {
-    Box5124 b1;
-    Box5124 b2;
+    volatile int p0;
     char *obj;
+    Box5124 b1;
+    volatile int p1;
     char *o2;
+    volatile int p2;
+    Box5124 b2;
     func_00000000(&D_00007DB4);
     b1 = arg;
     obj = (char *)func_00000000(0x4C);
     if (obj != 0) {
         b2 = b1;
         o2 = obj;
-        if (o2 == 0) { o2 = (char *)func_00000000(0x48); }
-        if (o2 != 0) {
-            func_00000000(o2, b2, 0);
-            *(char **)(o2 + 0x28) = &D_00000000_a;
+        if (o2 != 0 || (o2 = (char *)func_00000000(0x48)) != 0) {
+            func_00000000(o2, b2, 0); *(char **)(o2 + 0x28) = &D_00000000_a; /* same-line: keeps obj reload after the addiu */
         }
-        *(char **)(obj + 0x28) = &D_00000000_b;
-        *(char **)(obj + 0x48) = &D_00000000_c;
+        /* temp-first `t = &c` -> addiu(c) before addiu(b); whole tail on ONE line (line-number scheduling hint) */
+        { char *t = &D_00000000_c; *(char **)(obj + 0x28) = &D_00000000_b; *(char **)(obj + 0x48) = t; }
     }
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
-#endif
 
 /* func_000051D4 - verified structural decode (0xB0, 44 insns).
  * BYTE-STRUCTURALLY IDENTICAL SIBLING of func_00005124 (same
@@ -3691,7 +3685,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005124);
  * NM body captures live behavior only — dead-arm artifacts not
  * recreated (same convention as func_00005124). */
 extern char D_00007DC4;
-#ifdef NON_MATCHING
 /* func_000051D4 - alloc-cascade get-or-create constructor.
  * Reconstructed missing logic (sibling of func_00005124, init datum
  * D_00007DC4): the three descriptor stores (obj->0x28 = A; obj->0x28
@@ -3705,31 +3698,35 @@ extern char D_00000000_a;
 extern char D_00000000_b;
 extern char D_00000000_c;
 /* 2026-09-04: struct-by-value shape ported from func_00005124 (see its note). */
+/* 2026-09-04 (agent-f, pass 2): frame 0x38 slot layout = three `volatile int`
+ * pads interleaved in decl order (pad,obj,b1,pad,o2,pad,b2 -> homes
+ * 0x30/0x2C/0x24/0x1C); the beqz-on-v0 + delay-slot `sw a1,4(sp)` schedule
+ * comes from folding the get-or-create into one condition
+ * (`o2 != 0 || (o2 = alloc(0x48)) != 0`); tail addiu order = temp-first `t = &c`;
+ * obj-reload placement = call+store on ONE source line. Standalone -O2 44/44 exact. */
 typedef struct { int v; } Box51D4;
 void *func_000051D4(Box51D4 arg) {
-    Box51D4 b1;
-    Box51D4 b2;
+    volatile int p0;
     char *obj;
+    Box51D4 b1;
+    volatile int p1;
     char *o2;
+    volatile int p2;
+    Box51D4 b2;
     func_00000000(&D_00007DC4);
     b1 = arg;
     obj = (char *)func_00000000(0x4C);
     if (obj != 0) {
         b2 = b1;
         o2 = obj;
-        if (o2 == 0) { o2 = (char *)func_00000000(0x48); }
-        if (o2 != 0) {
-            func_00000000(o2, b2, 0);
-            *(char **)(o2 + 0x28) = &D_00000000_a;
+        if (o2 != 0 || (o2 = (char *)func_00000000(0x48)) != 0) {
+            func_00000000(o2, b2, 0); *(char **)(o2 + 0x28) = &D_00000000_a; /* same-line: keeps obj reload after the addiu */
         }
-        *(int *)(obj + 0x28) = (int)&D_00000000_b;
-        *(int *)(obj + 0x48) = (int)&D_00000000_c;
+        /* temp-first `t = &c` -> addiu(c) before addiu(b); whole tail on ONE line (line-number scheduling hint) */
+        { char *t = &D_00000000_c; *(char **)(obj + 0x28) = &D_00000000_b; *(char **)(obj + 0x48) = t; }
     }
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000051D4);
-#endif
 
 /* func_00005284 - verified structural decode (0xB0, 44 insns).
  * THIRD IDENTICAL SIBLING of the func_00005124 / func_000051D4
@@ -3743,7 +3740,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000051D4);
  * NM body captures live behavior only — dead-arm artifacts not
  * recreated. */
 extern char D_00007DD4;
-#ifdef NON_MATCHING
 /* func_00005284 - alloc-cascade get-or-create constructor.
  * THIRD IDENTICAL SIBLING of func_00005124 / func_000051D4
  * (instruction-for-instruction identical except the init datum
@@ -3755,29 +3751,35 @@ extern char D_00007DD4;
  * The 0x48 second-alloc arm is provably-dead (kept under -g) and
  * is written as a get-or-create fall-through so IDO keeps it. */
 extern char D_00007DD4;
-extern char D_00000000_d;
-extern char D_00000000_e;
-extern char D_00000000_f;
-void *func_00005284(int arg) {
+/* 2026-09-04 (agent-f, pass 2): frame 0x38 slot layout = three `volatile int`
+ * pads interleaved in decl order (pad,obj,b1,pad,o2,pad,b2 -> homes
+ * 0x30/0x2C/0x24/0x1C); the beqz-on-v0 + delay-slot `sw a1,4(sp)` schedule
+ * comes from folding the get-or-create into one condition
+ * (`o2 != 0 || (o2 = alloc(0x48)) != 0`); tail addiu order = temp-first `t = &c`;
+ * obj-reload placement = call+store on ONE source line. Standalone -O2 44/44 exact. */
+typedef struct { int v; } Box5284;
+void *func_00005284(Box5284 arg) {
+    volatile int p0;
     char *obj;
+    Box5284 b1;
+    volatile int p1;
+    char *o2;
+    volatile int p2;
+    Box5284 b2;
     func_00000000(&D_00007DD4);
+    b1 = arg;
     obj = (char *)func_00000000(0x4C);
     if (obj != 0) {
-        if (obj == 0) {
-            obj = (char *)func_00000000(0x48);
+        b2 = b1;
+        o2 = obj;
+        if (o2 != 0 || (o2 = (char *)func_00000000(0x48)) != 0) {
+            func_00000000(o2, b2, 0); *(char **)(o2 + 0x28) = &D_00000000_a; /* same-line: keeps obj reload after the addiu */
         }
-        if (obj != 0) {
-            func_00000000(obj, arg, 0);
-            *(int *)(obj + 0x28) = (int)&D_00000000_d;
-        }
-        *(int *)(obj + 0x28) = (int)&D_00000000_e;
-        *(int *)(obj + 0x48) = (int)&D_00000000_f;
+        /* temp-first `t = &c` -> addiu(c) before addiu(b); whole tail on ONE line (line-number scheduling hint) */
+        { char *t = &D_00000000_c; *(char **)(obj + 0x28) = &D_00000000_b; *(char **)(obj + 0x48) = t; }
     }
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005284);
-#endif
 
 /* func_00005334 - verified structural decode (0xB4, 45 insns).
  * NEAR-SIBLING of the func_00005124/51D4/5284 alloc-cascade-ctor +
@@ -3789,7 +3791,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005284);
  * reloc + 3x &D-store reloc. INCLUDE_ASM remains build path. NM body
  * captures live behavior only — dead-arm artifacts not recreated. */
 extern char D_00007DE8;
-#ifdef NON_MATCHING
 /* func_00005334 - alloc-cascade get-or-create constructor (0x50 variant).
  * Reconstructed to the func_00005124 family shape: object 0x50 bytes,
  * init datum D_00007DE8. Four descriptor stores target DISTINCT
@@ -3802,27 +3803,35 @@ extern char D_00007DE8;
 extern char D_00000000_a;
 extern char D_00000000_b;
 extern char D_00000000_c;
-void *func_00005334(int arg) {
+/* 2026-09-04 (agent-f, pass 2): frame 0x38 slot layout = three `volatile int`
+ * pads interleaved in decl order (pad,obj,b1,pad,o2,pad,b2 -> homes
+ * 0x30/0x2C/0x24/0x1C); the beqz-on-v0 + delay-slot `sw a1,4(sp)` schedule
+ * comes from folding the get-or-create into one condition
+ * (`o2 != 0 || (o2 = alloc(0x48)) != 0`); tail addiu order = temp-first `t = &c`;
+ * obj-reload placement = call+store on ONE source line. Standalone -O2 44/44 exact. */
+typedef struct { int v; } Box5334;
+void *func_00005334(Box5334 arg) {
+    volatile int p0;
     char *obj;
+    Box5334 b1;
+    volatile int p1;
+    char *o2;
+    volatile int p2;
+    Box5334 b2;
     func_00000000(&D_00007DE8);
+    b1 = arg;
     obj = (char *)func_00000000(0x50);
     if (obj != 0) {
-        if (obj == 0) {
-            obj = (char *)func_00000000(0x48);
+        b2 = b1;
+        o2 = obj;
+        if (o2 != 0 || (o2 = (char *)func_00000000(0x48)) != 0) {
+            func_00000000(o2, b2, 0); *(char **)(o2 + 0x28) = &D_00000000_a; /* same-line: keeps obj reload after the addiu */
         }
-        if (obj != 0) {
-            func_00000000(obj, arg, 0);
-            *(int *)(obj + 0x28) = (int)&D_00000000_a;
-        }
-        *(int *)(obj + 0x28) = (int)&D_00000000_b;
-        *(int *)(obj + 0x4C) = (int)&D_00000000_c;
-        *(int *)(obj + 0x48) = 0;
+        /* temp-first `t = &c` -> addiu(c) before addiu(b); whole tail on ONE line (line-number scheduling hint) */
+        { char *t = &D_00000000_c; *(char **)(obj + 0x28) = &D_00000000_b; *(char **)(obj + 0x4C) = t; *(int *)(obj + 0x48) = 0; }
     }
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
-#endif
 
 /* func_000053E8 - verified structural decode (0xB8, 46 insns).
  * NEAR-SIBLING of the func_00005124/51D4/5284/5334 alloc-cascade-ctor
@@ -3836,7 +3845,6 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00005334);
  * &D-store reloc. INCLUDE_ASM remains build path. NM body captures
  * live behavior only — dead-arm artifacts not recreated. */
 extern char D_00007DFC;
-#ifdef NON_MATCHING
 /* func_000053E8 - alloc-cascade get-or-create constructor.
  * Reconstructed missing logic: the three descriptor stores
  * (obj->0x28 = A in the live arm; obj->0x28 = B; obj->0x4C = C in
@@ -3849,27 +3857,35 @@ extern char D_00007DFC;
 extern char D_00000000_a;
 extern char D_00000000_b;
 extern char D_00000000_c;
-void *func_000053E8(int arg) {
+/* 2026-09-04 (agent-f, pass 2): frame 0x38 slot layout = three `volatile int`
+ * pads interleaved in decl order (pad,obj,b1,pad,o2,pad,b2 -> homes
+ * 0x30/0x2C/0x24/0x1C); the beqz-on-v0 + delay-slot `sw a1,4(sp)` schedule
+ * comes from folding the get-or-create into one condition
+ * (`o2 != 0 || (o2 = alloc(0x48)) != 0`); tail addiu order = temp-first `t = &c`;
+ * obj-reload placement = call+store on ONE source line. Standalone -O2 44/44 exact. */
+typedef struct { int v; } Box53E8;
+void *func_000053E8(Box53E8 arg) {
+    volatile int p0;
     char *obj;
+    Box53E8 b1;
+    volatile int p1;
+    char *o2;
+    volatile int p2;
+    Box53E8 b2;
     func_00000000(&D_00007DFC);
+    b1 = arg;
     obj = (char *)func_00000000(0x50);
     if (obj != 0) {
-        if (obj == 0) {
-            obj = (char *)func_00000000(0x48);
+        b2 = b1;
+        o2 = obj;
+        if (o2 != 0 || (o2 = (char *)func_00000000(0x48)) != 0) {
+            func_00000000(o2, b2, 0); *(char **)(o2 + 0x28) = &D_00000000_a; /* same-line: keeps obj reload after the addiu */
         }
-        if (obj != 0) {
-            func_00000000(obj, arg, 0);
-            *(int *)(obj + 0x28) = (int)&D_00000000_a;
-        }
-        *(int *)(obj + 0x48) = 1;
-        *(int *)(obj + 0x28) = (int)&D_00000000_b;
-        *(int *)(obj + 0x4C) = (int)&D_00000000_c;
+        /* temp-first `t = &c` -> addiu(c) before addiu(b); store order b,1,c = temp numbering t0/t1/t2; whole tail on ONE line (multi-line tail perturbs the li/addiu schedule) */
+        { char *t = &D_00000000_c; *(char **)(obj + 0x28) = &D_00000000_b; *(int *)(obj + 0x48) = 1; *(char **)(obj + 0x4C) = t; }
     }
     return obj;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_000053E8);
-#endif
 
 /* func_000054A0: 14-insn 2-call wrapper. Sibling of func_00005068 (same
  * struct-by-value one-int recipe). Passing `*(struct OneI*)&a0` homes the
