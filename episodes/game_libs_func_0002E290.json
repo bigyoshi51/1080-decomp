@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0002E290",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-09-05T22:09:25.211101+00:00",
+  "end_time": "2026-09-05T22:09:25.211117+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-05T22:09:25.211114+00:00",
+      "assistant_text": "Manual exact match after a NINE-symbol boundary merge: 2E290 (jr t6 jumptable dispatcher + case-2 body) + seven 2-word 'return K' stubs 2E2F8..2E328 (fake-exact episodes deleted) + the 2E330 default/retry block. switch on the u8 selector o[0x31] with cases 2,3,5,9,17,1,0x40 laid out in SOURCE order (case 1 -> return 8 after case 17), 'case 32:' sharing default widens the table to 1..32 (slti 0x21 / sltiu 0x20), u8 mask/sel locals give sll+andi / and+andi, do{switch}while(sel!=0); return 0 gives the bnel back edge with the loop-top slti in its delay. Jumptable via donor splice: donor-local .rodata reloc renamed game_libs_func_0002E290_rodata pinned to the USO table at +0x1660.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 49,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for game_libs_func_0002E290 -- selector-byte lookup\n * with a mask-narrowing retry loop. PROVEN EXACT 49/49 words standalone\n * (the 50th-52nd build words are .text alignment zeros; st_size = 0xC4).\n *\n * BOUNDARY FIX (2026-09-05, agent-g): ONE function that splat had split\n * into NINE symbols: 2E290 (the 26-word `jr t6` jumptable dispatcher +\n * the case-2 body), 2E2F8/2E300/2E308/2E310/2E318/2E320/2E328 (seven\n * 2-word `jr ra; li v0,K` case arms that were \"matched\" as\n * `int f(void) { return K; }` stubs WITH fake-exact episodes) and 2E330\n * (the 9-word `default:` mask/retry block + `return 0` exit, an\n * INCLUDE_ASM \"caller-set $v0/$a1 loop tail CAP\"). The old SOURCE=2 AUDIT\n * \"boundary/codegen cap, non-contiguous selector tail\" verdict is RETIRED:\n * the function IS contiguous, 0x2E290..0x2E354 = 0xC4 / 49 words.\n *\n * WIRED via REPLACE_FUNC_BODY donor splice into game_libs_post.c.o (the\n * 29CCC / 6DD14 recipe, docs/MATCHING_WORKFLOW.md#donor-splice-switch-\n * jumptable-rodata-rename): a C `switch` puts its 32-entry jumptable in\n * the donor's local .rodata; the splice renames that reloc to\n * game_libs_func_0002E290_rodata, pinned in undefined_syms_auto.txt to\n * the table the USO ships in game_libs rodata at +0x1660 (read straight\n * out of bootup.uso RoData/RoDataReloc: sel 2 -> 2E2D8, 3 -> 2E300,\n * 5 -> 2E308, 9 -> 2E310, 17 -> 2E318, all others -> 2E330 default;\n * the shipped entry for sel 1 is a zero-addend reloc and the 2E320\n * `return 8` arm's address sits unrelocated just past the table at\n * +0x16E0 -- an original-linker quirk that does not affect .text).\n *\n * Load-bearing shapes:\n *  - `case 32:` sharing `default:` widens the table range to 1..32\n *    (`slti at,sel,0x21` / `sltiu at,idx,0x20`); without it IDO sizes the\n *    table 1..17 (0x12 / 0x11). Same lever as 6DD14's `case 15: case 16:`.\n *  - case arms are laid out in SOURCE order: 2, 3, 5, 9, 17, 1, 0x40,\n *    default -- `case 1: return 8` must come AFTER `case 17`.\n *  - `unsigned char mask = 0xFF; unsigned char sel` locals: `mask <<= 1`\n *    is sll + andi 0xFF, `sel &= mask` is and + andi 0xFF (v0 / a1).\n *  - do { switch } while (sel != 0); return 0;  gives the `bnel` back\n *    edge with the loop-top `slti` duplicated into its delay slot and the\n *    `move v0,zero; jr ra; nop` exit; the hoisted `li a2,0x40` is the\n *    switch's out-of-table compare constant made loop-invariant.\n *  - `return (unsigned char)(o[0x15] + 12)` = lbu/addiu/jr/andi tail. */\nint game_libs_func_0002E290(unsigned char *o) {\n    unsigned char mask = 0xFF;\n    unsigned char sel = o[0x31];\n    do {\n        switch (sel) {\n        case 2:\n            if (o[0x14] == 1) {\n                return (unsigned char)(o[0x15] + 12);\n            }\n            return 16;\n        case 3:\n            return 0;\n        case 5:\n            return 2;\n        case 9:\n            return 4;\n        case 17:\n            return 6;\n        case 1:\n            return 8;\n        case 0x40:\n            return 10;\n        case 32:\n        default:\n            mask <<= 1;\n            sel &= mask;\n        }\n    } while (sel != 0);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_2E290.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0002E290.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Standalone IDO 7.1 -O2 donor compile 49/49 words vs merged target (only the jumptable %lo word is link-resolved via the game_libs_func_0002E290_rodata pin); REPLACE_FUNC_BODY splice into game_libs_post.c.o; full make + cmp tenshoe.z64 baserom.z64 byte-identical; ROM words at 0xE13368..0xE1342B equal the target; report.json 100.0."
+  }
+}

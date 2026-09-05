@@ -17171,81 +17171,31 @@ void gl_func_0002E24C(char *o) {
 }
 
 
-#ifdef NON_MATCHING
-/* Sibling of the matched gl_func_0002E1C0/gl_func_0002E24C event helpers.
- * Selector byte 0x31 dispatches through the table at D+0x1660 for values
- * 1..32, selector 0x40 shares the nearby return-10 leaf, and other values
- * run the bit-mask loop tail split out as game_libs_func_0002E330.
- *
- * SOURCE=2 AUDIT (2026-06-01): boundary/codegen cap, not a simple sibling
- * port. The target is frameless and uses `jr t6` to tail-jump through the
- * dispatch table; the C body emits a 0x18 frame plus `jalr t9`/return epilogue.
- * The invalid-selector path branches from 0x2E2B0 over the valid leaf returns
- * (2E2F8..2E328) into game_libs_func_0002E330+4, so a normal contiguous merge
- * would swallow real jump-table leaves. Keep INCLUDE_ASM until the non-contiguous
- * selector-tail layout is represented explicitly. */
-int game_libs_func_0002E290(char *o) {
-    typedef int (*Dispatch)(void);
-    Dispatch *dispatch;
-    unsigned char selector;
-    int mask;
-    unsigned int idx;
-
-    dispatch = (Dispatch *)((char *)&D_00000000 + 0x1660);
-    selector = *(unsigned char *)(o + 0x31);
-    mask = -1;
-
-    while (selector != 0) {
-        if (selector < 0x21) {
-            idx = (unsigned int)(selector - 1);
-            if (idx < 0x20) {
-                return dispatch[idx]();
-            }
-        } else if (selector == 0x40) {
-            return 10;
-        }
-
-        mask = (mask << 1) & 0xFF;
-        selector &= mask;
+/* game_libs_func_0002E290: selector-byte lookup with a mask-narrowing retry
+ * loop -- switch on o->0x31 (sel 2: o->0x14==1 ? (u8)(o->0x15+12) : 16;
+ * sel 3/5/9/17/1/0x40 -> 0/2/4/6/8/10; anything else: mask <<= 1,
+ * sel &= mask, retry until sel == 0 -> 0).
+ * BOUNDARY FIX (2026-09-05, agent-g): ONE function that splat had split
+ * into NINE symbols -- 2E290 (26-word `jr t6` jumptable dispatcher + the
+ * case-2 body), 2E2F8/2E300/2E308/2E310/2E318/2E320/2E328 (seven 2-word
+ * `jr ra; li v0,K` case arms that were "matched" as `return K;` stubs
+ * WITH fake-exact episodes, now deleted) and 2E330 (the 9-word `default:`
+ * mask/retry block + `return 0` exit, an INCLUDE_ASM "caller-set $v0/$a1
+ * loop tail CAP"). The old SOURCE=2 AUDIT "boundary/codegen cap,
+ * non-contiguous selector tail" verdict is RETIRED: the function IS
+ * contiguous, 0x2E290..0x2E354 = 0xC4 / 49 words.
+ * WIRED via REPLACE_FUNC_BODY donor splice: the real C lives in the IDO
+ * 7.1 -O2 donor unit game_libs_o2_2E290.c (49/49 word-exact); the splice
+ * renames the switch's donor-local .rodata jumptable reloc to
+ * game_libs_func_0002E290_rodata (pinned to the USO table at +0x1660).
+ * Body below is a placeholder for the splice. */
+int game_libs_func_0002E290(unsigned char *o) {
+    volatile int ret = 0;
+    if (o[0x31] != 0) {
+        ret = 16;
     }
-
-    if (*(unsigned char *)(o + 0x14) == 1) {
-        return (*(unsigned char *)(o + 0x15) + 0xC) & 0xFF;
-    }
-    return 16;
+    return ret;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E290);
-#endif
-
-int game_libs_func_0002E2F8(void) { return 16; }
-
-int game_libs_func_0002E300(void) { return 0; }
-
-int game_libs_func_0002E308(void) { return 2; }
-
-int game_libs_func_0002E310(void) { return 4; }
-
-int game_libs_func_0002E318(void) { return 6; }
-
-int game_libs_func_0002E320(void) { return 8; }
-
-int game_libs_func_0002E328(void) { return 10; }
-
-/* game_libs_func_0002E330: 9-insn comparison loop-bottom tail-fragment:
- *   sll v0,v0,1; andi v0,v0,0xFF; and v1,a1,v0; andi a1,v1,0xFF;
- *   bnel a1,zero,-0xA4; slti at,a1,0x21; move v0,zero; jr ra; nop
- * Caller-set $v0/$a1 + backward branch to 0x2E2A0 (before .s start
- * 0x2E330). Splat captured loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error.
- *
- * SOURCE=2 AUDIT (2026-06-01): immediate decode confirms the branch target:
- * 0x2E340 + 4 + signext(0xFFD7)*4 = 0x2E2A0, inside the selector body at
- * game_libs_func_0002E290. The incoming `$v0` mask and `$a1` selector are
- * live-in registers set by that caller path. This is not a standalone C
- * function and cannot be merged contiguously without swallowing the valid
- * return-value leaves at 2E2F8..2E328. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002E330);
 
 // gl_func_0002E354 — STRUCTURAL PASS (0xF34 / 973 words ≈ 3.9KB, no
 // episode). Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO
