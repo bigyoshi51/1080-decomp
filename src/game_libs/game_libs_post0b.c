@@ -429,40 +429,52 @@ void game_libs_func_0003487C(int a0, int a1) {
 //  (IDO DCEs my passthrough form b=a; target keeps the dead allocs + stack-
 //  spills the chain) + saved-reg(s0)-vs-stack. Documented alloc-cascade cap.
 #ifdef NON_MATCHING
-char *gl_func_00034890(char *o) {
-    char *a, *b, *c;
-    char *cursor, *next, *obj;
-    a = (char *)gl_func_00000000(0x10, *(int *)(o + 0x0C));
-    if (a != 0) {
-        b = a;
-        if (b == 0) {                               /* dead alloc-or-passthrough arm */
-            b = (char *)gl_func_00000000(0x10);
-            if (b == 0) goto wire_tail;
+/* 2026-09-04 agent-g real-C: alloc(0x10, o->0xC) then the inline-expanded
+ * base-ctor chain on the SAME object (b = a, c = b re-tests with sizeof
+ * 0x10 / 4 alloc fallbacks, inner failure falls to the outer tail);
+ * c->vt = &D+0x1E1E8; b->4 = o; b->8..0xC = 8-byte STRUCT COPY from
+ * &D+0x1E1B0 (kept base, lw/sw pairs); a->vt = &D+0x1E238. Then
+ * register(&D, h, a, o->0x18 & 2) (a == 0 on the failed-alloc path), a
+ * 3DF5C-family pointer-form memory-homed iterator {cur@48,next@52} over
+ * o->0x10 calling f(p->cur->data) per node, and a final f(&D). Void. */
+typedef struct Link34890 { char *data; struct Link34890 *next; } Link34890;
+typedef struct { Link34890 *cur; Link34890 *next; } Iter34890;
+typedef struct { int a, b; } Pair34890;
+extern int D_34890_a, D_34890_b, D_34890_c, D_34890_d, D_34890_e;
+#define ITER34890_STEP(p, nx, node) \
+    nx = (p)->next; (node) = 0; (p)->cur = nx; if (nx != 0) { (p)->next = nx->next; (node) = nx->data; }
+void gl_func_00034890(char *o) {
+    Iter34890 it;
+    int h;
+    char *a;
+    char *b;
+    char *c;
+    Iter34890 *p;
+    Link34890 *nx;
+    char *node;
+
+    h = *(int *)(o + 0x0C);
+    if ((a = (char *)gl_func_00034458(0x10, h)) != 0) {
+        if ((b = a) != 0 || (b = (char *)gl_func_00034458(0x10, h)) != 0) {
+            if ((c = b) != 0 || (c = (char *)gl_func_00034458(4, h)) != 0) {
+                *(char **)c = (char *)&D_34890_a + 0x1E1E8;
+            }
+            *(char **)(b + 4) = o;
+            *(Pair34890 *)(b + 8) = *(Pair34890 *)((char *)&D_34890_b + 0x1E1B0);
         }
-        c = b;
-        if (c == 0) {                               /* dead arm */
-            c = (char *)gl_func_00000000(0x04);
-            if (c == 0) goto wire_o;
-        }
-        *(int *)c = 0x0001E1E8;
-    wire_o:
-        *(int *)(b + 0x4) = (int)o;
-        *(int *)(b + 0x8) = *(int *)0x0001E1B0;
-        *(int *)(b + 0xC) = *(int *)0x0001E1B4;
-        *(int *)a = 0x0001E238;
+        *(char **)a = (char *)&D_34890_c + 0x1E238;
     }
-wire_tail:
-    gl_func_00000000(&D_00000000, *(int *)(o + 0x18) & 2);
-    for (cursor = *(char **)(o + 0x10); cursor != 0; cursor = next) {
-        next = *(char **)(cursor + 4);
-        obj = *(char **)cursor;
-        if (obj == 0) {
-            break;
-        }
-        gl_func_00000000(obj);
+    if (1) {}
+    gl_func_00034458(&D_34890_d, h, a, *(int *)(o + 0x18) & 2);
+    p = &it;
+    p->next = *(Link34890 **)(o + 0x10);
+    ITER34890_STEP(p, nx, node);
+    while (node != 0) {
+        gl_func_00034458(p->cur->data);
+        if (1) {}
+        ITER34890_STEP(p, nx, node);
     }
-    gl_func_00000000(&D_00000000);
-    return a;
+    gl_func_00034458(&D_34890_e);
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
