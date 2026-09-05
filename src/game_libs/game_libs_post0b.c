@@ -27229,29 +27229,60 @@ void gl_func_00056084(int a0, int a1) {
     gl_func_00000000(buf);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000560E4);
-
-int game_libs_func_00056150(void) { return 1; }
-
-int game_libs_func_00056158(void) { return 2; }
-
-int game_libs_func_00056160(void) { return 3; }
-
-int game_libs_func_00056168(void) { return 4; }
-
-int game_libs_func_00056170(void) { return 5; }
-
-int game_libs_func_00056178(void) { return 6; }
-
-int game_libs_func_00056180(void) { return 7; }
-
-int game_libs_func_00056188(void) { return 8; }
-
-int game_libs_func_00056190(void) { return 9; }
-
-int game_libs_func_00056198(void) { return 10; }
-
-void game_libs_func_000561A0(void) {}
+/* game_libs_func_000560E4: single-bit mask -> bit index (1 -> 0, 2 -> 1,
+ * ..., 0x400 -> 10; anything else -> 11).
+ * BOUNDARY FIX (2026-09-05, agent-g): ONE function that splat had split
+ * into TWELVE symbols -- 560E4 (the 27-word `li at,K; beq a0,at` compare
+ * chain + `return 0` block), ten 2-word `jr ra; li v0,N` return blocks
+ * 56150..56198 that were "matched" as `int f(void) { return N; }` stubs
+ * WITH fake-exact episodes, and 561A0 (the shared `jr ra; nop` epilogue,
+ * "matched" as an empty fn WITH an episode). Every beq lands ON one of
+ * those blocks; the `b +0x17` from the return-11 path lands on 561A0.
+ * Merged .s = 0x560E4..0x561A8 = 0xC4 / 49 words. Ninth
+ * find-stub-misplits.py hit. 49/49 standalone, in-tree, plain -O2.
+ * Load-bearing shapes (docs/IDO_CODEGEN.md):
+ *  - a `switch` gives IDO's binary-search + jumptable dispatch (60w); the
+ *    linear compares-grouped-at-top / bodies-after layout is the
+ *    `if (bit == K) goto cK;` chain
+ *    (#feedback-ido-dispatch-goto-chain-beats-switch-and-ifelse);
+ *  - the return-11 path is `li v0,0xB` (hoisted into the last beq's delay)
+ *    + `b end` to the trailing shared `jr ra; nop`: spell it as a flow to
+ *    the FINAL `return r;` (`r = 11; goto end;`), not `return 11;` (which
+ *    becomes its own `jr ra; li` and lets c10's li get hoisted instead);
+ *  - the LAST test must be the inverted skip + explicit goto
+ *    (#feedback-ido-split-last-eq-test-to-suppress-bnel); a plain
+ *    `if (bit == 0x400) goto c10;` flips to `bne` with c10 inline. */
+int game_libs_func_000560E4(int bit) {
+    int r;
+    if (bit == 0x001) goto c0;
+    if (bit == 0x002) goto c1;
+    if (bit == 0x004) goto c2;
+    if (bit == 0x008) goto c3;
+    if (bit == 0x010) goto c4;
+    if (bit == 0x020) goto c5;
+    if (bit == 0x040) goto c6;
+    if (bit == 0x080) goto c7;
+    if (bit == 0x100) goto c8;
+    if (bit == 0x200) goto c9;
+    if (bit != 0x400) goto def;
+    goto c10;
+def:
+    r = 11;
+    goto end;
+c0: return 0;
+c1: return 1;
+c2: return 2;
+c3: return 3;
+c4: return 4;
+c5: return 5;
+c6: return 6;
+c7: return 7;
+c8: return 8;
+c9: return 9;
+c10: return 10;
+end:
+    return r;
+}
 
 #ifdef NON_MATCHING
 #ifndef FW
