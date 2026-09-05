@@ -22,37 +22,38 @@ extern int D_bootup_scratch0;         /* int-typed base-0 alias of D_00000000; $
 #ifdef NON_MATCHING
 /* func_0000FC28: 73-insn (0x124) constructor + init chain, returns a0.
  *
- * 2026-07-10: 56.23% -> 97.06% (byte-exact except the ONE documented
- * -O0 return-value dead-double-b toolchain gap; see FD4C below for the
- * full lever writeup — FC28 is the smaller sibling, same recipe).
- * Levers: (1) STRUCTURED nested if(){} (NOT if()goto) so each alloc/fail
- * check emits a single `b!cond endif` — a `goto` at -O0 always emits a
- * 2-insn branch-over (bnez;b); the whole rest is guarded by if(a0!=0){}
- * so the a0-alloc-fail is the beqz-to-end guard. (2) `register void*
+ * 2026-07-10: 56.23% -> 97.06%. 2026-09-05: -> 73/75 insns byte-exact;
+ * the ONLY residual is the documented -O0 return-value dead-double-b
+ * toolchain gap (see FD4C below for the full lever writeup — FC28 is the
+ * smaller sibling, same recipe).
+ * Levers: (1) SHORT-CIRCUIT alloc-fallback `if (x != 0 || (x = alloc(N))
+ * != 0) { arm }` (docs/IDO_CODEGEN.md -O0 alloc-cascade lever #2). The
+ * 2026-07-10 body used nested `if(x==0){x=alloc;} if(x!=0){...}` and
+ * mis-reported "byte-exact except the double-b": that shape re-tests x
+ * on the no-alloc path too, so the target's `bnez t6,.L64` (straight to
+ * `lw s0`) came out as `bnez t6,.L58` (into the `lw t7; beqz t7` re-test)
+ * — 3 wrong branch targets (t6/s0/s1 bnez). `||` puts the null-test on
+ * the alloc path only: `bnez x,.arm; alloc; beqz x,.skip` exactly. A
+ * `goto` at -O0 would emit a 2-insn branch-over (bnez;b), so no gotos;
+ * the outer `||`'s false-exit IS the a0-alloc-fail `beqz t7,end`.
+ * (2) `register void*
  * s0,s1` (callee-saved cascade temps, no home spill). (3) TAIL recycles
  * the now-dead s0/s1: `s0=a0; s1=&D_0000C594; *(int*)(s0+0xC)=(int)s1;`
  * reproduces `lw s0; lui s1; sw s1,0xC(s0)`, and `s0=a0; f(scratch,s0)`
  * the final-call arg. (4) D_bootup_scratch0 (int-typed base-0 alias of
  * D_00000000, undefined_syms) $at-fuses the *&D store/reload (lui/sw)
  * vs the address-of-cast's lui/addiu/sw. RESIDUAL = the dead second
- * `b epilogue` only (value-return -O0 cap, NOT C-fixable). NM stays. */
+ * `b epilogue` only (value-return -O0 cap, NOT C-fixable; re-probed
+ * 2026-09-05: switch/if(1)/for(;;)/goto-end/same-line-brace/ternary tails
+ * all keep or worsen it). NM stays. */
 void *func_0000FC28(void *a0) {
     register void *s0, *s1;
 
-    if (a0 == 0) {
-        a0 = (void*)func_00000000(0x50);
-    }
-    if (a0 != 0) {
+    if (a0 != 0 || (a0 = (void*)func_00000000(0x50)) != 0) {
         s0 = a0;
-        if (s0 == 0) {
-            s0 = (void*)func_00000000(0x50);
-        }
-        if (s0 != 0) {
+        if (s0 != 0 || (s0 = (void*)func_00000000(0x50)) != 0) {
             s1 = s0;
-            if (s1 == 0) {
-                s1 = (void*)func_00000000(0x2C);
-            }
-            if (s1 != 0) {
+            if (s1 != 0 || (s1 = (void*)func_00000000(0x2C)) != 0) {
                 func_00000000(s1, &D_0000C58C);
                 *(int*)((char*)s1 + 0x28) = (int)&D_00000000;
             }
