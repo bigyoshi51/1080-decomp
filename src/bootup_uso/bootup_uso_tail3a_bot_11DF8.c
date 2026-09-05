@@ -4,10 +4,12 @@ extern int func_00000000();
 extern char D_00000000;
 
 /* Tail slice of the original bootup_uso_tail3a_bot.c (2026-07-10 carve).
- * Holds the 11E00/11ED4/11FA8 NM triplet and the matched 1207C..120A0 tail
- * at -O2 -g3. The 8-byte "func_00011DF8" empty stub that used to head this
- * unit was func_00011DBC's dead -O0 `$exit` pair (absorbed into o0_11DBC.c
- * 2026-09-05, TRUNCATE_TEXT here 0x2B0 -> 0x2A8). */
+ * Holds the 11E00/11ED4/11FA8 NM triplet at -O2 -g3. The 8-byte
+ * "func_00011DF8" empty stub that used to head this unit was func_00011DBC's
+ * dead -O0 `$exit` pair (absorbed into o0_11DBC.c 2026-09-05, TRUNCATE_TEXT
+ * here 0x2B0 -> 0x2A8); the 1207C/"12088"/12090/"120A0" tail that used to end
+ * it was two frameless -O0 fall-off fns + their dead `$exit` pairs (carved
+ * into bootup_uso_o0_1207C.c 2026-09-05, TRUNCATE_TEXT 0x2A8 -> 0x27C). */
 
 #ifdef NON_MATCHING
 /* func_00011E00: 53-insn "find first slot with mask bit set".
@@ -145,18 +147,3 @@ int func_00011FA8(int *a0, int a1) {
 #else
 INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00011FA8);
 #endif
-
-void func_0001207C(int *a0, int a1) {
-    *(int*)((char*)a0 + 0x128) = a1;
-}
-
-void func_00012088(void) {
-}
-
-void func_00012090(int *a0) {
-    *(int*)((char*)a0 + 0x128) = -1;
-}
-
-void func_000120A0(void) {
-}
-

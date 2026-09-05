@@ -213,7 +213,7 @@ build/non_matching/src/bootup_uso/bootup_uso_o0_11D40.c.o: NON_MATCHING_TRUNCATE
 # -O0 leaves land file-terminal (trailing dead-pair TRUNCATE). Layout now:
 # o0_11D40 {11D40 incl. its 11D70 exit pair} | o0_11D78 {11D78 incl. its 11DB4
 # exit pair} | o0_11DBC {11DBC incl. its 11DF8 exit pair} | tail3a_bot_11DF8
-# {11E00/11ED4/11FA8 NM, 1207C..120A0}.
+# {11E00/11ED4/11FA8 NM} | o0_1207C {1207C + 12090 incl. their exit pairs}.
 build/src/bootup_uso/bootup_uso_o0_11D78.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11D78.c.o: OPT_FLAGS := -O0
 # 0x44 = the 0x3C body + the shipped build's ONE dead `$exit: jr ra; nop` pair
 # (0x11DB4, formerly the -O2 -g3 "empty fn" unit bootup_uso_tail3a_bot_11DB4.c,
@@ -226,8 +226,15 @@ build/src/bootup_uso/bootup_uso_o0_11DBC.c.o build/non_matching/src/bootup_uso/b
 build/src/bootup_uso/bootup_uso_o0_11DBC.c.o: TRUNCATE_TEXT := 0x44
 build/non_matching/src/bootup_uso/bootup_uso_o0_11DBC.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x44
 build/src/bootup_uso/bootup_uso_tail3a_bot_11DF8.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a_bot_11DF8.c.o: OPT_FLAGS := -O2 -g3
-# 0x2A8 = 0x2B0 minus the 8-byte "func_00011DF8" stub (now 11DBC's exit pair)
-build/src/bootup_uso/bootup_uso_tail3a_bot_11DF8.c.o: TRUNCATE_TEXT := 0x2A8
+# 0x27C = 0x2B0 minus the 8-byte "func_00011DF8" stub (now 11DBC's exit pair)
+# minus the 0x2C 1207C..120A0 tail (now bootup_uso_o0_1207C.c, 2026-09-05)
+build/src/bootup_uso/bootup_uso_tail3a_bot_11DF8.c.o: TRUNCATE_TEXT := 0x27C
+build/src/bootup_uso/bootup_uso_o0_1207C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_1207C.c.o: OPT_FLAGS := -O0
+# 0x2C = two frameless -O0 FALL-OFF fns (1207C 0xC + its dead `$exit` pair
+# "12088", 12090 0x10 + its pair "120A0"); -O0 emits exactly this, the
+# TRUNCATE only drops the 16-byte section pad.
+build/src/bootup_uso/bootup_uso_o0_1207C.c.o: TRUNCATE_TEXT := 0x2C
+build/non_matching/src/bootup_uso/bootup_uso_o0_1207C.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x2C
 build/src/bootup_uso/bootup_uso_o0_120A8.c.o: TRUNCATE_TEXT := 0x21C
 build/src/bootup_uso/bootup_uso_tail3b_top.c.o: TRUNCATE_TEXT := 0x12C
 build/src/bootup_uso/bootup_uso_tail3b_top.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3b_top.c.o: OPT_FLAGS := -O0
