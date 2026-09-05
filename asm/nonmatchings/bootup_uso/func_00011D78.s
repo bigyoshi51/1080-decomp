@@ -1,4 +1,4 @@
-nonmatching func_00011D78, 0x3C
+nonmatching func_00011D78, 0x44
 
 glabel func_00011D78
     /* DE27E4 00011D78 8C8E018C */  lw         $t6, 0x18C($a0)
@@ -17,4 +17,6 @@ glabel func_00011D78
     /* DE2814 00011DA8 44800000 */  mtc1       $zero, $f0
     /* DE2818 00011DAC 03E00008 */  jr         $ra
     /* DE281C 00011DB0 00000000 */   nop
+    /* DE2820 00011DB4 03E00008 */  jr         $ra
+    /* DE2824 00011DB8 00000000 */   nop
 endlabel func_00011D78

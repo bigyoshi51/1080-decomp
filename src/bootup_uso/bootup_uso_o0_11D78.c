@@ -1,9 +1,12 @@
 #include "common.h"
 
 /* func_00011D78: -O0 island carved out of bootup_uso_tail3a_bot.c on
- * 2026-07-10 and MATCHED at -O0 (15/15 target words = 0x3C; the 3 trailing
- * dead jr-ra pairs our -O0 emits are clipped by TRUNCATE_TEXT — o0_11D40
- * precedent, which is why this fn must terminate its file).
+ * 2026-07-10 and MATCHED at -O0. 17/17 words = 0x44 since 2026-09-05: the
+ * 2-word "func_00011DB4" (jr ra; nop) that followed it was never a function
+ * but this fn's own dead `$exit: j $31` block (11D40/"11D70" precedent, see
+ * docs/IDO_CODEGEN.md#o0-two-block-predicate-not-adjacent-leaf-cap). Our -O0
+ * emits the 0x3C body + TWO dead pairs, the shipped build ONE, so this fn
+ * must terminate its file and TRUNCATE_TEXT 0x44 clips the second pair.
  *
  * Indexed-pointer-array float load with early-out: slot ptr array at
  * a0+0xE0, index at a0+0x128, gate at a0+0x18C; returns slot->x or 0.0f.
