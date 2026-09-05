@@ -1,14 +1,14 @@
 {
   "function_name": "func_00010A9C",
-  "project": "1080-agent-a",
+  "project": "1080-agent-c",
   "model": "claude-manual",
-  "start_time": "2026-04-21T02:26:49.742445+00:00",
-  "end_time": "2026-04-21T02:26:49.742470+00:00",
+  "start_time": "2026-09-05T23:28:51.440664+00:00",
+  "end_time": "2026-09-05T23:28:51.440679+00:00",
   "steps": [
     {
       "step_number": 1,
-      "timestamp": "2026-04-21T02:26:49.742463+00:00",
-      "assistant_text": "Promoted from NM wrap via the -g3 breakthrough (commit ee1085f). 3rd/4th/5th function in the unfilled-store-return class. Pure C sw; jr; nop matches at -O2 -g3.",
+      "timestamp": "2026-09-05T23:28:51.440675+00:00",
+      "assistant_text": "Manual exact match: single field clear *(int*)((char*)a0+0x78) = 0. Boundary fix 2026-09-05: the unit (formerly bootup_uso_tail3a_10540.c at -O2 -g3) now builds at -O0 like the rest of the run; the 2-word \"func_00010AA8\" (jr ra; nop) that followed was ugen dead $exit: j $31 block of this frameless FALL-OFF fn (no return statement: its own jr ra; nop is the fall-off return, the exit pair follows), not a function. Dead-pair count: our -O0 emits the 0xC body + exactly ONE pair = 0x14, so TRUNCATE_TEXT 0x14 clips only the section pad.",
       "tool_calls": [],
       "match_percent": 100.0,
       "compiled": true,
@@ -19,15 +19,15 @@
   "final_match_percent": 100.0,
   "best_match_percent": 100.0,
   "total_tokens": 0,
-  "instruction_count": 3,
+  "instruction_count": 5,
   "initial_m2c_source": null,
-  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n\n#ifdef NON_MATCHING\n/* Array-indexing utility: return a0 + a0->field_7C * 0x28 + 0x84.\n * Target has 8 insns with `addiu v0,v0,0x84; jr ra; nop` (unfilled delay slot).\n * IDO -O2 fills the delay slot with the addiu, producing 7 insns instead.\n * Also addu operand order differs (a0,t7 vs t6,a0) and $v1 vs $t6 for the\n * index temp. Same unfilled-delay class as feedback_ido_unfilled_store_return.md,\n * compute/return variant. Likely needs -O0 or a sibling handwritten stub. */\nchar *func_00010324(char *a0) {\n    int idx = *(int*)(a0 + 0x7C);\n    return a0 + idx * 0x28 + 0x84;\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010324);\n#endif\n\nvoid func_00010344(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001034C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010540);\n\nvoid func_00010A9C(int *a0) {\n    *(int*)((char*)a0 + 0x78) = 0;\n}\n\nvoid func_00010AA8(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010AB0);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010B6C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010C8C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010FEC);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000116C8);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000117FC);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000118E4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_0001195C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011A34);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011AB4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011B5C);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011BF0);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011C70);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011CA4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011CD8);\n\n#ifdef NON_MATCHING\n/* Structure matches but IDO emits beql with duplicated lw in epilogue rather than\n * target's beq+or v0,zero path. Common IDO -O2 -> O1-style unfilled-slot mismatch. */\nint func_00011D40(int *a0, int a1) {\n    if (*(int*)((char*)a0 + 0x120) < a1) return 0;\n    return *(int*)((char*)a0 + a1 * 4 + 0xDC);\n}\n#else\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011D40);\n#endif\n\nvoid func_00011D70(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011D78);\n\nvoid func_00011DB4(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011DBC);\n\nvoid func_00011DF8(void) {\n}\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011E00);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011ED4);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00011FA8);\n\nvoid func_0001207C(int *a0, int a1) {\n    *(int*)((char*)a0 + 0x128) = a1;\n}\n\nvoid func_00012088(void) {\n}\n\nvoid func_00012090(int *a0) {\n    *(int*)((char*)a0 + 0x128) = -1;\n}\n\nvoid func_000120A0(void) {\n}\n\n",
+  "final_source": "#include \"common.h\"\n\n/* Bottom piece of the original bootup_uso_tail3a.c (carved 2026-07-10 as\n * bootup_uso_tail3a_10540.c). 2026-09-04: func_00010540 moved out to\n * bootup_uso_o0_10540.c where it MATCHES at -O0 (343/343). 2026-09-05: renamed\n * bootup_uso_o0_10A9C.c and built at -O0 like the rest of the run -- the\n * 2-word \"func_00010AA8\" (jr ra; nop) that followed func_00010A9C was ugen's\n * dead `$exit: j $31` block of this frameless FALL-OFF fn (no return\n * statement: its own `jr ra; nop` is the fall-off return, the exit pair comes\n * after it), not a function (a standalone -O0 empty fn is\n * `sw a0; b .+1; nop; jr ra; nop`, func_00010310). Our -O0 emits exactly the\n * 0xC body + that ONE pair = 0x14; TRUNCATE_TEXT 0x14 only clips IDO's\n * section pad. 102A4+\"102E8\" precedent;\n * docs/IDO_CODEGEN.md#o0-two-block-predicate-not-adjacent-leaf-cap. 5/5 words. */\n\nvoid func_00010A9C(int *a0) {\n    *(int*)((char*)a0 + 0x78) = 0;\n}\n",
   "metadata": {
-    "source_path": "src/bootup_uso/bootup_uso_tail3a.c",
+    "source_path": "src/bootup_uso/bootup_uso_o0_10A9C.c",
     "asm_path": "asm/nonmatchings/bootup_uso/func_00010A9C.s",
     "segment": "bootup_uso",
     "compiler": "ido7.1",
-    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
-    "verification": "objdiff 100% via tail3a.c -O2 -g3 override (feedback_ido_g3_disables_delay_slot_fill.md)."
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with make + cmp tenshoe.z64 baserom.z64 byte-identical; no-alias objdump of build/src/bootup_uso/bootup_uso_o0_10A9C.c.o func_00010A9C word-for-word equal to the merged .s (5 words); report.json func_00010A9C 100.0 size 20."
   }
 }

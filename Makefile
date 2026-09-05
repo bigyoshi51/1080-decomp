@@ -149,19 +149,21 @@ build/src/bootup_uso/bootup_uso_o0_10324.c.o: TRUNCATE_TEXT := 0x28
 build/non_matching/src/bootup_uso/bootup_uso_o0_10324.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x28
 # 2026-07-10 carve: tail3a (0x10324..0x10B6C) split 4 ways so the two -O0
 # islands build at -O0: o0_10324 {10324 incl. its 10344 exit pair} | o0_1034C |
-# tail3a_10540 {10540 INCLUDE_ASM, 10A9C, 10AA8} | o0_10AB0.
+# o0_10540 {10540} | o0_10A9C {10A9C incl. its 10AA8 exit pair} | o0_10AB0.
 build/src/bootup_uso/bootup_uso_o0_1034C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_1034C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_1034C.c.o: TRUNCATE_TEXT := 0x1F4
 build/non_matching/src/bootup_uso/bootup_uso_o0_1034C.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x1F4
 # 2026-09-04 carve: func_00010540 out of tail3a_10540 into o0_10540 (-O0,
-# MATCHED 343/343, TRUNCATE 0x55C clips the -O0 trailing pad word);
-# tail3a_10540 keeps {10A9C, 10AA8} at -O2 -g3 (0x14 content, TRUNCATE 0x14).
+# MATCHED 343/343, TRUNCATE 0x55C clips the -O0 trailing pad word).
+# 2026-09-05: tail3a_10540 -> o0_10A9C (-O0): the 2-word "func_00010AA8" was
+# 10A9C's dead -O0 `$exit` pair (fall-off fn: our -O0 emits the 0xC body + ONE
+# pair = 0x14, nothing to clip but IDO's section pad; 102A4 precedent).
 build/src/bootup_uso/bootup_uso_o0_10540.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_10540.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_10540.c.o: TRUNCATE_TEXT := 0x55C
 build/non_matching/src/bootup_uso/bootup_uso_o0_10540.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x55C
-build/src/bootup_uso/bootup_uso_tail3a_10540.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a_10540.c.o: OPT_FLAGS := -O2 -g3
-build/src/bootup_uso/bootup_uso_tail3a_10540.c.o: TRUNCATE_TEXT := 0x14
-build/non_matching/src/bootup_uso/bootup_uso_tail3a_10540.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x14
+build/src/bootup_uso/bootup_uso_o0_10A9C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_10A9C.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_10A9C.c.o: TRUNCATE_TEXT := 0x14
+build/non_matching/src/bootup_uso/bootup_uso_o0_10A9C.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x14
 build/src/bootup_uso/bootup_uso_o0_10AB0.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_10AB0.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_10AB0.c.o: TRUNCATE_TEXT := 0xBC
 build/non_matching/src/bootup_uso/bootup_uso_o0_10AB0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0xBC
