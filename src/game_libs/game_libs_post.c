@@ -10002,29 +10002,23 @@ void gl_func_000272C4(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000272C4);
 #endif
 
-#ifdef NON_MATCHING
-/* game_libs_func_00027300: a0*352-strided lookup returning a signed byte, or
- * -1 when the slot's 0x2D00 word is non-negative.
+/* game_libs_func_00027300: a0*352-strided record lookup. If the record's
+ * 0x2D00 word has its sign bit set, return the signed byte at
+ * record->0x2D38[a1] + a2 + 0xD4; otherwise return -1.
  *
- * 2026-06-20 (agent-i): BODY now BYTE-EXACT for all 18 own-words (was 12 diffs,
- * now 3). Levers that cracked the regalloc cascade:
- *   - `if ((unsigned)v >> 31) { ... } return -1;` (NOT the ternary) frees $v0
- *     for the return so the *352 base lands in $v1 (target's 01CF1821), the
- *     loaded byte goes straight to $v0, and the -1 epilogue is `li v0,-1`.
- *   - array-index `((int*)(p+0x2D38))[a1]` gives `addu t1, v1, t0` in the
- *     target's operand order (was `addu t1, t0, v1`).
- *   - splitting the inner pointer into `char *q` makes IDO reuse the dead $a0
- *     param for the load (`lw a0,...(t1)`; `addu t2,a0,a2`).
- * The ONLY residual: the `return -1` here is a SELF-CONTAINED 3-word epilogue
- * (li v0,-1; jr; nop) appended to this symbol, whereas the target shares it as
- * the SEPARATE adjacent symbol game_libs_func_00027348 — 27300's `beql` branches
- * PAST its own end (0x2734C) into 27348's `jr`. That is an IDO cross-function
- * tail-merge that C cannot force: making 27348 a real `return -1` function makes
- * IDO EITHER inline the epilogue into 27300 (21-word symbol, no merge) OR emit a
- * duplicate 2-word 27348 — never the target's beql-crosses-boundary split. So
- * the two-symbol byte layout (27300=0x48 + 27348=0xc) is unreachable from C;
- * INCLUDE_ASM stays the build path. Sibling of game_libs_func_00026AF8 (matched,
- * void return → base in $v0). See feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
+ * 2026-09-05 (agent-c): BYTE-EXACT after a boundary merge. The former
+ * game_libs_func_00027348 (li v0,-1; jr ra; nop) was never a function: its
+ * first word is a byte-identical copy of this function's `beql t9,zero` delay
+ * slot at 0x27330 and the beql targets 0x2734C = 27348+4 -- IDO's branch-likely
+ * dup-first-insn idiom (the target block's first insn is copied into the
+ * delay slot and the branch retargeted to block+4; the original stays as dead
+ * code). generate-uso-asm cut at the early `jr ra`. Both prior "cross-function
+ * tail-merge cap" / "regalloc cap" notes were wrong: the 21-word merged .s IS
+ * what this C compiles to. See docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block.
+ * Shape keys (unchanged from the 2026-06-20 body): `(unsigned)v >> 31` test
+ * (not the ternary), array-index `((int*)(p+0x2D38))[a1]`, and the split
+ * `char *q` inner pointer. Sibling of game_libs_func_00026AF8. */
 int game_libs_func_00027300(int a0, int a1, int a2) {
     char *p = (char *)&D_00000000 + a0 * 352;
     if ((unsigned int)*(int *)(p + 0x2D00) >> 31) {
@@ -10033,20 +10027,6 @@ int game_libs_func_00027300(int a0, int a1, int a2) {
     }
     return -1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027300);
-#endif
-
-/* game_libs_func_00027348: NOT a standalone -g3 return-(-1) stub — it is
- * game_libs_func_00027300's `-1` tail (its `beqzl t9,zero` at 0x27330 branches
- * to 0x2734C = this symbol's `jr ra`, with `li v0,-1` in the beqzl delay).
- * splat's jr-ra heuristic over-split it. The true 21-insn function is one unit;
- * keeping it INCLUDE_ASM because the merged C is a regalloc cap (~47%: target's
- * $v1/$t8/$t9 numbering through the *352-stride body doesn't match cc's, plus
- * the cross-fn -1 epilogue). Do NOT spend -g3 infra on this — it's not an
- * unfilled-delay stub. (Boundary not physically merged: merge gains nothing
- * while the body stays a regalloc cap.) */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00027348);
 
 signed char game_libs_func_00027354(int a0, int a1) {
     return *(signed char *)((char *)&D_00000000 + a0 * 352 + a1 + 0x2E58);
