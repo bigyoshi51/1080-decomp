@@ -9789,37 +9789,16 @@ int game_uso_func_0000C3CC(int a0, int a1) {
     return *(int*)((char*)(*(int**)&D_00000000) + (a1 << 6) + 0x30);
 }
 
-/* game_uso_func_0000C3E8: CAP (IDO dead-arg-home delay-slot fill, not TU-context).
- * Correct C is `int f(int a0){ return *(int*)&D_00000000; }`.
- * TARGET: lui v0; lw v0,0(v0); jr ra; sw a0,0(sp) (the dead a0 home fills the jr
- * delay slot, load stays before jr).
- * 2026-05-30 CORRECTION (disproves the old TU-context claim): compiling this C
- * ALONE (its own .o, project -O2 flags, objdump'd) does NOT match -- it emits
- * lui v0; sw a0,0(sp); jr ra; lw v0,0(v0), with the LOAD in the delay slot and
- * the home store before jr (the exact opposite delay-slot pick from target). So
- * the divergence is NOT TU-context-sensitive and NOT a Yay0 file-split candidate
- * (isolation reproduces the same miss). It is IDO's dead-arg-home scheduling: the
- * home `sw a0,0(sp)` is independent and ready immediately, so IDO/the assembler
- * floats the LOAD into the jr delay and emits the store early. To match, IDO must
- * emit `lui; lw; sw; j` (store last) so the assembler delay-fills with the store;
- * no C structure forces a dead-arg home to schedule after the return load.
- * NEGATIVE (2026-05-30, standalone IDO 7.1 -O2, objdump-verified): `__asm__("")`
- * barrier -> full stack frame (breaks leaf); `volatile int*` load -> 5-insn la+lw
- * pointer form (lui+addiu+lw, wrong); `v+a0-a0` -> addu/subu kept (wrong). Prior
- * tries (volatile *p=&a0, self-store, reorder) also negative. Genuine NM cap. */
-/* 2026-06-10 census note: this fn re-surfaced in the cross-USO tiny-leaf
- * byte-signature scan; re-confirmed as the documented cap (no new lever
- * applies -- the sw-a0-home-in-jr-delay leaf shape remains C-unreachable).
- * The tiny-leaf scan vein is now exhausted project-wide; see
- * docs/MATCHING_WORKFLOW "template scans filter by cdef presence". */
-#ifdef NON_MATCHING
+/* game_uso_func_0000C3E8: EXACT 2026-09-05 (agent-g). The former "dead-arg-home
+ * delay-slot CAP" was a SOURCE-LINE-LAYOUT artifact, not a compiler cap. IDO's
+ * scheduler tie-breaks the independent arg-home store `sw a0,0(sp)` against the
+ * return load by source line: with `return` on its OWN line the store keeps its
+ * entry-line position and the load takes the jr delay (lui;sw;jr;lw); with
+ * `return` on the SAME line as the function's `{` the store sinks into the jr
+ * delay (lui;lw;jr;sw = target). Keep this definition on ONE line.
+ * See docs/IDO_CODEGEN.md#same-line-brace-return-sinks-arg-home-c3e8. */
 extern int game_uso_D_807FFBC4;
-int game_uso_func_0000C3E8(int a0) {
-    return game_uso_D_807FFBC4;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_0000C3E8);
-#endif
+int game_uso_func_0000C3E8(int a0) { return game_uso_D_807FFBC4; }
 
 /* game_uso_func_0000C3F8: 37-insn alloc-and-iter constructor. MATCHED 2026-06-20.
  *   func_C0F0(&D_807FFBC4);                   // setup, base held in $s3
