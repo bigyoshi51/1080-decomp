@@ -566,32 +566,57 @@ int gl_func_00034A54() {
 //   takes the saved a0; (4) added missing stores (0x3B8F6=13,
 //   0x3B8F9=1, 0x3B900=0), two trailing cbs (0x3B904,96 / 0x3B8F0),
 //   and the ALWAYS-run self-pointer *(int*)0x3B8EC = 0x3B8F0.
-//   RESIDUAL (63->100): IDO CSEs the twice-referenced 0x3B8FC (gate
-//   load + store) into a lui+ori const register; the target recomputes
-//   it as lui 0x4 + (-18180) each time (no CSE). Address-CSE-form cap
-//   on a compile-time-constant address (can't break — constant-folded).
-//   Name pre-checked: no extern reuse.
+//   2026-09-05 (agent-g, source=2 sibling of 349E0): address-FORM fix, 63->~95%.
+//   The old body wrote the config block through absolute-constant casts
+//   (`*(int*)0x3B8FC`), which IDO folds to a CSE'd `lui 3; ori` register
+//   (224 vs 236 bytes, 3 words short).  The target's every access is a
+//   `%hi/%lo` SYMBOL pair (`lui at,4; sb tN,-0x470C(at)`) = a base-0 USO data
+//   symbol + 0x3B8xx, one lui per access.  Rewritten with per-site aliases
+//   (the 349E0 recipe, undefined_syms_auto.txt): D_34A78_rec is the record
+//   pointer read twice (adjacent same-symbol reads DO hold a `lui v0; addiu
+//   v0` base -- matches the target's v0), D_34A78_b / _c are the two stored
+//   &D values (distinct symbols -> their own `lui t6/t8; addiu`), and the
+//   config block is gl_ref_0003B8xx per address, with the 0x3B8FC gate load
+//   and store on separate aliases so neither CSEs.  Word count now exact.
+//   RESIDUAL (2 schedule artifacts, 5 insns): (1) target groups the 0x3B8F6/F7
+//   byte pair as `li t4,13; li t5,2; sb t5,F7(at); sb t4,F6(at)` under ONE
+//   `lui at` (LIFO store order); we emit `lui;li;sb;lui;li;sb`.  Every
+//   same-symbol form (array/struct/volatile/TU-defined/static/short-cast)
+//   reproduces the LIFO pair but materializes `lui v0; addiu v0` instead of
+//   `at` (t5..t34 in scratch); pack(1) odd-offset splits with `srl`; a
+//   `short` is always `sh`.  (2) `addiu a0,a0,0xB904` sits before `sw zero,
+//   0xB900(at)` in the target (IDO ordered `la a0` ahead of the store); we
+//   get the store first.  Same-struct count/buf (t29/t30) does not change it.
+//   -O3 / -mips1 / -g3 / -O1 all worse or unchanged.  Hypothesis for next
+//   pass: the pair + zero-store come from one aggregate/struct write form
+//   uopt keeps symbol-relative; try a defined-in-TU struct with -O2 -Olimit
+//   or the regalloc/uopt dump (docs/IDO_CODEGEN.md uoptlist).
 #ifdef NON_MATCHING
+extern int D_34A78_rec, D_34A78_b, D_34A78_c;   /* per-site aliases of D_00000000 */
+extern signed char gl_ref_0003B8F4, gl_ref_0003B8F5, gl_ref_0003B8F6, gl_ref_0003B8F7,
+                   gl_ref_0003B8F8, gl_ref_0003B8F9;
+extern int gl_ref_0003B8EC, gl_ref_0003B8F0, gl_ref_0003B8FC, gl_ref_0003B8FC_st,
+           gl_ref_0003B900, gl_ref_0003B904;
 void gl_func_00034A78(int a0) {
     gl_func_00000000();                                 /* cb1 (a0 saved in delay) */
     gl_func_00000000();                                 /* cb2 */
     gl_func_00000000(a0);                               /* cb3(a0) */
     gl_func_00000000(a0);                               /* cb4(a0) */
-    *(int *)(*(char **)((char *)&D_00000000 + 0) + 0x8C) = (int)&D_00000000;
-    *(int *)(*(char **)((char *)&D_00000000 + 0) + 0x90) = (int)&D_00000000;
-    if (*(int *)0x0003B8FC != (int)0xA8000000) {        /* config block at 0x3B8Fx (lui 0x4) */
-        *(signed char *)0x0003B8F4 = 3;
-        *(int *)0x0003B8FC = (int)0xA8000000;           /* KSEG1 uncached buffer base */
-        *(signed char *)0x0003B8F5 = 5;
-        *(signed char *)0x0003B8F8 = 12;
-        *(signed char *)0x0003B8F6 = 13;
-        *(signed char *)0x0003B8F7 = 2;
-        *(signed char *)0x0003B8F9 = 1;
-        *(int *)0x0003B900 = 0;
-        gl_func_00000000((char *)0x0003B904, 96);
-        gl_func_00000000((char *)0x0003B8F0);
+    *(int *)(*(char **)&D_34A78_rec + 0x8C) = (int)&D_34A78_b;   /* back-link record -> root */
+    *(int *)(*(char **)&D_34A78_rec + 0x90) = (int)&D_34A78_c;
+    if (gl_ref_0003B8FC != (int)0xA8000000) {           /* KSEG1 buffer base not yet installed */
+        gl_ref_0003B8F4 = 3;
+        gl_ref_0003B8FC_st = (int)0xA8000000;
+        gl_ref_0003B8F5 = 5;
+        gl_ref_0003B8F8 = 12;
+        gl_ref_0003B8F6 = 13;
+        gl_ref_0003B8F7 = 2;
+        gl_ref_0003B8F9 = 1;
+        gl_ref_0003B900 = 0;
+        gl_func_00000000(&gl_ref_0003B904, 96);
+        gl_func_00000000(&gl_ref_0003B8F0);
     }
-    *(int *)0x0003B8EC = 0x0003B8F0;                    /* self-pointer (always) */
+    gl_ref_0003B8EC = (int)&gl_ref_0003B8F0;            /* self-pointer (always) */
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034A78);

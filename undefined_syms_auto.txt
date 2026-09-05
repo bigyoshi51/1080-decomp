@@ -3409,3 +3409,18 @@ game_libs_func_000343F4_rodata = 0x000019B8;  /* switch(a0) 8-entry jumptable (c
 D_33444_a = 0x00000000;  /* game_libs_func_00033444 per-site alias of D_00000000 (defeats &D CSE: counter load must stay folded `lui t6; lw t6,0x20C(t6)` while the call arg holds `lui a0; addiu a0`) */
 D_349E0_a = 0x00000000;  /* game_libs_func_000349E0 per-site alias of D_00000000 (defeats &D CSE: the `|= 4` / `&= ~4` load and store must each fold under their own lui; adjacent same-symbol accesses hold a base) */
 D_349E0_b = 0x00000000;  /* game_libs_func_000349E0 per-site alias of D_00000000 for the three call-site args (accesses separated by a call re-lui on their own, so one alias serves all three) */
+D_34A78_rec = 0x00000000;  /* gl_func_00034A78 per-site alias of D_00000000: record pointer read twice (adjacent same-symbol reads hold the target's `lui v0; addiu v0` base) */
+D_34A78_b = 0x00000000;  /* gl_func_00034A78 per-site alias of D_00000000: &D stored at record+0x8C (own `lui t6; addiu`) */
+D_34A78_c = 0x00000000;  /* gl_func_00034A78 per-site alias of D_00000000: &D stored at record+0x90 (own `lui t8; addiu`) */
+gl_ref_0003B8EC = 0x0003B8EC;  /* gl_func_00034A78 config block (base-0 USO data + 0x3B8xx): self-pointer slot */
+gl_ref_0003B8F0 = 0x0003B8F0;  /* gl_func_00034A78 config block: init target / self-pointer value */
+gl_ref_0003B8F4 = 0x0003B8F4;  /* gl_func_00034A78 config block byte = 3 */
+gl_ref_0003B8F5 = 0x0003B8F5;  /* gl_func_00034A78 config block byte = 5 */
+gl_ref_0003B8F6 = 0x0003B8F6;  /* gl_func_00034A78 config block byte = 13 */
+gl_ref_0003B8F7 = 0x0003B8F7;  /* gl_func_00034A78 config block byte = 2 */
+gl_ref_0003B8F8 = 0x0003B8F8;  /* gl_func_00034A78 config block byte = 12 */
+gl_ref_0003B8F9 = 0x0003B8F9;  /* gl_func_00034A78 config block byte = 1 */
+gl_ref_0003B8FC = 0x0003B8FC;  /* gl_func_00034A78 config block: KSEG1 base gate LOAD (alias split from the store so neither CSEs) */
+gl_ref_0003B8FC_st = 0x0003B8FC;  /* gl_func_00034A78 config block: KSEG1 base STORE alias */
+gl_ref_0003B900 = 0x0003B900;  /* gl_func_00034A78 config block word = 0 */
+gl_ref_0003B904 = 0x0003B904;  /* gl_func_00034A78 config block: 96-byte buffer passed to init cb */
