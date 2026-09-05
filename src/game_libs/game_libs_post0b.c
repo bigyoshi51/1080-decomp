@@ -20124,30 +20124,14 @@ int gl_func_0004D02C(char *a0) {
     return gl_ref_00056C5C(a0 + 0x10);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0004D05C: 10-insn 1-call wrapper.
- *
- * 2026-05-17 size-LEN fix: bare body `gl_func(&D);` emitted 9 insns
- * (missing the leading arg-home `sw a0, 0x18(sp)`). Added `(void)a0;`
- * after the call → IDO emits `sw a0, 0x18(sp)` at insn 1 (a0 is now
- * live across the call). Got to 10 insns matching target size.
- *
- * Residual cap (~20%): IDO emits `sw ra; lui a0` order; target has
- * `lui a0; sw ra` order. Same scheduler cap class as gl_func_000333F4
- * (`feedback_ido_o2_tiny_wrapper_unflippable.md`). 2-insn swap is
- * INSN_PATCH-class but the lui's R_MIPS_HI16 reloc moves with it; not
- * trivially patchable. Default INCLUDE_ASM remains the build path. */
+/* gl_func_0004D05C: ONE-LINE DEFINITION IS LOAD-BEARING -- do not re-wrap.
+ * Target prologue is `addiu sp; sw a0,0x18(sp); lui a0; sw ra` (lui BEFORE
+ * sw ra). The unused a0 is homed by `(void)a0;`; the lui/sw-ra order is the
+ * IDO 7.1 -O2 source-line tie-break (sw ra belongs to the entry line, lui
+ * to the call line) -- the call must share the `{` line.
+ * See docs/IDO_CODEGEN.md#same-line-brace-call-wrapper-lui-a0-sw-ra. */
 extern int gl_func_00000000();
-void gl_func_0004D05C(int a0) {
-    /* &D+0x201B0 (defined base) resolves inline, fixing the gl_ref reloc cap;
-     * residual is a 2-byte in-tree prologue swap (sw ra / lui a0), a full-TU
-     * scheduling cap (standalone matches). */
-    gl_func_00000000((char *)&D_00000000 + 0x201B0);
-    (void)a0;
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004D05C);
-#endif
+void gl_func_0004D05C(int a0) { gl_func_00000000((char *)&D_00000000 + 0x201B0); (void)a0; }
 
 void gl_func_0004D084(int *a0) {
     (*(int(**)())((char*)a0 + 0x4))(*(int*)((char*)a0 + 0x8), a0);
