@@ -1,0 +1,33 @@
+{
+  "function_name": "func_000122C4",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-09-05T23:55:15.073971+00:00",
+  "end_time": "2026-09-05T23:55:15.073987+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-05T23:55:15.073983+00:00",
+      "assistant_text": "Manual exact match (75 insns, -O0 unit bootup_uso_tail3b_top, TRUNCATE_TEXT 0x12C strips the 16-byte .text pad). Scripted-sequence step gate: a0->0x154 seq struct (u16 step at +2), a0->0x4C score, a1 event id; steps <4 advance when a1+1 == step, step 4 needs a1 == 2 and score+1 == D_0000C69C[step-4] via a 3-int stack copy with the -4 folded into the sp offset. The 8-word residual (target evaluates score+1 BEFORE the dynamic stack-table chain, DAG-sharing the a0 home load) closed by spelling the compare as tbl_view[step] == (0, score + 1): the RIGHT-side comma node ranks non-leaf so cfe evaluates it first in a plain t-reg (docs/IDO_CODEGEN.md#feedback-ido-o0-eq-eval-order-gap, extended here to a deref+add chain vs a deref chain). Other levers already in place: repeated cast-deref chain inside one && DAG-shares to one lhu; register char *st for the RMW seq ptr in $s0; two-level typed member chain keeps a1+1 first in the step<4 guard.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 75,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n\n/* func_00012188 (0x12188, struct initializer) and func_00012244 (0x12244,\n * -O0 set-bit-and-call helper) matched at -O0 and moved to\n * bootup_uso_o0_120A8.c (the adjacent -O0 run-8 file). See that file. */\n\n/* func_000122C4 (0x12C, 75 insns, -O0): scripted-sequence step gate, EXACT\n * 2026-09-05 (agent-c). a0->0x154 = ptr to a sequence-state struct whose\n * u16 at +2 is the current step; a0->0x4C = a progress/score value; a1 = an\n * event/phase id. Steps 0..3 advance when a1+1 == step; step 4 additionally\n * needs a1 == 2 and score+1 == D_0000C69C[step-4] (3-int table copied to a\n * stack tbl; the -4 is folded into the sp offset). func_00000000(a0) is the\n * \"advance to next scripted step\" callback (runtime-patched reloc).\n *\n * Levers that made it match (all documented in docs/IDO_CODEGEN.md):\n * (1) cfe DAG-shares a REPEATED cast-deref chain within ONE `&&` at -O0:\n *     `if (chain >= 4 && chain < 5)` emits ONE lhu + slti/slti (no local).\n * (2) `register char *st;` for the RMW seq ptr -> $s0 in both increment\n *     blocks (an `unsigned short *` register var flips block1's operand rank).\n * (3) block1 guard `a1 + 1 == ((Obj22C4*)a0)->seq->step` -- the two-level\n *     typed member chain keeps textual (a1+1 first) order.\n * (4) THE FORMER 8-WORD \"CAP\" (target evaluates score+1 BEFORE the dynamic\n *     stack-table chain, sharing the a0 home load in $t6): spell the compare\n *     with the table chain on the LEFT and the score side wrapped in a\n *     RIGHT-side comma, `tbl_view[step] == (0, score + 1)` -- the comma node\n *     is ranked non-leaf and evaluated first in a plain t-reg, exactly the\n *     #feedback-ido-o0-eq-eval-order-gap lever (10FEC). The 76th word is the\n *     assembler's 16-byte .text pad, stripped by TRUNCATE_TEXT := 0x12C. */\ntypedef struct { int a, b, c; } Tbl3;\nextern Tbl3 D_0000C69C;\ntypedef struct Seq22C4 { unsigned short h0; unsigned short step; } Seq22C4;\ntypedef struct TblView22C4 { int v[3]; } TblView22C4;\ntypedef struct Obj22C4 { char pad0[0x4C]; int score; char pad1[0x104]; Seq22C4 *seq; } Obj22C4;\nvoid func_000122C4(char *a0, int a1) {\n    Tbl3 tbl;\n    register char *st;\n    tbl = D_0000C69C;\n    if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) < 4) {\n        if (a1 + 1 == ((Obj22C4*)a0)->seq->step) {\n            st = *(char**)(a0 + 0x154);\n            *(unsigned short*)(st + 2) += 1;\n            func_00000000(a0);\n        }\n    } else {\n        if (a1 == 2) {\n            if (*(unsigned short*)(*(char**)(a0 + 0x154) + 2) >= 4 &&\n                *(unsigned short*)(*(char**)(a0 + 0x154) + 2) < 5) {\n                if (((TblView22C4*)((char*)&tbl - 0x10))->v[((Obj22C4*)a0)->seq->step] == (0, ((Obj22C4*)a0)->score + 1)) {\n                    st = *(char**)(a0 + 0x154);\n                    *(unsigned short*)(st + 2) += 1;\n                    func_00000000(a0);\n                }\n            }\n        }\n    }\n}\n\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_tail3b_top.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_000122C4.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified: build/src .text byte-identical to expected/ (mips-linux-gnu-objdump -M no-aliases + relocs), tenshoe.z64 cmp byte-identical, report.json 100.0 with C on the build path."
+  }
+}
