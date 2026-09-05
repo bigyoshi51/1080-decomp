@@ -2580,24 +2580,49 @@ int gl_func_000665B4(int a0) {
 }
 
 
-/* game_libs_func_00066620: leaf-branch-past-end CAP per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066620);
+/* game_libs_func_00066620: singly-linked-list remove-by-key (SUB-FUNCTION 2 of
+ * the 665B4 bundle notes above). Node { int key; Node *next; }, List { Node *head; }.
+ *
+ * 0x54 / 21 words, BYTE-EXACT 2026-09-05 (agent-c). Boundary merge of THREE
+ * symbols: the former "game_libs_func_00066650" (3w: lw t8,4(v0); jr ra;
+ * sw t8,4(v1) = the prev->next unlink arm, "caller-set v0/v1 CAP") and
+ * "game_libs_func_0006665C" (6w: move v1,v0; lw v0,4(v0); bnel v0,zero,loop;
+ * lw t6,0(v0); jr ra; nop = the loop advance + shared return) were this
+ * function's own blocks: bnel a1,t6 @0x66634 -> 0x66660 = 6665C+4 (dup
+ * `move v1,v0` in its delay slot), bnezl v1 @0x6663C -> 0x66654 = 66650+4 (dup
+ * `lw t8,4(v0)`), the back-edge bnel @0x66664 -> 0x66634 = loop+4 (dup
+ * `lw t6,0(v0)`), and the entry beqz -> the shared `jr ra; nop`. IDO
+ * branch-likely dup-first-insn idiom, see docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block.
+ *
+ * Shape: `cur` initialised BEFORE `prev` (first-occurrence colouring order puts
+ * cur in v0 / prev in v1; the other order swaps them, 14 words off); null-prev
+ * arm (head unlink) written FIRST so the prev->next arm is the trailing
+ * bnezl target. */
+typedef struct Node66620 {
+    int key;
+    struct Node66620 *next;
+} Node66620;
+typedef struct {
+    Node66620 *head;
+} List66620;
+void game_libs_func_00066620(List66620 *list, int key) {
+    Node66620 *cur = list->head;
+    Node66620 *prev = 0;
 
-/* game_libs_func_00066650: 3-insn `v1[1] = v0[1]; return` field-copy.
- * No prologue — both $v0 and $v1 are caller-set state-ptr args. IDO C
- * can't emit functions that read v0/v1 as inputs (the calling convention
- * is a0..a3). CAP class per feedback_caller_set_int_reg_cap_1080_game_libs.
- * Default INCLUDE_ASM keeps ROM byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00066650);
-
-/* game_libs_func_0006665C: 6-insn tail-fragment of a list-walk loop:
- *   move v1,v0; lw v0,4(v0); bnel v0,zero,-0x34; lw t6,0(v0); jr ra; nop
- * Caller-set $v0 (loop iterator) + backward branch -0x34 to 0x66634
- * (BEFORE this .s start 0x6665C — splat boundary error). The actual
- * function spans from earlier (where the loop top + initial $v0 are) to
- * here. CAP class — needs splat boundary correction. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006665C);
+    while (cur != 0) {
+        if (cur->key == key) {
+            if (prev == 0) {
+                list->head = cur->next;
+            } else {
+                prev->next = cur->next;
+            }
+            return;
+        }
+        prev = cur;
+        cur = cur->next;
+    }
+}
 
 #ifdef NON_MATCHING
 /* gl_func_00066674: append node to a singly-linked list.
