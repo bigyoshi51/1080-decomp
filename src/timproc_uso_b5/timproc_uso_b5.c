@@ -1261,23 +1261,25 @@ void timproc_uso_b5_func_00001C08(char *st) {
     }
 }
 
-#ifdef NON_MATCHING
-/* 9-insn flag-check + indexed-load with branch-to-empty-next-function as
- * implicit early-return (cap class: IDO won't emit `bne; ...; <fall to
- * empty next>` from a `return 0` since the empty function 0x1D14 is just
- * `jr $ra; nop`). NM body captures logic; build path keeps INCLUDE_ASM. */
+/* timproc_uso_b5_func_00001CF0 (0x2C after absorbing the former
+ * timproc_uso_b5_func_00001D14 "empty function" at 0x1D14): with
+ * a0->i_30 == 2, returns the (a1^1)-indexed pair member at a0+0x34; else 0.
+ * 2026-09-05 (agent-g): BYTE-EXACT (11/11). The old "leaf-branch-past-end
+ * CAP" was a mis-split: the `bne` past the 9-word symbol lands on the fn's
+ * OWN `jr ra; nop` return-0 exit block (the IDO -O2 preset-default
+ * `move v0,zero` sits in the bne delay slot), which generate-uso-asm cut off
+ * at the preceding `jr ra` and a stub episode then "matched" as
+ * `void f(void){}`. Arm order matters: the non-null arm must come FIRST
+ * (`if (==2) return load; return 0;`) so the load falls through and the
+ * return-0 block is the branch target; `if (!=2) return 0;` inverts the
+ * layout (beq + return-0 fallthrough). See docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block. */
 int timproc_uso_b5_func_00001CF0(int *a0, int a1) {
-    if (*(int*)((char*)a0 + 0x30) != 2) {
-        return 0;
+    if (*(int*)((char*)a0 + 0x30) == 2) {
+        return *(int*)((char*)a0 + 0x34 + 4 * (a1 ^ 1));
     }
-    return *(int*)((char*)a0 + 0x34 + 4 * (a1 ^ 1));
+    return 0;
 }
-#else
-/* timproc_uso_b5_func_00001CF0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00001CF0);
-#endif
-
-void timproc_uso_b5_func_00001D14(void) {}
 
 /* timproc_uso_b5_func_00001D1C (0x94 after merging the 1D60 fragment AND
  * the 1DA4 "return-1 leaf" -- see below). Pair-state comparator: with
