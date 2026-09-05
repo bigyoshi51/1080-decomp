@@ -6264,91 +6264,31 @@ store_out:
 INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007538);
 #endif
 
-/* 9-insn body with cross-function `beql v1, zero, +7` to 7ABC+4 — see the
- * detailed note inside the NON_MATCHING block below (via-f2 form is C-reachable;
- * residual is the whole-file cross-jump into 7ABC's mis-split tail). The old
- * PREFIX_BYTES + INSN_PATCH "promotion recipe" that was here is removed — that
- * mechanism was banned 2026-05-23 as match-faking. */
-#ifdef NON_MATCHING
-/* Decoded 2026-05-28; via-f2 form found 2026-05-31. Returns the float delta:
- *   v0 = a0->0x30; v1 = v0->0x908;
- *   if (v1 == 0) return 0.0f;            // beql v1,0 -> shared 7ABC epilogue
- *   return v1->0xBC - v0->0xBC;
- *
- * UPDATE 2026-05-31: the old "C can't reproduce the via-$f2 tail" claim was
- * WRONG. A single-return NAMED LOCAL (`float ret; if(v1==0) ret=0; else
- * ret=sub; return ret;`) makes IDO route the result through $f2 and emit
- * exactly `sub.s f2,f4,f6 ; jr ra ; mov.s f0,f2` (non-null) and `mtc1 zero,f2
- * ; jr ra ; mov.s f0,f2` (null) — register-identical to the target. The
- * residual is ONLY layout: target is 9 insns (null path uses a forward `beql`
- * into 7ABC's shared `jr ra; mov.s f0,f2`); C-emit gives 12 (bnezl-skip with
- * its own inline null epilogue). 7ABC has NO independent callers (verified:
- * no jal/reloc/symname references it) — it is 7A98's MIS-SPLIT 0.0f-return
- * tail. The 9-insn form needs IDO's whole-file cross-jump to merge 7A98's null
- * tail into 7ABC, which requires 7ABC's body to ALSO be `mtc1 zero,f2; jr ra;
- * mov.s f0,f2` — but a constant-0 return copy-propagates to $f0 (probed
- * named-local/volatile/int-store 2026-05-31, all give `mtc1 zero,f0` or a
- * stack ping-pong, never $f2). So the cross-jump can't bootstrap from C as two
- * separate functions. A combined 7A98+7ABC merge sandbox was already tested and
- * failed (see docs/MATCHING_WORKFLOW.md cross-function-tail-share unmatchable
- * standalone note); do not retry the merge path without a genuinely new
- * mechanism. Body below is the via-f2 reference (closer than the prior
- * direct-f0). */
+/* game_uso_func_00007A98 (13 insns, 0x34): returns the float delta
+ *   v0 = a0->0x30; v1 = v0->0x908;  v1 ? v1->0xBC - v0->0xBC : 0.0f
+ * BOUNDARY MERGE 2026-09-05: the former "game_uso_func_00007ABC" (4 insns at
+ * 0x7ABC: mtc1 zero,f2; nop; jr ra; mov.s f0,f2) was NOT a function and NOT a
+ * cross-function tail-share cap. It is this function's own null-path block:
+ * IDO's branch-likely idiom copies the target block's FIRST insn (mtc1 zero,f2)
+ * into the beql delay slot and retargets to block+4, leaving the original mtc1
+ * in place as dead code. The generate-uso-asm splitter saw the `jr ra` at 0x7AB4
+ * and cut the null block off as a separate symbol. Merged back (asm .s + C).
+ * Match keys: named single-return local (routes the result via $f2) AND the
+ * non-null arm written FIRST (`if (v1 != 0) ... else 0.0f`) so IDO lays out
+ * {non-null; jr ra; null; jr ra} with a forward beql. The old `if (v1 == 0)`
+ * ordering emits bnezl-skip with the null epilogue inline (12 insns, the
+ * "cap" every prior note described). */
 float game_uso_func_00007A98(int *a0) {
     int *v0 = (int *)a0[0x30 / 4];
     int *v1 = (int *)v0[0x908 / 4];
     float ret;
-    if (v1 == 0) {
-        ret = 0.0f;
-    } else {
+    if (v1 != 0) {
         ret = *(float *)((char *)v1 + 0xBC) - *(float *)((char *)v0 + 0xBC);
+    } else {
+        ret = 0.0f;
     }
     return ret;
 }
-#else
-/* game_uso_func_00007A98: leaf-branch-past-end CAP -- RESOLVED PAIR
- * 2026-06-10: the beqzl targets 0x7AC0 = game_uso_func_00007ABC+4!
- * 7ABC is NOT a standalone fn: it is THIS fn's shared else-tail
- * (v1==0 path: f2=0 via the delay mtc1, then 7ABC's nop/jr/cvt.s.w
- * returns (float)int(f2)), with 7ABC's own first insn (mtc1 zero,f2)
- * being a 1-insn alt-entry prefix for direct jal callers wanting
- * return-0.0f. This EXPLAINS 7ABC's 18-combo-negative unfolded cvt:
- * the zero arrives at RUNTIME from either entry, so the conversion
- * cannot constant-fold. Two-entry shared-tail class; both symbols
- * permanently INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007A98);
-#endif
-
-/* 4-insn body `mtc1 $0,$f2; nop; jr ra; mov.s $f0,$f2` — returns 0.0f via $f2.
- * NOT an independent function: NOTHING calls 7ABC (no jal/reloc/symname ref,
- * verified 2026-05-31). It is the MIS-SPLIT shared 0.0f-return tail of 7A98 —
- * 7A98's null path `beql v1,0` lands at 7ABC+4 (0x7AC0), reusing this
- * `jr ra; mov.s f0,f2`; the `mtc1 $0,$f2`@7ABC itself is dead (the beql delay
- * slot already set $f2). `return 0.0f` in isolation emits `mtc1 $0,$f0`
- * (direct) — the $f2 form is purely a consequence of IDO's whole-file
- * cross-jump unifying this tail with 7A98's $f2 tail, which C can't bootstrap
- * (see 7A98's note: 7ABC-isolation always copy-propagates to $f0). A combined
- * 7A98+7ABC merge was tested and failed; keep this as an honest standalone NM
- * tail-share cap. Kept INCLUDE_ASM (ROM bytes correct). PREFIX_BYTES/INSN_PATCH
- * promotion removed 2026-05-23 (match-faking, banned).
- *
- * SOURCE=3 audit 2026-06-01: this is still the first discover-by-size result.
- * report.json shows 58.75% for the isolated NM body, and no jal/reloc/symname
- * caller has appeared. This is not a small unstarted function; it is the known
- * cross-tail-share standalone cap.
- * 2026-06-10 conversion-shape sweep (NEGATIVE, 6 shapes x O2/O1/O0):
- * the target keeps `mtc1 zero,$f2; cvt.s.w $f0,$f2` (unfolded int->
- * float of a known-zero), but every C zero-source (literal, local,
- * dead-arg overwrite, x-x, volatile, barrier'd) either folds to a
- * direct `mtc1 zero,$f0` (-O2) or grows a frame (-O1/-O0). The $f2
- * intermediate (a float TEMP, not the return reg) is further context
- * evidence: the cvt's operand web belonged to a larger expression in
- * the original parent. Verdict unchanged; do not re-sweep. */
-#ifdef NON_MATCHING
-float game_uso_func_00007ABC(void) { return 0.0f; }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_00007ABC);
-#endif
 
 #ifdef NON_MATCHING
 /* game_uso_func_00007ACC: 0x150 (84 insns). Function-table dispatcher.
