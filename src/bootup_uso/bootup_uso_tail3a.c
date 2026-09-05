@@ -64,4 +64,6 @@ void func_00010344(void) {
  * 11C70..11D40 .o region is contiguous; they migrate to C bodies in
  * future passes when individually verified at -O0.
  * func_00011D40 split out to bootup_uso_o0_11D40.c on 2026-05-07.
- * func_00011D70 onwards split out to bootup_uso_tail3a_bot.c. */
+ * func_00011D78 onwards split out to bootup_uso_tail3a_bot*.c / o0_11D78.c
+ * (the 2-word "func_00011D70" was func_00011D40's dead -O0 exit pair;
+ * absorbed into o0_11D40.c 2026-09-05). */

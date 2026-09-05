@@ -1,0 +1,33 @@
+{
+  "function_name": "func_00011D40",
+  "project": "1080-agent-c",
+  "model": "claude-manual",
+  "start_time": "2026-09-05T23:04:36.801927+00:00",
+  "end_time": "2026-09-05T23:04:36.801944+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-05T23:04:36.801940+00:00",
+      "assistant_text": "Boundary merge, C unchanged: the 2-word \"func_00011D70\" (jr ra; nop) after this -O0 frameless predicate was ugen dead $exit block, not a function (a standalone -O0 empty fn is b .+1; nop; jr ra; nop, cf. func_00010310). Our IDO -O0 emits two dead pairs after a fn whose last statement is a return, the shipped build one, so TRUNCATE_TEXT 0x30 -> 0x38 keeps exactly one; the -O2 -g3 \"empty fn\" carve unit bootup_uso_tail3a_bot.c was retired. Same class as mgrproc_uso 140+168 (docs/IDO_CODEGEN.md#o0-two-block-predicate-not-adjacent-leaf-cap).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 14,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* -O0 sub-file split out of bootup_uso_tail3a.c so this single function\n * builds at -O0 (matching its target shape) while neighbours stay -O2 -g3.\n * Same recipe as the existing bootup_uso_o0_F1F0.c / o0_F390.c cluster.\n *\n * Body verified byte-for-byte at -O0 (see kept-in-comment trace at\n * tail3a.c's 2026-05-06 RE-DIAGNOSED #2 entry, archived below).\n *\n * 2026-09-05: the 2-word \"func_00011D70\" (jr ra; nop) that followed this\n * fn was never a function -- it is ugen's dead `$exit: j $31` block for\n * THIS fn (last statement is a return, so both return arms emit their own\n * `jr ra` and the exit label block is unreachable). A standalone -O0 empty\n * fn is `b .+1; nop; jr ra; nop` (see func_00010310), never a bare 2-word\n * pair. Our -O0 emits TWO dead pairs, the shipped build ONE, so TRUNCATE_TEXT\n * grew 0x30 -> 0x38 and the -O2 -g3 \"empty fn\" unit bootup_uso_tail3a_bot.c\n * was retired. Same shape as mgrproc_uso 140+168 (docs/IDO_CODEGEN.md\n * #o0-two-block-predicate-not-adjacent-leaf-cap). */\nint func_00011D40(int *a0, int a1) {\n    if (*(int*)((char*)a0 + 0x120) < a1) return 0;\n    return *(int*)((char*)a0 + a1 * 4 + 0xDC);\n}\n",
+  "metadata": {
+    "source_path": "src/bootup_uso/bootup_uso_o0_11D40.c",
+    "asm_path": "asm/nonmatchings/bootup_uso/func_00011D40.s",
+    "segment": "bootup_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with make + cmp tenshoe.z64 baserom.z64 byte-identical; no-alias objdump of build/src/bootup_uso/bootup_uso_o0_11D40.c.o word-for-word equal to the merged .s (14 words); report.json func_00011D40 100.0 size 56."
+  }
+}

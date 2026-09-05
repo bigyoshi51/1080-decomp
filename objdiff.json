@@ -2394,22 +2394,6 @@
    }
   },
   {
-   "name": "src/bootup_uso/bootup_uso_tail3a_bot",
-   "target_path": "expected/src/bootup_uso/bootup_uso_tail3a_bot.c.o",
-   "base_path": "build/non_matching/src/bootup_uso/bootup_uso_tail3a_bot.c.o",
-   "metadata": {
-    "source_path": "src/bootup_uso/bootup_uso_tail3a_bot.c",
-    "progress_categories": [
-     "bootup_uso"
-    ]
-   },
-   "scratch": {
-    "platform": "n64",
-    "compiler": "ido7.1",
-    "c_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul"
-   }
-  },
-  {
    "name": "src/bootup_uso/bootup_uso_tail3a_mid",
    "target_path": "expected/src/bootup_uso/bootup_uso_tail3a_mid.c.o",
    "base_path": "build/non_matching/src/bootup_uso/bootup_uso_tail3a_mid.c.o",

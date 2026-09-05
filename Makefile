@@ -187,14 +187,17 @@ build/src/bootup_uso/bootup_uso_tail3a_mid.c.o: TRUNCATE_TEXT := 0x114
 build/src/bootup_uso/bootup_uso_o0_11C70.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11C70.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_11C70.c.o: TRUNCATE_TEXT := 0xD0
 build/src/bootup_uso/bootup_uso_o0_11D40.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11D40.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_o0_11D40.c.o: TRUNCATE_TEXT := 0x30
-build/non_matching/src/bootup_uso/bootup_uso_o0_11D40.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x30
-build/src/bootup_uso/bootup_uso_tail3a_bot.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a_bot.c.o: OPT_FLAGS := -O2 -g3
-build/src/bootup_uso/bootup_uso_tail3a_bot.c.o: TRUNCATE_TEXT := 0x8
-# 2026-07-10 carve: tail3a_bot (0x11D70..0x120A8) split 5 ways so the two
-# frameless -O0 leaves land file-terminal (trailing dead-pair TRUNCATE):
-# tail3a_bot {11D70} | o0_11D78 | tail3a_bot_11DB4 {11DB4} | o0_11DBC |
-# tail3a_bot_11DF8 {11DF8, 11E00/11ED4/11FA8 NM, 1207C..120A0}.
+# 0x38 = the 0x30 body + the shipped build's ONE dead `$exit: jr ra; nop` pair
+# (0x11D70, formerly the -O2 -g3 "empty fn" unit bootup_uso_tail3a_bot.c, retired
+# 2026-09-05). Our -O0 emits two dead pairs after a frameless fn whose last
+# statement is a return; TRUNCATE clips the second. See docs/IDO_CODEGEN.md
+# #o0-two-block-predicate-not-adjacent-leaf-cap (mgrproc 140+168 precedent).
+build/src/bootup_uso/bootup_uso_o0_11D40.c.o: TRUNCATE_TEXT := 0x38
+build/non_matching/src/bootup_uso/bootup_uso_o0_11D40.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x38
+# 2026-07-10 carve: tail3a_bot (0x11D70..0x120A8) split so the two frameless
+# -O0 leaves land file-terminal (trailing dead-pair TRUNCATE). Layout now:
+# o0_11D40 {11D40 incl. its 11D70 exit pair} | o0_11D78 | tail3a_bot_11DB4
+# {11DB4} | o0_11DBC | tail3a_bot_11DF8 {11DF8, 11E00/11ED4/11FA8 NM, 1207C..120A0}.
 build/src/bootup_uso/bootup_uso_o0_11D78.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_11D78.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_11D78.c.o: TRUNCATE_TEXT := 0x3C
 build/non_matching/src/bootup_uso/bootup_uso_o0_11D78.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x3C

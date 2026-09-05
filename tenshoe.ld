@@ -1347,7 +1347,6 @@ SECTIONS
         build/src/bootup_uso/bootup_uso_tail3a_mid.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_11C70.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_11D40.c.o(.text);
-        build/src/bootup_uso/bootup_uso_tail3a_bot.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_11D78.c.o(.text);
         build/src/bootup_uso/bootup_uso_tail3a_bot_11DB4.c.o(.text);
         build/src/bootup_uso/bootup_uso_o0_11DBC.c.o(.text);
