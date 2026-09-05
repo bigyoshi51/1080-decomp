@@ -137,21 +137,49 @@ void game_libs_func_000097B4(s32 *out, s32 *src, s32 len, s32 key) {
     out[1] = key - sum;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
+/* game_libs_func_0000986C: checksum-pair VERIFIER, sibling of the writer
+ * 97B4 above (same auto-unrolled x4 sum loop, byte-identical bar the blez
+ * delay slot: `lw t2,0(sp)` reload of the homed `out` vs the writer's lui).
+ * Checks out[0] + sum == 0xF251F205 and out[1] + (out[0] - sum) == key.
+ * BYTE-EXACT 2026-09-05 (agent-g) as ONE 54-word function [0x986C,0x9944):
+ * the former symbols 9920 (7w: the second check) and 993C (2w `jr ra; nop`,
+ * "matched" as `void f(void){}` with an episode) were this function's own
+ * blocks, mis-split at each internal `jr ra` -- 986C's `beq t3,at,+3` lands
+ * ON 9920 and 9920's `beq a3,t6,+3` (preset `li v0,1` in the delay slot)
+ * lands ON 993C = the return-1 exit block.  The old "leaf-branch-past-end
+ * cross-fn epilogue CAP" comment covering 9920 was this mis-split.  Keys:
+ * inverted guards (`!= -> return 0`) give the beq-forward + inline return-0
+ * layout; named `chk = out[0]` + destructive `sum = chk - sum` (as in 97B4)
+ * reuse v1/v0; and the last addu's operand order (`addu t6,v0,t5`, sum first)
+ * needs the assignment-expr pin `out[1] + (chk = sum)` -- plain `sum + out[1]`
+ * / `out[1] + sum` both emit the load as rs (docs/IDO_CODEGEN.md
+ * #feedback-ido-fp-commutative-operand-order-assignment-lever, integer form).
+ * See docs/MATCHING_WORKFLOW.md #o0-predicate-misplit-merge-recipe and
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block. */
+int game_libs_func_0000986C(s32 *out, s32 *src, s32 len, s32 key) {
+    s32 sum = 0;
+    s32 i = 0;
+    s32 *q;
+    s32 chk;
 
-/* 0x9xxx leaf-branch-past-end cluster: 12 tiny leaves with forward
- * `beq/bne +small` branches that target at or past function-end (falling
- * into successor's first insn). Cross-fn shared-epilogue tail-merges per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offsets,
- * unmatchable standalone. CAP class. Covers 9920/9944/9B98/9BBC/9CDC/9D00.
- * RETRACTED for 9A2C (merged with 9A48) and for 9A50/9A6C/9A80/9A9C/9AB0
- * (+9AD0): those were one function mis-split at internal `jr ra`s by the
- * beql dup-first-insn idiom -- merged and exact, see game_libs_func_00009A50
- * below. Re-check the remaining six against that fingerprint before trusting
- * this note. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009920);
-
-void game_libs_func_0000993C(void) {}
+    if (len / 4 > 0) {
+        do {
+            q = src;
+            src++;
+            i++;
+            sum += *q;
+        } while (i != len / 4);
+    }
+    chk = out[0];
+    if (sum + chk != 0xF251F205) {
+        return 0;
+    }
+    sum = chk - sum;
+    if (key != out[1] + (chk = sum)) {
+        return 0;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009944);
 
