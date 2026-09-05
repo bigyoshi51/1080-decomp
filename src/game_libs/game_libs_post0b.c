@@ -34653,15 +34653,58 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00062484);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000624EC);
+/* game_libs_func_000624EC: find the slot index whose (key1, key2) pair
+ * matches, in the same 20-byte-entry table that gl_func_00062484 allocates
+ * from and gl_func_00062540 fills (entry[0x8] = key1, entry[0x4] = key2).
+ * Returns the index or -1.
+ *
+ * 0x54 / 21 words, BYTE-EXACT 2026-09-05 (agent-c). Boundary merge: the
+ * former 7-word "game_libs_func_00062524" (addiu v1,v1,1; slt; bnez -> loop;
+ * addiu a2,a2,0x14; li v0,-1; jr ra; nop) was this function's own loop
+ * increment block + shared return(-1) block -- both `bnel` at 0x62508/0x62514
+ * land on 0x62528 = 62524+4 with 62524's first word duplicated into their
+ * delay slots (IDO branch-likely dup-first-insn idiom), and the `blezl` at
+ * 0x624F8 lands on 0x62538 = the `jr ra` of the shared return(-1) block.
+ * Twelfth+1 case of docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block.
+ *
+ * Shape notes: goto-loop (a `for` gets auto-unrolled x4); the
+ * `while (0) { i = key1; }` is the documented uopt ucode-slot ordering lever
+ * (docs/IDO_CODEGEN.md, "while(0){} UCODE-SLOT ORDERING"): it makes key1's
+ * first ucode occurrence precede `e = p->entries`, so key1 is coloured (to
+ * its home a1) BEFORE the entry pointer, which then takes a2 and displaces
+ * key2 to a3 (`or a3,a2,zero`). Without it the pointer takes a1 and key1 is
+ * displaced instead (7 words off, same size). */
+typedef struct {
+    int f0;
+    int key2;
+    int key1;
+    int inuse;
+    short f10;
+    short f12;
+} SlotEntry624EC;
+typedef struct {
+    SlotEntry624EC *entries;
+    int count;
+} SlotPool624EC;
+int game_libs_func_000624EC(SlotPool624EC *p, int key1, int key2) {
+    int i;
+    SlotEntry624EC *e;
+    int count;
 
-/* game_libs_func_00062524: 7-insn loop-bottom tail-fragment:
- *   addiu v1,v1,1; slt at,v1,v0; bne at,zero,-0x2C; addiu a2,a2,0x14;
- *   li v0,-1; jr ra; nop
- * Caller-set $v0/$v1/$a2 + backward branch to 0x62504 (before .s start
- * 0x62524). Splat captured loop tail per
- * feedback_backward_branch_before_s_start_is_loop_tail_splat_error. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00062524);
+    count = p->count;
+    i = 0;
+    if (count <= 0) goto fail;
+    while (0) { i = key1; }
+    e = p->entries;
+loop:
+    if (e->key1 == key1 && e->key2 == key2) return i;
+    i++;
+    e++;
+    if (i < count) goto loop;
+fail:
+    return -1;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_00062540: 47-insn alloc-slot + initialize-or-evict (0xBC, frame 0x28).
