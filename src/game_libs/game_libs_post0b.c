@@ -481,26 +481,37 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034890);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000349E0);
-
-/* Caps (DEFERRED): leading `D[0] |= 4` needs `lw _,0(&D)` that the
- * target hoisted into the predecessor (uninit t6 read at 0x014) —
- * clean C emits the lw (+1 insn) → byte-match needs PROLOGUE_STEALS
- * + predecessor boundary analysis. Real-C STRUCTURAL body below per
- * the decode (re-entrancy/in-progress guard: set D bit 0x4 for
- * X1/X2/X3 init then clear). Byte-match deferred. Name pre-checked:
- * no extern reuse. */
-#ifdef NON_MATCHING
-void gl_func_000349E8(void) {
-    *(int *)((char *)&D_00000000 + 0) |= 4;
-    gl_func_00000000(&D_00000000, 0x1E460, 900, 900);
-    gl_func_00000000(*(int *)((char *)&D_00000000 + 0));
-    gl_func_00000000(&D_00000000);
-    *(int *)((char *)&D_00000000 + 0) &= ~4;
+/* game_libs_func_000349E0 -- guarded 3-call init: set flag bit 4, call
+ * init(&D, &D+0x1E460, 900, 900) / step(*(int*)&D) / fini(&D), clear bit 4
+ * (0x74 / 29 words, EXACT).
+ *
+ * Boundary: the 8-byte "head fragment" game_libs_func_000349E0 (`lui t6;
+ * lw t6,0(t6)`, no prologue, no jr ra) was the first load of its successor
+ * gl_func_000349E8 (56% NM wrap, "needs PROLOGUE_STEALS + predecessor
+ * boundary analysis"), hoisted above `addiu sp` by the -O2 scheduler.
+ * Forward-merged under the orphan's (earlier-address) name: .s = 0x8 + 0x6C
+ * = 0x74; successor .s + wrap gone (nothing referenced gl_func_000349E8).
+ * Twenty-second hoisted-orphan case; see
+ * docs/MATCHING_WORKFLOW.md#feedback-callerset-t6-orphan-head-is-hoisted-prologue.
+ *
+ * Codegen: every data access in the target is FOLDED under its own `lui`
+ * (t6 load / at store / a0 arg / a0 folded lw / a0 arg / t8 load / at
+ * store) -- one straight-line BB, so any two accesses to the SAME symbol
+ * with no call between them CSE into a held `lui v0; addiu v0` base
+ * (`flag |= 4` off one symbol = 13 diffs, +0 words).  Accesses separated
+ * by a call re-`lui` on their own (caller-saved base), so the three call
+ * sites share one alias.  Hence: `|=` and `&=` each read one alias and
+ * write the other (D_349E0_a / D_00000000, per-site aliases of the same
+ * base-0 word, cf. D_34890_d/e), and the call-site &D is D_349E0_b.
+ * `volatile` on a single flag symbol does NOT split the base (13 diffs). */
+extern int D_349E0_a, D_349E0_b;
+void game_libs_func_000349E0(void) {
+    D_349E0_a = D_00000000 | 4;
+    gl_func_00000000(&D_349E0_b, (char *)&D_00000000 + 0x1E460, 900, 900);
+    gl_func_00000000(D_349E0_b);
+    gl_func_00000000(&D_349E0_b);
+    D_00000000 = D_349E0_a & ~4;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000349E8);
-#endif
 
 extern int gl_func_00000000();
 extern int D_00000000;
