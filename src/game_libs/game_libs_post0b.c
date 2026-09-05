@@ -22308,18 +22308,35 @@ void gl_func_0004F9E4(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004F9E4);
 #endif
 
-/* 0x4FBxx leaf-branch-past-end cluster: 3 tiny leaves with forward
- * `beq/bne +small` branches that target at or past function-end (falling
- * into successor's first insn). Cross-fn shared-epilogue tail-merges per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Covers
- * game_libs_func_0004FB34, _0004FB5C, _0004FB78. CAP class. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004FB34);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004FB5C);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004FB78);
-
-void game_libs_func_0004FB9C(void) {}
+/* game_libs_func_0004FB34: hex-digit char -> value ('0'..'9', 'a'..'f',
+ * and -- as shipped -- ONLY 'A': the third range test is `slti 0x42`, so
+ * `c <= 'A'` is what the bytes say; presumably a typo for 'F' in the
+ * original).  Non-digit returns 0.  BYTE-EXACT 2026-09-05 (agent-g) as ONE
+ * 28-word function [0x4FB34,0x4FBA4): the former symbols 4FB5C (7w, the
+ * lowercase test), 4FB78 (9w, the uppercase test, reads caller-set v1) and
+ * 4FB9C (2w `jr ra; nop`, "matched" as `void f(void){}` with an episode)
+ * were this function's own blocks, mis-split at each internal `jr ra`; the
+ * old "leaf-branch-past-end cross-fn epilogue CAP class" note covering the
+ * three was this mis-split (find-stub-misplits.py hit, walked back from
+ * 4FB78 because it reads v1).  Plain -O2: `unsigned char c` gives the homed
+ * `sw a0,0(sp)` + eager `andi 0xFF`, the `move v1,a0` copy in the first
+ * bnez delay is IDO's own; unsigned char return gives the `andi v0,0xFF`
+ * in each jr delay.  The `if/else if` chain with a final `else return 0`
+ * lands the preset `move v0,zero` in the last test's bnez delay and the
+ * trailing `jr ra; nop` return-0 block; the same chain through a named
+ * `ret` local is 13 words off.  See docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block. */
+unsigned char game_libs_func_0004FB34(unsigned char c) {
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    } else if (c >= 'a' && c <= 'f') {
+        return c - 'a' + 10;
+    } else if (c >= 'A' && c <= 'A') {
+        return c - 'a' + 10;
+    } else {
+        return 0;
+    }
+}
 
 // gl_func_0004FBA4 — STRUCTURAL PASS (0x158 / 93 words, no episode). Raw-.word
 // USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x40
