@@ -1,4 +1,4 @@
-nonmatching func_000102A4, 0x44
+nonmatching func_000102A4, 0x4C
 
 glabel func_000102A4
     /* DE0D10 000102A4 8C8E0078 */  lw         $t6, 0x78($a0)
@@ -18,4 +18,6 @@ glabel func_000102A4
     /* DE0D48 000102DC E4880070 */  swc1       $f8, 0x70($a0)
     /* DE0D4C 000102E0 03E00008 */  jr         $ra
     /* DE0D50 000102E4 00000000 */   nop
+    /* DE0D54 000102E8 03E00008 */  jr         $ra
+    /* DE0D58 000102EC 00000000 */   nop
 endlabel func_000102A4

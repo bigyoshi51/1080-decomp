@@ -19,8 +19,14 @@ void func_00010260(int *a0) {
  * 2026-07-10 (-O0 island: mtc1 load-delay nops + unfolded div-by-2.0f + NO arg
  * homing = register params). Levers: register PARAMS suppress -O0 arg homing;
  * mul written float-operand-first so ugen's operand swap emits the cvt.s.w
- * subtree first (matches target's f4/f6/f8 temp numbering). Trailing dead
- * jr/nop pair clipped by TRUNCATE_TEXT (frameless + file-terminal). */
+ * subtree first (matches target's f4/f6/f8 temp numbering).
+ * 19/19 words = 0x4C since 2026-09-05: the fn has no return statement, so at
+ * -O0 its own `jr ra; nop` is ugen's fall-off return and the 2-word
+ * "func_000102E8" (jr ra; nop) that followed was its dead `$exit: j $31`
+ * block, not a function (11D40/11D78/11DBC "$exit" precedents;
+ * docs/IDO_CODEGEN.md#o0-two-block-predicate-not-adjacent-leaf-cap). Our -O0
+ * emits exactly body + that one pair (0xA4 unit end), TRUNCATE_TEXT 0xA4;
+ * frameless + file-terminal. */
 void func_000102A4(register char *a0, register int a1) {
     *(float*)(a0 + 0x70) = (float)a1 - (*(float*)(a0 + 0x74) * (float)*(int*)(a0 + 0x78)) / 2.0f;
 }
