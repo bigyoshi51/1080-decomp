@@ -1,0 +1,33 @@
+{
+  "function_name": "mgrproc_uso_func_00000140",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-09-05T21:22:39.350345+00:00",
+  "end_time": "2026-09-05T21:22:39.350362+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-05T21:22:39.350358+00:00",
+      "assistant_text": "Boundary merge + opt-level fix. The 99% 'branch-into-adjacent-return-0-leaf cap' was an -O0 frameless predicate mis-split at every jr ra: the 'return-0 leaf' next symbol is the function's own else arm and the following 2-word 'empty stub' is ugen's dead fall-off return. C: if (a0[2]==a0[1]) { return 1; } return 0; at -O0 (no uopt => no preset-default hoist of move v0,zero, so the two return arms stay separate blocks and the bne lands on the else arm at +4). Compare operands are written in ROM load order because IDO -O0 evaluates the RIGHT operand first. Our 7.1 -O0 emits two dead trailing jr-ra pairs where the shipped build has one, so the function is file-terminal and TRUNCATE_TEXT clips the extra pair (o0_11D78 precedent).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 12,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern int gl_func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n/* Contiguous -O0 run at the start of the mgrproc_uso Yay0 block (0x0..0x170).\n * Carved into a dedicated -O0 sub-unit (region 0); its truncated .text is\n * concatenated with the -O2 main object before crunch64 compression. See the\n * mgrproc_uso_block1_yay0 rule in the Makefile. The -O0 emit (vs the -O2\n * accessor template's 15 insns) shows: sw-ra-before-sw-a0, unfilled jal delay,\n * pointer-indirect reload, and a trailing dead `b +1; nop`. */\n\n/* int-reader (0x4C / 19 insns) */\nvoid mgrproc_uso_func_00000000(int *dst) {\n    int buf[2];\n    gl_func_00000000(&D_00000000, buf, 4);\n    *dst = buf[0];\n}\n\n/* Quad4-reader (0x64 / 25 insns) */\nvoid mgrproc_uso_func_0000004C(Quad4 *dst) {\n    Quad4 buf;\n    gl_func_00000000(&D_00000000, &buf, 16);\n    *dst = buf;\n}\n\n/* refcount-increment wrapper (0x48 / 18 insns). The `register` pointer lands in\n * callee-saved s0 \u2014 the target's pointer base \u2014 under -O0. */\nvoid mgrproc_uso_func_000000B0(int *a0) {\n    register int *p = a0;\n    p[1]++;\n    gl_func_00000000(a0);\n}\n\n/* refcount-decrement wrapper (0x48 / 18 insns), exact sibling of _000000B0\n * (decrement of [0] vs increment of [1]). The `register` pointer lands in\n * callee-saved s0 \u2014 the target's pointer base \u2014 under -O0. Moved here from\n * mgrproc_uso_head.c (region extended 0xF8->0x140) so it builds at -O0. */\nvoid mgrproc_uso_func_000000F8(int *a0) {\n    register int *p = a0;\n    p[0]--;\n    gl_func_00000000(a0);\n}\n\n/* [0x140, 0x170): frameless -O0 predicate, 12 words = guard + `li v0,1; jr ra;\n * nop` + the return-0 arm `move v0,zero; jr ra; nop` + ONE dead `jr ra; nop`\n * (ugen's unreachable fall-off return). generate-uso-asm had cut it into three\n * \"functions\" (140 / 15C \"return-0 leaf\" / 168 \"empty stub\") and 140 carried a\n * 99.3% \"branch-into-adjacent-return-0-leaf CAP\" wrap for 3+ months -- the\n * residual was only the bne offset (+2 to its own jr vs +4 into the return-0\n * arm), i.e. the -O2 preset-default hoist `move v0,zero` before the branch. At\n * -O0 (no uopt) the two return arms stay separate blocks and the words are\n * exact. Our 7.1 -O0 emits a SECOND dead trailing pair (`$exit: j $31`) that\n * the shipped build does not have, so this fn must terminate the unit:\n * TRUNCATE_TEXT 0x170 clips it (o0_11D78 precedent). Operand order matters:\n * IDO -O0 evaluates the RIGHT side of == first, so `a0[2] == a0[1]` gives the\n * target's `lw t6,4(a0); lw t7,8(a0)` (see docs/IDO_CODEGEN.md\n * #feedback-ido-o0-eq-eval-order-gap). Called by func_000000B0 (jal) and\n * mgrproc_uso.c:597 (`!= 0` test). Semantics: a0->4 == a0->8 -> 1. */\nint mgrproc_uso_func_00000140(int *a0) {\n    if (a0[2] == a0[1]) {\n        return 1;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/mgrproc_uso/mgrproc_uso_o0_0.c",
+    "asm_path": "asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00000140.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul (TRUNCATE_TEXT clips one extra dead jr-ra pair)",
+    "verification": "make RUN_CC_CHECK=0 -> tenshoe.z64 cmp baserom.z64 byte-identical; objdiff report 100.0 vs expected/ refreshed from the pure-INCLUDE_ASM baseline of the merged .s; no-alias objdump of build vs expected identical."
+  }
+}

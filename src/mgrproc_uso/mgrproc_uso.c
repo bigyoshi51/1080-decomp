@@ -28,11 +28,13 @@ typedef struct { int a, b, c, d; } Quad4;
  * and concatenated into the Yay0 block (region 0) before compression. See the
  * block1 yay0 rule in the Makefile. */
 
-/* mgrproc_uso_func_000000F8 .. _00000A14 (the block's two -O0 runs + the small
- * leaves between them, 0xF8..0xAE0) live in mgrproc_uso_head.c (-O2, [0xF8,0x19C))
- * and mgrproc_uso_o0_19C.c (-O0, [0x19C,0xAE0)) — carved sub-units concatenated
- * into the Yay0 block before compression. See the block1 yay0 rule. func_000009A8
- * is byte-matched at -O0 there. */
+/* mgrproc_uso_func_000000F8 .. _00000A14 (0xF8..0xAE0) live in
+ * mgrproc_uso_o0_0.c (-O0, [0x0,0x170), incl. the predicate func_00000140),
+ * mgrproc_uso_head.c (-O0, [0x170,0x19C) = the predicate func_00000170) and
+ * mgrproc_uso_o0_19C.c (-O0, [0x19C,0xAE0)) — carved sub-units concatenated
+ * into the Yay0 block before compression. See the block1 yay0 rule. The whole
+ * [0x0,0xAE0) run is -O0; the "-O2 -g3 leaves" in between were the predicates'
+ * own return-0 arms + dead trailing jr-ra pairs (merged 2026-09-05). */
 
 mgrproc_uso_func_00000AE0() {
     gl_func_00000000(*(int*)(&D_00000000 + 0x30));
@@ -2183,7 +2185,7 @@ void mgrproc_uso_func_000033E8(char *dst) {
  * the predecessors' SUFFIX_BYTES. Removed to stop discover from listing
  * them as candidates. */
 
-/* mgrproc_uso_func_00000194: orphan absorbed by SUFFIX_BYTES of
- * mgrproc_uso_func_00000188 (3 words 0x00000000,0x03E00008,0x00000000;
- * first 2 are the SUFFIX_BYTES, the orphan is the last 2). Per
- * docs/MATCHING_WORKFLOW.md SUFFIX_BYTES-absorbed orphan-prune. */
+/* mgrproc_uso_func_00000194 / _00000188 / _00000168 / _0000015C: no longer
+ * symbols. They were the return-0 arms and dead trailing `jr ra; nop` pairs of
+ * the two frameless -O0 predicates func_00000170 / func_00000140 (merged
+ * 2026-09-05; see mgrproc_uso_head.c and mgrproc_uso_o0_0.c). */

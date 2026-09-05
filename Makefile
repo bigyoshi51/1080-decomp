@@ -1092,14 +1092,18 @@ build/src/arcproc_uso/arcproc_uso_o0_5C8.c.o build/non_matching/src/arcproc_uso/
 # binary-concat-before-compress, the analogue of the direct multi-.o link used
 # by the non-Yay0 USOs (bootup/arcproc).
 build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: OPT_FLAGS := -O0
-build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0x140
-build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x140
-# region1 = head [0xF8,0x19C); matching build is exactly 0xA4. Built -O2 -g3 so
-# the return-0 leaves func_0000015C/_00000188 emit their UNFILLED jr-delay form
-# (move v0,zero; jr ra; nop); empty stubs + INCLUDE_ASM funcs are -g3-invariant.
-# No NON_MATCHING_TRUNCATE_TEXT (NM bodies diverge; objdiff scores per-function).
-build/src/mgrproc_uso/mgrproc_uso_head.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_head.c.o: OPT_FLAGS := -O2 -g3
-build/src/mgrproc_uso/mgrproc_uso_head.c.o: TRUNCATE_TEXT := 0x5C
+# region0 ends with the frameless -O0 predicate func_00000140 [0x140,0x170):
+# our 7.1 -O0 emits two dead trailing `jr ra; nop` pairs where the shipped build
+# has one, so the fn is file-terminal and clipped (o0_11D78 precedent).
+build/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: TRUNCATE_TEXT := 0x170
+build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x170
+# region1 = head [0x170,0x19C) = the frameless -O0 predicate func_00000170 alone
+# (11 words incl. its one dead trailing pair). Same clip rule as above. It was
+# -O2 -g3 [0x140,0x19C) with 140/170 wrapped as "branch-into-adjacent-return-0
+# -leaf caps" until 2026-09-05 -- both were -O0 all along.
+build/src/mgrproc_uso/mgrproc_uso_head.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_head.c.o: OPT_FLAGS := -O0
+build/src/mgrproc_uso/mgrproc_uso_head.c.o: TRUNCATE_TEXT := 0x2C
+build/non_matching/src/mgrproc_uso/mgrproc_uso_head.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x2C
 # region2 = -O0 run [0x19C,0xAE0) (func_0000019C..A14; func_000009A8 matched).
 build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o build/non_matching/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o: OPT_FLAGS := -O0
 build/src/mgrproc_uso/mgrproc_uso_o0_19C.c.o: TRUNCATE_TEXT := 0x938
@@ -1325,8 +1329,8 @@ build/assets/%.bin.o: assets/%.bin
 # Yay0-compressed USO blocks: compile C → extract .text → crunch64 compress → wrap as bin
 # mgrproc_uso block 1: text 0x3410 bytes uncompressed. Split into 4 regions
 # concatenated in address order before Yay0 compression:
-#   region0 = mgrproc_uso_o0_0.c.o   (-O0, [0x0,0xF8))  func_00000000/4C/B0
-#   region1 = mgrproc_uso_head.c.o   (-O2, [0xF8,0x19C)) func_000000F8 + leaves
+#   region0 = mgrproc_uso_o0_0.c.o   (-O0, [0x0,0x170)) func_00000000/4C/B0/F8/140
+#   region1 = mgrproc_uso_head.c.o   (-O0, [0x170,0x19C)) func_00000170
 #   region2 = mgrproc_uso_o0_19C.c.o (-O0, [0x19C,0xAE0)) func_0000019C..A14
 #   region3 = mgrproc_uso.c.o        (-O2, [0xAE0,end))  the rest
 # Each region's .text is objcopy'd to raw binary; bake-data-relocs.py then bakes

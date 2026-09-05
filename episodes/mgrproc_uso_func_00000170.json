@@ -1,0 +1,33 @@
+{
+  "function_name": "mgrproc_uso_func_00000170",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-09-05T21:22:39.476101+00:00",
+  "end_time": "2026-09-05T21:22:39.476117+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-05T21:22:39.476113+00:00",
+      "assistant_text": "Boundary merge + opt-level fix. The 99% 'branch-into-adjacent-return-0-leaf cap' was an -O0 frameless predicate mis-split at every jr ra: the 'return-0 leaf' next symbol is the function's own else arm and the following 2-word 'empty stub' is ugen's dead fall-off return. C: if (a0[0]==0) { return 1; } return 0; at -O0 (no uopt => no preset-default hoist of move v0,zero, so the two return arms stay separate blocks and the bne lands on the else arm at +4). Compare operands are written in ROM load order because IDO -O0 evaluates the RIGHT operand first. Our 7.1 -O0 emits two dead trailing jr-ra pairs where the shipped build has one, so the function is file-terminal and TRUNCATE_TEXT clips the extra pair (o0_11D78 precedent).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 11,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* [0x170, 0x19C) of the mgrproc_uso Yay0 block: ONE -O0 predicate,\n * mgrproc_uso_func_00000170 (11 words). Built -O0 with TRUNCATE_TEXT 0x2C.\n *\n * HISTORY (2026-09-05, agent-g): this unit used to be [0x140,0x19C) at -O2 -g3\n * holding six \"functions\": 140 / 15C / 168 / 170 / 188 / 194. 140 and 170 were\n * NM-wrapped 99% \"branch-into-adjacent-return-0-leaf CAPs\" whose only residual\n * was the bne offset (+2 own jr vs +4 into the \"next function\"); 15C/188 were\n * \"return-0 leaves\", 168/194 \"empty stubs\". They were never six functions.\n * They are TWO frameless -O0 predicates, each = [guard ; li v0,1 ; jr ra ; nop]\n * + [move v0,zero ; jr ra ; nop] (the return-0 arm laid out after the then-arm,\n * no preset-default hoist because -O0 never runs uopt) + ONE dead `jr ra ; nop`\n * (ugen's unreachable fall-off return). generate-uso-asm cut at every `jr ra`,\n * so the return-0 arm and the dead pair became \"functions\". The whole -O0 run of\n * this block is therefore [0x0, 0xAE0) (func_00000000 .. func_00000A14); this\n * unit exists only because our IDO 7.1 -O0 emits TWO dead trailing pairs\n * (fall-off `j $31` AND the `$exit: j $31` label block) where the shipped build\n * has ONE, so each predicate must terminate its own .o and be clipped\n * (o0_11D78 precedent). _00000140 lives at the end of mgrproc_uso_o0_0.c for\n * the same reason.\n *\n * Callers: func_000000F8 (jal, same block), mgrproc_uso.c:522 (`!= 0` test).\n * Semantics: \"list is empty\" -> 1 when a0->0 == NULL. */\nint mgrproc_uso_func_00000170(int *a0) {\n    if (a0[0] == 0) {\n        return 1;\n    }\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "src/mgrproc_uso/mgrproc_uso_head.c",
+    "asm_path": "asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_00000170.s",
+    "segment": "mgrproc_uso",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul (TRUNCATE_TEXT clips one extra dead jr-ra pair)",
+    "verification": "make RUN_CC_CHECK=0 -> tenshoe.z64 cmp baserom.z64 byte-identical; objdiff report 100.0 vs expected/ refreshed from the pure-INCLUDE_ASM baseline of the merged .s; no-alias objdump of build vs expected identical."
+  }
+}
