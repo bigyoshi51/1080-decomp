@@ -77,18 +77,23 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FC28);
 /* func_0000FD4C: 85-insn (0x154) alloc-chain + multi-init helper, returns a0.
  * Larger sibling of func_0000FC28 (+ a1/a2 global stashes, 0x44/0x48 zeroing).
  *
- * 2026-07-10: 58.18% -> 97.47% (byte-exact except the ONE documented -O0
- * return-value dead-double-b toolchain gap: our cc emits `lw v0; b epi; nop;
- * b epi(DEAD); nop`, the target has a single b — value-return -O0 cap,
- * docs/IDO_CODEGEN.md#feedback-ido-o0-return-value-dead-double-b, NOT C-fixable).
+ * 2026-07-10: 58.18% -> 97.47%. 2026-09-05: -> 85/87 insns byte-exact; the
+ * ONLY residual is the documented -O0 return-value dead-double-b toolchain
+ * gap: our cc emits `lw v0; b epi; nop; b epi(DEAD); nop`, the target has a
+ * single b — value-return -O0 cap,
+ * docs/IDO_CODEGEN.md#feedback-ido-o0-return-value-dead-double-b, NOT C-fixable.
  *
  * LEVER KIT (the reusable part — cracked all diffs except the double-b):
- * (1) STRUCTURED-CONTROL-FLOW: IDO -O0 renders `if(E) goto L;` as a 2-insn
- *     branch-over (`b!E over; b L`), but `if(cond){body}` as a SINGLE
- *     `b!cond endif`. The target's alloc-cascade is all single branches, so
- *     express it as NESTED if(){} blocks: allocs guarded by `if(x==0){x=alloc;}`,
- *     the whole rest guarded by `if(a0!=0){...}` (that guard IS the
- *     a0-alloc-fail `beqz t7,end`). No goto/label anywhere.
+ * (1) SHORT-CIRCUIT ALLOC-FALLBACK: `if (x != 0 || (x = alloc(N)) != 0) { arm }`
+ *     (docs/IDO_CODEGEN.md -O0 alloc-cascade lever #2). IDO -O0 renders
+ *     `if(E) goto L;` as a 2-insn branch-over (`b!E over; b L`), so no gotos;
+ *     but nested `if(x==0){x=alloc;} if(x!=0){arm}` (the 2026-07-10 body,
+ *     which mis-reported "byte-exact except the double-b") re-tests x on the
+ *     no-alloc path, so each cascade `bnez x` landed on the `lw t;beqz t`
+ *     re-test instead of skipping past it (3 wrong bnez targets: t6/s0/s1).
+ *     `||` puts the null-test on the alloc path only: `bnez x,.arm; alloc;
+ *     beqz x,.skip` exactly; the outer `||` false-exit IS the a0-alloc-fail
+ *     `beqz t7,end`.
  * (2) `register void *s0,s1;` = the callee-saved cascade temps (or s0,v0 / or
  *     s1,s0 — no home spill; plain locals would stack-home and lose the shape).
  * (3) TAIL RE-USE of the now-dead register vars as scratch (the target recycles
@@ -103,20 +108,11 @@ INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_0000FC28);
 void *func_0000FD4C(void *a0, int a1, int a2) {
     register void *s0, *s1;
 
-    if (a0 == 0) {
-        a0 = (void*)func_00000000(0x50);
-    }
-    if (a0 != 0) {
+    if (a0 != 0 || (a0 = (void*)func_00000000(0x50)) != 0) {
         s0 = a0;
-        if (s0 == 0) {
-            s0 = (void*)func_00000000(0x50);
-        }
-        if (s0 != 0) {
+        if (s0 != 0 || (s0 = (void*)func_00000000(0x50)) != 0) {
             s1 = s0;
-            if (s1 == 0) {
-                s1 = (void*)func_00000000(0x2C);
-            }
-            if (s1 != 0) {
+            if (s1 != 0 || (s1 = (void*)func_00000000(0x2C)) != 0) {
                 func_00000000(s1, &D_0000C5A4);
                 *(int*)((char*)s1 + 0x28) = (int)&D_00000000;
             }
