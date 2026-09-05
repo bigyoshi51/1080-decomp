@@ -181,9 +181,25 @@ int game_libs_func_0000986C(s32 *out, s32 *src, s32 len, s32 key) {
     return 1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009944);
-
-void game_libs_func_00009970(void) {}
+/* game_libs_func_00009944: 2-word equality compare -- 1 iff a0[0]==a1[0]
+ * and a0[1]==a1[1].  BYTE-EXACT 2026-09-05 (agent-g) as ONE 13-word
+ * function [0x9944,0x9978): the former "matched" 2-word stub 9970
+ * (`jr ra; nop`, `void f(void){}` with an episode) was this function's own
+ * return-1 exit block -- the `beq t8,t9,+3` (preset `li v0,1` in front of it)
+ * lands ON it.  Plain -O2: filled `jr` delay, preset return value; the two
+ * branch-delay nops just follow immediately-dependent loads.  Key: the
+ * target has ONE shared `jr ra; move v0,zero` block (the first `bne` lands
+ * on it), so both return-0s must be a single `||` guard; two separate
+ * `if (!=) return 0;` statements give a beql + inline return-0 (15w), and
+ * the `&&`-return-1 spelling flips the last branch to bne (13w, 3 diffs).
+ * See docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block. */
+int game_libs_func_00009944(s32 *a0, s32 *a1) {
+    if (a0[0] != a1[0] || a0[1] != a1[1]) {
+        return 0;
+    }
+    return 1;
+}
 
 void game_libs_func_00009978(unsigned char *arg0) {
     *arg0 &= 0x7F;

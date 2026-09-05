@@ -1,4 +1,4 @@
-nonmatching game_libs_func_00009944, 0x2C
+nonmatching game_libs_func_00009944, 0x34
 
 glabel game_libs_func_00009944
     /* DEEA1C 00009944 8C8E0000 */  .word 0x8C8E0000
@@ -12,4 +12,6 @@ glabel game_libs_func_00009944
     /* DEEA3C 00009964 00000000 */  .word 0x00000000
     /* DEEA40 00009968 03E00008 */  .word 0x03E00008
     /* DEEA44 0000996C 00001025 */  .word 0x00001025
+    /* DEEA48 00009970 03E00008 */  .word 0x03E00008
+    /* DEEA4C 00009974 00000000 */  .word 0x00000000
 endlabel game_libs_func_00009944
