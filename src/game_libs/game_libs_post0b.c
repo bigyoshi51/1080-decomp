@@ -30762,51 +30762,33 @@ int gl_func_0005C9BC(float *a0) {
     return 1;
 }
 
-/* game_libs_func_0005CA78 (size 0x74, 29 insns): VERIFIED STRUCTURAL DECODE
- * 6-axis short-circuit AABB-overlap-like test returning 1 if all 6 inequalities
- * pass, otherwise FALLS THROUGH (via beql cross-jump) into the BODY of
- * game_libs_func_0005CAEC's tail-merge fail path. The pair (CA78 + CAEC + CB5C)
- * is almost certainly a single source function compiled as
- *   return (test_A(a0,a1)) || (test_B(a0,a1));
- * where || short-circuits and the compiler inlined both tests into one body
- * with shared 0-return tail at 0005CB5C.
- *
- * CA78 phase 1 tests (signed-int compare):
- *   a0->[0]  < a1->[C]   (a0 lo-x < a1 hi-x)
- *   a1->[0]  < a0->[C]   (a1 lo-x < a0 max-extent)
- *   a0->[8]  < a1->[14]  (a0 lo-y < a1 hi-y)
- *   a1->[8]  < a0->[C]   (a1 lo-y < a0 max-extent)
- *   a0->[4]  < a1->[10]  (a0 lo-z < a1 hi-z)
- *   a1->[4]  < a0->[C]   (a1 lo-z < a0 max-extent)
- * Returns 1 if all pass.
- *
- * BLOCKER: each beql failure target is +4 INTO game_libs_func_0005CAEC (i.e.,
- * past CAEC's first `lw v0, 0xC(a0)` insn). IDO cannot emit cross-function
- * fall-through from standard C — these three .s files are almost certainly a
- * single source function that splat split because of the merged-tail pattern.
- * Proper fix needs a splat boundary correction merging CA78+CAEC+CB5C; deferred
- * (would require a co-located edit of the splat YAML segment text-end + the
- * .s decompiler to emit one .s instead of three). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CA78);
-
-/* game_libs_func_0005CAEC (size 0x70, 28 insns): phase 2 of the CA78 OR-test
- * pair (see CA78's comment). Standalone entry runs `lw v0, 0xC(a0)` at 0x5CAEC
- * before the comparisons; cross-fn entry from CA78 lands at 0x5CAF0 (skipping
- * that lw because v0=a0->[C] is already set by CA78's beql delay-slot reloads).
- * Each beql failure here targets 0x5CB60 (the jr ra of CB5C — i.e., return 0
- * with v0=0 set by the beql's annulled-on-fall-through `move v0, zero` delay).
- *
- * Conclusion: CA78+CAEC+CB5C are one source function. Same splat-boundary
- * blocker as CA78 above; standalone NM-wrap for CAEC has the caller-set-v1 cap
- * (slt at, v0, v1 at second insn uses v1 from caller). Deferred. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CAEC);
-
-/* game_libs_func_0005CB5C: 3-insn `move v0,zero; jr ra; nop` return-0 stub
- * (size 0xC, unfilled-delay form). IDO -O2 emits `return 0` as `jr ra;
- * move v0,zero` (size 0x8). The 0xC unfilled-delay form needs per-file
- * -g3/-O0 split per feedback_unfilled_delay_int_reader_needs_o0_split.
- * Default INCLUDE_ASM remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005CB5C);
+/* game_libs_func_0005CA78: 60 insns, 0xF0. Returns 1 if box a's MIN corner
+ * (x0,y0,z0) is strictly inside box b, or a's MAX corner (x1,y1,z1) is; else 0.
+ * Axis test order x, z, y; per axis `a < b.hi` then `b.lo < a`.
+ * MATCHED 2026-09-05 (agent-c): boundary merge of the mis-split
+ * game_libs_func_0005CAEC (28w, the second ladder) and game_libs_func_0005CB5C
+ * (3w, `move v0,zero; jr ra; nop` = this function's own return-0 block). All
+ * six beql in the first ladder land on 5CAEC+4 with 5CAEC's first word
+ * (lw v0,0xC(a0) = a->x1) duplicated into their delay slots, and all six beql
+ * of the second ladder land on 5CB5C+4 with `move v0,zero` duplicated -- the
+ * IDO branch-likely dup-first-insn idiom, not a cross-fn tail-share. The old
+ * decode read the delay-slot `lw` as executed on fall-through; branch-likely
+ * NULLIFIES it, so ladder 1 compares b->lo against a->x0/z0/y0 (still in v0),
+ * not against a->x1. v1 = b->x1 is loaded before the first branch, so it
+ * dominates both ladders and is CSE'd; the other b loads are not (not on every
+ * path). Two plain `if (&& ...) return 1;` statements + `return 0;` is exact
+ * (60/60 standalone and in-tree); `if (A || B) return 1;` turns the last test
+ * of ladder 1 into a plain `bne`+nop (39 words off), `return A || B;` is the
+ * 56-word value form. gl_func_0005C9BC before has a full epilogue and
+ * gl_func_0005CB68 after has its own prologue.
+ * See docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block */
+typedef struct { int x0, y0, z0, x1, y1, z1; } Aabb_5CA78;
+int game_libs_func_0005CA78(Aabb_5CA78 *a, Aabb_5CA78 *b) {
+    if (a->x0 < b->x1 && b->x0 < a->x0 && a->z0 < b->z1 && b->z0 < a->z0 && a->y0 < b->y1 && b->y0 < a->y0) return 1;
+    if (a->x1 < b->x1 && b->x0 < a->x1 && a->z1 < b->z1 && b->z0 < a->z1 && a->y1 < b->y1 && b->y0 < a->y1) return 1;
+    return 0;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_0005CB68: plane from 3 points. out[0..2] = normalize(cross(b-a, c-a))
