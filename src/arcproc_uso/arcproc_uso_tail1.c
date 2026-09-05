@@ -444,25 +444,22 @@ void arcproc_uso_func_00000F40(int *a0) {
     *(int*)((char*)a0 + 0x504) = 0;
 }
 
-/* arcproc_uso_func_00000F48: 2-insn alternate entry, RECOVERED 2026-05-28.
- * `lui a1; lw a1, 0x170(a1)` pre-loads a1 from a USO data symbol then FALLS
- * THROUGH into arcproc_uso_func_00000F50 (no jr ra of its own). Not a
- * standalone C function — INCLUDE_ASM only. */
-INCLUDE_ASM("asm/nonmatchings/arcproc_uso/arcproc_uso", arcproc_uso_func_00000F48);
-
-/* arcproc_uso_func_00000F50 + F78 + F9C: 3-function bundle split via
- * scripts/split-fragments.py on 2026-05-07. Per
- * docs/MATCHING_WORKFLOW.md split-fragments.py wrong-file-placement
- * gotcha, the new INCLUDE_ASMs were moved manually from
- * arcproc_uso.c to arcproc_uso_tail1.c (where the parent F50 lives) so
- * the linker keeps F50/F78/F9C contiguous in .text.
- *
- * F50: 10-insn cross-USO wrapper that adds 0x26000F to a1 before
- * forwarding. IDO -O2 emits `lui+ori+addu` for the 24-bit constant
- * (since 0x26000F doesn't fit in a 16-bit signed immediate). */
-extern int gl_func_00000000();
-void arcproc_uso_func_00000F50(int a0, int a1) {
-    gl_func_00000000(a0, a1 + 0x26000F);
+/* arcproc_uso_func_00000F48: 12-insn cross-USO wrapper (0x30), BOUNDARY MERGE
+ * 2026-09-05 of the 2-word "alternate entry" F48 + the 10-insn "F50" body.
+ * F48 was never an alt entry: it has no in-module caller (zero TextReloc
+ * R_MIPS_26 to 0xF48 or 0xF50, zero Data/RoData fn-pointer relocs) and the
+ * module's Sym export table lists 0xF48 (NOT 0xF50) as the exported symbol,
+ * so 0xF48 is the function's real entry and `lui a1; lw a1, 0x170(a1)` is its
+ * first statement -- the import-base field load -- hoisted above `addiu sp`
+ * by the IDO -O2 scheduler (docs/MATCHING_WORKFLOW.md
+ * #hoisted-head-orphan-callers-jal-post-hoist-word-66ec). The former 2-arg
+ * F50 wrapper `gl_func_00000000(a0, a1 + 0x26000F)` read a1 live at entry:
+ * that a1 IS this load. IDO -O2 emits `lui+ori+addu` for the 24-bit constant
+ * (0x26000F does not fit a 16-bit signed immediate). 12/12 BYTE-EXACT.
+ * (The lui/lw pair is relocated against Sym idx 10 = the D_00000000 import
+ * base, same as the .f44/.f48 stores in arcproc_uso_o0_240.c.) */
+void arcproc_uso_func_00000F48(int a0) {
+    gl_func_00000000(a0, *(int*)((char*)&D_00000000 + 0x170) + 0x26000F);
 }
 
 /* arcproc_uso_func_00000F78: 12-insn 2-level NULL-check.
