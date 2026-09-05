@@ -143,8 +143,12 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000986C);
  * `beq/bne +small` branches that target at or past function-end (falling
  * into successor's first insn). Cross-fn shared-epilogue tail-merges per
  * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offsets,
- * unmatchable standalone. CAP class. Covers 9920/9944/9A2C/9A50/9A6C/9A80/
- * 9A9C/9AB0/9B98/9BBC/9CDC/9D00. */
+ * unmatchable standalone. CAP class. Covers 9920/9944/9B98/9BBC/9CDC/9D00.
+ * RETRACTED for 9A2C (merged with 9A48) and for 9A50/9A6C/9A80/9A9C/9AB0
+ * (+9AD0): those were one function mis-split at internal `jr ra`s by the
+ * beql dup-first-insn idiom -- merged and exact, see game_libs_func_00009A50
+ * below. Re-check the remaining six against that fingerprint before trusting
+ * this note. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009920);
 
 void game_libs_func_0000993C(void) {}
@@ -217,22 +221,31 @@ int game_libs_func_00009A2C(unsigned char *a0) {
     return 0;
 }
 
-/* game_libs_func_00009A50: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A50);
-
-/* game_libs_func_00009A6C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A6C);
-
-/* game_libs_func_00009A80: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A80);
-
-/* game_libs_func_00009A9C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009A9C);
-
-/* game_libs_func_00009AB0: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00009AB0);
-
-void game_libs_func_00009AD0(void) {}
+/* game_libs_func_00009A50 (34 insns, 0x88): strict date-triple compare,
+ * returns 1 if the record's stored triple a0[5..7] is greater than the triple
+ * a1[0..2] (field-by-field, most significant first), else 0. Inverse-setter is
+ * 9AD8 (a0[5]=a1, a0[6]=a2, a0[7]=a3).
+ * BOUNDARY MERGE 2026-09-05: the former 9A6C/9A80/9A9C/9AB0 "leaf-branch-past-
+ * end CAP" symbols and the 9AD0 "empty function" were never functions. Each
+ * 5-word block begins with a byte-identical copy of the preceding beql's delay
+ * slot and the beql targets block+4 -- IDO's branch-likely dup-first-insn idiom
+ * (docs/MATCHING_WORKFLOW.md #feedback-beql-next-symbol-plus-4-is-mis-split-
+ * branch-likely-block). generate-uso-asm cut at each early `jr ra`. 9AD0
+ * (jr ra; nop) is this function's own `return 1` block reached by the final
+ * `bnez`. Nothing else references any of the five. Merged the .s (0x1C+0x14+
+ * 0x1C+0x14+0x20+0x8) and put the real C on the build path.
+ * Match key: the LAST test must be written `if (a1[2] >= a0[7]) return 0;
+ * return 1;` -- IDO hoists `li v0,1` above the `bnez at` and branches to the
+ * trailing `jr ra; nop`. `if (a1[2] < a0[7]) return 1; return 0;` puts the
+ * `li v0,1` in a taken-branch delay slot instead (3 words differ). */
+int game_libs_func_00009A50(unsigned char *a0, unsigned char *a1) {
+    if (a0[5] < a1[0]) return 0;
+    if (a1[0] < a0[5]) return 1;
+    if (a0[6] < a1[1]) return 0;
+    if (a1[1] < a0[6]) return 1;
+    if (a1[2] >= a0[7]) return 0;
+    return 1;
+}
 
 void game_libs_func_00009AD8(unsigned char *a0, int a1, int a2, int a3, int a4) {
     a0[5] = a1;
