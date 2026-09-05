@@ -11863,15 +11863,58 @@ void game_libs_func_00028DE8(int **a0) {
     }
 }
 
-/* game_libs_func_00028E14: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E14);
+/* game_libs_func_00028E14: BYTE-EXACT 2026-09-05 (agent-c) after a FOUR-symbol
+ * boundary merge. The former "game_libs_func_00028E28" (17w, no prologue, $v0
+ * live at entry), "28E6C" (8w, first word = dup of 28E14's `bnel v1,zero` delay
+ * slot at 0x28E5C, branch target 0x28E70 = 28E6C+4) and "28E8C" (`jr ra; nop`,
+ * "matched" as an empty void fn with an episode) were all pieces of THIS
+ * function: 28E14's `bne v0,a0` at 0x28E18 lands on 28E28, and 28E6C's final
+ * `bnez at,+3` at 0x28E7C lands on 28E8C = the `return obj` block. IDO's
+ * branch-likely dup-first-insn idiom (loop back-edge `bnel v0,a0,+4` at 0x28E54
+ * and the null-check `bnel v1,zero` at 0x28E5C) made generate-uso-asm cut at
+ * every early `jr ra`. The two "leaf-branch-past-end CAP" notes were wrong.
+ * See docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block.
+ *
+ * Semantics: walk the circular list from head->next; `pos` follows `cur` while
+ * pos->obj->prio >= cur->obj->prio (i.e. stops at the first node followed by a
+ * strictly higher prio). Return pos->obj if its prio < lim, else NULL.
+ * Shape keys: `while (cur != head)` (guard + rotated bottom test, both emitted),
+ * `pos = cur` before the loop (lands in the guard's delay slot), the compare
+ * is against CUR's obj (NOT head's -- head's would be hoisted as invariant),
+ * null-arm-first `if (pos == 0) return 0;` (inline null epilogue + forward
+ * bnel), and the final test as `if (obj->prio >= lim) return 0; return obj;`
+ * (hoists `move v0,a0` above the bnez, trailing `jr ra; nop`). */
+typedef struct PrioObj28E14 { char pad_0[0x30]; unsigned char prio; } PrioObj28E14;
+typedef struct PrioNode28E14 {
+    int w_0;
+    struct PrioNode28E14 *next;
+    PrioObj28E14 *obj;
+} PrioNode28E14;
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E28);
-
-/* game_libs_func_00028E6C: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00028E6C);
-
-void game_libs_func_00028E8C(void) {}
+PrioObj28E14 *game_libs_func_00028E14(PrioNode28E14 *head, int lim) {
+    PrioNode28E14 *cur = head->next;
+    PrioNode28E14 *pos;
+    PrioObj28E14 *obj;
+    if (cur == head) {
+        return 0;
+    }
+    pos = cur;
+    while (cur != head) {
+        if (pos->obj->prio >= cur->obj->prio) {
+            pos = cur;
+        }
+        cur = cur->next;
+    }
+    if (pos == 0) {
+        return 0;
+    }
+    obj = pos->obj;
+    if (obj->prio >= lim) {
+        return 0;
+    }
+    return obj;
+}
 
 // gl_func_00028E94 — object attach/init (counterpart to gl_func_00028604
 // detach). FULL DECODE 35.1->93.1% (+58pp) 2026-06-02: obj->0x40=-1, obj->0x44=
