@@ -5927,11 +5927,22 @@ z:
 #else
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087F4);
 #endif
-/* timproc_uso_b5_func_000088A0 [0x88A0..0x8940), 0xA0: 87F4's mirror.
- * FALSE MATCH RETRACTED 2026-06-10 (same corrupted-merge mechanism;
- * the "absorbed funnel" was the REAL leaf 8940, whose g3 carve is
- * restored). Branch-into-adjacent cap; structurally-faithful NM below. */
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_000088A0 [0x88A0..0x894C), 0xAC (43 words): 87F4's
+ * mirror bit-priority encoder, 8-entry jumptable on a0->0x3C8, THREE case
+ * bodies (8 / 1,8 / 2,1,8), cases 4..8 stacked onto the goto-z funnel.
+ * BYTE-EXACT 2026-09-05 (agent-c) after absorbing the mis-split "8940"
+ * symbol: the 3-word `move v0,zero; jr ra; nop` at 0x8940 is this fn's own
+ * shared return-0 block -- the default `beqz at` (0x88AC) lands ON 0x8940
+ * and all three `beql tN,zero` (0x88D0/0x88F8/0x8930) land on 0x8944 with
+ * the dup'd `move v0,zero` in their delay slots (IDO branch-likely
+ * dup-first-insn idiom, docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block). The
+ * `jr ra` delay stays unfilled at plain -O2 because 0x8944 is a branch
+ * target, so the -g3 carve (timproc_uso_b5_g3_8940.c) encoded the wrong
+ * model and is dropped; the 2026-06-10 "branch-into-adjacent cap"
+ * retraction was itself wrong about the boundary (the C was already
+ * exact). The jumptable `lw t7,%lo(.rodata)` word is the unit's usual
+ * reloc-class lo16 diff in verify-blocks (target bakes 0x214). */
 int timproc_uso_b5_func_000088A0(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
@@ -5959,12 +5970,6 @@ int timproc_uso_b5_func_000088A0(char *a0) {
 z:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000088A0);
-#endif
-/* timproc_uso_b5_func_00008940: REAL standalone -g3 return-0 leaf in
- * timproc_uso_b5_g3_8940.c (the 2026-06-10 "dissolution" was wrong and
- * is reverted; 88A0 branches INTO this leaf -- see its header). */
 
 /* int-return K&R form (2026-07-10, 80F4): caller stores the callee's v0
  * passthrough and passes arg0. Codegen identical (v0 untouched here). */
