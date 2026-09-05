@@ -5787,81 +5787,49 @@ void timproc_uso_b5_func_00008688(char *scr, int mode) {
 INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_00008688);
 #endif
 
-/* timproc_uso_b5_func_000087A0: 12-insn table tail-dispatcher, sibling of the
- * 87E8/8894/8940 small-leaf exact-match cluster. Computes idx = a1 - 1; if
- * idx >= 8, returns 0; otherwise tail-jumps to
- * *(timproc_uso_b5_D_807FF1F4 + 0x1D4 + idx*4). Source=2 pass 2026-06-01:
- * C body documents the real dispatch. The target uses a raw `jr t6` tail jump
- * with no frame; normal C is expected to stay NM unless IDO emits the same
- * tail-call shape. Tried both named function-pointer local and inline call
- * expression: both emit a 0x18 frame + `jalr` + epilogue (0x48 bytes), not
- * the target frame-free `jr t6` tail call (0x30 bytes). */
-#ifdef NON_MATCHING
-extern char timproc_uso_b5_D_807FF1F4;
-int timproc_uso_b5_func_000087A0(int a0, int a1) {
-    int idx = a1 - 1;
-    (void)a0;
-    if ((unsigned)idx >= 8) {
+/* timproc_uso_b5_func_000087A0 [0x87A0..0x87F4), 0x54 (21 words): jumptable
+ * dispatcher mapping the bit-priority value written to a0->0x3C8 by 87F4/88A0
+ * (1/2/4/8) to the slot index stored at a0->0x3C4 (0..3); a0 itself is unused
+ * (its `sw a0,0(sp)` home store in the beqz delay is IDO's unused-leading-arg
+ * spill -- `if (a0) {}` would kill it). BYTE-EXACT 2026-09-05 (agent-c) after
+ * absorbing the mis-split run 87D0/87D8/87E0 (`jr ra; li v0,1/2/3` -- the case
+ * arms, previously "matched" as three return-N C stubs) and 87E8 (`move v0,zero;
+ * jr ra; nop` -- the switch's default block, previously its own -O2 -g3
+ * TRUNCATE_TEXT carve timproc_uso_b5_g3_87E8.c spliced into block 5): the
+ * range check `sltiu at,t6,8; beqz at` (0x87A8) lands ON 0x87E8, and the table
+ * dispatch `jr t6` (0x87C0) is followed only by 2-word return arms up to the
+ * next real prologue at 0x87F4 (docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block, jumptable
+ * flavour). The final return block is unfilled at plain -O2 by itself
+ * (docs/IDO_CODEGEN.md#switch-final-return-block-unfilled-jr-delay-not-g3-343f4),
+ * so the -g3 carve encoded the wrong model. Four labels alone lower to a compare
+ * chain; the explicit `case 3: case 5: case 6: case 7:` on default cross IDO's
+ * 5-label jumptable threshold and give the target's 1..8 table range
+ * (docs/IDO_CODEGEN.md#empty-trailing-case-jumptable-threshold-76f0). Arms lay
+ * out in source order (return 0 / 1 / 2 / 3, then the default). The shipped
+ * table content lives in a Yay0 data block (not extracted; irrelevant to the
+ * .text bytes) -- the 1->0, 2->1, 4->2, 8->3 mapping is inferred from the
+ * callers (0x3C8 = 87F4/88A0 result, 0x3C4 indexes the 0x3D0 slot array). The
+ * jumptable `lw t6,%lo(.rodata)` word is the unit's usual reloc-class lo16
+ * diff in verify-blocks (target bakes 0x1D4). */
+int timproc_uso_b5_func_000087A0(char *a0, int a1) {
+    switch (a1) {
+    case 1:
+        return 0;
+    case 2:
+        return 1;
+    case 4:
+        return 2;
+    case 8:
+        return 3;
+    case 3:
+    case 5:
+    case 6:
+    case 7:
+    default:
         return 0;
     }
-    return (*(int (**)(void))(&timproc_uso_b5_D_807FF1F4 + 0x1D4 + idx * 4))();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087A0);
-#endif
-
-int timproc_uso_b5_func_000087D0(void) {
-    return 1;
-}
-
-int timproc_uso_b5_func_000087D8(void) {
-    return 2;
-}
-
-int timproc_uso_b5_func_000087E0(void) { return 3; }
-
-/* timproc_uso_b5_func_000087E8: 3-word UNFILLED-jr-delay cap. Target is
- * `move v0,zero; jr ra; nop` (0xC). At -O2 IDO's reorg pulls the single
- * move into jr-ra's delay slot → `jr ra; move v0,zero` (0x8, 2 insns) —
- * verified 2026-05-29. The filled siblings 87D8/87E0 (`jr ra; li v0,N`)
- * DO match at -O2 (their value-insn fills the slot), so this region is
- * -O2-with-reorder. (Same unfilled-jr-delay class as feedback_unfilled_delay_*.)
- *
- * NOT A CAP (corrected 2026-05-31). The prior "genuine toolchain cap" verdict
- * only tried -O0 (which bloats `return 0` to 0x1c). It MISSED -O2 -g3: PROVEN
- * that `int f(void){return 0;}` at -O2 -g3 emits EXACTLY `move v0,zero; jr ra;
- * nop` (0xC, clean) — -g3 disables the reorg delay-slot filler while keeping
- * -O2. This is the IDENTICAL case to the sibling timproc_uso_b5_func_00001DA4
- * (`return 1`, unfilled-delay), already landed via its -g3 carve-out
- * src/timproc_uso_b5/timproc_uso_b5_g3_1DA4.c. (Donor-splice fails because it
- * uses -O0; -g3 is the right tool, not -O0.)
- * TO LAND (attempted 2026-05-31, reverted): the -g3 sub-unit g3_87E8.c WORKS —
- * it produces the EXACT 0xC target bytes (verified). But the block5 splice is
- * NOT a simple "delete 0xC, pad tail, reinsert": deleting 87E8 from the TU
- * shrank main .text by 0x10 (not 0xC) and left a real epilogue + 8 zeros at the
- * tail, not clean 0x18 zeros. So the main .c.o .text length / padding mechanism
- * (how 1DA4's removal currently yields exactly 0xe620 with 0xC tail zeros) must
- * be reverse-engineered before extending the splice — guessing it corrupts the
- * shared block5 build. The CRACK is proven (g3 bytes exact); the remaining piece
- * is the precise splice-padding RE — a focused task, not a quick tick. Same for
- * sibling 8894.
- * 2026-05-31 RE PROGRESS (narrows the focused task): the 0x10 shrink = 0xC code
- * + 0x4 asm-processor INCLUDE_ASM-boundary alignment (the asm-processor pads the
- * compiled-C/INCLUDE_ASM region boundary to 8 bytes; carving 87E8 removes its 0xC
- * AND collapses a 0x4 boundary pad). 87E8 builds at .text offset 0x87DC, i.e.
- * VRAM 0x87E8 minus the 0xC the 1DA4 carve already shifts everything after 0x1DA4.
- * So the multi-offset splice must: (1) insert g3_87E8 at post-1DA4-splice offset
- * 0x87E8, AND (2) absorb the 0x4 boundary-pad delta (either emit g3_87E8 as 0x10
- * = 0xC + 0x4 zeros and verify the target has no 0x4 gap before 87F4 [it doesn't:
- * 87F4 = 87E8+0xC], OR keep the boundary pad in main by carving 87E8 WITHOUT
- * collapsing the adjacent INCLUDE_ASM-boundary align). Verify against build/src
- * .text == target for the whole 0x87xx..0x89xx range, not just 87E8, before the
- * Yay0 recompress — a wrong delta silently corrupts the shared block5.
- * SOURCE=3 RETEST (2026-06-01): promoted with the same -O2 -g3 carve-out
- * mechanism as sibling 1DA4. The compiled sub-unit lives in
- * src/timproc_uso_b5/timproc_uso_b5_g3_87E8.c and is spliced into block5 at
- * offset 0x87E8, preserving the unfilled delay slot without instruction
- * patching. */
 
 /* Boundary-merged switch predicate. The internal alabels at 0x8834, 0x8844,
  * 0x8854, 0x886C, 0x887C, and 0x8894 are case labels/tail entries, not
