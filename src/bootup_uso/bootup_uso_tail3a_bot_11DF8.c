@@ -3,12 +3,11 @@
 extern int func_00000000();
 extern char D_00000000;
 
-/* Tail slice of the original bootup_uso_tail3a_bot.c (2026-07-10 carve, see
- * that file's header comment). Holds the 11DF8 empty stub, the 11E00/11ED4/
- * 11FA8 NM triplet and the matched 1207C..120A0 tail at -O2 -g3. */
-
-void func_00011DF8(void) {
-}
+/* Tail slice of the original bootup_uso_tail3a_bot.c (2026-07-10 carve).
+ * Holds the 11E00/11ED4/11FA8 NM triplet and the matched 1207C..120A0 tail
+ * at -O2 -g3. The 8-byte "func_00011DF8" empty stub that used to head this
+ * unit was func_00011DBC's dead -O0 `$exit` pair (absorbed into o0_11DBC.c
+ * 2026-09-05, TRUNCATE_TEXT here 0x2B0 -> 0x2A8). */
 
 #ifdef NON_MATCHING
 /* func_00011E00: 53-insn "find first slot with mask bit set".
