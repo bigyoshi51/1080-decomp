@@ -1429,9 +1429,15 @@ clean:
 	rm -rf build $(ROM)
 
 # Extract asset .bin files from baserom.z64 via splat.
-# Run once after providing your own legally-obtained ROM.
+# Run after providing your own legally-obtained ROM; safe to re-run.
+#
+# `--modes bin` restricts splat to the 111 bin segments, which are the only
+# ROM-derived build inputs not tracked in git (assets/*.bin is gitignored).
+# A full `splat split` would also regenerate asm/, src/, tenshoe.ld and
+# include/include_asm.h -- all of which are curated source of truth here, not
+# splat output -- and silently discard that curation.
 setup: $(BASEROM)
-	python3 -m splat split tenshoe.yaml
+	python3 -m splat split tenshoe.yaml --modes bin
 
 .PHONY: all clean verify verify-blocks expected setup objects
 

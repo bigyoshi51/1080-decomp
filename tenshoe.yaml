@@ -17,6 +17,13 @@ options:
   undefined_syms_auto_path: undefined_syms_auto.txt
   undefined_funcs_auto_path: undefined_funcs_auto.txt
 
+  # These two files are curated build inputs, not regenerable splat output:
+  # `tenshoe.ld` is linked with `-T undefined_syms_auto.txt`, and a fresh
+  # splat run emits only ~41 of its 3395 lines, which makes mips-linux-gnu-ld
+  # segfault ("dot moved backwards"). Never let a re-split overwrite them.
+  create_undefined_syms_auto: False
+  create_undefined_funcs_auto: False
+
   asm_path: asm
   src_path: src
   build_path: build
