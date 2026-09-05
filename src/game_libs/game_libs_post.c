@@ -21019,21 +21019,12 @@ void gl_func_000333B4(char *a0) {
  * See docs/IDO_CODEGEN.md#same-line-brace-return-sinks-arg-home-c3e8. */
 int gl_func_000333F4(int a0) { return gl_func_00000000(&D_00000000, a0); }
 
-#ifdef NON_MATCHING
-/* 82.83% NM with SUFFIX_BYTES applied for the trailing dead bytes
- * (lui t6, 0; lw t6, 0x20C(t6) — stolen prologue for successor).
- * Remaining diff: IDO schedules `sw ra, 0x14(sp)` BEFORE `lui a0, 0` in
- * mine, target has them in opposite order. Both insns independent
- * (no data dep) — same IDO scheduler-ordering cap class as
- * feedback_ido_sw_before_addu_unreachable.md. SUFFIX_BYTES + body
- * structure are correct; just the 2-insn swap is unflippable from C.
- * Default INCLUDE_ASM build matches. */
-void gl_func_0003341C(int a0) {
-    gl_func_00000000(&D_00000000, a0);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003341C);
-#endif
+/* gl_func_0003341C: ONE-LINE DEFINITION IS LOAD-BEARING -- do not re-wrap.
+ * Same shape and same source-line tie-break as gl_func_000333F4 above
+ * (target prologue `addiu sp; or a1,a0; lui a0; sw ra`); the call must
+ * share the `{` line so `lui a0` schedules ahead of `sw ra,0x14(sp)`.
+ * See docs/IDO_CODEGEN.md#same-line-brace-call-wrapper-lui-a0-sw-ra. */
+void gl_func_0003341C(int a0) { gl_func_00000000(&D_00000000, a0); }
 
 // game_libs_func_00033444 — STRUCTURAL PASS / BOUNDARY NOTE
 // (0x8 / 2 words, no episode). Raw-.word USO form (game_libs).
