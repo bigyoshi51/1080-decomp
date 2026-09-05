@@ -20984,80 +20984,34 @@ int gl_func_000333F4(int a0) { return gl_func_00000000(&D_00000000, a0); }
  * See docs/IDO_CODEGEN.md#same-line-brace-call-wrapper-lui-a0-sw-ra. */
 void gl_func_0003341C(int a0) { gl_func_00000000(&D_00000000, a0); }
 
-// game_libs_func_00033444 — STRUCTURAL PASS / BOUNDARY NOTE
-// (0x8 / 2 words, no episode). Raw-.word USO form (game_libs).
-//
-// NOT A REAL FUNCTION. Splat-missplit HEAD FRAGMENT (same class as
-// game_libs_func_000309AC documented earlier in this file): two
-// instructions only, NO prologue (no addiu $sp), NO jr $ra —
-//     lui   $t6, 0            ( 3C0E0000 )
-//     lw    $t6, 0x20C($t6)   ( 8DCE020C )
-// a base-pointer load of &D_0 + 0x20C into $t6. These two words
-// logically belong to the ENTRY of the NEXT function (at
-// 0x0003344C): splat could not see the function boundary in this
-// relocatable USO segment and sheared the successor's prologue-area
-// base load off as a standalone 8-byte symbol.
-//
-// Resolution: DEFERRED USO BOUNDARY RE-SPLIT (tracked with the other
-// game_libs_post.c head-fragment / multi-jr boundary notes). NOT
-// fixable with the mnemonic split-fragments.py / merge-fragments
-// tooling — raw-.word relocatable USO needs the spimdisasm-USO
-// migration to re-derive the boundary. No merge attempted (would
-// corrupt the successor's bytes); no episode (tautology-trap; and
-// this is not a function). Body INCLUDE_ASM-preserved (.s = source
-// of truth).
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00033444);
-
-// gl_func_0003344C — STRUCTURAL PASS (0x64 / 25 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, has
-// its OWN prologue). The SUCCESSOR of the game_libs_func_00033444
-// head-fragment (its &D_0+0x20C load feeds in as the input).
-//
-//   float gl_func_0003344C(...) {
-//     unsigned u = *(unsigned*)(&D_0 + 0x20C);   // from frag 33444
-//     float a = (float)u;                          // cvt.s.w
-//     if ((int)u < 0) a += 2147483648.0f;          // 0x4F800000
-//     float r = callback(&D_0, a);                 // jal 0 (USO cb)
-//     float b = (float)(unsigned)r;                // same u32->f
-//     if (...) b += 2147483648.0f;
-//     return r0 / b;                                // div.s in delay
-//   }
-//
-// Struct-typing reference: the textbook UNSIGNED-32 -> FLOAT
-//   conversion idiom (IDO/GCC __floatunsi-style): `cvt.s.w` of the
-//   value followed by a sign-bit-gated add of 2^31 = 2147483648.0f
-//   (the literal 0x4F800000 materialized via lui/mtc1), applied
-//   twice (once to the &D_0+0x20C input, once to a callback result),
-//   with the final result produced by an FP divide emitted in the
-//   jr delay slot (`div.s f0, f0, f4`). It calls one USO-relocated
-//   callback (jal 0 → resolved at load) with the &D_0 base and the
-//   converted float. A numeric-conversion / ratio leaf of the
-//   game_libs object subsystem (computes a normalized ratio from an
-//   unsigned counter at &D_0+0x20C — likely a progress / fraction
-//   used by the gl_func_0002FB74 interpreter and the ramp/timer
-//   family; the head-fragment 00033444 is its sheared-off input
-//   base load, confirming the two are one logical unit pending the
-//   deferred USO re-split).
-// Caps (DEFERRED): raw-word USO + unsigned->float 2^31-bias idiom +
-//   USO-reloc jal-0 callback + delay-slot div.s — byte-match needs
-//   USO mnemonic disasm + 00033444 boundary re-split. Real-C
-//   STRUCTURAL body below per the analysis. Byte-match deferred.
-//   Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-float gl_func_0003344C(void) {
-    unsigned u = *(unsigned *)((char *)&D_00000000 + 0x20C);
-    float a = (float)(int)u;
-    float r;
-    float b;
-    if ((int)u < 0) a += 2147483648.0f;
-    r = ((float (*)(void *, float))gl_func_00000000)(&D_00000000, a);
-    b = (float)(int)*(unsigned *)&r;
-    if ((int)*(unsigned *)&r < 0) b += 2147483648.0f;
-    return r / b;
+/* game_libs_func_00033444 -- ratio of a callback's u32 result to the u32
+ * counter at &D+0x20C (0x6C / 27 words, EXACT).
+ *
+ * Boundary: the 8-byte "head fragment" game_libs_func_00033444 (`lui t6;
+ * lw t6,0x20C(t6)`, no prologue, no jr ra -- filed 2026-05 as a "deferred
+ * USO boundary re-split") was the first load of its successor
+ * gl_func_0003344C (18% NM wrap, "byte-match deferred"), hoisted above
+ * `addiu sp` by the -O2 scheduler.  Forward-merged under the orphan's
+ * (earlier-address) name: .s = 0x8 + 0x64 = 0x6C; the successor .s + wrap
+ * are gone (nothing referenced gl_func_0003344C).  Twenty-first hoisted-
+ * orphan case; see
+ * docs/MATCHING_WORKFLOW.md#feedback-callerset-t6-orphan-head-is-hoisted-prologue.
+ *
+ * Codegen: both `mtc1; bgez; cvt.s.w; lui at,0x4F80; mtc1; nop; add.s`
+ * blocks are IDO's u32 -> float conversion (sign-bit-gated +2^31), so the
+ * counter and the callback result are plain `(float)(unsigned)` casts; the
+ * converted counter is spilled to 0x1C(sp) across the call and the div.s
+ * lands in the jr delay.  The head load must be FOLDED (`lui t6; lw
+ * t6,0x20C(t6)`) while the call arg `&D_00000000` is built as `lui a0` /
+ * `addiu a0` (delay slot): spelling both off &D_00000000 CSEs the address
+ * into a held `lui a0; addiu a0; lw t6,0x20C(a0)` (+1 word, 18 diffs), so
+ * the counter reads through the per-site alias D_33444_a (= 0x0 in
+ * undefined_syms_auto.txt; the ROM word bakes the 0x20C addend either way). */
+extern int D_33444_a;
+float game_libs_func_00033444(void) {
+    float a = (float)*(unsigned int *)((char *)&D_33444_a + 0x20C);
+    return (float)(unsigned int)gl_func_00000000(&D_00000000) / a;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003344C);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_000334B0(int a0, int a1, int a2) {
