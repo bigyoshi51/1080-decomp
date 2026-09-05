@@ -30324,25 +30324,30 @@ void gl_func_0005BBCC(void) {
     gl_func_00000000();
 }
 
-/* game_libs_func_0005BBEC: 6-insn FP fabs-like:
- *   c.lt.s f14, f12; nop; bc1fl +0x4; neg.s f0, f14; jr ra; mov.s f0, f14
- * The `bc1fl +0x4` branches PAST function end (target 0x5BC08, size 0x18
- * → end 0x5BC04) — cross-fn shared-epilogue tail-merge per
- * feedback_leaf_branch_past_end_is_cross_fn_epilogue. Linker-set offset,
- * unmatchable standalone. CAP class. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BBEC);
-
-/* game_libs_func_0005BC04: 8-insn FP clamp-min.
- *   float f(float a, float b) {
- *     float neg_b = -b;
- *     if (a < neg_b) a = neg_b;
- *     return a;
- *   }
- *
- * Byte-exact 2026-05-27. Standard FP-clamp idiom with neg.s + c.lt.s + bc1f. */
-float game_libs_func_0005BC04(float a, float b) {
-    float neg_b = -b;
-    if (a < neg_b) a = neg_b;
+/* game_libs_func_0005BBEC: clamp a into [-b, b] (b >= 0), 14 insns, 0x38.
+ * MATCHED 2026-09-05 (agent-c): boundary merge of the mis-split 8-word
+ * "game_libs_func_0005BC04" (was a separately "matched" clamp-min stub with
+ * its own episode, now deleted). The bc1fl at 0x5BBF4 lands on 0x5BC08 =
+ * 5BC04+4 with 5BC04's first word (neg.s f0,f14) duplicated into its delay
+ * slot -- the IDO branch-likely dup-first-insn idiom; 5BC04 was this
+ * function's own else arm, not a cross-fn shared epilogue (the old
+ * "leaf-branch-past-end CAP" note was that mis-split). 5BBCC before it has
+ * its own prologue, 5BC24 after it reads a0/a1 = real entries.
+ * Shape is load-bearing: a SINGLE exit with the high clamp written IN PLACE
+ * on the arg (`a = b;`) gives `bc1f -> jr ra` with `mov.s f0,f12` in the jr
+ * delay; two `return` statements (`if (b < a) return b; ...; return a;`) make
+ * IDO branch-likely the second test too (`bc1fl` + dup `mov.s f0,f12`, 4 words
+ * off); a named `ret` local grows it to 16 words (extra moves).
+ * See docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block */
+float game_libs_func_0005BBEC(float a, float b) {
+    float neg_b;
+    if (b < a) {
+        a = b;
+    } else {
+        neg_b = -b;
+        if (a < neg_b) a = neg_b;
+    }
     return a;
 }
 
