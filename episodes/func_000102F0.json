@@ -1,14 +1,14 @@
 {
   "function_name": "func_000102F0",
-  "project": "1080-agent-a",
+  "project": "1080-agent-c",
   "model": "claude-manual",
-  "start_time": "2026-04-21T02:32:56.356817+00:00",
-  "end_time": "2026-04-21T02:32:56.356843+00:00",
+  "start_time": "2026-09-05T23:31:07.288233+00:00",
+  "end_time": "2026-09-05T23:31:07.288248+00:00",
   "steps": [
     {
       "step_number": 1,
-      "timestamp": "2026-04-21T02:32:56.356836+00:00",
-      "assistant_text": "Applied per-file -O2 -g3 OPT_FLAGS to bootup_uso_tail2.c Makefile rule. -g3 disables IDO reorg-pass delay-slot filler, letting swc1 variant of unfilled-delay-slot match. C body: *(float*)(a0 + 0x70) = (float)a1; Feedback memo: feedback_ido_g3_disables_delay_slot_fill.md.",
+      "timestamp": "2026-09-05T23:31:07.288244+00:00",
+      "assistant_text": "Manual exact match: int->float store *(float*)(a0+0x70) = (float)a1 (mtc1 + load-delay nop + cvt.s.w + swc1). Boundary fix 2026-09-05: the unit (formerly bootup_uso_tail2.c at -O2 -g3, whose -g3 only bought the unfilled jr delay) now builds at -O0 like the rest of the run; the 2-word \"func_00010308\" (jr ra; nop) that followed was ugen dead $exit: j $31 block of this frameless FALL-OFF fn (no return statement: its own jr ra; nop is the fall-off return, the exit pair follows), not a function. Dead-pair count: our -O0 emits the 0x18 body + exactly ONE pair = 0x20, so TRUNCATE_TEXT 0x20 clips only the section pad. tail2 retired.",
       "tool_calls": [],
       "match_percent": 100.0,
       "compiled": true,
@@ -19,15 +19,15 @@
   "final_match_percent": 100.0,
   "best_match_percent": 100.0,
   "total_tokens": 0,
-  "instruction_count": 6,
+  "instruction_count": 8,
   "initial_m2c_source": null,
-  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_00010260);\n\nINCLUDE_ASM(\"asm/nonmatchings/bootup_uso\", func_000102A4);\n\nvoid func_000102E8(void) {\n}\n\nvoid func_000102F0(char *a0, int a1) {\n    *(float*)(a0 + 0x70) = (float)a1;\n}\n\nvoid func_00010308(void) {\n}\n\n",
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n\n/* func_00010260 moved to bootup_uso_o0_1024C.c (-O0 file split, 2026-05-03). */\n\n/* func_000102A4 moved to bootup_uso_o0_1024C.c 2026-07-10 \u2014 it was an -O0\n * island (register params, unfolded div.s by 2.0f, mtc1 load-delay nops);\n * byte-exact there. The 2-word \"func_000102E8\" (jr ra; nop) that used to head\n * this unit was 102A4's dead -O0 `$exit` pair, absorbed into o0_1024C.c\n * 2026-09-05. */\n\n/* Formerly bootup_uso_tail2.c (-O2 -g3, the -g3 only bought the unfilled jr\n * delay). 2026-09-05: renamed bootup_uso_o0_102F0.c and built at -O0 like the\n * rest of the run -- the 2-word \"func_00010308\" (jr ra; nop) that followed\n * func_000102F0 was ugen's dead `$exit: j $31` block of this frameless\n * FALL-OFF fn (no return statement: its own `jr ra; nop` is the fall-off\n * return, the exit pair comes after it), not a function (a standalone -O0\n * empty fn is `sw a0; b .+1; nop; jr ra; nop`, func_00010310 right after\n * this unit). Our -O0 emits exactly the 0x18 body + that ONE pair = 0x20;\n * TRUNCATE_TEXT 0x20 only clips IDO's section pad. Register params keep -O0\n * from homing a0/a1 (102A4 precedent). 8/8 words. */\nvoid func_000102F0(char *a0, int a1) {\n    *(float*)(a0 + 0x70) = (float)a1;\n}\n",
   "metadata": {
-    "source_path": "src/bootup_uso/bootup_uso_tail2.c",
+    "source_path": "src/bootup_uso/bootup_uso_o0_102F0.c",
     "asm_path": "asm/nonmatchings/bootup_uso/func_000102F0.s",
     "segment": "bootup_uso",
     "compiler": "ido7.1",
-    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32",
-    "verification": "Verified with objdiff report.json \u2014 fuzzy_match_percent 100.0."
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with make + cmp tenshoe.z64 baserom.z64 byte-identical; no-alias objdump of build/src/bootup_uso/bootup_uso_o0_102F0.c.o func_000102F0 word-for-word equal to the merged .s (8 words); report.json func_000102F0 100.0 size 32."
   }
 }

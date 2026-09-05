@@ -128,13 +128,18 @@ build/src/bootup_uso/bootup_uso_tail1_bot.c.o build/non_matching/src/bootup_uso/
 # 2026-09-05: the 2-word "func_000102E8" (jr ra; nop) that headed tail2 was
 # 102A4's dead -O0 `$exit` pair (102A4 is a fall-off fn: its own `jr ra; nop`
 # is ugen's fall-off return, the pair after it the exit label block) -- region
-# now 0x1024C..0x102F0 (0xA4, 102A4 = 0x4C); tail2 starts 0x102F0 (0x20). See
+# now 0x1024C..0x102F0 (0xA4, 102A4 = 0x4C). See
 # docs/IDO_CODEGEN.md#o0-two-block-predicate-not-adjacent-leaf-cap.
 build/src/bootup_uso/bootup_uso_o0_1024C.c.o: TRUNCATE_TEXT := 0xA4
 # NM twin of the TRUNCATE above (keeps the NM symbol size equal to expected's).
 build/non_matching/src/bootup_uso/bootup_uso_o0_1024C.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0xA4 func_000102A4=0x4C
-build/src/bootup_uso/bootup_uso_tail2.c.o: TRUNCATE_TEXT := 0x20
-build/src/bootup_uso/bootup_uso_tail2.c.o build/non_matching/src/bootup_uso/bootup_uso_tail2.c.o: OPT_FLAGS := -O2 -g3
+# 2026-09-05: tail2 -> o0_102F0 (-O0), tail2 retired: the 2-word "func_00010308"
+# was 102F0's dead -O0 `$exit` pair (fall-off fn: our -O0 emits the 0x18 body +
+# ONE pair = 0x20, nothing to clip but IDO's section pad; 102A4/10A9C/12BF8
+# precedents). Region 0x102F0..0x10310.
+build/src/bootup_uso/bootup_uso_o0_102F0.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_102F0.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_102F0.c.o: TRUNCATE_TEXT := 0x20
+build/non_matching/src/bootup_uso/bootup_uso_o0_102F0.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x20
 build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
 # 2026-07-10: tail3a re-truncated 0x14D8 -> 0x848 after carving the 0x10B6C
 # -O0 island into bootup_uso_o0_10B6C.c; the 0x10C8C..0x116C7 INCLUDE_ASM
