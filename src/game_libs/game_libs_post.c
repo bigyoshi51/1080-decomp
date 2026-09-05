@@ -21010,19 +21010,14 @@ void gl_func_000333B4(char *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_000333B4_pad.s")
 
-#ifdef NON_MATCHING
-/* 80%: body is `gl_func_00000000(&D_00000000, a0)` but IDO -O2 schedules
- * `sw ra, 0x14(sp)` before `lui a0, %hi(SYM)` — target has them swapped.
- * Per feedback_ido_o2_tiny_wrapper_unflippable.md this is an IDO scheduler
- * cap not reachable from C (tested 13+ variants on the sibling 0x62204);
- * same class here. The prior wrap had `gl_func_00000000(gl_func_00000000, a0)`
- * which was a typo — the &D_00000000 form is the correct body. */
-int gl_func_000333F4(int a0) {
-    return gl_func_00000000(&D_00000000, a0);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000333F4);
-#endif
+/* gl_func_000333F4: ONE-LINE DEFINITION IS LOAD-BEARING -- do not re-wrap.
+ * Target prologue is `addiu sp; or a1,a0; lui a0; sw ra` (lui BEFORE sw ra).
+ * IDO 7.1 -O2 tie-breaks the independent `sw ra,0x14(sp)` (function-entry
+ * line) vs `lui a0,%hi(SYM)` (call line) by SOURCE LINE: with the call on its
+ * own line the entry-line store stays first (the old "unflippable scheduler
+ * cap"); with the call on the SAME line as the `{` the lui schedules first.
+ * See docs/IDO_CODEGEN.md#same-line-brace-return-sinks-arg-home-c3e8. */
+int gl_func_000333F4(int a0) { return gl_func_00000000(&D_00000000, a0); }
 
 #ifdef NON_MATCHING
 /* 82.83% NM with SUFFIX_BYTES applied for the trailing dead bytes
