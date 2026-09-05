@@ -3399,3 +3399,7 @@ D_34890_b = 0x00000000;  /* gl_func_00034890 per-site alias of D_00000000 (defea
 D_34890_c = 0x00000000;  /* gl_func_00034890 per-site alias of D_00000000 (defeats &D CSE) */
 D_34890_d = 0x00000000;  /* gl_func_00034890 per-site alias of D_00000000 (defeats &D CSE) */
 D_34890_e = 0x00000000;  /* gl_func_00034890 per-site alias of D_00000000 (defeats &D CSE) */
+game_libs_func_00029CCC_rodata = 0x00000FF0;  /* switch(state) 9-entry jumptable: USO ships it in game_libs data at +0xFF0; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_29CCC.c) */
+gl_ref_00001014_f = 0x00001014;  /* 32767.0f literal (game_libs data), game_libs_func_00029CCC */
+gl_ref_00001018_f = 0x00001018;  /* 1e-5f literal (game_libs data), game_libs_func_00029CCC */
+gl_ref_00002058_f = 0x00002058;  /* 0.017453292f (pi/180) literal (game_libs data), game_libs_func_00029CCC */

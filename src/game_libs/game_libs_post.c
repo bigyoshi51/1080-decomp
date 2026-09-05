@@ -12771,18 +12771,26 @@ void game_libs_func_00029CAC(char *a0, int a1, int a2) {
     *(float*)(a0 + 0x10) = 0.0f;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029CCC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029D08);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029FDC);
-
-/* game_libs_func_00029FFC: 3-insn `mov.s f0, f2; jr ra; nop` float move.
- * No prologue — $f2 is a caller-set float arg (calling convention is
- * $f12/$f14, not $f2). IDO C can't emit functions taking $f2 as input.
- * CAP class per feedback_caller_set_int_reg_cap_1080_game_libs (extends
- * to floats). Default INCLUDE_ASM remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00029FFC);
+/* game_libs_func_00029CCC: envelope/keyframe stepper (9-state jumptable
+ * switch on the packed status byte, returns the value clamped to [0,1]).
+ * BOUNDARY FIX (2026-09-05, agent-c): ONE function that splat had split
+ * into FOUR symbols -- 29CCC (15-word `jr t6` dispatcher), 29D08 (case
+ * bodies), 29FDC and 29FFC (the beql/bc1fl dup-first-insn null blocks of
+ * the clamp epilogue). The old "caller-set $f2 float move CAP" note on
+ * 29FFC is RETIRED -- it was this function's own `return v` block. Merged
+ * .s = 0x33C / 207 words.
+ * WIRED via REPLACE_FUNC_BODY donor splice: the real C lives in the IDO
+ * 7.1 -O2 donor unit game_libs_o2_29CCC.c (207/207 word-exact); the
+ * splice renames the switch's donor-local .rodata jumptable reloc to
+ * game_libs_func_00029CCC_rodata (pinned to the USO table at +0xFF0).
+ * Body below is a placeholder for the splice. */
+float game_libs_func_00029CCC(void *p) {
+    volatile float ret = 0.0f;
+    if (p != 0) {
+        ret = 1.0f;
+    }
+    return ret;
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00029B6C_pad.s")
 
 #ifdef NON_MATCHING
