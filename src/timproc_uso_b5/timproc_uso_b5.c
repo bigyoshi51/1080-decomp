@@ -5886,17 +5886,22 @@ int timproc_uso_b5_func_000087E0(void) { return 3; }
  * (split-fragments / merge-fragments) makes this switch match as-is. The goto-z
  * funnel is required — a per-case `return 0` makes IDO hoist `move v0,zero`
  * between lw and addiu, shifting the whole body. Multi-tick infra. */
-/* timproc_uso_b5_func_000087F4 [0x87F4..0x8894), 0xA0: bit-priority
- * encoder, 8-entry jumptable, THREE case bodies. FALSE MATCH RETRACTED
- * 2026-06-10: the prior "43/43 exact" matched a CORRUPTED merged .s
- * that had wrongly absorbed the adjacent 8894 return-0 leaf; ROM truth
- * (assets/timproc_uso_block_5.bin) shows the fn ends at 0x8894 and its
- * return-0 paths BRANCH INTO the adjacent leaf (beqzl -> 0x8898) --
- * the branch-into-adjacent-leaf cap class (mgrproc 140/170). The C
- * below is structurally faithful but emits an INTERNAL funnel where
- * the target borrows the neighbor's; not standalone-matchable.
- * Episode deleted; expected/ was circularly poisoned and is re-baselined. */
-#ifdef NON_MATCHING
+/* timproc_uso_b5_func_000087F4 [0x87F4..0x88A0), 0xAC (43 words): bit-priority
+ * encoder, 8-entry jumptable on a0->0x3C8, THREE case bodies (1,2,4 / 2,4 / 4),
+ * cases 4..8 stacked onto the goto-z funnel. BYTE-EXACT 2026-09-05 (agent-c)
+ * after absorbing the mis-split "8894" symbol -- the exact sibling of 88A0+8940:
+ * the 3-word `move v0,zero; jr ra; nop` at 0x8894 is this fn's own shared
+ * return-0 block. The default `beqz at` (0x8800) lands ON 0x8894 and all three
+ * `beql tN,zero` (0x8844/0x886C/0x8884) land on 0x8898 with the dup'd
+ * `move v0,zero` in their delay slots (IDO branch-likely dup-first-insn idiom,
+ * docs/MATCHING_WORKFLOW.md
+ * #feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block). The
+ * `jr ra` delay stays unfilled at plain -O2 because 0x8898 is a branch target,
+ * so the -g3 carve (timproc_uso_b5_g3_8894.c) encoded the wrong model and is
+ * dropped. The 2026-06-10 "branch-into-adjacent-leaf cap" retraction was right
+ * about expected/ poisoning and wrong about the boundary: the C body below is
+ * unchanged from that NM body. The jumptable `lw t7,%lo(.rodata)` word is the
+ * unit's usual reloc-class lo16 diff in verify-blocks (target bakes 0x1F4). */
 int timproc_uso_b5_func_000087F4(char *a0) {
     int v0;
     switch (*(int *)(a0 + 0x3C8)) {
@@ -5924,9 +5929,6 @@ int timproc_uso_b5_func_000087F4(char *a0) {
 z:
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b5/timproc_uso_b5", timproc_uso_b5_func_000087F4);
-#endif
 /* timproc_uso_b5_func_000088A0 [0x88A0..0x894C), 0xAC (43 words): 87F4's
  * mirror bit-priority encoder, 8-entry jumptable on a0->0x3C8, THREE case
  * bodies (8 / 1,8 / 2,1,8), cases 4..8 stacked onto the goto-z funnel.
