@@ -25,7 +25,26 @@ See docs/MATCHING_WORKFLOW.md
 and docs/IDO_CODEGEN.md #o0-two-block-predicate-not-adjacent-leaf-cap.
 
 Usage: python3 scripts/find-stub-misplits.py [segment_substr] [--max-stub-words N]
-                                             [--exclude NAME,NAME,...]
+                                             [--exclude NAME,NAME,...] [--runs]
+
+--runs (2026-09-05, agent-g, after cases 13/14): the DISPATCHER-STUB-RUN
+flavour the pairwise scan misses.  A head symbol H ends in a `jr tN`
+jumptable dispatch, or carries an `li at,K; beq/bne` compare chain, or
+branches into the run; it is followed by a RUN of >=2 ADJACENT 1-3 word
+symbols each ending in `jr ra` (`jr ra; li v0,K` case arms, `jr ra; nop`
+shared epilogue), every one "matched" as `return K;` / `{}` WITH a fake-exact
+episode (2E290: seven arms; 560E4: ten arms + epilogue).  The pairwise scan
+only reports H -> first stub (and only when H branches onto it, which a `jr
+tN` head never does).  --runs walks the address ladder (all .s + all C fn
+defs in src/<seg>/) and prints every such run with the head's flavour,
+episode count, and outside references (jal / other-.s reloc / src refs /
+undefined_syms_auto.txt); the head + whole run is ONE function.  Runs of
+`jr ra; sw a0,0(sp)` (-O1 arg-homing empty callbacks after a jr-tN head, e.g.
+game_libs 7324.., 76C8.., 38B6C..) are separate functions and are filtered:
+a case arm never homes an argument.  First two --runs hits, both the same
+`addiu t6,aN,-1; sltiu at,t6,8; beqz; jr t6` + 3-4 return arms + an unfilled
+`X; jr ra; nop` default that had been carved into a -O2 -g3 TRUNCATE_TEXT
+unit: game_libs 343F4 (landed, case 15) and timproc_uso_b5 87A0 (open).
 """
 import glob
 import os
@@ -123,6 +142,157 @@ def src_refs(name):
     return n, files
 
 
+C_DEF = re.compile(r'^\s*(?:static\s+)?(?:void|int|s32|u32|s16|u16|s8|u8|f32|float|char|short|long|unsigned(?:\s+\w+)?|\w+\s*\*+|\w+)\s+\**(\w*func_[0-9A-Fa-f]{4,8})\s*\(')
+C_STUB = re.compile(r'^\s*(?:void|int|s32|u32)\s+(\w+)\(void\)\s*\{\s*(?:return\s+(-?(?:0x[0-9A-Fa-f]+|\d+))\s*;)?\s*\}')
+
+
+def c_defs(seg):
+    """Every C-defined fn with a name-derivable address in src/<seg>/ ->
+    {addr: (name, file:line, stub_return_or_None_or_'void')}"""
+    out = {}
+    for cf in glob.glob(f'src/{seg}/*.c'):
+        for ln, line in enumerate(open(cf), 1):
+            m = C_DEF.match(line)
+            if not m or line.lstrip().startswith(('extern', 'INCLUDE_ASM')):
+                continue
+            a = name_addr(m.group(1))
+            if a is None:
+                continue
+            st = C_STUB.match(line)
+            stub = None
+            if st:
+                stub = 'void' if st.group(2) is None else int(st.group(2), 0)
+            out[a] = (m.group(1), f'{cf}:{ln}', stub)
+    return out
+
+
+def is_jr_tn(w):
+    return (w >> 26) == 0 and (w & 0x3f) == 8 and ((w >> 21) & 31) != 31
+
+
+def li_at_compare_count(words):
+    """count `addiu at,zero,K` immediately followed by beq/bne rs,at"""
+    n = 0
+    for i in range(len(words) - 1):
+        w, nx = words[i], words[i + 1]
+        if (w >> 16) == 0x2401 and ((nx >> 26) in (4, 5, 0x14, 0x15)) and ((nx >> 16) & 31) == 1:
+            n += 1
+    return n
+
+
+def outside_refs(name, own_path):
+    """(other .s files naming it, undefined_syms_auto.txt line, src ref count)"""
+    r = subprocess.run(['grep', '-rlw', name, 'asm/'], capture_output=True, text=True)
+    others = [f for f in r.stdout.split() if f and os.path.abspath(f) != os.path.abspath(own_path or '')]
+    u = 0
+    if os.path.exists('undefined_syms_auto.txt'):
+        u = sum(1 for l in open('undefined_syms_auto.txt') if re.search(r'\b' + re.escape(name) + r'\b', l))
+    nref, _ = src_refs(name)
+    return others, u, nref
+
+
+def runs_mode(filt, max_stub, excl):
+    hits = []
+    for segdir in sorted(glob.glob('asm/nonmatchings/*/')):
+        seg = segdir.rstrip('/').split('/')[-1]
+        if filt and filt not in seg:
+            continue
+        files = glob.glob(segdir + '*/*.s') + glob.glob(segdir + '*.s')
+        funcs = [p for p in (parse(sf) for sf in files if '_pad' not in sf and 'tail_data' not in sf) if p]
+        pads = [p for p in (parse(sf) for sf in files if '_pad' in sf or 'tail_data' in sf) if p]
+        defs = c_defs(seg)
+        # address ladder: .s symbols win (they carry words); C-only defs fill the rest
+        ladder = {}
+        for f in funcs:
+            ladder[f['start']] = dict(name=f['name'], start=f['start'], size=f['size'], words=f['words'],
+                                      path=f['path'], c=None)
+        for f in pads:
+            ladder.setdefault(f['start'], dict(name=f['name'], start=f['start'], size=f['size'], words=f['words'],
+                                               path=f['path'], c=None, pad=True))
+        for a, (nm, where, stub) in defs.items():
+            if a in ladder:
+                ladder[a]['c'] = (where, stub)
+            else:
+                ladder[a] = dict(name=nm, start=a, size=None, words=None, path=None, c=(where, stub))
+        syms = [ladder[a] for a in sorted(ladder)]
+        for i, sy in enumerate(syms):
+            if sy['size'] is None:  # C-only: size = gap to the next symbol
+                sy['size'] = (syms[i + 1]['start'] - sy['start']) if i + 1 < len(syms) else 0x1000
+        jals = set()
+        for f in funcs:
+            jals |= jaltargets(f['start'], f['words'])
+
+        def is_stub(sy):
+            if sy.get('pad'):
+                return False
+            if sy['size'] > max_stub * 4 or sy['size'] <= 0:
+                return False
+            if sy['words'] is not None:
+                # a store to $sp (arg homing `sw a0,0(sp)`) is a FUNCTION ENTRY, never a case arm
+                if any(((w >> 26) in (0x2B, 0x29, 0x28)) and ((w >> 21) & 31) == 29 for w in sy['words']):
+                    return False
+                return JR_RA in sy['words']
+            return sy['c'] is not None and sy['c'][1] is not None  # C one-liner stub
+
+        i = 0
+        while i < len(syms):
+            if not is_stub(syms[i]):
+                i += 1
+                continue
+            j = i
+            while j + 1 < len(syms) and is_stub(syms[j + 1]) and syms[j + 1]['start'] == syms[j]['start'] + syms[j]['size']:
+                j += 1
+            run = syms[i:j + 1]
+            i = j + 1
+            if len(run) < 2:
+                continue
+            k = syms.index(run[0]) - 1
+            if k < 0:
+                continue
+            H = syms[k]
+            if H['words'] is None or H['start'] + H['size'] != run[0]['start']:
+                continue
+            rs, re_ = run[0]['start'], run[-1]['start'] + run[-1]['size']
+            flav = []
+            if any(is_jr_tn(w) for w in H['words']):
+                flav.append('jr-tN')
+            nli = li_at_compare_count(H['words'])
+            if nli >= 2:
+                flav.append(f'li-at-cmp x{nli}')
+            bt = [t for t in btargets(H['start'], H['words']) if rs <= t < re_]
+            if bt:
+                flav.append(f'branch->run+{",".join(str(t - rs) for t in sorted(set(bt)))}')
+            if not flav:
+                continue
+            if H['name'] in excl or any(s['name'] in excl for s in run):
+                continue
+            notes = []
+            for s in run:
+                eps = os.path.exists(f'episodes/{s["name"]}.json')
+                jl = any(s['start'] <= t < s['start'] + s['size'] for t in jals)
+                others, u, nref = outside_refs(s['name'], s['path'])
+                kind = 'C' if s['c'] and s['words'] is None else ('C+.s' if s['c'] else '.s')
+                dis = '; '.join(disasm_word(w) for w in s['words']) if s['words'] else \
+                    ('{}' if s['c'][1] == 'void' else f'return {s["c"][1]}')
+                flag = ''
+                if jl:
+                    flag += ' JAL!'
+                if others:
+                    flag += f' ASMREF:{",".join(os.path.basename(o) for o in others[:3])}'
+                if u:
+                    flag += ' UNDEF_SYMS!'
+                notes.append(f'      {s["name"]} {s["size"] // 4}w [{dis}] {kind}{" EP" if eps else ""} srcrefs={nref}{flag}')
+            neps = sum(1 for s in run if os.path.exists(f'episodes/{s["name"]}.json'))
+            hits.append((seg, H, run, flav, neps, notes, rs, re_))
+    print(f'{len(hits)} dispatcher-stub-RUN candidates (head H + >=2 adjacent 1-{max_stub}w jr-ra symbols)')
+    for seg, H, run, flav, neps, notes, rs, re_ in hits:
+        hk = 'C+.s' if H['c'] else '.s'
+        print(f'  {seg:14s} HEAD {H["name"]} ({len(H["words"])}w, {hk}, {"; ".join(flav)}) + run of {len(run)} '
+              f'[{rs:#x}..{re_:#x}] merged={(re_ - H["start"]) // 4}w fake-episodes={neps}')
+        for n in notes:
+            print(n)
+
+
 def main():
     args = sys.argv[1:]
     flagvals = {args[i + 1] for i, a in enumerate(args[:-1]) if a in ('--max-stub-words', '--exclude')}
@@ -133,6 +303,8 @@ def main():
         max_stub = int(args[args.index('--max-stub-words') + 1])
     if '--exclude' in args:
         excl = set(args[args.index('--exclude') + 1].split(','))
+    if '--runs' in args:
+        return runs_mode(filt, max_stub, excl)
     hits = []
     for segdir in sorted(glob.glob('asm/nonmatchings/*/')):
         seg = segdir.rstrip('/').split('/')[-1]

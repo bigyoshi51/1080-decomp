@@ -22051,19 +22051,31 @@ int game_libs_func_000343E0(int a0) {
     return *(int *)((char *)&D_00000000 + a0 * 4);
 }
 
-/* game_libs_func_000343F4: leaf-branch-past-end CAP per feedback_leaf_branch_past_end_is_cross_fn_epilogue. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000343F4);
-
-// Address-of accessors into a 0xC-stride table at segment offset 0x1E3C8
-// (lui+addiu address-style return; the offset is baked into the bytes).
-int game_libs_func_00034424(void) {
-    return (int)((char *)&D_00000000 + 0x1E3C8);
-}
-
-int game_libs_func_00034430(void) {
-    return (int)((char *)&D_00000000 + 0x1E3D4);
-}
-
-int game_libs_func_0003443C(void) {
-    return (int)((char *)&D_00000000 + 0x1E3E0);
+/* game_libs_func_000343F4: selector -> address of a 0xC-stride table entry
+ * (segment data +0x1E3BC + 0xC*k): a0 == 2 -> k=0, 3 -> 1, 5 -> 2, 1 -> 3,
+ * anything else (incl. 4/6/7/8) -> 4.
+ * BOUNDARY FIX (2026-09-05, agent-g): ONE function that splat had split
+ * into FIVE symbols -- 343F4 (9-word `jr t6` jumptable dispatcher + the
+ * case-2 arm), 34424 / 34430 / 3443C (three 3-word `lui v0,2; jr ra; addiu`
+ * arms "matched" as `return (int)(&D_00000000 + K);` stubs WITH fake-exact
+ * episodes, now deleted) and 34448 (the 4-word `lui; addiu; jr ra; nop`
+ * default block, formerly its own -O2 -g3 TRUNCATE_TEXT carve-out unit
+ * game_libs_g3_34448.c, retired -- plain -O2 emits the unfilled jr delay
+ * of a switch fn's final return block). The old "leaf-branch-past-end CAP"
+ * note is RETIRED: the beqz lands on the fn's own default block. The fn IS
+ * contiguous, 0x343F4..0x34458 = 0x64 / 25 words; this unit's
+ * TRUNCATE_TEXT grew 0x17a38 -> 0x17a48 to cover the absorbed block.
+ * WIRED via REPLACE_FUNC_BODY donor splice: the real C lives in the IDO
+ * 7.1 -O2 donor unit game_libs_o2_343F4.c (25/25 word-exact); the splice
+ * renames the switch's donor-local .rodata jumptable reloc to
+ * game_libs_func_000343F4_rodata (pinned to the USO table at +0x19B8).
+ * Body below is a placeholder for the splice. (The NM bodies in this file
+ * that call a `game_libs_func_0003443C` are placeholder decodes of a
+ * TextReloc jal to symIdx 3, not calls into this fn's case arm.) */
+int game_libs_func_000343F4(int a0) {
+    volatile int ret = 0x1E3EC;
+    if (a0 == 2) {
+        ret = 0x1E3BC;
+    }
+    return ret;
 }

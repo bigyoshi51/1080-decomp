@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_000343F4",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-09-05T22:35:20.030701+00:00",
+  "end_time": "2026-09-05T22:35:20.030718+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-05T22:35:20.030714+00:00",
+      "assistant_text": "Manual exact match after a FIVE-symbol boundary merge (fifteenth mis-split case, first find-stub-misplits.py --runs hit): 343F4 (addiu t6,a0,-1; sltiu at,t6,8; beqz default; jr t6 jumptable dispatcher + case-2 arm) + three 3-word lui/jr/addiu return-address arms 34424/34430/3443C that were matched as return (int)(&D_00000000 + K) stubs with fake-exact episodes (deleted) + 34448, the 4-word unfilled-delay default block that had its own -O2 -g3 TRUNCATE_TEXT carve-out unit (retired: plain -O2 emits the unfilled jr ra; nop of a switch fn final return block by itself). switch (a0) with cases in SOURCE order 2,3,5,1 returning &D_00000000 + 0x1E3BC/C8/D4/E0 (0xC-stride table entries), case 8: sharing default (return +0x1E3EC) widens the table range to 1..8 (sltiu 8). Case->arm map read from the raw USO rodata table at +0x19B8 (the a0=1 entry is the unrelocated quirk word, the 3443C arm address sits just past the table, same as 2E290). Jumptable via donor splice: donor-local .rodata reloc renamed game_libs_func_000343F4_rodata pinned 0x19B8. The 64 NM-body callers naming game_libs_func_0003443C are placeholder decodes (raw jal 0x0C00C7EC resolves via the bootup TextReloc table to symIdx 3).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 25,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 7.1 -O2 donor for game_libs_func_000343F4 -- selector -> address of\n * a 0xC-stride table entry (game_libs data +0x1E3BC..+0x1E3EC). PROVEN\n * EXACT 25/25 words standalone (st_size = 0x64).\n *\n * BOUNDARY FIX (2026-09-05, agent-g, fifteenth mis-split case): ONE\n * function that splat had split into FIVE symbols: 343F4 (the 9-word\n * `addiu t6,a0,-1; sltiu at,t6,8; beqz -> default; jr t6` jumptable\n * dispatcher + the case-2 arm), 34424 / 34430 / 3443C (three 3-word\n * `lui v0,2; jr ra; addiu v0,v0,K` arms \"matched\" as\n * `return (int)(&D_00000000 + K);` stubs WITH fake-exact episodes) and\n * 34448 (the 4-word `lui; addiu; jr ra; nop` default block, carved into\n * its own -O2 -g3 TRUNCATE_TEXT unit game_libs_g3_34448.c because its jr\n * delay is unfilled). The \"leaf-branch-past-end CAP\" note on 343F4 is\n * RETIRED: the beqz lands on the function's own default block. Plain -O2\n * emits that unfilled `jr ra; nop` by itself (the final return block of a\n * switch-terminated fn is not delay-filled, same as 2E290's exit and\n * 560E4's shared epilogue), so the -g3 carve-out is gone.\n *\n * WIRED via REPLACE_FUNC_BODY donor splice into game_libs_post.c.o (the\n * 29CCC / 6DD14 / 2E290 recipe, docs/MATCHING_WORKFLOW.md#donor-splice-\n * switch-jumptable-rodata-rename): the C `switch` puts its 8-entry table\n * in the donor's local .rodata; the splice renames that reloc to\n * game_libs_func_000343F4_rodata, pinned in undefined_syms_auto.txt to the\n * table the USO ships in game_libs rodata at +0x19B8 (raw words: entry 1\n * (a0=2) -> 34418, 2 (a0=3) -> 34424, 4 (a0=5) -> 34430, 3/5/6/7 -> 34448\n * default; the a0=1 entry at +0x19B8 is the unrelocated quirk word and the\n * 3443C arm's address sits just past the table at +0x19D8 -- the same\n * original-linker quirk 2E290's table shows, irrelevant to .text).\n *\n * Load-bearing shapes:\n *  - cases in SOURCE order 2, 3, 5, 1 (arms lay out in source order;\n *    `case 1` is the LAST arm at 3443C);\n *  - `case 8:` sharing `default:` widens the table range to 1..8\n *    (`sltiu at,t6,8`); without it IDO sizes it 1..5;\n *  - the default `return` written either inside the switch or after it\n *    compiles identically (both 25/25).\n * The 64 NM-body call sites that name game_libs_func_0003443C as a callee\n * are placeholder decodes (their raw jal word 0x0C00C7EC resolves through\n * the bootup TextReloc table to symIdx 3, not to this address). */\nextern char D_00000000;\n\nint game_libs_func_000343F4(int a0) {\n    switch (a0) {\n    case 2:\n        return (int)(&D_00000000 + 0x1E3BC);\n    case 3:\n        return (int)(&D_00000000 + 0x1E3C8);\n    case 5:\n        return (int)(&D_00000000 + 0x1E3D4);\n    case 1:\n        return (int)(&D_00000000 + 0x1E3E0);\n    case 8:\n    default:\n        return (int)(&D_00000000 + 0x1E3EC);\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o2_343F4.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_000343F4.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Standalone IDO 7.1 -O2 donor compile 25/25 words vs the merged target (only the jumptable %lo word is link-resolved via the game_libs_func_000343F4_rodata = 0x19B8 pin); REPLACE_FUNC_BODY splice into game_libs_post.c.o; full make + cmp tenshoe.z64 baserom.z64 byte-identical; ROM words at 0xE194CC..0xE1952F equal the target; report.json 100.0."
+  }
+}

@@ -3404,3 +3404,4 @@ gl_ref_00001014_f = 0x00001014;  /* 32767.0f literal (game_libs data), game_libs
 gl_ref_00001018_f = 0x00001018;  /* 1e-5f literal (game_libs data), game_libs_func_00029CCC */
 gl_ref_00002058_f = 0x00002058;  /* 0.017453292f (pi/180) literal (game_libs data), game_libs_func_00029CCC */
 game_libs_func_0002E290_rodata = 0x00001660;  /* switch(sel) 32-entry jumptable (cases 1..32): USO ships it in game_libs rodata at +0x1660; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_2E290.c) */
+game_libs_func_000343F4_rodata = 0x000019B8;  /* switch(a0) 8-entry jumptable (cases 1..8): USO ships it in game_libs rodata at +0x19B8; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_343F4.c) */
