@@ -108,20 +108,17 @@ void func_00010C8C(int *arg0, int arg1) {
  * the lui/lw dispatch fields bake %hi/%lo(0xC20) while the table bytes
  * (present in the baked USO RoData asset) stay out of the ROM image.
  *
- * Honest NM at 415/439 (94.5%, masked-reloc byte compare vs target).
- * SOLE root diff (4 words @ +0x17C): the `arg1 != arg0->0x38` guard.
- * Target evaluates arg1 FIRST (lw t0,0x44(sp); lw t1,0x40; lw t2,0x38(t1);
- * beq t0,t2). Our IDO 7.1 (and 5.3) -O0 ALWAYS evaluates the memory-deref
- * side of a scalar==/!= first (cfe canonicalizes; ~25 spellings probed:
- * operand swap, u32/int/ptr/float types, casts, volatile, *(&arg1),
- * struct/union param, goto/else/while/for/do forms, &&/|| context, comma/
- * assignment hoists, -cckr/-ansi/-mips1/3/-KPIC/-G8/-g0..3, 5.3+7.1 —
- * ALL deref-first). The remaining 20 diff words are pure t-reg FIFO
- * recycle-order knock-ons of that one block (t0/t1 swaps in the case
- * bodies). Same value-first shape blocks func_00010540 (its while-head) —
- * the only two value-first compare sites in all USO -O0 asm. See
- * docs/IDO_CODEGEN.md "-O0 scalar-vs-deref equality eval order". */
-#ifdef NON_MATCHING
+ * EXACT 2026-09-05 (439/439, reloc-resolved; was an "honest NM" at 415/439
+ * with a single root diff: the `arg1 != arg0->0x38` guard, where the target
+ * evaluates the SCALAR arg1 first -- lw t0,0x44(sp); lw t1,0x40; lw
+ * t2,0x38(t1); beq t0,t2 -- while IDO -O0 cfe always emits the deref side
+ * first for `scalar != deref` / `deref != scalar` alike; ~25 plain
+ * spellings could not flip it). LEVER: a comma expression on the scalar
+ * side, `deref != (0, arg1)`, makes cfe evaluate arg1 first into a plain
+ * t-reg with no frame/insn change (the mirrored `(0, arg1) != deref`
+ * promotes the comma value to $s0 instead -- wrong). The 20 downstream
+ * t0/t1 FIFO knock-ons collapsed with it. See docs/IDO_CODEGEN.md
+ * "-O0 scalar-vs-deref equality eval order" (comma-lever addendum). */
 typedef int (*FN10FEC)();
 
 extern char D_0000C550;
@@ -183,7 +180,7 @@ void func_00010FEC(char *arg0, int arg1, int arg2) {
         func_00000000(&D_0000C60C);
     }
 
-    if (arg1 != *(int *)((char *)arg0 + 0x38)) {
+    if (*(int *)((char *)arg0 + 0x38) != (0, arg1)) {
         *(int *)((char *)arg0 + 0x34) = arg1;
         func_00000000(arg0);
         func_00000000(arg0, D_0000C4EC[(&D_00000000)[arg1]]);
@@ -312,6 +309,3 @@ void func_00010FEC(char *arg0, int arg1, int arg2) {
     p = (char *)D_00000000;
     func_00000000(*(int *)(*(int *)((char *)arg0 + 0x134) + 0x114), p);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/bootup_uso", func_00010FEC);
-#endif
