@@ -5,24 +5,26 @@ extern char D_00000000;
 typedef struct { int a, b, c, d; } Quad4;
 
 
-/* CRACKED 2026-05-27 (byte-exact): array-indexing form `((Row28*)base)[i].d`
- * combined with the file's existing `OPT_FLAGS := -O2 -g3` Makefile override
- * (which disables delay-slot fill, leaving the jr-ra delay as nop matching
- * target).
- *
- * The lever was the ARRAY FORM (`((Row28*)(a0+0x84))[idx].d`) per
+/* CRACKED 2026-05-27 (byte-exact): array-indexing form `((Row28*)base)[i].d`;
+ * the lever was the ARRAY FORM (`((Row28*)(a0+0x84))[idx].d`) per
  * docs/IDO_CODEGEN.md "addu operand order" entry — gives `addu v0, a0, t7`
  * (base-first) instead of the arithmetic form's `addu v0, t7, a0`
- * (idx-first). Verified byte-equal at .o level (all 8 instructions). */
+ * (idx-first). Originally matched under an `-O2 -g3` override (unfilled jr
+ * delay); 2026-09-05: this unit (formerly bootup_uso_tail3a.c) builds at -O0
+ * like the rest of the run -- same 8 words, and the 2-word "func_00010344"
+ * (jr ra; nop) that followed it was ugen's dead `$exit: j $31` block of this
+ * frameless return-X fn, not a function (a standalone -O0 empty fn is
+ * `sw a0; b .+1; nop; jr ra; nop`, func_00010310). Our -O0 emits the 0x20 body
+ * + TWO dead pairs; the ROM keeps one -> file-terminal, TRUNCATE_TEXT 0x28
+ * (11D40/11D78/11DBC precedents; docs/IDO_CODEGEN.md
+ * #o0-two-block-predicate-not-adjacent-leaf-cap). 10/10 words. */
 typedef struct { char d[0x28]; } Row10324;
 char *func_00010324(a0) char *a0; {
     return ((Row10324*)(a0 + 0x84))[*(int*)(a0 + 0x7C)].d;
 }
 
-void func_00010344(void) {
-}
-
-/* 2026-07-10 -O0 island carve: func_0001034C moved to bootup_uso_o0_1034C.c
+/* 2026-07-10 -O0 island carve (this file was bootup_uso_tail3a.c until
+ * 2026-09-05): func_0001034C moved to bootup_uso_o0_1034C.c
  * and MATCHED there at -O0 (125/125). func_00010540 (INCLUDE_ASM, honest NM;
  * its own blocker is also -O0 but the 343-insn body has pervasive typed-struct
  * eval-order divergence, see its wrap doc) + func_00010A9C + func_00010AA8

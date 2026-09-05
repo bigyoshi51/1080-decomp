@@ -140,10 +140,16 @@ build/src/bootup_uso/bootup_uso_o0_10310.c.o: TRUNCATE_TEXT := 0x14
 # -O0 island into bootup_uso_o0_10B6C.c; the 0x10C8C..0x116C7 INCLUDE_ASM
 # remainder moved to bootup_uso_tail3a_10C8C.c (-O2 -g3) and the 0x116C8 -O0
 # island into bootup_uso_o0_116C8.c.
-build/src/bootup_uso/bootup_uso_tail3a.c.o: TRUNCATE_TEXT := 0x28
+# 2026-09-05: tail3a -> o0_10324 (-O0). The 2-word "func_00010344" (jr ra; nop)
+# was 10324's dead -O0 `$exit` pair (frameless return-X fn: our -O0 emits the
+# 0x20 body + TWO dead pairs, the ROM keeps ONE -> TRUNCATE clips the second;
+# 11D40 precedent, docs/IDO_CODEGEN.md#o0-two-block-predicate-not-adjacent-leaf-cap).
+build/src/bootup_uso/bootup_uso_o0_10324.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_10324.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_10324.c.o: TRUNCATE_TEXT := 0x28
+build/non_matching/src/bootup_uso/bootup_uso_o0_10324.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x28
 # 2026-07-10 carve: tail3a (0x10324..0x10B6C) split 4 ways so the two -O0
-# islands build at -O0: tail3a {10324,10344} | o0_1034C | tail3a_10540
-# {10540 INCLUDE_ASM, 10A9C, 10AA8} | o0_10AB0.
+# islands build at -O0: o0_10324 {10324 incl. its 10344 exit pair} | o0_1034C |
+# tail3a_10540 {10540 INCLUDE_ASM, 10A9C, 10AA8} | o0_10AB0.
 build/src/bootup_uso/bootup_uso_o0_1034C.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_1034C.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_1034C.c.o: TRUNCATE_TEXT := 0x1F4
 build/non_matching/src/bootup_uso/bootup_uso_o0_1034C.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x1F4
@@ -167,7 +173,6 @@ build/src/bootup_uso/bootup_uso_o0_116C8.c.o: TRUNCATE_TEXT := 0x134
 build/src/bootup_uso/bootup_uso_o0_116C8.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_116C8.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_117FC.c.o: TRUNCATE_TEXT := 0xE8
 build/src/bootup_uso/bootup_uso_o0_117FC.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_117FC.c.o: OPT_FLAGS := -O0
-build/src/bootup_uso/bootup_uso_tail3a.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3a.c.o: OPT_FLAGS := -O2 -g3
 build/src/bootup_uso/bootup_uso_o0_F954.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_F954.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_o0_F954.c.o: TRUNCATE_TEXT := 0x194
 build/src/bootup_uso/bootup_uso_o0_FAE8.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_FAE8.c.o: OPT_FLAGS := -O0
