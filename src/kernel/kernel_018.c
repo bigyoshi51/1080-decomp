@@ -75,9 +75,20 @@ extern OSEventState __osEventStateTab[];
  * 800066D0 caller-entry symbol preserved via undefined_syms_auto.txt
  * (still resolves at 0x800066D0 inside the merged 800066B0 body). */
 
-/* func_800066EC: 1-insn (`or $a3, $a2, $0`) alias entry point that falls
- * through into func_800066F0 (split out to kernel_048.c, -O1). Callers
- * either jal func_800066EC (which copies a2→a3 then enters 66F0's body)
- * or jal func_800066F0 (which uses $a3 directly). Cross-function alias
- * entry — not reproducible from standalone C; INCLUDE_ASM stays. */
-INCLUDE_ASM("asm/nonmatchings/kernel", func_800066EC);
+/* func_800066EC: byte copy, `while (n--) *dst++ = *src++;` -- 13 insns at
+ * -O1, BYTE-EXACT. Boundary merge 2026-09-05: the 1-word "alias entry"
+ * (`or $a3, $a2, $zero`) that splat split off as func_800066EC is this
+ * function's own `n` copy, hoisted above the `addiu $sp` prologue by IDO
+ * -O1's scheduler (hoisted-head orphan, see
+ * docs/MATCHING_WORKFLOW.md#feedback-callerset-t6-orphan-head-is-hoisted-prologue).
+ * The old kernel_048.c reproduced only the post-hoist range as a 4-arg
+ * `(dst, src, n, ctr)` + `char pad[4]` hack; that unit is retired.
+ * All 10 callers jal 0x800066F0 (the word AFTER the hoisted copy) with
+ * (buf, size, RDB_TYPE_GtoH_*) -- the __osRdbSend contract; 0x800066F0 is
+ * kept as an alt-entry symbol via undefined_syms_auto.txt
+ * (`func_800066F0 = 0x800066F0;`, same mechanism as func_800066D0). */
+void func_800066EC(u8 *dst, u8 *src, s32 n) {
+    while (n--) {
+        *dst++ = *src++;
+    }
+}

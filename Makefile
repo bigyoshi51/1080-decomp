@@ -569,7 +569,6 @@ build/src/kernel/kernel_044.c.o build/non_matching/src/kernel/kernel_044.c.o: OP
 build/src/kernel/kernel_045.c.o build/non_matching/src/kernel/kernel_045.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_046.c.o build/non_matching/src/kernel/kernel_046.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_047.c.o build/non_matching/src/kernel/kernel_047.c.o: OPT_FLAGS := -O1
-build/src/kernel/kernel_048.c.o build/non_matching/src/kernel/kernel_048.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_049.c.o build/non_matching/src/kernel/kernel_049.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_050.c.o build/non_matching/src/kernel/kernel_050.c.o: OPT_FLAGS := -O1
 build/src/kernel/kernel_053.c.o build/non_matching/src/kernel/kernel_053.c.o: OPT_FLAGS := -O1
@@ -630,7 +629,8 @@ build/src/kernel/kernel_000_c.c.o build/non_matching/src/kernel/kernel_000_c.c.o
 build/src/kernel/kernel_000_o1.c.o build/non_matching/src/kernel/kernel_000_o1.c.o: TRUNCATE_TEXT := 0x1D8
 build/src/kernel/kernel_038.c.o build/non_matching/src/kernel/kernel_038.c.o: TRUNCATE_TEXT := 0x140
 build/src/kernel/kernel_017.c.o build/non_matching/src/kernel/kernel_017.c.o: TRUNCATE_TEXT := 0x9C
-build/src/kernel/kernel_018.c.o build/non_matching/src/kernel/kernel_018.c.o: TRUNCATE_TEXT := 0x4
+# 2026-09-05 func_800066EC/66F0 hoisted-head merge: kernel_018 now holds the whole 0x34 fn (IDO pads .text to 0x40); kernel_048 retired
+build/src/kernel/kernel_018.c.o build/non_matching/src/kernel/kernel_018.c.o: TRUNCATE_TEXT := 0x34
 build/src/kernel/kernel_049.c.o build/non_matching/src/kernel/kernel_049.c.o: TRUNCATE_TEXT := 0x34
 build/src/kernel/kernel_047.c.o build/non_matching/src/kernel/kernel_047.c.o: TRUNCATE_TEXT := 0x3C
 build/src/kernel/kernel_018_b.c.o build/non_matching/src/kernel/kernel_018_b.c.o: TRUNCATE_TEXT := 0x448

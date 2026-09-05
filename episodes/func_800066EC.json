@@ -1,0 +1,33 @@
+{
+  "function_name": "func_800066EC",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-09-05T23:41:47.485601+00:00",
+  "end_time": "2026-09-05T23:41:47.485616+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-05T23:41:47.485612+00:00",
+      "assistant_text": "Boundary merge (hoisted-head orphan): the 1-word func_800066EC (or a3,a2,zero) that splat split off before func_800066F0 is the functions own n copy, hoisted above the addiu-sp prologue by IDO -O1. Merged 0x34 range is a plain byte copy: void func_800066EC(u8 *dst, u8 *src, s32 n) { while (n--) *dst++ = *src++; } at -O1 emits the 13 target words exactly (7.1 and 5.3 identical). Retired kernel_048.c, which reproduced only the post-hoist range via a 4-arg (dst,src,n,ctr) + char pad[4] hack. All 10 callers jal 0x800066F0 (the word after the hoisted copy) with (buf,size,RDB_TYPE_GtoH_*), the __osRdbSend contract; that address is kept as an alt-entry via undefined_syms_auto.txt. TRUNCATE_TEXT 0x4 -> 0x34 (IDO pads .text to 0x40; ROM is contiguous at 0x80006720).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 13,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* Forward declarations */\nextern s32 __osPiAccessQueue;\nextern s32 D_8000A480;\nextern s32 D_80013004;\nextern void func_80005DC0(s32*, s32, s32);\nextern void func_80005C00(void);\nextern void func_80004FE0(s32*, s32*, s32);\nextern void func_800053D0(s32*, s32*, s32);\nextern s32 D_8000A3E0;\nextern s32 func_800066B0(void);\nextern void func_800066D0(s32);\nextern void func_80003D0C(s32*);\nextern void* D_8000A420;\nextern s32 D_8000A418;\nextern s32 siacs_bss_0000;\nextern s32 func_800009D8(void*, s32, s32, void*);\nextern void func_80003FF0(s32, void*);\nextern void* func_80003E54(void*);\nextern void func_8000A110(void*);\nextern void func_8000857C(void);\nextern void func_8000785C(s32);\nextern void func_80008ED0(void);\nextern void func_80007760(void);\ntypedef void (*FuncPtr2)(void*, void*);\nextern FuncPtr2 D_80012C44;\nextern s32 D_8000A32C;\nextern s32 D_8000A340;\nextern s32 D_80012BC0;\nextern s32 D_8000A2E0;\nextern s32 D_8000A41C;\nextern s32 func_80002890(s32);\nextern void func_8000A0E0(void);\nextern void func_80005350(s32, s32);\nextern void func_80005400(s32, s32);\nextern s32 func_80008430(s32);\nextern void func_80009148(s32);\nextern void func_80009030(s32, s32);\nextern void func_80008498(void);\nextern s32 func_80006A98(s32);\nextern void func_800091F0(s32);\ntypedef struct { s32 pad[3]; s32 position; } FileState;\n\ntypedef struct {\n    void* mtqueue;\n    void* fullqueue;\n    s32 validCount;\n    s32 first;\n    s32 msgCount;\n    s32** msg;\n} OSMesgQueue;\n\ntypedef struct Thread {\n    s32 field0;\n    s32 pri;\n    s32 queue;\n    s32 pad0C;\n    u16 state;\n} Thread;\n\ntypedef struct { s32 queue; s32 msg; } OSEventState;\nextern OSEventState __osEventStateTab[];\n\n\n\n/* func_800066B0+func_800066D0 INCLUDE_ASM moved to kernel_017.c on\n * 2026-05-05 to enable the 3-way merge with the parent fragment\n * func_80006698. Per\n * feedback_cross_file_fragment_unblock_via_move_then_merge.md: moving\n * just the INCLUDE_ASM (no C body change) is layout-neutral when both\n * .o files reside in adjacent linker-script slots and the destination\n * .o gets exactly the bytes the source loses. Adjacent .ld slots\n * verified: kernel_017.c.o then kernel_018.c.o.\n * 800066D0 caller-entry symbol preserved via undefined_syms_auto.txt\n * (still resolves at 0x800066D0 inside the merged 800066B0 body). */\n\n/* func_800066EC: byte copy, `while (n--) *dst++ = *src++;` -- 13 insns at\n * -O1, BYTE-EXACT. Boundary merge 2026-09-05: the 1-word \"alias entry\"\n * (`or $a3, $a2, $zero`) that splat split off as func_800066EC is this\n * function's own `n` copy, hoisted above the `addiu $sp` prologue by IDO\n * -O1's scheduler (hoisted-head orphan, see\n * docs/MATCHING_WORKFLOW.md#feedback-callerset-t6-orphan-head-is-hoisted-prologue).\n * The old kernel_048.c reproduced only the post-hoist range as a 4-arg\n * `(dst, src, n, ctr)` + `char pad[4]` hack; that unit is retired.\n * All 10 callers jal 0x800066F0 (the word AFTER the hoisted copy) with\n * (buf, size, RDB_TYPE_GtoH_*) -- the __osRdbSend contract; 0x800066F0 is\n * kept as an alt-entry symbol via undefined_syms_auto.txt\n * (`func_800066F0 = 0x800066F0;`, same mechanism as func_800066D0). */\nvoid func_800066EC(u8 *dst, u8 *src, s32 n) {\n    while (n--) {\n        *dst++ = *src++;\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_018.c",
+    "asm_path": "asm/nonmatchings/kernel/func_800066EC.s",
+    "segment": "kernel",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "ROM byte-identical (cmp tenshoe.z64 baserom.z64) with the C on the build path; build/non_matching/src/kernel/kernel_018.c.o == expected (objdump -M no-aliases); report.json fuzzy 100.0; sentinels 100.0; non_matching_objects exit 0."
+  }
+}
