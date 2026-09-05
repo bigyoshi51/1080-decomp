@@ -1,14 +1,14 @@
 {
   "function_name": "func_00012BF8",
-  "project": "1080-agent-a",
+  "project": "1080-agent-c",
   "model": "claude-manual",
-  "start_time": "2026-04-21T02:22:44.457368+00:00",
-  "end_time": "2026-04-21T02:22:44.457394+00:00",
+  "start_time": "2026-09-05T23:29:55.593456+00:00",
+  "end_time": "2026-09-05T23:29:55.593472+00:00",
   "steps": [
     {
       "step_number": 1,
-      "timestamp": "2026-04-21T02:22:44.457386+00:00",
-      "assistant_text": "Breakthrough: `-g3` disables IDO's delay-slot filler, producing `sw; sw; jr ra; nop` (4 insns unfilled) matching target exactly. Previously documented unmatchable in feedback_ido_unfilled_store_return.md \u2014 that memo is outdated. The `-g3` per-file override is the missing piece.",
+      "timestamp": "2026-09-05T23:29:55.593468+00:00",
+      "assistant_text": "Manual exact match: two adjacent field clears at +0x168/+0x16C in source order. Boundary fix 2026-09-05: the unit (formerly bootup_uso_tail3b_bot_b.c at -O2 -g3) now builds at -O0 like the rest of the run; the 2-word \"func_00012C08\" (jr ra; nop) that followed was ugen dead $exit: j $31 block of this frameless FALL-OFF fn (no return statement: its own jr ra; nop is the fall-off return, the exit pair follows), not a function. Dead-pair count: our -O0 emits the 0x10 body + exactly ONE pair = 0x18, so TRUNCATE_TEXT 0x18 clips only the section pad.",
       "tool_calls": [],
       "match_percent": 100.0,
       "compiled": true,
@@ -19,15 +19,15 @@
   "final_match_percent": 100.0,
   "best_match_percent": 100.0,
   "total_tokens": 0,
-  "instruction_count": 4,
+  "instruction_count": 6,
   "initial_m2c_source": null,
-  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\nvoid func_00012BF8(int *a0) {\n    *(int*)((char*)a0 + 0x168) = 0;\n    *(int*)((char*)a0 + 0x16C) = 0;\n}\n\nvoid func_00012C08(void) {\n}\n\n\n",
+  "final_source": "#include \"common.h\"\n\nextern int func_00000000();\nextern char D_00000000;\ntypedef struct { int a, b, c, d; } Quad4;\n\n/* Formerly bootup_uso_tail3b_bot_b.c (-O2 -g3, {12BF8, 12C08}). 2026-09-05:\n * renamed bootup_uso_o0_12BF8.c and built at -O0 like the rest of the run --\n * the 2-word \"func_00012C08\" (jr ra; nop) that followed func_00012BF8 was\n * ugen's dead `$exit: j $31` block of this frameless FALL-OFF fn (no return\n * statement: its own `jr ra; nop` is the fall-off return, the exit pair comes\n * after it), not a function (a standalone -O0 empty fn is\n * `sw a0; b .+1; nop; jr ra; nop`, func_00010310). Our -O0 emits exactly the\n * 0x10 body + that ONE pair = 0x18; TRUNCATE_TEXT 0x18 only clips IDO's\n * section pad. 102A4+\"102E8\" / 10A9C+\"10AA8\" precedents;\n * docs/IDO_CODEGEN.md#o0-two-block-predicate-not-adjacent-leaf-cap. 6/6 words. */\nvoid func_00012BF8(int *a0) {\n    *(int*)((char*)a0 + 0x168) = 0;\n    *(int*)((char*)a0 + 0x16C) = 0;\n}\n",
   "metadata": {
-    "source_path": "src/bootup_uso/bootup_uso_tail3b_bot_b.c",
+    "source_path": "src/bootup_uso/bootup_uso_o0_12BF8.c",
     "asm_path": "asm/nonmatchings/bootup_uso/func_00012BF8.s",
     "segment": "bootup_uso",
     "compiler": "ido7.1",
-    "compiler_flags": "-O2 -g3 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
-    "verification": "objdiff 100% via per-file Makefile OPT_FLAGS := -O2 -g3 override + expected-baseline contamination."
+    "compiler_flags": "-O0 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with make + cmp tenshoe.z64 baserom.z64 byte-identical; no-alias objdump of build/src/bootup_uso/bootup_uso_o0_12BF8.c.o func_00012BF8 word-for-word equal to the merged .s (6 words); report.json func_00012BF8 100.0 size 24."
   }
 }

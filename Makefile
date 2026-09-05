@@ -230,8 +230,12 @@ build/src/bootup_uso/bootup_uso_o0_123F0.c.o: TRUNCATE_TEXT := 0x27C
 build/src/bootup_uso/bootup_uso_tail3b_bot_t.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3b_bot_t.c.o: OPT_FLAGS := -O0
 build/src/bootup_uso/bootup_uso_tail3b_bot_t.c.o: TRUNCATE_TEXT := 0x1AC
 build/src/bootup_uso/bootup_uso_o0_12B7C.c.o: TRUNCATE_TEXT := 0x3E0
-build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: TRUNCATE_TEXT := 0x18
-build/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o build/non_matching/src/bootup_uso/bootup_uso_tail3b_bot_b.c.o: OPT_FLAGS := -O2 -g3
+# 2026-09-05: tail3b_bot_b -> o0_12BF8 (-O0): the 2-word "func_00012C08" was
+# 12BF8's dead -O0 `$exit` pair (fall-off fn: our -O0 emits the 0x10 body + ONE
+# pair = 0x18, nothing to clip but IDO's section pad; 102A4/10A9C precedents).
+build/src/bootup_uso/bootup_uso_o0_12BF8.c.o build/non_matching/src/bootup_uso/bootup_uso_o0_12BF8.c.o: OPT_FLAGS := -O0
+build/src/bootup_uso/bootup_uso_o0_12BF8.c.o: TRUNCATE_TEXT := 0x18
+build/non_matching/src/bootup_uso/bootup_uso_o0_12BF8.c.o: NON_MATCHING_TRUNCATE_TEXT := 0x18
 # 0x1F0 = 0x12DA4..0x12E00 + the 8 zero bytes of 16-align padding at
 # 0x12DF8..0x12E00 that the original ROM keeps before tail4's first fn
 # (was 0x1E8, which cut them and left the segment -0x8 short; IDO already
