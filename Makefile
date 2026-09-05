@@ -1436,8 +1436,14 @@ clean:
 # A full `splat split` would also regenerate asm/, src/, tenshoe.ld and
 # include/include_asm.h -- all of which are curated source of truth here, not
 # splat output -- and silently discard that curation.
+#
+# Then scripts/extract-derived-assets.py produces the 8 assets splat does NOT
+# emit: two hand-carved linker inputs (kernel.data.bin, game_uso.bin -- referenced
+# directly by tenshoe.ld) and the six decompressed Yay0 blocks that
+# verify-yay0-blocks.py checks against. md5-verified.
 setup: $(BASEROM)
 	python3 -m splat split tenshoe.yaml --modes bin
+	python3 scripts/extract-derived-assets.py
 
 .PHONY: all clean verify verify-blocks expected setup objects
 
