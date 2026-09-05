@@ -21839,90 +21839,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00033EB8);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00034180);
-
-// gl_func_00034188 — STRUCTURAL PASS (0xB8 / 46 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, one
-// prologue). A device / subsystem step with indirect-call (vtable)
-// dispatch and a status busy-poll.
-//
-//   void gl_func_00034188(void) {
-//     H *h = ...;                              // a handle
-//     int (*f)() = h->fp_1C;
-//     int v = f(h->h_18 + (int)h);             // jalr h->0x1C
-//     callback0(); callback0();                // jal 0 x2
-//     while ((u32)v < 0x1E0) {                       // poll (< 480)
-//       callback0();
-//       v = ...;                                // re-read status
-//     }
-//     H *g = *(H**)(&D_0 + 0x240);             // global handle
-//     int (*f2)() = g->fp_64;
-//     int r = f2(g->h_60 + (int)g);            // jalr g->0x64
-//     callback0();
-//     *(int*)(&D_0 + 0x204) = ... ;             // timing state
-//     *(int*)((char*)g + 0x144) = 0;
-//     // uses cycle constant 0x001E8480 = 2,000,000
-//   }
-//
-// Struct-typing reference: a hardware/device-driver-style tick. It
-//   dereferences a handle and calls a FUNCTION POINTER stored at
-//   handle+0x1C (passing handle+handle->0x18 as the arg — a
-//   self-relative callback), spins on a status value until it
-//   reaches 0x1E0 (= 480, a scanline/line-count-shaped bound)
-//   while pumping a USO-relocated callback (jal 0 → resolved at
-//   load) each iteration, then fetches a global handle from
-//   &D_0+0x240 and calls a SECOND function pointer at handle+0x64
-//   (arg handle+handle->0x60). Finally it writes timing/state
-//   globals (&D_0+0x204 and the handle's +0x144) using the cycle
-//   constant 0x001E8480 (2,000,000 — a 1/30s-ish VR4300 cycle
-//   budget). A device step / vsync-or-DMA-wait node of the
-//   game_libs object subsystem (the indirect dispatch through
-//   h->0x1C / h->0x64 means this object family is polymorphic —
-//   those offsets are its vtable slots; &D_0+0x240 is the active-
-//   device global).
-// Caps (DEFERRED): raw-word USO + jalr through object vtable slots
-//   + USO-reloc jal-0 callbacks + status busy-poll + cycle constant
-//   (0x001E8480 = 2,000,000) — byte-match needs USO mnemonic disasm
-//   + handle/vtable struct typed. Real-C STRUCTURAL body below per
-//   the analysis. Byte-match deferred. Name pre-checked: no extern
-//   reuse.
-#ifdef NON_MATCHING
-void gl_func_00034188(void) {
-    char *h;
+/* game_libs_func_00034180: device-object tick.  BYTE-EXACT 2026-09-05
+ * (agent-g) as ONE 48-word function [0x34180,0x34240).
+ *
+ * BOUNDARY FIX: the former 8-byte orphan symbol game_libs_func_00034180
+ * (`lui v1,0; lw v1,0(v1)`, no jr ra, no prologue) was NOT a head fragment
+ * to defer on -- it is this function's own first load, HOISTED ABOVE the
+ * `addiu sp` prologue by the -O2 scheduler; splat cut the symbol at the sp
+ * adjust and named the remainder gl_func_00034188 (78.15% NM wrap, "byte-
+ * match deferred").  Forward-merged under the orphan's (earlier) address;
+ * plain -O2 reproduces the hoist from pure C.  See docs/MATCHING_WORKFLOW.md
+ * #feedback-callerset-t6-orphan-head-is-hoisted-prologue.
+ *
+ * The hoisted load has lo16 field 0 in the ROM words (game_libs bakes
+ * addends: cf. 21D2C's `lw v1,0x2534`), so it is a DISTINCT symbol from the
+ * later `&D_00000000 + 0x240` device loads -> base-0 alias gl_d_34180_dev
+ * (undefined_syms_auto.txt).
+ *
+ * Coloring keys (all v0/v1 + held-base residuals, 33 -> 0 diffs):
+ *  - fn-ptr calls INLINED as expressions -> `jalr t9` (a named `f` local
+ *    colors a1);
+ *  - `vt` NAMED, the device pointer an inline CSE temp -> vt claims v0 and
+ *    the device temp v1 (docs/IDO_CODEGEN.md#feedback-ido-named-deref-web-claims-v0);
+ *  - `&D_00000000` passed as the 2nd arg of the second vtable call -> the
+ *    pre-call region has two &D uses, so IDO HOLDS the base in a1
+ *    (`lui a1; addiu a1; lw v1,0x240(a1)`) instead of folding it;
+ *  - `dev->f144 = (D->f204 ^= 1)` as ONE compound expression -> t8/t0/t2
+ *    temps (a named `flag` colors a0);
+ *  - `if (1) {}` BB barrier before the 2,000,000-iteration delay loop flips
+ *    counter/bound v1/v0 -> v0/v1 (IDO unrolls the empty i++ loop x4 ->
+ *    `addiu 4; bnel`).  Standalone 48/48, in-tree 48/48. */
+extern char *gl_d_34180_dev;
+void game_libs_func_00034180(void) {
     char *vt;
-    int (*f)(void *);
-    int v;
-    char *g;
-    char *vt2;
-    int (*f2)(void *);
-    int r;
-    int flag;
     int i;
 
-    h = *(char **)((char *)&D_00000000 + 0x240);
-    vt = *(char **)(h + 0x28);
-    f = *(int (**)(void *))(vt + 0x1C);
-    v = f(h + *(short *)(vt + 0x18));
+    vt = *(char **)(gl_d_34180_dev + 0x28);
+    (*(int (**)())(vt + 0x1C))(gl_d_34180_dev + *(short *)(vt + 0x18));
     gl_func_00000000();
-    gl_func_00000000();
-    while ((u32)v < 0x1E0) {
-        v = gl_func_00000000();
-    }
-    g = *(char **)((char *)&D_00000000 + 0x240);
-    vt2 = *(char **)(g + 0x28);
-    f2 = *(int (**)(void *))(vt2 + 0x64);
-    r = f2(g + *(short *)(vt2 + 0x60));
-    gl_func_00000000();
-    flag = *(int *)((char *)&D_00000000 + 0x204) ^ 1;
-    *(int *)((char *)&D_00000000 + 0x204) = flag;
-    for (i = 0; i != 0x1E8480; i += 4) {
-        *(int *)(g + 0x144) = flag;
-    }
-    (void)r;
+    while ((u32)gl_func_00000000() < 0x1E0) {}
+    vt = *(char **)(*(char **)((char *)&D_00000000 + 0x240) + 0x28);
+    gl_func_00000000((*(int (**)())(vt + 0x64))(*(char **)((char *)&D_00000000 + 0x240) + *(short *)(vt + 0x60), &D_00000000));
+    *(int *)(*(char **)((char *)&D_00000000 + 0x240) + 0x144) = (*(int *)((char *)&D_00000000 + 0x204) ^= 1);
+    if (1) {}
+    for (i = 0; i < 2000000; i++) {}
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00034188);
-#endif
 
 // gl_func_00034240 — STRUCTURAL PASS + BUNDLE BOUNDARY NOTE
 // (0x218 / 134 words, no episode). Raw-.word USO form (game_libs).
