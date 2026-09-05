@@ -6103,56 +6103,58 @@ void game_libs_func_0003AA40(float *dst) {
     dst[2] = 0.0f;
 }
 
-// game_libs_func_0003AA5C — STRUCTURAL PASS + small BUNDLE NOTE
-// (0x200 / 128 words, no episode). Raw-.word USO form (game_libs).
-//
-// NO STACK-FRAME PROLOGUE anywhere in this .s (grep 27BDFF →
-// nothing): the named function is itself a NO-FRAME FP LEAF (it
-// starts directly with `lwc1`, uses only FP / temp regs, never
-// touches $sp or $ra). This is a legitimate standalone leaf — NOT
-// a sheared head-fragment despite the game_libs_func_ prefix (cf.
-// the 2-5-word head-fragments 000309AC / 00033444 / 00036074;
-// this one is a full ~127-word function ending in jr $ra).
-// realjr=2: the 2nd jr is the last instruction pair (0x3AC54,
-// 12 bytes after the main jr at 0x3AC48) — a tiny 2-word no-frame
-// TAIL STUB splat could not separate (no-frame-leaf shape, see
-// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). DEFERRED USO
-// RE-SPLIT for that 2-word tail; no merge attempted; no episode.
-//
-//   int game_libs_func_0003AA5C(O *o, V *a, V *b, short tag) {
-//     float x = b->f_0 * a->f_0;                 // per-component
-//     float y = b->f_4 * a->f_4;                 //   products
-//     float z = b->f_8 * a->f_8;
-//     o->h_4 = tag;                               // sh a3,4(a0)
-//     float s = x + y + z;                        // dot-product
-//     s = (s < 0.0f) ? -s : s;                    // abs idiom
-//     ... per-axis abs / compare (c.lt.s; bc1fl; neg.s) ...
-//     o->f_8 = s;                                 // swc1 result
-//     return 1;
-//   }
-//
-// Struct-typing reference: a pure-FP vector math leaf — combines
-//   two Vec3 sources (a, b at args 0x4/0x8 worth of components),
-//   forming a dot-product / magnitude-style scalar with per-axis
-//   absolute-value and threshold comparisons, stamps a tag halfword
-//   into o->0x04, writes the float result into o->0x08, and returns
-//   1 (success). A geometry/signal-conditioning leaf of the
-//   game_libs object subsystem (companion of the gl_func_0003695C
-//   normalizer / gl_func_00037348 clamp family — the pure-math
-//   dot/abs primitive). No &D_0, no callbacks, no frame.
-// Caps: raw-word USO + no-frame FP-only leaf + bundled 2-word
-//   tail — not exact-matchable without proper USO mnemonic disasm
-//   + boundary re-split + the Vec3/object typed; structural pass
-//   only, no byte body.
-// Full body INCLUDE_ASM-preserved (.s = source of truth). INCLUDE_ASM (no episode; tautology-trap rule).
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AA5C);
+/* game_libs_func_0003AA5C (0x200 / 128 insns, BYTE-EXACT 2026-09-05 agent-c).
+ * Boundary merge: the former 3-word "game_libs_func_0003AC50" symbol
+ * (sb t2,3(a0); jr ra; nop) was this function's own `sign = -1` else block --
+ * the trailing bc1fl at 0x3AC40 lands on 3AC50+4 with 3AC50's first word
+ * duplicated into its delay slot (IDO branch-likely dup-first-insn idiom, see
+ * docs/MATCHING_WORKFLOW.md#feedback-beql-next-symbol-plus-4-is-mis-split-branch-likely-block).
+ * The old "caller-set $t2 CAP" note on 3AC50 was this mis-split.
+ *
+ * Dominant-axis classifier: stores the dot product of b and a, a tag, the
+ * index of b's largest |component| (axis), the two other axes (b0/b1) and
+ * the sign of b[axis].  Keys for the exact: Vec3 field access for the dot
+ * (float[] indexing swaps the final add.s operands); the chained
+ * `axis = o->axis = ... ? 0 : 1` (the assignment-expression value is converted
+ * to the field's signed char, giving the sll/sra before the beqz and shifting
+ * the whole tN ring); `axis = cond ? 2 : o->axis; o->axis = axis;` in both
+ * arms (value select into v0 + one store per arm); `axis = o->axis; switch
+ * (axis)` for the second sll/sra; `((float *)b)[o->axis]` for the sign test. */
+typedef struct {
+    signed char b0;      /* first other axis */
+    signed char b1;      /* second other axis */
+    signed char axis;    /* index of largest |b| component */
+    signed char sign;    /* sign of b[axis]: 1 or -1 */
+    short tag;
+    float dot;           /* b . a */
+} AxisInfo_3AA5C;
 
-/* game_libs_func_0003AC50: 3-insn `sb t2, 0x3(a0); jr ra; nop` byte-store.
- * No prologue — $t2 is caller-set as a value-arg (calling convention is
- * a0..a3). IDO C can't emit functions taking $t2 as input. CAP class per
- * feedback_caller_set_int_reg_cap_1080_game_libs. Default INCLUDE_ASM
- * remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003AC50);
+#define FABS_3AA5C(x) (((x) < 0.0f) ? -(x) : (x))
+
+void game_libs_func_0003AA5C(AxisInfo_3AA5C *o, Vec3 *a, Vec3 *b, int tag) {
+    signed char axis;
+    o->dot = b->x * a->x + b->y * a->y + b->z * a->z;
+    o->tag = tag;
+    axis = o->axis = (FABS_3AA5C(b->x) > FABS_3AA5C(b->y)) ? 0 : 1;
+    if (axis) {
+        axis = (FABS_3AA5C(b->z) > FABS_3AA5C(b->y)) ? 2 : o->axis;
+        o->axis = axis;
+    } else {
+        axis = (FABS_3AA5C(b->z) > FABS_3AA5C(b->x)) ? 2 : o->axis;
+        o->axis = axis;
+    }
+    axis = o->axis;
+    switch (axis) {
+    case 0: o->b0 = 2; o->b1 = 1; break;
+    case 1: o->b0 = 0; o->b1 = 2; break;
+    case 2: o->b0 = 1; o->b1 = 0; break;
+    }
+    if (((float *)b)[o->axis] > 0.0f) {
+        o->sign = 1;
+    } else {
+        o->sign = -1;
+    }
+}
 
 #ifdef NON_MATCHING
 /* gl_func_0003AC5C: 127-insn (0x1FC) constructor + token-stream loop.
