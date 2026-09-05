@@ -370,6 +370,12 @@ build/src/game_libs/game_libs_ido53_6F1D8.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_6F17C.c.o build/non_matching/src/game_libs/game_libs_ido53_6F17C.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_6F17C.c.o build/non_matching/src/game_libs/game_libs_ido53_6F17C.c.o: OPT_FLAGS := -O2
 build/src/game_libs/game_libs_ido53_6F17C.c.o build/non_matching/src/game_libs/game_libs_ido53_6F17C.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ memcpy=game_libs_func_0006F17C
+# 6A144 = libultra fsin/__sinf (gu/sinf.c verbatim), IDO 5.3 -O2 donor,
+# 112/112 words exact first compile; six splat fragments (6A144/6A1BC/6A1C4/
+# 6A2C0/6A2DC/6A2F8) merged into one .s. rodata P/rpi/pihi/pilo/zero pinned
+# as gl_ref_00002310..2350; __libm_qnan_f = D_00000000_qnanf (shared w/ fcos).
+build/src/game_libs/game_libs_ido53_6A144.c.o build/non_matching/src/game_libs/game_libs_ido53_6A144.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_6A144.c.o build/non_matching/src/game_libs/game_libs_ido53_6A144.c.o: OPT_FLAGS := -O2
 # 6F218 = libultra osCreateMesgQueue, IDO 5.3 -O1 donor, 11/11 body
 # words exact; two blank hi/lo pairs = &__osThreadTail x2 (USO load-time
 # relocs; donor externs D_00000000_crmq_mt/_full pinned 0). Lead zero
@@ -674,6 +680,7 @@ GAMELIBS_6C9F4_DONOR := build/src/game_libs/game_libs_ido53_6C9F4.c.o
 GAMELIBS_6F534_DONOR := build/src/game_libs/game_libs_ido53_6F534.c.o
 GAMELIBS_6CCD4_DONOR := build/src/game_libs/game_libs_ido53_6CCD4.c.o
 GAMELIBS_6E1A4_DONOR := build/src/game_libs/game_libs_ido53_6E1A4.c.o
+GAMELIBS_6A144_DONOR := build/src/game_libs/game_libs_ido53_6A144.c.o
 GAMELIBS_6FFE4_DONOR := build/src/game_libs/game_libs_ido53_6FFE4.c.o
 build/src/game_libs/game_libs_ido53_6E1A4.c.o build/non_matching/src/game_libs/game_libs_ido53_6E1A4.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_6E1A4.c.o build/non_matching/src/game_libs/game_libs_ido53_6E1A4.c.o: OPT_FLAGS := -O1
@@ -973,7 +980,7 @@ build/src/game_libs/game_libs_ido53_6D0F4.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_6D0F4.c.o build/non_matching/src/game_libs/game_libs_ido53_6D0F4.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_o1_6DA74.c.o build/non_matching/src/game_libs/game_libs_o1_6DA74.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_post0b.c.o build/non_matching/src/game_libs/game_libs_post0b.c.o: REPLACE_FUNC_BODY := gl_func_000601DC=$(GAMELIBS_601D4_DONOR)
-build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY := gl_func_000669B8=$(GAMELIBS_669AC_DONOR) gl_func_0006BA7C=$(GAMELIBS_6BA7C_DONOR) gl_func_00069E04=$(GAMELIBS_69E04_DONOR) gl_func_0006AF0C=$(GAMELIBS_6AF0C_DONOR) gl_func_0006A304=$(GAMELIBS_6A304_DONOR) gl_func_0006AF44=$(GAMELIBS_6AF44_DONOR) gl_func_0006B880=$(GAMELIBS_6B880_DONOR) gl_func_0006B974=$(GAMELIBS_6B974_DONOR) gl_func_0006BAD4=$(GAMELIBS_6BAD4_DONOR) gl_func_0006B7A0=$(GAMELIBS_6B7A0_DONOR) gl_func_0006B0FC=$(GAMELIBS_6B0FC_DONOR)
+build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY := gl_func_000669B8=$(GAMELIBS_669AC_DONOR) gl_func_0006BA7C=$(GAMELIBS_6BA7C_DONOR) gl_func_00069E04=$(GAMELIBS_69E04_DONOR) gl_func_0006AF0C=$(GAMELIBS_6AF0C_DONOR) gl_func_0006A304=$(GAMELIBS_6A304_DONOR) gl_func_0006AF44=$(GAMELIBS_6AF44_DONOR) gl_func_0006B880=$(GAMELIBS_6B880_DONOR) gl_func_0006B974=$(GAMELIBS_6B974_DONOR) gl_func_0006BAD4=$(GAMELIBS_6BAD4_DONOR) gl_func_0006B7A0=$(GAMELIBS_6B7A0_DONOR) gl_func_0006B0FC=$(GAMELIBS_6B0FC_DONOR) game_libs_func_0006A144=$(GAMELIBS_6A144_DONOR)
 build/src/game_libs/game_libs_post1b2.c.o build/non_matching/src/game_libs/game_libs_post1b2.c.o: REPLACE_FUNC_BODY := gl_func_0006C11C=$(GAMELIBS_6C11C_DONOR) gl_func_0006BF34=$(GAMELIBS_6BF34_DONOR) gl_func_0006C1B8=$(GAMELIBS_6C1B8_DONOR) gl_func_0006C2AC=$(GAMELIBS_6C2A4_DONOR)
 GAMELIBS_70FCC_DONOR := build/src/game_libs/game_libs_o2_70FCC.c.o
 # 717CC = __osPfsGetOneChannelData (pfsgetstatus.c), IDO 5.3 -O1 donor;

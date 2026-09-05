@@ -2964,6 +2964,12 @@ gl_ref_00002510 = 0x00002510;  /* cosf pihi */
 gl_ref_00002518 = 0x00002518;  /* cosf pilo */
 gl_ref_00002520 = 0x00002520;  /* cosf fu zero */
 D_00000000_qnanf = 0x00000000;  /* __libm_qnan_f (runtime reloc) */
+/* 6A144 = fsin/__sinf (2026-09-05): rodata twin of the fcos table above. */
+gl_ref_00002310 = 0x00002310;  /* sinf P[5] poly coeffs (baked gl_data) */
+gl_ref_00002338 = 0x00002338;  /* sinf rpi = 1/pi */
+gl_ref_00002340 = 0x00002340;  /* sinf pihi */
+gl_ref_00002348 = 0x00002348;  /* sinf pilo */
+gl_ref_00002350 = 0x00002350;  /* sinf fu zero */
 __ll_mul = 0x80002F78;
 __ull_div = 0x80002E78;
 gl_d_578b4_s1 = 0x00000000;   /* gl_func_000578B4: base-0 alias -- 0x219B8 addiu-form (&sym+N) const, switch-1 default call arg0 */

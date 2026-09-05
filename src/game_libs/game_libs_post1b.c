@@ -5688,35 +5688,31 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069F64);
  * INCLUDE_ASM; the .s is the source of truth. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A09C);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A144);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A1BC);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A1C4);
-
-/* game_libs_func_0006A2C0: 7-insn double-precision polynomial leaf.
- *   f8  = f2 * $f12   ; $f12 = arg0 (double)
- *   f18 = f8 * $f14   ; $f14 = arg1 (double)
- *   f16 = f18 + f2
- *   return -(float)f16   = -(float)(f2*arg0*arg1 + f2)
- * CAP: $f2 is CALLER-SET (read at entry, never loaded) — not an O32 FP arg
- * register ($f12/$f14 only). IDO C can't source $f2 as input. Same
- * caller-set-float subclass as feedback_caller_set_int_reg_cap_1080_game_libs.
- * Sibling of game_libs_func_000710F8 (same shape, caller-set $f2 + $f16).
- * Permanent INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A2C0);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A2DC);
-
-/* game_libs_func_0006A2F8: 3-insn `lwc1 f0, 0x2350($at); jr ra; nop` —
- * prologue-stolen successor. $at is set by the PREDECESSOR's tail
- * (`lui $at, %hi(SYM)`); this function reuses that as the base register
- * for an absolute float load. Standalone C-emit would emit its own
- * lui+lwc1 (2 insns), making the function 4 insns vs target's 3. CAP
- * class — was previously PROLOGUE_STEALS-promotable, now REMOVED
- * 2026-05-23 (per feedback_no_instruction_forcing_matches_policy).
- * Default INCLUDE_ASM remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006A2F8);
+/* game_libs_func_0006A144 = libultra fsin/__sinf (libreultra gu/sinf.c
+ * verbatim, IDO 5.3 -O2 -mips2 donor: game_libs_ido53_6A144.c). LANDED
+ * 2026-09-05 via REPLACE_FUNC_BODY donor splice: 112/112 words exact on the
+ * first compile (5.3 -O3 agrees; 7.1 -O2/-O3 diverge in the poly chain).
+ * BOUNDARY FIX: splat split this ONE function into SIX fragments at its
+ * interior branch targets / extra return points:
+ *   6A144 (head: exponent test + small-|x| polynomial), 6A1BC (the
+ *   `return x` tail: jr ra + lwc1 f0,0(sp)), 6A1C4 (Cody-Waite reduction
+ *   for |x| < 2^28), 6A2C0 (the old "caller-set $f2 double-poly CAP" -- it
+ *   is just the n-odd negated-result tail), 6A2DC (the NaN check), 6A2F8
+ *   (the old "prologue-stolen $at CAP" -- the `return zero.f` tail).
+ * All six INCLUDE_ASMs merged into the single game_libs_func_0006A144.s
+ * (0x1C0, 0x6A144..0x6A303); gl_func_0006A304 follows directly, no pad.
+ * Static rodata (P[5]/rpi/pihi/pilo/zero) lives in the ROM's game_libs data
+ * at segment offsets 0x2310..0x2353 -> extern gl_ref_* baked pins;
+ * __libm_qnan_f is the runtime-reloc blanked extern D_00000000_qnanf.
+ * Sibling of 70FCC = fcos (game_libs_o2_70FCC.c, same table shape at
+ * 0x24E0). Body below is a placeholder for the splice. */
+float game_libs_func_0006A144(float x) {
+    volatile float ret = 0.0f;
+    if (x != 0.0f) {
+        ret = x;
+    }
+    return ret;
+}
 
 /* gl_func_0006A304: pointer-relocation fixup driver. Gets the fixed object at
  * segment offset 0x41710, calls the init/register cb (a0, obj, 0x40), then for

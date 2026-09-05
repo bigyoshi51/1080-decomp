@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0006A144",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-09-05T20:06:57.912631+00:00",
+  "end_time": "2026-09-05T20:06:57.912644+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-05T20:06:57.912640+00:00",
+      "assistant_text": "game_libs_func_0006A144 = libultra fsin/__sinf (libreultra gu/sinf.c verbatim). Identification keys: exponent extraction (ix >> 22) & 0x1ff with thresholds 0xFF / 0xE6 / 0x136, double polynomial via a 5-entry du table base + separate rpi/pihi/pilo doubles, ROUND() as +0.5/-0.5 c.le.d + trunc.w.d, n&1 negate tail, NaN check + return zero.f; sibling of the already-landed fcos at 0x70FCC (same table shape at gl_data 0x24E0). Splat had split the one 112-word function into SIX fragments at interior branch targets / extra return points (6A144 head, 6A1BC 'jr ra; lwc1 f0,0(sp)' return-x tail, 6A1C4 Cody-Waite reduction, 6A2C0 the old 'caller-set $f2 double-poly CAP' = n-odd negated tail, 6A2DC NaN check, 6A2F8 the old 'prologue-stolen $at CAP' = return zero.f tail) -- merged into one .s (0x1C0). Compiler matrix: IDO 5.3 -O2 and -O3 = 112/112; 7.1 -O2/-O3 diverge in the mul.d/add.d interleave; 5.3 -O1 = 124 words. Rodata externs use baked gl_ref_* pins (cosf precedent); __libm_qnan_f = D_00000000_qnanf (0, runtime reloc).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 112,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O2 -mips2 donor for game_libs_func_0006A144 = libultra\n * fsin/__sinf (libreultra gu/sinf.c verbatim). PROVEN EXACT 2026-09-05:\n * 112/112 words identical on the first compile against the concatenated\n * 0x6A144..0x6A303 stream (six splat fragments unified: 6A144/6A1BC/6A1C4/\n * 6A2C0/6A2DC/6A2F8). 5.3 -O3 emits the same words; 7.1 -O2/-O3 diverge\n * in the polynomial chain (different mul.d/add.d interleave), 5.3 -O1 is\n * 124 words. Static rodata (P[5]/rpi/pihi/pilo/zero) lives in the ROM's\n * game_libs data at segment offsets 0x2310..0x2353 -> extern gl_ref_*\n * with baked values (same recipe as the fcos donor game_libs_o2_70FCC.c,\n * whose table sits at 0x24E0); __libm_qnan_f is the runtime-reloc blanked\n * extern D_00000000_qnanf (shared with fcos).\n * Spliced into game_libs_post1b.c.o via REPLACE_FUNC_BODY. */\ntypedef union {\n    struct {\n        unsigned int hi, lo;\n    } word;\n    double d;\n} du;\n\ntypedef union {\n    unsigned int i;\n    float f;\n} fu;\n\n#define ROUND(d) (int)(((d) >= 0.0) ? ((d) + 0.5) : ((d) - 0.5))\n\nextern const du gl_ref_00002310[]; /* P[5]: sin poly coeffs on +/- pi/2 */\nextern const du gl_ref_00002338;   /* rpi  = 1/pi */\nextern const du gl_ref_00002340;   /* pihi */\nextern const du gl_ref_00002348;   /* pilo */\nextern const fu gl_ref_00002350;   /* zero */\nextern float D_00000000_qnanf;     /* __libm_qnan_f */\n\nfloat game_libs_func_0006A144(float x) {\n    double dx, xsq, poly;\n    double dn;\n    int n;\n    double result;\n    int ix, xpt;\n\n    ix = *(int *)&x;\n    xpt = (ix >> 22);\n    xpt &= 0x1ff;\n\n    /* xpt is exponent(x) + 1 bit of mantissa */\n\n    if (xpt < 0xff) {\n        /* |x| < 1.5 */\n        dx = x;\n\n        if (xpt >= 0xe6) {\n            /* |x| >= 2^(-12): standard polynomial approximation */\n            xsq = dx * dx;\n            poly = ((gl_ref_00002310[4].d * xsq + gl_ref_00002310[3].d) * xsq + gl_ref_00002310[2].d) * xsq\n                   + gl_ref_00002310[1].d;\n            result = dx + (dx * xsq) * poly;\n            return ((float)result);\n        }\n\n        return (x);\n    }\n\n    if (xpt < 0x136) {\n        /* |x| < 2^28: reduce argument to +/- pi/2 */\n        dx = x;\n\n        dn = dx * gl_ref_00002338.d;\n        n = ROUND(dn);\n        dn = n;\n\n        dx = dx - dn * gl_ref_00002340.d;\n        dx = dx - dn * gl_ref_00002348.d; /* dx = x - n*pi */\n\n        /* compute sin(dx) as before, negating result if n is odd */\n        xsq = dx * dx;\n        poly = ((gl_ref_00002310[4].d * xsq + gl_ref_00002310[3].d) * xsq + gl_ref_00002310[2].d) * xsq\n               + gl_ref_00002310[1].d;\n        result = dx + (dx * xsq) * poly;\n\n        if ((n & 1) == 0)\n            return ((float)result);\n\n        return (-(float)result);\n    }\n\n    if (x != x) {\n        /* x is a NaN; return a quiet NaN */\n        return (D_00000000_qnanf);\n    }\n\n    /* just give up and return 0.0 */\n    return (gl_ref_00002350.f);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6A144.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0006A144.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "112/112 words identical vs the merged raw-.word .s (reloc-masked standalone diff, then in-tree: REPLACE_FUNC_BODY splice into game_libs_post1b.c.o, 14 imported HI16/LO16 relocs resolve via gl_ref_00002310/2338/2340/2348/2350 + D_00000000_qnanf pins; full ROM cmp byte-identical vs baserom; objdiff report 100.0 (448 bytes); make non_matching_objects exit 0; sentinels 551E0/55B10/EBC8/C5B0/62F08 all 100.0)."
+  }
+}
