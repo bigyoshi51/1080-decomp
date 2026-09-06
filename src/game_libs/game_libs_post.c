@@ -3697,49 +3697,57 @@ void game_libs_func_00020E78(short *dst, int a1) {
     } while (i != 8);
 }
 
-// gl_func_00020ED0 — redecoded 2026-07-31 (was a wrong STRUCTURAL sketch:
-// real shape is an (x,y)-presence 3-way EXCLUSIVE dispatch with early
-// returns — not fallthrough — and the tail loop is an 8-halfword AVERAGE
-// (a+b)/2 (signed /2: bgez+addiu+sra), x4-unrolled by IDO on the
-// exact-trip != form, walking &D+y*16 twin tables; void, 3 params (K&R
-// homing: only a0/d reloaded from its home per branch arm).
-#ifdef NON_MATCHING
+/* gl_func_00020ED0 (0x12C, 75 words, BYTE-EXACT 2026-09-06 agent-g): (x,y)-presence
+ * 3-way EXCLUSIVE dispatch over the two 8-short record tables, else the
+ * per-element signed average (a + b) / 2 of record y from both tables into d.
+ * Callees are blank in-module jals (ROM word 0C000000 -> gl_func_00000000
+ * placeholder, see docs/IDO_CODEGEN.md#distinct-pointer-copy-keeps-loop-bound-reload-20914
+ * companion 2): jal1/jal2 = TextReloc sym1295 = game_libs_func_00020E24
+ * (record copy from table sym1251), jal3 = sym1296 = game_libs_func_00020E78
+ * (record a1-1 copy from table sym1253). The second call passes NO second
+ * arg -- the target leaves $a1 = x untouched. Table bases here: sym1253
+ * (symval 0x1A1D8, $t6 pair = D_20ED0_a) and sym1251 (symval 0x19FE8, $t7
+ * pair = D_20ED0_b); the ROM words are reloc-blind zeros, so both are
+ * distinct base-0 aliases in undefined_syms_auto.txt (distinct names defeat
+ * the &D CSE that would merge the two lui/addiu pairs).
+ *
+ * Byte-exact recipe: NO pa/pb locals and NO p = d copy -- index BOTH tables
+ * inside the loop as `((short *)&D)[y * 8 + j]`. That is what makes uopt
+ * (a) keep y unmodified so its web is copied to $a3 at entry and d stays
+ * HOMED at 0x18(sp) (reloaded per arm and as the loop's `lw v0` in the
+ * `bnez a1` delay slot), and (b) hoist the invariant `y * 8` as its OWN
+ * candidate whose shift is merged with the halfword scale into an IN-PLACE
+ * `or a2,a3,zero; sll a2,a2,4` (the 20E24 shift-merge phantom, hoisted
+ * form). Every pa/pb-local spelling (y*16, y<<4, y<<3 short-index, 2D
+ * array row) gives `sll a2,a3,4`/`sll v0,a2,4` with the `lw v0` sunk below
+ * the base adds; every `y <<= 4` / `y *= 16` spelling keeps y in $a2 and
+ * moves d into $a3 (no home). IDO's own x4 unroll of the `j != 8` loop
+ * reproduces the rotated 4-store body. */
 extern int gl_func_00000000();
-extern int D_00000000;
-/* Decode notes: call1 = f(d,0) with a0 untouched; call2 = f(d) a0 reloaded;
- * call3 = f(d,y); mix path: d also reloaded from home (v0), pa/pb preheader
- * lui/addiu pairs (nesting order = docs PATTERNS preheader-pair note). */
-extern int D_20ED0_a, D_20ED0_b; /* twin halfword tables, y*16-indexed (baked USO relocs stripped) */
+extern int D_20ED0_a, D_20ED0_b; /* twin 8-short record tables (USO load-resolved, base-0 aliases) */
 void gl_func_00020ED0(d, x, y)
 short *d;
 int x;
 int y;
 {
-    short *pa;
-    short *pb;
     int j;
 
     if (x == 0 && y == 0) {
-        gl_func_00000000(d, 0);
+        gl_func_00000000(d, 0);          /* game_libs_func_00020E24(d, 0) */
         return;
     }
     if (y == 0) {
-        gl_func_00000000(d);
+        gl_func_00000000(d);             /* game_libs_func_00020E24(d, x): $a1 = x untouched */
         return;
     }
     if (x == 0) {
-        gl_func_00000000(d, y);
+        gl_func_00000000(d, y);          /* game_libs_func_00020E78(d, y) */
         return;
     }
-    pa = (short *)((char *)&D_20ED0_a + y * 16);
-    pb = (short *)((char *)&D_20ED0_b + y * 16);
     for (j = 0; j != 8; j++) {
-        d[j] = (pa[j] + pb[j]) / 2;
+        d[j] = (((short *)&D_20ED0_a)[y * 8 + j] + ((short *)&D_20ED0_b)[y * 8 + j]) / 2;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020ED0);
-#endif
 
 #ifdef NON_MATCHING
 #ifndef FW
