@@ -8585,31 +8585,39 @@ int gl_func_00025AC8(int idx, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025AC8);
 #endif
 
-/* Flag-guarded D_-queue append. p=*a0; x=*p; require (x&0xFFFFFF)!=0 AND
- * (x<<6)<0 (bit25 set) AND ((u)(x<<4)>>30)!=0 (bits26-27); then append (int)p
- * to the queue at &D_+0x430 indexed by the count at &D_+0x1030, count++.
- * Structure exact (22/22 opcodes); back-half register allocation renumbers
- * (12/22, allocno cap — over-half so INSN_PATCH would hurt episode fidelity).
- * Faithful decode; INCLUDE_ASM build path. */
-#ifdef NON_MATCHING
-void game_libs_func_00025BFC(int **a0) {
-    int *p = a0[0];
-    int x = *p;
-    if ((x & 0xFFFFFF) == 0) {
+/* game_libs_func_00025BFC: flag-guarded D_-queue append. p=*a0; the header
+ * word of *p is a packed descriptor: bits 0-23 nonzero AND bit 25 set AND
+ * bits 26-27 nonzero -> append (int)p to the queue at &D_+0x430 indexed by
+ * the count at &D_+0x1030, count++.
+ * EXACT 2026-09-06 agent-g -- the "allocno cap" (every temp after `and t6`
+ * one register LOW) was the PHANTOM `$t7`: a 1-bit BITFIELD test extracts
+ * `sll 6; srl 31` and uopt folds the `srl 31 == 0` into `bgez` on the sll,
+ * leaving the dead srl's temp number burned. `(x << 6) >= 0` / `!(x & bit)`
+ * have no phantom; the bitfield struct (or `((unsigned)(x << 6) >> 31) == 0`,
+ * or `((x << 5) << 1) >= 0`) is byte-exact. See docs/IDO_CODEGEN.md
+ * #one-bit-bitfield-test-dead-srl-phantom-25bfc. */
+typedef struct {
+    unsigned int type : 4;     /* bits 28-31 */
+    unsigned int kind : 2;     /* bits 26-27: must be nonzero */
+    unsigned int queued : 1;   /* bit 25: must be set */
+    unsigned int bit24 : 1;    /* bit 24 */
+    unsigned int size : 24;    /* bits 0-23: must be nonzero */
+} Desc25BFC;
+
+void game_libs_func_00025BFC(Desc25BFC **a0) {
+    Desc25BFC *p = a0[0];
+    if (p->size == 0) {
         return;
     }
-    if ((x << 6) >= 0) {
+    if (p->queued == 0) {
         return;
     }
-    if (((unsigned int)(x << 4) >> 30) == 0) {
+    if (p->kind == 0) {
         return;
     }
     *(int *)((char *)&D_00000000 + *(int *)((char *)&D_00000000 + 0x1030) * 4 + 0x430) = (int)p;
     *(int *)((char *)&D_00000000 + 0x1030) += 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00025BFC);
-#endif
 
 
 // gl_func_00025C54 — STRUCTURAL PASS (0x460 / 280 words ≈ 1.1KB, no
