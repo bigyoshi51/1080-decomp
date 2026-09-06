@@ -235,7 +235,16 @@ void mgrproc_uso_func_000005D0(char *a0) {
  * double-b cap (docs/IDO_CODEGEN.md#feedback-ido-o0-return-value-dead-
  * double-b): the original 1080 cc's -O0 kept switch temps in the t
  * rotation. Everything else (all relocs, control flow, la, lhu forms) is
- * exact; the s1-vs-t1 class shifts every subsequent t number. */
+ * exact; the s1-vs-t1 class shifts every subsequent t number.
+ * 2026-09-05 (agent-c) RULE PINNED, 30 standalone probes
+ * (docs/IDO_CODEGEN.md#ido-o0-switch-temp-callee-saved-in-nonleaf): ugen
+ * assigns the switch temp from the callee-saved pool in ANY non-leaf
+ * function -- a call before the switch, after it, in one case, via fn-ptr
+ * or in a nested switch all promote; only a LEAF gets the caller-saved copy
+ * (`or a2,a1,zero`). Switch-expression spelling (unsigned/long/short/u8,
+ * -0, &0xffff, volatile deref, *(int*)&, default arms) never changes the
+ * class. No cfe-side knob exists (unlike the ==/!= comma lever), so the
+ * t1 target is unreachable with three jal's in the body. Do not re-probe. */
 #ifndef FW
 #define FW(p, o) (*(int *)((char *)(p) + (o)))
 #endif
