@@ -1,6 +1,15 @@
-nonmatching timproc_uso_b3_func_00001088, 0x8
+nonmatching timproc_uso_b3_func_00001088, 0x2C
 
 glabel timproc_uso_b3_func_00001088
     /* 001088 00001088 3C050000 */  .word 0x3C050000
     /* 00108C 0000108C 8CA50170 */  .word 0x8CA50170
+    /* 001090 00001090 27BDFFE8 */  .word 0x27BDFFE8
+    /* 001094 00001094 AFBF0014 */  .word 0xAFBF0014
+    /* 001098 00001098 3C010022 */  .word 0x3C010022
+    /* 00109C 0000109C 0C000000 */  .word 0x0C000000
+    /* 0010A0 000010A0 00A12821 */  .word 0x00A12821
+    /* 0010A4 000010A4 8FBF0014 */  .word 0x8FBF0014
+    /* 0010A8 000010A8 27BD0018 */  .word 0x27BD0018
+    /* 0010AC 000010AC 03E00008 */  .word 0x03E00008
+    /* 0010B0 000010B0 00000000 */  .word 0x00000000
 endlabel timproc_uso_b3_func_00001088

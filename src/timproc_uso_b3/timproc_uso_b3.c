@@ -564,25 +564,28 @@ void timproc_uso_b3_func_00000FF4(char *a0) {
     }
 }
 
-/* 00001074/00001088: RECOVERED 2026-05-28 from the Yay0 block_3 gap (no .s,
- * missing from build — segment was 7 words short). 00001074: MATCHED —
- * D[0x40]=9 setter with unused-arg save; the global-store-in-delay-slot
- * vs arg-save order matches in-tree (standalone diverged, see
- * MATCHING_WORKFLOW.md#feedback-standalone-false-convergence-verify-in-tree).
- * 00001088: 2-insn alt-entry that loads a1 and falls through into 00001090.
- * SOURCE=4 audit 2026-06-01: not an accessor-template miss. This mirrors
- * timproc_uso_b1_func_000010D4: the fragment seeds $a1 from D[0x170], while
- * the successor's C body consumes that inherited $a1 before adding 0x220000.
- * Keep INCLUDE_ASM; there is no standalone C body for the preload fragment. */
+/* 00001074: RECOVERED 2026-05-28 from the Yay0 block_3 gap (no .s, missing
+ * from build). MATCHED -- D[0x40]=9 setter with unused-arg save; the
+ * global-store-in-delay-slot vs arg-save order matches in-tree (standalone
+ * diverged, see MATCHING_WORKFLOW.md#feedback-standalone-false-convergence-verify-in-tree). */
 void timproc_uso_b3_func_00001074(int a0) {
     *(int*)((char*)&D_00000000 + 0x40) = 9;
 }
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001088);
 
+/* timproc_uso_b3_func_00001088 (0x2C, 11 insns): hoisted-head merge of 1088 +
+ * 1090 (2026-09-05 agent-c, TWENTY-FIFTH mis-split class, see
+ * docs/MATCHING_WORKFLOW.md #hoisted-head-119c-11a4-mgrproc). The 8-byte
+ * "alt-entry" `lui a1; lw a1,0x170(a1)` is this function's own first statement
+ * scheduled above `addiu sp` by IDO 7.1 -O2; 1090 was never an entry. Oracle =
+ * this block's module tables -- the "timproc_uso_b3" text is trkproc.uso (FILE
+ * wrapper ROM 0x5B3DBA, inner header 0x5B3DE2): Sym[89] EXPORTS text offset
+ * 0x1088 and DataReloc @0x33C stores its address in a function-pointer table;
+ * 0x1090 has no export and no R_MIPS_26. Old 1090 "exact" = fake `char *a1`
+ * parameter (episode retired). Twin: timproc_uso_b1_func_000010D4. */
 void timproc_uso_b3_func_00000000();
 
-void timproc_uso_b3_func_00001090(int a0, char *a1) {
-    timproc_uso_b3_func_00000000(a0, a1 + 0x00220000);
+void timproc_uso_b3_func_00001088(int a0) {
+    timproc_uso_b3_func_00000000(a0, *(char **)((char *)&D_00000000 + 0x170) + 0x00220000);
 }
 
 extern int gl_ref_00000040;
