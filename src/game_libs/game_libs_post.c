@@ -15879,9 +15879,15 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D2F4);
 #endif
 
 
+/* game_libs_func_0002D36C: 2-word all-zero inter-function ROM pad (0x2D36C/0x2D370).
+ * The old 4-word orphan also carried `lui t6; lw t6,0(t6)` = the hoisted first
+ * statement (mode read) of game_libs_func_0002D374 below (merged 2026-09-06). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D36C);
 
-// gl_func_0002D37C — full hand re-derivation from ground truth (2026-09-04
+// game_libs_func_0002D374 (ex gl_func_0002D37C; bootup.uso Sym exports section
+// 0x419E0 = splat 0x2D374, the `lui t6; lw t6` mode read that splat had lumped
+// into the 2D36C pad orphan; 0x2D37C is NOT exported -- merged 2026-09-06 agent-c)
+// -- full hand re-derivation from ground truth (2026-09-04
 // agent-g). Countdown-timer tick: six down-counters in a global record S
 // (+0 phase timer, +4/+8/+10 plain, +18 fade (127-n)/127 -> 1010300 cb,
 // +C 256-step ramp: at 256 snapshot u16 raw -> fp[358] (float)(u32)raw,
@@ -15890,9 +15896,29 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D36C);
 // expiry fires the 423C4/41E9C pair (state==15) or 42490/41ED4 pair plus
 // the 5/13/0 -> cb(51) and 1 -> {4,10} -> cb(1010300,0) chains. Tail:
 // if rec[2] 46324(rec); 44E14(); cb(). Mode==1 pre-empts: if cb() flag=0.
-// Note the true prologue `lui t6; lw t6` (D_2D37C_mode read) lives in the
-// 2-word orphan game_libs_func_0002D36C (splat mis-split, same shape as
-// gl_func_0002D620's orphan) — build[2:] is the comparable body.
+// The `lui t6; lw t6` (mode read) head is now part of THIS symbol (2026-09-06
+// merge; the 2 zero words before it stay as the game_libs_func_0002D36C pad).
+//
+// NM 95.12 -> 96.69 (2026-09-06 agent-c, merged 0x2A4 = 169 words, build 170):
+//   FIXED: `d = f35C; d -= f360;` (in-place) gives the target's
+//   `lwc1 $f0; sub.s $f0,$f0,$f16; trunc.w.s $f18,$f0; swc1 $f0; mfc1 a1,$f18`.
+//   RESIDUAL (all colouring, one shape knot): target holds the timer base in a2
+//   everywhere with c=v1 / half=a0 and z=$f0 / fr=$f2, and stores n via the
+//   held base (`sw t0,12(a2)` between the two d loads); build colours base=v1,
+//   c=a0, half=v1, z=$f12, fr=$f0, stores n via a fresh `lui at` (+1 word), and
+//   the post-call i reload is a2 (target t2) with fp temps f6/f8/f10/f16 vs
+//   f4/f6/f8/f10 and the 358 reload in $f0 vs $f2.
+//   The `if (z) {} if (fr) {} if (half) {}` keep-alives pin the 256-block
+//   schedule (z first, unsigned fr cvt+fixup before the 360 product, then the
+//   360/35C/358 stores) but EVERY empty conditional flips the base colour to v1.
+//   Without them the int colouring is exact (base a2, c v1) but IDO forward-
+//   substitutes the single-use fr and sinks its cvt+bgez fixup to the 358 store
+//   and hoists the 1/256 constant (87.8). Also probed: store orders 358/35C/360
+//   and 35C/358/360 (stores stay in source order, no LIFO across symbols),
+//   `register` locals (no effect), explicit `if ((int)raw < 0) fr += 2^32`
+//   (right placement but a `mov.s $f0,$f2` phi and the base flips again),
+//   z initialised at function scope (same as no hack). Open lever: a source
+//   construct that keeps fr/z as candidates without an extra basic block.
 #ifdef NON_MATCHING
 extern int gl_func_00000000_f(int, float);
 extern int gl_ref_000423C4(), gl_ref_00041E9C(), gl_ref_00042490(), gl_ref_00041ED4(), gl_ref_00046324(), gl_ref_00044E14();
@@ -15902,7 +15928,7 @@ extern int D_2D37C_tmr;
 extern int D_2D37C_rec[];
 extern u16 D_2D37C_raw[];
 extern f32 D_2D37C_f358s[], D_2D37C_f358l[], D_2D37C_f35Cs[], D_2D37C_f35Cl[], D_2D37C_f35Cw[], D_2D37C_f360s[], D_2D37C_f360l[];   /* per-site pool aliases of &D_0+0x358/35C/360 (fresh lui at per access) */
-void gl_func_0002D37C(void) {
+void game_libs_func_0002D374(void) {
     int st;
     int v;
     int i;
@@ -15971,7 +15997,8 @@ void gl_func_0002D37C(void) {
             D_2D37C_f358s[0x358 / 4] = fr;
         }
         TW_2D37C(0xC) = n;
-        d = D_2D37C_f35Cl[0x35C / 4] - D_2D37C_f360l[0x360 / 4];
+        d = D_2D37C_f35Cl[0x35C / 4];
+        d -= D_2D37C_f360l[0x360 / 4];
         D_2D37C_f35Cw[0x35C / 4] = d;
         i = (int)d;
         if (0) { gl_func_00000000(&i); }
@@ -15985,7 +16012,7 @@ void gl_func_0002D37C(void) {
     gl_func_00000000();
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D37C);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002D374);
 #endif
 
 /* gl_func_0002D620: boundary-corrected (orphan-fn delete+merge). The 2-word

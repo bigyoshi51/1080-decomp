@@ -3322,13 +3322,13 @@ D_arc251C_id = 0x00000000;
 D_arc251C_f = 0x00000000;
 D_arc251C_g = 0x00000000;
 D_arc251C_h = 0x00000000;
-gl_ref_000423C4 = 0x000423C4;  /* gl_func_0002D37C baked USO jal */
-gl_ref_00041E9C = 0x00041E9C;  /* gl_func_0002D37C baked USO jal */
-gl_ref_00042490 = 0x00042490;  /* gl_func_0002D37C baked USO jal */
-gl_ref_00041ED4 = 0x00041ED4;  /* gl_func_0002D37C baked USO jal */
-gl_ref_00046324 = 0x00046324;  /* gl_func_0002D37C baked USO jal */
-gl_ref_00044E14 = 0x00044E14;  /* gl_func_0002D37C baked USO jal */
-D_2D37C_mode = 0x00000000;  /* gl_func_0002D37C per-site base-0 aliases (distinct syms = fresh lui per read, no base CSE) */
+gl_ref_000423C4 = 0x000423C4;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
+gl_ref_00041E9C = 0x00041E9C;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
+gl_ref_00042490 = 0x00042490;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
+gl_ref_00041ED4 = 0x00041ED4;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
+gl_ref_00046324 = 0x00046324;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
+gl_ref_00044E14 = 0x00044E14;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
+D_2D37C_mode = 0x00000000;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) per-site base-0 aliases (distinct syms = fresh lui per read, no base CSE) */
 D_2D37C_flag = 0x00000000;
 D_2D37C_st = 0x00000000;
 D_2D37C_arg = 0x00000000;
