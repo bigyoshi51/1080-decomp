@@ -594,14 +594,30 @@ void timproc_uso_b1_func_00001130(int *self) {
     }
 }
 
-/* timproc_uso_b1_func_000011D0: 2-insn alt-entry (lui at,0x3F80; mtc1 at,$f0
- * = set f0=1.0f) that falls through into 000011D8. RECOVERED 2026-05-28 from
- * the Yay0 block_1 gap (no .s, segment was 2 words short). SOURCE=4 audit
- * 2026-06-01: not an accessor-template miss; this is a float-constant preload
- * fragment for the successor. INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D0);
-
-/* timproc_uso_b1_func_000011D8 — 82.34 -> 98.61 (2026-07-15 agent-g): the
+/* timproc_uso_b1_func_000011D0 (0x170, 92 insns): hoisted-head merge of 11D0 +
+ * 11D8 (2026-09-05 agent-c, TWENTY-FIFTH mis-split class, see
+ * docs/MATCHING_WORKFLOW.md #hoisted-head-119c-11a4-mgrproc). The 8-byte
+ * "float-constant preload" `lui at,0x3F80; mtc1 at,$f0` is this function's own
+ * `buf[i] = 1.0f` materialization scheduled above `addiu sp` by IDO 7.1 -O2
+ * (the build's own first word was already above the prologue). Oracle = the
+ * timproc.uso Kyoto tables (inner header ROM 0x5AF114): Sym[96] EXPORTS 0x11D0
+ * and DataReloc @0x374 stores its address in a function-pointer table; 0x11D8
+ * has no export and no R_MIPS_26. The old 11D8 "HARD CAP" (extra
+ * `lwc1 $f0,40(sp)` home load, frame 0x68 vs 0x60) was an artifact of faking
+ * the hoisted constant with an uninitialized `register float`.
+ * MERGED STATE: 89/92 words (objdiff fuzzy 99.75). Frame 0x60 exact: buf at
+ * the top (0x50-0x5C), 7 volatile pad words, call-arg spill home 0x24, dead
+ * word 0x20. The old `char *s0 = a0` two-web local is GONE: IDO does the
+ * a0/s0 split itself (clamp on a0, rest on s0, same words) and the extra
+ * pointer local was what displaced the spill home to 0x20 (7 pads + s0 ->
+ * saved 0x20; 8 pads + s0 -> saved 0x24 but frame 0x68).
+ * RESIDUAL (3 words, both documented version-independent caps, see the
+ * 1C74 wrap + docs/IDO_CODEGEN FP-const-hoist / 2E3C entries):
+ *   +0x078 add.s f16 operand order (target field+const, build const+field);
+ *   +0x0E8/+0x0EC the 255.0f mtc1 / field lwc1 register pair-swap (target
+ *   allocates the constant first: mtc1 at,$f18; lwc1 $f4 -- build gives the
+ *   loaded value the first ring reg in every probed spelling). Honest NM. */
+/* Decode history (as timproc_uso_b1_func_000011D8, 82.34 -> 98.61, 2026-07-15 agent-g): the
  * three "deferred decode corrections" applied together, plus THREE MORE
  * decode errors found in the bytes:
  *  (1) D<=0 gate is the body-WRAP form (bc1fl skips body when D>0), not an
@@ -629,50 +645,46 @@ INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_fun
  * spellings tested. Floor 98.61, honest NM. */
 extern char D_b1_11d8_a, D_b1_11d8_b, D_b1_11d8_c, D_b1_11d8_d;
 #ifdef NON_MATCHING
-void timproc_uso_b1_func_000011D8(char *a0) {
-    char *s0;
-    volatile int padtop0;
-    float buf[4];            /* dead color buffer, sp+0x50..0x5C */
+void timproc_uso_b1_func_000011D0(char *a0) {
+    float buf[4];            /* dead color buffer, sp+0x50..0x5C (frame top) */
     volatile int pad0, pad1, pad2, pad3, pad4, pad5, pad6;
-    char *saved;
+    char *saved;             /* call-arg spill home sp+0x24 */
     int flag;
-    register float f;        /* uninitialized -> $f0 */
     float fv;
 
-    buf[0] = f;
-    buf[1] = f;
-    buf[2] = f;
-    buf[3] = f;
+    buf[0] = 1.0f;
+    buf[1] = 1.0f;
+    buf[2] = 1.0f;
+    buf[3] = 1.0f;
     if (*(int *)(a0 + 0x500) == 0) return;
     if (*(float *)&D_b1_11d8_a <= 0.0f) {
         fv = *(float *)(a0 + 0x72C);
         if (fv < *(float *)((char *)&D_b1_11d8_b + 0x40)) {
             *(float *)(a0 + 0x72C) = fv + *(float *)((char *)&D_b1_11d8_c + 0x44);
         }
-        s0 = a0;
-        *(int *)(s0 + 0x508) = *(int *)(s0 + 0x508) + 1;
+        *(int *)(a0 + 0x508) = *(int *)(a0 + 0x508) + 1;
         flag = 0;
-        if ((*(int *)(*(char **)(s0 + 0x528) + 0x14) & 1) &&
-            (*(int *)(s0 + 0x4FC) != 0) &&
+        if ((*(int *)(*(char **)(a0 + 0x528) + 0x14) & 1) &&
+            (*(int *)(a0 + 0x4FC) != 0) &&
             (*(int *)(*(char **)(*(char **)((char *)&D_b1_11d8_d + 0x138) + 0x44) + 0x38) < 3)) {
             flag = 1;
         }
         if (flag != 0) {
-            saved = s0 + 0x6E4;
+            saved = a0 + 0x6E4;
             gl_func_00000000(saved);
-            gl_func_00000000(saved, (int)(255.0f * *(float *)(s0 + 0x72C)),
-                             s0 + 0x2F0, s0 + 0x314);
-            if (*(int *)(s0 + 0x508) & 8) {
+            gl_func_00000000(saved, (int)(255.0f * *(float *)(a0 + 0x72C)),
+                             a0 + 0x2F0, a0 + 0x314);
+            if (*(int *)(a0 + 0x508) & 8) {
                 gl_func_00000000(saved, 160, 160, 3);
-                gl_func_00000000(s0, 140, *(int *)(*(char **)(s0 + 0x6A8) + 0x30));
+                gl_func_00000000(a0, 140, *(int *)(*(char **)(a0 + 0x6A8) + 0x30));
             }
         } else {
-            gl_func_00000000(s0, 140, *(int *)(*(char **)(s0 + 0x6A8) + 0x30));
+            gl_func_00000000(a0, 140, *(int *)(*(char **)(a0 + 0x6A8) + 0x30));
         }
     }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D8);
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000011D0);
 #endif
 
 #ifdef NON_MATCHING
