@@ -3651,21 +3651,30 @@ void game_libs_func_00020DF4(short *a0) {
   while (0);
 }
 
-/* Copies the a1-th 16-byte (8-short) entry of the &D_00000000+0x... table to
- * a0. Target emits a rotated 2x4-short copy loop (counter 0..8 step 4); the
- * exact loop rotation + the reloc-blind D_ base (lh offset 0) aren't yet
- * byte-matched. Semantic body for documentation. */
-#ifdef NON_MATCHING
+/* game_libs_func_00020E24: copies record a1 (8 shorts, 16 bytes) of the
+ * halfword table at &D (reloc-blind base, addend 0) into a0. Callee of
+ * gl_func_00020ED0 (blank in-module jal). Byte-exact recipe (2026-09-06):
+ * the record address must be spelled with a SHIFT (`(short *)&D + (a1 << 3)`,
+ * a uopt-merged shift consumes temp $t6 so the live temps start at $t7), and
+ * the copy must be the hand-walked 4-per-iteration do/while with `i`
+ * DECLARED FIRST (i -> $v0, p -> $v1, s -> $a2); the natural
+ * `for (i < 8) a0[i] = s[i]` on a `* 16` address emits the same 21 words
+ * one temp register lower. Source-line tie-breaks (#same-line-brace-*):
+ * the three inits and the `do {` must share ONE line -- `li a0,8` belongs
+ * to the loop-header line and must schedule before `or v0,zero,zero`
+ * (i = 0); inits on separate lines swap `or v1,a0` above `addiu t8`.
+ * See docs/IDO_CODEGEN.md #shift-merge-phantom-temp-copy-loop-20e24. */
 void game_libs_func_00020E24(short *a0, int a1) {
-    short *s = (short *)((char *)&D_00000000 + a1 * 16);
-    int i;
-    for (i = 0; i < 8; i++) {
-        a0[i] = s[i];
-    }
+    int i = 0; short *p = a0; short *s = (short *)&D_00000000 + (a1 << 3); do {
+        i += 4;
+        p[0] = s[0];
+        p[1] = s[1];
+        p[2] = s[2];
+        p[3] = s[3];
+        p += 4;
+        s += 4;
+    } while (i != 8);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E24);
-#endif
 
 
 #ifdef NON_MATCHING
