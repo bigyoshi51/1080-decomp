@@ -12431,15 +12431,25 @@ void gl_func_0002978C(char *obj) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002978C);
 #endif
 
-#ifdef NON_MATCHING
-/* game_libs_func_000298D8: accumulate-and-scale. Adds the two u16 fields at
- * a0+2 and a0+4, stores the sum back to a0+2, takes (sum>>8)&0xFF (arith sra),
- * clamps it to 127 (and zeroes byte a0+0 when clamped), then returns
- * (floatTable[v] - 1.0f) * a0->8 + 1.0f. floatTable at D+0x200, indexed by v.
- * 98.48% NM: the `r` result-temp + `h[2]+h[1]` operand order pin the return
- * path (add->f2; mov f0,f2) and the u16 load order. Residual = FP-temp
- * renumber (table[v] in $f4 target vs $f6, the $f8/$f4 mul operands swapped)
- * + one int-reg name ($t9 vs $t8) — permuter-class; sub-into-temp regresses. */
+/* game_libs_func_000298D8 (0x5C, 23 words, BYTE-EXACT 2026-09-06 agent-g):
+ * accumulate-and-scale. Adds the two u16 fields at a0+2 and a0+4, stores the
+ * sum back to a0+2, takes (sum>>8)&0xFF (arith sra), clamps it to 127 (and
+ * zeroes byte a0+0 when clamped), then returns
+ * a0->8 * (floatTable[v] - 1.0f) + 1.0f, floatTable at D+0x200 (reloc-blind
+ * &D_00000000, inline addend). The 98.48% wrap had two residuals, both
+ * spelling: (1) int temp one register low (`sll t8` vs target `sll t9`) --
+ * the 20E24 shift-merge phantom: spell the table index as a SHORT-index
+ * shift, `(short *)&D + 0x100 + (v << 1)`, so uopt merges the `<< 1` with the
+ * halfword scale into the target's single `sll v0,2` while the pre-merge temp
+ * still burns $t8 (a char-offset `+ 0x200 + v * 4` has no phantom); (2) the
+ * FP temp ring / mul operand order -- cfe ranks the register-rooted cast-deref
+ * `*(float *)(a0 + 8)` FIRST regardless of textual position when it is the
+ * second operand, so write it textually FIRST: `a0->8 * (tbl - 1.0f)` gives
+ * tbl -> $f4, sub -> $f6, a0->8 -> $f8, `mul.s f10,f6,f8` (a two-level typed
+ * member chain per docs #cfe-rank also works here). The `r` result temp and
+ * the `h[2] + h[1]` operand order still pin the return path (add -> $f2;
+ * mov.s $f0,$f2) and the u16 load order. See docs/IDO_CODEGEN.md
+ * #shift-merged-phantom-temp-record-copy-20e24. */
 float game_libs_func_000298D8(void *a0) {
     unsigned short *h = (unsigned short *)a0;
     int v = h[2] + h[1];
@@ -12450,14 +12460,11 @@ float game_libs_func_000298D8(void *a0) {
         *(char *)a0 = 0;
     }
     {
-        float r = (*(float *)((char *)&D_00000000 + 0x200 + v * 4) - 1.0f)
-                  * *(float *)((char *)a0 + 8) + 1.0f;
+        float r = *(float *)((char *)a0 + 8)
+                  * (*(float *)((short *)&D_00000000 + 0x100 + (v << 1)) - 1.0f) + 1.0f;
         return r;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000298D8);
-#endif
 
 /* Phase-accumulator table oscillator: advance a0[1] by (int)a0->0x10f, index
  * the 64-entry s16 table at a0[2] by (acc>>10)&0x3F, return (s16)(table[idx]>>8).
