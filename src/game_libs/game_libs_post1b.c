@@ -3695,16 +3695,26 @@ void game_libs_func_00067AA0(int *a0) {
     a0[9] = 0;
 }
 
-/* ROM-truth order: 67A90 (4w), 67AA0 (7w), THEN this block (2 pad zeros +
- * the 44806000 mtc1-zero alt-entry word at link 67AC4, falling through into
- * gl_func_00067AC8). Was INCLUDEd before the two active fns, rotating the
- * whole 67A90..67AC4 run. Reordered 2026-06-10 (full-ROM word-diff drive). */
+/* ROM-truth order: 67A90 (4w), 67AA0 (7w), THEN this 2-word zero pad
+ * (0x67ABC/0x67AC0 -- the 8-byte gap before game_libs_func_00067AC4). Was
+ * INCLUDEd before the two active fns, rotating the whole 67A90..67AC4 run.
+ * Reordered 2026-06-10 (full-ROM word-diff drive). The `mtc1 $zero,$f12`
+ * word at 0x67AC4 used to be bundled in here as an "alt-entry" -- it is the
+ * real function's hoisted first-arg materialization (2026-09-05, below). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067ABC);
 
-extern int gl_func_00067AC8_inner(float, float);
+/* game_libs_func_00067AC4 (0x24, 9 insns): call the placeholder callee with
+ * (0.0f, 0.0f). bootup.uso's Sym table exports 0x67AC4 (section offset
+ * 0x7C130 = ROM 0xE4CB9C - 0xDD0A6C); 0x67ABC / 0x67AC0 / 0x67AC8 are not
+ * exported. IDO 7.1 -O2 schedules the `mtc1 $zero,$f12` (first 0.0f arg)
+ * above `addiu $sp`, and the second arg is `mov.s $f14,$f12` in the jal
+ * delay slot. The former "gl_func_00067AC8(float a) { inner(a, a); }" exact
+ * was a fake-param head-stolen split (docs/MATCHING_WORKFLOW.md
+ * #orphan-sweep-agent-c-25th-h2hproc-timproc); retired 2026-09-05. */
+extern int game_libs_func_00067AC4_inner(float, float);
 
-void gl_func_00067AC8(float a) {
-    gl_func_00067AC8_inner(a, a);
+void game_libs_func_00067AC4(void) {
+    game_libs_func_00067AC4_inner(0.0f, 0.0f);
 }
 
 /* Varargs empty stub (sibling of matched gl_func_0006F144). */

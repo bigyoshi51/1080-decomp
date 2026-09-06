@@ -1,6 +1,7 @@
-nonmatching gl_func_00067AC8, 0x20
+nonmatching game_libs_func_00067AC4, 0x24
 
-glabel gl_func_00067AC8
+glabel game_libs_func_00067AC4
+    /* E4CB9C 00067AC4 44806000 */  .word 0x44806000
     /* E4CBA0 00067AC8 27BDFFE8 */  .word 0x27BDFFE8
     /* E4CBA4 00067ACC AFBF0014 */  .word 0xAFBF0014
     /* E4CBA8 00067AD0 0C000000 */  .word 0x0C000000
@@ -9,4 +10,4 @@ glabel gl_func_00067AC8
     /* E4CBB4 00067ADC 27BD0018 */  .word 0x27BD0018
     /* E4CBB8 00067AE0 03E00008 */  .word 0x03E00008
     /* E4CBBC 00067AE4 00000000 */  .word 0x00000000
-endlabel gl_func_00067AC8
+endlabel game_libs_func_00067AC4
