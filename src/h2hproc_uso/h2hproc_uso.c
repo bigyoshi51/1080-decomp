@@ -214,25 +214,18 @@ void h2hproc_uso_func_0000045C(void) {
     gl_func_00000000(&D_00000000);
 }
 
-/* h2hproc_uso_func_0000049C: 2-insn fragment (0x8), NO jr ra (grep -c=0).
- *   lui   a0, 0
- *   lw    a0, 0(a0)        ; a0 = *D_00000000
- * Falls through directly into func_000004A4 (real prologue at 0x4A4).
- * Alternate entry point: callers `jal 0x49C` get a0 reset to
- * *D_00000000 before the 4A4 body runs (callers don't supply a0).
- * Not reachable from C (no standalone function signature for an
- * alt-entry that falls through). Per feedback_split_fragments_unreachable_tail
- * class — leave INCLUDE_ASM. */
-void h2hproc_uso_func_000004A4(char *a0);
-#ifdef NON_MATCHING
+/* h2hproc_uso_func_0000049C (0x44, 17 insns): TWENTY-FIFTH mis-split case,
+ * hoisted-head merge of 049C + 04A4 (2026-09-05 agent-c). The 8-byte 049C
+ * "alternate entry" (`lui a0; lw a0,0(a0)`, no jr ra) is this function's own
+ * first statement, scheduled above `addiu sp` by IDO 7.1 -O2; 04A4 was never a
+ * function entry. Oracle = the module's own Kyoto USO tables (ROM 0x5AB230):
+ * Sym[104] EXPORTS text offset 0x49C; 0x4A4 has no export and no R_MIPS_26,
+ * and the only references to the pair are HI16/LO16 at 0x820/0x824 taking
+ * 0x49C's address (a function-pointer store). The old 04A4 "exact" existed
+ * only via a fake `char *a0` parameter. See docs/MATCHING_WORKFLOW.md
+ * #hoisted-head-119c-11a4-mgrproc (same mechanism, same fix). */
 void h2hproc_uso_func_0000049C(void) {
-    h2hproc_uso_func_000004A4(*(char **)&D_00000000);
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/h2hproc_uso/h2hproc_uso", h2hproc_uso_func_0000049C);
-#endif
-
-void h2hproc_uso_func_000004A4(char *a0) {
+    char *a0 = *(char **)&D_00000000;
     gl_func_00000000(a0, *(int*)(a0 + 0x6B4) ^ 1);
     gl_func_00000000(*(int*)&D_00000000);
     gl_func_00000000(&D_00000000);
