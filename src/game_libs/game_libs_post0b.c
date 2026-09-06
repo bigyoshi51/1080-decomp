@@ -32734,10 +32734,11 @@ int gl_func_0005FCC4(int *a0) {
 
 /* 3-call printf-style debug logger logging two Vec3s as 6 floats.
  * Format strings at offsets 0x21B6C/0x21B88/0x21BA4 (28 bytes apart).
- * LANDED fuzzy=100 at 0xA0. The historical SUFFIX_BYTES recipe (3 trailing
- * stolen-prologue insns for successor gl_func_0005FDCC's $a2 base) was
- * REMOVED 2026-05-23 as match-faking; those insns belong to separate
- * symbols now. (Previously-documented 0xAC size is stale.) */
+ * LANDED fuzzy=100 at 0xA0 (+ the all-zero alignment pad word at 0x5FDC0
+ * via SUFFIX_BYTES_FORCE, see below). The historical instruction-appending
+ * SUFFIX_BYTES recipe (3 trailing "stolen-prologue" insns for the successor)
+ * was REMOVED 2026-05-23 as match-faking; the lui/lw pair turned out to be
+ * game_libs_func_0005FDC4's own hoisted head (2026-09-05). */
 extern int gl_func_00000000();
 void gl_func_0005FD20(float *a0) {
     (void)gl_func_00000000((char*)&D_00000000 + 0x21B6C, a0,
@@ -32748,23 +32749,27 @@ void gl_func_0005FD20(float *a0) {
         (double)a0[2], (double)a0[5]);
 }
 
-/* game_libs_func_0005FDC0: the 3-word stolen-prologue fragment
- * (nop; lui a2; lw a2 = successor gl_func_0005FDCC's $a2 base setup)
- * between gl_func_0005FD20 and gl_func_0005FDCC. Historically absorbed
- * via a gl_func_0005FD20 SUFFIX_BYTES recipe; that mechanism was removed
- * 2026-05-23 as match-faking and the bytes were dropped from the build
- * (relayout-walker -0xC event at 0x5FDCC). Restored 2026-06-10 as an
- * honest standalone INCLUDE_ASM fragment. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005FDC0);
+/* The single all-zero inter-function pad word at 0x5FDC0 (between the
+ * `jr ra; nop` of gl_func_0005FD20 and game_libs_func_0005FDC4) is appended
+ * to gl_func_0005FD20 as an all-zero SUFFIX_BYTES_FORCE in the Makefile: a
+ * lone 1-word INCLUDE_ASM emits 2 words and shifts the unit +4 (documented
+ * trap). The former 3-word game_libs_func_0005FDC0 orphan (nop; lui a2;
+ * lw a2) was that pad plus the real successor's hoisted global load. */
 
-/* 18-insn 2-call wrapper with early-return guard (0x48). LANDED fuzzy=100.
- * The historical SUFFIX_BYTES recipe (2 trailing stolen-prologue insns
- * for the successor's $v1 base) was REMOVED 2026-05-23 as match-faking;
- * those insns belong to separate symbols. (Previously-documented 0x50
- * size is stale.) */
-int gl_func_0005FDCC(int a0, int a1, int a2) {
-    if (a2 != 0) {
-        gl_func_00000000(a1, a2);
+/* game_libs_func_0005FDC4 (0x50, 20 insns): 2-call wrapper guarded on a
+ * global. bootup.uso's Sym table exports section offset 0x74430 = splat
+ * 0x5FDC4 (ROM 0xE44E9C - 0xDD0A6C; jal'd from TextReloc @0x74518 and
+ * @0x74648); the pad word 0x5FDC0 and 0x5FDCC are NOT exported. IDO 7.1
+ * -O2 hoists the guard load (Data 0x21C3C, `lui a2; lw a2,0(a2)`) above
+ * `addiu sp`. The former "exact" gl_func_0005FDCC(a0, a1, a2) was a
+ * fake-param head-stolen split: its a2 is this load
+ * (docs/MATCHING_WORKFLOW.md#game-libs-fake-param-exact-sweep-agent-c);
+ * retired 2026-09-05. */
+int game_libs_func_0005FDC4(int a0, int a1) {
+    int v = D_00000000;     /* Data 0x21C3C: its own reloc symbol, LO16 = 0 */
+
+    if (v != 0) {
+        gl_func_00000000(a1, v);
         gl_func_00000000(a1, a0);
         return 1;
     }

@@ -274,6 +274,12 @@ build/src/game_libs/game_libs_o0_8944.c.o build/non_matching/src/game_libs/game_
 build/src/game_libs/game_libs_o0_8944.c.o: TRUNCATE_TEXT := 0xFC
 build/src/game_libs/game_libs_o0_8A40.c.o build/non_matching/src/game_libs/game_libs_o0_8A40.c.o: OPT_FLAGS := -O0
 build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
+# gl_func_0005FD20: -O2 body byte-exact; append the 1-word all-zero inter-fn ROM
+# pad at 0x5FDC0 (was the lone-word game_libs_func_0005FDC0 INCLUDE_ASM, which
+# emits 2 words / +4 drift -- documented trap). FORCE: ends jr-ra;nop. The real
+# successor game_libs_func_0005FDC4 starts at the exported 0x5FDC4 (2026-09-05).
+build/src/game_libs/game_libs_post0b.c.o: SUFFIX_BYTES_FORCE := gl_func_0005FD20=0x00000000
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_0005FD20=0x00000000
 # gl_func_00055B10: byte-correct real-def, IDO trailing jr-delay nop -> symbol 0x30
 # vs target 0x2c (nop is baserom alignment). Resize non_matching symbol to 0x2c so
 # objdiff scores 11w not 12w. ROM-neutral (non_matching .o only). (Same class as EBC8.)
@@ -366,7 +372,9 @@ build/src/game_libs/game_libs_post0b.c.o: TRUNCATE_TEXT := 0x2eb00
 # (0x2d504 -> 0x2d544 2026-09-04 agent-g: 4F85C 51.1->100 (3-deep same-object
 # base-ctor chain) grew the NM body 0x110 -> 0x150 (target size); 62F08 tail
 # keeps 0x50 at 0x2d4f4.)
-build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2d5e4 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
+# Clip re-probed 2026-09-05 (5FDC0 lone-pad INCLUDE_ASM -> 5FD20 SUFFIX + merged
+# game_libs_func_0005FDC4): tail symbol game_libs_func_00062F08 NM offset + 0x50 (re-probed at landing).
+build/non_matching/src/game_libs/game_libs_post0b.c.o: NON_MATCHING_TEXT_CLIP_KEEP_ALIGN := 0x2d5e8 gl_func_000551E0=0x7c gl_func_00055B10=0x2c
 build/src/game_libs/game_libs_g3_62F58.c.o build/non_matching/src/game_libs/game_libs_g3_62F58.c.o: OPT_FLAGS := -O2 -g3
 build/src/game_libs/game_libs_g3_62F58.c.o: TRUNCATE_TEXT := 0xC
 build/src/game_libs/game_libs_post1b.c.o: TRUNCATE_TEXT := 0x8ce0
