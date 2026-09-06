@@ -3631,73 +3631,53 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020A20);
+/* game_libs_func_00020A20 (0x3D4, 245 words, BYTE-EXACT 2026-09-05): hoisted-head
+ * orphan merge -- the 0x8 "game_libs_func_00020A20" (lui at; lwc1 f0,0xE78(at), no
+ * jr ra) + the 0x3CC "gl_func_00020A28" body are ONE function; bootup.uso's Sym
+ * table exports 0x3508C (= 20A20), not 20A28 (docs/MATCHING_WORKFLOW.md
+ * #uso-sym-export-oracle-orphan-sweep-arcproc-f48). The head is the import-base
+ * float load k = D+0xE78 that 7.1 -O2 schedules above `addiu sp`. The old
+ * "CALLER-SET $f0 permanent cap" verdict was this hoisted load.
+ *
+ * What it does: a 2x8 float linear-recurrence table packed to u16. Seeds
+ * v[0]=y*k, v[1]=y*x*k, v[8]=x*k, v[9]=(x*x+y)*k, then for i=2..7 the recurrence
+ * v[i] = y*v[i-2] + x*v[i-1] (both rows) -- but the original stores the recurrence
+ * terms to out[i] / out[i+8] (a shipped bug: the second loop overwrites every
+ * out[] with (u16)v[], so v[2..7]/v[10..15] are read uninitialised). Reproduced
+ * as written: the first loop MUST store to out[], not v[].
+ *
+ * Shape notes (docs/IDO_CODEGEN.md #recurrence-pack-unroll-budget-20A20):
+ *  - both loops INDEX form. Loop 2 (16 trips) is unrolled x4 by IDO = the
+ *    bne/addiu v0,sp,76 tail; loop 1 (6 trips) stays rolled ONLY because loop 2
+ *    consumed the per-function unroll budget -- with loop 2 as a pointer loop,
+ *    loop 1 unrolls fully (637 words).
+ *  - `y * v[i-2] + v[i-1] * x` = target mul/add operand order (loads-first
+ *    canonicalisation flips a leading inline-load operand; k is a hoisted leaf).
+ *  - frame 0x50 = k home 0x4C, v 0x0C, i home + 8 unroll slot below; any extra
+ *    named local (p/q/end) costs a home (+8/+16).
+ *  - k is spelled `*(float *)((char *)&D_00000000 + 0xE78)` (arcproc F48 form),
+ *    NOT a `D_00000E78 = 0xE78` alias: the alias leaves the lwc1 %lo addend 0 in
+ *    the .o (only the link bakes 0xE78) and the land script's reloc-blind
+ *    byte_verify of build/.o vs expected/.o would fail; the inline addend bakes
+ *    0xE78 into the .o -> 245/245 words byte-exact against expected/. */
+void game_libs_func_00020A20(float x, float y, u16 *out) {
+    float k;
+    float v[16];
+    int i;
 
-// gl_func_00020A28 — STRUCTURAL PASS (0x4A8 / 298 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 4-jr USO bundle
-// (named fn + 3 trailing helpers) — deferred USO re-split. The named
-// leading fn is a heavily-FPU float vector/matrix transform helper.
-//
-//   void gl_func_00020A28(args…, float *a2) {
-//     // builds a stack scratch of computed floats:
-//     float t0 = fa * fb;                         // mul.s chains
-//     float t1 = fc * fd + fe;                     //  (460x ops)
-//     ... sp[+0x0C/+0x10/+0x2C/+0x30] = …;          // swc1 scratch
-//     float u = a2[-1], v = a2[-2];                 // lwc1 -4/-8(a2)
-//     // FP rounding-mode control for truncated int convert:
-//     int ctrl = cfc1();                            // 444EF800
-//     ctrl = (ctrl & ~mask) | 1;                    // set RZ-ish
-//     ctc1(ctrl);                                   // 44CFF800
-//     int n = (int)(scaled_float);                  // trunc-to-int
-//     if (n & 0x78) { ... }                          // bit test branch
-//     ... emit / store transformed result ...
-//   }
-//
-// Struct-typing reference: a2 points just past a small float record
-//   (inputs read at a2[-1] / a2[-2]). The body is a chain of single-
-//   precision mul/add/sub (cop1 0x460x ops) producing a stack-local
-//   scratch struct of floats at sp+0x0C..0x30, with explicit FPCSR
-//   manipulation (cfc1/ctc1 pair, 444EF800 / 44CFF800) to switch the
-//   rounding mode before a float→int truncation — the classic
-//   project/round-to-screen-space idiom. A 4F00xxxx float literal
-//   (3C014F00) is a large scale constant. This is a graphics-math
-//   transform leaf in the game_libs subsystem; the 3 trailing bundled
-//   bodies are its small FP helpers, left for the deferred re-split.
-// Caps (DEFERRED): single jr $ra (the "4-jr bundle" note is STALE;
-//   .s is 0x4A8/243 words, ONE function). Heavily-FP vector/matrix
-//   transform leaf with FPCSR rounding-mode control. Real-C
-//   STRUCTURAL body below per the analysis (mul/add cop1 chains into
-//   a sp+0x0C..0x30 float scratch from a2[-1]/a2[-2], cfc1/ctc1
-//   FPCSR manip to switch rounding before a float->int truncation,
-//   bit-test branch on the truncated value, 0x4F00 scale literal).
-//   Byte-match deferred — dense FP schedule + FPCSR cfc1/ctc1 pair
-//   (IDO emits these only from inline-asm, unreproducible from C).
-//   Name pre-checked: no extern reuse (collision-safe).
-/* gl_func_00020A28 CLASSIFIED 2026-06-10: CALLER-SET $f0 (m2c emits
- * `M2C unset $f0` at 4 multiply sites -- the caller leaves a value in
- * $f0 that this fn reads; IDO C cannot express it). Permanent
- * structural cap (caller-set-reg class, float variant). A fresh graft
- * with *0 placeholders folds the muls and goes fuzzy=None; this 7.64
- * body stays. Otherwise the fn is a clean dual-loop f32->s16 pack
- * transform with 6 (u32)float casts. */
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-void gl_func_00020A28(int a0, int a1, float *a2) {
-    float u = a2[-1];
-    float v = a2[-2];
-    float scaled = u * v * 8388608.0f;   /* 0x4F00 scale literal */
-    int n;
-    /* FPCSR rounding-mode switch (cfc1/ctc1) elided — see recipe */
-    n = (int)scaled;
-    if (n & 0x78) {
-        gl_func_00000000(a0, a1, n);
-    } else {
-        gl_func_00000000(a0, a1, n & 0x7);
+    k = *(float *)((char *)&D_00000000 + 0xE78);
+    v[0] = y * k;
+    v[8] = x * k;
+    v[1] = y * x * k;
+    v[9] = (x * x + y) * k;
+    for (i = 2; i < 8; i++) {
+        out[i] = (u32)(y * v[i - 2] + v[i - 1] * x);
+        out[i + 8] = (u32)(y * v[i + 6] + v[i + 7] * x);
+    }
+    for (i = 0; i < 16; i++) {
+        out[i] = (u32)v[i];
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020A28);
-#endif
 
 /* Short-array zeroing loop (8 shorts, 4/iter). NATURAL CEILING: register-
  * exact from C; IDO fills the loop-setup delay differently (li a0,8 vs
