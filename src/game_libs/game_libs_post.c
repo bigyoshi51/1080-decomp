@@ -3677,25 +3677,25 @@ void game_libs_func_00020E24(short *a0, int a1) {
 }
 
 
-#ifdef NON_MATCHING
-/* game_libs_func_00020E78: copies 8 shorts (one 16-byte record) from
- * &D + a1*16 - 16 (record a1-1) to dst. Logic + STRUCTURE exact: IDO unrolls
- * this loop x4 over 2 iterations identically (22 insns, byte-for-byte shape).
- * Only register allocation diverges — the target's setup skips $t6 (uses
- * $t7/$t8/$t9) while the C build starts at $t6; an 18/22 register-renumber
- * (above the INSN_PATCH/episode threshold, and the lui/addiu &D pair would
- * resist patching). Register-allocation near-miss — permuter candidate. */
+/* game_libs_func_00020E78: copies record a1-1 (8 shorts) of a SECOND halfword
+ * table (&D, reloc-blind base, addend 0, explicit -16 word) into dst. Callee
+ * of gl_func_00020ED0 (blank in-module jal, TextReloc sym1296). Same
+ * byte-exact recipe as game_libs_func_00020E24 (shift-spelled record address
+ * for the phantom $t6 temp, hand-walked do/while with `i` declared first,
+ * inits + `do {` on one line); the `- 8` (shorts) stays a separate
+ * `addiu t8,t7,-16` before the base add. See docs/IDO_CODEGEN.md
+ * #shift-merge-phantom-temp-copy-loop-20e24. */
 void game_libs_func_00020E78(short *dst, int a1) {
-    short *src = (short *)((char *)&D_00000000 + a1 * 16 - 16);
-    short *d = dst;
-    int i;
-    for (i = 0; i < 8; i++) {
-        *d++ = *src++;
-    }
+    int i = 0; short *p = dst; short *s = (short *)&D_00000000 + (a1 << 3) - 8; do {
+        i += 4;
+        p[0] = s[0];
+        p[1] = s[1];
+        p[2] = s[2];
+        p[3] = s[3];
+        p += 4;
+        s += 4;
+    } while (i != 8);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00020E78);
-#endif
 
 // gl_func_00020ED0 — redecoded 2026-07-31 (was a wrong STRUCTURAL sketch:
 // real shape is an (x,y)-presence 3-way EXCLUSIVE dispatch with early
