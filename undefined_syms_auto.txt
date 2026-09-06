@@ -1319,6 +1319,7 @@ D_00000000_3c8e0 = 0x00000000;  /* GBI-emit flags word (bootup.uso sym1924 @0x3C
 D_00000000_324 = 0x00000000;  /* Data float @0x324 (bootup.uso sym1441, addend 0) stored 1.0f by game_libs_func_0002DDEC */
 D_00000000_50 = 0x00000000;  /* Data pointer @0x50 (bootup.uso sym451, addend 0): the projection context read by game_libs_func_00035E64 */
 D_00000000_1c0ac = 0x00000000;  /* Data int @0x1C0AC (bootup.uso sym1430, addend 0): the mode word tested == 15 by game_libs_func_0002DC74 */
+D_00000000_345c0 = 0x00000000;  /* Data base @0x345C0 (bootup.uso sym1255, addend 0): the registry block held in t0 by game_libs_func_00024E28 (limit +0x202C, count +0x1578, records +0x157C stride 0x64) */
 D_00000000_b49c = 0x00000000;  /* func_0000B49C: 3rd-table base-0 alias, busts addr CSE with 1st table */
 D_00000000_d = 0x00000000;
 D_00000000_e = 0x00000000;
