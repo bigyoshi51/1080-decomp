@@ -3,10 +3,10 @@
 /* Contiguous -O0 run [0x19C, 0xAE0) of the mgrproc_uso Yay0 block, carved into
  * a dedicated -O0 sub-unit (region 2) and concatenated with the -O2 objects
  * before crunch64 compression. See the mgrproc_uso_block1_yay0 rule in the
- * Makefile. func_0000019C, func_00000504, func_000009A8 (+ the trailing -O0
- * leaves) are byte-matched at -O0 (data-%lo values bake into the blob via
- * scripts/bake-data-relocs.py); the rest are INCLUDE_ASM caps (NM bodies
- * kept for objdiff scoring / grep). */
+ * Makefile. func_0000019C, func_00000504, func_000005D0, func_000009A8 (+ the
+ * trailing -O0 leaves) are byte-matched at -O0 (data-%lo values bake into the
+ * blob via scripts/bake-data-relocs.py); the rest are INCLUDE_ASM caps (NM
+ * bodies kept for objdiff scoring / grep). */
 
 extern int gl_func_00000000();
 extern int D_00000000;
@@ -163,35 +163,28 @@ void mgrproc_uso_func_00000504(int *a0) {
     }
 }
 
-#ifdef NON_MATCHING
 /* 76-insn (0x130) random-unique-ID assignment: fills 4 entries at
  * (a0->8)->[idx*4 + 0x24] with 4 unique random IDs in {0..4}.
  *
- * 23-diff NM, 76/76 insns (was 76-diff). FRAME NOW EXACT (-0x28), all stack
- * slots exact, all 3 relocs exact (import_802600E4/import_800200E4 hi/lo +
- * gl_func_00000000f jal), full structure exact. The float-eval-order "floor"
- * documented previously was WRONG: the reason the old body spilled f0 (swc1;lwc1
- * or mov->f20/sdc1, +8 frame) was the const/int loads were pointer-arith forms
- * (`*(float*)((char*)&D+0x24)`) that IDO -O0 materializes as lui/addiu into a
- * GPR, forcing f0 to be parked across them. Accessing them as STRUCT MEMBERS of
- * an extern struct at the import symbol (import_802600E4.v @ +0x24,
- * import_800200E4.v @ +0x4C) makes IDO emit the $at-fused single-lui lvalue load
- * (lui $at,%hi; lwc1 %lo($at)) with NOTHING between the jal and the mul -> f0
- * used directly, no spill, frame -0x28. Key structural levers: result=-1 at the
- * TOP of the do-body (back-edge re-inits it, no bottom reset); no `arr` local
- * (inline `*(int**)(a0+8)` in the tail store, else +1 slot/+8 frame); decl order
- * result,count,candidate,idx -> slots 0x24,0x20,0x1C,0x18; `while(++count<4)`
- * fuses the increment+test (no reload).
- *
- * RESIDUAL (23 diffs) = pure IDO -O0 temp-register renumbering in the loop body:
- * the inner compare `candidate == elem` -- IDO evaluates the heavier `elem`
- * subtree first (Sethi-Ullman) and loads candidate last, whereas the target
- * holds candidate in $t5 across the elem chain. This shifts the temp-allocator
- * rotation, renumbering scratch $t regs in the inner compare, the idx==count
- * check, and the tail store/increment (stack slots + mnemonics all still exact).
- * No C operand order or loop/subscript form changes it (probed >8 variants).
- * Documented regalloc-renumber cap class -- leave INCLUDE_ASM. */
-extern float gl_func_00000000f(void);
+ * EXACT 76/76 (2026-09-05, agent-c). Levers, in the order they were found:
+ * - const/int reads as STRUCT MEMBERS of extern structs at the import symbols
+ *   (import_802600E4.v @ +0x24, import_800200E4.v @ +0x4C) -> $at-fused
+ *   single-lui lwc1/lw with NOTHING between the jal and the mul, f0 used
+ *   directly, frame -0x28 (pointer-arith `*(float*)((char*)&D+0x24)` forms
+ *   park f0 across a lui/addiu GPR materialization: +8 frame, ~70 diffs).
+ * - result=-1 at the TOP of the do-body; no `arr` local (inline
+ *   `*(int**)(a0+8)` in the tail store); decl order result,count,candidate,idx
+ *   -> slots 0x24,0x20,0x1C,0x18; `while(++count<4)` fuses inc+test.
+ * - The last 23 diffs were ONE root cause, the -O0 ==/!= eval order in the
+ *   inner compare: the target loads `candidate` (28(sp)) FIRST into t5 and
+ *   then the elem chain; every plain spelling evaluates the heavier elem
+ *   subtree first, and the t-reg FIFO renumbers everything downstream.
+ *   `elem == (0, candidate)` (comma on the RIGHT around the side the target
+ *   evaluates first) flips it in a plain t-reg -- see
+ *   docs/IDO_CODEGEN.md#feedback-ido-o0-eq-eval-order-gap (10FEC/122C4/5D0).
+ * Callee mgrproc_uso_func_075EE4 (float RNG) is the expected R_MIPS_26 name;
+ * the USO jal bytes are blank either way. */
+extern float mgrproc_uso_func_075EE4(void);
 struct FC { float pad[9]; float v; };
 struct IC { int pad[0x13]; int v; };
 extern struct FC import_802600E4;
@@ -206,10 +199,10 @@ void mgrproc_uso_func_000005D0(char *a0) {
     do {
         result = -1;
         while (result == -1) {
-            candidate = ((int)(gl_func_00000000f() * import_802600E4.v)
+            candidate = ((int)(mgrproc_uso_func_075EE4() * import_802600E4.v)
                          + import_800200E4.v + 1) % 5;
             for (idx = 0; idx < count; idx++) {
-                if (candidate == *(int*)((char*)*(int**)(a0 + 8) + idx * 4 + 0x24)) break;
+                if (*(int*)((char*)*(int**)(a0 + 8) + idx * 4 + 0x24) == (0, candidate)) break;
             }
             if (idx == count) {
                 result = candidate;
@@ -218,9 +211,6 @@ void mgrproc_uso_func_000005D0(char *a0) {
         *(int*)((char*)*(int**)(a0 + 8) + count * 4 + 0x24) = result;
     } while (++count < 4);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000005D0);
-#endif
 
 #ifdef NON_MATCHING
 /* mgrproc_uso_func_00000700: 3-case state-init dispatcher. 90.05 -> 93.31
