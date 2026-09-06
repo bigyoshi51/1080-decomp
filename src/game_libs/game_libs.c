@@ -937,15 +937,115 @@ void game_libs_func_00001800(int *a0, int a1, int a2, int a3, int a4) {
     a0[0xBC/4] = a4;
 }
 
-/* game_libs_func_00001818: 2-insn FPU preload fragment, not a standalone
- * function. SOURCE=3 audit 2026-06-01: 0x1818 has no prologue and no
- * `jr ra` (`grep -c 03E00008` = 0); it materializes $f0 = 1.0f and falls
- * through into gl_func_00001820, whose entry stores incoming $f0 to the
- * local float buffer at sp+0x80..0x8C. No honest C wrapper can express this
- * caller-visible FPU-register seed, so keep INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00001818);
+#ifdef NON_MATCHING
+/* game_libs_func_00001818: 16-segment meter/gauge tick (0x43C incl. its 2-word
+ * hoisted head: lui/mtc1 f0 = 1.0f = the local float v[4] = {1,1,1,1} init
+ * scheduled above addiu sp by 7.1 -O2). Orphan-sweep verdict 2026-09-05
+ * (docs/MATCHING_WORKFLOW.md #uso-sym-export-oracle-orphan-sweep-arcproc-f48):
+ * the old "gl_func_00001820" symbol was this function's body minus its head,
+ * zero jal/reloc references to either word -> merged under the orphan's name,
+ * 1820.s retired.
+ *
+ * Structure: cur (0xC8) steps toward tgt (0xCC) by 1; seg (0xC4) =
+ * (int)(clamp(total-cur, 0, total) / total * 16); colour w = (seg >= 12)
+ * random lerp between lo (0x108) / hi (0x118) driven by three phase-stepped
+ * calls of a float import (sinf-like: (r+1)/2 in [0,1]), else the 0xF8 /
+ * 0xE8 Vec4 constants; then the 0x130/0x134 sub-objects (if present) and the
+ * embedded 0x138 / 0x150 sub-objects get (colour, position) calls with
+ * m = seg*4+2 pixel offsets.
+ *
+ * NM 97.0% (263/271 words, agent-g 2026-09-05). Levers that got here (all in
+ * docs/IDO_CODEGEN.md #gauge-tick-fp-kit-1818): float temps x/y/z for the
+ * f16/f18 + z-home round trip; `(hi-lo)*(r+1)/2 + lo` (IDO flips the add
+ * operands); `t = step + phase; phase = t; F(t)` for the add.s-f12/jal/swc1
+ * delay shape; typed float extern for the 255.0f*scale sites (the cast form
+ * `*(float*)&D` always lands the constant on the right); `int m[1]` as a
+ * memory var (a scalar m is rematerialised from a homed n); scalar-home
+ * frame tiling (cur/t/f1..f3/g1 pads).
+ * RESIDUAL (8 words): (a) target emits `sw v0,0xC4(s0)` BEFORE the m home
+ * store (`sw t0,0x7C(sp)` sits in the bnez delay) with the seg test still
+ * forwarded from v0 -- every C order that puts the m store after the field
+ * store kills the forwarding (array store = alias barrier), every scalar
+ * spelling of m (plain / two-def / struct member / &m / register) is
+ * rematerialised from n instead of homed; (b) the 0x148->+0x20 lh chain
+ * colours pointer/value v0/v1 vs target v1/v0 (named q/h give v0/v1, inline
+ * gives t4/v0), which renumbers the surrounding t4/t5/t6 ring. */
+extern int gl_func_00000000();
+extern float gl_ffunc_00001818(float);
+extern float gl_ref_00001818_scale_f;
+typedef struct { float x, y, z, w; } Vec4f_1818;
+void game_libs_func_00001818(char *o) {
+    Vec4f_1818 w;
+    float v[4];
+    int m[1];
+    int n, rem, tot, cur;
+    float a;
+    float t;
+    float b;
+    float c, x, y, f1, f2, f3;
+    float z;
+    float g1;
+    char *p, *q;
+    short h;
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00001820);
+    v[0] = 1.0f; v[1] = 1.0f; v[2] = 1.0f; v[3] = 1.0f;
+    if (*(int*)(o + 0xCC) < *(int*)(o + 0xC8)) {
+        *(int*)(o + 0xC8) -= 1;
+    } else if (*(int*)(o + 0xC8) < *(int*)(o + 0xCC)) {
+        *(int*)(o + 0xC8) += 1;
+    }
+    tot = *(int*)(o + 0xD4);
+    rem = tot - *(int*)(o + 0xC8);
+    if (rem < 0) rem = 0;
+    if (tot < rem) rem = tot;
+    n = (int)((float)rem / (float)tot * 16.0f);
+    m[0] = n * 4 + 2;
+    *(int*)(o + 0xC4) = n;
+    if (*(int*)(o + 0xC4) >= 12) {
+        t = *(float*)(o + 0x12C) + *(float*)(o + 0x128); *(float*)(o + 0x128) = t; a = gl_ffunc_00001818(t);
+        t = *(float*)(o + 0x12C) + *(float*)(o + 0x128); *(float*)(o + 0x128) = t; b = gl_ffunc_00001818(t);
+        t = *(float*)(o + 0x12C) + *(float*)(o + 0x128); *(float*)(o + 0x128) = t; c = gl_ffunc_00001818(t);
+        x = (*(float*)(o + 0x118) - *(float*)(o + 0x108)) * (a + 1) / 2 + *(float*)(o + 0x108);
+        y = (*(float*)(o + 0x11C) - *(float*)(o + 0x10C)) * (b + 1) / 2 + *(float*)(o + 0x10C);
+        z = (*(float*)(o + 0x120) - *(float*)(o + 0x110)) * (c + 1) / 2 + *(float*)(o + 0x110);
+        w.x = x; w.y = y; w.z = z; w.w = 1.0f;
+    } else if (*(int*)(o + 0xC4) >= 4) {
+        w = *(Vec4f_1818*)(o + 0xF8);
+    } else {
+        w = *(Vec4f_1818*)(o + 0xE8);
+    }
+    if (*(int*)(o + 0x130) != 0) {
+        gl_func_00000000(*(int*)(o + 0x130));
+        gl_func_00000000(*(int*)(o + 0x130), (int)(gl_ref_00001818_scale_f * (float)*(int*)(o + 0xD0)), v, 0);
+        gl_func_00000000(*(int*)(o + 0x130), *(int*)(o + 0x74) + *(int*)(o + 0x44), *(int*)(o + 0x8C) + *(int*)(o + 0x5C), 0);
+    }
+    if (*(int*)(o + 0x134) != 0) {
+        gl_func_00000000(*(int*)(o + 0x134));
+        gl_func_00000000(*(int*)(o + 0x134), (int)(255.0f * gl_ref_00001818_scale_f), v, 0);
+        gl_func_00000000(*(int*)(o + 0x134), *(int*)(o + 0xA4) + *(int*)(o + 0x44), *(int*)(o + 0xBC) + *(int*)(o + 0x5C), 0);
+    }
+    if (*(int*)(o + 0xC4) > 0) {
+        p = o + 0x138;
+        gl_func_00000000(p);
+        gl_func_00000000(p, (int)(255.0f * gl_ref_00001818_scale_f), &w, 0xFF);
+        gl_func_00000000(p, *(int*)(o + 0x44) + 4, *(int*)(o + 0x5C), 3, m[0] - 4);
+    }
+    p = o + 0x138;
+    gl_func_00000000(p);
+    gl_func_00000000(p, (int)(255.0f * gl_ref_00001818_scale_f), o + 0xD8, 0xFF);
+    q = *(char**)(o + 0x148);
+    h = *(short*)(q + 0x20);
+    gl_func_00000000(p, *(int*)(o + 0x44) + m[0], *(int*)(o + 0x5C), m[0] - 1, h - m[0] - 1);
+    if (*(int*)(o + 0xC4) > 0) {
+        p = o + 0x150;
+        gl_func_00000000(p);
+        gl_func_00000000(p, (int)(255.0f * gl_ref_00001818_scale_f), &w, 0xFF);
+        gl_func_00000000(p, m[0] + *(int*)(o + 0x44) - 3, *(int*)(o + 0x5C), 0);
+    }
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00001818);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00001C54: PASS-5 2026-07-15 (agent-h) 77.1 -> ~85: 7BC/135C
