@@ -390,68 +390,31 @@ Lvt0:
 INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00000E04);
 #endif
 
-/* mgrproc_uso_func_0000119C: 2-insn alternate entry for
- * mgrproc_uso_func_000011A4. SOURCE=4 audit 2026-06-01: 0x119C has
- * no prologue and no `jr ra` (`grep -c 03E00008` = 0); it only loads
- * a1 from import_80020100+0x68, then falls through into 11A4 with
- * caller-provided a0. This is an alternate entry, not a missed accessor
- * template, and has no honest standalone C body. */
-void mgrproc_uso_func_000011A4(char *s0, int a1);
-#ifdef NON_MATCHING
-void mgrproc_uso_func_0000119C(char *a0) {
-    mgrproc_uso_func_000011A4(a0, *(int *)((char *)&D_00000000 + 0x68));
-}
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_0000119C);
-#endif
-
-/* mgrproc_uso_func_000011A4 - verified structural decode (0x108,
- * 66 insns, sub-object registration table builder).
- *   void mgrproc_uso_func_000011A4(St *s0, int a1) {
- *       reg(&D_00000000, (a1 - 1) | 0x200000);
- *       reg(s0 + 0x6B0, *(int*)&D_x | 0x000A0000);
- *       reg(s0 + 0x6C8, 0x210000);
- *       q = s0->0x6A8;
- *       if (q->0x8 == q->0x4 + 1)
- *           reg(s0 + 0x6E0, 0x210000 | 1);
- *       else
- *           reg(s0 + 0x6E0, 0x210000 | (q->0x4 + 2));
- *       reg(s0 + 0x6F8, *(int*)&D_y | 0x001E0000);
- *       reg(s0 + 0x728, 0x210000 | 0x7);
- *       reg(s0 + 0x740, 0x210000 | 0x8);
- *       reg(s0 + 0x758, 0x210000 | 0x9);
- *       reg(s0 + 0x770, 0x210000 | 0xA);
- *       reg(s0 + 0x788, 0x210000 | 0xD);
- *   }
- * (reg = func_00000000(sub_obj_ptr, packed_id).)
- * Struct-typing reference: s0 holds a block of registrable sub-
- * objects at offsets 0x6B0 (1712), 0x6C8 (1736), 0x6E0 (1760),
- * 0x6F8 (1784), 0x728 (1832), 0x740 (1856), 0x758 (1880), 0x770
- * (1904), 0x788 (1928); s0->0x6A8 (1704) = a queue/range struct
- * whose 0x4 (start) and 0x8 (end) gate the 0x6E0 entry's id
- * (full-range -> id 1, else start+2). Packed ids: high bits select
- * a category (0x210000 = the main widget group, 0x200000 / 0xA0000
- * / 0x1E0000 = variants OR'd with a per-element index or a global
- * value from &D_x/&D_y). 2026-06-20: replaced placeholder gl_func_00000000
- * calls with the REAL reloc callees — first 6 calls = import_0024F228,
- * last 5 = import_0024F278 — and the real bases (&import_80263D30 arg0;
- * global reads from &import_800200FC+0x64 and &import_800200EC+0x54). The
- * remaining 2-of-66 diff is a schedule-swap between the first arg's lui-
- * const (`lui at,0x20` for 0x200000) and the `(a1-1)` addiu — previously
- * INSN_PATCH'd (REMOVED 2026-05-23). Dataflow-independent as1 scheduler
- * tie: IDO consistently schedules the `addiu a1,a1,-1` decrement before
- * the const-lui; OR-operand reorder, separate-statement, and named-temp
- * forms all leave it (the swap just migrates to the next adjacent op).
- * No reliable C lever. Still NM; default build is INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* mgrproc_uso_func_0000119C (0x110, 68 insns, BYTE-EXACT 2026-09-05 agent-c):
+ * sub-object registration table builder. TWENTY-FOURTH mis-split case
+ * (docs/MATCHING_WORKFLOW.md#hoisted-head-119c-11a4-mgrproc): the old 8-byte
+ * "alternate entry" mgrproc_uso_func_0000119C (`lui a1,%hi(import_80020100);
+ * lw a1,0x68(a1)`, no jr ra) was this function's OWN first load, scheduled
+ * above `addiu sp` by IDO -O2; the only R_MIPS_26 into the pair targets 119C
+ * (nobody jal's 11A4). Merging the head back turns the 2-param "11A4" into a
+ * 1-param function, and the 2-of-66 `lui at,0x20` / `addiu a1,a1,-1`
+ * "scheduler-tie cap" evaporates: the lui is filling the load delay of the
+ * hoisted `lw a1`. Callees/bases from expected relocs: first 6 calls
+ * import_0024F228, last 5 import_0024F278; arg0 of the first call is
+ * &import_80263D30; global reads from import_80020100+0x68 (the packed-id low
+ * half, cf. D_mgr2940_q.v), import_800200FC+0x64, import_800200EC+0x54.
+ * Struct-typing reference: s0 holds registrable sub-objects at 0x6B0, 0x6C8,
+ * 0x6E0, 0x6F8, 0x728, 0x740, 0x758, 0x770, 0x788; s0->0x6A8 = a range struct
+ * whose [1]=start / [2]=end gate the 0x6E0 id (full range -> 1, else start+2). */
 extern int import_0024F228();
 extern int import_0024F278();
 extern char import_80263D30;
 extern int import_800200EC;
 extern int import_800200FC;
-void mgrproc_uso_func_000011A4(char *s0, int a1) {
+extern char import_80020100;
+void mgrproc_uso_func_0000119C(char *s0) {
     int *q;
-    import_0024F228(&import_80263D30, (a1 - 1) | 0x200000);
+    import_0024F228(&import_80263D30, (*(int *)((char *)&import_80020100 + 0x68) - 1) | 0x200000);
     import_0024F228(s0 + 0x6B0, *(int *)((char *)&import_800200FC + 0x64) | 0x000A0000);
     import_0024F228(s0 + 0x6C8, 0x210000);
     q = *(int **)(s0 + 0x6A8);
@@ -467,9 +430,6 @@ void mgrproc_uso_func_000011A4(char *s0, int a1) {
     import_0024F278(s0 + 0x770, 0x210000 | 0xA);
     import_0024F278(s0 + 0x788, 0x210000 | 0xD);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_000011A4);
-#endif
 
 void mgrproc_uso_func_000012AC(char *a0) {
     gl_func_00000000(&D_00000000);
