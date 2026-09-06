@@ -23558,73 +23558,58 @@ void gl_func_000515C0(int *dst) {
     *dst = scratch;
 }
 
-/* Standard Quad4 reader with pointer-indirect (volatile) idiom. 22 body
- * insns (0x58) + 2 trailing SUFFIX bytes (0x60 declared total). The 2
- * trailing insns (lui v0, 0; addiu v1, v0, 0) are stolen-prologue setup
- * for successor gl_func_0005165C (which inherits $v1 from this fn's tail). */
+/* Standard Quad4 reader with pointer-indirect (volatile) idiom. 22 insns
+ * (0x58, ends at its jr ra + nop). The 2 words that follow at 0x51654
+ * (lui v0; addiu v1,v0,%lo) are NOT this function's tail: they are
+ * gl_func_0005165C's own hoisted first statement (its .s starts at 0x51654,
+ * 0x40) -- see the note on that function. */
 void gl_func_000515FC(Quad4 *dst) {
     volatile Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = *(Quad4*)&buf;
 }
 
-/* gl_func_0005165C: 14-insn function INHERITS $v1 from predecessor
- * gl_func_000515FC's trailing SUFFIX_BYTES. Predecessor's last 2 insns
- * (0x58/0x5C in its .s, after jr ra+nop epilogue) are
- * `lui v0, 0; addiu v1, v0, 0` — they fall-through into 5165C, leaving
- * v1 = &SOME_GLOBAL.
+/* gl_func_0005165C: 16-insn alloc-or-passthrough zeroing setter (0x40 incl.
+ * its own 2-word head at 0x51654). RE-DECODED 2026-09-05 (agent-g, 26.5 -> ~81):
+ * the `lui v0; addiu v1,v0,%lo` head is NOT an inherited "$v1 from the
+ * predecessor's SUFFIX_BYTES" -- nothing jal's 0x51654 or 0x5165C -- it is
+ * this function's first statement (`p = D_arr`, array-extern held base)
+ * hoisted above `addiu sp` by the -O2 scheduler (docs/MATCHING_WORKFLOW.md
+ * #hoisted-head-orphan-callers-jal-post-hoist-word-66ec; the game_libs.c
+ * orphan symbol game_libs_func_00051654 is a zero-size dead emit at the clip).
  *
- * Decoded body uses inherited $v1 as the alloc-or-passthrough flag:
- *   if (v1 == 0):
- *     p = func_00000000(4)        ; alloc 4 bytes
- *     if (p == 0) goto end
- *     v1 = p
- *   *v1 = 0
- * end:
- *   D_global[1] = 0
- *   D_global[0] = 0
- *   return
+ * HEAD CRACKED: IDO 7.1/5.3 -O2 fold `p == 0` on `&sym` to false and delete
+ * the whole alloc arm (no jal at all); `(unsigned)p == 0` keeps the test, and
+ * the goto-skip shape gives the target's `bnez v1 (sw ra in delay); jal;
+ * beqz v0 (move v1,v0 in delay); sw zero,0(v1)` -- first 11 words exact.
+ * `if (p != 0) *p = 0;` after the alloc instead emits `move; beqz v1` (+1).
  *
- * This is the same chained-SUFFIX inheritance pattern as gl_func_0000B5AC/
- * B638 (per docs/POST_CC_RECIPES.md
- * #feedback-insn-patch-for-ido-codegen-caps "HI/LO register inheritance"
- * recipe family — extended here to GP-register inheritance via lui+addiu).
- *
- * BLOCKED for prototype-based C: $v1 from predecessor's SUFFIX is uniform
- * (always &SAME_GLOBAL) so PREFIX_BYTES could in principle capture it.
- * But the C body's `if (v1 == 0)` test is also constant-true since
- * &globals are always non-zero — meaning the alloc arm is dead in practice.
- * Either the asm has unreachable defensive code, or the inherited $v1 is
- * SOMETHING ELSE (e.g., loaded value rather than address). Defer.
- *
- * Predecessor gl_func_000515FC is a standard Quad4-reader
- * (alloc+gl_func(0x10)+copy 16 bytes). The SUFFIX is for THIS successor only.
- *
- * 2026-05-08: standalone IDO -O2 of the decoded body (below) collapses the
- * `if (v1 == 0)` arm — IDO sees `&D_00000000` as compile-time non-null and
- * folds the conditional alloc to dead code, emitting only the trailing
- * `D[0] = 0; D[4] = 0; *v1 = 0` block (7 insns, vs target's 14). The
- * NM-wrap C body documents the original runtime semantics for grep
- * discoverability + permuter-testable seed; INCLUDE_ASM remains the
- * default-build path. */
+ * RESIDUAL = the documented SHARED-$AT STORE-PAIR CAP (docs/IDO_CODEGEN.md
+ * #shared-at-absolute-store-cap-66a50): target tail is ONE `lui at` +
+ * `sw zero,4(at); sw zero,0(at)`. Probed here (7.1 + 5.3; -O1/-O2/-O3;
+ * -g/-g2/-g3; -mips1/3): extern struct pair, int[2], ((int*)&D)[i],
+ * (char*)&D+4, struct{int a[2]}, chained `a = b = 0`, comma form, u8 pair,
+ * register-valued stores, long long / unsigned long long / double / 8-byte
+ * struct copy -> ALWAYS either a held base (lui v0; addiu; sw 4(v0); sw 0(v0))
+ * or two per-symbol luis. Two distinct externs (below) give the closest
+ * 17-word form (13/16 words). Stays NM; no episode. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
+extern int D_5165C_arr[];   /* head base: lui v0; addiu v1,v0,%lo (array-extern form) */
+extern int D_5165C_b;       /* per-site alias of D_00000000 for the second tail store */
 
 void gl_func_0005165C(void) {
-    /* v1 is inherited from predecessor's SUFFIX_BYTES (lui+addiu setting
-     * v1 = &SOME_GLOBAL). At runtime, cross-USO patcher may leave the
-     * symbol address as 0 if not yet bound, hence the null-check. */
-    int *v1 = (int*)&D_00000000;
-    if (v1 == 0) {
-        v1 = (int*)gl_func_00000000(4);
-        if (v1 != 0) {
-            *v1 = 0;
+    int *p = D_5165C_arr;
+    if ((unsigned)p == 0) {
+        p = (int*)gl_func_00000000(4);
+        if (p == 0) {
+            goto skip;
         }
-    } else {
-        *v1 = 0;
     }
+    *p = 0;
+skip:
     *(int*)((char*)&D_00000000 + 4) = 0;
-    *(int*)&D_00000000 = 0;
+    D_5165C_b = 0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005165C);
