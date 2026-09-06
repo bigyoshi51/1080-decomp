@@ -10876,53 +10876,49 @@ void gl_func_0003FB38(int a0) {
     gl_func_00000000(&scratch);
 }
 
-// gl_func_0003FB6C — STRUCTURAL PASS (0x90 / 37 words, no episode). Raw-.word
-// USO. realjr=1, single prologue frame 0xC0 (saves ra) → ONE clean function.
-// Formatted-size report emitter (cbN = jal 0 USO-relocated; same tagged-
-// scratch + cb-serialize family as 0003F7A8/F8E8/F9C4, tag byte 0x25 = '%').
-//
-//   void gl_func_0003FB6C(void *a0, int a1, int a2, int a3, int a4) {
-//     // a4 read from caller stack (sp+0xD0); a1/a2/a3/a4 spilled to a
-//     // consecutive sp-slot block (sp+0x28..0x34) = printf-style va save area
-//     char tag[..]; tag = 0x25;             // sp+0x20, '%' format/section tag
-//     long prod = (long)t8 * a4;            // multu/mflo size computation
-//     int n = (int)prod;
-//     n = (n + 7) >> 3;                     // round up to multiple of 8
-//     int sz = n;
-//     if (a1 == 0x508) sz = n + 0x200;      // special-case size bump
-//     cb1(&tag);                            // sz stashed at sp+0x1C
-//     cb2(&D_str, a2);                      // format-string literal + arg
-//     cb3(&tag, sz);                        // emit computed size
-//   }
-// Gathers a varargs-style register/stack save block, derives a
-// 8-byte-aligned size (with a +0x200 bump for the a1==0x508 case), and
-// reports it through the cb1/cb2/cb3 staged-emit chain keyed by a '%' tag
-// block and a format-string literal &D_str. Family: cb-driven
-// staged-serialize/diagnostic (siblings tag 0x23 / 0x1D / 0x1E).
-//
-// Caps (DEFERRED): multu operand source, &D_str string, and cbN
-//   signatures inferred from call shape; arg-struct untyped. Real-C
-//   STRUCTURAL body below. Byte-match deferred. Name pre-checked: no
-//   extern reuse.
-#ifdef NON_MATCHING
+/* gl_func_0003FB6C: 39-insn / 0x9c (incl. its own 2-word head at 0x3FB64)
+ * tagged-scratch size reporter (tag 0x25; same cb-serialize family as
+ * 0003F7A8/F8E8/F9C4). EXACT 2026-09-05 (agent-g, 79.9 -> 100): the
+ * `andi t7,a1,0xFF; multu t7,a3` head is NOT a separate entry -- nothing jal's
+ * 0x3FB64 -- it is this function's first product `(a1 & 0xFF) * a3` hoisted
+ * above `addiu sp` by the -O2 scheduler (docs/MATCHING_WORKFLOW.md
+ * #uso-sym-export-oracle-orphan-sweep-arcproc-f48; the game_libs.c orphan
+ * game_libs_func_0003FB64 is a zero-size dead emit at the clip).
+ *
+ * The old wrap lost the 0xA0-byte stack record at sp+0x20: +0 = 0x25 tag,
+ * +8 = a3, +0xC = a4 (5th arg, read from the caller frame at sp+0xD0),
+ * +0x10 = a1, +0x14 = the computed size; +4 and +0x18.. untouched. The
+ * multiply is `multu` (unsigned product of the masked byte), the /8 is the
+ * signed bgez/addiu 7/sra idiom, so `(int)((unsigned)(a1 & 0xFF) * a3 * a4) / 8`.
+ * a0 is unused (homed to sp+0xC0), a2 is homed to sp+0xC8 and reloaded as the
+ * middle arg of the second call. Store ORDER matters: the target emits
+ * `sw a1,0x30` before `sw a3,0x28`, so f10 = a1 must be assigned before
+ * f8 = a3 (tag/fC anywhere). */
+typedef struct {
+    int tag;        /* 0x00: 0x25 */
+    int unk4;       /* 0x04: untouched */
+    int arg3;       /* 0x08: a3 */
+    int arg4;       /* 0x0C: a4 */
+    int arg1;       /* 0x10: a1 */
+    int size;       /* 0x14: rounded size */
+    char rest[0xA0 - 0x18];
+} GlFb6cRecord;
+
 extern int gl_func_00000000();
-extern int D_00000000;
 void gl_func_0003FB6C(void *a0, int a1, int a2, int a3, int a4) {
-    int tag;
-    int n;
+    GlFb6cRecord s;
     int sz;
-    tag = 0x25;
-    n = (a1 & 0xFF) * a3 * a4;
-    n = n / 8;
-    sz = n;
-    if (a1 == 0x508) sz = n + 0x200;
-    gl_func_00000000(&tag);
+    s.tag = 0x25;
+    s.arg1 = a1;
+    s.arg3 = a3;
+    s.arg4 = a4;
+    sz = (int)((unsigned)(a1 & 0xFF) * a3 * a4) / 8;
+    if (a1 == 0x508) sz += 0x200;
+    s.size = sz;
+    gl_func_00000000(&s);
     gl_func_00000000(&D_00000000, a2, sz);
-    gl_func_00000000(&tag);
+    gl_func_00000000(&s);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003FB6C);
-#endif
 
 extern int gl_func_00000000();
 void gl_func_0003FC00(int a0) {
