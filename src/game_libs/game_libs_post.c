@@ -6987,11 +6987,42 @@ extern int D_00000000;
  * sp4C raw-then-align double store (two statements); decl order
  * sp4C,h,sp44,b18,typ,payload,sp34 + g/c/e declared AFTER = exact frame
  * (h/typ dead homes = target holes 0x48/0x3C, e at 0x30, frame 0x50).
- * RESIDUAL (12 insns): 2 baked thunk jals (0x381B0/0x38204, no symbols =
- * baked-USO-symbol cap -> exact match impossible from C), jtbl reloc word,
- * and 6 insns of case-0/3 return-path coloring (target copies h to a1/v1 for
- * the store path and returns raw v0; ours colors the return web to the copy;
- * `return 0` variant shrinks fn, worse). Stays NM wrap. */
+ * TRUE RESIDUAL vs expected/ (objdump -M no-aliases, 2026-09-06 agent-g,
+ * 10 non-reloc words + 4 reloc words of 164):
+ *  (a) RELOC WORDS (not a C cap -- landing route): the three baked jals
+ *      0C00E06C/0C00E081/0C00E567 (= 0x381B0 / 0x38204 / 0x3959C; the
+ *      wrap's placeholder calls emit blank 0C000000) are the gl_ref_ extern
+ *      class (docs/MATCHING_WORKFLOW.md#feedback-nonzero-baked-jal-gl-ref-
+ *      callside-2026-06-22; gl_ref_00038204 / gl_ref_0003959C already pinned,
+ *      gl_ref_000381B0 = 0x381B0 would be new), and the jumptable word
+ *      `lw t9,0xEB4(at)` needs the table pinned at the USO's +0xEB4 -- the
+ *      2E290/343F4 donor-splice recipe (own -O2 donor TU + REPLACE_FUNC_BODY +
+ *      `gl_func_000240A0_rodata = 0xEB4`). Both are raw-byte-equal once
+ *      spliced; do this LAST, after (b) is solved.
+ *  (b) COLOURING, unsolved (7 words): in case 0 / case 3 of the typ switch
+ *      the target keeps the call result RAW in v0 for the test AND the
+ *      early `return h` (`beqz zero,EPI+4; lw ra` -- the copy-free return
+ *      jumps past the `lw ra`) and copies it into a fresh register only for
+ *      the deferred sp44 home store (`or a1,v0` in case 0 -> `sw a1,0x44`;
+ *      `or v1,v0` in case 3 -> `sw v1,0x44`). The build colours the h web
+ *      $v1 in BOTH cases and returns through `or v0,v1,zero`. uoptlist
+ *      (-zdbug:6, partial) shows the two h webs as candidates 52/74
+ *      "assigned (constrained) 2" = $v1. Plus 3 words of arg-load order
+ *      before the 3959C call: target hoists `lw a1,0x44(sp)` (sp44) above
+ *      `sw t1,0x18; lw a0,0x38`, consistent with sp44 being reloaded into
+ *      an a1-coloured web at the merge rather than as a plain arg load.
+ *      NEGATIVE (standalone harness = in-tree bytes, ~25 spellings): sp44
+ *      assigned directly in cases 1/2; `if ((h = f()) == 0)`; per-case
+ *      locals h0/h3 or block-scoped `int r`; `!h`; if/else inversion (+1
+ *      word); `return 0` (shrinks); `register` on sp44 (frame moves) or on
+ *      h / `char *h` / `unsigned h` (all lose the 0x48 dead home = h IS a
+ *      plain int in the ROM); `if (1) {}` around the store (breaks frame);
+ *      goto shared `return h`; `default:` for case 4; sp34 = 5 before the
+ *      test; h declared after c/e. All give the same 10 words (or worse).
+ *      Next: the per-case colour (a1 vs v1) suggests the copy is sp44's OWN
+ *      register web, coloured by what is free at that point -- try giving
+ *      case 0 a live v1/a0 interferer, or spelling the deferred store from
+ *      a second variable assigned from h after the test. */
 int gl_func_000240A0(int cls, int idx, int a2, int a3, void *a4) {
     int sp4C, h, sp44, b18, typ, payload, sp34; /* reverse-alloc: h/typ dead homes = target frame holes 0x48/0x3C */
     char *e;
