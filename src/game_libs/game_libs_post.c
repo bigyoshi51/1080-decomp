@@ -16889,7 +16889,7 @@ void game_libs_func_0002DE9C(void) {
 
 /* gl_func_0002DED0: single-call wrapper (0x24). LANDED fuzzy=100. The 3
  * trailing insns (sll/addu/addiu @0x2DEF4-0x2DEFC) are dead-code alt-entry
- * shared with the next function (gl_func_0002DF00); historically appended
+ * shared with the next function (game_libs_func_0002DEF4, merged 2026-09-05); historically appended
  * via SUFFIX_BYTES recipe to bridge the C-emit/expected size mismatch.
  * Mechanism REMOVED 2026-05-23 as match-faking; alt-entry now belongs to
  * separate symbols. */
@@ -16897,24 +16897,18 @@ void gl_func_0002DED0(void) {
     gl_func_00000000((void*)0x82000000, 0);
 }
 
-/* game_libs_func_0002DEF4: the 3-word dead-code alt-entry fragment
- * (sll t6,a0,3; addu a0,t6,a1; addiu a0,a0,0x1A) between gl_func_0002DED0
- * and gl_func_0002DF00. Historically absorbed via a gl_func_0002DED0
- * SUFFIX_BYTES recipe; that mechanism was removed 2026-05-23 as
- * match-faking and the bytes were dropped from the build (relayout-walker
- * -0xC event at 0x2DF00). Restored 2026-06-10 as an honest standalone
- * INCLUDE_ASM fragment. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DEF4);
-
-/* 10-insn body single-call wrapper, sibling of gl_func_0002DF68 (same
- * 0xTTTT0000 | ((a0 & 0xFF) << 8) bit-packing pattern but without the
- * mfc1 issue — args are pure int). Tag = 0x82020000. LANDED fuzzy=100.
- * The historical SUFFIX_BYTES recipe (absorbing 2 trailing stolen-prologue
- * insns for the successor) was REMOVED 2026-05-23 as match-faking; those
- * 2 insns are now tracked as separate symbols (function lands at 0x30
- * naturally). The 0x38 declared size in the prior comment is stale. */
-void gl_func_0002DF00(int a0) {
-    gl_func_00000000(0x82020000 | ((a0 & 0xFF) << 8), 0);
+/* game_libs_func_0002DEF4 (0x3C, 15 insns): bit-pack single-call wrapper,
+ * sibling of gl_func_0002DF68. Tag = 0x82020000, field = (a0*8 + a1 + 0x1A)
+ * & 0xFF. bootup.uso's Sym table exports section offset 0x42560 (= splat
+ * 0x2DEF4, ROM 0xE12FCC - 0xDD0A6C); 0x2DEF8 / 0x2DEFC / 0x2DF00 are NOT
+ * exported, so the 3 "dead-code alt-entry" words (sll t6,a0,3; addu a0,t6,a1;
+ * addiu a0,a0,0x1A) are this function's own index arithmetic, scheduled above
+ * `addiu sp` by IDO 7.1 -O2. The former "gl_func_0002DF00(int a0)" exact was a
+ * fake-param head-stolen split (same class as 67AC4 / h2hproc 04A4); retired
+ * 2026-09-05. Ledger: docs/MATCHING_WORKFLOW.md
+ * #orphan-sweep-agent-c-25th-h2hproc-timproc */
+void game_libs_func_0002DEF4(int a0, int a1) {
+    gl_func_00000000(0x82020000 | (((a0 * 8 + a1 + 0x1A) & 0xFF) << 8), 0);
 }
 
 /* gl_func_0002DF38: 11-insn (0x30) signed-test guard wrapper. Mid-chain in
