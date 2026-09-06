@@ -20172,46 +20172,41 @@ int game_libs_func_000317F0(int *a0) {
 }
 
 /* game_libs_func_0003183C: 23-insn (0x5C) ring-buffer dequeue scan (16-entry
- * inline ring at arg0+0, read idx 0x44, write idx 0x40; clears 0x4C, stores
- * each entry to 0x50, sets 0x48=1 and returns on the first nonzero entry).
- * BOUNDARY MERGED 2026-06-02 (absorbed loop-tail 00031880). RISE 2026-07-08
- * agent-e: NEW DSE LEVER -- the target's double index store
- * (`sw rd+1,0x44` then `sw (rd+1)&0xF,0x44`) survives IDO -O2 DSE when the
- * FIRST store is wrapped `if (1) { ... }` (BB barrier; controlflow folds
- * the block but DSE has already run). No volatile needed -- retracts the
- * 2026-06-20 "only volatile keeps both" half of the cap note. Structure now
- * 23/23 size-exact, all words structurally aligned.
- * RESIDUAL (pure coloring, ~11 words of register fields): any DSE-defeat
- * (if(1) or volatile) makes rd+1 and the entry value live-across-something
- * -> uopt PROMOTES them to candidates ($a1/$v1) where the target keeps
- * both as scheduler temps ($t0/$t9; li 1=$t4, reloads $t5). The
- * store-to-load-forwarding demotion that cracked 233A0 doesn't compose
- * here (forwarding re-proves same-address -> DSE returns). Genuine
- * DSE-defeat/candidate-promotion coupling cap. NM wrap; INCLUDE_ASM is
- * the build path. */
-#ifdef NON_MATCHING
-void game_libs_func_0003183C(void *arg0) {
-    char *p = arg0;
-    int rd = *(int *)(p + 0x44);
-    int v;
-    if (rd != *(int *)(p + 0x40)) {
-        *(int *)(p + 0x4C) = 0;
-        do {
-            v = *(int *)(p + rd * 4);
-            if (1) { *(int *)(p + 0x44) = rd + 1; }
-            *(int *)(p + 0x44) = (rd + 1) & 0xF;
-            *(int *)(p + 0x50) = v;
-            if (v != 0) {
-                *(int *)(p + 0x48) = 1;
-                return;
-            }
-            rd = *(int *)(p + 0x44);
-        } while (rd != *(int *)(p + 0x40));
+ * inline ring at +0, write idx 0x40, read idx 0x44; clears 0x4C, stores each
+ * entry to 0x50, sets 0x48=1 and returns on the first nonzero entry).
+ * BOUNDARY MERGED 2026-06-02 (absorbed loop-tail 00031880).
+ * EXACT 2026-09-06 agent-g -- the "DSE-defeat/candidate-promotion coupling cap"
+ * was a source-shape artifact. Recipe: (1) plain `while (r->wr != r->rd)` with
+ * the invariant `r->f4c = 0` INSIDE the loop (uopt hoists the store; the
+ * inverted loop's pre-test load becomes the shared $v0 candidate, the tail
+ * reload is the same web); (2) `r->rd++; r->rd &= 0xF;` -- the RMW keeps both
+ * stores and its forwarded reload is the $t1 phantom (a local `r->rd = rd + 1`
+ * gets DSE'd); (3) store-then-test `r->out = r->buf[r->rd]; ... if (r->out)`
+ * keeps the entry value a scheduler temp ($t9, forwarded reload = $t3
+ * phantom) instead of a candidate; (4) `wr != rd` operand order for
+ * `beq v0,t6` / `bnel v0,t5`. See docs/IDO_CODEGEN.md
+ * #while-hoisted-invariant-store-rmw-double-store-3183c. */
+typedef struct {
+    int buf[16];   /* 0x00 */
+    int wr;        /* 0x40 */
+    int rd;        /* 0x44 */
+    int flag;      /* 0x48 */
+    int f4c;       /* 0x4C */
+    int out;       /* 0x50 */
+} Ring3183C;
+
+void game_libs_func_0003183C(Ring3183C *r) {
+    while (r->wr != r->rd) {
+        r->f4c = 0;
+        r->out = r->buf[r->rd];
+        r->rd++;
+        r->rd &= 0xF;
+        if (r->out != 0) {
+            r->flag = 1;
+            return;
+        }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003183C);
-#endif
 
 extern int gl_ref_00045DF0();
 extern int gl_ref_00045E5C();
