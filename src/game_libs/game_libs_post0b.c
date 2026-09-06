@@ -2072,97 +2072,118 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035DAC);
 #endif
 
 
+/* game_libs_func_00035E5C: 2-word all-zero inter-function ROM pad (0x35E5C/0x35E60).
+ * The `lui t6; lw t6,0(t6)` that used to follow it is the hoisted first
+ * statement (the context-pointer read) of game_libs_func_00035E64 below
+ * (merged 2026-09-06; the 2D36C precedent: the predecessor gl_func_00035DAC is
+ * an NM wrap, so the pad stays a 2-word INCLUDE_ASM rather than a SUFFIX). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035E5C);
 
-// gl_func_00035E6C — STRUCTURAL PASS + small BUNDLE BOUNDARY NOTE
-// (0x168 / 90 words, no episode). Raw-.word USO form (game_libs).
-//
-// realjr=2 / one 27BDFF48 prologue (large 0xB8 FP frame). The 2nd
-// jr is at the very tail (0x35FCC, 8 bytes after the main epilogue
-// jr at 0x35FC4) with no prologue — a tiny 2-word no-frame TAIL
-// STUB splat could not separate (no-frame-leaf shape, see
-// docs/N64_FORENSICS.md ADDENDUM 2026-05-18b). DEFERRED USO
-// RE-SPLIT for that 2-word tail (tracked with the other
-// game_libs_post.c bundle notes; not fixable with mnemonic
-// split/merge — needs the spimdisasm-USO migration). No merge
-// attempted; no episode.
-//
-// Named fn gl_func_00035E6C — an FP geometry / projection routine:
-//   void gl_func_00035E6C(O *o, ...) {
-//     if (ctx == 0) return;
-//     Vec3 p = { o->f_30, o->f_34, o->f_38 };  // source point
-//     // spill p to sp+0xA0.. with constant 1000.0f (0x447A0000)
-//     int ok = transform(ctx, &p, out@sp+0x74, scratch@sp+0xA0);
-//                                               // jal 0 (USO cb)
-//     if (!ok) return;
-//     float w = result@sp+0x80;
-//     if (w < 200.0f) { ... }                   // 0x43480000=200.0f
-//     Vec3 t = { @sp+0x74, @sp+0x78, @sp+0x7C };// transformed pt
-//     // neg.s / mul.s chain → projected/scaled position
-//     // stored to sp+0x3C / 0x4C / 0x5C
-//   }
-//
-// Struct-typing reference: a 3D point transform / projection leaf.
-//   It pulls a Vec3 from the object at offsets 0x30/0x34/0x38,
-//   hands it (with scratch buffers and a 1000.0f far-plane-ish
-//   constant) to a USO-relocated transform/project callback (jal 0
-//   → resolved at load), checks success, then applies a depth/scale
-//   test against 200.0f and a neg/multiply FP chain to produce a
-//   transformed (likely world→screen / clip-space) position written
-//   back to stack slots. A geometry/projection node of the
-//   game_libs object subsystem (pairs with the gl_func_00033094
-//   Vec3-transform leaf and feeds the gl_func_00034458 render
-//   traversal; the FP literals 1000.0f / 200.0f are projection
-//   parameters).
-// Caps (DEFERRED): raw-word USO + bundled 2-word no-frame tail +
-//   USO-reloc jal-0 transform callback + FP projection math —
-//   byte-match needs USO mnemonic disasm + boundary re-split +
-//   Vec3/object typed. Real-C STRUCTURAL body below for the NAMED
-//   leading function only — bundled tail stub untouched. Byte-match
-//   deferred. Name pre-checked: no extern reuse.
 #ifdef NON_MATCHING
+/* game_libs_func_00035E64 (ex gl_func_0002E6C + the 2-word head; 0x168, 90 words).
+ * bootup.uso Sym exports section offset 0x4A4D0 = splat 0x35E64 (ROM 0xE1AF3C -
+ * 0xDD0A6C; jal'd from TextReloc @0x4FCC); 0x35E5C/0x35E60 are the pad and
+ * 0x35E6C is NOT exported. The head `lui t6; lw t6,0(t6)` is the read of the
+ * Data pointer @0x50 (sym451, addend 0 -> own zero extern D_00000000_50)
+ * scheduled above `addiu sp`; it is uopt's CSE temp of the two direct reads
+ * (null test + first call arg), homed at sp+0x20 (`sw t6,0x20(sp)` in the beqz
+ * delay) and forwarded -- a named `ctx` local colours v0 instead.
+ *
+ * Point projector / spring: read the object's Vec3 @+0x30 into `point`, call the
+ * projection callback (sym579, exported text 0x50AA8; blank jal in the ROM word)
+ * with (ctx, &point, 1000.0f, &result[0]); result[0..2] = direction, result[3] = w.
+ * If w < 200: scale = -(w - 200) (sub.s + neg.s), tmp1 = dir * scale, tmp2 = tmp1,
+ * tmp3 = tmp2 (the two lw/sw struct copies leave 24 bytes of copy temporaries at
+ * sp+0x24..0x3C), point += tmp3, then o->30/34/38 += (point - o) * D[0x19E0].
+ *
+ * Frame 0xB8 = CSE home 0x20 | copy temps 0x24 | tmp1/2/3 0x3C/0x4C/0x5C (16 each)
+ * | f200 home 0x6C(+4) | result 0x74 (0x2C) | point 0xA0 | 12 bytes at the top
+ * (w home + an 8-byte unused array; a plain unused `float pad2[2]` keeps its slot).
+ *
+ * Levers that landed (all C-only): plain non-`register` `float f200 = 200.0f`
+ * keeps the constant as the $f18 candidate shared by c.lt.s and sub.s (a
+ * `register` local is constant-propagated and rematerialized twice); in-place
+ * `w -= f200; w = -w;` gives `sub.s $f0,$f0,$f18; neg.s $f0,$f0`; the products as
+ * named sx/sy/sz locals stored together (f2/f12/f14); and a `do { } while (0)`
+ * block boundary after the tmp1 stores -- IDO does not reuse a dead candidate's
+ * FP register inside one basic block, so the target's f0/f2/f12/f14 reuse for
+ * ox/oy/oz/lerp needs the sums+lerps in their own block.
+ *
+ * The D2 section needs TWO extra boundaries: `do { lerp load + the two copies }
+ * while (0); do { sums + o-reads + lerps } while (0);` -- a candidate that spans
+ * two blocks (lerp) is coloured AFTER the block-local o-fields (ox/oy/oz = f0/f2/f12,
+ * lerp = f14), and the products stay f2/f12/f14 in their own block.
+ *
+ * Frame layout rule learned here (IDO 7.1 -O2): arrays/aggregates are laid out
+ * top-down in declaration order; scalars that get a stack home (multi-def `w`,
+ * the constant-def `f200`, a reused `d`) go BELOW the arrays, just above the
+ * struct-copy temporaries -- the target has none there (tmp1 at 0x3C right
+ * after the 24 temp bytes), only 12 unused bytes above `point` and 8 between
+ * `result` and tmp3.
+ *
+ * NM 80.6 (old 35E6C body) -> 15 words short of 90 (standalone word diff):
+ *   (a) w load: target `lwc1 $f0,0x80(sp)` in the beqz delay slot with w a
+ *       single f0 web; loading w before the ok-test puts it in the slot but uopt
+ *       then splits the load into an f16 temp (`c.lt.s $f16; sub.s $f0,$f16,$f18`,
+ *       3 words) -- the split appears as soon as the products are named
+ *       candidates (D1 = w, t, f200, sx, sy, sz = the whole FP candidate pool);
+ *   (b) one homed scalar (f200's home) sits at sp+0x3C and pushes tmp1/2/3 to
+ *       0x40/0x50/0x60 (9 words: 3 addiu bases + 3 product stores + 3 sum loads);
+ *       `register float f200` removes the home but is constant-propagated
+ *       (f18 sharing lost, +1 word);
+ *   (c) the three `o->3x = ox + (px - ox) * lerp` adds come out `add.s $f10,$f8,ox`
+ *       (product first) vs the target's `add.s $f10,ox,$f8` (3 words); a named
+ *       `d = (px - ox) * lerp; o->30 = ox + d;` fixes the order but `d` gets a
+ *       home and shifts the tmps by 8 more. */
 extern int gl_func_00000000_35e6c(char *, float *, float, float *);
-typedef struct { int x, y, z; } GLW3_35E6C;
-void gl_func_00035E6C(char *o) {
-    float point[3];
-    float deadA[7];
-    float result[4];
-    float deadB[3];
-    float tmp2[3];
-    float tmp[4];
-    float scaled[4];
-    float deadC[6];
+extern char *D_00000000_50;
+typedef struct { int x, y, z; } IVec3_35E64;
+void game_libs_func_00035E64(char *o) {
+    float pad2[2];
     float w;
-    float scale;
-    float lerp;
-    register float f200;
-    char *ctx = *(char **)((char *)&D_00000000 + 0);
-    if (ctx == 0) return;
-    point[0] = *(float *)(o + 0x30);
-    point[1] = *(float *)(o + 0x34);
-    point[2] = *(float *)(o + 0x38);
-    if (gl_func_00000000_35e6c(ctx, point, 1000.0f, result) == 0) return;
+    Vec3 point;
+    float result[11];
+    float f200;
+    float tmp3[4];
+    float tmp2[4];
+    float tmp1[4];
+    float lerp, sx, sy, sz, ox, oy, oz;
+    if (D_00000000_50 == 0) return;
+    point.x = *(float *)(o + 0x30);
+    point.y = *(float *)(o + 0x34);
+    point.z = *(float *)(o + 0x38);
+    if (gl_func_00000000_35e6c(D_00000000_50, &point.x, 1000.0f, result) == 0) return;
     w = result[3];
     f200 = 200.0f;
     if (w < f200) {
-        scale = -(w - f200);
-        scaled[0] = result[0] * scale;
-        scaled[1] = result[1] * scale;
-        scaled[2] = result[2] * scale;
-        *(GLW3_35E6C *)tmp = *(GLW3_35E6C *)scaled;
-        *(GLW3_35E6C *)tmp2 = *(GLW3_35E6C *)tmp;
+        w -= f200;
+        w = -w;
+        sx = result[0] * w;
+        sy = result[1] * w;
+        sz = result[2] * w;
+        tmp1[0] = sx;
+        tmp1[1] = sy;
+        tmp1[2] = sz;
+        do {
         lerp = *(float *)((char *)&D_00000000 + 0x19E0);
-        point[0] = point[0] + tmp2[0];
-        point[1] = point[1] + tmp2[1];
-        point[2] = point[2] + tmp2[2];
-        *(float *)(o + 0x30) = *(float *)(o + 0x30) + (point[0] - *(float *)(o + 0x30)) * lerp;
-        *(float *)(o + 0x34) = *(float *)(o + 0x34) + (point[1] - *(float *)(o + 0x34)) * lerp;
-        *(float *)(o + 0x38) = *(float *)(o + 0x38) + (point[2] - *(float *)(o + 0x38)) * lerp;
+        *(IVec3_35E64 *)tmp2 = *(IVec3_35E64 *)tmp1;
+        *(IVec3_35E64 *)tmp3 = *(IVec3_35E64 *)tmp2;
+        } while (0);
+        do {
+        point.x += tmp3[0];
+        point.y += tmp3[1];
+        point.z += tmp3[2];
+        ox = *(float *)(o + 0x30);
+        oy = *(float *)(o + 0x34);
+        oz = *(float *)(o + 0x38);
+        *(float *)(o + 0x30) = ox + (point.x - ox) * lerp;
+        *(float *)(o + 0x34) = oy + (point.y - oy) * lerp;
+        *(float *)(o + 0x38) = oz + (point.z - oz) * lerp;
+        } while (0);
     }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00035E6C);
-
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00035E64);
 #endif
 
 void game_libs_func_00035FCC(void) {}

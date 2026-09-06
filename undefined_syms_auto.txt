@@ -1317,6 +1317,7 @@ D_00000000_b = 0x00000000;
 D_00000000_c = 0x00000000;
 D_00000000_3c8e0 = 0x00000000;  /* GBI-emit flags word (bootup.uso sym1924 @0x3C8E0) read by game_libs_func_0005A2C4 */
 D_00000000_324 = 0x00000000;  /* Data float @0x324 (bootup.uso sym1441, addend 0) stored 1.0f by game_libs_func_0002DDEC */
+D_00000000_50 = 0x00000000;  /* Data pointer @0x50 (bootup.uso sym451, addend 0): the projection context read by game_libs_func_00035E64 */
 D_00000000_b49c = 0x00000000;  /* func_0000B49C: 3rd-table base-0 alias, busts addr CSE with 1st table */
 D_00000000_d = 0x00000000;
 D_00000000_e = 0x00000000;
