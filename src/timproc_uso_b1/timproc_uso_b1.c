@@ -528,19 +528,20 @@ void timproc_uso_b1_func_000010C0(int a0) {
     *(int *)((char *)&D_00000000 + 0x40) = 9;
 }
 
-/* timproc_uso_b1_func_000010D4: 2-insn `lui a1; lw a1, 0x170(a1)` pre-load
- * fragment (sets $a1 = *(D+0x170) for successor 010DC). NOT C-emit-absorbed —
- * the earlier prune was mistaken (010C0 is a 5-insn `*(D+0x40)=9`, doesn't
- * emit these bytes); restored to keep the 8 bytes at vram 0x10D4-0x10DB in
- * the linked layout. SOURCE=4 audit 2026-06-01: not an accessor-template miss;
- * it mirrors timproc_uso_b3_func_00001088 and has no standalone C body.
- * INCLUDE_ASM (uninitialized-reg fragment, no standalone C). */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000010D4);
-
+/* timproc_uso_b1_func_000010D4 (0x2C, 11 insns): hoisted-head merge of 10D4 +
+ * 10DC (2026-09-05 agent-c, TWENTY-FIFTH mis-split class, see
+ * docs/MATCHING_WORKFLOW.md #hoisted-head-119c-11a4-mgrproc). The 8-byte
+ * "pre-load fragment" `lui a1; lw a1,0x170(a1)` is this function's own first
+ * statement scheduled above `addiu sp` by IDO 7.1 -O2; 10DC was never an entry.
+ * Oracle = the timproc.uso Kyoto tables (inner header ROM 0x5AF114): Sym[89]
+ * EXPORTS text offset 0x10D4 and DataReloc @0x33C stores its address in a
+ * function-pointer table; 0x10DC has no export and no R_MIPS_26. The old 10DC
+ * "exact" existed only via a fake `char *a1` parameter (episode retired).
+ * Twin: timproc_uso_b3_func_00001088 (trkproc.uso). */
 void timproc_uso_b1_func_00000000();
 
-void timproc_uso_b1_func_000010DC(int a0, char *a1) {
-    timproc_uso_b1_func_00000000(a0, a1 + 0x00220000);
+void timproc_uso_b1_func_000010D4(int a0) {
+    timproc_uso_b1_func_00000000(a0, *(char **)((char *)&D_00000000 + 0x170) + 0x00220000);
 }
 
 extern int gl_ref_00000040;
