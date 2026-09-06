@@ -9619,91 +9619,118 @@ void game_libs_func_00026D4C(void) {
 //   (collision-safe). gl_func_00000000 = canonical never-defined
 //   USO placeholder.
 #ifdef NON_MATCHING
-/* PASS-3 2026-07-10 (agent-f): width-bloat retype. Prior m2c graft
- * (19.58%) loaded/stored FP slots (obj +0x1C/0x20/0x24/0x2C/0x34)
- * through s32* forcing trunc.w.s/cvt.s.w bloat (NM 332 >> target 230
- * insns). Retyped to f32* per the expected .s lwc1/swc1 map, fixed
- * store widths (sh/sb vs sw) and the &D_0+0x2048 lh. Jumptable stays
- * IDO-synthesized (USO-baked reloc blocks exact) -- fuzzy-only. */
-/* PASS-4 2026-07-23 (agent-h): structural decode fixes, 61.2->88.1%.
- * (1) cursor byte g+0x1B5DC: per-site absolute &D_0+0x1B5DC deref (lui
- *     at,0x2 / %lo -18980 pairs) not g-relative arithmetic;
- * (2) jumptable spans 0x41..0x4E (sltiu 14): empty case 0x4D/0x4E;
- * (3) cases 0x47/0x48 convert via (s32) cast -> signed cvt.s.w, no
- *     u32->f32 fixup branch;
- * (4) KEY LEVER: obj computed ONCE into s2 (shift-decomposed *0x160)
- *     only when the index is the raw memory expr *(u8*)(ent+1), NOT a
- *     u8 local: with a `pidx` local uopt sinks/remats the multiply
- *     into every case as multu v,s5 (12 multu, +40 insns). Typed
- *     Obj26D64 struct keeps base+small-offset addressing (44(s2)).
- * Remaining gap: temp-reg renumber drift + minor sched (move a1,s3
- * hoist, lo spill slot). Insns 236 vs 230. */
+/* PASS-5 2026-09-06 (agent-g): address-form + frame rewrite, 88.1 -> 230/230
+ * words, frame 0x68, 142/230 word-identical (mnemonic sequence differs in
+ * ONE swap). Levers, each confirmed standalone (docs/IDO_CODEGEN.md
+ * #extern-struct-array-base-keeps-sreg-opaque-26d64):
+ *  (1) base = `extern St26D64 D_26D64_arr[]; g = &D_26D64_arr[0]` -- an
+ *      ARRAY-element address stays a register variable ($s5 for EVERY
+ *      access incl. the exit `sb zero,21434(s5)` and the in-loop
+ *      `lh 8264(s5)`, base-first `addu s3,s5,t3`); `(St*)&D_00000000`
+ *      folds every direct access to `lui at,%hi(D); sb %lo(at)`.
+ *  (2) cursor byte +0x1B5DC: FOUR per-access zero aliases with the inline
+ *      addend (D_26D64_a re-seed store, _b head load, _c RMW load, _d RMW
+ *      store) -> `lui at,2 / -18980` fresh per access as the target; one
+ *      symbol (even `volatile`) is CSE'd into a held `lui s8; addiu s8`.
+ *  (3) `ent`/`idx` computed BEFORE the exit test (in-place
+ *      `addiu s3,s3,21552`, no jal-arm re-materialisation); RMW spelled
+ *      `CUR_D = CUR_C + 1` (reload, no `cur+1`); code load AFTER the RMW
+ *      (alias dep keeps `lbu v0` under the `sb`).
+ *  (4) TEN locals = target frame 0x68 (every decl homes a word; `f0` and
+ *      the `char *g` local removed); `lo` declared first = home 0x38.
+ *  (5) `u8 sel` = the `or v1,v0,zero` copy for the `== 0xFF` arm.
+ * Residual: uopt sinks the `sll t3,t2,3` of `idx` into the store block
+ * when the RMW immediately follows the exit test (target: andi+sll both in
+ * the head, sll in the bne delay); as1 then fills the head's load stalls by
+ * hoisting the RMW store's `lui at` (target keeps it under the reload).
+ * Putting the RMW two statements later (after the 0xF8 test) keeps sll in
+ * the head but moves the store. All 88 remaining word diffs are temp
+ * renumbering downstream of that swap (target skips t7/t9 in the
+ * prologue). The switch jumptable `lw t2,0xF50(at)` %lo is the USO rodata
+ * offset -- needs the 2E290/6DD14 REPLACE_FUNC_BODY donor route
+ * (`gl_func_00026D64_rodata = 0xF50`) once the .text is exact. */
+extern int D_26D64_a, D_26D64_b, D_26D64_c, D_26D64_d;
+#define CUR_A (*(u8 *)((char *)&D_26D64_a + 0x1B5DC))
+#define CUR_B (*(u8 *)((char *)&D_26D64_b + 0x1B5DC))
+#define CUR_C (*(u8 *)((char *)&D_26D64_c + 0x1B5DC))
+#define CUR_D (*(u8 *)((char *)&D_26D64_d + 0x1B5DC))
 typedef struct {
-    /* 0x000 */ u8 flags;              /* bit7 = active (word-read sign test); bit0/bit2 dirty */
-    /* 0x001 */ u8 state;              /* 2 = locked */
+    /* 0x000 */ u8 flags;
+    /* 0x001 */ u8 state;
     /* 0x002 */ u8 pad02[6];
     /* 0x008 */ s16 h08;
     /* 0x00A */ s16 h0A;
     /* 0x00C */ s16 h0C;
     /* 0x00E */ s16 h0E;
     /* 0x010 */ s16 h10;
-    /* 0x012 */ s16 h12;               /* lerp step count */
+    /* 0x012 */ s16 h12;
     /* 0x014 */ u8 pad14[8];
-    /* 0x01C */ f32 f1C;               /* current value */
-    /* 0x020 */ f32 f20;               /* lerp delta */
-    /* 0x024 */ f32 f24;               /* saved value */
+    /* 0x01C */ f32 f1C;
+    /* 0x020 */ f32 f20;
+    /* 0x024 */ f32 f24;
     /* 0x028 */ u8 pad28[4];
     /* 0x02C */ f32 f2C;
     /* 0x030 */ u8 pad30[4];
     /* 0x034 */ f32 f34;
-    /* 0x038 */ s32 w38[0x48];         /* handle table (sel*4 + 0x38) */
+    /* 0x038 */ s32 w38[0x48];
     /* 0x158 */ s8 b158[8];
-} Obj26D64;                            /* sizeof 0x160 */
+} Obj26D64;
+typedef struct {
+    /* 0x0000 */ u8 pad0[0x2048];
+    /* 0x2048 */ s16 nobj;
+    /* 0x204A */ u8 pad1[0x2D00 - 0x204A];
+    /* 0x2D00 */ Obj26D64 objs[0x1B];
+    /* 0x5300 */ u8 pad2[0x53BA - 0x2D00 - 0x1B * 0x160];
+    /* 0x53BA */ u8 pending;
+    /* 0x53BB */ u8 pad3;
+    /* 0x53BC */ u16 masks[0x3A];
+    /* 0x5430 */ u8 queue[0x100][8];
+} St26D64;
+extern St26D64 D_26D64_arr[];
+#define g (&D_26D64_arr[0])
 void gl_func_00026D64(u32 arg0) {
-    char *g = (char *)&D_00000000;
     s32 lo;
-    u8 cur;
-    char *ent;      /* s3: queue entry  (g + cur*8 + 0x5430) */
+    s32 cur;
+    s32 idx;
+    u8 *ent;
     Obj26D64 *obj;  /* s2: object slot  (g + pidx*0x160 + 0x2D00) */
     s32 code;
     s32 tmp;
-    u8 pidx;
-    s32 sel;
+    u8 sel;
     s32 i;
     u16 mask;
-    f32 f0;
     f32 f2;
 
-    if (*(u8 *)(g + 0x53BA) == 0) {
-        *(u8 *)((char *)&D_00000000 + 0x1B5DC) = (u8) (arg0 >> 8);
+    if (g->pending == 0) {
+        CUR_A = (u8) (arg0 >> 8);
     }
     lo = arg0 & 0xFF;
     for (;;) {
-        cur = *(u8 *)((char *)&D_00000000 + 0x1B5DC);
+        cur = CUR_B;
+        idx = (cur & 0xFF) * 8;
+        ent = (u8 *)g->queue + idx;
         if (lo == cur) {
-            *(u8 *)(g + 0x53BA) = 0;
+            g->pending = 0;
             return;
         }
-        ent = g + (cur & 0xFF) * 8 + 0x5430;
-        *(u8 *)((char *)&D_00000000 + 0x1B5DC) = *(u8 *)((char *)&D_00000000 + 0x1B5DC) + 1;
+        CUR_D = CUR_C + 1;
         code = *(u8 *)ent;
         if (code == 0xF8) {
-            *(u8 *)(g + 0x53BA) = 1;
+            g->pending = 1;
             return;
         }
         if ((code & 0xF0) == 0xF0) {
             gl_func_0003ADFC(ent);
         } else {
-            if ((s32) *(u8 *)(ent + 1) < *(s16 *)(g + 0x2048)) {
-                obj = (Obj26D64 *)(g + 0x2D00) + *(u8 *)(ent + 1);
+            if ((s32) *(u8 *)(ent + 1) < g->nobj) {
+                obj = &g->objs[*(u8 *)(ent + 1)];
                 if (code & 0x80) {
                     gl_func_0003ADFC(ent);
                 } else if (code & 0x40) {
                     switch (code) {
                     case 0x41:
-                        f0 = *(f32 *)(ent + 0x4);
-                        if (f0 != obj->f2C) {
-                            obj->f2C = f0;
+                        if (*(f32 *)(ent + 0x4) != obj->f2C) {
+                            obj->f2C = *(f32 *)(ent + 0x4);
                             obj->flags |= 4;
                         }
                         break;
@@ -9729,15 +9756,14 @@ void gl_func_00026D64(u32 arg0) {
                         f2 = ((f32) (s32) *(u8 *)(ent + 0x2) / 100.0f) * obj->f1C;
 block_24:
                         if (obj->state != 2) {
-                            f0 = obj->f1C;
-                            obj->f24 = f0;
+                            obj->f24 = obj->f1C;
                             tmp = *(s32 *)(ent + 0x4);
                             if (tmp == 0) {
                                 obj->f1C = f2;
                             } else {
                                 obj->state = 0;
                                 obj->h12 = tmp;
-                                obj->f20 = (f2 - f0) / (f32) tmp;
+                                obj->f20 = (f2 - obj->f1C) / (f32) tmp;
                             }
                         }
                         break;
@@ -9771,7 +9797,7 @@ block_24:
                         if (sel < 0x10) {
                             gl_func_0003BA24(obj->w38[sel], ent);
                         } else if (sel == 0xFF) {
-                            mask = *(u16 *)(g + *(u8 *)(ent + 1) * 2 + 0x53BC);
+                            mask = g->masks[*(u8 *)(ent + 1)];
                             i = 0;
                             do {
                                 if (mask & 1) {
@@ -9788,6 +9814,11 @@ block_24:
         *(u8 *)ent = 0;
     }
 }
+#undef g
+#undef CUR_A
+#undef CUR_B
+#undef CUR_C
+#undef CUR_D
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026D64);
 #endif
