@@ -30422,61 +30422,45 @@ void game_libs_func_0005BC24(float *a0, float L) {
     else if (a0[2] < -L) a0[2] = -L;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005BCCC);
-
-#ifdef NON_MATCHING
-/* gl_func_0005BCD4: 43-insn 2D-rotation transform (0xAC, frame 0x30).
+/* game_libs_func_0005BCCC: 2D rotation of (*a1, *a2) by angle / D+0x2030
+ * (0xB4, 45 insns, frame 0x30): x' = cos*x - sin*y, y' = sin*x + cos*y.
+ * The two trig callees are exported USO text 0x7E7B0 (sym343) / 0x85640
+ * (sym342), each called twice (IDO never CSEs the calls). The jal relocs pin
+ * the call ORDER: pair 1 is 343 then 342, pair 2 is 342 then 343 -- i.e. the
+ * source recomputed sin/cos in the opposite order for y'. The first call of
+ * each pair is spilled to 0x20 across the second (same slot both times: the
+ * pair-slot variables p/q are reused destructively, which is what keeps the
+ * frame at 0x30 -- semantic sin/cos names would give two spill slots).
  *
- * Caller-set float convention ($f12 angle, $f4 divisor): USO intra-USO
- * non-O32. Same cap class as gl_func_00010650 family.
+ * MERGED 2026-09-06 (agent-c): bootup.uso Sym table exports section 0x70338 =
+ * splat 0x5BCCC (ROM 0xE40DA4 - 0xDD0A6C); 0x5BCD4 is NOT exported. The 2-word
+ * orphan game_libs_func_0005BCCC (`lui at; lwc1 $f4,0x2030(at)`) was never a
+ * "caller-set $f4" entry: it is the hoisted load of the divisor global
+ * D+0x2030 (HI16/LO16 relocs sym1) for THIS function's first statement,
+ * scheduled above `addiu sp`. angle is the lone leading float arg ($f12);
+ * a1/a2 are homed at 0x34/0x38. The former gl_func_0005BCD4 fake
+ * `caller_f12_angle` / `caller_f4_div` params are retired.
  *
- * Decoded structure (raw-word disasm):
- *   norm = caller_f12 / caller_f4;                   // div.s f20, f12, f4
- *   sin_val = func1(norm);                            // 1st call (sin)
- *   cos_val = func2(norm);                            // 2nd call (cos)
- *   new_x = cos_val * (*a1) - sin_val * (*a2);
- *   sin_val2 = func3(norm);                           // 3rd call (sin, again)
- *   cos_val2 = func4(norm);                           // 4th call (cos, again)
- *   new_y = cos_val2 * (*a1) + sin_val2 * (*a2);
- *   *a1 = new_x;
- *   *a2 = new_y;
- *
- * Classic 2D rotation: (x', y') = (x*cos - y*sin, x*sin + y*cos).
- * The duplicate sin/cos calls suggest the callees are stateful or use
- * volatile globals (IDO re-emits each call to avoid CSE).
- *
- * 2026-07-15 lever pass (89.88 -> 90.19): destructive same-name reuse of
- * s/c across both call pairs makes the second sin spill REUSE slot 0x20
- * (frame 0x38 -> 0x30 exact) + decl order new_x,new_y,c,s pins new_x=0x2C /
- * s=0x20 (decl-order-float-spill-slot lever, first-declared = highest) +
- * new_y spelled `(*a2)*s + (*a1)*c` gets the s-mul operands (mem-first) and
- * the add order (c-term first) right. Residual = the PERMANENT caller-set-$f4
- * head cap (2 extra words `sw a3 / lwc1 $f4` + div.s scheduling slip; C cannot
- * receive a value in $f4 under O32) + 1 c-mul operand-order word: the c-term
- * mul emits (mem,f0) whenever it is the textually-second add term, (f0,mem)
- * only when textually first — but textually-first flips the add order (probed
- * both, 1 word either way; nested-assign flip re-homes new_y to f2, worse).
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-void gl_func_0005BCD4(float caller_f12_angle, float *a1, float *a2, float caller_f4_div) {
-    extern float gl_compute_sin(float), gl_compute_cos(float);
-    float new_x, new_y, c, s;
+ * Levers: decl order new_x,new_y,q,p (new_x=0x2C / p=0x20, decl-order spill
+ * lever); the last c-mul wants (f0, mem) as (fs, ft) while the add wants the
+ * c-term as fs -- only `(*a2) * p + (*a1) * (t = q)` gives both (plain
+ * `q * (*a1)` textually-second reverses the mul, textually-first reverses the
+ * add). See IDO_CODEGEN#feedback-ido-fp-commutative-operand-order-assignment-lever. */
+extern float gl_func_00000000_5bccc343(float);  /* USO text 0x7E7B0 callee (sym343) */
+extern float gl_func_00000000_5bccc342(float);  /* USO text 0x85640 callee (sym342) */
+void game_libs_func_0005BCCC(float angle, float *a1, float *a2) {
+    float new_x, new_y, q, p, t;
     float norm;
-    norm = caller_f12_angle / caller_f4_div;
-    s = gl_compute_sin(norm);
-    c = gl_compute_cos(norm);
-    new_x = c * (*a1) - s * (*a2);
-    s = gl_compute_sin(norm);
-    c = gl_compute_cos(norm);
-    new_y = (*a2) * s + (*a1) * c;
+    norm = angle / *(float *)((char *)&D_00000000 + 0x2030);
+    p = gl_func_00000000_5bccc343(norm);
+    q = gl_func_00000000_5bccc342(norm);
+    new_x = q * (*a1) - p * (*a2);
+    p = gl_func_00000000_5bccc342(norm);
+    q = gl_func_00000000_5bccc343(norm);
+    new_y = (*a2) * p + (*a1) * (t = q);
     *a1 = new_x;
     *a2 = new_y;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005BCD4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005BD80: 16-insn Vec3-sqlen + callee (probably sqrtf).
