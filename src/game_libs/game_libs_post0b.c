@@ -29369,22 +29369,39 @@ void gl_func_00059E80(char *arg0, char *arg1)
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00059E80);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005A2C4);
-
 #ifdef NON_MATCHING
-/* 2026-06-20 (agent-b): full structural reconstruction of this DL-emit fn
- * (ED/F7/BA/F6/E7/FF10 GBI cmd builder). Logic verified byte-region-exact
- * against target; remaining diffs are (a) the leading caller-set-$v0 flag
- * read (`gl_v0 & 0x100 && gl_v0 & 1`) which IDO emits with NO load in the
- * target — clean C must materialize the global (2 surplus insns, hard cap),
- * and (b) downstream frame-size/regalloc fan-out from that +2 shift. */
-extern s32 gl_v0;
-void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *arg5, s32 arg6, s32 arg7, s32 arg8, s32 arg9, s32 arg10, s32 arg11) {
+/* game_libs_func_0005A2C4: DL-emit fn (ED/F7/BA/F6/E7/FF10 GBI cmd builder,
+ * 0x70C, 451 insns, frame 0xC0). 2026-06-20 (agent-b) structural
+ * reconstruction; logic byte-region-exact against the target.
+ *
+ * MERGED 2026-09-06 (agent-c): bootup.uso Sym table exports section 0x6E930 =
+ * splat 0x5A2C4 (ROM 0xE3F39C - 0xDD0A6C, jal'd from TextReloc @0x60D54 /
+ * @0x60DE4); 0x6E938 = 0x5A2CC is NOT exported. The 2-word orphan
+ * game_libs_func_0005A2C4 (`lui v0; lw v0,0(v0)`, HI16/LO16 sym1924 symval
+ * 0x3C8E0, addend 0 -> its own zero extern D_00000000_3c8e0) was never a
+ * "caller-set $v0" read: it is the hoisted load of the flags word for THIS
+ * function's first statement, scheduled above `addiu sp`. The old
+ * "clean C must materialize the global (2 surplus insns, hard cap)" is
+ * RETRACTED -- the load is the head. The colour block now loads the four
+ * arg5 floats up front (target lwc1 f2/f12/f14/f16 before the first
+ * cfc1/ctc1 chain) and converts inline `(u32)(fx * 255.0f)` for both the
+ * colv[] stores and the rgba pack (signed `>> 2` on the CSE'd value = the
+ * target's `sra`). Mnemonic drift 50 -> 26.
+ *
+ * RESIDUAL (objdiff 89.07, was 84.35 as gl_func_0005A2CC): the target keeps the conversion results as
+ * short-lived t6/t7/t8 temps and re-homes the three that survive the block
+ * (r spilled to 0x20 and reloaded `lw t0,0x20(sp)`, `or t1,t6`, `or a1,t7`
+ * at the merge block after the 4th conversion); IDO here colours them a0/a2/t1
+ * with no split, so the 0x20 slot is never used and the frame is 0xD0 (build)
+ * vs 0xC0 (target): four extra spill words at 0x20-0x2C shift every local
+ * home by +0x10 and cascade the t-register numbering through all six DL
+ * emits. sp2C/sp30 statement swap is inert (26 either way). Not tried:
+ * a struct/array home for the four u32 colour values, volatile-pad frame
+ * sculpting, decl-order permutations of the float locals. */
+extern s32 D_00000000_3c8e0;
+void game_libs_func_0005A2C4(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *arg5, s32 arg6, s32 arg7, s32 arg8, s32 arg9, s32 arg10, s32 arg11) {
     s32 spBC;      /* home 0xBC */
-    s32 f;         /* dead home 0xB8; uninit caller-set $v0 read */
-    u32 g;         /* 0xB4 */
-    u32 b;         /* 0xB0 */
-    u32 a;         /* 0xAC */
+    s32 f;         /* flags word (hoisted head load) */
     s32 rgba;      /* 0xA8 */
     s8 colv[4];    /* 0xA4..0xA7 */
     s32 cnt;       /* 0xA0 (dead home) */
@@ -29396,8 +29413,9 @@ void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *
     s32 sp30;      /* 0x30 */
     s32 sp2C;      /* 0x2C */
     char pad2[8];  /* 0x24..0x2B */
-    u32 sp20;      /* 0x20 */
+    f32 fr, fg, fb, fa;
 
+    f = D_00000000_3c8e0;
     spBC = 0;
     if ((f & 0x100) && (f & 1)) {
         spBC = (&D_00000000)[func_00000000()];
@@ -29413,20 +29431,20 @@ void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *
     *(s32 *)(p + 4) = ((spBC & 3) << 0x18) | ((((s32)((f32)sp38 * 4.0f)) & 0xFFF) << 0xC) | (((s32)((f32)sp34 * 4.0f)) & 0xFFF);
     if (arg3 != 0) {
         func_00000000(arg0, arg1, arg10);
-        sp20 = *(f32 *)(arg5 + 0) * 255.0f;
-        colv[0] = sp20;
-        g = *(f32 *)(arg5 + 4) * 255.0f;
-        colv[1] = g;
-        b = *(f32 *)(arg5 + 8) * 255.0f;
-        colv[2] = b;
-        a = *(f32 *)(arg5 + 0xC) * 255.0f;
-        colv[3] = a;
+        fr = *(f32 *)(arg5 + 0);
+        fg = *(f32 *)(arg5 + 4);
+        fb = *(f32 *)(arg5 + 8);
+        fa = *(f32 *)(arg5 + 0xC);
+        colv[0] = (u32)(fr * 255.0f);
+        colv[1] = (u32)(fg * 255.0f);
+        colv[2] = (u32)(fb * 255.0f);
+        colv[3] = (u32)(fa * 255.0f);
         base = *(char **)(arg0 + 0xC);
         cnt = *(s32 *)(base + 4);
         *(s32 *)(base + 4) = cnt + 1;
         p = *(char **)(*(char **)(arg0 + 0xC) + 0) + cnt * 8;
         *(s32 *)(p + 0) = 0xF7000000;
-        rgba = ((sp20 << 8) & 0xF800) | ((g * 8) & 0x7C0) | ((b >> 2) & 0x3E) | (arg11 & 1);
+        rgba = (((s32)(u32)(fr * 255.0f) << 8) & 0xF800) | (((s32)(u32)(fg * 255.0f) * 8) & 0x7C0) | (((s32)(u32)(fb * 255.0f) >> 2) & 0x3E) | (arg11 & 1);
         *(s32 *)(p + 4) = (rgba << 0x10) | rgba;
         base = *(char **)(arg0 + 0xC);
         cnt = *(s32 *)(base + 4);
@@ -29504,7 +29522,7 @@ void gl_func_0005A2CC(char *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, char *
     }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005A2CC);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005A2C4);
 #endif
 
 s32 *gl_func_0005A9D0(s32 *arg0, s32 arg1) {
