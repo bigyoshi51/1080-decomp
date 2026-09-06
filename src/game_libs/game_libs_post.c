@@ -20498,14 +20498,24 @@ void game_libs_func_00031CB8(s32 *arg0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00031D70);
-
+/* game_libs_func_00031D70 (0x34, 13 insns): store the three args to three
+ * consecutive Data words (bootup.uso Data 0x498 / 0x49C / 0x4A0, separate
+ * relocs) and call the exported text callee at 0x389E4 (blank jal). The Sym
+ * table exports section offset 0x463DC = splat 0x31D70 (ROM 0xE16E48 -
+ * 0xDD0A6C), called from TextReloc @0xE86C; 0x31D78 is not exported. IDO 7.1
+ * -O2 schedules the first store (`lui at; sw a0,0(at)`) ABOVE `addiu sp`, so
+ * the old 2-word "alias" orphan was this function's own head and the former
+ * "exact" gl_func_00031D78(a0, a1, a2) { D = a1; D2 = a2; f(a0); } was a
+ * fake-param head-stolen split (docs/MATCHING_WORKFLOW.md
+ * #game-libs-fake-param-exact-sweep-agent-c); retired 2026-09-05. */
 extern int gl_data_00000000;
+extern int D_00000000_c;
 
-void gl_func_00031D78(int a0, int a1, int a2) {
-    D_00000000 = a1;
-    gl_data_00000000 = a2;
-    gl_func_00000000(a0);
+void game_libs_func_00031D70(int a0, int a1, int a2) {
+    D_00000000 = a0;
+    gl_data_00000000 = a1;
+    D_00000000_c = a2;
+    gl_func_00000000();
 }
 
 int gl_func_00031DA4(void) {
