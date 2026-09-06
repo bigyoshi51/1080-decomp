@@ -3525,73 +3525,28 @@ int gl_func_000208BC(int a0, int a1, int a2) {
     return gl_func_00034F80(a0, a1, a2);
 }
 
-// gl_func_00020914 — STRUCTURAL PASS (0x114 / 69 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A mode-select / config-apply routine over the &D_21xx
-// descriptor pool (same pool the gl_func_0001FF34 reporter family
-// uses).
-//
-//   void gl_func_00020914(int mode, void *target) {
-//     D *desc;
-//     switch (mode) {                              // beq 0 / 1 / 2
-//       case 0:  desc = &D_21F8; break;
-//       case 1:  desc = &D_2308; break;
-//       case 2:  desc = &D_2418; break;
-//       default: desc = &D_xxxx; break;
-//     }
-//     R *rec = (char*)desc + 0xD4;                  // sub-record
-//     if (target == 0) {
-//       int   a = rec->w_0;
-//       short b = rec->h_1E;
-//       if (...) rec->w_0 = 1;                       // set state
-//       int   c = rec->w_14;
-//       short d = rec->h_2A;
-//       ...                                          // apply config
-//       float f = *(float*)(&D_0 + 0xE78);           // global scalar
-//     }
-//   }
-//
-// Struct-typing reference: &D_21F8 / &D_2308 / &D_2418 are the
-//   mode-indexed descriptor blobs (one per display/format mode 0/1/2,
-//   plus a default). Each has an active sub-record at desc+0xD4 with
-//   word fields at 0 / 0x14 / 0x20 and halfwords at 0x1E / 0x2A; field
-//   0 is a state/enabled flag set to 1. &D_0+0xE78 is a global float
-//   constant pulled in when applying. The whole apply path is gated
-//   on whether `target` (the caller-saved arg at sp+0x24) is null.
-//   Configuration front-end paired with the gl_func_0001FF34 /
-//   gl_func_0002003C reporter dump family (shared &D_21xx pool).
-// Caps (DEFERRED): single jr $ra. Mode-select / config-apply over
-//   the &D_21xx descriptor pool (config front-end paired with the
-//   gl_func_0001FF34 / gl_func_0002003C reporter family). Real-C
-//   STRUCTURAL body below per the analysis (mode switch picks
-//   &D_21F8/0x2308/0x2418, sub-record at desc+0xD4, apply path
-//   gated on target==null sets the enabled flag and pulls the
-//   &D_0+0xE78 global float). Byte-match deferred — beq mode-switch
-//   + struct-apply + global-float schedule. Name pre-checked: no
-//   extern reuse (collision-safe).
-#ifdef NON_MATCHING
-extern int D_00000000;
-/* Whole-body decode 2026-06-01; reconstruction refined 2026-06-20.
- * int record-lookup(mode, flag, key): switch(mode) picks a per-mode descriptor
- * base (D+0x21F8/0x2308/0x2418; default reads an uninit sp slot). v1=base+0xD4.
- * flag==0: probe v1->0x1E (set v1->0=1, return v1->0x14) or v1->0x2A (set
- * v1->0=0, return v1->0x20), else 0. flag!=0: scan base[base[0]] records
- * (stride 12) for key==rec->0x1E returning rec->0x14; on miss, if flag==2
- * recurse gl_func_00020914(mode, 0, key) and return 0.
- * 2026-06-20: 35->33 diffs. Fixed: drop the `char *D` and `uninit` locals so the
- * frame is 0x20 (was 0x28); switch(mode) gives the beq-chain dispatch with arg
- * homes at 0x24 byte-exact; flag==0 probe FIRST (fall-through) so the flag test
- * is bnel (was beql); recurse to self (was placeholder gl_func_00000000).
- * Residual 33 (size 67 exact): the flag!=0 SCAN LOOP — target uses branch-LIKELY
- * (bnel a2,t1 / bnel at,zero) and RELOADS the base[0] count via $a0 each
- * iteration; the structured do/while makes IDO hoist the count into a reg (one
- * load) + plain bne, so the loop schedule/coloring diverges. Plus the default
- * uninit slot lands at 0x1C vs 0x18 (phantom-slot, no named lever w/o regrowing
- * the frame). Genuine branch-likely-schedule + loop-invariant-reload cap. */
+/* gl_func_00020914 (0x10C, 67 words, BYTE-EXACT 2026-09-06 agent-g): per-mode record lookup.
+ * switch(mode) picks the per-mode table (D+0x21F8 / 0x2308 / 0x2418; the missing default
+ * reads base's uninitialised frame home at sp+0x18 -- decl order `i, base, v1, t` maps it
+ * there). flag==0: probe the sub-record at base+0xD4 (key at +0x1E -> set +0 = 1, return
+ * +0x14; key at +0x2A -> set +0 = 0, return +0x20). Otherwise scan records of stride 12
+ * from base for key == rec->0x1E, returning rec->0x14; on a miss with flag == 2 fall back
+ * to gl_func_000208BC(mode, 0, key) and RETURN ITS VALUE (the USO TextReloc at section
+ * 0x3506C names symval 0x34F28 = 208BC; the ROM word is the blank load-time jal, so the
+ * call is spelled through the gl_func_00000000 placeholder like 31D70's; the old wrap's
+ * self-recursion made IDO's f_tail_recursion turn the call into a loop).
+ * Loop kit: the target reloads the count every iteration through a SECOND pointer ($a0)
+ * while the pre-test reads it through `base` ($a1). Read the pre-test as `*(int *)base` and
+ * the do-while bound through a distinct struct-typed copy `t->count`; uopt then treats the
+ * in-loop load as non-redundant and leaves it in the loop (a for-loop / same-pointer
+ * do-while gets the count hoisted into $a0, 62 words). See docs/IDO_CODEGEN.md
+ * #distinct-pointer-copy-keeps-loop-bound-reload-20914. */
+typedef struct { int count; } Gl20914Tbl;
 int gl_func_00020914(int mode, int flag, int key) {
+    int i;
     char *base;
     char *v1;
-    int v0;
+    Gl20914Tbl *t;
 
     switch (mode) {
     case 0:  base = (char *)&D_00000000 + 0x21F8; break;
@@ -3610,25 +3565,23 @@ int gl_func_00020914(int mode, int flag, int key) {
         }
         return 0;
     }
-    v0 = 0;
+    t = (Gl20914Tbl *)base;
+    i = 0;
     if (*(int *)base != 0) {
         v1 = base;
         do {
             if (key == *(short *)(v1 + 0x1E)) {
                 return *(int *)(v1 + 0x14);
             }
-            v0++;
+            i++;
             v1 += 12;
-        } while ((unsigned)v0 < (unsigned)*(int *)base);
+        } while ((unsigned)i < (unsigned)t->count);
     }
     if (flag == 2) {
-        gl_func_00020914(mode, 0, key);
+        return gl_func_00000000(mode, 0, key);   /* blank load-time jal; callee = gl_func_000208BC */
     }
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00020914);
-#endif
 
 
 /* game_libs_func_00020A20 (0x3D4, 245 words, BYTE-EXACT 2026-09-05): hoisted-head
