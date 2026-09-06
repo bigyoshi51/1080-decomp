@@ -30732,21 +30732,23 @@ void gl_func_0005C784(int a0, float *src) {
     gl_func_00000000((char*)&D_00000000 + 0x21B18);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C808);
-
-#ifdef NON_MATCHING
-/* gl_func_0005C810: float-diff logger. Compares 3 float pairs (a,b)(c,d)(e,f);
- * for each pair that DIFFERS, logs cb(&D, label, obj+off, v1, v2, 0) with the
- * floats passed as raw bits (mfc1 -> a3 + swc1 stack). Labels at &D+0x21B1C/20/24,
- * offsets obj+0/4/8. Fresh decode 2026-05-29: 95.74%, body byte-exact — the cb
- * float-bit passing (mfc1 a3 + swc1 stack) matches via the gl_proto_5c810 alias.
- * RESIDUAL (2 insns): the target receives a/b already in $f12/$f14 alongside obj
- * in $a0 (n32-style), but o32 C with `(int obj, float a, float b)` passes a/b in
- * $a1/$a2 needing `mtc1 a1,$f12; mtc1 a2,$f14` at entry. The o32 int-a0+float-f12
- * cap (same as gl_func_0002DF68) — not C-reproducible. */
+/* game_libs_func_0005C808: float-diff logger (0xC4, 49 insns). Compares 3 float
+ * pairs (a,b)(c,d)(e,f); for each pair that DIFFERS, logs
+ * cb(&D, label, obj+off, v1, v2, 0) with the floats passed as raw bits
+ * (mfc1 -> a3 + swc1 stack) via the gl_proto_5c810 alias. Labels at
+ * &D+0x21B1C/20/24, offsets obj+0/4/8.
+ *
+ * MERGED 2026-09-06 (agent-c): bootup.uso Sym table exports section 0x70E74 =
+ * splat 0x5C808 (ROM 0xE418E0 - 0xDD0A6C); 0x5C810 is NOT exported. The 2-word
+ * orphan game_libs_func_0005C808 (`mtc1 a1,$f12; mtc1 a2,$f14`) was never an
+ * "alias entry" -- it is IDO's own o32 int-reg -> FP move for the float args
+ * a/b of THIS prototype, scheduled above `addiu sp`. The former gl_func_0005C810
+ * "o32 int-a0 + float-$f12 arg-passing cap" was the mis-split head, not a cap.
+ * a0 = obj (home 0x20), a1/a2 = a/b bits (mtc1 to $f12/$f14), a3 = c bits
+ * (home 0x2c), d/e/f = caller stack 0x30/0x34/0x38. */
 extern int D_00000000;
 extern void gl_proto_5c810(int, int, int, float, float, int);
-void gl_func_0005C810(int obj, float a, float b, float c, float d, float e, float f) {
+void game_libs_func_0005C808(int obj, float a, float b, float c, float d, float e, float f) {
     if (a != b) {
         gl_proto_5c810((int)&D_00000000, (int)((char *)&D_00000000 + 0x21B1C), obj, a, b, 0);
     }
@@ -30757,9 +30759,6 @@ void gl_func_0005C810(int obj, float a, float b, float c, float d, float e, floa
         gl_proto_5c810((int)&D_00000000, (int)((char *)&D_00000000 + 0x21B24), obj + 8, e, f, 0);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C810);
-#endif
 
 /* game_libs_func_0005C8CC: 3x3-matrix x Vec3 transform. Verified decode (m2c):
  *   v0=arg0[0]; v1=arg0[4]; v2=arg0[8];   (read input vec into temps first)

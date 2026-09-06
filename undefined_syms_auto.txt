@@ -1134,7 +1134,7 @@ func_00000000_087A4 = 0x00000000;
 func_00000000_082F8 = 0x00000000;
 func_00000000_082F8_v = 0x00000000;  /* void-typed call-1 callee alias (kills dead $v0 def; base->$v0) */
 gl_proto_41148 = 0x00000000;  /* (int,int,int,int,int,double) debug-format for gl_func_00041148 */
-gl_proto_5c810 = 0x00000000;  /* (int,int,int,float,float,int) float-diff log for gl_func_0005C810 */
+gl_proto_5c810 = 0x00000000;  /* (int,int,int,float,float,int) float-diff log for game_libs_func_0005C808 (ex gl_func_0005C810, merged 2026-09-06) */
 D_b5_E5D8_base = 0x00000000;  /* distinct &D for timproc_uso_b5_func_0000E5D8 base load (defeat CSE so base read = compact lui+lw) */
 D_9204_a = 0x00000000;  /* distinct &D globals for gl_func_00009204 (defeat CSE) */
 D_9204_b = 0x00000000;
