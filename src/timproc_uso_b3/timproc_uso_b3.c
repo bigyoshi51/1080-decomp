@@ -1001,42 +1001,44 @@ void timproc_uso_b3_func_00001870(int *self) {
  * store cap STANDS -- uninit `float g; buf[i]=g` and `register float g`
  * both emit lwc1-from-home first; the store-only $f0 x4 form is
  * C-unreachable. See docs/IDO_CODEGEN uninit-register-float addendum. */
-/* timproc_uso_b3_func_00001920: 2-insn alt-entry (set f0=1.0f, falls into
- * 00001928). RECOVERED 2026-05-28 from the Yay0 block_3 gap. SOURCE=4 audit
- * 2026-06-01: not an accessor-template miss; this mirrors
- * timproc_uso_b1_func_000011D0's float-constant preload. INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001920);
-
+/* timproc_uso_b3_func_00001920 (0xAC, 43 insns): hoisted-head merge of 1920 +
+ * 1928 (2026-09-05 agent-c, TWENTY-FIFTH mis-split class, see
+ * docs/MATCHING_WORKFLOW.md #hoisted-head-119c-11a4-mgrproc). The 8-byte
+ * "alt-entry" `lui at,0x3F80; mtc1 at,$f0` is this function's own `buf[i] = 1.0f`
+ * materialization scheduled above `addiu sp` by IDO 7.1 -O2 (the old 0.0f
+ * body's own `mtc1 zero,$f0` was already emitted above the prologue). Oracle =
+ * this block's module tables (trkproc.uso, inner header ROM 0x5B3DE2):
+ * Sym[163] EXPORTS 0x1920 and two intra-module jal's (TextReloc kind 1 at
+ * 0x1844 and 0x1878) target it; 0x1928 has no export and no R_MIPS_26.
+ * Body = arcproc_uso_func_00001C74's canonical TRUE-BYTE decode (byte-identical
+ * clone family sig=739fd8d1d3, with b1_19C0): buf[] = 1.0f, tgt = a0+0xF0
+ * spill at sp+0x20, char pad[0x20] = the 0x24-0x44 gap, frame 0x58.
+ * RESIDUAL (2 words): the 2E3C-class invariant FP pair-swap -- target
+ * `mtc1 at,$f4` (255.0f) then `lwc1 $f6,0x108(s0)`; IDO gives the LOADED
+ * value the lower reg in every probed form (see the 1C74 wrap). */
 #ifdef NON_MATCHING
-/* timproc_uso_b3_func_00001928: byte-identical mirror of
- * arcproc_uso_func_00001C74 (sig=739fd8d1d3, 41-insn 0xA4 counter+
- * conditional-scale wrapper).
- *
- * Per scripts/find-byte-identical-clones.py — see arcproc_uso_func_00001C74's
- * wrap for canonical decode. Mirrored source=4 2026-06-01.
- * NOTE CORRECTED 2026-07-15: the "alt-entry" func_00001920 above is NOT an
- * entry — it is 1928's own hoisted 1.0f const materialization (stolen
- * prologue; buf[] = 1.0f, not 0.0f). 1C74 canonical recipe reproduces
- * 41/43 true bytes; residual = version-independent FP pair-swap. See
- * arcproc 1C74's wrap + docs/IDO_CODEGEN FP-const-hoist entry. */
-void timproc_uso_b3_func_00001928(int *a0) {
+void timproc_uso_b3_func_00001920(int *a0) {
     float buf[4];
+    char *tgt;
+    char pad[0x20];
 
-    buf[0] = 0.0f;
-    buf[1] = 0.0f;
-    buf[2] = 0.0f;
-    buf[3] = 0.0f;
+    (void)pad;
+    buf[0] = 1.0f;
+    buf[1] = 1.0f;
+    buf[2] = 1.0f;
+    buf[3] = 1.0f;
     *(int *)((char *)a0 + 0x68) += 1;
     if (gl_func_00000000(*(int *)((char *)a0 + 0x50)) != 0) {
         gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)((char *)a0 + 0x108)), buf);
-        gl_func_00000000((char *)a0 + 0xF0);
+        tgt = (char *)a0 + 0xF0;
+        gl_func_00000000(tgt);
         if ((*(int *)((char *)a0 + 0x68) & 8) != 0) {
-            gl_func_00000000((char *)a0 + 0xF0, 0xA0, 0x7C, 3);
+            gl_func_00000000(tgt, 0xA0, 0x7C, 3);
         }
     }
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001928);
+INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001920);
 #endif
 
 /* timproc_uso_b3_func_000019CC 2026-07-15 (agent-g wave 3): 94.04 -> 99.81.
