@@ -16503,11 +16503,10 @@ void gl_func_0002D8D8(void) {
  * EPILOGUE (insns 219-220 @ 0x2DC64-0x2DC70):
  *   lw ra, 0x14(sp); addiu sp, 0x18; jr ra; nop
  *
- * Plus 2 trailing prefix-bytes for SUCCESSOR (0x2DC74/0x2DC78: `lui $t6,0;
- * lw $t6,0($t6)`) — gl_func_0002DC7C inherits this $t6 setup. Historically
- * captured via SUFFIX_BYTES on 0002D910 in Makefile; that mechanism was
- * REMOVED 2026-05-23 as match-faking. Those 2 insns belong to a separate
- * symbol now.
+ * The 2 words after the epilogue (0x2DC74/0x2DC78: `lui $t6,0; lw $t6,0($t6)`)
+ * are NOT a stolen prologue of this function: they are the exported entry
+ * game_libs_func_0002DC74 (its hoisted mode-word read; merged + matched
+ * 2026-09-06, see below).
  *
  * Multi-tick decomp expected: 5+ arms × ~10 insns of dispatch each.
  * Default INCLUDE_ASM keeps ROM exact; partial C body provides
@@ -16654,39 +16653,44 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D910);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002DC74);
-
-#ifdef NON_MATCHING
-/* gl_func_0002DC7C: 32-insn float-clamping helper that calls
- * gl_func_0001CA10(0x04030F00, float_bits). Prologue-stolen successor
- * of gl_func_0002D910 — predecessor's tail (2 words: lui t6,0; lw t6,0(t6))
- * pre-loads the $t6 dispatch global. Historical PROLOGUE_STEALS=8 capture
- * was REMOVED 2026-05-23 as match-faking.
+/* game_libs_func_0002DC74 (0x84, 33 insns): if the Data mode word @0x1C0AC
+ * (bootup.uso sym1430, addend 0 -> its own zero extern D_00000000_1c0ac) is 15,
+ * pick a float from the 4-entry table at Data+0x1C1D8 (sym2 base + 0x1C1D8 in-word)
+ * by the sign/magnitude of the two stick axes -- default 1.0f, [0] if a0 >= 17,
+ * [1] if a1 >= 17, [2] if a0 < -16, [3] if a1 < -16 (later tests win) -- and
+ * pass it as the second (o32 int-reg -> `mfc1 a1,$f0`) arg of the blank
+ * (int, float)-prototyped callee gl_func_00000000_f with 0x04030F00. The
+ * R_MIPS_26 is sym1374 = text 0x3B290 = gl_func_00026C24 (blank 0C000000 in
+ * the ROM, so the placeholder spelling is the byte-honest one).
  *
- * Fuzzy 52.19%. Capped by docs/IDO_CODEGEN.md#feedback-ido-mfc1-from-c:
- * target uses `mfc1 a1, $f0` directly (one frame slot reused, $f0 only),
- * but IDO emits swc1/lw round-trip for `*(int*)&f` → expanded frame
- * (-32 vs -24) plus distinct $f4/$f6/$f8/$f10/$f16 reload chain. Also
- * uses beql for last conditional which `if (...) f = ...` doesn't
- * generate. Leaving as NM wrap. */
-extern int gl_func_0001CA10();
-extern float D_0001C1D8[];
-
-void gl_func_0002DC7C(int a0, int a1) {
+ * bootup.uso Sym exports section offset 0x422E0 = splat 0x2DC74 (ROM 0xE12D4C -
+ * 0xDD0A6C; jal'd from TextReloc @0x3E0); 0x422E8 = 0x2DC7C is NOT exported.
+ * The 2-word orphan `lui t6; lw t6,0(t6)` was the hoisted first statement (the
+ * mode-word read scheduled above `addiu sp`), not a "prologue-stolen $t6
+ * dispatch global" of gl_func_0002D910. The old gl_func_0002DC7C wrap's
+ * "mfc1-from-C cap" was the K&R callee: the (int, float) prototype puts the
+ * float in a1 via mfc1 with no frame slot. BYTE-EXACT 33/33 on the first
+ * compile (agent-c 2026-09-06). */
+extern int D_00000000_1c0ac;
+extern int gl_func_00000000_f(int, float);
+void game_libs_func_0002DC74(int a0, int a1) {
+    /* volatile pointee = held-base pin: uopt materialises the pointer VALUE
+     * (`lui v0,2; addiu v0,-0x3E28`, the 0x1C1D8 addend baked in the .o word)
+     * and reads 0/4/8/0xC(v0). A plain `float *` folds every read to its own
+     * `lui at; lwc1 %lo(D+0x1C1Dx)(at)`; a named `extern float D_0001C1D8[]`
+     * gives the same 33 words but leaves lui/addiu blank (HI16/LO16 relocs)
+     * in the .o, which the reloc-blind expected/ compare rejects. */
+    volatile float *tbl = (volatile float *)((char *)&D_00000000 + 0x1C1D8);
     float f;
-    if (*(int*)&D_00000000 != 15) {
-        return;
+    if (D_00000000_1c0ac == 15) {
+        f = 1.0f;
+        if (a0 >= 17) f = tbl[0];
+        if (a1 >= 17) f = tbl[1];
+        if (a0 < -16) f = tbl[2];
+        if (a1 < -16) f = tbl[3];
+        gl_func_00000000_f(0x04030F00, f);
     }
-    f = 1.0f;
-    if (a0 >= 17) f = D_0001C1D8[0];
-    if (a1 >= 17) f = D_0001C1D8[1];
-    if (a0 < -16) f = D_0001C1D8[2];
-    if (a1 < -16) f = D_0001C1D8[3];
-    gl_func_0001CA10(0x04030F00, *(int*)&f);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002DC7C);
-#endif
 
 /* gl_func_0002DCF8: 14-insn 2-call setup. func(); D_a=1; func(0xF8000000, 0). */
 extern int D_2DCF8_flag;
