@@ -21424,69 +21424,74 @@ void gl_func_0004E4E8(int *dst) {
     *dst = scratch;
 }
 
-/* Quad4 reader template — same as the 4 standard accessor templates in
- * every USO. Trailing 2 insns (`lui a1,0; addiu a1,a1,0` -> a1=&D) are the
- * stolen prologue prefix for the SUCCESSOR gl_func_0004E584; injected via
- * SUFFIX_BYTES so they end up inside this function's symbol per the
- * baseline. */
+/* Quad4 reader template -- same as the 4 standard accessor templates in
+ * every USO. 22 insns (0x58, ends at its jr ra + nop). The 2 words that
+ * follow at 0x4E57C (lui a1; addiu a1,a1,%lo) are NOT this function's tail:
+ * they are gl_func_0004E584's own hoisted first statement (its .s starts at
+ * 0x4E57C, 0x84) -- see the note on that function. */
 void gl_func_0004E524(Quad4 *dst) {
     Quad4 buf;
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
 }
 
+/* gl_func_0004E584: 33-insn / 0x84 (incl. its own 2-word head at 0x4E57C)
+ * 3-stage alloc-or-passthrough zeroing setter, sibling of gl_func_0005165C.
+ * RE-DECODED 2026-09-05 (agent-g, 66.5 -> 31/33 words): the `lui a1; addiu
+ * a1,a1,%lo` head is NOT a1 "preset by the predecessor's SUFFIX_BYTES" --
+ * nothing jal's 0x4E57C or 0x4E584 -- it is this function's first statement
+ * (`base = D_arr`) hoisted above `addiu sp` by the -O2 scheduler
+ * (docs/MATCHING_WORKFLOW.md #uso-sym-export-oracle-orphan-sweep-arcproc-f48;
+ * the game_libs.c orphan game_libs_func_0004E57C is a zero-size dead emit at
+ * the clip). There is no -0x28 "sentinel": `li at,-0x28; bne a1,at` is IDO's
+ * canonicalisation of `(base + 10) == 0` -> `base == -40`, and `base` stays a
+ * live register (a1, re-materialised after the first alloc) only because it is
+ * ASSIGNED TWICE (`base = D_arr` again right after the alloc, exactly where the
+ * target re-emits `lui a1; addiu a1`). With a single def IDO folds every use
+ * into its own lui/addiu and tests the folded copy (bnez v1). Stage 1 needs
+ * the `(unsigned)` cast (docs/IDO_CODEGEN.md
+ * #unsigned-cast-defeats-addr-nonnull-fold-5165c); stage 2's test is on the
+ * non-constant `q = base + 10`, so no cast there (a cast re-folds it). Stage 3
+ * must be a SEPARATE variable `r = q` -- re-testing q itself emits `bnezl v1`
+ * with the store in the likely slot (-1 word); `r` gives `bnez v1; move a0,v1`.
+ *
+ * RESIDUAL (2 words, a swap): target `move v1,a1; bnez a1; sw ra` vs build
+ * `sw ra; bnez a1; move v1,a1`. Both are height-1 candidates for the bnez
+ * delay slot and IDO's tie-break is the SOURCE LINE: the prologue `sw ra`
+ * carries the line of the function's `{` and the copy `p = base` carries its
+ * own (later) line; equal lines also give sw-ra-first. A `#line 1` directive
+ * ahead of `p = base;` reproduces all 33 words standalone, so the bytes are
+ * reachable from C only with a statement whose line number is LOWER than the
+ * `{` (a #line or an #include'd body) -- NOT a natural layout; kept NM
+ * (see docs/IDO_CODEGEN.md #prologue-sw-ra-carries-brace-line-4e584). */
 #ifdef NON_MATCHING
-/* gl_func_0004E584: 31-insn / 0x7C 3-stage chained alloc-or-passthrough.
- *
- * Pred gl_func_0004E524 (Quad4 reader) leaves a1=&D_00000000 in its tail
- * (that's the SUFFIX_BYTES recipe). Here a1 is the 2nd arg, but the function
- * compares a1 against -0x28 (0xFFFFFFD8) as a sentinel, suggesting either
- * (a) a fall-through chain pattern where a1 is preset by predecessor, OR
- * (b) cross-USO call-site that varies a1.
- *
- * Decoded structure (partial):
- *   v1 = a1
- *   if (a1 == 0) {                             // a1==0: alloc default
- *       v1 = alloc(8)
- *       a1 = &D_00000000                       // sets a1 to extern base
- *       if (v1 != 0) {
- *           v1->0x0 = 0
- *           v1->0x4 = 0
- *       }
- *   }
- *   v1 = &D_00000000 + 0x28                    // ?? unused?
- *   if (a1 == -0x28) {                          // sentinel check
- *       p = alloc(4)
- *       if (p != 0) {
- *           q = alloc(4)
- *           if (q != 0) {
- *               *q = 0
- *           }
- *       }
- *   }
- *
- * Initial wrap; baseline % to be measured next pass. Not byte-matched —
- * structural decode only. */
 extern int gl_func_00000000();
-void gl_func_0004E584(char *a0, char *a1) {
-    char *v1 = a1;
-    if (a1 == 0) {
-        v1 = (char*)gl_func_00000000(8);
-        a1 = (char*)&D_00000000;
-        if (v1 != 0) {
-            *(int*)(v1 + 0x4) = 0;
-            *(int*)(v1 + 0x0) = 0;
-        }
+extern int D_4E584_arr[];   /* head base: lui a1; addiu a1,a1,%lo (array-extern form of D_00000000) */
+
+void gl_func_0004E584(void) {
+    int *base = D_4E584_arr;
+    int *p, *q, *r;
+    p = base;
+    if ((unsigned)base == 0) {
+        p = (int*)gl_func_00000000(8);
+        base = D_4E584_arr;
+        if (p == 0) goto s1;
     }
-    if (a1 == (char*)-0x28) {
-        char *p = (char*)gl_func_00000000(4);
-        if (p != 0) {
-            char *q = (char*)gl_func_00000000(4);
-            if (q != 0) {
-                *(int*)(q + 0x0) = 0;
-            }
-        }
+    p[1] = 0;
+    p[0] = 0;
+s1:
+    q = base + 10;
+    if (q == 0) {
+        q = (int*)gl_func_00000000(4);
+        if (q == 0) goto end;
     }
+    r = q;
+    if (r == 0) {
+        r = (int*)gl_func_00000000(4);
+        if (r == 0) goto end;
+    }
+    *r = 0;
+end:;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004E584);

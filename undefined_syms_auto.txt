@@ -3427,3 +3427,4 @@ gl_ref_0003B900 = 0x0003B900;  /* gl_func_00034A78 config block word = 0 */
 gl_ref_0003B904 = 0x0003B904;  /* gl_func_00034A78 config block: 96-byte buffer passed to init cb */
 D_5165C_arr = 0x00000000;  /* gl_func_0005165C head base (array-extern spelling of D_00000000: lui+addiu held base) */
 D_5165C_b = 0x00000000;  /* gl_func_0005165C per-site alias of D_00000000 for the second tail store (two luis; the target's shared-$at pair is the 66A50 cap) */
+D_4E584_arr = 0x00000000;  /* gl_func_0004E584 head base (array-extern spelling of D_00000000: lui+addiu held base, re-assigned after the first alloc) */
