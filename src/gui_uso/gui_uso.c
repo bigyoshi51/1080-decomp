@@ -17,7 +17,7 @@ struct GfxRing_413C { int *buf; int idx; };
  * C bodies. */
 
 
-/* gui_func_00000148: single coherent function, 0x148-0x558 (0x410 / 260
+/* gui_func_00000148: single coherent function, 0x148-0x55C (0x414 / 261
  * insns), terminated by `jr ra; addiu sp,sp,0x80`. The earlier "BUNDLED
  * 0x7D0/500-insn / 3 sub-fns + orphan" note was STALE: expected/gui_uso.c.o
  * shows the next symbol gui_uso_func_0000055C starting at 0x55C, and the
@@ -40,7 +40,7 @@ struct GfxRing_413C { int *buf; int idx; };
  *   Tracks maxw = max(maxx+1), sum = sum(maxx+1). Finally o->C = maxw,
  *   o->8 = (int)((sum*0.5f)/o->0), and back-fills g[3]=o->C for every cell.
  *
- * STATUS: 94.90% fuzzy (was 92.03). 2026-08-22 structural fixes: (1) maxx+=1
+ * STATUS: 99.92% fuzzy (was 94.90). 2026-08-22 structural fixes: (1) maxx+=1
  * in place, reused for maxw/g[2]/sum (target addiu a1,a1,1 in place); (2)
  * per-store reload of *(o+0x20) -- no cached g pointer (aliasing store
  * between field writes forces the 4 reloads); (3) tail is INTEGER divide
@@ -49,34 +49,36 @@ struct GfxRing_413C { int *buf; int idx; };
  * INSIDE the rows>0 guard, with a guarded do/while row loop. This restores
  * the target's per-column multu and per-row argument-home reload; merely
  * moving gi's declaration never fixed the strength reduction. Initialize
- * maxx before minx to match the scan setup order. Remaining: frame 144 vs
- * 128, spill slots and a handful of scheduling/operand-order differences.
+ * maxx before minx to match the scan setup order. Follow-up: reuse a0 as
+ * the allocated object and row in the final fill loop, inline rows*cols,
+ * and store both gh fields before the original atlas dimensions. Keep
+ * the pixel scan on one line for the unrolled slt/addiu schedule.
+ * Remaining: 136-byte frame vs 128, spill homes, and one addu operand swap
+ * (248/261 raw words agree; fuzzy scoring understates stack differences).
  * Address-escaped/volatile rows regressed; register hints were inert.
- * See docs/IDO_CODEGEN.md#guarded-row-index-gui148. Still NON_MATCHING. */
+ * See docs/IDO_CODEGEN.md#glyph-grid-pointer-reuse-gui148. Still NON_MATCHING. */
 #ifdef NON_MATCHING
 void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
-    char *o = a0;
-    int gw, gh, prod;
+    int gw, gh;
     int sum, maxw;
     int col, row;
 
     if (a0 == 0) {
-        o = (char *)gl_func_00000000(40);
-        if (o == 0) {
+        a0 = (char *)gl_func_00000000(40);
+        if (a0 == 0) {
             goto end;
         }
     }
     gw = a2 / rows;
     gh = a3 / cols;
-    *(int *)(o + 4) = a1;
-    *(int *)(o + 0xC) = gw;
-    prod = rows * cols;
-    *(int *)(o + 0) = prod;
-    *(int *)(o + 0x10) = gh;
-    *(int *)(o + 0x18) = a2;
-    *(int *)(o + 0x1C) = a3;
-    *(int *)(o + 0x14) = gh;
-    *(int *)(o + 0x20) = gl_func_00000000(prod * 20);
+    *(int *)(a0 + 4) = a1;
+    *(int *)(a0 + 0xC) = gw;
+    *(int *)(a0 + 0) = rows * cols;
+    *(int *)(a0 + 0x10) = gh;
+    *(int *)(a0 + 0x14) = gh;
+    *(int *)(a0 + 0x18) = a2;
+    *(int *)(a0 + 0x1C) = a3;
+    *(int *)(a0 + 0x20) = gl_func_00000000(rows * cols * 20);
 
     sum = 0;
     maxw = 0;
@@ -86,42 +88,37 @@ void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
         if (rows > 0) {
             gi = col * rows;
             do {
-                char *px = (char *)*(int *)(o + 4) + (col * gh) * a2 + row * gw;
+                char *px = (char *)*(int *)(a0 + 4) + (col * gh) * a2 + row * gw;
                 int idx = gi;
                 int maxx = 0, minx = gw;
                 int y;
                 for (y = 0; y < gh; y++) {
                     char *line = px + y * a2;
                     int x;
-                    for (x = 0; x < gw; x++) {
-                        if (line[x] != 0) {
-                            if (x < minx) minx = x;
-                            if (maxx < x) maxx = x;
-                        }
-                    }
+                    /* Same-line scan preserves IDO's unrolled compare schedule. */
+                    for (x = 0; x < gw; x++) { if (line[x] != 0) { if (x < minx) minx = x; if (maxx < x) maxx = x; } }
                 }
                 maxx += 1;
                 if (maxw < maxx) maxw = maxx;
-                *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x0) = row * gw + minx;
-                *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x4) = col * gh;
-                *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x8) = maxx - minx;
+                *(int *)(*(int *)(a0 + 0x20) + idx * 0x14 + 0x0) = row * gw + minx;
+                *(int *)(*(int *)(a0 + 0x20) + idx * 0x14 + 0x4) = col * gh;
+                *(int *)(*(int *)(a0 + 0x20) + idx * 0x14 + 0x8) = maxx - minx;
                 sum += maxx;
-                *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x10) = minx;
+                *(int *)(*(int *)(a0 + 0x20) + idx * 0x14 + 0x10) = minx;
                 gi++;
                 row++;
             } while (row != rows);
         }
     }
-    *(int *)(o + 0xC) = maxw;
-    *(int *)(o + 8) = (int)((float)sum * 0.5f) / *(int *)(o + 0);
+    *(int *)(a0 + 0xC) = maxw;
+    *(int *)(a0 + 8) = (int)((float)sum * 0.5f) / *(int *)(a0 + 0);
     {
-        int i;
-        for (i = 0; i < *(int *)(o + 0); i++) {
-            *(int *)(*(int *)(o + 0x20) + i * 0x14 + 0xC) = *(int *)(o + 0xC);
+        for (row = 0; row < *(int *)(a0 + 0); row++) {
+            *(int *)(*(int *)(a0 + 0x20) + row * 0x14 + 0xC) = *(int *)(a0 + 0xC);
         }
     }
 end:
-    return o;
+    return a0;
 }
 #else
 INCLUDE_ASM("asm/nonmatchings/gui_uso/gui_uso", gui_func_00000148);
