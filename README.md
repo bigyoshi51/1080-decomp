@@ -14,7 +14,7 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 |------------------------|-------------------|------------------------|------------|------------|------------------------------------------------|
 | `kernel` | 135 / 201 | 21.8 KiB / 38.9 KiB | 56.06 % | 69.26 % | libultra + USO loader + audio (`0x80000000`) |
 | `bootup_uso` | 272 / 349 | 28.5 KiB / 81.6 KiB | 34.99 % | 83.75 % | Giles Goddard's libgdl engine |
-| `game_libs` | 1,300 / 1,914 | 139.0 KiB / 408.8 KiB | 34.01 % | 81.84 % | Support libraries (incl. statically-linked libultra) |
+| `game_libs` | 1,301 / 1,914 | 139.2 KiB / 408.8 KiB | 34.04 % | 81.85 % | Support libraries (incl. statically-linked libultra) |
 | `gui_uso` | 16 / 39 | 1.7 KiB / 18.1 KiB | 9.16 % | 87.75 % | GUI/menu helpers |
 | `titproc_uso` | 41 / 46 | 5.9 KiB / 10.5 KiB | 55.83 % | 97.84 % | Title-screen process |
 | `arcproc_uso` | 45 / 59 | 5.2 KiB / 10.4 KiB | 50.51 % | 94.96 % | Arcade-mode process |
@@ -30,7 +30,7 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 | `game_uso` | 192 / 240 | 25.9 KiB / 70.8 KiB | 36.63 % | 87.29 % | Main game loop (Yay0-decompressed) |
 | `timproc_uso` | 266 / 315 | 32.0 KiB / 81.4 KiB | 39.28 % | 93.50 % | Timer process (Yay0; variants b1/b3/b5) |
 | `map4_data_uso_b2` | 3 / 3 | 0.2 KiB / 0.2 KiB | 100.00 % | 100.00 % | Map overlay code (remaining map assets are data) |
-| **Total** | **2,400 / 3,315** | **274.8 KiB / 744.5 KiB** | **36.91 %** | **84.24 %** |  |
+| **Total** | **2,401 / 3,315** | **274.9 KiB / 744.5 KiB** | **36.93 %** | **84.24 %** |  |
 
 Snapshot from `report.json` on 2026-09-09. Remaining Yay0-compressed USOs are
 splatted; code in `map4_data_uso_b2` is tracked above, while pure data assets
