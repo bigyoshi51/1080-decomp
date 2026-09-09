@@ -1132,6 +1132,15 @@ build/src/game_libs/game_libs_post0b.c.o build/non_matching/src/game_libs/game_l
 build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY := gl_func_000669B8=$(GAMELIBS_669AC_DONOR) gl_func_0006BA7C=$(GAMELIBS_6BA7C_DONOR) gl_func_00069E04=$(GAMELIBS_69E04_DONOR) gl_func_0006AF0C=$(GAMELIBS_6AF0C_DONOR) gl_func_0006A304=$(GAMELIBS_6A304_DONOR) gl_func_0006AF44=$(GAMELIBS_6AF44_DONOR) gl_func_0006B880=$(GAMELIBS_6B880_DONOR) gl_func_0006B974=$(GAMELIBS_6B974_DONOR) gl_func_0006BAD4=$(GAMELIBS_6BAD4_DONOR) gl_func_0006B7A0=$(GAMELIBS_6B7A0_DONOR) gl_func_0006B0FC=$(GAMELIBS_6B0FC_DONOR) game_libs_func_0006A144=$(GAMELIBS_6A144_DONOR)
 build/src/game_libs/game_libs_post1b2.c.o build/non_matching/src/game_libs/game_libs_post1b2.c.o: REPLACE_FUNC_BODY := gl_func_0006C11C=$(GAMELIBS_6C11C_DONOR) gl_func_0006BF34=$(GAMELIBS_6BF34_DONOR) gl_func_0006C1B8=$(GAMELIBS_6C1B8_DONOR) gl_func_0006C2AC=$(GAMELIBS_6C2A4_DONOR)
 build/src/game_libs/game_libs_post1b2.c.o build/non_matching/src/game_libs/game_libs_post1b2.c.o: REPLACE_FUNC_BODY += gl_func_0006C084=$(GAMELIBS_6C084_DONOR)
+# 65EE4 is still NON_MATCHING. Only the NM comparison object receives this
+# complete compiler-produced body; the default ROM retains INCLUDE_ASM.
+# -O2's size-limit fallback is closer than plain -O1 (146 vs 149 words).
+GAMELIBS_65EE4_NM_DONOR := build/src/game_libs/game_libs_o2limit_65EE4.c.o
+build/src/game_libs/game_libs_o2limit_65EE4.c.o: OPT_FLAGS := -O2
+build/src/game_libs/game_libs_o2limit_65EE4.c.o: CC_ONLY_FLAGS := -Olimit 1
+build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY += game_libs_func_00065EE4=$(GAMELIBS_65EE4_NM_DONOR)
+build/non_matching/src/game_libs/game_libs_post1b.c.o: src/game_libs/game_libs_o2limit_65EE4.c
+
 GAMELIBS_70FCC_DONOR := build/src/game_libs/game_libs_o2_70FCC.c.o
 # 29CCC = envelope/keyframe stepper (9-case jumptable switch), IDO 7.1 -O2
 # donor: game_libs_o2_29CCC.c (207/207 word-exact). Spliced only so the C
@@ -1342,6 +1351,8 @@ C_FILES := $(filter-out src/game_libs/game_libs_o1_6EF64.c src/timproc_uso_b1/ti
 
 # The controller-read donor contributes only through its host splice.
 C_FILES := $(filter-out src/game_libs/game_libs_o1_6C084.c,$(C_FILES))
+# The partial backup-store donor is never linked into the default ROM.
+C_FILES := $(filter-out src/game_libs/game_libs_o2limit_65EE4.c,$(C_FILES))
 ASM_FILES := $(shell find asm -maxdepth 1 -name '*.s' -type f 2>/dev/null)
 BIN_FILES := $(shell find assets -name '*.bin' -type f)
 

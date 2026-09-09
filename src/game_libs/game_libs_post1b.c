@@ -2326,25 +2326,25 @@ void gl_func_00065EB4(int a0) {
  * G.size = SZ; G.end = B + 0x10 + SZ; f(&G, B + 4, ...); f(&G, G.base, G.data);
  * G.f8 = read(&G, G.base); G.fC = read(&G, G.base + 4); G.f34 = 0; next(&G).
  *
- * RESIDUAL (this unit builds -O2; the NM path here emits 102 words, ~41%):
- * the target is the -O1 (ugen) shape -- no `lui 0xb1ff` CSE between the
- * constants, `lui at` direct-global stores, `lui/addiu a0` re-materialised
- * for every &G, temps rolling t6..t9,t0..t4 across the three blocks, frame
- * 0x18 (ra only). At -O2 uopt holds &G in s0 (frame 0x20) and shares the
- * lui halves (`ori a2,t7,0x10`) whatever the spelling (volatile, typed
- * param, per-call alias symbols, 15 aliases). Standalone `cc -O1` of the
- * struct-global body below gives 146/146 words with 59 (volatile) / 66 words
- * differing, ALL in one class: the target materialises each block's G.data
- * value (0xB1FF0010 / 0xB1FF2720 / 0xB1FFC360) straight into $a2 (`lui a2;
- * ori a2,a2,0x10; sw a2,0x24(at)`) and the later temps shift one register
- * down (t7/t8 instead of t8/t9), plus call 2's `lw a1` moving into the jal
- * slot. ugen only ever FORWARDS a just-stored constant (`addu a2,t7,zero`,
- * +1 word per block) -- a 3-arg first call spelled as G.data, the literal, an
- * assignment-as-argument, a `register` local (-> s0) and a third parameter
- * (-> stack-homed at entry) all fail to produce the a2 birth. Needs: an -O1
- * donor (`GAMELIBS_65EE4_DONOR` + REPLACE_FUNC_BODY in post1b, like 6A304) once
- * the a2 targeting is understood. Not volatile: the target loads G.data
- * before G.base in call 2 (volatile pins source order). */
+ * STATUS: 89.73% NM, up from 35.55% (2026-09-09, agent-h). The prior
+ * plain -O1 diagnosis was incomplete: -O1 emits 149 words for this body,
+ * including one redundant argument move per region. IDO 7.1 -O2 -Olimit 1
+ * exercises uopt's size-limit fallback and emits 146 words, frame 0x18,
+ * without the global optimizations that distort the ordinary -O2 build.
+ * This is a closer compiler-path candidate, not proof of original flags.
+ *
+ * The Makefile uses game_libs_o2limit_65EE4.c ONLY for this function in
+ * build/non_matching. Keep that donor and the C below synchronized.
+ * The default object retains INCLUDE_ASM. The donor is a complete compiler
+ * output, never edited instructions. 95/146 raw ROM words agree. Remaining:
+ * G.data starts with `lui tN; ori a2,tN,lo` instead of `lui a2; ori a2,a2,lo`,
+ * advancing the rolling temporary registers; call-2/read argument loads
+ * are scheduled after &G instead of before it. Ordinary -O1 adds three
+ * moves; full -O2 shares constants and holds &G in s0 (102 words, frame 32).
+ * Typed/void callee prototypes, literal versus derived/signed constants,
+ * pointer fields, neutral integer expressions and register/local probes
+ * did not resolve these residuals. Volatile adds unwanted loads.
+ * See docs/IDO_CODEGEN.md#size-limit-fallback-65ee4. No exact episode. */
 typedef struct {
     char pad0[8];
     int f8, fC;          /* 0x08, 0x0C: words read back from base / base+4 */
