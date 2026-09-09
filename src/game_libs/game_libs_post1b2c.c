@@ -255,36 +255,18 @@ int gl_func_0006CD24() {
     return gl_func_00000000(0x400);
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0006CD44: 26-insn factory + 3 global-data stores + chain (0x68, frame 0x28).
- *
- * Decoded structure (raw-word disasm):
- *   result = gl_func(self);                          // 1st call (arg untouched)
- *   D_A[2] = self;                                   // store self into global table
- *   *D_B = 1;                                        // set flag (short)
- *   D_C[3] = ((int**)D_C)[2][1];                     // chain: D_C[3] = (D_C[2] as int*)[1]
- *   gl_func(result);                                 // 2nd call w/ 1st-call result
- *
- * The 3 global-data accesses (D_A/D_B/D_C) interleave with the s0 spill and
- * arg-reload — IDO -O2 fills the post-1st-call delay slot with the early s0
- * spill (afb00018) and amortizes lui+lw setup across the body. No FP.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-18 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-extern int *D_A;
-extern short *D_B;
-extern int *D_C;
-void gl_func_0006CD44(int *self) {
-    int *result = (int*)gl_func_00000000(self);
-    D_A[2] = (int)self;
-    *D_B = 1;
-    D_C[3] = ((int**)D_C)[2][1];
-    gl_func_00000000(result);
+/* gl_func_0006CD44 = libultra osViSetMode (io/visetmode.c verbatim),
+ * section 0x813B0 = export sym 1988. LANDED 2026-09-09 (agent-g) via
+ * REPLACE_FUNC_BODY donor splice: real C lives in the IDO -O1 donor
+ * game_libs_o1_6CD44.c (26/26 at both 7.1 and 5.3 -O1). The old 86% NM
+ * decode ("factory + 3 global-data stores + chain, D_A/D_B/D_C") was this
+ * function: D_A = D_B = D_C = __osViNext (modep @8, state u16 @0 = 1,
+ * control @0xC = modep->comRegs.ctrl), `register u32 saveMask` -> s0.
+ * The 2-word gl_func_0006CD44_pad.s below is the inter-object pad before
+ * the contpfs.c pair and is unchanged. Body below is a placeholder for
+ * the splice. */
+void gl_func_0006CD44(void *modep) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CD44);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CD44_pad.s")
 
 /* gl_func_0006CDB4 / gl_func_0006CF54: word-identical 104-insn twins —

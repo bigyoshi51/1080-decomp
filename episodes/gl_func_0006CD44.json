@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006CD44",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-09-09T18:42:48.626122+00:00",
+  "end_time": "2026-09-09T18:42:48.626140+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T18:42:48.626136+00:00",
+      "assistant_text": "gl_func_0006CD44 = libultra osViSetMode (io/visetmode.c verbatim), IDO -O1. The 86% wrap had three anonymous globals D_A/D_B/D_C -- all three are __osViNext (reloaded per statement: -O1 tell, and -O2 must reload after each store through the context pointer anyway). register u32 saveMask puts the __osDisableInt result in s0. Fields: modep @8, state u16 @0 = VI_STATE_MODE_UPDATED (1), control @0xC = modep->comRegs.ctrl (@4). All callees/globals blank USO imports (existing pins).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 26,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO -O1 donor for gl_func_0006CD44 = libultra osViSetMode\n * (references/libreultra/src/io/visetmode.c, verbatim). PROVEN EXACT 26/26\n * standalone at BOTH IDO 7.1 -O1 and 5.3 -O1 (identical output; built with\n * 7.1), agent-g 2026-09-09. Section 0x813B0 = bootup.uso export sym 1988\n * (three jal refs from one caller at 0x59220/34/48). The 86% NM decode\n * (\"factory + 3 global-data stores + chain, D_A/D_B/D_C\") was this function\n * at -O2 with three anonymous globals: all three lui/lw reloads hit ONE\n * symbol, __osViNext (per-statement reload = the -O1 tell, though here -O2\n * also has to reload after each store through the context pointer), and\n * `register u32 saveMask` is what puts the __osDisableInt result in s0.\n * OSViContext: state u16 @0, retraceCount @2, framep @4, modep @8,\n * control @0xC; OSViMode: type u8 @0, comRegs.ctrl @4. VI_STATE_01 =\n * VI_STATE_MODE_UPDATED.\n * Blank externs (USO load-time relocs, existing pins = 0):\n * D_00000000_vinext = __osViNext, gl_func_00000000_disint = __osDisableInt,\n * gl_func_00000000_resint = __osRestoreInt. Spliced into\n * game_libs_post1b2c.c.o via REPLACE_FUNC_BODY; the 2-word\n * gl_func_0006CD44_pad.s (inter-object pad before the contpfs.c pair at\n * 0x6CDB4) stays as it is -- the C body is the same 0x68 as the old .s. */\ntypedef unsigned int u32;\ntypedef unsigned short u16;\n\ntypedef struct {\n    /* 0x00 */ u32 ctrl;\n    /* 0x04 */ u32 width;\n    /* 0x08 */ u32 burst;\n    /* 0x0C */ u32 vSync;\n    /* 0x10 */ u32 hSync;\n    /* 0x14 */ u32 leap;\n    /* 0x18 */ u32 hStart;\n    /* 0x1C */ u32 xScale;\n    /* 0x20 */ u32 vCurrent;\n} OSViCommonRegs;\n\ntypedef struct {\n    /* 0x00 */ u32 origin;\n    /* 0x04 */ u32 yScale;\n    /* 0x08 */ u32 vStart;\n    /* 0x0C */ u32 vBurst;\n    /* 0x10 */ u32 vIntr;\n} OSViFieldRegs;\n\ntypedef struct {\n    /* 0x00 */ unsigned char type;\n    /* 0x04 */ OSViCommonRegs comRegs;\n    /* 0x28 */ OSViFieldRegs fldRegs[2];\n} OSViMode;\n\ntypedef struct {\n    /* 0x00 */ u16 state;\n    /* 0x02 */ u16 retraceCount;\n    /* 0x04 */ void *framep;\n    /* 0x08 */ OSViMode *modep;\n    /* 0x0C */ u32 control;\n    /* 0x10 */ void *mq;\n    /* 0x14 */ void *msg;\n    /* 0x18 */ u32 xScale;\n    /* 0x1C */ u32 yScale;\n} OSViContext;\n\n#define VI_STATE_01 0x01 /* VI_STATE_MODE_UPDATED */\n\nextern OSViContext *D_00000000_vinext;      /* __osViNext */\nextern u32 gl_func_00000000_disint(void);   /* __osDisableInt */\nextern void gl_func_00000000_resint(u32);   /* __osRestoreInt */\n#define __osViNext D_00000000_vinext\n#define __osDisableInt gl_func_00000000_disint\n#define __osRestoreInt gl_func_00000000_resint\n\nvoid gl_func_0006CD44(OSViMode *modep)\n{\n    register u32 saveMask;\n    saveMask = __osDisableInt();\n    __osViNext->modep = modep;\n    __osViNext->state = VI_STATE_01;\n    __osViNext->control = __osViNext->modep->comRegs.ctrl;\n    __osRestoreInt(saveMask);\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/game_libs/game_libs_o1_6CD44.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/game_libs/game_libs/gl_func_0006CD44.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "26/26 words byte-exact standalone at IDO 7.1 -O1 and 5.3 -O1; in-tree REPLACE_FUNC_BODY splice into game_libs_post1b2c.c.o: raw .text slice at 0x944 (+2-word pad) identical to expected/, tenshoe.z64 cmp byte-identical, objdiff 100.0."
+  }
+}
