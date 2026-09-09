@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_00071304",
+  "project": "1080-decomp",
+  "model": "codex-manual",
+  "start_time": "2026-09-09T17:54:02.896723+00:00",
+  "end_time": "2026-09-09T17:54:02.896741+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T17:54:02.896737+00:00",
+      "assistant_text": "Identified as libultra osViSetEvent from io/visetevent.c. register unsigned saveMask plus IDO 7.1 -O1 reproduces s0 save/copy/restore and three __osViNext reloads, retracting the old -O2 allocation-cap diagnosis. Shared import pins already used by osViSetSpecialFeatures. Entire unmodified compiler-produced function is placed through the existing mixed-opt donor mechanism; no instruction-byte patches.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 27,
+  "initial_m2c_source": null,
+  "final_source": "/* gl_func_00071304 = libultra osViSetEvent (io/visetevent.c).\n * IDO 7.1 -O1: all 27 instruction words match, including reloc immediates.\n * The register saveMask plus -O1 retains the target's s0 round-trip;\n * -O2 optimizes it away. One shared __osViNext pointer is correct: -O1\n * reloads it for each store, with no distinct-extern CSE workaround.\n * Whole-function compiler output is spliced into the mixed-opt post2 TU.\n * The existing osViSetSpecialFeatures import pins represent these same\n * __osDisableInt/__osRestoreInt/__osViNext load-time USO imports (all zero).\n */\ntypedef struct {\n    unsigned short state;\n    unsigned short retraceCount;\n    void *framebuffer;\n    void *mode;\n    unsigned int features;\n    void *msgq;\n    void *msg;\n} ViContext71304;\nextern ViContext71304 *gl_func_00000000_vinext711;\nextern unsigned int gl_func_00000000_disint711(void);\nextern void gl_func_00000000_rstint711(unsigned int);\n\nvoid gl_func_00071304(void *mq, void *m, unsigned int retraceCount) {\n    register unsigned int saveMask;\n    saveMask = gl_func_00000000_disint711();\n    gl_func_00000000_vinext711->msgq = mq;\n    gl_func_00000000_vinext711->msg = m;\n    gl_func_00000000_vinext711->retraceCount = retraceCount;\n    gl_func_00000000_rstint711(saveMask);\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_71304.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_00071304.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -G0 -non_shared -Xcpluscomm -Wab,-r4300_mul -mips2 -32",
+    "verification": "All 108 function bytes equal the pre-existing expected object in standalone donor, default linked unit, and NON_MATCHING unit; no-alias objdump instruction words agree. Full tenshoe.z64 equals baserom.z64. Project report 100%, no exact losses, all five sentinels 100%."
+  }
+}

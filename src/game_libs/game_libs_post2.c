@@ -48,43 +48,34 @@ void gl_func_00071144(s32 arg0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00071144_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_00071304: 27-insn 2-call wrapper. Three distinct extern POINTERS
- * (D_71304_A/B/C), each loaded via lui+lw, then stored to via offset.
- * Applied unique-extern recipe per
- * docs/IDO_CODEGEN.md#feedback-ido-cse-bust-via-distinct-externs.
- *
- * NEAR-MISS (88%, SIZE-MISMATCH: mine 24 insns vs target 27). Logic is exact;
- * the body, store order (a0->D_A+0x10, a1->D_B+0x14, a2->D_C+2), arg-home/reload
- * and the three hoisted lui's all match. The ONLY divergence: the 1st call's
- * result `rv` (passed as the 2nd call's a0). TARGET parks rv in callee-saved
- * $s0 (`or s0,v0` / `or a0,s0`), paying +1 move + `sw/lw s0` + frame 0x18->0x28.
- * Natural -O2 C keeps rv in $v0 and does `move a0,v0` (no s0, frame 0x18) -- a
- * SHORTER, more-optimized body than the target. IDO only promotes a cross-call
- * value to a callee-saved REGISTER when it's used 2+ times after the call; rv is
- * used 0 times after the 2nd call, so no C structure induces the s0 round-trip.
- * NEGATIVE RESULTS (do not repeat, all 2026-05-30, standalone IDO 7.1 -O2):
- *   - `register int rv` / `register int rv asm("$16")`: hint ignored / IDO rejects
- *     gcc register-asm (feedback_ido_no_gcc_register_asm). Still $v0.
- *   - `return rv` (rv live across 2nd call): IDO SPILLS TO STACK (sw $2,28(sp) +
- *     lw), frame 0x20, NOT s0 -- and target doesn't return rv anyway.
- *   - -O1: also stack-spills rv (frame 0x20), not s0.
- *   - rv used twice (stored to D_A AND passed), 2-arg 2nd call, tail-return,
- *     1st-call-takes-(a0,a1,a2), rv-as-pointer-base: all keep rv in $v0 / frame
- *     0x18. The s0-for-single-use-cross-call-arg form is not -O2-reachable. NM. */
-extern int *D_71304_A;
-extern int *D_71304_B;
-extern short *D_71304_C;
-void gl_func_00071304(int a0, int a1, int a2) {
-    int rv = gl_func_00000000();
-    *(int*)((char*)D_71304_A + 0x10) = a0;
-    *(int*)((char*)D_71304_B + 0x14) = a1;
-    *(short*)((char*)D_71304_C + 2) = (short)a2;
-    gl_func_00000000(rv);
+/* gl_func_00071304 = libultra osViSetEvent, 27/27 words exact.
+ * The old 88% s0-allocation cap was an optimization-level mismatch:
+ * register unsigned saveMask at IDO 7.1 -O1 reproduces the full prologue,
+ * s0 return-value copy and three reloads of the SAME __osViNext pointer.
+ * Real C is repeated in game_libs_o1_71304.c for the whole-function -O1
+ * compile used by this mixed-opt unit. No assembly fallback or byte edits.
+ * See docs/IDO_CODEGEN.md#visetevent-register-o1-71304. */
+typedef struct {
+    unsigned short state;
+    unsigned short retraceCount;
+    void *framebuffer;
+    void *mode;
+    unsigned int features;
+    void *msgq;
+    void *msg;
+} ViContext71304;
+extern ViContext71304 *gl_func_00000000_vinext711;
+extern unsigned int gl_func_00000000_disint711(void);
+extern void gl_func_00000000_rstint711(unsigned int);
+
+void gl_func_00071304(void *mq, void *m, unsigned int retraceCount) {
+    register unsigned int saveMask;
+    saveMask = gl_func_00000000_disint711();
+    gl_func_00000000_vinext711->msgq = mq;
+    gl_func_00000000_vinext711->msg = m;
+    gl_func_00000000_vinext711->retraceCount = retraceCount;
+    gl_func_00000000_rstint711(saveMask);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00071304);
-#endif
 
 /* game_libs_func_00071370: leading-nop FPU-control-reg wrapper
  * (cfc1/ctc1 pair, libreultra __osSetFpcCsr-style). Hand-written MIPS

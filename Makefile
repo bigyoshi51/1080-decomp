@@ -754,6 +754,8 @@ GAMELIBS_6C11C_DONOR := build/src/game_libs/game_libs_ido53_6C11C.c.o
 GAMELIBS_6FAD4_DONOR := build/src/game_libs/game_libs_o1_6FAD4.c.o
 GAMELIBS_71708_DONOR := build/src/game_libs/game_libs_ido53_71708.c.o
 GAMELIBS_71144_DONOR := build/src/game_libs/game_libs_o1_71144.c.o
+GAMELIBS_71304_DONOR := build/src/game_libs/game_libs_o1_71304.c.o
+build/src/game_libs/game_libs_o1_71304.c.o build/non_matching/src/game_libs/game_libs_o1_71304.c.o: OPT_FLAGS := -O1
 GAMELIBS_73824_DONOR := build/src/game_libs/game_libs_o1_73824.c.o
 GAMELIBS_73034_DONOR := build/src/game_libs/game_libs_o1_73034.c.o
 GAMELIBS_6BF34_DONOR := build/src/game_libs/game_libs_o1_6BF34.c.o
@@ -1085,6 +1087,8 @@ build/src/game_libs/game_libs_ido53_71624.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_71624.c.o build/non_matching/src/game_libs/game_libs_ido53_71624.c.o: OPT_FLAGS := -O1
 GAMELIBS_71624_DONOR := build/src/game_libs/game_libs_ido53_71624.c.o
 build/src/game_libs/game_libs_post2.c.o build/non_matching/src/game_libs/game_libs_post2.c.o: REPLACE_FUNC_BODY := gl_func_00071708=$(GAMELIBS_71708_DONOR) game_libs_func_00070FCC=$(GAMELIBS_70FCC_DONOR) gl_func_00071624=$(GAMELIBS_71624_DONOR) gl_func_00071384=$(GAMELIBS_71384_DONOR) gl_func_000717CC=$(GAMELIBS_717C8_DONOR) gl_func_00071144=$(GAMELIBS_71144_DONOR)
+# osViSetEvent: full, unmodified IDO -O1 function body; no instruction patches.
+build/src/game_libs/game_libs_post2.c.o build/non_matching/src/game_libs/game_libs_post2.c.o: REPLACE_FUNC_BODY += gl_func_00071304=$(GAMELIBS_71304_DONOR)
 # gl_func_00067370: -O2 body byte-exact; append the 1-word all-zero inter-fn ROM
 # pad at 0x67390 (folded into the 0x24 .s symbol). FORCE: ends jr-ra;nop.
 # gl_func_00069E04 (osSendMesg, donor-spliced) + game_libs_func_00069F54
