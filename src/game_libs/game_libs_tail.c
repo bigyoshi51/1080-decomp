@@ -691,9 +691,44 @@ int game_libs_func_0000A1A0(int a0, int a1) {
     return a0 + t + 0x18;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000A1B0);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A1C0);
+/* game_libs_func_0000A1B0: ms -> {minutes, seconds, hundredths} byte triple,
+ * then find-first-match over 3 stride-8 entries. BYTE-EXACT 66/66 (2026-09-09,
+ * agent-g) as ONE function [0xA1B0,0xA2B8): the 4-word "game_libs_func_0000A1B0"
+ * (`ori a3,zero,0xEA60; div a1,a3; mflo v0; li t0,1000`) was the hoisted
+ * `ms / 60000` head of the 0xF8 INCLUDE_ASM gl_func_0000A1C0 (agent-c's
+ * fake-param class, docs/MATCHING_WORKFLOW.md#game-libs-fake-param-exact-sweep-agent-c).
+ * Sym oracle (section = splat + 0x1466C): 0x1E81C (0xA1B0) = export sym 1066
+ * with 1 R_MIPS_26 ref (TextReloc @0x2154C); 0x1E82C (0xA1C0) not exported, no
+ * baked jal. The jal at +0xC4 is blank R_MIPS_26 to sym1044 (text 0x1E0BC =
+ * splat 0x9A50, game_libs_func_00009A50) -> func_00000000, same callee shape as
+ * the matched gl_func_0000A4D0 sibling below (loop body identical: beqzl +
+ * `addiu s0` likely-fill, `b` + `or v0,s0` exit, tail-dup `addiu s0`).
+ * Shape keys: (1) the remainders are written as `x - q * d` (IDO emits
+ * `mflo q; multu q,d; subu` -- a `%` gives `mfhi` instead); (2) `int i`
+ * declared BEFORE `buf` puts i's dead home at 0x44 and buf at 0x40; (3) only
+ * three named scalars (min, rem, sec) -- a fourth `rem2` home grows the frame
+ * to 0x50; (4) i/entry initialised in the for-header so their `or s0/s1` land
+ * in the multu latency slot after the second div check, not above it. */
+extern int func_00000000();
+int game_libs_func_0000A1B0(int *a0, int ms) {
+    int i;
+    unsigned char buf[4];
+    char *entry;
+    int min, rem, sec;
+    min = ms / 60000;
+    rem = ms - min * 60000;
+    buf[0] = min;
+    sec = rem / 1000;
+    buf[1] = sec;
+    buf[2] = (rem - sec * 1000) / 10;
+    for (i = 0, entry = (char *)a0; i < 3; i++) {
+        if (func_00000000(entry, buf) != 0) {
+            return i;
+        }
+        entry += 8;
+    }
+    return 3;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A2B8);
 
