@@ -4503,47 +4503,42 @@ void game_libs_func_000683C4(int *a0, int a1) {
     *(int*)((char*)a0 + 0x4) = 0;
 }
 
-#ifdef NON_MATCHING
 /* gl_func_000683D4: 54-insn (0xD8) array-allocator + per-element vtable
  * init constructor. Sibling of gl_func_00068350 (which sets up the
  * single-instance form).
  *
- * Decoded body:
- *   1. helper(self + 8)             — gl_func at jal target 0x07C860
- *      (same fixed jal as 68350; both use this initializer for the
- *      header at self+0x8).
- *   2. self[1] = gl_func_0(self->[8] * 4)
- *                                     — alloc(count * sizeof(ptr)) into
- *                                     self->[4]. self->[8] is the count.
+ * Body:
+ *   1. func_7C860(self + 8)             -- baked in-segment jal 0x7C860
+ *      (same fixed jal as 68350 / 68524; header init at self+0x8).
+ *   2. self[1] = alloc(self->[8] * 4)   -- alloc(count * sizeof(ptr)) into
+ *                                          self->[4]. self->[8] is the count.
  *   3. for (i = 0; i < self->[8]; i++) {
  *        parent = self->[0xC]->[0x28];
  *        self->[4][i] = (*parent->[0x5C])(self->[0xC] + (lh) parent->[0x58]);
  *        self->[4][i]->[0xC] = self->[0xC];   // back-link to owner
- *        gl_func_0(self->[4][i]);             // post-init / register hook
+ *        hook(self->[4][i]);                  // post-init / register hook
  *        e = self->[4][i]; vt = e->[0x1C];
  *        (*vt->[0x2C])(e + (lh) vt->[0x28]);  // finalize: arg = ELEMENT + off
  *      }
  *
- * 2026-07-17 agent-h 77.46 -> 99.44 (51/54 words; 3 real word diffs).
- * Decode fixes vs the old body: (a) ctor arg is self->[0xC] + ctor_off,
- * NOT parent + off (target addu a0,t7,v1 adds the OWNER, the vtable is
- * only the lookup); (b) finalize arg is the ELEMENT + off, NOT the
- * vtable + off; (c) the element is NEVER held in an s-reg — the original
- * re-spells self->[4][i] at every use (fresh lw t?,4(s1)+addu+lw chains
- * across the two calls; naming `instance` produced an s3 web, wrong
- * frame). obj=self->[0xC] must be a DE-NAMED CSE temp (colors v1, feeds
- * the bnezl-annulled delay reload); naming it flips v0/v1 with parent.
- * addu operand-order gotcha: `(char*)p + off` emits addu rd,OFF,p while
- * `off + (char*)p` emits addu rd,p,OFF (inverted vs spelling).
- * RESIDUAL (3 words): finalize vtable temp colors a1, target v0
- * (lw v0,0x1C(v1) vs lw a1,...). Probed: named vt (both decl orders),
- * fully de-named e[7] CSE, merging vt into parent's web (regresses head
- * to 98.5). v0 appears blocked for the vt range in our build for an
- * unidentified reason. Both `lh` need signed short.
- * jal diffs are USO-placeholder convention (func_0007C860 fixed-address
- * family + gl_func_00000000 reloc placeholders), not body divergence.
- * Default INCLUDE_ASM keeps ROM matching. */
+ * 2026-07-17 agent-h 77.46 -> 99.44 (51/54): ctor arg is self->[0xC] + off
+ * (target addu a0,t7,v1 adds the OWNER), finalize arg is the ELEMENT + off,
+ * the element is never held in an s-reg (re-spelled self->[4][i] at every
+ * use), obj = self->[0xC] must stay a de-named CSE temp (colours v1, feeds
+ * the bnezl-annulled delay reload). addu operand order: `(char*)p + off`
+ * emits addu rd,OFF,p while `off + (char*)p` emits addu rd,p,OFF.
+ *
+ * 2026-09-09 agent-g EXACT 54/54: the 3-word residual (finalize vtable
+ * temp coloured a1, target v0) was the int-returning hook call's dead $v0
+ * poisoning every candidate born in the same BB (docs/IDO_CODEGEN.md
+ * #feedback-ido-dispatcher-v0-eviction-else-tail). Un-poisoning the whole
+ * BB (if(1){} after the call / void callee) swaps e/vt to v0/v1 instead;
+ * the target needs e poisoned (v1) and vt clean (v0), which is a BB
+ * boundary BETWEEN the two defs: `e = arr[i]; do { vt = e[7]; } while (0);`
+ * (docs/IDO_CODEGEN.md#dead-v0-poison-is-per-bb-split-the-defs-683d4).
+ * Both `lh` need signed short. */
 extern int gl_func_00000000();
+extern int func_7C860();
 
 void gl_func_000683D4(int *self) {
     unsigned int i;
@@ -4551,7 +4546,7 @@ void gl_func_000683D4(int *self) {
     int *vt;
     int *e;
 
-    gl_func_00000000(self + 2);                       /* self + 8 */
+    func_7C860(self + 2);                             /* self + 8 */
     self[1] = gl_func_00000000(self[2] * 4);          /* alloc */
 
     for (i = 0; i < (unsigned int)self[2]; i++) {
@@ -4561,14 +4556,11 @@ void gl_func_000683D4(int *self) {
         ((int **)self[1])[i][3] = self[3];             /* back-link owner */
         gl_func_00000000(((int **)self[1])[i]);        /* post-init hook */
         e = ((int **)self[1])[i];
-        vt = (int *)e[7];
+        do { vt = (int *)e[7]; } while (0);            /* BB split: vt off the dead-v0 BB */
         ((int (*)(int *))vt[11])(
             (int *)(((short *)vt)[20] + (char *)e));
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000683D4);
-#endif
 
 /* gl_func_000684AC: 30-insn (0x78) alloc-or-passthrough constructor.
  * If a0 is null, alloc 0x38 bytes; else use given a0. Init phase 1 calls
