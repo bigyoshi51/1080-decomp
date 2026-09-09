@@ -14569,41 +14569,20 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044AEC);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00044B78);
-
-// gl_func_00044B84 — STRUCTURAL PASS + BOUNDARY NOTE (0x13C / 80 words, no
-// episode). Raw-.word USO. realjr=3, regjr=0. Two N64_FORENSICS signatures:
-//  - the early 03000008 at 0x44BA8 is `jr t8` = jump-table dispatch, NOT a
-//    return (ADDENDUM 18c: register-indirect jr is invisible to
-//    `grep 03E00008`);
-//  - the dense tail jr-ra cluster at 0x44C94 / 0x44CA8 / 0x44CBC (~0x14
-//    gaps, no interior 27BDFF prologue) is the ADDENDUM-18b no-frame-leaf
-//    signature ⇒ named fn + ~2 trailing tiny no-frame leaves (DEFERRED USO
-//    RE-SPLIT — decode each under its own symbol later).
-//
-// Named fn = jump-table string/name-table selector (single prologue frame
-// 0x18, saves ra; cb = jal 0 USO-relocated):
-//   const char *gl_func_00044B84(unsigned sel) {
-//     if (sel >= 9) goto def;                       // sltiu/beqz range guard
-//     goto *jumptab[sel];                            // table at &D_0+0x1B3C
-//     // each arm: a0 = &D_str_k (literal at &D_0+0x280 / 0x320 / 0x3C0 /
-//     //   0x50 / 0xA0 / ...); r = cb(&D_str_k); b common_tail;
-//     def:
-//     // default arm: a global flag check (&D_g) then a fallback cb(&D_..A0)
-//     // common_tail: return the cb result
-//   }
-// Per-index name/string resolver: range-checks the selector to [0,8],
-// dispatches through a 9-entry jump table at &D_0+0x1B3C (USO-relocated data
-// region — extends the &D_0 jump-table block alongside the 0x1AE4 / 0x1B00
-// tables used by gl_func_00040304 / 00040640), each arm passing a distinct
-// string-literal to cb and converging on a shared return. Family:
-// jump-table dispatch + string-table selector. Per-arm string identity
-// representative; the sltiu range guard, the &D_0+0x1B3C table address, the
-// jr-t8 dispatch and the per-arm cb(&D_str) shape are exact. Trailing
-// no-frame-leaf stack = deferred re-split. Caps: &D_0+0x1B3C jump table,
-// the &D_str literals and cb signature untyped. Full body
-// INCLUDE_ASM-preserved.
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044B84);
+/* game_libs_func_00044B78 (0x124, 73 words; merged with the former gl_func_00044B84
+ * INCLUDE_ASM + STRUCTURAL PASS note, 2026-09-09 agent-c): video-mode selector,
+ * bootup.uso export sym1553. 0x44B84 is a mid-function word; the 3-word orphan
+ * `lui at; sw a0,0(at); andi t8,a0,0xff` is the hoisted first statement (the
+ * D+0x3C8E0 flags-word store + the switch selector). The REAL body is the IDO 7.1
+ * -O2 donor src/game_libs/game_libs_o2_44B78.c (73/73 word-exact), spliced in by
+ * REPLACE_FUNC_BODY so the C switch's local .rodata jumptable reloc is renamed to
+ * game_libs_func_00044B78_rodata and pinned to the USO RoData table at +0x1B3C
+ * (the game_libs_func_00029CCC recipe). This stub only reserves the symbol; its
+ * bytes never reach the ROM. */
+extern s32 D_00000000_3c8e0;
+void game_libs_func_00044B78(int mode) {
+    D_00000000_3c8e0 = mode;
+}
 
 /* two-global word setter (D_X=a0; D_Y=a1) — two distinct externs force the 2 luis.
  * Reloc-blind segment-base convention (=0x0 undefined_syms). No episode. */
