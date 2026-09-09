@@ -3586,12 +3586,29 @@ int gl_func_00067550(int *a0) {
  * arm sh via named value-temp (RHS subtree evaluated first, and-v0 shape);
  * var_f0/var_f0_2 same-name merge (f0 phi both abs blocks); 0x10|0x40 and
  * arm1-|= operand swaps (build canonicalizes commutative operands reversed).
- * RESIDUAL 46 in four co-rotating zones: FP candidate triple-cycle (0.0f/
- * temp_f14/temp_f2 = f12/f14/f2 target vs f14/f2/f12 build; decl order,
- * named zero, RANK alias, birth order all probed inert); ==1-arm entry ring
- * off-by-one; the +-0.5 flag-arm load/result pair-swaps (compound-assign,
- * if(1), operand swaps inert); 0x18-web candidate a1 vs ring t6 (de-name
- * recomputes, +20 words). Likely ONE upstream coloring-order divergence.
+ * 2026-09-09 agent-g: 46 -> 13 words (docs/IDO_CODEGEN.md
+ * #store-forward-ring-across-bb-and-scaled-index-first-675a4). Three
+ * spellings: (1) the 0x18 web is NOT a named candidate (a1) -- store it
+ * and re-read `FW(0x18) & FW(0x24)` in the then-arm; uopt forwards the
+ * stored ring temp (t6) across the beqz BB boundary while the else-arm's
+ * read stays a real `lw v0,24(a3)`; (2) the ==1-arm cursor
+ * `FW(0x50) * 4 + FW(0x5C)` (scaled index FIRST) allocates the two loads
+ * before the sll temp (t7,t8 -> sll t9), which un-shifts the t7/t8 ring for
+ * the rest of the function (the +-0.5 arms, the tail); (3) `(cur | 0) &
+ * ~prev` puts the candidate first in the `and` (deeper-operand-first
+ * ucode rule; a bare `cur & ~prev` / `~prev & cur` both put the nor temp
+ * first). RESIDUAL 13 words = the FP candidate 3-cycle in the threshold
+ * block: target zero/thr/e = f12/f14/f2, ours f14/f2/f12. It is the uopt
+ * priority order: thr is a double (adjsave x2, ~0.8) so it colours FIRST
+ * and takes the lowest free colour f2; e (~0.67) then f12, zero (~0.43)
+ * f14. The target order is e, zero, thr. 30 spellings inert: decl orders,
+ * named/register zero, inline/CSE e and thr, volatile e, thr via pointer /
+ * block-scope init / whole-function span / float, struct-typed stores
+ * (7.1 uopt has NO type-based alias -- inline global reads reload across
+ * the c->x store), do{}while(0) around either axis block, merged temp_f0/
+ * var_f0 LR, split var_f0 per axis (thr then takes f0), reversed compare
+ * spelling. Needs the uoptlist trace or a source shape that lowers a
+ * double's adjsave below the two floats'.
  * GOTCHA logged: probe loop must check cc exit status -- a silent NM build
  * break froze the .o and five probes measured stale (false-inert). */
 #ifdef NON_MATCHING
@@ -3609,7 +3626,6 @@ void gl_func_000675A4(char *arg0) {
     s32 temp_a0;
     char *temp_t0;
     s32 temp_t4;
-    s32 temp_t6;
     s32 temp_v0_2;
     s32 temp_v0_4;
     s32 temp_v0_5;
@@ -3655,7 +3671,7 @@ void gl_func_000675A4(char *arg0) {
                 *(s16*)((FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4)) + 0x2) = temp_t4;
                 *(int*)(FW(arg0, 0x58)) = FW(arg0, 0x50);
             } else if (temp_v0_2 == 1) {
-                temp_v0_3 = FW(arg0, 0x5C) + (FW(arg0, 0x50) * 4);
+                temp_v0_3 = (char *)((FW(arg0, 0x50) * 4) + FW(arg0, 0x5C));
                 FW(arg0, 0x10) = (s32) (*(s16*)((char*)temp_v0_3 + 0x2) | FW(arg0, 0x10));
                 (*(s8*)((char*)arg0 + 0x8)) = *(s8*)((char*)temp_v0_3 + 0x0);
                 (*(s8*)((char*)arg0 + 0x9)) = *(s8*)((char*)temp_v0_3 + 0x1);
@@ -3712,14 +3728,13 @@ void gl_func_000675A4(char *arg0) {
     temp_v0_4 = FW(arg0, 0x10);
     temp_v1_2 = FW(arg0, 0x14);
     temp_a0 = FW(arg0, 0x38);
-    temp_t6 = temp_v0_4 & ~temp_v1_2;
-    FW(arg0, 0x18) = temp_t6;
+    FW(arg0, 0x18) = (temp_v0_4 | 0) & ~temp_v1_2;
     FW(arg0, 0x1C) = (s32) (~temp_v0_4 & temp_v1_2);
     if (temp_a0 != 0) {
         temp_v0_5 = temp_a0 - 1;
         FW(arg0, 0x38) = temp_v0_5;
         if (temp_v0_5 > 0) {
-            temp_v0_6 = FW(arg0, 0x24) & temp_t6;
+            temp_v0_6 = FW(arg0, 0x18) & FW(arg0, 0x24);
             FW(arg0, 0x20) = temp_v0_6;
             if (temp_v0_6 != 0) {
                 FW(arg0, 0x38) = 0;
