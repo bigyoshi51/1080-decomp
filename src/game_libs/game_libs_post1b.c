@@ -2121,56 +2121,43 @@ void game_libs_func_00065B40(char *s) {
     m[5] = q->x * q->z * 2 - q->w * q->y * 2;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_00065C54: 45-insn op-6 special-case + transform-reset (0xB4, frame 0x48).
- *
- * Decoded structure (raw-word disasm):
- *   if (a1[0] == 6) {
- *       int *src = (int*)a1[1];
- *       // src->[0xEC/0xF0/0xF4] are loaded as INT into a stack buffer, then
- *       // re-read and passed to a65C54 as the 3 float args. IDO emits the
- *       // grouped (lw/sw)x3 + base-addiu round-trip for the int-array form.
- *       a65C54(a0, fbits(src->0xEC), fbits(src->0xF0), fbits(src->0xF4));
- *       // Identity-transform reset on a0:
- *       *(float*)(a0+0x2FC..+0x304) = 0.0f;          // quat x,y,z = 0
- *       *(float*)(a0+0x308) = 1.0f;                   // quat w = 1 (identity)
- *       *(float*)(a0+0x318..+0x320) = 0.0f;           // translation Vec3 = 0
- *   } else {
- *       gl_func_00000000(a0, a1);                     // default dispatch
- *   }
- *
- * Op-6 = "load-pos-and-reset-transform" event. Quaternion (0,0,0,1) +
- * translation (0,0,0) is a standard identity transform layout.
- *
- * NM-wrap (game_libs baked-reloc, cannot byte-LAND). objdiff fuzzy 68.69 -> 76.47.
- * The int->buffer->float round-trip + a65C54(char*, f32, f32, f32) prototype
- * reproduces the grouped (lw/sw)x3 + addiu-base load-back shape. Residual is the
- * lwc1/mfc1 float-reload + caller-saved swc1 spill sequence (codegen-SHAPE /
- * liveness-spill coloring, not C-controllable here).
+/* Event 6 adds the source position and resets this object's transform.
+ * IDO 7.1 -O2: 45/45 words. The aggregate copy and second float staging
+ * buffer are distinct operations. Keep the three float copies on one line
+ * for the descending load/store schedule. The one-shot dispatch block fixes
+ * the struct-copy temporary registers; the spare locals preserve frame gaps.
+ * Bootup TextReloc +0x7A320 -> Sym1794 (Text 0x54910, gl_func_000402A4),
+ * +0x7A35C -> Sym265 (Text 0x4DC90, gl_func_00039624). Both jal fields are
+ * zero in the ROM and are resolved by the original USO loader.
  */
-extern int a65C54(char*, f32, f32, f32);
-void gl_func_00065C54(char *a0, int *a1) {
-    if (a1[0] == 6) {
-        int *src = (int*)a1[1];
-        int buf[3];
-        buf[0] = *(s32*)((char*)src + 0xEC);
-        buf[1] = *(s32*)((char*)src + 0xF0);
-        buf[2] = *(s32*)((char*)src + 0xF4);
-        a65C54(a0, *(f32*)&buf[0], *(f32*)&buf[1], *(f32*)&buf[2]);
-        *(f32*)(a0 + 0x2FC) = 0.0f;
-        *(f32*)(a0 + 0x300) = 0.0f;
-        *(f32*)(a0 + 0x304) = 0.0f;
-        *(f32*)(a0 + 0x318) = 0.0f;
-        *(f32*)(a0 + 0x31C) = 0.0f;
-        *(f32*)(a0 + 0x320) = 0.0f;
-        *(f32*)(a0 + 0x308) = 1.0f;
-    } else {
-        gl_func_00000000(a0, a1);
-    }
+extern int gl_add_position_65C54(char *, float, float, float);
+extern int gl_dispatch_event_65C54(char *, int *);
+void gl_func_00065C54(char *self, int *event) {
+    float args[3];
+    float reserved_vec[3];
+    float position[3];
+    int reserved[2];
+    int tag;
+    (void)reserved;
+    (void)reserved_vec;
+    tag = event[0];
+    do {
+        if (tag == 6) {
+            *(Vec3 *)position = *(Vec3 *)((char *)event[1] + 0xEC);
+            args[0] = position[0]; args[1] = position[1]; args[2] = position[2];
+            gl_add_position_65C54(self, args[0], args[1], args[2]);
+            *(float *)(self + 0x2FC) = 0.0f;
+            *(float *)(self + 0x300) = 0.0f;
+            *(float *)(self + 0x304) = 0.0f;
+            *(float *)(self + 0x318) = (float)0;
+            *(float *)(self + 0x31C) = (float)0;
+            *(float *)(self + 0x320) = (float)0;
+            *(float *)(self + 0x308) = 1.0f;
+        } else {
+            gl_dispatch_event_65C54(self, event);
+        }
+    } while (0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065C54);
-#endif
 
 /* gl_func_00065D08: 23-insn 7-call cascade. First call passes a0->[0xC];
  * subsequent 6 calls pass a0 itself. */
