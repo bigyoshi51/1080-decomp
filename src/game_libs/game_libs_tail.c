@@ -2411,9 +2411,105 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CB9C);
 #endif
 
 
+#ifdef NON_MATCHING
+/* game_libs_func_0000CBF0: per-record percentage scaler + four handler
+ * dispatches, ONE function [0xCBF0,0xCD74) = 0xC + 0x178 -> 0x184 (97 words;
+ * 2026-09-09, agent-g). The 3-word "game_libs_func_0000CBF0" (`lui a3; addiu
+ * a3; lw t6,0x134(a3)`) was the hoisted held-base read of the registry chain
+ * for the INCLUDE_ASM gl_func_0000CBFC body (agent-c's fake-param class,
+ * docs/MATCHING_WORKFLOW.md#game-libs-fake-param-exact-sweep-agent-c). Sym
+ * oracle (section = splat + 0x1466C): 0x2125C (0xCBF0) = export sym 1127
+ * (DataReloc fn-table entry @0xD52C); 0x21268 (0xCBFC) not exported, no baked
+ * jal. bootup.uso TextReloc: HI16/LO16 @+0x0/+0x4 -> sym272 (Data 0xF8, addend
+ * 0; the same `&D + 0x134` chain the CB9C/CD.. neighbours use, held in a3 for
+ * the pre-loop read and the per-iteration reload), four blank R_MIPS_26 at
+ * +0x110/+0x130/+0x150/+0x16C -> sym916/894/910/927 (text 0x157A0/0x149A4/
+ * 0x15510/0x15E58 = splat 0x1134/0x338/0xEA4/0x17EC) -> func_00000000.
+ *
+ * Decode: g = (*(D+0x134))->0x98 holds lo @0xCC / hi @0xD8 (floats); range =
+ * hi - lo is computed once above the loop (sub.s in the blez delay slot);
+ * for each of self->n (@0x48) stride-0x60 records off self->recs (@0x44),
+ * gated per iteration on self->active (@0x2C): x = rec->0xC; pct @0x30 =
+ * x < lo ? 0.0f : hi < x ? 100.0f : (x - lo) / range * 100.0f; the chain is
+ * re-read every iteration (stores may alias), rec is re-indexed after the
+ * pct store, and `rec->pct == 100.0f` bumps rec->0x34 (the bc1fl slot's `lw
+ * v1,72(a2)` is nullified on the equal path, so the `lw t2,52(v1)` is the
+ * RECORD, not self->n). Then if (self->0x70) f(self->0x70, (int)*self->0x74)
+ * (trunc.w.s/mfc1), and three more (0x78/0x7C, 0x8C/0x90, 0x98/0x9C) with
+ * int deref args; the next handler's load sits in each beqzl likely slot.
+ *
+ * Status: objdiff 97.78 (97/97 words, structure exact from the first
+ * compile, 35 register-name words); the `else
+ * { continue; }` arm is load-bearing -- a plain `if (self->active) { }` body
+ * makes uopt re-load self->n on the inactive path too (`lw t5,72(a2)` in the
+ * beqzl slot, `addiu a1` at the join) instead of keeping the guard's value in
+ * v1 and reloading only after the stores (the target's PRE shape). Residual =
+ * 35 colouring words, no structural diff: int G->v1/n,rec->v0 where the
+ * target has G->v0 and n,rec->v1; held base ->t0 and the 96 stride ->a3
+ * (target a3/t0); FP 100.0f->f12, 0.0f->f14, lo->f2, x-lo->f10, quotient
+ * ->f18 where the target has lo->f12, 100.0f->f14, range->f16 (same), 0.0f
+ * ->f18, x-lo->f2, quotient->f10. Inert: named lo/x locals, `100.0f == pct`,
+ * dead while(0) refs on the chain, a named `g` chain local (same 35), a
+ * named `reg` base (kills the held base: per-site lui, 55), raw-cast vs
+ * struct-typed access, while/do-while/`self->n > i` loop spellings,
+ * `* (100.0f / range)`. A pure v0/v1 + a3/t0 + FP-ring renumber knot
+ * (docs/IDO_CODEGEN.md#feedback-ido-regalloc-renumber-matching-techniques);
+ * the -zdbug:6 uoptlist dump needs the ecvt patch on this machine. */
+typedef struct {
+    /* 0x00 */ char pad0[0xC];
+    /* 0x0C */ float x;
+    /* 0x10 */ char pad1[0x20];
+    /* 0x30 */ float pct;
+    /* 0x34 */ int hits;
+    /* 0x38 */ char pad2[0x28];
+} CBF0_Rec; /* 0x60 */
+typedef struct {
+    /* 0x00 */ char pad0[0x2C];
+    /* 0x2C */ int active;
+    /* 0x30 */ char pad1[0x14];
+    /* 0x44 */ CBF0_Rec *recs;
+    /* 0x48 */ int n;
+    /* 0x4C */ char pad2[0x24];
+    /* 0x70 */ int h0;
+    /* 0x74 */ float *p0;
+    /* 0x78 */ int h1;
+    /* 0x7C */ int *p1;
+    /* 0x80 */ char pad3[0xC];
+    /* 0x8C */ int h2;
+    /* 0x90 */ int *p2;
+    /* 0x94 */ char pad4[4];
+    /* 0x98 */ int h3;
+    /* 0x9C */ int *p3;
+} CBF0_Self;
+#define CBF0_G (*(char **)(*(char **)((char *)&D_00000000 + 0x134) + 0x98))
+#define CBF0_LO (*(float *)(CBF0_G + 0xCC))
+#define CBF0_HI (*(float *)(CBF0_G + 0xD8))
+extern int func_00000000();
+void game_libs_func_0000CBF0(CBF0_Self *self) {
+    int i;
+    float range = CBF0_HI - CBF0_LO;
+    for (i = 0; i < self->n; i++) {
+        if (self->active) {
+            CBF0_Rec *rec = &self->recs[i];
+            if (rec->x < CBF0_LO) rec->pct = 0.0f;
+            else if (CBF0_HI < rec->x) rec->pct = 100.0f;
+            else rec->pct = (rec->x - CBF0_LO) / range * 100.0f;
+            if (self->recs[i].pct == 100.0f) self->recs[i].hits++;
+        } else {
+            continue;
+        }
+    }
+    if (self->h0) func_00000000(self->h0, (int)*self->p0);
+    if (self->h1) func_00000000(self->h1, *self->p1);
+    if (self->h2) func_00000000(self->h2, *self->p2);
+    if (self->h3) func_00000000(self->h3, *self->p3);
+}
+#undef CBF0_G
+#undef CBF0_LO
+#undef CBF0_HI
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CBF0);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CBFC);
+#endif
 
 /* game_libs_func_0000CD74: three-threshold OR-gate, BYTE-EXACT 26/26
  * (2026-09-09, agent-g) as ONE no-argument function [0xCD74,0xCDDC):
