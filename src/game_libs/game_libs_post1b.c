@@ -3962,7 +3962,6 @@ char *game_libs_func_00067BDC(char *dst, char *src) {
     return dst - 1;
 }
 
-#ifdef NON_MATCHING
 /* strcat-variant: find end of dst, append src (incl. NUL), return pointer to the
  * appended NUL (= stpcpy-of-the-tail). Same 67xxx libc-string family as 67BDC
  * (stpcpy, exact above) / 67C98 (strncpy) / 67D18 (strrchr).
@@ -3974,7 +3973,18 @@ char *game_libs_func_00067BDC(char *dst, char *src) {
  * Residual 2 insns + 1 schedule slot: the first-char test temp colors v0
  * (candidate) where target uses temp-ring t8, and the src++ addiu sits after
  * the beq instead of before — probed named/unnamed/paren spellings (sltu trap:
- * `!= 0` on *(src++) materializes sltu; bare `if (*src++)` doesn't). */
+ * `!= 0` on *(src++) materializes sltu; bare `if (*src++)` doesn't).
+ * 2026-09-09 agent-g: EXACT 29/29, two levers
+ * (docs/IDO_CODEGEN.md#post-increment-test-temp-is-a-candidate-67c1c):
+ * (1) `if (*src) { src++; ...}` -- the value of `*src++` is a cfe temp and a
+ *     register CANDIDATE (colours v0); a plain `*src` test is an expression
+ *     temp in the ring (t8), and uopt hoists the then-block's `src++` above
+ *     the `beqz` because src is dead on the exit path (`src++; if (src[-1])`
+ *     folds to the same 29/29);
+ * (2) the copy loop in the 67BDC stpcpy order `qs = src; qd = dst; dst++;
+ *     src++; c = *qs; *qd = c;` -- both cursor copies before both increments
+ *     gives `addiu a0` above `addiu a1`; increment-between-copy-and-load
+ *     swaps them, load-before-increment folds the `or v1,a1` copy (28 w). */
 char *game_libs_func_00067C1C(char *dst, char *src) {
     char *qd;
     char *qs;
@@ -3985,25 +3995,23 @@ char *game_libs_func_00067C1C(char *dst, char *src) {
     while (*qd != 0) {
         qd = dst; dst++;
     }
-    if (*src++) {
+    if (*src) {
+        src++;
         c = *qs;
         dst--;
         qd = dst; dst++;
         *qd = c;
         while (c != 0) {
             qs = src;
-            src++;
-            c = *qs;
             qd = dst;
             dst++;
+            src++;
+            c = *qs;
             *qd = c;
         }
     }
     return dst - 1;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067C1C);
-#endif
 
 int game_libs_func_00067C90(int a0) {
     return a0 & 0x5F;
