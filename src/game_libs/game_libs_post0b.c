@@ -33585,9 +33585,48 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060AD0);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00060BD4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00060BDC);
+/* game_libs_func_00060BD4 -- MERGED 2026-09-09 (agent-c): the 2-word orphan
+ * `lw t6,0xC(a0); lw v0,0x20(a0)` was the hoisted count/cur head of
+ * gl_func_00060BDC (splat mis-split; 0x60BD4 IS the export, sym2338, jal'd
+ * from text 0x75198/0x751C8 = the two callbacks inside gl_func_00060AD0;
+ * 0x60BDC is a mid-function word). 57 words, BYTE-EXACT on the first
+ * spelling; gl_func_00060BDC INCLUDE_ASM + .s retired.
+ *
+ * Line-buffer advance (the newline / overflow callback of the 60AD0 word-wrap
+ * filler): if there is a spare line below cur, bump cur; else rotate line 0
+ * to the end (8-byte {buf,len} struct copies, index i + strength-reduced
+ * i*8 in v1) and clear it. Then visible = cur - top + 1, clamped at 0.
+ * Sibling of game_libs_func_00060CB8 (same {buf,len}[count] layout). */
+typedef struct { char *buf; int len; } LineRec60BD4;
+typedef struct {
+    LineRec60BD4 *recs;  /* 0x00 */
+    int w04;             /* 0x04 */
+    int limit;           /* 0x08 max chars per line (60AD0) */
+    int count;           /* 0x0C line count */
+    int w10;             /* 0x10 */
+    int top;             /* 0x14 */
+    int visible;         /* 0x18 */
+    int w1c;             /* 0x1C */
+    int cur;             /* 0x20 current line index */
+} LineBuf60BD4;
+void game_libs_func_00060BD4(LineBuf60BD4 *self) {
+    int cur = self->cur;
+    if (cur < self->count - 1) {
+        self->cur = cur + 1;
+    } else {
+        LineRec60BD4 tmp;
+        int i;
+        tmp = self->recs[0];
+        for (i = 0; i < self->count - 1; i++) {
+            self->recs[i] = self->recs[i + 1];
+        }
+        self->recs[i] = tmp;
+        self->recs[i].buf[0] = 0;
+        self->recs[i].len = 0;
+    }
+    self->visible = self->cur - self->top + 1;
+    if (self->visible < 0) self->visible = 0;
+}
 
 // Per-entry reset over a0->0xC entries of an 8-byte-stride array at a0->0:
 // for each entry, clear the byte at *entry[0] and zero entry[1]; finally
