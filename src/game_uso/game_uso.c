@@ -4493,6 +4493,15 @@ void game_uso_func_000071A4(int *);
 int game_uso_func_00006FA8(int *);
 long long game_uso_func_00007538(int *, int);
 void game_uso_func_0000591C(int *a0) {
+    /* 2026-09-09: 76.42 -> 81.96% NM (fresh baseline, not the old note).
+     * Word-typed staging copies preserve
+     * the sub-pointer reload; both state dispatches are switches; the five
+     * demotion conditions share one reset; nested float selectors retain
+     * their inner join move. Explicit product temporaries keep the three
+     * scale multiplies ahead of their stores. Still not exact: stack homes,
+     * FP/temp register allocation and several alloc-fallback schedules differ.
+     * See docs/IDO_CODEGEN.md#state-dispatch-word-copy-591c in the tooling repo.
+     */
     /* fresh-Vec3-fanout redecode 2026-07-17 (docs/IDO_CODEGEN.md
      * #fresh-vec3-fanout-intcast-q-7c1c): one address-taken Vec3 per distinct
      * addiu sp home, declared in descending-home order; anti-fold
@@ -4555,16 +4564,16 @@ void game_uso_func_0000591C(int *a0) {
     if (*(int*)((char*)&import_80020110 + 0x78) != 0) return;
     if (import_8006EF48 == 0) return;
 
-    v0 = *(int*)((char*)self + 0x68);
-    if (v0 & 1) {
+    vsel = *(int*)((char*)self + 0x68);
+    if (vsel & 1) {
         game_uso_func_0000A3C4();
         return;
     }
-    if (v0 & 2) {
+    if (vsel & 2) {
         game_uso_func_0000A604(self);
         return;
     }
-    if (v0 & 4) {
+    if (vsel & 4) {
         game_uso_func_0000A7F8(self);
         return;
     }
@@ -4572,17 +4581,22 @@ void game_uso_func_0000591C(int *a0) {
     /* head staging: V440 = (sub+0xB4) words; V328 = scaled axis floats;
      * stage = V328 words; V452 = stage words; V440 += V452 floats. */
     sub = *(char**)((char*)self + 0x30);
-    staged_axis = *(Vec3*)(sub + 0xB4);
+    *(Tri3i *)&staged_axis = *(Tri3i *)(sub + 0xB4);
+    sub = *(char**)((char*)self + 0x30);
     {
         float *q = (float *)((int)sub + 0x318);
+        float x, y, z;
         scale = *(float*)((char*)self + 0xA8);
-        scaled_axis.x = *q * scale;
-        scaled_axis.y = *(float *)((int)q + 4) * scale;
-        scaled_axis.z = *(float *)((int)q + 8) * scale;
+        x = *q * scale;
+        y = *(float *)((int)q + 4) * scale;
+        z = *(float *)((int)q + 8) * scale;
+        scaled_axis.x = x;
+        scaled_axis.y = y;
+        scaled_axis.z = z;
     }
-    stage = scaled_axis;
+    *(Tri3i *)&stage = *(Tri3i *)&scaled_axis;
+    *(Tri3i *)&copy2 = *(Tri3i *)&stage;
     out_flags = 0;
-    copy2 = stage;
     staged_axis.x += copy2.x;
     staged_axis.y += copy2.y;
     staged_axis.z += copy2.z;
@@ -4590,10 +4604,10 @@ void game_uso_func_0000591C(int *a0) {
     helper_ptr = (char*)game_uso_func_00007ACC(self, &hit_parent, &staged_axis, &hit_obj);
     if (helper_ptr == 0) return;
     v0 = *(int*)(helper_ptr + 0x84);
-    if (hit_obj == 0) {
-        resolved_state = 0;
-    } else {
+    if (hit_obj != 0) {
         resolved_state = v0;
+    } else {
+        resolved_state = 0;
     }
     state_flag = v0;
     metric_a = game_uso_func_00007A98(self);
@@ -4603,7 +4617,8 @@ void game_uso_func_0000591C(int *a0) {
      * (the live f0 of 7A98), NOT 0.0f. */
     vsel = *(int*)((char*)self + 0x74);
     t0 = 0;
-    if (vsel == 0) {
+    switch (vsel) {
+    case 0:
         if (metric_a <= *(float*)((char*)self + 0xD8)) {
             if ((state_flag == 0) && (hit_parent != 0)
                     && (*(int*)(hit_parent + 0x84) == 0)) {
@@ -4615,53 +4630,42 @@ void game_uso_func_0000591C(int *a0) {
                 }
             }
         }
-    } else if (vsel == 1) {
+        break;
+    case 1:
         sc = *(int*)((char*)self + 0x2C);
-        if (sc == 3) {
-            fsel = *(float*)((char*)self + 0x3FC);
-        } else if (sc == 2) {
-            fsel = *(float*)((char*)self + 0x3E4);
-        } else {
-            fsel = *(float*)((char*)self + 0x3CC);
+        fsel = sc == 3 ? *(float*)((char*)self + 0x3FC)
+             : sc == 2 ? *(float*)((char*)self + 0x3E4)
+                       : *(float*)((char*)self + 0x3CC);
+        if (!(metric_a <= fsel) || state_flag != 0 || hit_parent == 0
+                || *(int*)(hit_parent + 0x84) != 0
+                || !(*(float*)((char*)self + 0xB4)
+                     <= *(float*)(*(char**)((char*)self + 0x30) + 0x348))) {
+            *(int*)((char*)self + 0x74) = 0;
+            vsel = 0;
         }
-        if (!(metric_a <= fsel)) {
-            *(int*)((char*)self + 0x74) = 0;
-            vsel = 0;
-        } else if (state_flag != 0) {
-            *(int*)((char*)self + 0x74) = 0;
-            vsel = 0;
-        } else if (hit_parent == 0) {
-            *(int*)((char*)self + 0x74) = 0;
-            vsel = 0;
-        } else if (*(int*)(hit_parent + 0x84) != 0) {
-            *(int*)((char*)self + 0x74) = 0;
-            vsel = 0;
-        } else {
-            sub = *(char**)((char*)self + 0x30);
-            if (!(*(float*)((char*)self + 0xB4) <= *(float*)(sub + 0x348))) {
-                *(int*)((char*)self + 0x74) = 0;
-                vsel = 0;
-            }
-        }
+        break;
     }
 
     /* transform dispatch: 0 -> 7C1C(&stage,...,&out_w); 1 -> 8CD8(&stage,...,t0);
      * result words -> fresh V276/V264 -> V252 -> transform_out floats. */
-    if (vsel == 0) {
+    switch (vsel) {
+    case 0:
         v0 = game_uso_func_00007C1C(&stage, self, helper_ptr, hit_parent,
             &staged_axis, &out_w);
-        res_a = *(Vec3*)v0;
-        res_c = res_a;
+        *(Tri3i *)&res_a = *(Tri3i *)v0;
+        *(Tri3i *)&res_c = *(Tri3i *)&res_a;
         transform_out.x = res_c.x;
         transform_out.y = res_c.y;
         transform_out.z = res_c.z;
-    } else if (vsel == 1) {
+        break;
+    case 1:
         v0 = (int)game_uso_func_00008CD8(&stage, self, helper_ptr, hit_parent, t0);
-        res_b = *(Vec3*)v0;
-        res_c = res_b;
+        *(Tri3i *)&res_b = *(Tri3i *)v0;
+        *(Tri3i *)&res_c = *(Tri3i *)&res_b;
         transform_out.x = res_c.x;
         transform_out.y = res_c.y;
         transform_out.z = res_c.z;
+        break;
     }
 
     /* dead-sentinel copy-or-alloc scratch (target 0x394-0x3E8): the guard
@@ -4889,23 +4893,15 @@ yaw_region:
     counter = *(int*)((char*)self + 0x4C4);
     if (counter == 0x10000) {
         sc = *(int*)((char*)self + 0x2C);
-        if (sc == 3) {
-            fsel = *(float*)((char*)self + 0x2DC);
-        } else if (sc == 2) {
-            fsel = *(float*)((char*)self + 0x2C4);
-        } else {
-            fsel = *(float*)((char*)self + 0x2AC);
-        }
+        fsel = sc == 3 ? *(float*)((char*)self + 0x2DC)
+             : sc == 2 ? *(float*)((char*)self + 0x2C4)
+                       : *(float*)((char*)self + 0x2AC);
         if (metric_a < fsel) {
             game_uso_func_0000751C(self);
             sc = *(int*)((char*)self + 0x2C);
-            if (sc == 3) {
-                fsel = *(float*)((char*)self + 0x324);
-            } else if (sc == 2) {
-                fsel = *(float*)((char*)self + 0x30C);
-            } else {
-                fsel = *(float*)((char*)self + 0x2F4);
-            }
+            fsel = sc == 3 ? *(float*)((char*)self + 0x324)
+                 : sc == 2 ? *(float*)((char*)self + 0x30C)
+                           : *(float*)((char*)self + 0x2F4);
             *(int*)((char*)self + 0x4C4) = (int)fsel;
         }
         goto tail_common;
@@ -4918,13 +4914,9 @@ yaw_region:
     } else {
         sc = *(int*)((char*)self + 0x2C);
         if (sc != 0) {
-            if (sc == 3) {
-                fsel = *(float*)((char*)self + 0x3B4);
-            } else if (sc == 2) {
-                fsel = *(float*)((char*)self + 0x39C);
-            } else {
-                fsel = *(float*)((char*)self + 0x384);
-            }
+            fsel = sc == 3 ? *(float*)((char*)self + 0x3B4)
+                 : sc == 2 ? *(float*)((char*)self + 0x39C)
+                           : *(float*)((char*)self + 0x384);
             if (fsel < metric_a) {
                 *(int*)((char*)self + 0x4C4) = 0x10000;
                 game_uso_func_00007448(self);
@@ -4934,13 +4926,9 @@ yaw_region:
 
     /* proximity flag block (0xC1C-0xCD8) */
     sc = *(int*)((char*)self + 0x2C);
-    if (sc == 3) {
-        fsel = *(float*)((char*)self + 0x12C);
-    } else if (sc == 2) {
-        fsel = *(float*)((char*)self + 0x114);
-    } else {
-        fsel = *(float*)((char*)self + 0xFC);
-    }
+    fsel = sc == 3 ? *(float*)((char*)self + 0x12C)
+         : sc == 2 ? *(float*)((char*)self + 0x114)
+                   : *(float*)((char*)self + 0xFC);
     sub = *(char**)((char*)self + 0x30);
     if (fsel < metric_a) {
         if (*(int*)(sub + 0x9CC) != 0) {
@@ -4962,13 +4950,9 @@ yaw_region:
 tail_common:
     /* common tail (0xCE8-0x10F8): every path lands here. */
     sc = *(int*)((char*)self + 0x2C);
-    if (sc == 1) {
-        fsel = *(float*)((char*)self + 0x264);
-    } else if (sc == 2) {
-        fsel = *(float*)((char*)self + 0x27C);
-    } else {
-        fsel = *(float*)((char*)self + 0x294);
-    }
+    fsel = sc == 1 ? *(float*)((char*)self + 0x264)
+         : sc == 2 ? *(float*)((char*)self + 0x27C)
+                   : *(float*)((char*)self + 0x294);
     sub = *(char**)((char*)self + 0x30);
     {
         int *q = (int *)((int)sub + 2648);
@@ -5014,13 +4998,9 @@ tail_common:
         *(int*)((char*)self + 0x7C) = *(int*)(helper_ptr + 0x6C);
         if (resolved_state & 0x200) {
             sc = *(int*)((char*)self + 0x2C);
-            if (sc == 3) {
-                fsel = *(float*)((char*)self + 0x24C);
-            } else if (sc == 2) {
-                fsel = *(float*)((char*)self + 0x234);
-            } else {
-                fsel = *(float*)((char*)self + 0x21C);
-            }
+            fsel = sc == 3 ? *(float*)((char*)self + 0x24C)
+                 : sc == 2 ? *(float*)((char*)self + 0x234)
+                           : *(float*)((char*)self + 0x21C);
             if (fsel <= metric_a) {
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             } else {
@@ -5037,36 +5017,24 @@ tail_common:
         } else if (resolved_state & 0x100) {
             sc = *(int*)((char*)self + 0x2C);
             if (sc != 0) {
-                if (sc == 3) {
-                    fsel = *(float*)((char*)self + 0x1BC);
-                } else if (sc == 2) {
-                    fsel = *(float*)((char*)self + 0x1A4);
-                } else {
-                    fsel = *(float*)((char*)self + 0x18C);
-                }
+                fsel = sc == 3 ? *(float*)((char*)self + 0x1BC)
+                     : sc == 2 ? *(float*)((char*)self + 0x1A4)
+                               : *(float*)((char*)self + 0x18C);
                 if (!(metric_a <= fsel)) goto commit_flags;
             }
             *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
         } else if (resolved_state & 0x80) {
             sc = *(int*)((char*)self + 0x2C);
-            if (sc == 3) {
-                fsel = *(float*)((char*)self + 0x174);
-            } else if (sc == 2) {
-                fsel = *(float*)((char*)self + 0x15C);
-            } else {
-                fsel = *(float*)((char*)self + 0x144);
-            }
+            fsel = sc == 3 ? *(float*)((char*)self + 0x174)
+                 : sc == 2 ? *(float*)((char*)self + 0x15C)
+                           : *(float*)((char*)self + 0x144);
             if (!(metric_a <= fsel)) goto commit_flags;
             *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
         } else {
             sc = *(int*)((char*)self + 0x2C);
-            if (sc == 3) {
-                fsel = *(float*)((char*)self + 0x204);
-            } else if (sc == 2) {
-                fsel = *(float*)((char*)self + 0x1EC);
-            } else {
-                fsel = *(float*)((char*)self + 0x1D4);
-            }
+            fsel = sc == 3 ? *(float*)((char*)self + 0x204)
+                 : sc == 2 ? *(float*)((char*)self + 0x1EC)
+                           : *(float*)((char*)self + 0x1D4);
             if (fsel <= metric_a) {
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             } else if (0.0f < metric_a) {
