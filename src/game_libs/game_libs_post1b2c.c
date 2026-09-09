@@ -667,46 +667,15 @@ int gl_func_0006EF08(char *a0, int a1, int a2, ...) {
     return rv;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0006EF64: VARARGS dispatch helper (frame-size/arg-home cap).
- *   The target homes a0/a1/a2 at the TOP of a 0x28 frame (sw a0,0x28;
- *   sw a1,0x2C; sw a2,0x30) and RELOADS each before every use — the
- *   classic misdiagnosed-variadic arg-home shape. Fixed-arity
- *   (int,void*,int) keeps a1 register-resident at a 0x18 frame (52.75%).
- *   Declaring it VARARGS `(int a0, void *a1, ...)` homes+reloads every
- *   arg slot; reading a0/a1/a2 from their homed slots (via the va base
- *   `&a1`) forces the `lw` reloads instead of register moves.
- *   See docs/IDO_CODEGEN.md "VARARGS declaration fixes the frame-size
- *   shift / arg-home cap". Sibling of gl_func_0006EF08. */
-extern int D_6EF64_g;
-extern int FUNC_6EF64_a(void);
-extern int FUNC_6EF64_b(int, void *, int);
-extern int FUNC_6EF64_c(void);
-extern int FUNC_6EF64_d(int, void *, int);
-int gl_func_0006EF64(int a0, void *a1, ...) {
-    int *args = (int *)&a0;
-    int s1, s0;
-    if (D_6EF64_g == 0) {
-        return -1;
-    }
-    *(int *)((char *)args[1] + 0x14) = args[0];
-    if (args[2] == 0) {
-        *(short *)args[1] = 0xF;
-    } else {
-        *(short *)args[1] = 0x10;
-    }
-    if (*(unsigned char *)((char *)args[1] + 2) == 1) {
-        s1 = FUNC_6EF64_a();
-        s0 = FUNC_6EF64_b(s1, (void *)args[1], 0);
-    } else {
-        s1 = FUNC_6EF64_c();
-        s0 = FUNC_6EF64_d(s1, (void *)args[1], 0);
-    }
-    return s0;
+/* gl_func_0006EF64 = libultra osEPiStartDma, 0xD4/53 body words.
+ * bootup.uso Sym1320 exports Text+0x835D0; calls at 0x49BA0/0x49E40.
+ * Real fixed-arity C lives in game_libs_o1_6EF64.c, compiled at -O1.
+ * The former varargs/argument-home "cap" was an -O2 misdiagnosis.
+ * Both IDO 7.1 and 5.3 emit the original 53 words from the reference C.
+ * Retain the three existing all-zero padding words before entry 6F044. */
+int gl_func_0006EF64(void *handle, void *message, int direction) {
+    return 0; /* Replaced by the complete compiled -O1 donor body. */
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006EF64);
-#endif
 
 
 /* gl_func_0006F088 = libultra osLeoDiskInit (leodiskinit.c verbatim):

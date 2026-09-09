@@ -3496,3 +3496,7 @@ D_23494_read_marker_a = 0;
 D_23494_read_marker_b = 0;
 D_23494_write_marker_a = 0;
 D_23494_write_marker_b = 0;
+D_6EF64_g = 0; /* __osPiDevMgr.active, osEPiStartDma donor */
+FUNC_6EF64_a = 0; /* osPiGetCmdQueue, blank USO jal */
+FUNC_6EF64_b = 0; /* osJamMesg, blank USO jal */
+FUNC_6EF64_d = 0; /* osSendMesg, blank USO jal */

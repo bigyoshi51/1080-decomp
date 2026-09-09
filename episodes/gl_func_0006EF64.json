@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006EF64",
+  "project": "1080-decomp",
+  "model": "codex-manual",
+  "start_time": "2026-09-09T19:11:24.104941+00:00",
+  "end_time": "2026-09-09T19:11:24.104959+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T19:11:24.104955+00:00",
+      "assistant_text": "Identified libultra osEPiStartDma from io/epidma.c: fixed arity (OSPiHandle*, OSIoMesg*, direction), PI-manager active gate, EDMAREAD/EDMAWRITE message type, priority dispatch to osJamMesg/osSendMesg via osPiGetCmdQueue. Register ret and -O1 naturally reproduce the argument homes and both s registers. The old variadic arg-home workaround was an -O2 misdiagnosis. Separate donor compilation changes optimization for this function only; no instruction-byte patches.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 53,
+  "initial_m2c_source": null,
+  "final_source": "/* osEPiStartDma, references/libreultra/src/io/epidma.c.\n * IDO 7.1 -O1: all 53 body words equal ROM E5403C:E54110; IDO 5.3\n * agrees. Fixed arity (handle, message, direction), not varargs. The\n * argument homes/reloads and register ret follow naturally at -O1.\n * Existing host policy adds the three all-zero inter-object pad words.\n * D_6EF64_g = __osPiDevMgr.active; FUNC_6EF64_a = osPiGetCmdQueue;\n * FUNC_6EF64_b = osJamMesg; FUNC_6EF64_d = osSendMesg. USO relocs pin\n * these to zero in the ROM image; the loader supplies real addresses.\n */\ntypedef int s32;\ntypedef struct OSPiHandle OSPiHandle;\ntypedef struct OSMesgQueue OSMesgQueue;\ntypedef void *OSMesg;\ntypedef struct {\n    unsigned short type;\n    unsigned char pri;\n    unsigned char status;\n    OSMesgQueue *retQueue;\n} OSIoMesgHdr;\ntypedef struct {\n    OSIoMesgHdr hdr;\n    void *dramAddr;\n    unsigned int devAddr;\n    unsigned int size;\n    OSPiHandle *piHandle;\n} OSIoMesg;\nextern int D_6EF64_g;\nextern OSMesgQueue *FUNC_6EF64_a(void);\nextern s32 FUNC_6EF64_b(OSMesgQueue *, OSMesg, s32);\nextern s32 FUNC_6EF64_d(OSMesgQueue *, OSMesg, s32);\n\ns32 gl_func_0006EF64(OSPiHandle *pihandle, OSIoMesg *mb, s32 direction)\n{\n    register s32 ret;\n    if (!D_6EF64_g)\n        return -1;\n    mb->piHandle = pihandle;\n    if (direction == 0) {\n        mb->hdr.type = 15;\n    } else {\n        mb->hdr.type = 16;\n    }\n    if (mb->hdr.pri == 1) {\n        ret = FUNC_6EF64_b(FUNC_6EF64_a(), mb, 0);\n    } else {\n        ret = FUNC_6EF64_d(FUNC_6EF64_a(), mb, 0);\n    }\n    return ret;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6EF64.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0006EF64.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -G0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Standalone IDO 5.3 and 7.1 C bodies both match all 212 original ROM bytes at E5403C:E54110. Project donor matches 212 bytes; default/NM/unchanged pure-ASM expected symbols match all 224 bytes including the existing three zero pad words. objdiff 100.0, full ROM cmp passes, no exact regressions."
+  }
+}
