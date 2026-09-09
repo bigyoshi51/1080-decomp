@@ -107,7 +107,18 @@ void gl_func_0006C484(void) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C484);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C710);
+/* game_libs_func_0006C714 = __ull_rshift (libgcc-style u64 >> u64, twin of the
+ * kernel_056 family below). BOUNDARY FIX 2026-09-09 (twenty-sixth mis-split
+ * case, docs/MATCHING_WORKFLOW #leading-nop-cap-is-inter-object-pad-sym-oracle-74844):
+ * the old "game_libs_func_0006C710" symbol (0x30) carried a leading zero word;
+ * bootup.uso's Sym export table says section 0x80D80 (= splat 0x6C714, the
+ * `sw a0,0(sp)`) is the export (sym 2590) and 0x80D7C (the zero) is not -- it
+ * is the 16-byte inter-object pad closing gl_func_0006C484, restored as an
+ * all-zero SUFFIX_BYTES_FORCE on 6C484. This is the "mod8=4 _pad.s sidecar
+ * failure" case of #feedback-leading-nop-symbol-misplaced-on-pad; the suffix
+ * shape (no sidecar) sidesteps it. Real C in the -O2 -mips3 donor
+ * game_libs_mips3_6C740.c, spliced via REPLACE_FUNC_BODY (this TU is -mips2). */
+u64 game_libs_func_0006C714(u64 a, u64 b) { return a >> b; }  /* __ull_rshift */
 
 /* 64-bit libgcc helper family. LANDED 2026-06-21 as byte-identical TWIN-PORTs
  * of the matched kernel_056.c funcs (0 relocs, self-contained). Real C lives in

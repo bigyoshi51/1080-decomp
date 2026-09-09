@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0006C714",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-09-09T17:51:26.818569+00:00",
+  "end_time": "2026-09-09T17:51:26.818586+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T17:51:26.818582+00:00",
+      "assistant_text": "game_libs_func_0006C714 = __ull_rshift: unsigned long long f(unsigned long long a, unsigned long long b) { return a >> b; } -- twin of kernel_056 func_80002A10, sibling of the landed __ull_rem/__ull_div/__ll_lshift/__ll_rshift family in the same -O2 -mips3 donor (sw a0..a3 homes; ld t7/t6; dsrlv v0; dsll32/dsra32 v1 for the high word; dsra32 v0 in the jr delay). Boundary fix (twenty-sixth mis-split case): the old game_libs_func_0006C710 symbol carried a leading zero word; bootup.uso Sym export table says section 0x80D80 = splat 0x6C714 (the sw a0,0(sp)) is the export (sym 2590) and 0x80D7C is not -- it is the 16-byte inter-object pad closing gl_func_0006C484, restored as all-zero SUFFIX_BYTES_FORCE on 6C484. This was the documented \"mod8=4 _pad.s sidecar failure\" case (asm-processor 8-aligns the C function after a GLOBAL_ASM block); the suffix shape has no sidecar, so the placeholder sits at 0x6C710 and the pad injection shifts it to 0x6C714.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 11,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* 64-bit libgcc-style helpers, statically linked into the game_libs USO.\n * Byte-identical masked-twins (0 relocs, self-contained) of the matched kernel\n * kernel_056.c family. Compile -O2 -mips3 so IDO inlines the d-arithmetic\n * (ddivu/dmultu/dsrav/...) instead of emitting jal back to themselves. The\n * \"should not be used for ucode 32-bit compiles\" warning is expected. Spliced\n * into game_libs_post1b2c.c.o (default -O2 -mips2) via REPLACE_FUNC_BODY, same\n * recipe as the landed game_libs_func_0006C8AC divmod. */\n\nunsigned long long game_libs_func_0006C740(unsigned long long a, unsigned long long b) { return a % b; }  /* __ull_rem  <- func_80002A3C */\nunsigned long long game_libs_func_0006C7E4(unsigned long long a, unsigned long long b) { return a % b; }  /* __ull_rem (dup) <- func_80002AE0 */\nunsigned long long game_libs_func_0006C77C(unsigned long long a, unsigned long long b) { return a / b; }  /* __ull_div  <- func_80002A78 */\nunsigned long long game_libs_func_0006C7B8(unsigned long long a, unsigned long long b) { return a << b; } /* __ll_lshift <- func_80002AB4 */\nlong long game_libs_func_0006C820(long long a, long long b) { return a / b; }  /* __ll_div <- func_80002B1C */\nlong long game_libs_func_0006C87C(long long a, long long b) { return a * b; }  /* __ll_mul <- func_80002B78 */\nlong long game_libs_func_0006C9A8(long long a, long long b) { return a >> b; } /* __ll_rshift <- func_80002CA4 */\nunsigned long long game_libs_func_0006C714(unsigned long long a, unsigned long long b) { return a >> b; } /* __ull_rshift (entry 0x6C714; the old \"6C710\" symbol carried 6C484's inter-object pad word, agent-g 2026-09-09) */\n\n/* gl_func_0006C90C (Euclidean mod <- func_80002C08) LANDED 2026-06-21 in the\n * -O1 -mips3 donor game_libs_o1_6C8AC.c, NOT here: the divergence was OPT_FLAGS\n * (this unit is -O2 \u2192 leaf-optimizes to 33 insns), not TU-context. At -O1 -mips3\n * IDO keeps arg-homing \u2192 byte-exact 39-insn (0x9c) form. */\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_mips3_6C740.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0006C714.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O2 -mips3 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "11/11 raw words identical vs asm/nonmatchings .s (zero relocs); REPLACE_FUNC_BODY splice from the -O2 -mips3 donor into game_libs_post1b2c.c.o at 0x314 with the all-zero SUFFIX_BYTES_FORCE pad on gl_func_0006C484; unit .text reloc-blind identical to the tracked expected (19 words, all at objdump -r offsets); full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; sentinels 100.0; report fuzzy 100.0"
+  }
+}

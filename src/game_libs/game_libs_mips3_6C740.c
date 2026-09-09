@@ -15,6 +15,7 @@ unsigned long long game_libs_func_0006C7B8(unsigned long long a, unsigned long l
 long long game_libs_func_0006C820(long long a, long long b) { return a / b; }  /* __ll_div <- func_80002B1C */
 long long game_libs_func_0006C87C(long long a, long long b) { return a * b; }  /* __ll_mul <- func_80002B78 */
 long long game_libs_func_0006C9A8(long long a, long long b) { return a >> b; } /* __ll_rshift <- func_80002CA4 */
+unsigned long long game_libs_func_0006C714(unsigned long long a, unsigned long long b) { return a >> b; } /* __ull_rshift (entry 0x6C714; the old "6C710" symbol carried 6C484's inter-object pad word, agent-g 2026-09-09) */
 
 /* gl_func_0006C90C (Euclidean mod <- func_80002C08) LANDED 2026-06-21 in the
  * -O1 -mips3 donor game_libs_o1_6C8AC.c, NOT here: the divergence was OPT_FLAGS
