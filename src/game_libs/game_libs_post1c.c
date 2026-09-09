@@ -246,61 +246,27 @@ void gl_func_000707E8(int m) {
     }
 }
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-typedef char *(*GP_00070850)();
-void game_libs_func_00070850(char *arg0, char *arg1) {
-    f32 var_f16;
-    f32 var_f18;
-    s32 temp_f12;
-    s32 temp_f12_2;
-    s32 temp_f14;
-    s32 temp_f14_2;
-    s32 var_a0;
-    s32 var_a2;
-    char *var_a3;
-    char *var_t0;
-    char *var_v0;
-    char *var_v1;
-
-    var_v0 = arg1;
-    var_v1 = (int)arg1 + 0x20;
-    var_a2 = 0;
-    var_a3 = arg0;
-    do {
-        var_t0 = var_a3;
-        var_a0 = 1;
-        var_f18 = *(f32*)((char*)var_t0 + 0x0);
-        var_f16 = *(f32*)((char*)var_t0 + 0x4) * 65536.0f;
-        if (1 != 2) {
-            do {
-                var_a0 += 1;
-                var_v0 += 4;
-                var_v1 += 4;
-                var_t0 += 8;
-                temp_f12 = (s32) var_f16;
-                temp_f14 = (s32) (var_f18 * 65536.0f);
-                FW(var_v0, -0x4) = (s32) ((temp_f14 & 0xFFFF0000) | ((temp_f12 >> 0x10) & 0xFFFF));
-                FW(var_v1, -0x4) = (s32) (((temp_f14 << 0x10) & 0xFFFF0000) | (temp_f12 & 0xFFFF));
-                var_f18 = *(f32*)((char*)var_t0 + 0x0);
-                var_f16 = *(f32*)((char*)var_t0 + 0x4) * 65536.0f;
-            } while (var_a0 != 2);
-        }
-        var_v0 += 4;
-        var_v1 += 4;
-        temp_f12_2 = (s32) var_f16;
-        temp_f14_2 = (s32) (var_f18 * 65536.0f);
-        FW(var_v0, -0x4) = (s32) ((temp_f14_2 & 0xFFFF0000) | ((temp_f12_2 >> 0x10) & 0xFFFF));
-        FW(var_v1, -0x4) = (s32) (((temp_f14_2 << 0x10) & 0xFFFF0000) | (temp_f12_2 & 0xFFFF));
-        var_a2 += 1;
-        var_a3 += 0x10;
-    } while (var_a2 != 4);
+/* game_libs_func_00070854 = guMtxF2L (libultra gu/mtxutil.c verbatim,
+ * IDO 5.3 -O2 single-fn carve-out donor game_libs_ido53_70854.c, sibling
+ * of guMtxIdentF 70954 below). BOUNDARY FIX 2026-09-09 (twenty-sixth
+ * mis-split case, docs/MATCHING_WORKFLOW
+ * #leading-nop-cap-is-inter-object-pad-sym-oracle-74844): the old
+ * "game_libs_func_00070850" symbol (0x104) carried a leading zero word;
+ * bootup.uso's Sym export table says section 0x84EC0 (= splat 0x70854,
+ * the `lui at,0x4780` = 65536.0f) is the export (sym 1998, several
+ * R_MIPS_26 refs) and 0x84EBC (the zero) is not -- it is the 16-byte
+ * inter-object pad closing guOrtho (gl_func_000707E8, 0x68), restored as
+ * an all-zero SUFFIX_BYTES_FORCE on 707E8. The 2026-08-22 "64/64-word
+ * divergent from libreultra guMtxF2L at every opt level" negative was an
+ * off-by-one-word comparison against the padded .s: the verbatim source
+ * is 64/64 at IDO 5.3 -O2 (and -O3), ZERO relocs. LANDED via
+ * REPLACE_FUNC_BODY donor splice; body below is a placeholder. */
+void game_libs_func_00070854(int m) {
+    volatile int f2l_spliced = 0;
+    if (m != 0) {
+        f2l_spliced = m;
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070850);
-#endif
 
 /* game_libs_func_00070954 = guMtxIdentF (libultra gu/mtxutil.c
  * verbatim, IDO 5.3 -O2 single-fn carve-out donor:

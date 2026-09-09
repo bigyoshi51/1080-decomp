@@ -904,8 +904,12 @@ build/non_matching/src/game_libs/game_libs_post1b2c.c.o: NON_MATCHING_SUFFIX_BYT
 # batch 6: 70B04 alignment word at 0x70C40 (donor delay nop covers 0x70C3C,
 # _pad.s sidecar deleted); 732C4 pad nop at 0x73310 (osViGetCurrentField true
 # entry = 0x73314 after the 73310 orphan-nop absorption).
-build/src/game_libs/game_libs_post1c.c.o: SUFFIX_BYTES_FORCE := gl_func_00070B04=0x00000000 gl_func_00070C44=0x00000000
-build/non_matching/src/game_libs/game_libs_post1c.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00070B04=0x00000000 gl_func_00070C44=0x00000000
+# gl_func_000707E8 (guOrtho, donor-spliced): the 16-byte inter-object pad at
+# 0x70850 that the old "game_libs_func_00070850" symbol carried as a leading zero
+# word (Sym export oracle: only 0x70854 = guMtxF2L is exported). Twenty-sixth
+# mis-split case, docs/MATCHING_WORKFLOW #leading-nop-cap-is-inter-object-pad-sym-oracle-74844.
+build/src/game_libs/game_libs_post1c.c.o: SUFFIX_BYTES_FORCE := gl_func_00070B04=0x00000000 gl_func_00070C44=0x00000000 gl_func_000707E8=0x00000000
+build/non_matching/src/game_libs/game_libs_post1c.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00070B04=0x00000000 gl_func_00070C44=0x00000000 gl_func_000707E8=0x00000000
 build/src/game_libs/game_libs_post2b_c.c.o: SUFFIX_BYTES_FORCE := gl_func_000732C4=0x00000000
 build/non_matching/src/game_libs/game_libs_post2b_c.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_000732C4=0x00000000
 build/src/game_libs/game_libs_o1_6C8AC.c.o build/non_matching/src/game_libs/game_libs_o1_6C8AC.c.o: OPT_FLAGS := -O1
@@ -914,6 +918,7 @@ build/src/game_libs/game_libs_o1_6C8AC.c.o build/non_matching/src/game_libs/game
 GAMELIBS_6BA7C_DONOR := build/src/game_libs/game_libs_ido53_6BA7C.c.o
 GAMELIBS_70694_DONOR := build/src/game_libs/game_libs_ido53_70694.c.o
 GAMELIBS_70954_DONOR := build/src/game_libs/game_libs_ido53_70954.c.o
+GAMELIBS_70854_DONOR := build/src/game_libs/game_libs_ido53_70854.c.o
 GAMELIBS_70A14_DONOR := build/src/game_libs/game_libs_ido53_70A14.c.o
 GAMELIBS_70634_DONOR := build/src/game_libs/game_libs_ido53_70634.c.o
 GAMELIBS_747F4_DONOR := build/src/game_libs/game_libs_ido53_747F4.c.o
@@ -1087,7 +1092,7 @@ build/src/game_libs/game_libs_post2.c.o build/non_matching/src/game_libs/game_li
 build/src/game_libs/game_libs_post1b.c.o: SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000 gl_func_00069E04=0x00000000 game_libs_func_00069F54=0x00000000
 build/non_matching/src/game_libs/game_libs_post1b.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000 gl_func_00069E04=0x00000000 game_libs_func_00069F54=0x00000000
 build/src/game_libs/game_libs_post2b_e.c.o build/non_matching/src/game_libs/game_libs_post2b_e.c.o: REPLACE_FUNC_BODY := gl_func_00074C04=$(GAMELIBS_74C04_DONOR)
-build/src/game_libs/game_libs_post1c.c.o build/non_matching/src/game_libs/game_libs_post1c.c.o: REPLACE_FUNC_BODY := gl_func_00070634=$(GAMELIBS_70634_DONOR) gl_func_00070B04=$(GAMELIBS_70B04_DONOR) gl_func_00070C44=$(GAMELIBS_70C44_DONOR) gl_func_00070694=$(GAMELIBS_70694_DONOR) gl_func_000707E8=$(GAMELIBS_70694_DONOR) game_libs_func_00070954=$(GAMELIBS_70954_DONOR) gl_func_00070A14=$(GAMELIBS_70A14_DONOR)
+build/src/game_libs/game_libs_post1c.c.o build/non_matching/src/game_libs/game_libs_post1c.c.o: REPLACE_FUNC_BODY := gl_func_00070634=$(GAMELIBS_70634_DONOR) gl_func_00070B04=$(GAMELIBS_70B04_DONOR) gl_func_00070C44=$(GAMELIBS_70C44_DONOR) gl_func_00070694=$(GAMELIBS_70694_DONOR) gl_func_000707E8=$(GAMELIBS_70694_DONOR) game_libs_func_00070954=$(GAMELIBS_70954_DONOR) gl_func_00070A14=$(GAMELIBS_70A14_DONOR) game_libs_func_00070854=$(GAMELIBS_70854_DONOR)
 # 73904/73E74 = Plauger libc _Genld/_Ldtob (xldtob.c verbatim), ONE IDO
 # 5.3 -O3 donor: whole-TU interprocedural regalloc gives static _Genld
 # its $s0-$s4 custom linkage (the old "caller-set s-reg cap") and
@@ -1139,6 +1144,11 @@ build/src/game_libs/game_libs_ido53_70694.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_70954.c.o build/non_matching/src/game_libs/game_libs_ido53_70954.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_70954.c.o build/non_matching/src/game_libs/game_libs_ido53_70954.c.o: OPT_FLAGS := -O2
 build/src/game_libs/game_libs_ido53_70954.c.o build/non_matching/src/game_libs/game_libs_ido53_70954.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ guMtxIdentF=game_libs_func_00070954
+# 70854 = guMtxF2L (mtxutil.c verbatim, single-fn carve-out sibling of 70954),
+# IDO 5.3 -O2, 64/64 words exact, ZERO relocs. See game_libs_ido53_70854.c.
+build/src/game_libs/game_libs_ido53_70854.c.o build/non_matching/src/game_libs/game_libs_ido53_70854.c.o: CC := $(IDO53_DIR)/cc
+build/src/game_libs/game_libs_ido53_70854.c.o build/non_matching/src/game_libs/game_libs_ido53_70854.c.o: OPT_FLAGS := -O2
+build/src/game_libs/game_libs_ido53_70854.c.o build/non_matching/src/game_libs/game_libs_ido53_70854.c.o: POST_COMPILE = python3 scripts/rename-elf-symbol.py $@ guMtxF2L=game_libs_func_00070854
 # 70A14 = guMtxL2F (mtxutil.c verbatim, single-fn carve-out), IDO 5.3
 # -O2, 45/45 words exact, ZERO relocs; block spans 0x70A0C..0x70AC0
 # (lead lui/mtc1 = the 1/65536.0f FIX32TOF load -- old caller-set-$f0

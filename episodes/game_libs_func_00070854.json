@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_00070854",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-09-09T17:48:49.148641+00:00",
+  "end_time": "2026-09-09T17:48:49.148659+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T17:48:49.148655+00:00",
+      "assistant_text": "game_libs_func_00070854 = guMtxF2L (libultra gu/mtxutil.c verbatim, FTOFIX32 = (long)(x * 65536.0f)). IDO 5.3 -O2 single-fn carve-out is 64/64 words exact with ZERO relocs (also 64/64 at -O3, 1/64 at -O1). Boundary fix (twenty-sixth mis-split case): the old game_libs_func_00070850 symbol carried a leading zero word; bootup.uso Sym export table says section 0x84EC0 = splat 0x70854 (the lui at,0x4780 = 65536.0f) is the export (sym 1998) and 0x84EBC is not -- it is the 16-byte inter-object pad closing guOrtho (gl_func_000707E8, 0x68), restored as all-zero SUFFIX_BYTES_FORCE on 707E8. The 2026-08-22 note \"64/64 divergent from libreultra guMtxF2L at every opt level\" was an off-by-one-word comparison against the padded .s; comparing from the exported entry the verbatim source matches on the first compile.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 64,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O2 -mips2 donor for game_libs_func_00070854 = guMtxF2L\n * (libreultra src/gu/mtxutil.c verbatim, FTOFIX32 from gu.h). PROVEN\n * EXACT 2026-09-09: 64/64 words identical at -O2 (and -O3; -O1 is 1/64),\n * ZERO relocs (lui 0x4780 = 65536.0f, the unrolled j<2 inner pair). The\n * 2026-08-22 \"64/64 divergent at every opt level\" note was an off-by-one\n * comparison against the old padded .s (game_libs_func_00070850 carried\n * guOrtho's inter-object pad word at 0x70850; the export is 0x70854).\n * Single-fn carve-out like guMtxIdentF 70954 (the game's gu cluster does\n * not follow mtxutil.c's TU emit order). POST_COMPILE renames\n * guMtxF2L -> game_libs_func_00070854 for the REPLACE_FUNC_BODY splice\n * key. Spliced into game_libs_post1c.c.o. */\n\ntypedef union {\n\tlong m[4][4];\n\tlong long int force_structure_alignment;\n} Mtx;\n\n#define FTOFIX32(x)\t(long)((x) * (float)0x00010000)\n\nvoid guMtxF2L(float mf[4][4], Mtx *m)\n{\n\tint\ti, j;\n\tint\te1,e2;\n\tint\t*ai,*af;\n\n\n\tai=(int *) &m->m[0][0];\n\taf=(int *) &m->m[2][0];\n\n\tfor (i=0; i<4; i++)\n\tfor (j=0; j<2; j++) {\n\t\te1=FTOFIX32(mf[i][j*2]);\n\t\te2=FTOFIX32(mf[i][j*2+1]);\n\t\t*(ai++) = ( e1 & 0xffff0000 ) | ((e2 >> 16)&0xffff);\n\t\t*(af++) = ((e1 << 16) & 0xffff0000) | (e2 & 0xffff);\n\t}\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_70854.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_00070854.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O2 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "64/64 raw words identical vs asm/nonmatchings .s (zero relocs, pure code); REPLACE_FUNC_BODY splice into game_libs_post1c.c.o at 0x540 with the all-zero SUFFIX_BYTES_FORCE pad on gl_func_000707E8; unit .text reloc-blind identical to the tracked expected; full make + cmp tenshoe.z64 baserom.z64 byte-identical; non_matching_objects exit 0; sentinels 100.0; report fuzzy 100.0"
+  }
+}
