@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006F834",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-09-09T18:44:44.799069+00:00",
+  "end_time": "2026-09-09T18:44:44.799086+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T18:44:44.799082+00:00",
+      "assistant_text": "gl_func_0006F834 = libultra guFrustum (gu/frustum.c verbatim), IDO 5.3 -O3 -- the same class as the guOrtho donor (70694/707E8). The 87.7% wrap called it a 2-FP-home budget cap (only two float params homed in f12/f14, third stack-homed): that is -O2; at -O3 IDO homes l/r/b through f12/f14/f16 (mtc1 a1-a3, mfc1 a1-a3). Matrix mf at sp+40, guFrustumF(mf, ...) then guMtxF2L(mf, m), both blank USO imports (guFrustumF is the in-unit 6F684, a non-libreultra 108-word body, so only guFrustum is spliced). asm-processor rejects -O3, hence a direct-CC Makefile rule pair.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 26,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O3 -mips2 donor for gl_func_0006F834 = libultra guFrustum\n * (references/libreultra/src/gu/frustum.c, verbatim). PROVEN EXACT 26/26\n * standalone at BOTH 5.3 -O3 and 7.1 -O3 (agent-g 2026-09-09; built with\n * 5.3 like the guOrtho donor game_libs_ido53_70694.c, whose -O3 class this\n * is). -O2 is 23 words off (two FP homes + `sw a3` stack home): the old\n * \"2-FP-home budget cap / no probed mode homes three float params\" verdict\n * in the 87.7% wrap was -O2 vs -O3, not a compiler limit. Section 0x83EA0 =\n * bootup.uso export sym 162 (one jal ref at 0x1B00).\n * Shape: Matrix mf at sp+40 (64 bytes), mtc1/mfc1 single-precision arg\n * re-marshal of l/r/b (a1-a3 -> f12/f14/f16 -> a1-a3), t/n/f/scale copied\n * sp+0x78.. -> sp+0x10.. via lwc1/swc1, two blank jals = guFrustumF(mf, ...)\n * then guMtxF2L(mf, m).\n * guFrustumF is the in-unit game_libs_func_0006F684 (0x1B0; its target body\n * is 108 words, NOT the 88-word libreultra guFrustumF, so it is not part of\n * this donor) -- named through the blank import gl_func_00000000_frustumf\n * (pin = 0) so the jal word stays 0C000000 + USO reloc; guMtxF2L reuses the\n * guOrtho donor's blank pin gl_func_00000000_f2l706. The 2-word\n * gl_func_0006F834_pad.s (inter-object pad before osEPiRawStartDma 6F8A4)\n * stays as it is. Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef signed short s16;\ntypedef long s32;\ntypedef unsigned long u32;\ntypedef union {\n    struct { u32 m1[8]; u32 m2[8]; } b;\n    s32 m[4][4];\n    long long forcealign;\n} Mtx;\ntypedef float Matrix[4][4];\n\nextern void gl_func_00000000_frustumf(float mf[4][4], float l, float r, float b, float t, float n, float f, float scale); /* guFrustumF = game_libs_func_0006F684 */\nextern void gl_func_00000000_f2l706(float mf[4][4], Mtx *m);                                                         /* guMtxF2L = game_libs_func_00070854 */\n#define guFrustumF gl_func_00000000_frustumf\n#define guMtxF2L gl_func_00000000_f2l706\n\nvoid gl_func_0006F834(Mtx *m, float l, float r, float b, float t, float n, float f, float scale)\n{\n\tMatrix\tmf;\n\n\tguFrustumF(mf, l, r, b, t, n, f, scale);\n\n\tguMtxF2L(mf, m);\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/game_libs/game_libs_ido53_6F834.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/game_libs/game_libs/gl_func_0006F834.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O3 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "26/26 words byte-exact standalone at IDO 5.3 -O3 and 7.1 -O3; in-tree REPLACE_FUNC_BODY splice into game_libs_post1b2c.c.o via a direct-CC (no asm-processor) rule: whole-unit .text identical to expected/ (0 differing words), tenshoe.z64 cmp byte-identical, objdiff 100.0."
+  }
+}

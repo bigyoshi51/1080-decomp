@@ -1008,37 +1008,17 @@ void game_libs_func_0006F684(char *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4,
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F684);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_0006F834: 26-insn 2-call wrapper, frame 0x68 (agent-h re-decode).
- * Signature is (int, float x7): args 1-3 arrive in a1-a3 (O32: int arg0
- * forces all later floats into gp regs/stack), and IDO homes float params
- * into their canonical FP regs at entry (mtc1 a1-a3 -> f12/f14/f16), then
- * mfc1's them back out to pass to the next callee as singles. The old
- * "mysterious no-op roundtrip / no standard C produces this" cap verdict is
- * RETRACTED - typing the params float produces the roundtrip naturally.
- * Body: build a 0x40 local record via callee 1 (8 float-ish args), then
- * register it with callee 2 (&buf, orig int arg). Stays NM wrap: both
- * callees are jal-0 placeholders (gl_func_00000000 family).
- *
- * 47.0 -> 87.7 (agent-h): float params + DIRECT typed zero-alias extern calls
- * (fn-ptr casts cost lui/addiu+jalr v0 + a v0 spill slot, 64.2 -> 87.7 on the
- * direct-call swap, per the K&R-direct-call-vs-fnptr memo). RESIDUAL: target
- * homes the 3rd float param via mtc1 a3,$f16 / mfc1 a3,$f16 (3 FP homes);
- * every probed mode (7.1/5.3 -O2, -mips1, -g3, -O1, -float, local-copy t3
- * which shifts WHICH two get FP but never yields three) homes only TWO float
- * params in f12/f14 and stack-homes the third (sw a3,0x74). K&R float-param
- * spelling is cfe-rejected ("redeclaration of __P"). 2-FP-home budget cap. */
-extern void gl_func_00000000_fp8(char *, float, float, float, float, float, float, float);
-extern void gl_func_00000000_pi(char *, int);
-void gl_func_0006F834(int x0, float f1, float f2, float f3,
-                      float f4, float f5, float f6, float f7) {
-    char buf[0x40];
-    gl_func_00000000_fp8(buf, f1, f2, f3, f4, f5, f6, f7);
-    gl_func_00000000_pi(buf, x0);
+/* gl_func_0006F834 = libultra guFrustum (gu/frustum.c verbatim), section
+ * 0x83EA0 = export sym 162. LANDED 2026-09-09 (agent-g) via REPLACE_FUNC_BODY
+ * donor splice: real C lives in the IDO 5.3 -O3 donor game_libs_ido53_6F834.c
+ * (26/26 at both 5.3 and 7.1 -O3). The 87.7% wrap's "2-FP-home budget cap"
+ * (only two float params homed in f12/f14, third stack-homed) was -O2 vs
+ * -O3 -- the same class as the guOrtho donor (70694/707E8). Callee 1 is the
+ * in-unit guFrustumF = game_libs_func_0006F684 (blank import), callee 2 is
+ * guMtxF2L (70854). The 2-word gl_func_0006F834_pad.s below is unchanged.
+ * Body below is a placeholder for the splice. */
+void gl_func_0006F834(void *m) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F834);
-#endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F834_pad.s")
 
 /* gl_func_0006F8A4 = libultra osEPiRawStartDma (io/epirawdma.c verbatim):

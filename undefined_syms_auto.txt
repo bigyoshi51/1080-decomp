@@ -3488,3 +3488,4 @@ gl_func_00000000_maptlbrdb = 0x00000000;  /* osMapTLBRdb (blank jal) -- 6C484 do
 gl_func_00000000_pirawreadio = 0x00000000;  /* osPiRawReadIo (blank jal) -- 6C484 donor */
 gl_func_00000000_llmul6c = 0x00000000;  /* compiler-generated __ll_mul for osClockRate*3 in the 6C484 donor, renamed post-compile (__ll_mul is kernel-pinned 0x80002F78); = game_libs_func_0006C87C, blank USO reloc */
 gl_func_00000000_ulldiv6c = 0x00000000;  /* compiler-generated __ull_div for /4 in the 6C484 donor, renamed post-compile (__ull_div kernel-pinned 0x80002E78); = game_libs_func_0006C77C, blank USO reloc */
+gl_func_00000000_frustumf = 0x00000000;  /* guFrustumF = game_libs_func_0006F684 (blank jal; in-unit callee named via a blank import so the word stays 0C000000) -- 6F834 guFrustum donor */
