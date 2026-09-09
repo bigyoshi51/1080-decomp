@@ -41,3 +41,13 @@ void func_80007EEC(void) {
     func_80005920(0x96, &rmonmisc_bss_4208, &rmonmisc_bss_41E8, 8);
     func_8000A110(&rmonmisc_bss_0018);
 }
+
+/* Halt stub. Keep this after its real neighbors: its offset is 0x128 in
+ * this unit (8 modulo 32). IDO aligns the unreachable return to 32 bytes,
+ * placing jr ra at function+0x18, exactly as in the ROM. A standalone unit
+ * starts at zero and adds eight extra padding bytes before that return.
+ * No instruction patching or artificial prefix is needed. */
+void func_80007FC8(void) {
+    for (;;) {
+    }
+}

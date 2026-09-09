@@ -1,0 +1,33 @@
+{
+  "function_name": "func_80007FC8",
+  "project": "1080-decomp",
+  "model": "codex-manual",
+  "start_time": "2026-09-09T22:29:50.920871+00:00",
+  "end_time": "2026-09-09T22:29:50.920890+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T22:29:50.920885+00:00",
+      "assistant_text": "Corrected a false standalone-alignment cap: IDO aligns the unreachable epilogue to an absolute 32-byte boundary. Restoring the actual preceding __rmonListProcesses/__rmonInit C context places this function at +0x128 (8 modulo 32), so jr ra falls at function+0x18. Plain for (;;) {} compiles exactly. No instruction patch, donor splice or artificial prefix. Removed obsolete kernel_020 unit and extended kernel_030 text boundary.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 8,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\nextern void func_800073F8(void*, s32, s32);\n\ntypedef struct { s32 pad0; u8 type; char pad5; u16 flags; s32 pad8; s32 id; } RmonHdr16;\ntypedef struct { s32 pad0; u8 type; char pad5[7]; s32 id; } RmonMsg;\n\n/* __rmonListProcesses */\ns32 func_80007EA0(RmonMsg* msg) {\n    RmonMsg* p = msg;\n    RmonHdr16 hdr;\n    hdr.type = p->type;\n    hdr.flags = 0;\n    hdr.id = p->id;\n    func_800073F8(&hdr, 0x10, 1);\n    return 0;\n}\n\n/* __rmonInit */\nextern s32 __rmonMQ;\nextern s32 rmonmisc_bss_01C8;\nextern s32 rmonmisc_bss_01E8;\nextern s32 rmonmisc_bss_0018;\nextern s32 rmonmisc_bss_4208;\nextern s32 rmonmisc_bss_41E8;\nextern s32 D_800055F0;\nextern void func_800053D0(void*, void*, s32);\nextern void func_800051E0(s32, void*, s32);\nextern void func_80005F10(void*, s32, void*, s32, void*, s32);\nextern void func_80005920(s32, void*, void*, s32);\nextern void func_8000A110(void*);\n\nvoid func_80007EEC(void) {\n    func_800053D0(&__rmonMQ, &rmonmisc_bss_01C8, 8);\n    func_800051E0(0xA, &__rmonMQ, 2);\n    func_800051E0(0xB, &__rmonMQ, 4);\n    func_800051E0(0xC, &__rmonMQ, 8);\n    func_800051E0(0xD, &__rmonMQ, 0);\n    func_80005F10(&rmonmisc_bss_0018, 0, &D_800055F0, 0,\n                  (char*)&rmonmisc_bss_01E8 + 0x4000, 0xFF);\n    func_80005920(0x96, &rmonmisc_bss_4208, &rmonmisc_bss_41E8, 8);\n    func_8000A110(&rmonmisc_bss_0018);\n}\n\n/* Halt stub. Keep this after its real neighbors: its offset is 0x128 in\n * this unit (8 modulo 32). IDO aligns the unreachable return to 32 bytes,\n * placing jr ra at function+0x18, exactly as in the ROM. A standalone unit\n * starts at zero and adds eight extra padding bytes before that return.\n * No instruction patching or artificial prefix is needed. */\nvoid func_80007FC8(void) {\n    for (;;) {\n    }\n}\n",
+  "metadata": {
+    "source_path": "src/kernel/kernel_030.c",
+    "asm_path": "asm/nonmatchings/kernel/func_80007FC8.s",
+    "segment": "kernel",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Direct IDO compilation after real neighboring functions: target starts at object+0x128 and is 32 bytes, all 8 raw words equal baserom[0x8FC8:0x8FE8]. Fresh default and NON_MATCHING objects both exact; independently assembled reference from all three original .s files; both prior neighbors raw-byte unchanged; linked addresses/bytes and whole-ROM cmp verified. All 2403 previous exact functions retained."
+  }
+}

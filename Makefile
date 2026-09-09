@@ -668,8 +668,8 @@ build/src/kernel/kernel_018_o2.c.o build/non_matching/src/kernel/kernel_018_o2.c
 build/src/kernel/kernel_018_f.c.o build/non_matching/src/kernel/kernel_018_f.c.o: TRUNCATE_TEXT := 0x428
 build/src/kernel/kernel_034.c.o build/non_matching/src/kernel/kernel_034.c.o: TRUNCATE_TEXT := 0x10C
 build/src/kernel/kernel_018_g.c.o build/non_matching/src/kernel/kernel_018_g.c.o: TRUNCATE_TEXT := 0x338
-build/src/kernel/kernel_030.c.o build/non_matching/src/kernel/kernel_030.c.o: TRUNCATE_TEXT := 0x128
-build/src/kernel/kernel_020.c.o build/non_matching/src/kernel/kernel_020.c.o: TRUNCATE_TEXT := 0x20
+# Keep the halt stub after __rmonInit so IDO sees its true modulo-32 offset.
+build/src/kernel/kernel_030.c.o build/non_matching/src/kernel/kernel_030.c.o: TRUNCATE_TEXT := 0x148
 build/src/kernel/kernel_020_b.c.o build/non_matching/src/kernel/kernel_020_b.c.o: TRUNCATE_TEXT := 0x7C
 build/src/kernel/kernel_020_c.c.o build/non_matching/src/kernel/kernel_020_c.c.o: TRUNCATE_TEXT := 0x254
 # 2026-08-22 func_80008454 (0x44) moved from kernel_022.c into kernel_021.c (merge into func_80008430.s): 0x30+0x44 / 0x360-0x44
