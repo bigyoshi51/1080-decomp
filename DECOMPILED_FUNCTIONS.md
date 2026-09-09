@@ -55,6 +55,13 @@ regress during the O1/O2 file split, restore from the sources listed.
 
 ## Fragment Merges Performed
 
+- 2026-09-09: `gl_func_00042484` merged into its two-word hoisted head
+  `game_libs_func_0004247C` (0x5C/23 words), based on agent-c's merge.
+  bootup.uso Sym1935 exports Text+0x56AE8; TextReloc 0x588B8/0x588BC
+  takes its address. Text+0x56AF0 (old 42484) is not exported. The callback
+  return, not the pre-call class pointer, supplies the final call's a2.
+  C remains NON_MATCHING: 99.565216% objdiff, 21/23 raw words exact.
+
 - 2026-09-09: `gl_func_0002349C` merged into its two-word head
   `game_libs_func_00023494` (0xA8/42 words). The head loads the short
   ID used immediately by the body. Both lack exports, but the original

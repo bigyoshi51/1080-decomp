@@ -12802,7 +12802,8 @@ void game_libs_func_00042438(void)
  * sym338 @0x3C768 = the same gl_data_42440_arg as 42438; callee = blank
  * R_MIPS_26 to sym1788 (text 0x541D0 = splat 0x3FB64) -> gl_func_00000000.
  *
- * NM 22/23 words (objdiff on the merged symbol; was gl_func_00042484 65.0).
+ * NM 99.565216% objdiff, 21/23 raw words exact on the merged symbol
+ * (was gl_func_00042484 65.0%).
  * Residual = ONE register: the stack-arg load `lw t1,0xBC(v1)` / `sw t1,
  * 0x10(sp)` (target) vs t7 here. De-named it is the first post-call ugen
  * ring pop (t7); as a named local it is a uopt candidate coloured to the
@@ -12818,7 +12819,14 @@ void game_libs_func_00042438(void)
  * masks (the mask is not an identity on the signed lh, andi emitted),
  * K&R fnptr type, `*(int(**)(int))` fnptr deref, `(char*)g + off` pointer
  * form, named cb / named off (both colour to a1/a2, wrong class), 6th/7th
- * dead args, do{}while(0), comma-arg. */
+ * dead args, do{}while(0), comma-arg.
+ * 2026-09-09 agent-h follow-up: IDO 5.3/7.1 at O2/O3 emit the same two
+ * differences; O1 changes the structure. Pointer/unsigned callback returns,
+ * void-pointer callback argument, independent reload scope, split pointer
+ * dereference, and named format/stack-argument locals do not match. A
+ * 5,277-iteration permuter run tied score 45 without improvement. This is
+ * still a partial, not a proven C impossibility. The assembled full entry,
+ * default object, and pure-ASM expected symbol match ROM E27554:E275B0. */
 #ifdef NON_MATCHING
 void game_libs_func_0004247C(void)
 {
