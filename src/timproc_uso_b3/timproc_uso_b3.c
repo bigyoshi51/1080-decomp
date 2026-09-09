@@ -997,10 +997,6 @@ void timproc_uso_b3_func_00001870(int *self) {
 }
 
 
-/* 2026-06-10 (via the b1 twin 19C0 re-test): the incoming-$f0 quad-
- * store cap STANDS -- uninit `float g; buf[i]=g` and `register float g`
- * both emit lwc1-from-home first; the store-only $f0 x4 form is
- * C-unreachable. See docs/IDO_CODEGEN uninit-register-float addendum. */
 /* timproc_uso_b3_func_00001920 (0xAC, 43 insns): hoisted-head merge of 1920 +
  * 1928 (2026-09-05 agent-c, TWENTY-FIFTH mis-split class, see
  * docs/MATCHING_WORKFLOW.md #hoisted-head-119c-11a4-mgrproc). The 8-byte
@@ -1012,15 +1008,18 @@ void timproc_uso_b3_func_00001870(int *self) {
  * 0x1844 and 0x1878) target it; 0x1928 has no export and no R_MIPS_26.
  * Body = arcproc_uso_func_00001C74's canonical TRUE-BYTE decode (byte-identical
  * clone family sig=739fd8d1d3, with b1_19C0): buf[] = 1.0f, tgt = a0+0xF0
- * spill at sp+0x20, char pad[0x20] = the 0x24-0x44 gap, frame 0x58.
- * RESIDUAL (2 words): the 2E3C-class invariant FP pair-swap -- target
- * `mtc1 at,$f4` (255.0f) then `lwc1 $f6,0x108(s0)`; IDO gives the LOADED
- * value the lower reg in every probed form (see the 1C74 wrap). */
-#ifdef NON_MATCHING
+ * spill at sp+0x20, frame 0x58.
+ * EXACT 2026-09-09: field * (scale = 255.0f) materializes the constant
+ * in f4 BEFORE loading the field into f6. A separate scale assignment or
+ * putting the assignment-expression first restores the wrong pair order.
+ * The scalar home plus pad[0x1C] retain the original frame/buffer layout.
+ * This retracts the FP-pair cap; all 43 words match the original ROM's
+ * decompressed Text, not merely the reloc-tolerant block verifier. */
 void timproc_uso_b3_func_00001920(int *a0) {
     float buf[4];
     char *tgt;
-    char pad[0x20];
+    float scale;
+    char pad[0x1C];
 
     (void)pad;
     buf[0] = 1.0f;
@@ -1029,7 +1028,8 @@ void timproc_uso_b3_func_00001920(int *a0) {
     buf[3] = 1.0f;
     *(int *)((char *)a0 + 0x68) += 1;
     if (gl_func_00000000(*(int *)((char *)a0 + 0x50)) != 0) {
-        gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)((char *)a0 + 0x108)), buf);
+        gl_func_00000000(&D_00000000,
+            (int)(*(float *)((char *)a0 + 0x108) * (scale = 255.0f)), buf);
         tgt = (char *)a0 + 0xF0;
         gl_func_00000000(tgt);
         if ((*(int *)((char *)a0 + 0x68) & 8) != 0) {
@@ -1037,10 +1037,6 @@ void timproc_uso_b3_func_00001920(int *a0) {
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b3/timproc_uso_b3", timproc_uso_b3_func_00001920);
-#endif
-
 /* timproc_uso_b3_func_000019CC 2026-07-15 (agent-g wave 3): 94.04 -> 99.81.
  * Levers: (1) sp44-call arg swapped to (D_64*0x30) + *(*arg3) (right-first +
  * eval numbers the ptr chain t0/t1 like target); (2) 0x18 RMW respelled as
