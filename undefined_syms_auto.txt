@@ -636,6 +636,7 @@ D_412E8_i = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_000
 D_412E8_j = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */
 D_26D64_a = 0x00000000;  /* gl_func_00026D64 per-access alias of D_00000000 for the +0x1B5DC cursor byte (fresh lui per access; one symbol is base-CSE'd) */
 D_26D64_b = 0x00000000;  /* gl_func_00026D64 per-access alias of D_00000000 for the +0x1B5DC cursor byte (fresh lui per access; one symbol is base-CSE'd) */
+D_65EE4_g = 0x00000000;  /* game_libs_func_00065EE4 struct-typed alias of the sym1520 (BSS 0x3F030) backup-store record; NM body only */
 D_26D64_c = 0x00000000;  /* gl_func_00026D64 per-access alias of D_00000000 for the +0x1B5DC cursor byte (fresh lui per access; one symbol is base-CSE'd) */
 D_26D64_d = 0x00000000;  /* gl_func_00026D64 per-access alias of D_00000000 for the +0x1B5DC cursor byte (fresh lui per access; one symbol is base-CSE'd) */
 D_26D64_arr = 0x00000000;  /* gl_func_00026D64 struct-ARRAY alias of D_00000000: &arr[0] keeps the base an opaque $s5 (a plain &D folds to lui-at forms) */

@@ -2248,9 +2248,72 @@ void gl_func_00065EB4(int a0) {
     func_00077DB0(&local);
     func_00077DB0(a0 + 0x10);
 }
+#ifdef NON_MATCHING
+/* game_libs_func_00065EE4: three-region backup-store init, ONE function
+ * [0x65EE4,0x6612C) = 0x248 (146 words), merged 2026-09-09 (agent-g) from the
+ * 9-word "game_libs_func_00065EE4" head + the 0x224 gl_func_00065F08 body
+ * (agent-c's fake-param class). Sym oracle (section = splat + 0x1466C):
+ * 0x7A550 (0x65EE4) = export sym 2416; 0x7A574 (0x65F08) NOT exported.
+ * Every hi/lo pair in the function relocs to sym1520 (BSS 0x3F030, a struct;
+ * addends 0x08/0x0C/0x24/0x28/0x2C/0x30/0x34 and 0 for the &G args). Callees
+ * (all blank R_MIPS_26): @+0x4C/+0x68 sym1524 = gl_func_000662E8 (3-arg),
+ * @+0x7C/+0x9C sym1525 = gl_func_00066210 (returns the word read at a1),
+ * @+0xB8 sym2417 = gl_func_0006612C (the successor); all three live in this
+ * TU, so they must stay blank imports (a direct call bakes the in-section
+ * offset).
+ * Three unrolled copies with base/size = (0xB1FF0000, 0x2700),
+ * (0xB1FF2710, 0x9C30), (0xB1FFC350, 0x2700): G.base = B; G.data = B + 0x10;
+ * G.size = SZ; G.end = B + 0x10 + SZ; f(&G, B + 4, ...); f(&G, G.base, G.data);
+ * G.f8 = read(&G, G.base); G.fC = read(&G, G.base + 4); G.f34 = 0; next(&G).
+ *
+ * RESIDUAL (this unit builds -O2; the NM path here emits 102 words, ~41%):
+ * the target is the -O1 (ugen) shape -- no `lui 0xb1ff` CSE between the
+ * constants, `lui at` direct-global stores, `lui/addiu a0` re-materialised
+ * for every &G, temps rolling t6..t9,t0..t4 across the three blocks, frame
+ * 0x18 (ra only). At -O2 uopt holds &G in s0 (frame 0x20) and shares the
+ * lui halves (`ori a2,t7,0x10`) whatever the spelling (volatile, typed
+ * param, per-call alias symbols, 15 aliases). Standalone `cc -O1` of the
+ * struct-global body below gives 146/146 words with 59 (volatile) / 66 words
+ * differing, ALL in one class: the target materialises each block's G.data
+ * value (0xB1FF0010 / 0xB1FF2720 / 0xB1FFC360) straight into $a2 (`lui a2;
+ * ori a2,a2,0x10; sw a2,0x24(at)`) and the later temps shift one register
+ * down (t7/t8 instead of t8/t9), plus call 2's `lw a1` moving into the jal
+ * slot. ugen only ever FORWARDS a just-stored constant (`addu a2,t7,zero`,
+ * +1 word per block) -- a 3-arg first call spelled as G.data, the literal, an
+ * assignment-as-argument, a `register` local (-> s0) and a third parameter
+ * (-> stack-homed at entry) all fail to produce the a2 birth. Needs: an -O1
+ * donor (`GAMELIBS_65EE4_DONOR` + REPLACE_FUNC_BODY in post1b, like 6A304) once
+ * the a2 targeting is understood. Not volatile: the target loads G.data
+ * before G.base in call 2 (volatile pins source order). */
+typedef struct {
+    char pad0[8];
+    int f8, fC;          /* 0x08, 0x0C: words read back from base / base+4 */
+    char pad1[0x14];
+    int data;            /* 0x24: base + 0x10 */
+    int base;            /* 0x28 */
+    int end;             /* 0x2C: base + 0x10 + size */
+    int size;            /* 0x30 */
+    int f34;             /* 0x34: cleared before the successor call */
+} Save65EE4;
+extern Save65EE4 D_65EE4_g;   /* sym1520 (BSS 0x3F030), = 0 in undefined_syms_auto.txt */
+extern int func_00000000();
+#define SAVE65EE4_BLOCK(B, SZ) \
+    D_65EE4_g.base = (B); D_65EE4_g.data = (B) + 0x10; \
+    D_65EE4_g.size = (SZ); D_65EE4_g.end = (B) + 0x10 + (SZ); \
+    func_00000000(&D_65EE4_g, (B) + 4, D_65EE4_g.data); \
+    func_00000000(&D_65EE4_g, D_65EE4_g.base, D_65EE4_g.data); \
+    D_65EE4_g.f8 = func_00000000(&D_65EE4_g, D_65EE4_g.base); \
+    D_65EE4_g.fC = func_00000000(&D_65EE4_g, D_65EE4_g.base + 4); \
+    D_65EE4_g.f34 = 0; \
+    func_00000000(&D_65EE4_g);
+void game_libs_func_00065EE4(void) {
+    SAVE65EE4_BLOCK(0xB1FF0000, 0x2700)
+    SAVE65EE4_BLOCK(0xB1FF2710, 0x9C30)
+    SAVE65EE4_BLOCK(0xB1FFC350, 0x2700)
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00065EE4);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065F08);
+#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0006612C: magic-value spin-handshake helper (0xAC, frame 0x20).
