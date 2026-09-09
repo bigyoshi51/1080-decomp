@@ -917,66 +917,23 @@ void gl_func_0006F634(void *frameBufPtr) {
 }
 
 
-/* game_libs_func_0006F684: one 108-insn (0x1B0) function. BOUNDARY MERGED
- * 2026-06-02: splat had split it into 0006F684 (6-insn FP-const prologue:
- * `lwc1 $f0,D[0x24D0]` + `mtc1 a1,$f12`/`mtc1 a2,$f14`/`mtc1 a3,$f16` (THREE
- * inputs, ARG-DERIVED — a Vec3-style float triple — hoisted above the frame;
- * the real entry) + gl_func_0006F69C (the prologue+body using f14 in
- * `mul.s $f14,$f14,$f0`). SINGLE-entry per the dual-vs-single test (f12/f14/f16
- * arg-derived + FP-op use; no callers). Absorbed 0006F69C's 102 words into
- * 0006F684 (0x18 -> 0x1B0); dropped the 0006F69C symbol. Brings f12/f14/f16
- * (=a1/a2/a3) and f0 (=D[0x24D0]) in-scope, retracting the implicit
- * caller-set-float cap; the body is decodable in a future pass. */
-#ifdef NON_MATCHING
-extern f32 game_libs_func_0006C400(f32);
-void game_libs_func_0006F684(char *arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7) {
-    f32 sp40;
-    f32 sp3C;
-    f32 sp34;
-    f32 temp_f0;
-    f32 temp_f0_2;
-    f32 temp_f12;
-    f32 temp_f12_2;
-    f32 temp_f12_3;
-    f32 temp_f14;
-    f32 temp_f20;
-    f32 temp_f22;
-
-    temp_f0 = (*(f32*)((char*)&D_00000000 + 0x24D0));
-    temp_f12 = arg1 * temp_f0;
-    temp_f14 = arg2 * temp_f0;
-    arg2 = temp_f14;
-    arg1 = temp_f12;
-    (*(f32*)((char*)&D_00000000 + 0x44030)) = temp_f0;
-    arg3 *= temp_f0;
-    temp_f20 = game_libs_func_0006C400(temp_f12);
-    temp_f22 = game_libs_func_0006C400(arg1);
-    sp40 = game_libs_func_0006C400(arg2);
-    sp34 = game_libs_func_0006C400(arg2);
-    sp3C = game_libs_func_0006C400(arg3);
-    temp_f0_2 = game_libs_func_0006C400(arg3);
-    (*(f32*)((char*)arg0 + 0x0)) = (f32) (sp34 * temp_f0_2 * arg4);
-    (*(f32*)((char*)arg0 + 0x4)) = (f32) (sp34 * sp3C * arg4);
-    (*(f32*)((char*)arg0 + 0xC)) = 0.0f;
-    (*(f32*)((char*)arg0 + 0x8)) = (f32) (-sp40 * arg4);
-    (*(f32*)((char*)arg0 + 0x1C)) = 0.0f;
-    temp_f12_2 = temp_f20 * sp40;
-    (*(f32*)((char*)arg0 + 0x10)) = (f32) (((temp_f12_2 * temp_f0_2) - (temp_f22 * sp3C)) * arg4);
-    (*(f32*)((char*)arg0 + 0x14)) = (f32) (((temp_f12_2 * sp3C) + (temp_f22 * temp_f0_2)) * arg4);
-    (*(f32*)((char*)arg0 + 0x18)) = (f32) (temp_f20 * sp34 * arg4);
-    (*(f32*)((char*)arg0 + 0x2C)) = 0.0f;
-    temp_f12_3 = temp_f22 * sp40;
-    (*(f32*)((char*)arg0 + 0x20)) = (f32) (((temp_f12_3 * temp_f0_2) + (temp_f20 * sp3C)) * arg4);
-    (*(f32*)((char*)arg0 + 0x24)) = (f32) (((temp_f12_3 * sp3C) - (temp_f20 * temp_f0_2)) * arg4);
-    (*(f32*)((char*)arg0 + 0x28)) = (f32) (temp_f22 * sp34 * arg4);
-    (*(f32*)((char*)arg0 + 0x30)) = arg5;
-    (*(f32*)((char*)arg0 + 0x34)) = arg6;
-    (*(f32*)((char*)arg0 + 0x3C)) = 1.0f;
-    (*(f32*)((char*)arg0 + 0x38)) = arg7;
+/* game_libs_func_0006F684 = libultra guPositionF (gu/position.c verbatim),
+ * section 0x83CF0 = export sym 2629 (one jal ref at 0x83EE4 = 6F834+0x44, so
+ * the 6F834 wrapper is guPosition -- byte-identical to the guFrustum wrapper
+ * shape it was landed as). LANDED 2026-09-09 (agent-g) via REPLACE_FUNC_BODY
+ * donor splice: real C lives in the IDO 5.3 -O3 donor
+ * game_libs_ido53_6F684.c (108/108 in-tree; 105/108 standalone, the three
+ * reloc-addend words bake through the game_libs_func_0006F684_rodata / _bss
+ * pins = 0x24D0 / 0x44030). The old 84% wrap ("Vec3-style float triple *
+ * D[0x24D0], six game_libs_func_0006C400 calls") was this function: the
+ * literal is `dtor` (pi/180), the six calls are sinf/cosf (fsin 6A144 /
+ * fcos 70FCC, blank load-time relocs), and the D+0x44030 store is IDO -O3
+ * writing the `static float dtor` initialiser back into .bss on entry.
+ * BOUNDARY MERGED 2026-06-02 (0006F684 6-insn hoisted head + 0006F69C body,
+ * 0x18 -> 0x1B0). No pad; the C body is the same 0x1B0 as the old .s. Body
+ * below is a placeholder for the splice. */
+void game_libs_func_0006F684(void *mf) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F684);
-#endif
 
 /* gl_func_0006F834 = libultra guFrustum (gu/frustum.c verbatim), section
  * 0x83EA0 = export sym 162. LANDED 2026-09-09 (agent-g) via REPLACE_FUNC_BODY
