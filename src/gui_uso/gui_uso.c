@@ -40,7 +40,8 @@ struct GfxRing_413C { int *buf; int idx; };
  *   Tracks maxw = max(maxx+1), sum = sum(maxx+1). Finally o->C = maxw,
  *   o->8 = (int)((sum*0.5f)/o->0), and back-fills g[3]=o->C for every cell.
  *
- * STATUS: 99.92% fuzzy (was 94.90). 2026-08-22 structural fixes: (1) maxx+=1
+ * STATUS: 99.98% fuzzy (was 99.92), 255/261 raw target words. Still NM.
+ * 2026-08-22 fixes: (1) maxx+=1
  * in place, reused for maxw/g[2]/sum (target addiu a1,a1,1 in place); (2)
  * per-store reload of *(o+0x20) -- no cached g pointer (aliasing store
  * between field writes forces the 4 reloads); (3) tail is INTEGER divide
@@ -53,15 +54,32 @@ struct GfxRing_413C { int *buf; int idx; };
  * the allocated object and row in the final fill loop, inline rows*cols,
  * and store both gh fields before the original atlas dimensions. Keep
  * the pixel scan on one line for the unrolled slt/addiu schedule.
- * Remaining: 136-byte frame vs 128, spill homes, and one addu operand swap
- * (248/261 raw words agree; fuzzy scoring understates stack differences).
- * Address-escaped/volatile rows regressed; register hints were inert.
+ * Follow-up: hoist the working locals and order col/gw/gh declarations to
+ * recover the target spill homes (sp+0x78, +0x58, +0x54). Stage the scan-line
+ * byte offset in x before resetting it for the scan; this fixes the final
+ * addu operand order without changing the scan's instruction schedule.
+ * Remaining: 136-byte frame vs 128 and the four incoming-argument reloads
+ * shifted by that frame delta (six raw words total). Dropping the line
+ * local shrinks the frame but shifts the other spill homes; parameter
+ * reuse, address escapes and volatile bounds regress. Register hints inert.
  * See docs/IDO_CODEGEN.md#glyph-grid-pointer-reuse-gui148. Still NON_MATCHING. */
 #ifdef NON_MATCHING
 void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
-    int gw, gh;
-    int sum, maxw;
-    int col, row;
+    /* Declaration order preserves the column and scan-bound spill homes. */
+    int sum;
+    int maxw;
+    int row;
+    int col;
+    int gi;
+    char *px;
+    int idx;
+    int maxx;
+    int minx;
+    int y;
+    char *line;
+    int gw;
+    int gh;
+    int x;
 
     if (a0 == 0) {
         a0 = (char *)gl_func_00000000(40);
@@ -83,18 +101,16 @@ void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
     sum = 0;
     maxw = 0;
     for (col = 0; col < cols; col++) {
-        int gi;
         row = 0;
         if (rows > 0) {
             gi = col * rows;
             do {
-                char *px = (char *)*(int *)(a0 + 4) + (col * gh) * a2 + row * gw;
-                int idx = gi;
-                int maxx = 0, minx = gw;
-                int y;
+                px = (char *)*(int *)(a0 + 4) + (col * gh) * a2 + row * gw;
+                idx = gi;
+                maxx = 0; minx = gw;
                 for (y = 0; y < gh; y++) {
-                    char *line = px + y * a2;
-                    int x;
+                    x = y * a2;
+                    line = px + x;
                     /* Same-line scan preserves IDO's unrolled compare schedule. */
                     for (x = 0; x < gw; x++) { if (line[x] != 0) { if (x < minx) minx = x; if (maxx < x) maxx = x; } }
                 }
