@@ -525,76 +525,67 @@ int game_libs_func_0001D3E0(int *a0, int a1, int a2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D3E0);
 #endif
 
-// game_libs_func_0001D4B0 — NOT a standalone function: it is the ORPHANED HEAD
-// of gl_func_0001D4C0 (splat mis-split the function in two). 4 pre-prologue insns:
-//   li t0,0x158; multu a1,t0;  lui/addiu v0,&D_xxxx   (no jr, no mflo)
-// gl_func_0001D4C0 (next symbol) consumes ALL THREE: `mflo t6` (lo from the multu),
-// `addu v1,v0,t6` (v0 = the &D base), and a second `multu a3,t0` (t0 = 0x158) — with
-// no intervening sets. The real function starts at 0x1D4B0 (entry the callers target);
-// 0x1D4C0 is a spurious mid-function symbol. FIX = USO boundary merge (focused session;
-// regenerate game_libs expected/ with one symbol gl_func_0001D4B0 size 0xA4). Until then
-// this stays INCLUDE_ASM (prologue-stolen successor — see docs/MATCHING_WORKFLOW.md;
-// PROLOGUE_STEALS post-cc splice is banned, the only honest fix is the boundary merge).
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D4B0);
-
-// gl_func_0001D4C0 — STRUCTURAL PASS (0x3B0 / 236 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: LARGE 40-jr USO
-// bundle — splat could not separate ~40 small functions here. Only
-// the named leading fn is decoded below (ends at the first jr, addr
-// 0x1D54C, ~36 words); the remaining ~40 bodies are deferred USO
-// re-split (mnemonic split-fragments.py cannot split USO bundles).
+// game_libs_func_0001D4B0 -- MERGED 2026-09-09 (agent-c): the 4-word orphan
+// `li t0,0x158; multu a1,t0; lui v0; addiu v0` was the hoisted record-index head of
+// gl_func_0001D4C0 (splat mis-split; 0x1D4C0 is a mid-function word, neither address
+// is in bootup.uso's Sym export table -- the fn is TU-local, reached by the BAKED
+// `jal 0x0C00C6C7` from gl_func_0001DCB4 @0x1DFF0). One symbol, 0xA4 / 41 words;
+// the 1D4C0 wrap (10.5) + .s retired.
 //
-//   int gl_func_0001D4C0(args…, short h_at_sp32) {       // F3D emit
-//     E *e = base + idx(...);                             // obj/glyph
-//     byte f = e->0x1C;
-//     if (f & 1) {                                        // gated
-//       jal 0x31648(…, ptr_at_sp20);                      // 0x0C00C592
-//       int dl = *(short*)(&D_0C34xxxx + 0x20);           // DL cursor
-//       *(int*)dl     = 0x0C8003E0;                        // GBI word0
-//       *(int*)(dl+4) = arg;                               // GBI word1
-//       jal 0x31718(dl + 8);                               // 0x0C00C5C6
-//     }
-//     return e->0x1D;                                      // flag byte
-//   }
+// Glyph DL emit: rec = &registry[a1] (sym1255 @ Data 0x345C0, addend 0, stride 0x158);
+// if registry[rec->k].flag == 1: p = reserve(dl, (short)rec->k, (short)a2) [baked
+// jal 0x31648 = gl_func_0001CFDC]; p[0] = rec->w20 | 0x0C340000; p[1] = 0x0C8003E0;
+// dl = submit(p + 2, rec->k, (short)a2) [baked jal 0x31718 = gl_func_0001D0AC];
+// return dl. The baked jals are the absolute `gl_ref_<section>` symbols (0x0C00C592 /
+// 0x0C00C5C6), same class as gl_func_00025C54's gl_ref_0003A268.
 //
-// Struct-typing reference: object/glyph entry e — byte e->0x1C
-//   (emit-gate flag), byte e->0x1D (returned status flag). Global DL
-//   write cursor lives as a halfword at &D_0C34xxxx + 0x20. Emitted
-//   command is one 8-byte F3D/GBI word pair (word0 const 0x0C8003E0,
-//   word1 = caller arg) then the cursor is advanced by 8 and handed
-//   to the fixed RSP-submit routine 0x0C00C5C6. Sibling of the
-//   game_libs F3D/RSP display-list builder family.
-// ROOT-CAUSE CAP (CORRECTED 2026-05-24): this is a PROLOGUE-STOLEN SUCCESSOR.
-//   The function's real entry is the preceding symbol game_libs_func_0001D4B0
-//   (li t0,0x158; multu a1,t0; v0=&D_xxxx) — its `mflo t6`, `addu v1,v0,t6`, and
-//   second `multu a3,t0` all consume registers set in that 4-insn head. The C
-//   below MISMODELS this: it takes `int *v0` as an input pointer, but v0 is really
-//   the &D_xxxx base loaded in the head, and the `a1 * 0x158` element-index
-//   computation is absent. That structural gap (not "jal symbols" or "IDO
-//   schedule") is why it's stuck ~10.5%. There is NO C-only fix for a prologue-
-//   stolen successor (PROLOGUE_STEALS post-cc splice is banned as match-faking).
-//   FIX = USO boundary merge: make 0x1D4B0 the function start (one symbol, size
-//   0xA4), re-decode with the index setup + &D base, then the body becomes
-//   matchable. Focused-session task (regenerate game_libs expected/ baseline).
-//   gl_func_00000000 = canonical never-defined USO placeholder for the helpers.
+// NM 4 words short of exact -- the 41-word BODY is byte-identical to the target
+// (colouring, spill slots 0x18/0x20, temp ring, store order all exact); the residual
+// is the FRAME: 0x30 vs 0x28 (prologue/epilogue addiu + the a2 home 0x38 vs 0x30).
+// Levers that were required (docs/IDO_CODEGEN.md#hoisted-record-index-head-int-param-short-cast-spill-1d4b0):
+//   (1) `int a2` + `(short)a2` at BOTH call sites -> IDO narrows a homed int param
+//       through memory (`sw a2,home; lh a2,home+2`) and the CSE'd conversion is a
+//       temp SPILLED across the first call (`sw a2,0x18` in the jal delay, `lw` after);
+//       a `short a2` param re-narrows from the home instead (`lh a2,0x32(sp)`) and
+//       never spills;
+//   (2) `(rec->w20 & 0xFFFF)` on the already-u16 field = zero-emission phantom alloc
+//       that re-phases the post-call ugen ring to t2/t3/t4 (t1 otherwise);
+//   (3) `Rec *e = &TAB[a1]` named at function scope and `int k = e->k` named in the
+//       if-block (bitpos AFTER base and e) -> base=v0, e=v1, k=a3 with the sll/sra
+//       conversion; every temp/int-typed spelling of k colours it v0 first.
+// The frame residual: the target has ONE named-local home (0x24) above the a2 temp
+// (0x18), a phantom slot (0x1C) and e's spill (0x20); this shape needs three named
+// locals (e, p, k) = two extra 4-byte homes (0x28/0x2C). Every 1- or 2-name spelling
+// tried (k as a CSE temp with `+0`/`(int)`/`|0`, `a1 = e->k` param web in head or
+// body, k+p sharing one `int`, `register`, nested-scope overlay, while(0) boosts,
+// a0-as-cursor) either flips k back to v0 or spawns phantom templocs (frame 0x30 with
+// the spills at 0x1C/0x24). Genuine remaining gap = one named-local home.
 #ifdef NON_MATCHING
-extern int gl_func_00000000();
-int gl_func_0001D4C0(int *v0, int ctx, int sub) {
-    short si = (short)sub;
-    int *v1 = (int *)((char *)v0 + si);
-    signed char k = *((signed char *)v1 + 0x1D);
-    int *t8 = (int *)((char *)v0 + k * ctx);
-    if (*((unsigned char *)t8 + 0x1C) != 1) {
-        return (int)v0;
+typedef struct {
+    char pad0[0x1C];
+    unsigned char flag;   /* +0x1C: emit gate, must be 1 */
+    signed char k;        /* +0x1D: target record index */
+    char pad1[2];
+    unsigned short w20;   /* +0x20: DL word0 low half */
+    char pad2[0x158 - 0x22];
+} GlyphRec1D4B0;
+#define GLYPHTAB_1D4B0 ((GlyphRec1D4B0 *)&D_00000000)
+extern int *gl_ref_00031648(); /* baked USO jal 0x0C00C592 -> 0x31648 (= gl_func_0001CFDC, TU-local) */
+extern int gl_ref_00031718();  /* baked USO jal 0x0C00C5C6 -> 0x31718 (= gl_func_0001D0AC, TU-local) */
+int game_libs_func_0001D4B0(int dl, int a1, int a2) {
+    GlyphRec1D4B0 *e = &GLYPHTAB_1D4B0[a1];
+    if (GLYPHTAB_1D4B0[e->k].flag == 1) {
+        int *p;
+        int k = e->k;
+        p = gl_ref_00031648(dl, (short)k, (short)a2);
+        p[0] = (e->w20 & 0xFFFF) | 0x0C340000;
+        p[1] = 0x0C8003E0;
+        dl = gl_ref_00031718(p + 2, e->k, (short)a2);
     }
-    gl_func_00000000(v1, si);
-    v0[0] = *(unsigned short *)((char *)v1 + 0x20) | 0x0C340000;
-    v0[1] = 0x0C8003E0;
-    gl_func_00000000((char *)v0 + 8, *((signed char *)v1 + 0x1D));
-    return (int)v0;
+    return dl;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0001D4C0);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0001D4B0);
 #endif
 
 void game_libs_func_0001D554(void) {}
