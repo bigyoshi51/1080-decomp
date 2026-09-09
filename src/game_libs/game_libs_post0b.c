@@ -19972,68 +19972,71 @@ int game_libs_func_0004CDA4(int a0) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDB0);
-
-// gl_func_0004CDB8 — STRUCTURAL PASS (0x140 / 83 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x20
-// (saves ra, s0, s1). Indexed-object init + GBI/RDP DL-packet emit
-// (cb = jal 0 USO-relocated; sibling of gl_func_00045E20 / 00046FA8).
-//
-//   void gl_func_0004CDB8(void *a0, int idx) {
-//     void *obj = ((void**)&D_garr)[idx]->p280;       // global indexed array
-//     self = a0;
-//     cb1(obj, &obj->p174);                            // init sub-block A
-//     cb2(obj, &obj->p15C);                            // init sub-block B
-//     GfxCtx *g = obj->p0C;
-//     int i = g->idx; g->idx = i + 1;                  // bump packet index
-//     uint *p = (uint*)g->buf + i*2;                    // slot = base + i*8
-//     p[0] = 0x06000000;                                // G_DL / branch-seg
-//     cb3((char*)self + 0x168, ...);                    // resolve arg word
-//     p[1] = cb3_result;
-//   }
-// Resolves an object from a global indexed array (entry->0x280), initialises
-// two sub-blocks via cb1(obj,&obj->0x174) / cb2(obj,&obj->0x15C), then
-// appends a two-word DL command packet (top-byte 0x06 = G_DL /
-// branch-to-segment) into the GfxCtx buffer reached via obj->0x0C
-// ({buf, idx@+4}, stride 8), with a cb3 hook supplying the arg word.
-// Family: CPU-side RDP DL fragment builder (sibling of gl_func_00045E20 /
-// 00046050 / 00046FA8; the G_DL-class variant; see
-// docs/N64_FORENSICS#feedback-gui-uso-inline-rdp-dl-builder).
-//
-// Caps (DEFERRED): array/obj/GfxCtx struct + cb signatures untyped.
-//   Real-C STRUCTURAL body below. Byte-match deferred. Name
-//   pre-checked: no extern reuse.
+/* game_libs_func_0004CDB0 (0x14C, 83 words) = the old 2-word orphan
+ * game_libs_func_0004CDB0 + gl_func_0004CDB8, merged 2026-09-09 (agent-c).
+ * bootup.uso Sym table exports section offset 0x6141C = splat 0x4CDB0 (ROM
+ * 0xE31E88 - 0xDD0A6C); 0x61424 = 0x4CDB8 is NOT exported. The `lui t6; lw
+ * t6,0x204(t6)` head is the successor's hoisted first statement: the
+ * object-table index read at D+0x204 (sym154 @0x3C168), scheduled above
+ * `addiu sp`; the table itself is D+0x280 (same sym154 -> the call-free
+ * same-symbol pair needs the per-site alias D_4CDB0_a so each access keeps
+ * its own lui, IDO_CODEGEN#alias-budget-call-free-same-symbol-pair-349e0).
+ * The old wrap read the table at +0x640 and chained the wrong call results
+ * into the packets.
+ *
+ * Body: obj = table[D_204] (s0); self = a0 (s1); flag (a1) homed to its arg
+ * slot 0x24(sp). f1(self+0x174, obj); r = f3(f2(self+0x15C)); packet(0x06,
+ * r); r = f5(f4(self+0x168)); packet(0x06, r); q = self->0x1C0; r = f6(q->
+ * 0x60); packet(0x06, r); if (flag) packet(0xE9, 0); f7(self, 4)->0x70 =
+ * self->0x1B4. Each packet: g = obj->0xC; i = g->4; g->4 = i+1; p =
+ * (obj->0xC)->0 + i*8 (obj->0xC re-read after the index store); p[0] =
+ * w0; p[1] = w1 (the call result, `sw v0` in the next jal's delay).
+ * Callees (all blank R_MIPS_26 -> gl_func_00000000): sym1971 (text 0x58ACC
+ * = 44460), sym1974 (0x58B04 = 44498) x2, sym160 (0x809F0 = 6C384) x3, and
+ * sym2078 (0x61568 = 4CEFC, the twin's head). The `li a1,4` sits above
+ * the beqz and `or a0,s1` in the f7 delay because packet 3 / the E9 packet
+ * hold their g/i/p in a0/v1/a1 and v1/v0/a0.
+ *
+ * NM 78/83 words (was gl_func_0004CDB8 65.8): packets 1-2 (function-scope
+ * g/i/p = v1/a1/a2), the E9 packet (block-scope, i read before g = v0/v1/
+ * a0), head, calls, q (a3), tail all word-exact. Residual = packet 3 only:
+ * target colours i=v1, g=a0, p=a1; every spelling here gives g=v1, i=a0
+ * (the CSE'd obj->0xC temp is coloured before i whatever the statement
+ * order: function/block-scope, i-first, unnamed g, post-increment, shared
+ * i2/g2/p2 with the E9 packet, do{}while(0) around any/all packets (45-72),
+ * all probed standalone). The 6 differing words are that a0/v1 swap
+ * (lw a0,0xC(s0) / lw v1,4(a0) / addiu / sw / sll / addu a1). */
 #ifdef NON_MATCHING
-extern int D_00000000;
-void gl_func_0004CDB8(char *a0, int a1) {
-    char *obj = *(char **)((char *)&D_00000000 + 0x640);
-    char *g;
-    int i, r4, r5, r6;
-    unsigned int *p;
-    char *ret;
-    gl_func_00000000(a0 + 0x174, obj);
-    gl_func_00000000(gl_func_00000000(a0 + 0x15C));
-    g = *(char **)(obj + 0xC); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-    p = (unsigned int *)(*(char **)g + i * 8);
-    p[0] = 0x06000000; r4 = gl_func_00000000(a0 + 0x168); p[1] = (unsigned int)r4;
-    r5 = gl_func_00000000(r4);
-    g = *(char **)(obj + 0xC); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-    p = (unsigned int *)(*(char **)g + i * 8);
-    p[0] = 0x06000000; p[1] = (unsigned int)r5;
-    r6 = gl_func_00000000(*(char **)(*(char **)(a0 + 0x1C0) + 0x60));
-    g = *(char **)(obj + 0xC); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-    p = (unsigned int *)(*(char **)g + i * 8);
-    p[0] = 0x06000000; p[1] = (unsigned int)r6;
-    if (a1 != 0) {
-        g = *(char **)(obj + 0xC); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1;
-        p = (unsigned int *)(*(char **)g + i * 8);
-        p[0] = 0xE9000000; p[1] = 0;
+#define GFX_4CDB0(o) (*(char **)((o) + 0xC))
+#define PACKET_4CDB0(obj, w0, w1) \
+    g = GFX_4CDB0(obj); i = *(int *)(g + 4); *(int *)(g + 4) = i + 1; \
+    p = (unsigned int *)(*(char **)GFX_4CDB0(obj) + i * 8); p[0] = (w0); p[1] = (w1)
+#define PACKET_4CDB0_I(obj, w0, w1) \
+    { int i = *(int *)(GFX_4CDB0(obj) + 4); char *g = GFX_4CDB0(obj); unsigned int *p; *(int *)(g + 4) = i + 1; \
+    p = (unsigned int *)(*(char **)GFX_4CDB0(obj) + i * 8); p[0] = (w0); p[1] = (w1); }
+extern int D_4CDB0_a;
+void game_libs_func_0004CDB0(char *self, int flag)
+{
+    char *obj = *(char **)((char *)&D_4CDB0_a + *(int *)((char *)&D_00000000 + 0x204) * 4 + 0x280);
+    char *g; unsigned int *p; int i; int r; char *q;
+    gl_func_00000000(self + 0x174, obj);
+    r = gl_func_00000000(gl_func_00000000(self + 0x15C));
+    PACKET_4CDB0(obj, 0x06000000, r);
+    r = gl_func_00000000(gl_func_00000000(self + 0x168));
+    PACKET_4CDB0(obj, 0x06000000, r);
+    q = *(char **)(self + 0x1C0);
+    r = gl_func_00000000(*(int *)(q + 0x60));
+    PACKET_4CDB0_I(obj, 0x06000000, r);
+    if (flag) {
+        PACKET_4CDB0_I(obj, 0xE9000000, 0);
     }
-    ret = (char *)gl_func_00000000(a0);
-    *(int *)(ret + 0x70) = *(int *)(a0 + 0x1B4);
+    *(int *)((char *)gl_func_00000000(self, 4) + 0x70) = *(int *)(self + 0x1B4);
 }
+#undef GFX_4CDB0
+#undef PACKET_4CDB0
+#undef PACKET_4CDB0_I
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CDB8);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDB0);
 #endif
 
 

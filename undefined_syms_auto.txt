@@ -621,6 +621,7 @@ D_A0000200 = 0xA0000200;
 .L000008A8 = 0x000008A8;
 D_00000000 = 0x00000000;
 D_412E8_a = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */
+D_4CDB0_a = 0x00000000;  /* game_libs_func_0004CDB0 object-table base alias of D_00000000 (call-free same-symbol pair with the D+0x204 index read; 349E0 rule) */
 D_412E8_e = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */
 D_412E8_f = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */
 D_412E8_g = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */
