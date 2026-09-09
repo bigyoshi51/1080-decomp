@@ -19216,84 +19216,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000308C8);
 void game_libs_func_000309A4(void) {
 }
 
-// game_libs_func_000309AC — STRUCTURAL PASS / BOUNDARY NOTE
-// (0x8 / 2 words, no episode). Raw-.word USO form (game_libs).
-//
-// NOT A REAL FUNCTION. This .s is a SPLAT-MISSPLIT HEAD FRAGMENT:
-// two instructions only, with NO prologue (no addiu $sp) and NO
-// jr $ra —
-//     lui   $t6, 0            ( 3C0E0000 )
-//     lw    $t6, 0x10($t6)    ( 8DCE0010 )
-// i.e. it loads a base pointer from &D_0 + 0x10 into $t6. These two
-// words logically belong to the ENTRY of the NEXT function (the one
-// immediately following at 0x000309B4): splat could not see the
-// function boundary in this relocatable USO segment and sheared the
-// successor's prologue-area base-pointer load off as a standalone
-// 8-byte symbol.
-//
-// Resolution: this is a DEFERRED USO BOUNDARY RE-SPLIT, tracked with
-// the other accumulated game_libs_post.c multi-jr / head-fragment
-// boundary notes. It is NOT fixable with the mnemonic
-// split-fragments.py / merge-fragments tooling — those operate on
-// mnemonic-disassembled segments, and this is raw-.word relocatable
-// USO where the merge target boundary must be re-derived via proper
-// USO disasm (the spimdisasm-USO migration in the deferred backlog).
-// No merge is attempted here (would corrupt the successor's bytes);
-// no episode (tautology-trap; and this is not even a function).
-// Body INCLUDE_ASM-preserved (.s = source of truth).
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000309AC);
-
-// gl_func_000309B4 — STRUCTURAL PASS (0x6C / 27 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, has
-// its OWN prologue). The SUCCESSOR of the game_libs_func_000309AC
-// head-fragment (see the boundary note immediately above) — and the
-// WRITER of the global slot &D_0+0x10 that that fragment loads.
-//
-//   void gl_func_000309B4(int sel) {
-//     if (sel == cur) return;                 // no-op if unchanged
-//     int p;
-//     if (sel == 0)      p = 0;
-//     else if (sel == 1) p = 0x46;            // 70
-//     else if (sel == 2) p = 0x1E;            // 30
-//     else               p = 0;
-//     fixed_call(&D_0_base, p);               // jal 0x0118C5 (FIXED)
-//     *(int*)(&D_0 + 0x10) = sel;             // record selection
-//   }
-//
-// Struct-typing reference: a selector → parameter-mapped dispatcher
-//   that records its selection. The selector arg (0/1/2; else 0) is
-//   folded — via equality + branch-likely (bnel) tests — into a
-//   parameter value drawn from {0, 0x46 (70), 0x1E (30)}, then a
-//   FIXED intra-USO routine (encoded `jal 0x0118C5` / 0x0C0118C5, a
-//   real resolved target, NOT a jal-0 USO-relocated callback) is
-//   called with the &D_0 base pointer and the mapped parameter.
-//   Finally the original selector is stored into the global slot
-//   &D_0+0x10 — which is exactly the field the preceding splat-
-//   missplit head-fragment game_libs_func_000309AC loads, confirming
-//   the two share one logical record region (this fn WRITES it; the
-//   next fn, whose entry the fragment was sheared from, READS it).
-//   A mode-select / state-record leaf of the game_libs object
-//   subsystem (sibling of the gl_func_0003061C mode-arbiter).
-// Caps (DEFERRED): raw-word USO + fixed intra-USO call (0x0118C5)
-//   + &D_0 global record — byte-match needs USO mnemonic disasm
-//   + jal-0/fixed routing. Real-C STRUCTURAL body below per the
-//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
-void gl_func_000309B4(int sel) {
+/* game_libs_func_000309AC (0x74, 29 insns): mode selector -> record init.
+ * bootup.uso Sym exports section offset 0x45018 = splat 0x309AC (ROM 0xE15A84 -
+ * 0xDD0A6C; sym81, jal'd from TextReloc @0x1D4/@0x1E4/@0x45978); 0x45020 =
+ * 0x309B4 is NOT exported. The 2-word orphan `lui t6; lw t6,0x10(t6)` was the
+ * hoisted first statement (the `cur` read scheduled above `addiu sp`), not a
+ * splat-missplit "base pointer for the successor". Merged; the gl_func_000309B4
+ * wrap (73.7) + .s are retired.
+ *
+ * Record = Data sym1443 @0x1C0C0 (addend 0 on all three sites; the +0x10 is
+ * baked in the lw/sw immediates -> own zero extern D_00000000_1c0c0). The head
+ * read and the `&rec` call arg share one call-free stretch, so the read goes
+ * through the per-site alias D_309AC_a (IDO_CODEGEN#alias-budget-call-free-
+ * same-symbol-pair-349e0); the post-call store is call-separated and folds under
+ * its own `lui at` by itself. Callee = text-base (sym3) R_MIPS_26 with 0x46314
+ * baked = splat 0x31CA8 = game_libs_func_00031CA8 (rec[0] = p, rec[2] = 30,
+ * rec[3] = 0) -> gl_ref_00046314 (call-side gl_ref rule); the third arg 30 is
+ * the `li a2,30` hoisted into the beqz delay.
+ *
+ * Only lever: the selector is a `switch` with the arms in the order
+ * 2 / 1 / 0+default -- that is the target's test chain (beqz a0 -> the LAST
+ * arm, `beq a0,at` 1, `bnel a0,at` 2 with `a1 = 0` in the likely delay) and
+ * arm layout (70, 30, 0). An if/else chain re-tests on the a3 copy and lays
+ * the arms out in source order (+2 words); a `p = 0; switch` with two cases
+ * gives beql. The `or a3,a0` copy + jal-delay `sw a3,0x18(sp)` spill to the
+ * a0 home + `lw a3` reload come out of the plain shape (no do-while lever
+ * needed at this size). BYTE-EXACT 29/29 standalone on the third variant
+ * (agent-c 2026-09-09). */
+extern int D_00000000_1c0c0;
+extern int D_309AC_a;
+extern int gl_ref_00046314();
+void game_libs_func_000309AC(int sel) {
     int p;
-    if (sel == *(int *)((char *)&D_00000000 + 0x10)) return;
-    switch (sel) {
-        case 1:  p = 0x1E; break;
-        case 2:  p = 0x46; break;
-        case 0:
-        default: p = 0;    break;
+    if (sel != *(int *)((char *)&D_309AC_a + 0x10)) {
+        switch (sel) {
+            case 2:  p = 70; break;
+            case 1:  p = 30; break;
+            case 0:
+            default: p = 0;  break;
+        }
+        gl_ref_00046314(&D_00000000_1c0c0, p, 30);
+        *(int *)((char *)&D_00000000_1c0c0 + 0x10) = sel;
     }
-    gl_func_00000000(&D_00000000, p);
-    *(int *)((char *)&D_00000000 + 0x10) = sel;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000309B4);
-#endif
 
 // gl_func_00030A20 — STRUCTURAL PASS (0xD4 / 53 words, no episode).
 // Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no

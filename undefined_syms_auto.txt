@@ -1324,6 +1324,8 @@ D_00000000_3c8e0 = 0x00000000;  /* GBI-emit flags word (bootup.uso sym1924 @0x3C
 D_00000000_324 = 0x00000000;  /* Data float @0x324 (bootup.uso sym1441, addend 0) stored 1.0f by game_libs_func_0002DDEC */
 D_00000000_50 = 0x00000000;  /* Data pointer @0x50 (bootup.uso sym451, addend 0): the projection context read by game_libs_func_00035E64 */
 D_00000000_1c0ac = 0x00000000;  /* Data int @0x1C0AC (bootup.uso sym1430, addend 0): the mode word tested == 15 by game_libs_func_0002DC74 */
+D_00000000_1c0c0 = 0x00000000;  /* Data record @0x1C0C0 (bootup.uso sym1443, addend 0): the 5-word mode record initialised by game_libs_func_000309AC via game_libs_func_00031CA8 (w0 = param, w8 = 30, wC = 0, w10 = selector) */
+D_309AC_a = 0x00000000;  /* per-site alias of D_00000000_1c0c0 for the hoisted `cur` read in game_libs_func_000309AC (call-free pair with the &rec arg) */
 D_00000000_345c0 = 0x00000000;  /* Data base @0x345C0 (bootup.uso sym1255, addend 0): the registry block held in t0 by game_libs_func_00024E28 (limit +0x202C, count +0x1578, records +0x157C stride 0x64) */
 D_00000000_b49c = 0x00000000;  /* func_0000B49C: 3rd-table base-0 alias, busts addr CSE with 1st table */
 D_00000000_d = 0x00000000;
@@ -3350,6 +3352,7 @@ gl_ref_000423C4 = 0x000423C4;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) 
 gl_ref_00041E9C = 0x00041E9C;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
 gl_ref_00042490 = 0x00042490;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
 gl_ref_00041ED4 = 0x00041ED4;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
+gl_ref_00046314 = 0x00046314;  /* game_libs_func_000309AC baked USO jal (text-base sym3 + 0x46314 = splat 0x31CA8 = game_libs_func_00031CA8) */
 gl_ref_00046324 = 0x00046324;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
 gl_ref_00044E14 = 0x00044E14;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) baked USO jal */
 D_2D37C_mode = 0x00000000;  /* game_libs_func_0002D374 (ex gl_func_0002D37C) per-site base-0 aliases (distinct syms = fresh lui per read, no base CSE) */
