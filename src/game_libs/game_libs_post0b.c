@@ -30889,21 +30889,28 @@ void game_libs_func_0005C808(int obj, float a, float b, float c, float d, float 
  * an FP-reg-allocation cap. Resume if an $f-reg-steering lever is found. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C8CC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005C948);
+/* game_libs_func_0005C948 (0x74, 29 words): the 6-word game_libs_func_0005C948
+ * orphan + gl_func_0005C960 are ONE function -- bootup.uso Sym exports text
+ * 0x70FB4 (= splat 0x5C948); 0x5C960 is not exported/referenced. The old
+ * "CALLER-SET-FPU cap: 8 FPU inputs at entry, inlined from hand-written asm"
+ * verdict was this hoisted head (four component loads + the first mul.s
+ * scheduled above `addiu sp`). Vec3 cross product o = a x b, reloc-free leaf.
+ * Lever: the three named results with z declared FIRST -- named float locals
+ * are homed top-down in declaration order, and only z is stored/reloaded
+ * (sp+0x24 for the delay-slot `swc1 $f4,8(a2)`); `float x, y, z;` puts the z
+ * home at 0x1C (2 diff words). Direct `o->x = expr` stores (no locals) and a
+ * local V3 / float[3] temp both re-order the loads and shrink the frame. The
+ * three result stores must sit on ONE source line (uopt keeps the y-before-x
+ * store order only then; separate lines emit x, y, z). */
+typedef struct { float x, y, z; } Vec3_5C948;
+void game_libs_func_0005C948(Vec3_5C948 *a, Vec3_5C948 *b, Vec3_5C948 *o) {
+    float z, y, x;
 
-/* gl_func_0005C960: 23-insn FPU 3D cross-product helper. CALLER-SET-FPU
- * cap — function reads $f2, $f4, $f6, $f8, $f10, $f12, $f14, $f16 as
- * inputs at entry (no prologue loads). Writes 3 cross-product components
- * to a2[0/4/8]:
- *   a2[0] = $f4 - $f14*$f16
- *   a2[4] = $f14*$f8_orig - $f10*$f12  (with stack-shuffle of f8/f10)
- *   a2[8] = $f8*$f16 - $f2*$f4
- * The 8 caller-set FPU args exceed O32 ABI (only $f12/$f14 pass floats),
- * so no standard C function call shape produces this entry state. Likely
- * inlined by IDO from a hand-written inline-asm caller site. Permanent
- * NM cap (cf. feedback_caller_set_int_reg_cap_1080_game_libs.md — same
- * class, FPU variant). Default INCLUDE_ASM byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005C960);
+    x = a->y * b->z - a->z * b->y;
+    y = a->z * b->x - a->x * b->z;
+    z = a->x * b->y - a->y * b->x;
+    o->x = x; o->y = y; o->z = z; /* SAME LINE: three separate lines store x before y (2 diff words); one line gives the target's y, x, z order */
+}
 
 // gl_func_0005C9BC — 3-component normalize with epsilon-degenerate fallback.
 //   If |a0|² < D[0x2034], snap to (0,0,1) and return 0; otherwise normalize
