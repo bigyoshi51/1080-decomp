@@ -942,35 +942,18 @@ int game_libs_func_0006F614(int *a0) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F534_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_0006F634 = libultra osViSwapBuffer (io/viswapbuf.c verbatim):
- * saveMask = __osDisableInt(); __osViNext->framep (@4) = frameBufPtr;
- * __osViNext->state (u16 @0) |= VI_STATE_BUFFER_UPDATED (0x10);
- * __osRestoreInt(saveMask). VERIFIED 2026-09-09 (agent-g): 20/20 words
- * byte-exact standalone at BOTH IDO 7.1 -O1 and 5.3 -O1 with the existing
- * pins D_00000000_vinext / gl_func_00000000_disint / _resint; not landed
- * only because of the three-function cap of that run. Landing = an -O1
- * donor game_libs_o1_6F634.c + REPLACE_FUNC_BODY splice over a placeholder
- * (no pad: game_libs_func_0006F684 follows directly). The decode below is
- * the older anonymous-globals reading (D_6F634_state = D_6F634_flag =
- * __osViNext).
- * gl_func_0006F634: 20-insn 2-call + 2-global-state-update.
- *   v = call(a0);
- *   p_state[1] = a0;          // D_6F634_state is int*; write [1]
- *   *p_flag |= 0x10;          // D_6F634_flag is unsigned short*
- *   call(v);
- * Two single-pointer globals (USO ind-data refs). */
-extern int *D_6F634_state;
-extern unsigned short *D_6F634_flag;
-void gl_func_0006F634(int a0) {
-    int v = gl_func_00000000(a0);
-    D_6F634_state[1] = a0;
-    *D_6F634_flag |= 0x10;
-    gl_func_00000000(v);
+/* gl_func_0006F634 = libultra osViSwapBuffer (io/viswapbuf.c verbatim),
+ * section 0x83CA0 = export sym 1549 (two jal refs). LANDED 2026-09-09
+ * (agent-g) via REPLACE_FUNC_BODY donor splice: real C lives in the IDO -O1
+ * donor game_libs_o1_6F634.c (20/20 at both 7.1 and 5.3 -O1). The old NM
+ * decode ("2-call + 2-global-state-update, D_6F634_state / D_6F634_flag")
+ * was this function: both globals are __osViNext (framep @4 = frameBufPtr,
+ * state u16 @0 |= VI_STATE_BUFFER_UPDATED 0x10), the sp+0x1C spill is the
+ * un-`register`ed saveMask. No pad (game_libs_func_0006F684 follows
+ * directly); the C body is the same 0x50 as the old .s. Body below is a
+ * placeholder for the splice. */
+void gl_func_0006F634(void *frameBufPtr) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006F634);
-#endif
 
 
 /* game_libs_func_0006F684: one 108-insn (0x1B0) function. BOUNDARY MERGED

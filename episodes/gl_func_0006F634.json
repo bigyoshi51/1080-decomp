@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006F634",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-09-09T18:57:32.054533+00:00",
+  "end_time": "2026-09-09T18:57:32.054548+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T18:57:32.054543+00:00",
+      "assistant_text": "gl_func_0006F634 = libultra osViSwapBuffer (io/viswapbuf.c verbatim), IDO -O1. Section 0x83CA0 = bootup.uso export sym 1549 (two jal refs). The old NM wrap had two anonymous globals D_6F634_state / D_6F634_flag -- both are __osViNext (framep @4 = frameBufPtr; state u16 @0 |= VI_STATE_BUFFER_UPDATED 0x10), reloaded per statement (-O1 tell). saveMask is NOT register in the source, so the __osDisableInt result spills to sp+0x1C (the target has no s0 save) -- same spelling as osEPiLinkHandle. All callees/globals are blank USO imports via the existing pins D_00000000_vinext / gl_func_00000000_disint / _resint. No pad: game_libs_func_0006F684 follows directly.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 20,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO -O1 donor for gl_func_0006F634 = libultra osViSwapBuffer\n * (references/libreultra/src/io/viswapbuf.c, verbatim). PROVEN EXACT 20/20\n * standalone at BOTH IDO 7.1 -O1 and 5.3 -O1 (identical output; built with\n * 7.1), agent-g 2026-09-09. Section 0x83CA0 = bootup.uso export sym 1549\n * (two jal refs at 0x48860 / 0x5B210). The old NM decode (\"2-call +\n * 2-global-state-update, D_6F634_state / D_6F634_flag\") was this function\n * with two anonymous globals: both lui/lw reloads hit ONE symbol,\n * __osViNext (framep @4, state u16 @0 |= VI_STATE_BUFFER_UPDATED = 0x10).\n * No `register` on saveMask (the source's spelling): the __osDisableInt\n * result spills to sp+0x1C instead of s0 -- same as osEPiLinkHandle.\n * Blank externs (USO load-time relocs, existing pins = 0):\n * D_00000000_vinext = __osViNext, gl_func_00000000_disint = __osDisableInt,\n * gl_func_00000000_resint = __osRestoreInt. Spliced into\n * game_libs_post1b2c.c.o via REPLACE_FUNC_BODY; no pad (game_libs_func_0006F684\n * follows directly), the C body is the same 0x50 as the old .s. */\ntypedef unsigned int u32;\ntypedef unsigned short u16;\n\ntypedef struct {\n    /* 0x00 */ u16 state;\n    /* 0x02 */ u16 retraceCount;\n    /* 0x04 */ void *framep;\n    /* 0x08 */ void *modep;\n    /* 0x0C */ u32 control;\n    /* 0x10 */ void *mq;\n    /* 0x14 */ void *msg;\n    /* 0x18 */ u32 xScale;\n    /* 0x1C */ u32 yScale;\n} OSViContext;\n\n#define VI_STATE_10 0x10 /* VI_STATE_BUFFER_UPDATED */\n\nextern OSViContext *D_00000000_vinext;      /* __osViNext */\nextern u32 gl_func_00000000_disint(void);   /* __osDisableInt */\nextern void gl_func_00000000_resint(u32);   /* __osRestoreInt */\n#define __osViNext D_00000000_vinext\n#define __osDisableInt gl_func_00000000_disint\n#define __osRestoreInt gl_func_00000000_resint\n\nvoid gl_func_0006F634(void *frameBufPtr)\n{\n    u32 saveMask;\n    saveMask = __osDisableInt();\n    __osViNext->framep = frameBufPtr;\n    __osViNext->state |= VI_STATE_10;\n    __osRestoreInt(saveMask);\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/game_libs/game_libs_o1_6F634.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/game_libs/game_libs/gl_func_0006F634.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "20/20 words byte-exact standalone at IDO 7.1 -O1 and 5.3 -O1; in-tree REPLACE_FUNC_BODY splice into game_libs_post1b2c.c.o: raw .text slice at 0x3234 (0x50) identical to expected/, whole unit .text identical, tenshoe.z64 cmp byte-identical, objdiff 100.0."
+  }
+}
