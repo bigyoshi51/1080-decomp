@@ -1474,58 +1474,45 @@ void gl_func_0000B4A4(int *a0, int a1, char a2, char a3) {
  * SUFFIX_BYTES tail (`sll/subu/addiu/div` computing (a1*3)/5, supplying
  * stolen-prologue setup for successor gl_func_0000B5AC) was REMOVED
  * 2026-05-23 as match-faking; those bytes now belong to B5AC's own symbol.
- * 2026-06-10 DRIFT AUDIT CORRECTION: the prepend never happened --
- * B5AC's .s still starts at 0xB5AC, so the 4 insns [0xB59C..0xB5AC)
- * are emitted by NOBODY (the build is missing 16 bytes of ROM code
- * here; this is one of tail's three drift points). The proper fix =
- * prepend the 4 words to gl_func_0000B5AC.s -- but that grows tail by
- * +0x10 and shifts every later unit (including the ROM-exact validated
- * region), so it belongs to the relayout session's balanced pass. Tail
- * gap map: +0x4 pad missing before 9674, +0x10 code missing before
- * B5AC (this), -0x4 extra pad after C5B0.
- * Successor B5AC is at fuzzy=NULL (still needs predecessor-fall-through
- * decode) — see its header just below. */
+ * The 4 words [0xB59C,0xB5AC) were later restored to gl_func_0000B5AC.s
+ * (relayout, 2026-06); they are B5AC's own hoisted head, matched as C
+ * 2026-09-09 -- see the successor just below. */
 extern int gl_func_00000000();
 void gl_func_0000B560(int *p) {
     gl_func_00000000(p[4], p[0]);
     gl_func_00000000(p[4], p[1]);
 }
 
-/* gl_func_0000B5AC: 25-insn function that INHERITS $hi and $v0 from caller +
- * predecessor's SUFFIX_BYTES. Sibling of gl_func_0000B560 (just-landed) — B560
- * was extended with SUFFIX_BYTES `sll v0,a1,2; subu v0,v0,a1; addiu at,$0,5;
- * div $0,v0,at` that compute (a1*3)/5. Those 4 insns belong logically to
- * B5AC's prologue, leaving (a1*3)/5 quotient in $lo and remainder in $hi.
- * B5AC's first interesting insn is `mfhi a1` reading the remainder.
- *
- * Additional inherited reg: $v0 (used by `bgez v0` and `andi a2,v0,0x7`) —
- * caller-side flag. NOT standalone-callable from prototype-based C; reached
- * only via fall-through from gl_func_0000B560+SUFFIX_BYTES.
- *
- * Decoded control flow:
- *   ; entry inherits $hi = (a1*3)%5, $v0 = caller flag
- *   t8 = a1; t9 = 3*a1; save args; t7 = *a0;
- *   t0 = 9*a1; t1 = 36*a1; t9 = 48*a1;
- *   a1 = $hi (= prior remainder);
- *   a3 = t1 + 0xD268 = 36*a1 + 0xD268;     ; lookup-table address
- *   a0 = *a0 + 48*a1;                       ; struct-array entry
- *   if (v0 < 0 || (v0 & 7) == 0) goto call;
- *   a2 = (v0 & 7) - 8;
- * call:
- *   func_00000000();   ; first jal
- *   func_00000000();   ; second jal (a0 reloaded in delay slot)
- *   return;
- *
- * The trailing 4 insns at B5AC+0x70..0x80 are B5AC's tail-SUFFIX_BYTES for
- * its OWN successor B638 (`sll v0,a1,2; subu v0,v0,a1; addiu at,$0,5; div`)
- * — same chained pattern as B560->B5AC. B638 will need a parallel decode
- * to capture the chain.
- *
- * BLOCKED for prototype-based C: inherited $v0 is caller-specific (varies
- * per call site), can't be captured as a function arg without breaking
- * existing callers. PREFIX_BYTES on B5AC would have to bake a specific $v0
- * per call site — not a uniform recipe. Stays INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000B5AC);
+/* gl_func_0000B5AC: per-slot dispatch pair, BYTE-EXACT 35/35 (2026-09-09, agent-g)
+ * as ONE function [0xB59C,0xB628) -- the .s already carries the 4-word head
+ * (`sll v0,a1,2; subu v0,v0,a1; li at,5; div v0,at`), which is the hoisted
+ * `n = a1*3` + `n % 5` of the body, exactly as its twin game_libs_func_0000B628
+ * just below (docs/MATCHING_WORKFLOW.md#game-libs-fake-param-exact-sweep-agent-c).
+ * Sym oracle (section = splat + 0x1466C): 0x1FC08 (0xB59C) = export sym 1103;
+ * 0x1FC18 (0xB5AC) is NOT exported. The 3-month "inherits $hi and $v0 from
+ * B560's tail-SUFFIX, caller-specific $v0" verdict is retracted: the div has no
+ * mflo, $v0 stays n = a1*3 (`bgez v0 / andi v0,7 / addiu -8` = signed n % 8),
+ * `mfhi a1` = n % 5 (single-use constant divisor -> assembler div macro, no
+ * zero/overflow checks). Differences from B628: the table is `D + 0xD268`
+ * (`lui 1; addiu 0xD268` = sign-carry, NOT 0x1D268) and the entry index is
+ * `a1 * 9` ints (`or t8,a1; sll t0,t8,3; addu t0,t0,t8; sll t1,t0,2`), not n.
+ * Load-bearing: the a1*9 index must be a NAMED local (`int k = a1 * 9;`) --
+ * inline `tbl + a1 * 9` / `tbl + a1 * 36` bytes / `tbl[a1]` on a stride-36
+ * row all emit the same insns but renumber the triple (t0 reused for the sll,
+ * lui in t1) -> 8 diff words; the named temp keeps t0 live so the sll gets t1
+ * and the hi/lo pair t2. `a1 * 48` is a separate stride-48 record index; the
+ * `do { } while (0)` around the table base is the same reassociation guard as
+ * B628 (docs/IDO_CODEGEN.md#bb-boundary-blocks-sym-addend-reassociation-b628).
+ * Both jals are blank (R_MIPS_26 -> func_00000000). */
+extern int func_00000000();
+void gl_func_0000B5AC(int *a0, int a1) {
+    int n = a1 * 3;
+    int k = a1 * 9;
+    int *tbl;
+    do { tbl = (int *)((char *)&D_00000000 + 0xD268); } while (0);
+    func_00000000(*a0 + a1 * 48, n % 5, n % 8, tbl + k);
+    func_00000000(a0);
+}
 
 /* game_libs_func_0000B628: per-slot dispatch pair, BYTE-EXACT 33/33 (2026-09-09,
  * agent-g) as ONE function [0xB628,0xB6AC): the 4-word "game_libs_func_0000B628"
