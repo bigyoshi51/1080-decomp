@@ -2381,41 +2381,32 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CBF0);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CBFC);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0000CD74);
-
-#ifdef NON_MATCHING
-/* gl_func_0000CD80: 23-insn (0x5C) "any-of-three-thresholds undercut" gate.
- *
- * Calls gl_func_00000000() iff $f0 < $f4 OR $f0 < D[sym1] OR $f0 < D[sym2].
- * Effectively a 3-way OR-gate over float threshold tests. The function
- * takes 2 float caller-args ($f0 and $f4 — non-standard ABI) and reads
- * 2 globals into $f6/$f8. If any threshold is exceeded, dispatch the
- * cross-USO callback.
- *
- * Args in $f0/$f4 (NOT standard $f12/$f14) — $f0 is the common operand of all
- * 3 c.lt.s compares. The physically-preceding fragment game_libs_func_0000CD74
- * (`mtc1 zero,$f0; lwc1 $f4,D[...]`, no jr ra) sets $f0=0.0 and $f4=const and
- * falls in here. NOT a mergeable stolen-prologue: per the dual-vs-single-entry
- * test (docs/MATCHING_WORKFLOW.md forward-merge §), the frag sets $f0 to the
- * CONSTANT 0.0 — baking that makes this a degenerate fixed-threshold gate, and
- * $f0 is the VARIABLE operand here, so CD74 is an alternate "f0=0.0 default"
- * entry while this body is also (cross-USO) callable with $f0 as a real arg.
- * Neither symbol has an in-segment caller (both reloc'd-jal/export reachable),
- * so single-entry can't be confirmed — treat as a dual-entry cap, do NOT merge.
- * Bytes won't match from C without an inline-asm shim. */
+/* game_libs_func_0000CD74: three-threshold OR-gate, BYTE-EXACT 26/26
+ * (2026-09-09, agent-g) as ONE no-argument function [0xCD74,0xCDDC):
+ *   if (D_c758 > 0.0f || D_c75c > 0.0f || D_c760 > 0.0f) callback();
+ * The old 3-word "game_libs_func_0000CD74" (`lui at; mtc1 zero,$f0; lwc1
+ * $f4,0(at)`) was the hoisted head of the 59.8% "gl_func_0000CD80(float
+ * a0, float a1)" wrap: IDO -O2 materialises the shared 0.0f operand and the
+ * first global load above the addiu-sp prologue (agent-c's fake-param
+ * class, docs/MATCHING_WORKFLOW.md#game-libs-fake-param-exact-sweep-agent-c).
+ * Sym oracle (section = splat + 0x1466C): 0x213E0 (0xCD74) = export sym
+ * 1126 with 1 R_MIPS_26 ref; 0x213EC (0xCD80) not exported. The "$f0/$f4
+ * caller-arg, dual-entry, do NOT merge" verdict is retracted. bootup.uso
+ * TextReloc: three DISTINCT Data symbols 858/859/860 = consecutive floats at
+ * Data 0xC758/0xC75C/0xC760 (own hi/lo pair each -> three zero externs, not
+ * one base + offsets); the jal is blank R_MIPS_26 to sym156 (text 0x4CCA8 =
+ * splat 0x3863C). `x > 0.0f` gives the target `c.lt.s $f0,$f4` with the
+ * single `mtc1 zero,$f0` CSE'd across all three compares; the third test
+ * is bc1fl-to-epilogue with `lw ra` in the likely slot -- plain -O2 shape. */
+extern float D_00000000_c758;
+extern float D_00000000_c75c;
+extern float D_00000000_c760;
 extern int gl_func_00000000();
-void gl_func_0000CD80(float a0, float a1) {
-    extern char D_CD80_t1;
-    extern char D_CD80_t2;
-    float t1 = *(float*)&D_CD80_t1;
-    float t2 = *(float*)&D_CD80_t2;
-    if (a0 < a1 || a0 < t1 || a0 < t2) {
+void game_libs_func_0000CD74(void) {
+    if (D_00000000_c758 > 0.0f || D_00000000_c75c > 0.0f || D_00000000_c760 > 0.0f) {
         gl_func_00000000();
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000CD80);
-#endif
 
 /* gl_func_0000CDDC: 23-insn conditional vtable-dispatch + chain. If
  * *a1 == 9, load the sub-object p = *(a0 + 0x28), then call
