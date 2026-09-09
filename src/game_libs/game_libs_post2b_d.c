@@ -235,21 +235,32 @@ int gl_func_000747F4(int devAddr, int data) {
 }
 
 
-/* game_libs_func_00074840 (0x10): RSP SP_STATUS (0xA4040010) WRITE accessor.
- * Body: `nop; lui t6,0xA404; jr ra; sw a0,0x10(t6)` = `*(volatile int*)0xA4040010 = a0`.
- * game_libs_func_00074850 (below) is the matching READ. CAP — the LEADING NOP is not
- * C-reproducible: a hardware-access hazard idiom (nop before the SP register touch).
- * Plain C `*(volatile int*)0xA4040010 = a0;` emits `lui t6; jr ra; sw a0,0x10(t6)` (no
- * leading nop). IDO has no inline-asm to inject a bare nop: `__asm__("nop")` compiles
- * to a JAL to a symbol `nop` (not an emitted nop), and `__asm__ volatile(...)` is a cfe
- * syntax error (feedback_ido_no_gcc_register_asm). Same leading-nop cap class as the VI
- * accessors (00069F50 etc.). Stays INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074840);
+/* game_libs_func_00074844 = libultra __osSpSetStatus (sp/spsetstat.c
+ * verbatim): `*(volatile u32*)SP_STATUS_REG = data`. BOUNDARY FIX
+ * 2026-09-09 (TWENTY-SIXTH mis-split case): the old "game_libs_func_00074840"
+ * symbol carried a LEADING nop that was documented as a non-reproducible
+ * "hardware-access hazard idiom" CAP. bootup.uso's Sym export table says
+ * otherwise: section 0x88EB0 (= splat 0x74844, the `lui`) is exported
+ * (sym 2521, three R_MIPS_26 refs) and 0x88EAC (the nop) is not. Every
+ * libultra .o in this tail is 16-byte aligned in the module text, so the
+ * nop is the inter-object pad after __osPiRawWriteIo (747F4, 0x4C) --
+ * restored as an all-zero SUFFIX_BYTES_FORCE on gl_func_000747F4 (a 1-word
+ * GLOBAL_ASM sidecar would emit 8 bytes, docs #one-word-pad-legal-shapes).
+ * 3/3 words at 7.1 -O2. */
+void game_libs_func_00074844(unsigned int data) {
+    *(volatile unsigned int *)0xA4040010 = data;
+}
 
-/* game_libs_func_00074850 (0x10): RSP SP_STATUS (0xA4040010) READ accessor (pair of
- * 00074840). Body: `nop; lui v0,0xA404; jr ra; lw v0,0x10(v0)` = `return
- * *(volatile int*)0xA4040010`. Same leading-nop hardware-hazard CAP — see 00074840. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074850);
+/* game_libs_func_00074854 = libultra __osSpGetStatus (sp/spgetstat.c
+ * verbatim): `return *(volatile u32*)SP_STATUS_REG`. Same boundary fix as
+ * 74844: section 0x88EC0 (= splat 0x74854) is the export (sym 2630, one
+ * R_MIPS_26 ref); the nop at 0x74850 is __osSpSetStatus's inter-object
+ * pad (SUFFIX_BYTES_FORCE on 74844). The nop at 0x74860 heading the next
+ * INCLUDE block is likewise this .o's pad (0x74864 = section 0x88ED0 is the
+ * exported osWritebackDCacheAll twin, handwritten). 3/3 words. */
+unsigned int game_libs_func_00074854(void) {
+    return *(volatile unsigned int *)0xA4040010;
+}
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074860);
 

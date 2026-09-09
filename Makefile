@@ -515,6 +515,12 @@ build/src/game_libs/game_libs_ido53_73334.c.o build/non_matching/src/game_libs/g
 build/src/game_libs/game_libs_ido53_73334.c.o: SUFFIX_BYTES := gl_func_00073538=0x00000000,0x00000000,0x00000000
 build/src/game_libs/game_libs_ido53_73334.c.o: TRUNCATE_TEXT := 0x360
 build/src/game_libs/game_libs_post2b_d.c.o: TRUNCATE_TEXT := 0x1210
+# 74840/74850 boundary fix (2026-09-09): the leading nops of the old INCLUDE blocks
+# were the 16-byte inter-object pads after __osPiRawWriteIo (747F4) and
+# __osSpSetStatus (74844); real entries are 74844/74854 (bootup.uso Sym exports).
+# Restored as all-zero suffix words (1-word GLOBAL_ASM sidecars emit 8 bytes).
+build/src/game_libs/game_libs_post2b_d.c.o: SUFFIX_BYTES_FORCE := gl_func_000747F4=0x00000000 game_libs_func_00074844=0x00000000
+build/non_matching/src/game_libs/game_libs_post2b_d.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_000747F4=0x00000000 game_libs_func_00074844=0x00000000
 build/src/game_libs/game_libs_ido53_748A4.c.o build/non_matching/src/game_libs/game_libs_ido53_748A4.c.o: CC := $(IDO53_DIR)/cc
 build/src/game_libs/game_libs_ido53_748A4.c.o build/non_matching/src/game_libs/game_libs_ido53_748A4.c.o: OPT_FLAGS := -O1
 build/src/game_libs/game_libs_ido53_748A4.c.o: SUFFIX_BYTES := gl_func_00074AC0=0x00000000,0x00000000
