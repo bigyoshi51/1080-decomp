@@ -2073,7 +2073,80 @@ void gl_func_00065494(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065494);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000659D0);
+/* Child-position update, IDO 7.1 -O2, 93/93 words exact.
+ * Entry is 0x659CC (the preceding lw was already merged into this symbol).
+ * For each non-null list value: current = source position + self translation;
+ * movement = current - previous; previous = current. The list iterator has
+ * two memory-resident pointer slots. Aggregate copies through common, delta,
+ * and out preserve the integer-copy/float-store staging in the original.
+ * Reusing value for the current-position pointer is essential to the v0/v1
+ * split. The one-shot subtraction block keeps both operand bases materialized;
+ * same-line x/y/z expressions preserve descending FP load order. Spare locals
+ * reconstruct the original 0x68-byte frame without runtime padding operations.
+ * Bootup Text 0x7A038 is exported as Sym2413; no instruction relocations.
+ */
+typedef struct Node659D0 {char *data; struct Node659D0 *next;} Node659D0;
+#define VEC_FIELD_659D0(p, o) (*(float *)((char *)(p) + (o)))
+void gl_func_000659D0(char *self) {
+    Node659D0 *it[2];
+    float x,y,z;
+    char *child;
+    float common[3];
+    char *value;
+    float *previous;
+    int reserved_mid;
+    float delta[3];
+    int reserved_delta[5];
+    float out[3];
+    int reserved_bottom[1];
+
+    /* The iterator also supplies the current-position pointer inside the loop. */
+    it[1] = *(Node659D0 **)(self + 0x39C);
+    it[0] = it[1];
+    if (it[0]) {
+        it[1] = it[0]->next;
+        value = it[0]->data;
+    } else {
+        value = 0;
+    }
+    child = value;
+    if (value) {
+        do {
+            value = child + 0x120;
+            previous = (float *)(child + 0x108);
+            *(Vec3 *)common = *(Vec3 *)(child + 0xDC);
+            VEC_FIELD_659D0(child,0x120) = common[0];
+            VEC_FIELD_659D0(child,0x124) = common[1];
+            VEC_FIELD_659D0(child,0x128) = common[2];
+            VEC_FIELD_659D0(child,0x120) += VEC_FIELD_659D0(self,0x318);
+            VEC_FIELD_659D0(child,0x124) += VEC_FIELD_659D0(self,0x31C);
+            VEC_FIELD_659D0(child,0x128) += VEC_FIELD_659D0(self,0x320);
+            do {
+                x = VEC_FIELD_659D0(value,0) - previous[0]; y = VEC_FIELD_659D0(value,4) - previous[1]; z = VEC_FIELD_659D0(value,8) - previous[2];
+                delta[0] = x; delta[1] = y; delta[2] = z;
+            } while (0);
+            *(Vec3 *)common = *(Vec3 *)delta;
+            *(Vec3 *)out = *(Vec3 *)common;
+            VEC_FIELD_659D0(child,0x114) = out[0];
+            VEC_FIELD_659D0(child,0x118) = out[1];
+            VEC_FIELD_659D0(child,0x11C) = out[2];
+            *(Vec3 *)common = *(Vec3 *)value;
+            VEC_FIELD_659D0(child,0x108) = common[0];
+            VEC_FIELD_659D0(child,0x10C) = common[1];
+            VEC_FIELD_659D0(child,0x110) = common[2];
+            it[0] = it[1];
+            if (it[0]) {
+                it[1] = it[0]->next;
+                value = it[0]->data;
+            } else {
+                value = 0;
+            }
+            child = value;
+        } while (value);
+    }
+}
+
+#undef VEC_FIELD_659D0
 
 /* game_libs_func_00065B40: quaternion -> 3x3 rotation matrix, BYTE-EXACT 69/69
  * (2026-09-09, agent-g) as ONE function [0x65B40,0x65C54): the 7-word
