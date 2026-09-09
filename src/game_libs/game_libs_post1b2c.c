@@ -32,80 +32,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C400);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C454);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C384_pad.s")
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-extern int gl_vec_src0;
-extern int gl_vec_src1;
-extern int gl_vec_src2;
-extern int gl_vec_src3;
-typedef char *(*GP_0006C484)();
+/* gl_func_0006C484 = libultra osInitialize (os/initialize.c verbatim),
+ * section 0x80AF0 = export sym 2445. LANDED 2026-09-09 (agent-g) via
+ * REPLACE_FUNC_BODY donor splice: real C lives in the IDO 5.3 -O1 donor
+ * game_libs_ido53_6C484.c (163/163 first compile). The old 62.9% NM decode
+ * ("four vector-source symbols, 64-bit stack-arg cascade") was this
+ * function at the wrong opt level: the four lui/addiu pairs are the -O1
+ * per-statement re-materialisation of ONE symbol (__osExceptionPreamble)
+ * and the (hi,lo,0,3)/(hi,lo,0,4) jal pair is osClockRate * 3 / 4 lowered
+ * to __ll_mul / __ull_div under -mips2 (in-unit 6C87C / 6C77C, blank USO
+ * relocs). osClockRate / osViClock are DEFINED in the donor TU (shared
+ * `lui at` u64 stores); the splice imports them as UND -> pins = 0. The
+ * zero word at 0x6C710 is this object's 16-byte inter-object pad
+ * (SUFFIX_BYTES_FORCE gl_func_0006C484). Body below is a placeholder for
+ * the splice. */
 void gl_func_0006C484(void) {
-    u32 sp34;
-    u32 sp30;
-    u32 sp24;
-    u32 sp20;
-    u32 temp_ret;
-    u32 temp_ret_2;
-    u32 temp_t1;
-    u32 temp_t9;
-    int *src0 = &gl_vec_src0;
-    int *src1 = &gl_vec_src1;
-    int *src2 = &gl_vec_src2;
-    int *src3 = &gl_vec_src3;
-
-    sp30 = 0;
-    *(int*)0 = 1;
-    gl_func_00062F64(gl_func_00062F64() | 0x20000000);
-    gl_func_00062F64(0x01000800U);
-    if (gl_func_00062F64(0x1FC007FCU, &sp34) != 0) {
-        do {
-
-        } while (gl_func_00062F64(0x1FC007FCU, &sp34) != 0);
-    }
-    if (gl_func_00062F64(0x1FC007FCU, (u32 *) (sp34 | 8)) != 0) {
-        do {
-
-        } while (gl_func_00062F64(0x1FC007FCU, (u32 *) (sp34 | 8)) != 0);
-    }
-    *(Quad4 *)0x80000000 = *(Quad4 *)src0;
-    *(Quad4 *)0x80000080 = *(Quad4 *)src1;
-    *(Quad4 *)0x80000100 = *(Quad4 *)src2;
-    *(Quad4 *)0x80000180 = *(Quad4 *)src3;
-    gl_func_00062F64(0x80000000U, (u32 *)0x190);
-    gl_func_00062F64(0x80000000U, (u32 *)0x190);
-    gl_func_00062F64();
-    gl_func_00062F64(4U, &sp30);
-    temp_t9 = sp30 & ~0xF;
-    sp30 = temp_t9;
-    if (temp_t9 != 0) {
-        *(int*)0 = 0U;
-        *(int *)4 = temp_t9;
-    }
-    temp_ret = gl_func_00062F64(*(int*)0, (u32 *) *(int *)4, 0, 3);
-    sp20 = temp_ret;
-    sp24 = (u32) (u64) temp_ret;
-    temp_ret_2 = gl_func_00062F64(sp20, (u32 *) sp24, 0, 4);
-    temp_t1 = *(int*)0;
-    *(int*)0 = temp_ret_2;
-    *(int *)4 = (u32) (u64) temp_ret_2;
-    if (temp_t1 == 0) {
-        gl_func_00062F64(0U, (u32 *)0x40);
-    }
-    if (*(int*)0 == 0) {
-        *(int*)0 = 0x02F5B2D2U;
-        return;
-    }
-    if (*(int*)0 == 2) {
-        *(int*)0 = 0x02E6025CU;
-        return;
-    }
-    *(int*)0 = 0x02E6D354U;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C484);
-#endif
 
 /* game_libs_func_0006C714 = __ull_rshift (libgcc-style u64 >> u64, twin of the
  * kernel_056 family below). BOUNDARY FIX 2026-09-09 (twenty-sixth mis-split

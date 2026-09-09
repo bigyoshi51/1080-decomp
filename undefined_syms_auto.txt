@@ -3472,3 +3472,19 @@ D_69CC4_227C = 0x00000000;  /* game_libs_func_00069CC4 per-constant pad-struct a
 D_69CC4_2280 = 0x00000000;  /* game_libs_func_00069CC4 per-constant pad-struct alias of D_00000000 (at-macro form; one base CSEs into v1) */
 D_69CC4_tbl = 0x00000000;  /* game_libs_func_00069CC4 u16 table base (bootup.uso sym2 section, +0x2C650) */
 gl_fbe4_CurrentTime = 0x00000000;  /* __osCurrentTime (u64, USO .bss 0x44060): DEFINED in the game_libs_ido53_6FBE4.c donor TU (shared-$at u64 store), imported by the splice as an undefined symbol -> blank USO reloc */
+gl_ExceptionPreamble = 0x00000000;  /* __osExceptionPreamble (handler stub copied to the 4 exception vectors) -- game_libs_ido53_6C484.c donor (osInitialize), blank USO reloc */
+gl_ResetType = 0x00000000;  /* osResetType -- 6C484 donor, blank USO reloc */
+gl_AppNMIBuffer = 0x00000000;  /* osAppNMIBuffer (64-byte NMI buffer) -- 6C484 donor, blank USO reloc */
+gl_ClockRate = 0x00000000;  /* osClockRate (u64, DEFINED in the 6C484 donor TU for the shared-$at u64 stores; imported by the splice as UND -> blank USO reloc) */
+gl_Finalrom = 0x00000000;  /* __osFinalrom (u32 .bss, defined in the 6C484 donor TU) -- blank USO reloc */
+gl_func_00000000_getsr = 0x00000000;  /* __osGetSR (blank jal) -- 6C484 donor */
+gl_func_00000000_setsr = 0x00000000;  /* __osSetSR (blank jal) -- 6C484 donor */
+gl_func_00000000_setfpccsr = 0x00000000;  /* __osSetFpcCsr (blank jal) -- 6C484 donor */
+gl_func_00000000_sirawreadio = 0x00000000;  /* __osSiRawReadIo (blank jal) -- 6C484 donor */
+gl_func_00000000_sirawwriteio = 0x00000000;  /* __osSiRawWriteIo (blank jal) -- 6C484 donor */
+gl_func_00000000_wbdcache = 0x00000000;  /* osWritebackDCache = game_libs_func_0006C400 (blank jal; in-unit callee named via a blank import so the word stays 0C000000) -- 6C484 donor */
+gl_func_00000000_invalicache = 0x00000000;  /* osInvalICache (blank jal) -- 6C484 donor */
+gl_func_00000000_maptlbrdb = 0x00000000;  /* osMapTLBRdb (blank jal) -- 6C484 donor */
+gl_func_00000000_pirawreadio = 0x00000000;  /* osPiRawReadIo (blank jal) -- 6C484 donor */
+gl_func_00000000_llmul6c = 0x00000000;  /* compiler-generated __ll_mul for osClockRate*3 in the 6C484 donor, renamed post-compile (__ll_mul is kernel-pinned 0x80002F78); = game_libs_func_0006C87C, blank USO reloc */
+gl_func_00000000_ulldiv6c = 0x00000000;  /* compiler-generated __ull_div for /4 in the 6C484 donor, renamed post-compile (__ull_div kernel-pinned 0x80002E78); = game_libs_func_0006C77C, blank USO reloc */
