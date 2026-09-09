@@ -604,7 +604,7 @@ void h2hproc_uso_func_00000A80(int *a0) {
  *     gl_func(7, 0, 0)                    ; "kind=7"?
  *     return
  *   Case 1:
- *     v0 = gl_func(D[0x190], 3)           ; lookup player at slot 3
+ *     v0 = gl_func(D[0x190])              ; query (signature unresolved)
  *     if (v0 == 0) return
  *     gl_func(7, 0, 0)
  *     gl_func(a0)
@@ -615,7 +615,7 @@ void h2hproc_uso_func_00000A80(int *a0) {
  *     p = gl_func(0, a0)                  ; alloc/setup, returns ptr
  *     a0->0x6AC = p
  *     a3 = a0->0x56C
- *     gl_func(a3 + 0x10, p, p->0?, ...)   ; deref-call
+ *     gl_func(a3 + 0x10, p)              ; link returned object
  *     if (p->0x14 != 0) p->0x4 = 1
  *     p->0x14 = a3
  *     gl_func(D[0x190], 1, 1)
@@ -636,17 +636,27 @@ void h2hproc_uso_func_00000A80(int *a0) {
  *      [0x174/4] (array-typed extern, same reloc target) %hi-CSEs into the
  *      target's lui+addiu,0 + lw 368/372 pair (char*-base +K spelling emits
  *      two per-site folded luis). Also reuse tmp as diff_b -> $v1.
- *  RESIDUAL (~7 words): min/diff_a web ties to $a2 (target $v0) — the
- *  const-call-arg web arg-discount tie (kit III NEGATIVE, probe-immune:
- *  named/un-named/decl-order all reproduce $a2), which cascades base a0-vs-a2
- *  + move/addu operand names; case-1 first call remats li a1,3 in the jal
- *  delay where target PREs the dispatch-delay li a1,3 (uopt cross-BB const
- *  PRE, no C spelling found); tmp/a3 homes 36/32 vs target 44/36. Keep NM. */
+ * 2026-09-09: 69/73 raw words now exact with the correct 0x124 size.
+ * The claimed min-register ceiling above was a prototype artifact: TextReloc
+ * at section 0xB00 identifies the local void helper at section 0xC14
+ * (splat C18). Its void-returning alias releases v0 for min. Declaring tmp,
+ * s0, a3, base in that order gives the target's 44(sp)/36(sp) spill homes.
+ * The query at section 0xAE4 is a DIFFERENT import (Sym134) from the
+ * three-argument setter (Sym122). A one-argument spelling removes the extra
+ * li a1,3; the target still has a1=3 from the switch delay slot, so the
+ * actual query signature remains unconfirmed, not a proven one-arg API.
+ * RESIDUAL: only the four-word paired-array address/load group uses a0 as
+ * base instead of a2. IDO 5.3/7.1 agree; signedness, typed void calls,
+ * struct/array/pointer bases, comma/ternary forms and register min tried;
+ * 1,347 random permuter trials did not improve the base score of 110.
+ * Keep NM: exact instruction count is not an exact match. */
 extern unsigned A88_diffpair[];
+extern void h2hproc_call_00000C18(int *);
 void h2hproc_uso_func_00000A88(int *a0) {
-    int *s0 = a0;
-    char *base = &D_00000000;
     int tmp = *(int*)((char*)a0 + 0x504);
+    int *s0 = a0;
+    int a3;
+    char *base = &D_00000000;
     switch (tmp) {
     case 0:
         gl_func_00000000(*(int*)(base + 0x190), 3, 1);
@@ -654,11 +664,10 @@ void h2hproc_uso_func_00000A88(int *a0) {
         gl_func_00000000(7, 0, 0);
         break;
     case 1: {
-        int a3;
         unsigned min;
-        if (gl_func_00000000(*(int*)(base + 0x190), 3) == 0) return;
+        if (gl_func_00000000(*(int*)(base + 0x190)) == 0) return;
         gl_func_00000000(7, 0, 0);
-        gl_func_00000000(s0);
+        h2hproc_call_00000C18(s0);
         min = A88_diffpair[0x170 / 4];
         tmp = A88_diffpair[0x174 / 4];
         if ((unsigned)tmp < min) min = (unsigned)tmp;
