@@ -1096,8 +1096,8 @@ build/src/game_libs/game_libs_post2.c.o build/non_matching/src/game_libs/game_li
 # the old 0x14 "game_libs_func_00069F50" symbol carried as a leading + trailing
 # zero word (Sym export oracle: only 0x69F54 is exported). Twenty-sixth mis-split
 # case, docs/MATCHING_WORKFLOW #leading-nop-cap-is-inter-object-pad-sym-oracle-74844.
-build/src/game_libs/game_libs_post1b.c.o: SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000 gl_func_00069E04=0x00000000 game_libs_func_00069F54=0x00000000
-build/non_matching/src/game_libs/game_libs_post1b.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000 gl_func_00069E04=0x00000000 game_libs_func_00069F54=0x00000000
+build/src/game_libs/game_libs_post1b.c.o: SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000 gl_func_00069E04=0x00000000 game_libs_func_00069F54=0x00000000 gl_func_00069C94=0x00000000,0x00000000,0x00000000
+build/non_matching/src/game_libs/game_libs_post1b.c.o: NON_MATCHING_SUFFIX_BYTES_FORCE := gl_func_00067370=0x00000000 gl_func_00069E04=0x00000000 game_libs_func_00069F54=0x00000000 gl_func_00069C94=0x00000000,0x00000000,0x00000000
 build/src/game_libs/game_libs_post2b_e.c.o build/non_matching/src/game_libs/game_libs_post2b_e.c.o: REPLACE_FUNC_BODY := gl_func_00074C04=$(GAMELIBS_74C04_DONOR)
 build/src/game_libs/game_libs_post1c.c.o build/non_matching/src/game_libs/game_libs_post1c.c.o: REPLACE_FUNC_BODY := gl_func_00070634=$(GAMELIBS_70634_DONOR) gl_func_00070B04=$(GAMELIBS_70B04_DONOR) gl_func_00070C44=$(GAMELIBS_70C44_DONOR) gl_func_00070694=$(GAMELIBS_70694_DONOR) gl_func_000707E8=$(GAMELIBS_70694_DONOR) game_libs_func_00070954=$(GAMELIBS_70954_DONOR) gl_func_00070A14=$(GAMELIBS_70A14_DONOR) game_libs_func_00070854=$(GAMELIBS_70854_DONOR)
 # 73904/73E74 = Plauger libc _Genld/_Ldtob (xldtob.c verbatim), ONE IDO

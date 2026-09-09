@@ -5631,9 +5631,43 @@ void gl_func_00069C94(int *a0) {
     ((void (*)(void))a0[1])();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00069CB8);
-
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00069CD0);
+/* game_libs_func_00069CC4: table-driven inverse-trig (acos-shaped) float
+ * function, 78 insns (0x138), EXACT 2026-09-09 (agent-g). Was TWO splat
+ * symbols: "game_libs_func_00069CB8" (3 zero words + `lui at; ldc1 f4,0x2268;
+ * cvt.d.s f0,f12`) and "gl_func_00069CD0" (the `addiu sp,-0x18` body). The
+ * three zero words are gl_func_00069C94's 16-byte inter-object pad (twenty-
+ * sixth mis-split case; now SUFFIX_BYTES_FORCE on 69C94) and the three FP
+ * words are IDO's hoisted-above-prologue head of THIS function: bootup.uso
+ * Sym export sym 345 sits at section 0x7E330 (= 0x69CC4, 2 R_MIPS_26 refs);
+ * 0x7E324 / 0x7E33C are not exported. The 2-word `_pad.s` after the body is
+ * this object's own tail pad before osSendMesg (unchanged).
+ *
+ * Shape notes (all needed for 78/78): per-symbol pad-struct externs for the
+ * five FP constants (docs/IDO_CODEGEN.md#per-symbol-pad-struct-hi-cse-63f34 --
+ * one shared &D base CSEs into a v1 base-local, +2 insns); the u16 table read
+ * is cast to (unsigned int) so IDO emits the u32->float fixup (mtc1/bgez/
+ * cvt.s.w + 0x4F800000 add.s) and is INLINED in the arithmetic (a named local
+ * colours v0 instead of the t9/t3 expression-temp ring); the K&R placeholder
+ * call promotes x to double (mfc1 a2,f1 / a3,f0 with a1 skipped). Relocs:
+ * D+0x2268/2270/2278/227C/2280 and the string D+0x2250 are sym1-based, the
+ * u16 table at +0x2C650 is sym2-based (oracle); callee sym76 = 0x34810 (the
+ * varargs debug-print wrapper in post0b) -> gl_func_00000000 placeholder. */
+extern struct { char pad[0x2268]; double v; } D_69CC4_2268;
+extern struct { char pad[0x2270]; double v; } D_69CC4_2270;
+extern struct { char pad[0x2278]; float v; } D_69CC4_2278;
+extern struct { char pad[0x227C]; float v; } D_69CC4_227C;
+extern struct { char pad[0x2280]; double v; } D_69CC4_2280;
+extern struct { char pad[0x2C650]; unsigned short t[1]; } D_69CC4_tbl;
+float game_libs_func_00069CC4(float x) {
+    if (x > D_69CC4_2268.v || x < D_69CC4_2270.v) {
+        gl_func_00000000((char *)&D_00000000 + 0x2250, x);
+        return 0.0f;
+    }
+    if (x > 0.0f) {
+        return (float)(unsigned int)D_69CC4_tbl.t[(int)(x * 2048.0f)] / D_69CC4_2278.v;
+    }
+    return D_69CC4_2280.v - ((float)(unsigned int)D_69CC4_tbl.t[(int)(-(x * 2048.0f))] / D_69CC4_227C.v);
+}
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00069CD0_pad.s")
 
 /* gl_func_00069E04 = libultra osSendMesg. LANDED 2026-06-21 as a byte-identical
