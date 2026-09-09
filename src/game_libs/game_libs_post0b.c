@@ -13317,45 +13317,79 @@ void game_libs_func_00042F4C(char *arg0, char *arg1, char *arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00042F4C);
 #endif
 
+#ifdef NON_MATCHING
+/* game_libs_func_000430D8 (0x1AC, 107 words; merged with the former gl_func_000430E4
+ * INCLUDE_ASM + STRUCTURAL PASS note, 2026-09-09 agent-c). 0x430D8 IS bootup.uso's
+ * export (sym1951; jal'd from text 0x58004/0x58030 = splat 0x43998/0x439C4); 0x430E4
+ * is a mid-function word. The 3-word orphan `lw t6,0x2C(a0); lui t7; lw t7,0x18C(t7)`
+ * is the hoisted first statement: the record-table base `**(self+0x2C)` and the list
+ * head at Data+0x18C (sym154 + 0x18C, inline addend so the word carries 0x18C).
+ *
+ * Vec3 -> s8 quantizer over the D+0x18C intrusive list: for every node without
+ * the 0xC4 bit-7 skip flag, write trunc(v * 120.0f) of the node's Vec3 at +0xF0
+ * (flag != 0) or +0xE4 (flag == 0) into bytes 0x10..0x12 of record idx of a
+ * 16-byte-stride table, idx++. Leaf, frame 0x10 = the memory-homed {cur,next}
+ * iterator (IDO_CODEGEN#pointer-form-list-iterator-3df5c) + 8 (a 4-word Iter).
+ *
+ * STATUS: 107/107 words by mnemonic, every a/v register and the whole schedule
+ * exact; the residual is ONLY the ugen temp-ring numbering (the target burns two
+ * ring slots in the flag!=0 arm before the loop: t9/t1/t2/t3/t5/t7/t9/t0 where the
+ * build emits t8/t9/t0/t1/t3/t5/t8/t7 -- 45 words differ by t-register only).
+ * Levers that were needed for the shape (see the docs entry):
+ *   - `slot = base; slot += idx * 16` -> base-first `addu a0,v0,tN`;
+ *   - flag!=0 arm: entry result is a TEMP copied into `obj` (`or a1,a0`), the loop
+ *     step assigns `node` (if/else, `else node = 0` -- uopt hoists the zero to the
+ *     loop top and leaves the `b .+8` past the emptied else) then `obj = node`;
+ *     colouring order slot(a0) < obj(a1) < node(a2) comes from first occurrence;
+ *   - the p->cur = p->next re-read form (no named nx) keeps nx in t-regs.
+ * Probed inert on the ring: decl order, head via a named local / CSE'd global /
+ * int-cast address / volatile pointee / index form, narrow flag types, ternary vs
+ * statement forms in either arm, per-arm head store, 2-field Iter + pad. */
+typedef struct Link_430D8 { char *data; struct Link_430D8 *next; } Link_430D8;
+typedef struct { Link_430D8 *cur; Link_430D8 *next; int e1; int e2; } Iter_430D8;
+#define ITER_FIRST_430D8(p) ((p)->cur = (p)->next, (p)->cur != 0 ? ((p)->next = (p)->cur->next, (p)->cur->data) : 0)
+#define ITER_NEXT_430D8(p, node) (p)->cur = (p)->next; \
+    if ((p)->cur != 0) { (p)->next = (p)->cur->next; (node) = (p)->cur->data; } else { (node) = 0; }
+#define F_430D8(n, o) (*(float *)((n) + (o)))
+void game_libs_func_000430D8(char *self, int flag) {
+    Iter_430D8 it;
+    Iter_430D8 *p = &it;
+    char *node;
+    char *obj;
+    char *base = **(char ***)(self + 0x2C);
+    int idx = 0;
+    char *slot;
+    p->next = *(Link_430D8 **)((char *)&D_00000000 + 0x18C);
+    if (flag) {
+        obj = ITER_FIRST_430D8(p);
+        while (obj != 0) {
+            if (!(*(int *)(obj + 0xC4) & 0x80)) {
+                slot = base; slot += idx * 16;
+                slot[0x10] = (int)(F_430D8(obj, 0xF0) * 120.0f);
+                slot[0x11] = (int)(F_430D8(obj, 0xF4) * 120.0f);
+                slot[0x12] = (int)(F_430D8(obj, 0xF8) * 120.0f);
+                idx++;
+            }
+            ITER_NEXT_430D8(p, node);
+            obj = node;
+        }
+    } else {
+        ITER_NEXT_430D8(p, node);
+        while (node != 0) {
+            if (!(*(int *)(node + 0xC4) & 0x80)) {
+                slot = base; slot += idx * 16;
+                slot[0x10] = (int)(F_430D8(node, 0xE4) * 120.0f);
+                slot[0x11] = (int)(F_430D8(node, 0xE8) * 120.0f);
+                slot[0x12] = (int)(F_430D8(node, 0xEC) * 120.0f);
+                idx++;
+            }
+            ITER_NEXT_430D8(p, node);
+        }
+    }
+}
+#else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000430D8);
-
-// gl_func_000430E4 — STRUCTURAL PASS (0x19C / 104 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0 → ONE clean function. Single prologue frame 0x10
-// (no ra save — leaf). List-walk Vec3-float-to-byte quantizer (no cb calls).
-//
-//   void gl_func_000430E4(void *out, void *a1, void *a2) {
-//     void *base = *(void**)a2;                      // output record base
-//     int idx = 0;
-//     if (a1 == 0) return;
-//     it  = a1->...;                                  // {cur,next} cursor in
-//     cur = it ? it->p00 : 0;                         //   sp+0x00 / sp+0x04
-//     nxt = it ? it->p04 : ...;
-//     if (cur == 0) return;
-//     do {
-//       float S = 120.0f;                             // 0x42F00000 scale
-//       if ((cur->pC4 & 0x80) == 0) {                  // skip flagged nodes
-//         char *slot = (char*)base + idx*0x10;
-//         slot[0x10] = (char)trunc(cur->pF0 * S);      // quantize Vec3.x
-//         slot[0x11] = (char)trunc(cur->pF4 * S);      //          .y
-//         slot[0x12] = (char)trunc(cur->pF8 * S);      //          .z
-//         idx++;
-//       }
-//       it = nxt;                                      // advance cursor
-//       cur = it ? it->p00 : 0;
-//       nxt = it ? it->p04 : nxt;
-//     } while (cur != 0);
-//   }
-// Walks an intrusive list (cursor {cur,next} held in sp+0x00/0x04, head
-// resolved from a1) and, for each node lacking the 0xC4 bit-7 skip flag,
-// converts its Vec3 at +0xF0/0xF4/0xF8 to three signed bytes scaled by
-// 120.0 (mul.s then trunc.w.s), packing them at out_base + idx*0x10 + 0x10..
-// 0x12 with a running write index. Family: FP Vec3 geometry serialize /
-// byte-pack export (relates to gl_func_00040E90 / 00042778; the byte-quantize
-// counterpart). Cursor-advance bookkeeping representative; the 120.0 scale,
-// the 0xC4&0x80 skip gate, the +0xF0/F4/F8 source lanes and the
-// idx*0x10+0x10 dest packing are exact. Caps: node/out struct untyped. Full
-// body INCLUDE_ASM-preserved.
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000430E4);
+#endif
 
 extern int gl_func_00000000();
 void gl_func_00043284(int *a0, int a1) {
