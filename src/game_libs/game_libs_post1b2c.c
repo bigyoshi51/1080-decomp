@@ -354,94 +354,25 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006D894);
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006D94C);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006D7CC_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_0006D964: 67-insn command-record builder + dual-dispatch helper.
- * Size 0x10C, frame 0x28, saves s0/s1.
- *
- * Builds a 20-byte command record at *a0 then dispatches via one of two
- * jal pairs based on the kind flag `a1`. Returns -1 if the global head
- * pointer at D+0 is NULL.
- *
- * Decoded structure (raw-word disasm):
- *   int build_and_send(uint8_t *out_record,  // a0 — record buffer (≥0x14 bytes)
- *                      int kind_flag,         // a1 (1 = path A, else path B)
- *                      int type_alt,          // a2 (0 = type 0xB, else 0xC)
- *                      int arg3,              // a3
- *                      int arg5,              // sp+0x38
- *                      int arg6,              // sp+0x3C
- *                      int arg4)              // sp+0x40 — order via stack-arg slots
- *   {
- *       void *head = *(void**)&D_00000000;
- *       if (head == NULL) return -1;
- *
- *       // Build 0x14-byte command record:
- *       *(uint16_t*)(out_record + 0x00) = (type_alt == 0) ? 0xB : 0xC;
- *       *(uint8_t *)(out_record + 0x02) = (uint8_t)kind_flag;
- *       *(uint32_t*)(out_record + 0x04) = arg4;       // sp+0x40
- *       *(uint32_t*)(out_record + 0x08) = arg5;       // sp+0x38
- *       *(uint32_t*)(out_record + 0x0C) = arg3;       // a3
- *       *(uint32_t*)(out_record + 0x10) = arg6;       // sp+0x3C
- *       *(uint32_t*)(out_record + 0x14) = 0;
- *
- *       // Dispatch
- *       int s1;
- *       if (kind_flag == 1) {
- *           s1 = func_a();           // jal #1
- *       } else {
- *           s1 = func_b();           // jal #1' (different target)
- *       }
- *       return func_send(s1, out_record, 0);   // jal #2 — common dispatch
- *   }
- *
- * Notes:
- *  - The two jal-pair branches share identical structure (`jal X; s1 = v0;
- *    jal send(s1, out_record, 0)`). Only the first jal target differs.
- *    IDO appears to have emitted them as separate code paths rather than
- *    a conditional callee lookup — probably the original C had two
- *    explicit if-branches, each with its own builder function call.
- *  - Type byte 0xB or 0xC suggests a command-ID enum where 0xB = some
- *    "write" command and 0xC = a related command variant.
- *  - 20-byte record matches typical OS-level message-queue entry size
- *    (osCreateMesgQueue size and friends).
- *  - Returns -1 on NULL head (early-out), else result of send-jal.
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-extern int gl_func_00000000();
-extern int gl_func_0006D964_b();   /* distinct field-0 placeholder for the a1!=1 arm */
-extern int D_00000000;
-// Early-out -1 if *(&D)==0. Fill a 20-byte record at obj: halfword type 0xC if
-// a2!=0 else 0xB; byte +2 = a1; +4=arg7, +8=arg5, +0xC=a3, +0x10=arg6, +0x14=0.
-// Then a kind-gated builder pair (a1==1 vs not call different builders), each
-// `s1 = build(); s0 = send(s1, obj, 0)`; return s0. Reloc-blind cbs + &D.
-int gl_func_0006D964(char *obj, int a1, int a2, int a3, int arg5, int arg6, int arg7) {
-    int s0, s1;
-    if (*(int *)&D_00000000 == 0) {
-        return -1;
-    }
-    if (a2 != 0) {
-        *(short *)(obj + 0x0) = 12;
-    } else {
-        *(short *)(obj + 0x0) = 11;
-    }
-    *(char *)(obj + 0x2) = (char)a1;
-    *(int *)(obj + 0x4) = arg7;
-    *(int *)(obj + 0x8) = arg5;
-    *(int *)(obj + 0xC) = a3;
-    *(int *)(obj + 0x10) = arg6;
-    *(int *)(obj + 0x14) = 0;
-    if (a1 == 1) {
-        s1 = gl_func_00000000();
-        s0 = gl_func_00000000(s1, obj, 0);
-    } else {
-        s1 = gl_func_0006D964_b();
-        s0 = gl_func_0006D964_b(s1, obj, 0);
-    }
-    return s0;
+/* gl_func_0006D964 = libultra osPiStartDma (io/pidma.c verbatim), section
+ * 0x81FD0 = export sym 1530 (two jal refs). LANDED 2026-09-09 (agent-g) via
+ * REPLACE_FUNC_BODY donor splice: real C lives in the IDO -O1 donor
+ * game_libs_o1_6D964.c (67/67 at both 7.1 and 5.3 -O1, first compile). The
+ * old 54% NM decode ("67-insn command-record builder + dual-dispatch helper")
+ * was this function at the wrong opt level: the 0x18 record is the OSIoMesg
+ * (type DMAREAD 11 / DMAWRITE 12, pri, retQueue, dramAddr, devAddr, size,
+ * piHandle = NULL), the gate global is __osPiDevMgr.active (the 6DA74
+ * donor's gl_devmgr_6DA74), and the "builder pair" is osJamMesg /
+ * osSendMesg(osPiGetCmdQueue(), mb, OS_MESG_NOBLOCK) on OS_MESG_PRI_HIGH;
+ * reloading every arg from its sp+0x28.. home before each use is the -O1
+ * tell. The old .s's trailing zero word (section 0x820DC, not exported) is
+ * this object's own 16-byte alignment pad -> SUFFIX_BYTES_FORCE
+ * gl_func_0006D964=0x00000000 in the Makefile (unit layout unchanged); the
+ * .s is trimmed to the 67-word body. Body below is a placeholder for the
+ * splice. */
+int gl_func_0006D964(void *mb, int priority, int direction, unsigned int devAddr, void *dramAddr, unsigned int size, void *mq) {
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006D964);
-#endif
 
 /* gl_func_0006DA74: 98-insn osCreatePiManager (libultra pimgr.c —
  * identified 2026-07-09 against references/libreultra/src/io/pimgr.c;
@@ -906,15 +837,21 @@ void gl_func_0006F634(void *frameBufPtr) {
 void game_libs_func_0006F684(void *mf) {
 }
 
-/* gl_func_0006F834 = libultra guFrustum (gu/frustum.c verbatim), section
+/* gl_func_0006F834 = libultra guPosition (gu/position.c wrapper), section
  * 0x83EA0 = export sym 162. LANDED 2026-09-09 (agent-g) via REPLACE_FUNC_BODY
  * donor splice: real C lives in the IDO 5.3 -O3 donor game_libs_ido53_6F834.c
- * (26/26 at both 5.3 and 7.1 -O3). The 87.7% wrap's "2-FP-home budget cap"
- * (only two float params homed in f12/f14, third stack-homed) was -O2 vs
- * -O3 -- the same class as the guOrtho donor (70694/707E8). Callee 1 is the
- * in-unit guFrustumF = game_libs_func_0006F684 (blank import), callee 2 is
- * guMtxF2L (70854). The 2-word gl_func_0006F834_pad.s below is unchanged.
- * Body below is a placeholder for the splice. */
+ * (26/26 at both 5.3 and 7.1 -O3). It was landed and the donor written as
+ * guFrustum (gu/frustum.c); the guFrustum and guPosition wrapper TUs compile
+ * to byte-identical 26-word bodies (Matrix mf at sp+40, three mtc1/mfc1
+ * re-marshals, F-variant jal, guMtxF2L), and the in-unit callee at +0x44 is
+ * game_libs_func_0006F684 = guPositionF (108 words; NOT guFrustumF), so the
+ * true identity is guPosition(Mtx *m, float r, float p, float h, float s,
+ * float x, float y, float z). The 87.7% wrap's "2-FP-home budget cap" (only
+ * two float params homed in f12/f14, third stack-homed) was -O2 vs -O3 --
+ * the same class as the guOrtho donor (70694/707E8). Callee 1 is the in-unit
+ * guPositionF = game_libs_func_0006F684 (blank import), callee 2 is guMtxF2L
+ * (70854). The 2-word gl_func_0006F834_pad.s below is unchanged. Body below
+ * is a placeholder for the splice. */
 void gl_func_0006F834(void *m) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F834_pad.s")

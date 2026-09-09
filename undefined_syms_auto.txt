@@ -3486,7 +3486,10 @@ gl_func_00000000_maptlbrdb = 0x00000000;  /* osMapTLBRdb (blank jal) -- 6C484 do
 gl_func_00000000_pirawreadio = 0x00000000;  /* osPiRawReadIo (blank jal) -- 6C484 donor */
 gl_func_00000000_llmul6c = 0x00000000;  /* compiler-generated __ll_mul for osClockRate*3 in the 6C484 donor, renamed post-compile (__ll_mul is kernel-pinned 0x80002F78); = game_libs_func_0006C87C, blank USO reloc */
 gl_func_00000000_ulldiv6c = 0x00000000;  /* compiler-generated __ull_div for /4 in the 6C484 donor, renamed post-compile (__ull_div kernel-pinned 0x80002E78); = game_libs_func_0006C77C, blank USO reloc */
-gl_func_00000000_frustumf = 0x00000000;  /* guFrustumF = game_libs_func_0006F684 (blank jal; in-unit callee named via a blank import so the word stays 0C000000) -- 6F834 guFrustum donor */
+gl_func_00000000_frustumf = 0x00000000;  /* guPositionF = game_libs_func_0006F684 (blank jal; in-unit callee named via a blank import so the word stays 0C000000) -- 6F834 guPosition donor (written as guFrustum: byte-identical wrapper) */
+/* 6D964 = osPiStartDma donor (2026-09-09, agent-g), IDO -O1. Blank jals (__osPiDevMgr reuses gl_devmgr_6DA74): */
+gl_func_00000000_pigetcmdq = 0x00000000;  /* osPiGetCmdQueue (blank jal) */
+gl_func_00000000_jammesg6d = 0x00000000;  /* osJamMesg (blank jal; in-unit 6F3E4 named via a blank import so the word stays 0C000000) */
 gl_func_00000000_sinf6f = 0x00000000;  /* sinf = game_libs_func_0006A144 fsin (blank jal) -- 6F684 guPositionF donor */
 gl_func_00000000_cosf6f = 0x00000000;  /* cosf = gl_func_00070FCC fcos (blank jal) -- 6F684 guPositionF donor */
 game_libs_func_0006F684_rodata = 0x000024D0;  /* guPositionF `dtor` float literal (pi/180 = 0x3C8EFA35) in the bootup.uso rodata; donor-local .rodata reloc renamed by replace-function-body.py */

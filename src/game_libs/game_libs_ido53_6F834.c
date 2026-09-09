@@ -1,5 +1,12 @@
-/* IDO 5.3 -O3 -mips2 donor for gl_func_0006F834 = libultra guFrustum
- * (references/libreultra/src/gu/frustum.c, verbatim). PROVEN EXACT 26/26
+/* IDO 5.3 -O3 -mips2 donor for gl_func_0006F834 = libultra guPosition
+ * (references/libreultra/src/gu/position.c wrapper). Written and landed as
+ * guFrustum (gu/frustum.c): the two wrapper TUs compile to BYTE-IDENTICAL
+ * 26-word bodies (same Matrix mf + three mtc1/mfc1 re-marshals + F-variant
+ * jal + guMtxF2L), and the identity was corrected 2026-09-09 (agent-g) when
+ * the callee at +0x44 landed as guPositionF (game_libs_func_0006F684, 108
+ * words -- not the 88-word guFrustumF). The guFrustum spelling below is kept
+ * as the proven-exact source; read l/r/b/t/n/f/scale as r/p/h/s/x/y/z and
+ * guFrustumF as guPositionF. PROVEN EXACT 26/26
  * standalone at BOTH 5.3 -O3 and 7.1 -O3 (agent-g 2026-09-09; built with
  * 5.3 like the guOrtho donor game_libs_ido53_70694.c, whose -O3 class this
  * is). -O2 is 23 words off (two FP homes + `sw a3` stack home): the old
@@ -10,9 +17,10 @@
  * re-marshal of l/r/b (a1-a3 -> f12/f14/f16 -> a1-a3), t/n/f/scale copied
  * sp+0x78.. -> sp+0x10.. via lwc1/swc1, two blank jals = guFrustumF(mf, ...)
  * then guMtxF2L(mf, m).
- * guFrustumF is the in-unit game_libs_func_0006F684 (0x1B0; its target body
- * is 108 words, NOT the 88-word libreultra guFrustumF, so it is not part of
- * this donor) -- named through the blank import gl_func_00000000_frustumf
+ * The F-variant callee is the in-unit game_libs_func_0006F684 = guPositionF
+ * (0x1B0, 108 words, landed from gu/position.c; NOT the 88-word libreultra
+ * guFrustumF -- that is how the identity was resolved) -- named through the
+ * blank import gl_func_00000000_frustumf
  * (pin = 0) so the jal word stays 0C000000 + USO reloc; guMtxF2L reuses the
  * guOrtho donor's blank pin gl_func_00000000_f2l706. The 2-word
  * gl_func_0006F834_pad.s (inter-object pad before osEPiRawStartDma 6F8A4)

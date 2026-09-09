@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006D964",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-09-09T19:14:39.050252+00:00",
+  "end_time": "2026-09-09T19:14:39.050268+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T19:14:39.050264+00:00",
+      "assistant_text": "gl_func_0006D964 = libultra osPiStartDma (io/pidma.c verbatim), IDO -O1 (7.1 and 5.3 identical), 67/67 first compile. Section 0x81FD0 = bootup.uso export sym 1530 (two jal refs); the reloc at +4 is sym 2612 = __osPiDevMgr (.data 0x2E430), reused as the 6DA74 donor pin gl_devmgr_6DA74. The old 54% NM wrap (67-insn command-record builder + dual-dispatch helper) was this function at the wrong opt level: the record is the OSIoMesg (type DMAREAD 11 / DMAWRITE 12, pri @2, retQueue @4, dramAddr @8, devAddr @C, size @10, piHandle @14 = NULL), the builder pair is osJamMesg / osSendMesg(osPiGetCmdQueue(), mb, OS_MESG_NOBLOCK) on OS_MESG_PRI_HIGH, and reloading every arg from its sp+0x28.. home before each use is the -O1 tell. Layout: the old 0x110 .s carried a trailing zero word (section 0x820DC, not exported; 6DA74 at 0x820E0 is) = the object own 16-byte alignment pad -> .s trimmed to 0x10C and the pad is an all-zero SUFFIX_BYTES_FORCE gl_func_0006D964=0x00000000 on post1b2c (+ NON_MATCHING_ mirror). Blank imports: gl_func_00000000_pigetcmdq / gl_func_00000000_jammesg6d (new pins = 0) and the existing gl_func_00000000_sendmesg. Spliced via REPLACE_FUNC_BODY; expected/ refreshed by the one-unit strip + EXPECTED_BASELINE=1 route with donors active (6D964 range identical, 0 relocs: the trimmed .s equals the donor so the splice is skipped in the baseline build).",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 67,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO -O1 donor for gl_func_0006D964 = libultra osPiStartDma\n * (references/libreultra/src/io/pidma.c, verbatim). PROVEN EXACT 67/67\n * standalone at BOTH IDO 7.1 -O1 and 5.3 -O1 (identical output; built with\n * 7.1), agent-g 2026-09-09, first compile. Section 0x81FD0 = bootup.uso\n * export sym 1530 (two jal refs at 0x47EBC / 0x47F8C); the reloc at +4 is\n * sym 2612 (.data 0x2E430 = __osPiDevMgr, the same symbol the 6DA74\n * osCreatePiManager donor imports as gl_devmgr_6DA74). The old 54% NM decode\n * (\"67-insn command-record builder + dual-dispatch helper, 20-byte record,\n * halfword type 0xC/0xB, kind-gated builder pair\") was this function at the\n * wrong opt level: the record is the OSIoMesg (type OS_MESG_TYPE_DMAWRITE 12\n * / DMAREAD 11, pri @2, retQueue @4, dramAddr @8, devAddr @C, size @10,\n * piHandle @14 = NULL), the \"builder pair\" is osJamMesg(osPiGetCmdQueue(),..)\n * for OS_MESG_PRI_HIGH else osSendMesg(osPiGetCmdQueue(),..), and the\n * \"reload every arg before every use from the sp+0x28.. homes\" is the -O1\n * tell (the same shape as osEPiStartDma 6EF64). `register s32 ret` is the\n * source's spelling. The trailing zero word of the old 0x110 .s (section\n * 0x820DC, NOT exported; 6DA74 at 0x820E0 is) is this object's own 16-byte\n * alignment pad -> SUFFIX_BYTES_FORCE gl_func_0006D964=0x00000000, and the\n * tracked .s is trimmed to the 67-word body (0x10C).\n * Blank externs (USO load-time relocs, pins = 0): gl_devmgr_6DA74 =\n * __osPiDevMgr, gl_func_00000000_pigetcmdq = osPiGetCmdQueue,\n * gl_func_00000000_jammesg6d = osJamMesg, gl_func_00000000_sendmesg =\n * osSendMesg. Spliced into game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned int u32;\ntypedef signed int s32;\ntypedef unsigned short u16;\ntypedef unsigned char u8;\ntypedef void *OSMesg;\n\ntypedef struct {\n    /* 0x00 */ u32 active;\n    /* 0x04 */ void *thread;\n    /* 0x08 */ void *cmdQueue;\n    /* 0x0C */ void *evtQueue;\n    /* 0x10 */ void *acsQueue;\n    /* 0x14 */ s32 (*dma)();\n    /* 0x18 */ s32 (*edma)();\n} OSDevMgr;\n\ntypedef struct {\n    /* 0x00 */ u16 type;\n    /* 0x02 */ u8 pri;\n    /* 0x03 */ u8 status;\n    /* 0x04 */ void *retQueue;\n} OSIoMesgHdr;\n\ntypedef struct {\n    /* 0x00 */ OSIoMesgHdr hdr;\n    /* 0x08 */ void *dramAddr;\n    /* 0x0C */ u32 devAddr;\n    /* 0x10 */ u32 size;\n    /* 0x14 */ void *piHandle;\n} OSIoMesg;\n\n#define OS_READ 0\n#define OS_MESG_TYPE_DMAREAD 11\n#define OS_MESG_TYPE_DMAWRITE 12\n#define OS_MESG_PRI_HIGH 1\n#define OS_MESG_NOBLOCK 0\n#define NULL 0\n\nextern OSDevMgr gl_devmgr_6DA74;                                  /* __osPiDevMgr */\nextern void *gl_func_00000000_pigetcmdq(void);                    /* osPiGetCmdQueue */\nextern s32 gl_func_00000000_jammesg6d(void *, OSMesg, s32);       /* osJamMesg */\nextern s32 gl_func_00000000_sendmesg(void *, OSMesg, s32);        /* osSendMesg */\n#define __osPiDevMgr gl_devmgr_6DA74\n#define osPiGetCmdQueue gl_func_00000000_pigetcmdq\n#define osJamMesg gl_func_00000000_jammesg6d\n#define osSendMesg gl_func_00000000_sendmesg\n\ns32 gl_func_0006D964(OSIoMesg *mb, s32 priority, s32 direction, u32 devAddr, void *dramAddr, u32 size, void *mq)\n{\n    register s32 ret;\n    if (!__osPiDevMgr.active)\n        return -1;\n    if (direction == OS_READ)\n        mb->hdr.type = OS_MESG_TYPE_DMAREAD;\n    else\n        mb->hdr.type = OS_MESG_TYPE_DMAWRITE;\n    mb->hdr.pri = priority;\n    mb->hdr.retQueue = mq;\n    mb->dramAddr = dramAddr;\n    mb->devAddr = devAddr;\n    mb->size = size;\n    mb->piHandle = NULL;\n    if (priority == OS_MESG_PRI_HIGH)\n    {\n        ret = osJamMesg(osPiGetCmdQueue(), (OSMesg)mb, OS_MESG_NOBLOCK);\n    }\n    else\n    {\n        ret = osSendMesg(osPiGetCmdQueue(), (OSMesg)mb, OS_MESG_NOBLOCK);\n    }\n    return ret;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/game_libs/game_libs_o1_6D964.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/game_libs/game_libs/gl_func_0006D964.s",
+    "segment": "game_libs",
+    "compiler": "ido7.1",
+    "compiler_flags": "-O1 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul -mips2 -32",
+    "verification": "Verified with objdiff 100.0 + full ROM build (tenshoe.z64 cmp byte-identical) + raw .text slice 0x1564..0x1674 of build/src/game_libs/game_libs_post1b2c.c.o identical to expected/."
+  }
+}
