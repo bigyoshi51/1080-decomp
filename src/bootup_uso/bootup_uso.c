@@ -4338,13 +4338,15 @@ void func_00006194(Vec3 *dst) {
     dst->z = *(float*)&tmp.c;
 }
 
-/* NATURAL CEILING: 77.78% NM. Target insn order "lui a0; sw ra; jal" vs
- * IDO emit "sw ra; lui a0; jal" — 2-insn scheduling cap unreachable from
- * C. The 2-word INSN_PATCH at offsets 0x4/0x8 was REMOVED 2026-05-23 as
- * match-faking. 2026-06-10: named-pointer and barrier forms also hold
- * at the swap (4 forms total); the lui-before-sw-ra prologue
- * interleave is the scheduler's, not the source's. Same single-call-
- * wrapper floor class as the sw-before-addu family. */
+/* 77.78% NM (7/9 words): target "lui a0; sw ra; jal", C "sw ra; lui a0;
+ * jal". No matching C found; this is NOT proof of an unreachable cap.
+ * IDO 7.1 -Wab,-R traces the same-line probe: sw ra and lui have equal
+ * aftercycles/latency (2/1); the newly ready sw ra is visited first.
+ * An unused int argument reverses that tie through its home-store
+ * dependency, but adds a non-target instruction. Prototype, pointer,
+ * control-flow, neighboring-function and IDO 5.3 probes did not match.
+ * See docs/IDO_CODEGEN.md#as1-ready-list-wrapper-6204 in the agent repo.
+ * The old 2-word INSN_PATCH was removed as match-faking; do not restore. */
 #ifdef NON_MATCHING
 void func_00006204(void) {
     func_00000000(&D_00000000);
