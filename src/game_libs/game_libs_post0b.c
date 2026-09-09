@@ -12784,63 +12784,52 @@ void game_libs_func_00042438(void)
 
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004247C);
-
-/* gl_func_00042484: PROLOGUE-STOLEN successor of gl_func_00042440.
- * The 2 insns
- *     lui v1, 0x0; lw v1, 0x240(v1)
- * sit AT THE END of 00042440's range (after its jr ra+nop) and
- * logically belong to this function's entry — v1 is uninitialized
- * at the start of 00042484's .s otherwise. Promotion requires
- * PROLOGUE_STEALS=8 in the Makefile (this segment doesn't yet have
- * a PROLOGUE_STEALS line for game_libs_post.c.o).
+/* game_libs_func_0004247C (0x5C, 23 words) = the old 2-word orphan
+ * game_libs_func_0004247C + gl_func_00042484, merged 2026-09-09 (agent-c).
+ * bootup.uso Sym table exports section offset 0x56AE8 = splat 0x4247C (ROM
+ * 0xE27554 - 0xDD0A6C; address taken by the HI16/LO16 pair at TextReloc
+ * 0x588B8/0x588BC); 0x56AF0 = 0x42484 is NOT exported. The `lui v1; lw
+ * v1,0x240(v1)` head is the successor's hoisted first statement: the read of
+ * the current-object pointer at D+0x240 (sym154 @0x3C168 + 0x240, the same
+ * pair as the matched predecessor game_libs_func_00042438) scheduled above
+ * `addiu sp`. The old "PROLOGUE-STOLEN / p live across jalr" verdict was a
+ * decode error: `or a2,v0,zero` after the jalr is the CALLBACK'S RETURN
+ * VALUE (v0), not p -- p (v0 before the call) dies at the lh.
  *
- * Body sketch: g = *(int**)(&D + 0x240); v0 = g->[0x28] (dead pre-
- * load); rv = a0->fn_at_64((s16)a0->[0x60] + g); func(str, 0x110,
- * rv, g->[0xB8], g->[0xBC]).
+ * Body: g = CUR; p = g->0x28 (class record); rv = p->fn_0x64((char *)g +
+ * p->off_0x60); g = CUR (re-read, the call clobbers globals);
+ * debugprint(&gl_data_42440_arg, 0x110, rv, g->0xB8, g->0xBC). String
+ * sym338 @0x3C768 = the same gl_data_42440_arg as 42438; callee = blank
+ * R_MIPS_26 to sym1788 (text 0x541D0 = splat 0x3FB64) -> gl_func_00000000.
  *
- * Initial NM attempt scored 54.6% — body shape diverged (IDO
- * allocates a1 as a0-alias, spills both arg slots, picks $v0 not
- * $v1 for g). Deferred to a next pass after the Makefile entry
- * is added. */
+ * NM 22/23 words (objdiff on the merged symbol; was gl_func_00042484 65.0).
+ * Residual = ONE register: the stack-arg load `lw t1,0xBC(v1)` / `sw t1,
+ * 0x10(sp)` (target) vs t7 here. De-named it is the first post-call ugen
+ * ring pop (t7); as a named local it is a uopt candidate coloured to the
+ * lowest free caller-saved reg = t0 (v0 = rv, v1 = g, a0-a3 = args). The
+ * target's t1 needs either three zero-emission pre-call ring pops or a
+ * co-live LR holding t0. Probed standalone (all inert, stay at t7 / t0):
+ * named c / b+c in both decl+assign orders, register c, c declared first,
+ * int-vs-char* derefs, held `int **nv` address, struct-typed global
+ * (`D_s.cur` / typed Obj), extern array base, prototyped callee (varargs
+ * and fixed), void/int return, `return call(..)`, `if(x){}` keep-alives on
+ * rv/c/b/g/s, folded casts / <<0 / *1 / +0 / &~0 / (int)(short)(int) on the
+ * lh operand, (unsigned short)/(unsigned char) callee return + subsumed
+ * masks (the mask is not an identity on the signed lh, andi emitted),
+ * K&R fnptr type, `*(int(**)(int))` fnptr deref, `(char*)g + off` pointer
+ * form, named cb / named off (both colour to a1/a2, wrong class), 6th/7th
+ * dead args, do{}while(0), comma-arg. */
 #ifdef NON_MATCHING
-/* gl_func_00042484: 21-insn prologue-stolen successor of gl_func_00042440.
- * Body uses $v1 throughout, preset by predecessor to *(&D+0x240). Target
- * has NO spill of $v1 across the inner jalr (v1 survives caller-clobber).
- *
- * 2026-05-15 attempt #1 (PROLOGUE_STEALS=8 + single-g, void-arg): 22/21
- * insns, IDO spilled $v1 across jalr. Misread as "g lives in $v1 across
- * the call" — WRONG: the target RELOADS g after the call (insns 0x1c/0x20
- * `lui v1,0x0; lw v1,0x240(v1)` = same *(&D+0x240)). g is NOT live across
- * the jalr.
- * 2026-05-15 attempt #2 (this body: reload g after cb(); PROLOGUE_STEALS=8
- * appended to the existing game_libs_post.c.o line — NOTE there are TWO
- * such lines, the LATER one (make := last-wins) is authoritative):
- *  - Splice fires; insn count now EXACT 21/21 (reload-g removed the $v1
- *    spill — real improvement, body shape is now correct).
- *  - Remaining cap: target keeps p (=v0) live across `jalr t9` with NO
- *    spill (insn 2 `lw v0,40(v1)` before call, insn 14 `or a2,v0,zero`
- *    after, no reload). $v0 is caller-saved, so ANY plain-C value live
- *    across the call spills (IDO emits `sw a2,32(sp)`/`lw a2,32(sp)`,
- *    frame -0x28 vs target -0x20). p is not reloaded in the target, so
- *    the reload-g trick can't apply to p. Genuinely unreachable from C.
- * PROLOGUE_STEALS reverted (only valid for EXACT; this stays NM). Default
- * INCLUDE_ASM keeps ROM byte-exact. Body kept at improved 21/21-insn shape
- * as the best reference. Do NOT re-grind: the p-across-jalr-no-spill is a
- * predecessor-context artifact, not a C-expressible shape. */
-extern int gl_func_00000000();
-int gl_func_00042484(void) {
-    int *g = *(int**)((char*)&D_00000000 + 0x240);
-    int *p = *(int**)((char*)g + 0x28);
-    int (*cb)(int) = (int(*)(int))*(int*)((char*)p + 0x64);
-    short off = *(short*)((char*)p + 0x60);
-    cb((int)g + off);
-    g = *(int**)((char*)&D_00000000 + 0x240);
-    return gl_func_00000000(&D_00000000, 0x110, p,
-        *(int*)((char*)g + 0xB8), *(int*)((char*)g + 0xBC));
+void game_libs_func_0004247C(void)
+{
+    int *g = *(int **)((char *)&D_00000000 + 0x240);
+    int *p = (int *)g[0x28 / 4];
+    int rv = ((int (*)(int))p[0x64 / 4])((int)g + *(short *)((char *)p + 0x60));
+    g = *(int **)((char *)&D_00000000 + 0x240);
+    gl_func_00000000(&gl_data_42440_arg, 0x110, rv, g[0xB8 / 4], g[0xBC / 4]);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00042484);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004247C);
 #endif
 
 extern int gl_func_00000000();
