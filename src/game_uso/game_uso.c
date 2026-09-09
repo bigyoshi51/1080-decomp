@@ -218,9 +218,9 @@ void game_uso_func_0000039C(Quad4 *dst) {
     gl_func_00000000(&D_00000000, &buf, 16);
     *dst = buf;
 }
-/* 0x3F4 stray mtc1 orphan: folded into the head of func_000003F8.s (a 1-word
- * GLOBAL_ASM sidecar cannot emit exactly; the C placeholder minimum is 8
- * bytes -- docs/MATCHING_WORKFLOW.md asm-processor 1-word-pad defect). */
+/* Historical 003F8 name: true entry is 003F4, including the hoisted mtc1.
+ * Keep the asm label before that instruction so baseline regeneration uses
+ * the same complete function boundary as the compiled C. */
 
 /* Camera/view init: initializes a 0x38-byte struct at a0:
  *   a0+0x00..0x08 = Vec3(0, 0, 0)        ; eye position
@@ -230,16 +230,13 @@ void game_uso_func_0000039C(Quad4 *dst) {
  *   a0+0x28       = 15 (int)             ; mode/flags
  *   a0+0x2C..0x34 = Vec3(0, 0, 0)        ; offset
  *
- * NON_MATCHING (corrected 2026-06-23): the prior "byte-exact 78w" claim was
- * FALSE. The real target is 77 words and contains NO `mtc1 zero,$f0` — it
- * assumes $f0 is already 0.0 on entry (left by the preceding function) and
- * stores it directly. Standalone C must materialize the 0.0f (`mtc1 zero,$f0`
- * at entry), giving 78w — one extra insn vs the 77w target (objdiff 98.70%).
- * No C construct can assume the caller left $f0=0, so this cannot byte-match;
- * INCLUDE_ASM gives the correct 77w ROM bytes. (The reconstruction below is
- * kept as the NON_MATCHING body: 4 Vec3 staging slots + temp + pads, integer
- * struct-copy to temp then float store to a0.) Was a false-match real-def +
- * a poisoned episode (deleted) that trained on the wrong 78w. */
+ * EXACT, 78 words. The old caller-supplied-f0 diagnosis was wrong: the
+ * module exports 0x3F4 (Sym[56], call relocation at text+0x788), not 0x3F8.
+ * IDO schedules mtc1 zero,f0 before the stack prologue; it is the first
+ * instruction of this function. The .s formerly labelled it as an orphan,
+ * so a pure-ASM baseline refresh spuriously changed 100% to 98.70%.
+ * Boundary corrected 2026-09-09; no instruction bytes changed.
+ * See docs/IDO_CODEGEN.md#camera-hoisted-zero-baseline-3f8. */
 void game_uso_func_000003F8(void *a0) {
     Vec3 zero, fwd, up, zero2;
     Vec3 pad0, pad1;

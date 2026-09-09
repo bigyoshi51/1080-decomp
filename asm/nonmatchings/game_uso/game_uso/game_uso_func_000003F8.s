@@ -1,12 +1,10 @@
-nonmatching game_uso_func_000003F8, 0x134
+nonmatching game_uso_func_000003F8, 0x138
 
-/* 0x3F4: stray trailing mtc1 $zero,$f0 of func_0000039C (1-word inter-fn orphan) */
-/* folded into this block's head: a 1-word GLOBAL_ASM block cannot emit exactly */
-/* (8-byte C placeholder minimum) -- docs/MATCHING_WORKFLOW.md 1-word-pad defect */
-glabel _orphan_game_uso_000003F4, local
-    /* 0003F4 000003F4 44800000 */  .word 0x44800000
-endlabel _orphan_game_uso_000003F4
+/* True entry is 0x3F4; historical function name retained for callers/episodes. */
+/* game.uso Sym[56] exports 0x3F4, referenced by TextReloc at 0x788. */
+/* 0x3F8 has no export: mtc1 is this function's hoisted zero initialization. */
 glabel game_uso_func_000003F8
+    /* 0003F4 000003F4 44800000 */  .word 0x44800000
     /* 0003F8 000003F8 27BDFFA0 */  .word 0x27BDFFA0
     /* 0003FC 000003FC 27AE0054 */  .word 0x27AE0054
     /* 000400 00000400 E7A00054 */  .word 0xE7A00054
