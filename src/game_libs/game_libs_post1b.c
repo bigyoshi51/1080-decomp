@@ -4141,28 +4141,30 @@ int game_libs_func_00067FA4(char *s) {
     return n;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067FD8);
+/* game_libs_func_00067FE4: atan-table lookup helper (local, NOT exported;
+ * jal'd 8x from gl_func_00068048's octant reduction). BOUNDARY FIXED
+ * 2026-09-09 (agent-g): the old "game_libs_func_00067FD8" (0x2C) was 3 pad
+ * words of game_libs_func_00067FA4 (section 0x7C644 -> 0x7C650, 16-aligned
+ * inter-object pad; suffixed on 67FA4) + the head of THIS function, and the
+ * old "game_libs_func_00068004" (0x40, 86% NM) was its tail: nothing jal's
+ * section 0x7C670 -- the `div.s` at 68004 is the branch-likely fill leftover
+ * (bc1fl copies the else-block's first insn into the delay slot and
+ * retargets +4; the original stays as unreachable debris, same class as the
+ * fabs `mov.s` in docs/IDO_CODEGEN.md#feedback-ido-fabs-dead-mov).
+ * Shape keys: the a1==0 guard returns tbl[0] (jr-delay lhu v0); the named
+ * u16 `r` two-def web colours $v1 and gives the target's `lhu v1; jr;
+ * or v0,v1` tail (a direct `return tbl[idx]` returns via lhu v0 + nop).
+ * Table = 1025 u16 at D+0x2AA60 indexed by round(a0/a1 * 1024). 24/24. */
+int game_libs_func_00067FE4(float a0, float a1) {
+    unsigned short r;
 
-#ifdef NON_MATCHING
-/* game_libs_func_00068004: float-ratio table lookup. idx = (int)(a0/a1 *
- * 1024.0f + 0.5f) (round-to-nearest via +0.5 then trunc); returns the u16 at
- * a u16 table indexed by idx. Table at segment offset 0x2AA60 (emitted as
- * lui 0x3 + lhu -0x55A0(base)). Standard $f12/$f14 float args.
- * 86.25% NM. BOUNDARY FIXED 2026-06-02: the trailing `mtc1 zero,$f0` was the
- * stolen prologue of the next function (which reads f0=0.0 uninitialized); it
- * has been forward-merged into gl_func_00068044 (68004 shrunk 0x44->0x40,
- * +5pp here). Remaining residual is permuter-class: FP-temp renumber (IDO
- * reserves $f4 for the trunc result; mine starts the chain at $f4) + the
- * $v0/$v1 return move (target loads the table u16 into $v1 then `or v0,v1`;
- * IDO returns it via the jr delay-slot lhu, 1 insn shorter). */
-int game_libs_func_00068004(float a0, float a1) {
-    int idx = (int)(a0 / a1 * 1024.0f + 0.5f);
-    int r = *(unsigned short *)((char *)&D_00000000 + 0x2AA60 + idx * 2);
+    if (a1 == 0.0f) {
+        r = *(unsigned short *)((char *)&D_00000000 + 0x2AA60);
+    } else {
+        r = *(unsigned short *)((char *)&D_00000000 + 0x2AA60 + (int)(a0 / a1 * 1024.0f + 0.5f) * 2);
+    }
     return r;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068004);
-#endif
 
 /* gl_func_00068048: 107-insn (0x1AC) FPU-heavy float clamp/range chain.
  * Single function (1 jr ra). Stack frame -0x28 with sdc1 f22/f20 (callee-
@@ -4173,7 +4175,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00068004);
  *   f22 = f12 (= a2 float arg); f20 = f14 (= a3 float arg)
  *   if (f0 <= f12)  // float compare
  *     if (f0 <= f14)
- *       call helper at jal 0x7C650 (fixed jal target, repeated multiple times)
+ *       call helper game_libs_func_00067FE4 (= section 0x7C650, atan table lookup; jal'd 8x)
  *       passing f12, f14 in arg slots
  *
  * STRUCTURE: nested c.le.s branch chains (~10 of them) wrapping calls to
