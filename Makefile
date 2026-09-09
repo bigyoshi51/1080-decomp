@@ -1142,7 +1142,6 @@ build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_l
 # and pinned to the USO's RoData table at +0x1B3C (the 29CCC recipe).
 GAMELIBS_44B78_DONOR := build/src/game_libs/game_libs_o2_44B78.c.o
 build/src/game_libs/game_libs_post0b.c.o build/non_matching/src/game_libs/game_libs_post0b.c.o: REPLACE_FUNC_BODY := gl_func_000601DC=$(GAMELIBS_601D4_DONOR) game_libs_func_00044B78=$(GAMELIBS_44B78_DONOR)
-build/src/game_libs/game_libs_post1b.c.o build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY := gl_func_000669B8=$(GAMELIBS_669AC_DONOR) gl_func_0006BA7C=$(GAMELIBS_6BA7C_DONOR) gl_func_00069E04=$(GAMELIBS_69E04_DONOR) gl_func_0006AF0C=$(GAMELIBS_6AF0C_DONOR) gl_func_0006A304=$(GAMELIBS_6A304_DONOR) gl_func_0006AF44=$(GAMELIBS_6AF44_DONOR) gl_func_0006B880=$(GAMELIBS_6B880_DONOR) gl_func_0006B974=$(GAMELIBS_6B974_DONOR) gl_func_0006BAD4=$(GAMELIBS_6BAD4_DONOR) gl_func_0006B7A0=$(GAMELIBS_6B7A0_DONOR) gl_func_0006B0FC=$(GAMELIBS_6B0FC_DONOR)
 build/src/game_libs/game_libs_post1b2.c.o build/non_matching/src/game_libs/game_libs_post1b2.c.o: REPLACE_FUNC_BODY := gl_func_0006C11C=$(GAMELIBS_6C11C_DONOR) gl_func_0006BF34=$(GAMELIBS_6BF34_DONOR) gl_func_0006C1B8=$(GAMELIBS_6C1B8_DONOR) gl_func_0006C2AC=$(GAMELIBS_6C2A4_DONOR)
 build/src/game_libs/game_libs_post1b2.c.o build/non_matching/src/game_libs/game_libs_post1b2.c.o: REPLACE_FUNC_BODY += gl_func_0006C084=$(GAMELIBS_6C084_DONOR)
 # 65EE4 is still NON_MATCHING. Only the NM comparison object receives this
