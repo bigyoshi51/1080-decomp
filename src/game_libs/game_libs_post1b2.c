@@ -59,54 +59,14 @@ void gl_func_0006BF34(int *a0, int a1, int a2, int a3, int arg5, int arg6) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006BF34_pad.s")
 
-#ifdef NON_MATCHING
-/* gl_func_0006C084: 38-insn one-time init w/ guarded heavy path (0x98, frame 0x20).
- *
- * Decoded structure (expected .o disasm):
- *   func1(a0); v0_ret = 0;                            // sw zero,28(sp) in delay
- *   if (D_lock_flag != 1) {
- *       gl_ref_00080824();                            // direct hardcoded jal 0x80824
- *       v0_ret = func3(1, &D_sym1);                   // sw v0,28(sp)
- *       func4(a0, 0, 1);                              // 3-arg, result discarded
- *   }
- *   v0_ret = func5(0, &D_sym2);                       // sw v0,28(sp)
- *   func6();                                          // result discarded
- *   D_lock_flag = 1;                                  // sb 1 to lock
- *   return v0_ret;                                    // via sp+0x1C
- *
- * `jal 0x80824` (0x0c020209) is a direct hardcoded jal-to-absolute, modeled
- * with the gl_ref recipe (needs `gl_ref_00080824 = 0x00080824;` in
- * undefined_syms_auto.txt) so it emits a direct jal, not a fn-ptr-cast
- * lui/ori/jalr triple.
- *
- * v0_ret is `volatile int` so each assignment is a genuine sp+0x1C store
- * (matches target's per-call spill of the return slot); a plain int lets IDO
- * coalesce and drop the zero-init + func3-result stores.
- *
- * Residual (70.69% fuzzy): tail func5-store / func6-call / lock-store
- * scheduling order is pure IDO instruction scheduling. INCLUDE_ASM remains
- * build path (game_libs baked-reloc, can't byte-LAND).
- */
-extern int gl_ref_00080824();
-int gl_func_0006C084(int a0) {
-    extern char D_lock_flag;
-    extern int D_sym1, D_sym2;
-    volatile int v0_ret;
-    gl_func_00000000(a0);
-    v0_ret = 0;
-    if (D_lock_flag != 1) {
-        gl_ref_00080824();
-        v0_ret = (int)gl_func_00000000(1, &D_sym1);
-        gl_func_00000000(a0, 0, 1);
-    }
-    v0_ret = (int)gl_func_00000000(0, &D_sym2);
-    gl_func_00000000();
-    D_lock_flag = 1;
-    return v0_ret;
+/* gl_func_0006C084 = osContStartReadData (35 instructions).
+ * Exact IDO 7.1 -O1 implementation: game_libs_o1_6C084.c. This -O2
+ * placeholder is replaced with the whole compiled body by the Makefile.
+ * The former scheduling mismatch was the wrong optimization level and
+ * command-store order; __osContLastCmd is set BEFORE __osSiRelAccess. */
+int gl_func_0006C084(void *mq) {
+    return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006C084);
-#endif
 
 
 /* gl_func_0006C11C: 8-byte-record decoder loop (42 insns incl. the absorbed

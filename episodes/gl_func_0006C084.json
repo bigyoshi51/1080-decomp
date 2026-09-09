@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006C084",
+  "project": "1080-decomp",
+  "model": "codex-manual",
+  "start_time": "2026-09-09T19:48:03.196587+00:00",
+  "end_time": "2026-09-09T19:48:03.196613+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T19:48:03.196608+00:00",
+      "assistant_text": "Identified osContStartReadData in libreultra src/io/contreaddata.c. Plain O1 source order fixes the old O2/volatile workaround: initialize ret before SiGetAccess, unsigned command byte, set last command before SiRelAccess. All bootup relocations audited; same PIF buffer for both DMA directions, static PackReadData remains the baked jal 0x80824. Whole compiler-emitted 140-byte function uses the existing per-function donor mechanism, with no instruction patches or padding.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 35,
+  "initial_m2c_source": null,
+  "final_source": "#include \"common.h\"\n\n/* osContStartReadData, libreultra src/io/contreaddata.c, IDO 7.1 -O1.\n * ROM E5115C..E511E8, 35 words; bootup Text 0x806F0, export sym2457.\n * The old -O2 NM wrap put the command store after __osSiRelAccess and\n * used volatile to retain return-slot stores. Plain -O1 C with the real\n * source order emits every instruction exactly; no byte patch or padding.\n *\n * Verified bootup.uso relocations (all blank operands resolve to zero):\n * sym2569 Text 0x804D0 = __osSiGetAccess (gl_func_0006BE6C);\n * sym2556 BSS 0x427B0 = __osContLastCmd;\n * sym2555 BSS 0x42770 = __osContPifRam (both DMA directions);\n * sym2564 Text 0x81140 = __osSiRawStartDma;\n * sym1341 Text 0x7E5D0 = osRecvMesg;\n * sym2570 Text 0x80514 = __osSiRelAccess (gl_func_0006BEA8).\n * The module-base relocation at +0x28 retains jal 0x80824, the static\n * __osPackReadData at gl_func_0006C1B8. gl_ref_00080824 is already pinned.\n * Whole compiled body is spliced into the -O2 post1b2 host.\n */\nextern u8 gl_cont_last_cmd_6C084;\nextern char gl_cont_pif_ram_6C084[];\nextern void gl_si_get_access_6C084(void);\nextern void gl_ref_00080824(void);\nextern int gl_si_raw_start_dma_6C084(int, void *);\nextern int gl_recv_mesg_6C084(void *, void *, int);\nextern void gl_si_rel_access_6C084(void);\n\nint gl_func_0006C084(void *mq)\n{\n    int ret;\n    int i;\n\n    ret = 0;\n    gl_si_get_access_6C084();\n    if (gl_cont_last_cmd_6C084 != 1) {\n        gl_ref_00080824();\n        ret = gl_si_raw_start_dma_6C084(1, &gl_cont_pif_ram_6C084);\n        gl_recv_mesg_6C084(mq, 0, 1);\n    }\n    ret = gl_si_raw_start_dma_6C084(0, &gl_cont_pif_ram_6C084);\n    gl_cont_last_cmd_6C084 = 1;\n    gl_si_rel_access_6C084();\n    return ret;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6C084.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/gl_func_0006C084.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "35/35 linked instruction words equal original ROM E5115C:E511E8; no-alias objdump inspected; default and non_matching host function bytes and relocation maps identical; objdiff 100%; full ROM cmp passes; all 2382 prior exact functions preserved."
+  }
+}
