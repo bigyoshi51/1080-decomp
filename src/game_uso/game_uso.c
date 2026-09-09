@@ -4490,7 +4490,7 @@ void game_uso_func_000071A4(int *);
 int game_uso_func_00006FA8(int *);
 long long game_uso_func_00007538(int *, int);
 void game_uso_func_0000591C(int *a0) {
-    /* 2026-09-09: 76.42 -> 81.96 -> 88.18 -> 91.19 -> 92.85 -> 93.99% NM.
+    /* 2026-09-09: 76.42 -> 81.96 -> 88.18 -> 91.19 -> 92.85 -> 93.99 -> 94.09% NM.
      * Word-typed staging copies preserve
      * the sub-pointer reload; both state dispatches are switches; the five
      * demotion conditions share one reset; nested float selectors retain
@@ -4511,7 +4511,13 @@ void game_uso_func_0000591C(int *a0) {
      * its a0 allocation. Separate the initial flag/selector temporaries;
      * stage copy-X and modulo-test floats in their own reusable scalars.
      * Match distance-test operand order and stage the first speed product.
-     * Current C is 4376 bytes versus 4372 target, with the 464-byte frame.
+     * Sixth pass: keep the yaw absolute result in scale and the acceleration
+     * absolute result in fsel; restore their distinct input/result branches.
+     * Group transform loads/stores in X/Y/Z source order. Reuse child_flags
+     * and accel_params at the child-copy/second-delta sites, with their homes
+     * at sp+320 and sp+288. These lifetimes do not overlap their other uses.
+     * Current C is 4384 bytes versus 4372 target, with the 464-byte frame;
+     * only 177/1093 raw words agree at the same offsets (formerly 116).
      * Still not exact:
      * FP/temp allocation, scalar spills and alloc-fallback schedules differ.
      * See docs/IDO_CODEGEN.md#state-dispatch-word-copy-591c in the tooling repo.
@@ -4543,7 +4549,7 @@ void game_uso_func_0000591C(int *a0) {
     int t0; /* sp+340 */
     Vec3 scaled_axis; /* sp+328 */
     float *src; /* sp+324 */
-    int bits; /* sp+320 */
+    int *child_flags; /* sp+320; also the child-position word pointer */
     float fsel; /* sp+316 */
     float f2v; /* sp+312 */
     float dist_sq; /* sp+308 */
@@ -4551,7 +4557,7 @@ void game_uso_func_0000591C(int *a0) {
     float f12v; /* sp+300 */
     float yaw_raw; /* sp+296 */
     float neg; /* sp+292 */
-    float scale; /* sp+288 */
+    float *accel_params; /* sp+288; reused by the second delta in each chain */
     Vec3 res_a; /* sp+276 */
     Vec3 res_b; /* sp+264 */
     Vec3 res_c; /* sp+252 */
@@ -4565,8 +4571,8 @@ void game_uso_func_0000591C(int *a0) {
     Vec3 diff_a; /* sp+180 */
     float z; /* sp+176 */
     float *axis_src; /* sp+172 */
-    float *accel_params; /* sp+168 */
-    int *child_flags; /* sp+164 */
+    float scale; /* sp+168 */
+    int bits; /* sp+164 */
     Vec3 *scratch_dst; /* sp+160 */
     Vec3 diff_b; /* sp+148 */
     Vec3 *delta_a_dst; /* sp+144 */
@@ -4673,13 +4679,13 @@ void game_uso_func_0000591C(int *a0) {
             &staged_axis, &out_w);
         *(Tri3i *)&res_a = *(Tri3i *)v0;
         *(Tri3i *)&res_c = *(Tri3i *)&res_a;
-        z = res_c.z; y = res_c.y; x = res_c.x; transform_out.z = z; transform_out.y = y; transform_out.x = x;
+        x = res_c.x; y = res_c.y; z = res_c.z; transform_out.x = x; transform_out.y = y; transform_out.z = z;
         break;
     case 1:
         v0 = (int)game_uso_func_00008CD8(&stage, self, helper_ptr, hit_parent, t0);
         *(Tri3i *)&res_b = *(Tri3i *)v0;
         *(Tri3i *)&res_c = *(Tri3i *)&res_b;
-        z = res_c.z; y = res_c.y; x = res_c.x; transform_out.z = z; transform_out.y = y; transform_out.x = x;
+        x = res_c.x; y = res_c.y; z = res_c.z; transform_out.x = x; transform_out.y = y; transform_out.z = z;
         break;
     }
 
@@ -4700,8 +4706,8 @@ void game_uso_func_0000591C(int *a0) {
         }
     }
     yaw_raw = game_uso_func_00003ED4(p, &transform_out, &hit_out);
-    f2v = yaw_raw < 0.0f ? -yaw_raw : yaw_raw;
-    yaw_metric = f2v;
+    scale = yaw_raw < 0.0f ? -yaw_raw : yaw_raw;
+    yaw_metric = scale;
     neg = -yaw_raw;
 
     /* self->0x3C = (-yaw_raw * (1 + sub->348/self->B0) * self->AC) / sub->708 */
@@ -4713,8 +4719,8 @@ void game_uso_func_0000591C(int *a0) {
             (neg * scale * *(float*)((char*)self + 0xAC)) / *(float *)((int)accel_params + 16);
     }
     f2v = *(float*)((char*)self + 0x3C);
-    f2v = f2v < 0.0f ? -f2v : f2v;
-    accel_metric = f2v;
+    fsel = f2v < 0.0f ? -f2v : f2v;
+    accel_metric = fsel;
 
     /* second dispatch on the (possibly updated) self->0x74 */
     v0 = *(int*)((char*)self + 0x74);
@@ -4766,10 +4772,10 @@ void game_uso_func_0000591C(int *a0) {
 
         p = 0;
         if (1) { p = &pos_c; }
-        src = (float *)((int)*(char**)((char*)self + 0x30) + 180);
+        child_flags = (int *)((int)*(char**)((char*)self + 0x30) + 180);
         if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-            fsel = *src;
-            z = *(float *)((int)src + 8);
+            fsel = *(float *)child_flags;
+            z = *(float *)((int)child_flags + 8);
             p->y = 0.0f;
             p->x = fsel;
             p->z = z;
@@ -4777,12 +4783,12 @@ void game_uso_func_0000591C(int *a0) {
 
         p = 0;
         if (1) { p = &diff_b; }
-        src = (float *)((int)hit_parent + 48);
+        accel_params = (float *)((int)hit_parent + 48);
         {
             delta_b_dst = p;
             if (delta_b_dst != 0 || (delta_b_dst = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-                x = pos_c.x - *src;
-                z = pos_c.z - *(float *)((int)src + 8);
+                x = pos_c.x - *accel_params;
+                z = pos_c.z - *(float *)((int)accel_params + 8);
                 delta_b_dst->y = 0.0f;
                 delta_b_dst->x = x;
                 delta_b_dst->z = z;
@@ -4848,10 +4854,10 @@ void game_uso_func_0000591C(int *a0) {
 
     p = 0;
     if (1) { p = &pos_g; }
-    src = (float *)((int)*(char**)((char*)self + 0x30) + 180);
+    child_flags = (int *)((int)*(char**)((char*)self + 0x30) + 180);
     if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-        fsel = *src;
-        z = *(float *)((int)src + 8);
+        fsel = *(float *)child_flags;
+        z = *(float *)((int)child_flags + 8);
         p->y = 0.0f;
         p->x = fsel;
         p->z = z;
@@ -4859,12 +4865,12 @@ void game_uso_func_0000591C(int *a0) {
 
     p = 0;
     if (1) { p = &diff_g; }
-    src = (float *)((int)hit_parent + 48);
+    accel_params = (float *)((int)hit_parent + 48);
     {
         delta_g_dst = p;
         if (delta_g_dst != 0 || (delta_g_dst = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-            x = pos_g.x - *src;
-            z = pos_g.z - *(float *)((int)src + 8);
+            x = pos_g.x - *accel_params;
+            z = pos_g.z - *(float *)((int)accel_params + 8);
             delta_g_dst->y = 0.0f;
             delta_g_dst->x = x;
             delta_g_dst->z = z;
