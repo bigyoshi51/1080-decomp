@@ -172,61 +172,22 @@ int gl_func_0006CB84(int direction, unsigned int devAddr, void *dramAddr, unsign
     return ret;
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0006CC14 = libultra osEPiLinkHandle (io/epilinkhandle.c
- * verbatim): saveMask = __osDisableInt(); handle->next (@0) = __osPiTable;
- * __osPiTable = handle; __osRestoreInt(saveMask); return 0. VERIFIED
- * 2026-09-09 (agent-g): 19/19 words (incl. the jr delay nop) byte-exact
- * standalone at BOTH IDO 7.1 -O1 and 5.3 -O1 with the existing pins
- * D_00000000_pitable / gl_func_00000000_disint / _resint. Landing needs the
- * pad.s -> SUFFIX swap described below (the C body already carries the
- * delay nop the pad.s supplies), then the post1b2c baseline refresh.
- * gl_func_0006CC14: 18-insn 2-call helper.
- *   r = gl_func(a0);          (first call; a0 homed to sp+0x20 in delay slot)
- *   *a0 = D[0];               (copy global into *a0; a0 reloaded -> t7)
- *   D2 = a0;                  (store original a0 to second global; a0 reloaded
- *                              again -> t8, in the second jal's delay slot)
- *   gl_func(r);               (second call; r reloaded from its spill slot)
- *   return 0;
- *
- * Two levers got this from 65% -> 93.56%:
- *   1. ORDER: place 'D2 = a0;' BEFORE the second gl_func() call so IDO
- *      schedules the symbol store ('sw t8,0(at)') into the second jal's
- *      delay slot (target does this; original ordering parked it in the
- *      jr-ra delay slot at function end).
- *   2. CSE-BREAK: read a0 via '*(int**)&a0' for the D2 store. The plain
- *      'a0' folds both uses into one reload (a single a1); re-deref forces
- *      the two independent param-home reloads the target uses (t7 then t8).
- *   3. SPILL-SLOT CROSS (2026-07 crossing-hunt): declaring 'volatile int spill;'
- *      UNINITIALIZED and assigning it AFTER the first call earns the spill the
- *      first local slot sp+0x1C (matching target); the earlier initialized form
- *      ('volatile int spill = (int)r;') colored it at sp+0x18. With this the C
- *      BODY is byte-exact vs target (all 18 real insns + jr-ra delay nop match).
- *
- * WHY STILL NM (not promoted to plain C): target has a trailing pad word after
- * the jr-ra delay nop, supplied by gl_func_0006CC14_pad.s. The .s (INCLUDE_ASM)
- * is 18 words ending in jr ra (no delay nop); pad.s 8-byte-aligns and fills BOTH
- * the delay nop AND the pad word -> exact. A C body already emits its own delay
- * nop, so C(19w)+pad.s(8-aligned) overshoots by one word (next fn +4) and C(19w)
- * with NO pad undershoots by one word. Placing exactly one trailing zero word
- * needs a Makefile all-zero SUFFIX_BYTES entry (sanctioned padding) replacing the
- * pad.s pragma -- outside this agent's file scope. LEAD for the Makefile owner:
- *   build/src/game_libs/game_libs_post1b2c.c.o: SUFFIX_BYTES ... gl_func_0006CC14=0x00000000
- *   + drop the gl_func_0006CC14_pad.s GLOBAL_ASM here, then promote to plain C. */
-extern int D_cc14_alias2;
-int gl_func_0006CC14(int *a0) {
-    volatile int spill;
-    int *r = (int*)gl_func_00000000(a0);
-    spill = (int)r;
-    *a0 = *(int*)&D_00000000;
-    *(int**)&D_cc14_alias2 = *(int**)&a0;
-    gl_func_00000000((int*)spill);
+/* gl_func_0006CC14 = libultra osEPiLinkHandle (io/epilinkhandle.c verbatim),
+ * section 0x81280 = export sym 1583 (one jal ref). LANDED 2026-09-09
+ * (agent-g) via REPLACE_FUNC_BODY donor splice: real C lives in the IDO -O1
+ * donor game_libs_o1_6CC14.c (19/19 incl. the jr delay nop at both 7.1 and
+ * 5.3 -O1). The old 93.56% NM decode ("2-call helper, D / D_cc14_alias2,
+ * volatile spill cross") was this function: both globals are __osPiTable
+ * (handle->next @0 = __osPiTable; __osPiTable = handle), the sp+0x1C spill
+ * is the un-`register`ed saveMask. The old 18-word .s ended at `jr ra` and
+ * gl_func_0006CC14_pad.s carried the delay nop + the 16-byte inter-object
+ * pad word before osEPiReadIo (6CC64); the C body emits its own delay nop,
+ * so the pad.s pragma is retired and the single pad word is the all-zero
+ * SUFFIX_BYTES_FORCE gl_func_0006CC14=0x00000000 in the Makefile (unit
+ * layout unchanged). Body below is a placeholder for the splice. */
+int gl_func_0006CC14(void *handle) {
     return 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006CC14);
-#endif
-#pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006CC14_pad.s")
 
 /* gl_func_0006CC64 = libultra osViBlack (viblack.c verbatim): saveMask =
  * __osDisableInt(); __osViNext->state |= / &= ~VI_STATE_BLACK(0x20);

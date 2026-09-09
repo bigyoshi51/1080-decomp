@@ -1,0 +1,33 @@
+{
+  "function_name": "gl_func_0006CC14",
+  "project": "decomp",
+  "model": "claude-manual",
+  "start_time": "2026-09-09T19:00:28.537778+00:00",
+  "end_time": "2026-09-09T19:00:28.537797+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T19:00:28.537793+00:00",
+      "assistant_text": "gl_func_0006CC14 = libultra osEPiLinkHandle (io/epilinkhandle.c verbatim), IDO -O1. Section 0x81280 = bootup.uso export sym 1583 (one jal ref). The old 93.56% NM wrap (2-call helper with D / D_cc14_alias2 and a volatile spill) was this function: both globals are __osPiTable (handle->next @0 = __osPiTable; __osPiTable = handle; return 0), the sp+0x1C spill is the un-register-ed saveMask. Layout: the tracked .s was 18 words ending at jr ra and gl_func_0006CC14_pad.s carried the delay nop + the 16-byte inter-object pad word before osEPiReadIo (6CC64); the C body emits its own delay nop (19w), so the pad.s pragma is retired and the one pad word is an all-zero SUFFIX_BYTES_FORCE on post1b2c (unit layout neutral, expected/ refreshed via the one-unit strip + EXPECTED_BASELINE=1 route with donors active: .text identical, symtab 6CC14 72->80). Blank imports via the existing pins D_00000000_pitable / gl_func_00000000_disint / _resint.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 18,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO -O1 donor for gl_func_0006CC14 = libultra osEPiLinkHandle\n * (references/libreultra/src/io/epilinkhandle.c, verbatim). PROVEN EXACT\n * 19/19 (incl. the jr-ra delay nop) standalone at BOTH IDO 7.1 -O1 and\n * 5.3 -O1 (identical output; built with 7.1), agent-g 2026-09-09. Section\n * 0x81280 = bootup.uso export sym 1583 (one jal ref at 0x491AC). The old\n * 93.56% NM decode (\"2-call helper, D / D_cc14_alias2, volatile spill\n * cross\") was this function: both globals are __osPiTable (handle->next @0\n * = __osPiTable; __osPiTable = handle), the sp+0x1C spill is the\n * un-`register`ed saveMask. The tracked .s is 18 words (ends at jr ra) and\n * gl_func_0006CC14_pad.s carried the delay nop + the 16-byte inter-object\n * pad word before osEPiReadIo (6CC64 section 0x812D0); the C body emits\n * its own delay nop, so the pad.s pragma is retired and the single pad\n * word is an all-zero SUFFIX_BYTES_FORCE gl_func_0006CC14=0x00000000.\n * Blank externs (USO load-time relocs, existing pins = 0):\n * D_00000000_pitable = __osPiTable, gl_func_00000000_disint =\n * __osDisableInt, gl_func_00000000_resint = __osRestoreInt. Spliced into\n * game_libs_post1b2c.c.o via REPLACE_FUNC_BODY. */\ntypedef unsigned int u32;\ntypedef signed int s32;\n\ntypedef struct OSPiHandle_s {\n    /* 0x00 */ struct OSPiHandle_s *next;\n    /* 0x04 */ unsigned char type;\n    /* 0x05 */ unsigned char latency;\n    /* 0x06 */ unsigned char pageSize;\n    /* 0x07 */ unsigned char relDuration;\n    /* 0x08 */ unsigned char pulse;\n    /* 0x09 */ unsigned char domain;\n    /* 0x0C */ u32 baseAddress;\n    /* 0x10 */ u32 speed;\n    /* 0x14 */ u32 transferInfo[2];\n} OSPiHandle;\n\nextern OSPiHandle *D_00000000_pitable;      /* __osPiTable */\nextern u32 gl_func_00000000_disint(void);   /* __osDisableInt */\nextern void gl_func_00000000_resint(u32);   /* __osRestoreInt */\n#define __osPiTable D_00000000_pitable\n#define __osDisableInt gl_func_00000000_disint\n#define __osRestoreInt gl_func_00000000_resint\n\ns32 gl_func_0006CC14(OSPiHandle *handle)\n{\n    u32 saveMask;\n    saveMask = __osDisableInt();\n    handle->next = __osPiTable;\n    __osPiTable = handle;\n    __osRestoreInt(saveMask);\n    return 0;\n}\n",
+  "metadata": {
+    "source_path": "projects/1080-agent-g/src/game_libs/game_libs_o1_6CC14.c",
+    "asm_path": "projects/1080-agent-g/asm/nonmatchings/game_libs/game_libs/gl_func_0006CC14.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -mips2 -32 -G 0 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "19/19 words (18-word tracked .s + jr delay nop) byte-exact standalone at IDO 7.1 -O1 and 5.3 -O1; in-tree REPLACE_FUNC_BODY splice into game_libs_post1b2c.c.o + all-zero SUFFIX_BYTES_FORCE pad word: raw .text slice at 0x814 (0x50 incl. pad) identical to expected/, whole unit .text identical, tenshoe.z64 cmp byte-identical, objdiff 100.0."
+  }
+}
