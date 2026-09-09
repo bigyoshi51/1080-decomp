@@ -914,47 +914,39 @@ void timproc_uso_b1_func_00001908(int *self) {
         gl_func_00000000(self);
     }
 }
-/* vram 0x19B8: 2-word stolen-prologue orphan (lui $at,0x3F80; mtc1 $at,$f0
- * = the 1.0f that func_000019C0 stores from $f0). Standalone 2-word
- * GLOBAL_ASM emits exactly; see the .s header. */
-#pragma GLOBAL_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1/timproc_uso_b1_orphan_000019B8.s")
-
-
-#ifdef NON_MATCHING
-/* timproc_uso_b1_func_000019C0: byte-identical mirror of
- * arcproc_uso_func_00001C74 (sig=739fd8d1d3, 41-insn 0xA4 counter+
- * conditional-scale wrapper).
- *
- * Per scripts/find-byte-identical-clones.py — see arcproc_uso_func_00001C74's
- * wrap doc for full structural decode. Mirrored source=4 2026-06-01.
- * NOTE CORRECTED 2026-07-15: $f0 is NOT "incoming garbage" — the 2-word
- * orphan_000019B8 GLOBAL_ASM above (lui at,0x3F80; mtc1 at,$f0) is THIS
- * fn's own hoisted 1.0f const (buf[] = 1.0f, not 0.0f/uninit). The 1C74
- * canonical recipe (buf=1.0f + tgt spill var + pad[0x20]) reproduces
- * 41/43 true bytes incl. the orphan; residual = the version-independent
- * FP pair-swap (mtc1 $f4 const vs lwc1 $f6 field) — see 1C74's wrap and
- * docs/IDO_CODEGEN FP-const-hoist entry. Landing needs the orphan
- * GLOBAL_ASM folded into a compiled-C body (43-insn) + expected refresh. */
+/* timproc_uso_b1_func_000019C0: historical name, true entry 0x19B8.
+ * EXACT 2026-09-09: the ROM's timproc.uso Sym163 exports 0x19B8 and
+ * TextReloc sites 0x18DC/0x1910 call it; 0x19C0 is not an entry. Fold
+ * the two-word orphan into this function's assembly boundary. IDO -O2
+ * hoists buf[]'s 1.0f materialization above the prologue itself.
+ * The complete 43-word function is identical to b3_func_00001920.
+ * field * (scale = 255.0f) puts the constant in f4 before the field
+ * load into f6; scale's home + pad[0x1C] preserve the 0x58 frame,
+ * buf at sp+0x48 and tgt spill at sp+0x20. Separate assignment or
+ * reversing these multiply operands loses the exact FP setup order.
+ * Verified against original ROM Text, not the stored-asset ROM link. */
 void timproc_uso_b1_func_000019C0(int *a0) {
     float buf[4];
+    char *tgt;
+    float scale;
+    char pad[0x1C];
 
-    buf[0] = 0.0f;
-    buf[1] = 0.0f;
-    buf[2] = 0.0f;
-    buf[3] = 0.0f;
+    (void)pad;
+    buf[0] = 1.0f;
+    buf[1] = 1.0f;
+    buf[2] = 1.0f;
+    buf[3] = 1.0f;
     *(int *)((char *)a0 + 0x68) += 1;
     if (gl_func_00000000(*(int *)((char *)a0 + 0x50)) != 0) {
-        gl_func_00000000(&D_00000000, (int)(255.0f * *(float *)((char *)a0 + 0x108)), buf);
-        gl_func_00000000((char *)a0 + 0xF0);
+        gl_func_00000000(&D_00000000,
+            (int)(*(float *)((char *)a0 + 0x108) * (scale = 255.0f)), buf);
+        tgt = (char *)a0 + 0xF0;
+        gl_func_00000000(tgt);
         if ((*(int *)((char *)a0 + 0x68) & 8) != 0) {
-            gl_func_00000000((char *)a0 + 0xF0, 0xA0, 0x7C, 3);
+            gl_func_00000000(tgt, 0xA0, 0x7C, 3);
         }
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/timproc_uso_b1/timproc_uso_b1", timproc_uso_b1_func_000019C0);
-#endif
-
 /* timproc_uso_b1_func_00001A64 — verified structural decode (89-insn
  * init+configure constructor; 8 gl_ calls + branch-likely list-link tail
  * = documented constructor sub-80 ceiling → INCLUDE_ASM build path;
@@ -1816,8 +1808,9 @@ void timproc_uso_b1_func_00002E50(int *a0, int a1) {
  * Pre-prune symbols were at .o offsets 0x2EE0/0x2EE8 (tail, past natural
  * function layout end at 0x21D4); no-truncate variant of the orphan-prune. */
 
-/* Orphan status (2026-06-10): _00002028 and _000019B8 are standalone
+/* Historical orphan status (2026-06-10): _00002028 and _000019B8 were standalone
  * 2-word GLOBAL_ASM blocks at their vram positions (the old SUFFIX_BYTES /
  * C-emit absorptions silently vanished with the 2026-05-23 purge, leaving
  * the block -16). _000011D0 ← _00001130 (decl 0xA0, .o 0xA8) still
- * C-emit-absorbed and verified present. */
+ * C-emit-absorbed and verified present. Update 2026-09-09: _000019B8
+ * is now part of the corrected 43-word 19C0 C/ASM function boundary. */

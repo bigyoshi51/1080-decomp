@@ -55,6 +55,12 @@ regress during the O1/O2 file split, restore from the sources listed.
 
 ## Fragment Merges Performed
 
+- 2026-09-09: the two-word timproc b1 orphan at 0x19B8 was merged into
+  historical `timproc_uso_b1_func_000019C0` (now 0xAC bytes). timproc.uso
+  Sym163 exports 0x19B8 and TextReloc 0x18DC/0x1910 target it; 0x19C0
+  has neither an export nor a call reference. All 43 instructions are
+  emitted by C, matching the b3 1920 sibling and original ROM Text.
+
 - 2026-09-09: the four-word mgrproc orphan at 0x1BD4 was merged into the
   historical `mgrproc_uso_func_00001BE4` symbol (now 0xBC bytes). The ROM's
   Sym162 exports 0x1BD4 and TextReloc 0x1744 targets it; 0x1BE4 is not an
