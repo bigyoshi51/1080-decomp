@@ -34032,62 +34032,43 @@ int game_libs_func_0006170C(void) {
     return D_6170C_arr[D_6170C_idx - 1];
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00061728);
-
-/* gl_func_00061734: 26-insn append-to-table-with-overflow-log (size 0x74 declared,
- * actual function body 0x68; declared size bundles 3-insn trailing fragment).
+/* game_libs_func_00061728 (0x74, 29 words) = the old 3-word orphan
+ * game_libs_func_00061728 + gl_func_00061734, merged 2026-09-09 (agent-c).
+ * bootup.uso Sym table exports section offset 0x75D94 = splat 0x61728 (ROM
+ * 0xE46800 - 0xDD0A6C) as sym117 (jal'd from TextReloc @0x77C64 = 635F8 and
+ * @0x7A384 = 65D18); 0x75DA0 = 0x61734 is NOT exported. The `lui a1; addiu
+ * a1; lw v1,0(a1)` orphan is the successor's hoisted first statement: the
+ * held-base read of the stack count (sym2345 @ Data 0x21DE8 = D_6170C_idx,
+ * the same symbol the matched 6170C top-of-stack reader uses) scheduled
+ * above `addiu sp`; the table is sym2344 @ 0x3EF10 = D_6170C_arr. Push:
+ * `if (count >= 63) debugprint(msg); table[count] = e; table[count + 1] =
+ * 0; count++` with msg = sym2 + 0x21EB4; the callee is a blank R_MIPS_26
+ * import (TextReloc sym306 = text 0x75AE4 = splat 0x61478 = the 61478 table-dump
+ * wrap just above), NOT the TU-local gl_func_00034458 the old wrap guessed -- a
+ * baked in-TU jal breaks the ROM word 0C000000. Old wrap read the count
+ * from the (nonexistent) a3 param. BYTE-EXACT 29/29 in-tree (agent-c 2026-09-09).
  *
- * BOUNDARY NOTE: splat declares 0x74 (29 insns). Function ends at offset 0x68
- * with `jr $ra; nop`. The trailing 3 insns at offset 0x68..0x74
- * (`lui $v0,0; addiu $v0,$v0,0; lw $t6,0($v0)`) are a non-self-contained
- * fragment (no prologue, no jr). Likely splat over-sized; candidate for
- * split-fragments.py size correction to 0x68.
- *
- * Decoded structure (first 26 insns):
- *   void f(int arg0, int *out_count, int v1) {   // $v1 caller-set
- *       if (v1 >= 0x3F) {
- *           debug_print((char*)&D_00000000 + 0x21EB4);  // overflow msg
- *       } else {
- *           int new_count = v1 + 1;
- *           int *tbl = (int*)((char*)&D_00000000 + 0);   // D+0 = ptr table
- *           tbl[v1]     = arg0;
- *           tbl[v1 + 1] = 0;       // null-terminate
- *           *out_count  = new_count;
- *       }
- *   }
- *
- * Notes:
- *  - $v1 caller-set (no init in this function) → fits the caller-set-int-reg
- *    cap class (feedback_caller_set_int_reg_cap_1080_game_libs.md). IDO C can't
- *    receive in $v1, so even with the body the byte-emit would diverge.
- *  - D+0x21EB4 is a debug-string pointer in bootup_uso data area.
- *  - 0x3F limit = 63 entries (max table size).
- *  - Replaced 1-line "Multi-pass decode pending" bail-marker per
- *    feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path.
- */
-#ifdef NON_MATCHING
-/* gl_func_00061734: 26-insn bounds-checked array append. If a3 >= 0x3F, call the
- * (collapsed) assert with a fixed message address; read the element count from a
- * global, store a0 into the global array at index a3, null the slot at count+1,
- * and write count+1 back as the new count. (The a1/a2 params are clobbered/unused;
- * the array base and the count word are distinct globals collapsed to D_00000000
- * here, and the assert msg is a fixed RO address 0x21EB4.) NM (reference decode):
- * collapsed-placeholder assert call + collapsed D refs (raw-.word game_libs reloc
- * depression). */
-extern int D_00000000;
-void gl_func_00061734(int a0, int a1, int a2, int a3) {
-    int count;
-    if (a3 >= 0x3F) {
-        gl_func_00034458((char *)((char *)&D_00000000 + 0x21EB4));
+ * Two levers (IDO_CODEGEN#held-base-scalar-inline-head-compare-61728):
+ * (1) the head compare reads the global INLINE, and `n` is read ONCE after
+ *     the if -- uopt's PRE puts the reload on the call path only and the
+ *     head value is a CSE temp (v1) while `&count` stays a held base (a1,
+ *     rematerialised after the call); a named `n` with two defs colours
+ *     n=v0/&count=v1 (10 diffs); (2) `count = n + 1;` BEFORE the two table
+ *     stores, second index re-reading the global: `addiu t6,v1,1` is the
+ *     first ring temp and `table[count]` keeps its own `sll/addu` off the
+ *     base; `table[n + 1]` folds to `4(base)` and drops the held base
+ *     entirely (28 words). gl_func_00061734 wrap + .s retired. */
+void game_libs_func_00061728(int a0)
+{
+    int n;
+    if (D_6170C_idx >= 0x3F) {
+        gl_func_00000000((char *)&D_00000000 + 0x21EB4);
     }
-    count = *(int *)&D_00000000;
-    *(int *)((char *)&D_00000000 + a3 * 4) = a0;
-    *(int *)((char *)&D_00000000 + (count + 1) * 4) = 0;
-    *(int *)&D_00000000 = count + 1;
+    n = D_6170C_idx;
+    D_6170C_idx = n + 1;
+    D_6170C_arr[n] = a0;
+    D_6170C_arr[D_6170C_idx] = 0;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00061734);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006179C);
 
