@@ -4933,7 +4933,25 @@ void gl_func_00068960(char *a0) {
     gl_func_00000000();
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00068990);
+/* gl_func_00068990: record-stream reader (93 words, 0x174, exported sym 2482).
+ * Loop: tag = readint(); switch (tag) { 1: o->s20 = readint(); o->s22 =
+ * readint(); 2: readint(&o->x24); 4: readint(&o->x2C) then either
+ * (ctx.unk4 == 0) saved = f42090(0); o->x8 = v = f410E4(o->x2C);
+ * f35440(&ctx, v, o->x2C); f42090(saved)  or  o->x28 = f35648(&ctx,1,0);
+ * f35648(&ctx, 1, o->x2C); -1: done; 0/3/default: f61478(D+0x2B430,
+ * f35648(&ctx,1,0)) } until done.
+ * BYTE-EXACT 93/93 (2026-09-09, agent-g) via the IDO 7.1 -O2 donor unit
+ * game_libs_o2_68990.c (REPLACE_FUNC_BODY splice, the 2E290 recipe): the
+ * switch's donor-local .rodata jumptable reloc is renamed
+ * gl_func_00068990_rodata and pinned to the USO table at RoData +0x2220.
+ * Body below is a placeholder for the splice. */
+void gl_func_00068990(char *o) {
+    volatile int ret = 0;
+    if (o[0x20] != 0) {
+        ret = 1;
+    }
+    (void)ret;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_00068B04: 42-insn 2-guard + lazy-init + 5-dispatch (0xA8, frame 0x28).

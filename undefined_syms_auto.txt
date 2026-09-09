@@ -3464,6 +3464,10 @@ gl_ref_00002058_f = 0x00002058;  /* 0.017453292f (pi/180) literal (game_libs dat
 gl_d_34180_dev = 0x00000000;  /* game_libs_func_00034180: base-0 alias of D_00000000 -- the hoisted head load `lui v1; lw v1,0(v1)` is a distinct symbol (lo16 field 0, NOT &D+0x240 which bakes 0x240); the later held-base loads use &D_00000000+0x240/0x204 */
 game_libs_func_0002E290_rodata = 0x00001660;  /* switch(sel) 32-entry jumptable (cases 1..32): USO ships it in game_libs rodata at +0x1660; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_2E290.c) */
 game_libs_func_000343F4_rodata = 0x000019B8;  /* switch(a0) 8-entry jumptable (cases 1..8): USO ships it in game_libs rodata at +0x19B8; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_343F4.c) */
+gl_func_00068990_rodata = 0x00002220;  /* switch(tag) 6-entry jumptable (tags -1..4): bootup.uso ships it in RoData at +0x2220; donor-local .rodata reloc renamed by replace-function-body.py (game_libs_o2_68990.c) */
+gl_ref_0007C8EC = 0x0007C8EC;  /* gl_func_00068990 baked USO jal (0x0C01F23B) = gl_func_00068280 int reader (splat + 0x1466C) */
+gl_ref_0007C860 = 0x0007C860;  /* gl_func_00068990 baked USO jal (0x0C01F218) = gl_func_000681F4 int reader */
+gl_ref_0007C928 = 0x0007C928;  /* gl_func_00068990 baked USO jal (0x0C01F24A) = gl_func_000682BC int reader */
 D_33444_a = 0x00000000;  /* game_libs_func_00033444 per-site alias of D_00000000 (defeats &D CSE: counter load must stay folded `lui t6; lw t6,0x20C(t6)` while the call arg holds `lui a0; addiu a0`) */
 D_349E0_a = 0x00000000;  /* game_libs_func_000349E0 per-site alias of D_00000000 (defeats &D CSE: the `|= 4` / `&= ~4` load and store must each fold under their own lui; adjacent same-symbol accesses hold a base) */
 D_349E0_b = 0x00000000;  /* game_libs_func_000349E0 per-site alias of D_00000000 for the three call-site args (accesses separated by a call re-lui on their own, so one alias serves all three) */
