@@ -18998,101 +18998,97 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003061C);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000307A8);
-
-// gl_func_000307B0 — STRUCTURAL PASS (0x118 / 70 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A per-frame global-state timer / FP-ramp tick handler.
-//
-//   void gl_func_000307B0(int reset) {
-//     if (reset) { ... }
-//     G *g = *(G**)&D_0;
-//     if (g->state != 5) { ... unrelated branch ... }
-//     g->f_0C = 0; g->cnt_08 = 0;             // clear on entry
-//     if (g->cnt_08 != 0) {
-//       g->cnt_08 -= 1;                        // count down
-//       g->f_10 += g->f_18;                    // advance accumulator
-//       if (g->f_10 > 1.0f) g->f_10 = 1.0f;    // clamp (0x3F800000)
-//     } else if (g->cnt_0C != 0) {
-//       g->cnt_0C -= 1;                         // alt countdown
-//     }
-//     // tail: more FP reads incl. a literal-pool constant
-//     //       at &D_0 + 0x1868 (the FP-pool fold of this subsystem)
-//   }
-//
-// Struct-typing reference: a once-per-frame state/timer updater on
-//   the global record reachable via &D_0. Gated on the global state
-//   field == 5, it zeroes a pair of counters, then either counts
-//   down counter g->0x08 while advancing an FP accumulator g->0x10
-//   by step g->0x18 saturated at 1.0f, or counts down the alternate
-//   counter g->0x0C. It loads a float literal-pool constant at
-//   &D_0+0x1868 (one of the deferred FP-literal-pool symbolization
-//   sites of this segment — see the per-USO FP-pool backlog). A
-//   timing/transition-tick leaf of the game_libs object subsystem
-//   (the per-frame heartbeat the gl_func_0002FB74 interpreter and
-//   the gl_func_0003061C mode-arbiter advance against).
-// Caps (DEFERRED): raw-word USO + global-state &D_0 base + FP
-//   literal-pool ref (&D_0+0x1868 unsymbolized) — byte-match needs
-//   USO mnemonic disasm + FP-pool symbolization. Real-C STRUCTURAL
-//   body below per the analysis. Byte-match deferred.
-//   Name pre-checked: no extern reuse.
+/* game_libs_func_000307A8 (0x104, 65 insns): per-frame fade timer tick on the
+ * 8-word state record at bootup.uso Data sym1448 @0x338 (addend 0; every
+ * access is its own `lui at` %hi macro -- no held base anywhere): +0 flag,
+ * +8 fade-in count, +0xC hold count, +0x10 float level, +0x14 floor, +0x18
+ * up-step, +0x1C down-step. Gate: when the flag is clear the mode word
+ * (sym1429 @0x1C0A8, D_00000000_1c0a8) must be 5, then both counts are
+ * zeroed. Then one of: count down +8 while ramping +0x10 up by +0x18 clamped
+ * at 1.0f; count down +0xC; ramp +0x10 down by +0x1C floored at +0x14.
+ * Finally the blank (int, float) callee (sym1374 = text 0x3B290 =
+ * gl_func_00026C24, the 2DC74 callee) gets (0x01000800, level) with the level
+ * reloaded through `lwc1 $f0; mfc1 a1`.
+ *
+ * Boundary: 0x44E14 = splat 0x307A8 is NOT in the bootup.uso Sym export table
+ * but it is the target of the baked jal 0x0C011385 in game_libs_func_0002D374
+ * (TU-local callee, section-relative); 0x44E1C = 0x307B0 has neither an
+ * export nor a jal. So the 2-word orphan `lui t6; lw t6,0(t6)` is the hoisted
+ * flag read of this function scheduled above `addiu sp` (the gl_func_000307B0
+ * wrap's "reset arrives in caller-set t6" residual was this head: the function
+ * takes NO parameter). Merged 2026-09-09 (agent-c); the 307B0 wrap (83.3 on
+ * the 63-word symbol) + .s are retired.
+ *
+ * Spellings that are word-exact (per-site alias externs of sym1448, the 349E0
+ * alias-budget rule; each `D_307A8_x` is the same symbol, the offsets bake as
+ * %lo): the head/gate, `f = acc; f += step;` (lwc1 $f0 + add.s $f0,$f0,$f4),
+ * the 1.0f clamp as a single store at the join, the down-ramp as
+ * store-then-conditional-restore with the floor captured in a local before
+ * the subtract (target loads floor into $f2 before the down-step $f6 and
+ * stores the same $f2), the level re-read through the FP local for the
+ * `lwc1/mfc1` arg, frame 0x18 with only ra, no branch-likely (the delay
+ * slots after `beqz v0` / `bc1f` / `jal` / `jr` are nops in the target and
+ * in the build).
+ *
+ * RESIDUAL, 68 words vs 65 (objdiff score in the commit): (1) the zeroing
+ * pair `lui at; sw zero,0xC(at); sw zero,8(at)` and (2) the down-arm load
+ * pair `lui at; lwc1 $f0,0x10(at); lwc1 $f2,0x14(at)` each share ONE `lui at`
+ * in the target; any same-symbol spelling of a pair becomes a held base
+ * (`lui v0; addiu v0`) and distinct aliases cost a second `lui at` (+1 word
+ * each) -- IDO_CODEGEN#shared-at-absolute-store-cap-66a50 (exhaustive:
+ * struct / int[] / (char*)+K / comma / long long / u64 / double / 8-byte
+ * struct copy, 7.1 and 5.3, -O1/-O2/-O3, -g variants). (3) the hold-count
+ * load is a ugen temp in the target (`lui t8` hoisted above `beqz v0` next to
+ * the up-arm's `lui at`, `lw t8,0xC(t8)`, `addiu t9,t8,-1` in the beqz delay)
+ * while the test+decrement of one alias CSEs into candidate v0 (`lui v0; lw
+ * v0,0xC(v0)`, +1 word); two aliases re-load. IDO 5.3 -O2 emits .text
+ * identical to 7.1 here; -O1 (either) homes c/f (frame 0x20/0x28). A named
+ * `c = hold` local, `if (hold) hold--;` in place, and the 1.0f constant as a
+ * named local all keep (3). */
 #ifdef NON_MATCHING
-extern int D_00000000;
-/* Whole-body decode 2026-06-01 (prior body pointer-chased &D + wrong offsets;
- * &D is the struct base directly). reset==0 path resets g+8/g+12 if *(int*)g==5.
- * Then a 3-way timer step on the g+16 float: if g+8!=0 ramp up by g+24 capped
- * at 1.0; elif g+12!=0 just decrement; else ramp down by g+28 floored at g+20.
- * Finally gl(0x1000800, bits of g+16). (reset arrives in caller-set t6 — the
- * `bne a0` here is the one unavoidable mismatch.)
- * 2026-07-18 pass (67.8->83.3): probe ladder — (1) shared struct extern
- * over-CSEs into a whole-fn lui/addiu base web (WORSE); (2) per-FIELD distinct
- * externs pair every multi-access field; (3) winner: g+K cast form for int
- * fields + STORES (sw/swc1 emit at-macros), one distinct extern PER LOAD SITE
- * of the accumulator (63F34 single-access at-macro rule — volatile does NOT
- * substitute: volatile loads still build an address pair AND re-type f32->lw).
- * Clamp = local f single-store at join (up) / store-then-cond-restore (down);
- * f = D_accC; call(f) routes the arg through the FP local = lwc1+mfc1 (direct
- * global arg re-types to plain lw). Residual: caller-set t6 reset arg (cap),
- * zero-pair shares one lui at in target vs two macros, minor %hi scheduling. */
+extern int D_00000000_1c0a8;
 extern int gl_func_00000000_f(int, float);
-extern f32 D_307B0_accA; /* &D+0x10 — one distinct extern PER LOAD SITE (63F34 single-access at-macro */
-extern f32 D_307B0_accB; /* &D+0x10   rule); stores stay on the cast-*(volatile f32*)(g+16) form, which */
-extern f32 D_307B0_accC; /* &D+0x10   emits sw-macros; split kills forwarding + the load %hi pair */
-void gl_func_000307B0(int reset) {
-    char *g = (char *)&D_00000000;
+typedef struct S307A8 { int flag; int w4; int cnt; int hold; float acc; float floor_; float step; float dec; } S307A8;
+/* per-site aliases of Data sym1448 @0x338 (alias budget: no two accesses of one
+ * symbol in a call-free stretch, or uopt holds the base) */
+extern S307A8 D_307A8_a, D_307A8_b, D_307A8_c, D_307A8_d, D_307A8_e, D_307A8_f, D_307A8_g,
+              D_307A8_h, D_307A8_i, D_307A8_j, D_307A8_k, D_307A8_l, D_307A8_m, D_307A8_n, D_307A8_o, D_307A8_p;
+void game_libs_func_000307A8(void) {
     int c;
-    f32 f;
-    if (reset == 0) {
-        if (*(int *)g != 5) {
+    float f;
+    float fl;
+    if (D_307A8_a.flag == 0) {
+        if (D_00000000_1c0a8 != 5) {
             return;
         }
-        *(int *)(g + 12) = 0;
-        *(int *)(g + 8) = 0;
+        D_307A8_b.hold = 0;
+        D_307A8_c.cnt = 0;
     }
-    c = *(int *)(g + 8);
+    c = D_307A8_d.cnt;
     if (c != 0) {
-        f = D_307B0_accA;
-        f += *(f32 *)(g + 24);
-        *(int *)(g + 8) = c - 1;
+        f = D_307A8_e.acc;
+        f += D_307A8_f.step;
+        D_307A8_g.cnt = c - 1;
         if (1.0f < f) {
             f = 1.0f;
         }
-        *(volatile f32 *)(g + 16) = f;
-    } else if (*(int *)(g + 12) != 0) {
-        *(int *)(g + 12) = *(int *)(g + 12) - 1;
+        D_307A8_h.acc = f;
+    } else if (D_307A8_i.hold != 0) {
+        D_307A8_j.hold = D_307A8_i.hold - 1;
     } else {
-        f = D_307B0_accB;
-        f -= *(f32 *)(g + 28);
-        *(volatile f32 *)(g + 16) = f;
-        if (f < *(f32 *)(g + 20)) {
-            *(volatile f32 *)(g + 16) = *(f32 *)(g + 20);
+        f = D_307A8_k.acc;
+        fl = D_307A8_l.floor_;
+        f -= D_307A8_m.dec;
+        D_307A8_n.acc = f;
+        if (f < fl) {
+            D_307A8_o.acc = fl;
         }
     }
-    f = D_307B0_accC; /* through the FP-local: lwc1 into f's reg + mfc1 a1 (a direct global arg re-types to a plain lw) */
-    gl_func_00000000_f(0x1000800, f);
+    f = D_307A8_p.acc;
+    gl_func_00000000_f(0x01000800, f);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000307B0);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000307A8);
 #endif
 
 
