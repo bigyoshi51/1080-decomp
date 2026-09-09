@@ -8363,56 +8363,56 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00025504);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000258C0);
-
-// gl_func_000258CC — STRUCTURAL PASS (0x1FC / 127 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
-// (named fn + 1 trailing helper) — deferred USO re-split. The named
-// leading fn is a parse-descriptor-and-apply / init-from-config
-// helper.
-//
-//   int gl_func_000258CC(int a0, int a1) {
-//     int spv;
-//     if (a0 == 0 || a1 <= 0) {
-//       (*parse)(&D_1684, &spv);                         // jal 0 USO
-//       *(int*)(&D_0 + 0x1034) = 0;                       // reset state
-//       return 0;
-//     }
-//     int r = (*parse)(&D_1684, &spv);                    // jal 0 USO
-//     if (r == -1) { *(int*)(&D_0 + 0x1034) = 0; return 0; }
-//     int hb  = (unsigned)spv >> 24;                      // high byte
-//     C  *cfg = (char*)(&D_0 + 0x640) + (hb*5 << 2);       // 0x14 stride
-//     ... apply cfg ...
-//   }
-//
-// Struct-typing reference: &D_1684 is a fixed config descriptor blob
-//   parsed by a USO-relocated parser (`jal 0` slot) into a stack
-//   scratch word. The parsed value's high byte (>>24) indexes a
-//   config table at &D_0+0x640 (entry stride 0x14, idx*5<<2). Word
-//   &D_0+0x1034 is the subsystem-state word (the same one
-//   gl_func_00025504's update driver gates on) — cleared to 0 on the
-//   degenerate / parse-fail paths. This is the "load and apply the
-//   config descriptor" front-end that primes the subsystem
-//   gl_func_00025504 then drives per-frame.
-// Caps (2026-07-30, 77.6): descriptor word0 is a BITFIELD
-//   (pad:4|sh:2|pad:2|msk:24) — gives the and-with-$at macro form,
-//   lbu/andi 0xFFF3/sb byte store, and no hoisted 0xFFFFFF web.
-//   Per-site d->msk/d->sh call args color msk->a2/v1[1]->s0; cm1
-//   (cnt-1) hoist places li 1->t1/li 20->t3 + key->a1 exact.
-//   Residuals: caller-set $t6 head (blez t6, known cap); base web
-//   colors t0 not a3 (sh arg-coalesces into a3 blocking it; named-sh
-//   local does NOT un-coalesce); cm1 continue-store emits absolute
-//   lui-at/sw form not base-relative; blezl-vs-blez at loop entry;
-//   or a2,v0 phi copy in first section (explicit two-store form adds
-//   insns, worse); frame 104 vs 88. Name pre-checked: no extern
-//   reuse (collision-safe). gl_func_00000000 = canonical
-//   never-defined USO placeholder.
+/* game_libs_func_000258C0 (0x1C0, 112 insns): config-descriptor apply +
+ * pending-entry drain. Registry base = bootup.uso Data sym1255 @0x345C0
+ * (addend 0 -> own zero extern D_00000000_345c0, the 24E28 block), held in a3
+ * across the whole function (re-materialised after each call). Pending count
+ * @+0x1034; descriptor blob @+0x1684 parsed by the blank-jal callee (sym1341 =
+ * text 0x7E5D0, `jal 0` in the ROM -> gl_func_00000000) into the stack word
+ * spv; spv >> 24 indexes the 0x14-stride table (+0x630..+0x640 config side,
+ * +0x61C..+0x62C pending side); the drain loop calls the baked text jal
+ * 0x3959C (gl_ref_0003959C) with 7 args.
+ *
+ * bootup.uso Sym exports section 0x39F2C = splat 0x258C0 (ROM 0xE0A998 -
+ * 0xDD0A6C; jal'd from TextReloc @0x389AC); 0x39F38 = 0x258CC is NOT
+ * exported. The 3-word orphan `lui a3; addiu a3; lw t6,0x1034(a3)` was the
+ * hoisted first statement (the pending-count read off the held base scheduled
+ * above `addiu sp`), so the old "caller-set $t6 head (blez t6, known cap)" of
+ * the gl_func_000258CC wrap was the merge boundary; merged 2026-09-09
+ * (agent-c), the 258CC wrap + .s retired. Old wrap 77.6 on the 109-word
+ * symbol.
+ *
+ * Levers that landed word-exact: the loop is `while (1) { if (n <= 0) break;
+ * ... continue; }` (top-tested, plain `b` back-edges -- a `while ((n = ...)
+ * > 0)` rotates it into a bottom bgtz + entry blezl); declaring `v1` BEFORE
+ * `spv` puts spv at 0x50 (IDO homes every declared local top-down in
+ * declaration order, frame 0x58 needs exactly six words); `d->key =
+ * load(v0+0x638); d->sh = 0;` in that order keeps the 0x638 load on the CSE'd
+ * v0 before the byte RMW (the recompute after the sb comes from spv being
+ * address-taken); `cnt2` named before the key compare = `srl/addiu t2` in the
+ * beq delay.
+ *
+ * RESIDUAL (objdiff score in the commit): (1) held-base colour t0 vs a3 -- sh
+ * (`sll/srl` of word0 bits 27..26) arg-coalesces straight into a3 so the base
+ * takes t0; the target keeps sh in t0 and copies `or a3,t0` before the jal
+ * (base coloured first). do-while(0) spans around the key/cnt2/call/d
+ * statements, arm swap, unsigned key, `key += sh` split all leave it. (2) the
+ * first-section index `spv * 20` shares the loop's promoted constant 20
+ * (`li t3,20`) and becomes `multu`; the target expands it in place
+ * (`sll t7,v1,2; addu t7,t7,v1; sll t7,t7,2`) while the loop keeps
+ * `multu v1,t3`. Every spelling of both multiplies that folds to 20 shares
+ * (int/unsigned/char/short casts, (x*5)*4, 20*x, int[][5] / (int(*)[5]) IXA,
+ * a Row5* local); `(x*5)<<2` and `&D[x*5]` give the in-place *5 but a fresh
+ * sll for the *4. The body below spells the LOOP multiply as `(v1 * 5) << 2`
+ * so the first section gets the target's in-place chain at the cost of
+ * `li t3,5` + one extra sll in the loop (fewer diff words than the shared-20
+ * form). A loop const of 24 (test only) makes everything but (1) exact. */
 #ifdef NON_MATCHING
+extern int D_00000000_345c0;
 extern int gl_func_00000000();
-extern int gl_func_0003959C();
-extern int D_00000000;
-#define GBASE258 ((char *)&D_00000000)
-/* word0 of the descriptor: 4-bit pad | 2-bit sh | 2-bit pad | 24-bit msk */
+extern int gl_ref_0003959C();
+#define REG_258C0 ((char *)&D_00000000_345c0)
+/* word0 of a descriptor: 4-bit pad | 2-bit sh | 2-bit pad | 24-bit msk */
 typedef struct Desc258 {
     unsigned pad0 : 4;
     unsigned sh : 2;
@@ -8420,64 +8420,61 @@ typedef struct Desc258 {
     unsigned msk : 24;
     int key;
 } Desc258;
-int gl_func_000258CC(int a0, int a1) {
+int game_libs_func_000258C0(int a0) {
+    int v1;
     int spv;
-    int spv0;
-    int *v0;
+    char *v0;
     Desc258 *d;
     int key;
-    int cnt;
-    int cm1;
     unsigned cnt2;
-    int r;
 
-    if (a1 > 0) {
+    if (*(int *)(REG_258C0 + 0x1034) > 0) {
         if (a0 != 0) {
-            gl_func_00000000(GBASE258 + 0x1684, &spv0, 0);
-            *(int *)(GBASE258 + 0x1034) = 0;
+            gl_func_00000000(REG_258C0 + 0x1684, &spv, 0);
+            *(int *)(REG_258C0 + 0x1034) = 0;
             return 0;
         }
-        r = gl_func_00000000(GBASE258 + 0x1684, &spv, 0);
-        if (r == -1) {
+        if (gl_func_00000000(REG_258C0 + 0x1684, &spv, 0) == -1) {
             return 0;
         }
         spv = (unsigned)spv >> 24;
-        v0 = (int *)(GBASE258 + (((spv << 2) + spv) << 2));
-        if (*(int *)((char *)v0 + 0x640) == 0) {
-            d = *(Desc258 **)((char *)v0 + 0x634);
+        if (*(int *)(REG_258C0 + spv * 20 + 0x640) == 0) {
+            d = *(Desc258 **)(REG_258C0 + spv * 20 + 0x634);
             key = d->key + d->msk + d->sh;
-            if (key == *(int *)((char *)v0 + 0x630)) {
+            if (key == *(int *)(REG_258C0 + spv * 20 + 0x630)) {
+                d->key = *(int *)(REG_258C0 + spv * 20 + 0x638);
                 d->sh = 0;
-                d->key = *(int *)((char *)v0 + 0x638);
-                v0 = (int *)(GBASE258 + (((spv << 2) + spv) << 2));
             }
-            *(int *)((char *)v0 + 0x640) = 1;
+            *(int *)(REG_258C0 + spv * 20 + 0x640) = 1;
         }
-        while ((cnt = *(int *)(GBASE258 + 0x1034)) > 0) {
-            v0 = (int *)(GBASE258 + cnt * 0x14);
-            cm1 = cnt - 1;
-            if (*(int *)((char *)v0 + 0x62C) == 1) {
-                *(int *)(GBASE258 + 0x1034) = cm1;
+        while (1) {
+            v1 = *(int *)(REG_258C0 + 0x1034);
+            if (v1 <= 0) {
+                break;
+            }
+            v0 = REG_258C0 + ((v1 * 5) << 2);
+            if (*(int *)(v0 + 0x62C) == 1) {
+                *(int *)(REG_258C0 + 0x1034) = v1 - 1;
                 continue;
             }
-            d = *(Desc258 **)((char *)v0 + 0x620);
-            cnt2 = (d->msk >> 0xC) + 1;
+            d = *(Desc258 **)(v0 + 0x620);
+            cnt2 = (d->msk >> 12) + 1;
             key = d->key + d->msk + d->sh;
-            if (key != *(int *)((char *)v0 + 0x61C)) {
-                *(int *)((char *)v0 + 0x62C) = 1;
-                *(int *)(GBASE258 + 0x1034) = *(int *)(GBASE258 + 0x1034) - 1;
+            if (key != *(int *)(v0 + 0x61C)) {
+                *(int *)(v0 + 0x62C) = 1;
+                *(int *)(REG_258C0 + 0x1034) -= 1;
                 continue;
             }
-            gl_func_0003959C(d->key, *(int *)((char *)v0 + 0x624), d->msk,
-                             d->sh, cnt2, GBASE258 + 0x1684,
-                             *(int *)((char *)v0 + 0x628));
+            gl_ref_0003959C(d->key, *(int *)(v0 + 0x624), d->msk, d->sh, cnt2,
+                            REG_258C0 + 0x1684, *(int *)(v0 + 0x628));
             break;
         }
     }
     return 1;
 }
+#undef REG_258C0
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000258CC);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_000258C0);
 #endif
 
 // Add a0 to the pointer array a2[0..a1) if its key (a0[1]) isn't already
