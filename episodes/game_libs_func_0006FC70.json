@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0006FC70",
+  "project": "1080-decomp",
+  "model": "codex-manual",
+  "start_time": "2026-09-09T18:18:39.425533+00:00",
+  "end_time": "2026-09-09T18:18:39.425551+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T18:18:39.425547+00:00",
+      "assistant_text": "Identify libreultra __osTimerInterrupt and merge the hoisted two-instruction __osTimerList load with its contiguous body. Reference C with typed OSTimer and u64 time matches on first compile at IDO 7.1 O1 (also 5.3 O1). Use complete C in the main unit plus unchanged whole-function O1 donor output; all USO imports pinned zero. No instruction-byte editing.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 94,
+  "initial_m2c_source": null,
+  "final_source": "/* __osTimerInterrupt from libreultra src/os/timerintr.c.\n * IDO 7.1 -O1 reproduces all 94 original words; the main O2 unit retains\n * the same complete C body and uses this whole-function compiler output.\n * No instruction bytes are changed. Every named USO import is pinned zero.\n * Sym[2638] exports Text+0x842DC: synthetic 6FC70 is the real entry and\n * the former 6FC78 symbol was an internal prologue split. */\ntypedef unsigned long long Time6FC70;\ntypedef void *Mesg6FC70;\ntypedef struct Queue6FC70_s Queue6FC70;\ntypedef struct Timer6FC70_s {\n    struct Timer6FC70_s *next, *prev;\n    Time6FC70 interval, value;\n    Queue6FC70 *mq;\n    Mesg6FC70 msg;\n} Timer6FC70;\nextern Timer6FC70 *gl_timerlist_6FC70;\nextern unsigned int gl_timercounter_6FC70;\nextern void gl_setcompare_6FC70(unsigned int);\nextern unsigned int gl_getcount_6FC70(void);\nextern void gl_settimerintr_6FC70(Time6FC70);\nextern int gl_sendmesg_6FC70(Queue6FC70 *, Mesg6FC70, int);\nextern Time6FC70 gl_inserttimer_6FC70(Timer6FC70 *);\nvoid game_libs_func_0006FC70(void)\n{\n\tTimer6FC70 *t;\n\tunsigned int count;\n\tunsigned int elapsed_cycles;\n\n\tif (gl_timerlist_6FC70->next == gl_timerlist_6FC70)\n\t\treturn;\n\twhile (1)\n\t{\n\t\tt = gl_timerlist_6FC70->next;\n\t\tif (t == gl_timerlist_6FC70)\n\t\t{\n\t\t\tgl_setcompare_6FC70(0);\n\t\t\tgl_timercounter_6FC70 = 0;\n\t\t\tbreak;\n\t\t}\n\t\tcount = gl_getcount_6FC70();\n\t\telapsed_cycles = count - gl_timercounter_6FC70;\n\t\tgl_timercounter_6FC70 = count;\n\t\tif (elapsed_cycles < t->value)\n\t\t{\n\t\t\tt->value -= elapsed_cycles;\n\t\t\tgl_settimerintr_6FC70(t->value);\n\t\t\treturn;\n\t\t}\n\t\telse\n\t\t{\n\t\t\tt->prev->next = t->next;\n\t\t\tt->next->prev = t->prev;\n\t\t\tt->next = 0;\n\t\t\tt->prev = 0;\n\t\t\tif (t->mq != 0)\n\t\t\t{\n\t\t\t\tgl_sendmesg_6FC70(t->mq, t->msg, 0);\n\t\t\t}\n\t\t\tif (t->interval != 0)\n\t\t\t{\n\t\t\t\tt->value = t->interval;\n\t\t\t\tgl_inserttimer_6FC70(t);\n\t\t\t}\n\t\t}\n\t}\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_o1_6FC70.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0006FC70.s",
+    "segment": "game_libs",
+    "compiler": "IDO 7.1",
+    "compiler_flags": "-O1 -G0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "94 instructions / 376 bytes: donor, default and NM host objects, pure-ASM expected symbol, and linked ELF all equal ROM E54D48:E54EC0. Full ROM byte-identical; objdiff exact; no lost exact functions. Sym[2638] exports Text+842DC; old Text+842E4 body entry is not exported."
+  }
+}

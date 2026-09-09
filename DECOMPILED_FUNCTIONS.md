@@ -83,6 +83,12 @@ Before treating a function as exact, also compare built vs expected with
 
 ## Fragment Merges Performed
 
+- `gl_func_0006FC78` merged into `game_libs_func_0006FC70`:
+  `__osTimerInterrupt` has a hoisted two-instruction timer-list load before
+  its stack frame. Sym[2638] exports Text+0x842DC; Text+0x842E4 is internal.
+  The combined original span is 0x178 / 94 instructions, reproduced by
+  IDO 7.1 -O1 from the libultra C. Historical alias retained at 0x842E4.
+
 - `gl_func_000032B0` merged into `game_libs_func_00003298`: six hoisted
   FP-constant instructions plus the contiguous body, 0x14C / 83 instructions.
   `uso-sym-oracle.py baserom.z64 0xD9FE28 0x17904 0x1791C` confirms Sym[943]
