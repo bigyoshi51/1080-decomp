@@ -1,0 +1,33 @@
+{
+  "function_name": "game_libs_func_0006FBE4",
+  "project": "1080-agent-g",
+  "model": "claude-manual",
+  "start_time": "2026-09-09T18:11:00.578506+00:00",
+  "end_time": "2026-09-09T18:11:00.578521+00:00",
+  "steps": [
+    {
+      "step_number": 1,
+      "timestamp": "2026-09-09T18:11:00.578517+00:00",
+      "assistant_text": "libultra __osTimerServicesInit (os/timerintr.c verbatim): __osCurrentTime = 0; __osBaseCounter = 0; __osViIntrCount = 0; __osTimerList->prev = __osTimerList; __osTimerList->next = __osTimerList->prev; __osTimerList->value = 0; __osTimerList->interval = __osTimerList->value; __osTimerList->mq = NULL; __osTimerList->msg = 0. Identity from the reloc oracle: all six pointer reloads hit ONE symbol (sym2636, .data 0x2E4B0 = __osTimerList) and the three zeroed scalars are consecutive .bss (0x44060 u64, 0x44068, 0x4406C). Boundary fix (twenty-sixth mis-split case): the old game_libs_func_0006FBD8 symbol carried three leading zero words = osGetTime (gl_func_0006FB54, 0x84) inter-object pad; Sym export sym 2637 at section 0x84250 = 0x6FBE4. Two keys: (1) -O1, not -O2 -- uopt CSEs the six __osTimerList reloads into a v1 base (31 words); the target reloads per statement. (2) __osCurrentTime DEFINED in the TU: an extern u64 splits the zero store into two at-macro halves (36 words, hi first); the in-TU definition keeps one store with a shared lui at, low word first (lui at; li t6,0; li t7,0; sw t7,4(at); sw t6,0(at)) -- 35/35 at both 5.3 -O1 and 7.1 -O1. Pads restored as SUFFIX_BYTES_FORCE on gl_func_0006FB54.",
+      "tool_calls": [],
+      "match_percent": 100.0,
+      "compiled": true,
+      "token_usage": null
+    }
+  ],
+  "outcome": "match",
+  "final_match_percent": 100.0,
+  "best_match_percent": 100.0,
+  "total_tokens": 0,
+  "instruction_count": 35,
+  "initial_m2c_source": null,
+  "final_source": "/* IDO 5.3 -O1 -mips2 donor for game_libs_func_0006FBE4 = libultra\n * __osTimerServicesInit (os/timerintr.c verbatim). PROVEN EXACT 2026-09-09\n * (agent-g): 35/35 words at 5.3 -O1 AND 7.1 -O1 first compile once the ONE\n * structural key is in place -- __osCurrentTime (u64, USO .bss 0x44060) is\n * DEFINED in this TU, exactly as timerintr.c defines it. An `extern` u64\n * splits the 64-bit zero store into two at-macro halves (`li t6; lui at;\n * sw t6,0(at); lui at; li t7; sw t7,4(at)`, 36 words); the in-TU\n * definition keeps it ONE store with a shared `lui at` and the low word\n * first (`lui at; li t6,0; li t7,0; sw t7,4(at); sw t6,0(at)`) -- the\n * same lever as the vimgr.c __osViDevMgr burst\n * (docs/IDO_CODEGEN.md#whole-tu-o1-in-tu-def-at-share-dead-epilogue-align).\n * __osBaseCounter / __osViIntrCount / __osTimerList stay extern (their\n * stores were already exact). -O2 (either compiler) CSEs the six\n * __osTimerList reloads into a v1 base (31 words) -- the target reloads\n * the pointer per statement, which is -O1 (no uopt), matching libultra's\n * os/ build flags.\n * Reloc story: every masked word is a blank USO import -> pins = 0\n * (gl_fbe4_CurrentTime is this TU's own .bss definition, imported by the\n * splice as an undefined symbol and pinned to 0 like gl_viDevMgr;\n * gl_BaseCounter / gl_viIntrCount / D_00000000_timerlist are the existing\n * pins). Spliced over the placeholder in game_libs_post1b2c.c via\n * REPLACE_FUNC_BODY. The 3 zero words before the entry (0x6FBD8..0x6FBE0)\n * are gl_func_0006FB54's (osGetTime, 0x84) 16-byte inter-object pad:\n * SUFFIX_BYTES_FORCE on 6FB54, not part of this object. */\n\ntypedef unsigned int u32;\ntypedef unsigned long long OSTime;\ntypedef void *OSMesg;\ntypedef struct OSMesgQueue_s OSMesgQueue;\ntypedef struct OSTimer_s {\n    struct OSTimer_s *next;\n    struct OSTimer_s *prev;\n    OSTime interval;\n    OSTime value;\n    OSMesgQueue *mq;\n    OSMesg msg;\n} OSTimer;\n#define NULL 0\n\nextern OSTimer *D_00000000_timerlist;   /* __osTimerList (USO .data 0x2E4B0) */\nOSTime gl_fbe4_CurrentTime;             /* __osCurrentTime -- MUST be defined in-TU */\nextern u32 gl_BaseCounter;              /* __osBaseCounter */\nextern u32 gl_viIntrCount;              /* __osViIntrCount */\n\n#define __osTimerList D_00000000_timerlist\n#define __osCurrentTime gl_fbe4_CurrentTime\n#define __osBaseCounter gl_BaseCounter\n#define __osViIntrCount gl_viIntrCount\n\nvoid game_libs_func_0006FBE4(void)\n{\n\t__osCurrentTime = 0;\n\t__osBaseCounter = 0;\n\t__osViIntrCount = 0;\n\t__osTimerList->prev = __osTimerList;\n\t__osTimerList->next = __osTimerList->prev;\n\t__osTimerList->value = 0;\n\t__osTimerList->interval = __osTimerList->value;\n\t__osTimerList->mq = NULL;\n\t__osTimerList->msg = 0;\n}\n",
+  "metadata": {
+    "source_path": "src/game_libs/game_libs_ido53_6FBE4.c",
+    "asm_path": "asm/nonmatchings/game_libs/game_libs/game_libs_func_0006FBE4.s",
+    "segment": "game_libs",
+    "compiler": "IDO 5.3",
+    "compiler_flags": "-O1 -G 0 -mips2 -32 -non_shared -Xcpluscomm -Wab,-r4300_mul",
+    "verification": "Verified with project build: donor game_libs_ido53_6FBE4.c.o spliced via REPLACE_FUNC_BODY into build/src/game_libs/game_libs_post1b2c.c.o; .text slice at the symbol (0x37e4, 35 words) equals the target .s and expected/, unit .text byte-identical to the tracked baseline (0x3d94, 159 relocs), tenshoe.z64 cmp byte-identical, make non_matching_objects exit 0, report.json fuzzy 100.0."
+  }
+}

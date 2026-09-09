@@ -3453,3 +3453,4 @@ D_69CC4_2278 = 0x00000000;  /* game_libs_func_00069CC4 per-constant pad-struct a
 D_69CC4_227C = 0x00000000;  /* game_libs_func_00069CC4 per-constant pad-struct alias of D_00000000 (at-macro form; one base CSEs into v1) */
 D_69CC4_2280 = 0x00000000;  /* game_libs_func_00069CC4 per-constant pad-struct alias of D_00000000 (at-macro form; one base CSEs into v1) */
 D_69CC4_tbl = 0x00000000;  /* game_libs_func_00069CC4 u16 table base (bootup.uso sym2 section, +0x2C650) */
+gl_fbe4_CurrentTime = 0x00000000;  /* __osCurrentTime (u64, USO .bss 0x44060): DEFINED in the game_libs_ido53_6FBE4.c donor TU (shared-$at u64 store), imported by the splice as an undefined symbol -> blank USO reloc */

@@ -1170,57 +1170,23 @@ long long gl_func_0006FB54(void) {
     return 0;
 }
 
-#ifdef NON_MATCHING
-/* STRUCTURAL first-pass 2026-05-31 (raw-.word USO decode). Straight-line
- * global-state reset: zeroes a struct at &D_fbd8_a (words 0,4) + scalars
- * D_fbd8_b/d, and re-links several global list heads (each `*D_x` is a node
- * pointer): D_c node self-links (n->4=n); D_e n->0=n->4; D_f n->0x10=0,n->0x14=0;
- * D_g copies n->0x10/0x14 to n->8/0xC; D_h n->0x18=0; D_i n->0x1C=0. Symbols are
- * placeholder externs (real D_ names unknown in raw-.word form).
- *
- * 18% partial — NEXT-PASS RESIDUAL ANALYSIS (side-by-side 2026-05-31):
- *  (1) Direct globals (D_a struct, D_b/D_d): target is at-FUSED `lui at,%hi;
- *      sw t,OFF(at)` with the zero pre-loaded into a REGISTER (`li t6,0;
- *      li t7,0`), ours is base-local `lui v1; addiu v1,v1,0; sw zero,OFF(v1)`
- *      (extra addiu + sw $zero). Needs inline-symbol-arith + named zero temps
- *      (docs feedback-ido-inline-symbol-arith-vs-base-local).
- *  (2) Pointer globals: target keeps each `*D_x` in a DISTINCT reg
- *      (t8/t9/t1/t4/t5/t8) with lui/lw HOISTED + interleaved with other
- *      globals' stores; ours reuses $v0 sequentially. Distinct named pointer
- *      locals declared early did NOT fix it (IDO still collapsed to 32 insns
- *      vs 38 — 6 short). Exact hoist/interleave is the hard part.
- *  LIKELY PERMANENT ~18% (2026-05-31, deeper look): the target REUSES scratch
- *  temps across globals (e.g. t6/t7 hold 0 for D_a's stores @0x04/08 then are
- *  reused as D_g's loaded fields @0x68/6C) AND heavily hoists/interleaves the
- *  lui/lw — both scheduler/allocator-determined, same C-uncontrollable class as
- *  the instruction-scheduler swaps. Correct logic; don't expect a 100% match
- *  from C. */
-extern int D_fbd8_a, D_fbd8_b, D_fbd8_d;
-extern int *D_fbd8_c, *D_fbd8_e, *D_fbd8_f, *D_fbd8_g, *D_fbd8_h, *D_fbd8_i;
-void game_libs_func_0006FBD8(void) {
-    int *n;
-    (&D_fbd8_a)[1] = 0;
-    (&D_fbd8_a)[0] = 0;
-    D_fbd8_b = 0;
-    D_fbd8_d = 0;
-    n = D_fbd8_c;
-    n[1] = (int)n;
-    n = D_fbd8_e;
-    n[0] = n[1];
-    n = D_fbd8_f;
-    n[0x10 / 4] = 0;
-    n[0x14 / 4] = 0;
-    n = D_fbd8_g;
-    n[8 / 4] = n[0x10 / 4];
-    n[0xC / 4] = n[0x14 / 4];
-    n = D_fbd8_h;
-    n[0x18 / 4] = 0;
-    n = D_fbd8_i;
-    n[0x1C / 4] = 0;
+/* game_libs_func_0006FBE4 = libultra __osTimerServicesInit (os/timerintr.c
+ * verbatim), 35 insns, EXACT 2026-09-09 (agent-g). Retires the old
+ * "game_libs_func_0006FBD8" 18%-NM global-init wrap: its three leading zero
+ * words were gl_func_0006FB54's (osGetTime, 0x84) 16-byte inter-object pad
+ * (twenty-sixth mis-split case; now SUFFIX_BYTES_FORCE on 6FB54) -- bootup.uso
+ * Sym export sym 2637 sits at section 0x84250 (= 0x6FBE4); 0x84244 is not
+ * exported. The "at-fused register-zero stores / distinct pointer regs /
+ * scheduler-determined, likely permanent" residual was the -O2-vs-O1 +
+ * extern-vs-defined story: the six `lui/lw` pointer reloads are -O1 (no
+ * uopt CSE of __osTimerList), and the shared-$at u64 zero store needs
+ * __osCurrentTime DEFINED in the TU. Real C lives in the IDO 5.3 -O1 donor
+ * game_libs_ido53_6FBE4.c, spliced via REPLACE_FUNC_BODY over this
+ * placeholder. Globals: __osCurrentTime (.bss 0x44060, u64),
+ * __osBaseCounter (0x44068), __osViIntrCount (0x4406C), __osTimerList
+ * (.data 0x2E4B0) -> pins = 0. */
+void game_libs_func_0006FBE4(void) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006FBD8);
-#endif
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006FC70);
 
