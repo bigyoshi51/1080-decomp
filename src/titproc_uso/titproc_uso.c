@@ -1229,15 +1229,19 @@ INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_0000171
  * register/!self/goto-restructure — all identical or worse; the 2-insn
  * prologue tie (sw ra vs move s0,a0 fill) is the documented as1
  * arg-save-in-bne-delay tie (IDO_CODEGEN inline-prologue-vs-bne-delay
- * entry). Permuter-negative already on file. Stays NM. */
-#ifdef NON_MATCHING
+ * entry). Permuter-negative already on file.
+ *
+ * EXACT 2026-09-09: reuse the input parameter as self, removing the local
+ * `void *self = a0` copy. IDO then schedules the s0 argument save before
+ * the initial bnez and sw ra in its delay slot: all 68 raw words match.
+ * Both brace layouts work; register on a local alone does not fix it.
+ * No instruction patches or source-line directives are needed. */
 extern int titproc_uso_func_04C678();
 extern int titproc_uso_func_001AF8();
 extern int titproc_uso_func_00F4CC();
 extern char titproc_uso_D_0001FC;
-void *titproc_uso_func_00001840(void *a0) {
+void *titproc_uso_func_00001840(void *self) {
     void *sub;
-    void *self = a0;
     if (self == 0) {
         self = (void*)titproc_uso_func_055750(0x74);
         if (self == 0) goto end;
@@ -1273,10 +1277,6 @@ skip:
 end:
     return self;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/titproc_uso/titproc_uso", titproc_uso_func_00001840);
-#endif
-
 /* titproc_uso_func_00001950: 106-insn dual-phase display/alpha helper.
  * Decrements/fades through the D+0x60/D+0x78 display blocks while
  * a0->0x38 == 0, then increments/clamps a0->0x2C and dispatches the
