@@ -14549,24 +14549,19 @@ void gl_func_00044918(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044918);
 #endif
 
-#ifdef NON_MATCHING
-/* gl_func_00044AEC: 38-insn "wait while any of 3 fields nonzero" loop.
- *   s0 = *(int**)(a0 + 0x218);
- *   while (s0[7] != 0 || s0[1] != 0 || s0[3] != 0) {  // s0->[0x1C], [0x4], [0xC]
- *     gl_func_00000000(s0);
- *   }
- * Each check uses `sltu v0, $0, v0` followed by `bne v0, $0, +N` to skip
- * the remaining inner checks (early-exit-true pattern), landing at a
- * common bne-loop-back (or beql-to-epilogue on first iteration). */
-void gl_func_00044AEC(int* a0) {
-    int* s0 = *(int**)((char*)a0 + 0x218);
-    while (s0[7] != 0 || s0[1] != 0 || s0[3] != 0) {
-        gl_func_00000000(s0);
+/* Poll until the three pending-work fields clear. Assigning the boolean
+ * preserves IDO's sltu short-circuit chain at entry and on the back edge.
+ * The callback takes no explicit arguments in the target (35 words). */
+void gl_func_00044AEC(int *arg0) {
+    int *state = *(int **)((char *)arg0 + 0x218);
+    int busy;
+
+    busy = state[7] != 0 || state[1] != 0 || state[3] != 0;
+    while (busy) {
+        gl_func_00000000();
+        busy = state[7] != 0 || state[1] != 0 || state[3] != 0;
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00044AEC);
-#endif
 
 
 /* game_libs_func_00044B78 (0x124, 73 words; merged with the former gl_func_00044B84
