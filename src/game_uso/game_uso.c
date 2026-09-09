@@ -4490,7 +4490,7 @@ void game_uso_func_000071A4(int *);
 int game_uso_func_00006FA8(int *);
 long long game_uso_func_00007538(int *, int);
 void game_uso_func_0000591C(int *a0) {
-    /* 2026-09-09: 76.42 -> 81.96 -> 88.18 -> 91.19 -> 92.85% NM.
+    /* 2026-09-09: 76.42 -> 81.96 -> 88.18 -> 91.19 -> 92.85 -> 93.99% NM.
      * Word-typed staging copies preserve
      * the sub-pointer reload; both state dispatches are switches; the five
      * demotion conditions share one reset; nested float selectors retain
@@ -4506,8 +4506,13 @@ void game_uso_func_0000591C(int *a0) {
      * Reload the child after the aliased flags write. Fourth pass: derive
      * scratch/copy sources directly, avoiding a call-live child temporary;
      * reuse scalar result scratch for the two absolute values, and group
-     * transform-result loads/stores on one source line. This restores the
-     * 4372-byte code size while retaining the 464-byte frame. Still not exact:
+     * transform-result loads/stores on one source line. Fifth pass: direct
+     * head/tail child accesses shorten the shared sub lifetime and recover
+     * its a0 allocation. Separate the initial flag/selector temporaries;
+     * stage copy-X and modulo-test floats in their own reusable scalars.
+     * Match distance-test operand order and stage the first speed product.
+     * Current C is 4376 bytes versus 4372 target, with the 464-byte frame.
+     * Still not exact:
      * FP/temp allocation, scalar spills and alloc-fallback schedules differ.
      * See docs/IDO_CODEGEN.md#state-dispatch-word-copy-591c in the tooling repo.
      */
@@ -4580,27 +4585,26 @@ void game_uso_func_0000591C(int *a0) {
     if (*(int*)((char*)&import_80020110 + 0x78) != 0) return;
     if (import_8006EF48 == 0) return;
 
-    vsel = *(int*)((char*)self + 0x68);
-    if (vsel & 1) {
+    v0 = *(int*)((char*)self + 0x68);
+    if (v0 & 1) {
         game_uso_func_0000A3C4();
         return;
     }
-    if (vsel & 2) {
+    if (v0 & 2) {
         game_uso_func_0000A604(self);
         return;
     }
-    if (vsel & 4) {
+    if (v0 & 4) {
         game_uso_func_0000A7F8(self);
         return;
     }
 
     /* head staging: V440 = (sub+0xB4) words; V328 = scaled axis floats;
      * stage = V328 words; V452 = stage words; V440 += V452 floats. */
-    sub = *(char**)((char*)self + 0x30);
-    *(Tri3i *)&staged_axis = *(Tri3i *)(sub + 0xB4);
-    sub = *(char**)((char*)self + 0x30);
+    *(Tri3i *)&staged_axis = *(Tri3i *)(*(char**)((char*)self + 0x30) + 0xB4);
     {
-        axis_src = (float *)((int)sub + 0x318);
+        axis_src = *(float **)((char*)self + 0x30);
+        axis_src = (float *)((int)axis_src + 0x318);
         fsel = *(float*)((char*)self + 0xA8);
         x = *axis_src * fsel;
         y = *(float *)((int)axis_src + 4) * fsel;
@@ -4618,13 +4622,12 @@ void game_uso_func_0000591C(int *a0) {
 
     helper_ptr = (char*)game_uso_func_00007ACC(self, &hit_parent, &staged_axis, &hit_obj);
     if (helper_ptr == 0) return;
-    v0 = *(int*)(helper_ptr + 0x84);
+    state_flag = *(int*)(helper_ptr + 0x84);
     if (hit_obj != 0) {
-        resolved_state = v0;
+        resolved_state = state_flag;
     } else {
         resolved_state = 0;
     }
-    state_flag = v0;
     metric_a = game_uso_func_00007A98(self);
 
     /* first state region (0x184): vsel drives the transform dispatch and
@@ -4689,9 +4692,9 @@ void game_uso_func_0000591C(int *a0) {
         scratch_dst = p;
         src = (float *)((int)*(char**)((char*)self + 0x30) + 968);
         if (scratch_dst != 0 || (scratch_dst = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-            x = *src;
+            fsel = *src;
             z = *(float *)((int)src + 8);
-            scratch_dst->x = x;
+            scratch_dst->x = fsel;
             scratch_dst->z = z;
             scratch_dst->y = 0.0f;
         }
@@ -4738,11 +4741,11 @@ void game_uso_func_0000591C(int *a0) {
         if (1) { p = &pos_a; }
         src = (float *)((int)helper_ptr + 48);
         if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-            x = *src;
+            fsel = *src;
             z = *(float *)((int)src + 8);
             p->y = 0.0f;
             p->z = z;
-            p->x = x;
+            p->x = fsel;
         }
 
         p = 0;
@@ -4765,10 +4768,10 @@ void game_uso_func_0000591C(int *a0) {
         if (1) { p = &pos_c; }
         src = (float *)((int)*(char**)((char*)self + 0x30) + 180);
         if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-            x = *src;
+            fsel = *src;
             z = *(float *)((int)src + 8);
             p->y = 0.0f;
-            p->x = x;
+            p->x = fsel;
             p->z = z;
         }
 
@@ -4789,9 +4792,10 @@ void game_uso_func_0000591C(int *a0) {
         delta_b = stage;
 
         sub = *(char**)((char*)self + 0x30);
-        f2v = *(float*)(sub + 0x348) * *(float*)((char*)self + 0xC0);
+        f2v = *(float*)(sub + 0x348);
+        f2v = f2v * *(float*)((char*)self + 0xC0);
         dist_sq = (delta_a.x * delta_a.x) + (delta_a.z * delta_a.z);
-        if (dist_sq == 0.0f) {
+        if (0.0f == dist_sq) {
         f12v = 0.0f;
     } else {
         dot = (delta_a.x * delta_b.x) + (delta_a.z * delta_b.z);
@@ -4819,11 +4823,11 @@ void game_uso_func_0000591C(int *a0) {
     if (1) { p = &pos_e; }
     src = (float *)((int)helper_ptr + 48);
     if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-        x = *src;
+        fsel = *src;
         z = *(float *)((int)src + 8);
         p->y = 0.0f;
         p->z = z;
-        p->x = x;
+        p->x = fsel;
     }
 
     p = 0;
@@ -4846,10 +4850,10 @@ void game_uso_func_0000591C(int *a0) {
     if (1) { p = &pos_g; }
     src = (float *)((int)*(char**)((char*)self + 0x30) + 180);
     if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-        x = *src;
+        fsel = *src;
         z = *(float *)((int)src + 8);
         p->y = 0.0f;
-        p->x = x;
+        p->x = fsel;
         p->z = z;
     }
 
@@ -4870,9 +4874,9 @@ void game_uso_func_0000591C(int *a0) {
     delta_g = stage;
 
     sub = *(char**)((char*)self + 0x30);
-    f2v = *(float*)(sub + 0x348) * (*(float*)((char*)self + 0xC0) + 12.0f);
+    f2v = (*(float*)((char*)self + 0xC0) + 12.0f) * *(float*)(sub + 0x348);
     dist_sq = (delta_e.x * delta_e.x) + (delta_e.z * delta_e.z);
-    if (dist_sq == 0.0f) {
+    if (0.0f == dist_sq) {
         f12v = 0.0f;
     } else {
         dot = (delta_e.x * delta_g.x) + (delta_e.z * delta_g.z);
@@ -4991,8 +4995,7 @@ tail_common:
         }
     }
 
-    sub = *(char**)((char*)self + 0x30);
-    if (*(float*)(sub + 0x348) < 30.0f) {
+    if (*(float*)(*(char**)((char*)self + 0x30) + 0x348) < 30.0f) {
         v0 = *(int*)((char*)self + 0x54) + 1;
         *(int*)((char*)self + 0x54) = v0;
         if (v0 >= 75) {
@@ -5029,12 +5032,11 @@ tail_common:
                  : v0 == 2 ? *(float*)((char*)self + 0x234)
                            : *(float*)((char*)self + 0x21C);
             if (!(fsel <= metric_a)) {
-                sub = *(char**)((char*)self + 0x30);
-                v0 = *(int*)(sub + 0x908);
+                v0 = *(int*)(*(char**)((char*)self + 0x30) + 0x908);
                 if (v0 == 0) goto commit_flags;
-                f2v = *(float*)(v0 + 0xBC);
-                fsel = f2v < 0.0f ? -f2v : f2v;
-                if (((int)fsel % 5) != 0) goto commit_flags;
+                yaw_raw = *(float*)(v0 + 0xBC);
+                f2v = yaw_raw < 0.0f ? -yaw_raw : yaw_raw;
+                if (((int)f2v % 5) != 0) goto commit_flags;
             }
             *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
         } else if (resolved_state & 0x100) {
@@ -5063,11 +5065,10 @@ tail_common:
             } else if (0.0f < metric_a) {
                 *(int*)((char*)self + 0x68) |= 1;
             } else {
-                sub = *(char**)((char*)self + 0x30);
-                v0 = *(int*)(sub + 0x908);
+                v0 = *(int*)(*(char**)((char*)self + 0x30) + 0x908);
                 if (v0 == 0) goto commit_flags;
-                f2v = *(float*)(v0 + 0xBC);
-                fsel = f2v < 0.0f ? -f2v : f2v;
+                yaw_raw = *(float*)(v0 + 0xBC);
+                fsel = yaw_raw < 0.0f ? -yaw_raw : yaw_raw;
                 if (((int)fsel % 5) != 0) goto commit_flags;
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             }
