@@ -20048,54 +20048,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CDB0);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004CEFC);
-
-#ifdef NON_MATCHING
-/* gl_func_0004CF04 — decoded 2026-05-19. MULTI-FUNCTION BUNDLE
- * (declared 0xD0 / 52 words). NAMED fn = ~6-call init orchestrator,
- * insns 1..45 (prologue 27BDFFC0 frame 0x40, jr ra at insn 45):
- *   int gl_func_0004CF04(int a0, int a1) {
- *     cb1(&D_00000000 + (a1<<2));   // result chained: *(.+0x280)
- *     cb2(a0 + 0x174);
- *     s0 = cb3(*(int*)(&D_00000000 + 0x218), 1);
- *     r  = cb4(a0 + 0x174);
- *     cb5(a0 + 0x174, s0, 0, r, ...);          // 5+ args (stack)
- *     cb6(*(int*)(&D_00000000 + 0x218), s0);
- *     *(int*)(a0 + 0x74) = s0;
- *     return s0;
- *   }
- * s0 (cb3 result) is threaded through cb5/cb6 and stored at
- * a0->0x74; (a0+0x174) and *(&D+0x218) are each reused across
- * calls (spilled at sp+0x2C / recomputed). Exact cb arg-arity
- * (esp. cb5's stack args) + the cb1 *(.+0x280) chain need a
- * focused pass.
+/* game_libs_func_0004CEFC (0xBC, 47 words) = the old 2-word orphan
+ * game_libs_func_0004CEFC + gl_func_0004CF04, merged 2026-09-09 (agent-c).
+ * bootup.uso Sym table exports section offset 0x61568 = splat 0x4CEFC (ROM
+ * 0xE31FD4 - 0xDD0A6C) as sym2078 (the callee of the 4CDB0 twin's last
+ * call); 0x61570 = 0x4CF04 is NOT exported. Same head shape as 4CDB0: the
+ * `lui t6; lw t6,0x204(t6)` orphan is the successor's hoisted first
+ * statement, the object-table index read at D+0x204 (sym154 @0x3C168),
+ * scheduled above `addiu sp`; the table is D+0x280 off the same symbol, so
+ * the call-free same-symbol pair reads the table through the existing
+ * per-site alias D_4CDB0_a (IDO_CODEGEN#alias-budget-call-free-same-symbol-
+ * pair-349e0). The three D+0x218 reads are call-separated: plain D_00000000.
  *
- * BOUNDARY NOTE (DEFERRED USO RE-SPLIT): insns 46..52 after the
- * jr ra are TWO tiny TRAILING LEAVES — arg-stash stubs
- * (`sw a0,0(sp); jr ra; sw a1,4(sp)` and
- * `sw a0,0; sw a1,4; jr ra; sw a2,8`), each its own 03E00008.
- * The 0xD0 size spans them so the orchestrator can't byte-match
- * standalone without a re-split at the named-fn end. Multi-idiom
- * orchestrator + bundle → focused pass. Real decoded C of the
- * named fn preserved; INCLUDE_ASM is the bundle build path. */
-extern int gl_func_00000000();
-extern int D_00000000;
-int gl_func_0004CF04(int a0, int a1) {
-    int s0;
+ * Body: f1(table[D_204]); p = self + 0x174 (spilled 0x2C(sp), reused for
+ * three calls); f2(p); rec = f3(D_218, 1) (s0); r = f4(p) (spilled 0x34);
+ * q = f5(p); f6(D_218, rec, 0, r, q, flag) (q/flag = stack args 0x10/0x14);
+ * f7(D_218, rec); rec->0x74 = self; return rec. Both params are
+ * memory-resident (homed at 0x40/0x44, reloaded by a0/t8/t9); the old
+ * wrap had the tail store backwards (`a0->0x74 = s0`) and dropped f5's
+ * result + the flag from the 6-arg call. Callees are all blank R_MIPS_26
+ * -> gl_func_00000000: sym1958 (text 0x6BD6C = splat 0x57700), sym1972
+ * (0x58AE0 = 0x44474), sym2010 (0x622B0 = 0x4DC44), sym1974 (0x58B04 =
+ * 0x44498), sym1973 (0x58AF4 = 0x44488), sym2012 (0x621BC = 0x4DB50),
+ * sym2013 (0x62274 = 0x4DC08). BYTE-EXACT 47/47 on the first spelling.
+ * gl_func_0004CF04 wrap (65.1) + .s retired. */
+extern int D_4CDB0_a;
+char *game_libs_func_0004CEFC(char *self, int flag)
+{
+    char *p;
+    char *rec;
     int r;
-    gl_func_00000000((char *)&D_00000000 + (a1 << 2));
-    gl_func_00000000(a0 + 0x174);
-    s0 = gl_func_00000000(*(int *)((char *)&D_00000000 + 0x218), 1);
-    r = gl_func_00000000(a0 + 0x174);
-    gl_func_00000000(a0 + 0x174, s0, 0, r);
-    gl_func_00000000(*(int *)((char *)&D_00000000 + 0x218), s0);
-    *(int *)(a0 + 0x74) = s0;
-    return s0;
+    int q;
+    gl_func_00000000(*(char **)((char *)&D_4CDB0_a + *(int *)((char *)&D_00000000 + 0x204) * 4 + 0x280));
+    p = self + 0x174;
+    gl_func_00000000(p);
+    rec = (char *)gl_func_00000000(*(int *)((char *)&D_00000000 + 0x218), 1);
+    r = gl_func_00000000(p);
+    q = gl_func_00000000(p);
+    gl_func_00000000(*(int *)((char *)&D_00000000 + 0x218), rec, 0, r, q, flag);
+    gl_func_00000000(*(int *)((char *)&D_00000000 + 0x218), rec);
+    *(char **)(rec + 0x74) = self;
+    return rec;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004CF04);
 
-#endif
 
 void game_libs_func_0004CFB8(int a0, int a1) {
 }
