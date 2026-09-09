@@ -4490,7 +4490,7 @@ void game_uso_func_000071A4(int *);
 int game_uso_func_00006FA8(int *);
 long long game_uso_func_00007538(int *, int);
 void game_uso_func_0000591C(int *a0) {
-    /* 2026-09-09: 76.42 -> 81.96 -> 88.18 -> 91.19% NM (fresh baseline).
+    /* 2026-09-09: 76.42 -> 81.96 -> 88.18 -> 91.19 -> 92.85% NM.
      * Word-typed staging copies preserve
      * the sub-pointer reload; both state dispatches are switches; the five
      * demotion conditions share one reset; nested float selectors retain
@@ -4503,7 +4503,11 @@ void game_uso_func_0000591C(int *a0) {
      * Third pass: shared scalar scratch and ordered declarations recover the
      * 464-byte frame and vector homes. Compound parent guards, a shared
      * state-update store and store-before-test counter recover branch shapes.
-     * Reload the child after the aliased flags write. Still not exact:
+     * Reload the child after the aliased flags write. Fourth pass: derive
+     * scratch/copy sources directly, avoiding a call-live child temporary;
+     * reuse scalar result scratch for the two absolute values, and group
+     * transform-result loads/stores on one source line. This restores the
+     * 4372-byte code size while retaining the 464-byte frame. Still not exact:
      * FP/temp allocation, scalar spills and alloc-fallback schedules differ.
      * See docs/IDO_CODEGEN.md#state-dispatch-word-copy-591c in the tooling repo.
      */
@@ -4597,10 +4601,10 @@ void game_uso_func_0000591C(int *a0) {
     sub = *(char**)((char*)self + 0x30);
     {
         axis_src = (float *)((int)sub + 0x318);
-        scale = *(float*)((char*)self + 0xA8);
-        x = *axis_src * scale;
-        y = *(float *)((int)axis_src + 4) * scale;
-        z = *(float *)((int)axis_src + 8) * scale;
+        fsel = *(float*)((char*)self + 0xA8);
+        x = *axis_src * fsel;
+        y = *(float *)((int)axis_src + 4) * fsel;
+        z = *(float *)((int)axis_src + 8) * fsel;
         scaled_axis.x = x;
         scaled_axis.y = y;
         scaled_axis.z = z;
@@ -4666,35 +4670,24 @@ void game_uso_func_0000591C(int *a0) {
             &staged_axis, &out_w);
         *(Tri3i *)&res_a = *(Tri3i *)v0;
         *(Tri3i *)&res_c = *(Tri3i *)&res_a;
-        z = res_c.z;
-        y = res_c.y;
-        x = res_c.x;
-        transform_out.z = z;
-        transform_out.y = y;
-        transform_out.x = x;
+        z = res_c.z; y = res_c.y; x = res_c.x; transform_out.z = z; transform_out.y = y; transform_out.x = x;
         break;
     case 1:
         v0 = (int)game_uso_func_00008CD8(&stage, self, helper_ptr, hit_parent, t0);
         *(Tri3i *)&res_b = *(Tri3i *)v0;
         *(Tri3i *)&res_c = *(Tri3i *)&res_b;
-        z = res_c.z;
-        y = res_c.y;
-        x = res_c.x;
-        transform_out.z = z;
-        transform_out.y = y;
-        transform_out.x = x;
+        z = res_c.z; y = res_c.y; x = res_c.x; transform_out.z = z; transform_out.y = y; transform_out.x = x;
         break;
     }
 
     /* dead-sentinel copy-or-alloc scratch (target 0x394-0x3E8): the guard
      * pointer stays &scratch_xz for the 3ED4 call; copy pointer may be the
      * alloc fallback. */
-    sub = *(char**)((char*)self + 0x30);
     p = 0;
     if (1) { p = &scratch_xz; }
     {
         scratch_dst = p;
-        src = (float *)((int)sub + 968);
+        src = (float *)((int)*(char**)((char*)self + 0x30) + 968);
         if (scratch_dst != 0 || (scratch_dst = (Vec3*)game_uso_func_055750(0xC)) != 0) {
             x = *src;
             z = *(float *)((int)src + 8);
@@ -4704,13 +4697,9 @@ void game_uso_func_0000591C(int *a0) {
         }
     }
     yaw_raw = game_uso_func_00003ED4(p, &transform_out, &hit_out);
-    if (yaw_raw < 0.0f) {
-        neg = -yaw_raw;
-        yaw_metric = neg;
-    } else {
-        yaw_metric = yaw_raw;
-        neg = -yaw_raw;
-    }
+    f2v = yaw_raw < 0.0f ? -yaw_raw : yaw_raw;
+    yaw_metric = f2v;
+    neg = -yaw_raw;
 
     /* self->0x3C = (-yaw_raw * (1 + sub->348/self->B0) * self->AC) / sub->708 */
     sub = *(char**)((char*)self + 0x30);
@@ -4721,7 +4710,8 @@ void game_uso_func_0000591C(int *a0) {
             (neg * scale * *(float*)((char*)self + 0xAC)) / *(float *)((int)accel_params + 16);
     }
     f2v = *(float*)((char*)self + 0x3C);
-    accel_metric = f2v < 0.0f ? -f2v : f2v;
+    f2v = f2v < 0.0f ? -f2v : f2v;
+    accel_metric = f2v;
 
     /* second dispatch on the (possibly updated) self->0x74 */
     v0 = *(int*)((char*)self + 0x74);
@@ -4773,8 +4763,7 @@ void game_uso_func_0000591C(int *a0) {
 
         p = 0;
         if (1) { p = &pos_c; }
-        sub = *(char**)((char*)self + 0x30);
-        src = (float *)((int)sub + 180);
+        src = (float *)((int)*(char**)((char*)self + 0x30) + 180);
         if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
             x = *src;
             z = *(float *)((int)src + 8);
@@ -4855,8 +4844,7 @@ void game_uso_func_0000591C(int *a0) {
 
     p = 0;
     if (1) { p = &pos_g; }
-    sub = *(char**)((char*)self + 0x30);
-    src = (float *)((int)sub + 180);
+    src = (float *)((int)*(char**)((char*)self + 0x30) + 180);
     if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
         x = *src;
         z = *(float *)((int)src + 8);

@@ -27,10 +27,10 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 | `boarder4_uso` | 6 / 6 | 0.4 KiB / 0.4 KiB | 100.00 % | 100.00 % | Per-character snowboarder USO |
 | `boarder5_uso` | 6 / 6 | 0.4 KiB / 0.4 KiB | 100.00 % | 100.00 % | Per-character snowboarder USO |
 | `mgrproc_uso` | 45 / 57 | 7.2 KiB / 13.0 KiB | 55.09 % | 96.67 % | Manager process (Yay0-decompressed) |
-| `game_uso` | 192 / 240 | 25.9 KiB / 70.8 KiB | 36.63 % | 87.12 % | Main game loop (Yay0-decompressed) |
+| `game_uso` | 192 / 240 | 25.9 KiB / 70.8 KiB | 36.63 % | 87.22 % | Main game loop (Yay0-decompressed) |
 | `timproc_uso` | 266 / 315 | 32.0 KiB / 81.4 KiB | 39.28 % | 93.50 % | Timer process (Yay0; variants b1/b3/b5) |
 | `map4_data_uso_b2` | 3 / 3 | 0.2 KiB / 0.2 KiB | 100.00 % | 100.00 % | Map overlay code (remaining map assets are data) |
-| **Total** | **2,396 / 3,317** | **273.8 KiB / 744.5 KiB** | **36.78 %** | **84.08 %** |  |
+| **Total** | **2,396 / 3,317** | **273.8 KiB / 744.5 KiB** | **36.78 %** | **84.09 %** |  |
 
 Snapshot from `report.json` on 2026-09-09. Remaining Yay0-compressed USOs are
 splatted; code in `map4_data_uso_b2` is tracked above, while pure data assets
