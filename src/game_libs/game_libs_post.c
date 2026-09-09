@@ -6053,85 +6053,49 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
 #endif
 
 
-/* game_libs_func_00023494: 2-insn `lui t6, 0; lh t6, 0x23FA(t6)` orphan
- * with no jr-ra and no prologue. Loads a half from absolute address
- * 0x000023FA into $t6 then falls THROUGH to the successor function (which
- * appears caller-set but isn't). Prologue-stolen-PREDECESSOR pattern per
- * project_1080_orphan_fn_prologue_vein. Not C-matchable as a standalone
- * 2-insn function (any C body emits its own prologue+epilogue). CAP
- * class. Default INCLUDE_ASM remains byte-exact. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023494);
-
-// gl_func_0002349C — STRUCTURAL PASS (0xAC / 43 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). An unregister/free-by-id — the deregister counterpart to
-// the gl_func_00021F40 / gl_func_000223DC registry inserts.
-//
-//   void gl_func_0002349C(int id) {
-//     S *g = &D_0;
-//     g->h_23FA = -1;                                   // clear marker
-//     if (g->h_2406 == id) g->h_2406 = -1;               // clear cur
-//     Node *n = g->w_2308;                               // list base
-//     if (n != 0) {
-//       for (int i = 0; n; i++, n += 0xC) {               // 0xC stride
-//         if (n->h_1E == id) n->h_1E = -1;                // unlink ent
-//       }
-//     }
-//     (*free)(id);                                        // jal 0 USO
-//   }
-//
-// Struct-typing reference: halfwords &D_0+0x23FA and &D_0+0x2406 are
-//   "current/selected id" markers reset (to -1) when they reference
-//   the id being removed (the same 0x23FA halfword the
-//   gl_func_000233E4 buffer-run finalize touches). Word &D_0+0x2308
-//   is the base of a fixed-stride (0xC) node list whose halfword +0x1E
-//   holds an owning id; every node matching `id` has that field
-//   cleared to -1 (unlinked). The actual storage release goes through
-//   a USO-relocated free routine (`jal 0` slot). This is the
-//   teardown/deregister entry of the gl_func_00021F40 / 000223DC /
-//   000221D8 registry family.
-// Caps (DEFERRED): CLEAN single jr $ra. Unregister/free-by-id —
-//   teardown counterpart to the gl_func_00021F40 / 000223DC /
-//   000221D8 registry inserts. Real-C STRUCTURAL body below per the
-//   analysis (set &D_0+0x23FA marker = -1; if &D_0+0x2406 == id
-//   reset it to -1; walk the &D_0+0x2308 node list, 0xC stride,
-//   bound = the &D_0+0x2308 count, clearing every node->0x1E owning
-//   id matching `id` to -1; then jal-0 USO-reloc free(id)).
-//   2026-05-31: fixed the structure 3.5%->70.8%. The old body cleared
-//   0x23FA UNCONDITIONALLY; correct is `if(id==D[0x23FA]) D[0x23FA]=-1;
-//   else if(id==D[0x2406]) D[0x2406]=-1;` + a do-while node loop whose
-//   count D[0x2308] is RELOADED per-iter (uncached). Residual: the
-//   D[0x23FA] compare-load (lui t6; lh t6,0x23FA) is a STOLEN PROLOGUE in
-//   the predecessor — my C emits it inline (+2 insns); needs an orphan
-//   merge for the last mile. Plus the bnel unlink-loop schedule + reg
-//   alloc. Name pre-checked: gl_func_00000000 = USO placeholder for free.
+/* game_libs_func_00023494: full 0xA8/42-word unregister-by-id entry.
+ * Merged 2026-09-09: its two-word lh head supplies t6 to the old 2349C
+ * body. Neither offset is exported, but the original direct jal at
+ * ROM 0xE08534 targets module Text+0x37B00 (splat 0x23494), not 2349C.
+ * Clear matching current/selected short IDs, then scan 12-byte-stride
+ * records with owner at +0x1E, reloading the count after each store.
+ * The four zero-base aliases preserve independent marker read/store
+ * addressing. An unsigned loop sentinel keeps its -1 value distinct
+ * from the signed immediate temporaries in the two marker branches.
+ * Residual: initial count/address temporaries and loop-register coloring;
+ * objdiff 98.21429%; 42 words, 29/42 raw words exact before relocation
+ * linking. Register hints, independent pointer initializers, sentinel
+ * placement, and 7,312 permuter iterations did not improve that result.
+ * Preserve as NON_MATCHING until the complete original ROM range matches. */
 #ifdef NON_MATCHING
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_0002349C(int id) {
-    char *g = (char *)&D_00000000;
-    int n;
-    if (id == *(short *)(g + 0x23FA)) {
-        *(short *)(g + 0x23FA) = -1;
-    } else if (id == *(short *)(g + 0x2406)) {
-        *(short *)(g + 0x2406) = -1;
+extern char D_23494_read_marker_a, D_23494_read_marker_b, D_23494_write_marker_a, D_23494_write_marker_b;
+void game_libs_func_00023494(int id) {
+    char *g;
+    int i;
+    if (id == *(short *)((char *)&D_23494_read_marker_a + 0x23FA)) {
+        *(short *)(&D_23494_write_marker_a + 0x23FA) = -1;
+    } else if (id == *(short *)((char *)&D_23494_read_marker_b + 0x2406)) {
+        *(short *)(&D_23494_write_marker_b + 0x2406) = -1;
     }
-    n = *(int *)(g + 0x2308);
-    if (n != 0) {
-        char *e = g + 0x2308;
-        int i = 0;
+    g = (char *)&D_00000000 + 0x2308;
+    i = 0;
+    if (*(int *)((char *)&D_00000000 + 0x2308) != 0) {
+        char *e = g;
+        unsigned int sentinel = -1;
         do {
             if (id == *(short *)(e + 0x1E)) {
-                *(short *)(e + 0x1E) = -1;
+                *(short *)(e + 0x1E) = sentinel;
             }
             i++;
             e += 0xC;
-        } while ((unsigned)i < *(unsigned int *)(g + 0x2308));
+        } while ((unsigned)i < *(unsigned int *)g);
     }
     gl_func_00000000(id);
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023494);
 #endif
 
 
@@ -6141,7 +6105,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002349C);
  * are ONE routine: IDO hoists the leading global load above the prologue to
  * 0x2353C, and the body reuses $v0(=&D) as the store base (`addu t8,v0,t7`) — &D
  * is CSE-shared across the D[0x215C] read and the a0*0x160 store. Predecessor
- * gl_func_0002349C ends with its own jr ra, so 0x2353C is the true entry (not a
+ * game_libs_func_00023494 ends with its own jr ra, so 0x2353C is the true entry (not a
  * donated tail). The earlier note framed this as a now-banned PROLOGUE_STEALS/
  * SUFFIX cap; the clean symbol-merge is the real fix (cf. game_uso_func_00010648).
  * a0*0x160 = ((a0*4 - a0)*4 - a0)*32 (sll/subu chain). */

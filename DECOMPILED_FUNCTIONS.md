@@ -55,6 +55,11 @@ regress during the O1/O2 file split, restore from the sources listed.
 
 ## Fragment Merges Performed
 
+- 2026-09-09: `gl_func_0002349C` merged into its two-word head
+  `game_libs_func_00023494` (0xA8/42 words). The head loads the short
+  ID used immediately by the body. Both lack exports, but the original
+  direct jal at ROM 0xE08534 targets the head (module Text+0x37B00).
+
 - 2026-09-09: the two-word timproc b1 orphan at 0x19B8 was merged into
   historical `timproc_uso_b1_func_000019C0` (now 0xAC bytes). timproc.uso
   Sym163 exports 0x19B8 and TextReloc 0x18DC/0x1910 target it; 0x19C0

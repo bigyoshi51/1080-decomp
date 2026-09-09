@@ -3491,3 +3491,8 @@ gl_func_00000000_sinf6f = 0x00000000;  /* sinf = game_libs_func_0006A144 fsin (b
 gl_func_00000000_cosf6f = 0x00000000;  /* cosf = gl_func_00070FCC fcos (blank jal) -- 6F684 guPositionF donor */
 game_libs_func_0006F684_rodata = 0x000024D0;  /* guPositionF `dtor` float literal (pi/180 = 0x3C8EFA35) in the bootup.uso rodata; donor-local .rodata reloc renamed by replace-function-body.py */
 game_libs_func_0006F684_bss = 0x00044030;  /* guPositionF `static float dtor` -- IDO -O3 writes the initialiser into .bss on entry; donor-local .bss reloc renamed by replace-function-body.py */
+gl_func_0002349C = 0x0002349C; /* retired internal offset; real function entry is 23494 */
+D_23494_read_marker_a = 0;
+D_23494_read_marker_b = 0;
+D_23494_write_marker_a = 0;
+D_23494_write_marker_b = 0;
