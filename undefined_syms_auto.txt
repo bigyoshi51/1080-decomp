@@ -3480,7 +3480,7 @@ gl_func_00000000_setsr = 0x00000000;  /* __osSetSR (blank jal) -- 6C484 donor */
 gl_func_00000000_setfpccsr = 0x00000000;  /* __osSetFpcCsr (blank jal) -- 6C484 donor */
 gl_func_00000000_sirawreadio = 0x00000000;  /* __osSiRawReadIo (blank jal) -- 6C484 donor */
 gl_func_00000000_sirawwriteio = 0x00000000;  /* __osSiRawWriteIo (blank jal) -- 6C484 donor */
-gl_func_00000000_wbdcache = 0x00000000;  /* osWritebackDCache = game_libs_func_0006C400 (blank jal; in-unit callee named via a blank import so the word stays 0C000000) -- 6C484 donor */
+gl_func_00000000_wbdcache = 0x00000000;  /* osWritebackDCache = game_libs_func_0006C400 (true entry 0x6C404, leading word = 6C384 pad; blank jal; in-unit callee named via a blank import so the word stays 0C000000) -- 6C484 donor */
 gl_func_00000000_invalicache = 0x00000000;  /* osInvalICache (blank jal) -- 6C484 donor */
 gl_func_00000000_maptlbrdb = 0x00000000;  /* osMapTLBRdb (blank jal) -- 6C484 donor */
 gl_func_00000000_pirawreadio = 0x00000000;  /* osPiRawReadIo (blank jal) -- 6C484 donor */

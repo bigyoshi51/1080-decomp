@@ -19,22 +19,19 @@ typedef struct { int field0; int pri; int queue; int pad0C; unsigned short state
 
 /* game_libs_func_0006C400 = libultra osWritebackDCache (os/
  * writebackdcache.s) -- HANDWRITTEN (cache 0x19 HIT_WRITEBACK_D loop,
- * 16-byte lines, with the size>=0x2000 guard branching into the ALL
- * variant below, leaving li t3,0x2000 live across the boundary).
- * IDO C cannot emit the cache op; permanent INCLUDE_ASM. */
+ * 16-byte lines; the size>=0x2000 guard `bgeu a1,t3` branches to the
+ * whole-cache label L_50 at 0x6C454: `li t0,KUSIZE; addu t1,t0,t3; addiu
+ * t1,-16; cache 0x1 INDEX_WRITEBACK_INVALIDATE_D loop; jr ra`, 9 words to
+ * 0x6C478). MERGED 2026-09-09 (agent-g): the old game_libs_func_0006C454
+ * 0x24 `.s` was that in-LEAF tail (section 0x80AC0 NOT exported, no baked
+ * jal, t3=0x2000 live across the cut) and is retired; this symbol is now
+ * 0x78. True entry = 0x6C404 = section 0x80A70 = export sym 1395 (4 jal
+ * refs); the leading zero word 0x6C400 is the previous object's
+ * (gl_func_0006C384, its own unit TRUNCATE_TEXT 0x7C) inter-object pad,
+ * kept in this `.s` because it sits at the unit start (re-homing it means
+ * a cross-unit relayout). Not osWritebackDCacheAll (= game_libs_func_
+ * 00074864). IDO C cannot emit the cache op; permanent INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C400);
-
-/* game_libs_func_0006C454 = the whole-cache TAIL of osWritebackDCache
- * (libreultra os/writebackdcache.s label L_50: `li t0,KUSIZE; addu t1,t0,t3;
- * addiu t1,-16; cache 0x1 INDEX_WRITEBACK_INVALIDATE_D loop; jr ra`) -- NOT
- * osWritebackDCacheAll (that is game_libs_func_00074864, export sym 1311).
- * Identity corrected 2026-09-09 (agent-g) by the Sym oracle: section
- * 0x80AC0 is NOT exported and has no baked jal, while 6C404's 0x80A70 is
- * export sym 1395; the `bgeu a1,t3` guard in 6C404 branches here inside the
- * same LEAF, which is why t3=0x2000 is "live across the boundary". One
- * handwritten function 6C404..6C478 mis-split in two .s; both stay
- * INCLUDE_ASM (cache op), boundary noted, not merged. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006C454);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006C384_pad.s")
 
 /* gl_func_0006C484 = libultra osInitialize (os/initialize.c verbatim),
@@ -717,37 +714,36 @@ void game_libs_func_0006F218(int *a0, int a1, int a2) {
     }
 }
 
-/* game_libs_func_0006F250 = libultra osInvalICache (os/invalicache.s,
- * HANDWRITTEN: `blez a1; li t3,0x4000 ICACHE_SIZE; bgeu a1,t3 -> all-loop;
- * cache 0x10 HIT_INVALIDATE_I over 32-byte lines`). Sym oracle 2026-09-09
- * (agent-g): true entry 0x6F254 = section 0x838C0 = export sym 1590 (two jal
- * refs at 0x49314 / 0x80C68); the leading zero word at 0x6F250 (0x838BC, not
- * exported) is the previous object's 16-byte pad (twenty-sixth mis-split
- * class). Stays INCLUDE_ASM (cache op). */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F250);
-
-/* game_libs_func_0006F2A4 = the whole-cache TAIL of osInvalICache (label 3:
+/* game_libs_func_0006F254 = libultra osInvalICache (os/invalicache.s,
+ * HANDWRITTEN: `blez a1; li t3,0x4000 ICACHE_SIZE; bgeu a1,t3 -> label 3;
+ * cache 0x10 HIT_INVALIDATE_I over 32-byte lines`; label 3 at 0x6F2A4 =
  * `li t0,KUSIZE; addu t1,t0,t3; addiu t1,-32; cache 0x0 INDEX_INVALIDATE_I
- * loop; jr ra`), reached by 6F254's `bgeu a1,t3` guard with t3=0x4000 live.
- * Section 0x83910 NOT exported, no baked jal: same LEAF, mis-split .s. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F2A4);
+ * loop; jr ra`, ending 0x6F2C8). Sym oracle 2026-09-09 (agent-g): entry
+ * 0x6F254 = section 0x838C0 = export sym 1590 (two jal refs at 0x49314 /
+ * 0x80C68); 0x83910 (the old game_libs_func_0006F2A4 tail `.s`) is NOT
+ * exported and has no baked jal -> one LEAF, MERGED here (0x80). The
+ * leading zero word 0x6F250 (0x838BC, not exported) is osCreateMesgQueue's
+ * (game_libs_func_0006F218) 16-byte object pad -> SUFFIX_BYTES_FORCE
+ * game_libs_func_0006F218=0x00000000 in the Makefile; the three zero words
+ * 0x6F2C8..0x6F2D0 are THIS object's trailing pad (kept in the `.s`). Stays
+ * INCLUDE_ASM (cache op). */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F254);
 
-/* game_libs_func_0006F2C8 = libultra osInvalDCache (os/invaldcache.s,
- * HANDWRITTEN: `blez a1; li t3,0x2000 DCACHE_SIZE; bgeu a1,t3 -> 6F35C;
+/* game_libs_func_0006F2D4 = libultra osInvalDCache (os/invaldcache.s,
+ * HANDWRITTEN: `blez a1; li t3,0x2000 DCACHE_SIZE; bgeu a1,t3 -> label 4;
  * cache 0x15 HIT_WRITEBACK_INVALIDATE_D head/tail partial lines, cache 0x11
- * HIT_INVALIDATE_D loop`). Section 0x83934: NOT exported, NOT 16-aligned and
- * no baked jal -- an unreferenced entry that sits unaligned-adjacent to
- * osInvalICache, i.e. the 1080 libultra keeps both in one object. Its guard
- * `beqz at,+0x94` targets 0x6F35C, past this .s's end. Stays INCLUDE_ASM. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F2C8);
-
-/* game_libs_func_0006F35C = the whole-cache TAIL of osInvalDCache (label 4:
- * `li t0,KUSIZE; addu t1,t0,t3; addiu t1,-16; cache 0x1 loop; jr ra`, 9
- * words ending 0x6F37C). Section 0x839C8 NOT exported, no baked jal: same
- * LEAF, mis-split .s. The zero word at 0x6F380 is the object's 16-byte pad
- * before __osSpDeviceBusy (0x6F384 = 0x839F0 = export sym 2524) and is the
- * SUFFIX_BYTES_FORCE game_libs_func_0006F35C=0x00000000 in the Makefile. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F35C);
+ * HIT_INVALIDATE_D loop; jr ra`; label 4 at 0x6F35C = `li t0,KUSIZE; addu
+ * t1,t0,t3; addiu t1,-16; cache 0x1 loop; jr ra`, 9 words ending 0x6F380).
+ * Sym oracle 2026-09-09 (agent-g): entry 0x6F2D4 = section 0x83940 = export
+ * sym 1394 (four jal refs at 0x3BD90 / 0x49308 / 0x7A8A0 / 0x811D0) -- the
+ * earlier "6F2C8, unreferenced, unaligned" note was reading the pad: the old
+ * game_libs_func_0006F2C8 `.s` started with osInvalICache's three pad words.
+ * 0x839C8 (the old game_libs_func_0006F35C tail `.s`) is NOT exported, no
+ * baked jal -> one LEAF, MERGED here (0xAC). The zero word at 0x6F380 is
+ * this object's 16-byte pad before __osSpDeviceBusy (0x6F384 = 0x839F0 =
+ * export sym 2524) = SUFFIX_BYTES_FORCE game_libs_func_0006F2D4=0x00000000
+ * in the Makefile. Stays INCLUDE_ASM (cache op). */
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F2D4);
 
 /* gl_func_0006F38C = libultra __osSpDeviceBusy (sp.c verbatim):
  * return (*SP_STATUS_REG & (DMA_BUSY|DMA_FULL|IO_FULL)) ? 1 : 0.
@@ -756,7 +752,7 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006F35C);
  * into a0 per the register hint, before the addiu-sp prologue; splat
  * split at the prologue). True entry = 0x6F384; spliced symbol covers
  * 0x6F384..0x6F3AC (pads 0x6F380 / 0x6F3B0 via SUFFIX_BYTES_FORCE on
- * game_libs_func_0006F35C / this symbol). This RETIRES the "sp=-8 frame
+ * game_libs_func_0006F2D4 = osInvalDCache / this symbol). This RETIRES the "sp=-8 frame
  * with no stack use has no C trigger" cap -- those sweeps probed the
  * split fragment as a standalone int-arg fn at -O2.
  * WIRED 2026-07-10 via REPLACE_FUNC_BODY donor splice: real C lives in
