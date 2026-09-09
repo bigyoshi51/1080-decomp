@@ -9429,9 +9429,8 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C6C);
  * (a1<<16, high-short-of-pair encoding) and tail-calls alt-entry
  * gl_func_0003B244 (inside gl_func_0003B1AC at +0x98) with (a0, &local, a1).
  *
- * Trailing 9 insns at offsets 0x30-0x53 are alt-entry-prologue donation to
- * successor gl_func_00026CD0: loads `v0=D[0x53B8]`, `a3=D[0x53B9]`, computes
- * a0 = ((v0 - a3) + 0x100) & 0xFF. Successor uses these regs as entry state.
+ * (The 9 insns that followed at 0x26CCC were NOT a donation: they are the
+ * hoisted head of game_libs_func_00026CCC, merged + BYTE-EXACT 2026-09-09.)
  *
  * 42 % NM: missing (a) `sw a1, 0x24(sp)` caller-slot spill (IDO DCE'd), (b)
  * `or a2, a1, 0` explicit move before sll (IDO inlined as `sll t6, a1, 16`),
@@ -9463,79 +9462,45 @@ void gl_func_00026C9C(int a0, int a1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026C9C);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00026CCC);
 #endif
 
-// gl_func_00026CF0 — STRUCTURAL PASS (0x74 / 29 words, no episode).
-// Raw-.word USO form (game_libs). BOUNDARY NOTE: 2-jr USO bundle
-// (named fn + 1 tiny trailing setter) — deferred USO re-split. The
-// named leading fn (~21 words) is a bounds-checked packed-submit
-// helper.
-//
-//   void gl_func_00026CF0(int a0, int a1, int a2, int a3) {
-//     if (a0 >= bound) {                                // range check
-//       *(int*)(&D_0 + 0x2B594) = a0;                    // record OOB
-//       return;
-//     }
-//     int packed = ((a3 & 0xFF) << 8) | (a2 & 0xFF);     // pack bytes
-//     void *p = *(void**)(&D_0 + 0x53CC);                 // global ptr
-//     int r = (*submit)(p, packed, 0);                    // jal 0 USO
-//     if (r != -1) {
-//       byte v = *(byte*)(&D_0 + 0x53B8);
-//       *(byte*)(&D_0 + 0x53B9) = v;                       // promote
-//     }
-//   }
-//
-// Struct-typing reference: a small submit/commit helper. The index
-//   a0 is range-checked; an out-of-range value is recorded to the
-//   diagnostic/assert global &D_0+0x2B594 and the call aborts. The
-//   low bytes of a2/a3 are packed into a 16-bit value ((a3<<8)|a2)
-//   and handed, together with the global object pointer &D_0+0x53CC,
-//   to a USO-relocated submit routine (`jal 0` slot). On success
-//   (result != -1) the state byte &D_0+0x53B8 is promoted into
-//   &D_0+0x53B9 (a committed/last-good shadow). The trailing bundled
-//   fn is its companion 1-line state setter (writes &D_0+0x53B9 /
-//   0x53BA). A state-commit helper in the game_libs subsystem.
-// Caps (DEFERRED): single jr $ra (the "2-fn unsplit bundle" note is
-//   STALE; .s is 0x5C/22 words, ONE function). Small state-commit
-//   helper in the game_libs subsystem. Real-C STRUCTURAL body below
-//   per the analysis (range-check a0 — OOB records to diagnostic
-//   &D_0+0x2B594 and aborts; pack ((a3&0xFF)<<8)|(a2&0xFF); hand to
-//   jal-0 submit(*&D_0+0x53CC,packed,0); on success != -1 promote
-//   the &D_0+0x53B8 state byte into committed shadow &D_0+0x53B9).
-//   Byte-match deferred — placeholder jal-0 submit needs USO reloc
-//   infra. Name pre-checked: no extern reuse (collision-safe).
-//   gl_func_00000000 = canonical never-defined USO placeholder.
-// 2026-07-23 CAP RECLASSIFIED (expected/ .o disasm): CALLER-SET
-//   REGISTER cap, permanent for C. The true target reads $t6 (bound),
-//   $v0 (state byte source operand of the pack: andi t9,v0,0xff — NOT
-//   a2), and $v1 (state base ptr: lw a0,21452(v1)) all UNINITIALIZED
-//   = caller-set state regs (documented game_libs class, see
-//   feedback_caller_set_int_reg_cap). Also: the OOB branch RECORDS
-//   a0 (baked sw to &D+0x1B594) and FALLS THROUGH (no early return),
-//   and the real callee is the 0x1CA10/0x3443C submit family. The
-//   structural body below keeps the honest-C approximation; do not
-//   grind — bytes unreachable from C.
-#ifdef NON_MATCHING
+/* game_libs_func_00026CCC (0x80, 32 words): the 9-word "alt-entry prologue"
+ * game_libs_func_00026CCC orphan + gl_func_00026CF0 are ONE function. bootup.uso
+ * Sym exports text 0x3B338 (= splat 0x26CCC); 0x26CF0 is not exported and has
+ * no reloc/baked-jal reference. The old "caller-set t6/v0/v1 cap" on 26CF0 was
+ * this hoisted head: v1 = held registry base (sym1255 @ Data 0x345C0, addend 0
+ * = D_00000000_345c0), v0/a3 = the two queue bytes +0x53B8/+0x53B9, t6 = the
+ * high-water word at Data base + 0x1B594 (sym2 HI/LO with the addend baked),
+ * a0 = the COMPUTED pending count (cur - committed + 256) & 0xFF.
+ * Enqueue-commit helper: track the high-water pending count, submit
+ * (committed << 8 | cur) with the queue object at +0x53CC, and on success
+ * (!= -1) promote cur into committed. Callee = blank jal (sym1333 = text
+ * 0x7E470 = gl_func_00069E04). */
 extern int gl_func_00000000();
 extern int D_00000000;
-void gl_func_00026CF0(int a0, int a1, int a2, int a3) {
-    char *g = (char *)&D_00000000;
-    int packed, r;
-    (void)a1;
-    if ((unsigned)a0 >= 0x100) {
-        *(int *)(g + 0x2B594) = a0;
-        return;
+extern int D_00000000_345c0;
+/* Lever: the registry base must be spelled INLINE at every site (macro), not
+ * a named `unsigned char *reg = &sym` local -- the named pointer is its own
+ * candidate (a1, dropped at the if-join, per-site lui at/t0 after the call);
+ * the inline address constant is uopt's rematerialised candidate: ONE colour
+ * v1 held across the if-join for the three pre-call reads and re-formed
+ * (lui/addiu) for the post-call lbu/sb pair. `volatile` pointee and a typed
+ * struct pointer both keep the named-candidate shape (20-21 diff words). */
+#define REG_26CCC ((unsigned char *)&D_00000000_345c0)
+void game_libs_func_00026CCC(void) {
+    int cur, committed, n, r;
+
+    cur = REG_26CCC[0x53B8];
+    committed = REG_26CCC[0x53B9];
+    n = (cur - committed + 256) & 0xFF;
+    if (*(int *)((char *)&D_00000000 + 0x1B594) < n) {
+        *(int *)((char *)&D_00000000 + 0x1B594) = n;
     }
-    packed = ((a3 & 0xFF) << 8) | (a2 & 0xFF);
-    r = gl_func_00000000(*(void **)(g + 0x53CC), packed, 0);
+    r = gl_func_00000000(*(void **)(REG_26CCC + 0x53CC), ((committed & 0xFF) << 8) | (cur & 0xFF), 0);
     if (r != -1) {
-        *(unsigned char *)(g + 0x53B9) = *(unsigned char *)(g + 0x53B8);
+        REG_26CCC[0x53B9] = REG_26CCC[0x53B8];
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00026CF0);
-#endif
 
 void game_libs_func_00026D4C(void) {
     *(unsigned char *)((char *)&D_00000000 + 0x53B9) = *(unsigned char *)((char *)&D_00000000 + 0x53B8);
