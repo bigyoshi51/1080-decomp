@@ -184,7 +184,9 @@ int gl_func_0006CB84(int direction, unsigned int devAddr, void *dramAddr, unsign
  * pad word before osEPiReadIo (6CC64); the C body emits its own delay nop,
  * so the pad.s pragma is retired and the single pad word is the all-zero
  * SUFFIX_BYTES_FORCE gl_func_0006CC14=0x00000000 in the Makefile (unit
- * layout unchanged). Body below is a placeholder for the splice. */
+ * layout unchanged). The ASM baseline now includes the delay nop and
+ * alignment word (0x50 total); a size guard skips redundant padding.
+ * Body below is a placeholder for the splice. */
 int gl_func_0006CC14(void *handle) {
     return 0;
 }

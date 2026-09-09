@@ -6,11 +6,16 @@
  * 93.56% NM decode ("2-call helper, D / D_cc14_alias2, volatile spill
  * cross") was this function: both globals are __osPiTable (handle->next @0
  * = __osPiTable; __osPiTable = handle), the sp+0x1C spill is the
- * un-`register`ed saveMask. The tracked .s is 18 words (ends at jr ra) and
+ * un-`register`ed saveMask. The old .s was 18 words (ended at jr ra) and
  * gl_func_0006CC14_pad.s carried the delay nop + the 16-byte inter-object
  * pad word before osEPiReadIo (6CC64 section 0x812D0); the C body emits
  * its own delay nop, so the pad.s pragma is retired and the single pad
  * word is an all-zero SUFFIX_BYTES_FORCE gl_func_0006CC14=0x00000000.
+ * Baseline repair 2026-09-09: the .s now includes both original zero
+ * words (delay slot and alignment) through 6CC60, size 0x50. The old
+ * truncated ASM was rejected by the suffix epilogue check; the recipe
+ * continued, leaving a short baseline. Default builds now use the
+ * size-guarded zero suffix (no-op at 0x50). Compiled C is unchanged.
  * Blank externs (USO load-time relocs, existing pins = 0):
  * D_00000000_pitable = __osPiTable, gl_func_00000000_disint =
  * __osDisableInt, gl_func_00000000_resint = __osRestoreInt. Spliced into
