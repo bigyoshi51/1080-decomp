@@ -28,35 +28,39 @@ typedef struct { int a, b; } Pair2;
 typedef struct { float x, y, z; } Vec3;
 
 
-/* game_libs_func_00070314: 3-insn `mtc0 a0, $11; jr ra; nop` Compare-register
- * write. CP0 access (mtc0) is MIPS3 runtime — IDO C can't emit CP0 ops from
- * standard C. CAP class per reference_1080_mips3_runtime_helpers. Default
- * INCLUDE_ASM remains byte-exact. */
+/* game_libs_func_00070314 = libultra __osSetCompare (`mtc0 a0,$11; jr ra;
+ * nop`, handwritten os/setcompare.s -- CP0 access is not emittable from IDO
+ * C). Its .s now carries the 4th (zero) word 0x70320: that word is THIS
+ * object's 16-byte inter-object pad (0xC -> 0x10), not bcopy's leading nop
+ * (twenty-sixth mis-split case, docs/MATCHING_WORKFLOW
+ * #leading-nop-cap-is-inter-object-pad-sym-oracle-74844). Oracle: section
+ * 0x84980 (= 0x70314) exported sym 2639 (2 R_MIPS_26 refs), 0x8498C not.
+ * Default INCLUDE_ASM remains byte-exact. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070314);
 
-/* game_libs_func_00070320: 194-insn (0x308) memmove/memcpy with overlap +
- * alignment dispatch. BOUNDARY MERGED 2026-06-02: a multi-path/multi-exit
- * routine (forward-copy, backward-copy, word-aligned, byte paths — several
- * internal `jr ra` exits) that splat carved into three symbols (70320 head +
- * 70398 middle + 70508 tail). 70320 branches forward to 0x704BC (in 70398);
- * 70398/70508 branch backward to 0x70370/0x704D8 (inside this body). Absorbed
- * 70398+70508 (0x78 -> 0x308); dropped both symbols (no external callers). All
- * branches verified in-range; ends at 0x70628 (pre-existing 0xC align pad
- * before gl_func_00070634). Reloc-blind USO; stays INCLUDE_ASM.
- * IDENTIFIED 2026-07-30 = libultra bcopy, HANDWRITTEN ASM
- * (references/libreultra/src/libc/bcopy.s): structure matches line-for-line
- * (move a3,a1 dst save; beqz/beq early rets; forwards/backwards split;
- * blt 16 bytecopy; andi 0x3 align dispatch with forw_copy2/copy3 lh/lb
- * prefixes; 32/16-byte lw burst loops; return a3=dst). bcopy is an
- * ASM-ONLY file in every libultra distribution (no C source exists);
- * the macro-expanded blt/bge with likely-swapped branches (0x54200008
- * bnezl / 0x50200004 beqzl filling delay from target) and the multiple
- * internal jr-ra exits are assembler output, not IDO C shape.
- * PERMANENT C-unmatchable cap (handwritten-asm class, same as the mtc0
- * helper above). The C body below is a faithful memmove for the NM path
- * only; do not burn ticks trying to match it. */
+/* game_libs_func_00070324 = libultra bcopy (HANDWRITTEN, libc/bcopy.s), 193
+ * insns (0x304). BOUNDARY CORRECTED 2026-09-09 (agent-g): the old
+ * "game_libs_func_00070320" symbol (0x308) started with __osSetCompare's pad
+ * word; bootup.uso's Sym export table puts the entry at section 0x84990
+ * (= 0x70324) under TWO symbols, 2378 (3 R_MIPS_26 refs) and 2642 (none) --
+ * exactly bcopy.s's `.weakext bcopy _bcopy` pair -- and 0x8498C is not
+ * exported. Splat's 2026-06-02 boundary merge (70320 head + 70398 middle +
+ * 70508 tail, several internal `jr ra` exits) stands; only the entry moved.
+ * Identity re-verified against references/libreultra/src/libc/bcopy.s word
+ * by word from the first non-zero word: `move a3,a1; beqz/beq early rets;
+ * blt/bge forwards-vs-backwards split (assembler macro expansions with
+ * likely-branch target-copy fills 0x54200008 / 0x50200004); blt 16 byte
+ * copy; andi 3 align dispatch with forw_copy2/copy3 lh/lb prefixes; 32/16/4-
+ * byte lw bursts; backwards mirror; return a3`. Two decisive non-C tells:
+ * the trapping `add v0,a0,a2` / `add a0,a0,a2` / `add a1,a1,a2`
+ * (0x00861020 etc. -- IDO only ever emits addu for pointer/int adds at any
+ * opt level) and the multiple interior `jr ra` exits. The orchestrator's
+ * "memmove.c-class" hypothesis is moot: libultra has no C memmove; bcopy is
+ * an asm-only file in every distribution. PERMANENT C-unmatchable
+ * (handwritten-asm class); the NM body below is a faithful memmove for the
+ * NM path only. Do not burn ticks trying to match it. */
 #ifdef NON_MATCHING
-void *game_libs_func_00070320(void *src0, void *dst0, s32 n) {
+void *game_libs_func_00070324(void *src0, void *dst0, s32 n) {
     char *s = src0;
     char *d = dst0;
     void *ret = dst0;
@@ -202,7 +206,7 @@ void *game_libs_func_00070320(void *src0, void *dst0, s32 n) {
 }
 
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070320);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070324);
 #endif
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070244_pad.s")
 
