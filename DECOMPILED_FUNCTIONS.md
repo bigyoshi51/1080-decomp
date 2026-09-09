@@ -55,6 +55,12 @@ regress during the O1/O2 file split, restore from the sources listed.
 
 ## Fragment Merges Performed
 
+- `gl_func_0004B2FC` merged into `game_libs_func_0004B2F4`: the two
+  hoisted instructions load global render flags, not an incoming argument.
+  Sym[1898] exports Text+0x5F960, with DataReloc+0x1FBA0 referencing it;
+  Text+0x5F968 is internal. Combined original span: 0x32C / 203 instructions.
+  Full matrix/graphics submission reconstructed as NON_MATCHING C.
+
 - 2026-09-09: `gl_func_00042484` merged into its two-word hoisted head
   `game_libs_func_0004247C` (0x5C/23 words), based on agent-c's merge.
   bootup.uso Sym1935 exports Text+0x56AE8; TextReloc 0x588B8/0x588BC

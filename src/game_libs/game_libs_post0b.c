@@ -18726,93 +18726,84 @@ int *gl_func_0004B0A8(int *arg0, char *arg1) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004B0A8);
 #endif
 
-/* game_libs_func_0004B2F4 (0x32C, 203 words) = the old 2-word orphan
- * game_libs_func_0004B2F4 + gl_func_0004B2FC, merged 2026-09-09 (agent-c).
- * bootup.uso Sym table exports section offset 0x5F960 = splat 0x4B2F4 (ROM
- * 0xE303CC - 0xDD0A6C) as sym1898 (also a DataReloc target @0x1FBA0 = a
- * function-pointer table entry); 0x5F968 = 0x4B2FC is NOT exported. The
- * `lui t6; lw t6,0x1C4(t6)` orphan is the successor's hoisted first
- * statement: the render-flags read at D+0x1C4 (sym154), scheduled above
- * `addiu sp`. The old wrap decoded it as a 4-arg "weighted-blend kernel";
- * the function takes ONE parameter (self, homed at 0xC0(sp) and reloaded
- * for the last call).
- *
- * Body (the gl_func_00048AEC sibling's kit): if (flags & 1) { tmp = A * B
- * (guMtxCatF triple loop: A = float[4][4] at D+0xA0, B = *(D+0xE4); the
- * k loop fully unrolled, the j loop rotated with beql/bnel, tmp[i][j]
- * memory-resident at sp+0x74); guMtxF2L-ish f(tmp, &SYM4+0x3C8A0);
- * obj = (*(D+0x254))->0x158 (s0); fl = D+0x1F4; slot = Mtx pool alloc
- * (obj->0x3C: idx++ then pool[0] + idx*64); f(&SYM4+0x3C8A0, slot);
- * G_MTX packet {0x01000000 | (((fl|2)&0xFF)<<16) | 0x40, f(slot)}; obj
- * re-read; SETPRIMCOLOR packet {0xFA000100, (u32)(D[0x24C]*255.0f) &
- * 0xFF}; obj re-read (before the call); r = f(self->0x40->0x60); G_DL
- * packet {0x06000000, r}. } Relocs: D+0x1C4/0xA0/0xE0/&D held base for
- * 0xE4/0x254/0x1F4/0x24C are sym154 (the flag read through the zero
- * alias D_00000000_g so the hoisted head keeps its own lui next to the
- * held `lui t3; addiu t3,0` base, 349E0 rule); the two 0x3C8A0 words are
- * HI16/LO16 against sym4 (an import, value 0 -> the sibling's
- * D_00000000_i with the addend baked, call-separated so no alias); the
- * four jals are TU-local baked words to gl_func_00034458 (0x0C00D116).
- *
- * NM on the merged symbol (standalone 204/203 words, 88 word diffs, all
- * register colouring; frame 0xD0 vs 0xC0): the head, the whole 4x4
- * matmul (words 8-85 incl. the rotated j loop), the calls, the u32
- * float conversion and the tail are word-exact once the G_MTX word is
- * spelled UNFOLDED as `0x01000000 | (x << 16) | 0x40` (the gbi _SHIFTL
- * order: IDO does not reassociate the two constants around the shifted
- * term -> `or t8,t7,at; ori t9,t8,0x40`; folding gives one `lui/ori at`).
- * Residual: (1) `fl` is a candidate coloured a2 in the target (loaded
- * `lw a2,0x1F4(t3)`, spilled `sw a2,0x64(sp)` in the jal delay, reloaded
- * into a2) but memory-homed at definition here (`lw t9; sw t9,0x70(sp)`,
- * reloaded into a t-temp) in function-scope, block-scope and inline
- * spellings; (2) the packet/alloc temps colour g-before-i here (alloc
- * g=a2/i=v1, G_MTX g=v1/i=a1/p=t0, PRIM g=v1/i=a1/p=a2, DL g=v1/i=a0)
- * where the target has i-before-g (v1/v0/slot a1, v1/v0/a3, a2/v1/a1,
- * a0/v1/a1) -- the IDO_CODEGEN#packet-macro-scope-colouring-4cdb0 class,
- * block-scope i-first (which cracked 4CDB0's E9 packet) does not flip it
- * here; (3) the t-ring names downstream of (1)/(2) and the +0x10 frame
- * (tmp at 0x90 vs 0x74, spills 0x70/0x74/0x58 vs 0x64/0x60/0x4C). */
+/* game_libs_func_0004B2F4: complete 203-instruction graphics submission.
+ * Sym[1898] exports module Text+0x5F960, referenced by DataReloc+0x1FBA0;
+ * the former gl_func_0004B2FC was an internal split after the flag load.
+ * Global bit 0 gates a 4x4 matrix product, float matrix copy, guMtxF2L,
+ * and G_MTX / G_SETPRIMCOLOR / G_DL commands. The final two calls are
+ * osVirtualToPhysical, not rendering callbacks. NON_MATCHING 95.36453%
+ * (160/203 raw words exact): allocation temps and scheduling differ.
+ * The 0xC0 frame and matrix/flags/fixed/command stack homes now agree.
+ * Tried shared/fresh pool temps, postincrement/direct loads, register and
+ * call-return variants, flag-update shapes, and declaration order. A bounded
+ * permuter search suggested the two-stage byte shift; retained only this
+ * equivalent expression, not its uninitialized-store/empty-condition edits.
+ * Zero-valued link aliases preserve the ROM's runtime relocation addends.
+ */
 #ifdef NON_MATCHING
-#define OBJ_4B2F4() (*(char **)(*(char **)((char *)&D_00000000 + 0x254) + 0x158))
-#define GFX_4B2F4(o) (*(char **)((o) + 0xC))
-#define PACKET_4B2F4(obj, w0, w1) \
-    { int i = *(int *)(GFX_4B2F4(obj) + 4); char *g = GFX_4B2F4(obj); unsigned int *p; *(int *)(g + 4) = i + 1; \
-    p = (unsigned int *)(*(char **)GFX_4B2F4(obj) + i * 8); p[0] = (w0); p[1] = (w1); }
-void game_libs_func_0004B2F4(char *self)
-{
-    float tmp[4][4];
-    float (*mf)[4];
-    float (*nf)[4];
-    int i, j, k;
-    char *obj; char *slot; int flags; int r;
-    if (*(int *)((char *)&D_00000000_g + 0x1C4) & 1) {
-        mf = (float (*)[4])((char *)&D_00000000 + 0xA0);
-        nf = *(float (**)[4])((char *)&D_00000000 + 0xE4);
+extern char D_4B2F4_flags, D_4B2F4_state, D_4B2F4_matrix, D_4B2F4_fixed;
+extern void F_4B2F4_copy(f32 (*)[4], void *);
+extern void F_4B2F4_pack(void *, void *);
+extern u32 F_4B2F4_phys(void *);
+extern u32 F_4B2F4_list(void *);
+#define W(p, o) (*(s32 *)((char *)(p) + (o)))
+#define P(p, o) (*(char **)((char *)(p) + (o)))
+void game_libs_func_0004B2F4(char *arg0) {
+    s32 i, j, k;
+    f32 mtx[4][4];
+    f32 (*a)[4];
+    f32 (*b)[4];
+    char *g;
+    s32 flags;
+    char *fixed;
+    char *ctx;
+    s32 slot1, slot2, slot3;
+    u32 *cmd1;
+    s32 slot4;
+    u32 *cmd2, *cmd3;
+    u32 list;
+    /* IDO retains arg0's address-taken stack home; no emitted call. */
+    if (0) F_4B2F4_list(&arg0);
+    if (W(&D_4B2F4_flags, 0x1C4) & 1) {
+        g = &D_4B2F4_state;
+        b = *(f32 (**)[4])(g + 0xE4);
+        a = (f32 (*)[4])(&D_4B2F4_matrix + 0xA0);
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
-                tmp[i][j] = 0.0f;
+                mtx[i][j] = 0.0f;
                 for (k = 0; k < 4; k++) {
-                    tmp[i][j] += mf[i][k] * nf[k][j];
+                    mtx[i][j] += a[i][k] * b[k][j];
                 }
             }
         }
-        gl_func_00034458(tmp, (char *)&D_00000000_i + 0x3C8A0);
-        obj = OBJ_4B2F4();
-        flags = *(int *)((char *)&D_00000000 + 0x1F4);
-        { int i = *(int *)(*(char **)(obj + 0x3C) + 4); char *g = *(char **)(obj + 0x3C); *(int *)(g + 4) = i + 1;
-          slot = *(char **)(*(char **)(obj + 0x3C)) + i * 64; }
-        gl_func_00034458((char *)&D_00000000_i + 0x3C8A0, slot);
-        PACKET_4B2F4(obj, 0x01000000 | (((flags | 2) & 0xFF) << 16) | 0x40, gl_func_00034458(slot));
-        obj = OBJ_4B2F4();
-        PACKET_4B2F4(obj, 0xFA000100, (unsigned int)(*(float *)((char *)&D_00000000 + 0x24C) * 255.0f) & 0xFF);
-        obj = OBJ_4B2F4();
-        r = gl_func_00034458(*(int *)(*(char **)(self + 0x40) + 0x60));
-        PACKET_4B2F4(obj, 0x06000000, r);
+        F_4B2F4_copy(mtx, &D_4B2F4_fixed + 0x3C8A0);
+        g = &D_4B2F4_state;
+        ctx = P(P(g, 0x254), 0x158);
+        flags = W(g, 0x1F4);
+        slot1 = (*(s32 **)(ctx + 0x3C))[1]++;
+        fixed = P(P(ctx, 0x3C), 0) + (slot1 << 6);
+        F_4B2F4_pack(&D_4B2F4_fixed + 0x3C8A0, fixed);
+        flags |= 2;
+        slot2 = (*(s32 **)(ctx + 0xC))[1]++;
+        cmd1 = (u32 *)(P(P(ctx, 0xC), 0) + slot2 * 8);
+        cmd1[0] = ((((u32)flags & 0xFF) << 8) << 8) | 0x01000000 | 0x40;
+        cmd1[1] = F_4B2F4_phys(fixed);
+        g = &D_4B2F4_state;
+        ctx = P(P(g, 0x254), 0x158);
+        slot3 = (*(s32 **)(ctx + 0xC))[1]++;
+        cmd2 = (u32 *)(P(P(ctx, 0xC), 0) + slot3 * 8);
+        cmd2[0] = 0xFA000100;
+        cmd2[1] = (u32)(*(f32 *)(g + 0x24C) * 255.0f) & 0xFF;
+        ctx = P(P(g, 0x254), 0x158);
+        list = F_4B2F4_list(P(P(arg0, 0x40), 0x60));
+        slot4 = (*(s32 **)(ctx + 0xC))[1]++;
+        cmd3 = (u32 *)(P(P(ctx, 0xC), 0) + slot4 * 8);
+        cmd3[0] = 0x06000000;
+        cmd3[1] = list;
     }
 }
-#undef OBJ_4B2F4
-#undef GFX_4B2F4
-#undef PACKET_4B2F4
+#undef W
+#undef P
 #else
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0004B2F4);
 #endif
