@@ -31395,9 +31395,62 @@ void gl_func_0005D628(char *arg0, char *arg1, char *arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D628);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D754);
+/* game_libs_func_0005D754 -- MERGED 2026-09-09 (agent-c): the 3-word orphan
+ * `lui at,0x4000; mtc1 at,$f4; lwc1 $f2,0x1C(a0)` was the hoisted 2.0f
+ * constant + first quaternion load of gl_func_0005D760 (splat mis-split;
+ * 0x5D754 IS the export, sym1703, jal'd from text 0x4DF6C/0x4DFDC/0x548F4/
+ * 0x54958/0x54C48/0x55028; 0x5D760 is a mid-function word). 109 words,
+ * BYTE-EXACT; gl_func_0005D760 INCLUDE_ASM + .s retired.
+ *
+ * Quaternion (+0x18..0x24) * uniform scale (+0xC) + translation (+0..8) ->
+ * column-major 4x4 float matrix. The nine 2*q*q products are named locals
+ * (homed top-down in declaration order at sp+0x24..0x4, reloaded at every
+ * use), the quaternion reads are inline expression temps (loaded in place,
+ * y/z/x held in $f2/$f0/$f12), scale is re-read from the struct per term
+ * (the m stores may alias), and `1.0f - xx` is CSE'd between m[1][1] and
+ * m[2][2]. TWO_5D754 = (0, (float)2): `(float)2` defeats cfe's
+ * `2.0f * x -> x + x` fold (the ROM has `mtc1 2.0; mul.s`), and the comma
+ * makes the constant an expression operand so uopt orders it FIRST
+ * (`mul.s $f18,$f4,$f2` = 2.0 * y); a bare literal/cast gives load-first
+ * (4 words off). See docs/IDO_CODEGEN.md#comma-constant-const-first-mul-5d754. */
+#define TWO_5D754 (0, (float)2)
+typedef struct {
+    float tx, ty, tz;    /* 0x00 translation */
+    float s;             /* 0x0C uniform scale */
+    float w10, w14;
+    float qx, qy, qz, qw; /* 0x18 quaternion */
+} Xform5D754;
+void game_libs_func_0005D754(Xform5D754 *o, float m[4][4]) {
+    float yy = TWO_5D754 * o->qy * o->qy;
+    float zz = TWO_5D754 * o->qz * o->qz;
+    float xx = TWO_5D754 * o->qx * o->qx;
+    float xy = TWO_5D754 * o->qx * o->qy;
+    float xz = TWO_5D754 * o->qx * o->qz;
+    float yz = TWO_5D754 * o->qy * o->qz;
+    float wz = TWO_5D754 * o->qw * o->qz;
+    float wx = TWO_5D754 * o->qw * o->qx;
+    float wy = TWO_5D754 * o->qw * o->qy;
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D760);
+    m[0][0] = o->s * (1.0f - yy - zz);
+    m[1][0] = o->s * (xy - wz);
+    m[2][0] = o->s * (xz + wy);
+    m[3][0] = 0.0f;
+    m[0][1] = o->s * (xy + wz);
+    m[1][1] = o->s * (1.0f - xx - zz);
+    m[2][1] = o->s * (yz - wx);
+    m[3][1] = 0.0f;
+    m[0][2] = o->s * (xz - wy);
+    m[1][2] = o->s * (yz + wx);
+    m[2][2] = o->s * (1.0f - xx - yy);
+    m[3][2] = 0.0f;
+    m[3][0] = o->tx;
+    m[3][1] = o->ty;
+    m[3][2] = o->tz;
+    m[0][3] = 0.0f;
+    m[1][3] = 0.0f;
+    m[2][3] = 0.0f;
+    m[3][3] = 1.0f;
+}
 
 #ifdef NON_MATCHING
 /* gl_func_0005D908: recursive FP transform-tree combine over three
