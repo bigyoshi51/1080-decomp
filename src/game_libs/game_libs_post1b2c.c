@@ -173,7 +173,15 @@ int gl_func_0006CB84(int direction, unsigned int devAddr, void *dramAddr, unsign
 }
 
 #ifdef NON_MATCHING
-/* gl_func_0006CC14: 18-insn 2-call helper.
+/* gl_func_0006CC14 = libultra osEPiLinkHandle (io/epilinkhandle.c
+ * verbatim): saveMask = __osDisableInt(); handle->next (@0) = __osPiTable;
+ * __osPiTable = handle; __osRestoreInt(saveMask); return 0. VERIFIED
+ * 2026-09-09 (agent-g): 19/19 words (incl. the jr delay nop) byte-exact
+ * standalone at BOTH IDO 7.1 -O1 and 5.3 -O1 with the existing pins
+ * D_00000000_pitable / gl_func_00000000_disint / _resint. Landing needs the
+ * pad.s -> SUFFIX swap described below (the C body already carries the
+ * delay nop the pad.s supplies), then the post1b2c baseline refresh.
+ * gl_func_0006CC14: 18-insn 2-call helper.
  *   r = gl_func(a0);          (first call; a0 homed to sp+0x20 in delay slot)
  *   *a0 = D[0];               (copy global into *a0; a0 reloaded -> t7)
  *   D2 = a0;                  (store original a0 to second global; a0 reloaded
@@ -371,6 +379,13 @@ void gl_func_0006D7CC(unsigned char *pattern, void *data) {
     *pattern = 0;
 }
 
+/* game_libs_func_0006D894 = libultra __osProbeTLB (os/probetlb.s) --
+ * HANDWRITTEN, word-for-word the libreultra LEAF: mfc0 EntryHi / andi ASID /
+ * mtc0 / tlbp / mfc0 Index / tlbr / PageMask + EntryLo0|1 select, with the
+ * trapping `add v0,v0,t5` and the unfilled CP0 hazard nops (IDO never emits
+ * either). Section 0x81F00 is 16-aligned (no inter-object pad in this .s;
+ * the two zero words of game_libs_func_0006D94C are its trailing pad).
+ * Identified 2026-09-09 (agent-g). Permanent INCLUDE_ASM. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006D894);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006D94C);
@@ -928,7 +943,18 @@ int game_libs_func_0006F614(int *a0) {
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_0006F534_pad.s")
 
 #ifdef NON_MATCHING
-/* gl_func_0006F634: 20-insn 2-call + 2-global-state-update.
+/* gl_func_0006F634 = libultra osViSwapBuffer (io/viswapbuf.c verbatim):
+ * saveMask = __osDisableInt(); __osViNext->framep (@4) = frameBufPtr;
+ * __osViNext->state (u16 @0) |= VI_STATE_BUFFER_UPDATED (0x10);
+ * __osRestoreInt(saveMask). VERIFIED 2026-09-09 (agent-g): 20/20 words
+ * byte-exact standalone at BOTH IDO 7.1 -O1 and 5.3 -O1 with the existing
+ * pins D_00000000_vinext / gl_func_00000000_disint / _resint; not landed
+ * only because of the three-function cap of that run. Landing = an -O1
+ * donor game_libs_o1_6F634.c + REPLACE_FUNC_BODY splice over a placeholder
+ * (no pad: game_libs_func_0006F684 follows directly). The decode below is
+ * the older anonymous-globals reading (D_6F634_state = D_6F634_flag =
+ * __osViNext).
+ * gl_func_0006F634: 20-insn 2-call + 2-global-state-update.
  *   v = call(a0);
  *   p_state[1] = a0;          // D_6F634_state is int*; write [1]
  *   *p_flag |= 0x10;          // D_6F634_flag is unsigned short*
