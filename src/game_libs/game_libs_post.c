@@ -6053,50 +6053,64 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000233E4);
 #endif
 
 
-/* game_libs_func_00023494: full 0xA8/42-word unregister-by-id entry.
- * Merged 2026-09-09: its two-word lh head supplies t6 to the old 2349C
- * body. Neither offset is exported, but the original direct jal at
- * ROM 0xE08534 targets module Text+0x37B00 (splat 0x23494), not 2349C.
- * Clear matching current/selected short IDs, then scan 12-byte-stride
- * records with owner at +0x1E, reloading the count after each store.
- * The four zero-base aliases preserve independent marker read/store
- * addressing. An unsigned loop sentinel keeps its -1 value distinct
- * from the signed immediate temporaries in the two marker branches.
- * Residual: initial count/address temporaries and loop-register coloring;
- * objdiff 98.21429%; 42 words, 29/42 raw words exact before relocation
- * linking. Register hints, independent pointer initializers, sentinel
- * placement, and 7,312 permuter iterations did not improve that result.
- * Preserve as NON_MATCHING until the complete original ROM range matches. */
-#ifdef NON_MATCHING
-extern int gl_func_00000000();
-extern int D_00000000;
-extern char D_23494_read_marker_a, D_23494_read_marker_b, D_23494_write_marker_a, D_23494_write_marker_b;
-void game_libs_func_00023494(int id) {
-    char *g;
+/* game_libs_func_00023494 (0xA8, 42 words) = the old 2-word orphan
+ * game_libs_func_00023494 + gl_func_0002349C, merged 2026-09-09 (agent-c).
+ * Neither symbol is in bootup.uso's export table: the function is TU-local,
+ * reached by the BAKED `jal 0x0C00DEC0` (text 0x37B00) in gl_func_000233E4
+ * @0x2345C. The `lui t6; lh t6,0x23FA(t6)` orphan is the hoisted first
+ * compare load, scheduled above `addiu sp` -- not a caller-set register.
+ *
+ * Deregister-by-id: every data access is one record symbol (sym1255 @ Data
+ * 0x345C0) at +0x23FA (current marker), +0x2406 (selected marker) and +0x2308
+ * (node-list base: count at +0, node i's owner id at +0x1E + i*0xC); the free
+ * callee is a blank R_MIPS_26 import (sym1265 = text 0x34154). The target
+ * folds every scalar access under its own `lui` and holds only `&rec+0x2308`
+ * (baked addend) as the loop base, so each site gets its own zero alias
+ * (IDO_CODEGEN#alias-budget-call-free-same-symbol-pair-349e0): D_00000000 for
+ * the head load, D_23494_a/b/c for the two marker stores + the second load,
+ * D_23494_d for the list base (a load AND a store on one symbol also fuse into
+ * a held base, so the stores need their own aliases too).
+ *
+ * Levers (IDO_CODEGEN#loop-constant-web-split-unsigned-carrier-indexed-iv-23494):
+ * (1) the loop's -1 must be a DIFFERENT u-code constant from the two arm -1s
+ *     or uopt merges all three into one candidate web (`li a2,-1` x3): an
+ *     `unsigned neg = 0xFFFFFFFF` local declared at the top keeps its 32-bit
+ *     identity into uopt (inline 0xFFFFFFFF / ~0u / -1LL / (short) casts are
+ *     cfe-folded to the same short -1; (char)-1 is 0xFF in IDO); the arms stay
+ *     ring temps t7/t9 and the loop constant colours a1;
+ * (2) INDEXED node access `base + i * 0xC + 0x1E` with NO cursor local: uopt
+ *     strength-reduces the IV itself (`or v0,t0`, `addiu v0,v0,12`) and keeps
+ *     `base` (a0, `or a0,t0` above the guard) for the per-iteration count
+ *     reload `lw t3,0(a0)` -- a source-level cursor `e = base` coalesces the
+ *     address into the candidate (a1) and shifts the whole t-ring;
+ * (3) a plain `for (i = 0; i < count; i++)` -- uopt rotates it: the guard
+ *     `beqz` reads the count once through the folded absolute address
+ *     (`lui t1; lw t1,0x2308(t1)`, a separate `n` local puts it in v0), the
+ *     reload inside the loop goes through the held base; `id` copies to a2 in
+ *     the head bne delay by itself. BYTE-EXACT 42/42 standalone.
+ * gl_func_0002349C wrap (70.8) + .s retired. */
+extern int D_23494_a;
+extern int D_23494_b;
+extern int D_23494_c;
+extern int D_23494_d;
+void game_libs_func_00023494(int id)
+{
+    char *base;
     int i;
-    if (id == *(short *)((char *)&D_23494_read_marker_a + 0x23FA)) {
-        *(short *)(&D_23494_write_marker_a + 0x23FA) = -1;
-    } else if (id == *(short *)((char *)&D_23494_read_marker_b + 0x2406)) {
-        *(short *)(&D_23494_write_marker_b + 0x2406) = -1;
+    unsigned neg = 0xFFFFFFFF;
+    if (id == *(short *)((char *)&D_00000000 + 0x23FA)) {
+        *(short *)((char *)&D_23494_a + 0x23FA) = -1;
+    } else if (id == *(short *)((char *)&D_23494_b + 0x2406)) {
+        *(short *)((char *)&D_23494_c + 0x2406) = -1;
     }
-    g = (char *)&D_00000000 + 0x2308;
-    i = 0;
-    if (*(int *)((char *)&D_00000000 + 0x2308) != 0) {
-        char *e = g;
-        unsigned int sentinel = -1;
-        do {
-            if (id == *(short *)(e + 0x1E)) {
-                *(short *)(e + 0x1E) = sentinel;
-            }
-            i++;
-            e += 0xC;
-        } while ((unsigned)i < *(unsigned int *)g);
+    base = (char *)&D_23494_d + 0x2308;
+    for (i = 0; (unsigned)i < *(unsigned int *)base; i++) {
+        if (id == *(short *)(base + i * 0xC + 0x1E)) {
+            *(short *)(base + i * 0xC + 0x1E) = neg;
+        }
     }
     gl_func_00000000(id);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00023494);
-#endif
 
 
 /* game_libs_func_0002353C (0x50): orphan-prologue MERGE of the 0xC stub at
