@@ -626,6 +626,14 @@ D_23494_a = 0x00000000;  /* game_libs_func_00023494 per-site alias of D_00000000
 D_23494_b = 0x00000000;  /* game_libs_func_00023494 per-site alias: +0x2406 selected-marker load */
 D_23494_c = 0x00000000;  /* game_libs_func_00023494 per-site alias: +0x2406 selected-marker store */
 D_23494_d = 0x00000000;  /* game_libs_func_00023494 per-site alias: +0x2308 node-list base (held, addend baked) + guard count load */
+D_41820_a = 0x00000000;  /* game_libs_func_00041820 init counter: sym1800 @0x1F4C8 (held load+store base, post-increment passed to the print) */
+D_41820_b = 0x00000000;  /* game_libs_func_00041820 record pointer: sym805 @0x3EF04 */
+D_41820_c = 0x00000000;  /* game_libs_func_00041820 record: sym154 @0x3C168, addend 0 (two call-separated &-args) */
+D_41820_d = 0x00000000;  /* game_libs_func_00041820 record: sym1799 @0x3C7B0 */
+D_41820_e = 0x00000000;  /* game_libs_func_00041820 record pointer store: sym541 @0x3C050 */
+D_41820_f = 0x00000000;  /* game_libs_func_00041820 record pointer: sym1802 @0x3C7BC */
+D_41820_g = 0x00000000;  /* game_libs_func_00041820 int: sym1671 @0x1EBD0 */
+D_41820_h = 0x00000000;  /* game_libs_func_00041820 record: sym1827 @0x1F748 (stored into the alloc(44) record +0x28) */
 D_6179C_a = 0x00000000;  /* game_libs_func_0006179C run-once countdown: sym2345, addend 0 (held load+store base) */
 D_6179C_b = 0x00000000;  /* game_libs_func_0006179C 64-entry handle table: sym2344, addend 0; &tbl[64] = the baked +0x100 end */
 D_412E8_e = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */

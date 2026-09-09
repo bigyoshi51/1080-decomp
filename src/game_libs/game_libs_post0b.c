@@ -12145,46 +12145,116 @@ void gl_func_000417CC(int *a0) {
     ((void(*)(int))p[0x84/4])(*(short*)((char*)p + 0x80) + (int)a0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00041820);
+/* game_libs_func_00041820 -- MERGED 2026-09-09 (agent-c): the 3-word orphan
+ * `lui v0; addiu v0,0; lw a1,0(v0)` was the hoisted init-counter load of
+ * gl_func_0004182C (splat mis-split; 0x41820 IS the export, sym742, jal'd from
+ * text 0xF414 and a DataReloc fn-table entry @0x1F540; 0x4182C is a
+ * mid-function word). 147 words, frame 0x40, only ra saved; the old 4182C
+ * STRUCTURAL PASS note + .s retired. The "trailing leaf at 0x41A6C" is the
+ * separate matched game_libs_func_00041A6C, not part of this fn.
+ *
+ * Subsystem init driver: prints "init #%d" with the counter POST-INCREMENT
+ * as arg 2 (that is why the head load lands in a1), a 0x17D7 guard on the
+ * absolute kernel import, ~20 blank registrar calls keyed by the
+ * &D+0x1F5F0..0x1F630 string table and Data records (sym73 = the existing
+ * D_00000000_3c740, sym154/805/1799/1802/541/1671/1827 = D_41820_a..h), two
+ * alloc(N) records with field init, three attach(self+0x10, e) blocks each
+ * followed by `if (e->0x14) e->4 = 1; e->0x14 = self;`, and the same
+ * self->0x28->fn_0x64(self + short 0x60) callback tail as gl_func_000417CC.
+ * All 20 callees are R_MIPS_26 imports (blank jal): sym76/306/1821/1822/61/
+ * 1587/1823/808/627/1815/113/1824/1825/144/1580/1826/153.
+ *
+ * NM 2026-09-09 (agent-c): 96/147 words exact in the standalone strict diff
+ * (head 0x0-0xd4 word-exact incl. the 0x17D7 beq and the 0x10 scratch).
+ * Levers that landed: D_41820_a++ AS THE PRINT ARGUMENT (named `n` + `n+1`
+ * store colours the same a1 but must be passed), ONE pointer var `q` for the
+ * alloc(20) record / both attach targets (they share home 0x30 and colour),
+ * `int local[3]` (12-byte aggregate pinned at the frame top 0x34..0x3C gives
+ * the 0x40 frame), `p` and `obj`/`arg` named (dead homes 0x28/0x24/0x20,
+ * p at 0x1c). RESIDUAL = one colour slot: the target colours q=a2 / r2=a3
+ * and the self reloads v0/v1, the build q=a1 / r2=a2 and t-temps -- some
+ * candidate occupies a1 across the middle in the original (n's web dies at
+ * the first call in every spelling; `if (n) {}` keep-alives spill n+1
+ * instead); plus the tail evaluates `self + short` BEFORE loading the fn
+ * pointer with a nop jalr delay (build loads fn first and fills the delay
+ * with the addu; fn-local, arg-local, q-reuse, inline all give the same),
+ * so the build is 4 bytes SHORTER (146 vs 147 words). objdiff 94.59. */
+#ifdef NON_MATCHING
+extern int gl_func_00000000();
+extern int D_00000000;
+extern int D_41820_a;         /* sym1800 @0x1F4C8 init counter */
+extern int import_80000310;   /* sym1820 absolute kernel global, 0x17D7 guard */
+extern int D_41820_b;         /* sym805 @0x3EF04 record pointer */
+extern int D_00000000_3c740;  /* sym73 */
+extern int D_41820_c;         /* sym154 @0x3C168 */
+extern int D_41820_d;         /* sym1799 @0x3C7B0 */
+extern int *D_41820_e;        /* sym541 @0x3C050 record pointer (stored) */
+extern int D_41820_f;         /* sym1802 @0x3C7BC record pointer */
+extern int D_41820_g;         /* sym1671 @0x1EBD0 */
+extern int D_41820_h;         /* sym1827 @0x1F748 */
+void game_libs_func_00041820(char *self) {
+    int local[3];
+    int *q;
+    int *r2;
+    int n;
+    int arg;
+    int *obj;
 
-// gl_func_0004182C — STRUCTURAL PASS (0x244 / 146 words, no episode). Raw-.word
-// USO. realjr=2, regjr=0 → 2-function BUNDLE + BOUNDARY NOTE: named fn ends
-// at the jr at 0x41A64; a tiny trailing leaf at 0x41A6C is just `jr ra; nop`
-// (an empty/no-op stub — DEFERRED USO RE-SPLIT, belongs to the next symbol).
-//
-// Named fn = subsystem-registration init (single prologue frame 0x40, saves
-// ra; cb = jal 0 USO-relocated registrar; string literals &D_0002F5F0..F624):
-//   void gl_func_0004182C(void *a0) {
-//     *(int*)&D_0002.... = 1;                      // set module-active flag
-//     cb(&D_0002F5F0);                              // register entry A
-//     if (*(int*)&D_g == 0x17D7) {                  // version/magic guard
-//       cb(&D_0002F600);
-//       cb(&D_0002F618);
-//     }
-//     cb(*(int*)&D_x, 1);                           // register with state arg
-//     cb(&D_0002F624, 1);
-//     cb(&D_g2, 1);
-//     scratch = 0x10; cb(a0, &scratch);             // register with out-param
-//     cb(&D_..); cb(&D_..);
-//     cb(1); cb(1);
-//     cb(&D_.., 0x64);                              // numeric params
-//     r = cb(0x14);
-//     if (r == 0) { ... }                            // beqz post-register
-//     // ... continued cb registration calls with int params
-//     //     (0x32 / 1 / 0x64 / 0x14 / 0xA ...) keyed by the &D_0002F5xx
-//     //     string table; gated/sequenced as above.
-//   }
-// A one-shot registration driver: flips a module-active global, performs a
-// version-guarded (0x17D7) block of cb registrations keyed by a contiguous
-// string-literal table (&D_0002F5F0/F600/F618/F624), interspersed with
-// numeric-param and out-param cb calls. Family: cb-driven init/registration
-// (siblings gl_func_000415A4 / 00040DE8 / 0003E5E0). Full cb argument list
-// not exhaustively decoded (146-word driver) — the active-flag set, the
-// 0x17D7 version guard, the string-table keys and the cb call shape are
-// exact; per-call numeric params representative. Trailing leaf at 0x41A6C =
-// empty stub (deferred re-split). Caps: &D_g/&D_0002F5xx + cb signatures
-// untyped. Full body INCLUDE_ASM-preserved.
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0004182C);
+    n = D_41820_a;
+    D_41820_a = n + 1;
+    gl_func_00000000((char *)&D_00000000 + 0x1F5F0, n);
+    if (import_80000310 != 0x17D7) {
+        gl_func_00000000((char *)&D_00000000 + 0x1F600);
+    }
+    gl_func_00000000((char *)&D_00000000 + 0x1F618);
+    gl_func_00000000(D_41820_b, 1);
+    gl_func_00000000((char *)&D_00000000 + 0x1F624);
+    gl_func_00000000(&D_00000000_3c740, 1);
+    local[0] = 0x10;
+    gl_func_00000000(self, local);
+    gl_func_00000000(&D_00000000_3c740);
+    gl_func_00000000(&D_41820_c);
+    gl_func_00000000(1);
+    gl_func_00000000(1);
+    gl_func_00000000(&D_41820_d, 100);
+    q = (int *)gl_func_00000000(20);
+    if (q != 0) {
+        q[2] = 10;
+        q[3] = 0;
+        q[0] = gl_func_00000000(40);
+    }
+    D_41820_e = q;
+    gl_func_00000000(1);
+    gl_func_00000000(D_41820_f, 1);
+    gl_func_00000000();
+    *(int *)(self + 0x10) = 0;
+    *(int *)(self + 0x2C) = 0;
+    D_41820_g = 0;
+    q = (int *)D_41820_f;
+    gl_func_00000000((int *)(self + 0x10), q);
+    if (q[5] != 0) q[1] = 1;
+    q[5] = (int)self;
+    q = (int *)D_41820_b;
+    gl_func_00000000((int *)(self + 0x10), q);
+    if (q[5] != 0) q[1] = 1;
+    q[5] = (int)self;
+    gl_func_00000000(&D_00000000_3c740);
+    gl_func_00000000(&D_41820_c);
+    r2 = (int *)gl_func_00000000(44);
+    if (r2 != 0) {
+        gl_func_00000000(r2, (char *)&D_00000000 + 0x1F630);
+        r2[10] = (int)&D_41820_h;
+    }
+    gl_func_00000000((int *)(self + 0x10), r2);
+    if (r2[5] != 0) r2[1] = 1;
+    r2[5] = (int)self;
+    obj = (int *)*(int *)(self + 0x28);
+    arg = *(short *)((char *)obj + 0x60) + (int)self;
+    ((void (*)(int))obj[0x64 / 4])(arg);
+}
+#else
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00041820);
+#endif
 
 void game_libs_func_00041A6C(int a0) {}
 
