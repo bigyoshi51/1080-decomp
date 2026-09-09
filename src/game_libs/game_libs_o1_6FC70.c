@@ -64,3 +64,28 @@ void game_libs_func_0006FC70(void)
 		}
 	}
 }
+
+/* gl_func_0006FDE8 = libultra __osSetTimerIntr (same timerintr.c TU,
+ * verbatim). EXACT 29/29 at both 7.1 -O1 and 5.3 -O1. Section 0x84454 =
+ * export sym 2640 (jal'd from __osTimerInterrupt +0xD4 and from 0x87F48 =
+ * osSetTimer). Retires the "4-call cascade w/ 64-bit-add via carry detect,
+ * 64-bit-stack-arg cap" NM decode: the 64-bit add is
+ * `NewTime = tim + __osTimerCounter` (u64 + zero-extended u32, literal-0
+ * high word + sltu carry), the "spilled-but-dead" high word is the -O1
+ * stack home of the u64 local, and the third call is
+ * __osSetCompare((u32)NewTime) -- only the low word is an argument.
+ * Blank imports: gl_disint_6FC70 = __osDisableInt, gl_resint_6FC70 =
+ * __osRestoreInt (pinned 0 in undefined_syms_auto.txt). */
+extern unsigned int gl_disint_6FC70(void);
+extern void gl_resint_6FC70(unsigned int);
+
+void gl_func_0006FDE8(Time6FC70 tim)
+{
+	Time6FC70 NewTime;
+	unsigned int savedMask;
+	savedMask = gl_disint_6FC70();
+	gl_timercounter_6FC70 = gl_getcount_6FC70();
+	NewTime = tim + gl_timercounter_6FC70;
+	gl_setcompare_6FC70(NewTime);
+	gl_resint_6FC70(savedMask);
+}

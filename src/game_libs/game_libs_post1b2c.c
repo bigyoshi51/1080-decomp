@@ -1255,56 +1255,20 @@ void game_libs_func_0006FC70(void)
 	}
 }
 
-#ifdef NON_MATCHING
-/* gl_func_0006FDE8: 29-insn 4-call cascade w/ 64-bit-add via carry detect (0x74, frame 0x28).
- *
- * Decoded structure (raw-word disasm):
- *   func(a0, a1);                                   // 1st call
- *   v0_2 = func();                                  // 2nd call (a0/a1 post-1st-call state)
- *   *D_global = v0_2;                                // store 2nd-call result
- *   // 64-bit add: D_X = D_X + (a0_saved:a1_saved)
- *   {
- *       int low  = *D_X_low + a1_saved;
- *       int carry = ((unsigned)low < (unsigned)a1_saved);
- *       int high = D_X_hi + carry + a0_saved;
- *       // saved to sp+0x20 / sp+0x24 (callsite stack args for func3)
- *   }
- *   func(low, ..., high_via_stack);                  // 3rd call (low in $a0, high at sp+0x20/0x24)
- *   func(v0_2);                                      // 4th call w/ 2nd-call result
- *
- * The 64-bit add via `sltu at, low, addend` + `addu carry, sym_lo` pattern is
- * IDO's standard expansion for `(s64)X = (s64)D + (s64)(a0,a1)` when args
- * 0-1 are an int64 pair (a0=hi, a1=lo).
- *
- * 2026-05-31: 47.9%->73.9% by removing a PHANTOM D_X_hi global (the high part is
- * literal 0, not a global read) + branchless carry. Residual: the 3rd call passes
- * `high` via the stack (sp+0x20) not a1 — the 64-bit-stack-arg convention (frame
- * 0x28 vs 0x20). INCLUDE_ASM remains build path.
- */
-extern int D_global_val;
-extern unsigned int D_X_low;
-/* 64-bit-add helper. X passed as a long long in a0:a1 (hi:lo); adds the
- * 32-bit global D_X_low (zero-extended) producing a 64-bit sum spilled to
- * sp+0x20/0x24. Residual cap: the target spills sum_hi/sum_lo and passes only
- * sum_lo (a0) to the third call (sum_hi spilled-but-dead), which the clean
- * `unsigned long long` add form can't reproduce — the long-long param makes the
- * 64-bit add itself match (carry chain + literal-0 hi word) but reshapes the
- * call convention and global-store ordering (63% vs 74% manual form below). */
-void gl_func_0006FDE8(int a0_hi, unsigned int a1_lo) {
-    int v0_2;
-    unsigned int low;
-    int high;
-    gl_func_00000000(a0_hi, a1_lo);
-    v0_2 = gl_func_00000000();
-    D_global_val = v0_2;
-    low = D_X_low + a1_lo;
-    high = (low < a1_lo) + a0_hi;
-    gl_func_00000000(low, high);
-    gl_func_00000000(v0_2);
+/* gl_func_0006FDE8 = libultra __osSetTimerIntr (os/timerintr.c verbatim,
+ * 0x74): savedMask = __osDisableInt(); __osTimerCounter = osGetCount();
+ * NewTime = tim + __osTimerCounter; __osSetCompare(NewTime);
+ * __osRestoreInt(savedMask). Section 0x84454 = Sym 2640, jal'd from
+ * __osTimerInterrupt (6FC70 +0xD4) and osSetTimer (0x87F48). Retires the
+ * 73.9% "4-call cascade w/ 64-bit-add, 64-bit-stack-arg cap" decode: the
+ * add is u64 + zero-extended u32 (literal-0 hi + sltu carry), the
+ * "spilled-but-dead" hi word is the -O1 stack home of the u64 local, and
+ * the third call takes only the low word (__osSetCompare is u32).
+ * Real C lives in the IDO -O1 donor game_libs_o1_6FC70.c (same TU as
+ * __osTimerInterrupt; 29/29 at both 7.1 and 5.3 -O1), spliced over this
+ * placeholder via REPLACE_FUNC_BODY. Blank imports, pins = 0. */
+void gl_func_0006FDE8(long long tim) {
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0006FDE8);
-#endif
 
 /* gl_func_0006FE5C = libultra __osInsertTimer (timerintr.c verbatim):
  * walk __osTimerList->next subtracting each timer's 64-bit value from
