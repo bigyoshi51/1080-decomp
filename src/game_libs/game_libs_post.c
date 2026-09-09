@@ -15663,68 +15663,50 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002C7A4);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0002CF60);
-
-// gl_func_0002CF70 — STRUCTURAL PASS (0xA4 / 41 words, no episode).
-// Raw-.word USO form (game_libs). CLEAN SINGLE FUNCTION (1 jr, no
-// bundle). A bulk record sweep over the &D_0+0x2D00 sprite-record
-// table (the gl_func_0001FBD4 table).
-//
-//   void gl_func_0002CF70(int a0) {
-//     S *g = &D_0;
-//     int n = g->h_2048;                                // record count
-//     *(int*)(&D_5364) = ((... - a0 - 1) * stride);       // cached calc
-//     if (n == 0) return;
-//     R *rec = (char*)g + 0x2D00;                          // 0x160 ent
-//     for (int i = 0; i < n; i++) {
-//       if (rec->w_0 < 0) {                                // sign-bit on
-//         jal 0x40E10(rec);                                // 0x0C010384
-//         (*handler)(rec);                                 // jal 0 USO
-//       }
-//       n = g->h_2048;                                     // reload cnt
-//       rec += 0x160;                                       // stride
-//     }
-//   }
-//
-// Struct-typing reference: iterates the SAME record table as
-//   gl_func_0001FBD4 / gl_func_0002119C — base &D_0+0x2D00, fixed
-//   stride 0x160, live count halfword &D_0+0x2048. A count-derived
-//   product is cached into the global word &D_5364 up front. Each
-//   record whose word +0 has its sign bit set (active marker) is
-//   processed via the fixed routine 0x0C010384 (≈0x40E10) followed by
-//   a USO-relocated per-record handler (`jal 0` slot). A bulk
-//   "process every active record" sweep over that table (sibling to
-//   gl_func_0001FBD4's lighter callback sweep).
-// Caps (DEFERRED): raw-word USO + fixed-target 0x40E10 + jal-0 USO-
-//   reloc per-record calls — byte-match needs USO mnemonic disasm
-//   + reloc-pad jal infra. Real-C STRUCTURAL body below per the
-//   analysis. Byte-match deferred. Name pre-checked: no extern reuse.
-#ifdef NON_MATCHING
+/* game_libs_func_0002CF60 (0xB4, 45 insns): per-record activate sweep over the
+ * 0x160-stride record table @+0x2D00 of the registry block (bootup.uso Data
+ * sym1255 @0x345C0, addend 0 -> own zero extern D_00000000_345c0; the
+ * 24E28 / 258C0 base). Head: caches (h2040 - a0 - 1) * w2070 into +0x5364.
+ * Loop: for each of the h2048 records whose word0 sign bit is set, call the
+ * baked text jal 0x40E10 (gl_ref_00040E10, mid-body alt-entry of
+ * gl_func_00040DE8 -- the 2D014 callee) then the blank jal sym1414 (text
+ * 0x3DDF8 = gl_func_0002978C); afterwards the blank jal sym1397 (text 0x3C490
+ * = gl_func_00027E24) with no args.
+ *
+ * bootup.uso Sym exports section 0x415CC = splat 0x2CF60 (ROM 0xE12038 -
+ * 0xDD0A6C; jal'd from TextReloc @0x3142C); 0x415DC = 0x2CF70 is NOT
+ * exported. The 4-word orphan `lui v1; addiu v1; lh t6,0x2040(v1);
+ * lw t9,0x2070(v1)` was the hoisted head of the +0x5364 store scheduled
+ * above `addiu sp` (the "cached calc" of the old gl_func_0002CF70 wrap, 60.3);
+ * merged 2026-09-09 (agent-c), the 2CF70 wrap + .s retired.
+ *
+ * Word-exact levers: the multiply is spelled `w2070 * (h2040 - a0 - 1)` --
+ * IDO emits `mult <right>, <left>` and numbers the head temps in operand
+ * order (t6 = lh, t7 = subu, t8 = addiu, t9 = lw), the source-order product
+ * loads 0x2070 first into t6 (docs/IDO_CODEGEN.md#mult-operand-order-head-temp-ring-2cf60);
+ * `i` unsigned (sltu against the sign-extended lh reload, CSE'd on the
+ * no-call path); `(w0 >> 31) == 1` = the loop-promoted constant `li s3,1`
+ * and the bnel tail-dup `addiu s2,s2,1`; the record pointer as
+ * `REG + 0x2D00 + i * 0x160` = s1 induction on REG with 0x2D00 folded into
+ * the lw / `addiu s0,s1,0x2D00`. */
+extern int D_00000000_345c0;
 extern int gl_func_00000000();
-extern int D_00000000;
-void gl_func_0002CF70(int a0) {
-    int n = *(short *)((char *)&D_00000000 + 0x2048);
+extern int gl_ref_00040E10();    /* mid-body alt-entry (baked jal 0x0C010384) */
+#define REG_2CF60 ((char *)&D_00000000_345c0)
+void game_libs_func_0002CF60(int a0) {
     unsigned int i;
     char *rec;
-    *(int *)((char *)&D_00000000 + 0x5364) = (-a0 - 1) * 0x160;
-    if (n != 0) {
-        rec = (char *)&D_00000000 + 0x2D00;
-        i = 0;
-        do {
-            if (((unsigned int)*(int *)rec) >> 0x1f) {
-                gl_func_00000000(rec);
-                gl_func_00000000(rec);
-            }
-            n = *(short *)((char *)&D_00000000 + 0x2048);
-            i++;
-            rec += 0x160;
-        } while (i < (unsigned int)n);
+
+    *(int *)(REG_2CF60 + 0x5364) = *(int *)(REG_2CF60 + 0x2070) * (*(short *)(REG_2CF60 + 0x2040) - a0 - 1);
+    for (i = 0; i < *(short *)(REG_2CF60 + 0x2048); i++) {
+        rec = REG_2CF60 + 0x2D00 + i * 0x160;
+        if ((*(unsigned int *)rec >> 31) == 1) {
+            gl_ref_00040E10(rec);
+            gl_func_00000000(rec);
+        }
     }
     gl_func_00000000();
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002CF70);
-#endif
 
 /* gl_func_0002D014 — EXACT (2026-07-03, agent-e): 19/20 raw words in build/non_matching .o;
  * the single word-7 "diff" is the R_MIPS_26 site jal gl_ref_00040E10, which ld bakes to
