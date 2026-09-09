@@ -1139,7 +1139,6 @@ GAMELIBS_65EE4_NM_DONOR := build/src/game_libs/game_libs_o2limit_65EE4.c.o
 build/src/game_libs/game_libs_o2limit_65EE4.c.o: OPT_FLAGS := -O2
 build/src/game_libs/game_libs_o2limit_65EE4.c.o: CC_ONLY_FLAGS := -Olimit 1
 build/non_matching/src/game_libs/game_libs_post1b.c.o: REPLACE_FUNC_BODY += game_libs_func_00065EE4=$(GAMELIBS_65EE4_NM_DONOR)
-build/non_matching/src/game_libs/game_libs_post1b.c.o: src/game_libs/game_libs_o2limit_65EE4.c
 
 GAMELIBS_70FCC_DONOR := build/src/game_libs/game_libs_o2_70FCC.c.o
 # 29CCC = envelope/keyframe stepper (9-case jumptable switch), IDO 7.1 -O2
@@ -1375,6 +1374,9 @@ O_FILES     := $(BIN_O_FILES) $(YAY0_O_FILES) $(C_O_FILES) $(ASM_O_FILES)
 
 # Default target
 all: verify
+
+# Keep explicit donor dependencies below all so bare make still verifies ROM.
+build/non_matching/src/game_libs/game_libs_post1b.c.o: src/game_libs/game_libs_o2limit_65EE4.c
 
 # xldtob.c -O3 donor (73904/73E74): direct CC, no asm-processor
 # (asm-processor rejects -O3; the file has no GLOBAL_ASM). Symbol
