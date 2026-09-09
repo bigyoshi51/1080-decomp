@@ -1537,7 +1537,6 @@ void gl_func_00064DEC(char *arg0) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064DEC);
 #endif
 
-#ifdef NON_MATCHING
 /* gl_func_00065060: 58-insn full transform-reset + 2-dispatch (0xE8, frame 0x38).
  *
  * Decoded structure (raw-word disasm):
@@ -1604,11 +1603,22 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00064DEC);
  * access becomes real memory traffic (sw/lw of the slot, 91.1); (d)
  * goto-mid label wrapped in an if(1) region: identical residual. Cap
  * stands: named cross-BB pointer home = 8B at frame bottom, unavoidable.
+ * 2026-09-09 agent-g: EXACT 58/58 -- the "cap" was the DECLARATION ORDER.
+ * Named-scalar homes are NOT always at the frame bottom: -O2 lays every
+ * named local (scalar homes and aggregates alike) top-down in declaration
+ * order (docs/IDO_CODEGEN.md#named-scalar-homes-interleave-declaration-order-65060).
+ * `int *flags` declared FIRST takes the top slot 0x34, `int pad_a[3]`
+ * 0x28..0x33, and tmp lands at the target's sp+0x1C; frame 0x38 unchanged.
+ * (pad_a[2] + flags-last was 0x30 / 0x24 / home 0x1C, the 4-word residual.)
+ * Both jals are the in-unit gl_func_00062F64, called through the blank import
+ * gl_func_00062F64_blank (= 0 in undefined_syms_auto.txt): the USO word is a
+ * load-time reloc, a direct in-unit call would bake 0x0C018BD9 (67AC4 rule).
  */
+extern void gl_func_00062F64_blank(char *);
 void gl_func_00065060(char *arg0) {
-    int pad_a[2];
-    Tri3i tmp;
     int *flags = (int *)(arg0 + 0x18);
+    int pad_a[3];
+    Tri3i tmp;
     *(s32 *)(arg0 + 0x38C) = 0xFFFF;
     *(f32 *)(arg0 + 0x34C) = 0.0f;
     *(f32 *)(arg0 + 0x350) = 0.0f;
@@ -1633,16 +1643,13 @@ mid:
     *(f32 *)(arg0 + 0x33C) = *(f32 *)&tmp.a;
     *(f32 *)(arg0 + 0x340) = *(f32 *)&tmp.b;
     *(f32 *)(arg0 + 0x344) = *(f32 *)&tmp.c;
-    gl_func_00062F64(arg0);
+    gl_func_00062F64_blank(arg0);
     *(f32 *)(arg0 + 0x348) = (float)0;
     *(f32 *)(arg0 + 0x288) = *(f32 *)(arg0 + 0x120);
     *(f32 *)(arg0 + 0x28C) = *(f32 *)(arg0 + 0x138);
     *(f32 *)(arg0 + 0x290) = *(f32 *)(arg0 + 0x1B0);
-    gl_func_00062F64(arg0);
+    gl_func_00062F64_blank(arg0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065060);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00065148: 66-insn 3D affine-transform helper (size 0x108, frame 0x50).
