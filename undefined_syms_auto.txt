@@ -2017,6 +2017,7 @@ mgrproc_uso_func_00001A64 = 0;
 mgrproc_uso_func_00001AD0 = 0;
 mgrproc_uso_func_00001B58 = 0;
 mgrproc_uso_func_00001BD4 = 0;
+mgrproc_1BE4_call_1B58 = 0; /* TextReloc 0x1C3C -> Sym171, local entry 0x1B58. */
 mgrproc_uso_func_000023FC = 0;
 mgrproc_uso_func_00002850 = 0;
 mgrproc_uso_func_00002940 = 0;

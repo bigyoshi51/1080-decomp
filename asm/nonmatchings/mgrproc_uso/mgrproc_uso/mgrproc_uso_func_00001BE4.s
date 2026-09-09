@@ -1,6 +1,11 @@
-nonmatching mgrproc_uso_func_00001BE4, 0xAC
+/* True exported entry is 0x1BD4 (Sym162); retain the historical body name. */
+nonmatching mgrproc_uso_func_00001BE4, 0xBC
 
 glabel mgrproc_uso_func_00001BE4
+    /* 001BD4 00001BD4 00803025 */  .word 0x00803025
+    /* 001BD8 00001BD8 3C040000 */  .word 0x3C040000
+    /* 001BDC 00001BDC 24840000 */  .word 0x24840000
+    /* 001BE0 00001BE0 8C830064 */  .word 0x8C830064
     /* 001BE4 00001BE4 27BDFFE8 */  .word 0x27BDFFE8
     /* 001BE8 00001BE8 AFBF0014 */  .word 0xAFBF0014
     /* 001BEC 00001BEC 2463FFFB */  .word 0x2463FFFB

@@ -1000,37 +1000,38 @@ void mgrproc_uso_func_00001B58(int *a0) {
   a0[0x4F4 / 4] = 0;
 }
 
-/* vram 0x1BD4: 4-word stolen-prologue donation to func_00001BE4 (the old
- * SUFFIX_BYTES absorption was removed 2026-05-23, silently dropping these
- * bytes from the Yay0 block). Standalone GLOBAL_ASM block emits exactly. */
-#pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_orphan_00001BD4.s")
-
-#ifdef NON_MATCHING
 extern int import_802649C0;
 extern int import_802649CC;
+extern void mgrproc_1BE4_call_1B58(int *, int);
 
-/* mgrproc_uso_func_00001BE4 (partial-shape NM body).
- * v1/idx and a2/state are inherited from predecessor's stolen tail; modeled
- * as explicit params so the body does NOT recompute them (no spurious lui/lw).
- * Call 3 (func_1B58) takes exactly 2 args (a0,a1) — no extra zeroed args. */
-void mgrproc_uso_func_00001BE4(int idx, int *a2) {
-    idx -= 5;
-    *(int*)((char*)a2 + 0x4D8) = 2;
-    *(int*)((char*)a2 + 0x7DC) = 0;
-    *(int*)((char*)a2 + 0x7E0) = 0;
-    *(int*)((char*)a2 + 0x7E4) = *(int*)((char*)&import_802649C0 + idx * 4 + 0x5F0);
-    *(int*)((char*)a2 + 0x7EC) = 0;
-    *(int*)((char*)a2 + 0x7E8) = *(int*)((char*)&import_802649CC + idx * 4 + 0x5FC);
-    mgrproc_uso_func_012110(a2);
-    mgrproc_uso_func_00001A64(a2);
-    mgrproc_uso_func_00001B58(a2);
+/* EXACT, 47 instructions (2026-09-09). The true entry is 0x1BD4, not
+ * 0x1BE4: mgrproc.uso Sym162 exports 1BD4 and TextReloc 1744 calls it;
+ * 1BE4 is neither exported nor referenced. The former four-word orphan
+ * belongs to this function and is emitted naturally by C before the frame.
+ * One state-pointer parameter, not the old synthetic idx/state pair.
+ * Initial load-minus-five in one expression gives v1 input / v0 scaled
+ * index; clearing 7EC after the 7E8 store gives the target scheduling.
+ * Call 1 receives the global base, not state. Call 3's actual TextReloc
+ * is the one-argument helper 1B58, but this caller also sets a1=0xA0000;
+ * use a zero-pinned call alias to retain that unused argument without
+ * changing the already-matched callee's signature. */
+void mgrproc_uso_func_00001BE4(int *state) {
+    int idx;
+    char *base = &D_00000000;
+    idx = *(int*)(base + 0x64) - 5;
+    *(int*)((char*)state + 0x4D8) = 2;
+    *(int*)((char*)state + 0x7DC) = 0;
+    *(int*)((char*)state + 0x7E0) = 0;
+    *(int*)((char*)state + 0x7E4) = *(int*)((char*)&import_802649C0 + idx * 4 + 0x5F0);
+    *(int*)((char*)state + 0x7E8) = *(int*)((char*)&import_802649CC + idx * 4 + 0x5FC);
+    *(int*)((char*)state + 0x7EC) = 0;
+    mgrproc_uso_func_012110(base);
+    mgrproc_uso_func_00001A64(state);
+    mgrproc_1BE4_call_1B58(state, 0xA0000);
     mgrproc_uso_func_000188(0xB, 0, 0);
     mgrproc_uso_func_000148(0xB, *(int*)((char*)&import_800200FC + 0x64) - 5, 0);
     mgrproc_uso_func_0139B0(*(int*)((char*)&import_80020228 + 0x190), 1, 1);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00001BE4);
-#endif
 
 /* 2026-07-15 (agent-g) 30->21 real diffs (word-diff; 4 more are D_flt LO16
  * addends that link-resolve). Fixes: (1) named q/w pair for the 0x6F0/0x6D8
@@ -2134,16 +2135,16 @@ void mgrproc_uso_func_000033E8(char *dst) {
 }
 #pragma GLOBAL_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso/mgrproc_uso_func_000033E8_pad.s")
 
-/* SUFFIX_BYTES-absorbed orphans (per
+/* Historical SUFFIX_BYTES-absorbed orphans (per
  * docs/MATCHING_WORKFLOW.md#feedback-splat-orphan-duplicate-symbol-pruning):
  *   mgrproc_uso_func_00001814 ← mgrproc_uso_func_0000179C SUFFIX_BYTES
  *                                (4 words 0x03E00008,0xAFA40000,0x03E00008,0xAFA40000)
- *   mgrproc_uso_func_00001BD4 ← mgrproc_uso_func_00001B58 SUFFIX_BYTES
- *                                (4 words 0x00803025,0x3C040000,0x24840000,0x8C830064)
  * The INCLUDE_ASMs lived at the .o tail (offsets 0x3420/0x3430) with no
  * effect on the linked binary — the bytes at vram 0x1814/0x1BD4 come from
  * the predecessors' SUFFIX_BYTES. Removed to stop discover from listing
- * them as candidates. */
+ * them as candidates. Instruction-bearing suffixes were later removed.
+ * The 1BD4 orphan is now part of the correctly bounded 1BE4 function
+ * (2026-09-09); it is not a donation from the preceding function. */
 
 /* mgrproc_uso_func_00000194 / _00000188 / _00000168 / _0000015C: no longer
  * symbols. They were the return-0 arms and dead trailing `jr ra; nop` pairs of

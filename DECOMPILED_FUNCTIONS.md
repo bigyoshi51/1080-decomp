@@ -53,6 +53,14 @@ regress during the O1/O2 file split, restore from the sources listed.
 | 0x80009A50 | func_80009A50 | osYieldThread | src/o1/func_80009A50.c |
 | 0x80009C90 | func_80009C90 | osPiRawWriteIo | src/o1/func_80009C90.c |
 
+## Fragment Merges Performed
+
+- 2026-09-09: the four-word mgrproc orphan at 0x1BD4 was merged into the
+  historical `mgrproc_uso_func_00001BE4` symbol (now 0xBC bytes). The ROM's
+  Sym162 exports 0x1BD4 and TextReloc 0x1744 targets it; 0x1BE4 is not an
+  independent entry. Complete C emits all 47 instructions, including the
+  hoisted parameter/global setup. No instruction splicing is used.
+
 ## Verification
 
 After the O1/O2 split, run:
