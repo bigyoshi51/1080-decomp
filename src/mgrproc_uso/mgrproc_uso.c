@@ -1947,7 +1947,6 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF
 #endif
 #endif
 
-#ifdef NON_MATCHING
 /* mgrproc_uso_func_00003074: per-frame step gated on arg0->0xBC->0x4F0 bit-16 &&
  * ->0x4DC==1. Bumps arg0->0x30 by 0x21 if gated; cb(arg0,sub). Then (if gated):
  * a 3-way dispatch on arg0->0x44->0x94 (0/1/else) when ->0x34 set; a mod-0x33
@@ -1966,8 +1965,10 @@ INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00002EF
  * `else` kills v1/a1 liveness across the B1284 call (no spill, frame 0x38 ->
  * 0x28); (3) B139C is a SINGLE-arg call (a0 loaded in jal delay; the stray
  * lw a1 is the bgtzl-taken delay slot belonging to the next region's gate
- * reload). Stays NM wrap: USO placeholder callees (import_* / baked relocs)
- * block byte-verify landing. NON_MATCHING. */
+ * reload). Verified exact 2026-09-09: all 115 compiler-emitted words match
+ * the ROM-decompressed block at 0x3074, including all eleven raw jal words.
+ * Their R_MIPS_26 symbols/offsets match the assembly baseline; these USO
+ * calls remain load-time relocations, not a byte-verification blocker. */
 extern void import_000B70AC();
 extern void import_000B1284();
 extern void import_000B1334();
@@ -2035,9 +2036,6 @@ void mgrproc_uso_func_00003074(char *arg0) {
     }
     mgrproc_uso_func_04CD94(arg0);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/mgrproc_uso/mgrproc_uso", mgrproc_uso_func_00003074);
-#endif
 
 /* mgrproc_uso_func_00003240: state-gated 3-call dispatch. Reads
  * a0->[0xBC]->[0x4E0] (state field). If state in {0,1,2} OR either of two
