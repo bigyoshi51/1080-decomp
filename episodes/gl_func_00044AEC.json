@@ -1,7 +1,7 @@
 {
   "function_name": "gl_func_00044AEC",
   "project": "1080-agent-h",
-  "model": "claude-manual",
+  "model": "codex-manual",
   "start_time": "2026-09-09T22:03:14.838637+00:00",
   "end_time": "2026-09-09T22:03:14.838657+00:00",
   "steps": [
