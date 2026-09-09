@@ -31226,48 +31226,36 @@ void game_libs_func_0005D134(f32 *arg0, f32 arg1, f32 arg2, s32 arg3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D134);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D1F0);
-
-#ifdef NON_MATCHING
-/* gl_func_0005D20C: pure-FP leaf, quaternion -> 3x3 rotation matrix.
-   ~50 FP ops (mul/add/sub of the four components + a 1.0f const at
-   0x3F800000), no branches and no calls; writes 9 floats to the
-   result via $a1 at offsets {0,4,8, 0x10,0x14,0x18, 0x20,0x24,0x28}
-   (3x3 with 0x10 row stride, skipping the 0x0C/0x1C/0x2C slots).
-   DEFERRED: documented-hard caller-set-float cap — the inputs arrive
-   in caller-set $f4/$f6 (the function's first real insns spill $f4
-   /$f6 to sp scratch before any load), NOT the IDO FP arg regs
-   $f12/$f14. IDO C always materialises the first FP params in
-   $f12/$f14, so the entry-spill order cannot be reproduced from C
-   (see feedback_caller_set_int_reg_cap_1080_game_libs — caller-set-
-   float subclass). The body below is the standard quat->mat shape
-   for algorithm reference. PERMANENT INCLUDE_ASM cap: the caller-set
-   $f4/$f6 entry cannot be produced from IDO C (it always materialises
-   the first FP params in $f12/$f14). The former "PROLOGUE/INSN-patch
-   the spill prefix per docs/POST_CC_RECIPES.md" plan is VOID —
-   instruction-byte patching was banned 2026-05-23 as match-faking
-   (feedback_no_instruction_forcing_matches_policy). Only a splat
-   boundary correction that reattributes the predecessor's $f4/$f6
-   producer, or a permuter campaign, could legitimately advance this;
-   neither is a single tick. */
-void gl_func_0005D20C(float *out, float *q) {
-    float x = q[0], y = q[1], z = q[2], w = q[3];
-    float xx = x * x, yy = y * y, zz = z * z;
-    float xy = x * y, xz = x * z, yz = y * z;
-    float wx = w * x, wy = w * y, wz = w * z;
-    out[0] = 1.0f - 2.0f * (yy + zz);
-    out[1] = 2.0f * (xy - wz);
-    out[2] = 2.0f * (xz + wy);
-    out[4] = 2.0f * (xy + wz);
-    out[5] = 1.0f - 2.0f * (xx + zz);
-    out[6] = 2.0f * (yz - wx);
-    out[8] = 2.0f * (xz - wy);
-    out[9] = 2.0f * (yz + wx);
-    out[10] = 1.0f - 2.0f * (xx + yy);
+/* game_libs_func_0005D1F0 (0x114, 69 words): the 7-word game_libs_func_0005D1F0
+ * orphan + gl_func_0005D20C are ONE function -- bootup.uso Sym exports text
+ * 0x7185C (= splat 0x5D1F0); 0x5D20C is not exported/referenced. The old
+ * "caller-set $f4/$f6 entry cap" verdict was this hoisted head (`lui/mtc1` of
+ * 2.0 into $f16 + the y/x/z loads + the first `mul.s` scheduled above
+ * `addiu sp`). Quaternion (x,y,z,w) -> 3x3 rotation matrix, column-major in a
+ * 4-float-stride 4x4 (m[0..2], m[4..6], m[8..10]), pure-FP leaf, frame 0x30,
+ * no relocs. Levers (docs/IDO_CODEGEN.md#quat-to-3x3-column-major-int-2-5d1f0):
+ * (1) the four inputs as named locals (the head's hoisted loads; 2.0 held in
+ * $f16, w spilled at sp+0x20); (2) the int `2` multiplier keeps `mul.s` by
+ * the held 2.0 (`2.0f` strength-reduces to add.s, the 65B40 rule) and the
+ * `2 * y * y` grouping gives const-first `mul.s $f16,$f0` then `(2y) * y`;
+ * (3) statements in COLUMN-major order m[0], m[4], m[8], m[1], m[5], m[9],
+ * m[2], m[6], m[10] -- row-major order stores m[1] before the 2xz/2wy
+ * products and re-colours the second half (32 diff words). The eight 2*q
+ * products are unnamed CSE temps spilled top-down in first-store order
+ * (sp+0x1C..0x04). */
+typedef struct { float x, y, z, w; } Quat5D1F0;
+void game_libs_func_0005D1F0(Quat5D1F0 *q, float *m) {
+    float x = q->x, y = q->y, z = q->z, w = q->w;
+    m[0] = 1.0f - 2 * y * y - 2 * z * z;
+    m[4] = 2 * x * y - 2 * w * z;
+    m[8] = 2 * x * z + 2 * w * y;
+    m[1] = 2 * x * y + 2 * w * z;
+    m[5] = 1.0f - 2 * x * x - 2 * z * z;
+    m[9] = 2 * y * z - 2 * w * x;
+    m[2] = 2 * x * z - 2 * w * y;
+    m[6] = 2 * y * z + 2 * w * x;
+    m[10] = 1.0f - 2 * x * x - 2 * y * y;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
-#endif
 
 
 /* game_libs_func_0005D304 (0x110, 68 words) = the old 2-word orphan
