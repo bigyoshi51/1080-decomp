@@ -2075,43 +2075,51 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065494);
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000659D0);
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00065B40);
-
-#ifdef NON_MATCHING
-/* gl_func_00065B5C: 62-insn pure-FP quaternion/matrix arithmetic (0xF8, frame 0x30).
- *
- * CALLER-SET FLOAT CONVENTION (intra-USO non-O32): the function reads
- * $f0..$f16 directly without setting them, performing extensive FP
- * arithmetic (mul.s, sub.s, add.s, neg.s, mov.s) and writing results
- * to caller's struct via offsets in $a0 starting around 0x3B0..0x3D0.
- * Same cap class as gl_func_00010650 family.
- *
- * Decoded structure (raw-word disasm summary):
- *   // Reads caller-set floats f0, f2, f4, f6, f8, f10, f12, f14, f16
- *   // Computes ~30 mul/add/sub/neg ops producing 10+ float intermediates
- *   // Writes to:
- *   //   a0->[0x3B0..0x3D0]: 8+ output floats (transformed values)
- *   //   sp+0x00..+0x28: 10+ scratch floats (temporary registers)
- *
- * Per the FP operation count and output pattern (8 floats stored to a0->
- * [0x3B0..0x3D0]) this is likely a Quaternion-to-Matrix conversion or
- * Matrix×Matrix multiply emit. Caller passes operand floats via $f-regs
- * and gets output via the struct pointed at by $a0.
- *
- * Replaced 1-line "Multi-pass decode pending" bail-marker 2026-05-19 per
- * feedback_doc_marker_is_bail.md. INCLUDE_ASM remains build path (the
- * pure-caller-set-float convention is unreproducible from standard C —
- * IDO has no `register float x asm("$f4")` syntax).
- */
-void gl_func_00065B5C(char *self_struct) {
-    /* Pure-FP quaternion-or-matrix transform. Real body reads from $f0..f16
-     * caller-set float regs and writes 8+ floats to self_struct+0x3B0..0x3D0.
-     * Cannot byte-match — caller-set-float cap. INCLUDE_ASM is the build path. */
-    (void)self_struct;
+/* game_libs_func_00065B40: quaternion -> 3x3 rotation matrix, BYTE-EXACT 69/69
+ * (2026-09-09, agent-g) as ONE function [0x65B40,0x65C54): the 7-word
+ * "game_libs_func_00065B40" (loads x,y; 2.0 -> $f0; x*y; loads w,z) was the
+ * hoisted head of the 0xF8 "caller-set $f0..$f16" gl_func_00065B5C (agent-c's
+ * fake-param class, docs/MATCHING_WORKFLOW.md#game-libs-fake-param-exact-sweep-agent-c).
+ * Sym oracle (section = splat + 0x1466C): 0x7A1AC (0x65B40) = export sym 2411
+ * with two R_MIPS_26 refs (TextReloc @0x79638, @0x7979C); 0x7A1C8 (0x65B5C)
+ * NOT exported. The 3-month "pure caller-set-float convention, unreproducible"
+ * cap is retracted: $f2/$f12/$f14/$f16 are x/y/z/w of the quaternion at
+ * self+0xF4, $f0 is the constant 2.0 and $f18 the CSE'd 2xy.
+ * Output rows at self+0x3B0 (row-major 3x3), written in target store order
+ * (row 0, row 2, row 1):
+ *   m00 = 2xy - 2wz   m01 = 1 - 2xx - 2zz   m02 = 2yz + 2wx
+ *   m10 = 1 - 2yy - 2zz   m11 = 2xy + 2wz   m12 = 2xz - 2wy
+ *   m20 = 2xz + 2wy   m21 = 2yz - 2wx   m22 = 1 - 2xx - 2yy
+ * Load-bearing (docs/IDO_CODEGEN.md#int-2-multiplier-keeps-mul-s-two-pointer-locals-65b40):
+ *  - the doubling is `* 2` (int, converted) -- a float literal `2.0f` is
+ *    strength-reduced to `add.s f,f,f`; the int constant stays `lui 0x4000;
+ *    mtc1 $f0` + `mul.s` by $f0 (also `(float)2`).
+ *  - the products are NOT named locals (named = 9 memory-homed candidates,
+ *    77 words); repeated expressions are uopt CSE temps: 2xy takes $f18, the
+ *    other eight are spilled to sp+0x00..0x24 and `1.0f - 2xx` is itself a
+ *    CSE temp (sp+0xC), 10 slots.
+ *  - x/y/z/w are read through a POINTER LOCAL `q` (folded into a0 offsets),
+ *    not named float locals and not the raw `s + 0xF4` casts: a pointer-local
+ *    candidate flips the FP colouring to 2.0=$f0, x=$f2, y=$f12, z=$f14,
+ *    w=$f16 (without it x takes $f0 and 2.0 $f14, 68 words).
+ *  - the matrix is written through a SECOND pointer local `m` (also folded):
+ *    the two dead 4-byte homes sit at the frame top, so the frame is 0x30
+ *    with the temps at sp+0x00..0x24; with only `q` the temps shift to
+ *    sp+0x04..0x28 (frame 0x30, 16 diff words). */
+typedef struct { float x, y, z, w; } Quat65B40;
+void game_libs_func_00065B40(char *s) {
+    Quat65B40 *q = (Quat65B40 *)(s + 0xF4);
+    float *m = (float *)(s + 0x3B0);
+    m[0] = q->x * q->y * 2 - q->w * q->z * 2;
+    m[1] = 1.0f - q->x * q->x * 2 - q->z * q->z * 2;
+    m[2] = q->y * q->z * 2 + q->w * q->x * 2;
+    m[6] = q->x * q->z * 2 + q->w * q->y * 2;
+    m[7] = q->y * q->z * 2 - q->w * q->x * 2;
+    m[8] = 1.0f - q->x * q->x * 2 - q->y * q->y * 2;
+    m[3] = 1.0f - q->y * q->y * 2 - q->z * q->z * 2;
+    m[4] = q->x * q->y * 2 + q->w * q->z * 2;
+    m[5] = q->x * q->z * 2 - q->w * q->y * 2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00065B5C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_00065C54: 45-insn op-6 special-case + transform-reset (0xB4, frame 0x48).
