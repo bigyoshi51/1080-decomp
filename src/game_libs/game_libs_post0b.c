@@ -31185,48 +31185,65 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D20C);
 #endif
 
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0005D304);
-
-#ifdef NON_MATCHING
-/* gl_func_0005D30C: Euler-angles -> quaternion composer. Inits out to
-   the identity quat {0,0,0,1} (out[0..2]=0, out[3]=1.0); the three
-   float angle inputs arrive in $a1/$a2/$a3 (standard o32 mixed
-   int/float ABI: a0 is the out ptr so the trailing float args land in
-   GPRs and are mtc1'd in -- NOT the caller-set-float cap). Then three
-   per-axis blocks: each builds an axis-angle quat in a sp+0x80 Vec4
-   scratch from a sincos pair, and quaternion-multiplies it into the
-   s0(=out) accumulator (X: {s,0,0,c}; Y: {0,s,0,c}; Z: {0,0,s,c}).
-   DEFERRED: documented-hard multi-call FP orchestrator -- NINE
-   unresolved jal relocs (sin/cos pair x3, quat-mul x3, plus the
-   pre-normalization divs on $f12/$f14/$f22), $f20/$f22 callee-save FP
-   (sdc1/ldc1), $s0=out held across. Next pass: resolve the 9 relocs
-   (identify the trig + quaternion-multiply helpers), pin the exact FP
-   normalization (div.s operands), then grind the FP/sreg schedule. */
-extern int gl_func_00000000();
-void gl_func_0005D30C(float *out, float ax, float ay, float az) {
+/* game_libs_func_0005D304 (0x110, 68 words) = the old 2-word orphan
+ * game_libs_func_0005D304 + gl_func_0005D30C, merged 2026-09-09 (agent-c).
+ * bootup.uso Sym table exports section offset 0x71970 = splat 0x5D304 (ROM
+ * 0xE423DC - 0xDD0A6C), jal'd from TextReloc @0x54A18; 0x71978 = 0x5D30C is
+ * NOT exported. The `lui at; lwc1 $f0,0x2044(at)` orphan is the hoisted load
+ * of the angle divisor D+0x2044 (sym1 HI16/LO16, the 5BCCC pattern with
+ * D+0x2030) for this function's first statement, scheduled above `addiu sp`.
+ *
+ * Euler angles -> quaternion: out = {0,0,0,1}; for each axis (x, y, z)
+ * q = {sin(a)|0.., cos(a)} and quatmul(q, out, out). The three float
+ * params arrive in a1/a2/a3 (o32 after the pointer arg), are divided
+ * PARAM-DIRECT (`ax = ax / K`) and homed to their own arg slots
+ * (0x94/0x98/0x9C), reloaded into $f12 per trig call. Callees: sym343
+ * (text 0x7E7B0 = splat 0x6A144, sinf) / sym342 (0x85640 = 0x70FD4, cosf)
+ * through the existing 5BCCC float-prototyped blanks; the quat-mul is
+ * sym1656 = text 0x716C0 = splat 0x5D054 (gl_func_0005D054 above), a blank
+ * R_MIPS_26 import here.
+ *
+ * Levers: (1) divide BEFORE the out[] init so the divisor load is the first
+ * statement (hoisted head) and `mtc1 a3,$f22; div.s $f22` precede the
+ * stores; (2) name both trig results (`s`, `c`) and build q only AFTER the
+ * cos call -- s then lives across it in the callee-saved $f22 (`mov.s
+ * $f22,$f0` in the cos jal delay); `q[0] = s` before the cos call stores
+ * $f0 straight into q and drops $f22 (25 diffs); (3) the out[] zero stores
+ * are spelled 2,1,0 (IDO keeps same-base store order as written; 0,1,2
+ * gives the mirror pair); (4) frame 0x90: an UNREFERENCED `float
+ * scratch[16]` declared after q is KEPT by IDO 7.1 -O2 (64 bytes between
+ * q at 0x80 and the s/c homes), so q lands at 0x80 -- a plain `float
+ * pad[16]`, a `volatile` one and 16 dead named floats all fit; without it
+ * the frame is 0x50 and every sp offset is 0x40 short (27 diffs).
+ * BYTE-EXACT 68/68 standalone. gl_func_0005D30C wrap (NM, 9 unresolved
+ * relocs) + .s retired. */
+#define GL_5D304_DIV (*(float *)((char *)&D_00000000 + 0x2044))
+void game_libs_func_0005D304(float *out, float ax, float ay, float az)
+{
     float q[4];
-    int axis;
-    out[0] = 0.0f;
-    out[1] = 0.0f;
+    float scratch[16];
+    float s;
+    float c;
+    ax = ax / GL_5D304_DIV;
+    ay = ay / GL_5D304_DIV;
+    az = az / GL_5D304_DIV;
     out[2] = 0.0f;
+    out[1] = 0.0f;
+    out[0] = 0.0f;
     out[3] = 1.0f;
-    ax = ax / az;
-    ay = ay / az;
-    for (axis = 0; axis < 3; axis++) {
-        float a = (axis == 0) ? ax : (axis == 1) ? ay : az;
-        float s = (float)gl_func_00000000(a);
-        float c = (float)gl_func_00000000(a);
-        q[0] = 0.0f;
-        q[1] = 0.0f;
-        q[2] = 0.0f;
-        q[axis] = s;
-        q[3] = c;
-        gl_func_00000000(q, out, out);
-    }
+    s = gl_func_00000000_5bccc343(ax);
+    c = gl_func_00000000_5bccc342(ax);
+    q[0] = s; q[1] = 0.0f; q[2] = 0.0f; q[3] = c;
+    gl_func_00000000(q, out, out);
+    s = gl_func_00000000_5bccc343(ay);
+    c = gl_func_00000000_5bccc342(ay);
+    q[0] = 0.0f; q[1] = s; q[2] = 0.0f; q[3] = c;
+    gl_func_00000000(q, out, out);
+    s = gl_func_00000000_5bccc343(az);
+    c = gl_func_00000000_5bccc342(az);
+    q[0] = 0.0f; q[1] = 0.0f; q[2] = s; q[3] = c;
+    gl_func_00000000(q, out, out);
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0005D30C);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0005D414: 24-insn dispatcher making 3 cross-USO callbacks
