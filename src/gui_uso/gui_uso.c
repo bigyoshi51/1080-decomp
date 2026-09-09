@@ -40,16 +40,19 @@ struct GfxRing_413C { int *buf; int idx; };
  *   Tracks maxw = max(maxx+1), sum = sum(maxx+1). Finally o->C = maxw,
  *   o->8 = (int)((sum*0.5f)/o->0), and back-fills g[3]=o->C for every cell.
  *
- * STATUS: 92.0% fuzzy (was 71.2). 2026-08-22 structural fixes: (1) maxx+=1
+ * STATUS: 94.90% fuzzy (was 92.03). 2026-08-22 structural fixes: (1) maxx+=1
  * in place, reused for maxw/g[2]/sum (target addiu a1,a1,1 in place); (2)
  * per-store reload of *(o+0x20) -- no cached g pointer (aliasing store
  * between field writes forces the 4 reloads); (3) tail is INTEGER divide
  * (int)(sum*0.5f) / o->0 (break 0x7/0x6 checks), not float divide; (4)
- * idx=gi row-copy for the record address web. Residual: build
- * strength-reduces gi=col*rows into a cross-column accumulator (target keeps
- * multu per column, rows reloaded from 144(sp) per row -- rows' web is
- * memory-homed in target, s3 reused as scratch) + frame 152-vs-128. gi-in-
- * col-scope decl does NOT block the SR. Coloring cap class; NON_MATCHING. */
+ * idx=gi row-copy for the record address web. 2026-09-09: initialize gi
+ * INSIDE the rows>0 guard, with a guarded do/while row loop. This restores
+ * the target's per-column multu and per-row argument-home reload; merely
+ * moving gi's declaration never fixed the strength reduction. Initialize
+ * maxx before minx to match the scan setup order. Remaining: frame 144 vs
+ * 128, spill slots and a handful of scheduling/operand-order differences.
+ * Address-escaped/volatile rows regressed; register hints were inert.
+ * See docs/IDO_CODEGEN.md#guarded-row-index-gui148. Still NON_MATCHING. */
 #ifdef NON_MATCHING
 void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
     char *o = a0;
@@ -78,30 +81,35 @@ void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
     sum = 0;
     maxw = 0;
     for (col = 0; col < cols; col++) {
-        int gi = col * rows;
-        for (row = 0; row < rows; row++) {
-            char *px = (char *)*(int *)(o + 4) + (col * gh) * a2 + row * gw;
-            int idx = gi;
-            int minx = gw, maxx = 0;
-            int y;
-            for (y = 0; y < gh; y++) {
-                char *line = px + y * a2;
-                int x;
-                for (x = 0; x < gw; x++) {
-                    if (line[x] != 0) {
-                        if (x < minx) minx = x;
-                        if (maxx < x) maxx = x;
+        int gi;
+        row = 0;
+        if (rows > 0) {
+            gi = col * rows;
+            do {
+                char *px = (char *)*(int *)(o + 4) + (col * gh) * a2 + row * gw;
+                int idx = gi;
+                int maxx = 0, minx = gw;
+                int y;
+                for (y = 0; y < gh; y++) {
+                    char *line = px + y * a2;
+                    int x;
+                    for (x = 0; x < gw; x++) {
+                        if (line[x] != 0) {
+                            if (x < minx) minx = x;
+                            if (maxx < x) maxx = x;
+                        }
                     }
                 }
-            }
-            maxx += 1;
-            if (maxw < maxx) maxw = maxx;
-            *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x0) = row * gw + minx;
-            *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x4) = col * gh;
-            *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x8) = maxx - minx;
-            sum += maxx;
-            *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x10) = minx;
-            gi++;
+                maxx += 1;
+                if (maxw < maxx) maxw = maxx;
+                *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x0) = row * gw + minx;
+                *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x4) = col * gh;
+                *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x8) = maxx - minx;
+                sum += maxx;
+                *(int *)(*(int *)(o + 0x20) + idx * 0x14 + 0x10) = minx;
+                gi++;
+                row++;
+            } while (row != rows);
         }
     }
     *(int *)(o + 0xC) = maxw;
