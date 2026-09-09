@@ -83,6 +83,12 @@ Before treating a function as exact, also compare built vs expected with
 
 ## Fragment Merges Performed
 
+- `gl_func_000032B0` merged into `game_libs_func_00003298`: six hoisted
+  FP-constant instructions plus the contiguous body, 0x14C / 83 instructions.
+  `uso-sym-oracle.py baserom.z64 0xD9FE28 0x17904 0x1791C` confirms Sym[943]
+  exports the head (two call relocations), not the former internal split.
+  The legacy name remains an absolute module-Text alias at 0x1791C.
+
 These asm files were merged into their parent functions. If re-running
 splat, ensure these are NOT treated as separate function boundaries.
 

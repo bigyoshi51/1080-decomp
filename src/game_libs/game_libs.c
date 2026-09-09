@@ -1690,44 +1690,35 @@ char *gl_func_00003138(char *arg0, s32 arg1, s32 arg2, s32 arg3) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00003138);
 #endif
 
-/* game_libs_func_00003298 (0x18, no prologue/jr): stolen FP-const prologue of
- * the successor gl_func_000032B0 — six lui/mtc1 insns materializing f4=100.0f,
- * f6=255.0f, f8=235.0f. gl_func_000032B0 reads these uninitialized before its
- * own `addiu sp` (e.g. `mul.s f22, f4, f6` at +0x1C). Same chained-FP-stolen-
- * prologue pattern as mgrproc_uso_func_00002EF0 -> _00002F10; leave INCLUDE_ASM
- * (the bytes belong logically to 32B0's prologue). 32B0 itself = 77-insn FP
- * color/material setup (8-iter loop + placeholder call + caller-set/stolen FP) =
- * multi-tick FP-pipeline cap. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003298);
-
+/* USO Sym[943] exports Text+0x17904 (synthetic 0x3298); 0x32B0 is
+ * an internal prologue split, not a separate function. Shared float divisor
+ * preserves the four runtime divisions. Both flag stores address the same
+ * child: the asm walker advances before its final lw 0x28(s0).
+ * NM 99.69879%: 83 instructions; final 0xFF uses v0 instead of target v1
+ * (five raw-word differences). Typed float call avoids K&R promotion;
+ * Color3298 preserves the +0x64 base. Pointer scopes/register hints, int/void
+ * callee, signed/unsigned or != loop, tail indexing/chained stores, if(1)
+ * blocks and a 2,971-iteration permuter pass did not close those five words. */
 #ifdef NON_MATCHING
-/* gl_func_000032B0: 77-insn FP color/material setup. The four color channels are
- * normalized at runtime via div.s using FP consts that partly live in the stolen
- * prologue (game_libs_func_00003298 sets f4=100, f6=255, f8=235); the loop walks
- * two distinct sub-pointer arrays a0[0x2C+i*4] and a0[0x28+i*4], zeroes
- * sub2C->0x98 and sub28->0x94, calls a placeholder with two K&R 1.0f args (mfc1
- * a3 + swc1 stack), then writes the 4 channels into sub2C->0x64..0x70. Trailing
- * block zero/0xFF-inits a0 fields. Caps remain (prologue-stolen f4/f6/f8 +
- * caller-set-float K&R call + raw-.word placeholder reloc) so no episode. */
-extern int func_00000000();
-void gl_func_000032B0(int *a0) {
-    float div255 = 255.0f;       /* shared divisor blocks const/const fold -> runtime div.s */
-    float r = 100.0f / div255;   /* f22 = f4/f6, f4 stolen from predecessor */
-    float g = 235.0f / div255;   /* f24 = f8/255 */
-    float b = 250.0f / div255;   /* f26 = 250/255 */
-    float al = 0.0f / div255;    /* f28 = 0/255 */
+extern void gl_reset_3298(void *, int, int, float, float);
+typedef struct { float r, g, b, a; } Color3298;
+void game_libs_func_00003298(int *a0) {
+    float div255 = 255.0f;
+    float r = 100.0f / div255;
+    float g = 235.0f / div255;
+    float b = 250.0f / div255;
+    float al = 0.0f / div255;
     int i;
     for (i = 0; i < 8; i++) {
-        int *sub = *(int**)((char*)a0 + 0x2C + i * 4);
-        *(int*)((char*)sub + 0x98) = 0;
-        sub = *(int**)((char*)a0 + 0x2C + i * 4);
-        func_00000000(sub, 0xA0, 0x5A, 1.0f, 1.0f);
-        sub = *(int**)((char*)a0 + 0x2C + i * 4);
-        *(float*)((char*)sub + 0x70) = al;
-        *(float*)((char*)sub + 0x6C) = b;
-        *(float*)((char*)sub + 0x68) = g;
-        *(float*)((char*)sub + 0x64) = r;
-        *(int*)((char*)(*(int**)((char*)a0 + 0x28 + i * 4)) + 0x94) = 0;
+        Color3298 *color;
+        *(int*)((char*)*(int**)((char*)a0 + 0x2C + i * 4) + 0x98) = 0;
+        gl_reset_3298(*(int**)((char*)a0 + 0x2C + i * 4), 0xA0, 0x5A, 1.0f, 1.0f);
+        color = (Color3298*)((char*)*(int**)((char*)a0 + 0x2C + i * 4) + 0x64);
+        color->a = al;
+        color->b = b;
+        color->g = g;
+        color->r = r;
+        *(int*)((char*)(*(int**)((char*)a0 + 0x2C + i * 4)) + 0x94) = 0;
     }
     *(int*)((char*)a0 + 0x5C) = 0;
     *(int*)((char*)a0 + 0x9C) = 0;
@@ -1747,7 +1738,7 @@ void gl_func_000032B0(int *a0) {
     *(int*)((char*)a0 + 0x88) = 0;
 }
 #else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000032B0);
+INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00003298);
 #endif
 
 extern int gl_func_00000000();
@@ -4988,4 +4979,3 @@ INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003FB64);
  * leading-insn boundary correction). The orphan INCLUDE that used to sit
  * here emitted at game_libs.c.o offset 0x8944 (= TRUNCATE_TEXT cap) and
  * never reached the link; removed with the re-home. */
-
