@@ -5,6 +5,10 @@ typedef struct { float x, y, z; } Vec3;
 
 
 
+/* game_libs_func_00074EDC: six all-zero words (0x74EDC..0x74EF4), NOT code.
+ * Sym oracle 2026-09-09 (agent-g): section 0x89548 not exported, no baked
+ * jal. Alignment run ahead of the vimgr.c object (osCreateViManager 74EFC);
+ * always-skip class (all .word 0), kept as INCLUDE_ASM data. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00074EDC);
 
 /* gl_func_00074EFC = osCreateViManager + gl_func_0007507C = viMgrMain

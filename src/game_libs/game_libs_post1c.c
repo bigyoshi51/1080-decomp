@@ -317,8 +317,20 @@ void gl_func_00070A14(int m) {
 }
 
 
+/* game_libs_func_00070AC0 = libultra __osDisableInt (HANDWRITTEN CP0:
+ * `mfc0 t0,$12; li at,-2; and t1,t0,at; mtc0 t1,$12; andi v0,t0,1; nop;
+ * jr ra; nop` -- the pre-2.0I form without the __OSGlobalIntMask logic).
+ * Sym oracle 2026-09-09 (agent-g): true entry 0x70AC4 = section 0x85130 =
+ * export sym 2511 (three jal refs); the leading zero word at 0x70AC0
+ * (0x8512C, not exported) is gl_func_00070A14's object pad. Stays
+ * INCLUDE_ASM (mfc0/mtc0). The many blank `gl_func_00000000_disint` jals in
+ * the -O1 donors resolve to this symbol at USO load time. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070AC0);
 
+/* game_libs_func_00070AE4 = libultra __osRestoreInt (HANDWRITTEN CP0:
+ * `mfc0 t0,$12; or t0,t0,a0; mtc0 t0,$12; nop; nop; jr ra`), section 0x85150
+ * = export sym 2514 (four jal refs). The jr delay nop at 0x70AFC lives in
+ * gl_func_00070A14_pad.s below. Stays INCLUDE_ASM (mfc0/mtc0). */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00070AE4);
 #pragma GLOBAL_ASM("asm/nonmatchings/game_libs/game_libs/gl_func_00070A14_pad.s")
 
