@@ -4059,26 +4059,37 @@ unsigned char *game_libs_func_00067D18(unsigned char *a0, int a1) {
 }
 
 #ifdef NON_MATCHING
-/* game_libs_func_00067D50: byte-fill (memset) — writes a1 to a0[0..a2),
- * returns a0. Logic clear; near-miss: the target loop carries redundant per-
- * iteration moves (v1=v0 cursor-copy + a3=a2 dead) — -O0-ish loop-codegen
- * artifacts that clean -O2 C doesn't reproduce. Reloc-free. */
-void *game_libs_func_00067D50(char *a0, int a1, int a2) {
-    char *p = a0;
-    if (a2 != 0) {
-        do {
-            *p++ = (char)a1;
-        } while (--a2 != 0);
+/* game_libs_func_00067D50 = memset(dst, val, count) -> dst: byte-fill loop,
+ * 12 words, no frame, reloc-free. NM 10/12 words (2026-09-09 agent-g; the
+ * 2026-05-24 "-O2 unrolls by 4 (22 insns) / -O1 adds a prologue+spill /
+ * needs a lower-opt file split" note is RETRACTED): the target IS this
+ * file's IDO 7.1 -O2 (5.3 -O2 gives the identical 12 words) once the
+ * `*p++` old value is a NAMED cursor with an `if (1)` barrier around the
+ * store -- `q = p; p++; if (1) { *q = c; }` keeps `or v1,v0` + `sb a1,0(v1)`
+ * + `addiu v0,v0,1` and leaves the a1 param alone. Every other spelling
+ * misses: plain `*p++ = c` / `*p = c; p++` / `q = p++` / int-typed p fold
+ * the old value into `sb 0(v0)` (11 words); `q = p; p++; *q = c` without
+ * the barrier colours q into a1 and evicts c to a3 (13 words); `register`,
+ * K&R, unsigned n, do-while+pre-test, named counter copies (`i = n`),
+ * dead keep-alives (`if (0) {...}`, `q = q`, `t = n`) and 7.1/5.3 -O0/-O1/
+ * -O1 -g/-g3 are all worse (-O1 homes p: frame 8 + lw/sw).
+ * RESIDUAL (2 words, colouring only): the loop-bottom `n--` old-value copy
+ * is `or a3,a2,zero` scheduled BEFORE the sb in the target (a3 = q still
+ * live in v1) and `or v1,a2,zero` AFTER it here (q dead, v1 reused); the
+ * pre-loop copy `or v1,a2,zero` matches. 40 spellings probed, none moves
+ * the test temp above the store in ucode order. */
+void *game_libs_func_00067D50(void *s, int c, int n) {
+    unsigned char *p = s;
+    unsigned char *q;
+
+    while (n--) {
+        q = p;
+        p++;
+        if (1) { *q = c; }
     }
-    return a0;
+    return s;
 }
 #else
-/* game_libs_func_00067D50 = memset(char *dst, char val, int count) -> dst (byte
- * fill loop, returns dst). UNROLL CAP: target is the 12-insn NON-unrolled loop
- * (no prologue, `v1=v0` reload + dead `a3=a2` per iter) — a lower-opt build. IDO
- * at -O2 UNROLLS by 4 (22 insns); -O1 adds a prologue+spill. No C form at the
- * file's -O2 reproduces the non-unrolled no-prologue target (tested 2026-05-24).
- * Needs a contiguous lower-opt file split (cf. -g3 batch) to match. */
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00067D50);
 #endif
 
