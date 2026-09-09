@@ -15773,40 +15773,29 @@ void gl_func_0002D064(char *a0) {
     }
 }
 
-/* gl_func_0002D130: 59-insn (0xF4) nested-loop per-frame init.
- *   s3 = D_base + (a0 * 0x160);
- *   for (j = 0; j < 64; j += 4) {
- *       retval = gl_func(&D_2198, 228);
- *       if (retval == 0) s1->[0x38] = &D_5280;
- *       else { ... 2-iter inner loop ... }
- *       gl_func_alt(s1->[0x38]);
- *       s1 += 4;
- *   }
- *
- * NATURAL CEILING: 90.74% NM. The 16-insn diff covers prologue scheduler
- * order + inner-loop register rename (build uses $a0/$v1 counter+ptr;
- * target uses $v1/$v0). Was previously documented as INSN_PATCH-promoted
- * to EXACT; INSN_PATCH REMOVED 2026-05-23 as match-faking (per
- * feedback_no_instruction_forcing_matches_policy). Default build is
- * INCLUDE_ASM. */
-#ifdef NON_MATCHING
+/* 61 instructions: initialize 16 per-record objects and their two groups
+ * of four words. Store allocator result before testing it, then reload the
+ * stored pointer in the success arm (distinct from the call-result web).
+ * Initializing the walking pointer in the for clause preserves the target
+ * prologue schedule. The final call is the nonzero 0x3E8C4 import. */
+extern int gl_alloc_2D130();
 void gl_func_0002D130(int a0) {
-    char *base = &D_00000000;
+    char *base = (char *)&D_00000000;
     int *s3 = (int*)(base + (a0 * 0x160) + 0x2D00);
     char *d5280 = base + 0x5280;
-    int *s1 = s3;
+    int *s1;
     int j;
-    for (j = 0; j < 64; j += 4) {
-        int *retval = (int*)gl_func_00000000(base + 0x2198, 228);
+    for (s1 = s3, j = 0; j < 64; j += 4) {
+        int *retval = (int*)gl_alloc_2D130(base + 0x2198, 228);
+        *(int**)((char*)s1 + 0x38) = retval;
         if (retval == 0) {
             *(int*)((char*)s1 + 0x38) = (int)d5280;
         } else {
             int *p;
             int i;
-            *(int*)((char*)s1 + 0x38) = (int)retval;
-            *(int*)((char*)retval + 0x4C) = (int)s3;
-            *(char*)retval &= 0xFF7F;
-            p = retval;
+            p = *(int**)((char*)s1 + 0x38);
+            *(int*)((char*)p + 0x4C) = (int)s3;
+            *(unsigned char*)p &= 0xFF7F;
             for (i = 0; i < 8; i += 4) {
                 *(int*)((char*)p + 0x54) = 0;
                 *(int*)((char*)p + 0x58) = 0;
@@ -15815,13 +15804,10 @@ void gl_func_0002D130(int a0) {
                 *(int*)((char*)p + 0x40) = 0;
             }
         }
-        gl_func_00000000(*(int*)((char*)s1 + 0x38));
+        gl_ref_0003E8C4(*(int*)((char*)s1 + 0x38));
         s1 = (int*)((char*)s1 + 4);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0002D130);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0002D224: 52-insn (0xD0) init with 2 loops + bit-clear chain.

@@ -12,26 +12,29 @@ Twenty segments are being decompiled. USO overlays ship as a custom relocatable 
 
 | Segment | Functions | Code matched | Matched | Fuzzy | Notes |
 |------------------------|-------------------|------------------------|------------|------------|------------------------------------------------|
-| `kernel` | 101 / 214 | 9.8 KB / 39.4 KB | 24.94 % | 55.44 % | libultra + USO loader + audio (`0x80000000`) |
-| `bootup_uso` | 227 / 359 | 14.7 KB / 81.6 KB | 18.02 % | 49.70 % | Giles Goddard's libgdl engine |
-| `game_libs` | 919 / 2081 | 52.3 KB / 412.4 KB | 12.68 % | 52.61 % | Support libraries (incl. statically-linked libultra) |
-| `gui_uso` | 15 / 40 | 1.3 KB / 18.1 KB | 7.37 % | 68.17 % | GUI/menu helpers |
-| `titproc_uso` | 30 / 46 | 2.7 KB / 10.5 KB | 26.02 % | 77.82 % | Title-screen process |
-| `arcproc_uso` | 39 / 60 | 2.8 KB / 10.4 KB | 27.01 % | 78.69 % | Arcade-mode process |
-| `h2hproc_uso` | 28 / 41 | 1.9 KB / 6.8 KB | 27.56 % | 89.67 % | Head-to-head process |
-| `eddproc_uso` | 14 / 15 | 0.9 KB / 1.1 KB | 82.58 % | 99.30 % | Edit-mode process |
-| `n64proc_uso` | 5 / 7 | 0.5 KB / 1.0 KB | 49.25 % | 93.03 % | N64-specific process |
-| `boarder1_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Per-character snowboarder USO |
-| `boarder2_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Per-character snowboarder USO |
-| `boarder3_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Per-character snowboarder USO |
-| `boarder4_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Per-character snowboarder USO |
-| `boarder5_uso` | 6 / 6 | 0.4 KB / 0.4 KB | 100.00 % | 100.00 % | Last snowboarder USO -- 1 function left |
-| `mgrproc_uso` | 32 / 62 | 2.3 KB / 13.0 KB | 17.35 % | 86.01 % | Manager process (Yay0-decompressed) |
-| `game_uso` | 148 / 241 | 12.1 KB / 70.9 KB | 17.05 % | 61.16 % | Main game loop (Yay0-decompressed) |
-| `timproc_uso` | 213 / 344 | 13.5 KB / 81.4 KB | 16.58 % | 64.86 % | Timer process (Yay0; variants b1/b3/b5) |
-| **Total** | **1,801 / 3,540** | **116.8 KB / 748.5 KB** | **15.60 %** | **56.84 %** |  |
+| `kernel` | 135 / 201 | 21.8 KiB / 38.9 KiB | 56.06 % | 69.26 % | libultra + USO loader + audio (`0x80000000`) |
+| `bootup_uso` | 272 / 349 | 28.5 KiB / 81.6 KiB | 34.99 % | 83.75 % | Giles Goddard's libgdl engine |
+| `game_libs` | 1,267 / 1,942 | 132.1 KiB / 408.8 KiB | 32.30 % | 80.09 % | Support libraries (incl. statically-linked libultra) |
+| `gui_uso` | 16 / 39 | 1.7 KiB / 18.1 KiB | 9.16 % | 87.46 % | GUI/menu helpers |
+| `titproc_uso` | 40 / 46 | 5.6 KiB / 10.5 KiB | 53.30 % | 97.69 % | Title-screen process |
+| `arcproc_uso` | 45 / 59 | 5.2 KiB / 10.4 KiB | 50.51 % | 94.96 % | Arcade-mode process |
+| `h2hproc_uso` | 33 / 40 | 3.3 KiB / 6.8 KiB | 49.02 % | 96.57 % | Head-to-head process |
+| `eddproc_uso` | 15 / 15 | 1.1 KiB / 1.1 KiB | 100.00 % | 100.00 % | Edit-mode process |
+| `n64proc_uso` | 7 / 7 | 1.0 KiB / 1.0 KiB | 100.00 % | 100.00 % | N64-specific process |
+| `boarder1_uso` | 6 / 6 | 0.4 KiB / 0.4 KiB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `boarder2_uso` | 6 / 6 | 0.4 KiB / 0.4 KiB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `boarder3_uso` | 6 / 6 | 0.4 KiB / 0.4 KiB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `boarder4_uso` | 6 / 6 | 0.4 KiB / 0.4 KiB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `boarder5_uso` | 6 / 6 | 0.4 KiB / 0.4 KiB | 100.00 % | 100.00 % | Per-character snowboarder USO |
+| `mgrproc_uso` | 44 / 57 | 7.0 KiB / 13.0 KiB | 53.74 % | 96.51 % | Manager process (Yay0-decompressed) |
+| `game_uso` | 192 / 240 | 25.9 KiB / 70.8 KiB | 36.63 % | 86.93 % | Main game loop (Yay0-decompressed) |
+| `timproc_uso` | 264 / 315 | 31.6 KiB / 81.4 KiB | 38.87 % | 93.48 % | Timer process (Yay0; variants b1/b3/b5) |
+| `map4_data_uso_b2` | 3 / 3 | 0.2 KiB / 0.2 KiB | 100.00 % | 100.00 % | Map overlay code (remaining map assets are data) |
+| **Total** | **2,363 / 3,343** | **267.0 KiB / 744.4 KiB** | **35.87 %** | **83.23 %** |  |
 
-Remaining Yay0-compressed USOs are now splatted; `map4_data` and pure data USOs (audio banks, character meshes, textures) stay as `bin` segments.
+Snapshot from `report.json` on 2026-09-09. Remaining Yay0-compressed USOs are
+splatted; code in `map4_data_uso_b2` is tracked above, while pure data assets
+(audio banks, character meshes, textures) stay as `bin` segments.
 
 ## Building
 
