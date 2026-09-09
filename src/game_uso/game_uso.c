@@ -7231,658 +7231,142 @@ INCLUDE_ASM("asm/nonmatchings/game_uso/game_uso", game_uso_func_000097EC);
 extern void game_uso_func_047B1C();
 extern char game_uso_D_807FEDB8;
 #ifdef NON_MATCHING
-/* 54.950580% NM (objdiff 2026-05-20; up from 50.38% before this pass).
- * game_uso_func_00009B88: 0x560 (344 insns), 0x1A8-byte stack frame.
- * Inferred from the final cross-product sign test + screen-space transform
- * constants: this is a billboard-visibility / 2D point-on-line predicate
- * applied to per-frame screen-projected anchor coordinates, returning a
- * boolean result via $v0.
- * Strategy-memo candidate for "per-frame compute" (1.4 KB, 11 cross-calls).
+/* game_uso_func_00009B88: XZ segment-side predicate, 344 target words.
+ * 2026-09-09: 62.17 -> 99.74% NM (99.70% standalone); 328/344 raw words.
+ * The C now has the target 0x560-byte size and 0x1A8-byte frame.
  *
- * Partial C body now captures entry (panic-on-a2-null + 2 cross-call
- * dispatches with sp+0x190 and sp+0xDC Vec3 locals), body-part-1 Vec3 copy
- * (a2->0x30 XZ-projection), the sp+0xC4 rotated vector, the 250.0f/50.0f
- * screen-space scale, the tail Vec3 fanout family, and the final
- * two-cross-product sign test. Remaining gap is the exact stack-layout /
- * FPU scheduling of the middle transform helpers.
+ * Project a2's position onto XZ, subtract a1's position, rotate/normalize
+ * that delta, and form two scaled axes. Project a0's child-position
+ * (a0->0x30 + 0xB4), subtract a1 again, then compare the signs of two
+ * cross products formed from the +/- axis endpoints.
  *
- * ENTRY DECODE (insns 1-15 @ 0x9B88-0x9BC4):
- *   args: (a0, a1, a2).  All three spilled to caller-slot (sp+0x1A8/AC/B0)
- *         at entry — suggests varargs or multi-reuse callee.
- *   if (a2 == 0) {
- *       panic/assert(&SYM+0x7BC, &SYM+0x7C8, 0x623);
- *       // jal gl_func_00000000, line number 0x623 = 1571
- *   }
- *   // sp+0x190: a local struct base.  `bnel v1,$0,...` on &local_struct
- *   // is trivially true (stack addr nonzero) — suggests compiler generated
- *   // null-guard around a pointer obtained from `local.field` indirection.
+ * Matching details:
+ * - Keep the nine nested alloc guards. Cast the TEST (not p's definition)
+ *   where p must be rematerialized after the dead allocation arm.
+ * - Word-typed aggregate copies retain the shared EC staging buffer and
+ *   copy-through temporaries; keep grouped copy statements on one line.
+ * - Load both X/Z values before storing. Keep paired delta expressions
+ *   on one line, and separate their source pointer from the child source.
+ * - src_vec's home is 0x114; padding/declaration order preserves the
+ *   remaining named stack slots. The do/while(0) scope shapes A0's remat.
+ * - Inline only the second final cross product, keeping cross1 named.
  *
- * BODY PART 1 (insns 15-50 @ 0x9BC4-0x9C54): dual Vec3-copy + math.
- *   local1 = sp+0x190:  // 3 floats
- *     local1[0] = a2[0x30].x; local1[1] = 0.0f; local1[2] = a2[0x30].z;
- *   local2 = sp+0xDC:  // another 3-float struct, guarded by bne
- *     local2[0] = a1[0x30].x ± a2-src; local2[1] = a1[0x38] mul ...;
- *     (math: 0x9C28 mtc1/mul.s, 0x9C38 sub.s on $f8/$f10 — scale/offset
- *      of the Vec3 from a2+0x30 against something from a1+0x30/0x38)
- *   local3 = sp+0xEC:  // 3-word int-style struct
- *     local3[0..8] = a1[0x30..0x38].intbits  // raw word copy (8C/AC pattern)
- *   local4 = sp+0x9C, local5 = sp+0x144:  more 3-word copies from a1 and
- *     stored to multiple slots — function is building a per-frame working
- *     set of transformed coordinates from the per-object anchor (a1+0x30).
- *
- * BODY PART 2 (insns 50-344 @ 0x9C54-0x10E8): heavy float math (many
- *   lwc1/mul.s/add.s/sub.s on sp+0x12C..sp+0x148, a quaternion or matrix
- *   slot), multiple cross-USO calls (`jal 0` placeholders — 11 per memo),
- *   several struct stores to sp+0x0C4..sp+0x144 (local buffer region).
- *   Scale constant 0xC7A ≈ 250.0f at 0x9D0C, offset 0x4248 ≈ 50.0f at 0x9D1C
- *   — suggests coordinate/angle scaling.
- *
- * BODY-PART-2 FRONT-HALF SCAN (2026-05-05, 0x9C54-0x9D00 = +43 insns):
- *   - 0x9C54-0x9C7C: TWO triple-fanout 12-byte struct copies. First reads
- *     a3+0/4/8 (= prior body-part-1 result) and writes BOTH t6+0/4/8 and
- *     v1+0/4/8 (sp+0x19C and sp+0x144). Second reads t1+0/4/8 and writes
- *     v0+0/4/8 (sp+0x144 again, possibly fanout to two captures).
- *   - 0x9C80-0x9C9C: bne v1, $zero, +7 — guarded cross-USO call
- *     `jal 0` with a0 = &local at sp+0xC4, a1 = &local at sp+0xEC,
- *     a2 = 0xC (likely byte length = 12). Pattern: copy/transform Vec3s
- *     between two stack slots via a stub helper.
- *   - 0x9CA0-0x9CCC: post-call results: lwc1 sp+0x144, lwc1 sp+0x14C,
- *     mtc1 zero, abs.s. Likely "abs(magnitude)" of the just-computed
- *     transformed Vec3 component. Stores to a1+0..8 (out-buffer).
- *   - 0x9CD0-0x9CFC: ANOTHER triple-fanout struct copy + jal 0 with
- *     a0 = sp+0x138 setup. Same 12-byte struct-pair pattern as before;
- *     two helpers in sequence each consuming a Vec3 transform result.
- *   - 0x9D00+: switch to FPU — lwc1 sp+0x138/+4/+8 + lui 0x437A (=250.0f).
- *     Next chunk (0x9D04-...) is float scaling against the 250.0f constant.
- *
- * BODY-PART-2 MID-SCAN (2026-05-05, 0x9D00-0x9DC0 = +49 insns):
- *   - 0x9D00-0x9D2C: build TWO local Vec3 buffers at sp+0x12C and sp+0x138
- *     by storing `a1->0x14C/0x150/0x158` arg vals into them, with constants
- *     0x437A0000 (= 250.0f) and 0x42480000 (= 50.0f) materialized via lui+at
- *     to specific slots. The 250.0f goes to one slot, 50.0f to another —
- *     looks like a "near-clip / far-clip" pair for projection or LOD.
- *   - 0x9D34-0x9D60: lw sp+0x1AC/0x1B0/0x1A8 (re-load a1/a2/a0
- *     pointers spilled at entry), then lwc1 sp+0x12C/0x130, lwc1 0x54(t2)
- *     — read transformed-coord result from a per-object slot, plus a
- *     stored-context float. Compute `f4 = f0 * f6` (scale).
- *   - 0x9D50-0x9D58: build the next-call args: a2 = sp+0xEC (ref to one
- *     of the local Vec3 bufs), a0 = 0xC (12-byte length) — call sig
- *     matches a copy/transform stub. abs.s on f8 sets the f-register up
- *     for the call.
- *   - 0x9D5C-0x9DA8: 3-component scale `out.x = a*x; out.y = b*y; out.z = c*z`
- *     where the input Vec3 is stored at sp+0x138/0x130/0x12C and the
- *     scaling factor floats live at 0x54(arg-context-ptr) — this is the
- *     "coord-scale by per-object factor" pass per memo's "scale 250.0f
- *     suggests coordinate scaling" guess.
- *   - 0x9DAC-0x9DC0: store the scaled Vec3 results to sp+0x138/+4/+8,
- *     then start another lw from a1->0x30 (per-object anchor) — the
- *     compute will continue with another stage on the just-stored results.
- *
- * ~225 insns remain stubbed past 0x9DC4.
- *
- * BODY-PART-2 SECOND-HALF SCAN (2026-05-05, 0x9DC4-0x9E50 = +35 insns):
- *   - 0x9DC4-0x9DD0: bne a3, $zero, +7 — guarded jal with a1=sp+0xB4
- *     setup. Cross-USO helper call, result spilled to sp+0x114.
- *   - 0x9DD4-0x9DF8: post-call XZ-projection store. lwc1 sp+0x114
- *     (callee result), lwc1 a1+0/8 (post-call dest), mtc1 zero into
- *     f6 (= 0.0f), swc1 to 0/4/8 — Vec3 = (callee.x, 0, callee.z).
- *   - 0x9DFC-0x9E08: another bne-guarded jal with a1=sp+0xB8, a0=0xC
- *     (12-byte size arg). Helper transforms a Vec3 between stack slots.
- *   - 0x9E0C-0x9E48: post-call FPU-heavy block. lwc1 sp+0x184/0x18C
- *     (saved entity refs), lwc1 a2-context's 0x30/0x38, neg.s f2,f18
- *     (sign-flip). addiu v0, v0, 0x30 (advance struct ptr by 48). 3
- *     swc1 commits to v0+0/4/8. "transform via context, commit to
- *     per-object slot" pattern.
- *   - 0x9E50+: lw chains feeding another fanout copy + jal — TODO.
- *
- * ~120 insns remain stubbed past 0x9E50.
- *
- * BODY-PART-2 THIRD-CHUNK SCAN (2026-05-05, 0x9E50-0x9F00 = +44 insns):
- *   - 0x9E50-0x9E80: 12-byte triple-fanout struct copy. Reads a1+0/4/8
- *     (yet-another src Vec3), writes t9+0/4/8 (a4-context buf) AND
- *     t6+0/4/8 (sp+0xA0 staging). Same save-old + write-new idiom.
- *   - 0x9E84-0x9E94: bne-guarded jal sequence with a0=0xC, a2=sp+0xEC
- *     setup. Pre-call abs.s on f8.
- *   - 0x9E98-0x9EC8: post-call FPU 3-component scale. Loads sp+0x144/
- *     0x138/0x14C/0x140 (4 floats from saved-result buffers), `mul.s
- *     f0, f6, f8` triple, mtc1 zero, swc1 to v1+0/4/8 — "scale-by-
- *     callee-result + clear" pattern.
- *   - 0x9ECC-0x9EFC: ANOTHER 12-byte fanout copy with save-old idiom.
- *     Reads a1+0/4/8, writes t3+0/4/8 (sp+0x178) AND t1+0/4/8 (a3-buf).
- *   - 0x9F00+: continues with another bne-guarded jal at 0x9F08+. ~80
- *     insns remain stubbed past 0x9F00.
- *
- * BODY-PART-2 FOURTH-CHUNK SCAN (2026-05-05, 0x9F00-0x9FE8 = +58 insns):
- *   - 0x9F00-0x9F18: post-call FPU 3-component scale. lwc1 sp+0x120/
- *     0x12C/0x128/0x134, sub.s f0,f4,f6 (delta), mtc1 zero (= 0.0f),
- *     mul.s f2,f10,f0 — "scale by callee-result delta" pattern.
- *   - 0x9F1C-0x9F28: 3 swc1 stores to v1+0/4/8 (commit scaled vec).
- *   - 0x9F2C-0x9F50: another 12-byte triple-fanout copy. Reads a1+0/4/8,
- *     writes t7+0/4/8 (sp+0x16C) AND t1+0/4/8 (sp+0x94 area). Same
- *     save-old + write-new idiom.
- *   - 0x9F54-0x9F70: bne-guarded jal with a0=0xC, a2=sp+0x6C (yet
- *     another local Vec3 buffer dest).
- *   - 0x9F74-0x9F80: post-call branch test on v0 (`beq v0,$0,+0xB`).
- *   - 0x9F84-0x9FA8: post-call FPU scale block (mirror of 0x9F00 above).
- *     lwc1 sp+0x144/0x138/0x14C/0x140, sub.s + mul.s + zero-fill — same
- *     "scale by callee delta" template applied to a different slot pair.
- *   - 0x9FAC-0x9FE0: third triple-fanout struct copy (a1+0/4/8 -> t9+0/4/8
- *     with t1+0/4/8 backup). The function maintains MANY Vec3 working
- *     buffers and does many fanout-with-backup copies.
- *
- * BODY-PART-2 FINAL-CHUNK SCAN (2026-05-05, 0x9FE8-0xA0E8 = +64 insns,
- * function tail):
- *   - 0x9FE8-0xA00C: 2 sequential lw/sw triples that finish a working-set
- *     copy (a4-buf + 1-byte advance + delta-add into v1+0/4/8).
- *   - 0xA010-0xA01C: branch test on a1 (`beq a1, $0, +0xB`) — early-exit
- *     when input is null. Sets v1 = a0 (passthrough) on the early arm.
- *   - 0xA020-0xA050: 4-element FPU sum. lwc1 sp+0x120/0x12C/0x128/0x134
- *     (4 floats from staging buffers); add.s f0,f18,f0; mtc1 zero (= 0);
- *     add.s f0,f6,f0 — accumulates 3 floats into one Vec3 stored to
- *     v1+0/4/8.
- *   - 0xA050-0xA088: 12-byte triple-fanout copy + zero-fill. Reads
- *     a1+0/4/8, writes v1+0/4/8 AND a3+0/4/8 (mirror Vec3 to two
- *     destinations); zero-fills v0+0/4/8 as a third destination.
- *
- *   - 0xA088-0xA0CC: TWO 2D cross products (the function's ACTUAL
- *     PURPOSE — same-side-of-line-pair test). Decoded:
- *
- *       cross1 = sp[0x168] * sp[0x154] - sp[0x160] * sp[0x15C];
- *       cross2 = sp[0x180] * sp[0x16C] - sp[0x178] * sp[0x174];
- *       sign_product = cross1 * cross2;
- *
- *   - 0xA0CC-0xA0DC: c.lt.s sign_product, 0.0f; bc1f branch-on-fail to
- *     "return 0" path. If TAKEN (sign_product < 0): set v0 = 1 in delay.
- *   - 0xA0E0-0xA0E4: epilogue (jr ra; addiu sp, +0x1A8 in delay).
- *
- *   Final return: 1 IFF the 2D anchor is BETWEEN the two reference
- *   lines (cross products with opposite signs ⇒ different sides ⇒
- *   anchor is inside the wedge). Confirms billboard-visibility /
- *   point-in-wedge semantics from the function's lead comment.
- *
- *   The 8 sp slot pairs (0x154/0x158/..., 0x160/0x164/..., 0x168/0x16C/...,
- *   0x174/0x178/..., 0x180+) are the per-line endpoint x/y components from
- *   the body-part-2 staging compute — 4 lines (each a 2D Vec2 with 2 floats)
- *   form the 2 reference edges that bound the visibility wedge.
- *
- * Deferred to future passes: full body decode is ~300 insns of float sched;
- *   one /decompile run expands prologue + body-part-1 — subsequent runs will
- *   tighten the dispatch logic and body math. The dual Vec3-copy entry
- *   strongly suggests this is a coordinate-transform function: takes
- *   (context, anchor, src-Vec3) and produces a transformed Vec3 written to
- *   one of several local slots for downstream cross-USO dispatch. */
+ * Remaining: two mul.s operand swaps and A0/6C pointer-register choices.
+ * Not exact: retain the ASM fallback and do not create an episode.
+ * See agent docs/IDO_CODEGEN.md#vector-staging-stack-map-9b88.
+ */
 int game_uso_func_00009B88(a0, a1, a2)
     int *a0;
     int *a1;
     int *a2;
 {
-    volatile int local_19C[3]; /* sp+0x19C: raw-word copy of local_DC */
-    float local_190[3];   /* sp+0x190: Vec3 (a2->0x30 XZ-projection) */
-    float local_184[3];   /* sp+0x184: projected source from a0->0x30 + 0xB4 */
-    volatile int local_178[3]; /* sp+0x178: raw-word copy of local_A0 */
-    volatile int local_16C[3]; /* sp+0x16C: raw-word copy of local_88 */
-    volatile int local_160[3]; /* sp+0x160: raw-word copy of local_7C */
-    volatile int local_154[3]; /* sp+0x154: raw-word copy of local_44 */
-    int   gap_150;        /* sp+0x150: target gap between local_154/local_144 */
-    float local_144[3];   /* sp+0x144: Vec3 — passed to alloc-or-fill helper */
-    float local_138[3];   /* sp+0x138: working buffer (90deg-rotated XZ) */
-    float local_12C[3];   /* sp+0x12C: scaled accumulator (screen-space) */
-    float local_120[3];   /* sp+0x120: copy of local_B8 */
-    char pad_10C[40];
-    volatile int local_EC[3]; /* sp+0xEC: raw-word copy of local_DC */
-    char pad_E0[4];
-    float local_DC[3];    /* sp+0xDC:  Vec3 (a2-a1 XZ-delta) */
+    volatile int local_19C[3];
+    float local_190[3];
+    float local_184[3];
+    volatile int local_178[3];
+    volatile int local_16C[3];
+    volatile int local_160[3];
+    volatile int local_154[3];
+    int   gap_150;
+    float local_144[3];
+    float local_138[3];
+    float local_12C[3];
+    float local_120[3];
+    char pad_118[8];
+    float *src_vec;
+    char pad_F8[28];
+    volatile int local_EC[3];
+    char pad_E8[4];
+    float local_DC[3];
     char pad_D0[12];
-    int   local_C4[3];    /* sp+0xC4:  raw-word copy of local_DC */
-    float local_B8[3];    /* sp+0xB8:  local_184 - a1->0x30 */
-    volatile float local_A0[3]; /* sp+0xA0:  local_144 + local_138 */
-    volatile float local_88[3]; /* sp+0x88:  local_120 - local_12C */
-    volatile int local_94[3]; /* sp+0x94:  raw-word copy of local_88 */
-    volatile float local_6C[3]; /* sp+0x6C:  local_144 - local_138 */
-    volatile int local_7C[3]; /* sp+0x7C:  raw-word copy of local_6C */
-    volatile float local_38[3]; /* sp+0x38:  local_120 + local_12C */
-    volatile int local_44[3]; /* sp+0x44:  raw-word copy of local_38 */
+    int   local_C4[3];
+    float local_B8[3];
+    float scale0;
+    float *delta_src;
+    char pad_AC[4];
+    volatile float local_A0[3];
+    volatile int local_94[3];
+    volatile float local_88[3];
+    volatile int local_7C[3];
+    char pad_78[4];
+    volatile float local_6C[3];
+    char pad_50[28];
+    volatile int local_44[3];
+    volatile float local_38[3];
     int *out;
     int *p;
-    float *src_vec;
     int * volatile *spill_a1 = &a1;
-    float src_x, src_z, dx, dz;
-    float scale0;         /* screen-space transform scale: 250.0f * a1->0x54 + 50.0f */
-    float scale1;         /* screen-space transform scale: 250.0f * (a2->0x54 - a1->0x54) */
-    char pad_frame[8];
-    (void)pad_frame;
+    float src_x, src_z;
+
     (void)gap_150;
-    (void)pad_10C;
-    (void)pad_E0;
+    (void)pad_F8;
+    (void)pad_E8;
     (void)pad_D0;
     (void)spill_a1;
 
     if (a2 == 0) {
-        /* Assert: line 0x623 (1571) — message at &game_uso_D_807FEDB8+0x7BC / +0x7C8 */
+
         game_uso_func_047B1C(&game_uso_D_807FEDB8 + 0x7BC, &game_uso_D_807FEDB8 + 0x7C8, 0x623);
     }
 
-    /* Dispatch 1: write Vec3 XZ-projection to local_190 (sp+0x190).
-     * TARGET (decoded 2026-05-28; this is the FIRST divergence / cascade root):
-     *   addiu v1,sp,0x190; bnezl v1,+6; [delay-likely] lw v0,0x1B0(sp);  // a2 reload
-     *   jal alloc; li a0,12; beqz v0,+9; move v1,v0; lw v0,0x1B0(sp); ...body
-     * The bnezl's delay-LIKELY slot is filled with the BODY's first insn
-     * (a2's home-slot reload at sp+0x1B0), NOT a `move v1,ptr` passthrough.
-     * NEGATIVE RESULTS (do not repeat): the documented alloc-ternary recipe
-     * `out = p ? p : alloc(12)` — both bare-cast and named-temp forms — emits
-     * plain `beqz; nop; b; move; jal` (non-likely, +6 insns) NOT bnezl, because
-     * IDO sees &local_190 as a known-non-null constant. Adding `(void)&a2` to
-     * force a2's home spill didn't flip it either. The branch-likely here is
-     * reorg-pass-driven off the a2-reload-in-delay and isn't reachable from
-     * these C shapes; needs a fresh idea or the permuter. Kept as if-form. */
     out = (int*)(unsigned)local_190;
     if (out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip1;
     }
     {
-        src_vec = (float*)((char*)a2 + 0x30);
-        src_z = src_vec[2];
+        src_vec = 0; if (1) { src_vec = (float*)((char*)a2 + 0x30); }
         src_x = src_vec[0];
-        *(float*)((char*)out + 0x4) = 0.0f;     /* y */
-        *(float*)((char*)out + 0x8) = src_z;    /* z */
-        *(float*)((char*)out + 0x0) = src_x;    /* x */
+        src_z = src_vec[2];
+        *(float*)((char*)out + 0x4) = 0.0f;
+        *(float*)((char*)out + 0x8) = src_z;
+        *(float*)((char*)out + 0x0) = src_x;
     }
 skip1:;
 
-    /* Dispatch 2: write Vec3 (a2->XZ - a1->XZ delta) to local_DC.
-     * Same ternary shape; uses local_190 (just-written) for src_x/src_z. */
-    p = (int*)(unsigned)local_DC;
+    p = (int*)local_DC;
     out = p;
-    if (out == 0) {
+    if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip2;
     }
     {
-        src_vec = (float*)((char*)a1 + 0x30);
-        dx = local_190[0] - src_vec[0];
-        dz = local_190[2] - src_vec[2];
-        *(float*)((char*)out + 0x4) = 0.0f;     /* y */
-        *(float*)((char*)out + 0x8) = dz;       /* z */
-        *(float*)((char*)out + 0x0) = dx;       /* x */
+        delta_src = 0; if (1) { delta_src = (float*)((char*)a1 + 0x30); }
+        src_x = local_190[0] - delta_src[0]; src_z = local_190[2] - delta_src[2];
+        *(float*)((char*)out + 0x4) = 0.0f;
+        *(float*)((char*)out + 0x8) = src_z;
+        *(float*)((char*)out + 0x0) = src_x;
     }
 skip2:;
 
-    /* Body-part-2 entry @ 0x9C44-0x9C98 (CORRECTED 2026-05-04 via byte-decode):
-     * 1-to-4 fanout copy. local_DC's 3 words get distributed to local_EC,
-     * local_19C, local_144 — interleaved IDO -O2 codegen with shared loads. */
-    {
-        register int copy0 = p[0];
-        register int copy1 = p[1];
-        register int copy2;
-        register int copy3;
+    *(Tri3i *)local_EC = *(Tri3i *)p; *(Tri3i *)local_19C = *(Tri3i *)local_EC; *(Tri3i *)local_144 = *(Tri3i *)local_19C;
 
-        local_EC[0] = copy0;
-        copy3 = local_EC[0];
-        copy2 = p[2];
-        local_19C[0] = copy3;
-        copy3 = local_19C[0];
-        local_19C[1] = copy1;
-        local_EC[1] = copy1;
-        local_19C[2] = copy2;
-        local_EC[2] = copy2;
-        *(int*)&local_144[0] = copy3;
-        copy1 = local_19C[1];
-        *(int*)&local_144[1] = copy1;
-        copy2 = local_19C[2];
-        *(int*)&local_144[2] = copy2;
-    }
-
-    /* @ 0x9DD0-0x9E18: rotated Vec3 into the always-nonnull sp+0xC4 slot.
-     * The alloc arm is dead for the stack destination, matching the target's
-     * `bne v1,$zero` skip over the helper allocation. */
-    out = (int*)(unsigned)local_C4;
-    if (out == 0) {
-        out = (int*)game_uso_func_055750(0xC);
-        if (out == 0) goto skip3;
+    if (1) { p = (int*)local_C4; } src_vec = (float*)p; if ((unsigned)src_vec == 0) {
+        src_vec = (float*)game_uso_func_055750(0xC);
+        if (src_vec == 0) goto skip3;
     }
     {
-        ((float*)out)[0] = local_144[2];   /* x = old z */
-        ((float*)out)[1] = 0.0f;
-        ((float*)out)[2] = -local_144[0];  /* z = -old x */
+        src_x = local_144[2];
+        src_z = -local_144[0];
+        ((float*)src_vec)[0] = src_x;
+        ((float*)src_vec)[1] = 0.0f;
+        ((float*)src_vec)[2] = src_z;
     }
 skip3:;
 
-    /* @ 0x9E1C-0x9E48: 3-way Vec3 fan-out from local_C4 to local_EC and
-     * sp+0x138, then call helper(local_138, local_C4, local_EC). Likely a 3-Vec3
-     * accumulator (passing rotated, original, and delta to a single helper).
-     *
-     * @ 0x9D00-0x9D34: screen-space transform setup.
-     *   t9 = sp+0x138, t8 = sp+0x12C
-     *   sp+0x12C = sp+0x138   (word copy: 3 lw/sw pairs interleaved)
-     *   f2 = 250.0f (lui $at, 0x437A; mtc1 $at, $f2)   ; viewport-half scale
-     *   f10 = 50.0f (lui $at, 0x4248; mtc1 $at, $f10)  ; vertical offset
-     *   v1 = sp+0x184  (another working buffer)
-     *   t2 = a1 from caller-slot (sp+0x1AC)
-     *
-     * (Math chain continues 0x9D34-0x9DC4 — multiplies sp+0x12C entries by
-     * 250.0f scale + 50.0f offset for screen-coord transform; not yet decoded.)
-     *
-     * Extended characterization 2026-05-04 (0x9D34-0x9DC4, ~37 insns):
-     *   - 0x9D34-0x9D58: load 3 floats from sp+0x12C/130/134, mul.s with
-     *     250.0f and a fresh load from t2->0x54 (struct field arg). Result
-     *     stays in $f0..$f4.
-     *   - 0x9D5C-0x9D74: load sp+0x134, more mul.s on $f4/$f6/$f8/$f10/$f12,
-     *     swc1 BACK to sp+0x12C and sp+0x130 (in-place scaling of first 2 of 3
-     *     Vec3 components — pattern is `vec[i] = vec[i] * (250.0f * t2->0x54 + 50.0f)`).
-     *   - 0x9D7C-0x9DBC: another lwc1 chain from sp+0x138/13C/140 into
-     *     $f6/$f10, mul.s with same scale, swc1 back to sp+0x138/0x13C/0x140
-     *     (second Vec3 in-place scale, same pattern).
-     *   - 0x9DC0: lw t5, 0x30(t4) — load yet another struct's Vec3 source.
-     *   - 0x9DC4-0x9DD0: bne+jal sequence — 4th cross-USO dispatch with
-     *     scratch_a (sp+0xEC) and t5+0xB4 args.
-     *
-     * Net: 0x9D34-0x9DC4 scales local_12C by (250.0f * a1->0x54 + 50.0f),
-     * scales local_138 by (250.0f * (a2->0x54 - a1->0x54)), then loads a
-     * third Vec3 source and dispatches a helper. Confirms screen-space
-     * transform hypothesis. Body-part-2 still has ~200 insns past 0x9DD0.
-     *
-     * Extended characterization 2026-05-04 (0x9DD0-0x9E80, ~44 insns):
-     *   - 0x9DD8-0x9DF8: post-cross-call result handling. If callee
-     *     returned non-NULL ptr `v0`, store Vec3(a1[0], 0, a1[2]) to *v0
-     *     — i.e. zero-Y projection of the just-loaded Vec3.
-     *   - 0x9DFC-0x9E0C: 5th cross-USO dispatch — alloc(0xC) for a new
-     *     Vec3 buffer.
-     *   - 0x9E20-0x9E4C: post-alloc, fill the new Vec3 with delta from
-     *     (sp+0x184/0x18C) and a1->0x30/0x38: Vec3(diff_x, 0, diff_z).
-     *     a1 is the reference XZ subtract origin.
-     *   - 0x9E50-0x9E80: another 12-byte struct copy (a1 → a2, then
-     *     a1 → sp+0x120; final destination tracking gets convoluted).
-     *
-     * Cumulative: ~115 insns characterized of the 344. Body-part-2's
-     * theme is clearly "fan out the player's screen-projected XZ to
-     * multiple per-displayed-object buffer slots, with various deltas
-     * against the reference position from a1".
-     *
-     * Extended characterization 2026-05-04 (0x9E80-0x9F50, ~52 insns):
-     *   Continues the same alloc(0xC) + Vec3 sub.s pattern observed in
-     *   0x9DD0-0x9E80, but for additional buffer destinations:
-     *   - 0x9E80-0x9E8C: tail of previous struct copy (sw t9, 8(t6))
-     *   - 0x9E90-0x9EC8: 6th cross-USO call alloc(12) for sp+0xA0 dst.
-     *     Post-alloc: 3-float (sp+0x144, sp+0x138, sp+0x14C, sp+0x140)
-     *     mul.s + sub.s combination, store result Vec3 at v1[0..8].
-     *   - 0x9ED0-0x9F00: 12-byte struct copy (sp+0xA0 → sp+0x178/v1).
-     *   - 0x9F10-0x9F50: 7th cross-USO call alloc(12) for sp+0x88 dst.
-     *     Same shape: load 3 floats from sp+0x120/0x12C/0x128/0x134,
-     *     mul/sub, store to alloc'd Vec3.
-     *
-     * Theme is now clearly: REPEATED "compute one Vec3 = math(table_a,
-     * table_b)" + "store to alloc'd buffer" + "fan out to multiple
-     * downstream slots". Each iteration uses different sp-offset table
-     * pairs, building per-displayed-object screen-projected data.
-     *
-     * Cumulative ~167/344 insns characterized.
-     *
-     * Extended characterization 2026-05-04 (0x9F50-0xA0A0, ~84 insns):
-     *   Same "alloc(0xC) + fill Vec3 + struct-copy fan-out" pattern continues
-     *   for two more iterations. Each follows the recipe:
-     *     1. word-copy a1[0..0xC] → sp+0xNN buffer (3 lw/sw pairs)
-     *     2. word-copy a2[0..0xC] → sp+0xMM buffer (3 lw/sw pairs)
-     *     3. addiu v1, sp, 0xKK; bne v1, $0, skip_alloc (always skipped)
-     *     4. jal 0 (gl_func_00000000) ; addiu a0, $0, 0xC  (dead alloc)
-     *     5. beqz v0, +0xB ; or v1, v0, $0 (also dead — v1 = stack addr)
-     *     6. lwc1 4 floats from sp+0x12C/0x138/0x140/0x14C tables
-     *     7. mul.s + (mtc1 $0,zero) + sub.s combo
-     *     8. swc1 results to v1[0/4/8] (Vec3 result)
-     *
-     *   The destination sp-offsets in this chunk: sp+0x6C, sp+0x94, sp+0x16C,
-     *   sp+0x160, sp+0x44, sp+0x154 — all distinct working buffer slots being
-     *   populated. Each iteration consumes (table_a, table_b) at different
-     *   sp-offsets and produces a Vec3.
-     *
-     *   This is the REPEATED unrolled pattern noted earlier. Likely an unrolled
-     *   loop over per-vertex / per-corner buffer slots for a 4-corner billboard
-     *   or trail mesh — the screen-space transform builds 4-6 transformed
-     *   Vec3s in adjacent stack slots, all fed to a single downstream
-     *   draw-helper at the function tail.
-     *
-     * Cumulative ~251/344 insns characterized (~73%).
-     *
-     * CORRECTION 2026-05-04: function actually ENDS at 0xA0E4 (size 0x560 from
-     * 0x9B88 = end 0xA0E8). The earlier "@ 0xA0A0-0x10E8" range was wrong —
-     * confused with absolute ROM offset. Only ~12 insns remain past 0xA0A0.
-     *
-     * Final tail @ 0xA0A0-0xA0E4 (~12 insns): sign-of-cross-product check.
-     *   - 0xA0A0-0xA0BC: lwc1 four floats from sp+0x178/0x180/0x174, plus
-     *     existing $f4/$f16/$f18 register state. Compute:
-     *       $f0  = sp+0x148_value - $f4 * $f6      (subtract product from acc)
-     *       $f10 = $f4_new * $f18 - $f6_new * $f18_new   (2nd diff product)
-     *   - 0xA0C8: $f16 = $f10 * $f0                (final product)
-     *   - 0xA0CC: c.lt.s $f16, 0.0                 (sign test)
-     *   - 0xA0D4: bc1f +2 — if NOT (f16 < 0), skip; jump to epilogue (v0
-     *     remains as set earlier)
-     *   - 0xA0DC: v0 = 1                           (only when f16 < 0)
-     *   - 0xA0E0-0xA0E4: jr ra; addiu sp, +0x1A8
-     *
-     * This tail is a 2D cross-product sign test — likely "is point on positive
-     * side of line" / "is winding clockwise" / similar geometric predicate.
-     * Final return value is 1 if product < 0, else 0 (or whatever was set
-     * by the omitted earlier dispatch's skip-arm).
-     *
-     * Cumulative 263/344 insns characterized (~76%).
-     *
-     * The 250.0/50.0 constants confirm screen-space coordinate transform
-     * (250.0 ~= viewport-half; 50.0 ~= vertical offset).
-     * Combined with the cross-product sign test, this is likely a
-     * billboard-visibility / point-in-frustum check after screen projection.
-     *
-     * 2026-05-20 variants tried:
-     *   - real tail Vec3 math + predicate: 11.85% -> 20.33%;
-     *   - raw-word fanout copies instead of float copies: 20.33% -> 28.59%;
-     *   - correct sp+0xC4 as always-stack rotated Vec3 + helper call:
-     *     28.59% -> 29.48%;
-     *   - corrected signature back to 3 args, changed scale block to
-     *     250.0f/50.0f using a1/a2->0x54, and added caller-slot a1 spill
-     *     plus frame padding per docs/IDO_CODEGEN.md arg-spill/frame recipes:
-     *     29.48% -> 33.39%.
-     *
- * 2026-05-20 recheck with the correct non_matching object rebuild:
-     *   - raw integer zero stores for all Vec3 Y components regressed
-     *     33.386627% -> 32.220932%;
-     *   - volatile destination pointer + moving pad_frame below real locals
-     *     regressed to 32.462208%;
-     *   - tail predicate rewrites (`result` local, inverted >= early-return)
-     *     regressed to 32.279068% or left the same extra-branch class.
-     *   - target-order stack Vec3 declarations + padding fixed the early
-     *     stack slot map for local_190/local_DC/local_EC/local_C4/local_19C
-     *     (sp+0x190/0xDC/0xEC/0xC4/0x19C) and slightly improved
-     *     33.386627% -> 33.395348%.
- *   Ghidra helper was unavailable in this worktree (missing
- *   build/ghidra-project/tenshoe).
- *
- * 2026-05-20 continuation:
- *   - applying the documented alloc-or-fill shape as a direct ternary to
- *     the first three Vec3 destinations emitted the wrong `beq + b`
- *     form and regressed 33.35% -> 32.68%;
- *   - wrapping the four final screen-space Vec3 combinations in explicit
- *     stack-destination alloc guards improved 33.35% -> 43.27%;
- *   - adding the same wrapper to the preceding local_184/local_B8 writes
- *     regressed slightly to 42.99%, so those stayed as direct writes.
- *
- * 2026-05-20 deep retry:
- *   - m2c cannot decode this .word-only USO body ("contains no instructions");
- *   - moving a 32-byte frame pad below the real locals fixed the target
- *     -0x1A8 frame and early local slots (local_190=sp+0x190,
- *     local_DC=sp+0xDC) and improved 43.270348% -> 43.302326%;
- *   - goto-shaped alloc guards for the first two Vec3 destinations regressed
- *     to 42.898254% (IDO deleted the dead alloc arms);
- *   - `result` local tail shape regressed to 42.909885% and grew the frame
- *     to -0x1B0, so the return/return tail stayed.
- *
- * 2026-05-20 tail retry:
- *   - direct boolean return for the final cross-product sign test removed
- *     the extra unconditional branch and improved 43.343020% -> 43.633720%;
- *   - commuted cross-product operands nudged FPU load order and improved to
- *     43.636627%;
- *   - named temporaries for the same tail regressed to 38.921513%.
- *
- * 2026-05-20 stack/raw-copy retry:
- *   - inserted the target's sp+0x150 gap between local_154 and local_144,
- *     compensated with the mid scratch pad to preserve lower slots, improving
- *     43.636627% -> 43.639534%;
- *   - changed the initial local_144 fanout from float copies to raw int-word
- *     copies, improving to 45.968020%;
- *   - made local_EC/local_19C volatile to preserve the target's otherwise
- *     dead raw scratch fanout, improving to 48.229652%;
- *   - local_144 volatile regressed to 48.078487%, and local_C4 volatile
- *     regressed to 46.872093%, so both were rejected.
- *
- * 2026-05-20 follow-up:
- *   - volatile `out` for all alloc-or-fill blocks regressed to 38.5%;
- *   - explicit register-temp replay of the local_DC -> local_EC/local_19C/
- *     local_144 fanout improved 48.229652% -> 48.819767%;
- *   - removing volatile from local_EC/local_19C regressed to 45.918606%;
- *   - tuning pad_10C from 40 to 24 kept target-adjacent lower stack slots
- *     closer and improved to 48.851746% (pad 16/32 were worse).
- *   Current best at that point: 48.851746%.
- *
- * 2026-05-20 continuation:
- *   - remeasured inherited body after forced non_matching rebuild:
- *     48.811047%;
- *   - pad_10C=8 regressed to 48.779068%;
- *   - explicit first-destination non-null/else alloc form regressed to
- *     47.72384%;
- *   - adding real alloc-or-fill wrappers for the middle local_184
- *     source-projection and local_B8 delta blocks improved to 50.311047%;
- *   - reducing pad_frame 32 -> 24 restored the target -0x1A8 frame and
- *     improved to 50.337208%; pad_frame=16 regressed to 50.30814.
- *   Current best: 50.337208%.
- *
- * 2026-05-20 exact-grind stop point:
- *   - current forced rebuild/report measures 50.377907%;
- *   - making the shared destination pointer volatile preserved more dead
- *     alloc arms but regressed badly to 42.8343%;
- *   - making local_138 volatile to avoid the saved $s0 pointer regressed
- *     to 47.94186%;
- *   - pad_10C=8 or 16 both regressed to 50.34884%;
- *   - explicit `if (out != 0) ... else alloc` for the first final
- *     screen-space destination regressed to 47.90116%;
- *   - recomputing the local_138 call address from local_EC tied baseline
- *     exactly, so the clearer direct local_138 call stayed.
- *
- * 2026-05-20 Codex deep retry:
- *   - boundary rechecked clean (`grep -c 03E00008` = 1);
- *   - m2c still cannot decode this raw-word USO body ("contains no
- *     instructions"), so no new m2c seed was available;
- *   - no-alias objdump shows the current major residuals are the missing
- *     target alloc-or-passthrough `bnel` arms at the first two Vec3
- *     destinations, an extra saved `$s0` cache for sp+0x138, and lower
- *     Vec3 stack slots such as local_B8 still mapped far below target;
- *   - first-two-destination ternary form per
- *     docs/IDO_CODEGEN.md#feedback-ido-alloc-or-passthrough-ternary
- *     produced the same object/report (50.377907%);
- *   - pad_10C 24 -> 40 and `volatile local_138[3]` also produced the same
- *     report, leaving the `$s0` save and stack-slot residual unchanged.
- *
- * 2026-05-20 Codex continuation:
- *   - ternary `out = local ? local : alloc(0xC)` for the first two Vec3
- *     destinations regressed 50.377907% -> 49.261627%;
- *   - a volatile passthrough pointer for only those first two destinations
- *     regressed to 49.854652%;
- *   - shrinking pad_10C 24 -> 8 moved the frame to -0x198 and regressed to
- *     50.348840%;
- *   - moving local_B8 into the lower Vec3 declaration cluster preserved the
- *     current score while keeping that source slot nearer the target stack
- *     band; adding a 4-byte neighboring gap regressed to 50.351746%;
- *   - Ghidra was unavailable: agent-c has no local project and agent-e's
- *     project was locked.
- *   Exact not reached; keep INCLUDE_ASM fallback, no new episode.
- *
- * 2026-05-20 Codex source=2 iteration:
- *   - boundary rechecked clean (`grep -c 03E00008` = 1);
- *   - fresh non_matching object/report measured 50.337208% before edits;
- *   - pad_10C 24 -> 40 plus pad_frame 24 -> 8 preserved the target
- *     -0x1A8 frame while placing the early stack band at target offsets:
- *     local_DC=sp+0xDC, local_EC=sp+0xEC, local_C4=sp+0xC4. This improved
- *     50.337208% -> 50.343020%;
- *   - pad_10C 40 without the pad_frame compensation grew the frame to
- *     -0x1B8 and regressed to 50.308140%;
- *   - ternary alloc-or-passthrough form for the first three Vec3
- *     destinations regressed to 48.636627% in the full TU;
- *   - `float * volatile src_vec` to force the local_184 source spill
- *     regressed to 48.732560%;
- *   - Ghidra helper still unavailable in agent-c (missing
- *     build/ghidra-project/tenshoe).
- *   Exact not reached; keep INCLUDE_ASM fallback, no new episode.
- *
- * 2026-05-20 Codex current-candidate iteration:
- *   - boundary rechecked clean (`grep -c 03E00008` = 1);
- *   - no-alias objdump showed the lower Vec3 fanout slots were being
- *     optimized into direct float temporaries instead of target-style raw
- *     word-copy buffers;
- *   - declaration-order/padding repack of the lower Vec3 band regressed
- *     50.383720% -> 50.348840%, so it was rejected;
- *   - converting the intermediate raw-copy buffers local_94/local_7C/local_44
- *     to volatile int[3] preserved explicit lw/sw fanout and improved to
- *     53.688953%;
- *   - increasing pad_frame 8 -> 16 restored the target 0x1A8 frame and
- *     improved to 53.735466%; 24-byte padding regressed to 53.688953%;
- *   - converting final fanout destinations local_178/local_16C/local_160/
- *     local_154 to volatile int[3], with float reinterpretation only in the
- *     final cross-product predicate, improved to 54.950580%;
- *   - applying the same raw-buffer treatment to local_120 regressed to
- *     53.139534%, so it was rejected; volatile lower output Vec3s tied the
- *     current best.
- *   Exact not reached; keep INCLUDE_ASM fallback, no new episode.
- *
- * 2026-06-22 reloc-symbol correctness pass (agent-e):
- *   Decoded the TARGET from expected/src/game_uso/game_uso.c.o (objdump -dr).
- *   All cross-USO relocs were pointing at PLACEHOLDERS (gl_func_00000000 /
- *   D_00000000); replaced them with the real reloc symbols read off the
- *   target's R_MIPS_26 / R_MIPS_HI16 entries:
- *     - assert  @0x9bb0 : game_uso_func_047B1C(&game_uso_D_807FEDB8+0x7BC,
- *                         &game_uso_D_807FEDB8+0x7C8, 1571)
- *     - alloc   (9x)    : game_uso_func_055750(0xC)   (was gl_func_00000000)
- *     - normalize@0x9cf8: game_uso_func_071028((Vec3*)local_138)  (single-arg;
- *                         a1/a2 at the call site are residual copy regs, not args)
- *   These are byte-neutral in objdiff fuzzy (same lui/jal/addiu insn bytes;
- *   only the relocation ENTRIES change), so fuzzy stayed ~54.92% — but the C
- *   is now correct toward a real match instead of relocating to dead stubs.
- *   The single-arg 071028 fix shifted one scheduling slot (54.95->54.92, noise).
- *   CASCADE ROOT CONFIRMED INTRACTABLE: dispatch-1 @0x9bb8 emits `bnezl v1`
- *   (branch-LIKELY) on a stack address (&local_190) with the a2 home-slot
- *   reload (lw v0,0x1b0(sp)) in the annulled delay — IDO does NOT fold the
- *   dead alloc arm. No C alloc-ternary / if-else / held-ptr shape reproduces
- *   the likely-branch-on-stack-addr (held-base-ptr in dispatch-1 regressed
- *   334->338 non-reloc diffs). This roots a 330+/344 body cascade. Needs the
- *   permuter or a non-obvious source idiom (the original `out` was likely a
- *   struct-field / fn-ptr return IDO can't prove non-null, not a stack local). */
-    *(int*)&local_EC[0] = local_C4[0];
-    *(int*)&local_EC[1] = local_C4[1];
-    *(int*)&local_EC[2] = local_C4[2];
-    *(int*)&local_138[0] = local_C4[0];
-    *(int*)&local_138[1] = local_C4[1];
-    *(int*)&local_138[2] = local_C4[2];
+    *(Tri3i *)local_EC = *(Tri3i *)p; *(Tri3i *)local_138 = *(Tri3i *)local_EC;
     game_uso_func_071028((Vec3 *)local_138);
 
-    /* @ 0x9D00-0x9D34: 3-word copy local_12C = local_138 buffer (the 90°-rotated
-     * XZ Vec3 from the alloc-or-fill above). Both serve as input to the
-     * subsequent in-place scaling chain. */
-    *(int*)&local_12C[0] = *(int*)&local_138[0];
-    *(int*)&local_12C[1] = *(int*)&local_138[1];
-    *(int*)&local_12C[2] = *(int*)&local_138[2];
-
-    /* @ 0x9D34-0x9DBC: in-place screen-space scale.
-     * Both local_12C[0..2] and local_138[0..2] scale-multiplied in-place.
-     * Target reloads only the three spilled args: a1 supplies the first
-     * scale source, a2 supplies the second, and a0 supplies the Vec3 source. */
+    *(Tri3i *)local_12C = *(Tri3i *)local_138;
     scale0 = 250.0f * (*(float*)((char*)a1 + 0x54)) + 50.0f;
     local_12C[0] *= scale0;
     local_12C[1] *= scale0;
     local_12C[2] *= scale0;
-    scale1 = 250.0f * (*(float*)((char*)a2 + 0x54) - *(float*)((char*)a1 + 0x54));
-    local_138[0] *= scale1;
-    local_138[1] *= scale1;
-    local_138[2] *= scale1;
+    scale0 = 250.0f * (*(float*)((char*)a2 + 0x54) - *(float*)((char*)a1 + 0x54));
+    local_138[0] *= scale0;
+    local_138[1] *= scale0;
+    local_138[2] *= scale0;
 
-    /* @ 0x9F0C-0x9F48: project a source Vec3 from a0->0x30+0xB4 into
-     * sp+0x184, clearing Y. This is the fourth always-stack destination,
-     * matching the earlier alloc-or-fill Vec3 templates. */
     src_vec = (float*)((char*)*(int*)((char*)a0 + 0x30) + 0xB4);
     out = (int*)(unsigned)local_184;
     if (out == 0) {
@@ -7890,125 +7374,98 @@ skip3:;
         if (out == 0) goto skip4;
     }
     {
-        ((float*)out)[0] = src_vec[0];
+        src_x = src_vec[0];
+        src_z = src_vec[2];
+        ((float*)out)[0] = src_x;
         ((float*)out)[1] = 0.0f;
-        ((float*)out)[2] = src_vec[2];
+        ((float*)out)[2] = src_z;
     }
 skip4:;
 
-    /* @ 0x9F48-0x9F9C: build the second delta vector against a1+0x30. */
-    out = (int*)(unsigned)local_B8;
-    if (out == 0) {
+    p = (int*)local_B8; out = p;
+    if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip5;
     }
     {
-        src_vec = (float*)((char*)a1 + 0x30);
-        ((float*)out)[0] = local_184[0] - src_vec[0];
+        delta_src = 0; if (1) { delta_src = (float*)((char*)a1 + 0x30); }
+        src_x = local_184[0] - delta_src[0]; src_z = local_184[2] - delta_src[2];
+        ((float*)out)[0] = src_x;
         ((float*)out)[1] = 0.0f;
-        ((float*)out)[2] = local_184[2] - src_vec[2];
+        ((float*)out)[2] = src_z;
     }
 skip5:;
 
-    /* @ 0x9E50-0x9E8C: fanout hop THROUGH local_EC (target reuses sp+0xEC
-     * as the staging buffer for this copy): B8 -> EC -> 120 interleaved. */
-    local_EC[0] = *(int*)&local_B8[0];
-    *(int*)&local_120[0] = local_EC[0];
-    local_EC[1] = *(int*)&local_B8[1];
-    *(int*)&local_120[1] = local_EC[1];
-    local_EC[2] = *(int*)&local_B8[2];
-    *(int*)&local_120[2] = local_EC[2];
-
-    /* @ 0x9FF4-0xA194: four unrolled screen-space Vec3 combinations. */
-    out = (int*)(unsigned)local_A0;
-    if (out == 0) {
+    *(Tri3i *)local_EC = *(Tri3i *)p;
+    *(Tri3i *)local_120 = *(Tri3i *)local_EC;
+    do { p = (int*)local_A0; } while (0); out = p; if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip6;
     }
     {
-        ((float*)out)[0] = local_144[0] + local_138[0];
+        src_x = local_138[0] + local_144[0];
+        src_z = local_138[2] + local_144[2];
+        ((float*)out)[0] = src_x;
         ((float*)out)[1] = 0.0f;
-        ((float*)out)[2] = local_144[2] + local_138[2];
+        ((float*)out)[2] = src_z;
     }
 skip6:;
-    /* @ 0x9ED0-0x9F0C: A0 -> EC -> 178 hop, same staging idiom. */
-    local_EC[0] = *(int*)&local_A0[0];
-    local_178[0] = local_EC[0];
-    local_EC[1] = *(int*)&local_A0[1];
-    local_178[1] = local_EC[1];
-    local_EC[2] = *(int*)&local_A0[2];
-    local_178[2] = local_EC[2];
 
-    out = (int*)(unsigned)local_88;
-    if (out == 0) {
+    *(Tri3i *)local_EC = *(Tri3i *)p;
+    *(Tri3i *)local_178 = *(Tri3i *)local_EC;
+    p = (int*)local_88; out = p;
+    if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip7;
     }
     {
-        ((float*)out)[0] = local_120[0] - local_12C[0];
+        src_x = local_120[0] - local_12C[0];
+        src_z = local_120[2] - local_12C[2];
+        ((float*)out)[0] = src_x;
         ((float*)out)[1] = 0.0f;
-        ((float*)out)[2] = local_120[2] - local_12C[2];
+        ((float*)out)[2] = src_z;
     }
 skip7:;
-    local_94[0] = *(int*)&local_88[0];
-    local_94[1] = *(int*)&local_88[1];
-    local_94[2] = *(int*)&local_88[2];
-    local_16C[0] = local_94[0];
-    local_16C[1] = local_94[1];
-    local_16C[2] = local_94[2];
-
-    out = (int*)(unsigned)local_6C;
-    if (out == 0) {
+    *(Tri3i *)local_94 = *(Tri3i *)p;
+    *(Tri3i *)local_16C = *(Tri3i *)local_94;
+    p = (int*)local_6C; out = p;
+    if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip8;
     }
     {
-        ((float*)out)[0] = local_144[0] - local_138[0];
+        src_x = local_144[0] - local_138[0];
+        src_z = local_144[2] - local_138[2];
+        ((float*)out)[0] = src_x;
         ((float*)out)[1] = 0.0f;
-        ((float*)out)[2] = local_144[2] - local_138[2];
+        ((float*)out)[2] = src_z;
     }
 skip8:;
-    local_7C[0] = *(int*)&local_6C[0];
-    local_7C[1] = *(int*)&local_6C[1];
-    local_7C[2] = *(int*)&local_6C[2];
-    local_160[0] = local_7C[0];
-    local_160[1] = local_7C[1];
-    local_160[2] = local_7C[2];
-
-    out = (int*)(unsigned)local_38;
-    if (out == 0) {
+    *(Tri3i *)local_7C = *(Tri3i *)p;
+    *(Tri3i *)local_160 = *(Tri3i *)local_7C;
+    p = (int*)local_38; out = p; if ((unsigned)out == 0) {
         out = (int*)game_uso_func_055750(0xC);
         if (out == 0) goto skip9;
     }
     {
-        ((float*)out)[0] = local_120[0] + local_12C[0];
+        src_x = local_12C[0] + local_120[0];
+        src_z = local_12C[2] + local_120[2];
+        ((float*)out)[0] = src_x;
         ((float*)out)[1] = 0.0f;
-        ((float*)out)[2] = local_120[2] + local_12C[2];
+        ((float*)out)[2] = src_z;
     }
 skip9:;
-    local_44[0] = *(int*)&local_38[0];
-    local_44[1] = *(int*)&local_38[1];
-    local_44[2] = *(int*)&local_38[2];
-    local_154[0] = local_44[0];
-    local_154[1] = local_44[1];
-    local_154[2] = local_44[2];
-
-    (void)local_19C;  /* suppress unused warnings until body-part-2 done */
+    *(Tri3i *)local_44 = *(Tri3i *)p;
+    *(Tri3i *)local_154 = *(Tri3i *)local_44;
+    (void)local_19C;
     (void)local_EC;
     (void)local_C4;
     (void)scale0;
-    (void)scale1;
+    (void)delta_src;
 
-    /* @ 0xA1D4-0xA230: two 2D cross products over the four derived screen
-     * vectors. Return 1 when the products have opposite signs. */
     {
-        /* Operand order matches ugen temp ring: first product spelled
-         * B*A (0x160[2]*0x154[0]), final product cross2*cross1, and the
-         * 0.0f is a FRESH (float)0 literal (CSE-break, fceabb6) so the
-         * target's late mtc1 zero,$f6 re-materializes. */
-        float cross1 = (*(float*)&local_160[2] * *(float*)&local_154[0]) - (*(float*)&local_154[2] * *(float*)&local_160[0]);
-        float cross2 = (*(float*)&local_178[2] * *(float*)&local_16C[0]) - (*(float*)&local_16C[2] * *(float*)&local_178[0]);
-        return (cross2 * cross1) < (float)0;
+
+        float cross1 = (*(float*)&local_160[2] * *(float*)&local_154[0]) - (*(float*)&local_154[2] * *(float*)&local_160[0]); return ((*(float*)&local_178[2] * *(float*)&local_16C[0]) - (*(float*)&local_16C[2] * *(float*)&local_178[0])) * cross1 < (float)0;
     }
 }
 #else
