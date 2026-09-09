@@ -626,6 +626,8 @@ D_23494_a = 0x00000000;  /* game_libs_func_00023494 per-site alias of D_00000000
 D_23494_b = 0x00000000;  /* game_libs_func_00023494 per-site alias: +0x2406 selected-marker load */
 D_23494_c = 0x00000000;  /* game_libs_func_00023494 per-site alias: +0x2406 selected-marker store */
 D_23494_d = 0x00000000;  /* game_libs_func_00023494 per-site alias: +0x2308 node-list base (held, addend baked) + guard count load */
+D_6179C_a = 0x00000000;  /* game_libs_func_0006179C run-once countdown: sym2345, addend 0 (held load+store base) */
+D_6179C_b = 0x00000000;  /* game_libs_func_0006179C 64-entry handle table: sym2344, addend 0; &tbl[64] = the baked +0x100 end */
 D_412E8_e = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */
 D_412E8_f = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */
 D_412E8_g = 0x00000000;  /* gl_func_000412E8 guarded-init section alias of D_00000000 (defeats cross-section &D CSE) */

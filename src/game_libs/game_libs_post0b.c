@@ -34087,27 +34087,33 @@ void game_libs_func_00061728(int a0)
     D_6170C_arr[D_6170C_idx] = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0006179C);
-
-/* gl_func_000617A8: NOT a caller-set-register function — it is the CONTINUATION
- * of entry fragment game_libs_func_0006179C (0xC, 3 insns: `v0=&D; t6=*(int*)v0`,
- * no jr ra / no prologue). splat split one run-once-init function in two; 617A8
- * has the `addiu sp,-40` prologue and reads t6/v0 that 6179C set, so in isolation
- * it LOOKS like a t6/v0 caller-set cap but is not (same split-fragment shape as
- * timproc_uso_b5_func_000038B0+038D0). Neither symbol is an in-segment jal target
- * (called via reloc'd jal or as a USO export).
- *
- * Merged 34-insn algorithm (run-once static-init guard):
- *   int *cnt = &D_count;            -- 6179C: v0=&D, t6=*cnt
- *   if (--*cnt < 0) {               -- 617A8: t7=t6-1; *cnt=t7; bgez t7 -> ret
- *       int *p = &D_tableA;         -- s0=&D+0, s2=&D+0x100 (64 entries)
- *       for (; p != &D_tableA+0x40; p++)
- *           if (*p) func(&D_argTbl, *p);   -- argTbl at &D+0x21ED0, jal in loop
- *       func2(&D_str);                     -- str at &D+0x21ED8, final jal
- *   }
- * Match requires (a) merging the 6179C+617A8 boundary (USO-asm regen) and
- * (b) resolving the reloc'd table/jal symbols — multi-tick. Decode preserved. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000617A8);
+/* game_libs_func_0006179C -- MERGED 2026-09-09 (agent-c): the 3-word orphan
+ * `lui v0; addiu v0; lw t6,0(v0)` was the hoisted countdown load of gl_func_000617A8
+ * (splat mis-split; 0x6179C IS the export, sym119, jal'd from text 0x77CBC/0x7A3B4;
+ * 0x617A8 is a mid-function word). One symbol, 0x88 / 34 words; 617A8 .s retired.
+ * Run-once teardown: when the countdown (sym2345, addend 0 -> D_6179C_a) goes
+ * negative, walk the 64-entry handle table (sym2344 -> D_6179C_b) up to the first
+ * zero entry, releasing each via the blank import (sym76) with &D+0x21ED0, then the
+ * final blank import (sym306) with &D+0x21ED8. BYTE-EXACT 34/34: the `break` on the
+ * first zero entry is the plain `beqz`+nop onto the post-loop block (an `if` guard
+ * gives beqzl + dup'd increment); an INDEXED `for (i < 64)` keeps the end pointer
+ * &tbl[64] as its own held s2 with the addend baked (a pointer cursor with the same
+ * symbol recomputes `addiu t9,base,256` per iteration, a distinct end alias splits the
+ * addend or grows an entry guard). */
+extern int D_6179C_a;      /* sym2345: run-once countdown (zero alias of D_00000000) */
+extern int D_6179C_b[64];  /* sym2344: handle table (zero alias of D_00000000) */
+void game_libs_func_0006179C(void) {
+    int i;
+    if (--D_6179C_a < 0) {
+        for (i = 0; i < 64; i++) {
+            if (D_6179C_b[i] == 0) {
+                break;
+            }
+            gl_func_00000000((char *)&D_00000000 + 0x21ED0, D_6179C_b[i]);
+        }
+        gl_func_00000000((char *)&D_00000000 + 0x21ED8);
+    }
+}
 
 /* game_libs_func_00061824: FP formula. n = 4*a0; x = ((n+2)*(n+3) >> 2) & 0xFFFF
  * (unsigned mult -> multu, low word kept); returns (float)(unsigned)x / D[0x2070].
