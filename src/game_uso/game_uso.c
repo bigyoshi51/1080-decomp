@@ -4493,12 +4493,17 @@ void game_uso_func_000071A4(int *);
 int game_uso_func_00006FA8(int *);
 long long game_uso_func_00007538(int *, int);
 void game_uso_func_0000591C(int *a0) {
-    /* 2026-09-09: 76.42 -> 81.96% NM (fresh baseline, not the old note).
+    /* 2026-09-09: 76.42 -> 81.96 -> 88.18% NM (fresh baseline).
      * Word-typed staging copies preserve
      * the sub-pointer reload; both state dispatches are switches; the five
      * demotion conditions share one reset; nested float selectors retain
      * their inner join move. Explicit product temporaries keep the three
-     * scale multiplies ahead of their stores. Still not exact: stack homes,
+     * scale multiplies ahead of their stores. Second pass: pairwise X/Z
+     * staging restores grouped loads/subtracts before stores at all scratch
+     * sites; zero-distance arms come first; absolute values use separate
+     * input/result locals. The third state region is also a switch, and
+     * explicit selector copies retain the first two dispatch webs.
+     * Still not exact: stack homes,
      * FP/temp register allocation and several alloc-fallback schedules differ.
      * See docs/IDO_CODEGEN.md#state-dispatch-word-copy-591c in the tooling repo.
      */
@@ -4617,7 +4622,8 @@ void game_uso_func_0000591C(int *a0) {
      * (the live f0 of 7A98), NOT 0.0f. */
     vsel = *(int*)((char*)self + 0x74);
     t0 = 0;
-    switch (vsel) {
+    v0 = vsel;
+    switch (v0) {
     case 0:
         if (metric_a <= *(float*)((char*)self + 0xD8)) {
             if ((state_flag == 0) && (hit_parent != 0)
@@ -4678,8 +4684,10 @@ void game_uso_func_0000591C(int *a0) {
         Vec3 *w = p;
         src = (float *)((int)sub + 968);
         if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-            w->x = *src;
-            w->z = *(float *)((int)src + 8);
+            float x = *src;
+            float z = *(float *)((int)src + 8);
+            w->x = x;
+            w->z = z;
             w->y = 0.0f;
         }
     }
@@ -4700,14 +4708,13 @@ void game_uso_func_0000591C(int *a0) {
         *(float*)((char*)self + 0x3C) =
             (neg * scale * *(float*)((char*)self + 0xAC)) / *(float *)((int)q + 16);
     }
-    accel_metric = *(float*)((char*)self + 0x3C);
-    if (accel_metric < 0.0f) {
-        accel_metric = -accel_metric;
-    }
+    f2v = *(float*)((char*)self + 0x3C);
+    accel_metric = f2v < 0.0f ? -f2v : f2v;
 
     /* second dispatch on the (possibly updated) self->0x74 */
     active2 = *(int*)((char*)self + 0x74);
-    if (active2 != 0) goto tail_common;
+    switch (active2) {
+    case 0:
 
     bits = *(int*)((char*)self + 0x6C);
     if (bits & 1) {
@@ -4729,9 +4736,11 @@ void game_uso_func_0000591C(int *a0) {
         if (1) { p = &pos_a; }
         src = (float *)((int)helper_ptr + 48);
         if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+            float x = *src;
+            float z = *(float *)((int)src + 8);
             p->y = 0.0f;
-            p->z = *(float *)((int)src + 8);
-            p->x = *src;
+            p->z = z;
+            p->x = x;
         }
 
         p = 0;
@@ -4740,9 +4749,11 @@ void game_uso_func_0000591C(int *a0) {
         {
             Vec3 *w = p;
             if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+                float x = pos_a.x - *src;
+                float z = pos_a.z - *(float *)((int)src + 8);
                 w->y = 0.0f;
-                w->x = pos_a.x - *src;
-                w->z = pos_a.z - *(float *)((int)src + 8);
+                w->x = x;
+                w->z = z;
             }
         }
         stage = *p;
@@ -4753,9 +4764,11 @@ void game_uso_func_0000591C(int *a0) {
         sub = *(char**)((char*)self + 0x30);
         src = (float *)((int)sub + 180);
         if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+            float x = *src;
+            float z = *(float *)((int)src + 8);
             p->y = 0.0f;
-            p->x = *src;
-            p->z = *(float *)((int)src + 8);
+            p->x = x;
+            p->z = z;
         }
 
         p = 0;
@@ -4764,9 +4777,11 @@ void game_uso_func_0000591C(int *a0) {
         {
             Vec3 *w = p;
             if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
+                float x = pos_c.x - *src;
+                float z = pos_c.z - *(float *)((int)src + 8);
                 w->y = 0.0f;
-                w->x = pos_c.x - *src;
-                w->z = pos_c.z - *(float *)((int)src + 8);
+                w->x = x;
+                w->z = z;
             }
         }
         stage = *p;
@@ -4775,12 +4790,12 @@ void game_uso_func_0000591C(int *a0) {
         sub = *(char**)((char*)self + 0x30);
         f2v = *(float*)(sub + 0x348) * *(float*)((char*)self + 0xC0);
         dist_sq = (delta_a.x * delta_a.x) + (delta_a.z * delta_a.z);
-        if (dist_sq != 0.0f) {
-            dot = (delta_a.x * delta_b.x) + (delta_a.z * delta_b.z);
-            f12v = (dot * dot) / dist_sq;
-        } else {
-            f12v = 0.0f;
-        }
+        if (dist_sq == 0.0f) {
+        f12v = 0.0f;
+    } else {
+        dot = (delta_a.x * delta_b.x) + (delta_a.z * delta_b.z);
+        f12v = (dot * dot) / dist_sq;
+    }
         if (f12v <= f2v * f2v) {
             *(int*)((char*)self + 0x48) = 0x14;
             *(int*)((char*)self + 0x6C) = *(int*)((char*)self + 0x6C) & ~1;
@@ -4803,9 +4818,11 @@ void game_uso_func_0000591C(int *a0) {
     if (1) { p = &pos_e; }
     src = (float *)((int)helper_ptr + 48);
     if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-        p->y = 0.0f;
-        p->z = *(float *)((int)src + 8);
-        p->x = *src;
+        float x = *src;
+            float z = *(float *)((int)src + 8);
+            p->y = 0.0f;
+            p->z = z;
+            p->x = x;
     }
 
     p = 0;
@@ -4814,9 +4831,11 @@ void game_uso_func_0000591C(int *a0) {
     {
         Vec3 *w = p;
         if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-            w->y = 0.0f;
-            w->x = pos_e.x - *src;
-            w->z = pos_e.z - *(float *)((int)src + 8);
+            float x = pos_e.x - *src;
+                float z = pos_e.z - *(float *)((int)src + 8);
+                w->y = 0.0f;
+                w->x = x;
+                w->z = z;
         }
     }
     stage = *p;
@@ -4827,9 +4846,11 @@ void game_uso_func_0000591C(int *a0) {
     sub = *(char**)((char*)self + 0x30);
     src = (float *)((int)sub + 180);
     if (p != 0 || (p = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-        p->y = 0.0f;
-        p->x = *src;
-        p->z = *(float *)((int)src + 8);
+        float x = *src;
+            float z = *(float *)((int)src + 8);
+            p->y = 0.0f;
+            p->x = x;
+            p->z = z;
     }
 
     p = 0;
@@ -4838,9 +4859,11 @@ void game_uso_func_0000591C(int *a0) {
     {
         Vec3 *w = p;
         if (w != 0 || (w = (Vec3*)game_uso_func_055750(0xC)) != 0) {
-            w->y = 0.0f;
-            w->x = pos_g.x - *src;
-            w->z = pos_g.z - *(float *)((int)src + 8);
+            float x = pos_g.x - *src;
+                float z = pos_g.z - *(float *)((int)src + 8);
+                w->y = 0.0f;
+                w->x = x;
+                w->z = z;
         }
     }
     stage = *p;
@@ -4849,11 +4872,11 @@ void game_uso_func_0000591C(int *a0) {
     sub = *(char**)((char*)self + 0x30);
     f2v = *(float*)(sub + 0x348) * (*(float*)((char*)self + 0xC0) + 12.0f);
     dist_sq = (delta_e.x * delta_e.x) + (delta_e.z * delta_e.z);
-    if (dist_sq != 0.0f) {
+    if (dist_sq == 0.0f) {
+        f12v = 0.0f;
+    } else {
         dot = (delta_e.x * delta_g.x) + (delta_e.z * delta_g.z);
         f12v = (dot * dot) / dist_sq;
-    } else {
-        f12v = 0.0f;
     }
     if (f12v <= f2v * f2v) {
         out_flags = 1;
@@ -4948,6 +4971,10 @@ yaw_region:
     }
 
 tail_common:
+        break;
+    case 1:
+        break;
+    }
     /* common tail (0xCE8-0x10F8): every path lands here. */
     sc = *(int*)((char*)self + 0x2C);
     fsel = sc == 1 ? *(float*)((char*)self + 0x264)
@@ -5007,10 +5034,8 @@ tail_common:
                 sub = *(char**)((char*)self + 0x30);
                 v0 = *(int*)(sub + 0x908);
                 if (v0 == 0) goto commit_flags;
-                fsel = *(float*)(v0 + 0xBC);
-                if (fsel < 0.0f) {
-                    fsel = -fsel;
-                }
+                f2v = *(float*)(v0 + 0xBC);
+                fsel = f2v < 0.0f ? -f2v : f2v;
                 if (((int)fsel % 5) != 0) goto commit_flags;
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             }
@@ -5043,10 +5068,8 @@ tail_common:
                 sub = *(char**)((char*)self + 0x30);
                 v0 = *(int*)(sub + 0x908);
                 if (v0 == 0) goto commit_flags;
-                fsel = *(float*)(v0 + 0xBC);
-                if (fsel < 0.0f) {
-                    fsel = -fsel;
-                }
+                f2v = *(float*)(v0 + 0xBC);
+                fsel = f2v < 0.0f ? -f2v : f2v;
                 if (((int)fsel % 5) != 0) goto commit_flags;
                 *(int*)((char*)self + 0x40) = *(int*)((char*)self + 0x7C);
             }
