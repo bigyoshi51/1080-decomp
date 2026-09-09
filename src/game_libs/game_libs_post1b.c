@@ -5669,13 +5669,24 @@ int gl_func_00069E04(OSMesgQueue_69E04 *mq, int msg, int flags) {
     return 0;
 }
 
-/* game_libs_func_00069F50 = 1 zero pad word + a VI_CURRENT_REG
- * (0xA4400010) reader at 0x69F54 (template-scan find 2026-06-10). The
- * 3-insn C body is trivial but an in-place swap shifts all downstream
- * unit content (mid-file C-for-INCLUDE replacement never reproduces the
- * block layout -- see docs/MATCHING_WORKFLOW "in-place C matches ONLY
- * safe at unit-END"). Land via a carve split or a unit relayout pass. */
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00069F50);
+/* game_libs_func_00069F54 = libultra osViGetCurrentLine (io/vigetline.c
+ * verbatim): `return IO_READ(VI_CURRENT_REG)` (0xA4400010). BOUNDARY FIX
+ * 2026-09-09 (TWENTY-SIXTH mis-split case, docs/MATCHING_WORKFLOW
+ * #leading-nop-cap-is-inter-object-pad-sym-oracle-74844): the old
+ * "game_libs_func_00069F50" symbol (0x14) was 1 zero word + this 3-insn
+ * body + 1 zero word, filed as "blocked on unit relayout". bootup.uso's
+ * Sym export table says section 0x7E5C0 (= splat 0x69F54, the `lui`) is
+ * the export (sym 1548, two R_MIPS_26 refs); 0x7E5BC (the leading zero)
+ * and 0x7E5CC (the trailing zero) are not. Both zeros are 16-byte
+ * inter-object pads of the separately compiled libultra .o run: the
+ * leading one closes osSendMesg (gl_func_00069E04, 0x14C), the trailing
+ * one closes this 0xC object before gl_func_00069F64 at 0x7E5D0. Restored
+ * as all-zero SUFFIX_BYTES_FORCE on gl_func_00069E04 and on this symbol
+ * (post1b Makefile rule); no GLOBAL_ASM sidecar (a 1-word block emits 8
+ * bytes and shifts the unit +4). 3/3 words at 7.1 -O2. */
+unsigned int game_libs_func_00069F54(void) {
+    return *(volatile unsigned int *)0xA4400010;
+}
 
 #ifdef NON_MATCHING
 #ifndef FW
