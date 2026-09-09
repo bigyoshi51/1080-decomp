@@ -38,7 +38,7 @@ struct GfxRing_413C { int *buf; int idx; };
  *   min/max non-zero column (minx/maxx). Writes record g = o->0x20 + gi*20:
  *     g[0]=row*gw+minx, g[1]=col*gh, g[2]=(maxx+1)-minx, g[4]=minx.
  *   Tracks maxw = max(maxx+1), sum = sum(maxx+1). Finally o->C = maxw,
- *   o->8 = (int)((sum*0.5f)/o->0), and back-fills g[3]=o->C for every cell.
+ *   o->8 = (int)(sum*0.5f) / o->0, and back-fills g[3]=o->C for every cell.
  *
  * STATUS: 99.98% fuzzy (was 99.92), 255/261 raw target words. Still NM.
  * 2026-08-22 fixes: (1) maxx+=1
@@ -62,6 +62,14 @@ struct GfxRing_413C { int *buf; int idx; };
  * shifted by that frame delta (six raw words total). Dropping the line
  * local shrinks the frame but shifts the other spill homes; parameter
  * reuse, address escapes and volatile bounds regress. Register hints inert.
+ * Diagnostic follow-up: omitting line and reordering col/gw/gh reaches
+ * frame 128 with all named homes exact, but seven anonymous-spill offsets
+ * four bytes low (254/261 words). Also reusing a1 for maxw reaches 257/261:
+ * frame and all stack slots exact, incoming a1 saved in s6 instead of s5.
+ * Its four register-word differences score below this version; keep this C.
+ * Both the 128- and 136-byte layouts have numlr=37/finalnumlr=45 (eight
+ * splits) in a completed uopt trace: split count alone does not explain
+ * the frame delta. See docs/IDO_CODEGEN.md#glyph-grid-frame-trace-gui148.
  * See docs/IDO_CODEGEN.md#glyph-grid-pointer-reuse-gui148. Still NON_MATCHING. */
 #ifdef NON_MATCHING
 void *gui_func_00000148(char *a0, int a1, int a2, int a3, int rows, int cols) {
