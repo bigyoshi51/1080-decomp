@@ -1327,6 +1327,9 @@ D_00000000_1c0ac = 0x00000000;  /* Data int @0x1C0AC (bootup.uso sym1430, addend
 D_00000000_1c0c0 = 0x00000000;  /* Data record @0x1C0C0 (bootup.uso sym1443, addend 0): the 5-word mode record initialised by game_libs_func_000309AC via game_libs_func_00031CA8 (w0 = param, w8 = 30, wC = 0, w10 = selector) */
 D_309AC_a = 0x00000000;  /* per-site alias of D_00000000_1c0c0 for the hoisted `cur` read in game_libs_func_000309AC (call-free pair with the &rec arg) */
 D_00000000_345c0 = 0x00000000;  /* Data base @0x345C0 (bootup.uso sym1255, addend 0): the registry block held in t0 by game_libs_func_00024E28 (limit +0x202C, count +0x1578, records +0x157C stride 0x64) */
+D_00000000_3c150 = 0x00000000;  /* Data int @0x3C150 (bootup.uso sym1760, addend 0): the pool counter drained by game_libs_func_0003F9BC (copied into the request block +0x4C, then clamped RMW) */
+D_00000000_3c154 = 0x00000000;  /* Data int @0x3C154 (bootup.uso sym1761, addend 0): the pending flag tested at the head of game_libs_func_0003F9BC and cleared after its first call */
+D_00000000_3c740 = 0x00000000;  /* Data record @0x3C740 (bootup.uso sym73, addend 0): first arg of the second (blank) call of game_libs_func_0003F9BC */
 D_00000000_b49c = 0x00000000;  /* func_0000B49C: 3rd-table base-0 alias, busts addr CSE with 1st table */
 D_00000000_d = 0x00000000;
 D_00000000_e = 0x00000000;

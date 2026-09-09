@@ -10766,65 +10766,52 @@ int gl_func_0003F96C(int a0, int a1, int a2) {
     return a2;
 }
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_0003F9BC);
-
-// gl_func_0003F9C4 — STRUCTURAL PASS (0x8C / 36 words, no episode). Raw-.word
-// USO. realjr=1, single prologue frame 0xC0 (saves ra) → ONE clean function.
-// Bounded-consume / take-from-pool (cbN = jal 0 USO-relocated; same scratch-
-// buffer + tag-block family as 0003F7A8 / 0003F8E8, tag byte 0x1E here).
-//
-//   int gl_func_0003F9C4(void *a0, int a1, unsigned a2) {
-//     if (guard == 0) goto out;             // early beq right after arg-save
-//     void *gp = *(void**)&D_g;             // snapshot a module global ptr
-//     char tag[..]; tag = 0x1E;             // sp+0x20 tag block
-//     cb1(&tag);                            // gp stashed at sp+0x6C
-//     *(int*)&D_g2 = 0;                     // clear a module flag
-//     unsigned avail = *(unsigned*)&D_a;    // pool counter
-//     unsigned taken;
-//     if (a2 < avail) {                     // sltu: request fits
-//       taken = a2;
-//       *(unsigned*)&D_a = avail - a2;      // decrement pool
-//     } else {                              // request exceeds pool
-//       taken = avail;                      // take all that remains
-//       *(unsigned*)&D_a = 0;               // drain pool
-//     }
-//     cb2(a1, taken);                       // emit/commit consumed amount
-//   out:
-//     return taken;                         // bytes/units consumed
-//   }
-// Classic clamp-to-available pool drain: min(a2, *&D_a) consumed, pool
-// decremented or zeroed accordingly, result reported via cb2 and returned.
-// Family: cb-driven staged op with a tagged scratch block (siblings
-// 0003F7A8 tag 0x23, 0003F8E8 tag 0x1D).
-//
-// Caps (DEFERRED): D_g/D_g2/D_a module globals + cbN signatures
-//   inferred from call shape; leading guard register/struct untyped.
-//   Real-C STRUCTURAL body below. Byte-match deferred. Name pre-checked:
-//   no extern reuse.
-#ifdef NON_MATCHING
-extern int D_00000000;
-unsigned gl_func_0003F9C4(void *a0, int a1, unsigned a2) {
-    char tag[0x10];
+/* game_libs_func_0003F9BC (0x98, 38 insns): clamp-to-available pool drain.
+ * bootup.uso Sym exports section offset 0x54028 = splat 0x3F9BC (ROM 0xE24A94 -
+ * 0xDD0A6C; sym1615, jal'd from TextReloc @0x49B18); 0x54030 = 0x3F9C4 is NOT
+ * exported. The 2-word orphan `lui t6; lw t6,0(t6)` was the hoisted first
+ * statement (the pending-flag read scheduled above `addiu sp`), not a
+ * "stolen-prologue tail for the successor". Merged; the gl_func_0003F9C4 wrap
+ * (60.4) + .s are retired.
+ *
+ * Data (all addend 0 -> own zero externs): sym1761 @0x3C154 = the pending flag
+ * (head read, cleared after the first call -- call-separated, no alias);
+ * sym1760 @0x3C150 = the pool counter (read into the 0xA0-byte request block
+ * at +0x4C before the first call, then the held-base `lui v1; addiu v1` RMW
+ * pair `lw v0 / sw t9|zero` = the natural read-modify-write CSE); sym73
+ * @0x3C740 = the record passed to the second call. Both jals are blank
+ * R_MIPS_26 (sym1763 = text 0x53358, sym1511 = text 0x4A010). a0 is unused
+ * (dead home only); a1/a2 are homed and reloaded around the calls; the
+ * clamped a2 is reassigned in place and returned through its home
+ * (`sw a2,0xC8` in the jal delay, `lw v0,0xC8`).
+ *
+ * Only lever: declare the request block BEFORE `avail` at function scope --
+ * locals are homed top-down in declaration order (IDO_CODEGEN 258C0 note), so
+ * `avail`'s dead home takes 0x1C and the block sits at 0x20..0xC0. `avail`
+ * first, a block-scope block, a volatile pad, or a 0x29/0x27-word block all
+ * move it to 0x18/0x1C. BYTE-EXACT 38/38 standalone (agent-c 2026-09-09). */
+extern int D_00000000_3c150;
+extern int D_00000000_3c154;
+extern int D_00000000_3c740;
+unsigned game_libs_func_0003F9BC(int a0, int a1, unsigned a2) {
+    int blk[0x28];
     unsigned avail;
-    unsigned taken = 0;
-    if (*(int *)((char *)&D_00000000 + 0x10) == 0) return 0;
-    tag[0] = 0x1E;
-    gl_func_00000000(&tag[0]);
-    *(int *)((char *)&D_00000000 + 0xC) = 0;
-    avail = *(unsigned *)((char *)&D_00000000 + 0x14);
-    if (a2 < avail) {
-        taken = a2;
-        *(unsigned *)((char *)&D_00000000 + 0x14) = avail - a2;
-    } else {
-        taken = avail;
-        *(unsigned *)((char *)&D_00000000 + 0x14) = 0;
+    if (D_00000000_3c154 != 0) {
+        blk[0] = 30;
+        blk[0x13] = D_00000000_3c150;
+        gl_func_00000000(blk);
+        D_00000000_3c154 = 0;
     }
-    gl_func_00000000(a1, taken);
-    return taken;
+    avail = D_00000000_3c150;
+    if (a2 < avail) {
+        D_00000000_3c150 = avail - a2;
+    } else {
+        a2 = avail;
+        D_00000000_3c150 = 0;
+    }
+    gl_func_00000000(&D_00000000_3c740, a1, a2);
+    return a2;
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0003F9C4);
-#endif
 
 #ifdef NON_MATCHING
 /* gl_func_0003FA54: 21-insn 2-call helper. Initializes buf[0]=0x33,
