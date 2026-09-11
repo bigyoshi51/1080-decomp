@@ -758,50 +758,28 @@ int gl_func_0000A4D0(int *a0, int a1) {
 
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A540);
 
-#ifdef NON_MATCHING
-#ifndef FW
-#define FW(p, o) (*(int *)((char *)(p) + (o)))
-#endif
-/* gl_func_0000A670: 5x/8x-stepped twin-call loop over two data-segment cursors.
- * The three loop cursors (0xD268/0xD388 + the 0xD3E8 end-sentinel) are DATA
- * ADDRESSES into the &D base, not magic integer constants: the target
- * materializes each as `lui rX,0x1; addiu rX,rX,-NNNN` (= 0xDxxx via signed
- * %hi/%lo), which only `(char *)&D_00000000 + 0xDxxx` reproduces — bare
- * `0xD268` compiled to `ori`/`li` (the old 85.2% form). With the pointer
- * typing the body is structurally exact (size 61 vs 62 words, modulo idioms,
- * twin calls, increments all match). Residual: (1) a cyclic $s-reg renumber
- * (var_s2/var_s0 swap s0<->s2, end-sentinel s6 vs s7) — IDO allocno coloring,
- * not C-steerable; (2) one dead `move v0,zero` pre-loop init the original
- * carried (a dead local IDO didn't DCE) that no C form reproduces without
- * regressing. Coloring + phantom-slot cap. */
+/* gl_func_0000A670: 8-slot twin-call loop over two data-segment tables (62 insns,
+ * frame 0x38, s0-s7) -- EXACT 62/62 (2026-09-11 agent-g; was NM 95.5). The three
+ * cursors are BASIC-INDUCTION-VARIABLE derivations, not hand-stepped pointers: written
+ * as `for (k = 0; k < 8; k++)` with `arg0 + k*0x30`, `k*3`, `&D + 0xD268 + k*0x24`,
+ * `&D + 0xD388 + k*0xC`, uopt's findinduct/eliminduct turns each product into its own
+ * s-register IV, replaces the trip test with the 0xD388 cursor vs the baked end
+ * (`lui/addiu -11288` = 0xD3E8), and leaves the eliminated k's init behind as the dead
+ * `or v0,zero,zero` (the residual the hand-stepped form could never emit). The s-colours
+ * follow first occurrence: the arg cursor must be named BEFORE `i = k * 3` (s0/s1).
+ * Both callees are the USO-reloc blank (jal 0x0): the in-TU K&R gl_func_0000959C would
+ * link a real address into the ROM. See docs/IDO_CODEGEN.md#basic-iv-elimination-leaves-dead-init-a670. */
 void gl_func_0000A670(s32 arg0) {
-    s32 var_s0;
-    s32 var_s1;
-    char *var_s2;
-    char *var_s3;
-    s32 temp_hi;
-    s32 temp_s5;
-    char *var_end;
-
-    var_s3 = (char *)&D_00000000 + 0xD268;
-    var_s2 = (char *)&D_00000000 + 0xD388;
-    var_end = (char *)&D_00000000 + 0xD3E8;
-    var_s0 = arg0;
-    var_s1 = 0;
-    do {
-        temp_hi = var_s1 % 5;
-        temp_s5 = var_s1 % 8;
-        gl_func_0000959C(var_s0, temp_hi, temp_s5, var_s3);
-        gl_func_0000959C(var_s0, temp_hi, temp_s5, var_s2);
-        var_s2 += 0xC;
-        var_s0 += 0x30;
-        var_s1 += 3;
-        var_s3 += 0x24;
-    } while (var_s2 != var_end);
+    s32 k;
+    s32 p;
+    s32 i;
+    for (k = 0; k < 8; k++) {
+        p = arg0 + k * 0x30;
+        i = k * 3;
+        gl_func_00000000(p, i % 5, i % 8, (char *)&D_00000000 + 0xD268 + k * 0x24);
+        gl_func_00000000(p, i % 5, i % 8, (char *)&D_00000000 + 0xD388 + k * 0xC);
+    }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_0000A670);
-#endif
 
 extern int gl_func_00000000();
 
