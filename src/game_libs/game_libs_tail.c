@@ -552,8 +552,6 @@ void gl_func_00009DB8(int *out, int ia, int ib, int *src) {
     }
 }
 
-extern int gl_data_0000D434;
-
 /* gl_func_00009EBC: 3-iteration loop dispatching to gl_func_00000000 with
  * a 5x8 grid index computed as (a1 % 5) + ((a2 % 8) << 3). The signed
  * remainder of a2 by 8 comes from a sign-preserving bgez/andi/beq dance
@@ -561,29 +559,27 @@ extern int gl_data_0000D434;
  *   a0 = base pointer (dst is a0+0x18, advances +8/iter)
  *   a1 = row seed (advances +1/iter, fed to %5)
  *   a2 = col seed (advances +1/iter, fed to signed-%8)
- *   a3 = pointer to sink ints, advancing one word per iter. */
-#ifdef NON_MATCHING
-void gl_func_00009EBC(int x0, int a1, int a2, int* a3) {
-    int dst = x0 + 0x18;
-    int row = a1;
-    int col = a2;
-    int sink;
-    int i;
-    int idx;
-
-    for (i = 0; i != 12; i += 4) {
-        idx = (row % 5) + ((col % 8) << 3);
-        sink = *a3;
-        gl_func_00000000(dst, idx, &gl_data_0000D434, sink);
-        dst += 8;
-        row += 1;
-        col += 1;
-        a3++;
+ *   a3 = pointer to sink ints, advancing one word per iter.
+ * 2026-09-11 (agent-g): EXACT 59/59. The 84.1% wrap hand-stepped four
+ * cursors (dst += 8; row++; col++; a3++) inside `for (i = 0; i != 12; i += 4)`
+ * and named the D+0xD434 arg as a pinned extern. Same shape as its sibling
+ * gl_func_00009DB8 (docs/IDO_CODEGEN.md
+ * #iv-elimination-corollaries-candidate-first-addu-inline-cursors-aaec-9db8-afc4):
+ * `for (k = 0; k < 3; k++)` with every cursor derived INLINE in the call --
+ * x0 + 0x18 + k*8 (s0, first occurrence = a0 + 24), (a1 + k) % 5 (s1),
+ * (a2 + k) % 8 (s2), a3[k] (s4 = a3 + 4k) -- so k is eliminated (the dead
+ * `or v0,zero,zero` is its init) and the trip test is retargeted onto the
+ * 4k byte-index IV (s3 vs s7 = 12); the D+0xD434 arg is the inline
+ * `(char *)&D_00000000 + 0xD434` (uopt hoists it to s6, lui s6,1 /
+ * addiu s6,s6,-11212 = the carry form). */
+extern int gl_func_00000000();
+void gl_func_00009EBC(char *x0, int a1, int a2, int *a3) {
+    int k;
+    for (k = 0; k < 3; k++) {
+        gl_func_00000000(x0 + 0x18 + k * 8, ((a1 + k) % 5) + (((a2 + k) % 8) << 3),
+                         (char *)&D_00000000 + 0xD434, a3[k]);
     }
 }
-#else
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00009EBC);
-#endif
 
 /* gl_func_00009FA8: 25-insn 3-iteration loop with 2 cross-USO calls per
  * iter. Calls gl_func(a0+i) and gl_func(a0+0x18+i) for i = 0, 8, 0x10. */
