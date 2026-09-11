@@ -13499,41 +13499,39 @@ void gl_func_000432BC(s32 arg0, char *arg1, s32 arg2) {
 INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_000432BC);
 #endif
 
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", game_libs_func_00043468);
-
-// gl_func_00043484 — STRUCTURAL PASS (0xD0 / 53 words, no episode). Raw-.word
-// USO. realjr=1, regjr=0, no calls (leaf) → ONE clean function. Single
-// prologue frame 0x10. Halfword buffer zero-fill with unrolled main loop.
-//
-//   void gl_func_00043484(void *arr, int idx, int count) {
-//     short *p = *(short**)((char*)arr + idx*4 + 0xF4);  // derive base ptr
-//     if (count <= 0) return;
-//     int rem = count & 3;                                 // remainder phase
-//     if (rem != 0) {
-//       do { *p = 0; p += 1; } while (--rem);               // sh zero, +2
-//     }
-//     int n = count >> 2;                                  // 4-at-a-time main
-//     if (n != 0) {
-//       do {
-//         p[0] = 0; p[1] = 0; p[2] = 0; p[3] = 0;
-//         p += 4;
-//       } while (--n);
-//     }
-//     int g = *(int*)&D_g;                                 // 3C03../8C63..
-//     int written = (int)p - count;                         // subu byte delta
-//     // (tail uses written vs g — a fill-extent/bounds bookkeeping value)
-//   }
-// Zeroes `count` 16-bit elements of the buffer reached via
-// *(arr + idx*4 + 0xF4): a (count & 3) remainder loop followed by a
-// 4-halfword-unrolled main loop (the cursor is spilled to sp+0x04 across
-// iterations), then a closing subu against a module global computes a
-// written-extent delta. Family: buffer-management / zero-fill (relates to
-// the byte-pack/quantize routine gl_func_000430E4). The unroll factor (4),
-// the (count & 3) split, the sh-zero stride and the arr+idx*4+0xF4 base
-// derivation are exact; the trailing global-delta use is representative.
-// Caps: arr element struct + &D_g global untyped. Full body
-// INCLUDE_ASM-preserved.
-INCLUDE_ASM("asm/nonmatchings/game_libs/game_libs", gl_func_00043484);
+/* game_libs_func_00043468 (0xF0, 60 words): the 7-word game_libs_func_00043468
+ * orphan + gl_func_00043484 are ONE function -- bootup.uso Sym exports text
+ * 0x57AD4 (= splat 0x43468); 0x43484 is not exported/referenced. The orphan is
+ * the hoisted head (stride load, &D base, the `multu`, and the index /
+ * current-object loads scheduled above `addiu sp`). Zero-fills a w x h
+ * halfword rectangle at (x, y) of the current object's 16-bit buffer
+ * (D+0x240 -> ((short **)(obj + 0xF4))[D+0x204]) with a row stride read from
+ * its own data word (D_43468_a, re-read after every row because the `sh`
+ * stores may alias it). Leaf, frame 0x10, no calls.
+ * Levers (docs/IDO_CODEGEN.md#volatile-cursor-unrolled-fill-named-index-43468):
+ * (1) the cursor is `short * volatile p` -- every `*p++` is `lw home; addiu;
+ * sw home; sh 0(old)` and the (w & 3) remainder loop + 4x unrolled body fall
+ * out of the plain `for`; (2) `q = p; p = q + 1; *q = 0;` orders the
+ * write-back BEFORE the `sh` (`*p++ = 0` stores first); (3) the start index as
+ * a NAMED `int n = y * stride + x` colours the head sum and the inner counter
+ * j in $v0 (stride/q $v1, remainder $a0, i $t0; inline it is a t-ring temp
+ * and the colours rotate to v0/v1/a0/a1); (4) the current-object array as
+ * `((int *)(obj + 0xF4))[idx]` evaluates the object before the index
+ * (t7/t8/t9); (5) `int i, j;` declared BEFORE the volatile p = the two
+ * phantom slots above the cursor home (p at sp+4, frame 0x10). */
+extern int D_43468_a;   /* row stride (halfwords) data word, per-site alias of D_00000000 */
+void game_libs_func_00043468(int x, int y, int w, int h) {
+    int i, j;
+    short * volatile p;
+    int n;
+    short *q;
+    n = y * D_43468_a + x;
+    p = (short *)((int *)(*(int *)((char *)&D_00000000 + 0x240) + 0xF4))[*(int *)((char *)&D_00000000 + 0x204)] + n;
+    for (i = 0; i < h; i++) {
+        for (j = 0; j < w; j++) { q = p; p = q + 1; *q = 0; }
+        p += D_43468_a - w;
+    }
+}
 
 void gl_func_00043558(int *a0) {
     gl_func_00000000(*(int*)((char*)*(int**)((char*)a0 + 0x148) + 0x180));
